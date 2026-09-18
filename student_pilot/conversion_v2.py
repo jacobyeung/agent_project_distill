@@ -84,12 +84,12 @@ RESPONSE_SCHEMA = {
         "status": {"type": "string", "enum": ["converted", "insufficient_evidence"]},
         "answer": {"type": "string", "description": "Bare native answer BODY only, byte-exact; no answer tags. Empty only for insufficient_evidence."},
         "explanation": {
-            "type": "array", "maxItems": 64,
+            "type": "array",
             "description": "Ordered paragraphs: setup, observations, derivation, relevant qualifications, conclusion. At least four paragraphs when converted; [] only for insufficient_evidence. Separate claim per distinct supporting observation used.",
             "items": {
                 "type": "object", "required": ["purpose", "claims"], "additionalProperties": False,
                 "properties": {"purpose": {"type": "string", "enum": list(PARAGRAPH_PURPOSES)},
-                               "claims": {"type": "array", "minItems": 1, "maxItems": 128, "items": CLAIM_SCHEMA}},
+                               "claims": {"type": "array", "minItems": 1, "items": CLAIM_SCHEMA}},
             },
         },
     },

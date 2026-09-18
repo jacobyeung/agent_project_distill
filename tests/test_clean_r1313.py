@@ -315,11 +315,13 @@ class ResponseTests(unittest.TestCase):
         for key in ("Ground Truth Answer", "CORRECT-ANSWER", "GT ANSWER", "Answer_Label", "IS-CORRECT",
                     "Correctness", "SCORE", "Evaluation Qid", "EVAL-QID", "Label"):
             with self.subTest(key=key):
-                payload = copy.deepcopy(self.context["payload"])
+                request = copy.deepcopy(self.context["request"])
+                payload = json.loads(request["contents"][0]["parts"][0]["text"])
                 item = payload["evidence"][3]
                 item["metadata"] = [{key: "SENTINEL"}]
+                request["contents"][0]["parts"][0]["text"] = json.dumps(payload)
                 with self.assertRaisesRegex(ValueError, "label_alias_in_request") as caught:
-                    converter.request_boundary(converter.conversion.make_request(payload))
+                    converter.request_boundary(request)
                 self.assertEqual(caught.exception.evidence_id, item["id"])
                 self.assertEqual(caught.exception.offset, 0)
                 self.assertIn("metadata", caught.exception.field_path)

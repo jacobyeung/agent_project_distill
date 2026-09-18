@@ -296,8 +296,10 @@ def native_transport(request, telemetry):
 
 def run(workspace, job_path, lease_path, output):
     require(os.environ.get("CUDA_VISIBLE_DEVICES") == "", "Clean conversion is CPU/API-only")
+    expected_count = len(read_json(workspace, job_path)["selected_qids"])
+    lease = require_api_lease(workspace, lease_path, job_path, expected_count)
     job, snapshot = load_job(workspace, job_path)
-    lease = require_api_lease(workspace, lease_path, job_path, len(job["selected_qids"]))
+    require_api_lease(workspace, lease_path, job_path, len(job["selected_qids"]), fresh=False)
     output = clean_path(workspace, output)
     root = namespace(workspace, job_path)
     require(namespace(workspace, output) == root and not output.exists(), "Use a fresh run inside the clean job namespace")
