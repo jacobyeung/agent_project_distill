@@ -769,3 +769,64 @@ if not (root/'STOP').exists():
                 time.sleep(.01)
         assert libc.prctl(36, previous.value, 0, 0, 0) == 0
     queue.require_drained()
+
+
+def test_recovery_resume_preserves_replacement_owner_after_retirement(root, monkeypatch):
+    import subprocess
+    import sys
+    target, queue = make_queue(root, count=2)
+    code = '''
+import sys
+from pathlib import Path
+from pool_harness.state import Episode,EpisodeCatalog,EpisodeQueue,PoolConfig,TargetStore
+root=Path(sys.argv[1]);worker=sys.argv[2]
+target=TargetStore(root,PoolConfig('fixture',1024))
+queue=EpisodeQueue(root,EpisodeCatalog([Episode('q0','scene',{}),Episode('q1','scene',{})]),target,lambda _:False)
+queue.heartbeats.publish(worker,state='claim_boundary',episode_id=None)
+assert queue.claim_next(worker,0).episode.episode_id=='q0'
+sys.exit(1)
+'''
+    command = lambda worker, *_: [sys.executable, '-B', '-c', code, str(root), worker]
+    control = PoolController(queue, target, run_epoch='failed', command_factory=command, log_root=root/'logs')
+    control.tick(0)
+    failed = control.active[0]
+    assert failed.process.wait(timeout=20) == 1
+    real = queue.recover_orphan
+    def interrupted(*args, **kwargs):
+        real(*args, **kwargs)
+        raise RuntimeError('controller death after retirement')
+    monkeypatch.setattr(queue, 'recover_orphan', interrupted)
+    try:
+        with pytest.raises(RuntimeError, match='controller death after retirement'):
+            control._reap()
+    finally:
+        control.stop()
+    monkeypatch.setattr(queue, 'recover_orphan', real)
+    event_path = root/'worker_failures'/f'{failed.worker_id}.json'
+    event_bytes = event_path.read_bytes()
+    event = read_json(event_path)
+    assert not (root/'worker_recoveries'/f'{failed.worker_id}.json').exists()
+    competitor = subprocess.Popen(command('competitor'))
+    assert competitor.wait(timeout=20) == 1
+    claim_path = queue.claim_path(queue.catalog.episodes[0])
+    before = claim_path.read_bytes()
+    assert read_json(claim_path)['worker_id'] == 'competitor'
+    with pytest.raises(StateError, match='orphan recovery owner mismatch'):
+        queue.recover_orphan('q0', expected_worker_id=failed.worker_id,
+                            owner_is_alive=lambda _: False, proof={'unrelated': True})
+    successor = PoolController(queue, target, run_epoch='restart',
+        command_factory=lambda *_: ['fixture'], popen_factory=Process, log_root=root/'logs')
+    def unexpected_owner_check(_claim):
+        raise AssertionError('completed retirement must not inspect the replacement owner')
+    monkeypatch.setattr(successor, '_owner_is_alive', unexpected_owner_check)
+    try:
+        assert not successor.tick(1)['blocked']
+        assert claim_path.read_bytes() == before
+        assert event_path.read_bytes() == event_bytes
+        assert len(successor.failure_events) == 1
+        assert len(list((root/'orphan_recoveries').glob('*.json'))) == 1
+        completion = read_json(root/'worker_recoveries'/f'{failed.worker_id}.json')
+        assert completion['failure_receipt'] == event['recovery_proof']['failure_receipt']
+        assert not (root/'BLOCKED.json').exists()
+    finally:
+        successor.stop()

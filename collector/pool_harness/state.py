@@ -468,14 +468,16 @@ class EpisodeQueue:
         with link_lock(self.target_store.lock_dir, f"RECOVER_{episode.key}"):
             with self.target_store.cap_lock():
                 claim_path = self.claim_path(episode)
-                if not claim_path.exists():
+                if (not claim_path.exists()
+                        or read_json(claim_path).get("worker_id") != expected_worker_id):
                     for receipt in (self.state_root / "orphan_recoveries").glob(f"{episode.key}-*.json"):
                         saved = read_json(receipt)
                         if (saved.get("episode_id") == episode_id
                                 and saved.get("expected_worker_id") == expected_worker_id
                                 and saved.get("proof") == proof):
                             return receipt
-                    raise StateError("missing claim without matching recovery evidence")
+                    if not claim_path.exists():
+                        raise StateError("missing claim without matching recovery evidence")
                 claim_bytes = claim_path.read_bytes()
                 claim = read_json(claim_path)
                 if claim.get("worker_id") != expected_worker_id:
