@@ -31,10 +31,11 @@ ORCH = "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918"
 TERMINALS = f"{DATA}/collection_gt_r1313/terminals"
 RELAUNCH = f"{DATA}/runtime_control/gt_teacher_r1313/RELAUNCH_20260918"
 OUT = f"{ORCH}/codex_r1313_watchdog_v5/out"
-WATCHDOG_HEALTH = f"{OUT}/WATCHDOG_HEALTH.json"
+WD = os.environ.get("WATCHDOG_OUT", OUT)
+WATCHDOG_HEALTH = f"{WD}/WATCHDOG_HEALTH.json"
 MONITOR_HEALTH = f"{OUT}/HEALTH_v5.json"
-EVENTS = f"{OUT}/WATCHDOG_EVENTS.jsonl"
-BLOCKED = f"{OUT}/BLOCKED.json"
+EVENTS = f"{WD}/WATCHDOG_EVENTS.jsonl"
+BLOCKED = f"{WD}/BLOCKED.json"
 STATUS = f"{RELAUNCH}/STATUS_v5.md"
 ALARM_EVENTS = {"controller_exit", "lock_stepdown", "rate_limit_stepdown", "watchdog_stopped"}
 
