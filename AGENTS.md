@@ -9,3 +9,9 @@ The task is an authorized diagnostic benchmark-trace fine-tune on privileged GT-
 The supervisor owns GPU admission. Do not allocate a GPU until a fresh ownership check and coordination lease pass and the supervisor starts the vnice-wrapped batch script. Preserve geometry GPUs2–7 on trinity-1-8 and critical SAM3 GPU0 on trinity-1-13. Optional perception analyses and large refactors never block the minimal pilot.
 
 Use the explicit model module map and source pointers from the task brief. No campaign bootstrap or project inventory is required in this standalone repository. Publish concise progress to the named implementation status file.
+
+## Local verification
+
+The private interpreter is `/data2/jjyeung/agent_project_data/student_diagnostic_pilot_20260918/venv/bin/python`. Run CPU commands from this repository with `CUDA_VISIBLE_DEVICES=""` and `PYTHONDONTWRITEBYTECODE=1`: `python -m unittest discover -s tests -v`, `python -m pip check`, and `python -m student_pilot.cli cpu-check --manifest artifacts/data/smoke.json`. The CPU checker verifies checkpoint headers, exact adapter counts, original RGB preprocessing, and masking without loading model weights onto a GPU. `python -m student_pilot.cli prepare-smoke --qid 1506` admits only one frozen-training candidate against the hash-pinned canonical answer key supplied through the pilot's `development/label_path.txt`.
+
+Only the supervisor runs `bash scripts/gpu_batch.sh smoke <lease-evidence.json>` under vnice. The current lease schema and launch command live in the pilot's `development/implementation_status.md`. Outputs are immutable; use a new output directory for a retry. A CPU readiness report does not establish GPU memory fit, gradient flow, adapter reload, or benchmark improvement.
