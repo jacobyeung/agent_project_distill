@@ -57,6 +57,15 @@ def verify_pin(workspace, value):
     return actual
 
 
+def verify_pins(workspace, values):
+    """Rehash every binding; bound parallel reads keep large archives practical."""
+    from concurrent.futures import ThreadPoolExecutor
+    values = list(values)
+    with ThreadPoolExecutor(max_workers=min(16, max(1, len(values)))) as pool:
+        for _ in pool.map(lambda value: verify_pin(workspace, value), values):
+            pass
+
+
 def write_bytes(workspace, path, content):
     path = clean_path(workspace, path)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -696,8 +705,7 @@ def freeze(workspace, run_root, census_root, output, membership_path=None, sourc
                                  "sha256": accepted[qid]["trace_sha256"]})
     if store.errors or not allow_missing and (store.missing or any(row["status"] != "ready" for row in rows)):
         raise SnapshotIncomplete(store.inventory(inventory))
-    for value in list(authority_pins.values()) + list(store.bindings.values()):
-        verify_pin(workspace, value)
+    verify_pins(workspace, list(authority_pins.values()) + list(store.bindings.values()))
     frozen = {}
     for key, value in authority_pins.items():
         frozen[key] = write_bytes(workspace, output / "authority" / authority_paths[key].name, local_path(workspace, value["path"]).read_bytes())
@@ -738,8 +746,7 @@ def load_snapshot(workspace, path, require_ready=True):
         pins.append(snapshot["membership"])
     if snapshot["source_map"] is not None:
         pins.append(snapshot["source_map"])
-    for value in pins:
-        verify_pin(workspace, value)
+    verify_pins(workspace, pins)
     authority = {key: read_json(workspace, value["path"]) for key, value in snapshot["authority"].items()}
     accepted = census_records(authority["SUMMARY"], authority["ACCEPTED"], authority["DECISIONS"])
     require(snapshot["accepted_qids"] == select_qids(list(accepted)) and [r["qid"] for r in snapshot["rows"]] == snapshot["accepted_qids"], "Frozen source census identity drift")

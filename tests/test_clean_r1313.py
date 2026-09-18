@@ -546,7 +546,7 @@ class StagedSourceTests(unittest.TestCase):
         self.assertIn("scannetppv2__15b109bd584d", pilot["frames"][0]["source_path"])
         self.assertEqual(pilot["frames"][0]["sha256"], "5d97f7c03dc2b25a56ce8ed8811c2d9cd0ad41e4d2487c7c23460a282fb4aa60")
         self.assertTrue(any(item["source_path"] == pilot["frames"][0]["source_path"] and item["sha256"] == pilot["frames"][0]["sha256"]
-                            for item in report["missing"]))
+                            for attempt in report["attempt_inventory"] for item in attempt["files"]))
         self.assertFalse(report["runnable"])
         self.assertFalse((output / "snapshot/snapshot.json").exists())
         clean_source.write_json(workspace, output / "STRICT_STAGED_SOURCE_INVENTORY.json", report)

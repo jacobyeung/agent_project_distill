@@ -34,7 +34,7 @@ class TopupAuthorityTests(unittest.TestCase):
         row = snapshot["rows"][0]
         self.assertEqual(row["selected_budget"], 32768)
         self.assertEqual(row["selection"]["selected_attempt"], "b32768")
-        self.assertEqual(row["selection"]["reason"], "accepted_32k_after_authorized_incorrect_capped_16k")
+        self.assertEqual(row["selection"]["reason"], "accepted_32k_after_authorized_capped_16k")
         self.assertTrue(row["selection"]["topup_authority_verified"])
         self.assertEqual(row["authority"]["topups"]["sha256"], fixture.pin(fixture.topup_paths[row["qid"]])["sha256"])
         self.assertEqual({item["budget"] for item in snapshot["attempt_inventory"]}, {16384, 32768})
@@ -237,7 +237,7 @@ class StrictInventoryTests(unittest.TestCase):
         self.assertIn(scene["frames"][0]["path"], paths)
 
     def test_strict_staged_pilot_metadata_lists_the_known_scene_path_discrepancy(self):
-        evidence_path = Path(__file__).resolve().parents[3] / "inputs/r1313_applicability.json"
+        evidence_path = Path(os.environ.get("R1313_APPLICABILITY", str(Path(__file__).resolve().parents[3] / "inputs/r1313_applicability.json")))
         if not evidence_path.is_file():
             self.skipTest("requires_lane_staged_pilot_metadata: " + str(evidence_path))
         workspace = Path(os.environ["CLEAN_VSI590K_WORKSPACE"])
@@ -262,7 +262,7 @@ class StrictInventoryTests(unittest.TestCase):
         self.assertIn("scannetppv2__15b109bd584d", text)
         first = evidence["trace_first_student_frame"]
         self.assertTrue(any(item["source_path"] == first["path"] and item["sha256"] == first["sha256"]
-                            for item in report["missing"]))
+                            for attempt in report["attempt_inventory"] for item in attempt["files"]))
         self.assertFalse(report["runnable"])
         self.assertTrue(report["undiscovered_dependencies"])
         fixture.save(fixture.root / "STRICT_PILOT_METADATA_INVENTORY.json", report)

@@ -296,7 +296,9 @@ def native_transport(request, telemetry):
 
 def run(workspace, job_path, lease_path, output):
     require(os.environ.get("CUDA_VISIBLE_DEVICES") == "", "Clean conversion is CPU/API-only")
-    expected_count = len(read_json(workspace, job_path)["selected_qids"])
+    preflight_job = read_json(workspace, job_path)
+    require(preflight_job.get("runnable") is True and preflight_job.get("dry_run") is False, "Dry-run or requires_source_media jobs cannot authorize provider calls")
+    expected_count = len(preflight_job["selected_qids"])
     lease = require_api_lease(workspace, lease_path, job_path, expected_count)
     job, snapshot = load_job(workspace, job_path)
     require_api_lease(workspace, lease_path, job_path, len(job["selected_qids"]), fresh=False)

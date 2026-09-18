@@ -51,3 +51,18 @@ class LandingTests(unittest.TestCase):
         fixture = Fixture(budget=32768)
         snapshot = clean_source.read_json(fixture.workspace, fixture.freeze()["path"])
         self.assertTrue(snapshot["rows"][0]["selection"]["topup_authority_verified"])
+
+    def test_parallel_source_recheck_propagates_hash_drift(self):
+        import os,json
+        from pathlib import Path
+        from uuid import uuid4
+        from student_pilot import clean_source
+        root = Path(os.environ["CLEAN_VSI590K_TEST_ROOT"]) / uuid4().hex
+        root.mkdir(parents=True)
+        path = root / "source.json"
+        path.write_text("{}")
+        pin = clean_source.pin(root, path)
+        clean_source.verify_pins(root, [pin, pin])
+        path.write_text('{"changed":true}')
+        with self.assertRaisesRegex(ValueError, "Source-hash drift"):
+            clean_source.verify_pins(root, [pin, pin])
