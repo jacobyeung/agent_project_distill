@@ -1,0 +1,68 @@
+{
+  "permissions": {
+    "deny": [
+      "WebSearch",
+      "WebFetch"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 /home/jjyeung/agent_project/agent/scripts/rm_guard.py --hook claude",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR}/.claude/hooks/subagent-default-opus.py\"",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Workflow",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR}/.claude/hooks/workflow-agent-model-guard.py\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "PROJECT_DIR=\"${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel)}\"; python \"$PROJECT_DIR/agent/check_commit_checkpoint.py\" --event post-edit --hook-format claude",
+            "timeout": 5,
+            "statusMessage": "Checking commit checkpoint"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR:-/home/jjyeung/agent_project}/agent/scripts/idle_handoff_timer.sh\"",
+            "asyncRewake": true,
+            "timeout": 3900,
+            "statusMessage": "Arming 50-min idle-handoff timer"
+          }
+        ]
+      }
+    ]
+  }
+}
