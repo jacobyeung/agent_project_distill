@@ -84,6 +84,12 @@ The landing source/import tree is `c8de144b3b99c0da40cb7162931d04c049c6b924` (66
 - Source working-tree edits and untracked files: excluded as mutable working state. If a path exists in a selected branch, only that branch's committed bytes are imported.
 - The source `.git/` directory is never copied. Git transfers only the objects needed to preserve the requested histories.
 
+## Student patches
+
+On 2026-09-18, the dataset-builder patch `/home/jjyeung/agent_project/agent/scratch/devin_lanes/student_dataset_builder_20260918/out/patches/0001-Keep-admitted-student-datasets-reproducible-and-scen.patch` applied cleanly and unchanged with `git apply --index --directory=student/landing`. Its SHA-256 is `fe4ba358ffc18a2b38ed4503caf85bd72a187b7a596982d66ff462f9e1df390d`; its format-patch source commit is `987538e2c59259bbfeade3264902e73c0b22ba90`.
+
+The patch adds these eight paths below `student/landing/`: `student_pilot/dataset_admission.py`, `student_pilot/dataset_builder.py`, `student_pilot/dataset_loader.py`, `tests/dataset_builder_fixture.py`, `tests/fixtures/dataset_builder_sources.json`, `tests/test_dataset_builder.py`, `tests/test_dataset_loader.py`, and `tests/test_dataset_native.py`. No source hunk was edited, and no conflicting patch required quarantine. Test results are recorded in the final verification section.
+
 ## Missing requested inputs
 
 At initial inspection on 2026-09-18, these patch directories were empty:
@@ -96,4 +102,4 @@ The fallback patch directories were absent:
 - `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_qwen35_student_trainer_fallback/out/patches/`
 - `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_student_fullscale_trainer_fallback/out/patches/`
 
-These inputs will be checked again at the student-import step. No patch or trainer implementation is fabricated.
+The student-import recheck confirmed the same empty primary directories and absent fallback directories. No patch bytes exist to apply or preserve under `student/patches_pending/`; no Qwen3.5-specific or full-scale trainer implementation is fabricated. Those two requested imports remain blocked on their producing lanes.
