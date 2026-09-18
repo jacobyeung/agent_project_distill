@@ -62,6 +62,26 @@ All three variants were copied on 2026-09-18 from `/data2/jjyeung/agent_project_
 
 Every other source entry is excluded: runtime and generated-test directories, plans, contracts, status/health files, receipts, locks, PID files, logs, and dry-run outputs. The source contract files are hashed above, not copied. The variants have different implementations; keeping three subdirectories under one `materialize/` root preserves each config's code pairing without an unreviewed rewrite. Their original absolute paths and launch identities remain examples, not admission for a new run.
 
+## Student histories
+
+The source repository is `/data2/jjyeung/agent_project_data/student_diagnostic_pilot_20260918/trainer_repo`. Imports use committed branch trees, not its dirty working tree. `git subtree` is unavailable on this node, so the migration uses `git fetch <source> <branch>`, a history-preserving `git merge --allow-unrelated-histories -s ours --no-commit`, and `git read-tree --prefix=<destination>/ -u FETCH_HEAD`. Each imported subtree must have the same Git tree object as its source before committing. An already-reachable ancestor needs only its prefixed tree added; its history is already preserved.
+
+| Destination | Source branch | Source commit | Import date |
+|---|---|---|---|
+| `student/landing/` | `landing-20260918` | `7ba0394dc83c34dc903f9d972e0ddce27024614f` | 2026-09-18 |
+
+The landing source/import tree is `c8de144b3b99c0da40cb7162931d04c049c6b924`. Original authors, commit messages, and parent relationships remain reachable through the merge history. The migration does not reset, amend, rebase, or edit the source repository.
+
+### Student exclusions
+
+- `<source repository>/artifacts/`: all runtime artifacts; present but untracked/ignored.
+- `<source repository>/.cache/`: all caches; present but untracked/ignored.
+- `<source repository>/.tmp/`: all temporary outputs; present but untracked/ignored.
+- `<source repository>/venv/`: excluded by policy; absent at inspection. The sibling private environment is also not part of the source repository or import.
+- Files over 5,000,000 bytes: none occur in the three requested branch tips or their reachable history. The bounded history audit checked 82 unique blob objects totaling 1,063,008 bytes and found zero excluded paths or oversized blobs. No history filtering is needed.
+- Source working-tree edits and untracked files: excluded as mutable working state. If a path exists in a selected branch, only that branch's committed bytes are imported.
+- The source `.git/` directory is never copied. Git transfers only the objects needed to preserve the requested histories.
+
 ## Missing requested inputs
 
 At initial inspection on 2026-09-18, these patch directories were empty:
