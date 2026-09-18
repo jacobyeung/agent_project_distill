@@ -43,6 +43,8 @@ Some resources need no per-launch permission. Gemini spend within the shared thr
 
 Records replace history. Each experiment gets one RESULTS.md holding facts only, with no narration of how the result was reached.
 
+Hot state stays off NFS. Pool locks, claims, and per-episode state live on the collector node's local /scratch/<user>, and only durable archives, terminals, and receipts go to /data2 or /data3, written once per episode rather than continuously. Training and evaluation stage data and checkpoints on /scratch/<user>, keep 100 to 200 GB free there, and move results to /data3 once at the end. No directory holds more than 40K files; shard by prefix before that. Node-local copies are released when done; until the user rules on the no-deletion policy for scratch copies, lanes list them in the pending-commands file instead of removing them.
+
 ## Data and coordination
 
 Keep data, caches, models, checkpoints, traces, targets, run receipts, and large artifacts outside Git under `/data2/jjyeung/agent_project_data/`. Never delete or clean files. If a workspace artifact must move, rename it under `_quarantine/` and preserve its provenance. Do not alter another lane's working files or shared coordination state.
