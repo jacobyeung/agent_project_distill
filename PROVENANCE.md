@@ -70,8 +70,9 @@ The source repository is `/data2/jjyeung/agent_project_data/student_diagnostic_p
 |---|---|---|---|
 | `student/landing/` | `landing-20260918` | `7ba0394dc83c34dc903f9d972e0ddce27024614f` | 2026-09-18 |
 | `student/eval-harness/` | `eval-harness-landing-20260918` | `ded50d39bbebf7c2c8f0fb1d4c3c4e95d0d26c81` | 2026-09-18 |
+| `student/shakedown/` | `shakedown-20260918` | `a1dca361d403e3c92b16d8624ff800983b5bc358` | 2026-09-18 |
 
-The landing source/import tree is `c8de144b3b99c0da40cb7162931d04c049c6b924` (66 files). The evaluation source/import tree is `2997558e82a4906c8d2f196b2244396777652e5f` (48 files). Original authors, commit messages, and parent relationships remain reachable through the merge history. The migration does not reset, amend, rebase, or edit the source repository.
+The landing source/import tree is `c8de144b3b99c0da40cb7162931d04c049c6b924` (66 files). The evaluation source/import tree is `2997558e82a4906c8d2f196b2244396777652e5f` (48 files). The shakedown source/import tree is `fda7b7db7f28c6c1a46ec8c8c2111570fbd2cbea` (22 files); its commit was already an ancestor of the imported landing history. Original authors, commit messages, and parent relationships remain reachable through the merge history. The migration does not reset, amend, rebase, or edit the source repository.
 
 ### Student exclusions
 
