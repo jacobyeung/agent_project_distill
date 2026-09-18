@@ -3,15 +3,10 @@ from __future__ import annotations
 
 import base64
 import contextlib
-import errno
-import hashlib
 import json
 import os
 import multiprocessing
 import threading
-import tempfile
-import unittest
-from unittest.mock import patch
 import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor
@@ -23,7 +18,7 @@ import pytest
 from pool_harness.atomicfs import LockTimeout, StateError, link_lock, publish_json_exclusive, read_json
 from pool_harness.pool import PoolController, WorkerLoop
 from pool_harness.state import ClaimOutcome, Episode, EpisodeCatalog, EpisodeQueue, PoolConfig, Target, TargetStore
-from trace_archive import Archive, install_archive, _snapshot_name
+from trace_archive import Archive, install_archive
 
 DATA = Path('/data2/jjyeung/agent_project_data/vsi_distill_training_20260917')
 
@@ -882,70 +877,3 @@ def test_monitor_filter_matches_both_collectors_and_episode_children(root):
     assert {p['pid'] for p in namespace['children']} == {103, 203}
     assert all(p['args'] == rows[p['pid']] and p['start_ticks'] == str(p['pid']*100)
                and p['uid'] == os.getuid() and p['state'] == 'S' for p in namespace['ps'])
-
-
-class ArchiveFilenameTest(unittest.TestCase):
-    def setUp(self):
-        # Retain fixtures so failures can be inspected without deleting files.
-        self.fixture = Path(tempfile.mkdtemp(prefix="trace-archive-filenames-"))
-        self.archive = Archive(self.fixture / "episode", {"qid": "fixture"},
-                               assets_root=self.fixture / "blobs",
-                               trusted_roots=(self.fixture,))
-
-    def test_snapshot_long_payload_names(self):
-        for label in ("a" * 256, "界" * 86):
-            for location in ("prompt", "kind"):
-                with self.subTest(label_bytes=len(label.encode("utf-8")), location=location):
-                    payload = {"prompt": f"Inspect {self.fixture}/{label}"}
-                    kind = "planner_payload" if location == "prompt" else label
-                    if location == "kind":
-                        payload = {"tool_calls": [{"name": label, "args": {"label": label}}]}
-                    receipt = self.archive.event(kind, payload)
-                    saved = json.loads((self.archive.root / receipt["path"]).read_text())
-                    self.assertEqual(saved["payload"], payload)
-                    self.assertEqual(saved["kind"], kind)
-                    self.assertLess(len(Path(receipt["path"]).name.encode("utf-8")), 200)
-                    journal = json.loads(self.archive.journal_path.read_text().splitlines()[-1])
-                    if location == "kind":
-                        original = f'{receipt["id"]:08d}_{kind}.json'
-                        expected = (original.encode("utf-8")[:96].decode("utf-8", "ignore")
-                                    + "_" + hashlib.sha256(original.encode("utf-8")).hexdigest()[:16]
-                                    + ".json")
-                        self.assertEqual(Path(receipt["path"]).name, expected)
-                        self.assertEqual(journal["original_name"], original)
-                    else:
-                        self.assertNotIn("original_name", journal)
-
-    def test_byte_boundary_and_stable_distinct_names(self):
-        for name in ("a" * 194 + ".json", "界" * 64 + "ab.json"):
-            self.assertEqual(len(name.encode("utf-8")), 199)
-            self.assertEqual(_snapshot_name(name), name)
-        names = ["a" * 195 + ".json", "a" + "界" * 100 + ".json",
-                 "a" + "界" * 100 + "different.json"]
-        shortened = [_snapshot_name(name) for name in names]
-        self.assertEqual(len(set(shortened)), len(names))
-        for name, result in zip(names, shortened):
-            self.assertLess(len(result.encode("utf-8")), 200)
-            self.assertEqual(_snapshot_name(name), result)
-            self.assertIn(hashlib.sha256(name.encode("utf-8")).hexdigest()[:16], result)
-
-    def test_short_event_keeps_existing_schema_and_filename(self):
-        receipt = self.archive.event("planner_payload", {"prompt": "hello"})
-        self.assertEqual(receipt, {"id": 1, "kind": "planner_payload",
-                                   "path": "events/00000001_planner_payload.json"})
-        self.assertEqual(json.loads(self.archive.journal_path.read_text()), receipt)
-        event = json.loads((self.archive.root / receipt["path"]).read_text())
-        self.assertEqual(set(event), {"id", "kind", "time_ns", "payload"})
-
-    def test_explicit_long_asset_path_still_fails(self):
-        with self.assertRaises(OSError) as raised:
-            self.archive.event("planner_payload", {"asset": self.fixture / ("a" * 256)})
-        self.assertEqual(raised.exception.errno, errno.ENAMETOOLONG)
-
-    def test_other_path_errors_still_fail(self):
-        for code in (errno.EIO, errno.EACCES):
-            with self.subTest(errno=code):
-                with patch.object(self.archive, "_trusted", side_effect=OSError(code, "fixture")):
-                    with self.assertRaises(OSError) as raised:
-                        self.archive.event("planner_payload", {"prompt": f"Inspect {self.fixture}/asset"})
-                self.assertEqual(raised.exception.errno, code)

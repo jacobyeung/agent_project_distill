@@ -8,7 +8,6 @@ from __future__ import annotations
 import contextlib
 import base64
 import binascii
-import errno
 import hashlib
 import json
 import mimetypes
@@ -23,14 +22,6 @@ _BEARER = re.compile(r"\bBearer\s+[A-Za-z0-9._~+/-]+=*", re.I)
 _EXTENSIONS = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp", "application/pdf": ".pdf"}
 _PATH_IN_TEXT = re.compile(r"(?<![A-Za-z0-9._/-])(/[^\s'\"<>]+)")
 _DATA_ROOT = Path("/data2/jjyeung/agent_project_data/vsi_distill_training_20260917")
-def _snapshot_name(name: str) -> str:
-    """Keep JSON snapshot names below 200 UTF-8 bytes, retaining their identity."""
-    encoded = name.encode("utf-8")
-    if len(encoded) < 200:
-        return name
-    prefix = encoded[:96].decode("utf-8", "ignore")
-    return f"{prefix}_{hashlib.sha256(encoded).hexdigest()[:16]}.json"
-
 def _fsync_dir(path: Path) -> None:
     """Make a newly created directory entry durable where the filesystem supports it."""
     try:
@@ -109,11 +100,6 @@ class Archive:
             try:
                 path = self._trusted(Path(match.group(1).rstrip(".,;:)]}")))
             except ValueError:
-                continue
-            except OSError as error:
-                # Path-like prompt text may contain an impossible filename.
-                if error.errno != errno.ENAMETOOLONG:
-                    raise
                 continue
             self.asset(path)
     @staticmethod
@@ -238,13 +224,10 @@ class Archive:
         with self._lock:
             self._event_id += 1
             receipt = {"id": self._event_id, "kind": kind, "time_ns": time.time_ns(), "payload": snapshot}
-            original_name = f"{self._event_id:08d}_{kind}.json"
-            event_path = self.events_dir / _snapshot_name(original_name)
+            event_path = self.events_dir / f"{self._event_id:08d}_{kind}.json"
             self._write_new(event_path, receipt)
-            journal_entry = {"id": receipt["id"], "kind": kind, "path": str(event_path.relative_to(self.root))}
-            if event_path.name != original_name:
-                journal_entry["original_name"] = original_name
-            line = json.dumps(journal_entry, sort_keys=True, separators=(",", ":")) + "\n"
+            line = json.dumps({"id": receipt["id"], "kind": kind, "path": str(event_path.relative_to(self.root))},
+                              sort_keys=True, separators=(",", ":")) + "\n"
             with self.journal_path.open("ab") as handle:
                 handle.write(line.encode("utf-8"))
                 handle.flush()
