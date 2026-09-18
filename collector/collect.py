@@ -35,19 +35,39 @@ def coord_guard(config):
 
 
 def heartbeat(config):
-    """Retry an idempotent lease heartbeat; timeout exhaustion is a recoverable tick."""
+    """Retry coordination faults, retaining evidence and blocking on exhaustion."""
     env=dict(os.environ,AGENT_ID=config['agent_id'],PYTHONDONTWRITEBYTECODE='1')
     command=[PYTHON,'-B',str(HERE/'coordination.py'),'--root',config['coord_root'],'--work-id',config['work_id']]
+    pool=Path(config['run_root'])/f"pool_b{config.get('budget',16384)}"
+    failures=[]
     for attempt in range(3):
         try:
-            subprocess.run(command,env=env,check=True,timeout=30,stdout=subprocess.DEVNULL)
+            # Revalidate ownership on every attempt, including after subprocess failure.
+            coord_guard(config)
+            subprocess.run(command,env=env,check=True,timeout=30,capture_output=True,text=True)
             return True
-        except subprocess.TimeoutExpired:
+        except (subprocess.TimeoutExpired,subprocess.CalledProcessError,OSError) as exc:
             delay=2**attempt if attempt<2 else 0
-            print(json.dumps({'event':'coordination_heartbeat_timeout','attempt':attempt+1,
-                              'backoff_seconds':delay,'work_id':config['work_id']}),flush=True)
+            from trace_archive import error_details
+            evidence={'event':'coordination_heartbeat_failure','attempt':attempt+1,
+                      'backoff_seconds':delay,'work_id':config['work_id'],
+                      'error':error_details(exc),'stdout':str(getattr(exc,'stdout',None)),
+                      'stderr':str(getattr(exc,'stderr',None))}
+            evidence_path=pool/'coordination_failures'/f'{uuid.uuid4().hex}.json'
+            publish_json_exclusive(evidence_path,evidence)
+            failures.append(str(evidence_path))
             if delay:time.sleep(delay)
+        except (RuntimeError,ValueError,KeyError) as exc:
+            _coordination_block(pool,'coordination_lease_rejected',failures,str(exc))
+            raise
+    _coordination_block(pool,'coordination_heartbeat_exhausted',failures)
     return False
+
+
+def _coordination_block(pool,reason,failures,error=None):
+    payload={'reason':reason,'failure_receipts':failures,'error':error}
+    try:publish_json_exclusive(pool/'BLOCKED.json',payload)
+    except AlreadyExists:pass
 
 
 def validate_config(config,*,service=False):
@@ -174,6 +194,7 @@ def start(args):
 
 def _start(args,config):
     target,queue,pending=objects(config)
+    queue.require_drained()
     def stop_controller(_signum,_frame):raise SystemExit(143)
     signal.signal(signal.SIGTERM,stop_controller)
     Path(config['run_root']).mkdir(parents=True,exist_ok=True);initialize(target,args.workers)
@@ -181,21 +202,12 @@ def _start(args,config):
     if not queue.catalog.episodes:raise RuntimeError('no question has a complete training geometry receipt')
     def command(worker_id,slot,_):return [PYTHON,'-B',str(HERE/'collect.py'),'worker','--config',str(args.config),'--worker-id',worker_id,'--slot',str(slot)]
     controller=PoolController(queue,target,run_epoch='run_'+uuid.uuid4().hex,command_factory=command,log_root=Path(config['run_root'])/'logs')
-    last=0
-    # Admission has already checked ownership. Keep a conservative local deadline
-    # if NFS prevents subsequent confirmations; never extend it on a failed call.
-    lease=coord_guard(config)
-    age=(datetime.now(timezone.utc)-datetime.fromisoformat(lease['last_heartbeat'])).total_seconds()
-    confirmed=time.monotonic()-age
+    last=-float("inf")
     try:
         while True:
             if time.monotonic()-last>30:
-                if heartbeat(config) is not False:confirmed=time.monotonic()
+                if heartbeat(config) is False:return 2
                 last=time.monotonic()
-                if last-confirmed>=1500:
-                    replace_json(target.state_root/'BLOCKED.json',
-                                 {'reason':'coordination_heartbeat_unconfirmed','seconds':last-confirmed})
-                    return 2
             status=controller.tick()
             if status['blocked']:raise RuntimeError(json.dumps(status['blocked'],sort_keys=True))
             if not controller.active and status['census']['valid_complete']==status['census']['total']:return 0
@@ -213,7 +225,7 @@ def watchdog(args):
     signal.signal(signal.SIGTERM,stop_watchdog)
     with permanent_lock(pool/'WATCHDOG.lock'):
         if (pool/'BLOCKED.json').exists():raise RuntimeError('pool has a durable BLOCKED receipt; operator review required')
-        if queue.heartbeats.live_workers(target.config.heartbeat_timeout_seconds):raise RuntimeError('worker heartbeats remain live; drain the existing epoch first')
+        queue.require_drained()
         initialize(target,args.workers);resize_workers(target,workers=args.workers)
         seen=set();finalized=0;null_predictions=0;last_progress=time.monotonic()
         proc=subprocess.Popen([PYTHON,'-B',str(HERE/'collect.py'),'start','--config',str(args.config),'--workers',str(args.workers)])

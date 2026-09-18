@@ -8,13 +8,14 @@ import subprocess
 import threading
 import time
 import traceback
+import uuid
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Sequence
 
 from episode_custody import FailureEvent
 
-from .atomicfs import AlreadyExists, StateError, link_lock, publish_json_exclusive, read_json, replace_json, safe_component
+from .atomicfs import AlreadyExists, LockTimeout, StateError, link_lock, publish_json_exclusive, read_json, replace_json, safe_component
 from .state import (
     ClaimOutcome,
     ClaimResult,
@@ -198,6 +199,8 @@ class PoolController:
         self.last_spawn_monotonic = -math.inf
         self.blocked_path = queue.state_root / "BLOCKED.json"
         self.blocked = read_json(self.blocked_path) if self.blocked_path.exists() else None
+        if not self.blocked:
+            queue.require_drained()
         self.failure_events = [read_json(path) for path in sorted((queue.state_root / "worker_failures").glob("*.json"))]
 
     def _generation_path(self, slot: int) -> Path:
@@ -252,20 +255,74 @@ class PoolController:
                     "exception_type": error.get("exception_type"), "origin": error.get("origin"),
                     "error_receipt": str(error_path) if error else None, "error": error,
                     "wall_time_ns": time.time_ns(), "slot": active.slot,
+                    "recovery_proof": {"controller_epoch": self.run_epoch, "worker_id": active.worker_id,
+                                       "pid": active.process.pid, "return_code": return_code,
+                                       "failure_receipt": str(self.queue.state_root / "worker_failures" / f"{active.worker_id}.json")},
                     "episode_ids": [episode.episode_id for episode in episodes],
                     "question_ids": sorted({str(episode.payload.get("row", {}).get("id", episode.episode_id)) for episode in episodes}),
                 }
-                # Persist failure evidence before retiring any claim or spawning a successor.
-                publish_json_exclusive(self.queue.state_root / "worker_failures" / f"{active.worker_id}.json", event)
-                self.failure_events.append(event)
-                for episode in episodes:
-                    self.queue.recover_orphan(episode.episode_id,
-                        expected_worker_id=active.worker_id,
-                        owner_is_alive=lambda _claim: active.process.poll() is None,
-                        proof={"controller_epoch": self.run_epoch, "worker_id": active.worker_id,
-                               "pid": active.process.pid, "return_code": return_code,
-                               "failure_receipt": str(self.queue.state_root / "worker_failures" / f"{active.worker_id}.json")})
+                # Reuse the immutable event when a recovery resumes after publication.
+                event_path = self.queue.state_root / "worker_failures" / f"{active.worker_id}.json"
+                try:
+                    publish_json_exclusive(event_path, event)
+                except AlreadyExists:
+                    event = read_json(event_path)
+                    if event.get("worker_id") != active.worker_id or event.get("return_code") != return_code:
+                        raise StateError("worker failure receipt identity mismatch")
+                if not any(row["worker_id"] == active.worker_id for row in self.failure_events):
+                    self.failure_events.append(event)
+                if not self._recover_event(event, lambda _claim: active.process.poll() is None):
+                    return
             del self.active[slot]
+        # Failure evidence survives controller death before recovery completes.
+        for event in self.failure_events:
+            if "recovery_proof" in event and not self._recover_event(event, self._owner_is_alive):
+                return
+
+    @staticmethod
+    def _owner_is_alive(claim) -> bool:
+        import socket
+        if claim.get("host") != socket.gethostname():
+            return True
+        try:
+            os.kill(claim["pid"], 0)
+        except ProcessLookupError:
+            return False
+        return True
+
+    def _recover_event(self, event, owner_is_alive) -> bool:
+        worker_id = event["worker_id"]
+        completed = self.queue.state_root / "worker_recoveries" / f"{worker_id}.json"
+        if completed.exists():
+            if read_json(completed).get("failure_receipt") != event["recovery_proof"]["failure_receipt"]:
+                raise StateError("worker recovery receipt identity mismatch")
+            return True
+        for episode_id in event["episode_ids"]:
+            for attempt in range(3):
+                try:
+                    self.queue.recover_orphan(episode_id, expected_worker_id=worker_id,
+                        owner_is_alive=owner_is_alive, proof=event["recovery_proof"])
+                    break
+                except LockTimeout as exc:
+                    delay = 2 ** attempt if attempt < 2 else 0
+                    evidence = {"worker_id": worker_id, "episode_id": episode_id,
+                                "attempt": attempt + 1, "error": str(exc),
+                                "backoff_seconds": delay,
+                                "failure_receipt": event["recovery_proof"]["failure_receipt"]}
+                    publish_json_exclusive(self.queue.state_root / "recovery_failures" /
+                                           f"{uuid.uuid4().hex}.json", evidence)
+                    if delay:
+                        time.sleep(delay)
+                    else:
+                        self.blocked = dict(evidence, reason="orphan_recovery_contention_exhausted")
+                        try:
+                            publish_json_exclusive(self.blocked_path, self.blocked)
+                        except AlreadyExists:
+                            self.blocked = read_json(self.blocked_path)
+                        return False
+        publish_json_exclusive(completed, {"worker_id": worker_id,
+            "failure_receipt": event["recovery_proof"]["failure_receipt"]})
+        return True
 
     def stop(self) -> None:
         """Gracefully stop and reap only this controller's owned workers."""
@@ -349,7 +406,8 @@ class PoolController:
 
     def tick(self, now_monotonic: float | None = None) -> dict[str, object]:
         now = time.monotonic() if now_monotonic is None else now_monotonic
-        self._reap()
+        if not self.blocked:
+            self._reap()
         target = self.target_store.read()
         desired = target.effective(self.target_store.storm_marker.exists())
         self._check_failures(desired)

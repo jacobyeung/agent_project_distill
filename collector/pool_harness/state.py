@@ -304,6 +304,29 @@ class EpisodeQueue:
         path = self.claim_path(episode)
         return read_json(path) if path.exists() else None
 
+    def require_drained(self) -> None:
+        """Refuse a successor while predecessor death cannot be verified locally."""
+        records = [read_json(p) for directory in (self.heartbeats.root, self.claim_root)
+                   for p in directory.glob("*.json")]
+        for record in records:
+            worker = record.get("worker_id")
+            if record.get("host") != socket.gethostname():
+                # A remote exit receipt proves that worker crossed its final boundary.
+                if worker and (self.receipt_root / f"{worker}.json").is_file():
+                    self.read_exit_receipt(worker)
+                    continue
+                raise StateError("predecessor drainage unverified on foreign host")
+            pid = record.get("pid")
+            if type(pid) is not int or pid <= 0:
+                raise StateError("predecessor drainage lacks a valid PID")
+            try:
+                os.kill(pid, 0)
+            except ProcessLookupError:
+                continue
+            except PermissionError:
+                pass
+            raise StateError(f"predecessor worker remains live; drain first: {worker}")
+
     def claim_next(self, worker_id: str, slot: int) -> ClaimResult:
         safe_component(worker_id, "worker_id")
         if isinstance(slot, bool) or not isinstance(slot, int) or slot < 0:
@@ -444,6 +467,14 @@ class EpisodeQueue:
         with link_lock(self.target_store.lock_dir, f"RECOVER_{episode.key}"):
             with self.target_store.cap_lock():
                 claim_path = self.claim_path(episode)
+                if not claim_path.exists():
+                    for receipt in (self.state_root / "orphan_recoveries").glob(f"{episode.key}-*.json"):
+                        saved = read_json(receipt)
+                        if (saved.get("episode_id") == episode_id
+                                and saved.get("expected_worker_id") == expected_worker_id
+                                and saved.get("proof") == proof):
+                            return receipt
+                    raise StateError("missing claim without matching recovery evidence")
                 claim_bytes = claim_path.read_bytes()
                 claim = read_json(claim_path)
                 if claim.get("worker_id") != expected_worker_id:

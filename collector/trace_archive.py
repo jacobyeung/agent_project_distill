@@ -284,7 +284,27 @@ def _blob_bytes(ref: Any) -> bytes:
     return payload
 
 
-def error_details(error: BaseException) -> dict[str, Any]:
+def served_model_evidence(value: Any, source: str) -> list[dict[str, Any]]:
+    """Keep only explicit served-model fields, never the requested model name."""
+    if value is None:
+        return []
+    try:
+        if hasattr(value, "model_dump"):
+            value = value.model_dump()
+    except Exception:
+        return []
+    result = []
+    for field in ("model_version", "modelVersion", "served_model", "served_model_id"):
+        try:
+            identity = value.get(field) if isinstance(value, dict) else getattr(value, field, None)
+        except Exception:
+            continue
+        if isinstance(identity, str) and identity:
+            result.append({"source": source, "field": field, "value": Archive._redact_string(identity)})
+    return result
+
+
+def error_details(error: BaseException, *, prior_stream_metadata=()) -> dict[str, Any]:
     """Capture transport evidence before callers classify or wrap an exception."""
     from transport_admission import exception_http_status
 
@@ -306,10 +326,13 @@ def error_details(error: BaseException) -> dict[str, Any]:
             return {"unavailable": type(exc).__name__}
 
     chain, seen = [], set()
+    model_evidence = list(prior_stream_metadata)
     current = error
     while current is not None and id(current) not in seen:
         seen.add(id(current))
         response = attribute(current, "response")
+        model_evidence.extend(served_model_evidence(current, f"exception[{len(chain)}]"))
+        model_evidence.extend(served_model_evidence(response, f"response[{len(chain)}]"))
         headers = attribute(response, "headers")
         if headers is None:
             headers = attribute(current, "headers")
@@ -329,7 +352,8 @@ def error_details(error: BaseException) -> dict[str, Any]:
             "body": body, "headers": headers, "retry_after": retry_after,
             "response_json": attribute(current, "response_json"), "details": attribute(current, "details")}))
         current = current.__cause__ or current.__context__
-    return dict(chain[0], exception_chain=chain[1:])
+    return dict(chain[0], exception_chain=chain[1:], served_model_evidence=model_evidence,
+                served_model_status="available" if model_evidence else "unavailable")
 
 
 @contextlib.contextmanager
@@ -345,9 +369,9 @@ def install_archive(archive: Archive, *, models_cls: type | None = None) -> Iter
         archive.event("provider_request", {"call_id": call_id, "provider": "google", "method": method,
                                             "args": list(args), "kwargs": dict(kwargs)})
 
-    def capture_error(call_id: str, method: str, error: BaseException) -> None:
+    def capture_error(call_id: str, method: str, error: BaseException, prior_stream_metadata=()) -> None:
         archive.event("provider_error", {"call_id": call_id, "provider": "google", "method": method,
-                                          **error_details(error)})
+                                          **error_details(error, prior_stream_metadata=prior_stream_metadata)})
 
     def terminal(call_id: str, method: str, status: str, error: BaseException | None = None) -> None:
         payload = {"call_id": call_id, "provider": "google", "method": method, "status": status}
@@ -382,8 +406,11 @@ def install_archive(archive: Archive, *, models_cls: type | None = None) -> Iter
         def captured() -> Iterator[Any]:
             completed = False
             terminaled = False
+            model_evidence = []
             try:
                 for response in stream:
+                    for evidence in served_model_evidence(response, "prior_stream_chunk"):
+                        if evidence not in model_evidence:model_evidence.append(evidence)
                     archive.event("provider_chunk", {"call_id": call_id, "provider": "google",
                                                      "method": "generate_content_stream", "response": response})
                     yield response
@@ -391,7 +418,7 @@ def install_archive(archive: Archive, *, models_cls: type | None = None) -> Iter
                 terminal(call_id, "generate_content_stream", "ok")
                 terminaled = True
             except BaseException as error:
-                capture_error(call_id, "generate_content_stream", error)
+                capture_error(call_id, "generate_content_stream", error, model_evidence)
                 terminal(call_id, "generate_content_stream", "error", error)
                 terminaled = True
                 raise
@@ -401,7 +428,7 @@ def install_archive(archive: Archive, *, models_cls: type | None = None) -> Iter
                                                          "method": "generate_content_stream"})
                     if not terminaled:
                         interruption = RuntimeError("stream interrupted before completion")
-                        capture_error(call_id, "generate_content_stream", interruption)
+                        capture_error(call_id, "generate_content_stream", interruption, model_evidence)
                         terminal(call_id, "generate_content_stream", "error", interruption)
 
         return captured()
