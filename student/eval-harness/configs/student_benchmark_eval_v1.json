@@ -1,0 +1,53 @@
+{
+  "schema": "student-benchmark-eval-v1",
+  "models": {
+    "onethinker": {
+      "repo_id": "OneThink/OneThinker-8B",
+      "revision": "2b7032f4179d8c032d2eac67b3692263f85be0fc",
+      "architecture": "Qwen3VLForConditionalGeneration",
+      "enable_thinking": null,
+      "config_sha256": "cc76a13b9e08a9548e177717d4e0b929142edcaf674d26dff5b2c586a8e28a35",
+      "template_sha256": "3636d0f0bd6bef02654cdffdc447b79cb2cef8ab02cc75267345946291a489e4"
+    },
+    "qwen35": {
+      "repo_id": "Qwen/Qwen3.5-9B",
+      "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "architecture": "Qwen3_5ForConditionalGeneration",
+      "enable_thinking": true,
+      "config_sha256": "d0883072e01861ed0b2d47be3c16c36a8e81c224c7ffaa310c6558fb3f932b05",
+      "template_sha256": "a4aee8afcf2e0711942cf848899be66016f8d14a889ff9ede07bca099c28f715"
+    }
+  },
+  "rgb": {
+    "version": "original-rgb32-v1",
+    "frame_count": 32,
+    "selector": "floor(k*(N-1)/31)",
+    "do_sample_frames": false,
+    "size": {"shortest_edge": 524288, "longest_edge": 4718592},
+    "timing": "original_ordinals_and_fps_with_separate_actual_pts",
+    "prompt": "native_user_video_then_verbatim_question_options",
+    "max_input_tokens": 16384
+  },
+  "decoding": {
+    "seed": 17,
+    "do_sample": false,
+    "num_beams": 1,
+    "num_return_sequences": 1,
+    "max_new_tokens": 16384,
+    "use_cache": true,
+    "temperature": null,
+    "top_p": null,
+    "top_k": null,
+    "return_dict_in_generate": true,
+    "output_scores": false,
+    "output_logits": false
+  },
+  "execution": {
+    "dtype": "bfloat16",
+    "attention_implementation": "sdpa",
+    "batch_size": 1,
+    "quantization": null,
+    "inference_mode": true,
+    "attempts_per_question": 1
+  }
+}
