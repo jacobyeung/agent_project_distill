@@ -81,14 +81,22 @@ The landing source/import tree is `c8de144b3b99c0da40cb7162931d04c049c6b924` (66
 - `<source repository>/.tmp/`: all temporary outputs; present but untracked/ignored.
 - `<source repository>/venv/`: excluded by policy; absent at inspection. The sibling private environment is also not part of the source repository or import.
 - Files over 5,000,000 bytes: none occur in the three requested branch tips or their reachable history. The bounded history audit checked 82 unique blob objects totaling 1,063,008 bytes and found zero excluded paths or oversized blobs. No history filtering is needed.
-- Source working-tree edits and untracked files: excluded as mutable working state. If a path exists in a selected branch, only that branch's committed bytes are imported.
+- Source working-tree edits and untracked files: excluded from the branch imports. If a path exists in a selected branch, only that branch's committed bytes are imported. The explicit support-file supplement below is the sole exception.
 - The source `.git/` directory is never copied. Git transfers only the objects needed to preserve the requested histories.
+
+### Clean-adapter support file
+
+The committed landing branch imports a support module that was absent from its Git tree. Native integration reproduced `ModuleNotFoundError: student_pilot.detailed_audit` before any test could run. On 2026-09-18, `student/landing/student_pilot/detailed_audit.py` was copied verbatim from `/data2/jjyeung/agent_project_data/student_diagnostic_pilot_20260918/trainer_repo/student_pilot/detailed_audit.py`. Its source and copied SHA-256 is `c96ca6a21691c353cbbc381356856d77f40796ed871f4af04106267391a45b5b`. The source file is untracked, so no source commit or CONTRACT can pin it; its exact file hash and this repository's supplemental commit preserve it instead. No existing converter, admission, or scoring code was rewritten. The original branch tree remains preserved in its import commit.
 
 ## Student patches
 
 On 2026-09-18, the dataset-builder patch `/home/jjyeung/agent_project/agent/scratch/devin_lanes/student_dataset_builder_20260918/out/patches/0001-Keep-admitted-student-datasets-reproducible-and-scen.patch` applied cleanly and unchanged with `git apply --index --directory=student/landing`. Its SHA-256 is `fe4ba358ffc18a2b38ed4503caf85bd72a187b7a596982d66ff462f9e1df390d`; its format-patch source commit is `987538e2c59259bbfeade3264902e73c0b22ba90`.
 
 The patch adds these eight paths below `student/landing/`: `student_pilot/dataset_admission.py`, `student_pilot/dataset_builder.py`, `student_pilot/dataset_loader.py`, `tests/dataset_builder_fixture.py`, `tests/fixtures/dataset_builder_sources.json`, `tests/test_dataset_builder.py`, `tests/test_dataset_loader.py`, and `tests/test_dataset_native.py`. No source hunk was edited, and no conflicting patch required quarantine. Test results are recorded in the final verification section.
+
+## Additional documentation
+
+On 2026-09-18, `docs/VSI_DISTILLATION_GT_TEACHER_FEASIBILITY_RESULT.md` was copied byte-for-byte from `/home/jjyeung/agent_project/agent/agentic_information_5.0/VSI_DISTILLATION_GT_TEACHER_FEASIBILITY_RESULT.md`. Source and destination SHA-256: `be8365e220f5c3bfab503b5839cf6db974d41ab1615260b5d5baddf4cdc17863`. The source is untracked and has no source commit or contract; its exact file hash is the import pin. The main repository HEAD was `b3500228fa175058df3fd1d910b189beb4d67399` at inspection. Other imported documentation is preserved in the initial assembly commit or the pinned student branch trees above.
 
 ## Missing requested inputs
 
