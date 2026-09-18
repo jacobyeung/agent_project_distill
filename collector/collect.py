@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Run ready training scenes through the existing resizable episode pool."""
 from __future__ import annotations
-import argparse,hashlib,json,os,shutil,socket,subprocess,sys,time,uuid
+import argparse,hashlib,json,os,shutil,signal,socket,subprocess,sys,time,uuid
 from datetime import datetime,timezone
 from pathlib import Path
 import urllib.request
@@ -35,8 +35,19 @@ def coord_guard(config):
 
 
 def heartbeat(config):
-    env=dict(os.environ,AGENT_ID=config['agent_id'])
-    subprocess.run([PYTHON,'-B',str(HERE/'coordination.py'),'--root',config['coord_root'],'--work-id',config['work_id']],env=env,check=True,timeout=30,stdout=subprocess.DEVNULL)
+    """Retry an idempotent lease heartbeat; timeout exhaustion is a recoverable tick."""
+    env=dict(os.environ,AGENT_ID=config['agent_id'],PYTHONDONTWRITEBYTECODE='1')
+    command=[PYTHON,'-B',str(HERE/'coordination.py'),'--root',config['coord_root'],'--work-id',config['work_id']]
+    for attempt in range(3):
+        try:
+            subprocess.run(command,env=env,check=True,timeout=30,stdout=subprocess.DEVNULL)
+            return True
+        except subprocess.TimeoutExpired:
+            delay=2**attempt if attempt<2 else 0
+            print(json.dumps({'event':'coordination_heartbeat_timeout','attempt':attempt+1,
+                              'backoff_seconds':delay,'work_id':config['work_id']}),flush=True)
+            if delay:time.sleep(delay)
+    return False
 
 
 def validate_config(config,*,service=False):
@@ -128,6 +139,8 @@ def child_env(config,item,claim):
 
 def worker(args):
     config=load_config(args.config,service=True);target,queue,_=objects(config)
+    def stop_worker(_signum,_frame):raise SystemExit(143)
+    signal.signal(signal.SIGTERM,stop_worker)
     def run(item,claim,failed):
         coord_guard(config)
         if shutil.disk_usage(config['run_root']).free<10*1024**3:raise RuntimeError('less than10GiB free; collection remains resumable')
@@ -138,9 +151,13 @@ def worker(args):
         env,output=child_env(config,item,claim)
         if output.exists():raise RuntimeError('attempt already exists; archive preserved, explicit recovery required')
         proc=subprocess.Popen([PYTHON,'-B',str(HERE/'run_experiment_r1313.py'),'--row',str(input_path),'--output',str(output)],env=env)
-        while proc.poll() is None:
-            if failed.is_set():proc.terminate();proc.wait(timeout=30);raise RuntimeError('heartbeat failed; stopped owned child')
-            time.sleep(1)
+        try:
+            while proc.poll() is None:
+                if failed.is_set():raise RuntimeError('heartbeat failed; stopped owned child')
+                time.sleep(1)
+        finally:
+            if proc.poll() is None:proc.terminate()
+            proc.wait(timeout=30)
         publish_json_exclusive(Path(config['run_root'])/'terminals'/f'{item.episode_id}.json',
             {'episode_id':item.episode_id,'return_code':proc.returncode,'output':str(output),'question_id':row['id'],'budget':item.payload['budget'],'finished_unix':time.time()})
         # Error/partial terminals remain in the attempted denominator and never silently repeat.
@@ -148,24 +165,87 @@ def worker(args):
 
 
 def start(args):
-    config=load_config(args.config,service=True);target,queue,pending=objects(config)
+    from nondeleting_lifecycle import permanent_lock
+    config=load_config(args.config,service=True)
+    pool=Path(config['run_root'])/f"pool_b{config.get('budget',16384)}"
+    with permanent_lock(pool/'CONTROLLER.lock',timeout_seconds=1):
+        return _start(args,config)
+
+
+def _start(args,config):
+    target,queue,pending=objects(config)
+    def stop_controller(_signum,_frame):raise SystemExit(143)
+    signal.signal(signal.SIGTERM,stop_controller)
     Path(config['run_root']).mkdir(parents=True,exist_ok=True);initialize(target,args.workers)
     print(json.dumps({'ready_questions':len(queue.catalog.episodes),'pending_asset_questions':pending,'teacher_target':20000,'mode':'drain_bound_ready_scenes'}),flush=True)
     if not queue.catalog.episodes:raise RuntimeError('no question has a complete training geometry receipt')
     def command(worker_id,slot,_):return [PYTHON,'-B',str(HERE/'collect.py'),'worker','--config',str(args.config),'--worker-id',worker_id,'--slot',str(slot)]
     controller=PoolController(queue,target,run_epoch='run_'+uuid.uuid4().hex,command_factory=command,log_root=Path(config['run_root'])/'logs')
     last=0
-    while True:
-        if time.monotonic()-last>30:heartbeat(config);last=time.monotonic()
-        status=controller.tick()
-        if status['failures']:raise RuntimeError(str(status['failures']))
-        if not controller.active and status['census']['valid_complete']==status['census']['total']:return 0
-        if not controller.active and status['census']['unclaimed']==0 and status['census']['claimed_orphan']>0:raise RuntimeError('orphan attempts require explicit recovery; no repeat spend')
-        time.sleep(3)
+    # Admission has already checked ownership. Keep a conservative local deadline
+    # if NFS prevents subsequent confirmations; never extend it on a failed call.
+    lease=coord_guard(config)
+    age=(datetime.now(timezone.utc)-datetime.fromisoformat(lease['last_heartbeat'])).total_seconds()
+    confirmed=time.monotonic()-age
+    try:
+        while True:
+            if time.monotonic()-last>30:
+                if heartbeat(config) is not False:confirmed=time.monotonic()
+                last=time.monotonic()
+                if last-confirmed>=1500:
+                    replace_json(target.state_root/'BLOCKED.json',
+                                 {'reason':'coordination_heartbeat_unconfirmed','seconds':last-confirmed})
+                    return 2
+            status=controller.tick()
+            if status['blocked']:raise RuntimeError(json.dumps(status['blocked'],sort_keys=True))
+            if not controller.active and status['census']['valid_complete']==status['census']['total']:return 0
+            time.sleep(3)
+    finally:
+        controller.stop()
+
+
+def watchdog(args):
+    """Watch one owned controller and alarm on stalled finalized output; never relaunch blindly."""
+    from nondeleting_lifecycle import permanent_lock
+    config=load_config(args.config,service=True);target,queue,_=objects(config)
+    root=Path(config['run_root']);pool=target.state_root
+    def stop_watchdog(_signum,_frame):raise SystemExit(143)
+    signal.signal(signal.SIGTERM,stop_watchdog)
+    with permanent_lock(pool/'WATCHDOG.lock'):
+        if (pool/'BLOCKED.json').exists():raise RuntimeError('pool has a durable BLOCKED receipt; operator review required')
+        if queue.heartbeats.live_workers(target.config.heartbeat_timeout_seconds):raise RuntimeError('worker heartbeats remain live; drain the existing epoch first')
+        initialize(target,args.workers);resize_workers(target,workers=args.workers)
+        seen=set();finalized=0;null_predictions=0;last_progress=time.monotonic()
+        proc=subprocess.Popen([PYTHON,'-B',str(HERE/'collect.py'),'start','--config',str(args.config),'--workers',str(args.workers)])
+        try:
+            while True:
+                for path in (root/'terminals').glob('*.json'):
+                    if path.name in seen:continue
+                    terminal_row=read_json(path);qid=terminal_row['question_id']
+                    trace_path=Path(terminal_row['output'])/'finalized'/qid/f'trace_{qid}.json'
+                    if trace_path.is_file():
+                        trace=read_json(trace_path);finalized+=1;last_progress=time.monotonic()
+                        null_predictions+=trace.get('pred') is None
+                        seen.add(path.name)
+                status={'schema':'r1314-watchdog-status-v1','wall_time_ns':time.time_ns(),
+                    'controller_pid':proc.pid,'finalized':finalized,'null_predictions':null_predictions,
+                    'seconds_without_finalized_progress':time.monotonic()-last_progress}
+                replace_json(pool/'WATCHDOG_STATUS.json',status)
+                if null_predictions or status['seconds_without_finalized_progress']>=1800:
+                    replace_json(pool/'WATCHDOG_ALARM.json',dict(status,reason='null_prediction_or_no_finalized_progress'))
+                code=proc.poll()
+                if code is not None:
+                    replace_json(pool/'WATCHDOG_EXIT.json',dict(status,return_code=code))
+                    return code
+                time.sleep(30)
+        finally:
+            if proc.poll() is None:proc.terminate()
+            proc.wait(timeout=90)
 
 
 def bind(args):
     config={'schema':'r1313-collection-config-v1','mode':'production','run_root':str(require_data_path(args.run_root)),
+        'collector_version':'r1315-tolerant-sparse-v1',
         'work_id':args.work_id,'agent_id':args.agent_id,'coord_root':str(COORD_ROOT),
         'assets_registry':str(require_data_path(args.assets_registry)),'assets_registry_sha256':sha(args.assets_registry),
         'source_contract':str(require_data_path(args.contract)),'source_contract_sha256':args.contract_sha256,
@@ -177,6 +257,8 @@ def bind(args):
     _,queue,pending=objects(config)
     if not queue.catalog.episodes:raise ValueError('no ready training questions')
     identity={k:config[k] for k in ('work_id','agent_id','source_contract_sha256')}
+    # The verified successor contract binds the original immutable run identity.
+    identity['source_contract_sha256']=verify_source(config)['parent_source_contract']['sha256']
     identity.update(schema='r1313-run-identity-v1',membership_sha256=__import__('training_assets').MEMBERSHIP_SHA)
     root=Path(config['run_root'])
     try:publish_json_exclusive(root/'RUN_IDENTITY.json',identity)
@@ -198,9 +280,9 @@ def resize_workers(target,*,workers=None,delta=None):
 
 def main():
     p=argparse.ArgumentParser();sub=p.add_subparsers(dest='command',required=True)
-    for name in ('start','worker','set-workers','readiness'):
+    for name in ('start','watchdog','worker','set-workers','readiness'):
         parser=sub.add_parser(name);parser.add_argument('--config',type=Path,required=True)
-        if name=='start':parser.add_argument('--workers',type=int,required=True)
+        if name in ('start','watchdog'):parser.add_argument('--workers',type=int,required=True)
         if name=='set-workers':
             capacity=parser.add_mutually_exclusive_group(required=True);capacity.add_argument('--workers',type=int);capacity.add_argument('--delta',type=int)
         if name=='worker':parser.add_argument('--worker-id',required=True);parser.add_argument('--slot',type=int,required=True)
@@ -208,6 +290,7 @@ def main():
     a=p.parse_args()
     if a.command=='bind':return bind(a)
     if a.command=='start':return start(a)
+    if a.command=='watchdog':return watchdog(a)
     if a.command=='worker':return worker(a)
     config=load_config(a.config);target,queue,pending=objects(config)
     if a.command=='set-workers':resize_workers(target,workers=a.workers,delta=a.delta);return 0

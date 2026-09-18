@@ -48,6 +48,7 @@ import cv2
 
 
 import numpy as np
+from mesh_membership import SPARSE_KEYS, instance_faces, validate_memberships
 
 
 from donor_geometry import GTProviderError, _require_file, sha256_file
@@ -93,20 +94,37 @@ def _load_instance_mesh(asset: dict[str, Any]) -> dict[str, np.ndarray]:
     annotations_path = _require_file(
         asset["annotations"], "REQ-113 grounding instance annotations")
     with np.load(mesh_path, allow_pickle=False) as stored:
-        required = {"vertices_world", "faces", "face_instance_ids"}
-        if set(stored.files) != required:
+        legacy = {"vertices_world", "faces", "face_instance_ids"}
+        sparse = {"vertices_world", "faces"} | SPARSE_KEYS
+        if set(stored.files) not in (legacy, sparse):
             raise GTGroundingError(f"unexpected grounding mesh schema: {mesh_path}")
         mesh = {
             "vertices": stored["vertices_world"].astype(np.float32),
             "faces": stored["faces"].astype(np.int64),
-            "instance_ids": stored["face_instance_ids"].astype(np.int32),
         }
+        if set(stored.files) == legacy:
+            mesh["instance_ids"] = stored["face_instance_ids"].astype(np.int32)
+        else:
+            if stored["faces"].dtype.kind not in "iu":
+                raise GTGroundingError(f"noninteger sparse grounding faces: {mesh_path}")
+            mesh.update({key: stored[key] for key in SPARSE_KEYS})
     if mesh["faces"].ndim != 2 or mesh["faces"].shape[1] != 3:
         raise GTGroundingError(f"non-triangular grounding mesh: {mesh_path}")
-    if len(mesh["faces"]) != len(mesh["instance_ids"]):
+    if "instance_ids" in mesh and len(mesh["faces"]) != len(mesh["instance_ids"]):
         raise GTGroundingError(f"grounding face/id length mismatch: {mesh_path}")
     annotations = json.loads(annotations_path.read_text())
     annotation_ids = {int(row["instance_id"]) for row in annotations.get("instances", [])}
+    if "membership_instance_ids" in mesh:
+        vertices, faces = mesh["vertices"], mesh["faces"]
+        if (vertices.ndim != 2 or vertices.shape[1] != 3
+                or not np.isfinite(vertices).all()
+                or np.any(faces < 0) or np.any(faces >= len(vertices))):
+            raise GTGroundingError(f"invalid sparse grounding geometry: {mesh_path}")
+        try:
+            validate_memberships(mesh, annotation_ids)
+        except ValueError as error:
+            raise GTGroundingError(f"invalid sparse grounding membership: {error}") from error
+        return mesh
     mesh_ids = {int(value) for value in np.unique(mesh["instance_ids"]) if int(value) >= 0}
     # Some authenticated instances have an OBB annotation but no triangle faces.
     # Those IDs intentionally reach _render_instance's OBB fallback below.  Mesh
@@ -279,7 +297,7 @@ class REQ113GTGroundingProvider:
         if mesh is None:
             triangle_world = self._obb_corners(scene_id, instance_id)[_BOX_TRIANGLES]
         else:
-            selected = np.where(mesh["instance_ids"] == int(instance_id))[0]
+            selected = instance_faces(mesh, int(instance_id))
             if len(selected) == 0:
                 # The sealed instance channel is a closure over packet-mapped
                 # instances.  A category outside that closure still gets a
@@ -496,4 +514,3 @@ class REQ113GTGroundingProvider:
             "frames": frames,
             "score_thresh": 1.0,
         }
-

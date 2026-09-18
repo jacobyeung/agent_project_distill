@@ -34,9 +34,10 @@ def main():
     args = parser.parse_args()
     config, coord = fixture_config(args.output, args.contract, args.contract_sha256)
     cases = []
-    live_path = Path('/data2/jjyeung/agent_project/.coord/LEASES/round__r1313.lock/lease.json')
+    original_work_id = 'training_trace_collection__r1313_gt__train50k__s17__76e67ed6e8'
+    live_path = Path('/data2/jjyeung/agent_project/.coord/LEASES') / (original_work_id + '.lock') / 'lease.json'
     live = read_json(live_path)
-    if live.get('work_id') != 'round__r1313' or live.get('agent_id') != 'req232-gt-teacher-r1313':
+    if live.get('work_id') != original_work_id or live.get('agent_id') != 'req232-gt-teacher-r1313':
         raise ValueError('assigned shared lease identity differs from the brief')
     live_age = (datetime.now(timezone.utc) - datetime.fromisoformat(live['last_heartbeat'])).total_seconds()
     all_ready = dict(config, episode_limit=0)

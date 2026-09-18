@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import hashlib
+from itertools import chain
 import os
+import random
 import socket
 import time
+import uuid
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
@@ -13,11 +16,13 @@ from typing import Any, Callable, Iterable
 
 from .atomicfs import (
     AlreadyExists,
+    LockTimeout,
     StateError,
     canonical_bytes,
     durable_unlink,
     link_lock,
     publish_json_exclusive,
+    prepared_json_exclusive,
     read_json,
     replace_json,
     safe_component,
@@ -126,7 +131,7 @@ class TargetStore:
         self.lock_dir = state_root / "locks"
 
     def cap_lock(self):
-        return link_lock(self.lock_dir, "POOL_CAP")
+        return link_lock(self.lock_dir, "POOL_CAP", poll_seconds=0.1)
 
     def read(self) -> Target:
         value = read_json(self.path)
@@ -303,30 +308,52 @@ class EpisodeQueue:
         safe_component(worker_id, "worker_id")
         if isinstance(slot, bool) or not isinstance(slot, int) or slot < 0:
             raise StateError("slot must be a nonnegative integer")
+        if slot >= self.target_store.effective():
+            return ClaimResult(ClaimOutcome.RETIRE)
         worker_lock = f"WORKER_{worker_id}"
         with link_lock(self.target_store.lock_dir, worker_lock):
-            with self.target_store.cap_lock():
-                target = self.target_store.read()
-                if slot >= target.effective(self.target_store.storm_marker.exists()):
-                    return ClaimResult(ClaimOutcome.RETIRE)
-                for episode in self.catalog.episodes:
-                    if self.valid_trace(episode):
-                        continue
-                    path = self.claim_path(episode)
+            timeouts = 0
+            episodes = self.catalog.episodes
+            offset = slot % len(episodes) if episodes else 0
+            for episode in chain(episodes[offset:], episodes[:offset]):
+                # Catalog/terminal I/O must never serialize other claimants.
+                if self.claim_path(episode).exists() or self.valid_trace(episode):
+                    continue
+                path = self.claim_path(episode)
+                while True:
+                    if path.exists():
+                        break
                     try:
-                        publish_json_exclusive(path, {
-                            "claimed_monotonic_ns": time.monotonic_ns(),
-                            "claimed_wall_time_ns": time.time_ns(),
-                            "episode_id": episode.episode_id,
-                            "host": socket.gethostname(),
-                            "pid": os.getpid(),
-                            "schema": "resizable-pool-claim-v1",
-                            "worker_id": worker_id,
-                        })
+                        with prepared_json_exclusive(path, {
+                                "claimed_monotonic_ns": time.monotonic_ns(),
+                                "claimed_wall_time_ns": time.time_ns(),
+                                "episode_id": episode.episode_id,
+                                "host": socket.gethostname(),
+                                "pid": os.getpid(),
+                                "schema": "resizable-pool-claim-v1",
+                                "worker_id": worker_id,
+                            }) as publish:
+                            with self.target_store.cap_lock():
+                                target = self.target_store.read()
+                                if slot >= target.effective(self.target_store.storm_marker.exists()):
+                                    return ClaimResult(ClaimOutcome.RETIRE)
+                                publish()
+                        return ClaimResult(ClaimOutcome.CLAIMED, episode, path)
                     except AlreadyExists:
-                        continue
-                    return ClaimResult(ClaimOutcome.CLAIMED, episode, path)
-                return ClaimResult(ClaimOutcome.SCAN_EXHAUSTED)
+                        break
+                    except LockTimeout as exc:
+                        timeouts += 1
+                        delay = random.uniform(1, 5)
+                        publish_json_exclusive(self.state_root / "worker_telemetry" / worker_id / f"{uuid.uuid4().hex}.json", {
+                            "schema": "r1314-claim-lock-timeout-v1", "worker_id": worker_id,
+                            "episode_id": episode.episode_id, "timeout_number": timeouts,
+                            "retry_limit": 20, "backoff_seconds": delay if timeouts <= 20 else None,
+                            "wall_time_ns": time.time_ns(), "message": str(exc),
+                        })
+                        if timeouts > 20:
+                            raise
+                        time.sleep(delay)
+            return ClaimResult(ClaimOutcome.SCAN_EXHAUSTED)
 
     def publish_exit_receipt(
         self,

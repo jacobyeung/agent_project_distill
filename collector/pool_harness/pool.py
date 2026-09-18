@@ -14,7 +14,7 @@ from typing import Callable, Sequence
 
 from episode_custody import FailureEvent
 
-from .atomicfs import StateError, link_lock, read_json, replace_json, safe_component
+from .atomicfs import AlreadyExists, StateError, link_lock, publish_json_exclusive, read_json, replace_json, safe_component
 from .state import (
     ClaimOutcome,
     ClaimResult,
@@ -108,12 +108,11 @@ class WorkerLoop:
         return return_code
 
     def run(self) -> int:
-        self.queue.heartbeats.publish(
-            self.worker_id,
-            state="claim_boundary",
-            episode_id=None,
-        )
+        claim = None
         try:
+            self.queue.heartbeats.publish(
+                self.worker_id, state="claim_boundary", episode_id=None,
+            )
             while True:
                 claim = self.queue.claim_next(self.worker_id, self.slot)
                 if claim.outcome is ClaimOutcome.RETIRE:
@@ -144,12 +143,15 @@ class WorkerLoop:
                     episode_id=None,
                 )
         except Exception as exc:
+            from trace_archive import error_details
             frames = traceback.extract_tb(exc.__traceback__)
             origin = frames[-1] if frames else None
             replace_json(self.queue.state_root / "worker_errors" / f"{self.worker_id}.json", {
                 "schema": "req226-worker-error-v1", "worker_id": self.worker_id,
                 "exception_type": type(exc).__name__, "message": str(exc),
                 "origin": [Path(origin.filename).name, origin.name, origin.lineno] if origin else None,
+                "episode_id": claim.episode.episode_id if claim and claim.episode else None,
+                "error": error_details(exc), "traceback": traceback.format_exc(),
             })
             try:
                 self._exit("worker_error", 1)
@@ -194,6 +196,9 @@ class PoolController:
         self.active: dict[int, _ActiveWorker] = {}
         self.failures: list[str] = []
         self.last_spawn_monotonic = -math.inf
+        self.blocked_path = queue.state_root / "BLOCKED.json"
+        self.blocked = read_json(self.blocked_path) if self.blocked_path.exists() else None
+        self.failure_events = [read_json(path) for path in sorted((queue.state_root / "worker_failures").glob("*.json"))]
 
     def _generation_path(self, slot: int) -> Path:
         return self.target_store.state_root / "generations" / f"{slot}.json"
@@ -238,12 +243,61 @@ class PoolController:
             if return_code or receipt_error:
                 error_path = self.queue.state_root / "worker_errors" / f"{active.worker_id}.json"
                 error = read_json(error_path) if error_path.is_file() else {}
-                replace_json(self.queue.state_root / "worker_failures" / f"{active.worker_id}.json", {
+                episodes = [episode for episode in self.queue.catalog.episodes
+                            if not self.queue.valid_trace(episode)
+                            and (self.queue._read_claim(episode) or {}).get("worker_id") == active.worker_id]
+                event = {
                     "schema": "req226-worker-failure-v1", "worker_id": active.worker_id,
                     "return_code": return_code, "receipt_error": receipt_error,
                     "exception_type": error.get("exception_type"), "origin": error.get("origin"),
-                })
+                    "error_receipt": str(error_path) if error else None, "error": error,
+                    "wall_time_ns": time.time_ns(), "slot": active.slot,
+                    "episode_ids": [episode.episode_id for episode in episodes],
+                    "question_ids": sorted({str(episode.payload.get("row", {}).get("id", episode.episode_id)) for episode in episodes}),
+                }
+                # Persist failure evidence before retiring any claim or spawning a successor.
+                publish_json_exclusive(self.queue.state_root / "worker_failures" / f"{active.worker_id}.json", event)
+                self.failure_events.append(event)
+                for episode in episodes:
+                    self.queue.recover_orphan(episode.episode_id,
+                        expected_worker_id=active.worker_id,
+                        owner_is_alive=lambda _claim: active.process.poll() is None,
+                        proof={"controller_epoch": self.run_epoch, "worker_id": active.worker_id,
+                               "pid": active.process.pid, "return_code": return_code,
+                               "failure_receipt": str(self.queue.state_root / "worker_failures" / f"{active.worker_id}.json")})
             del self.active[slot]
+
+    def stop(self) -> None:
+        """Gracefully stop and reap only this controller's owned workers."""
+        for active in self.active.values():
+            if active.process.poll() is None:
+                active.process.terminate()
+        for slot, active in list(self.active.items()):
+            active.process.wait(timeout=60)
+            active.log_handle.close()
+            del self.active[slot]
+
+    def _check_failures(self, desired: int) -> None:
+        counts: dict[str, int] = {}
+        now_ns = time.time_ns()
+        recent = set()
+        for event in self.failure_events:
+            for question in event.get("question_ids", []):
+                counts[question] = counts.get(question, 0) + 1
+            if 0 <= now_ns - event.get("wall_time_ns", 0) <= 300_000_000_000:
+                recent.add(event["worker_id"])
+        strikes = sorted(question for question, count in counts.items() if count >= 3)
+        reason = "question_infrastructure_three_strikes" if strikes else (
+            "worker_failure_storm" if len(recent) > max(1, desired) / 2 else None)
+        if reason and not self.blocked:
+            self.blocked = {"schema": "r1314-pool-blocked-v1", "reason": reason,
+                "question_failure_counts": counts, "three_strike_questions": strikes,
+                "recent_failed_workers": sorted(recent), "window_seconds": 300,
+                "target_workers": desired, "wall_time_ns": now_ns, "run_epoch": self.run_epoch}
+            try:
+                publish_json_exclusive(self.blocked_path, self.blocked)
+            except AlreadyExists:
+                self.blocked = read_json(self.blocked_path)
 
     def _choose_shard(self, census: dict[str, object]) -> str | None:
         by_shard = census["by_shard"]
@@ -298,9 +352,12 @@ class PoolController:
         self._reap()
         target = self.target_store.read()
         desired = target.effective(self.target_store.storm_marker.exists())
+        self._check_failures(desired)
+        if self.blocked:
+            self.stop()
         census = self.queue.census()
         if (
-            len(self.active) < desired
+            not self.blocked and len(self.active) < desired
             and now - self.last_spawn_monotonic
             >= self.config.spawn_stagger_seconds
         ):
@@ -316,6 +373,7 @@ class PoolController:
             "census": census,
             "desired": desired,
             "failures": tuple(self.failures),
+            "blocked": self.blocked,
         }
 
     def run(self) -> int:
@@ -323,14 +381,8 @@ class PoolController:
             status = self.tick()
             census = status["census"]
             assert isinstance(census, dict)
-            if self.failures:
+            if self.blocked:
                 return 2
             if not self.active and census["valid_complete"] == census["total"]:
                 return 0
-            if (
-                not self.active
-                and census["unclaimed"] == 0
-                and census["claimed_orphan"] > 0
-            ):
-                raise PoolBlocked("orphan claims require explicit recovery")
             time.sleep(self.config.poll_seconds)

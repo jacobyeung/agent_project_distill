@@ -284,6 +284,54 @@ def _blob_bytes(ref: Any) -> bytes:
     return payload
 
 
+def error_details(error: BaseException) -> dict[str, Any]:
+    """Capture transport evidence before callers classify or wrap an exception."""
+    from transport_admission import exception_http_status
+
+    def snapshot(value):
+        if isinstance(value, bytes):
+            return {"encoding": "base64", "data": base64.b64encode(value).decode("ascii")}
+        if isinstance(value, dict):
+            return {str(k): "[REDACTED]" if _secret_key(k) else snapshot(v) for k, v in value.items()}
+        if isinstance(value, (list, tuple)):
+            return [snapshot(v) for v in value]
+        if value is None or isinstance(value, (bool, int, float)):
+            return value
+        return Archive._redact_string(str(value))
+
+    def attribute(obj, name):
+        try:
+            return getattr(obj, name, None)
+        except Exception as exc:
+            return {"unavailable": type(exc).__name__}
+
+    chain, seen = [], set()
+    current = error
+    while current is not None and id(current) not in seen:
+        seen.add(id(current))
+        response = attribute(current, "response")
+        headers = attribute(response, "headers")
+        if headers is None:
+            headers = attribute(current, "headers")
+        headers = dict(headers.items()) if hasattr(headers, "items") else headers
+        body = attribute(response, "content")
+        if body is None:
+            body = attribute(response, "text")
+        if body is None:
+            body = attribute(current, "body")
+        if body is None:
+            body = attribute(current, "response_json")
+        if body is None:
+            body = attribute(current, "details")
+        retry_after = next((v for k, v in (headers or {}).items() if str(k).lower() == "retry-after"), None) if isinstance(headers, dict) else None
+        chain.append(snapshot({"type": type(current).__name__, "message": str(current),
+            "http_status": exception_http_status(current), "provider_status": attribute(current, "status"),
+            "body": body, "headers": headers, "retry_after": retry_after,
+            "response_json": attribute(current, "response_json"), "details": attribute(current, "details")}))
+        current = current.__cause__ or current.__context__
+    return dict(chain[0], exception_chain=chain[1:])
+
+
 @contextlib.contextmanager
 def install_archive(archive: Archive, *, models_cls: type | None = None) -> Iterator[Archive]:
     """Capture Google GenAI model calls without changing their return or raise behavior."""
@@ -299,7 +347,7 @@ def install_archive(archive: Archive, *, models_cls: type | None = None) -> Iter
 
     def capture_error(call_id: str, method: str, error: BaseException) -> None:
         archive.event("provider_error", {"call_id": call_id, "provider": "google", "method": method,
-                                          "type": type(error).__name__, "message": str(error)})
+                                          **error_details(error)})
 
     def terminal(call_id: str, method: str, status: str, error: BaseException | None = None) -> None:
         payload = {"call_id": call_id, "provider": "google", "method": method, "status": status}

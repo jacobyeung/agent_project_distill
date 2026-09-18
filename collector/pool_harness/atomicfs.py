@@ -25,6 +25,10 @@ class AlreadyExists(StateError):
     """An immutable path was already published by another process."""
 
 
+class LockTimeout(StateError):
+    """A contended link lock did not become available before its deadline."""
+
+
 def canonical_bytes(value: Any) -> bytes:
     return (json.dumps(value, indent=2, sort_keys=True) + "\n").encode("utf-8")
 
@@ -75,6 +79,23 @@ def publish_exclusive(path: Path, payload: bytes, mode: int = 0o444) -> Path:
 
 def publish_json_exclusive(path: Path, value: Any, mode: int = 0o444) -> Path:
     return publish_exclusive(path, canonical_bytes(value), mode)
+
+
+@contextmanager
+def prepared_json_exclusive(path: Path, value: Any) -> Iterator[Any]:
+    """Stage bytes before a caller's lock; retire staging after releasing it."""
+    private = _write_private(path.parent, path.name, canonical_bytes(value), 0o444)
+    def publish() -> Path:
+        try:
+            os.link(private, path)
+        except FileExistsError as exc:
+            raise AlreadyExists(f"immutable path already exists: {path}") from exc
+        fsync_dir(path.parent)
+        return path
+    try:
+        yield publish
+    finally:
+        retire_path(private, missing_ok=True)
 
 
 def replace_bytes(path: Path, payload: bytes, mode: int = 0o644) -> Path:
@@ -133,7 +154,7 @@ def link_lock(
                 break
             except FileExistsError:
                 if time.monotonic() >= deadline:
-                    raise StateError(f"timed out acquiring link lock: {lock_path}")
+                    raise LockTimeout(f"timed out acquiring link lock: {lock_path}")
                 time.sleep(poll_seconds)
         yield
     finally:
