@@ -686,3 +686,86 @@ def test_recovery_exhaustion_remains_blocked_on_restart(root, monkeypatch):
     assert restarted.tick(2)['blocked']['reason'] == 'orphan_recovery_contention_exhausted'
     assert calls == [1,1,1] and not restarted.active
     assert (root/'BLOCKED.json').read_bytes() == before
+
+
+def test_startup_overlap_refuses_worker_before_first_publication(root):
+    import ctypes
+    import sys
+    from nondeleting_lifecycle import permanent_lock
+    target, queue = make_queue(root, cap=1, count=2)
+    code = '''
+import os,sys,time
+from pathlib import Path
+from pool_harness.state import Episode,EpisodeCatalog,EpisodeQueue,PoolConfig,TargetStore
+root=Path(sys.argv[1]);worker=sys.argv[2]
+target=TargetStore(root,PoolConfig('fixture',1024))
+queue=EpisodeQueue(root,EpisodeCatalog([Episode('q0','scene',{}),Episode('q1','scene',{})]),target,lambda _:False)
+(root/('ready_'+worker)).write_text(str(os.getpid()))
+deadline=time.monotonic()+40
+while not (root/'GO').exists() and not (root/'STOP').exists():
+    assert time.monotonic()<deadline
+    time.sleep(.01)
+if not (root/'STOP').exists():
+    queue.heartbeats.publish(worker,state='claim_boundary',episode_id=None)
+    result=queue.claim_next(worker,0)
+    (root/('result_'+worker)).write_text(result.episode.episode_id)
+    while not (root/'STOP').exists():
+        assert time.monotonic()<deadline
+        time.sleep(.01)
+'''
+    def predecessor():
+        with permanent_lock(root/'CONTROLLER.lock'):
+            control = PoolController(queue, target, run_epoch='predecessor',
+                command_factory=lambda worker, *_: [sys.executable, '-B', '-c', code, str(root), worker],
+                log_root=root/'logs')
+            control.tick(0)
+            active = control.active[0]
+            publish_json_exclusive(root/'predecessor_worker.json',
+                                   {'pid': active.process.pid, 'worker_id': active.worker_id})
+            deadline = time.monotonic()+20
+            while not (root/f'ready_{active.worker_id}').exists():
+                assert time.monotonic()<deadline
+                time.sleep(.01)
+            os._exit(23)
+    libc = ctypes.CDLL(None)
+    previous = ctypes.c_int()
+    assert libc.prctl(37, ctypes.byref(previous), 0, 0, 0) == 0
+    assert libc.prctl(36, 1, 0, 0, 0) == 0
+    prior = multiprocessing.get_context('fork').Process(target=predecessor)
+    prior.start()
+    old = None
+    try:
+        prior.join(timeout=20)
+        assert prior.exitcode == 23
+        old = read_json(root/'predecessor_worker.json')
+        os.kill(old['pid'], 0)
+        assert not list(queue.heartbeats.root.glob('*.json'))
+        assert not list(queue.claim_root.glob('*.json'))
+        with permanent_lock(root/'CONTROLLER.lock'):
+            with pytest.raises(StateError, match='predecessor'):
+                queue.require_drained()
+            with pytest.raises(StateError, match='predecessor'):
+                PoolController(queue, target, run_epoch='successor',
+                    command_factory=lambda *_: ['forbidden'], log_root=root/'logs')
+        (root/'GO').write_text('release surviving worker')
+        deadline = time.monotonic()+20
+        while not (root/f"result_{old['worker_id']}").exists():
+            assert time.monotonic()<deadline
+            time.sleep(.01)
+        assert target.read().total_workers == 1
+        claims = [read_json(p) for p in queue.claim_root.glob('*.json')]
+        assert len(claims) == 1 and claims[0]['worker_id'] == old['worker_id']
+        os.kill(old['pid'], 0)
+    finally:
+        (root/'STOP').write_text('finish fixture worker')
+        if prior.is_alive(): prior.terminate()
+        prior.join(timeout=20)
+        if old is None and (root/'predecessor_worker.json').exists():
+            old = read_json(root/'predecessor_worker.json')
+        if old:
+            deadline = time.monotonic()+20
+            while os.waitpid(old['pid'], os.WNOHANG) == (0, 0):
+                assert time.monotonic()<deadline
+                time.sleep(.01)
+        assert libc.prctl(36, previous.value, 0, 0, 0) == 0
+    queue.require_drained()

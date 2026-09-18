@@ -306,7 +306,8 @@ class EpisodeQueue:
 
     def require_drained(self) -> None:
         """Refuse a successor while predecessor death cannot be verified locally."""
-        records = [read_json(p) for directory in (self.heartbeats.root, self.claim_root)
+        records = [read_json(p) for directory in (self.state_root / "worker_starts",
+                                                self.heartbeats.root, self.claim_root)
                    for p in directory.glob("*.json")]
         for record in records:
             worker = record.get("worker_id")

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 import os
+import socket
 import subprocess
 import threading
 import time
@@ -384,7 +385,11 @@ class PoolController:
         self.log_root.mkdir(parents=True, exist_ok=True)
         log_path = self.log_root / f"{worker_id}.log"
         handle = log_path.open("xb", buffering=0)
+        start_path = self.queue.state_root / "worker_starts" / f"{worker_id}.json"
+        start_record = {"schema": "resizable-pool-worker-start-v1", "worker_id": worker_id,
+                        "host": socket.gethostname(), "pid": None}
         try:
+            publish_json_exclusive(start_path, start_record)
             process = self.popen_factory(
                 list(self.command_factory(worker_id, slot, shard_hint)),
                 stdout=handle,
@@ -402,6 +407,7 @@ class PoolController:
             process=process,
             log_handle=handle,
         )
+        replace_json(start_path, dict(start_record, pid=process.pid))
         return worker_id
 
     def tick(self, now_monotonic: float | None = None) -> dict[str, object]:
