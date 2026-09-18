@@ -6,7 +6,7 @@ case "$repo" in
     /data2/*) ;;
     *) printf '%s\n' 'GPU entrypoint requires the landed /data2 trainer repository, not a workspace copy.' >&2; exit 2 ;;
 esac
-export CUDA_VISIBLE_DEVICES=1
+export CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:?Supervisor must select one leased physical GPU}"
 export PYTHONNOUSERSITE=1
 export PYTHONDONTWRITEBYTECODE=1
 export HF_HOME=/data2/jjyeung/cache/huggingface

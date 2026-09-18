@@ -406,14 +406,19 @@ def protocol_identity(manifest_pin, model_binding, adapter, config):
 
 
 def work_id(benchmark, model, variant, protocol_sha256):
-    return f'student_eval__{model}_{variant}__{benchmark}__17__{protocol_sha256[:10]}'
+    cohort = dict(zip(BENCHMARKS, ('vsi500', 'vsti450', 'dsi_all4')))[benchmark]
+    return f'student_eval__{variant}_{model}_{cohort}__s17__{protocol_sha256[:8]}'
 
 
 def check_lease(lease, hostname, visible_devices, now, fresh=True):
-    if hostname.split('.')[0] != 'trinity-1-8' or lease.get('host') != 'trinity-1-8':
-        raise ValueError('This supervisor launch is scoped only to trinity-1-8')
-    if lease.get('gpu_index') != 1 or visible_devices != '1':
-        raise ValueError('Only supervisor-leased physical GPU1 may be exposed')
+    allowed_hosts = {'trinity-1-13', 'trinity-0-18', 'trinity-0-23', 'trinity-3-23', 'trinity-2-28'}
+    if hostname.split('.')[0] not in allowed_hosts or lease.get('host') != hostname.split('.')[0]:
+        raise ValueError('Supervisor lease must match an authorized evaluation host')
+    index = lease.get('gpu_index')
+    if type(index) is not int or not 0 <= index <= 7 or visible_devices != str(index):
+        raise ValueError('Only the supervisor-leased physical GPU may be exposed')
+    if lease['host'] == 'trinity-1-13' and index == 0:
+        raise ValueError('trinity-1-13 GPU0 is reserved for SAM3')
     for key in ('ownership_check_passed', 'coordination_lease_passed', 'vnice_wrapped'):
         if lease.get(key) is not True:
             raise ValueError(f'Supervisor evidence must attest {key}=true')
@@ -448,7 +453,7 @@ def authenticate_lease(path, expected_work_id, protocol_sha256, coord_root, fres
     if heartbeat.tzinfo is None or not 0 <= (now - heartbeat).total_seconds() <= 300:
         raise ValueError('Coordination heartbeat is stale or future-dated')
     if device_uuid is None:
-        result = subprocess.run(['nvidia-smi', '-i', '1', '--query-gpu=uuid', '--format=csv,noheader'],
+        result = subprocess.run(['nvidia-smi', '-i', str(lease['gpu_index']), '--query-gpu=uuid', '--format=csv,noheader'],
                                 check=True, capture_output=True, text=True, timeout=20)
         device_uuid = result.stdout.strip()
     if not device_uuid or lease.get('gpu_uuid') != device_uuid:

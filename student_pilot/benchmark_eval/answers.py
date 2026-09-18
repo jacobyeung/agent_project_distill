@@ -11,7 +11,7 @@ OPTION = re.compile(r'^\s*([A-Z])[.:)]\s*\S', re.IGNORECASE)
 
 def option_letters(options):
     if isinstance(options, str):
-        values = options.split(';') if options else []
+        values = options.rstrip().removesuffix(';').split(';') if options else []
     elif isinstance(options, list) and all(isinstance(x, str) for x in options):
         values = options
     else:

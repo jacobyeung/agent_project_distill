@@ -79,6 +79,10 @@ class ParserTests(unittest.TestCase):
                 self.assertIsNone(parse_answer(text, [])['answer'])
 
     def test_option_membership_and_native_eos(self):
+        self.assertEqual(option_letters('A: red; B: blue; '), ['A', 'B'])
+        self.assertEqual(parse_answer('B', 'A: red; B: blue;')['answer'], 'B')
+        with self.assertRaises(ValueError):
+            option_letters('A: red;; B: blue')
         self.assertIsNone(parse_answer('C', ['A. red', 'B. blue'])['answer'])
         self.assertEqual(parse_answer('Answer: B<|im_end|>', ['A. red', 'B. blue'])['answer'], 'B')
         self.assertEqual(parse_answer('reasoning\n\n final Answer: a\n', 'A: red;B: blue')['answer'], 'A')
@@ -372,7 +376,7 @@ class HarnessTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             write_json(self.root / 'escape/value.json', {}, self.root)
         with self.assertRaises(ValueError):
-            contracts.output_path(self.root / 'paper.json', self.root, paper=True)
+            contracts.output_path('/home/student_eval_fixture/paper.json', '/home/student_eval_fixture', paper=True)
         pin = write_json(self.root / 'once.json', {'a': 1}, self.root)
         with self.assertRaises(ValueError):
             write_json(pin['path'], {'a': 1}, self.root)
@@ -743,12 +747,11 @@ print('ISOLATED_INFERENCE_IMPORT_PASS')
         self.assertIsNone(config.top_p)
         self.assertTrue(config.use_cache)
 
-    def test_lease_validator_matches_existing_placement_and_authenticates_coord(self):
-        from student_pilot.lease import check_lease as existing
+    def test_lease_validator_enforces_evaluation_placement_and_authenticates_coord(self):
         now = datetime.now(timezone.utc)
         work = contracts.work_id(contracts.BENCHMARKS[0], 'onethinker', 'base', 'f' * 64)
         evidence_path = self.root / f'coord/LEASES/{work}.lock/lease.json'
-        lease = {'host': 'trinity-1-8', 'gpu_index': 1, 'ownership_check_passed': True,
+        lease = {'host': 'trinity-2-28', 'gpu_index': 0, 'ownership_check_passed': True,
                  'coordination_lease_passed': True, 'vnice_wrapped': True, 'owner': 'fixture-owner',
                  'work_id': work, 'coordination_lease_evidence': str(evidence_path), 'protocol_sha256': 'f' * 64,
                  'ownership_checked_at': now.isoformat(), 'expires_at': (now + timedelta(hours=1)).isoformat(),
@@ -759,27 +762,26 @@ print('ISOLATED_INFERENCE_IMPORT_PASS')
             changed = dict(lease)
             if key:
                 changed[key] = value
-            outcomes = []
-            for validator in (existing, contracts.check_lease):
-                try:
-                    validator(changed, 'trinity-1-8', '1', now)
-                    outcomes.append('accepted')
-                except ValueError:
-                    outcomes.append('refused')
-            self.assertEqual(outcomes[0], outcomes[1])
+            if key is None:
+                contracts.check_lease(changed, 'trinity-2-28', '0', now)
+            else:
+                with self.assertRaises(ValueError):
+                    contracts.check_lease(changed, 'trinity-2-28', '0', now)
+        with self.assertRaises(ValueError):
+            contracts.check_lease({**lease, 'host': 'trinity-1-8'}, 'trinity-1-8', '0', now)
         write_json(evidence_path, {'work_id': work, 'agent_id': lease['owner'], 'status': 'running',
-                                  'host': 'trinity-1-8', 'last_heartbeat': now.isoformat()}, self.root)
+                                  'host': 'trinity-2-28', 'last_heartbeat': now.isoformat()}, self.root)
         lease_path = self.root / 'lease.json'
         write_json(lease_path, lease, self.root)
         result = contracts.authenticate_lease(lease_path, work, 'f' * 64, self.root / 'coord',
-                                              hostname='trinity-1-8', visible_devices='1', device_uuid=lease['gpu_uuid'], now=now)
+                                              hostname='trinity-2-28', visible_devices='0', device_uuid=lease['gpu_uuid'], now=now)
         self.assertEqual(result['gpu_uuid'], lease['gpu_uuid'])
         with self.assertRaises(ValueError):
             contracts.authenticate_lease(lease_path, work, 'f' * 64, self.root / 'coord',
-                                          hostname='trinity-1-8', visible_devices='1', device_uuid='GPU-wrong', now=now)
+                                          hostname='trinity-2-28', visible_devices='0', device_uuid='GPU-wrong', now=now)
         with self.assertRaises(ValueError):
             contracts.authenticate_lease(lease_path, work, 'e' * 64, self.root / 'coord',
-                                          hostname='trinity-1-8', visible_devices='1', device_uuid=lease['gpu_uuid'], now=now)
+                                          hostname='trinity-2-28', visible_devices='0', device_uuid=lease['gpu_uuid'], now=now)
 
     def test_invalid_gpu_admission_refuses_before_loading_weights(self):
         preflight = load_json(self.checks[contracts.BENCHMARKS[0], 'onethinker'])
