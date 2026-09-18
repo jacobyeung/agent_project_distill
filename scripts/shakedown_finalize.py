@@ -14,16 +14,29 @@ scorer, scorer_pins = load_scorer(contract)
 heldout = load_json(OUT / 'heldout.json')
 labels = {str(row['id']): row for row in load_json(resolve_answer_key()['path'])
           if str(row['id']) in heldout['heldout_qids']}
+matched_config = None
 for arm in ('base', 'answer_only', 'summary_plus_answer'):
     if not (OUT / arm / 'evaluation_complete.json').exists():
         continue
     rows = [json.loads(line) for line in (OUT / arm / 'generations.jsonl').read_text().splitlines()]
     assert len(rows) == 63 and {row['qid'] for row in rows} == set(labels)
+    config = load_json(OUT / arm / 'generation_config.json')
+    assert config['do_sample'] is False and config['max_new_tokens'] == 1024
+    if matched_config is not None:
+        assert config == matched_config, 'Decoding settings differ between arms'
+    matched_config = config
+    eos = config['eos_token_id']
+    eos = eos if isinstance(eos, list) else [eos]
     exported = []
     for row in rows:
         row = dict(row)
         row['tag_parsed_answer'] = row['parsed_answer']
         if row['status'] == 'ok':
+            tokens = row['generated_token_ids']
+            assert len(tokens) == row['generated_tokens'] <= 1024
+            assert len(row['frame_hashes']) == 32
+            row['finish_reason'] = 'STOP' if tokens and tokens[-1] in eos else 'MAX_TOKENS' if len(tokens) == 1024 else 'UNEXPECTED_STOP'
+            assert row['finish_reason'] != 'UNEXPECTED_STOP'
             record, metrics = scorer._score_entry(row, labels[row['qid']], strict=True)
             row.update(parsed_answer=metrics['pr_ans'], score_record=record)
         else:
