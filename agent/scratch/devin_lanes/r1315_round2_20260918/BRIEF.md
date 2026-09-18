@@ -23,5 +23,8 @@ The live teacher collector (r1313) crashes whenever a worker hits a POOL_CAP loc
 6. Monitoring: copy `monitor_v5.py` to `LANE/out/monitor_v5_remediation.py` and change only what is needed so its process filter recognizes the distill collector path (`/home/jjyeung/agent_project_distill/collector/collect.py`) and its episode children as well as the r1313 path; keep its outputs, cadence, census, and lease behavior identical. Add a CPU test with a fake process table showing both paths are matched.
 7. Full suite green; commit each logical change on `r1315-remediation`; write `LANE/out/SOURCE_PINS_r2.json` (sha256 of every collector file and of the two helper scripts and the monitor), `LANE/out/REVIEW_PACKET_r2.md` (per finding: what changed, file:line, the test that proves it, and the probe result), `LANE/out/r1315_round2.patch` (`git diff` from the round-one import commit to your last commit).
 
+## Scope discipline (user ruling 2026-09-18: minimize overhead, keep scientific integrity)
+Make the smallest code change that closes each item. Add exactly the tests named above (two probe-derived regressions and one monitor filter test); do not add other tests, refactor, rename, or restyle. Do not re-run closure or scene checks that round one already passed unless your change touches the files they cover. A collector change that could alter which traces are accepted, how answers are judged, or what the archive records is out of scope; stop and report it instead. Target: done within 90 minutes.
+
 ## Report (LANE/out/REPORT.md, <=30 lines, last line `DEVIN_LANE_DONE`)
 Commits on `r1315-remediation` (sha + one line), test totals, probe results before/after, packet and bind-plan paths, blockers.

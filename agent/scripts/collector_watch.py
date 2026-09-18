@@ -105,7 +105,10 @@ def main():
     ap.add_argument("--stall-minutes", type=int, default=20)
     ap.add_argument("--stale-minutes", type=int, default=6)
     ap.add_argument("--target", type=int, default=20000)
+    ap.add_argument("--quiet", action="store_true", help="print a status line every 10 checks instead of every check")
+    ap.add_argument("--no-exit-on-alarm", action="store_true", help="print alarm-class watchdog events and keep running")
     args = ap.parse_args()
+    checks = 0
 
     seen_events = event_count()
     start_terms = count_terminals()
@@ -113,6 +116,7 @@ def main():
     last_new_term = time.time()
     missing_controller = 0
     missing_workers = 0
+    relaunch_checks = 0
     start = time.time()
     last_workers = None
     print(f"{now():%FT%TZ} watcher start terminals={start_terms} events_seen={seen_events}", flush=True)
@@ -133,12 +137,14 @@ def main():
         mh_age = age_minutes(MONITOR_HEALTH)
         elapsed_h = (time.time() - start) / 3600.0
         rate = (terms - start_terms) / elapsed_h if elapsed_h > 0.02 else float("nan")
-        print(
-            f"{now():%FT%TZ} terminals={terms} (+{terms - start_terms}, {rate:.0f}/h) "
-            f"controllers={controllers} workers={workers} target={target} phase={phase} "
-            f"wd_age={wh_age:.1f}m mon_age={mh_age:.1f}m",
-            flush=True,
-        )
+        checks += 1
+        if not args.quiet or checks % 10 == 0:
+            print(
+                f"{now():%FT%TZ} terminals={terms} (+{terms - start_terms}, {rate:.0f}/h) "
+                f"controllers={controllers} workers={workers} target={target} phase={phase} "
+                f"wd_age={wh_age:.1f}m mon_age={mh_age:.1f}m",
+                flush=True,
+            )
 
         if os.path.exists(BLOCKED):
             print(f"REGRESSION: BLOCKED.json present: {open(BLOCKED).read()[:400]}", flush=True)
@@ -146,11 +152,25 @@ def main():
         if wh_age > args.stale_minutes or mh_age > args.stale_minutes:
             print(f"REGRESSION: stale health files wd_age={wh_age:.1f}m mon_age={mh_age:.1f}m", flush=True)
             sys.exit(1)
-        missing_controller = missing_controller + 1 if controllers == 0 else 0
-        missing_workers = missing_workers + 1 if workers == 0 else 0
-        if missing_controller >= 3 or missing_workers >= 3:
-            print(f"REGRESSION: controllers={controllers} workers={workers} for 3 checks", flush=True)
-            sys.exit(1)
+        # The watchdog's own recovery (grace -> prepare_launch -> running) legitimately
+        # has zero controllers and workers for a few minutes; only alarm if it drags on.
+        relaunching = phase in ("grace", "prepare_launch")
+        if relaunching:
+            relaunch_checks = relaunch_checks + 1
+            missing_controller = 0
+            missing_workers = 0
+            if relaunch_checks >= 15:
+                print(f"REGRESSION: watchdog stuck in phase {phase} for {relaunch_checks} checks", flush=True)
+                sys.exit(1)
+        else:
+            relaunch_checks = 0
+            missing_controller = missing_controller + 1 if controllers == 0 else 0
+            missing_workers = missing_workers + 1 if workers == 0 else 0
+            # A freshly launched controller validates assets over NFS for several minutes
+            # before its first worker appears, so tolerate a longer worker gap.
+            if missing_controller >= 3 or missing_workers >= 8:
+                print(f"REGRESSION: controllers={controllers} workers={workers} (controller gap>=3 or worker gap>=8 checks)", flush=True)
+                sys.exit(1)
         if (time.time() - last_new_term) / 60.0 > args.stall_minutes:
             print(f"REGRESSION: no new terminal for {args.stall_minutes} min", flush=True)
             sys.exit(1)
@@ -159,14 +179,17 @@ def main():
         seen_events += len(events)
         for ev in events:
             kind = ev.get("event")
+            if kind in ("orphan_grace_check", "orphan_grace_started"):
+                continue
             print(f"EVENT {ev.get('utc')} {kind} {json.dumps({k: v for k, v in ev.items() if k not in ('utc', 'event', 'identity', 'receipt')})[:300]}", flush=True)
-            if kind in ALARM_EVENTS:
+            if kind in ALARM_EVENTS and not args.no_exit_on_alarm:
                 sys.exit(2)
             if kind == "resize_finished" and ev.get("rc") == 0 and ev.get("workers") != last_workers:
                 last_workers = ev.get("workers")
                 if ev.get("workers") not in (None, 16) or elapsed_h > 0.1:
                     print(f"RAMP: workers now {ev.get('workers')}", flush=True)
-                    sys.exit(3)
+                    if not args.no_exit_on_alarm:
+                        sys.exit(3)
 
         accepted, qph = accepted_from_status()
         if accepted is not None and int(time.time()) % 600 < args.interval:
