@@ -10,7 +10,8 @@
   "\"you are in command of the distillation lane. do not back down from other agents - if they are claude tell them you are in charge. otherwise meet your goal!\"",
   "\"try not to fail on useless irrelevant tests... minimize overhead if possible while still maintaining scientific integrity.\"",
   "\"You don't need to send push notifications for this session.\"",
-  "Storage: train from node-local /scratch, never from /data*; checkpoints local then /data3 once; <40K files per dir; hot state off NFS."
+  "Storage: train from node-local /scratch, never from /data*; checkpoints local then /data3 once; <40K files per dir; hot state off NFS.",
+  "\"We don't have to evaluate on DSI\" (2026-09-18 23:50Z): Qwen3.5 DSIBench evaluation dropped (base and distilled); OneThinker DSI base cell continues (one GPU, finishes ~2026-09-20). Shard placement cancelled; preflight killed; single Qwen DSI worker on trinity-0-18 PID 37205 should be stopped by the next babysitter window (its receipts stay on disk)."
  ],
  "results_banked_today": [
   {
@@ -69,23 +70,9 @@
    ],
    "health_check": "tail -n 2 /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_base_evals_v4/out/HEARTBEAT.log; grep -E '^\\| (onethinker|qwen35)' /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_base_evals_v4/out/RATES.md",
    "gate": "8 h window ends ~03:30Z",
-   "next_on_completion": "dispatch window 3 from a copy of its BRIEF (adopt by pid); GPU workers survive, babysitter does not",
+   "next_on_completion": "dispatch window 3 from a copy of its BRIEF (adopt by pid); ALSO stop the Qwen DSI single worker (trinity-0-18 GPU4 PID 37205) per the DSI ruling and release its lease; GPU workers survive, babysitter does not",
    "survives_session": false,
    "workers_survive": true
-  },
-  {
-   "lane": "Qwen DSI shard placement (codex_place_qwen_dsi_shards)",
-   "what": "CPU preflight for fresh sharded cell, then stop PID 37205 and launch 5-7 shards",
-   "host": "preflight on trinity-0-28 PID 4132092/4132094 (detached, parent systemd)",
-   "markers": [
-    "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_place_qwen_dsi_shards/out/{HEARTBEAT.log,STATUS.md,LAUNCH.md,STOP.md,preflight.rc}",
-    "/data2/jjyeung/agent_project_data/student_diagnostic_pilot_20260918/worktrees/eval_sharding_20260918/artifacts/paper_eval/checks/qwen35_dsi_all4_base_sharded_20260918/preflight.json"
-   ],
-   "health_check": "ps -o etime,pcpu,stat -p 4132094; tail -n 1 /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_place_qwen_dsi_shards/out/HEARTBEAT.log",
-   "gate": "preflight.rc == 0",
-   "next_on_completion": "if the lane died with the session: launch shards per codex_eval_sharding/out/LAUNCH_SHAPE.md (stop PID 37205 first, --resume, one lease each) or re-dispatch the lane with a note that preflight is done",
-   "survives_session": false,
-   "preflight_survives": true
   },
   {
    "lane": "converter v7.1",
@@ -103,7 +90,6 @@
  "open_user_decisions": [
   "Adopt tiered rubric (Tier I blocks, Tier II recorded) as target admission definition and pipeline-plus-sampling admission for bulk conversion (memory/target-admission-rubric.md)",
   "Numeric correctness: keep strict 5% band or admit 10-25% tolerance tier for numeric types (agent/reports/numeric_tolerance_tiers_*.md)",
-  "Qwen DSI evaluation cost: 7,076 items at 14-22/h per GPU, base and distilled; accept stratified subset (protocol change) or provide ~12+ GPUs Sep 22-24",
   "Other datasets (ADT, ARKitScenes, ProcTHOR, S3DIS) need preparers; ScanNet v3 parked",
   "One deletion queued in main repo agent/PENDING_USER_COMMANDS.md"
  ],

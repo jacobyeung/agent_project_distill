@@ -21,6 +21,7 @@ Read this, then `CLAUDE.md` (operating rules incl. production source tree, branc
 6. Lane monitor: a 60 s loop over lane `out/` dirs for REPORT.md with DONE marker and heartbeat age >= 12 min (see the previous session's pattern; each Codex lane writes `out/HEARTBEAT.log`).
 
 ## 3. Pending user rulings (flagged, not blocking)
+- RULED 23:50Z: "We don't have to evaluate on DSI." Qwen3.5 DSIBench cells (base and distilled) are dropped; the shard placement was cancelled and its preflight killed; the single Qwen DSI worker (trinity-0-18 GPU 4, PID 37205) is to be stopped by the next babysitter window. OneThinker DSI base continues. Blind spot 2 below is therefore closed except the base-score sanity check.
 - Adopt the tiered rubric as the target admission definition and pipeline-plus-sampling admission for bulk conversion (provisional ruling recorded in `memory/target-admission-rubric.md`).
 - Numeric correctness: strict 5% census band stands; tiers show +2.7 points at 10%, +6.5 at 25%.
 - Other datasets (ADT, ARKitScenes, ProcTHOR, S3DIS: 17,500 q) have no preparer or media; ScanNet v3 preparer parked (`preparers/scannet_v3/`, recovers ~1 in 5 refused scenes).
