@@ -65,4 +65,6 @@ The native dataset integration fixture requires both its runtime code and output
 
 Run `python -B tools/provenance.py /absolute/path/to/config.json` and require exit 0 before launching. Persist its JSON in the new run root and propagate `repo_commit` and `config_sha256` to every trace and target. See `CONTRIBUTING.md` for the full contract.
 
+- `CONTRIBUTING.md` also holds the efficiency rules (user, 2026-09-18) covering commits, retries, tests, reviews, executor tiers, pre-authorized resources, and RESULTS.md.
+
 The imported entry points retain source-deployment paths and sealed-contract assumptions; the provenance helper does not automatically wrap them. This baseline is not production launch approval. Collector remediation remains separate, ADT is a placeholder, and the dedicated Qwen3.5 and full-scale trainer patches were unavailable. Do not infer benchmark eligibility or training success from an import, a syntax check, or a CPU test.

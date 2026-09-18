@@ -27,6 +27,22 @@ Run the relevant checks in `README.md`, record exact totals and failures, and in
 
 The main repository remains authoritative for benchmark scoring and the experiment request queue. Privileged teacher supervision is training-only. Student benchmark inference must remain RGB-only and tool-free, without answers, ground-truth geometry, or correctness-derived state.
 
+## Efficiency rules (user, 2026-09-18)
+
+The commit itself is the contract. A change needs no hand-sealed CONTRACT.json and no exact-closure census. When a consumer still needs a per-file hash list, a script generates it from the committed tree. Closure and scene checks re-run only when a file they cover has changed.
+
+No single slow call is fatal. Every filesystem, lock, and coordination call retries with bounded backoff. A step-down happens only for a real error class, such as an HTTP 429 or sustained lock contention. Supervisors relaunch a lane automatically.
+
+Tests earn their place. A test must reproduce a defect or guard an integrity invariant, such as atomic claims, answer-free training data, scene-disjoint splits, or complete archives. The full CPU suite runs in under five minutes. It carries no cosmetic tests and no repeated fixture sweeps.
+
+Reviews stay scoped. A review prompt lists the open items and the acceptance criterion for each. A new finding must state its impact on trace correctness, auditability, or run safety, or it counts as a non-blocking note. One review round is the target.
+
+Executors match their tier. Devin Astra writes code, Codex Luna handles ssh and cross-node placement, Sonnet handles reads and small edits, and Astra xhigh reviews gates only. Every lane writes its state under out/, so a restart costs little. Lane reports stay under 20 lines.
+
+Some resources need no per-launch permission. Gemini spend within the shared throughput budget and GPU use within the 16-unwrapped-GPU rule (vnice beyond it) are pre-authorized this way.
+
+Records replace history. Each experiment gets one RESULTS.md holding facts only, with no narration of how the result was reached.
+
 ## Data and coordination
 
 Keep data, caches, models, checkpoints, traces, targets, run receipts, and large artifacts outside Git under `/data2/jjyeung/agent_project_data/`. Never delete or clean files. If a workspace artifact must move, rename it under `_quarantine/` and preserve its provenance. Do not alter another lane's working files or shared coordination state.
