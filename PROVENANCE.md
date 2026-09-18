@@ -50,6 +50,18 @@ The source inventory hashes above bind the concatenated `sha256sum` output for c
 
 The ScanNet delta directories deliberately omit unchanged runtime modules. They are not standalone sealed packages, and copying their contracts does not grant admission. The ADT placeholder grants no runtime capability.
 
+## Materialization wrappers
+
+All three variants were copied on 2026-09-18 from `/data2/jjyeung/agent_project_data/vsi_distill_training_20260917/runtime_control/gt_teacher_r1313/materialization_v2/`. Each destination has exactly six source files: `common.py`, `run_batch.py`, `validate_scene.py`, `launch_cpu.sh`, `test_wrapper.py`, and `CONFIG.json`. Each file compares byte-identically with its source. `materialize/README.md` is new integration documentation.
+
+| Destination | Source directory below the root above | Source CONTRACT.json SHA-256 |
+|---|---|---|
+| `materialize/wrapper_codex_v1/` | `wrapper_codex_v1/` | `55f03e2c0c7484add0aa19e51a6f2236b3d1b45e119c20a7d5c746a1b94350ed` |
+| `materialize/wrapper_prep_v2/` | `wrapper_prep_v2/` | `ef46fbfa744bbdd36d6fbeff2fc982cd3ca52ddd3e5d4faa325fd82bfc2fa56b` |
+| `materialize/wrapper_scannet_v1/` | `wrapper_scannet_v1/` | `88ede2fb3f8567e544fbc77e00bb6134cd6445243f6e134df80530eee2f3ced3` |
+
+Every other source entry is excluded: runtime and generated-test directories, plans, contracts, status/health files, receipts, locks, PID files, logs, and dry-run outputs. The source contract files are hashed above, not copied. The variants have different implementations; keeping three subdirectories under one `materialize/` root preserves each config's code pairing without an unreviewed rewrite. Their original absolute paths and launch identities remain examples, not admission for a new run.
+
 ## Missing requested inputs
 
 At initial inspection on 2026-09-18, these patch directories were empty:
