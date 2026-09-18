@@ -830,3 +830,50 @@ sys.exit(1)
         assert not (root/'BLOCKED.json').exists()
     finally:
         successor.stop()
+
+
+def test_monitor_filter_matches_both_collectors_and_episode_children(root):
+    import ast
+    script = Path(__file__).resolve().parents[1]/'tools/monitor_v5_remediation.py'
+    tree = ast.parse(script.read_text())
+    boundary = next(i for i, node in enumerate(tree.body) if isinstance(node, ast.Assign)
+                    and any(isinstance(target, ast.Name) and target.id == 'start' for target in node.targets))
+    definitions = [node for node in tree.body[:boundary] if not isinstance(node, ast.Expr)]
+    namespace = {'__file__': str(script)}
+    exec(compile(ast.Module(body=definitions, type_ignores=[]), str(script), 'exec'), namespace)
+    legacy = Path('/home/jjyeung/agent_project_r1313_gt_teacher/agent/rounds/candidates/r1313_vsi_distill_gt_training')
+    distill = Path('/home/jjyeung/agent_project_distill/collector')
+    attempts = namespace['ROOT']/'attempts'
+    rows = {
+        101: ['python', '-B', str(legacy/'collect.py'), 'start'],
+        102: ['python', '-B', str(legacy/'collect.py'), 'worker'],
+        103: ['python', '-B', str(legacy/'run_experiment_r1313.py'), str(attempts/'q0/b16384')],
+        201: ['python', '-B', str(distill/'collect.py'), 'start'],
+        202: ['python', '-B', str(distill/'collect.py'), 'worker'],
+        203: ['python', '-B', str(distill/'run_experiment_r1313.py'), str(attempts/'q1/b16384')],
+        301: ['python', '-B', '/other/collect.py', 'worker'],
+        302: ['python', '-B', str(distill/'collect.py'), 'readiness'],
+        303: ['python', '-B', str(distill/'run_experiment_r1313.py'), '/other/attempts/q0'],
+        304: ['python', '-B', str(legacy/'run_experiment_r1313.py'), '/other/attempts/q0'],
+        305: ['python', '-B', str(distill/'collect.py.bak'), 'worker'],
+    }
+    table = root/'proc'
+    for pid, args in rows.items():
+        entry = table/str(pid)
+        entry.mkdir(parents=True)
+        (entry/'cmdline').write_bytes(b'\0'.join(arg.encode() for arg in args)+b'\0')
+        (entry/'stat').write_text(' '.join([str(pid), '(fixture)', 'S']+['0']*18+[str(pid*100)]))
+    namespace['Path'] = lambda value: table if str(value) == '/proc' else Path(value)
+    loop = next(node for node in tree.body if isinstance(node, ast.While))
+    body = next(node for node in loop.body if isinstance(node, ast.Try)).body
+    classification = [node for node in body if isinstance(node, ast.Assign)
+                      and any(isinstance(target, ast.Name) and target.id in {'ps', 'workers', 'controllers', 'children'}
+                              for target in node.targets)]
+    assert len(classification) == 4
+    exec(compile(ast.Module(body=classification, type_ignores=[]), str(script), 'exec'), namespace)
+    assert {p['pid'] for p in namespace['ps']} == {101, 102, 103, 201, 202, 203}
+    assert {p['pid'] for p in namespace['controllers']} == {101, 201}
+    assert {p['pid'] for p in namespace['workers']} == {102, 202}
+    assert {p['pid'] for p in namespace['children']} == {103, 203}
+    assert all(p['args'] == rows[p['pid']] and p['start_ticks'] == str(p['pid']*100)
+               and p['uid'] == os.getuid() and p['state'] == 'S' for p in namespace['ps'])
