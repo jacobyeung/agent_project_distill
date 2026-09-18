@@ -32,3 +32,7 @@ Worktree; CPU suite green; implement 1 to 5 with fixtures reproducing the sectio
 
 ## Report (LANE/out/REPORT.md, <=30 lines, last line `DEVIN_LANE_DONE`)
 Design items with fixture evidence; test totals; sampling rule and the 16 qids; per-trace outcome with Tier-I results and Tier-II measures; calls, mean latency, tokens, measured throughput; bundle and REVIEW_PROMPT.md paths and sha256; commit SHAs; blockers.
+
+## Late notes (orchestrator, 2026-09-18 21:40Z, binding)
+- Quota: v6.2's eight stage-A calls were all refused with HTTP 429 input-token quota (`agent/scratch/devin_lanes/converter_v6_2_cleansource_20260918/out/REPORT.md`, lines 11-18) while the teacher collector runs 64 workers on the same shared Gemini budget. Treat HTTP 429 like infrastructure failures: retry after 60, 120, 240 and 480 seconds within the same stage attempt without consuming the per-trace call budget, record every 429 with its timestamp, and report the 429 rate.
+- Input size: the extraction call's input must be the compact view, not the raw archive rendering: the typed measurement records (design item 1) as a numbered list with their line ids, the teacher's messages and thoughts, the question and options, and the frame availability records; raw tool return payloads are excluded from the prompt (they remain in the canonical rendering for citation and verification). Measure and report input tokens per call; the target is well under 100,000 tokens per trace.
