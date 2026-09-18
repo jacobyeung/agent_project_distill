@@ -98,6 +98,8 @@ The patch adds these eight paths below `student/landing/`: `student_pilot/datase
 
 On 2026-09-18, `docs/VSI_DISTILLATION_GT_TEACHER_FEASIBILITY_RESULT.md` was copied byte-for-byte from `/home/jjyeung/agent_project/agent/agentic_information_5.0/VSI_DISTILLATION_GT_TEACHER_FEASIBILITY_RESULT.md`. Source and destination SHA-256: `be8365e220f5c3bfab503b5839cf6db974d41ab1615260b5d5baddf4cdc17863`. The source is untracked and has no source commit or contract; its exact file hash is the import pin. The main repository HEAD was `b3500228fa175058df3fd1d910b189beb4d67399` at inspection. Other imported documentation is preserved in the initial assembly commit or the pinned student branch trees above.
 
+The concurrently created local coordination file `agent/scratch/devin_lanes/r1315_round2_20260918/BRIEF.md` entered the required `git add -A` during documentation commit `1965bb4`. Its committed bytes have SHA-256 `57e57b00f9e47f2c48969324682afdf96733ef5ffd2cfa779fa9669f22fb538c`. It was not authored or executed by the migration lane. Its subsequent edits, other lanes' inputs, `.claude/settings.json`, and `agent/scripts/collector_watch.py` remain outside migration commits; no shared history is rewritten to remove the preserved brief.
+
 ## Missing requested inputs
 
 At initial inspection on 2026-09-18, these patch directories were empty:
@@ -111,3 +113,31 @@ The fallback patch directories were absent:
 - `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_student_fullscale_trainer_fallback/out/patches/`
 
 The student-import recheck confirmed the same empty primary directories and absent fallback directories. No patch bytes exist to apply or preserve under `student/patches_pending/`; no Qwen3.5-specific or full-scale trainer implementation is fabricated. Those two requested imports remain blocked on their producing lanes.
+
+## Verification
+
+Checks ran locally on 2026-09-18 with bytecode disabled and GPUs hidden. No paid provider calls, training jobs, benchmark runs, production admissions, or remote-node launches were performed. Student tests used the existing private interpreter at `/data2/jjyeung/agent_project_data/student_diagnostic_pilot_20260918/venv/bin/python` unless noted. Test artifacts remain under `/data2/jjyeung/agent_project_data/distillation_repo_migration_20260918/`; command logs remain under `agent/scratch/devin_lanes/repo_migration_20260918/out/`.
+
+| Check | Result |
+|---|---|
+| Required `python -B -m unittest tools/test_provenance.py` | 7 tests passed; exit 0. `PROVENANCE_TEST_OUTPUT` selected a fresh fixture directory under the data root above. |
+| Required collector unittest discovery | 20 tests ran: 15 passed, 5 errors, no assertion failures; exit 1. Missing pytest caused two import errors; unset `SPARSE_FIXTURE_ROOT` caused three fixture errors. Source code was not fixed. |
+| Landing `test_conversion_v2*.py` | 43 tests passed; exit 0. Provider transport is mocked or forbidden by these fixtures. |
+| Landing `test_dataset_builder.py` | 23 tests passed; exit 0, using the default Python interpreter. |
+| Five focused dataset-loader checks | 5 tests passed; exit 0. Checked row boundaries, fixture opt-in, split proofs, and shard-integrity failures. This is not the full loader suite. |
+| Native dataset integration from the staged Git snapshot | 2 tests passed; exit 0. Source commit `d91f6a4` was exported with `git archive HEAD:student/landing` into the data-root `native_runtime/` directory. Code and fixtures remained beneath the same explicitly admitted workspace. |
+| Evaluation `ParserTests` and `SamplingTests` | 6 tests passed; exit 0. No benchmark predictions were generated. |
+| Private student environment `python -B -m pip check` | No broken requirements found; exit 0. No packages were installed or changed. |
+| Adapter copy and syntax | 85 source files matched byte-for-byte; 79 Python files parsed. The ADT README is an additional local placeholder. |
+| Materialization copy and syntax | All 18 source files matched; 12 Python files, 3 JSON configs, and 3 shell launchers passed syntax checks. |
+| Tracked-file syntax | 236 Python files, 22 JSON files, and 14 shell scripts passed parsing or `bash -n`. |
+| Git import integrity | All three requested student tips are ancestors of main. Evaluation and shakedown subtree object IDs still match their sources. Landing differs only by the eight patch files and the one copied support module. |
+| Size check | No tracked file exceeds 5,000,000 bytes. |
+| Full evaluation suite | Incomplete; stopped during installed Transformers model-file I/O in its first adapter-reload case. No full-suite pass is claimed. |
+| Full dataset-loader suite | Incomplete; stopped during installed PyTorch library-file I/O in a collator case. Focused validation results are reported separately above. |
+
+The native integration checks exposed two distinct conditions, both retained in the logs: the committed source omitted `detailed_audit.py`, and an in-checkout run with a `/data2` workspace correctly refused to pin code outside that workspace under `/home`. The support module was imported unchanged; staging the same committed code under the admitted data workspace allowed the two native integration tests to run without relaxing admission. These results do not certify a production deployment from the mixed `/home` and `/data2` layout.
+
+The new root `README.md`, `CONTRIBUTING.md`, this provenance record, `materialize/README.md`, and the ADT placeholder were authored for this migration rather than imported from a claimed upstream commit. The root development ruling comes from the 2026-09-18 distillation-repository/provenance user ruling in the main repository's `agent/agentic_information_5.0/EXPERIMENT_REQUEST_QUEUE.md`.
+
+The migration preserves concurrent edits rather than committing or discarding another lane's work. A dirty shared checkout must still fail the provenance preflight. The final lane report records the tag, push outcome, and remaining working-tree blockers; a clean checkout of the tagged commit is the reproducible assembly boundary, not permission to bypass unresolved launch gates.
