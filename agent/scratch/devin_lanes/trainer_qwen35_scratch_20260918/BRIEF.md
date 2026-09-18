@@ -24,3 +24,6 @@ Worktree and green CPU suite first; implement 1 and 2 with tests; run the CPU su
 
 ## Report (LANE/out/REPORT.md, <=30 lines, last line `DEVIN_LANE_DONE`)
 Registry and target discovery per student (module patterns, trainable parameters), scratch and publish paths used, smoke results per student (memory, step time, reload check, published path), test totals before/after, commit SHAs, blockers.
+
+## Note from the landing lane
+`scripts/diagnostic_gpu_batch.sh` resolves its interpreter as `$pilot/venv/bin/python` relative to the worktree parent, which does not exist for worktrees outside the pilot root; make it honor an explicit `PILOT_VENV` environment variable (default the canonical venv above) as part of deliverable 2. Landing report: `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_land_trainer/out/REPORT.md` (branch tip `b108a4fa31d0120149daf4ab02bf6cab5b0fec2a`; `artifacts/data/smoke.json` and `split.json` are absent, so build the smoke manifest yourself as described).
