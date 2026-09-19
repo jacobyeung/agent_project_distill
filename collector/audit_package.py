@@ -21,7 +21,7 @@ OFFLINE_FILES = frozenset('''README.md build_sources.py census.py prepare_gt_sce
 test_trace_archive.py test_gt_tools.py test_runner_transport.py test_admission.py validate_package.py'''.split())
 REQUIRED_FILES = RUNTIME_FILES | OFFLINE_FILES
 PARENT_FILES = REQUIRED_FILES
-RUNTIME_FILES = RUNTIME_FILES | {'mesh_membership.py'}
+RUNTIME_FILES = RUNTIME_FILES | {'mesh_membership.py', 'attest_host_drained.py'}
 OFFLINE_FILES = OFFLINE_FILES | {'test_tolerant_pool.py', 'README_DELTA.md', 'test_sparse_grounding.py', 'test_sparse_scene_assets.py', 'test_coordination_retry.py'}
 REQUIRED_FILES = RUNTIME_FILES | OFFLINE_FILES
 PARENT_ROOT = Path('/home/jjyeung/agent_project_r1313_gt_teacher/agent/rounds/candidates/r1313_vsi_distill_gt_training')
