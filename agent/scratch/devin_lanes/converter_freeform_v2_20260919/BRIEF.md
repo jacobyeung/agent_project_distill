@@ -38,3 +38,7 @@ One call per trace, no repair, no retry except on 429/5xx per the backoff schedu
 Pilot table (16 rows); bulk counts by outcome/rejection reason (`numeric_leak`, `unknown_entity`, `appearance_overreach`, etc.) and yield per question type; throughput (targets/hour) per concurrency level; token cost; `TRAIN_PARAMS.env`/`PILOT_SUMMARY.md`/`REVIEW_PROMPT.md`/manifest paths and sha256; commit SHAs; 429/lease/ramp-abort events.
 
 Note: zero-call lanes make no provider calls; this lane does, one per trace, as v1.
+
+## Orchestrator amendment (2026-09-19 06:32Z): state at relaunch
+- The first run was paused at 06:00Z after about 2,590 bulk targets while storage was suspected as the collector's problem; the problem turned out to be node-local to trinity-3-23. Resume: your worktree `LANE/work/trainer_repo` exists on branch `converter-freeform-v2-20260919` with the C-N module and scheduler committed; use it as is (no `git worktree add`). `LANE/out` (symlink to /data2) holds the pilot outputs and the finished targets under `out/diagnostic_set/targets/<qid>/`; keep them.
+- Continue the bulk over the remaining qids of the v3 candidate index that have no finished target directory (a target directory with checks.json counts as finished; never redo one). Same prompt version, gates, lease procedure (write a fresh API_LEASE.json as before) and concurrency ramp starting at 8. Then finish the deliverables: candidate index over all finished targets, manifest, `LANE/TRAIN_PARAMS.env` (ADMISSION_VERDICT=FREEFORM_CN_DIAGNOSTIC_PENDING_REVIEW), REVIEW_PROMPT.md, REPORT.md.
