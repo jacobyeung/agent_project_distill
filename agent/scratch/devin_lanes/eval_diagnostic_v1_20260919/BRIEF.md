@@ -53,3 +53,6 @@ Adapter verification result; host-allowlist check result and cherry-pick SHAs if
 
 ## Orchestrator amendment (2026-09-19 06:25Z): host authorization order of operations
 In provisional mode the reviewed v2 lease binds the actual hostname and probed GPU UUID (re-review item 3), so do not cherry-pick anything up front. Run cpu-check and bind-lease under `--provisional-diagnostic` first on this node. Only if the harness refuses this host (message "Supervisor lease must match an authorized evaluation host" or an equivalent host check) cherry-pick cf738d18 then 50868d6 onto the evaluation worktree, resolve conflicts minimally, re-run the contracts tests, record both SHAs and the conflict resolution in NOTES.md, and retry. Never edit the host set by hand.
+
+## Orchestrator amendment (2026-09-19 07:03Z): lease freshness and preflight order
+The provisional trainer refuses device admission when lease-binding evidence is older than 300 s. Benchmark `cpu-check` (frame reads for 500 or 450 items) and held-out preparation take minutes, so run every preflight and staging step BEFORE `lease-request` and `bind-lease`, then start `generate` or `evaluate` within 60 s of binding. If a first pass refuses for freshness, treat it as a staging pass and repeat lease-request, bind-lease and the GPU command immediately. Never bypass or patch the freshness check.
