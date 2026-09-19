@@ -132,7 +132,7 @@ class DatasetTests(unittest.TestCase):
         self.assertEqual(membership['intersection_count'], 4)
         reasons = {entry['qid']: entry['reason_codes'] for entry in compact.load_jsonl(self.output / 'DEFERRED.jsonl')}
         self.assertEqual(reasons['vsi590k_000002'], ['over_budget'])
-        self.assertEqual(reasons['vsi590k_000003'], ['no_selected_observations'])
+        self.assertEqual(reasons['vsi590k_000003'], ['no_selected_observations', 'no_calculations'])
         self.assertIn('source_tier_i_failed', reasons['vsi590k_000004'])
 
     def test_recovery_only_qid_is_not_in_denominator(self):
@@ -214,6 +214,19 @@ class DatasetTests(unittest.TestCase):
         for variant in ('default', 'derivation_citations'):
             self.assertTrue(Path(item[variant]['artifacts']['target']['path']).is_file())
         self.assertEqual(compact.load_jsonl(self.root / 'pilot_variant_derivation_citations/candidate_index.jsonl'), [])
+
+    def test_pinned_pilot_reviews_the_same_qids_including_a_deferred_one(self):
+        self.add_source(1)
+        self.add_source(2, lambda lines, records, checks, evidence: lines[0].update(student_text='LONG source text.'))
+        counter = lambda text: 1537 if 'LONG' in text else 100
+        self.config['pilot_qids_pinned'] = ['vsi590k_000002', 'vsi590k_000001']
+        self.build(count_tokens=counter)
+        sample = compact.load_json(self.output / 'PILOT_SAMPLE_16.json')
+        self.assertEqual([item['qid'] for item in sample['samples']], ['vsi590k_000002', 'vsi590k_000001'])
+        self.assertFalse(sample['samples'][0]['default']['passed'])
+        self.assertEqual(sample['samples'][0]['default']['reason_codes'], ['over_budget'])
+        self.assertTrue(sample['samples'][1]['default']['passed'])
+        self.assertEqual(compact.verify_dataset(self.output, counter)['status'], 'VERIFIED')
 
     def test_verifier_detects_changed_target_bytes(self):
         self.add_source(1)
