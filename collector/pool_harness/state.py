@@ -304,17 +304,29 @@ class EpisodeQueue:
         path = self.claim_path(episode)
         return read_json(path) if path.exists() else None
 
-    def require_drained(self) -> None:
-        """Refuse a successor while predecessor death cannot be verified locally."""
-        records = [read_json(p) for directory in (self.state_root / "worker_starts",
-                                                self.heartbeats.root, self.claim_root)
+    def require_drained(self) -> dict[str, Any]:
+        """Verify predecessor death and return the host attestations that covered it."""
+        from attest_host_drained import covering_attestation, load_attestations
+
+        records = [(p, read_json(p)) for directory in (self.state_root / "worker_starts",
+                                                     self.heartbeats.root, self.claim_root)
                    for p in directory.glob("*.json")]
-        for record in records:
+        attestations = None
+        evidence = {}
+        for path, record in records:
             worker = record.get("worker_id")
             if record.get("host") != socket.gethostname():
                 # A remote exit receipt proves that worker crossed its final boundary.
                 if worker and (self.receipt_root / f"{worker}.json").is_file():
                     self.read_exit_receipt(worker)
+                    continue
+                if attestations is None:
+                    attestations = load_attestations(self.state_root)
+                covered = covering_attestation(attestations, record, path)
+                if covered is not None:
+                    entry = evidence.setdefault(covered["attestation"], covered)
+                    if worker not in entry["workers"]:
+                        entry["workers"].append(worker)
                     continue
                 raise StateError("predecessor drainage unverified on foreign host")
             pid = record.get("pid")
@@ -327,6 +339,7 @@ class EpisodeQueue:
             except PermissionError:
                 pass
             raise StateError(f"predecessor worker remains live; drain first: {worker}")
+        return {"drain_evidence": list(evidence.values())}
 
     def claim_next(self, worker_id: str, slot: int) -> ClaimResult:
         safe_component(worker_id, "worker_id")

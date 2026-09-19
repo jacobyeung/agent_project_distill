@@ -949,3 +949,142 @@ class ArchiveFilenameTest(unittest.TestCase):
                     with self.assertRaises(OSError) as raised:
                         self.archive.event("planner_payload", {"prompt": f"Inspect {self.fixture}/asset"})
                 self.assertEqual(raised.exception.errno, code)
+
+
+# Host attestations preserve the foreign predecessor boundary after host migration.
+def drain_attestation(host="predecessor", **updates):
+    value = {
+        "schema": "pool-host-drain-attestation-v1", "host": host,
+        "verified_at": "2026-09-19T09:55:00+00:00",
+        "verifier": {"pid": 123, "uid": 1000, "argv": ["attest_host_drained.py"], "python": "/python"},
+        "workers": [{"worker_id": "old", "pid": 456, "start_ticks": None, "status": "dead"}],
+        "record_counts": {"worker_starts": 1, "heartbeats": 0, "claims": 0},
+        "package_commit": "a" * 40,
+    }
+    value.update(updates)
+    return value
+
+
+@pytest.mark.parametrize("directory,clock", [
+    ("worker_starts", None), ("heartbeats", "wall_time_ns"), ("claims", "claimed_wall_time_ns"),
+])
+@pytest.mark.parametrize("case", ["missing", "valid", "older", "equal", "foreign", "malformed", "wrong_pid", "wrong_worker"])
+def test_foreign_host_drain_attestation(root, directory, clock, case):
+    from attest_host_drained import verified_ns
+    _, queue = make_queue(root)
+    attestation = drain_attestation()
+    verified = verified_ns(attestation["verified_at"])
+    record_time = verified + 1000 if case == "older" else verified if case == "equal" else verified - 1000
+    record = {"host": "predecessor", "worker_id": "old", "pid": 456}
+    if clock:
+        record[clock] = record_time
+    path = root / directory / "old.json"
+    publish_json_exclusive(path, record)
+    os.utime(path, ns=(record_time, record_time))
+    if case == "foreign": attestation["host"] = "other-host"
+    if case == "malformed": attestation["schema"] = "untrusted-v0"
+    if case == "wrong_pid": attestation["workers"][0]["pid"] = 789
+    if case == "wrong_worker": attestation["workers"][0]["worker_id"] = "someone-else"
+    att_path = root / "host_attestations" / "proof.json"
+    if case != "missing": publish_json_exclusive(att_path, attestation)
+    if case == "valid":
+        evidence = queue.require_drained()["drain_evidence"]
+        assert evidence == [{"attestation": str(att_path), "sha256": hashlib.sha256(att_path.read_bytes()).hexdigest(),
+                             "host": "predecessor", "verified_at": attestation["verified_at"], "workers": ["old"]}]
+    else:
+        with pytest.raises(StateError, match="foreign host"):
+            queue.require_drained()
+
+
+@pytest.mark.parametrize("update", [
+    {"workers": [{"worker_id": "old", "pid": 456, "start_ticks": None, "status": "live"}]},
+    {"workers": [{"worker_id": "old", "pid": True, "start_ticks": None, "status": "dead"}]},
+    {"workers": "old"}, {"verifier": {}}, {"record_counts": {}},
+    {"verified_at": "2026-09-19T09:55:00"}, {"verified_at": "bad"}, {"package_commit": "unknown"},
+])
+def test_malformed_drain_attestation_never_admits(root, update):
+    _, queue = make_queue(root)
+    publish_json_exclusive(root / "heartbeats/old.json",
+                           {"host": "predecessor", "worker_id": "old", "pid": 456, "wall_time_ns": 0})
+    publish_json_exclusive(root / "host_attestations/proof.json", drain_attestation(**update))
+    with pytest.raises(StateError, match="foreign host"):
+        queue.require_drained()
+
+
+def test_drain_attestation_requires_all_records_and_start_ticks(root):
+    _, queue = make_queue(root)
+    proof = drain_attestation()
+    proof["workers"][0]["start_ticks"] = "123"
+    publish_json_exclusive(root / "host_attestations/proof.json", proof)
+    publish_json_exclusive(root / "heartbeats/old.json",
+                           {"host": "predecessor", "worker_id": "old", "pid": 456, "start_ticks": 123, "wall_time_ns": 0})
+    assert queue.require_drained()["drain_evidence"][0]["workers"] == ["old"]
+    publish_json_exclusive(root / "claims/old.json",
+                           {"host": "predecessor", "worker_id": "old", "pid": 456, "start_ticks": "124", "claimed_wall_time_ns": 0})
+    with pytest.raises(StateError, match="foreign host"):
+        queue.require_drained()
+
+
+def test_foreign_exit_receipt_still_admits_without_attestation(root):
+    _, queue = make_queue(root)
+    publish_json_exclusive(root / "heartbeats/old.json", {"host": "predecessor", "worker_id": "old", "pid": 456})
+    queue.publish_exit_receipt("old", reason="scan_exhausted", slot=0, return_code=0)
+    assert queue.require_drained() == {"drain_evidence": []}
+
+
+@pytest.mark.parametrize("state,recorded,exists,expected", [
+    ("S", None, False, False), ("S", "123", True, True),
+    ("S", "122", True, False), ("Z", "123", True, False), ("S", None, True, True),
+])
+def test_drain_proc_identity(monkeypatch, state, recorded, exists, expected):
+    from attest_host_drained import process_alive
+    def read_stat(path):
+        assert str(path) == "/proc/456/stat"
+        if not exists: raise FileNotFoundError(path)
+        return "456 (worker (with spaces)) " + " ".join([state] + ["0"] * 18 + ["123"])
+    monkeypatch.setattr(Path, "read_text", read_stat)
+    assert process_alive(456, recorded) is expected
+
+
+def test_drain_proc_unreadable_is_not_death(monkeypatch):
+    from attest_host_drained import process_alive
+    def denied(path): raise PermissionError(path)
+    monkeypatch.setattr(Path, "read_text", denied)
+    with pytest.raises(PermissionError): process_alive(456, None)
+
+
+def test_attestation_cli_refuses_live_worker(root):
+    import socket
+    import subprocess
+    import sys
+    publish_json_exclusive(root / "worker_starts/live.json",
+                           {"host": socket.gethostname(), "worker_id": "live", "pid": os.getpid()})
+    result = subprocess.run([sys.executable, "-B", str(Path(__file__).with_name("attest_host_drained.py")),
+                             "--pool", str(root), "--write"], capture_output=True, text=True)
+    assert result.returncode == 1 and "live workers" in result.stderr and "live" in result.stderr
+    assert not result.stdout and not (root / "host_attestations").exists()
+
+
+def test_attestation_census_deduplicates_and_filters_host(root, monkeypatch, capsys):
+    import attest_host_drained as module
+    import socket
+    rows = [{"host": socket.gethostname(), "worker_id": "old", "pid": 456, "start_ticks": ticks}
+            for ticks in (123, "123", "124")]
+    for directory, row in zip(module.RECORD_DIRS, rows):
+        publish_json_exclusive(root / directory / "old.json", row)
+    publish_json_exclusive(root / "claims/foreign.json", {"host": "another-host", "pid": os.getpid(), "worker_id": "foreign"})
+    monkeypatch.setattr(module, "process_alive", lambda pid, ticks: pid == os.getpid())
+    value = module.attest(root)
+    assert value["record_counts"] == {"worker_starts": 1, "heartbeats": 1, "claims": 1}
+    assert [(w["pid"], w["start_ticks"], w["status"]) for w in value["workers"]] == [(456, "123", "dead"), (456, "124", "dead")]
+    assert value["host"] == socket.gethostname() and value["verifier"]["pid"] == os.getpid()
+    monkeypatch.setattr(module, "attest", lambda pool: value)
+    assert module.main(["--pool", str(root)]) == 0
+    printed = capsys.readouterr().out
+    assert not (root / "host_attestations").exists()
+    assert module.main(["--pool", str(root), "--write"]) == 0
+    assert capsys.readouterr().out == printed
+    path = next((root / "host_attestations").glob("*.json"))
+    assert path.read_text() == printed
+    with pytest.raises(SystemExit) as exc: module.main(["--pool", str(root), "--write"])
+    assert exc.value.code == 1 and path.read_text() == printed
