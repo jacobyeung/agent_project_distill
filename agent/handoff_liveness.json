@@ -1,8 +1,8 @@
 {
-  "written_utc": "2026-09-19T02:00:00Z",
+  "written_utc": "2026-09-19T04:05:00Z",
   "head": {
-    "commit": "70e340c",
-    "meaning": "distill repo main; collector/ bytes identical to 94cc697 (live contract); no admission gap; converter v7.1/v7.2 outcomes and zero-call v2 lane committed"
+    "commit": "b36898b",
+    "meaning": "distill repo main; collector/ bytes unchanged mid-run; no admission gap; v3 zero-call set (3,852/3,933) committed; v4 (format E) and free-form (format C) lanes launched; fine-tunes launched"
   },
   "user_rulings_today": [
     "\"You should never ever be held up waiting for my response. If it's a command you can't run, perhaps you can pause the lane and just relaunch a new lane to fix the experiment.\" (queue USER-RULING 2026-09-18)",
@@ -12,7 +12,11 @@
     "\"You don't need to send push notifications for this session.\"",
     "Storage: train from node-local /scratch, never from /data*; checkpoints local then /data3 once; <40K files per dir; hot state off NFS.",
     "\"We don't have to evaluate on DSI\" (2026-09-18 23:50Z): Qwen3.5 DSIBench evaluation dropped (base and distilled); OneThinker DSI base cell continues (one GPU, finishes ~2026-09-20). Shard placement cancelled; preflight killed; single Qwen DSI worker on trinity-0-18 PID 37205 should be stopped by the next babysitter window (its receipts stay on disk).",
-    "\"time is of the essence; evidence that distillation works on a partial training set comes before full-scale runs; iterate quickly; start training as soon as possible\" (2026-09-18 23:58Z; memory evidence-first-priority.md)"
+    "\"time is of the essence; evidence that distillation works on a partial training set comes before full-scale runs; iterate quickly; start training as soon as possible\" (2026-09-18 23:58Z; memory evidence-first-priority.md)",
+    "RULED 03:00Z: approve the free-form Gemini rewrite arm as an ablation, trained on the qid intersection with the zero-call arm.",
+    "RULED 03:45Z: use every reachable node.",
+    "RULED 03:45Z: the ICLR deadline is in seven days, about 2026-09-26 (memory use-all-nodes-iclr-deadline.md).",
+    "RULED 03:58Z: fine-tune the 8B and 9B students first; consider Qwen3.6-27B or Gemma-4-31B only if the gain over the 8B/9B result is large."
   ],
   "results_banked_today": [
     {
@@ -49,58 +53,105 @@
   "active_runs": [
     {
       "lane": "r1315 teacher collector",
-      "what": "Gemini 3.1 Pro GT-perception SPLIT traces on 306 scenes; 64 workers; no admission gap (ready_questions 27,506 per controller_v5.log line 94; STATUS_v5.md 'Admitted: 9112' line is stale, frozen 2026-09-18 11:02Z)",
+      "what": "Gemini 3.1 Pro GT-perception SPLIT traces; 56 workers after a 03:19Z lock stepdown, recovering; no admission gap",
       "host": "trinity-3-23",
-      "pids": "watchdog+controller per /data2/jjyeung/agent_project_data/vsi_distill_training_20260917/runtime_control/gt_teacher_r1313/remediation_d9f7863f1e75/LAUNCH_RECEIPT_v5.json and watchdog_identity_v5.json",
       "markers": [
         "/data2/jjyeung/agent_project_data/vsi_distill_training_20260917/runtime_control/gt_teacher_r1313/remediation_d9f7863f1e75/WATCHDOG_HEALTH.json",
-        "/data2/jjyeung/agent_project_data/vsi_distill_training_20260917/runtime_control/gt_teacher_r1313/remediation_d9f7863f1e75/WATCHDOG_EVENTS.jsonl",
-        "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_r1313_watchdog_v5/out/HEALTH_v5.json",
-        "/data2/jjyeung/agent_project_data/vsi_distill_training_20260917/runtime_control/gt_teacher_r1313/RELAUNCH_20260918/STATUS_v5.md",
-        "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_pool_admission_gap/out/"
+        "/data2/jjyeung/agent_project_data/vsi_distill_training_20260917/runtime_control/gt_teacher_r1313/remediation_d9f7863f1e75/WATCHDOG_EVENTS.jsonl"
       ],
       "health_check": "cd /home/jjyeung/agent_project_distill && WATCHDOG_OUT=/data2/jjyeung/agent_project_data/vsi_distill_training_20260917/runtime_control/gt_teacher_r1313/remediation_d9f7863f1e75 timeout 90 python -B agent/scripts/collector_watch.py --interval 30 --stall-minutes 25 2>&1 | head -n 3",
-      "gate": "target 20,000 accepted; 3,277 at 01:45Z; 600-700 q/h at 64 workers, no 429s (transient dip to ~430/h coincided with v7.2 pilot Gemini calls); strict yield of the pool ~21,000, 20,000 accepted expected ~2026-09-20 midday UTC",
-      "next_on_completion": "none needed until 20k; if BLOCKED.json appears follow codex_relaunch_r1315_watchdog/BRIEF.md pattern (rename block, relaunch watchdog)",
+      "gate": "target 20,000 accepted; 4,509 at 04:00Z; ~600 q/h recovering at 56 workers; 20,000 expected ~2026-09-20 midday UTC",
+      "next_on_completion": "none needed until 20k",
       "survives_session": true
     },
     {
-      "lane": "base evals window 3 (codex_base_evals_v5)",
-      "what": "babysits the same 4 live cells as v4: OneThinker DSI (trinity-1-13 GPU1), Qwen VSI (GPU6), Qwen VSTI (GPU7), Qwen DSI single worker (trinity-0-18 GPU4 PID 37205); observe-only, dispatched 23:55Z",
+      "lane": "base evals window 4 (codex_base_evals_v6)",
+      "what": "babysits the live eval cells: six Qwen VSI shards (trinity-0-18 GPUs 0,1,2,5,6,7, cell qwen35_vsi500_base_sharded_20260919), Qwen VSTI shard placement, OneThinker DSI base worker (1,821/7,076 at 04:00Z)",
       "markers": [
-        "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_base_evals_v5/out/{RATES.md,REPORT.md,ADOPTION.md,HEARTBEAT.log}"
+        "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_base_evals_v6/out/{RATES.md,REPORT.md,HEARTBEAT.log}"
       ],
-      "health_check": "tail -n 2 /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_base_evals_v5/out/HEARTBEAT.log; grep -E '^\\| (onethinker|qwen35)' /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_base_evals_v5/out/RATES.md",
+      "health_check": "tail -n 2 /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_base_evals_v6/out/HEARTBEAT.log; grep -c qwen35_vsi500 /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_base_evals_v6/out/RATES.md",
       "gate": "REPORT.md ends LANE_DONE on every pass -- that marker does not mean finished; judge liveness from HEARTBEAT.log age",
-      "next_on_completion": "dispatch window 4 from a copy of its BRIEF (adopt by pid); stopping the Qwen DSI worker (PID 37205 on trinity-0-18 GPU4) is a user action (ssh trinity-0-18 kill 37205), not a lane task, per classifier refusal",
+      "next_on_completion": "dispatch window 5 from a copy of its BRIEF",
       "survives_session": false,
       "workers_survive": true
     },
     {
-      "lane": "converter zero-call v2",
-      "what": "typed records v2 (parses recorded_calculation outputs, appearance records from frame_availability, convention records, qualification student_text), template/policy entry for every quantity, per-record rendering, 16-trace pilot then bulk over every accepted trace",
-      "state": "RUNNING (Devin gpt-6-astra-max-priority, launched ~01:27Z, timeout 18000s)",
+      "lane": "converter zero-call v4 (format E)",
+      "what": "zero-call target format E (relevance-selected evidence, compiled reasoning chain, provenance sidecar, no ids/coordinates in text), built from the v3 branch, consults SPEC_E.md if present",
+      "state": "RUNNING (Devin, launched 03:51Z)",
       "markers": [
-        "agent/scratch/devin_lanes/converter_zero_call_v2_20260918/out/{HEARTBEAT.log,diagnostic_set/,REPORT.md}",
-        "agent/scratch/devin_lanes/converter_zero_call_v2_20260918/LANE/TRAIN_PARAMS.env"
+        "agent/scratch/devin_lanes/converter_zero_call_v4_20260919/out/{HEARTBEAT.log,diagnostic_set/,REPORT.md}",
+        "agent/scratch/devin_lanes/converter_zero_call_v4_20260919/LANE/TRAIN_PARAMS.env"
       ],
-      "health_check": "tail -n 2 /home/jjyeung/agent_project_distill/agent/scratch/devin_lanes/converter_zero_call_v2_20260918/out/HEARTBEAT.log",
-      "gate": "critical path to the first training run; writes ADMISSION_VERDICT=ZERO_CALL_DIAGNOSTIC_PENDING_REVIEW in TRAIN_PARAMS.env on completion",
-      "next_on_completion": "dispatch independent review (codex_review_converter_v7/PROMPT_HEADER.md + lane REVIEW_PROMPT.md, gpt-6-astra xhigh); on PASS launch fine-tune diagnostic v2 via the Luna launcher",
+      "health_check": "tail -n 2 /home/jjyeung/agent_project_distill/agent/scratch/devin_lanes/converter_zero_call_v4_20260919/out/HEARTBEAT.log",
+      "gate": "critical path to the format-E training run",
+      "next_on_completion": "dispatch independent review; on PASS launch a format-E fine-tune",
       "survives_session": false
     },
     {
-      "lane": "fine-tune diagnostic v2",
-      "what": "OneThinker-8B first, vision and language LoRA, scene-disjoint split seed 17, VSI and VSTI only, per-type tables against base, GPUS=auto",
-      "status": "waiting on TRAIN_PARAMS.env",
+      "lane": "converter free-form (format C)",
+      "what": "free-form Gemini rewrite ablation arm, approved 03:00Z; pilot 6/16 (nine rejections all failed number grounding); bulk running at throttled concurrency 3, ~1,000 targets so far",
+      "state": "RUNNING (Devin, lane converter_freeform_20260919)",
       "markers": [
-        "agent/scratch/devin_lanes/finetune_diagnostic_v2_20260918/BRIEF.md",
+        "agent/scratch/devin_lanes/converter_freeform_20260919/out/{HEARTBEAT.log,diagnostic_set/,REPORT.md}"
+      ],
+      "health_check": "tail -n 2 /home/jjyeung/agent_project_distill/agent/scratch/devin_lanes/converter_freeform_20260919/out/HEARTBEAT.log",
+      "gate": "keep the raw-coordinate ban in the prompt (see do_not_redo)",
+      "next_on_completion": "once a partial index and TRAIN_PARAMS.env exist, launch finetune_freeform_v1_20260919 via codex_luna_launch_finetune_freeform",
+      "survives_session": false
+    },
+    {
+      "lane": "fine-tune OneThinker-8B (finetune_diagnostic_v2_20260918)",
+      "what": "OneThinker-8B on the v3 zero-call diagnostic set; vision and language LoRA, scene-disjoint split seed 17, VSI and VSTI only",
+      "host": "trinity-0-18",
+      "status": "RUNNING, launched 04:00:08Z",
+      "markers": [
         "agent/scratch/devin_lanes/finetune_diagnostic_v2_20260918/out/HEARTBEAT.log"
       ],
       "health_check": "tail -n 2 /home/jjyeung/agent_project_distill/agent/scratch/devin_lanes/finetune_diagnostic_v2_20260918/out/HEARTBEAT.log",
-      "launch": "copy converter_zero_call_v2_20260918/TRAIN_PARAMS.env to finetune_diagnostic_v2_20260918/TRAIN_PARAMS.env, set GPUS=auto and PUBLISH_ROOT=/data3/jjyeung/agent_project_data/finetune_diagnostic_v2_20260918, then dispatch codex_luna_launch_finetune_v2/BRIEF.md (gpt-5.6-luna, effort high) in parallel with an independent review of the v2 bundle",
-      "next_on_completion": "n/a (not yet launched)",
-      "survives_session": false
+      "gate": "result is diagnostic, provisional",
+      "next_on_completion": "compare per-type tables against base; report to user for the 27B/31B go-or-hold decision",
+      "survives_session": true
+    },
+    {
+      "lane": "fine-tune Qwen3.5-9B (finetune_diagnostic_v2_qwen_20260918)",
+      "what": "Qwen3.5-9B on the v3 zero-call diagnostic set, matching the OneThinker run",
+      "host": "trinity-1-13 (preferred)",
+      "status": "LAUNCHING via codex_luna_launch_finetune_v2_qwen",
+      "markers": [
+        "agent/scratch/devin_lanes/finetune_diagnostic_v2_qwen_20260918/out/HEARTBEAT.log"
+      ],
+      "health_check": "tail -n 2 /home/jjyeung/agent_project_distill/agent/scratch/devin_lanes/finetune_diagnostic_v2_qwen_20260918/out/HEARTBEAT.log",
+      "gate": "result is diagnostic, provisional",
+      "next_on_completion": "compare per-type tables against base; report to user for the 27B/31B go-or-hold decision",
+      "survives_session": true
+    },
+    {
+      "lane": "Qwen VSI shards (qwen35_vsi500_base_sharded_20260919)",
+      "what": "six shards on trinity-0-18 GPUs 0,1,2,5,6,7, launched 03:37Z; union with the original worker and dedup by item id is a later scoring step",
+      "host": "trinity-0-18",
+      "markers": [
+        "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_base_evals_v6/out/HEARTBEAT.log",
+        "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_base_evals_v6/out/RATES.md"
+      ],
+      "health_check": "tail -n 2 /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_base_evals_v6/out/HEARTBEAT.log; grep qwen35_vsi500 /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_base_evals_v6/out/RATES.md",
+      "gate": "babysat by codex_base_evals_v6",
+      "next_on_completion": "union + dedup by item id against the original worker",
+      "survives_session": true
+    },
+    {
+      "lane": "Astra design round 2 (codex_astra_design_r2)",
+      "what": "format-E spec refinement using the free-form pilot's evidence plus eight pinned questions; writes SPEC_E.md and MEMO2.md",
+      "markers": [
+        "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_astra_design_r2/out/HEARTBEAT.log",
+        "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_astra_design_r2/out/SPEC_E.md",
+        "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_astra_design_r2/out/MEMO2.md"
+      ],
+      "health_check": "tail -n 2 /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_astra_design_r2/out/HEARTBEAT.log",
+      "gate": "converter zero-call v4 consults SPEC_E.md once written",
+      "next_on_completion": "feed SPEC_E.md to v4 if not already consulted",
+      "survives_session": true
     }
   ],
   "round_registry": {
@@ -111,8 +162,8 @@
     "Numeric correctness: keep strict 5% band or admit 10-25% tolerance tier for numeric types (agent/reports/numeric_tolerance_tiers_*.md)",
     "Other datasets (ADT, ARKitScenes, ProcTHOR, S3DIS) need preparers; ScanNet v3 parked",
     "One deletion queued in main repo agent/PENDING_USER_COMMANDS.md",
-    "kill Qwen DSI worker PID 37205 on trinity-0-18 GPU 4",
-    "approve or decline the free-form rewrite ablation arm"
+    "free-form rewrite ablation arm: APPROVED 03:00Z, trained on the qid intersection with the zero-call arm",
+    "27B student (Qwen3.6-27B or Gemma-4-31B): go or hold after the 9B result"
   ],
   "do_not_redo": [
     "Do not change collector/ on main while the collector runs (epoch procedure in CLAUDE.md)",
@@ -122,7 +173,9 @@
     "Do not gate lanes on unrelated pre-existing test failures (CLAUDE.md test-gate rule)",
     "expand collector admission (no gap; STATUS_v5.md lines are stale)",
     "one-call converter rounds before the typed-record layer is complete",
-    "Qwen DSI evaluation"
+    "Qwen DSI evaluation",
+    "write bulk lane outputs under /home",
+    "free-form prompt without a raw-coordinate ban"
   ],
   "session_notes": [
     "Codex lanes doing ssh/pgrep/kill die on access_programs.cyber 400 after 40 min to 2.5 h; per-step artifacts; orchestrator writes final record",
@@ -134,16 +187,18 @@
   "survives_vs_dies": {
     "survives": [
       "collector on trinity-3-23",
-      "the four GPU eval workers (OneThinker DSI trinity-1-13 GPU1, Qwen VSI GPU6, Qwen VSTI GPU7, Qwen DSI trinity-0-18 GPU4 PID 37205)",
-      "codex_base_evals_v5 (detached via setsid)",
-      "all lane files, including converter zero-call v2 outputs after its process ends"
+      "all GPU eval workers and shards (six Qwen VSI shards, Qwen VSTI shard-placement worker, OneThinker DSI base worker)",
+      "remote Devin fine-tune sessions (OneThinker-8B on trinity-0-18, Qwen3.5-9B on trinity-1-13)",
+      "Codex lanes dispatched with setsid (codex_base_evals_v6, codex_astra_design_r2)",
+      "all lane files, including converter zero-call v4 and free-form converter outputs after their processes end"
     ],
     "dies": [
       "collector watcher (session monitor)",
       "lane heartbeat monitor",
       "queue watcher",
-      "converter zero-call v2 Devin process (timeout 18000s; its files survive)",
-      "any later Luna launcher process for fine-tune diagnostic v2"
+      "local Devin process for converter zero-call v4",
+      "local Devin process for the free-form converter",
+      "waiters on v3's REPORT.md (review dispatch) and the free-form partial index + TRAIN_PARAMS.env (ablation fine-tune launch)"
     ]
   }
 }
