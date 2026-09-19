@@ -1,8 +1,8 @@
 {
-  "written_utc": "2026-09-19T16:05:00Z",
+  "written_utc": "2026-09-19T18:20:00Z",
   "head": {
-    "commit": "f7ae2af",
-    "meaning": "distill repo main; both students train on multiple GPUs (OneThinker arms A and E via DDP, Qwen arms A and E via FSDP, trainer v4.6/b41b597 memory gate and ef2cd59 chat-template fix landed); the collector runs at 40 workers toward the 20,000-trace target; the eval-prompt-instruction fix (2ebd555) lands to stop base models losing on answer-format parsing rather than task skill, and base evaluations are being re-scored under it before any base-vs-distilled comparison"
+    "commit": "6248d5e",
+    "meaning": "distill repo main; briefs a Devin lane adding resumable checkpoints and --resume-from to the multi-GPU trainer after the vnice terminator killed OneThinker arm A attempt 7 with no checkpoint to resume from; both students keep training on multiple GPUs after the kill, the collector runs at 32 workers toward the 20,000-trace target, and the evaluation harness gained the provisional-adapter admission path (branch eval-instructed-provisional-20260919, tip a666e6a) so distilled adapters can be scored under the instructed-answer-format prompt"
   },
   "user_rulings_today": [
     "RULED about 11:50Z: \"Own the distillation lane: obtain at least 20,000 accepted traces on vsibench training using the GT perception data. Fine-tune OneThinker-8B and Qwen3.5-9B with vision and language LoRA on a scene-disjoint split of those targets and show better RGB-only, tool-free accuracy than the base checkpoints on VSIBench and VSTIBench reporting per-question-type results. use Devin Astra max for development, Codex or Luna for ssh work and Sonnet for easy tasks, and never touch the other experimenter's state or the collector code on main while the collector runs. Maximize the google API key at 8m tok/min to collect the reasoning traces. Evidence first: publish per-type results on the partial training set for both students before any full-scale run, and report them whether or not they beat the base. Paper ready numbers by 2026-9-24Z; when lanes compete for GPUs or the key, the collector and the two student fine-tunes win over ablations.\"",
@@ -12,119 +12,102 @@
     "\"try not to fail on useless irrelevant tests... minimize overhead if possible while still maintaining scientific integrity.\"",
     "\"You don't need to send push notifications for this session.\"",
     "Storage: train from node-local /scratch, never from /data*; checkpoints local then /data3 once; <40K files per dir; hot state off NFS.",
-    "\"We don't have to evaluate on DSI\" (2026-09-18 23:50Z): Qwen3.5 DSIBench evaluation dropped (base and distilled); OneThinker DSI base cell continues (one GPU, finishes ~2026-09-20). Shard placement cancelled; preflight killed; single Qwen DSI worker on trinity-0-18 PID 37205 should be stopped by the next babysitter window (its receipts stay on disk).",
+    "\"We don't have to evaluate on DSI\" (2026-09-18 23:50Z): Qwen3.5 DSIBench evaluation dropped (base and distilled); OneThinker DSI base cell continues.",
     "\"time is of the essence; evidence that distillation works on a partial training set comes before full-scale runs; iterate quickly; start training as soon as possible\" (2026-09-18 23:58Z; memory evidence-first-priority.md)",
     "RULED 03:00Z: approve the free-form Gemini rewrite arm as an ablation, trained on the qid intersection with the zero-call arm.",
     "RULED 03:45Z: use every reachable node.",
     "RULED 03:45Z: the ICLR deadline is in seven days, about 2026-09-26 (memory use-all-nodes-iclr-deadline.md).",
     "RULED 03:58Z: fine-tune the 8B and 9B students first; consider Qwen3.6-27B or Gemma-4-31B only if the gain over the 8B/9B result is large.",
-    "RULED through the main-repo queue, executor preference (2026-09-19, applied about 12:50Z), verbatim: \"Actually, could we prefer to use claude subagents? It's still okay to escalate to Astra or use Luna when you need to SSH into other nodes, but we are starting to run out of codex usage. Devin or Claude Subagents.\" Applied: Claude subagents (Sonnet for reads and mechanical work, Opus for launch-and-babysit and analysis) or Devin builders for every new lane; Codex Luna only for ssh relays; Codex Astra only for gate reviews and escalation; in-flight Codex lanes finish.",
-    "RULED through the main-repo queue, relaunches (2026-09-19, applied about 12:50Z), verbatim: \"if you're just relaunching an experiment that's already been designed and has been running for a while now, you don't need a reviewer to review any changes you do, right? Don't waste tokens. Please don't want reviewers if you're just relaunching an experiment that collapsed for some reason.\" Applied: a relaunch of an already-designed, already-running experiment skips independent review; a new design, a new admission or scoring path, or a first launch still gets one.",
-    "RULED, executor preference, applied since 12:36Z: every new lane uses Claude subagents or a Devin builder; Codex Luna handles ssh relays only; Codex Astra handles gate reviews and escalation only, never routine development.",
-    "RULED: a relaunch of a collapsed experiment needs no reviewer round."
+    "RULED, executor preference (applied about 12:50Z): Claude subagents (Sonnet for reads and mechanical work, Opus for launch-and-babysit and analysis) or Devin builders for every new lane; Codex Luna only for ssh relays; Codex Astra only for gate reviews and escalation; in-flight Codex lanes finish.",
+    "RULED, relaunches (applied about 12:50Z): a relaunch of an already-designed, already-running experiment skips independent review; a new design, a new admission or scoring path, or a first launch still gets one."
   ],
   "results_banked_today": [
     {
-      "what": "teacher traces accepted (strict census)",
-      "count": 2567,
-      "pointer": "census_r1313/1789773858515942793/SUMMARY.json (23:40Z); 251 at session start"
+      "what": "teacher traces finalized (collector, r1315)",
+      "count": 8079,
+      "pointer": "R/WATCHDOG_HEALTH.json at 18:07Z; target 20,000"
     },
     {
-      "what": "pool admitted",
-      "count": "306 scenes / 27,506 q",
-      "pointer": "/data2/jjyeung/agent_project_data/vsi_distill_training_20260917/runtime_control/gt_teacher_r1313/remediation_d9f7863f1e75/ADMISSION_STATE_v5.json; REGISTRY_UNION_r1315_20260918T192153519892Z.json"
+      "what": "base OneThinker-8B, instructed prompt, VSIBench answerable-500",
+      "count": "31.47% (407/500 parsed, 93 failures, 0 cap hits)",
+      "pointer": "D/claude_base_reeval_instructed_onethinker/RESULTS.md, harness 86d28d9"
     },
     {
-      "what": "base evals scored",
-      "count": 2,
-      "pointer": "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_base_evals_v3/out/RESULTS.md (OneThinker VSI 16.93%, VSTI 11.33%)"
+      "what": "base OneThinker-8B, instructed prompt, VSTIBench repr450_v2",
+      "count": "40.16% (395/450 parsed, 55 failures, 1 cap hit)",
+      "pointer": "D/claude_base_reeval_instructed_onethinker/RESULTS.md, harness 86d28d9"
     },
     {
-      "what": "admitted student targets",
-      "count": 0,
-      "pointer": "nine converter rounds; design review agent/reports/converter_design_review_20260918.md"
-    },
-    {
-      "what": "trainer smoke both students",
-      "count": 2,
-      "pointer": "/data3/jjyeung/agent_project_data/student_smoke_20260918/{onethinker,qwen35}/PUBLISHED.json"
-    },
-    {
-      "what": "eval sharding reviewed PASS",
+      "what": "OneThinker single-GPU baseline adapter published",
       "count": 1,
-      "pointer": "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_review_eval_sharding/VERDICT.md; branch eval-harness-sharding-20260918 cf738d18"
+      "pointer": "/data3/jjyeung/agent_project_data/finetune_diagnostic_v2_20260918/onethinker_retry_20260919T072144Z/PUBLISHED.json, label adapter-ZERO_CALL_DIAGNOSTIC_PENDING_REVIEW, 656 steps, mean row loss 0.46 to 0.108"
+    },
+    {
+      "what": "evaluation harness provisional-adapter admission path restored, reviewed PASS",
+      "count": 1,
+      "pointer": "branch eval-instructed-provisional-20260919, tip a666e6a19adf41cbe4db9e52a8e73ea64fa95105, 235 tests, acceptance checker 16/16 PASS"
+    },
+    {
+      "what": "rewrite v3.1 bulk rows finalized",
+      "count": 2845,
+      "pointer": "D/codex_rewrite_v3_1_bulk/out/OUTCOMES_bulk_v3_1.jsonl at 18:07Z; target 3,852; fidelity audit clean on 2,425 rows checked"
     }
   ],
   "active_runs": [
     {
       "lane": "r1315 teacher collector (recovered, watchdog v5, ramped by hand)",
-      "status": "40 workers as of 16:00Z; 7,235 of 20,000 finalized; zero 429s, sporadic 503s (1 to 7 per 15 minutes)",
-      "what": "watchdog v5's own auto-ramp is dead (cooldown flag never clears after an external control write); the orchestrator ramps by hand through R/watchdog_control_v5.json, +8 workers when the trailing 15-minute 503 count is 2 or fewer, no 429, and lease age under 300 s, stepping back on a 15-minute 503 count above 8, any 429, lease age above 600 s, or a stepdown event; steps so far 8, 16 (13:16Z), 24 (14:17Z), 32 (15:17Z), 40 (16:00Z)",
-      "host": "trinity-1-3 (controller and lease); trinity-3-23 still unreachable by direct ssh",
+      "status": "32 workers since 16:23Z (a step to 40 at 16:00Z caused an escalating 503 wave and was reverted); 8,079 of 20,000 finalized at 18:07Z; 370 to 388 finalized/h; key at 1.3 to 2.9M input tok/min; zero 429s, sporadic 503s",
+      "what": "add 8 to 36 workers only after two consecutive 15-minute cycles hold a 503 count of 2 or fewer, no 429, and lease age under 300 s; step back on any 429, a lease age above 600 s, a stepdown event, or a 15-minute 503 count above 24",
+      "host": "trinity-1-3 (controller and lease)",
       "markers": [
         "/data2/jjyeung/agent_project_data/vsi_distill_training_20260917/runtime_control/gt_teacher_r1313/remediation_d9f7863f1e75/WATCHDOG_HEALTH.json",
-        "/data2/jjyeung/agent_project_data/vsi_distill_training_20260917/runtime_control/gt_teacher_r1313/remediation_d9f7863f1e75/R/watchdog_control_v5.json",
         "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_relaunch_r1315_drain_attest/out/RAMP_LOG.md"
       ],
-      "health_check": "grep -oE '\"(finalized|target)\"[^,}]*' /data2/jjyeung/agent_project_data/vsi_distill_training_20260917/runtime_control/gt_teacher_r1313/remediation_d9f7863f1e75/WATCHDOG_HEALTH.json; tail -n 1 /data2/jjyeung/agent_project_data/vsi_distill_training_20260917/runtime_control/gt_teacher_r1313/remediation_d9f7863f1e75/TPM_READOUT.log",
-      "gate": "target 20,000 accepted; never change collector/ on main while a collector runs; ramp per watchdog_control_v5.json up to the ceiling of 64",
-      "next_on_completion": "keep ramping per the 15-minute rule; watch collector_tpm_readout_20260919 for headroom before each step",
+      "health_check": "grep -oE '\"(finalized|target)\"[^,}]*' /data2/jjyeung/agent_project_data/vsi_distill_training_20260917/runtime_control/gt_teacher_r1313/remediation_d9f7863f1e75/WATCHDOG_HEALTH.json",
+      "gate": "target 20,000 accepted; never change collector/ on main while a collector runs",
+      "next_on_completion": "keep ramping per the tightened 15-minute rule",
       "survives_session": true
     },
     {
-      "lane": "fine-tune OneThinker-8B baseline (finetune_diagnostic_v2_20260918)",
-      "what": "OneThinker-8B single-GPU baseline on the reviewed v3-obs calculations-free diagnostic set; vision and language LoRA; trainer v3.1 commit 0de12a565e59ca727239653291d6916c20c29708",
-      "host": "trinity-1-13 GPU 2",
-      "status": "training; step 581 of 656 at 16:00Z, 50 to 55 s/step, ETA about 17:05Z",
+      "lane": "trainer v4 DDP full run, arm A OneThinker, attempt 8 (codex_luna_launch_ddp_v4_a_onethinker)",
+      "what": "attempt 7 on trinity-2-28 was killed at 17:41:56Z at step 197/321 (loss 0.077) by the vnice terminator (SignalException signal 15); no checkpoint existed. Attempt 8 dispatched 18:14Z on trinity-1-13 GPUs 2 to 6 (world size 4 or 5), unwrapped, checkout 06a9664, publishing to /data3/jjyeung/ddp_onethinker_a_onethinker_20260919T0930Z_r8; ETA 5 to 6 hours",
+      "host": "trinity-1-13 GPUs 2-6",
       "markers": [
-        "agent/scratch/devin_lanes/finetune_diagnostic_v2_20260918/out/HEARTBEAT.log",
-        "/data3/jjyeung/agent_project_data/finetune_diagnostic_v2_20260918/PUBLISHED.json",
-        "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/babysitter_finetune/NOTES.md"
+        "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_luna_launch_ddp_v4_a_onethinker/out/PROGRESS_r8.md"
       ],
-      "health_check": "tail -n 2 /home/jjyeung/agent_project_distill/agent/scratch/devin_lanes/finetune_diagnostic_v2_20260918/out/HEARTBEAT.log",
-      "gate": "Opus babysitter cycles every 30 minutes; at PUBLISHED.json it now only records the path and hands back",
-      "next_on_completion": "claude_base_reeval_instructed_onethinker picks up the fine-tuned evaluation (phase 2, same manifest as its base phase 1)",
+      "health_check": "tail -n 5 /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_luna_launch_ddp_v4_a_onethinker/out/PROGRESS_r8.md",
+      "gate": "judge liveness from metrics.jsonl growth and the torchrun pid, never the wrapper process",
+      "next_on_completion": "feeds the evaluation lineage lane's distilled cell for arm A",
       "survives_session": true
     },
     {
-      "lane": "trainer v4 DDP full run, arm A OneThinker (codex_luna_launch_ddp_v4_a_onethinker, attempt 7)",
-      "what": "trinity-2-28, DDP world size 7 (GPUs 1 to 7; GPU 0 held by another user), checkout 06a9664, admitted 15:24Z; 321 steps total, about 40 s/step, loss 0.30 at step 11 and 0.11 at step 55, ETA about 19:15Z",
-      "host": "trinity-2-28",
+      "lane": "trainer v4 DDP full run, arm E OneThinker, attempt 8, parked (codex_luna_launch_ddp_v4_e_onethinker)",
+      "what": "attempt 7 on trinity-0-3 is presumed dead (node stopped accepting ssh at 16:52Z, leases stopped renewing at 16:54Z). Attempt 8 is parked behind a remote gate waiting for trinity-2-28 GPUs, which another user now holds fully",
+      "host": "trinity-0-3 (dead); attempt 8 not yet dispatched to a live host",
       "markers": [
-        "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_luna_launch_ddp_v4_a_onethinker/out/PROGRESS_r7.md"
+        "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_luna_launch_ddp_v4_e_onethinker/BRIEF_r8.md"
       ],
-      "health_check": "tail -n 5 /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_luna_launch_ddp_v4_a_onethinker/out/PROGRESS_r7.md",
-      "gate": "publish root under /data3 per LAUNCH.md",
-      "next_on_completion": "feeds claude_base_reeval_instructed_onethinker's phase 2 comparison",
-      "survives_session": true
-    },
-    {
-      "lane": "trainer v4 DDP full run, arm E OneThinker (codex_luna_launch_ddp_v4_e_onethinker, attempt 7)",
-      "what": "trinity-0-3 GPUs 0, 4, 5, 6, DDP world size 4, checkout 06a9664, admitted 15:56Z; 333 steps at 21 s/step, ETA about 18:00Z; per-step training_rows=224 source_rows=32 tokens=1225 (format E expands each source row); loss 1.68 at step 7; a read-only check of whether E rows carry the video frames is in progress",
-      "host": "trinity-0-3 GPUs 0,4,5,6",
-      "markers": [
-        "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_luna_launch_ddp_v4_e_onethinker/out/PROGRESS_r7.md"
-      ],
-      "health_check": "tail -n 5 /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_luna_launch_ddp_v4_e_onethinker/out/PROGRESS_r7.md",
-      "gate": "resolve the format-E video-frame check before treating the run as fully validated",
+      "health_check": "tail -n 20 /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_luna_launch_ddp_v4_e_onethinker/BRIEF_r8.md",
+      "gate": "re-point to trinity-1-3 GPUs 1-6 (once the evaluation lane releases them) or trinity-1-13 (once arm A finishes) before dispatch",
       "next_on_completion": "publish, then feed the format-E arm of the base-vs-distilled comparison",
-      "survives_session": true
+      "survives_session": false
     },
     {
-      "lane": "trainer v4 FSDP full run, Qwen arm A (codex_luna_launch_ddp_v4_a_qwen, attempt 5)",
-      "what": "trinity-0-18, FSDP world size 8, checkout b41b597, admitted about 15:37Z; 246 steps at 222 s/step (274 s/step at world size 4, communication-bound over PCIe), ETA about 2026-09-20 07:00Z; smoke attempt 4 proved 9 finite steps, loss 0.46 down to 0.22",
+      "lane": "trainer v4 FSDP full run, Qwen arm A, attempt 5 (codex_luna_launch_ddp_v4_a_qwen)",
+      "what": "trinity-0-18, FSDP world size 8, checkout b41b597; step 41 of 246 at 18:08Z, loss 0.108, about 210 s/step, ETA about 2026-09-20 07:00Z; a remote babysitter writes PROGRESS_r5.md and REPORT_r5.md",
       "host": "trinity-0-18",
       "markers": [
-        "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_luna_launch_ddp_v4_a_qwen/out/PROGRESS_r5.md"
+        "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_luna_launch_ddp_v4_a_qwen/out/PROGRESS_r5.md",
+        "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_luna_launch_ddp_v4_a_qwen/out/REPORT_r5.md"
       ],
       "health_check": "tail -n 5 /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_luna_launch_ddp_v4_a_qwen/out/PROGRESS_r5.md",
-      "gate": "uses the v4.6 allocated-times-1.15 memory gate to clear admission",
+      "gate": "judge liveness from metrics.jsonl growth and the torchrun pid, never the wrapper process",
       "next_on_completion": "publish unblocks Qwen arm E's smoke and full run",
       "survives_session": true
     },
     {
-      "lane": "trainer v4 FSDP run, Qwen arm E (codex_luna_launch_ddp_v4_e_qwen, attempt 2)",
-      "what": "checkout ef2cd59, chained: waits for Qwen arm A to publish and for the trinity-0-18 GPUs to free, then runs a 5-step smoke and the full run at world size 8",
+      "lane": "trainer v4 FSDP run, Qwen arm E, attempt 2, chained (codex_luna_launch_ddp_v4_e_qwen)",
+      "what": "checkout ef2cd59, chained behind Qwen arm A by a remote gate on the same node (trinity-0-18); waits for Qwen arm A to publish and for GPUs to free",
       "host": "trinity-0-18 (queued)",
       "markers": [
         "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_luna_launch_ddp_v4_e_qwen/BRIEF_r3.md"
@@ -135,68 +118,57 @@
       "survives_session": false
     },
     {
-      "lane": "OneThinker base and fine-tuned re-evaluation under the instructed prompt (claude_base_reeval_instructed_onethinker)",
-      "what": "Opus lane, phase 1 re-scores base OneThinker VSI and VSTI under the answer_format_instruction prompt (preparing packages at 16:00Z), phase 2 scores the fine-tuned OneThinker at publication under the same manifest, then compares",
+      "lane": "evaluation lineage lane, base regeneration then distilled, then Qwen base (claude_base_reeval_instructed_onethinker)",
+      "what": "Opus lane, now running from production checkout eval_instructed_provisional_a666e6a (branch eval-instructed-provisional-20260919, harness supports both base and provisional-adapter scoring); regenerating both OneThinker base cells (launched about 18:10Z, due about 19:05Z), then the baseline distilled cell against the adapter published 17:03:34Z, then Qwen base under the instructed prompt (VSI and VSTI, 6 shards each, about 4 hours each), then the multi-GPU adapters as they publish",
       "host": "trinity-1-3 GPUs 1 to 6",
       "markers": [
-        "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_base_reeval_instructed_onethinker/BRIEF.md"
+        "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_base_reeval_instructed_onethinker/RESULTS.md",
+        "/data2/jjyeung/agent_project_data/student_diagnostic_pilot_20260918/eval_instructed_provisional_a666e6a"
       ],
-      "health_check": "tail -n 5 /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_base_reeval_instructed_onethinker/BRIEF.md",
-      "gate": "uses harness commit 2ebd555d1997ff9636922e73d681c6fe5aaa6c53 (eval-prompt-instruction-20260919), reviewed PASS; bare-prompt results move to an appendix row",
-      "next_on_completion": "publish the base-vs-distilled per-question-type OneThinker comparison; Qwen base re-evaluations follow once GPUs free",
+      "health_check": "tail -n 10 /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_base_reeval_instructed_onethinker/RESULTS.md",
+      "gate": "uses harness branch eval-instructed-provisional-20260919 (tip a666e6a), reviewed PASS, acceptance checker 16/16 PASS; do not resume an interrupted labeled/sharded cell, re-run it instead",
+      "next_on_completion": "publish the base-vs-distilled per-question-type comparison for both students as each adapter arrives",
       "survives_session": false
     },
     {
       "lane": "rewrite v3.1 bulk (codex_rewrite_v3_1_bulk)",
-      "what": "bulk render of the fact-locked free-form rewrite ablation, 3,852 rows; 2,290 finalized by 15:32Z with 34 rejections; concurrency 6 (lowered to give the collector key priority), about 1,200 calls/h, ETA about 18:30Z",
+      "what": "bulk render of the fact-locked free-form rewrite ablation, 3,852 rows; 2,845 finalized at 18:07Z with about 55 rejections, concurrency 6, ETA about 18:50Z",
       "state": "running since 11:40Z",
       "markers": [
         "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_rewrite_v3_1_bulk/out/OUTCOMES_bulk_v3_1.jsonl",
         "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_rewrite_v3_1_bulk/API_LEASE_bulk_v3_1.json"
       ],
       "health_check": "wc -l /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_rewrite_v3_1_bulk/out/OUTCOMES_bulk_v3_1.jsonl",
-      "gate": "keep the scratchpad lease issuer alive (issue_bulk_lease_v2.sh pattern) or hand-issue on API_LEASE_REFRESH_REQUEST_bulk_v3_1.json change",
-      "next_on_completion": "train the free-form ablation on the completed 3,852 rows once the fidelity audit's final index clears",
+      "gate": "keep the scratchpad lease issuer alive or hand-issue on API_LEASE_REFRESH_REQUEST_bulk_v3_1.json change",
+      "next_on_completion": "rerun the fidelity audit over the finished set, then dispatch the 32-row sample review before admitting it",
       "survives_session": false
     },
     {
-      "lane": "rewrite numeric fidelity audit (rewrite_numeric_fidelity_audit_20260919)",
-      "what": "re-audits every produced rewrite row every 15 minutes; zero unmatched numbers and zero critic disagreements so far",
+      "lane": "trainer checkpoint-resume Devin lane (trainer_v4_7_checkpoint_resume_20260919)",
+      "what": "adds periodic resumable checkpoints and a --resume-from flag (default every 25 steps) to the multi-GPU trainer, in response to OneThinker arm A attempt 7 losing all progress to an unrecoverable vnice preemption",
       "host": "trinity-1-3 (local Devin)",
       "markers": [
-        "agent/scratch/devin_lanes/rewrite_numeric_fidelity_audit_20260919/out/HEARTBEAT.log"
+        "agent/scratch/devin_lanes/trainer_v4_7_checkpoint_resume_20260919/out/HEARTBEAT.log"
       ],
-      "health_check": "tail -n 3 /home/jjyeung/agent_project_distill/agent/scratch/devin_lanes/rewrite_numeric_fidelity_audit_20260919/out/HEARTBEAT.log",
-      "gate": "runs against whatever the bulk lane has finalized so far; not gated on the bulk lane finishing",
-      "next_on_completion": "treat its final index as the numeric-fidelity sign-off for the rewrite ablation before training on it",
+      "health_check": "tail -n 3 /home/jjyeung/agent_project_distill/agent/scratch/devin_lanes/trainer_v4_7_checkpoint_resume_20260919/out/HEARTBEAT.log",
+      "gate": "lands on the trainer_multigpu_v4_20260919 worktree, not the main working tree",
+      "next_on_completion": "enable --resume-from on every subsequent multi-GPU launch",
       "survives_session": false
     },
     {
-      "lane": "base evaluations window 6, bare prompt (codex_base_evals_v8)",
-      "what": "Qwen VSTI union 429 of 450 (shard 0 relaunched on trinity-1-13 GPU 3), OneThinker DSI 4,3xx of 7,076; runs under the pre-fix bare prompt and feeds the appendix row, not the primary comparison",
+      "lane": "base evaluations window 6, bare prompt, observer (codex_base_evals_v8)",
+      "what": "continues under the pre-fix bare prompt; feeds the appendix row only, not the primary base-vs-distilled comparison, which now runs on the evaluation lineage lane",
       "markers": [
         "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_base_evals_v8/out/RATES.md"
       ],
       "health_check": "tail -n 3 /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_base_evals_v8/out/RATES.md",
       "gate": "no answer-bank registration until answer_bank_registry_index.py verify passes; Qwen DSI stays stopped by user ruling",
-      "next_on_completion": "union and dedup Qwen VSI/VSTI shards by item id; the primary base numbers come from claude_base_reeval_instructed_onethinker and the Qwen instructed re-evaluation instead",
-      "survives_session": true
-    },
-    {
-      "lane": "trinity-3-23 reachability poller (codex_luna_t323_reach_poll)",
-      "what": "polls every 5 minutes for a working non-login ssh to trinity-3-23; still returns rc=124 (stall after the public-key offer); no longer blocks the collector, which recovered through the remote-evidence attestation instead",
-      "host": "runs from a reachable node against trinity-3-23",
-      "markers": [
-        "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_luna_t323_reach_poll/out/REACHABLE.json"
-      ],
-      "health_check": "cat /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_luna_t323_reach_poll/out/REACHABLE.json 2>/dev/null; echo rc=$?",
-      "gate": "informational only now; trinity-3-23's home NFS is the suspected root cause and stays undiagnosed",
-      "next_on_completion": "none required; stop the poller if trinity-3-23 stays unneeded",
+      "next_on_completion": "the primary base numbers come from the evaluation lineage lane instead",
       "survives_session": true
     }
   ],
   "round_registry": {
-    "note": "this repo assigns lane names, not round numbers; collector epoch = contract commit (998516b, merged as 612a325); converter branches converter-v3..v7-1; eval sharding branch eval-harness-sharding-20260918; trainer branch trainer-multigpu-v4-20260919 (tip ef2cd59, after 06a9664 and b41b597); eval prompt fix branch eval-prompt-instruction-20260919 (2ebd555)"
+    "note": "this repo assigns lane names, not round numbers; collector epoch = contract commit (998516b, merged as 612a325); converter branches converter-v3..v7-1; eval sharding branch eval-harness-sharding-20260918; trainer branch trainer-multigpu-v4-20260919 (tip ef2cd59, after 06a9664 and b41b597; a checkpoint-resume commit is pending on the same worktree); eval prompt fix branch eval-prompt-instruction-20260919 (2ebd555); eval provisional-admission branch eval-instructed-provisional-20260919 (tip a666e6a19adf41cbe4db9e52a8e73ea64fa95105, cherry-picks 57b21ef, ded50d3, cf738d18, 50868d6, 2ebd555 onto trainer tip ef2cd59)"
   },
   "open_user_decisions": [
     "Adopt tiered rubric (Tier I blocks, Tier II recorded) as target admission definition and pipeline-plus-sampling admission for bulk conversion (memory/target-admission-rubric.md)",
@@ -205,7 +177,7 @@
     "One deletion queued in main repo agent/PENDING_USER_COMMANDS.md",
     "free-form rewrite ablation arm: APPROVED 03:00Z, trained on the qid intersection with the zero-call arm",
     "27B student (Qwen3.6-27B or Gemma-4-31B): go or hold after the 9B result",
-    "cross-node Devin launch spread: blocked on diagnosing why codex_luna_devin_launch_r3's ssh -f form fails silently on trinity-1-13, trinity-0-3, and trinity-0-18",
+    "cross-node Devin launch spread: blocked on diagnosing why the ssh -f form fails silently on trinity-1-13, trinity-0-3, and trinity-0-18",
     "whether to overturn the provisional Format E admission (numbered anchors to delivered student frames treated as grounded facts, not tool artifacts)"
   ],
   "do_not_redo": [
@@ -221,43 +193,47 @@
     "write bulk lane outputs under /home",
     "free-form prompt without a raw-coordinate ban",
     "run more than one bulk render at a time on /data2 while the collector runs",
-    "grant shard placement lanes write access to /data2/jjyeung/agent_project/.coord without checking the collector lease first (suspected, under diagnosis)",
     "launch a bulk render, shard preflight and fine-tune frame staging at the same time on /data2",
     "write an attestation that claims a host other than the one that actually gathered its evidence",
     "request independent review before relaunching an already-designed, already-running experiment (user ruling 2026-09-19)",
-    "score a base model under a bare prompt with no answer-format instruction and compare it to a distilled model scored under an instructed one"
+    "score a base model under a bare prompt with no answer-format instruction and compare it to a distilled model scored under an instructed one",
+    "score a distilled adapter on harness 86d28d9; it lacks the provisional-adapter admission path, use eval-instructed-provisional-20260919 (tip a666e6a)",
+    "resume an interrupted labeled/sharded evaluation cell on a666e6a; re-run it instead (untested gap)",
+    "judge training liveness from the wrapper process; check metrics.jsonl growth and the torchrun pid instead (a vnice kill can leave a stale wrapper reporting 'training')",
+    "launch on trinity-3-23, trinity-0-3, trinity-0-28, or trinity-1-8; expect free GPUs on trinity-2-28 (another user holds it as of 18:20Z)"
   ],
   "session_notes": [
     "Codex lanes doing ssh/pgrep/kill die on access_programs.cyber 400 after 40 min to 2.5 h; per-step artifacts; orchestrator writes final record",
     "Devin -p lingers after DEVIN_LANE_DONE; stop by task",
-    "Watchdog restarts at 16 workers regardless of control file; ~50 min back to 64",
     "Converter stage-A calls with raw-archive inputs got HTTP 429 at 64 collector workers; v7 uses compact typed-record inputs + 429 backoff",
     "Evals lanes keep REPORT.md current with LANE_DONE while running; do not treat its presence as completion",
-    "The DDP/FSDP memory-fit probe now judges allocated bytes times a 1.15 safety factor when expandable segments are active (trainer v4.6, b41b597), instead of peak reserved memory",
-    "A smoke or full run needs a 2,700 s budget with its lease renewer under its own setsid; a shorter wrapper kills the renewer mid-run and produces a false stale-heartbeat failure",
-    "A full-run waiter requiring the whole node free of compute apps never fires when another user holds even one GPU; gate on specific GPU indices",
-    "A launch lane must name its checkout explicitly or it can resolve an old addendum and rerun an already-fixed bug",
-    "An uninstructed evaluation prompt collapses most base-model answers to parse failures, understating the base and confounding any base-vs-distilled comparison"
+    "A vnice terminator killed OneThinker arm A attempt 7 at step 197/321 via SignalException signal 15 after its /tmp/terminator/jjyeung-3606239 marker vanished; no checkpoint existed, so the run lost all progress; trainer_v4_7_checkpoint_resume_20260919 adds periodic checkpoints and --resume-from to prevent recurrence",
+    "trinity-0-3 stopped accepting ssh at 16:52Z and its leases stopped renewing at 16:54Z; presumed dead; OneThinker arm E must re-point to a live host",
+    "The collector reverted from 40 to 32 workers after an escalating 503 wave; the ramp rule now needs two consecutive clean 15-minute cycles before adding 8 to 36 workers, and steps back only above a 15-minute 503 count of 24",
+    "Harness commit 86d28d9 scores base models correctly but refuses every distilled adapter; branch eval-instructed-provisional-20260919 (tip a666e6a) restores the provisional-adapter admission path from the trainer lineage via five cherry-picks plus a tests-and-docs guard commit; independent Sonnet review passed it",
+    "Parser blob e703fe33 carries ded50d3's trailing-semicolon option fix; without it, multiple-choice scores could silently differ",
+    "The base OneThinker instructed-prompt numbers (VSI 31.47%, VSTI 40.16%) are this cycle's headline finding: prompt format, not distillation, explains most of the old base gap; report parse rates beside accuracy"
   ],
   "survives_vs_dies": {
     "survives": [
-      "collector, running from trinity-1-3 (controller and lease) at 40 workers",
-      "all GPU eval workers and shards (Qwen VSI/VSTI shards, VSTI shard 0 attempt 6, OneThinker DSI base worker)",
-      "the four multi-GPU training runs (OneThinker arms A and E, Qwen arm A) and the OneThinker single-GPU baseline, all started through real shells",
-      "Codex lanes dispatched with setsid (codex_base_evals_v8, codex_place_qwen_vsti_shard0_r6)",
+      "collector, running from trinity-1-3 (controller and lease) at 32 workers",
+      "all GPU eval workers and shards dispatched under setsid (codex_base_evals_v8)",
+      "OneThinker arm A attempt 8 (trinity-1-13) and Qwen arm A attempt 5 (trinity-0-18), both currently training through real shells",
+      "the OneThinker single-GPU baseline, already published",
       "all lane and repo files"
     ],
     "dies": [
       "lane heartbeat monitor",
       "collector health monitor",
-      "Gemini TPM readout background process (collector_tpm_readout_20260919)",
+      "Gemini TPM readout background process",
       "collector_watch Sonnet subagent",
       "queue watcher",
-      "Opus babysitter (finetune_diagnostic_v2_20260918) and the Opus base re-evaluation lane (claude_base_reeval_instructed_onethinker)",
-      "waiters (old-watchdog-health-stall detector; fine-tune GPU checks; Qwen arm E's chained wait)",
-      "local Devin process for the rewrite fidelity audit and the trainer v4.6/chat-template lanes once landed"
+      "the Opus evaluation-lineage lane (claude_base_reeval_instructed_onethinker)",
+      "the remote babysitter for Qwen arm A and the remote gates chaining OneThinker arm E and Qwen arm E",
+      "local Devin processes, including trainer_v4_7_checkpoint_resume_20260919 and the rewrite fidelity audit, once landed",
+      "the bulk-lease issuer for codex_rewrite_v3_1_bulk"
     ]
   },
-  "latest_handoff": "docs/DISTILLATION_HANDOFF_20260919_1605Z.md",
-  "updated_utc": "2026-09-19T16:05:00Z"
+  "latest_handoff": "docs/DISTILLATION_HANDOFF_20260919_1820Z.md",
+  "updated_utc": "2026-09-19T18:20:00Z"
 }
