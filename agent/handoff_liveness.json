@@ -1,8 +1,8 @@
 {
-  "written_utc": "2026-09-19T04:05:00Z",
+  "written_utc": "2026-09-19T05:40:00Z",
   "head": {
-    "commit": "b36898b",
-    "meaning": "distill repo main; collector/ bytes unchanged mid-run; no admission gap; v3 zero-call set (3,852/3,933) committed; v4 (format E) and free-form (format C) lanes launched; fine-tunes launched"
+    "commit": "2c7754a",
+    "meaning": "distill repo main; collector BLOCKED since 05:21Z (stale/foreign lease), relaunch pending; calculations-free v3-obs training set (3,852) reviewed PASS; trainer provisional-path fix staged and under review; eval-harness-hosts fix staged and under review; format-E and v3.1 render lanes paused to relieve /data2 load"
   },
   "user_rulings_today": [
     "\"You should never ever be held up waiting for my response. If it's a command you can't run, perhaps you can pause the lane and just relaunch a new lane to fix the experiment.\" (queue USER-RULING 2026-09-18)",
@@ -53,15 +53,18 @@
   "active_runs": [
     {
       "lane": "r1315 teacher collector",
-      "what": "Gemini 3.1 Pro GT-perception SPLIT traces; 56 workers after a 03:19Z lock stepdown, recovering; no admission gap",
+      "status": "BLOCKED since 05:21Z, relaunch pending",
+      "what": "Gemini 3.1 Pro GT-perception SPLIT traces; workers raised RuntimeError: stale or foreign collection lease (collect.py coord_guard line 33); controllers 0, workers 0; terminals flat at 6,563; last census 04:10Z 4,589 accepted",
       "host": "trinity-3-23",
       "markers": [
         "/data2/jjyeung/agent_project_data/vsi_distill_training_20260917/runtime_control/gt_teacher_r1313/remediation_d9f7863f1e75/WATCHDOG_HEALTH.json",
-        "/data2/jjyeung/agent_project_data/vsi_distill_training_20260917/runtime_control/gt_teacher_r1313/remediation_d9f7863f1e75/WATCHDOG_EVENTS.jsonl"
+        "/data2/jjyeung/agent_project_data/vsi_distill_training_20260917/runtime_control/gt_teacher_r1313/remediation_d9f7863f1e75/WATCHDOG_EVENTS.jsonl",
+        "/data2/jjyeung/agent_project_data/vsi_distill_training_20260917/runtime_control/gt_teacher_r1313/remediation_d9f7863f1e75/BLOCKED.json",
+        "/data2/jjyeung/agent_project_data/vsi_distill_training_20260917/collection_gt_r1313/pool_b16384/worker_errors/"
       ],
       "health_check": "cd /home/jjyeung/agent_project_distill && WATCHDOG_OUT=/data2/jjyeung/agent_project_data/vsi_distill_training_20260917/runtime_control/gt_teacher_r1313/remediation_d9f7863f1e75 timeout 90 python -B agent/scripts/collector_watch.py --interval 30 --stall-minutes 25 2>&1 | head -n 3",
-      "gate": "target 20,000 accepted; 4,509 at 04:00Z; ~600 q/h recovering at 56 workers; 20,000 expected ~2026-09-20 midday UTC",
-      "next_on_completion": "none needed until 20k",
+      "gate": "target 20,000 accepted; 4,589 at last census 04:10Z; relaunch needs both read-only lease diagnosis lanes concluded, BLOCKED.json acknowledged (moved aside), clean tree, collector/ unchanged from contract 94cc697, reduced concurrent /data2 load",
+      "next_on_completion": "relaunch per docs/DISTILLATION_HANDOFF_20260919_0540Z.md §2 item 1, then restart watchdog at 16 workers",
       "survives_session": true
     },
     {
@@ -77,35 +80,44 @@
       "workers_survive": true
     },
     {
-      "lane": "converter zero-call v4 (format E)",
-      "what": "zero-call target format E (relevance-selected evidence, compiled reasoning chain, provenance sidecar, no ids/coordinates in text), built from the v3 branch, consults SPEC_E.md if present",
-      "state": "RUNNING (Devin, launched 03:51Z)",
-      "markers": [
-        "agent/scratch/devin_lanes/converter_zero_call_v4_20260919/out/{HEARTBEAT.log,diagnostic_set/,REPORT.md}",
-        "agent/scratch/devin_lanes/converter_zero_call_v4_20260919/LANE/TRAIN_PARAMS.env"
-      ],
-      "health_check": "tail -n 2 /home/jjyeung/agent_project_distill/agent/scratch/devin_lanes/converter_zero_call_v4_20260919/out/HEARTBEAT.log",
-      "gate": "critical path to the format-E training run",
-      "next_on_completion": "dispatch independent review; on PASS launch a format-E fine-tune",
-      "survives_session": false
-    },
-    {
-      "lane": "converter free-form (format C)",
-      "what": "free-form Gemini rewrite ablation arm, approved 03:00Z; pilot 6/16 (nine rejections all failed number grounding); bulk running at throttled concurrency 3, ~1,000 targets so far",
+      "lane": "converter free-form v2 (C-N)",
+      "what": "free-form target format v2 (v1 superseded); pilot 14/16; bulk running locally at concurrency 24, ~1,560 targets so far",
       "state": "RUNNING (Devin, lane converter_freeform_20260919)",
       "markers": [
         "agent/scratch/devin_lanes/converter_freeform_20260919/out/{HEARTBEAT.log,diagnostic_set/,REPORT.md}"
       ],
       "health_check": "tail -n 2 /home/jjyeung/agent_project_distill/agent/scratch/devin_lanes/converter_freeform_20260919/out/HEARTBEAT.log",
       "gate": "keep the raw-coordinate ban in the prompt (see do_not_redo)",
-      "next_on_completion": "once a partial index and TRAIN_PARAMS.env exist, launch finetune_freeform_v1_20260919 via codex_luna_launch_finetune_freeform",
+      "next_on_completion": "once bulk conversion and TRAIN_PARAMS.env exist, launch the free-form ablation fine-tune",
       "survives_session": false
     },
     {
+      "lane": "trainer build (trainer_provisional_path_20260919)",
+      "what": "fix lane for the trainer's --provisional-diagnostic <LABEL> path, branch trainer-provisional-diagnostic-20260919, unpins admission and GPU lease from trainer-qwen35-scratch-20260918; 124 CPU tests passed, committing at 05:29Z",
+      "markers": [
+        "agent/scratch/devin_lanes/trainer_provisional_path_20260919/out/{HEARTBEAT.log,REPORT.md}"
+      ],
+      "health_check": "tail -n 2 /home/jjyeung/agent_project_distill/agent/scratch/devin_lanes/trainer_provisional_path_20260919/out/HEARTBEAT.log",
+      "gate": "independent review codex_review_trainer_provisional running (PROMPT_HEADER.md at /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_review_trainer_provisional/)",
+      "next_on_completion": "on PASS, relaunch both fine-tunes via relaunch_finetunes_prov.sh",
+      "survives_session": false
+    },
+    {
+      "lane": "eval-hosts review (codex_review_eval_hosts)",
+      "what": "reviews branch eval-harness-hosts-20260919 (commit 50868d6, parent cf738d18) adding trinity-0-3 and trinity-1-3 to contracts.py:414's authorized host list; 77 tests pass",
+      "markers": [
+        "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_review_eval_hosts/out/{VERDICT.md,HEARTBEAT.log}"
+      ],
+      "health_check": "tail -n 2 /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_review_eval_hosts/out/HEARTBEAT.log",
+      "gate": "on PASS, relaunch the four Qwen VSTI shards on trinity-0-3 per codex_place_qwen_vsti_shards/BRIEF.md",
+      "next_on_completion": "relaunch VSTI shards on trinity-0-3 from the merged branch",
+      "survives_session": true
+    },
+    {
       "lane": "fine-tune OneThinker-8B (finetune_diagnostic_v2_20260918)",
-      "what": "OneThinker-8B on the v3 zero-call diagnostic set; vision and language LoRA, scene-disjoint split seed 17, VSI and VSTI only",
+      "what": "OneThinker-8B on the reviewed v3-obs calculations-free diagnostic set; vision and language LoRA, scene-disjoint split seed 17 (3,411/441), VSI and VSTI only; preparation complete, blocked before GPU work on the trainer's admission/lease pin",
       "host": "trinity-0-18",
-      "status": "RUNNING, launched 04:00:08Z",
+      "status": "blocked; relaunch on provisional branch pending",
       "markers": [
         "agent/scratch/devin_lanes/finetune_diagnostic_v2_20260918/out/HEARTBEAT.log"
       ],
@@ -116,9 +128,9 @@
     },
     {
       "lane": "fine-tune Qwen3.5-9B (finetune_diagnostic_v2_qwen_20260918)",
-      "what": "Qwen3.5-9B on the v3 zero-call diagnostic set, matching the OneThinker run",
+      "what": "Qwen3.5-9B on the reviewed v3-obs calculations-free diagnostic set, matching the OneThinker run; preparation complete, blocked before GPU work on the trainer's admission/lease pin",
       "host": "trinity-1-13 (preferred)",
-      "status": "LAUNCHING via codex_luna_launch_finetune_v2_qwen",
+      "status": "blocked; relaunch on provisional branch pending",
       "markers": [
         "agent/scratch/devin_lanes/finetune_diagnostic_v2_qwen_20260918/out/HEARTBEAT.log"
       ],
@@ -139,19 +151,6 @@
       "gate": "babysat by codex_base_evals_v6",
       "next_on_completion": "union + dedup by item id against the original worker",
       "survives_session": true
-    },
-    {
-      "lane": "Astra design round 2 (codex_astra_design_r2)",
-      "what": "format-E spec refinement using the free-form pilot's evidence plus eight pinned questions; writes SPEC_E.md and MEMO2.md",
-      "markers": [
-        "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_astra_design_r2/out/HEARTBEAT.log",
-        "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_astra_design_r2/out/SPEC_E.md",
-        "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_astra_design_r2/out/MEMO2.md"
-      ],
-      "health_check": "tail -n 2 /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_astra_design_r2/out/HEARTBEAT.log",
-      "gate": "converter zero-call v4 consults SPEC_E.md once written",
-      "next_on_completion": "feed SPEC_E.md to v4 if not already consulted",
-      "survives_session": true
     }
   ],
   "round_registry": {
@@ -163,7 +162,8 @@
     "Other datasets (ADT, ARKitScenes, ProcTHOR, S3DIS) need preparers; ScanNet v3 parked",
     "One deletion queued in main repo agent/PENDING_USER_COMMANDS.md",
     "free-form rewrite ablation arm: APPROVED 03:00Z, trained on the qid intersection with the zero-call arm",
-    "27B student (Qwen3.6-27B or Gemma-4-31B): go or hold after the 9B result"
+    "27B student (Qwen3.6-27B or Gemma-4-31B): go or hold after the 9B result",
+    "collector relaunch after the durable block (orchestrator proceeds unless told otherwise)"
   ],
   "do_not_redo": [
     "Do not change collector/ on main while the collector runs (epoch procedure in CLAUDE.md)",
@@ -175,7 +175,9 @@
     "one-call converter rounds before the typed-record layer is complete",
     "Qwen DSI evaluation",
     "write bulk lane outputs under /home",
-    "free-form prompt without a raw-coordinate ban"
+    "free-form prompt without a raw-coordinate ban",
+    "run more than one bulk render at a time on /data2 while the collector runs",
+    "grant shard placement lanes write access to /data2/jjyeung/agent_project/.coord without checking the collector lease first (suspected, under diagnosis)"
   ],
   "session_notes": [
     "Codex lanes doing ssh/pgrep/kill die on access_programs.cyber 400 after 40 min to 2.5 h; per-step artifacts; orchestrator writes final record",
