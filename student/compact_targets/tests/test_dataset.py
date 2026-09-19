@@ -70,14 +70,55 @@ class DatasetTests(unittest.TestCase):
         self.assertEqual(result['deferred_count'], 0)
         entry = candidates[0]
         row = compact.load_json(entry['row_path'])
-        self.assertEqual({**row, 'target': original_row['target']}, original_row)
+        self.assertEqual(row, {**original_row, 'target': row['target'], 'generation_commit': NEW_COMMIT,
+                               'config_sha256': compact.digest_json(self.config),
+                               'source_generation_commit': OLD_COMMIT, 'source_config_sha256': 'c' * 64})
         self.assertEqual(set(entry), set(original_entry))
         self.assertEqual(entry['generation_commit'], NEW_COMMIT)
-        self.assertEqual(row['generation_commit'], OLD_COMMIT)
+        self.assertEqual(row['generation_commit'], NEW_COMMIT)
         self.assertEqual(entry['config_sha256'], compact.digest_json(self.config))
         self.assertEqual(compact.binding(entry['row_path'])['sha256'], entry['row_sha256'])
         self.assertEqual(compact.binding(entry['target_path'])['sha256'], entry['sha256'])
         self.assertEqual(compact.verify_dataset(self.output, lambda text: 100)['status'], 'VERIFIED')
+
+    def test_row_agrees_with_its_candidate_on_every_trainer_compared_field(self):
+        _, original_row = self.add_source(1)
+        self.build()
+        entry = compact.load_jsonl(self.output / 'candidate_index.jsonl')[0]
+        row = compact.load_json(entry['row_path'])
+        for row_key, index_key in compact.ROW_ALIGNED_FIELDS:
+            with self.subTest(field=row_key):
+                self.assertEqual(row[row_key], entry[index_key])
+        self.assertEqual(row['generation_commit'], NEW_COMMIT)
+        self.assertEqual(row['source_generation_commit'], original_row['generation_commit'])
+        self.assertEqual(row['source_config_sha256'], original_row['config_sha256'])
+        self.assertNotIn('source_validation_commit', row)
+        self.assertEqual(compact.verify_dataset(self.output, lambda text: 100)['status'], 'VERIFIED')
+
+    def test_aligned_row_keeps_the_reviewed_values_and_refuses_a_conflicting_key(self):
+        identity = {'qid': 'q', 'scene': 's', 'question_type': 'c', 'dataset': 'd', 'generation_commit': NEW_COMMIT,
+                    'validation_commit': NEW_COMMIT, 'config_sha256': 'f' * 64}
+        source = {'qid': 'q', 'scene': 's', 'category': 'c', 'dataset': 'd', 'generation_commit': OLD_COMMIT,
+                  'validation_commit': OLD_COMMIT, 'config_sha256': 'c' * 64, 'target': 'old', 'keep': 1}
+        self.assertEqual(compact.aligned_row(source, identity, 'new'),
+                         {**source, 'target': 'new', 'generation_commit': NEW_COMMIT, 'validation_commit': NEW_COMMIT,
+                          'config_sha256': 'f' * 64, 'source_generation_commit': OLD_COMMIT,
+                          'source_validation_commit': OLD_COMMIT, 'source_config_sha256': 'c' * 64})
+        with self.assertRaisesRegex(compact.Deferral, 'source_provenance_key_conflict'):
+            compact.aligned_row({**source, 'source_generation_commit': 'kept'}, identity, 'new')
+        with self.assertRaisesRegex(compact.Deferral, 'candidate_field_missing'):
+            compact.aligned_row(source, {key: value for key, value in identity.items() if key != 'dataset'}, 'new')
+
+    def test_verifier_rejects_row_provenance_drift(self):
+        self.add_source(1)
+        self.build()
+        entry = compact.load_jsonl(self.output / 'candidate_index.jsonl')[0]
+        row_path = Path(entry['row_path'])
+        row = compact.load_json(row_path)
+        row['generation_commit'] = OLD_COMMIT
+        row_path.write_bytes(compact.canonical_bytes(row))
+        with self.assertRaisesRegex(compact.Deferral, 'source_hash_mismatch'):
+            compact.verify_dataset(self.output, lambda text: 100)
 
     def test_failed_sources_stay_in_denominator_and_do_not_block_good_sources(self):
         self.add_source(1)
@@ -247,6 +288,24 @@ class DatasetTests(unittest.TestCase):
                 compact.main(arguments + ['--pilot-sample', str(sample)])
             self.assertEqual(oversized.exception.code, 2)
         self.assertFalse(self.output.exists())
+
+    def test_sidecar_suffix_keeps_a_rerender_beside_the_first_set(self):
+        entry, _ = self.add_source(1)
+        arguments = ['render', '--candidate-index', str(self.index()), '--recovery-root', str(self.recovery),
+                     '--tokenizer', str(self.root / 'synthetic-tokenizer')]
+        provenance = lambda config: {'repo_commit': NEW_COMMIT, 'dirty': False, 'config_sha256': compact.binding(config)['sha256']}
+        with patch.object(compact, 'tokenizer_counter', return_value=(lambda text: 100, {})), \
+                patch('tools.provenance.provenance', side_effect=provenance), redirect_stdout(io.StringIO()):
+            self.assertEqual(compact.main(arguments + ['--output', str(self.output)]), 0)
+            self.assertEqual(compact.main(arguments + ['--output', str(self.root / 'compact_v1b'),
+                                                       '--sidecar-suffix', '_v1b']), 0)
+        for name in ('CONFIG_compact.json', 'CONFIG_compact_v1b.json', 'PROVENANCE_compact.json',
+                     'PROVENANCE_compact_v1b.json', 'pilot_variant_derivation_citations/CONFIG.json',
+                     'pilot_variant_derivation_citations_v1b/CONFIG.json'):
+            self.assertTrue((self.root / name).is_file(), name)
+        self.assertEqual([row['qid'] for row in compact.load_jsonl(self.root / 'compact_v1b/candidate_index.jsonl')],
+                         [entry['qid']])
+        self.assertEqual(compact.verify_dataset(self.root / 'compact_v1b', lambda text: 100)['status'], 'VERIFIED')
 
     def test_citation_cli_renders_only_selected_pilot(self):
         entry, _ = self.add_source(1)

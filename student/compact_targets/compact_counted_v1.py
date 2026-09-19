@@ -18,10 +18,19 @@ FORMAT = 'compact_counted_v1'
 MAX_TOKENS = 1536
 SEED = 17
 MARKER = 'End of reasoning.'
+VARIANT_DIRECTORY = 'pilot_variant_derivation_citations'
 TOKENIZER = Path('/data2/jjyeung/cache/huggingface/hub/models--OneThink--OneThinker-8B/snapshots/2b7032f4179d8c032d2eac67b3692263f85be0fc')
 TIER_I_CHECKS = ('answer_equality', 'artifact_lint', 'measurement_templates', 'native_final_not_cited',
                  'own_record_binding', 'qualification_scope', 'schema', 'source_snapshot', 'student_input_schema')
 RECORD_GROUPS = ('records', 'appearances', 'calculations_v2', 'qualifications_v2', 'conventions_v2')
+# Fields the student trainer's candidate gate compares between an index entry and its row.json, as
+# (row key, index key): student_pilot/finetune_lane.py gate_candidates and provisional.py
+# load_provisional_candidates. The emitted row must agree with its candidate on every one of them.
+TRAINER_COMPARED_FIELDS = (('qid', 'qid'), ('scene', 'scene'), ('category', 'question_type'),
+                           ('dataset', 'dataset'), ('generation_commit', 'generation_commit'),
+                           ('validation_commit', 'validation_commit'))
+# The compact render owns these; the reviewed row's values move to source_<row key>.
+ROW_ALIGNED_FIELDS = TRAINER_COMPARED_FIELDS + (('config_sha256', 'config_sha256'),)
 OPERANDS = re.compile(r'\bOperands: (?P<ids>[A-Z]\d+(?:, [A-Z]\d+)*)\.')
 USES = re.compile(r'Uses observations (?P<indices>[1-9]\d*(?:, [1-9]\d*)*)\.')
 NUMBER = re.compile(r'(?<!\w)[+-]?(?:\d+(?:\.\d+)?|\.\d+)(?:[eE][+-]?\d+)?(?!\w)')
@@ -408,7 +417,9 @@ def renderer_config(tokenizer, derivation_citations=False):
             'derivation_citations': derivation_citations, 'tokenizer': str(tokenizer), 'add_special_tokens': False,
             'record_hash': 'sha256 of UTF-8 sorted indented JSON, ensure_ascii=False, trailing newline',
             'numeric_scope': 'Factual line text excluding validated structural tokens and copied answer',
-            'row_metadata': 'Preserve every source row field except target',
+            'row_metadata': 'Preserve every source row field except target and the candidate-aligned '
+                            'provenance fields, whose reviewed values move to source_<field>',
+            'row_provenance_alignment': [row_key for row_key, _ in ROW_ALIGNED_FIELDS],
             'independent_review_required': True}
 
 
@@ -452,13 +463,37 @@ def pilot_sample(rows, size=16, seed=SEED):
     return result
 
 
+def candidate_identity(source_entry, config, commit):
+    """The identity and provenance the compact candidate carries, before its own path and hash pins."""
+    return {**source_entry, 'postprocess': FORMAT, 'config_sha256': digest_json(config), 'generation_commit': commit}
+
+
+def aligned_row(source_row, identity, target):
+    """Copy the reviewed row, replace the target, and adopt the candidate's value for every field the
+    trainer compares, keeping each overwritten reviewed value under source_<field>."""
+    row = {**source_row, 'target': target}
+    for row_key, index_key in ROW_ALIGNED_FIELDS:
+        if index_key not in identity:
+            raise Deferral('candidate_field_missing', index_key)
+        if source_row.get(row_key) == identity[index_key]:
+            continue
+        source_key = 'source_' + row_key
+        if source_key in source_row:
+            raise Deferral('source_provenance_key_conflict', source_key)
+        if row_key in source_row:
+            row[source_key] = source_row[row_key]
+        row[row_key] = identity[index_key]
+    return row
+
+
 def emit_source(source, output, config, commit, source_index_sha256, count_tokens):
     rendered = render_target(source.lines, source.entry['answer'], config['derivation_citations'])
     checks = admit(rendered, source.lines, source.records, source.checks, source.evidence, source.entry['answer'], count_tokens,
                    max_tokens=config['max_tokens'], derivation_citations=config['derivation_citations'])
     qid = source.entry['qid']
     directory = output / 'targets' / qid
-    row = {**source.row, 'target': rendered.target}
+    identity = candidate_identity(source.entry, config, commit)
+    row = aligned_row(source.row, identity, rendered.target)
     target_pin = save(directory / 'target.txt', rendered.target.encode('utf-8'))
     row_pin = save(directory / 'row.json', row)
     lines_pin = save(directory / 'lines.json', rendered.lines)
@@ -466,9 +501,9 @@ def emit_source(source, output, config, commit, source_index_sha256, count_token
                   config_sha256=digest_json(config), source_artifacts=source.pins,
                   omitted_lines=rendered.omitted_lines, row=row_pin, target=target_pin, lines=lines_pin)
     checks_pin = save(directory / 'checks.json', checks)
-    entry = {**source.entry, 'postprocess': FORMAT, 'config_sha256': digest_json(config), 'generation_commit': commit,
-             'target_path': target_pin['path'], 'sha256': target_pin['sha256'], 'row_path': row_pin['path'],
-             'row_sha256': row_pin['sha256'], 'source_index_sha256': source_index_sha256, 'tier_i': checks['tier_i']}
+    entry = {**identity, 'target_path': target_pin['path'], 'sha256': target_pin['sha256'],
+             'row_path': row_pin['path'], 'row_sha256': row_pin['sha256'],
+             'source_index_sha256': source_index_sha256, 'tier_i': checks['tier_i']}
     disposition = {'qid': qid, 'question_type': source.entry['question_type'], 'passed': checks['passed'],
                    'reason_codes': checks['reason_codes'], 'token_count': checks['token_count'],
                    'observation_count': checks['observation_count'], 'derivation_count': checks['derivation_count'],
@@ -550,7 +585,8 @@ Return PASS, REVISE, or REJECT with qid, variant, exact source/target evidence, 
 '''
 
 
-def build_dataset(index_path, recovery_root, output, config, commit, count_tokens, lane_output=None, qids=None, make_pilot=True):
+def build_dataset(index_path, recovery_root, output, config, commit, count_tokens, lane_output=None, qids=None,
+                  make_pilot=True, variant_name=VARIANT_DIRECTORY):
     index_path, recovery_root, output = map(safe_path, (index_path, recovery_root, output))
     if not output.is_relative_to(Path('/data2')):
         raise Deferral('output_outside_data2', str(output))
@@ -609,7 +645,7 @@ def build_dataset(index_path, recovery_root, output, config, commit, count_token
     stats_pin = save(output / 'STATS.md', stats_text(membership, dispositions).encode('utf-8'))
     samples, variants, pilot_pins = [], [], {}
     if make_pilot:
-        variant_output = output.parent / 'pilot_variant_derivation_citations'
+        variant_output = output.parent / variant_name
         variant_config = {**config, 'derivation_citations': True}
         pilot_pins['config'] = save(variant_output / 'CONFIG.json', variant_config)
         for candidate in pilot_sample(candidates):
@@ -641,7 +677,8 @@ def verify_emission(entry, disposition, source_entry, config, manifest, count_to
     source = load_source(source_entry, manifest['recovery_root'], Path(manifest['source_index']['path']).parent)
     row = load_json(pins['row']['path'])
     target = checked_payload(pins['target']['path'], pins['target']['sha256']).decode('utf-8')
-    if row != {**source.row, 'target': target}:
+    identity = candidate_identity(source_entry, config, manifest['generation_commit'])
+    if row != aligned_row(source.row, identity, target):
         raise Deferral('row_metadata_changed', source_entry['qid'])
     saved_checks = load_json(pins['checks']['path'])
     rendered = RenderedTarget(target, load_json(pins['lines']['path']), saved_checks['omitted_lines'])
@@ -653,9 +690,8 @@ def verify_emission(entry, disposition, source_entry, config, manifest, count_to
             or saved_checks['generation_commit'] != manifest['generation_commit'] or saved_checks['config_sha256'] != digest_json(config)):
         raise Deferral('output_revalidation_failed', source_entry['qid'])
     if entry is not None:
-        expected = {**source_entry, 'postprocess': FORMAT, 'config_sha256': digest_json(config),
-                    'generation_commit': manifest['generation_commit'], 'target_path': pins['target']['path'],
-                    'sha256': pins['target']['sha256'], 'row_path': pins['row']['path'], 'row_sha256': pins['row']['sha256'],
+        expected = {**identity, 'target_path': pins['target']['path'], 'sha256': pins['target']['sha256'],
+                    'row_path': pins['row']['path'], 'row_sha256': pins['row']['sha256'],
                     'source_index_sha256': manifest['source_index']['sha256'], 'tier_i': checks['tier_i']}
         if entry != expected or set(entry) != set(source_entry):
             raise Deferral('candidate_index_changed', source_entry['qid'])
@@ -721,7 +757,11 @@ def main(argv=None):
     parser.add_argument('--derivation-citations', action='store_true')
     parser.add_argument('--pilot-sample', type=Path)
     parser.add_argument('--lane-output', type=Path)
+    parser.add_argument('--sidecar-suffix', default='',
+                        help='Suffix for the configuration, provenance and pilot-variant siblings of the output set')
     args = parser.parse_args(argv)
+    if not re.fullmatch(r'[A-Za-z0-9_]*', args.sidecar_suffix):
+        parser.error('--sidecar-suffix accepts only letters, digits and underscores')
     os.environ.update(CUDA_VISIBLE_DEVICES='', PYTHONDONTWRITEBYTECODE='1', HF_HUB_OFFLINE='1',
                       TRANSFORMERS_OFFLINE='1', HF_HUB_DISABLE_TELEMETRY='1', TOKENIZERS_PARALLELISM='false')
     count_tokens, tokenizer_pins = tokenizer_counter(args.tokenizer)
@@ -744,7 +784,8 @@ def main(argv=None):
     if qids is not None:
         config['pilot_qids'] = qids
     output = safe_path(args.output)
-    config_path = output.parent / ('CONFIG_derivation_citations.json' if args.derivation_citations else 'CONFIG_compact.json')
+    stem = 'derivation_citations' if args.derivation_citations else 'compact'
+    config_path = output.parent / f'CONFIG_{stem}{args.sidecar_suffix}.json'
     save(config_path, config)
     from tools.provenance import provenance
 
@@ -753,9 +794,10 @@ def main(argv=None):
         raise Deferral('dirty_worktree', 'Commit the renderer and tests before rendering')
     if pin['config_sha256'] != digest_json(config):
         raise Deferral('configuration_hash_mismatch')
-    save(output.parent / ('PROVENANCE_derivation_citations.json' if args.derivation_citations else 'PROVENANCE_compact.json'), pin)
+    save(output.parent / f'PROVENANCE_{stem}{args.sidecar_suffix}.json', pin)
     manifest = build_dataset(args.candidate_index, args.recovery_root, output, config, pin['repo_commit'], count_tokens,
-                             args.lane_output, qids, make_pilot=not args.derivation_citations)
+                             args.lane_output, qids, make_pilot=not args.derivation_citations,
+                             variant_name=VARIANT_DIRECTORY + args.sidecar_suffix)
     print(json.dumps({key: manifest[key] for key in ('generation_commit', 'candidate_count', 'deferred_count', 'candidate_index')}, sort_keys=True), flush=True)
     return 0
 
