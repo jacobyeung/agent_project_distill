@@ -3,11 +3,17 @@ from __future__ import annotations
 
 import base64
 import contextlib
+import copy
+from datetime import datetime, timedelta, timezone
 import errno
 import hashlib
+import io
 import json
 import os
 import multiprocessing
+import socket
+import subprocess
+import sys
 import threading
 import tempfile
 import unittest
@@ -1088,3 +1094,281 @@ def test_attestation_census_deduplicates_and_filters_host(root, monkeypatch, cap
     assert path.read_text() == printed
     with pytest.raises(SystemExit) as exc: module.main(["--pool", str(root), "--write"])
     assert exc.value.code == 1 and path.read_text() == printed
+
+
+class RemoteDrainAttestationTest(unittest.TestCase):
+    def setUp(self):
+        import attest_host_drained as module
+        self.module = module
+        base = Path(os.environ.get('REMEDIATION_FIXTURE_ROOT', str(DATA / 'runtime_control/gt_teacher_r1313/r1314_fixtures')))
+        self.root = base / uuid.uuid4().hex
+        self.root.mkdir(parents=True)
+        _, self.queue = make_queue(self.root)
+        self.host = 'predecessor'
+        self.snapshot = {
+            'utc': (datetime.now(timezone.utc) - timedelta(minutes=1)).isoformat(),
+            'command': ['timeout', '90', 'ssh', '-n', '-F', '/dev/null', '-o', 'BatchMode=yes',
+                        '-o', 'ConnectTimeout=20', self.host,
+                        "hostname; pgrep -af '[w]atchdog_v5_remediation|[c]ollector/collect.py'; "
+                        'pgrep_rc=$?; echo pgrep_rc=$pgrep_rc; '
+                        "pids=$(pgrep -f '[w]atchdog_v5_remediation|[c]ollector/collect.py'); "
+                        'if [ -n "$pids" ]; then ps -o pid,ppid,stat,wchan:36,lstart,args '
+                        '-p $(echo "$pids"); fi'],
+            'rc': 0, 'stdout': self.host + '\npgrep_rc=1\n', 'stderr': '', 'status': 'PASS',
+            'watchdog_pids': [], 'worker_pids': [], 'controller_pids': [],
+            'interpretation': 'pgrep returned 1: no matching watchdog, worker, or controller',
+        }
+        self.evidence_ns = module.verified_ns(self.snapshot['utc'])
+        self.before = self.evidence_ns - 1000
+        self.snapshot_path = self.root / 'snapshot.json'
+        self.write_snapshot()
+        self.record_path = self.root / 'worker_starts/old.json'
+        self.write_record()
+
+    def write_snapshot(self, **updates):
+        value = dict(self.snapshot, **updates)
+        self.snapshot_path.write_text(json.dumps(value))
+
+    def write_record(self, *, path=None, mtime=None, **updates):
+        path = self.record_path if path is None else path
+        row = {'host': self.host, 'worker_id': 'old', 'pid': 456, 'start_ticks': '123'}
+        row.update(updates)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(row))
+        stamp = self.before if mtime is None else mtime
+        os.utime(path, ns=(stamp, stamp))
+        return path
+
+    def build(self):
+        return self.module.attest_remote(self.root, self.host, self.snapshot_path, 'a' * 40)
+
+    def proof(self, value):
+        path = self.root / 'host_attestations/proof.json'
+        path.parent.mkdir(exist_ok=True)
+        path.write_text(json.dumps(value))
+        return path
+
+    def cli(self, *extra):
+        stdout, stderr = io.StringIO(), io.StringIO()
+        argv = ['remote', '--host', self.host, '--evidence', str(self.snapshot_path),
+                '--pool', str(self.root), '--package-commit', 'a' * 40, *extra]
+        with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+            try:
+                rc = self.module.main(argv)
+            except SystemExit as exc:
+                rc = exc.code
+        return rc, stdout.getvalue(), stderr.getvalue()
+
+    def assert_cli_refuses(self):
+        rc, stdout, stderr = self.cli('--write')
+        self.assertEqual(rc, 1)
+        self.assertEqual(stdout, '')
+        self.assertIn('drain attestation refused', stderr)
+        self.assertFalse((self.root / 'host_attestations').exists())
+
+    def test_valid_remote_attestation_covers_all_record_kinds(self):
+        self.write_record(path=self.root / 'heartbeats/old.json', start_ticks=123,
+                          wall_time_ns=self.before)
+        self.write_record(path=self.root / 'claims/old.json', start_ticks='124',
+                          claimed_wall_time_ns=self.before)
+        value = self.build()
+        self.assertEqual(value['schema'], 'pool-harness-remote-drain-attestation-v1')
+        self.assertEqual(value['record_counts'], dict.fromkeys(self.module.RECORD_DIRS, 1))
+        self.assertEqual([(w['pid'], w['start_ticks'], w['status']) for w in value['workers']],
+                         [(456, '123', 'absent_in_evidence'), (456, '124', 'absent_in_evidence')])
+        self.assertEqual(value['assertions'], {
+            'evidence_status_pass': True, 'evidence_hostname_matches': True,
+            'evidence_no_matches': True, 'newest_record_before_evidence': True,
+        })
+        self.assertEqual(value['evidence']['path'], str(self.snapshot_path.resolve()))
+        self.assertEqual(value['evidence']['sha256'], hashlib.sha256(self.snapshot_path.read_bytes()).hexdigest())
+        for key in ('utc', 'command', 'stdout', 'rc', 'status'):
+            self.assertEqual(value['evidence'][key], self.snapshot[key])
+        path = self.proof(value)
+        evidence = self.queue.require_drained()['drain_evidence']
+        self.assertEqual(len(evidence), 1)
+        self.assertEqual(evidence[0]['attestation'], str(path))
+        self.assertEqual(evidence[0]['sha256'], hashlib.sha256(path.read_bytes()).hexdigest())
+        self.assertEqual(evidence[0]['evidence_utc'], value['evidence']['utc'])
+        self.assertEqual(evidence[0]['verifier']['host'], socket.gethostname())
+        self.assertEqual(evidence[0]['host'], self.host)
+        self.assertEqual(evidence[0]['workers'], ['old'])
+
+    def test_verifier_records_running_host_without_local_process_probe(self):
+        with patch.object(self.module, 'process_alive', side_effect=AssertionError('unexpected procfs probe')):
+            value = self.build()
+        self.assertEqual(value['host'], self.host)
+        self.assertEqual(value['verifier']['host'], socket.gethostname())
+        self.assertNotEqual(value['verifier']['host'], value['host'])
+        self.assertEqual(value['verifier']['pid'], os.getpid())
+        self.assertEqual(value['verifier']['uid'], os.getuid())
+        self.assertEqual(value['verifier']['argv'], sys.argv)
+        self.assertEqual(value['verifier']['python'], sys.executable)
+        self.assertEqual(value['package_commit'], 'a' * 40)
+        self.assertGreater(self.module.verified_ns(value['verified_at']), self.evidence_ns)
+
+    def test_census_ignores_other_hosts(self):
+        self.write_record(path=self.root / 'claims/foreign.json', host='uncovered', pid='invalid',
+                          wall_time_ns=self.evidence_ns + 1000, mtime=self.evidence_ns + 1000)
+        value = self.build()
+        self.assertEqual(value['record_counts'], {'worker_starts': 1, 'heartbeats': 0, 'claims': 0})
+        self.assertEqual(len(value['workers']), 1)
+
+    def test_empty_record_set_refuses_without_publication(self):
+        self.write_record(host='uncovered')
+        self.assert_cli_refuses()
+
+    def test_builder_requires_every_record_before_evidence(self):
+        for directory in self.module.RECORD_DIRS:
+            path = self.root / directory / 'old.json'
+            for clock in ('wall_time_ns', 'claimed_wall_time_ns', None):
+                for offset in (0, 1000):
+                    with self.subTest(directory=directory, clock=clock, offset=offset):
+                        updates = {clock: self.evidence_ns + offset} if clock else {}
+                        mtime = self.before if clock else self.evidence_ns + offset
+                        self.write_record(path=path, mtime=mtime, **updates)
+                        self.assert_cli_refuses()
+                        self.write_record(path=path)
+
+    def test_builder_checks_mtime_even_with_old_wall_timestamp(self):
+        self.write_record(wall_time_ns=self.before, claimed_wall_time_ns=self.before,
+                          mtime=self.evidence_ns + 1000)
+        self.assert_cli_refuses()
+
+    def test_builder_rejects_invalid_record_timestamps(self):
+        for clock in ('wall_time_ns', 'claimed_wall_time_ns'):
+            for value in (-1, True, None, '123'):
+                with self.subTest(clock=clock, value=value):
+                    self.write_record(**{clock: value})
+                    self.assert_cli_refuses()
+
+    def test_reader_uses_evidence_time_not_verification_time(self):
+        value = self.build()
+        self.assertGreater(self.module.verified_ns(value['verified_at']), self.evidence_ns + 1000)
+        self.proof(value)
+        for clock in ('wall_time_ns', 'claimed_wall_time_ns', None):
+            for offset in (0, 1000):
+                with self.subTest(clock=clock, offset=offset):
+                    updates = {clock: self.evidence_ns + offset} if clock else {}
+                    mtime = self.before if clock else self.evidence_ns + offset
+                    self.write_record(mtime=mtime, **updates)
+                    with self.assertRaisesRegex(StateError, 'foreign host'):
+                        self.queue.require_drained()
+
+    def test_reader_checks_record_mtime_with_old_timestamp(self):
+        self.proof(self.build())
+        self.write_record(wall_time_ns=self.before, mtime=self.evidence_ns + 1000)
+        with self.assertRaisesRegex(StateError, 'foreign host'):
+            self.queue.require_drained()
+
+    def test_reader_rejects_wrong_host_or_worker_identity(self):
+        self.proof(self.build())
+        for updates in ({'host': 'other'}, {'worker_id': 'new'}, {'pid': 457}, {'start_ticks': '124'}):
+            with self.subTest(updates=updates):
+                self.write_record(**updates)
+                with self.assertRaisesRegex(StateError, 'foreign host'):
+                    self.queue.require_drained()
+
+    def test_snapshot_requires_pass_and_successful_command(self):
+        for updates in ({'status': 'FAIL'}, {'status': 'pass'}, {'rc': 1}, {'rc': True}, {'rc': '0'}):
+            with self.subTest(updates=updates):
+                self.write_snapshot(**updates)
+                self.assert_cli_refuses()
+
+    def test_snapshot_hostname_must_match_first_line(self):
+        for stdout in ('other\npgrep_rc=1\n', 'pgrep_rc=1\n' + self.host + '\n', ''):
+            with self.subTest(stdout=stdout):
+                self.write_snapshot(stdout=stdout)
+                self.assert_cli_refuses()
+
+    def test_snapshot_refuses_process_matches_or_missing_no_match_marker(self):
+        for stdout in (self.host + '\n123 python collector/collect.py worker\npgrep_rc=0\n',
+                       self.host + '\n123 python watchdog_v5_remediation.py\npgrep_rc=1\n',
+                       self.host + '\npgrep_rc=1\n123 python collector/collect.py\n',
+                       self.host + '\n', self.host + '\npgrep_rc=0\n', self.host + '\npgrep_rc=2\n'):
+            with self.subTest(stdout=stdout):
+                self.write_snapshot(stdout=stdout)
+                self.assert_cli_refuses()
+
+    def test_snapshot_command_must_cover_collector_and_watchdog(self):
+        for script in ("hostname; pgrep -af '[c]ollector/collect.py'; pgrep_rc=$?; echo pgrep_rc=$pgrep_rc",
+                       "hostname; pgrep -af '[w]atchdog_v5_remediation'; pgrep_rc=$?; echo pgrep_rc=$pgrep_rc",
+                       "hostname; echo '[w]atchdog_v5_remediation|[c]ollector/collect.py'; echo pgrep_rc=1",
+                       "hostname; pgrep -af '[w]atchdog_v5_remediation|[c]ollector/collect.py'; true; "
+                       'pgrep_rc=$?; echo pgrep_rc=$pgrep_rc'):
+            with self.subTest(script=script):
+                self.write_snapshot(command=[*self.snapshot['command'][:-1], script])
+                self.assert_cli_refuses()
+
+    def test_snapshot_requires_utc_timestamp_not_in_future(self):
+        for utc in ('bad', '2026-09-19T07:24:51', '2026-09-19T07:24:51+01:00',
+                    (datetime.now(timezone.utc) + timedelta(days=1)).isoformat()):
+            with self.subTest(utc=utc):
+                self.write_snapshot(utc=utc)
+                self.assert_cli_refuses()
+
+    def test_reader_rejects_schema_mismatch_and_tampered_digest(self):
+        original = self.build()
+        for section, key, bad in ((None, 'schema', 'pool-host-drain-attestation-v1'),
+                                  (None, 'schema', 'unknown'), ('evidence', 'sha256', '0' * 64),
+                                  ('evidence', 'sha256', 'bad'), ('evidence', 'stdout', self.host + '\n'),
+                                  ('evidence', 'utc', original['verified_at']),
+                                  ('evidence', 'path', str(self.root / 'missing.json'))):
+            with self.subTest(section=section, key=key):
+                value = copy.deepcopy(original)
+                (value if section is None else value[section])[key] = bad
+                self.proof(value)
+                with self.assertRaisesRegex(StateError, 'foreign host'):
+                    self.queue.require_drained()
+
+    def test_reader_rehashes_original_snapshot(self):
+        self.proof(self.build())
+        self.snapshot_path.write_text(self.snapshot_path.read_text() + '\n')
+        with self.assertRaisesRegex(StateError, 'foreign host'):
+            self.queue.require_drained()
+
+    def test_reader_rejects_incomplete_assertions_and_empty_workers(self):
+        original = self.build()
+        for updates in ({'assertions': {}}, {'workers': []}, {'record_counts': {}},
+                        {'verifier': dict(original['verifier'], host='')},
+                        {'workers': [dict(original['workers'][0], status='dead')]},
+                        {'package_commit': 'invalid'}):
+            with self.subTest(updates=updates):
+                self.proof(dict(original, **updates))
+                with self.assertRaisesRegex(StateError, 'foreign host'):
+                    self.queue.require_drained()
+        for key in original['assertions']:
+            for bad in (False, 1):
+                with self.subTest(assertion=key, value=bad):
+                    value = copy.deepcopy(original)
+                    value['assertions'][key] = bad
+                    self.proof(value)
+                    with self.assertRaisesRegex(StateError, 'foreign host'):
+                        self.queue.require_drained()
+
+    def test_cli_dry_run_and_exclusive_remote_publication(self):
+        rc, printed, stderr = self.cli()
+        self.assertEqual((rc, stderr), (0, ''))
+        self.assertFalse((self.root / 'host_attestations').exists())
+        value = json.loads(printed)
+        with patch.object(self.module, 'attest_remote', return_value=value):
+            self.assertEqual(self.cli('--write'), (0, printed, ''))
+            path = self.root / 'host_attestations' / f"{self.host}__remote__{value['verified_at']}.json"
+            self.assertEqual(path.read_text(), printed)
+            rc, stdout, stderr = self.cli('--write')
+            self.assertEqual(rc, 1)
+            self.assertEqual(stdout, '')
+            self.assertIn('already exists', stderr)
+            self.assertEqual(path.read_text(), printed)
+
+    def test_subprocess_cli_records_actual_verifier(self):
+        command = [sys.executable, '-B', str(Path(self.module.__file__)), 'remote', '--host', self.host,
+                   '--pool', str(self.root), '--evidence', str(self.snapshot_path), '--package-commit', 'a' * 40]
+        result = subprocess.run(command, capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        value = json.loads(result.stdout)
+        self.assertEqual(value['verifier']['host'], socket.gethostname())
+        self.assertEqual(value['verifier']['argv'], command[2:])
+        self.assertNotEqual(value['verifier']['pid'], os.getpid())
+        self.assertEqual(value['verifier']['uid'], os.getuid())
+        self.assertEqual(value['verifier']['python'], sys.executable)

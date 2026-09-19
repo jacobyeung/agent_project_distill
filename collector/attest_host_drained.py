@@ -17,7 +17,11 @@ from pool_harness.atomicfs import (
 )
 
 SCHEMA = "pool-host-drain-attestation-v1"
+REMOTE_SCHEMA = "pool-harness-remote-drain-attestation-v1"
 RECORD_DIRS = ("worker_starts", "heartbeats", "claims")
+SNAPSHOT_FIELDS = {"utc", "command", "stdout", "rc", "status"}
+REMOTE_ASSERTIONS = {"evidence_status_pass", "evidence_hostname_matches",
+                     "evidence_no_matches", "newest_record_before_evidence"}
 
 
 def worker_identity(row):
@@ -47,21 +51,57 @@ def verified_ns(value):
     return ((delta.days * 86400 + delta.seconds) * 1_000_000 + delta.microseconds) * 1000
 
 
+def load_snapshot_evidence(path, host):
+    path = path.resolve()
+    payload = path.read_bytes()
+    snapshot = json.loads(payload)
+    if not isinstance(snapshot, dict) or not SNAPSHOT_FIELDS <= set(snapshot):
+        raise StateError("remote drain snapshot schema mismatch")
+    if snapshot["status"] != "PASS" or type(snapshot["rc"]) is not int or snapshot["rc"] != 0:
+        raise StateError("remote drain evidence did not pass")
+    verified_ns(snapshot["utc"])
+    stdout, command = snapshot["stdout"], snapshot["command"]
+    if not isinstance(stdout, str) or not stdout.splitlines() or stdout.splitlines()[0] != host:
+        raise StateError("remote drain evidence hostname mismatch")
+    if stdout.splitlines() != [host, "pgrep_rc=1"]:
+        raise StateError("remote drain evidence does not show only a no-match result")
+    if (not isinstance(command, list) or not command
+            or not all(isinstance(arg, str) and arg for arg in command)):
+        raise StateError("remote drain evidence command schema mismatch")
+    probe = re.match(
+        r'''hostname\s*;\s*pgrep\s+-(?:af|fa)\s+(['"])([^'"\n]+)\1\s*;\s*'''
+        r"pgrep_rc=\$\?\s*;\s*echo\s+pgrep_rc=\$pgrep_rc(?:\s*;|$)", command[-1].strip(),
+    )
+    patterns = set(probe.group(2).replace("[w]", "w").replace("[c]", "c").replace(r"\.", ".").split("|")) if probe else set()
+    if not (patterns & {"collector/collect.py", "collect.py"}
+            and patterns & {"watchdog_v5_remediation", "watchdog"}):
+        raise StateError("remote drain evidence lacks a collector/watchdog pgrep result")
+    return {"path": str(path), "sha256": hashlib.sha256(payload).hexdigest(),
+            **{key: snapshot[key] for key in SNAPSHOT_FIELDS}}
+
+
 def validate_attestation(value):
+    remote = isinstance(value, dict) and value.get("schema") == REMOTE_SCHEMA
     fields = {"schema", "host", "verified_at", "verifier", "workers",
               "record_counts", "package_commit"}
-    if not isinstance(value, dict) or set(value) != fields or value["schema"] != SCHEMA:
+    if remote:
+        fields |= {"evidence", "assertions"}
+    if (not isinstance(value, dict) or set(value) != fields
+            or value["schema"] != (REMOTE_SCHEMA if remote else SCHEMA)):
         raise StateError("drain attestation schema mismatch")
     safe_component(value["host"], "host")
     stamp = verified_ns(value["verified_at"])
     verifier = value["verifier"]
-    if (not isinstance(verifier, dict) or set(verifier) != {"pid", "uid", "argv", "python"}
+    verifier_fields = {"pid", "uid", "argv", "python"} | ({"host"} if remote else set())
+    if (not isinstance(verifier, dict) or set(verifier) != verifier_fields
             or type(verifier["pid"]) is not int or verifier["pid"] <= 0
             or type(verifier["uid"]) is not int or verifier["uid"] < 0
             or not isinstance(verifier["argv"], list) or not verifier["argv"]
             or not all(isinstance(arg, str) for arg in verifier["argv"])
             or not isinstance(verifier["python"], str) or not verifier["python"]):
         raise StateError("drain attestation verifier schema mismatch")
+    if remote:
+        safe_component(verifier["host"], "verifier host")
     counts = value["record_counts"]
     if (not isinstance(counts, dict) or set(counts) != set(RECORD_DIRS)
             or any(type(n) is not int or n < 0 for n in counts.values())):
@@ -73,7 +113,7 @@ def validate_attestation(value):
     identities = set()
     for row in value["workers"]:
         if (not isinstance(row, dict) or set(row) != {"worker_id", "pid", "start_ticks", "status"}
-                or row["status"] != "dead"):
+                or row["status"] != ("absent_in_evidence" if remote else "dead")):
             raise StateError("drain attestation worker schema mismatch")
         identity = worker_identity(row)
         if identity in identities:
@@ -81,6 +121,22 @@ def validate_attestation(value):
         identities.add(identity)
     if len(identities) > sum(counts.values()):
         raise StateError("drain attestation census is inconsistent")
+    if remote:
+        assertions, evidence = value["assertions"], value["evidence"]
+        if (not identities or not isinstance(assertions, dict) or set(assertions) != REMOTE_ASSERTIONS
+                or any(flag is not True for flag in assertions.values())):
+            raise StateError("remote drain attestation assertions or census mismatch")
+        if (not isinstance(evidence, dict) or set(evidence) != SNAPSHOT_FIELDS | {"path", "sha256"}
+                or not isinstance(evidence["path"], str) or not Path(evidence["path"]).is_absolute()
+                or not isinstance(evidence["sha256"], str) or not re.fullmatch(r"[0-9a-f]{64}", evidence["sha256"])
+                or type(evidence["rc"]) is not int):
+            raise StateError("remote drain attestation evidence schema mismatch")
+        if load_snapshot_evidence(Path(evidence["path"]), value["host"]) != evidence:
+            raise StateError("remote drain evidence snapshot digest or content mismatch")
+        evidence_stamp = verified_ns(evidence["utc"])
+        if evidence_stamp > stamp:
+            raise StateError("remote drain evidence is later than verification")
+        stamp = evidence_stamp
     return stamp, identities
 
 
@@ -131,6 +187,38 @@ def attest(pool):
     return result
 
 
+def attest_remote(pool, host, evidence_path, package_commit):
+    host = safe_component(host, "host")
+    evidence = load_snapshot_evidence(evidence_path, host)
+    evidence_stamp = verified_ns(evidence["utc"])
+    identities = set()
+    counts = dict.fromkeys(RECORD_DIRS, 0)
+    for directory in RECORD_DIRS:
+        for path in sorted((pool / directory).glob("*.json")):
+            record = read_json(path)
+            if not isinstance(record, dict):
+                raise StateError(f"invalid worker record: {path}")
+            if record.get("host") == host:
+                times = [record[key] for key in ("wall_time_ns", "claimed_wall_time_ns") if key in record]
+                if any(type(stamp) is not int or stamp < 0 for stamp in times):
+                    raise StateError("predecessor record has an invalid timestamp")
+                if max([path.stat().st_mtime_ns, *times]) >= evidence_stamp:
+                    raise StateError(f"predecessor record is not older than remote evidence: {path}")
+                identities.add(worker_identity(record))
+                counts[directory] += 1
+    if not identities:
+        raise StateError("remote drain attestation has no covered worker records")
+    workers = [{"worker_id": worker, "pid": pid, "start_ticks": ticks, "status": "absent_in_evidence"}
+               for worker, pid, ticks in sorted(identities, key=lambda item: (item[0], item[1], item[2] or ""))]
+    result = {"schema": REMOTE_SCHEMA, "host": host, "verified_at": datetime.now(timezone.utc).isoformat(),
+              "verifier": {"host": socket.gethostname(), "pid": os.getpid(), "uid": os.getuid(),
+                           "argv": sys.argv, "python": sys.executable},
+              "evidence": evidence, "workers": workers, "record_counts": counts,
+              "package_commit": package_commit, "assertions": dict.fromkeys(REMOTE_ASSERTIONS, True)}
+    validate_attestation(result)
+    return result
+
+
 def load_attestations(pool):
     result = []
     for path in sorted((pool / "host_attestations").glob("*.json")):
@@ -153,22 +241,41 @@ def covering_attestation(attestations, record, path):
     identity = worker_identity(record)
     for att_path, value, att_stamp, identities, digest in attestations:
         if value["host"] == record.get("host") and att_stamp > stamp and identity in identities:
-            return {"attestation": str(att_path), "sha256": digest, "host": value["host"],
-                    "verified_at": value["verified_at"], "workers": []}
+            remote = value["schema"] == REMOTE_SCHEMA
+            if remote and att_stamp <= path.stat().st_mtime_ns:
+                continue
+            covered = {"attestation": str(att_path), "sha256": digest, "host": value["host"],
+                       "verified_at": value["verified_at"], "workers": []}
+            if remote:
+                covered.update(schema=REMOTE_SCHEMA, evidence_utc=value["evidence"]["utc"],
+                               verifier={"host": value["verifier"]["host"]})
+            return covered
     return None
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description=__doc__)
+    argv = sys.argv[1:] if argv is None else list(argv)
+    remote = bool(argv and argv[0] == "remote")
+    if remote:
+        argv = argv[1:]
+    parser = argparse.ArgumentParser(
+        description="Attest predecessor drainage from a recorded process snapshot." if remote else __doc__,
+        epilog="Use the remote subcommand for recorded evidence from another host.",
+    )
     parser.add_argument("--pool", type=Path, required=True)
     parser.add_argument("--write", action="store_true", help="publish exclusively under pool/host_attestations")
+    if remote:
+        parser.add_argument("--host", required=True)
+        parser.add_argument("--evidence", type=Path, required=True)
+        parser.add_argument("--package-commit", required=True)
     args = parser.parse_args(argv)
     try:
         if not args.pool.is_dir():
             raise StateError(f"pool directory does not exist: {args.pool}")
-        value = attest(args.pool)
+        value = attest_remote(args.pool, args.host, args.evidence, args.package_commit) if remote else attest(args.pool)
         if args.write:
-            path = args.pool / "host_attestations" / f"{value['host']}__{value['verified_at']}.json"
+            separator = "__remote__" if remote else "__"
+            path = args.pool / "host_attestations" / f"{value['host']}{separator}{value['verified_at']}.json"
             publish_json_exclusive(path, value)
         sys.stdout.write(canonical_bytes(value).decode("utf-8"))
     except (OSError, ValueError, StateError, subprocess.CalledProcessError) as exc:
