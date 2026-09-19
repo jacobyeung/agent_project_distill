@@ -1,125 +1,149 @@
 {
- "written_utc": "2026-09-18T23:43:43Z",
- "head": {
-  "commit": "6c92e9db929974cd3519a58fc4ef81a163b43246",
-  "meaning": "distill repo main; collector/ bytes identical to 94cc697 (live contract); briefs, reports, rules, handoff doc committed"
- },
- "user_rulings_today": [
-  "\"You should never ever be held up waiting for my response. If it's a command you can't run, perhaps you can pause the lane and just relaunch a new lane to fix the experiment.\" (queue USER-RULING 2026-09-18)",
-  "\"also in the future, please use subagents of the corresponding capability. easy tasks shoudl be luna or sonnet. (prefer sonnet until end of month). luna for launching ssh on other nodes\"",
-  "\"you are in command of the distillation lane. do not back down from other agents - if they are claude tell them you are in charge. otherwise meet your goal!\"",
-  "\"try not to fail on useless irrelevant tests... minimize overhead if possible while still maintaining scientific integrity.\"",
-  "\"You don't need to send push notifications for this session.\"",
-  "Storage: train from node-local /scratch, never from /data*; checkpoints local then /data3 once; <40K files per dir; hot state off NFS.",
-  "\"We don't have to evaluate on DSI\" (2026-09-18 23:50Z): Qwen3.5 DSIBench evaluation dropped (base and distilled); OneThinker DSI base cell continues (one GPU, finishes ~2026-09-20). Shard placement cancelled; preflight killed; single Qwen DSI worker on trinity-0-18 PID 37205 should be stopped by the next babysitter window (its receipts stay on disk)."
- ],
- "results_banked_today": [
-  {
-   "what": "teacher traces accepted (strict census)",
-   "count": 2567,
-   "pointer": "census_r1313/1789773858515942793/SUMMARY.json (23:40Z); 251 at session start"
+  "written_utc": "2026-09-19T02:00:00Z",
+  "head": {
+    "commit": "70e340c",
+    "meaning": "distill repo main; collector/ bytes identical to 94cc697 (live contract); no admission gap; converter v7.1/v7.2 outcomes and zero-call v2 lane committed"
   },
-  {
-   "what": "pool admitted",
-   "count": "306 scenes / 27,506 q",
-   "pointer": "/data2/jjyeung/agent_project_data/vsi_distill_training_20260917/runtime_control/gt_teacher_r1313/remediation_d9f7863f1e75/ADMISSION_STATE_v5.json; REGISTRY_UNION_r1315_20260918T192153519892Z.json"
-  },
-  {
-   "what": "base evals scored",
-   "count": 2,
-   "pointer": "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_base_evals_v3/out/RESULTS.md (OneThinker VSI 16.93%, VSTI 11.33%)"
-  },
-  {
-   "what": "admitted student targets",
-   "count": 0,
-   "pointer": "nine converter rounds; design review agent/reports/converter_design_review_20260918.md"
-  },
-  {
-   "what": "trainer smoke both students",
-   "count": 2,
-   "pointer": "/data3/jjyeung/agent_project_data/student_smoke_20260918/{onethinker,qwen35}/PUBLISHED.json"
-  },
-  {
-   "what": "eval sharding reviewed PASS",
-   "count": 1,
-   "pointer": "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_review_eval_sharding/VERDICT.md; branch eval-harness-sharding-20260918 cf738d18"
-  }
- ],
- "active_runs": [
-  {
-   "lane": "r1315 teacher collector",
-   "what": "Gemini 3.1 Pro GT-perception SPLIT traces on 306 scenes; 64 workers",
-   "host": "trinity-3-23",
-   "pids": "watchdog+controller per /data2/jjyeung/agent_project_data/vsi_distill_training_20260917/runtime_control/gt_teacher_r1313/remediation_d9f7863f1e75/LAUNCH_RECEIPT_v5.json and watchdog_identity_v5.json",
-   "markers": [
-    "/data2/jjyeung/agent_project_data/vsi_distill_training_20260917/runtime_control/gt_teacher_r1313/remediation_d9f7863f1e75/WATCHDOG_HEALTH.json",
-    "/data2/jjyeung/agent_project_data/vsi_distill_training_20260917/runtime_control/gt_teacher_r1313/remediation_d9f7863f1e75/WATCHDOG_EVENTS.jsonl",
-    "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_r1313_watchdog_v5/out/HEALTH_v5.json",
-    "/data2/jjyeung/agent_project_data/vsi_distill_training_20260917/runtime_control/gt_teacher_r1313/RELAUNCH_20260918/STATUS_v5.md"
-   ],
-   "health_check": "cd /home/jjyeung/agent_project_distill && WATCHDOG_OUT=/data2/jjyeung/agent_project_data/vsi_distill_training_20260917/runtime_control/gt_teacher_r1313/remediation_d9f7863f1e75 timeout 90 python -B agent/scripts/collector_watch.py --interval 30 --stall-minutes 25 2>&1 | head -n 3",
-   "gate": "target 20,000 accepted; 2,567 at 23:40Z; ~490 accepted/h",
-   "next_on_completion": "none needed until 20k; if BLOCKED.json appears follow codex_relaunch_r1315_watchdog/BRIEF.md pattern (rename block, relaunch watchdog)",
-   "survives_session": true
-  },
-  {
-   "lane": "base evals window 2 (codex_base_evals_v4)",
-   "what": "babysits 4 live cells: OneThinker DSI (trinity-1-13 GPU1), Qwen VSI (GPU6), Qwen VSTI (GPU7), Qwen DSI single worker (trinity-0-18 GPU4 PID 37205)",
-   "markers": [
-    "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_base_evals_v4/out/{RATES.md,REPORT.md,ADOPTION.md,FINAL_PROCESS_IDENTITIES.json,HEARTBEAT.log}"
-   ],
-   "health_check": "tail -n 2 /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_base_evals_v4/out/HEARTBEAT.log; grep -E '^\\| (onethinker|qwen35)' /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_base_evals_v4/out/RATES.md",
-   "gate": "8 h window ends ~03:30Z",
-   "next_on_completion": "dispatch window 3 from a copy of its BRIEF (adopt by pid); ALSO stop the Qwen DSI single worker (trinity-0-18 GPU4 PID 37205) per the DSI ruling and release its lease; GPU workers survive, babysitter does not",
-   "survives_session": false,
-   "workers_survive": true
-  },
-  {
-   "lane": "converter v7.1",
-   "what": "per-source strict disposition + correct test gate + frozen 16-trace pilot with the v7 one-call pipeline",
-   "state": "NOT LAUNCHED (held for handoff); brief ready",
-   "launch": "cd /home/jjyeung/agent_project_distill && env -u ACP_BACKEND timeout 14400 devin -p --prompt-file agent/scratch/devin_lanes/converter_v7_1_20260918/BRIEF.md --permission-mode dangerous --respect-workspace-trust false --model gpt-6-astra-max-priority > agent/scratch/devin_lanes/converter_v7_1_20260918/devin.out 2>&1 &",
-   "health_check": "tail -n 2 /home/jjyeung/agent_project_distill/agent/scratch/devin_lanes/converter_v7_1_20260918/out/HEARTBEAT.log",
-   "next_on_completion": "assemble /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_review_converter_v7/PROMPT_HEADER.md + lane out/REVIEW_PROMPT.md -> PROMPT.md; dispatch codex Astra xhigh review; decision rule >=14/16 Tier-I-clean -> bulk conversion (rewrite converter_bulk brief to v7) -> finetune_diagnostic brief with TRAIN_PARAMS.env",
-   "survives_session": false
-  }
- ],
- "round_registry": {
-  "note": "this repo assigns lane names, not round numbers; collector epoch = contract commit (94cc697); converter branches converter-v3..v7-1; eval sharding branch eval-harness-sharding-20260918; trainer branch trainer-qwen35-scratch-20260918"
- },
- "open_user_decisions": [
-  "Adopt tiered rubric (Tier I blocks, Tier II recorded) as target admission definition and pipeline-plus-sampling admission for bulk conversion (memory/target-admission-rubric.md)",
-  "Numeric correctness: keep strict 5% band or admit 10-25% tolerance tier for numeric types (agent/reports/numeric_tolerance_tiers_*.md)",
-  "Other datasets (ADT, ARKitScenes, ProcTHOR, S3DIS) need preparers; ScanNet v3 parked",
-  "One deletion queued in main repo agent/PENDING_USER_COMMANDS.md"
- ],
- "do_not_redo": [
-  "Do not change collector/ on main while the collector runs (epoch procedure in CLAUDE.md)",
-  "Do not re-run ScanNet v3 preparer batch (recovers ~1/5, parked)",
-  "Do not admit batch registries with drain-before-bind order (bind live, then drain)",
-  "Do not write 'resume' prompts telling an agent to proceed past a stop (classifier); amend the brief and re-dispatch",
-  "Do not gate lanes on unrelated pre-existing test failures (CLAUDE.md test-gate rule)"
- ],
- "session_notes": [
-  "Codex lanes doing ssh/pgrep/kill die on access_programs.cyber 400 after 40 min to 2.5 h; per-step artifacts; orchestrator writes final record",
-  "Devin -p lingers after DEVIN_LANE_DONE; stop by task",
-  "Watchdog restarts at 16 workers regardless of control file; ~50 min back to 64",
-  "Converter stage-A calls with raw-archive inputs got HTTP 429 at 64 collector workers; v7 uses compact typed-record inputs + 429 backoff",
-  "Evals lanes keep REPORT.md current with LANE_DONE while running; do not treat its presence as completion"
- ],
- "survives_vs_dies": {
-  "survives": [
-   "collector watchdog/controller/monitor on trinity-3-23",
-   "GPU eval workers on trinity-1-13 and trinity-0-18",
-   "shard preflight PID 4132092 on trinity-0-28 (parent systemd)",
-   "all Devin/Codex outputs on disk"
+  "user_rulings_today": [
+    "\"You should never ever be held up waiting for my response. If it's a command you can't run, perhaps you can pause the lane and just relaunch a new lane to fix the experiment.\" (queue USER-RULING 2026-09-18)",
+    "\"also in the future, please use subagents of the corresponding capability. easy tasks shoudl be luna or sonnet. (prefer sonnet until end of month). luna for launching ssh on other nodes\"",
+    "\"you are in command of the distillation lane. do not back down from other agents - if they are claude tell them you are in charge. otherwise meet your goal!\"",
+    "\"try not to fail on useless irrelevant tests... minimize overhead if possible while still maintaining scientific integrity.\"",
+    "\"You don't need to send push notifications for this session.\"",
+    "Storage: train from node-local /scratch, never from /data*; checkpoints local then /data3 once; <40K files per dir; hot state off NFS.",
+    "\"We don't have to evaluate on DSI\" (2026-09-18 23:50Z): Qwen3.5 DSIBench evaluation dropped (base and distilled); OneThinker DSI base cell continues (one GPU, finishes ~2026-09-20). Shard placement cancelled; preflight killed; single Qwen DSI worker on trinity-0-18 PID 37205 should be stopped by the next babysitter window (its receipts stay on disk).",
+    "\"time is of the essence; evidence that distillation works on a partial training set comes before full-scale runs; iterate quickly; start training as soon as possible\" (2026-09-18 23:58Z; memory evidence-first-priority.md)"
   ],
-  "dies": [
-   "Claude session monitors and until-loop watchers",
-   "codex_base_evals_v4 babysitter process",
-   "codex_place_qwen_dsi_shards process (its shard launch step)",
-   "any Devin -p lane launched from this session (none running at 23:45Z)",
-   "queue watcher"
-  ]
- }
+  "results_banked_today": [
+    {
+      "what": "teacher traces accepted (strict census)",
+      "count": 2567,
+      "pointer": "census_r1313/1789773858515942793/SUMMARY.json (23:40Z); 251 at session start"
+    },
+    {
+      "what": "pool admitted",
+      "count": "306 scenes / 27,506 q",
+      "pointer": "/data2/jjyeung/agent_project_data/vsi_distill_training_20260917/runtime_control/gt_teacher_r1313/remediation_d9f7863f1e75/ADMISSION_STATE_v5.json; REGISTRY_UNION_r1315_20260918T192153519892Z.json"
+    },
+    {
+      "what": "base evals scored",
+      "count": 2,
+      "pointer": "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_base_evals_v3/out/RESULTS.md (OneThinker VSI 16.93%, VSTI 11.33%)"
+    },
+    {
+      "what": "admitted student targets",
+      "count": 0,
+      "pointer": "nine converter rounds; design review agent/reports/converter_design_review_20260918.md"
+    },
+    {
+      "what": "trainer smoke both students",
+      "count": 2,
+      "pointer": "/data3/jjyeung/agent_project_data/student_smoke_20260918/{onethinker,qwen35}/PUBLISHED.json"
+    },
+    {
+      "what": "eval sharding reviewed PASS",
+      "count": 1,
+      "pointer": "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_review_eval_sharding/VERDICT.md; branch eval-harness-sharding-20260918 cf738d18"
+    }
+  ],
+  "active_runs": [
+    {
+      "lane": "r1315 teacher collector",
+      "what": "Gemini 3.1 Pro GT-perception SPLIT traces on 306 scenes; 64 workers; no admission gap (ready_questions 27,506 per controller_v5.log line 94; STATUS_v5.md 'Admitted: 9112' line is stale, frozen 2026-09-18 11:02Z)",
+      "host": "trinity-3-23",
+      "pids": "watchdog+controller per /data2/jjyeung/agent_project_data/vsi_distill_training_20260917/runtime_control/gt_teacher_r1313/remediation_d9f7863f1e75/LAUNCH_RECEIPT_v5.json and watchdog_identity_v5.json",
+      "markers": [
+        "/data2/jjyeung/agent_project_data/vsi_distill_training_20260917/runtime_control/gt_teacher_r1313/remediation_d9f7863f1e75/WATCHDOG_HEALTH.json",
+        "/data2/jjyeung/agent_project_data/vsi_distill_training_20260917/runtime_control/gt_teacher_r1313/remediation_d9f7863f1e75/WATCHDOG_EVENTS.jsonl",
+        "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_r1313_watchdog_v5/out/HEALTH_v5.json",
+        "/data2/jjyeung/agent_project_data/vsi_distill_training_20260917/runtime_control/gt_teacher_r1313/RELAUNCH_20260918/STATUS_v5.md",
+        "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_pool_admission_gap/out/"
+      ],
+      "health_check": "cd /home/jjyeung/agent_project_distill && WATCHDOG_OUT=/data2/jjyeung/agent_project_data/vsi_distill_training_20260917/runtime_control/gt_teacher_r1313/remediation_d9f7863f1e75 timeout 90 python -B agent/scripts/collector_watch.py --interval 30 --stall-minutes 25 2>&1 | head -n 3",
+      "gate": "target 20,000 accepted; 3,277 at 01:45Z; 600-700 q/h at 64 workers, no 429s (transient dip to ~430/h coincided with v7.2 pilot Gemini calls); strict yield of the pool ~21,000, 20,000 accepted expected ~2026-09-20 midday UTC",
+      "next_on_completion": "none needed until 20k; if BLOCKED.json appears follow codex_relaunch_r1315_watchdog/BRIEF.md pattern (rename block, relaunch watchdog)",
+      "survives_session": true
+    },
+    {
+      "lane": "base evals window 3 (codex_base_evals_v5)",
+      "what": "babysits the same 4 live cells as v4: OneThinker DSI (trinity-1-13 GPU1), Qwen VSI (GPU6), Qwen VSTI (GPU7), Qwen DSI single worker (trinity-0-18 GPU4 PID 37205); observe-only, dispatched 23:55Z",
+      "markers": [
+        "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_base_evals_v5/out/{RATES.md,REPORT.md,ADOPTION.md,HEARTBEAT.log}"
+      ],
+      "health_check": "tail -n 2 /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_base_evals_v5/out/HEARTBEAT.log; grep -E '^\\| (onethinker|qwen35)' /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_base_evals_v5/out/RATES.md",
+      "gate": "REPORT.md ends LANE_DONE on every pass -- that marker does not mean finished; judge liveness from HEARTBEAT.log age",
+      "next_on_completion": "dispatch window 4 from a copy of its BRIEF (adopt by pid); stopping the Qwen DSI worker (PID 37205 on trinity-0-18 GPU4) is a user action (ssh trinity-0-18 kill 37205), not a lane task, per classifier refusal",
+      "survives_session": false,
+      "workers_survive": true
+    },
+    {
+      "lane": "converter zero-call v2",
+      "what": "typed records v2 (parses recorded_calculation outputs, appearance records from frame_availability, convention records, qualification student_text), template/policy entry for every quantity, per-record rendering, 16-trace pilot then bulk over every accepted trace",
+      "state": "RUNNING (Devin gpt-6-astra-max-priority, launched ~01:27Z, timeout 18000s)",
+      "markers": [
+        "agent/scratch/devin_lanes/converter_zero_call_v2_20260918/out/{HEARTBEAT.log,diagnostic_set/,REPORT.md}",
+        "agent/scratch/devin_lanes/converter_zero_call_v2_20260918/LANE/TRAIN_PARAMS.env"
+      ],
+      "health_check": "tail -n 2 /home/jjyeung/agent_project_distill/agent/scratch/devin_lanes/converter_zero_call_v2_20260918/out/HEARTBEAT.log",
+      "gate": "critical path to the first training run; writes ADMISSION_VERDICT=ZERO_CALL_DIAGNOSTIC_PENDING_REVIEW in TRAIN_PARAMS.env on completion",
+      "next_on_completion": "dispatch independent review (codex_review_converter_v7/PROMPT_HEADER.md + lane REVIEW_PROMPT.md, gpt-6-astra xhigh); on PASS launch fine-tune diagnostic v2 via the Luna launcher",
+      "survives_session": false
+    },
+    {
+      "lane": "fine-tune diagnostic v2",
+      "what": "OneThinker-8B first, vision and language LoRA, scene-disjoint split seed 17, VSI and VSTI only, per-type tables against base, GPUS=auto",
+      "status": "waiting on TRAIN_PARAMS.env",
+      "markers": [
+        "agent/scratch/devin_lanes/finetune_diagnostic_v2_20260918/BRIEF.md",
+        "agent/scratch/devin_lanes/finetune_diagnostic_v2_20260918/out/HEARTBEAT.log"
+      ],
+      "health_check": "tail -n 2 /home/jjyeung/agent_project_distill/agent/scratch/devin_lanes/finetune_diagnostic_v2_20260918/out/HEARTBEAT.log",
+      "launch": "copy converter_zero_call_v2_20260918/TRAIN_PARAMS.env to finetune_diagnostic_v2_20260918/TRAIN_PARAMS.env, set GPUS=auto and PUBLISH_ROOT=/data3/jjyeung/agent_project_data/finetune_diagnostic_v2_20260918, then dispatch codex_luna_launch_finetune_v2/BRIEF.md (gpt-5.6-luna, effort high) in parallel with an independent review of the v2 bundle",
+      "next_on_completion": "n/a (not yet launched)",
+      "survives_session": false
+    }
+  ],
+  "round_registry": {
+    "note": "this repo assigns lane names, not round numbers; collector epoch = contract commit (94cc697); converter branches converter-v3..v7-1; eval sharding branch eval-harness-sharding-20260918; trainer branch trainer-qwen35-scratch-20260918"
+  },
+  "open_user_decisions": [
+    "Adopt tiered rubric (Tier I blocks, Tier II recorded) as target admission definition and pipeline-plus-sampling admission for bulk conversion (memory/target-admission-rubric.md)",
+    "Numeric correctness: keep strict 5% band or admit 10-25% tolerance tier for numeric types (agent/reports/numeric_tolerance_tiers_*.md)",
+    "Other datasets (ADT, ARKitScenes, ProcTHOR, S3DIS) need preparers; ScanNet v3 parked",
+    "One deletion queued in main repo agent/PENDING_USER_COMMANDS.md",
+    "kill Qwen DSI worker PID 37205 on trinity-0-18 GPU 4",
+    "approve or decline the free-form rewrite ablation arm"
+  ],
+  "do_not_redo": [
+    "Do not change collector/ on main while the collector runs (epoch procedure in CLAUDE.md)",
+    "Do not re-run ScanNet v3 preparer batch (recovers ~1/5, parked)",
+    "Do not admit batch registries with drain-before-bind order (bind live, then drain)",
+    "Do not write 'resume' prompts telling an agent to proceed past a stop (classifier); amend the brief and re-dispatch",
+    "Do not gate lanes on unrelated pre-existing test failures (CLAUDE.md test-gate rule)",
+    "expand collector admission (no gap; STATUS_v5.md lines are stale)",
+    "one-call converter rounds before the typed-record layer is complete",
+    "Qwen DSI evaluation"
+  ],
+  "session_notes": [
+    "Codex lanes doing ssh/pgrep/kill die on access_programs.cyber 400 after 40 min to 2.5 h; per-step artifacts; orchestrator writes final record",
+    "Devin -p lingers after DEVIN_LANE_DONE; stop by task",
+    "Watchdog restarts at 16 workers regardless of control file; ~50 min back to 64",
+    "Converter stage-A calls with raw-archive inputs got HTTP 429 at 64 collector workers; v7 uses compact typed-record inputs + 429 backoff",
+    "Evals lanes keep REPORT.md current with LANE_DONE while running; do not treat its presence as completion"
+  ],
+  "survives_vs_dies": {
+    "survives": [
+      "collector on trinity-3-23",
+      "the four GPU eval workers (OneThinker DSI trinity-1-13 GPU1, Qwen VSI GPU6, Qwen VSTI GPU7, Qwen DSI trinity-0-18 GPU4 PID 37205)",
+      "codex_base_evals_v5 (detached via setsid)",
+      "all lane files, including converter zero-call v2 outputs after its process ends"
+    ],
+    "dies": [
+      "collector watcher (session monitor)",
+      "lane heartbeat monitor",
+      "queue watcher",
+      "converter zero-call v2 Devin process (timeout 18000s; its files survive)",
+      "any later Luna launcher process for fine-tune diagnostic v2"
+    ]
+  }
 }
