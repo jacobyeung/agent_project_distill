@@ -21,3 +21,6 @@ Trainer repo `/data2/jjyeung/agent_project_data/student_diagnostic_pilot_2026091
 
 ## Rules
 Exact paths only; never `find`, `grep -r`, `du`, or `ls -R` over home or /data2 (grep inside your worktree's `student_pilot/` and `tests/` is fine). Never open paths containing `offline_labels` or `answer_bank`. Do not run GPU jobs on this node (its GPUs belong to another experimenter); no GPU is needed for your tests. Do not touch `collector/`, the main working tree of any repo, or any running process. Write bulk files only under LANE/out or `/scratch/jjyeung/trainer_v4_tests` (create it; set TMPDIR there).
+
+## Orchestrator amendment (2026-09-19 09:02Z): base commit moved
+The base branch `trainer-provisional-diagnostic-v3-20260919` advanced to commit 0de12a565e59ca727239653291d6916c20c29708 (independent review PASS 09:01Z): the admission probe now requires CUDA device 0's physical UUID to equal both the bound lease UUID and the nvidia-smi UUID, and refuses when the CUDA UUID is missing, None, malformed or mismatched (six new tests, 143 total). Before you finish: rebase your branch onto 0de12a5 (or merge it in), make the per-rank probe in `train-ddp` apply the same three-way UUID rule on each rank, rerun the suite, and record the base commit in REPORT.md.
