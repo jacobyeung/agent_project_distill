@@ -327,3 +327,29 @@ ADMIT 14/14, set admitted for arm C), `distilled-onethinker-observation-loop` (u
 window), `converter-design-lessons` (updated: rewrite v3.1 bulk completed 3,693/3,852), and
 `base-eval-parse-failure-confound` (unchanged this window). Add on next update: a session-death
 survival memory recording the `setsid`-via-Luna rule from section 9.
+
+## Correction 23:05Z (host and collector state)
+
+The new orchestrator session runs on trinity-3-13, not trinity-1-3: the 22:55Z doc above assumed
+trinity-1-3, so every "local" process check it recorded actually ran on the wrong node and needs
+re-verification from trinity-3-13 instead.
+
+ssh to trinity-1-3 now times out at authentication (three bounded probes, rc 124), the same
+NFS-hang signature seen earlier on trinity-3-23 and trinity-0-3. That means the collector, the
+evaluation lane's shards, and other processes on trinity-1-3 may still be alive but wedged, not
+dead. The collector's `WATCHDOG_HEALTH.json` utc was stale from 21:33:58Z until at least 22:53Z,
+then updated at 23:00:48Z with `finalized` still frozen at 9,241 — so no trace has finalized for
+90 minutes either way, wedged or dead.
+
+Collector relaunch attempt 5 (`PROMPT_r5.md`) was correctly blocked by the lane because it could
+not reach trinity-1-3. Attempt 6 (`PROMPT_r6.md`, dispatched 23:05Z) diagnoses trinity-1-3 with
+bounded probes and, if the host stays unreachable or its collector is dead or wedged, produces the
+remote-evidence drain attestation for trinity-1-3 and relaunches the collector on trinity-3-13
+through ssh loopback (control 32, ramp per rule), writing `REPORT_r6.md`.
+
+trinity-3-13 has eight idle 49 GB GPUs; it is a candidate node for the Qwen base evaluation cells
+and for a babysitter. The evaluation lane's Qwen base VSI shards (trinity-1-3 GPUs 1 to 6) should
+be assumed lost until trinity-1-3 answers.
+
+Nodes to avoid now: trinity-1-3 (until it answers), trinity-3-23, trinity-0-3, trinity-0-28,
+trinity-1-8.
