@@ -54,3 +54,8 @@ Zero provider calls, by design — E has no conversion prompt [MEMO.md:15]. No s
 
 ## Report (LANE/out/REPORT.md, <=30 lines, last line `DEVIN_LANE_DONE`)
 Pilot yield (14/16 rule outcome), bulk yield per type, full-index vs quota-balanced-index counts, check-table pass/fail histogram, NOTES.md path if SPEC_E.md was found, commit SHAs.
+
+## Orchestrator amendment (2026-09-19 06:46Z): state at relaunch
+- The first run was paused at 05:30Z to relieve storage while the collector was diagnosed; that problem was node-local to trinity-3-23, not load. Resume: your worktree `LANE/work/trainer_repo` exists on branch `converter-zero-call-v4-20260919` at commit 1abdbee (E1 renderer, mutation checks, disposition reconciliation); use it as is, no `git worktree add`. `LANE/out` (symlink to /data2) holds KIND_SURVEY.md, the E1 fixtures and mutation evidence, BASELINE_REUSE.json, BULK_SELECTION.json and BULK_STAGING.json with all 4,509 sources staged and verified; never re-stage or re-verify.
+- The consultant's specification `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_astra_design_r2/out/SPEC_E.md` now exists (517 lines) with six real fixtures; follow it where it is more specific than this brief and record differences in NOTES.md. Room-size and route-planning compile to evidence-plus-answer or defer, as it states.
+- Remaining deliverables: the 16-trace pilot (PILOT_SUMMARY.md), the bulk over the staged sources with 8 workers, the per-type quota index alongside the full index, `LANE/TRAIN_PARAMS.env` (ADMISSION_VERDICT=ZERO_CALL_V4_DIAGNOSTIC_PENDING_REVIEW), REVIEW_PROMPT.md, commits, REPORT.md. You are the only bulk renderer running; heartbeat with rendered / deferred / remaining every 5 minutes.
