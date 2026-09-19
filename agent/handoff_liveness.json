@@ -1,8 +1,8 @@
 {
-  "written_utc": "2026-09-19T20:45:00Z",
+  "written_utc": "2026-09-19T22:55:00Z",
   "head": {
-    "commit": "f5ce7a0",
-    "meaning": "distill repo main; lands the compact counted student targets converter (lane converter_compact_v1_20260919, commits 63a0daf and 5907fd6); since this commit the eval harness adopted a 4,096 decode budget (e3e9ffb) and a trinity-2-13 host allowlist entry (58794b8), both reviewed PASS, with cells now confirmed never to pair across harness commits; the compact-target pilot render was REJECTED by independent review (11/16 clean, need 14/16) and a fix lane is running; OneThinker arm A attempt 10 and Qwen arm A r5 are both training; the collector holds at 36 workers toward the 20,000-trace target"
+    "commit": "2ad2d70",
+    "meaning": "distill repo main; lands compact target selection fixes (roster line for counting types, operand filter, drop_clause default; commits da346eb and 1892917), which pilot review 2 ADMITted 14/14 against diagnostic_set_compact_v1c_dropclause; since this commit the orchestrator's Claude Code session died at about 21:34Z, killing the collector (watchdog/controller/40 workers), the local evaluation lane, and all session-bound subagents; recovery for the collector, arm C handover, and trinity-2-13 distilled baseline cells was dispatched at 22:55Z through Luna ssh loopback lanes"
   },
   "user_rulings_today": [
     "RULED about 11:50Z: \"Own the distillation lane: obtain at least 20,000 accepted traces on vsibench training using the GT perception data. Fine-tune OneThinker-8B and Qwen3.5-9B with vision and language LoRA on a scene-disjoint split of those targets and show better RGB-only, tool-free accuracy than the base checkpoints on VSIBench and VSTIBench reporting per-question-type results. use Devin Astra max for development, Codex or Luna for ssh work and Sonnet for easy tasks, and never touch the other experimenter's state or the collector code on main while the collector runs. Maximize the google API key at 8m tok/min to collect the reasoning traces. Evidence first: publish per-type results on the partial training set for both students before any full-scale run, and report them whether or not they beat the base. Paper ready numbers by 2026-9-24Z; when lanes compete for GPUs or the key, the collector and the two student fine-tunes win over ablations.\"",
@@ -20,153 +20,94 @@
     "RULED 03:58Z: fine-tune the 8B and 9B students first; consider Qwen3.6-27B or Gemma-4-31B only if the gain over the 8B/9B result is large.",
     "RULED, executor preference (applied about 12:50Z): Claude subagents (Sonnet for reads and mechanical work, Opus for launch-and-babysit and analysis) or Devin builders for every new lane; Codex Luna only for ssh relays; Codex Astra only for gate reviews and escalation; in-flight Codex lanes finish.",
     "RULED, relaunches (applied about 12:50Z): a relaunch of an already-designed, already-running experiment skips independent review; a new design, a new admission or scoring path, or a first launch still gets one.",
-    "WITHDRAWN (superseded 19:24Z-20:30Z this window): cutting the distilled-cell decode budget to 4,096 as a fix for the observation-loop tail was earlier withdrawn on the premise that contracts.py freezes every configuration field except answer_format_instruction; the premise covered arm-specific overrides only, not a reviewed source change. A reviewed branch (e3e9ffb) lowered DEFAULT_CONFIG itself and was adopted.",
-    "RULED 19:24Z-20:30Z (this window): eval decode budget is 4,096 (branch eval-budget-4096-20260919, tip e3e9ffb, reviewed PASS); trinity-2-13 is adopted into the eval host allowlist (branch eval-host-t213-20260919, tip 58794b8, reviewed PASS); production checkout is eval_instructed_provisional_58794b8; cells never pair across harness commits (core['runtime'] hashes contracts.py and require_pair compares it), so every paper cell for both students runs from this one checkout.",
-    "RULED 19:56Z (this window): VSTI distilled at the 16,384 budget is abandoned and recorded as partial evidence, not a result; it will be regenerated under the 4,096 lineage.",
-    "RULED (this window, via independent review REVIEW_compact_pilot.md): sidecar-only citations are sufficient for the compact-target format; inline derivation citations are not required and cost 1.0-3.9x tokens for no verification gain. The render itself was REJECTED on a separate, systematic defect (no-Calculations question types lose all visible support) and needs a fix lane plus a second pilot review before arm C."
+    "RULED 19:24Z-20:30Z: eval decode budget is 4,096 (branch eval-budget-4096-20260919, tip e3e9ffb, reviewed PASS); trinity-2-13 is adopted into the eval host allowlist (branch eval-host-t213-20260919, tip 58794b8, reviewed PASS); production checkout is eval_instructed_provisional_58794b8; cells never pair across harness commits.",
+    "RULED 19:56Z: VSTI distilled at the 16,384 budget is abandoned and recorded as partial evidence, not a result; regenerated under the 4,096 lineage via the trinity-2-13 remote cell dispatch.",
+    "RULED (via independent review REVIEW_compact_pilot.md): sidecar-only citations are sufficient for the compact-target format; inline derivation citations are not required.",
+    "RESOLVED this window (pilot review 2, REVIEW_compact_pilot2.md): the compact-target no-Calculations defect is fixed by the roster/operand-filter/drop_clause changes (da346eb, 1892917); ADMIT 14/14; diagnostic_set_compact_v1c_dropclause is admitted for arm C training.",
+    "NEW standing rule (this window, from the 21:34Z session death): any process that must outlive the orchestrator session must be launched as a child of sshd via a Luna lane (ssh trinity-1-3 'setsid nohup ... &'), even for local-node work; a Bash background process or a Claude subagent is not durable across a session death."
   ],
   "results_banked_today": [
     {
-      "what": "teacher traces finalized (collector, r1315)",
-      "count": 8079,
-      "pointer": "R/WATCHDOG_HEALTH.json at 18:07Z; target 20,000"
+      "what": "teacher traces finalized (collector, r1315), last live reading before death",
+      "count": 9241,
+      "pointer": "R/WATCHDOG_HEALTH.json at 21:33:58Z (last update before the 21:34Z session death); target 20,000; collector relaunch attempt 5 dispatched 22:55Z"
     },
     {
-      "what": "base OneThinker-8B, instructed prompt, VSIBench answerable-500",
-      "count": "31.47% (407/500 parsed, 93 failures, 0 cap hits)",
-      "pointer": "D/claude_base_reeval_instructed_onethinker/RESULTS.md, harness 86d28d9"
-    },
-    {
-      "what": "base OneThinker-8B, instructed prompt, VSTIBench repr450_v2",
-      "count": "40.16% (395/450 parsed, 55 failures, 1 cap hit)",
-      "pointer": "D/claude_base_reeval_instructed_onethinker/RESULTS.md, harness 86d28d9"
-    },
-    {
-      "what": "OneThinker single-GPU baseline adapter published",
+      "what": "compact-target fix lane landed and passed pilot review 2",
       "count": 1,
-      "pointer": "/data3/jjyeung/agent_project_data/finetune_diagnostic_v2_20260918/onethinker_retry_20260919T072144Z/PUBLISHED.json, label adapter-ZERO_CALL_DIAGNOSTIC_PENDING_REVIEW, 656 steps, mean row loss 0.46 to 0.108"
+      "pointer": "merge 2ad2d70 (commits da346eb, 1892917), 110 tests; D/claude_review_compact_pilot2/out/REVIEW_compact_pilot2.md, ADMIT 14/14"
     },
     {
-      "what": "evaluation harness provisional-adapter admission path restored, reviewed PASS",
-      "count": 1,
-      "pointer": "branch eval-instructed-provisional-20260919, tip a666e6a19adf41cbe4db9e52a8e73ea64fa95105, 235 tests, acceptance checker 16/16 PASS"
+      "what": "compact-target admitted set (v1c_dropclause)",
+      "count": "3,431 candidates, 421 deferred (299 no_calculations, 122 over_budget), median 431 tokens, train_rows 3,052, heldout 379",
+      "pointer": "/data2/jjyeung/agent_project_data/devin_lane_out/converter_compact_v1_20260919_out/diagnostic_set_compact_v1c_dropclause/candidate_index.jsonl"
     },
     {
-      "what": "rewrite v3.1 bulk rows finalized",
-      "count": 3207,
-      "pointer": "D/codex_rewrite_v3_1_bulk/out/OUTCOMES_bulk_v3_1.jsonl at 19:38Z; target 3,852; fidelity audit clean on 2,425 rows checked as of 18:07Z, rerun due at completion"
+      "what": "rewrite v3.1 bulk complete",
+      "count": "3,693 targets of 3,852 (138 rejected, 21 deferred, 7,475 calls)",
+      "pointer": "OUTCOMES_bulk_v3_1.jsonl under converter_freeform_v3_20260919_out; completed 21:30Z; audit and 32-row review interrupted by session death, must resume"
     },
     {
-      "what": "teacher traces finalized (collector, r1315), updated",
-      "count": 8562,
-      "pointer": "R/WATCHDOG_HEALTH.json at 19:37Z; 36 workers since 19:35Z; target 20,000"
+      "what": "base cells under the 4,096 budget on harness 58794b8, confirmed bit-identical to the 16,384 cells",
+      "count": "OneThinker VSI 31.4667% (407/500 parsed, 93 failures, 0 caps); VSTI 40.16% (395/450 parsed, 55 failures, 1 cap); base 0/950 enters observation format",
+      "pointer": "D/claude_base_reeval_instructed_onethinker/out/RESULTS.md"
     },
     {
-      "what": "observation-loop finding: distilled OneThinker enters trained format on every item measured, tail loops to the token cap",
-      "count": "56/56 enters format (base 0/950); VSI 2/53 capped, VSTI 2/3 capped; VSI distilled median 290 tokens, p90 357",
-      "pointer": "D/claude_base_reeval_instructed_onethinker/out/CAPPED_OUTPUT_ANALYSIS.md, DISTILLED_SLOWDOWN.md, RESULTS.md, BUDGET_4096_REFUSED.md"
+      "what": "OneThinker arm A attempt 10 training, survived the session death",
+      "count": "step 91 of 246 at 22:53Z, checkpoint 82, loss 0.098",
+      "pointer": "codex_luna_launch_ddp_v4_a_onethinker/out/PROGRESS_r10.md; ETA about 04:07Z"
     },
     {
-      "what": "format-A target token statistics",
-      "count": "median 4,739 OneThinker tokens, p90 11,328, max 76,461; median 50 observation lines",
-      "pointer": "D/claude_target_enumeration_stats/out/TARGET_ENUMERATION_STATS.md"
-    },
-    {
-      "what": "compact counted target design, measured on 197 targets",
-      "count": "median 467 tokens, p90 1,752",
-      "pointer": "D/claude_design_compact_targets/out/DESIGN.md"
-    },
-    {
-      "what": "trainer v4.7 checkpoint-resume landed and reviewed PASS",
-      "count": 1,
-      "pointer": "trainer-multigpu-v4-20260919 tip ad96f47; D/claude_review_trainer_v4_7/out/VERDICT.md"
-    },
-    {
-      "what": "eval decode budget change to 4,096 landed and reviewed PASS",
-      "count": 1,
-      "pointer": "branch eval-budget-4096-20260919, tip e3e9ffb (parent a666e6a); D/claude_review_eval_budget_4096/out/VERDICT.md; config_sha256 b43a012b7dfebe6dcb798840dd57a632612b5dd4c43fc8a5c2a73d7fa7a4b9f1"
-    },
-    {
-      "what": "eval host allowlist adds trinity-2-13, landed and reviewed PASS (with a correction: cells do not pair across harness commits)",
-      "count": 1,
-      "pointer": "branch eval-host-t213-20260919, tip 58794b8 (parent e3e9ffb); D/claude_review_eval_host_t213/out/VERDICT.md"
-    },
-    {
-      "what": "production eval checkout adopted",
-      "count": 1,
-      "pointer": "/data2/jjyeung/agent_project_data/student_diagnostic_pilot_20260918/eval_instructed_provisional_58794b8, adopted 20:30Z; D/claude_eval_budget_4096/out/ORCHESTRATOR_ADOPTED.md, D/claude_eval_host_t213/out/ORCHESTRATOR_ADOPTED.md"
-    },
-    {
-      "what": "compact counted target converter (compact_counted_v1) landed on main",
-      "count": 1,
-      "pointer": "merge f5ce7a0, branch converter-compact-v1-20260919, commits 63a0daf and 5907fd6, 88 tests; student/compact_targets/compact_counted_v1.py"
-    },
-    {
-      "what": "compact-target set v1b rendered",
-      "count": "3,514 candidates, 338 deferred over budget, median 428 tokens, p90 945, max 1,536",
-      "pointer": "/data2/jjyeung/agent_project_data/devin_lane_out/converter_compact_v1_20260919_out/diagnostic_set_compact_v1b/candidate_index.jsonl"
-    },
-    {
-      "what": "compact-target pilot review verdict",
-      "count": "REJECT, 11/16 clean (need 14/16)",
-      "pointer": "D/claude_review_compact_pilot/out/REVIEW_compact_pilot.md"
-    },
-    {
-      "what": "VSTI distilled at 16,384 budget, abandoned, partial evidence only",
-      "count": "3 graded, 2 capped, 0 scored",
-      "pointer": "D/claude_base_reeval_instructed_onethinker/out/RESULTS.md (VSTI distilled: ABANDONED section)"
-    },
-    {
-      "what": "teacher traces finalized (collector, r1315), updated",
-      "count": 8772,
-      "pointer": "R/WATCHDOG_HEALTH.json at 20:08Z; 36 workers since 19:35Z; target 20,000"
+      "what": "Qwen arm A r5 FSDP training, survived the session death",
+      "count": "step 120 of 246, loss 0.081",
+      "pointer": "codex_luna_launch_ddp_v4_a_qwen/out/PROGRESS_r5.md; ETA about 06:00Z on 09-20"
     }
   ],
   "active_runs": [
     {
-      "lane": "r1315 teacher collector (recovered, watchdog v5, ramped by hand)",
-      "status": "36 workers since 19:35Z; 8,772 of 20,000 finalized at 20:08Z; first full cycle at 36 fully clean (zero 503, zero 429 for 30 min); about 390 finalized/h; tokens per call back to 18-22K",
-      "what": "step to 40 workers after one more clean 15-minute cycle; step back on any 429, a lease age above 600 s, a stepdown event, or a 15-minute 503 count above 24",
-      "host": "trinity-1-3 (controller and lease)",
-      "health_check": "grep -oE '\"(finalized|target|workers)\"[^,}]*' /data2/jjyeung/agent_project_data/vsi_distill_training_20260917/runtime_control/gt_teacher_r1313/remediation_d9f7863f1e75/WATCHDOG_HEALTH.json",
+      "lane": "r1315 teacher collector (recovered, watchdog v5)",
+      "status": "died 21:34Z at 9,241 of 20,000 finalized (last WATCHDOG_HEALTH.json 21:33:58Z); recovery attempt 5 dispatched 22:55Z via Luna ssh loopback",
+      "what": "drain attestation for the dead predecessor, lease renewal, watchdog v5 relaunch, ramp 32 -> 36 -> 40, TPM reader relaunch",
+      "host": "trinity-1-3 (controller and lease), dispatched via ssh loopback so it survives future session deaths",
+      "health_check": "grep -oE '\"(finalized|target|workers)\"[^,}]*' /data2/jjyeung/agent_project_data/vsi_distill_training_20260917/runtime_control/gt_teacher_r1313/remediation_d9f7863f1e75/WATCHDOG_HEALTH.json ; cat /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_relaunch_r1315_drain_attest/out/REPORT_r5.md 2>/dev/null",
       "gate": "target 20,000 accepted; never change collector/ on main while a collector runs",
       "next_on_completion": "ramp to 40, then continue toward 20,000",
       "survives_session": true
     },
     {
       "lane": "trainer v4 DDP full run, arm A OneThinker, attempt 10 (codex_luna_launch_ddp_v4_a_onethinker)",
-      "status": "training; step 19/246 at 20:30:38Z, loss 0.163, 98.9 s/step, ETA 6.24h (about 02:45Z on 09-20); no checkpoint published yet (first lands step 25)",
-      "what": "admitted 19:50:36Z on trinity-1-13, world size 4 (GPUs 2, 3, 4, 5), wrapped, trainer ad96f47; publish root /data3/jjyeung/ddp_onethinker_a_onethinker_20260919T0930Z_r10",
+      "status": "survived the session death; training, step 91/246 at 22:53Z, checkpoint 82, loss 0.098, 120 s/step, ETA about 04:07Z",
+      "what": "world size 4 (GPUs 2, 3, 4, 5) on trinity-1-13, wrapped, trainer ad96f47; publish root /data3/jjyeung/ddp_onethinker_a_onethinker_20260919T0930Z_r10; being stopped at checkpoint 100 (~23:10Z) for the arm C handover dispatched at 22:55Z",
       "host": "trinity-1-13 GPUs 2, 3, 4, 5",
       "health_check": "tail -n 8 /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_luna_launch_ddp_v4_a_onethinker/out/PROGRESS_r10.md",
-      "gate": "judge liveness from metrics.jsonl growth and the torchrun pid, never the wrapper process; wrapped launch only, on ad96f47; yields to arm C at a checkpoint boundary if arm C is ready (see PREEMPTED_FOR_ARM_C_r10.md when it happens)",
-      "next_on_completion": "feeds the evaluation lineage lane's distilled cell for arm A on checkout eval_instructed_provisional_58794b8",
+      "gate": "judge liveness from metrics.jsonl growth and the torchrun pid, never the wrapper process; yields to arm C at checkpoint 100 per the resume brief dispatched 22:55Z",
+      "next_on_completion": "hands off to arm C at checkpoint 100; verify PREEMPTED_FOR_ARM_C_r10.md next session",
       "survives_session": true
     },
     {
-      "lane": "trainer v4 DDP full run, arm E OneThinker, attempt 9, parked (codex_luna_launch_ddp_v4_e_onethinker)",
-      "status": "unchanged this window; still parked",
-      "what": "BRIEF_r9.md rewritten for the wrapped ad96f47 trainer, to launch on trinity-1-13 once arm A attempt 10 (or arm C) finishes and frees GPUs",
-      "host": "not yet dispatched to a live host",
-      "health_check": "tail -n 15 /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_luna_launch_ddp_v4_e_onethinker/out/ORCHESTRATOR_PLACEMENT_DECISION_r9.md",
-      "gate": "dispatch only to trinity-1-13 once GPUs free, wrapped, on ad96f47; re-check the GPU census first; do not launch on trinity-2-28",
-      "next_on_completion": "publish, then feed the format-E arm of the base-vs-distilled comparison",
-      "survives_session": false
+      "lane": "trainer v4 DDP full run, arm C OneThinker on compact targets (codex_luna_launch_ddp_v4_c_onethinker)",
+      "status": "handover resume dispatched 22:55Z (BRIEF_resume1.md); candidate index now admitted (v1c_dropclause, pilot review 2 ADMIT 14/14)",
+      "what": "stops arm A at checkpoint 100, records PREEMPTED_FOR_ARM_C_r10.md, launches OneThinker on the admitted compact index, wrapped, ad96f47, GPUs 2-5 on trinity-1-13, publish root /data3/jjyeung/ddp_onethinker_c_onethinker_20260919T2100Z",
+      "host": "trinity-1-13 (dispatch in flight via Luna ssh loopback)",
+      "health_check": "cat /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_luna_launch_ddp_v4_c_onethinker/out/PREEMPTED_FOR_ARM_C_r10.md 2>/dev/null; tail -n 8 /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_luna_launch_ddp_v4_c_onethinker/out/PROGRESS.md 2>/dev/null",
+      "gate": "wrapped launch only, on ad96f47, from the admitted v1c_dropclause index",
+      "next_on_completion": "trains OneThinker on compact targets; feeds the compact-target arm of the base-vs-distilled comparison",
+      "survives_session": true
     },
     {
       "lane": "trainer v4 FSDP full run, Qwen arm A, r5 (codex_luna_launch_ddp_v4_a_qwen)",
-      "status": "training; step 81/246 at 20:32:21Z, loss 0.0911, mean 216.4 s/step, 9.92h remaining, ETA about 06:26Z on 09-20",
-      "what": "trinity-0-18, FSDP world size 8, checkout b41b597 lineage without checkpoints; a remote babysitter writes PROGRESS_r5.md",
+      "status": "survived the session death; training, step 120/246, loss 0.081",
+      "what": "trinity-0-18, FSDP world size 8, checkout b41b597 lineage without checkpoints",
       "host": "trinity-0-18",
       "health_check": "tail -n 8 /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_luna_launch_ddp_v4_a_qwen/out/PROGRESS_r5.md",
       "gate": "judge liveness from metrics.jsonl growth and the torchrun pid, never the wrapper process",
-      "next_on_completion": "publish unblocks Qwen arm E r2's smoke and full run",
+      "next_on_completion": "publish unblocks Qwen arm E r2; dispatch Qwen arm C brief near step 220",
       "survives_session": true
     },
     {
       "lane": "trainer v4 FSDP run, Qwen arm E, r2, chained (codex_luna_launch_ddp_v4_e_qwen)",
-      "status": "unchanged this window; still chained",
-      "what": "checkout ef2cd59, chained behind Qwen arm A r5 by a remote gate on the same node (trinity-0-18)",
+      "status": "waiter heartbeat stale since 21:21Z; may be dead, verify before relying on it",
+      "what": "checkout ef2cd59, chained behind Qwen arm A r5 by a remote gate on trinity-0-18",
       "host": "trinity-0-18 (queued)",
       "health_check": "tail -n 5 /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_luna_launch_ddp_v4_e_qwen/BRIEF_r3.md",
       "gate": "does not proceed until Qwen arm A r5 publishes and world-size-8 GPUs on trinity-0-18 are free",
@@ -175,79 +116,68 @@
     },
     {
       "lane": "evaluation lineage lane (claude_base_reeval_instructed_onethinker)",
-      "status": "moved to production checkout eval_instructed_provisional_58794b8 (adopted 20:30Z); VSTI distilled at 16,384 abandoned 19:56Z (partial evidence, no score); VSI distilled partial, one complete type (obj_appearance_order, 52.00% both distilled and base)",
-      "what": "runs preflight, base and distilled cells for both students and both benchmarks, all from the 58794b8 checkout at the 4,096 budget; may claim a whole cell pair on trinity-2-13 via the written Luna recipe",
-      "host": "trinity-1-3 GPUs 1 to 6, plus trinity-2-13 as a future remote-cell option",
+      "status": "died 21:34Z mid Qwen base VSI shards on trinity-1-3 GPUs 1-6; all six GPUs idle at 22:53Z; base cells at 4,096 confirmed bit-identical to 16,384; trinity-2-13 distilled baseline cells dispatched separately",
+      "what": "relaunch Qwen base VSI (then VSTI) on trinity-1-3 via ssh loopback with a fresh output suffix; run all remaining paper cells from the 58794b8 checkout at the 4,096 budget",
+      "host": "trinity-1-3 GPUs 1-6 (idle, needs relaunch), plus trinity-2-13 (distilled baseline cells in flight)",
       "health_check": "tail -n 15 /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_base_reeval_instructed_onethinker/out/RESULTS.md",
-      "gate": "cells never pair across harness commits; use only the 58794b8 checkout for new paper cells; do not resume an interrupted labeled/sharded cell, re-run it instead",
+      "gate": "cells never pair across harness commits; use only the 58794b8 checkout; do not resume an interrupted labeled/sharded cell, re-run it with a fresh suffix instead",
       "next_on_completion": "publish the base-vs-distilled per-question-type comparison for both students as each adapter arrives",
       "survives_session": false
     },
     {
+      "lane": "trinity-2-13 distilled baseline cells (codex_luna_eval_t213_distilled_baseline)",
+      "status": "resume dispatched 22:55Z (BRIEF_resume1.md): VSTI distilled 4 shards, VSI distilled 4 shards",
+      "what": "regenerates the abandoned 16,384-budget VSTI/VSI distilled cells under the 4,096 lineage on trinity-2-13's idle 24 GB cards",
+      "host": "trinity-2-13",
+      "health_check": "cat /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_luna_eval_t213_distilled_baseline/out/REPORT.md 2>/dev/null",
+      "gate": "whole cell pairs only, never split shards; from the 58794b8 checkout",
+      "next_on_completion": "feeds the base-vs-distilled comparison for VSI and VSTI",
+      "survives_session": true
+    },
+    {
       "lane": "rewrite v3.1 bulk (codex_rewrite_v3_1_bulk)",
-      "status": "3,309 of 3,852 target rows finalized at 20:08Z (3,437 total lines in the outcomes file), about 3.7 rows/min, ETA about 22:30Z; confirmed not the observation-loop fix (no stop cue), remains an ablation arm candidate",
-      "what": "bulk render of the fact-locked free-form rewrite ablation",
-      "host": "trinity-1-3 (running since 11:40Z)",
+      "status": "complete 21:30Z: 3,693 of 3,852 target rows (138 rejected, 21 deferred, 7,475 calls); fidelity audit and 32-row review interrupted by the 21:34Z session death",
+      "what": "bulk render of the fact-locked free-form rewrite ablation, now finished",
+      "host": "trinity-1-3",
       "health_check": "wc -l /data2/jjyeung/agent_project_data/devin_lane_out/converter_freeform_v3_20260919_out/OUTCOMES_bulk_v3_1.jsonl",
-      "gate": "keep the scratchpad lease issuer alive or hand-issue on API_LEASE_REFRESH_REQUEST_bulk_v3_1.json change",
-      "next_on_completion": "rerun the fidelity audit over the finished set, then dispatch the 32-row sample review before admitting it",
-      "survives_session": false
-    },
-    {
-      "lane": "compact-target fix lane (Opus, branch converter-compact-v1-20260919)",
-      "status": "running; addresses the pilot review's REJECT (11/16 clean, need 14/16)",
-      "what": "adds a roster line for object_counting, a no_calculations deferral reason for other calculation-free types, filters Uses observations to operand records whose quantity can enter the operation, flags per-target when the answer is unreproducible from any emitted derivation; re-renders to diagnostic_set_compact_v1c/",
-      "host": "trinity-1-3 (local Devin/Claude, worktree branch)",
-      "health_check": "cat /data2/jjyeung/agent_project_data/devin_lane_out/converter_compact_v1_20260919_out/REPORT_selection_fix.md 2>/dev/null || tail -n 5 /data2/jjyeung/agent_project_data/devin_lane_out/converter_compact_v1_20260919_out/HEARTBEAT.log",
-      "gate": "lands on its own worktree under the lane's work/repo, not the main working tree",
-      "next_on_completion": "second independent pilot review against the 14-of-16 bar on diagnostic_set_compact_v1c, then arm C",
-      "survives_session": false
-    },
-    {
-      "lane": "trainer v4 DDP full run, arm C OneThinker on compact targets (codex_luna_launch_ddp_v4_c_onethinker)",
-      "status": "brief written 20:23:43Z, not dispatched; still points at diagnostic_set_compact_v1b (must be updated to v1c first)",
-      "what": "stops arm A attempt 10 at a checkpoint boundary, records PREEMPTED_FOR_ARM_C_r10.md, then launches OneThinker on the compact index with identical trainer settings, wrapped, ad96f47, GPUs 2-5 on trinity-1-13, RUN_TAG ddp_onethinker_c_onethinker_20260919T2100Z",
-      "host": "trinity-1-13 (not yet dispatched)",
-      "health_check": "cat /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_luna_launch_ddp_v4_c_onethinker/BRIEF.md | head -5",
-      "gate": "dispatch only after the fix lane's re-render passes pilot review 2; update candidate index to v1c before dispatch",
-      "next_on_completion": "trains OneThinker on compact targets; feeds the compact-target arm of the base-vs-distilled comparison",
+      "gate": "not admitted for training until the fidelity audit and 32-row review complete",
+      "next_on_completion": "re-run or resume the fidelity audit over the finished set, then the 32-row sample review, before admitting it",
       "survives_session": false
     },
     {
       "lane": "collector_watch (Sonnet subagent)",
-      "status": "observing",
+      "status": "died with the session at 21:34Z",
       "what": "observes the collector in 30-minute cycles, feeding the ramp/step-back decision",
       "host": "trinity-1-3 (session-bound)",
       "health_check": "tail -n 5 /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/collector_watch/NOTES.md",
-      "gate": "session-bound; if the session died, NOTES.md stops advancing and the subagent must be restarted",
+      "gate": "session-bound; must be restarted next session, and per the new standing rule (section 9 of the 2255Z handoff) any part of it meant to survive future deaths should be re-launched via Luna ssh loopback instead of a plain Claude subagent",
       "next_on_completion": "continues until the collector reaches 20,000",
       "survives_session": false
     },
     {
       "lane": "babysitter (Claude Opus) for arm A attempt 10 and Qwen A r5",
-      "status": "watching",
+      "status": "died with the session at 21:34Z; the training runs themselves survived (they run as real remote shells, not session children)",
       "what": "watches training liveness via metrics.jsonl growth and the torchrun pid for both runs, never the wrapper process",
       "host": "trinity-1-3 (session-bound)",
       "health_check": "tail -n 5 /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_luna_launch_ddp_v4_a_onethinker/out/PROGRESS_r10.md",
-      "gate": "session-bound; if the session died, PROGRESS_r10.md stops advancing and the babysitter must be restarted from its brief",
+      "gate": "session-bound; must be restarted next session from its brief in the 2045Z handoff",
       "next_on_completion": "hands both runs off to the evaluation lineage lane on publish",
       "survives_session": false
     }
   ],
   "round_registry": {
-    "note": "this repo assigns lane names, not round numbers; collector epoch = contract commit (998516b, merged as 612a325); converter branches converter-v3..v7-1, plus converter-compact-v1-20260919 (compact counted targets, converter landed at f5ce7a0, render v1b REJECTED by pilot review, fix lane in progress toward v1c); eval sharding branch eval-harness-sharding-20260918; trainer branch trainer-multigpu-v4-20260919 (tip ad96f47, checkpoint-resume, after 06a9664, b41b597, ef2cd59); eval prompt fix branch eval-prompt-instruction-20260919 (2ebd555); eval provisional-admission branch eval-instructed-provisional-20260919 (tip a666e6a, cherry-picks 57b21ef, ded50d3, cf738d18, 50868d6, 2ebd555 onto trainer tip ef2cd59); eval budget branch eval-budget-4096-20260919 (tip e3e9ffb, parent a666e6a, decode budget 16384->4096, reviewed PASS); eval host branch eval-host-t213-20260919 (tip 58794b8, parent e3e9ffb, adds trinity-2-13 to lease host allowlist, reviewed PASS; production checkout eval_instructed_provisional_58794b8, adopted 20:30Z; cells do not pair across harness commits)"
+    "note": "this repo assigns lane names, not round numbers; collector epoch = contract commit (998516b, merged as 612a325); converter branches converter-v3..v7-1, plus converter-compact-v1-20260919 (compact counted targets, converter fixes landed at 2ad2d70 [da346eb, 1892917], render v1c_dropclause ADMITted by pilot review 2, 14/14); eval sharding branch eval-harness-sharding-20260918; trainer branch trainer-multigpu-v4-20260919 (tip ad96f47, checkpoint-resume, after 06a9664, b41b597, ef2cd59); eval prompt fix branch eval-prompt-instruction-20260919 (2ebd555); eval provisional-admission branch eval-instructed-provisional-20260919 (tip a666e6a); eval budget branch eval-budget-4096-20260919 (tip e3e9ffb, parent a666e6a, decode budget 16384->4096, reviewed PASS); eval host branch eval-host-t213-20260919 (tip 58794b8, parent e3e9ffb, adds trinity-2-13 to lease host allowlist, reviewed PASS; production checkout eval_instructed_provisional_58794b8; cells do not pair across harness commits); session death at 21:34Z is a new operational event, not a code lineage, recorded in the 2255Z handoff"
   },
   "open_user_decisions": [
     "Adopt tiered rubric (Tier I blocks, Tier II recorded) as target admission definition and pipeline-plus-sampling admission for bulk conversion (memory/target-admission-rubric.md)",
     "Numeric correctness: keep strict 5% band or admit 10-25% tolerance tier for numeric types (agent/reports/numeric_tolerance_tiers_*.md)",
     "Other datasets (ADT, ARKitScenes, ProcTHOR, S3DIS) need preparers; ScanNet v3 parked",
     "One deletion queued in main repo agent/PENDING_USER_COMMANDS.md",
-    "free-form rewrite ablation arm: APPROVED 03:00Z, trained on the qid intersection with the zero-call arm",
     "27B student (Qwen3.6-27B or Gemma-4-31B): go or hold after the 9B result",
     "cross-node Devin launch spread: blocked on diagnosing why the ssh -f form fails silently on trinity-1-13, trinity-0-3, and trinity-0-18",
     "whether to overturn the provisional Format E admission (numbered anchors to delivered student frames treated as grounded facts, not tool artifacts)",
-    "whether arm C (compact targets) preempts arm A attempt 10 at a checkpoint or waits for it to finish; now also gated on the fix lane and pilot review 2 passing",
-    "whether to route a trinity-2-13 remote eval cell through the written Luna recipe now, or wait until the local GPU 1-6 order clears first"
+    "whether the format-E Qwen waiter on trinity-0-18 (stale heartbeat 21:21Z) is alive; verify before depending on it",
+    "whether to notify the non-training orchestrator of this session's death and the recovery dispatches, since it shares lane root D"
   ],
   "do_not_redo": [
     "treat a D-state controller with fast stats on its node as load; it is the node's NFSv4 session (codex_luna_t323_nfs_diag/out/REPORT.md)",
@@ -266,58 +196,56 @@
     "write an attestation that claims a host other than the one that actually gathered its evidence",
     "request independent review before relaunching an already-designed, already-running experiment (user ruling 2026-09-19)",
     "score a base model under a bare prompt with no answer-format instruction and compare it to a distilled model scored under an instructed one",
-    "score a distilled adapter on harness 86d28d9; it lacks the provisional-adapter admission path, use eval-instructed-provisional-20260919 (tip a666e6a)",
-    "resume an interrupted labeled/sharded evaluation cell on a666e6a; re-run it instead (untested gap)",
-    "judge training liveness from the wrapper process; check metrics.jsonl growth and the torchrun pid instead (a vnice kill can leave a stale wrapper reporting 'training')",
-    "launch on trinity-3-23, trinity-0-3, trinity-0-28, or trinity-1-8; expect free GPUs on trinity-2-28 (another user holds it, confirmed again at 19:26Z with no node offering four free 48 GB cards)",
-    "launch a multi-GPU training job unwrapped beyond the first 16 campaign GPUs; the trainer now refuses it after claiming leases (attempt 9's REPORT_r9.md)",
-    "read a capped distilled completion as evidence the format transfer failed; it entered the trained observation format correctly and only failed to stop",
-    "score a new paper cell, or resume any cell, on harness 86d28d9, a666e6a, or e3e9ffb; use only the adopted production checkout eval_instructed_provisional_58794b8 (tip 58794b8)",
-    "assume a base cell on one harness commit pairs with a distilled cell on another; core['runtime'] hashes contracts.py and require_pair compares it, so cells never pair across commits (struck from the eval-host-t213 builder's report by independent review)",
-    "admit the diagnostic_set_compact_v1b compact-target render for training; independent pilot review REJECTED it (11/16 clean, need 14/16) for a systematic no-Calculations defect, worst on object_counting; wait for diagnostic_set_compact_v1c and a second pilot review",
-    "quote a VSTI distilled score from the abandoned 16,384-budget cell; it has no score and no per-type table (3 graded, 2 capped), retained only as evidence that the runaway is more frequent on VSTIBench than VSIBench"
+    "score a distilled adapter on harness 86d28d9 or a666e6a or e3e9ffb; use only eval_instructed_provisional_58794b8",
+    "resume an interrupted labeled/sharded evaluation cell; re-run it with a fresh output suffix instead (untested gap)",
+    "judge training liveness from the wrapper process; check metrics.jsonl growth and the torchrun pid instead",
+    "launch on trinity-3-23, trinity-0-3, trinity-0-28, or trinity-1-8; expect free GPUs on trinity-2-28 (another user holds it)",
+    "launch a multi-GPU training job unwrapped beyond the first 16 campaign GPUs",
+    "read a capped distilled completion as evidence the format transfer failed",
+    "score a new paper cell, or resume any cell, on harness 86d28d9, a666e6a, or e3e9ffb; use only eval_instructed_provisional_58794b8",
+    "assume a base cell on one harness commit pairs with a distilled cell on another; cells never pair across commits",
+    "admit the diagnostic_set_compact_v1b render for training; it was REJECTED (superseded: v1c_dropclause was ADMITted by pilot review 2 and is now the training set)",
+    "quote a VSTI distilled score from the abandoned 16,384-budget cell; retained only as evidence the runaway is more frequent on VSTIBench than VSIBench",
+    "launch a process meant to survive the session as a plain Bash background job or Claude subagent; use a Luna ssh loopback lane with setsid nohup, even for local-node work (new this window, cause of the 21:34Z losses)"
   ],
   "session_notes": [
     "Codex lanes doing ssh/pgrep/kill die on access_programs.cyber 400 after 40 min to 2.5 h; per-step artifacts; orchestrator writes final record",
     "Devin -p lingers after DEVIN_LANE_DONE; stop by task",
-    "Converter stage-A calls with raw-archive inputs got HTTP 429 at 64 collector workers; v7 uses compact typed-record inputs + 429 backoff",
     "Evals lanes keep REPORT.md current with LANE_DONE while running; do not treat its presence as completion",
-    "A vnice terminator killed OneThinker arm A attempt 7 at step 197/321 via SignalException signal 15 after its /tmp/terminator/jjyeung-3606239 marker vanished; no checkpoint existed, so the run lost all progress; trainer_v4_7_checkpoint_resume_20260919 adds periodic checkpoints and --resume-from to prevent recurrence",
-    "trinity-0-3 stopped accepting ssh at 16:52Z and its leases stopped renewing at 16:54Z; presumed dead; OneThinker arm E must re-point to a live host",
-    "The collector reverted from 40 to 32 workers after an escalating 503 wave; the ramp rule now needs two consecutive clean 15-minute cycles before adding 8 to 36 workers, and steps back only above a 15-minute 503 count of 24",
-    "Harness commit 86d28d9 scores base models correctly but refuses every distilled adapter; branch eval-instructed-provisional-20260919 (tip a666e6a) restores the provisional-adapter admission path from the trainer lineage via five cherry-picks plus a tests-and-docs guard commit; independent Sonnet review passed it",
+    "A vnice terminator killed OneThinker arm A attempt 7 at step 197/321 with no checkpoint; trainer_v4_7_checkpoint_resume_20260919 adds periodic checkpoints and --resume-from",
+    "trinity-0-3 stopped accepting ssh at 16:52Z; presumed dead",
+    "The collector reverted from 40 to 32 workers after an escalating 503 wave; the ramp rule needs two consecutive clean 15-minute cycles before adding 8 workers, and steps back only above a 15-minute 503 count of 24",
     "Parser blob e703fe33 carries ded50d3's trailing-semicolon option fix; without it, multiple-choice scores could silently differ",
-    "The base OneThinker instructed-prompt numbers (VSI 31.47%, VSTI 40.16%) are this cycle's headline finding: prompt format, not distillation, explains most of the old base gap; report parse rates beside accuracy",
-    "Tonight's headline: the first distilled OneThinker adapter enters the trained observation format on every item measured (56/56; base 0/950) and usually terminates short, but a tail loops inside the observation block until the 16,384-token cap (VSI 2/53, VSTI 2/3); a ruling to cut the decode budget to fix this was tested and withdrawn because the harness freezes every field but answer_format_instruction",
-    "Compact counted targets (median 467 tokens vs. the format-A median 4,739) are the live fix candidate for the loop, not the free-form rewrite (median 1,738, no stop cue); the converter landed on main at f5ce7a0, but its first render (v1b) failed independent pilot review",
-    "Trainer v4.7 (ad96f47) landed checkpoint-resume and now refuses unwrapped launches beyond the first 16 campaign GPUs; attempt 9 was refused this way after claiming leases (harmless, leases expire); every launch from here on must be vnice-wrapped",
-    "The 19:26Z GPU census found no node with four free 48 GB cards; arm E attempt 9 stays parked until arm A attempt 10 (or arm C) finishes and frees trinity-1-13",
-    "This window's headline: the eval decode budget WAS lowered to 4,096 by a reviewed source change (branch eval-budget-4096-20260919, tip e3e9ffb) despite the earlier 19:50Z-window withdrawal; that withdrawal only covered an arm-specific override, which the harness does forbid, not a change to DEFAULT_CONFIG itself, which a reviewed branch can make. Do not re-litigate this distinction; the budget is 4,096 going forward.",
-    "trinity-2-13 (eight idle 24 GB cards) was added to the eval host allowlist (branch eval-host-t213-20260919, tip 58794b8) for whole eval-cell pairs, not for training (no 48 GB cards); the review caught and struck a false pairing claim in the builder's report -- cells never pair across harness commits, so every paper cell must come from the one 58794b8 checkout",
-    "VSTI distilled at the 16,384 budget was abandoned by orchestrator decision (19:56Z): at its measured cap rate it projected 30+ GPU-hours; it is retained only as evidence that the observation-loop runaway is far more frequent on VSTIBench (2 of 3 graded) than VSIBench (2 of 56 to 58 measured across the window)",
-    "The compact-target pilot review (16 targets, seed 17) REJECTED the v1b render at 11/16 clean against a 14/16 bar: when the source trace has no Calculations section, the selection rule emits only appearance frame-lists and the answer loses all visible support, hitting all 3 object_counting targets in the pilot; separately, sidecar-only citations were ruled sufficient (own_record_binding held byte-for-byte in all 16 targets), so the inline-citation question is closed",
-    "obj_appearance_order is the only VSIBench question type to reach a complete distilled-vs-base comparison so far under the abandoned 16,384-budget cell: 52.00% both, i.e. indistinguishable; not yet a result under the adopted 4,096 lineage"
+    "The base OneThinker instructed-prompt numbers (VSI 31.47%, VSTI 40.16%) are confirmed bit-identical at the 4,096 budget on 58794b8: prompt format, not distillation, explains most of the old base gap",
+    "The first distilled OneThinker adapter enters the trained observation format on every item measured but has a loop tail into the token cap on some items; the eval decode budget is now 4,096 by reviewed source change (e3e9ffb)",
+    "Compact counted targets (median ~430 tokens vs. format-A median 4,739) are the live fix candidate for the loop; the converter's first render (v1b) failed pilot review, the fix lane's re-render (v1c_dropclause) passed pilot review 2 ADMIT 14/14 and is now the arm C training set",
+    "Trainer v4.7 (ad96f47) landed checkpoint-resume and refuses unwrapped launches beyond the first 16 campaign GPUs; every launch from here on must be vnice-wrapped",
+    "The eval decode budget WAS lowered to 4,096 by a reviewed source change (branch eval-budget-4096-20260919, tip e3e9ffb); do not re-litigate this",
+    "trinity-2-13 (eight idle 24 GB cards) is in the eval host allowlist (branch eval-host-t213-20260919, tip 58794b8) for whole eval-cell pairs only, not training",
+    "VSTI distilled at the 16,384 budget was abandoned by orchestrator decision (19:56Z); it is being regenerated under the 4,096 lineage via the trinity-2-13 dispatch this window",
+    "obj_appearance_order is the only VSIBench question type to reach a complete distilled-vs-base comparison so far under the abandoned 16,384-budget cell (52.00% both); not yet a result under the adopted 4,096 lineage",
+    "NEW this window: the orchestrator Claude Code session died at about 21:34Z, killing the collector, the local evaluation lane, and all session-bound subagents; only processes already re-parented to sshd via a Luna lane survived. Recovery for the collector, arm C handover, and trinity-2-13 distilled baseline cells was dispatched at 22:55Z; verify each against its REPORT next session before assuming it succeeded."
   ],
   "survives_vs_dies": {
     "survives": [
-      "collector, running from trinity-1-3 (controller and lease) at 36 workers",
-      "all GPU eval workers and shards dispatched under setsid (codex_base_evals_v8, bare-prompt legs finished; OneThinker DSI base continues)",
-      "OneThinker arm A attempt 10 (trinity-1-13, admitting/training) and Qwen arm A r5 (trinity-0-18, training), both through real shells",
+      "OneThinker arm A attempt 10 (trinity-1-13, step 91/246 at 22:53Z) and Qwen arm A r5 (trinity-0-18, step 120/246), both real remote training processes outside this session's process tree",
+      "the arm C remote heartbeat script on trinity-1-13",
+      "the format-E Qwen waiter on trinity-0-18 (heartbeat stale since 21:21Z; liveness unverified)",
       "the OneThinker single-GPU baseline, already published",
-      "all lane and repo files"
+      "all lane and repo files, and all git history",
+      "processes launched by a Luna lane via ssh with setsid nohup, even on the local node (the new standing pattern for this window's recovery dispatches)"
     ],
     "dies": [
-      "lane heartbeat monitor",
-      "collector health monitor",
-      "Gemini TPM readout background process",
-      "collector_watch Sonnet subagent",
-      "queue watcher",
-      "the Opus evaluation-lineage lane (claude_base_reeval_instructed_onethinker)",
-      "the babysitter (Claude Opus) for arm A attempt 10 and Qwen A r5, and the remote gates chaining OneThinker arm E and Qwen arm E",
-      "local Devin/Opus processes, including the compact-target fix lane and the arm C launch-and-babysit lane once dispatched",
-      "the bulk-lease issuer for codex_rewrite_v3_1_bulk"
+      "the collector watchdog, controller, and all 40 workers (died 21:34Z at 9,241 finalized)",
+      "the tokens-per-minute reader",
+      "the Claude evaluation lane and its Qwen base VSI shards on trinity-1-3 GPUs 1-6",
+      "the babysitter and collector-watch Claude subagents",
+      "the bulk-audit and 32-row-review Claude lanes for the rewrite ablation",
+      "every Codex Luna lane's local process (their remote setsid children, where launched, survived independently)",
+      "the 30-minute orchestrator tick",
+      "local Devin/Opus processes not re-parented to sshd"
     ]
   },
-  "latest_handoff": "docs/DISTILLATION_HANDOFF_20260919_2045Z.md",
-  "updated_utc": "2026-09-19T20:45:00Z"
+  "latest_handoff": "docs/DISTILLATION_HANDOFF_20260919_2255Z.md",
+  "updated_utc": "2026-09-19T22:55:00Z"
 }
