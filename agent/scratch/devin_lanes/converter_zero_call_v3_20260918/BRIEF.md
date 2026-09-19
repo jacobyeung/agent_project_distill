@@ -39,3 +39,9 @@ Zero provider calls, by design: no stage A/B/C, no repair call, in survey, pilot
 
 ## Report (LANE/out/REPORT.md, <=30 lines, last line `DEVIN_LANE_DONE`)
 Everything v2's report covers, plus: yield before (v2) vs after (v3) per question type, and the deferred-reason histogram before vs after (qualification_unmapped, target_artifact, instance_label_changed, no_observations, unsupported_exactness, plus any new codes). Include `QUALIFICATION_WORDINGS.md` and `ARTIFACT_DECISIONS.md` paths and sha256.
+
+## Orchestrator amendments (2026-09-19 03:05Z): state at relaunch
+- The home filesystem filled at 02:53Z during the bulk render; the lane's process ended. `LANE/out` is now a symlink to `/data2/jjyeung/agent_project_data/devin_lane_out/converter_zero_call_v3_20260918_out` with every earlier output intact (pilot outputs, KIND_SURVEY.md, QUALIFICATION_WORDINGS.md, ARTIFACT_DECISIONS.md, TESTS.md). Write all outputs through `LANE/out` as before; they land on /data2, which has 2 TB free. Keep the worktree small; never write bulk data under /home.
+- The worktree `LANE/work/trainer_repo` already exists on branch `converter-zero-call-v3-20260918` at commit 5708469 (the code that produced the 15/16 pilot); use it as is, do not run `git worktree add` again, and do not re-run the pilot (its outputs are final; cite them in the report).
+- Remaining deliverables: Step 5 (bulk over every trace accepted at lane start, 8 workers, reuse v1/v2 verified staging without re-verification; write diagnostic_set/, the candidate index and `LANE/TRAIN_PARAMS.env`), Step 6 (REVIEW_PROMPT.md; TESTS.md already exists, append only), commits for any further change, and REPORT.md.
+- Only this lane renders now (v2 is stopped), so the NFS contention that stalled the earlier render is gone. Heartbeat with rendered / deferred / remaining counts every 5 minutes.
