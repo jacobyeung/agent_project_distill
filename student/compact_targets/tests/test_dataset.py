@@ -228,6 +228,32 @@ class DatasetTests(unittest.TestCase):
         self.assertTrue(sample['samples'][1]['default']['passed'])
         self.assertEqual(compact.verify_dataset(self.output, counter)['status'], 'VERIFIED')
 
+    def test_command_line_defaults_to_drop_clause_and_accepts_defer(self):
+        def visibility_only(lines, records, checks, evidence):
+            record = records['calculations_v2'][0]
+            record['operation'] = 'closest_point_distance'
+            line = next(line for line in lines if line['kind'] == 'calculation')
+            line.update(operation=record['operation'], record_sha256=compact.digest_json(record))
+
+        self.add_source(1, visibility_only)
+        arguments = ['render', '--candidate-index', str(self.index()), '--recovery-root', str(self.recovery),
+                     '--tokenizer', str(self.root / 'synthetic-tokenizer')]
+        provenance = lambda config: {'repo_commit': NEW_COMMIT, 'dirty': False, 'config_sha256': compact.binding(config)['sha256']}
+        with patch.object(compact, 'tokenizer_counter', return_value=(lambda text: 100, {})), \
+                patch('tools.provenance.provenance', side_effect=provenance), redirect_stdout(io.StringIO()):
+            self.assertEqual(compact.main(arguments + ['--output', str(self.output)]), 0)
+            self.assertEqual(compact.main(arguments + ['--output', str(self.root / 'deferring')] +
+                                          ['--sidecar-suffix', '_defer', '--unbound-policy', 'defer']), 0)
+        kept = compact.load_jsonl(self.output / 'candidate_index.jsonl')
+        self.assertEqual([row['qid'] for row in kept], ['vsi590k_000001'])
+        self.assertNotIn('Uses observations', Path(kept[0]['target_path']).read_text())
+        self.assertEqual(compact.load_json(self.output / 'CONFIG.json')['unbound_policy'], 'drop_clause')
+        self.assertEqual(compact.load_jsonl(self.root / 'deferring/candidate_index.jsonl'), [])
+        deferred = compact.load_jsonl(self.root / 'deferring/DEFERRED.jsonl')
+        self.assertEqual(deferred[0]['reason_codes'], ['unbound_derivation'])
+        self.assertEqual(compact.verify_dataset(self.output, lambda text: 100)['status'], 'VERIFIED')
+        self.assertEqual(compact.verify_dataset(self.root / 'deferring', lambda text: 100)['status'], 'VERIFIED')
+
     def test_verifier_detects_changed_target_bytes(self):
         self.add_source(1)
         self.build()

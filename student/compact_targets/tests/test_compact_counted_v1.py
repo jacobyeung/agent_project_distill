@@ -554,16 +554,32 @@ class OperandFilterTests(unittest.TestCase):
         self.assertEqual(operands['dropped'], ['M0019', 'M0021'])
         self.assertEqual(operands['dropped_quantities'], {'M0019': 'centroid', 'M0021': 'floor_z_estimate'})
 
-    def test_quantity_free_operands_lose_the_clause_and_defer(self):
+    def test_quantity_free_operands_lose_the_clause_and_keep_the_target(self):
         self.source, self.records, self.source_checks, self.evidence = extent_fixture('closest_point_distance')
         rendered = compact.render_target(self.source, 'B', self.records, self.context)
         self.assertNotIn('Uses observations', rendered.target)
         self.assertTrue(rendered.target.split('\n')[-3].endswith('0.304 meters along X.'))
         result = self.validate(rendered)
+        self.assertTrue(result['passed'], result)
+        self.assertEqual(result['unbound_derivations'], ['C0001'])
+        self.assertEqual(result['operand_filter']['C0001']['kept'], [])
+
+    def test_the_defer_policy_still_defers_an_unbound_derivation(self):
+        self.source, self.records, self.source_checks, self.evidence = extent_fixture('closest_point_distance')
+        rendered = compact.render_target(self.source, 'B', self.records, self.context)
+        result = self.validate(rendered, unbound_policy='defer')
         self.assertFalse(result['passed'])
         self.assertEqual(result['reason_codes'], ['unbound_derivation'])
-        self.assertEqual(result['unbound_derivations'], ['C0001'])
-        self.assertTrue(self.validate(rendered, unbound_policy='drop_clause')['passed'])
+
+    def test_both_policies_render_the_same_bytes(self):
+        self.source, self.records, self.source_checks, self.evidence = extent_fixture('closest_point_distance')
+        rendered = compact.render_target(self.source, 'B', self.records, self.context)
+        for policy in compact.UNBOUND_POLICIES:
+            with self.subTest(policy=policy):
+                result = self.validate(rendered, unbound_policy=policy)
+                self.assertTrue(result['checks']['byte_fidelity'])
+                self.assertEqual(result['unbound_derivations'], ['C0001'])
+                self.assertEqual(result['passed'], policy == 'drop_clause')
 
     def test_unknown_operation_defers(self):
         self.source, self.records, self.source_checks, self.evidence = extent_fixture('mystery_operation')
@@ -582,6 +598,15 @@ class UtilityTests(unittest.TestCase):
         alternate = compact.renderer_config('tokenizer', True)
         self.assertNotEqual(compact.digest_json(base), compact.digest_json(alternate))
         self.assertEqual(base['max_tokens'], 1536)
+
+    def test_drop_clause_is_the_default_policy_and_defer_remains_available(self):
+        self.assertEqual(compact.UNBOUND_POLICIES[0], 'drop_clause')
+        self.assertEqual(compact.renderer_config('tokenizer')['unbound_policy'], 'drop_clause')
+        self.assertEqual(compact.renderer_config('tokenizer', False, 'defer')['unbound_policy'], 'defer')
+        self.assertNotEqual(compact.digest_json(compact.renderer_config('tokenizer')),
+                            compact.digest_json(compact.renderer_config('tokenizer', False, 'defer')))
+        with self.assertRaisesRegex(compact.Deferral, 'unknown_unbound_policy'):
+            compact.renderer_config('tokenizer', False, 'keep_everything')
 
     def test_quantiles_use_linear_interpolation(self):
         self.assertEqual(compact.distribution([1, 2, 3, 4])['median'], 2.5)

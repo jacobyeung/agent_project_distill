@@ -49,7 +49,9 @@ ROSTER_NAME = re.compile(r'[A-Za-z][A-Za-z /\'-]*')
 # The reviewed pilot found appearance-order targets answerable from the appearance lines alone; every
 # other type without a Calculations section loses the lines its answer depends on and defers.
 CALCULATION_FREE_TYPES = ('obj_appearance_order',)
-UNBOUND_POLICIES = ('defer', 'drop_clause')
+# Orchestrator ruling 2026-09-19: a derivation whose operands all lack a quantity keeps its target and
+# loses the clause, because the derivation prose still names what it compares; defer stays available.
+UNBOUND_POLICIES = ('drop_clause', 'defer')
 # Admission check to the reason a failure records in DEFERRED.jsonl.
 REASON_CODES = {'byte_fidelity': 'byte_fidelity_changed', 'numeric_tokens': 'ungrounded_numeric_tokens',
                 'record_binding': 'record_binding_failed', 'counted_layout': 'counted_layout_invalid',
@@ -365,7 +367,7 @@ def indexed_records(bundle):
 
 
 def admit(rendered, source_lines, records, source_checks, evidence_index, answer, count_tokens, context,
-          max_tokens=MAX_TOKENS, derivation_citations=False, unbound_policy='defer'):
+          max_tokens=MAX_TOKENS, derivation_citations=False, unbound_policy=UNBOUND_POLICIES[0]):
     selected = select_lines(source_lines, records)
     expected = render_target(source_lines, answer, records, context, derivation_citations)
     observations, calculations = selected.observations, selected.derivations
@@ -544,15 +546,15 @@ def load_source(entry, recovery_root, reviewed_root):
     return Source(entry, row, loaded['rendered_lines'], loaded['records'], checks, loaded['evidence_index'], pins)
 
 
-def renderer_config(tokenizer, derivation_citations=False, unbound_policy='defer'):
+def renderer_config(tokenizer, derivation_citations=False, unbound_policy=UNBOUND_POLICIES[0]):
     if unbound_policy not in UNBOUND_POLICIES:
         raise Deferral('unknown_unbound_policy', repr(unbound_policy))
     return {'format': FORMAT, 'version': 2, 'max_tokens': MAX_TOKENS, 'seed': SEED,
             'selection': 'appearance union the quantity-bearing operands of the calculations; source file order',
             'operand_quantities': {operation: list(kinds) for operation, kinds in sorted(OPERAND_QUANTITIES.items())},
             'unbound_policy': unbound_policy,
-            'unbound_derivation': 'A derivation whose operands all lack a quantity loses its Uses clause; under '
-                                  'policy defer the qid is deferred as unbound_derivation',
+            'unbound_derivation': 'A derivation whose operands all lack a quantity loses its Uses clause and keeps '
+                                  'its target; under policy defer the qid is deferred as unbound_derivation instead',
             'roster': ROSTER_TEMPLATE + ' Emitted after the appearance lines for a ' + ', '.join(ROSTER_TYPES) +
                       ' question whose source trace has no Calculations section, naming the typed identity '
                       'records of the counted category in source order',
@@ -763,7 +765,8 @@ For each item, read both target variants and their row.json, lines.json, and che
 6. Independently check that each calculation actually uses its named operands. A source deterministic Tier I pass does not resolve the operand-over-attribution mechanism documented in the source strip_calculations_v1.py. The converter does not repair source semantics or claim that hiding citations fixes them.
 7. On a counting target whose source trace has no Calculations section, check the roster line: its names must be exactly the names of the typed identity records of the category the question counts, in record order, each bound in lines.json to that record's sha256, each also named by a source measurement line, and the number of names must equal the answer. Report any invented or omitted instance.
 8. Check the operand filter on every derivation: lines.json records the source operand list, the operands the visible Uses clause keeps, and the operands it drops with their quantity kinds. An operand may be kept only if its quantity can enter the operation (CONFIG.json operand_quantities). Rule on whether the kept set is the set the calculation actually consumes, and whether dropping the rest removes the over-attribution rather than hiding evidence.
-9. Verify that student_input and every row field other than target are unchanged. The index records the compact generation commit while the row retains its source generation commit, as the brief requires. Inspect the unchanged trainer compatibility receipt; do not waive or change its provenance guard.
+9. A derivation may legitimately carry no Uses observations clause. Under CONFIG.json unbound_policy drop_clause, a derivation whose operands are all quantity-free visibility records keeps its sentence and loses the clause rather than pointing at lines that carry no number; the dropped operands stay in lines.json. Under policy defer the qid is deferred as unbound_derivation instead. Judge whether the remaining sentence still states what it compares and what it yields, and report any derivation whose meaning depends on the operands the clause no longer names.
+10. Verify that student_input and every row field other than target are unchanged. The index records the compact generation commit while the row retains its source generation commit, as the brief requires. Inspect the unchanged trainer compatibility receipt; do not waive or change its provenance guard.
 
 Return PASS, REVISE, or REJECT with qid, variant, exact source/target evidence, violated acceptance condition, and impact for each material finding. State a separate explicit ruling on sidecar-only versus derivation-inline citations. No output is training-eligible before the orchestrator adjudicates this independent review.
 '''
@@ -952,7 +955,7 @@ def main(argv=None):
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--tokenizer', type=Path, default=TOKENIZER)
     parser.add_argument('--derivation-citations', action='store_true')
-    parser.add_argument('--unbound-policy', choices=UNBOUND_POLICIES, default='defer',
+    parser.add_argument('--unbound-policy', choices=UNBOUND_POLICIES, default=UNBOUND_POLICIES[0],
                         help='Disposition of a derivation whose operands all lack a quantity')
     parser.add_argument('--pilot-qids', type=Path,
                         help='PILOT_SAMPLE_16.json of an earlier render, to review the same qids again')
