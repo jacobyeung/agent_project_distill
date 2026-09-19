@@ -1,0 +1,32 @@
+# Lane: converter v7.2 - fix three deferral causes (id regex, insufficient_evidence mislabeling, MAX_TOKENS repair budget), rerun the frozen 16-trace pilot (REQ-20260917-232)
+
+Workspace: `/home/jjyeung/agent_project_distill`. Lane directory: `agent/scratch/devin_lanes/converter_v7_2_20260918/` (LANE; outputs to LANE/out, working copies to LANE/work). Run everything locally on this node: no ssh, no nohup, no detached processes. Use shell commands for every path under `/data2`; file tools work only inside the workspace. Never delete, rename, or edit any existing file outside LANE and your worktree; create new files only. Never switch or create branches in any checked-out working tree; all git work happens in the worktree you create below. Never run `find`, `grep -r`, `du`, or `ls -R` outside ONE named directory (sweeping searches have crashed nodes). Never read any path containing `offline_labels` or `answer_bank`. `PYTHONDONTWRITEBYTECODE=1` and `python -B` everywhere.
+
+Liveness heartbeat (mandatory): within your first minute and at least every 5 minutes append `<UTC> | <step in <=12 words>` to `LANE/out/HEARTBEAT.log` and rewrite `LANE/out/PROGRESS.md` (done / doing / next / blockers). Finish with `LANE/out/REPORT.md` (<=30 lines, last line `DEVIN_LANE_DONE`), written even on failure.
+
+Scope discipline: exactly the three fixes below and the pilot rerun with the v7.1 pipeline otherwise unchanged. Anything else goes in `LANE/out/NOTES.md`.
+
+## Why
+v7.1 (branch `converter-v7-1-20260918`, report `agent/scratch/devin_lanes/converter_v7_1_20260918/out/REPORT.md`) fixed the gates and ran the pilot for real, but produced 0 candidate targets: all 16 sources reached extraction and all 16 deferred. Three independent causes, established from the lane's artifacts, cover the 15 valid sources (vsi590k_092117 stays deferred, native_response_incomplete, out of scope here):
+(a) 7 traces (039379, 045560, 125098, 075806, 201396, 080690, 050329): `conversion_v7.py:336` checks ids with regex `prefix + r"[1-9][0-9]*"`, forbidding a leading zero, while the model emits zero-padded ids like "O0001"; neither the SYSTEM prompt (`:44`) nor the provider JSON schema (`STRING` at `:16`, used via `response_json_schema` at `:150`) constrains id format.
+(b) 6 traces (169215, 089060, 092053, 091090, 006226, 044700): the model returned a valid `insufficient_evidence` status with a `defer_reason`, permitted by the prompt (`:47-48`), but `unassessed()` in `conversion_v7_run.py:122-125` hardcodes `checks["schema"] = "fail"` for every content deferral, and `evaluate()` (`conversion_v7.py:330-341`) lumps type check, id uniqueness, id regex, and `status == "extracted"` under one "schema" bucket, so a valid defer looks like a validator failure.
+(c) 2 traces (137444, 082749): the repair call hits `finish_reason MAX_TOKENS` because thinking consumes ~31,457 of the combined 32,768-token ceiling (`conversion_v7_run.py:194`, `CONTRACT` at `conversion_v7.py:12`), leaving ~1,300 tokens for the JSON body.
+
+## Inputs
+- Worktree from the v7.1 tip: `git -C /data2/jjyeung/agent_project_data/student_diagnostic_pilot_20260918/trainer_repo worktree add /home/jjyeung/agent_project_distill/agent/scratch/devin_lanes/converter_v7_2_20260918/work/trainer_repo -b converter-v7-2-20260918 converter-v7-1-20260918`.
+- Frozen pilot cohort unchanged: `agent/scratch/devin_lanes/converter_v7_20260918/out/PILOT_SELECTION.md` / `.json` (16 qids). Reuse v7.1's staged strict source copies under `agent/scratch/devin_lanes/converter_v7_1_20260918/out/` (and `sixteen_v7_1/` if present) if their hashes still match; otherwise re-stage.
+
+## Changes
+1. `conversion_v7.py:336` id regex: accept zero-padded ids, e.g. `prefix + r"[0-9]+"`, uniqueness check unchanged. Test: zero-padded id ("O0001") accepted; duplicate zero-padded ids still rejected; non-numeric suffix still rejected.
+2. Give `insufficient_evidence` its own outcome label distinct from schema failures, carrying the `defer_reason`, in both `unassessed()` (`conversion_v7_run.py:122-125`) and `evaluate()` (`conversion_v7.py:330-341`). Test: a synthetic `insufficient_evidence` document with a `defer_reason` reports outcome `deferred: insufficient_evidence` (not `schema`) and preserves the reason text.
+3. On repair `finish_reason MAX_TOKENS`, retry once with a larger output-token ceiling (e.g. 65,536, or an explicit thinking budget leaving >=16,384 tokens for output); record the chosen values in the handshake. Test: a mocked MAX_TOKENS repair response triggers exactly one retry at the larger budget and the retry's outcome is recorded.
+Nothing else changes: same 16 qids, same prompt text, same templates, same Tier-I/Tier-II checks, same strict per-source snapshot. Test gate per CLAUDE.md: lane's own + v7/v7.1/v7.2 test files plus any test whose module imports changed code; run the full suite once for the record, record the pre-existing 3919 fixture-hash failure/errors in `LANE/out/TESTS.md` as non-blocking.
+
+## Pilot
+4. Rerun the 16 qids with v7.1 settings unchanged: 4 workers, one extraction plus at most one repair (repair may use the raised ceiling from change 3), backoff 60/120/240/480s on 429 and 5xx. Record per trace: outcome, Tier-I results, Tier-II measures, calls, latency, tokens, 429 count. Write `LANE/out/PILOT_SUMMARY.md` (all 16 rows).
+5. Diagnostic only, no extra provider calls: for every trace deferred `insufficient_evidence`, write `LANE/out/INSUFFICIENT_EVIDENCE.md` with the `defer_reason`, question type, and whether that trace's typed measurement records contain any record of the kind the reason names (e.g. a distance record when the reason cites a missing distance calculation).
+6. `LANE/out/sixteen_v7_2/revalidated/` review bundle (renderings, records, sheets, rendered targets, check results, both repair versions, deferred records) and `LANE/out/REVIEW_PROMPT.md` per `agent/reports/converter_design_review_20260918.md` section A. Do not judge your own outputs as passing; the orchestrator applies the 14-of-16 rule.
+7. Commit each logical change on `converter-v7-2-20260918` in your worktree; list SHAs in the report.
+
+## Report (LANE/out/REPORT.md, <=30 lines, last line `DEVIN_LANE_DONE`)
+As v7.1's report, plus: count of candidate targets passing every deterministic Tier-I check; insufficient_evidence count with reasons; MAX_TOKENS count after the fix; cost (calls, tokens, wall time); REVIEW_PROMPT.md and bundle sha256; commit SHAs; blockers. The lane does not judge its own targets.
