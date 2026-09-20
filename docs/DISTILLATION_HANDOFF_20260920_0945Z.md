@@ -27,23 +27,28 @@ collector's 36-worker ceiling, sole control of the Gemini key, trinity-0-18's vn
 the node avoid list (trinity-3-23, 0-3, 0-28, 1-8, 2-13, 0-8, 1-18, and 0-23) carry forward
 unchanged.
 
-### Headline: arm C's OneThinker-8B adapter beats base by 3.43 points on VSTIBench, the lane's first distillation evidence; the collector holds 36 workers at 12,043 finalized; the 25 percent tolerance tier is ruled; the r1316 epoch stays sealed behind root A's drain; wave 1 (ScanNet++) is near complete; ARKitScenes is downloading with its adapter in review; trinity-0-13's cards are back under a vLLM server
+### Headline: arm C's +3.43-point VSTIBench margin over base is a parsing artifact — base leads 58.26 to 51.06 on the paired subset; the collector holds 36 workers at 12,043 finalized; the 25 percent tolerance tier is ruled; the r1316 epoch stays sealed behind root A's drain; wave 1 (ScanNet++) is near complete; ARKitScenes is downloading with its adapter in review; trinity-0-13's cards are back under a vLLM server
 
 **First result: arm C vs. base on VSTIBench.** OneThinker-8B arm C (compact counted targets)
 scores 43.59 percent primary accuracy against base's 40.16 on VSTIBench repr-450 (harness
-`58794b8`, island 1, instructed prompt, 4,096-token budget) — a 3.43-point gain, the lane's first
-evidence that distillation beats the base checkpoint. Per-type base/arm-C accuracy:
-camera_displacement 20.8/15.2, camera_movement_direction 30/40, camera_obj_abs_dist 10.0/45.4,
-camera_obj_rel_dist_v1 52/62, v2 72/62, v3 70/66, obj_obj_relative_pos_lr 60/38, nf 74/56, ud
-92/68. Two caveats qualify the primary number: base fails to parse 55 generations against arm C's
-1, so part of the gain is a format effect, and the raw, unfiltered category macro moves the other
-way, from 53.42 to 50.29, with the object-object relative-position family regressing 18-24 points
-under arm C. Arm C also generates about 3x faster than base. The result, with the caveat block
-ahead of the table, is at `D/claude_eval_cells_f09e526/out/RESULTS_VSTIBENCH.md`; a
-paired-answered-only diagnostic row and an object-object error sample
-(`ARMC_VSTI_OBJOBJ_SAMPLE.md`) are in progress. Arm C's VSI cell (500 items) is expected about
-09:52Z as `RESULTS_VSIBENCH.md`, followed by a format-A distilled-baseline VSI ablation on GPUs
-1-2. Qwen3.5-9B base scores 28.59 percent on VSTIBench, with 203 of 450 generations capped with no
+`58794b8`, island 1, instructed prompt, 4,096-token budget), but the gain is a parsing artifact,
+not a substance win. Base's 55 parse failures are a bracket-style mismatch, not missing answers:
+54 of 55 generations ended on EOS and 52 wrapped an answer as `<1.5>` or `<box>…</box>`, which the
+harness parser (bare last line) rejects; the failures concentrate in camera_obj_abs_dist (34 of
+50). On the 394 items both models parse, base leads arm C 58.26 to 51.06 on the category macro:
+base is ahead of arm C on substance on VSTIBench, and the +3.43 primary-accuracy gain does not
+hold up. The object-object relative-position regression under arm C (18-24 points) is real.
+Per-type base/arm-C primary accuracy: camera_displacement 20.8/15.2, camera_movement_direction
+30/40, camera_obj_abs_dist 10.0/45.4, camera_obj_rel_dist_v1 52/62, v2 72/62, v3 70/66,
+obj_obj_relative_pos_lr 60/38, nf 74/56, ud 92/68. Arm C still generates about 3x faster than
+base. Evidence: `D/claude_eval_cells_f09e526/out/BASE_VSTI_PARSE_FAILURES.md` and
+`D/claude_eval_cells_f09e526/out/RESULTS_VSTIBENCH.md`. In progress: a lenient-parser sensitivity
+row (strip one enclosing bracket pair; lane `D/claude_parser_sensitivity/`, Astra-reviewed,
+reported separately and never replacing the primary number) rescoring every existing cell,
+including Qwen base VSTI; the arm C VSI table with a paired-answered row; and a per-type error
+analysis of the obj_obj regression. Arm C's VSI cell (500 items) is expected about 09:52Z as
+`RESULTS_VSIBENCH.md`, followed by a format-A distilled-baseline VSI ablation on GPUs 1-2.
+Qwen3.5-9B base scores 28.59 percent on VSTIBench, with 203 of 450 generations capped with no
 answer (`RESULTS_QWEN_VSTIBENCH_BASE.md`).
 
 **Collector (r1315).** Holds 36 workers, the hard ceiling. 12,043 traces are finalized as of
@@ -221,8 +226,9 @@ adapter babysitter, and the queue watcher.
 - Tolerance-tier accuracy (25 percent, ruled 07:28Z) reports as a row separate from strict;
   tier-admitted traces count toward the 20,000-trace goal and enter the next training set
   flagged, with strict-only kept as an ablation.
-- Any report of arm C's VSTIBench primary number carries its caveats: the parse-failure gap (55
-  base vs. 1 arm C) and the raw category-macro reversal (53.42 to 50.29).
+- Arm C's +3.43-point VSTIBench primary-accuracy gain over base is a parsing artifact, not a
+  substance win; base leads arm C 58.26 to 51.06 on the 394-item paired subset. Never report the
+  primary gain without this reading.
 - Judge training liveness from `metrics.jsonl` growth and the torchrun pid, never the wrapper
   process; resume only on the node that wrote the checkpoint.
 - A launch lane copies the last working launcher byte-for-byte with named substitutions, and
@@ -262,7 +268,8 @@ adapter babysitter, and the queue watcher.
   `/home/jjyeung/agent_project/agent/scratch/devin_lanes/devin_arkit_adapter/`, branch
   `poolext/arkit_adapter_20260920`, package `gt_adapters/arkit_3dod_v1`.
 - Eval cells:
-  `D/claude_eval_cells_f09e526/out/{launch/drive58_armc.sh,RESULTS_VSIBENCH.md,RESULTS_VSTIBENCH.md,RESULTS_QWEN_VSTIBENCH_BASE.md,ARMC_VSTI_OBJOBJ_SAMPLE.md}`.
+  `D/claude_eval_cells_f09e526/out/{launch/drive58_armc.sh,RESULTS_VSIBENCH.md,RESULTS_VSTIBENCH.md,RESULTS_QWEN_VSTIBENCH_BASE.md,BASE_VSTI_PARSE_FAILURES.md,ARMC_VSTI_OBJOBJ_SAMPLE.md}`;
+  lenient-parser sensitivity row `D/claude_parser_sensitivity/`.
 - Qwen r6 / c1 launcher: `D/claude_trainer_publish_cadence/out/QWEN_R6_NOTE.md`; run root
   `/scratch/jjyeung/ddp_qwen35_a_qwen_20260920T0400Z_r6`; publish root
   `/data3/jjyeung/ddp_qwen35_a_qwen_20260920T0400Z_r6`; c1 launcher

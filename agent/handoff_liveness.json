@@ -24,9 +24,9 @@
   ],
   "results_banked_today": [
     {
-      "what": "first distillation evidence: OneThinker-8B arm C vs. base on VSTIBench",
-      "count": "repr-450, harness 58794b8, island 1, instructed prompt, 4,096-token budget: primary accuracy 40.16 (base) to 43.59 (arm C), +3.43; per-type base/armC camera_displacement 20.8/15.2, camera_movement_direction 30/40, camera_obj_abs_dist 10.0/45.4, camera_obj_rel_dist_v1 52/62, v2 72/62, v3 70/66, obj_obj_relative_pos_lr 60/38, nf 74/56, ud 92/68; caveats -- base parse failures 55 vs arm C 1 (format effect), raw category macro 53.42 to 50.29, object-object relative-position family regresses 18-24 points; arm C generates about 3x faster than base; Qwen3.5-9B base VSTI 28.59 percent, 203/450 generations capped with no answer",
-      "pointer": "D/claude_eval_cells_f09e526/out/{RESULTS_VSTIBENCH.md,RESULTS_QWEN_VSTIBENCH_BASE.md,ARMC_VSTI_OBJOBJ_SAMPLE.md (in progress)}"
+      "what": "VSTIBench arm C vs. base: the primary gain is a parsing artifact, base leads on substance",
+      "count": "repr-450, harness 58794b8, island 1, instructed prompt, 4,096-token budget: primary accuracy 40.16 (base) to 43.59 (arm C), +3.43, but base's 55 parse failures are a bracket-style mismatch, not missing answers -- 54 of 55 ended on EOS and 52 wrapped an answer as <1.5> or <box>...</box>, which the harness's bare-last-line parser rejects, concentrated in camera_obj_abs_dist (34 of 50); on the 394 items both models parse, base leads arm C 58.26 to 51.06 on the category macro, so base is ahead of arm C on substance on VSTIBench; the object-object relative-position regression (18-24 points under arm C) is real; per-type base/armC primary accuracy camera_displacement 20.8/15.2, camera_movement_direction 30/40, camera_obj_abs_dist 10.0/45.4, camera_obj_rel_dist_v1 52/62, v2 72/62, v3 70/66, obj_obj_relative_pos_lr 60/38, nf 74/56, ud 92/68; arm C generates about 3x faster than base; Qwen3.5-9B base VSTI 28.59 percent, 203/450 generations capped with no answer; in progress -- a lenient-parser sensitivity row (D/claude_parser_sensitivity/, Astra-reviewed, reported separately, never replacing the primary) rescoring every existing cell including Qwen base VSTI, the arm C VSI table with a paired-answered row, and a per-type error analysis of the obj_obj regression",
+      "pointer": "D/claude_eval_cells_f09e526/out/{RESULTS_VSTIBENCH.md,BASE_VSTI_PARSE_FAILURES.md,RESULTS_QWEN_VSTIBENCH_BASE.md,ARMC_VSTI_OBJOBJ_SAMPLE.md (in progress)}; D/claude_parser_sensitivity/"
     },
     {
       "what": "collector r1315, holding the hard ceiling",
@@ -125,7 +125,7 @@
       "host": "trinity-1-3 GPUs 1-4",
       "pid_or_artifact": "driver pid 3359282; D/claude_eval_cells_f09e526/out/{launch/drive58_armc.sh,RESULTS_VSIBENCH.md,RESULTS_VSTIBENCH.md,RESULTS_QWEN_VSTIBENCH_BASE.md}",
       "health_check": "tail -n 20 D/claude_eval_cells_f09e526/out/QWEN_RATE.log",
-      "status": "arm C vs. base VSTIBench published (+3.43 primary, with caveats); arm C VSI (500 items) expected about 09:52Z; format-A distilled-baseline VSI ablation follows on GPUs 1-2",
+      "status": "arm C vs. base VSTIBench published; the +3.43 primary gain is a parsing artifact, base leads arm C 58.26 to 51.06 on the paired subset; arm C VSI (500 items) expected about 09:52Z; format-A distilled-baseline VSI ablation follows on GPUs 1-2",
       "gate": "58794b8 production harness only, decode budget 4,096; cells never pair across harness commits; GPUs 5-6 held by the main repo's r1326 replica vLLM server, not available to this lane",
       "next_on_completion": "publish RESULTS_VSIBENCH.md, then the format-A ablation",
       "survives_session": true
@@ -202,7 +202,7 @@
     }
   ],
   "round_registry": {
-    "note": "this repo assigns lane names, not round numbers; collector remediation root unchanged (R, defined above), holding at the 36-worker hard ceiling; r1316 epoch branch (epoch/r1316-membership-v3, tip 058368c) sealed and reviewed PASS, staged behind root A's drain; tolerance-tier branch (tolerance-tier-25-20260920, tip 94574b6) ruled and tooled; eval branches eval-allow-checkpoint-20260920 (f09e526, blocked from cells by the attempt-authority guard) and the production checkout eval_instructed_provisional_58794b8 remain the only harness used for cells; arm C's VSTIBench cell against base is the lane's first published distillation result; Qwen arm A on r6 (trainer ad96f47) at step 75/246"
+    "note": "this repo assigns lane names, not round numbers; collector remediation root unchanged (R, defined above), holding at the 36-worker hard ceiling; r1316 epoch branch (epoch/r1316-membership-v3, tip 058368c) sealed and reviewed PASS, staged behind root A's drain; tolerance-tier branch (tolerance-tier-25-20260920, tip 94574b6) ruled and tooled; eval branches eval-allow-checkpoint-20260920 (f09e526, blocked from cells by the attempt-authority guard) and the production checkout eval_instructed_provisional_58794b8 remain the only harness used for cells; arm C's VSTIBench cell against base shows a +3.43 primary gain that is a parsing artifact -- base leads 58.26 to 51.06 on the 394-item paired subset, so the lane still lacks a substance win on VSTIBench; Qwen arm A on r6 (trainer ad96f47) at step 75/246"
   },
   "open_user_decisions": [
     "No reply yet: whether the trinity-3-13 successor session will hold shared lanes (D/INBOX_TO_SUCCESSOR_ORCHESTRATOR_20260920T0335Z.md)",
@@ -237,12 +237,12 @@
     "assume an inbox note to another orchestrator session has been read or acted on without checking for a reply first",
     "fast-forward the r1316 epoch branch to main before root A's collector stops",
     "build a training-set split without running holdout_stability_check.py against every previously published split record",
-    "cite arm C's VSTIBench primary number without the parse-failure gap and category-macro-reversal caveats",
+    "cite arm C's +3.43 VSTIBench primary-accuracy gain as a substance win; base leads 58.26 to 51.06 on the 394-item paired subset",
     "treat ARKitScenes-derived targets as admitted before sealing review rules on the rotation/clock-offset/slot-snapping approach"
   ],
   "session_notes": [
     "This session took command at 03:25Z on the user's direct instruction; the prior trinity-1-3 session's pass-off note is at D/PASSOFF_FROM_TRINITY_1_3_SESSION_20260920T0319Z.md",
-    "Arm C's OneThinker-8B adapter beat base on VSTIBench by 3.43 primary points, the lane's first published distillation evidence; the parse-failure gap and category-macro reversal keep it a qualified result, not a clean win",
+    "Arm C's +3.43 VSTIBench primary-accuracy gain over base turned out to be a parsing artifact from base's bracket-style answers (54 of 55 failures ended on EOS with a wrapped answer the parser rejects); on the 394-item paired subset base leads 58.26 to 51.06, so the lane still lacks a substance win on VSTIBench",
     "The 25 percent tolerance tier moved from a recommendation to a ruling at 07:28Z, with tooling landed on tolerance-tier-25-20260920 at 94574b6",
     "trinity-0-13's GPUs went idle after the user's 07:50Z kill and were retaken by an unidentified six-way vLLM server about 08:03Z, blocking the Qwen arm C world-6 launcher",
     "ARKitScenes moved from a parked download to an active download plus adapter pilot this window, following the user's 08:00Z ruling; the adapter's rotation/clock/slot-snapping approach is ruled but not yet sealing-reviewed",
