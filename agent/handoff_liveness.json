@@ -29,6 +29,21 @@
       "pointer": "D/claude_eval_cells_f09e526/out/{RESULTS_VSTIBENCH.md,BASE_VSTI_PARSE_FAILURES.md,RESULTS_QWEN_VSTIBENCH_BASE.md,ARMC_VSTI_OBJOBJ_SAMPLE.md (in progress)}; D/claude_parser_sensitivity/"
     },
     {
+      "what": "VSIBench arm C vs. base: most of the gain is a parse effect too",
+      "count": "answerable-500, harness 58794b8: primary accuracy 31.47 (base) to 42.35 (arm C), +10.88; per-type base/armC obj_appearance_order 52/56, object_abs_distance 12.8/36.8, object_counting 21.6/41.6, object_rel_direction_easy 36/58, object_rel_direction_hard 22/16, object_rel_direction_medium 36/40, object_rel_distance 42/48, object_size_estimation 45/52, room_size_estimation 21/38.4, route_planning 26/28; base parse failures 93 vs arm C 4; on the 407-item paired subset only object_rel_direction_easy (+22) and object_rel_direction_hard (-6) hold up (50-item paired base each), object_abs_distance and object_counting gains vanish -- parse effects, not substance",
+      "pointer": "D/claude_eval_cells_f09e526/out/RESULTS_VSIBENCH.md"
+    },
+    {
+      "what": "lenient-parser sensitivity: base gains under lenient parsing, arm C does not, VSTIBench still favors base",
+      "count": "branch parser-lenient-20260920 at bdd490c, Astra PASS after one fix round; OneThinker base VSTI 40.16 strict to 45.40 lenient; arm C VSTI 43.59 under either parser; Qwen base VSTI 28.59 under either parser (its 205 failures are cap truncations, not decoration); OneThinker base VSI 31.47 strict to 39.19 lenient; under lenient parsing VSTIBench reverses to base 45.40 vs arm C 43.59, and the paired-subset category-macro gap holds at about -7 for arm C either way; arm C VSI lenient rows are being added",
+      "pointer": "D/claude_parser_sensitivity/out/PARSER_SENSITIVITY_20260920.md; agent/scratch/codex_runs/{20260920T095437Z_parser_lenient_review,20260920T100052Z_parser_lenient_rereview}"
+    },
+    {
+      "what": "composition finding: arm C's training data skews to one relation type with a conflicting frame convention",
+      "count": "57 percent of arm C's training rows are object_rel_direction_medium, carrying an object-centred left-right convention that conflicts with VSTIBench's camera-frame convention -- a candidate explanation for the object-object relative-position regression; validate_training_result requires a complete full-epoch run before publishing a checkpoint, so a one-epoch control retrain launches on trinity-1-3 GPUs 1-4 about 11:00Z to test the hypothesis directly; an error-analysis lane runs in parallel",
+      "pointer": "D/claude_armc_1epoch_control/ (publish root /data3/jjyeung/ddp_onethinker_c1ep_onethinker_20260920T1100Z); D/claude_armc_error_analysis/"
+    },
+    {
       "what": "collector r1315, holding the hard ceiling",
       "count": "36 workers; 12,043 finalized at 09:30Z, 260-400 traces/hour, zero 503s and zero 429s all morning; TPM reader pid 3381708 alive; observer cycle 2 (Sonnet, 30-minute cadence) started 09:10Z",
       "pointer": "R/{WATCHDOG_HEALTH.json,TPM_READOUT.json}; D/collector_watch/NOTES.md"
@@ -125,9 +140,9 @@
       "host": "trinity-1-3 GPUs 1-4",
       "pid_or_artifact": "driver pid 3359282; D/claude_eval_cells_f09e526/out/{launch/drive58_armc.sh,RESULTS_VSIBENCH.md,RESULTS_VSTIBENCH.md,RESULTS_QWEN_VSTIBENCH_BASE.md}",
       "health_check": "tail -n 20 D/claude_eval_cells_f09e526/out/QWEN_RATE.log",
-      "status": "arm C vs. base VSTIBench published; the +3.43 primary gain is a parsing artifact, base leads arm C 58.26 to 51.06 on the paired subset; arm C VSI (500 items) expected about 09:52Z; format-A distilled-baseline VSI ablation follows on GPUs 1-2",
-      "gate": "58794b8 production harness only, decode budget 4,096; cells never pair across harness commits; GPUs 5-6 held by the main repo's r1326 replica vLLM server, not available to this lane",
-      "next_on_completion": "publish RESULTS_VSIBENCH.md, then the format-A ablation",
+      "status": "arm C vs. base published on both VSTIBench and VSIBench; both primary gains are mostly parsing artifacts -- VSTIBench base leads arm C 58.26 to 51.06 on the paired subset, VSIBench holds up only for object_rel_direction_easy/hard; format-A distilled-baseline VSI ablation follows on GPUs 1-2",
+      "gate": "58794b8 production harness only, decode budget 4,096; cells never pair across harness commits; GPUs 5-6 held by the main repo's r1326 replica vLLM server, not available to this lane; GPUs 1-4 also host the one-epoch control retrain about 11:00Z, sequencing unresolved",
+      "next_on_completion": "run the format-A distilled-baseline VSI ablation",
       "survives_session": true
     },
     {
@@ -159,6 +174,26 @@
       "gate": "targeted 3DOD captures only; RAW 30 Hz download is the adapter's fallback path, not this download",
       "next_on_completion": "feeds the ARKit adapter once complete",
       "survives_session": true
+    },
+    {
+      "lane": "arm C one-epoch control retrain",
+      "host": "trinity-1-3 GPUs 1-4",
+      "pid_or_artifact": "D/claude_armc_1epoch_control/; publish root /data3/jjyeung/ddp_onethinker_c1ep_onethinker_20260920T1100Z",
+      "health_check": "tail -n 20 D/claude_armc_1epoch_control/out/HEARTBEAT.log",
+      "status": "launching about 11:00Z to test whether the 57 percent object_rel_direction_medium composition and its object-centred convention explain the object-object relative-position regression",
+      "gate": "validate_training_result requires a complete full-epoch run before publishing a checkpoint; shares trinity-1-3 GPUs 1-4 with the format-A distilled-baseline VSI ablation, sequencing unresolved",
+      "next_on_completion": "compare against arm C's full checkpoint on the same VSTIBench cell",
+      "survives_session": true
+    },
+    {
+      "lane": "arm C error analysis",
+      "host": "not recorded in the source brief",
+      "pid_or_artifact": "D/claude_armc_error_analysis/",
+      "health_check": "ls -t D/claude_armc_error_analysis/out/*.md | head",
+      "status": "running in parallel with the one-epoch control retrain",
+      "gate": "none recorded",
+      "next_on_completion": "feeds the per-type error analysis of the obj_obj regression",
+      "survives_session": false
     },
     {
       "lane": "ARKitScenes adapter pilot, Devin Astra max",
@@ -202,7 +237,7 @@
     }
   ],
   "round_registry": {
-    "note": "this repo assigns lane names, not round numbers; collector remediation root unchanged (R, defined above), holding at the 36-worker hard ceiling; r1316 epoch branch (epoch/r1316-membership-v3, tip 058368c) sealed and reviewed PASS, staged behind root A's drain; tolerance-tier branch (tolerance-tier-25-20260920, tip 94574b6) ruled and tooled; eval branches eval-allow-checkpoint-20260920 (f09e526, blocked from cells by the attempt-authority guard) and the production checkout eval_instructed_provisional_58794b8 remain the only harness used for cells; arm C's VSTIBench cell against base shows a +3.43 primary gain that is a parsing artifact -- base leads 58.26 to 51.06 on the 394-item paired subset, so the lane still lacks a substance win on VSTIBench; Qwen arm A on r6 (trainer ad96f47) at step 75/246"
+    "note": "this repo assigns lane names, not round numbers; collector remediation root unchanged (R, defined above), holding at the 36-worker hard ceiling; r1316 epoch branch (epoch/r1316-membership-v3, tip 058368c) sealed and reviewed PASS, staged behind root A's drain; tolerance-tier branch (tolerance-tier-25-20260920, tip 94574b6) ruled and tooled; eval branches eval-allow-checkpoint-20260920 (f09e526, blocked from cells by the attempt-authority guard) and the production checkout eval_instructed_provisional_58794b8 remain the only harness used for cells; arm C's VSTIBench cell against base shows a +3.43 primary gain that is a parsing artifact -- base leads 58.26 to 51.06 on the 394-item paired subset under both strict and lenient parsing, so the lane still lacks a substance win on VSTIBench; arm C's VSIBench +10.88 gain holds up only for object_rel_direction_easy/hard on the paired subset; lenient-parser branch (parser-lenient-20260920, tip bdd490c) is reviewed PASS; a composition hypothesis (57 percent object_rel_direction_medium, wrong-frame convention) is under a one-epoch control retrain; Qwen arm A on r6 (trainer ad96f47) at step 75/246"
   },
   "open_user_decisions": [
     "No reply yet: whether the trinity-3-13 successor session will hold shared lanes (D/INBOX_TO_SUCCESSOR_ORCHESTRATOR_20260920T0335Z.md)",
@@ -238,6 +273,7 @@
     "fast-forward the r1316 epoch branch to main before root A's collector stops",
     "build a training-set split without running holdout_stability_check.py against every previously published split record",
     "cite arm C's +3.43 VSTIBench primary-accuracy gain as a substance win; base leads 58.26 to 51.06 on the 394-item paired subset",
+    "cite arm C's +10.88 VSIBench primary-accuracy gain as a clean substance win; only object_rel_direction_easy/hard hold up on the 407-item paired subset",
     "treat ARKitScenes-derived targets as admitted before sealing review rules on the rotation/clock-offset/slot-snapping approach"
   ],
   "session_notes": [
@@ -248,6 +284,8 @@
     "ARKitScenes moved from a parked download to an active download plus adapter pilot this window, following the user's 08:00Z ruling; the adapter's rotation/clock/slot-snapping approach is ruled but not yet sealing-reviewed",
     "Wave 1 (ScanNet++) is on track for a 09:50Z completion at a 95 percent prepare rate per the FIRST100 sample",
     "REQ-20260920-234 is a new cross-orchestrator request for shared Gemini-key capacity; this lane has proposed a cap and step-down rather than granting or refusing outright",
+    "VSIBench told the same story as VSTIBench: most of arm C's +10.88 primary gain is a parse effect, and only two per-type deltas (object_rel_direction_easy/hard) survive on the paired subset; the lenient parser confirms rather than reverses the VSTIBench reading",
+    "57 percent of arm C's training rows share one relation type with a frame convention that conflicts with VSTIBench, a plausible cause for the object-object regression; a one-epoch control retrain is testing it directly rather than waiting on the full checkpoint",
     "The old Qwen arm C gate (pid 752616) is inert (points at dead r5) and is queued for retirement in favor of the r6 replacement brief"
   ],
   "survives_vs_dies": {
@@ -261,6 +299,7 @@
       "the census process on trinity-1-13 (pid 1485178)",
       "the ARKitScenes downloader",
       "the ARKit adapter Devin session (trinity-1-13, pid 1801189)",
+      "the arm C one-epoch control retrain (trinity-1-3 GPUs 1-4), a real remote training process",
       "arm C's republished checkpoint and adapter, and all lane/repo files and git history",
       "any process launched by a Luna lane via ssh with setsid nohup, even on trinity-1-3 itself"
     ],
@@ -272,6 +311,7 @@
       "the census babysitter and stage-2 launcher; the census process it watches survives",
       "the ARKit download babysitter; the downloader it watches survives",
       "the ARKit adapter babysitter; the Devin session it watches survives",
+      "the arm C error-analysis lane; no pid or detach evidence recorded",
       "the queue watcher",
       "the 30-minute orchestrator tick; must be recreated by each successor session"
     ]

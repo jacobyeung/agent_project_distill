@@ -27,7 +27,7 @@ collector's 36-worker ceiling, sole control of the Gemini key, trinity-0-18's vn
 the node avoid list (trinity-3-23, 0-3, 0-28, 1-8, 2-13, 0-8, 1-18, and 0-23) carry forward
 unchanged.
 
-### Headline: arm C's +3.43-point VSTIBench margin over base is a parsing artifact — base leads 58.26 to 51.06 on the paired subset; the collector holds 36 workers at 12,043 finalized; the 25 percent tolerance tier is ruled; the r1316 epoch stays sealed behind root A's drain; wave 1 (ScanNet++) is near complete; ARKitScenes is downloading with its adapter in review; trinity-0-13's cards are back under a vLLM server
+### Headline: arm C's +3.43-point VSTIBench margin over base is a parsing artifact — base leads 58.26 to 51.06 on the paired subset; on VSIBench most of arm C's +10.88-point lead is a parse effect too, real only on the object_rel_direction types; a training-composition problem is under a one-epoch control retrain; the collector holds 36 workers at 12,043 finalized; the 25 percent tolerance tier is ruled; the r1316 epoch stays sealed behind root A's drain; wave 1 (ScanNet++) is near complete; ARKitScenes is downloading with its adapter in review; trinity-0-13's cards are back under a vLLM server
 
 **First result: arm C vs. base on VSTIBench.** OneThinker-8B arm C (compact counted targets)
 scores 43.59 percent primary accuracy against base's 40.16 on VSTIBench repr-450 (harness
@@ -46,10 +46,42 @@ base. Evidence: `D/claude_eval_cells_f09e526/out/BASE_VSTI_PARSE_FAILURES.md` an
 row (strip one enclosing bracket pair; lane `D/claude_parser_sensitivity/`, Astra-reviewed,
 reported separately and never replacing the primary number) rescoring every existing cell,
 including Qwen base VSTI; the arm C VSI table with a paired-answered row; and a per-type error
-analysis of the obj_obj regression. Arm C's VSI cell (500 items) is expected about 09:52Z as
-`RESULTS_VSIBENCH.md`, followed by a format-A distilled-baseline VSI ablation on GPUs 1-2.
-Qwen3.5-9B base scores 28.59 percent on VSTIBench, with 203 of 450 generations capped with no
-answer (`RESULTS_QWEN_VSTIBENCH_BASE.md`).
+analysis of the obj_obj regression. Arm C's VSIBench result has landed (below); a format-A
+distilled-baseline VSI ablation follows on GPUs 1-2. Qwen3.5-9B base scores 28.59 percent on
+VSTIBench, with 203 of 450 generations capped with no answer (`RESULTS_QWEN_VSTIBENCH_BASE.md`).
+
+**Arm C vs. base on VSIBench.** On the answerable-500 set (harness `58794b8`), arm C scores 42.35
+percent primary accuracy against base's 31.47, a 10.88-point gain. Per-type base/arm-C accuracy:
+obj_appearance_order 52/56, object_abs_distance 12.8/36.8, object_counting 21.6/41.6,
+object_rel_direction_easy 36/58, object_rel_direction_hard 22/16, object_rel_direction_medium
+36/40, object_rel_distance 42/48, object_size_estimation 45/52, room_size_estimation 21/38.4,
+route_planning 26/28. Base fails to parse 93 generations against arm C's 4. On the 407-item paired
+subset, only two of the per-type deltas hold up: object_rel_direction_easy's +22-point gain and
+object_rel_direction_hard's 6-point loss are real, each on a 50-item paired base. The
+object_abs_distance and object_counting gains vanish on the paired subset — they were parse
+effects, not substance gains. Record: `D/claude_eval_cells_f09e526/out/RESULTS_VSIBENCH.md`.
+
+**Lenient-parser sensitivity.** A lenient parser that strips one enclosing bracket pair is
+reviewed (Astra PASS after one fix round; receipts
+`agent/scratch/codex_runs/20260920T095437Z_parser_lenient_review` and
+`20260920T100052Z_parser_lenient_rereview`) on branch `parser-lenient-20260920` at `bdd490c`.
+Under it, OneThinker base's VSTIBench score rises from 40.16 (strict) to 45.40 (lenient); arm C's
+VSTIBench score holds at 43.59 under either parser; Qwen base's VSTIBench score holds at 28.59
+under either parser, since its 205 failures are cap truncations, not decoration. OneThinker base's
+VSIBench score rises from 31.47 (strict) to 39.19 (lenient). Under lenient parsing, VSTIBench
+reverses to base ahead of arm C, 45.40 to 43.59, and the paired-subset category-macro gap holds at
+about -7 for arm C either way. Lenient VSI rows for arm C are being added. Record:
+`D/claude_parser_sensitivity/out/PARSER_SENSITIVITY_20260920.md`.
+
+**Composition finding and the one-epoch control.** 57 percent of arm C's training rows are
+`object_rel_direction_medium`, carrying an object-centred left-right convention that conflicts
+with VSTIBench's camera-frame convention — a candidate explanation for arm C's regression on the
+object-object relative-position family. `validate_training_result` requires a complete full-epoch
+run before it will publish a checkpoint, so a one-epoch control retrain (lane
+`D/claude_armc_1epoch_control`, publish root
+`/data3/jjyeung/ddp_onethinker_c1ep_onethinker_20260920T1100Z`) launches on trinity-1-3 GPUs 1-4
+about 11:00Z to test the hypothesis directly. An error-analysis lane
+(`D/claude_armc_error_analysis`) is running in parallel.
 
 **Collector (r1315).** Holds 36 workers, the hard ceiling. 12,043 traces are finalized as of
 09:30Z, running 260-400 traces/hour, with zero 503s and zero 429s all morning; the TPM reader (pid
@@ -164,17 +196,18 @@ no training slot); trinity-2-13 cells, since that node stays on the avoid list.
 checkpoint), `aa8b789` and `f1651ff` (the 05:30Z checkpoint), and `8a49b78` (the
 `workflow-agent-model-guard.py` hook). The r1316 epoch branch (`epoch/r1316-membership-v3`) sits
 at tip `058368c` (launch epoch `f053b9b`); the tolerance-tier branch
-(`tolerance-tier-25-20260920`) sits at `94574b6`. This handoff and the liveness manifest land as
-the next commits.
+(`tolerance-tier-25-20260920`) sits at `94574b6`; the lenient-parser branch
+(`parser-lenient-20260920`) sits at `bdd490c`. This handoff and the liveness manifest land as the
+next commits.
 
 ## 2. Relaunch list if this session dies
 
 Detached and surviving a session death: the collector, the TPM reader, the eval drivers and
 finisher, Qwen r6 training, the Qwen arm C (c1) launcher, the wave-1 Devin session, the census
-process, the ARKitScenes downloader, and the ARKit adapter Devin session. Recreate: the observer,
-the eval-lane babysitter, the Qwen babysitter (both r6 and the c1 launcher), the wave-1
-babysitter, the census watcher and stage-2 launcher, the ARKit download babysitter, the ARKit
-adapter babysitter, and the queue watcher.
+process, the ARKitScenes downloader, the ARKit adapter Devin session, and the one-epoch control
+retrain. Recreate: the observer, the eval-lane babysitter, the Qwen babysitter (both r6 and the c1
+launcher), the wave-1 babysitter, the census watcher and stage-2 launcher, the ARKit download
+babysitter, the ARKit adapter babysitter, the arm C error-analysis watcher, and the queue watcher.
 
 ## 3. Pending replies and open decisions
 
@@ -197,6 +230,8 @@ adapter babysitter, and the queue watcher.
   whether `collector_admission=false` should become enforced in `collect.py`'s `registry_rows` is
   a separate sealing-review question.
 - The ADT download stays parked until after the deadline.
+- Whether the one-epoch control retrain (trinity-1-3 GPUs 1-4, about 11:00Z) and the format-A
+  distilled-baseline VSI ablation (same GPUs) can run concurrently or need sequencing.
 - Carried forward: the `object_rel_distance` positional-support-only advisory (about 400 of 977
   candidates in the compact set); the tiered target-admission rubric; preparers for ADT,
   ProcTHOR, and S3DIS (ScanNet v3 stays parked; ARKitScenes now has an adapter in review); whether
@@ -268,8 +303,13 @@ adapter babysitter, and the queue watcher.
   `/home/jjyeung/agent_project/agent/scratch/devin_lanes/devin_arkit_adapter/`, branch
   `poolext/arkit_adapter_20260920`, package `gt_adapters/arkit_3dod_v1`.
 - Eval cells:
-  `D/claude_eval_cells_f09e526/out/{launch/drive58_armc.sh,RESULTS_VSIBENCH.md,RESULTS_VSTIBENCH.md,RESULTS_QWEN_VSTIBENCH_BASE.md,BASE_VSTI_PARSE_FAILURES.md,ARMC_VSTI_OBJOBJ_SAMPLE.md}`;
-  lenient-parser sensitivity row `D/claude_parser_sensitivity/`.
+  `D/claude_eval_cells_f09e526/out/{launch/drive58_armc.sh,RESULTS_VSIBENCH.md,RESULTS_VSTIBENCH.md,RESULTS_QWEN_VSTIBENCH_BASE.md,BASE_VSTI_PARSE_FAILURES.md,ARMC_VSTI_OBJOBJ_SAMPLE.md}`.
+- Lenient-parser sensitivity: branch `parser-lenient-20260920` at `bdd490c`; reviews
+  `agent/scratch/codex_runs/{20260920T095437Z_parser_lenient_review,20260920T100052Z_parser_lenient_rereview}`;
+  record `D/claude_parser_sensitivity/out/PARSER_SENSITIVITY_20260920.md`.
+- Composition finding / one-epoch control: retrain lane `D/claude_armc_1epoch_control/`, publish
+  root `/data3/jjyeung/ddp_onethinker_c1ep_onethinker_20260920T1100Z`; error-analysis lane
+  `D/claude_armc_error_analysis/`.
 - Qwen r6 / c1 launcher: `D/claude_trainer_publish_cadence/out/QWEN_R6_NOTE.md`; run root
   `/scratch/jjyeung/ddp_qwen35_a_qwen_20260920T0400Z_r6`; publish root
   `/data3/jjyeung/ddp_qwen35_a_qwen_20260920T0400Z_r6`; c1 launcher
