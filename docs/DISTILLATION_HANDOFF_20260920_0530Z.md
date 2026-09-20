@@ -94,7 +94,16 @@ the avoid list this window.
 
 **In flight:** a pool-extension design (`D/poolext/`, judge running) toward the
 50,000-100,000-sample goal set at 05:05Z; a compact zero-call conversion of about 6,700 newer
-traces on trinity-1-13 (`D/claude_compact_convert_newer/`).
+traces on trinity-1-13 (`D/claude_compact_convert_newer/`, report
+`D/claude_compact_convert_newer/out/REPORT.md`). The converter has no direct path to a newer
+trace: the chain runs a fresh `census_r1313` snapshot, then the zero-call v3 recovery pass
+(`trainer_repo` branch `converter-zero-call-v3-20260918`, commit `5708469a`, CPU-only, reads the
+live collection root, with its own review gate), then `strip_calculations_v1`, then
+`compact_counted_v1.py` at commit `da346eb` (`2ad2d70` on `main`) — the same chain that produced
+`diagnostic_set_compact_v1c_dropclause`, arm C's training set; the `v1b` render stays forbidden
+for training. The newest census on disk is from 2026-09-19 10:06Z, 6,566 finalized and 5,146
+accepted, so roughly 1,213 accepted qids from that census — and more since — have no recovery
+artifact yet.
 
 **Repo.** HEAD is `8a49b78` (adds the `workflow-agent-model-guard.py` hook referenced by
 `.claude/settings.json`), one commit ahead of the 03:15Z handoff (`0bb17c1`). This handoff and

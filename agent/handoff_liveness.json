@@ -124,9 +124,9 @@
     {
       "lane": "compact zero-call converter, newer traces (claude_compact_convert_newer)",
       "host": "trinity-1-13",
-      "pid_or_artifact": "D/claude_compact_convert_newer/",
-      "health_check": "ls -t D/claude_compact_convert_newer/out/ | head",
-      "status": "converting about 6,700 newer traces to the compact zero-call format",
+      "pid_or_artifact": "D/claude_compact_convert_newer/out/REPORT.md",
+      "health_check": "cat D/claude_compact_convert_newer/out/REPORT.md",
+      "status": "converting about 6,700 newer traces to the compact zero-call format; no direct path from raw traces -- chain is a fresh census_r1313 snapshot, then the zero-call v3 recovery pass (trainer_repo branch converter-zero-call-v3-20260918, commit 5708469a, CPU-only, reads the live collection root, own review gate), then strip_calculations_v1, then compact_counted_v1.py at da346eb (2ad2d70 on main) -- the chain that produced diagnostic_set_compact_v1c_dropclause (arm C's training set; v1b stays forbidden for training); newest census on disk is 2026-09-19 10:06Z (6,566 finalized, 5,146 accepted), so roughly 1,213 accepted qids from that census, and more since, have no recovery artifact yet",
       "gate": "one bulk render at a time on /data2 while the collector runs",
       "next_on_completion": "feeds the next admitted training-set candidate pending pilot review",
       "survives_session": false
