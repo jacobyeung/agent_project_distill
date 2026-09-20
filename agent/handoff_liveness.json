@@ -1,8 +1,8 @@
 {
-  "written_utc": "2026-09-20T01:15:00Z",
+  "written_utc": "2026-09-20T03:15:00Z",
   "head": {
-    "commit": "2f9f967",
-    "meaning": "distill repo main; the 23:45Z checkpoint handoff, which recorded the collector relaunched and ramping under gate, arm C training on the compact-target set, and two orchestrator sessions still reconciling"
+    "commit": "6d80bd3",
+    "meaning": "distill repo main; the 01:15Z checkpoint handoff, which recorded arm C past step 120 with a corrected epoch length, the collector's new load-gated ramp rule, the eval driver chain, trinity-2-13 out, and the finalized untuned Qwen cap baseline at 70 percent"
   },
   "user_rulings_today": [
     "RULED about 11:50Z: \"Own the distillation lane: obtain at least 20,000 accepted traces on vsibench training using the GT perception data. Fine-tune OneThinker-8B and Qwen3.5-9B with vision and language LoRA on a scene-disjoint split of those targets and show better RGB-only, tool-free accuracy than the base checkpoints on VSIBench and VSTIBench reporting per-question-type results. use Devin Astra max for development, Codex or Luna for ssh work and Sonnet for easy tasks, and never touch the other experimenter's state or the collector code on main while the collector runs. Maximize the google API key at 8m tok/min to collect the reasoning traces. Evidence first: publish per-type results on the partial training set for both students before any full-scale run, and report them whether or not they beat the base. Paper ready numbers by 2026-9-24Z; when lanes compete for GPUs or the key, the collector and the two student fine-tunes win over ablations.\"",
@@ -26,85 +26,83 @@
     "RESOLVED (pilot review 2, REVIEW_compact_pilot2.md): the compact-target no-Calculations defect is fixed by the roster/operand-filter/drop_clause changes (da346eb, 1892917); ADMIT 14/14; diagnostic_set_compact_v1c_dropclause is admitted for arm C training.",
     "STANDING RULE (from the 21:34-23:00Z node freeze): any process that must outlive the orchestrator session or a node stall must be launched as a child of sshd via a Luna lane (ssh <host> 'setsid nohup ... &'), even for local-node work; a Bash background process or a Claude subagent is not durable across a node freeze or session death.",
     "NEW STANDING RULE this window (collector ramp): step back one worker level whenever 1-minute load exceeds 100; re-ramp by +4 workers every 15 minutes only while 1-minute load stays under 60 and D-state count stays under 5; the collector watch alarms at load 100 and D-state 10 and cross-checks every resize against RAMP_LOG.md.",
-    "OPEN as of 01:15Z: a second orchestrator session started on trinity-3-13 at 22:55Z on 2026-09-19 believing this session dead, and has taken live actions (committed two handoffs, resumed this session's subagents, launched arm C, dispatched relaunch attempts 6/7); the user has been asked which session commands and has not yet answered; this session continues to command per the standing 'do not back down' ruling until told otherwise."
+    "OPEN as of 01:15Z: a second orchestrator session started on trinity-3-13 at 22:55Z on 2026-09-19 believing this session dead, and has taken live actions (committed two handoffs, resumed this session's subagents, launched arm C, dispatched relaunch attempts 6/7); the user has been asked which session commands and has not yet answered; this session continues to command per the standing 'do not back down' ruling until told otherwise.",
+    "NEW STANDING RULE at 03:15Z (collector ramp, widened): step back one worker level whenever the 15-minute 503 count exceeds 8, in addition to the existing 1-minute load>100 trigger; re-ramp by +4 workers every 15 minutes only after two consecutive clean cycles (15-minute 503 count at most 2) with load under 60 and D-state under 5; a 15-minute grace period after any step-down suspends the 15-minute 503 alarm (a 5-minute 503 count above 4 is the fresh signal during grace); D-state alarms only on two consecutive checks above 10, a finalized-count stall, or a lease age above 120s; no steps within 10 minutes of an evaluation cold start.",
+    "NEW LESSON at 03:15Z (launch-lane admission): a launch lane must verify its publish root is writable at admission, before training starts. Arm C trained 288/288 steps to completion before its first publish attempt failed on a PUBLISH_ROOT missing the /jjyeung segment; a Luna finalize lane recovered by publishing the already-trained checkpoint without retraining. Memory student-trainer-readiness carries this rule."
   ],
   "results_banked_today": [
     {
-      "what": "arm C (OneThinker on compact counted targets), training progress and epoch-length correction",
-      "count": "step 120 of 288 at 01:07Z, loss 1.07 (step 8) to 0.230 (step 120); plateau near 0.29 across steps 36-92 broke after the epoch-1 boundary; corrected epoch length is 96 steps/epoch (3,052 rows / 32 rows-per-step), not 82; checkpoints at 25/50/75/100 (checkpoint 50 cost ~75s); wall-clock 42.9 s/step; ETA ~03:05Z; token_limit_drops 0/3,052 vs 790/3,411 for the format-A set it replaces",
-      "pointer": "D/codex_luna_launch_ddp_v4_c_onethinker/out/{PROGRESS.md,ADMISSION.md}; babysitter notes in the same lane family"
+      "what": "arm C (OneThinker on compact counted targets), TRAINED TO COMPLETION and PUBLISHED",
+      "count": "288 of 288 steps finished ~03:00Z on trinity-1-13 GPUs 2-5, 42.9 s/step, loss 1.07 (step 8) -> 0.29 plateau (steps 36-92) -> 0.175-0.20 in epoch 3; checkpoints every 25 steps plus the end boundary; training_result.json status TRAINED, sha256 3e7cc4177e8a956f6f693b4ba677c1352c862eec1f33209b3c35ddd02266a9e3; first publish attempt failed (PUBLISH_ROOT missing /jjyeung segment, REPORT.md 'Train return code: error-2'); a Luna finalize lane (BRIEF_finalize.md, _fin artifacts) published without retraining at 03:10:00Z: PUBLISHED.json status TRAINED, 312 files, adapter adapter-ZERO_CALL_DIAGNOSTIC_PENDING_REVIEW, adapter_model.safetensors 420,058,456 bytes, weights sha256 fe0b5dc0801278a581723bbde8b9d10ec1997822858d002426a52d6f258b2182, config sha256 e62c2bae..., PROVISIONAL_SPLIT_SHA 4dd7467f..., training_data_sha256 9df06ccd..., provenance ad96f47 clean, improvement_claim false, score_nomination_allowed false",
+      "pointer": "D/codex_luna_launch_ddp_v4_c_onethinker/out/{training_result.json,REPORT.md,BRIEF_finalize.md}; /data3/jjyeung/ddp_onethinker_c_onethinker_20260919T2100Z_active6/PUBLISHED.json"
     },
     {
-      "what": "arm A attempt 10, resume staged behind arm C",
-      "count": "BRIEF_r10_resume.md: waits for arm C's REPORT or PUBLISHED signal, then resumes from checkpoint 100 on the same run root with fresh leases, copying run_full_r10.sh with only resume substitutions",
-      "pointer": "D/codex_luna_launch_ddp_v4_a_onethinker/out/BRIEF_r10_resume.md; dispatched by a waiter in this session on arm C's completion"
+      "what": "arm C adapter cells launching against base OneThinker and the format-A adapter",
+      "count": "eval lane's driver launches on publication: VSI on 4 cards, VSTI on 2, decode budget 4,096, harness 58794b8, adapter resolution hardened; first receipts expected ~03:15Z; per-type enters-format and cap tables vs base OneThinker (0 caps) and format-A adapter (20% caps at 16,384) are the night's headline",
+      "pointer": "D/claude_base_reeval_instructed_onethinker/out/{RESULTS.md,PROGRESS.md,NOTES.md}"
     },
     {
-      "what": "teacher traces finalized (collector, r1315), ramped and load-managed",
-      "count": 9611,
-      "pointer": "ramp 24 (23:39Z) -> 28 (23:56Z) -> 32 (00:11Z); at 32 workers ~288 traces/hour, key 27-37%, load ~46; a CPU-burst worker wave pushed 1-minute load 43 -> 92 -> 122 at 00:46Z-00:49Z (about 13 fresh workers at 230-320% CPU beside six eval shards, controller briefly D state, calls/5min 99->68, 429/503/lease clean); stepped 32->24 at 00:50Z, recovered to 28 by 01:08Z, finalized reached 9,611, stepped 24->28 at ~01:10Z if the gate held; D/codex_relaunch_r1315_drain_attest/out/RAMP_LOG.md; operator lane closed with REPORT_r7.md, sampler continues to 01:30Z"
+      "what": "arm A attempt 10, resume dispatched",
+      "count": "dispatched ~03:12Z via Luna; same run root /scratch/jjyeung/ddp_onethinker_a_onethinker_20260919T0930Z_r10/train, resuming from checkpoint step 100 of 246, fresh leases world size 4 on trinity-1-13 GPUs 2-5, copy of run_full_r10.sh with only resume substitutions, publish root /data3/jjyeung/ddp_onethinker_a_onethinker_20260919T0930Z_r10; ~5 hours at 120 s/step; arm E stays parked behind it",
+      "pointer": "D/codex_luna_launch_ddp_v4_a_onethinker/out/{BRIEF_r10_resume.md,PROGRESS_r10res.md}"
     },
     {
-      "what": "untuned Qwen3.5-9B base VSI termination baseline, finalized sample",
-      "count": "157 of 223 VSI items capped at 4,096 (70.4%); median, p90 and maximum all exactly 4,096; verbatim prose loops over timestamps, never the trained enumeration format",
+      "what": "teacher traces finalized (collector, r1315), ramped and load/503-managed",
+      "count": 10215,
+      "pointer": "10,000 crossed ~02:24Z; at 32 workers one clean cycle ran ~354 traces/hour, load under 56; CPU-burst spike (13 fresh workers 230-320% CPU, load 122) forced 32->24 at 00:50Z, re-ramped 24->28 (01:21Z)->32 (01:39Z); at 03:09Z 15-minute 503 count reached 9 with zero 429 and calm load, stepped 32->28; finalized 10,215 at 03:10Z; D/codex_relaunch_r1315_drain_attest/out/RAMP_LOG.md"
+    },
+    {
+      "what": "untuned Qwen3.5-9B base VSI termination baseline, finalized; VSI generation complete and scoring",
+      "count": "157 of 223 VSI items capped at 4,096 (70.4%); median, p90 and maximum all exactly 4,096; verbatim prose loops over timestamps, never the trained enumeration format; Qwen base VSI finished generating ~03:00Z and is being scored; Qwen fits 24 GB cards at 18.3 GiB peak reserved at 4,096",
       "pointer": "D/claude_base_reeval_instructed_onethinker/out/QWEN_BASE_RUNAWAY.md; contrast: base OneThinker 0/500 VSI and 1/450 VSTI capped, distilled format-A OneThinker 20% of 71 capped at the old 16,384 budget"
     },
     {
-      "what": "evaluation lane restructured into four gated drivers with a reformatted RESULTS.md",
-      "count": "drivers: (1) score Qwen VSI + release cards, (2) launch arm C adapter cells on publication (VSI 4 cards, VSTI 2), (3) distilled-baseline VSI vs base VSI, (4) Qwen base VSTI; distilled-baseline VSTI unscheduled; RESULTS.md now leads with the governing config (58794b8, config_sha256 b43a012b, 4,096, instruction text), a Current-rows table, four findings and travelling caveats, 16,384 material under an appendix divider; obs_format_stats.py now takes a model argument; Qwen peak reserved memory 18.3 GiB at the 4,096 budget on 24 GB cards (117 receipts)",
-      "pointer": "D/claude_base_reeval_instructed_onethinker/out/RESULTS.md; live Qwen base VSI progress ~230/500 across six shards, ETA ~02:35Z"
-    },
-    {
-      "what": "trinity-2-13, second independent stuck process",
-      "count": "attempt 1's original cpu-check still D-state since ~21:15Z; attempt 3's own fresh cpu-check under timeout 900 also entered D state with no output",
-      "pointer": "D/codex_luna_eval_t213_distilled_baseline/out/REPORT_r3.md; read-only node-health probe (D/codex_luna_t213_nfs_diag_20260919T2331Z/out/REPORT.md) found /data2 responsive and cards idle at the time it ran; working hypothesis an NFS lock or large frame-cache read on the soft NFS4 mount, deferred to daylight"
+      "what": "trinity-2-13, attempt 3's own fresh cpu-check also hung",
+      "count": "launched under timeout 900, entered D state with no output, while stat calls and reads against the same mount succeeded -- narrows (not resolves) the daylight hypothesis to an NFS lock or large frame-cache read on the soft NFS4 mount specifically, not a wholesale node hang",
+      "pointer": "D/codex_luna_eval_t213_distilled_baseline/out/REPORT_r3.md"
     },
     {
       "what": "Qwen arm A r5 FSDP training, continued",
-      "count": "step 157 of 246 at 01:08Z, loss 0.074, 215-240 s/step, publication expected ~06:40Z-07:10Z on 09-20",
+      "count": "step 190 of 246 at 03:06Z, loss 0.065, 200-220 s/step, publication expected ~06:08Z-06:22Z",
       "pointer": "D/codex_luna_launch_ddp_v4_a_qwen/out/PROGRESS_r5.md; Qwen arm C still holding at its GPU gate on trinity-0-18, CPU prep done, launches on publish"
+    },
+    {
+      "what": "successor session cost: publish-root bug",
+      "count": "its resumed copy of the arm C launch lane trained arm C to completion but shipped a launcher that kept PUBLISH_ROOT without the /jjyeung segment, blocking the first publish attempt; recovered by a same-session Luna finalize lane rather than retraining",
+      "pointer": "D/codex_luna_launch_ddp_v4_c_onethinker/out/REPORT.md; D/INBOX_TO_SUCCESSOR_ORCHESTRATOR_20260919T2316Z.md still unanswered"
     }
   ],
   "active_runs": [
     {
       "lane": "r1315 teacher collector (watchdog v5 + ramp operator lane, post-recovery)",
-      "status": "ramped 24->28->32 by 00:11Z; a CPU-burst worker wave pushed 1-minute load 43->92->122 at 00:46Z-00:49Z; stepped back 32->24 at 00:50Z under the new step-back rule; recovered to 28 by 01:08Z; 9,611 of 20,000 finalized; stepped 24->28 at ~01:10Z if the gate held; operator lane (attempt 7) closed with REPORT_r7.md but its sampler runs to 01:30Z",
+      "status": "10,000 finalized crossed ~02:24Z; at 32 workers one clean cycle ran ~354 traces/hour under load 56; a CPU-burst load spike (load 43->92->122) forced 32->24 at 00:50Z, re-ramped 24->28 (01:21Z)->32 (01:39Z); at 03:09Z 15-minute 503 count hit 9 with zero 429 and calm load, stepped 32->28; 10,215 of 20,000 finalized at 03:10Z",
       "host": "trinity-1-3",
       "health_check": "cat /data2/jjyeung/agent_project_data/vsi_distill_training_20260917/runtime_control/gt_teacher_r1313/remediation_d9f7863f1e75/WATCHDOG_HEALTH.json",
-      "gate": "target 20,000 accepted; step back one worker level above 1-minute load 100, re-ramp +4/15min only under load 60 and D-state 5; only the recovery lane edits R/watchdog_control_v5.json; never change collector/ on main while a collector runs",
-      "next_on_completion": "continue the load-gated ramp toward 20,000 finalized traces",
+      "gate": "target 20,000 accepted; step back one worker level above 15-minute 503 count 8 or 1-minute load 100; re-ramp +4/15min only after two consecutive clean cycles (15-minute 503 <=2) under load 60 and D-state 5; 15-minute grace period after a step-down suspends the 503 alarm; only the recovery lane edits R/watchdog_control_v5.json; never change collector/ on main while a collector runs",
+      "next_on_completion": "continue the load/503-gated ramp toward 20,000 finalized traces",
       "survives_session": true
     },
     {
-      "lane": "trainer v4 DDP full run, arm C OneThinker on compact targets (codex_luna_launch_ddp_v4_c_onethinker)",
-      "status": "TRAINING; step 120/288 at 01:07Z, loss 0.230, plateau near 0.29 across steps 36-92 broke after the epoch-1 boundary (corrected: 96 steps/epoch), checkpoints at 25/50/75/100, wall-clock 42.9 s/step, ETA ~03:05Z; token_limit_drops 0/3,052 vs 790/3,411 for format A",
+      "lane": "trainer v4 DDP full run, arm A OneThinker, attempt 10 resume dispatched (codex_luna_launch_ddp_v4_a_onethinker)",
+      "status": "dispatched ~03:12Z via Luna; resuming from checkpoint step 100 of 246 on the same run root with fresh leases, world size 4, copy of run_full_r10.sh with only resume substitutions; ~5 hours remaining at 120 s/step",
       "host": "trinity-1-13 GPUs 2, 3, 4, 5",
-      "health_check": "cat /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_luna_launch_ddp_v4_c_onethinker/out/PROGRESS.md",
-      "gate": "wrapped launch only, on ad96f47, from the admitted v1c_dropclause index; judge liveness from metrics.jsonl growth and the torchrun pid, never the wrapper process",
-      "next_on_completion": "publishes to /data3/jjyeung/ddp_onethinker_c_onethinker_20260919T2100Z_active6 (or the unsuffixed root); on REPORT/PUBLISHED, fires the arm A resume waiter",
+      "health_check": "cat /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_luna_launch_ddp_v4_a_onethinker/out/PROGRESS_r10res.md",
+      "gate": "resume only on the same node that wrote the checkpoint; judge liveness from metrics.jsonl growth and the torchrun pid, never the wrapper process",
+      "next_on_completion": "publishes to /data3/jjyeung/ddp_onethinker_a_onethinker_20260919T0930Z_r10",
       "survives_session": true
-    },
-    {
-      "lane": "trainer v4 DDP full run, arm A OneThinker, attempt 10 resume staged (codex_luna_launch_ddp_v4_a_onethinker)",
-      "status": "staged, not yet dispatched: BRIEF_r10_resume.md waits for arm C's REPORT/PUBLISHED signal, then resumes from checkpoint 100 on the same run root with fresh leases, copying run_full_r10.sh with only resume substitutions",
-      "host": "trinity-1-13 GPUs 2, 3, 4, 5 (pending arm C release)",
-      "health_check": "cat /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_luna_launch_ddp_v4_a_onethinker/out/BRIEF_r10_resume.md",
-      "gate": "resume only on the same node that wrote the checkpoint; copy the last working launcher byte-for-byte with named substitutions",
-      "next_on_completion": "the arm A resume waiter (session-bound) dispatches this once arm C reports done/published",
-      "survives_session": false
     },
     {
       "lane": "trainer v4 DDP full run, arm E OneThinker (codex_luna_launch_ddp_v4_e_onethinker)",
-      "status": "parked, now behind arm A's staged resume as well",
+      "status": "parked, behind arm A's dispatched resume",
       "host": "trinity-1-13 (queued)",
       "health_check": "cat /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_luna_launch_ddp_v4_e_onethinker/BRIEF_r9.md",
-      "gate": "no free 4-GPU block on trinity-1-13 until arm A or arm C finishes",
+      "gate": "no free 4-GPU block on trinity-1-13 until arm A or arm E's turn comes up",
       "next_on_completion": "launch once GPUs free",
       "survives_session": false
     },
     {
       "lane": "trainer v4 FSDP full run, Qwen arm A, r5 (codex_luna_launch_ddp_v4_a_qwen)",
-      "status": "training, step 157/246 at 01:08Z, loss 0.074, ~215-240 s/step, ETA about 06:40Z-07:10Z on 09-20",
+      "status": "training, step 190/246 at 03:06Z, loss 0.065, ~200-220 s/step, ETA about 06:08Z-06:22Z",
       "host": "trinity-0-18",
       "health_check": "cat /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_luna_launch_ddp_v4_a_qwen/out/PROGRESS_r5.md",
       "gate": "judge liveness from metrics.jsonl growth and the torchrun pid, never the wrapper process",
@@ -121,17 +119,17 @@
       "survives_session": false
     },
     {
-      "lane": "evaluation lineage lane (claude_base_reeval_instructed_onethinker)",
-      "status": "untuned Qwen baseline finalized at 70.4% cap (157/223 VSI at 4,096); live Qwen base VSI progress ~230/500 across six shards, ETA ~02:35Z; restructured into four gated, non-preempting drivers (score Qwen VSI + release cards; launch arm C adapter cells on publication; distilled-baseline VSI vs base VSI; Qwen base VSTI); RESULTS.md reformatted with governing config header",
+      "lane": "evaluation lineage lane, now driving arm C adapter cells (claude_base_reeval_instructed_onethinker)",
+      "status": "untuned Qwen baseline finalized at 70.4% cap (157/223 VSI at 4,096), VSI generation complete and being scored; arm C adapter cells launching on publication (VSI 4 cards, VSTI 2, harness 58794b8), first receipts expected ~03:15Z; then distilled-baseline VSI vs base, then Qwen base VSTI; distilled-baseline VSTI unscheduled",
       "host": "trinity-1-3 GPUs 1-6",
       "health_check": "tail -n 20 /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_base_reeval_instructed_onethinker/out/RESULTS.md",
       "gate": "cells never pair across harness commits; use only the 58794b8 checkout",
-      "next_on_completion": "chain through the four drivers in order as each upstream publishes",
+      "next_on_completion": "chain through the remaining drivers in order as each upstream publishes",
       "survives_session": false
     },
     {
       "lane": "trinity-2-13 distilled baseline cells, attempt 3 (codex_luna_eval_t213_distilled_baseline)",
-      "status": "still blocked: attempt 1's original cpu-check remains D-state since ~21:15Z; attempt 3's own fresh cpu-check (timeout 900) also entered D state with no output; working hypothesis is an NFS lock or a large frame-cache read on the soft NFS4 mount, deferred to daylight",
+      "status": "still blocked: attempt 3's own fresh cpu-check (timeout 900) also entered D state with no output, while stat calls and reads against the same mount succeeded; hypothesis narrowed to an NFS lock or large frame-cache read on the soft NFS4 mount, deferred to daylight",
       "host": "trinity-2-13",
       "health_check": "tail -n 8 /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_luna_eval_t213_distilled_baseline/out/REPORT_r3.md",
       "gate": "whole cell pairs only, never split shards; from the 58794b8 checkout; pairs with trinity-1-3 cells under the same harness commit",
@@ -140,7 +138,7 @@
     },
     {
       "lane": "collector_watch (Sonnet subagent)",
-      "status": "session-bound; observes the ramp with load and D-state alarms; now cross-checks every resize against RAMP_LOG.md under the new step-back rule",
+      "status": "session-bound; observes the ramp with the widened load/503 and D-state alarms; cross-checks every resize against RAMP_LOG.md",
       "host": "trinity-1-3 (session-bound)",
       "health_check": "tail -n 5 /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/collector_watch/NOTES.md",
       "gate": "session-bound; restart each session; per the standing rule, anything meant to survive a future freeze goes through a Luna ssh loopback lane instead",
@@ -148,17 +146,17 @@
       "survives_session": false
     },
     {
-      "lane": "babysitter (Claude Opus) for arm C and Qwen A r5",
-      "status": "session-bound; watching arm C (step 120/288) and Qwen A r5 (step 157/246)",
+      "lane": "babysitter (Claude Opus) for Qwen A r5",
+      "status": "session-bound; watching Qwen A r5 (step 190/246); arm C's own babysit ended when it trained to completion and published",
       "host": "trinity-1-3 (session-bound)",
-      "health_check": "tail -n 5 /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_luna_launch_ddp_v4_c_onethinker/out/PROGRESS.md",
+      "health_check": "tail -n 5 /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_luna_launch_ddp_v4_a_qwen/out/PROGRESS_r5.md",
       "gate": "session-bound; restart each session",
-      "next_on_completion": "hands both runs off to the evaluation lineage lane on publish",
+      "next_on_completion": "hands the run off to the Qwen evaluation chain on publish",
       "survives_session": false
     },
     {
       "lane": "successor orchestrator session on trinity-3-13 (split-brain)",
-      "status": "OPEN: still no reply to this session's inbox note; its resumed arm C lane is the one that launched arm C; its resumed trinity-2-13 lane shares that lane's own out dir; user still has not ruled which session commands",
+      "status": "OPEN: still no reply to this session's inbox note; its resumed arm C lane trained arm C to completion but shipped the publish-root bug that blocked the first publish attempt; user still has not ruled which session commands",
       "host": "trinity-3-13",
       "health_check": "cat /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/INBOX_TO_SUCCESSOR_ORCHESTRATOR_20260919T2316Z.md",
       "gate": "check for D/INBOX_FROM_SUCCESSOR_ORCHESTRATOR_*.md before dispatching any new lane, to avoid duplicate launches",
@@ -167,7 +165,7 @@
     }
   ],
   "round_registry": {
-    "note": "this repo assigns lane names, not round numbers; collector epoch = contract commit (998516b, merged as 612a325); converter branches converter-v3..v7-1, plus converter-compact-v1-20260919 (compact counted targets, fixes landed at 2ad2d70 [da346eb, 1892917], render v1c_dropclause ADMITted by pilot review 2, 14/14, now the arm C training set, showing 0/3,052 token_limit_drops vs 790/3,411 for format A); eval sharding branch eval-harness-sharding-20260918; trainer branch trainer-multigpu-v4-20260919 (tip ad96f47, checkpoint-resume, after 06a9664, b41b597, ef2cd59); eval prompt fix branch eval-prompt-instruction-20260919 (2ebd555); eval provisional-admission branch eval-instructed-provisional-20260919 (tip a666e6a); eval budget branch eval-budget-4096-20260919 (tip e3e9ffb, parent a666e6a, decode budget 16384->4096, reviewed PASS); eval host branch eval-host-t213-20260919 (tip 58794b8, parent e3e9ffb, adds trinity-2-13 to lease host allowlist, reviewed PASS; production checkout eval_instructed_provisional_58794b8; cells do not pair across harness commits); the 21:34Z-23:00Z node-freeze event (2026-09-19) is fully resolved as a recovered stall, not a code lineage; it left two live artifacts still open at this handoff: the split-brain second orchestrator session on trinity-3-13 (no reply as of 01:15Z) and the collector's new load-gated step-back rule, adopted after a separate CPU-burst worker-wave spike at 00:46Z-00:49Z (load 43->92->122), distinct from the earlier NFS-write-stall diagnosis"
+    "note": "this repo assigns lane names, not round numbers; collector epoch = contract commit (998516b, merged as 612a325); converter branches converter-v3..v7-1, plus converter-compact-v1-20260919 (compact counted targets, fixes landed at 2ad2d70 [da346eb, 1892917], render v1c_dropclause ADMITted by pilot review 2, 14/14, trained to completion as arm C and published at 03:10:00Z, showing 0/3,052 token_limit_drops vs 790/3,411 for format A); eval sharding branch eval-harness-sharding-20260918; trainer branch trainer-multigpu-v4-20260919 (tip ad96f47, checkpoint-resume, after 06a9664, b41b597, ef2cd59); eval prompt fix branch eval-prompt-instruction-20260919 (2ebd555); eval provisional-admission branch eval-instructed-provisional-20260919 (tip a666e6a); eval budget branch eval-budget-4096-20260919 (tip e3e9ffb, parent a666e6a, decode budget 16384->4096, reviewed PASS); eval host branch eval-host-t213-20260919 (tip 58794b8, parent e3e9ffb, adds trinity-2-13 to lease host allowlist, reviewed PASS; production checkout eval_instructed_provisional_58794b8; cells do not pair across harness commits); the 21:34Z-23:00Z node-freeze event (2026-09-19) is fully resolved as a recovered stall, not a code lineage; it left two live artifacts still open at this handoff: the split-brain second orchestrator session on trinity-3-13 (no reply as of 03:15Z, and its resumed arm C lane's publish-root bug is now a concrete cost of the split-brain state, recovered by a Luna finalize lane rather than retraining) and the collector's load/503-gated step-back rule, widened again this window after a 15-minute 503 count of 9 with zero 429s and calm load triggered a step-back distinct from both the earlier NFS-write-stall diagnosis and the CPU-burst worker-wave spike"
   },
   "open_user_decisions": [
     "OPEN, carried forward: which orchestrator session commands the lane -- this one (trinity-1-3) or the successor that started on trinity-3-13 at 22:55Z; both have taken live actions (this session recovered and ramped the collector, the successor launched arm C); asked, no answer as of 01:15Z",
@@ -255,9 +253,18 @@
       "the arm A resume waiter (session-bound; fires BRIEF_r10_resume.md on arm C's completion signal)",
       "local Devin/Opus processes on trinity-1-3 not re-parented to sshd",
       "the 30-minute orchestrator tick",
-      "the queue watcher and the Gemini TPM readout background process"
+      "the queue watcher and the Gemini TPM readout background process",
+      "PASS-OFF at 03:19Z: this session stopped dispatching; all Claude subagents (including the evaluation lane and its four local driver scripts, and the eval allow-list implementer lane claude_eval_allow_checkpoint) and every local Codex process (including the just-dispatched arm A resume) die with it -- see PASSOFF_FROM_TRINITY_1_3_SESSION_20260920T0319Z.md for the full list before acting"
     ]
   },
-  "latest_handoff": "docs/DISTILLATION_HANDOFF_20260920_0115Z.md",
-  "updated_utc": "2026-09-20T01:15:00Z"
+  "latest_handoff": "docs/DISTILLATION_HANDOFF_20260920_0315Z.md",
+  "updated_utc": "2026-09-20T03:15:00Z",
+  "pass_off": {
+    "at_utc": "2026-09-20T03:19:00Z",
+    "from": "trinity-1-3 session",
+    "note": "the user handed the lane to the next agent at 03:19Z; this session stopped dispatching at that point",
+    "must_read_first": "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/PASSOFF_FROM_TRINITY_1_3_SESSION_20260920T0319Z.md",
+    "dies_with_this_session": "all Claude subagents, including the evaluation lane and its four local driver scripts, the eval allow-list implementer lane claude_eval_allow_checkpoint, and every local Codex process, including the just-dispatched arm A resume",
+    "survives": "the collector watchdog under setsid, Qwen A r5, and the Qwen arm C gate monitor, both on trinity-0-18"
+  }
 }
