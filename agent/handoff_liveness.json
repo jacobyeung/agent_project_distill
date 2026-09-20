@@ -1,8 +1,8 @@
 {
-  "written_utc": "2026-09-20T09:45:00Z",
+  "written_utc": "2026-09-20T11:00:00Z",
   "head": {
-    "commit": "eb7b9bf",
-    "meaning": "distill repo main; adds the 09:45Z handoff doc (docs/DISTILLATION_HANDOFF_20260920_0945Z.md), one commit ahead of the 07:15Z handoff (1ba9193)"
+    "commit": "62bbf23",
+    "meaning": "distill repo main; the 09:45Z handoff doc (docs/DISTILLATION_HANDOFF_20260920_0945Z.md) amended twice in place (7eeaadf correction, 62bbf23 addendum) after the initial eb7b9bf checkpoint; this write adds the 11:00Z handoff doc (docs/DISTILLATION_HANDOFF_20260920_1100Z.md)"
   },
   "command": {
     "session": "trinity-1-3 (Claude Fable 5.1)",
@@ -39,18 +39,33 @@
       "pointer": "D/claude_parser_sensitivity/out/PARSER_SENSITIVITY_20260920.md; agent/scratch/codex_runs/{20260920T095437Z_parser_lenient_review,20260920T100052Z_parser_lenient_rereview}"
     },
     {
-      "what": "composition finding: arm C's training data skews to one relation type with a conflicting frame convention",
-      "count": "57 percent of arm C's training rows are object_rel_direction_medium, carrying an object-centred left-right convention that conflicts with VSTIBench's camera-frame convention -- a candidate explanation for the object-object relative-position regression; validate_training_result requires a complete full-epoch run before publishing a checkpoint, so a one-epoch control retrain launches on trinity-1-3 GPUs 1-4 about 11:00Z to test the hypothesis directly; an error-analysis lane runs in parallel",
-      "pointer": "D/claude_armc_1epoch_control/ (publish root /data3/jjyeung/ddp_onethinker_c1ep_onethinker_20260920T1100Z); D/claude_armc_error_analysis/"
+      "what": "composition finding superseded by error analysis: root cause is target design, not epoch count or category skew alone",
+      "count": "D/claude_armc_error_analysis/out/ARMC_ERROR_ANALYSIS_20260920.md finds compact v1c targets never state the number-to-answer mapping; 42 percent of rows carry a degenerate fallback line (\"a numerical result is approximately ... in unspecified units\"); of arm C's 3,052 training rows, 1,743 (57 percent) are object_rel_direction_medium, then 794 rel_distance, 202 appearance_order, 148 counting, 138 abs_distance, 27 size; at generation time arm C falls back on 691 of 1,688 rel_direction rows and on every distance-family row, while 1,018 rows do name the cross product; a checkpoint-eval sweep over arm C's intermediate checkpoints has also landed",
+      "pointer": "D/claude_armc_error_analysis/out/ARMC_ERROR_ANALYSIS_20260920.md; D/claude_armc_ckpt100_eval/out/RESULTS_VSTIBENCH_CKPT.md (checkpoint copies /data3/jjyeung/armc_diagnostic_checkpoints_20260920/)"
+    },
+    {
+      "what": "one-epoch composition-control retrain: launching, fourth attempt after two failures",
+      "count": "attempt 1 failed rc 1 at 10:40Z; a second job (jihop2) took trinity-1-3 GPUs 0-4,7 at 10:42Z then released them; attempt 2's bind failed at 10:48:47Z on the lane's own bug (retry script never cd'ed into the trainer worktree), now fixed; attempt 4 sat in the 90-second GPU-stability gate at 10:50Z; once published, VSTI/VSI cells run against it, then the format-A distilled-baseline VSI ablation resumes on GPUs 3-4",
+      "pointer": "D/claude_armc_1epoch_control/ (publish root /data3/jjyeung/ddp_onethinker_c1ep_onethinker_20260920T1100Z); D/claude_eval_cells_f09e526/out/launch/resume_distbase_vsi.sh"
+    },
+    {
+      "what": "free-form rewrite arm HELD: length is not the lever, the named calculation is",
+      "count": "0 of 1,688 rel_direction rows in the rewrite name a derivation despite a median 1,453 assistant tokens vs. compact's 427 (3.4x longer); staged at /data2/jjyeung/agent_project_data/student_diagnostic_pilot_20260918/diagnostic_set_rewrite_v31_20260920/ (2,937 train, 361 held out, inherited split); HOLD stands, no training slot on this result",
+      "pointer": "D/claude_rewrite_trainset_stage/out/{HOLD.md,RUN_REWRITE_R1.md,TARGET_COMPARISON.md,REVIEW_REQUEST_INHERIT_SPLIT.md}"
+    },
+    {
+      "what": "split-inheritance mechanism and compact v2 converter, both in review or in progress",
+      "count": "trainer's --inherit-split (prepare-protocol --inherit-split, 7 tests) sits on branch trainer-split-inherit-20260920 at tip fa2ada4, awaiting one Astra review bundled with compact v2; compact v2 (Devin lane devin_compact_v2_converter) has all 3,431 qids pinned, trace-bound direction rules covering 1,461 of 1,883 rel_direction rows (77.6 percent), 40 new tests passing; addendum BRIEF_ADDENDUM_1.md confines v2 to the stated sign-to-label rule plus answer words and tells it to reuse --inherit-split; output set diagnostic_set_compact_v2_20260920, not yet reviewed or trained on",
+      "pointer": "branch trainer-split-inherit-20260920 at fa2ada4; /home/jjyeung/agent_project/agent/scratch/devin_lanes/devin_compact_v2_converter/"
     },
     {
       "what": "collector r1315, holding the hard ceiling",
-      "count": "36 workers; 12,043 finalized at 09:30Z, 260-400 traces/hour, zero 503s and zero 429s all morning; TPM reader pid 3381708 alive; observer cycle 2 (Sonnet, 30-minute cadence) started 09:10Z",
-      "pointer": "R/{WATCHDOG_HEALTH.json,TPM_READOUT.json}; D/collector_watch/NOTES.md"
+      "count": "36 workers; 12,458 finalized at 10:43Z, 280-400 traces/hour over 30-minute windows, stall time 0 seconds, one 503 in the last 15 minutes; controller pid 2793217, watchdog pid 2787751; at 300/hour the 20,000 mark projects to about 2026-09-21 12:00Z; REQ-234 rule now operational -- step to 28 workers via the RAMP recipe on an inbox notice or a 15-minute 503 count above 8",
+      "pointer": "R/{WATCHDOG_HEALTH.json,TPM_READOUT.json}; D/collector_watch/{NOTES.md,RAMP_20260920T0552Z.md}"
     },
     {
-      "what": "accepted-count census, in progress",
-      "count": "pid 1485178 on trinity-1-13 (started 05:39Z) moved to best-effort I/O class at 09:31:43Z under a 20-minute collector-revert guard; summary has not landed; last completed census (2026-09-19) shows 5,146 accepted of 6,566 finalized; stage 2 (zero-call v3 recovery replay, Devin builder) fires when the summary lands",
+      "what": "accepted-count census, still in progress",
+      "count": "pid 1485178 on trinity-1-13 has run about 5 hours, 594 GiB logical read, no fraction-done signal and no ETA; landing watch is on its third cycle, armed; stage 2 (recovery plus strip only) stays staged for a Devin launcher once the census summary lands",
       "pointer": "D/claude_compact_convert_newer/{census_20260920.log,HEARTBEAT_census.log,out/REPRIORITIZE.json,out/CENSUS_PROGRESS.md,out/BRIEF_devin_stage2.md,out/BRIEF_luna_devin_launch.md}"
     },
     {
@@ -69,28 +84,33 @@
       "pointer": "D/claude_r1316_epoch_branch/{work/r1316,out/EPOCH_PREP.md}; agent/scratch/codex_runs/{20260920T061807Z_r1316_epoch_review,20260920T062843Z_r2,20260920T063624Z_r3}"
     },
     {
-      "what": "wave 1 (ScanNet++) preparation, Devin Astra max, near complete",
-      "count": "700 scenes, 93,432 eligible questions; 575 or more of 700 prepared at 09:28Z, 95 percent pass rate on the FIRST100 sample; completion expected about 09:50Z, roughly 665 scenes and 88,000 questions; registries REGISTRY_N.json every 25 scenes, collector_admission=false; wave 2 (ScanNet, 1,046 scenes, scannet_v2 preparer, 65 membership-v3 scenes first) staged to follow on the same node",
-      "pointer": "D/devin_poolext_wave1_scannetpp/; /home/jjyeung/agent_project/agent/scratch/devin_lanes/devin_poolext_wave1_scannetpp/; runtime_control/gt_teacher_r1313/poolext_wave1_scannetpp/"
+      "what": "wave 1 (ScanNet++) preparation, closed",
+      "count": "700 scenes attempted: 638 prepared, 58 refused, 4 deferred; 87,394 eligible questions; REGISTRY_638.json (sha 7a15748 prefix) carries collector_admission=false pending review; wave 2 (ScanNet, scannet_v2 preparer) followed on the same node",
+      "pointer": "D/devin_poolext_wave1_scannetpp/; runtime_control/gt_teacher_r1313/poolext_wave1_scannetpp/"
     },
     {
-      "what": "ARKitScenes download in progress",
-      "count": "user ruled 08:00Z to download to /data3/shared/datasets/; targeted download of 2,899 captures (273 GiB zips, about 340 GB on disk) at /data3/shared/datasets/arkitscenes/3dod/; 2,806 of 2,899 at 09:28Z, zero failures, 583 GB free",
+      "what": "wave 2 (ScanNet) preparation, extracting",
+      "count": "attempt 4 live, pid 3723834 on trinity-0-13 since 10:36Z; 1,046 scenes, 63,673 eligible questions, currently extracting frames",
+      "pointer": "D/devin_poolext_wave1_scannetpp/out/{W2_PROGRESS.md,W2_STATUS.md}"
+    },
+    {
+      "what": "ARKitScenes download, status not refreshed this window",
+      "count": "last known: 2,806 of 2,899 captures down at 09:28Z, zero failures, 583 GB free; no update given this checkpoint",
       "pointer": "D/claude_arkitscenes_download/"
     },
     {
-      "what": "ARKitScenes adapter pilot, Devin Astra max",
-      "count": "pid 1801189 on trinity-1-13; candidate package gt_adapters/arkit_3dod_v1 on branch poolext/arkit_adapter_20260920, 44 tests; blocker -- the VSI export video (480x640 portrait, 30 fps, 1,997 frames) is a rotated 2.5x re-encode of 3DOD lowres_wide (256x192, 10 Hz, 660 frames, device clock from 98.764 s); ruling 09:45Z sets declared rotation/resize, pixel-matched clock offset on >=5 anchors, ARKit-only 10 Hz nearest-slot snapping, no pose interpolation, all as sealing-review items; RAW 30 Hz download is the fallback; separately, collector_admission=false is procedural only, not enforced by collect.py's registry_rows (lines 92-104)",
-      "pointer": "D/devin_arkit_adapter/; /home/jjyeung/agent_project/agent/scratch/devin_lanes/devin_arkit_adapter/"
+      "what": "ARKitScenes adapter pilot v5, refusing almost every scene",
+      "count": "40 of 50 scenes attempted, 0 prepared, 36 refused (clock_offset_unresolved 11, other 21, slot_policy 4); a sharp reversal from the prior '44 tests, building the adapter' status -- the pixel-matched clock-offset approach ruled 09:45Z is not clearing scenes in practice; REPORT_v5.md pending; whether to keep iterating it or fall back to the RAW 30 Hz download is now open",
+      "pointer": "D/devin_arkit_adapter/{REPORT_v5.md,TEST_RESULT_v5.json}"
     },
     {
-      "what": "trinity-0-13 GPUs retaken by a new vLLM server",
-      "count": "user killed the idle r1070 vLLM servers at 07:50Z (GPU 6 keeps sam3_daemon_r1200, pid 48578); about 08:03Z a new six-way vLLM server (EngineCore pid 3643013, workers 3643571-3643584) took GPUs 0-5 again; owner unidentified, user decision pending on killing it again; this blocks the Qwen arm C (world-6) launcher, which polls to 12:00Z with fallback trinity-0-18 at world 8 after r6 publishes (about 19:45Z)",
-      "pointer": "D/claude_qwen_r5_resume/out/{GATE_WAIT_c1b.log,BLOCKED_c1.md}"
+      "what": "trinity-0-13 GPUs cleared and reclaimed; Qwen arm C launched",
+      "count": "the six-way vLLM server holding GPUs 0-5 was the main repository's own top-up replica (EngineCore process, then orphaned workers); the user killed it and all six cards cleared by 10:47Z, resolving the prior ownership question; the Qwen arm C (compact targets, world-6) launcher then took GPUs 0-5 at 10:44:42Z under vnice, run root /scratch/jjyeung/ddp_qwen35_c_qwen_20260920T0800Z_r1, leases running 30 hours to 2026-09-21T16:44Z; status STAGING at 10:50Z, step 1 expected 10:55-11:05Z; launch_c2.sh is superseded by this live launch",
+      "pointer": "D/claude_qwen_r5_resume/out/{HEARTBEAT_c1.log,PROGRESS_c1.md,ADMISSION_c1.md}"
     },
     {
       "what": "Qwen3.5-9B arm A r6 progress",
-      "count": "step 75/246 at 09:20Z, loss 0.090; checkpoints at steps 25 and 50 confirmed; publication expected about 19:45Z; needs the cadence republish afterward",
+      "count": "step 99/246 at 10:48Z, loss 0.084, 218 seconds/step, checkpoint step_82 confirmed; ETA about 19:45Z; after publish, the cadence republish runs, then Qwen adapter cells on harness 58794b8",
       "pointer": "D/claude_trainer_publish_cadence/out/QWEN_R6_NOTE.md; run root /scratch/jjyeung/ddp_qwen35_a_qwen_20260920T0400Z_r6; publish root /data3/jjyeung/ddp_qwen35_a_qwen_20260920T0400Z_r6"
     }
   ],
@@ -100,8 +120,8 @@
       "host": "trinity-1-3",
       "pid_or_artifact": "watchdog pid 2787751; controller pid 2793217; TPM reader pid 3381708",
       "health_check": "cat R/WATCHDOG_HEALTH.json; cat R/TPM_READOUT.json",
-      "status": "36 workers, hard ceiling; 12,043 finalized at 09:30Z, 260-400 traces/hour, zero 503s and zero 429s all morning",
-      "gate": "never change collector/ on main while it runs; no remote workers, no drain, hold both pending the r1316 epoch; top priority under contention",
+      "status": "36 workers, hard ceiling; 12,458 finalized at 10:43Z, 280-400 traces/hour over 30-minute windows, stall time 0 seconds, one 503 in the last 15 minutes; at 300/hour the 20,000 mark projects to about 2026-09-21 12:00Z",
+      "gate": "never change collector/ on main while it runs; no remote workers, no drain, hold both pending the r1316 epoch; top priority under contention; step to 28 workers via the RAMP recipe on a REQ-234 inbox notice or a 15-minute 503 count above 8",
       "next_on_completion": "continue toward 20,000 accepted; relaunch from the r1316 epoch checkout once root A's unattempted count falls under 64",
       "survives_session": true
     },
@@ -110,7 +130,7 @@
       "host": "trinity-1-13",
       "pid_or_artifact": "pid 1485178; D/claude_compact_convert_newer/{census_20260920.log,HEARTBEAT_census.log}",
       "health_check": "tail -n 20 D/claude_compact_convert_newer/census_20260920.log",
-      "status": "moved to best-effort I/O class at 09:31:43Z under a 20-minute collector-revert guard; summary not yet landed",
+      "status": "about 5 hours running, 594 GiB logical read, no fraction-done signal and no ETA; landing watch on its third cycle, armed",
       "gate": "one bulk render at a time on /data2 while the collector runs; revert to idle class if the collector shows contention",
       "next_on_completion": "feeds stage 2 (zero-call v3 recovery), then strip_calculations_v1, then compact_counted_v1.py",
       "survives_session": true
@@ -126,13 +146,13 @@
       "survives_session": true
     },
     {
-      "lane": "wave 1 (ScanNet++) preparation, Devin Astra max",
+      "lane": "wave 2 (ScanNet) preparation, Devin Astra max (wave 1 closed: 638 prepared, 58 refused, 4 deferred of 700, 87,394 eligible questions, REGISTRY_638.json sha 7a15748 prefix, collector_admission=false)",
       "host": "trinity-0-13",
-      "pid_or_artifact": "pid 3541369; workspace /home/jjyeung/agent_project/agent/scratch/devin_lanes/devin_poolext_wave1_scannetpp/",
-      "health_check": "ls -t D/devin_poolext_wave1_scannetpp/*.json | head",
-      "status": "575 or more of 700 prepared at 09:28Z, 95 percent pass on FIRST100; completion expected about 09:50Z",
-      "gate": "registries REGISTRY_N.json every 25 scenes, collector_admission=false until reviewed",
-      "next_on_completion": "wave 2 (ScanNet, 1,046 scenes, scannet_v2 preparer) follows on the same node",
+      "pid_or_artifact": "pid 3723834 (attempt 4); workspace /home/jjyeung/agent_project/agent/scratch/devin_lanes/devin_poolext_wave1_scannetpp/",
+      "health_check": "tail -n 20 D/devin_poolext_wave1_scannetpp/out/W2_PROGRESS.md",
+      "status": "live since 10:36Z; 1,046 scenes, 63,673 eligible questions, currently extracting frames",
+      "gate": "collector_admission=false until reviewed; wave 1's registry review still pending",
+      "next_on_completion": "land REGISTRY_N.json for the prepared wave-2 scenes, then feed the pool extension",
       "survives_session": true
     },
     {
@@ -140,9 +160,9 @@
       "host": "trinity-1-3 GPUs 1-4",
       "pid_or_artifact": "driver pid 3359282; D/claude_eval_cells_f09e526/out/{launch/drive58_armc.sh,RESULTS_VSIBENCH.md,RESULTS_VSTIBENCH.md,RESULTS_QWEN_VSTIBENCH_BASE.md}",
       "health_check": "tail -n 20 D/claude_eval_cells_f09e526/out/QWEN_RATE.log",
-      "status": "arm C vs. base published on both VSTIBench and VSIBench; both primary gains are mostly parsing artifacts -- VSTIBench base leads arm C 58.26 to 51.06 on the paired subset, VSIBench holds up only for object_rel_direction_easy/hard; format-A distilled-baseline VSI ablation follows on GPUs 1-2",
-      "gate": "58794b8 production harness only, decode budget 4,096; cells never pair across harness commits; GPUs 5-6 held by the main repo's r1326 replica vLLM server, not available to this lane; GPUs 1-4 also host the one-epoch control retrain about 11:00Z, sequencing unresolved",
-      "next_on_completion": "run the format-A distilled-baseline VSI ablation",
+      "status": "arm C vs. base published on both VSTIBench and VSIBench; both primary gains are mostly parsing artifacts -- VSTIBench base leads arm C 58.26 to 51.06 on the paired subset, VSIBench holds up only for object_rel_direction_easy/hard; error analysis now traces the remaining VSIBench gain to a target-design defect rather than genuine reasoning; sequencing resolved -- the one-epoch control retrain runs first, then VSTI/VSI cells against it, then the format-A distilled-baseline VSI ablation resumes on GPUs 3-4",
+      "gate": "58794b8 production harness only, decode budget 4,096; cells never pair across harness commits; GPUs 5-6 held by the main repo's r1326 replica vLLM server, not available to this lane",
+      "next_on_completion": "run VSTI/VSI cells against the one-epoch control checkpoint, then resume the format-A distilled-baseline VSI ablation (resume_distbase_vsi.sh)",
       "survives_session": true
     },
     {
@@ -150,19 +170,19 @@
       "host": "trinity-0-18 (vnice-wrapped)",
       "pid_or_artifact": "run root /scratch/jjyeung/ddp_qwen35_a_qwen_20260920T0400Z_r6; publish root /data3/jjyeung/ddp_qwen35_a_qwen_20260920T0400Z_r6",
       "health_check": "tail -n 10 D/claude_qwen_r5_resume/out/HEARTBEAT_r6.log",
-      "status": "step 75/246 at 09:20Z, loss 0.090; checkpoints at steps 25 and 50 confirmed; ETA about 19:45Z",
+      "status": "step 99/246 at 10:48Z, loss 0.084, 218 seconds/step; checkpoint step_82 confirmed; ETA about 19:45Z",
       "gate": "trinity-0-18 usable only for vnice-wrapped resumable jobs; judge liveness from metrics.jsonl growth and the torchrun pid, never the wrapper",
-      "next_on_completion": "publish, then republish under the run-control cadence; retire the stale Qwen arm C gate (pid 752616)",
+      "next_on_completion": "publish, then republish under the run-control cadence, then Qwen adapter cells on harness 58794b8; retire the stale Qwen arm C gate (pid 752616)",
       "survives_session": true
     },
     {
-      "lane": "Qwen arm C (compact targets, world-6) c1 launcher, blocked",
-      "host": "trinity-0-13 (target; blocked by GPU retake)",
-      "pid_or_artifact": "D/claude_qwen_r5_resume/out/{GATE_WAIT_c1b.log,BLOCKED_c1.md}",
-      "health_check": "tail -n 20 D/claude_qwen_r5_resume/out/GATE_WAIT_c1b.log",
-      "status": "polling to 12:00Z; blocked by the new six-way vLLM server (EngineCore pid 3643013) holding GPUs 0-5",
-      "gate": "owner of pid 3643013 unidentified; fallback is trinity-0-18 at world 8 after r6 publishes, about 19:45Z",
-      "next_on_completion": "launch once GPUs free or the fallback window opens",
+      "lane": "Qwen arm C (compact targets, world-6) c1, launched",
+      "host": "trinity-0-13 GPUs 0-5 (vnice)",
+      "pid_or_artifact": "D/claude_qwen_r5_resume/out/{HEARTBEAT_c1.log,PROGRESS_c1.md,ADMISSION_c1.md}; run root /scratch/jjyeung/ddp_qwen35_c_qwen_20260920T0800Z_r1",
+      "health_check": "tail -n 20 D/claude_qwen_r5_resume/out/HEARTBEAT_c1.log",
+      "status": "launched 10:44:42Z; lease runs 30 hours to 2026-09-21T16:44Z; STAGING at 10:50Z, step 1 expected 10:55-11:05Z",
+      "gate": "the blocking vLLM replica was the main repo's own top-up server, killed by the user; launch_c2.sh is superseded by this live launch; judge liveness from metrics.jsonl growth and the torchrun pid",
+      "next_on_completion": "publish, then republish under the run-control cadence",
       "survives_session": true
     },
     {
@@ -180,19 +200,39 @@
       "host": "trinity-1-3 GPUs 1-4",
       "pid_or_artifact": "D/claude_armc_1epoch_control/; publish root /data3/jjyeung/ddp_onethinker_c1ep_onethinker_20260920T1100Z",
       "health_check": "tail -n 20 D/claude_armc_1epoch_control/out/HEARTBEAT.log",
-      "status": "launching about 11:00Z to test whether the 57 percent object_rel_direction_medium composition and its object-centred convention explain the object-object relative-position regression",
-      "gate": "validate_training_result requires a complete full-epoch run before publishing a checkpoint; shares trinity-1-3 GPUs 1-4 with the format-A distilled-baseline VSI ablation, sequencing unresolved",
+      "status": "on its fourth launch attempt: attempt 1 failed rc 1 at 10:40Z; a second job (jihop2) took GPUs 0-4,7 at 10:42Z then released; attempt 2's bind failed at 10:48:47Z on the lane's own bug (retry script never cd'ed into the trainer worktree), now fixed; attempt 4 sat in the 90-second GPU-stability gate at 10:50Z",
+      "gate": "validate_training_result requires a complete full-epoch run before publishing a checkpoint; sequencing with the format-A distilled-baseline VSI ablation resolved -- this retrain runs first",
       "next_on_completion": "compare against arm C's full checkpoint on the same VSTIBench cell",
       "survives_session": true
     },
     {
-      "lane": "arm C error analysis",
+      "lane": "arm C error analysis, landed",
       "host": "not recorded in the source brief",
-      "pid_or_artifact": "D/claude_armc_error_analysis/",
-      "health_check": "ls -t D/claude_armc_error_analysis/out/*.md | head",
-      "status": "running in parallel with the one-epoch control retrain",
+      "pid_or_artifact": "D/claude_armc_error_analysis/out/ARMC_ERROR_ANALYSIS_20260920.md",
+      "health_check": "cat D/claude_armc_error_analysis/out/ARMC_ERROR_ANALYSIS_20260920.md",
+      "status": "complete: root cause is target design, not epoch count -- compact v1c never states the number-to-answer mapping, 42 percent of rows fall back to a degenerate line; feeds compact v2's converter fix",
       "gate": "none recorded",
-      "next_on_completion": "feeds the per-type error analysis of the obj_obj regression",
+      "next_on_completion": "superseded by compact v2 (devin_compact_v2_converter)",
+      "survives_session": false
+    },
+    {
+      "lane": "compact v2 converter, Devin Astra max",
+      "host": "not recorded in the source brief",
+      "pid_or_artifact": "workspace /home/jjyeung/agent_project/agent/scratch/devin_lanes/devin_compact_v2_converter/",
+      "health_check": "ls -t /home/jjyeung/agent_project/agent/scratch/devin_lanes/devin_compact_v2_converter/*.md | head",
+      "status": "all 3,431 qids pinned; trace-bound direction rules cover 1,461 of 1,883 rel_direction rows (77.6 percent); 40 new tests pass",
+      "gate": "confined to the stated sign-to-label rule plus answer words per BRIEF_ADDENDUM_1.md; reuses --inherit-split; not yet reviewed",
+      "next_on_completion": "bundled Astra review with the trainer-split-inherit-20260920 branch, then admission decision on diagnostic_set_compact_v2_20260920",
+      "survives_session": true
+    },
+    {
+      "lane": "free-form rewrite arm, HELD after this result",
+      "host": "not recorded in the source brief",
+      "pid_or_artifact": "D/claude_rewrite_trainset_stage/out/{HOLD.md,RUN_REWRITE_R1.md,TARGET_COMPARISON.md,REVIEW_REQUEST_INHERIT_SPLIT.md}",
+      "health_check": "cat D/claude_rewrite_trainset_stage/out/HOLD.md",
+      "status": "0 of 1,688 rel_direction rows name a derivation despite 3.4x the token length (median 1,453 vs. 427); length is not the lever, the named calculation is",
+      "gate": "HOLD stands; no training slot on this result",
+      "next_on_completion": "none pending; superseded by compact v2's stated-rule approach",
       "survives_session": false
     },
     {
@@ -200,9 +240,9 @@
       "host": "trinity-1-13",
       "pid_or_artifact": "pid 1801189; workspace /home/jjyeung/agent_project/agent/scratch/devin_lanes/devin_arkit_adapter/; branch poolext/arkit_adapter_20260920",
       "health_check": "ls -t D/devin_arkit_adapter/*.json | head",
-      "status": "candidate package gt_adapters/arkit_3dod_v1, 44 tests; blocked on sealing review of the rotation/clock-offset/slot-snapping ruling (09:45Z)",
-      "gate": "declared rotation and resize, pixel-matched clock offset on >=5 anchors, ARKit-only 10 Hz nearest-slot snapping, no pose interpolation -- all sealing-review items",
-      "next_on_completion": "sealing review sign-off, then admission into the pool extension",
+      "status": "pilot v5: 40 of 50 scenes attempted, 0 prepared, 36 refused (clock_offset_unresolved 11, other 21, slot_policy 4); the pixel-matched clock-offset approach ruled 09:45Z is not clearing scenes in practice; REPORT_v5.md pending",
+      "gate": "declared rotation and resize, pixel-matched clock offset on >=5 anchors, ARKit-only 10 Hz nearest-slot snapping, no pose interpolation -- all sealing-review items; open decision whether to keep iterating or fall back to the RAW 30 Hz download",
+      "next_on_completion": "REPORT_v5.md, then a decision on the clock-offset approach before sealing review",
       "survives_session": true
     },
     {
@@ -213,16 +253,6 @@
       "status": "parked, no free node",
       "gate": "needs a free 4-GPU 48 GB block on trinity-1-13, currently held by zixinguo",
       "next_on_completion": "relaunch when a block frees",
-      "survives_session": false
-    },
-    {
-      "lane": "free-form rewrite ablation",
-      "host": "none (parked)",
-      "pid_or_artifact": "/data2/jjyeung/agent_project_data/devin_lane_out/converter_freeform_v3_20260919_out/OUTCOMES_bulk_v3_1.jsonl",
-      "health_check": "n/a",
-      "status": "ADMIT on fidelity, no training slot",
-      "gate": "training-slot decision, not a fidelity question",
-      "next_on_completion": "assign a slot when one frees",
       "survives_session": false
     },
     {
@@ -237,18 +267,20 @@
     }
   ],
   "round_registry": {
-    "note": "this repo assigns lane names, not round numbers; collector remediation root unchanged (R, defined above), holding at the 36-worker hard ceiling; r1316 epoch branch (epoch/r1316-membership-v3, tip 058368c) sealed and reviewed PASS, staged behind root A's drain; tolerance-tier branch (tolerance-tier-25-20260920, tip 94574b6) ruled and tooled; eval branches eval-allow-checkpoint-20260920 (f09e526, blocked from cells by the attempt-authority guard) and the production checkout eval_instructed_provisional_58794b8 remain the only harness used for cells; arm C's VSTIBench cell against base shows a +3.43 primary gain that is a parsing artifact -- base leads 58.26 to 51.06 on the 394-item paired subset under both strict and lenient parsing, so the lane still lacks a substance win on VSTIBench; arm C's VSIBench +10.88 gain holds up only for object_rel_direction_easy/hard on the paired subset; lenient-parser branch (parser-lenient-20260920, tip bdd490c) is reviewed PASS; a composition hypothesis (57 percent object_rel_direction_medium, wrong-frame convention) is under a one-epoch control retrain; Qwen arm A on r6 (trainer ad96f47) at step 75/246"
+    "note": "this repo assigns lane names, not round numbers; collector remediation root unchanged (R, defined above), holding at the 36-worker hard ceiling, 12,458 finalized at 10:43Z; r1316 epoch branch (epoch/r1316-membership-v3, tip 058368c) sealed and reviewed PASS, staged behind root A's drain; tolerance-tier branch (tolerance-tier-25-20260920, tip 94574b6) ruled and tooled; eval branches eval-allow-checkpoint-20260920 (f09e526, blocked from cells by the attempt-authority guard) and the production checkout eval_instructed_provisional_58794b8 remain the only harness used for cells; arm C's VSTIBench +3.43 primary gain remains a parsing artifact (base leads 58.26 to 51.06 on the paired subset); arm C's VSIBench +10.88 gain holds up only for object_rel_direction_easy/hard, and the error-analysis lane now attributes the rest to a target-design defect (42 percent of compact v1c rows fall back to a degenerate answer line, missing the number-to-answer mapping) rather than genuine reasoning gain; the free-form rewrite arm is HELD (length does not fix the mapping problem); compact v2 (devin_compact_v2_converter) and the split-inheritance branch (trainer-split-inherit-20260920, tip fa2ada4) are the queued fix, pending one bundled Astra review; the one-epoch composition-control retrain is on its fourth launch attempt; trinity-0-13's six GPUs are this lane's own again and Qwen arm C (world-6) launched 10:44:42Z; Qwen arm A on r6 (trainer ad96f47) at step 99/246; wave 1 (ScanNet++) closed at 638/700 prepared, wave 2 (ScanNet) extracting; the ARKitScenes adapter pilot v5 refuses 36 of 40 attempted scenes"
   },
   "open_user_decisions": [
     "No reply yet: whether the trinity-3-13 successor session will hold shared lanes (D/INBOX_TO_SUCCESSOR_ORCHESTRATOR_20260920T0335Z.md)",
     "No reply yet: whether the non-training orchestrator can release trinity-1-3 GPUs 5-6, held by its r1326 replica vLLM server (D/INBOX_TO_NONTRAINING_ORCHESTRATOR_20260920T0550Z.md)",
     "No reply yet: REQ-20260920-234's Gemini-key concurrency and start time, against this lane's proposed 8-episode cap with a collector step-down to 28 (D/INBOX_TO_SUCCESSOR_ORCHESTRATOR_20260920T0855Z.md)",
-    "Owner of trinity-0-13's new six-way vLLM server (EngineCore pid 3643013) is unidentified; whether to kill it again",
+    "Resolved this window: trinity-0-13's six-way vLLM server was the main repo's own top-up replica; the user killed it and this lane now trains Qwen arm C on those six cards",
     "Membership size: 105,000 rows (default) vs. the 153,412-row full complement",
     "Whether to trust the local Devin workspace interactively beyond the distill repo (trusted 07:32Z)",
     "Retire the old Qwen arm C gate (pid 752616) in favor of its r6 replacement",
     "Confirm the 09-24 numbers freeze on root A, expected about 09-22 12:00Z",
-    "ARKitScenes adapter sealing review: the declared-rotation/resize, pixel-matched clock-offset, and 10 Hz nearest-slot snapping ruling (09:45Z), and separately whether collector_admission=false should become enforced in collect.py's registry_rows",
+    "ARKitScenes adapter sealing review, now compounded: the pixel-matched clock-offset ruling (09:45Z) refuses 36 of 40 attempted scenes in the v5 pilot; whether to keep iterating it or fall back to the RAW 30 Hz download, and separately whether collector_admission=false should become enforced in collect.py's registry_rows",
+    "Whether to admit compact v2 (diagnostic_set_compact_v2_20260920) and the split-inheritance branch once the bundled Astra review lands, and whether it replaces v1c as the next training input",
+    "Whether the rewrite arm (HELD on this result) gets any training slot going forward",
     "Whether object_rel_distance candidates with only positional answer support (about 400 of 977 in the compact set) are acceptable training targets or need a separate admission tier",
     "Adopt the tiered target-admission rubric (Tier I blocks, Tier II recorded) as the definition for bulk conversion",
     "Preparers needed for ADT, ProcTHOR, S3DIS (ScanNet v3 stays parked; ARKitScenes now has an adapter in review)",
@@ -261,7 +293,7 @@
     "run the collector past 36 workers, run remote workers, or drain, given the scale-out judge's verdict",
     "use eval-allow-checkpoint-20260920 (f09e526) to regenerate a base cell; the attempt-authority guard forbids it",
     "launch on trinity-3-23, trinity-0-3, trinity-0-28, trinity-1-8, trinity-2-13, trinity-0-8, trinity-1-18, or trinity-0-23",
-    "touch trinity-1-13 GPUs 2-5 (zixinguo's live job), trinity-0-13's six cards (held by EngineCore pid 3643013), or trinity-1-3 GPUs 5-6 (the main repo's r1326 replica vLLM server) without a reply confirming release or ownership",
+    "touch trinity-1-13 GPUs 2-5 (zixinguo's live job) or trinity-1-3 GPUs 5-6 (the main repo's r1326 replica vLLM server) without a reply confirming release; trinity-0-13's six cards are now this lane's own and host Qwen arm C",
     "launch an unwrapped job on trinity-0-18; every launch there is vnice-wrapped",
     "provision a second Gemini key, or let REQ-20260920-234 draw on the key before a concurrency cap and start time are agreed",
     "judge training liveness from the wrapper process; check metrics.jsonl growth and the torchrun pid instead",
@@ -273,8 +305,10 @@
     "fast-forward the r1316 epoch branch to main before root A's collector stops",
     "build a training-set split without running holdout_stability_check.py against every previously published split record",
     "cite arm C's +3.43 VSTIBench primary-accuracy gain as a substance win; base leads 58.26 to 51.06 on the 394-item paired subset",
-    "cite arm C's +10.88 VSIBench primary-accuracy gain as a clean substance win; only object_rel_direction_easy/hard hold up on the 407-item paired subset",
-    "treat ARKitScenes-derived targets as admitted before sealing review rules on the rotation/clock-offset/slot-snapping approach"
+    "cite arm C's +10.88 VSIBench primary-accuracy gain as a clean substance win; only object_rel_direction_easy/hard (and, per the lenient pass, room_size) hold up, and the error-analysis lane traces the rest to a target-design defect, not a reasoning gain",
+    "treat ARKitScenes-derived targets as admitted before sealing review rules on the rotation/clock-offset/slot-snapping approach; the v5 pilot is currently refusing 36 of 40 attempted scenes under that approach",
+    "train from diagnostic_set_compact_v2_20260920 or the trainer-split-inherit-20260920 branch before the bundled Astra review lands",
+    "give the free-form rewrite arm a training slot on the strength of length alone; it is HELD after 0 of 1,688 rel_direction rows named a derivation despite 3.4x the token length"
   ],
   "session_notes": [
     "This session took command at 03:25Z on the user's direct instruction; the prior trinity-1-3 session's pass-off note is at D/PASSOFF_FROM_TRINITY_1_3_SESSION_20260920T0319Z.md",
@@ -285,8 +319,13 @@
     "Wave 1 (ScanNet++) is on track for a 09:50Z completion at a 95 percent prepare rate per the FIRST100 sample",
     "REQ-20260920-234 is a new cross-orchestrator request for shared Gemini-key capacity; this lane has proposed a cap and step-down rather than granting or refusing outright",
     "VSIBench told the same story as VSTIBench: most of arm C's +10.88 primary gain is a parse effect, and only two per-type deltas (object_rel_direction_easy/hard) survive on the paired subset; the lenient parser confirms rather than reverses the VSTIBench reading",
-    "57 percent of arm C's training rows share one relation type with a frame convention that conflicts with VSTIBench, a plausible cause for the object-object regression; a one-epoch control retrain is testing it directly rather than waiting on the full checkpoint",
-    "The old Qwen arm C gate (pid 752616) is inert (points at dead r5) and is queued for retirement in favor of the r6 replacement brief"
+    "The old Qwen arm C gate (pid 752616) is inert (points at dead r5) and is queued for retirement in favor of the r6 replacement brief",
+    "This window: the error-analysis lane replaced the composition hypothesis with a sharper one -- compact v1c never states the number-to-answer mapping, and 42 percent of rows fall back to a degenerate line; the one-epoch control retrain is now a live test of the older hypothesis, running in parallel with the converter fix (compact v2)",
+    "The free-form rewrite arm's result rules out length as the fix: 0 of 1,688 rel_direction rows named a derivation despite 3.4x the token length, so the arm is HELD and compact v2's stated sign-to-label rule is the live remediation path instead",
+    "trinity-0-13's six-way vLLM server turned out to be the main repository's own top-up replica; the user killed it, all six cards cleared, and Qwen arm C (world-6) launched at 10:44:42Z, resolving the open ownership question from 09:45Z",
+    "Wave 1 (ScanNet++) closed at 638 of 700 prepared (58 refused, 4 deferred); wave 2 (ScanNet) is now extracting frames on the same node, attempt 4",
+    "The ARKitScenes adapter pilot reversed from an optimistic '44 tests, building' status to refusing 36 of 40 attempted scenes under the pixel-matched clock-offset approach ruled 09:45Z; the RAW 30 Hz fallback is now a live option, not just a contingency",
+    "The collector crossed 12,458 finalized at 10:43Z at 280-400/hour with a single 503 in 15 minutes; the REQ-234 step-down rule (36 to 28 workers) is now operational on notice or a 503 spike, independent of a reply on the inbox proposal"
   ],
   "survives_vs_dies": {
     "survives": [
@@ -295,27 +334,29 @@
       "Qwen arm A r6 (trinity-0-18), a real remote training process",
       "the Qwen arm C c1 launcher (trinity-0-13/0-18 fallback), a polling process",
       "the eval drivers: Qwen base VSTI (complete) and arm C's VSI/VSTI cells (trinity-1-3), detached (driver pid 3359282)",
-      "the wave-1 Devin session (trinity-0-13, pid 3541369)",
+      "the wave-2 Devin session (trinity-0-13, pid 3723834)",
       "the census process on trinity-1-13 (pid 1485178)",
       "the ARKitScenes downloader",
-      "the ARKit adapter Devin session (trinity-1-13, pid 1801189)",
-      "the arm C one-epoch control retrain (trinity-1-3 GPUs 1-4), a real remote training process",
+      "the ARKit adapter v5 Devin session (trinity-1-13, pid 1801189)",
+      "the compact v2 converter Devin session (devin_compact_v2_converter)",
+      "the arm C one-epoch control retrain (trinity-1-3 GPUs 1-4), once its fourth attempt clears the stability gate",
+      "the Qwen arm C c1 training process (trinity-0-13 GPUs 0-5), a real remote training process",
       "arm C's republished checkpoint and adapter, and all lane/repo files and git history",
       "any process launched by a Luna lane via ssh with setsid nohup, even on trinity-1-3 itself"
     ],
     "dies_or_stalls": [
       "the observer (collector_watch Sonnet subagent); the underlying ramp it watches survives",
       "the eval-lane babysitter; the cells and drivers it watches survive",
-      "the Qwen babysitter (r6 and the c1 launcher); the processes it watches survive",
-      "the wave-1 babysitter; the Devin session it watches survives",
+      "the Qwen babysitter (r6 and c1); the processes it watches survive",
+      "the wave-2 babysitter; the Devin session it watches survives",
       "the census babysitter and stage-2 launcher; the census process it watches survives",
       "the ARKit download babysitter; the downloader it watches survives",
       "the ARKit adapter babysitter; the Devin session it watches survives",
-      "the arm C error-analysis lane; no pid or detach evidence recorded",
+      "the compact v2 converter babysitter; the Devin session it watches survives",
       "the queue watcher",
       "the 30-minute orchestrator tick; must be recreated by each successor session"
     ]
   },
-  "latest_handoff": "docs/DISTILLATION_HANDOFF_20260920_0945Z.md",
-  "updated_utc": "2026-09-20T09:45:00Z"
+  "latest_handoff": "docs/DISTILLATION_HANDOFF_20260920_1100Z.md",
+  "updated_utc": "2026-09-20T11:00:00Z"
 }
