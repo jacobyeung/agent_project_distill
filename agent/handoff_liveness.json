@@ -1,5 +1,5 @@
 {
-  "written_utc": "2026-09-20T11:50:00Z",
+  "written_utc": "2026-09-20T15:30:00Z",
   "head": {
     "commit": "4edf4ca",
     "meaning": "distill repo main; the 11:00Z checkpoint (arm C VSIBench 42.35 strict vs base 31.47, error analysis, rewrite arm held, trinity-0-13 ours, Qwen arm C launched, one-epoch control relaunching, ARKit pilot refusing); this write adds the 11:50Z handoff doc (docs/DISTILLATION_HANDOFF_20260920_1150Z.md) as a state checkpoint, not a pass-off"
@@ -100,158 +100,114 @@
   ],
   "active_runs": [
     {
-      "lane": "r1315 teacher collector, root A, live",
-      "host": "trinity-1-3",
+      "lane": "r1315 teacher collector, root A, live, relaunched on trinity-3-8",
+      "host": "trinity-3-8",
       "what": "the main trace-collection pipeline; every accepted trace toward the 20,000-trace goal comes from here until root B (r1316) takes over",
-      "pid_or_artifact": "watchdog pid 2787751; controller pid 2793217; TPM reader pid 3381708",
-      "health_check": "cat R/WATCHDOG_HEALTH.json; cat R/TPM_READOUT.json",
-      "status": "36 workers, hard ceiling; 12,686 finalized at 11:21Z, 382/hour over the last 30 minutes, stall 0s, 503 count zero",
-      "gate": "never change collector/ on main while it runs; no remote workers, no drain, hold both pending r1316; top priority under contention; step to 28 workers via the RAMP recipe on a REQ-234 inbox notice or a 15-minute 503 count above 8",
-      "next_on_completion": "continue toward 20,000 accepted; relaunch from the r1316 epoch checkout once root A's unattempted count falls under 64",
+      "pid_or_artifact": "second watchdog pid 2939991 (started 15:20:20Z, v5 remediation script), a separate lease keeper thread, controller launched by the watchdog at 16 workers; lane D/claude_collector_relaunch_20260920T1330Z",
+      "health_check": "cat R/WATCHDOG_HEALTH.json; cat R/TPM_READOUT.json; tail -n 20 R/WATCHDOG_EVENTS.jsonl",
+      "status": "trinity-1-3 died at about 12:58Z holding 12,835 finalized traces (last provider call 12:25:57Z); relaunched on trinity-3-8 under the same identity; a first watchdog on trinity-3-8 died at 15:17Z when a 45-minute receipt scan (12,893 receipts, about 5.1 GB over NFS) let the coordination lease heartbeat age past 1,800 s; a lease keeper now heartbeats independently and a second watchdog has run the controller at 16 workers since 15:20:20Z",
+      "gate": "hold at 16 workers until the Gemini key split with the trinity-3-13 session is agreed; aggregate target under about 6.0M input tokens/min across both sessions (the other session runs 36 workers at about 5.1M/min, measured 13:41Z); never change collector/ on main while it runs; a 45 GB /scratch copy of the run root is staged but paused, resume only at a drain pause",
+      "next_on_completion": "ramp workers up once the key split is agreed; continue toward 20,000 accepted traces; relaunch from the r1316 epoch checkout once root A's unattempted count falls under 64",
       "survives_session": true
     },
     {
       "lane": "r1316 epoch, root B, sealed and staged",
       "host": "trinity-1-3 (worktree); production launch host TBD",
       "what": "the reviewed, contract-verified successor collector root; waits for root A to drain before binding",
-      "pid_or_artifact": "D/claude_r1316_epoch_branch/work/r1316 (branch epoch/r1316-membership-v3, tip 058368c); immutable checkouts /home/jjyeung/agent_project_distill_epochs/{5e3b1c9c011096067b16cfd2e1adccc606f4a429,f053b9b64ddb0873031534b6f52b3c917e4e2a59}",
+      "pid_or_artifact": "D/claude_r1316_epoch_branch/work/r1316 (branch epoch/r1316-membership-v3, tip 058368c)",
       "health_check": "cat D/claude_r1316_epoch_branch/out/EPOCH_PREP.md",
-      "status": "unchanged this hour: sealed, contract verify true, reviewed PASS; dry bind 113 ready_questions, 104,887 pending",
-      "gate": "do not fast-forward main until root A's collector stops; launch when root A's unattempted count falls under 64 (about 2026-09-22) and the wave-1/wave-2 registries validate",
+      "status": "unchanged this checkpoint: sealed, contract verify true, reviewed PASS",
+      "gate": "do not fast-forward main until root A's collector stops; launch when root A's unattempted count falls under 64",
       "next_on_completion": "bind and relaunch the collector from the epoch checkout at r1316",
       "survives_session": true
     },
     {
-      "lane": "accepted-count census",
-      "host": "trinity-1-13",
-      "what": "reads the accumulated raw collector output to count how many rows would survive the v3 recovery pipeline, feeding stage 2",
-      "pid_or_artifact": "D/claude_compact_convert_newer/{census_20260920.log,HEARTBEAT_census.log}",
-      "health_check": "tail -n 20 D/claude_compact_convert_newer/census_20260920.log",
-      "status": "57.6 percent by qid rank at 11:33Z, pace fell to 273 qids/hour, landing now projected 21:45Z-22:00Z",
-      "gate": "one bulk render at a time on /data2 while the collector runs; no second /data2 reader; let it run, no scoped restart; alert threshold 02:00Z",
-      "next_on_completion": "stage 2 (recovery plus strip only) auto-launches on landing; feeds the full-pool v2.1 arm on 2026-09-21",
+      "lane": "compact v2.1 converter build",
+      "host": "trinity-3-8",
+      "what": "Devin Astra max session fixing the derivability defect: adds an admission rule, states centroids as returned, shows rel_direction vector math explicitly",
+      "pid_or_artifact": "wrapper pid 2815847, Devin pid 2815848, launched 13:32:19Z; worktree work/compact_v2_1 on branch compact-v2-1-20260920, 5 commits over base 6d3a4d21ae824ca3dc93e47c6aa9dd85c17612b1, head b5c4f14",
+      "health_check": "git -C /home/jjyeung/agent_project/agent/scratch/devin_lanes/devin_compact_v21_converter/work/compact_v2_1 log --oneline -5",
+      "status": "1,428 of 3,431 candidate rows admitted; VERIFICATION.json, COMPOSITION.md, SPLIT_PROOF.json, TARGET_EXAMPLES.md written; still finishing MATCHED_V1C_SUBSET.json and a phrase census; known coverage gap: zero admitted rows for object_abs_distance, object_rel_distance, room_size_estimation, route_planning out of 854 candidates in those four types",
+      "gate": "the coverage gap means v2.1 alone must not become the sole training set; a planned v2.2 render adds tool-returned distance and footprint values as cited observations (an identity restatement counts as a valid recomputation) once this session exits",
+      "next_on_completion": "dispatch the prepared Astra review (D/claude_compact_v21_review_prep_20260920T1500Z), then launch the v2.2 build",
       "survives_session": true
     },
     {
-      "lane": "wave 2 (ScanNet) preparation",
-      "host": "trinity-0-13",
-      "what": "prepares ScanNet scenes into the pool-extension registry alongside wave 1's closed ScanNet++ batch",
-      "pid_or_artifact": "attempt-4 launch pid 3723834, now running worker pids 3723841 and 3723842; workspace /home/jjyeung/agent_project/agent/scratch/devin_lanes/devin_poolext_wave1_scannetpp/",
-      "health_check": "tail -n 20 D/devin_poolext_wave1_scannetpp/out/W2_PROGRESS.md",
-      "status": "65 of 100 attempted scenes prepared on the first-100 sample; 15,915 questions prepared of 24,070 attempted; finishing about 14:20Z",
-      "gate": "collector_admission=false until reviewed; wave 1's registry review still pending",
+      "lane": "compact v2.1 Astra review, prepared not yet dispatched",
+      "host": "not a persistent process; prep artifacts only",
+      "what": "gate-review brief and dispatch prepared for v2.1, to run once the converter build's remaining outputs land",
+      "pid_or_artifact": "D/claude_compact_v21_review_prep_20260920T1500Z/out/{REVIEW_BRIEF_V21.md,DISPATCH_V21.md}",
+      "health_check": "ls D/claude_compact_v21_review_prep_20260920T1500Z/out/",
+      "status": "brief and dispatch written; waits on MATCHED_V1C_SUBSET.json and the phrase census from the converter build",
+      "gate": "the v2 review's FAIL findings on byte fidelity, census discrepancy, fairness, and derivability (0/30) carry over as questions the v2.1 review must re-check",
+      "next_on_completion": "dispatch to Codex Astra once the converter build reports done",
+      "survives_session": true
+    },
+    {
+      "lane": "OneThinker control eval, cell (b) VSIBench",
+      "host": "trinity-1-3 GPU 6",
+      "what": "scores the one-epoch composition control on VSIBench",
+      "pid_or_artifact": "D/claude_c1ep_eval_cells/out/RESULTS_VSIBENCH_C1EP.md",
+      "health_check": "wc -l D/claude_c1ep_eval_cells/out/RESULTS_VSIBENCH_C1EP.md 2>/dev/null || echo not_yet_written",
+      "status": "101 of 500 questions at 15:21Z, about 260 questions/hour",
+      "gate": "runs under the eval_instructed_provisional_58794b8 production harness only",
+      "next_on_completion": "publish RESULTS_VSIBENCH_C1EP.md alongside base and arm C",
+      "survives_session": true
+    },
+    {
+      "lane": "OneThinker control eval, cell (a) VSTIBench",
+      "host": "waiting on four allowlisted idle cards; shards may spread across hosts",
+      "what": "scores the one-epoch composition control on VSTIBench",
+      "pid_or_artifact": "D/claude_evidence_evals_launch_20260920T1400Z/out/WATCH.log",
+      "health_check": "tail -n 20 D/claude_evidence_evals_launch_20260920T1400Z/out/WATCH.log",
+      "status": "258 of 450 questions completed, then stalled waiting for GPU cards",
+      "gate": "harness pins host allowlist and model paths by hash; staged copies served by bind mounts in a private namespace from /scratch/jjyeung/student_evals",
+      "next_on_completion": "resume and finish once four allowlisted idle cards are available",
+      "survives_session": true
+    },
+    {
+      "lane": "Qwen arm C (compact v1c) c1, resumed",
+      "host": "trinity-0-13 GPUs 0-5",
+      "what": "Qwen fine-tune on the compact v1c target set",
+      "pid_or_artifact": "D/claude_qwen_resume2_20260920T1445Z/out/HEARTBEAT_c1_resume2.log",
+      "health_check": "tail -n 20 D/claude_qwen_resume2_20260920T1445Z/out/HEARTBEAT_c1_resume2.log",
+      "status": "hung at 12:38Z during the NFS storm, hung tree terminated, resumed 15:00:51Z from checkpoint step 25 of 288 through the supervisor path after a direct trainer launch was refused (\"Supervisor ownership check is older than five minutes\")",
+      "gate": "judge liveness from metrics.jsonl growth and the torchrun pid, never the wrapper; resume only through the supervisor path on trinity-0-13",
+      "next_on_completion": "publish once training reaches step 288",
+      "survives_session": true
+    },
+    {
+      "lane": "Qwen arm A r6, HELD",
+      "host": "trinity-0-18 (checkpoint being copied off local scratch)",
+      "what": "format-A Qwen fine-tune; paused pending card availability",
+      "pid_or_artifact": "out/HOLD_r6.md; checkpoint copy target /data3/jjyeung/ddp_qwen35_a_qwen_20260920T0400Z_r6/resume_snapshot_step_125/",
+      "health_check": "cat out/HOLD_r6.md",
+      "status": "hung at 12:23Z at checkpoint step 125 of 246; HELD since 15:00:52Z because another user (mehark) took all eight trinity-0-18 cards under the node's vnice policy",
+      "gate": "trinity-0-18 usable only for vnice-wrapped resumable jobs; resume only once cards are available, from the copied checkpoint, never mid-step",
+      "next_on_completion": "resume from resume_snapshot_step_125 once cards free up on trinity-0-18 or another node",
+      "survives_session": true
+    },
+    {
+      "lane": "wave 2 (ScanNet) pool extraction, finished",
+      "host": "not restated this checkpoint",
+      "what": "prepared ScanNet scenes into the pool-extension registry",
+      "pid_or_artifact": "extraction output on disk",
+      "health_check": "cat D/devin_poolext_wave1_scannetpp/out/W2_PROGRESS.md",
+      "status": "finished: 1,046 scenes attempted, 620 prepared",
+      "gate": "union with wave 1 and the bind-time validator replay deferred until the collector is stable",
       "next_on_completion": "union wave-1 and wave-2 registries by qid, replay the bind-time validator, before r1316 root B binds",
       "survives_session": true
     },
     {
-      "lane": "compact v2 Astra review",
-      "host": "Codex Astra dispatch (not a persistent host process)",
-      "what": "independent gate review of the rendered compact v2 target set against seven questions, including the newly added derivability threshold",
-      "pid_or_artifact": "receipt under agent/scratch/codex_runs/; dispatch D/claude_compact_v2_review/out/DISPATCH.md",
-      "health_check": "cat D/claude_compact_v2_review/out/verdict.json 2>/dev/null || echo pending",
-      "status": "dispatched, verdict pending; 95 percent derivability is a hard cutoff for the set",
-      "gate": "findings on questions 1-5 carry over to v2.1 regardless of v2's own verdict, since v2 itself will not train",
-      "next_on_completion": "feeds the same PASS/FAIL bar v2.1 must clear before training staging unlocks",
+      "lane": "GPU census and placement plan, completed",
+      "host": "trinity-3-8 (surveying all reachable nodes)",
+      "what": "one-off census informing OneThinker v2.2 and Qwen v2.2 GPU placement",
+      "pid_or_artifact": "D/claude_gpu_census_20260920T1500Z/out/GPU_CENSUS_20260920T1500Z.md",
+      "health_check": "cat D/claude_gpu_census_20260920T1500Z/out/GPU_CENSUS_20260920T1500Z.md",
+      "status": "completed 15:00Z: no node has four free 48 GB cards; trinity-2-28 shows a wedge signature (load about 900, 12 D-state); seven of twelve large-GPU nodes unreachable; trinity-3-8 has eight idle 24 GB cards",
+      "gate": "OneThinker v2.2 plans to take trinity-1-3 GPUs 0 and 6 with gradient accumulation once eval cell (b) finishes; Qwen v2.2 needs six cards that do not exist yet on any reachable node",
+      "next_on_completion": "re-census before either v2.2 launch to confirm card availability",
       "survives_session": true
-    },
-    {
-      "lane": "compact v2.1 converter build",
-      "host": "trinity-1-3",
-      "what": "Devin Astra max session fixing the derivability defect: adds an admission rule, states centroids as returned instead of collapsed to a radius, and shows rel_direction vector math explicitly",
-      "pid_or_artifact": "wrapper pid 528873; workspace /home/jjyeung/agent_project/agent/scratch/devin_lanes/devin_compact_v21_converter/; worktree work/compact_v2_1 on branch compact-v2-1-20260920",
-      "health_check": "tail -n 20 D/devin_compact_v21_converter/out/HEARTBEAT.log",
-      "status": "launched 11:33:54Z; heartbeats logged 11:35, 11:39, 11:44Z",
-      "gate": "confined to the derivability admission rule plus the stated centroid/vector fix; output set name diagnostic_set_compact_v2_1_20260920_full only, never the partial name",
-      "next_on_completion": "Astra review, then training staging unlocks via out/REVIEW_PASS.txt",
-      "survives_session": true
-    },
-    {
-      "lane": "training staging for v2.1",
-      "host": "not recorded in the source brief",
-      "what": "freezes OneThinker and Qwen launch protocols like-for-like with arm C and c1, parameterised for v2.1's output set and run tags, gated shut until the review passes",
-      "pid_or_artifact": "D/claude_compact_v2_train_stage/out/PRELAUNCH.md",
-      "health_check": "cat D/claude_compact_v2_train_stage/out/PRELAUNCH.md",
-      "status": "pending; launch scripts refuse to start without out/REVIEW_PASS.txt present",
-      "gate": "no launch before out/REVIEW_PASS.txt exists",
-      "next_on_completion": "launch OneThinker v2.1 on trinity-1-3 GPUs 1-4 and Qwen v2.1 on trinity-0-18 after the r6 preemption",
-      "survives_session": false
-    },
-    {
-      "lane": "eval cells for arm C (production harness)",
-      "host": "trinity-1-3 GPUs 1-4",
-      "what": "runs VSTIBench and VSIBench cells for arm C and base on the 58794b8 production harness; sequencing now waits behind the one-epoch control's own cells",
-      "pid_or_artifact": "driver pid 3359282; D/claude_eval_cells_f09e526/out/{launch/drive58_armc.sh,RESULTS_VSIBENCH.md,RESULTS_VSTIBENCH.md}",
-      "health_check": "tail -n 20 D/claude_eval_cells_f09e526/out/QWEN_RATE.log",
-      "status": "arm C vs base published on both benchmarks; unchanged this hour",
-      "gate": "58794b8 production harness only, decode budget 4,096; GPUs 5-6 held by the main repo's r1326 replica, not available",
-      "next_on_completion": "the format-A distilled-baseline VSI ablation resumes on GPUs 3-4 once the control cells and any v2.1 launch have priority",
-      "survives_session": true
-    },
-    {
-      "lane": "one-epoch composition control, published",
-      "host": "trinity-1-3 GPUs 1-4",
-      "what": "a controlled retrain of arm C's recipe for exactly one epoch, isolating epoch count from the target-design defect as an explanation for arm C's regressions",
-      "pid_or_artifact": "D/claude_armc_1epoch_control/{ATTEMPTS.md,out/HEARTBEAT.log}; publish root /data3/jjyeung/ddp_onethinker_c1ep_onethinker_20260920T1100Z",
-      "health_check": "ls /data3/jjyeung/ddp_onethinker_c1ep_onethinker_20260920T1100Z/training_result.json",
-      "status": "attempt 4 admitted 11:00:23Z, 96 steps at 25.6 s/step, finalize started 11:45:13Z",
-      "gate": "validate_training_result requires a complete full run before publishing a checkpoint",
-      "next_on_completion": "hands off to the control eval-cells lane for VSTI/VSI scoring against base and arm C",
-      "survives_session": true
-    },
-    {
-      "lane": "one-epoch control eval cells",
-      "host": "trinity-1-3 GPUs 1-4",
-      "what": "scores the one-epoch control checkpoint on VSTIBench then VSIBench and writes side-by-side tables against base and arm C",
-      "pid_or_artifact": "D/claude_c1ep_eval_cells/out/launch/",
-      "health_check": "ls D/claude_c1ep_eval_cells/out/RESULTS_VSTIBENCH_C1EP.md 2>/dev/null || echo not_yet_written",
-      "status": "staged, gated on validate_training_result against the control's publish, not yet started",
-      "gate": "runs behind the jihop2 stability gate; VSTIBench before VSIBench; only then does the format-A ablation resume, and only if no student needs the cards",
-      "next_on_completion": "publish RESULTS_VSTIBENCH_C1EP.md and RESULTS_VSIBENCH_C1EP.md, informing whether epoch count or target design explains arm C's regressions",
-      "survives_session": false
-    },
-    {
-      "lane": "Qwen3.5-9B arm A, r6",
-      "host": "trinity-0-18 (vnice-wrapped)",
-      "what": "format-A Qwen fine-tune; slated for preemption once compact v2.1 passes review, since it is the looping format-A arm and Qwen evals are expensive",
-      "pid_or_artifact": "run root /scratch/jjyeung/ddp_qwen35_a_qwen_20260920T0400Z_r6; publish root /data3/jjyeung/ddp_qwen35_a_qwen_20260920T0400Z_r6",
-      "health_check": "tail -n 10 D/claude_qwen_r5_resume/out/HEARTBEAT_r6.log",
-      "status": "step 112/246 at 11:37Z, loss 0.085, 224 s/step, ETA about 19:45Z, checkpointing every 25 steps",
-      "gate": "trinity-0-18 usable only for vnice-wrapped resumable jobs; judge liveness from metrics.jsonl growth and the torchrun pid, never the wrapper; preemption waits for a checkpoint boundary, never mid-step",
-      "next_on_completion": "publish and evaluate if it survives to completion; otherwise preempted for Qwen v2.1 at a checkpoint boundary",
-      "survives_session": true
-    },
-    {
-      "lane": "Qwen arm C (compact targets) c1",
-      "host": "trinity-0-13 GPUs 0-5 (vnice)",
-      "what": "Qwen fine-tune on the compact v1c target set, this lane's second student for the compact arm",
-      "pid_or_artifact": "D/claude_qwen_r5_resume/out/{HEARTBEAT_c1.log,PROGRESS_c1.md,ADMISSION_c1.md}; run root /scratch/jjyeung/ddp_qwen35_c_qwen_20260920T0800Z_r1",
-      "health_check": "tail -n 20 D/claude_qwen_r5_resume/out/HEARTBEAT_c1.log",
-      "status": "step 9/288 at 11:35Z, loss 0.63, 275 s/step, ETA about 2026-09-21 09:00Z, lease to 16:44Z",
-      "gate": "judge liveness from metrics.jsonl growth and the torchrun pid, never the wrapper",
-      "next_on_completion": "publish, then republish under the run-control cadence",
-      "survives_session": true
-    },
-    {
-      "lane": "ARKitScenes adapter pilot, deviation 6 rerun",
-      "host": "trinity-1-13",
-      "what": "rebuilds the ARKit adapter under the relaxed 30-of-32-slot rule after the strict all-32-slots rule refused every scene",
-      "pid_or_artifact": "workspace /home/jjyeung/agent_project/agent/scratch/devin_lanes/devin_arkit_adapter/; branch poolext/arkit_adapter_20260920",
-      "health_check": "ls -t D/devin_arkit_adapter/*.json | head",
-      "status": "v5 pilot gave 0 of 50 under the strict rule; deviation 6 ruled (accept >=30/32 slots, flag dropped slots pixel-unauthenticated); rerun of the same 50 scenes in progress",
-      "gate": "no substitution; per-slot bars unchanged; REPORT_v5.md must add the pose delta for flagged slots; one Astra review before any admission",
-      "next_on_completion": "REPORT_v5.md addendum, then the Astra review, then a sealing decision",
-      "survives_session": true
-    },
-    {
-      "lane": "free-form rewrite arm, HELD",
-      "host": "not recorded in the source brief",
-      "what": "a target format that writes the full derivation in prose instead of compact form; ruled out as a fix for the derivability defect on its own",
-      "pid_or_artifact": "D/claude_rewrite_trainset_stage/out/{HOLD.md,RUN_REWRITE_R1.md,TARGET_COMPARISON.md,REVIEW_REQUEST_INHERIT_SPLIT.md}",
-      "health_check": "cat D/claude_rewrite_trainset_stage/out/HOLD.md",
-      "status": "unchanged this hour: HELD, 0 of 1,688 rel_direction rows name a derivation despite 3.4x the token length",
-      "gate": "HOLD stands; no training slot on this result",
-      "next_on_completion": "none pending; superseded by compact v2.1's stated-rule approach",
-      "survives_session": false
     }
   ],
   "round_registry": {
@@ -312,28 +268,66 @@
   ],
   "survives_vs_dies": {
     "survives": [
-      {"item": "collector controller (pid 2793217) and watchdog (pid 2787751)", "resume_recipe": "read R/WATCHDOG_HEALTH.json and R/TPM_READOUT.json; if both pids are gone, relaunch via a Luna setsid-nohup lane using D/collector_watch/NOTES.md as the recipe"},
-      {"item": "census process on trinity-1-13", "resume_recipe": "read D/claude_compact_convert_newer/census_20260920.log; if the pid is gone before landing, relaunch per D/claude_compact_convert_newer/out/BRIEF_luna_devin_launch.md"},
-      {"item": "wave 2 ScanNet preparation workers (pids 3723841, 3723842)", "resume_recipe": "read D/devin_poolext_wave1_scannetpp/out/W2_PROGRESS.md; if stalled, relaunch attempt 5 per the same lane's DISPATCH.md"},
-      {"item": "compact v2.1 converter Devin session (wrapper pid 528873)", "resume_recipe": "read D/devin_compact_v21_converter/out/HEARTBEAT.log; if heartbeats stop advancing, resume the Devin session from its workspace at /home/jjyeung/agent_project/agent/scratch/devin_lanes/devin_compact_v21_converter/"},
-      {"item": "Codex Astra review process for compact v2", "resume_recipe": "check for a receipt under agent/scratch/codex_runs/; if none appears past the expected turnaround, redispatch per D/claude_compact_v2_review/out/DISPATCH.md"},
-      {"item": "Qwen arm A r6 torchrun job", "resume_recipe": "read D/claude_qwen_r5_resume/out/HEARTBEAT_r6.log and the run root's metrics.jsonl; resume only on trinity-0-18, only from the last checkpoint"},
-      {"item": "Qwen arm C c1 torchrun job", "resume_recipe": "read D/claude_qwen_r5_resume/out/HEARTBEAT_c1.log and the run root's metrics.jsonl; resume only on trinity-0-13, only from the last checkpoint"},
-      {"item": "one-epoch composition control publish", "resume_recipe": "check /data3/jjyeung/ddp_onethinker_c1ep_onethinker_20260920T1100Z/training_result.json; if finalize did not complete, resume per D/claude_armc_1epoch_control/ATTEMPTS.md"},
-      {"item": "all lane and repo files written to disk", "resume_recipe": "git log and D/ directory listings are authoritative; nothing here needs replay"}
+      {
+        "item": "collector controller, second watchdog (pid 2939991), and lease keeper on trinity-3-8",
+        "resume_recipe": "read R/WATCHDOG_HEALTH.json and R/TPM_READOUT.json; if the watchdog pid is gone, relaunch per D/claude_collector_relaunch_20260920T1330Z/out/DECISION.md"
+      },
+      {
+        "item": "compact v2.1 converter Devin session (wrapper pid 2815847)",
+        "resume_recipe": "check the branch head at /home/jjyeung/agent_project/agent/scratch/devin_lanes/devin_compact_v21_converter/work/compact_v2_1; if commits stop advancing, resume the Devin session from that workspace"
+      },
+      {
+        "item": "OneThinker control eval cell (b) VSIBench driver on trinity-1-3 GPU 6",
+        "resume_recipe": "check RESULTS_VSIBENCH_C1EP.md question count against the last known 101/500; if stalled, relaunch per D/claude_c1ep_eval_cells/out/launch/"
+      },
+      {
+        "item": "OneThinker control eval cell (a) VSTIBench, waiting",
+        "resume_recipe": "check D/claude_evidence_evals_launch_20260920T1400Z/out/WATCH.log; resume once four allowlisted idle cards are found"
+      },
+      {
+        "item": "Qwen arm C c1 torchrun job on trinity-0-13",
+        "resume_recipe": "read D/claude_qwen_resume2_20260920T1445Z/out/HEARTBEAT_c1_resume2.log and the run root's metrics.jsonl; resume only through the supervisor path"
+      },
+      {
+        "item": "Qwen arm A r6 checkpoint copy to /data3",
+        "resume_recipe": "verify resume_snapshot_step_125/ is complete; resume training once cards are available, never mid-step"
+      },
+      {
+        "item": "wave 2 (ScanNet) extraction output on disk",
+        "resume_recipe": "no live process to resume; union with wave 1 and replay the bind-time validator when the collector is stable"
+      },
+      {
+        "item": "all lane and repo files written to disk",
+        "resume_recipe": "git log and D/ directory listings are authoritative; nothing here needs replay"
+      }
     ],
     "dies_or_stalls": [
-      {"item": "every Claude subagent lane itself (the reasoning process, not its artifacts)", "resume_recipe": "re-read the lane's out/ directory for its last written file, then relaunch a fresh Claude subagent with that file as context"},
-      {"item": "collector observer", "resume_recipe": "relaunch watching R/WATCHDOG_HEALTH.json and R/TPM_READOUT.json on the same cadence; the underlying collector it watches survives"},
-      {"item": "census landing watch and stage-2 trigger", "resume_recipe": "relaunch watching D/claude_compact_convert_newer/census_20260920.log for landing, then trigger stage 2 per out/BRIEF_devin_stage2.md; the census process it watches survives"},
-      {"item": "compact v2.1 Devin watcher", "resume_recipe": "relaunch watching D/devin_compact_v21_converter/out/HEARTBEAT.log; the Devin session it watches survives"},
-      {"item": "control eval-cells gate", "resume_recipe": "relaunch checking /data3/jjyeung/ddp_onethinker_c1ep_onethinker_20260920T1100Z/training_result.json for validate_training_result, then start D/claude_c1ep_eval_cells/out/launch/"},
-      {"item": "wave 2 watcher", "resume_recipe": "relaunch watching D/devin_poolext_wave1_scannetpp/out/W2_PROGRESS.md; the extraction workers it watches survive"},
-      {"item": "ARKit adapter watcher", "resume_recipe": "relaunch watching D/devin_arkit_adapter/ for REPORT_v5.md and TEST_RESULT_v5.json updates; the Devin session it watches survives"},
-      {"item": "Astra review verdict poller", "resume_recipe": "relaunch checking D/claude_compact_v2_review/out/verdict.json on a short interval; the Codex dispatch it watches survives"},
-      {"item": "the 30-minute orchestrator tick and queue watcher", "resume_recipe": "must be recreated by each successor session from this handoff and agent/handoff_liveness.json"}
+      {
+        "item": "every Claude subagent lane itself (the reasoning process, not its artifacts)",
+        "resume_recipe": "re-read the lane's out/ directory for its last written file, then relaunch a fresh Claude subagent with that file as context"
+      },
+      {
+        "item": "collector watchdog observer/babysitter",
+        "resume_recipe": "relaunch watching R/WATCHDOG_HEALTH.json and R/TPM_READOUT.json on the same cadence; the collector and its watchdog survive"
+      },
+      {
+        "item": "compact v2.1 Devin build babysitter",
+        "resume_recipe": "relaunch watching the compact_v2_1 branch head and the Devin workspace's out/ files; the Devin session survives"
+      },
+      {
+        "item": "eval-cell watcher for the OneThinker control (cells a and b)",
+        "resume_recipe": "relaunch watching D/claude_c1ep_eval_cells/out/ and D/claude_evidence_evals_launch_20260920T1400Z/out/WATCH.log; the underlying eval drivers survive"
+      },
+      {
+        "item": "Qwen c1 and r6 babysitters",
+        "resume_recipe": "relaunch watching HEARTBEAT_c1_resume2.log for c1 and out/HOLD_r6.md for r6; the c1 torchrun job survives, r6 is intentionally paused"
+      },
+      {
+        "item": "the orchestrator tick and cross-orchestrator inbox queue watcher",
+        "resume_recipe": "must be recreated by each successor session from this handoff and agent/handoff_liveness.json; check all open inbox paths under D/ for new notes"
+      }
     ]
   },
-  "latest_handoff": "docs/DISTILLATION_HANDOFF_20260920_1150Z.md",
-  "updated_utc": "2026-09-20T11:50:00Z"
+  "latest_handoff": "docs/DISTILLATION_HANDOFF_20260920_1530Z.md",
+  "updated_utc": "2026-09-20T15:30:00Z"
 }
