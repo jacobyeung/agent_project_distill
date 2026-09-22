@@ -52,6 +52,15 @@ class ConventionTests(unittest.TestCase):
         self.assertEqual(self.conventions['emitted_mc_types'], ['relative_distance_object'])
         self.assertEqual(self.conventions['non_emitted_mc_types'], ['relative_count', 'relative_size_object'])
 
+    def test_nearest_instance_instruction_is_not_an_object_label(self):
+        samples = authorities()
+        row = samples['vsi']['samples']['relative_distance_object'][0]
+        row['question'] = row['question'].replace('?\nOptions:', '? If several exist, measure to the closest one.\nOptions:')
+        conventions = harvest(samples)
+        self.assertNotIn('closest', conventions['object_vocabulary'])
+        self.assertNotIn('closest one', conventions['object_vocabulary'])
+        self.assertIn('measure to the closest one.', conventions['templates']['relative_distance_object'][0]['template'])
+
     def test_compact_numeric_token_and_layout_discipline(self):
         target = render_target(['The closest-point distance is 1.9 meters.'], '1.9')
         self.assertEqual(target, 'Observations (1)\n1. The closest-point distance is 1.9 meters.\nEnd of reasoning.\n1.9')

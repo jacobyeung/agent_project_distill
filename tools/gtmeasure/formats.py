@@ -66,6 +66,8 @@ def harvest_template(kind, row, vocabulary):
     else:
         slots = {value: ('target' if len(names) == 1 else f'object_{i}') for i, value in enumerate(names)}
     template = replace_spans(text, [(match.span(), '{' + slots[match[0]] + '}') for match in pattern.finditer(text)])
+    if template.format(**{slot: name for name, slot in slots.items()}) != text:
+        raise ValueError('authority template does not reproduce its source wording')
     option_order = [slots.get(value, value) for _, value in options]
     return template, unit, [letter for letter, _ in options], option_order
 
@@ -83,8 +85,9 @@ def harvest(samples):
                 if re.fullmatch(r'[a-z][a-z -]*', label):
                     vocabulary.add(label)
     for row in samples['vsi']['samples']['relative_distance_object']:
-        body = row['question'].split('\nOptions:', 1)[0]
-        for match in re.finditer(r'\b(?:to the|nearest the) ([a-z][a-z -]*?)(?=[,.?]| when | based | from )', body):
+        body = row['question'].split('\nOptions:', 1)[0].removeprefix('<image>\n').removeprefix('These are frames of a video.\n')
+        body = re.split(r'[?.]', body, maxsplit=1)[0]
+        for match in re.finditer(r'\b(?:to the|nearest the) ([a-z][a-z -]*?)(?=,| when | based | from |$)', body):
             vocabulary.add(match[1])
     templates, precisions = {}, defaultdict(Counter)
     precision_lines = defaultdict(dict)
