@@ -6,6 +6,7 @@ from pathlib import Path
 import re
 
 from .authority import VSI_TYPES
+from .conventions import structure_conventions
 from .io import canonical, digest, new_output, pin, read_json, write_json
 
 
@@ -72,7 +73,7 @@ def harvest_template(kind, row, vocabulary):
     return template, unit, [letter for letter, _ in options], option_order
 
 
-def harvest(samples):
+def harvest(samples, structure='v1'):
     vocabulary = set()
     for kind in ('relative_size_object', 'relative_distance_object'):
         for row in samples['vsi']['samples'][kind]:
@@ -130,7 +131,15 @@ def harvest(samples):
               'non_emitted_mc_types': ['relative_count', 'relative_size_object'],
               'mc_rule': 'four real co-present category labels, listed and lettered in pool order; nearest instance; unique closest option',
               'object_vocabulary': sorted(vocabulary)}
-    return result
+    return structure_conventions(result, structure)
+
+
+def format_observation_value(value):
+    value = Decimal(str(float(value)))
+    if not value.is_finite():
+        raise ValueError('observation measurement must be finite')
+    rounded = value.quantize(Decimal('0.01'), rounding=ROUND_HALF_EVEN)
+    return f'{rounded.copy_abs() if rounded.is_zero() else rounded:.2f}'
 
 
 def render_question(spec, **values):

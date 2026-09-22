@@ -64,7 +64,8 @@ def verify_dataset(directory, recompute=False):
             if recompute:
                 scene = load_scene(entry['receipt']['path'])
                 replay, _ = generate_scene(scene, conventions, seed=config['seed'], density=config['density'],
-                                            config_sha=manifest['config_sha256'], commit=manifest['repo_commit'])
+                                            config_sha=manifest['config_sha256'], commit=manifest['repo_commit'],
+                                            structure=config.get('structure', 'v1'))
                 if canonical(replay) != canonical(rows):
                     raise ValueError('scene geometry replay changed generated row bytes')
                 replayed += 1

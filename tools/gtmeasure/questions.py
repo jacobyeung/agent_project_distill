@@ -2,9 +2,11 @@ from collections import Counter, defaultdict
 from decimal import Decimal
 import itertools
 
+import numpy as np
+
 from .assets import EXCLUDED
-from .conventions import FAMILIES, MEASURES
-from .formats import TYPE_FAMILY, UNIT_METERS, format_value, render_question
+from .conventions import FAMILIES, MEASURES, box_corners, camera0_points
+from .formats import TYPE_FAMILY, UNIT_METERS, format_observation_value, format_value, render_question
 from .geometry import camera_object_distance, object_count, object_distance, object_size, room_area
 from .io import digest, pin
 from .targets import render_target, validate_student_input, validate_target
@@ -28,9 +30,54 @@ def interleave(iterators):
         active = remaining
 
 
+def intermediate_observations(scene, conventions, family, object_ids, frame_index=None):
+    objects = {obj['id']: obj for obj in scene.objects}
+    selected = [objects[iid] for iid in sorted(set(object_ids))]
+    poses, up = scene.arrays['camera_poses'], scene.receipt['gravity_up']
+
+    def render(name, **values):
+        return conventions['observation_templates'][name]['template'].format(**values)
+
+    def coordinates(point):
+        return dict(zip(('x', 'y', 'z'), map(format_observation_value, point)))
+
+    def extents(obj):
+        box_corners(obj['obb'])
+        return dict(zip(('length', 'width', 'height'),
+                        (format_observation_value(2 * float(half)) for half in obj['obb']['axesLengths'])))
+
+    if family == 'gtm_object_size':
+        obj, = selected
+        return [render('object_extents', target=obj['label'], **extents(obj))]
+    if family == 'gtm_room_size':
+        vertices = np.concatenate([obj['triangles'].reshape(-1, 3) for obj in selected])
+        xy = camera0_points(vertices, poses, up)[:, :2]
+        lower, upper = xy.min(axis=0), xy.max(axis=0)
+        values = dict(zip(('xmin', 'ymin', 'xmax', 'ymax', 'xextent', 'yextent'),
+                          map(format_observation_value, [*lower, *upper, *(upper - lower)])))
+        return [render('floor_bounds', **values)]
+    if family not in ('gtm_object_count', 'gtm_object_distance', 'gtm_camera_object_distance'):
+        raise ValueError('unsupported structured observation family')
+    centers = camera0_points([obj['obb']['centroid'] for obj in selected], poses, up)
+    lines = []
+    for obj, center in zip(selected, centers):
+        values = {'target': obj['label'], 'instance_id': obj['id'], **coordinates(center)}
+        if family == 'gtm_object_count':
+            lines.append(render('instance_center', **values))
+        else:
+            lines.append(render('object_geometry', **values, **extents(obj)))
+    if family == 'gtm_camera_object_distance':
+        if type(frame_index) is not int or not 1 <= frame_index <= 32:
+            raise ValueError('camera observation requires a one-based selected RGB frame')
+        camera = camera0_points([poses[frame_index - 1, :3, 3]], poses, up)[0]
+        lines.insert(0, render('camera_position', frame_index=frame_index, **coordinates(camera)))
+    return lines
+
+
 class Questions:
-    def __init__(self, scene, conventions, seed, density, config_sha, commit):
+    def __init__(self, scene, conventions, seed, density, config_sha, commit, structure='v1'):
         self.scene, self.conventions = scene, conventions
+        self.structure = structure
         self.seed, self.density, self.config_sha, self.commit = seed, density, config_sha, commit
         self.identity = [seed, scene.receipt['dataset'], scene.receipt['scene_name']]
         self.receipt_pin = pin(scene.receipt_path)
@@ -70,10 +117,12 @@ class Questions:
         question, options = render_question(spec, **values)
         student_input = self.scene.student_input(question, options)
         validate_student_input(student_input)
-        target = render_target(observations, answer, derivations)
-        checks = validate_target(target)
         family = TYPE_FAMILY[kind]
         ids = sorted({iid for measurement in measurements for iid in measurement['object_ids']})
+        if self.structure == 'v2':
+            observations = intermediate_observations(self.scene, self.conventions, family, ids, frame_index) + observations
+        target = render_target(observations, answer, derivations)
+        checks = validate_target(target)
         authority = self.conventions['authorities']['vsti' if kind == 'camera_obj_abs_dist' else 'vsi']
         provenance = {'scene_receipt': self.receipt_pin,
                       'assets': {key: self.scene.receipt[key] for key in ('dense', 'calibration', 'instances', 'instance_mesh', 'annotations', 'alignment', 'source_provenance', 'video')},
@@ -210,7 +259,9 @@ class Questions:
         return rows, coverage
 
 
-def generate_scene(scene, conventions, *, seed=17, density=30, config_sha='', commit=''):
+def generate_scene(scene, conventions, *, seed=17, density=30, config_sha='', commit='', structure='v1'):
     if type(seed) is not int or type(density) is not int or not 1 <= density <= 99999:
         raise ValueError('seed must be an integer and density must lie in 1..99999')
-    return Questions(scene, conventions, seed, density, config_sha, commit).generate()
+    if structure not in ('v1', 'v2'):
+        raise ValueError('structure must be v1 or v2')
+    return Questions(scene, conventions, seed, density, config_sha, commit, structure).generate()

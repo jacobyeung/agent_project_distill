@@ -19,11 +19,13 @@ JOB_ROOTS = [DATA / 'runtime_control/gt_teacher_r1313/materialization_v2' / name
              for name in ('jobs_scannet_v1', 'jobs_prep_v2', 'jobs_codex')]
 
 
-def sources():
+def sources(structure='v1'):
     root = Path(__file__).resolve().parents[2]
     names = ['tools/gtmeasure/' + name + '.py' for name in ('__init__', 'io', 'authority', 'formats', 'blocking', 'mesh_membership',
                                                            'conventions', 'geometry', 'assets', 'targets', 'split', 'questions', 'generate', 'mix')]
     names += ['tools/gtmeasure/requirements.txt', 'collector/gt_scene_assets.py', 'student/compact_targets/compact_counted_v1.py']
+    if structure == 'v2':
+        names.append('collector/frame_alignment.py')
     return {name: sha(root / name) for name in names}
 
 
@@ -63,9 +65,9 @@ def process_scene(row, conventions, config, commit, job_roots, blocked, split):
             if safe_scene(scene.receipt) != (dataset, name):
                 raise ValueError('receipt differs from prepared scene identity')
             generated, coverage = generate_scene(scene, conventions, seed=config['seed'], density=config['density'],
-                                                   config_sha=digest(config), commit=commit)
+                                                   config_sha=digest(config), commit=commit, structure=config.get('structure', 'v1'))
             repeated, repeated_coverage = generate_scene(scene, conventions, seed=config['seed'], density=config['density'],
-                                                          config_sha=digest(config), commit=commit)
+                                                          config_sha=digest(config), commit=commit, structure=config.get('structure', 'v1'))
             if canonical(generated) != canonical(repeated) or coverage != repeated_coverage:
                 raise RuntimeError('same-seed generation is not byte-identical')
             entry.update(coverage, status='generated' if generated else 'deferred_no_observable_measurements',
@@ -95,6 +97,7 @@ def load_authority_samples(path, expected_sha, manifest):
 
 def run(args):
     commit = source_commit()
+    structure = getattr(args, 'structure', 'v1')
     if args.density < 1 or args.density > 99999 or args.limit is not None and args.limit < 1:
         raise ValueError('density and optional scene limit must be positive')
     prepared = read_json(args.prepared_scenes)
@@ -107,7 +110,7 @@ def run(args):
     evaluation, blocked = benchmark_blocking(manifest['benchmark_blocking']['eval_files'])
     split = load_split(args.split)
     samples = load_authority_samples(args.authorities, args.authorities_sha256, manifest) if args.authorities else collect(manifest=args.v3_manifest)
-    conventions = harvest(samples)
+    conventions = harvest(samples, structure=structure)
     conventions['measurements'] = {
         family: {**measure, 'authority_evidence': [
             {'authority': conventions['authorities']['vsti' if kind == 'camera_obj_abs_dist' else 'vsi'],
@@ -116,11 +119,13 @@ def run(args):
         for family, measure in MEASURES.items()}
     conventions['sample_cache'] = pin(args.authorities) if args.authorities else None
     config = {'schema': 'gtmeasure-config-v1', 'seed': args.seed, 'density': args.density,
-              'conventions_sha256': digest(conventions), 'source_sha256': digest(sources()),
+              'conventions_sha256': digest(conventions), 'source_sha256': digest(sources(structure)),
               'dependencies': {name: importlib.metadata.version(name) for name in ('numpy', 'scipy', 'shapely')},
               'selection': 'seeded hash order; round-robin across five families; no duplicate student input',
               'visibility': 'all counted category instances appear in selected RGB; metric objects have unique labels; MC pools co-occur in an authenticated frame',
               'output_schema': 'RGB-only student_input; compact_counted_v1 target; privileged geometry only in supervision/provenance'}
+    if structure == 'v2':
+        config['structure'] = structure
     selected = sorted(prepared, key=safe_scene)
     if args.scene:
         requested = set(args.scene)
@@ -161,7 +166,7 @@ def run(args):
     if overlap_census['any']:
         raise ValueError('benchmark scene reached emitted rows')
     report = {'schema': 'gtmeasure-manifest-v1', 'source': 'gtmeasure_v1', 'repo_commit': commit,
-              'config': config, 'config_sha256': digest(config), 'source_files': sources(),
+              'config': config, 'config_sha256': digest(config), 'source_files': sources(structure),
               'inputs': {'prepared_scenes': pin(args.prepared_scenes, len(prepared)), 'v3_manifest': pin(args.v3_manifest),
                          'split': pin(args.split), 'inherited_split': split.inherited_pin,
                          'wording_authorities': conventions['authorities'], 'authority_samples': conventions['sample_cache'],
@@ -188,6 +193,7 @@ def main():
     parser.add_argument('--job-root', type=Path, action='append', default=[])
     parser.add_argument('--scene', action='append', default=[], help='Exact dataset/scene from prepared membership; may repeat.')
     parser.add_argument('--limit', type=int, help='Process only the first N requested scenes; retain other scenes in the coverage denominator.')
+    parser.add_argument('--structure', choices=('v1', 'v2'), default='v1', help='v2 prepends pinned GT intermediate observations; v1 preserves the original rendering.')
     parser.add_argument('--seed', type=int, default=17)
     parser.add_argument('--density', type=int, default=30, help='Total row cap per scene, shared across the five measurement families.')
     parser.add_argument('--output', type=Path, required=True)
