@@ -2,6 +2,7 @@ import copy
 import unittest
 from dataclasses import replace
 from pathlib import Path
+from unittest.mock import patch
 
 from student.compact_targets import compact_counted_v1 as compact
 
@@ -195,11 +196,89 @@ class LayoutTests(CompactCase):
         rendered = compact.render_target(self.source, '24', self.records, self.context)
         self.assertTrue(self.validate(rendered, answer='24')['passed'])
         self.assertTrue(rendered.target.endswith('End of reasoning.\n24'))
+        expected = ('Observations (3)\n1. The lamp is visible in frame 1.\n'
+                    '2. The lamp is approximately 2.0 meters away.\n'
+                    '3. The desk is approximately 5.0 meters away.\n'
+                    'Derivations (1)\n1. The distance is approximately 3.0 meters. Uses observations 2, 3.\n'
+                    'End of reasoning.\n24')
+        self.assertEqual(rendered.target.encode('utf-8'), expected.encode('utf-8'))
+
+    def test_numeric_answer_with_unit_is_rendered_bare_and_admitted(self):
+        self.source_checks['answer'] = '2.5 m'
+        rendered = compact.render_target(self.source, '2.5 m', self.records, self.context)
+        self.assertTrue(rendered.target.endswith('End of reasoning.\n2.5'))
+        self.assertEqual(rendered.target, self.rendered.target[:-1] + '2.5')
+        self.assertTrue(self.validate(rendered, answer='2.5 m')['passed'])
 
     def test_answer_whitespace_is_not_normalized(self):
         for answer in (' B', 'B ', 'B\n', 'Answer: B', ''):
             with self.subTest(answer=answer), self.assertRaisesRegex(compact.Deferral, 'answer_schema'):
                 compact.render_target(self.source, answer, self.records, self.context)
+
+
+class AnswerUnitTests(CompactCase):
+    def test_recognised_units_are_case_insensitive(self):
+        units = ('m', 'metre', 'metres', 'meter', 'meters', 'cm', 'centimetre', 'centimetres',
+                 'centimeter', 'centimeters', 'mm', 'millimetre', 'millimetres', 'millimeter',
+                 'millimeters', 'in', 'inch', 'inches', 'ft', 'foot', 'feet', 'deg', 'degree', 'degrees')
+        for unit in units:
+            for spelling in (unit, unit.upper(), unit.title()):
+                with self.subTest(unit=spelling):
+                    answer = '2.5 ' + spelling
+                    rendered = compact.render_target(self.source, answer, self.records, self.context)
+                    self.assertEqual(rendered.target, self.rendered.target[:-1] + '2.5')
+                    self.assertTrue(self.validate(rendered, answer=answer,
+                                                  source_checks={**self.source_checks, 'answer': answer})['passed'])
+
+    def test_unit_removal_preserves_the_numeric_token_and_citation_mode(self):
+        examples = (('1.4 m', '1.4'), ('1.4 meters', '1.4'), ('120 cm', '120'), ('35 degrees', '35'),
+                    ('-0.50 mm', '-0.50'), ('+.5 in', '+.5'), ('+01.400E-02 ft', '+01.400E-02'))
+        for answer, number in examples:
+            for citations in (False, True):
+                with self.subTest(answer=answer, citations=citations):
+                    rendered = compact.render_target(self.source, answer, self.records, self.context, citations)
+                    expected = compact.render_target(self.source, number, self.records, self.context, citations)
+                    self.assertEqual(rendered, expected)
+                    self.assertTrue(rendered.target.endswith('End of reasoning.\n' + number))
+                    self.assertTrue(self.validate(rendered, answer=answer, derivation_citations=citations,
+                                                  source_checks={**self.source_checks, 'answer': number})['passed'])
+
+    def test_unit_free_answers_are_byte_identical(self):
+        answers = tuple('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz') + ('24', '+01.00', '-.5', '2E+3')
+        for answer in answers:
+            with self.subTest(answer=answer):
+                rendered = compact.render_target(self.source, answer, self.records, self.context)
+                self.assertEqual(rendered.target.encode('utf-8'), (self.rendered.target[:-1] + answer).encode('utf-8'))
+
+    def test_malformed_units_and_whitespace_still_defer(self):
+        answers = ('2.5m', '2.5  m', '2.5\tm', '2.5\nm', '2.5\u00a0m', ' 2.5 m', '2.5 m ', '2.5 m\n',
+                   '2.5 m\r\n', '2.5 m/s', '2.5 m m', '2.5 m.', '2.5 yards', '2.5 x', '2.5 cm2', '2.5 meterſ',
+                   'B m', 'nan m', 'inf m', '1. m', '1e m', 'Answer: 2.5 m', None, 2.5)
+        for answer in answers:
+            with self.subTest(answer=answer), self.assertRaisesRegex(compact.Deferral, 'answer_schema'):
+                compact.render_target(self.source, answer, self.records, self.context)
+
+    def test_admission_normalizes_both_reviewed_and_recorded_answers(self):
+        for answer, recorded in (('2.5 m', '2.5'), ('2.5', '2.5 m'), ('2.5 m', '2.5 MeTeRs')):
+            with self.subTest(answer=answer, recorded=recorded):
+                rendered = compact.render_target(self.source, answer, self.records, self.context)
+                result = self.validate(rendered, answer=answer, source_checks={**self.source_checks, 'answer': recorded})
+                self.assertTrue(result['passed'], result)
+                self.assertEqual(result['tier_i']['checks']['answer_equality'], 'satisfied')
+
+    def test_admission_still_rejects_numeric_mismatches_and_malformed_recorded_answers(self):
+        rendered = compact.render_target(self.source, '2.5 m', self.records, self.context)
+        for recorded in ('2.6 m', '2.50 m', '250 cm', ' 2.5 m', '2.5 m ', '2.5 m\n', '2.5 yards', None):
+            with self.subTest(recorded=recorded):
+                self.rejects(rendered, 'source_tier_i_failed', answer='2.5 m',
+                             source_checks={**self.source_checks, 'answer': recorded})
+
+    def test_terminal_numeric_answer_cannot_keep_a_unit(self):
+        rendered = compact.render_target(self.source, '2.5 m', self.records, self.context)
+        for suffix in (' m', ' meters', 'x', '\n'):
+            with self.subTest(suffix=suffix):
+                self.rejects(replace(rendered, target=rendered.target + suffix), 'terminal_answer_invalid',
+                             answer='2.5 m', source_checks={**self.source_checks, 'answer': '2.5 m'})
 
 
 class AdmissionTests(CompactCase):
@@ -592,7 +671,62 @@ class OperandFilterTests(unittest.TestCase):
         self.assertNotIn('visibility', {kind for kinds in compact.OPERAND_QUANTITIES.values() for kind in kinds})
 
 
+class SourceAnswerTests(unittest.TestCase):
+    def source(self, answer, target_answer, row_answer, checks_answer):
+        lines, records, checks, evidence = fixture()
+        qid = 'vsi590k_000001'
+        reviewed, recovery = Path('/synthetic/reviewed'), Path('/synthetic/recovery')
+        row_path, target_path = (reviewed / 'targets' / qid / name for name in ('row.json', 'target.txt'))
+        row = {'qid': qid, 'category': 'object_rel_distance', 'dataset': 'synthetic', 'scene': 'scene1',
+               'student_input': {'question': 'How far is the lamp from the desk?'},
+               'target': 'Observations\nA0001. Source prose.\n' + target_answer, 'answer': row_answer}
+        checks.update(qid=qid, answer=checks_answer, artifacts={})
+        payloads = {row_path: compact.canonical_bytes(row), target_path: row['target'].encode('utf-8')}
+        for name, value in (('rendered_lines', lines), ('records', records), ('evidence_index', evidence)):
+            payload = compact.canonical_bytes(value)
+            payloads[recovery / qid / (name + '.json')] = payload
+            checks['artifacts'][name] = {'sha256': compact.sha256_bytes(payload)}
+        payloads[recovery / qid / 'checks.json'] = compact.canonical_bytes(checks)
+        entry = {'qid': qid, 'answer': answer, 'question_type': row['category'], 'dataset': row['dataset'],
+                 'scene': row['scene'], 'row_path': str(row_path), 'target_path': str(target_path),
+                 'row_sha256': compact.sha256_bytes(payloads[row_path]),
+                 'sha256': compact.sha256_bytes(payloads[target_path])}
+        with patch.object(Path, 'read_bytes', autospec=True, side_effect=payloads.__getitem__):
+            return compact.load_source(entry, recovery, reviewed)
+
+    def test_source_answers_normalize_consistently_without_mutating_reviewed_metadata(self):
+        examples = (('2.5 m', '2.5 m', '2.5 m', '2.5 m'), ('2.5 m', '2.5', '2.5', '2.5'),
+                    ('2.5', '2.5 m', '2.5 METERS', '2.5 metre'),
+                    ('2.5 m', '2.5 metres', '2.5 M', '2.5 meter'), ('B', 'B', 'B', 'B'))
+        for answers in examples:
+            with self.subTest(answers=answers):
+                source = self.source(*answers)
+                self.assertEqual(source.entry['answer'], answers[0])
+                self.assertEqual(source.row['answer'], answers[2])
+                self.assertEqual(source.checks['answer'], answers[3])
+                context = compact.source_context(source)
+                rendered = compact.render_target(source.lines, source.entry['answer'], source.records, context)
+                self.assertEqual(rendered.target.split('\n')[-1], 'B' if answers[0] == 'B' else '2.5')
+                result = compact.admit(rendered, source.lines, source.records, source.checks, source.evidence,
+                                       source.entry['answer'], lambda text: 100, context)
+                self.assertTrue(result['passed'], result)
+
+    def test_source_answer_mismatches_keep_their_deferral_codes(self):
+        for field, reason in (('target_answer', 'source_answer_mismatch'), ('row_answer', 'source_answer_mismatch'),
+                              ('checks_answer', 'source_identity_mismatch')):
+            for mismatch in ('2.6 m', '2.50 m', '250 cm', ' 2.5 m', '2.5 m ', '2.5 m\n', '2.5 yards'):
+                with self.subTest(field=field, mismatch=mismatch), self.assertRaisesRegex(compact.Deferral, reason):
+                    answers = dict.fromkeys(('answer', 'target_answer', 'row_answer', 'checks_answer'), '2.5 m')
+                    self.source(**{**answers, field: mismatch})
+
+
 class UtilityTests(unittest.TestCase):
+    def test_answer_contract_records_unit_normalization(self):
+        config = compact.renderer_config('tokenizer')
+        self.assertIn('one ASCII space', config['answer'])
+        legacy = {**config, 'answer': 'Exact reviewed answer alone; no trailing newline'}
+        self.assertNotEqual(compact.digest_json(config), compact.digest_json(legacy))
+
     def test_configuration_hash_changes_with_citation_mode(self):
         base = compact.renderer_config('tokenizer', False)
         alternate = compact.renderer_config('tokenizer', True)

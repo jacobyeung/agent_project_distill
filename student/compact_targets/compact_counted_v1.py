@@ -74,6 +74,8 @@ USES = re.compile(r'Uses observations (?P<indices>[1-9]\d*(?:, [1-9]\d*)*)\.')
 NUMBER = re.compile(r'(?<!\w)[+-]?(?:\d+(?:\.\d+)?|\.\d+)(?:[eE][+-]?\d+)?(?!\w)')
 CITATION = re.compile(r'E([1-9]\d*)\.L([1-9]\d*)(?:-L([1-9]\d*))?')
 ANSWER = re.compile(r'(?:[A-Za-z]|[+-]?(?:\d+(?:\.\d+)?|\.\d+)(?:[eE][+-]?\d+)?)')
+ANSWER_UNIT = re.compile(r'(?:m|met(?:er|re)s?|cm|centimet(?:er|re)s?|mm|millimet(?:er|re)s?|'
+                         r'in|inch(?:es)?|ft|foot|feet|deg|degrees?)', re.IGNORECASE | re.ASCII)
 
 
 class Deferral(ValueError):
@@ -322,7 +324,16 @@ def roster_entry(records, context, selected, index):
     return {'text': ROSTER_TEMPLATE.format(names=', '.join(names)), 'names': names, 'line': record}
 
 
+def normalize_answer(answer):
+    if isinstance(answer, str):
+        number, _, unit = answer.partition(' ')
+        if NUMBER.fullmatch(number) and ANSWER_UNIT.fullmatch(unit):
+            return number
+    return answer
+
+
 def render_target(source_lines, answer, records, context, derivation_citations=False):
+    answer = normalize_answer(answer)
     if not isinstance(answer, str) or not ANSWER.fullmatch(answer):
         raise Deferral('answer_schema', repr(answer))
     selected = select_lines(source_lines, records)
@@ -368,6 +379,7 @@ def indexed_records(bundle):
 
 def admit(rendered, source_lines, records, source_checks, evidence_index, answer, count_tokens, context,
           max_tokens=MAX_TOKENS, derivation_citations=False, unbound_policy=UNBOUND_POLICIES[0]):
+    answer = normalize_answer(answer)
     selected = select_lines(source_lines, records)
     expected = render_target(source_lines, answer, records, context, derivation_citations)
     observations, calculations = selected.observations, selected.derivations
@@ -445,7 +457,7 @@ def admit(rendered, source_lines, records, source_checks, evidence_index, answer
     tier = {key: recorded_tier.get('checks', {}).get(key, 'not_evaluated') for key in TIER_I_CHECKS}
     recomputed = {'own_record_binding': bool(binding_ok and own_binding and operand_binding),
                   'qualification_scope': bool(qualification_scope), 'native_final_not_cited': bool(citations_bound),
-                  'answer_equality': source_checks.get('answer') == answer}
+                  'answer_equality': normalize_answer(source_checks.get('answer')) == answer}
     for key, satisfied in recomputed.items():
         if not satisfied:
             tier[key] = 'defect'
@@ -523,8 +535,9 @@ def load_source(entry, recovery_root, reviewed_root):
     row = decode_json(row_bytes)
     if row.get('target', '').encode('utf-8') != target_bytes:
         raise Deferral('source_target_row_mismatch', qid)
-    answer = entry.get('answer')
-    if not isinstance(answer, str) or row['target'].split('\n')[-1] != answer or row.get('answer', answer) != answer:
+    answer = normalize_answer(entry.get('answer'))
+    if (not isinstance(answer, str) or normalize_answer(row['target'].split('\n')[-1]) != answer
+            or normalize_answer(row.get('answer', answer)) != answer):
         raise Deferral('source_answer_mismatch', qid)
     for row_key, index_key in (('qid', 'qid'), ('category', 'question_type'), ('scene', 'scene'), ('dataset', 'dataset')):
         if row.get(row_key) != entry.get(index_key):
@@ -541,7 +554,7 @@ def load_source(entry, recovery_root, reviewed_root):
         payload = checked_payload(path, checks.get('artifacts', {}).get(name, {}).get('sha256'))
         loaded[name] = decode_json(payload)
         pins[name] = binding(path, payload)
-    if checks.get('qid') != qid or checks.get('answer') != answer:
+    if checks.get('qid') != qid or normalize_answer(checks.get('answer')) != answer:
         raise Deferral('source_identity_mismatch', 'recovery checks identity/answer')
     return Source(entry, row, loaded['rendered_lines'], loaded['records'], checks, loaded['evidence_index'], pins)
 
@@ -561,7 +574,9 @@ def renderer_config(tokenizer, derivation_citations=False, unbound_policy=UNBOUN
             'calculation_free_types': list(CALCULATION_FREE_TYPES),
             'observations_header': 'Observations (N)', 'derivations_header': 'Derivations (M)',
             'operand_replacement': 'Uses observations i, j.', 'closing_marker': MARKER,
-            'answer': 'Exact reviewed answer alone; no trailing newline',
+            'answer': 'Exact reviewed option letter or numeric token alone; strip one recognised unit after one ASCII space '
+                      '(m, metre(s), meter(s), cm, centimetre(s), centimeter(s), mm, millimetre(s), millimeter(s), '
+                      'in, inch(es), ft, foot, feet, deg, degree(s); case-insensitive); no trailing newline',
             'derivation_citations': derivation_citations, 'tokenizer': str(tokenizer), 'add_special_tokens': False,
             'record_hash': 'sha256 of UTF-8 sorted indented JSON, ensure_ascii=False, trailing newline',
             'numeric_scope': 'Factual line text excluding validated structural tokens and copied answer',
