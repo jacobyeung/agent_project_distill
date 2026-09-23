@@ -619,10 +619,85 @@ The strict-replay self-check recomputed `primary_score` 0.2475, 207 parse failur
 - Under lenient parsing, no OneThinker student beats base on VSTIBench (base 45.40 is the highest of the four VSTIBench cells).
 - Under lenient parsing, every OneThinker student beats base on VSIBench (base 39.19; arm C 42.35; answer-only 48.76).
 
+## Appendix: target-wording screen on 1,000 common rows (2026-09-23)
+
+No target wording beat answer-only supervision on VSIBench at 1,000 rows. Camera-frame perception text raises VSTIBench by about 3-5 points and lowers VSIBench by about 2-6 points, and the room-label correction raised the answer-only control by 4.0 VSIBench points.
+
+OneThinker-8B used vision and language LoRA (rank 32), effective batch 32, three epochs (96 updates for 1,000 rows), and seed 17. The common 1,000 rows combine 500 teacher rows and 500 GT-measurement v2 rows. Common v1 carries GT room areas computed as floor-triangle unions, about 35 percent too small at the median, while common_v2 replaces the 100 room rows with authenticated same-scene VSI-590K labels and leaves every other row byte-identical. A fixed subset contains 200 VSIBench items (20 per type) and 150 VSTIBench items; lenient scoring is primary and strict scoring is secondary. Each cell is compared with the answer-only control trained on the same rows at the same world size because world size changes A0 by about 2 points.
+
+### Controls
+
+| Control | Corpus | World | VSI-200 | VSTI-150 | Notes |
+|---|---|---|---:|---:|---|
+| Base OneThinker | — | — | 37.42 | 47.32 | lenient; strict 31.10 / 42.97 |
+| Answer-only, full 3,431 arm C rows | arm C | 2 | 47.40 | 40.70 | earlier run, rescored on the subset |
+| A0 (harness) | v1 | 4 | 38.31 | 49.65 | full sets: VSI-500 39.20 (base 39.19), VSTI-450 49.99 (base 45.40) |
+| A0 (w2_c0) | v1 | 2 | 40.73 | 47.89 | |
+| A0 rerun (w3_replicate) | v1 | 2 | 40.15 | 48.35 | same-world spread 0.58 / 0.46 |
+| C0 compact traces | v1 | 2 | 30.40 | 35.08 | 5 / 7 caps |
+| A0-v2 | v2 | 2 | **44.71** | 46.32 | room fix: +3.98 VSI over A0 v1 (room_size 32.0 → 57.0) |
+| A0-v2 | v2 | 4 | 42.77 | 49.26 | |
+| C0-v2 compact traces | v2 | 2 | 35.48 | 36.83 | 9 / 1 caps |
+
+Legend: T1 = one question-relative estimate + readout; T3 = bounded premises + one readout; H3 = answer first, then a short check; H4 = perception only: camera-frame centres and extents; H7 = frame-grounded observations; H8 = fact-locked fluent paraphrase (Gemini); H9 = two diverse rationales per question (2,000 rows); H10 = question-family templates; T2 = T1 on a 25 percent hash mask; T4 = Gemini picks one of two fact-locked T1 wordings; H5 = GT-only; H6 = GT-measurement mix; C0 = compact traces; A0 = answer-only.
+
+### Candidates on common v1 (Δ vs same-world A0: world 2 = 40.73 / 47.89, world 4 = 38.31 / 49.65)
+
+| Cell | What the target says | World | VSI | VSTI | Δ VSI | Δ VSTI | Verdict |
+|---|---|---|---:|---:|---:|---:|---|
+| T1 (w2_t1) | one question-relative estimate + readout | 2 | 37.71 | 46.56 | −3.02 | −1.33 | STOP |
+| T3 (H1) | bounded premises + one readout | 2 | 36.67 | 48.45 | −4.06 | +0.56 | STOP |
+| H3 | answer first, then a short check | 2 | 36.81 | 47.15 | −3.92 | −0.74 | STOP |
+| H4 | perception only: camera-frame centres and extents | 2 | 33.79 | 54.40 | −6.94 | +6.51 | STOP |
+| H4 rerun | same, seed-17 rerun | 2 | 35.85 | 50.92 | −4.88 | +3.03 | STOP |
+| H7 | frame-grounded observations | 4 | 36.02 | 53.99 | −2.29 | +4.34 | STOP |
+| H8 | fact-locked fluent paraphrase (Gemini) | 2 | 35.73 | 50.20 | −5.00 | +2.31 | STOP |
+| H9 | two diverse rationales per question (2,000 rows) | 4 | 36.40 | 47.26 | −1.92 | −2.39 | STOP |
+| H10 | question-family templates | 2 | 41.06 | 42.89 | +0.33 | −5.00 | STOP |
+| T4 (H2) | Gemini picks one of two fact-locked T1 wordings | 2 | 39.94 | 43.19 | −0.79 | −4.71 | STOP |
+| T2 | T1 on a 25 percent hash mask | 2 | partial | 49.05 | — | +1.16 | VSI blocked (held leases) |
+| RGB-cue near-null | RGB-verified cues on 7 percent of rows | 2 | 41.00 | 48.29 | +0.27 | +0.40 | STOP |
+| H6 50 percent | GT-measurement mix, 1,000 rows | 2 | 25.00 | 35.80 | −15.73 | −12.09 | STOP (45 caps) |
+| H6 75 percent | GT-measurement mix, 1,000 rows | 4 | 25.88 | 35.02 | −12.44 | −14.63 | STOP (42 caps) |
+
+### Candidates on common_v2 (Δ vs same-world A0-v2: world 2 = 44.71 / 46.32, world 4 = 42.77 / 49.26)
+
+| Cell | World | VSI | VSTI | Δ VSI | Δ VSTI | Verdict |
+|---|---|---:|---:|---:|---:|---|
+| Hybrid (H4; perception on relational and camera families, answer-plus-quantity on numeric) | 2 | 43.02 | 48.09 | −1.69 | +1.77 | STOP |
+| H7 frame-grounded | 4 | 38.83 | 52.87 | −3.94 | +3.60 | STOP |
+| T3 (H1) | 2 | 43.42 | 48.74 | −1.29 | +2.41 | STOP |
+| T1 | 2 | 42.63 | 44.75 | −2.08 | −1.57 | STOP |
+| H3 | 2 | 40.15 | 47.26 | −4.56 | +0.94 | STOP |
+| H10 | 2 | 44.04 | 46.09 | −0.67 | −0.23 | STOP |
+| T2 trace25 | 2 | 41.54 | 49.48 | −3.17 | +3.16 | STOP |
+| T4 | 2 | partial | 45.34 | — | −0.98 | VSI blocked (held leases) |
+| H5 GT-only, 1,000 GT rows with fixed room labels | 2 | partial (175/200) | 35.64 | — | −10.69 | partial: one VSI shard blocked (held lease); VSTI far below A0 |
+| H5 GT + A0 augmentation (2,000 rows) | 2 | 43.92 | 49.03 | −0.79 | +2.71 | STOP |
+| H6 75 percent GT mix with the first-frame repair | 4 | 41.69 | 35.90 | −1.08 | −13.36 | STOP (cap gate failed) |
+| H8 fact-locked fluent paraphrase | 2 | PENDING (single-worker evaluation, about 20:15Z) | | | | |
+| H9 two rationales (2,000 rows) | 2 | 43.02 | 46.13 | −1.69 | −0.20 | STOP |
+
+### Noise and replication
+
+Two world-2 A0 runs on v1 differ by 0.58 VSI and 0.46 VSTI, but world 2 versus world 4 changes the scores systematically at the same effective batch of 32: +2.4 VSI / −1.8 VSTI on v1 and +1.9 / −2.9 on v2. The 200-item and 150-item subsets have binomial standard errors of about 3.5 and 4 points, respectively, and paired scene-bootstrap 99 percent intervals of about ±7-9 points bracket every candidate delta; no run-noise estimate justified lowering the 8 / 14 GREEN floors. H4 averages −5.62 VSI / +4.54 VSTI against the two-run world-2 A0 mean (40.44 / 48.12), and H7 gives −2.29 / +4.34 on v1 and −3.94 / +3.60 on v2. T2 v2 (+3.16), T3 v2 (+2.41), and H8 v1 (+2.31) also lift VSTIBench, with gains in camera-object relative distance (v1/v2 up to +17.6 to +23.5) and object-object left/right (+6 to +19); counting, size, route, and appearance order lose on VSIBench. The family-gated hybrid keeps +1.8 VSTI at −1.7 VSI, so gating does not separate the two effects at 1,000 rows.
+
+### Negative results
+
+- Compact traces lose 9-10 points on both corpora. They are long and loop-prone, and cap hits appear (C0).
+- Heavy GT-measurement mixing (H6) loses 12-16 points. It also produces many cap hits.
+- Gemini-written prose ties or loses, even fact-locked and fluent. The fact-locked fluent paraphrase (H8) scored −5.0 / +2.3 on v1, and the constrained Gemini wording choice (T4) −0.8 / −4.7.
+- Diversity does not help. Two rationales per question (H9) scored −1.9 / −2.4.
+
+A shard-directory race blocked 6 VSI shards in 4 runs (T2 v1, the H7 replicate, T4 v2, and H5 v2): parallel shards that create the shared run directory at once fail with FileExistsError before inference, and their leases stay held.
+
+At full scale, the experiment trains the answer-only control on the same room-fixed full set as the trace student and evaluates both publications on VSIBench-500 and VSTIBench-450.
+
 ## Provenance
 
 | table | source path |
 |---|---|
+| Appendix: target-wording screen on 1,000 common rows | `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_swarm_20260923T0835Z/SWARM_REPORT.md`; `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_swarm_20260923T0835Z/LEDGER.tsv` |
 | OneThinker VSTIBench combined (base/armC/rep3/rep2/answer-only) | `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_eval_recover_20260922T1853Z/RESULTS_armc_answeronly.md` (and identical section in `RESULTS_armc_rep3.md`); replicate 2 column from `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_eval_rep2_20260922T1853Z/RESULTS_armc_rep2.md` |
 | OneThinker VSIBench combined (base/armC/rep3/rep2/answer-only) | `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_eval_recover_20260922T1853Z/RESULTS_armc_answeronly.md` (and identical section in `RESULTS_armc_rep3.md`); replicate 2 column from `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_eval_rep2_20260922T1853Z/RESULTS_armc_rep2.md` |
 | Qwen3.5-9B VSTIBench base vs arm C | `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_qwen_armc_eval_20260921T1020Z/out/RESULTS_VSTIBENCH_QARMC.md` |
