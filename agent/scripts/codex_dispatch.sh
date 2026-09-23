@@ -128,8 +128,30 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if ! git -C "$DIR" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+IS_WORK_TREE=false
+if git -C "$DIR" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  IS_WORK_TREE=true
+else
   SKIP_GIT=true
+fi
+
+# A linked worktree stores its HEAD, index, and locks outside $DIR, and its
+# common Git data also lives outside $DIR. Allow both locations so Codex can
+# stage and commit from the worktree.
+if [[ "$IS_WORK_TREE" == true ]]; then
+  GIT_DIR_RAW=$(git -C "$DIR" rev-parse --git-dir 2>/dev/null) || GIT_DIR_RAW=""
+  GIT_COMMON_DIR_RAW=$(git -C "$DIR" rev-parse --git-common-dir 2>/dev/null) || GIT_COMMON_DIR_RAW=""
+  GIT_DIR_ABS=""
+  GIT_COMMON_DIR_ABS=""
+  if [[ -n "$GIT_DIR_RAW" ]]; then
+    GIT_DIR_ABS=$(cd "$DIR" && cd "$GIT_DIR_RAW" && pwd -P) || GIT_DIR_ABS=""
+  fi
+  if [[ -n "$GIT_COMMON_DIR_RAW" ]]; then
+    GIT_COMMON_DIR_ABS=$(cd "$DIR" && cd "$GIT_COMMON_DIR_RAW" && pwd -P) || GIT_COMMON_DIR_ABS=""
+  fi
+  if [[ -n "$GIT_DIR_ABS" && -n "$GIT_COMMON_DIR_ABS" && "$GIT_DIR_ABS" != "$GIT_COMMON_DIR_ABS" ]]; then
+    WRITABLE_ROOTS+=("$GIT_DIR_ABS" "$GIT_COMMON_DIR_ABS")
+  fi
 fi
 
 if grep -qE 'setsid|nohup' "$PROMPT_FILE"; then
