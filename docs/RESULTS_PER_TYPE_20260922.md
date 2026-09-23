@@ -675,12 +675,12 @@ Legend: T1 = one question-relative estimate + readout; T3 = bounded premises + o
 | H5 GT-only, 1,000 GT rows with fixed room labels | 2 | partial (175/200) | 35.64 | — | −10.69 | partial: one VSI shard blocked (held lease); VSTI far below A0 |
 | H5 GT + A0 augmentation (2,000 rows) | 2 | 43.92 | 49.03 | −0.79 | +2.71 | STOP |
 | H6 75 percent GT mix with the first-frame repair | 4 | 41.69 | 35.90 | −1.08 | −13.36 | STOP (cap gate failed) |
-| H8 fact-locked fluent paraphrase | 2 | PENDING (single-worker evaluation, about 20:15Z) | | | | |
+| H8 fact-locked fluent paraphrase | 2 | 40.29 | 50.39 | −4.42 | +4.07 | STOP |
 | H9 two rationales (2,000 rows) | 2 | 43.02 | 46.13 | −1.69 | −0.20 | STOP |
 
 ### Noise and replication
 
-Two world-2 A0 runs on v1 differ by 0.58 VSI and 0.46 VSTI, but world 2 versus world 4 changes the scores systematically at the same effective batch of 32: +2.4 VSI / −1.8 VSTI on v1 and +1.9 / −2.9 on v2. The 200-item and 150-item subsets have binomial standard errors of about 3.5 and 4 points, respectively, and paired scene-bootstrap 99 percent intervals of about ±7-9 points bracket every candidate delta; no run-noise estimate justified lowering the 8 / 14 GREEN floors. H4 averages −5.62 VSI / +4.54 VSTI against the two-run world-2 A0 mean (40.44 / 48.12), and H7 gives −2.29 / +4.34 on v1 and −3.94 / +3.60 on v2. T2 v2 (+3.16), T3 v2 (+2.41), and H8 v1 (+2.31) also lift VSTIBench, with gains in camera-object relative distance (v1/v2 up to +17.6 to +23.5) and object-object left/right (+6 to +19); counting, size, route, and appearance order lose on VSIBench. The family-gated hybrid keeps +1.8 VSTI at −1.7 VSI, so gating does not separate the two effects at 1,000 rows.
+Two world-2 A0 runs on v1 differ by 0.58 VSI and 0.46 VSTI, but world 2 versus world 4 changes the scores systematically at the same effective batch of 32: +2.4 VSI / −1.8 VSTI on v1 and +1.9 / −2.9 on v2. The 200-item and 150-item subsets have binomial standard errors of about 3.5 and 4 points, respectively, and paired scene-bootstrap 99 percent intervals of about ±7-9 points bracket every candidate delta; no run-noise estimate justified lowering the 8 / 14 GREEN floors. H4 averages −5.62 VSI / +4.54 VSTI against the two-run world-2 A0 mean (40.44 / 48.12), and H7 gives −2.29 / +4.34 on v1 and −3.94 / +3.60 on v2. H8 v2 (+4.07), T2 v2 (+3.16), T3 v2 (+2.41), and H8 v1 (+2.31) also lift VSTIBench, with gains in camera-object relative distance (v1/v2 up to +17.6 to +23.5) and object-object left/right (+6 to +19); counting, size, route, and appearance order lose on VSIBench. The family-gated hybrid keeps +1.8 VSTI at −1.7 VSI, so gating does not separate the two effects at 1,000 rows.
 
 ### Negative results
 
