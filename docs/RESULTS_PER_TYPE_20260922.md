@@ -117,29 +117,35 @@ The table gives strict accuracy by type. Lenient parsing moved 0 questions, so l
 
 #### Per question type
 
-| question type | n | base lenient (%) | arm C lenient (%) | delta | base strict (%) | arm C strict (%) | base parse fail | arm C parse fail |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| obj_appearance_order | 50 | 26.00 | 70.00 | +44.00 | 26.00 | 70.00 | 32 | 0 |
-| object_abs_distance | 50 | 12.60 | 33.60 | +21.00 | 12.60 | 33.60 | 36 | 0 |
-| object_counting | 50 | 7.40 | 56.00 | +48.60 | 7.40 | 56.00 | 43 | 0 |
-| object_rel_direction_easy | 50 | 28.00 | 54.00 | +26.00 | 28.00 | 54.00 | 29 | 0 |
-| object_rel_direction_hard | 50 | 0.00 | 28.00 | +28.00 | 0.00 | 28.00 | 48 | 0 |
-| object_rel_direction_medium | 50 | 8.00 | 44.00 | +36.00 | 8.00 | 44.00 | 41 | 0 |
-| object_rel_distance | 50 | 34.00 | 52.00 | +18.00 | 34.00 | 52.00 | 28 | 0 |
-| object_size_estimation | 50 | 17.60 | 47.60 | +30.00 | 17.60 | 47.60 | 36 | 0 |
-| room_size_estimation | 50 | 0.20 | 68.80 | +68.60 | 0.20 | 68.80 | 48 | 0 |
-| route_planning | 50 | 14.00 | 24.00 | +10.00 | 14.00 | 24.00 | 37 | 0 |
+| question type | n | base lenient (%) | arm C lenient (%) | rep2 lenient (%) | arm C - base delta | base strict (%) | arm C strict (%) | rep2 strict (%) | base parse fail | arm C parse fail | rep2 parse fail |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| obj_appearance_order | 50 | 26.00 | 70.00 | 74.00 | +44.00 | 26.00 | 70.00 | 74.00 | 32 | 0 | 0 |
+| object_abs_distance | 50 | 12.60 | 33.60 | 37.00 | +21.00 | 12.60 | 33.60 | 37.00 | 36 | 0 | 0 |
+| object_counting | 50 | 7.40 | 56.00 | 57.20 | +48.60 | 7.40 | 56.00 | 57.20 | 43 | 0 | 0 |
+| object_rel_direction_easy | 50 | 28.00 | 54.00 | 56.00 | +26.00 | 28.00 | 54.00 | 56.00 | 29 | 0 | 0 |
+| object_rel_direction_hard | 50 | 0.00 | 28.00 | 24.00 | +28.00 | 0.00 | 28.00 | 24.00 | 48 | 0 | 0 |
+| object_rel_direction_medium | 50 | 8.00 | 44.00 | 50.00 | +36.00 | 8.00 | 44.00 | 50.00 | 41 | 0 | 0 |
+| object_rel_distance | 50 | 34.00 | 52.00 | 46.00 | +18.00 | 34.00 | 52.00 | 46.00 | 28 | 0 | 0 |
+| object_size_estimation | 50 | 17.60 | 47.60 | 50.00 | +30.00 | 17.60 | 47.60 | 50.00 | 36 | 0 | 0 |
+| room_size_estimation | 50 | 0.20 | 68.80 | 56.80 | +68.60 | 0.20 | 68.80 | 56.80 | 48 | 0 | 0 |
+| route_planning | 50 | 14.00 | 24.00 | 26.00 | +10.00 | 14.00 | 24.00 | 26.00 | 37 | 0 | 0 |
 
 #### Overall
 
-| quantity | base | arm C | delta |
-|---|---:|---:|---:|
-| primary score, lenient (%) | 15.47 | 49.25 | +33.77 |
-| raw category macro, strict (%) | 14.78 | 47.80 | +33.02 |
-| primary score, strict (%) | 15.47 | 49.25 | +33.77 |
-| parse failures | 378 | 0 | -378 |
-| generations hitting the 4,096 cap | 373 | 0 | -373 |
-| capped with no answer | 373 | 0 | -373 |
+| quantity | base | arm C | rep2 | arm C - base delta | rep2 - base | rep2 - arm C |
+|---|---:|---:|---:|---:|---:|---:|
+| primary score, lenient (%) | 15.47 | 49.25 | 48.79 | +33.77 | +33.32 | -0.46 |
+| raw category macro, strict (%) | 14.78 | 47.80 | 47.70 | +33.02 | +32.92 | -0.10 |
+| primary score, strict (%) | 15.47 | 49.25 | 48.79 | +33.77 | +33.32 | -0.46 |
+| parse failures | 378 | 0 | 0 | -378 | -378 | +0 |
+| generations hitting the 4,096 cap | 373 | 0 | 0 | -373 | -373 | +0 |
+| capped with no answer | 373 | 0 | 0 | -373 | -373 | +0 |
+
+#### Two-seed summary, arm C recipe (lenient primary, %)
+
+| benchmark | published | replicate 2 | mean | range (max-min) | sample std |
+|---|---:|---:|---:|---:|---:|
+| VSIBench | 49.25 | 48.79 | 49.02 | 0.46 | 0.33 |
 
 ### VSTIBench (`vstibench_repr450_v2`, 450 items): base vs r6 format-A control
 
@@ -234,7 +240,7 @@ The strict-replay self-check recomputed `primary_score` 0.2475, 207 parse failur
 
 | model | benchmark | cell | status |
 |---|---|---|---|
-| Qwen3.5-9B arm C | VSTIBench / VSIBench | replicate (trinity) | in flight — trainer resumed after a step-266/288 stall, last checkpoint step_250, relocation to trinity-1-18 not confirmed complete |
+| Qwen3.5-9B arm C | VSTIBench / VSIBench | replicate (trinity) | VSIBench COMPLETE — 500/500 terminal and scored; replicate-2 results appear in the Qwen VSIBench tables above. VSTIBench remains in flight on trinity-0-18, expected ~08:40Z |
 | Qwen3.5-9B arm C | VSTIBench / VSIBench | replicate (Orchard) | in flight — Orchard job chain 147597 (running) / 147599 (pending on afterany:147597) |
 | Qwen3.5-9B format-A control r6 | VSIBench | r6 | COMPLETE — 500/500 terminal and scored; per-type table above. The last 33 items finished 2026-09-23T01:12Z after lane `claude_qwen_r6_eval_resume_20260922T2047Z` relaunched shard 7 from trinity-1-3 |
 | Qwen3.6-27B arm C | VSIBench / VSTIBench | single run | in flight — trainer resumed after a step-78/96 stall, last checkpoint step_75, 21 steps remaining, resumed steps not confirmed; separate 27B base VSIBench control (Orchard job 147601) failed all 4 shards on a path-containment defect, unresolved |
@@ -259,7 +265,7 @@ The strict-replay self-check recomputed `primary_score` 0.2475, 207 parse failur
 | OneThinker VSTIBench combined (base/armC/rep3/rep2/answer-only) | `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_eval_recover_20260922T1853Z/RESULTS_armc_answeronly.md` (and identical section in `RESULTS_armc_rep3.md`); replicate 2 column from `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_eval_rep2_20260922T1853Z/RESULTS_armc_rep2.md` |
 | OneThinker VSIBench combined (base/armC/rep3/rep2/answer-only) | `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_eval_recover_20260922T1853Z/RESULTS_armc_answeronly.md` (and identical section in `RESULTS_armc_rep3.md`); replicate 2 column from `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_eval_rep2_20260922T1853Z/RESULTS_armc_rep2.md` |
 | Qwen3.5-9B VSTIBench base vs arm C | `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_qwen_armc_eval_20260921T1020Z/out/RESULTS_VSTIBENCH_QARMC.md` |
-| Qwen3.5-9B VSIBench base vs arm C | `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_qwen_armc_eval_20260921T1020Z/out/RESULTS_VSIBENCH_QARMC.md` |
+| Qwen3.5-9B VSIBench base vs arm C / replicate 2 | `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_qwen_armc_eval_20260921T1020Z/out/RESULTS_VSIBENCH_QARMC.md`; replicate 2: `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_qwen_rep2_eval_20260923T0535Z/RESULTS_qwen_armc_rep2_vsibench.md` |
 | Qwen3.5-9B VSTIBench base vs r6 (format-A control) | `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_qwen_r6_eval_20260921T0400Z/out/RESULTS_VSTIBENCH_QWEN_R6.md` |
 | Qwen3.5-9B VSIBench base vs r6 (format-A control), per question type | `/data3/jjyeung/claude_qwen_r6_eval_resume_20260922T2047Z/out_relaunch/RESULTS_VSIBENCH_QWEN_R6.md` |
 | Qwen3.5-9B VSIBench base vs r6 (format-A control), overall | `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_qwen_r6_eval_20260921T0400Z/out/RESULTS_qwen_r6.md` |
