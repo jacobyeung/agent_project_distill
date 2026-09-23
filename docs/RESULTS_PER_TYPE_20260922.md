@@ -340,7 +340,43 @@ The base's lenient parser recovers 41 of its 55 strict failures. The roomfix tra
 
 `camera_obj_rel_dist_v2` is the largest loss against base (−28.00), while `camera_obj_abs_dist` is the largest gain (+7.20). That gain is real but ranks third by absolute swing, behind the losses on `camera_obj_rel_dist_v2` and `camera_obj_rel_dist_v1`. Five of nine categories lose to base by double digits. The trace student is weaker on relative-distance and relative-position judgment, mirroring the pattern in every other OneThinker VSTIBench Set B variant. VSTIBench has no `room_size_estimation` category, so the room-label fix's clearest VSIBench signal has no direct analog here.
 
-**Answer-only control:** not yet published (~21:15Z publication, results after).
+#### Answer-only control (`gtm2_v25full_onethinker_trinity_roomfix_answeronly`) — VSIBench FINAL
+
+Cell `gtm2_v25full_onethinker_trinity_roomfix_answeronly` landed at 2026-09-23T21:50Z. It pairs with the trinity `58794b8` OneThinker base cell; `58794b8` is the benchmark scorer/protocol harness baked into the scored data, while the `trinity_fullset_evals` evaluation lane is separate tooling and does not change the protocol harness that scored the items.
+
+##### Whole-benchmark headline (lenient primary / strict secondary)
+
+| cell | harness | lenient (primary, %) | strict (secondary, %) | parse failures (strict → lenient) | cap-hit | cap w/o answer | terminal |
+|---|---|---:|---:|---:|---:|---:|---:|
+| trinity base | `58794b8` | 39.19 | 31.47 | 93 → 9 | 0 | 0 | 500/500 |
+| Roomfix trace student (FINAL) | `58794b8` | 38.68 | 38.68 | 26 → 26 | 27 | 26 | 500/500 |
+| **Roomfix answer-only control (FINAL)** | `58794b8` | **48.03** | **48.03** | 0 → 0 | 0 | 0 | 500/500 |
+
+**Deltas (lenient primary):** answer-only vs base **+8.84**; answer-only vs trace student **+9.35**; trace student vs base **−0.51** (stated above). **Strict:** answer-only vs base **+16.57**.
+
+**On the corrected (roomfix) data, for OneThinker, answer-only supervision beats trace supervision on VSIBench, clearly and by a wide margin** (+9.35 lenient/strict) — the same qualitative finding documented for the pre-roomfix arm C family, now reproduced on the corrected labels. VSTIBench remains pending (~22:15Z), so this VSIBench-only result does not yet establish that answer-only beats trace supervision overall; elsewhere in this project, answer-only's VSIBench lead does not always carry over to VSTIBench.
+
+##### Per question type (lenient primary)
+
+Both the trace student and the answer-only control have no residual parse failures beyond those already counted, so lenient equals strict for both.
+
+| question type | trinity base, lenient (primary) | trinity base, strict | Roomfix trace student (lenient = strict) | Roomfix answer-only control (lenient = strict) | delta: answer-only vs trace |
+|---|---:|---:|---:|---:|---:|
+| obj_appearance_order | 52.00 | 52.00 | 58.00 | 60.00 | +2.00 |
+| object_abs_distance | 32.80 | 12.80 | 23.00 | 39.80 | +16.80 |
+| object_counting | 29.60 | 21.60 | 30.40 | 51.00 | +20.60 |
+| object_rel_direction_easy | 36.00 | 36.00 | 54.00 | 42.00 | −12.00 |
+| object_rel_direction_hard | 22.00 | 22.00 | 26.00 | 20.00 | −6.00 |
+| object_rel_direction_medium | 36.00 | 36.00 | 36.00 | 48.00 | +12.00 |
+| object_rel_distance | 42.00 | 42.00 | 38.00 | 50.00 | +12.00 |
+| object_size_estimation | 48.00 | 45.00 | 49.80 | 43.40 | −6.40 |
+| room_size_estimation | 51.80 | 21.00 | 55.60 | 63.40 | +7.80 |
+| route_planning | 26.00 | 26.00 | 16.00 | 40.00 | +24.00 |
+| **macro (raw category)** | 37.62 | 31.44 | 38.68 | 45.76 | +7.08 |
+
+`route_planning` is the largest answer-only gain over trace, **+24.00** (40.00 vs 16.00). The trace student's 26 unrecovered cap-hits are all in this category, so part of the gap reflects its format-reliability problem rather than supervision quality alone. `object_counting` (+20.60) and `object_abs_distance` (+16.80) are the next-largest gains; both numeric/counting-flavored categories match the answer-only recipe's established strength. The trace student leads on `object_rel_direction_easy` (answer-only −12.00), `object_size_estimation` (−6.40), and `object_rel_direction_hard` (−6.00), the same three categories that favored the trace student in the pre-roomfix full-scale comparison, which indicates a stable trace-vs-answer-only split rather than a roomfix-specific effect.
+
+##### VSTIBench -- PENDING (~22:15Z): add the trace-vs-answer-only-vs-base comparison when results land.
 
 ## Qwen3.5-9B
 
