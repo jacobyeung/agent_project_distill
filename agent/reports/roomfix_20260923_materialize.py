@@ -7,21 +7,17 @@ heldout.jsonl row becomes exactly one candidate row and one target file, in qid 
 Index-level fields for compact rows are carried through verbatim from their source
 candidate index; for gtmeasure rows they are read off the row itself.
 """
-import json, shutil, sys
+import json, shutil, sys, uuid
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 WORKTREE = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(WORKTREE))
 
-from tools.gtmeasure.io import digest, new_output, output_path, pin, read_json, read_jsonl, sha, write_json, write_jsonl  # noqa: E402
+from tools.gtmeasure.io import digest, output_path, pin, read_json, read_jsonl, sha, write_json, write_jsonl  # noqa: E402
 
 PILOT = Path('/data2/jjyeung/agent_project_data/student_diagnostic_pilot_20260918')
 CARRIED = ('answer', 'pool', 'question_type', 'generation_commit', 'validation_commit')
-
-
-def write_text(path, text):
-    with output_path(path).open('x') as handle:
-        handle.write(text)
 
 
 def entry_for(row, source_index, target_path, row_path):
@@ -57,24 +53,48 @@ def materialize(name, spec):
     if len({r['qid'] for r in rows}) != len(rows):
         raise ValueError('duplicate qid across the two sides')
 
-    output = new_output(out)
+    output = output_path(out)
+    if (output / 'MATERIALIZATION.json').exists():
+        raise FileExistsError('completed trainer layout already exists')
+    output.mkdir(exist_ok=True)
     targets = output / 'targets'
-    targets.mkdir()
-    entries, origins = [], {'compact': 0, 'gtmeasure': 0}
-    for row in sorted(rows, key=lambda r: r['qid']):
+    targets.mkdir(exist_ok=True)
+
+    def save_or_verify(path, payload):
+        if path.exists():
+            if path.is_symlink():
+                raise ValueError('symlink in owned partial layout')
+            if path.read_bytes() == payload:
+                return
+            archive_root = PILOT / 'gtmeasure_v2_roomfix_20260923' / 'validation_tests' / 'partial_materialization'
+            archive_root.mkdir(parents=True, exist_ok=True)
+            archive = archive_root / ('partial_' + path.parent.name + '_' + path.name + '_' + uuid.uuid4().hex)
+            path.rename(archive)
+        with path.open('xb') as handle:
+            handle.write(payload)
+
+    def write_row(row):
         directory = targets / row['qid']
-        directory.mkdir()
-        write_text(directory / 'target.txt', row['target'])
-        write_json(directory / 'row.json', row)
+        directory.mkdir(exist_ok=True)
+        save_or_verify(directory / 'target.txt', row['target'].encode())
+        payload = (json.dumps(row, sort_keys=True, indent=2, ensure_ascii=False, allow_nan=False) + '\n').encode()
+        save_or_verify(directory / 'row.json', payload)
         entry, origin = entry_for(row, source_index, directory / 'target.txt', directory / 'row.json')
-        origins[origin] += 1
-        entries.append(entry)
+        return entry, origin
+
+    entries, origins = [], {'compact': 0, 'gtmeasure': 0}
+    with ThreadPoolExecutor(max_workers=16) as executor:
+        for number, (entry, origin) in enumerate(executor.map(write_row, sorted(rows, key=lambda r: r['qid'])), 1):
+            entries.append(entry)
+            origins[origin] += 1
+            if number % 1000 == 0:
+                print(f'Checked and materialized {number}/{len(rows)} candidates', flush=True)
     entries.sort(key=lambda e: e['qid'])
     write_jsonl(output / 'candidate_index.jsonl', entries)
     shutil.copyfile(mix / 'split.json', output / 'split.json')
 
-    tree = digest(sorted((str(p.relative_to(output)), sha(p)) for p in targets.rglob('*') if p.is_file()))
-    by_side = {side: {'rows': len(value), 'qids': None} for side, value in sides.items()}
+    tree = digest(sorted((str(Path(entry[path_key]).relative_to(output)), entry[sha_key])
+                         for entry in entries for path_key, sha_key in [('row_path', 'row_sha256'), ('target_path', 'sha256')]))
     record = {'schema': 'gtmeasure-mixed-candidate-layout-v1', 'set': name,
               'source_mix': str(mix), 'source_compact_index': str(spec['compact'] / 'candidate_index.jsonl'),
               'counts': {'train': len(sides['train']), 'heldout': len(sides['heldout']),
