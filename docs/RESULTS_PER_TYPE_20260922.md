@@ -81,8 +81,46 @@ The table gives strict accuracy by type. Lenient parsing moved 0 questions, so l
 
 | benchmark | published | replicate 2 | replicate 3 | mean | range (max-min) | sample std |
 |---|---:|---:|---:|---:|---:|---:|
-| VSIBench | 42.35 | 41.10 | 43.13 | 42.19 | 2.03 | 1.02 |
-| VSTIBench | 43.59 | 40.83 | 38.27 | 40.90 | 5.32 | 2.66 |
+| VSIBench | 42.35 | 41.10 | 43.13 | 42.19 | 2.03 | 1.03 |
+| VSTIBench | 43.59 | 40.83 | 38.27 | 40.89 | 5.32 | 2.66 |
+
+### VSIBench (`vsibench_answerable500`, 500 items) — Set B pilot, Orchard (first evidence-first result)
+
+This result uses the Orchard harness `orchard_trainer_12e477b`, while the trinity rows use `58794b8`. The Orchard-native distilled cell pairs with the Orchard base on the same harness, not with a trinity row; the trinity rows provide reference only under the cross-harness pairing rule.
+
+#### Whole-benchmark headline (lenient primary / strict secondary)
+
+| cell | harness | lenient (primary, %) | strict (secondary, %) | parse failures (strict → lenient) | cap-hit | cap w/o answer | median gen tokens | terminal |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| **Set B distilled (Orchard)** | `orchard_trainer_12e477b` | **32.10** | **32.10** | 26 → 26 | 26 | 26 | 448 | 500/500 |
+| Orchard base | `orchard_trainer_12e477b` | 39.35 | 30.48 | 97 → 10 | 0 | 0 | 214 | 500/500 |
+| — *trinity rows below, different harness (`58794b8`), reference only, not the pairing partner* | | | | | | | | |
+| trinity base | `58794b8` | 39.19 | 31.47 | 93 → 9 | 0 | 0 | 217 | 500/500 |
+| trinity arm C (published) | `58794b8` | 42.35 | 42.35 | 4 → 4 | 4 | 4 | 364 | 500/500 |
+| trinity arm C, 3-seed mean | `58794b8` | 42.19 | - | - | - | - | - | - |
+| trinity answer-only | `58794b8` | 48.76 | 48.76 | 0 → 0 | 0 | 0 | 2 | 500/500 |
+
+**Deltas (Set B distilled lenient 32.10 minus):** Orchard base **−7.25** (loses on the primary lenient metric); Orchard base strict **+1.62** (wins strict only); trinity base **−7.09**; trinity arm C (published) **−10.25**; trinity arm C 3-seed mean **−10.09**; trinity answer-only **−16.66**.
+
+#### Per question type — strict parser only
+
+Lenient parsing moved 0 questions for the distilled cell, so its lenient accuracy equals its strict accuracy in every category.
+
+| question type | Set B distilled (Orchard) | Orchard base | delta |
+|---|---:|---:|---:|
+| obj_appearance_order | 46.00 | 52.00 | −6.00 |
+| object_abs_distance | 32.40 | 9.60 | **+22.80** |
+| object_counting | 35.40 | 21.80 | +13.60 |
+| object_rel_direction_easy | 46.00 | 36.00 | +10.00 |
+| object_rel_direction_hard | 22.00 | 26.00 | −4.00 |
+| object_rel_direction_medium | 34.00 | 34.00 | 0.00 |
+| object_rel_distance | 40.00 | 36.00 | +4.00 |
+| object_size_estimation | 44.00 | 45.80 | −1.80 |
+| room_size_estimation | 9.00 | 22.60 | **−13.60** |
+| route_planning | 16.00 | 24.00 | −8.00 |
+| **macro over raw categories** | 32.48 | 30.78 | +1.70 |
+
+Set B produces a mixed result, not a clean win. Its gains cluster in numeric-distance-flavored perception categories (`object_abs_distance`, `object_counting`, and `object_rel_direction_easy`), while `room_size_estimation` and `route_planning` lose sharply. The primary lenient metric declines because 26/500 generations (5.2%) reach the 4,096-token cap without an extractable answer, versus 0 for the Orchard base; the lenient parser cannot recover those empty answers. This is a format-reliability regression relative to every trinity-trained arm C cell seen so far (published arm C: 4 parse failures, effectively recovered in aggregate; replicate 3: 3; replicate 2: 0), and the training and Orchard teams should investigate the Set B recipe or Orchard decoding budget.
 
 ## Qwen3.5-9B
 
@@ -145,7 +183,7 @@ The table gives strict accuracy by type. Lenient parsing moved 0 questions, so l
 
 | benchmark | published | replicate 2 | mean | range (max-min) | sample std |
 |---|---:|---:|---:|---:|---:|
-| VSIBench | 49.25 | 48.79 | 49.02 | 0.46 | 0.33 |
+| VSIBench | 49.25 | 48.79 | 49.02 | 0.46 | 0.32 |
 
 ### VSTIBench (`vstibench_repr450_v2`, 450 items): base vs r6 format-A control
 
@@ -251,7 +289,7 @@ The strict-replay self-check recomputed `primary_score` 0.2475, 207 parse failur
 - The OneThinker answer-only control, using the same 3,431 arm C rows with bare answers and a median of 2 generated tokens, matches arm C on VSTIBench (43.35 vs 43.59 lenient) and beats it on VSIBench (48.76 vs 42.35; base 39.19).
 - Replicate 3 of arm C lands below base on VSTIBench (38.27 vs base 45.40, lenient).
 - Replicate 3 beats published arm C on VSIBench (43.13 vs 42.35, +0.78) and beats base by 3.94, but misses published arm C on VSTIBench by 5.32 and misses base by 7.13.
-- Across published arm C, replicate 2, and replicate 3, VSIBench has a mean of 42.19, range of 2.03, and sample standard deviation of 1.02; VSTIBench has a mean of 40.90, range of 5.32, and sample standard deviation of 2.66. VSIBench is comparatively stable across seeds, while VSTIBench is not.
+- Across published arm C, replicate 2, and replicate 3, VSIBench has a mean of 42.19, range of 2.03, and sample standard deviation of 1.03; VSTIBench has a mean of 40.89, range of 5.32, and sample standard deviation of 2.66. VSIBench is comparatively stable across seeds, while VSTIBench is not.
 - The compact reasoning trace is not what earns arm C its numbers.
 - Answer-only gains on VSIBench are broad: route_planning 48.0 vs 28.0, room_size_estimation 52.8 vs 38.4, object_rel_direction_hard 34.0 vs 16.0, and object_counting 49.4 vs 41.6 in the arm C column. It loses only object_abs_distance (35.2 vs 36.8) and object_rel_distance (42.0 vs 48.0) against arm C.
 - The evidence-first ruling asked whether the traces themselves teach anything; on this set they do not — format and answer-distribution fine-tuning explains arm C, and replicate variance on VSTIBench is about 5 points (43.59 vs 38.27 for the same recipe).
