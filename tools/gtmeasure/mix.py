@@ -53,6 +53,10 @@ def measurement_rows(directory):
     if digest(manifest['config']) != manifest['config_sha256']:
         raise ValueError('measurement config digest mismatch')
     source_pins = [pin(directory / 'MANIFEST.json')]
+    selective = manifest['config'].get('selective_room_repair')
+    if selective:
+        from .room_corpus import verify_selective_rows
+        verify_selective_rows(directory, manifest)
     for name, spec in manifest['artifacts'].items():
         if Path(spec['path']).resolve() != directory / name:
             raise ValueError('measurement artifact path mismatch')
@@ -68,7 +72,8 @@ def measurement_rows(directory):
             if row['qid'] in seen or row.get('source') != 'gtmeasure_v1' or row.get('family') not in FAMILIES:
                 raise ValueError('duplicate or foreign measurement row')
             seen.add(row['qid'])
-            if row.get('generation_commit') != manifest['repo_commit'] or row.get('config_sha256') != manifest['config_sha256']:
+            inherited = selective and row['family'] != 'gtm_room_size'
+            if not inherited and (row.get('generation_commit') != manifest['repo_commit'] or row.get('config_sha256') != manifest['config_sha256']):
                 raise ValueError('measurement row provenance differs from its manifest')
             validate_student_input(row['student_input'])
             validate_target(row['target'])

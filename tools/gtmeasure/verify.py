@@ -19,6 +19,8 @@ def verify_dataset(directory, recompute=False):
     directory = Path(directory).resolve()
     sides, manifest, split_record, _ = measurement_rows(directory)
     config = manifest['config']
+    if recompute and config.get('selective_room_repair'):
+        raise ValueError('selective corpora replay room labels and preserve source bytes; geometry regeneration requires the source generation epoch')
     conventions = read_json(directory / 'CONVENTIONS.json')
     if digest(conventions) != config['conventions_sha256']:
         raise ValueError('conventions differ from the generation config')
