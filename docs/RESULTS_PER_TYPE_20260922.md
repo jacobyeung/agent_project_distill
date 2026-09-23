@@ -376,7 +376,52 @@ Both the trace student and the answer-only control have no residual parse failur
 
 `route_planning` is the largest answer-only gain over trace, **+24.00** (40.00 vs 16.00). The trace student's 26 unrecovered cap-hits are all in this category, so part of the gap reflects its format-reliability problem rather than supervision quality alone. `object_counting` (+20.60) and `object_abs_distance` (+16.80) are the next-largest gains; both numeric/counting-flavored categories match the answer-only recipe's established strength. The trace student leads on `object_rel_direction_easy` (answer-only −12.00), `object_size_estimation` (−6.40), and `object_rel_direction_hard` (−6.00), the same three categories that favored the trace student in the pre-roomfix full-scale comparison, which indicates a stable trace-vs-answer-only split rather than a roomfix-specific effect.
 
-##### VSTIBench -- PENDING (~22:15Z): add the trace-vs-answer-only-vs-base comparison when results land.
+##### VSTIBench — FINAL (450/450)
+
+Cell `gtm2_v25full_onethinker_trinity_roomfix_answeronly` landed at 2026-09-23T22:04Z. It pairs with the trinity `58794b8` OneThinker base cell; `58794b8` is the benchmark scorer/protocol harness baked into the scored data, while the `trinity_fullset_evals` evaluation lane is separate tooling and does not change the protocol harness that scored the items.
+
+##### Whole-benchmark headline (lenient primary / strict secondary)
+
+| cell | harness | lenient (primary, %) | strict (secondary, %) | parse failures (strict → lenient) | cap-hit | cap w/o answer | terminal |
+|---|---|---:|---:|---:|---:|---:|---:|
+| trinity base | `58794b8` | 45.40 | 40.16 | 55 → 14 | 1 | 1 | 450/450 |
+| Roomfix trace student (FINAL) | `58794b8` | 38.28 | 38.28 | 0 → 0 | 0 | 0 | 450/450 |
+| **Roomfix answer-only control (FINAL)** | `58794b8` | **53.45** | **53.45** | 0 → 0 | 0 | 0 | 450/450 |
+
+**Deltas (lenient primary):** answer-only vs base **+8.05**; answer-only vs trace student **+15.17**; trace student vs base **−7.12** (stated above). **Strict:** answer-only vs base **+13.29**.
+
+##### Per question type (lenient primary)
+
+Both the trace student and the answer-only control have no parse failures, so lenient equals strict for both.
+
+| question type | trinity base, lenient (primary) | trinity base, strict | Roomfix trace student (lenient = strict) | Roomfix answer-only control (lenient = strict) | delta: answer-only vs base | delta: answer-only vs trace |
+|---|---:|---:|---:|---:|---:|---:|
+| camera_displacement | 21.00 | 20.80 | 18.20 | 25.20 | +4.20 | +7.00 |
+| camera_movement_direction | 30.00 | 30.00 | 16.00 | 42.00 | +12.00 | +26.00 |
+| camera_obj_abs_dist | 36.00 | 10.00 | 43.20 | 53.40 | +17.40 | +10.20 |
+| camera_obj_rel_dist_v1 | 52.00 | 52.00 | 32.00 | 60.00 | +8.00 | +28.00 |
+| camera_obj_rel_dist_v2 | 72.00 | 72.00 | 44.00 | 70.00 | −2.00 | +26.00 |
+| camera_obj_rel_dist_v3 | 70.00 | 70.00 | 66.00 | 76.00 | +6.00 | +10.00 |
+| obj_obj_relative_pos_lr | 60.00 | 60.00 | 44.00 | 68.00 | +8.00 | +24.00 |
+| obj_obj_relative_pos_nf | 74.00 | 74.00 | 70.00 | 74.00 | 0.00 | +4.00 |
+| obj_obj_relative_pos_ud | 92.00 | 92.00 | 86.00 | 92.00 | 0.00 | +6.00 |
+| **macro (raw category, strict)** |  | 53.42 | 46.60 | 62.29 | +8.87 | +15.69 |
+
+**Against base:** `camera_obj_abs_dist` (+17.40) and `camera_movement_direction` (+12.00) lead the gains. `obj_obj_relative_pos_nf` and `obj_obj_relative_pos_ud` tie, while `camera_obj_rel_dist_v2` is the only loss (−2.00).
+
+**Against the trace student:** answer-only wins every category. Its smallest margin is +4.00 on `obj_obj_relative_pos_nf`, and its largest is +28.00 on `camera_obj_rel_dist_v1`; the trace student lost five of nine categories against base.
+
+#### Summary of the four full-set cells
+
+Values are lenient primary / strict secondary, all with the same trinity `58794b8` base pairing.
+
+| student | VSIBench-500 | VSTIBench-450 |
+|---|---:|---:|
+| base OneThinker-8B | 39.19 / 31.47 | 45.40 / 40.16 |
+| trace (roomfix) | 38.68 / 38.68 | 38.28 / 38.28 |
+| **answer-only (roomfix_answeronly)** | **48.03 / 48.03** | **53.45 / 53.45** |
+
+On the corrected (roomfix) full set, the answer-only student beats both base and the trace student on both benchmarks, while the trace student sits at or below base on both benchmarks (VSIBench −0.51 lenient, essentially a wash; VSTIBench −7.12 lenient, a clear loss). This is the cleanest, most complete result in this project to date on whether the reasoning trace itself teaches anything on the corrected labels: it does not — training on bare answers alone outperforms training on the full reasoning trace, on both spatial benchmarks, for OneThinker.
 
 ## Qwen3.5-9B
 
