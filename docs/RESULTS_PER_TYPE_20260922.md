@@ -161,14 +161,76 @@ The source scores lenient accuracy only in the whole-benchmark headline above. R
 | generations hitting the 4,096 cap | 203 | 211 | +8 |
 | capped with no answer | 203 | 211 | +8 |
 
+### VSIBench (`vsibench_answerable500`, 500 items): base vs r6 format-A control
+
+#### Per question type
+
+| question type | n | base lenient (%) | r6 lenient (%) | delta | base strict (%) | r6 strict (%) | base parse fail | r6 parse fail |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| obj_appearance_order | 50 | 26.00 | 76.00 | +50.00 | 26.00 | 76.00 | 32 | 0 |
+| object_abs_distance | 50 | 12.60 | 19.20 | +6.60 | 12.60 | 19.20 | 36 | 3 |
+| object_counting | 50 | 7.40 | 6.80 | -0.60 | 7.40 | 6.80 | 43 | 46 |
+| object_rel_direction_easy | 50 | 28.00 | 30.00 | +2.00 | 28.00 | 30.00 | 29 | 23 |
+| object_rel_direction_hard | 50 | 0.00 | 18.00 | +18.00 | 0.00 | 18.00 | 48 | 18 |
+| object_rel_direction_medium | 50 | 8.00 | 38.00 | +30.00 | 8.00 | 38.00 | 41 | 18 |
+| object_rel_distance | 50 | 34.00 | 50.00 | +16.00 | 34.00 | 50.00 | 28 | 9 |
+| object_size_estimation | 50 | 17.60 | 9.00 | -8.60 | 17.60 | 9.00 | 36 | 24 |
+| room_size_estimation | 50 | 0.20 | 3.60 | +3.40 | 0.20 | 3.60 | 48 | 46 |
+| route_planning | 50 | 14.00 | 18.00 | +4.00 | 14.00 | 18.00 | 37 | 10 |
+
+#### Overall
+
+| quantity | base | run r6 | delta |
+|---|---:|---:|---:|
+| primary score, lenient (%) | 15.47 | 26.41 | +10.93 |
+| raw category macro, strict (%) | 14.78 | 26.86 | +12.08 |
+| primary score, strict (%) | 15.47 | 26.41 | +10.93 |
+| parse failures | 378 | 197 | -181 |
+| generations hitting the 4,096 cap | 373 | 194 | -179 |
+| capped with no answer | 373 | 194 | -179 |
+
+Run r6 beats base on VSIBench by 10.93 points lenient while roughly 40 percent of its generations still hit the cap without an answer. Arm C reaches 49.25 with zero parse failures, clearing both rows by a wide margin.
+
+## Qwen3.6-27B
+
+This is a standalone reference row that cannot pair with a distilled cell. `generate.py`'s `require_pair` demands identical core key sets, but this cell used `--thinking off` while the distilled-cell launcher defaults to `--thinking pinned`. The 27B base cells pinned to VSI and VSTI are queued on Orchard ahead of any 27B distilled cell.
+
+### VSIBench (`vsibench_answerable500`, 500 items): thinking-off base
+
+#### Headline
+
+| cell | lenient (primary, %) | strict (secondary, %) | parse failures (strict → lenient) | cap-hit | cap without answer | median gen tokens | terminal |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| qwen36_27b_base_vsi_thinkoff | 24.75 | 24.75 | 207 → 207 | 13 | 13 | 159 | 500/500 |
+
+#### Per question type (strict parser; lenient equals strict for every category)
+
+| question type | qwen36_27b_base_vsi_thinkoff |
+|---|---:|
+| obj_appearance_order | 36.00 |
+| object_abs_distance | 11.60 |
+| object_counting | 21.40 |
+| object_rel_direction_easy | 50.00 |
+| object_rel_direction_hard | 22.00 |
+| object_rel_direction_medium | 30.00 |
+| object_rel_distance | 42.00 |
+| object_size_estimation | 18.00 |
+| room_size_estimation | 15.00 |
+| route_planning | 20.00 |
+| **macro over raw categories** | 26.60 |
+
+The lenient rescore recovers nothing: all 207 strict parse failures remain failures under the lenient parser. Thirteen of the 207 are cap-hits without an answer; the other 194 are content mismatches. One inspected case, qid 3873, emitted 3,502 tokens despite `thinkoff` and ended on `**Final Answer: D**`, where `D` was not one of that question's supplied option letters.
+
+The strict-replay self-check recomputed `primary_score` 0.2475, 207 parse failures, every category score, and metric `vsibench-official-8task-v1` exactly from raw generations. The cell's `scores.json['run']['path']` points at the Orchard mount `/project/community/jjyeung/distill/...`, which does not exist on trinity; after a `FileNotFoundError`, the wrapper remaps to the local cell copy and verifies the same recorded sha256 and byte count against the local file.
+
 ## Status of In-Flight Cells
 
 | model | benchmark | cell | status |
 |---|---|---|---|
-| OneThinker-8B arm C | VSIBench | replicate 3 | UNSCORED at 315/500 — 2 of 4 shards (185 items) blocked on stale `.coord` leases, not GPU/space; do not report a number for this cell |
+| OneThinker-8B arm C | VSIBench | replicate 3 | UNSCORED at 315/500 — the user cleared two stale `.coord` leases at 02:20Z; `claude_eval_recover_20260922T1853Z` is finishing the final 185 items, with the number expected about 02:45Z |
 | Qwen3.5-9B arm C | VSTIBench / VSIBench | replicate (trinity) | in flight — trainer resumed after a step-266/288 stall, last checkpoint step_250, relocation to trinity-1-18 not confirmed complete |
 | Qwen3.5-9B arm C | VSTIBench / VSIBench | replicate (Orchard) | in flight — Orchard job chain 147597 (running) / 147599 (pending on afterany:147597) |
-| Qwen3.5-9B format-A control r6 | VSIBench | r6 | in flight — not evaluated in any source read for this document |
+| Qwen3.5-9B format-A control r6 | VSIBench | r6 | COMPLETE — 500/500 terminal and scored; per-type table above. The last 33 items finished 2026-09-23T01:12Z after lane `claude_qwen_r6_eval_resume_20260922T2047Z` relaunched shard 7 from trinity-1-3 |
 | Qwen3.6-27B arm C | VSIBench / VSTIBench | single run | in flight — trainer resumed after a step-78/96 stall, last checkpoint step_75, 21 steps remaining, resumed steps not confirmed; separate 27B base VSIBench control (Orchard job 147601) failed all 4 shards on a path-containment defect, unresolved |
 | GT-measurement pilot | VSIBench / VSTIBench | mix-trained student | not started — gtmeasure v1/v2 target generation is done, but the two prepared training-mix commands (0.25 pilot ratio, 0.50 corrected-set ratio) are not confirmed run |
 
@@ -191,6 +253,10 @@ The source scores lenient accuracy only in the whole-benchmark headline above. R
 | Qwen3.5-9B VSTIBench base vs arm C | `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_qwen_armc_eval_20260921T1020Z/out/RESULTS_VSTIBENCH_QARMC.md` |
 | Qwen3.5-9B VSIBench base vs arm C | `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_qwen_armc_eval_20260921T1020Z/out/RESULTS_VSIBENCH_QARMC.md` |
 | Qwen3.5-9B VSTIBench base vs r6 (format-A control) | `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_qwen_r6_eval_20260921T0400Z/out/RESULTS_VSTIBENCH_QWEN_R6.md` |
+| Qwen3.5-9B VSIBench base vs r6 (format-A control), per question type | `/data3/jjyeung/claude_qwen_r6_eval_resume_20260922T2047Z/out_relaunch/RESULTS_VSIBENCH_QWEN_R6.md` |
+| Qwen3.5-9B VSIBench base vs r6 (format-A control), overall | `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_qwen_r6_eval_20260921T0400Z/out/RESULTS_qwen_r6.md` |
+| Qwen3.6-27B VSIBench thinking-off base, headline | `/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/out/RESULTS_qwen36_27b_base_vsi_thinkoff.md` |
+| Qwen3.6-27B VSIBench thinking-off base, per question type | `/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/out/RESULTS_qwen36_27b_base_vsi_thinkoff.md` |
 | Scoring rule | `/home/jjyeung/.claude/projects/-home-jjyeung-agent-project-distill/memory/lenient-scoring-primary-ruling.md` |
 | Interpretation bullets | `/home/jjyeung/.claude/projects/-home-jjyeung-agent-project-distill/memory/answer-only-control-beats-armc-20260922.md` |
 | Methods / status context | `/home/jjyeung/agent_project_distill/docs/DISTILLATION_HANDOFF_20260922_2100Z.md` |
