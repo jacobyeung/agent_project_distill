@@ -5,10 +5,12 @@ from pathlib import Path
 
 from .assets import load_scene
 from .blocking import benchmark_blocking, overlap
+from .conventions import MEASURES
 from .generate import counts
 from .io import canonical, digest, pin, read_json, read_jsonl, verify_pin
 from .mix import measurement_rows
-from .questions import generate_scene
+from .questions import generate_scene, rewrite_room_row
+from .room_labels import POLICY, RoomLabels
 from .split import load_split
 from .targets import render_target
 
@@ -27,7 +29,7 @@ def verify_dataset(directory, recompute=False):
     all_rows = sorted([*sides['train'], *sides['heldout']], key=lambda row: row['qid'])
     if counts(all_rows) != manifest['counts']['all']:
         raise ValueError('complete row census differs from manifest')
-    evaluation, _ = benchmark_blocking(manifest['benchmark_blocking'])
+    evaluation, blocked = benchmark_blocking(manifest['benchmark_blocking'])
     overlap_census = overlap([{'dataset': row['dataset'], 'scene_name': row['scene']} for row in all_rows], evaluation)
     if overlap_census != manifest['overlap'] or overlap_census['any']:
         raise ValueError('benchmark blocking does not replay')
@@ -47,6 +49,20 @@ def verify_dataset(directory, recompute=False):
         raise ValueError('selected-scene denominator does not reconcile')
     if set(by_scene) != {(entry['dataset'], entry['scene_name']) for entry in entries if entry['rows']}:
         raise ValueError('row-bearing scenes differ from coverage')
+    room_labels = None
+    if config.get('room_label_policy') is not None:
+        if config['room_label_policy'] != POLICY or conventions.get('room_label_policy') != POLICY:
+            raise ValueError('room label policy differs from the supported convention')
+        room_labels = RoomLabels(conventions['authorities']['vsi'],
+                                 [(entry['dataset'], entry['scene_name']) for entry in requested], policy, blocked)
+        for row in (row for row in all_rows if row['family'] == 'gtm_room_size'):
+            expected = rewrite_room_row(row, conventions, room_labels, commit=row['generation_commit'],
+                                        config_sha=row['config_sha256'], structure=config.get('structure', 'v1'))
+            fields = ('ground_truth', 'object_ids', 'observations', 'derivations', 'target', 'checks')
+            if any(row[key] != expected[key] for key in fields) or row['provenance'].get('room_label') != expected['provenance']['room_label']:
+                raise ValueError('room label, source line, or supervision does not replay')
+            if row['provenance']['measure'] != MEASURES['gtm_room_size']:
+                raise ValueError('room measurement convention does not match its label')
     replayed = 0
     for entry in requested:
         key = entry['dataset'], entry['scene_name']
@@ -65,7 +81,7 @@ def verify_dataset(directory, recompute=False):
                 scene = load_scene(entry['receipt']['path'])
                 replay, _ = generate_scene(scene, conventions, seed=config['seed'], density=config['density'],
                                             config_sha=manifest['config_sha256'], commit=manifest['repo_commit'],
-                                            structure=config.get('structure', 'v1'))
+                                            structure=config.get('structure', 'v1'), room_labels=room_labels)
                 if canonical(replay) != canonical(rows):
                     raise ValueError('scene geometry replay changed generated row bytes')
                 replayed += 1
@@ -83,7 +99,7 @@ def sample_text(directory, summary, rows, coverage):
              f'This sample contains {len(rows)} rendered targets from {summary["generated_scenes"]} authenticated training scenes.',
              f'Generator output: `{Path(directory).resolve()}`.',
              'Every target below is copied verbatim from the row files. The Markdown fence separator is not part of the target.',
-             'Floor-area labels measure the annotated mesh footprint; missing floor geometry does not certify the complete physical room area.', '']
+             'Room-size provenance identifies the admitted area source. Authenticated room labels describe the full room, not visible floor patches.', '']
     sides = {}
     for side in ('train', 'heldout'):
         for row in read_jsonl(Path(directory) / (side + '.jsonl')):

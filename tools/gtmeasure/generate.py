@@ -11,6 +11,7 @@ from .conventions import FAMILIES, MEASURES
 from .formats import TYPE_FAMILY, harvest
 from .io import canonical, digest, new_output, pin, read_json, sha, source_commit, verify_pin, write_json, write_jsonl
 from .questions import generate_scene
+from .room_labels import POLICY, RoomLabels
 from .split import ARM_C, load_split
 
 
@@ -22,7 +23,7 @@ JOB_ROOTS = [DATA / 'runtime_control/gt_teacher_r1313/materialization_v2' / name
 def sources(structure='v1'):
     root = Path(__file__).resolve().parents[2]
     names = ['tools/gtmeasure/' + name + '.py' for name in ('__init__', 'io', 'authority', 'formats', 'blocking', 'mesh_membership',
-                                                           'conventions', 'geometry', 'assets', 'targets', 'split', 'questions', 'generate', 'mix')]
+                                                           'conventions', 'geometry', 'assets', 'targets', 'split', 'room_labels', 'questions', 'generate', 'mix')]
     names += ['tools/gtmeasure/requirements.txt', 'collector/gt_scene_assets.py', 'student/compact_targets/compact_counted_v1.py']
     if structure == 'v2':
         names.append('collector/frame_alignment.py')
@@ -47,7 +48,7 @@ def write_dataset(output, train, heldout, split):
     return artifacts
 
 
-def process_scene(row, conventions, config, commit, job_roots, blocked, split):
+def process_scene(row, conventions, config, commit, job_roots, blocked, split, room_labels=None):
     dataset, name = safe_scene(row)
     entry = {'dataset': dataset, 'scene_name': name, 'attempts': [], 'rows': 0, 'status': 'deferred_no_readable_receipt'}
     try:
@@ -65,9 +66,9 @@ def process_scene(row, conventions, config, commit, job_roots, blocked, split):
             if safe_scene(scene.receipt) != (dataset, name):
                 raise ValueError('receipt differs from prepared scene identity')
             generated, coverage = generate_scene(scene, conventions, seed=config['seed'], density=config['density'],
-                                                   config_sha=digest(config), commit=commit, structure=config.get('structure', 'v1'))
+                                                   config_sha=digest(config), commit=commit, structure=config.get('structure', 'v1'), room_labels=room_labels)
             repeated, repeated_coverage = generate_scene(scene, conventions, seed=config['seed'], density=config['density'],
-                                                          config_sha=digest(config), commit=commit, structure=config.get('structure', 'v1'))
+                                                          config_sha=digest(config), commit=commit, structure=config.get('structure', 'v1'), room_labels=room_labels)
             if canonical(generated) != canonical(repeated) or coverage != repeated_coverage:
                 raise RuntimeError('same-seed generation is not byte-identical')
             entry.update(coverage, status='generated' if generated else 'deferred_no_observable_measurements',
@@ -117,8 +118,11 @@ def run(args):
              'question_type': kind, 'line': conventions['templates'][kind][0]['source_line']}
             for kind, name in TYPE_FAMILY.items() if name == family]}
         for family, measure in MEASURES.items()}
+    conventions['measurements']['gtm_room_size']['value_authority'] = conventions['authorities']['vsi']
+    conventions['room_label_policy'] = POLICY
     conventions['sample_cache'] = pin(args.authorities) if args.authorities else None
     config = {'schema': 'gtmeasure-config-v1', 'seed': args.seed, 'density': args.density,
+              'room_label_policy': POLICY,
               'conventions_sha256': digest(conventions), 'source_sha256': digest(sources(structure)),
               'dependencies': {name: importlib.metadata.version(name) for name in ('numpy', 'scipy', 'shapely')},
               'selection': 'seeded hash order; round-robin across five families; no duplicate student input',
@@ -135,6 +139,7 @@ def run(args):
     if args.limit:
         selected = selected[:args.limit]
     selected_keys = {safe_scene(row) for row in selected}
+    room_labels = RoomLabels(conventions['authorities']['vsi'], selected_keys, split, blocked)
     output = new_output(args.output)
     checkpoints = output / 'scene_checkpoints'
     checkpoints.mkdir()
@@ -142,7 +147,7 @@ def run(args):
     write_json(output / 'CONVENTIONS.json', conventions)
     coverage, all_rows = [], []
     for number, row in enumerate(selected, 1):
-        generated, entry = process_scene(row, conventions, config, commit, args.job_root or JOB_ROOTS, blocked, split)
+        generated, entry = process_scene(row, conventions, config, commit, args.job_root or JOB_ROOTS, blocked, split, room_labels)
         directory = checkpoints / '__'.join(safe_scene(row))
         directory.mkdir()
         write_jsonl(directory / 'rows.jsonl', generated)

@@ -7,12 +7,24 @@ import zlib
 import numpy as np
 
 from tools.gtmeasure.assets import load_scene
-from tools.gtmeasure.io import OUTPUT_ROOT, new_output, pin, write_json
+from tools.gtmeasure.io import OUTPUT_ROOT, new_output, pin, write_json, write_jsonl
+from tools.gtmeasure.split import SplitPolicy
 
 
 def fixture_root():
     base = Path(os.environ.get('GTMEASURE_TEST_OUTPUT', OUTPUT_ROOT / 'gtmeasure_synthetic_tests'))
     return new_output(base / uuid.uuid4().hex)
+
+
+def make_room_labels(root, scene, answer='16.0'):
+    from tools.gtmeasure.room_labels import RoomLabels
+
+    dataset, name = scene.receipt['dataset'], scene.receipt['scene_name']
+    path = root / 'room_labels.jsonl'
+    write_jsonl(path, [{'question_type': 'absolute_size_room', 'video': f'{dataset}/{name}.mp4', 'conversations': [
+        {'from': 'human', 'value': 'What is the room size in square meters?'}, {'from': 'gpt', 'value': answer}]}])
+    policy = SplitPolicy({'seed': 17, 'validation_fraction': .1, 'train_scenes': [f'{dataset}/{name}'], 'heldout_scenes': []})
+    return RoomLabels(pin(path), [(dataset, name)], policy, set())
 
 
 def png_bytes():

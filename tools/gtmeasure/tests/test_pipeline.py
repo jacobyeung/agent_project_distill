@@ -3,7 +3,7 @@ from pathlib import Path
 import unittest
 from unittest.mock import patch
 
-from fixtures import fixture_root, make_scene
+from fixtures import fixture_root, make_room_labels, make_scene
 from test_contracts import authorities
 from tools.gtmeasure.assets import load_scene
 from tools.gtmeasure.blocking import EXPECTED_GROUPS, benchmark_blocking
@@ -23,7 +23,9 @@ class PipelineTests(unittest.TestCase):
         cls.root = fixture_root()
         cls.scene = make_scene(cls.root / 'scene')
         cls.formats = harvest(authorities())
-        cls.rows, cls.coverage = generate_scene(cls.scene, cls.formats, density=30, config_sha='a' * 64, commit='b' * 40)
+        cls.room_labels = make_room_labels(cls.root, cls.scene)
+        cls.rows, cls.coverage = generate_scene(cls.scene, cls.formats, density=30, config_sha='a' * 64, commit='b' * 40,
+                                               room_labels=cls.room_labels)
 
     def test_all_families_use_rgb_only_inputs_and_grounded_compact_targets(self):
         self.assertEqual(len(self.rows), 30)
@@ -37,13 +39,15 @@ class PipelineTests(unittest.TestCase):
             self.assertTrue(validate_target(row['target'])['numeric_tokens'])
             self.assertRegex(row['qid'], r'^gtmeasure_scannet__scene0000_00_\d{5}$')
             self.assertEqual(row['source'], 'gtmeasure_v1')
-            self.assertTrue(row['object_ids'])
+            self.assertEqual(bool(row['object_ids']), row['family'] != 'gtm_room_size')
             if row['source_question_type'] == 'absolute_count' and 'chair' in row['student_input']['question']:
                 self.assertEqual(row['ground_truth']['answer'], '2')
 
     def test_seed_repeats_exact_row_bytes_and_changes_selection(self):
-        repeated, _ = generate_scene(self.scene, self.formats, density=30, config_sha='a' * 64, commit='b' * 40)
-        changed, _ = generate_scene(self.scene, self.formats, seed=18, density=30, config_sha='a' * 64, commit='b' * 40)
+        repeated, _ = generate_scene(self.scene, self.formats, density=30, config_sha='a' * 64, commit='b' * 40,
+                                     room_labels=self.room_labels)
+        changed, _ = generate_scene(self.scene, self.formats, seed=18, density=30, config_sha='a' * 64, commit='b' * 40,
+                                    room_labels=self.room_labels)
         self.assertEqual(canonical(self.rows), canonical(repeated))
         self.assertNotEqual([row['student_input']['question'] for row in self.rows], [row['student_input']['question'] for row in changed])
 

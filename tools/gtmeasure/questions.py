@@ -1,14 +1,14 @@
 from collections import Counter, defaultdict
+import copy
 from decimal import Decimal
 import itertools
-
-import numpy as np
 
 from .assets import EXCLUDED
 from .conventions import FAMILIES, MEASURES, box_corners, camera0_points
 from .formats import TYPE_FAMILY, UNIT_METERS, format_observation_value, format_value, render_question
-from .geometry import camera_object_distance, object_count, object_distance, object_size, room_area
+from .geometry import camera_object_distance, object_count, object_distance, object_size
 from .io import digest, pin
+from .room_labels import AREA_UNITS, RoomLabelDeferred, label_measurement
 from .targets import render_target, validate_student_input, validate_target
 
 
@@ -30,7 +30,12 @@ def interleave(iterators):
         active = remaining
 
 
-def intermediate_observations(scene, conventions, family, object_ids, frame_index=None):
+def intermediate_observations(scene, conventions, family, object_ids, frame_index=None, room_label=None):
+    if family == 'gtm_room_size':
+        if room_label is None:
+            raise RoomLabelDeferred('room_label_unavailable')
+        return [conventions['observation_templates']['room_label']['template'].format(
+            answer=room_label['answer'], units=room_label['units'])]
     objects = {obj['id']: obj for obj in scene.objects}
     selected = [objects[iid] for iid in sorted(set(object_ids))]
     poses, up = scene.arrays['camera_poses'], scene.receipt['gravity_up']
@@ -49,13 +54,6 @@ def intermediate_observations(scene, conventions, family, object_ids, frame_inde
     if family == 'gtm_object_size':
         obj, = selected
         return [render('object_extents', target=obj['label'], **extents(obj))]
-    if family == 'gtm_room_size':
-        vertices = np.concatenate([obj['triangles'].reshape(-1, 3) for obj in selected])
-        xy = camera0_points(vertices, poses, up)[:, :2]
-        lower, upper = xy.min(axis=0), xy.max(axis=0)
-        values = dict(zip(('xmin', 'ymin', 'xmax', 'ymax', 'xextent', 'yextent'),
-                          map(format_observation_value, [*lower, *upper, *(upper - lower)])))
-        return [render('floor_bounds', **values)]
     if family not in ('gtm_object_count', 'gtm_object_distance', 'gtm_camera_object_distance'):
         raise ValueError('unsupported structured observation family')
     centers = camera0_points([obj['obb']['centroid'] for obj in selected], poses, up)
@@ -74,10 +72,36 @@ def intermediate_observations(scene, conventions, family, object_ids, frame_inde
     return lines
 
 
+def rewrite_room_row(row, conventions, room_labels, *, commit, config_sha, structure='v2'):
+    if row['family'] != 'gtm_room_size' or row['source_question_type'] != 'absolute_size_room':
+        raise ValueError('room repair requires a room-size row')
+    unit = row['ground_truth']['units']
+    if set(AREA_UNITS.findall(row['student_input']['question'])) != {unit} or row['student_input']['options']:
+        raise ValueError('room question and declared area unit disagree')
+    if structure not in ('v1', 'v2'):
+        raise ValueError('structure must be v1 or v2')
+    label = room_labels.lookup(row['dataset'], row['scene'])
+    measurement = label_measurement(label, unit, conventions)
+    answer = measurement['rounded_value']
+    observations = intermediate_observations(None, conventions, 'gtm_room_size', [], room_label=label) if structure == 'v2' else []
+    observations.append(f'The full-room area is {answer} {unit}.')
+    result = copy.deepcopy(row)
+    result.update(object_ids=[], observations=observations, derivations=[], generation_commit=commit, config_sha256=config_sha,
+                  ground_truth={'answer': answer, 'measurements': [measurement], 'units': unit, 'value': measurement['value']})
+    result['provenance'].update(measure=copy.deepcopy(MEASURES['gtm_room_size']), room_label=label,
+                               room_label_repair={'parent_row_canonical_sha256': digest(row),
+                                                  'parent_generation_commit': row['generation_commit'],
+                                                  'parent_config_sha256': row['config_sha256']})
+    result['target'] = render_target(observations, answer)
+    result['checks'] = validate_target(result['target'])
+    validate_student_input(result['student_input'])
+    return result
+
+
 class Questions:
-    def __init__(self, scene, conventions, seed, density, config_sha, commit, structure='v1'):
+    def __init__(self, scene, conventions, seed, density, config_sha, commit, structure='v1', room_labels=None):
         self.scene, self.conventions = scene, conventions
-        self.structure = structure
+        self.structure, self.room_labels = structure, room_labels
         self.seed, self.density, self.config_sha, self.commit = seed, density, config_sha, commit
         self.identity = [seed, scene.receipt['dataset'], scene.receipt['scene_name']]
         self.receipt_pin = pin(scene.receipt_path)
@@ -113,14 +137,14 @@ class Questions:
         return {'value_si': value, 'si_unit': 'square meters' if kind == 'absolute_size_room' else 'instances' if kind == 'absolute_count' else 'meters',
                 'value': float(Decimal(str(value)) / UNIT_METERS[unit]), 'units': unit, 'rounded_value': text, 'object_ids': list(ids)}
 
-    def row(self, kind, spec, values, measurements, observations, answer, derivations=(), frame_index=None, witness_frame=None):
+    def row(self, kind, spec, values, measurements, observations, answer, derivations=(), frame_index=None, witness_frame=None, room_label=None):
         question, options = render_question(spec, **values)
         student_input = self.scene.student_input(question, options)
         validate_student_input(student_input)
         family = TYPE_FAMILY[kind]
         ids = sorted({iid for measurement in measurements for iid in measurement['object_ids']})
         if self.structure == 'v2':
-            observations = intermediate_observations(self.scene, self.conventions, family, ids, frame_index) + observations
+            observations = intermediate_observations(self.scene, self.conventions, family, ids, frame_index, room_label) + observations
         target = render_target(observations, answer, derivations)
         checks = validate_target(target)
         authority = self.conventions['authorities']['vsti' if kind == 'camera_obj_abs_dist' else 'vsi']
@@ -129,6 +153,8 @@ class Questions:
                       'template': {'id': spec['id'], 'authority': authority, 'line': spec['source_line']},
                       'measure': MEASURES[family], 'visibility_witness_frame': witness_frame,
                       'visible_object_ids': sorted(self.visible), 'seed': self.seed}
+        if room_label is not None:
+            provenance['room_label'] = copy.deepcopy(room_label)
         ground_truth = {'answer': answer, 'measurements': measurements, 'units': measurements[0]['units'],
                         'value': measurements[0]['value'] if len(measurements) == 1 else [m['value'] for m in measurements]}
         return {'dataset': self.scene.receipt['dataset'], 'scene': self.scene.receipt['scene_name'], 'family': family,
@@ -225,16 +251,23 @@ class Questions:
 
     def rooms(self):
         kind = 'absolute_size_room'
-        floors = [obj for obj in self.scene.objects if obj['label'] == 'floor' and len(obj['triangles'])]
-        if not floors:
-            self.rejections['no_official_floor_geometry'] += 1
+        try:
+            if self.room_labels is None:
+                raise RoomLabelDeferred('room_label_unavailable')
+            label = self.room_labels.lookup(self.scene.receipt['dataset'], self.scene.receipt['scene_name'])
+        except RoomLabelDeferred as error:
+            self.rejections[str(error)] += 1
             return
-        value = room_area(floors)
         for _, spec in self.variants(kind, [0]):
-            measurement = self.measurement(value, kind, spec['unit'], [obj['id'] for obj in floors])
-            if measurement:
-                text = measurement['rounded_value']
-                yield self.row(kind, spec, {}, [measurement], [f'The floor area is {text} {spec["unit"]}.'], text)
+            try:
+                measurement = label_measurement(label, spec['unit'], self.conventions)
+            except ValueError as error:
+                if str(error) != 'rounding_midpoint_not_specified_by_authority':
+                    raise
+                self.rejections[str(error)] += 1
+                continue
+            text = measurement['rounded_value']
+            yield self.row(kind, spec, {}, [measurement], [f'The full-room area is {text} {spec["unit"]}.'], text, room_label=label)
 
     def generate(self):
         sources = [self.counts(), self.sizes(), interleave([self.distances(), self.mc_distances()]), self.camera_distances(), self.rooms()]
@@ -259,9 +292,9 @@ class Questions:
         return rows, coverage
 
 
-def generate_scene(scene, conventions, *, seed=17, density=30, config_sha='', commit='', structure='v1'):
+def generate_scene(scene, conventions, *, seed=17, density=30, config_sha='', commit='', structure='v1', room_labels=None):
     if type(seed) is not int or type(density) is not int or not 1 <= density <= 99999:
         raise ValueError('seed must be an integer and density must lie in 1..99999')
     if structure not in ('v1', 'v2'):
         raise ValueError('structure must be v1 or v2')
-    return Questions(scene, conventions, seed, density, config_sha, commit, structure).generate()
+    return Questions(scene, conventions, seed, density, config_sha, commit, structure, room_labels).generate()

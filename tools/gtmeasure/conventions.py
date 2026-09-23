@@ -17,9 +17,13 @@ MEASURES = {
     'gtm_camera_object_distance': {'measure': 'minimum Euclidean distance from camera origin to the complete official instance triangle surface',
                                    'formula': 'camera-to-world translation to nearest triangle point; radial distance, not optical-axis depth',
                                    'frame_index': 'one-based slot among the 32 supplied RGB frames'},
-    'gtm_room_size': {'measure': 'area of the union of official floor triangles projected into gravity-aligned world XY',
-                       'formula': 'planar polygon union; preserve concavities and holes; never fill unobserved floor',
-                       'limitation': 'measures the annotated mesh footprint; incomplete floor geometry cannot certify the full physical room area'},
+    'gtm_room_size': {'measure': 'published full-room area from the authenticated same-scene VSI-590K training label',
+                       'formula': 'source scalar times its exact square-meter conversion, then converted to the question unit and rounded by the declared rule',
+                       'identity': 'exact dataset and scan name from the source video path; never collapse ScanNet scan suffixes',
+                       'admission': 'training-side scenes only; exclude benchmark physical groups; defer missing, invalid, or conflicting labels',
+                       'provenance': 'source file SHA-256, one-based physical line and line SHA-256, original label and unit, and inherited split',
+                       'coordinate_frame': 'scene-level area scalar; no floor-support bounds or inferred rectangle',
+                       'limitation': 'uses the published room label, not a reconstruction from incomplete floor geometry'},
 }
 
 
@@ -34,10 +38,9 @@ OBSERVATION_TEMPLATES_V2 = {
     'camera_position': {
         'families': ['gtm_camera_object_distance'],
         'template': 'In frame {frame_index}, the camera position is ({x}, {y}, {z}) meters in the camera0 frame.'},
-    'floor_bounds': {
+    'room_label': {
         'families': ['gtm_room_size'],
-        'template': 'The floor bounds in camera0 XY are X [{xmin}, {xmax}] meters and Y [{ymin}, {ymax}] meters, '
-                    'with extents ({xextent}, {yextent}) meters.'},
+        'template': 'The same-scene full-room label is {answer} {units}.'},
     'instance_center': {
         'families': ['gtm_object_count'],
         'template': 'The {target} instance {instance_id} has center ({x}, {y}, {z}) meters in the camera0 frame.'},
@@ -50,13 +53,15 @@ def structure_conventions(conventions, structure):
     if structure != 'v2':
         raise ValueError('structure must be v1 or v2')
     templates = {name: {**spec, 'id': 'gtmeasure-v2-' + name, 'origin': 'lane_authored',
-                        'authored_by': 'gt_measurement_v2_20260922T0735Z',
-                        'source': 'tools/gtmeasure/conventions.py', 'units': 'meters', 'decimal_places': 2}
+                        'authored_by': 'swarm_h05_gtmonly_room_label_20260923' if name == 'room_label' else 'gt_measurement_v2_20260922T0735Z',
+                        'source': 'tools/gtmeasure/conventions.py',
+                        'units': 'source label area unit' if name == 'room_label' else 'meters',
+                        'decimal_places': None if name == 'room_label' else 2}
                  for name, spec in OBSERVATION_TEMPLATES_V2.items()}
     return {**conventions, 'observation_templates': templates, 'structure_v2': {
         'wording_authority': 'templates remain harvested question wording with original source lines; '
                              'observation_templates are lane-authored intermediate wording, not harvested authority; '
-                             'final measurement lines and answers retain the v1 renderer',
+                             'final measurement lines and answers follow the declared measurement convention',
         'coordinate_frame': 'first_camera_origin_heading_gravity_up_camera_to_world_opencv',
         'coordinate_implementation': 'collector/frame_alignment.py:canonical_geometry',
         'coordinate_origin': 'camera_poses[0, :3, 3], the first selected RGB camera (one-based frame 1)',
@@ -65,11 +70,11 @@ def structure_conventions(conventions, structure):
         'instance_centers': 'official obb.centroid in the teacher coordinate frame, not the visible pixel-depth points returned by predict_2d_points',
         'box_extents': 'length, width, height name 2 * axesLengths[0:3] in stored normalizedAxes row order; '
                        'full object-local oriented-box sides, not camera0-aligned bounding-box spans or inferred semantic axes',
-        'floor_bounds': 'min/max of all selected official floor triangle vertices in camera0 XY; '
-                        'extents are max minus min, not a replacement for the triangle-union floor area',
+        'room_label': 'copy the authenticated exact-scene full-room scalar in its source units and precision; '
+                      'the final measurement converts that same quantity to the declared question unit; no geometry bounds',
         'instance_order': 'ascending official instance ID; MC distances include every instance in each option category once',
-        'numeric_format': 'meters, fixed two decimals; Decimal(str(float(value))) with ROUND_HALF_EVEN; '
-                          'normalize negative zero; intermediate rounding ties never filter rows; answers keep harvested rounding',
+        'numeric_format': 'coordinates and box extents use meters and fixed two decimals; Decimal(str(float(value))) with ROUND_HALF_EVEN; '
+                          'normalize negative zero; room labels preserve source precision and units; answers keep harvested rounding',
         'schema_compatibility': 'structure is an opt-in rendering mode; gtmeasure_v1 remains the dataset and row source schema',
     }}
 

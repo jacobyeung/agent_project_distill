@@ -13,9 +13,10 @@ import sys
 import time
 
 from .blocking import benchmark_blocking, scene_key
-from .conventions import FAMILIES
-from .formats import TYPE_FAMILY, format_value
+from .conventions import FAMILIES, MEASURES
+from .formats import TYPE_FAMILY, UNIT_METERS, format_value
 from .io import canonical, digest, pin, read_json, read_jsonl, sha, source_commit, verify_pin
+from .room_labels import POLICY, label_measurement
 from .split import ARM_C_SHA256, group_id, load_split
 from .targets import MARKER, render_target, validate_student_input, validate_target
 
@@ -86,10 +87,27 @@ def check_gt(row, guard, *, side='train', max_bytes=4096, max_observations=32, c
                                  for m in measurements), 'invalid_measurement')
     require(sorted({iid for m in measurements for iid in m['object_ids']}) == row['object_ids'], 'measurement_object_ids')
     kind = row['source_question_type']
+    room_label = row.get('provenance', {}).get('room_label') if kind == 'absolute_size_room' else None
+    if kind == 'absolute_size_room' and row.get('provenance', {}).get('measure') == MEASURES['gtm_room_size']:
+        require(room_label is not None, 'room_label_missing_provenance')
+    if room_label is not None:
+        require(side == room_label.get('split_side') == 'train' and room_label.get('schema') == POLICY,
+                'room_label_training_authority')
+        require((room_label.get('dataset'), room_label.get('scene')) == (row['dataset'], row['scene']), 'room_label_exact_scene')
+        require(room_label['units'] in ('square meters', 'square feet') and
+                Decimal(room_label['answer']) * UNIT_METERS[room_label['units']] == Decimal(room_label['value_si_decimal']),
+                'room_label_conversion')
+        require(row['provenance']['measure'] == MEASURES['gtm_room_size'], 'room_label_convention')
+        if conventions is not None:
+            require(measurements == [label_measurement(room_label, row['ground_truth']['units'], conventions)], 'room_label_measurement')
+            prefix = [conventions['observation_templates']['room_label']['template'].format(
+                answer=room_label['answer'], units=room_label['units'])] if 'observation_templates' in conventions else []
+            require(observations == prefix + [f'The full-room area is {answer} {row["ground_truth"]["units"]}.'], 'room_label_observations')
     if conventions is not None:
         rounding_kind = 'absolute_distance_object' if kind == 'relative_distance_object' else kind
         for measurement in measurements:
-            require(format_value(measurement['value_si'], rounding_kind, measurement['units'], conventions)
+            value_si = room_label['value_si_decimal'] if room_label is not None else measurement['value_si']
+            require(format_value(value_si, rounding_kind, measurement['units'], conventions)
                     == measurement['rounded_value'], 'measurement_rounding')
     derivation = 'measured-scalar-no-derivation'
     if kind == 'relative_distance_object':
@@ -133,7 +151,8 @@ def check_gt(row, guard, *, side='train', max_bytes=4096, max_observations=32, c
             patterns = {
                 'absolute_size_object': rf'The longest dimension of the .+ is {number} {units}\.',
                 'absolute_distance_object': rf'The closest-point distance between the .+ and the .+ is {number} {units}\.',
-                'absolute_size_room': rf'The floor area is {number} {units}\.',
+                'absolute_size_room': (rf'The full-room area is {number} {units}\.' if 'room_label' in row.get('provenance', {})
+                                       else rf'The floor area is {number} {units}\.'),
                 'camera_obj_abs_dist': rf'In frame {row["frame_index"]}, the closest point of the .+ is {number} {units} from the camera\.',
             }
             require(kind in patterns and re.fullmatch(patterns[kind], observations[-1]), 'scalar_observation')

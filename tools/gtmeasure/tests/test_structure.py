@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 import numpy as np
 
-from fixtures import fixture_root, make_scene
+from fixtures import fixture_root, make_room_labels, make_scene
 from test_contracts import authorities
 from collector.frame_alignment import canonical_geometry
 from tools.gtmeasure import conventions, formats, generate, questions
@@ -23,25 +23,26 @@ class StructureTests(unittest.TestCase):
         cls.root = fixture_root()
         cls.scene = make_scene(cls.root / 'scene')
         cls.legacy = formats.harvest(authorities())
+        cls.room_labels = make_room_labels(cls.root, cls.scene)
         cls.default_rows, cls.coverage = questions.generate_scene(
-            cls.scene, cls.legacy, density=30, config_sha='a' * 64, commit='b' * 40)
+            cls.scene, cls.legacy, density=30, config_sha='a' * 64, commit='b' * 40, room_labels=cls.room_labels)
 
     def v2_rows(self, scene=None, conventions=None):
         return questions.generate_scene(
             scene or self.scene, conventions or formats.harvest(authorities(), structure='v2'),
-            density=30, config_sha='a' * 64, commit='b' * 40, structure='v2')[0]
+            density=30, config_sha='a' * 64, commit='b' * 40, structure='v2', room_labels=self.room_labels)[0]
 
-    def test_default_matches_frozen_v1_semantic_bytes(self):
+    def test_default_matches_full_room_label_semantic_bytes(self):
         semantic = [{key: value for key, value in row.items() if key not in ('student_input', 'provenance')}
                     | {'question': row['student_input']['question'], 'options': row['student_input']['options']}
                     for row in self.default_rows]
-        self.assertEqual(digest(semantic), '5b2d9045a4345fdebc196cbe8cf9a8c9c7ed53508e14c7606f3e8bfaccc753a5')
+        self.assertEqual(digest(semantic), '4025872fb06324b628ec7a8bf3694a1d39290b5beb5848fc2873bc4e78b8aa62')
         self.assertEqual(digest(self.legacy), '46cf6982780b1a79aa1a710898ce15dd699940814fbc6a34914fb869d5403b71')
 
     def test_default_and_explicit_v1_preserve_every_row_byte(self):
         rows, coverage = questions.generate_scene(
             self.scene, formats.harvest(authorities(), structure='v1'), density=30,
-            config_sha='a' * 64, commit='b' * 40, structure='v1')
+            config_sha='a' * 64, commit='b' * 40, structure='v1', room_labels=self.room_labels)
         self.assertEqual(canonical(rows), canonical(self.default_rows))
         self.assertEqual(coverage, self.coverage)
 
@@ -104,14 +105,15 @@ class StructureTests(unittest.TestCase):
                 self.object_line(iid, labels[iid])])
             self.assertEqual(row['checks']['observation_count'], 3)
 
-    def test_room_size_uses_floor_triangle_xy_bounds_not_box_or_rectangle_area(self):
+    def test_room_size_observations_keep_the_full_label_when_floor_support_is_partial(self):
         scene = copy.deepcopy(self.scene)
         floor = next(obj for obj in scene.objects if obj['label'] == 'floor')
         floor['triangles'] = np.array([[[0., 0., 0.], [4., 0., 0.], [0., 4., 0.]]])
         row, = [row for row in self.v2_rows(scene) if row['family'] == 'gtm_room_size']
         self.assertEqual(row['observations'], [
-            'The floor bounds in camera0 XY are X [0.00, 4.00] meters and Y [0.00, 4.00] meters, with extents (4.00, 4.00) meters.',
-            'The floor area is 8.0 square meters.'])
+            'The same-scene full-room label is 16.0 square meters.',
+            'The full-room area is 16.0 square meters.'])
+        self.assertEqual(row['ground_truth']['measurements'][0]['value_si'], 16.0)
         self.assertEqual(row['checks']['observation_count'], 2)
 
     def test_count_lists_each_official_instance_once(self):
@@ -150,9 +152,10 @@ class StructureTests(unittest.TestCase):
         self.assertEqual({key: extended[key] for key in self.legacy}, self.legacy)
         self.assertEqual(set(extended) - set(self.legacy), {'observation_templates', 'structure_v2'})
         self.assertEqual(len(extended['observation_templates']), 5)
-        for spec in extended['observation_templates'].values():
+        for name, spec in extended['observation_templates'].items():
             self.assertEqual(spec['origin'], 'lane_authored')
-            self.assertEqual(spec['authored_by'], 'gt_measurement_v2_20260922T0735Z')
+            author = 'swarm_h05_gtmonly_room_label_20260923' if name == 'room_label' else 'gt_measurement_v2_20260922T0735Z'
+            self.assertEqual(spec['authored_by'], author)
             self.assertNotIn('source_line', spec)
         extended['observation_templates']['instance_center']['template'] = 'Pinned {target} {instance_id}: ({x}, {y}, {z}) meters.'
         selected = [row for row in self.v2_rows(conventions=extended) if row['family'] == 'gtm_object_count']
@@ -178,6 +181,8 @@ class GeneratorStructureTests(unittest.TestCase):
         cls.root = fixture_root()
         cls.scene = make_scene(cls.root / 'scene')
         cls.split_record = {'seed': 17, 'validation_fraction': .1, 'heldout_scenes': [], 'train_scenes': ['scannet/scene0000']}
+        cls.samples = authorities()
+        cls.samples['vsi']['authority'] = make_room_labels(cls.root, cls.scene).authority
         write_json(cls.root / 'prepared.json', [{'dataset': 'scannet', 'scene_name': 'scene0000_00'}])
         write_json(cls.root / 'manifest.json', {'benchmark_blocking': {'eval_files': {}}})
         write_json(cls.root / 'split.json', cls.split_record)
@@ -191,7 +196,7 @@ class GeneratorStructureTests(unittest.TestCase):
         with ExitStack() as stack:
             for name, value in [('source_commit', 'b' * 40), ('sources', {'fixture': 'c' * 64}),
                                 ('benchmark_blocking', ({}, set())), ('overlap', {'any': 0}),
-                                ('load_split', SplitPolicy(self.split_record)), ('collect', authorities()),
+                                ('load_split', SplitPolicy(self.split_record)), ('collect', self.samples),
                                 ('receipt_candidates', [self.scene.receipt_path])]:
                 stack.enter_context(patch('tools.gtmeasure.generate.' + name, return_value=value))
             stack.enter_context(redirect_stdout(StringIO()))
@@ -204,7 +209,7 @@ class GeneratorStructureTests(unittest.TestCase):
             self.assertEqual((default / name).read_bytes(), (explicit / name).read_bytes())
         config = read_json(default / 'CONFIG.json')['config']
         self.assertEqual(set(config), {'schema', 'seed', 'density', 'conventions_sha256', 'source_sha256',
-                                      'dependencies', 'selection', 'visibility', 'output_schema'})
+                                      'dependencies', 'selection', 'visibility', 'output_schema', 'room_label_policy'})
         self.assertNotIn('observation_templates', read_json(default / 'CONVENTIONS.json'))
 
     def test_v2_config_selects_structured_geometry_during_replay(self):
@@ -216,6 +221,14 @@ class GeneratorStructureTests(unittest.TestCase):
             summary, rows, _ = verify_dataset(output, recompute=True)
         self.assertEqual(summary['replayed_scenes'], 1)
         self.assertTrue(all(row['checks']['observation_count'] > 1 for row in rows))
+        saved = read_json(output / 'CONVENTIONS.json')
+        self.assertEqual(saved['measurements']['gtm_room_size']['measure'], conventions.MEASURES['gtm_room_size']['measure'])
+        self.assertEqual(saved['measurements']['gtm_room_size']['value_authority'], self.samples['vsi']['authority'])
+        self.assertIn('room_label', saved['observation_templates'])
+        self.assertNotIn('floor_bounds', saved['observation_templates'])
+        room, = [row for row in rows if row['family'] == 'gtm_room_size']
+        self.assertEqual(room['ground_truth']['answer'], '16.0')
+        self.assertEqual(room['provenance']['room_label']['source_line'], 1)
 
     def test_cli_defaults_to_v1_and_accepts_v2(self):
         for flags, expected in [([], 'v1'), (['--structure', 'v1'], 'v1'), (['--structure', 'v2'], 'v2')]:
