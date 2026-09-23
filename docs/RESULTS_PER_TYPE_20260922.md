@@ -102,6 +102,8 @@ This result uses the Orchard harness `orchard_trainer_12e477b`, while the trinit
 
 **Deltas (Set B distilled lenient 32.10 minus):** Orchard base **−7.25** (loses on the primary lenient metric); Orchard base strict **+1.62** (wins strict only); trinity base **−7.09**; trinity arm C (published) **−10.25**; trinity arm C 3-seed mean **−10.09**; trinity answer-only **−16.66**.
 
+**Caveat**: this pilot's `room_size_estimation` training supervision has a known defect (see "Known defect" below); `room_size_estimation` is this table's single largest per-type loss, and an "excl. room_size" row is added to the per-type table below for comparison.
+
 #### Per question type — strict parser only
 
 Lenient parsing moved 0 questions for the distilled cell, so its lenient accuracy equals its strict accuracy in every category.
@@ -119,6 +121,7 @@ Lenient parsing moved 0 questions for the distilled cell, so its lenient accurac
 | room_size_estimation | 9.00 | 22.60 | **−13.60** |
 | route_planning | 16.00 | 24.00 | −8.00 |
 | **macro over raw categories** | 32.48 | 30.78 | +1.70 |
+| **macro over raw categories, excl. `room_size_estimation`** (9 categories, flat mean) | 35.09 | 31.69 | +3.40 |
 
 Set B produces a mixed result, not a clean win. Its gains cluster in numeric-distance-flavored perception categories (`object_abs_distance`, `object_counting`, and `object_rel_direction_easy`), while `room_size_estimation` and `route_planning` lose sharply. The primary lenient metric declines because 26/500 generations (5.2%) reach the 4,096-token cap without an extractable answer, versus 0 for the Orchard base; the lenient parser cannot recover those empty answers. This is a format-reliability regression relative to every trinity-trained arm C cell seen so far (published arm C: 4 parse failures, effectively recovered in aggregate; replicate 3: 3; replicate 2: 0), and the training and Orchard teams should investigate the Set B recipe or Orchard decoding budget.
 
@@ -171,6 +174,18 @@ Lenient parsing moved 0 questions for the distilled cell, so its lenient accurac
 | **macro** | 45.40 | 50.98 | −5.58 | 45.38 | 53.95 | −8.57 |
 
 A clear loss on VSTIBench, not a mixed result like VSIBench. The consistent bright spot, especially `camera_obj_abs_dist`, is outweighed by sharp regressions on every `camera_obj_rel_dist_*` category and the two directional-movement categories. Removing the base's 25 `media_error` items widens the gap rather than narrowing it, so the provisional base number flatters Set B's relative position; the pending corrected base re-land will likely show an even larger deficit once confirmed. This result remains consistent with the trinity-side finding that no OneThinker student beats trinity base on VSTIBench under lenient parsing either.
+
+**Caveat**: VSTIBench has no `room_size_estimation` category, so this table's eval numbers are not directly affected by the training-supervision defect below, though the distilled model was trained on the same GT-measurement mix as the VSIBench Set B pilot above.
+
+### Known defect: GT-measurement room_size undercounts training supervision
+
+**Finding.** An H5 audit of 20 rows against same-scene VSI-590K labels found that GT-measurement `room_size` training labels understate room area by 32% at the median: target/label ratio 0.68 (computed 0.678657), with a 0.34–0.89 range (0.340909–0.889816). The audit report is `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_swarm_20260923T0835Z/lanes/swarm_h05_gtmonly/out/ROOM_SIZE_AUDIT.md`, commit `3a36157a4608989263e85adff90f59ac87e002c7`.
+
+**Cause.** `tools/gtmeasure/questions.py:Questions.rooms` passes only floor-labelled triangles to `geometry.room_area`, which unions their projected area. VSIBench defines room size as an alpha shape over the entire scene point cloud in *Thinking in Space*, Appendix B.1, so the implementation systematically undercounts independently of unit conversion or rounding.
+
+**Affected scope.** The defect affects every GT-measurement `room_size` row in the Set B training mix, about one fifth of its GT-measurement half, and the full-scale 148,055-row set. It affects training supervision rather than VSIBench evaluation labels, whose own questions and answers remain unaffected.
+
+**Ruling.** Future room-size training scalars use VSI-590K labels. The Qwen full-scale set and swarm wave 2 were rebuilt under the fix; results from sets built before the fix, including these Set B pilots, report `room_size` separately rather than silently folding it into headline numbers.
 
 ## Qwen3.5-9B
 
@@ -276,6 +291,8 @@ Lenient parsing moved 0 questions for the distilled cell, so its lenient accurac
 | **macro over raw categories** | | 54.69 | 54.69 | 38.40 | +16.29 | 56.09 | −1.40 |
 
 This first Qwen Orchard-trained VSTIBench result is a new signal, not a replication. It is directionally strong against the provisional trinity base (+15.98 lenient and gains in 8 of 9 categories), but that cross-harness reference cannot establish a clean win until an Orchard-native base lands. Against published arm C, the same-student, same-trinity-harness reference, the pilot trails slightly overall (−1.99) and shows an uneven per-type profile. The pilot leads on distance-estimation categories and near/far relative position, while arm C leads sharply on left/right relative position and camera-movement direction.
+
+**Caveat**: VSTIBench has no `room_size_estimation` category, so this table's eval numbers are not directly affected by the GT-measurement room-size training-supervision defect (see the OneThinker-8B section's "Known defect" subsection); this Qwen pilot (run `gtm2_v25_qwen35_orchard_w4`) was very likely trained on the same defective GT-measurement mix.
 
 ### VSTIBench (`vstibench_repr450_v2`, 450 items): base vs r6 format-A control
 
