@@ -146,10 +146,12 @@ This result uses the Orchard harness `orchard_trainer_12e477b`, while the trinit
 
 | cell | lenient (%) | strict (%) | macro over categories (%) |
 |---|---:|---:|---:|
-| Set B distilled (Orchard), 425-item matched cohort | 45.27 | 45.27 | 45.38 |
-| Orchard base, 425-item matched cohort (excl. its own 25 bad qids) | 55.74 | 53.98 | 55.72 (lenient) / 53.95 (strict) |
+| Set B distilled (Orchard), 425-item matched cohort | 37.27 | 37.27 | 45.38 |
+| Orchard base, 425-item matched cohort (excl. its own 25 bad qids) | 44.47 | 41.28 | 55.72 (lenient) / 53.95 (strict) |
 
-**Deltas, matched 425-item cohort:** lenient **−10.47**, strict **−8.71**. Removing the base's 25 `media_error` items widens the gap rather than narrowing it: the base's provisional 41.96/38.96 is depressed by automatic-zero items, while the distilled cell has 0 `media_error` items and retains its 13 genuine parse failures. **Set B does not beat base under either accounting.**
+**Deltas, matched 425-item cohort:** lenient **−7.20**, strict **−4.00** — still wider than the raw 450-item comparison's −4.24 / −1.24, but narrower than an earlier miscomputed figure. Removing the base's 25 `media_error` items raises the base's true official score (lenient 41.96 -> 44.47, strict 38.96 -> 41.28) because those 25 items were scored as automatic zeros; once that artifact is removed, the distilled cell still underperforms Orchard base, by a real but smaller margin than a flat-mean approximation first suggested. **Set B does not beat base under either accounting** — that conclusion is unchanged by this correction, only the exact deltas are.
+
+Every subset or matched-cohort view in this document now uses the official per-benchmark metric via the real scorer—not a flat per-question or per-category mean—for primary-score figures, and computes deltas from full-precision scores before rounding.
 
 #### Per question type — strict parser, all-450 and matched-cohort views
 
@@ -159,7 +161,7 @@ Lenient parsing moved 0 questions for the distilled cell, so its lenient accurac
 |---|---:|---:|---:|---:|---:|---:|
 | camera_displacement | 14.00 | 15.40 | −1.40 | 12.98 | 16.38 | −3.40 |
 | camera_movement_direction | 24.00 | 28.00 | −4.00 | 21.28 | 29.79 | −8.51 |
-| camera_obj_abs_dist | 40.60 | 19.40 | **+21.20** | 41.06 | 20.64 | **+20.42** |
+| camera_obj_abs_dist | 40.60 | 19.40 | **+21.20** | 41.06 | 20.64 | **+20.43** |
 | camera_obj_rel_dist_v1 | 28.00 | 58.00 | **−30.00** | 28.00 | 58.00 | **−30.00** |
 | camera_obj_rel_dist_v2 | 46.00 | 66.00 | −20.00 | 46.81 | 70.21 | −23.40 |
 | camera_obj_rel_dist_v3 | 60.00 | 66.00 | −6.00 | 56.52 | 71.74 | −15.22 |
