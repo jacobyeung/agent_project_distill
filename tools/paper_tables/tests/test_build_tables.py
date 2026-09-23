@@ -28,52 +28,68 @@ class TableTests(unittest.TestCase):
         path.write_text(json.dumps(value), encoding="utf-8")
 
     def fixture(self, *, benchmark=VSI, condition="base", seed=17,
-                strict_credit=0.2, lenient_credit=0.8, protocol="trinity", reference=False, paired=True):
+                strict_credit=0.2, lenient_credit=0.8, protocol="trinity", reference=False,
+                paired=True, empty_items=0, items_per_category=1):
         name = f"{benchmark}_{condition}_{seed}"
         score_dir = self.root / name / "scores/base"
         rescore_dir = self.root / name / "lenient"
-        rows = [{"qid": str(index), "category": category, "credit": strict_credit,
-                 "parsed_answer": "1", "canonical_metrics": {"is_correct": False}}
-                for index, category in enumerate(tables.BENCHMARKS[benchmark].categories)]
+        categories = [category for category in tables.BENCHMARKS[benchmark].categories
+                      for _ in range(items_per_category)]
+        rows = [{"qid": str(index), "category": category,
+                 "credit": 0 if index < empty_items else strict_credit,
+                 "parsed_answer": None if index < empty_items else "1",
+                 "status": "media_error" if index < empty_items else "ok",
+                 "canonical_metrics": {"is_correct": False}}
+                for index, category in enumerate(categories)]
         strict = tables.recompute(rows, benchmark)
         replay = [{"qid": row["qid"], "category": row["category"],
-                   "strict_credit": strict_credit, "lenient_credit": lenient_credit,
-                   "strict_answer": "1", "lenient_answer": "2"} for row in rows]
+                   "strict_credit": row["credit"], "lenient_credit": lenient_credit if row["status"] == "ok" else 0,
+                   "strict_answer": row["parsed_answer"], "lenient_answer": "2" if row["status"] == "ok" else None}
+                  for row in rows]
         lenient = tables.recompute(replay, benchmark, "lenient_credit", "lenient_answer")
         score_dir.mkdir(parents=True)
         raw = "".join(json.dumps(row) + "\n" for row in rows).encode()
         (score_dir / "per_question_scores.jsonl").write_bytes(raw)
         recorded = {"benchmark": benchmark, "metric": tables.BENCHMARKS[benchmark].metric,
                     "category_scores": strict.categories, "primary_score": strict.overall,
-                    "raw_category_macro": strict.macro, "parse_failures": 0,
+                    "raw_category_macro": strict.macro, "parse_failures": strict.parse_failures,
                     "coverage_complete": True, "official_aggregation_complete": True,
                     "expected_count": len(rows), "terminal_count": len(rows), "missing_count": 0,
                     "cap_count": 0, "cap_without_answer_count": 0,
+                    "failure_counts": dict(tables.Counter(row["status"] for row in rows)),
                     "per_question_scores": {"sha256": hashlib.sha256(raw).hexdigest(),
                                             "size_bytes": len(raw)}}
         self.write_json(score_dir / "scores.json", recorded)
         def summary(result):
             return {"category_scores": result.categories, "primary_score": result.overall,
-                    "raw_category_macro": result.macro, "parse_failures": 0}
+                    "raw_category_macro": result.macro, "parse_failures": result.parse_failures}
         self.write_json(rescore_dir / "lenient_scores.json", {"cells": {name: {
             "benchmark": benchmark, "metric": recorded["metric"], "items": len(rows),
             "scores_dir": str(score_dir), "strict": summary(strict), "lenient": summary(lenient)}}})
         if paired:
             (rescore_dir / f"per_question_{name}.jsonl").write_text(
                 "".join(json.dumps(row) + "\n" for row in replay), encoding="utf-8")
+        orchard = protocol in {"orchard", "thinking_off_reference"}
+        commit = "12e477b" if orchard else "58794b8"
+        base = "base_27b_thinkoff" if condition == "base_27b_thinkoff" else "orchard_base" if orchard else "base"
         return {"student": "onethinker_8b", "benchmark": benchmark, "condition": condition,
                 "seed": seed, "strict_score_path": str(score_dir),
                 "lenient_score_path": str(rescore_dir / "lenient_scores.json"),
-                "lenient_cell_key": name, "harness_commit": "synthetic",
+                "lenient_cell_key": name, "harness_commit": commit,
+                "harness": f"{'orchard' if orchard else 'trinity'}-{commit}", "base_ref": base,
                 "status": "complete", "protocol": protocol, "reference_only": reference,
-                "provenance_note": "Synthetic fixture; no model or external service.",
-                "doc_aliases": ["base" if condition == "base" else "arm C"]}
+                "provisional": bool(empty_items), "empty_items": empty_items,
+                "empty_statuses": ["media_error"] if empty_items else [],
+                "provenance_note": "Synthetic fixture; no model or external service."}
 
-    def pending(self, condition="full_scale", seed=17):
+    def pending(self, condition="full_scale", seed=17, protocol="orchard"):
+        orchard = protocol == "orchard"
+        commit = "12e477b" if orchard else "58794b8"
         return {"student": "onethinker_8b", "benchmark": VSI, "condition": condition,
                 "seed": seed, "strict_score_path": None, "lenient_score_path": None,
-                "lenient_cell_key": None, "harness_commit": None, "status": "pending",
-                "protocol": "orchard", "reference_only": False, "provenance_note": "Awaiting scores."}
+                "lenient_cell_key": None, "harness_commit": commit, "status": "pending",
+                "harness": f"{protocol}-{commit}", "base_ref": "orchard_base" if orchard else "base",
+                "protocol": protocol, "reference_only": False, "provenance_note": "Awaiting scores."}
 
     def test_per_type_uses_fractional_credit_not_correct_flag(self):
         cell = tables.load_cell(self.fixture())
@@ -152,21 +168,20 @@ class TableTests(unittest.TestCase):
         self.assertAlmostEqual(result["mean"], statistics.mean([10, 20, 40]))
         self.assertAlmostEqual(result["range"], 30)
         self.assertAlmostEqual(result["sample_std"], statistics.stdev([10, 20, 40]))
-        rendered = tables.render_accuracy(cells, VSI, "lenient")
+        rendered = tables.render_accuracy([tables.load_cell(self.fixture()), *cells], VSI, "lenient")
         self.assertIn(r"\makebox[", rendered)
         self.assertNotIn("r@{}l", rendered)
 
     def test_pending_cells_render_without_opening_paths(self):
         pending = tables.load_cell(self.pending())
-        rendered = tables.render_accuracy([pending], VSI, "lenient")
+        rendered = tables.render_accuracy([tables.load_cell(self.pending("orchard_base")), pending], VSI, "lenient")
         self.assertIn("Full-scale", rendered)
         self.assertIn("--", rendered)
         self.assertNotIn(r"\textbf{--}", rendered)
 
     def test_pending_replicate_does_not_become_zero(self):
         cell = tables.load_cell(self.fixture(condition="armc", lenient_credit=0.8))
-        pending = self.pending("armc", "rep2")
-        pending["protocol"] = "trinity"
+        pending = self.pending("armc", "rep2", protocol="trinity")
         result = tables.seed_summary([cell, tables.load_cell(pending)])
         self.assertEqual(result["mean"], 80)
         self.assertIsNone(result["sample_std"])
@@ -319,14 +334,14 @@ class TableTests(unittest.TestCase):
 
     def test_pending_fill_requires_only_manifest_fields_and_rerun(self):
         complete = self.fixture(condition="full_scale", protocol="orchard")
+        base = self.fixture(condition="orchard_base", protocol="orchard")
         pending = self.pending()
-        pending["harness_commit"] = complete["harness_commit"]
         path = self.root / "manifest.json"
-        self.write_json(path, {"schema": "split-paper-tables-v1", "cells": [pending]})
+        self.write_json(path, {"schema": "split-paper-tables-v1", "cells": [pending, base]})
         self.assertFalse(tables.load_manifest(path)[0].complete)
         for key in ("status", "strict_score_path", "lenient_score_path", "lenient_cell_key"):
             pending[key] = complete[key]
-        self.write_json(path, {"schema": "split-paper-tables-v1", "cells": [pending]})
+        self.write_json(path, {"schema": "split-paper-tables-v1", "cells": [pending, base]})
         rendered = tables.render_accuracy(tables.load_manifest(path), VSI, "lenient")
         self.assertIn("Full-scale", rendered)
         self.assertIn("80.00", rendered)
@@ -398,11 +413,210 @@ class TableTests(unittest.TestCase):
     def test_rendered_tables_compile(self):
         cells = [tables.load_cell(self.fixture(benchmark=benchmark, condition=condition))
                  for benchmark in [VSI, VSTI] for condition in ["base", "armc"]]
-        cells.append(tables.load_cell(self.pending()))
+        cells.extend(tables.load_cell(self.pending(condition)) for condition in ("orchard_base", "full_scale"))
         out = self.root / "compiled"
         tables.render_all(cells, out)
         tables.compile_preview(out)
         self.assertGreater((out / "tables_preview.pdf").stat().st_size, 0)
+
+    def test_manifest_requires_harness_and_base_ref(self):
+        entry = self.fixture()
+        for key in ("harness", "base_ref"):
+            with self.subTest(key=key), self.assertRaisesRegex(tables.ScoreError, key):
+                tables.load_cell({name: value for name, value in entry.items() if name != key})
+
+    def test_harness_must_match_commit_and_protocol(self):
+        entry = self.fixture()
+        for update in ({"harness": "unknown"}, {"harness_commit": "12e477b"}, {"protocol": "orchard"}):
+            with self.subTest(update=update), self.assertRaisesRegex(tables.ScoreError, "harness"):
+                tables.load_cell({**entry, **update})
+
+    def test_base_pairing_rejects_cross_harness_reference(self):
+        base = tables.load_cell(self.fixture())
+        entry = self.fixture(condition="setb_pilot", protocol="orchard")
+        entry["base_ref"] = "base"
+        pilot = tables.load_cell(entry)
+        with self.assertRaisesRegex(tables.ScoreError, "harness"):
+            tables.paired_base(pilot, [base, pilot])
+
+    def test_manifest_rejects_missing_or_pending_base_for_complete_cell(self):
+        pilot = self.fixture(condition="setb_pilot", protocol="orchard")
+        manifest = self.root / "manifest.json"
+        for entries in ([pilot], [self.pending("orchard_base"), pilot]):
+            self.write_json(manifest, {"schema": "split-paper-tables-v1", "cells": entries})
+            with self.subTest(entries=len(entries)), self.assertRaisesRegex(tables.ScoreError, "base"):
+                tables.load_manifest(manifest)
+
+    def test_each_condition_shows_its_same_harness_base(self):
+        cells = [tables.load_cell(self.fixture(lenient_credit=0.4)),
+                 tables.load_cell(self.fixture(condition="armc", lenient_credit=0.8)),
+                 tables.load_cell(self.fixture(condition="orchard_base", protocol="orchard", lenient_credit=0.6)),
+                 tables.load_cell(self.fixture(condition="setb_pilot", protocol="orchard", lenient_credit=0.7))]
+        rendered = tables.render_accuracy(cells, VSI, "lenient")
+        armc = next(line for line in rendered.splitlines() if line.startswith("Arm C &"))
+        pilot = next(line for line in rendered.splitlines() if line.startswith("Set B pilot &"))
+        self.assertTrue(armc.startswith("Arm C & 40.00 &"))
+        self.assertTrue(pilot.startswith("Set B pilot & 60.00 &"))
+        self.assertIn(r"\textbf{80.00}", armc)
+        self.assertIn(r"\textbf{70.00}", pilot)
+
+    def test_repeat_summary_rejects_mixed_harnesses(self):
+        cells = [tables.load_cell(self.fixture(condition="armc")),
+                 tables.load_cell(self.fixture(condition="armc", seed="rep2", protocol="orchard"))]
+        with self.assertRaisesRegex(tables.ScoreError, "harness|cohort"):
+            tables.seed_summary(cells)
+
+    def test_provisional_flag_and_empty_count_are_validated(self):
+        entry = self.fixture()
+        for update in ({"provisional": "true"}, {"empty_items": True}, {"empty_items": -1},
+                       {"empty_items": 1}, {"empty_statuses": ["ok"]}):
+            with self.subTest(update=update), self.assertRaises(tables.ScoreError):
+                tables.load_cell({**entry, **update})
+
+    def test_empty_count_is_verified_against_score_statuses(self):
+        entry = self.fixture(condition="orchard_base", protocol="orchard", empty_items=1)
+        cell = tables.load_cell(entry)
+        self.assertEqual(cell.empty_qids, frozenset({"0"}))
+        self.assertEqual(cell.entry["empty_items"], 1)
+        self.assertEqual(cell.recorded["expected_count"], 10)
+        with self.assertRaisesRegex(tables.ScoreError, "empty"):
+            tables.load_cell({**entry, "empty_items": 2})
+
+    def test_provisional_dagger_keeps_full_denominator_and_marks_base_column(self):
+        base = tables.load_cell(self.fixture(condition="orchard_base", protocol="orchard", empty_items=1))
+        pilot = tables.load_cell(self.fixture(condition="setb_pilot", protocol="orchard"))
+        rendered = tables.render_accuracy([base, pilot], VSI, "lenient")
+        self.assertIn(r"Base (Orchard)$^{\dagger}$", rendered)
+        self.assertIn("1/10", rendered)
+        self.assertIn("provisional", rendered)
+        self.assertIn("full denominator", rendered)
+        pilot_row = next(line for line in rendered.splitlines() if line.startswith("Set B pilot &"))
+        self.assertIn(f"{base.lenient.overall * 100:.2f}" + r"$^{\dagger}$", pilot_row)
+        self.assertEqual(sum(base.strict.counts.values()), 10)
+        for renderer in (tables.render_diagnostics, tables.render_macros):
+            self.assertIn(r"Base (Orchard)$^{\dagger}$", renderer([base, pilot], VSI))
+
+    def test_matched_view_excludes_only_the_bases_empty_qids_from_both_cells(self):
+        base = tables.load_cell(self.fixture(benchmark=VSTI, condition="orchard_base", protocol="orchard",
+                                            empty_items=1, items_per_category=2))
+        pilot = tables.load_cell(self.fixture(benchmark=VSTI, condition="setb_pilot", protocol="orchard",
+                                             empty_items=2, items_per_category=2))
+        self.assertEqual(tables.raw_quantity(base, "n", excluded=base.empty_qids), 17)
+        self.assertEqual(tables.raw_quantity(pilot, "n", excluded=base.empty_qids), 17)
+        self.assertAlmostEqual(tables.raw_quantity(pilot, "score", "lenient", excluded=base.empty_qids), 0.64)
+        self.assertEqual(tables.raw_quantity(pilot, "parse", "lenient", excluded=base.empty_qids), 1)
+        self.assertEqual(tables.raw_quantity(pilot, "n"), 18)
+
+    def test_matched_view_requires_per_question_lenient_scores(self):
+        base = tables.load_cell(self.fixture(benchmark=VSTI, condition="orchard_base", protocol="orchard",
+                                            empty_items=1, items_per_category=2))
+        pilot = tables.load_cell(self.fixture(benchmark=VSTI, condition="setb_pilot", protocol="orchard",
+                                             paired=False, items_per_category=2))
+        with self.assertRaisesRegex(tables.QuantityUnavailable, "per-question"):
+            tables.raw_quantity(pilot, "score", "lenient", excluded=base.empty_qids)
+
+    def test_document_orchard_metadata_and_strict_deltas_use_matched_base(self):
+        cells = [tables.load_cell(self.fixture(strict_credit=0.1, lenient_credit=0.95)),
+                 tables.load_cell(self.fixture(condition="orchard_base", protocol="orchard")),
+                 tables.load_cell(self.fixture(condition="setb_pilot", protocol="orchard", strict_credit=0.6, lenient_credit=0.6))]
+        doc = self.root / "orchard.md"
+        doc.write_text("## OneThinker-8B\n### VSIBench — Set B pilot, Orchard\n"
+                       "| cell | harness | lenient (%) | strict (%) |\n|---|---|---|---|\n"
+                       "| Set B distilled (Orchard) | orchard_trainer_12e477b | 60 | 60 |\n"
+                       "| Orchard base | orchard_trainer_12e477b | 80 | 20 |\n"
+                       "| trinity base | 58794b8 | 95 | 10 |\n"
+                       "#### Per question type — strict parser only\n"
+                       "| question type | Set B distilled (Orchard) | Orchard base | delta |\n|---|---|---|---|\n"
+                       "| object_counting | 60 | 20 | 40 |\n", encoding="utf-8")
+        report = tables.check_document(doc, cells)
+        self.assertEqual(report.checked, 9)
+        self.assertFalse(report.issues, report.format_text())
+
+    def test_document_trinity_mean_row_uses_full_precision_repeats(self):
+        cells = [tables.load_cell(self.fixture(condition="armc", seed=seed, lenient_credit=credit))
+                 for seed, credit in [(17, 0.42), ("rep2", 0.43), ("rep3", 0.44)]]
+        doc = self.root / "mean.md"
+        doc.write_text("## OneThinker-8B\n### VSIBench — Set B pilot, Orchard\n"
+                       "| cell | harness | lenient (%) |\n|---|---|---|\n"
+                       "| trinity arm C, 3-seed mean | 58794b8 | 43.00 |\n", encoding="utf-8")
+        report = tables.check_document(doc, cells)
+        self.assertEqual(report.checked, 1)
+        self.assertFalse(report.issues, report.format_text())
+
+    def test_document_matched_macros_preserve_parser_labels(self):
+        base = tables.load_cell(self.fixture(benchmark=VSTI, condition="orchard_base", protocol="orchard",
+                                            empty_items=1, items_per_category=2))
+        doc = self.root / "matched.md"
+        doc.write_text("## OneThinker-8B\n### VSTIBench — Set B pilot, Orchard\n"
+                       "#### Matched-cohort comparison\n"
+                       "| cell | lenient (%) | strict (%) | macro over categories (%) |\n|---|---|---|---|\n"
+                       "| Orchard base, 17-item matched cohort | 80 | 20 | 80 (lenient) / 20 (strict) |\n", encoding="utf-8")
+        report = tables.check_document(doc, [base])
+        self.assertEqual(report.checked, 4)
+        self.assertFalse(report.issues, report.format_text())
+
+    def test_document_matched_headline_rejects_flat_question_mean(self):
+        base = tables.load_cell(self.fixture(benchmark=VSTI, condition="orchard_base", protocol="orchard",
+                                            empty_items=1, items_per_category=2))
+        pilot = tables.load_cell(self.fixture(benchmark=VSTI, condition="setb_pilot", protocol="orchard",
+                                             empty_items=2, items_per_category=2))
+        doc = self.root / "flat.md"
+        doc.write_text("## OneThinker-8B\n### VSTIBench — Set B pilot, Orchard\n"
+                       "#### Matched-cohort comparison\n"
+                       "| cell | lenient (%) |\n|---|---|\n"
+                       f"| Set B distilled (Orchard), 17-item matched cohort | {16 * 80 / 17:.2f} |\n", encoding="utf-8")
+        report = tables.check_document(doc, [base, pilot])
+        self.assertEqual(len(report.issues), 1)
+        self.assertAlmostEqual(report.issues[0].computed, 64)
+        self.assertIn("flat", report.issues[0].cause)
+
+    def test_document_cross_harness_delta_fails_closed(self):
+        base = tables.load_cell(self.fixture())
+        pilot = tables.load_cell(self.fixture(condition="setb_pilot", protocol="orchard"))
+        doc = self.root / "cross_harness.md"
+        doc.write_text("## OneThinker-8B\n### VSIBench — Set B pilot, Orchard\n"
+                       "| question type | Set B distilled (Orchard) - trinity base delta |\n|---|---|\n"
+                       "| object_counting | 0 |\n", encoding="utf-8")
+        report = tables.check_document(doc, [base, pilot])
+        self.assertEqual(len(report.issues), 1)
+        self.assertIn("harness", report.issues[0].cause)
+
+    def test_matched_appendix_uses_official_metric_without_changing_main_scores(self):
+        base = tables.load_cell(self.fixture(benchmark=VSTI, condition="orchard_base", protocol="orchard",
+                                            empty_items=1, items_per_category=2))
+        pilot = tables.load_cell(self.fixture(benchmark=VSTI, condition="setb_pilot", protocol="orchard",
+                                             empty_items=2, items_per_category=2))
+        before = (base.lenient.overall, pilot.lenient.overall, base.recorded["expected_count"])
+        rendered = tables.render_matched([base, pilot], VSTI)
+        self.assertIn("Set B pilot" + r"$^{\dagger}$ & 17 & 64.00", rendered)
+        self.assertIn("official category collapse", rendered)
+        self.assertEqual(before, (base.lenient.overall, pilot.lenient.overall, base.recorded["expected_count"]))
+        self.assertIsNone(tables.render_matched([base, pilot], VSI))
+
+    @unittest.skipUnless(shutil.which("pdflatex"), "pdflatex is not on PATH")
+    def test_provisional_and_matched_tables_compile(self):
+        cells = [tables.load_cell(self.fixture(benchmark=VSTI, condition=condition, protocol="orchard",
+                                              empty_items=int(condition == "orchard_base"), items_per_category=2))
+                 for condition in ("orchard_base", "setb_pilot")]
+        out = self.root / "provisional_compiled"
+        files = tables.render_all(cells, out)
+        self.assertIn("appendix_vsti_matched.tex", files)
+        self.assertTrue(tables.compile_preview(out))
+        self.assertGreater((out / "tables_preview.pdf").stat().st_size, 0)
+
+    def test_document_qwen_vsti_two_run_summary_is_checked(self):
+        cells = [tables.load_cell(self.fixture(benchmark=VSTI, condition="armc", seed=seed, lenient_credit=credit))
+                 for seed, credit in [(17, 0.46), ("rep2", 0.42)]]
+        for cell in cells:
+            cell.entry["student"] = "qwen35_9b"
+        doc = self.root / "qwen_repeats.md"
+        doc.write_text("## Qwen3.5-9B\n### VSTIBench\n"
+                       "| benchmark | published | replicate 2 | mean | range (max-min) | sample std |\n"
+                       "|---|---|---|---|---|---|\n"
+                       f"| VSTIBench | 46 | 42 | 44 | 4 | {statistics.stdev([46, 42]):.2f} |\n", encoding="utf-8")
+        report = tables.check_document(doc, cells)
+        self.assertEqual(report.checked, 5)
+        self.assertFalse(report.issues, report.format_text())
 
 
 class RealManifestTests(unittest.TestCase):

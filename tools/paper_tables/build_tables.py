@@ -107,6 +107,8 @@ CONDITIONS = {"base": "Base", "orchard_base": "Base (Orchard)", "answer_only": "
 ORDER = {"base": 0, "orchard_base": 0, "answer_only": 1, "armc": 2, "setb_pilot": 3,
          "full_scale": 4, "r6_formatA": 5, "base_27b_thinkoff": 6}
 TOLERANCE = 0.005
+HARNESSES = {"trinity-58794b8": "58794b8", "orchard-12e477b": "12e477b"}
+BASE_CONDITIONS = {"base", "orchard_base", "base_27b_thinkoff"}
 
 
 class ScoreError(ValueError):
@@ -210,6 +212,13 @@ class Cell:
     sources: tuple[Path, ...] = ()
     lenient_recomputed: bool = False
     median_tokens: float | None = None
+    strict_rows: tuple[dict, ...] = ()
+    lenient_rows: tuple[dict, ...] = ()
+    empty_qids: frozenset[str] = frozenset()
+
+    @property
+    def provisional(self):
+        return self.entry.get("provisional", False)
 
     @property
     def identity(self):
@@ -231,13 +240,31 @@ class Cell:
 def load_cell(entry, base_dir=None):
     entry = dict(entry)
     required = {"student", "benchmark", "condition", "seed", "strict_score_path", "lenient_score_path",
-                "lenient_cell_key", "harness_commit", "status", "provenance_note", "protocol"}
+                "lenient_cell_key", "harness_commit", "harness", "base_ref", "status", "provenance_note", "protocol"}
     if required - entry.keys():
         raise ScoreError(f"Manifest cell lacks {sorted(required - entry.keys())}")
     if entry["student"] not in STUDENTS or entry["benchmark"] not in BENCHMARKS:
         raise ScoreError(f"Unknown student or benchmark: {entry}")
     if entry["seed"] not in (17, "rep2", "rep3"):
         raise ScoreError(f"Unknown published/replicate identifier: {entry['seed']!r}")
+    harness = entry["harness"]
+    if harness not in HARNESSES or not str(entry["harness_commit"]).startswith(HARNESSES[harness]):
+        raise ScoreError(f"Invalid harness or harness commit: {harness!r}, {entry['harness_commit']!r}")
+    if entry["protocol"] in {"trinity", "orchard"} and not harness.startswith(entry["protocol"] + "-"):
+        raise ScoreError("The comparison protocol differs from its harness")
+    if entry["base_ref"] not in BASE_CONDITIONS:
+        raise ScoreError(f"Invalid base_ref: {entry['base_ref']!r}")
+    entry.setdefault("provisional", False)
+    entry.setdefault("empty_items", 0)
+    entry.setdefault("empty_statuses", [])
+    if type(entry["provisional"]) is not bool or type(entry["empty_items"]) is not int or entry["empty_items"] < 0:
+        raise ScoreError("Invalid provisional flag or empty_items count")
+    statuses = entry["empty_statuses"]
+    if (not isinstance(statuses, list) or any(not isinstance(status, str) or not status or status == "ok" for status in statuses)
+            or len(statuses) != len(set(statuses))):
+        raise ScoreError("empty_statuses must name distinct non-ok score statuses")
+    if entry["empty_items"] and (not entry["provisional"] or not statuses or entry["status"] != "complete"):
+        raise ScoreError("Empty items require a complete, provisional cell and audited empty_statuses")
     cell = Cell(entry)
     paths = ("strict_score_path", "lenient_score_path", "lenient_cell_key")
     if not cell.complete:
@@ -266,8 +293,19 @@ def load_cell(entry, base_dir=None):
             or not recorded["coverage_complete"] or not recorded["official_aggregation_complete"]
             or recorded["terminal_count"] != expected or len(rows) != expected or recorded["missing_count"] != 0):
         raise ScoreError(f"{cell.identity}: benchmark, metric, or complete coverage contract differs")
+    cell.strict_rows = tuple(rows)
     cell.strict = recompute(rows, benchmark)
     verify_summary(cell.strict, recorded, f"{cell.identity}/scores.json")
+    empty_rows = [row for row in rows if row.get("status") in statuses]
+    cell.empty_qids = frozenset(str(row["qid"]) for row in empty_rows)
+    if len(empty_rows) != entry["empty_items"]:
+        raise ScoreError(f"{cell.identity}: empty_items differs from the audited score statuses")
+    if statuses and (any("status" not in row for row in rows)
+                     or any(sum(row["status"] == status for row in rows) != recorded["failure_counts"].get(status, 0)
+                            for status in statuses)):
+        raise ScoreError(f"{cell.identity}: empty status counts differ from scores.json")
+    if any(row["credit"] != 0 or row["parsed_answer"] not in (None, "") for row in empty_rows):
+        raise ScoreError(f"{cell.identity}: audited empty items have answers or nonzero credits")
     cell.recorded = recorded
     lenient_path = Path(entry["lenient_score_path"])
     rescore = read_json(lenient_path)["cells"][entry["lenient_cell_key"]]
@@ -289,7 +327,11 @@ def load_cell(entry, base_dir=None):
             original = strict_index[str(row["qid"])]
             if abs(row["strict_credit"] - original["credit"]) > 1e-12 or row["strict_answer"] != original["parsed_answer"]:
                 raise ScoreError(f"{cell.identity}/{row['qid']}: strict replay differs from per-question score")
+        cell.lenient_rows = tuple(paired)
         cell.lenient = recompute(paired, benchmark, "lenient_credit", "lenient_answer")
+        if any(row["lenient_credit"] != 0 or row["lenient_answer"] not in (None, "")
+               for row in paired if str(row["qid"]) in cell.empty_qids):
+            raise ScoreError(f"{cell.identity}: lenient scores recover audited empty items")
         cell.sources += (lenient_items,)
         cell.lenient_recomputed = True
     else:
@@ -311,6 +353,24 @@ def load_cell(entry, base_dir=None):
     return cell
 
 
+def paired_base(cell, cells):
+    matches = [base for base in cells if base.entry["student"] == cell.entry["student"]
+               and base.entry["benchmark"] == cell.entry["benchmark"]
+               and base.entry["condition"] == cell.entry["base_ref"] and base.entry["seed"] == 17]
+    if len(matches) != 1:
+        raise ScoreError(f"{cell.identity}: base_ref resolves to {len(matches)} bases")
+    base = matches[0]
+    if base.entry["harness"] != cell.entry["harness"]:
+        raise ScoreError(f"{cell.identity}: base_ref crosses harnesses")
+    if not cell.reference and (base.reference or base.entry["protocol"] != cell.entry["protocol"]):
+        raise ScoreError(f"{cell.identity}: base_ref crosses comparison protocols")
+    if cell.entry["condition"] in BASE_CONDITIONS and base is not cell:
+        raise ScoreError(f"{cell.identity}: a base must reference itself")
+    if cell.complete and not base.complete:
+        raise ScoreError(f"{cell.identity}: a complete cell requires a complete paired base")
+    return base
+
+
 def load_manifest(path):
     path = Path(path).resolve()
     manifest = read_json(path)
@@ -322,6 +382,7 @@ def load_manifest(path):
         raise ScoreError("Duplicate manifest cell identity")
     cohorts = {}
     for cell in cells:
+        paired_base(cell, cells)
         if cell.complete:
             benchmark = cell.entry["benchmark"]
             if benchmark in cohorts and cell.strict.qids != cohorts[benchmark]:
@@ -331,6 +392,10 @@ def load_manifest(path):
 
 
 def seed_summary(cells, mode="lenient", category=None):
+    scopes = {tuple(cell.entry[key] for key in ("student", "benchmark", "condition", "harness", "protocol", "base_ref"))
+              for cell in cells}
+    if len(scopes) > 1:
+        raise ScoreError("A seed summary cannot mix harnesses or comparison cohorts")
     seeds = [cell.entry["seed"] for cell in cells]
     if len(seeds) != len(set(seeds)):
         raise ScoreError("A seed summary cannot contain duplicate run identifiers")
@@ -406,7 +471,7 @@ def clean_doc(value):
 
 
 def numeric_parts(value):
-    value = clean_doc(value)
+    value = re.sub(r"\s*\((?:lenient|strict)\)", "", clean_doc(value), flags=re.IGNORECASE)
     parts = re.split(r"\s*(?:→|->|/)\s*", value)
     return parts if parts and all(re.fullmatch(r"[+-]?\d+(?:\.\d+)?", part) for part in parts) else []
 
@@ -440,9 +505,14 @@ def aliases(cell):
     entry = cell.entry
     if entry["seed"] in ("rep2", "rep3"):
         defaults = [entry["seed"], f"replicate {entry['seed'][-1]}"]
+        if entry["protocol"] == "trinity" and entry["condition"] == "armc":
+            defaults.append(f"trinity arm C (replicate {entry['seed'][-1]})")
     else:
-        defaults = {"base": ["base"], "armc": ["arm C", "arm C (published)", "published"],
-                    "answer_only": ["answer-only"], "r6_formatA": ["r6", "run r6"],
+        defaults = {"base": ["base", "trinity base"],
+                    "armc": ["arm C", "arm C (published)", "published", "trinity arm C (published)"],
+                    "answer_only": ["answer-only", "trinity answer-only"], "r6_formatA": ["r6", "run r6"],
+                    "orchard_base": ["Orchard base", "Orchard base (PROVISIONAL)"],
+                    "setb_pilot": ["Set B distilled (Orchard)"],
                     "base_27b_thinkoff": ["qwen36_27b_base_vsi_thinkoff"]}.get(entry["condition"], [])
     return {clean_doc(value).lower() for value in defaults + entry.get("doc_aliases", [])}
 
@@ -455,22 +525,37 @@ def find_cell(cells, student, benchmark, label):
     return matches[0]
 
 
-def raw_quantity(cell, quantity, mode="strict", category=None):
+def score_view(cell, mode, excluded=()):
     if not cell.complete:
         raise QuantityUnavailable("Manifest cell is pending")
-    metrics = getattr(cell, mode)
+    if not excluded:
+        return getattr(cell, mode)
+    if not set(excluded) <= cell.strict.qids.keys():
+        raise QuantityUnavailable("Excluded qids are outside the cell's score membership")
+    rows = cell.strict_rows if mode == "strict" else cell.lenient_rows
+    if not rows:
+        raise QuantityUnavailable(f"{mode.title()} per-question scores are unavailable for a matched subset")
+    selected = [row for row in rows if str(row["qid"]) not in excluded]
+    fields = ("credit", "parsed_answer") if mode == "strict" else ("lenient_credit", "lenient_answer")
+    return recompute(selected, cell.entry["benchmark"], *fields)
+
+
+def raw_quantity(cell, quantity, mode="strict", category=None, *, excluded=()):
+    metrics = score_view(cell, mode, excluded)
     if quantity == "score":
         return metrics.overall if category is None else metrics.categories[category]
     if quantity == "macro":
         return metrics.macro
     if quantity == "n":
-        return metrics.counts[category] if category else cell.recorded["expected_count"]
+        return metrics.counts[category] if category else len(metrics.qids)
     if quantity == "parse":
-        if category:
+        if category or excluded:
             if metrics.failures is None:
                 raise QuantityUnavailable("Lenient per-question answers are unavailable")
-            return metrics.failures[category]
+            return metrics.failures[category] if category else metrics.parse_failures
         return cell.recorded["parse_failures" if mode == "strict" else "lenient_parse_failures"]
+    if excluded:
+        raise QuantityUnavailable(f"Matched-subset {quantity} is unavailable from the score artifacts")
     if quantity == "median":
         if cell.median_tokens is None:
             raise QuantityUnavailable("Token medians require generation-token data absent from scores.json and per-question score files")
@@ -490,7 +575,7 @@ def describe_quantity(text):
         return "score", mode, 100
     if "parse fail" in text:
         return "parse", mode, 1
-    if "no answer" in text or "without answer" in text:
+    if "no answer" in text or "without answer" in text or "w/o answer" in text:
         return "cap_without", mode, 1
     if "cap" in text:
         return "cap", mode, 1
@@ -509,54 +594,105 @@ def check_document(path, cells):
         if student is None or not any(cell.entry["student"] == student for cell in cells):
             continue
         benchmark = benchmark_from_text(headings.get(3, ""))
+        orchard = "orchard" in headings.get(3, "").lower()
+        strict_context = "strict parser" in headings.get(4, "").lower()
         table_kind = header[0].lower()
         for line, row in rows:
             if len(row) != len(header):
                 raise ScoreError(f"Document line {line}: table row has {len(row)} cells, expected {len(header)}")
             row_benchmark = benchmark_from_text(row[0]) if table_kind == "benchmark" else benchmark
-            if row_benchmark is None or not any(cell.entry["student"] == student and cell.entry["benchmark"] == row_benchmark for cell in cells):
+            scope = [cell for cell in cells if cell.entry["student"] == student and cell.entry["benchmark"] == row_benchmark]
+            if row_benchmark is None or not scope:
                 continue
+            group = [cell for cell in scope if cell.entry["condition"] == "armc"
+                     and cell.entry["harness"] == "trinity-58794b8" and cell.entry["protocol"] == "trinity"]
+            mean_row = re.fullmatch(r"trinity arm C, (\d+)-seed mean", row[0], flags=re.IGNORECASE)
+            identity = f"{student}/{row_benchmark}/{row[0]}"
+
+            def get(label):
+                label = re.sub(r",\s*(?:\d+-item matched cohort.*|all \d+(?: \(prov\.\))?|excl\. \d+)$", "", label)
+                if orchard and label.lower() in {"base", "distilled"}:
+                    label = "Orchard base" if label.lower() == "base" else "Set B distilled (Orchard)"
+                return find_cell(scope, student, row_benchmark, label)
+
             for column, text in zip(header[1:], row[1:]):
+                low = column.lower()
+                if table_kind == "cell" and low == "harness":
+                    if not text:
+                        continue
+                    try:
+                        cell = get("arm C" if mean_row else row[0])
+                        expected = {cell.entry["harness"], cell.entry["harness_commit"], HARNESSES[cell.entry["harness"]]}
+                        if cell.entry["harness"] == "orchard-12e477b":
+                            expected.add("orchard_trainer_12e477b")
+                        if text not in expected:
+                            raise QuantityUnavailable(f"Document harness {text!r} differs from {cell.entry['harness']}")
+                    except QuantityUnavailable as exc:
+                        report.checked += 1
+                        report.issues.append(Mismatch(identity, column, text, None, str(exc), line))
+                    continue
                 parts = numeric_parts(text)
                 if not parts:
                     if clean_doc(text) not in ("--", "-", "", "pending", "—"):
-                        report.compare(f"{student}/{row_benchmark}/{row[0]}", column, text,
-                                       lambda: unavailable("Unrecognized numeric cell format"), line)
+                        report.compare(identity, column, text, lambda: unavailable("Unrecognized numeric cell format"), line)
                     continue
+                modes = re.findall(r"\((lenient|strict)\)", text, flags=re.IGNORECASE)
                 for part_index, doc_value in enumerate(parts):
-                    identity = f"{student}/{row_benchmark}/{row[0]}"
                     quantity_name = f"{column} [{part_index + 1}]" if len(parts) > 1 else column
+                    calculation = {}
+
                     def compute():
-                        def get(label):
-                            return find_cell(cells, student, row_benchmark, label)
-                        low = column.lower()
+                        if modes and len(modes) != len(parts):
+                            raise QuantityUnavailable("Parser labels do not cover every numeric component")
+                        mode = modes[part_index].lower() if modes else "lenient" if "lenient" in low else "strict"
+                        excluded = frozenset()
+                        if "matched cohort" in row[0].lower() or "excl." in low:
+                            base = get("Orchard base")
+                            excluded = base.empty_qids
+                            if not excluded:
+                                raise QuantityUnavailable("Matched scope lacks audited empty-item qids in score files")
+                            count = re.search(r"(\d+)-item matched cohort", row[0])
+                            if count and int(count[1]) != len(base.strict.qids) - len(excluded):
+                                raise QuantityUnavailable("The document's matched cohort size differs from score membership")
                         if table_kind == "benchmark":
-                            group = [cell for cell in cells if cell.entry["student"] == student
-                                     and cell.entry["benchmark"] == row_benchmark
-                                     and cell.entry["condition"] == "armc" and cell.entry["protocol"] == "trinity"]
                             summary = seed_summary(group)
                             names = {"published": "published", "replicate 2": "rep2", "replicate 3": "rep3",
                                      "mean": "mean", "range (max-min)": "range", "sample std": "sample_std"}
                             return summary[names[low]]
                         if table_kind == "cell":
+                            if mean_row:
+                                summary = seed_summary(group, mode)
+                                if int(mean_row[1]) != summary["n"] or not ("lenient" in low or "strict" in low):
+                                    raise QuantityUnavailable("The repeated-run mean row has an unsupported quantity or run count")
+                                return summary["mean"]
                             cell = get(row[0])
-                            if "parse fail" in low:
-                                return raw_quantity(cell, "parse", "strict" if part_index == 0 else "lenient")
-                            if "lenient" in low or "strict" in low:
-                                return raw_quantity(cell, "score", "lenient" if "lenient" in low else "strict") * 100
-                            if low == "terminal":
-                                return raw_quantity(cell, "terminal" if part_index == 0 else "n")
-                            if "median" in low:
-                                return raw_quantity(cell, "median")
-                            quantity, mode, scale = describe_quantity(low)
-                            return raw_quantity(cell, quantity, mode) * scale
+                            if "macro" in low:
+                                quantity, scale = "macro", 100
+                            elif "parse fail" in low:
+                                quantity, scale = "parse", 1
+                                mode = "strict" if part_index == 0 else "lenient"
+                            elif "lenient" in low or "strict" in low:
+                                quantity, scale = "score", 100
+                            elif low == "terminal":
+                                quantity, scale = ("terminal" if part_index == 0 else "n"), 1
+                            elif "median" in low:
+                                quantity, scale = "median", 1
+                            else:
+                                quantity, mode, scale = describe_quantity(low)
+                            if excluded and quantity == "score":
+                                score_rows = cell.strict_rows if mode == "strict" else cell.lenient_rows
+                                credit = "credit" if mode == "strict" else "lenient_credit"
+                                if score_rows:
+                                    calculation["flat"] = statistics.mean(item[credit] for item in score_rows
+                                                                           if str(item["qid"]) not in excluded) * 100
+                            return raw_quantity(cell, quantity, mode, excluded=excluded) * scale
                         category = row[0] if table_kind == "question type" and "macro" not in row[0].lower() else None
                         if table_kind == "question type":
                             if low == "n":
-                                target = next(cell for cell in cells if cell.entry["student"] == student
-                                              and cell.entry["benchmark"] == row_benchmark and cell.complete)
-                                return raw_quantity(target, "n", category=category)
-                            mode = "lenient" if "lenient" in low or "delta" in low else "strict"
+                                target = next(cell for cell in scope if cell.complete)
+                                return raw_quantity(target, "n", category=category, excluded=excluded)
+                            if "delta" in low and not strict_context and any("lenient" in label.lower() for label in header):
+                                mode = "lenient"
                             quantity = "macro" if "macro" in row[0].lower() else "parse" if "parse fail" in low else "score"
                             scale = 1 if quantity == "parse" else 100
                         elif table_kind == "quantity":
@@ -568,21 +704,32 @@ def check_document(path, cells):
                             if " - " in expression:
                                 left, right = expression.split(" - ", 1)
                             else:
-                                left = "r6" if any("r6" in label.lower() for label in header) else "arm C"
-                                right = "base"
-                            return (raw_quantity(get(left), quantity, mode, category)
-                                    - raw_quantity(get(right), quantity, mode, category)) * scale
-                        return raw_quantity(get(column_label(column)), quantity, mode, category) * scale
+                                left = "Set B distilled (Orchard)" if orchard else "r6" if any("r6" in label.lower() for label in header) else "arm C"
+                                right = "Orchard base" if orchard else "base"
+                            left, right = get(left), get(right)
+                            if left.entry["harness"] != right.entry["harness"]:
+                                raise QuantityUnavailable("A cross-harness delta is not a matched comparison")
+                            values = [raw_quantity(cell, quantity, mode, category, excluded=excluded) for cell in (left, right)]
+                            calculation["rounded_delta"] = round(values[0] * scale, 2) - round(values[1] * scale, 2)
+                            return (values[0] - values[1]) * scale
+                        return raw_quantity(get(column_label(column)), quantity, mode, category, excluded=excluded) * scale
+
                     previous_issues = len(report.issues)
                     report.compare(identity, quantity_name, doc_value, compute, line)
-                    if table_kind == "benchmark" and len(report.issues) > previous_issues:
-                        rounded = [round(cell.lenient.overall * 100, 2) for cell in cells if cell.complete
-                                   and cell.entry["student"] == student and cell.entry["benchmark"] == row_benchmark
-                                   and cell.entry["condition"] == "armc" and cell.entry["protocol"] == "trinity"]
+                    if len(report.issues) == previous_issues:
+                        continue
+                    if "flat" in calculation and abs(round(calculation["flat"], 2) - float(doc_value)) <= TOLERANCE + 1e-10:
+                        report.issues[-1].cause = (
+                            "The document matches a flat per-question mean on the matched subset; "
+                            f"the generator retains {BENCHMARKS[row_benchmark].metric} category collapse")
+                    elif "rounded_delta" in calculation and abs(round(calculation["rounded_delta"], 2) - float(doc_value)) <= TOLERANCE + 1e-10:
+                        report.issues[-1].cause = "The document subtracts rounded scores; the generator subtracts full-precision scores before rounding"
+                    if table_kind == "benchmark":
+                        rounded = [round(cell.lenient.overall * 100, 2) for cell in group if cell.complete]
                         functions = {"mean": statistics.mean, "sample std": statistics.stdev,
                                      "range (max-min)": lambda values: max(values) - min(values)}
-                        if len(rounded) > 1 and column.lower() in functions:
-                            alternative = functions[column.lower()](rounded)
+                        if len(rounded) > 1 and low in functions:
+                            alternative = functions[low](rounded)
                             if abs(round(alternative, 2) - float(doc_value)) <= TOLERANCE + 1e-10:
                                 report.issues[-1].cause = (
                                     f"The document matches statistics over already rounded seed scores {rounded}; "
@@ -608,22 +755,36 @@ def condition_groups(cells, benchmark=None, references=False):
     for cell in cells:
         if (benchmark is None or cell.entry["benchmark"] == benchmark) and cell.reference == references:
             grouped[(cell.entry["student"], cell.entry["protocol"], cell.entry["condition"],
-                     cell.entry["benchmark"])].append(cell)
+                     cell.entry["benchmark"], cell.entry["harness"], cell.entry["base_ref"])].append(cell)
     students = list(STUDENTS)
     protocols = {"trinity": 0, "orchard": 1}
-    keys = sorted(grouped, key=lambda key: (students.index(key[0]), protocols.get(key[1], 2),
+    keys = sorted(grouped, key=lambda key: (students.index(key[0]), protocols.get(key[1], 2), key[4],
                                            ORDER.get(key[2], 99), key[3], key[2]))
     return [sorted(grouped[key], key=lambda cell: {17: 0, "rep2": 1, "rep3": 2}[cell.entry["seed"]]) for key in keys]
 
 
 def cohort(cell):
-    return cell.entry["student"], cell.entry["protocol"]
+    return cell.entry["student"], cell.entry["protocol"], cell.entry["harness"]
 
 
 def cohort_label(cell):
     protocol = {"trinity": "Trinity", "orchard": "Orchard",
                 "formatA_reference": "format-A reference", "thinking_off_reference": "thinking-off reference"}
     return f"{STUDENTS[cell.entry['student']]} --- {protocol.get(cell.entry['protocol'], cell.entry['protocol'])}"
+
+
+def row_label(cell, label=None):
+    return latex_escape(cell.label if label is None else label) + (r"$^{\dagger}$" if cell.provisional else "")
+
+
+def provisional_clause(cells):
+    flagged = {cell.identity: cell for cell in cells if cell.complete and cell.provisional}
+    if not flagged:
+        return ""
+    counts = "; ".join(f"{STUDENTS[cell.entry['student']]} {cell.label}: "
+                       f"{len(cell.empty_qids)}/{cell.recorded['expected_count']} empty items"
+                       for cell in flagged.values())
+    return r" \(\dagger\) marks provisional rows (" + latex_escape(counts) + "); main scores retain the full denominator."
 
 
 def run_label(cell):
@@ -635,7 +796,9 @@ def provenance(cell):
     date = datetime.fromtimestamp(cell.sources[0].stat().st_mtime, timezone.utc).isoformat() if cell.sources else "pending"
     values = [f"cell={cell.identity}", f"status={entry['status']}", f"strict={entry['strict_score_path']}",
               f"lenient={entry['lenient_score_path']}#{entry['lenient_cell_key']}",
-              f"harness={entry['harness_commit']}", f"scores_mtime_utc={date}",
+              f"harness={entry['harness']}", f"harness_commit={entry['harness_commit']}",
+              f"base_ref={entry['base_ref']}", f"provisional={cell.provisional}", f"empty_items={entry.get('empty_items', 0)}",
+              f"scores_mtime_utc={date}",
               f"lenient_per_question_recomputed={cell.lenient_recomputed}", entry["provenance_note"]]
     return "% " + " | ".join(str(value).replace("\n", " ").replace("\r", " ") for value in values)
 
@@ -669,7 +832,7 @@ def winner_takeaway(cells, benchmark, mode):
         if value is not None:
             cohorts[cohort(group[0])].append((value, group[0].label))
     clauses = []
-    for (student, protocol), values in cohorts.items():
+    for (student, protocol, harness), values in cohorts.items():
         if len(values) < 2:
             continue
         highest = max(value for value, _ in values)
@@ -688,6 +851,7 @@ def render_accuracy(cells, benchmark, mode, *, references=False, seeds=False):
     if seeds:
         groups = [[cell] for group in groups if group[0].entry["condition"] == "armc" for cell in group]
     quantities = [*spec.categories, None]
+    show_base = not references and not seeds
     summaries = [[seed_summary(group, mode, category) for category in quantities] for group in groups]
     complete_groups = Counter(cohort(group[0]) for group, values in zip(groups, summaries) if values[-1]["mean"] is not None)
     best = {}
@@ -703,7 +867,7 @@ def render_accuracy(cells, benchmark, mode, *, references=False, seeds=False):
         if cohort(first) != previous:
             if previous is not None:
                 rows.append(r"\midrule")
-            rows.append(r"\multicolumn{" + str(len(quantities) + 1) + r"}{l}{\textit{" + latex_escape(cohort_label(first)) + r"}} \\")
+            rows.append(r"\multicolumn{" + str(len(quantities) + 1 + show_base) + r"}{l}{\textit{" + latex_escape(cohort_label(first)) + r"}} \\")
             previous = cohort(first)
         label = first.label
         if seeds:
@@ -716,8 +880,12 @@ def render_accuracy(cells, benchmark, mode, *, references=False, seeds=False):
             marked = (not references and not seeds and value is not None and complete_groups[cohort(first)] > 1
                       and round(value, 2) == round(best[cohort(first), index], 2))
             rendered.append(number(value, bold=marked, std=summary["sample_std"], reserve=not seeds and not references))
+        if show_base:
+            base = paired_base(first, cells)
+            value = getattr(base, mode).overall * 100 if base.complete else None
+            rendered.insert(0, number(value) + (r"$^{\dagger}$" if base.provisional else ""))
         rows.extend(provenance(cell) for cell in group)
-        rows.append(" & ".join([latex_escape(label), *rendered]) + r" \\")
+        rows.append(" & ".join([row_label(first, label), *rendered]) + r" \\")
     suffix = "References" + mode.title() if references else "Seeds" + mode.title() if seeds else "" if mode == "lenient" else "Strict"
     title = f"{spec.name} {'reference configurations' if references else 'individual arm-C runs' if seeds else 'question-type results'} ({mode})."
     details = r"Accuracy is in percent; Overall uses the official metric rather than the raw-category macro. "
@@ -732,13 +900,14 @@ def render_accuracy(cells, benchmark, mode, *, references=False, seeds=False):
     else:
         details += ("Bold marks the best value within each student's matched cohort when at least two conditions are complete. "
                     "Run counts show completed/planned repeats; suffixes give sample standard deviations. "
-                    "Orchard conditions pair with their Orchard-native base.")
+                    "Base gives the paired same-harness overall score under this table's parser.")
+    details += provisional_clause(cell for group in groups for cell in group)
     details += " These diagnostic results remain provisional."
     comments = [f"% Metric: {spec.metric}", "% Question-type legend:",
                 *(f"% {short} = {name}" for name, short in spec.labels.items())]
     return float_table(title, "captakeaway" + spec.short + suffix, details,
                        spec.short.lower() + "_" + mode + "_" + ("references" if references else "seeds" if seeds else "main"),
-                       ["Condition", *spec.labels.values(), "Overall"], rows, comments)
+                       ["Condition", *(["Base"] if show_base else []), *spec.labels.values(), "Overall"], rows, comments)
 
 
 def render_diagnostics(cells, benchmark):
@@ -755,10 +924,11 @@ def render_diagnostics(cells, benchmark):
             values = [raw_quantity(cell, name, mode) if cell.complete else None for name, mode in
                       [("parse", "strict"), ("parse", "lenient"), ("cap", "strict"), ("cap_without", "strict")]]
             terminal = f"{cell.recorded['terminal_count']}/{cell.recorded['expected_count']}" if cell.complete else "--"
-            rows.extend([provenance(cell), " & ".join([latex_escape(cell.label), latex_escape(run_label(cell)),
+            rows.extend([provenance(cell), " & ".join([row_label(cell), latex_escape(run_label(cell)),
                          *(number(value, decimals=0) for value in values), terminal]) + r" \\"])
     details = ("Counts retain the full evaluation membership. Cap-without-answer uses the recorded strict-parser answer. "
                "The r6 format-A and thinking-off 27B rows are reference configurations, not matched comparisons.")
+    details += provisional_clause(cell for cell in cells if cell.entry["benchmark"] == benchmark)
     return float_table(f"{spec.name} parser and generation diagnostics.", "captakeaway" + spec.short + "Diagnostics",
                        details, spec.short.lower() + "_diagnostics",
                        ["Condition", "Run", "Strict fail", "Lenient fail", "Cap-hit", "Cap w/o answer", "Terminal"], rows)
@@ -776,13 +946,51 @@ def render_macros(cells, benchmark):
                 previous = cohort(cell)
             values = [raw_quantity(cell, quantity, mode) * 100 if cell.complete else None
                       for mode in ("lenient", "strict") for quantity in ("score", "macro")]
-            rows.extend([provenance(cell), " & ".join([latex_escape(cell.label), latex_escape(run_label(cell)),
+            rows.extend([provenance(cell), " & ".join([row_label(cell), latex_escape(run_label(cell)),
                          *(number(value) for value in values)]) + r" \\"])
     details = ("The official score first collapses related question types into benchmark tasks; the raw macro weights raw types equally. "
                "All values are percentages. Reference configurations carry no comparative marks.")
+    details += provisional_clause(cell for cell in cells if cell.entry["benchmark"] == benchmark)
     return float_table(f"{spec.name} official scores and raw-category macros.", "captakeaway" + spec.short + "Aggregation",
                        details, spec.short.lower() + "_aggregation",
                        ["Condition", "Run", "Lenient official", "Lenient raw macro", "Strict official", "Strict raw macro"], rows)
+
+
+def matched_groups(cells, benchmark):
+    grouped = {}
+    for group in condition_groups(cells, benchmark):
+        for cell in group:
+            if not cell.complete or cell.entry["condition"] in BASE_CONDITIONS:
+                continue
+            base = paired_base(cell, cells)
+            if base.empty_qids:
+                grouped.setdefault(base.identity, [base]).append(cell)
+    return list(grouped.values())
+
+
+def render_matched(cells, benchmark):
+    groups = matched_groups(cells, benchmark)
+    if not groups:
+        return None
+    spec = BENCHMARKS[benchmark]
+    rows = []
+    for group in groups:
+        base = group[0]
+        if rows:
+            rows.append(r"\midrule")
+        rows.append(r"\multicolumn{6}{l}{\textit{" + latex_escape(cohort_label(base)) + r"}} \\")
+        for cell in group:
+            values = [raw_quantity(cell, quantity, mode, excluded=base.empty_qids) * 100
+                      for quantity, mode in (("score", "lenient"), ("score", "strict"), ("macro", "lenient"), ("macro", "strict"))]
+            count = raw_quantity(cell, "n", excluded=base.empty_qids)
+            rows.extend([provenance(cell), " & ".join([row_label(cell), str(count), *(number(value) for value in values)]) + r" \\"])
+    details = ("The paired base's audited empty-item qids are excluded from every displayed condition. "
+               "Overall retains the official category collapse; raw macros weight the surviving question types equally. "
+               "This selected subset is an appendix diagnostic, not the full-cohort result.")
+    details += provisional_clause(cell for group in groups for cell in group)
+    return float_table(f"{spec.name} matched-subset diagnostic.", "captakeaway" + spec.short + "Matched",
+                       details, spec.short.lower() + "_matched",
+                       ["Condition", "Items", "Lenient overall", "Strict overall", "Lenient raw macro", "Strict raw macro"], rows)
 
 
 def render_seed_summaries(cells):
@@ -820,6 +1028,12 @@ def caption_defaults(cells):
             macros["captakeaway" + spec.short + "Seeds" + mode.title()] = latex_escape(seed_text)
             macros["captakeaway" + spec.short + "References" + mode.title()] = (
                 "These reference configurations do not support matched comparisons with the main-table conditions.")
+        matched = matched_groups(cells, benchmark)
+        retained = [f"{STUDENTS[group[0].entry['student']]} retains "
+                    f"{len(group[0].strict.qids) - len(group[0].empty_qids)}/{len(group[0].strict.qids)} matched items"
+                    for group in matched]
+        macros["captakeaway" + spec.short + "Matched"] = latex_escape(
+            "; ".join(retained) + "." if retained else "No completed comparison requires an empty-item matched subset.")
         subset = [cell for cell in cells if cell.complete and cell.entry["benchmark"] == benchmark]
         recovered = [cell for cell in subset if raw_quantity(cell, "parse", "lenient") < raw_quantity(cell, "parse", "strict")]
         diag = "Lenient parsing recovers answers that strict parsing rejects." if recovered else "Lenient parsing recovers no additional answers in the completed cells."
@@ -876,6 +1090,9 @@ def render_all(cells, out):
             files[f"appendix_{short}_references_{mode}.tex"] = render_accuracy(cells, benchmark, mode, references=True)
         files[f"appendix_{short}_diagnostics.tex"] = render_diagnostics(cells, benchmark)
         files[f"appendix_{short}_aggregation.tex"] = render_macros(cells, benchmark)
+        matched = render_matched(cells, benchmark)
+        if matched:
+            files[f"appendix_{short}_matched.tex"] = matched
     files["appendix_seed_summaries.tex"] = render_seed_summaries(cells)
     for name, content in files.items():
         write_output(out / name, content)
