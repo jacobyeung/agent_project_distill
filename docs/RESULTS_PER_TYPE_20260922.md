@@ -122,34 +122,88 @@ Lenient parsing moved 0 questions for the distilled cell, so its lenient accurac
 
 Set B produces a mixed result, not a clean win. Its gains cluster in numeric-distance-flavored perception categories (`object_abs_distance`, `object_counting`, and `object_rel_direction_easy`), while `room_size_estimation` and `route_planning` lose sharply. The primary lenient metric declines because 26/500 generations (5.2%) reach the 4,096-token cap without an extractable answer, versus 0 for the Orchard base; the lenient parser cannot recover those empty answers. This is a format-reliability regression relative to every trinity-trained arm C cell seen so far (published arm C: 4 parse failures, effectively recovered in aggregate; replicate 3: 3; replicate 2: 0), and the training and Orchard teams should investigate the Set B recipe or Orchard decoding budget.
 
+### VSTIBench (`vstibench_repr450_v2`, 450 items) — Set B pilot, Orchard
+
+This result uses the Orchard harness `orchard_trainer_12e477b`, while the trinity rows use `58794b8`. The Orchard-native distilled cell pairs with the provisional Orchard base on the same harness, not with a trinity row; the trinity rows provide reference only under the cross-harness pairing rule. Both the raw all-450 comparison and the matched-cohort comparison excluding the base's 25 `media_error` items from both sides appear below.
+
+#### Whole-benchmark headline (lenient primary / strict secondary)
+
+| cell | harness | lenient (primary, %) | strict (secondary, %) | parse failures (strict → lenient) | cap-hit | cap w/o answer | median gen tokens | terminal |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| **Set B distilled (Orchard)** | `orchard_trainer_12e477b` | **37.72** | **37.72** | 13 → 13 | 6 | 6 | 204 | 450/450 |
+| Orchard base (PROVISIONAL) | `orchard_trainer_12e477b` | 41.96 | 38.96 | 64 → 35 | 0 | 0 | 133 | 450/450 |
+| — *trinity rows below, different harness (`58794b8`), reference only, not the pairing partner* | | | | | | | | |
+| trinity base | `58794b8` | 45.40 | 40.16 | 55 → 14 | 1 | 1 | 133 | 450/450 |
+| trinity arm C (published) | `58794b8` | 43.59 | 43.59 | 1 → 1 | 1 | 1 | 306 | 450/450 |
+| trinity arm C (replicate 2) | `58794b8` | 40.83 | 40.83 | 0 → 0 | 0 | 0 | 334 | 450/450 |
+| trinity arm C (replicate 3) | `58794b8` | 38.27 | 38.27 | 1 → 1 | 1 | 1 | 284 | 450/450 |
+| trinity arm C, 3-seed mean | `58794b8` | 40.89 | - | - | - | - | - | - |
+| trinity answer-only | `58794b8` | 43.35 | 43.35 | 0 → 0 | 0 | 0 | 2 | 450/450 |
+
+**Deltas, all 450 (Set B distilled lenient 37.72 minus):** Orchard base (provisional) **−4.24** lenient, **−1.24** strict; trinity base **−7.68**; trinity arm C (published) **−5.87**; trinity arm C 3-seed mean **−3.17**; trinity answer-only **−5.63**. **Beats nothing on this table.**
+
+#### Matched-cohort comparison, excluding the Orchard base's 25 `media_error` qids from both sides (425 items)
+
+| cell | lenient (%) | strict (%) | macro over categories (%) |
+|---|---:|---:|---:|
+| Set B distilled (Orchard), 425-item matched cohort | 45.27 | 45.27 | 45.38 |
+| Orchard base, 425-item matched cohort (excl. its own 25 bad qids) | 55.74 | 53.98 | 55.72 (lenient) / 53.95 (strict) |
+
+**Deltas, matched 425-item cohort:** lenient **−10.47**, strict **−8.71**. Removing the base's 25 `media_error` items widens the gap rather than narrowing it: the base's provisional 41.96/38.96 is depressed by automatic-zero items, while the distilled cell has 0 `media_error` items and retains its 13 genuine parse failures. **Set B does not beat base under either accounting.**
+
+#### Per question type — strict parser, all-450 and matched-cohort views
+
+Lenient parsing moved 0 questions for the distilled cell, so its lenient accuracy equals its strict accuracy in every category.
+
+| question type | distilled, all 450 | base, all 450 (prov.) | delta (all 450) | distilled, excl. 25 | base, excl. 25 | delta (excl. 25) |
+|---|---:|---:|---:|---:|---:|---:|
+| camera_displacement | 14.00 | 15.40 | −1.40 | 12.98 | 16.38 | −3.40 |
+| camera_movement_direction | 24.00 | 28.00 | −4.00 | 21.28 | 29.79 | −8.51 |
+| camera_obj_abs_dist | 40.60 | 19.40 | **+21.20** | 41.06 | 20.64 | **+20.42** |
+| camera_obj_rel_dist_v1 | 28.00 | 58.00 | **−30.00** | 28.00 | 58.00 | **−30.00** |
+| camera_obj_rel_dist_v2 | 46.00 | 66.00 | −20.00 | 46.81 | 70.21 | −23.40 |
+| camera_obj_rel_dist_v3 | 60.00 | 66.00 | −6.00 | 56.52 | 71.74 | −15.22 |
+| obj_obj_relative_pos_lr | 54.00 | 54.00 | 0.00 | 55.32 | 57.45 | −2.13 |
+| obj_obj_relative_pos_nf | 62.00 | 66.00 | −4.00 | 65.22 | 71.74 | −6.52 |
+| obj_obj_relative_pos_ud | 80.00 | 86.00 | −6.00 | 81.25 | 89.58 | −8.33 |
+| **macro** | 45.40 | 50.98 | −5.58 | 45.38 | 53.95 | −8.57 |
+
+A clear loss on VSTIBench, not a mixed result like VSIBench. The consistent bright spot, especially `camera_obj_abs_dist`, is outweighed by sharp regressions on every `camera_obj_rel_dist_*` category and the two directional-movement categories. Removing the base's 25 `media_error` items widens the gap rather than narrowing it, so the provisional base number flatters Set B's relative position; the pending corrected base re-land will likely show an even larger deficit once confirmed. This result remains consistent with the trinity-side finding that no OneThinker student beats trinity base on VSTIBench under lenient parsing either.
+
 ## Qwen3.5-9B
 
 ### VSTIBench (`vstibench_repr450_v2`, 450 items): base vs arm C
 
 #### Per question type
 
-| question type | n | base lenient (%) | arm C lenient (%) | delta | base strict (%) | arm C strict (%) | base parse fail | arm C parse fail |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| camera_displacement | 50 | 3.60 | 28.20 | +24.60 | 3.60 | 28.20 | 43 | 0 |
-| camera_movement_direction | 50 | 18.00 | 36.00 | +18.00 | 18.00 | 36.00 | 20 | 0 |
-| camera_obj_abs_dist | 50 | 20.00 | 32.60 | +12.60 | 20.00 | 32.60 | 28 | 0 |
-| camera_obj_rel_dist_v1 | 50 | 26.00 | 40.00 | +14.00 | 26.00 | 40.00 | 29 | 0 |
-| camera_obj_rel_dist_v2 | 50 | 34.00 | 68.00 | +34.00 | 34.00 | 68.00 | 29 | 0 |
-| camera_obj_rel_dist_v3 | 50 | 52.00 | 68.00 | +16.00 | 52.00 | 68.00 | 16 | 0 |
-| obj_obj_relative_pos_lr | 50 | 50.00 | 86.00 | +36.00 | 50.00 | 86.00 | 17 | 0 |
-| obj_obj_relative_pos_nf | 50 | 66.00 | 56.00 | -10.00 | 66.00 | 56.00 | 13 | 0 |
-| obj_obj_relative_pos_ud | 50 | 76.00 | 90.00 | +14.00 | 76.00 | 90.00 | 10 | 0 |
+| question type | n | base lenient (%) | arm C lenient (%) | rep2 lenient (%) | arm C - base delta | base strict (%) | arm C strict (%) | rep2 strict (%) | base parse fail | arm C parse fail | rep2 parse fail |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| camera_displacement | 50 | 3.60 | 28.20 | 17.60 | +24.60 | 3.60 | 28.20 | 17.60 | 43 | 0 | 7 |
+| camera_movement_direction | 50 | 18.00 | 36.00 | 40.00 | +18.00 | 18.00 | 36.00 | 40.00 | 20 | 0 | 0 |
+| camera_obj_abs_dist | 50 | 20.00 | 32.60 | 29.40 | +12.60 | 20.00 | 32.60 | 29.40 | 28 | 0 | 0 |
+| camera_obj_rel_dist_v1 | 50 | 26.00 | 40.00 | 38.00 | +14.00 | 26.00 | 40.00 | 38.00 | 29 | 0 | 0 |
+| camera_obj_rel_dist_v2 | 50 | 34.00 | 68.00 | 50.00 | +34.00 | 34.00 | 68.00 | 50.00 | 29 | 0 | 0 |
+| camera_obj_rel_dist_v3 | 50 | 52.00 | 68.00 | 66.00 | +16.00 | 52.00 | 68.00 | 66.00 | 16 | 0 | 0 |
+| obj_obj_relative_pos_lr | 50 | 50.00 | 86.00 | 74.00 | +36.00 | 50.00 | 86.00 | 74.00 | 17 | 0 | 0 |
+| obj_obj_relative_pos_nf | 50 | 66.00 | 56.00 | 46.00 | -10.00 | 66.00 | 56.00 | 46.00 | 13 | 0 | 0 |
+| obj_obj_relative_pos_ud | 50 | 76.00 | 90.00 | 90.00 | +14.00 | 76.00 | 90.00 | 90.00 | 10 | 0 | 0 |
 
 #### Overall
 
-| quantity | base | arm C | delta |
-|---|---:|---:|---:|
-| primary score, lenient (%) | 28.59 | 46.56 | +17.97 |
-| raw category macro, strict (%) | 38.40 | 56.09 | +17.69 |
-| primary score, strict (%) | 28.59 | 46.56 | +17.97 |
-| parse failures | 205 | 0 | -205 |
-| generations hitting the 4,096 cap | 203 | 0 | -203 |
-| capped with no answer | 203 | 0 | -203 |
+| quantity | base | arm C | rep2 | arm C - base delta | rep2 - base | rep2 - arm C |
+|---|---:|---:|---:|---:|---:|---:|
+| primary score, lenient (%) | 28.59 | 46.56 | 41.67 | +17.97 | +13.08 | -4.89 |
+| raw category macro, strict (%) | 38.40 | 56.09 | 50.11 | +17.69 | +11.71 | -5.98 |
+| primary score, strict (%) | 28.59 | 46.56 | 41.67 | +17.97 | +13.08 | -4.89 |
+| parse failures | 205 | 0 | 7 | -205 | -198 | +7 |
+| generations hitting the 4,096 cap | 203 | 0 | 7 | -203 | -196 | +7 |
+| capped with no answer | 203 | 0 | 7 | -203 | -196 | +7 |
+
+#### Two-seed summary, arm C recipe (lenient primary, %)
+
+| benchmark | published | replicate 2 | mean | range (max-min) | sample std |
+|---|---:|---:|---:|---:|---:|
+| VSTIBench | 46.56 | 41.67 | 44.11 | 4.89 | 3.46 |
 
 ### VSIBench (`vsibench_answerable500`, 500 items): base vs arm C
 
@@ -278,7 +332,7 @@ The strict-replay self-check recomputed `primary_score` 0.2475, 207 parse failur
 
 | model | benchmark | cell | status |
 |---|---|---|---|
-| Qwen3.5-9B arm C | VSTIBench / VSIBench | replicate (trinity) | VSIBench COMPLETE — 500/500 terminal and scored; replicate-2 results appear in the Qwen VSIBench tables above. VSTIBench remains in flight on trinity-0-18, expected ~08:40Z |
+| Qwen3.5-9B arm C | VSTIBench / VSIBench | replicate (trinity) | COMPLETE — VSTIBench 450/450 and VSIBench 500/500 terminal and scored; replicate-2 results appear in the Qwen VSTIBench and VSIBench tables above. |
 | Qwen3.5-9B arm C | VSTIBench / VSIBench | replicate (Orchard) | in flight — Orchard job chain 147597 (running) / 147599 (pending on afterany:147597) |
 | Qwen3.5-9B format-A control r6 | VSIBench | r6 | COMPLETE — 500/500 terminal and scored; per-type table above. The last 33 items finished 2026-09-23T01:12Z after lane `claude_qwen_r6_eval_resume_20260922T2047Z` relaunched shard 7 from trinity-1-3 |
 | Qwen3.6-27B arm C | VSIBench / VSTIBench | single run | in flight — trainer resumed after a step-78/96 stall, last checkpoint step_75, 21 steps remaining, resumed steps not confirmed; separate 27B base VSIBench control (Orchard job 147601) failed all 4 shards on a path-containment defect, unresolved |
