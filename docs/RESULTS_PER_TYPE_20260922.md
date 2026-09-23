@@ -186,6 +186,89 @@ A clear loss on VSTIBench, not a mixed result like VSIBench. The consistent brig
 **Affected scope.** The defect affects every GT-measurement `room_size` row in the Set B training mix, about one fifth of its GT-measurement half, and the full-scale 148,055-row set. It affects training supervision rather than VSIBench evaluation labels, whose own questions and answers remain unaffected.
 
 **Ruling.** Future room-size training scalars use VSI-590K labels. The Qwen full-scale set and swarm wave 2 were rebuilt under the fix; results from sets built before the fix, including these Set B pilots, report `room_size` separately rather than silently folding it into headline numbers.
+### OneThinker full-scale Set B (pre-roomfix): VSIBench and VSTIBench
+
+Cells `onethinker_distilled_gtm2_v25full_onethinker_orchard_b_vsi` and `..._vsti`, landed 2026-09-23T14:34:34Z / 14:34:49Z, train on the full-scale 9,436-row Set B mix with pre-roomfix labels. The training supervision includes the GT-measurement `room_size` defect documented in the "Known defect: GT-measurement room_size undercounts training supervision" section. Corrected-label full-scale runs are training separately and will get their own rows tonight; these pre-roomfix numbers will be superseded.
+
+**Media-error check:** VSI **REFUSE_PUBLISH, 3/500 bad** (all `status: interrupted`, "Durable start without a terminal receipt", qids 1267/1924/5052 — a smaller, different-mechanism issue than `media_error`); VSTI **PUBLISHABLE, 0/450 bad** — clean.
+
+#### Rescore facts (official metrics: `vsibench-official-8task-v1`, `vstibench-official-5subtask-v1`)
+
+**VSI:** strict 34.92 → lenient 34.92 (identical, 0 moved), parse failures 36 → 36 (none recovered), cap-hit 32, median 520 generated tokens. **VSTI:** strict 40.35 → lenient 40.35 (identical, 0 moved), parse failures 6 → 6 (none recovered), cap-hit 6, median 191 generated tokens.
+
+#### VSIBench headline, raw 500 items (vs Orchard base `onethinker_base_vsi`, clean)
+
+| cell | lenient (primary, %) | strict (secondary, %) | parse failures | cap-hit | median gen tokens | terminal |
+|---|---:|---:|---:|---:|---:|---:|
+| **Full-scale Set B (pre-roomfix)** | **34.92** | **34.92** | 36 → 36 | 32 | 520 | 500/500 |
+| Orchard base | 39.35 | 30.48 | 97 → 10 | 0 | 214 | 500/500 |
+
+**Delta, raw 500:** lenient **−4.43** (loses), strict **+4.44** (wins) — the same pattern as the smaller Set B pilot.
+
+#### VSIBench matched cohort, excluding the full-scale cell's 3 `interrupted` qids from both sides (497 items)
+
+| cell | lenient (%) | strict (%) | raw category macro (%) |
+|---|---:|---:|---:|
+| Full-scale Set B (pre-roomfix), matched | 35.11 | 35.11 | 36.58 |
+| Orchard base, matched | 39.53 | 30.66 | 38.08 (lenient) / 30.98 (strict) |
+
+**Delta, matched:** lenient **−4.42**, strict **+4.45** — essentially unchanged from raw because only 3/500 items are excluded.
+
+#### VSIBench with and without `room_size_estimation` (raw 500; flat mean)
+
+This table reports a flat mean rather than an official-metric recomputation.
+
+| view | Full-scale Set B (pre-roomfix) | Orchard base | delta |
+|---|---:|---:|---:|
+| macro, all 10 categories | 36.34 | 30.78 | +5.56 |
+| macro, excl. `room_size_estimation` (flat mean, 9 categories) | 37.69 | 31.69 | +6.00 |
+
+`room_size_estimation` itself: 24.20 (full-scale) vs 22.60 (base), +1.60 — a real but below-average gain.
+
+#### VSTIBench headline, raw 450 items (vs Orchard base `onethinker_base_vsti`, PROVISIONAL, 25 bad)
+
+| cell | lenient (primary, %) | strict (secondary, %) | parse failures | cap-hit | median gen tokens | terminal |
+|---|---:|---:|---:|---:|---:|---:|
+| **Full-scale Set B (pre-roomfix)** | **40.35** | **40.35** | 6 → 6 | 6 | 191 | 450/450 |
+| Orchard base (PROVISIONAL, 25 bad) | 41.96 | 38.96 | 64 → 35 | 0 | 133 | 450/450 |
+
+**Delta, raw 450:** lenient **−1.61** (loses narrowly), strict **+1.39** (wins narrowly).
+
+#### VSTIBench matched cohort, excluding the base's 25 `media_error` qids from both sides (425 items)
+
+| cell | lenient (%) | strict (%) | raw category macro (%) |
+|---|---:|---:|---:|
+| Full-scale Set B (pre-roomfix), matched | 40.15 | 40.15 | 46.34 |
+| Orchard base, matched | 44.47 | 41.28 | 55.72 (lenient) / 53.95 (strict) |
+
+**Delta, matched:** lenient **−4.32**, strict **−1.13** — the gap **widens** once the base's defect is removed, in the same direction as the smaller Set B pilot's VSTIBench correction. The strict comparison flips from a narrow raw win (+1.39) to a matched-cohort loss (−1.13). **The full-scale Set B cell does not beat the true Orchard base on VSTIBench under either metric once matched.**
+
+#### Deltas against other reference points (lenient, raw)
+
+| benchmark | vs Set B pilot (smaller run) | vs trinity answer-only | vs trinity arm C (published) | vs trinity arm C (3-seed mean) |
+|---|---:|---:|---:|---:|
+| VSIBench (34.92) | +2.82 (pilot 32.10) | −13.84 (48.76) | −7.43 (42.35) | −7.27 (42.19) |
+| VSTIBench (40.35) | +2.63 (pilot 37.72) | −3.00 (43.35) | −3.24 (43.59) | −0.54 (40.89) |
+
+#### Per question type, strict parser (raw)
+
+| VSIBench category | Full-scale | Orchard base | delta | | VSTIBench category | Full-scale | Orchard base | delta |
+|---|---:|---:|---:|---|---|---:|---:|---:|
+| obj_appearance_order | 48.00 | 52.00 | −4.00 | | camera_displacement | 18.60 | 15.40 | +3.20 |
+| object_abs_distance | 33.40 | 9.60 | **+23.80** | | camera_movement_direction | 32.00 | 28.00 | +4.00 |
+| object_counting | 32.20 | 21.80 | +10.40 | | camera_obj_abs_dist | 43.80 | 19.40 | **+24.40** |
+| object_rel_direction_easy | 64.00 | 36.00 | **+28.00** | | camera_obj_rel_dist_v1 | 24.00 | 58.00 | **−34.00** |
+| object_rel_direction_hard | 28.00 | 26.00 | +2.00 | | camera_obj_rel_dist_v2 | 54.00 | 66.00 | −12.00 |
+| object_rel_direction_medium | 34.00 | 34.00 | 0.00 | | camera_obj_rel_dist_v3 | 54.00 | 66.00 | −12.00 |
+| object_rel_distance | 44.00 | 36.00 | +8.00 | | obj_obj_relative_pos_lr | 48.00 | 54.00 | −6.00 |
+| object_size_estimation | 47.60 | 45.80 | +1.80 | | obj_obj_relative_pos_nf | 58.00 | 66.00 | −8.00 |
+| room_size_estimation | 24.20 | 22.60 | +1.60 | | obj_obj_relative_pos_ud | 84.00 | 86.00 | −2.00 |
+| route_planning | 8.00 | 24.00 | **−16.00** | | | | | |
+| **macro** | 36.34 | 30.78 | +5.56 | | **macro** | 46.27 | 50.98 | −4.71 |
+
+**VSIBench largest gain:** `object_rel_direction_easy` +28.00; largest loss: `route_planning` −16.00. **VSTIBench largest gain:** `camera_obj_abs_dist` +24.40; largest loss: `camera_obj_rel_dist_v1` −34.00, worse than the smaller Set B pilot's −30.00 on the same category.
+
+Mixed results on both benchmarks echo the smaller Set B pilot's pattern rather than resolving it at scale. VSIBench strict macro favors the full-scale cell (+5.56, or +6.00 excluding `room_size_estimation`), but the primary lenient metric loses by 4.43 because 32 cap-hits remain unrecovered. VSTIBench's narrow raw strict win flips to a matched-cohort loss after the base's `media_error` defect is removed (−1.13 strict, −4.32 lenient), so it does not show a genuine win at either scale. The full-scale run modestly outperforms the smaller Set B pilot on both benchmarks (+2.6 to +2.8 lenient points), but neither run closes the gap to the established trinity arm C recipe. These pre-roomfix numbers will be superseded by the corrected-label full-scale runs training now.
 
 ## Qwen3.5-9B
 
