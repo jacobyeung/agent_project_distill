@@ -4,6 +4,7 @@ import copy
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from decimal import Decimal
+import hashlib
 import json
 from pathlib import Path
 import re
@@ -311,6 +312,66 @@ def evaluation_authority(path, expected_sha):
     return qids, groups, pin(path)
 
 
+def common_input_digest(inputs):
+    return hashlib.sha256(json.dumps(inputs, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
+
+
+def alias_answeronly(row, entry, payload, record, guard, commit, index_pin):
+    check_answeronly(row, entry, payload, guard)
+    require(all(record[key] == row[key] for key in ('qid', 'scene', 'dataset'))
+            and record.get('category', record['family']) == row['category'], 'common_source_identity')
+    require(record['answer'] == str(entry['answer']) and record['input_sha256'] == common_input_digest(row['student_input']),
+            'common_source_fidelity')
+    qid = 'a0__' + row['qid']
+    require(SAFE_QID.fullmatch(qid), 'unsafe_occurrence_qid')
+    source = {'component': 'common-answeronly', 'qid': row['qid'], 'index': index_pin,
+              'row': {'path': entry['row_path'], 'sha256': entry['row_sha256']},
+              'target': {'path': entry['target_path'], 'sha256': entry['sha256']},
+              'validation_commit': entry['validation_commit']}
+    output = copy.deepcopy(row)
+    output.update(qid=qid, validation_commit=commit, h5_source=source)
+    copied = copy.deepcopy(entry)
+    copied.update(qid=qid, validation_commit=commit, h5_component='answeronly', h5_source_qid=row['qid'])
+    return output, copied, payload
+
+
+def common_answeronly(config, guard):
+    done_pin = pin(config['common_done'])
+    done = read_json(verify_pin(done_pin))
+    require(done['schema'] == 'swarm-common-admission-done-v1' and done['passed'] is True and done['rows'] == 1000,
+            'common_not_admitted')
+    membership_pin = done['membership']
+    common = read_json(verify_pin(membership_pin))
+    require(common['schema'] == 'swarm-common-training-v1' and common['status'] == 'FROZEN_AFTER_COMMON_ADMISSION'
+            and common['pool_id'] == 'design_v1' and common['n'] == 1000, 'common_membership_schema')
+    qids = common['qids']
+    records = {row['qid']: row for row in common['rows']}
+    require(len(qids) == len(set(qids)) == len(records) == 1000 and set(records) == set(qids), 'common_membership_census')
+    require(common['evaluation']['sha256'] == config['eval_qids_sha256'], 'common_evaluation_authority')
+    split = read_json(verify_pin(done['split']))
+    require(set(split['train_candidate_qids']) == set(qids) and not set(qids) & set(split['heldout_qids']), 'common_split_membership')
+    require(not set(qids) & (guard.heldout_qids | guard.forbidden_qids), 'common_heldout_or_eval_qid')
+    guard.train_qids.update(qids)
+    index_pin = common['candidate_indices']['a0']
+    entries = list(read_jsonl(verify_pin(index_pin)))
+    require([entry['qid'] for entry in entries] == qids, 'common_index_order')
+    admission_pin = done['native_admission']['a0']
+    admission = read_json(verify_pin(admission_pin))
+    require(admission['passed'] is True and admission['rows'] == 1000 and admission['token_limit_drops'] == 0
+            and admission['hashed_scene_groups'] == 0 and admission['trainer_commit'] == config['trainer_commit'], 'common_native_admission')
+    rows = {}
+    for entry in entries:
+        row = read_json(verify_pin({'path': entry['row_path'], 'sha256': entry['row_sha256']}))
+        payload = verify_pin({'path': entry['target_path'], 'sha256': entry['sha256']}).read_bytes()
+        require(all(row[key] == entry[field] for key, field in (('qid', 'qid'), ('scene', 'scene'), ('category', 'question_type')))
+                and row['dataset'] == entry.get('dataset', row['dataset']), 'common_index_identity')
+        aliased = alias_answeronly(row, entry, payload, records[row['qid']], guard, config['renderer_commit'], index_pin)
+        rows[aliased[0]['qid']] = aliased
+    membership = {'qids': ['a0__' + qid for qid in qids], 'source_qids': qids, 'pool_id': 'design_v1'}
+    pins = [done_pin, membership_pin, done['split'], index_pin, admission_pin]
+    return membership, rows, pins, done['split'], index_pin['sha256']
+
+
 def load_inputs(config):
     from .mix import measurement_rows
 
@@ -349,8 +410,13 @@ def load_inputs(config):
         {group for group, side in policy.known.items() if side == 'heldout'}, forbidden, blocked,
     )
     membership, answer_rows = {'qids': []}, {}
-    if includes_answeronly(config):
-        require(not config.get('eval_qids'), 'mixed_common_A0_contract_not_yet_registered')
+    answer_heldout_qids, common_split = [], None
+    answer_index_sha = config.get('answer_index_sha256')
+    if includes_answeronly(config) and config.get('common_done'):
+        membership, answer_rows, common_pins, common_split, answer_index_sha = common_answeronly(config, guard)
+        source_pins.extend(common_pins)
+    elif includes_answeronly(config):
+        require(not config.get('eval_qids'), 'mixed_common_A0_contract_required')
         membership = read_json(config['membership'])
         require(membership.get('pool_id') == 'armc_v1c' and membership['n'] == 1000
                 and len(membership['qids']) == len(set(membership['qids'])) == 1000, 'harness_membership')
@@ -373,12 +439,21 @@ def load_inputs(config):
             check_answeronly(row, entry, payload, guard, side='train' if qid in membership['qids'] else 'heldout')
             answer_rows[qid] = (row, entry, payload)
         source_pins += [pin(config['membership']), answer_index]
+        answer_heldout_qids = inherited['heldout_qids']
+    if config.get('gt_selection'):
+        selection_pin = {'path': config['gt_selection'], 'sha256': config['gt_selection_sha256']}
+        verify_pin(selection_pin)
+        source_pins.append(selection_pin)
     count_tokens, tokenizer_pins = native_token_counter(config) if config.get('tokenizer') else (None, [])
     source_pins += [pin(inherited_pin['path']), *tokenizer_pins]
+    source_splits = [pin(directory / 'split.json'), pin(inherited_pin['path'])]
+    if common_split:
+        source_splits.append(common_split)
     return {'sides': sides, 'gt_manifest': manifest, 'gt_split': split, 'conventions': conventions,
             'guard': guard, 'membership': membership, 'answer_rows': answer_rows, 'inherited': inherited,
+            'answer_heldout_qids': answer_heldout_qids, 'answer_index_sha256': answer_index_sha,
             'count_tokens': count_tokens, 'tokenizer_pins': tokenizer_pins,
-            'source_pins': source_pins, 'source_splits': [pin(directory / 'split.json'), pin(inherited_pin['path'])]}
+            'source_pins': source_pins, 'source_splits': source_splits}
 
 
 def admit_and_select(inputs, config):
@@ -394,6 +469,9 @@ def admit_and_select(inputs, config):
         admitted.append(row)
         checks[row['qid']] = check
     selected = select_balanced(admitted, size=config['size'], seed=config['seed'])
+    if config.get('gt_selection'):
+        frozen = read_json(verify_pin({'path': config['gt_selection'], 'sha256': config['gt_selection_sha256']}))
+        require(frozen['qids'] == [row['qid'] for row in selected], 'augmentation_changed_GT_membership')
     return selected, refused, checks, len(admitted)
 
 
@@ -407,7 +485,7 @@ def source_for(qid, inputs):
 
 
 def attach_sources(inputs, config):
-    inputs['answer_index_sha256'] = config.get('answer_index_sha256')
+    inputs.setdefault('answer_index_sha256', config.get('answer_index_sha256'))
     inputs['gt_by_qid'] = {row['qid']: row for side in inputs['sides'].values() for row in side}
     inputs['gt_train_qids'] = set(inputs['gt_split']['train_qids'])
 
@@ -421,7 +499,7 @@ def build(config, output, inputs, selected, refused, checks, admitted_count, com
     heldout = list(inputs['sides']['heldout'])
     if includes_answeronly(config):
         train += [inputs['answer_rows'][qid][0] for qid in inputs['membership']['qids']]
-        heldout += [inputs['answer_rows'][qid][0] for qid in inputs['inherited']['heldout_qids']]
+        heldout += [inputs['answer_rows'][qid][0] for qid in inputs['answer_heldout_qids']]
     train.sort(key=lambda row: row['qid'])
     heldout.sort(key=lambda row: row['qid'])
     for row in heldout:
@@ -465,7 +543,10 @@ def build(config, output, inputs, selected, refused, checks, admitted_count, com
         'selected_derivation_checks': dict(Counter(checks[row['qid']]['derivation'] for row in selected)),
         'max_gt_target_bytes': max(len(row['target'].encode()) for row in selected),
         'max_native_target_tokens': max(checks[row['qid']]['native_target_tokens'] or 0 for row in selected),
-        'total_native_target_tokens': sum(checks[row['qid']]['native_target_tokens'] or 0 for row in selected),
+        'total_native_target_tokens': sum(inputs['count_tokens'](row) for row in train) if inputs.get('count_tokens') else 0,
+        'a0_source_qids': inputs['membership'].get('source_qids', []),
+        'overlapping_GT_A0_source_qids': sorted({row['qid'] for row in selected} & set(inputs['membership'].get('source_qids', []))),
+        'a0_occurrence_rule': 'a0__ plus the unchanged source qid; source identity and bytes are pinned before aliasing',
         'duplicate_input_groups': sum(count > 1 for count in duplicate_inputs.values()),
         'frames': frames, 'artifacts': artifacts, 'gemini': {'calls': 0, 'input_tokens': 0, 'output_tokens': 0},
         'elapsed_seconds': time.monotonic() - started, 'independent_admission_review': 'pending',
@@ -493,7 +574,7 @@ def verify_set(directory):
     expected_heldout = set(inputs['gt_split']['heldout_qids'])
     if includes_answeronly(config):
         expected_train.update(inputs['membership']['qids'])
-        expected_heldout.update(inputs['inherited']['heldout_qids'])
+        expected_heldout.update(inputs['answer_heldout_qids'])
     train = list(read_jsonl(directory / 'candidate_index.jsonl'))
     heldout = list(read_jsonl(directory / 'heldout_context/candidate_index.jsonl'))
     require(len(train) == len(expected_train) and {e['qid'] for e in train} == expected_train, 'training_membership')
@@ -535,6 +616,9 @@ def main():
     render.add_argument('--trainer-commit', required=True)
     render.add_argument('--variant', default='v01_gt1000_native1024')
     render.add_argument('--include-answeronly', action='store_true')
+    render.add_argument('--common-done')
+    render.add_argument('--gt-selection')
+    render.add_argument('--gt-selection-sha256')
     verify = commands.add_parser('verify')
     verify.add_argument('--directory', required=True)
     args = parser.parse_args()
@@ -546,7 +630,10 @@ def main():
     require(Path(config['output_root']).resolve().is_relative_to('/data2'), 'output_must_be_on_data2')
     require(SAFE_QID.fullmatch(config['variant']) and config['size'] == 1000, 'pilot_identity')
     require(0 < config['max_target_tokens'] <= 1536, 'pilot_token_limit')
+    if includes_answeronly(config):
+        require(config.get('common_done') and config.get('gt_selection') and config.get('gt_selection_sha256'), 'augmentation_source_contract')
     commit = source_commit()
+    config['renderer_commit'] = commit
     inputs = load_inputs(config)
     attach_sources(inputs, config)
     selected, refused, checks, admitted = admit_and_select(inputs, config)

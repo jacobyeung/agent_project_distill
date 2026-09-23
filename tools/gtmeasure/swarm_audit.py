@@ -99,8 +99,12 @@ def layout_audit(directory, trainer, tokenizer, trainer_commit):
                 chosen[-1] = relative
     if len(train_entries) > 1000:
         seen = set()
-        for entry in train_entries:
-            if entry['qid'].startswith('vsi590k_') and entry['question_type'] not in seen:
+        answer_entries = [entry for entry in train_entries if entry.get('h5_component') == 'answeronly'
+                          or entry['qid'].startswith('vsi590k_')]
+        answer_entries.sort(key=lambda entry: (not entry.get('h5_source_qid', entry['qid']).startswith('vsi590k_'),
+                                                entry['question_type'], entry['qid']))
+        for entry in answer_entries:
+            if entry['question_type'] not in seen:
                 chosen.append(entry)
                 seen.add(entry['question_type'])
                 if len(chosen) == 10:
@@ -109,7 +113,9 @@ def layout_audit(directory, trainer, tokenizer, trainer_commit):
     for entry in chosen:
         row = read_json(entry['row_path'])
         samples.append({'qid': row['qid'], 'dataset': row['dataset'], 'scene': row['scene'],
-                        'family': row.get('family', 'answeronly:' + row['category']),
+                        'family': 'answeronly:' + row['category'] if entry.get('h5_component') == 'answeronly'
+                                  else row.get('family', 'answeronly:' + row['category']),
+                        'source_qid': entry.get('h5_source_qid', row['qid']),
                         'question': row['student_input']['question'], 'options': row['student_input']['options'],
                         'target': row['target'], 'answer': entry['answer'], 'ground_truth': row.get('ground_truth'),
                         'object_ids': row.get('object_ids'), 'frame_count': len(row['student_input']['frames']),

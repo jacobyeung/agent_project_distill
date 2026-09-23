@@ -8,7 +8,7 @@ import unittest
 import uuid
 
 from tools.gtmeasure.swarm import (
-    AdmissionError, FAMILIES, Guard, check_answeronly, check_gt, check_rendered,
+    AdmissionError, FAMILIES, Guard, alias_answeronly, check_answeronly, check_gt, check_rendered, common_input_digest,
     evaluation_authority, make_trainer_split, materialize_row, native_token_counter, select_balanced, verify_frames,
 )
 from tools.gtmeasure.targets import render_target
@@ -208,6 +208,57 @@ class AdmissionTests(unittest.TestCase):
         self.assertEqual(checks['end_cue'], 'trainer-eos')
         with self.assertRaisesRegex(AdmissionError, 'answeronly_bytes'):
             check_answeronly(row, entry, b'2.0\n', guard_for(row))
+
+
+class CommonAnswerTests(unittest.TestCase):
+    def setUp(self):
+        self.row = count_row()
+        self.row['target'] = '2'
+        self.entry = {'qid': self.row['qid'], 'answer': '2', 'validation_commit': 'b' * 40,
+                      'row_path': '/fixture/row.json', 'row_sha256': 'c' * 64,
+                      'target_path': '/fixture/target.txt', 'sha256': 'e' * 64}
+        self.record = {key: self.row[key] for key in ('qid', 'scene', 'dataset', 'category', 'family')}
+        self.record.update(answer='2', input_sha256=common_input_digest(self.row['student_input']))
+        self.guard = guard_for(self.row)
+        self.index_pin = {'path': '/fixture/index.jsonl', 'sha256': 'f' * 64}
+
+    def alias(self):
+        return alias_answeronly(self.row, self.entry, b'2\n', self.record, self.guard, 'd' * 40, self.index_pin)
+
+    def test_occurrence_ids_preserve_source_identity_and_every_supervised_byte(self):
+        row, entry, payload = self.alias()
+        self.assertEqual(row['qid'], 'a0__' + self.row['qid'])
+        self.assertEqual(row['h5_source']['qid'], self.row['qid'])
+        self.assertEqual(entry['h5_source_qid'], self.row['qid'])
+        self.assertEqual(entry['h5_component'], 'answeronly')
+        self.assertEqual(row['target'], self.row['target'])
+        self.assertEqual(row['student_input'], self.row['student_input'])
+        self.assertEqual(payload, b'2\n')
+        self.assertEqual(self.entry['qid'], self.row['qid'])
+
+    def test_alias_cannot_hide_an_evaluation_or_heldout_source(self):
+        self.guard.forbidden_qids.add(self.row['qid'])
+        with self.assertRaisesRegex(AdmissionError, 'benchmark_qid'):
+            self.alias()
+        self.guard.forbidden_qids.clear()
+        self.guard.train_qids.remove(self.row['qid'])
+        self.guard.heldout_qids.add(self.row['qid'])
+        with self.assertRaisesRegex(AdmissionError, 'wrong_side_qid'):
+            self.alias()
+
+    def test_common_input_or_answer_drift_is_refused(self):
+        self.row['student_input']['question'] += ' Changed.'
+        with self.assertRaisesRegex(AdmissionError, 'common_source_fidelity'):
+            self.alias()
+        self.row['student_input']['question'] = rgb_input()['question']
+        self.record['answer'] = '3'
+        with self.assertRaisesRegex(AdmissionError, 'common_source_fidelity'):
+            self.alias()
+
+    def test_common_identity_cannot_be_relabelled(self):
+        self.record['qid'] = 'different'
+        with self.assertRaisesRegex(AdmissionError, 'common_source_identity'):
+            self.alias()
 
 
 class LayoutTests(unittest.TestCase):
