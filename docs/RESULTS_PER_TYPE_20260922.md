@@ -294,6 +294,57 @@ This first Qwen Orchard-trained VSTIBench result is a new signal, not a replicat
 
 **Caveat**: VSTIBench has no `room_size_estimation` category, so this table's eval numbers are not directly affected by the GT-measurement room-size training-supervision defect (see the OneThinker-8B section's "Known defect" subsection); this Qwen pilot (run `gtm2_v25_qwen35_orchard_w4`) was very likely trained on the same defective GT-measurement mix.
 
+### VSIBench (`vsibench_answerable500`, 500 items) — Set B pilot, Orchard
+
+Cell `qwen35_distilled_gtm2_v25_qwen35_orchard_w4_vsi` pairs with the Orchard base `qwen35_base_vsi_pinned`, which remains **PROVISIONAL** because it has 53 bad items (48 `media_error`, 4 interrupted, and 1 `generation_error`). The raw all-500 and matched-cohort comparisons appear below.
+
+#### Whole-benchmark headline (lenient primary / strict secondary)
+
+| cell | lenient (primary, %) | strict (secondary, %) | parse failures (strict → lenient) | cap-hit | cap w/o answer | median gen tokens | terminal |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| **Set B distilled (Orchard)** | **39.80** | **39.80** | 6 → 6 | 5 | 5 | 428 | 500/500 |
+| Orchard base (PROVISIONAL, 53 bad items) | 12.68 | 12.68 | 390 → 390 | 327 | 326 | 4096 | 500/500 |
+| trinity Qwen base | 15.47 | 15.47 | 378 → 378 | 373 | 373 | - | 500/500 |
+| trinity Qwen arm C (published) | 49.25 | 49.25 | 0 → 0 | 0 | 0 | - | 500/500 |
+
+**Deltas, all 500 (Set B distilled lenient 39.80 minus):** Orchard base (provisional) **+27.12**; trinity Qwen base **+24.33**; trinity Qwen arm C (published) **−9.45**. Set B beats the defective, provisional Orchard base and the trinity base, while published arm C leads by 9.45 points.
+
+#### Matched-cohort comparison, excluding the Orchard base's 53 bad qids from both sides (447 items)
+
+The official scorer (`canonical_scorer`/`aggregate_categories`), not a flat mean, re-aggregates both 447-item cohorts with the same code used for each cell's `scores.json`.
+
+| cell | lenient (%) | strict (%) | raw category macro (%) |
+|---|---:|---:|---:|
+| Set B distilled (Orchard), 447-item matched cohort | 38.85 | 38.85 | 38.94 |
+| Orchard base, 447-item matched cohort (excl. its own 53 bad qids) | 14.24 | 14.24 | 13.56 |
+
+**Deltas, matched 447-item cohort:** lenient **+24.61**, strict **+24.61**. The matched-cohort gap narrows from the raw all-500 comparison's +27.12, unlike the OneThinker VSTIBench matched-cohort comparison, where excluding the base's bad items widened the gap. The base's excluded items are harder to answer on average rather than a uniform drag. Set B clearly beats the matched Orchard base under either accounting.
+
+#### Per question type — strict parser, all 500 items
+
+Lenient parsing moved 0 questions for the distilled cell, so its lenient accuracy equals its strict accuracy in every category.
+
+| question type | Set B distilled (Orchard) | Orchard base (prov.) | delta |
+|---|---:|---:|---:|
+| obj_appearance_order | 66.00 | 24.00 | +42.00 |
+| object_abs_distance | 32.80 | 9.20 | +23.60 |
+| object_counting | 39.40 | 9.60 | +29.80 |
+| object_rel_direction_easy | 50.00 | 24.00 | +26.00 |
+| object_rel_direction_hard | 22.00 | 0.00 | +22.00 |
+| object_rel_direction_medium | 42.00 | 6.00 | +36.00 |
+| object_rel_distance | 42.00 | 26.00 | +16.00 |
+| object_size_estimation | 56.60 | 13.40 | +43.20 |
+| room_size_estimation | 17.60 | 1.20 | +16.40 |
+| route_planning | 26.00 | 8.00 | +18.00 |
+| **macro over raw categories** | 39.44 | 12.14 | +27.30 |
+| **macro over raw categories, excl. `room_size_estimation`** (9 categories, flat mean) | 41.87 | 13.36 | +28.51 |
+
+**Every category gains — a clean sweep, unlike the mixed VSIBench Set B result for OneThinker.** The largest gain is `object_size_estimation`, +43.20 (56.60 vs 13.40), followed by `obj_appearance_order`, +42.00. The smallest gain is `object_rel_direction_hard`, +22.00. This pilot's `room_size_estimation` training supervision has the same known GT-measurement defect as the OneThinker Set B pilot (see the OneThinker-8B subsection “Known defect: GT-measurement room_size undercounts training supervision”; H5 audit, 32% median undercount); `room_size_estimation` still gains (+16.40, below the category average), and excluding it makes the flat-mean delta slightly larger (+28.51 vs +27.30).
+
+#### Reading
+
+Set B delivers a clean win over both Orchard reference points: the raw provisional base and the matched, corrected base. It gains in every category and exceeds either OneThinker Set B benchmark and the Qwen Set B VSTIBench pilot, which had mixed per-type results against arm C. The matched cohort confirms the win even though its gap narrows relative to the raw all-500 view. Published trinity arm C still leads by 9.45 lenient points, so this pilot advances toward rather than replicates the established arm C result.
+
 ### VSTIBench (`vstibench_repr450_v2`, 450 items): base vs r6 format-A control
 
 #### Per question type
