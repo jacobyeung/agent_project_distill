@@ -9,7 +9,7 @@ import uuid
 
 from tools.gtmeasure.swarm import (
     AdmissionError, FAMILIES, Guard, check_answeronly, check_gt, check_rendered,
-    make_trainer_split, materialize_row, select_balanced, verify_frames,
+    evaluation_authority, make_trainer_split, materialize_row, native_token_counter, select_balanced, verify_frames,
 )
 from tools.gtmeasure.targets import render_target
 
@@ -121,6 +121,15 @@ class AdmissionTests(unittest.TestCase):
         with self.assertRaisesRegex(AdmissionError, 'target_length'):
             check_gt(row, guard_for(row), max_bytes=50)
 
+    def test_native_token_cap_precedes_selection_and_includes_eos(self):
+        row = count_row()
+        checks = check_gt(row, guard_for(row), count_tokens=lambda value: 1536, max_tokens=1536)
+        self.assertEqual(checks['native_target_tokens'], 1536)
+        with self.assertRaisesRegex(AdmissionError, 'target_token_length'):
+            check_gt(row, guard_for(row), count_tokens=lambda value: 1537, max_tokens=1536)
+        with self.assertRaisesRegex(AdmissionError, 'target_token_count'):
+            check_gt(row, guard_for(row), count_tokens=lambda value: True, max_tokens=1536)
+
     def test_wrong_mc_derivation_is_refused(self):
         row = mc_row()
         row['derivations'] = ['The chair has the smallest distance, so the answer is B.']
@@ -208,6 +217,31 @@ class LayoutTests(unittest.TestCase):
         cls.root = base / uuid.uuid4().hex
         cls.root.mkdir(parents=True, exist_ok=False)
 
+    def test_evaluation_authority_pins_both_cohorts_and_physical_groups(self):
+        path = self.root / 'eval_authority.json'
+        value = {'benchmarks': {
+            benchmark: [{'qid': f'{benchmark}_{index}', 'scene': f'scannet/scene{index:04d}_02',
+                         'question_type': 'fixture'} for index in range(size)]
+            for benchmark, size in (('vsibench_answerable500', 200), ('vstibench_repr450_v2', 150))
+        }}
+        path.write_text(json.dumps(value))
+        expected = hashlib.sha256(path.read_bytes()).hexdigest()
+        qids, groups, spec = evaluation_authority(path, expected)
+        self.assertEqual(len(qids), 350)
+        self.assertIn(('scannet', 'scene0000'), groups)
+        self.assertEqual(spec['sha256'], expected)
+        row = count_row()
+        guard = guard_for(row)
+        guard.blocked_groups.update(groups)
+        with self.assertRaisesRegex(AdmissionError, 'benchmark_scene'):
+            check_gt(row, guard)
+        value['benchmarks']['vsibench_answerable500'][0]['answer'] = 'not-an-input'
+        path.write_text(json.dumps(value))
+        with self.assertRaisesRegex(ValueError, 'digest'):
+            evaluation_authority(path, expected)
+        with self.assertRaisesRegex(AdmissionError, 'answer_free_schema'):
+            evaluation_authority(path, hashlib.sha256(path.read_bytes()).hexdigest())
+
     def test_materialization_preserves_semantic_bytes_and_records_commit(self):
         row = count_row()
         entry = materialize_row(self.root / 'one', row, 'd' * 40, 'e' * 64, 'f' * 64)
@@ -250,6 +284,16 @@ class LayoutTests(unittest.TestCase):
         with self.assertRaisesRegex(AdmissionError, 'frame_hash'):
             verify_frames([row])
 
+    def test_token_percentiles_use_linear_interpolation(self):
+        from tools.gtmeasure.swarm_audit import length_distribution
+
+        values = length_distribution([40, 10, 30, 20])
+        self.assertEqual(values['p50'], 25)
+        self.assertEqual(values['p90'], 37)
+        self.assertAlmostEqual(values['p99'], 39.7)
+        with self.assertRaisesRegex(AdmissionError, 'empty_token_distribution'):
+            length_distribution([])
+
     def test_balanced_selection_is_order_independent(self):
         rows = [{'qid': f'{family}_{index}', 'family': family} for family in FAMILIES for index in range(5)]
         selected = select_balanced(rows, size=10, seed=17)
@@ -271,6 +315,35 @@ class LayoutTests(unittest.TestCase):
         held['scene'] = 'scene0000_99'
         with self.assertRaisesRegex(AdmissionError, 'split_overlap'):
             make_trainer_split([row], [held], [], 'd' * 40, 'e' * 64)
+
+
+@unittest.skipUnless(os.environ.get('H5_NATIVE_FIXTURE_SET'), 'Requires the explicit owned real-row fixture set')
+class NativeTokenTests(unittest.TestCase):
+    def test_actual_overlength_rows_are_refused_before_selection(self):
+        from tools.gtmeasure.io import read_json, read_jsonl, verify_pin
+        from tools.gtmeasure.split import group_id
+
+        root = Path(os.environ['H5_NATIVE_FIXTURE_SET'])
+        entries = {entry['qid']: entry for entry in read_jsonl(root / 'candidate_index.jsonl')}
+        config = {'trainer_root': os.environ['H5_NATIVE_TRAINER'],
+                  'trainer_commit': os.environ['H5_NATIVE_TRAINER_COMMIT'],
+                  'tokenizer': os.environ['H5_NATIVE_TOKENIZER']}
+        counter, pins = native_token_counter(config)
+        self.assertTrue(pins)
+        qids = ('gtmeasure_scannet__scene0370_02_00005', 'gtmeasure_scannet__scene0592_00_00010')
+        counts = {}
+        for qid in qids:
+            entry = entries[qid]
+            row = read_json(verify_pin({'path': entry['row_path'], 'sha256': entry['row_sha256']}))
+            counts[qid] = counter(row)
+            self.assertGreater(counts[qid], 1536)
+            self.assertLessEqual(len(row['target'].encode()), 4096)
+            guard = guard_for(row)
+            guard.train_groups = {group_id(row['dataset'], row['scene'])}
+            with self.assertRaisesRegex(AdmissionError, 'target_token_length'):
+                check_gt(row, guard, count_tokens=counter, max_tokens=1024)
+        output = Path(os.environ['H5_TEST_OUTPUT']) / ('native_counts_' + uuid.uuid4().hex + '.json')
+        output.write_text(json.dumps({'native_target_tokens': counts, 'tokenizer_pins': pins}, indent=2) + '\n')
 
 
 if __name__ == '__main__':

@@ -6,7 +6,7 @@ import subprocess
 import sys
 
 from .io import canonical, pin, read_json, read_jsonl, sha
-from .swarm import LABEL, require, write_new
+from .swarm import LABEL, native_token_counter, require, write_new
 
 
 def trace_audit(paths):
@@ -32,6 +32,19 @@ def trace_audit(paths):
                         'final_text': final_text})
     return {'schema': 'h05-source-trace-inspection-v1', 'traces': records, 'used_for_training': False,
             'gemini': {'calls': 0, 'input_tokens': 0, 'output_tokens': 0}}
+
+
+def length_distribution(values):
+    ordered = sorted(values)
+    require(bool(ordered), 'empty_token_distribution')
+    result = {'total': sum(ordered), 'minimum': ordered[0], 'maximum': ordered[-1],
+              'median': statistics.median(ordered), 'mean': statistics.mean(ordered)}
+    for label, fraction in (('p50', 0.5), ('p90', 0.9), ('p99', 0.99)):
+        position = (len(ordered) - 1) * fraction
+        left = int(position)
+        right = min(left + 1, len(ordered) - 1)
+        result[label] = ordered[left] + (ordered[right] - ordered[left]) * (position - left)
+    return result
 
 
 def layout_audit(directory, trainer, tokenizer, trainer_commit):
@@ -60,7 +73,14 @@ def layout_audit(directory, trainer, tokenizer, trainer_commit):
     require(encoder.eos_token_id is not None, 'tokenizer_eos')
     training = [row for row in loaded if row['qid'] in train_qids]
     tokens = [len(encoder.encode(row['target'], add_special_tokens=False)) for row in training]
-    require(max(tokens) + 1 <= 1536, 'target_token_bound')
+    native_counter, native_pins = native_token_counter({'trainer_root': str(trainer), 'trainer_commit': trainer_commit,
+                                                       'tokenizer': str(tokenizer)})
+    native_tokens = [native_counter(row) for row in training]
+    limit = read_json(directory / 'CONFIG.json').get('max_target_tokens', 1536)
+    distribution, native_distribution = length_distribution(tokens), length_distribution(native_tokens)
+    overlimit = [{'qid': row['qid'], 'native_target_tokens': count, 'category': row['category']}
+                 for row, count in zip(training, native_tokens) if count > limit]
+    length_policy_pass = distribution['p99'] <= 1024
     groups = defaultdict(list)
     for entry in train_entries:
         if entry['qid'].startswith('gtmeasure_'):
@@ -94,16 +114,20 @@ def layout_audit(directory, trainer, tokenizer, trainer_commit):
                         'target': row['target'], 'answer': entry['answer'], 'ground_truth': row.get('ground_truth'),
                         'object_ids': row.get('object_ids'), 'frame_count': len(row['student_input']['frames']),
                         'target_tokens': len(encoder.encode(row['target'], add_special_tokens=False)),
+                        'native_target_tokens': native_counter(row),
                         'row_path': entry['row_path'], 'target_path': entry['target_path']})
     return {
-        'schema': 'h05-trainer-layout-audit-v1', 'verdict': 'PASS', 'directory': str(directory),
+        'schema': 'h05-trainer-layout-audit-v1', 'verdict': 'FAIL' if overlimit or not length_policy_pass else 'PASS',
+        'target_token_limit': limit, 'overlimit_rows': overlimit, 'r12_length_policy_pass': length_policy_pass,
+        'directory': str(directory),
         'trainer_root': str(trainer), 'trainer_commit': actual_commit, 'audit_source': pin(__file__),
         'loader': 'student_pilot.provisional.load_provisional_candidates',
         'context_rows_accepted': len(loaded), 'training_rows_accepted': len(training),
         'heldout_context_rows': len(heldout_qids), 'heldout_in_train': 0, 'hashed_group_count': 0,
         'split': split_pin, 'tokenizer': str(tokenizer), 'eos_token_id': encoder.eos_token_id,
-        'target_tokens_excluding_eos': {'total': sum(tokens), 'minimum': min(tokens), 'maximum': max(tokens),
-                                        'median': statistics.median(tokens), 'mean': statistics.mean(tokens)},
+        'target_tokens_excluding_eos': distribution,
+        'native_target_tokens_including_eos': native_distribution,
+        'native_token_counter_pins': native_pins,
         'family_counts': dict(Counter(row['category'] for row in training)),
         'handcheck_samples': samples, 'independent_review': 'not performed by this audit',
     }
@@ -125,6 +149,7 @@ def main():
     result = trace_audit(args.paths) if args.command == 'traces' else layout_audit(args.directory, args.trainer, args.tokenizer, args.trainer_commit)
     write_new(args.output, result)
     print(canonical({key: value for key, value in result.items() if key not in ('traces', 'handcheck_samples')}))
+    require(result.get('verdict', 'PASS') == 'PASS', 'target_token_bound; diagnostics written to ' + args.output)
 
 
 if __name__ == '__main__':

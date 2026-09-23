@@ -7,6 +7,8 @@ from decimal import Decimal
 import json
 from pathlib import Path
 import re
+import subprocess
+import sys
 import time
 
 from .blocking import benchmark_blocking, scene_key
@@ -59,7 +61,8 @@ class Guard:
             raise AdmissionError('rgb_schema: ' + str(error)) from error
 
 
-def check_gt(row, guard, *, side='train', max_bytes=4096, max_observations=32, conventions=None):
+def check_gt(row, guard, *, side='train', max_bytes=4096, max_observations=32, conventions=None,
+             count_tokens=None, max_tokens=1536):
     guard.check(row, side)
     require(row.get('source') == 'gtmeasure_v1' and row['qid'].startswith('gtmeasure_'), 'foreign_gt_source')
     require(TYPE_FAMILY.get(row.get('source_question_type')) == row.get('family'), 'gt_family')
@@ -71,6 +74,10 @@ def check_gt(row, guard, *, side='train', max_bytes=4096, max_observations=32, c
         raise AdmissionError('source_target: ' + str(error)) from error
     require(target == expected, 'source_target_bytes')
     require(len(target.encode()) <= max_bytes and len(observations) <= max_observations, 'target_length')
+    native_tokens = count_tokens(row) if count_tokens is not None else None
+    if native_tokens is not None:
+        require(type(native_tokens) is int and native_tokens > 0, 'target_token_count')
+        require(native_tokens <= max_tokens, 'target_token_length')
     require(target.count(MARKER) == 1 and target.endswith(MARKER + '\n' + answer), 'terminal_answer')
     validate_target(target)
     measurements = row['ground_truth']['measurements']
@@ -132,7 +139,8 @@ def check_gt(row, guard, *, side='train', max_bytes=4096, max_observations=32, c
             if kind == 'camera_obj_abs_dist':
                 require(type(row['frame_index']) is int and 1 <= row['frame_index'] <= 32, 'camera_frame')
     return {'answer': answer, 'target_bytes': len(target.encode()), 'observations': len(observations),
-            'derivation': derivation, 'end_cue': MARKER, 'side': side, 'copied_target_bytes': True}
+            'derivation': derivation, 'end_cue': MARKER, 'side': side, 'copied_target_bytes': True,
+            'native_target_tokens': native_tokens}
 
 
 def check_answeronly(row, entry, target_bytes, guard, *, side='train'):
@@ -254,6 +262,55 @@ def index_bytes(entries):
     return ''.join(canonical(entry) + '\n' for entry in entries).encode()
 
 
+def includes_answeronly(config):
+    return config.get('include_answeronly', False) or config['variant'] in ('both', 'v02_gt1000_ao1000')
+
+
+def native_token_counter(config):
+    trainer = Path(config['trainer_root']).resolve()
+    commit = subprocess.check_output(['git', '-C', str(trainer), 'rev-parse', 'HEAD'], text=True).strip()
+    status = subprocess.check_output(['git', '-C', str(trainer), '--no-optional-locks', 'status', '--porcelain'], text=True)
+    require(commit == config['trainer_commit'] and not status.strip(), 'tokenizer_trainer_source')
+    sys.path.insert(0, str(trainer))
+    from student_pilot.batches import training_text
+    from transformers import AutoProcessor
+
+    tokenizer_path = Path(config['tokenizer']).resolve()
+    processor = AutoProcessor.from_pretrained(str(tokenizer_path), local_files_only=True, trust_remote_code=False)
+    names = ('tokenizer.json', 'tokenizer_config.json', 'special_tokens_map.json', 'vocab.json', 'merges.txt', 'chat_template.jinja')
+    pins = [pin(tokenizer_path / name) for name in names] + [pin(trainer / 'student_pilot/batches.py')]
+    require(config.get('tokenizer_pins', pins) == pins, 'tokenizer_pin_drift')
+    cache = {}
+
+    def count(row):
+        inputs = row['student_input']
+        key = (inputs['question'], tuple(inputs['options']), row['target'])
+        if key not in cache:
+            _, suffix = training_text(processor, inputs['question'], inputs['options'], row['target'])
+            tokens = processor.tokenizer.encode(suffix, add_special_tokens=False)
+            require(tokens and tokens[-1] == processor.tokenizer.eos_token_id, 'native_target_eos')
+            cache[key] = len(tokens)
+        return cache[key]
+
+    return count, pins
+
+
+def evaluation_authority(path, expected_sha):
+    value = read_json(verify_pin({'path': str(path), 'sha256': expected_sha}))
+    expected = {'vsibench_answerable500': 200, 'vstibench_repr450_v2': 150}
+    require(set(value['benchmarks']) == set(expected), 'evaluation_benchmarks')
+    qids, groups = set(), set()
+    for benchmark, size in expected.items():
+        rows = value['benchmarks'][benchmark]
+        require(len(rows) == len({str(row['qid']) for row in rows}) == size, 'evaluation_membership')
+        for row in rows:
+            require(set(row) == {'qid', 'scene', 'question_type'}, 'evaluation_answer_free_schema')
+            dataset, scene = row['scene'].split('/', 1)
+            groups.add(scene_key(dataset, scene))
+            qids.add(str(row['qid']))
+    return qids, groups, pin(path)
+
+
 def load_inputs(config):
     from .mix import measurement_rows
 
@@ -265,50 +322,62 @@ def load_inputs(config):
     policy = load_split(directory / 'split.json')
     policy.assert_train(sides['train'])
     require(all(policy.side(row['dataset'], row['scene']) == 'heldout' for row in sides['heldout']), 'gt_heldout_side')
-    membership = read_json(config['membership'])
-    require(membership.get('pool_id') == 'armc_v1c' and membership['n'] == 1000
-            and len(membership['qids']) == len(set(membership['qids'])) == 1000, 'harness_membership')
-    inherited_pin = membership['inputs']['published_split']
-    require(inherited_pin['sha256'] == ARM_C_SHA256 and split['inherited_split']['sha256'] == ARM_C_SHA256, 'split_authority')
+    inherited_pin = split['inherited_split']
+    require(inherited_pin['sha256'] == ARM_C_SHA256, 'split_authority')
     inherited = read_json(verify_pin(inherited_pin))
-    require(set(membership['qids']) <= set(inherited['train_candidate_qids']), 'harness_heldout_qid')
-    answer_index = pin(config['answer_index'])
-    require(answer_index['sha256'] == config['answer_index_sha256'], 'answer_index_digest')
-    entries = list(read_jsonl(config['answer_index']))
-    by_qid = {entry['qid']: entry for entry in entries}
-    require(len(by_qid) == len(entries) == 3431, 'answeronly_source_census')
     evaluation, blocked = benchmark_blocking(manifest['benchmark_blocking'])
     forbidden = set()
     for info in evaluation.values():
         for row in read_json(info['path']):
             forbidden.update(str(row[key]) for key in ('id', 'qid', 'question_id') if key in row)
-    for path, benchmark, n in zip(config['eval_subsets'], ('vsibench_answerable500', 'vstibench_repr450_v2'), (200, 150)):
-        subset = read_json(path)
-        require(subset['benchmark'] == benchmark and subset['n'] == n
-                and len(set(subset['qids'])) == n, 'evaluation_subset')
-        forbidden.update(map(str, subset['qids']))
-        source_pins.append(pin(path))
+    if config.get('eval_qids'):
+        qids, groups, spec = evaluation_authority(config['eval_qids'], config['eval_qids_sha256'])
+        forbidden.update(qids)
+        blocked.update(groups)
+        source_pins.append(spec)
+    else:
+        for path, benchmark, n in zip(config['eval_subsets'], ('vsibench_answerable500', 'vstibench_repr450_v2'), (200, 150)):
+            subset = read_json(path)
+            require(subset['benchmark'] == benchmark and subset['n'] == n
+                    and len(set(subset['qids'])) == n, 'evaluation_subset')
+            forbidden.update(map(str, subset['qids']))
+            source_pins.append(pin(path))
     guard = Guard(
         set(split['train_qids']) | set(inherited['train_candidate_qids']),
         set(split['heldout_qids']) | set(inherited['heldout_qids']),
         {group for group, side in policy.known.items() if side == 'train'},
         {group for group, side in policy.known.items() if side == 'heldout'}, forbidden, blocked,
     )
-    answer_rows = {}
-    for qid in sorted(set(membership['qids']) | set(inherited['heldout_qids'])):
-        require(qid in by_qid and qid.startswith('vsi590k_'), 'answeronly_membership')
-        entry = by_qid[qid]
-        row_spec = {'path': entry['row_path'], 'sha256': entry['row_sha256']}
-        target_spec = {'path': entry['target_path'], 'sha256': entry['sha256']}
-        row = read_json(verify_pin(row_spec))
-        payload = verify_pin(target_spec).read_bytes()
-        require(all(row[field] == entry[key] for field, key in (('qid', 'qid'), ('scene', 'scene'), ('category', 'question_type')))
-                and row['dataset'] == entry.get('dataset', row['dataset']), 'answeronly_index_identity')
-        check_answeronly(row, entry, payload, guard, side='train' if qid in membership['qids'] else 'heldout')
-        answer_rows[qid] = (row, entry, payload)
-    source_pins += [pin(config['membership']), answer_index, pin(inherited_pin['path'])]
+    membership, answer_rows = {'qids': []}, {}
+    if includes_answeronly(config):
+        require(not config.get('eval_qids'), 'mixed_common_A0_contract_not_yet_registered')
+        membership = read_json(config['membership'])
+        require(membership.get('pool_id') == 'armc_v1c' and membership['n'] == 1000
+                and len(membership['qids']) == len(set(membership['qids'])) == 1000, 'harness_membership')
+        require(membership['inputs']['published_split']['sha256'] == ARM_C_SHA256, 'answeronly_split_authority')
+        require(set(membership['qids']) <= set(inherited['train_candidate_qids']), 'harness_heldout_qid')
+        answer_index = pin(config['answer_index'])
+        require(answer_index['sha256'] == config['answer_index_sha256'], 'answer_index_digest')
+        entries = list(read_jsonl(config['answer_index']))
+        by_qid = {entry['qid']: entry for entry in entries}
+        require(len(by_qid) == len(entries) == 3431, 'answeronly_source_census')
+        for qid in sorted(set(membership['qids']) | set(inherited['heldout_qids'])):
+            require(qid in by_qid and qid.startswith('vsi590k_'), 'answeronly_membership')
+            entry = by_qid[qid]
+            row_spec = {'path': entry['row_path'], 'sha256': entry['row_sha256']}
+            target_spec = {'path': entry['target_path'], 'sha256': entry['sha256']}
+            row = read_json(verify_pin(row_spec))
+            payload = verify_pin(target_spec).read_bytes()
+            require(all(row[field] == entry[key] for field, key in (('qid', 'qid'), ('scene', 'scene'), ('category', 'question_type')))
+                    and row['dataset'] == entry.get('dataset', row['dataset']), 'answeronly_index_identity')
+            check_answeronly(row, entry, payload, guard, side='train' if qid in membership['qids'] else 'heldout')
+            answer_rows[qid] = (row, entry, payload)
+        source_pins += [pin(config['membership']), answer_index]
+    count_tokens, tokenizer_pins = native_token_counter(config) if config.get('tokenizer') else (None, [])
+    source_pins += [pin(inherited_pin['path']), *tokenizer_pins]
     return {'sides': sides, 'gt_manifest': manifest, 'gt_split': split, 'conventions': conventions,
             'guard': guard, 'membership': membership, 'answer_rows': answer_rows, 'inherited': inherited,
+            'count_tokens': count_tokens, 'tokenizer_pins': tokenizer_pins,
             'source_pins': source_pins, 'source_splits': [pin(directory / 'split.json'), pin(inherited_pin['path'])]}
 
 
@@ -317,7 +386,8 @@ def admit_and_select(inputs, config):
     for row in inputs['sides']['train']:
         try:
             check = check_gt(row, inputs['guard'], max_bytes=config['max_bytes'],
-                             max_observations=config['max_observations'], conventions=inputs['conventions'])
+                             max_observations=config['max_observations'], conventions=inputs['conventions'],
+                             count_tokens=inputs.get('count_tokens'), max_tokens=config.get('max_target_tokens', 1536))
         except (AdmissionError, ValueError, KeyError, TypeError, IndexError) as error:
             refused.append({'qid': row.get('qid'), 'family': row.get('family'), 'reason': str(error)})
             continue
@@ -337,7 +407,7 @@ def source_for(qid, inputs):
 
 
 def attach_sources(inputs, config):
-    inputs['answer_index_sha256'] = config['answer_index_sha256']
+    inputs['answer_index_sha256'] = config.get('answer_index_sha256')
     inputs['gt_by_qid'] = {row['qid']: row for side in inputs['sides'].values() for row in side}
     inputs['gt_train_qids'] = set(inputs['gt_split']['train_qids'])
 
@@ -349,7 +419,7 @@ def build(config, output, inputs, selected, refused, checks, admitted_count, com
     require(not output.exists(), 'output_exists')
     train = list(selected)
     heldout = list(inputs['sides']['heldout'])
-    if config['variant'] == 'v02_gt1000_ao1000':
+    if includes_answeronly(config):
         train += [inputs['answer_rows'][qid][0] for qid in inputs['membership']['qids']]
         heldout += [inputs['answer_rows'][qid][0] for qid in inputs['inherited']['heldout_qids']]
     train.sort(key=lambda row: row['qid'])
@@ -358,7 +428,8 @@ def build(config, output, inputs, selected, refused, checks, admitted_count, com
         if row['qid'].startswith('gtmeasure_'):
             check_gt(row, inputs['guard'], side='heldout', max_bytes=1000000, max_observations=100000,
                      conventions=inputs['conventions'])
-    config = {**config, 'renderer_commit': commit, 'source_pins': inputs['source_pins']}
+    config = {**config, 'renderer_commit': commit, 'source_pins': inputs['source_pins'],
+              'tokenizer_pins': inputs['tokenizer_pins']}
     config_sha = digest(config)
     frames = verify_frames([*train, *heldout])
     split = make_trainer_split(train, heldout, inputs['source_splits'], commit, config_sha)
@@ -393,6 +464,8 @@ def build(config, output, inputs, selected, refused, checks, admitted_count, com
         'gt_by_family': dict(Counter(row['family'] for row in selected)),
         'selected_derivation_checks': dict(Counter(checks[row['qid']]['derivation'] for row in selected)),
         'max_gt_target_bytes': max(len(row['target'].encode()) for row in selected),
+        'max_native_target_tokens': max(checks[row['qid']]['native_target_tokens'] or 0 for row in selected),
+        'total_native_target_tokens': sum(checks[row['qid']]['native_target_tokens'] or 0 for row in selected),
         'duplicate_input_groups': sum(count > 1 for count in duplicate_inputs.values()),
         'frames': frames, 'artifacts': artifacts, 'gemini': {'calls': 0, 'input_tokens': 0, 'output_tokens': 0},
         'elapsed_seconds': time.monotonic() - started, 'independent_admission_review': 'pending',
@@ -418,7 +491,7 @@ def verify_set(directory):
     selected, refused, checks, admitted_count = admit_and_select(inputs, config)
     expected_train = {row['qid'] for row in selected}
     expected_heldout = set(inputs['gt_split']['heldout_qids'])
-    if config['variant'] == 'v02_gt1000_ao1000':
+    if includes_answeronly(config):
         expected_train.update(inputs['membership']['qids'])
         expected_heldout.update(inputs['inherited']['heldout_qids'])
     train = list(read_jsonl(directory / 'candidate_index.jsonl'))
@@ -446,16 +519,22 @@ def main():
     commands = parser.add_subparsers(dest='command', required=True)
     render = commands.add_parser('render')
     render.add_argument('--gt-dir', required=True)
-    render.add_argument('--answer-index', required=True)
-    render.add_argument('--answer-index-sha256', required=True)
-    render.add_argument('--membership', required=True)
-    render.add_argument('--eval-subsets', nargs=2, required=True)
+    render.add_argument('--answer-index')
+    render.add_argument('--answer-index-sha256')
+    render.add_argument('--membership')
+    render.add_argument('--eval-qids', required=True)
+    render.add_argument('--eval-qids-sha256', required=True)
     render.add_argument('--output-root', required=True)
     render.add_argument('--size', type=int, default=1000)
     render.add_argument('--seed', type=int, default=20260923)
     render.add_argument('--max-bytes', type=int, default=4096)
     render.add_argument('--max-observations', type=int, default=32)
-    render.add_argument('--variant', choices=('v01_gt1000', 'v02_gt1000_ao1000', 'both'), default='both')
+    render.add_argument('--max-target-tokens', type=int, default=1024)
+    render.add_argument('--tokenizer', required=True)
+    render.add_argument('--trainer-root', required=True)
+    render.add_argument('--trainer-commit', required=True)
+    render.add_argument('--variant', default='v01_gt1000_native1024')
+    render.add_argument('--include-answeronly', action='store_true')
     verify = commands.add_parser('verify')
     verify.add_argument('--directory', required=True)
     args = parser.parse_args()
@@ -465,6 +544,8 @@ def main():
     config = vars(args).copy()
     config.pop('command')
     require(Path(config['output_root']).resolve().is_relative_to('/data2'), 'output_must_be_on_data2')
+    require(SAFE_QID.fullmatch(config['variant']) and config['size'] == 1000, 'pilot_identity')
+    require(0 < config['max_target_tokens'] <= 1536, 'pilot_token_limit')
     commit = source_commit()
     inputs = load_inputs(config)
     attach_sources(inputs, config)
