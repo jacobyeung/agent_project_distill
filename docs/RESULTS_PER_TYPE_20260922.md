@@ -241,6 +241,42 @@ A clear loss on VSTIBench, not a mixed result like VSIBench. The consistent brig
 |---|---:|---:|---:|---:|---:|
 | VSIBench | 49.25 | 48.79 | 49.02 | 0.46 | 0.32 |
 
+### VSTIBench (`vstibench_repr450_v2`, 450 items) — Set B pilot, Orchard
+
+The distilled cell uses the Orchard harness `orchard_trainer_12e477b`, while the trinity reference rows use `58794b8`. No Orchard-native Qwen base exists yet; one is in progress (291/450 items as of 10:42Z), so the trinity base row is a PROVISIONAL† cross-harness-only reference. The matched same-harness comparison follows once the Orchard base lands and this section is republished.
+
+#### Whole-benchmark headline (lenient primary / strict secondary)
+
+| cell | harness | lenient (primary, %) | strict (secondary, %) | parse failures (strict → lenient) | cap-hit | cap w/o answer | median gen tokens | terminal |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| **Set B distilled (Orchard)** | `orchard_trainer_12e477b` | **44.57** | **44.57** | 10 → 10 | 1 | 1 | 187 | 450/450 |
+| trinity Qwen base † PROVISIONAL, cross-harness | `58794b8` | 28.59 | 28.59 | 205 → 205 | 203 | 203 | - | 450/450 |
+| trinity Qwen arm C (published) | `58794b8` | 46.56 | 46.56 | 0 → 0 | 0 | 0 | - | 450/450 |
+| trinity OneThinker answer-only, different model (reference only) | `58794b8` | 43.35 | 43.35 | 0 → 0 | 0 | 0 | 2 | 450/450 |
+
+**† PROVISIONAL**: no same-harness Orchard base cell exists yet, so the trinity base provides only a directional cross-harness reference. The OneThinker answer-only row uses a different model (OneThinker-8B, not Qwen3.5-9B) as well as a different harness; it is the weakest reference on this table.
+
+**Deltas (Set B distilled lenient 44.57 minus):** trinity Qwen base (provisional†) **+15.98**; trinity Qwen arm C (published) **−1.99**; trinity OneThinker answer-only (cross-model) **+1.22**.
+
+#### Per question type — strict parser
+
+Lenient parsing moved 0 questions for the distilled cell, so its lenient accuracy equals its strict accuracy in every category.
+
+| question type | n | Set B distilled lenient (%) | Set B distilled strict (%) | trinity Qwen base † (strict, %) | delta vs base | trinity Qwen arm C (published, strict, %) | delta vs arm C |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| camera_displacement | 50 | 24.00 | 24.00 | 3.60 | +20.40 | 28.20 | −4.20 |
+| camera_movement_direction | 50 | 16.00 | 16.00 | 18.00 | −2.00 | 36.00 | −20.00 |
+| camera_obj_abs_dist | 50 | 48.20 | 48.20 | 20.00 | +28.20 | 32.60 | +15.60 |
+| camera_obj_rel_dist_v1 | 50 | 58.00 | 58.00 | 26.00 | +32.00 | 40.00 | +18.00 |
+| camera_obj_rel_dist_v2 | 50 | 66.00 | 66.00 | 34.00 | +32.00 | 68.00 | −2.00 |
+| camera_obj_rel_dist_v3 | 50 | 66.00 | 66.00 | 52.00 | +14.00 | 68.00 | −2.00 |
+| obj_obj_relative_pos_lr | 50 | 58.00 | 58.00 | 50.00 | +8.00 | 86.00 | −28.00 |
+| obj_obj_relative_pos_nf | 50 | 78.00 | 78.00 | 66.00 | +12.00 | 56.00 | +22.00 |
+| obj_obj_relative_pos_ud | 50 | 78.00 | 78.00 | 76.00 | +2.00 | 90.00 | −12.00 |
+| **macro over raw categories** | | 54.69 | 54.69 | 38.40 | +16.29 | 56.09 | −1.40 |
+
+This first Qwen Orchard-trained VSTIBench result is a new signal, not a replication. It is directionally strong against the provisional trinity base (+15.98 lenient and gains in 8 of 9 categories), but that cross-harness reference cannot establish a clean win until an Orchard-native base lands. Against published arm C, the same-student, same-trinity-harness reference, the pilot trails slightly overall (−1.99) and shows an uneven per-type profile. The pilot leads on distance-estimation categories and near/far relative position, while arm C leads sharply on left/right relative position and camera-movement direction.
+
 ### VSTIBench (`vstibench_repr450_v2`, 450 items): base vs r6 format-A control
 
 #### Per question type
