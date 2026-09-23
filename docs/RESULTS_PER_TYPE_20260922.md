@@ -269,6 +269,78 @@ This table reports a flat mean rather than an official-metric recomputation.
 **VSIBench largest gain:** `object_rel_direction_easy` +28.00; largest loss: `route_planning` −16.00. **VSTIBench largest gain:** `camera_obj_abs_dist` +24.40; largest loss: `camera_obj_rel_dist_v1` −34.00, worse than the smaller Set B pilot's −30.00 on the same category.
 
 Mixed results on both benchmarks echo the smaller Set B pilot's pattern rather than resolving it at scale. VSIBench strict macro favors the full-scale cell (+5.56, or +6.00 excluding `room_size_estimation`), but the primary lenient metric loses by 4.43 because 32 cap-hits remain unrecovered. VSTIBench's narrow raw strict win flips to a matched-cohort loss after the base's `media_error` defect is removed (−1.13 strict, −4.32 lenient), so it does not show a genuine win at either scale. The full-scale run modestly outperforms the smaller Set B pilot on both benchmarks (+2.6 to +2.8 lenient points), but neither run closes the gap to the established trinity arm C recipe. These pre-roomfix numbers will be superseded by the corrected-label full-scale runs training now.
+### Corrected Set B full-scale, trinity harness (roomfix)
+
+Both FINAL trace-student runs were published and evaluated with the trinity harness (`58794b8`), trained on the corrected room-fixed Set B labels, and paired with the trinity OneThinker base cell.
+
+#### VSIBench (`vsibench_answerable500`, 500 items) — trace student FINAL
+
+##### Whole-benchmark headline (lenient primary / strict secondary)
+
+| cell | harness | lenient (primary, %) | strict (secondary, %) | parse failures (strict → lenient) | cap-hit | cap w/o answer | terminal |
+|---|---|---:|---:|---:|---:|---:|---:|
+| trinity base | `58794b8` | 39.19 | 31.47 | 93 → 9 | 0 | 0 | 500/500 |
+| **Roomfix trace student (FINAL)** | `58794b8` | **38.68** | **38.68** | 26 → 26 | 27 | 26 | 500/500 |
+
+**Deltas (roomfix trace student minus trinity base):** lenient **−0.51**, strict **+7.22**. The primary lenient metric is essentially a wash, while the strict metric improves.
+
+**Comparison with the pre-roomfix full-scale result** (34.92 lenient/strict): **+3.76**. This comparison changes both the harness (Orchard vs trinity) and the labels (pre-roomfix vs corrected), so it is not a clean ablation.
+
+**Cap-hit concentration:** 26 items loop to the 4,096-token cap with no answer. All 26 are in `route_planning` (the distilled per-category parse-fail count is 26 there and 0 elsewhere), which lowers that category to 16.00% and accounts for most of the lenient-primary loss against base.
+
+##### Per question type (lenient primary)
+
+The base's lenient parser recovers 84 of its 93 strict failures. The roomfix trace student has no additional lenient recovery beyond its 26 cap-hit failures, so its lenient and strict scores are identical.
+
+| question type | trinity base, lenient (primary) | trinity base, strict | Roomfix trace student (lenient = strict) | delta vs base (lenient) |
+|---|---:|---:|---:|---:|
+| obj_appearance_order | 52.00 | 52.00 | 58.00 | +6.00 |
+| object_abs_distance | 32.80 | 12.80 | 23.00 | −9.80 |
+| object_counting | 29.60 | 21.60 | 30.40 | +0.80 |
+| object_rel_direction_easy | 36.00 | 36.00 | 54.00 | +18.00 |
+| object_rel_direction_hard | 22.00 | 22.00 | 26.00 | +4.00 |
+| object_rel_direction_medium | 36.00 | 36.00 | 36.00 | 0.00 |
+| object_rel_distance | 42.00 | 42.00 | 38.00 | −4.00 |
+| object_size_estimation | 48.00 | 45.00 | 49.80 | +1.80 |
+| room_size_estimation | 51.80 | 21.00 | 55.60 | +3.80 |
+| route_planning | 26.00 | 26.00 | 16.00 | −10.00 |
+| **macro over raw categories** | 37.62 | 31.44 | 38.68 | +1.06 lenient / +7.24 strict |
+
+**Strict-parser reading — where the room-label fix shows most clearly:** `room_size_estimation` rises from 21.00% to 55.60% under strict parsing, a **+34.60** gain and the largest strict-vs-strict gain in the table. The base reaches 51.80% under lenient parsing because 26 of its 93 strict parse failures occur in this category, an unrelated formatting issue rather than the label defect. At 55.60%, `room_size_estimation` is the roomfix trace student's strongest category, a sharp reversal from the pre-roomfix full-scale result, where it showed a below-average +1.60 gain. This result provides the clearest evidence that the room-label fix worked.
+
+#### VSTIBench (`vstibench_repr450_v2`, 450 items) — trace student FINAL
+
+##### Whole-benchmark headline (lenient primary / strict secondary)
+
+| cell | harness | lenient (primary, %) | strict (secondary, %) | parse failures (strict → lenient) | cap-hit | cap w/o answer | terminal |
+|---|---|---:|---:|---:|---:|---:|---:|
+| trinity base | `58794b8` | 45.40 | 40.16 | 55 → 14 | 1 | 1 | 450/450 |
+| **Roomfix trace student (FINAL)** | `58794b8` | **38.28** | **38.28** | 0 → 0 | 0 | 0 | 450/450 |
+
+**Deltas (roomfix trace student minus trinity base):** lenient **−7.12**, strict **−1.88**. The trace student loses to trinity base under both metrics, while format reliability improves from 55 strict parse failures to 0. This result remains consistent with the finding that no OneThinker student beats trinity base on VSTIBench under lenient parsing.
+
+**Comparison with the pre-roomfix full-scale result** (40.35 lenient/strict): **−2.07**. This comparison changes both the harness (Orchard vs trinity) and the labels (pre-roomfix vs corrected), so it is not a clean ablation.
+
+##### Per question type (lenient primary)
+
+The base's lenient parser recovers 41 of its 55 strict failures. The roomfix trace student has no parse failures, so its lenient and strict scores are identical.
+
+| question type | trinity base, lenient (primary) | trinity base, strict | Roomfix trace student (lenient = strict) | delta vs base (lenient) |
+|---|---:|---:|---:|---:|
+| camera_displacement | 21.00 | 20.80 | 18.20 | −2.80 |
+| camera_movement_direction | 30.00 | 30.00 | 16.00 | −14.00 |
+| camera_obj_abs_dist | 36.00 | 10.00 | 43.20 | +7.20 |
+| camera_obj_rel_dist_v1 | 52.00 | 52.00 | 32.00 | −20.00 |
+| camera_obj_rel_dist_v2 | 72.00 | 72.00 | 44.00 | −28.00 |
+| camera_obj_rel_dist_v3 | 70.00 | 70.00 | 66.00 | −4.00 |
+| obj_obj_relative_pos_lr | 60.00 | 60.00 | 44.00 | −16.00 |
+| obj_obj_relative_pos_nf | 74.00 | 74.00 | 70.00 | −4.00 |
+| obj_obj_relative_pos_ud | 92.00 | 92.00 | 86.00 | −6.00 |
+| **macro over raw categories** | 56.33 | 53.42 | 46.60 | −9.73 lenient / −6.82 strict |
+
+`camera_obj_rel_dist_v2` is the largest loss against base (−28.00), while `camera_obj_abs_dist` is the largest gain (+7.20). That gain is real but ranks third by absolute swing, behind the losses on `camera_obj_rel_dist_v2` and `camera_obj_rel_dist_v1`. Five of nine categories lose to base by double digits. The trace student is weaker on relative-distance and relative-position judgment, mirroring the pattern in every other OneThinker VSTIBench Set B variant. VSTIBench has no `room_size_estimation` category, so the room-label fix's clearest VSIBench signal has no direct analog here.
+
+**Answer-only control:** not yet published (~21:15Z publication, results after).
 
 ## Qwen3.5-9B
 
