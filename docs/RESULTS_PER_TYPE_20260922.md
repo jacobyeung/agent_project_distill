@@ -45,7 +45,7 @@ The source does not break lenient accuracy down by type; it scores lenient accur
 
 Replicate 2's source reading: 2.6 points above replicate 3's VSTIBench lenient score (40.83 vs 38.27) and 2.76 below published arm C (40.83 vs 43.59) — seed-level spread around the same recipe.
 
-### VSIBench (`vsibench_answerable500`, 500 items) — replicate 3 UNSCORED at 315/500; replicate 2 COMPLETE
+### VSIBench (`vsibench_answerable500`, 500 items) — all five cells COMPLETE
 
 #### Whole-benchmark headline (lenient primary / strict secondary)
 
@@ -53,7 +53,7 @@ Replicate 2's source reading: 2.6 points above replicate 3's VSTIBench lenient s
 |---|---:|---:|---:|---:|---:|---:|---:|
 | base | 39.19 | 31.47 | 93 → 9 | 0 | 0 | 217 | 500/500 |
 | arm C (published) | 42.35 | 42.35 | 4 → 4 | 4 | 4 | 364 | 500/500 |
-| replicate 3 | in flight | in flight | in flight | in flight | in flight | in flight | 315/500, unscored |
+| replicate 3 | 43.13 | 43.13 | 3 → 3 | 3 | 3 | 363 | 500/500 |
 | replicate 2 | 41.10 | 41.10 | 0 → 0 | 0 | 0* | 363 | 500/500 |
 | answer-only | 48.76 | 48.76 | 0 → 0 | 0 | 0 | 2 | 500/500 |
 
@@ -61,21 +61,28 @@ Replicate 2's source reading: 2.6 points above replicate 3's VSTIBench lenient s
 
 #### Per question type — strict parser only
 
-The source scores lenient accuracy only in the whole-benchmark headline above. Replicate 3 is in flight and unscored at 315/500; no entry in its column is a result.
+The table gives strict accuracy by type. Lenient parsing moved 0 questions, so lenient accuracy equals strict accuracy in every category.
 
 | question type | base | arm C (published) | replicate 3 | replicate 2 | answer-only |
 |---|---:|---:|---:|---:|---:|
-| obj_appearance_order | 52.00 | 56.00 | in flight | 64.00 | 64.00 |
-| object_abs_distance | 12.80 | 36.80 | in flight | 33.40 | 35.20 |
-| object_counting | 21.60 | 41.60 | in flight | 47.20 | 49.40 |
-| object_rel_direction_easy | 36.00 | 58.00 | in flight | 42.00 | 58.00 |
-| object_rel_direction_hard | 22.00 | 16.00 | in flight | 14.00 | 34.00 |
-| object_rel_direction_medium | 36.00 | 40.00 | in flight | 28.00 | 48.00 |
-| object_rel_distance | 42.00 | 48.00 | in flight | 48.00 | 42.00 |
-| object_size_estimation | 45.00 | 52.00 | in flight | 35.20 | 52.00 |
-| room_size_estimation | 21.00 | 38.40 | in flight | 51.00 | 52.80 |
-| route_planning | 26.00 | 28.00 | in flight | 22.00 | 48.00 |
-| **macro over raw categories** | 31.44 | 41.48 | in flight | 38.48 | 48.34 |
+| obj_appearance_order | 52.00 | 56.00 | 56.00 | 64.00 | 64.00 |
+| object_abs_distance | 12.80 | 36.80 | 33.20 | 33.40 | 35.20 |
+| object_counting | 21.60 | 41.60 | 46.60 | 47.20 | 49.40 |
+| object_rel_direction_easy | 36.00 | 58.00 | 66.00 | 42.00 | 58.00 |
+| object_rel_direction_hard | 22.00 | 16.00 | 18.00 | 14.00 | 34.00 |
+| object_rel_direction_medium | 36.00 | 40.00 | 32.00 | 28.00 | 48.00 |
+| object_rel_distance | 42.00 | 48.00 | 38.00 | 48.00 | 42.00 |
+| object_size_estimation | 45.00 | 52.00 | 45.40 | 35.20 | 52.00 |
+| room_size_estimation | 21.00 | 38.40 | 51.20 | 51.00 | 52.80 |
+| route_planning | 26.00 | 28.00 | 36.00 | 22.00 | 48.00 |
+| **macro over raw categories** | 31.44 | 41.48 | 42.24 | 38.48 | 48.34 |
+
+#### Three-seed summary, arm C recipe (lenient primary, %)
+
+| benchmark | published | replicate 2 | replicate 3 | mean | range (max-min) | sample std |
+|---|---:|---:|---:|---:|---:|---:|
+| VSIBench | 42.35 | 41.10 | 43.13 | 42.19 | 2.03 | 1.02 |
+| VSTIBench | 43.59 | 40.83 | 38.27 | 40.90 | 5.32 | 2.66 |
 
 ## Qwen3.5-9B
 
@@ -227,7 +234,6 @@ The strict-replay self-check recomputed `primary_score` 0.2475, 207 parse failur
 
 | model | benchmark | cell | status |
 |---|---|---|---|
-| OneThinker-8B arm C | VSIBench | replicate 3 | UNSCORED at 315/500 — the user cleared two stale `.coord` leases at 02:20Z; `claude_eval_recover_20260922T1853Z` is finishing the final 185 items, with the number expected about 02:45Z |
 | Qwen3.5-9B arm C | VSTIBench / VSIBench | replicate (trinity) | in flight — trainer resumed after a step-266/288 stall, last checkpoint step_250, relocation to trinity-1-18 not confirmed complete |
 | Qwen3.5-9B arm C | VSTIBench / VSIBench | replicate (Orchard) | in flight — Orchard job chain 147597 (running) / 147599 (pending on afterany:147597) |
 | Qwen3.5-9B format-A control r6 | VSIBench | r6 | COMPLETE — 500/500 terminal and scored; per-type table above. The last 33 items finished 2026-09-23T01:12Z after lane `claude_qwen_r6_eval_resume_20260922T2047Z` relaunched shard 7 from trinity-1-3 |
@@ -238,6 +244,8 @@ The strict-replay self-check recomputed `primary_score` 0.2475, 207 parse failur
 
 - The OneThinker answer-only control, using the same 3,431 arm C rows with bare answers and a median of 2 generated tokens, matches arm C on VSTIBench (43.35 vs 43.59 lenient) and beats it on VSIBench (48.76 vs 42.35; base 39.19).
 - Replicate 3 of arm C lands below base on VSTIBench (38.27 vs base 45.40, lenient).
+- Replicate 3 beats published arm C on VSIBench (43.13 vs 42.35, +0.78) and beats base by 3.94, but misses published arm C on VSTIBench by 5.32 and misses base by 7.13.
+- Across published arm C, replicate 2, and replicate 3, VSIBench has a mean of 42.19, range of 2.03, and sample standard deviation of 1.02; VSTIBench has a mean of 40.90, range of 5.32, and sample standard deviation of 2.66. VSIBench is comparatively stable across seeds, while VSTIBench is not.
 - The compact reasoning trace is not what earns arm C its numbers.
 - Answer-only gains on VSIBench are broad: route_planning 48.0 vs 28.0, room_size_estimation 52.8 vs 38.4, object_rel_direction_hard 34.0 vs 16.0, and object_counting 49.4 vs 41.6 in the arm C column. It loses only object_abs_distance (35.2 vs 36.8) and object_rel_distance (42.0 vs 48.0) against arm C.
 - The evidence-first ruling asked whether the traces themselves teach anything; on this set they do not — format and answer-distribution fine-tuning explains arm C, and replicate variance on VSTIBench is about 5 points (43.59 vs 38.27 for the same recipe).
