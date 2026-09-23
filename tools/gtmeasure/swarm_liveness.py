@@ -31,8 +31,10 @@ def tick(lane, production, state_path):
         handle.write(now + ' | ' + phase + '\n')
     (out / 'PROGRESS.md').write_text('\n'.join(lines) + '\n')
     ruling = lane.parents[1] / 'RULINGS.md'
+    directive = lane / 'COORD_DIRECTIVE.md'
     print(json.dumps({'utc': now, 'phase': phase, 'production_clean': not status,
-                      'rulings_mtime_ns': ruling.stat().st_mtime_ns if ruling.exists() else None}), flush=True)
+                      'rulings_mtime_ns': ruling.stat().st_mtime_ns if ruling.exists() else None,
+                      'directive_mtime_ns': directive.stat().st_mtime_ns if directive.exists() else None}), flush=True)
     return True
 
 
