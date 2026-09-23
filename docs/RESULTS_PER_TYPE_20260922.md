@@ -431,53 +431,60 @@ Set B delivers a clean win over both Orchard reference points: the raw provision
 
 ### Batched-decode protocol block (bs16)
 
-Cells decoded in batched mode (bs16, combined Orchard deployment) pair only with other batched cells and never with single-item cells. Batched greedy decoding is not token-identical to single-item decoding: the decode lane's identity table (appendix source: `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_decode_throughput_20260923T0805Z/out/identity/IDENTITY.md`) shows `bs16` diverging from true single-item (`batch-1-new`) generation at token indices as low as 3 across all 24 sampled items, with the top-1 token differing in every item. Expected floating-point non-associativity under batched kernels causes this behavior; it does not indicate a scoring or harness defect. All three cells below have verified manifests, clean media-error checks, official metrics, and passing strict-replay self-checks.
+Cells decoded in batched mode (bs16, combined Orchard deployment) pair only with other batched cells and never with single-item cells. Batched greedy decoding is not token-identical to single-item decoding: the decode lane's identity table (appendix source: `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_decode_throughput_20260923T0805Z/out/identity/IDENTITY.md`) shows `bs16` diverging from true single-item (`batch-1-new`) generation at token indices as low as 3 across all 24 sampled items, with the top-1 token differing from the single-item top-1 token in every item. Expected floating-point non-associativity under batched attention/matmul kernels causes this behavior; it does not indicate a scoring or harness defect.
 
-#### VSTIBench (`vstibench_repr450_v2`, 450 items) — base only
+#### VSTIBench (base + Set B pilot distilled, batched pair COMPLETE)
 
-Cell `qwen35_base_vsti_b16` landed 2026-09-23T15:51:10Z.
+Base cell `qwen35_base_vsti_b16` landed 2026-09-23T15:51:10Z; distilled cell `qwen35_distilled_gtm2_v25_qwen35_orchard_w4_vsti_b16` landed 2026-09-23T16:22:20Z. Both cells are clean (0 bad items), so the matched cohort equals the raw 450-item comparison. Both use the official `vstibench-official-5subtask-v1` metric, and their strict-replay self-checks passed.
 
-#### Whole-benchmark headline (lenient primary / strict secondary)
+##### Whole-benchmark headline (lenient primary / strict secondary)
 
-| cell | protocol | lenient (primary, %) | strict (secondary, %) | parse failures (strict → lenient) | cap-hit | cap w/o answer | median gen tokens | terminal |
-|---|---|---:|---:|---:|---:|---:|---:|---:|
-| **qwen35_base_vsti_b16** | Orchard, batched bs16 | **27.55** | **27.55** | 203 → 203 | 202 | 202 | 3049 | 450/450 |
+| cell | protocol | lenient (primary, %) | strict (secondary, %) | parse failures (strict → lenient) | cap-hit | median gen tokens | terminal |
+|---|---|---:|---:|---:|---:|---:|---:|
+| **Set B pilot distilled, batched bs16** | Orchard, batched bs16 | **46.43** | **46.43** | 8 → 8 | 3 | 187 | 450/450 |
+| Orchard base, batched bs16 | Orchard, batched bs16 | 27.55 | 27.55 | 203 → 203 | 202 | 3049 | 450/450 |
 
-#### Per question type — strict parser
+Lenient parsing moved 0 questions in both cells, so it recovered no parse failures and every lenient score equals its strict score.
 
-Lenient parsing moved 0 questions, so lenient accuracy equals strict accuracy in every category.
+**Batched-protocol delta (same protocol, valid comparison):** lenient/strict **+18.88** (distilled 46.43 minus base 27.55).
 
-| question type | qwen35_base_vsti_b16 |
-|---|---:|
-| camera_displacement | 2.60 |
-| camera_movement_direction | 16.00 |
-| camera_obj_abs_dist | 13.80 |
-| camera_obj_rel_dist_v1 | 20.00 |
-| camera_obj_rel_dist_v2 | 46.00 |
-| camera_obj_rel_dist_v3 | 60.00 |
-| obj_obj_relative_pos_lr | 48.00 |
-| obj_obj_relative_pos_nf | 66.00 |
-| obj_obj_relative_pos_ud | 76.00 |
-| **macro over raw categories** | 38.71 |
+##### Per question type (strict parser; lenient equals strict for both cells in every category, 0 moved)
 
-**Protocol-difference note (not a delta) vs the single-item Orchard base:** the single-item Orchard base, scored in the Qwen VSTIBench Set B pilot section, reports 29.93 lenient/strict. Its 2.38-point difference from this batched cell is a protocol-difference observation only, not a performance comparison or a valid delta, because batched and single-item cells use different decode protocols. This cell remains the pairing base for the coming batched VSTIBench distilled cell.
+| question type | Set B pilot distilled, batched | Orchard base, batched | delta |
+|---|---:|---:|---:|
+| camera_displacement | 27.00 | 2.60 | +24.40 |
+| camera_movement_direction | 26.00 | 16.00 | +10.00 |
+| camera_obj_abs_dist | 47.80 | 13.80 | **+34.00** |
+| camera_obj_rel_dist_v1 | 50.00 | 20.00 | +30.00 |
+| camera_obj_rel_dist_v2 | 62.00 | 46.00 | +16.00 |
+| camera_obj_rel_dist_v3 | 72.00 | 60.00 | +12.00 |
+| obj_obj_relative_pos_lr | 60.00 | 48.00 | +12.00 |
+| obj_obj_relative_pos_nf | 74.00 | 66.00 | +8.00 |
+| obj_obj_relative_pos_ud | 76.00 | 76.00 | 0.00 |
+| **macro over raw categories** | 54.98 | 38.71 | +16.27 |
 
-#### VSIBench (`vsibench_answerable500`, 500 items) — base + Set B pilot distilled
+Every category gains or ties, a clean sweep unlike the single-item VSTIBench pilot pair, which has several sharp losses such as `camera_obj_rel_dist_v1` (−30.00). `camera_obj_abs_dist` has the largest gain (+34.00); `obj_obj_relative_pos_ud` is the exact tie (0.00).
 
-Base cell `qwen35_base_vsi_b16` landed 2026-09-23T15:56:30Z, and distilled cell `qwen35_distilled_gtm2_v25_qwen35_orchard_w4_vsi_b16` landed 2026-09-23T16:11:51Z. Both cells have 0 bad items, so the matched cohort equals the raw 500-item comparison.
+##### Protocol-difference note (not a delta) vs the single-item Set B pilot pair (44.57 distilled / 29.93 base, delta +14.64)
 
-#### Whole-benchmark headline (lenient primary / strict secondary)
+Both absolute numbers move under batching but in opposite directions: distilled rises 1.86 points (46.43 vs 44.57) while base falls 2.38 points (27.55 vs 29.93). The shifts partly reinforce rather than cancel, so the batched-protocol delta (+18.88) is larger than the single-item delta (+14.64, 4.24 points apart); the VSIBench pair differs because its two deltas are within 0.18 points. This observation covers one pair per protocol; it does not validate equivalence or support a claim that batching helps more. The benchmarks' different shift patterns argue against reading too much into either single comparison.
 
-| cell | protocol | lenient (primary, %) | strict (secondary, %) | parse failures (strict → lenient) | cap-hit | cap w/o answer | median gen tokens | terminal |
-|---|---|---:|---:|---:|---:|---:|---:|---:|
-| **Set B pilot distilled, batched bs16** | Orchard, batched bs16 | **41.86** | **41.86** | 6 → 6 | 4 | 4 | 424 | 500/500 |
-| Orchard base, batched bs16 | Orchard, batched bs16 | 14.92 | 14.92 | 374 → 374 | 367 | 366 | 4096 | 500/500 |
+#### VSIBench (base + Set B pilot distilled, batched pair COMPLETE)
+
+Base cell `qwen35_base_vsi_b16` landed 2026-09-23T15:56:30Z; distilled cell `qwen35_distilled_gtm2_v25_qwen35_orchard_w4_vsi_b16` landed 2026-09-23T16:11:51Z. Both cells are clean (0 bad items), so the matched cohort equals the raw 500-item comparison. Both use the official `vsibench-official-8task-v1` metric, and their strict-replay self-checks passed.
+
+##### Whole-benchmark headline (lenient primary / strict secondary)
+
+| cell | protocol | lenient (primary, %) | strict (secondary, %) | parse failures (strict → lenient) | cap-hit | median gen tokens | terminal |
+|---|---|---:|---:|---:|---:|---:|---:|
+| **Set B pilot distilled, batched bs16** | Orchard, batched bs16 | **41.86** | **41.86** | 6 → 6 | 4 | 424 | 500/500 |
+| Orchard base, batched bs16 | Orchard, batched bs16 | 14.92 | 14.92 | 374 → 374 | 367 | 4096 | 500/500 |
+
+Lenient parsing moved 0 questions in both cells, so it recovered no parse failures and every lenient score equals its strict score. The base's 4,096-token median shows that nearly every generation runs to the budget.
 
 **Batched-protocol delta (same protocol, valid comparison):** lenient/strict **+26.94** (distilled 41.86 minus base 14.92).
 
-#### Per question type — strict parser
-
-Lenient parsing moved 0 questions for both cells, so lenient accuracy equals strict accuracy in every category.
+##### Per question type (strict parser; lenient equals strict for both cells in every category, 0 moved)
 
 | question type | Set B pilot distilled, batched | Orchard base, batched | delta |
 |---|---:|---:|---:|
@@ -493,11 +500,13 @@ Lenient parsing moved 0 questions for both cells, so lenient accuracy equals str
 | route_planning | 40.00 | 10.00 | +30.00 |
 | **macro over raw categories** | 41.62 | 13.80 | +27.82 |
 
-Every category gains. The batched base reads exactly 0.00% on `object_rel_direction_hard` and `room_size_estimation`; `object_size_estimation` has the largest gain, +40.80.
+Every category gains, a clean sweep. The batched base reads exactly 0.00% on `object_rel_direction_hard` and `room_size_estimation`; `object_size_estimation` has the largest gain (+40.80).
 
-**Protocol-difference note (not a delta) vs the single-item Set B pilot pair:** the single-item Set B pilot pair, scored elsewhere in this document, reports 39.80 distilled and 12.68 base, with a +27.12 delta. Both absolute numbers shift upward under batching (distilled +2.06 and base +2.24). The batched-protocol delta (+26.94) is close to the single-item delta (+27.12), 0.18 points apart. This is an observation from one pair per protocol, not a validation or equivalence claim, and it does not frame either decode protocol as beating or losing to the other.
+##### Protocol-difference note (not a delta) vs the single-item Set B pilot pair (39.80 distilled / 12.68 base, delta +27.12)
 
-**Status:** The VSTIBench batched distilled cell remains pending (expected within the hour); this section will be updated when it lands.
+Both absolute numbers shift upward under batching: distilled rises 2.06 points (41.86 vs 39.80) and base rises 2.24 points (14.92 vs 12.68). The batched-protocol delta (+26.94) is close to the single-item delta (+27.12, 0.18 points apart). This observation covers one pair per protocol; it does not validate equivalence. The VSTIBench pair shifts in opposite directions, so neither single comparison supports a broader protocol claim.
+
+Both VSIBench and VSTIBench batched pilot pairs are COMPLETE. The next batched cells are the roomfix Qwen runs, expected later tonight; they need a separate protocol sub-block because training data and decode protocol both differ.
 
 ### VSTIBench (`vstibench_repr450_v2`, 450 items): base vs r6 format-A control
 
