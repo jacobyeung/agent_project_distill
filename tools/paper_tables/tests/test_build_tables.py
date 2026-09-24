@@ -570,6 +570,21 @@ class TableTests(unittest.TestCase):
         self.assertEqual(report.checked, 2)
         self.assertFalse(report.issues, report.format_text())
 
+    def test_document_per_type_all_denominator_is_not_matched_subset(self):
+        base = tables.load_cell(self.fixture(benchmark=VSTI, condition="orchard_base", protocol="orchard",
+                                            strict_credit=0.2, lenient_credit=0.2,
+                                            empty_items=1, items_per_category=2))
+        student = tables.load_cell(self.fixture(benchmark=VSTI, condition="setb_pilot", protocol="orchard",
+                                               strict_credit=0.6, lenient_credit=0.6, items_per_category=2))
+        doc = self.root / "all_denominator.md"
+        doc.write_text("## OneThinker-8B\n### VSTIBench, Orchard\n"
+                       "#### Per question type, matched 17-item cohort and all 18 items\n"
+                       "| question type | Base, all 18 | Distilled, all 18 |\n|---|---|---|\n"
+                       "| camera_displacement | 10 | 60 |\n", encoding="utf-8")
+        report = tables.check_document(doc, [base, student])
+        self.assertEqual(report.checked, 2)
+        self.assertFalse(report.issues, report.format_text())
+
     def test_document_checker_reads_interrupted_count(self):
         base = tables.load_cell(self.fixture(benchmark=VSTI, condition="orchard_base", protocol="orchard"))
         doc = self.root / "interrupted.md"

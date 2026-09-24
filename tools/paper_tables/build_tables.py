@@ -678,8 +678,10 @@ def check_document(path, cells):
                             raise QuantityUnavailable("Parser labels do not cover every numeric component")
                         mode = modes[part_index].lower() if modes else "lenient" if "lenient" in low else "strict"
                         excluded = frozenset()
-                        if (matched_context or "matched cohort" in row[0].lower()
-                                or re.search(r"\bmatched \d+/\d+", row[0].lower()) or "excl." in low):
+                        matched_label = column if table_kind == "question type" else row[0]
+                        if (not re.search(r"\ball \d+\b", matched_label, flags=re.IGNORECASE)
+                                and (matched_context or "matched cohort" in row[0].lower()
+                                or re.search(r"\bmatched \d+/\d+", row[0].lower()) or "excl." in low)):
                             cell = get(column_label(column) if table_kind == "question type" else row[0])
                             base = paired_base(cell, cells)
                             excluded = matched_excluded_qids(base, cell)
