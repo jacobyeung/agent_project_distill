@@ -1,0 +1,66 @@
+{
+  "student": "qwen36_27b",
+  "trainer_commit": "433d8a117bf94bcd8214de9a6d6e149ff6f5f74f",
+  "variants": {
+    "setH": {
+      "config": "qwen36_27b_ao_setH.json",
+      "dataset": "setH",
+      "epochs": 3
+    },
+    "setH_e1": {
+      "config": "qwen36_27b_ao_setH_e1.json",
+      "dataset": "setH",
+      "epochs": 1
+    },
+    "fullpool": {
+      "config": "qwen36_27b_ao_fullpool.json",
+      "dataset": "fullpool",
+      "epochs": 1
+    }
+  },
+  "datasets": {
+    "setH": {
+      "dataset_root": "/project/community/jjyeung/distill/data2root/jjyeung/agent_project_data/student_diagnostic_pilot_20260918/mix_v25_roomfix_answeronly_20260923_trainer",
+      "split_record": "/project/community/jjyeung/distill/data2root/jjyeung/agent_project_data/student_diagnostic_pilot_20260918/mix_v25_roomfix_answeronly_20260923/split_trainer.json",
+      "rows": {
+        "total": 9232,
+        "train": 7684,
+        "heldout": 1548
+      },
+      "sha256": {
+        "candidate_index.jsonl": "5797eac24b659eb9c5ac7f41242f842a345e231b5cd7ed7135758cc85de97cca",
+        "split_trainer.json": "eec29d981c5c30b6217c72938bfbb1c0cbd13842ff651767a2c657125092cb27"
+      }
+    },
+    "fullpool": {
+      "dataset_root": "/project/community/jjyeung/distill/data2root/jjyeung/agent_project_data/student_diagnostic_pilot_20260918/answeronly_fullpool_20260923_trainer",
+      "split_record": "/project/community/jjyeung/distill/data2root/jjyeung/agent_project_data/student_diagnostic_pilot_20260918/answeronly_fullpool_20260923_trainer/split_trainer.json",
+      "rows": {
+        "total": 29399,
+        "train": 25164,
+        "heldout": 4235
+      },
+      "sha256": {
+        "candidate_index.jsonl": "b0658afc8c5a7439277985e59a13429d31b64dcbfb1f7f2087e49bb753456446",
+        "split_trainer.json": "46d0d91058623f5031b2f548afb14bcc26c2cb3e44664b48edba767fdfdf7f70"
+      }
+    }
+  },
+  "publication_identity": {
+    "schema": "student-publication-v1",
+    "protocol_version": "vlm-lora-ddp-v2",
+    "base": {
+      "repo_id": "Qwen/Qwen3.6-27B",
+      "revision": "6a9e13bd6fc8f0983b9b99948120bc37f49c13e9"
+    },
+    "student": "qwen36_27b",
+    "trained_module_families": ["vision", "merger", "language"],
+    "result_status": "diagnostic, provisional",
+    "provisional_diagnostic": "ZERO_CALL_DIAGNOSTIC_PENDING_REVIEW",
+    "benchmark_improvement_claim": false,
+    "score_nomination_allowed": false,
+    "provenance": {
+      "commit": "433d8a117bf94bcd8214de9a6d6e149ff6f5f74f"
+    }
+  }
+}
