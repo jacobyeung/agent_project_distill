@@ -175,10 +175,12 @@
     },
     {
       "student": "qwen35_9b", "benchmark": "vsibench_answerable500", "condition": "setb_pilot", "seed": 17,
-      "strict_score_path": null, "lenient_score_path": null, "lenient_cell_key": null,
-      "harness_commit": "12e477b", "status": "pending", "protocol": "orchard",
+      "strict_score_path": "/data3/jjyeung/orchard_publications/eval_cells/qwen35_distilled_gtm2_v25_qwen35_orchard_w4_vsi/score",
+      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient/vsi_qwen35_orchard_distilled_pilot/lenient_scores.json",
+      "lenient_cell_key": "qwen35_distilled_gtm2_v25_qwen35_orchard_w4_vsi",
+      "harness_commit": "12e477b", "status": "complete", "protocol": "orchard",
       "harness": "orchard-12e477b", "base_ref": "orchard_base",
-      "provenance_note": "Awaiting gtm2_v25_qwen35_orchard_w4 evaluation and its matched Orchard baseline."
+      "provenance_note": "The audited Orchard score artifact supplies the completed single-item Set B pilot and pairs it with qwen35_base_vsi_pinned."
     },
     {
       "student": "qwen35_9b", "benchmark": "vsibench_answerable500", "condition": "full_scale", "seed": 17,
@@ -229,17 +231,21 @@
     },
     {
       "student": "qwen35_9b", "benchmark": "vstibench_repr450_v2", "condition": "orchard_base", "seed": 17,
-      "strict_score_path": null, "lenient_score_path": null, "lenient_cell_key": null,
-      "harness_commit": "12e477b", "status": "pending", "protocol": "orchard",
+      "strict_score_path": "/data3/jjyeung/orchard_publications/eval_cells/qwen35_base_vsti_pinned/score",
+      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient/vsti_qwen35_orchard_base_pinned/lenient_scores.json",
+      "lenient_cell_key": "qwen35_base_vsti_pinned",
+      "harness_commit": "12e477b", "status": "complete", "protocol": "orchard",
       "harness": "orchard-12e477b", "base_ref": "orchard_base",
-      "provenance_note": "RESULTS_qwen_orchard_cells.md marks the pinned Qwen base as pending; pair future Orchard pilots with this native base."
+      "provenance_note": "The audited Orchard score artifact supplies the completed pinned single-item base for Qwen3.5-9B VSTIBench."
     },
     {
       "student": "qwen35_9b", "benchmark": "vstibench_repr450_v2", "condition": "setb_pilot", "seed": 17,
-      "strict_score_path": null, "lenient_score_path": null, "lenient_cell_key": null,
-      "harness_commit": "12e477b", "status": "pending", "protocol": "orchard",
+      "strict_score_path": "/data3/jjyeung/orchard_publications/eval_cells/qwen35_distilled_gtm2_v25_qwen35_orchard_w4_vsti/score",
+      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient/vsti_qwen35_orchard_distilled_pilot/lenient_scores.json",
+      "lenient_cell_key": "qwen35_distilled_gtm2_v25_qwen35_orchard_w4_vsti",
+      "harness_commit": "12e477b", "status": "complete", "protocol": "orchard",
       "harness": "orchard-12e477b", "base_ref": "orchard_base",
-      "provenance_note": "Awaiting gtm2_v25_qwen35_orchard_w4 evaluation and its matched Orchard baseline."
+      "provenance_note": "The audited Orchard score artifact supplies the completed single-item Set B pilot and pairs it with qwen35_base_vsti_pinned."
     },
     {
       "student": "qwen35_9b", "benchmark": "vstibench_repr450_v2", "condition": "full_scale", "seed": 17,
@@ -263,6 +269,95 @@
       "lenient_cell_key": "qwen36_27b_base_vsi_thinkoff", "harness_commit": "12e477b", "status": "complete", "protocol": "thinking_off_reference", "reference_only": true,
       "harness": "orchard-12e477b", "base_ref": "base_27b_thinkoff",
       "provenance_note": "RESULTS_qwen36_27b_base_vsi_thinkoff.md authenticates the Orchard copy and rescore. Thinking off differs from pinned thinking; this standalone reference cannot pair with a distilled cell or receive best marks."
+    },
+    {
+      "student": "onethinker_8b", "benchmark": "vsibench_answerable500", "condition": "trace_corrected", "seed": 17,
+      "strict_score_path": "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_swarm_20260923T0835Z/lanes/swarm_w2_noise/out_a3/fullscale_gtm2_v25full_onethinker_trinity_roomfix/vsibench_answerable500/scores/attempt_54d4dfb11ef54ae49d3fccc1c020112e/strict/distilled",
+      "lenient_score_path": "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_swarm_20260923T0835Z/lanes/swarm_w2_noise/out_a3/fullscale_gtm2_v25full_onethinker_trinity_roomfix/vsibench_answerable500/scores/attempt_54d4dfb11ef54ae49d3fccc1c020112e/lenient/lenient_scores.json",
+      "lenient_cell_key": "distilled", "harness_commit": "58794b8", "status": "complete", "protocol": "trinity",
+      "harness": "trinity-58794b8", "base_ref": "base",
+      "provenance_note": "The Trinity score artifact records the OneThinker-8B trace student trained on the corrected 7,684-row room-fixed v2.5 plus gtm2 set; launcher 91d47a0 and scorer harness 58794b8 identify the evaluation."
+    },
+    {
+      "student": "onethinker_8b", "benchmark": "vstibench_repr450_v2", "condition": "trace_corrected", "seed": 17,
+      "strict_score_path": "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_trinity_fullset_evals_20260923T1944Z/runs/trace/vstibench_repr450_v2/scores/attempt_95734b566fe5497ea9435f04c178440b/strict/distilled",
+      "lenient_score_path": "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_trinity_fullset_evals_20260923T1944Z/runs/trace/vstibench_repr450_v2/scores/attempt_95734b566fe5497ea9435f04c178440b/lenient/lenient_scores.json",
+      "lenient_cell_key": "distilled", "harness_commit": "58794b8", "status": "complete", "protocol": "trinity",
+      "harness": "trinity-58794b8", "base_ref": "base",
+      "provenance_note": "The Trinity score artifact records the OneThinker-8B trace student trained on the corrected 7,684-row room-fixed v2.5 plus gtm2 set; launcher 91d47a0 and scorer harness 58794b8 identify the evaluation."
+    },
+    {
+      "student": "onethinker_8b", "benchmark": "vsibench_answerable500", "condition": "answer_only_corrected", "seed": 17,
+      "strict_score_path": "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_trinity_fullset_evals_20260923T1944Z/runs/answeronly/vsibench_answerable500/scores/attempt_1dd70ab091c44cb38ac8e6d9bd91e2fb/strict/distilled",
+      "lenient_score_path": "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_trinity_fullset_evals_20260923T1944Z/runs/answeronly/vsibench_answerable500/scores/attempt_1dd70ab091c44cb38ac8e6d9bd91e2fb/lenient/lenient_scores.json",
+      "lenient_cell_key": "distilled", "harness_commit": "58794b8", "status": "complete", "protocol": "trinity",
+      "harness": "trinity-58794b8", "base_ref": "base",
+      "provenance_note": "The Trinity score artifact records the OneThinker-8B answer-only student trained on the corrected 7,684-row room-fixed v2.5 plus gtm2 set; launcher 91d47a0 and scorer harness 58794b8 identify the evaluation."
+    },
+    {
+      "student": "onethinker_8b", "benchmark": "vstibench_repr450_v2", "condition": "answer_only_corrected", "seed": 17,
+      "strict_score_path": "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_trinity_fullset_evals_20260923T1944Z/runs/answeronly/vstibench_repr450_v2/scores/attempt_8a657fac0ae947e5804203b625503a86/strict/distilled",
+      "lenient_score_path": "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_trinity_fullset_evals_20260923T1944Z/runs/answeronly/vstibench_repr450_v2/scores/attempt_8a657fac0ae947e5804203b625503a86/lenient/lenient_scores.json",
+      "lenient_cell_key": "distilled", "harness_commit": "58794b8", "status": "complete", "protocol": "trinity",
+      "harness": "trinity-58794b8", "base_ref": "base",
+      "provenance_note": "The Trinity score artifact records the OneThinker-8B answer-only student trained on the corrected 7,684-row room-fixed v2.5 plus gtm2 set; launcher 91d47a0 and scorer harness 58794b8 identify the evaluation."
+    },
+    {
+      "student": "qwen35_9b", "benchmark": "vsibench_answerable500", "condition": "orchard_base_b16", "seed": 17,
+      "strict_score_path": "/data3/jjyeung/orchard_publications/eval_cells/qwen35_base_vsi_b16/score",
+      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient/vsi_qwen35_orchard_roomfix_b16/lenient_scores.json",
+      "lenient_cell_key": "qwen35_base_vsi_b16", "harness_commit": "12e477b", "status": "complete", "protocol": "orchard",
+      "harness": "orchard-12e477b-b16", "base_ref": "orchard_base_b16",
+      "provenance_note": "The audited Orchard bs16 score artifact supplies the Qwen3.5-9B batched base for the matched batched cohort."
+    },
+    {
+      "student": "qwen35_9b", "benchmark": "vstibench_repr450_v2", "condition": "orchard_base_b16", "seed": 17,
+      "strict_score_path": "/data3/jjyeung/orchard_publications/eval_cells/qwen35_base_vsti_b16/score",
+      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient/vsti_qwen35_orchard_roomfix_b16/lenient_scores.json",
+      "lenient_cell_key": "qwen35_base_vsti_b16", "harness_commit": "12e477b", "status": "complete", "protocol": "orchard",
+      "harness": "orchard-12e477b-b16", "base_ref": "orchard_base_b16",
+      "provenance_note": "The audited Orchard bs16 score artifact supplies the Qwen3.5-9B batched base for the matched batched cohort."
+    },
+    {
+      "student": "qwen35_9b", "benchmark": "vsibench_answerable500", "condition": "setb_pilot_b16", "seed": 17,
+      "strict_score_path": "/data3/jjyeung/orchard_publications/eval_cells/qwen35_distilled_gtm2_v25_qwen35_orchard_w4_vsi_b16/score",
+      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient/vsi_qwen35_orchard_b16/lenient_scores.json",
+      "lenient_cell_key": "qwen35_distilled_gtm2_v25_qwen35_orchard_w4_vsi_b16", "harness_commit": "12e477b", "status": "complete", "protocol": "orchard",
+      "harness": "orchard-12e477b-b16", "base_ref": "orchard_base_b16",
+      "provenance_note": "The audited Orchard bs16 score artifact supplies the Qwen3.5-9B Set B pilot for the matched batched cohort."
+    },
+    {
+      "student": "qwen35_9b", "benchmark": "vstibench_repr450_v2", "condition": "setb_pilot_b16", "seed": 17,
+      "strict_score_path": "/data3/jjyeung/orchard_publications/eval_cells/qwen35_distilled_gtm2_v25_qwen35_orchard_w4_vsti_b16/score",
+      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient/vsti_qwen35_orchard_b16/lenient_scores.json",
+      "lenient_cell_key": "qwen35_distilled_gtm2_v25_qwen35_orchard_w4_vsti_b16", "harness_commit": "12e477b", "status": "complete", "protocol": "orchard",
+      "harness": "orchard-12e477b-b16", "base_ref": "orchard_base_b16",
+      "provenance_note": "The audited Orchard bs16 score artifact supplies the Qwen3.5-9B Set B pilot for the matched batched cohort."
+    },
+    {
+      "student": "qwen35_9b", "benchmark": "vsibench_answerable500", "condition": "trace_corrected", "seed": 17,
+      "strict_score_path": "/data3/jjyeung/orchard_publications/eval_cells/qwen35_distilled_gtm2_v25full_qwen35_orchard_w4_roomfix_qcap4096_mb2_vsi_b16/score",
+      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient/vsi_qwen35_orchard_roomfix_b16/lenient_scores.json",
+      "lenient_cell_key": "qwen35_distilled_gtm2_v25full_qwen35_orchard_w4_roomfix_qcap4096_mb2_vsi_b16", "harness_commit": "12e477b", "status": "complete", "protocol": "orchard",
+      "harness": "orchard-12e477b-b16", "base_ref": "orchard_base_b16",
+      "provenance_note": "The audited Orchard bs16 score artifact records the Qwen3.5-9B corrected-set trace student from run 148295 and pairs it only with the batched base."
+    },
+    {
+      "student": "qwen35_9b", "benchmark": "vstibench_repr450_v2", "condition": "trace_corrected", "seed": 17,
+      "strict_score_path": "/data3/jjyeung/orchard_publications/eval_cells/qwen35_distilled_gtm2_v25full_qwen35_orchard_w4_roomfix_qcap4096_mb2_vsti_b16/score",
+      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient/vsti_qwen35_orchard_roomfix_b16/lenient_scores.json",
+      "lenient_cell_key": "qwen35_distilled_gtm2_v25full_qwen35_orchard_w4_roomfix_qcap4096_mb2_vsti_b16", "harness_commit": "12e477b", "status": "complete", "protocol": "orchard",
+      "harness": "orchard-12e477b-b16", "base_ref": "orchard_base_b16",
+      "provenance_note": "The audited Orchard bs16 score artifact records the Qwen3.5-9B corrected-set trace student from run 148295 and pairs it only with the batched base."
+    },
+    {
+      "student": "qwen36_27b", "benchmark": "vstibench_repr450_v2", "condition": "base_27b_pinned", "seed": 17,
+      "strict_score_path": "/data3/jjyeung/orchard_publications/eval_cells/qwen36_27b_base_vsti_pinned_c3/score",
+      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient/vsti_qwen36_27b_base_pinned_c3/lenient_scores.json",
+      "lenient_cell_key": "qwen36_27b_base_vsti_pinned_c3", "harness_commit": "12e477b", "status": "complete", "protocol": "orchard", "reference_only": true,
+      "harness": "orchard-12e477b", "base_ref": "base_27b_pinned",
+      "provisional": true, "empty_items": 8, "empty_statuses": ["interrupted"],
+      "provenance_note": "This provisional pinned-thinking Qwen3.6-27B VSTIBench base is appendix-only: preemptions cut 8 of 450 items, 184 items hit the 4,096-token cap, and 198 items failed parsing."
     }
   ]
 }

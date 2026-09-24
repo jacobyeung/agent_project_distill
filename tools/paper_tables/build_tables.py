@@ -101,14 +101,20 @@ BENCHMARKS = {
         ("obj_obj_relative_pos_lr", "obj_obj_relative_pos_nf", "obj_obj_relative_pos_ud"))),
 }
 STUDENTS = {"onethinker_8b": "OneThinker-8B", "qwen35_9b": "Qwen3.5-9B", "qwen36_27b": "Qwen3.6-27B"}
-CONDITIONS = {"base": "Base", "orchard_base": "Base (Orchard)", "answer_only": "Answer-only control",
-              "armc": "Arm C", "setb_pilot": "Set B pilot", "full_scale": "Full-scale",
-              "r6_formatA": "r6 (format-A)", "base_27b_thinkoff": "Base (thinking off)"}
-ORDER = {"base": 0, "orchard_base": 0, "answer_only": 1, "armc": 2, "setb_pilot": 3,
-         "full_scale": 4, "r6_formatA": 5, "base_27b_thinkoff": 6}
+CONDITIONS = {"base": "Base", "orchard_base": "Base (Orchard)", "orchard_base_b16": "Base (Orchard, batched)",
+              "answer_only": "Answer-only control", "answer_only_corrected": "Answer-only (corrected set)",
+              "armc": "Arm C", "setb_pilot": "Set B pilot", "setb_pilot_b16": "Set B pilot (batched)",
+              "full_scale": "Full-scale", "trace_corrected": "Trace student (corrected set)",
+              "r6_formatA": "r6 (format-A)", "base_27b_thinkoff": "Base (thinking off)",
+              "base_27b_pinned": "Base (pinned thinking)"}
+ORDER = {"base": 0, "orchard_base": 0, "orchard_base_b16": 0, "answer_only": 1,
+         "answer_only_corrected": 1, "armc": 2, "setb_pilot": 3, "setb_pilot_b16": 3,
+         "full_scale": 4, "trace_corrected": 4, "r6_formatA": 5, "base_27b_thinkoff": 6,
+         "base_27b_pinned": 6}
 TOLERANCE = 0.005
-HARNESSES = {"trinity-58794b8": "58794b8", "orchard-12e477b": "12e477b"}
-BASE_CONDITIONS = {"base", "orchard_base", "base_27b_thinkoff"}
+HARNESSES = {"trinity-58794b8": "58794b8", "orchard-12e477b": "12e477b",
+             "orchard-12e477b-b16": "12e477b"}
+BASE_CONDITIONS = {"base", "orchard_base", "orchard_base_b16", "base_27b_thinkoff", "base_27b_pinned"}
 
 
 class ScoreError(ValueError):
