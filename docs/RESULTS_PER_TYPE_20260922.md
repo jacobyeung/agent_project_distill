@@ -1001,7 +1001,7 @@ The answer-only control beats the trace student. These cells isolate whether los
 | C1x | Qwen | 7,684 (803 rejected) | Label source on Qwen | built |
 | C2x | Qwen | 7,684 (803 rejected; 660 wrong labels) | Label source on Qwen | built |
 | N1k | OneThinker-8B | 1,000 (0 rejected) | Scaling, with training steps co-varying | COMPLETE — VSIBench and VSTIBench scored; evaluation harness 91d47a0; training world 2; single run |
-| N2k | OneThinker-8B | 2,000 (0 rejected) | Scaling, with training steps co-varying | VSIBench COMPLETE; VSTIBench pending; evaluation harness 91d47a0; training world 2; single run |
+| N2k | OneThinker-8B | 2,000 (0 rejected) | Scaling, with training steps co-varying | COMPLETE — VSIBench and VSTIBench scored; evaluation harness 91d47a0; training world 2; single run |
 | N4k | OneThinker-8B | 4,000 (0 rejected) | Scaling, with training steps co-varying | built |
 
 The banked rows use the paired OneThinker-8B Trinity harness `58794b8`. Category values and Overall use the existing corrected-set per-type lenient values; Overall is the raw-category macro.
@@ -1043,7 +1043,7 @@ The banked rows use the paired OneThinker-8B Trinity harness `58794b8`. Category
 | C1x (Qwen) | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending |
 | C2x (Qwen) | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending |
 | N1k | 48.32 | 48.32 | 22.20 | 36.00 | 49.40 | 56.00 | 54.00 | 74.00 | 66.00 | 60.00 | 92.00 | 56.62 |
-| N2k | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending |
+| N2k | 49.08 | 49.08 | 21.40 | 34.00 | 54.00 | 58.00 | 70.00 | 62.00 | 56.00 | 70.00 | 92.00 | 57.49 |
 | N4k | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending |
 
 Read a mechanism comparison as a win only when it gains at least 2 lenient points, its paired scene-clustered 95% CI excludes zero, and both benchmarks move in the same direction; raise the floor if the s18/s19 spread is larger. Report strict beside lenient and audit truncation, cap hits, and parse failures.
@@ -1055,7 +1055,8 @@ S-G gains +3.24 on VSIBench (37% of H-ans) and +3.85 on VSTIBench (48%).
 N1k gains +6.13 on VSIBench (69%).
 S-T gains +6.96 on VSIBench (79% of H-ans).
 N1k gains +2.92 on VSTIBench (36% of H-ans).
-N2k gains +4.54 on VSIBench (51% of H-ans), less than N1k's +6.13, so the N ladder is not monotone on VSIBench at one run per cell.
+N2k gains +4.54 on VSIBench (51% of H-ans) and +3.68 on VSTIBench (46%).
+The N ladder is not monotone at one run per cell: N2k trails N1k on VSIBench (43.73 vs 45.32) and leads it on VSTIBench (49.08 vs 48.32).
 The seed-18 answer-only replicate scores 47.88 on VSIBench and 51.83 on VSTIBench, 0.15 and 1.62 below the seed-17 H-ans row (48.03 and 53.45); both seeds beat base by at least 6.4 points on each benchmark.
 Its largest per-type differences from seed 17 are 16 points on `object_rel_direction_hard` (36 vs 20) and 10 points on `camera_obj_rel_dist_v3` (66 vs 76).
 On VSIBench, S-T's largest gains are `object_rel_direction_easy` (+20.0) and `object_counting` (+15.2); it leaves `object_rel_direction_hard` and `object_rel_direction_medium` unchanged.
