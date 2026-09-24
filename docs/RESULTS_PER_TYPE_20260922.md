@@ -994,7 +994,7 @@ The answer-only control beats the trace student. These cells isolate whether los
 | M | OneThinker-8B | 7,684 (H-trace) | Trace training with answer tokens weighted as in answer-only training (loss dilution) | not built |
 | S-G | OneThinker-8B | 3,842 (0 rejected) | GT-measurement rows alone (data source) | COMPLETE — VSIBench and VSTIBench scored; evaluation harness 91d47a0; training world 4; single run |
 | S-T | OneThinker-8B | 3,842 (0 rejected) | Teacher rows alone (data source) | VSIBench COMPLETE; VSTIBench resume needed (429/450 decoded, 1 interrupted item, 20 items never started; the runner on trinity-0-23 GPU 3 died with the node, last item start 08:55Z); evaluation harness 91d47a0; training world 4; single run |
-| H-ans s18 | OneThinker-8B | 7,684 (H) | Seed replicate of the answer-only control (seed 18) | VSIBench COMPLETE; VSTIBench pending; evaluation harness 29d4579; single run |
+| H-ans s18 | OneThinker-8B | 7,684 (H) | Seed replicate of the answer-only control (seed 18) | COMPLETE — VSIBench and VSTIBench scored; evaluation harness 29d4579; single run |
 | C0 | OneThinker-8B | 7,684 (0 rejected) | G plus an accepted-only teacher-type sample with C1x-matched quotas | built |
 | C1x | OneThinker-8B | 7,684 (803 rejected) | G plus a rejection-enriched sample with GT answers | built |
 | C2x | OneThinker-8B | 7,684 (803 rejected; 660 wrong labels) | C1x questions with teacher answers in canonicalized format | built |
@@ -1031,7 +1031,7 @@ The banked rows use the paired OneThinker-8B Trinity harness `58794b8`. Category
 | cell | headline lenient (primary, %) | headline strict (secondary, %) | camera_displacement | camera_movement_direction | camera_obj_abs_dist | camera_obj_rel_dist_v1 | camera_obj_rel_dist_v2 | camera_obj_rel_dist_v3 | obj_obj_relative_pos_lr | obj_obj_relative_pos_nf | obj_obj_relative_pos_ud | macro over raw categories |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | H-ans (banked answer-only corrected set) | 53.45 | 53.45 | 25.20 | 42.00 | 53.40 | 60.00 | 70.00 | 76.00 | 68.00 | 74.00 | 92.00 | 62.29 |
-| H-ans s18 (answer-only corrected set, seed 18) | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending |
+| H-ans s18 (answer-only corrected set, seed 18) | 51.83 | 51.83 | 20.80 | 38.00 | 55.00 | 62.00 | 72.00 | 66.00 | 72.00 | 76.00 | 88.00 | 61.09 |
 | H-trace (banked trace-student corrected set) | 38.28 | 38.28 | 18.20 | 16.00 | 43.20 | 32.00 | 44.00 | 66.00 | 44.00 | 70.00 | 86.00 | 46.60 |
 | Base (banked) | 45.40 | 40.16 | 21.00 | 30.00 | 36.00 | 52.00 | 72.00 | 70.00 | 60.00 | 74.00 | 92.00 | 56.33 |
 | M | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending |
@@ -1056,7 +1056,8 @@ N1k gains +6.13 on VSIBench (69%).
 S-T gains +6.96 on VSIBench (79% of H-ans).
 N1k gains +2.92 on VSTIBench (36% of H-ans).
 N2k gains +4.54 on VSIBench (51% of H-ans), less than N1k's +6.13, so the N ladder is not monotone on VSIBench at one run per cell.
-The seed-18 answer-only replicate scores 47.88 on VSIBench, 0.15 below the seed-17 H-ans row (48.03); its largest per-type difference is 16 points on `object_rel_direction_hard` (36 vs 20).
+The seed-18 answer-only replicate scores 47.88 on VSIBench and 51.83 on VSTIBench, 0.15 and 1.62 below the seed-17 H-ans row (48.03 and 53.45); both seeds beat base by at least 6.4 points on each benchmark.
+Its largest per-type differences from seed 17 are 16 points on `object_rel_direction_hard` (36 vs 20) and 10 points on `camera_obj_rel_dist_v3` (66 vs 76).
 On VSIBench, S-T's largest gains are `object_rel_direction_easy` (+20.0) and `object_counting` (+15.2); it leaves `object_rel_direction_hard` and `object_rel_direction_medium` unchanged.
 On VSTIBench, N1k gains most on `camera_obj_abs_dist` (+13.4) and loses most on `camera_obj_rel_dist_v2` (−18.0) and `obj_obj_relative_pos_nf` (−14.0).
 S-G trains only `object_abs_distance`, `object_counting`, `object_rel_distance`, `object_size_estimation`, `room_size_estimation`, and `camera_obj_abs_dist`.
