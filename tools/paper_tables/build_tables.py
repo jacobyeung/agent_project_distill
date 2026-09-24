@@ -115,6 +115,9 @@ TOLERANCE = 0.005
 HARNESSES = {"trinity-58794b8": "58794b8", "orchard-12e477b": "12e477b",
              "orchard-12e477b-b16": "12e477b"}
 BASE_CONDITIONS = {"base", "orchard_base", "orchard_base_b16", "base_27b_thinkoff", "base_27b_pinned"}
+TABLES = {"main", "appendix", "omit"}
+MAIN_TABLE_CAPTION = ("The corrected training set contains 7,684 room-fixed rows, and lenient accuracy is the primary metric. "
+                      "Qwen3.5-9B rows use batched bs16 decoding and pair only with the batched base.")
 
 
 class ScoreError(ValueError):
@@ -260,6 +263,9 @@ def load_cell(entry, base_dir=None):
         raise ScoreError("The comparison protocol differs from its harness")
     if entry["base_ref"] not in BASE_CONDITIONS:
         raise ScoreError(f"Invalid base_ref: {entry['base_ref']!r}")
+    if "table" in entry and entry["table"] not in TABLES:
+        raise ScoreError(f"Invalid table placement: {entry['table']!r}")
+    entry.setdefault("table", "main")
     entry.setdefault("provisional", False)
     entry.setdefault("empty_items", 0)
     entry.setdefault("empty_statuses", [])
@@ -769,6 +775,13 @@ def condition_groups(cells, benchmark=None, references=False):
     return [sorted(grouped[key], key=lambda cell: {17: 0, "rep2": 1, "rep3": 2}[cell.entry["seed"]]) for key in keys]
 
 
+def cells_for_table(cells, table):
+    if table not in TABLES:
+        raise ScoreError(f"Invalid table placement: {table!r}")
+    placements = {"main"} if table == "main" else {"main", "appendix"}
+    return [cell for cell in cells if cell.entry["table"] in placements]
+
+
 def cohort(cell):
     return cell.entry["student"], cell.entry["protocol"], cell.entry["harness"]
 
@@ -803,7 +816,7 @@ def provenance(cell):
     values = [f"cell={cell.identity}", f"status={entry['status']}", f"strict={entry['strict_score_path']}",
               f"lenient={entry['lenient_score_path']}#{entry['lenient_cell_key']}",
               f"harness={entry['harness']}", f"harness_commit={entry['harness_commit']}",
-              f"base_ref={entry['base_ref']}", f"provisional={cell.provisional}", f"empty_items={entry.get('empty_items', 0)}",
+              f"base_ref={entry['base_ref']}", f"table={entry['table']}", f"provisional={cell.provisional}", f"empty_items={entry.get('empty_items', 0)}",
               f"scores_mtime_utc={date}",
               f"lenient_per_question_recomputed={cell.lenient_recomputed}", entry["provenance_note"]]
     return "% " + " | ".join(str(value).replace("\n", " ").replace("\r", " ") for value in values)
@@ -1020,7 +1033,7 @@ def caption_defaults(cells):
     macros = {}
     for benchmark, spec in BENCHMARKS.items():
         for mode in ("lenient", "strict"):
-            takeaway = winner_takeaway(cells, benchmark, mode)
+            takeaway = MAIN_TABLE_CAPTION if mode == "lenient" else winner_takeaway(cells, benchmark, mode)
             macros["captakeaway" + spec.short + ("" if mode == "lenient" else "Strict")] = takeaway
             groups = [group for group in condition_groups(cells, benchmark) if group[0].entry["condition"] == "armc"]
             ranged = [(seed_summary(group, mode)["range"], group) for group in groups if seed_summary(group, mode)["n"] > 1]
@@ -1080,8 +1093,10 @@ def write_output(path, text):
 def render_all(cells, out):
     out = safe_output(cells, out)
     out.mkdir(parents=True, exist_ok=True)
+    main_cells = cells_for_table(cells, "main")
+    appendix_cells = cells_for_table(cells, "appendix")
     captions, generated = out / "tables_captions.tex", out / "tables_captions.generated.tex"
-    defaults = caption_defaults(cells)
+    defaults = caption_defaults(appendix_cells)
     old_defaults = generated.read_text(encoding="utf-8") if generated.exists() else None
     if not captions.exists() or captions.read_text(encoding="utf-8") == old_defaults:
         write_output(captions, defaults)
@@ -1089,17 +1104,17 @@ def render_all(cells, out):
     files = {}
     for benchmark, spec in BENCHMARKS.items():
         short = spec.short.lower()
-        files[f"main_{short}.tex"] = render_accuracy(cells, benchmark, "lenient")
-        files[f"appendix_{short}_strict.tex"] = render_accuracy(cells, benchmark, "strict")
+        files[f"main_{short}.tex"] = render_accuracy(main_cells, benchmark, "lenient")
+        files[f"appendix_{short}_strict.tex"] = render_accuracy(appendix_cells, benchmark, "strict")
         for mode in ("lenient", "strict"):
-            files[f"appendix_{short}_seeds_{mode}.tex"] = render_accuracy(cells, benchmark, mode, seeds=True)
-            files[f"appendix_{short}_references_{mode}.tex"] = render_accuracy(cells, benchmark, mode, references=True)
-        files[f"appendix_{short}_diagnostics.tex"] = render_diagnostics(cells, benchmark)
-        files[f"appendix_{short}_aggregation.tex"] = render_macros(cells, benchmark)
-        matched = render_matched(cells, benchmark)
+            files[f"appendix_{short}_seeds_{mode}.tex"] = render_accuracy(appendix_cells, benchmark, mode, seeds=True)
+            files[f"appendix_{short}_references_{mode}.tex"] = render_accuracy(appendix_cells, benchmark, mode, references=True)
+        files[f"appendix_{short}_diagnostics.tex"] = render_diagnostics(appendix_cells, benchmark)
+        files[f"appendix_{short}_aggregation.tex"] = render_macros(appendix_cells, benchmark)
+        matched = render_matched(appendix_cells, benchmark)
         if matched:
             files[f"appendix_{short}_matched.tex"] = matched
-    files["appendix_seed_summaries.tex"] = render_seed_summaries(cells)
+    files["appendix_seed_summaries.tex"] = render_seed_summaries(appendix_cells)
     for name, content in files.items():
         write_output(out / name, content)
     inputs = [r"\input{" + name + "}\n" + r"\clearpage" for name in files]

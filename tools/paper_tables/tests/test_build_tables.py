@@ -179,6 +179,26 @@ class TableTests(unittest.TestCase):
         self.assertIn("--", rendered)
         self.assertNotIn(r"\textbf{--}", rendered)
 
+    def test_table_field_filters_main_and_appendix_rows(self):
+        base = tables.load_cell(self.fixture())
+        appendix_entry = self.fixture(condition="armc")
+        appendix_entry["table"] = "appendix"
+        omitted_entry = self.fixture(condition="answer_only")
+        omitted_entry["table"] = "omit"
+        appendix = tables.load_cell(appendix_entry)
+        omitted = tables.load_cell(omitted_entry)
+        cells = [base, appendix, omitted]
+        main = tables.render_accuracy(tables.cells_for_table(cells, "main"), VSI, "lenient")
+        appendix_text = tables.render_accuracy(tables.cells_for_table(cells, "appendix"), VSI, "lenient")
+        self.assertEqual(base.entry["table"], "main")
+        self.assertIn("Base &", main)
+        self.assertNotIn("Arm C", main)
+        self.assertNotIn("Answer-only control", main)
+        self.assertIn("Arm C", appendix_text)
+        self.assertNotIn("Answer-only control", appendix_text)
+        with self.assertRaisesRegex(tables.ScoreError, "table"):
+            tables.load_cell({**self.fixture(condition="setb_pilot"), "table": "supplement"})
+
     def test_pending_replicate_does_not_become_zero(self):
         cell = tables.load_cell(self.fixture(condition="armc", lenient_credit=0.8))
         pending = self.pending("armc", "rep2", protocol="trinity")
