@@ -698,7 +698,39 @@ Lenient parsing moved 0 questions in both cells, so it recovered no parse failur
 
 **Room-label-fix signal:** `room_size_estimation` has by far the largest gain (+67.00). The batched base scores 0.00% on this category, while the roomfix-corrected Qwen trace student scores 67.00%, above every other category. This full 67-point swing on the category the fix targets is the strongest single room-label-fix signal seen anywhere in this project so far. Every category gains; `object_counting` is second-largest (+43.20).
 
-**VSTIBench — PENDING (cell still on preempt).**
+#### VSTIBench (base + corrected/roomfix trace student, batched)
+
+Both rows use the official `vstibench-official-5subtask-v1` metric. The roomfix trace student's rescore is 43.93 strict to 43.93 lenient, with 0 moved; its 11 parse failures remain unrecovered. It has 4 cap-hits, 4 cap-hits without an answer, and a 266-token median generation length.
+
+##### Whole-benchmark headline (lenient primary / strict secondary)
+
+| cell | protocol | lenient (primary, %) | strict (secondary, %) | parse failures (strict → lenient) | cap-hit | median gen tokens | terminal |
+|---|---|---:|---:|---:|---:|---:|---:|
+| **Roomfix trace student, batched (148295)** | Orchard, batched bs16 | **43.93** | **43.93** | 11 → 11 | 4 | 266 | 450/450 |
+| Orchard base, batched bs16 | Orchard, batched bs16 | 27.55 | 27.55 | 203 → 203 | 202 | 3049 | 450/450 |
+
+Lenient parsing moved 0 questions in both cells, so it recovered no parse failures and every lenient score equals its strict score.
+
+**Batched-protocol delta (same protocol, valid comparison):** lenient/strict **+16.38** (distilled 43.93 minus base 27.55).
+
+##### Per question type (strict parser; lenient equals strict for both cells in every category, 0 moved)
+
+| question type | Roomfix trace, batched | Orchard base, batched | delta |
+|---|---:|---:|---:|
+| camera_displacement | 23.40 | 2.60 | +20.80 |
+| camera_movement_direction | 26.00 | 16.00 | +10.00 |
+| camera_obj_abs_dist | 41.60 | 13.80 | +27.80 |
+| camera_obj_rel_dist_v1 | 60.00 | 20.00 | **+40.00** |
+| camera_obj_rel_dist_v2 | 58.00 | 46.00 | +12.00 |
+| camera_obj_rel_dist_v3 | 60.00 | 60.00 | 0.00 |
+| obj_obj_relative_pos_lr | 52.00 | 48.00 | +4.00 |
+| obj_obj_relative_pos_nf | 70.00 | 66.00 | +4.00 |
+| obj_obj_relative_pos_ud | 86.00 | 76.00 | +10.00 |
+| **macro over raw categories** | 53.00 | 38.71 | +14.29 |
+
+**Every category gains or ties (no losses) — a clean sweep**, unlike the earlier single-item Qwen VSTIBench roomfix pilot pair, which showed real losses on `camera_obj_rel_dist_v1`/`v2` under the non-batched protocol. Largest gain: `camera_obj_rel_dist_v1`, +40.00.
+
+**This completes the Qwen corrected full-set batched pair on both benchmarks: VSIBench +33.10, VSTIBench +16.38 — both clean sweeps, no losing categories on either benchmark.**
 
 **Qwen answer-only twin (run 148380) — PENDING (publishes ~05:30Z).**
 
@@ -790,6 +822,33 @@ This is a standalone reference row that cannot pair with a distilled cell. `gene
 The lenient rescore recovers nothing: all 207 strict parse failures remain failures under the lenient parser. Thirteen of the 207 are cap-hits without an answer; the other 194 are content mismatches. One inspected case, qid 3873, emitted 3,502 tokens despite `thinkoff` and ended on `**Final Answer: D**`, where `D` was not one of that question's supplied option letters.
 
 The strict-replay self-check recomputed `primary_score` 0.2475, 207 parse failures, every category score, and metric `vsibench-official-8task-v1` exactly from raw generations. The cell's `scores.json['run']['path']` points at the Orchard mount `/project/community/jjyeung/distill/...`, which does not exist on trinity; after a `FileNotFoundError`, the wrapper remaps to the local cell copy and verifies the same recorded sha256 and byte count against the local file.
+
+### VSTIBench (`vstibench_repr450_v2`, 450 items): base, pinned (thinking on) — PROVISIONAL
+
+This is the pinned `--thinking on` base variant, `qwen36_27b_base_vsti_pinned_c3`, from Orchard smoke 148201. The official `vstibench-official-5subtask-v1` rescore is 30.71 strict to 30.71 lenient, with 0 moved; the strict-replay self-check passed exactly.
+
+#### Headline
+
+| cell | lenient (primary, %) | strict (secondary, %) | parse failures (strict → lenient) | cap-hit | cap without answer | median gen tokens | terminal |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| **qwen36_27b_base_vsti_pinned_c3 — PROVISIONAL** | **30.71** | **30.71** | 198 → 198 | 184 | 184 | 2612 | 450/450 (442 ok, 8 interrupted) |
+
+Caveats, all confirmed against the actual score/media-error data: 442/450 items completed cleanly, 8 interrupted by preemptions (excluded from the answer pool, contributing to the 198 parse failures); 184/450 (41%) hit the 4,096-token cap with pinned thinking on and produced no usable answer; 198 total parse failures (44%), 0 lenient recovery. All 184 cap-hits run to the 4,096-token budget with pinned thinking mode on; the long thinking traces consume the whole budget on a large fraction of items. This is a base-model reference cell for the 27B scale, not a distilled result — no pairing claim is made here (no 27B student cell exists yet).
+
+#### Per question type (strict parser; lenient equals strict in every category, 0 moved)
+
+| question type | qwen36_27b_base_vsti_pinned_c3 |
+|---|---:|
+| camera_displacement | 1.40 |
+| camera_movement_direction | 18.00 |
+| camera_obj_abs_dist | 26.80 |
+| camera_obj_rel_dist_v1 | 34.00 |
+| camera_obj_rel_dist_v2 | 38.00 |
+| camera_obj_rel_dist_v3 | 32.00 |
+| obj_obj_relative_pos_lr | 56.00 |
+| obj_obj_relative_pos_nf | 76.00 |
+| obj_obj_relative_pos_ud | 86.00 |
+| **macro over raw categories** | 40.91 |
 
 ## Status of In-Flight Cells
 
