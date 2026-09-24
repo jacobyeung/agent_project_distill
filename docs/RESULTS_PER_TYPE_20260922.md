@@ -732,7 +732,42 @@ Lenient parsing moved 0 questions in both cells, so it recovered no parse failur
 
 **This completes the Qwen corrected full-set batched pair on both benchmarks: VSIBench +33.10, VSTIBench +16.38 — both clean sweeps, no losing categories on either benchmark.**
 
-**Qwen answer-only twin (run 148380) — PENDING (publishes ~05:30Z).**
+#### VSIBench — answer-only student (148380), batched
+
+Both rows use the official `vsibench-official-8task-v1` metric. The corrected answer-only student's rescore is 55.24 strict to 55.24 lenient, with 0 moved. All 500 items parsed successfully; it has 0 cap-hits and a 7-token median generation length.
+
+##### Whole-benchmark headline (lenient primary / strict secondary)
+
+| cell | protocol | lenient (primary, %) | strict (secondary, %) | parse failures (strict → lenient) | cap-hit | median gen tokens | terminal |
+|---|---|---:|---:|---:|---:|---:|---:|
+| **Roomfix answer-only student, batched (148380)** | Orchard, batched bs16 | **55.24** | **55.24** | 0 → 0 | 0 | 7 | 500/500 |
+| Orchard base, batched bs16 | Orchard, batched bs16 | 14.92 | 14.92 | 374 → 374 | 367 | 4096 | 500/500 |
+
+Lenient parsing moved 0 questions in both cells, so it recovered no parse failures and every lenient score equals its strict score.
+
+**Batched-protocol delta (same protocol, valid comparison):** lenient/strict **+40.33** (distilled 55.24 minus base 14.92).
+
+##### Per question type (strict parser; lenient equals strict for both cells in every category, 0 moved)
+
+| question type | Roomfix answer-only, batched | Orchard base, batched | delta |
+|---|---:|---:|---:|
+| obj_appearance_order | 72.00 | 34.00 | +38.00 |
+| object_abs_distance | 37.60 | 11.20 | +26.40 |
+| object_counting | 52.20 | 7.80 | +44.40 |
+| object_rel_direction_easy | 68.00 | 24.00 | +44.00 |
+| object_rel_direction_hard | 40.00 | 0.00 | +40.00 |
+| object_rel_direction_medium | 58.00 | 4.00 | +54.00 |
+| object_rel_distance | 58.00 | 32.00 | +26.00 |
+| object_size_estimation | 49.20 | 15.00 | +34.20 |
+| room_size_estimation | 67.60 | 0.00 | **+67.60** |
+| route_planning | 50.00 | 10.00 | +40.00 |
+| **macro over raw categories** | 55.26 | 13.80 | +41.46 |
+
+The answer-only student exceeds the corrected trace student by 7.22 points (55.24 vs 48.02) and gains in every question type. The batched base hits the 4,096-token cap on 367/500 generations, including 366 without an answer. A 32,768-token base rerun is scheduled; the delta will be restated against that result.
+
+#### VSTIBench — answer-only student (148380), batched — HELD
+
+The cell landed 05:37Z with 48/450 interrupted items after preemption. The rerun is requested; no number is of record until the 48 items are rerun.
 
 ### VSTIBench (`vstibench_repr450_v2`, 450 items): base vs r6 format-A control
 
@@ -856,6 +891,7 @@ Caveats, all confirmed against the actual score/media-error data: 442/450 items 
 |---|---|---|---|
 | Qwen3.5-9B arm C | VSTIBench / VSIBench | replicate (trinity) | COMPLETE — VSTIBench 450/450 and VSIBench 500/500 terminal and scored; replicate-2 results appear in the Qwen VSTIBench and VSIBench tables above. |
 | Qwen3.5-9B arm C | VSTIBench / VSIBench | replicate (Orchard) | in flight — Orchard job chain 147597 (running) / 147599 (pending on afterany:147597) |
+| Qwen3.5-9B answer-only | VSIBench / VSTIBench | corrected-set batched (148380) | VSIBench COMPLETE — 500/500 terminal and scored at 55.24 lenient/strict. VSTIBench HELD — 48/450 interrupted items after preemption; the 48 items require a rerun before a number is of record. |
 | Qwen3.5-9B format-A control r6 | VSIBench | r6 | COMPLETE — 500/500 terminal and scored; per-type table above. The last 33 items finished 2026-09-23T01:12Z after lane `claude_qwen_r6_eval_resume_20260922T2047Z` relaunched shard 7 from trinity-1-3 |
 | Qwen3.6-27B arm C | VSIBench / VSTIBench | single run | in flight — trainer resumed after a step-78/96 stall, last checkpoint step_75, 21 steps remaining, resumed steps not confirmed; separate 27B base VSIBench control (Orchard job 147601) failed all 4 shards on a path-containment defect, unresolved |
 | GT-measurement pilot | VSIBench / VSTIBench | mix-trained student | not started — gtmeasure v1/v2 target generation is done, but the two prepared training-mix commands (0.25 pilot ratio, 0.50 corrected-set ratio) are not confirmed run |
