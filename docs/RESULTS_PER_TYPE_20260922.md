@@ -1035,7 +1035,7 @@ Run r6 beats base on VSIBench by 10.68 points lenient while roughly 40 percent o
 
 ## Qwen3.6-27B
 
-The 27B results include a thinking-off VSIBench reference, a pinned single-item VSTIBench reference, and a batched bs8 VSTIBench base-versus-student pair.
+The 27B results include a thinking-off VSIBench reference, a pinned single-item VSTIBench reference, a batched bs8 VSTIBench base-versus-student pair, and a provisional base-only bs8 VSIBench row.
 Comparisons apply only within a matching decode protocol.
 
 ### VSIBench (`vsibench_answerable500`, 500 items): thinking-off base
@@ -1142,6 +1142,42 @@ PRIMARY: on the matched 434-item cohort, the student scores 52.02 versus the bas
 SECONDARY: on all 450 items with the base's interrupted items counted wrong, the student scores 52.01 versus 28.49, a +23.52-point gain that is an UPPER bound because the missing items are the base's.
 The pinned single-item base (30.71 strict, 31.37 lenient) uses a different protocol and serves only as a reference.
 The 4,096-token cap truncates most base generations, so a 32,768-token base rerun is scheduled.
+
+### VSIBench-500 (`vsibench_answerable500`, 500 items): batched bs8 base — PROVISIONAL, base only
+
+This row covers VSIBench-500 (answerable subset, 50 per category; not comparable to published full-benchmark numbers).
+The arm C VSIBench student cell for this pair was stopped before it ran because its GPUs were released to another experimenter on 2026-09-24.
+This row is base-only and provisional; no paired delta exists.
+
+#### Headline
+
+| cell | lenient (primary, %) | strict (secondary, %) | raw macro (lenient, %) | raw macro (strict, %) | parse failures (strict → lenient) | cap-hit | cap without answer | terminal |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| **qwen36_27b_base_vsi_b8 — PROVISIONAL, base only** | **19.95** | **19.62** | 18.36 | 17.96 | 354 → 349 | 349 | 349 | 500/500 |
+
+The official `vsibench-official-8task-v1` score averages the three relative-direction categories into one task before averaging the eight tasks; the raw macro averages all ten categories.
+All 500 items have `ok` status; none were interrupted.
+Parser v2 (`126a81b`) recovers five `option_echo` answers, reducing parse failures from 354 to 349.
+The 4,096-token budget truncates 349/500 base generations without an answer, so the base score is a lower bound on the base's ability under a larger budget; this cell does not measure that larger-budget score.
+
+#### Per question type
+
+| question type | Base (lenient, %) | Base (strict, %) |
+|---|---:|---:|
+| obj_appearance_order | 48.00 | 48.00 |
+| object_abs_distance | 13.60 | 13.60 |
+| object_counting | 12.80 | 12.80 |
+| object_rel_direction_easy | 26.00 | 26.00 |
+| object_rel_direction_hard | 4.00 | 4.00 |
+| object_rel_direction_medium | 6.00 | 4.00 |
+| object_rel_distance | 36.00 | 34.00 |
+| object_size_estimation | 17.20 | 17.20 |
+| room_size_estimation | 0.00 | 0.00 |
+| route_planning | 20.00 | 20.00 |
+| **macro over raw categories** | 18.36 | 17.96 |
+
+The strict scores and category counts come from `/data3/jjyeung/orchard_publications/eval_cells/qwen36_27b_base_vsi_b8/score/scores.json` and `/data3/jjyeung/orchard_publications/eval_cells/qwen36_27b_base_vsi_b8/score/results.csv`.
+The lenient v2 rescore comes from `/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient_v2_126a81b/qwen36_27b_vsi_b8_basepreview/lenient_scores.json`.
 
 ## Mechanism controls (OneThinker-8B, Trinity)
 
