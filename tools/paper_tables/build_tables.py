@@ -531,6 +531,24 @@ def document_tables(text):
         index += 1
 
 
+def document_prose(text):
+    headings, paragraph, start = {}, [], 0
+    for line, text in enumerate(text.splitlines() + [""], 1):
+        heading = re.match(r"^(#{1,6})\s+(.+)", text)
+        if heading or not text.strip() or text.startswith("|"):
+            if paragraph:
+                yield dict(headings), start, "\n".join(paragraph)
+                paragraph = []
+            if heading:
+                level = len(heading[1])
+                headings = {key: value for key, value in headings.items() if key < level}
+                headings[level] = heading[2]
+        else:
+            if not paragraph:
+                start = line
+            paragraph.append(text)
+
+
 def benchmark_from_text(text):
     return next((key for key, spec in BENCHMARKS.items() if spec.name.lower() in text.lower()), None)
 
@@ -633,10 +651,52 @@ def column_label(text):
     return re.sub(r"\s+(?:lenient|strict|parse fail).*", "", text, flags=re.IGNORECASE).strip()
 
 
+def check_matched_prose_deltas(text, cells, report):
+    pattern = re.compile(r"\bmatched\s+(?P<count>\d+)-item\s+cohort\b"
+                         r"(?P<context>(?:[^.!?]|\.(?=\d))*?)"
+                         r"(?P<delta>[+-]\d+(?:\.\d+)?)-point\s+(?:gain|delta|change)\b", re.IGNORECASE)
+    model_lookup = {value.lower(): key for key, value in STUDENTS.items()}
+    for headings, line, paragraph in document_prose(text):
+        student = model_lookup.get(clean_doc(headings.get(2, "")).lower())
+        benchmark = benchmark_from_text(headings.get(3, ""))
+        scope = [cell for cell in cells if cell.entry["student"] == student and cell.entry["benchmark"] == benchmark]
+        if not scope:
+            continue
+        paragraph = clean_doc(paragraph)
+        for match in pattern.finditer(paragraph):
+            count = int(match["count"])
+            contexts = [match["context"], *(headings[level] for level in sorted(headings, reverse=True))]
+            modes = next((modes for context in contexts
+                          if (modes := set(re.findall(r"\b(?:lenient|strict)\b", context.lower())))), {"lenient"})
+
+            def compute():
+                if len(modes) != 1:
+                    raise QuantityUnavailable("Matched prose delta has ambiguous parser labels")
+                candidates = []
+                for group in matched_groups(scope, benchmark):
+                    base = group[0]
+                    for cell in group[1:]:
+                        excluded = matched_excluded_qids(base, cell)
+                        if len(base.strict.qids) - len(excluded) == count:
+                            candidates.append((base, cell, excluded))
+                if len(candidates) != 1:
+                    raise QuantityUnavailable(f"Manifest resolves the matched {count}-item prose delta to "
+                                              f"{len(candidates)} pairs with audited exclusions")
+                base, cell, excluded = candidates[0]
+                mode = next(iter(modes))
+                values = [raw_quantity(item, "score", mode, excluded=excluded) for item in (cell, base)]
+                return (values[0] - values[1]) * 100
+
+            identity = f"{student}/{benchmark}/matched {count}-item cohort"
+            report.compare(identity, "matched-cohort prose delta", match["delta"], compute,
+                           line + paragraph[:match.start()].count("\n"))
+
+
 def check_document(path, cells):
     report = CheckReport()
+    document = Path(path).read_text(encoding="utf-8")
     model_lookup = {value.lower(): key for key, value in STUDENTS.items()}
-    for headings, header, rows in document_tables(Path(path).read_text(encoding="utf-8")):
+    for headings, header, rows in document_tables(document):
         student = model_lookup.get(clean_doc(headings.get(2, "")).lower())
         if student is None or not any(cell.entry["student"] == student for cell in cells):
             continue
@@ -802,6 +862,7 @@ def check_document(path, cells):
                                 report.issues[-1].cause = (
                                     f"The document matches statistics over already rounded seed scores {rounded}; "
                                     "the generator retains full score precision until the final display rounding")
+    check_matched_prose_deltas(document, cells, report)
     if not report.checked:
         raise ScoreError("Document check covered no numeric result quantities")
     return report

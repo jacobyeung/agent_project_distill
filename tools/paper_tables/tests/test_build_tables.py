@@ -718,6 +718,113 @@ class TableTests(unittest.TestCase):
         self.assertNotIn("Set B pilot, matched", rendered)
         self.assertNotIn("Set B pilot, all", rendered)
 
+    def test_document_matched_prose_delta_uses_unrounded_union_scores(self):
+        for benchmark in (VSI, VSTI):
+            with self.subTest(benchmark=benchmark):
+                base = tables.load_cell(self.fixture(benchmark=benchmark, condition="orchard_base", protocol="orchard",
+                                                    lenient_credit=0.194755, empty_items=2, items_per_category=4))
+                student = tables.load_cell(self.fixture(benchmark=benchmark, condition="setb_pilot", protocol="orchard",
+                                                       lenient_credit=0.46231, empty_items=2, empty_offset=1,
+                                                       items_per_category=4))
+                excluded = tables.matched_excluded_qids(base, student)
+                self.assertEqual(excluded, frozenset({"0", "1", "2"}))
+                count = len(base.strict.qids) - len(excluded)
+                expected = (0.46231 - 0.194755) * 100
+                doc = self.root / f"matched_delta_{benchmark}.md"
+                for delta in ("+26.75", "+26.76"):
+                    with self.subTest(delta=delta):
+                        doc.write_text(f"## OneThinker-8B\n### {tables.BENCHMARKS[benchmark].name}\n"
+                                       f"PRIMARY: on the matched {count}-item cohort, the student scores 46.23 "
+                                       f"versus the base's 19.48, a {delta}-point gain.\n", encoding="utf-8")
+                        report = tables.check_document(doc, [base, student])
+                        self.assertEqual(report.checked, 1)
+                        if delta == "+26.75":
+                            self.assertEqual(len(report.issues), 1)
+                            self.assertIn("Unrounded score-derived calculation differs", report.issues[0].cause)
+                            self.assertAlmostEqual(report.issues[0].computed, expected)
+                        else:
+                            self.assertFalse(report.issues, report.format_text())
+
+    def test_document_matched_prose_delta_uses_either_sides_exclusions(self):
+        for benchmark, base_empty, student_empty in ((VSTI, 1, 0), (VSI, 0, 1)):
+            with self.subTest(benchmark=benchmark):
+                base = tables.load_cell(self.fixture(benchmark=benchmark, condition="orchard_base", protocol="orchard",
+                                                    lenient_credit=0.2, empty_items=base_empty, items_per_category=2))
+                student = tables.load_cell(self.fixture(benchmark=benchmark, condition="setb_pilot", protocol="orchard",
+                                                       lenient_credit=0.6, empty_items=student_empty, items_per_category=2))
+                count = len(base.strict.qids) - 1
+                doc = self.root / f"one_sided_delta_{benchmark}.md"
+                doc.write_text(f"## OneThinker-8B\n### {tables.BENCHMARKS[benchmark].name}\n"
+                               f"PRIMARY: on the matched {count}-item cohort, the student scores 60.00 "
+                               "versus the base's 20.00, a +40.00-point gain.\n"
+                               "SECONDARY: on all items, the student has a +99.00-point gain.\n", encoding="utf-8")
+                report = tables.check_document(doc, [base, student])
+                self.assertEqual(report.checked, 1)
+                self.assertFalse(report.issues, report.format_text())
+
+    def test_document_matched_prose_delta_respects_strict_context_and_wrapping(self):
+        base = tables.load_cell(self.fixture(benchmark=VSTI, condition="orchard_base", protocol="orchard",
+                                            strict_credit=0.5, lenient_credit=0.2, empty_items=1, items_per_category=2))
+        student = tables.load_cell(self.fixture(benchmark=VSTI, condition="setb_pilot", protocol="orchard",
+                                               strict_credit=0.3, lenient_credit=0.6, items_per_category=2))
+        doc = self.root / "strict_matched_delta.md"
+        doc.write_text("## OneThinker-8B\n### VSTIBench\n#### Matched comparison (strict parser)\n"
+                       "On the matched 17-item cohort, the student scores 30.00\n"
+                       "versus the base's 50.00, a −20.00-point gain.\n", encoding="utf-8")
+        report = tables.check_document(doc, [base, student])
+        self.assertEqual(report.checked, 1)
+        self.assertFalse(report.issues, report.format_text())
+
+    def test_document_matched_prose_delta_rejects_ambiguous_pairs(self):
+        base = tables.load_cell(self.fixture(benchmark=VSTI, condition="orchard_base", protocol="orchard",
+                                            lenient_credit=0.2, empty_items=1, items_per_category=2))
+        students = [tables.load_cell(self.fixture(benchmark=VSTI, condition=condition, protocol="orchard",
+                                                 lenient_credit=credit, items_per_category=2))
+                    for condition, credit in (("setb_pilot", 0.6), ("full_scale", 0.8))]
+        doc = self.root / "ambiguous_matched_delta.md"
+        doc.write_text("## OneThinker-8B\n### VSTIBench\n"
+                       "On the matched 17-item cohort, the student scores 60.00 "
+                       "versus the base's 20.00, a +40.00-point gain.\n", encoding="utf-8")
+        report = tables.check_document(doc, [base, *students])
+        self.assertEqual(report.checked, 1)
+        self.assertEqual(len(report.issues), 1)
+        self.assertIsNone(report.issues[0].computed)
+        self.assertIn("2 pairs", report.issues[0].cause)
+
+    def test_document_matched_prose_delta_rejects_wrong_count_and_missing_replay(self):
+        base = tables.load_cell(self.fixture(benchmark=VSTI, condition="orchard_base", protocol="orchard",
+                                            lenient_credit=0.2, empty_items=1, items_per_category=2))
+        student = tables.load_cell(self.fixture(benchmark=VSTI, condition="setb_pilot", protocol="orchard",
+                                               lenient_credit=0.6, items_per_category=2))
+        doc = self.root / "unavailable_matched_delta.md"
+        for count, cause in ((16, "0 pairs"), (17, "per-question scores are unavailable")):
+            with self.subTest(count=count):
+                if count == 17:
+                    student.lenient_rows = ()
+                doc.write_text("## OneThinker-8B\n### VSTIBench\n"
+                               f"On the matched {count}-item cohort, the student scores 60.00 "
+                               "versus the base's 20.00, a +40.00-point gain.\n", encoding="utf-8")
+                report = tables.check_document(doc, [base, student])
+                self.assertEqual(report.checked, 1)
+                self.assertEqual(len(report.issues), 1)
+                self.assertIsNone(report.issues[0].computed)
+                self.assertIn(cause, report.issues[0].cause)
+
+    def test_document_matched_prose_delta_requires_audited_exclusions(self):
+        base = tables.load_cell(self.fixture(benchmark=VSTI, condition="orchard_base", protocol="orchard",
+                                            lenient_credit=0.2, items_per_category=2))
+        student = tables.load_cell(self.fixture(benchmark=VSTI, condition="setb_pilot", protocol="orchard",
+                                               lenient_credit=0.6, items_per_category=2))
+        doc = self.root / "unaudited_matched_delta.md"
+        doc.write_text("## OneThinker-8B\n### VSTIBench\n"
+                       "On the matched 18-item cohort, the student scores 60.00 "
+                       "versus the base's 20.00, a +40.00-point gain.\n", encoding="utf-8")
+        report = tables.check_document(doc, [base, student])
+        self.assertEqual(report.checked, 1)
+        self.assertEqual(len(report.issues), 1)
+        self.assertIsNone(report.issues[0].computed)
+        self.assertIn("0 pairs", report.issues[0].cause)
+
     def test_matched_view_requires_per_question_lenient_scores(self):
         base = tables.load_cell(self.fixture(benchmark=VSTI, condition="orchard_base", protocol="orchard",
                                             empty_items=1, items_per_category=2))
@@ -885,6 +992,37 @@ class RealManifestTests(unittest.TestCase):
         gain = (tables.score_view(student, "lenient", excluded).overall
                 - tables.score_view(base, "lenient", excluded).overall) * 100
         self.assertEqual(f"{gain:.2f}", "22.09")
+
+    def test_real_manifest_27b_matched_prose_delta_uses_unrounded_scores(self):
+        manifest = json.loads((ROOT / "tools/paper_tables/manifest.json").read_text(encoding="utf-8"))
+        entries = [entry for entry in manifest["cells"] if entry["student"] == "qwen36_27b"
+                   and entry["benchmark"] == VSTI and entry["condition"] in {"base_27b_b8", "armc_27b_b8"}]
+        self.assertEqual(len(entries), 2)
+        try:
+            cells = [tables.load_cell(entry) for entry in entries]
+        except OSError as exc:
+            self.skipTest(f"Score path is unreadable: {exc}")
+        OUTPUT.mkdir(parents=True, exist_ok=True)
+        root = Path(tempfile.mkdtemp(prefix="real_27b_prose_", dir=OUTPUT))
+        for delta in ("+22.08", "+22.09"):
+            with self.subTest(delta=delta):
+                doc = root / f"matched_{delta}.md"
+                doc.write_text("## Qwen3.6-27B\n### VSTIBench\n"
+                               "| cell | lenient (%) |\n|---|---|\n"
+                               "| Base (16 interrupted) | 28.49 |\n"
+                               "| Arm C student (0 interrupted) | 52.01 |\n\n"
+                               "PRIMARY: on the matched 434-item cohort, the student scores 52.02 "
+                               f"versus the base's 29.94, a {delta}-point gain.\n", encoding="utf-8")
+                report = tables.check_document(doc, cells)
+                self.assertEqual(report.checked, 3)
+                if delta == "+22.08":
+                    self.assertEqual(len(report.issues), 1)
+                    self.assertIn("Unrounded score-derived calculation differs", report.issues[0].cause)
+                    self.assertAlmostEqual(report.issues[0].computed,
+                                           (0.520231299853949 - 0.299355982473879) * 100)
+                    self.assertEqual(report.issues[0].line, 8)
+                else:
+                    self.assertFalse(report.issues, report.format_text())
 
     def test_real_manifest_reproduces_document(self):
         try:

@@ -1138,7 +1138,7 @@ The matched cohort excludes the base's 16 interrupted qids from both cells.
 | obj_obj_relative_pos_ud | 83.72 | 90.70 |
 | **macro over raw categories** | 42.38 | 63.73 |
 
-PRIMARY: on the matched 434-item cohort, the student scores 52.02 versus the base's 29.94, a +22.08-point gain.
+PRIMARY: on the matched 434-item cohort, the student scores 52.02 versus the base's 29.94, a +22.09-point gain.
 SECONDARY: on all 450 items with the base's interrupted items counted wrong, the student scores 52.01 versus 28.49, a +23.52-point gain that is an UPPER bound because the missing items are the base's.
 The pinned single-item base (30.71 strict, 31.37 lenient) uses a different protocol and serves only as a reference.
 The 4,096-token cap truncates most base generations, so a 32,768-token base rerun is scheduled.
