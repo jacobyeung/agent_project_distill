@@ -135,10 +135,10 @@
     {
       "student": "qwen35_9b", "benchmark": "vsibench_answerable500", "condition": "base", "seed": 17,
       "strict_score_path": "/data2/jjyeung/agent_project_data/student_diagnostic_pilot_20260918/eval_instructed_provisional_e3e9ffb/artifacts/paper_eval/vsibench_answerable500/qwen35/scores/base",
-      "lenient_score_path": "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_qwen_armc_eval_20260921T1020Z/out/lenient/vsi/lenient_scores.json",
+      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient_v2_126a81b/qwen35_trinity_base_vsi/lenient_scores.json",
       "lenient_cell_key": "qwen_base_vsi", "harness_commit": "58794b87fb1c289cbaeffbf2cff4858c77ca7a87", "status": "complete", "protocol": "trinity",
       "harness": "trinity-58794b8", "base_ref": "base",
-      "provenance_note": "RESULTS_VSIBENCH_QARMC.md explicitly names the score directory and lenient rescore; also reused by the r6 and replicate-2 comparisons.", "table": "appendix"
+      "provenance_note": "RESULTS_VSIBENCH_QARMC.md explicitly names the score directory and lenient rescore; also reused by the r6 and replicate-2 comparisons. Lenient values from parser v2 126a81b.", "table": "appendix"
     },
     {
       "student": "qwen35_9b", "benchmark": "vsibench_answerable500", "condition": "answer_only", "seed": 17,
@@ -166,12 +166,12 @@
     {
       "student": "qwen35_9b", "benchmark": "vsibench_answerable500", "condition": "orchard_base", "seed": 17,
       "strict_score_path": "/data3/jjyeung/orchard_publications/eval_cells/qwen35_base_vsi_pinned/score",
-      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient/vsi_qwen35_orchard_base_pinned/lenient_scores.json",
+      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient_v2_126a81b/qwen35_base_vsi_pinned/lenient_scores.json",
       "lenient_cell_key": "qwen35_base_vsi_pinned",
       "harness_commit": "12e477b", "status": "complete", "protocol": "orchard",
       "harness": "orchard-12e477b", "base_ref": "orchard_base",
       "provisional": true, "empty_items": 53, "empty_statuses": ["media_error", "generation_error", "interrupted"],
-      "provenance_note": "RESULTS_qwen_orchard_cells.md identifies qwen35_base_vsi_pinned and its generation audit: 48 media_error, one generation_error, and four interrupted items are empty. The rescore binds the strict directory; per-question score statuses verify all 53 automatic zeros. Keep the complete 500-item denominator.", "table": "appendix"
+      "provenance_note": "RESULTS_qwen_orchard_cells.md identifies qwen35_base_vsi_pinned and its generation audit: 48 media_error, one generation_error, and four interrupted items are empty. The rescore binds the strict directory; per-question score statuses verify all 53 automatic zeros. Keep the complete 500-item denominator. Lenient values from parser v2 126a81b.", "table": "appendix"
     },
     {
       "student": "qwen35_9b", "benchmark": "vsibench_answerable500", "condition": "setb_pilot", "seed": 17,
@@ -185,14 +185,14 @@
     {
       "student": "qwen35_9b", "benchmark": "vsibench_answerable500", "condition": "full_scale", "seed": 17,
       "strict_score_path": "/data3/jjyeung/orchard_publications/eval_cells/qwen35_distilled_gtm2_answeronly_fullpool_qwen35_orchard_w4_mb2_e1_vsi_b16/score",
-      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient/vsi_qwen35_fullpool_answeronly_b16/lenient_scores.json",
+      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient_v2_126a81b/qwen35_vsi_b16/lenient_scores.json",
       "lenient_cell_key": "qwen35_distilled_gtm2_answeronly_fullpool_qwen35_orchard_w4_mb2_e1_vsi_b16",
       "harness_commit": "0ab73f9", "status": "complete", "protocol": "orchard",
       "harness": "orchard-0ab73f9-b16", "base_ref": "orchard_base_b16",
       "decode_settings": {"batch_size": 16, "token_cap": 4096},
       "cross_commit_pairing": {"base_harness": "orchard-12e477b-b16", "decode_settings": {"batch_size": 16, "token_cap": 4096}},
       "label": "Answer-only (full pool, 25,164 rows)", "doc_aliases": ["Full pool", "Answer-only (full pool, 25,164 rows)"],
-      "provenance_note": "Orchard run 148598 trained the Qwen3.5-9B answer-only student on 25,164 full-pool rows for one epoch (787 steps). Eval-cell manifest bf768204... landed at 13:48Z; MANIFEST_OK, media 500/500, and 0 interrupted. Official strict and audited lenient scores both equal 53.36, with 98 parse failures, 5 cap hits (4 without an answer), and median generation length 8. The student harness is 0ab73f9 and pairs with the 12e477b batched base only through the documented common bs16, 4,096-token decode settings.", "table": "main"
+      "provenance_note": "Orchard run 148598 trained the Qwen3.5-9B answer-only student on 25,164 full-pool rows for one epoch (787 steps). Eval-cell manifest bf768204... landed at 13:48Z; MANIFEST_OK, media 500/500, and 0 interrupted. The official strict score is 53.36, with 98 parse failures, 5 cap hits (4 without an answer), and median generation length 8. The student harness is 0ab73f9 and pairs with the 12e477b batched base only through the documented common bs16, 4,096-token decode settings. Lenient values from parser v2 126a81b.", "table": "main"
     },
     {
       "student": "qwen35_9b", "benchmark": "vsibench_answerable500", "condition": "r6_formatA", "seed": 17,
@@ -205,10 +205,10 @@
     {
       "student": "qwen35_9b", "benchmark": "vstibench_repr450_v2", "condition": "base", "seed": 17,
       "strict_score_path": "/data2/jjyeung/agent_project_data/student_diagnostic_pilot_20260918/eval_instructed_provisional_e3e9ffb/artifacts/paper_eval/vstibench_repr450_v2/qwen35/scores/base",
-      "lenient_score_path": "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_qwen_armc_eval_20260921T1020Z/out/lenient/vsti/lenient_scores.json",
+      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient_v2_126a81b/qwen35_trinity_base_vsti/lenient_scores.json",
       "lenient_cell_key": "qwen_base_vsti", "harness_commit": "58794b87fb1c289cbaeffbf2cff4858c77ca7a87", "status": "complete", "protocol": "trinity",
       "harness": "trinity-58794b8", "base_ref": "base",
-      "provenance_note": "RESULTS_VSTIBENCH_QARMC.md names this score directory and lenient rescore; the r6 reference uses the same base.", "table": "appendix"
+      "provenance_note": "RESULTS_VSTIBENCH_QARMC.md names this score directory and lenient rescore; the r6 reference uses the same base. Lenient values from parser v2 126a81b.", "table": "appendix"
     },
     {
       "student": "qwen35_9b", "benchmark": "vstibench_repr450_v2", "condition": "answer_only", "seed": 17,
@@ -255,14 +255,14 @@
     {
       "student": "qwen35_9b", "benchmark": "vstibench_repr450_v2", "condition": "full_scale", "seed": 17,
       "strict_score_path": "/data3/jjyeung/orchard_publications/eval_cells/qwen35_distilled_gtm2_answeronly_fullpool_qwen35_orchard_w4_mb2_e1_vsti_b16/score",
-      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient/vsti_qwen35_fullpool_answeronly_b16/lenient_scores.json",
+      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient_v2_126a81b/qwen35_vsti_b16/lenient_scores.json",
       "lenient_cell_key": "qwen35_distilled_gtm2_answeronly_fullpool_qwen35_orchard_w4_mb2_e1_vsti_b16",
       "harness_commit": "0ab73f9", "status": "complete", "protocol": "orchard",
       "harness": "orchard-0ab73f9-b16", "base_ref": "orchard_base_b16",
       "decode_settings": {"batch_size": 16, "token_cap": 4096},
       "cross_commit_pairing": {"base_harness": "orchard-12e477b-b16", "decode_settings": {"batch_size": 16, "token_cap": 4096}},
       "label": "Answer-only (full pool, 25,164 rows)", "doc_aliases": ["Full pool", "Answer-only (full pool, 25,164 rows)"],
-      "provenance_note": "Orchard run 148598 trained the Qwen3.5-9B answer-only student on 25,164 full-pool rows for one epoch (787 steps). Eval-cell manifest 0b0b8a7f... landed at 13:54Z; MANIFEST_OK, media 450/450, and 0 interrupted. Official strict and audited lenient scores both equal 49.61 (unrounded 0.496133333333), with 11 parse failures, 12 cap hits (11 without an answer), and median generation length 7. All parse failures are end-of-turn loops that continue through the cap after an answer and <|im_end|>, not option echoes. The student harness is 0ab73f9 and pairs with the clean 12e477b batched base only through the documented common bs16, 4,096-token decode settings.", "table": "main"
+      "provenance_note": "Orchard run 148598 trained the Qwen3.5-9B answer-only student on 25,164 full-pool rows for one epoch (787 steps). Eval-cell manifest 0b0b8a7f... landed at 13:54Z; MANIFEST_OK, media 450/450, and 0 interrupted. The official strict score is 49.61, with 11 parse failures, 12 cap hits (11 without an answer), and median generation length 7. All strict parse failures are end-of-turn loops that continue through the cap after an answer and <|im_end|>, not option echoes. The student harness is 0ab73f9 and pairs with the clean 12e477b batched base only through the documented common bs16, 4,096-token decode settings. Lenient values from parser v2 126a81b.", "table": "main"
     },
     {
       "student": "qwen35_9b", "benchmark": "vstibench_repr450_v2", "condition": "r6_formatA", "seed": 17,
@@ -275,10 +275,10 @@
     {
       "student": "qwen36_27b", "benchmark": "vsibench_answerable500", "condition": "base_27b_thinkoff", "seed": 17,
       "strict_score_path": "/data3/jjyeung/orchard_publications/eval_cells/qwen36_27b_base_vsi_thinkoff/score",
-      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient/vsi_qwen36_27b_base_thinkoff/lenient_scores.json",
+      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient_v2_126a81b/qwen36_27b_base_vsi_thinkoff/lenient_scores.json",
       "lenient_cell_key": "qwen36_27b_base_vsi_thinkoff", "harness_commit": "12e477b", "status": "complete", "protocol": "thinking_off_reference", "reference_only": true,
       "harness": "orchard-12e477b", "base_ref": "base_27b_thinkoff",
-      "provenance_note": "RESULTS_qwen36_27b_base_vsi_thinkoff.md authenticates the Orchard copy and rescore. Thinking off differs from pinned thinking; this standalone reference cannot pair with a distilled cell or receive best marks.", "table": "appendix"
+      "provenance_note": "RESULTS_qwen36_27b_base_vsi_thinkoff.md authenticates the Orchard copy and rescore. Thinking off differs from pinned thinking; this standalone reference cannot pair with a distilled cell or receive best marks. Lenient values from parser v2 126a81b.", "table": "appendix"
     },
     {
       "student": "onethinker_8b", "benchmark": "vsibench_answerable500", "condition": "trace_corrected", "seed": 17,
@@ -315,82 +315,82 @@
     {
       "student": "qwen35_9b", "benchmark": "vsibench_answerable500", "condition": "orchard_base_b16", "seed": 17,
       "strict_score_path": "/data3/jjyeung/orchard_publications/eval_cells/qwen35_base_vsi_b16/score",
-      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient/vsi_qwen35_orchard_roomfix_b16/lenient_scores.json",
+      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient_v2_126a81b/qwen35_vsi_b16/lenient_scores.json",
       "lenient_cell_key": "qwen35_base_vsi_b16", "harness_commit": "12e477b", "status": "complete", "protocol": "orchard",
       "harness": "orchard-12e477b-b16", "base_ref": "orchard_base_b16",
       "decode_settings": {"batch_size": 16, "token_cap": 4096},
       "doc_aliases": ["Orchard base, batched bs16"],
-      "provenance_note": "The audited Orchard bs16 score artifact supplies the Qwen3.5-9B batched base for the matched batched cohort.", "table": "main"
+      "provenance_note": "The audited Orchard bs16 score artifact supplies the Qwen3.5-9B batched base for the matched batched cohort. Lenient values from parser v2 126a81b.", "table": "main"
     },
     {
       "student": "qwen35_9b", "benchmark": "vstibench_repr450_v2", "condition": "orchard_base_b16", "seed": 17,
       "strict_score_path": "/data3/jjyeung/orchard_publications/eval_cells/qwen35_base_vsti_b16/score",
-      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient/vsti_qwen35_orchard_roomfix_b16/lenient_scores.json",
+      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient_v2_126a81b/qwen35_vsti_b16/lenient_scores.json",
       "lenient_cell_key": "qwen35_base_vsti_b16", "harness_commit": "12e477b", "status": "complete", "protocol": "orchard",
       "harness": "orchard-12e477b-b16", "base_ref": "orchard_base_b16",
       "decode_settings": {"batch_size": 16, "token_cap": 4096},
       "doc_aliases": ["Base (Orchard, batched)"],
-      "provenance_note": "The audited Orchard bs16 score artifact supplies the Qwen3.5-9B batched base for the matched batched cohort.", "table": "main"
+      "provenance_note": "The audited Orchard bs16 score artifact supplies the Qwen3.5-9B batched base for the matched batched cohort. Lenient values from parser v2 126a81b.", "table": "main"
     },
     {
       "student": "qwen35_9b", "benchmark": "vsibench_answerable500", "condition": "setb_pilot_b16", "seed": 17,
       "strict_score_path": "/data3/jjyeung/orchard_publications/eval_cells/qwen35_distilled_gtm2_v25_qwen35_orchard_w4_vsi_b16/score",
-      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient/vsi_qwen35_orchard_b16/lenient_scores.json",
+      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient_v2_126a81b/qwen35_vsi_b16/lenient_scores.json",
       "lenient_cell_key": "qwen35_distilled_gtm2_v25_qwen35_orchard_w4_vsi_b16", "harness_commit": "12e477b", "status": "complete", "protocol": "orchard",
       "harness": "orchard-12e477b-b16", "base_ref": "orchard_base_b16",
-      "provenance_note": "The audited Orchard bs16 score artifact supplies the Qwen3.5-9B Set B pilot for the matched batched cohort.", "table": "appendix"
+      "provenance_note": "The audited Orchard bs16 score artifact supplies the Qwen3.5-9B Set B pilot for the matched batched cohort. Lenient values from parser v2 126a81b.", "table": "appendix"
     },
     {
       "student": "qwen35_9b", "benchmark": "vstibench_repr450_v2", "condition": "setb_pilot_b16", "seed": 17,
       "strict_score_path": "/data3/jjyeung/orchard_publications/eval_cells/qwen35_distilled_gtm2_v25_qwen35_orchard_w4_vsti_b16/score",
-      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient/vsti_qwen35_orchard_b16/lenient_scores.json",
+      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient_v2_126a81b/qwen35_vsti_b16/lenient_scores.json",
       "lenient_cell_key": "qwen35_distilled_gtm2_v25_qwen35_orchard_w4_vsti_b16", "harness_commit": "12e477b", "status": "complete", "protocol": "orchard",
       "harness": "orchard-12e477b-b16", "base_ref": "orchard_base_b16",
-      "provenance_note": "The audited Orchard bs16 score artifact supplies the Qwen3.5-9B Set B pilot for the matched batched cohort.", "table": "appendix"
+      "provenance_note": "The audited Orchard bs16 score artifact supplies the Qwen3.5-9B Set B pilot for the matched batched cohort. Lenient values from parser v2 126a81b.", "table": "appendix"
     },
     {
       "student": "qwen35_9b", "benchmark": "vsibench_answerable500", "condition": "trace_corrected", "seed": 17,
       "strict_score_path": "/data3/jjyeung/orchard_publications/eval_cells/qwen35_distilled_gtm2_v25full_qwen35_orchard_w4_roomfix_qcap4096_mb2_vsi_b16/score",
-      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient/vsi_qwen35_orchard_roomfix_b16/lenient_scores.json",
+      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient_v2_126a81b/qwen35_vsi_b16/lenient_scores.json",
       "lenient_cell_key": "qwen35_distilled_gtm2_v25full_qwen35_orchard_w4_roomfix_qcap4096_mb2_vsi_b16", "harness_commit": "12e477b", "status": "complete", "protocol": "orchard",
       "harness": "orchard-12e477b-b16", "base_ref": "orchard_base_b16",
-      "provenance_note": "The audited Orchard bs16 score artifact records the Qwen3.5-9B corrected-set trace student from run 148295 and pairs it only with the batched base.", "table": "main"
+      "provenance_note": "The audited Orchard bs16 score artifact records the Qwen3.5-9B corrected-set trace student from run 148295 and pairs it only with the batched base. Lenient values from parser v2 126a81b.", "table": "main"
     },
     {
       "student": "qwen35_9b", "benchmark": "vstibench_repr450_v2", "condition": "trace_corrected", "seed": 17,
       "strict_score_path": "/data3/jjyeung/orchard_publications/eval_cells/qwen35_distilled_gtm2_v25full_qwen35_orchard_w4_roomfix_qcap4096_mb2_vsti_b16/score",
-      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient/vsti_qwen35_orchard_roomfix_b16/lenient_scores.json",
+      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient_v2_126a81b/qwen35_vsti_b16/lenient_scores.json",
       "lenient_cell_key": "qwen35_distilled_gtm2_v25full_qwen35_orchard_w4_roomfix_qcap4096_mb2_vsti_b16", "harness_commit": "12e477b", "status": "complete", "protocol": "orchard",
       "harness": "orchard-12e477b-b16", "base_ref": "orchard_base_b16",
-      "provenance_note": "The audited Orchard bs16 score artifact records the Qwen3.5-9B corrected-set trace student from run 148295 and pairs it only with the batched base.", "table": "main"
+      "provenance_note": "The audited Orchard bs16 score artifact records the Qwen3.5-9B corrected-set trace student from run 148295 and pairs it only with the batched base. Lenient values from parser v2 126a81b.", "table": "main"
     },
     {
       "student": "qwen36_27b", "benchmark": "vstibench_repr450_v2", "condition": "base_27b_pinned", "seed": 17,
       "strict_score_path": "/data3/jjyeung/orchard_publications/eval_cells/qwen36_27b_base_vsti_pinned_c3/score",
-      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient/vsti_qwen36_27b_base_pinned_c3/lenient_scores.json",
+      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient_v2_126a81b/qwen36_27b_base_vsti_pinned_c3/lenient_scores.json",
       "lenient_cell_key": "qwen36_27b_base_vsti_pinned_c3", "harness_commit": "12e477b", "status": "complete", "protocol": "orchard", "reference_only": true,
       "harness": "orchard-12e477b", "base_ref": "base_27b_pinned",
       "provisional": true, "empty_items": 8, "empty_statuses": ["interrupted"],
-      "provenance_note": "This provisional pinned-thinking Qwen3.6-27B VSTIBench base is appendix-only: preemptions cut 8 of 450 items, 184 items hit the 4,096-token cap, and 198 items failed parsing.", "table": "appendix"
+      "provenance_note": "This provisional pinned-thinking Qwen3.6-27B VSTIBench base is appendix-only: preemptions cut 8 of 450 items, 184 items hit the 4,096-token cap, and 198 items failed parsing. Lenient values from parser v2 126a81b.", "table": "appendix"
     },
     {
       "student": "qwen35_9b", "benchmark": "vsibench_answerable500", "condition": "answer_only_corrected", "seed": 17,
       "strict_score_path": "/data3/jjyeung/orchard_publications/eval_cells/qwen35_distilled_gtm2_v25full_qwen35_orchard_w4_roomfix_answeronly_mb2_vsi_b16/score",
-      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient/vsi_qwen35_orchard_answeronly_b16/lenient_scores.json",
+      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient_v2_126a81b/qwen35_vsi_b16/lenient_scores.json",
       "lenient_cell_key": "qwen35_distilled_gtm2_v25full_qwen35_orchard_w4_roomfix_answeronly_mb2_vsi_b16", "harness_commit": "12e477b", "status": "complete", "protocol": "orchard",
       "harness": "orchard-12e477b-b16", "base_ref": "orchard_base_b16",
       "doc_aliases": ["Answer-only (corrected set)"],
-      "provenance_note": "The audited Orchard bs16 score artifact records the Qwen3.5-9B corrected-set answer-only student from run 148380 (publication sha 1f33e20f..., eval-cell manifest sha c1aa3ac6...): 500/500 items are ok, with 0 parse failures and 0 cap hits; it pairs only with the batched base.", "table": "main"
+      "provenance_note": "The audited Orchard bs16 score artifact records the Qwen3.5-9B corrected-set answer-only student from run 148380 (publication sha 1f33e20f..., eval-cell manifest sha c1aa3ac6...): 500/500 items are ok, with 0 parse failures and 0 cap hits; it pairs only with the batched base. Lenient values from parser v2 126a81b.", "table": "main"
     },
     {
       "student": "qwen35_9b", "benchmark": "vstibench_repr450_v2", "condition": "answer_only_corrected", "seed": 17,
       "strict_score_path": "/data3/jjyeung/orchard_publications/eval_cells/qwen35_distilled_gtm2_v25full_qwen35_orchard_w4_roomfix_answeronly_mb2_vsti_b16/score",
-      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient/vsti_qwen35_orchard_answeronly_b16/lenient_scores.json",
+      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient_v2_126a81b/qwen35_vsti_b16/lenient_scores.json",
       "lenient_cell_key": "qwen35_distilled_gtm2_v25full_qwen35_orchard_w4_roomfix_answeronly_mb2_vsti_b16", "harness_commit": "12e477b", "status": "complete", "protocol": "orchard",
       "harness": "orchard-12e477b-b16", "base_ref": "orchard_base_b16",
       "provisional": true, "empty_items": 48, "empty_statuses": ["interrupted"], "main_matched": true,
       "doc_aliases": ["Answer-only (corrected set)"],
-      "provenance_note": "Orchard run 148380, batched bs16 with a 4,096-token cap, landed at 05:37Z with eval-cell manifest sha f37ba0dd... . The only full attempt has 402/450 ok items and 48 interrupted items after preemption; durable starts lack terminal receipts, and the attempt-authority guard forbids a second full attempt.", "table": "main"
+      "provenance_note": "Orchard run 148380, batched bs16 with a 4,096-token cap, landed at 05:37Z with eval-cell manifest sha f37ba0dd... . The only full attempt has 402/450 ok items and 48 interrupted items after preemption; durable starts lack terminal receipts, and the attempt-authority guard forbids a second full attempt. Lenient values from parser v2 126a81b.", "table": "main"
     },
     {
       "student": "qwen35_9b", "benchmark": "vstibench_repr450_v2", "condition": "answer_only_corrected_redecode48", "seed": 17,
@@ -403,21 +403,21 @@
     {
       "student": "qwen36_27b", "benchmark": "vstibench_repr450_v2", "condition": "base_27b_b8", "seed": 17,
       "strict_score_path": "/data3/jjyeung/orchard_publications/eval_cells/qwen36_27b_base_vsti_b8/score",
-      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient/vsti_qwen36_27b_b8_pair/lenient_scores.json",
+      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient_v2_126a81b/qwen36_27b_vsti_b8/lenient_scores.json",
       "lenient_cell_key": "qwen36_27b_base_vsti_b8", "harness_commit": "0ab73f9", "status": "complete", "protocol": "orchard",
       "harness": "orchard-0ab73f9-b8", "base_ref": "base_27b_b8",
       "provisional": true, "empty_items": 16, "empty_statuses": ["interrupted"],
       "doc_aliases": ["Base (16 interrupted)"],
-      "provenance_note": "The audited Orchard bs8 base has 16 interrupted items; matched comparisons exclude exactly those base-side qids from both cells.", "table": "appendix"
+      "provenance_note": "The audited Orchard bs8 base has 16 interrupted items; matched comparisons exclude exactly those base-side qids from both cells. Lenient values from parser v2 126a81b.", "table": "main"
     },
     {
       "student": "qwen36_27b", "benchmark": "vstibench_repr450_v2", "condition": "armc_27b_b8", "seed": 17,
       "strict_score_path": "/data3/jjyeung/orchard_publications/eval_cells/qwen36_27b_distilled_armc_27b_orchard_d_vsti_b8/score",
-      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient/vsti_qwen36_27b_b8_pair/lenient_scores.json",
+      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient_v2_126a81b/qwen36_27b_vsti_b8/lenient_scores.json",
       "lenient_cell_key": "qwen36_27b_distilled_armc_27b_orchard_d_vsti_b8", "harness_commit": "0ab73f9", "status": "complete", "protocol": "orchard",
       "harness": "orchard-0ab73f9-b8", "base_ref": "base_27b_b8",
       "doc_aliases": ["Arm C student (0 interrupted)"],
-      "provenance_note": "The audited Orchard bs8 Arm C student has 450 terminal items and pairs only with the bs8 base.", "table": "appendix"
+      "provenance_note": "The audited Orchard bs8 Arm C student has 450 terminal items and pairs only with the bs8 base. Lenient values from parser v2 126a81b.", "table": "main"
     }
   ]
 }

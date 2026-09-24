@@ -8,7 +8,29 @@ Arm C trains on 3,431 matched compact-trace rows, with 3,052 training rows and 3
 
 Lenient parsing is the primary metric for every base-versus-student comparison because a correct answer given in the wrong format should not receive a penalty. Strict parsing is secondary, and error analysis separates perception errors from reasoning errors.
 
-Every results table therefore reports lenient accuracy as the primary column and strict accuracy as secondary wherever the source provides both. The Qwen source files `claude_qwen_armc_eval_20260921T1020Z` and `claude_qwen_r6_eval_20260921T0400Z` label strict as the metric of record and lenient as a parser-sensitivity row; their strict and lenient columns are numerically identical in every per-type row and overall row. This is a fact about the source data, so both columns appear below as given.
+Every results table therefore reports lenient accuracy as the primary column and strict accuracy as secondary wherever the source provides both. The Qwen source files `claude_qwen_armc_eval_20260921T1020Z` and `claude_qwen_r6_eval_20260921T0400Z` label strict as the metric of record and lenient as a parser-sensitivity row. Parser v2 can recover correctly formatted option echoes and first-turn answers, so the two columns can differ; the tables report each value separately.
+
+## Lenient parser v2 (126a81b)
+
+Parser v2 is the primary lenient metric and is no looser than strict: it accepts only a response that strict would accept after the certified local rewrite described below. The parser is commit `126a81b62b2b885cfd81ee2b6de824393a17cbfa` on trainer-repo branch `parser-lenient-20260920`, reviewed in `/home/jjyeung/agent_project_distill/agent/scratch/devin_lanes/lenient_option_echo_20260924/work/repo2`.
+
+When the reviewed bdd490c lenient parser fails, `option_echo` accepts a strict-selected span that exactly echoes a supplied option as `A.`, `A)`, `A:`, or `A. <option A's own text>` wherever strict would accept the bare letter on that span, with the same span selection and thinking handling. `end_of_turn` applies only when the reply contains `<|im_end|>` and a thinking-tag depth scan shows that the text before its first occurrence lies outside every thinking block; it parses that prefix, restricted to exactly one visible line, with strict plus `option_echo`.
+
+The option-echo oracle certified equivalence to strict after rewriting the echo span to the bare letter across 83,531 probe firings, with 0 mismatches. The end-of-turn depth scan passed 36,792 generated cases and every earlier probe. Independent Devin Astra review round 3 returned PASS for equivalence, depth scanning, additivity, symmetry, and replay: 193,043 probes produced 0 failures, all 2,809 baseline successes were byte-identical, and all 121 changed items across eight cells changed only from failure to answer.
+
+| cell | benchmark | strict (%) | lenient bdd490c (%) | lenient v2 (%) | parse failures before → after |
+|---|---|---:|---:|---:|---:|
+| `qwen35_base_vsi_b16` | VSIBench | 14.92 | 14.92 | 15.50 | 374 → 366 |
+| `qwen35_base_vsti_b16` | VSTIBench | 27.55 | 27.55 | 27.68 | 203 → 202 |
+| `qwen35_distilled_gtm2_answeronly_fullpool_qwen35_orchard_w4_mb2_e1_vsi_b16` | VSIBench | 53.36 | 53.36 | 57.56 | 98 → 0 |
+| `qwen35_distilled_gtm2_answeronly_fullpool_qwen35_orchard_w4_mb2_e1_vsti_b16` | VSTIBench | 49.61 | 49.61 | 50.55 | 11 → 0 |
+| `qwen_base_vsi` | VSIBench | 15.47 | 15.47 | 15.72 | 378 → 374 |
+| `qwen_base_vsti` | VSTIBench | 28.59 | 28.59 | 28.59 | 205 → 203 |
+| `qwen35_base_vsi_pinned` | VSIBench | 12.68 | 12.68 | 13.26 | 390 → 379 |
+| `qwen36_27b_base_vsi_thinkoff` | VSIBench | 24.75 | 24.75 | 30.92 | 207 → 147 |
+| `qwen36_27b_base_vsti_pinned_c3` | VSTIBench | 30.71 | 30.71 | 31.37 | 198 → 192 |
+| `qwen36_27b_base_vsti_b8` | VSTIBench | 28.49 | 28.49 | 28.49 | 204 → 201 |
+| `qwen35_base_vsti_b16_int48` (combined supplement) | VSTIBench | 27.28 | 27.28 | 27.41 | 205 → 204 |
 
 ## OneThinker-8B
 
@@ -464,7 +486,7 @@ On the corrected (roomfix) full set, the answer-only student beats both base and
 
 | question type | n | base lenient (%) | arm C lenient (%) | rep2 lenient (%) | arm C - base delta | base strict (%) | arm C strict (%) | rep2 strict (%) | base parse fail | arm C parse fail | rep2 parse fail |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| obj_appearance_order | 50 | 26.00 | 70.00 | 74.00 | +44.00 | 26.00 | 70.00 | 74.00 | 32 | 0 | 0 |
+| obj_appearance_order | 50 | 28.00 | 70.00 | 74.00 | +42.00 | 26.00 | 70.00 | 74.00 | 32 | 0 | 0 |
 | object_abs_distance | 50 | 12.60 | 33.60 | 37.00 | +21.00 | 12.60 | 33.60 | 37.00 | 36 | 0 | 0 |
 | object_counting | 50 | 7.40 | 56.00 | 57.20 | +48.60 | 7.40 | 56.00 | 57.20 | 43 | 0 | 0 |
 | object_rel_direction_easy | 50 | 28.00 | 54.00 | 56.00 | +26.00 | 28.00 | 54.00 | 56.00 | 29 | 0 | 0 |
@@ -479,7 +501,7 @@ On the corrected (roomfix) full set, the answer-only student beats both base and
 
 | quantity | base | arm C | rep2 | arm C - base delta | rep2 - base | rep2 - arm C |
 |---|---:|---:|---:|---:|---:|---:|
-| primary score, lenient (%) | 15.47 | 49.25 | 48.79 | +33.77 | +33.32 | -0.46 |
+| primary score, lenient (%) | 15.72 | 49.25 | 48.79 | +33.52 | +33.07 | -0.46 |
 | raw category macro, strict (%) | 14.78 | 47.80 | 47.70 | +33.02 | +32.92 | -0.10 |
 | primary score, strict (%) | 15.47 | 49.25 | 48.79 | +33.77 | +33.32 | -0.46 |
 | parse failures | 378 | 0 | 0 | -378 | -378 | +0 |
@@ -540,11 +562,11 @@ Cell `qwen35_distilled_gtm2_v25_qwen35_orchard_w4_vsi` pairs with the Orchard ba
 | cell | lenient (primary, %) | strict (secondary, %) | parse failures (strict → lenient) | cap-hit | cap w/o answer | median gen tokens | terminal |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | **Set B distilled (Orchard)** | **39.80** | **39.80** | 6 → 6 | 5 | 5 | 428 | 500/500 |
-| Orchard base (PROVISIONAL, 53 bad items) | 12.68 | 12.68 | 390 → 390 | 327 | 326 | 4096 | 500/500 |
-| trinity Qwen base | 15.47 | 15.47 | 378 → 378 | 373 | 373 | - | 500/500 |
+| Orchard base (PROVISIONAL, 53 bad items) | 13.26 | 12.68 | 390 → 379 | 327 | 326 | 4096 | 500/500 |
+| trinity Qwen base | 15.72 | 15.47 | 378 → 374 | 373 | 373 | - | 500/500 |
 | trinity Qwen arm C (published) | 49.25 | 49.25 | 0 → 0 | 0 | 0 | - | 500/500 |
 
-**Deltas, all 500 (Set B distilled lenient 39.80 minus):** Orchard base (provisional) **+27.12**; trinity Qwen base **+24.33**; trinity Qwen arm C (published) **−9.45**. Set B beats the defective, provisional Orchard base and the trinity base, while published arm C leads by 9.45 points.
+**Deltas, all 500 (Set B distilled lenient 39.80 minus):** Orchard base (provisional) **+26.54**; trinity Qwen base **+24.08**; trinity Qwen arm C (published) **−9.45**. Set B beats the defective, provisional Orchard base and the trinity base, while published arm C leads by 9.45 points.
 
 #### Matched-cohort comparison, excluding the Orchard base's 53 bad qids from both sides (447 items)
 
@@ -553,13 +575,13 @@ The official scorer (`canonical_scorer`/`aggregate_categories`), not a flat mean
 | cell | lenient (%) | strict (%) | raw category macro (%) |
 |---|---:|---:|---:|
 | Set B distilled (Orchard), 447-item matched cohort | 38.85 | 38.85 | 38.94 |
-| Orchard base, 447-item matched cohort (excl. its own 53 bad qids) | 14.24 | 14.24 | 13.56 |
+| Orchard base, 447-item matched cohort (excl. its own 53 bad qids) | 14.88 | 14.24 | 14.22 (lenient) / 13.56 (strict) |
 
-**Deltas, matched 447-item cohort:** lenient **+24.61**, strict **+24.61**. The matched-cohort gap narrows from the raw all-500 comparison's +27.12, unlike the OneThinker VSTIBench matched-cohort comparison, where excluding the base's bad items widened the gap. The base's excluded items are harder to answer on average rather than a uniform drag. Set B clearly beats the matched Orchard base under either accounting.
+**Deltas, matched 447-item cohort:** lenient **+23.97**, strict **+24.61**. The matched-cohort gap narrows from the raw all-500 comparison's +26.54. The base's excluded items are harder to answer on average rather than a uniform drag. Set B clearly beats the matched Orchard base under either accounting.
 
 #### Per question type — strict parser, all 500 items
 
-Lenient parsing moved 0 questions for the distilled cell, so its lenient accuracy equals its strict accuracy in every category.
+The table reports strict values. The distilled cell's lenient values equal its strict values, while parser v2 recovers eleven answers for the Orchard base.
 
 | question type | Set B distilled (Orchard) | Orchard base (prov.) | delta |
 |---|---:|---:|---:|
@@ -586,6 +608,8 @@ Set B delivers a clean win over both Orchard reference points: the raw provision
 
 Cells decoded in batched mode (bs16, combined Orchard deployment) pair only with other batched cells and never with single-item cells. Batched greedy decoding is not token-identical to single-item decoding: the decode lane's identity table (appendix source: `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_decode_throughput_20260923T0805Z/out/identity/IDENTITY.md`) shows `bs16` diverging from true single-item (`batch-1-new`) generation at token indices as low as 3 across all 24 sampled items, with the top-1 token differing from the single-item top-1 token in every item. Expected floating-point non-associativity under batched attention/matmul kernels causes this behavior; it does not indicate a scoring or harness defect.
 
+Batched Orchard decoding stops only on `<|endoftext|>`, not on the chat end-of-turn token `<|im_end|>`, so a reply can continue through new user and assistant turns until the 4,096-token cap. Parser v2 scores the first turn when its certified end-of-turn conditions hold; the decode harness is unchanged.
+
 #### VSTIBench (base + Set B pilot distilled, batched pair COMPLETE)
 
 Base cell `qwen35_base_vsti_b16` landed 2026-09-23T15:51:10Z; distilled cell `qwen35_distilled_gtm2_v25_qwen35_orchard_w4_vsti_b16` landed 2026-09-23T16:22:20Z. Both cells are clean (0 bad items), so the matched cohort equals the raw 450-item comparison. Both use the official `vstibench-official-5subtask-v1` metric, and their strict-replay self-checks passed.
@@ -595,13 +619,13 @@ Base cell `qwen35_base_vsti_b16` landed 2026-09-23T15:51:10Z; distilled cell `qw
 | cell | protocol | lenient (primary, %) | strict (secondary, %) | parse failures (strict → lenient) | cap-hit | median gen tokens | terminal |
 |---|---|---:|---:|---:|---:|---:|---:|
 | **Set B pilot distilled, batched bs16** | Orchard, batched bs16 | **46.43** | **46.43** | 8 → 8 | 3 | 187 | 450/450 |
-| Orchard base, batched bs16 | Orchard, batched bs16 | 27.55 | 27.55 | 203 → 203 | 202 | 3049 | 450/450 |
+| Orchard base, batched bs16 | Orchard, batched bs16 | 27.68 | 27.55 | 203 → 202 | 202 | 3049 | 450/450 |
 
-Lenient parsing moved 0 questions in both cells, so it recovered no parse failures and every lenient score equals its strict score.
+Parser v2 leaves the distilled pilot unchanged and recovers one base answer. The per-type table reports strict values.
 
-**Batched-protocol delta (same protocol, valid comparison):** lenient/strict **+18.88** (distilled 46.43 minus base 27.55).
+**Batched-protocol delta (same protocol, valid comparison):** lenient **+18.75** and strict **+18.88** (distilled 46.43 minus base 27.68 / 27.55).
 
-##### Per question type (strict parser; lenient equals strict for both cells in every category, 0 moved)
+##### Per question type (strict parser)
 
 | question type | Set B pilot distilled, batched | Orchard base, batched | delta |
 |---|---:|---:|---:|
@@ -620,7 +644,7 @@ Every category gains or ties, a clean sweep unlike the single-item VSTIBench pil
 
 ##### Protocol-difference note (not a delta) vs the single-item Set B pilot pair (44.57 distilled / 29.93 base, delta +14.64)
 
-Both absolute numbers move under batching but in opposite directions: distilled rises 1.86 points (46.43 vs 44.57) while base falls 2.38 points (27.55 vs 29.93). The shifts partly reinforce rather than cancel, so the batched-protocol delta (+18.88) is larger than the single-item delta (+14.64, 4.24 points apart); the VSIBench pair differs because its two deltas are within 0.18 points. This observation covers one pair per protocol; it does not validate equivalence or support a claim that batching helps more. The benchmarks' different shift patterns argue against reading too much into either single comparison.
+Both absolute numbers move under batching but in opposite directions: distilled rises 1.86 points (46.43 vs 44.57) while base falls 2.25 points (27.68 vs 29.93). The shifts partly reinforce rather than cancel, so the batched-protocol lenient delta (+18.75) is larger than the single-item delta (+14.64, 4.11 points apart); the VSIBench pair differs because its two deltas are within 0.18 points. This observation covers one pair per protocol; it does not validate equivalence or support a claim that batching helps more. The benchmarks' different shift patterns argue against reading too much into either single comparison.
 
 #### VSIBench (base + Set B pilot distilled, batched pair COMPLETE)
 
@@ -631,13 +655,13 @@ Base cell `qwen35_base_vsi_b16` landed 2026-09-23T15:56:30Z; distilled cell `qwe
 | cell | protocol | lenient (primary, %) | strict (secondary, %) | parse failures (strict → lenient) | cap-hit | median gen tokens | terminal |
 |---|---|---:|---:|---:|---:|---:|---:|
 | **Set B pilot distilled, batched bs16** | Orchard, batched bs16 | **41.86** | **41.86** | 6 → 6 | 4 | 424 | 500/500 |
-| Orchard base, batched bs16 | Orchard, batched bs16 | 14.92 | 14.92 | 374 → 374 | 367 | 4096 | 500/500 |
+| Orchard base, batched bs16 | Orchard, batched bs16 | 15.50 | 14.92 | 374 → 366 | 367 | 4096 | 500/500 |
 
-Lenient parsing moved 0 questions in both cells, so it recovered no parse failures and every lenient score equals its strict score. The base's 4,096-token median shows that nearly every generation runs to the budget.
+Parser v2 leaves the distilled pilot unchanged and recovers eight base answers. The per-type table reports strict values. The base's 4,096-token median shows that nearly every generation runs to the budget.
 
-**Batched-protocol delta (same protocol, valid comparison):** lenient/strict **+26.94** (distilled 41.86 minus base 14.92).
+**Batched-protocol delta (same protocol, valid comparison):** lenient **+26.36** and strict **+26.94** (distilled 41.86 minus base 15.50 / 14.92).
 
-##### Per question type (strict parser; lenient equals strict for both cells in every category, 0 moved)
+##### Per question type (strict parser)
 
 | question type | Set B pilot distilled, batched | Orchard base, batched | delta |
 |---|---:|---:|---:|
@@ -655,9 +679,9 @@ Lenient parsing moved 0 questions in both cells, so it recovered no parse failur
 
 Every category gains, a clean sweep. The batched base reads exactly 0.00% on `object_rel_direction_hard` and `room_size_estimation`; `object_size_estimation` has the largest gain (+40.80).
 
-##### Protocol-difference note (not a delta) vs the single-item Set B pilot pair (39.80 distilled / 12.68 base, delta +27.12)
+##### Protocol-difference note (not a delta) vs the single-item Set B pilot pair (39.80 distilled / 13.26 base, delta +26.54)
 
-Both absolute numbers shift upward under batching: distilled rises 2.06 points (41.86 vs 39.80) and base rises 2.24 points (14.92 vs 12.68). The batched-protocol delta (+26.94) is close to the single-item delta (+27.12, 0.18 points apart). This observation covers one pair per protocol; it does not validate equivalence. The VSTIBench pair shifts in opposite directions, so neither single comparison supports a broader protocol claim.
+Both absolute numbers shift upward under batching: distilled rises 2.06 points (41.86 vs 39.80) and base rises 2.24 points (15.50 vs 13.26). The batched-protocol lenient delta (+26.36) is close to the single-item delta (+26.54, 0.18 points apart). This observation covers one pair per protocol; it does not validate equivalence. The VSTIBench pair shifts in opposite directions, so neither single comparison supports a broader protocol claim.
 
 Both VSIBench and VSTIBench batched pilot pairs are COMPLETE. The next batched cells are the roomfix Qwen runs, expected later tonight; they need a separate protocol sub-block because training data and decode protocol both differ.
 
@@ -674,13 +698,13 @@ Both rows use the official `vsibench-official-8task-v1` metric. The roomfix trac
 | cell | protocol | lenient (primary, %) | strict (secondary, %) | parse failures (strict → lenient) | cap-hit | median gen tokens | terminal |
 |---|---|---:|---:|---:|---:|---:|---:|
 | **Roomfix trace student, batched (148295)** | Orchard, batched bs16 | **48.02** | **48.02** | 1 → 1 | 1 | 280 | 500/500 |
-| Orchard base, batched bs16 | Orchard, batched bs16 | 14.92 | 14.92 | 374 → 374 | 367 | 4096 | 500/500 |
+| Orchard base, batched bs16 | Orchard, batched bs16 | 15.50 | 14.92 | 374 → 366 | 367 | 4096 | 500/500 |
 
-Lenient parsing moved 0 questions in both cells, so it recovered no parse failures and every lenient score equals its strict score.
+Parser v2 leaves the roomfix trace student unchanged and recovers eight base answers. The per-type table reports strict values.
 
-**Batched-protocol delta (same protocol, valid comparison):** lenient/strict **+33.10** (distilled 48.02 minus base 14.92).
+**Batched-protocol delta (same protocol, valid comparison):** lenient **+32.53** and strict **+33.10** (distilled 48.02 minus base 15.50 / 14.92).
 
-##### Per question type (strict parser; lenient equals strict for both cells in every category, 0 moved)
+##### Per question type (strict parser)
 
 | question type | Roomfix trace, batched | Orchard base, batched | delta |
 |---|---:|---:|---:|
@@ -707,13 +731,13 @@ Both rows use the official `vstibench-official-5subtask-v1` metric. The roomfix 
 | cell | protocol | lenient (primary, %) | strict (secondary, %) | parse failures (strict → lenient) | cap-hit | median gen tokens | terminal |
 |---|---|---:|---:|---:|---:|---:|---:|
 | **Roomfix trace student, batched (148295)** | Orchard, batched bs16 | **43.93** | **43.93** | 11 → 11 | 4 | 266 | 450/450 |
-| Orchard base, batched bs16 | Orchard, batched bs16 | 27.55 | 27.55 | 203 → 203 | 202 | 3049 | 450/450 |
+| Orchard base, batched bs16 | Orchard, batched bs16 | 27.68 | 27.55 | 203 → 202 | 202 | 3049 | 450/450 |
 
-Lenient parsing moved 0 questions in both cells, so it recovered no parse failures and every lenient score equals its strict score.
+Parser v2 leaves the roomfix trace student unchanged and recovers one base answer. The per-type table reports strict values.
 
-**Batched-protocol delta (same protocol, valid comparison):** lenient/strict **+16.38** (distilled 43.93 minus base 27.55).
+**Batched-protocol delta (same protocol, valid comparison):** lenient **+16.25** and strict **+16.38** (distilled 43.93 minus base 27.68 / 27.55).
 
-##### Per question type (strict parser; lenient equals strict for both cells in every category, 0 moved)
+##### Per question type (strict parser)
 
 | question type | Roomfix trace, batched | Orchard base, batched | delta |
 |---|---:|---:|---:|
@@ -730,7 +754,7 @@ Lenient parsing moved 0 questions in both cells, so it recovered no parse failur
 
 **Every category gains or ties (no losses) — a clean sweep**, unlike the earlier single-item Qwen VSTIBench roomfix pilot pair, which showed real losses on `camera_obj_rel_dist_v1`/`v2` under the non-batched protocol. Largest gain: `camera_obj_rel_dist_v1`, +40.00.
 
-**This completes the Qwen corrected full-set batched pair on both benchmarks: VSIBench +33.10, VSTIBench +16.38 — both clean sweeps, no losing categories on either benchmark.**
+**This completes the Qwen corrected full-set batched pair on both benchmarks: VSIBench lenient +32.53 (strict +33.10) and VSTIBench lenient +16.25 (strict +16.38). Both strict per-type views are clean sweeps.**
 
 #### VSIBench — answer-only student (148380), batched
 
@@ -741,13 +765,13 @@ Both rows use the official `vsibench-official-8task-v1` metric. The corrected an
 | cell | protocol | lenient (primary, %) | strict (secondary, %) | parse failures (strict → lenient) | cap-hit | median gen tokens | terminal |
 |---|---|---:|---:|---:|---:|---:|---:|
 | **Roomfix answer-only student, batched (148380)** | Orchard, batched bs16 | **55.24** | **55.24** | 0 → 0 | 0 | 7 | 500/500 |
-| Orchard base, batched bs16 | Orchard, batched bs16 | 14.92 | 14.92 | 374 → 374 | 367 | 4096 | 500/500 |
+| Orchard base, batched bs16 | Orchard, batched bs16 | 15.50 | 14.92 | 374 → 366 | 367 | 4096 | 500/500 |
 
-Lenient parsing moved 0 questions in both cells, so it recovered no parse failures and every lenient score equals its strict score.
+Parser v2 leaves the answer-only student unchanged and recovers eight base answers. The per-type table reports strict values.
 
-**Batched-protocol delta (same protocol, valid comparison):** lenient/strict **+40.33** (distilled 55.24 minus base 14.92).
+**Batched-protocol delta (same protocol, valid comparison):** lenient **+39.74** and strict **+40.33** (distilled 55.24 minus base 15.50 / 14.92).
 
-##### Per question type (strict parser; lenient equals strict for both cells in every category, 0 moved)
+##### Per question type (strict parser)
 
 | question type | Roomfix answer-only, batched | Orchard base, batched | delta |
 |---|---:|---:|---:|
@@ -774,12 +798,12 @@ Its eval-cell manifest has sha `bf768204...` and landed at 13:48Z; the rescore r
 
 | cell | lenient (primary, %) | strict (secondary, %) | parse failures (strict → lenient) | cap-hit | median gen tokens | terminal |
 |---|---:|---:|---:|---:|---:|---:|
-| **Answer-only (full pool, 25,164 rows)** | **53.36** | **53.36** | 98 → 98 | 5 | 8 | 500/500 |
-| Orchard base, batched bs16 | 14.92 | 14.92 | 374 → 374 | 367 | 4096 | 500/500 |
+| **Answer-only (full pool, 25,164 rows)** | **57.56** | **53.36** | 98 → 0 | 5 | 8 | 500/500 |
+| Orchard base, batched bs16 | 15.50 | 14.92 | 374 → 366 | 367 | 4096 | 500/500 |
 
-Lenient parsing recovers 0 of 98 strict parse failures for the full-pool student, so its lenient and strict scores are identical.
+Parser v2 recovers all 98 strict parse failures for the full-pool student and eight for the base. The per-type table reports strict values.
 
-##### Per question type (strict parser; lenient equals strict for all columns)
+##### Per question type (strict parser)
 
 | question type | Orchard base, batched bs16 | Answer-only (full pool, 25,164 rows) | Answer-only (full pool, 25,164 rows) - Orchard base, batched bs16 delta | Answer-only (corrected set) |
 |---|---:|---:|---:|---:|
@@ -795,9 +819,8 @@ Lenient parsing recovers 0 of 98 strict parse failures for the full-pool student
 | route_planning | 10.00 | 52.00 | +42.00 | 50.00 |
 | **macro over raw categories** | 13.80 | 48.42 | +34.62 | 55.26 |
 
-The full-pool student gains +38.44 lenient/strict points over the batched base and trails the 3,842-row corrected-set answer-only student by 1.88 points.
-Ninety-four of its 98 parse failures are option-echo answers in `object_rel_direction_hard` (49) and `object_rel_direction_medium` (45), which the reviewed parser scores wrong because it accepts only a bare supplied-option letter.
-**Sensitivity only (unreviewed, not of record):** Accepting a supplied letter followed by `.`, `:`, or `)` and its identical option text would recover 94 full-pool items and 8 base items, producing 57.11 and 15.50, respectively; the corrected-set answer-only student remains 55.24.
+The full-pool student gains +42.06 lenient points over the batched base and exceeds the 3,842-row corrected-set answer-only student by 2.32 points. Its strict gain remains +38.44.
+Parser v2 raises the full-pool lenient values for `object_counting` to 49.20, `object_rel_direction_hard` to 38.00, `object_rel_direction_medium` to 62.00, `object_rel_distance` to 62.00, and `object_size_estimation` to 54.40. It raises the base's `object_rel_direction_easy` to 26.00 and `object_rel_distance` to 36.00.
 The full-pool student uses harness `0ab73f9`, while the base uses `12e477b`; both use batched bs16 decoding and a 4,096-token cap.
 
 #### VSTIBench — answer-only student, full pool (148598), batched
@@ -810,12 +833,12 @@ Both rows use the official `vstibench-official-5subtask-v1` metric.
 
 | cell | protocol | lenient (primary, %) | strict (secondary, %) | parse failures (strict → lenient) | cap-hit | cap w/o answer | median gen tokens | terminal |
 |---|---|---:|---:|---:|---:|---:|---:|---:|
-| Orchard base, batched bs16 | Orchard, batched bs16 | 27.55 | 27.55 | 203 → 203 | 202 | 202 | 3049 | 450/450 |
-| **Answer-only (full pool, 25,164 rows)** | Orchard, batched bs16 | **49.61** | **49.61** | 11 → 11 | 12 | 11 | 7 | 450/450 |
+| Orchard base, batched bs16 | Orchard, batched bs16 | 27.68 | 27.55 | 203 → 202 | 202 | 202 | 3049 | 450/450 |
+| **Answer-only (full pool, 25,164 rows)** | Orchard, batched bs16 | **50.55** | **49.61** | 11 → 0 | 12 | 11 | 7 | 450/450 |
 
-Lenient parsing recovers 0 of 11 strict parse failures for the full-pool student, so its lenient and strict scores are identical.
+Parser v2 recovers all 11 strict parse failures for the full-pool student and one for the base. The per-type table reports strict values.
 
-##### Per question type (strict parser; lenient equals strict for both rows in every category, 0 moved)
+##### Per question type (strict parser)
 
 | question type | Orchard base, batched bs16 | Answer-only (full pool, 25,164 rows) | delta |
 |---|---:|---:|---:|
@@ -830,21 +853,23 @@ Lenient parsing recovers 0 of 11 strict parse failures for the full-pool student
 | obj_obj_relative_pos_ud | 76.00 | 84.00 | +8.00 |
 | **macro over raw categories** | 38.71 | 58.38 | +19.67 |
 
+Parser v2 raises the base's `obj_obj_relative_pos_nf` lenient value to 68.00. It raises the full-pool lenient values for `camera_obj_rel_dist_v1` to 68.00, `camera_obj_rel_dist_v2` to 68.00, `camera_obj_rel_dist_v3` to 72.00, and `obj_obj_relative_pos_nf` to 58.00.
+
 ##### Matched 402-item comparison with the corrected-set answer-only student
 
 This comparison excludes the 48 qids interrupted in the corrected-set cell from every row.
 
 | cell | lenient / strict (%) |
 |---|---:|
-| Orchard base, batched bs16 | 27.08 |
+| Orchard base, batched bs16 | 27.27 / 27.08 |
 | Answer-only (corrected set) | **52.95** |
-| Answer-only (full pool, 25,164 rows) | 50.23 |
+| Answer-only (full pool, 25,164 rows) | 50.76 / 50.23 |
 
 ##### Reading
 
-The full-pool student gains +22.06 over base on all 450 items.
-On the matched 402-item cohort, it trails the corrected-set student by 2.72 points.
-Its 11 parse failures are end-of-turn loops that run to the cap, not option echoes.
+The full-pool student gains +22.87 lenient points over base on all 450 items; its strict gain is +22.07.
+On the matched 402-item cohort, it trails the corrected-set student by 2.19 lenient points.
+Parser v2 recovers all 11 strict parse failures in the first turn of the end-of-turn loop replies.
 The full-pool student used harness `0ab73f9`, while the base used `12e477b`; both use bs16 decoding and a 4,096-token cap.
 
 #### VSTIBench — answer-only student (148380), batched
@@ -859,16 +884,16 @@ The attempt-authority guard permits no second full attempt, so this cell is the 
 | cell | protocol | lenient (primary, %) | strict (secondary, %) | parse failures (strict → lenient) | cap-hit | median gen tokens | terminal |
 |---|---|---:|---:|---:|---:|---:|---:|
 | **Answer-only (corrected set), matched 402/450 (primary)** | Orchard, batched bs16 | **52.95** | **52.95** | 0 → 0 | — | — | — |
-| Base (Orchard, batched), matched 402/450 | Orchard, batched bs16 | 27.08 | 27.08 | 191 → 191 | — | — | — |
+| Base (Orchard, batched), matched 402/450 | Orchard, batched bs16 | 27.27 | 27.08 | 191 → 190 | — | — | — |
 | **Answer-only (corrected set), all 450 lower bound** | Orchard, batched bs16 | **48.11** | **48.11** | 48 → 48 | 0 | — | 450/450 |
-| Base (Orchard, batched), all 450 lower bound | Orchard, batched bs16 | 27.55 | 27.55 | 203 → 203 | 202 | — | 450/450 |
+| Base (Orchard, batched), all 450 lower bound | Orchard, batched bs16 | 27.68 | 27.55 | 203 → 202 | 202 | — | 450/450 |
 
 The matched 402-item cohort is the primary comparison because both rows exclude the same 48 interrupted qids.
-It gives a lenient/strict delta of **+25.87** (52.95 minus 27.08), and lenient parsing recovers no additional answers.
-The all-450 lower bound counts every interrupted student item wrong, giving **+20.56** (48.11 minus 27.55).
+It gives a lenient delta of **+25.68** and a strict delta of **+25.87** (52.95 minus 27.27 / 27.08).
+The all-450 lower bound counts every interrupted student item wrong, giving a lenient delta of **+20.43** and a strict delta of **+20.56** (48.11 minus 27.68 / 27.55).
 The score artifacts do not record matched-cohort cap counts, terminal counts, or generation-token medians, so those cells remain unavailable.
 
-##### Per question type — matched 402-item cohort (strict parser; lenient equals strict)
+##### Per question type — matched 402-item cohort (strict parser)
 
 | question type | n | Base (Orchard, batched), matched 402/450 | Answer-only (corrected set), matched 402/450 | Answer-only (corrected set) - Base (Orchard, batched) delta |
 |---|---:|---:|---:|---:|
@@ -883,7 +908,7 @@ The score artifacts do not record matched-cohort cap counts, terminal counts, or
 | obj_obj_relative_pos_ud | 32 | 75.00 | 78.12 | +3.12 |
 | **macro over raw categories** | — | 37.93 | 62.21 | +24.28 |
 
-##### Per question type — all 450 lower bound (strict parser; lenient equals strict)
+##### Per question type — all 450 lower bound (strict parser)
 
 | question type | n | Base (Orchard, batched), all 450 lower bound | Answer-only (corrected set), all 450 lower bound | Answer-only (corrected set) - Base (Orchard, batched) delta |
 |---|---:|---:|---:|---:|
@@ -909,7 +934,7 @@ Each cell has 48/48 `ok` receipts, no interrupted receipts, and exactly the 48 q
 The base re-decode hits the cap without an answer on 14 of 48 items, while the answer-only re-decode has no cap hits and no parse failures.
 The lane's scorer reuses the official canonical scorer and its lenient and strict parsers without modification, then substitutes the 48 re-decoded receipts into each full cell's receipts.
 The scorer first replays each full cell unmodified and reproduces its recorded strict score: 27.55 for base and 48.11 for answer-only.
-Lenient equals strict throughout this supplement.
+Lenient equals strict in the 48-item re-decode and for the answer-only combined result; parser v2 raises the combined base lenient result to 27.41.
 The score record is `/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient/vsti_qwen35_orchard_answeronly_b16_int48/supplement_scores.json`.
 
 ###### 48-item view (supplement; per-type accuracies and item mean, not the official 9-type metric)
@@ -925,14 +950,14 @@ The score record is `/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenien
 
 | quantity | base | answer-only | delta |
 |---|---:|---:|---:|
-| **official metric (lenient/strict, %)** | 27.28 | 52.91 | **+25.63** |
+| **official metric (lenient / strict, %)** | 27.41 / 27.28 | 52.91 | **+25.50 / +25.63** |
 
 Each combined side contains its 402 original receipts plus its 48 re-decoded receipts.
-The official combined values are 0.2728 for base and 0.529066667 for answer-only before rounding.
-Against the original all-450 base score (27.55), answer-only leads by +25.36.
+The official combined values are 0.274133333 lenient / 0.2728 strict for base and 0.529066667 for answer-only before rounding.
+Against the full all-450 base score, answer-only leads by +20.43 lenient points and +20.56 strict points.
 The combined base has 204 cap hits out of 450 items.
 
-###### Combined all-450 per question type (supplement; strict parser; lenient equals strict)
+###### Combined all-450 per question type (supplement; strict parser)
 
 | question type | n | base | answer-only | delta |
 |---|---:|---:|---:|---:|
@@ -947,8 +972,8 @@ The combined base has 204 cap hits out of 450 items.
 | obj_obj_relative_pos_ud | 50 | 76.00 | 84.00 | +8.00 |
 | **macro over raw categories** | — | 38.27 | 62.13 | **+23.86** |
 
-The combined all-450 figure (52.91 vs 27.28, +25.63) agrees with the matched-402 primary (+25.87) within 0.25 points.
-It supersedes the all-450 lower bound (48.11), which counted the 48 interrupted items wrong.
+The combined all-450 figure is 52.91 versus 27.41 lenient (+25.50) and 27.28 strict (+25.63). It is consistent with the matched-402 primary comparison.
+It uses re-decoded receipts for the 48 interrupted student items.
 The supplement mixes two harness commits within each side, so the matched-402 row stays primary.
 
 ### VSTIBench (`vstibench_repr450_v2`, 450 items): base vs r6 format-A control
@@ -984,7 +1009,7 @@ The supplement mixes two harness commits within each side, so the matched-402 ro
 
 | question type | n | base lenient (%) | r6 lenient (%) | delta | base strict (%) | r6 strict (%) | base parse fail | r6 parse fail |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
-| obj_appearance_order | 50 | 26.00 | 76.00 | +50.00 | 26.00 | 76.00 | 32 | 0 |
+| obj_appearance_order | 50 | 28.00 | 76.00 | +48.00 | 26.00 | 76.00 | 32 | 0 |
 | object_abs_distance | 50 | 12.60 | 19.20 | +6.60 | 12.60 | 19.20 | 36 | 3 |
 | object_counting | 50 | 7.40 | 6.80 | -0.60 | 7.40 | 6.80 | 43 | 46 |
 | object_rel_direction_easy | 50 | 28.00 | 30.00 | +2.00 | 28.00 | 30.00 | 29 | 23 |
@@ -999,14 +1024,14 @@ The supplement mixes two harness commits within each side, so the matched-402 ro
 
 | quantity | base | run r6 | delta |
 |---|---:|---:|---:|
-| primary score, lenient (%) | 15.47 | 26.41 | +10.93 |
+| primary score, lenient (%) | 15.72 | 26.41 | +10.68 |
 | raw category macro, strict (%) | 14.78 | 26.86 | +12.08 |
 | primary score, strict (%) | 15.47 | 26.41 | +10.93 |
 | parse failures | 378 | 197 | -181 |
 | generations hitting the 4,096 cap | 373 | 194 | -179 |
 | capped with no answer | 373 | 194 | -179 |
 
-Run r6 beats base on VSIBench by 10.93 points lenient while roughly 40 percent of its generations still hit the cap without an answer. Arm C reaches 49.25 with zero parse failures, clearing both rows by a wide margin.
+Run r6 beats base on VSIBench by 10.68 points lenient while roughly 40 percent of its generations still hit the cap without an answer. Arm C reaches 49.25 with zero parse failures, clearing both rows by a wide margin.
 
 ## Qwen3.6-27B
 
@@ -1019,9 +1044,9 @@ Comparisons apply only within a matching decode protocol.
 
 | cell | lenient (primary, %) | strict (secondary, %) | parse failures (strict → lenient) | cap-hit | cap without answer | median gen tokens | terminal |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| qwen36_27b_base_vsi_thinkoff | 24.75 | 24.75 | 207 → 207 | 13 | 13 | 159 | 500/500 |
+| qwen36_27b_base_vsi_thinkoff | 30.92 | 24.75 | 207 → 147 | 13 | 13 | 159 | 500/500 |
 
-#### Per question type (strict parser; lenient equals strict for every category)
+#### Per question type (strict parser)
 
 | question type | qwen36_27b_base_vsi_thinkoff |
 |---|---:|
@@ -1037,23 +1062,23 @@ Comparisons apply only within a matching decode protocol.
 | route_planning | 20.00 |
 | **macro over raw categories** | 26.60 |
 
-The lenient rescore recovers nothing: all 207 strict parse failures remain failures under the lenient parser. Thirteen of the 207 are cap-hits without an answer; the other 194 are content mismatches. One inspected case, qid 3873, emitted 3,502 tokens despite `thinkoff` and ended on `**Final Answer: D**`, where `D` was not one of that question's supplied option letters.
+Parser v2 recovers 60 of 207 strict parse failures, yielding 147 lenient parse failures and a 30.92 primary score. Its lenient category values are 58.00 for `obj_appearance_order`, 54.00 for `object_rel_direction_easy`, 30.00 for `object_rel_direction_hard`, 34.00 for `object_rel_direction_medium`, 58.00 for `object_rel_distance`, and 26.00 for `route_planning`. Thirteen strict failures are cap-hits without an answer. One inspected case, qid 3873, emitted 3,502 tokens despite `thinkoff` and ended on `**Final Answer: D**`, where `D` was not one of that question's supplied option letters.
 
 The strict-replay self-check recomputed `primary_score` 0.2475, 207 parse failures, every category score, and metric `vsibench-official-8task-v1` exactly from raw generations. The cell's `scores.json['run']['path']` points at the Orchard mount `/project/community/jjyeung/distill/...`, which does not exist on trinity; after a `FileNotFoundError`, the wrapper remaps to the local cell copy and verifies the same recorded sha256 and byte count against the local file.
 
 ### VSTIBench (`vstibench_repr450_v2`, 450 items): base, pinned (thinking on) — PROVISIONAL
 
-This is the pinned `--thinking on` base variant, `qwen36_27b_base_vsti_pinned_c3`, from Orchard smoke 148201. The official `vstibench-official-5subtask-v1` rescore is 30.71 strict to 30.71 lenient, with 0 moved; the strict-replay self-check passed exactly.
+This is the pinned `--thinking on` base variant, `qwen36_27b_base_vsti_pinned_c3`, from Orchard smoke 148201. The official `vstibench-official-5subtask-v1` rescore is 30.71 strict and 31.37 lenient, with six recovered answers; the strict-replay self-check passed exactly.
 
 #### Headline
 
 | cell | lenient (primary, %) | strict (secondary, %) | parse failures (strict → lenient) | cap-hit | cap without answer | median gen tokens | terminal |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| **qwen36_27b_base_vsti_pinned_c3 — PROVISIONAL** | **30.71** | **30.71** | 198 → 198 | 184 | 184 | 2612 | 450/450 (442 ok, 8 interrupted) |
+| **qwen36_27b_base_vsti_pinned_c3 — PROVISIONAL** | **31.37** | **30.71** | 198 → 192 | 184 | 184 | 2612 | 450/450 (442 ok, 8 interrupted) |
 
-Caveats, all confirmed against the actual score/media-error data: 442/450 items completed cleanly, 8 interrupted by preemptions (excluded from the answer pool, contributing to the 198 parse failures); 184/450 (41%) hit the 4,096-token cap with pinned thinking on and produced no usable answer; 198 total parse failures (44%), 0 lenient recovery. All 184 cap-hits run to the 4,096-token budget with pinned thinking mode on; the long thinking traces consume the whole budget on a large fraction of items. This is a base-model reference cell for the 27B scale, not a distilled result — no pairing claim is made here (no 27B student cell exists yet).
+Caveats, all confirmed against the actual score/media-error data: 442/450 items completed cleanly, 8 interrupted by preemptions (excluded from the answer pool, contributing to the 198 strict parse failures); 184/450 (41%) hit the 4,096-token cap with pinned thinking on and produced no usable answer; parser v2 reduces parse failures to 192. Its recovered lenient category values are 38.00 for `camera_obj_rel_dist_v1`, 40.00 for `camera_obj_rel_dist_v2`, 58.00 for `obj_obj_relative_pos_lr`, and 78.00 for `obj_obj_relative_pos_nf`. All 184 cap-hits run to the 4,096-token budget with pinned thinking mode on; the long thinking traces consume the whole budget on a large fraction of items. This is a base-model reference cell for the 27B scale, not a distilled result — no pairing claim is made here (no 27B student cell exists yet).
 
-#### Per question type (strict parser; lenient equals strict in every category, 0 moved)
+#### Per question type (strict parser)
 
 | question type | qwen36_27b_base_vsti_pinned_c3 |
 |---|---:|
@@ -1072,12 +1097,13 @@ Caveats, all confirmed against the actual score/media-error data: 442/450 items 
 
 The base uses manifest `3e8b42dd…`; 16 of 450 items interrupted (5 `camera_obj_rel_dist_v1`, 4 `obj_obj_relative_pos_nf`, and 7 `obj_obj_relative_pos_ud`).
 The student uses manifest `f00fe525…` and has no interrupted items.
+Parser v2 recovers three base answers, but all three are incorrect, so the base's lenient score remains 28.49.
 
 #### Headline
 
 | cell | lenient (primary, %) | strict (secondary, %) | parse failures (strict → lenient) | cap-hit | interrupted | cap without answer | terminal |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| Base (16 interrupted) | 28.49 | 28.49 | 204 → 204 | 187 | 16 | 185 | 450/450 |
+| Base (16 interrupted) | 28.49 | 28.49 | 204 → 201 | 187 | 16 | 185 | 450/450 |
 | Arm C student (0 interrupted) | 52.01 | 52.01 | 3 → 3 | 3 | 0 | 3 | 450/450 |
 
 #### Per question type, all 450 items
@@ -1114,7 +1140,7 @@ The matched cohort excludes the base's 16 interrupted qids from both cells.
 
 PRIMARY: on the matched 434-item cohort, the student scores 52.02 versus the base's 29.94, a +22.08-point gain.
 SECONDARY: on all 450 items with the base's interrupted items counted wrong, the student scores 52.01 versus 28.49, a +23.52-point gain that is an UPPER bound because the missing items are the base's.
-The pinned single-item base (30.71) uses a different protocol and serves only as a reference.
+The pinned single-item base (30.71 strict, 31.37 lenient) uses a different protocol and serves only as a reference.
 The 4,096-token cap truncates most base generations, so a 32,768-token base rerun is scheduled.
 
 ## Mechanism controls (OneThinker-8B, Trinity)
@@ -1205,8 +1231,8 @@ Each cell is one run, and the reading rule's scene-clustered CI has not been com
 |---|---|---|---|
 | Qwen3.5-9B arm C | VSTIBench / VSIBench | replicate (trinity) | COMPLETE — VSTIBench 450/450 and VSIBench 500/500 terminal and scored; replicate-2 results appear in the Qwen VSTIBench and VSIBench tables above. |
 | Qwen3.5-9B arm C | VSTIBench / VSIBench | replicate (Orchard) | in flight — Orchard job chain 147597 (running) / 147599 (pending on afterany:147597) |
-| Qwen3.5-9B answer-only | VSIBench / VSTIBench | corrected-set batched (148380) | VSIBench COMPLETE — 500/500 terminal and scored at 55.24 lenient/strict. VSTIBench PROVISIONAL — matched 402/450 primary: 52.95 lenient/strict versus 27.08 base (+25.87); all-450 lower bound: 48.11 versus 27.55 (+20.56); 48-item re-decode supplement scored (combined all-450 52.91 vs 27.28). |
-| Qwen3.5-9B answer-only | VSIBench / VSTIBench | full pool (148598) | COMPLETE — VSIBench 53.36 vs 14.92; VSTIBench 49.61 vs 27.55 (all 450, 0 interrupted) |
+| Qwen3.5-9B answer-only | VSIBench / VSTIBench | corrected-set batched (148380) | VSIBench COMPLETE — 500/500 terminal and scored at 55.24 lenient/strict. VSTIBench PROVISIONAL — matched 402/450 primary: 52.95 versus 27.27 lenient / 27.08 strict (+25.68 / +25.87); all-450 lower bound: 48.11 versus 27.68 lenient / 27.55 strict (+20.43 / +20.56); 48-item re-decode supplement scored (combined all-450 52.91 vs 27.41 lenient / 27.28 strict). |
+| Qwen3.5-9B answer-only | VSIBench / VSTIBench | full pool (148598) | COMPLETE — VSIBench 57.56 versus 15.50 lenient (53.36 versus 14.92 strict); VSTIBench 50.55 versus 27.68 lenient (49.61 versus 27.55 strict), all 450 and 0 interrupted. |
 | Qwen3.5-9B format-A control r6 | VSIBench | r6 | COMPLETE — 500/500 terminal and scored; per-type table above. The last 33 items finished 2026-09-23T01:12Z after lane `claude_qwen_r6_eval_resume_20260922T2047Z` relaunched shard 7 from trinity-1-3 |
 | Qwen3.6-27B arm C | VSIBench / VSTIBench | single run | in flight — trainer resumed after a step-78/96 stall, last checkpoint step_75, 21 steps remaining, resumed steps not confirmed; separate 27B base VSIBench control (Orchard job 147601) failed all 4 shards on a path-containment defect, unresolved |
 | GT-measurement pilot | VSIBench / VSTIBench | mix-trained student | not started — gtmeasure v1/v2 target generation is done, but the two prepared training-mix commands (0.25 pilot ratio, 0.50 corrected-set ratio) are not confirmed run |
