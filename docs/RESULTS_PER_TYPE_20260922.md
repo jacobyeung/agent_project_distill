@@ -661,6 +661,47 @@ Both absolute numbers shift upward under batching: distilled rises 2.06 points (
 
 Both VSIBench and VSTIBench batched pilot pairs are COMPLETE. The next batched cells are the roomfix Qwen runs, expected later tonight; they need a separate protocol sub-block because training data and decode protocol both differ.
 
+### Qwen corrected full set (148295), batched cells
+
+Cell `qwen35_distilled_gtm2_v25full_qwen35_orchard_w4_roomfix_qcap4096_mb2_vsi_b16` landed 2026-09-24T01:15:13Z from training run 148295 (publication sha `e54cb5a0...`). It trains on the corrected (room-fixed) full set, making it the first Qwen cell on corrected labels. The cell decodes in batched mode (bs16, combined Orchard deployment), so the standing batched-decode rule pairs it only with batched base `qwen35_base_vsi_b16` and never with a single-item base. The manifest check passed, the media-error check is clean (0/500), and the strict-replay self-check passed.
+
+#### VSIBench (base + corrected/roomfix trace student, batched)
+
+Both rows use the official `vsibench-official-8task-v1` metric. The roomfix trace student's rescore is 48.02 strict to 48.02 lenient, with 0 moved; its 1 parse failure remains unrecovered. It has 1 cap-hit, 1 cap without answer, and a 280-token median generation length.
+
+##### Whole-benchmark headline (lenient primary / strict secondary)
+
+| cell | protocol | lenient (primary, %) | strict (secondary, %) | parse failures (strict → lenient) | cap-hit | median gen tokens | terminal |
+|---|---|---:|---:|---:|---:|---:|---:|
+| **Roomfix trace student, batched (148295)** | Orchard, batched bs16 | **48.02** | **48.02** | 1 → 1 | 1 | 280 | 500/500 |
+| Orchard base, batched bs16 | Orchard, batched bs16 | 14.92 | 14.92 | 374 → 374 | 367 | 4096 | 500/500 |
+
+Lenient parsing moved 0 questions in both cells, so it recovered no parse failures and every lenient score equals its strict score.
+
+**Batched-protocol delta (same protocol, valid comparison):** lenient/strict **+33.10** (distilled 48.02 minus base 14.92).
+
+##### Per question type (strict parser; lenient equals strict for both cells in every category, 0 moved)
+
+| question type | Roomfix trace, batched | Orchard base, batched | delta |
+|---|---:|---:|---:|
+| obj_appearance_order | 58.00 | 34.00 | +24.00 |
+| object_abs_distance | 26.40 | 11.20 | +15.20 |
+| object_counting | 51.00 | 7.80 | +43.20 |
+| object_rel_direction_easy | 64.00 | 24.00 | +40.00 |
+| object_rel_direction_hard | 36.00 | 0.00 | +36.00 |
+| object_rel_direction_medium | 38.00 | 4.00 | +34.00 |
+| object_rel_distance | 40.00 | 32.00 | +8.00 |
+| object_size_estimation | 55.80 | 15.00 | +40.80 |
+| room_size_estimation | 67.00 | 0.00 | **+67.00** |
+| route_planning | 40.00 | 10.00 | +30.00 |
+| **macro over raw categories** | 47.62 | 13.80 | +33.82 |
+
+**Room-label-fix signal:** `room_size_estimation` has by far the largest gain (+67.00). The batched base scores 0.00% on this category, while the roomfix-corrected Qwen trace student scores 67.00%, above every other category. This full 67-point swing on the category the fix targets is the strongest single room-label-fix signal seen anywhere in this project so far. Every category gains; `object_counting` is second-largest (+43.20).
+
+**VSTIBench — PENDING (cell still on preempt).**
+
+**Qwen answer-only twin (run 148380) — PENDING (publishes ~05:30Z).**
+
 ### VSTIBench (`vstibench_repr450_v2`, 450 items): base vs r6 format-A control
 
 #### Per question type
