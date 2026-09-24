@@ -957,7 +957,7 @@ The banked rows use the paired OneThinker-8B Trinity harness `58794b8`. Category
 
 ### VSIBench-500
 
-| cell | headline lenient (primary, %) | headline strict (secondary, %) | obj_appearance_order | object_abs_distance | object_counting | object_rel_direction_easy | object_rel_direction_hard | object_rel_direction_medium | object_rel_distance | object_size_estimation | room_size_estimation | route_planning | Overall |
+| cell | headline lenient (primary, %) | headline strict (secondary, %) | obj_appearance_order | object_abs_distance | object_counting | object_rel_direction_easy | object_rel_direction_hard | object_rel_direction_medium | object_rel_distance | object_size_estimation | room_size_estimation | route_planning | macro over raw categories |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | H-ans (banked answer-only corrected set) | 48.03 | 48.03 | 60.00 | 39.80 | 51.00 | 42.00 | 20.00 | 48.00 | 50.00 | 43.40 | 63.40 | 40.00 | 45.76 |
 | H-trace (banked trace-student corrected set) | 38.68 | 38.68 | 58.00 | 23.00 | 30.40 | 54.00 | 26.00 | 36.00 | 38.00 | 49.80 | 55.60 | 16.00 | 38.68 |
@@ -976,7 +976,7 @@ The banked rows use the paired OneThinker-8B Trinity harness `58794b8`. Category
 
 ### VSTIBench-450
 
-| cell | headline lenient (primary, %) | headline strict (secondary, %) | camera_displacement | camera_movement_direction | camera_obj_abs_dist | camera_obj_rel_dist_v1 | camera_obj_rel_dist_v2 | camera_obj_rel_dist_v3 | obj_obj_relative_pos_lr | obj_obj_relative_pos_nf | obj_obj_relative_pos_ud | Overall |
+| cell | headline lenient (primary, %) | headline strict (secondary, %) | camera_displacement | camera_movement_direction | camera_obj_abs_dist | camera_obj_rel_dist_v1 | camera_obj_rel_dist_v2 | camera_obj_rel_dist_v3 | obj_obj_relative_pos_lr | obj_obj_relative_pos_nf | obj_obj_relative_pos_ud | macro over raw categories |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | H-ans (banked answer-only corrected set) | 53.45 | 53.45 | 25.20 | 42.00 | 53.40 | 60.00 | 70.00 | 76.00 | 68.00 | 74.00 | 92.00 | 62.29 |
 | H-trace (banked trace-student corrected set) | 38.28 | 38.28 | 18.20 | 16.00 | 43.20 | 32.00 | 44.00 | 66.00 | 44.00 | 70.00 | 86.00 | 46.60 |
