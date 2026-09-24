@@ -555,6 +555,24 @@ class TableTests(unittest.TestCase):
         self.assertEqual(tables.raw_quantity(pilot, "parse", "lenient", excluded=base.empty_qids), 1)
         self.assertEqual(tables.raw_quantity(pilot, "n"), 18)
 
+    def test_student_side_empty_qids_drive_matched_main_and_appendix_views(self):
+        base = tables.load_cell(self.fixture(benchmark=VSTI, condition="orchard_base", protocol="orchard",
+                                            strict_credit=0.2, lenient_credit=0.2, items_per_category=2))
+        student_entry = self.fixture(benchmark=VSTI, condition="setb_pilot", protocol="orchard",
+                                     strict_credit=0.6, lenient_credit=0.6, empty_items=1, items_per_category=2)
+        student_entry["main_matched"] = True
+        student = tables.load_cell(student_entry)
+        cells = [base, student]
+        excluded = tables.matched_excluded_qids(base, student)
+        self.assertEqual(excluded, student.empty_qids)
+        self.assertEqual(tables.raw_quantity(base, "n", excluded=excluded), 17)
+        self.assertAlmostEqual(tables.raw_quantity(base, "score", "lenient", excluded=excluded), 0.2)
+        self.assertAlmostEqual(tables.raw_quantity(student, "score", "lenient", excluded=excluded), 0.6)
+        main = tables.render_accuracy(cells, VSTI, "lenient", matched_primary=True)
+        appendix = tables.render_matched(cells, VSTI)
+        self.assertIn(r"Set B pilot, matched 17/18$^{\dagger}$ & 20.00", main)
+        self.assertIn(r"Set B pilot$^{\dagger}$ & 17 & 60.00", appendix)
+
     def test_matched_view_requires_per_question_lenient_scores(self):
         base = tables.load_cell(self.fixture(benchmark=VSTI, condition="orchard_base", protocol="orchard",
                                             empty_items=1, items_per_category=2))

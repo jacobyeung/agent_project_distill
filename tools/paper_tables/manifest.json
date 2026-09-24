@@ -316,6 +316,7 @@
       "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient/vsti_qwen35_orchard_roomfix_b16/lenient_scores.json",
       "lenient_cell_key": "qwen35_base_vsti_b16", "harness_commit": "12e477b", "status": "complete", "protocol": "orchard",
       "harness": "orchard-12e477b-b16", "base_ref": "orchard_base_b16",
+      "doc_aliases": ["Base (Orchard, batched)"],
       "provenance_note": "The audited Orchard bs16 score artifact supplies the Qwen3.5-9B batched base for the matched batched cohort.", "table": "main"
     },
     {
@@ -369,10 +370,21 @@
     },
     {
       "student": "qwen35_9b", "benchmark": "vstibench_repr450_v2", "condition": "answer_only_corrected", "seed": 17,
+      "strict_score_path": "/data3/jjyeung/orchard_publications/eval_cells/qwen35_distilled_gtm2_v25full_qwen35_orchard_w4_roomfix_answeronly_mb2_vsti_b16/score",
+      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient/vsti_qwen35_orchard_answeronly_b16/lenient_scores.json",
+      "lenient_cell_key": "qwen35_distilled_gtm2_v25full_qwen35_orchard_w4_roomfix_answeronly_mb2_vsti_b16", "harness_commit": "12e477b", "status": "complete", "protocol": "orchard",
+      "harness": "orchard-12e477b-b16", "base_ref": "orchard_base_b16",
+      "provisional": true, "empty_items": 48, "empty_statuses": ["interrupted"], "main_matched": true,
+      "doc_aliases": ["Answer-only (corrected set)"],
+      "provenance_note": "Orchard run 148380, batched bs16 with a 4,096-token cap, landed at 05:37Z with eval-cell manifest sha f37ba0dd... . The only full attempt has 402/450 ok items and 48 interrupted items after preemption; durable starts lack terminal receipts, and the attempt-authority guard forbids a second full attempt.", "table": "main"
+    },
+    {
+      "student": "qwen35_9b", "benchmark": "vstibench_repr450_v2", "condition": "answer_only_corrected_redecode48", "seed": 17,
       "strict_score_path": null, "lenient_score_path": null, "lenient_cell_key": null,
       "harness_commit": "12e477b", "status": "pending", "protocol": "orchard",
       "harness": "orchard-12e477b-b16", "base_ref": "orchard_base_b16",
-      "provenance_note": "Orchard run 148380 (gtm2_v25full_qwen35_orchard_w4_roomfix_answeronly_mb2); batched bs16 cells pending; cell landed 05:37Z with 48/450 interrupted items (preemption); held until the 48 items are rerun", "table": "main"
+      "label": "Supplementary 48-item re-decode (pending)",
+      "provenance_note": "The supplementary 48-item re-decode will substitute terminal receipts for the interrupted qids from run 148380.", "table": "appendix"
     }
   ]
 }
