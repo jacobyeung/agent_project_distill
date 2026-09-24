@@ -4,6 +4,7 @@ import io
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import statistics
 import tempfile
@@ -29,21 +30,24 @@ class TableTests(unittest.TestCase):
 
     def fixture(self, *, benchmark=VSI, condition="base", seed=17,
                 strict_credit=0.2, lenient_credit=0.8, protocol="trinity", reference=False,
-                paired=True, empty_items=0, items_per_category=1):
+                paired=True, empty_items=0, items_per_category=1, empty_offset=0):
         name = f"{benchmark}_{condition}_{seed}"
         score_dir = self.root / name / "scores/base"
         rescore_dir = self.root / name / "lenient"
         categories = [category for category in tables.BENCHMARKS[benchmark].categories
                       for _ in range(items_per_category)]
+        empty_indices = range(empty_offset, empty_offset + empty_items)
         rows = [{"qid": str(index), "category": category,
-                 "credit": 0 if index < empty_items else strict_credit,
-                 "parsed_answer": None if index < empty_items else "1",
-                 "status": "media_error" if index < empty_items else "ok",
+                 "credit": 0 if index in empty_indices else strict_credit,
+                 "parsed_answer": None if index in empty_indices else "1",
+                 "status": "media_error" if index in empty_indices else "ok",
                  "canonical_metrics": {"is_correct": False}}
                 for index, category in enumerate(categories)]
         strict = tables.recompute(rows, benchmark)
+        lenient_credits = lenient_credit if isinstance(lenient_credit, dict) else dict.fromkeys(categories, lenient_credit)
         replay = [{"qid": row["qid"], "category": row["category"],
-                   "strict_credit": row["credit"], "lenient_credit": lenient_credit if row["status"] == "ok" else 0,
+                   "strict_credit": row["credit"],
+                   "lenient_credit": lenient_credits[row["category"]] if row["status"] == "ok" else 0,
                    "strict_answer": row["parsed_answer"], "lenient_answer": "2" if row["status"] == "ok" else None}
                   for row in rows]
         lenient = tables.recompute(replay, benchmark, "lenient_credit", "lenient_answer")
@@ -552,11 +556,11 @@ class TableTests(unittest.TestCase):
         base = tables.load_cell(self.fixture(condition="orchard_base", protocol="orchard", empty_items=1))
         pilot = tables.load_cell(self.fixture(condition="setb_pilot", protocol="orchard"))
         rendered = tables.render_accuracy([base, pilot], VSI, "lenient")
-        self.assertIn(r"Base (Orchard)$^{\dagger}$", rendered)
+        self.assertIn("Base (Orchard), all 10 (base lower bound", rendered)
         self.assertIn("1/10", rendered)
         self.assertIn("provisional", rendered)
         self.assertIn("full denominator", rendered)
-        pilot_row = next(line for line in rendered.splitlines() if line.startswith("Set B pilot &"))
+        pilot_row = next(line for line in rendered.splitlines() if line.startswith("Set B pilot, all 10"))
         self.assertIn(f"{base.lenient.overall * 100:.2f}" + r"$^{\dagger}$", pilot_row)
         self.assertEqual(sum(base.strict.counts.values()), 10)
         for renderer in (tables.render_diagnostics, tables.render_macros):
@@ -616,10 +620,8 @@ class TableTests(unittest.TestCase):
     def test_student_side_empty_qids_drive_matched_main_and_appendix_views(self):
         base = tables.load_cell(self.fixture(benchmark=VSTI, condition="orchard_base", protocol="orchard",
                                             strict_credit=0.2, lenient_credit=0.2, items_per_category=2))
-        student_entry = self.fixture(benchmark=VSTI, condition="setb_pilot", protocol="orchard",
-                                     strict_credit=0.6, lenient_credit=0.6, empty_items=1, items_per_category=2)
-        student_entry["main_matched"] = True
-        student = tables.load_cell(student_entry)
+        student = tables.load_cell(self.fixture(benchmark=VSTI, condition="setb_pilot", protocol="orchard",
+                                               strict_credit=0.6, lenient_credit=0.6, empty_items=1, items_per_category=2))
         cells = [base, student]
         excluded = tables.matched_excluded_qids(base, student)
         self.assertEqual(excluded, student.empty_qids)
@@ -628,8 +630,93 @@ class TableTests(unittest.TestCase):
         self.assertAlmostEqual(tables.raw_quantity(student, "score", "lenient", excluded=excluded), 0.6)
         main = tables.render_accuracy(cells, VSTI, "lenient", matched_primary=True)
         appendix = tables.render_matched(cells, VSTI)
+        strict = tables.render_accuracy(cells, VSTI, "strict")
         self.assertIn(r"Set B pilot, matched 17/18$^{\dagger}$ & 20.00", main)
         self.assertIn(r"Set B pilot$^{\dagger}$ & 17 & 60.00", appendix)
+        self.assertIn(r"Set B pilot, all 18 lower bound$^{\dagger}$ & 20.00", strict)
+
+    def test_base_side_empty_qids_drive_matched_primary_and_labelled_all_item_rows(self):
+        base = tables.load_cell(self.fixture(benchmark=VSTI, condition="orchard_base", protocol="orchard",
+                                            strict_credit=0.2, lenient_credit=0.4,
+                                            empty_items=1, items_per_category=2))
+        student = tables.load_cell(self.fixture(benchmark=VSTI, condition="setb_pilot", protocol="orchard",
+                                               strict_credit=0.6, lenient_credit=0.8, items_per_category=2))
+        cells = [base, student]
+        self.assertFalse(base.entry["main_matched"])
+        self.assertFalse(student.entry["main_matched"])
+        self.assertEqual(tables.matched_excluded_qids(base, student), frozenset({"0"}))
+        for mode, base_score, student_score, all_base_score in (("lenient", "40.00", "80.00", "36.00"),
+                                                               ("strict", "20.00", "60.00", "18.00")):
+            with self.subTest(mode=mode):
+                rendered = tables.render_accuracy(cells, VSTI, mode, matched_primary=True)
+                matched = [line for line in rendered.splitlines() if line.startswith("Set B pilot, matched")]
+                lower = [line for line in rendered.splitlines() if line.startswith("Set B pilot, all")]
+                self.assertEqual(len(matched), 1)
+                self.assertEqual(len(lower), 1)
+                self.assertIn("matched 17/18", matched[0])
+                self.assertIn(f" & {base_score}" + r"$^{\dagger}$", matched[0])
+                self.assertIn(r"\textbf{" + student_score + "}", matched[0])
+                self.assertIn("all 18", lower[0])
+                self.assertIn("base lower bound", lower[0])
+                self.assertIn(r"base media\_error counted wrong", lower[0])
+                self.assertIn("delta upper bound", lower[0])
+                self.assertIn(f" & {all_base_score}" + r"$^{\dagger}$", lower[0])
+                self.assertNotIn(r"\textbf", lower[0])
+                self.assertLess(rendered.index(matched[0]), rendered.index(lower[0]))
+        self.assertEqual(tables.raw_quantity(base, "n"), 18)
+        self.assertEqual(tables.raw_quantity(student, "n"), 18)
+
+    def test_two_sided_exclusions_use_the_union_without_bounding_the_delta(self):
+        base = tables.load_cell(self.fixture(benchmark=VSTI, condition="orchard_base", protocol="orchard",
+                                            strict_credit=0.2, lenient_credit=0.2,
+                                            empty_items=2, items_per_category=4))
+        student = tables.load_cell(self.fixture(benchmark=VSTI, condition="setb_pilot", protocol="orchard",
+                                               strict_credit=0.6, lenient_credit=0.6,
+                                               empty_items=2, empty_offset=1, items_per_category=4))
+        cells = [base, student]
+        excluded = tables.matched_excluded_qids(base, student)
+        self.assertEqual(excluded, frozenset({"0", "1", "2"}))
+        self.assertEqual(tables.matched_excluded_qids(student, base), excluded)
+        for cell, score in ((base, 0.2), (student, 0.6)):
+            self.assertEqual(tables.raw_quantity(cell, "n", excluded=excluded), 33)
+            self.assertAlmostEqual(tables.raw_quantity(cell, "score", "lenient", excluded=excluded), score)
+        main = tables.render_accuracy(cells, VSTI, "lenient", matched_primary=True)
+        self.assertIn(r"Set B pilot, matched 33/36$^{\dagger}$ & 20.00", main)
+        lower = next(line for line in main.splitlines() if line.startswith("Set B pilot, all"))
+        self.assertIn("base and student lower bounds", lower)
+        self.assertIn("delta not bounded", lower)
+        self.assertNotIn("delta upper bound", lower)
+        appendix = tables.render_matched(cells, VSTI)
+        self.assertIn(r"Base (Orchard)$^{\dagger}$ & 33 & 20.00", appendix)
+        self.assertIn(r"Set B pilot$^{\dagger}$ & 33 & 60.00", appendix)
+        self.assertIn("union", appendix)
+        doc = self.root / "union.md"
+        doc.write_text("## OneThinker-8B\n### VSTIBench, Orchard\n"
+                       "#### Matched-cohort comparison\n"
+                       "| cell | lenient (%) | strict (%) |\n|---|---|---|\n"
+                       "| Orchard base, matched 33/36 | 20 | 20 |\n"
+                       "| Set B distilled (Orchard), matched 33/36 | 60 | 60 |\n", encoding="utf-8")
+        report = tables.check_document(doc, cells)
+        self.assertEqual(report.checked, 4)
+        self.assertFalse(report.issues, report.format_text())
+
+    def test_union_excluding_a_whole_category_fails_closed(self):
+        base = tables.load_cell(self.fixture(benchmark=VSTI, condition="orchard_base", protocol="orchard",
+                                            empty_items=1, items_per_category=2))
+        student = tables.load_cell(self.fixture(benchmark=VSTI, condition="setb_pilot", protocol="orchard",
+                                               empty_items=1, empty_offset=1, items_per_category=2))
+        with self.assertRaisesRegex(tables.ScoreError, "category membership"):
+            tables.render_accuracy([base, student], VSTI, "lenient", matched_primary=True)
+
+    def test_base_side_exclusions_do_not_turn_pending_students_into_matched_scores(self):
+        base = tables.load_cell(self.fixture(benchmark=VSTI, condition="orchard_base", protocol="orchard",
+                                            empty_items=1, items_per_category=2))
+        student = tables.load_cell({**self.pending("setb_pilot"), "benchmark": VSTI})
+        rendered = tables.render_accuracy([base, student], VSTI, "lenient", matched_primary=True)
+        row = next(line for line in rendered.splitlines() if line.startswith("Set B pilot &"))
+        self.assertIn("--", row)
+        self.assertNotIn("Set B pilot, matched", rendered)
+        self.assertNotIn("Set B pilot, all", rendered)
 
     def test_matched_view_requires_per_question_lenient_scores(self):
         base = tables.load_cell(self.fixture(benchmark=VSTI, condition="orchard_base", protocol="orchard",
@@ -682,16 +769,18 @@ class TableTests(unittest.TestCase):
     def test_document_matched_headline_rejects_flat_question_mean(self):
         base = tables.load_cell(self.fixture(benchmark=VSTI, condition="orchard_base", protocol="orchard",
                                             empty_items=1, items_per_category=2))
+        credits = {category: 0.4 if category == "camera_displacement" else 0.8
+                   for category in tables.BENCHMARKS[VSTI].categories}
         pilot = tables.load_cell(self.fixture(benchmark=VSTI, condition="setb_pilot", protocol="orchard",
-                                             empty_items=2, items_per_category=2))
+                                             lenient_credit=credits, items_per_category=2))
         doc = self.root / "flat.md"
         doc.write_text("## OneThinker-8B\n### VSTIBench — Set B pilot, Orchard\n"
                        "#### Matched-cohort comparison\n"
                        "| cell | lenient (%) |\n|---|---|\n"
-                       f"| Set B distilled (Orchard), 17-item matched cohort | {16 * 80 / 17:.2f} |\n", encoding="utf-8")
+                       f"| Set B distilled (Orchard), 17-item matched cohort | {(40 + 16 * 80) / 17:.2f} |\n", encoding="utf-8")
         report = tables.check_document(doc, [base, pilot])
         self.assertEqual(len(report.issues), 1)
-        self.assertAlmostEqual(report.issues[0].computed, 64)
+        self.assertAlmostEqual(report.issues[0].computed, 72)
         self.assertIn("flat", report.issues[0].cause)
 
     def test_document_cross_harness_delta_fails_closed(self):
@@ -707,12 +796,12 @@ class TableTests(unittest.TestCase):
 
     def test_matched_appendix_uses_official_metric_without_changing_main_scores(self):
         base = tables.load_cell(self.fixture(benchmark=VSTI, condition="orchard_base", protocol="orchard",
-                                            empty_items=1, items_per_category=2))
+                                            empty_items=1, items_per_category=3))
         pilot = tables.load_cell(self.fixture(benchmark=VSTI, condition="setb_pilot", protocol="orchard",
-                                             empty_items=2, items_per_category=2))
+                                             empty_items=2, items_per_category=3))
         before = (base.lenient.overall, pilot.lenient.overall, base.recorded["expected_count"])
         rendered = tables.render_matched([base, pilot], VSTI)
-        self.assertIn("Set B pilot" + r"$^{\dagger}$ & 17 & 64.00", rendered)
+        self.assertIn("Set B pilot" + r"$^{\dagger}$ & 25 & 80.00", rendered)
         self.assertIn("official category collapse", rendered)
         self.assertEqual(before, (base.lenient.overall, pilot.lenient.overall, base.recorded["expected_count"]))
         self.assertIsNone(tables.render_matched([base, pilot], VSI))
@@ -744,6 +833,59 @@ class TableTests(unittest.TestCase):
 
 
 class RealManifestTests(unittest.TestCase):
+    def test_real_manifest_27b_base_interruptions_render_matched_and_all_item_rows(self):
+        try:
+            cells = tables.load_manifest(ROOT / "tools/paper_tables/manifest.json")
+        except OSError as exc:
+            self.skipTest(f"Score path is unreadable: {exc}")
+        pair = {cell.entry["condition"]: cell for cell in cells
+                if cell.entry["student"] == "qwen36_27b" and cell.entry["benchmark"] == VSTI}
+        base, student = pair["base_27b_b8"], pair["armc_27b_b8"]
+        self.assertIs(tables.paired_base(student, cells), base)
+        self.assertEqual(base.entry["table"], "main")
+        self.assertEqual(student.entry["table"], "main")
+        self.assertEqual(base.empty_qids, frozenset({"4513", "4554", "4516", "4556", "4586", "4083", "3919", "4046",
+                                                   "3800", "4182", "3916", "4111", "3159", "3411", "3714", "3174"}))
+        self.assertFalse(student.empty_qids)
+        excluded = tables.matched_excluded_qids(base, student)
+        expected = {base.identity: (["1.20", "14.00", "18.60", "40.00", "46.00", "40.00", "64.00", "73.91", "83.72"],
+                                    ["1.20", "14.00", "18.60", "36.00", "46.00", "40.00", "64.00", "68.00", "72.00"],
+                                    "29.94", "28.49", 0.299355982473879),
+                    student.identity: (["17.00", "36.00", "50.40", "66.67", "70.00", "74.00", "84.00", "84.78", "90.70"],
+                                       ["17.00", "36.00", "50.40", "64.00", "70.00", "74.00", "84.00", "86.00", "92.00"],
+                                       "52.02", "52.01", 0.520231299853949)}
+        OUTPUT.mkdir(parents=True, exist_ok=True)
+        out = Path(tempfile.mkdtemp(prefix="real_27b_", dir=OUTPUT))
+        tables.render_all(cells, out)
+        main = (out / "main_vsti.tex").read_text(encoding="utf-8")
+        for cell in (base, student):
+            with self.subTest(cell=cell.identity):
+                per_type, all_per_type, overall, all_overall, unrounded = expected[cell.identity]
+                matched_rows = [line for line in main.splitlines() if line.startswith(cell.label + ", matched")]
+                all_rows = [line for line in main.splitlines() if line.startswith(cell.label + ", all")]
+                self.assertEqual(len(matched_rows), 1)
+                self.assertEqual(len(all_rows), 1)
+                self.assertIn("matched 434/450", matched_rows[0])
+                self.assertEqual(re.findall(r"& (?:\\textbf\{)?(\d+\.\d+)", matched_rows[0]),
+                                 ["29.94", *per_type, overall])
+                self.assertIn("all 450", all_rows[0])
+                self.assertIn("base lower bound", all_rows[0])
+                self.assertIn("base interrupted counted wrong", all_rows[0])
+                self.assertEqual(re.findall(r"& (?:\\textbf\{)?(\d+\.\d+)", all_rows[0]),
+                                 ["28.49", *all_per_type, all_overall])
+                self.assertNotIn(r"\textbf", all_rows[0])
+                self.assertLess(main.index(matched_rows[0]), main.index(all_rows[0]))
+                self.assertEqual(tables.raw_quantity(cell, "n", excluded=excluded), 434)
+                strict = tables.score_view(cell, "strict", excluded)
+                lenient = tables.score_view(cell, "lenient", excluded)
+                self.assertEqual(strict.categories, lenient.categories)
+                self.assertAlmostEqual(lenient.overall, unrounded, places=14)
+        student_all = next(line for line in main.splitlines() if line.startswith(student.label + ", all"))
+        self.assertIn("delta upper bound", student_all)
+        gain = (tables.score_view(student, "lenient", excluded).overall
+                - tables.score_view(base, "lenient", excluded).overall) * 100
+        self.assertEqual(f"{gain:.2f}", "22.09")
+
     def test_real_manifest_reproduces_document(self):
         try:
             cells = tables.load_manifest(ROOT / "tools/paper_tables/manifest.json")

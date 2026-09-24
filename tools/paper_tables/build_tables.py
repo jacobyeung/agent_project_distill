@@ -608,7 +608,7 @@ def raw_quantity(cell, quantity, mode="strict", category=None, *, excluded=(), e
 
 
 def matched_excluded_qids(base, cell):
-    return base.empty_qids or cell.empty_qids
+    return base.empty_qids | cell.empty_qids
 
 
 def describe_quantity(text):
@@ -704,12 +704,14 @@ def check_document(path, cells):
                             cell = get(column_label(column) if table_kind == "question type" else row[0])
                             base = paired_base(cell, cells)
                             excluded = matched_excluded_qids(base, cell)
-                            if not excluded and cell is base:
-                                candidates = [candidate for candidate in scope if candidate.complete
-                                              and candidate.entry.get("main_matched")
-                                              and paired_base(candidate, cells) is base]
-                                if len(candidates) == 1:
-                                    excluded = matched_excluded_qids(base, candidates[0])
+                            if cell is base:
+                                candidates = {matched_excluded_qids(base, candidate) for candidate in scope
+                                              if candidate.complete and candidate is not base
+                                              and paired_base(candidate, cells) is base} - {frozenset()}
+                                if len(candidates) > 1:
+                                    raise QuantityUnavailable("Matched base resolves to multiple audited exclusion sets")
+                                if candidates:
+                                    excluded = candidates.pop()
                             if not excluded:
                                 raise QuantityUnavailable("Matched scope lacks audited empty-item qids in score files")
                             count = re.search(r"(?:(\d+)-item matched cohort|matched (\d+)/(\d+))", row[0])
@@ -918,6 +920,18 @@ def winner_takeaway(cells, benchmark, mode):
     return latex_escape("; ".join(clauses) + ".")
 
 
+def all_item_label(cell, base):
+    label = f"{cell.label}, all {cell.recorded['expected_count']}"
+    if base is None or not base.empty_qids:
+        return label + " lower bound"
+    both = cell is not base and bool(cell.empty_qids)
+    bound = "base and student lower bounds" if both else "base lower bound"
+    details = f"{bound}; base {'/'.join(base.entry['empty_statuses'])} counted wrong"
+    if cell is not base:
+        details += "; delta not bounded" if both else "; delta upper bound"
+    return f"{label} ({details})"
+
+
 def render_accuracy(cells, benchmark, mode, *, references=False, seeds=False, matched_primary=False):
     spec = BENCHMARKS[benchmark]
     groups = condition_groups(cells, benchmark, references)
@@ -926,7 +940,7 @@ def render_accuracy(cells, benchmark, mode, *, references=False, seeds=False, ma
     quantities = [*spec.categories, None]
     show_base = not references and not seeds
     exclusions = [matched_excluded_qids(paired_base(group[0], cells), group[0])
-                  if matched_primary and group[0].entry.get("main_matched") else frozenset()
+                  if matched_primary and group[0].complete else frozenset()
                   for group in groups]
     summaries = [[seed_summary(group, mode, category, excluded=excluded) for category in quantities]
                  for group, excluded in zip(groups, exclusions)]
@@ -946,27 +960,33 @@ def render_accuracy(cells, benchmark, mode, *, references=False, seeds=False, ma
                 rows.append(r"\midrule")
             rows.append(r"\multicolumn{" + str(len(quantities) + 1 + show_base) + r"}{l}{\textit{" + latex_escape(cohort_label(first)) + r"}} \\")
             previous = cohort(first)
-        label = first.label
-        if excluded:
-            label += f", matched {raw_quantity(first, 'n', excluded=excluded)}/{first.recorded['expected_count']}"
-        elif first.entry.get("main_matched") and not matched_primary:
-            label += f", all {first.recorded['expected_count']} lower bound"
-        if seeds:
-            label += f" ({run_label(first)})"
-        elif len(group) > 1:
-            label += f" ({values[-1]['n']}/{len(group)} runs)"
-        rendered = []
-        for index, summary in enumerate(values):
-            value = summary["mean"]
-            marked = (not references and not seeds and value is not None and complete_groups[cohort(first)] > 1
-                      and round(value, 2) == round(best[cohort(first), index], 2))
-            rendered.append(number(value, bold=marked, std=summary["sample_std"], reserve=not seeds and not references))
-        if show_base:
-            base = paired_base(first, cells)
-            value = raw_quantity(base, "score", mode, excluded=excluded) * 100 if base.complete else None
-            rendered.insert(0, number(value) + (r"$^{\dagger}$" if base.provisional else ""))
-        rows.extend(provenance(cell) for cell in group)
-        rows.append(" & ".join([row_label(first, label), *rendered]) + r" \\")
+        base = paired_base(first, cells) if show_base or matched_primary else None
+        views = [(values, excluded)]
+        if matched_primary and excluded and base.empty_qids:
+            views.append(([seed_summary(group, mode, category) for category in quantities], frozenset()))
+        for view_values, view_excluded in views:
+            label = first.label
+            if view_excluded:
+                label += f", matched {raw_quantity(first, 'n', excluded=view_excluded)}/{first.recorded['expected_count']}"
+            elif (first.complete and first.entry["table"] == "main"
+                  and (first.empty_qids or (base is not None and base.empty_qids))):
+                label = all_item_label(first, base)
+            if seeds:
+                label += f" ({run_label(first)})"
+            elif len(group) > 1:
+                label += f" ({view_values[-1]['n']}/{len(group)} runs)"
+            rendered = []
+            for index, summary in enumerate(view_values):
+                value = summary["mean"]
+                marked = (view_excluded == excluded and not references and not seeds
+                          and value is not None and complete_groups[cohort(first)] > 1
+                          and round(value, 2) == round(best[cohort(first), index], 2))
+                rendered.append(number(value, bold=marked, std=summary["sample_std"], reserve=not seeds and not references))
+            if show_base:
+                value = raw_quantity(base, "score", mode, excluded=view_excluded) * 100 if base.complete else None
+                rendered.insert(0, number(value) + (r"$^{\dagger}$" if base.provisional else ""))
+            rows.extend(provenance(cell) for cell in group)
+            rows.append(" & ".join([row_label(first, label), *rendered]) + r" \\")
     suffix = "References" + mode.title() if references else "Seeds" + mode.title() if seeds else "" if mode == "lenient" else "Strict"
     title = f"{spec.name} {'reference configurations' if references else 'individual arm-C runs' if seeds else 'question-type results'} ({mode})."
     details = r"Accuracy is in percent; Overall uses the official metric rather than the raw-category macro. "
@@ -982,6 +1002,14 @@ def render_accuracy(cells, benchmark, mode, *, references=False, seeds=False, ma
         details += ("Bold marks the best value within each student's matched cohort when at least two conditions are complete. "
                     "Run counts show completed/planned repeats; suffixes give sample standard deviations. "
                     "Base gives the paired same-harness overall score under this table's parser.")
+    base_excluded = [group[0] for group in groups if matched_primary and group[0].complete
+                     and group[0].entry["condition"] not in BASE_CONDITIONS
+                     and paired_base(group[0], cells).empty_qids]
+    if matched_primary and base_excluded:
+        labels = "; ".join(f"{STUDENTS[cell.entry['student']]} {cell.label}" for cell in base_excluded)
+        details += (" For " + latex_escape(labels) + ", matched rows are primary: the union of both sides' audited empty-item qids "
+                    "is excluded from both scores. All-item rows are secondary and count empty items as wrong. "
+                    "The base score is a lower bound; when only the base has empty items, the delta is an upper bound.")
     details += provisional_clause(cell for group in groups for cell in group)
     details += " These diagnostic results remain provisional."
     comments = [f"% Metric: {spec.metric}", "% Question-type legend:",
@@ -1067,9 +1095,12 @@ def render_matched(cells, benchmark):
                       for quantity, mode in (("score", "lenient"), ("score", "strict"), ("macro", "lenient"), ("macro", "strict"))]
             count = raw_quantity(cell, "n", excluded=excluded)
             rows.extend([provenance(cell), " & ".join([row_label(cell), str(count), *(number(value) for value in values)]) + r" \\"])
-    details = ("The paired base's audited empty-item qids, or the student's when the base has none, are excluded from every displayed condition. "
-               "Overall retains the official category collapse; raw macros weight the surviving question types equally. "
-               "This selected subset is an appendix diagnostic, not the full-cohort result.")
+    both_sides = any(group[0].empty_qids and cell.empty_qids for group in groups for cell in group[1:])
+    details = ("The union of the paired base's and student's audited empty-item qids is excluded from both conditions. "
+               if both_sides else
+               "The paired base's audited empty-item qids, or the student's when the base has none, are excluded from every displayed condition. ")
+    details += ("Overall retains the official category collapse; raw macros weight the surviving question types equally. "
+                "This selected subset is an appendix diagnostic, not the full-cohort result.")
     details += provisional_clause(cell for group in groups for cell in group)
     return float_table(f"{spec.name} matched-subset diagnostic.", "captakeaway" + spec.short + "Matched",
                        details, spec.short.lower() + "_matched",
