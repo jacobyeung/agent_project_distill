@@ -55,7 +55,7 @@ from __future__ import annotations
 
 import argparse
 from collections import Counter, defaultdict
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import datetime, timezone
 from decimal import Decimal, ROUND_HALF_EVEN, localcontext
 import hashlib
@@ -77,6 +77,8 @@ class Benchmark:
     metric: str
     labels: dict[str, str]
     groups: tuple[tuple[str, ...], ...]
+    scope_label: str
+    show_counts: bool = False
 
     @property
     def categories(self):
@@ -90,7 +92,8 @@ BENCHMARKS = {
         "object_rel_direction_hard": "RelDir-H", "object_rel_direction_medium": "RelDir-M",
         "object_rel_distance": "Rel.Dist", "object_size_estimation": "Obj.Size",
         "room_size_estimation": "Room.Size", "route_planning": "Route",
-    }, (("object_rel_direction_easy", "object_rel_direction_medium", "object_rel_direction_hard"),)),
+    }, (("object_rel_direction_easy", "object_rel_direction_medium", "object_rel_direction_hard"),),
+        scope_label="VSIBench-500 (answerable subset, 50 per category; not comparable to published full-benchmark numbers)"),
     "vstibench_repr450_v2": Benchmark("VSTIBench", "VSTI", "vstibench-official-5subtask-v1", {
         "camera_displacement": "Cam.Disp", "camera_movement_direction": "Cam.Dir",
         "camera_obj_abs_dist": "Cam.AbsD", "camera_obj_rel_dist_v1": "Cam.RelD1",
@@ -98,8 +101,12 @@ BENCHMARKS = {
         "obj_obj_relative_pos_lr": "Pos-LR", "obj_obj_relative_pos_nf": "Pos-NF",
         "obj_obj_relative_pos_ud": "Pos-UD",
     }, (("camera_obj_rel_dist_v1", "camera_obj_rel_dist_v2", "camera_obj_rel_dist_v3"),
-        ("obj_obj_relative_pos_lr", "obj_obj_relative_pos_nf", "obj_obj_relative_pos_ud"))),
+        ("obj_obj_relative_pos_lr", "obj_obj_relative_pos_nf", "obj_obj_relative_pos_ud")),
+        scope_label="VSTIBench-450 (representative subset, 50 per category)"),
 }
+BENCHMARKS["vsibench_full5130"] = replace(
+    BENCHMARKS["vsibench_answerable500"], name="VSI-Bench full", short="VSIFull",
+    scope_label="VSI-Bench full (5,130 questions, official metric)", show_counts=True)
 STUDENTS = {"onethinker_8b": "OneThinker-8B", "qwen35_9b": "Qwen3.5-9B", "qwen36_27b": "Qwen3.6-27B"}
 CONDITIONS = {"base": "Base", "orchard_base": "Base (Orchard)", "orchard_base_b16": "Base (Orchard, batched)",
               "answer_only": "Answer-only control", "answer_only_corrected": "Answer-only (corrected set)",
@@ -951,9 +958,12 @@ def number(value, *, bold=False, std=None, reserve=False, decimals=2):
     return text
 
 
-def float_table(title, macro, details, label, header, rows, comments=()):
+def float_table(title, macro, details, label, header, rows, comments=(), *, benchmarks):
+    scopes = " ".join(latex_escape(BENCHMARKS[benchmark].scope_label) + "." for benchmark in dict.fromkeys(benchmarks))
+    if not scopes:
+        raise ScoreError("A table caption requires at least one benchmark scope")
     lines = [*comments, r"\begin{table*}[t]", r"\centering",
-             f"\\caption{{\\textbf{{{latex_escape(title)}}} \\{macro}{{}} {details}}}",
+             f"\\caption{{\\textbf{{{latex_escape(title)}}} {scopes} \\{macro}{{}} {details}}}",
              r"\label{tab:" + label + "}", r"\footnotesize", r"\setlength{\tabcolsep}{3pt}",
              r"\resizebox{\linewidth}{!}{%", r"\begin{tabular}{l" + "r" * (len(header) - 1) + "}",
              r"\toprule", " & ".join(latex_escape(value) for value in header) + r" \\", r"\midrule",
@@ -998,6 +1008,8 @@ def render_accuracy(cells, benchmark, mode, *, references=False, seeds=False, ma
     groups = condition_groups(cells, benchmark, references)
     if seeds:
         groups = [[cell] for group in groups if group[0].entry["condition"] == "armc" for cell in group]
+    if not groups:
+        return None
     quantities = [*spec.categories, None]
     show_base = not references and not seeds
     exclusions = [matched_excluded_qids(paired_base(group[0], cells), group[0])
@@ -1022,6 +1034,7 @@ def render_accuracy(cells, benchmark, mode, *, references=False, seeds=False, ma
             rows.append(r"\multicolumn{" + str(len(quantities) + 1 + show_base) + r"}{l}{\textit{" + latex_escape(cohort_label(first)) + r"}} \\")
             previous = cohort(first)
         base = paired_base(first, cells) if show_base or matched_primary else None
+        count_cell = next((cell for cell in group if cell.complete), None)
         views = [(values, excluded)]
         if matched_primary and excluded and base.empty_qids:
             views.append(([seed_summary(group, mode, category) for category in quantities], frozenset()))
@@ -1037,12 +1050,17 @@ def render_accuracy(cells, benchmark, mode, *, references=False, seeds=False, ma
             elif len(group) > 1:
                 label += f" ({view_values[-1]['n']}/{len(group)} runs)"
             rendered = []
+            counts = score_view(count_cell, mode, view_excluded).counts if spec.show_counts and count_cell else {}
             for index, summary in enumerate(view_values):
                 value = summary["mean"]
                 marked = (view_excluded == excluded and not references and not seeds
                           and value is not None and complete_groups[cohort(first)] > 1
                           and round(value, 2) == round(best[cohort(first), index], 2))
                 rendered.append(number(value, bold=marked, std=summary["sample_std"], reserve=not seeds and not references))
+                if spec.show_counts:
+                    category = quantities[index]
+                    count = counts.get(category) if category is not None else sum(counts.values()) if counts else None
+                    rendered[-1] += r" {\scriptsize ($n=" + ("--" if count is None else str(count)) + r"$)}"
             if show_base:
                 value = raw_quantity(base, "score", mode, excluded=view_excluded) * 100 if base.complete else None
                 rendered.insert(0, number(value) + (r"$^{\dagger}$" if base.provisional else ""))
@@ -1051,6 +1069,8 @@ def render_accuracy(cells, benchmark, mode, *, references=False, seeds=False, ma
     suffix = "References" + mode.title() if references else "Seeds" + mode.title() if seeds else "" if mode == "lenient" else "Strict"
     title = f"{spec.name} {'reference configurations' if references else 'individual arm-C runs' if seeds else 'question-type results'} ({mode})."
     details = r"Accuracy is in percent; Overall uses the official metric rather than the raw-category macro. "
+    if spec.show_counts:
+        details += r"$n$ gives the score-derived question count for each category and Overall, not the number of runs. "
     if references:
         reasons = {"r6_formatA": "r6 uses format-A targets", "base_27b_thinkoff": "the 27B base uses thinking off"}
         present = {group[0].entry["condition"] for group in groups}
@@ -1077,7 +1097,8 @@ def render_accuracy(cells, benchmark, mode, *, references=False, seeds=False, ma
                 *(f"% {short} = {name}" for name, short in spec.labels.items())]
     return float_table(title, "captakeaway" + spec.short + suffix, details,
                        spec.short.lower() + "_" + mode + "_" + ("references" if references else "seeds" if seeds else "main"),
-                       ["Condition", *(["Base"] if show_base else []), *spec.labels.values(), "Overall"], rows, comments)
+                       ["Condition", *(["Base"] if show_base else []), *spec.labels.values(), "Overall"], rows, comments,
+                       benchmarks=(benchmark,))
 
 
 def render_diagnostics(cells, benchmark):
@@ -1101,7 +1122,8 @@ def render_diagnostics(cells, benchmark):
     details += provisional_clause(cell for cell in cells if cell.entry["benchmark"] == benchmark)
     return float_table(f"{spec.name} parser and generation diagnostics.", "captakeaway" + spec.short + "Diagnostics",
                        details, spec.short.lower() + "_diagnostics",
-                       ["Condition", "Run", "Strict fail", "Lenient fail", "Cap-hit", "Cap w/o answer", "Terminal"], rows)
+                       ["Condition", "Run", "Strict fail", "Lenient fail", "Cap-hit", "Cap w/o answer", "Terminal"], rows,
+                       benchmarks=(benchmark,))
 
 
 def render_macros(cells, benchmark):
@@ -1123,7 +1145,8 @@ def render_macros(cells, benchmark):
     details += provisional_clause(cell for cell in cells if cell.entry["benchmark"] == benchmark)
     return float_table(f"{spec.name} official scores and raw-category macros.", "captakeaway" + spec.short + "Aggregation",
                        details, spec.short.lower() + "_aggregation",
-                       ["Condition", "Run", "Lenient official", "Lenient raw macro", "Strict official", "Strict raw macro"], rows)
+                       ["Condition", "Run", "Lenient official", "Lenient raw macro", "Strict official", "Strict raw macro"], rows,
+                       benchmarks=(benchmark,))
 
 
 def matched_groups(cells, benchmark):
@@ -1165,14 +1188,16 @@ def render_matched(cells, benchmark):
     details += provisional_clause(cell for group in groups for cell in group)
     return float_table(f"{spec.name} matched-subset diagnostic.", "captakeaway" + spec.short + "Matched",
                        details, spec.short.lower() + "_matched",
-                       ["Condition", "Items", "Lenient overall", "Strict overall", "Lenient raw macro", "Strict raw macro"], rows)
+                       ["Condition", "Items", "Lenient overall", "Strict overall", "Lenient raw macro", "Strict raw macro"], rows,
+                       benchmarks=(benchmark,))
 
 
 def render_seed_summaries(cells):
+    groups = [group for group in condition_groups(cells) if group[0].entry["condition"] == "armc"]
+    if not groups:
+        return None
     rows = []
-    for group in condition_groups(cells):
-        if group[0].entry["condition"] != "armc":
-            continue
+    for group in groups:
         summary = seed_summary(group)
         rows.extend(provenance(cell) for cell in group)
         values = [summary[key] for key in ("published", "rep2", "rep3", "mean", "range", "sample_std")]
@@ -1182,12 +1207,16 @@ def render_seed_summaries(cells):
     details = ("Lenient official scores determine all summaries. Means, ranges, and sample standard deviations use unrounded scores "
                "from completed runs, with the sample denominator n-1. Run identifiers preserve the published/replicate labels.")
     return float_table("Arm C repeated-run summaries.", "captakeawaySeeds", details, "seed_summaries",
-                       ["Student / benchmark", "Runs", "Published", "rep2", "rep3", "Mean", "Range", "Sample std"], rows)
+                       ["Student / benchmark", "Runs", "Published", "rep2", "rep3", "Mean", "Range", "Sample std"], rows,
+                       benchmarks=(group[0].entry["benchmark"] for group in groups))
 
 
 def caption_defaults(cells):
     macros = {}
+    benchmarks = {cell.entry["benchmark"] for cell in cells}
     for benchmark, spec in BENCHMARKS.items():
+        if benchmark not in benchmarks:
+            continue
         for mode in ("lenient", "strict"):
             takeaway = MAIN_TABLE_CAPTION if mode == "lenient" else winner_takeaway(cells, benchmark, mode)
             macros["captakeaway" + spec.short + ("" if mode == "lenient" else "Strict")] = takeaway
@@ -1258,7 +1287,10 @@ def render_all(cells, out):
         write_output(captions, defaults)
     write_output(generated, defaults)
     files = {}
+    benchmarks = {cell.entry["benchmark"] for cell in appendix_cells}
     for benchmark, spec in BENCHMARKS.items():
+        if benchmark not in benchmarks:
+            continue
         short = spec.short.lower()
         files[f"main_{short}.tex"] = render_accuracy(main_cells, benchmark, "lenient", matched_primary=True)
         files[f"appendix_{short}_strict.tex"] = render_accuracy(appendix_cells, benchmark, "strict")
@@ -1271,6 +1303,7 @@ def render_all(cells, out):
         if matched:
             files[f"appendix_{short}_matched.tex"] = matched
     files["appendix_seed_summaries.tex"] = render_seed_summaries(appendix_cells)
+    files = {name: content for name, content in files.items() if content is not None}
     for name, content in files.items():
         write_output(out / name, content)
     inputs = [r"\input{" + name + "}\n" + r"\clearpage" for name in files]

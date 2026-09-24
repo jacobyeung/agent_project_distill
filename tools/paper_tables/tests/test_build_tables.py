@@ -1,4 +1,5 @@
 import contextlib
+from dataclasses import replace
 import hashlib
 import io
 import json
@@ -9,6 +10,7 @@ import shutil
 import statistics
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from tools.paper_tables import build_tables as tables
 
@@ -17,6 +19,31 @@ ROOT = Path(__file__).resolve().parents[3]
 OUTPUT = Path(os.environ.get("PAPER_TABLES_TEST_OUTPUT", ROOT / "out/paper_tables_tests")).resolve()
 VSI = "vsibench_answerable500"
 VSTI = "vstibench_repr450_v2"
+VSI_FULL = "vsibench_full5130"
+SCOPES = {
+    VSI: "VSIBench-500 (answerable subset, 50 per category; not comparable to published full-benchmark numbers)",
+    VSTI: "VSTIBench-450 (representative subset, 50 per category)",
+    VSI_FULL: "VSI-Bench full (5,130 questions, official metric)",
+}
+
+
+def assert_scope_captions(test, out):
+    checked = {}
+    for path in sorted(out.glob("*.tex")):
+        text = path.read_text(encoding="utf-8")
+        if r"\begin{table" not in text:
+            continue
+        with test.subTest(table=path.name):
+            captions = [line for line in text.splitlines() if line.startswith(r"\caption{")]
+            test.assertEqual(len(captions), 1)
+            test.assertEqual(text.count(r"\begin{table"), 1)
+            benchmarks = set(re.findall(r"^% cell=[^/\n]+/([^/\n]+)/", text, re.MULTILINE))
+            test.assertTrue(benchmarks, "A generated score table must identify its source cells")
+            for benchmark in benchmarks:
+                test.assertIn(tables.latex_escape(tables.BENCHMARKS[benchmark].scope_label), captions[0])
+            checked[path.name] = benchmarks
+    test.assertTrue(checked)
+    return checked
 
 
 class TableTests(unittest.TestCase):
@@ -34,8 +61,10 @@ class TableTests(unittest.TestCase):
         name = f"{benchmark}_{condition}_{seed}"
         score_dir = self.root / name / "scores/base"
         rescore_dir = self.root / name / "lenient"
+        counts = (items_per_category if isinstance(items_per_category, dict)
+                  else dict.fromkeys(tables.BENCHMARKS[benchmark].categories, items_per_category))
         categories = [category for category in tables.BENCHMARKS[benchmark].categories
-                      for _ in range(items_per_category)]
+                      for _ in range(counts[category])]
         empty_indices = range(empty_offset, empty_offset + empty_items)
         rows = [{"qid": str(index), "category": category,
                  "credit": 0 if index in empty_indices else strict_credit,
@@ -94,6 +123,142 @@ class TableTests(unittest.TestCase):
                 "lenient_cell_key": None, "harness_commit": commit, "status": "pending",
                 "harness": f"{protocol}-{commit}", "base_ref": "orchard_base" if orchard else "base",
                 "protocol": protocol, "reference_only": False, "provenance_note": "Awaiting scores."}
+
+    def test_benchmark_scope_specifications(self):
+        for benchmark, scope in SCOPES.items():
+            with self.subTest(benchmark=benchmark):
+                self.assertEqual(tables.BENCHMARKS[benchmark].scope_label, scope)
+        subset, full = tables.BENCHMARKS[VSI], tables.BENCHMARKS[VSI_FULL]
+        self.assertEqual((full.categories, full.labels, full.metric, full.groups),
+                         (subset.categories, subset.labels, subset.metric, subset.groups))
+        self.assertNotEqual(full.short, subset.short)
+
+    def test_full_benchmark_unequal_counts_and_official_aggregate(self):
+        counts = dict(zip(tables.BENCHMARKS[VSI_FULL].categories,
+                          [401, 421, 441, 461, 481, 501, 521, 541, 561, 801]))
+        credits = {category: float(category.startswith("object_rel_direction")) for category in counts}
+        credits["object_counting"] = 0.4
+        entries = [self.fixture(benchmark=benchmark, condition=condition)
+                   for benchmark in (VSI, VSTI) for condition in ("base", "armc")]
+        entries.extend(self.fixture(benchmark=VSI_FULL, condition=condition, items_per_category=counts,
+                                    lenient_credit=credits, reference=condition == "r6_formatA")
+                       for condition in ("base", "armc", "r6_formatA"))
+        manifest = self.root / "manifest.json"
+        self.write_json(manifest, {"schema": "split-paper-tables-v1", "cells": entries})
+        cells = tables.load_manifest(manifest)
+        full = next(cell for cell in cells if cell.entry["benchmark"] == VSI_FULL)
+        self.assertEqual(full.recorded["expected_count"], 5130)
+        self.assertEqual(full.lenient.counts, counts)
+        self.assertAlmostEqual(full.lenient.overall, (1 + 0.4) / 8)
+        self.assertAlmostEqual(full.lenient.macro, (3 + 0.4) / 10)
+        weighted = sum(credits[category] * count for category, count in counts.items()) / sum(counts.values())
+        self.assertNotAlmostEqual(full.lenient.overall, weighted)
+        out = self.root / "full_tables"
+        files = tables.render_all(cells, out)
+        self.assertIn("main_vsi.tex", files)
+        self.assertIn("main_vsifull.tex", files)
+        for name in ("main_vsifull.tex", "appendix_vsifull_strict.tex",
+                     "appendix_vsifull_seeds_lenient.tex", "appendix_vsifull_seeds_strict.tex",
+                     "appendix_vsifull_references_lenient.tex", "appendix_vsifull_references_strict.tex"):
+            with self.subTest(table=name):
+                text = (out / name).read_text(encoding="utf-8")
+                self.assertIn(SCOPES[VSI_FULL], text)
+                self.assertNotIn("50 per category", text)
+                rows = [line for line in text.splitlines() if "($n=" in line]
+                self.assertTrue(rows)
+                for row in rows:
+                    self.assertEqual([int(n) for n in re.findall(r"\(\$n=(\d+)\$\)", row)],
+                                     [*counts.values(), sum(counts.values())])
+        text = (out / "main_vsifull.tex").read_text(encoding="utf-8")
+        self.assertIn(r"\captakeawayVSIFull{}", text)
+        base_row = next(line for line in text.splitlines() if line.startswith("Base &"))
+        self.assertEqual(re.findall(r"& (?:\\textbf\{)?(\d+\.\d+)", base_row)[-1], "17.50")
+        subset = (out / "main_vsi.tex").read_text(encoding="utf-8")
+        self.assertNotIn(SCOPES[VSI_FULL], subset)
+        self.assertNotIn("($n=", subset)
+        macros = (out / "tables_captions.tex").read_text(encoding="utf-8")
+        self.assertIn(r"\newcommand{\captakeawayVSI}", macros)
+        self.assertIn(r"\newcommand{\captakeawayVSIFull}", macros)
+        checked = assert_scope_captions(self, out)
+        self.assertEqual(checked["appendix_seed_summaries.tex"], set(SCOPES))
+
+    def test_full_benchmark_requires_visible_manifest_cells(self):
+        base = tables.load_cell(self.fixture())
+        omitted = tables.load_cell({**self.pending("base", protocol="trinity"),
+                                    "benchmark": VSI_FULL, "table": "omit"})
+        out = self.root / "subset_only"
+        files = tables.render_all([base, omitted], out)
+        self.assertFalse(any("vsifull" in name for name in files))
+        self.assertNotIn("VSIFull", (out / "tables_captions.tex").read_text(encoding="utf-8"))
+        self.assertNotIn(SCOPES[VSI_FULL], (out / "tables_preview.tex").read_text(encoding="utf-8"))
+        assert_scope_captions(self, out)
+        pending = tables.load_cell({**omitted.entry, "table": "main"})
+        pending_out = self.root / "full_pending"
+        files = tables.render_all([base, pending], pending_out)
+        self.assertIn("main_vsifull.tex", files)
+        text = (pending_out / "main_vsifull.tex").read_text(encoding="utf-8")
+        self.assertIn("($n=--$)", text)
+        self.assertNotIn("($n=5130$)", text)
+        assert_scope_captions(self, pending_out)
+
+    def test_full_benchmark_counts_follow_matched_views(self):
+        counts = {category: index + 2 for index, category in enumerate(tables.BENCHMARKS[VSI_FULL].categories)}
+        cells = [tables.load_cell(self.fixture(benchmark=VSI_FULL, condition=condition,
+                                              items_per_category=counts, empty_items=int(condition == "base")))
+                 for condition in ("base", "armc")]
+        text = tables.render_accuracy(cells, VSI_FULL, "lenient", matched_primary=True)
+        for prefix, total, first_count in (("Arm C, matched", 64, 1), ("Arm C, all", 65, 2)):
+            row = next(line for line in text.splitlines() if line.startswith(prefix))
+            self.assertEqual([int(n) for n in re.findall(r"\(\$n=(\d+)\$\)", row)],
+                             [first_count, *list(counts.values())[1:], total])
+        self.assertIn(SCOPES[VSI_FULL], text)
+
+    def test_full_benchmark_validates_each_cells_expected_count(self):
+        counts = {category: index + 1 for index, category in enumerate(tables.BENCHMARKS[VSI_FULL].categories)}
+        entry = self.fixture(benchmark=VSI_FULL, items_per_category=counts)
+        cell = tables.load_cell(entry)
+        self.assertEqual(cell.recorded["expected_count"], 55)
+        self.assertEqual(sum(cell.strict.counts.values()), 55)
+        path = Path(entry["strict_score_path"]) / "scores.json"
+        recorded = json.loads(path.read_text(encoding="utf-8"))
+        for expected in (500, 5130):
+            with self.subTest(expected=expected):
+                self.write_json(path, {**recorded, "expected_count": expected})
+                with self.assertRaisesRegex(tables.ScoreError, "coverage contract"):
+                    tables.load_cell(entry)
+        self.write_json(path, recorded)
+        path = Path(entry["lenient_score_path"])
+        rescore = json.loads(path.read_text(encoding="utf-8"))
+        rescore["cells"][entry["lenient_cell_key"]]["items"] = 500
+        self.write_json(path, rescore)
+        with self.assertRaisesRegex(tables.ScoreError, "identity/coverage"):
+            tables.load_cell(entry)
+
+    def test_scope_labels_survive_edited_caption_macros(self):
+        cell = tables.load_cell(self.fixture())
+        out = self.root / "edited_captions"
+        tables.render_all([cell], out)
+        captions = out / "tables_captions.tex"
+        text = captions.read_text(encoding="utf-8").replace(tables.MAIN_TABLE_CAPTION, "Author wording.")
+        captions.write_text(text, encoding="utf-8")
+        tables.render_all([cell], out)
+        self.assertEqual(captions.read_text(encoding="utf-8"), text)
+        assert_scope_captions(self, out)
+
+    @unittest.skipUnless(shutil.which("pdflatex"), "pdflatex is not on PATH")
+    def test_scope_labels_with_tex_metacharacters_compile(self):
+        label = "Full_scope & 100% {audited} #1 $metric$ ~ ^ \\ scope"
+        spec = replace(tables.BENCHMARKS[VSI_FULL], scope_label=label)
+        with patch.dict(tables.BENCHMARKS, {VSI_FULL: spec}):
+            counts = {category: index + 2 for index, category in enumerate(spec.categories)}
+            cells = [tables.load_cell(self.fixture(benchmark=VSI_FULL, condition=condition,
+                                                  items_per_category=counts, empty_items=int(condition == "base")))
+                     for condition in ("base", "armc")]
+            out = self.root / "full_compiled"
+            tables.render_all(cells, out)
+            assert_scope_captions(self, out)
+            self.assertTrue(tables.compile_preview(out))
+            self.assertGreater((out / "tables_preview.pdf").stat().st_size, 0)
 
     def test_per_type_uses_fractional_credit_not_correct_flag(self):
         cell = tables.load_cell(self.fixture())
@@ -940,6 +1105,26 @@ class TableTests(unittest.TestCase):
 
 
 class RealManifestTests(unittest.TestCase):
+    def test_real_manifest_every_table_caption_names_its_benchmark_scopes(self):
+        try:
+            cells = tables.load_manifest(ROOT / "tools/paper_tables/manifest.json")
+        except OSError as exc:
+            self.skipTest(f"Score path is unreadable: {exc}")
+        OUTPUT.mkdir(parents=True, exist_ok=True)
+        out = Path(tempfile.mkdtemp(prefix="real_scopes_", dir=OUTPUT))
+        files = tables.render_all(cells, out)
+        checked = assert_scope_captions(self, out)
+        self.assertEqual(set(checked), set(files))
+        visible = tables.cells_for_table(cells, "appendix")
+        repeated = {cell.entry["benchmark"] for cell in visible
+                    if cell.entry["condition"] == "armc" and not cell.reference}
+        if repeated:
+            self.assertEqual(checked["appendix_seed_summaries.tex"], repeated)
+        for benchmark, spec in tables.BENCHMARKS.items():
+            if not any(cell.entry["benchmark"] == benchmark for cell in visible):
+                self.assertFalse(any(f"_{spec.short.lower()}." in name or f"_{spec.short.lower()}_" in name
+                                     for name in files))
+
     def test_real_manifest_27b_base_interruptions_render_matched_and_all_item_rows(self):
         try:
             cells = tables.load_manifest(ROOT / "tools/paper_tables/manifest.json")
