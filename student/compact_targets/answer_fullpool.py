@@ -1,6 +1,7 @@
 """Build and verify a scene-disjoint answer-only superset of a pinned corpus."""
 import argparse
 from collections import Counter
+from decimal import Decimal
 import json
 import math
 from pathlib import Path
@@ -84,6 +85,13 @@ def native_answer(row, mode):
     target = answer if mode == 'bare' else '<answer>' + match[1] + '</answer>'
     require(final['target'] == '<answer>' + match[1] + '</answer>', 'native_archive_transform_drift')
     return answer, target
+
+
+def ground_truth_target(row, gold, mode):
+    answer = inherited.answer_text({'answer': gold})
+    if row['category'] == 'object_counting':
+        answer = str(int(Decimal(answer)))
+    return answer if mode == 'bare' else '<answer>' + answer + '</answer>'
 
 
 def benchmark_groups(manifest):
@@ -260,6 +268,11 @@ def build(args):
                 except (ValueError, KeyError) as error:
                     drop(qid, root, 'room_label_mismatch', str(error))
                     return
+            if not root_members[qid].get('options'):
+                target = ground_truth_target(row, root_gold[qid], args.target_format)
+                row = {**row, 'target_provenance': {
+                    'source': 'ground_truth', 'label_id': qid,
+                    'labels': inputs['root_a_labels' if root == 'root-A-new' else 'labels']}}
             row = {**row, 'target': target}
             if entry:
                 require(str(entry['answer']) == answer, 'indexed_native_answer_mismatch')
@@ -436,11 +449,32 @@ def verify(args):
         for line in source_lines[:inputs['limit_per_root_and_out0_side'] or None]:
             require(output_lines.get(compact.decode_json(line)['qid']) == line, 'OUT0_superset_byte_identity')
     by_id = {r['qid']: r for r in rows}
-    entries = list(source.read_jsonl(layout / 'candidate_index.jsonl'))
-    require({r['qid'] for r in entries} == ids and len(entries) == len(rows), 'candidate_membership_mismatch')
     old_materialization = source.read_json(inputs['source_materialization']['path'])
     old_entries = control.identities(inherited.unique_rows(control.checked_bytes(
         old_materialization['artifacts']['candidate_index.jsonl'])))
+    gold_by_root = {}
+    for root, key in (('root-A-new', 'root_a_labels'), ('root-B-new', 'labels')):
+        binding = checked_authority(inputs[key]['path'], inputs[key]['sha256'])
+        gold_by_root[root] = {r['id']: r['ground_truth'] for r in source.read_jsonl(binding['path'])}
+    origins = list(source.read_jsonl(layout / 'ROW_ORIGINS.jsonl'))
+    require(len(origins) == len(rows) and {r['qid'] for r in origins} == ids, 'origin_membership_mismatch')
+    for origin in origins:
+        require((origin['root'] == 'OUT0-carried') == (origin['qid'] in old_entries), 'origin_out0_mismatch')
+        if origin['root'] == 'OUT0-carried':
+            continue
+        row = by_id[origin['qid']]
+        gold = gold_by_root[origin['root']][row['qid']]
+        require(row['target'] == ground_truth_target(row, gold, inputs['target_format']),
+                'new_target_ground_truth_mismatch')
+        if not row['student_input']['options']:
+            answer = row['target'] if inputs['target_format'] == 'bare' else row['target'][8:-9]
+            require(Decimal(answer) == Decimal(str(gold)), 'new_target_numeric_ground_truth_mismatch')
+            key = 'root_a_labels' if origin['root'] == 'root-A-new' else 'labels'
+            require(row.get('target_provenance') == {
+                'source': 'ground_truth', 'label_id': row['qid'], 'labels': inputs[key]},
+                'new_target_ground_truth_provenance')
+    entries = list(source.read_jsonl(layout / 'candidate_index.jsonl'))
+    require({r['qid'] for r in entries} == ids and len(entries) == len(rows), 'candidate_membership_mismatch')
     for entry in entries:
         row, row_bytes, target = control.bundle(entry)
         require(row == by_id[entry['qid']], 'mix_trainer_row_identity')

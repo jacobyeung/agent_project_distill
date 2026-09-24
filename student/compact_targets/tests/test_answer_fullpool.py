@@ -150,6 +150,42 @@ class FullpoolTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'manifest_hash_mismatch'):
             full.verify(self.verify_args)
 
+    def test_tolerated_numeric_estimate_uses_ground_truth_target(self):
+        row = next(r for r in self.a_rows if r['qid'] == 'new_train')
+        row.update(category='object_abs_distance', target='33')
+        row['student_input'].update(question='Distance between the objects in meters?', options=[])
+        row['native_answer_archive'] = {'native_answer_block': '<ANSWER>33</ANSWER>',
+                                       'target': '<answer>33</answer>'}
+        entries = list(source.read_jsonl(self.root_a / 'candidate_index.jsonl'))
+        full.write_lines(self.root_a / 'candidate_index.jsonl',
+                         [self.entry(row, self.root / 'numeric_source') if e['qid'] == row['qid'] else e for e in entries])
+        members = list(source.read_jsonl(self.members))
+        member = next(r for r in members if r['id'] == row['qid'])
+        member.update(question_type=row['category'], question=row['student_input']['question'],
+                      options=[], option_letters=[])
+        full.write_lines(self.members, members)
+        labels = list(source.read_jsonl(self.gold))
+        next(r for r in labels if r['id'] == row['qid'])['ground_truth'] = '31.5'
+        full.write_lines(self.gold, labels)
+        self.args.root_a_members_sha = source.sha(self.members)
+        self.args.root_a_labels_sha = source.sha(self.gold)
+        self.assertTrue(source.census.grade(member, '31.5', '33')[0])
+        full.build(self.args)
+        path = self.args.output_mix / 'train.jsonl'
+        rows = list(source.read_jsonl(path))
+        built = next(r for r in rows if r['qid'] == row['qid'])
+        self.assertEqual(built['target'], '31.5')
+        self.assertEqual(built['target_provenance']['source'], 'ground_truth')
+        self.assertEqual(built['native_answer_archive'], row['native_answer_archive'])
+        self.verify_args.native_loader = True
+        self.assertTrue(full.verify(self.verify_args)['passed'])
+        built['target'] = '33'
+        path.write_bytes(b''.join(full.inherited.line_bytes(built) if json.loads(line)['qid'] == row['qid']
+                                  else line for line in path.read_bytes().splitlines(keepends=True)))
+        self.refresh_output_manifest(self.args.output_mix, 'mix')
+        with self.assertRaisesRegex(ValueError, 'new_target_ground_truth_mismatch'):
+            full.verify(self.verify_args)
+
     def refresh_output_manifest(self, root, name):
         manifest = source.read_json(root / 'MANIFEST.json')
         manifest['artifacts'] = full.inventory(root)
