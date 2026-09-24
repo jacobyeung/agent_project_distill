@@ -817,7 +817,57 @@ The score artifacts do not record matched-cohort cap counts, terminal counts, or
 | **macro over raw categories** | — | 38.71 | 54.13 | +15.42 |
 
 On the all-450 denominator, the 48.11 lower bound exceeds the corrected trace student's 43.93 by 4.18 points; this comparison uses all 450 items for both students.
-The supplementary 48-item re-decode is pending.
+
+##### Supplement — 48-item re-decode of the interrupted qids (not the primary row)
+
+The base re-decode uses cell `qwen35_base_vsti_b16_int48` (manifest `0cb53c2c...`) and landed at 13:09Z.
+The answer-only re-decode uses cell `qwen35_distilled_gtm2_v25full_qwen35_orchard_w4_roomfix_answeronly_mb2_vsti_b16_int48p` (manifest `530d86d6...`) and landed at 13:11Z.
+Orchard harness `0ab73f9` ran both re-decode cells at batched bs16 with a 4,096-token cap; the full cells used harness `12e477b` with the same batch size and cap.
+Each cell has 48/48 `ok` receipts, no interrupted receipts, and exactly the 48 qids interrupted in the full student cell: 15 `camera_obj_rel_dist_v1`, 15 `obj_obj_relative_pos_nf`, and 18 `obj_obj_relative_pos_ud`.
+The base re-decode hits the cap without an answer on 14 of 48 items, while the answer-only re-decode has no cap hits and no parse failures.
+The lane's scorer reuses the official canonical scorer and its lenient and strict parsers without modification, then substitutes the 48 re-decoded receipts into each full cell's receipts.
+The scorer first replays each full cell unmodified and reproduces its recorded strict score: 27.55 for base and 48.11 for answer-only.
+Lenient equals strict throughout this supplement.
+The score record is `/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient/vsti_qwen35_orchard_answeronly_b16_int48/supplement_scores.json`.
+
+###### 48-item view (supplement; per-type accuracies and item mean, not the official 9-type metric)
+
+| question type | n | base | answer-only | delta |
+|---|---:|---:|---:|---:|
+| camera_obj_rel_dist_v1 | 15 | 26.67 | 40.00 | +13.33 |
+| obj_obj_relative_pos_nf | 15 | 60.00 | 86.67 | +26.67 |
+| obj_obj_relative_pos_ud | 18 | 77.78 | 94.44 | +16.66 |
+| **item mean** | 48 | 56.25 | 75.00 | **+18.75** |
+
+###### Combined all-450 headline (supplement; official metric)
+
+| quantity | base | answer-only | delta |
+|---|---:|---:|---:|
+| **official metric (lenient/strict, %)** | 27.28 | 52.91 | **+25.63** |
+
+Each combined side contains its 402 original receipts plus its 48 re-decoded receipts.
+The official combined values are 0.2728 for base and 0.529066667 for answer-only before rounding.
+Against the original all-450 base score (27.55), answer-only leads by +25.36.
+The combined base has 204 cap hits out of 450 items.
+
+###### Combined all-450 per question type (supplement; strict parser; lenient equals strict)
+
+| question type | n | base | answer-only | delta |
+|---|---:|---:|---:|---:|
+| camera_displacement | 50 | 2.60 | 28.20 | +25.60 |
+| camera_movement_direction | 50 | 16.00 | 30.00 | +14.00 |
+| camera_obj_abs_dist | 50 | 13.80 | 59.00 | +45.20 |
+| camera_obj_rel_dist_v1 | 50 | 20.00 | 62.00 | +42.00 |
+| camera_obj_rel_dist_v2 | 50 | 46.00 | 68.00 | +22.00 |
+| camera_obj_rel_dist_v3 | 50 | 60.00 | 70.00 | +10.00 |
+| obj_obj_relative_pos_lr | 50 | 48.00 | 78.00 | +30.00 |
+| obj_obj_relative_pos_nf | 50 | 62.00 | 80.00 | +18.00 |
+| obj_obj_relative_pos_ud | 50 | 76.00 | 84.00 | +8.00 |
+| **macro over raw categories** | — | 38.27 | 62.13 | **+23.86** |
+
+The combined all-450 figure (52.91 vs 27.28, +25.63) agrees with the matched-402 primary (+25.87) within 0.25 points.
+It supersedes the all-450 lower bound (48.11), which counted the 48 interrupted items wrong.
+The supplement mixes two harness commits within each side, so the matched-402 row stays primary.
 
 ### VSTIBench (`vstibench_repr450_v2`, 450 items): base vs r6 format-A control
 
@@ -1073,7 +1123,7 @@ Each cell is one run, and the reading rule's scene-clustered CI has not been com
 |---|---|---|---|
 | Qwen3.5-9B arm C | VSTIBench / VSIBench | replicate (trinity) | COMPLETE — VSTIBench 450/450 and VSIBench 500/500 terminal and scored; replicate-2 results appear in the Qwen VSTIBench and VSIBench tables above. |
 | Qwen3.5-9B arm C | VSTIBench / VSIBench | replicate (Orchard) | in flight — Orchard job chain 147597 (running) / 147599 (pending on afterany:147597) |
-| Qwen3.5-9B answer-only | VSIBench / VSTIBench | corrected-set batched (148380) | VSIBench COMPLETE — 500/500 terminal and scored at 55.24 lenient/strict. VSTIBench PROVISIONAL — matched 402/450 primary: 52.95 lenient/strict versus 27.08 base (+25.87); all-450 lower bound: 48.11 versus 27.55 (+20.56); supplementary 48-item re-decode pending. |
+| Qwen3.5-9B answer-only | VSIBench / VSTIBench | corrected-set batched (148380) | VSIBench COMPLETE — 500/500 terminal and scored at 55.24 lenient/strict. VSTIBench PROVISIONAL — matched 402/450 primary: 52.95 lenient/strict versus 27.08 base (+25.87); all-450 lower bound: 48.11 versus 27.55 (+20.56); 48-item re-decode supplement scored (combined all-450 52.91 vs 27.28). |
 | Qwen3.5-9B format-A control r6 | VSIBench | r6 | COMPLETE — 500/500 terminal and scored; per-type table above. The last 33 items finished 2026-09-23T01:12Z after lane `claude_qwen_r6_eval_resume_20260922T2047Z` relaunched shard 7 from trinity-1-3 |
 | Qwen3.6-27B arm C | VSIBench / VSTIBench | single run | in flight — trainer resumed after a step-78/96 stall, last checkpoint step_75, 21 steps remaining, resumed steps not confirmed; separate 27B base VSIBench control (Orchard job 147601) failed all 4 shards on a path-containment defect, unresolved |
 | GT-measurement pilot | VSIBench / VSTIBench | mix-trained student | not started — gtmeasure v1/v2 target generation is done, but the two prepared training-mix commands (0.25 pilot ratio, 0.50 corrected-set ratio) are not confirmed run |
