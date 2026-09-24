@@ -250,6 +250,20 @@ class TableTests(unittest.TestCase):
         self.assertEqual(len(report.issues), 2)
         self.assertEqual({issue.computed for issue in report.issues}, {20.0})
 
+    def test_document_checker_excludes_named_raw_category_from_macro(self):
+        cell = tables.load_cell(self.fixture())
+        rows = [{"qid": category, "category": category,
+                 "credit": 0.9 if category == "room_size_estimation" else 0.2,
+                 "parsed_answer": "1"}
+                for category in tables.BENCHMARKS[VSI].categories]
+        cell.strict = tables.recompute(rows, VSI)
+        doc = self.root / "excluded_macro.md"
+        doc.write_text("## OneThinker-8B\n### VSIBench\n"
+                       "| question type | base |\n|---|---|\n"
+                       "| macro over raw categories, excl. `room_size_estimation` | 20.00 |\n",
+                       encoding="utf-8")
+        self.assertFalse(tables.check_document(doc, [cell]).issues)
+
     def test_document_delta_uses_unrounded_scores(self):
         base = tables.load_cell(self.fixture(lenient_credit=0.15475))
         armc = tables.load_cell(self.fixture(condition="armc", lenient_credit=0.4925))
@@ -260,6 +274,20 @@ class TableTests(unittest.TestCase):
                        f"| primary score, lenient (%) | {base.lenient.overall * 100:.2f} | {armc.lenient.overall * 100:.2f} | {expected:.2f} |\n",
                        encoding="utf-8")
         self.assertFalse(tables.check_document(doc, [base, armc]).issues)
+
+    def test_document_delta_vs_arm_c_is_not_substituted_with_base_delta(self):
+        base = tables.load_cell(self.fixture(benchmark=VSTI, strict_credit=0.2))
+        armc = tables.load_cell(self.fixture(benchmark=VSTI, condition="armc", strict_credit=0.5))
+        for cell in (base, armc):
+            cell.entry["student"] = "qwen35_9b"
+        doc = self.root / "arm_c_delta.md"
+        doc.write_text("## Qwen3.5-9B\n### VSTIBench — Set B pilot, Orchard\n"
+                       "| question type | delta vs arm C |\n|---|---|\n"
+                       "| camera_displacement | -4.20 |\n", encoding="utf-8")
+        report = tables.check_document(doc, [base, armc])
+        self.assertEqual(len(report.issues), 1)
+        self.assertIsNone(report.issues[0].computed)
+        self.assertEqual(report.issues[0].cause, "cross-harness reference column")
 
     def test_unmapped_numeric_column_fails_closed(self):
         cell = tables.load_cell(self.fixture())

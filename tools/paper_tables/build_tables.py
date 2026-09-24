@@ -552,11 +552,15 @@ def score_view(cell, mode, excluded=()):
     return recompute(selected, cell.entry["benchmark"], *fields)
 
 
-def raw_quantity(cell, quantity, mode="strict", category=None, *, excluded=()):
+def raw_quantity(cell, quantity, mode="strict", category=None, *, excluded=(), excluded_category=None):
     metrics = score_view(cell, mode, excluded)
     if quantity == "score":
         return metrics.overall if category is None else metrics.categories[category]
     if quantity == "macro":
+        if excluded_category is not None:
+            if excluded_category not in metrics.categories:
+                raise QuantityUnavailable(f"Unknown excluded category: {excluded_category}")
+            return canonical_mean(value for name, value in metrics.categories.items() if name != excluded_category)
         return metrics.macro
     if quantity == "n":
         return metrics.counts[category] if category else len(metrics.qids)
@@ -616,6 +620,9 @@ def check_document(path, cells):
             scope = [cell for cell in cells if cell.entry["student"] == student and cell.entry["benchmark"] == row_benchmark]
             if row_benchmark is None or not scope:
                 continue
+            excluded_category = next((category for category in BENCHMARKS[row_benchmark].categories
+                                      if re.search(rf"\bexcl\.\s+{re.escape(category)}\b", row[0], flags=re.IGNORECASE)),
+                                     None)
             group = [cell for cell in scope if cell.entry["condition"] == "armc"
                      and cell.entry["harness"] == "trinity-58794b8" and cell.entry["protocol"] == "trinity"]
             mean_row = re.fullmatch(r"trinity arm C, (\d+)-seed mean", row[0], flags=re.IGNORECASE)
@@ -697,7 +704,8 @@ def check_document(path, cells):
                                 if score_rows:
                                     calculation["flat"] = statistics.mean(item[credit] for item in score_rows
                                                                            if str(item["qid"]) not in excluded) * 100
-                            return raw_quantity(cell, quantity, mode, excluded=excluded) * scale
+                            return raw_quantity(cell, quantity, mode, excluded=excluded,
+                                                excluded_category=excluded_category) * scale
                         category = row[0] if table_kind == "question type" and "macro" not in row[0].lower() else None
                         if table_kind == "question type":
                             if low == "n":
@@ -712,6 +720,8 @@ def check_document(path, cells):
                         else:
                             raise QuantityUnavailable(f"Unsupported table header: {header[0]}")
                         if "delta" in low or " - " in low:
+                            if low == "delta vs arm c":
+                                raise QuantityUnavailable("cross-harness reference column")
                             expression = re.sub(r"\s*delta\s*", "", column, flags=re.IGNORECASE).strip()
                             if " - " in expression:
                                 left, right = expression.split(" - ", 1)
@@ -721,10 +731,12 @@ def check_document(path, cells):
                             left, right = get(left), get(right)
                             if left.entry["harness"] != right.entry["harness"]:
                                 raise QuantityUnavailable("A cross-harness delta is not a matched comparison")
-                            values = [raw_quantity(cell, quantity, mode, category, excluded=excluded) for cell in (left, right)]
+                            values = [raw_quantity(cell, quantity, mode, category, excluded=excluded,
+                                                   excluded_category=excluded_category) for cell in (left, right)]
                             calculation["rounded_delta"] = round(values[0] * scale, 2) - round(values[1] * scale, 2)
                             return (values[0] - values[1]) * scale
-                        return raw_quantity(get(column_label(column)), quantity, mode, category, excluded=excluded) * scale
+                        return raw_quantity(get(column_label(column)), quantity, mode, category, excluded=excluded,
+                                            excluded_category=excluded_category) * scale
 
                     previous_issues = len(report.issues)
                     report.compare(identity, quantity_name, doc_value, compute, line)
