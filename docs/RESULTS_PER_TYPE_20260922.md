@@ -836,7 +836,7 @@ The score record is `/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenien
 |---|---:|---:|---:|---:|
 | camera_obj_rel_dist_v1 | 15 | 26.67 | 40.00 | +13.33 |
 | obj_obj_relative_pos_nf | 15 | 60.00 | 86.67 | +26.67 |
-| obj_obj_relative_pos_ud | 18 | 77.78 | 94.44 | +16.66 |
+| obj_obj_relative_pos_ud | 18 | 77.78 | 94.44 | +16.67 |
 | **item mean** | 48 | 56.25 | 75.00 | **+18.75** |
 
 ###### Combined all-450 headline (supplement; official metric)
