@@ -281,6 +281,8 @@ def build(args):
                          'question_type': row['category'], 'pool': 'clean_vsi590k', 'answer': answer,
                          'generation_commit': inputs['commit'], 'validation_commit': inputs['commit'],
                          'config_sha256': config_sha, 'postprocess': source.ingest.SCHEMA}
+            if not root_members[qid].get('options'):
+                entry = {**entry, 'answer': ground_truth_target(row, root_gold[qid], 'bare')}
             add(row, entry, root)
             audits.append({'qid': qid, 'root': root, 'strict_decision': decision,
                            'ground_truth_rule': rule, 'room_label': room_evidence,
@@ -473,6 +475,7 @@ def verify(args):
             require(row.get('target_provenance') == {
                 'source': 'ground_truth', 'label_id': row['qid'], 'labels': inputs[key]},
                 'new_target_ground_truth_provenance')
+    new_gold = {o['qid']: gold_by_root[o['root']][o['qid']] for o in origins if o['root'] != 'OUT0-carried'}
     entries = list(source.read_jsonl(layout / 'candidate_index.jsonl'))
     require({r['qid'] for r in entries} == ids and len(entries) == len(rows), 'candidate_membership_mismatch')
     for entry in entries:
@@ -482,6 +485,8 @@ def verify(args):
             _, old_row_bytes, old_target = control.bundle(old_entries[entry['qid']])
             require((row_bytes, target) == (old_row_bytes, old_target), 'OUT0_layout_byte_identity')
         require(target in (row['target'].encode(), (row['target'] + '\n').encode()), 'trainer_target_identity')
+        if entry['qid'] in new_gold and not row['student_input']['options']:
+            require(Decimal(str(entry['answer'])) == Decimal(str(new_gold[entry['qid']])), 'new_index_answer_ground_truth_mismatch')
         for row_key, entry_key in (('qid', 'qid'), ('dataset', 'dataset'), ('scene', 'scene'), ('category', 'question_type')):
             require(row[row_key] == entry[entry_key], 'candidate_identity_mismatch')
         for key in ('generation_commit', 'validation_commit'):

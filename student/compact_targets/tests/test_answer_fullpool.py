@@ -177,6 +177,8 @@ class FullpoolTests(unittest.TestCase):
         self.assertEqual(built['target'], '31.5')
         self.assertEqual(built['target_provenance']['source'], 'ground_truth')
         self.assertEqual(built['native_answer_archive'], row['native_answer_archive'])
+        index = {e['qid']: e for e in source.read_jsonl(self.args.output_layout / 'candidate_index.jsonl')}
+        self.assertEqual(index[row['qid']]['answer'], '31.5')
         self.verify_args.native_loader = True
         self.assertTrue(full.verify(self.verify_args)['passed'])
         built['target'] = '33'
