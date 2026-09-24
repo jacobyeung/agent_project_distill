@@ -114,7 +114,8 @@ ORDER = {"base": 0, "orchard_base": 0, "orchard_base_b16": 0, "answer_only": 1,
          "base_27b_pinned": 6, "base_27b_b8": 6, "armc_27b_b8": 7}
 TOLERANCE = 0.005
 HARNESSES = {"trinity-58794b8": "58794b8", "orchard-12e477b": "12e477b",
-             "orchard-12e477b-b16": "12e477b", "orchard-0ab73f9-b8": "0ab73f9"}
+             "orchard-12e477b-b16": "12e477b", "orchard-0ab73f9-b8": "0ab73f9",
+             "orchard-0ab73f9-b16": "0ab73f9"}
 BASE_CONDITIONS = {"base", "orchard_base", "orchard_base_b16", "base_27b_thinkoff", "base_27b_pinned", "base_27b_b8"}
 TABLES = {"main", "appendix", "omit"}
 MAIN_TABLE_CAPTION = ("The corrected training set contains 7,684 room-fixed rows, and lenient accuracy is the primary metric. "
@@ -370,6 +371,24 @@ def load_cell(entry, base_dir=None):
     return cell
 
 
+def documented_cross_commit_pairing(cell, base):
+    """Allow an explicitly documented cross-commit pairing with identical decoding."""
+    declaration = cell.entry.get("cross_commit_pairing")
+    settings = cell.entry.get("decode_settings")
+    base_settings = base.entry.get("decode_settings")
+    return (isinstance(declaration, dict) and set(declaration) == {"base_harness", "decode_settings"}
+            and declaration["base_harness"] == base.entry["harness"]
+            and declaration["decode_settings"] == settings == base_settings
+            and isinstance(settings, dict) and set(settings) == {"batch_size", "token_cap"}
+            and all(type(settings[key]) is int and settings[key] > 0 for key in settings))
+
+
+def compatible_pairing_harnesses(left, right):
+    return (left.entry["harness"] == right.entry["harness"]
+            or documented_cross_commit_pairing(left, right)
+            or documented_cross_commit_pairing(right, left))
+
+
 def paired_base(cell, cells):
     matches = [base for base in cells if base.entry["student"] == cell.entry["student"]
                and base.entry["benchmark"] == cell.entry["benchmark"]
@@ -377,8 +396,8 @@ def paired_base(cell, cells):
     if len(matches) != 1:
         raise ScoreError(f"{cell.identity}: base_ref resolves to {len(matches)} bases")
     base = matches[0]
-    if base.entry["harness"] != cell.entry["harness"]:
-        raise ScoreError(f"{cell.identity}: base_ref crosses harnesses")
+    if not compatible_pairing_harnesses(cell, base):
+        raise ScoreError(f"{cell.identity}: base_ref crosses harnesses without documented matching decode settings")
     if not cell.reference and (base.reference or base.entry["protocol"] != cell.entry["protocol"]):
         raise ScoreError(f"{cell.identity}: base_ref crosses comparison protocols")
     if cell.entry["condition"] in BASE_CONDITIONS and base is not cell:
@@ -752,7 +771,7 @@ def check_document(path, cells):
                                 left = "Set B distilled (Orchard)" if orchard else "r6" if any("r6" in label.lower() for label in header) else "arm C"
                                 right = "Orchard base" if orchard else "base"
                             left, right = get(left), get(right)
-                            if left.entry["harness"] != right.entry["harness"]:
+                            if not compatible_pairing_harnesses(left, right):
                                 raise QuantityUnavailable("A cross-harness delta is not a matched comparison")
                             values = [raw_quantity(cell, quantity, mode, category, excluded=excluded,
                                                    excluded_category=excluded_category) for cell in (left, right)]

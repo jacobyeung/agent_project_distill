@@ -487,6 +487,24 @@ class TableTests(unittest.TestCase):
         with self.assertRaisesRegex(tables.ScoreError, "harness"):
             tables.paired_base(pilot, [base, pilot])
 
+    def test_documented_cross_commit_pairing_requires_matching_decode_settings(self):
+        base_entry = self.fixture(condition="orchard_base", protocol="orchard")
+        base_entry.update({"harness": "orchard-12e477b-b16",
+                           "decode_settings": {"batch_size": 16, "token_cap": 4096}})
+        student_entry = self.fixture(condition="full_scale", protocol="orchard")
+        student_entry.update({"harness_commit": "0ab73f9", "harness": "orchard-0ab73f9-b16",
+                              "base_ref": "orchard_base",
+                              "decode_settings": {"batch_size": 16, "token_cap": 4096},
+                              "cross_commit_pairing": {
+                                  "base_harness": "orchard-12e477b-b16",
+                                  "decode_settings": {"batch_size": 16, "token_cap": 4096},
+                              }})
+        base, student = tables.load_cell(base_entry), tables.load_cell(student_entry)
+        self.assertIs(tables.paired_base(student, [base, student]), base)
+        student.entry["decode_settings"]["token_cap"] = 8192
+        with self.assertRaisesRegex(tables.ScoreError, "matching decode settings"):
+            tables.paired_base(student, [base, student])
+
     def test_manifest_rejects_missing_or_pending_base_for_complete_cell(self):
         pilot = self.fixture(condition="setb_pilot", protocol="orchard")
         manifest = self.root / "manifest.json"

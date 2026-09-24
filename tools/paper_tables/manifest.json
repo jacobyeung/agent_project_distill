@@ -184,10 +184,15 @@
     },
     {
       "student": "qwen35_9b", "benchmark": "vsibench_answerable500", "condition": "full_scale", "seed": 17,
-      "strict_score_path": null, "lenient_score_path": null, "lenient_cell_key": null,
-      "harness_commit": "12e477b", "status": "pending", "protocol": "orchard",
-      "harness": "orchard-12e477b", "base_ref": "orchard_base",
-      "provenance_note": "Awaiting full-scale Qwen evaluation and its matched Orchard baseline; verify the planned harness.", "table": "omit"
+      "strict_score_path": "/data3/jjyeung/orchard_publications/eval_cells/qwen35_distilled_gtm2_answeronly_fullpool_qwen35_orchard_w4_mb2_e1_vsi_b16/score",
+      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient/vsi_qwen35_fullpool_answeronly_b16/lenient_scores.json",
+      "lenient_cell_key": "qwen35_distilled_gtm2_answeronly_fullpool_qwen35_orchard_w4_mb2_e1_vsi_b16",
+      "harness_commit": "0ab73f9", "status": "complete", "protocol": "orchard",
+      "harness": "orchard-0ab73f9-b16", "base_ref": "orchard_base_b16",
+      "decode_settings": {"batch_size": 16, "token_cap": 4096},
+      "cross_commit_pairing": {"base_harness": "orchard-12e477b-b16", "decode_settings": {"batch_size": 16, "token_cap": 4096}},
+      "label": "Answer-only (full pool, 25,164 rows)", "doc_aliases": ["Full pool", "Answer-only (full pool, 25,164 rows)"],
+      "provenance_note": "Orchard run 148598 trained the Qwen3.5-9B answer-only student on 25,164 full-pool rows for one epoch (787 steps). Eval-cell manifest bf768204... landed at 13:48Z; MANIFEST_OK, media 500/500, and 0 interrupted. Official strict and audited lenient scores both equal 53.36, with 98 parse failures, 5 cap hits (4 without an answer), and median generation length 8. The student harness is 0ab73f9 and pairs with the 12e477b batched base only through the documented common bs16, 4,096-token decode settings.", "table": "main"
     },
     {
       "student": "qwen35_9b", "benchmark": "vsibench_answerable500", "condition": "r6_formatA", "seed": 17,
@@ -308,6 +313,8 @@
       "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient/vsi_qwen35_orchard_roomfix_b16/lenient_scores.json",
       "lenient_cell_key": "qwen35_base_vsi_b16", "harness_commit": "12e477b", "status": "complete", "protocol": "orchard",
       "harness": "orchard-12e477b-b16", "base_ref": "orchard_base_b16",
+      "decode_settings": {"batch_size": 16, "token_cap": 4096},
+      "doc_aliases": ["Orchard base, batched bs16"],
       "provenance_note": "The audited Orchard bs16 score artifact supplies the Qwen3.5-9B batched base for the matched batched cohort.", "table": "main"
     },
     {
@@ -366,6 +373,7 @@
       "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient/vsi_qwen35_orchard_answeronly_b16/lenient_scores.json",
       "lenient_cell_key": "qwen35_distilled_gtm2_v25full_qwen35_orchard_w4_roomfix_answeronly_mb2_vsi_b16", "harness_commit": "12e477b", "status": "complete", "protocol": "orchard",
       "harness": "orchard-12e477b-b16", "base_ref": "orchard_base_b16",
+      "doc_aliases": ["Answer-only (corrected set)"],
       "provenance_note": "The audited Orchard bs16 score artifact records the Qwen3.5-9B corrected-set answer-only student from run 148380 (publication sha 1f33e20f..., eval-cell manifest sha c1aa3ac6...): 500/500 items are ok, with 0 parse failures and 0 cap hits; it pairs only with the batched base.", "table": "main"
     },
     {
