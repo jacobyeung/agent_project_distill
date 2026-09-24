@@ -254,10 +254,15 @@
     },
     {
       "student": "qwen35_9b", "benchmark": "vstibench_repr450_v2", "condition": "full_scale", "seed": 17,
-      "strict_score_path": null, "lenient_score_path": null, "lenient_cell_key": null,
-      "harness_commit": "12e477b", "status": "pending", "protocol": "orchard",
-      "harness": "orchard-12e477b", "base_ref": "orchard_base",
-      "provenance_note": "Awaiting full-scale Qwen evaluation and its matched Orchard baseline; verify the planned harness.", "table": "omit"
+      "strict_score_path": "/data3/jjyeung/orchard_publications/eval_cells/qwen35_distilled_gtm2_answeronly_fullpool_qwen35_orchard_w4_mb2_e1_vsti_b16/score",
+      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient/vsti_qwen35_fullpool_answeronly_b16/lenient_scores.json",
+      "lenient_cell_key": "qwen35_distilled_gtm2_answeronly_fullpool_qwen35_orchard_w4_mb2_e1_vsti_b16",
+      "harness_commit": "0ab73f9", "status": "complete", "protocol": "orchard",
+      "harness": "orchard-0ab73f9-b16", "base_ref": "orchard_base_b16",
+      "decode_settings": {"batch_size": 16, "token_cap": 4096},
+      "cross_commit_pairing": {"base_harness": "orchard-12e477b-b16", "decode_settings": {"batch_size": 16, "token_cap": 4096}},
+      "label": "Answer-only (full pool, 25,164 rows)", "doc_aliases": ["Full pool", "Answer-only (full pool, 25,164 rows)"],
+      "provenance_note": "Orchard run 148598 trained the Qwen3.5-9B answer-only student on 25,164 full-pool rows for one epoch (787 steps). Eval-cell manifest 0b0b8a7f... landed at 13:54Z; MANIFEST_OK, media 450/450, and 0 interrupted. Official strict and audited lenient scores both equal 49.61 (unrounded 0.496133333333), with 11 parse failures, 12 cap hits (11 without an answer), and median generation length 7. All parse failures are end-of-turn loops that continue through the cap after an answer and <|im_end|>, not option echoes. The student harness is 0ab73f9 and pairs with the clean 12e477b batched base only through the documented common bs16, 4,096-token decode settings.", "table": "main"
     },
     {
       "student": "qwen35_9b", "benchmark": "vstibench_repr450_v2", "condition": "r6_formatA", "seed": 17,
@@ -323,6 +328,7 @@
       "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient/vsti_qwen35_orchard_roomfix_b16/lenient_scores.json",
       "lenient_cell_key": "qwen35_base_vsti_b16", "harness_commit": "12e477b", "status": "complete", "protocol": "orchard",
       "harness": "orchard-12e477b-b16", "base_ref": "orchard_base_b16",
+      "decode_settings": {"batch_size": 16, "token_cap": 4096},
       "doc_aliases": ["Base (Orchard, batched)"],
       "provenance_note": "The audited Orchard bs16 score artifact supplies the Qwen3.5-9B batched base for the matched batched cohort.", "table": "main"
     },

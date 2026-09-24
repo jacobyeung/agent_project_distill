@@ -800,6 +800,53 @@ Ninety-four of its 98 parse failures are option-echo answers in `object_rel_dire
 **Sensitivity only (unreviewed, not of record):** Accepting a supplied letter followed by `.`, `:`, or `)` and its identical option text would recover 94 full-pool items and 8 base items, producing 57.11 and 15.50, respectively; the corrected-set answer-only student remains 55.24.
 The full-pool student uses harness `0ab73f9`, while the base uses `12e477b`; both use batched bs16 decoding and a 4,096-token cap.
 
+#### VSTIBench — answer-only student, full pool (148598), batched
+
+Orchard run 148598 trains the Qwen3.5-9B answer-only student on 25,164 full-pool rows for one epoch (787 steps) and evaluates it with batched bs16 decoding under a 4,096-token cap.
+Its eval-cell manifest has sha `0b0b8a7f...` and landed at 13:54Z; the rescore reports `MANIFEST_OK`, media checks for 450/450 items, and 0 interrupted items.
+Both rows use the official `vstibench-official-5subtask-v1` metric.
+
+##### Whole-benchmark headline (lenient primary / strict secondary)
+
+| cell | protocol | lenient (primary, %) | strict (secondary, %) | parse failures (strict → lenient) | cap-hit | cap w/o answer | median gen tokens | terminal |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| Orchard base, batched bs16 | Orchard, batched bs16 | 27.55 | 27.55 | 203 → 203 | 202 | 202 | 3049 | 450/450 |
+| **Answer-only (full pool, 25,164 rows)** | Orchard, batched bs16 | **49.61** | **49.61** | 11 → 11 | 12 | 11 | 7 | 450/450 |
+
+Lenient parsing recovers 0 of 11 strict parse failures for the full-pool student, so its lenient and strict scores are identical.
+
+##### Per question type (strict parser; lenient equals strict for both rows in every category, 0 moved)
+
+| question type | Orchard base, batched bs16 | Answer-only (full pool, 25,164 rows) | delta |
+|---|---:|---:|---:|
+| camera_displacement | 2.60 | 28.20 | +25.60 |
+| camera_movement_direction | 16.00 | 30.00 | +14.00 |
+| camera_obj_abs_dist | 13.80 | 51.20 | +37.40 |
+| camera_obj_rel_dist_v1 | 20.00 | 64.00 | +44.00 |
+| camera_obj_rel_dist_v2 | 46.00 | 66.00 | +20.00 |
+| camera_obj_rel_dist_v3 | 60.00 | 66.00 | +6.00 |
+| obj_obj_relative_pos_lr | 48.00 | 80.00 | +32.00 |
+| obj_obj_relative_pos_nf | 66.00 | 56.00 | −10.00 |
+| obj_obj_relative_pos_ud | 76.00 | 84.00 | +8.00 |
+| **macro over raw categories** | 38.71 | 58.38 | +19.67 |
+
+##### Matched 402-item comparison with the corrected-set answer-only student
+
+This comparison excludes the 48 qids interrupted in the corrected-set cell from every row.
+
+| cell | lenient / strict (%) |
+|---|---:|
+| Orchard base, batched bs16 | 27.08 |
+| Answer-only (corrected set) | **52.95** |
+| Answer-only (full pool, 25,164 rows) | 50.23 |
+
+##### Reading
+
+The full-pool student gains +22.06 over base on all 450 items.
+On the matched 402-item cohort, it trails the corrected-set student by 2.72 points.
+Its 11 parse failures are end-of-turn loops that run to the cap, not option echoes.
+The full-pool student used harness `0ab73f9`, while the base used `12e477b`; both use bs16 decoding and a 4,096-token cap.
+
 #### VSTIBench — answer-only student (148380), batched
 
 Orchard run 148380 uses batched bs16 decoding with a 4,096-token cap and landed at 05:37Z.
@@ -1159,7 +1206,7 @@ Each cell is one run, and the reading rule's scene-clustered CI has not been com
 | Qwen3.5-9B arm C | VSTIBench / VSIBench | replicate (trinity) | COMPLETE — VSTIBench 450/450 and VSIBench 500/500 terminal and scored; replicate-2 results appear in the Qwen VSTIBench and VSIBench tables above. |
 | Qwen3.5-9B arm C | VSTIBench / VSIBench | replicate (Orchard) | in flight — Orchard job chain 147597 (running) / 147599 (pending on afterany:147597) |
 | Qwen3.5-9B answer-only | VSIBench / VSTIBench | corrected-set batched (148380) | VSIBench COMPLETE — 500/500 terminal and scored at 55.24 lenient/strict. VSTIBench PROVISIONAL — matched 402/450 primary: 52.95 lenient/strict versus 27.08 base (+25.87); all-450 lower bound: 48.11 versus 27.55 (+20.56); 48-item re-decode supplement scored (combined all-450 52.91 vs 27.28). |
-| Qwen3.5-9B answer-only | VSIBench / VSTIBench | full pool (148598) | VSIBench COMPLETE — 53.36 lenient/strict vs 14.92 base; VSTIBench pending |
+| Qwen3.5-9B answer-only | VSIBench / VSTIBench | full pool (148598) | COMPLETE — VSIBench 53.36 vs 14.92; VSTIBench 49.61 vs 27.55 (all 450, 0 interrupted) |
 | Qwen3.5-9B format-A control r6 | VSIBench | r6 | COMPLETE — 500/500 terminal and scored; per-type table above. The last 33 items finished 2026-09-23T01:12Z after lane `claude_qwen_r6_eval_resume_20260922T2047Z` relaunched shard 7 from trinity-1-3 |
 | Qwen3.6-27B arm C | VSIBench / VSTIBench | single run | in flight — trainer resumed after a step-78/96 stall, last checkpoint step_75, 21 steps remaining, resumed steps not confirmed; separate 27B base VSIBench control (Orchard job 147601) failed all 4 shards on a path-containment defect, unresolved |
 | GT-measurement pilot | VSIBench / VSTIBench | mix-trained student | not started — gtmeasure v1/v2 target generation is done, but the two prepared training-mix commands (0.25 pilot ratio, 0.50 corrected-set ratio) are not confirmed run |
