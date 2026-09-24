@@ -555,6 +555,31 @@ class TableTests(unittest.TestCase):
         self.assertEqual(tables.raw_quantity(pilot, "parse", "lenient", excluded=base.empty_qids), 1)
         self.assertEqual(tables.raw_quantity(pilot, "n"), 18)
 
+    def test_document_matched_per_type_uses_base_empty_qids(self):
+        base = tables.load_cell(self.fixture(benchmark=VSTI, condition="orchard_base", protocol="orchard",
+                                            strict_credit=0.2, lenient_credit=0.2,
+                                            empty_items=1, items_per_category=2))
+        student = tables.load_cell(self.fixture(benchmark=VSTI, condition="setb_pilot", protocol="orchard",
+                                               strict_credit=0.6, lenient_credit=0.6, items_per_category=2))
+        doc = self.root / "matched_per_type.md"
+        doc.write_text("## OneThinker-8B\n### VSTIBench, Orchard\n"
+                       "#### Per question type, matched 17-item cohort\n"
+                       "| question type | Base | Distilled |\n|---|---|---|\n"
+                       "| camera_displacement | 20 | 60 |\n", encoding="utf-8")
+        report = tables.check_document(doc, [base, student])
+        self.assertEqual(report.checked, 2)
+        self.assertFalse(report.issues, report.format_text())
+
+    def test_document_checker_reads_interrupted_count(self):
+        base = tables.load_cell(self.fixture(benchmark=VSTI, condition="orchard_base", protocol="orchard"))
+        doc = self.root / "interrupted.md"
+        doc.write_text("## OneThinker-8B\n### VSTIBench, Orchard\n"
+                       "| cell | cap-hit | interrupted |\n|---|---|---|\n"
+                       "| Orchard base | 0 | 0 |\n", encoding="utf-8")
+        report = tables.check_document(doc, [base])
+        self.assertEqual(report.checked, 2)
+        self.assertFalse(report.issues, report.format_text())
+
     def test_student_side_empty_qids_drive_matched_main_and_appendix_views(self):
         base = tables.load_cell(self.fixture(benchmark=VSTI, condition="orchard_base", protocol="orchard",
                                             strict_credit=0.2, lenient_credit=0.2, items_per_category=2))

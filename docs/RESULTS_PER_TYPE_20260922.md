@@ -878,7 +878,8 @@ Run r6 beats base on VSIBench by 10.93 points lenient while roughly 40 percent o
 
 ## Qwen3.6-27B
 
-This is a standalone reference row that cannot pair with a distilled cell. `generate.py`'s `require_pair` demands identical core key sets, but this cell used `--thinking off` while the distilled-cell launcher defaults to `--thinking pinned`. The 27B base cells pinned to VSI and VSTI are queued on Orchard ahead of any 27B distilled cell.
+The 27B results include a thinking-off VSIBench reference, a pinned single-item VSTIBench reference, and a batched bs8 VSTIBench base-versus-student pair.
+Comparisons apply only within a matching decode protocol.
 
 ### VSIBench (`vsibench_answerable500`, 500 items): thinking-off base
 
@@ -935,6 +936,55 @@ Caveats, all confirmed against the actual score/media-error data: 442/450 items 
 | obj_obj_relative_pos_ud | 86.00 |
 | **macro over raw categories** | 40.91 |
 
+### VSTIBench (vstibench_repr450_v2, 450 items): batched bs8 base vs arm C student
+
+The base uses manifest `3e8b42dd…`; 16 of 450 items interrupted (5 `camera_obj_rel_dist_v1`, 4 `obj_obj_relative_pos_nf`, and 7 `obj_obj_relative_pos_ud`).
+The student uses manifest `f00fe525…` and has no interrupted items.
+
+#### Headline
+
+| cell | lenient (primary, %) | strict (secondary, %) | parse failures (strict → lenient) | cap-hit | interrupted | cap without answer | terminal |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Base (16 interrupted) | 28.49 | 28.49 | 204 → 204 | 187 | 16 | 185 | 450/450 |
+| Arm C student (0 interrupted) | 52.01 | 52.01 | 3 → 3 | 3 | 0 | 3 | 450/450 |
+
+#### Per question type, all 450 items
+
+| question type | Base | Arm C student |
+|---|---:|---:|
+| camera_displacement | 1.20 | 17.00 |
+| camera_movement_direction | 14.00 | 36.00 |
+| camera_obj_abs_dist | 18.60 | 50.40 |
+| camera_obj_rel_dist_v1 | 36.00 | 64.00 |
+| camera_obj_rel_dist_v2 | 46.00 | 70.00 |
+| camera_obj_rel_dist_v3 | 40.00 | 74.00 |
+| obj_obj_relative_pos_lr | 64.00 | 84.00 |
+| obj_obj_relative_pos_nf | 68.00 | 86.00 |
+| obj_obj_relative_pos_ud | 72.00 | 92.00 |
+| **macro over raw categories** | 39.98 | 63.71 |
+
+#### Per question type, matched 434-item cohort
+
+The matched cohort excludes the base's 16 interrupted qids from both cells.
+
+| question type | Base | Arm C student |
+|---|---:|---:|
+| camera_displacement | 1.20 | 17.00 |
+| camera_movement_direction | 14.00 | 36.00 |
+| camera_obj_abs_dist | 18.60 | 50.40 |
+| camera_obj_rel_dist_v1 | 40.00 | 66.67 |
+| camera_obj_rel_dist_v2 | 46.00 | 70.00 |
+| camera_obj_rel_dist_v3 | 40.00 | 74.00 |
+| obj_obj_relative_pos_lr | 64.00 | 84.00 |
+| obj_obj_relative_pos_nf | 73.91 | 84.78 |
+| obj_obj_relative_pos_ud | 83.72 | 90.70 |
+| **macro over raw categories** | 42.38 | 63.73 |
+
+PRIMARY: on the matched 434-item cohort, the student scores 52.02 versus the base's 29.94, a +22.08-point gain.
+SECONDARY: on all 450 items with the base's interrupted items counted wrong, the student scores 52.01 versus 28.49, a +23.52-point gain that is an UPPER bound because the missing items are the base's.
+The pinned single-item base (30.71) uses a different protocol and serves only as a reference.
+The 4,096-token cap truncates most base generations, so a 32,768-token base rerun is scheduled.
+
 ## Mechanism controls (OneThinker-8B, Trinity)
 
 The answer-only control beats the trace student. These cells isolate whether loss dilution, data source, label source, or scale explains that gap.
@@ -942,14 +992,14 @@ The answer-only control beats the trace student. These cells isolate whether los
 | cell | student | training rows | what it isolates | status |
 |---|---|---:|---|---|
 | M | OneThinker-8B | 7,684 (H-trace) | Trace training with answer tokens weighted as in answer-only training (loss dilution) | not built |
-| S-G | OneThinker-8B | 3,842 (0 rejected) | GT-measurement rows alone (data source) | built |
+| S-G | OneThinker-8B | 3,842 (0 rejected) | GT-measurement rows alone (data source) | COMPLETE — VSIBench and VSTIBench scored; evaluation harness 91d47a0; training world 4; single run |
 | S-T | OneThinker-8B | 3,842 (0 rejected) | Teacher rows alone (data source) | built |
 | C0 | OneThinker-8B | 7,684 (0 rejected) | G plus an accepted-only teacher-type sample with C1x-matched quotas | built |
 | C1x | OneThinker-8B | 7,684 (803 rejected) | G plus a rejection-enriched sample with GT answers | built |
 | C2x | OneThinker-8B | 7,684 (803 rejected; 660 wrong labels) | C1x questions with teacher answers in canonicalized format | built |
 | C1x | Qwen | 7,684 (803 rejected) | Label source on Qwen | built |
 | C2x | Qwen | 7,684 (803 rejected; 660 wrong labels) | Label source on Qwen | built |
-| N1k | OneThinker-8B | 1,000 (0 rejected) | Scaling, with training steps co-varying | built |
+| N1k | OneThinker-8B | 1,000 (0 rejected) | Scaling, with training steps co-varying | VSIBench COMPLETE; VSTIBench pending; evaluation harness 91d47a0; training world 2; single run |
 | N2k | OneThinker-8B | 2,000 (0 rejected) | Scaling, with training steps co-varying | built |
 | N4k | OneThinker-8B | 4,000 (0 rejected) | Scaling, with training steps co-varying | built |
 
@@ -963,14 +1013,14 @@ The banked rows use the paired OneThinker-8B Trinity harness `58794b8`. Category
 | H-trace (banked trace-student corrected set) | 38.68 | 38.68 | 58.00 | 23.00 | 30.40 | 54.00 | 26.00 | 36.00 | 38.00 | 49.80 | 55.60 | 16.00 | 38.68 |
 | Base (banked) | 39.19 | 31.47 | 52.00 | 32.80 | 29.60 | 36.00 | 22.00 | 36.00 | 42.00 | 48.00 | 51.80 | 26.00 | 37.62 |
 | M | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending |
-| S-G | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending |
+| S-G | 42.43 | 42.43 | 50.00 | 36.20 | 25.80 | 44.00 | 30.00 | 48.00 | 46.00 | 45.60 | 59.20 | 36.00 | 42.08 |
 | S-T | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending |
 | C0 | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending |
 | C1x (OneThinker-8B) | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending |
 | C2x (OneThinker-8B) | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending |
 | C1x (Qwen) | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending |
 | C2x (Qwen) | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending |
-| N1k | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending |
+| N1k | 45.32 | 45.32 | 52.00 | 33.80 | 38.40 | 52.00 | 34.00 | 44.00 | 50.00 | 49.00 | 62.00 | 34.00 | 44.92 |
 | N2k | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending |
 | N4k | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending |
 
@@ -982,7 +1032,7 @@ The banked rows use the paired OneThinker-8B Trinity harness `58794b8`. Category
 | H-trace (banked trace-student corrected set) | 38.28 | 38.28 | 18.20 | 16.00 | 43.20 | 32.00 | 44.00 | 66.00 | 44.00 | 70.00 | 86.00 | 46.60 |
 | Base (banked) | 45.40 | 40.16 | 21.00 | 30.00 | 36.00 | 52.00 | 72.00 | 70.00 | 60.00 | 74.00 | 92.00 | 56.33 |
 | M | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending |
-| S-G | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending |
+| S-G | 49.25 | 49.25 | 21.20 | 30.00 | 52.40 | 64.00 | 70.00 | 72.00 | 48.00 | 82.00 | 92.00 | 59.07 |
 | S-T | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending |
 | C0 | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending |
 | C1x (OneThinker-8B) | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending |
@@ -994,6 +1044,17 @@ The banked rows use the paired OneThinker-8B Trinity harness `58794b8`. Category
 | N4k | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending |
 
 Read a mechanism comparison as a win only when it gains at least 2 lenient points, its paired scene-clustered 95% CI excludes zero, and both benchmarks move in the same direction; raise the floor if the s18/s19 spread is larger. Report strict beside lenient and audit truncation, cap hits, and parse failures.
+
+#### Reading
+
+H-ans gains +8.84 on VSIBench and +8.05 on VSTIBench over base.
+S-G gains +3.24 on VSIBench (37% of H-ans) and +3.85 on VSTIBench (48%).
+N1k gains +6.13 on VSIBench (69%).
+S-G trains only `object_abs_distance`, `object_counting`, `object_rel_distance`, `object_size_estimation`, `room_size_estimation`, and `camera_obj_abs_dist`.
+On VSIBench, S-G's gains over base sum to +36.0 on the five types it never trains and +8.6 on the five it trains.
+Among the trained VSIBench types, S-G lowers counting from 29.6 to 25.8 and object size from 48.0 to 45.6, while N1k raises counting to 38.4 and keeps object size at 49.0.
+On VSTIBench, S-G's largest gain is `camera_obj_abs_dist` (+16.4, a trained type) and its largest loss is `obj_obj_relative_pos_lr` (−12.0).
+Each cell is one run, and the reading rule's scene-clustered CI has not been computed, so these estimates are provisional.
 
 ## Status of In-Flight Cells
 

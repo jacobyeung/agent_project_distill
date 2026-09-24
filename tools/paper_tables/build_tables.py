@@ -106,15 +106,16 @@ CONDITIONS = {"base": "Base", "orchard_base": "Base (Orchard)", "orchard_base_b1
               "armc": "Arm C", "setb_pilot": "Set B pilot", "setb_pilot_b16": "Set B pilot (batched)",
               "full_scale": "Full-scale", "trace_corrected": "Trace student (corrected set)",
               "r6_formatA": "r6 (format-A)", "base_27b_thinkoff": "Base (thinking off)",
-              "base_27b_pinned": "Base (pinned thinking)"}
+              "base_27b_pinned": "Base (pinned thinking)", "base_27b_b8": "Base (batched bs8)",
+              "armc_27b_b8": "Arm C student (batched bs8)"}
 ORDER = {"base": 0, "orchard_base": 0, "orchard_base_b16": 0, "answer_only": 1,
          "answer_only_corrected": 1, "armc": 2, "setb_pilot": 3, "setb_pilot_b16": 3,
          "full_scale": 4, "trace_corrected": 4, "r6_formatA": 5, "base_27b_thinkoff": 6,
-         "base_27b_pinned": 6}
+         "base_27b_pinned": 6, "base_27b_b8": 6, "armc_27b_b8": 7}
 TOLERANCE = 0.005
 HARNESSES = {"trinity-58794b8": "58794b8", "orchard-12e477b": "12e477b",
-             "orchard-12e477b-b16": "12e477b"}
-BASE_CONDITIONS = {"base", "orchard_base", "orchard_base_b16", "base_27b_thinkoff", "base_27b_pinned"}
+             "orchard-12e477b-b16": "12e477b", "orchard-0ab73f9-b8": "0ab73f9"}
+BASE_CONDITIONS = {"base", "orchard_base", "orchard_base_b16", "base_27b_thinkoff", "base_27b_pinned", "base_27b_b8"}
 TABLES = {"main", "appendix", "omit"}
 MAIN_TABLE_CAPTION = ("The corrected training set contains 7,684 room-fixed rows, and lenient accuracy is the primary metric. "
                       "Qwen3.5-9B rows use batched bs16 decoding and pair only with the batched base.")
@@ -527,7 +528,8 @@ def aliases(cell):
                     "answer_only": ["answer-only", "trinity answer-only"], "r6_formatA": ["r6", "run r6"],
                     "orchard_base": ["Orchard base", "Orchard base (PROVISIONAL)"],
                     "setb_pilot": ["Set B distilled (Orchard)"],
-                    "base_27b_thinkoff": ["qwen36_27b_base_vsi_thinkoff"]}.get(entry["condition"], [])
+                    "base_27b_thinkoff": ["qwen36_27b_base_vsi_thinkoff"],
+                    "base_27b_b8": ["Base"], "armc_27b_b8": ["Arm C student"]}.get(entry["condition"], [])
     return {clean_doc(value).lower() for value in defaults + entry.get("doc_aliases", [])}
 
 
@@ -578,6 +580,8 @@ def raw_quantity(cell, quantity, mode="strict", category=None, *, excluded=(), e
         if cell.median_tokens is None:
             raise QuantityUnavailable("Token medians require generation-token data absent from scores.json and per-question score files")
         return cell.median_tokens
+    if quantity == "interrupted":
+        return cell.recorded["failure_counts"].get("interrupted", 0)
     keys = {"cap": "cap_count", "cap_without": "cap_without_answer_count", "terminal": "terminal_count"}
     if quantity in keys:
         return cell.recorded[keys[quantity]]
@@ -597,6 +601,8 @@ def describe_quantity(text):
         return "score", mode, 100
     if "parse fail" in text:
         return "parse", mode, 1
+    if "interrupt" in text:
+        return "interrupted", mode, 1
     if "no answer" in text or "without answer" in text or "w/o answer" in text:
         return "cap_without", mode, 1
     if "cap" in text:
@@ -618,6 +624,7 @@ def check_document(path, cells):
         benchmark = benchmark_from_text(headings.get(3, ""))
         orchard = "orchard" in headings.get(3, "").lower()
         strict_context = "strict parser" in headings.get(4, "").lower()
+        matched_context = "matched" in headings.get(4, "").lower()
         table_kind = header[0].lower()
         for line, row in rows:
             if len(row) != len(header):
@@ -671,8 +678,9 @@ def check_document(path, cells):
                             raise QuantityUnavailable("Parser labels do not cover every numeric component")
                         mode = modes[part_index].lower() if modes else "lenient" if "lenient" in low else "strict"
                         excluded = frozenset()
-                        if "matched cohort" in row[0].lower() or re.search(r"\bmatched \d+/\d+", row[0].lower()) or "excl." in low:
-                            cell = get(row[0])
+                        if (matched_context or "matched cohort" in row[0].lower()
+                                or re.search(r"\bmatched \d+/\d+", row[0].lower()) or "excl." in low):
+                            cell = get(column_label(column) if table_kind == "question type" else row[0])
                             base = paired_base(cell, cells)
                             excluded = matched_excluded_qids(base, cell)
                             if not excluded and cell is base:

@@ -385,6 +385,25 @@
       "harness": "orchard-12e477b-b16", "base_ref": "orchard_base_b16",
       "label": "Supplementary 48-item re-decode (pending)",
       "provenance_note": "The supplementary 48-item re-decode will substitute terminal receipts for the interrupted qids from run 148380.", "table": "appendix"
+    },
+    {
+      "student": "qwen36_27b", "benchmark": "vstibench_repr450_v2", "condition": "base_27b_b8", "seed": 17,
+      "strict_score_path": "/data3/jjyeung/orchard_publications/eval_cells/qwen36_27b_base_vsti_b8/score",
+      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient/vsti_qwen36_27b_b8_pair/lenient_scores.json",
+      "lenient_cell_key": "qwen36_27b_base_vsti_b8", "harness_commit": "0ab73f9", "status": "complete", "protocol": "orchard",
+      "harness": "orchard-0ab73f9-b8", "base_ref": "base_27b_b8",
+      "provisional": true, "empty_items": 16, "empty_statuses": ["interrupted"],
+      "doc_aliases": ["Base (16 interrupted)"],
+      "provenance_note": "The audited Orchard bs8 base has 16 interrupted items; matched comparisons exclude exactly those base-side qids from both cells.", "table": "appendix"
+    },
+    {
+      "student": "qwen36_27b", "benchmark": "vstibench_repr450_v2", "condition": "armc_27b_b8", "seed": 17,
+      "strict_score_path": "/data3/jjyeung/orchard_publications/eval_cells/qwen36_27b_distilled_armc_27b_orchard_d_vsti_b8/score",
+      "lenient_score_path": "/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient/vsti_qwen36_27b_b8_pair/lenient_scores.json",
+      "lenient_cell_key": "qwen36_27b_distilled_armc_27b_orchard_d_vsti_b8", "harness_commit": "0ab73f9", "status": "complete", "protocol": "orchard",
+      "harness": "orchard-0ab73f9-b8", "base_ref": "base_27b_b8",
+      "doc_aliases": ["Arm C student (0 interrupted)"],
+      "provenance_note": "The audited Orchard bs8 Arm C student has 450 terminal items and pairs only with the bs8 base.", "table": "appendix"
     }
   ]
 }
