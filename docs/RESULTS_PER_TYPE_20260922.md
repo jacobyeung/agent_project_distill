@@ -1149,7 +1149,7 @@ The answer-only control beats the trace student. These cells isolate whether los
 
 | cell | student | training rows | what it isolates | status |
 |---|---|---:|---|---|
-| M | OneThinker-8B | 7,684 (H-trace) | Trace training with answer tokens weighted as in answer-only training (loss dilution) | not built |
+| M | OneThinker-8B | 7,684 (H-trace) | Trace training with answer tokens weighted as in answer-only training (loss dilution) | VSIBench COMPLETE; VSTIBench evaluating (resumed on trinity-0-8); evaluation harness 834ff9e; trainer bab1ad5; training world 4; single run |
 | S-G | OneThinker-8B | 3,842 (0 rejected) | GT-measurement rows alone (data source) | COMPLETE — VSIBench and VSTIBench scored; evaluation harness 91d47a0; training world 4; single run |
 | S-T | OneThinker-8B | 3,842 (0 rejected) | Teacher rows alone (data source) | VSIBench COMPLETE; VSTIBench resume needed (429/450 decoded, 1 interrupted item, 20 items never started; the runner on trinity-0-23 GPU 3 died with the node, last item start 08:55Z); evaluation harness 91d47a0; training world 4; single run |
 | H-ans s18 | OneThinker-8B | 7,684 (H) | Seed replicate of the answer-only control (seed 18) | COMPLETE — VSIBench and VSTIBench scored; evaluation harness 29d4579; single run |
@@ -1163,6 +1163,8 @@ The answer-only control beats the trace student. These cells isolate whether los
 | N4k | OneThinker-8B | 4,000 (0 rejected) | Scaling, with training steps co-varying | built |
 
 The banked rows use the paired OneThinker-8B Trinity harness `58794b8`. Category values and Overall use the existing corrected-set per-type lenient values; Overall is the raw-category macro.
+M's scorer satisfies the `bdd490c` pin through `--rescorer-checkout /data3/jjyeung/claude_orchard_rescore_20260923T0050Z/work/harness_bdd490c`, a clean detached checkout with unchanged script SHA-256 `440e34e9e2b24a8be22575f3d6330193cbdbf14ccb0c0252d78c99e9e9ca1bb8`, rather than the SENS path at parser v2 `126a81b`.
+Parser v2 reproduces M's 39.37 lenient score and all 25 parse failures; its scan found no changed item in the other OneThinker and mechanism cells (v1 = v2).
 
 ### VSIBench-500
 
@@ -1172,7 +1174,7 @@ The banked rows use the paired OneThinker-8B Trinity harness `58794b8`. Category
 | H-ans s18 (answer-only corrected set, seed 18) | 47.88 | 47.88 | 58.00 | 39.20 | 49.00 | 48.00 | 36.00 | 50.00 | 48.00 | 44.40 | 57.80 | 42.00 | 47.24 |
 | H-trace (banked trace-student corrected set) | 38.68 | 38.68 | 58.00 | 23.00 | 30.40 | 54.00 | 26.00 | 36.00 | 38.00 | 49.80 | 55.60 | 16.00 | 38.68 |
 | Base (banked) | 39.19 | 31.47 | 52.00 | 32.80 | 29.60 | 36.00 | 22.00 | 36.00 | 42.00 | 48.00 | 51.80 | 26.00 | 37.62 |
-| M | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending |
+| M | 39.37 | 39.37 | 58.00 | 22.20 | 37.80 | 56.00 | 22.00 | 34.00 | 36.00 | 47.20 | 60.40 | 16.00 | 38.96 |
 | S-G | 42.43 | 42.43 | 50.00 | 36.20 | 25.80 | 44.00 | 30.00 | 48.00 | 46.00 | 45.60 | 59.20 | 36.00 | 42.08 |
 | S-T | 46.15 | 46.15 | 58.00 | 38.40 | 44.80 | 56.00 | 22.00 | 36.00 | 50.00 | 47.80 | 56.20 | 36.00 | 44.52 |
 | C0 | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending | pending |
@@ -1209,6 +1211,11 @@ Read a mechanism comparison as a win only when it gains at least 2 lenient point
 #### Reading
 
 H-ans gains +8.84 on VSIBench and +8.05 on VSTIBench over base.
+M gains only about +0.2 lenient points over base on VSIBench (about 2% of H-ans's +8.84), scoring 39.37 near H-trace (38.68) rather than the answer-only H-ans control (48.03).
+M does not recover the answer-only gain by re-weighting answer tokens alone, so loss dilution does not explain the gap on VSIBench; this interpretation is provisional from one seed-17 run, with VSTIBench pending.
+M gains most on `object_rel_direction_easy` (+20.0) and loses most on `object_abs_distance` (−10.6) versus base.
+M falls to 16.00 on `route_planning`, with 22 parse failures, most at the 4,096-token cap.
+M's 25 parse failures overall include all 23 generations that reach the cap without an answer.
 S-G gains +3.24 on VSIBench (37% of H-ans) and +3.85 on VSTIBench (48%).
 N1k gains +6.13 on VSIBench (69%).
 S-T gains +6.96 on VSIBench (79% of H-ans).
