@@ -40,14 +40,25 @@ class DeploymentTests(unittest.TestCase):
         return prepare_deployment(**values)
 
     def test_selected_config_uses_literal_student_filename(self):
-        for variant, epochs in (('setH', 3), ('setH_e1', 1), ('fullpool', 1)):
+        for variant, epochs in (('setH', 3), ('setH_e1', 1), ('fullpool', 1), ('setH_mb4', 3)):
             with self.subTest(variant=variant):
                 here = self.root / variant
                 target = freeze_config(variant, here)
                 self.assertEqual(target.name, 'qwen36_27b.json')
                 self.assertEqual(load_student_config(here)['epochs'], epochs)
+                self.assertEqual(load_student_config(here)['max_microbatch_size'], 4 if variant == 'setH_mb4' else 8)
                 with self.assertRaises(ValueError):
                     load_student_config(here, 'qwen36_27b_ao_' + variant)
+
+    def test_existing_variants_freeze_to_pinned_dry_run_bytes(self):
+        pins = {
+            'setH': '6c8357817494a4df4388d1de1ac39c9eefc571321cfc2e24e7d3e78ce760a565',
+            'setH_e1': '50d39dfd2b4b314bc5f25d8c1f54a62d1bdf5fb8af37bcbc7b5c107f225b9ecf',
+            'fullpool': '50d39dfd2b4b314bc5f25d8c1f54a62d1bdf5fb8af37bcbc7b5c107f225b9ecf',
+        }
+        for variant, expected in pins.items():
+            with self.subTest(variant=variant):
+                self.assertEqual(sha256(freeze_config(variant, self.root / variant)), expected)
 
     def test_separate_deployment_preserves_source_and_quarantines_copies(self):
         source = self.base / 'scripts/orchard/configs/qwen36_27b.json'
@@ -65,8 +76,10 @@ class DeploymentTests(unittest.TestCase):
         selected = self.deploy / 'scripts/orchard/configs/qwen36_27b.json'
         frozen = selected.read_bytes()
         self.prepare('setH_e1', self.root / 'fallback')
+        self.prepare('setH_mb4', self.root / 'mb4')
         self.assertEqual(selected.read_bytes(), frozen)
         self.assertEqual(load_student_config(self.root / 'fallback/scripts/orchard')['epochs'], 1)
+        self.assertEqual(load_student_config(self.root / 'mb4/scripts/orchard')['max_microbatch_size'], 4)
 
     def test_identical_reuse_does_not_rewrite_config_or_receipt(self):
         receipt = self.prepare()

@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 if [[ $# != 3 ]]; then
-  printf '%s\n' 'Usage: submit_train_ao.sh <setH|setH_e1|fullpool> <dataset_root> <run_id>' >&2
+  printf '%s\n' 'Usage: submit_train_ao.sh <setH|setH_e1|fullpool|setH_mb4> <dataset_root> <run_id>' >&2
   exit 2
 fi
 here=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 variant="$1"; dataset="$2"; run_id="$3"
-case "$variant" in setH|setH_e1|fullpool) ;; *) echo 'Unknown answer-only variant' >&2; exit 2;; esac
+case "$variant" in setH|setH_e1|fullpool|setH_mb4) ;; *) echo 'Unknown answer-only variant' >&2; exit 2;; esac
 [[ "$dataset" == /* ]] || { echo 'Use an absolute Orchard dataset root' >&2; exit 2; }
 [[ "$run_id" =~ ^[A-Za-z0-9][A-Za-z0-9_-]{0,100}$ ]] || { echo 'Use a plain unique run identifier' >&2; exit 2; }
 export ORCH="${ORCH:-/project/community/jjyeung/distill}"
@@ -20,7 +20,7 @@ export PARTITION="${PARTITION:-advanced}" QOS="${QOS:-adv_4gpu_qos}" WORLD_SIZE=
 export PARALLEL="${PARALLEL:-fsdp}" CHECKPOINT_EVERY_STEPS="${CHECKPOINT_EVERY_STEPS:-25}"
 export STUDENT=qwen36_27b PYTHONDONTWRITEBYTECODE=1
 case "$variant" in
-  setH|setH_e1) default_split="$(dirname -- "$dataset")/mix_v25_roomfix_answeronly_20260923/split_trainer.json";;
+  setH|setH_e1|setH_mb4) default_split="$(dirname -- "$dataset")/mix_v25_roomfix_answeronly_20260923/split_trainer.json";;
   fullpool) default_split="$dataset/split_trainer.json";;
 esac
 export SPLIT_RECORD="${SPLIT_RECORD:-$default_split}"

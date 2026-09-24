@@ -3,11 +3,12 @@ import json
 from pathlib import Path
 import sys
 import unittest
+from unittest import mock
 
 
 STAGE = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(STAGE / 'scripts'))
-VARIANTS = {'setH': 3, 'setH_e1': 1, 'fullpool': 1}
+VARIANTS = {'setH': 3, 'setH_e1': 1, 'fullpool': 1, 'setH_mb4': 3}
 FIXTURES = {
     'setH': {
         'rows': {'total': 9232, 'train': 7684, 'heldout': 1548},
@@ -29,12 +30,53 @@ FIXTURES = {
 class ConfigDerivationTests(unittest.TestCase):
     def test_only_epochs_differ_from_arm_c_template(self):
         baseline = json.loads((STAGE / 'configs/qwen36_27b.json').read_text())
-        for variant, epochs in VARIANTS.items():
+        for variant in ('setH', 'setH_e1', 'fullpool'):
             with self.subTest(variant=variant):
                 path = STAGE / 'configs' / ('qwen36_27b_ao_' + variant + '.json')
                 actual = json.loads(path.read_text())
                 self.assertEqual(set(actual), set(baseline))
-                self.assertEqual(actual, {**baseline, 'epochs': epochs})
+                self.assertEqual(actual, {**baseline, 'epochs': VARIANTS[variant]})
+
+    def test_setH_mb4_derives_exact_bytes_from_arm_c_template(self):
+        from stage_lib import validate_config, variant_spec
+        baseline = (STAGE / 'configs/qwen36_27b.json').read_bytes()
+        expected = baseline.replace(b'"epochs": 1', b'"epochs": 3', 1).replace(
+            b'"max_microbatch_size": 8', b'"max_microbatch_size": 4', 1)
+        actual = (STAGE / 'configs/qwen36_27b_ao_setH_mb4.json').read_bytes()
+        self.assertEqual(actual, expected)
+        self.assertEqual((STAGE / 'frozen_configs/setH_mb4/configs/qwen36_27b.json').read_bytes(), expected)
+        self.assertEqual(validate_config('setH_mb4', json.loads(actual)), json.loads(expected))
+        self.assertEqual(variant_spec('setH_mb4')['run_id'], 'qwen36_27b_ao_setH_mb4_20260924')
+
+    def test_variant_override_declarations_cannot_widen_gate(self):
+        from stage_lib import variant_spec
+        manifest = json.loads((STAGE / 'manifest.json').read_text())
+        for variant, epochs in VARIANTS.items():
+            expected = {'epochs': epochs}
+            if variant == 'setH_mb4':
+                expected['max_microbatch_size'] = 4
+            with self.subTest(variant=variant):
+                self.assertEqual(variant_spec(variant)['config_overrides'], expected)
+            for key, value in (('learning_rate', 0.001), ('max_microbatch_size', 8 if variant == 'setH_mb4' else 4)):
+                changed = copy.deepcopy(manifest)
+                changed['variants'][variant]['config_overrides'][key] = value
+                with self.subTest(variant=variant, key=key), mock.patch('stage_lib.manifest', return_value=changed):
+                    with self.assertRaises(ValueError):
+                        variant_spec(variant)
+
+    def test_setH_mb4_rejects_every_undeclared_field(self):
+        from stage_lib import validate_config
+        config = json.loads((STAGE / 'configs/qwen36_27b_ao_setH_mb4.json').read_text())
+        validate_config('setH_mb4', config)
+        for key in sorted(set(config) - {'epochs', 'max_microbatch_size'} | {'dataset_root'}):
+            with self.subTest(key=key):
+                changed = copy.deepcopy(config)
+                changed[key] = {'unexpected': True}
+                with self.assertRaises(ValueError):
+                    validate_config('setH_mb4', changed)
+        for key, value in (('epochs', 1), ('max_microbatch_size', 8)):
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                validate_config('setH_mb4', {**config, key: value})
 
     def test_matched_training_fields(self):
         for variant, epochs in VARIANTS.items():
@@ -43,7 +85,7 @@ class ConfigDerivationTests(unittest.TestCase):
                 self.assertEqual(config['epochs'], epochs)
                 self.assertEqual(config['world_size'], 4)
                 self.assertEqual(config['effective_batch_size'], 32)
-                self.assertEqual(config['max_microbatch_size'], 8)
+                self.assertEqual(config['max_microbatch_size'], 4 if variant == 'setH_mb4' else 8)
                 self.assertEqual(config['microbatch_size'], 'auto')
                 self.assertEqual(config['parallel'], 'fsdp')
                 self.assertNotIn('dataset_root', config)

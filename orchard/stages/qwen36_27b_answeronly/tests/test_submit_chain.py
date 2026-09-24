@@ -69,7 +69,7 @@ class SubmitChainTests(unittest.TestCase):
         return [json.loads(line) for line in self.calls.read_text().splitlines()] if self.calls.exists() else []
 
     def test_each_variant_uses_original_submitter_and_separate_frozen_config(self):
-        for variant, epochs in (('setH', 3), ('setH_e1', 1), ('fullpool', 1)):
+        for variant, epochs in (('setH', 3), ('setH_e1', 1), ('fullpool', 1), ('setH_mb4', 3)):
             with self.subTest(variant=variant):
                 result = self.launch(variant, 'run_' + variant, DEPENDENCY='afterany:98765')
                 self.assertEqual(result.returncode, 0, result.stderr)
@@ -79,7 +79,7 @@ class SubmitChainTests(unittest.TestCase):
                 self.assertNotEqual(deploy, self.base)
                 config = json.loads((deploy / 'scripts/orchard/configs/qwen36_27b.json').read_text())
                 self.assertEqual(config['epochs'], epochs)
-                self.assertEqual(config['max_microbatch_size'], 8)
+                self.assertEqual(config['max_microbatch_size'], 4 if variant == 'setH_mb4' else 8)
                 for record in records:
                     self.assertEqual(record['env']['STUDENT'], 'qwen36_27b')
                     self.assertEqual(record['env']['WORLD_SIZE'], '4')
@@ -93,6 +93,14 @@ class SubmitChainTests(unittest.TestCase):
                 self.assertEqual((deploy / 'scripts/orchard/submit_train.sh').read_bytes(), (self.reference / 'submit_train.sh').read_bytes())
                 self.assertIn(str(self.root / 'orchard/runs' / ('run_' + variant) / 'publication') + '/', result.stdout)
         self.assertEqual(json.loads((self.base / 'scripts/orchard/configs/qwen36_27b.json').read_text())['epochs'], 1)
+
+    def test_setH_mb4_undeclared_change_fails_before_scheduler(self):
+        path = self.stage / 'configs/qwen36_27b_ao_setH_mb4.json'
+        config = json.loads(path.read_text())
+        config['learning_rate'] = 0.001
+        write(path, json.dumps(config))
+        self.assertNotEqual(self.launch('setH_mb4').returncode, 0)
+        self.assertEqual(self.records(), [])
 
     def test_supported_preempt_override(self):
         result = self.launch('fullpool', PARTITION='preempt', QOS='preempt_qos', WORLD_SIZE='8')

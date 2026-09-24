@@ -6,7 +6,13 @@ from pathlib import Path
 STAGE = Path(__file__).resolve().parents[1]
 STUDENT = 'qwen36_27b'
 TRAINER_COMMIT = '433d8a117bf94bcd8214de9a6d6e149ff6f5f74f'
-EPOCHS = {'setH': 3, 'setH_e1': 1, 'fullpool': 1}
+CONFIG_OVERRIDES = {
+    'setH': {'epochs': 3},
+    'setH_e1': {'epochs': 1},
+    'fullpool': {'epochs': 1},
+    'setH_mb4': {'epochs': 3, 'max_microbatch_size': 4},
+}
+EPOCHS = {variant: overrides['epochs'] for variant, overrides in CONFIG_OVERRIDES.items()}
 
 
 def manifest():
@@ -14,7 +20,7 @@ def manifest():
     if value['student'] != STUDENT or value['trainer_commit'] != TRAINER_COMMIT:
         raise ValueError('The stage must preserve the student and trainer pins')
     if set(value['variants']) != set(EPOCHS):
-        raise ValueError('The stage must contain exactly the three requested variants')
+        raise ValueError('The stage must contain exactly the four requested variants')
     return value
 
 
@@ -26,6 +32,8 @@ def variant_spec(variant):
         raise ValueError('Variant config name or epoch count changed')
     if spec['dataset'] != ('fullpool' if variant == 'fullpool' else 'setH'):
         raise ValueError('Variant dataset selection changed')
+    if spec.get('config_overrides') != CONFIG_OVERRIDES[variant]:
+        raise ValueError('Variant config overrides changed')
     return spec
 
 
@@ -41,10 +49,10 @@ def load_student_config(here, student=STUDENT):
 
 def validate_config(variant, config):
     baseline = load_student_config(STAGE)
-    expected = {**baseline, 'epochs': variant_spec(variant)['epochs']}
+    expected = {**baseline, **variant_spec(variant)['config_overrides']}
     if config != expected:
         changed = sorted(key for key in set(config) | set(expected) if key not in config or key not in expected or config[key] != expected[key])
-        raise ValueError('Only the documented epoch count may change: ' + ', '.join(changed))
+        raise ValueError('Only the declared variant config overrides may change: ' + ', '.join(changed))
     if (config['epochs'], config['world_size'], config['effective_batch_size']) != (EPOCHS[variant], 4, 32):
         raise ValueError('The matched recipe requires the declared epochs, world 4, and batch 32')
     return config

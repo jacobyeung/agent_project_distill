@@ -40,8 +40,8 @@ def check(frozen_root):
             except ValueError:
                 continue
             raise AssertionError('Identity check accepted a changed hash or row count')
-        print(f'PASS {variant}: student={STUDENT}, epochs={epochs}, world_size=4, effective_batch_size=32, rows={total}')
-    print('PASS: 3 configs; 6 literal SHA256 checks; 9 negative identity checks.')
+        print(f'PASS {variant}: student={STUDENT}, epochs={epochs}, world_size=4, effective_batch_size=32, rows={total}, max_microbatch_size={config["max_microbatch_size"]}')
+    print(f'PASS: {len(EPOCHS)} configs; {2 * len(EPOCHS)} literal SHA256 checks; {3 * len(EPOCHS)} negative identity checks.')
     print('Retained frozen config aliases: ' + str(frozen_root))
     print('CPU only: no model load, Orchard file access, or scheduler calls.')
 

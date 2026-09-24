@@ -5,17 +5,27 @@
     "setH": {
       "config": "qwen36_27b_ao_setH.json",
       "dataset": "setH",
-      "epochs": 3
+      "epochs": 3,
+      "config_overrides": {"epochs": 3}
     },
     "setH_e1": {
       "config": "qwen36_27b_ao_setH_e1.json",
       "dataset": "setH",
-      "epochs": 1
+      "epochs": 1,
+      "config_overrides": {"epochs": 1}
     },
     "fullpool": {
       "config": "qwen36_27b_ao_fullpool.json",
       "dataset": "fullpool",
-      "epochs": 1
+      "epochs": 1,
+      "config_overrides": {"epochs": 1}
+    },
+    "setH_mb4": {
+      "config": "qwen36_27b_ao_setH_mb4.json",
+      "dataset": "setH",
+      "epochs": 3,
+      "config_overrides": {"epochs": 3, "max_microbatch_size": 4},
+      "run_id": "qwen36_27b_ao_setH_mb4_20260924"
     }
   },
   "datasets": {
