@@ -120,7 +120,7 @@ ORDER = {"base": 0, "orchard_base": 0, "orchard_base_b16": 0, "answer_only": 1,
          "full_scale": 4, "trace_corrected": 4, "r6_formatA": 5, "base_27b_thinkoff": 6,
          "base_27b_pinned": 6, "base_27b_b8": 6, "armc_27b_b8": 7}
 TOLERANCE = 0.005
-HARNESSES = {"trinity-58794b8": "58794b8", "orchard-12e477b": "12e477b",
+HARNESSES = {"trinity-58794b8": "58794b8", "trinity-372da10": "372da10", "orchard-12e477b": "12e477b",
              "orchard-12e477b-b16": "12e477b", "orchard-0ab73f9-b8": "0ab73f9",
              "orchard-0ab73f9-b16": "0ab73f9"}
 BASE_CONDITIONS = {"base", "orchard_base", "orchard_base_b16", "base_27b_thinkoff", "base_27b_pinned", "base_27b_b8"}
@@ -240,7 +240,7 @@ class Cell:
 
     @property
     def identity(self):
-        return "/".join(str(self.entry[key]) for key in ("student", "benchmark", "condition", "seed"))
+        return "/".join(str(self.entry[key]) for key in ("student", "benchmark", "condition", "seed", "harness"))
 
     @property
     def complete(self):
@@ -397,11 +397,15 @@ def compatible_pairing_harnesses(left, right):
 
 
 def paired_base(cell, cells):
+    declaration = cell.entry.get("cross_commit_pairing")
+    harness = (declaration.get("base_harness", cell.entry["harness"])
+               if isinstance(declaration, dict) else cell.entry["harness"])
     matches = [base for base in cells if base.entry["student"] == cell.entry["student"]
                and base.entry["benchmark"] == cell.entry["benchmark"]
-               and base.entry["condition"] == cell.entry["base_ref"] and base.entry["seed"] == 17]
+               and base.entry["condition"] == cell.entry["base_ref"] and base.entry["seed"] == 17
+               and base.entry["harness"] == harness]
     if len(matches) != 1:
-        raise ScoreError(f"{cell.identity}: base_ref resolves to {len(matches)} bases")
+        raise ScoreError(f"{cell.identity}: base_ref resolves to {len(matches)} bases for harness {harness!r}")
     base = matches[0]
     if not compatible_pairing_harnesses(cell, base):
         raise ScoreError(f"{cell.identity}: base_ref crosses harnesses without documented matching decode settings")

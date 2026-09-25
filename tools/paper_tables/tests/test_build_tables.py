@@ -644,9 +644,49 @@ class TableTests(unittest.TestCase):
 
     def test_harness_must_match_commit_and_protocol(self):
         entry = self.fixture()
-        for update in ({"harness": "unknown"}, {"harness_commit": "12e477b"}, {"protocol": "orchard"}):
+        for update in ({"harness": "unknown"}, {"harness_commit": "12e477b"}, {"protocol": "orchard"},
+                       {"harness": "trinity-unknown", "harness_commit": "372da10"},
+                       {"harness": "trinity-372da10", "harness_commit": "58794b8"}):
             with self.subTest(update=update), self.assertRaisesRegex(tables.ScoreError, "harness"):
                 tables.load_cell({**entry, **update})
+
+    def test_codeaws_harness_loads_complete_cell(self):
+        entry = self.fixture()
+        for student in ("qwen35_9b", "qwen36_27b"):
+            with self.subTest(student=student):
+                cell = tables.load_cell({**entry, "student": student,
+                                         "harness": "trinity-372da10", "harness_commit": "372da10"})
+                self.assertTrue(cell.complete)
+                self.assertTrue(cell.lenient_recomputed)
+                self.assertEqual(cell.entry["harness"], "trinity-372da10")
+                self.assertEqual(cell.entry["harness_commit"], "372da10")
+                self.assertEqual(cell.identity, f"{student}/{VSI}/base/17/trinity-372da10")
+
+    def test_manifest_distinguishes_harnesses_and_pairs_each_base(self):
+        entries = [self.fixture(condition="base", empty_items=1, items_per_category=2),
+                   self.fixture(condition="answer_only", items_per_category=2)]
+        entries += [{**entry, "harness": "trinity-372da10", "harness_commit": "372da10"} for entry in entries]
+        manifest = self.root / "manifest.json"
+        self.write_json(manifest, {"schema": "split-paper-tables-v1", "cells": entries})
+        cells = tables.load_manifest(manifest)
+        self.assertEqual(len(cells), 4)
+        self.assertEqual(len({cell.identity for cell in cells}), 4)
+        for base, student in (cells[:2], cells[2:]):
+            with self.subTest(harness=base.entry["harness"]):
+                self.assertIs(tables.paired_base(base, cells), base)
+                self.assertIs(tables.paired_base(student, cells), base)
+                self.assertIn(f"cell={student.identity}", tables.provenance(student))
+        groups = tables.matched_groups(cells, VSI)
+        self.assertEqual({group[0].identity for group in groups}, {cells[0].identity, cells[2].identity})
+        self.assertEqual(len(tables.condition_groups(cells, VSI)), 4)
+        self.assertEqual(tables.provisional_clause(cells).count("1/20 empty items"), 2)
+
+    def test_manifest_rejects_duplicate_identity_on_same_harness(self):
+        entry = self.pending("base", protocol="trinity")
+        manifest = self.root / "manifest.json"
+        self.write_json(manifest, {"schema": "split-paper-tables-v1", "cells": [entry, entry]})
+        with self.assertRaisesRegex(tables.ScoreError, "Duplicate manifest cell identity"):
+            tables.load_manifest(manifest)
 
     def test_base_pairing_rejects_cross_harness_reference(self):
         base = tables.load_cell(self.fixture())
@@ -669,10 +709,13 @@ class TableTests(unittest.TestCase):
                                   "decode_settings": {"batch_size": 16, "token_cap": 4096},
                               }})
         base, student = tables.load_cell(base_entry), tables.load_cell(student_entry)
-        self.assertIs(tables.paired_base(student, [base, student]), base)
+        other_base = tables.load_cell({**base_entry, "harness": student.entry["harness"],
+                                      "harness_commit": student.entry["harness_commit"]})
+        cells = [other_base, base, student]
+        self.assertIs(tables.paired_base(student, cells), base)
         student.entry["decode_settings"]["token_cap"] = 8192
         with self.assertRaisesRegex(tables.ScoreError, "matching decode settings"):
-            tables.paired_base(student, [base, student])
+            tables.paired_base(student, cells)
 
     def test_manifest_rejects_missing_or_pending_base_for_complete_cell(self):
         pilot = self.fixture(condition="setb_pilot", protocol="orchard")
@@ -1105,6 +1148,23 @@ class TableTests(unittest.TestCase):
 
 
 class RealManifestTests(unittest.TestCase):
+    def test_real_manifest_declared_cross_commit_pairs(self):
+        try:
+            cells = tables.load_manifest(ROOT / "tools/paper_tables/manifest.json")
+        except OSError as exc:
+            self.skipTest(f"Score path is unreadable: {exc}")
+        declared = [cell for cell in cells if "cross_commit_pairing" in cell.entry]
+        self.assertEqual(len(declared), 2)
+        self.assertEqual({(cell.entry["student"], cell.entry["benchmark"], cell.entry["condition"]) for cell in declared},
+                         {("qwen35_9b", VSI, "full_scale"), ("qwen35_9b", VSTI, "full_scale")})
+        for cell in declared:
+            with self.subTest(cell=cell.identity):
+                base = tables.paired_base(cell, cells)
+                self.assertEqual(base.entry["harness"], cell.entry["cross_commit_pairing"]["base_harness"])
+                self.assertNotEqual(base.entry["harness"], cell.entry["harness"])
+                self.assertEqual(base.entry["condition"], cell.entry["base_ref"])
+                self.assertTrue(tables.documented_cross_commit_pairing(cell, base))
+
     def test_real_manifest_every_table_caption_names_its_benchmark_scopes(self):
         try:
             cells = tables.load_manifest(ROOT / "tools/paper_tables/manifest.json")
