@@ -67,6 +67,8 @@ def publish(args):
                'label_checks': X.label_check_summary(selected), 'raw_label_checks': X.label_check_summary(candidates),
                'agreements': {name: X.distribution(values) for name, values in stats.get('agreements', {}).items()},
                'drops': drops, 'workers': inputs.get('workers'), 'scene_shards': len(shards),
+               'runtime_seconds': source_summary['runtime_seconds'], 'seconds_per_trace': source_summary['seconds_per_trace'],
+               'projected_full_seconds': source_summary['projected_full_seconds'],
                'tool_names': stats.get('tool_names', {}), 'frame_modes': stats.get('frame_modes', {}), 'finished_utc': X.utc()}
     X.composition(args.out, summary, selected, candidates)
     X.write_json(args.out / 'SUMMARY.json', summary)
