@@ -1,0 +1,32 @@
+\begin{table*}[t]
+\centering
+\caption{\textbf{VSTIBench matched-subset diagnostic.} VSTIBench-450 (representative subset, 50 per category). \captakeawayVSTIMatched{} The paired base's audited empty-item qids, or the student's when the base has none, are excluded from every displayed condition. Overall retains the official category collapse; raw macros weight the surviving question types equally. This selected subset is an appendix diagnostic, not the full-cohort result. \(\dagger\) marks provisional rows (OneThinker-8B Base (Orchard): 25/450 empty items; Qwen3.5-9B Answer-only (corrected set): 48/450 empty items; Qwen3.6-27B Base (batched bs8): 16/450 empty items); rows without an explicit matched label retain the full denominator.}
+\label{tab:vsti_matched}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lrrrrr}
+\toprule
+Condition & Items & Lenient overall & Strict overall & Lenient raw macro & Strict raw macro \\
+\midrule
+\multicolumn{6}{l}{\textit{OneThinker-8B --- Orchard}} \\
+% cell=onethinker_8b/vstibench_repr450_v2/orchard_base/17/orchard-12e477b | status=complete | strict=/data3/jjyeung/orchard_publications/eval_cells/onethinker_base_vsti/score | lenient=/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient/vsti_onethinker_orchard_base/lenient_scores.json#onethinker_base_vsti | harness=orchard-12e477b | harness_commit=12e477b | base_ref=orchard_base | table=appendix | provisional=True | empty_items=25 | scores_mtime_utc=2026-09-23T07:28:55.872509+00:00 | lenient_per_question_recomputed=True | RESULTS_onethinker_orchard_cells.md, VSTIBench base Provenance, binds these scores. Its generation audit marks all media_error items empty; the score rows authenticate their count and zero credits. Keep all 450 items in the main score; any matched subset excludes the same base qids from both cells.
+Base (Orchard)$^{\dagger}$ & 425 & 44.47 & 41.28 & 55.72 & 53.95 \\
+% cell=onethinker_8b/vstibench_repr450_v2/setb_pilot/17/orchard-12e477b | status=complete | strict=/data3/jjyeung/orchard_publications/eval_cells/onethinker_distilled_gtm2_v25_onethinker_orchard_a_vsti/score | lenient=/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient/vsti_onethinker_orchard_distilled_setb/lenient_scores.json#onethinker_distilled_gtm2_v25_onethinker_orchard_a_vsti | harness=orchard-12e477b | harness_commit=12e477b | base_ref=orchard_base | table=appendix | provisional=False | empty_items=0 | scores_mtime_utc=2026-09-23T08:56:56.067169+00:00 | lenient_per_question_recomputed=True | RESULTS_onethinker_orchard_cells.md, VSTIBench Set B pilot Provenance, binds these strict and lenient scores. Pair with the provisional Orchard-native onethinker_base_vsti; retain all 450 items in the main score.
+Set B pilot & 425 & 37.27 & 37.27 & 45.38 & 45.38 \\
+\midrule
+\multicolumn{6}{l}{\textit{Qwen3.5-9B --- Orchard}} \\
+% cell=qwen35_9b/vstibench_repr450_v2/orchard_base_b16/17/orchard-12e477b-b16 | status=complete | strict=/data3/jjyeung/orchard_publications/eval_cells/qwen35_base_vsti_b16/score | lenient=/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient_v2_126a81b/qwen35_vsti_b16/lenient_scores.json#qwen35_base_vsti_b16 | harness=orchard-12e477b-b16 | harness_commit=12e477b | base_ref=orchard_base_b16 | table=main | provisional=False | empty_items=0 | scores_mtime_utc=2026-09-23T15:49:00.682686+00:00 | lenient_per_question_recomputed=True | The audited Orchard bs16 score artifact supplies the Qwen3.5-9B batched base for the matched batched cohort. Lenient values from parser v2 126a81b.
+Base (Orchard, batched) & 402 & 27.27 & 27.08 & 38.25 & 37.93 \\
+% cell=qwen35_9b/vstibench_repr450_v2/answer_only_corrected/17/orchard-12e477b-b16 | status=complete | strict=/data3/jjyeung/orchard_publications/eval_cells/qwen35_distilled_gtm2_v25full_qwen35_orchard_w4_roomfix_answeronly_mb2_vsti_b16/score | lenient=/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient_v2_126a81b/qwen35_vsti_b16/lenient_scores.json#qwen35_distilled_gtm2_v25full_qwen35_orchard_w4_roomfix_answeronly_mb2_vsti_b16 | harness=orchard-12e477b-b16 | harness_commit=12e477b | base_ref=orchard_base_b16 | table=main | provisional=True | empty_items=48 | scores_mtime_utc=2026-09-24T05:30:51.339996+00:00 | lenient_per_question_recomputed=True | Orchard run 148380, batched bs16 with a 4,096-token cap, landed at 05:37Z with eval-cell manifest sha f37ba0dd... . The only full attempt has 402/450 ok items and 48 interrupted items after preemption; durable starts lack terminal receipts, and the attempt-authority guard forbids a second full attempt. Lenient values from parser v2 126a81b.
+Answer-only (corrected set)$^{\dagger}$ & 402 & 52.95 & 52.95 & 62.21 & 62.21 \\
+\midrule
+\multicolumn{6}{l}{\textit{Qwen3.6-27B --- Orchard}} \\
+% cell=qwen36_27b/vstibench_repr450_v2/base_27b_b8/17/orchard-0ab73f9-b8 | status=complete | strict=/data3/jjyeung/orchard_publications/eval_cells/qwen36_27b_base_vsti_b8/score | lenient=/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient_v2_126a81b/qwen36_27b_vsti_b8/lenient_scores.json#qwen36_27b_base_vsti_b8 | harness=orchard-0ab73f9-b8 | harness_commit=0ab73f9 | base_ref=base_27b_b8 | table=main | provisional=True | empty_items=16 | scores_mtime_utc=2026-09-24T07:23:19.907075+00:00 | lenient_per_question_recomputed=True | The audited Orchard bs8 base has 16 interrupted items; matched comparisons exclude exactly those base-side qids from both cells. Lenient values from parser v2 126a81b.
+Base (batched bs8)$^{\dagger}$ & 434 & 29.94 & 29.94 & 42.38 & 42.38 \\
+% cell=qwen36_27b/vstibench_repr450_v2/armc_27b_b8/17/orchard-0ab73f9-b8 | status=complete | strict=/data3/jjyeung/orchard_publications/eval_cells/qwen36_27b_distilled_armc_27b_orchard_d_vsti_b8/score | lenient=/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient_v2_126a81b/qwen36_27b_vsti_b8/lenient_scores.json#qwen36_27b_distilled_armc_27b_orchard_d_vsti_b8 | harness=orchard-0ab73f9-b8 | harness_commit=0ab73f9 | base_ref=base_27b_b8 | table=main | provisional=False | empty_items=0 | scores_mtime_utc=2026-09-24T07:13:11.498241+00:00 | lenient_per_question_recomputed=True | The audited Orchard bs8 Arm C student has 450 terminal items and pairs only with the bs8 base. Lenient values from parser v2 126a81b.
+Arm C student (batched bs8) & 434 & 52.02 & 52.02 & 63.73 & 63.73 \\
+\bottomrule
+\end{tabular}%
+}
+\end{table*}

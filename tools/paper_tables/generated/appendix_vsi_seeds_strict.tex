@@ -1,0 +1,40 @@
+% Metric: vsibench-official-8task-v1
+% Question-type legend:
+% Order = obj_appearance_order
+% Abs.Dist = object_abs_distance
+% Count = object_counting
+% RelDir-E = object_rel_direction_easy
+% RelDir-H = object_rel_direction_hard
+% RelDir-M = object_rel_direction_medium
+% Rel.Dist = object_rel_distance
+% Obj.Size = object_size_estimation
+% Room.Size = room_size_estimation
+% Route = route_planning
+\begin{table*}[t]
+\centering
+\caption{\textbf{VSIBench individual arm-C runs (strict).} VSIBench-500 (answerable subset, 50 per category; not comparable to published full-benchmark numbers). \captakeawayVSISeedsStrict{} Accuracy is in percent; Overall uses the official metric rather than the raw-category macro. Published and replicate identifiers follow the score manifest. These diagnostic results remain provisional.}
+\label{tab:vsi_strict_seeds}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lrrrrrrrrrrr}
+\toprule
+Condition & Order & Abs.Dist & Count & RelDir-E & RelDir-H & RelDir-M & Rel.Dist & Obj.Size & Room.Size & Route & Overall \\
+\midrule
+\multicolumn{12}{l}{\textit{OneThinker-8B --- Trinity}} \\
+% cell=onethinker_8b/vsibench_answerable500/armc/17/trinity-58794b8 | status=complete | strict=/data2/jjyeung/agent_project_data/student_diagnostic_pilot_20260918/eval_instructed_provisional_e3e9ffb/artifacts/paper_eval/vsibench_answerable500/onethinker_armc/scores/distilled | lenient=/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_eval_prep_20260922T1122Z/results/ddp_onethinker_v1cxl2_onethinker_20260922T0335Z_armc_rep3/lenient/vsi/lenient_scores.json#armc_vsi | harness=trinity-58794b8 | harness_commit=58794b8 | base_ref=base | table=appendix | provisional=False | empty_items=0 | scores_mtime_utc=2026-09-20T10:03:35.347096+00:00 | lenient_per_question_recomputed=True | Published arm-C reference mapped by RESULTS_armc_rep2.md and reused by RESULTS_armc_rep3.md; diagnostic, provisional.
+Arm C (published) & 56.00 & 36.80 & 41.60 & 58.00 & 16.00 & 40.00 & 48.00 & 52.00 & 38.40 & 28.00 & 42.35 \\
+% cell=onethinker_8b/vsibench_answerable500/armc/rep2/trinity-58794b8 | status=complete | strict=/data2/jjyeung/agent_project_data/student_diagnostic_pilot_20260918/eval_instructed_provisional_e3e9ffb/artifacts/paper_eval/vsibench_answerable500/onethinker_armc_rep2/scores/distilled | lenient=/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_eval_rep2_20260922T1853Z/finalpass_20260922T2105Z/results/ddp_onethinker_v1cxl2_onethinker_20260922T0335Z_armc_rep2/lenient/vsi/lenient_scores.json#this_vsi | harness=trinity-58794b8 | harness_commit=58794b8 | base_ref=base | table=appendix | provisional=False | empty_items=0 | scores_mtime_utc=2026-09-22T23:20:48.326921+00:00 | lenient_per_question_recomputed=True | RESULTS_armc_rep2.md names the finalpass results and onethinker_armc_rep2 score cell. rep2 is a run identifier; the source records evaluation seed 17.
+Arm C (rep2) & 64.00 & 33.40 & 47.20 & 42.00 & 14.00 & 28.00 & 48.00 & 35.20 & 51.00 & 22.00 & 41.10 \\
+% cell=onethinker_8b/vsibench_answerable500/armc/rep3/trinity-58794b8 | status=complete | strict=/data2/jjyeung/agent_project_data/student_diagnostic_pilot_20260918/eval_instructed_provisional_e3e9ffb/artifacts/paper_eval/vsibench_answerable500/onethinker_armc_rep3/scores/distilled | lenient=/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_eval_prep_20260922T1122Z/results/ddp_onethinker_v1cxl2_onethinker_20260922T0335Z_armc_rep3/lenient/vsi/lenient_scores.json#this_vsi | harness=trinity-58794b8 | harness_commit=58794b8 | base_ref=base | table=appendix | provisional=False | empty_items=0 | scores_mtime_utc=2026-09-23T06:08:05.718276+00:00 | lenient_per_question_recomputed=True | RESULTS_armc_rep3.md explicitly links this completed VSIBench rescore. rep3 is a run identifier, not a claimed numerical training seed.
+Arm C (rep3) & 56.00 & 33.20 & 46.60 & 66.00 & 18.00 & 32.00 & 38.00 & 45.40 & 51.20 & 36.00 & 43.13 \\
+\midrule
+\multicolumn{12}{l}{\textit{Qwen3.5-9B --- Trinity}} \\
+% cell=qwen35_9b/vsibench_answerable500/armc/17/trinity-58794b8 | status=complete | strict=/data2/jjyeung/agent_project_data/student_diagnostic_pilot_20260918/eval_instructed_provisional_e3e9ffb/artifacts/paper_eval/vsibench_answerable500/qwen35_c_r1/scores/distilled | lenient=/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_qwen_armc_eval_20260921T1020Z/out/lenient/vsi/lenient_scores.json#qwen_armc_vsi | harness=trinity-58794b8 | harness_commit=58794b87fb1c289cbaeffbf2cff4858c77ca7a87 | base_ref=base | table=appendix | provisional=False | empty_items=0 | scores_mtime_utc=2026-09-21T13:02:08.461691+00:00 | lenient_per_question_recomputed=True | Published arm-C mapping and lenient path come from RESULTS_VSIBENCH_QARMC.md.
+Arm C (published) & 70.00 & 33.60 & 56.00 & 54.00 & 28.00 & 44.00 & 52.00 & 47.60 & 68.80 & 24.00 & 49.25 \\
+% cell=qwen35_9b/vsibench_answerable500/armc/rep2/trinity-58794b8 | status=complete | strict=/data2/jjyeung/agent_project_data/student_diagnostic_pilot_20260918/eval_instructed_provisional_e3e9ffb/artifacts/paper_eval/vsibench_answerable500/qwen35_c_rep2/scores/distilled | lenient=/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_qwen_rep2_eval_20260923T0535Z/lenient/vsi/lenient_scores.json#qwen_rep2_vsi | harness=trinity-58794b8 | harness_commit=58794b87fb1c289cbaeffbf2cff4858c77ca7a87 | base_ref=base | table=appendix | provisional=False | empty_items=0 | scores_mtime_utc=2026-09-23T07:11:38.532512+00:00 | lenient_per_question_recomputed=True | RESULTS_qwen_armc_rep2_vsibench.md explicitly names this score cell and rescore. rep2 identifies the repeat, not a new numerical seed.
+Arm C (rep2) & 74.00 & 37.00 & 57.20 & 56.00 & 24.00 & 50.00 & 46.00 & 50.00 & 56.80 & 26.00 & 48.79 \\
+\bottomrule
+\end{tabular}%
+}
+\end{table*}

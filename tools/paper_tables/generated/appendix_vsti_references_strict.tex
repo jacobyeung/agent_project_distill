@@ -1,0 +1,33 @@
+% Metric: vstibench-official-5subtask-v1
+% Question-type legend:
+% Cam.Disp = camera_displacement
+% Cam.Dir = camera_movement_direction
+% Cam.AbsD = camera_obj_abs_dist
+% Cam.RelD1 = camera_obj_rel_dist_v1
+% Cam.RelD2 = camera_obj_rel_dist_v2
+% Cam.RelD3 = camera_obj_rel_dist_v3
+% Pos-LR = obj_obj_relative_pos_lr
+% Pos-NF = obj_obj_relative_pos_nf
+% Pos-UD = obj_obj_relative_pos_ud
+\begin{table*}[t]
+\centering
+\caption{\textbf{VSTIBench reference configurations (strict).} VSTIBench-450 (representative subset, 50 per category). \captakeawayVSTIReferencesStrict{} Accuracy is in percent; Overall uses the official metric rather than the raw-category macro. These configurations are not protocol-comparable with the main rows: r6 uses format-A targets. No best or second-best marks apply. \(\dagger\) marks provisional rows (Qwen3.6-27B Base (pinned thinking): 8/450 empty items); rows without an explicit matched label retain the full denominator. These diagnostic results remain provisional.}
+\label{tab:vsti_strict_references}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lrrrrrrrrrr}
+\toprule
+Condition & Cam.Disp & Cam.Dir & Cam.AbsD & Cam.RelD1 & Cam.RelD2 & Cam.RelD3 & Pos-LR & Pos-NF & Pos-UD & Overall \\
+\midrule
+\multicolumn{11}{l}{\textit{Qwen3.5-9B --- format-A reference}} \\
+% cell=qwen35_9b/vstibench_repr450_v2/r6_formatA/17/trinity-58794b8 | status=complete | strict=/data2/jjyeung/agent_project_data/student_diagnostic_pilot_20260918/eval_instructed_provisional_e3e9ffb/artifacts/paper_eval/vstibench_repr450_v2/qwen35_a_r6/scores/distilled | lenient=/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_qwen_r6_eval_20260921T0400Z/out/lenient/vsti/lenient_scores.json#qwen_r6_vsti | harness=trinity-58794b8 | harness_commit=58794b87fb1c289cbaeffbf2cff4858c77ca7a87 | base_ref=base | table=appendix | provisional=False | empty_items=0 | scores_mtime_utc=2026-09-21T23:26:42.036650+00:00 | lenient_per_question_recomputed=True | RESULTS_VSTIBENCH_QWEN_R6.md names this score directory and rescore. Appendix-only format-A reference; exclude from main-table best marks.
+r6 (format-A) & 3.80 & 14.00 & 3.20 & 16.00 & 34.00 & 42.00 & 78.00 & 64.00 & 88.00 & 25.67 \\
+\midrule
+\multicolumn{11}{l}{\textit{Qwen3.6-27B --- Orchard}} \\
+% cell=qwen36_27b/vstibench_repr450_v2/base_27b_pinned/17/orchard-12e477b | status=complete | strict=/data3/jjyeung/orchard_publications/eval_cells/qwen36_27b_base_vsti_pinned_c3/score | lenient=/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient_v2_126a81b/qwen36_27b_base_vsti_pinned_c3/lenient_scores.json#qwen36_27b_base_vsti_pinned_c3 | harness=orchard-12e477b | harness_commit=12e477b | base_ref=base_27b_pinned | table=appendix | provisional=True | empty_items=8 | scores_mtime_utc=2026-09-24T02:12:23.216964+00:00 | lenient_per_question_recomputed=True | This provisional pinned-thinking Qwen3.6-27B VSTIBench base is appendix-only: preemptions cut 8 of 450 items, 184 items hit the 4,096-token cap, and 198 items failed parsing. Lenient values from parser v2 126a81b.
+Base (pinned thinking)$^{\dagger}$ & 1.40 & 18.00 & 26.80 & 34.00 & 38.00 & 32.00 & 56.00 & 76.00 & 86.00 & 30.71 \\
+\bottomrule
+\end{tabular}%
+}
+\end{table*}

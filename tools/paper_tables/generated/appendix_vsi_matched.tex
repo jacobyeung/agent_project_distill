@@ -1,0 +1,20 @@
+\begin{table*}[t]
+\centering
+\caption{\textbf{VSIBench matched-subset diagnostic.} VSIBench-500 (answerable subset, 50 per category; not comparable to published full-benchmark numbers). \captakeawayVSIMatched{} The paired base's audited empty-item qids, or the student's when the base has none, are excluded from every displayed condition. Overall retains the official category collapse; raw macros weight the surviving question types equally. This selected subset is an appendix diagnostic, not the full-cohort result. \(\dagger\) marks provisional rows (Qwen3.5-9B Base (Orchard): 53/500 empty items); rows without an explicit matched label retain the full denominator.}
+\label{tab:vsi_matched}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lrrrrr}
+\toprule
+Condition & Items & Lenient overall & Strict overall & Lenient raw macro & Strict raw macro \\
+\midrule
+\multicolumn{6}{l}{\textit{Qwen3.5-9B --- Orchard}} \\
+% cell=qwen35_9b/vsibench_answerable500/orchard_base/17/orchard-12e477b | status=complete | strict=/data3/jjyeung/orchard_publications/eval_cells/qwen35_base_vsi_pinned/score | lenient=/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient_v2_126a81b/qwen35_base_vsi_pinned/lenient_scores.json#qwen35_base_vsi_pinned | harness=orchard-12e477b | harness_commit=12e477b | base_ref=orchard_base | table=appendix | provisional=True | empty_items=53 | scores_mtime_utc=2026-09-23T08:23:42.748677+00:00 | lenient_per_question_recomputed=True | RESULTS_qwen_orchard_cells.md identifies qwen35_base_vsi_pinned and its generation audit: 48 media_error, one generation_error, and four interrupted items are empty. The rescore binds the strict directory; per-question score statuses verify all 53 automatic zeros. Keep the complete 500-item denominator. Lenient values from parser v2 126a81b.
+Base (Orchard)$^{\dagger}$ & 447 & 14.88 & 14.24 & 14.22 & 13.56 \\
+% cell=qwen35_9b/vsibench_answerable500/setb_pilot/17/orchard-12e477b | status=complete | strict=/data3/jjyeung/orchard_publications/eval_cells/qwen35_distilled_gtm2_v25_qwen35_orchard_w4_vsi/score | lenient=/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient/vsi_qwen35_orchard_distilled_pilot/lenient_scores.json#qwen35_distilled_gtm2_v25_qwen35_orchard_w4_vsi | harness=orchard-12e477b | harness_commit=12e477b | base_ref=orchard_base | table=appendix | provisional=False | empty_items=0 | scores_mtime_utc=2026-09-23T12:47:14.794305+00:00 | lenient_per_question_recomputed=True | The audited Orchard score artifact supplies the completed single-item Set B pilot and pairs it with qwen35_base_vsi_pinned.
+Set B pilot & 447 & 38.85 & 38.85 & 38.94 & 38.94 \\
+\bottomrule
+\end{tabular}%
+}
+\end{table*}

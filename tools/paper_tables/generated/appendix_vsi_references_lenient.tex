@@ -1,0 +1,34 @@
+% Metric: vsibench-official-8task-v1
+% Question-type legend:
+% Order = obj_appearance_order
+% Abs.Dist = object_abs_distance
+% Count = object_counting
+% RelDir-E = object_rel_direction_easy
+% RelDir-H = object_rel_direction_hard
+% RelDir-M = object_rel_direction_medium
+% Rel.Dist = object_rel_distance
+% Obj.Size = object_size_estimation
+% Room.Size = room_size_estimation
+% Route = route_planning
+\begin{table*}[t]
+\centering
+\caption{\textbf{VSIBench reference configurations (lenient).} VSIBench-500 (answerable subset, 50 per category; not comparable to published full-benchmark numbers). \captakeawayVSIReferencesLenient{} Accuracy is in percent; Overall uses the official metric rather than the raw-category macro. These configurations are not protocol-comparable with the main rows: r6 uses format-A targets; the 27B base uses thinking off. No best or second-best marks apply. These diagnostic results remain provisional.}
+\label{tab:vsi_lenient_references}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lrrrrrrrrrrr}
+\toprule
+Condition & Order & Abs.Dist & Count & RelDir-E & RelDir-H & RelDir-M & Rel.Dist & Obj.Size & Room.Size & Route & Overall \\
+\midrule
+\multicolumn{12}{l}{\textit{Qwen3.5-9B --- format-A reference}} \\
+% cell=qwen35_9b/vsibench_answerable500/r6_formatA/17/trinity-58794b8 | status=complete | strict=/data2/jjyeung/agent_project_data/student_diagnostic_pilot_20260918/eval_instructed_provisional_e3e9ffb/artifacts/paper_eval/vsibench_answerable500/qwen35_a_r6/scores/distilled | lenient=/data3/jjyeung/claude_qwen_r6_eval_resume_20260922T2047Z/out_relaunch/lenient/vsi/lenient_scores.json#qwen_r6_vsi | harness=trinity-58794b8 | harness_commit=58794b87fb1c289cbaeffbf2cff4858c77ca7a87 | base_ref=base | table=appendix | provisional=False | empty_items=0 | scores_mtime_utc=2026-09-23T01:18:23.283754+00:00 | lenient_per_question_recomputed=True | RESULTS_VSIBENCH_QWEN_R6.md in out_relaunch names this completed score and rescore. Appendix-only format-A reference; exclude from main-table best marks.
+r6 (format-A) & 76.00 & 19.20 & 6.80 & 30.00 & 18.00 & 38.00 & 50.00 & 9.00 & 3.60 & 18.00 & 26.41 \\
+\midrule
+\multicolumn{12}{l}{\textit{Qwen3.6-27B --- thinking-off reference}} \\
+% cell=qwen36_27b/vsibench_answerable500/base_27b_thinkoff/17/orchard-12e477b | status=complete | strict=/data3/jjyeung/orchard_publications/eval_cells/qwen36_27b_base_vsi_thinkoff/score | lenient=/data3/jjyeung/claude_orchard_rescore_20260923T0050Z/lenient_v2_126a81b/qwen36_27b_base_vsi_thinkoff/lenient_scores.json#qwen36_27b_base_vsi_thinkoff | harness=orchard-12e477b | harness_commit=12e477b | base_ref=base_27b_thinkoff | table=appendix | provisional=False | empty_items=0 | scores_mtime_utc=2026-09-23T00:35:51.500538+00:00 | lenient_per_question_recomputed=True | RESULTS_qwen36_27b_base_vsi_thinkoff.md authenticates the Orchard copy and rescore. Thinking off differs from pinned thinking; this standalone reference cannot pair with a distilled cell or receive best marks. Lenient values from parser v2 126a81b.
+Base (thinking off) & 58.00 & 11.60 & 21.40 & 54.00 & 30.00 & 34.00 & 58.00 & 18.00 & 15.00 & 26.00 & 30.92 \\
+\bottomrule
+\end{tabular}%
+}
+\end{table*}
