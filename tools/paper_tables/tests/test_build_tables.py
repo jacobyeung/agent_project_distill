@@ -682,9 +682,12 @@ class TableTests(unittest.TestCase):
         self.assertEqual(tables.provisional_clause(cells).count("1/20 empty items"), 2)
 
     def test_manifest_rejects_duplicate_identity_on_same_harness(self):
-        entry = self.pending("base", protocol="trinity")
+        entry = self.pending("orchard_base")
+        other = {**entry, "harness": "orchard-12e477b-b16"}
         manifest = self.root / "manifest.json"
-        self.write_json(manifest, {"schema": "split-paper-tables-v1", "cells": [entry, entry]})
+        self.write_json(manifest, {"schema": "split-paper-tables-v1", "cells": [entry, other]})
+        self.assertEqual(len(tables.load_manifest(manifest)), 2)
+        self.write_json(manifest, {"schema": "split-paper-tables-v1", "cells": [entry, other, other]})
         with self.assertRaisesRegex(tables.ScoreError, "Duplicate manifest cell identity"):
             tables.load_manifest(manifest)
 
@@ -1164,6 +1167,9 @@ class RealManifestTests(unittest.TestCase):
                 self.assertNotEqual(base.entry["harness"], cell.entry["harness"])
                 self.assertEqual(base.entry["condition"], cell.entry["base_ref"])
                 self.assertTrue(tables.documented_cross_commit_pairing(cell, base))
+                other_base = replace(base, entry={**base.entry, "harness": cell.entry["harness"],
+                                                 "harness_commit": cell.entry["harness_commit"]})
+                self.assertIs(tables.paired_base(cell, [other_base, *cells]), base)
 
     def test_real_manifest_every_table_caption_names_its_benchmark_scopes(self):
         try:
