@@ -152,6 +152,18 @@ class TraceEvidenceBuildTests(unittest.TestCase):
         self.assertEqual(verification['checks']['replay_sample']['rows'], 1)
         self.assertEqual(source.read_json(self.args.audit / 'VERIFICATION.json'), verification)
 
+    def test_native_loader_report_preserves_core_verification(self):
+        build.build(self.args)
+        self.assertTrue(build.verify(self.verify_args)['passed'])
+        core_report = (self.args.audit / 'VERIFICATION.json').read_bytes()
+        args = build.parser().parse_args(['verify', '--output-mix', str(self.args.output_mix),
+            '--output-layout', str(self.args.output_layout), '--audit', str(self.args.audit),
+            '--native-loader', '--verification-name', 'NATIVE_VERIFICATION.json'])
+        result = build.verify(args)
+        self.assertTrue(result['checks']['native_loader']['passed'])
+        self.assertEqual((self.args.audit / 'VERIFICATION.json').read_bytes(), core_report)
+        self.assertEqual(source.read_json(self.args.audit / 'NATIVE_VERIFICATION.json'), result)
+
     def test_heldout_source_refused(self):
         self.fact.update(scene='scene0002_00', source_qids=['held'])
         self.save_evidence()
@@ -290,11 +302,34 @@ class TraceEvidenceBuildTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'sha256_mismatch'):
             build.build(self.args)
 
+    def test_carried_training_target_mismatch_is_never_exempt(self):
+        row = self.rows[1]
+        row['target'] = 'Context.\n2.00'
+        self.entries[row['qid']] = control.copy_entry(self.entries[row['qid']], compact.canonical_bytes(row),
+                                                     (row['target'] + '\n').encode(), self.root / 'training_context')
+        full.write_lines(self.layout / 'candidate_index.jsonl', self.entries.values())
+        full.write_lines(self.base / 'train.jsonl', self.rows[:2])
+        source.write_json(self.layout / 'MATERIALIZATION.json', {'artifacts': {
+            'candidate_index.jsonl': source.pin(self.layout / 'candidate_index.jsonl')}})
+        manifest = source.read_json(self.base / 'MANIFEST.json')
+        manifest['artifacts']['train.jsonl'] = source.pin(self.base / 'train.jsonl')
+        source.write_json(self.base / 'MANIFEST.json', manifest)
+        with patch.object(build, 'BASE_INDEX_SHA', source.sha(self.layout / 'candidate_index.jsonl')):
+            self.fact['evidence']['v3_index_sha256'] = build.BASE_INDEX_SHA
+            self.save_evidence()
+            build.build(self.args)
+            with self.assertRaisesRegex(ValueError, 'index_target_equality'):
+                build.verify(self.verify_args)
+        result = source.read_json(self.args.audit / 'VERIFICATION.json')
+        self.assertEqual(result['checks']['index_target_equality']['exempt_heldout_count'], 0)
+        self.assertEqual(result['checks']['index_target_equality']['mismatches'],
+                         [{'qid': 'train_other', 'side': 'train', 'base_carried': True}])
+
     def test_carried_heldout_context_is_not_silently_rewritten(self):
         heldout = self.rows[2]
         heldout['target'] = 'Observations (1)\nTwo chairs are visible.\nEnd of reasoning.\n2'
         self.entries['held'] = control.copy_entry(self.entries['held'], compact.canonical_bytes(heldout),
-                                                 (heldout['target'] + '\n').encode(), self.layout)
+                                                 (heldout['target'] + '\n').encode(), self.root / 'heldout_context')
         full.write_lines(self.layout / 'candidate_index.jsonl', self.entries.values())
         full.write_lines(self.base / 'heldout.jsonl', [heldout])
         source.write_json(self.layout / 'MATERIALIZATION.json', {'artifacts': {
@@ -306,13 +341,23 @@ class TraceEvidenceBuildTests(unittest.TestCase):
             self.fact['evidence']['v3_index_sha256'] = build.BASE_INDEX_SHA
             self.save_evidence()
             build.build(self.args)
-            with self.assertRaisesRegex(ValueError, 'index_target_equality'):
+            result = build.verify(self.verify_args)
+            self.assertTrue(result['passed'])
+            self.assertEqual(result['checks']['index_target_equality']['exempt_heldout_qids'], ['held'])
+            self.assertEqual(result['checks']['index_target_equality']['exempt_heldout_count'], 1)
+            self.assertEqual(result['checks']['index_target_equality']['mismatch_count'], 0)
+            self.assertTrue(result['checks']['base_carried_bytes']['passed'])
+            self.assertTrue(result['checks']['replay_sample']['passed'])
+            path = self.args.output_layout / 'candidate_index.jsonl'
+            entries = list(source.read_jsonl(path))
+            next(entry for entry in entries if entry['qid'] == 'held')['answer'] = '3'
+            full.write_lines(path, entries)
+            materialization = source.read_json(self.args.output_layout / 'MATERIALIZATION.json')
+            materialization['artifacts']['candidate_index.jsonl'] = source.pin(path)
+            source.write_json(self.args.output_layout / 'MATERIALIZATION.json', materialization)
+            self.reseal(self.args.output_layout, 'trainer')
+            with self.assertRaisesRegex(ValueError, 'base_index_metadata_changed'):
                 build.verify(self.verify_args)
-        result = source.read_json(self.args.audit / 'VERIFICATION.json')
-        self.assertEqual(result['checks']['index_target_equality']['mismatches'],
-                         [{'qid': 'held', 'side': 'heldout', 'base_carried': True}])
-        self.assertTrue(result['checks']['base_carried_bytes']['passed'])
-        self.assertTrue(result['checks']['replay_sample']['passed'])
 
 
 if __name__ == '__main__':

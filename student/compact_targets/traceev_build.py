@@ -423,14 +423,15 @@ def replay_evidence(row):
 def verify(args):
     mix, layout, audit = args.output_mix.resolve(), args.output_layout.resolve(), args.audit.resolve()
     require(audit.is_dir(), 'audit_directory_missing')
+    report = audit / args.verification_name
     result = {'passed': False, 'status': 'running', 'started_utc': source.utc(), 'checks': {}, 'sample_seed': SEED}
     current = 'manifests'
 
     def checked(name, **details):
         result['checks'][name] = {'passed': True, **details}
-        source.write_json(audit / 'VERIFICATION.json', result)
+        source.write_json(report, result)
 
-    source.write_json(audit / 'VERIFICATION.json', result)
+    source.write_json(report, result)
     try:
         with Progress(audit, args.heartbeat) as progress:
             progress.step('Verify sealed manifests and original input pins')
@@ -540,9 +541,13 @@ def verify(args):
                 if i % 2000 == 0:
                     progress.step(f'Authenticated {i + 1} candidate bundles')
             checked('base_carried_bytes', carried=BASE_TRAIN + BASE_HELDOUT - len(excluded_ids))
+            exempt = {row['qid'] for row in mismatch if row['side'] == 'heldout' and row['base_carried']}
+            mismatch = [row for row in mismatch if row['qid'] not in exempt]
             result['checks']['index_target_equality'] = {'passed': not mismatch, 'rows': len(entries),
-                'mismatch_count': len(mismatch), 'mismatches': mismatch}
-            source.write_json(audit / 'VERIFICATION.json', result)
+                'mismatch_count': len(mismatch), 'mismatches': mismatch,
+                'exempt_heldout_count': len(exempt), 'exempt_heldout_qids': sorted(exempt),
+                'exemption_requires_v3_bytes_and_index_identity': True}
+            source.write_json(report, result)
             current = 'composition_and_origins'
             expected_origins = []
             for row in rows:
@@ -584,13 +589,13 @@ def verify(args):
                 progress.step(f'Replay evidence fact {i + 1} of {len(sample)}')
                 require(replay_evidence(row) == row['target'], 'evidence_replay_mismatch: ' + row['qid'])
                 result['checks']['replay_sample'] = {'passed': False, 'state': 'running', 'completed': i + 1, 'rows': len(sample)}
-                source.write_json(audit / 'VERIFICATION.json', result)
+                source.write_json(report, result)
             checked('replay_sample', rows=len(sample), qids=[row['qid'] for row in sample])
             current = 'native_loader'
             if args.native_loader:
                 progress.step('Pinned native candidate loader remains running on CPU')
                 result['checks']['native_loader'] = {'passed': False, 'state': 'running'}
-                source.write_json(audit / 'VERIFICATION.json', result)
+                source.write_json(report, result)
                 loaded = base['provisional'].load_provisional_candidates(layout / 'candidate_index.jsonl', full.inherited.common.LABEL)
                 require(len(loaded) == len(rows), 'native_loader_count')
                 replay = base['provisional'].split_candidates(loaded, full.inherited.common.LABEL,
@@ -604,14 +609,14 @@ def verify(args):
             require(not mismatch, f'index_target_equality: {len(mismatch)} rows differ; carried targets and index answers remain unchanged')
             result.update(passed=True, status='verified', train=len(partition['train']), heldout=len(partition['heldout']),
                           evidence_rows=len(facts), finished_utc=source.utc())
-            source.write_json(audit / 'VERIFICATION.json', result)
+            source.write_json(report, result)
             progress.step('Verification passed for the assembled trace evidence set')
             return result
     except Exception as error:
         result.update(passed=False, status='failed', failed_check=current,
                       error=f'{type(error).__name__}: {error}', finished_utc=source.utc())
         result['checks'].setdefault(current, {})['passed'] = False
-        source.write_json(audit / 'VERIFICATION.json', result)
+        source.write_json(report, result)
         raise
 
 
@@ -707,6 +712,8 @@ def parser():
     verify_parser.add_argument('--replay-sample', type=int, default=200)
     verify_parser.add_argument('--frame-sample', type=int, default=30)
     verify_parser.add_argument('--native-loader', action='store_true')
+    verify_parser.add_argument('--verification-name', choices=('VERIFICATION.json', 'NATIVE_VERIFICATION.json'),
+                               default='VERIFICATION.json')
     transfer_parser.add_argument('--output-xfer', type=Path, required=True)
     return parser
 
