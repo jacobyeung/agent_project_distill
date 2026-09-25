@@ -1,5 +1,6 @@
 import argparse
 from collections import Counter, defaultdict
+from concurrent.futures import ThreadPoolExecutor
 import hashlib
 import json
 import os
@@ -59,6 +60,36 @@ class Progress:
     def __exit__(self, *_):
         self.stop.set()
         self.thread.join()
+
+
+def io_map(function, items, workers):
+    require(1 <= workers <= 64, 'io_workers_must_be_1_to_64')
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        yield from pool.map(function, items)
+
+
+def inventory(root, workers):
+    names = sorted(full.inventory_names(root))
+    return dict(io_map(lambda name: (name, source.pin(root / name)), names, workers))
+
+
+def carry_bundle(item, base, layout, side):
+    row, line = item
+    entry = base['index'][row['qid']]
+    layout_row, row_bytes, target_bytes = control.bundle(entry)
+    require(layout_row == row, 'base_mix_layout_identity')
+    require(target_bytes in (row['target'].encode(), (row['target'] + '\n').encode()), 'base_target_identity')
+    base['provisional'].validate_rgb(row['student_input'])
+    copied = control.copy_entry(entry, row_bytes, target_bytes, layout)
+    origin = {'qid': row['qid'], 'root': 'v3-carried', 'side': side,
+              'source_row': {'path': entry['row_path'], 'sha256': entry['row_sha256']},
+              'source_target': {'path': entry['target_path'], 'sha256': entry['sha256']}}
+    return row, line, copied, origin
+
+
+def materialize_evidence(fact, inputs, layout):
+    row = packed_evidence(fact, inputs)
+    return row, evidence_entry(row, layout)
 
 
 def load_base(mix, layout, trainer):
@@ -302,13 +333,14 @@ def check_outputs(args):
 
 def build(args):
     started = time.monotonic()
+    require(1 <= args.io_workers <= 64, 'io_workers_must_be_1_to_64')
     mix, layout, audit = check_outputs(args)
     audit.mkdir(parents=True)
     config = {'base_mix': str(args.base_mix.resolve()), 'base_layout': str(args.base_layout.resolve()),
               'evidence': source.pin(args.evidence), 'output_mix': str(mix), 'output_layout': str(layout),
               'merge_map': source.pin(args.merge_map),
               'exclude_base_qids': source.pin(args.exclude_base_qids) if args.exclude_base_qids else None,
-              'trainer': str(args.trainer.resolve()), 'sample_seed': SEED}
+              'trainer': str(args.trainer.resolve()), 'sample_seed': SEED, 'io_workers': args.io_workers}
     source.write_json(audit / 'CONFIG.json', config)
     code = provenance(audit / 'CONFIG.json')
     require(not code['dirty'], 'dirty_tree_commit_before_build')
@@ -341,34 +373,29 @@ def build(args):
         partition = {'train': [], 'heldout': []}
         progress.step('Carry authenticated v3 row and target bytes')
         for side in partition:
+            selected = (item for item in base['base'][side] if item[0]['qid'] not in excluded_ids)
             with (mix / (side + '.jsonl')).open('wb') as stream:
-                for row, line in base['base'][side]:
-                    if row['qid'] in excluded_ids:
-                        continue
-                    entry = base['index'][row['qid']]
-                    layout_row, row_bytes, target_bytes = control.bundle(entry)
-                    require(layout_row == row, 'base_mix_layout_identity')
-                    require(target_bytes in (row['target'].encode(), (row['target'] + '\n').encode()), 'base_target_identity')
-                    base['provisional'].validate_rgb(row['student_input'])
-                    entries.append(control.copy_entry(entry, row_bytes, target_bytes, layout))
+                for row, line, entry, origin in io_map(
+                        lambda item: carry_bundle(item, base, layout, side), selected, args.io_workers):
+                    entries.append(entry)
                     rows.append(row)
                     partition[side].append(row)
-                    origins.append({'qid': row['qid'], 'root': 'v3-carried', 'side': side,
-                                    'source_row': {'path': entry['row_path'], 'sha256': entry['row_sha256']},
-                                    'source_target': {'path': entry['target_path'], 'sha256': entry['sha256']}})
+                    origins.append(origin)
                     stream.write(line)
                     if len(rows) % 2000 == 0:
                         progress.step(f'Carried {len(rows)} v3 rows byte identically')
         progress.step('Materialize sharded evidence rows on training side')
         with (mix / 'train.jsonl').open('ab') as stream:
-            for fact in facts:
-                row = packed_evidence(fact, inputs)
-                entries.append(evidence_entry(row, layout))
+            for i, (row, entry) in enumerate(io_map(
+                    lambda fact: materialize_evidence(fact, inputs, layout), facts, args.io_workers), 1):
+                entries.append(entry)
                 rows.append(row)
                 partition['train'].append(row)
                 origins.append({'qid': row['qid'], 'root': 'traceev_gt_tool_evidence', 'side': 'train',
-                                'source_qids': fact['source_qids'], 'evidence_rows': config['evidence']})
+                                'source_qids': row['source_qids'], 'evidence_rows': config['evidence']})
                 stream.write(full.inherited.line_bytes(row))
+                if i % 2000 == 0:
+                    progress.step(f'Materialized {i} sharded evidence rows')
         require(BASE_TRAIN + BASE_HELDOUT - len(excluded_ids) < 40000, 'base_directory_entry_limit')
         shards = Counter(hashlib.sha256(row['qid'].encode()).hexdigest()[:2] for row in facts)
         require(all(count < 40000 for count in shards.values()), 'evidence_directory_entry_limit')
@@ -396,7 +423,7 @@ def build(args):
         manifests = {}
         for name, root in (('mix', mix), ('trainer', layout)):
             source.write_json(root / 'MANIFEST.json', {'schema': 'traceev-manifest-v1',
-                'artifacts': full.inventory(root), 'counts': {side: comp[side] for side in partition},
+                'artifacts': inventory(root, args.io_workers), 'counts': {side: comp[side] for side in partition},
                 'audit_artifacts': {'BASE_EXCLUSIONS.jsonl': source.pin(audit / 'BASE_EXCLUSIONS.jsonl'),
                                     'EVIDENCE_DROPS.jsonl': source.pin(audit / 'EVIDENCE_DROPS.jsonl'),
                                     'CONFIG.json': source.pin(audit / 'CONFIG.json')},
@@ -422,6 +449,7 @@ def replay_evidence(row):
 
 def verify(args):
     mix, layout, audit = args.output_mix.resolve(), args.output_layout.resolve(), args.audit.resolve()
+    require(1 <= args.io_workers <= 64, 'io_workers_must_be_1_to_64')
     require(audit.is_dir(), 'audit_directory_missing')
     report = audit / args.verification_name
     result = {'passed': False, 'status': 'running', 'started_utc': source.utc(), 'checks': {}, 'sample_seed': SEED}
@@ -441,9 +469,12 @@ def verify(args):
                 require(source.pin(root / 'MANIFEST.json') == summary['manifest'][name], 'manifest_digest_mismatch')
                 manifest = source.read_json(root / 'MANIFEST.json')
                 require(set(manifest['artifacts']) == set(full.inventory_names(root)), 'manifest_inventory_mismatch')
-                for relative, pin in manifest['artifacts'].items():
+                def authenticate_artifact(item):
+                    relative, pin = item
                     require(pin['path'] == str(root / relative), 'manifest_path_mismatch')
                     require(source.sha(root / relative) == pin['sha256'], 'manifest_hash_mismatch: ' + relative)
+
+                list(io_map(authenticate_artifact, manifest['artifacts'].items(), args.io_workers))
                 for pin in manifest['audit_artifacts'].values():
                     full.checked_authority(pin['path'], pin['sha256'])
             checked('manifests')
@@ -514,8 +545,7 @@ def verify(args):
             require(set(control.identities(entries)) == set(by_id), 'candidate_membership')
             require(source.pin(layout / 'candidate_index.jsonl') == summary['candidate_index'] and
                     source.pin(layout / 'split_trainer.json') == summary['split_trainer'], 'summary_artifact_pins')
-            mismatch = []
-            for i, entry in enumerate(entries):
+            def authenticate_candidate(entry):
                 qid = entry['qid']
                 row, row_bytes, target = control.bundle(entry)
                 require(row == by_id[qid], 'mix_layout_row_identity')
@@ -536,8 +566,13 @@ def verify(args):
                     require(Path(entry['row_path']) == layout / 'targets_traceev' / shard / qid / 'row.json' and
                             Path(entry['target_path']) == layout / 'targets_traceev' / shard / qid / 'target.txt', 'evidence_layout')
                 if str(entry['answer']) != row['target']:
-                    mismatch.append({'qid': qid, 'side': 'train' if qid in lines['train'] else 'heldout',
-                                     'base_carried': qid in base['index']})
+                    return {'qid': qid, 'side': 'train' if qid in lines['train'] else 'heldout',
+                            'base_carried': qid in base['index']}
+
+            mismatch = []
+            for i, different in enumerate(io_map(authenticate_candidate, entries, args.io_workers)):
+                if different:
+                    mismatch.append(different)
                 if i % 2000 == 0:
                     progress.step(f'Authenticated {i + 1} candidate bundles')
             checked('base_carried_bytes', carried=BASE_TRAIN + BASE_HELDOUT - len(excluded_ids))
@@ -704,6 +739,8 @@ def parser():
         for name in ('output-mix', 'output-layout', 'audit'):
             command.add_argument('--' + name, type=Path, required=True)
         command.add_argument('--heartbeat', type=Path, default=os.environ.get('TRACEEV_HEARTBEAT'))
+    for command in (build_parser, verify_parser):
+        command.add_argument('--io-workers', type=int, default=32)
     for name in ('base-mix', 'base-layout', 'evidence'):
         build_parser.add_argument('--' + name, type=Path, required=True)
     build_parser.add_argument('--exclude-base-qids', type=Path)

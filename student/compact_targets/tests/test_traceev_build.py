@@ -2,6 +2,7 @@ import copy
 import json
 import os
 from pathlib import Path
+import threading
 import unittest
 from unittest.mock import patch
 from uuid import uuid4
@@ -132,6 +133,24 @@ class TraceEvidenceBuildTests(unittest.TestCase):
         if name == 'trainer':
             summary['candidate_index'] = source.pin(root / 'candidate_index.jsonl')
         source.write_json(self.args.audit / 'BUILD_SUMMARY.json', summary)
+
+    def test_io_map_is_ordered_parallel_and_propagates_failures(self):
+        barrier = threading.Barrier(2, timeout=10)
+
+        def work(value):
+            barrier.wait()
+            return value * 2
+
+        self.assertEqual(list(build.io_map(work, [3, 1, 2, 4], 2)), [6, 2, 4, 8])
+        with self.assertRaisesRegex(ValueError, 'io_workers'):
+            list(build.io_map(str, [1], 0))
+        with self.assertRaisesRegex(ValueError, 'io_workers'):
+            list(build.io_map(str, [1], 65))
+        with self.assertRaises(ZeroDivisionError):
+            list(build.io_map(lambda value: 1 / value, [1, 0, 2], 2))
+
+    def test_parallel_inventory_matches_existing_inventory(self):
+        self.assertEqual(build.inventory(self.layout, 2), full.inventory(self.layout))
 
     def test_carry_identity_sharded_evidence_and_native_loader(self):
         result = build.build(self.args)
