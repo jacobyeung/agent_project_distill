@@ -981,7 +981,7 @@ def composition(out, summary, rows, candidates):
 
 
 def extract(args):
-    require(1 <= args.workers <= 16, 'workers_must_be_between_1_and_16')
+    require(1 <= args.workers <= 32, 'workers_must_be_between_1_and_32')
     require(args.limit is None or args.limit > 0, 'limit_must_be_positive')
     require(os.environ.get('CUDA_VISIBLE_DEVICES') == '', 'CPU_only_environment_required')
     commit = source_commit()
