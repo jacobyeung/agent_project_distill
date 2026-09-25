@@ -932,8 +932,10 @@ def composition(out, summary, rows, candidates):
     raw_counts = Counter(row['question_type'] for row in candidates)
     for kind in KINDS:
         lines.append(f"| {kind} | {summary['per_kind'].get(kind, 0)} | {raw_counts[kind]} |")
-    lines += ['', '## Supported tasks', '', '| Supported task | Published rows |', '|---|---:|']
-    lines += [f'| {key} | {value} |' for key, value in sorted(summary['per_supported_type'].items())]
+    raw_supported = Counter(support for row in candidates for support in row['supports'])
+    lines += ['', '## Supported tasks', '', '| Supported task | Published rows | Before global caps |', '|---|---:|---:|']
+    lines += [f"| {key} | {summary['per_supported_type'].get(key, 0)} | {raw_supported[key]} |"
+              for key in sorted({support for values in SUPPORTS.values() for support in values})]
     lines += ['', 'Grounding is an auxiliary task, not a benchmark category. Multi-support rows contribute to both task counts.',
               '', '## Trace coverage and drops', '',
               f"Source question types: `{canonical(summary['source_question_types'])}`.",
