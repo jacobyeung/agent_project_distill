@@ -764,8 +764,9 @@ def limit_count_one(rows):
     return others + protected + singles[:limit], max(0, len(singles) - limit)
 
 
-def select_budget(rows, budget=40000, seed=20260925):
+def select_budget(rows, budget=40000, seed=20260925, scene_share=200):
     require(0 < budget <= 60000, 'invalid_budget')
+    require(scene_share >= 1, 'invalid_scene_share')
     priorities = {kind: i for i, kind in enumerate(KINDS)}
     ordered = sorted(rows, key=lambda row: (priorities[row['question_type']],
         row['question_type'] == 'traceev_count_list' and count_value(row) == 1,
@@ -774,7 +775,7 @@ def select_budget(rows, budget=40000, seed=20260925):
     while True:
         selected, drops = [], Counter()
         scenes, owners, counts = Counter(), Counter(), Counter()
-        scene_limit, frame_limit, quadrant_limit = total // 200, total * 3 // 10, total // 10
+        scene_limit, frame_limit, quadrant_limit = total // scene_share, total * 3 // 10, total // 10
         for row in ordered:
             kind = row['question_type']
             scene = row['dataset'] + '/' + row['scene']
