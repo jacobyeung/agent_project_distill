@@ -47,8 +47,10 @@ class ContractTests(unittest.TestCase):
         self.assertEqual(mapping[1], student['frames'][0])
         self.assertEqual(mapping[32], student['frames'][31])
         self.assertNotIn(0, mapping)
-        receipt['frames'][0]['path'] = '/different/path.png'
-        with self.assertRaisesRegex(ValueError, 'frame_path_sha_mismatch'):
+        receipt['frames'][0]['path'] = '/content/addressed/reference.png'
+        self.assertEqual(extract.frame_mapping(receipt, student)[1], student['frames'][0])
+        receipt['frames'][0]['sha256'] = 'f' * 63 + 'e'
+        with self.assertRaisesRegex(ValueError, 'frame_sha_mismatch'):
             extract.frame_mapping(receipt, student)
 
     def test_parallel_tool_responses_follow_ids(self):

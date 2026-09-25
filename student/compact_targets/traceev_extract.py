@@ -165,7 +165,8 @@ def source_trace(entry):
 def frame_mapping(receipt, student_input):
     frames = receipt['frames']
     require(len(frames) == len(student_input['frames']) == 32, 'frame_count')
-    require([{'path': frame['path'], 'sha256': frame['sha256']} for frame in frames] == student_input['frames'], 'frame_path_sha_mismatch')
+    # Content identity: the v3 row may name the same bytes through a content-addressed reference path, so compare SHA-256 in order.
+    require([frame['sha256'] for frame in frames] == [frame['sha256'] for frame in student_input['frames']], 'frame_sha_mismatch')
     require([frame['ordinal'] for frame in frames] == student_input['frame_indices'], 'frame_ordinal_mismatch')
     return {i: student_input['frames'][i - 1] for i in range(1, 33)}
 
