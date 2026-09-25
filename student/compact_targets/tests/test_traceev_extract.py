@@ -129,6 +129,9 @@ class ContractTests(unittest.TestCase):
         self.assertTrue(extract.counting_category_matches('How many chair(s) do we have?', 'chair'))
         self.assertTrue(extract.counting_category_matches('Tell me how many smoke detector(s) are located here.', 'smoke detector'))
         self.assertTrue(extract.counting_category_matches('How many chairs are visible?', 'chair'))
+        self.assertTrue(extract.counting_category_matches('Could you give me the number of heater(s) in this space?', 'heater'))
+        self.assertTrue(extract.counting_category_matches("What's the number of bookshelf(s) present in this room?", 'bookshelf'))
+        self.assertTrue(extract.counting_category_matches("What's the exact quantity of monitor(s) in this room?", 'monitor'))
         self.assertFalse(extract.counting_category_matches('How many armchair(s) do we have?', 'chair'))
         self.assertFalse(extract.counting_category_matches('How many chair(s) are beside the table?', 'table'))
 
@@ -341,6 +344,17 @@ class ReplayTests(unittest.TestCase):
         self.assertTrue((out / 'DROPS.json').is_file())
         shard = out / 'shards' / 'scannet__scene0000_00.jsonl'
         self.assertGreater(json.loads(shard.with_suffix('.done.json').read_text())['rows'], 0)
+        audit_args = extract.parser().parse_args(['audit', '--out', str(out), '--workers', '1'])
+        with patch.object(extract, 'v3_sources', return_value=([self.entry, bad], Counter())):
+            audited = extract.audit(audit_args)
+        self.assertEqual(audited['status'], 'PASS')
+        self.assertEqual(audited['traces_reconciled'], 2)
+        self.assertEqual(audited['replayed_by_kind'], {'traceev_size': 1, 'traceev_frames_all': 1})
+        with (out / 'evidence_rows.jsonl').open('a') as stream:
+            stream.write('{}\n')
+        with patch.object(extract, 'v3_sources', return_value=([self.entry, bad], Counter())), \
+             self.assertRaisesRegex(ValueError, 'audit_published_bytes'):
+            extract.audit(audit_args)
 
     def test_replay_reauthenticates_trace(self):
         rows, _ = extract.extract_entry(self.entry, {}, 'a' * 40, kinds={'traceev_size'})

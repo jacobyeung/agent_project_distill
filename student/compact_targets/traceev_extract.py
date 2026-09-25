@@ -80,11 +80,14 @@ def v3_sources(layout, counting_entries=None):
 
 
 def counting_category_matches(question, label):
-    text = question.lower().replace('(s)', '').replace('(es)', '')
-    match = re.search(r'\bhow many\s+(.+?)(?:\s+(?:are|is|do|does|can|have|exist)\b|[?.!\n])', text)
+    text = question.lower()
+    prefix = r'\b(?:how many|(?:number|quantity|count) (?:of|for)|count(?: the)?)\s+'
+    match = re.search(prefix + r'(.+?)\((?:s|es)\)', text)
+    if not match:
+        match = re.search(prefix + r'(.+?)(?:\s+(?:are|is|do|does|can|have|exist|present|located|in|here)\b|[?.!\n])', text)
     if not match:
         return False
-    noun = re.sub(r'^(?:distinct|different)\s+', '', match[1].strip())
+    noun = re.sub(r'^(?:(?:the|distinct|different)\s+)+', '', match[1].strip())
     variants = {label, label + 's', label + 'es'}
     if label.endswith('y'):
         variants.add(label[:-1] + 'ies')
@@ -1061,6 +1064,90 @@ def extract(args):
     return summary
 
 
+def audit(args):
+    require(1 <= args.workers <= 16 and args.replay_per_kind >= 0, 'invalid_audit_limits')
+    require(os.environ.get('CUDA_VISIBLE_DEVICES') == '', 'CPU_only_environment_required')
+    started = time.monotonic()
+    inputs, summary = read_json(args.out / 'BUILD_INPUTS.json'), read_json(args.out / 'SUMMARY.json')
+    config_sha = inputs.pop('config_sha256')
+    require(digest(inputs) == config_sha == summary['config_sha256'], 'audit_config_digest')
+    require(inputs['commit'] == summary['commit'], 'audit_commit')
+    require(inputs['index']['sha256'] == INDEX_SHA and inputs['split']['sha256'] == SPLIT_SHA, 'audit_v3_pins')
+    counting_entries = []
+    eligible, _ = v3_sources(Path(inputs['index']['path']).parent, counting_entries)
+    by_qid = {entry['qid']: entry for entry in eligible}
+    qids = set(inputs['selected_qids'])
+    require(len(qids) == len(inputs['selected_qids']) and qids.issubset(by_qid), 'audit_selected_membership')
+    require(summary['traces_processed'] == len(qids), 'audit_trace_denominator')
+    scenes = {(by_qid[qid]['dataset'], by_qid[qid]['scene']) for qid in qids}
+    require(inputs['scene_groups'] == sorted(control.scene_group(*scene) for scene in scenes), 'audit_scene_membership')
+    candidates, processed = [], 0
+    for dataset, scene in sorted(scenes):
+        path = args.out / 'shards' / (dataset + '__' + scene + '.jsonl')
+        done = read_json(path.with_suffix('.done.json'))
+        require(done['path'] == str(path) and done['sha256'] == sha(path), 'audit_shard_digest')
+        with path.open() as stream:
+            rows = [json.loads(line) for line in stream]
+        require(len(rows) == done['rows'], 'audit_shard_rows')
+        processed += done['stats']['traces_processed']
+        candidates.extend(rows)
+    require(processed == len(qids) and summary['scene_shards'] == len(scenes), 'audit_shard_denominator')
+    candidates, _ = dedupe_rows(candidates)
+    catalog = counting_catalog([entry for entry in counting_entries if (entry['dataset'], entry['scene']) in scenes])
+    catalog_by_scene = defaultdict(list)
+    for item in catalog:
+        catalog_by_scene[(item['entry']['dataset'], item['entry']['scene'])].append(item)
+    source_rows, replay_rows = {}, []
+    replay_counts = Counter()
+    for row in candidates:
+        entry = row['evidence']['source_entry']
+        require(entry['qid'] in qids and all(qid in qids for qid in row['source_qids']), 'audit_fact_source_membership')
+        require(all(entry[key] == by_qid[entry['qid']][key] for key in ('qid', 'dataset', 'scene', 'question_type', 'row_path', 'row_sha256')), 'audit_source_index_binding')
+        if entry['qid'] not in source_rows:
+            source_rows[entry['qid']] = checked_json({'path': entry['row_path'], 'sha256': entry['row_sha256']})
+        source = source_rows[entry['qid']]
+        require((row['dataset'], row['scene']) == (entry['dataset'], entry['scene']), 'audit_fact_scene')
+        kind, gt = row['question_type'], row['evidence']['gt']
+        require(render(kind, gt['labels'], gt['values_unrounded']) == (row['question'], row['target']), 'audit_render')
+        require(row['student_input'] == {**source['student_input'], 'question': row['question'], 'options': []}, 'audit_student_input')
+        frame_sha = digest(source['student_input']['frames'])
+        identity = gt['labels'][0] if kind.startswith('traceev_frames_') else sorted(gt['instance_ids'])
+        require(row['fact_key'] == [frame_sha, kind, identity], 'audit_fact_key')
+        require(row['qid'] == f"traceev__{row['scene']}__{kind}__{digest(row['fact_key'])[:12]}", 'audit_qid')
+        require(row['extractor_commit'] == summary['commit'] and row['extractor_config_sha256'] == config_sha, 'audit_fact_provenance')
+        require(row['supports'] == SUPPORTS[kind], 'audit_supports')
+        checks, checked_entries = [], []
+        if kind == 'traceev_count_list':
+            checks, checked_entries = count_label_checks(entry, source, gt['labels'][0], count_value(row), catalog_by_scene[(row['dataset'], row['scene'])])
+        require(row['label_check'] == (checks[0] if checks else None), 'audit_label_check')
+        require(row['evidence']['label_checks'] == checks and row['evidence']['counting_entries'] == checked_entries, 'audit_counting_coverage')
+        if replay_counts[kind] < args.replay_per_kind:
+            replay_rows.append(row)
+            replay_counts[kind] += 1
+    selected, _ = select_budget(candidates, inputs['budget'], inputs['seed'])
+    selected.sort(key=lambda row: (row['dataset'], row['scene'], row['qid']))
+    expected_sha = hashlib.sha256()
+    for row in selected:
+        expected_sha.update((canonical(row) + '\n').encode())
+    path = args.out / 'evidence_rows.jsonl'
+    require(summary['path'] == str(path) and expected_sha.hexdigest() == sha(path) == summary['sha256'], 'audit_published_bytes')
+    require(len(selected) == summary['rows'] and len({row['qid'] for row in selected}) == len(selected), 'audit_published_rows')
+    require(summary['per_kind'] == {kind: sum(row['question_type'] == kind for row in selected) for kind in KINDS}, 'audit_kind_counts')
+    require(summary['per_supported_type'] == dict(Counter(support for row in selected for support in row['supports'])), 'audit_support_counts')
+    require(summary['label_checks'] == label_check_summary(selected) and summary['raw_label_checks'] == label_check_summary(candidates), 'audit_label_summary')
+    with ProcessPoolExecutor(max_workers=args.workers, initializer=worker_init) as pool:
+        for row, target in zip(replay_rows, pool.map(replay, replay_rows)):
+            require(target == row['target'], 'audit_replay_target')
+    result = {'status': 'PASS', 'checked_at': utc(), 'extractor_commit': summary['commit'], 'auditor_source_sha256': sha(__file__),
+              'path': str(path), 'sha256': summary['sha256'], 'rows': len(selected), 'admitted_facts': len(candidates),
+              'traces_reconciled': processed, 'scene_shards_authenticated': len(scenes),
+              'replayed_by_kind': dict(replay_counts), 'replayed_qids': [row['qid'] for row in replay_rows],
+              'seconds': time.monotonic() - started}
+    write_json(args.out / 'AUDIT.json', result)
+    print(canonical(result), flush=True)
+    return result
+
+
 def parser():
     root = argparse.ArgumentParser()
     sub = root.add_subparsers(dest='command', required=True)
@@ -1075,9 +1162,13 @@ def parser():
             item.add_argument('--workers', type=int, default=8)
             item.add_argument('--budget', type=int, default=40000)
             item.add_argument('--heartbeat', type=Path)
+    item = sub.add_parser('audit')
+    item.add_argument('--out', type=Path, required=True)
+    item.add_argument('--replay-per-kind', type=int, default=2)
+    item.add_argument('--workers', type=int, default=4)
     return root
 
 
 if __name__ == '__main__':
     args = parser().parse_args()
-    {'inventory': inventory, 'extract': extract}[args.command](args)
+    {'inventory': inventory, 'extract': extract, 'audit': audit}[args.command](args)
