@@ -152,6 +152,19 @@ class TraceEvidenceBuildTests(unittest.TestCase):
     def test_parallel_inventory_matches_existing_inventory(self):
         self.assertEqual(build.inventory(self.layout, 2), full.inventory(self.layout))
 
+    def test_fresh_carried_outputs_do_not_resolve_each_destination(self):
+        with patch.object(compact, 'safe_path', wraps=compact.safe_path) as checked:
+            build.build(self.args)
+        prefix = str(self.args.output_layout / 'targets') + '/'
+        self.assertFalse([call for call in checked.call_args_list if str(call.args[0]).startswith(prefix)])
+        self.assertTrue(build.verify(self.verify_args)['passed'])
+
+    def test_protected_output_path_is_refused_before_creation(self):
+        self.args.output_layout = self.root / 'answer_banks'
+        with self.assertRaisesRegex(compact.Deferral, 'protected_path'):
+            build.build(self.args)
+        self.assertFalse(self.args.output_layout.exists())
+
     def test_carry_identity_sharded_evidence_and_native_loader(self):
         result = build.build(self.args)
         self.assertEqual(result['counts']['train']['total'], 3)

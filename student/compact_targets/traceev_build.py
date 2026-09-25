@@ -80,7 +80,11 @@ def carry_bundle(item, base, layout, side):
     require(layout_row == row, 'base_mix_layout_identity')
     require(target_bytes in (row['target'].encode(), (row['target'] + '\n').encode()), 'base_target_identity')
     base['provisional'].validate_rgb(row['student_input'])
-    copied = control.copy_entry(entry, row_bytes, target_bytes, layout)
+    copied = control.copied_entry(entry, row_bytes, target_bytes, layout)
+    Path(copied['row_path']).parent.mkdir(parents=True, exist_ok=False)
+    for key, payload in (('row_path', row_bytes), ('target_path', target_bytes)):
+        with Path(copied[key]).open('xb') as stream:
+            stream.write(payload)
     origin = {'qid': row['qid'], 'root': 'v3-carried', 'side': side,
               'source_row': {'path': entry['row_path'], 'sha256': entry['row_sha256']},
               'source_target': {'path': entry['target_path'], 'sha256': entry['sha256']}}
@@ -318,7 +322,7 @@ def composition_text(value):
 
 
 def check_outputs(args):
-    outputs = [args.output_mix.resolve(), args.output_layout.resolve(), args.audit.resolve()]
+    outputs = [compact.safe_path(path) for path in (args.output_mix, args.output_layout, args.audit)]
     protected = [args.base_mix.resolve(), args.base_layout.resolve(), REPO, Path('/home/jjyeung/agent_project_distill')]
     for path in outputs:
         require(path.is_relative_to('/data2'), 'output_must_be_under_data2')
