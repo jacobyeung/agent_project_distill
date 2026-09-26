@@ -1,6 +1,6 @@
 # Distillation handoff - 2026-09-25 18:00 PT (2026-09-26 01:00 UTC)
 
-Qwen3.6-27B answer-only full pool, 1 epoch (r1647), is the best single VSI-500 cell at 58.39 lenient / 58.31 strict. The labelled ENSEMBLE (r1803), not a single model, reaches 60.02 with 7 members. The best single cell leaves a 14.61-point gap to 73.00. The supplied snapshots place r1643, r1649, the RA and coverage launch chains, the RL pilot, the trace16 27B arm, and the collector in the overnight workload. Start with [today's results](RESULTS_CODEAWS_20260925.md), the run inventory below, and the relevant lane's successor commands. This handoff reports the lane files as of 17:38 PT, plus the code-aws `STATUS.md` lines of 17:39 PT and the collector `STATUS.md` line of 17:59 PT; it is not a fresh check of remote jobs, processes, or scores. `ORCHESTRATOR_FACTS.md` names the orchestrator facts recorded in `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_handoff_20260926T0040Z/FACTS.md`.
+Qwen3.6-27B answer-only full pool, 1 epoch (r1647), is the best single VSI-500 cell at 58.39 lenient / 58.31 strict. The labelled ENSEMBLE (r1803), not a single model, reaches 60.02 with 7 members. The best single cell leaves a 14.61-point gap to 73.00. The supplied snapshots place r1643, r1649, the RA and coverage launch chains, the RL pilot, the trace16 27B arm, and the collector in the overnight workload. Start with [today's results](RESULTS_CODEAWS_20260925.md), the run inventory below (updated by the 19:10 PT addendum at the end), and the relevant lane's successor commands. This handoff reports the lane files as of 17:38 PT, plus the code-aws `STATUS.md` lines of 17:39 PT and the collector `STATUS.md` line of 17:59 PT; it is not a fresh check of remote jobs, processes, or scores. `ORCHESTRATOR_FACTS.md` names the orchestrator facts recorded in `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_handoff_20260926T0040Z/FACTS.md`.
 
 ## Headline results
 
@@ -1000,7 +1000,7 @@ The collector additionally says to avoid **trinity-0-13, trinity-0-18, and trini
 
 ### Commits landed on main today
 
-All six commits are ancestors of `main` (checked with `git merge-base --is-ancestor` at 18:05 PT). The subjects and author times below come from `git log`.
+All six commits are ancestors of `main` (checked with `git merge-base --is-ancestor` at 17:47 PT). The subjects and author times below come from `git log`.
 
 | Commit | Time (PT) | Subject |
 |---|---|---|
@@ -1086,3 +1086,26 @@ The entries below preserve disagreements, explicit corrections, and different sn
 | Strict-trace scale | Analysis `LEVERS.md` and trace-evidence `HANDOFF_traceev.md`: **~29.5k strict traces**. | Collector `HANDOFF_collector2.md`: validated A+B census **30,471 strict / 33,261 tier-25** at **17:04Z**. No common recount or population mapping is supplied. |
 
 The swarm's numbered contradiction list above also preserves its unresolved alternatives for counting cause, evidence placement, units, sampling diversity, route supervision, and ARKit per-type behavior. No source conflict was resolved by recalculating a score, changing a run, editing a source, or selecting a new authority in this documentation task.
+
+## Addendum - 2026-09-25 19:10 PT (2026-09-26 02:10 UTC): 19:00 PT refresh
+
+The code-aws `HANDOFF_codeaws.md` (refreshed 16:53 PT) and the pre-build `READY_rl.md` have not changed since the 17:38 PT snapshot, and the code-aws `RESULTS.md` still holds no final r1643 row. The new facts below come from the code-aws `STATUS.md` through its 19:09 PT tick and from the pre-build `STATUS.md` RL tick of 19:00 PT. They supersede the ETAs and states in "Runs in flight" above.
+
+**r1643 final.** The 9B full-pool 3-epoch run (7412030) completed all 2,361 steps and published at 19:00 PT, and its node was freed. `final_evals.sh` auto-submitted VSI-500 **7423057** and VSTI-450 **7423058** at 19:00 PT; the lane expects the scorer on completion at ~19:30 PT. Until those rows land, the r1643 rows in `RESULTS.md` are the checkpoints: step 787 at 53.42 / 41.02 (VSI-500) and 47.76 / 46.05 (VSTI-450), and step 1574 at 56.51 / 51.96 (VSI-500) and 51.11 / 50.97 (VSTI-450), lenient / strict.
+
+| Round | Job | State (PT) | Step | Rate | ETA (PT) |
+|---|---|---|---|---|---|
+| r1643 | 7412030 | COMPLETED + PUBLISHED 19:00; evals 7423057 (VSI-500), 7423058 (VSTI-450) | 2,361 / 2,361 | - | scorer ~19:30 |
+| r1649 | 7412034 | RUNNING (19:09 tick) | 2305 / 2361 | ~14-17 s/step since ~17:40 (18:12 line) | ~19:15 (18:12 line) |
+| r1802 | 7421286 | RUNNING on aml_high, pool0-0972; step 1 at 17:43 | 425 / 1235 (19:09 tick) | 9.8 s/step at step 1; ~12 s/step (18:12 line); ticks 376 at 18:59 and 425 at 19:09 | ~21:50 (18:12 line) |
+| r1805 | 7422660 | shard/swap MERGED_AND_VERIFIED 18:33 (shard job 7421701; single-thread prepare 7421504 cancelled at the swap); train SUBMITTED on aml_high 18:33 | 9 / 1553 (19:09 tick) | not yet reported; ~12 s assumed in the 18:28 line | ~00:30 (18:28 line: 1,552 steps x ~12 s) |
+| r1801 (RA) | prepare 7422518 (18:24), shard 7422706 (18:37); train not yet submitted | set unpacked on code-aws 18:24: rows=91593, idx=15ffbb98425083817c8c2f89e8cc33a35cea8b9d970112ff37f2c81791e1711d | - | - | train submit ~19:40, step 1 ~20:15, end ~05:20 (18:28 line: 2,730 steps x ~12 s) |
+| RL pilot | 7420836 | RUNNING at the 19:00 tick | 125 / 126 | mean_last20 79.4 s | projected end 19:01 |
+
+**Why the ETAs moved.** At 18:12 PT the code-aws lane reported that the 9B trainings slowed to ~14-17 s/step from ~17:40 PT, likely from Lustre contention by the concurrent prepares, rsync and untar plus other users; r1643 went from 2062 to 2177 in 30 minutes. It also measured 33 minutes from job start to step 1 for r1802 (pre-train row validation ~17 min plus rank startup ~16 min) and budgets the same for r1805 and RA.
+
+**Orchestrator decision at 18:13 PT (code-aws `STATUS.md`).** RA r1801 runs its full epoch on aml_high even if it ends at or after 05:00 PT, as a row for the next revision; the set is not shrunk and 25-step checkpoints stay on. Tonight's paper numbers are whatever is scored by 04:30 PT (r1643 final, r1802, r1805, 27B rows, ensemble). An RA half-epoch VSI-500 checkpoint eval at step 1375 (~01:00 PT) is armed in `work/ra_midckpt.sh`; it submits only if distillation nodes are below 10 and is labelled mid-schedule.
+
+**RL pilot.** The pre-build tick at 19:00 PT reports step 125/126, mean_last20 79.4 s, reward_last20 0.757, acc_last20 0.697 and projected end 19:01 PT. The step time fell below every earlier projection (the 116-153 s range in the conflict table). The eval plan in `READY_rl.md` stands: VSI-500 under sampled_t06_8k_v1, paired with the trace16 9B base 24.50 and compared with the none_d1 SFT start 43.00, using the `submit_rl_eval.sh` line in the pre-build section.
+
+**New source conflicts.** r1805's step count reads 1,552 in the 18:28 PT line and 1553 in the 19:09 PT tick. RA's end estimate moved from ~01:00 (handoff) to ~01:45 (17:39 line) to ~05:20 PT (18:28 line); the 18:12 line gives ~05:00 PT.
