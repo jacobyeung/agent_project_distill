@@ -93,7 +93,7 @@ The table records source-reported state, including pending chains and blocked ev
 | Round | Run | Job | QoS | Node | Start (PT) | Rate | ETA (PT) | Planned evals | Resume |
 |---|---|---|---|---|---|---|---|---|---|
 | r1643 | gtm2_answeronly_fullpool_qwen35_caws_w8_mb4_e3 | 7412030 | high | pool0-1541 | 09:20 (requeued 14:26) | 9.1 s/step | ~18:00 | final VSI+VSTI auto; checkpoints 787/1574 scored | requeue automatic; else (R1) |
-| r1649 | gtm2_answeronly_fullpool_qwen35_caws_w8_mb4_e3_r128 | 7412034 | low (HANDOFF_codeaws.md); ORCHESTRATOR_FACTS.md lists r1649 among the students raised to aml_high | pool0-0289 | 09:20 (requeued 14:26) | ~9.3 s | ~18:15 | final VSI+VSTI auto | requeue automatic |
+| r1649 | gtm2_answeronly_fullpool_qwen35_caws_w8_mb4_e3_r128 | 7412034 | low (stayed on aml_low) | pool0-0289 | 09:20 (requeued 14:26) | ~9.3 s | ~18:15 | final VSI+VSTI auto | requeue automatic |
 | r1801 | pool97k_qwen35_caws_w8_e1_r1801 | pending (work/ra_chain.sh; tar route since 17:38) | high | - | after rsync ~17:10 + prepare (handoff); train ~18:45 (STATUS 17:39) | ~9.3 s | ~01:00 (2,730 steps, handoff); ~01:45 (STATUS 17:39) | final_evals.sh; VSI+VSTI | (R2) |
 | r1802 | runa_v3cov_noarkit_qwen35_caws_w8_e1_r1802 | 7421286 (prep 7420882, shard 7420908) | high | pool0-0972 (STATUS 17:39) | submitted 17:10 in ORCHESTRATOR_FACTS.md and STATUS.md; ~17:15 in HANDOFF_codeaws.md; DDP ranks started 17:27 | ~9.3 s | ~20:20 (1,235 steps) | final_evals.sh | (R2) |
 | r1805 | runa2_v3cov_noarkit_traceev_s25k_qwen35_caws_w8_e1_r1805 | prepare 7421504 (submitted 17:37 by hand after the 17:21 chain submission was refused with an empty job id); work/r1805_chain.sh continues shard/swap -> train -> final evals | high | - | ~17:45 train estimate (handoff, before the 17:37 resubmission) | ~9.3 s | ~22:30 (~1,550 steps, handoff) | final_evals.sh | (R2) |
@@ -921,7 +921,7 @@ The lane file gives no commands. The analysis files name scripts and proposed bu
 The following standing constraints come from the supplied lane files, the previous handoff's "Rulings today," and the supplied repository `CLAUDE.md` rules.
 
 - Distillation holds **<= 10 pool0 nodes**. The code-aws handoff's freed-node order is **r1801, r1802, r1805, RL pilot, r1800, r1646**; an available node does not erase the ledger's allocation requirement.
-- `av_alpamayo_aml_low` jobs face the **5 h** preemption rule. The code-aws handoff says all trains use **--requeue** and restore **25-step checkpoints**. Preserve the same run name and frozen identity when resuming; the r1649 QoS discrepancy remains in the appendix.
+- `av_alpamayo_aml_low` jobs face the **5 h** preemption rule. The code-aws handoff says all trains use **--requeue** and restore **25-step checkpoints**. Preserve the same run name and frozen identity when resuming. r1649 stayed on aml_low; the other students run on aml_high.
 - The RL pilot runs **126 steps** with a hard stop at **22:00 PT**, followed by evaluation of the available checkpoint. The pre-build lane records the resize condition and exact commands; the drafter neither resized nor stopped it.
 - Report times in **PT**. Verbatim source sections retain their printed UTC times and uncertain stamps such as **16:5x PT** and **18:0xZ**; this handoff does not normalize them.
 - Prefer **Devin swarms**. The repository rules specify `gpt-6-astra-max-priority`, staged workspace inputs, a **5-minute heartbeat**, and Codex Astra after **two silent Devin attempts**. No new swarm or paid call was launched for this document.
@@ -1015,7 +1015,7 @@ The results-doc lane (`/data2/jjyeung/agent_project_data/distillation_orchestrat
 
 ### Collector block markers and swap
 
-The orchestrator supplies acknowledgement times; the collector handoff supplies write times, names, and reasons. These are different event fields, not interchangeable timestamps.
+Each marker carries two times. The orchestrator's times (**14:36, 15:00, 15:50, 15:53 PT**) are acknowledgement times: when each `BLOCKED.json` was renamed to its `acked_` name. The collector lane's times (**14:25, 14:54, 15:47, 15:51 PT**) are write times: when the controller wrote `BLOCKED.json` and blocked collection. The table pairs them per marker.
 
 | Acknowledged (PT), ORCHESTRATOR_FACTS.md | Written (PT), HANDOFF_collector2.md | Marker name, HANDOFF_collector2.md | Reason |
 |---|---|---|---|
@@ -1032,7 +1032,7 @@ Both the orchestrator and the collector handoff record the **17:27 PT** swap to 
 
 | Time (PT) | Event | Source |
 |---|---|---|
-| 14:23 | r1643/r1647/r1649 requeued from 25-step checkpoints under the 5-h aml_low rule; students raised to aml_high; resume verified | ORCHESTRATOR_FACTS.md |
+| 14:23 | r1643/r1647/r1649 requeued from 25-step checkpoints under the 5-h aml_low rule; r1643 and r1647 raised to aml_high, while r1649 stayed on aml_low; resume verified | ORCHESTRATOR_FACTS.md (r1649 QoS as corrected by the orchestrator); HANDOFF_codeaws.md |
 | 14:26 | r1643 and r1649 run-table requeue time; r1643 high, r1649 low | HANDOFF_codeaws.md |
 | 14:32 | r1650 preempted | ORCHESTRATOR_FACTS.md |
 
@@ -1045,7 +1045,6 @@ The entries below preserve disagreements, explicit corrections, and different sn
 | RL rate and end | `ORCHESTRATOR_FACTS.md`: **~120 s/step**, **~20:25 PT**. | Code-aws `HANDOFF_codeaws.md` and `GPU_LEDGER.md`: **~150 s/step**, **~21:15-21:35**. Pre-build `HANDOFF_prebuild.md`: **~116 s/step since load**, **~20:20 PT**; `READY_rl.md` retains first-five-step **mean 153 s**, **143 s excl. warm-up**, **~21:15-21:35 PT**. |
 | RL reward range and identity | Pre-build `READY_rl.md`: first-five-step reward **0.67-0.89**; original design adapter **e4fa3146...691a**. | `HANDOFF_prebuild.md`: reward **0.66-0.89**; corrected v1a adapter weights **1e4fd8f8...0780e**, also recorded later in `READY_rl.md`. These are different observations and pins, not values to substitute inside a quotation. |
 | RL launch-state headings | `READY_rl.md` starts with **STATE 13:16 PT: NOT LAUNCHED**. | The same file records **LAUNCHED 16:10 PT**, job **7420836**; `HANDOFF_prebuild.md` records **RUNNING**, start **16:10:14 PT**. |
-| r1649 QoS | `ORCHESTRATOR_FACTS.md` groups r1643/r1647/r1649 with "students raised to aml_high." | Code-aws `HANDOFF_codeaws.md` and **16:52 PT STATUS.md** explicitly put **7412034** on **aml_low**, **pool0-0289**. |
 | r1643/r1649 ETAs | Code-aws `GPU_LEDGER.md` expected frees **~16:55 / ~17:05**; the results document prints **~17:30 / ~17:45**. | `HANDOFF_codeaws.md` and **16:52 PT STATUS.md** print **~18:00 / ~18:15**. The result document's older run table is not a live completion report. |
 | r1801 sizing and ETA | Code-aws `ROUNDS.md`: **~3,050 steps x 10 s = ~8.5 h**, **~01:30 PT 09-26**. The results document retains **~2,730 steps x ~10 s = ~7.6 h**, **~00:30 on 09-26**. | `HANDOFF_codeaws.md`: **2,730 steps**, **~9.3 s**, **~01:00**; **16:52 PT STATUS.md** says **~7 h** and rsync ETA **~17:10 PT**. |
 | r1802 start and composition | `HANDOFF_codeaws.md`: start **~17:15**. Pre-build `READY_coverage.md` preserves an unfiltered CORE launch with **50,884 rows**, **46,649 train**. | `ORCHESTRATOR_FACTS.md` and code-aws **17:10 PT STATUS.md** record **7421286** submitted **17:10 PT**. The no-ARKit root in **16:27 PT STATUS.md** has **43,753 rows**, **39,518 train**. The READY and launched roots differ. |
@@ -1061,7 +1060,6 @@ The entries below preserve disagreements, explicit corrections, and different sn
 | trace16 T8 state | Trace16 `RESULTS.md`: training, finals **~17:00 PT**; `HANDOFF_trace16_caws.md`: finals **7420948/7420949 running**. The results document retains training ETA **~16:35**. | Code-aws `GPU_LEDGER.md`: training **7416462 COMPLETED 16:42**, T-L **RELEASED 16:58 (7420949 COMPLETED)**. Code-aws `STATUS.md` records finals auto-submitted **16:43 PT**. |
 | SSH ControlMaster | Code-aws `HANDOFF_codeaws.md` gives a working persistent master on **trinity-0-3**, **~8 s** access. | Trace16 `HANDOFF_trace16_caws.md` says ControlMaster does not work through the jump and gives **about 20 s** per handshake. These are lane-specific access reports, not one measured latency. |
 | Collector downtime | `ORCHESTRATOR_FACTS.md`: **14:25-16:04 PT**. | `HANDOFF_collector2.md`: **14:25-16:02 PT**. |
-| Collector acknowledgement versus write time | `ORCHESTRATOR_FACTS.md`: **14:36, 15:00, 15:50, 15:53 PT**, acknowledged. | `HANDOFF_collector2.md`: **14:25, 14:54, 15:47, 15:51 PT**, written. The receipt supplies only the first write, **21:25:25Z**. The differing event fields are preserved in separate columns above. |
 | Collector swap state within the handoff | `HANDOFF_collector2.md` sections 1a, 2, 3, and 5 retain **1825547 draining**, **34f5444 being bound**, and brake stopped. | Its section 1 and `ORCHESTRATOR_FACTS.md` report swap done **17:27 PT**; controller **2383635**, wrapper **2383633**, brake **1897051**, and **1825547 stopped 17:21 PT**. |
 | Collector receipt coverage | `HANDOFF_collector2.md` and `ORCHESTRATOR_FACTS.md` record four markers, the **34f5444** swap, and **011fc49** review. | Supplied collector `RECEIPT.md` contains one explicit block entry and a **536cae3** planned-v3-swap script diff; it contains no **34f5444** or **011fc49** entry. This is missing evidence, not a contrary swap result. |
 | Asset admission and bind plan | Assets `HANDOFF_assets.md`: **0/46 PASS** under exact correlation equality, ScanNet++ not approved, registry **v2_scannet9**, **99,963 ready / 5,037 pending**. | Tolerance `STATUS.md` and `out/REVIEW.md`: **46/46** loader passes and review **PASS** under correlation-only **1e-12** tolerance; registry v3 **104,251 / 749**. Its planned **536cae3** bind differs from the collector's completed **34f5444** swap. Gate and registry versions differ. |
