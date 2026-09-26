@@ -1,6 +1,6 @@
 # Distillation handoff - 2026-09-25 18:00 PT (2026-09-26 01:00 UTC)
 
-Qwen3.6-27B answer-only full pool, 1 epoch (r1647), is the best single VSI-500 cell at 58.39 lenient / 58.31 strict. The labelled ENSEMBLE (r1803), not a single model, reaches 60.02 with 7 members. The best single cell leaves a 14.61-point gap to 73.00. The supplied snapshots place r1643, r1649, the RA and coverage launch chains, the RL pilot, the trace16 27B arm, and the collector in the overnight workload. Start with [today's results](RESULTS_CODEAWS_20260925.md), the run inventory below (updated by the 19:10 PT addendum at the end), and the relevant lane's successor commands. This handoff reports the lane files as of 17:38 PT, plus the code-aws `STATUS.md` lines of 17:39 PT and the collector `STATUS.md` line of 17:59 PT; it is not a fresh check of remote jobs, processes, or scores. `ORCHESTRATOR_FACTS.md` names the orchestrator facts recorded in `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_handoff_20260926T0040Z/FACTS.md`.
+Qwen3.6-27B answer-only full pool, 1 epoch (r1647), is the best single VSI-500 cell at 58.39 lenient / 58.31 strict. The labelled ENSEMBLE (r1803), not a single model, reaches 60.02 with 7 members. The best single cell leaves a 14.61-point gap to 73.00. The supplied snapshots place r1643, r1649, the RA and coverage launch chains, the RL pilot, the trace16 27B arm, and the collector in the overnight workload. Start with [today's results](RESULTS_CODEAWS_20260925.md), the run inventory below (superseded by the 19:10 PT and 20:40 PT addenda at the end), and the relevant lane's successor commands. This handoff reports the lane files as of 17:38 PT, plus the code-aws `STATUS.md` lines of 17:39 PT and the collector `STATUS.md` line of 17:59 PT; it is not a fresh check of remote jobs, processes, or scores. `ORCHESTRATOR_FACTS.md` names the orchestrator facts recorded in `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_handoff_20260926T0040Z/FACTS.md`.
 
 ## Headline results
 
@@ -1107,3 +1107,109 @@ The code-aws `HANDOFF_codeaws.md` (refreshed 16:53 PT) and the pre-build `READY_
 **RL pilot.** The pre-build tick at 19:00 PT reports step 125/126, mean_last20 79.4 s, reward_last20 0.757, acc_last20 0.697 and projected end 19:01 PT. The step time fell below every earlier projection (the 116-153 s range in the conflict table). The eval plan in `READY_rl.md` stands: VSI-500 under sampled_t06_8k_v1, paired with the trace16 9B base 24.50 and compared with the none_d1 SFT start 43.00, using the `submit_rl_eval.sh` line in the pre-build section.
 
 **New source conflicts.** r1805's step count reads 1,552 in the 18:28 PT line and 1553 in the 19:09 PT tick. RA's end estimate moved from ~01:00 (handoff) to ~01:45 (17:39 line) to ~05:20 PT (18:28 line); the 18:12 line gives ~05:00 PT.
+
+## Addendum - 2026-09-25 20:40 PT (2026-09-26 03:40 UTC)
+
+A code-aws file-count quota stopped every distillation GPU job on code-aws between 19:53 and 20:23 PT. All distillation GPU jobs are held until the user frees files. This addendum supersedes the run states in "Runs in flight" and in the 19:10 PT addendum. Its sources are the code-aws `STATUS.md` (19:09-20:34 PT lines) and `RESULTS.md`, `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/INBOX_TO_DISTILL_ORCH_20260926T0330Z_from_codeaws_distill_INODE_DELETION_PROPOSAL.md`, the trace16 `STATUS.md`, the pre-build `READY_rl.md` and `STATUS.md`, the collector `HANDOFF_collector2.md` and `STATUS.md`, and `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_vnice_audit_20260926T0130Z/out/RELEASE.md`.
+
+### Code-aws Lustre file-count quota
+
+At 19:53 PT the code-aws lane found the Lustre file-count quota for uid jyeung exhausted: 26,193,756 of 26,214,400 files, with bytes fine. Every job that creates files under `/lustre/fsw` as jyeung fails with Errno 122 at its next write.
+
+| Time (PT) | Event |
+|---|---|
+| 19:47 | RA r1801 shard/swap MERGED_AND_VERIFIED; train 7423695 submitted on aml_high. |
+| 19:53 | r1802 7421286 FAILED at a checkpoint write (Errno 122) ~step 580; resubmitted as 7423936 (same run name, frozen prepare reused). |
+| 19:58 | trace16 27B student 7417509 FAILED at step 475/609 at a checkpoint write; resumed as 7424091 from step_450. |
+| 20:00 | r1805 7422660 FAILED at its step-250 checkpoint; HELD, not resubmitted. |
+| 20:04 | RA 7423695 FAILED before training, writing `frozen/request.json`; frozen protocol and training manifest intact; HELD. |
+| 20:05 | r1649 VSTI-450 eval 7423456 FAILED in its in-cluster score step on Errno 122; both r1649 cells were scored on Trinity. |
+| 20:19 | trace16 27B resume 7424091 FAILED in 6 s: Slurm could not create its log at the inode hard limit. |
+| 20:23 | r1802 resume 7423936 FAILED again at a checkpoint write; NOT resubmitted. RL matched base 7423378 FAILED at 193/500 (Errno 122). |
+| 20:23 | Quota 26,196,586 / 26,214,400 files. All distillation GPU jobs are stopped; nothing of the distillation lanes holds a code-aws node. |
+| 20:34 | quota_watcher: free files = 17814; next = r1802. |
+
+**Held runs and their last intact checkpoints (20:23 PT line; checkpoint.json + adapters.pt + optimizer.pt present).**
+
+| Run | Last intact state | Resume path |
+|---|---|---|
+| r1802 `runa_v3cov_noarkit_qwen35_caws_w8_e1_r1802` | step_600 of 1,235 | quota watcher resubmits (resume step_600, aml_high) |
+| r1805 `runa2_v3cov_noarkit_traceev_s25k_qwen35_caws_w8_e1_r1805` | step_250 of 1,553 | quota watcher resubmits after r1802 logs a step |
+| RA r1801 `pool97k_qwen35_caws_w8_e1_r1801` | no checkpoint; frozen prepare intact | quota watcher resubmits after r1805 logs a step |
+| trace16 27B `trace16_box3d_cam_coarse_rpy_d1_qwen36_27b_caws_w8_mb2_e3` | step_450 of 609 | trace16 auto-resume loop (below) |
+
+**Node-local fallback: not viable without deletion (20:04 PT).** One 9B checkpoint is 1.5 GB and 1,594 files, and the trainer keeps every 25-step checkpoint because `checkpoint_every_steps` is frozen in the run config. A pool0 node has 98 GB root, 71 GB free and 6.2M inodes, while the runs need about 75 GB (r1802), 93 GB (r1805) and 164 GB (RA). A keep-last-N knob would be a trainer code change.
+
+**Quota watcher (code-aws lane, armed 20:24 PT).** `work/quota_watcher.sh` runs detached as pid **2401226** on trinity-0-3. It queries `lfs quota` on code-aws every 2 min through the ssh master, falling back to a direct ssh. Its rules:
+- free > 30k: resubmit r1802 (resume step_600, aml_high);
+- free > 100k: resubmit r1805 (resume step_250) after r1802 logs a step, then RA r1801 after r1805 logs a step;
+- each resubmission only if distillation pool0 nodes < 10;
+- log free files every 10 min; write job ids to `STATUS.md`, `GPU_LEDGER.md` and the tick list.
+
+Final evals for r1802, r1805 and RA stay armed and fire on PUBLISHED.json. The watcher deletes nothing.
+
+**trace16 27B auto-resume (trace16 `STATUS.md` 20:19 PT).** `/tmp/jyeung_resume27_when_quota.sh` runs on the code-aws login VM as pid **1178186**. It probes every 2 min and resubmits the 27B run once when more than 20,000 inodes are free. The run resumes from `checkpoints/step_450` (159 steps, ~1.9 h), and then `watch_27b.sh` submits its evals. The lane estimates the remaining need at ~13.5k inodes: 7 checkpoints x ~472, publication ~640, and two 27B eval cells ~4.8k each.
+
+### Deletion proposal for the user (20:14 PT, amended 20:17 PT; nothing run)
+
+Agents may not delete, so every command in the proposal is for the user to review and run on the code-aws login VM. The code-aws lane queued a pointer in `agent/PENDING_USER_COMMANDS.md`. The proposal measured the quota at 26,196,511 of 26,214,400 files (about 18k free); bytes are 68.9 TB of 268 TB. `/project/community/jjyeung/distill` inside the containers is a bind mount of `ROOT/distill/orch` on the same Lustre, so the same quota covers it.
+
+Who holds the 26.2M files:
+- the experimenter's tree `ROOT=/lustre/fsw/portfolios/av/users/jyeung/split` (excluding `distill/`): about 1.2M;
+- the distillation lane `ROOT/distill`: an estimated 1.5-1.8M;
+- **about 23M files (roughly 88 %) outside `ROOT` entirely**, presumably the user's other a15_cot_* projects under `/lustre/fsw/portfolios/av/...`, owned by the same uid.
+
+| Rank | Category (distillation lane only; about 0.9M files in total) | Files | Risk |
+|---:|---|---:|---|
+| 1 | Intermediate checkpoints of PUBLISHED runs, keeping the newest checkpoint of each: r1643 98, r1649 98, 12k 49, r1647 33, r1650 27, 4k 19, 1k 7 checkpoint directories (~1,594 files each). The trace16 lane's seven published 9B runs keep exactly step_203, step_406 and step_609 plus publication/ and frozen/ (approved by that lane at 20:20 PT; ~280k files freed). | about 800k (about 0.8 TB) | very low |
+| 2 | The quarantined partial venv from the failed first build (`distill/orch/env/_quarantine`) | about 40-60k | none |
+| 3 | Eval run directories already copied to Trinity with matching tree hashes (78 cells; keep the 9B and 27B base cells) | about 120-150k | low |
+| 4 | Sharded prepare intermediates and transfer staging (`distill/orch/shards`, `distill/incoming_set97k`) | about 2k | none |
+
+**Do NOT touch:** r1802, r1805, RA r1801, and the trace16 27B run, all of which resume from their checkpoints. Needs: r1802 about 41k files plus ~2.4k for its publication; r1805 about 83k; RA about 175k plus ~12k for eval cells. Category 1 alone covers all of this about four times over. After the user frees files, the code-aws lane resubmits RA r1801, r1805 and the r1649 and r1802 evals as needed (commands R1/R2 in `HANDOFF_codeaws.md`).
+
+### Results: r1643 final and the r1649 negative result (code-aws `RESULTS.md`)
+
+| Round | Cell | VSI-500 lenient / strict | VSTI-450 lenient / strict |
+|---|---|---:|---:|
+| r1643 | Qwen3.5-9B answer-only, full pool v3, 3 ep, LoRA r32 (final) | 58.21 / 53.62 | 51.20 / 51.20 |
+| r1649 | same, LoRA rank 128 / alpha 256 | 47.65 / 31.18 (496/500 cap hits; first-answer diagnostic 50.18) | 45.03 / 25.65 (450/450 cap hits; first-answer diagnostic 45.20) |
+
+r1643's 3 epochs gain +0.57 on VSI-500 and +0.92 on VSTI-450 over the 1-epoch student (57.63 / 50.28); the lane reads this as equal within noise. r1649 is a NEGATIVE result: the rank-128 model never stops after `<|im_end|>`, and its VSI-500 overall falls 10.56 points below rank 32 (47.65 vs 58.21). The VSI lenient deltas (r128 - r32) are size -31.8, route -16.0, rd_medium -12.0, rel_dist -12.0, counting -11.8, room -10.6, appearance -6.0, rd_easy +2.0, abs_dist +4.4, rd_hard +8.0.
+
+### RL pilot
+
+Pilot 7420836 COMPLETED 126/126 at ~19:08 PT. The last-20 mean was 77.6 s/step, reward per 20 steps was 0.742/0.746/0.722/0.760/0.756/0.748 (flat), and format was 1.000. The adapter, `RL_RECEIPT.json` and checkpoints 0/50/100 are in `CA/runs/rl/rl_none_d1_tilelang_76795f6f558d`.
+
+The VSI-500 eval has not produced a score:
+- Eval 7423165 FAILED at 19:22 PT before generating. Pairing refused base 7412685 (the 24.50 cell) because that base ran under a different evaluator closure (trace16 8a426db), while the RL release 76795f6 adds `rl_publication.py`.
+- The matched base under release 76795f6 (job 7423378, run `q35_base_sampled_76795f6f558d`, submitted 19:23 PT) FAILED at 193/500 at 20:23 PT on Errno 122.
+
+Resubmit plan: `READY_rl.md` (EVAL RE-PLAN, 19:24 PT) runs the matched base first, then the adapter eval with `--run-name rl_none_d1_tilelang_76795f6f558d_sampled_b2 --base-run-vsibench $R/runs/eval/q35_base_sampled_76795f6f558d_vsibench/run`. The pre-build `STATUS.md` at 20:24 PT parks the eval: "resubmit matched base (new run name) then the adapter eval once the quota is freed." The media receipts (`BENCHMARK_ARCHIVE`, `ORCHARD_MEDIA_ATTESTATION`, `ORCHARD_MEDIA_ATTESTATION_SHA256`) are set as environment variables exactly as in `READY_rl.md` (PILOT COMPLETED + EVAL QUEUED, 19:11 PT).
+
+### Collector
+
+- **Swap done.** The swap to 34f5444 + registry v3 (ready 104,251) completed at 17:27 PT on trinity-3-3 (controller 2383635). The controller ran 8 workers from 17:44 PT, when the first terminal landed (rel_distance, as expected).
+- **Brake and stale-loop fix (collector `STATUS.md`, 20:03 PT).** The 19:44 PT brake trip on trinity-3-3 to 4 workers was correct (n429_5m=7). The trinity-0-13 and trinity-1-13 brake lines came from 7 stale brake loops (1323810 1485044 1545393 1551163 1679840 1701898 1720237) that survived earlier stops, because the lane had recorded the wrapper subshell's pid, not the loop's. Those rows ran no extra workers but inflated the aggregate target. The lane killed the 7 loops by pid and set both rows to 0. `L/brake.pid` now holds the real loop pid **1897052** (the handoff's section 1 still names brake 1897051), and the swap script stops every brake loop by pid. The brake returned trinity-3-3 to 8 workers at 20:18 PT.
+- **Counting terminals are landing.** The first counting terminals arrived at 20:08 PT: 138 new, 111 object_counting and 27 object_rel_distance. By 20:28 PT the pool held 13,022 terminals at 8 workers, all recent ones object_counting.
+- **011fc49.** Fable reviewed it PASS at 16:54 PT and it was SEALED at 18:45 PT at `/home/jjyeung/agent_project_distill_epochs/011fc49c4ba280b89ba1b3d680b3fdceb4a892d4` (contract sha 1e8655447072f762799dcb423fe2bf4ea958cedf9a32e02d3c2b1cb5bf2d7dcb, verify 48 files). Its v3 bind is done on trinity-1-13 (config sha 90e19cc4a291ff005d5c193ce2820dacf5f084d59b9b6d524f4a97437c192e47, ready 104,251).
+- **Guarded swap at 21:00 PT.** `L/work/swap_011fc49_at_2100.sh` runs detached as pid 2341021 (in `L/swap011.pid`; log `L/out/swap011.out`; STATUS lines "SWAP011:"). At 21:00 PT it aborts on BLOCKED.json, a missing config, a missing checkout or a dead old controller. Otherwise it stops the brake, sets trinity-3-3 to 0, drains (90 min cap), stops 2383635, attests trinity-3-3, aborts on any stranded attempt and checks renewal < 10 s. It then cold-starts 011fc49 v3 on trinity-3-3 (same order, W=8) and relaunches the brake with N_EPOCH=011fc49. To cancel, kill the pid in `L/swap011.pid` before 21:00 PT.
+
+### Trinity GPUs released (`RELEASE.md`)
+
+The coordinator relayed a user ruling that distillation runs on code-aws, so the distillation lanes released their Trinity GPU holdings:
+- The release stopped the idle r1308 SAM3 daemon on trinity-0-8 GPU 3 (pid 3530709): 0 connections on port 8830, 0 % utilization, log last modified 2026-09-22 12:55 PT.
+- It received SIGTERM at 18:27:18 PT and exited within 2 s, freeing 4,011 MiB.
+- The experimenter's vLLM worker on the same card (pid 2563678) was untouched.
+- The launch script's EXIT trap marked coordination work item `gpu_resource__r1308_training_sam3_colocated__s3dis_office3__s0__860f114238` FAILED (rc 143).
+- A re-sweep at 18:28 PT found 17 reachable nodes and 0 distillation-class GPU processes, so distillation holds 0 Trinity GPUs.
+- Two entries that the rm_guard hook queued in `/home/jjyeung/agent_project/agent/PENDING_USER_COMMANDS.md` during this stop are obsolete and should not be run.
+
+### Source conflicts in this addendum
+
+| Topic | One source | Other source |
+|---|---|---|
+| trace16 27B resume state | Deletion proposal (amended 20:17 PT): job 7424091 RUNNING, needs ~13.5k free inodes by ~21:00 PT. | trace16 `STATUS.md` 20:19 PT: 7424091 FAILED in 6 s; the auto-resume loop (pid 1178186) waits for > 20,000 free inodes. |
+| Collector brake pid | `HANDOFF_collector2.md` section 1: brake 1897051. | Collector `STATUS.md` 20:03 PT: the real loop pid is 1897052, now in `L/brake.pid`. |
+| Release timing | `RELEASE.md` header: user ruling relayed 18:35 PT. | The same file stamps the daemon stop 18:27 PT and the re-sweep 18:28 PT. |
+| Quota count | Deletion proposal: 26,196,511 files used. | Code-aws `STATUS.md` 20:23-20:34 PT: 26,196,586 used (17814 free). The two readings come from different measurement times. |
