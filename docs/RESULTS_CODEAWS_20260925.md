@@ -3,6 +3,7 @@
 The best single VSI-500 cell is Qwen3.6-27B answer-only full pool, 1 epoch (r1647), at 58.39 lenient / 58.31 strict, which leaves a 14.61-point gap to the 73.00 target.
 The labelled r1803 ensemble reaches 60.02 lenient; it is not a single-model result.
 The evening Run A cell (r1802, coverage set without ARKit, 1 epoch) is a negative overall result: 56.53 / 51.28 on VSI-500 and 48.61 / 47.97 on VSTI-450, below the 1-epoch full-pool student (57.63 / 50.28) on both benchmarks.
+Run A' (r1805: the same coverage set plus s25k trace-evidence rows, 1 epoch) scores 57.78 / 56.12 on VSI-500, the highest Qwen3.5-9B strict score, and 50.67 / 50.67 on VSTI-450; on lenient it ties the 1-epoch full pool.
 All reported answer-only students beat their same-cluster base on both benchmarks where evaluated under lenient and strict parsing.
 The results banked by 16:30 PT on 2026-09-25 remain source-reported partial-set results, not a score-index nomination.
 
@@ -59,6 +60,7 @@ Greedy student jobs identify training, while sampled job IDs identify evaluation
 | Qwen3.5-9B | Full pool, 3 epochs, final | 58.21 / 53.62 | greedy 4k | `372da10 / abddf4a / 126a81b` | r1643 / 7412030 |
 | Qwen3.5-9B | Full pool, 3 epochs, LoRA rank 128 / alpha 256; negative result: never stops after `<|im_end|>` (496/500 cap hits; first-answer diagnostic 50.18) | 47.65 / 31.18 | greedy 4k | `372da10 / abddf4a / 126a81b` | r1649 / 7412034 |
 | Qwen3.5-9B | Run A: coverage set without ARKit (43,753 rows), 1 epoch; negative overall result against the 1-epoch full pool (57.63) | 56.53 / 51.28 | greedy 4k | `372da10 / abddf4a / 126a81b` | r1802 / 7424819 |
+| Qwen3.5-9B | Run A': coverage set without ARKit + s25k trace-evidence rows (53,904 rows), 1 epoch; highest 9B strict | 57.78 / 56.12 | greedy 4k | `372da10 / abddf4a / 126a81b` | r1805 / 7425619 |
 | Qwen3.6-27B | Base | 20.52 / 19.94 | greedy 4k | `372da10 / 433d8a1 / 126a81b` | r1644 / `qwen36_27b_base_vsi_caws_b8_r6_20260925` |
 | Qwen3.6-27B | Answer-only, set H (9,232 rows), 3 epochs | 57.26 / 57.26 | greedy 4k | `372da10 / 433d8a1 / 126a81b` | r1644 / Orchard 148724 |
 | Qwen3.6-27B | Answer-only, full-pool v3 25,164 rows, 1 epoch | 58.39 / 58.31 | greedy 4k | `372da10 / abddf4a / 126a81b` | r1647 / 7412032 |
@@ -93,6 +95,7 @@ The greedy base at 15.66 is not the comparison partner for sampled students; the
 | Qwen3.5-9B | Full pool, 3 epochs, final | 51.20 / 51.20 | greedy 4k | `372da10 / abddf4a / 126a81b` | r1643 / 7412030 |
 | Qwen3.5-9B | Full pool, 3 epochs, LoRA rank 128 / alpha 256; negative result (450/450 cap hits; first-answer diagnostic 45.20) | 45.03 / 25.65 | greedy 4k | `372da10 / abddf4a / 126a81b` | r1649 / 7412034 |
 | Qwen3.5-9B | Run A: coverage set without ARKit (43,753 rows), 1 epoch; negative overall result against the 1-epoch full pool (50.28) | 48.61 / 47.97 | greedy 4k | `372da10 / abddf4a / 126a81b` | r1802 / 7424819 |
+| Qwen3.5-9B | Run A': coverage set without ARKit + s25k trace-evidence rows (53,904 rows), 1 epoch | 50.67 / 50.67 | greedy 4k | `372da10 / abddf4a / 126a81b` | r1805 / 7425619 |
 | Qwen3.6-27B | Base, all-450; matched-434 33.06 / 32.76 | 33.11 / 32.84 | greedy 4k | `372da10 / 433d8a1 / 126a81b` | r1644 / `qwen36_27b_base_vsti_caws_b8_r7_20260925` |
 | Qwen3.6-27B | Answer-only, set H, 3 epochs, all-450; matched-434 54.57 / 54.57 | 54.61 / 54.61 | greedy 4k | `372da10 / 433d8a1 / 126a81b` | r1644 / Orchard 148724 |
 | Qwen3.6-27B | Answer-only, full pool, 1 epoch, all-450; matched-434 50.45 | 50.67 / 50.67 | greedy 4k | `372da10 / abddf4a / 126a81b` | r1647 / 7412032 |
@@ -263,6 +266,43 @@ Run A trails the 1-epoch full pool (50.28), the r1643 final (51.20) and the 4k s
 | **overall** | **29.97 / 29.61** | **50.28** | **48.61 / 47.97** | **-1.67** |
 
 Source: the code-aws lane's `RESULTS.md` (00:33 and 00:40 PT 2026-09-26); scored cells `returns/qwen35_runa_r1802_final_{vsi,vsti}_caws_b16_20260925`.
+
+### r1805 Run A' (coverage set without ARKit + s25k trace-evidence rows): VSI-500
+
+The trace-evidence rows mainly fix output format and relative direction. Against r1802 (same epochs), r1805 gains +1.25 lenient and +4.84 strict on VSI-500. Most of the strict gain is output format: strict parse failures fall from 112 to 34, run-on after the end of turn falls from 78 to 0, and rel_direction medium/hard strict rise from 0 to 38/36. The lenient gains land on appearance order (+10), rel_direction (+6 to +10) and room size (+4.4). Route planning stays the weakest type (34, -18 against 148598). Overall, r1805 ties the 1-epoch full pool on lenient (+0.15) and leads every 9B row on strict (56.12 against 53.62 for the r1643 final and 53.52 for 148598). n = 50 per type, so one question is 2 points.
+
+| Type | Base 9B | 148598 1 ep | r1802 Run A | r1805 Run A' | r1805 - r1802 | r1805 - 148598 (lenient) |
+|---|---|---|---|---|---|---|
+| appearance_order | 30.0 / 28.0 | 78.0 / 78.0 | 76.0 / 76.0 | 86.0 / 86.0 | +10.0 | +8.0 |
+| abs_distance | 9.6 / 9.6 | 40.2 / 40.2 | 41.2 / 41.2 | 38.0 / 38.0 | -3.2 | -2.2 |
+| counting | 10.2 / 10.2 | 49.2 / 49.0 | 54.8 / 53.0 | 54.8 / 54.8 | +0.0 | +5.6 |
+| rel_direction_easy | 22.0 / 20.0 | 76.0 / 76.0 | 74.0 / 72.0 | 80.0 / 80.0 | +6.0 | +4.0 |
+| rel_direction_medium | 6.0 / 6.0 | 62.0 / 10.0 | 58.0 / 0.0 | 68.0 / 38.0 | +10.0 | +6.0 |
+| rel_direction_hard | 4.0 / 4.0 | 38.0 / 2.0 | 38.0 / 0.0 | 46.0 / 36.0 | +8.0 | +8.0 |
+| rel_distance | 36.0 / 36.0 | 62.0 / 60.0 | 66.0 / 66.0 | 62.0 / 62.0 | -4.0 | +0.0 |
+| object_size | 12.6 / 12.6 | 54.8 / 53.4 | 53.2 / 45.6 | 52.0 / 52.0 | -1.2 | -2.8 |
+| room_size | 0.2 / 0.2 | 66.2 / 66.2 | 66.4 / 66.4 | 70.8 / 70.8 | +4.4 | +4.6 |
+| route_plan | 16.0 / 16.0 | 52.0 / 52.0 | 38.0 / 38.0 | 34.0 / 34.0 | -4.0 | -18.0 |
+| **overall** | **15.66 / 15.32** | **57.63 / 53.52** | **56.53 / 51.28** | **57.78 / 56.12** | **+1.25** | **+0.15** |
+
+### r1805 Run A': VSTI-450
+
+The trace-evidence rows recover Run A's VSTI-450 losses on relative distance (+6 to +12), near/far (+10) and up/down (+8); left/right drops (-4). r1805 ties the 27B r1647 (50.67) and trails the best 9B VSTI-450 rows (4k 51.71, r1643 final 51.20). It is the most format-clean 9B student: 0 cap hits, 0 parse failures and 0 run-on on VSTI-450.
+
+| Type | Base 9B | 148598 1 ep | r1802 Run A | r1805 Run A' | r1805 - r1802 | r1805 - 148598 (lenient) |
+|---|---|---|---|---|---|---|
+| camera_displacement | 6.2 / 6.2 | 27.6 / 27.6 | 27.4 / 27.4 | 25.8 / 25.8 | -1.6 | -1.8 |
+| camera_movement_direction | 16.0 / 16.0 | 30.0 / 30.0 | 32.0 / 32.0 | 30.0 / 30.0 | -2.0 | +0.0 |
+| camera_obj_abs_distance | 23.0 / 21.2 | 51.8 / 51.8 | 53.0 / 51.8 | 52.2 / 52.2 | -0.8 | +0.4 |
+| rel_distance_v1 | 28.0 / 28.0 | 68.0 / 64.0 | 64.0 / 64.0 | 70.0 / 70.0 | +6.0 | +2.0 |
+| rel_distance_v2 | 40.0 / 40.0 | 68.0 / 66.0 | 58.0 / 58.0 | 70.0 / 70.0 | +12.0 | +2.0 |
+| rel_distance_v3 | 56.0 / 56.0 | 70.0 / 66.0 | 66.0 / 66.0 | 78.0 / 78.0 | +12.0 | +8.0 |
+| position_left_right | 60.0 / 60.0 | 78.0 / 78.0 | 76.0 / 76.0 | 72.0 / 72.0 | -4.0 | -6.0 |
+| position_near_far | 54.0 / 54.0 | 58.0 / 56.0 | 52.0 / 48.0 | 62.0 / 62.0 | +10.0 | +4.0 |
+| position_up_down | 76.0 / 76.0 | 84.0 / 84.0 | 76.0 / 74.0 | 84.0 / 84.0 | +8.0 | +0.0 |
+| **overall** | **29.97 / 29.61** | **50.28 / 49.48** | **48.61 / 47.97** | **50.67 / 50.67** | **+2.05** | **+0.39** |
+
+Source: the code-aws lane's `RESULTS.md` (03:20 and 03:25 PT 2026-09-26) and `STATUS.md` (03:14 and 03:15 PT); scored cells `returns/qwen35_runa2_r1805_final_{vsi,vsti}_caws_b16_20260925`. Both evals ran on aml_low from 03:04 PT (VSI-500 job 7435487 on pool0-1801, VSTI-450 job 7435492 on pool0-1622); the VSTI-450 job completed at 03:12 PT.
 
 ## Qwen3.6-27B per question type
 

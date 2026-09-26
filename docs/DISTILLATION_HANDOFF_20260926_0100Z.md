@@ -934,6 +934,8 @@ The following standing constraints come from the supplied lane files, the previo
 
 ## Tomorrow's ordered plan
 
+**First, before the ranked items (orchestrator, 2026-09-26): install the fast linear-attention kernels (flash-linear-attention and causal-conv1d), then re-measure single- and multi-node step time.** Every Qwen3.5 rank now runs the torch fallback, which caps the multi-node speedup at 1.15x (2 nodes) and also slows single-node training. The install is an environment change that needs its own review and equivalence run (`claude_multinode_trainer_20260926T0600Z/HANDOFF_multinode.md` open item 2; `READY_multinode.md`).
+
 The twelve items below are the deltas in `ORCHESTRATOR_FACTS.md`. The first group follows the lever-family ranking in `LEVERS.md`, while also quoting `LESSONS_AGGREGATE.md` where its estimates differ. Those ranges estimate whole lever families, not the isolated incremental gain of each dataset edit; they are not additive. The sources give no isolated gain estimate for the items in the final group.
 
 | Order | Delta and quoted source estimate | Owner lane | Blocking dependency | First command or artifact supplied by a lane |
@@ -1287,3 +1289,187 @@ The lane builds a reviewed 2-node (16-GPU) path for the 9B student with an ident
 The guarded swap ran on schedule. SWAP011 started at 21:00 PT and drained trinity-3-3 by 21:24 PT. It then stopped the old 34f5444 controller 2383635, attested trinity-3-3 and found 0 stranded attempts; renewal took 477 ms. It cold-started epoch 011fc49 + registry v3 on trinity-3-3: controller **2506093** started at 21:24:43 PT with 8 workers, and the first worker came up at 21:25:15 PT. That **first loop took 32 s**, against 15-45 min on 40f260c, so the claim index works. Brake **2680034** (HOST=trinity-3-3, N_EPOCH=011fc49..., HIGH=8 LOW=4) is the one brake loop, and SWAP011 reported done at 21:30 PT.
 
 At 22:03 PT the pool held 13,196 terminals. All 102 terminals since 21:21 PT were object_counting, with 0 errors and no BLOCKED.json. A detached status writer, `L/work/status_writer.sh` (pid in `L/status_writer.pid`), writes a STATUS line every 5 min for the controller in `L/controller.pid` on `L/controller.host` and alerts to `L/out/ALERTS.log`. After any swap, update those two files.
+
+## Addendum - 2026-09-26 03:30 PT (10:30 UTC): r1805 rows, multi-node result, final node count
+
+### r1805 Run A' (coverage set without ARKit + s25k trace-evidence rows, 1 epoch)
+
+r1805 trained as 7425619 on aml_high and completed 1553/1553 at 02:57 PT. `final_evals.sh` submitted its evals at 02:57 PT on aml_low, and both started at 03:04 PT: VSI-500 7435487 on pool0-1801 and VSTI-450 7435492 on pool0-1622. The VSTI-450 job completed at 03:12 PT; the lane scored VSI-500 at 03:14 PT and VSTI-450 at 03:15 PT. The main agent kept both evals on aml_low (`NOTES_FROM_COORDINATOR.md` 03:12 PT: "Distillation: evals stay on aml_low (no change)"). **Final node count: distillation holds 0 jobs on code-aws** (code-aws `STATUS.md` 03:15 PT; `squeue` checked at 03:26 PT).
+
+| Cell | VSI-500 lenient / strict | VSTI-450 lenient / strict |
+|---|---:|---:|
+| r1805 Run A' | **57.78 / 56.12** (0 cap hits, 0 run-on; highest 9B strict) | **50.67 / 50.67** (0 cap hits, 0 parse failures, 0 run-on) |
+| r1802 Run A (same coverage set, no evidence rows) | 56.53 / 51.28 | 48.61 / 47.97 |
+| 148598 (full pool, 1 epoch) | 57.63 / 53.52 | 50.28 / 49.48 |
+
+**Interpretation (code-aws `STATUS.md` 03:14-03:15 PT and `RESULTS.md`).** The evidence rows mainly fix output format and relative direction:
+- Against r1802, strict VSI-500 rises +4.84 while lenient rises only +1.25.
+- Strict parse failures fall from 112 to 34, run-on falls from 78 to 0, and rel_direction medium/hard strict rise from 0 to 38/36.
+- On lenient, r1805 ties the 1-epoch full pool (+0.15); the lane gives n = 50 per type, so one question is 2 points.
+- Route planning stays the weakest type at 34 (-18 against 148598).
+
+On VSTI-450 the evidence rows recover Run A's losses on relative distance and near/far, up/down; r1805 ties the 27B r1647 (50.67). The best lenient VSI-500 cell is unchanged (r1647 58.39).
+
+VSI-500 per type:
+
+| Type | Base 9B | 148598 1 ep | r1802 Run A | r1805 Run A' | r1805 - r1802 | r1805 - 148598 (lenient) |
+|---|---|---|---|---|---|---|
+| appearance_order | 30.0 / 28.0 | 78.0 / 78.0 | 76.0 / 76.0 | 86.0 / 86.0 | +10.0 | +8.0 |
+| abs_distance | 9.6 / 9.6 | 40.2 / 40.2 | 41.2 / 41.2 | 38.0 / 38.0 | -3.2 | -2.2 |
+| counting | 10.2 / 10.2 | 49.2 / 49.0 | 54.8 / 53.0 | 54.8 / 54.8 | +0.0 | +5.6 |
+| rel_direction_easy | 22.0 / 20.0 | 76.0 / 76.0 | 74.0 / 72.0 | 80.0 / 80.0 | +6.0 | +4.0 |
+| rel_direction_medium | 6.0 / 6.0 | 62.0 / 10.0 | 58.0 / 0.0 | 68.0 / 38.0 | +10.0 | +6.0 |
+| rel_direction_hard | 4.0 / 4.0 | 38.0 / 2.0 | 38.0 / 0.0 | 46.0 / 36.0 | +8.0 | +8.0 |
+| rel_distance | 36.0 / 36.0 | 62.0 / 60.0 | 66.0 / 66.0 | 62.0 / 62.0 | -4.0 | +0.0 |
+| object_size | 12.6 / 12.6 | 54.8 / 53.4 | 53.2 / 45.6 | 52.0 / 52.0 | -1.2 | -2.8 |
+| room_size | 0.2 / 0.2 | 66.2 / 66.2 | 66.4 / 66.4 | 70.8 / 70.8 | +4.4 | +4.6 |
+| route_plan | 16.0 / 16.0 | 52.0 / 52.0 | 38.0 / 38.0 | 34.0 / 34.0 | -4.0 | -18.0 |
+| **overall** | **15.66 / 15.32** | **57.63 / 53.52** | **56.53 / 51.28** | **57.78 / 56.12** | **+1.25** | **+0.15** |
+
+VSTI-450 per type:
+
+| Type | Base 9B | 148598 1 ep | r1802 Run A | r1805 Run A' | r1805 - r1802 | r1805 - 148598 (lenient) |
+|---|---|---|---|---|---|---|
+| camera_displacement | 6.2 / 6.2 | 27.6 / 27.6 | 27.4 / 27.4 | 25.8 / 25.8 | -1.6 | -1.8 |
+| camera_movement_direction | 16.0 / 16.0 | 30.0 / 30.0 | 32.0 / 32.0 | 30.0 / 30.0 | -2.0 | +0.0 |
+| camera_obj_abs_distance | 23.0 / 21.2 | 51.8 / 51.8 | 53.0 / 51.8 | 52.2 / 52.2 | -0.8 | +0.4 |
+| rel_distance_v1 | 28.0 / 28.0 | 68.0 / 64.0 | 64.0 / 64.0 | 70.0 / 70.0 | +6.0 | +2.0 |
+| rel_distance_v2 | 40.0 / 40.0 | 68.0 / 66.0 | 58.0 / 58.0 | 70.0 / 70.0 | +12.0 | +2.0 |
+| rel_distance_v3 | 56.0 / 56.0 | 70.0 / 66.0 | 66.0 / 66.0 | 78.0 / 78.0 | +12.0 | +8.0 |
+| position_left_right | 60.0 / 60.0 | 78.0 / 78.0 | 76.0 / 76.0 | 72.0 / 72.0 | -4.0 | -6.0 |
+| position_near_far | 54.0 / 54.0 | 58.0 / 56.0 | 52.0 / 48.0 | 62.0 / 62.0 | +10.0 | +4.0 |
+| position_up_down | 76.0 / 76.0 | 84.0 / 84.0 | 76.0 / 74.0 | 84.0 / 84.0 | +8.0 | +0.0 |
+| **overall** | **29.97 / 29.61** | **50.28 / 49.48** | **48.61 / 47.97** | **50.67 / 50.67** | **+2.05** | **+0.39** |
+
+### Multi-node trainer lane: final state (`claude_multinode_trainer_20260926T0600Z/{READY_multinode,HANDOFF_multinode,STATUS}.md`)
+
+The lane stopped at 01:00 PT on the 00:55 PT ruling; it holds no node and no job.
+- **Paths.** The 2-node (16 GPU) and 4-node (32 GPU) training paths use trainer branch `multinode-ddp-20260926` (head `ad42813`), harness branch `harness-multinode-20260926` (head `1306964`), and glue `DR/glue_mn/` on code-aws (byte-identical to the lane's `work/glue_mn/`; sha256 in `out/glue_mn_SHA256SUMS.txt`). The Devin Fable review returned VERDICT PASS with no HIGH/MEDIUM findings and six LOW notes (`out/review/REVIEW.md`).
+- **Training-half equivalence on the 1k set: PASS.** Both multi-node runs (2-node 7429015, 4-node 7429353) saw exactly the reference's 32-row global batches in the same order (96/96) with the same LR at every step. Their mean per-step loss differs from the single-node r1648-1k reference by 0.015 (16 GPU) and 0.012 (32 GPU), against 0.014 between the two multi-node runs themselves.
+- **VSI-500 half: pending.** The three eval cells (`qwen35_mn16_scale1k_vsi_caws_b8_20260926`, `qwen35_w8ref_scale1k_vsi_caws_b8_mn_20260926`, `qwen35_mn32_scale1k_vsi_caws_b8_20260926`) were 64/500 items in when the coordinator cancelled them at 00:51 PT. They resume in place with the loop in `HANDOFF_multinode.md` ("Deferred GPU test: exact resume commands"); a new cell name is refused because their attempt authorities exist. Acceptance: mn16 (and mn32) within 2 points of w8ref under the identical protocol.
+- **Decode-batch-8 protocol.** Multi-node adapters need harness 1306964, and a new-harness base cannot reuse an existing base's cohort. The standard b16 pairing therefore stays closed until a committed equivalence certificate exists. The working route is the decode-batch-8 launcher `DR/scripts/evalq/multinode_b8_20260926`, whose 9B VSI-500 base `qwen35_base_vsi_caws_b8_mn_20260926` is complete (strict 14.83, 358 cap hits); VSTI-450 needs its own b8 base first.
+- **Step times.** Median s/step is 9.77 (1 node, reference), 8.46 (2 nodes) and 8.75 (4 nodes), so the speedup is only 1.15x. flash-linear-attention and causal-conv1d are not installed, so every rank runs Qwen3.5's slow torch fallback for the linear-attention layers. Installing them is an environment change that needs its own review and equivalence run, and it would also speed up single-node training. Until then, one run per node remains the better use of GPUs.
+- **Network.** NCCL over EFA works inside the container with GPUDirect RDMA: a 400 MB all-reduce over 2 nodes x 8 takes 2.2 ms, against 240-340 ms over TCP.
+
+## Liveness manifest (orchestrator, 2026-09-26)
+
+**written:** 2026-09-26 03:29 PT (10:29 UTC). **head:** branch `handoff-20260926-0100Z`; this section lands in the commit after `63d995d` ("Results/handoff addendum 2026-09-26 00:45 PT"); `main` was at `63d995d` when it was written. Every pid below was checked with `ps` at write time unless the entry says otherwise. L-paths are relative to each lane directory under `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/`.
+
+### user_rulings_today (PT; verbatim where a file records the words)
+
+| Time | Ruling | Where recorded |
+|---|---|---|
+| 07:08 | trinity-2-23 down; never use it. | orchestrator FACTS |
+| ~08:00 | Collector on trinity-2-13 declared dead; its records renamed `.dead_20260925T1418Z_user_declared`. The rename stamp 14:18Z is 07:18 PT. | orchestrator FACTS; collector `RECEIPT.md` line 1 |
+| 13:25 | Half of the distillation nodes back to the main agent (target <= 10 pool0 nodes; met at 14:00 with 7; nothing cancelled). | orchestrator FACTS; code-aws `GPU_LEDGER.md` |
+| 13:45 | Refocus collection on gap types; generate route-planning rows from GT; "test what works and improve until 73". | orchestrator FACTS |
+| 18:25 | "above 16 large gpus for our account on trinity please vnice!" | `NOTES_FROM_COORDINATOR.md` 18:24 PT entry |
+| 18:35 | Distillation runs on code-aws, so release the Trinity GPU holdings and say which nodes. | `claude_vnice_audit_20260926T0130Z/out/RELEASE.md` ("Ruling as relayed") |
+| 22:55 | "i believe the main agent is mostly done with using gpus, so you have free reign! total 400 gpus" | `NOTES_FROM_COORDINATOR.md` 23:05 PT entry |
+| 00:55 | "please give nodes to the main agent then. discuss with the main agent how to best handoff the nodes to the main agent. we need to get results for the paper" | code-aws `HANDOFF_codeaws.md` HOLD section; `NOTES_FROM_COORDINATOR.md` 00:53 PT entry |
+| 01:05 | "ok, keep the last run that can give us a paper ready result!" The code-aws lane and `NOTES_FROM_COORDINATOR.md` stamp this ruling "~01:00 PT". | `NOTES_FROM_COORDINATOR.md` 00:53 PT entry |
+
+### results_banked_today (pointers)
+
+- [RESULTS_CODEAWS_20260925.md](RESULTS_CODEAWS_20260925.md) holds every scored row, both students, both benchmarks, per type, with protocols and run ids. Best single VSI-500 cell: r1647 (Qwen3.6-27B answer-only full pool, 1 epoch) 58.39 / 58.31; labelled ENSEMBLE (r1803) 60.02. r1643 final 58.21 / 53.62 VSI-500 and 51.20 / 51.20 VSTI-450. Negative results: r1649 (LoRA rank 128) and r1802 (Run A). trace16 Qwen3.6-27B box3d_cam_coarse_rpy_d1: 53.33 VSI-500, 51.76 VSTI-450. r1805 (Run A': coverage set without ARKit + s25k trace-evidence rows, 1 epoch): 57.78 / 56.12 VSI-500 (highest 9B strict) and 50.67 / 50.67 VSTI-450.
+- Per-lane sources: `claude_codeaws_distill_20260925T1352Z/RESULTS.md` and `returns/SCORES.md`; `claude_trace16_codeaws_20260925T1422Z/RESULTS.md` and `returns/SCORES.md`; `claude_error_analysis_20260925T2040Z/{GAP_TABLE,FAILURE_MODES,LEVERS}.md`; `claude_traceread_swarm_20260925T2045Z/LESSONS_AGGREGATE.md`; `claude_multinode_trainer_20260926T0600Z/READY_multinode.md` and `out/compare_*.txt`.
+
+### active_runs
+
+| What | Where | Identity | State at write time | Health check |
+|---|---|---|---|---|
+| r1805 (closed) | code-aws | train 7425619 COMPLETED 02:57 PT (1553/1553); evals VSI-500 7435487, VSTI-450 7435492 | both evals ran on aml_low from 03:04 PT; both scored by 03:15 PT. Distillation holds 0 jobs on code-aws (`squeue` at 03:26 PT). | none needed |
+| Collector controller | trinity-3-3 | pid 2506093 (wrapper 2506091), epoch 011fc49 + registry v3 (config sha 90e19cc4...), started 21:24:43 PT | **DEAD at 03:21 PT** (`ps` on trinity-3-3 at 03:29 PT finds neither pid). Workers fell from 8 to 0 between 03:06 and 03:11 PT, and the controller wrote BLOCKED.json at 03:19 PT (reason worker_failure_storm, 300 s window, target 8 workers). Terminals stand at 13,673. The status writer and the brake loop keep running against the dead controller. Renaming the marker is user-only, and the collector lane must diagnose before any restart (see session_footguns). | `ssh trinity-3-3 'ps -eo pid,args \| grep "[c]ollect.py start --config" \| grep _reg_v3'`; `tail -3 L/STATUS.md`; `tail L/out/ALERTS.log` (L = collector lane dir) |
+| Collector status writer | trinity-0-3 | `L/work/status_writer.sh`, pid 2972785 (PPID 1; pid file `L/status_writer.pid`) | writes a STATUS line every 5 min for the controller named in `L/controller.pid` / `L/controller.host`, alerts to `L/out/ALERTS.log`; runs up to 48 h | `ps -p 2972785` |
+| Collector brake loop | trinity-0-3 | `L/work/brake_v1.sh`, pid 2680034 (PPID 1; pid file `L/brake.pid`), HOST=trinity-3-3, N_EPOCH=011fc49..., HIGH=8 LOW=4 | the only brake loop | `pgrep -af work/brake_v1.sh` must list exactly one loop |
+| code-aws ssh ControlMaster | trinity-0-3 | pid 42601 (PPID 1), socket `/tmp/jjyeung_cm/caws` | running; the code-aws lane's `work/cm.pid` holds a stale 42351 | `ssh -O check -o ControlPath=/tmp/jjyeung_cm/caws code-aws` |
+
+No other distillation watcher runs on the code-aws login VM (checked 01:2x PT: no trace16 watcher, no auto-resume loop). The code-aws lane stopped quota_watcher3, eval_qos_raise, ra_chain2, ra_midckpt, RA final_evals, and every run_chain script at 00:51 PT, so nothing relaunches automatically.
+
+**Held runs (cancelled 00:51:09 PT; resume by run name after the main agent returns nodes).** The exact resume commands are in the code-aws section's `HANDOFF_codeaws.md` HOLD table, copied here:
+
+| Round | Job cancelled | Run name | Last intact checkpoint | Frozen state | Resume command |
+|---|---|---|---|---|---|
+| r1801 RA (9B, 97k pool, 1 ep) | 7426520 (step ~460/2730) | pool97k_qwen35_caws_w8_e1_r1801 | step_450 | training.json | `bash $L/work/train_after_swap.sh pool97k_qwen35_caws_w8_e1_r1801 jjyeung/agent_project_data/student_diagnostic_pilot_20260918/answeronly_pool97k_20260925_trainer 15ffbb98425083817c8c2f89e8cc33a35cea8b9d970112ff37f2c81791e1711d 91593 train_ra`, then `bash $L/work/final_evals.sh pool97k_qwen35_caws_w8_e1_r1801 qwen35_ra_r1801_final` |
+| r1806 (27B, r1805 set) | 7429124 (step ~50) | q27_r1805set_noarkit_s25k_caws_w8_e1_r1806 | step_25 | training.json | `bash $L/work/run_chain.sh r1806 q27_r1805set_noarkit_s25k_caws_w8_e1_r1806 qwen36_27b deployment_caws_w8_e1 jjyeung/agent_project_data/student_diagnostic_pilot_20260918/answeronly_runa_v3cov_noarkit_traceev_s25k_20260925_trainer f4920e889ab0f832682149e169a22e7ed7996e207278e4ec3baafd24b7e73a64 53904 train_q27a av_alpamayo_aml_high qwen36_27b_r1806` |
+| r1811 (27B, r1802 set) | 7428844 (step ~90) | q27_r1802set_noarkit_caws_w8_e1_r1811 | step_75 | training.json | `bash $L/work/run_chain.sh r1811 q27_r1802set_noarkit_caws_w8_e1_r1811 qwen36_27b deployment_caws_w8_e1 jjyeung/agent_project_data/student_diagnostic_pilot_20260918/answeronly_runa_v3cov_noarkit_20260925_trainer 0a628cc55af6de189933cb7eea56ef8592a052c0e9f3fe0419c0ca50deafc7d7 43753 train_q27b av_alpamayo_aml_high qwen36_27b_r1811` |
+| r1807 (9B, v2+ARKit+s25k) | 7429607 (no step yet) | q9_v2arkit_s25k_caws_w8_e1_r1807 | none | training.json | `bash $L/work/run_chain.sh r1807 q9_v2arkit_s25k_caws_w8_e1_r1807 qwen35 deployment_caws_w8_e1 jjyeung/agent_project_data/student_diagnostic_pilot_20260918/answeronly_runa_v3cov_v2_traceev_s25k_20260925_trainer 500521d56b87d6174e5af967f41f00d617b9d36dacedd4847b50af1825112f8d 61035 train_q9d av_alpamayo_aml_high qwen35_r1807` |
+| r1808 (27B, same set) | 7429671 (no step yet) | q27_v2arkit_s25k_caws_w8_e1_r1808 | none | training.json | `bash $L/work/run_chain.sh r1808 q27_v2arkit_s25k_caws_w8_e1_r1808 qwen36_27b deployment_caws_w8_e1 jjyeung/agent_project_data/student_diagnostic_pilot_20260918/answeronly_runa_v3cov_v2_traceev_s25k_20260925_trainer 500521d56b87d6174e5af967f41f00d617b9d36dacedd4847b50af1825112f8d 61035 train_q27c av_alpamayo_aml_high qwen36_27b_r1808` |
+| r1809 (9B seed 18) | prepare 7429608, shard 7429852 | q9_r1802set_noarkit_seed18_caws_w8_e1_r1809 | none | protocol only (finished shard_*.json files are reused) | `TRAINER_NAME=orchard_trainer_caws_seedcfg TRAINER_COMMIT=810eae4610e4135dcced99b48b914ccd2744a45a bash $L/work/run_chain_t.sh r1809 q9_r1802set_noarkit_seed18_caws_w8_e1_r1809 qwen35 deployment_caws_w8_e1_seed18 jjyeung/agent_project_data/student_diagnostic_pilot_20260918/answeronly_runa_v3cov_noarkit_20260925_trainer 0a628cc55af6de189933cb7eea56ef8592a052c0e9f3fe0419c0ca50deafc7d7 43753 train_s18 av_alpamayo_aml_low qwen35_r1809_seed18` |
+| r1810 (9B seed 19) | prepare 7429609, shard 7429687 | q9_r1802set_noarkit_seed19_caws_w8_e1_r1810 | none | protocol only | as r1809 with seed19 / deployment_caws_w8_e1_seed19 / train_s19 / qwen35_r1810_seed19 |
+| r1646 (9B v4, b128, 3 ep) | prepare 7429646, shard 7430049 | gtm2_answeronly_fullpool_v4_qwen35_caws_w8_b128_e3 | none | protocol only | `TRAINER_NAME=orchard_trainer_caws_batchcfg TRAINER_COMMIT=f8c6dd306ce773738244f943f36425d2b827347d bash $L/work/run_chain_b128.sh r1646 gtm2_answeronly_fullpool_v4_qwen35_caws_w8_b128_e3 qwen35 deployment_caws_w8_b128 jjyeung/agent_project_data/student_diagnostic_pilot_20260918/answeronly_fullpool_v4_20260924_trainer 803999faa540eaf701206c04d0a99b8402558d809403b6ce285cb9c1572f6009 38092 train_q9v4 av_alpamayo_aml_high qwen35_r1646_v4b128e3` (its eval step needs the b128 pairing fix first) |
+| RL eval pair (pre-build lane) | adapter eval 7430741 (cancelled at start) | rl_none_d1_tilelang_76795f6f558d_sampled_b3 | - | matched base q35_base_sampled_76795f6f558d_r2 COMPLETED 00:49 PT (7428151; scoring on Trinity pending) | resubmit the adapter eval with the SAME run name (its attempt authority exists; resume, never a new name): the submit_rl_eval.sh line in $L/work/quota_watcher3.sh |
+| multi-node lane GPU test | evals 7429630, 7429631, 7430580 | qwen35_mn16_scale1k_vsi_caws_b8_20260926, qwen35_w8ref_scale1k_vsi_caws_b8_mn_20260926, qwen35_mn32_scale1k_vsi_caws_b8_20260926 | - | partial eval outputs | deferred; the multi-node lane writes its own resume commands |
+
+### round registry
+
+| Round | Content | State |
+|---|---|---|
+| r1643 | 9B answer-only, full pool v3, 3 epochs | done: 58.21 / 53.62 VSI-500, 51.20 / 51.20 VSTI-450 |
+| r1644 | 27B set H (Orchard 148724) + 27B base evals on code-aws | done: 57.26 / 57.26 VSI-500, 54.61 / 54.61 VSTI-450 |
+| r1645 | 9B base + Orchard 148598 on code-aws | done: base 15.66 / 15.32 and 148598 57.63 / 53.52 VSI-500 |
+| r1646 | 9B answer-only on the v4 set, batch 128, 3 epochs | held: never reached a GPU; v4 verify PASSED 20:37 PT; its evals need the b128 pairing fix |
+| r1647 | 27B answer-only, full pool v3, 1 epoch | done: 58.39 / 58.31 VSI-500 (best single cell), 50.67 / 50.67 VSTI-450 |
+| r1648 | 9B scaling curve 1k / 4k / 12k, 3 epochs | done: 53.02 / 53.69 / 54.81 VSI-500 |
+| r1649 | 9B full pool, LoRA rank 128, 3 epochs | done, negative: 47.65 / 31.18 VSI-500, 45.03 / 25.65 VSTI-450 |
+| r1650 | 9B full pool, batch 128, 3 epochs | trained 16:24 PT; evals blocked by the attempt-authority guard (r2 failed 00:32 PT); pairing lane caws_b128_pairing_20260926 died on the home quota; held |
+| r1800 | resolution arm (matched px768 cap at train and eval) | held: train-side variant fe7571a delivered; its review lane caws_train_hires_review_20260926 died on the home quota; relaunch with the same BRIEF.md, run after PASS |
+| r1801 | RA: 9B answer-only on the 97k pool, 1 epoch | held at step_450 of 2,730 (7426520 cancelled 00:51 PT) |
+| r1802 | Run A: coverage set without ARKit, 1 epoch | done, negative: 56.53 / 51.28 VSI-500, 48.61 / 47.97 VSTI-450 |
+| r1803 | ENSEMBLE, 7 members | scored 60.02 VSI-500 (labelled ensemble) |
+| r1804 | answer-only reference under sampled_t06_8k_v1 | scored 55.12 / 51.37 VSI-500 |
+| r1805 | Run A': coverage without ARKit + traceev s25k, 1 epoch | done: 57.78 / 56.12 VSI-500 (highest 9B strict), 50.67 / 50.67 VSTI-450 (train 7425619; evals 7435487, 7435492) |
+| r1806 | 27B on the r1805 set | held at step_25 (7429124 cancelled) |
+| r1807 | 9B on coverage v2 with corrected ARKit + s25k | held, no checkpoint (7429607 cancelled) |
+| r1808 | 27B on the r1807 set | held, no checkpoint (7429671 cancelled) |
+| r1809 | 9B seed 18 on the r1802 set | held, protocol only (prepare 7429608, shard 7429852 cancelled) |
+| r1810 | 9B seed 19 on the r1802 set | held, protocol only (prepare 7429609, shard 7429687 cancelled) |
+| r1811 | 27B on the r1802 set | held at step_75 (7428844 cancelled) |
+| r1812, r1813 | - | no lane file records an assignment; `ROUNDS.md` ends at r1811; the block r1800-r1849 stays reserved in `NOTES_FROM_COORDINATOR.md` |
+
+### open_user_decisions
+
+1. **Home directory space.** `/home/jjyeung` reached 100 % (251G, 0 available) at about 00:40 PT; git commits and two Devin lanes (caws_train_hires_review_20260926, caws_b128_pairing_20260926) failed on it. It stood at 94 % (17G free) at 01:21 PT. Freeing space is user-only.
+2. **Whether to resume the held runs after the main agent finishes.** Candidates and commands: the HOLD table above (r1801, r1806, r1807, r1808, r1809, r1810, r1811, r1646, the RL eval pair, the multi-node GPU test).
+3. **Route generator v2 shaping ruling: even first-turn split.** The orchestrator lists this as open; no lane file records the question or a ruling yet.
+4. **Collector BLOCKED.json (worker_failure_storm, written 03:19 PT).** The controller is dead and collection has stopped; acknowledging (renaming) the marker is user-only.
+
+Answered, not open: the r1805 eval QoS question to the main agent. The evals stayed on aml_low: `NOTES_FROM_COORDINATOR.md` 03:12 PT BYPASS entry, "Distillation: evals stay on aml_low (no change)"; the main agent's 03:02 PT entry calls them protected by user ruling.
+
+### do_not_redo (evidence)
+
+| Do not redo | Evidence |
+|---|---|
+| 3 epochs instead of 1 at full pool | r1643 3 epochs 58.21 / 51.20 vs 1 epoch 57.63 / 50.28; the code-aws lane reads "3 epochs ~= 1 epoch within noise on both benchmarks". |
+| LoRA rank 128 | r1649 47.65 VSI-500 (-10.56 vs rank 32); the model never stops after `<|im_end|>` (496/500 cap hits). |
+| Trace-format variants at 9B (trace-as-output) | trace16: six finals 43.00-48.49 plus box3d_cam_coarse_d1 45.86 VSI-500, all below the same-protocol answer-only reference 55.12. |
+| Generated route rows in their current form | r1802 route_plan 38.0 vs 52.0 for 148598 (-14.0); the pre-build lane records a residual positional cue on 4-option routes (34-36 % vs 25 % chance). |
+| An unmatched-cap resolution probe (eval at px768 on an adapter trained at the 384 cap) | The trainer hard-codes the 32 x 384 x 384 train cap; r1800 trains and evaluates at the same px768 cap instead (code-aws `HANDOFF_codeaws.md` open defect 2; `STATUS.md` 16:29 PT). |
+| RL with a trace reward on short answers | `LESSONS_AGGREGATE.md`: "RL with trace reward (A) ... no gradient on 8-token outputs ... drop". |
+
+### survives_vs_dies
+
+| Process | Survives a session change? | Resume recipe |
+|---|---|---|
+| Collector controller 2506093 on trinity-3-3 | yes (remote, detached) | collector `HANDOFF_collector2.md` section 7 (cold start `start_v3_cold_remote_regv3_303.sh` with N_EPOCH=011fc49...); never start beside a live controller |
+| Status writer 2972785 on trinity-0-3 | yes (PPID 1; stops 48 h after its start, about 2026-09-27 23:44 PT) | the collector lane gives no launch line; this lane's recipe: `cd /tmp && setsid nohup bash L/work/status_writer.sh > /dev/null 2>&1 < /dev/null &`, then write the new pid to `L/status_writer.pid` |
+| Brake loop 2680034 on trinity-0-3 | yes (PPID 1) | `(cd /tmp; HOST=trinity-3-3 SETW=setw_remote_regv3.sh N_EPOCH=011fc49c4ba280b89ba1b3d680b3fdceb4a892d4 HIGH=8 LOW=4 exec setsid nohup bash L/work/brake_v1.sh > L/out/brake_v1.stdout 2>&1 < /dev/null) &`, then record the loop pid from `pgrep -f work/brake_v1.sh` (not the wrapper pid) in `L/brake.pid` |
+| code-aws ControlMaster 42601 | yes (PPID 1) | `ssh -N -o ControlMaster=yes -o ControlPersist=yes -o ControlPath=/tmp/jjyeung_cm/caws -o ServerAliveInterval=15 -J trinity code-aws &` |
+| Slurm jobs (r1805 7425619 and its evals once submitted) | yes | resume by run name: (R1)/(R2) in the code-aws section |
+| r1805 `final_evals.sh` (pid 2022858) | would not have survived: its parent was a Claude shell (PPID 1907749). It finished normally after submitting 7435487 and 7435492 at 02:57 PT. | not needed; r1805 is closed |
+| `tick3.sh` 1911842 (code-aws ticker, read-only) | no: it was a child of a Claude shell and had exited by 03:29 PT | not needed; `squeue` and the run's `steps.jsonl` give the same facts |
+| Claude lanes (code-aws, collector, pre-build, trace16, multi-node, this handoff lane) and their in-session monitors | no | respawn from this document's lane sections; each lane's STATUS.md and HANDOFF file carry its commands |
+| This lane's 03:45 PT timer | no | not needed after this commit |
+
+### session_footguns
+
+- **BLOCKED.json artifacts.** A restart inside the 300 s storm window, or attesting a dead host right before a start, recounts old records and writes a new BLOCKED.json; renaming a marker is user-only. Restart only when the newest `POOL/worker_failures` record is older than 330 s (collector `HANDOFF_collector2.md` section 4).
+- **5-hour preemption.** aml_low jobs are preempted after 5 h by a 96-node aml_high job; trains use `--requeue` and resume from 25-step checkpoints; student fine-tunes run on aml_high.
+- **Lustre inode quota.** The uid jyeung limit is 26,214,400 files on `/lustre/fsw`; one 9B checkpoint is 1,594 files, and the trainer keeps every 25-step checkpoint (no keep-last-N knob). At write time: 18,671,971 of 26,214,400 files used (03:26 PT).
+- **Home quota.** `/home/jjyeung` at 100 % stops git (index.lock "Disk quota exceeded") and kills Devin lanes; check `df -h /home/jjyeung` before commits or launches.
+- **Stale brake loops.** Recording the `cd /tmp && ... &` wrapper pid left 7 old loops alive on 09-25; record the loop pid from `pgrep -f work/brake_v1.sh` and keep exactly one loop.
+- **Monitor caps.** In-session monitors expire (Claude Monitor after at most 30 min) and die with the session; the collector's detached status writer stops after 48 h.
+- **Session-bound submitters.** A script started from a Claude shell dies with that session, even when it looks detached (the r1805 `final_evals.sh` has a Claude shell as parent). Launch persistent watchers with `setsid nohup` and check that PPID is 1.
+- **Single-node trainer.** Trainer abddf4a runs `torchrun --nnodes=1`, so more nodes do not speed up one run; the multi-node path exists only on branch multinode-ddp-20260926 (ad42813) with harness 1306964 and the decode-batch-8 eval protocol.
+- **Missing fast linear-attention kernels.** flash-linear-attention and causal-conv1d are absent from the venv, so every rank runs Qwen3.5's torch fallback; installing them is an environment change that needs its own review and equivalence run.
+- **Attempt authority.** A fresh base on an already-evaluated checkpoint/cohort is refused (`generate.py:436`); resume the original frozen run by the same name instead.
