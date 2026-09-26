@@ -2,6 +2,7 @@
 
 The best single VSI-500 cell is Qwen3.6-27B answer-only full pool, 1 epoch (r1647), at 58.39 lenient / 58.31 strict, which leaves a 14.61-point gap to the 73.00 target.
 The labelled r1803 ensemble reaches 60.02 lenient; it is not a single-model result.
+The evening Run A cell (r1802, coverage set without ARKit, 1 epoch) is a negative overall result: 56.53 / 51.28 on VSI-500 and 48.61 / 47.97 on VSTI-450, below the 1-epoch full-pool student (57.63 / 50.28) on both benchmarks.
 All reported answer-only students beat their same-cluster base on both benchmarks where evaluated under lenient and strict parsing.
 The results banked by 16:30 PT on 2026-09-25 remain source-reported partial-set results, not a score-index nomination.
 
@@ -9,6 +10,7 @@ The results banked by 16:30 PT on 2026-09-25 remain source-reported partial-set 
 
 The metric of record is lenient parser v2 (primary), with strict parsing secondary, on VSI-Bench answerable-500 and VSTIBench verifiable-450 (`vstibench_repr450_v2`).
 Scores are percentages under each benchmark's official aggregation, not flat means over the raw question types.
+Every row is scored over all 500 VSI-500 or all 450 VSTI-450 items, with failed generations counted as zero and no item dropped (user ruling, 00:10 PT 2026-09-26); the matched-434 figures shown for Qwen3.6-27B are secondary cohort numbers.
 The source tables are dated 2026-09-25; the all-results tables below include the banked evening cells and identify each decoding protocol.
 
 | Model | Condition | VSI-500 lenient / strict | VSTI-450 lenient / strict |
@@ -54,6 +56,9 @@ Greedy student jobs identify training, while sampled job IDs identify evaluation
 | Qwen3.5-9B | Answer-only, full-pool 25,164 rows, 1 epoch | 57.63 / 53.52 | greedy 4k | `372da10 / 433d8a1 / 126a81b` | r1645 / Orchard 148598 |
 | Qwen3.5-9B | Full pool, step 787 (epoch 1); checkpoint of the 3-epoch run, not final | 53.42 / 41.02 | greedy 4k | `372da10 / abddf4a / 126a81b` | r1643 / 7412030 / step 787 |
 | Qwen3.5-9B | Full pool, step 1574 (epoch 2); checkpoint of the 3-epoch run, not final | 56.51 / 51.96 | greedy 4k | `372da10 / abddf4a / 126a81b` | r1643 / 7412030 / step 1574 |
+| Qwen3.5-9B | Full pool, 3 epochs, final | 58.21 / 53.62 | greedy 4k | `372da10 / abddf4a / 126a81b` | r1643 / 7412030 |
+| Qwen3.5-9B | Full pool, 3 epochs, LoRA rank 128 / alpha 256; negative result: never stops after `<|im_end|>` (496/500 cap hits; first-answer diagnostic 50.18) | 47.65 / 31.18 | greedy 4k | `372da10 / abddf4a / 126a81b` | r1649 / 7412034 |
+| Qwen3.5-9B | Run A: coverage set without ARKit (43,753 rows), 1 epoch; negative overall result against the 1-epoch full pool (57.63) | 56.53 / 51.28 | greedy 4k | `372da10 / abddf4a / 126a81b` | r1802 / 7424819 |
 | Qwen3.6-27B | Base | 20.52 / 19.94 | greedy 4k | `372da10 / 433d8a1 / 126a81b` | r1644 / `qwen36_27b_base_vsi_caws_b8_r6_20260925` |
 | Qwen3.6-27B | Answer-only, set H (9,232 rows), 3 epochs | 57.26 / 57.26 | greedy 4k | `372da10 / 433d8a1 / 126a81b` | r1644 / Orchard 148724 |
 | Qwen3.6-27B | Answer-only, full-pool v3 25,164 rows, 1 epoch | 58.39 / 58.31 | greedy 4k | `372da10 / abddf4a / 126a81b` | r1647 / 7412032 |
@@ -65,9 +70,11 @@ Greedy student jobs identify training, while sampled job IDs identify evaluation
 | Qwen3.5-9B | trace16 box2d_depth_coarse_rpy_d2, final, 3 epochs | 46.38 / 46.38 | sampled_t06_8k_v1 | `8a426db / abddf4a / 126a81b` | trace16 / 7416506 |
 | Qwen3.5-9B | trace16 box3d_cam_none_d2, final, 3 epochs | 46.98 / 46.98 | sampled_t06_8k_v1 | `8a426db / abddf4a / 126a81b` | trace16 / 7416991 |
 | Qwen3.5-9B | trace16 box3d_cam_coarse_rpy_d1, final, 3 epochs | 46.70 / 46.70 | sampled_t06_8k_v1 | `8a426db / abddf4a / 126a81b` | trace16 / 7416773 |
+| Qwen3.5-9B | trace16 box3d_cam_coarse_d1, final, 3 epochs | 45.86 / 45.86 | sampled_t06_8k_v1 | `8a426db / abddf4a / 126a81b` | trace16 / 7420948 |
 | Qwen3.5-9B | trace16 box2d_depth_none_d1, epoch-1 checkpoint, step 203; not final | 45.96 / 45.96 | sampled_t06_8k_v1 | `8a426db / abddf4a / 126a81b` | trace16 / 7413975 |
 | Qwen3.5-9B | trace16 box2d_depth_rpy_d1, epoch-1 checkpoint, step 203; not final | 44.60 / 44.60 | sampled_t06_8k_v1 | `8a426db / abddf4a / 126a81b` | trace16 / 7413980 |
-| Qwen3.6-27B | Base; VSI only, no sampled student result yet | 31.52 / 30.36 | sampled_t06_8k_v1 | `8a426db / — / 126a81b` | trace16 / 7415747 |
+| Qwen3.6-27B | Base | 31.52 / 30.36 | sampled_t06_8k_v1 | `8a426db / — / 126a81b` | trace16 / 7415747 |
+| Qwen3.6-27B | trace16 box3d_cam_coarse_rpy_d1, final, 3 epochs (microbatch cap 2) | 53.33 / 53.33 | sampled_t06_8k_v1 | `8a426db / abddf4a / 126a81b` | trace16 / 7427980 |
 
 The sampled 9B base's 15 generation_error items score zero, so its VSI result remains provisional.
 The greedy base at 15.66 is not the comparison partner for sampled students; their base scores 24.50.
@@ -83,6 +90,9 @@ The greedy base at 15.66 is not the comparison partner for sampled students; the
 | Qwen3.5-9B | Answer-only, full pool, 1 epoch | 50.28 / 49.48 | greedy 4k | `372da10 / 433d8a1 / 126a81b` | r1645 / Orchard 148598 |
 | Qwen3.5-9B | Full pool, step 787 (epoch 1); checkpoint of the 3-epoch run, not final | 47.76 / 46.05 | greedy 4k | `372da10 / abddf4a / 126a81b` | r1643 / 7412030 / step 787 |
 | Qwen3.5-9B | Full pool, step 1574 (epoch 2); checkpoint of the 3-epoch run, not final | 51.11 / 50.97 | greedy 4k | `372da10 / abddf4a / 126a81b` | r1643 / 7412030 / step 1574 |
+| Qwen3.5-9B | Full pool, 3 epochs, final | 51.20 / 51.20 | greedy 4k | `372da10 / abddf4a / 126a81b` | r1643 / 7412030 |
+| Qwen3.5-9B | Full pool, 3 epochs, LoRA rank 128 / alpha 256; negative result (450/450 cap hits; first-answer diagnostic 45.20) | 45.03 / 25.65 | greedy 4k | `372da10 / abddf4a / 126a81b` | r1649 / 7412034 |
+| Qwen3.5-9B | Run A: coverage set without ARKit (43,753 rows), 1 epoch; negative overall result against the 1-epoch full pool (50.28) | 48.61 / 47.97 | greedy 4k | `372da10 / abddf4a / 126a81b` | r1802 / 7424819 |
 | Qwen3.6-27B | Base, all-450; matched-434 33.06 / 32.76 | 33.11 / 32.84 | greedy 4k | `372da10 / 433d8a1 / 126a81b` | r1644 / `qwen36_27b_base_vsti_caws_b8_r7_20260925` |
 | Qwen3.6-27B | Answer-only, set H, 3 epochs, all-450; matched-434 54.57 / 54.57 | 54.61 / 54.61 | greedy 4k | `372da10 / 433d8a1 / 126a81b` | r1644 / Orchard 148724 |
 | Qwen3.6-27B | Answer-only, full pool, 1 epoch, all-450; matched-434 50.45 | 50.67 / 50.67 | greedy 4k | `372da10 / abddf4a / 126a81b` | r1647 / 7412032 |
@@ -93,9 +103,12 @@ The greedy base at 15.66 is not the comparison partner for sampled students; the
 | Qwen3.5-9B | trace16 box2d_depth_coarse_rpy_d2, final, 3 epochs | 45.52 / 45.52 | sampled_t06_8k_v1 | `8a426db / abddf4a / 126a81b` | trace16 / 7416599 |
 | Qwen3.5-9B | trace16 box3d_cam_none_d2, final, 3 epochs | 46.89 / 46.89 | sampled_t06_8k_v1 | `8a426db / abddf4a / 126a81b` | trace16 / 7416996 |
 | Qwen3.5-9B | trace16 box3d_cam_coarse_rpy_d1, final, 3 epochs | 43.43 / 43.43 | sampled_t06_8k_v1 | `8a426db / abddf4a / 126a81b` | trace16 / 7416781 |
+| Qwen3.5-9B | trace16 box3d_cam_coarse_d1, final, 3 epochs | 45.88 / 45.88 | sampled_t06_8k_v1 | `8a426db / abddf4a / 126a81b` | trace16 / 7420949 |
+| Qwen3.6-27B | Base | 41.44 / 40.91 | sampled_t06_8k_v1 | `8a426db / — / 126a81b` | trace16 / 7420971 |
+| Qwen3.6-27B | trace16 box3d_cam_coarse_rpy_d1, final, 3 epochs (microbatch cap 2) | 51.76 / 51.76 | sampled_t06_8k_v1 | `8a426db / abddf4a / 126a81b` | trace16 / 7427982 |
 
 VSTI was not run for r1804, and the sources report no VSTI result for the two trace16 epoch-1 checkpoints.
-The 27B sampled VSTI base cell does not exist in the supplied results.
+The 27B trace16 student gains +10.32 lenient (+10.85 strict) over its sampled base on VSTI-450 and +21.81 lenient on VSI-500 (53.33 vs 31.52).
 
 ## Qwen3.5-9B per question type
 
@@ -214,6 +227,43 @@ The 16:03 PT source reports lenient / strict for the same trajectory, not the fi
 | obj_obj_relative_pos_ud | 84 / 84 | 82 / 78 | 72 / 72 |
 | **official 5-subtask** | **50.28 / 49.48** | **47.76 / 46.05** | **51.11 / 50.97** |
 
+### r1802 Run A (coverage set without ARKit): VSI-500
+
+Run A is a negative overall result. Its coverage set (43,753 rows, 1.7x the rows of 148598) does not beat the 1-epoch full pool overall: counting (+5.6) and relative distance (+4.0) gain, while route planning drops 14 points (n = 50 per type, so one question is 2 points). Strict 0.0 on rel_direction medium and hard reflects option echo (112 parse failures recovered by the lenient parser: option_echo 101, end_of_turn 11).
+
+| Type | Base 9B | 148598 1 ep | r1802 | r1802 - 148598 (lenient) |
+|---|---|---|---|---|
+| appearance_order | 30.0 / 28.0 | 78.0 | 76.0 / 76.0 | -2.0 |
+| abs_distance | 9.6 / 9.6 | 40.2 | 41.2 / 41.2 | +1.0 |
+| counting | 10.2 / 10.2 | 49.2 | 54.8 / 53.0 | +5.6 |
+| rel_direction_easy | 22.0 / 20.0 | 76.0 | 74.0 / 72.0 | -2.0 |
+| rel_direction_medium | 6.0 / 6.0 | 62.0 | 58.0 / 0.0 | -4.0 |
+| rel_direction_hard | 4.0 / 4.0 | 38.0 | 38.0 / 0.0 | 0.0 |
+| rel_distance | 36.0 / 36.0 | 62.0 | 66.0 / 66.0 | +4.0 |
+| object_size | 12.6 / 12.6 | 54.8 | 53.2 / 45.6 | -1.6 |
+| room_size | 0.2 / 0.2 | 66.2 | 66.4 / 66.4 | +0.2 |
+| route_plan | 16.0 / 16.0 | 52.0 | 38.0 / 38.0 | -14.0 |
+| **overall** | **15.66 / 15.32** | **57.63** | **56.53 / 51.28** | **-1.10** |
+
+### r1802 Run A (coverage set without ARKit): VSTI-450
+
+Run A trails the 1-epoch full pool (50.28), the r1643 final (51.20) and the 4k student (51.71, the best 9B VSTI-450 score); it stays above the 1k student (47.91) and r1649 (45.03). Its losses concentrate on rel_distance_v2 (-10), up/down (-8) and near/far (-6, 2 points below the base). r1805 (the same coverage set plus s25k trace-evidence rows) and r1811 (Qwen3.6-27B on the r1802 set) test whether evidence rows or model size change this.
+
+| Type | Base 9B | 148598 1 ep | r1802 | r1802 - 148598 (lenient) |
+|---|---|---|---|---|
+| camera_displacement | 6.2 / 6.2 | 27.6 | 27.4 / 27.4 | -0.2 |
+| camera_movement_direction | 16.0 / 16.0 | 30.0 | 32.0 / 32.0 | +2.0 |
+| camera_obj_abs_distance | 23.0 / 21.2 | 51.8 | 53.0 / 51.8 | +1.2 |
+| rel_distance_v1 | 28.0 / 28.0 | 68.0 | 64.0 / 64.0 | -4.0 |
+| rel_distance_v2 | 40.0 / 40.0 | 68.0 | 58.0 / 58.0 | -10.0 |
+| rel_distance_v3 | 56.0 / 56.0 | 70.0 | 66.0 / 66.0 | -4.0 |
+| position_left_right | 60.0 / 60.0 | 78.0 | 76.0 / 76.0 | -2.0 |
+| position_near_far | 54.0 / 54.0 | 58.0 | 52.0 / 48.0 | -6.0 |
+| position_up_down | 76.0 / 76.0 | 84.0 | 76.0 / 74.0 | -8.0 |
+| **overall** | **29.97 / 29.61** | **50.28** | **48.61 / 47.97** | **-1.67** |
+
+Source: the code-aws lane's `RESULTS.md` (00:33 and 00:40 PT 2026-09-26); scored cells `returns/qwen35_runa_r1802_final_{vsi,vsti}_caws_b16_20260925`.
+
 ## Qwen3.6-27B per question type
 
 ### VSI-Bench answerable-500
@@ -306,13 +356,32 @@ The finals are step 609 after 3 epochs, with effective batch 32, LR 1e-4, and Lo
 | box2d_depth_coarse_rpy_d2 | box2d_depth | coarse_rpy | d2 | 46.38 | 45.52 |
 | box3d_cam_none_d2 | box3d_cam | none | d2 | 46.98 | 46.89 |
 | box3d_cam_coarse_rpy_d1 | box3d_cam | coarse_rpy | d1 | 46.70 | 43.43 |
-| Base Qwen3.6-27B; VSI only | - | - | - | 31.52 | Not run |
+| box3d_cam_coarse_d1 | box3d_cam | coarse | d1 | 45.86 | 45.88 |
+| Base Qwen3.6-27B | - | - | - | 31.52 | 41.44 |
+| Qwen3.6-27B box3d_cam_coarse_rpy_d1 (microbatch cap 2) | box3d_cam | coarse_rpy | d1 | 53.33 | 51.76 |
 
 The source reports standard errors of about 2.2 points per VSI-500 cell, 2.3 per VSTI-450 cell, and about 3.1 for a difference between two single cells; no pair of the six trace16 finals differs reliably.
 The epoch-1 comparisons are mixed and within noise: box2d_depth_none_d1 scores 45.96 at epoch 1 versus 43.00 final, while box2d_depth_rpy_d1 scores 44.60 versus 45.82.
 On VSI-500 every variant gains on room size (+54.6 to +58.0), the rel_direction task (+26.0 to +34.0), absolute distance (+13.4 to +26.6), counting (+15.8 to +24.6), and size (+16.8 to +27.0), while rel_distance stays flat (-2 to +4).
 On VSTI-450 every variant gains on camera-object absolute distance (+24.0 to +36.4) but loses object-object relative position near/far (-8 to -32, all six) and up/down (-4 to -30, all six), and left/right is mixed (-16 to +6); those losses hold the VSTI gain to +4.0 to +7.4.
-The 9B box3d_cam_coarse_d1 cell is still training in the supplied status snapshot; box3d_cam_rpy_d2 was not run.
+The 9B box3d_cam_coarse_d1 finals (jobs 7420948 and 7420949) score 45.86 and 45.88, inside the same band; box3d_cam_rpy_d2 was not run. The paragraphs above describe the six finals scored earlier. The Qwen3.6-27B variant scores 53.33 on VSI-500 (+21.81 over its sampled base 31.52) and 51.76 on VSTI-450 (+10.32 over 41.44); the same variant scores 46.70 / 43.43 at 9B. It still trails the 9B answer-only reference under this protocol (r1804, 55.12 on VSI-500).
+
+Qwen3.6-27B box3d_cam_coarse_rpy_d1 on VSI-500, per question type (lenient, n = 50 per raw type; delta vs the sampled 27B base), from the trace16 lane's `returns/SCORES.md`:
+
+| question type | base | box3d_cam_coarse_rpy_d1 final |
+|---|---:|---:|
+| obj_appearance_order | 52.0 | 66.0 (+14.0) |
+| object_abs_distance | 16.6 | 35.8 (+19.2) |
+| object_counting | 25.6 | 45.8 (+20.2) |
+| object_rel_direction_easy | 36.0 | 64.0 (+28.0) |
+| object_rel_direction_medium | 16.0 | 48.0 (+32.0) |
+| object_rel_direction_hard | 8.0 | 40.0 (+32.0) |
+| object_rel_distance | 66.0 | 54.0 (-12.0) |
+| object_size_estimation | 40.4 | 56.4 (+16.0) |
+| room_size_estimation | 3.6 | 74.0 (+70.4) |
+| route_planning | 28.0 | 44.0 (+16.0) |
+| object_rel_direction (task = mean of 3) | 20.0 | 50.7 (+30.7) |
+| **official 8-task score** | **31.52** | **53.33 (+21.81)** |
 
 ## ENSEMBLE (r1803), tie-break informed by benchmark scores
 
@@ -478,6 +547,8 @@ The sampled 9B VSI base remains provisional because of its 15 generation_error i
 The analysis sources are `GAP_TABLE.md` and `LEVERS.md` under `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_error_analysis_20260925T2040Z/` and `LESSONS_AGGREGATE.md` under `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_traceread_swarm_20260925T2045Z/`.
 
 ## Runs in flight tonight
+
+The table below is the 16:29 PT state. For the quota incident, the recovery and the r1806-r1811 runs, read the addenda of `docs/DISTILLATION_HANDOFF_20260926_0100Z.md`.
 
 The states below come from lane files as of 16:29 PT on 2026-09-25; they are not live health checks.
 The sources are the code-aws lane's `STATUS.md`, `GPU_LEDGER.md`, `ROUNDS.md`, `INBOX_FROM_PREBUILD.md`, and `INBOX_FROM_TRACEEV.md`; `READY_rl.md` and `STATUS.md` in `claude_prebuild_rl_v4_20260925T1422Z`; and the trace16 lane's `HANDOFF_trace16_caws.md`.

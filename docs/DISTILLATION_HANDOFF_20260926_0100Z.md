@@ -1,6 +1,6 @@
 # Distillation handoff - 2026-09-25 18:00 PT (2026-09-26 01:00 UTC)
 
-Qwen3.6-27B answer-only full pool, 1 epoch (r1647), is the best single VSI-500 cell at 58.39 lenient / 58.31 strict. The labelled ENSEMBLE (r1803), not a single model, reaches 60.02 with 7 members. The best single cell leaves a 14.61-point gap to 73.00. The supplied snapshots place r1643, r1649, the RA and coverage launch chains, the RL pilot, the trace16 27B arm, and the collector in the overnight workload. Start with [today's results](RESULTS_CODEAWS_20260925.md), the run inventory below (superseded by the 19:10 PT and 20:40 PT addenda at the end), and the relevant lane's successor commands. This handoff reports the lane files as of 17:38 PT, plus the code-aws `STATUS.md` lines of 17:39 PT and the collector `STATUS.md` line of 17:59 PT; it is not a fresh check of remote jobs, processes, or scores. `ORCHESTRATOR_FACTS.md` names the orchestrator facts recorded in `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_handoff_20260926T0040Z/FACTS.md`.
+Qwen3.6-27B answer-only full pool, 1 epoch (r1647), is the best single VSI-500 cell at 58.39 lenient / 58.31 strict. The labelled ENSEMBLE (r1803), not a single model, reaches 60.02 with 7 members. The best single cell leaves a 14.61-point gap to 73.00. The supplied snapshots place r1643, r1649, the RA and coverage launch chains, the RL pilot, the trace16 27B arm, and the collector in the overnight workload. Start with [today's results](RESULTS_CODEAWS_20260925.md), the run inventory below (superseded by the addenda at the end; the newest is last), and the relevant lane's successor commands. This handoff reports the lane files as of 17:38 PT, plus the code-aws `STATUS.md` lines of 17:39 PT and the collector `STATUS.md` line of 17:59 PT; it is not a fresh check of remote jobs, processes, or scores. `ORCHESTRATOR_FACTS.md` names the orchestrator facts recorded in `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_handoff_20260926T0040Z/FACTS.md`.
 
 ## Headline results
 
@@ -1213,3 +1213,77 @@ The coordinator relayed a user ruling that distillation runs on code-aws, so the
 | Collector brake pid | `HANDOFF_collector2.md` section 1: brake 1897051. | Collector `STATUS.md` 20:03 PT: the real loop pid is 1897052, now in `L/brake.pid`. |
 | Release timing | `RELEASE.md` header: user ruling relayed 18:35 PT. | The same file stamps the daemon stop 18:27 PT and the re-sweep 18:28 PT. |
 | Quota count | Deletion proposal: 26,196,511 files used. | Code-aws `STATUS.md` 20:23-20:34 PT: 26,196,586 used (17814 free). The two readings come from different measurement times. |
+
+## Addendum - 2026-09-26 00:45 PT (07:45 UTC)
+
+The user's file cleanup restored the code-aws quota by 21:11 PT, and every held run resumed: r1802 from step_600, r1805 from step_250, RA r1801 from its intact prepare, and the trace16 27B run from step_450. At 22:55 PT the user widened the distillation budget to 400 GPUs, and the code-aws lane launched six new rounds (r1806-r1811). At 00:55 PT the user handed all code-aws nodes to the main agent: only r1805 runs to completion, and every other distillation run or eval is cancelled or held, resumable by run name (section "User ruling 00:55 PT" below). This addendum supersedes the run states of the 20:40 PT addendum. Its sources are, under `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/`:
+- the code-aws lane's `STATUS.md` (20:39-23:58 PT lines), `RESULTS.md` and `ROUNDS.md` (`claude_codeaws_distill_20260925T1352Z/`);
+- the trace16 lane's `STATUS.md` and `returns/SCORES.md` (`claude_trace16_codeaws_20260925T1422Z/`);
+- `claude_multinode_trainer_20260926T0600Z/STATUS.md`;
+- the collector lane's `HANDOFF_collector2.md` (22:03 PT update) and `STATUS.md` (`claude_collector_relaunch_20260925T1356Z/`).
+
+### Results
+
+[RESULTS_CODEAWS_20260925.md](RESULTS_CODEAWS_20260925.md) now carries these rows and the r1802 per-type tables. Its tables score every row over all 500 VSI-500 or all 450 VSTI-450 items, with failed generations counted as zero and no item dropped (user ruling, 00:10 PT).
+
+| Cell | VSI-500 lenient / strict | VSTI-450 lenient / strict | Reading |
+|---|---:|---:|---|
+| r1802 Run A, Qwen3.5-9B, coverage set without ARKit (43,753 rows), 1 epoch; train 7424819 | 56.53 / 51.28 | 48.61 / 47.97 | **Negative overall result**: below the 1-epoch full pool 148598 (57.63 / 50.28) on both benchmarks. On VSI-500, route_planning -14.0, counting +5.6 and rel_distance +4.0 against 148598. |
+| r1643 final, Qwen3.5-9B full pool, 3 epochs | 58.21 / 53.62 | 51.20 / 51.20 | Equal to 1 epoch within noise. |
+| r1649, LoRA rank 128 / alpha 256, 3 epochs | 47.65 / 31.18 | 45.03 / 25.65 | Negative (never stops after `<|im_end|>`). |
+| trace16 Qwen3.6-27B box3d_cam_coarse_rpy_d1, 3 epochs (sampled_t06_8k_v1) | 53.33 / 53.33 | 51.76 / 51.76 | +21.81 over the sampled 27B base on VSI-500 (31.52 / 30.36) and +10.32 on VSTI-450 (41.44 / 40.91); the same variant scores 46.70 / 43.43 at 9B. |
+| trace16 Qwen3.5-9B box3d_cam_coarse_d1, 3 epochs (sampled_t06_8k_v1) | 45.86 / 45.86 | 45.88 / 45.88 | Inside the band of the other six 9B variants. |
+
+r1802 trained as 7424819 after resuming twice from quota failures, completed at 23:58 PT, and its final evals ran as 7429161 and 7429163. The 27B trace16 student (7424814) completed 609/609 steps at 23:11 PT, and `watch_27b.sh` submitted its finals at 23:13 PT: VSI-500 **7427980** and VSTI-450 **7427982**. The code-aws lane's reading overstates one comparison: it says Run A "trails every other 9B student" on VSTI-450, while the 1k student (47.91) and r1649 (45.03) score below Run A's 48.61. The results doc prints the corrected comparison.
+
+### Quota recovery
+
+| Time (PT) | Event |
+|---|---|
+| 21:04 | Free files 17,594 (used 26,196,806 / 26,214,400). |
+| 21:09 | trace16 auto-resume fired at 40,159 free inodes: 27B job **7424814** on pool0-0252, resumed from step_450 (first step 451 at 21:22 PT). |
+| 21:11 | Free files 784,091; the quota watcher resubmitted r1802 as **7424819** (aml_high). |
+| 21:35 | Free files 6,728,008 (used 19,486,392 / 26,214,400). |
+| 21:37 | r1802 logged step 601, its first after the resume; the watcher resubmitted r1805 as **7425619** (aml_high). |
+| 22:11 | r1805 logged step 251, its first after the resume. |
+| 22:12 | The watcher resubmitted RA r1801 as **7426520** (aml_high). |
+| 22:14 | The quota watcher exited after all three resubmissions. |
+| 23:21 | RA 7426520 logged step 1 of 2,730. Watcher phase 2 (`work/quota_watcher2.sh`, pid 2460322) submitted the RL matched base as job **7428151**. |
+| 23:58 | r1802 7424819 completed and published; final evals 7429161 / 7429163. |
+
+At 23:11 PT r1802 stood at 1036/1235 and r1805 at 548/1553. `ROUNDS.md` records at 00:27 PT that quota_watcher2 was stopped because its <= 9-node gate predates the 22:55 PT 50-node ruling, and r1646 now runs via `work/run_chain_b128.sh` (trainer orchard_trainer_caws_batchcfg f8c6dd3, deployment_caws_w8_b128, 40-proc sharded prepare, aml_high; evals paired with the fresh bases 7429625/7429626).
+
+### User ruling 22:55 PT and rounds r1806-r1811
+
+`NOTES_FROM_COORDINATOR.md` quotes the user verbatim: "i believe the main agent is mostly done with using gpus, so you have free reign! total 400 gpus". Distillation may hold up to 50 pool0 nodes (400 GPUs), including evals. The code-aws lane launched six cells under it. All six train 1 epoch with trainer abddf4a and deployment_caws_w8_e1 (world 8, effective batch 32, LR 1e-4, mb4; 27B via FSDP with an mb2 fallback on a probe OOM). Each uses a sharded prepare and auto-submits its final VSI-500 and VSTI-450 evals (`work/run_chain.sh`). The trainer has no keep-last-N knob, so the lane projects ~560k new files against ~6.7M free.
+
+| Round | Model | Set | Run | QoS | Jobs and state (`ROUNDS.md` / `STATUS.md`) |
+|---|---|---|---|---|---|
+| r1806 | Qwen3.6-27B | r1805 set: coverage without ARKit + traceev s25k (f4920e88..., 53,904) | q27_r1805set_noarkit_s25k_caws_w8_e1_r1806 | high | prepare 7427711, shard 7427997, train **7429124** on pool0-0498 submitted 23:57 PT; first step 00:33 PT (18.9 s/step at step 1) |
+| r1807 | Qwen3.5-9B | coverage v2 with corrected ARKit + s25k (500521d5..., 61,035 = 56,800 train + 4,235 heldout) | q9_v2arkit_s25k_caws_w8_e1_r1807 | high | prepare 7428185, shard 7428500, train **7429607** submitted 00:20 PT (tests the ARKit rows) |
+| r1808 | Qwen3.6-27B | same set as r1807 | q27_v2arkit_s25k_caws_w8_e1_r1808 | high | prepare 7428154, shard 7428504; chain started 23:21 PT |
+| r1809 | Qwen3.5-9B, seed 18 | r1802 set (0a628cc5..., 43,753) | q9_r1802set_noarkit_seed18_caws_w8_e1_r1809 | low, --requeue | chain started 00:19 PT on trainer orchard_trainer_caws_seedcfg 810eae4 (Devin caws_seedcfg: one commit on abddf4a, seed knob only), deployment_caws_w8_e1_seed18 |
+| r1810 | Qwen3.5-9B, seed 19 | r1802 set | q9_r1802set_noarkit_seed19_caws_w8_e1_r1810 | low, --requeue | chain started 00:20 PT, as r1809 with deployment_caws_w8_e1_seed19 |
+| r1811 | Qwen3.6-27B | r1802 set: coverage without ARKit only | q27_r1802set_noarkit_caws_w8_e1_r1811 | high | prepare 7427730, shard 7427979, train **7428844** on pool0-0942 submitted 23:47 PT; first step 00:18 PT (20.3 s/step at step 1); pairs with r1806 to isolate the evidence rows at 27B |
+
+`ROUNDS.md` records two other round updates. The r1650 r2 evals (bases 7429625/7429626, students 7429627/7429628 on harness d506778) failed at 00:33 PT at the attempt-authority guard; a Devin lane, caws_b128_pairing_20260926, is building certificate-based pairing. The r1800 train-side resolution variant was delivered as fe7571a (Devin caws_train_hires); its independent review (caws_train_hires_review_20260926) is due 02:00 PT, and the run launches after a PASS.
+
+### User ruling 00:55 PT: code-aws nodes to the main agent
+
+The coordinator relays a user ruling at 00:55 PT that hands all code-aws nodes to the main agent. Only r1805 is kept to completion. RA r1801, r1806, r1807, r1808, r1811, the seed runs r1809 and r1810, the RL eval pair, r1646 and the multi-node GPU test are cancelled or held, and each resumes by run name (the (R1)/(R2) commands in the code-aws section). The ruling supersedes the states in the r1806-r1811 table above and the multi-node lane's equivalence-eval plan below. The code-aws lane had not yet posted its cancellation list when this addendum was written; its `STATUS.md` ends at 00:50 PT, when quota_watcher3 submitted the RL adapter eval as job 7430741. Read the lane's `STATUS.md` for the job-by-job list.
+
+### Multi-node trainer lane (`claude_multinode_trainer_20260926T0600Z`)
+
+The lane builds a reviewed 2-node (16-GPU) path for the 9B student with an identical recipe (effective batch 32 = 16 x mb 2, no accumulation) and delivers `READY_multinode.md` by 04:00 PT.
+
+- **Network.** EFA works in the distill container with GPUDirect RDMA: a 400 MB all-reduce over 2 nodes x 8 takes 2.2-2.4 ms, against 239-342 ms over TCP. The path keeps parallel=fsdp (FULL_SHARD), identical to the r1648-1k reference except world_size 16 and micro-batch 2.
+- **Build and review.** Devin built trainer branch multinode-ddp-20260926 (head ad42813 = abddf4a + one commit) and harness branch harness-multinode-20260926 (head 1306964 = 372da10 + ddp_config.py only). The Fable review (caws_multinode_review_20260926) returned PASS at 00:08 PT with no HIGH or MEDIUM findings and six LOW notes.
+- **Equivalence run.** The 2-node 1k run 7429015 (pool0-[0294,1129]) published at 00:22 PT: 96 optimizer steps over 3 epochs. Against r1648-1k, its global-batch qid lists match in order (96/96), LR matches at every step, and step-1 loss matches to all printed digits; the per-step loss mean |diff| is 0.015 (Pearson r 0.948).
+- **Speed.** Median step time is 8.46 s against 9.77 s for the reference, only 1.15x. Lease-check subprocesses cost about 0.5 s per step. Every rank falls back to the torch implementation of Qwen3.5's linear-attention layers because flash-linear-attention and causal-conv1d are not in the venv; installing them is an environment change that needs its own review and equivalence check.
+- **Eval protocol, declared before any student result.** The fresh b16 base 7428814 was refused by the attempt-authority guard, by design. The equivalence eval therefore runs at decode batch 8 on harness 1306964: base 7429104, then the mn16 adapter (7429630) and the single-node r1648-1k reference re-evaluated (7429631). Acceptance is mn16 within 2 points of that reference under the identical protocol. The 4-node run mn32 (7429353) has run since 00:21 PT.
+
+### Collector: swap to 011fc49 done
+
+The guarded swap ran on schedule. SWAP011 started at 21:00 PT and drained trinity-3-3 by 21:24 PT. It then stopped the old 34f5444 controller 2383635, attested trinity-3-3 and found 0 stranded attempts; renewal took 477 ms. It cold-started epoch 011fc49 + registry v3 on trinity-3-3: controller **2506093** started at 21:24:43 PT with 8 workers, and the first worker came up at 21:25:15 PT. That **first loop took 32 s**, against 15-45 min on 40f260c, so the claim index works. Brake **2680034** (HOST=trinity-3-3, N_EPOCH=011fc49..., HIGH=8 LOW=4) is the one brake loop, and SWAP011 reported done at 21:30 PT.
+
+At 22:03 PT the pool held 13,196 terminals. All 102 terminals since 21:21 PT were object_counting, with 0 errors and no BLOCKED.json. A detached status writer, `L/work/status_writer.sh` (pid in `L/status_writer.pid`), writes a STATUS line every 5 min for the controller in `L/controller.pid` on `L/controller.host` and alerts to `L/out/ALERTS.log`. After any swap, update those two files.
