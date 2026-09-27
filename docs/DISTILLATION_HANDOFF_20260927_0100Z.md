@@ -101,3 +101,39 @@ Do not edit `collector/` in the live working tree. Collector changes require an 
 1. **Re-open the Mac-to-trinity reverse tunnel at `127.0.0.1:42223`.** The lanes can then reconcile surviving Slurm jobs and finish their gated transfers; another agent-side restart cannot restore the user's tunnel.
 2. **Decide the Lustre inode deletion proposal: 18.7M of 26.2M files.** No lane may delete files; the proposal remains for the user.
 3. **Arrange a remount of the code-aws login VM's Lustre client.** OST00e0 has returned ESHUTDOWN since **06:00 PT (13:00 UTC)**. Until the user resolves it, lanes must retain the CPU `srun` workaround.
+
+## Closing addendum, 2026-09-27 08:30 PT (15:30 UTC): lanes sunset
+
+At about 08:20 PT the user ordered the lanes closed ("Pelase sunset your lanes!"). The goal is not met: the best single model, r1813, scores 59.99 on VSI-500, 13.01 points short of 73. Code-aws has been unreachable since 14:50 PT on 09-26, and the tunnel from the user's Mac is still down.
+
+**What survives the session:**
+- **Collector.** The controller runs as pid 2766112 on trinity-3-3 at 4 workers, and 15,042 traces had finished by 08:17 PT. The status writer (pid 2972785) and one brake loop run detached on trinity-0-3. Health check: `ssh trinity-3-3 'ps -p 2766112 -o pid,etimes'` and `tail -n 1 $P/claude_collector_relaunch_20260925T1356Z/STATUS.md`.
+- **Slurm jobs on code-aws** (states unknown since 14:50 PT):
+  - trains r1801 (7438379), r1812 (7440783) and r1817 (7443145), last seen at steps 2501/2730, 1547/3037 and 456/787;
+  - trainer73's anchor cell 7443596 (148598 under mnb4).
+  - None of the three trains has been evaluated.
+
+**What was stopped:**
+- Every Claude lane: caws_exec, data73, trainer73 and the orchestrator.
+- Every detached lane helper: reconnect, chains, sequencers, watchers, drivers.
+- As a result, nothing launches, transfers or submits when the tunnel returns.
+- NOTES carries an 08:20 PT entry saying distillation has no launch pending.
+
+**Next session, in order:**
+1. Confirm the tunnel works: `ssh -J trinity code-aws true`.
+2. Follow the caws_exec SUNSET checklist in `$P/claude_caws_exec_20260926T1300Z/HANDOFF_caws_exec.md`. It reconciles r1801, r1812 and r1817, then submits their evals through CPU `srun` steps and banks them.
+3. Run data73's `resume_after_tunnel.sh` (its SUNSET section holds the command). It authenticates L150b and L250b on code-aws.
+4. Follow trainer73's SUNSET section. It covers the r1820 rehearsal and then r1822 (27B on L250b, 2 nodes, CK500, f5d970c).
+5. Decide r1821 (9B, L150b), r1823 (9B, L250b) and r1818 from the r1801-versus-r1812 scale result.
+6. Stay within 4 code-aws nodes, and post every claim in NOTES_FROM_COORDINATOR.md.
+
+**Round registry:**
+- r1812-r1823 are assigned. r1812 = 9B on G97E; r1813 = 9B on v3+evidence (banked); r1815 = RL eval pair (held); r1816 = trainer73's D1 node; r1817 and r1818 = the capacity pair; r1819 and r1820 = the 27B fast-env check and the 2-node rehearsal; r1821-r1823 = the L-set runs above.
+- r1824 is the next free round.
+
+**Open user decisions:**
+- the Mac tunnel;
+- the Lustre inode deletion proposal;
+- a remount of the code-aws login VM's Lustre client (OST00e0);
+- whether to disclose-and-add a GT count-1 counting supplement;
+- whether to double the evidence rows (L250b's trace share is 6.8 %).
