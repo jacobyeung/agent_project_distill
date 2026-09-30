@@ -85,13 +85,20 @@ Do not paste trace logs, long diffs, or bulk command output here.
 
 ## Executor selection
 
-Codex is the default executor for new dispatches — `gpt-6-astra` for planning, scientific
-reasoning, architecture, and gate review; `gpt-5.6-sol` for hard self-contained work;
-`gpt-5.6-terra` for mechanical work — via `agent/scripts/codex_dispatch.sh` (receipts + spend
-log; `--net` allowed). Claude subagents cover only the three lane types named in `AGENTS.md` §5
-(launch-and-babysit on Opus, error-analysis fan-outs on Sonnet 5 / Opus 5, Fable escalation for
-a repeatedly failed lane). Codex sandbox caveat: `.git`/`.coord` may be read-only — lanes emit git bundles
-the orchestrator lands.
+Delegate each lane to the agent whose capability matches the task; never default to the top
+tier (USER RULING 2026-09-30):
+
+- Trivial polling and file checks: Claude Haiku, or Devin `swe-2-medium`.
+- Scans, sweeps, babysitting, extraction, and drafting: Claude Sonnet, or Devin
+  `swe-2-medium`/`swe-2-high`.
+- Builds, fixes, and code reviews: Devin Astra max (`gpt-6-astra-max-priority`).
+- Judgement-heavy lanes only (error analysis, design rulings, debugging after a failure):
+  Claude Opus.
+- Codex: only after Devin fails twice; `gpt-6-astra` for gate reviews. Dispatch via
+  `agent/scripts/codex_dispatch.sh` (receipts + spend log; `--net` allowed). Codex sandbox
+  caveat: `.git`/`.coord` may be read-only — lanes emit git bundles the orchestrator lands.
+
+Pass `model` explicitly on every Agent spawn. Never kill a running lane just to re-tier it.
 
 **Devin lanes (USER 2026-09-16: preferred executor).** Launch from the repo root as one plain
 command, no leading variable assignments or subshells, so the `Bash(devin *)` allow rule matches
@@ -101,12 +108,12 @@ before the auto-mode classifier sees it:
 non-interactive, so every permission prompt becomes an automatic rejection; `dangerous` (alias
 `bypass`) is therefore required, and `--permission-mode auto` is an alias for `normal` that changes
 nothing. The rm_guard PreToolUse hook in `.devin/hooks.v1.json` is expected to keep blocking
-deletion under `dangerous`; confirm it on the first real lane (probe lanes refused the test). Two limits hold
-until the user clears them: (1) the org team settings put `Exec(ssh)` and `Exec(nohup)` (with sudo,
-nc, openssl, crontab, and others) on an ask list that outranks every local allow rule and every
-permission mode, so a Devin `-p` lane cannot run `ssh` or `nohup` — give Devin local-only work and
-keep cluster-side steps on codex or Claude subagents until the org admin removes `Exec(ssh)` from
-Terminal Permissions; (2) the `-p` process lingers after its final answer while
+deletion under `dangerous`; confirm it on the first real lane (probe lanes refused the test). Devin `-p` lanes can run `ssh` (verified 2026-09-30 on
+`swe-2-medium`: `ssh trinity-0-8` and `ssh -J trinity-1-13 code-aws` both exit 0), so
+cross-node launches, GPU scans, and remote probes may go to Devin; every ssh call still
+carries `timeout` and `-o ConnectTimeout`. The other `Exec(...)` ask-list entries (`nohup`,
+sudo, nc, openssl, crontab) stay treated as blocked until a lane probes them. One limit holds
+until the user clears it: the `-p` process lingers after its final answer while
 `~/.local/share/devin/cli/sessions.db` is corrupt, so always wrap it in `timeout` and read the
 receipt file instead of waiting on exit. **Babysitting cadence (USER 2026-09-16):** launch lanes check both process liveness and traces landing every 1 minute after a launch, debug at once if two one-minute checks show no new trace, then lengthen step by step to 10 minutes once traces land, dropping back to 1 minute on any regression (a detached watchdog on the 10-minute cadence may take over); orchestrator ticks run every 10 minutes while any lane is launching or draining.
 

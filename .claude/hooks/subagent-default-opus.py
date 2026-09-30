@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
-"""Default Agent-tool spawns to model='opus' when no model was specified, and append the
+"""Default Agent-tool spawns to model='sonnet' when no model was specified, and append the
 standard launch-and-monitoring cadence block (USER RULING 2026-09-16) to every launch or
 monitoring lane prompt that does not already carry it.
 
-USER RULING (2026-07-10): spawned Claude subagent lanes must DEFAULT to opus;
-fable (or any other explicit model) must require an explicit request. This
-hook only fills in an ABSENT/EMPTY model field; any explicit value (fable,
-opus, sonnet, haiku, or a full model id) passes through unchanged so it is
-never swallowed. The opus/sonnet aliases resolve through
-ANTHROPIC_DEFAULT_OPUS_MODEL / ANTHROPIC_DEFAULT_SONNET_MODEL in
+USER RULING (2026-09-30): spawned subagent lanes default to sonnet; the
+executor is chosen to match the task's capability needs and never defaults
+to the top tier. This hook only fills in an ABSENT/EMPTY model field; any
+explicit value (fable, opus, sonnet, haiku, or a full model id) passes
+through unchanged so it is never swallowed. The opus/sonnet aliases resolve
+through ANTHROPIC_DEFAULT_OPUS_MODEL / ANTHROPIC_DEFAULT_SONNET_MODEL in
 ~/.claude/settings.json.
 """
 import json
 import sys
 
-DEFAULT_MODEL = "opus"
+DEFAULT_MODEL = "sonnet"
 # Tool names that spawn subagents. "Agent" is the tool actually present in
 # this harness; "Task" is included in case a future/alternate matcher scheme
 # uses that name for the same capability (see registration-order note in
