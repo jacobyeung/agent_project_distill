@@ -1,0 +1,25 @@
+# agent_project_distill — AGENTS.md
+
+This repository holds the distillation stack for the SPLIT paper: the teacher collector (a fork of the sealed r1313 package), ground-truth adapters, materialization wrappers, the converter, the dataset builder, student trainers and the RGB-only evaluation harness. Data and run roots stay on `/data2/jjyeung/agent_project_data/` and never enter git.
+
+The main repository `/home/jjyeung/agent_project` remains the authority for benchmark scoring (`AGENTS.md` §3) and the experiment request queue (`agent/agentic_information_5.0/EXPERIMENT_REQUEST_QUEUE.md`). Its `AGENTS.md` rules on legality (§7), answer banks (§7.0a), no deletion, and coordination (`.coord`) apply here too.
+
+## Provenance
+
+Code here is fixed in place and committed frequently. Every run, trace and target records the commit SHA and config hash, launches refuse a dirty tree, and code changes take effect at run-epoch boundaries. Only a change that touches admission, legality or scoring needs an independent review, and one review suffices. The main repository's immutable-round convention applies only to its benchmark-scored packages.
+
+The running collector launches from `collector/` of this working tree, and its workers verify those bytes against the sealed contract at every spawn. Never change `collector/` on `main` while a collector runs from it. Land a fix on a branch, seal the new contract from an immutable epoch checkout under `/home/jjyeung/agent_project_distill_epochs/<commit>`, bind, drain, then fast-forward `main` and relaunch, in that order.
+
+Lanes never switch or create branches in this working tree. Branch work happens in a separate `git worktree` under the lane's `work/` directory, and the orchestrator lands it on `main` by fast-forward. Untracked files count as dirty for `tools/provenance.py`, and a dirty or switched tree fails every collector gate that runs at that moment.
+
+## Gates
+
+A lane's suite gate covers the tests that exercise the code it changed plus its own new tests. Pre-existing failures or errors elsewhere go into the report with their cause and do not block a paid run or a launch. A strict source gate disposes of each source individually: valid sources proceed, invalid ones are recorded as deferred with the reason, and the denominator keeps them.
+
+`docs/VERIFICATION.md` holds the verification recipes for `student/compact_targets` and `tools/gtmeasure`.
+
+## Searches and model settings
+
+Search for files with specific patterns inside bounded directories. Sweeping searches over the file system have crashed many nodes, so give the same instruction to every subagent you launch.
+
+Gemini output budget: 32,768.
