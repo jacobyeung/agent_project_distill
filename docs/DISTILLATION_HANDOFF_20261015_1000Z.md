@@ -138,6 +138,18 @@ To wake a parked lane, write `agent/scratch/devin_lanes/<lane>/BRIEF_CONTINUE_<n
 - The queue watcher (`agent/scripts/queue_watcher.sh`, PID 1590952). Re-arm it at session start, as the orchestrator skill requires.
 - No Claude subagents are running.
 
+**Taking over the lanes (do this first in the new session).** Each lane's lanemsg mailbox names session c9983e31 as its orchestrator. Lane questions, answers and results go only to that session, so a new session receives nothing until it adopts the lanes.
+- Run `adopt` inside the new session, because it binds the calling session:
+  ```bash
+  L=/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/lanes
+  lanemsg --orchestrator adopt $L/rewrite_20261014 $L/sprint_train_aws_20261014 $L/tracecold_20261012 $L/openteacher_20261008 $L/qwengen_aws_20261014 $L/opsd_20261014
+  ```
+- Nothing is lost before the adopt. Undelivered messages wait in each lane's outbox, and `adopt` flushes them to the new session. A failed push also leaves a `TO_ORCHESTRATOR_*.md` copy in the lane directory.
+- Check ownership with `lanemsg status <lane path>` (the `orchestrator.session_id` field).
+- Watchdog state changes do not go through lanemsg. They are lines in `$L/devinwatch_20261004/ALERTS.log` and `RELAUNCH.log`, which any session can read.
+- Notes other orchestrators send with `lanemsg tell all` reach every active orchestrator session without an adopt.
+- After the adopt, stand down c9983e31 if it is still alive, so that two orchestrators never drive the same lanes.
+
 ## 7. Round registry (rewrite lane, same 100 failures, Opus B_sum)
 
 | Round | Commit | Output | Accepted |
