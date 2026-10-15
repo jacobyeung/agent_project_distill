@@ -156,7 +156,19 @@ To wake a parked lane, write `agent/scratch/devin_lanes/<lane>/BRIEF_CONTINUE_<n
 |---|---|---|---|
 | 1 | 187ae5a6 (v5.1 b1654637) | `$B/VERIFIER_V5_1/` | 51 |
 | 2 | 41675b4f | `$B/ROUND2_OPUS.v1/` | 7 |
-| 3 | d25a3568 | `$B/ROUND3_OPUS.v1/` | running |
+| 3 | d25a3568 | `$B/ROUND3_OPUS.v1/` | 17 (10 after the baseline label policy) |
+
+**Round three result (added 04:40 PT).** Verification finished at 03:43 PT. Of 100 questions:
+- 17 accepted;
+- 13 deterministic rejections (11 on similarity, 2 on style), 16 judged rejections;
+- 34 Anthropic `content_filter` refusals, which arrived in 17 failed batches and are not retryable;
+- 16 honest evidence deferrals and 4 source deferrals.
+
+The independent C7 adjudication passed Opus with 15 of 17 rows clean (`$RW/ROUND3_C7_ADJUDICATION.v1/VERDICT.json`). Both failures (217386 and 057509) trace to GT evidence defects:
+- the oracle gives a distance for an object with zero visible pixels;
+- a fragment-only mask produces a false "no edge touched" flag.
+
+The lane's scope ruling is `$RW/ROUND3_C7_OWNER_RULING.v1.json`. It covers CPU-only work: a bulk prompt and gate draft, a yield projection, content-filter accounting, and an audit of how often corrected visibility disagrees with the GT answer. The bulk launch, publication and admission stay held until the user decides whether to keep Opus despite the 34% refusal rate.
 
 The next number is round 4 or the bulk run; the orchestrator assigns it.
 
