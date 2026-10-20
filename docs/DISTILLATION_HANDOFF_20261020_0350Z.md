@@ -83,8 +83,9 @@ This handoff replaces `DISTILLATION_HANDOFF_20261019_2200Z.md`. Read that file a
   - the ALERTS watcher;
   - the queue watcher;
   - the trinity-3-13 thaw watcher.
+- **Lane message routing (set at 03:58Z on 10-20, at the user's request):** every lane in `W/lanes_trinity-2-28_20261019.tsv` reports to the Claude session named `main_orchestrator` on trinity-0-3 (`mail/orchestrator.json`: name main_orchestrator, host trinity-0-3, no session ID). That covers the three live lanes, the three DONE reviewer and launcher lanes, and the four parked lanes. Until main_orchestrator runs, lane messages wait in each lane's `mail/outbox/new/`, and failed pushes leave `TO_ORCHESTRATOR_*.md` copies in the lane directory. Session c0197160 receives nothing from the lanes and sends them nothing more. A write from it would take a lane back while no main_orchestrator session is live.
 - **Successor actions, in order:**
-  1. Run `lanemsg --orchestrator adopt` on every lane path in `W/lanes_trinity-2-28_20261019.tsv`.
+  1. Name the session `main_orchestrator`. Then run `lanemsg --orchestrator adopt` on every lane path in `W/lanes_trinity-2-28_20261019.tsv`. That binds your session ID, which matters on any host other than trinity-0-3, and flushes the queued messages. Then read each lane's `mail/outbox/new/` and any `TO_ORCHESTRATOR_*.md`. The sprint lane's mailbox lock is held by a frozen trinity-3-13 process, so its adopt may need `timeout 400`.
   2. Arm an ALERTS watcher that also fires when `W/WATCHDOG_ALIVE_trinity-2-28` is more than 10 min old.
   3. Arm the queue watcher (`agent/scripts/queue_watcher.sh`).
   4. Arm the thaw watcher (`until ssh -o ConnectTimeout=8 trinity-3-13 true; do sleep 300; done`). When it fires, kill trinity-3-13's `watch_host.sh` loop and every `devin -p` first, then `lanemsg tell all`.
