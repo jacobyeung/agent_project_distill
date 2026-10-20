@@ -6,6 +6,7 @@ Read the 10-17 handoff (`DISTILLATION_HANDOFF_20261017_2356Z.md`) for the open d
 
 - **10-19 ~14:50:** "why are you waitingon trinity 3-13? remember, if node is down just use another. please don't slow progress for no reason. /handoff for then ext agent". A hung node is banned at once: fence its claims and move its work. Never make a reboot a dependency.
 - **10-19 19:20 (added after this handoff):** "yes 8 nodes on aws is fine". It answers whether distillation may run regardless of the a15_cot jobs: distillation may hold 8 code-aws nodes (64 GPUs) of its own, counted separately from the a15_cot jobs. The record is `S/out/AWS_GRANT_DISTILL_8NODES_20261019.json`, and `L/CODE_AWS_GPU_CAP` carries the new meaning. The a15_cot jobs do not belong to experimenter agent-project-78, which runs nothing on AWS. This replaces open decision 2 below and the next bullet's 4-node limit.
+- **10-19 19:35 (added after this handoff):** "in general the setup on aws should be that if we lose access anytime, all the data we need is alr locally stored on trinity so it's ok . ther shouldn't be large amount s of data on aws that are not synced". This replaces the old rule never to pull data back from AWS. Lane aws_sync_20261019 (swe-2-high, trinity-2-28 watchdog) takes an inventory of distillation data on code-aws. It pulls everything needed to `/data2/jjyeung/agent_project_data/aws_mirror_20261019/` at 5 MB/s with sha256 checks, and repeats the pull every 30 min while the seed-18 evaluation runs.
 - **10-18:** "you may use 8 nodes shared with the main agent on aws. main agent is on trinity-3-30". `L/CODE_AWS_GPU_CAP` reads 64. Distillation stays at 4 nodes (32 GPUs) or fewer unless the main agent frees more. Jobs carry honest names (`jjy_distill_*`).
 - **10-18:** "Is devin workign> it works for me. stornlgy prefer devin over the current laude agnets you have running". Every builder, launcher and reviewer is a Devin lane (`gpt-6-astra-max-priority`). A reviewer's identity is reviewer "devin gpt-6-astra-max-priority independent reviewer", reviewer_agent_id "devin:<lane>", and spawned_by the orchestrator session ID. That ID was "c0197160" until this handoff; after you adopt the lanes, put your own ID in new briefs.
 - **10-18:** "allow one re-check of 193a7e61 and 3439a00e, and set aside any that fail, plus 2ca25f22". Done on 10-18.
@@ -89,7 +90,7 @@ Read the 10-17 handoff (`DISTILLATION_HANDOFF_20261017_2356Z.md`) for the open d
 - Do not import v10 or v12 E1 outputs into v13, and never delete, rename or edit v10's attempt records.
 - Do not restart the shard-3 worker inside job 8080647; use only the reviewed submission-resume path.
 - Do not edit sealed transfer or deployment templates in place, and never run the trinity-3-13 route.
-- Do not pull data back from AWS, retry a mutating AWS command, lower a `.relaunches` counter, or write a verdict a gate reads.
+- Do not retry a mutating AWS command, lower a `.relaunches` counter, or write a verdict a gate reads.
 
 ## 8. Footguns learned
 
