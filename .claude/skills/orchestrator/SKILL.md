@@ -88,12 +88,14 @@ Do not paste trace logs, long diffs, or bulk command output here.
 Delegate each lane to the agent whose capability matches the task; never default to the top
 tier (USER RULING 2026-09-30):
 
-- Trivial polling and file checks: Claude Haiku, or Devin `swe-2-medium`.
-- Scans, sweeps, babysitting, extraction, and drafting: Claude Sonnet, or Devin
-  `swe-2-medium`/`swe-2-high`.
-- Builds, fixes, and code reviews: Devin Astra max (`gpt-6-astra-max-priority`).
-- Judgement-heavy lanes only (error analysis, design rulings, debugging after a failure):
-  Claude Opus.
+Until 2026-11-01, every lane runs on Devin at max effort (USER 2026-10-21: Devin serves the
+best models at max). Claude subagents remain allowed, but choose Devin whenever it can do the work:
+
+- Builds, fixes, and code reviews: `gpt-6-astra-max-priority`.
+- Error analysis, design rulings, debugging after a failure, and other judgement:
+  `claude-opus-5-5-max`, or `claude-fable-5-1-max`.
+- Polling, scans, sweeps, and babysitting: the same max models by default; `swe-2-medium` is
+  optional for trivial polling.
 - Codex: only after Devin fails twice; `gpt-6-astra` for gate reviews. Dispatch via
   `agent/scripts/codex_dispatch.sh` (receipts + spend log; `--net` allowed). Codex sandbox
   caveat: `.git`/`.coord` may be read-only — lanes emit git bundles the orchestrator lands.
