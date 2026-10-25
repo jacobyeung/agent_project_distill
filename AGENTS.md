@@ -20,7 +20,7 @@ A lane's suite gate covers the tests that exercise the code it changed plus its 
 
 ## code-aws jobs
 
-The project, distillation and main together, may hold at most 150 GPUs on code-aws, counting running and pending jobs. The user's other project on the same account (job families a15_cot_c1159, c1164, c1167, c1171, c1173, c1175 and the cot_faithfulness workdirs) has its own limit. Keep the project's share and the Gemini key fully used within that cap.
+The project, distillation and main together, may hold at most 150 GPUs on code-aws, counting running and pending jobs. Of those, distillation is guaranteed 32 and the main lane may hold at most 118 (`lanes/aws_reserve/DISTILL_GUARANTEE_GPUS`). The user's other project on the same account (job families a15_cot_c1159, c1164, c1167, c1171, c1173, c1175 and the cot_faithfulness workdirs) has its own limit. Keep the project's share and the Gemini key fully used within that cap.
 
 Every project job is named `a15_cot_ap_` followed by an opaque random token, for example `a15_cot_ap_7f3c9e21`. No job name, comment, workdir, path, argument, environment variable or log name may identify the project or its work: never the word "split" in any case, and no benchmark, dataset, model or method word such as revsi, vsibench, distill or qgen. Each lane records which run every opaque name belongs to in a ledger on Trinity, never on AWS; distillation's ledger is `lanes/aws_reserve/AWS_JOB_LEDGER.jsonl` under the data root. The Gemini key never goes to AWS.
 
