@@ -28,4 +28,6 @@ Every project job is named `a15_cot_ap` followed by an opaque random token with 
 
 Search for files with specific patterns inside bounded directories. Sweeping searches over the file system have crashed many nodes, so give the same instruction to every subagent you launch.
 
+Each agent, lanes included, makes at most one ssh invocation per minute in total. Remote state comes from one poller per lane that runs a single batched command per minute and writes a snapshot that the lane's watchers read; remote actions wait for the poller's next window. Every ssh carries `timeout` and `-o ConnectTimeout`.
+
 Gemini output budget: 32,768.
