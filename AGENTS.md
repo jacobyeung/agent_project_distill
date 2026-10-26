@@ -28,6 +28,28 @@ Every project job is named `a15_cot_ap` followed by an opaque random token with 
 
 Search for files with specific patterns inside bounded directories. Sweeping searches over the file system have crashed many nodes, so give the same instruction to every subagent you launch.
 
-Each agent, lanes included, makes at most one ssh invocation per minute in total. Remote state comes from one poller per lane that runs a single batched command per minute and writes a snapshot that the lane's watchers read; remote actions wait for the poller's next window. Every ssh carries `timeout` and `-o ConnectTimeout`.
+Each agent, lanes included, makes at most one ssh invocation per minute into Trinity nodes, counting Trinity jump hosts such as trinity.vision.cs.cmu.edu; ssh from Trinity out to Orchard or AWS may be more frequent. Trinity-side remote state comes from one poller per lane that runs a single batched command per minute and writes a snapshot that the lane's watchers read. Reach Orchard directly from the lane's own host rather than through another Trinity node. Every ssh carries `timeout` and `-o ConnectTimeout`.
 
 Gemini output budget: 32,768.
+
+---
+
+## Key Trinity Cluster Rules
+
+Eliminate all pleasantries, no big or long paragraphs, be concise and short.
+Trinity cluster: /data* and /home are overloaded network storage. Minimize reads/writes there; train and process from node-local /scratch (per-node, keep 100-200 GB free).
+No recursive grep/find/du/ls -R, repeated big-file reads, or parallel IO on /data*. No >40K files in one directory.
+Ask before any heavy IO command.
+Max 2 nodes (or 16 GPUs) at normal priority; beyond that use vnice.sh. Run long jobs in tmux. Never run compute on the head node.
+
+### 1. Confirm the destination uses InfiniBand.
+ip route get <DESTINATION_IB_IP>
+# Must show: dev ib0
+
+### 2. Copy directly between nodes using their InfiniBand IPs.
+rsync -avh --info=progress2 \
+  -e "ssh -o BindAddress=<SOURCE_IB_IP>" \
+  /scratch/source/ \
+  username@<DESTINATION_IB_IP>:/scratch/destination/
+
+---
