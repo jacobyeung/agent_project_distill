@@ -28,7 +28,7 @@ Every project job is named `a15_cot_ap` followed by an opaque random token with 
 
 Search for files with specific patterns inside bounded directories. Sweeping searches over the file system have crashed many nodes, so give the same instruction to every subagent you launch.
 
-Each agent, lanes included, makes at most one ssh invocation per minute into Trinity nodes, counting Trinity jump hosts such as trinity.vision.cs.cmu.edu; ssh from Trinity out to Orchard or AWS may be more frequent. Trinity-side remote state comes from one poller per lane that runs a single batched command per minute and writes a snapshot that the lane's watchers read. Reach Orchard directly from the lane's own host rather than through another Trinity node. Every ssh carries `timeout` and `-o ConnectTimeout`.
+An agent and all its lanes combined make fewer than two ssh invocations per minute into Trinity nodes, counting Trinity jump hosts such as trinity.vision.cs.cmu.edu; ssh from Trinity out to Orchard or AWS may be more frequent. Every ssh into Trinity goes through the shared rate limiter `lanes/tools/trinity_ssh.sh` under the data root, which allows one call per rolling 60 s per host it runs on, and Trinity-side state is read from shared files wherever possible. Reach Orchard directly from the lane's own host rather than through another Trinity node. Every ssh carries `timeout` and `-o ConnectTimeout`.
 
 Gemini output budget: 32,768.
 
