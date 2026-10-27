@@ -10,6 +10,8 @@ import math
 import os
 from pathlib import Path
 import time
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 L = Path("/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/lanes")
 HOME = L / "rung1_build_20261027"
@@ -73,8 +75,9 @@ def main():
             entry.update(status="PREPARING")
         arms.append(entry)
     queue = {
-        "schema": "rung1-queue-v1", "updated_pt": time.strftime("%Y-%m-%dT%H:%M"), "from_lane": "rung1_build_20261027",
-        "builder_commit": report["commit"], "lane_code_commit": (HOME / "work/COMMIT.txt").read_text().strip(),
+        "schema": "rung1-queue-v1", "updated_pt": datetime.now(ZoneInfo("America/Los_Angeles")).strftime("%Y-%m-%dT%H:%M"), "from_lane": "rung1_build_20261027",
+        "builder_commit": report["commit"], "rows_s_commit": (HOME / "work/COMMIT.txt").read_text().strip(),
+        "latest_lane_commit": "5ad69c90bed5fedc35b6bdd73871dbb64b6d6b27",
         "rulings": "user 03:00 PT 10-27: every training row carries a trace; A1 GT-template traces; A2 = A1 with vision "
                    "frozen; A3 perception-target traces; a small answer-only control as yardstick only",
         "export": {"source": "gtqgen dispatch export, 293,756 questions (GT answers, bank review rev_qgen PASS)",
