@@ -121,6 +121,17 @@ def main():
                                        "code-aws; not prepared by this lane yet",
                          "stage2a_released": "routed to vsi590k_cascade_20261027/INPUT_STAGE2A.jsonl for traces"},
     }
+    # Arms other lanes added (their own entries, e.g. a perception-head variant) and the coordinator's launch order
+    # stay as they are in the live queue; this lane rewrites only its own arms.
+    if QUEUE.exists():
+        live = json.loads(QUEUE.read_text())
+        mine = {entry["arm"]: entry for entry in arms}
+        merged = [mine.pop(entry["arm"]) if entry["arm"] in mine else entry for entry in live.get("arms", [])]
+        queue["arms"] = merged + list(mine.values())
+        if live.get("launch", {}).get("order_at_1830_pt"):
+            queue["launch"]["order_at_1830_pt"] = live["launch"]["order_at_1830_pt"]
+        for key in set(live) - set(queue):
+            queue[key] = live[key]
     QUEUE.with_name(QUEUE.name + ".next").write_text(json.dumps(queue, indent=1) + "\n")
     os.replace(QUEUE.with_name(QUEUE.name + ".next"), QUEUE)
     print(json.dumps([{k: a.get(k) for k in ("arm", "status", "training_rows", "steps")} for a in arms]))

@@ -37,10 +37,13 @@ CLOSURE = "1e909863b74bd95eb0c36e957ea88fd7b51befb43a902ca975b643bd5e157c3d"
 BASE = "/lustre/fsw/portfolios/av/users/jyeung/ap/59845bf9"
 RUNS = BASE + "/d/orch/runs/aws128p_20261025"
 STEPS = {"RG1_A1_S17": 1133, "RG1_A2_S17": 1133, "RG1_A3_S17": 1133, "RG1_C_S17": 115, "RG1_S_S17": 188,
-         "RG1_A1S_S17": 1321}
-SECONDS = {"RG1_A3_S17": 19.5, "RG1_S_S17": 18.0}  # default s/step before measurement; others 17.5
+         "RG1_A1S_S17": 1321, "A1H_S17": 1133}
+SECONDS = {"RG1_A3_S17": 19.5, "RG1_S_S17": 18.0, "A1H_S17": 18.5}  # default s/step before measurement; others 17.5
 TAG = {"RG1_A1_S17": "a1", "RG1_A2_S17": "a2", "RG1_A3_S17": "a3", "RG1_C_S17": "c", "RG1_S_S17": "s",
-       "RG1_A1S_S17": "m"}
+       "RG1_A1S_S17": "m", "A1H_S17": "h"}
+# Arms another lane owns run on their own trainer tree (QUEUE_RUNG1.json entry: trainer_commit, runtime_record).
+OWN_TRAINER = {"A1H_S17": {"trainer_commit": "f69509db55cb3e659c456ad31a2e760254062123",
+                           "runtime_record": "/opt/aws_incoming/94cbc8a43483a8b50d3784c9182cb6c926394f100a36199f1caae7755f15ef40.json"}}
 OVERHEAD_MIN = 20  # startup (image, venv, admission, memory probe) plus finalize and publication
 TERMINAL = ("COMPLETED", "FAILED", "CANCELLED", "TIMEOUT", "NODE_FAIL", "OUT_OF_MEMORY", "PREEMPTED", "DEADLINE")
 
@@ -68,11 +71,13 @@ def write_int(path, value):
 
 
 def chains(blocks):
-    a1, a2, a3, c, s, m = "RG1_A1_S17", "RG1_A2_S17", "RG1_A3_S17", "RG1_C_S17", "RG1_S_S17", "RG1_A1S_S17"
+    # Coordinator order: A1, A3, A1H, C, A2, S, A1S; with two blocks A1H and A1S wait for the next night.
+    a1, a2, a3, c, s, m, h = ("RG1_A1_S17", "RG1_A2_S17", "RG1_A3_S17", "RG1_C_S17", "RG1_S_S17", "RG1_A1S_S17",
+                              "A1H_S17")
     if blocks >= 4:
-        return [[a1, c, s], [a3], [a2], [m]]
+        return [[a1, s], [a3], [h], [c, a2]]
     if blocks == 3:
-        return [[a1, a2], [a3, c, s], [m]]
+        return [[a1, a2], [a3, c, s], [h]]
     if blocks == 2:
         return [[a1, a2], [a3, c, s]]
     return [[a1, a3, c]]
@@ -127,7 +132,7 @@ def parse_poll(text):
 
 def queue_submission(arm, minutes, state):
     run = f"r1{TAG[arm]}_{secrets.token_hex(4)}"
-    spec = dict(TRAINER, phase="mntrain", efa=True, argv=[arm, run, 0],
+    spec = dict(OWN_TRAINER.get(arm, TRAINER), phase="mntrain", efa=True, argv=[arm, run, 0],
                 purpose=f"rung-1 arm {arm}: full run, world 32 over EFA, ends by 06:20 PT")
     path = NIGHT / f"SPEC_{run}.json"
     path.write_text(json.dumps(spec, indent=1, sort_keys=True) + "\n")
@@ -177,7 +182,9 @@ def tick():
                 cur["published"] = probe.get("published", False)
                 cur["ended"] = now().isoformat(timespec="seconds")
                 log(f"{cur['arm']} job {cur['job']} ended {slurm} steps={cur['steps']} published={cur['published']}")
-                if slurm == "COMPLETED" and cur["published"] and cur["run"] not in state["eval_added"]:
+                # Head-trained arms are scored on their owner lane's harness, not through EVAL_QUEUE.json.
+                if (slurm == "COMPLETED" and cur["published"] and cur["run"] not in state["eval_added"]
+                        and cur["arm"] not in OWN_TRAINER):
                     queue = json.loads(EVAL_QUEUE.read_text())
                     queue.append({"run": cur["run"], "job": int(cur["job"])})
                     tmp = EVAL_QUEUE.with_name(EVAL_QUEUE.name + ".next")
