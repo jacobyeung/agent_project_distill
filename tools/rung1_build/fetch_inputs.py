@@ -1,5 +1,5 @@
 """Stage C of the rung-1 build (trinity-3-3, Python 3.6, stdlib only). All /data* reads are streamed tar | pv copies
-(stream_copy.sh, 200 kB/s, pausing on the IO meter); everything else reads the node-local copy.
+(stream_copy.sh: gated reader registered with the IO governor, which sets the pv rate); everything else reads the node-local copy.
 
 For every export video it stages:
   * the bank scene context each row binds (answer_provenance.source_scene): the authoritative 32-frame student input;
@@ -28,14 +28,25 @@ def sha(data):
     return hashlib.sha256(data).hexdigest()
 
 
+def intact(src, path, digest):
+    """A staged copy counts only if it exists and, when its pin is known, matches it (a stopped or ended stream can
+    leave a partial last member)."""
+    if not os.path.exists(src + path):
+        return False
+    return digest is None or sha(open(src + path, "rb").read()) == digest
+
+
 def stage(src, paths, name):
-    todo = sorted(set(p for p in paths if not os.path.exists(src + p)))
+    """paths: iterable of path or (path, sha256 or None); stages every path that is missing or fails its pin."""
+    pairs = [(p, None) if isinstance(p, str) else tuple(p) for p in paths]
+    todo = sorted(set(p for p, digest in pairs if not intact(src, p, digest)))
     listing = os.path.join(src, name)
     with open(listing, "w") as stream:
         stream.write("".join(p + "\n" for p in todo))
     print("staging", name, len(todo), flush=True)
     if todo:
-        subprocess.check_call(["bash", COPY, listing, src, "200k"])
+        subprocess.check_call(["bash", COPY, listing, src, "200k",
+                               "rung1_build_20261027.stageC_" + name.split(".")[0], "0.2"])
 
 
 def pinned(src, pin):
@@ -73,28 +84,47 @@ def main():
             record["shards"].add(question["qgen"]["source_row"]["shard"]["path"])
             assert record["visibility"] == question["visibility"] and record["context"] == context, video
     print("videos", len(videos), flush=True)
-    stage(src, [MANIFEST] + [v["context"]["path"] for v in videos.values()]
-          + [v["visibility"]["path"] for v in videos.values()], "list_c1.txt")
-
-    snapshots = {}
-    for video, record in videos.items():
-        snapshots[video] = json.loads(pinned(src, record["visibility"]).decode())["scene_snapshot"]
     rng = random.Random(20261027)
     sample = rng.sample(sorted(videos), int(os.environ.get("R1_UNIFORMITY_SHARDS", "4")))
     sample_shards = [sorted(videos[v]["shards"])[-1] for v in sample]
-    manifest = pinned(src, {"path": MANIFEST, "sha256": sha(open(src + MANIFEST, "rb").read())})
-    shards = [entry["path"] for entry in json.loads(manifest.decode())["shards"]]
 
     def group(key):
         return key[:len("scannet__sceneNNNN")] if key.startswith("scannet__") else key
 
-    exported_groups = {group(video.replace("/", "__")) for video in videos}
-    spare = sorted((not os.path.basename(path).startswith("scannetppv2__"), path) for path in shards
-                   if path.endswith(".part_0001.jsonl")
-                   and group(os.path.basename(path).split(".part_")[0]) not in exported_groups)
-    spare = [path for _, path in spare]
-    print("bank shards", len(shards), "spare scans in unused groups", len(spare), spare[:7], flush=True)
-    stage(src, [p["path"] for p in snapshots.values()] + sample_shards + spare[:1], "list_c2.txt")
+    def plan_shards(manifest):
+        shards = json.loads(manifest.decode())["shards"]
+        exported_groups = {group(video.replace("/", "__")) for video in videos}
+        spare = sorted((not os.path.basename(e["path"]).startswith("scannetppv2__"), e["path"]) for e in shards
+                       if e["path"].endswith(".part_0001.jsonl")
+                       and group(os.path.basename(e["path"]).split(".part_")[0]) not in exported_groups)
+        pins = {e["path"]: e["sha256"] for e in shards}
+        return [path for _, path in spare], pins, len(shards)
+
+    def snapshot_pins():
+        found = {}
+        for video, record in videos.items():
+            if intact(src, record["visibility"]["path"], record["visibility"]["sha256"]):
+                found[video] = json.loads(pinned(src, record["visibility"]).decode())["scene_snapshot"]
+        return found
+
+    # As few copy turns as possible: one list holds every pinned file known before copying (contexts, visibility, the
+    # scene primitives pinned by intact local visibility files, and the bank shards when the local manifest is intact).
+    first = [MANIFEST] + [(v["context"]["path"], v["context"]["sha256"]) for v in videos.values()] \
+        + [(v["visibility"]["path"], v["visibility"]["sha256"]) for v in videos.values()] \
+        + [(p["path"], p["sha256"]) for p in snapshot_pins().values()]
+    try:
+        spare, shard_pins, _ = plan_shards(open(src + MANIFEST, "rb").read())
+        first += [(path, shard_pins.get(path)) for path in sample_shards + spare[:1]]
+    except (OSError, ValueError):
+        pass
+    stage(src, first, "list_c1b.txt")
+    snapshots = snapshot_pins()
+    assert len(snapshots) == len(videos)
+    manifest = open(src + MANIFEST, "rb").read()
+    spare, shard_pins, total_shards = plan_shards(manifest)
+    print("bank shards", total_shards, "spare scans in unused groups", len(spare), spare[:7], flush=True)
+    stage(src, [(p["path"], p["sha256"]) for p in snapshots.values()]
+          + [(path, shard_pins.get(path)) for path in sample_shards + spare[:1]], "list_c2.txt")
 
     out = open(src + "/VIDEO_INPUTS.jsonl.part", "w")
     inputs_by_video = {}

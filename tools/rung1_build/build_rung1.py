@@ -523,6 +523,7 @@ def main():
               "excluded": Counter(), "excluded_by_type": Counter(), "kept_by_type": Counter(),
               "a3_think_chars": Counter(), "answers": Counter(),
               "a3_appearance_slot_mismatch": 0, "a3_think_chars_max": 0, "a1_trace_chars": Counter(),
+              "trace_check_failures": [],
               "a1_trace_chars_max": 0}
     frames_needed = {}
     rows_x, rows_g, rows_p, invisible = [], [], [], []
@@ -604,12 +605,21 @@ def main():
             vis, geo = vis_cache[q["video"]]
             try:
                 think, template = facts_text(kind, question, answer, options, letters, facts[qid], vis, geo, report)
+            except AssertionError as error:
+                # A GT consistency check failed (facts vs answer, options or instance layout): keep the row out of every
+                # export and record why, rather than train on a trace that may contradict the answer.
+                report["excluded"]["trace_check_failed"] += 1
+                report["excluded_by_type"][kind] += 1
+                if len(report["trace_check_failures"]) < 50:
+                    report["trace_check_failures"].append({"qid": qid, "type": kind, "error": repr(error)[:300]})
+                invisible.append({"qid": qid, "type": kind, "video": q["video"], "reason": "trace_check_failed"})
+                continue
             except Invisible:
                 # Every training row needs a trace, and a trace may name only visible objects: drop the row from
                 # all exports and list it for the cascade lanes.
                 report["excluded"]["named_object_not_visible"] += 1
                 report["excluded_by_type"][kind] += 1
-                invisible.append({"qid": qid, "type": kind, "video": q["video"]})
+                invisible.append({"qid": qid, "type": kind, "video": q["video"], "reason": "named_object_not_visible"})
                 continue
             allowed = set(m.group(0).lower() for m in BANNED.finditer(question + " " + " ".join(options)))
             for text in (think, template):

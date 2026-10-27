@@ -412,6 +412,80 @@ GOVERNOR = Path("/data3/jjyeung/orch_n13_20261026/io_governor/streams")
 REGISTER = "/scratch/jjyeung/io_governor_n13/register.py"
 
 
+ADMISSION_WAIT = 2400  # seconds a registered payload poll waits for the governor before giving up (nothing sent)
+STREAM_TIMEOUT = 5400  # seconds for an admitted payload poll, governor pauses included
+
+
+def governed_ssh(parts, stamp, payload):
+    import threading
+    work = Path("/scratch/jjyeung/rung1_push/stream") / stamp
+    work.mkdir(parents=True, exist_ok=True)
+    files = []
+    for number, part in enumerate(parts):
+        if isinstance(part, FileRef):
+            files.append(str(part.path))
+        else:
+            path = work / f"part_{number:04d}.txt"
+            path.write_bytes(part)
+            files.append(str(path))
+    manifest = work / "MANIFEST.json"
+    manifest.write_text(json.dumps(files))
+    total = sum(Path(f).stat().st_size for f in files)
+    reader = subprocess.Popen([sys.executable, "-B", str(Path(__file__).with_name("r1stream.py")), str(manifest),
+                               str(work / "reader.pid")], stdout=subprocess.PIPE)
+    pv = subprocess.Popen(["pv", "-q", "-L", "500k", "-B", "65536"], stdin=reader.stdout, stdout=subprocess.PIPE)
+    reader.stdout.close()
+    proc = subprocess.Popen(SSH, stdin=pv.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    pv.stdout.close()
+    chunks = {"out": [], "err": []}
+
+    def drain(stream, key):
+        for block in iter(lambda: stream.read(65536), b""):
+            chunks[key].append(block)
+
+    threads = [threading.Thread(target=drain, args=(proc.stdout, "out"), daemon=True),
+               threading.Thread(target=drain, args=(proc.stderr, "err"), daemon=True)]
+    for thread in threads:
+        thread.start()
+    for _ in range(120):
+        if (work / "reader.pid").exists() and "T" in Path(f"/proc/{reader.pid}/stat").read_text().rsplit(")", 1)[1].split()[0]:
+            break
+        time.sleep(0.5)
+    record = GOVERNOR / (LANE + ".json")
+    if record.exists():
+        record.rename(record.with_name(f"{LANE}.done.{int(time.time())}"))
+    subprocess.run(["/usr/bin/python3", REGISTER, "--lane", LANE, "--pid", str(reader.pid), "--member-pid", str(pv.pid),
+                    "--pv-pid", str(pv.pid), "--expected-bytes", str(total), "--tier", "1", "--kind", "push",
+                    "--nominal-mbps", "1.0", "--tunnel-mbps", "0.5", "--io-weight", "1", "--tunnel-weight", "1",
+                    "--allow-resume"], check=True)
+    start = time.time()
+    admitted = False
+    while time.time() - start < ADMISSION_WAIT:
+        state = Path(f"/proc/{reader.pid}/stat").read_text().rsplit(")", 1)[1].split()[0] if reader.poll() is None else "X"
+        if state not in ("T", "t"):
+            admitted = True
+            break
+        time.sleep(5)
+    if not admitted:
+        print(f"NOT_ADMITTED after {ADMISSION_WAIT} s; nothing was sent; actions stay pending")
+        for p in (proc, pv, reader):
+            p.kill()
+        reader.wait(); pv.wait(); proc.wait()
+        governor_complete()
+        return subprocess.CompletedProcess(SSH, 99, b"", b"governor did not admit the payload poll")
+    killer = threading.Timer(STREAM_TIMEOUT, lambda: [p.kill() for p in (proc, pv, reader)])
+    killer.daemon = True
+    killer.start()
+    reader.wait()
+    pv.wait()
+    code = proc.wait()
+    killer.cancel()
+    for thread in threads:
+        thread.join(timeout=30)
+    governor_complete()
+    return subprocess.CompletedProcess(SSH, code, b"".join(chunks["out"]), b"".join(chunks["err"]))
+
+
 def governor_register():
     """Stop this process, have a helper register it with the central IO governor (tier 1 push), then resume."""
     import signal
@@ -547,11 +621,11 @@ def run():
             try:
                 payload = sum(part.size for part in stream if isinstance(part, FileRef))
                 if payload > 1_000_000:
-                    governor_register()
-                # Paced in-process (no pv, no spool), so a poll is this interpreter and one ssh on trinity-0-13.
-                result = paced_ssh(stream, RATE)
-                if payload > 1_000_000:
-                    governor_complete()
+                    # Payload polls: gated reader | pv | ssh, registered with the IO governor, which admits and paces it.
+                    result = governed_ssh(stream, stamp, payload)
+                else:
+                    # Control-only polls (status, sh, sbatch; a few kB) are not data streams.
+                    result = paced_ssh(stream, RATE)
             except (OSError, subprocess.TimeoutExpired) as error:
                 result = subprocess.CompletedProcess(SSH, 98, getattr(error, 'stdout', None) or b'',
                                                      str(error).encode())

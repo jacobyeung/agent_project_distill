@@ -27,7 +27,7 @@ def main():
     with gzip.open(os.path.join(bundle, "MAP_TRINITY_ONLY.json.gz"), "wt") as stream:
         json.dump(token_map, stream, sort_keys=True)
     rng = random.Random(1027)
-    for export in ("X", "P"):
+    for export in ("X", "G", "P"):
         directory = os.path.join(out, "export_" + export)
         shutil.copy(os.path.join(directory, "ARCHIVES.json"), os.path.join(bundle, "ARCHIVES_%s.json" % export))
         shutil.copy(os.path.join(directory, "inherited_division.json"),
@@ -37,10 +37,10 @@ def main():
             shutil.copyfileobj(source, sink)
         archives = json.load(open(os.path.join(directory, "ARCHIVES.json")))
         total = sum(a["rows"] for a in archives)
-        chosen = set(rng.sample(range(total), 1000))
+        chosen = set(rng.sample(range(total), min(1000, total)))
         number = 0
         samples = open(os.path.join(bundle, "SAMPLE_ROWS_%s.jsonl" % export), "w")
-        thinks = gzip.open(os.path.join(bundle, "THINK_P.jsonl.gz"), "wt") if export == "P" else None
+        thinks = gzip.open(os.path.join(bundle, "THINK_%s.jsonl.gz" % export), "wt") if export in ("G", "P") else None
         for archive in archives:
             with tarfile.open(os.path.join(directory, archive["file"])) as stream:
                 for member in stream:
@@ -58,9 +58,10 @@ def main():
         if thinks is not None:
             thinks.close()
     with open(os.path.join(bundle, "README.txt"), "w") as stream:
-        stream.write("Rung-1 review bundle. Exports X (A1/A2) and P (A3); full rows on trinity-3-3:%s/export_*.\n"
+        stream.write("Rung-1 review bundle. Exports X (answer-only control), G (A1/A2) and P (A3); full rows on trinity-3-3:%s/export_*.\n"
                      "SAMPLE_ROWS_<export>.jsonl: 1,000 random rows each, with native_qid from the Trinity-only map.\n"
-                     "THINK_P.jsonl.gz: every export-P think text. candidate_index_<export>.jsonl.gz: full indexes.\n"
+                     "THINK_G.jsonl.gz / THINK_P.jsonl.gz: every export-G / export-P think text. "
+                     "candidate_index_<export>.jsonl.gz: full indexes.\n"
                      "MAP_TRINITY_ONLY.json.gz: opaque token -> native identifiers (never leaves Trinity).\n" % out)
     print("REVIEW_BUNDLE_DONE")
 

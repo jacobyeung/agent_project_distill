@@ -38,16 +38,15 @@ for entry in "${frozen[@]}"; do
         tar -C "$incoming.part.$$" -xf "$path"
         touch "$incoming.part.$$/UNPACKED"
         mkdir -p "$root/incoming_r1"
-        mv -T "$incoming.part.$$" "$incoming"
+        mv -T "$incoming.part.$$" "$incoming" 2>/dev/null || test -e "$incoming/UNPACKED"  # a concurrent job won the race
     fi
     for item in "$incoming"/frozen/*; do
         name="$(basename "$item")"
-        if [[ -e "$root/frozen/$name" ]]; then
-            for f in "$item"/*; do cmp -s "$f" "$root/frozen/$name/$(basename "$f")" || { echo "INSTALL_CONFLICT $name" >&2; exit 3; }; done
-        else
+        if [[ ! -e "$root/frozen/$name" ]]; then
             cp -a "$item" "$root/frozen/$name.part.$$"
-            mv -T "$root/frozen/$name.part.$$" "$root/frozen/$name"
+            mv -T "$root/frozen/$name.part.$$" "$root/frozen/$name" 2>/dev/null || true  # a concurrent job may have won
         fi
+        for f in "$item"/*; do cmp -s "$f" "$root/frozen/$name/$(basename "$f")" || { echo "INSTALL_CONFLICT $name" >&2; exit 3; }; done
         step "frozen inputs $name"
     done
 done
