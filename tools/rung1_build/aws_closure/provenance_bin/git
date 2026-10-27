@@ -1,0 +1,60 @@
+#!/usr/bin/python3 -I
+"""Manifest-backed provenance for the neutral source trees, which are installed without version-control metadata.
+
+It answers exactly the two queries the pinned code makes, from the installed NEUTRAL_RUNTIME.json record:
+  git [-C DIR] rev-parse HEAD                                  -> the recorded commit of the tree rooted at DIR
+  git [-C DIR] status --porcelain [--untracked-files=normal]   -> " M"/" D"/"??" lines for every file whose bytes,
+                                                                  presence or tracking differ from the recorded manifest
+Every call hashes the whole tree, so a clean status means the tree is byte-identical to the committed files.
+Any other invocation exits 2.
+"""
+import hashlib
+import json
+import os
+import sys
+
+RECORD = os.environ["ANYHOST_NEUTRAL_RUNTIME"]  # rung1_build copy: the record path comes from the job environment
+
+
+def fail(message, code=2):
+    sys.stderr.write("provenance: " + message + "\n")
+    sys.exit(code)
+
+
+def main(argv):
+    directory = os.getcwd()
+    while argv[:1] == ["-C"]:
+        if len(argv) < 2:
+            fail("missing -C argument")
+        directory = os.path.join(directory, argv[1])
+        argv = argv[2:]
+    directory = os.path.realpath(directory)
+    with open(RECORD) as stream:
+        record = json.load(stream)
+    tree = next((t for t in record["trees"].values() if os.path.realpath(t["container_path"]) == directory), None)
+    if tree is None:
+        fail(f"not a recorded neutral tree: {directory}", 128)
+    if argv == ["rev-parse", "HEAD"]:
+        print(tree["commit"])
+        return
+    if argv[:2] == ["status", "--porcelain"] and argv[2:] in ([], ["--untracked-files=normal"]):
+        expected = tree["files"]
+        present = {}
+        for base, folders, names in os.walk(directory):
+            folders.sort()
+            for name in names:
+                path = os.path.join(base, name)
+                relative = os.path.relpath(path, directory)
+                with open(path, "rb") as stream:
+                    present[relative] = hashlib.sha256(stream.read()).hexdigest()
+        lines = [f" M {p}" for p in sorted(expected) if p in present and present[p] != expected[p]]
+        lines += [f" D {p}" for p in sorted(expected) if p not in present]
+        lines += [f"?? {p}" for p in sorted(present) if p not in expected]
+        if lines:
+            print("\n".join(lines))
+        return
+    fail("unsupported query: " + " ".join(argv))
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])
