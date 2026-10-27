@@ -70,25 +70,32 @@ def write_int(path, value):
     os.replace(tmp, path)
 
 
-def chains(blocks):
-    # Coordinator order: A1, A3, A1H, C, A2, S, A1S; with two blocks A1H and A1S wait for the next night.
+def chains(share):
+    """[(chain, not_before HH:MM or None), ...] per 32-GPU block, in the coordinator's order for the night's share."""
     a1, a2, a3, c, s, m, h = ("RG1_A1_S17", "RG1_A2_S17", "RG1_A3_S17", "RG1_C_S17", "RG1_S_S17", "RG1_A1S_S17",
                               "A1H_S17")
-    if blocks >= 4:
-        return [[a1, s], [a3], [h], [c, a2]]
-    if blocks == 3:
-        return [[a1, a2], [a3, c, s], [h]]
-    if blocks == 2:
-        return [[a1, a2], [a3, c, s]]
-    return [[a1, a3, c]]
+    if share >= 168:
+        # USER ruling 10-27: wave 1 A1, A3, A2, A1H (128); the checker holds 24 until about 21:20, then a fifth block
+        # runs C and S. A1S needs about 6.5 h at world 32 after wave 1 and the trainer caps world at 32, so it waits.
+        return [([a1], None), ([a3], None), ([a2], None), ([h], None), ([c, s], "20:50")]
+    if share >= 110:
+        return [([a1, a2], None), ([a3, c, s], None), ([h], None)]
+    if share >= 78:
+        return [([a1, a2], None), ([a3, c, s], None)]  # A1H and A1S wait for the next night
+    return [([a1, a3, c], None)]
+
+
+def checker_gpus(share):
+    return 24 if share >= 168 else 8
 
 
 def plan():
     share = int(re.match(r"\s*([0-9]+)", SHARE_FILE.read_text())[1])
-    blocks = max(1, min(4, (share - 14) // 32))
-    checker = 24 if share >= 168 else 8
-    state = {"share": share, "blocks": [{"chain": chain, "next": 0, "current": None, "history": []}
-                                         for chain in chains(blocks)],
+    plan_blocks = chains(share)
+    blocks = len(plan_blocks)
+    checker = checker_gpus(share)
+    state = {"share": share, "blocks": [{"chain": chain, "not_before": start, "next": 0, "current": None,
+                                          "history": []} for chain, start in plan_blocks],
              "measured_s_per_step": {}, "eval_added": [], "created": now().isoformat(timespec="seconds")}
     if STATE.exists():
         old = json.loads(STATE.read_text())
@@ -97,12 +104,14 @@ def plan():
     save(state)
     schedule = json.loads((HOME / "SCHEDULE.json").read_text())
     schedule = [row for row in schedule if row["from"] < "2026-10-27T18:30"]
-    schedule += [{"from": "2026-10-27T18:30", "total": share, "lane": 32 * blocks,
+    schedule += [{"from": "2026-10-27T18:30", "total": share, "lane": 32 * blocks,  # never above the share
                   "why": f"night: rung-1 launch, {blocks} blocks of 32 GPUs (DISTILL_NIGHT_SHARE {share})"},
                  {"from": "2026-10-28T06:20", "total": 16, "lane": 0, "why": "day: rung-1 arms end by 06:20"}]
     (HOME / "SCHEDULE.json").write_text(json.dumps(schedule, indent=1) + "\n")
-    write_int(RESERVE_FILE, 32 * blocks + checker)
-    log(f"plan share={share} blocks={blocks} chains={[b['chain'] for b in state['blocks']]} reserve={32 * blocks + checker}")
+    reserve = 32 * sum(1 for _, start in plan_blocks if not start) + checker
+    write_int(RESERVE_FILE, reserve)
+    log(f"plan share={share} blocks={blocks} chains={[(b['chain'], b['not_before']) for b in state['blocks']]} "
+        f"reserve={reserve}")
     print(json.dumps(state["blocks"], indent=1))
 
 
@@ -137,7 +146,9 @@ def queue_submission(arm, minutes, state):
     path = NIGHT / f"SPEC_{run}.json"
     path.write_text(json.dumps(spec, indent=1, sort_keys=True) + "\n")
     digest = subprocess.check_output([PY, "-B", str(TOOLS / "r1actions.py"), "spec", str(path)], text=True).strip()
-    limit_min = min(math.ceil(minutes + 30), int((END - now()).total_seconds() // 60) - 2)
+    # The limit is the time left to 06:20 (the deadline also enforces it): a slower-than-estimated arm still gets to its
+    # final checkpoint and publication if the night allows, instead of timing out at an estimate-based limit.
+    limit_min = int((END - now()).total_seconds() // 60) - 2
     limit = f"{limit_min // 60}:{limit_min % 60:02d}:00"
     env = dict(os.environ, R1_DEADLINE=END.strftime("%Y-%m-%dT%H:%M:%S"))
     name = subprocess.check_output([PY, "-B", str(TOOLS / "r1actions.py"), "sbatchmn", CLOSURE, digest, "4", limit, "-"],
@@ -202,6 +213,9 @@ def tick():
             left = (END - now()).total_seconds() / 60
             if now() < datetime(2026, 10, 27, 18, 30, tzinfo=PT):
                 continue
+            if block.get("not_before") and now() < datetime(2026, 10, 27, *map(int, block["not_before"].split(":")),
+                                                           tzinfo=PT):
+                continue
             if minutes + 5 <= left:
                 block["current"] = queue_submission(arm, minutes, state)
                 block["next"] += 1
@@ -212,10 +226,20 @@ def tick():
                 block["deferred"] = arm
                 log(f"{arm} waits for the next night: estimate {minutes:.0f} min, {left:.0f} min left")
     active = sum(32 for b in state["blocks"] if b["current"])
-    pending_work = any(b["current"] or (b["next"] < len(b["chain"]) and b.get("deferred") != b["chain"][b["next"]])
-                       for b in state["blocks"])
-    if not pending_work:
-        write_int(RESERVE_FILE, 24 if state["share"] >= 168 else 8)
+
+    def open_block(b):
+        started = not b.get("not_before") or now() >= datetime(2026, 10, 27, *map(int, b["not_before"].split(":")),
+                                                               tzinfo=PT)
+        waiting = b["next"] < len(b["chain"]) and b.get("deferred") != b["chain"][b["next"]]
+        return bool(b["current"]) or (started and waiting)
+
+    # Training GPUs the eval scheduler must leave free, chain gaps included; the checker's share is held until the
+    # later blocks open (its jobs count in the queue total while they run).
+    later = any(b.get("not_before") for b in state["blocks"])
+    held = 32 * sum(1 for b in state["blocks"] if open_block(b))
+    if not later or not any(b.get("not_before") and open_block(b) for b in state["blocks"]):
+        held += checker_gpus(state["share"]) if any(open_block(b) for b in state["blocks"]) else 0
+    write_int(RESERVE_FILE, held)
     save(state)
     # Status probe for the current arms (job log steps, mean step seconds, publication), run in this poll.
     targets = " ".join(f'{c["name"]}:{c["job"]}:{c["run"]}' for c in (b["current"] for b in state["blocks"])
