@@ -239,6 +239,12 @@ def tick():
     held = 32 * sum(1 for b in state["blocks"] if open_block(b))
     if not later or not any(b.get("not_before") and open_block(b) for b in state["blocks"]):
         held += checker_gpus(state["share"]) if any(open_block(b) for b in state["blocks"]) else 0
+    # Coordinator 10-27: once wave 1 (the blocks open from 18:30) has ended, the open-model cascade lane holds 48 GPUs
+    # until 06:20, on top of any rung-1 block still running.
+    wave1 = [b for b in state["blocks"] if not b.get("not_before")]
+    if (state["share"] >= 168 and now() >= datetime(2026, 10, 27, 18, 30, tzinfo=PT) and now() < END
+            and wave1 and not any(open_block(b) for b in wave1)):
+        held = 32 * sum(1 for b in state["blocks"] if open_block(b)) + 48
     write_int(RESERVE_FILE, held)
     save(state)
     # Status probe for the current arms (job log steps, mean step seconds, publication), run in this poll.
