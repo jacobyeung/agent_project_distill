@@ -42,7 +42,7 @@ LANE = "rung1_build_20261027"
 SSH = ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=15", "-o", "ServerAliveInterval=30", "code-aws", "bash -s"]
 SSH_TIMEOUT = 900
 ACK = POLLS / "URGENT_ACK"
-MIN_INTERVAL = 150
+MIN_INTERVAL = int(os.environ.get("R1_MIN_INTERVAL", "150"))  # launch-phase checks may run every minute
 BANNED = re.compile("sp" "lit", re.I)
 # Every AWS-visible string of a job (sbatch argv, paths, log path, and the spec file the job reads its arguments from)
 # must be opaque: none of these words, case-insensitive; the job's own name is the only place "cot_ap" may appear.
