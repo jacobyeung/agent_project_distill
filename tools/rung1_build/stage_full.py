@@ -14,7 +14,7 @@ from pathlib import Path
 import subprocess
 import sys
 
-OUT = Path("/scratch/jjyeung/rung1_push/out_full")
+OUT = Path("/scratch/jjyeung/rung1_push/out_full2")
 PUSH = Path("/scratch/jjyeung/rung1_push")
 TOOLS = Path(__file__).resolve().parent
 CODE = TOOLS.parent / "work/code"
