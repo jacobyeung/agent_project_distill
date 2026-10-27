@@ -49,7 +49,9 @@ def main():
     for arm, (role, export) in ROLES.items():
         admission = admissions.get(arm)
         pins = frozen.get(arm, {}) or self_report.get("frozen", {}).get(arm, {})
-        rows = admission["rows"] if admission else (pins["rows_including_heldout_support"] - 1 if pins else None)
+        planned = {"S": self_report.get("rows"), "G+S": self_report.get("mix_rows")}
+        rows = (admission["rows"] if admission else planned[export] if export in planned
+                else pins["rows_including_heldout_support"] - 1 if pins else None)
         entry = dict(RECIPE, arm=arm, role=role, export=export, frozen_dir=ROOT + arm, training_rows=rows,
                      steps=math.ceil(rows / RECIPE["effective_batch_size"]) if rows else None,
                      checkpoint_every_steps=500, checkpoint_final=True, warm_start=PARENT, trainer_commit=TRAINER,
@@ -62,7 +64,8 @@ def main():
             if export in ("S", "G+S"):  # the self-trace rows also need their own legality review, of these bytes
                 index_sha = pins.get("candidate_index.jsonl", {}).get("sha256")
                 cleared = (cleared and self_review and self_review.get("training_admission") is True
-                           and bool(index_sha) and index_sha in json.dumps(self_review.get("inputs", {})))
+                           and bool(index_sha) and index_sha in json.dumps(self_review.get("inputs", {}))
+                           and admission.get("_files", {}).get("candidate_index.jsonl") == index_sha)  # prepped bytes
             entry.update(status="READY" if cleared else "PREPARED_AWAITING_CLEARANCE",
                          bindings=admission["bindings"], protocol_sha256=admission["protocol_sha256"],
                          pre_evaluation_drops=admission["pre_evaluation_drops"], counts=admission["counts"])
@@ -71,7 +74,7 @@ def main():
         arms.append(entry)
     queue = {
         "schema": "rung1-queue-v1", "updated_pt": time.strftime("%Y-%m-%dT%H:%M"), "from_lane": "rung1_build_20261027",
-        "builder_commit": (HOME / "work/COMMIT.txt").read_text().strip(),
+        "builder_commit": report["commit"], "lane_code_commit": (HOME / "work/COMMIT.txt").read_text().strip(),
         "rulings": "user 03:00 PT 10-27: every training row carries a trace; A1 GT-template traces; A2 = A1 with vision "
                    "frozen; A3 perception-target traces; a small answer-only control as yardstick only",
         "export": {"source": "gtqgen dispatch export, 293,756 questions (GT answers, bank review rev_qgen PASS)",
@@ -91,6 +94,10 @@ def main():
                    "resume": "next window from the newest step_* checkpoint (every 500 steps; final checkpoint kept)",
                    "fallback": "without EFA run each arm on one node: re-prepare at world 8 (make_frozen.py R1_RECIPE "
                                "and R1_ARMS), same exports; 2-node sockets runs are 8x slower per GPU"},
+        "rulings_on_review_conditions": ("coordinator 08:1x PT: the trainer-required group_policy literal in "
+                                         "inherited_division.json and the config's parent_run are accepted as constants "
+                                         "(already on code-aws in the trainer source and frozen inputs); the next trainer "
+                                         "revision gets neutral aliases for both"),
         "self_shard_review": ({"path": str(self_path), "sha256": sha(self_path), "verdict": self_review.get("verdict"),
                                "training_admission": self_review.get("training_admission"),
                                "conditions": self_review.get("conditions")} if self_review else {"status": "pending"}),

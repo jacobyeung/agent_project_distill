@@ -33,8 +33,12 @@ def main(spec_path):
         root = plan["data2root"]
         for rel, digest, size, mode, source, offset in plan["frames"]:
             target = root + rel
-            if os.path.exists(target):
-                if os.path.getsize(target) != size:
+            try:
+                present = os.path.getsize(target)
+            except FileNotFoundError:  # absent, or briefly unlinked while a concurrent job publishes the same frame
+                present = None
+            if present is not None:
+                if present != size:
                     raise SystemExit(f"FRAME_SIZE_MISMATCH {target}")
                 counts["exists" if mode == "exists" else "present_before"] += 1
                 continue
