@@ -11,7 +11,8 @@ usage (inside the image, cwd = trainer):
   prep_rung1.py install ARCHIVE...            extract row archives (write-once, every member's name is its sha256)
   prep_rung1.py protocol FROZEN               prepare-protocol (candidate_index.jsonl, config.json, inherited_division.json)
   prep_rung1.py shard FROZEN K N              encode records -> FROZEN/shards/K_of_N.jsonl
-  prep_rung1.py merge FROZEN N [RECORDS_DIR]  training.json from the records (RECORDS_DIR: shard records of an identical row set)
+  prep_rung1.py merge FROZEN N [RECORDS]      training.json from the records (RECORDS: DIR or DIR:N,DIR:N of record sets
+                                              whose rows the frozen candidate index names)
   prep_rung1.py seal FROZEN                   seal-source receipt
   prep_rung1.py request FROZEN                provisional-ddp-lease-request (world size from config.json)
   prep_rung1.py admit FROZEN                  the CPU admission train_inner.sh applies
@@ -141,13 +142,16 @@ def shard(frozen, k, n):
 
 def merge(frozen, n, records_dir=None):
     clean, data, load_processor, digest_json = trainer()
-    records_dir = Path(records_dir) if records_dir else frozen / "shards"
+    # RECORDS_DIR may list several record sets as DIR:N,DIR:N (e.g. an export plus an extra shard set prepared apart).
+    sets = [(Path(item.rpartition(":")[0]), int(item.rpartition(":")[2])) if ":" in item else (Path(item), n)
+            for item in records_dir.split(",")] if records_dir else [(frozen / "shards", n)]
     records = {}
-    for k in range(n):
-        for line in open(records_dir / ("%03d_of_%03d.jsonl" % (k, n))):
-            record = json.loads(line)
-            assert record["qid"] not in records
-            records[record["qid"]] = record
+    for directory, count in sets:
+        for k in range(count):
+            for line in open(directory / ("%03d_of_%03d.jsonl" % (k, count))):
+                record = json.loads(line)
+                assert record["qid"] not in records
+                records[record["qid"]] = record
     protocol_value, qids = train_qids(frozen, data)
     assert sorted(records) == qids, "shard records do not cover the training qids exactly"
     rows = data._census_rows(protocol_value, set(random.Random(17).sample(qids, VERIFY_ROWS)), LABEL)
@@ -183,7 +187,7 @@ def merge(frozen, n, records_dir=None):
     finally:
         clean.target_tokens, clean.encode_training = native_tokens, native_encode
     event("merged", status=result["status"], counts=result["counts"], drops=result["token_limit_drops"], calls=calls,
-          records_dir=str(records_dir))
+          records=[str(d) for d, _ in sets])
 
 
 def seal(frozen):

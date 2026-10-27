@@ -7,7 +7,8 @@ per arm, packed as frozen/<ARM>/... for the code-aws preparation job.
   RG1_A3_S17  export P (GT perception-target traces), same config as A1
   RG1_C_S17   export X answer-only control, a fixed 1-in-10 subset of the rows (yardstick only)
 
-Config: the SELF_V4 S17 config with world_size 8 (one 8-GPU node, effective batch 32), checkpoint_every_steps 500 and the
+Config: the SELF_V4 S17 config with world_size 32 (4 nodes x 8 GPUs, one sample per GPU, effective batch 32 with no
+accumulation; coordinator 04:0x PT), checkpoint_every_steps 500 and the
 neutral r1835 parent pins on code-aws (weights 02bccd99..., neutral publication 70c634a8...).
 usage: make_frozen.py SRC_ROOT OUT_ROOT
 """
@@ -41,7 +42,7 @@ def main():
         change = dict(change)
         subset = change.pop("subset", None)
         config = dict(template)
-        config.update(world_size=8, seed=17, checkpoint_every_steps=500, init_adapter=dict(NEUTRAL_PARENT), **change)
+        config.update(world_size=32, seed=17, checkpoint_every_steps=500, init_adapter=dict(NEUTRAL_PARENT), **change)
         if change.get("targets") == VISION_FROZEN:
             groups = dict(config["group_parameters"])
             config["frozen_group_parameters"] = {"vision": groups.pop("vision")}

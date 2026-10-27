@@ -156,6 +156,12 @@ def normalize_question(question, options):
     return core
 
 
+def half_unit(answer):
+    """Half a unit of the answer's last printed digit: the rounding tolerance of a GT value printed as the answer."""
+    decimals = len(answer.split(".")[1]) if "." in answer else 0
+    return 0.5 * 10 ** -decimals + 1e-6
+
+
 def unit_of(question):
     text = question.lower()
     if "centimeter" in text:
@@ -290,10 +296,10 @@ class Facts(object):
         lines = ["reference: camera at the first frame (%s s); x right, y forward, z up, in metres" % vis.time(1)]
         # Frames are cited by the displayed timestamp the model receives; two input frames share each timestamp, so a
         # timestamp cites the earliest of its frames that first shows a named object.
-        by_time = {}
+        by_time = {0: 1}  # frames under the reference's displayed timestamp cite the reference camera itself
         for slot in sorted(set(self.slots)):
             by_time.setdefault((slot - 1) // 2, slot)
-        cited = [by_time[group] for group in sorted(by_time)]
+        cited = [by_time[group] for group in sorted(by_time) if group != 0 or any((x - 1) // 2 == 0 for x in self.slots)]
         for slot in cited:
             if slot == 1:
                 continue  # the reference frame itself
@@ -354,6 +360,8 @@ def facts_text(kind, question, answer, options, letters, facts, vis, geo, report
                 f.obj(name, member)
         for name, count in zip(names, m["counts"]):
             out.append("%s instances visible: %d" % (name, count))
+        relation = "more" if m["counts"][0] > m["counts"][1] else "fewer" if m["counts"][0] < m["counts"][1] else "equal"
+        assert options[letters.index(answer)].startswith(relation), (relation, answer, options)
         for number, (name, count) in enumerate(zip(names, m["counts"])):
             g.append("Step %d: count the distinct %s instances across the video: %d." % (number + 1, name, count))
         g.append("%d %s against %d %s, so the answer is \"%s\"." % (m["counts"][0], names[0], m["counts"][1], names[1],
@@ -363,7 +371,7 @@ def facts_text(kind, question, answer, options, letters, facts, vis, geo, report
         assert len(members) == 1
         u = unit_of(question)
         value = evidence["longest_edges_m"][0] * (100.0 if u == "cm" else 1.0)
-        assert abs(value - float(answer)) <= 0.051 * (100.0 if u == "cm" else 1.0) + 1e-9, (value, answer)
+        assert abs(value - float(answer)) <= half_unit(answer), (value, answer)
         f.obj(name, members[0])
         out.append("longest edge of the %s: %s %s" % (name, answer, u))
         g.append("Step 1: find the %s (first seen at %s s)." % (name, seen(vis, members)))
@@ -387,7 +395,7 @@ def facts_text(kind, question, answer, options, letters, facts, vis, geo, report
         pair = evidence["pairs"][0]
         assert len(evidence["pairs"]) == 1 and sorted(pair["ids"]) == sorted(m["pair"]["ids"])
         value = pair["distance_m"] * (100.0 if u == "cm" else 1.0)
-        assert abs(value - float(answer)) <= 0.051 * (100.0 if u == "cm" else 1.0) + 1e-9, (value, answer)
+        assert abs(value - float(answer)) <= half_unit(answer), (value, answer)
         by_id = {member: name for name, members in zip(names, ids) for member in members}
         first, second = m["pair"]["ids"]
         f.obj(by_id[first], first)
@@ -453,9 +461,7 @@ def facts_text(kind, question, answer, options, letters, facts, vis, geo, report
         for index in order:
             assert (raw[index] - 1) // 2 == display[index]
             first = [member for member in ids[index] if vis.first_slot([member]) == raw[index]]
-            if not first:
-                report["a3_appearance_slot_mismatch"] += 1
-                first = sorted(ids[index], key=lambda member: (vis.first_slot([member]) or 99, member))[:1]
+            assert vis.first_slot(ids[index]) == raw[index] and first, "first-seen slot disagrees with the visibility raster"
             f.obj(names[index], first[0], slot=raw[index])
         expected = ", ".join(names[index] for index in order)
         assert options[letters.index(answer)] == expected, (expected, options, answer)
@@ -526,7 +532,7 @@ def main():
               "trace_check_failures": [],
               "a1_trace_chars_max": 0}
     frames_needed = {}
-    rows_x, rows_g, rows_p, invisible = [], [], [], []
+    rows_x, rows_g, rows_p, invisible, exported_groups = [], [], [], [], set()
     vis_cache = {}
     token_map = {"datasets": DATASET_TOKENS, "scenes": {}, "qids": {}, "frame_root": FRAME_ROOT,
                  "row_roots": ROW_ROOTS, "pools": POOLS}
@@ -562,7 +568,9 @@ def main():
                 for reason in reasons:
                     report["excluded"][reason] += 1
                 report["excluded_by_type"][kind] += 1
+                invisible.append({"qid": qid, "type": kind, "video": q["video"], "reason": ",".join(reasons)})
                 continue
+            exported_groups.add(group)
             answer, options, letters = q["training_answer"], q["options"], q["option_letters"]
             assert letters == [chr(65 + n) for n in range(len(options))]
             if options:
@@ -648,9 +656,11 @@ def main():
     support = json.load(open(src + "/SUPPORT_ROW.json"))
     group, key = physical_group(support["dataset"], support["scene"])
     assert not any(group in groups[r] or key in scenes[r] for r in set(groups) | set(scenes)), "support row excluded"
-    assert support["answer_provenance"]["type"] == "GT recompute" and support["video"] not in videos
+    assert support["answer_provenance"]["type"] == "GT recompute"
+    # The held-out support row's physical group must hold no kept row (ScanNet rescans share sceneNNNN).
+    assert group not in exported_groups, ("support row shares a physical group with the export", group)
     report["support_row"] = {"qid": support["qid"], "group": group, "source": support["_source"]}
-    with open(os.path.join(out, "INVISIBLE_ROWS.jsonl"), "w") as stream:
+    with open(os.path.join(out, "EXCLUDED_ROWS.jsonl"), "w") as stream:  # Trinity only: every excluded row and why
         for row in invisible:
             stream.write(json.dumps(row, sort_keys=True) + "\n")
     write_exports(out, commit, {"X": rows_x, "G": rows_g, "P": rows_p}, support, token_map, report, frames_needed)
