@@ -53,8 +53,8 @@ VISIBLE_PIXELS = 154  # 0.002 of the 240x320 visibility raster, the bank's inher
 # Opaque AWS-side tokens (the map is written to MAP_TRINITY_ONLY.json and never leaves Trinity).
 DATASET_TOKENS = {"scannet": "d1", "scannetppv2": "d2"}
 FRAME_ROOT = "/data2/k3f8"     # content-addressed frames: /data2/k3f8/<sha[:2]>/<sha>.png
-ROW_ROOTS = {"X": "/data2/k3r1", "P": "/data2/k3r2"}
-POOLS = {"X": "r1x", "P": "r1p"}
+ROW_ROOTS = {"X": "/data2/k3r1", "P": "/data2/k3r2", "G": "/data2/k3r3"}
+POOLS = {"X": "r1x", "P": "r1p", "G": "r1g"}
 ROWS_PER_ARCHIVE = 40000
 BANNED = re.compile("sp" "lit|distill|qgen|gtqgen|revsi|vsi|qwen|gemini|scannet|arkit|trinity|selfv|dc6dm|t3b", re.I)
 
@@ -315,18 +315,38 @@ class Facts(object):
         return "\n".join(lines + quantity_lines)
 
 
+def seen(vis, ids):
+    """Displayed timestamp of the first input frame showing any of these instances; Invisible if none does."""
+    slot = vis.first_slot(ids)
+    if slot is None:
+        raise Invisible()
+    return vis.time(slot)
+
+
+def times(vis, members):
+    """Displayed timestamps of every input frame in which any of these instances is visible."""
+    slots = sorted({(slot - 1) // 2 for slot in range(1, 33)
+                    if any(vis.pixels[slot - 1].get(int(m), 0) >= VISIBLE_PIXELS for m in members)})
+    return ", ".join(vis.times[group] + " s" for group in slots)
+
+
 def facts_text(kind, question, answer, options, letters, facts, vis, geo, report):
     m = facts["measurement"]
     names, ids = m["names"], m["ids"]
     evidence = m.get("qgen_evidence", {})
     f = Facts(vis, geo)
-    out = []
+    out, g = [], []
     if kind == "object_counting":
         (name,), (members,) = names, ids
         assert int(answer) == len(members) == evidence["count"]
         for member in sorted(members, key=lambda member: (vis.first_slot([member]) or 99, member)):
             f.obj(name, member)
         out.append("%s instances visible: %d" % (name, len(members)))
+        g.append("Step 1: find the frames that show a %s: %s." % (name, times(vis, members)))
+        firsts = sorted((seen(vis, [member]) for member in members), key=float)
+        g.append("Step 2: match the %s detections across those frames into distinct instances: %d, first seen at %s."
+                 % (name, len(members), ", ".join(t + " s" for t in firsts)))
+        g.append("So there %s %d %s." % ("is" if len(members) == 1 else "are", len(members), name))
     elif kind == "relative_count":
         for name, members, count in zip(names, ids, m["counts"]):
             assert len(members) == count
@@ -334,6 +354,10 @@ def facts_text(kind, question, answer, options, letters, facts, vis, geo, report
                 f.obj(name, member)
         for name, count in zip(names, m["counts"]):
             out.append("%s instances visible: %d" % (name, count))
+        for number, (name, count) in enumerate(zip(names, m["counts"])):
+            g.append("Step %d: count the distinct %s instances across the video: %d." % (number + 1, name, count))
+        g.append("%d %s against %d %s, so the answer is \"%s\"." % (m["counts"][0], names[0], m["counts"][1], names[1],
+                                                                     options[letters.index(answer)]))
     elif kind == "object_size_estimation":
         (name,), (members,) = names, ids
         assert len(members) == 1
@@ -342,6 +366,8 @@ def facts_text(kind, question, answer, options, letters, facts, vis, geo, report
         assert abs(value - float(answer)) <= 0.051 * (100.0 if u == "cm" else 1.0) + 1e-9, (value, answer)
         f.obj(name, members[0])
         out.append("longest edge of the %s: %s %s" % (name, answer, u))
+        g.append("Step 1: find the %s (first seen at %s s)." % (name, seen(vis, members)))
+        g.append("Step 2: measure its 3D box; the longest edge is %s %s." % (answer, u))
     elif kind == "relative_size_object":
         assert len(names) == 2
         for name, members in zip(names, ids):
@@ -349,6 +375,13 @@ def facts_text(kind, question, answer, options, letters, facts, vis, geo, report
             f.obj(name, members[0])
         out.append("longest edges: " + "; ".join("%s %s m" % (name, num(edge))
                                                  for name, edge in zip(names, evidence["longest_edges_m"])))
+        g.append("Step 1: find the %s (first seen at %s s) and the %s (first seen at %s s)."
+                 % (names[0], seen(vis, ids[0]), names[1], seen(vis, ids[1])))
+        g.append("Step 2: measure the longest edge of each 3D box: %s." % "; ".join(
+            "%s %s m" % (name, num(edge)) for name, edge in zip(names, evidence["longest_edges_m"])))
+        longer = names[0] if evidence["longest_edges_m"][0] > evidence["longest_edges_m"][1] else names[1]
+        assert options[letters.index(answer)] == longer, (longer, answer, options)
+        g.append("The %s has the longer longest edge." % longer)
     elif kind == "object_abs_distance":
         u = unit_of(question)
         pair = evidence["pairs"][0]
@@ -360,6 +393,9 @@ def facts_text(kind, question, answer, options, letters, facts, vis, geo, report
         f.obj(by_id[first], first)
         f.obj(by_id[second], second)
         out.append("closest-point distance between the %s and the %s: %s %s" % (by_id[first], by_id[second], answer, u))
+        g.append("Step 1: find the %s (first seen at %s s) and the %s (first seen at %s s)."
+                 % (by_id[first], seen(vis, [first]), by_id[second], seen(vis, [second])))
+        g.append("Step 2: measure the distance between their closest points: %s %s." % (answer, u))
     elif kind == "object_rel_distance":
         anchor_name, anchor_ids = names[0], ids[0]
         by_id = {member: name for name, members in zip(names[1:], ids[1:]) for member in members}
@@ -380,6 +416,10 @@ def facts_text(kind, question, answer, options, letters, facts, vis, geo, report
                    + "; ".join("%s %s m" % (option, num(distance[option])) for option in options))
         best = min(options, key=lambda option: distance[option])
         assert letters[options.index(best)] == answer, (best, answer)
+        g.append("Step 1: find the %s (first seen at %s s) and each candidate." % (anchor_name, seen(vis, anchors_used)))
+        g.append("Step 2: measure the closest-point distance from the %s to each: %s." % (anchor_name, "; ".join(
+            "%s %s m" % (option, num(distance[option])) for option in options)))
+        g.append("The closest is the %s." % best)
     elif kind.startswith("object_rel_direction"):
         stand, face, target = names
         for name, members in zip(names, ids):
@@ -391,6 +431,10 @@ def facts_text(kind, question, answer, options, letters, facts, vis, geo, report
         relation = evidence.get("relation") or m.get("relation")
         if relation is not None:
             assert options[letters.index(answer)] == relation, (relation, answer, options)
+        g.append("Step 1: locate the centres of the %s, the %s and the %s." % (stand, face, target))
+        g.append("Step 2: standing at the %s and facing the %s, the %s lies %s of straight ahead, %s."
+                 % (stand, face, target, turn(angle), "in front" if abs(angle) < 90 else "behind"))
+        g.append("So the %s is at my %s." % (target, options[letters.index(answer)]))
     elif kind == "absolute_direction_object":
         stand, face, target = names
         for name, members in zip(names, ids):
@@ -400,6 +444,9 @@ def facts_text(kind, question, answer, options, letters, facts, vis, geo, report
         assert abs(((angle % 360.0) - float(answer) + 180.0) % 360.0 - 180.0) <= 1.0, (answer, angle)
         out.append("standing at the %s facing the %s, the %s is %s degrees counterclockwise from straight ahead"
                    % (stand, face, target, answer))
+        g.append("Step 1: locate the centres of the %s, the %s and the %s." % (stand, face, target))
+        g.append("Step 2: standing at the %s and facing the %s, turn counterclockwise until facing the %s: %s degrees."
+                 % (stand, face, target, answer))
     elif kind == "obj_appearance_order":
         raw, display = evidence["first_raw_slots"], evidence["first_display_slots"]
         order = sorted(range(len(names)), key=lambda index: raw[index])
@@ -413,11 +460,16 @@ def facts_text(kind, question, answer, options, letters, facts, vis, geo, report
         expected = ", ".join(names[index] for index in order)
         assert options[letters.index(answer)] == expected, (expected, options, answer)
         out.append("first-seen order: " + expected)
+        g.append("Step 1: find the first frame showing each object: %s." % "; ".join(
+            "%s %s s" % (names[index], vis.times[display[index]]) for index in range(len(names))))
+        g.append("Step 2: order them by first appearance: %s." % expected)
     else:
         raise AssertionError(kind)
     text = f.render(out)
-    assert text == text.strip() and "\n\n" not in text
-    return text
+    template = "\n".join(g)
+    for value in (text, template):
+        assert value and value == value.strip() and "\n\n" not in value
+    return text, template
 
 
 # ---------------------------------------------------------------- archives
@@ -469,10 +521,11 @@ def main():
               "exclusion_groups": {k: len(v) for k, v in groups.items()},
               "exclusion_scenes": {k: len(v) for k, v in scenes.items()},
               "excluded": Counter(), "excluded_by_type": Counter(), "kept_by_type": Counter(),
-              "a3_empty_think_by_type": Counter(), "a3_think_chars": Counter(), "answers": Counter(),
-              "a3_appearance_slot_mismatch": 0, "a3_think_chars_max": 0}
+              "a3_think_chars": Counter(), "answers": Counter(),
+              "a3_appearance_slot_mismatch": 0, "a3_think_chars_max": 0, "a1_trace_chars": Counter(),
+              "a1_trace_chars_max": 0}
     frames_needed = {}
-    rows_x, rows_p = [], []
+    rows_x, rows_g, rows_p, invisible = [], [], [], []
     vis_cache = {}
     token_map = {"datasets": DATASET_TOKENS, "scenes": {}, "qids": {}, "frame_root": FRAME_ROOT,
                  "row_roots": ROW_ROOTS, "pools": POOLS}
@@ -550,21 +603,28 @@ def main():
                                          Geometry(json.loads(scene_bytes.decode()), frame_shas))
             vis, geo = vis_cache[q["video"]]
             try:
-                think = facts_text(kind, question, answer, options, letters, facts[qid], vis, geo, report)
+                think, template = facts_text(kind, question, answer, options, letters, facts[qid], vis, geo, report)
             except Invisible:
-                think = ""
-                report["a3_empty_think_by_type"][kind] += 1
-            words = set(m.group(0).lower() for m in BANNED.finditer(think))
-            assert words <= set(m.group(0).lower() for m in BANNED.finditer(question + " " + " ".join(options))), (qid, words)
+                # Every training row needs a trace, and a trace may name only visible objects: drop the row from
+                # all exports and list it for the cascade lanes.
+                report["excluded"]["named_object_not_visible"] += 1
+                report["excluded_by_type"][kind] += 1
+                invisible.append({"qid": qid, "type": kind, "video": q["video"]})
+                continue
+            allowed = set(m.group(0).lower() for m in BANNED.finditer(question + " " + " ".join(options)))
+            for text in (think, template):
+                assert set(m.group(0).lower() for m in BANNED.finditer(text)) <= allowed, qid
             report["a3_think_chars"][kind] += len(think)
             report["a3_think_chars_max"] = max(report["a3_think_chars_max"], len(think))
+            report["a1_trace_chars"][kind] += len(template)
+            report["a1_trace_chars_max"] = max(report["a1_trace_chars_max"], len(template))
             report["kept_by_type"][kind] += 1
             report["answers"][kind + ":" + (answer if options else "numeric")] += 1
             common = OrderedDict([("qid", token_qid), ("dataset", DATASET_TOKENS[dataset]),
                                   ("scene", token_scene), ("category", kind), ("answer", answer)])
             for export, target, rows in (("X", "<think>\n\n</think>\n\n" + answer, rows_x),
-                                         ("P", ("<think>\n" + think + "\n</think>\n\n" + answer) if think
-                                          else "<think>\n\n</think>\n\n" + answer, rows_p)):
+                                         ("G", "<think>\n" + template + "\n</think>\n\n" + answer, rows_g),
+                                         ("P", "<think>\n" + think + "\n</think>\n\n" + answer, rows_p)):
                 row = OrderedDict(common)
                 row.update([("pool", POOLS[export]), ("target", target), ("student_input", student_input),
                             ("generation_commit", commit), ("validation_commit", commit)])
@@ -580,7 +640,10 @@ def main():
     assert not any(group in groups[r] or key in scenes[r] for r in set(groups) | set(scenes)), "support row excluded"
     assert support["answer_provenance"]["type"] == "GT recompute" and support["video"] not in videos
     report["support_row"] = {"qid": support["qid"], "group": group, "source": support["_source"]}
-    write_exports(out, commit, rows_x, rows_p, support, token_map, report, frames_needed)
+    with open(os.path.join(out, "INVISIBLE_ROWS.jsonl"), "w") as stream:
+        for row in invisible:
+            stream.write(json.dumps(row, sort_keys=True) + "\n")
+    write_exports(out, commit, {"X": rows_x, "G": rows_g, "P": rows_p}, support, token_map, report, frames_needed)
 
 
 def support_row(support, commit, export):
@@ -605,9 +668,9 @@ def support_row(support, commit, export):
     return row
 
 
-def write_exports(out, commit, rows_x, rows_p, support, token_map, report, frames_needed):
+def write_exports(out, commit, exports, support, token_map, report, frames_needed):
     groups_by_export = {}
-    for export, rows in (("X", rows_x), ("P", rows_p)):
+    for export, rows in sorted(exports.items()):
         directory = os.path.join(out, "export_" + export)
         os.makedirs(directory)
         archive = Archive(directory, export)
@@ -663,8 +726,8 @@ def write_exports(out, commit, rows_x, rows_p, support, token_map, report, frame
     report["frames_needed"] = len(frames_needed)
     with open(os.path.join(out, "BUILD_REPORT.json"), "w") as stream:
         json.dump(report, stream, indent=1, sort_keys=True)
-    print(json.dumps({k: report[k] for k in ("kept", "rows_X", "rows_P", "excluded", "a3_empty_think_by_type",
-                                             "frames_needed", "train_groups")}, sort_keys=True))
+    print(json.dumps({k: report[k] for k in ("kept", "rows_X", "rows_G", "rows_P", "excluded", "frames_needed",
+                                             "train_groups")}, sort_keys=True))
 
 
 if __name__ == "__main__":

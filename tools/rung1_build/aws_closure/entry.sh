@@ -39,9 +39,13 @@ container() {
     local inner="$1"
     shift
     local step="${SLURM_STEP_ID:-batch}"
-    export TMPDIR="/tmp/jjyeung_tmp/$SLURM_JOB_ID.$step" HOME="/tmp/jjyeung/home-$SLURM_JOB_ID"
-    export ENROOT_CACHE_PATH="$data/cache/enroot" ENROOT_DATA_PATH="/tmp/jjyeung_enroot_data_$SLURM_JOB_ID.$step"
-    export ENROOT_RUNTIME_PATH="/tmp/enroot-jyeung-$SLURM_JOB_ID.$step" ENROOT_MOUNT_HOME=no ENROOT_REMAP_ROOT=no
+    # CPU nodes can have a nearly full /tmp; the container root then goes to the node's memory-backed /dev/shm.
+    local scratch=/tmp
+    if (( $(df -Pk /tmp | awk 'NR==2 {print $4}') < 12000000 )); then scratch=/dev/shm; fi
+    printf '%s | container scratch %s (/tmp free %s kB)\n' "$(date -u +%FT%TZ)" "$scratch" "$(df -Pk /tmp | awk 'NR==2 {print $4}')"
+    export TMPDIR="$scratch/jjyeung_tmp/$SLURM_JOB_ID.$step" HOME="$scratch/jjyeung/home-$SLURM_JOB_ID"
+    export ENROOT_CACHE_PATH="$data/cache/enroot" ENROOT_DATA_PATH="$scratch/jjyeung_enroot_data_$SLURM_JOB_ID.$step"
+    export ENROOT_RUNTIME_PATH="$scratch/enroot-jyeung-$SLURM_JOB_ID.$step" ENROOT_MOUNT_HOME=no ENROOT_REMAP_ROOT=no
     export NVIDIA_VISIBLE_DEVICES=void NVIDIA_DRIVER_CAPABILITIES=compute,utility
     export CAWS_IN_CONTAINER=1 PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1 TZ=America/Los_Angeles
     printf '%s | %s on %s step %s\n' "$(date -u +%FT%TZ)" "$inner" "$(hostname)" "$step"
@@ -77,8 +81,7 @@ container() {
 case "$phase" in
     prep)
         $host_python -I -B "$jobs/frames_install.py" "$spec"
-        container venv_build.sh
-        container prep_inner.sh
+        container prep_inner.sh  # one container: prep_inner.sh runs venv_build.sh first
         ;;
     *)
         exit 2

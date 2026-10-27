@@ -25,6 +25,7 @@ import sys
 import tarfile
 import time
 
+sys.path.insert(0, os.environ["TRAINER"])  # the pinned neutral trainer tree (student_pilot)
 LABEL = "ZERO_CALL_DIAGNOSTIC_PENDING_REVIEW"
 STUDENT = bytes.fromhex("7177656e3335").decode()  # the frozen student identifier
 DATA2ROOT = Path(os.environ["R1_MOUNT"]) / "data2root"
@@ -46,7 +47,7 @@ def sha_file(path):
 
 def install(archives):
     for archive in archives:
-        marker = Path(archive + ".INSTALLED")
+        marker = DATA2ROOT / ".r1_installed" / (Path(archive).name + ".json")  # the incoming mount is read-only
         if marker.exists():
             event("install_skip", archive=archive)
             continue
@@ -69,6 +70,7 @@ def install(archives):
                     os.chmod(part, 0o444)
                     os.rename(part, target)
                 count += 1
+        marker.parent.mkdir(exist_ok=True)
         marker.write_text(json.dumps({"members": count}) + "\n")
         event("installed", archive=archive, members=count)
 

@@ -353,10 +353,9 @@ def build(actions, state, jobs):
         elif kind == "upload":
             src, dest, want = Path(act["src"]), act["dest"], act["sha256"]
             assert not BANNED.search(dest), dest
-            data = src.read_bytes()
-            data_len = len(data)
+            data_len = src.stat().st_size
+            data = FileRef(src, data_len)  # streamed in paced chunks; the remote side verifies the sha256
             uploads[want] = src
-            assert hashlib.sha256(data).hexdigest() == want, "Local upload digest differs"
             parts.append((f"echo '=== ACTION {aid} BEGIN'\nmkdir -p {shlex.quote(os.path.dirname(dest))}\n"
                           f"dd of={shlex.quote(dest)}.part.$$ bs={max(1, data_len)} count={int(bool(data_len))} iflag=fullblock status=none || exit 97\n").encode())
             parts.append(data)
@@ -398,13 +397,44 @@ def build(actions, state, jobs):
         else:
             raise SystemExit(f"unknown action kind {kind}")
     parts.append(b"echo '=== POLL END'\n")
-    return b"".join(parts), plan
+    return parts, plan
 
 
 RATE = 500_000  # bytes per second through the tunnel
 
 
-def paced_ssh(spool, rate):
+class FileRef:
+    def __init__(self, path, size):
+        self.path, self.size = Path(path), size
+
+
+GOVERNOR = Path("/data3/jjyeung/orch_n13_20261026/io_governor/streams")
+REGISTER = "/scratch/jjyeung/io_governor_n13/register.py"
+
+
+def governor_register():
+    """Stop this process, have a helper register it with the central IO governor (tier 1 push), then resume."""
+    import signal
+    record = GOVERNOR / (LANE + ".json")
+    if record.exists():
+        record.rename(record.with_name(f"{LANE}.done.{int(time.time())}"))
+    pid = os.getpid()
+    helper = subprocess.Popen(["/bin/bash", "-c",
+        f"for i in $(seq 1 120); do grep -q '^State:.*T' /proc/{pid}/status && break; sleep 0.5; done; "
+        f"/usr/bin/python3 {REGISTER} --lane {LANE} --pid {pid} --tier 1 --kind push --nominal-mbps 1.0 "
+        f"--tunnel-mbps 0.5 --allow-resume; kill -CONT {pid}"])
+    os.kill(pid, signal.SIGSTOP)
+    helper.wait()
+    assert record.exists(), "governor registration missing"
+
+
+def governor_complete():
+    record = GOVERNOR / (LANE + ".json")
+    if record.exists():
+        record.rename(record.with_name(f"{LANE}.done.{int(time.time())}"))
+
+
+def paced_ssh(parts, rate):
     import threading
     proc = subprocess.Popen(SSH, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     chunks = {"out": [], "err": []}
@@ -421,14 +451,21 @@ def paced_ssh(spool, rate):
     killer.daemon = True
     killer.start()
     start, sent = time.time(), 0
+    def blocks():
+        for part in parts:
+            if isinstance(part, FileRef):
+                with part.path.open("rb") as source:
+                    yield from iter(lambda: source.read(65536), b"")
+            else:
+                yield part
+
     try:
-        with spool.open("rb") as source:
-            for block in iter(lambda: source.read(65536), b""):
-                proc.stdin.write(block)
-                sent += len(block)
-                ahead = sent / rate - (time.time() - start)
-                if ahead > 0:
-                    time.sleep(ahead)
+        for block in blocks():
+            proc.stdin.write(block)
+            sent += len(block)
+            ahead = sent / rate - (time.time() - start)
+            if ahead > 0:
+                time.sleep(ahead)
         proc.stdin.close()
     except BrokenPipeError:
         pass
@@ -508,11 +545,13 @@ def run():
             stamp = datetime.now().strftime("%Y%m%dT%H%M%S")
             t0 = time.time()
             try:
-                spool = Path("/scratch/jjyeung/rung1_push/spool") / f"stream_{stamp}.bin"
-                spool.parent.mkdir(parents=True, exist_ok=True)
-                spool.write_bytes(stream)
-                # Paced in-process (no pv), so a poll runs only this interpreter and one ssh on trinity-0-13.
-                result = paced_ssh(spool, RATE)
+                payload = sum(part.size for part in stream if isinstance(part, FileRef))
+                if payload > 1_000_000:
+                    governor_register()
+                # Paced in-process (no pv, no spool), so a poll is this interpreter and one ssh on trinity-0-13.
+                result = paced_ssh(stream, RATE)
+                if payload > 1_000_000:
+                    governor_complete()
             except (OSError, subprocess.TimeoutExpired) as error:
                 result = subprocess.CompletedProcess(SSH, 98, getattr(error, 'stdout', None) or b'',
                                                      str(error).encode())

@@ -6,6 +6,7 @@
 #              "chains": [{"frozen": NAME, "shards": N, "records_from": NAME|null}], "parallel": P
 set -euo pipefail
 : "${ANYHOST_JOBS:?}" "${ANYHOST_SPEC:?}" "${R1_MOUNT:?}" "${R1_TRAINER:?}"
+bash "$ANYHOST_JOBS/venv_build.sh"  # prints the receipt when the environment already exists
 root="$R1_MOUNT/runs/aws128p_20261025"
 export TRAINER="$R1_TRAINER"
 export PILOT_VENV="$R1_MOUNT/venvs/rwtrain_torch211_cu129"

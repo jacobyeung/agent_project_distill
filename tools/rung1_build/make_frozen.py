@@ -1,9 +1,11 @@
-"""Frozen inputs of the three rung-1 arms (trinity-3-3, Python 3.6): candidate index, inherited division and training
-config per arm, packed as frozen/<ARM>/... for the code-aws preparation job.
+"""Frozen inputs of the rung-1 arms (trinity-3-3, Python 3.6): candidate index, inherited division and training config
+per arm, packed as frozen/<ARM>/... for the code-aws preparation job.
 
-  RG1_A1_S17  export X, LoRA on text, vision and mergers (the SELF_V4 default)
-  RG1_A2_S17  export X, vision frozen: targets text + mergers (needs trainer support; b4b2979 fixes "targets")
-  RG1_A3_S17  export P (GT perception targets), same config as A1
+  RG1_A1_S17  export G (GT-template traces), LoRA on text, vision and mergers (the SELF_V4 default)
+  RG1_A2_S17  export G, vision frozen: targets exact_text_attention_mlp_mergers_vision_frozen (trainer branch
+              vision-freeze, commit e343b549; the vision LoRA keeps its r1835 values)
+  RG1_A3_S17  export P (GT perception-target traces), same config as A1
+  RG1_C_S17   export X answer-only control, a fixed 1-in-10 subset of the rows (yardstick only)
 
 Config: the SELF_V4 S17 config with world_size 8 (one 8-GPU node, effective batch 32), checkpoint_every_steps 500 and the
 neutral r1835 parent pins on code-aws (weights 02bccd99..., neutral publication 70c634a8...).
@@ -21,9 +23,11 @@ TEMPLATE = ("/data2/jjyeung/agent_project_data/distillation_orchestrator_2026091
 NEUTRAL_PARENT = {"parent_run": "q9_l250cp_u2_camrows_ev3_w4_e1_trinity_r1835",
                   "published_sha256": "70c634a83c0835e679f736de0129d8124d94016b788fea62f5ada5303b0afd04",
                   "weights_sha256": "02bccd997be4eb55cc56ad013fa8f10e56f3f02ca9fbcbe10b64d0123e5450d6"}
-ARMS = {"RG1_A1_S17": ("X", {}),
-        "RG1_A2_S17": ("X", {"targets": "exact_text_attention_mlp_mergers"}),
-        "RG1_A3_S17": ("P", {})}
+VISION_FROZEN = "exact_text_attention_mlp_mergers_vision_frozen"
+ARMS = {"RG1_A1_S17": ("G", {}),
+        "RG1_A2_S17": ("G", {"targets": VISION_FROZEN}),
+        "RG1_A3_S17": ("P", {}),
+        "RG1_C_S17": ("X", {"subset": "1in10"})}
 
 
 def main():
@@ -34,16 +38,26 @@ def main():
     assert template["targets"] == "exact_text_attention_mlp_vision_attention_mlp_mergers"
     members, summary = [], {}
     for arm, (export, change) in sorted(arms.items()):
+        change = dict(change)
+        subset = change.pop("subset", None)
         config = dict(template)
         config.update(world_size=8, seed=17, checkpoint_every_steps=500, init_adapter=dict(NEUTRAL_PARENT), **change)
-        if "targets" in change:
+        if change.get("targets") == VISION_FROZEN:
             groups = dict(config["group_parameters"])
-            groups.pop("vision")
+            config["frozen_group_parameters"] = {"vision": groups.pop("vision")}
             config["group_parameters"] = groups
             config["trainable_parameters"] = sum(groups.values())
+        index = open(os.path.join(out, "export_" + export, "candidate_index.jsonl"), "rb").read()
+        division = json.loads(open(os.path.join(out, "export_" + export, "inherited_division.json")).read())
+        if subset == "1in10":
+            held = set(division["heldout_qids"])
+            lines = [line for line in index.split(b"\n") if line]
+            keep = [line for line in lines if json.loads(line.decode())["qid"] in held
+                    or int(hashlib.sha256(json.loads(line.decode())["qid"].encode()).hexdigest(), 16) % 10 == 0]
+            index = b"".join(line + b"\n" for line in keep)
         files = {
             "config.json": (json.dumps(config, indent=2, sort_keys=True) + "\n").encode(),
-            "candidate_index.jsonl": open(os.path.join(out, "export_" + export, "candidate_index.jsonl"), "rb").read(),
+            "candidate_index.jsonl": index,
             "inherited_division.json": open(os.path.join(out, "export_" + export, "inherited_division.json"), "rb").read(),
         }
         for name, data in sorted(files.items()):
@@ -51,6 +65,7 @@ def main():
         summary[arm] = {name: {"sha256": hashlib.sha256(data).hexdigest(), "size_bytes": len(data)}
                         for name, data in files.items()}
         summary[arm]["export"] = export
+        summary[arm]["rows_including_heldout_support"] = index.count(b"\n")
         summary[arm]["config_changes_from_self_v4_s17"] = sorted(["world_size", "checkpoint_every_steps",
                                                                    "init_adapter.published_sha256"] + list(change))
     path = os.path.join(out, "frozen_inputs.tar.gz")
