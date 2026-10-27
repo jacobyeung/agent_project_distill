@@ -17,14 +17,14 @@ export STUDENT_MODEL_ROOT="$root/models"
 export STUDENT_FRAME_ROOT_MAP="{\"/data2\": \"$R1_MOUNT/data2root\"}"
 export HF_HOME="$root/cache/huggingface" HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 HF_HUB_DISABLE_TELEMETRY=1
 export OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 TOKENIZERS_PARALLELISM=false STUDENT_IO_THREADS=8
-export ANYHOST_NEUTRAL_RUNTIME="$R1_MOUNT/anyhost/NEUTRAL_RUNTIME.json"
+export ANYHOST_NEUTRAL_RUNTIME="${R1_RUNTIME_RECORD:-$R1_MOUNT/anyhost/NEUTRAL_RUNTIME.json}"  # spec may name its tree's record
 test "$(command -v git)" = "$ANYHOST_JOBS/provenance_bin/git"
 step() { printf '%s | %s\n' "$(date -u +%FT%TZ)" "$*"; }
 spec() { python -I -c "import json, sys; v = json.load(open(sys.argv[1])); $1" "$ANYHOST_SPEC"; }
 prep="python -B $ANYHOST_JOBS/prep_rung1.py"
 cd "$TRAINER"
 
-mapfile -t rows < <(spec 'print("\n".join(v.get("row_archives", [])))')
+mapfile -t rows < <(spec 'print("\n".join(v.get("row_archives", [])))' | sed '/^$/d')
 if (( ${#rows[@]} )); then step "install ${#rows[@]} row archives"; $prep install "${rows[@]}"; fi
 
 mapfile -t frozen < <(spec 'print("\n".join(a["path"] + " " + a["sha256"] for a in v.get("frozen_archives", [])))')

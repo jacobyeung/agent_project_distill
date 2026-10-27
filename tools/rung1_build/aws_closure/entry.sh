@@ -14,7 +14,7 @@ wheels=/lustre/fsw/portfolios/av/users/jyeung/ap/5f67d1f3/w
 jobs="$base/j/${closure_sha:0:12}"
 spec="$base/s/$spec_sha.json"
 data="$base/d"
-commit=b4b2979d59b19bfc613fdf38b4fa1c6949b69ae3
+commit=b4b2979d59b19bfc613fdf38b4fa1c6949b69ae3  # default trainer tree; a spec may name another installed neutral tree
 host_python=/cm/local/apps/python3/bin/python3
 $host_python -I -B - "$jobs" "$closure_sha" "$spec" "$spec_sha" <<'PY'
 import hashlib
@@ -31,6 +31,18 @@ assert actual == expected, "The code-aws job closure changed"
 assert hashlib.sha256(Path(sys.argv[3]).read_bytes()).hexdigest() == sys.argv[4], "The job spec differs from its pinned hash"
 PY
 phase=$($host_python -I -c 'import json, sys; print(json.load(open(sys.argv[1]))["phase"])' "$spec")
+R1_EFA=$($host_python -I -c 'import json, sys; print(1 if json.load(open(sys.argv[1])).get("efa") else 0)' "$spec")
+spec_commit=$($host_python -I -c 'import json, sys; print(json.load(open(sys.argv[1])).get("trainer_commit", ""))' "$spec")
+R1_RUNTIME_RECORD=$($host_python -I -c 'import json, sys; print(json.load(open(sys.argv[1])).get("runtime_record", ""))' "$spec")
+if [[ -n "$spec_commit" ]]; then
+    [[ "$spec_commit" =~ ^[0-9a-f]{40}$ && -d "$data/trainer/$spec_commit" && -n "$R1_RUNTIME_RECORD" ]]
+    commit="$spec_commit"
+fi
+export R1_EFA R1_RUNTIME_RECORD
+mapfile -d '' argv < <($host_python -I -c '
+import json, sys
+for item in json.load(open(sys.argv[1])).get("argv", []):
+    sys.stdout.write(str(item) + "\0")' "$spec")
 export ANYHOST_JOBS=/opt/anyhost_jobs ANYHOST_SPEC="/opt/anyhost_specs/$spec_sha.json"
 printf '%s | phase %s on %s job=%s cpus=%s\n' "$(date -u +%FT%TZ)" "$phase" "$(hostname)" "$SLURM_JOB_ID" \
     "${SLURM_CPUS_ON_NODE:-}"
@@ -46,7 +58,11 @@ container() {
     export TMPDIR="$scratch/jjyeung_tmp/$SLURM_JOB_ID.$step" HOME="$scratch/jjyeung/home-$SLURM_JOB_ID"
     export ENROOT_CACHE_PATH="$data/cache/enroot" ENROOT_DATA_PATH="$scratch/jjyeung_enroot_data_$SLURM_JOB_ID.$step"
     export ENROOT_RUNTIME_PATH="$scratch/enroot-jyeung-$SLURM_JOB_ID.$step" ENROOT_MOUNT_HOME=no ENROOT_REMAP_ROOT=no
-    export NVIDIA_VISIBLE_DEVICES=void NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    NVIDIA_VISIBLE_DEVICES=void
+    if [[ "$inner" == mn_train_inner.sh || "$inner" == efa_probe_inner.sh ]]; then
+        NVIDIA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:?Slurm must supply driver-local CUDA device IDs}"
+    fi
+    export NVIDIA_VISIBLE_DEVICES NVIDIA_DRIVER_CAPABILITIES=compute,utility
     export CAWS_IN_CONTAINER=1 PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1 TZ=America/Los_Angeles
     printf '%s | %s on %s step %s\n' "$(date -u +%FT%TZ)" "$inner" "$(hostname)" "$step"
     mkdir -p "$TMPDIR" "$HOME" "$ENROOT_DATA_PATH" "$ENROOT_RUNTIME_PATH" "$data/cache/enroot"
@@ -57,7 +73,23 @@ container() {
     image=$(ls "$data"/images/u2404_py312_*.sqsh)
     word=$(basename "$(readlink "$data")")  # the fixed mount names of the frozen trainer environment
     export R1_MOUNT="/project/community/jjyeung/$word" R1_TRAINER="/home/jjyeung/agent_project_${word}_epochs/$commit"
-    local args=(--rw
+    local efa=()
+    if [[ ( "$inner" == mn_train_inner.sh || "$inner" == efa_probe_inner.sh ) && "$R1_EFA" == 1 ]]; then
+        # EFA for NCCL: the host's aws-ofi-nccl plugin and EFA libfabric, the verbs devices and provider, and the
+        # handful of host libraries they link against, copied per node (never the whole host library directory).
+        mkdir -p "$TMPDIR/efa_hostlib"
+        for lib in libibverbs.so.1 libefa.so.1 librdmacm.so.1 libnl-3.so.200 libnl-route-3.so.200 libhwloc.so.15 \
+                   libltdl.so.7 libnuma.so.1; do
+            cp -L "/usr/lib/x86_64-linux-gnu/$lib" "$TMPDIR/efa_hostlib/" 2>/dev/null || cp -L "/lib/x86_64-linux-gnu/$lib" "$TMPDIR/efa_hostlib/"
+        done
+        efa=(--mount /dev/infiniband:/dev/infiniband:none:rbind,rw,x-create=dir
+             --mount /opt/amazon/efa:/opt/amazon/efa:none:rbind,ro,x-create=dir
+             --mount /opt/aws-ofi-nccl:/opt/aws-ofi-nccl:none:rbind,ro,x-create=dir
+             --mount "$TMPDIR/efa_hostlib:/opt/efa_hostlib:none:rbind,ro,x-create=dir"
+             --mount /usr/lib/x86_64-linux-gnu/libibverbs:/usr/lib/x86_64-linux-gnu/libibverbs:none:rbind,ro,x-create=dir
+             --mount /etc/libibverbs.d:/etc/libibverbs.d:none:rbind,ro,x-create=dir)
+    fi
+    local args=(--rw "${efa[@]}"
         --mount "$HOME:$HOME:none:rbind,rw,x-create=dir"
         --mount "$TMPDIR:$TMPDIR:none:rbind,rw,x-create=dir"
         --mount "$data/orch:$R1_MOUNT:none:rbind,rw,x-create=dir"
@@ -66,12 +98,18 @@ container() {
         --mount "$base/x:/opt/aws_incoming:none:rbind,ro,x-create=dir"
         --mount "$jobs:/opt/anyhost_jobs:none:rbind,ro,x-create=dir"
         --mount "$base/s:/opt/anyhost_specs:none:rbind,ro,x-create=dir"
+        --mount /cm/shared/apps/slurm:/cm/shared/apps/slurm:none:rbind,ro,x-create=dir
+        --mount /cm/local/apps/slurm/var/spool:/cm/local/apps/slurm/var/spool:none:rbind,ro,x-create=dir
+        --mount /etc/slurm:/etc/slurm:none:rbind,ro,x-create=dir
+        --mount /run/munge:/run/munge:none:rbind,ro,x-create=dir
         --mount "$passwd:/etc/passwd:none:bind,ro"
         --mount /etc/group:/etc/group:none:bind,ro)
     local variable
-    for variable in R1_MOUNT R1_TRAINER ANYHOST_JOBS ANYHOST_SPEC CAWS_IN_CONTAINER HOME TMPDIR TZ PYTHONDONTWRITEBYTECODE PYTHONNOUSERSITE \
+    for variable in R1_EFA R1_RUNTIME_RECORD R1_MOUNT R1_TRAINER ANYHOST_JOBS ANYHOST_SPEC CAWS_IN_CONTAINER HOME TMPDIR TZ PYTHONDONTWRITEBYTECODE PYTHONNOUSERSITE \
         NVIDIA_VISIBLE_DEVICES NVIDIA_DRIVER_CAPABILITIES SLURM_JOB_ID SLURM_JOB_NAME SLURM_CPUS_ON_NODE \
-        SLURM_STEP_ID SLURM_JOB_NODELIST SLURM_NODELIST SLURM_RESTART_COUNT SLURM_CPUS_PER_TASK SLURM_MEM_PER_NODE; do
+        SLURM_STEP_ID SLURM_JOB_NODELIST SLURM_NODELIST SLURM_RESTART_COUNT SLURM_CPUS_PER_TASK SLURM_MEM_PER_NODE \
+        SLURM_NODEID SLURM_NNODES SLURM_JOB_NUM_NODES SLURM_PROCID SLURM_LOCALID SLURM_JOB_GPUS SLURM_STEP_GPUS \
+        SLURM_GPUS_ON_NODE CUDA_VISIBLE_DEVICES; do
         if [[ -v "$variable" ]]; then args+=(--env "$variable=${!variable}"); fi
     done
     enroot create --name "$name" "$image"
@@ -79,6 +117,27 @@ container() {
 }
 
 case "$phase" in
+    mntrain)
+        if [[ -z "${R1_NODE_STEP:-}" && "${SLURM_NNODES:-1}" != 1 ]]; then
+            # Batch step: one task per node, each with all of its node's GPUs; every task re-verifies the closure.
+            R1_NODE_STEP=1 srun --nodes="$SLURM_NNODES" --ntasks="$SLURM_NNODES" --ntasks-per-node=1 --gres=gpu:8 \
+                --cpus-per-task="$SLURM_CPUS_PER_TASK" --mem=0 --kill-on-bad-exit=1 \
+                bash "$jobs/entry.sh" "$closure_sha" "$spec_sha"
+        else
+            # A one-node job runs in its batch step, as the single-node trainer path expects (no srun GPU step).
+            nvidia-smi --query-gpu=index,name,driver_version --format=csv,noheader | head -2 || true
+            container mn_train_inner.sh "${argv[@]}"
+        fi
+        ;;
+    efaprobe)
+        # Host-side and in-container libfabric checks for EFA (one node, any GPU count).
+        set +e
+        echo "== host: $(. /etc/os-release; echo "$PRETTY_NAME") memlock $(ulimit -l)"
+        ls /opt/aws-ofi-nccl/lib /etc/libibverbs.d; ls /dev/infiniband | head -4; ls /sys/class/infiniband | head -4
+        FI_LOG_LEVEL=warn timeout 60 /opt/amazon/efa/bin/fi_info -p efa -t FI_EP_RDM 2>&1 | head -12
+        set -e
+        container efa_probe_inner.sh
+        ;;
     prep)
         $host_python -I -B "$jobs/frames_install.py" "$spec"
         container prep_inner.sh  # one container: prep_inner.sh runs venv_build.sh first

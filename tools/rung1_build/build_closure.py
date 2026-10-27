@@ -2,8 +2,8 @@
 import hashlib, io, json, os, tarfile
 C = "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/lanes/rung1_build_20261027/work/aws_closure"
 P = "/scratch/jjyeung/rung1_push/closure"
-names = ["entry.sh", "prep_inner.sh", "prep_rung1.py", "frames_install.py", "host_identity.py", "venv_build.sh",
-         "pins_cu129.txt", "provenance_bin/git", "site_alias/sitecustomize.py"]
+names = ["entry.sh", "prep_inner.sh", "prep_rung1.py", "mn_train_inner.sh", "efa_probe_inner.sh", "frames_install.py", "host_identity.py",
+         "venv_build.sh", "pins_cu129.txt", "provenance_bin/git", "site_alias/sitecustomize.py"]
 files = {n: hashlib.sha256(open(os.path.join(C, n), "rb").read()).hexdigest() for n in names}
 jobs = (json.dumps({"files": files}, indent=1, sort_keys=True) + "\n").encode()
 closure = hashlib.sha256(jobs).hexdigest()

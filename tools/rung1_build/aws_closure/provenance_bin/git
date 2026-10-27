@@ -31,7 +31,8 @@ def main(argv):
     directory = os.path.realpath(directory)
     with open(RECORD) as stream:
         record = json.load(stream)
-    tree = next((t for t in record["trees"].values() if os.path.realpath(t["container_path"]) == directory), None)
+    tree = next((t for t in record["trees"].values()
+                 if os.path.realpath(os.path.expandvars(t["container_path"])) == directory), None)  # "$R1_TRAINER" allowed
     if tree is None:
         fail(f"not a recorded neutral tree: {directory}", 128)
     if argv == ["rev-parse", "HEAD"]:

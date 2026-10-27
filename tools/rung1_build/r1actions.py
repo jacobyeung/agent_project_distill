@@ -9,6 +9,7 @@ Action files go to actions/pending/ with names that keep upload -> install -> sp
 """
 import hashlib
 import json
+import os
 from pathlib import Path
 import sys
 import time
@@ -59,7 +60,7 @@ def main(argv):
                   f"test \"$(sha256sum < $T.part/JOBS.json | cut -d' ' -f1)\" = {closure}\n"
                   "cd $T.part && python3 -c 'import json,hashlib; m=json.load(open(\"JOBS.json\"))[\"files\"]; "
                   "bad=[f for f,h in m.items() if hashlib.sha256(open(f,\"rb\").read()).hexdigest()!=h]; assert not bad, bad'\n"
-                  "chmod 0555 entry.sh prep_inner.sh venv_build.sh provenance_bin/git\n"
+                  "chmod 0555 entry.sh prep_inner.sh mn_train_inner.sh venv_build.sh provenance_bin/git\n"
                   f"cd .. && mv -n $T.part $T && echo CLOSURE_INSTALLED {closure}; fi\nls -la $T")
         write("d", "install_" + closure[:8], {"kind": "sh", "script": script})
     elif kind == "spec":
@@ -84,6 +85,27 @@ def main(argv):
                                           "run_spec": {"lane": "rung1_build_20261027", "phase": "prep",
                                                        "closure": closure, "spec_sha256": spec,
                                                        "purpose": "CPU preparation of rung-1 frozen sets"}})
+        print(name)
+    elif kind == "sbatchmn":
+        # Multi-node GPU job on pool0: one batch task per node; entry.sh launches one srun task per node with 8 GPUs.
+        closure, spec, nodes, limit = argv[1:5]
+        GPN = int(os.environ.get("R1_GPN", "8"))  # GPUs per node; a probe may ask for fewer
+        name = "a15_cot_ap" + spec[:8]
+        entry = "%s/j/%s/entry.sh" % (BASE, closure[:12])
+        args = ["sbatch", "--parsable", *ACCOUNT, "--partition=pool0", "--nodes=%s" % nodes, "--ntasks=%s" % nodes,
+                "--gres=gpu:%d" % GPN, "--cpus-per-task=%s" % os.environ.get("R1_CPUS", "64"),
+                "--mem=%s" % os.environ.get("R1_MEM", "900G"), "--time=%s" % limit, "--no-requeue",
+                "--export=ALL", "--chdir=%s/l" % BASE, "--job-name=" + name, "--output=%s/l/%s_%%j.log" % (BASE, name)]
+        if len(argv) > 5:
+            args.append("--dependency=" + argv[5])
+        args += [entry, closure, spec]
+        pre = (f"test \"$(sha256sum < {BASE}/j/{closure[:12]}/JOBS.json | cut -d' ' -f1)\" = {closure} && "
+               f"test \"$(sha256sum < {BASE}/s/{spec}.json | cut -d' ' -f1)\" = {spec}")
+        write("g", "sbatchmn_" + spec[:8], {"kind": "sbatch", "name": name, "gpus": GPN * int(nodes), "argv": args,
+                                            "chdir": "%s/l" % BASE, "pre": pre,
+                                            "run_spec": {"lane": "rung1_build_20261027", "phase": "mntrain",
+                                                         "closure": closure, "spec_sha256": spec, "nodes": int(nodes),
+                                                         "purpose": "multi-node startup and s/step test"}})
         print(name)
     elif kind == "sh":
         write("a", argv[1], {"kind": "sh", "script": Path(argv[2]).read_text()})

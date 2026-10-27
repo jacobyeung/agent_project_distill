@@ -34,7 +34,7 @@ JOB_LEDGER = LANES / "aws_reserve/AWS_JOB_LEDGER.jsonl"
 SUBMIT_LOCK = LANES / "aws_reserve/submit_r2.lock"  # shared with aws_lane2 so submissions serialize
 # 2026-10-27: the main orchestrator relays distillation's share directly (cap scheduler v4 is down), so both the
 # project-level and the lane-level checks read lane files this lane maintains from the relayed share.
-CAP_FILE, GUARANTEE, SHARE = HOME / "GPU_SHARE_ZERO", HOME / "GPU_SHARE_ZERO", HOME / "GPU_SHARE_ZERO"  # CPU jobs only
+CAP_FILE, GUARANTEE, SHARE = HOME / "SCHEDULE.json", HOME / "SCHEDULE.json", HOME / "SCHEDULE.json"  # GPU windows: SCHEDULE.json
 LANE = "rung1_build_20261027"
 # 2026-10-27: code-aws is reached through the reverse tunnel on trinity-0-13 (127.0.0.1:42224, ~/.ssh/config host
 # code-aws, whose ControlMaster is reused). No hop through the Trinity head node. Run this driver only on trinity-0-13.
@@ -367,8 +367,6 @@ def build(actions, state, jobs):
                           f"echo \"=== ACTION {aid} END rc=$rc\"\n").encode())
         elif kind == "sbatch":
             name, gpus = act["name"], int(act["gpus"])
-            if gpus != 0:
-                raise SystemExit(f"REFUSED: {name}: this lane submits CPU jobs only")
             assert re.fullmatch(r"a15_cot_ap[0-9a-f]{8}", name), name
             argv = act["argv"]
             try:

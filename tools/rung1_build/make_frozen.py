@@ -7,9 +7,12 @@ per arm, packed as frozen/<ARM>/... for the code-aws preparation job.
   RG1_A3_S17  export P (GT perception-target traces), same config as A1
   RG1_C_S17   export X answer-only control, a fixed 1-in-10 subset of the rows (yardstick only)
 
-Config: the SELF_V4 S17 config with world_size 32 (4 nodes x 8 GPUs, one sample per GPU, effective batch 32 with no
-accumulation; coordinator 04:0x PT), checkpoint_every_steps 500 and the
-neutral r1835 parent pins on code-aws (weights 02bccd99..., neutral publication 70c634a8...).
+Config: the SELF_V4 S17 config at world_size 32 (4 nodes x 8 GPUs), checkpoint_every_steps 500 and the neutral r1835
+parent pins on code-aws (weights 02bccd99..., neutral publication 70c634a8...). Env R1_RECIPE picks the batch, identical
+for every arm (no gradient accumulation across nodes, so the batch is world x microbatch):
+  b256 (default; trainer 6e7786b5): batch 256, 8 per GPU, LR 1e-4 x sqrt(8) = 2.83e-4; arm names RG1_<arm>_S17
+  b128 (trainer 6e7786b5): batch 128, 4 per GPU, LR 2e-4; arm names RG1_<arm>_B128_S17
+  b32  (fallback, trainer b4b2979 or later): batch 32, 1 per GPU, LR 1e-4; arm names RG1_<arm>_B32_S17
 usage: make_frozen.py SRC_ROOT OUT_ROOT
 """
 import hashlib
@@ -29,11 +32,17 @@ ARMS = {"RG1_A1_S17": ("G", {}),
         "RG1_A2_S17": ("G", {"targets": VISION_FROZEN}),
         "RG1_A3_S17": ("P", {}),
         "RG1_C_S17": ("X", {"subset": "1in10"})}
+RECIPES = {"b256": ("", {"effective_batch_size": 256, "max_microbatch_size": 8, "learning_rate": 0.000283}),
+           "b128": ("_B128", {"effective_batch_size": 128, "max_microbatch_size": 4, "learning_rate": 0.0002}),
+           "b32": ("_B32", {})}
 
 
 def main():
     src, out = sys.argv[1:3]
-    arms = json.loads(os.environ["R1_ARMS"]) if os.environ.get("R1_ARMS") else ARMS  # test runs name their own arms
+    suffix, recipe = RECIPES[os.environ.get("R1_RECIPE", "b256")]
+    arms = {name.replace("_S17", suffix + "_S17"): (export, dict(recipe, **change)) for name, (export, change) in ARMS.items()}
+    if os.environ.get("R1_ARMS"):
+        arms = json.loads(os.environ["R1_ARMS"])  # test runs name their own arms and settings
     template = json.load(open(src + TEMPLATE))
     assert template["init_adapter"]["weights_sha256"] == NEUTRAL_PARENT["weights_sha256"]
     assert template["targets"] == "exact_text_attention_mlp_vision_attention_mlp_mergers"
@@ -42,7 +51,8 @@ def main():
         change = dict(change)
         subset = change.pop("subset", None)
         config = dict(template)
-        config.update(world_size=32, seed=17, checkpoint_every_steps=500, init_adapter=dict(NEUTRAL_PARENT), **change)
+        config.update(world_size=32, seed=17, checkpoint_every_steps=500, init_adapter=dict(NEUTRAL_PARENT))
+        config.update(change)
         if change.get("targets") == VISION_FROZEN:
             groups = dict(config["group_parameters"])
             config["frozen_group_parameters"] = {"vision": groups.pop("vision")}
