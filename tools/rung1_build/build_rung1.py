@@ -576,6 +576,13 @@ def main():
                 report["excluded_by_type"][kind] += 1
                 invisible.append({"qid": qid, "type": kind, "video": q["video"], "reason": ",".join(reasons)})
                 continue
+            if BANNED.search(normalize_question(q["question"], q["options"]) + " " + " ".join(q["options"])):
+                # A word that must not reach code-aws (an object label such as an air-conditioner "split" unit) is the
+                # GT category name, so it cannot be neutralized without changing the question: keep the row out.
+                report["excluded"]["banned_word_in_model_text"] += 1
+                report["excluded_by_type"][kind] += 1
+                invisible.append({"qid": qid, "type": kind, "video": q["video"], "reason": "banned_word_in_model_text"})
+                continue
             exported_groups.add(group)
             answer, options, letters = q["training_answer"], q["options"], q["option_letters"]
             assert letters == [chr(65 + n) for n in range(len(options))]
@@ -689,6 +696,7 @@ def support_row(support, commit, export):
                            ("fps", inputs["fps"]), ("total_num_frames", inputs["total_num_frames"])])),
                        ("generation_commit", commit), ("validation_commit", commit)])
     row.update(FLAGS)
+    assert not BANNED.search(canonical(row)), "support row holds a word that must not reach code-aws"
     return row
 
 
