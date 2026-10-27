@@ -92,6 +92,25 @@ mine = sorted((r for r in ranks if r["host"] == sys.argv[1]), key=lambda r: r["r
 print(",".join(r["gpu_uuid"] for r in mine))' "$host")"
 export CUDA_VISIBLE_DEVICES
 step "leases bound; local GPUs $CUDA_VISIBLE_DEVICES"
+if (( smoke == 0 )); then
+    # Full run: every node runs the trainer's launcher to the end; node 0 holds rank 0's output and publishes it.
+    rc=0
+    bash "$TRAINER/scripts/diagnostic_ddp_gpu_batch.sh" || rc=$?
+    step "trainer exit $rc"
+    if (( NODE_RANK == 0 && rc == 0 )); then
+        test -f "$RUN_OUTPUT/training_result.json"
+        python -B -m student_pilot.cli diagnostic finalize \
+            --training-run "$RUN_OUTPUT" --scratch-root "$SCRATCH_ROOT" \
+            --publish-root "$attempt/publication" \
+            --provisional-diagnostic "$PROVISIONAL_DIAGNOSTIC"
+        test -f "$RUN_OUTPUT/PUBLISHED.json"
+        cp -a "$RUN_OUTPUT" "$attempt/train"
+        ln -sfn "$attempt/train" "$root/train"
+        step "published $attempt/publication"
+    fi
+    step "done"
+    exit "$rc"
+fi
 started=$(date +%s)
 setsid bash "$TRAINER/scripts/diagnostic_ddp_gpu_batch.sh" &
 pid=$!

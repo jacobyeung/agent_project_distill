@@ -96,8 +96,11 @@ def main(argv):
                 "--gres=gpu:%d" % GPN, "--cpus-per-task=%s" % os.environ.get("R1_CPUS", "64"),
                 "--mem=%s" % os.environ.get("R1_MEM", "900G"), "--time=%s" % limit, "--no-requeue",
                 "--export=ALL", "--chdir=%s/l" % BASE, "--job-name=" + name, "--output=%s/l/%s_%%j.log" % (BASE, name)]
-        if len(argv) > 5:
+        if len(argv) > 5 and argv[5] != "-":
             args.append("--dependency=" + argv[5])
+        for flag, variable in (("--deadline", "R1_DEADLINE"), ("--time-min", "R1_TIME_MIN")):
+            if os.environ.get(variable):  # a chained arm that cannot finish by the deadline is removed, never truncated
+                args.append(f"{flag}={os.environ[variable]}")
         args += [entry, closure, spec]
         pre = (f"test \"$(sha256sum < {BASE}/j/{closure[:12]}/JOBS.json | cut -d' ' -f1)\" = {closure} && "
                f"test \"$(sha256sum < {BASE}/s/{spec}.json | cut -d' ' -f1)\" = {spec}")
