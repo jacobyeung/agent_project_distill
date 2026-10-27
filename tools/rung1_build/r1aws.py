@@ -614,6 +614,11 @@ def run():
         with open(SUBMIT_LOCK, "r+") as slock:
             fcntl.flock(slock, fcntl.LOCK_EX)
             stream, plan = build(actions, state, jobs)
+            if sum(part.size for part in stream if isinstance(part, FileRef)) > 1_000_000:
+                # Since 08:29 PT 10-27 every data copy, push and pull goes through the central copy queue
+                # (/data3/jjyeung/orch_n13_20261026/copy_queue/HOWTO.md); this driver sends only control payloads.
+                print("PAYLOAD_REFUSED: data payloads over 1 MB go through the copy queue; actions stay pending")
+                return 3
             # Persist intent before the call so a process crash cannot permit blind retry.
             state['uncertain'] = sorted(set(state.get('uncertain', [])) | {act['name'] for act in plan})
             save_state(state)

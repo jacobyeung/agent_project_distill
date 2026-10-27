@@ -90,8 +90,20 @@ def main():
                            "runtime_record, argv: [ARM, RUN_NAME, 0]}; see AWS_TRAINING_RUNBOOK.md"),
                    "expected_s_per_step": 17.5, "expected_wall_hours": {"A1/A2/A1S": 5.6, "A3": "6-7 (longer targets)",
                                                                          "C": 0.6, "S": "about 1"},
-                   "time_limit_per_job": "11:00:00 starting 18:30 PT (ends by 05:30 PT)",
-                   "resume": "next window from the newest step_* checkpoint (every 500 steps; final checkpoint kept)",
+                   "plan_64_gpus": {
+                       "ruling": "coordinator 09:2x PT: 64 GPUs for rung 1 (night share 78; 14 to evals and the checker); "
+                                 "if the share is larger, run more arms at once in this order; every job ends by 06:20 PT",
+                       "block_1": [{"arm": "RG1_A1_S17", "start": "18:30", "expected_end": "00:10"},
+                                   {"arm": "RG1_A2_S17", "start": "after A1 (~00:10)", "expected_end": "05:50"}],
+                       "block_2": [{"arm": "RG1_A3_S17", "start": "18:30", "expected_end": "00:50"},
+                                   {"arm": "RG1_C_S17", "start": "after A3 (~00:50)", "expected_end": "01:35"},
+                                   {"arm": "RG1_S_S17", "start": "after C (~01:35)", "expected_end": "02:40"},
+                                   {"arm": "RG1_A1S_S17", "start": "after S (~02:40)",
+                                    "expected_end": "next night: ~3.6 h here reaches the step-500 checkpoint by 06:20; "
+                                                    "about 4 h remain"}],
+                       "time_limits": "each job's --time ends it by 06:20 PT (now-to-06:20 at submission); a chained job "
+                                      "uses afterany on its block's previous job and the same 06:20 end",
+                       "resume": "next night from the newest step_* checkpoint (every 500 steps; the final one is kept)"},
                    "fallback": "without EFA run each arm on one node: re-prepare at world 8 (make_frozen.py R1_RECIPE "
                                "and R1_ARMS), same exports; 2-node sockets runs are 8x slower per GPU"},
         "rulings_on_review_conditions": ("coordinator 08:1x PT: the trainer-required group_policy literal in "
