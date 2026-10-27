@@ -519,6 +519,12 @@ def main():
     assert re.fullmatch(r"[0-9a-f]{40}", commit)
     os.makedirs(out)
     groups, scenes, authority = load_exclusions(src)
+    authority_reasons = set(groups) | set(scenes)
+    support = json.load(open(src + "/SUPPORT_ROW.json"))
+    support_group, support_key = physical_group(support["dataset"], support["scene"])
+    assert not any(support_group in groups[r] or support_key in scenes[r] for r in authority_reasons), "support row excluded"
+    if support["_source"].get("group_held_out_of_training"):
+        groups["heldout_support_group"].add(support_group)  # its rows never train; the support row stands for them
     videos = {}
     for line in open(src + "/VIDEO_INPUTS.jsonl"):
         record = json.loads(line)
@@ -653,9 +659,7 @@ def main():
                 rows.append((token_scene, token_qid, canonical(row).encode()))
     report["kept"] = len(rows_x)
     report["a3_pose_check"] = dict(POSE_CHECK)
-    support = json.load(open(src + "/SUPPORT_ROW.json"))
-    group, key = physical_group(support["dataset"], support["scene"])
-    assert not any(group in groups[r] or key in scenes[r] for r in set(groups) | set(scenes)), "support row excluded"
+    group, key = support_group, support_key
     assert support["answer_provenance"]["type"] == "GT recompute"
     # The held-out support row's physical group must hold no kept row (ScanNet rescans share sceneNNNN).
     assert group not in exported_groups, ("support row shares a physical group with the export", group)

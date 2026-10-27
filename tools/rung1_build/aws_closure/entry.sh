@@ -89,7 +89,14 @@ container() {
              --mount /usr/lib/x86_64-linux-gnu/libibverbs:/usr/lib/x86_64-linux-gnu/libibverbs:none:rbind,ro,x-create=dir
              --mount /etc/libibverbs.d:/etc/libibverbs.d:none:rbind,ro,x-create=dir)
     fi
-    local args=(--rw "${efa[@]}"
+    local selfsrc=()
+    local source_dir
+    source_dir=$($host_python -I -c 'import json, sys; print(json.load(open(sys.argv[1])).get("self_source", ""))' "$spec")
+    if [[ -n "$source_dir" ]]; then
+        [[ -f "$source_dir/MANIFEST.json" ]]
+        selfsrc=(--mount "$source_dir:/opt/r1_selfsrc:none:rbind,ro,x-create=dir")
+    fi
+    local args=(--rw "${efa[@]}" "${selfsrc[@]}"
         --mount "$HOME:$HOME:none:rbind,rw,x-create=dir"
         --mount "$TMPDIR:$TMPDIR:none:rbind,rw,x-create=dir"
         --mount "$data/orch:$R1_MOUNT:none:rbind,rw,x-create=dir"

@@ -19,6 +19,7 @@ usage (inside the image, cwd = trainer):
 """
 import hashlib
 import json
+import re
 import os
 from pathlib import Path
 import random
@@ -144,7 +145,7 @@ def merge(frozen, n, records_dir=None):
     clean, data, load_processor, digest_json = trainer()
     # RECORDS_DIR may list several record sets as DIR:N,DIR:N (e.g. an export plus an extra shard set prepared apart).
     sets = [(Path(item.rpartition(":")[0]), int(item.rpartition(":")[2])) if ":" in item else (Path(item), n)
-            for item in records_dir.split(",")] if records_dir else [(frozen / "shards", n)]
+            for item in re.findall(r"[^,]+", records_dir)] if records_dir else [(frozen / "shards", n)]
     records = {}
     for directory, count in sets:
         for k in range(count):

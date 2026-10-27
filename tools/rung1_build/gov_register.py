@@ -42,7 +42,7 @@ def main():
         members.append(member)
     record = dict(reader, lane=lane, host=socket.gethostname().split(".")[0], tier=tier, kind=kind,
                   nominal_mbps=nominal, tunnel_mbps=0.0, resume_allowed=True, members=members, pv_pid=pv_pid,
-                  expected_bytes=expected_bytes, io_weight=1.0, tunnel_weight=0.0,
+                  expected_bytes=expected_bytes, io_weight=1.0, tunnel_weight=0.0, priority=10,  # rung-1 critical path (coordinator)
                   pipeline_verified="Each upstream fd1 matches downstream fd0; same UID; reader is the lane's gated "
                                     "tar_reader.py or tar, pacer is pv, sink is tar xf into node-local /scratch.")
     path = os.path.join(STREAMS, lane + ".json")

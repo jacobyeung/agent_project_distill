@@ -29,8 +29,19 @@ export PROVISIONAL_DIAGNOSTIC=ZERO_CALL_DIAGNOSTIC_PENDING_REVIEW
 export TRAINING_MANIFEST="$frozen/training.json" PROTOCOL="$frozen/protocol.json" TRAINING_CONFIG="$frozen/config.json"
 export NCCL_DEBUG=INFO NCCL_DEBUG_SUBSYS=INIT,NET
 if [[ "${R1_EFA:-0}" == 1 ]]; then
-    export LD_LIBRARY_PATH="/opt/aws-ofi-nccl/lib:/opt/amazon/efa/lib:/opt/efa_hostlib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
-    export FI_PROVIDER=efa FI_EFA_USE_DEVICE_RDMA=1 FI_EFA_FORK_SAFE=1
+    # libfabric's CUDA memory support (FI_HMEM, which the plugin's RDMA protocol requires) dlopens the unversioned CUDA
+    # runtime and driver libraries; the image has them only inside the venv's wheels and as libcuda.so.1.
+    cudalib="$TMPDIR/r1_cudalib"
+    mkdir -p "$cudalib"
+    ln -sfn "$(ls "$PILOT_VENV"/lib/python3.12/site-packages/nvidia/cuda_runtime/lib/libcudart.so.1* | head -1)" "$cudalib/libcudart.so"
+    for candidate in /usr/lib/x86_64-linux-gnu/libcuda.so.1 /usr/lib64/libcuda.so.1; do
+        if [[ -e "$candidate" ]]; then ln -sfn "$candidate" "$cudalib/libcuda.so"; break; fi
+    done
+    export LD_LIBRARY_PATH="/opt/aws-ofi-nccl/lib:/opt/amazon/efa/lib:/opt/efa_hostlib:$cudalib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+    export FI_PROVIDER=efa FI_EFA_USE_DEVICE_RDMA=1 FI_EFA_FORK_SAFE=1 FI_LOG_LEVEL=warn
+    export NCCL_IB_DISABLE=1  # never fall back to NCCL's own verbs transport on EFA devices (it crashed with SIGSEGV)
+    ls -la "$cudalib"
+    timeout 60 /opt/amazon/efa/bin/fi_info -p efa -t FI_EP_RDM -c FI_HMEM 2>&1 | head -8 || true
 fi
 world=$(python -c 'import json, sys; print(json.load(open(sys.argv[1]))["world_size"])' "$TRAINING_CONFIG")
 mapfile -t nodes < <(scontrol show hostnames "$SLURM_JOB_NODELIST")

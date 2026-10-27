@@ -21,7 +21,14 @@ PARENT = {"parent_run": "q9_l250cp_u2_camrows_ev3_w4_e1_trinity_r1835",
 ROLES = {"RG1_A1_S17": ("A1: GT-template traces, vision LoRA on", "G"),
          "RG1_A2_S17": ("A2: A1 rows and targets, vision frozen (targets exact_text_attention_mlp_mergers_vision_frozen)", "G"),
          "RG1_A3_S17": ("A3: GT perception-target traces", "P"),
-         "RG1_C_S17": ("answer-only yardstick: fixed 1-in-10 subset of the rows", "X")}
+         "RG1_C_S17": ("answer-only yardstick: fixed 1-in-10 subset of the rows", "X"),
+         "RG1_S_S17": ("S: the student's own traces that reached the GT answer (S2V c3r1 on code-aws, up to 2 distinct "
+                       "verified samples per question, shortest first); separable shard", "S"),
+         "RG1_A1S_S17": ("A1+S mix: every export-G row plus the S rows (same question may train on both trace kinds)", "G+S")}
+TRAINER = "299b0c526e3663ff2a42a5c3a9113e9e0b8e4164"  # e343b549 vision-freeze + batch options + exact multi-node microbatch
+RECIPE = {"world_size": 32, "nodes": 4, "gpus_per_node": 8, "effective_batch_size": 256, "per_gpu_rows": 8,
+          "learning_rate": 0.000283, "max_microbatch_size": 8, "schedule": "cosine, warmup 3%", "epochs": 1, "seed": 17,
+          "parallel": "fsdp", "gradient_accumulation": 1}
 
 
 def sha(path):
@@ -37,23 +44,20 @@ def main():
     arms = []
     for arm, (role, export) in ROLES.items():
         admission = admissions.get(arm)
-        rows = admission["rows"] if admission else frozen[arm]["rows_including_heldout_support"] - 1
-        entry = {"arm": arm, "role": role, "export": export, "frozen_dir": ROOT + arm, "training_rows": rows,
-                 "steps": math.ceil(rows / 32), "world_size": 8, "effective_batch_size": 32, "epochs": 1, "seed": 17,
-                 "checkpoint_every_steps": 500, "checkpoint_final": True, "parallel": "fsdp", "warm_start": PARENT,
-                 "config_sha256": frozen[arm]["config.json"]["sha256"],
-                 "candidate_index_sha256": frozen[arm]["candidate_index.jsonl"]["sha256"]}
+        pins = frozen.get(arm, {})
+        rows = admission["rows"] if admission else (pins["rows_including_heldout_support"] - 1 if pins else None)
+        entry = dict(RECIPE, arm=arm, role=role, export=export, frozen_dir=ROOT + arm, training_rows=rows,
+                     steps=math.ceil(rows / RECIPE["effective_batch_size"]) if rows else None,
+                     checkpoint_every_steps=500, checkpoint_final=True, warm_start=PARENT, trainer_commit=TRAINER,
+                     config_sha256=pins.get("config.json", {}).get("sha256"),
+                     candidate_index_sha256=pins.get("candidate_index.jsonl", {}).get("sha256"))
+        if export in ("S", "G+S"):
+            entry["frozen_inputs_built_on"] = "code-aws (selfshard.py; SELF_SHARD_REPORT.json in the S frozen dir)"
         if admission:
-            entry.update(status="READY" if review and review.get("training_clearance") is True else "PREPARED_AWAITING_CLEARANCE",
+            cleared = review and review.get("training_clearance") is True
+            entry.update(status="READY" if cleared else "PREPARED_AWAITING_CLEARANCE",
                          bindings=admission["bindings"], protocol_sha256=admission["protocol_sha256"],
-                         pre_evaluation_drops=admission["pre_evaluation_drops"], counts=admission["counts"],
-                         trainer_commit="b4b2979d59b19bfc613fdf38b4fa1c6949b69ae3")
-        elif arm == "RG1_A2_S17":
-            entry.update(status="NEEDS_TRAINER", trainer_commit="vision-freeze branch e343b549 (install its neutral "
-                         "tree on code-aws)", how=("run prep_rung1.py protocol on the A2 frozen dir with that trainer, then "
-                         "merge FROZEN 56 <aws128p frozen>/RG1_A1_S17/shards (identical rows and targets, so A1's encode "
-                         "records apply), seal, request, admit; closure tools/rung1_build/aws_closure with the trainer "
-                         "commit in entry.sh changed"))
+                         pre_evaluation_drops=admission["pre_evaluation_drops"], counts=admission["counts"])
         else:
             entry.update(status="PREPARING")
         arms.append(entry)

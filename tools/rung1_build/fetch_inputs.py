@@ -164,10 +164,15 @@ def main():
     print("uniformity", uniformity["rows"], uniformity["identical"], len(uniformity["different"]), flush=True)
     assert uniformity["rows"] > 0 and not uniformity["different"]
 
-    first = open(src + spare[0], "rb").readline()
+    # The trainer's division needs one held-out support row whose physical group trains nothing. With every bank group
+    # exported there is no spare group, so the first row of the first (sorted) uniformity shard is the support row and
+    # the builder holds its whole physical group out of training (reason heldout_support_group).
+    source = spare[0] if spare else sorted(sample_shards)[0]
+    first = open(src + source, "rb").readline()
     row = json.loads(first.decode())
-    row["_source"] = {"shard": spare[0], "line_1based": 1, "line_sha256": sha(first.rstrip(b"\n")),
-                      "manifest": MANIFEST, "manifest_sha256": sha(manifest)}
+    row["_source"] = {"shard": source, "line_1based": 1, "line_sha256": sha(first.rstrip(b"\n")),
+                      "manifest": MANIFEST, "manifest_sha256": sha(manifest),
+                      "group_held_out_of_training": not spare}
     with open(src + "/SUPPORT_ROW.json", "w") as stream:
         json.dump(row, stream, sort_keys=True)
     print("STAGE_C_DONE", flush=True)

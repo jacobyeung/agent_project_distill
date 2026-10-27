@@ -24,6 +24,14 @@ spec() { python -I -c "import json, sys; v = json.load(open(sys.argv[1])); $1" "
 prep="python -B $ANYHOST_JOBS/prep_rung1.py"
 cd "$TRAINER"
 
+# Optional trainer unit tests (CPU) named by the spec, run in the trainer tree with the venv.
+mapfile -t tests < <(spec 'print("\n".join(v.get("trainer_tests", [])))' | sed '/^$/d')
+if (( ${#tests[@]} )); then
+    step "trainer tests ${tests[*]}"
+    mkdir -p "$TMPDIR/lane_tests"
+    { LANE_TEST_OUTPUT="$TMPDIR/lane_tests" CUDA_VISIBLE_DEVICES= python -B -m unittest "${tests[@]}" 2>&1 || echo TRAINER_TESTS_FAILED; } | tail -n 25
+fi
+
 mapfile -t rows < <(spec 'print("\n".join(v.get("row_archives", [])))' | sed '/^$/d')
 if (( ${#rows[@]} )); then step "install ${#rows[@]} row archives"; $prep install "${rows[@]}"; fi
 
@@ -51,6 +59,18 @@ for entry in "${frozen[@]}"; do
     done
 done
 
+# Optional self-trace shard: rows built here from the student's verified samples (mounted at /opt/r1_selfsrc) and an
+# installed base arm; it creates the S arm and the base+S mix arm frozen dirs that the chains below prepare.
+mapfile -t self_args < <(spec 'a = v.get("selfshard"); print("\n".join(map(str, [a["manifest_sha256"], a["base_arm"], a["s_arm"], a["mix_arm"], a["per_question"], a["commit"]])) if a else "")' | sed '/^$/d')
+if (( ${#self_args[@]} )); then
+    if [[ ! -f "$root/frozen/${self_args[2]}/SELF_SHARD_REPORT.json" ]]; then
+        step "self shard ${self_args[2]} and mix ${self_args[3]} from ${self_args[1]}"
+        python -I -B "$ANYHOST_JOBS/selfshard.py" /opt/r1_selfsrc "${self_args[0]}" "$root/frozen" "${self_args[1]}" \
+            "${self_args[2]}" "${self_args[3]}" "$R1_MOUNT/data2root" "${self_args[4]}" "${self_args[5]}"
+    fi
+    cat "$root/frozen/${self_args[2]}/SELF_SHARD_REPORT.json"
+fi
+
 parallel=$(spec 'print(v.get("parallel", 8))')
 mapfile -t chains < <(spec 'print("\n".join("%s %d %s" % (c["frozen"], c["shards"], c.get("records_from") or "-") for c in v.get("chains", [])))')
 for chain in "${chains[@]}"; do
@@ -69,6 +89,11 @@ for chain in "${chains[@]}"; do
         for ((k = 0; k < shards; k++)); do
             test -f "$records/$(printf '%03d_of_%03d.jsonl' "$k" "$shards")" || { tail -n 20 "$dir/shard_$k.log"; exit 4; }
         done
+    elif [[ "$from" == *:* ]]; then
+        # Several record sets, ARM:N[,ARM:N...]: each arm's encode shards (e.g. a base export plus the self shard).
+        records=""
+        IFS=, read -r -a sets <<< "$from"
+        for item in "${sets[@]}"; do records+="${records:+,}$root/frozen/${item%%:*}/shards:${item##*:}"; done
     else
         records="$root/frozen/$from/shards"
     fi

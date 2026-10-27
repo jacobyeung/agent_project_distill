@@ -456,6 +456,13 @@ def governed_ssh(parts, stamp, payload):
                     "--pv-pid", str(pv.pid), "--expected-bytes", str(total), "--tier", "1", "--kind", "push",
                     "--nominal-mbps", "1.0", "--tunnel-mbps", "0.5", "--io-weight", "1", "--tunnel-weight", "1",
                     "--allow-resume"], check=True)
+    # Rung-1 copies are on the critical path: admission priority 10 within the tier (coordinator). The helper has no
+    # flag for it, so the field is added to the published record by an atomic same-directory rewrite.
+    value = json.loads(record.read_text())
+    value["priority"] = 10
+    staged = record.with_name(f".{record.name}.{os.getpid()}.tmp")
+    staged.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n")
+    os.replace(staged, record)
     start = time.time()
     admitted = False
     while time.time() - start < ADMISSION_WAIT:

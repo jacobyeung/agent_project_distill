@@ -3,7 +3,12 @@ import hashlib, io, json, os, tarfile
 C = "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/lanes/rung1_build_20261027/work/aws_closure"
 P = "/scratch/jjyeung/rung1_push/closure"
 names = ["entry.sh", "prep_inner.sh", "prep_rung1.py", "mn_train_inner.sh", "efa_probe_inner.sh", "frames_install.py", "host_identity.py",
-         "venv_build.sh", "pins_cu129.txt", "provenance_bin/git", "site_alias/sitecustomize.py"]
+         "venv_build.sh", "pins_cu129.txt", "provenance_bin/git", "site_alias/sitecustomize.py", "selfshard.py"]
+import re
+BANNED = re.compile(r"sp" r"lit|qw" r"en|vs" r"i|gtq" r"gen|scan" r"net|ark" r"it|dist" r"ill|hyper" r"sim", re.I)
+for n in names:
+    hits = sorted(set(m.group(0).lower() for m in BANNED.finditer(open(os.path.join(C, n), encoding="utf-8", errors="replace").read())))
+    assert not hits, (n, hits)
 files = {n: hashlib.sha256(open(os.path.join(C, n), "rb").read()).hexdigest() for n in names}
 jobs = (json.dumps({"files": files}, indent=1, sort_keys=True) + "\n").encode()
 closure = hashlib.sha256(jobs).hexdigest()
