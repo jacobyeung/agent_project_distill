@@ -29,7 +29,8 @@ mapfile -t tests < <(spec 'print("\n".join(v.get("trainer_tests", [])))' | sed '
 if (( ${#tests[@]} )); then
     step "trainer tests ${tests[*]}"
     mkdir -p "$TMPDIR/lane_tests"
-    { LANE_TEST_OUTPUT="$TMPDIR/lane_tests" CUDA_VISIBLE_DEVICES= python -B -m unittest "${tests[@]}" 2>&1 || echo TRAINER_TESTS_FAILED; } | tail -n 25
+    { LANE_TEST_OUTPUT="$TMPDIR/lane_tests" CUDA_VISIBLE_DEVICES= python -B -m unittest "${tests[@]}" 2>&1 || echo TRAINER_TESTS_FAILED; } \
+        | grep -E "^(ERROR|FAIL):|^Ran |^OK|^FAILED|Error:|TRAINER_TESTS" | head -n 80 || true
 fi
 
 mapfile -t rows < <(spec 'print("\n".join(v.get("row_archives", [])))' | sed '/^$/d')
@@ -61,12 +62,12 @@ done
 
 # Optional self-trace shard: rows built here from the student's verified samples (mounted at /opt/r1_selfsrc) and an
 # installed base arm; it creates the S arm and the base+S mix arm frozen dirs that the chains below prepare.
-mapfile -t self_args < <(spec 'a = v.get("selfshard"); print("\n".join(map(str, [a["manifest_sha256"], a["base_arm"], a["s_arm"], a["mix_arm"], a["per_question"], a["commit"]])) if a else "")' | sed '/^$/d')
+mapfile -t self_args < <(spec 'a = v.get("selfshard"); print("\n".join(map(str, [a["manifest_sha256"], a["base_arm"], a["s_arm"], a["mix_arm"], a["per_question"], a["commit"]] + ([a["extra_archive"], a["extra_sha256"]] if "extra_archive" in a else []))) if a else "")' | sed '/^$/d')
 if (( ${#self_args[@]} )); then
     if [[ ! -f "$root/frozen/${self_args[2]}/SELF_SHARD_REPORT.json" ]]; then
         step "self shard ${self_args[2]} and mix ${self_args[3]} from ${self_args[1]}"
         python -I -B "$ANYHOST_JOBS/selfshard.py" /opt/r1_selfsrc "${self_args[0]}" "$root/frozen" "${self_args[1]}" \
-            "${self_args[2]}" "${self_args[3]}" "$R1_MOUNT/data2root" "${self_args[4]}" "${self_args[5]}"
+            "${self_args[2]}" "${self_args[3]}" "$R1_MOUNT/data2root" "${self_args[4]}" "${self_args[5]}" "${self_args[@]:6}"
     fi
     cat "$root/frozen/${self_args[2]}/SELF_SHARD_REPORT.json"
 fi

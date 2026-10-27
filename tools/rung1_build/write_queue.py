@@ -41,10 +41,14 @@ def main():
     report = json.loads((HOME / "out/BUILD_REPORT.json").read_text())
     review_path = HOME / "review/REVIEW.json"
     review = json.loads(review_path.read_text()) if review_path.exists() else None
+    self_path = HOME / "review/SELF_SHARD_REVIEW.json"
+    report_path = HOME / "out/SELF_SHARD_REPORT.json"  # copied from the S frozen dir on code-aws
+    self_report = json.loads(report_path.read_text()) if report_path.exists() else {}
+    self_review = json.loads(self_path.read_text()) if self_path.exists() else None
     arms = []
     for arm, (role, export) in ROLES.items():
         admission = admissions.get(arm)
-        pins = frozen.get(arm, {})
+        pins = frozen.get(arm, {}) or self_report.get("frozen", {}).get(arm, {})
         rows = admission["rows"] if admission else (pins["rows_including_heldout_support"] - 1 if pins else None)
         entry = dict(RECIPE, arm=arm, role=role, export=export, frozen_dir=ROOT + arm, training_rows=rows,
                      steps=math.ceil(rows / RECIPE["effective_batch_size"]) if rows else None,
@@ -55,6 +59,10 @@ def main():
             entry["frozen_inputs_built_on"] = "code-aws (selfshard.py; SELF_SHARD_REPORT.json in the S frozen dir)"
         if admission:
             cleared = review and review.get("training_clearance") is True
+            if export in ("S", "G+S"):  # the self-trace rows also need their own legality review, of these bytes
+                index_sha = pins.get("candidate_index.jsonl", {}).get("sha256")
+                cleared = (cleared and self_review and self_review.get("training_admission") is True
+                           and bool(index_sha) and index_sha in json.dumps(self_review.get("inputs", {})))
             entry.update(status="READY" if cleared else "PREPARED_AWAITING_CLEARANCE",
                          bindings=admission["bindings"], protocol_sha256=admission["protocol_sha256"],
                          pre_evaluation_drops=admission["pre_evaluation_drops"], counts=admission["counts"])
@@ -71,12 +79,21 @@ def main():
         "review": ({"path": str(review_path), "sha256": sha(review_path), "verdict": review.get("verdict"),
                     "training_clearance": review.get("training_clearance"), "conditions": review.get("conditions")}
                    if review else {"status": "pending"}),
-        "launch": {"night_window_pt": "18:30-06:00 (training up to 62 GPUs); day share 16 GPUs (awstrain SCHEDULE.json)",
-                   "gpus_per_arm": 8, "time_limit_per_job": "11:00:00 starting 18:30 PT (ends by 05:30 PT)",
+        "launch": {"order_at_1830_pt": ["RG1_A1_S17", "RG1_A3_S17", "RG1_C_S17", "RG1_A2_S17", "RG1_S_S17", "RG1_A1S_S17"],
+                   "order_note": "coordinator 06:2x PT: A1, A3, the yardstick, A2, then S and A1+S, subject to the share",
+                   "nodes_per_arm": 4, "gpus_per_arm": 32, "efa": True,
+                   "how": ("closure tools/rung1_build/aws_closure, entry.sh phase mntrain (one srun task per node, "
+                           "--gres=gpu:8, never --exclusive); spec {phase: mntrain, efa: true, trainer_commit, "
+                           "runtime_record, argv: [ARM, RUN_NAME, 0]}; see AWS_TRAINING_RUNBOOK.md"),
+                   "expected_s_per_step": 17.5, "expected_wall_hours": {"A1/A2/A1S": 5.6, "A3": "6-7 (longer targets)",
+                                                                         "C": 0.6, "S": "about 1"},
+                   "time_limit_per_job": "11:00:00 starting 18:30 PT (ends by 05:30 PT)",
                    "resume": "next window from the newest step_* checkpoint (every 500 steps; final checkpoint kept)",
-                   "expected_wall": "about 5.6 s/step on 8 H100: A1/A2 ~14.3 h, A3 ~15 h (longer targets), control ~1.5 h",
-                   "wrapper_note": "train_inner.sh pins checkpoint 25 / world 4 / scope aws128-t1-orchard-rung1; these arms "
-                                   "need a wrapper variant with checkpoint 500, world 8 and this queue's review record"},
+                   "fallback": "without EFA run each arm on one node: re-prepare at world 8 (make_frozen.py R1_RECIPE "
+                               "and R1_ARMS), same exports; 2-node sockets runs are 8x slower per GPU"},
+        "self_shard_review": ({"path": str(self_path), "sha256": sha(self_path), "verdict": self_review.get("verdict"),
+                               "training_admission": self_review.get("training_admission"),
+                               "conditions": self_review.get("conditions")} if self_review else {"status": "pending"}),
         "arms": arms,
         "extra_shards": {"vsi590k_gt": "vsi590k_gt_20261027/out/QUEUE_RUNG1_EXTRA.json; ARKit rows need frames fetched on "
                                        "code-aws; not prepared by this lane yet",

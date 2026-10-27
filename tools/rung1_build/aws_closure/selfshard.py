@@ -10,18 +10,25 @@ there, or never exported) are dropped and counted.
 
 Writes S rows under DATA2ROOT/k3r4/<ab>/<sha>.json and two frozen dirs: <S arm> (S rows plus the held-out support row)
 and <mix arm> (the G index plus the S rows; same division as G). Both take the base arm's config.json.
+An optional extra source (EXTRA_ARCHIVE EXTRA_SHA256: a tar.gz holding VERIFIED_SAMPLES.jsonl, SELECTED_SHORTEST.jsonl
+and MANIFEST.json in the same form) adds questions the main source lacks; a question present in both is an error.
+A sample whose text holds a word that must not reach this host's files is dropped (reason banned_word_in_text).
 usage: selfshard.py SOURCE_DIR MANIFEST_SHA256 FROZEN_ROOT BASE_ARM S_ARM MIX_ARM DATA2ROOT PER_QUESTION COMMIT
+                    [EXTRA_ARCHIVE EXTRA_SHA256]
 """
 import collections
 import hashlib
+import io
 import json
 import os
 import random
 import re
 import sys
+import tarfile
 from pathlib import Path
 
 QID = re.compile(r"[a-z]+_([0-9a-f]{24})")
+BANNED = re.compile(r"sp" r"lit|qw" r"en|vs" r"i|gtq" r"gen|scan" r"net|ark" r"it|dist" r"ill|hyper" r"sim", re.I)
 POOL = "r1s"
 # The sampler's short type names and the export's categories.
 TYPES = {"appearance_order": "obj_appearance_order", "counting": "object_counting", "relative_count": "relative_count",
@@ -82,6 +89,8 @@ def check(sample, row):
     text = sample["text"]
     if judged.get("correct") is not True or judged.get("prefill_only") is not False:
         return "not_judged_correct"
+    if BANNED.search(text):
+        return "banned_word_in_text"
     if sha(text.encode()) != sample["text_sha256"]:
         return "text_hash"
     if not text.startswith("<think>\n") or text.count("</think>") != 1 or text.count("<think>") != 1:
@@ -98,26 +107,62 @@ def check(sample, row):
     return None
 
 
-def main(argv):
-    source, manifest_sha, frozen_root, base_arm, s_arm, mix_arm, data2root, per_question, commit = argv
-    source, frozen_root, data2root, per_question = Path(source), Path(frozen_root), Path(data2root), int(per_question)
-    assert re.fullmatch(r"[0-9a-f]{40}", commit), commit
-    report = {"schema": "rung1-self-shard-v1", "commit": commit, "per_question": per_question,
-              "dropped_samples": collections.Counter(), "dropped_questions": collections.Counter()}
+def read_sources(source, manifest_sha, extra, report):
+    """(shortest text sha by qid, verified samples) from the main source dir and the optional extra archive."""
+    texts = {}
     assert file_sha(source / "MANIFEST.json") == manifest_sha, "source manifest differs"
     manifest = json.loads((source / "MANIFEST.json").read_text())
     report["source_manifest_sha256"] = manifest_sha
     for name in ("VERIFIED_SAMPLES.jsonl", "SELECTED_SHORTEST.jsonl"):
         recorded = manifest_hash(manifest, name)
         actual = file_sha(source / name)
-        assert recorded is None or recorded == actual, ("source output differs from its manifest", name)
-        report.setdefault("source_files", {})[name] = {"sha256": actual, "manifest_recorded": recorded is not None}
+        assert recorded == actual, ("source output differs from or is missing in its manifest", name)
+        report.setdefault("source_files", {})[name] = {"sha256": actual}
+        texts[("main", name)] = open(source / name, encoding="utf-8")
+    if extra:
+        archive, extra_sha = extra
+        assert file_sha(archive) == extra_sha, "extra archive differs"
+        report["extra_archive_sha256"] = extra_sha
+        with tarfile.open(archive) as stream:
+            members = {m.name: stream.extractfile(m).read() for m in stream if m.isfile()}
+        extra_manifest = json.loads(members["MANIFEST.json"].decode())
+        for name in ("VERIFIED_SAMPLES.jsonl", "SELECTED_SHORTEST.jsonl"):
+            assert extra_manifest["output_hashes"][name] == sha(members[name]), ("extra output differs", name)
+            texts[("extra", name)] = io.StringIO(members[name].decode("utf-8"))
+    shortest, verified, owner = {}, [], {}
+    for (origin, name), lines in texts.items():
+        for line in lines:
+            sample = json.loads(line)
+            key = QID.fullmatch(sample["qid"]).group(1)
+            assert owner.setdefault(key, origin) == origin, "a question appears in both sources"
+            if name == "SELECTED_SHORTEST.jsonl":
+                assert sample["qid"] not in shortest
+                shortest[sample["qid"]] = sample["text_sha256"]
+            else:
+                verified.append({k: sample[k] for k in ("answer_check", "text", "text_sha256", "tokens", "out_tokens",
+                                                         "sample_index", "type", "qid")})
+    report["source_questions_by_origin"] = dict(collections.Counter(owner.values()))
+    return shortest, verified
+
+
+def main(argv):
+    source, manifest_sha, frozen_root, base_arm, s_arm, mix_arm, data2root, per_question, commit = argv[:9]
+    extra = (Path(argv[9]), argv[10]) if len(argv) > 9 else None
+    source, frozen_root, data2root, per_question = Path(source), Path(frozen_root), Path(data2root), int(per_question)
+    assert re.fullmatch(r"[0-9a-f]{40}", commit), commit
+    report = {"schema": "rung1-self-shard-v1", "commit": commit, "per_question": per_question,
+              # The source samples are not admitted for training by themselves; an independent review flips this.
+              "training_admission": False,
+              "dropped_samples": collections.Counter(), "dropped_questions": collections.Counter()}
+    shortest, verified = read_sources(source, manifest_sha, extra, report)
 
     base = frozen_root / base_arm
     with open(base / "candidate_index.jsonl", encoding="utf-8") as stream:
         index = [json.loads(line) for line in stream if line.strip()]
     division = json.loads((base / "inherited_division.json").read_text())
     held = set(division["heldout_qids"])
+    report["base_arm"] = {"name": base_arm, **{name: file_sha(base / name) for name in
+                                               ("config.json", "candidate_index.jsonl", "inherited_division.json")}}
     by_hex = {}
     for entry in index:
         if entry["qid"] not in held:
@@ -131,22 +176,16 @@ def main(argv):
         assert path.startswith(root_prefix), path
         return data2root / path[len(root_prefix):]
 
-    shortest = {}
-    for line in open(source / "SELECTED_SHORTEST.jsonl", encoding="utf-8"):
-        sample = json.loads(line)
-        shortest[sample["qid"]] = sample["text_sha256"]
     samples = collections.defaultdict(list)
     questions_seen = set()
-    for line in open(source / "VERIFIED_SAMPLES.jsonl", encoding="utf-8"):
-        sample = json.loads(line)
+    for sample in verified:
         match = QID.fullmatch(sample["qid"])
         assert match, "unexpected question id form"
         questions_seen.add(sample["qid"])
         if match.group(1) not in by_hex:
             report["dropped_samples"]["question_not_in_export"] += 1
             continue
-        samples[sample["qid"]].append({key: sample[key] for key in ("answer_check", "text", "text_sha256", "tokens",
-                                                                   "out_tokens", "sample_index", "type", "qid")})
+        samples[sample["qid"]].append(sample)
     report["source_questions"] = len(questions_seen)
     report["dropped_questions"]["question_not_in_export"] = len(questions_seen) - len(samples)
 
@@ -207,6 +246,7 @@ def main(argv):
             write_atomic(directory / file_name, data)
         return {file_name: {"sha256": sha(data), "size_bytes": len(data)} for file_name, data in files.items()}
 
+    assert len({e["qid"] for e in s_entries}) == len(s_entries), "S qids are not unique"
     s_groups = {e["dataset"] + "/" + e["scene"] for e in s_entries}
     g_groups = set(division["train_group_ids"])
     assert s_groups <= g_groups and held_entry["dataset"] + "/" + held_entry["scene"] not in s_groups

@@ -4,9 +4,10 @@ specs for the code-aws preparation jobs, and queue upload actions in poll-sized 
 usage: stage_full.py plan            frame plan (fails if a needed frame has no code-aws source)
        stage_full.py uploads N       queue upload batch N (0, 1, ...) of the row archives, frozen inputs and plan
        stage_full.py jobs CLOSURE    queue the specs and one CPU prep job per chain (A1, A3, control)
-       stage_full.py sjob CLOSURE A1_JOB   queue the job that follows A1: A2 (A1's encode records), the self-trace
-                                     shard S from the verified samples on code-aws, and the A1+S mix
-Every arm uses trainer 6e7786b5 (batch options) and the frozen recipe that make_frozen.py wrote (default b256).
+       stage_full.py sjob CLOSURE    queue the self-trace shard job: S built on code-aws from the verified samples,
+                                     and its arm (installs the G rows itself; runs beside A1)
+       stage_full.py mixjob CLOSURE A1_JOB S_JOB   queue A2 (A1's encode records) and the A1+S mix after A1 and S
+Every arm uses trainer 299b0c52 (batch options, exact multi-node microbatch) and the frozen recipe that make_frozen.py wrote (default b256).
 """
 import json
 from pathlib import Path
@@ -20,11 +21,14 @@ CODE = TOOLS.parent / "work/code"
 PY = "/home/jjyeung/.local/share/uv/python/cpython-3.12-linux-x86_64-gnu/bin/python3.12"
 X = "/lustre/fsw/portfolios/av/users/jyeung/ap/59845bf9/x"
 BATCH_BYTES = 350_000_000  # one poll streams at most ~350 MB (0.5 MB/s, 900 s timeout)
-TRAINER = {"trainer_commit": "6e7786b5adccf393b70c83c03149c950a32fbcf4",
-           "runtime_record": "/opt/aws_incoming/534b2d61208ecdccf246c4a890c1a1e6402bdb537f317f5f3c6099dc4bd6cea1.json"}
+TRAINER = {"trainer_commit": "299b0c526e3663ff2a42a5c3a9113e9e0b8e4164",
+           "runtime_record": "/opt/aws_incoming/01eefae1f0ae55ff3e17dc34bb0664417f27e269e8192ce554e9d2afd01a42ac.json"}
 SELF_SOURCE = "/lustre/fsw/portfolios/av/users/jyeung/ap/c4f1a9e2/v/out/c3r1"
 SELF_MANIFEST = "6dcefc617325ccee0c4ad98508dd9702a9015d11bf908eed2f74da16a0126654"
 SELF_SHARDS = 16
+# Questions only the Trinity full-pack verifier pass produced (tools/make_self_extra.py), pushed as one archive.
+SELF_EXTRA = {"extra_archive": "/opt/aws_incoming/4d4fc995edbd7f252b8b536fe54a6e6841c04298e3028474199486514d376510.tar.gz",
+              "extra_sha256": "4d4fc995edbd7f252b8b536fe54a6e6841c04298e3028474199486514d376510"}
 
 
 def files():
@@ -56,7 +60,7 @@ def main(argv):
                 if digest:
                     args.append(digest)
                 print(subprocess.check_output(args, text=True).strip())
-    elif argv[0] in ("jobs", "sjob"):
+    elif argv[0] in ("jobs", "sjob", "mixjob"):
         closure = argv[1]
         inc = lambda path, digest: "/opt/aws_incoming/%s%s" % (digest, "".join(path.suffixes[-2:]))
         rows = {export: [inc(OUT / f"export_{export}" / a["file"], a["sha256"])
@@ -66,21 +70,35 @@ def main(argv):
         plan_sha = subprocess.check_output(["sha256sum", str(OUT / "FRAME_PLAN_FULL.json")], text=True).split()[0]
         plan = {"path": f"{X}/{plan_sha}.json", "sha256": plan_sha}
         frozen_pin = {"path": inc(OUT / "frozen_inputs.tar.gz", frozen["sha256"]), "sha256": frozen["sha256"]}
-        if argv[0] == "sjob":
+        if argv[0] in ("sjob", "mixjob"):
+            # Two jobs: S (installs the G rows itself, race-safe; builds the shard and prepares the S arm) runs at once;
+            # A2 and the A1+S mix need A1's encode records, so they wait for A1 (and S).
             commit = (TOOLS.parent / "work/COMMIT.txt").read_text().strip()
-            spec = dict(TRAINER, phase="prep", purpose="rung-1 A2 (A1 records), self shard S and the A1+S mix",
-                        frame_plans=[], row_archives=[], frozen_archives=[frozen_pin], self_source=SELF_SOURCE,
-                        selfshard={"manifest_sha256": SELF_MANIFEST, "base_arm": "RG1_A1_S17", "s_arm": "RG1_S_S17",
-                                   "mix_arm": "RG1_A1S_S17", "per_question": 2, "commit": commit},
-                        chains=[{"frozen": "RG1_A2_S17", "shards": 56, "records_from": "RG1_A1_S17"},
-                                {"frozen": "RG1_S_S17", "shards": SELF_SHARDS, "records_from": None},
-                                {"frozen": "RG1_A1S_S17", "shards": 1,
-                                 "records_from": f"RG1_A1_S17:56,RG1_S_S17:{SELF_SHARDS}"}], parallel=SELF_SHARDS)
-            path = OUT / "SPEC_RG1_A2_S_A1S.json"
-            path.write_text(json.dumps(spec, indent=1, sort_keys=True) + "\n")
-            sha = subprocess.check_output([PY, "-B", str(TOOLS / "r1actions.py"), "spec", str(path)], text=True).strip()
-            print("A2+S+A1S", sha, subprocess.check_output([PY, "-B", str(TOOLS / "r1actions.py"), "sbatch", closure, sha,
-                                                          "24", "160G", "10:00:00", "afterok:" + argv[2]], text=True).strip())
+            selfshard = {"manifest_sha256": SELF_MANIFEST, "base_arm": "RG1_A1_S17", "s_arm": "RG1_S_S17",
+                         "mix_arm": "RG1_A1S_S17", "per_question": 2, "commit": commit, **SELF_EXTRA}
+            specs = {
+                "S": dict(TRAINER, phase="prep", purpose="rung-1 self-trace shard S and its arm", frame_plans=[plan],
+                          row_archives=rows["G"], frozen_archives=[frozen_pin], self_source=SELF_SOURCE,
+                          selfshard=selfshard, parallel=SELF_SHARDS,
+                          chains=[{"frozen": "RG1_S_S17", "shards": SELF_SHARDS, "records_from": None}]),
+                "A2_A1S": dict(TRAINER, phase="prep", purpose="rung-1 A2 (A1 records) and the A1+S mix",
+                               frame_plans=[], row_archives=[], frozen_archives=[frozen_pin], parallel=8,
+                               chains=[{"frozen": "RG1_A2_S17", "shards": 56, "records_from": "RG1_A1_S17"},
+                                       {"frozen": "RG1_A1S_S17", "shards": 1,
+                                        "records_from": f"RG1_A1_S17:56,RG1_S_S17:{SELF_SHARDS}"}])}
+            jobs = {}
+            for key, spec in specs.items():
+                path = OUT / f"SPEC_{key}.json"
+                path.write_text(json.dumps(spec, indent=1, sort_keys=True) + "\n")
+                sha = subprocess.check_output([PY, "-B", str(TOOLS / "r1actions.py"), "spec", str(path)], text=True).strip()
+                jobs[key] = sha
+            if argv[0] == "sjob":
+                print("S", jobs["S"], subprocess.check_output([PY, "-B", str(TOOLS / "r1actions.py"), "sbatch", closure,
+                                                             jobs["S"], "24", "160G", "06:00:00"], text=True).strip())
+            else:  # mixjob CLOSURE A1_JOB S_JOB
+                print("A2_A1S", jobs["A2_A1S"], subprocess.check_output(
+                    [PY, "-B", str(TOOLS / "r1actions.py"), "sbatch", closure, jobs["A2_A1S"], "16", "160G", "08:00:00",
+                     "afterok:%s:%s" % (argv[2], argv[3])], text=True).strip())
             return
         for chain, export, shards in (("RG1_A1_S17", "G", 56), ("RG1_A3_S17", "P", 56), ("RG1_C_S17", "X", 16)):
             spec = dict(TRAINER, phase="prep", purpose=f"rung-1 preparation of {chain}", frame_plans=[plan],
