@@ -265,12 +265,12 @@ def tick():
     targets = " ".join(f'{c["name"]}:{c["job"]}:{c["run"]}' for c in (b["current"] for b in state["blocks"])
                        if c and c.get("job"))
     lines = [f"python3 - {BASE} {RUNS} {targets or 'none'} <<'PY'",
-             "import glob, json, os, sys",
+             "import glob, json, os, re, sys",
              "base, runs = sys.argv[1:3]",
              "for item in sys.argv[3:]:",
              "    if item == 'none':",
              "        continue",
-             "    name, job, run = item.split(':')",
+             "    name, job, run = re.fullmatch(r'([^:]+):([^:]+):(.+)', item).groups()",
              "    rows = {}",
              "    for path in glob.glob(f'{base}/l/{name}_{job}.log'):",
              "        for line in open(path, errors='replace'):",
@@ -294,7 +294,8 @@ def tick():
                             env=dict(os.environ, R1_MIN_INTERVAL="55"), timeout=900)
     for f in (HOME / "actions/pending").glob("a_*n_probe.json"):
         f.rename(HOME / "actions/sent" / f.name)  # one probe per tick, whatever its exit code
-    log("poll: " + " ".join(result.stdout.split()[:6]) + f" active={active}")
+    log("poll: " + " ".join(result.stdout.split()[:6]) + f" rc={result.returncode} active={active}"
+        + ("" if result.stdout.strip() else " stderr: " + " ".join(result.stderr.split()[-30:])))
     print(60 if waiting_steps else 600)
 
 

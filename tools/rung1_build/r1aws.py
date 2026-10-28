@@ -125,7 +125,7 @@ def my_jobs():
     for line in JOB_LEDGER.read_text().splitlines():
         if line.strip():
             entry = json.loads(line)
-            if entry.get("lane") == LANE:
+            if entry.get("lane") == LANE and entry.get("opaque_name"):  # note rows without a job name are skipped
                 jobs.setdefault(entry["opaque_name"], None)
                 if entry.get("slurm_job_id"):
                     jobs[entry["opaque_name"]] = str(entry["slurm_job_id"])
