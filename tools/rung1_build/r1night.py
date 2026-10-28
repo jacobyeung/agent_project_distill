@@ -37,23 +37,26 @@ CLOSURE = "1392d62193ec426a63b7eaf50e82bbadf6028551938bcd895260276e3d213254"
 BASE = "/lustre/fsw/portfolios/av/users/jyeung/ap/59845bf9"
 RUNS = BASE + "/d/orch/runs/aws128p_20261025"
 STEPS = {"RG1_A1_S17": 1133, "RG1_A2_S17": 1133, "RG1_A3_S17": 1133, "RG1_C_S17": 115, "RG1_S_S17": 188,
-         "RG1_A1S_S17": 1321, "A1H_S17": 1133, "RG1_A3_B128_S17": 2266, "RG1_A3_W64_S17": 1133}
+         "RG1_A1S_S17": 1321, "A1H_S17": 1133, "RG1_A3_B128_S17": 2266, "RG1_A3_W64_S17": 1133,
+         "RG1_A1S_W64_S17": 1321, "RG1_A1_W64_S18": 1133, "RG1_C_S18": 115}
 SECONDS = {"RG1_A3_S17": 19.5, "RG1_S_S17": 18.0, "A1H_S17": 18.5, "RG1_A3_B128_S17": 11.0,
-           "RG1_A3_W64_S17": 11.0}  # defaults before measurement; others 17.5
-NODES = {"RG1_A3_W64_S17": 8}  # nodes of 8 GPUs per arm; others 4
+           "RG1_A3_W64_S17": 11.0, "RG1_A1S_W64_S17": 11.0, "RG1_A1_W64_S18": 11.0}  # defaults; others 17.5
+NODES = {"RG1_A3_W64_S17": 8, "RG1_A1S_W64_S17": 8, "RG1_A1_W64_S18": 8}  # nodes of 8 GPUs per arm; others 4
 
 
 def block_gpus(b):
     arm = b["current"]["arm"] if b.get("current") else b["chain"][min(b["next"], len(b["chain"]) - 1)]
     return 8 * NODES.get(arm, 4)
 TAG = {"RG1_A1_S17": "a1", "RG1_A2_S17": "a2", "RG1_A3_S17": "a3", "RG1_C_S17": "c", "RG1_S_S17": "s",
-       "RG1_A1S_S17": "m", "A1H_S17": "h", "RG1_A3_B128_S17": "a3b", "RG1_A3_W64_S17": "a3w"}
+       "RG1_A1S_S17": "m", "A1H_S17": "h", "RG1_A3_B128_S17": "a3b", "RG1_A3_W64_S17": "a3w",
+       "RG1_A1S_W64_S17": "mw", "RG1_A1_W64_S18": "a1w", "RG1_C_S18": "c18"}
 # Arms another lane owns run on their own trainer tree (QUEUE_RUNG1.json entry: trainer_commit, runtime_record).
 OWN_TRAINER = {"A1H_S17": {"trainer_commit": "f69509db55cb3e659c456ad31a2e760254062123",
                            "runtime_record": "/opt/aws_incoming/94cbc8a43483a8b50d3784c9182cb6c926394f100a36199f1caae7755f15ef40.json"}}
 # Arms on another tree of this lane (the 8-node branch), scored through EVAL_QUEUE.json like the others.
-ARM_TRAINER = {"RG1_A3_W64_S17": {"trainer_commit": "94902f071a5db720d438954e7211e65be073fb9d",
-                                  "runtime_record": "/opt/aws_incoming/081103a7e014c6818e031afd299808fd51939ab5b1969d865e3d5035e2028ff4.json"}}
+T8 = {"trainer_commit": "9596b114e5fd08dede4fa6a97ea983e9e3987332",
+      "runtime_record": "/opt/aws_incoming/0ffa741b7029208750f1befe8c09395407e66e44e385a163fa0578b9086f5c00.json"}
+ARM_TRAINER = {"RG1_A3_W64_S17": T8, "RG1_A1S_W64_S17": T8, "RG1_A1_W64_S18": T8}
 OVERHEAD_MIN = 20  # startup (image, venv, admission, memory probe) plus finalize and publication
 TERMINAL = ("COMPLETED", "FAILED", "CANCELLED", "TIMEOUT", "NODE_FAIL", "OUT_OF_MEMORY", "PREEMPTED", "DEADLINE")
 
@@ -130,6 +133,9 @@ def estimate_minutes(arm, state):
     if seconds is None:
         base = [v for k, v in state["measured_s_per_step"].items() if k in ("RG1_A1_S17", "RG1_A2_S17")]
         seconds = (max(base) if base else 17.5) * (SECONDS.get(arm, 17.5) / 17.5)
+        w64 = [v for k, v in state["measured_s_per_step"].items() if NODES.get(k) == 8]
+        if NODES.get(arm) == 8:
+            seconds = max(w64) if w64 else SECONDS[arm]
         if arm == "RG1_A3_B128_S17" and "RG1_A2_S17" in state["measured_s_per_step"]:
             seconds = state["measured_s_per_step"]["RG1_A2_S17"] * 0.68  # 4 rows per GPU instead of 8, longer targets
     return OVERHEAD_MIN + STEPS[arm] * seconds / 60
@@ -269,7 +275,8 @@ def tick():
     def open_block(b):
         started = not b.get("not_before") or now() >= datetime(2026, 10, 27, *map(int, b["not_before"].split(":")),
                                                                tzinfo=PT)
-        waiting = b["next"] < len(b["chain"]) and b.get("deferred") != b["chain"][b["next"]]
+        waiting = (b["next"] < len(b["chain"]) and b.get("deferred") != b["chain"][b["next"]]
+                   and not b.get("hold"))  # a held arm reserves its GPUs only once released (just before submitting)
         after = b.get("after_block")
         if not b["current"] and after is not None:  # reserved only once the block it follows has ended
             prior = state["blocks"][after]
