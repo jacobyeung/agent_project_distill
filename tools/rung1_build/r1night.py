@@ -37,10 +37,10 @@ CLOSURE = "d2bc1263668c91aac116a5f2e45e94d7cd56dc751aaa35ad12582b81d21482cb"
 BASE = "/lustre/fsw/portfolios/av/users/jyeung/ap/59845bf9"
 RUNS = BASE + "/d/orch/runs/aws128p_20261025"
 STEPS = {"RG1_A1_S17": 1133, "RG1_A2_S17": 1133, "RG1_A3_S17": 1133, "RG1_C_S17": 115, "RG1_S_S17": 188,
-         "RG1_A1S_S17": 1321, "A1H_S17": 1133}
-SECONDS = {"RG1_A3_S17": 19.5, "RG1_S_S17": 18.0, "A1H_S17": 18.5}  # default s/step before measurement; others 17.5
+         "RG1_A1S_S17": 1321, "A1H_S17": 1133, "RG1_A3_B128_S17": 2266}
+SECONDS = {"RG1_A3_S17": 19.5, "RG1_S_S17": 18.0, "A1H_S17": 18.5, "RG1_A3_B128_S17": 11.0}  # defaults; others 17.5
 TAG = {"RG1_A1_S17": "a1", "RG1_A2_S17": "a2", "RG1_A3_S17": "a3", "RG1_C_S17": "c", "RG1_S_S17": "s",
-       "RG1_A1S_S17": "m", "A1H_S17": "h"}
+       "RG1_A1S_S17": "m", "A1H_S17": "h", "RG1_A3_B128_S17": "a3b"}
 # Arms another lane owns run on their own trainer tree (QUEUE_RUNG1.json entry: trainer_commit, runtime_record).
 OWN_TRAINER = {"A1H_S17": {"trainer_commit": "f69509db55cb3e659c456ad31a2e760254062123",
                            "runtime_record": "/opt/aws_incoming/94cbc8a43483a8b50d3784c9182cb6c926394f100a36199f1caae7755f15ef40.json"}}
@@ -120,6 +120,8 @@ def estimate_minutes(arm, state):
     if seconds is None:
         base = [v for k, v in state["measured_s_per_step"].items() if k in ("RG1_A1_S17", "RG1_A2_S17")]
         seconds = (max(base) if base else 17.5) * (SECONDS.get(arm, 17.5) / 17.5)
+        if arm == "RG1_A3_B128_S17" and "RG1_A2_S17" in state["measured_s_per_step"]:
+            seconds = state["measured_s_per_step"]["RG1_A2_S17"] * 0.68  # 4 rows per GPU instead of 8, longer targets
     return OVERHEAD_MIN + STEPS[arm] * seconds / 60
 
 
@@ -177,6 +179,8 @@ def tick():
     text = polls[-1].read_text() if polls else ""
     states, probes = parse_poll(text)
     refused = set(re.findall(r"^SBATCH_REPLY (\S+) sbatch: error", text, re.M))
+    totals = re.findall(r"^R1TOTAL (\d+)$", text, re.M)
+    project_total = int(totals[-1]) if totals else None
     waiting_steps = False
     for block in state["blocks"]:
         cur = block["current"]
@@ -201,7 +205,7 @@ def tick():
             if cur.get("first_step") is None and probe.get("steps", 0) >= 1:
                 cur["first_step"] = now().isoformat(timespec="seconds")
                 log(f"{cur['arm']} job {cur['job']} first steps landed (steps={probe['steps']} last={probe.get('last')})")
-            if slurm == "RUNNING" and probe.get("steps", 0) == 0:
+            if slurm not in TERMINAL and probe.get("steps", 0) == 0:  # pending or starting: check every minute
                 waiting_steps = True
             if slurm in TERMINAL:
                 cur["published"] = probe.get("published", False)
@@ -221,6 +225,8 @@ def tick():
                 block["current"] = None
         elif cur and not cur["job"]:
             waiting_steps = True
+        if block["current"] is None and block["next"] < len(block["chain"]) and block.get("hold"):
+            continue  # its next arm is still being prepared; the block's GPUs stay reserved for it
         if block["current"] is None and block["next"] < len(block["chain"]):
             arm = block["chain"][block["next"]]
             minutes = estimate_minutes(arm, state)
@@ -229,7 +235,11 @@ def tick():
                 continue
             if block.get("not_before") and now() < datetime(2026, 10, 27, *map(int, block["not_before"].split(":")),
                                                            tzinfo=PT):
-                continue
+                # Start early when 32 GPUs are free under the share right now (training has first claim).
+                if project_total is None or project_total + 32 > state["share"]:
+                    continue
+                log(f"block {block['chain']} opens early: {project_total} GPUs in use of {state['share']}")
+                block["not_before"] = None
             if minutes + 5 <= left:
                 block["current"] = queue_submission(arm, minutes, state)
                 block["next"] += 1
@@ -251,7 +261,8 @@ def tick():
     # later blocks open (its jobs count in the queue total while they run).
     later = any(b.get("not_before") for b in state["blocks"])
     held = 32 * sum(1 for b in state["blocks"] if open_block(b))
-    if not later or not any(b.get("not_before") and open_block(b) for b in state["blocks"]):
+    checker_running = now() < datetime(2026, 10, 27, 21, 30, tzinfo=PT)  # the checker's three jobs end about 21:20
+    if checker_running and (not later or not any(b.get("not_before") and open_block(b) for b in state["blocks"])):
         held += checker_gpus(state["share"]) if any(open_block(b) for b in state["blocks"]) else 0
     # Coordinator 10-27: once wave 1 (the blocks open from 18:30) has ended, the open-model cascade lane holds 48 GPUs
     # until 06:20, on top of any rung-1 block still running.
@@ -286,7 +297,9 @@ def tick():
              "    last = ordered[-1]['optimizer_step'] if ordered else '-'",
              "    published = int(os.path.exists(f'{runs}/{run}/attempt-{job}-0/publication/PUBLISHED.json'))",
              "    print(f'R1PROBE {name} steps={len(ordered)} mean={mean} last={last} published={published}')",
-             "PY"]
+             "PY",
+             "export PATH=/cm/shared/apps/slurm/current/bin:$PATH",
+             "squeue -h -u jyeung -t R,PD,CF -o '%j|%b|%D' | python3 -c \"import re,sys; print('R1TOTAL', sum(int(m.group(2)) * int(m.group(3)) for m in (re.fullmatch(r'(a15_cot_ap[^|]*)[|].*?gpu(?::[A-Za-z0-9_-]+)?:([0-9]+)[|]([0-9]+)', l.strip()) for l in sys.stdin) if m))\""]
     probe = NIGHT / "probe.sh"
     probe.write_text("\n".join(lines) + "\n")
     subprocess.check_output([PY, "-B", str(TOOLS / "r1actions.py"), "sh", "n_probe", str(probe)], text=True)
