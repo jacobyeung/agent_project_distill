@@ -148,9 +148,13 @@ def queue_submission(arm, minutes, state):
     digest = subprocess.check_output([PY, "-B", str(TOOLS / "r1actions.py"), "spec", str(path)], text=True).strip()
     # The limit is the time left to 06:20 (the deadline also enforces it): a slower-than-estimated arm still gets to its
     # final checkpoint and publication if the night allows, instead of timing out at an estimate-based limit.
-    limit_min = int((END - now()).total_seconds() // 60) - 2
+    # Slurm refuses a job whose expected start plus its limit passes the deadline, so the limit may shrink to the
+    # time-min (estimate plus 15 min) to fit; a start that leaves less than that removes the job instead of truncating.
+    limit_min = int((END - now()).total_seconds() // 60) - 5
+    floor_min = min(limit_min, math.ceil(minutes + 15))
     limit = f"{limit_min // 60}:{limit_min % 60:02d}:00"
-    env = dict(os.environ, R1_DEADLINE=END.strftime("%Y-%m-%dT%H:%M:%S"))
+    env = dict(os.environ, R1_DEADLINE=END.strftime("%Y-%m-%dT%H:%M:%S"),
+               R1_TIME_MIN=f"{floor_min // 60}:{floor_min % 60:02d}:00")
     name = subprocess.check_output([PY, "-B", str(TOOLS / "r1actions.py"), "sbatchmn", CLOSURE, digest, "4", limit, "-"],
                                    text=True, env=env).strip()
     return {"arm": arm, "run": run, "name": name, "spec_sha256": digest, "limit": limit, "job": None,
@@ -170,12 +174,22 @@ def ledger_job(name):
 def tick():
     state = json.loads(STATE.read_text())
     polls = sorted((HOME / "polls").glob("poll_*.txt"))
-    states, probes = parse_poll(polls[-1].read_text()) if polls else ({}, {})
+    text = polls[-1].read_text() if polls else ""
+    states, probes = parse_poll(text)
+    refused = set(re.findall(r"^SBATCH_REPLY (\S+) sbatch: error", text, re.M))
     waiting_steps = False
     for block in state["blocks"]:
         cur = block["current"]
         if cur and not cur["job"]:
             cur["job"] = ledger_job(cur["name"])
+        if cur and not cur["job"] and cur["name"] in refused:
+            # Slurm refused the submission (nothing runs): record it and let the arm be queued again, twice at most.
+            log(f"{cur['arm']} submission {cur['name']} refused by sbatch; requeue")
+            block.setdefault("refusals", []).append(cur)
+            block["current"] = None
+            if len(block["refusals"]) <= 2:
+                block["next"] -= 1
+            cur = None
         if cur and cur["job"]:
             slurm = states.get(cur["job"], "UNKNOWN")
             probe = probes.get(cur["name"], {})
