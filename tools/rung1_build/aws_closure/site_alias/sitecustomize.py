@@ -8,11 +8,15 @@ subprocess.TimeoutExpired is retried up to six times and the two read-only alloc
 per process (see CACHE_SOURCE). Every parse and check stays unchanged.
 """
 import ast
+import functools
+import gc
 import hashlib
 import importlib.abc
 import importlib.machinery
 import importlib.util
+import os
 import sys
+import time
 
 TARGET = "student_pilot.orchard_admission"
 # Pinned admission module bytes: neutral trainer b4b2979 (unchanged through 299b0c52) and the 8-node branch 94902f07.
@@ -101,9 +105,56 @@ class AliasLoader(importlib.machinery.SourceFileLoader):
         return aliased_code(self.get_data(self.path), self.path)
 
 
+# The trainer keeps every row, audit and processor object of its set in each rank's Python heap (about 23 GB per rank for
+# 290k rows), and an automatic full garbage collection walks that whole heap on one rank while the other ranks wait in
+# the next collective. Large arms show this as runs of 30-265 s steps (median 15-22 s) that begin a fixed number of steps
+# after process start and widen as the ranks' collection points drift apart; arms of 29k-48k rows barely show it. Before the first training batch, the hook moves everything built during
+# startup into the permanent generation (gc.freeze), so later full collections walk only per-step objects. Numerics and
+# every check are unchanged. AWS_GC_FREEZE=0 turns the freeze off; collections of 1 s or more are logged either way.
+GC_TARGET = "student_pilot.ddp_training"
+GC_STARTED = [None]
+
+
+def gc_watch(phase, info):
+    if phase == "start":
+        GC_STARTED[0] = time.perf_counter()
+    elif GC_STARTED[0] is not None:
+        seconds, GC_STARTED[0] = time.perf_counter() - GC_STARTED[0], None
+        if seconds >= 1.0:
+            print(f"AWS_GC_PAUSE pid={os.getpid()} generation={info['generation']} seconds={seconds:.1f} "
+                  f"collected={info['collected']}", file=sys.stderr, flush=True)
+
+
+def freeze_once(function):
+    frozen = [False]
+
+    @functools.wraps(function)
+    def wrapper(*args, **kwargs):
+        if not frozen[0]:
+            frozen[0] = True
+            started = time.perf_counter()
+            gc.collect()
+            gc.freeze()
+            print(f"AWS_GC_FREEZE pid={os.getpid()} objects={gc.get_freeze_count()} "
+                  f"seconds={time.perf_counter() - started:.1f}", file=sys.stderr, flush=True)
+        return function(*args, **kwargs)
+    return wrapper
+
+
+class FreezeLoader(importlib.machinery.SourceFileLoader):
+    def exec_module(self, module):
+        super().exec_module(module)
+        if gc_watch not in gc.callbacks:
+            gc.callbacks.append(gc_watch)
+        if os.environ.get("AWS_GC_FREEZE", "1") != "0":
+            if not callable(getattr(module, "prefetched_batches", None)):
+                raise ImportError("The trainer has no prefetched_batches function to freeze the startup heap before")
+            module.prefetched_batches = freeze_once(module.prefetched_batches)
+
+
 class AliasFinder(importlib.abc.MetaPathFinder):
     def find_spec(self, fullname, path, target=None):
-        if fullname != TARGET:
+        if fullname not in (TARGET, GC_TARGET):
             return None
         for finder in sys.meta_path:
             if finder is self or not hasattr(finder, "find_spec"):
@@ -114,9 +165,9 @@ class AliasFinder(importlib.abc.MetaPathFinder):
         else:
             return None
         if not spec.origin or not spec.origin.endswith(".py"):
-            raise ImportError("The frozen Slurm admission module has no source origin")
-        return importlib.util.spec_from_file_location(fullname, spec.origin,
-                                                      loader=AliasLoader(fullname, spec.origin))
+            raise ImportError("The frozen trainer module has no source origin")
+        loader = (AliasLoader if fullname == TARGET else FreezeLoader)(fullname, spec.origin)
+        return importlib.util.spec_from_file_location(fullname, spec.origin, loader=loader)
 
 
 if not any(isinstance(finder, AliasFinder) for finder in sys.meta_path):

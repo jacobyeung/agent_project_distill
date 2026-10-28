@@ -114,12 +114,13 @@ if (( smoke == 0 )); then
     RESUME_FROM="$(python -B - "$ORCHARD_CHECKPOINT_ROOT" "$frozen/protocol.json" "$world" "$(git -C "$TRAINER" rev-parse HEAD)" <<'PY'
 from pathlib import Path
 import sys
-from student_pilot.common import binding
-from student_pilot.ddp_checkpoints import read_checkpoint
+from student_pilot.common import binding, load_json
+from student_pilot.ddp_checkpoints import read_checkpoint, targets_identity
 
 root = Path(sys.argv[1])
 expected = {"protocol_sha256": binding(sys.argv[2])["sha256"], "commit": sys.argv[4],
             "world_size": int(sys.argv[3]), "parallel": "fsdp"}
+expected.update(targets_identity(load_json(sys.argv[2])["training"]))  # frozen groups are part of the identity
 candidates = sorted((p for p in root.glob("step_*") if (p / "checkpoint.json").is_file()),
                     key=lambda p: int(p.name.rpartition("_")[2]), reverse=True)
 if candidates:
