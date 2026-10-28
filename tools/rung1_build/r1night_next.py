@@ -81,6 +81,8 @@ T8 = {"trainer_commit": "9596b114e5fd08dede4fa6a97ea983e9e3987332",
       "runtime_record": "/opt/aws_incoming/0ffa741b7029208750f1befe8c09395407e66e44e385a163fa0578b9086f5c00.json"}
 ARM_TRAINER = {arm: T8 for arm in NODES}  # every world-64 arm (and the 27B pair) runs on the 8-node branch
 STUDENT_HEX = {"R27_A1_S17_K200": "7177656e33365f323762", "R27_X_S17_K200": "7177656e33365f323762"}  # spec student_hex
+# Retired arms are never submitted, resumed or planned (A1H_S17: heads harmful, step-500 VSI 23.7 vs A1's 51.2).
+RETIRED = {"A1H_S17"}
 OVERHEAD_MIN = 20  # startup (image, venv, admission, memory probe) plus finalize and publication
 TERMINAL = ("COMPLETED", "FAILED", "CANCELLED", "TIMEOUT", "NODE_FAIL", "OUT_OF_MEMORY", "PREEMPTED", "DEADLINE")
 
@@ -143,7 +145,7 @@ def plan():
                       for chain, start in chains(share)]
         checker = checker_gpus(share)
     for b in block_list:
-        unknown = [arm for arm in b["chain"] if arm not in STEPS or arm not in TAG]
+        unknown = [arm for arm in b["chain"] if arm not in STEPS or arm not in TAG or arm in RETIRED]
         if unknown:
             raise SystemExit(f"unknown arms in the plan: {unknown}")
     plan_blocks = [(b["chain"], b["not_before"]) for b in block_list]
@@ -325,6 +327,10 @@ def tick():
             continue  # starts only once that block's arms have ended (capacity plan)
         if block["current"] is None and block["next"] < len(block["chain"]):
             arm = block["chain"][block["next"]]
+            if arm in RETIRED:
+                block["next"] += 1
+                log(f"{arm} is retired; skipped")
+                continue
             if arm in state.get("await_admission", []) and arm not in state["admitted"]:
                 if block.get("admission_wait") != arm:
                     block["admission_wait"] = arm

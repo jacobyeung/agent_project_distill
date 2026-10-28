@@ -38,7 +38,8 @@ BASE = "/lustre/fsw/portfolios/av/users/jyeung/ap/59845bf9"
 RUNS = BASE + "/d/orch/runs/aws128p_20261025"
 STEPS = {"RG1_A1_S17": 1133, "RG1_A2_S17": 1133, "RG1_A3_S17": 1133, "RG1_C_S17": 115, "RG1_S_S17": 188,
          "RG1_A1S_S17": 1321, "A1H_S17": 1133, "RG1_A3_B128_S17": 2266, "RG1_A3_W64_S17": 1133,
-         "RG1_A1S_W64_S17": 1321, "RG1_A1_W64_S18": 1133, "RG1_C_S18": 115, "SELF_V4_S18": 384, "SELF_V4_C_S18": 384}
+         "RG1_A1S_W64_S17": 1321, "RG1_A1_W64_S18": 1133, "RG1_C_S18": 115, "SELF_V4_S18": 384, "SELF_V4_C_S18": 384,
+         "RG1_G_S17": 115, "RG1_GX_S17": 115}  # geometry pilots (lane geo_input_20261028)
 SECONDS = {"RG1_A3_S17": 19.5, "RG1_S_S17": 18.0, "A1H_S17": 18.5, "RG1_A3_B128_S17": 11.0,
            "RG1_A3_W64_S17": 11.0, "RG1_A1S_W64_S17": 11.0, "RG1_A1_W64_S18": 11.0}  # defaults; others 17.5
 NODES = {"RG1_A3_W64_S17": 8, "RG1_A1S_W64_S17": 8, "RG1_A1_W64_S18": 8}  # nodes of 8 GPUs per arm; others 4
@@ -50,14 +51,22 @@ def block_gpus(b):
     return SINGLE.get(arm) or 8 * NODES.get(arm, 4)
 TAG = {"RG1_A1_S17": "a1", "RG1_A2_S17": "a2", "RG1_A3_S17": "a3", "RG1_C_S17": "c", "RG1_S_S17": "s",
        "RG1_A1S_S17": "m", "A1H_S17": "h", "RG1_A3_B128_S17": "a3b", "RG1_A3_W64_S17": "a3w",
-       "RG1_A1S_W64_S17": "mw", "RG1_A1_W64_S18": "a1w", "RG1_C_S18": "c18", "SELF_V4_S18": "sv18", "SELF_V4_C_S18": "svc18"}
+       "RG1_A1S_W64_S17": "mw", "RG1_A1_W64_S18": "a1w", "RG1_C_S18": "c18", "SELF_V4_S18": "sv18", "SELF_V4_C_S18": "svc18",
+       "RG1_G_S17": "geo", "RG1_GX_S17": "geox"}
 # Arms another lane owns run on their own trainer tree (QUEUE_RUNG1.json entry: trainer_commit, runtime_record).
 OWN_TRAINER = {"A1H_S17": {"trainer_commit": "f69509db55cb3e659c456ad31a2e760254062123",
-                           "runtime_record": "/opt/aws_incoming/94cbc8a43483a8b50d3784c9182cb6c926394f100a36199f1caae7755f15ef40.json"}}
+                           "runtime_record": "/opt/aws_incoming/94cbc8a43483a8b50d3784c9182cb6c926394f100a36199f1caae7755f15ef40.json"},
+               # geometry-input pilots (lane geo_input_20261028): addition (G) and cross-attention (GX)
+               "RG1_G_S17": {"trainer_commit": "98614c5ead05c8ffab6877a6e7c8c3925741a593",
+                             "runtime_record": "/opt/aws_incoming/a9e44823aa56f91cac2c01f97b1b7031e0a7ef388390392f74650b6ea7988cb3.json"},
+               "RG1_GX_S17": {"trainer_commit": "f5cad828bd12a0fd9022fb2c78f6efde2f5541cb",
+                              "runtime_record": "/opt/aws_incoming/b7e56bf5bb8cd0efb74792361f94637448d126cad0dd3859cc6eb3f56f69e0e5.json"}}
 # Arms on another tree of this lane (the 8-node branch), scored through EVAL_QUEUE.json like the others.
 T8 = {"trainer_commit": "9596b114e5fd08dede4fa6a97ea983e9e3987332",
       "runtime_record": "/opt/aws_incoming/0ffa741b7029208750f1befe8c09395407e66e44e385a163fa0578b9086f5c00.json"}
 ARM_TRAINER = {"RG1_A3_W64_S17": T8, "RG1_A1S_W64_S17": T8, "RG1_A1_W64_S18": T8}
+# Retired arms are never submitted, resumed or planned (A1H_S17: heads harmful, step-500 VSI 23.7 vs A1's 51.2).
+RETIRED = {"A1H_S17"}
 OVERHEAD_MIN = 20  # startup (image, venv, admission, memory probe) plus finalize and publication
 TERMINAL = ("COMPLETED", "FAILED", "CANCELLED", "TIMEOUT", "NODE_FAIL", "OUT_OF_MEMORY", "PREEMPTED", "DEADLINE")
 
@@ -273,6 +282,10 @@ def tick():
             continue  # starts only once that block's arms have ended (capacity plan)
         if block["current"] is None and block["next"] < len(block["chain"]):
             arm = block["chain"][block["next"]]
+            if arm in RETIRED:
+                block["next"] += 1
+                log(f"{arm} is retired; skipped")
+                continue
             minutes = estimate_minutes(arm, state)
             if block.get("resume_run"):  # an interrupted run resumes from its checkpoint: only the remaining steps
                 minutes = OVERHEAD_MIN + (minutes - OVERHEAD_MIN) * block["remaining_steps"] / STEPS[arm]
