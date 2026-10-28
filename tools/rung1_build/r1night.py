@@ -249,10 +249,10 @@ def tick():
         if block["current"] is None and block["next"] < len(block["chain"]) and block.get("hold"):
             continue  # its next arm is still being prepared; the block's GPUs stay reserved for it
         first = block.get("after_submitted_block")
-        if block["current"] is None and first is not None and not (state["blocks"][first]["current"] or {}).get("job") \
-                and state["blocks"][first]["next"] < len(state["blocks"][first]["chain"]) + 1 \
-                and not state["blocks"][first]["history"]:
-            continue  # keeps the coordinator's order: that block's arm is submitted first
+        lead = state["blocks"][first] if first is not None else None
+        if (block["current"] is None and lead is not None and not (lead["current"] or {}).get("job")
+                and not lead["history"] and not lead.get("deferred")):
+            continue  # keeps the coordinator's order: that block's arm is submitted first unless it cannot fit
         after = block.get("after_block")
         if block["current"] is None and after is not None and (state["blocks"][after]["current"]
                                                                or state["blocks"][after]["next"] < len(state["blocks"][after]["chain"])):
