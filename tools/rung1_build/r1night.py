@@ -297,20 +297,19 @@ def tick():
             started = started and not prior["current"] and prior["next"] >= len(prior["chain"])
         return bool(b["current"]) or (started and waiting)
 
-    # Training GPUs the eval scheduler must leave free, chain gaps included; the checker's share is held until the
-    # later blocks open (its jobs count in the queue total while they run).
-    later = any(b.get("not_before") for b in state["blocks"])
-    held = sum(block_gpus(b) for b in state["blocks"] if open_block(b))
-    checker_running = now() < datetime(2026, 10, 27, 21, 30, tzinfo=PT)  # the checker's three jobs end about 21:20
-    if checker_running and (not later or not any(b.get("not_before") and open_block(b) for b in state["blocks"])):
-        held += checker_gpus(state["share"]) if any(open_block(b) for b in state["blocks"]) else 0
-    # Coordinator 10-27: once wave 1 (the blocks open from 18:30) has ended, the open-model cascade lane holds 48 GPUs
-    # until 06:20, on top of any rung-1 block still running.
+    # Training GPUs the eval scheduler must leave free (coordinator 23:41 PT): the training jobs in the queue (running or
+    # pending in Slurm) plus the next arm about to be submitted, only while it fits the share; evals fill the rest.
+    in_queue = sum(block_gpus(b) for b in state["blocks"] if b["current"] and b["current"].get("job")
+                   and b["current"].get("slurm_state", "PENDING") not in TERMINAL)
+    about = [block_gpus(b) for b in state["blocks"]
+             if (b["current"] and not b["current"].get("job")) or (not b["current"] and open_block(b))]
+    held = in_queue + (about[0] if about and in_queue + about[0] <= state["share"] else 0)
     wave1 = ([state["blocks"][i] for i in state["wave1_blocks"]] if "wave1_blocks" in state
              else [b for b in state["blocks"] if not b.get("not_before")])
-    if (state["share"] >= 168 and now() >= datetime(2026, 10, 27, 18, 30, tzinfo=PT) and now() < END
-            and wave1 and not any(open_block(b) for b in wave1)):
-        held = sum(block_gpus(b) for b in state["blocks"] if open_block(b)) + 48
+    if (now() >= datetime(2026, 10, 27, 18, 30, tzinfo=PT) and now() < END and wave1
+            and not any(open_block(b) for b in wave1)):
+        held += 48  # the open-model cascade's GPUs once wave 1 has ended (coordinator)
+    held = min(held, state["share"])
     write_int(RESERVE_FILE, held)
     save(state)
     # Status probe for the current arms (job log steps, mean step seconds, publication), run in this poll.
