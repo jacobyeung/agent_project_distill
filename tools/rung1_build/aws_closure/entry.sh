@@ -38,7 +38,8 @@ if [[ -n "$spec_commit" ]]; then
     [[ "$spec_commit" =~ ^[0-9a-f]{40}$ && -d "$data/trainer/$spec_commit" && -n "$R1_RUNTIME_RECORD" ]]
     commit="$spec_commit"
 fi
-export R1_EFA R1_RUNTIME_RECORD
+R1_STUDENT_HEX=$($host_python -I -c 'import json, re, sys; v = json.load(open(sys.argv[1])).get("student_hex", ""); assert re.fullmatch(r"[0-9a-f]*", v); print(v)' "$spec")
+export R1_EFA R1_RUNTIME_RECORD R1_STUDENT_HEX
 mapfile -d '' argv < <($host_python -I -c '
 import json, sys
 for item in json.load(open(sys.argv[1])).get("argv", []):
@@ -112,7 +113,7 @@ container() {
         --mount "$passwd:/etc/passwd:none:bind,ro"
         --mount /etc/group:/etc/group:none:bind,ro)
     local variable
-    for variable in R1_EFA R1_RUNTIME_RECORD R1_MOUNT R1_TRAINER ANYHOST_JOBS ANYHOST_SPEC CAWS_IN_CONTAINER HOME TMPDIR TZ PYTHONDONTWRITEBYTECODE PYTHONNOUSERSITE \
+    for variable in R1_EFA R1_RUNTIME_RECORD R1_STUDENT_HEX R1_MOUNT R1_TRAINER ANYHOST_JOBS ANYHOST_SPEC CAWS_IN_CONTAINER HOME TMPDIR TZ PYTHONDONTWRITEBYTECODE PYTHONNOUSERSITE \
         NVIDIA_VISIBLE_DEVICES NVIDIA_DRIVER_CAPABILITIES SLURM_JOB_ID SLURM_JOB_NAME SLURM_CPUS_ON_NODE \
         SLURM_STEP_ID SLURM_JOB_NODELIST SLURM_NODELIST SLURM_RESTART_COUNT SLURM_CPUS_PER_TASK SLURM_MEM_PER_NODE \
         SLURM_NODEID SLURM_NNODES SLURM_JOB_NUM_NODES SLURM_PROCID SLURM_LOCALID SLURM_JOB_GPUS SLURM_STEP_GPUS \
@@ -135,6 +136,10 @@ case "$phase" in
             nvidia-smi --query-gpu=index,name,driver_version --format=csv,noheader | head -2 || true
             container mn_train_inner.sh "${argv[@]}"
         fi
+        ;;
+    fetch)
+        # One pinned model snapshot from the public hub into the model root (CPU job; nothing passes through Trinity).
+        $host_python -I -B "$jobs/fetch_model.py" "$spec"
         ;;
     efaprobe)
         # Host-side and in-container libfabric checks for EFA (one node, any GPU count).

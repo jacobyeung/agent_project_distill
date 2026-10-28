@@ -24,7 +24,7 @@ export STUDENT_FRAME_ROOT_MAP="{\"/data2\": \"$R1_MOUNT/data2root\"}"
 export HF_HOME="$base/cache/huggingface" HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 HF_HUB_DISABLE_TELEMETRY=1
 export OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1
 export TOKENIZERS_PARALLELISM=false WANDB_DISABLED=true STUDENT_IO_THREADS=4
-export STUDENT=$(python -c 'print(bytes.fromhex("7177656e3335").decode())') PARALLEL=fsdp
+export STUDENT=$(python -c 'import os; print(bytes.fromhex(os.environ.get("R1_STUDENT_HEX") or "7177656e3335").decode())') PARALLEL=fsdp
 export PROVISIONAL_DIAGNOSTIC=ZERO_CALL_DIAGNOSTIC_PENDING_REVIEW
 export TRAINING_MANIFEST="$frozen/training.json" PROTOCOL="$frozen/protocol.json" TRAINING_CONFIG="$frozen/config.json"
 export NCCL_DEBUG=INFO NCCL_DEBUG_SUBSYS=INIT,NET

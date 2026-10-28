@@ -3,7 +3,7 @@ import hashlib, io, json, os, tarfile
 C = "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/lanes/rung1_build_20261027/work/aws_closure"
 P = "/scratch/jjyeung/rung1_push/closure"
 names = ["entry.sh", "prep_inner.sh", "prep_rung1.py", "mn_train_inner.sh", "efa_probe_inner.sh", "frames_install.py", "host_identity.py",
-         "venv_build.sh", "pins_cu129.txt", "provenance_bin/git", "site_alias/sitecustomize.py", "selfshard.py"]
+         "venv_build.sh", "pins_cu129.txt", "provenance_bin/git", "site_alias/sitecustomize.py", "selfshard.py", "fetch_model.py"]
 import re
 BANNED = re.compile(r"sp" r"lit|qw" r"en|vs" r"i|gtq" r"gen|scan" r"net|ark" r"it|dist" r"ill|hyper" r"sim", re.I)
 for n in names:

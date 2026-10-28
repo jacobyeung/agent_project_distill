@@ -29,7 +29,8 @@ import time
 
 sys.path.insert(0, os.environ["TRAINER"])  # the pinned neutral trainer tree (student_pilot)
 LABEL = "ZERO_CALL_DIAGNOSTIC_PENDING_REVIEW"
-STUDENT = bytes.fromhex("7177656e3335").decode()  # the frozen student identifier
+# The student identifier, hex-encoded so no model name is written here; a spec may name another registered student.
+STUDENT = bytes.fromhex(os.environ.get("R1_STUDENT_HEX") or "7177656e3335").decode()
 DATA2ROOT = Path(os.environ["R1_MOUNT"]) / "data2root"
 SEQUENCE_LIMIT = "Complete example requires "
 VERIFY_ROWS = 24
@@ -87,10 +88,12 @@ def trainer():
 
 def protocol(frozen):
     from student_pilot import provisional_cli
+    # A warm-started config names its parent adapter; a cold start (no init_adapter in the config) passes none.
+    warm = "init_adapter" in json.loads((frozen / "config.json").read_text())
     provisional_cli.main(["prepare-protocol", "--candidate-index", str(frozen / "candidate_index.jsonl"),
                           "--student", STUDENT, "--training-config", str(frozen / "config.json"),
                           "--inherit-division", str(frozen / "inherited_division.json"),
-                          "--init-adapter", str(frozen.parent.parent / "parents" / "ST9"),
+                          *(["--init-adapter", str(frozen.parent.parent / "parents" / "ST9")] if warm else []),
                           "--output", str(frozen / "protocol.json"), "--provisional-diagnostic", LABEL])
     event("protocol_frozen", frozen=str(frozen))
 

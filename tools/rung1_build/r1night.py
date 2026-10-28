@@ -33,23 +33,24 @@ PT = ZoneInfo("America/Los_Angeles")
 END = datetime(2026, 10, 28, 6, 20, tzinfo=PT)
 TRAINER = {"trainer_commit": "299b0c526e3663ff2a42a5c3a9113e9e0b8e4164",
            "runtime_record": "/opt/aws_incoming/01eefae1f0ae55ff3e17dc34bb0664417f27e269e8192ce554e9d2afd01a42ac.json"}
-CLOSURE = "1392d62193ec426a63b7eaf50e82bbadf6028551938bcd895260276e3d213254"
+CLOSURE = "b83259572911afff6e74bc20ba4020fb678a6f606dab8fe3bb3ca33267d16d43"
 BASE = "/lustre/fsw/portfolios/av/users/jyeung/ap/59845bf9"
 RUNS = BASE + "/d/orch/runs/aws128p_20261025"
 STEPS = {"RG1_A1_S17": 1133, "RG1_A2_S17": 1133, "RG1_A3_S17": 1133, "RG1_C_S17": 115, "RG1_S_S17": 188,
          "RG1_A1S_S17": 1321, "A1H_S17": 1133, "RG1_A3_B128_S17": 2266, "RG1_A3_W64_S17": 1133,
-         "RG1_A1S_W64_S17": 1321, "RG1_A1_W64_S18": 1133, "RG1_C_S18": 115}
+         "RG1_A1S_W64_S17": 1321, "RG1_A1_W64_S18": 1133, "RG1_C_S18": 115, "SELF_V4_S18": 384, "SELF_V4_C_S18": 384}
 SECONDS = {"RG1_A3_S17": 19.5, "RG1_S_S17": 18.0, "A1H_S17": 18.5, "RG1_A3_B128_S17": 11.0,
            "RG1_A3_W64_S17": 11.0, "RG1_A1S_W64_S17": 11.0, "RG1_A1_W64_S18": 11.0}  # defaults; others 17.5
 NODES = {"RG1_A3_W64_S17": 8, "RG1_A1S_W64_S17": 8, "RG1_A1_W64_S18": 8}  # nodes of 8 GPUs per arm; others 4
+SINGLE = {"SELF_V4_S18": 4, "SELF_V4_C_S18": 4}  # one-node arms: GPUs (world 4, the self-trace pair's frozen recipe)
 
 
 def block_gpus(b):
     arm = b["current"]["arm"] if b.get("current") else b["chain"][min(b["next"], len(b["chain"]) - 1)]
-    return 8 * NODES.get(arm, 4)
+    return SINGLE.get(arm) or 8 * NODES.get(arm, 4)
 TAG = {"RG1_A1_S17": "a1", "RG1_A2_S17": "a2", "RG1_A3_S17": "a3", "RG1_C_S17": "c", "RG1_S_S17": "s",
        "RG1_A1S_S17": "m", "A1H_S17": "h", "RG1_A3_B128_S17": "a3b", "RG1_A3_W64_S17": "a3w",
-       "RG1_A1S_W64_S17": "mw", "RG1_A1_W64_S18": "a1w", "RG1_C_S18": "c18"}
+       "RG1_A1S_W64_S17": "mw", "RG1_A1_W64_S18": "a1w", "RG1_C_S18": "c18", "SELF_V4_S18": "sv18", "SELF_V4_C_S18": "svc18"}
 # Arms another lane owns run on their own trainer tree (QUEUE_RUNG1.json entry: trainer_commit, runtime_record).
 OWN_TRAINER = {"A1H_S17": {"trainer_commit": "f69509db55cb3e659c456ad31a2e760254062123",
                            "runtime_record": "/opt/aws_incoming/94cbc8a43483a8b50d3784c9182cb6c926394f100a36199f1caae7755f15ef40.json"}}
@@ -158,8 +159,10 @@ def parse_poll(text):
 
 
 def queue_submission(arm, minutes, state):
-    run = f"r1{TAG[arm]}_{secrets.token_hex(4)}"
-    spec = dict(OWN_TRAINER.get(arm) or ARM_TRAINER.get(arm) or TRAINER, phase="mntrain", efa=True, argv=[arm, run, 0],
+    run = (f"aws128_t1_ST9_s18_k{secrets.token_hex(3)}" if arm in SINGLE  # the self-trace family's run naming
+           else f"r1{TAG[arm]}_{secrets.token_hex(4)}")
+    trainer = {} if arm in SINGLE else (OWN_TRAINER.get(arm) or ARM_TRAINER.get(arm) or TRAINER)  # SINGLE: closure default
+    spec = dict(trainer, phase="mntrain", efa=arm not in SINGLE, argv=[arm, run, 0],
                 purpose=f"rung-1 arm {arm}: full run, world 32 over EFA, ends by 06:20 PT")
     path = NIGHT / f"SPEC_{run}.json"
     path.write_text(json.dumps(spec, indent=1, sort_keys=True) + "\n")
@@ -173,8 +176,10 @@ def queue_submission(arm, minutes, state):
     limit = f"{limit_min // 60}:{limit_min % 60:02d}:00"
     env = dict(os.environ, R1_DEADLINE=END.strftime("%Y-%m-%dT%H:%M:%S"),
                R1_TIME_MIN=f"{floor_min // 60}:{floor_min % 60:02d}:00")
+    if arm in SINGLE:
+        env.update(R1_GPN=str(SINGLE[arm]), R1_CPUS="32", R1_MEM="256G")
     name = subprocess.check_output([PY, "-B", str(TOOLS / "r1actions.py"), "sbatchmn", CLOSURE, digest,
-                                    str(NODES.get(arm, 4)), limit, "-"],
+                                    str(1 if arm in SINGLE else NODES.get(arm, 4)), limit, "-"],
                                    text=True, env=env).strip()
     return {"arm": arm, "run": run, "name": name, "spec_sha256": digest, "limit": limit, "job": None,
             "queued": now().isoformat(timespec="seconds"), "estimate_min": round(minutes)}

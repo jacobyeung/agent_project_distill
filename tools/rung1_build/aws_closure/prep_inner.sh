@@ -21,6 +21,7 @@ export ANYHOST_NEUTRAL_RUNTIME="${R1_RUNTIME_RECORD:-$R1_MOUNT/anyhost/NEUTRAL_R
 test "$(command -v git)" = "$ANYHOST_JOBS/provenance_bin/git"
 step() { printf '%s | %s\n' "$(date -u +%FT%TZ)" "$*"; }
 spec() { python -I -c "import json, sys; v = json.load(open(sys.argv[1])); $1" "$ANYHOST_SPEC"; }
+export R1_STUDENT_HEX="${R1_STUDENT_HEX:-}"  # from the spec (entry.sh); empty means the default student
 prep="python -B $ANYHOST_JOBS/prep_rung1.py"
 cd "$TRAINER"
 
