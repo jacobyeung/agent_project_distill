@@ -15,7 +15,9 @@ import importlib.util
 import sys
 
 TARGET = "student_pilot.orchard_admission"
-MODULE_SHA256 = "845cceec09a23663222740be82e50d4a5c556a6780568e8a23fbca793330c499"  # neutral trainer b4b2979 admission module
+# Pinned admission module bytes: neutral trainer b4b2979 (unchanged through 299b0c52) and the 8-node branch 94902f07.
+MODULE_SHA256 = {"845cceec09a23663222740be82e50d4a5c556a6780568e8a23fbca793330c499",
+                 "9fc5f239ac8166fd1ddb735d8bbd85a1049adc7879f48e015c53ceabad51b26d"}
 ALIASES = ("pool0_datahall_a", "pool0_datahall_b")
 COMMAND_SOURCE = "def command(*args):\n    return subprocess.check_output(args, text=True, timeout=30).strip()"
 RETRY_SOURCE = """
@@ -79,7 +81,7 @@ del _aws_partitions, _aws_alias
 
 
 def aliased_code(data, path):
-    if hashlib.sha256(data).hexdigest() != MODULE_SHA256:
+    if hashlib.sha256(data).hexdigest() not in MODULE_SHA256:
         raise ImportError("The frozen Slurm admission module differs from its pinned bytes")
     tree = ast.parse(data, path)
     positions = [index for index, node in enumerate(tree.body) if isinstance(node, ast.Assign)

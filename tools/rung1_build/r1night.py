@@ -33,17 +33,27 @@ PT = ZoneInfo("America/Los_Angeles")
 END = datetime(2026, 10, 28, 6, 20, tzinfo=PT)
 TRAINER = {"trainer_commit": "299b0c526e3663ff2a42a5c3a9113e9e0b8e4164",
            "runtime_record": "/opt/aws_incoming/01eefae1f0ae55ff3e17dc34bb0664417f27e269e8192ce554e9d2afd01a42ac.json"}
-CLOSURE = "d2bc1263668c91aac116a5f2e45e94d7cd56dc751aaa35ad12582b81d21482cb"
+CLOSURE = "1392d62193ec426a63b7eaf50e82bbadf6028551938bcd895260276e3d213254"
 BASE = "/lustre/fsw/portfolios/av/users/jyeung/ap/59845bf9"
 RUNS = BASE + "/d/orch/runs/aws128p_20261025"
 STEPS = {"RG1_A1_S17": 1133, "RG1_A2_S17": 1133, "RG1_A3_S17": 1133, "RG1_C_S17": 115, "RG1_S_S17": 188,
-         "RG1_A1S_S17": 1321, "A1H_S17": 1133, "RG1_A3_B128_S17": 2266}
-SECONDS = {"RG1_A3_S17": 19.5, "RG1_S_S17": 18.0, "A1H_S17": 18.5, "RG1_A3_B128_S17": 11.0}  # defaults; others 17.5
+         "RG1_A1S_S17": 1321, "A1H_S17": 1133, "RG1_A3_B128_S17": 2266, "RG1_A3_W64_S17": 1133}
+SECONDS = {"RG1_A3_S17": 19.5, "RG1_S_S17": 18.0, "A1H_S17": 18.5, "RG1_A3_B128_S17": 11.0,
+           "RG1_A3_W64_S17": 11.0}  # defaults before measurement; others 17.5
+NODES = {"RG1_A3_W64_S17": 8}  # nodes of 8 GPUs per arm; others 4
+
+
+def block_gpus(b):
+    arm = b["current"]["arm"] if b.get("current") else b["chain"][min(b["next"], len(b["chain"]) - 1)]
+    return 8 * NODES.get(arm, 4)
 TAG = {"RG1_A1_S17": "a1", "RG1_A2_S17": "a2", "RG1_A3_S17": "a3", "RG1_C_S17": "c", "RG1_S_S17": "s",
-       "RG1_A1S_S17": "m", "A1H_S17": "h", "RG1_A3_B128_S17": "a3b"}
+       "RG1_A1S_S17": "m", "A1H_S17": "h", "RG1_A3_B128_S17": "a3b", "RG1_A3_W64_S17": "a3w"}
 # Arms another lane owns run on their own trainer tree (QUEUE_RUNG1.json entry: trainer_commit, runtime_record).
 OWN_TRAINER = {"A1H_S17": {"trainer_commit": "f69509db55cb3e659c456ad31a2e760254062123",
                            "runtime_record": "/opt/aws_incoming/94cbc8a43483a8b50d3784c9182cb6c926394f100a36199f1caae7755f15ef40.json"}}
+# Arms on another tree of this lane (the 8-node branch), scored through EVAL_QUEUE.json like the others.
+ARM_TRAINER = {"RG1_A3_W64_S17": {"trainer_commit": "94902f071a5db720d438954e7211e65be073fb9d",
+                                  "runtime_record": "/opt/aws_incoming/081103a7e014c6818e031afd299808fd51939ab5b1969d865e3d5035e2028ff4.json"}}
 OVERHEAD_MIN = 20  # startup (image, venv, admission, memory probe) plus finalize and publication
 TERMINAL = ("COMPLETED", "FAILED", "CANCELLED", "TIMEOUT", "NODE_FAIL", "OUT_OF_MEMORY", "PREEMPTED", "DEADLINE")
 
@@ -143,7 +153,7 @@ def parse_poll(text):
 
 def queue_submission(arm, minutes, state):
     run = f"r1{TAG[arm]}_{secrets.token_hex(4)}"
-    spec = dict(OWN_TRAINER.get(arm, TRAINER), phase="mntrain", efa=True, argv=[arm, run, 0],
+    spec = dict(OWN_TRAINER.get(arm) or ARM_TRAINER.get(arm) or TRAINER, phase="mntrain", efa=True, argv=[arm, run, 0],
                 purpose=f"rung-1 arm {arm}: full run, world 32 over EFA, ends by 06:20 PT")
     path = NIGHT / f"SPEC_{run}.json"
     path.write_text(json.dumps(spec, indent=1, sort_keys=True) + "\n")
@@ -157,7 +167,8 @@ def queue_submission(arm, minutes, state):
     limit = f"{limit_min // 60}:{limit_min % 60:02d}:00"
     env = dict(os.environ, R1_DEADLINE=END.strftime("%Y-%m-%dT%H:%M:%S"),
                R1_TIME_MIN=f"{floor_min // 60}:{floor_min % 60:02d}:00")
-    name = subprocess.check_output([PY, "-B", str(TOOLS / "r1actions.py"), "sbatchmn", CLOSURE, digest, "4", limit, "-"],
+    name = subprocess.check_output([PY, "-B", str(TOOLS / "r1actions.py"), "sbatchmn", CLOSURE, digest,
+                                    str(NODES.get(arm, 4)), limit, "-"],
                                    text=True, env=env).strip()
     return {"arm": arm, "run": run, "name": name, "spec_sha256": digest, "limit": limit, "job": None,
             "queued": now().isoformat(timespec="seconds"), "estimate_min": round(minutes)}
@@ -227,6 +238,10 @@ def tick():
             waiting_steps = True
         if block["current"] is None and block["next"] < len(block["chain"]) and block.get("hold"):
             continue  # its next arm is still being prepared; the block's GPUs stay reserved for it
+        after = block.get("after_block")
+        if block["current"] is None and after is not None and (state["blocks"][after]["current"]
+                                                               or state["blocks"][after]["next"] < len(state["blocks"][after]["chain"])):
+            continue  # starts only once that block's arms have ended (capacity plan)
         if block["current"] is None and block["next"] < len(block["chain"]):
             arm = block["chain"][block["next"]]
             minutes = estimate_minutes(arm, state)
@@ -236,7 +251,7 @@ def tick():
             if block.get("not_before") and now() < datetime(2026, 10, 27, *map(int, block["not_before"].split(":")),
                                                            tzinfo=PT):
                 # Start early when 32 GPUs are free under the share right now (training has first claim).
-                if project_total is None or project_total + 32 > state["share"]:
+                if project_total is None or project_total + block_gpus(block) > state["share"]:
                     continue
                 log(f"block {block['chain']} opens early: {project_total} GPUs in use of {state['share']}")
                 block["not_before"] = None
@@ -249,27 +264,32 @@ def tick():
             elif block.get("deferred") != arm:
                 block["deferred"] = arm
                 log(f"{arm} waits for the next night: estimate {minutes:.0f} min, {left:.0f} min left")
-    active = sum(32 for b in state["blocks"] if b["current"])
+    active = sum(block_gpus(b) for b in state["blocks"] if b["current"])
 
     def open_block(b):
         started = not b.get("not_before") or now() >= datetime(2026, 10, 27, *map(int, b["not_before"].split(":")),
                                                                tzinfo=PT)
         waiting = b["next"] < len(b["chain"]) and b.get("deferred") != b["chain"][b["next"]]
+        after = b.get("after_block")
+        if not b["current"] and after is not None:  # reserved only once the block it follows has ended
+            prior = state["blocks"][after]
+            started = started and not prior["current"] and prior["next"] >= len(prior["chain"])
         return bool(b["current"]) or (started and waiting)
 
     # Training GPUs the eval scheduler must leave free, chain gaps included; the checker's share is held until the
     # later blocks open (its jobs count in the queue total while they run).
     later = any(b.get("not_before") for b in state["blocks"])
-    held = 32 * sum(1 for b in state["blocks"] if open_block(b))
+    held = sum(block_gpus(b) for b in state["blocks"] if open_block(b))
     checker_running = now() < datetime(2026, 10, 27, 21, 30, tzinfo=PT)  # the checker's three jobs end about 21:20
     if checker_running and (not later or not any(b.get("not_before") and open_block(b) for b in state["blocks"])):
         held += checker_gpus(state["share"]) if any(open_block(b) for b in state["blocks"]) else 0
     # Coordinator 10-27: once wave 1 (the blocks open from 18:30) has ended, the open-model cascade lane holds 48 GPUs
     # until 06:20, on top of any rung-1 block still running.
-    wave1 = [b for b in state["blocks"] if not b.get("not_before")]
+    wave1 = ([state["blocks"][i] for i in state["wave1_blocks"]] if "wave1_blocks" in state
+             else [b for b in state["blocks"] if not b.get("not_before")])
     if (state["share"] >= 168 and now() >= datetime(2026, 10, 27, 18, 30, tzinfo=PT) and now() < END
             and wave1 and not any(open_block(b) for b in wave1)):
-        held = 32 * sum(1 for b in state["blocks"] if open_block(b)) + 48
+        held = sum(block_gpus(b) for b in state["blocks"] if open_block(b)) + 48
     write_int(RESERVE_FILE, held)
     save(state)
     # Status probe for the current arms (job log steps, mean step seconds, publication), run in this poll.
