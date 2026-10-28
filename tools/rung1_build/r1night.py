@@ -202,6 +202,13 @@ def tick():
     states, probes = parse_poll(text)
     refused = set(re.findall(r"^SBATCH_REPLY (\S+) sbatch: error", text, re.M))
     admitted = set(re.findall(r"^R1ADMITTED (\S+)$", text, re.M))
+    margins = re.findall(r"^R1MARGIN (\d+) (\d+)$", text, re.M)
+    tenth, ours = (int(margins[-1][0]), int(margins[-1][1])) if margins else (None, None)
+
+    def margin_ok(gpus):
+        # Priority project (23:5x PT): no new job while the account's running GPUs sit fewer than ~80 below the
+        # 10th-largest user's; the new job's GPUs count as if running.
+        return tenth is not None and tenth - (ours + gpus) >= 80
     totals = re.findall(r"^R1TOTAL (\d+)$", text, re.M)
     project_total = int(totals[-1]) if totals else None
     waiting_steps = False
@@ -275,6 +282,11 @@ def tick():
                     continue
                 log(f"block {block['chain']} opens early: {project_total} GPUs in use of {state['share']}")
                 block["not_before"] = None
+            if minutes + 5 <= left and not margin_ok(block_gpus(block)):
+                if block.get("margin_wait") != arm:
+                    block["margin_wait"] = arm
+                    log(f"{arm} waits: account {ours} running GPUs vs 10th user {tenth} (needs a margin of 80)")
+                continue
             if minutes + 5 <= left:
                 block["current"] = queue_submission(arm, minutes, state)
                 block["next"] += 1
@@ -312,6 +324,15 @@ def tick():
     held = min(held, state["share"])
     write_int(RESERVE_FILE, held)
     save(state)
+    parked, pending = HOME / "actions/margin_hold", HOME / "actions/pending"
+    parked.mkdir(exist_ok=True)
+    if tenth is not None:
+        for f in sorted(pending.glob("g_*sbatchmn_*.json")) if not margin_ok(32) else []:
+            f.rename(parked / f.name)
+            log(f"parked {f.name}: margin {tenth - ours} below 80 + job")
+        for f in sorted(parked.glob("g_*sbatchmn_*.json")) if margin_ok(64) else []:
+            f.rename(pending / f.name)
+            log(f"released {f.name}: margin {tenth - ours}")
     # Status probe for the current arms (job log steps, mean step seconds, publication), run in this poll.
     targets = " ".join(f'{c["name"]}:{c["job"]}:{c["run"]}' for c in (b["current"] for b in state["blocks"])
                        if c and c.get("job"))
@@ -344,6 +365,9 @@ def tick():
              "  [ -f $F/$a/ADMISSION.json ] && grep -q CPU_ADMISSION_OK $F/$a/ADMISSION.json && echo R1ADMITTED $a",
              "done; true",
              "export PATH=/cm/shared/apps/slurm/current/bin:$PATH",
+             "squeue -h -t R -o '%u|%b|%D' | python3 -c \"import re,sys,collections; c=collections.Counter(); "
+             "[c.update({m.group(1): int(m.group(2)) * int(m.group(3))}) for m in (re.fullmatch(r'([^|]+)[|].*?gpu(?::[A-Za-z0-9_-]+)?:([0-9]+)[|]([0-9]+)', l.strip()) for l in sys.stdin) if m]; "
+             "top=sorted(c.values(), reverse=True); print('R1MARGIN', top[9] if len(top) > 9 else 0, c.get('jyeung', 0))\"",
              "squeue -h -u jyeung -t R,PD,CF -o '%j|%b|%D' | python3 -c \"import re,sys; print('R1TOTAL', sum(int(m.group(2)) * int(m.group(3)) for m in (re.fullmatch(r'(a15_cot_ap[^|]*)[|].*?gpu(?::[A-Za-z0-9_-]+)?:([0-9]+)[|]([0-9]+)', l.strip()) for l in sys.stdin) if m))\""]
     probe = NIGHT / "probe.sh"
     probe.write_text("\n".join(lines) + "\n")
