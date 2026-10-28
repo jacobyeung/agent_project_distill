@@ -4,7 +4,8 @@ Since 2026-10-20 22:13 PT the AWS job-submit plugin runs every pool0 request in 
 pool0_datahall_b, and the AWS controller sometimes answers ``scontrol show job`` after more than the
 module's 30-second timeout. When the pinned admission module loads, by import or as ``python -m``, this
 hook inserts the partition alias right after its SLURM_SITES table and rebinds ``command`` so that a
-subprocess.TimeoutExpired is retried up to six times. Every query, parse and check stays unchanged.
+subprocess.TimeoutExpired is retried up to six times and the two read-only allocation queries are answered once
+per process (see CACHE_SOURCE). Every parse and check stays unchanged.
 """
 import ast
 import hashlib
@@ -28,6 +29,44 @@ def command(*args):
             if _aws_attempt + 1 == AWS_COMMAND_ATTEMPTS:
                 raise
 """
+# code-aws controller replies take 1-116 s, and the trainer re-derives its Slurm allocation before every microbatch on
+# every rank (lease_check -> allocation -> scontrol show job / show hostnames). A running job's allocation cannot change,
+# so these two read-only queries reuse their first reply for the life of the process, and, when AWS_SCONTROL_CACHE_DIR
+# names a node-local directory of this job, for the life of the job across processes on the node (lease creation,
+# binding and 8 ranks otherwise each wait on the controller and outrun the 300 s lease freshness rule). Every parse and
+# check on the reply still runs each time. The step query of the job step these processes run inside is cached the
+# same way (a process running in the step proves the step is live); listpids and nvidia-smi stay live.
+CACHE_SOURCE = """
+_aws_command_live = command
+_aws_command_cache = {}
+AWS_COMMAND_CACHE_SECONDS = float("inf")
+def command(*args):
+    import time as _aws_time, os as _aws_os, hashlib as _aws_hashlib
+    if args[:2] == ('scontrol', 'show') and len(args) > 2 and args[2] in ('job', 'hostnames', 'step'):
+        _aws_now = _aws_time.monotonic()
+        _aws_hit = _aws_command_cache.get(args)
+        if _aws_hit is not None and _aws_now - _aws_hit[0] < AWS_COMMAND_CACHE_SECONDS:
+            return _aws_hit[1]
+        _aws_dir = _aws_os.environ.get('AWS_SCONTROL_CACHE_DIR')
+        _aws_file = None
+        if _aws_dir:
+            _aws_file = _aws_os.path.join(_aws_dir, _aws_hashlib.sha256(repr(args).encode()).hexdigest() + '.txt')
+            if _aws_os.path.exists(_aws_file):
+                with open(_aws_file) as _aws_stream:
+                    _aws_value = _aws_stream.read()
+                _aws_command_cache[args] = (_aws_now, _aws_value)
+                return _aws_value
+        _aws_value = _aws_command_live(*args)
+        _aws_command_cache[args] = (_aws_now, _aws_value)
+        if _aws_file:
+            _aws_os.makedirs(_aws_dir, exist_ok=True)
+            _aws_part = _aws_file + '.part.%d' % _aws_os.getpid()
+            with open(_aws_part, 'w') as _aws_stream:
+                _aws_stream.write(_aws_value)
+            _aws_os.replace(_aws_part, _aws_file)
+        return _aws_value
+    return _aws_command_live(*args)
+"""
 ALIAS_SOURCE = """
 _aws_partitions = SLURM_SITES["code-aws"]["partitions"]
 if _aws_partitions != {"pool0": ({"av_alpamayo_aml_low", "av_alpamayo_aml_normal", "av_alpamayo_aml_high"}, 8)}:
@@ -50,7 +89,7 @@ def aliased_code(data, path):
     commands = [index for index, node in enumerate(tree.body) if isinstance(node, ast.FunctionDef) and node.name == "command"]
     if len(commands) != 1 or ast.unparse(tree.body[commands[0]]) != COMMAND_SOURCE or commands[0] < positions[0]:
         raise ImportError("The frozen admission module's command function differs from its pinned form")
-    tree.body[commands[0] + 1:commands[0] + 1] = ast.parse(RETRY_SOURCE).body
+    tree.body[commands[0] + 1:commands[0] + 1] = ast.parse(RETRY_SOURCE).body + ast.parse(CACHE_SOURCE).body
     tree.body[positions[0] + 1:positions[0] + 1] = ast.parse(ALIAS_SOURCE).body
     return compile(ast.fix_missing_locations(tree), path, "exec", dont_inherit=True)
 

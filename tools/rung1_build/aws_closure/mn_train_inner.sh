@@ -61,6 +61,11 @@ cd "$TRAINER"
 # imports from the shared venv are slow, so warm the imports first, then create the leases only once every node is
 # ready (a barrier on the shared attempt directory), keeping lease creation close to rank admission.
 python -B -c "import torch, transformers, peft, student_pilot.ddp_training" > /dev/null 2>&1 || true
+# One controller reply per node for the job's read-only allocation queries (see site_alias/sitecustomize.py), fetched
+# now so lease binding and rank admission read it locally.
+export AWS_SCONTROL_CACHE_DIR="$TMPDIR/scontrol_cache_$SLURM_JOB_ID"
+python -B -c "import student_pilot.orchard_admission as o; o.allocation()" > /dev/null
+step "allocation reply cached in $AWS_SCONTROL_CACHE_DIR ($(ls "$AWS_SCONTROL_CACHE_DIR" | wc -l) files)"
 touch "$attempt/ready_$NODE_RANK"
 for i in $(seq 1 900); do
     (( $(ls "$attempt" | grep -c '^ready_') >= NNODES )) && break
