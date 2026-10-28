@@ -327,12 +327,14 @@ def tick():
     parked, pending = HOME / "actions/margin_hold", HOME / "actions/pending"
     parked.mkdir(exist_ok=True)
     if tenth is not None:
-        for f in sorted(pending.glob("g_*sbatchmn_*.json")) if not margin_ok(32) else []:
-            f.rename(parked / f.name)
-            log(f"parked {f.name}: margin {tenth - ours} below 80 + job")
-        for f in sorted(parked.glob("g_*sbatchmn_*.json")) if margin_ok(64) else []:
-            f.rename(pending / f.name)
-            log(f"released {f.name}: margin {tenth - ours}")
+        for f in sorted(pending.glob("g_*sbatchmn_*.json")):
+            if not margin_ok(int(json.loads(f.read_text()).get("gpus", 32))):
+                f.rename(parked / f.name)
+                log(f"parked {f.name}: margin {tenth - ours} below 80 + job")
+        for f in sorted(parked.glob("g_*sbatchmn_*.json")):
+            if margin_ok(int(json.loads(f.read_text()).get("gpus", 32))):
+                f.rename(pending / f.name)
+                log(f"released {f.name}: margin {tenth - ours}")
     # Status probe for the current arms (job log steps, mean step seconds, publication), run in this poll.
     targets = " ".join(f'{c["name"]}:{c["job"]}:{c["run"]}' for c in (b["current"] for b in state["blocks"])
                        if c and c.get("job"))
