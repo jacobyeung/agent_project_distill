@@ -57,6 +57,16 @@ mkdir -p "$attempt" "$SCRATCH_ROOT" "$AGENT_COORD_DIR"
 step() { printf '%s | node %s/%s %s\n' "$(date -u +%FT%TZ)" "$NODE_RANK" "$NNODES" "$*"; }
 step "world $world: $NNODES nodes x $NPROC_PER_NODE ranks, master $MASTER_ADDR:$MASTER_PORT"
 cd "$TRAINER"
+# Rank admission requires lease evidence younger than 300 s. Containers start minutes apart across 4 nodes and cold
+# imports from the shared venv are slow, so warm the imports first, then create the leases only once every node is
+# ready (a barrier on the shared attempt directory), keeping lease creation close to rank admission.
+python -B -c "import torch, transformers, peft, student_pilot.ddp_training" > /dev/null 2>&1 || true
+touch "$attempt/ready_$NODE_RANK"
+for i in $(seq 1 900); do
+    (( $(ls "$attempt" | grep -c '^ready_') >= NNODES )) && break
+    sleep 1
+done
+step "all $NNODES nodes ready; creating leases"
 python -B -m student_pilot.orchard_admission "$frozen/request.json" "$attempt/supervisor_$NODE_RANK" \
     "$PROVISIONAL_DIAGNOSTIC" > "$attempt/supervisor_paths_$NODE_RANK.txt"
 mapfile -t leases < "$attempt/supervisor_paths_$NODE_RANK.txt"
