@@ -33,7 +33,7 @@ PT = ZoneInfo("America/Los_Angeles")
 END = datetime(2026, 10, 28, 6, 20, tzinfo=PT)
 TRAINER = {"trainer_commit": "299b0c526e3663ff2a42a5c3a9113e9e0b8e4164",
            "runtime_record": "/opt/aws_incoming/01eefae1f0ae55ff3e17dc34bb0664417f27e269e8192ce554e9d2afd01a42ac.json"}
-CLOSURE = "f344aa6ba407a39f5716fb665757007f0b62dd8ace1d397d1697dd11642a3890"
+CLOSURE = "45279da0018c72cf5431905b19ba5f10ff7a1a1cb10df4288cf05869c8e2b8b1"
 BASE = "/lustre/fsw/portfolios/av/users/jyeung/ap/59845bf9"
 RUNS = BASE + "/d/orch/runs/aws128p_20261025"
 STEPS = {"RG1_A1_S17": 1133, "RG1_A2_S17": 1133, "RG1_A3_S17": 1133, "RG1_C_S17": 115, "RG1_S_S17": 188,

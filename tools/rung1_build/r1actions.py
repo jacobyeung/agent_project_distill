@@ -47,6 +47,19 @@ def upload(path, tag="up", order="b", digest=None):
     return dest
 
 
+def refuse_per_row_copy(closure):
+    """A GPU run may use only a closure whose finalize archives the run output: an older closure copies the staged
+    frames to Lustre one file per row (about 290k files for a full arm) and exhausts the shared code-aws file quota."""
+    import tarfile
+    path = Path("/scratch/jjyeung/rung1_push/closure") / ("closure_%s.tar" % closure[:12])
+    if not path.exists():
+        raise SystemExit("REFUSED: no local closure tar to check for %s" % closure[:12])
+    with tarfile.open(path) as tar:
+        script = tar.extractfile("mn_train_inner.sh").read().decode()
+    if 'cp -a "$RUN_OUTPUT"' in script or "train.tar" not in script:
+        raise SystemExit("REFUSED: closure %s copies the run output file by file" % closure[:12])
+
+
 def main(argv):
     kind = argv[0]
     if kind == "upload":
@@ -89,6 +102,7 @@ def main(argv):
     elif kind == "sbatchmn":
         # Multi-node GPU job on pool0: one batch task per node; entry.sh launches one srun task per node with 8 GPUs.
         closure, spec, nodes, limit = argv[1:5]
+        refuse_per_row_copy(closure)
         GPN = int(os.environ.get("R1_GPN", "8"))  # GPUs per node; a probe may ask for fewer
         name = "a15_cot_ap" + spec[:8]
         entry = "%s/j/%s/entry.sh" % (BASE, closure[:12])

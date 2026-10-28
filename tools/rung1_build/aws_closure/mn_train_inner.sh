@@ -139,8 +139,15 @@ PY
             --publish-root "$attempt/publication" \
             --provisional-diagnostic "$PROVISIONAL_DIAGNOSTIC"
         test -f "$RUN_OUTPUT/PUBLISHED.json"
-        cp -a "$RUN_OUTPUT" "$attempt/train"
-        ln -sfn "$attempt/train" "$root/train"
+        # The run output keeps its staged frames (one file per row) and superseded files on node-local storage; Lustre
+        # gets one archive of the rest (the code-aws file quota is shared and nearly full). Nothing downstream reads it;
+        # the evaluator reads the publication, so an archive failure is logged and does not fail the published run.
+        if tar -C "$RUN_OUTPUT" --exclude=./frames --exclude=./_superseded -cf "$attempt/train.tar.part" . \
+                && mv "$attempt/train.tar.part" "$attempt/train.tar"; then
+            ln -sfn "$attempt/train.tar" "$root/train.tar"
+        else
+            step "train archive failed (publication intact)"
+        fi
         step "published $attempt/publication"
     fi
     step "done"
