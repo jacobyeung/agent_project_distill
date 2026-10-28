@@ -196,6 +196,7 @@ def tick():
     text = polls[-1].read_text() if polls else ""
     states, probes = parse_poll(text)
     refused = set(re.findall(r"^SBATCH_REPLY (\S+) sbatch: error", text, re.M))
+    admitted = set(re.findall(r"^R1ADMITTED (\S+)$", text, re.M))
     totals = re.findall(r"^R1TOTAL (\d+)$", text, re.M)
     project_total = int(totals[-1]) if totals else None
     waiting_steps = False
@@ -242,6 +243,9 @@ def tick():
                 block["current"] = None
         elif cur and not cur["job"]:
             waiting_steps = True
+        if block.get("hold") and block["next"] < len(block["chain"]) and block["chain"][block["next"]] in admitted:
+            block["hold"] = False
+            log(f"{block['chain'][block['next']]} admitted on code-aws; block released")
         if block["current"] is None and block["next"] < len(block["chain"]) and block.get("hold"):
             continue  # its next arm is still being prepared; the block's GPUs stay reserved for it
         after = block.get("after_block")
@@ -325,6 +329,11 @@ def tick():
              "    published = int(os.path.exists(f'{runs}/{run}/attempt-{job}-0/publication/PUBLISHED.json'))",
              "    print(f'R1PROBE {name} steps={len(ordered)} mean={mean} last={last} published={published}')",
              "PY",
+             "F=" + RUNS + "/frozen",
+             "for a in " + (" ".join(b["chain"][b["next"]] for b in state["blocks"]
+                                     if b.get("hold") and b["next"] < len(b["chain"])) or "none") + "; do",
+             "  [ -f $F/$a/ADMISSION.json ] && grep -q CPU_ADMISSION_OK $F/$a/ADMISSION.json && echo R1ADMITTED $a",
+             "done; true",
              "export PATH=/cm/shared/apps/slurm/current/bin:$PATH",
              "squeue -h -u jyeung -t R,PD,CF -o '%j|%b|%D' | python3 -c \"import re,sys; print('R1TOTAL', sum(int(m.group(2)) * int(m.group(3)) for m in (re.fullmatch(r'(a15_cot_ap[^|]*)[|].*?gpu(?::[A-Za-z0-9_-]+)?:([0-9]+)[|]([0-9]+)', l.strip()) for l in sys.stdin) if m))\""]
     probe = NIGHT / "probe.sh"
