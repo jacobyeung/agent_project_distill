@@ -33,7 +33,7 @@ PT = ZoneInfo("America/Los_Angeles")
 END = datetime(2026, 10, 28, 6, 20, tzinfo=PT)
 TRAINER = {"trainer_commit": "299b0c526e3663ff2a42a5c3a9113e9e0b8e4164",
            "runtime_record": "/opt/aws_incoming/01eefae1f0ae55ff3e17dc34bb0664417f27e269e8192ce554e9d2afd01a42ac.json"}
-CLOSURE = "b83259572911afff6e74bc20ba4020fb678a6f606dab8fe3bb3ca33267d16d43"
+CLOSURE = "020e456bc3723630b337b6f9ebb3aebc99200e0265c1d733364e762579244630"
 BASE = "/lustre/fsw/portfolios/av/users/jyeung/ap/59845bf9"
 RUNS = BASE + "/d/orch/runs/aws128p_20261025"
 STEPS = {"RG1_A1_S17": 1133, "RG1_A2_S17": 1133, "RG1_A3_S17": 1133, "RG1_C_S17": 115, "RG1_S_S17": 188,
@@ -158,10 +158,12 @@ def parse_poll(text):
     return states, probes
 
 
-def queue_submission(arm, minutes, state):
-    run = (f"aws128_t1_ST9_s18_k{secrets.token_hex(3)}" if arm in SINGLE  # the self-trace family's run naming
-           else f"r1{TAG[arm]}_{secrets.token_hex(4)}")
+def queue_submission(arm, minutes, state, run=None):
+    run = run or (f"aws128_t1_ST9_s18_k{secrets.token_hex(3)}" if arm in SINGLE  # the self-trace family's run naming
+                  else f"r1{TAG[arm]}_{secrets.token_hex(4)}")
     trainer = {} if arm in SINGLE else (OWN_TRAINER.get(arm) or ARM_TRAINER.get(arm) or TRAINER)  # SINGLE: closure default
+    # A unique submission field keeps a resubmission (e.g. a resume of the same run) from hashing to a dead job's name.
+    trainer = dict(trainer, submission=secrets.token_hex(4))
     spec = dict(trainer, phase="mntrain", efa=arm not in SINGLE, argv=[arm, run, 0],
                 purpose=f"rung-1 arm {arm}: full run, world 32 over EFA, ends by 06:20 PT")
     path = NIGHT / f"SPEC_{run}.json"
@@ -272,6 +274,8 @@ def tick():
         if block["current"] is None and block["next"] < len(block["chain"]):
             arm = block["chain"][block["next"]]
             minutes = estimate_minutes(arm, state)
+            if block.get("resume_run"):  # an interrupted run resumes from its checkpoint: only the remaining steps
+                minutes = OVERHEAD_MIN + (minutes - OVERHEAD_MIN) * block["remaining_steps"] / STEPS[arm]
             left = (END - now()).total_seconds() / 60
             if now() < datetime(2026, 10, 27, 18, 30, tzinfo=PT):
                 continue
@@ -288,7 +292,7 @@ def tick():
                     log(f"{arm} waits: account {ours} running GPUs vs 10th user {tenth} (needs a margin of 80)")
                 continue
             if minutes + 5 <= left:
-                block["current"] = queue_submission(arm, minutes, state)
+                block["current"] = queue_submission(arm, minutes, state, block.get("resume_run"))
                 block["next"] += 1
                 waiting_steps = True
                 log(f"queued {arm} as {block['current']['name']} run {block['current']['run']} "

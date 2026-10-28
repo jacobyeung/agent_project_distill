@@ -109,6 +109,25 @@ export CUDA_VISIBLE_DEVICES
 step "leases bound; local GPUs $CUDA_VISIBLE_DEVICES"
 if (( smoke == 0 )); then
     # Full run: every node runs the trainer's launcher to the end; node 0 holds rank 0's output and publishes it.
+    # An interrupted run of the same name resumes from its newest checkpoint that matches this protocol and world.
+    unset RESUME_FROM
+    RESUME_FROM="$(python -B - "$ORCHARD_CHECKPOINT_ROOT" "$frozen/protocol.json" "$world" "$(git -C "$TRAINER" rev-parse HEAD)" <<'PY'
+from pathlib import Path
+import sys
+from student_pilot.common import binding
+from student_pilot.ddp_checkpoints import read_checkpoint
+
+root = Path(sys.argv[1])
+expected = {"protocol_sha256": binding(sys.argv[2])["sha256"], "commit": sys.argv[4],
+            "world_size": int(sys.argv[3]), "parallel": "fsdp"}
+candidates = sorted((p for p in root.glob("step_*") if (p / "checkpoint.json").is_file()),
+                    key=lambda p: int(p.name.rpartition("_")[2]), reverse=True)
+if candidates:
+    read_checkpoint(candidates[0], expected)
+    print(candidates[0])
+PY
+)"
+    if [[ -n "$RESUME_FROM" ]]; then export RESUME_FROM; step "resuming from $RESUME_FROM"; fi
     rc=0
     bash "$TRAINER/scripts/diagnostic_ddp_gpu_batch.sh" || rc=$?
     step "trainer exit $rc"
