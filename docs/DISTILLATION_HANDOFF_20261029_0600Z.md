@@ -54,7 +54,33 @@ The user's /goal is 70 on VSI-500 with traces, beating the matched direct-answer
 - RG2_A_W32_S17 follows, then RG2_X_W32_S17.
 - The readout compares GX with A1 at matched step 1,133.
 
-## 7. Open with the user (SAVED_USER_QUESTIONS.md)
+## 7. What survives this session, and how to resume
+**Detached (they keep running after this session closes):**
+
+| Process | Host | What it does | Check |
+|---|---|---|---|
+| eval_sched.py, PID 3149705 | trinity-0-13 | Scores published AWS runs within AWSTRAIN_EVAL_CAP (dedupe version; score jobs on `-p cpu`) | `ps -p 3149705`; log `/scratch/jjyeung/awstrain_20261027/eval_sched.out` |
+| gxguard.sh, PID 3743251 | trinity-0-13 | Cancels GX 8451445 if its steps stall 10 min; ends with GX | `ps -p 3743251` |
+| watch2.sh, PID 3762424 | trinity-0-13 | Adds GX to EVAL_QUEUE.json when it publishes. Stop: `touch /scratch/jjyeung/night_20261029_prep/STOP_WATCH` | `/scratch/jjyeung/night_20261029_prep/watch.log` |
+| day_switch2.sh, PID 3764123 | trinity-0-13 | 06:15: share 4, reserve 0; 06:30: eval cap 4 | `ps -p 3764123` |
+| Cascade tick3.sh | trinity-0-13, tmux -L v3 | Night-3 ticks; round 2 off (n3/NIGHT_DONE) | `/scratch/jjyeung/vsi590k_cascade_20261027/n3/tick.log` |
+| Gemini v590g control loops | trinity-2-18 | Answer, admit and pace Gemini | `L/vsi590k_gemini_20261027/GEMINI_HEARTBEAT` |
+| AWS GX 8451445 | code-aws | Ends about 02:50; deadline 06:15 | `squeue -j 8451445` |
+
+**Dies with this session (a successor is needed if the session is gone):**
+- **Morning eval lane:** a Claude subagent sleeping until 06:20. It gives each GX eval shard a first-15-minute per-minute GPU-work check, then runs the GX readout against A1 at step 500 (unmatched) and C_S17/C_S18 with `/scratch/jjyeung/geo_input_20261028/readout.py`. If this session is closed, spawn a fresh Opus lane by 06:20 PT with that brief.
+- **Cascade lane:** a Claude subagent. After round 1 ended at 00:48 it packs, banks and audits night 3, then writes a morning summary to `L/vsi590k_cascade_20261027/LANE_STATUS.md`. If that summary is missing, spawn a successor from LANE_STATUS.
+- **Orchestrator watchers:** the Gemini heartbeat watcher, the Gemini event poller (`watch3.sh` in this session's scratchpad), and the per-minute watcher for the AWS 8-GPU jobs. The next orchestrator re-arms watchers on GEMINI_HEARTBEAT and on its own AWS launches.
+- **Subagents not resumed for hand-off:** their transcripts are 230k–360k tokens, and resuming them caused the 42.7 MB/s IO spike. Their state is in the LANE_STATUS files named above.
+
+## 8. First actions for the next orchestrator
+1. By 06:30 PT, confirm GX ended and its evals start on 4 GPUs, each checked every minute for its first 15 minutes. If the morning-eval lane died, spawn its successor.
+2. Read the cascade night-3 summary and the GX readout. Keep GX vs A1@500 labelled as unmatched.
+3. Before 21:30 PT Thursday, teach `r1night_next.py` the per-arm closures (841bcb7a, a7aac822) and the RG2 arms, or launch by hand. Order: A1 resume, then RG2_A_W32_S17, then RG2_X_W32_S17. Every launch gets per-minute checks for its first 10–15 minutes.
+4. Watch GEMINI_HEARTBEAT; the 580k kept mark is next.
+5. The goal compares traces against direct answers. GX has no direct-answer-plus-geometry control, so a GX gain shows only that 3D input helps. Plan an X arm with geometry before claiming that traces gain from it.
+
+## 9. Open with the user (SAVED_USER_QUESTIONS.md)
 - Moving ~/.claude off /data2.
 - The 15.5 GB essential AWS pull (`L/aws_pull_sizing_20261028.md`).
 - An optional 300 GB checkpoint pull.
