@@ -3,7 +3,9 @@
   parity.py rank0 MODE RESULTS    rank-0 startup: lease-request identity, verified protocol and manifest, run store,
                                   frame staging (the trainer's localize_frames), payload
   parity.py mirror MODE RESULTS   a second node's mirror_staged_frames into the same (now empty) output path, then
-                                  the encoded microbatches of optimizer steps 1-3 for every rank of world 4
+                                  the encoded microbatches of optimizer steps 1-3 for every rank of world 4 (with a
+                                  geometry block: the trainer's own store opening and coverage check over the staged
+                                  rows, and each microbatch's geometry_features)
 MODE old runs the unhooked trainer; MODE new runs with the pre-stage hooks (env set by run_parity.sh).
 """
 import hashlib
@@ -100,6 +102,15 @@ def mirror(mode, results):
     processor = load_processor(STUDENT)
     settings = payload["protocol"]["training"]
     world, microbatch = 4, 4
+    geometry, extra = None, {}
+    if "geometry" in settings:  # trainer f5cad828: every rank opens the pinned store and checks every staged row
+        gather = ddp_training.gather
+        ddp_training.gather = lambda value, world_size: [value] * world_size  # one process stands for every rank
+        try:
+            geometry, report = ddp_training.open_geometry_store(settings["geometry"], rows, audits, world)
+        finally:
+            ddp_training.gather = gather
+        extra = {"geometry_store": report}
     steps = []
     for index, window in enumerate(global_batches(len(rows), 0, settings["effective_batch_size"], settings["seed"])):
         if index == 3:
@@ -108,13 +119,14 @@ def mirror(mode, results):
             slots = rank_slots(window["indices"], rank, world, microbatch)
             for start in range(0, len(slots), microbatch):
                 chunk = slots[start:start + microbatch]
-                batch = ddp_training.encode_microbatch(processor, rows, audits, [position for position, _ in chunk])
+                batch = ddp_training.encode_microbatch(processor, rows, audits, [position for position, _ in chunk],
+                                                       **({} if geometry is None else {"geometry": geometry}))
                 steps.append({"step": index + 1, "rank": rank, "qids": [rows[position]["qid"] for position, _ in chunk],
                               "weights": [weight for _, weight in chunk],
                               "tensors": {name: [list(value.shape), str(value.dtype), sha(value.contiguous().numpy().tobytes())]
                                           for name, value in sorted(batch.items())},
                               "input_ids": batch["input_ids"].tolist()})
-    out = {"mirror_seconds": seconds, "mirror_files": files, "mirror_record": digest_json(runtime), "steps": steps}
+    out = {"mirror_seconds": seconds, "mirror_files": files, "mirror_record": digest_json(runtime), "steps": steps, **extra}
     (Path(results) / f"mirror_{mode}.json").write_text(json.dumps(out, sort_keys=True) + "\n")
 
 

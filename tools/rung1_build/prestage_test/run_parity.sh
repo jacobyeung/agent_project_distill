@@ -1,16 +1,18 @@
 #!/usr/bin/env bash
 # Old-vs-new startup parity on a local CPU fixture.
 # Usage: run_parity.sh RESULTS_DIR [FROZEN_NAME [TRAINER_DIR RUNTIME_RECORD]]   (defaults: FXP_S17 on trainer 299b0c52)
+# PARITY_HOME (harness copy), PARITY_ENV (fixture environment), PARITY_CLOSURE_SRC (closure sources) and PARITY_VENV may
+# be overridden, e.g. PARITY_ENV=fx_env_gx.sh EXPECT_GEOMETRY=1 for the geometry fixture FXG_S17 on trainer f5cad828.
 set -euo pipefail
-S=/scratch/jjyeung/startup_prestage_20261028
-WT=/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/lanes/startup_cpu_prestage_20261028/work/wt/tools/rung1_build/aws_closure
-source $S/fx_env.sh
+S=${PARITY_HOME:-/scratch/jjyeung/startup_prestage_20261028}
+WT=${PARITY_CLOSURE_SRC:-/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/lanes/startup_cpu_prestage_20261028/work/wt/tools/rung1_build/aws_closure}
+source "${PARITY_ENV:-$S/fx_env.sh}"
 R="$1"; mkdir -p "$R"
 export R1FX_FROZEN="${2:-FXP_S17}"
 if [[ -n "${3:-}" ]]; then export TRAINER="$3" R1_TRAINER="$3" ANYHOST_NEUTRAL_RUNTIME="$4"; fi
 stamp=$(date +%s)
 export ANYHOST_JOBS="$S/closure_src_$stamp" PYTHONPATH="$S/closure_src_$stamp/site_alias"
-export PATH="$ANYHOST_JOBS/provenance_bin:$S/venv/bin:/usr/bin:/bin"
+export PATH="$ANYHOST_JOBS/provenance_bin:${PARITY_VENV:-$S/venv}/bin:/usr/bin:/bin"
 mkdir -p "$ANYHOST_JOBS" && cp -r "$WT/." "$ANYHOST_JOBS/"
 F=$FX/runs/aws128p_20261025/frozen/$R1FX_FROZEN
 RUN=$FX/runs/r1fx_run

@@ -15,6 +15,11 @@ its inputs are not exactly the cached ones. What the hooks change is where start
   storage.write_new             writes input_manifest.json from the CPU job's rendering of the same rows
   ddp_training.mirror_staged_frames  the same checks, with the node's extracted frames renamed in place of the copies
   ddp_training.startup_memory_probe  reuses a measured probe of the same memory configuration
+The geometry-input trainer f5cad828 (and 98614c5) changes storage.py only in publication and ddp_training.py only in the
+geometry store, batches, memory probe and training loop; the hooked functions keep their bytes there, except that
+startup_memory_probe takes the geometry store as a keyword, which the probe hook passes through. The cache holds no
+geometry features: the trainer reads the store manifest at startup and each feature file when a batch first uses it. A
+reused probe still reads the stress rows' feature files through the store, as the trainer's own probe would.
 """
 import atexit
 import copy
@@ -30,15 +35,18 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from uuid import uuid4
 
-# Source bytes of the hooked modules in trainer trees 299b0c52, 94902f07, 9596b114 and the rung-2 sharded-target tree
-# 9183d0d6 (which changes only provisional.py's candidate loading, run by the CPU job's own verification).
+# Source bytes of the hooked modules in trainer trees 299b0c52, 94902f07, 9596b114, the rung-2 sharded-target tree
+# 9183d0d6 (which changes only provisional.py's candidate loading, run by the CPU job's own verification) and the
+# geometry-input trees f5cad828 and 98614c5 (second digest of storage and ddp_training).
 PINNED = {
     "student_pilot.common": {"dc087343291b18607235a85d1bdcdfe2b66b1b8f02d3963bb96a5530607621d2"},
     "student_pilot.ddp_admission": {"d3036c32f1f5364304ecec4992280da06defb76b68e916fd7a049f7203ae1c50",
                                     "bcd718947c3c2623287bff32236b1ba63b2ed45a25b6bc2a323c3b0de58271d5"},
     "student_pilot.provisional_data": {"9a95bb1f3dc5f5d3a454cd2936bcaffefb48e2355be28af5552d75750bc055f7"},
-    "student_pilot.storage": {"74b51ddd14a8bc8b1b2b783d3ae1b7a268a37e71f9164840aa7fdd618d5c8186"},
-    "student_pilot.ddp_training": {"74f33f63db6b6cff8a66b93ffd3bdd9026a565e514ced0d5597f1d4d1c45d29c"},
+    "student_pilot.storage": {"74b51ddd14a8bc8b1b2b783d3ae1b7a268a37e71f9164840aa7fdd618d5c8186",
+                              "bd561f14b17599e0955e0a92a0e7778c06a17b51bf09adb31c96b72d9f204b59"},
+    "student_pilot.ddp_training": {"74f33f63db6b6cff8a66b93ffd3bdd9026a565e514ced0d5597f1d4d1c45d29c",
+                                   "aa6a78638fd489a9d150b3496b6e71d9c80a8a89ed788c4944e440a786a60f41"},
 }
 SENTINEL = "__r1_prestage_rows_sentinel_5d0c1e__"
 FRAMES_WAIT_SECONDS = 900
@@ -405,11 +413,16 @@ def patch_training(module):
         module.mirror_staged_frames = mirror_staged_frames
 
 
-def probe_key(protocol, rows, audits, settings, topology):
+def stress_indices(rows, audits):
+    """The rows the trainer's memory_probe measures."""
+    names = ("sequence_tokens", "visual_tokens", "assistant_tokens_including_eos")
+    return sorted({max(range(len(rows)), key=lambda index: audits[rows[index]["qid"]][name]) for name in names})
+
+
+def probe_key(protocol, rows, audits, settings, topology, module):
     import torch
     from student_pilot.ddp_config import allocator_settings
-    names = ("sequence_tokens", "visual_tokens", "assistant_tokens_including_eos")
-    stress = sorted({max(range(len(rows)), key=lambda index: audits[rows[index]["qid"]][name]) for name in names})
+    stress = stress_indices(rows, audits)
     device = torch.cuda.get_device_properties(0)
     material = {"schema": "r1-probe-key-v2", "student": protocol["student"], "base_sha256": protocol["base_sha256"],
                 "runtime": protocol["runtime"], "versions": protocol["versions"],
@@ -419,21 +432,28 @@ def probe_key(protocol, rows, audits, settings, topology):
                 "topology": {name: topology.get(name) for name in ("nnodes", "local_world_size")},
                 "device": {"name": device.name, "total_memory_bytes": device.total_memory},
                 "torch": torch.__version__, "allocator": allocator_settings()}
+    if "geometry" in settings:  # the geometry block is already in settings; the module code sizes its activations
+        source = Path(module.__file__).resolve().with_name("geometry_input.py")
+        material["geometry_module_sha256"] = hashlib.sha256(source.read_bytes()).hexdigest()
     return hashlib.sha256(json.dumps(material, sort_keys=True).encode()).hexdigest(), material
 
 
 def patch_probe(module):
     original = module.startup_memory_probe
 
-    def startup_memory_probe(model, processor, rows, audits, settings, rank, lease_check, protocol, topology, checkpoint):
+    def startup_memory_probe(model, processor, rows, audits, settings, rank, lease_check, protocol, topology, checkpoint,
+                             geometry=None):
         import torch
+        # The geometry trainer passes its feature store only when one is configured; the original takes it unchanged.
+        extra = {} if geometry is None else {"geometry": geometry}
         registry = os.environ.get("R1_PROBE_REGISTRY")
         if os.environ.get("STUDENT_MEMORY_PROBE_CACHE") is not None or not registry:
-            return original(model, processor, rows, audits, settings, rank, lease_check, protocol, topology, checkpoint)
+            return original(model, processor, rows, audits, settings, rank, lease_check, protocol, topology, checkpoint,
+                            **extra)
         world = settings["world_size"]
         key = material = reports = source = None
         try:
-            key, material = probe_key(protocol, rows, audits, settings, topology)
+            key, material = probe_key(protocol, rows, audits, settings, topology, module)
             entry = Path(registry) / (key + ".json")
             if entry.is_file():
                 value = json.loads(entry.read_text())
@@ -465,6 +485,12 @@ def patch_probe(module):
                     free, _ = torch.cuda.mem_get_info()
                     usable = (trial["peak_allocated_bytes"] * settings["memory_fit_safety_factor"]
                               <= free + torch.cuda.memory_reserved())
+                if usable and geometry is not None:
+                    # The checks the trainer's probe applies to the stress rows' features (file sha256, dtype, shape,
+                    # finiteness, processor grid); a failure measures instead, where the trainer's own probe raises.
+                    for index in stress_indices(rows, audits):
+                        geometry.tokens([frame["sha256"] for frame in rows[index]["student_input"]["frames"]],
+                                        audits[rows[index]["qid"]]["video_grid_thw"][0])
         except Exception as error:
             log("probe_check_failed", error=f"{type(error).__name__}: {error}")
             usable = False
@@ -474,7 +500,8 @@ def patch_probe(module):
             report = next(item for item in reports if item.get("rank") == rank)
             log("probe_reused", source=source, key=key)
             return {**report, "reused_measured_probe": {"source": source, "key": key}}, None
-        probe, context = original(model, processor, rows, audits, settings, rank, lease_check, protocol, topology, checkpoint)
+        probe, context = original(model, processor, rows, audits, settings, rank, lease_check, protocol, topology, checkpoint,
+                                  **extra)
         probes = module.gather(probe, world)
         if rank == 0 and key is not None:
             try:
