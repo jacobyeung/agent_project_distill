@@ -39,9 +39,10 @@ The user's /goal is 70 on VSI-500 with traces, beating the matched direct-answer
   - Paused: S3DIS direction types, counting and absolute distance; ProcTHOR relative distance.
 
 ## 4. Running at 23:00 PT
-- RG1_A1GX_S17_K200 (job 8451445, 32 GPUs, closure a7aac822) was at step about 260 of 1,133, at 15.5 s/step. It ends about 02:50 against a 06:15 deadline.
+- RG1_A1GX_S17_K200 (job 8451445, 32 GPUs, closure a7aac822) was cancelled at 00:09 PT, at step 528 of 1,133, on cot_faithfulness's priority request (the account was at its rank line). It resumes from its step-400 K200 checkpoint next night: 733 steps, about 3.2 h on 32 GPUs.
+- Distillation was cut to 4 GPUs at 00:09 (DISTILL_NIGHT_SHARE 4). Two cascade pairs, 8449836 and 8449837, end about 00:48; the seven other cascade jobs were cancelled and ledgered.
 - Cascade round 1 (18 GPUs) drains by 00:48.
-- At 06:15, day_switch.sh sets the share to 4 and the eval cap to 4. GX gets scored first.
+- At 06:15, day_switch.sh sets the share to 4 and the eval cap to 4. GX won't publish, because it was cancelled, so there is no GX readout this morning.
 
 ## 5. Ready and waiting
 - **A1 s17 resume** is pre-staged (8449655 on 841bcb7a). Its action sits in `/scratch/jjyeung/night_20261029_prep/withdrawn/`.
@@ -74,9 +75,9 @@ The user's /goal is 70 on VSI-500 with traces, beating the matched direct-answer
 - **Subagents not resumed for hand-off:** their transcripts are 230k–360k tokens, and resuming them caused the 42.7 MB/s IO spike. Their state is in the LANE_STATUS files named above.
 
 ## 8. First actions for the next orchestrator
-1. By 06:30 PT, confirm GX ended and its evals start on 4 GPUs, each checked every minute for its first 15 minutes. If the morning-eval lane died, spawn its successor.
+1. GX was cancelled, so the morning-eval lane will find nothing to score. If it is still alive, let it report and stop.
 2. Read the cascade night-3 summary and the GX readout. Keep GX vs A1@500 labelled as unmatched.
-3. Before 21:30 PT Thursday, teach `r1night_next.py` the per-arm closures (841bcb7a, a7aac822) and the RG2 arms, or launch by hand. Order: A1 resume, then RG2_A_W32_S17, then RG2_X_W32_S17. Every launch gets per-minute checks for its first 10–15 minutes.
+3. Before 21:30 PT Thursday, teach `r1night_next.py` the per-arm closures (841bcb7a, a7aac822) and the RG2 arms, or launch by hand. Order: A1 resume (2.6 h) and the GX resume from step 400 (3.2 h) in parallel if 64 GPUs are free, then RG2_A_W32_S17, then RG2_X_W32_S17. cot_faithfulness can cut the night share at any time. Every launch gets per-minute checks for its first 10–15 minutes.
 4. Watch GEMINI_HEARTBEAT; the 580k kept mark is next.
 5. The goal compares traces against direct answers. GX has no direct-answer-plus-geometry control, so a GX gain shows only that 3D input helps. Plan an X arm with geometry before claiming that traces gain from it.
 
