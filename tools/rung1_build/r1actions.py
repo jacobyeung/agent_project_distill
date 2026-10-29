@@ -4,6 +4,10 @@
   r1actions.py closure CLOSURE_TAR CLOSURE_SHA -> upload + install the job closure at ap/59845bf9/j/<sha[:12]>
   r1actions.py spec SPEC_JSON               -> upload the spec to ap/59845bf9/s/<sha256>.json    (prints the sha)
   r1actions.py sbatch CLOSURE_SHA SPEC_SHA CPUS MEM TIME [DEPENDENCY] -> one CPU job, name a15_cot_ap<spec sha[:8]>
+  r1actions.py sbatchpre CLOSURE_SHA SPEC_SHA CPUS MEM TIME -> one CPU startup pre-stage job (spec phase "prestage")
+  r1actions.py sbatchmn CLOSURE_SHA SPEC_SHA NODES TIME [DEPENDENCY|-]   -> one multi-node GPU job; DEPENDENCY
+                                            "afterok-name:a15_cot_ap<8hex>" chains it (afterok) on a job queued by name
+                                            (r1aws resolves the id when it submits; GPUs are requested only after it succeeds)
   r1actions.py sh NAME SCRIPT_FILE          -> a plain bash action
 Action files go to actions/pending/ with names that keep upload -> install -> spec -> sbatch order within one poll.
 """
@@ -11,6 +15,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import sys
 import time
 
@@ -81,7 +86,7 @@ def main(argv):
         write("e", "spec_" + digest[:8], {"kind": "upload", "src": str(Path(argv[1]).resolve()),
                                           "dest": "%s/s/%s.json" % (BASE, digest), "sha256": digest})
         print(digest)
-    elif kind == "sbatch":
+    elif kind in ("sbatch", "sbatchpre"):
         closure, spec, cpus, mem, limit = argv[1:6]
         name = "a15_cot_ap" + spec[:8]
         entry = "%s/j/%s/entry.sh" % (BASE, closure[:12])
@@ -93,11 +98,13 @@ def main(argv):
         args += [entry, closure, spec]
         pre = (f"test \"$(sha256sum < {BASE}/j/{closure[:12]}/JOBS.json | cut -d' ' -f1)\" = {closure} && "
                f"test \"$(sha256sum < {BASE}/s/{spec}.json | cut -d' ' -f1)\" = {spec}")
+        phase, purpose = (("prestage", "CPU startup pre-stage (verify, frames, rows) before a chained GPU job")
+                          if kind == "sbatchpre" else ("prep", "CPU preparation of rung-1 frozen sets"))
         write("f", "sbatch_" + spec[:8], {"kind": "sbatch", "name": name, "gpus": 0, "argv": args,
                                           "chdir": "%s/l" % BASE, "pre": pre,
-                                          "run_spec": {"lane": "rung1_build_20261027", "phase": "prep",
+                                          "run_spec": {"lane": "rung1_build_20261027", "phase": phase,
                                                        "closure": closure, "spec_sha256": spec,
-                                                       "purpose": "CPU preparation of rung-1 frozen sets"}})
+                                                       "purpose": purpose}})
         print(name)
     elif kind == "sbatchmn":
         # Multi-node GPU job on pool0: one batch task per node; entry.sh launches one srun task per node with 8 GPUs.
@@ -110,7 +117,15 @@ def main(argv):
                 "--gres=gpu:%d" % GPN, "--cpus-per-task=%s" % os.environ.get("R1_CPUS", "64"),
                 "--mem=%s" % os.environ.get("R1_MEM", "900G"), "--time=%s" % limit, "--no-requeue",
                 "--export=ALL", "--chdir=%s/l" % BASE, "--job-name=" + name, "--output=%s/l/%s_%%j.log" % (BASE, name)]
-        if len(argv) > 5 and argv[5] != "-":
+        after = None
+        if len(argv) > 5 and argv[5].startswith("afterok-name:"):
+            after = argv[5].partition(":")[2]
+            if not re.fullmatch(r"a15_cot_ap[0-9a-f]{8}", after):
+                raise SystemExit("REFUSED: afterok-name needs an a15_cot_ap<8 hex> job name")
+            # r1aws.py replaces the placeholder with the queued job's id. afterok: GPUs are requested only once the
+            # cache is ready; a failed pre-stage cancels this job instead of letting it idle through a slow startup.
+            args += ["--dependency=afterok:@JOBID@", "--kill-on-invalid-dep=yes"]
+        elif len(argv) > 5 and argv[5] != "-":
             args.append("--dependency=" + argv[5])
         for flag, variable in (("--deadline", "R1_DEADLINE"), ("--time-min", "R1_TIME_MIN")):
             if os.environ.get(variable):  # a chained arm that cannot finish by the deadline is removed, never truncated
@@ -118,11 +133,15 @@ def main(argv):
         args += [entry, closure, spec]
         pre = (f"test \"$(sha256sum < {BASE}/j/{closure[:12]}/JOBS.json | cut -d' ' -f1)\" = {closure} && "
                f"test \"$(sha256sum < {BASE}/s/{spec}.json | cut -d' ' -f1)\" = {spec}")
-        write("g", "sbatchmn_" + spec[:8], {"kind": "sbatch", "name": name, "gpus": GPN * int(nodes), "argv": args,
-                                            "chdir": "%s/l" % BASE, "pre": pre,
-                                            "run_spec": {"lane": "rung1_build_20261027", "phase": "mntrain",
-                                                         "closure": closure, "spec_sha256": spec, "nodes": int(nodes),
-                                                         "purpose": "multi-node startup and s/step test"}})
+        action = {"kind": "sbatch", "name": name, "gpus": GPN * int(nodes), "argv": args,
+                  "chdir": "%s/l" % BASE, "pre": pre,
+                  "run_spec": {"lane": "rung1_build_20261027", "phase": "mntrain",
+                               "closure": closure, "spec_sha256": spec, "nodes": int(nodes),
+                               "purpose": "multi-node startup and s/step test"}}
+        if after:
+            action["after_name"] = after
+            action["run_spec"]["after"] = after
+        write("g", "sbatchmn_" + spec[:8], action)
         print(name)
     elif kind == "sh":
         write("a", argv[1], {"kind": "sh", "script": Path(argv[2]).read_text()})

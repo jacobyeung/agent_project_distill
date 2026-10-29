@@ -44,7 +44,9 @@ def at(hhmm):
     return moment + timedelta(days=1) if hour < 12 else moment
 TRAINER = {"trainer_commit": "299b0c526e3663ff2a42a5c3a9113e9e0b8e4164",
            "runtime_record": "/opt/aws_incoming/01eefae1f0ae55ff3e17dc34bb0664417f27e269e8192ce554e9d2afd01a42ac.json"}
-CLOSURE = "45279da0018c72cf5431905b19ba5f10ff7a1a1cb10df4288cf05869c8e2b8b1"
+CLOSURE = os.environ.get("R1_CLOSURE") or "45279da0018c72cf5431905b19ba5f10ff7a1a1cb10df4288cf05869c8e2b8b1"
+# R1_PRESTAGE=1 (with a closure that has the prestage phase) chains each GPU arm on a CPU startup pre-stage job.
+PRESTAGE = os.environ.get("R1_PRESTAGE") == "1"
 BASE = "/lustre/fsw/portfolios/av/users/jyeung/ap/59845bf9"
 RUNS = BASE + "/d/orch/runs/aws128p_20261025"
 STEPS = {"RG1_A1_S17": 1133, "RG1_A2_S17": 1133, "RG1_A3_S17": 1133, "RG1_C_S17": 115, "RG1_S_S17": 188,
@@ -230,11 +232,22 @@ def queue_submission(arm, minutes, state, run=None):
                R1_TIME_MIN=f"{floor_min // 60}:{floor_min % 60:02d}:00")
     if arm in SINGLE:
         env.update(R1_GPN=str(SINGLE[arm]), R1_CPUS="32", R1_MEM="256G")
+    dependency, prestage = "-", None
+    if PRESTAGE and arm not in SINGLE:
+        # CPU startup pre-stage first (verify, frames, rendered rows; a no-op when the arm's cache exists); the GPU job
+        # is chained on it with afterok (a failed pre-stage cancels it), so no GPU is requested before the cache is ready.
+        pre = dict(trainer, phase="prestage", prestage=[arm], purpose=f"startup pre-stage of {arm} for run {run}")
+        pre_path = NIGHT / f"SPEC_PRE_{run}.json"
+        pre_path.write_text(json.dumps(pre, indent=1, sort_keys=True) + "\n")
+        pre_digest = subprocess.check_output([PY, "-B", str(TOOLS / "r1actions.py"), "spec", str(pre_path)], text=True).strip()
+        prestage = subprocess.check_output([PY, "-B", str(TOOLS / "r1actions.py"), "sbatchpre", CLOSURE, pre_digest,
+                                            "32", "256G", "1:30:00"], text=True).strip()
+        dependency = "afterok-name:" + prestage
     name = subprocess.check_output([PY, "-B", str(TOOLS / "r1actions.py"), "sbatchmn", CLOSURE, digest,
-                                    str(1 if arm in SINGLE else NODES.get(arm, 4)), limit, "-"],
+                                    str(1 if arm in SINGLE else NODES.get(arm, 4)), limit, dependency],
                                    text=True, env=env).strip()
     return {"arm": arm, "run": run, "name": name, "spec_sha256": digest, "limit": limit, "job": None,
-            "queued": now().isoformat(timespec="seconds"), "estimate_min": round(minutes)}
+            "queued": now().isoformat(timespec="seconds"), "estimate_min": round(minutes), "prestage": prestage}
 
 
 def ledger_job(name):

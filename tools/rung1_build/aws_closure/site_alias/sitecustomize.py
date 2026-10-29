@@ -141,6 +141,24 @@ def freeze_once(function):
     return wrapper
 
 
+# Startup pre-stage (prestage.py, prestage_hooks.py): when the job exported a pre-stage cache (R1_PRESTAGE_DIR and
+# R1_PRESTAGE_RECEIPT_SHA256) or a memory-probe registry (R1_PROBE_REGISTRY), these trainer modules get the startup
+# hooks of prestage_hooks.py after they execute; a module whose source bytes are not pinned there is left unchanged.
+PRESTAGE_TARGETS = ("student_pilot.common", "student_pilot.ddp_admission", "student_pilot.provisional_data",
+                    "student_pilot.storage", GC_TARGET)
+
+
+def prestage_wanted():
+    return bool(os.environ.get("R1_PRESTAGE_DIR") or os.environ.get("R1_PROBE_REGISTRY"))
+
+
+def prestage_patch(module, path):
+    if prestage_wanted():
+        import prestage_hooks
+        with open(path, "rb") as stream:
+            prestage_hooks.patch(module, stream.read())
+
+
 class FreezeLoader(importlib.machinery.SourceFileLoader):
     def exec_module(self, module):
         super().exec_module(module)
@@ -150,11 +168,18 @@ class FreezeLoader(importlib.machinery.SourceFileLoader):
             if not callable(getattr(module, "prefetched_batches", None)):
                 raise ImportError("The trainer has no prefetched_batches function to freeze the startup heap before")
             module.prefetched_batches = freeze_once(module.prefetched_batches)
+        prestage_patch(module, self.path)
+
+
+class PrestageLoader(importlib.machinery.SourceFileLoader):
+    def exec_module(self, module):
+        super().exec_module(module)
+        prestage_patch(module, self.path)
 
 
 class AliasFinder(importlib.abc.MetaPathFinder):
     def find_spec(self, fullname, path, target=None):
-        if fullname not in (TARGET, GC_TARGET):
+        if fullname not in (TARGET, GC_TARGET) and not (fullname in PRESTAGE_TARGETS and prestage_wanted()):
             return None
         for finder in sys.meta_path:
             if finder is self or not hasattr(finder, "find_spec"):
@@ -166,7 +191,8 @@ class AliasFinder(importlib.abc.MetaPathFinder):
             return None
         if not spec.origin or not spec.origin.endswith(".py"):
             raise ImportError("The frozen trainer module has no source origin")
-        loader = (AliasLoader if fullname == TARGET else FreezeLoader)(fullname, spec.origin)
+        loader = (AliasLoader if fullname == TARGET else FreezeLoader if fullname == GC_TARGET else PrestageLoader)(
+            fullname, spec.origin)
         return importlib.util.spec_from_file_location(fullname, spec.origin, loader=loader)
 
 

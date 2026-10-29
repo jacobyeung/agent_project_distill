@@ -381,12 +381,30 @@ def build(actions, state, jobs):
             planned_names.add(name)
             guard = capacity_guard(name, gpus, planned_names, state) if gpus else "guard_ok=1\n"
             reconcile = remote_python(RECONCILE_CODE, [name, str(int(name in state.get('uncertain', []) or bool(jobs.get(name))))])
+            command, depend = shlex.join(argv), "dep_arg=none\n"
+            after = act.get("after_name")
+            if after:
+                # Chained (afterok) on a job queued by name (the CPU pre-stage): its id from squeue while it is queued or
+                # running; after it COMPLETED the GPU job is submitted unchained; after a failed pre-stage the GPU action is
+                # refused like an sbatch error (archived as failed), so no GPU is requested for a slow startup.
+                token = "--dependency=afterok:@JOBID@"
+                if not re.fullmatch(r"a15_cot_ap[0-9a-f]{8}", after) or argv.count(token) != 1:
+                    raise SystemExit(f"REFUSED: {name}: after_name needs one {token} argument and an opaque name")
+                command = command.replace(token, '"$dep_arg"')
+                depend = (f"dep_arg=''; dep=$({CLEAN_ENV} squeue -h -u jyeung -n {after} -o %i 2>/dev/null | head -n1)\n"
+                          f"if [ -n \"$dep\" ]; then dep_arg=\"--dependency=afterok:$dep\"; else "
+                          f"st=$({CLEAN_ENV} sacct -n -X -P --name {after} -S now-3days -o JobID,State 2>/dev/null | tail -n1); "
+                          f"case \"${{st#*|}}\" in COMPLETED) dep_arg=--begin=now;; "
+                          f"FAILED*|CANCELLED*|TIMEOUT*|OUT_OF_MEMORY*|NODE_FAIL*|PREEMPTED*|DEADLINE*|BOOT_FAIL*) dep_arg=failed;; esac; fi\n"
+                          f"echo \"DEPENDENCY {name} {after} ${{dep:-none}} ${{st:-}}\"\n")
             parts.append((f"echo '=== ACTION {aid} BEGIN'\nrc=1\n{reconcile}reconciled=$?\n"
                           f"if [ \"$reconciled\" = 10 ]; then rc=0;\n"
-                          f"elif [ \"$reconciled\" = 0 ]; then\n{guard}"
+                          f"elif [ \"$reconciled\" = 0 ]; then\n{guard}{depend}"
                           f"if [ \"$guard_ok\" = 1 ]; then\n"
                           f"  if ! ( {pre} ); then echo 'NOT_SUBMITTED {name} precheck_failed';\n"
-                          f"  else r=$(cd {shlex.quote(act['chdir'])} && {CLEAN_ENV} {shlex.join(argv)} 2>&1); sr=$?; "
+                          f"  elif [ -z \"$dep_arg\" ]; then echo 'NOT_SUBMITTED {name} dependency_not_ready';\n"
+                          f"  elif [ \"$dep_arg\" = failed ]; then echo \"SBATCH_REPLY {name} sbatch: error: chained pre-stage {after} ended ${{st#*|}}\";\n"
+                          f"  else r=$(cd {shlex.quote(act['chdir'])} && {CLEAN_ENV} {command} 2>&1); sr=$?; "
                           f"echo \"SBATCH_REPLY {name} $r\"; "
                           f"if [ \"$sr\" = 0 ] && [[ \"$r\" =~ ^[0-9]+(\\;[^[:space:]]+)?$ ]]; then rc=0; fi; fi\n"
                           f"fi\nfi\necho \"=== ACTION {aid} END rc=$rc\"\n").encode())

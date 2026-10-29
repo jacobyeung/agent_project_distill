@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Opaque code-aws CPU job entry (lane rung1_build; adapted from the awstrain lane entry). Verifies the pinned job closure
-# and job spec, installs the spec's frame plans on the host, then runs prep_inner.sh inside the trainer image.
+# Opaque code-aws job entry (lane rung1_build; adapted from the awstrain lane entry). Verifies the pinned job closure
+# and job spec, then runs the spec's phase: prep (frame plans on the host, then prep_inner.sh in the trainer image),
+# prestage (prestage_inner.sh, CPU), mntrain (mn_train_inner.sh per node), fetch or efaprobe.
 # Slurm sees only the opaque name a15_cot_ap<8 hex>, this script's opaque path and two hex arguments.
 # usage: entry.sh CLOSURE_SHA256 SPEC_SHA256
 set -euo pipefail
@@ -153,6 +154,10 @@ case "$phase" in
     prep)
         $host_python -I -B "$jobs/frames_install.py" "$spec"
         container prep_inner.sh  # one container: prep_inner.sh runs venv_build.sh first
+        ;;
+    prestage)
+        # CPU startup pre-stage of the frozen preparations a chained GPU job will train (prestage.py build).
+        container prestage_inner.sh
         ;;
     *)
         exit 2

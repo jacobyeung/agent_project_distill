@@ -57,6 +57,23 @@ mkdir -p "$attempt" "$SCRATCH_ROOT" "$AGENT_COORD_DIR"
 step() { printf '%s | node %s/%s %s\n' "$(date -u +%FT%TZ)" "$NODE_RANK" "$NNODES" "$*"; }
 step "world $world: $NNODES nodes x $NPROC_PER_NODE ranks, master $MASTER_ADDR:$MASTER_PORT"
 cd "$TRAINER"
+# Startup pre-stage (prestage.py): when the chained CPU job built this preparation's cache, attach it. A background
+# process per node extracts the frames to node-local storage and reads the base weights (on node 0 also the manifest
+# and rendered input rows) into the page cache while the leases and ranks admit; the trainer's startup reads then come
+# from the cache (site_alias/prestage_hooks.py). Without a cache the trainer stages as before. Measured memory probes
+# are kept in the registry and reused for the same memory configuration.
+export R1_PROBE_REGISTRY="$base/prestage/probes"
+prestage_dir="$(python -B "$ANYHOST_JOBS/prestage.py" key "$frozen")" || prestage_dir=""
+if [[ -n "$prestage_dir" && -f "$prestage_dir/RECEIPT.json" ]]; then
+    export R1_PRESTAGE_DIR="$prestage_dir" R1_PRESTAGE_LOCAL="$SCRATCH_ROOT/.r1prestage/$SLURM_JOB_ID"
+    R1_PRESTAGE_RECEIPT_SHA256="$(sha256sum < "$prestage_dir/RECEIPT.json" | cut -d' ' -f1)"
+    export R1_PRESTAGE_RECEIPT_SHA256
+    python -B "$ANYHOST_JOBS/prestage.py" attach "$R1_PRESTAGE_DIR" "$R1_PRESTAGE_LOCAL" "$(( NODE_RANK == 0 ))" \
+        > "$attempt/prestage_attach_$NODE_RANK.log" 2>&1 &
+    step "pre-stage cache $R1_PRESTAGE_DIR attached (receipt $R1_PRESTAGE_RECEIPT_SHA256)"
+else
+    step "no pre-stage cache at $prestage_dir; the trainer stages its inputs at startup"
+fi
 # Rank admission requires lease evidence younger than 300 s. Containers start minutes apart across 4 nodes and cold
 # imports from the shared venv are slow, so warm the imports first, then create the leases only once every node is
 # ready (a barrier on the shared attempt directory), keeping lease creation close to rank admission.
