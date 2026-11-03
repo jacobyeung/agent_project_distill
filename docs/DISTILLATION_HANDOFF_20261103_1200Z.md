@@ -55,6 +55,11 @@ Orchestrator agent-project-distill-0e (Claude session 9dfa7b58) on trinity-0-13.
 - Caps: rel_direction ≤50K; abs_distance ≤35K; counting ≤40K; size ≤35K; rel_distance, appearance order, room size and route all; non-benchmark ≤15%.
 - Estimate: ~2,500-3,000 steps, ~520-700 GPU-h on 32 GPUs, milestones every 100 steps.
 - Status: CPU prep in progress; launch after the cot-faithfulness window (11-04 ~11:00 PT) once the pre-launch check is shown.
+- cp4_build2 finished (04:15 PT). State: /scratch/jjyeung/cp4_build2/STATUS.md and HANDOFF_2000.md. SUBMIT script: L/fullft_review/SUBMIT_CP4T.sh.
+  - Trainer b2c2f8a077c5 is installed on AWS; the 2-frame image-clip commit 3b55cfbd is NOT installed yet.
+  - The rehearsal arm T4B2C7E1 passed admission.
+  - A successor (cp4_build3) builds the capped final arm after 20:00 PT.
+- Evaluator: commit 174a50d5 is BLOCKED by review. Its VSTI v3 media-attestation port skips the frame-receipt and media-pin checks. A Codex fix is running (brief and result in /scratch/jjyeung/cp4_build2/codex/EVAL_FIX_*); it needs one independent review before use. The retry, the fps override and VSI-500 scoring passed review.
 
 ## 4. Lanes and agents
 | Owner | What | Next |
