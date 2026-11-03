@@ -54,7 +54,7 @@ Orchestrator agent-project-distill-0e (Claude session 9dfa7b58) on trinity-0-13.
   - pseudo-GT left/right single images 20,469 (2-frame clips, a trainer change in progress).
 - Caps: rel_direction ≤50K; abs_distance ≤35K; counting ≤40K; size ≤35K; rel_distance, appearance order, room size and route all; non-benchmark ≤15%.
 - Estimate: ~2,500-3,000 steps, ~520-700 GPU-h on 32 GPUs, milestones every 100 steps.
-- Status: CPU prep in progress; launch after the cot-faithfulness window (11-04 ~11:00 PT) once the pre-launch check is shown.
+- Status: CPU prep in progress. **USER pre-approved the CP4T launch (11-03 ~04:15 PT: "You can launch the CP4T training. Don't wait for me").** Launch on 32 GPUs as soon as the final arm passes its dry run AND cot-faithfulness releases GPUs (a release post, or 11-04 11:00 PT). Post the filled pre-launch check in the chat at launch.
 - cp4_build2 finished (04:15 PT). State: /scratch/jjyeung/cp4_build2/STATUS.md and HANDOFF_2000.md. SUBMIT script: L/fullft_review/SUBMIT_CP4T.sh.
   - Trainer b2c2f8a077c5 is installed on AWS; the 2-frame image-clip commit 3b55cfbd is NOT installed yet.
   - The rehearsal arm T4B2C7E1 passed admission.
