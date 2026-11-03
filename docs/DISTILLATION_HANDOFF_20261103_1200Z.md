@@ -75,6 +75,12 @@ Orchestrator agent-project-distill-0e (Claude session 9dfa7b58) on trinity-0-13.
 - The AWS inode cleanup is handled by successor aws_inodes2, a Claude subagent of session 0e. If that session ends, continue from /scratch/jjyeung/aws_inodes/INVENTORY.md and L/aws_inodes_20261103/.
 - The evaluator fix is being finished by a Claude subagent; its result and review land in /scratch/jjyeung/cp4_build2/codex/EVAL_FIX_RESULT.md.
 
+## 5b. Open data issues for the next round
+- **ADT frame alignment.** The release mp4 frame count does not equal the aria_trajectory row count (e.g. 3,526 mp4 frames at 30 fps vs 2,880 traj rows), so "video frame i = traj row i" is false. The new ADT rows (37,909) are out of CP4T v1 and need a per-sequence timestamp alignment. Also CHECK whether the old ADT rows in FT-A/CPDM's RG2P2 set (RG2DS_T, 51,900 rows, built by adt_20261028 from the 30 fps preview video) had the same misalignment; if so, that is a defect in every model trained on RG2P2.
+- **General-VQA forgetting.** CPDM vs base is -4.6 on MMStar and -7.9 on Video-MME non-capped items (L/fullft_review/GENVQA_CELL.md). Add about 10% general video/image QA replay in CP4T v2.
+- **Pseudo-GT left/right rows** (20,469) need trainer 3b55cfbd (2-frame clips), which forces rebuilding the arms. Next round.
+- **No CPU nodes outside the AWS reservation exist** (cpu-035/038 and cpu-big-044 are not in sinfo).
+
 ## 6. Footguns found tonight
 - Lane reports misquote numbers; read SUMMARY.tsv.
 - A Claude lane can thrash its context and die silently (cp4_build died 20:39 PT).
