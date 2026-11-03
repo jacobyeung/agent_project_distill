@@ -5,9 +5,13 @@ Orchestrator agent-project-distill-0e (Claude session 9dfa7b58) on trinity-0-13.
 ## 0. First actions for the next orchestrator
 1. Adopt the live lanes: `lanemsg adopt distill/evac_finals distill/genvqa`. night1102 ends tonight. cp4_build and cp4t_build are retired.
 2. The Claude subagents of session 0e (cp4_build2, cp4t_build2, pseudogt, aws_inodes) end with that session. Continue their work from their files: `/scratch/jjyeung/cp4_build2/HANDOFF_2000.md` (CP4T build), `/scratch/jjyeung/cp4t_build2/out/` (final rows), `/scratch/jjyeung/pseudogt/PLAN.md`, `/scratch/jjyeung/aws_inodes/INVENTORY.md` with `L/aws_inodes_20261103/`.
-3. Re-create the crons, which die with the session: an hourly heartbeat; 20:05 PT 11-03 (resume CPU prep and the prune after maintenance; check for a cot-faithfulness GPU release); 11-04 11:07 PT (CP4T launch check after the cot window ends).
+3. Re-create the crons, which die with the session: an hourly heartbeat, and the 11-04 11:07 PT CP4T launch check after the cot window ends.
 4. Before any training launch, show the user the pre-launch check (memory `prelaunch-thinking-checklist`).
-5. The 11-03 Slurm migration emptied the AWS queue. At 07:25 PT, squeue showed 0 of our jobs and the partitions showed 0 nodes; the queue had held 7 running CPU jobs, 13 BeginTime jobs for 20:05 PT, and 8663875 on cpu-big-001. After 20:00 PT, check every job in `L/aws_reserve/AWS_JOB_LEDGER.jsonl` against its outputs, and resubmit unfinished ones under new opaque names.
+5. **AWS is down until the user says it is back (USER 11-03 ~14:30 PT; both tunnels died ~13:18 PT).** Take no AWS action until then. Afterwards, in order (memory `aws-down-until-user-says`):
+   1. Run cp4_build4 from `/scratch/jjyeung/cp4_build3/HANDOFF.md`. The 11-03 Slurm migration emptied the queue, which had held 7 running CPU jobs, 13 BeginTime jobs and 8663875. So check every job in `L/aws_reserve/AWS_JOB_LEDGER.jsonl` against its outputs, resubmit the unfinished ones under new opaque names, and run the CP4T CPU prep. Launch CP4T once cot-faithfulness has released.
+   2. Submit the m06 and e7c packs (`/scratch/jjyeung/aws_pull_triage/pack/u_submit.py`, plan in `PULL_PLAN.md` there) ahead of aws_inodes wave 2.
+   3. Submit the ARKit mesh job.
+   - The gcs_stage watcher (tmux `gcsstage` on 0-13) uploads e7a and k06 to GCS by itself when port 42224 returns.
 
 ## 1. Goal and standing rules (user, 11-02/03; details in memory)
 - SOTA spatial VQA with traces, plus a spatial foundation model for VLA distillation. Standing loop: per-category diagnosis, fix data or traces, train, read.
@@ -66,10 +70,13 @@ Orchestrator agent-project-distill-0e (Claude session 9dfa7b58) on trinity-0-13.
 ## 4. Lanes and agents
 | Owner | What | Next |
 |---|---|---|
-| roomsize_scale3 (Argon, finished 09:12 PT) | Hypersim adapter (v3 rows fixed by Claude), ARKit mesh AWS spec | the 20:05 PT cron submits the ARKit job |
-| orchard_qwen3 (Claude Opus subagent of session 0e; replaces Argon orchard_qwen2, stopped 10:30 PT after looping 5 h with no output) | estimated-tool SPLIT validation then production (the collector pool drained 10:25 PT, so the Gemini key is idle); HC v1F m1000 Orchard eval | if session 0e ends, continue from /scratch/jjyeung/orchard_qwen3/HANDOFF.md |
-| evac_finals (Argon, 3-30) | GCS -> Trinity trickle (e6, n3, t1, f20-f23, m05; ETAs in PULLER_STATUS.json); VERIFIED_ON_TRINITY.tsv | keep feeding the prune list |
-| hc_cpdm (Argon; stopped 10:35 PT after 49 compactions with no output since 05:27 PT) | HC-NEW (pose steps from the pose head) on CP4T rows; gates in `L/fullft_review/HCNEW_GATES.md`; state in /scratch/jjyeung/argon_lanes/distill_hc_cpdm/work/ | start a Claude successor after CP4T launches |
+| roomsize_scale3 (Argon, finished) | Hypersim adapter (v3 rows), ARKit mesh AWS spec | submit the ARKit job when AWS is back |
+| orchard_qwen5 (Claude Opus subagent of session 0e) | estimated-tool SPLIT left/right production drain on 0-13 (tmux -L oq3; disk guard at 115 GB). Only LR is admitted; AD, CC, CR, Count and RC failed the E3 gates (`/scratch/jjyeung/orchard_qwen4/HANDOFF.md`) | convert rows, DATA_MAP counts, stop the 0-13 SAM 3 servers |
+| SPLIT-Gemini v2 collector (unattended; tmux -L v3 `sgv2_collector`, evictor and offload loops) | refilled pool of 67,739 questions (~85 h of key; tiers in `bank_v2/data/non_canonical_priority_qids.json`); archive fix references /data2 media in place, CONTRACT 14efdf3e | check it in the heartbeat; `/scratch/jjyeung/sgv2_refill/HANDOFF.md` |
+| procthor_trace (Claude Opus subagent of session 0e) | ProcTHOR/SIMS-V canonical traces: phase 1 traced 5,808 VSI-590K turns, phase 2 adds new questions and renders for room size, counting and appearance order, balanced to VSI-Bench | final rows plus review by 11-05 morning PT, for CP4T v2 |
+| gcs_stage watcher (tmux `gcsstage`, 0-13) | e7a and k06 AWS→GCS upload | fires when the AWS tunnel returns |
+| evac_finals (Argon, 3-30; not running) | the Trinity puller is stopped: everything queued is already in GCS (`/scratch/jjyeung/aws_pull_triage/PULL_PLAN.md`) | re-enable for new packs only |
+| hc_cpdm (Argon; stopped) | HC-NEW on CP4T rows; gates in `L/fullft_review/HCNEW_GATES.md`; state in /scratch/jjyeung/argon_lanes/distill_hc_cpdm/work/. HC v1F m1000 trails CPDM m2800 (VSI-500 57.72 vs 61.42, VSTI-450 64.52 vs 70.41; `/scratch/jjyeung/orchard_qwen3/hc_eval/RESULT.md`) | decide on a successor after CP4T launches, given HC v1F's deficit |
 | genvqa | general-VQA forgetting cells (method models only) | CPDM, then CP4T |
 
 ## 5. Open user questions
@@ -82,7 +89,9 @@ Orchestrator agent-project-distill-0e (Claude session 9dfa7b58) on trinity-0-13.
 - **General-VQA forgetting.** CPDM vs base is -4.6 on MMStar and -7.9 on Video-MME non-capped items (L/fullft_review/GENVQA_CELL.md). Add about 10% general video/image QA replay in CP4T v2.
 - **Hypersim rows for CP4T v2.** 37,721 strict single-image rows are ready, in `/scratch/jjyeung/argon_lanes/distill_roomsize_scale3/work/HYPERSIM_ROWS_v3.jsonl.gz`. They have floor-plane directions (VSI-590K's released Hypersim direction labels use the image plane), real-scan prior band [p1/1.5, 1.5×p99], and pass the Claude review fixes D1–D5. The converter must write `media_path` twice per row for trainer 3b55cfbd. CP4T v1 holds no Hypersim rows; its direction rows were audited as floor-plane (`/scratch/jjyeung/cp4_build3/DIRECTION_PLANE_AUDIT.md`).
 - **ARKit mesh rows for CP4T v2.** The roomsize_scale3 spec (`work/ARKIT_AWS_JOB_SPEC.md`, `work/ARKIT_LAUNCH_AFTER_MAINT.md`) fetches 4,107 ARKit meshes on AWS cpu-big and generates ~150K rows, including room size. The 20:05 PT cron submits it after maintenance.
-- **SPLIT-Gemini collector disk on 0-13.** The staging floor and evictor target are read from override files (`distill_split_gemini_v2/SCRATCH_FLOOR_GB` = 125, `distill_split_gemini_fix/EVICT_TARGET_GB` = 126). The runners' audit blob store (`argon_work/split_gemini_pilot/archive_blobs`) grows 2–6 GB/h and nothing frees it; deleting it waits on a saved user question.
+- **SPLIT-Gemini collector disk on 0-13.** The staging floor and evictor target are read from override files (`distill_split_gemini_v2/SCRATCH_FLOOR_GB` = 125, `distill_split_gemini_fix/EVICT_TARGET_GB` = 126). The audit blob store (`argon_work/split_gemini_pilot/archive_blobs`) now grows more slowly, because /data2 media is referenced in place and blobs are written sparse. Two cleanup commands wait for the user to run them: `dedup_retired_staging.py --apply` (26 GB of approved duplicates) and `apply_unreferenced_blobs.py --apply` (71 GB, needs approval), both in `distill_split_gemini_fix/` under Python 3.12 (`/scratch/jjyeung/envs/argon_proxy_v1/bin/python3`). On trinity-3-3, `bash /scratch/jjyeung/free_space/FREE_3_3.sh` (approved, 112 GB) also waits for the user.
+- **ProcTHOR rows for CP4T v2.** Lane procthor_trace (`/scratch/jjyeung/procthor_trace/`): exact simulator GT, no AWS, balanced to VSI-Bench.
+- **Estimated-tool LR rows** (`/scratch/jjyeung/orchard_qwen3/prod/lr_v*/rows_e2v1_*.jsonl.gz`): admitted single-image left/right traces; DATA_MAP gets the final counts.
 - **Pseudo-GT left/right rows** (20,469) need trainer 3b55cfbd (2-frame clips), which forces rebuilding the arms. Next round.
 - **No CPU nodes outside the AWS reservation exist** (cpu-035/038 and cpu-big-044 are not in sinfo).
 
