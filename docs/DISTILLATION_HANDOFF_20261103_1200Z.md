@@ -3,7 +3,7 @@
 Orchestrator agent-project-distill-0e (Claude session 9dfa7b58) on trinity-0-13. L = `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/lanes`. Data map: `/data2/jjyeung/agent_project_data/DATA_MAP.md`. Memory index: `~/.claude/projects/-home-jjyeung-agent-project-distill/memory/MEMORY.md` (read the READ FIRST entries).
 
 ## 0. First actions for the next orchestrator
-1. Adopt the live lanes: `lanemsg adopt distill/roomsize_scale3 distill/orchard_qwen2 distill/hc_cpdm distill/evac_finals distill/genvqa`. night1102 ends tonight. cp4_build and cp4t_build are retired.
+1. Adopt the live lanes: `lanemsg adopt distill/evac_finals distill/genvqa`. night1102 ends tonight. cp4_build and cp4t_build are retired.
 2. The Claude subagents of session 0e (cp4_build2, cp4t_build2, pseudogt, aws_inodes) end with that session. Continue their work from their files: `/scratch/jjyeung/cp4_build2/HANDOFF_2000.md` (CP4T build), `/scratch/jjyeung/cp4t_build2/out/` (final rows), `/scratch/jjyeung/pseudogt/PLAN.md`, `/scratch/jjyeung/aws_inodes/INVENTORY.md` with `L/aws_inodes_20261103/`.
 3. Re-create the crons, which die with the session: an hourly heartbeat; 20:05 PT 11-03 (resume CPU prep and the prune after maintenance; check for a cot-faithfulness GPU release); 11-04 11:07 PT (CP4T launch check after the cot window ends).
 4. Before any training launch, show the user the pre-launch check (memory `prelaunch-thinking-checklist`).
@@ -66,10 +66,10 @@ Orchestrator agent-project-distill-0e (Claude session 9dfa7b58) on trinity-0-13.
 ## 4. Lanes and agents
 | Owner | What | Next |
 |---|---|---|
-| roomsize_scale3 (Argon, 0-13; successor of roomsize_scale2, which timed out 05:20 PT) | room size, counting, size; Hypersim adapter | Hypersim rows; ARKit meshes on AWS for more room size |
-| orchard_qwen2 (Argon, 0-13; successor of orchard_qwen, which ended 05:01 PT with no report) | Orchard eval pool; SPLIT-Gemini collector watcher (uncovered items first); estimated-tool SPLIT validation on no-GT images | validation table, then production |
+| roomsize_scale3 (Argon, finished 09:12 PT) | Hypersim adapter (v3 rows fixed by Claude), ARKit mesh AWS spec | the 20:05 PT cron submits the ARKit job |
+| orchard_qwen3 (Claude Opus subagent of session 0e; replaces Argon orchard_qwen2, stopped 10:30 PT after looping 5 h with no output) | estimated-tool SPLIT validation then production (the collector pool drained 10:25 PT, so the Gemini key is idle); HC v1F m1000 Orchard eval | if session 0e ends, continue from /scratch/jjyeung/orchard_qwen3/HANDOFF.md |
 | evac_finals (Argon, 3-30) | GCS -> Trinity trickle (e6, n3, t1, f20-f23, m05; ETAs in PULLER_STATUS.json); VERIFIED_ON_TRINITY.tsv | keep feeding the prune list |
-| hc_cpdm (Argon, 0-13) | HC-NEW (pose steps from the pose head) on CP4T rows; gates in `L/fullft_review/HCNEW_GATES.md` | build after CP4T binds |
+| hc_cpdm (Argon; stopped 10:35 PT after 49 compactions with no output since 05:27 PT) | HC-NEW (pose steps from the pose head) on CP4T rows; gates in `L/fullft_review/HCNEW_GATES.md`; state in /scratch/jjyeung/argon_lanes/distill_hc_cpdm/work/ | start a Claude successor after CP4T launches |
 | genvqa | general-VQA forgetting cells (method models only) | CPDM, then CP4T |
 
 ## 5. Open user questions
