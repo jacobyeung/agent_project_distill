@@ -71,7 +71,9 @@ Orchestrator agent-project-distill-0e (Claude session 9dfa7b58) on trinity-0-13.
 | genvqa | general-VQA forgetting cells (method models only) | CPDM, then CP4T |
 
 ## 5. Open user questions
-- Main's AWS trees (4.1M files) for the inode cut: pack or remove, or wait for main? Default: wait. Proposal: `INBOX_TO_MAIN_ORCH_20261103T1105Z_inodes.md`.
+- None. USER 11-03: the main project is done and its orchestrator is gone, so distillation is the only orchestrator and manages main's leftover AWS trees, under the same safety rules.
+- The AWS inode cleanup is handled by successor aws_inodes2, a Claude subagent of session 0e. If that session ends, continue from /scratch/jjyeung/aws_inodes/INVENTORY.md and L/aws_inodes_20261103/.
+- The evaluator fix is being finished by a Claude subagent; its result and review land in /scratch/jjyeung/cp4_build2/codex/EVAL_FIX_RESULT.md.
 
 ## 6. Footguns found tonight
 - Lane reports misquote numbers; read SUMMARY.tsv.
