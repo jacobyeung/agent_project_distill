@@ -55,6 +55,7 @@ Orchestrator agent-project-distill-0e (Claude session 9dfa7b58) on trinity-0-13.
 - Caps: rel_direction ≤50K; abs_distance ≤35K; counting ≤40K; size ≤35K; rel_distance, appearance order, room size and route all; non-benchmark ≤15%.
 - Estimate: ~2,500-3,000 steps, ~520-700 GPU-h on 32 GPUs, milestones every 100 steps.
 - Status: CPU prep in progress. **USER pre-approved the CP4T launch (11-03 ~04:15 PT: "You can launch the CP4T training. Don't wait for me").** Launch on 32 GPUs as soon as the final arm passes its dry run AND cot-faithfulness releases GPUs (a release post, or 11-04 11:00 PT). Post the filled pre-launch check in the chat at launch.
+- **CURRENT: /scratch/jjyeung/cp4_build3/HANDOFF.md** (cp4_build3, 05:00 PT) supersedes cp4_build2's. The launch arm is T4B2C7N1 = F1 + G2 + F4 + F5 + R3 (spec 4496c028, run r1n1_b2c2f8a0, caps_n1.json); submit with /scratch/jjyeung/cp4_build3/SUBMIT_CP4T.sh. Mix: about 365K question rows + about 346K head-only rows ≈ 2,780 steps, ≈ 580-640 GPU-h on 32 GPUs. ADT and pgt are out of this launch. Steps from 20:00 PT are in HANDOFF.md §successor steps.
 - cp4_build2 finished (04:15 PT). State: /scratch/jjyeung/cp4_build2/STATUS.md and HANDOFF_2000.md. SUBMIT script: L/fullft_review/SUBMIT_CP4T.sh.
   - Trainer b2c2f8a077c5 is installed on AWS; the 2-frame image-clip commit 3b55cfbd is NOT installed yet.
   - The rehearsal arm T4B2C7E1 passed admission.
