@@ -7,6 +7,7 @@ Orchestrator agent-project-distill-0e (Claude session 9dfa7b58) on trinity-0-13.
 2. The Claude subagents of session 0e (cp4_build2, cp4t_build2, pseudogt, aws_inodes) end with that session. Continue their work from their files: `/scratch/jjyeung/cp4_build2/HANDOFF_2000.md` (CP4T build), `/scratch/jjyeung/cp4t_build2/out/` (final rows), `/scratch/jjyeung/pseudogt/PLAN.md`, `/scratch/jjyeung/aws_inodes/INVENTORY.md` with `L/aws_inodes_20261103/`.
 3. Re-create the crons, which die with the session: an hourly heartbeat; 20:05 PT 11-03 (resume CPU prep and the prune after maintenance; check for a cot-faithfulness GPU release); 11-04 11:07 PT (CP4T launch check after the cot window ends).
 4. Before any training launch, show the user the pre-launch check (memory `prelaunch-thinking-checklist`).
+5. The 11-03 Slurm migration emptied the AWS queue. At 07:25 PT, squeue showed 0 of our jobs and the partitions showed 0 nodes; the queue had held 7 running CPU jobs, 13 BeginTime jobs for 20:05 PT, and 8663875 on cpu-big-001. After 20:00 PT, check every job in `L/aws_reserve/AWS_JOB_LEDGER.jsonl` against its outputs, and resubmit unfinished ones under new opaque names.
 
 ## 1. Goal and standing rules (user, 11-02/03; details in memory)
 - SOTA spatial VQA with traces, plus a spatial foundation model for VLA distillation. Standing loop: per-category diagnosis, fix data or traces, train, read.
