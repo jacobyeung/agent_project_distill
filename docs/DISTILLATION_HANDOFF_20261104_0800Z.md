@@ -43,3 +43,4 @@ Orchestrator 0e. This file replaces DISTILLATION_HANDOFF_20261103_1200Z.md as th
 - Orchard GCS access: `CLOUDSDK_CONFIG=/project/community/jjyeung/gcloud` (the user's login). `ssh orchard` works from Trinity. Orchard /home must stay small (25 GB quota).
 - On 0-13 the user may remove finals_2nd f17/f15/f12; f18 and e3 wait for Mind verification.
 - Never SendMessage a large idle lane: it resumes the transcript and causes an IO burst. Use files, or start a successor.
+- **Gemini key (10:05Z):** main's 3.1 Pro calls face 503 and 429 storms. The collector's restore timer is cancelled, and MAX_WORKERS_OVERRIDE stays 8 until main says r2660 and r2675 are done (likely 18:00-20:00Z). Then write 84.
