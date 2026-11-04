@@ -30,3 +30,16 @@ Orchestrator 0e. This file replaces DISTILLATION_HANDOFF_20261103_1200Z.md as th
 - Orchard `gcloud auth login` by the user (default: f17 over the tunnel; checkpoints on Orchard NFS + local disk).
 - Does "no more training" also stop Orchard? Default: no, Orchard continues.
 - GCS egress cost (~$300 to Mind). Default: use GCS for speed and clear it after Mind verification.
+
+## 4. Update 10:00Z (latest; supersedes the lane rows above where they differ)
+- **CP4T-K** is held for fixes. Two pre-launch reviews ran: Codex HOLD, Opus GO-WITH-FIXES. Both flag the design risk that traces state cm-level poses nothing supplies at inference (the RG2P2 lesson). Fixes:
+  - Trainer 3dcbd015 is published: it fixes the probe bug that made smoke job 165098 fail and adds the mandatory strict smoke gate.
+  - Lane **cp4tk_datafix** builds `sel/CP4TK_Q_ROWS_v2.jsonl.gz`: drops answer-conditioned room-size polygons and the reach-subtraction variants, takes priors from VSI-590K train (not test), raises abs distance and route, and fixes the direction skew. It writes `sel/V2_READY`.
+  - Lane **cp4tk_launch2** (handoff `/scratch/jjyeung/cp4tk_launch/HANDOFF.md`) re-preps v2, smokes, and holds the node for `.GO`. **The orchestrator writes GO only after the user sees the v2 changes.** The run has an m100 read with a ≥3-point stop rule.
+  - The f17 re-baseline evals 165104-165106 are on Orchard general.
+- Lane **trace_design_v2** writes `/scratch/jjyeung/trace_design_v2/DESIGN.md`: a trace format whose numbers are head-supplied or perceivable, with a ≤40 H100-h pilot.
+- Lane **orchard_data3** finishes ProcTHOR v3. Head-node order is set by `/scratch/jjyeung/orchard_data2/HEAD_NODE_TURN`; a watcher sets it to orchard_data3 when `fs2_up` ends.
+- **AWS cleanup** (user runs): rmkit2 at `/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/c553c6fc/rmkit2`. Excluded 24.78 TB is safety-checked against all 85 jobs. The newest resume states of 18 stopped runs (1.27 TB) await the user's call.
+- Orchard GCS access: `CLOUDSDK_CONFIG=/project/community/jjyeung/gcloud` (the user's login). `ssh orchard` works from Trinity. Orchard /home must stay small (25 GB quota).
+- On 0-13 the user may remove finals_2nd f17/f15/f12; f18 and e3 wait for Mind verification.
+- Never SendMessage a large idle lane: it resumes the transcript and causes an IO burst. Use files, or start a successor.
