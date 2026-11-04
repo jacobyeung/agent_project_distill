@@ -45,3 +45,24 @@ Orchestrator 0e. This file replaces DISTILLATION_HANDOFF_20261103_1200Z.md as th
 - Never SendMessage a large idle lane: it resumes the transcript and causes an IO burst. Use files, or start a successor.
 - **Gemini key (10:05Z):** main's 3.1 Pro calls face 503 and 429 storms. The collector's restore timer is cancelled, and MAX_WORKERS_OVERRIDE stays 8 until main says r2660 and r2675 are done (likely 18:00-20:00Z). Then write 84.
 - **Trace design v2** is in `/scratch/jjyeung/trace_design_v2/DESIGN.md`. It recommends head programs: the student writes only frame-readable items and gets every metric number from its own heads through `point`, `pose` and `move` tool calls. Pilot P0 (~3 H100-h, eval only on Orchard general) runs the GT program with f17's head readouts and admits a type at ≥5 points over f17. P1 (~37 H100-h) follows. HC v1F called its heads on only 34 of 500 items, so its deficit is not a test of head insertion. HC-NEW has a bug: GT readouts on frame 1 of a pair while the heads answer frame 2. A Codex review is at `agent/scratch/codex_runs/20261104T095900Z_trace_design_v2_astra`. Next step: build P0 (C1 head_api tools, C3 program builder, C4 readout pass) once the review says BUILD-P0.
+
+## 5. Update 16:00Z (latest)
+- **CP4T-K** is not launched yet; three strict smokes failed and no training step has run.
+  - Fixed so far: the probe bug; the 128f rows (rows v22f32 now: 144,946 rows, 32f only, room 692; room-size rows gated to ±10% of the VSI-590K label).
+  - Remaining: memory at world 4. Static 51.7 GB plus a ~29 GB logits transient gives an 80.6 GB peak.
+  - Lane **cp4tk_fix** is implementing trainer fix A (probe reserves 2 optimizer copies) plus B (chunked lm_head and CE over supervised tokens, loss-identical, with a unit test). Then one Codex review, kit republish, re-prep of T6TK23 under a fresh RUN name, smoke, and auto-GO on SMOKE_OK.
+  - Handoff: `/scratch/jjyeung/cp4tk_launch/HANDOFF.md`.
+- **Next-run data ready on Orchard/GCS:**
+  - ARKit honest room size: 2,422 rows.
+  - ARKit questions: 24,200 rows.
+  - ARKit route: 1,800 rows (MIXL).
+  - Frames store NEXT: 1.14M frames.
+  - ProcTHOR v3 (lane orchard_data5) in progress.
+  - Room-size convention is in memory `roomsize-label-convention.md`.
+- **P0 head-program test:** lane headprog_p0b, queued on Orchard general.
+- **AWS:**
+  - The user ran rmkit2, rmkit3, rmkit5, rmkit6 and the GCS cleanup (1.57 TB).
+  - The eval minimum is restored and on the keep-list. No AWS evals without the user's explicit OK.
+  - Copy lane **aws_return_copy5**: GCS ~13.7 TB; Mind ~0.7 of 7 TB, NAT-limited at ~20-50 MB/s.
+- **Gemini:** the collector is capped at 8 workers until main says r2660 and r2675 are done.
+- **Lanes rotate at 200K tokens.** Never message a large idle lane; start a successor from its HANDOFF.md instead.
