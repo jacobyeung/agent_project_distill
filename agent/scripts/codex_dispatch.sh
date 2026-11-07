@@ -27,6 +27,11 @@ cleanup_registry() {
   fi
 }
 
+sync_newer() {
+  [[ -f "$1" && "$1" -nt "$2" ]] || return 0
+  cp -p "$1" "$2.tmp.$$" && mv -f "$2.tmp.$$" "$2"
+}
+
 if [[ $# -lt 3 || "$1" == --* || "$2" == --* || "$3" == --* ]]; then
   usage
   exit 2
@@ -46,13 +51,13 @@ case "$PRESET" in
     ;;
   implement)
     SANDBOX=workspace-write
-    MODEL=gpt-5.6-sol
+    MODEL=gpt-6.1-sol
     EFFORT=high
     EFFORT_SET=true
     ;;
   mech)
     SANDBOX=workspace-write
-    MODEL=gpt-5.6-terra
+    MODEL=gpt-6.1-terra
     EFFORT=
     EFFORT_SET=false
     ;;
@@ -175,6 +180,19 @@ if ! cp "$PROMPT_FILE" "$RECEIPT_DIR/prompt.md"; then
   exit 1
 fi
 
+SHARED_CODEX_HOME=/home/jjyeung/.codex
+export CODEX_HOME="/scratch/jjyeung/codex_home_$(hostname -s)"
+if ! (umask 077 && mkdir -p "$CODEX_HOME/rules" && chmod 700 "$CODEX_HOME"); then
+  echo "Could not create node-local CODEX_HOME: $CODEX_HOME" >&2
+  exit 1
+fi
+for src in "$SHARED_CODEX_HOME"/{auth.json,config.toml,AGENTS.md} "$SHARED_CODEX_HOME"/rules/*; do
+  if ! sync_newer "$src" "$CODEX_HOME/${src#"$SHARED_CODEX_HOME"/}"; then
+    echo "Could not copy $src into $CODEX_HOME" >&2
+    exit 1
+  fi
+done
+
 codex_args=(exec -m "$MODEL")
 if [[ "$EFFORT_SET" == true ]]; then
   codex_args+=(-c "model_reasoning_effort=$EFFORT")
@@ -206,6 +224,8 @@ printf '%s|%s|%s|%s\n' "$CODEX_PID" "$LABEL" "$START_TIME" "$RECEIPT_DIR" >> "$R
 
 wait "$CODEX_PID"
 EXIT_CODE=$?
+sync_newer "$CODEX_HOME/auth.json" "$SHARED_CODEX_HOME/auth.json" ||
+  echo "WARNING: could not copy refreshed auth.json back to $SHARED_CODEX_HOME" >&2
 END_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 END_SECONDS=$(date -u +%s)
 WALL_SECONDS=$((END_SECONDS - START_SECONDS))
