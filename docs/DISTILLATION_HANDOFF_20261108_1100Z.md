@@ -15,10 +15,11 @@ This file replaces DISTILLATION_HANDOFF_20261104_0800Z.md as the current state. 
 - **Data:** keep only first/best/last weights per run, plus logs and evals. Prune continuously through removal kits the user runs. Agents never delete. GCS is temporary staging, empty by ~12-01. Mind is the long-term store.
 
 ## 1. Survives vs dies
-- **Survives the predecessor session's close:** every AWS Slurm job (C1 smokes 104066/7/8; the c1r dense cache once submitted; aws_evac copies c3b..c8 and xw exports), the Mind receiver jobs, the Orchard repack chain 166805-166808, GCS objects, and all lane files under `/scratch/jjyeung/orch_cd/`.
-- **Dies with the predecessor session (ef169fa6, trinity-2-18):** the five Devin lanes are child processes of its background shells, along with their Codex workers, and so is the event waiter. Keep that session open until each lane finishes or has a successor.
-  - Resume recipe for a dead lane: write `BRIEF_SUCCESSOR<n>.md` next to its brief ("resume, don't restart; read every inbox note and STATUS.md"), then launch from the repo root: `timeout 86000 devin -p --prompt-file <brief> --permission-mode dangerous --model claude-opus-5-5-max > /scratch/jjyeung/orch_cd/<lane>/<out> 2>&1` (run_in_background).
-  - Re-arm the waiter: `/scratch/jjyeung/orch_cd/evwait.sh` (run_in_background).
+- **Survives a session close:** every AWS Slurm job (C1 smokes 104066/7/8; the c1r dense cache once submitted; aws_evac copies c3b..c8 and xw exports), the Mind receiver jobs, the Orchard repack chain 166805-166808, GCS objects, and all lane files under `/scratch/jjyeung/orch_cd/`.
+- **The five Devin lanes also survive** a session close: each runs detached (parent bash reparented to init, own session), and they survived a session restart at ~11:00Z.
+  - Their 86,000-s timeouts end them at about: heads_up5 07:12Z Mon, aws_evac2 07:23Z, c1r 08:06Z, derivgen4 09:40Z, mind_prune 09:44Z. Launch successors before then.
+  - Recipe: write `BRIEF_SUCCESSOR<n>.md` next to the brief ("resume, don't restart; read every inbox note and STATUS.md"), then from the repo root: `timeout 86000 devin -p --prompt-file <brief> --permission-mode dangerous --model claude-opus-5-5-max > /scratch/jjyeung/orch_cd/<lane>/<out> 2>&1` (run_in_background).
+- **Dies with an orchestrator session:** only its own event waiter (`/scratch/jjyeung/orch_cd/evwait.sh`, run_in_background) and any Claude subagents.
 
 ## 2. Lanes: where, how to check, what next
 Health checks on 2-18: `pgrep -f <brief>`; `tail -c 800 /scratch/jjyeung/orch_cd/<lane>/STATUS.md`; `ls -t /scratch/jjyeung/orch_cd/<lane>/events | head -3`. AWS: `timeout 40 ssh -o ConnectTimeout=20 -o BatchMode=yes code-aws 'squeue -u jyeung -h -o "%i %j %T %M %b" | grep _ap'`.
