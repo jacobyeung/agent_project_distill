@@ -36,6 +36,6 @@ Health checks on 2-18: `pgrep -f <brief>`; `tail -c 800 /scratch/jjyeung/orch_cd
 - **Frame layout:** settled by the fusion probe. Patch alignment only with paired or duplicate frames.
 
 ## 4. Open user questions (asked once; don't repeat)
-1. Automatic AWS checkpoint rotation by trainers? Default: no.
+1. ANSWERED (USER): trainers save a resume state every ~30 min, keep the newest 2 complete states and delete older ones automatically; milestone weights still go through user-run kits.
 2. Project-level best? Default: per-run first/best/last.
 3. Mind floor 5% or another store? Default: 10% floor, rest held in GCS; decide by 11-24.
