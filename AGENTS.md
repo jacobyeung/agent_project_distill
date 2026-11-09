@@ -18,6 +18,10 @@ A lane's suite gate covers the tests that exercise the code it changed plus its 
 
 `docs/VERIFICATION.md` holds the verification recipes for `student/compact_targets` and `tools/gtmeasure`.
 
+## Build experiments first (USER 2026-11-09)
+
+Tokens are cheap, and GPU hours take wall-clock time, so build the code and kit for every candidate experiment as soon as it is proposed, before GPUs free up. Writing and debugging a whole experiment takes minutes, so a run never waits on its own code. Keep a ranked queue of ready-to-launch experiments, so any free GPU is filled within minutes. While runs train, read their code and data for bugs and fix them for the next launch, rather than discovering errors at launch. Before a new data receipt reaches GPUs, run every rank's first batch through the full forward pass on CPU. Build, test and debug anything that can run concurrently in parallel.
+
 ## code-aws jobs
 
 The user's other project on the same account (job families a15_cot_c1159, c1164, c1167, c1171, c1173, c1175 and the cot_faithfulness workdirs) has priority on code-aws, and its orchestrator's requests bind this project at once. This project, distillation and main together, may hold at most 32 GPUs there, counting running and pending jobs, and submits no new job unless that orchestrator's limit allows it; requests arrive in `/home/jyeung/peer_inbox/TO_AGENT_PROJECT.md` on code-aws, which the main orchestrator watches and forwards. Distillation asks the main orchestrator before using any of the 32.
