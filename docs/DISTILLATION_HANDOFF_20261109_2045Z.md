@@ -9,7 +9,7 @@ This file replaces DISTILLATION_HANDOFF_20261108_1100Z.md as the current state. 
   - The user would prefer the base vision encoder at higher resolution, but for pose the evidence below rules that out.
 - **Freedom (11-09):** drastic architecture changes and other bases of ~9-13B are allowed, and so are 64 or 96 frames.
 - **GPUs:**
-  - **AWS:** distillation has 32 in total, day and night, from Mon 12:00 PT ("32 in total 12pm monday"). cot_faithfulness has priority, and main has its own allowance.
+  - **AWS: STOPPED (USER 11-09 ~12:51 PT: "stop aws gpus").** No distillation AWS GPU job of any kind until the user says otherwise. CP1 137064 was cancelled at 20:52Z; its resumable state is checkpoint_000346. AWS CPU jobs (copies, preps, sized CPU checks) continue.
   - **Orchard:** one serial advanced-QOS 4-GPU slot, full tonight.
   - **Trinity:** 0-13 at normal priority, other nodes only under vnice, never 3-23.
 - **Keep (11-09):** best and last weights per run, plus the full resumable state of each line's strongest checkpoint.
@@ -34,7 +34,7 @@ This file replaces DISTILLATION_HANDOFF_20261108_1100Z.md as the current state. 
 
 ## 2. Survives vs dies
 - **Survives a session close:**
-  - AWS jobs: CP1 137064, aws_evac sender 109470, rmkit16 dry run 2 (132671), gx_build CPU array 135321;
+  - AWS CPU jobs: aws_evac sender 109470, rmkit16 dry run 2 (132671), gx_build CPU array 135321 (CP1 137064 was cancelled at the user's word);
   - the six detached Devin lanes;
   - mdg_build's governed Mind -> 0-13 pulls;
   - all lane files under `/scratch/jjyeung/orch_cd/`.
@@ -48,7 +48,7 @@ Health check on 2-18: `pgrep -f <brief>`; `tail -n 3 /scratch/jjyeung/orch_cd/<l
 
 | Lane (brief) | Now | On completion |
 |---|---|---|
-| p3_build5 (`agent/scratch/devin_lanes/p3_build/BRIEF_SUCCESSOR5.md`) | **CP1** 137064 (root ap/f2ad01ad, run 49becb79) trains from step 292, single leg. **CP1-R** (root ap/9281911f: route rows 3x, room 5x, pose weight 1.5, init CP1 m200) READY, with its CPU check PASS. **CP2** kit building (trainer cp2-20261109 fbe516c = gx 45f37ec; VQA o7 158,728 rows at 64 nested frames; pose mix option (b) with 15k ARKit sensor-depth rows plus A4 rooms; pose weight 1.5) | At m400 (~21:05Z) stop at the next save; evalx reads; loss_doctor calls; then resume CP1 or launch CP1-R t32 |
+| p3_build5 (`agent/scratch/devin_lanes/p3_build/BRIEF_SUCCESSOR5.md`) | **CP1** (root ap/f2ad01ad, run 49becb79) STOPPED at the user's word (job 137064 cancelled 20:52Z; resumable checkpoint_000346). **CP1-R** (root ap/9281911f: route rows 3x, room 5x, pose weight 1.5, init CP1 m200) READY, with its CPU check PASS. **CP2** kit building (trainer cp2-20261109 fbe516c = gx 45f37ec; VQA o7 158,728 rows at 64 nested frames; pose mix option (b) with 15k ARKit sensor-depth rows plus A4 rooms; pose weight 1.5) | When the user allows AWS GPUs again: resume CP1 from checkpoint_000346 (or launch CP1-R), with m400 read and loss_doctor's call as planned |
 | evalx2 (`.../evalx/BRIEF_SUCCESSOR2.md`) | Every read runs on AWS: m400 in the pause, later milestones between legs, the first ReVSI dev read (cap71) in a gap. Fusion-aware reader X31 for GXP-mix. The Trinity runtime is abandoned (tunnel) | Post each read as an event; the m400 read goes to loss_doctor |
 | loss_doctor2 (`.../loss_doctor/BRIEF_SUCCESSOR2.md`) | Watches CP1 every 25 steps. **m400 switch rule:** route caps >= 15/50, VSI-500 caps >= 20, uncapped VSI-500 < T0 - 3, held-out centre >= +3 pts or direction >= +1.5 deg, or pose ratio > 1.30x for 2 windows. CP1-R init by trip reason (pose/accuracy -> m200; caps -> m400) | Post the call within 30 min of the read |
 | gx_build (`.../gx_build/BRIEF_SUCCESSOR.md`) | **GXP-mix** trainer 45f37ec (R8 GO); AWS kit aws_gxpm (root 56b7153a, world 8). Sized CPU array 135321 runs ~5 h. Launches only on an ORCH GO at the m400 re-plan or a USER grant | cg1 160-row 2-GPU check -> t leg -> m200 read against CP1 (evalx X31) |
@@ -56,7 +56,7 @@ Health check on 2-18: `pgrep -f <brief>`; `tail -n 3 /scratch/jjyeung/orch_cd/<l
 | aws_evac3 (`.../aws_evac/BRIEF_SUCCESSOR3.md`) | AWS -> Mind: CP1 milestones under the keep rule, the 4 held arm states, held items (~1.33 TB) while Mind > 3 TB free (9.4 TB free at 17:33Z). rmkit16 dry run 2 (132671) | Post the dry-run summary for ORCH review; a kit goes to the user only after that review |
 
 ## 4. Orchestrator decisions due
-- **The m400 re-plan of the 32 (~21:30-22:00Z).** Options: CP1 or CP1-R on all 32; or CP1-R at world 16 (accum 2) plus GXP-mix at 8 plus MDG-A on AWS or reads at 8. Rule: the higher-signal experiment takes the GPUs (USER 11-05). GXP-mix decides CP2's fusion, and MDG-A decides grounding.
+- **AWS GPUs are stopped (USER).** Every GPU launch waits for the user's word. When they return, plan the allocation by signal: CP1 or CP1-R, GXP-mix (decides CP2's fusion), and AWS reads. MDG-A stays on trinity-0-13.
 - Review the rmkit16 dry run 2.
 - Rotate gx_build before Tue 09:21Z.
 - When CP2 launches: after CP1/CP1-R, or replacing it once CP2 is READY and GXP-mix has read.
@@ -75,6 +75,4 @@ Health check on 2-18: `pgrep -f <brief>`; `tail -n 3 /scratch/jjyeung/orch_cd/<l
 - **Orchard:** community nodes fill up, /project/community is full, and node-side GCS reads need signed URLs that no available account can mint.
 
 ## 6. Open user questions (asked once; don't repeat)
-1. May evals take up to 4 AWS GPUs above the 32 for ~15 min per CP1 milestone? Default: no; reads run in CP1 pauses or leg gaps.
-2. May distillation use 8 more AWS GPUs tonight (40 total) for GXP-mix? Default: no; it waits for the m400 re-plan.
-3. May SAM 3 sit inside the model as a grounding tower? Default: yes.
+1. May SAM 3 sit inside the model as a grounding tower? Default: yes.

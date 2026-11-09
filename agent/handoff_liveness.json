@@ -1,6 +1,6 @@
 {
  "written_utc": "2026-11-09T20:50:00Z",
- "updated_utc": "2026-11-09T20:50:00Z",
+ "updated_utc": "2026-11-09T20:56:00Z",
  "latest_handoff": "docs/DISTILLATION_HANDOFF_20261109_2045Z.md",
  "head": {
   "commit": "e40470b",
@@ -19,7 +19,8 @@
   "We should still you know save the weights of the strongest uh models we have and ideally the state for training them. You don't have to save you know earlier checkpoints.",
   "wait, 32 in total 12pm mmonday",
   "yes, feel free to use argon to cross check! ... until tomorrow six pm PT Monday night PT uh you can use max for agents if needed",
-  "The key thing that I care about is we have a model that can you know fit run locally ideally like from you know nine B. Eleven B is fine. And it would be like an int-to-end model. I don't need agentic loops"
+  "The key thing that I care about is we have a model that can you know fit run locally ideally like from you know nine B. Eleven B is fine. And it would be like an int-to-end model. I don't need agentic loops",
+  "stop aws gpus"
  ],
  "results_banked_today": [
   {
@@ -47,17 +48,17 @@
   {
    "lane": "p3_build5",
    "what": "CP1 main training run (B+C config) + CP1-R switch target + CP2 kit",
-   "where": "AWS job 137064, root ap/f2ad01ad run 49becb79; CP1-R root ap/9281911f; CP2 kit work/aws_cp2",
+   "where": "CP1 STOPPED (USER) - job 137064 cancelled 20:52Z, resumable runs/49becb79/checkpoint_000346; CP1-R root ap/9281911f READY; CP2 kit work/aws_cp2",
    "health_check": "pgrep -f 'agent/scratch/devin_lanes/p3_build/BRIEF_SUCCESSOR5.md'; tail -n 3 /scratch/jjyeung/orch_cd/p3_build/STATUS.md; ls -t /scratch/jjyeung/orch_cd/p3_build/events | head -3; tail -n 1 /scratch/jjyeung/orch_cd/p3_build/logs/watch_cp1_137064.log",
-   "gate": "m400 ~21:05Z -> pause at next save -> evalx AWS read -> loss_doctor call",
-   "next": "resume CP1 or launch CP1-R t32; build CP2"
+   "gate": "AWS GPUs stopped by the user; every GPU launch waits for the user",
+   "next": "resume CP1 (or CP1-R) only when the user allows AWS GPUs; build CP2"
   },
   {
    "lane": "evalx2",
    "what": "all evaluation reads, on AWS",
    "where": "/scratch/jjyeung/orch_cd/evalx",
    "health_check": "pgrep -f 'agent/scratch/devin_lanes/evalx/BRIEF_SUCCESSOR2.md'; tail -n 3 /scratch/jjyeung/orch_cd/evalx/STATUS.md; ls -t /scratch/jjyeung/orch_cd/evalx/events | head -3",
-   "gate": "m400 read during the CP1 pause",
+   "gate": "AWS GPUs stopped by the user; hold all AWS GPU jobs",
    "next": "route caps/room/floor tallies to loss_doctor; GXP-mix fusion read (X31); first ReVSI dev read"
   },
   {
@@ -73,7 +74,7 @@
    "what": "GXP-mix (G3T patch fusion) AWS world-8 kit",
    "where": "AWS root ap/56b7153a; CPU array 135321",
    "health_check": "pgrep -f 'agent/scratch/devin_lanes/gx_build/BRIEF_SUCCESSOR.md'; tail -n 3 /scratch/jjyeung/orch_cd/gx_build/STATUS.md; ls -t /scratch/jjyeung/orch_cd/gx_build/events | head -3",
-   "gate": "ORCH GO at the m400 re-plan or USER grant",
+   "gate": "AWS GPUs stopped by the user; hold all AWS GPU jobs",
    "next": "cg1 2-GPU check -> t leg -> m200 read vs CP1"
   },
   {
@@ -97,8 +98,6 @@
   "note": "distillation runs are named by run hex, not round numbers; see each lane's STATUS"
  },
  "open_user_decisions": [
-  "May evals take up to 4 AWS GPUs above the 32 per CP1 milestone? default no",
-  "May distillation use 8 more AWS GPUs tonight for GXP-mix? default no",
   "May SAM 3 sit inside the model as a grounding tower? default yes"
  ],
  "do_not_redo": [
@@ -117,7 +116,7 @@
  ],
  "survives_vs_dies": {
   "survives": [
-   "AWS jobs 137064, 109470, 132671, 135321",
+   "AWS CPU jobs 109470, 132671, 135321 (CP1 137064 cancelled by USER ruling)",
    "six detached Devin lanes (timeouts Tue UTC: gx_build 09:21Z, aws_evac 12:01Z, p3_build 13:12Z, mdg_build 13:15Z, evalx 14:40Z, loss_doctor 15:35Z)",
    "mdg_build governed pulls",
    "lane files"
