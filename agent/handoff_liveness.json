@@ -1,6 +1,6 @@
 {
  "written_utc": "2026-11-09T20:50:00Z",
- "updated_utc": "2026-11-09T20:56:00Z",
+ "updated_utc": "2026-11-09T21:00:00Z",
  "latest_handoff": "docs/DISTILLATION_HANDOFF_20261109_2045Z.md",
  "head": {
   "commit": "e40470b",
@@ -20,7 +20,8 @@
   "wait, 32 in total 12pm mmonday",
   "yes, feel free to use argon to cross check! ... until tomorrow six pm PT Monday night PT uh you can use max for agents if needed",
   "The key thing that I care about is we have a model that can you know fit run locally ideally like from you know nine B. Eleven B is fine. And it would be like an int-to-end model. I don't need agentic loops",
-  "stop aws gpus"
+  "stop aws gpus",
+  "no more aws"
  ],
  "results_banked_today": [
   {
@@ -50,7 +51,7 @@
    "what": "CP1 main training run (B+C config) + CP1-R switch target + CP2 kit",
    "where": "CP1 STOPPED (USER) - job 137064 cancelled 20:52Z, resumable runs/49becb79/checkpoint_000346; CP1-R root ap/9281911f READY; CP2 kit work/aws_cp2",
    "health_check": "pgrep -f 'agent/scratch/devin_lanes/p3_build/BRIEF_SUCCESSOR5.md'; tail -n 3 /scratch/jjyeung/orch_cd/p3_build/STATUS.md; ls -t /scratch/jjyeung/orch_cd/p3_build/events | head -3; tail -n 1 /scratch/jjyeung/orch_cd/p3_build/logs/watch_cp1_137064.log",
-   "gate": "AWS GPUs stopped by the user; every GPU launch waits for the user",
+   "gate": "AWS GPUs stopped by the user; every GPU launch waits for the user | NO MORE AWS (USER 11-09 12:54 PT)",
    "next": "resume CP1 (or CP1-R) only when the user allows AWS GPUs; build CP2"
   },
   {
@@ -58,7 +59,7 @@
    "what": "all evaluation reads, on AWS",
    "where": "/scratch/jjyeung/orch_cd/evalx",
    "health_check": "pgrep -f 'agent/scratch/devin_lanes/evalx/BRIEF_SUCCESSOR2.md'; tail -n 3 /scratch/jjyeung/orch_cd/evalx/STATUS.md; ls -t /scratch/jjyeung/orch_cd/evalx/events | head -3",
-   "gate": "AWS GPUs stopped by the user; hold all AWS GPU jobs",
+   "gate": "AWS GPUs stopped by the user; hold all AWS GPU jobs | NO MORE AWS (USER 11-09 12:54 PT)",
    "next": "route caps/room/floor tallies to loss_doctor; GXP-mix fusion read (X31); first ReVSI dev read"
   },
   {
@@ -66,7 +67,7 @@
    "what": "CP1 training diagnosis and the m400 switch call",
    "where": "/scratch/jjyeung/orch_cd/loss_doctor",
    "health_check": "pgrep -f 'agent/scratch/devin_lanes/loss_doctor/BRIEF_SUCCESSOR2.md'; tail -n 3 /scratch/jjyeung/orch_cd/loss_doctor/STATUS.md; ls -t /scratch/jjyeung/orch_cd/loss_doctor/events | head -3",
-   "gate": "switch rule in its brief",
+   "gate": "switch rule in its brief | NO MORE AWS (USER 11-09 12:54 PT)",
    "next": "post the call within 30 min of the read"
   },
   {
@@ -74,7 +75,7 @@
    "what": "GXP-mix (G3T patch fusion) AWS world-8 kit",
    "where": "AWS root ap/56b7153a; CPU array 135321",
    "health_check": "pgrep -f 'agent/scratch/devin_lanes/gx_build/BRIEF_SUCCESSOR.md'; tail -n 3 /scratch/jjyeung/orch_cd/gx_build/STATUS.md; ls -t /scratch/jjyeung/orch_cd/gx_build/events | head -3",
-   "gate": "AWS GPUs stopped by the user; hold all AWS GPU jobs",
+   "gate": "AWS GPUs stopped by the user; hold all AWS GPU jobs | NO MORE AWS (USER 11-09 12:54 PT)",
    "next": "cg1 2-GPU check -> t leg -> m200 read vs CP1"
   },
   {
@@ -82,7 +83,7 @@
    "what": "MDG-A mask-decoder grounding head on frozen T0 m800",
    "where": "trinity-0-13 GPUs 0-4; data via Mind",
    "health_check": "pgrep -f 'agent/scratch/devin_lanes/mdg_build/BRIEF.md'; tail -n 3 /scratch/jjyeung/orch_cd/mdg_build/STATUS.md; ls -t /scratch/jjyeung/orch_cd/mdg_build/events | head -3",
-   "gate": "data lands ~22:25Z; canaries; CPU first batch",
+   "gate": "data lands ~22:25Z; canaries; CPU first batch | NO MORE AWS (USER 11-09 12:54 PT)",
    "next": "launch ~23:00Z; fail-fast ~23:40Z; read ~Tue 06:00Z"
   },
   {
@@ -90,7 +91,7 @@
    "what": "AWS -> Mind copies; rmkit16 dry run",
    "where": "AWS sender 109470; dry run 132671",
    "health_check": "pgrep -f 'agent/scratch/devin_lanes/aws_evac/BRIEF_SUCCESSOR3.md'; tail -n 3 /scratch/jjyeung/orch_cd/aws_evac/STATUS.md; ls -t /scratch/jjyeung/orch_cd/aws_evac/events | head -3",
-   "gate": "Mind > 3 TB free",
+   "gate": "Mind > 3 TB free | NO MORE AWS (USER 11-09 12:54 PT)",
    "next": "post dry-run 2 summary for ORCH review"
   }
  ],
@@ -98,7 +99,8 @@
   "note": "distillation runs are named by run hex, not round numbers; see each lane's STATUS"
  },
  "open_user_decisions": [
-  "May SAM 3 sit inside the model as a grounding tower? default yes"
+  "May SAM 3 sit inside the model as a grounding tower? default yes",
+  "May the read-only AWS -> Mind copy-off resume (no compute)? default no"
  ],
  "do_not_redo": [
   "pose probes at 1x/2x/4x pixels or readout redesigns (posediag settled: the encoder is the limit)",
@@ -116,7 +118,7 @@
  ],
  "survives_vs_dies": {
   "survives": [
-   "AWS CPU jobs 109470, 132671, 135321 (CP1 137064 cancelled by USER ruling)",
+   "no AWS jobs (all cancelled: USER \"no more aws\")",
    "six detached Devin lanes (timeouts Tue UTC: gx_build 09:21Z, aws_evac 12:01Z, p3_build 13:12Z, mdg_build 13:15Z, evalx 14:40Z, loss_doctor 15:35Z)",
    "mdg_build governed pulls",
    "lane files"

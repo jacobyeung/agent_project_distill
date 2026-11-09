@@ -9,7 +9,7 @@ This file replaces DISTILLATION_HANDOFF_20261108_1100Z.md as the current state. 
   - The user would prefer the base vision encoder at higher resolution, but for pose the evidence below rules that out.
 - **Freedom (11-09):** drastic architecture changes and other bases of ~9-13B are allowed, and so are 64 or 96 frames.
 - **GPUs:**
-  - **AWS: STOPPED (USER 11-09 ~12:51 PT: "stop aws gpus").** No distillation AWS GPU job of any kind until the user says otherwise. CP1 137064 was cancelled at 20:52Z; its resumable state is checkpoint_000346. AWS CPU jobs (copies, preps, sized CPU checks) continue.
+  - **AWS: NO MORE (USER 11-09 ~12:51 PT "stop aws gpus", then ~12:54 PT "no more aws").** No AWS use of any kind: GPU or CPU jobs, copies, ssh, sbatch. All distillation AWS jobs were cancelled at 20:52-20:54Z: CP1 137064 (resumable checkpoint_000346 left on AWS), the CPU array 135321, the sender 109470 and the dry run 137085. Plan only on Trinity, Mind and Orchard.
   - **Orchard:** one serial advanced-QOS 4-GPU slot, full tonight.
   - **Trinity:** 0-13 at normal priority, other nodes only under vnice, never 3-23.
 - **Keep (11-09):** best and last weights per run, plus the full resumable state of each line's strongest checkpoint.
@@ -34,7 +34,7 @@ This file replaces DISTILLATION_HANDOFF_20261108_1100Z.md as the current state. 
 
 ## 2. Survives vs dies
 - **Survives a session close:**
-  - AWS CPU jobs: aws_evac sender 109470, rmkit16 dry run 2 (132671), gx_build CPU array 135321 (CP1 137064 was cancelled at the user's word);
+  - no AWS jobs (all cancelled at the user's word);
   - the six detached Devin lanes;
   - mdg_build's governed Mind -> 0-13 pulls;
   - all lane files under `/scratch/jjyeung/orch_cd/`.
@@ -56,7 +56,7 @@ Health check on 2-18: `pgrep -f <brief>`; `tail -n 3 /scratch/jjyeung/orch_cd/<l
 | aws_evac3 (`.../aws_evac/BRIEF_SUCCESSOR3.md`) | AWS -> Mind: CP1 milestones under the keep rule, the 4 held arm states, held items (~1.33 TB) while Mind > 3 TB free (9.4 TB free at 17:33Z). rmkit16 dry run 2 (132671) | Post the dry-run summary for ORCH review; a kit goes to the user only after that review |
 
 ## 4. Orchestrator decisions due
-- **AWS GPUs are stopped (USER).** Every GPU launch waits for the user's word. When they return, plan the allocation by signal: CP1 or CP1-R, GXP-mix (decides CP2's fusion), and AWS reads. MDG-A stays on trinity-0-13.
+- **No more AWS (USER).** Re-plan training on Orchard (one 4-GPU H100 slot when free) and Trinity 0-13 (7 RTX 6000 Ada beside main's idle SAM 3 daemons). CP2 at its designed 32-H100 scale is no longer feasible. MDG-A continues on 0-13. aws_evac lists everything of ours that is still only on AWS.
 - Review the rmkit16 dry run 2.
 - Rotate gx_build before Tue 09:21Z.
 - When CP2 launches: after CP1/CP1-R, or replacing it once CP2 is READY and GXP-mix has read.
@@ -76,3 +76,4 @@ Health check on 2-18: `pgrep -f <brief>`; `tail -n 3 /scratch/jjyeung/orch_cd/<l
 
 ## 6. Open user questions (asked once; don't repeat)
 1. May SAM 3 sit inside the model as a grounding tower? Default: yes.
+2. May the read-only AWS -> Mind copy-off resume (no compute)? Default: no; AWS stays untouched.
