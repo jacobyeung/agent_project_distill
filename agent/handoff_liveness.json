@@ -1,333 +1,130 @@
 {
-  "written_utc": "2026-09-20T15:30:00Z",
-  "head": {
-    "commit": "4edf4ca",
-    "meaning": "distill repo main; the 11:00Z checkpoint (arm C VSIBench 42.35 strict vs base 31.47, error analysis, rewrite arm held, trinity-0-13 ours, Qwen arm C launched, one-epoch control relaunching, ARKit pilot refusing); this write adds the 11:50Z handoff doc (docs/DISTILLATION_HANDOFF_20260920_1150Z.md) as a state checkpoint, not a pass-off"
+ "written_utc": "2026-11-09T20:50:00Z",
+ "updated_utc": "2026-11-09T20:50:00Z",
+ "latest_handoff": "docs/DISTILLATION_HANDOFF_20261109_2045Z.md",
+ "head": {
+  "commit": "e40470b",
+  "meaning": "distill main; AGENTS.md build-experiments-first rule; this handoff commit follows"
+ },
+ "command": {
+  "session": "trinity-2-18, Claude Opus 5.5, session cdb578de (agent-project-distill-4b)",
+  "role": "distillation orchestrator",
+  "log": "/scratch/jjyeung/orch_cd/ORCH_HANDOFF.md"
+ },
+ "user_rulings_today": [
+  "It's totally fine if we have to use 64 frames or you know 96 frames ... We don't have to evaluate at 32 frames.",
+  "can you stop at 7:30am on 9th until 12pm monday? instead of 8am?",
+  "i am also open to more dratsic architecture changes! We need to get this you know, pose, depth, pointing to work.",
+  "we can also use other base architectures if needed. open to everything. we should prob stay around 9b range so we can train on h100s. so prob not up to 27b range unless you really think it is necessary. 13b eg is fine.",
+  "We should still you know save the weights of the strongest uh models we have and ideally the state for training them. You don't have to save you know earlier checkpoints.",
+  "wait, 32 in total 12pm mmonday",
+  "yes, feel free to use argon to cross check! ... until tomorrow six pm PT Monday night PT uh you can use max for agents if needed",
+  "The key thing that I care about is we have a model that can you know fit run locally ideally like from you know nine B. Eleven B is fine. And it would be like an int-to-end model. I don't need agentic loops"
+ ],
+ "results_banked_today": [
+  {
+   "result": "Pose limit is the Qwen encoder: ViT probe chance (63-81 deg), G3T camera tokens 7.5-11, G3T pose 3.1-3.6",
+   "pointer": "/data2/jjyeung/agent_project_data/distill_design/POSE_PLATEAU_DIAGNOSIS_20261109.md"
   },
-  "command": {
-    "session": "trinity-1-3 (Claude Fable 5.1)",
-    "took_command_utc": "2026-09-20T03:25:00Z",
-    "authority": "user's direct instruction",
-    "pass_off_note": "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/PASSOFF_FROM_TRINITY_1_3_SESSION_20260920T0319Z.md",
-    "note": "this write is a checkpoint; the session keeps command"
+  {
+   "result": "TOWER-0 PARTIAL-1: P pass, depth G3T x s AbsRel 0.063, G fail (SAM 3 74/66, A1 67.6/79.7, A1 masks 0/4 types)",
+   "pointer": "/scratch/jjyeung/orch_cd/ttower/events/20261109T1320Z_RESULT_successor_FINAL.md"
   },
-  "user_rulings_today": [
-    "actually you can use trinity-0-18 as long as you vnice",
-    "btw, you are in sole control of the google api key now! so max throughput!!! use multiple nodes if needed",
-    "no secodn gemini api key. yes please prepare pool extension now! ideally we can get 50-100k sampels to train in. doesn't have to be just scannet",
-    "ah, i guess tolerance is fine",
-    "devin should work now btw",
-    "we can download arkitscenes to /data3/shared/datasets/ and other benchmarks there.",
-    "if you can use sonnet or haiku subagents for tasks - please do so! no need to always use opus",
-    "the user personally killed the trinity-0-13 vLLM replica twice to give GPUs 0-5 to this lane"
-  ],
-  "results_banked_today": [
-    {
-      "what": "derivability defect found in every target arm: the observation renderer discards the coordinates rel_direction needs",
-      "count": "user-spotted from D/claude_arm_examples/out/REL_DIRECTION_EXAMPLE.md and ARM_EXAMPLES_20260920.md (qid vsi590k_034353, object_rel_direction_medium); the renderer collapses each tool-returned centroid (x, y, z) into 'a center approximately R meters from the world origin in the world X-Y plane' with R = sqrt(x^2+y^2), discarding x and y; arm C's derivation 'cross-product component approximately 1.490, uses observations 2, 4, 6' is not recomputable from its own observations, and the sign rule is absent; every arm carries the defect: format A, arm C, compact v2, rewrite v3.1; conclusion is that arm C taught the student to assert an unverifiable number and a letter, not the geometry",
-      "pointer": "D/claude_arm_examples/out/{REL_DIRECTION_EXAMPLE.md,ARM_EXAMPLES_20260920.md}"
-    },
-    {
-      "what": "arm token medians corrected, including the Qwen r6 format correction",
-      "count": "OneThinker tokenizer medians: format A 4,739 (trained, loops at eval), arm C compact v1c 431 (trained 3 epochs, evaluated), compact v2 479 (rendered 11:13Z, review pending, will not train), rewrite v3.1 1,464 (held, zero derivations), format E 36 (evidence plus answer, admitted provisionally 09-19, never trained); correction: Qwen arm A r6 trains on format A, not format E (246 steps = 2,624 rows x 3 epochs / 32)",
-      "pointer": "docs/DISTILLATION_HANDOFF_20260920_1150Z.md section 1"
-    },
-    {
-      "what": "compact v2 converter rendered and reviewed by its own tests; will not train, superseded by v2.1",
-      "count": "REPORT_RESUME.md: 3,431 denominator, 2,193 Tier I, 1,440 candidates, 1,248 training rows and 192 held out; refusals degenerate_derivation 1,237, composition_policy 753, over_budget 1; largest composition type ratio 1.9952x under the 2x cap; back-bearing quotas infeasible (16/426 three-option, 27/278 four-option); split inherited via trainer-split-inherit-20260920 at fa2ada4, 0 of 84 scene assignments moved; 193 tests pass; MEMBERSHIP.json sha256 cbd2ca4c04c013c6bb4567b157b371aea222b2d89bf0ee255475c472f23acbdb; the partial diagnostic_set_compact_v2_20260920 (no _full suffix) is unverified and must never train; the renderer hard-aborts on a dirty main tree (compact_counted_v2.py:758), which killed its first render attempt against the uncommitted 11:00Z handoff",
-      "pointer": "D/devin_compact_v2_converter/out/REPORT_RESUME.md"
-    },
-    {
-      "what": "Astra review of compact v2 dispatched, verdict pending",
-      "count": "Codex gpt-6-astra, effort high, lane claude_compact_v2_review; seven questions: rule semantics, byte fidelity, admission and composition, split inheritance, census discrepancy (1,793/3,431 vs 1,287/3,052 degenerate counts), fairness of the 1,248-row comparison, and derivability (added 11:33Z, below 95 percent derivable fails the set); findings on questions 1-5 carry over to v2.1",
-      "pointer": "D/claude_compact_v2_review/out/{REVIEW_BRIEF.md,DISPATCH.md,verdict.json,REVIEW.md}"
-    },
-    {
-      "what": "compact v2.1 converter build launched, adds a derivability admission rule",
-      "count": "adds a derivability admission rule (every derivation recomputable from its cited observations within 1 percent or 0.01 absolute, else refused as underivable_derivation), observations state centres as returned, rel_direction derivations show the two anchor-relative vectors and the product, then the v2 Frame paragraph with the sign rule; Devin Astra max session launched 11:33:54Z, wrapper pid 528873 on trinity-1-3, worktree work/compact_v2_1 on branch compact-v2-1-20260920 from v2 commit 6d3a4d21ae824ca3dc93e47c6aa9dd85c17612b1; output set diagnostic_set_compact_v2_1_20260920_full; heartbeats 11:35, 11:39, 11:44Z",
-      "pointer": "/home/jjyeung/agent_project/agent/scratch/devin_lanes/devin_compact_v21_converter/; D/devin_compact_v21_converter/out/"
-    },
-    {
-      "what": "training staging frozen for v2.1, gated on the review passing",
-      "count": "lane claude_compact_v2_train_stage freezes OneThinker and Qwen protocols like-for-like with arm C and c1, set path and run tag parameterised with v2.1 default (run tags ddp_onethinker_v21_onethinker_20260920T1300Z, ddp_qwen35_v21_qwen_20260920T1300Z); launch scripts refuse without out/REVIEW_PASS.txt; PRELAUNCH.md pending",
-      "pointer": "D/claude_compact_v2_train_stage/out/PRELAUNCH.md"
-    },
-    {
-      "what": "GPU inventory and placement plan for OneThinker and Qwen v2.1",
-      "count": "inventory 11:30Z finds no free 48 GB cards on any reachable node; trinity-1-3 GPUs 1-4 ours (control), 5-6 main-repo replica, jihop2 intermittent; trinity-0-13 GPUs 0-5 Qwen arm C, GPU 6 sam3; trinity-0-18 all eight cards Qwen arm A r6 under vnice; trinity-1-13 and trinity-2-28 occupied by other users (2-28 load 921); trinity-1-18 unreachable; trinity-3-13 24 GB cards only; inline ssh from a Claude subagent was permission-denied, probe ran from a script file; decision: OneThinker v2.1 takes trinity-1-3 GPUs 1-4 after or interleaved with the control's eval cells; Qwen v2.1 takes trinity-0-18 by preempting r6 at a checkpoint boundary once review passes; preemption recipe requested, not executed",
-      "pointer": "D/claude_gpu_inventory/out/GPU_INVENTORY_20260920.md; D/claude_qwen_r5_resume/out/PREEMPT_R6_RECIPE.md (requested)"
-    },
-    {
-      "what": "one-epoch composition control published",
-      "count": "attempt 4 admitted 11:00:23Z on trinity-1-3 GPUs 1-4, 96 steps at 25.6 s/step, finalize started 11:45:13Z; publish root /data3/jjyeung/ddp_onethinker_c1ep_onethinker_20260920T1100Z; ATTEMPTS.md records attempt 1 (foreign pid from jihop2 during staging), attempt 2 (lane's own missing cd), attempt 3 skipped; eval cells staged under out/launch/, gated on validate_training_result, VSTIBench then VSIBench on trinity-1-3 GPUs 1-4 with the jihop2 stability gate",
-      "pointer": "D/claude_armc_1epoch_control/{ATTEMPTS.md,out/HEARTBEAT.log}; D/claude_c1ep_eval_cells/out/launch/"
-    },
-    {
-      "what": "collector r1315 progress",
-      "count": "12,686 finalized at 11:21Z, 382/hour over the last 30 minutes, 36 workers, 503 count zero at 1/5/15 minutes, stall 0s; 20,000 projected about 2026-09-21 09:00Z at 340/hour; REQ-234 step-down rule unchanged (36 to 28 on inbox notice or 15-minute 503 count above 8)",
-      "pointer": "R/{WATCHDOG_HEALTH.json,TPM_READOUT.json}"
-    },
-    {
-      "what": "REQ-235 impact: main-repo P0 ground-truth render defect does not affect this lane",
-      "count": "main repo's REQ-235 (cy=259 against R2 intrinsics on 390 rows) does not affect this lane; the teacher renders from scene meshes with official intrinsics rescaled to 640x480 (collector/prepare_gt_scene.py:165-187); measured max |cy - H/2| = 3.33 px over 306 scenes; wave-1 ScanNet++ preparer and ARKit adapter share the same construction; inbox note warns a |cy - H/2| <= 1 guard would falsely refuse ScanNet, about 8 px is the right tolerance",
-      "pointer": "D/claude_req235_impact/out/REQ235_IMPACT.md; D/INBOX_TO_MAIN_ORCHESTRATOR_REQ235_DISTILL_UNAFFECTED_20260920T1110Z.md"
-    },
-    {
-      "what": "census on trinity-1-13, pace update",
-      "count": "57.6 percent by qid rank at 11:33Z, pace fell to 273 qids/hour, landing now 21:45Z-22:00Z; ruling: let it run, no scoped restart, no second /data2 reader; alert threshold 02:00Z; stage 2 auto-launches on landing; output feeds the full-pool v2.1 arm on 2026-09-21, not tonight's evidence arm",
-      "pointer": "D/claude_compact_convert_newer/out/{CENSUS_ETA.md,BRIEF_luna_devin_launch.md}"
-    },
-    {
-      "what": "wave 2 ScanNet preparation at 65 percent on its first-100 sample",
-      "count": "100 attempted, 65 prepared, refusals invalid_camera_transform 23 and raw_vsi_correlation_failure 12; 15,915 questions prepared of 24,070 attempted, 8,944 membership-v3; burn 0.72 GB/minute, finishing about 14:20Z with about 98 GiB spare above the /data2 floor; projection 680 scenes and 42k questions, extension total near 129k with wave 1's 87,394; next is to union wave-1 and wave-2 registries by qid and replay the bind-time validator before r1316 root B binds",
-      "pointer": "D/devin_poolext_wave1_scannetpp/out/{W2_FIRST100.json,W2_CONTRACT_PIN.json,W2_PACKAGE_CENSUS.json}"
-    },
-    {
-      "what": "ARKitScenes adapter pilot v5 result and deviation-6 ruling",
-      "count": "0 of 50 scenes prepared under the all-32-slots rule; negative control 189/189, coverage 27/27, per-slot failure 12.6 percent compounding to 1.3 percent scene pass; ruling: deviation 6, accept a scene with at least 30 of 32 slots, dropped slots keep the nearest-sample pose and raster but are flagged pixel-unauthenticated, no substitution, per-slot bars unchanged; REPORT_v5.md must add the pose delta (cm, degrees) between nearest and runner-up sample for flagged slots; rerun of the same 50 scenes in progress; one Astra review before any admission",
-      "pointer": "D/devin_arkit_adapter/{REPORT_v5.md,TEST_RESULT_v5.json}"
-    },
-    {
-      "what": "wave 1 (ScanNet++) registry, unchanged this hour",
-      "count": "638 of 700 scenes prepared, 58 refused, 4 deferred, 87,394 eligible questions; REGISTRY_638.json sha256 7a15748558c7e8f1bfa084e49f62074e355df4de196713086746b0ae86cadff9 carries collector_admission=false pending review",
-      "pointer": "D/devin_poolext_wave1_scannetpp/out/REGISTRY_638.json"
-    },
-    {
-      "what": "Qwen arm C c1 and arm A r6 progress",
-      "count": "c1 on trinity-0-13: step 9/288 at 11:35Z, loss 0.63, 275 s/step, ETA about 2026-09-21 09:00Z, leases to 16:44Z; r6 on trinity-0-18: step 112/246 at 11:37Z, loss 0.085, 224 s/step, ETA about 19:45Z, checkpoint every 25 steps",
-      "pointer": "D/claude_qwen_r5_resume/out/{HEARTBEAT_c1.log,PROGRESS_c1.md}; D/claude_trainer_publish_cadence/out/QWEN_R6_NOTE.md"
-    }
-  ],
-  "active_runs": [
-    {
-      "lane": "r1315 teacher collector, root A, live, relaunched on trinity-3-8",
-      "host": "trinity-3-8",
-      "what": "the main trace-collection pipeline; every accepted trace toward the 20,000-trace goal comes from here until root B (r1316) takes over",
-      "pid_or_artifact": "second watchdog pid 2939991 (started 15:20:20Z, v5 remediation script), a separate lease keeper thread, controller launched by the watchdog at 16 workers; lane D/claude_collector_relaunch_20260920T1330Z",
-      "health_check": "cat R/WATCHDOG_HEALTH.json; cat R/TPM_READOUT.json; tail -n 20 R/WATCHDOG_EVENTS.jsonl",
-      "status": "trinity-1-3 died at about 12:58Z holding 12,835 finalized traces (last provider call 12:25:57Z); relaunched on trinity-3-8 under the same identity; a first watchdog on trinity-3-8 died at 15:17Z when a 45-minute receipt scan (12,893 receipts, about 5.1 GB over NFS) let the coordination lease heartbeat age past 1,800 s; a lease keeper now heartbeats independently and a second watchdog has run the controller at 16 workers since 15:20:20Z",
-      "gate": "hold at 16 workers until the Gemini key split with the trinity-3-13 session is agreed; aggregate target under about 6.0M input tokens/min across both sessions (the other session runs 36 workers at about 5.1M/min, measured 13:41Z); never change collector/ on main while it runs; a 45 GB /scratch copy of the run root is staged but paused, resume only at a drain pause",
-      "next_on_completion": "ramp workers up once the key split is agreed; continue toward 20,000 accepted traces; relaunch from the r1316 epoch checkout once root A's unattempted count falls under 64",
-      "survives_session": true
-    },
-    {
-      "lane": "r1316 epoch, root B, sealed and staged",
-      "host": "trinity-1-3 (worktree); production launch host TBD",
-      "what": "the reviewed, contract-verified successor collector root; waits for root A to drain before binding",
-      "pid_or_artifact": "D/claude_r1316_epoch_branch/work/r1316 (branch epoch/r1316-membership-v3, tip 058368c)",
-      "health_check": "cat D/claude_r1316_epoch_branch/out/EPOCH_PREP.md",
-      "status": "unchanged this checkpoint: sealed, contract verify true, reviewed PASS",
-      "gate": "do not fast-forward main until root A's collector stops; launch when root A's unattempted count falls under 64",
-      "next_on_completion": "bind and relaunch the collector from the epoch checkout at r1316",
-      "survives_session": true
-    },
-    {
-      "lane": "compact v2.1 converter build",
-      "host": "trinity-3-8",
-      "what": "Devin Astra max session fixing the derivability defect: adds an admission rule, states centroids as returned, shows rel_direction vector math explicitly",
-      "pid_or_artifact": "wrapper pid 2815847, Devin pid 2815848, launched 13:32:19Z; worktree work/compact_v2_1 on branch compact-v2-1-20260920, 5 commits over base 6d3a4d21ae824ca3dc93e47c6aa9dd85c17612b1, head b5c4f14",
-      "health_check": "git -C /home/jjyeung/agent_project/agent/scratch/devin_lanes/devin_compact_v21_converter/work/compact_v2_1 log --oneline -5",
-      "status": "1,428 of 3,431 candidate rows admitted; VERIFICATION.json, COMPOSITION.md, SPLIT_PROOF.json, TARGET_EXAMPLES.md written; still finishing MATCHED_V1C_SUBSET.json and a phrase census; known coverage gap: zero admitted rows for object_abs_distance, object_rel_distance, room_size_estimation, route_planning out of 854 candidates in those four types",
-      "gate": "the coverage gap means v2.1 alone must not become the sole training set; a planned v2.2 render adds tool-returned distance and footprint values as cited observations (an identity restatement counts as a valid recomputation) once this session exits",
-      "next_on_completion": "dispatch the prepared Astra review (D/claude_compact_v21_review_prep_20260920T1500Z), then launch the v2.2 build",
-      "survives_session": true
-    },
-    {
-      "lane": "compact v2.1 Astra review, prepared not yet dispatched",
-      "host": "not a persistent process; prep artifacts only",
-      "what": "gate-review brief and dispatch prepared for v2.1, to run once the converter build's remaining outputs land",
-      "pid_or_artifact": "D/claude_compact_v21_review_prep_20260920T1500Z/out/{REVIEW_BRIEF_V21.md,DISPATCH_V21.md}",
-      "health_check": "ls D/claude_compact_v21_review_prep_20260920T1500Z/out/",
-      "status": "brief and dispatch written; waits on MATCHED_V1C_SUBSET.json and the phrase census from the converter build",
-      "gate": "the v2 review's FAIL findings on byte fidelity, census discrepancy, fairness, and derivability (0/30) carry over as questions the v2.1 review must re-check",
-      "next_on_completion": "dispatch to Codex Astra once the converter build reports done",
-      "survives_session": true
-    },
-    {
-      "lane": "OneThinker control eval, cell (b) VSIBench",
-      "host": "trinity-1-3 GPU 6",
-      "what": "scores the one-epoch composition control on VSIBench",
-      "pid_or_artifact": "D/claude_c1ep_eval_cells/out/RESULTS_VSIBENCH_C1EP.md",
-      "health_check": "wc -l D/claude_c1ep_eval_cells/out/RESULTS_VSIBENCH_C1EP.md 2>/dev/null || echo not_yet_written",
-      "status": "101 of 500 questions at 15:21Z, about 260 questions/hour",
-      "gate": "runs under the eval_instructed_provisional_58794b8 production harness only",
-      "next_on_completion": "publish RESULTS_VSIBENCH_C1EP.md alongside base and arm C",
-      "survives_session": true
-    },
-    {
-      "lane": "OneThinker control eval, cell (a) VSTIBench",
-      "host": "waiting on four allowlisted idle cards; shards may spread across hosts",
-      "what": "scores the one-epoch composition control on VSTIBench",
-      "pid_or_artifact": "D/claude_evidence_evals_launch_20260920T1400Z/out/WATCH.log",
-      "health_check": "tail -n 20 D/claude_evidence_evals_launch_20260920T1400Z/out/WATCH.log",
-      "status": "258 of 450 questions completed, then stalled waiting for GPU cards",
-      "gate": "harness pins host allowlist and model paths by hash; staged copies served by bind mounts in a private namespace from /scratch/jjyeung/student_evals",
-      "next_on_completion": "resume and finish once four allowlisted idle cards are available",
-      "survives_session": true
-    },
-    {
-      "lane": "Qwen arm C (compact v1c) c1, resumed",
-      "host": "trinity-0-13 GPUs 0-5",
-      "what": "Qwen fine-tune on the compact v1c target set",
-      "pid_or_artifact": "D/claude_qwen_resume2_20260920T1445Z/out/HEARTBEAT_c1_resume2.log",
-      "health_check": "tail -n 20 D/claude_qwen_resume2_20260920T1445Z/out/HEARTBEAT_c1_resume2.log",
-      "status": "hung at 12:38Z during the NFS storm, hung tree terminated, resumed 15:00:51Z from checkpoint step 25 of 288 through the supervisor path after a direct trainer launch was refused (\"Supervisor ownership check is older than five minutes\")",
-      "gate": "judge liveness from metrics.jsonl growth and the torchrun pid, never the wrapper; resume only through the supervisor path on trinity-0-13",
-      "next_on_completion": "publish once training reaches step 288",
-      "survives_session": true
-    },
-    {
-      "lane": "Qwen arm A r6, HELD",
-      "host": "trinity-0-18 (checkpoint being copied off local scratch)",
-      "what": "format-A Qwen fine-tune; paused pending card availability",
-      "pid_or_artifact": "out/HOLD_r6.md; checkpoint copy target /data3/jjyeung/ddp_qwen35_a_qwen_20260920T0400Z_r6/resume_snapshot_step_125/",
-      "health_check": "cat out/HOLD_r6.md",
-      "status": "hung at 12:23Z at checkpoint step 125 of 246; HELD since 15:00:52Z because another user (mehark) took all eight trinity-0-18 cards under the node's vnice policy",
-      "gate": "trinity-0-18 usable only for vnice-wrapped resumable jobs; resume only once cards are available, from the copied checkpoint, never mid-step",
-      "next_on_completion": "resume from resume_snapshot_step_125 once cards free up on trinity-0-18 or another node",
-      "survives_session": true
-    },
-    {
-      "lane": "wave 2 (ScanNet) pool extraction, finished",
-      "host": "not restated this checkpoint",
-      "what": "prepared ScanNet scenes into the pool-extension registry",
-      "pid_or_artifact": "extraction output on disk",
-      "health_check": "cat D/devin_poolext_wave1_scannetpp/out/W2_PROGRESS.md",
-      "status": "finished: 1,046 scenes attempted, 620 prepared",
-      "gate": "union with wave 1 and the bind-time validator replay deferred until the collector is stable",
-      "next_on_completion": "union wave-1 and wave-2 registries by qid, replay the bind-time validator, before r1316 root B binds",
-      "survives_session": true
-    },
-    {
-      "lane": "GPU census and placement plan, completed",
-      "host": "trinity-3-8 (surveying all reachable nodes)",
-      "what": "one-off census informing OneThinker v2.2 and Qwen v2.2 GPU placement",
-      "pid_or_artifact": "D/claude_gpu_census_20260920T1500Z/out/GPU_CENSUS_20260920T1500Z.md",
-      "health_check": "cat D/claude_gpu_census_20260920T1500Z/out/GPU_CENSUS_20260920T1500Z.md",
-      "status": "completed 15:00Z: no node has four free 48 GB cards; trinity-2-28 shows a wedge signature (load about 900, 12 D-state); seven of twelve large-GPU nodes unreachable; trinity-3-8 has eight idle 24 GB cards",
-      "gate": "OneThinker v2.2 plans to take trinity-1-3 GPUs 0 and 6 with gradient accumulation once eval cell (b) finishes; Qwen v2.2 needs six cards that do not exist yet on any reachable node",
-      "next_on_completion": "re-census before either v2.2 launch to confirm card availability",
-      "survives_session": true
-    }
-  ],
-  "round_registry": {
-    "note": "this repo assigns lane names, not round numbers; r1315 is the collector's live root A (36-worker hard ceiling, 12,686 finalized at 11:21Z); r1316 is the sealed, reviewed-PASS successor root B (epoch/r1316-membership-v3, tip 058368c), staged behind root A's drain; no other collector rounds are assigned"
+  {
+   "result": "CP1 m200 floor PASS: VSI-500 +0.3 [-3.0,+3.7], dev 858 +5.2 [+2.5,+7.9]; route-planning loops 9 caps",
+   "pointer": "/scratch/jjyeung/orch_cd/evalx/events/20261109T1441Z_VERDICT_CP1_m200_floor_gate.md"
   },
-  "open_user_decisions": [
-    "No reply yet: whether the trinity-3-13 successor session will hold shared lanes and move its replica off trinity-1-3 GPUs 5-6 (D/INBOX_TO_SUCCESSOR_ORCHESTRATOR_20260920T0335Z.md)",
-    "No reply yet: whether the non-training orchestrator can release trinity-1-3 GPUs 5-6, held by its r1326 replica vLLM server (D/INBOX_TO_NONTRAINING_ORCHESTRATOR_20260920T0550Z.md)",
-    "No reply yet: REQ-20260920-234's Gemini-key concurrency and start time, against this lane's proposed 8-episode cap with a collector step-down to 28 (D/INBOX_TO_SUCCESSOR_ORCHESTRATOR_20260920T0855Z.md)",
-    "Whether compact v2.1 clears the Astra review's 95 percent derivability threshold and the five carried-over questions from the v2 review; only then do OneThinker and Qwen v2.1 launch",
-    "The GPU preemption of Qwen arm A r6 on trinity-0-18: the recipe is requested but not yet written or executed",
-    "ARKitScenes adapter deviation 6 (accept 30 of 32 slots, flag dropped slots pixel-unauthenticated) needs its own Astra review before admission",
-    "Retire the old Qwen arm C gate (pid 752616) on trinity-0-18 in favor of the r6/c1 replacements",
-    "Confirm the 09-24 numbers freeze on root A, expected about 09-22 12:00Z",
-    "Whether the rewrite arm (HELD) gets any training slot going forward, now that v2.1 is the live remediation path",
-    "Membership size: 105,000 rows (default) vs. the 153,412-row full complement",
-    "Whether object_rel_distance candidates with only positional answer support (about 400 of 977 in the compact set) are acceptable training targets or need a separate admission tier",
-    "Adopt the tiered target-admission rubric (Tier I blocks, Tier II recorded) as the definition for bulk conversion",
-    "Preparers needed for ADT, ProcTHOR, S3DIS (ScanNet v3 stays parked)",
-    "Whether to overturn the provisional Format E admission",
-    "27B/31B student: go or hold, pending the 9B result",
-    "Cross-node Devin launch spread: blocked on diagnosing the silent ssh -f failure"
-  ],
-  "do_not_redo": [
-    "change collector/ on main while the collector runs",
-    "run the collector past 36 workers, run remote workers, or drain, given the scale-out judge's verdict",
-    "use eval-allow-checkpoint-20260920 (f09e526) to regenerate a base cell; the attempt-authority guard forbids it",
-    "launch on trinity-3-23, trinity-0-3, trinity-0-28, trinity-1-8, trinity-2-13, trinity-0-8, trinity-1-18, or trinity-0-23",
-    "touch trinity-1-13 GPUs 2-5 (zixinguo's live job) or trinity-1-3 GPUs 5-6 (the main repo's r1326 replica vLLM server) without a reply confirming release",
-    "launch an unwrapped job on trinity-0-18; every launch there is vnice-wrapped, and the planned r6 preemption waits for a checkpoint boundary, never a mid-step kill",
-    "provision a second Gemini key, or let REQ-20260920-234 draw on the key before a concurrency cap and start time are agreed",
-    "judge training liveness from the wrapper process; check metrics.jsonl growth and the torchrun pid instead",
-    "score a distilled adapter, or run any new paper cell, on a harness other than eval_instructed_provisional_58794b8",
-    "run more than one bulk render at a time on /data2 while the collector runs, or open a second /data2 reader while the census runs",
-    "fast-forward the r1316 epoch branch to main before root A's collector stops",
-    "build a training-set split without running holdout_stability_check.py against every previously published split record",
-    "train from diagnostic_set_compact_v2_20260920 (no _full suffix) under any name; it is a partial, unverified set",
-    "train from compact v2 as-is at all; it is reviewed and rendered but superseded by v2.1 before any training input decision",
-    "give the free-form rewrite arm a training slot on the strength of length alone; it is HELD",
-    "run the format-A ablation on idle GPUs before checking whether a student needs those cards first",
-    "adopt a REQ-235 cy-offset guard tighter than about 8 px; a 1 px guard would falsely refuse ScanNet-family scenes",
-    "assume Qwen arm A r6 trains on format E; it trains on format A",
-    "let the compact-target renderer run against a dirty main working tree; it hard-aborts at compact_counted_v2.py:758"
-  ],
-  "session_notes": [
-    "This session took command at 03:25Z on the user's direct instruction; the prior trinity-1-3 session's pass-off note is at D/PASSOFF_FROM_TRINITY_1_3_SESSION_20260920T0319Z.md",
-    "This write is a checkpoint, not a pass-off; the session keeps command",
-    "Footgun: the compact-target renderer hard-aborts on a dirty main working tree (compact_counted_v2.py:758); the v2 render's first attempt died on the uncommitted 11:00Z handoff, which is why this checkpoint writes and commits both files in one motion",
-    "Footgun: a Devin lane's recorded pid is the wrapper's timeout process, not the working session; use heartbeat timestamps and out/ file growth to judge liveness, not the pid alone",
-    "Footgun: inline ssh from a Claude subagent came back permission-denied during the GPU inventory probe; run probes from a script file instead",
-    "Footgun: Devin's devin.out buffers in -p mode and can lag real progress; cross-check against heartbeat files before declaring a session stalled",
-    "Footgun: trinity-1-3 sees intermittent contention from jihop2, which has twice taken and released GPUs during this lane's own launch attempts; always check for a foreign pid before blaming your own launcher",
-    "The user personally killed the trinity-0-13 vLLM replica twice this project to give GPUs 0-5 to this lane; do not assume a third recurrence will be handled the same way without checking first",
-    "The derivability finding traces back to the user's own read of two example files, not an automated audit; when producing arm examples going forward, render observations exactly as returned, since a lossy summary can hide a defect the raw data would show",
-    "The error-analysis lane's earlier composition hypothesis (57 percent of arm C's rows being one relation type) is now understood as a symptom, not the root cause; the root cause is that most of those rows never state a recomputable derivation",
-    "Qwen evals cost 14-22 items per hour per GPU, which is the practical reason the GPU plan chooses to preempt r6 rather than wait for it to finish before starting Qwen v2.1",
-    "check_commit_checkpoint.py does not exist in this repository; the pre-write hook that expects it fails with No such file or directory, and that failure is expected here, not a sign of a broken commit"
-  ],
-  "survives_vs_dies": {
-    "survives": [
-      {
-        "item": "collector controller, second watchdog (pid 2939991), and lease keeper on trinity-3-8",
-        "resume_recipe": "read R/WATCHDOG_HEALTH.json and R/TPM_READOUT.json; if the watchdog pid is gone, relaunch per D/claude_collector_relaunch_20260920T1330Z/out/DECISION.md"
-      },
-      {
-        "item": "compact v2.1 converter Devin session (wrapper pid 2815847)",
-        "resume_recipe": "check the branch head at /home/jjyeung/agent_project/agent/scratch/devin_lanes/devin_compact_v21_converter/work/compact_v2_1; if commits stop advancing, resume the Devin session from that workspace"
-      },
-      {
-        "item": "OneThinker control eval cell (b) VSIBench driver on trinity-1-3 GPU 6",
-        "resume_recipe": "check RESULTS_VSIBENCH_C1EP.md question count against the last known 101/500; if stalled, relaunch per D/claude_c1ep_eval_cells/out/launch/"
-      },
-      {
-        "item": "OneThinker control eval cell (a) VSTIBench, waiting",
-        "resume_recipe": "check D/claude_evidence_evals_launch_20260920T1400Z/out/WATCH.log; resume once four allowlisted idle cards are found"
-      },
-      {
-        "item": "Qwen arm C c1 torchrun job on trinity-0-13",
-        "resume_recipe": "read D/claude_qwen_resume2_20260920T1445Z/out/HEARTBEAT_c1_resume2.log and the run root's metrics.jsonl; resume only through the supervisor path"
-      },
-      {
-        "item": "Qwen arm A r6 checkpoint copy to /data3",
-        "resume_recipe": "verify resume_snapshot_step_125/ is complete; resume training once cards are available, never mid-step"
-      },
-      {
-        "item": "wave 2 (ScanNet) extraction output on disk",
-        "resume_recipe": "no live process to resume; union with wave 1 and replay the bind-time validator when the collector is stable"
-      },
-      {
-        "item": "all lane and repo files written to disk",
-        "resume_recipe": "git log and D/ directory listings are authoritative; nothing here needs replay"
-      }
-    ],
-    "dies_or_stalls": [
-      {
-        "item": "every Claude subagent lane itself (the reasoning process, not its artifacts)",
-        "resume_recipe": "re-read the lane's out/ directory for its last written file, then relaunch a fresh Claude subagent with that file as context"
-      },
-      {
-        "item": "collector watchdog observer/babysitter",
-        "resume_recipe": "relaunch watching R/WATCHDOG_HEALTH.json and R/TPM_READOUT.json on the same cadence; the collector and its watchdog survive"
-      },
-      {
-        "item": "compact v2.1 Devin build babysitter",
-        "resume_recipe": "relaunch watching the compact_v2_1 branch head and the Devin workspace's out/ files; the Devin session survives"
-      },
-      {
-        "item": "eval-cell watcher for the OneThinker control (cells a and b)",
-        "resume_recipe": "relaunch watching D/claude_c1ep_eval_cells/out/ and D/claude_evidence_evals_launch_20260920T1400Z/out/WATCH.log; the underlying eval drivers survive"
-      },
-      {
-        "item": "Qwen c1 and r6 babysitters",
-        "resume_recipe": "relaunch watching HEARTBEAT_c1_resume2.log for c1 and out/HOLD_r6.md for r6; the c1 torchrun job survives, r6 is intentionally paused"
-      },
-      {
-        "item": "the orchestrator tick and cross-orchestrator inbox queue watcher",
-        "resume_recipe": "must be recreated by each successor session from this handoff and agent/handoff_liveness.json; check all open inbox paths under D/ for new notes"
-      }
-    ]
+  {
+   "result": "GXC native m200 9.8 deg (+0.6 vs frozen, below the 2-deg bar)",
+   "pointer": "/scratch/jjyeung/orch_cd/gx_build/events/20261109T1444Z_RESULT_GXN_m200.md"
   },
-  "latest_handoff": "docs/DISTILLATION_HANDOFF_20260920_1530Z.md",
-  "updated_utc": "2026-09-20T15:30:00Z"
+  {
+   "result": "Baselines verified (GeoWeaver-10B 75.05/57.5; Cambrian-P 73.7 at 128 frames)",
+   "pointer": "/scratch/jjyeung/orch_cd/evalx/events/20261109T1326Z_RESULT_baselines_verified.md"
+  }
+ ],
+ "active_runs": [
+  {
+   "lane": "p3_build5",
+   "what": "CP1 main training run (B+C config) + CP1-R switch target + CP2 kit",
+   "where": "AWS job 137064, root ap/f2ad01ad run 49becb79; CP1-R root ap/9281911f; CP2 kit work/aws_cp2",
+   "health_check": "pgrep -f 'agent/scratch/devin_lanes/p3_build/BRIEF_SUCCESSOR5.md'; tail -n 3 /scratch/jjyeung/orch_cd/p3_build/STATUS.md; ls -t /scratch/jjyeung/orch_cd/p3_build/events | head -3; tail -n 1 /scratch/jjyeung/orch_cd/p3_build/logs/watch_cp1_137064.log",
+   "gate": "m400 ~21:05Z -> pause at next save -> evalx AWS read -> loss_doctor call",
+   "next": "resume CP1 or launch CP1-R t32; build CP2"
+  },
+  {
+   "lane": "evalx2",
+   "what": "all evaluation reads, on AWS",
+   "where": "/scratch/jjyeung/orch_cd/evalx",
+   "health_check": "pgrep -f 'agent/scratch/devin_lanes/evalx/BRIEF_SUCCESSOR2.md'; tail -n 3 /scratch/jjyeung/orch_cd/evalx/STATUS.md; ls -t /scratch/jjyeung/orch_cd/evalx/events | head -3",
+   "gate": "m400 read during the CP1 pause",
+   "next": "route caps/room/floor tallies to loss_doctor; GXP-mix fusion read (X31); first ReVSI dev read"
+  },
+  {
+   "lane": "loss_doctor2",
+   "what": "CP1 training diagnosis and the m400 switch call",
+   "where": "/scratch/jjyeung/orch_cd/loss_doctor",
+   "health_check": "pgrep -f 'agent/scratch/devin_lanes/loss_doctor/BRIEF_SUCCESSOR2.md'; tail -n 3 /scratch/jjyeung/orch_cd/loss_doctor/STATUS.md; ls -t /scratch/jjyeung/orch_cd/loss_doctor/events | head -3",
+   "gate": "switch rule in its brief",
+   "next": "post the call within 30 min of the read"
+  },
+  {
+   "lane": "gx_build",
+   "what": "GXP-mix (G3T patch fusion) AWS world-8 kit",
+   "where": "AWS root ap/56b7153a; CPU array 135321",
+   "health_check": "pgrep -f 'agent/scratch/devin_lanes/gx_build/BRIEF_SUCCESSOR.md'; tail -n 3 /scratch/jjyeung/orch_cd/gx_build/STATUS.md; ls -t /scratch/jjyeung/orch_cd/gx_build/events | head -3",
+   "gate": "ORCH GO at the m400 re-plan or USER grant",
+   "next": "cg1 2-GPU check -> t leg -> m200 read vs CP1"
+  },
+  {
+   "lane": "mdg_build",
+   "what": "MDG-A mask-decoder grounding head on frozen T0 m800",
+   "where": "trinity-0-13 GPUs 0-4; data via Mind",
+   "health_check": "pgrep -f 'agent/scratch/devin_lanes/mdg_build/BRIEF.md'; tail -n 3 /scratch/jjyeung/orch_cd/mdg_build/STATUS.md; ls -t /scratch/jjyeung/orch_cd/mdg_build/events | head -3",
+   "gate": "data lands ~22:25Z; canaries; CPU first batch",
+   "next": "launch ~23:00Z; fail-fast ~23:40Z; read ~Tue 06:00Z"
+  },
+  {
+   "lane": "aws_evac3",
+   "what": "AWS -> Mind copies; rmkit16 dry run",
+   "where": "AWS sender 109470; dry run 132671",
+   "health_check": "pgrep -f 'agent/scratch/devin_lanes/aws_evac/BRIEF_SUCCESSOR3.md'; tail -n 3 /scratch/jjyeung/orch_cd/aws_evac/STATUS.md; ls -t /scratch/jjyeung/orch_cd/aws_evac/events | head -3",
+   "gate": "Mind > 3 TB free",
+   "next": "post dry-run 2 summary for ORCH review"
+  }
+ ],
+ "round_registry": {
+  "note": "distillation runs are named by run hex, not round numbers; see each lane's STATUS"
+ },
+ "open_user_decisions": [
+  "May evals take up to 4 AWS GPUs above the 32 per CP1 milestone? default no",
+  "May distillation use 8 more AWS GPUs tonight for GXP-mix? default no",
+  "May SAM 3 sit inside the model as a grounding tower? default yes"
+ ],
+ "do_not_redo": [
+  "pose probes at 1x/2x/4x pixels or readout redesigns (posediag settled: the encoder is the limit)",
+  "SAM 3 zero-shot or A1 masks as the click source (both fail G and R)",
+  "F64 m100 read (moot)",
+  "T0 m1200 as an init (pointing canary fails)",
+  "bulk AWS -> Trinity pulls over the code-aws tunnel"
+ ],
+ "session_notes": [
+  "code-aws tunnel moves 0.25-0.8 MB/s; route bulk data via Mind",
+  "governor floor-throttle on a stream sharing the code-aws ControlMaster freezes all AWS ssh; use a dedicated ControlPath for bulk pulls",
+  "AWS cpu /tmp is RAM-backed; CPU first-batch checks stage only first-batch members; cpu-normal 2 nodes per user; our lanes hold at most 1",
+  "never USR1 stops; plain scancel after a complete save",
+  "dense G3T cache binds loader-module hashes; keep c1r_ref.py byte-identical to e6456bc"
+ ],
+ "survives_vs_dies": {
+  "survives": [
+   "AWS jobs 137064, 109470, 132671, 135321",
+   "six detached Devin lanes (timeouts Tue UTC: gx_build 09:21Z, aws_evac 12:01Z, p3_build 13:12Z, mdg_build 13:15Z, evalx 14:40Z, loss_doctor 15:35Z)",
+   "mdg_build governed pulls",
+   "lane files"
+  ],
+  "dies": [
+   "orchestrator event waiter and lane watcher (copies in /scratch/jjyeung/orch_cd/orch_tools/; re-arm with run_in_background)",
+   "queue watcher (agent/scripts/queue_watcher.sh; re-arm)"
+  ]
+ }
 }
