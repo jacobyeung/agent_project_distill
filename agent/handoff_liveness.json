@@ -1,131 +1,110 @@
 {
- "written_utc": "2026-11-09T20:50:00Z",
- "updated_utc": "2026-11-09T21:00:00Z",
- "latest_handoff": "docs/DISTILLATION_HANDOFF_20261109_2045Z.md",
- "head": {
-  "commit": "e40470b",
-  "meaning": "distill main; AGENTS.md build-experiments-first rule; this handoff commit follows"
- },
- "command": {
-  "session": "trinity-2-18, Claude Opus 5.5, session cdb578de (agent-project-distill-4b)",
-  "role": "distillation orchestrator",
-  "log": "/scratch/jjyeung/orch_cd/ORCH_HANDOFF.md"
- },
- "user_rulings_today": [
-  "It's totally fine if we have to use 64 frames or you know 96 frames ... We don't have to evaluate at 32 frames.",
-  "can you stop at 7:30am on 9th until 12pm monday? instead of 8am?",
-  "i am also open to more dratsic architecture changes! We need to get this you know, pose, depth, pointing to work.",
-  "we can also use other base architectures if needed. open to everything. we should prob stay around 9b range so we can train on h100s. so prob not up to 27b range unless you really think it is necessary. 13b eg is fine.",
-  "We should still you know save the weights of the strongest uh models we have and ideally the state for training them. You don't have to save you know earlier checkpoints.",
-  "wait, 32 in total 12pm mmonday",
-  "yes, feel free to use argon to cross check! ... until tomorrow six pm PT Monday night PT uh you can use max for agents if needed",
-  "The key thing that I care about is we have a model that can you know fit run locally ideally like from you know nine B. Eleven B is fine. And it would be like an int-to-end model. I don't need agentic loops",
-  "stop aws gpus",
-  "no more aws"
- ],
- "results_banked_today": [
-  {
-   "result": "Pose limit is the Qwen encoder: ViT probe chance (63-81 deg), G3T camera tokens 7.5-11, G3T pose 3.1-3.6",
-   "pointer": "/data2/jjyeung/agent_project_data/distill_design/POSE_PLATEAU_DIAGNOSIS_20261109.md"
+  "written_utc": "2026-11-10T01:10:00Z",
+  "updated_utc": "2026-11-10T01:10:00Z",
+  "latest_handoff": "docs/DISTILLATION_HANDOFF_20261110_0110Z.md",
+  "head": {
+    "commit": "bd8c901",
+    "meaning": "distill main before this handoff commit; this commit adds the 11-10 01:10Z handoff and this manifest"
   },
-  {
-   "result": "TOWER-0 PARTIAL-1: P pass, depth G3T x s AbsRel 0.063, G fail (SAM 3 74/66, A1 67.6/79.7, A1 masks 0/4 types)",
-   "pointer": "/scratch/jjyeung/orch_cd/ttower/events/20261109T1320Z_RESULT_successor_FINAL.md"
+  "command": {
+    "session": "trinity-2-18, Claude Fable 5.2, session 0d2c21b3 (agent-project-distill-1d); successor starts from /scratch/jjyeung/orch_home_distill",
+    "role": "distillation orchestrator",
+    "log": "/scratch/jjyeung/orch_cd/ORCH_HANDOFF.md",
+    "state": "/scratch/jjyeung/orch_cd/ORCH_STATE_20261110T0030Z.md",
+    "plan": "/scratch/jjyeung/orch_cd/REPLAN_RULINGS_20261109.md"
   },
-  {
-   "result": "CP1 m200 floor PASS: VSI-500 +0.3 [-3.0,+3.7], dev 858 +5.2 [+2.5,+7.9]; route-planning loops 9 caps",
-   "pointer": "/scratch/jjyeung/orch_cd/evalx/events/20261109T1441Z_VERDICT_CP1_m200_floor_gate.md"
-  },
-  {
-   "result": "GXC native m200 9.8 deg (+0.6 vs frozen, below the 2-deg bar)",
-   "pointer": "/scratch/jjyeung/orch_cd/gx_build/events/20261109T1444Z_RESULT_GXN_m200.md"
-  },
-  {
-   "result": "Baselines verified (GeoWeaver-10B 75.05/57.5; Cambrian-P 73.7 at 128 frames)",
-   "pointer": "/scratch/jjyeung/orch_cd/evalx/events/20261109T1326Z_RESULT_baselines_verified.md"
-  }
- ],
- "active_runs": [
-  {
-   "lane": "p3_build5",
-   "what": "CP1 main training run (B+C config) + CP1-R switch target + CP2 kit",
-   "where": "CP1 STOPPED (USER) - job 137064 cancelled 20:52Z, resumable runs/49becb79/checkpoint_000346; CP1-R root ap/9281911f READY; CP2 kit work/aws_cp2",
-   "health_check": "pgrep -f 'agent/scratch/devin_lanes/p3_build/BRIEF_SUCCESSOR5.md'; tail -n 3 /scratch/jjyeung/orch_cd/p3_build/STATUS.md; ls -t /scratch/jjyeung/orch_cd/p3_build/events | head -3; tail -n 1 /scratch/jjyeung/orch_cd/p3_build/logs/watch_cp1_137064.log",
-   "gate": "AWS GPUs stopped by the user; every GPU launch waits for the user | NO MORE AWS (USER 11-09 12:54 PT)",
-   "next": "resume CP1 (or CP1-R) only when the user allows AWS GPUs; build CP2"
-  },
-  {
-   "lane": "evalx2",
-   "what": "all evaluation reads, on AWS",
-   "where": "/scratch/jjyeung/orch_cd/evalx",
-   "health_check": "pgrep -f 'agent/scratch/devin_lanes/evalx/BRIEF_SUCCESSOR2.md'; tail -n 3 /scratch/jjyeung/orch_cd/evalx/STATUS.md; ls -t /scratch/jjyeung/orch_cd/evalx/events | head -3",
-   "gate": "AWS GPUs stopped by the user; hold all AWS GPU jobs | NO MORE AWS (USER 11-09 12:54 PT)",
-   "next": "route caps/room/floor tallies to loss_doctor; GXP-mix fusion read (X31); first ReVSI dev read"
-  },
-  {
-   "lane": "loss_doctor2",
-   "what": "CP1 training diagnosis and the m400 switch call",
-   "where": "/scratch/jjyeung/orch_cd/loss_doctor",
-   "health_check": "pgrep -f 'agent/scratch/devin_lanes/loss_doctor/BRIEF_SUCCESSOR2.md'; tail -n 3 /scratch/jjyeung/orch_cd/loss_doctor/STATUS.md; ls -t /scratch/jjyeung/orch_cd/loss_doctor/events | head -3",
-   "gate": "switch rule in its brief | NO MORE AWS (USER 11-09 12:54 PT)",
-   "next": "post the call within 30 min of the read"
-  },
-  {
-   "lane": "gx_build",
-   "what": "GXP-mix (G3T patch fusion) AWS world-8 kit",
-   "where": "AWS root ap/56b7153a; CPU array 135321",
-   "health_check": "pgrep -f 'agent/scratch/devin_lanes/gx_build/BRIEF_SUCCESSOR.md'; tail -n 3 /scratch/jjyeung/orch_cd/gx_build/STATUS.md; ls -t /scratch/jjyeung/orch_cd/gx_build/events | head -3",
-   "gate": "AWS GPUs stopped by the user; hold all AWS GPU jobs | NO MORE AWS (USER 11-09 12:54 PT)",
-   "next": "cg1 2-GPU check -> t leg -> m200 read vs CP1"
-  },
-  {
-   "lane": "mdg_build",
-   "what": "MDG-A mask-decoder grounding head on frozen T0 m800",
-   "where": "trinity-0-13 GPUs 0-4; data via Mind",
-   "health_check": "pgrep -f 'agent/scratch/devin_lanes/mdg_build/BRIEF.md'; tail -n 3 /scratch/jjyeung/orch_cd/mdg_build/STATUS.md; ls -t /scratch/jjyeung/orch_cd/mdg_build/events | head -3",
-   "gate": "data lands ~22:25Z; canaries; CPU first batch | NO MORE AWS (USER 11-09 12:54 PT)",
-   "next": "launch ~23:00Z; fail-fast ~23:40Z; read ~Tue 06:00Z"
-  },
-  {
-   "lane": "aws_evac3",
-   "what": "AWS -> Mind copies; rmkit16 dry run",
-   "where": "AWS sender 109470; dry run 132671",
-   "health_check": "pgrep -f 'agent/scratch/devin_lanes/aws_evac/BRIEF_SUCCESSOR3.md'; tail -n 3 /scratch/jjyeung/orch_cd/aws_evac/STATUS.md; ls -t /scratch/jjyeung/orch_cd/aws_evac/events | head -3",
-   "gate": "Mind > 3 TB free | NO MORE AWS (USER 11-09 12:54 PT)",
-   "next": "post dry-run 2 summary for ORCH review"
-  }
- ],
- "round_registry": {
-  "note": "distillation runs are named by run hex, not round numbers; see each lane's STATUS"
- },
- "open_user_decisions": [
-  "May SAM 3 sit inside the model as a grounding tower? default yes",
-  "May the read-only AWS -> Mind copy-off resume (no compute)? default no"
- ],
- "do_not_redo": [
-  "pose probes at 1x/2x/4x pixels or readout redesigns (posediag settled: the encoder is the limit)",
-  "SAM 3 zero-shot or A1 masks as the click source (both fail G and R)",
-  "F64 m100 read (moot)",
-  "T0 m1200 as an init (pointing canary fails)",
-  "bulk AWS -> Trinity pulls over the code-aws tunnel"
- ],
- "session_notes": [
-  "code-aws tunnel moves 0.25-0.8 MB/s; route bulk data via Mind",
-  "governor floor-throttle on a stream sharing the code-aws ControlMaster freezes all AWS ssh; use a dedicated ControlPath for bulk pulls",
-  "AWS cpu /tmp is RAM-backed; CPU first-batch checks stage only first-batch members; cpu-normal 2 nodes per user; our lanes hold at most 1",
-  "never USR1 stops; plain scancel after a complete save",
-  "dense G3T cache binds loader-module hashes; keep c1r_ref.py byte-identical to e6456bc"
- ],
- "survives_vs_dies": {
-  "survives": [
-   "no AWS jobs (all cancelled: USER \"no more aws\")",
-   "six detached Devin lanes (timeouts Tue UTC: gx_build 09:21Z, aws_evac 12:01Z, p3_build 13:12Z, mdg_build 13:15Z, evalx 14:40Z, loss_doctor 15:35Z)",
-   "mdg_build governed pulls",
-   "lane files"
+  "user_rulings_today": [
+    "2026-11-09 12:51 PT: \"stop aws gpus\"",
+    "2026-11-09 12:56 PT: \"no more awsjobs!!! only copying from aws\"",
+    "2026-11-09 13:03 PT: \"We should focus our efforts on Trinity and Orchard now. All the model weights and everything we need from AWS please copy off. For coding and debugging, I recommend you use Opus subagents.\"",
+    "2026-11-09 13:07 PT: \"After we copy over from AWS, please remove it from AWS.\"",
+    "2026-11-09 ~13:20 PT: \"you don't have to only use Opus agents. You can use Sonnet and whatever as well. I was just saying for coding, I prefer Opus actually over Fable.\"",
+    "2026-11-09 ~13:40 PT: raw data that can be downloaded again need not be copied; extracted features (above all H100-computed) are worth copying",
+    "2026-11-09 ~13:41 PT: \"you can use other large GPU trinity nodes. Just need to vnice on them\" (trinity-0-8, 0-23, 3-23 stay excluded; question about 0-8 open)",
+    "2026-11-09 14:25 PT: \"Can we copy only weights? Need to remove split and ap asap\" / \"Definitely need to remove all the code.\" / \"Only aws moves now\"",
+    "2026-11-09 ~14:27 PT: \"We only need the newest resume checkpoint.\"",
+    "2026-11-09 ~14:35 PT (to main, relayed): \"Basically, if AWS needs any IO, then it gets priority. But if you don't need it right now, then don't worry.\"",
+    "2026-11-09 ~14:50 PT: \"only final useful weights please\"; \"dw about any limits of io\" (said about the copy off AWS)",
+    "2026-11-09 ~16:10 PT: \"we are moving off aws anyways by today so no need to talk to the other orchestrator\""
   ],
-  "dies": [
-   "orchestrator event waiter and lane watcher (copies in /scratch/jjyeung/orch_cd/orch_tools/; re-arm with run_in_background)",
-   "queue watcher (agent/scripts/queue_watcher.sh; re-arm)"
-  ]
- }
+  "results_banked_today": [
+    "AWS exit complete: split/, ap/, leftovers and our home files gone from AWS (checked 2026-11-10T00:19Z); no job of ours remains",
+    "Mind verified: CP1 checkpoint_000346 all 66 files (d/w19/need/need0_000-005), plus the earlier final weights and states (T0, T1, T2, C1-a, GX frozen/ft/native, Test 3, P1 family, f17 line, CP1 m200 and state 292)",
+    "GCS gs://cmu-gpucloud-jjyeung/ae/ about 610 GB: CP1 346, GXP 218, GH0, CP1 m50/m100, CP1 pilot, main's weights/packages/tools/checkpoints; maps in /scratch/jjyeung/orch_cd/aws_home_copy_20261109/ and aws_evac/inv/GCS_OBJECT_MAP_20261109.tsv",
+    "Off-AWS plan: distill_design/OFF_AWS_REPLAN_20261109.md, corrected by /scratch/jjyeung/orch_cd/REPLAN_RULINGS_20261109.md (three-refuter pass)",
+    "Copy-off inventory: distill_design/AWS_COPYOFF_MANIFEST_20261109.md (+ .tsv); member-level clear tool record distill_design/AWS_CLEAR_AFTER_COPY_20261109.md (tool never run)",
+    "Code backup: /data3/jjyeung/code_backup_20261109/ (27 git bundles, 14 kit tars, 731 MB, sha256 verified)",
+    "Orchestrator home outside the repository: /scratch/jjyeung/orch_home_distill"
+  ],
+  "active_runs": [
+    {
+      "lane": "mdg_build",
+      "what": "MDG-A: 39M mask decoder on frozen T0 m800, the grounding test; world 8 on trinity-0-18 under vnice, inputs in /dev/shm/mdg",
+      "where": "Devin lane on trinity-2-18 (brief agent/scratch/devin_lanes/mdg_build/BRIEF.md); not launched; lane timeout Tue 13:15Z",
+      "health_check": "pgrep -f devin_lanes/mdg_build/; tail -n 3 /scratch/jjyeung/orch_cd/mdg_build/STATUS.md; ls -t /scratch/jjyeung/orch_cd/mdg_build/events | head -3",
+      "gate": "BLOCKED since 2026-11-09T21:40Z: last 15 GB (T0 tail, frames c_1-c_3, anchors; priority 0) wait in the IO governor behind main's running port_trinity_qwen_weights; the governor does not preempt. Event 20261110T0045Z_BLOCKER_priority0_not_admitted.md",
+      "next": "launch when the data lands; fail-fast at step 600; read about 6 h later against the MDG record's bars; apply the decision rule in REPLAN_RULINGS; fallback host trinity-0-13 GPUs 0-3 until 06:00Z Tue"
+    },
+    {
+      "lane": "evalx",
+      "what": "ReVSI dev cap71 reads (T0 m800, then CP1 m200, then CP1 m200 at 64 vs 32 frames) on trinity-0-13 GPUs 0-3; then the Orchard read kit",
+      "where": "Devin lane on trinity-2-18 (brief evalx/BRIEF_SUCCESSOR2.md); lane timeout Tue 14:40Z",
+      "health_check": "pgrep -f devin_lanes/evalx/; tail -n 3 /scratch/jjyeung/orch_cd/evalx/STATUS.md; ls -t /scratch/jjyeung/orch_cd/evalx/events | head -3",
+      "gate": "inputs wait in the same governor queue; drive_0013.sh launches a read only if it ends by 05:50Z; main takes all seven cards at 06:00Z Tue",
+      "next": "post each read; on CARDS_RELEASED tell main at once; then build the Orchard in-allocation read kit"
+    },
+    {
+      "lane": "orchard_cp2",
+      "what": "port of the 9B training line to Orchard at world 4; first launch CP1-Rv (trainer fbe516c, 32 frames, GX off, one pose stream, routing stream rebuilt from derivgen6 rows)",
+      "where": "Devin lane on trinity-2-18 (brief orchard_cp2/BRIEF_SUCCESSOR.md); Orchard job 167590 (general, 1 GPU, prep + first batch) pending; lane timeout Tue ~22:40Z",
+      "health_check": "pgrep -f devin_lanes/orchard_cp2/; tail -n 3 /scratch/jjyeung/orch_cd/orchard_cp2/STATUS.md; ls -t /scratch/jjyeung/orch_cd/orchard_cp2/events | head -3",
+      "gate": "frames stream waits in the governor; no submit to Orchard's advanced queue before the orchestrator's GO; 30 minutes' notice to main first",
+      "next": "pre-launch card event -> orchestrator review -> GO -> 24-h legs; relaunch a loss reader when the run starts"
+    },
+    {
+      "lane": "mdg_next",
+      "what": "routed-read kit (MDG clicks + G3T x s pose + own depth through v3.11 programs against direct), stage-B merge, NO-GO card",
+      "where": "Devin lane on trinity-2-18 (brief mdg_next/BRIEF.md); NO-GO card at mdg_next/work/NOGO_CARD_grounding_fallback.md; lane timeout Tue ~21:35Z",
+      "health_check": "pgrep -f devin_lanes/mdg_next/; tail -n 3 /scratch/jjyeung/orch_cd/mdg_next/STATUS.md; ls -t /scratch/jjyeung/orch_cd/mdg_next/events | head -3",
+      "gate": "G3T weights (HF thatbrguy/g3t, 5.63 GB) download waits in the governor; no GPU process without the orchestrator's GO",
+      "next": "kit READY event before the MDG-A read; it runs on trinity-0-18 right after MDG-A"
+    }
+  ],
+  "round_registry": {
+    "note": "distillation runs are named by run hex, not round numbers; see each lane's STATUS"
+  },
+  "open_user_decisions": [
+    "IO governor: pause main's port_trinity_qwen_weights for about 50 minutes, or allow two streams side by side? Default: wait for main (note at /scratch/jjyeung/open_model_port/TO_MAIN_20261110T0101Z.md)",
+    "Push lane branches to the GitHub remote at each hand-off? Default: /data3 bundles only",
+    "13.6 GB staged by mistake on trinity-0-8 (/scratch/jjyeung/envs/sam3_capretry_native_v1, envs/p1cpu, orch_cd/mdg_build/work): the user decides",
+    "Does 'other large GPU nodes under vnice' include trinity-0-8? Default: no",
+    "Earlier rows in /data2/jjyeung/agent_project_data/SAVED_USER_QUESTIONS.md: ReVSI cap71, LIBERO B2 control, posed-room access, SAM 3 as a tower, Orchard slot sharing, gcloud on compute nodes"
+  ],
+  "do_not_redo": [
+    "Never contact code-aws again unless the user says so; nothing of ours is left there",
+    "Never use trinity-0-8, trinity-0-23 or trinity-3-23",
+    "Do not rebuild the member-level AWS clear tool or the root-clear script; the user cleared AWS by hand",
+    "Do not resume CP1, GXP-mix or 9B training on Trinity; the plan is CP1-Rv on Orchard (REPLAN_RULINGS)",
+    "Do not copy into /home or /data* with plain rsync or verify with bare sha256sum; use /scratch/jjyeung/io_governor/copy_archive.py --job"
+  ],
+  "session_notes": [
+    "A Claude session whose working directory is a git work tree on /home runs a whole-repository git status after every Bash call; start from /scratch/jjyeung/orch_home_distill",
+    "A Devin -p lane that ends its turn does not wake again: briefs must say stay alive in a sleep loop and take your own defaults",
+    "The deletion guard blocks any agent Bash command that looks like a deletion, including note text and quoted strings; write such notes with the file tool; the user runs deletions",
+    "The IO governor runs one stream and reorders only at admission; a higher priority does not interrupt a running record",
+    "GCS uploads: session URIs minted on Trinity + aws_evac/kit/aws/u.py, about 16 MB/s per stream, 32 streams scale; never through Mind's login node",
+    "trinity-0-18's monitor row is stale; read it with nvidia-smi through distillation_orchestrator_20260918/lanes/tools/trinity_ssh.sh",
+    "GCS ae/ is the only copy of most of today's uploads and the bucket is emptied about 12-01"
+  ],
+  "survives_vs_dies": {
+    "survives": [
+      "four detached Devin lanes (timeouts Tue UTC: mdg_build 13:15Z, evalx 14:40Z, mdg_next ~21:35Z, orchard_cp2 ~22:40Z)",
+      "their governed pulls and the Orchard job 167590",
+      "all lane files under /scratch/jjyeung/orch_cd/ (scratch is cleaned after 7 days without access)"
+    ],
+    "dies": [
+      "orchestrator event waiter and lane watcher (copies: /scratch/jjyeung/orch_cd/orch_tools/evwait_1d.sh and lanewatch_1d.sh; set S= to the new scratchpad, seed evwait_seen.txt, re-arm with run_in_background)",
+      "queue watcher (agent/scripts/queue_watcher.sh; re-arm)"
+    ]
+  }
 }
