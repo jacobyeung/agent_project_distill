@@ -440,6 +440,8 @@ def prepare_validation(cfg, division):
 
 def prepare(cfg):
     """Authenticate existing databases once; never duplicate the A1 payload."""
+    from .r2_contract import preparation
+    preparation(cfg)
     from .trace_version import metadata
     version_metadata = metadata(cfg)
     validate(cfg)
@@ -605,7 +607,7 @@ def prepare(cfg):
                   depth_enabled=cfg.get('depth_enabled', True), recipe=cfg['recipe'])
     result.update({k: cfg[k] for k in ('frame_layout', 'frame_pair_gap_seconds', 'skip_unsupervised_lm',
                                        'depth_fov_source', 'depth_init', 'exclusions', 'report_exclusions',
-                                       'tool_mode_flag', 'ground_target_filter', 's1_route_policy') if k in cfg})
+                                       'tool_mode_flag', 'ground_target_filter', 's1_route_policy', 'r2_membership') if k in cfg})
     if 'mdg' in cfg:
         result['mdg'] = cfg['mdg']
     if 'validation' in cfg:
@@ -632,6 +634,8 @@ def prepare(cfg):
 
 
 def prepared(cfg, admission=False):
+    from .r2_contract import preparation
+    preparation(cfg)
     validate(cfg)
     commit = authenticate(cfg)
     receipt = load(pinned(cfg['preparation']))
@@ -982,6 +986,8 @@ def load_export_masters(model, directory):
 
 class Rows:
     def __init__(self, receipt, processor):
+        from .r2_contract import Admission
+        self.r2_admission = Admission(receipt['r2_membership']) if receipt.get('r2_membership') else None
         self.connections = {k: connect(v['database']) for k, v in receipt['streams'].items() if v.get('kind') not in ('mix', 'mdg')}
         self.processor = processor
         self.placement = receipt.get('carrier_placement', data.C1_A)
@@ -1028,6 +1034,8 @@ class Rows:
         if row is None:
             raise ValueError('Missing planned C1 row')
         value = json.loads(row[0])
+        if self.r2_admission is not None:
+            self.r2_admission.check(value, stream, json.loads(row[1]))
         if stream == 'routing':
             value = routing.tool_mode(value, self.tool_flag)
         return value, json.loads(row[1])

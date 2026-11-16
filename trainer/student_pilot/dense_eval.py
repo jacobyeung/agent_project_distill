@@ -21,7 +21,7 @@ def nested_indices(total, sparse, count=64):
 
 def attach_dense(row, dense, settings, verify=True):
     from .gf1 import dense_inputs
-    from .p3_provenance import pinned
+    from .r2_frames import verify_frame
     result = copy.deepcopy(row)
     result["student_input"]["geometry_dense"] = copy.deepcopy(dense)
     admitted, positions = dense_inputs(result, settings)
@@ -33,15 +33,14 @@ def attach_dense(row, dense, settings, verify=True):
         raise ValueError("Dense evaluation timestamps or source bounds differ")
     if verify:
         for frame in {value["path"]: value for value in admitted["frames"]}.values():
-            if not Path(frame["path"]).is_relative_to("/scratch"):
-                raise ValueError("Dense RGB must be staged on local scratch")
-            pinned(frame)
+            verify_frame(frame)
     return result, positions
 
 
 def decode_dense(video_pin, sparse, settings, destination):
     import av
     from .p3_provenance import file_pin, pinned
+    from .r2_frames import verify_frame
     destination = Path(destination)
     destination.mkdir(parents=True, exist_ok=False)
     wanted = nested_indices(sparse["total_num_frames"], sparse["frame_indices"], settings["dense_frames"])
@@ -55,7 +54,7 @@ def decode_dense(video_pin, sparse, settings, destination):
             if index not in wanted:
                 continue
             if index in existing:
-                pinned(existing[index])
+                verify_frame(existing[index])
                 frames[index] = existing[index]
             else:
                 path = destination / f"frame_{index:08d}.png"

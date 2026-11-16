@@ -171,13 +171,11 @@ def augment(arrays, settings):
 
 def load_frames(inputs):
     from PIL import Image
-    from .common import binding
-    from .orchard_paths import resolve_read
+    from .r2_frames import verify_frame
 
     images = []
     for frame in inputs["frames"]:
-        binding(frame["path"], frame["sha256"])
-        with Image.open(resolve_read(frame["path"])) as image:
+        with Image.open(verify_frame(frame)) as image:
             if image.mode != "RGB":
                 raise ValueError(f"Source is not RGB: {frame['path']}")
             images.append(np.asarray(image).copy())

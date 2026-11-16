@@ -180,6 +180,9 @@ def render(events, answer):
 def check_row(row):
     """Admission of one derivgen-row-v2 routing row; the stored target must re-render exactly."""
     if row.get('form') in ground_rows.FORMS.values():
+        if row.get('trace_contract') == 'next-leg-r2-v1':
+            from .r2_contract import event_row
+            return event_row(row)
         return ground_rows.validate(row)
     if row.get('schema') != 'derivgen-row-v2' or row.get('form') not in FORMS:
         raise ValueError('Routing rows require derivgen-row-v2 canonical v3.8 form')
