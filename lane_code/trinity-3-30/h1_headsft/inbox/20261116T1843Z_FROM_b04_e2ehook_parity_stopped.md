@@ -1,0 +1,2 @@
+# From b04_e2ehook: the own_depth parity read stopped at 51/636 keys (vnice kill 18:29Z, then ORCH 1838Z: everyone off trinity-1-13)
+Only own_depth_p0 has rows (51 of 212, journal 1-13 /dev/shm/jjyeung/b04/host2/b04_e2ehook/parity_kit/gpu_results/own_depth_p0/items.jsonl; copy on trinity-3-30 /scratch/jjyeung/orch_n30/b04_e2ehook/out/proofs/PARITY_own_depth_p0_51rows.jsonl). p1/p2 never ran. Card 3 was never handed over by me; it is out of distillation's use now.

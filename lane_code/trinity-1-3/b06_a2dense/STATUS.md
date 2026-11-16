@@ -1,5 +1,5 @@
 # b06_a2dense STATUS (a successor resumes from this file alone)
-Updated: 2026-11-16T18:20Z. Lane: Devin successor #2 on trinity-1-3 (started 17:47Z; rotate by 23:40Z or 22:30Z brief limit, whichever first). Brief: orch_n30/briefs/b06_a2dense.md -> queue brief orch_n30/briefs/qs/06_a2_dense_frames_tower_cache.md. Lane folder L=/scratch/jjyeung/orch_n30/b06_a2dense. Events: orch_n30/events/b06_a2dense/. Finish or rotate by 22:30Z.
+Updated: 2026-11-16T19:36Z. Lane: Devin successor #2 on trinity-1-3 (started 17:47Z; rotate by 23:40Z or 22:30Z brief limit, whichever first). Brief: orch_n30/briefs/b06_a2dense.md -> queue brief orch_n30/briefs/qs/06_a2_dense_frames_tower_cache.md. Lane folder L=/scratch/jjyeung/orch_n30/b06_a2dense. Events: orch_n30/events/b06_a2dense/. Finish or rotate by 22:30Z.
 
 ## Facts established (with evidence)
 - Inputs pulled (single small files): L/work/inputs/frame_map.jsonl.gz sha 17aa3e9e (= k6 MAP, 290,880 lines), frame_plan.json.gz 7cc01f36 (keys a: 3,451 ARKit captures, v: 1,246 mp4 scenes, total: 4,697).
@@ -50,10 +50,31 @@ Updated: 2026-11-16T18:20Z. Lane: Devin successor #2 on trinity-1-3 (started 17:
 - 13:40Z: review 1 fixes landed (dense 19/19; test_gf1_cache 11/12, only BF16-cache fails; regression 30+2 pre-existing). New patch sha 3610e972 (supersedes 8294f618). Card rule 3 one-sided + claim rule + zero-bank print. R0 overlap 0 (L/out/R0_OVERLAP.json). Mirror b06_mirror_1340Z.tar c31aca69 equal on trinity-1-18.
 
 ## Binding ORCH constraints (newest first)
+- ORCH ANSWER 1913Z: 170379 cancelled (done 19:22:58Z, RESULT 1923Z). Submit nothing to Orchard until ORCH says GPUs are back. Parity on the login node only if < 30 min CPU (it is not: needs all parts + every k6 tar) -> wait.
+- ORCH ORDER 1844Z (USER): no GPU anywhere; submit NOTHING to Orchard (general included) until ORCH says GPUs are back; CPU work continues. 170379 was submitted 18:52Z before I read it; QUESTION event 1912Z asks; default: let it finish, run parity (job 3) on the login node at nice 19, submit nothing.
 - ORCH 1746Z: submit the three CPU jobs only after job 170320 has left general AND the newest INBOX_TO_DISTILL_ORCH_* (in /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/) and squeue show no pending main job on general. All must leave general before the D0 m400 read (~01:00Z 11-17, earlier than the 01:40Z in older notes). One job at a time on general. Cancel pending array tasks at 00:00Z if job 2 is not done.
 - ORCH RULING 1638Z (USER): main has GPU/partition priority; before any Orchard submission check squeue for main's pending jobs (jjy_* and main's a15_cot_ap jobs listed in its inbox); if main pends on general, do not submit, write a RESULT, submit when main's job started or main says go.
 
 - 18:20Z power kit: L/power/power.py (imports cont_ops readk f1f2.bootstrap; 450 main items of size/rel-distance/counting, 69 rooms). Proxy from A544 alone: single-read half-width 4.11 pp (L/power/proxy_a544.json); synthetic paired test OK. Owed: when cont_ops posts the m200 ITEMS.jsonl (readk/kit/build/a4cadd8934b/...), run `power.py A544.jsonl ITEMS.jsonl L/power/m200_power.json` and write the half-width into A2_CARD_DRAFT.md Power line and A2_DENSE_READY.md.
+
+- 18:37Z job 170320 COMPLETED (cont_ops RESULT 1837Z: D0 m200 verdict STOP on F1 object size). General free, no main pending (inbox 183801Z = trinity-1-13 GPUs only).
+- 18:39Z power on real m200: paired m200-A544 on the 450-item mean = -2.24 pp, CI [-6.62, +1.64], half-width 4.13 pp > 1.0 (L/power/m200_power.json b8ee62f0; ITEMS c1c99e4d). Rule 3 cannot be a CI rule at 1 pp; it stays a point rule. Card/READY to be updated.
+- 18:39Z SUBMITTED job 1 egress: Orchard job 170374 (a15_cot_apc9f6b9ac93a6), PENDING Priority. Next: when gone from squeue, read logs/egress.170374.json + logs/disk.170374.txt under okh7/db3954b2, then submit job 2.
+
+- 18:45Z 170374 FAILED 1:0 in 2 s, no logs: egress.sh found its root via $0 (= slurmd spool copy under sbatch). Fixed: F=${EGRESS_ROOT:-/project/community/jjyeung/okh7/db3954b2} (local L/out/packets/frame_fetch/bin/egress.sh = Orchard copy, sha checked; old copy bin/egress.sh.v1). Login-node run OK (206, 65536 B, zip magic). djob.sh uses $0 too but is called by absolute path in --wrap (safe). Resubmitted as 170377 at 18:46Z.
+
+- 18:50Z egress 170377 COMPLETED: compute node orchard-community-0 egress OK (206, 65536 B, zip magic). Compute /tmp = /dev/md127 5.9T (4.8T free), /dev/shm 922G, 1.8 TB RAM (logs/disk.170377.txt; L/work/oq21.out). The 280 GB cache fits node-local /tmp.
+- 18:50Z array submit REFUSED by Slurm: general_qos MaxSubmitPU=5, MaxJobsPU=1 (L/work/oq23.out), so a 6-task array cannot be submitted (and pending tasks would block other lanes' general submits). Replaced by ONE job running the six parts serially: bin/dserial.sh (local L/out/packets/frame_fetch/bin/dserial.sh = Orchard copy, sha checked), per-part tag ${SLURM_JOB_ID}t<i>.
+- 18:52Z RUNNING job 2 = Orchard 170379 (a15_cot_ap7128842a8567) on orchard-community-2, --time 05:00 (hard end 23:52Z, before the 01:00Z m400 window). Logs: okh7/db3954b2/logs/dserial.170379.log and logs/<a0n3|..>.170379t<i>_0.log; parts/<tag>/DONE. Poll via ossh every 10 min max.
+
+- 19:04Z 170379: a0 DONE 18:56Z (495/500 ok, 5 err, 17,097 frames, 0 misses, tar 5.0 GB), a1 DONE 19:01Z (493 ok, 7 err, 17,028 frames), a2 running. Errors are the wa_dense clock guard ("known ordinals differ from traj rows", n_bad 19-30): those captures are refused, not misaligned; the seal must list them as deferred with that reason.
+
+- 19:12Z a2 DONE 19:05Z (495 ok, 5 err, 16,947 frames); a total 1,483/1,500 captures, 51,072 frames, 17 clock refusals. v0 running (scannet 179 members extracted in 383 s).
+
+- 19:23Z 170379 CANCELLED 19:22:58Z. DONE parts kept: a0n3 a1n3 a2n3 v0n3 (v0 ended 19:20:43Z). Owed when ORCH says general is back: resubmit the same job-2 command (SUBMIT.md step 2; dserial.sh skips DONE parts -> v1, v2, ~15 min each), then parity (job 3 or login node), then after_fetch.sh.
+
+- 19:35Z partial seal dry-run (no pixel file): L/work/fetch_partial/ (wa_out 1,500 lines cdf7400c = cat of a0-a2 out.jsonl; wd_out = v0 out.jsonl bfbfb621; SEALED_partial.json): 2,741 = 1,902 clips + 839 refusals (822 d1/d2 parity_missing = scenes of v1/v2 not yet run; 17 d3 = the clock-guard captures). Parity 6,510 checked, all byte-equal, 0 differ. Seal pipeline works end to end.
+- Orchard parts (16 GB, okh7/db3954b2/parts; sha256 in L/work/parts_sha_1930Z.txt): a0n3_000.tar 71e920bc, a1n3_000.tar aff4914f, a2n3_000.tar 01654203, v0n3_000.tar 628e058a. Orchard-resident: no mirror needed (path + sha recorded).
 
 ## Resume point for the next successor (exact)
 - Nothing of this lane is running (tmux b06_review1 finished; no Orchard job submitted). Polling helper: L/work/poll.sh (waits <=9.5 min for an ORCH file, an inbox file or a cont_ops m200/general event).

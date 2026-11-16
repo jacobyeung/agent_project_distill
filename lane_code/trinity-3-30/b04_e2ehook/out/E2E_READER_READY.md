@@ -36,6 +36,8 @@ Reports: heads/selector/SELECTOR_HEAD_REPORT.md, heads/scale/SCALE_HEAD_REPORT.m
 ## Parity read (636 dev-S1 items of job 170056, step 544, trinity-1-13)
 Kit: `parity_kit/gpu_113.sh CARD ARM NAME [KEYS]` runs inside a bwrap view that shows /dev/shm/jjyeung at /scratch/jjyeung/b04shm (the sealed SAM 3 tower accepts only /scratch paths). Arms: own_depth (claimable) and scale_head. Keys: keys_smoke.txt (one per question type), keys_part{0,1,2}of3.txt. `parity_kit.compare` gives the room-paired table against 170056 and camera call agreement, labelled within noise because Trinity has no fla kernels. Not yet run: it waits for an ORCH_CARD.
 
+Interim (stopped 18:29Z, 51/636 keys of own_depth p0; host withdrawn): distance 30.6 old vs 21.4 new, -9.2 [-19.1, +0.6], 28 rooms; 14/98 grounds lost (`not seen`), boxes 2.2x old volume (median), 16/49 gaps unanswered vs 3. Files: out/proofs/PARITY_own_depth_p0_51rows.jsonl, out/proofs/PARITY_P0_51_DIAG.txt.
+
 ## Known defects
 - Portrait frames: routed_features.resize stretches every mask to the 480x640 canvas, in the selector's K1 tables and in the call alike; dev-S1 has 12 of 84 portrait captures (14 of 636 items).
 - 64-frame reads need tree build 7 (the sealed GeometryContract and ProfileGeometry.has are 32-only).

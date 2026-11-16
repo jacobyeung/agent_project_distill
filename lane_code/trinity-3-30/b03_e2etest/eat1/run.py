@@ -57,9 +57,10 @@ def read_items(path, limit=None):
 
 
 # ---------------------------------------------------------------- observation
-def observe(reader, items, artifact, trace_lines=True, audit=True, monitor=True, allowed_numbers=None, sink=None):
+def observe(reader, items, artifact, trace_lines=True, audit=True, monitor=True, allowed_numbers=None, sink=None,
+            exempt_names=()):
     declared = artifact.module_roles(reader.model)
-    scope = H.LineScope(allowed_numbers) if trace_lines else None
+    scope = H.LineScope(allowed_numbers, exempt_names) if trace_lines else None
     mon = H.ModelMonitor(reader.model, lm_module(reader, declared), declared, scope) if monitor else None
     opener = H.open_audit() if audit else None
     records = []
@@ -76,6 +77,8 @@ def observe(reader, items, artifact, trace_lines=True, audit=True, monitor=True,
             if mon:
                 mon.begin()
             if scope:
+                held = state_tensors(reader)  # held, so their ids stay unique for this item
+                scope.preexisting = {id(t) for t in held}
                 scope.resume()
             if opener:
                 opener.active = True
@@ -105,14 +108,69 @@ def observe(reader, items, artifact, trace_lines=True, audit=True, monitor=True,
                                 generated_text=generated_text, opens=opens, mapped=maps,
                                 tail_text=reader.tokenizer.decode(prov['tail']) if prov else None,
                                 handler_texts=[reader.tokenizer.decode(r) for r in prov['handler_responses']]
-                                if prov else None))
+                                if prov else None,
+                                values=[(e[2], e[3]) for e in events if e[0] == 'values'],
+                                derived=derived_sources([e for e in events if e[0] == 'values'])))
     finally:
         lines = scope.stop() if scope else None
         if mon:
             mon.close()
     if scope is not None and sink is not None:
         sink['globals_read'] = scope.globals_read
+        sink['handler_lines'] = {f: sorted(v) for f, v in scope.handler_lines.items()}
     return records, lines, declared
+
+
+def derived_sources(values):
+    """Each fixed_math module (unprojection) -> the modules whose outputs it took as inputs in this item, by
+    tensor equality: a number it prints comes from those heads too."""
+    import torch
+    out = {}
+    for k, (_, role, name, tensors, inputs) in enumerate(values):
+        if role != 'fixed_math' or not inputs:
+            continue
+        src = set(out.get(name, ()))
+        for _, _, prev, ts, _ in values[:k]:
+            if prev != name and any(a.shape == b.shape and a.dtype == b.dtype and torch.equal(a, b)
+                                    for a in inputs for b in ts):
+                src |= {prev} | set(out.get(prev, ()))
+        out[name] = sorted(src)
+    return out
+
+
+def state_tensors(reader, depth=3):
+    """Tensors (not parameters or buffers) held in the state of the reader, its model's modules and the objects
+    they hold, before an item starts: a tensor there that reader code reads during the item is a table or
+    policy outside the weights."""
+    import torch
+    out, seen = [], set()
+    def walk(obj, d):
+        if id(obj) in seen or d > depth:
+            return
+        seen.add(id(obj))
+        if isinstance(obj, torch.nn.Parameter):
+            return
+        if isinstance(obj, torch.Tensor):
+            out.append(obj)
+            return
+        if isinstance(obj, dict):
+            for v in list(obj.values())[:2000]:
+                walk(v, d+1)
+        elif isinstance(obj, (list, tuple)):
+            for v in list(obj)[:2000]:
+                walk(v, d+1)
+        elif isinstance(obj, torch.nn.Module):
+            buffers = {id(b) for b in obj.buffers(recurse=False)}
+            for k, v in vars(obj).items():
+                if k not in ('_parameters', '_buffers', '_modules') and id(v) not in buffers:
+                    walk(v, d+1)
+        elif hasattr(obj, '__dict__') and not isinstance(obj, type) and not callable(obj):
+            for v in vars(obj).values():
+                walk(v, d+1)
+    walk(reader, 0)
+    for m in reader.model.modules():
+        walk(m, 1)
+    return out
 
 
 def _jsonable(output):
@@ -144,7 +202,7 @@ def globals_findings(globals_read, allow):
             continue
         seen.add(key)
         out.append(dict(clause='A3', rule='A3.module_data', file=g['file'], rel=Path(g['file']).name, line=g['line'],
-                        function=g['function'], detail=f'reads global {g["name"]}: {g["detail"]}',
+                        function=g['function'], detail=f'reads {"" if g["name"].startswith("self.") else "global "}{g["name"]}: {g["detail"]}',
                         text=g['name'], executed=True))
     return out
 
@@ -241,6 +299,7 @@ def _finding(f):
 
 def judge_a4(records, declared, findings, dynamic):
     names = {n for _, _, role, n in declared if role in MODEL_ROLES}
+    fixed = {n for _, _, role, n in declared if role == 'fixed_math'}
     offenders = []
     for r in records:
         out = r['output']
@@ -251,7 +310,10 @@ def judge_a4(records, declared, findings, dynamic):
         tail = r.get('tail_text') if r.get('tail_text') is not None else gen
         a = '' if answer is None else str(answer).strip()
         # the scored answer is generated by the model after its last response, as a whole token run
-        if not a or not re.search(r'(?<![\w.])'+re.escape(a)+r'(?![\w]|\.\d)', tail):
+        hits = list(re.finditer(r'(?<![\w.\-])'+re.escape(a)+r'(?![\w]|\.\d)', tail)) if a else []
+        rest = re.sub(r'</?[\w:-]+>', '', tail[hits[-1].end():]) if hits else ''
+        # only closing markup, punctuation and a unit of up to three words ("square metres") may follow it
+        if not hits or not re.fullmatch(r'\W*(?:[A-Za-z°²³]{1,12}\.?(?:\s+[A-Za-z°²³]{1,12}\.?){0,2})?\W*', rest):
             offenders.append(dict(item=r['id'], kind='answer_not_generated_after_last_response', answer=answer,
                                   tail=tail[-80:]))
         if r['provenance'] and out.get('text') not in (None, gen) and out.get('text') != gen.rstrip():
@@ -259,12 +321,12 @@ def judge_a4(records, declared, findings, dynamic):
         for c in out.get('calls', []):
             fields = c.get('fields') or {}
             cited = {h for hs in fields.values() for h in (hs or [])}
-            if not fields or not cited:
+            if cited-names-fixed:
+                offenders.append(dict(item=r['id'], kind='response_cites_undeclared_module',
+                                      modules=sorted(cited-names-fixed), call=c.get('call')))
+            elif not fields or not cited & names:  # unprojection may be cited, but only beside the head it unprojects
                 offenders.append(dict(item=r['id'], kind='response_without_head', call=c.get('call'),
                                       response=str(c.get('response'))[:80]))
-            elif cited-names:
-                offenders.append(dict(item=r['id'], kind='response_cites_undeclared_module',
-                                      modules=sorted(cited-names), call=c.get('call')))
     static = judge_static(findings, 'A4', dynamic)
     offenders = _compress(offenders)+[_finding(f) for f in static]
     return clause('FAIL' if offenders else 'PASS', f'{len(offenders)} offender groups '
@@ -494,7 +556,77 @@ def per_type(records):
     return out
 
 
-def judge_a6(records):
+# a printed number ends at the first character that cannot continue it; a unit glued to it ("0m") does not hide it
+NUMBER = re.compile(r'(?<![\w.])-?\d+(?:\.\d+)?(?:[eE][-+]?\d+)?(?![\d_]|\.\d)')
+
+
+def number_sources(text, values, derived=None):
+    """Names of the modules whose output, printed with str(), is exactly `text` in this item, plus the heads a
+    fixed_math module unprojected to produce it."""
+    import torch
+    v, out = float(text), []
+    for name, tensors in values:
+        for t in tensors:
+            if not t.numel():
+                continue
+            d = t.detach().double().flatten()
+            hit = d[(d-v).abs() <= 1e-6*max(1., abs(v))]
+            if t.dtype.is_floating_point and any(str(float(e)) == text or (t.dtype == torch.float32 and str(
+                    __import__('numpy').float32(e)) == text) or (float(e).is_integer() and str(int(e)) == text)
+                                                 for e in hit[:64].tolist()):
+                out.append(name)
+                break
+            if not t.dtype.is_floating_point and not t.dtype == torch.bool and any(str(int(e)) == text
+                                                                                  for e in hit[:64].tolist()):
+                out.append(name)
+                break
+    return sorted(set(out) | {h for n in out for h in (derived or {}).get(n, ())})
+
+
+def value_provenance(records):
+    """USER ruling 5: between heads and tokens only unprojection (a declared fixed_math module) and printing head
+    outputs as text are allowed. Every number a registered handler writes must be str() of an element that a
+    declared head, tower, connector or fixed_math module returned in the same item, or a number of the call itself.
+    -> (A3 offenders, per-record list of [(number, modules)] per response)."""
+    offenders, attribution = [], {}
+    for r in records:
+        texts = [t for t in (r.get('handler_texts') or []) if t]
+        gen = r.get('generated_text') or ''
+        calls = r['output'].get('calls', [])
+        per = []
+        for k, text in enumerate(texts):
+            call = str(calls[k].get('call', '')) if k < len(calls) else ''
+            echo = set(NUMBER.findall(call)) if call and call in gen else set()
+            nums = []
+            for m in NUMBER.finditer(text):
+                n = m.group(0)
+                src = [] if n in echo else number_sources(n, r.get('values') or [], r.get('derived'))
+                nums.append((n, src))
+                if n not in echo and not src:
+                    offenders.append(dict(clause='A3', rule='A3.response_value', file='<response>', rel='', line=0,
+                                          function=r['id'], detail=f'printed {n} is not str() of any head, tower or '
+                                          f'fixed_math output of this item', text=text[:80], executed=True))
+            per.append(nums)
+        attribution[r['id']] = per
+    return offenders, attribution
+
+
+def _fields_cover(fields, nums):
+    """Can the printed numbers be split, in order, into one non-empty run per field, every number in a run
+    produced by a module that field cites?"""
+    ok = {0}  # numbers covered so far
+    for _, heads in fields:
+        cited, nxt = set(heads or []), set()
+        for i in ok:
+            j = i
+            while j < len(nums) and set(nums[j][1]) & cited:
+                j += 1
+                nxt.add(j)
+        ok = nxt
+    return len(nums) in ok
+
+
+def judge_a6(records, attribution=None):
     """A6 counts calls from what the registered handlers wrote into the sequence, not from what the reader
     returns: the reported calls must match the observed handler responses one to one."""
     offenders = []
@@ -504,6 +636,20 @@ def judge_a6(records):
         if r.get('handler_texts') is not None and seen != told:
             offenders.append(dict(item=r['id'], kind='reported_calls_differ_from_observed_handler_responses',
                                   observed=len(seen), reported=len(told)))
+            continue
+        # "the head behind each response field": fields are listed in print order, one per printed number
+        for k, c in enumerate(r['output'].get('calls', [])):
+            fields = list((c.get('fields') or {}).items())
+            nums = [(n, src) for n, src in (attribution or {}).get(r['id'], [[]]*(k+1))[k] if src]
+            if len(fields) == len(nums):
+                for (f, heads), (n, src) in zip(fields, nums):
+                    if not set(src) & set(heads or []):
+                        offenders.append(dict(item=r['id'], kind='field_cites_a_module_that_did_not_produce_it',
+                                              field=f, cited=heads, produced_by=src, value=n))
+            elif nums and not (fields and len(fields) < len(nums) and _fields_cover(fields, nums)):
+                # a vector field covers a run of consecutive printed numbers, each produced by a module it cites
+                offenders.append(dict(item=r['id'], kind='fields_do_not_cover_printed_numbers_in_order',
+                                      call_index=k, fields=len(fields), numbers=len(nums)))
     return clause('FAIL' if offenders else 'PASS', f'{len(offenders)} items whose reported calls differ from the '
                   f'responses the registered handler wrote', _compress(offenders))
 
@@ -589,15 +735,25 @@ def main(argv=None):
     input_roots = list(args.input_root)+[i['frames'] for i in items if isinstance(i.get('frames'), str)]
     allow = S.load_allowlist(args.allowlist, args.allowlist_extra)
     sink = {}
-    records, lines, declared = observe(reader, items, artifact, allowed_numbers=allow['_values'], sink=sink)
-    strace = H.parse_strace(args.strace_log) if args.strace_log and Path(args.strace_log).is_file() else None
+    records, lines, declared = observe(reader, items, artifact, allowed_numbers=allow['_values'], sink=sink,
+                                       exempt_names=allow.get('threshold_exempt_names', {}))
+    windows = []
+    strace = H.parse_strace(args.strace_log, H.RUN_NONCE, windows) if args.strace_log and Path(
+        args.strace_log).is_file() else None
+    if strace is not None and sorted(set(windows)) != list(range(len(items))):
+        strace = None  # a log without this run's marked window for every item is no witness
     a1 = judge_a1(records, artifact, input_roots, strace)
     fixture_roots = [str(Path(p).resolve()) for p in getattr(reader, 'eat1_fixture_roots', ())]
     fixture = sorted(f for f in lines if any(f.startswith(r+'/') for r in fixture_roots))
     scope = {f for f in lines if not H.is_harness(f) and f not in fixture}
+    allow['_selection'] = True  # value-dependent selection, judged on lines run inside a call handler only
     findings, suppressed = S.scan(sorted(scope), allow, executed={f: set(v) for f, v in lines.items()})
+    hl = {f: set(v) for f, v in sink.get('handler_lines', {}).items()}
+    findings = [f for f in findings if f['rule'] != 'A3.selection' or f['line'] in hl.get(f['file'], ())]
     findings += globals_findings([g for g in sink.get('globals_read', []) if g['file'] in scope], allow)
     findings += config_reads(a1, artifact)
+    value_off, attribution = value_provenance(records)
+    findings += value_off
     sandbox = run_sandbox(args, records, artifact, input_roots, out/'a5_sandbox') if args.sandbox else None
     perturb_items = items[:args.perturb_limit] if args.perturb_limit else items
     perturb = perturbation(reader, perturb_items, artifact, records) if args.perturb else None
@@ -606,7 +762,7 @@ def main(argv=None):
     clauses = dict(A1=a1, A2=judge_a2(records, declared, findings, True), A3=judge_a3(findings, True, scope),
                    A4=judge_a4(records, declared, findings, True),
                    A5=judge_a5(records, declared, findings, True, sandbox, perturb,
-                               getattr(reader, 'eat1_cache_proof', None)), A6=judge_a6(records))
+                               getattr(reader, 'eat1_cache_proof', None)), A6=judge_a6(records, attribution))
     overall = 'FAIL' if any(c['status'] == 'FAIL' for c in clauses.values()) else (
         'PASS' if all(c['status'] == 'PASS' for c in clauses.values()) else 'INCOMPLETE')
     result = dict(schema='eat1-report-v1', reader=args.reader, reader_kwargs=json.loads(args.reader_kwargs),

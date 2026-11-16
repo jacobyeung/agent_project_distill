@@ -359,6 +359,8 @@ def _tensors(output, depth=0):
     import torch
     if isinstance(output, torch.Tensor):
         return [output.detach().clone()]
+    if isinstance(output, (int, float)) and not isinstance(output, bool):
+        return [torch.tensor([output], dtype=torch.float64 if isinstance(output, float) else torch.int64)]
     if depth < 3 and isinstance(output, (list, tuple)):
         return [t for o in output for t in _tensors(o, depth+1)]
     if depth < 3 and isinstance(output, dict):
@@ -389,6 +391,7 @@ class ModelMonitor:
         self.events, self.handles, self.depth = [], [], 0
         self.recording = False
         self._t0 = {}
+        self._inputs = {}
         # lm is one module (ids in, logits out) or a pair (entry module taking ids, module returning logits),
         # for readers whose language model and output projection are separate registered modules.
         entry, head = lm if isinstance(lm, tuple) else (lm, lm)
@@ -405,6 +408,7 @@ class ModelMonitor:
             if mod is entry or mod is head:
                 continue
             if role == 'call_handler':
+                self.handles.append(mod.register_forward_pre_hook(self._handler_pre))
                 self.handles.append(mod.register_forward_hook(self._make_handler_hook(name)))
             else:
                 self.handles.append(mod.register_forward_pre_hook(self._make_pre(role, name)))
@@ -419,11 +423,13 @@ class ModelMonitor:
         self.depth += 1
         if self.line_scope is not None:
             self.line_scope.inside_model = self.depth > 0
+            self.line_scope.depth = self.depth
 
     def _leave(self):
         self.depth = max(0, self.depth-1)
         if self.line_scope is not None:
             self.line_scope.inside_model = self.depth > 0
+            self.line_scope.depth = self.depth
 
     def _lm_pre(self, module, args, kwargs):
         self._enter()
@@ -473,6 +479,8 @@ class ModelMonitor:
         def pre(module, args):
             self._enter()
             self._t0[id(module)] = time.perf_counter()
+            if role == 'fixed_math' and self.recording:
+                self._inputs[id(module)] = _tensors(args)
         return pre
 
     def _make_post(self, role, name):
@@ -481,11 +489,20 @@ class ModelMonitor:
             if self.recording:
                 self.events.append(('module', role, name, time.perf_counter()-self._t0.pop(id(module), time.perf_counter())))
                 if role in VALUE_ROLES:
-                    self.events.append(('values', role, name, _tensors(output)))
+                    self.events.append(('values', role, name, _tensors(output), self._inputs.pop(id(module), None)))
         return post
+
+    def _handler_pre(self, module, args):
+        if self.line_scope is not None:
+            self.line_scope.in_handler += 1
+            self.line_scope.handler_base.append(self.depth)
 
     def _make_handler_hook(self, name):
         def post(module, args, output):
+            if self.line_scope is not None:
+                self.line_scope.in_handler = max(0, self.line_scope.in_handler-1)
+                if self.line_scope.handler_base:
+                    self.line_scope.handler_base.pop()
             if self.recording:
                 self.events.append(('handler', name, _ids(output)))
         return post
@@ -579,26 +596,58 @@ def provenance(events):
 
 
 # ---------------------------------------------------------------- A3: executed-line scope
-def numeric_data(value, allowed, depth=0):
-    """Why a module-level value is numeric data outside the weights, or None."""
+def numeric_data(value, allowed, depth=0, tensors=True):
+    """Why a module-level or object-state value is numeric data outside the weights, or None. For object state,
+    `tensors` is the set of ids of tensors that existed before the item started (per-item head outputs are new)."""
     import torch
     if isinstance(value, bool) or value is None:
         return None
     if isinstance(value, (int, float)):
-        return None if float(value) in allowed else f'module-level number {value!r}'
-    if isinstance(value, torch.nn.Parameter) or isinstance(value, torch.nn.Module):
+        return None if float(value) in allowed else f'number {value!r}'
+    if isinstance(value, (torch.nn.Parameter, torch.nn.Module, type)) or callable(value):
         return None
     if isinstance(value, torch.Tensor):
-        return f'module-level tensor {tuple(value.shape)}'
+        return f'tensor {tuple(value.shape)}' if tensors is True or (tensors and id(value) in tensors) else None
     if type(value).__module__ == 'numpy' and hasattr(value, 'shape'):
-        return f'module-level array {tuple(value.shape)}'
-    if isinstance(value, (list, tuple, set, frozenset, dict)) and depth < 3:
+        return f'array {tuple(value.shape)}'
+    if depth < 3 and isinstance(value, (list, tuple, set, frozenset, dict)):
         items = list(value.values()) if isinstance(value, dict) else list(value)
         for v in items[:2000]:
-            why = numeric_data(v, allowed, depth+1)
+            why = numeric_data(v, allowed, depth+1, tensors)
             if why:
-                return f'module-level table holding numbers ({why})' if depth == 0 else why
+                return f'table holding numbers ({why})' if depth == 0 else why
+    state = _object_state(value) if depth < 3 else None
+    if state:
+        return numeric_data(state, allowed, depth+1, tensors)
     return None
+
+
+_ENV = None
+
+
+def _object_state(value):
+    """The attribute dict of a plain object held in reader state (a namespace, a dataclass, or any instance of a
+    class defined in reader code): a fitted policy nested in such an object is data outside the weights too.
+    Tokenizers (objects with encode and decode) are vocabularies, not policies."""
+    global _ENV
+    import dataclasses
+    cls = type(value)
+    if callable(getattr(value, 'encode', None)) and callable(getattr(value, 'decode', None)):
+        return None
+    if cls.__module__ in ('types', 'argparse') or dataclasses.is_dataclass(value):
+        pass
+    else:
+        mod = sys.modules.get(cls.__module__)
+        f = getattr(mod, '__file__', None)
+        if _ENV is None:
+            _ENV = environment_prefixes()
+        if not f or f.startswith(_ENV) or f.startswith(SYSTEM_PREFIXES) or is_harness(f):
+            return None
+    state = dict(getattr(value, '__dict__', {}) or {})
+    for slot in getattr(cls, '__slots__', ()) or ():
+        if isinstance(slot, str) and hasattr(value, slot):
+            state[slot] = getattr(value, slot)
+    return state
 
 
 class LineScope:
@@ -611,7 +660,13 @@ class LineScope:
     parameter) holding numbers, is a table or constant outside the weights (A3.module_data)."""
     TOOL = 4
 
-    def __init__(self, allowed_numbers=None):
+    def __init__(self, allowed_numbers=None, exempt_names=()):
+        self.exempt = set(exempt_names)
+        self.preexisting = set()  # ids of state tensors alive before the current item (set by the runner)
+        self.handler_lines = {}
+        self.in_handler = 0
+        self.depth = 0  # model-forward depth (set by the monitor); a head forward inside a handler is model code
+        self.handler_base = []
         self.lines = {}
         self.globals_read = []
         self.inside_model = False
@@ -631,6 +686,8 @@ class LineScope:
         if not self.active:
             return None
         self.lines.setdefault(f, set()).add(line)
+        if self.in_handler and self.depth == (self.handler_base[-1] if self.handler_base else 0):
+            self.handler_lines.setdefault(f, set()).add(line)
         return self.mon.DISABLE
 
     def _start(self, code, offset):
@@ -651,7 +708,28 @@ class LineScope:
                 why = numeric_data(g[name], self.allowed)
                 if why:
                     self.globals_read.append(dict(file=code.co_filename, line=code.co_firstlineno,
-                                                  function=code.co_qualname, name=name, detail=why))
+                                                  function=code.co_qualname, name=name, detail='module-level '+why))
+        # attributes the function reads on `self`: instance state and reader-code class attributes holding numbers
+        obj = frame.f_locals.get('self') if g is not None and code.co_varnames[:1] == ('self',) else None
+        if obj is not None:
+            inst = getattr(obj, '__dict__', {})
+            classes = [c for c in type(obj).__mro__ if not self._skip(getattr(sys.modules.get(c.__module__),
+                                                                               '__file__', None) or '<')]
+            for name in code.co_names:
+                if name in self.exempt:
+                    continue
+                if name in inst:
+                    value, where = inst[name], 'instance'
+                else:
+                    owner = next((c for c in classes if name in c.__dict__), None)
+                    if owner is None:
+                        continue
+                    value, where = owner.__dict__[name], 'class '+owner.__qualname__
+                why = numeric_data(value, self.allowed, tensors=True if where != 'instance' else self.preexisting)
+                if why:
+                    self.globals_read.append(dict(file=code.co_filename, line=code.co_firstlineno,
+                                                  function=code.co_qualname, name='self.'+name,
+                                                  detail=f'{where} state {why}'))
         return self.mon.DISABLE
 
     def start(self):

@@ -1,0 +1,35 @@
+# REVIEW_CONFIRMATION_R12
+
+| Fix | Verdict | Confirmation |
+|---|---|---|
+| Deadlines | **FIXED** | Three direct rsync calls each use `timeout -s KILL 120`. All `ja2.sh` timeouts include `-k 30`. Finalization allows 2,850 seconds within the 3,000-second reserve. |
+| Nonfatal logging | **FIXED** | Both helpers return success after logging failures. A synthetic test of the stage-1 branch preserved mode `p`’s exit **7** despite publication and logging failures. |
+| Anonymous output | **FIXED** | Labels are approved or hashed; row keys and messages are hashed; numeric fields reject strings. Both exception hooks emit sanitized JSON. Synthetic receipt and exception tests passed. No free-form row, receipt, record, or exception strings reach either helper’s output. Invalid numeric values become `null`. |
+
+**New defects:** None found within this review.
+
+**ANON:** The five current A3 files pass the static scan, checksums, and syntax checks. Previous identifying literals are absent; Python `split`/`rsplit` calls: **0/0**. Unchanged manifest and derivation inputs retain round-11 coverage.
+
+Exact A2 `ANON_OK.json`:
+
+```json
+{
+  "status": "CLEAN",
+  "hits": 0,
+  "manifest_sha256": "17784778267ecf138b167d6a2bc7ffb25c9fcade5943cefc01e51f54b6e5be34",
+  "external": [
+    {"path": "/project/community/jjyeung/okh7/i_bb09a77d/vb5.json", "sha256": "c95023e46d9171071c7cb738367dae115bebaf4a6519931ec514d20e68ffa5d8"},
+    {"path": "/project/community/jjyeung/okh7/i_bb09a77d/a2/4.json", "sha256": "578f6d966fa3610a17da569f4b8f029f9bb114ea86e87a6db043d944bd03cc6b"},
+    {"path": "/project/community/jjyeung/okh7/i_bb09a77d/a2/full_weights.json", "sha256": "211ae87b0bb03bb0c3d43c1c1412e0f346591ab4ddc75b4d754de2740da0a302"},
+    {"path": "/project/community/jjyeung/okh7/i_bb09a77d/a2/over.json", "sha256": "df4a9f6c707f2c646f120f18839dcb98cdac936fe875fd533a6c168b90a2fb63"},
+    {"path": "/project/community/jjyeung/okh7/i_bb09a77d/a3/fam.py", "sha256": "a8f8d7d879a4f6dcdf49ac57f620e08f88c4005482cc07684e92ab4897078b2c"},
+    {"path": "/project/community/jjyeung/okh7/i_bb09a77d/a3/ja2.sh", "sha256": "d12d72dc6cce6802a7eaebf616427ca0b05925325c3f853df012ff1c2a2c91d5"},
+    {"path": "/project/community/jjyeung/okh7/i_bb09a77d/a3/s2.py", "sha256": "1514dabad4e47e5121758d6d39e0dc6ac39f9e7bbcd177f83d8db872b636cbf1"},
+    {"path": "/project/community/jjyeung/okh7/i_bb09a77d/a3/s2.sh", "sha256": "f270a63eb0f94c561fdb5303a0c39e4c85b7574d1f1a623209ed7207ed0271d5"},
+    {"path": "/project/community/jjyeung/okh7/i_bb09a77d/a3/s2sum.py", "sha256": "c35dbce43f437d1a4511f7e881ce0b8f38a3de573b11062681e4e193acfff2ec"}
+  ],
+  "scope": "Static-content confirmation of the unchanged manifest and derivation inputs under round-11 coverage, plus the five listed a3 execution files scanned in round 12. Superseded a2 execution files are excluded and must remain unused. No new identifying literals were found. Inherited identifiers and Python split/rsplit calls are count-only. Row-store contents are excluded under the supplied exception. Summary and census output sanitization passed source review and synthetic checks. The three remaining round-11 A2 fixes are confirmed. This certificate does not authorize execution."
+}
+```
+
+**A2 — GO.**

@@ -1,0 +1,40 @@
+{
+ "files": {
+  "policy.dat": {
+   "role": "config",
+   "sha256": "d9491d50ebb2f9bc67b8f5b0d0e81e81da875ffffecd5a95ac4ea3345cb6f21b"
+  },
+  "weights.pt": {
+   "role": "lm",
+   "sha256": "d7223c4a3115c25a25b46182b4eb332e5b5a66b51968dcedff2808c148a6c290"
+  }
+ },
+ "modules": {
+  "call_handler": {
+   "name": "handler",
+   "role": "call_handler"
+  },
+  "lm": {
+   "name": "lm",
+   "role": "lm"
+  },
+  "perception": {
+   "name": "encoder",
+   "role": "vit"
+  },
+  "perception.depth_head": {
+   "name": "depth",
+   "role": "head"
+  },
+  "perception.move_head": {
+   "name": "move",
+   "role": "head"
+  },
+  "tower": {
+   "name": "toy_tower",
+   "role": "tower"
+  }
+ },
+ "root": "/scratch/jjyeung/orch_n30/b03_e2etest/work/adv/w4/fx/artifact",
+ "schema": "eat1-artifact-v1"
+}

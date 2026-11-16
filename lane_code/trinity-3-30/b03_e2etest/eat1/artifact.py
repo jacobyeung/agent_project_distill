@@ -4,7 +4,9 @@ Schema `eat1-artifact-v1` (JSON):
   root      directory that holds the artifact files
   files     {relative path: {sha256, role}}; role in lm|vit|head|connector|tower|tokenizer|config
   modules   {dotted module path under reader.model ('' = the model itself): {role, name}}
-            role in lm|vit|head|connector|tower|call_handler; `name` is what responses cite.
+            role in lm|vit|head|connector|tower|call_handler|fixed_math; `name` is what responses cite.
+            fixed_math: a reviewed module that only unprojects with a head's intrinsics (USER ruling 5); its
+            outputs may be printed, and its code is judged like any reader code.
 A file is inside the artifact when its sha256 equals one listed here (A1).
 """
 import hashlib
@@ -13,7 +15,7 @@ from pathlib import Path
 
 SCHEMA = 'eat1-artifact-v1'
 FILE_ROLES = {'lm', 'vit', 'head', 'connector', 'tower', 'tokenizer', 'config'}
-MODULE_ROLES = {'lm', 'vit', 'head', 'connector', 'tower', 'call_handler'}
+MODULE_ROLES = {'lm', 'vit', 'head', 'connector', 'tower', 'call_handler', 'fixed_math'}
 MODEL_ROLES = {'lm', 'vit', 'head', 'connector', 'tower'}
 
 

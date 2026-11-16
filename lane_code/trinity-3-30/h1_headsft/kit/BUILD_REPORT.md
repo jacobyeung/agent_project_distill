@@ -876,3 +876,208 @@ build evidence; no superseded behavior is presented as the active contract.
   binding carries the selected ids, so each type runs in its own output directory. `tests/test_build7_types.py` checks
   that the four types partition 600 items across shards with 1,500 own reads (600 baselines + 900 perturbed).
 - My rerun of the Build-7 suite with the real JSON copies present: 110 passed, 0 skipped (`logs/b5/suite_b7_lane.log`).
+
+## Build 8
+
+The Orchard package is built at `orchard_h10/package`. It has **911 pinned source
+and metadata files**, a 4,647,986-byte code archive, and an opaque Slurm job name:
+`a15_cot_apb01ec87a6f29b`. The plan SHA256 is
+`dfcfffe43e5783e6fe55df76e2b4f7034fa631eac9844c3bc28a8b8780ed3e61`.
+Nothing was submitted, uploaded, downloaded, or run on a GPU.
+
+The full CPU suite completed with **117 passed, 1 skipped, 0 failed** in
+179.95 seconds. The skip is `test_real_json_loading_until_missing_weights`:
+`model.json`, `receipt.json`, `artifact.json`, and `RESTORE.json` are absent from
+`/dev/shm/jjyeung/h1tmp/from118`. No replacement metadata was fabricated. The
+requested all-pass, no-skip result therefore remains unproved on this node.
+Production submission also remains blocked on the concrete inputs listed in
+`orchard_h10/OPEN_INPUTS.md`.
+
+### Files and execution contract
+
+- `orchard_h10/build.py` creates the code tar, embedded bootstrap, `BATCH.sh`,
+  `CONFIG.json`, `SUBMIT.cmd`, package pins, and an unresolved input example.
+  The tar contains K's tree, h1eval, auth, rows, dev-S1 items, b04's reviewed
+  e2e_reader and head source, parity_kit dependencies, C8r policy, and native
+  metadata. It contains no weight payload or RGB. b04's files remain read-only.
+  `TOKENS.json` maps the opaque token and stays on Trinity.
+- The package pins unmodified copies of the template launcher, stage, export,
+  return, trace, stdout-transfer, and ledger helpers. It calls the template's
+  `copy_parts`, `extract_stream`, bwrap `namespace`, `publish`, and `return_io`.
+  It does not call the template's D0 export fetch, which selects another run.
+  Large input archives and the code tar stage once to the job-private disk;
+  no transport implementation was substituted.
+- `job.py` checks the allocation's storage, code/input hashes, CPU receipt,
+  policy scripts, and assigned card count. `prepare.py` imports torch,
+  torchvision, transformers >=5.12 and scipy, checks their recorded versions,
+  then uses b04's reviewed `stage_restore` and artifact-manifest builder in the
+  stable bwrap view. The manifest pins evaluator/runner code as well as the
+  reader, tree, head and SAM source. No installation runs inside the job.
+- `runner.py` launches one `h1eval.h10.launch` process per GPU per type. It
+  waits for every shard before advancing through displacement, rotation,
+  movement direction, absolute distance, then room. Each process receives
+  `--arms own`, its `--types` value, the registered mode default, and
+  `--shard i/n`. This preserves 636 baselines plus 900 perturbations; room
+  receives baseline only. No answer, unit conversion, score or numeric format
+  is rewritten.
+- `h1eval/h10/launch.py` accepts a read-admission cutoff, completion deadline,
+  and shared stop marker. Complete records are fsynced. The Python deadline
+  signal is deferred during a journal commit; an unfinished decode is not
+  recorded. Workers exit 75 at the deadline. A failure prevents the next type
+  from starting; siblings drain under their own guards. No process is killed
+  or automatically relaunched by the new runner.
+- The default admission cutoff is 1,800 seconds before allocation end, with
+  a completion deadline 1,200 seconds before the end. The template's return
+  timeout chain can consume about 1,020 seconds, so the conservative reserve
+  leaves time for that chain and archive creation. The helper enforces one
+  general node, 1–4 GPUs, at least 40 minutes and at most five allocated
+  GPU-hours. Indefinitely blocked native calls or filesystems remain outside
+  the guarantee of a Python timer.
+- Returns contain `metadata/journals/<type>/<gpu>/`, their environment/mapping
+  receipts, shard projections after ten reads, aggregate
+  `metadata/projection.json`, `SUMMARY.json`, `STEPS.jsonl`, and logs. The
+  template excludes caches, weights and RGB and enforces its 90 MB archive
+  and 100 MB shared pool limits. A partial archive remains incomplete in the
+  template receipt; its summary identifies a clean deadline stop.
+- Resume imports only durable journals and stable identity. It retains the
+  logical input paths, package, GPU shard count, and archive/receipt identity;
+  changing input bytes refuses. Allocation stop and terminal markers are not
+  imported. A killed run still needs the user's answer before resubmission.
+
+`STAGING.md` lists expected hashes, byte counts and registry evidence;
+`INPUT_CATALOG.json` adds each source and transfer requirement. Full pins are
+available for the step-544 archive, artifact, heads, full-weights manifest,
+FRAMES/DENSE metadata, SAM checkpoint, selector, code and template assets.
+The registry does not prove Orchard residency of the H1-0-specific inputs.
+Unknown G3T full pins, SAM source/receipt sizes and hashes, compatible environment
+closure, policy locations and frame-archive hash remain explicit OPEN entries.
+The RGB producer receipt reports **1,773,951,824 bytes**. No bulk model or RGB
+payload was opened to improve this inventory.
+
+### CPU evidence and commands
+
+`tests/test_build8.py` and `tests/build8_worker.py` run the reviewed parity
+factory with tiny loader/decode stand-ins in retained production-style roots
+under `tmp/b8/rehearsal/`, outside `/dev/shm` and pytest basetemps. Each rehearsal
+uses ten items of each type across two shards, yielding **110 completed tuples**.
+They check type barriers, disjoint sharding, registered modes, exact model text,
+byte-preserving resume, time-guard admission, an interrupted in-flight decode,
+template result-tar layout, code/bootstrap pins, Slurm opacity, input-change
+refusal and failure handling. These are control-flow proofs, not step-544
+real-weight compatibility or timing measurements.
+
+The full suite command was:
+
+```bash
+LANE_TEST_OUTPUT="$PWD/tmp/b8" PYTHONHASHSEED=17 bash cpu.sh -m pytest \
+  tests/test_build8.py tests/test_build7.py tests/test_build7_types.py \
+  tests/test_build6.py tests/test_build4.py tests/test_review.py \
+  tests/test_reader_build4.py tests/test_build3_items.py tests/test_h10.py \
+  tests/test_cli.py tests/test_r0.py tests/test_eval.py tests/test_trainer.py \
+  tests/test_stop.py tests/test_rows.py tests/test_own_forward.py \
+  -q -rs -p no:cacheprovider -p tests.reader_plugin -p tests.build4_plugin \
+  --basetemp="$PWD/tmp/b8/full1" > tmp/b8/full1.log 2>&1
+```
+
+The final package/rehearsal check uses the same flags with only
+`tests/test_build8.py`, basetemp `tmp/b8/final`, and log `tmp/b8/final.log`.
+Its final result is recorded below. `bash -n` passed for the generated batch
+and submission shell scripts. The standalone operator helper loaded the pinned
+package in memory and refused the local Trinity package path before any remote
+or Slurm action.
+
+Package commands, run only through the requested CPU environment, are:
+
+```bash
+LANE_TEST_OUTPUT="$PWD/tmp/b8" bash cpu.sh -m orchard_h10.build \
+  --out "$PWD/orchard_h10/package"
+LANE_TEST_OUTPUT="$PWD/tmp/b8" bash cpu.sh -m orchard_h10.inventory \
+  "$PWD/orchard_h10/package"
+```
+
+`build.py --refresh` can replace an unsubmitted package in place while retaining
+its token; it refuses a package with a submission ledger. Changing a package
+invalidates its plan and any resume binding. All Python commands use
+`/scratch/jjyeung/envs/p1cpu/bin/python -B`, hidden CUDA, at most 16 threads, and
+the CPU wrapper's 32 GiB address-space cap. All new test scratch files live
+under `tmp/b8`.
+
+### Operator steps and conservative choices
+
+`orchard_h10/OPERATIONS.md` contains the complete archive schema and commands.
+The operator must resolve OPEN inputs, stage one archive through the existing
+governed bridge, extract the small package to
+`/project/community/jjyeung/b01ec87a6f29b`, and fill its `1.json`. The bridge
+connection is not available here; no new SSH transport or upload was invented.
+The optional outer transport tar was not created on this disk-constrained node.
+
+On the Orchard login node, the exact CPU admission and later explicit submit
+commands are:
+
+```bash
+cd /project/community/jjyeung/b01ec87a6f29b
+CUDA_VISIBLE_DEVICES= /usr/bin/python3 -I -s -B 3.py check --gpus 4 --time 01:15:00
+# Only after ORCH releases GPUs and the CPU receipt passes:
+A_N=4 A_T=01:15:00 bash SUBMIT.cmd --test-only
+A_N=4 A_T=01:15:00 bash SUBMIT.cmd
+```
+
+The login check reads package/contract metadata and archive sizes, not tensors.
+The allocated node performs full admission and the CPU restore. The example
+uses four GPUs for 75 minutes; the operator chooses the actual `--time` and
+reruns admission for it. Slurm receives only opaque paths/tokens and four
+explicitly supplied environment values. It receives no inherited lane paths,
+comments, dataset names or model names. Shipped source and item contents use
+the stated ORCH exemption.
+
+To fetch, set the real job ID, derive its return token, and use the pinned
+template framed transport through the package helper:
+
+```bash
+J=170999  # Replace with the actual returned job ID.
+R=$(/usr/bin/python3 -I -s -B -c \
+  'import sys; print("b01ec87a6f29b"+format(int(sys.argv[1]),"08x"))' "$J")
+/usr/bin/python3 -I -s -B 3.py fetch --return-token "$R" --out "/tmp/$R"
+```
+
+The operator returns that single archive and its receipts through the governed
+bridge at <=8 MB/s. Resume pins the returned archive in `1.json`, retains the
+same shard count and inputs, repeats the CPU check, and explicitly resubmits.
+
+Conservative choices: missing remote proof means OPEN; full G3T/SAM receipt pins
+are never inferred from hash prefixes. The stable data root is opaque and bound
+under `/scratch` because the reviewed reader rejects physical `/tmp` paths.
+The package includes parity_kit and native metadata because e2e_reader imports
+them. It reads only the own arm and does not import b04's partial baseline rows:
+the requested kit's complete paired-journal contract cannot authenticate that
+partial set as a reusable tower run. The 20-minute return reserve prioritizes
+durable results over maximizing allocated decode time. No historical prose was
+kept except the numbered build and validation ledger explicitly requested here.
+
+**GUESS:** an H100 may take **10–60 seconds per decode**, compared with b04's
+reported **25–120 seconds on an A6000 with SAM 3 in the call**. This is an
+unmeasured estimate, not a claimed speedup. All 1,536 own decodes would consume
+about **4.3–25.6 H100-hours**, excluding loading, staging and return. Five
+H100-hours should therefore be treated as a budget for an ordered partial read;
+the returned projection determines how much remains.
+
+### Final checks and storage
+
+The final rehearsal suite has **10 passed in 73.58 seconds** (`tmp/b8/final.log`).
+The final package-pin and deadline-handler checks have **2 passed in 0.38
+seconds** (`tmp/b8/deadline.log`). The deadline check proves that an allocation
+stop crosses an ordinary reader `except Exception` handler; it cannot be
+converted into an answer record. That check and the package test ran with the
+same CPU/pytest flags, selecting
+`test_package_pins_and_embedded_bootstrap` and
+`test_deadline_crosses_reader_exception_handlers`, under basetemp
+`tmp/b8/deadline`.
+
+The conservative storage upper bound is **18,550,784 allocated bytes (18.56 MB)**
+and **13,950,768 logical bytes (13.96 MB)**, below the 20 MB cap. The receipt is
+`tmp/b8/SIZE.json`. It excludes the supplied template, counts new files and
+positive file growth, counts the edited launcher/report in full, includes all
+Build-8 directory allocation, and reserves 256 KiB for final metadata and report
+edits. No extra outer transport archive or expanded code tree was written.
+No Git, network, SSH/SCP/rsync, GPU use, process termination, input modification,
+or file-deletion command ran. All writes were inside K.

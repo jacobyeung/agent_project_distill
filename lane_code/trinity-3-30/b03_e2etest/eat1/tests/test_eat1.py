@@ -26,7 +26,7 @@ EXPECTED = {  # variant -> clauses that must fail (and every other clause must p
     'table': {'A1', 'A3', 'A5'},
     'second_entry': {'A2'},
     'threshold': {'A3'},
-    'guard': {'A3', 'A4', 'A5'},  # its fallback arm reads response text after decoding and substitutes the answer (A4)
+    'guard': {'A3', 'A4'},  # its fallback arm reads response text after decoding and substitutes the answer (A4)
     'cache': {'A1', 'A3', 'A5'},
     'head_method': {'A3'},  # a threshold in a method of a declared module class is not model code
 }
@@ -58,7 +58,7 @@ class ToyEndToEnd(unittest.TestCase):
         self.assertEqual(r['clauses']['A5']['parts'], dict(i='PASS', ii='PASS', iii='PASS'))
         for typ in ('move', 'depth'):
             self.assertEqual(r['per_type'][typ]['call_rate'], 1.0)
-        self.assertEqual(r['per_type']['move']['heads_behind_fields'], {'distance_m': {'pose': 3}})
+        self.assertEqual(r['per_type']['move']['heads_behind_fields'], {'distance_m': {'move': 3}})
 
     def test_each_planted_violation_fails_its_clause_only(self):
         for variant, expected in EXPECTED.items():
@@ -93,11 +93,21 @@ class Adversarial(unittest.TestCase):
                  child='child_process_during_generate', rewrite='cache_modified_between_model_entries',
                  answer='answer_not_generated_after_last_response',
                  omitted='reported_calls_differ_from_observed_handler_responses',
-                 disappear='perturbed_run_raised', forward='A3.threshold', method='A3.constant')
+                 disappear='perturbed_run_raised', forward='A3.threshold', method='A3.constant',
+                 printf='A3.response_value', integer='A3.response_value', instance='A3.module_data',
+                 class_policy='A3.module_data', units='A3.module_data', constructor_table='A3.module_data',
+                 local_threshold='A3.module_data', fields='field_cites_a_module_that_did_not_produce_it',
+                 answer_work='answer_not_generated_after_last_response', permute='cache_modified_between_model_entries',
+                 maximum='A3.selection', tensor_scale='A3.module_data', class_tensor='A3.module_data',
+                 table_tensor='A3.module_data', fields_extra='fields_do_not_cover_printed_numbers_in_order',
+                 positive_answer='answer_not_generated_after_last_response', suffix_printf='A3.reformat',
+                 nested_config='A3.module_data', nested_tensor_config='A3.module_data',
+                 nested_class_config='A3.module_data', integer_unit='A3.response_value',
+                 unproject_only='response_without_head')
 
     @classmethod
     def setUpClass(cls):
-        from eat1.toy.adversarial import EXPECT, build_adversarial
+        from eat1.toy.adversarial import EXPECT, UNPROJECT, build_adversarial
         cls.expect = EXPECT
         cls.tmp = Path(tempfile.mkdtemp(prefix='eat1_adv_', dir=os.environ.get('EAT1_TMP')))
         cls.info = build_adversarial(cls.tmp/'fx')
@@ -106,10 +116,14 @@ class Adversarial(unittest.TestCase):
             v = variant.removesuffix('_coderoot')
             out = cls.tmp/'runs'/variant
             extra = ['--code-root', str(cls.tmp/'fx')] if variant.endswith('_coderoot') else []
+            fx, items = ((cls.info['unproject_workdir'], cls.info['unproject_move']) if v in UNPROJECT else
+                         (str(cls.tmp/'fx'), cls.info['depth' if v == 'memo' else 'move']))
             R.main(['--reader', 'eat1.toy.adversarial:make_reader', '--reader-kwargs',
-                    json.dumps(dict(workdir=str(cls.tmp/'fx'), variant=v)), '--items',
-                    cls.info['depth' if v == 'memo' else 'move'], '--out', str(out), '--allowlist-extra', TOY_ALLOW,
-                    '--perturb', '--sandbox']+extra)
+                    json.dumps(dict(workdir=fx, variant=v)), '--items',
+                    items, '--out', str(out), '--allowlist-extra', TOY_ALLOW,
+                    '--perturb', '--sandbox']+extra+(['--allowlist-extra', str(EAT1/'toy'/'allowlist_native_cm.json')]
+                                                     if v == 'native_units' else [])
+                   +(['--allowlist-extra', str(EAT1/'toy'/'allowlist_relu6.json')] if v == 'relu6' else []))
             cls.results[variant] = json.loads((out/'EAT1_REPORT.json').read_text())
 
     def test_each_variant_fails_its_clause(self):
@@ -135,6 +149,22 @@ class Adversarial(unittest.TestCase):
         a5 = self.results['memo']['clauses']['A5']
         self.assertEqual(a5['cache_proof']['status'], 'PASS')
         self.assertTrue(a5['proven_cache_sites'] and a5['claim_needs_live_run'])
+
+    def test_printed_values_trace_to_their_heads(self):
+        for variant in ('numeric', 'memo'):
+            with self.subTest(variant=variant):
+                self.assertEqual(self.results[variant]['clauses']['A3']['status'], 'PASS')
+
+    def test_strace_log_without_this_runs_windows_is_no_witness(self):
+        empty = self.tmp/'empty_strace.log'
+        empty.write_text('')
+        out = self.tmp/'runs'/'empty_trace'
+        R.main(['--reader', 'eat1.toy.adversarial:make_reader', '--reader-kwargs',
+                json.dumps(dict(workdir=str(self.tmp/'fx'), variant='numeric')), '--items', self.info['move'],
+                '--out', str(out), '--allowlist-extra', TOY_ALLOW, '--strace-log', str(empty), '--sandbox', '--perturb'])
+        r = json.loads((out/'EAT1_REPORT.json').read_text())
+        self.assertFalse(r['claim_grade'])
+        self.assertFalse(r['clauses']['A1']['strace'])
 
     def test_data_under_a_code_root_is_not_mounted(self):
         self.assertEqual(self.results['native_coderoot']['clauses']['A5']['parts']['i'], 'FAIL')
@@ -175,7 +205,7 @@ class StaticScanner(unittest.TestCase):
     def test_constant_arithmetic_and_propagation_fail(self):
         for src in ['def f(v):\n    return v*((2+3)**2)*4\n', 'def f(v):\n    k = 4\n    return v*k*k*4\n',
                     'def f(v):\n    return v+0.5+0.5+0.5\n', 'def f(v, cfg):\n    return v if v < cfg.edge else 0\n',
-                    'import torch\ndef f(v):\n    return torch.clamp(v, 0, 1)\n', 'def f(v):\n    return v > 0.5\n']:
+                    'import torch\ndef f(v):\n    return torch.clamp(v, 0, 0.8)\n', 'def f(v):\n    return v > 0.5\n']:
             with self.subTest(src=src):
                 path = Path(tempfile.mkdtemp())/'k.py'
                 path.write_text(src)

@@ -20,6 +20,9 @@ Rules
   A3.threshold       an ordering comparison against a number outside `threshold_numbers` (0, 1, -1), an
                      UPPER_CASE name, a threshold-like name, an attribute (`self.settings.edge`), or a config/table
                      lookup; and any comparison or clamp API (torch.gt, np.less, clamp, clip, threshold, ...)
+  A3.selection       max/min/sort/argmax-like calls or comparisons of two computed values; judged (run.py) only on
+                     lines executed inside a registered call handler's forward
+  (run.py adds A3.response_value, A3.module_data and config-role A3.table_load from the dynamic run)
   A4.guard           an identifier naming a guard, fallback, refusal, veto, substitution or rejection
   A4.status_literal  a status string ('not seen', 'unavailable', 'refused', 'error: ' ...) outside the
                      reviewed head-status formatters
@@ -49,6 +52,10 @@ SHAPE_CALLS = {'reshape', 'view', 'permute', 'transpose', 'unsqueeze', 'squeeze'
                'movedim', 'swapaxes', 'chunk', 'split', 'narrow', 'select', 'zeros', 'ones', 'empty', 'new_zeros',
                'new_ones', 'new_empty', 'arange', 'eye', 'size', 'repeat', 'tile'}
 ROUND_CALLS = {'round', 'around', 'round_'}
+# value-dependent selection; judged only on lines executed inside a registered call handler's forward
+SELECT_CALLS = {'max', 'min', 'sorted', 'argmax', 'argmin', 'topk', 'sort', 'argsort', 'amax', 'amin', 'maximum',
+                'minimum', 'fmax', 'fmin', 'median', 'nanmax', 'nanmin', 'kthvalue', 'mode', 'nanargmax', 'nanargmin'}
+LOG_CALLS = {'debug', 'info', 'warning', 'warn', 'error', 'exception', 'print', 'log', 'critical'}
 UNIT_NORMAL = [(re.compile(r'^(sq\.? ?ft|ft2|sqft)$', re.I), 'ft2'), (re.compile(r'^(feet|foot|ft)$', re.I), 'ft'),
                (re.compile(r'^(inch(es)?|in)$', re.I), 'in'), (re.compile(r'^(centimet\w*|cm)$', re.I), 'cm'),
                (re.compile(r'^(millimet\w*|mm)$', re.I), 'mm'), (re.compile(r'^(yards?|yd)$', re.I), 'yd'),
@@ -194,7 +201,7 @@ class _Visitor(ast.NodeVisitor):
         parent = self.parents[-1] if self.parents else None
         exempt = self._exempt(node)
         if isinstance(node.op, ast.Mod) and isinstance(node.left, ast.Constant) and isinstance(node.left.value, str) \
-                and re.search(r'%[-+ #0]*\d*\.\d*[fgeFGE]', node.left.value) and not self.allow.get('format_precision'):
+                and re.search(r'%[-+ #0]*\d*(\.\d*)?[fgeFGEd]', node.left.value) and not self.allow.get('format_precision'):
             self.add('A3', 'A3.reformat', node, 'printf-style precision outside the model')
         folded = self.fold(node)
         top_fold = not (isinstance(parent, (ast.BinOp, ast.UnaryOp)) and self.fold(parent) is not None)
@@ -256,7 +263,7 @@ class _Visitor(ast.NodeVisitor):
             self.add('A4', 'A4.guard', node, f'def {node.name}')
         if CACHE.search(node.name):
             self.add('A5', 'A5.cache', node, f'def {node.name}')
-        if UNIT_IDENT.search(node.name):
+        if UNIT_IDENT.search(node.name) and not self._native_ident(node.name):
             self.add('A3', 'A3.unit_conversion', node, f'def {node.name}')
         self.func_stack.append(node.name)
         self.const_stack.append(self._constants(node))
@@ -329,8 +336,13 @@ class _Visitor(ast.NodeVisitor):
             self.add('A4', 'A4.guard', node, f'identifier {ident}')
         if CACHE.search(ident):
             self.add('A5', 'A5.cache', node, f'identifier {ident}')
-        if UNIT_IDENT.search(ident):
+        if UNIT_IDENT.search(ident) and not self._native_ident(ident):
             self.add('A3', 'A3.unit_conversion', node, f'identifier {ident}')
+
+    def _native_ident(self, ident):
+        parts = [p for p in re.split(r'_+', ident.lower()) if p]
+        units = {next((n for rx, n in UNIT_NORMAL if rx.match(p)), None) for p in parts} - {None}
+        return bool(units) and units <= self.allow['_native_units'] and not UNIT_IDENT.conv.search(ident)
 
     # calls
     def visit_Call(self, node):
@@ -338,7 +350,13 @@ class _Visitor(ast.NodeVisitor):
         if n in TABLE_LOADERS and not self.allowed(self.loader_ok) and not self.in_context(ast.Raise):
             self.add('A3', 'A3.table_load', node, f'{ast.unparse(node.func)}()')
         if not self.in_context(ast.Raise):
-            if n in COMPARE_CALLS:
+            bounds = [a for a in node.args[1:]]+[k.value for k in node.keywords if k.arg in ('min', 'max', 'other')]
+            relu_like = n in ('clamp', 'clamp_', 'clamp_min', 'clip', 'clip_') and bounds and all(
+                self.fold(b) is not None and (self.fold(b) in self.allow['_threshold_values'] or self.declared(self.fold(b)))
+                for b in bounds)
+            if n in SELECT_CALLS and self.allow.get('_selection'):
+                self.add('A3', 'A3.selection', node, f'{ast.unparse(node.func)[:40]}() selects among values')
+            if n in COMPARE_CALLS and not relu_like:
                 self.add('A3', 'A3.threshold', node, f'comparison or clamp API {ast.unparse(node.func)[:40]}()')
             if not self.allow.get('format_precision'):
                 spec = node.args[1] if n == 'format' and len(node.args) > 1 else None
@@ -429,6 +447,10 @@ class _Visitor(ast.NodeVisitor):
 
     def visit_Compare(self, node):
         ordering = any(isinstance(o, (ast.Lt, ast.LtE, ast.Gt, ast.GtE)) for o in node.ops)
+        operands = [node.left]+list(node.comparators)
+        if ordering and self.allow.get('_selection') and not self.in_context(ast.Raise) and all(
+                self.fold(o) is None and not (isinstance(o, ast.Call) and _name(o.func) == 'len') for o in operands):
+            self.add('A3', 'A3.selection', node, 'compares two computed values (value-dependent selection)')
         if not self.in_context(ast.Raise) and ordering:
             for operand in [node.left]+list(node.comparators):
                 why = self._threshold_operand(operand)
@@ -457,8 +479,24 @@ class _Visitor(ast.NodeVisitor):
 
     # substitutes on failure
     def visit_ExceptHandler(self, node):
-        if not (node.body and isinstance(node.body[-1], ast.Raise)):
-            stmt = next((s for s in node.body if not isinstance(s, ast.Raise)), node)
+        """An except-handler passes when it re-raises, or when it only does bookkeeping: integer counters on
+        attributes or subscripts, and logging calls. Anything else (a return, a local substitute, pass) lets a
+        substitute flow on."""
+        def bookkeeping(st):
+            if isinstance(st, (ast.Assign, ast.AugAssign)):
+                targets = st.targets if isinstance(st, ast.Assign) else [st.target]
+                return all(isinstance(t, (ast.Subscript, ast.Attribute)) for t in targets) and isinstance(
+                    st.value, ast.Constant) and type(st.value.value) is int
+            return isinstance(st, ast.Expr) and isinstance(st.value, ast.Call) and _name(st.value.func) in LOG_CALLS
+        # a try whose body only does bookkeeping has no value to substitute: its handler may also pass
+        parent = self.parents[-1] if self.parents else None
+        quiet = isinstance(parent, ast.Try) and node in parent.handlers and parent.body and all(
+            bookkeeping(st) for st in parent.body) and not parent.orelse
+        if quiet and all(isinstance(st, ast.Pass) or bookkeeping(st) for st in node.body):
+            self.generic_visit(node)
+            return
+        if not (node.body and isinstance(node.body[-1], ast.Raise)) and not all(bookkeeping(st) for st in node.body):
+            stmt = next((s for s in node.body if not isinstance(s, ast.Raise) and not bookkeeping(s)), node)
             self.add('A4', 'A4.except_substitute', stmt, 'except-handler does not re-raise; a substitute flows on')
         self.generic_visit(node)
 

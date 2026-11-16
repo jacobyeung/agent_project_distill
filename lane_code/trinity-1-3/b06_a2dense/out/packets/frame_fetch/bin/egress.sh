@@ -1,6 +1,7 @@
 #!/bin/bash
 # One ranged GET (64 KiB) of the first ARKit capture's lowres_wide.zip from a compute node, with the k6 venv.
-F=$(cd "$(dirname "$0")/.." && pwd); mkdir -p $F/logs
+# sbatch runs a spooled copy of this script, so $0 does not locate the packet; use the staged root.
+F=${EGRESS_ROOT:-/project/community/jjyeung/okh7/db3954b2}; mkdir -p $F/logs || exit 3
 /project/community/jjyeung/cp4tk_fr/venv/bin/python -I - "$F" > $F/logs/egress.${SLURM_JOB_ID:-x}.json 2>&1 <<'PY'
 import json, sys, time, socket, urllib.request
 F = sys.argv[1]

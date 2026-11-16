@@ -39,7 +39,15 @@ L = /scratch/jjyeung/orch_n30/b06_a2dense. Short hashes are sha256 prefixes.
 5. Shuffled read rejected path aliases (MEDIUM): fixed, rows of one clip are compared by ordinals, sha256 and timestamps; test added.
 6. Production parity unverifiable (MEDIUM): stays in the frame-host job (real row, trainer dtype).
 7-8. Rule 3 two-sided / shuffled harm is not useful geometry (HIGH): card rule 3 is now one-sided; a claim rule requires beating both init and shuffled; a zero-bank read is printed.
-9. One-point power unknown (MEDIUM): card states it is measured from D0's item-level m200 read before registration.
+9. One-point power unknown (MEDIUM): measured on D0's m200 read: half-width 4.13 pp on the 450-item paired mean (L/power/m200_power.json b8ee62f0); rule 3 is a point rule and the card says so.
 10. Missing cache record fell back online (MEDIUM): fixed, refuses for non-pose rows.
 Tests after fixes: dense 19/19; test_gf1_cache 11/12 (only the known BF16-cache case fails; L/cache/out/tests_full_1330Z.json).
 R0 (ORCH 1307Z): 0 rows, frames or clips removed: no R0 room occurs in the plan, the row clips or the A2 pose rows (L/out/R0_OVERLAP.json; 2,160 s5 sample rows have aliases outside the k6 plan and are not A2 rows).
+
+## Fetch on Orchard (job 170379, 18:52-19:22Z; cancelled for main's general slot, ORCH 1913Z)
+- ARKit range fetch, parts a0-a2 DONE: 1,483 of 1,500 captures, 51,072 frames, 0 misses, 4.1 GB from Apple in 13.5 min. 17 captures refused by the clock guard (known k6 ordinals differ from traj rows, 19-30 ordinals each); their 17 d3 clips are refused, never re-aligned.
+- Video decode: v0 DONE (409 videos); v1, v2 owed (one job, same command; DONE parts are skipped).
+- Seal dry-run on the four parts (L/work/fetch_partial/SEALED_partial.json): 1,902 clips sealed + 839 refused = 2,741; parity 6,510 frames checked, all byte-equal to the k6 pins on the compute node, 0 differ.
+- Compute-node storage (logs/disk.170377.txt): /tmp 5.9 TB (4.8 TB free), /dev/shm 922 GB, RAM 1.8 TB: the 280 GB FP32 cache fits node-local storage.
+- Parts (Orchard okh7/db3954b2/parts, sha256 in L/work/parts_sha_1930Z.txt): a0n3 71e920bc, a1n3 aff4914f, a2n3 01654203, v0n3 628e058a.
+- Power for card rule 3 (D0 m200 read): 450-item paired half-width 4.13 pp (L/power/m200_power.json); rule 3 is a point rule.

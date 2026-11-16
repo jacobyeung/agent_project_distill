@@ -1,0 +1,2 @@
+- /dev/shm/review_offnative3 (review copies, ~1 GB RAM)
+- /tmp/a_900000_* roots created by review_offnative3 tests

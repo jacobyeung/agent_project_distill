@@ -4,7 +4,11 @@ Visibility (gtvis.FLOOR): an instance is visible in pin f when its raster pixel 
 Counting: n >= 2 instances, every instance visible in some pin. Totals: 2-3 such categories (n >= 1, one with n >= 2).
 Appearance: 4 categories with clean onsets (no instance share >= ONSET_EPS before the first-seen pin), first-seen pins
 pairwise >= 2 apart. First-seen: one category with a clean onset. Category gates: not structural, in the D0/bench vocab
-of the dataset, no sibling label sharing its head noun or plural."""
+of the dataset, no sibling label sharing its head noun or plural.
+Drop rules (DROP_RULES) run after all sampling and balancing and never feed back into them, so a dropped row never
+reshuffles another: (a) ARKit capture without an 'ok' pin-alignment entry in either check file, (b) total whose category set
+repeats a D0 v5 total, (c) appearance whose category set repeats a D0 v5 appearance row. Sampling inputs stay those of v2:
+the scene gate reads ARK_PIN_TS_CHECK.json only and appearance sampling excludes d0_pairs sets only."""
 import json, os, sys, glob, hashlib, itertools, collections, random
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gtvis import FLOOR, DENY, norm, load_raster, ambiguous
@@ -115,7 +119,7 @@ def total_trace(qid, parts):
     lines.append(f'So there are {acc} in total.')
     return '\n'.join(lines), acc
 
-def gen_scene(alias, canonical, rpath, si, V, d0c, d0a, d0t):
+def gen_scene(alias, canonical, rpath, si, V, d0c, d0a):
     rs = load_raster(rpath)
     if rs['fi'] != list(si['frame_indices']): return None, {'raster pins differ': 1}
     ds = alias[:2]; cats, why = scene_facts(rs, ds, V); rows = collections.defaultdict(list)
@@ -141,7 +145,6 @@ def gen_scene(alias, canonical, rpath, si, V, d0c, d0a, d0t):
     for cb in combos:
         if len(rows['count_total']) >= CAP_TOT: break
         if any(use[x] >= 3 for x in cb): continue
-        if tuple(sorted(cb)) in d0t: why['total: D0 category set'] += 1; continue
         for x in cb: use[x] += 1
         qid = 'b12ct_' + hashlib.sha256(f'{alias}|{"|".join(cb)}'.encode()).hexdigest()[:24]
         parts = [(x, sorted((i[1], i[2]) for i in cnt[x]['insts'])) for x in cb]
@@ -198,9 +201,16 @@ def main():
         for j in json.load(open(W + 'streams_scn_jobs.json')): am.setdefault(j['alias'], 'scannet/' + j['id'])
     d0 = json.load(open(W + 'd0_pairs.json')); V = vocab(); R = raster_index(roots)
     D0S = json.load(open(W + 'd0_sets.json'))
-    ARKTS = {}
+    GATE = json.load(open(W + 'ARK_PIN_TS_CHECK.json')); ARKTS = {}
     for f in ('ARK_PIN_TS_CHECK.json', 'ARK_PIN_TS_CHECK_K1.json'):
         for a, v in json.load(open(W + f)).items(): ARKTS[a] = v if ARKTS.get(a, 'ok') == 'ok' else ARKTS[a]
+    def drop_rule(r):
+        a = r['dataset'] + '/' + r['scene']
+        if r['dataset'] == 'd3' and ARKTS.get(a, 'no check') != 'ok': return 'ARKit pin alignment not ok (%s)' % ARKTS.get(a, 'no check')[:40]
+        if r.get('count_kind') == 'total' and tuple(sorted(x['name'] for x in r['provenance']['total_categories'])) in {tuple(x) for x in D0S['total'].get(a, [])}:
+            return 'total: D0 v5 category set'
+        if r['question_type'] == 'obj_appearance_order' and tuple(sorted(r['provenance']['first_seen'])) in {tuple(x) for x in D0S['app'].get(a, [])}:
+            return 'appearance: D0 v5 category set'
     st = collections.Counter(); fams = collections.defaultdict(list); per_scene = {}; held = collections.defaultdict(list)
     for alias in sorted(SI):
         c = am.get(alias)
@@ -208,10 +218,8 @@ def main():
         if EL.get(alias, {}).get('excluded'): st['scene: excluded'] += 1; continue
         k = raster_key(c)
         if k not in R: st['scene: no raster'] += 1; continue
-        ak = ARKTS.get(alias, 'no check')
-        if alias.startswith('d3/') and ak != 'ok': st['scene: ARKit pin alignment not ok (%s)' % ('ts mismatch' if ak.startswith('ts mismatch') else ak)] += 1; continue
-        rows, why = gen_scene(alias, c, R[k], SI[alias], V, set(d0['count'].get(alias, [])), {tuple(x) for x in d0['app'].get(alias, []) + D0S['app'].get(alias, [])},
-                              {tuple(x) for x in D0S['total'].get(alias, [])})
+        if alias.startswith('d3/') and GATE.get(alias, 'ok') != 'ok': st['scene: ARKit pin timestamps differ from RGB'] += 1; continue
+        rows, why = gen_scene(alias, c, R[k], SI[alias], V, set(d0['count'].get(alias, [])), {tuple(x) for x in d0['app'].get(alias, [])})
         for w, n in why.items(): st[w] += n
         if rows is None: st['scene: raster pins differ'] += 1; continue
         rs_ = RM.status(c)
@@ -232,6 +240,17 @@ def main():
     st['first_seen: frame-1 rows dropped for balance'] = max(0, len(one) - keep1)
     keep = {r['qid'] for r in one[:keep1]}
     fams['first_seen'] = [r for r in fams['first_seen'] if r['answer'] != '1' or r['qid'] in keep]
+    dropped = []
+    for pool in (fams, held):
+        for f in list(pool):
+            kept = []
+            for r in pool[f]:
+                w = drop_rule(r)
+                if w: dropped.append(dict(qid=r['qid'], family=f, rule=w, heldout=pool is held)); st[f'drop rule: {f}: {w}'] += 1
+                else: kept.append(r)
+            pool[f] = kept
+    with open(os.path.join(out, 'DROPPED.jsonl'), 'w') as fh:
+        for d in dropped: fh.write(json.dumps(d, sort_keys=True) + '\n')
     man = dict(generator_sha256=GEN_SHA, gtvis_sha256=GTVIS_SHA, validator_sha256=hashlib.sha256(open(G.__file__, 'rb').read()).hexdigest(), raster_roots=roots, n_rasters_indexed=len(R), stats=dict(st), families={})
     for f, v in sorted(fams.items()):
         p = os.path.join(out, f + '.jsonl')

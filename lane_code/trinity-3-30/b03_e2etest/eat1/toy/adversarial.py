@@ -1,5 +1,5 @@
-"""Planted violations from the cross-family refute review (REVIEW_VERDICT_EAT1.md, defects 1-15), one per
-variant, plus `memo` (a live per-item memo with a passing equality proof) that must pass. Each handler
+"""Planted violations from the cross-family refute reviews (REVIEW_VERDICT_EAT1*.md, rounds 1-4), one per
+variant, plus compliant variants and `memo` (a live per-item memo with a passing equality proof) that must pass. Each handler
 prints its head output unchanged with str(); the planted step is `adjust` or the reader change."""
 import ctypes
 import json
@@ -8,6 +8,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from dataclasses import dataclass
 from types import SimpleNamespace
 
 import re
@@ -311,6 +312,124 @@ class PermutedPrompt(ToyReader):
         return dict(text=text, answer=text.rpartition('answer: ')[2], calls=list(handler.calls))
 
 
+class Bookkeeping(NumericHandler):
+    def __init__(self, model):
+        super().__init__(model)
+        self.counts = {}
+
+    def adjust(self, value):
+        try:
+            self.counts['calls'] += 1
+        except KeyError:
+            self.counts['calls'] = 1
+        return value
+
+
+class Maximum(NumericHandler):
+    def serve(self, call):
+        feats = self.state['feats']
+        head = self._model.perception.move_head
+        first = float(head(torch.cat([feats[0], feats[1]]))[0])
+        second = float(head(torch.cat([feats[1], feats[0]]))[0])
+        return str(max(first, second)), {'distance_m': ['move']}
+
+
+class TensorScaleHead(torch.nn.Linear):
+    def __init__(self, *args):
+        super().__init__(*args)
+        # A fitted multiplier in ordinary object state, absent from state_dict.
+        self.scale = torch.tensor(0.37)
+
+    def forward(self, value):
+        return super().forward(value) * self.scale
+
+
+class TableScaleHead(TensorScaleHead):
+    def __init__(self, old, path):
+        super().__init__(old.in_features, old.out_features)
+        self.scale = torch.tensor(json.loads(path.read_text())['scale'])
+
+
+class ClassScaleHead(torch.nn.Linear):
+    scale = torch.tensor(0.37)
+
+    def forward(self, value):
+        return super().forward(value) * self.scale
+
+
+class ScalarHead(torch.nn.Linear):
+    def forward(self, value):
+        return float(super().forward(value)[0])
+
+
+class ReLU6Head(torch.nn.Linear):
+    def forward(self, value):
+        return torch.clamp(super().forward(value), min=0, max=6)
+
+
+class ScalarHandler(NumericHandler):
+    def serve(self, call):
+        feats = self.state['feats']
+        value = self._model.perception.move_head(torch.cat([feats[0], feats[1]]))
+        return str(value), {'distance_m': ['move']}
+
+
+class ExtraFields(NumericHandler):
+    def serve(self, call):
+        feats, heads = self.state['feats'], self._model.perception
+        first = float(heads.move_head(torch.cat([feats[0], feats[1]]))[0])
+        second = float(heads.depth_head(torch.cat([feats[0], self._model.tower(self.state['frames'][0])]))[0])
+        # Ordinary response schema includes a nonnumeric kind field.
+        return f'move: {first}, depth: {second}', {
+            'move': ['depth'], 'depth': ['move', 'toy_tower'], 'kind': ['move']}
+
+
+class NegativeHead(torch.nn.Linear):
+    def forward(self, value):
+        return -super().forward(value).abs()
+
+
+class PositiveAnswer(ToyReader):
+    def generate(self, frames, question):
+        result = super().generate(frames, question)
+        result['answer'] = result['answer'].lstrip('-')
+        return result
+
+
+class UnitLM(ScriptLM):
+    unit = ' m'
+
+    def next_char(self, ids):
+        text = self.tok.decode(ids)
+        gen = text.partition('\nA:')[2]
+        if '</tool_response>' not in gen:
+            return super().next_char(ids)
+        body = gen.split('<tool_response>')[1].split('</tool_response>')[0]
+        number = re.search(r'-?[0-9]+\.[0-9]+', body)
+        tail = gen.split('</tool_response>')[1]
+        target = '\nanswer: '+number.group(0)+self.unit
+        return self.tok.encode(target[len(tail)])[0] if len(tail) < len(target) else self.tok.eos_token_id
+
+
+class UnitAnswer(ToyReader):
+    def generate(self, frames, question):
+        result = super().generate(frames, question)
+        result['answer'] = result['answer'].split()[0]
+        return result
+
+
+class NumpyPrint(NumericHandler):
+    def serve(self, call):
+        feats = self.state['feats']
+        value = self._model.perception.move_head(torch.cat([feats[0], feats[1]]))
+        return str(value.detach().numpy()[0]), {'distance_m': ['move']}
+
+
+class SuffixedPrintf(NumericHandler):
+    def adjust(self, value):
+        return '%f' % value + 'm'
+
+
 class RewriteReader(ToyReader):
     @torch.no_grad()
     def generate(self, frames, question):
@@ -358,6 +477,88 @@ class DisappearingReader(ToyReader):
         return super().generate(frames, question)
 
 
+# round-4 probes (REVIEW_VERDICT_EAT1_R4.md 1-7)
+@dataclass
+class Calibration:
+    scale: float
+
+
+class ConfigHead(torch.nn.Linear):
+    def forward(self, value):
+        return super().forward(value) * self.calibration.scale
+
+
+class ClassConfigHead(ConfigHead):
+    calibration = Calibration(0.37)
+
+
+class MaximumHead(torch.nn.Linear):
+    def forward(self, value):
+        scores = super().forward(value)
+        return torch.maximum(scores, -scores)
+
+
+class AbsHead(torch.nn.Linear):
+    def forward(self, value):
+        return super().forward(value).abs()
+
+
+class DiagnosticHandler(NumericHandler):
+    def __init__(self, model):
+        super().__init__(model)
+        self.counts = {}
+
+    def adjust(self, value):
+        try:
+            self.counts['calls'] += 1
+        except KeyError:
+            pass
+        return value
+
+
+class IntegerUnitHandler(NumericHandler):
+    def adjust(self, value):
+        return str(int(value))+'m'
+
+
+class AreaLM(UnitLM):
+    unit = ' square metres'
+
+
+class VectorHead(torch.nn.Linear):
+    def forward(self, value):
+        x = super().forward(value)
+        return torch.cat([x, -x])
+
+
+class VectorHandler(NumericHandler):
+    def serve(self, call):
+        feats = self.state['feats']
+        value = self._model.perception.move_head(torch.cat([feats[0], feats[1]]))
+        return f'{float(value[0])}, {float(value[1])}', {'displacement_m': ['move']}
+
+
+class GeometryHead(torch.nn.Linear):
+    def forward(self, value):
+        z = super().forward(value)
+        return dict(u=z, depth=z, focal=torch.ones_like(z), center=torch.zeros_like(z))
+
+
+class Unprojector(torch.nn.Module):
+    def forward(self, geometry):
+        return (geometry['u']-geometry['center'])*geometry['depth']/geometry['focal']
+
+
+class UnprojectHandler(NumericHandler):
+    sources = ['move']
+
+    def serve(self, call):
+        feats = self.state['feats']
+        geometry = self._model.perception.move_head(torch.cat([feats[0], feats[1]]))
+        x = self._model.unproject(geometry)
+        return str(float(x[0])), {'x_m': self.sources}
+
+
 HANDLERS = dict(round=Rounded, conversion=Converted, chained=Chained, config=Configured, comparison=Compared,
     table=DecodedTable, lazy=LazyPolicy, assigned=ExceptAssignment, empty=EmptyExcept,
     readonly=DescriptorRead, readwrite=DescriptorRead, native=NativeRead, mapped=MappedRead,
@@ -365,16 +566,30 @@ HANDLERS = dict(round=Rounded, conversion=Converted, chained=Chained, config=Con
     numeric=NumericHandler, global_table=GlobalTable, printf=Printf, integer=Integer, instance=InstancePolicy,
     class_policy=ClassPolicy, units=InstanceUnits, constructor_table=ConstructorTable, local_threshold=LocalThreshold,
     native_units=NativeUnits, fields=WrongFields, clamp=NumericHandler, answer_work=NumericHandler,
-    permute=NumericHandler)
+    permute=NumericHandler, bookkeeping=Bookkeeping, maximum=Maximum, scalar=ScalarHandler, fields_extra=ExtraFields,
+    numpy_print=NumpyPrint, suffix_printf=SuffixedPrintf, tensor_scale=NumericHandler, class_tensor=NumericHandler,
+    table_tensor=NumericHandler, relu6=NumericHandler, positive_answer=NumericHandler, unit_answer=NumericHandler,
+    nested_config=NumericHandler, nested_tensor_config=NumericHandler, nested_class_config=NumericHandler,
+    integer_unit=IntegerUnitHandler, maximum_head=NumericHandler, abs_head=NumericHandler,
+    diagnostic=DiagnosticHandler, area_answer=NumericHandler, vector=VectorHandler, unproject_head=UnprojectHandler,
+    unproject_fixed=UnprojectHandler, unproject_only=UnprojectHandler)
 READERS = dict(rewrite=RewriteReader, answer=ShortAnswerReader, omitted=OmittedCallsReader,
-    disappear=DisappearingReader, answer_work=WorkAnswerReader, permute=PermutedPrompt)
+    disappear=DisappearingReader, answer_work=WorkAnswerReader, permute=PermutedPrompt, positive_answer=PositiveAnswer,
+    unit_answer=UnitAnswer, area_answer=UnitAnswer)
 # variant -> the clause its planted violation must fail (memo and numeric must pass every clause)
 EXPECT = dict(round='A3', conversion='A3', chained='A3', config='A3', comparison='A3', table='A3', lazy='A3',
               assigned='A4', empty='A4', readonly='A1', readwrite='A1', native='A1', mapped='A1', preopened='A1',
               child='A1', rewrite='A2', answer='A4', omitted='A6', disappear='A5', forward='A3', method='A3',
               global_table='A3', printf='A3', integer='A3', instance='A3', class_policy='A3', units='A3',
               constructor_table='A3', local_threshold='A3', fields='A6', answer_work='A4', permute='A2',
-              memo=None, numeric=None, native_units=None, clamp=None)
+              maximum='A3', tensor_scale='A3', class_tensor='A3', table_tensor='A3', fields_extra='A6',
+              positive_answer='A4', suffix_printf='A3', nested_config='A3', nested_tensor_config='A3',
+              nested_class_config='A3', integer_unit='A3', unproject_only='A4',
+              memo=None, numeric=None, native_units=None, clamp=None, bookkeeping=None, scalar=None, relu6=None,
+              unit_answer=None, numpy_print=None, maximum_head=None, abs_head=None, diagnostic=None, area_answer=None,
+              vector=None, unproject_head=None, unproject_fixed=None)
+# variants that read the fixture whose manifest declares the fixed_math module `unproject`
+UNPROJECT = ('unproject_head', 'unproject_fixed', 'unproject_only')
 
 
 def build_adversarial(workdir):
@@ -395,7 +610,14 @@ def build_adversarial(workdir):
             frame = torch.randn(12, generator=g)
             proof.append(dict(id=i, live=reader.model.tower(frame).tolist(), cached=reader.model.tower(frame).tolist()))
     (work/'memo_proof.json').write_text(json.dumps(dict(schema='eat1-cache-proof-v1', items=proof)))
-    return dict(info, move=str(work/'move.jsonl'), depth=str(work/'depth.jsonl'))
+    out = dict(info, move=str(work/'move.jsonl'), depth=str(work/'depth.jsonl'))
+    if not work.name.endswith('_unproject'):
+        u = build_adversarial(work.parent/(work.name+'_unproject'))
+        write_manifest(Path(u['move']).parent/'artifact'/'ARTIFACT.json', Path(u['move']).parent/'artifact',
+                       {'weights.pt': 'lm', 'policy.dat': 'config'},
+                       dict(MODULES, unproject=dict(role='fixed_math', name='unproject')))
+        out.update(unproject_workdir=str(Path(u['move']).parent), unproject_move=u['move'])
+    return out
 
 
 def make_reader(workdir, variant):
@@ -423,9 +645,25 @@ def make_reader(workdir, variant):
         reader.original = [p.detach().clone() for p in reader.model.parameters()]
     if variant == 'memo':
         reader.eat1_cache_proof = str(root/'memo_proof.json')
-    if variant in ('forward', 'method', 'clamp'):
+    heads = dict(forward=PolicyHead, method=MethodHead, clamp=ClampedHead, tensor_scale=TensorScaleHead,
+                 class_tensor=ClassScaleHead, scalar=ScalarHead, relu6=ReLU6Head, positive_answer=NegativeHead,
+                 nested_config=ConfigHead, nested_tensor_config=ConfigHead, nested_class_config=ClassConfigHead,
+                 maximum_head=MaximumHead, abs_head=AbsHead, vector=VectorHead, unproject_head=GeometryHead,
+                 unproject_fixed=GeometryHead, unproject_only=GeometryHead)
+    if variant in heads or variant == 'table_tensor':
         old = reader.model.perception.move_head
-        head = dict(forward=PolicyHead, method=MethodHead, clamp=ClampedHead)[variant](old.in_features, old.out_features)
+        head = heads[variant](old.in_features, old.out_features) if variant in heads else TableScaleHead(
+            old, root/'artifact'/'policy.dat')
         head.load_state_dict(old.state_dict())
+        if variant in ('nested_config', 'nested_tensor_config'):
+            scale = json.loads((root/'artifact'/'policy.dat').read_text())['scale']
+            head.calibration = Calibration(torch.tensor(scale) if variant == 'nested_tensor_config' else scale)
         reader.model.perception.move_head = head
+    if variant in UNPROJECT:
+        reader.model.unproject = Unprojector()
+        handler.sources = dict(unproject_fixed=['move', 'unproject'], unproject_only=['unproject']).get(variant, ['move'])
+    if variant in ('unit_answer', 'area_answer'):
+        old = reader.model.lm
+        reader.model.lm = (AreaLM if variant == 'area_answer' else UnitLM)(old.vocab)
+        reader.model.lm.load_state_dict(old.state_dict())
     return reader

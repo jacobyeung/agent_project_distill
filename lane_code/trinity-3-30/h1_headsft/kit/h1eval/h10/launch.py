@@ -8,6 +8,7 @@ import json
 import os
 from pathlib import Path
 import platform
+import signal
 import sys
 import time
 
@@ -115,7 +116,29 @@ def tower_records(directory, binding, items):
     return result,dict(environment_sha256=sha(root/'environment.json'),records_sha256=sha(root/'items.jsonl'))
 
 
+class ReadDeadline(BaseException):
+    """An unfinished read must not enter the completed journal."""
+
+
+_REQUEST_STOP = False
+
+
+def commit_record(stream, row):
+    # Defer the allocation timer until a whole record is durable.
+    previous = signal.pthread_sigmask(signal.SIG_BLOCK, {signal.SIGALRM})
+    try:
+        stream.write(json.dumps(row,allow_nan=False)+'\n');stream.flush();os.fsync(stream.fileno())
+    finally:
+        signal.pthread_sigmask(signal.SIG_SETMASK, previous)
+
+
 def run(args, *, make_real=None, factory_options=None):
+    stop_at = getattr(args, 'stop_at', None)
+    finish_by = getattr(args, 'finish_by', None)
+    stop_file = getattr(args, 'stop_file', None)
+    def stopping():
+        return (_REQUEST_STOP or (stop_at is not None and time.time() >= stop_at) or
+                (stop_file and Path(stop_file).exists()))
     manifest=load_manifest(args.items)
     selected_items=selected(manifest['items'], args.shard)
     if getattr(args,'types',None):selected_items=select_types(manifest['items'],selected_items,args.types)
@@ -217,11 +240,12 @@ def run(args, *, make_real=None, factory_options=None):
             for row in reused:
                 key=(row['id'],'tower','none')
                 if key in done:continue
-                stream.write(json.dumps(row,allow_nan=False)+'\n');stream.flush();os.fsync(stream.fileno())
+                commit_record(stream, row)
                 done[key]=row;added+=1
             for arm in arms:
                 cached_generator=None
                 for mode in interventions:
+                    if stopping():break
                     key=mode_key(mode)
                     todo=[r for r in selected_items if (r['id'],arm,key) in allowed and (r['id'],arm,key) not in done]
                     if not todo:continue
@@ -244,6 +268,8 @@ def run(args, *, make_real=None, factory_options=None):
                     load_s=time.perf_counter()-t
                     try:
                         for item in todo:
+                            if stopping():break
+                            if finish_by is not None and time.time() >= finish_by:break
                             t=time.perf_counter();output=generator(mapped[item['id']] if reviewed else item);seconds=time.perf_counter()-t
                             if not isinstance(output,dict) or 'text' not in output or 'finish' not in output:
                                 raise ValueError('make_real generator must return reader output with text and finish')
@@ -254,7 +280,7 @@ def run(args, *, make_real=None, factory_options=None):
                             row=dict(id=item['id'],room_key=item['room_key'],type=item['question_type'],
                                      arm=arm,mode=key,intervention=mode,applied=arm=='own',
                                      output=output,seconds=seconds,complete=True)
-                            stream.write(json.dumps(row,allow_nan=False)+'\n');stream.flush();os.fsync(stream.fileno())
+                            commit_record(stream, row)
                             done[(item['id'],arm,key)]=row;added+=1
                             if len(sample)<10:
                                 sample.append(seconds)
@@ -272,7 +298,10 @@ def run(args, *, make_real=None, factory_options=None):
         with (out/'timings.jsonl').open('a') as f:
             f.write(json.dumps(dict(utc=datetime.now(timezone.utc).isoformat(),seconds=time.perf_counter()-started,
                                    added=added,skipped=len(rows),loads=timings))+'\n');f.flush()
-        return dict(added=added,skipped=len(rows),completed=len(done),expected=len(allowed))
+        result = dict(added=added,skipped=len(rows),completed=len(done),expected=len(allowed))
+        if stop_at is not None or stop_file:
+            write_json(out/'progress.json',dict(result, stopped=len(done)<len(allowed)))
+        return result
 
 
 def parser():
@@ -283,12 +312,30 @@ def parser():
     p.add_argument('--tower-from',help='b04 run directory containing gpu_results/own_depth_p*/items.jsonl and LOAD_RECEIPT.json')
     p.add_argument('--settings',default=DEFAULT_SETTINGS,help='Reviewed b04 settings JSON')
     p.add_argument('--device',default='cuda:0');p.add_argument('--reader-entry',default=ENTRY)
+    p.add_argument('--stop-at',type=float,help='UTC epoch: admit no further reads after this time')
+    p.add_argument('--finish-by',type=float,help='UTC epoch: abandon an unfinished read to allow result return')
+    p.add_argument('--stop-file',help='Cooperative stop marker shared by this allocation')
     return p
 
 
 def main(argv=None):
     p=parser();args=p.parse_args(argv)
+    previous = None
+    if args.finish_by is not None:
+        if args.finish_by <= time.time():return 75
+        def deadline(number, frame):raise ReadDeadline('Allocation read deadline')
+        previous=signal.signal(signal.SIGALRM,deadline)
+        signal.setitimer(signal.ITIMER_REAL,args.finish_by-time.time())
+        def request_stop(number, frame):
+            global _REQUEST_STOP
+            _REQUEST_STOP=True
+        for number in (signal.SIGTERM,signal.SIGINT,signal.SIGUSR1):signal.signal(number,request_stop)
     try:print(json.dumps(run(args)));return 0
+    except ReadDeadline:return 75
     except (ValueError,FileNotFoundError,ImportError) as e:p.exit(2,str(e)+'\n')
+    finally:
+        if previous is not None:
+            signal.setitimer(signal.ITIMER_REAL,0)
+            signal.signal(signal.SIGALRM,previous)
 
 if __name__=='__main__':raise SystemExit(main())
