@@ -300,6 +300,28 @@ class AnonTest(unittest.TestCase):
         for text in ('./data/x', '../data2x', '/x/./y', 'a/../b', '/x/../datasets/y'):
             self.assertEqual(anon.scan_text('x', text, rules, 'name'), [], text)
 
+    def test_review_oc37_to_oc39(self):
+        rules = anon.load_rules()
+        tail = bytes(range(256)) * 4
+        found = {'bad.zlib': zlib.compress(b'qwen')[:-1] + b'X',
+                 'cut.zlib': zlib.compress(b'qwen' * 3)[:-6],
+                 'u1.txt': 'ar\u212ait'.encode('utf-8'), 'u2.txt': 'd\u0130still'.encode('utf-8'),
+                 'u3.txt': 'gem\u0130ni'.encode('utf-8')}
+        refused = {'badlong.zlib': zlib.compress(b'ok' + tail)[:-1] + b'X',
+                   'cutlong.zlib': zlib.compress(b'ok' + tail)[:-2],
+                   'midlong.zlib': zlib.compress(tail * 10)[:-30],
+                   'cut.lzma': lzma.compress(b'ok', format=lzma.FORMAT_ALONE)[:-2]}
+        for name, data in sorted(found.items()):
+            self.assertTrue(anon.scan_tree(self.write(name, data), rules), name)
+        for name, data in sorted(refused.items()):
+            rows = anon.scan_tree(self.write(name, data), rules)
+            self.assertIn('undecodable', [row['rule'] for row in rows], name)
+        for name, data in (('ok.zlib', zlib.compress(b'fine') + b'junk'), ('x.py', b'x^2 + 1\n'),
+                           ('u.txt', 'caf\u00e9 na\u00efve\n'.encode('utf-8'))):
+            self.assertEqual(anon.scan_tree(self.write(name, data), rules), [], name)
+        for text in ('/tmp//../data2/secret', '/home/x//../jjyeung/agent_x', '/scratch/x//../jjyeung/x'):
+            self.assertTrue(anon.scan_text('x', text, rules, 'name'), text)
+
 
 if __name__ == '__main__':
     unittest.main()
