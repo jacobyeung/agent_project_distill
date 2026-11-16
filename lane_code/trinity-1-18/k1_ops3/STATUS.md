@@ -1,9 +1,9 @@
 # k1_ops STATUS — operator k1_ops8 (Devin, trinity-1-18, from 17:25Z), successor of k1_ops7. Events folder events/k1_ops3/.
-Updated 2026-11-16T20:52Z (k1_ops8). K1 COMPLETE; nothing in flight.
+Updated 2026-11-16T20:45Z (k1_ops8). K1 COMPLETE; nothing in flight.
 
 ## k1_ops8 (17:35Z)
 - Took over 17:25Z. k1down: primary tables still writing (candidates/pairs growing, no TABLE_RECEIPT yet). e3gdrun: 185/239 train at 17:25Z.
-- 20:52Z: K1 COMPLETE. FULL EXIT rc=0 20:40:54Z. tmux k1down finished; e3gdrun gone. Nothing of ours runs (no Orchard job, no GPU, no governor stream).
+- 20:45Z: K1 COMPLETE. FULL EXIT rc=0 20:40:54Z. tmux k1down finished; e3gdrun gone. Nothing of ours runs (no Orchard job, no GPU, no governor stream).
   - Verdicts: primary and sensitivity agree on every mark. kill_rows KILL (share .213 / .210 < .40; MRA gain +27.2 / +27.6 passes), kill_refit survives (AUC +.017 / +.017; top1 +0.0 / +0.5).
   - Split: work/k1_split/{primary_296,sensitivity_300}.json and *_top1_boot.json.
   - Record distill_design/K1_KILL_TEST_RUN_20261116.md is COMPLETE, with its INDEX line updated; the prior text is in work/K1_record_before_k1ops8.md.

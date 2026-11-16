@@ -78,7 +78,7 @@ def members(source):
     selected = [source/name for name in TOP_FILES]
     selected.extend(source/name for name in ('ITEMS.jsonl','SUMMARY.json','metadata','logs'))
     for family in ('main','away','forward','camera','a7'):
-        selected.extend(source/family/name for name in ('ITEMS.jsonl','COMPLETE.json','report'))
+        selected.extend(source/family/name for name in ('ITEMS.jsonl','COMPLETE.json','ASSET_CHECK.json','report'))
         for name in ('request.json','BIND_STATUS.json','PROMPT_PINS.json','kit/CODE_PINS.json','frames/0.json'):
             selected.append(source/family/'a0'/name)
         for rel in ('0','budget_2048/0','budget_4096/0'):

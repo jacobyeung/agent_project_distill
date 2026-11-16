@@ -1,7 +1,7 @@
 import importlib.util,json,sys,subprocess
 from pathlib import Path
 from unittest.mock import patch
-H=Path(__file__).resolve().parents[1];D=H.parent/'d0';sys.path.insert(0,str(H/'build/fx/b'))
+H=Path(__file__).resolve().parents[1];D=Path('/scratch/jjyeung/orch_n30/review_h1pkt/work/d0');sys.path.insert(0,str(H/'build/fx/b'))
 def module(path,name):
  s=importlib.util.spec_from_file_location(name,path);m=importlib.util.module_from_spec(s);s.loader.exec_module(m);return m
 old=module(D/'kitfull/b/i.py','old_i');new=module(H/'build/fx/b/i.py','new_i')

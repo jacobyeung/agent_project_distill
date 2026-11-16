@@ -1,6 +1,6 @@
 # b10_reserve STATUS (Devin lane, trinity-1-18; lane /scratch/jjyeung/orch_n30/b10_reserve) — successor resumes from this file alone
-Updated: 20261116T2013Z (Devin successor lane).
-Percent done: ~90% (questions, frames, design record done; /data3 archive copy queued in the governor; second-node mirror waits on a node with space).
+Updated: 20261116T2140Z (Devin successor lane).
+Percent done: 100% of the brief (list, review, questions, frames, archive, mirror, design record, RESULT). Only open item: ORCH may ask for ScanNet questions for R0-rl or a review of r0gen-v2.
 
 ## Done (all paths under the lane folder)
 - Inputs copied: in/kit07/pull (kit 07ca49df metadata from trinity-1-13 rows_rebuild/work/s0/pull, sha list in/kit07/pull_sha_src.txt); single-dir listings in/scannet_scans*.txt, in/scannetpp_scenes.txt, in/arkit_training_local.txt, in/arkit_metadata.csv; in/WITHHELD_ROOMS_80.json (634820b4); in/stream_scenes/{d0v5_vqa.txt 37ce92fb, legs1_mdg_rasters.txt 7a6843b1}.
@@ -39,14 +39,17 @@ Percent done: ~90% (questions, frames, design record done; /data3 archive copy q
 - Design record distill_design/R0_RESERVE_SCENES_20261116.md updated (Files, new "Questions and frames" paragraph, Status; pre-edit copy work/design_record_before_frames.md); INDEX line 209 updated; R0_QUESTIONS_SUMMARY.json, DEFERRED.json, FRAMES_MANIFEST.json copied to distill_design/R0_RESERVE_20261116/.
 - ARCHIVE: archive/R0_RESERVE_20261116.tar = 3,801,026,560 B, sha256 2bbae12a984fde1228bdb571f5aee390c1e6a82dc554310aa04c6fd0fe80a116 (work/archive.sh; contents: STATUS, code, in/d0v5_templates, WITHHELD_80, out/ lists+census+qsets+questions+questions_meta+frame_manifests+DEFERRED+FRAMES_MANIFEST+REDECODE_CHECK, frames/).
 
-## In flight
-- tmux b10arch runs work/archive.sh -> copy_archive.py (job b10r0_archive, tier 3, priority 15) to /data3/jjyeung/n30_b10_reserve/R0_RESERVE_20261116.tar; log work/archive.log ends ARCHIVE_DONE; receipt work/archive_receipt.json (status done + sha256 = 2bbae12a...). Governor record b10r0_archive.write then .verify (STATE.md). At 20:05Z waiting (position 5). Never restart it; if receipt says failed/killed, write a BLOCKER.
-- MIRROR DONE 20:12Z (default of QUESTION 2000Z, 1-13 50 GB and 3-30 147 GB free refused): trinity-1-3:/scratch/jjyeung/n30_mirror/b10_reserve/R0_RESERVE_20261116.tar, sha256 2bbae12a984fde1228bdb571f5aee390c1e6a82dc554310aa04c6fd0fe80a116 = source; 1-3 keeps 737 GB free.
+## Archive and mirror (done)
+- /data3/jjyeung/n30_b10_reserve/R0_RESERVE_20261116.tar: 3,801,026,560 B, sha256 2bbae12a984fde1228bdb571f5aee390c1e6a82dc554310aa04c6fd0fe80a116 (copy_archive receipt work/archive_receipt.json status done 21:37Z, readback sha equal; governor records renamed .done).
+- Mirror trinity-1-3:/scratch/jjyeung/n30_mirror/b10_reserve/R0_RESERVE_20261116.tar, same sha256 (20:12Z; 1-13 50 GB and 3-30 147 GB free were refused).
+- Source copy on trinity-1-18 lane archive/. REMOVAL_CANDIDATES.md lists data_cache (81 GB), work/redecode, work/questions_v1, archive/.
 
-## Next steps
-1. DONE (mirror on trinity-1-3). Old text: Mirror: read ORCH answer (events *_ORCH_* / inbox). Copy with `cat archive/R0_RESERVE_20261116.tar | bash .../tools/tssh.sh <node>.ib '<df check >160 GB; mkdir -p /scratch/jjyeung/n30_mirror/b10_reserve; cat > X.part; mv; sha256sum>'` (work/mirror_cmd.sh NODE does exactly this); compare sha with 2bbae12a...; record path here and in the design record Status.
-2. When work/archive_receipt.json status=done: record /data3 path + sha in STATUS and design record Status; rename stream records if copy_archive did not (check streams/ for b10r0_archive.*).
-3. Final RESULT event (questions per type, constants, deferred, archive and mirror paths). Then lane is done.
+## In flight
+- Nothing. No tmux session of this lane runs.
+
+## Next steps (only if ORCH asks)
+- Questions for R0-rl ScanNet captures (12 full-GT; needs the ~25 GB .sens stream, governed) or partial-GT pools.
+- An independent review of gen_questions r0gen-v2 / DEFERRED before the first R0-dev read, if ORCH wants one.
 
 ## Open questions (answered by ORCH 1236Z; in force)
 - Streams approved: tier 3, priority 15, one at a time; ScanNet .sens (~25 GB) only if R0-rl needs those 12 captures. Keep 150 GB free on /scratch.

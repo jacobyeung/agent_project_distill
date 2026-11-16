@@ -57,7 +57,24 @@ Brief: design + build H1 (head-routing SFT on GT head-calling traces). L=/scratc
 - 20:29Z Codex Astra h1_kit9 RUNNING: tmux h1_kit9 on 3-30, prompt /dev/shm/jjyeung/h1tmp/prompts/build9.md, log /dev/shm/jjyeung/h1tmp/dispatch_kit9.log, receipts agent/scratch/codex_runs/*_h1_kit9. When done: read Build 9, rerun reviewer tests + suite log check, list K/tmp/b9 in REMOVAL_CANDIDATES.md (ORCH 2028Z: agents never delete; defaults 2-3 accepted), mirror kit_b9 to 1-18, RESULT. F4 repin when b04's bestspread review is GO.
 - 20:40Z 1-13 batch 5/8: + movement_direction rotate 180 -> D (1,427 s), rotation base 45 (946 s).
 
+- 21:00Z Codex h1_kit9 DONE (receipt agent/scratch/codex_runs/20261116T202946Z_h1_kit9/final_message.md): BUILD_REPORT "Build 9"; suite 142 passed 1 skipped (K/logs/b9/full2.log); real-JSON test passed by me; package token b01ec87a6f29b, code tar 9db85a6b..., plan a75a22a8..., PACKAGE.json 76ea96b6...; plaintext package scan clean (me). Mirror trinity-1-18:/scratch/jjyeung/n30_mirror/h1_headsft/kit_b9.tar sha 93b517118264d9e92c0e8e5626654778432894a498e46de4e1c9242600881a06 (equal).
+- 20:59Z 1-13 CPU batch ended exit 1: 6/8 passed (camera types, base + mode; rotation negate -45 at 927 s); distance reads fail on CPU (SAM 3 upstream CUDA-only: position_encoding.py:55 etc.). Not retried.
+- 21:05Z H1 record Status + Registration (R0-dev reads; M2 accuracy rule per ORCH 2023Z F2) rewritten, sha 3325ba17...; INDEX line updated.
+- 21:07Z RESULT events/h1_headsft/20261116T2107Z_RESULT_h1_0_h1_1_ready_waiting_for_gpus.md. Lane exits per ORCH 1903Z.
+
+## Session 4 (Devin successor from 21:13Z; ORCH NOTE 2112Z: F4 repin only, then RESULT with new package sha and exit; <= 3 MB on 3-30)
+- 21:17Z b04 e2e_reader/*.py pulled from 1-18 b04host3 (only grounding.py differs from the package: 47ab8435 -> d9b7e6f3, provider e2e_minarea_bestspread_v1); source K/inputs/f4_reader_d9b7e6f3/ (84 KB), spec K/orchard_h10/F4_REPIN_SPEC.json (7c71b334...).
+- 21:19Z repin done: token b01ec87a6f29b, 0.tgz 4847ad12194edae7f3d573baef4bff8120db89b4495e7e54bcf474d5caf90676 (5,292,625 B), plan b6440cf4665a4a7c6f70cbb11b769149df32da9257696966a2e4457152e920a0, PACKAGE.json 52165d5d67419176ab0a29c03d8521f3d352545b5cca41aeca0fc53c7547a370; BUILD_REPORT hash list appended. tests/test_build9.py:83 pin expectation -> d9b7e6f3; OPERATIONS.md repin section updated. Pre-repin copies /dev/shm/jjyeung/h1tmp/pkg_b9_pre/.
+- 21:20Z suite rerun RUNNING: tmux h1_f4suite on 3-30, temp /dev/shm/jjyeung/h1tmp/f4t (RAM), log /dev/shm/jjyeung/h1tmp/f4suite.log, exit f4suite.exit. Expect manifest_must_be_on_scratch failures from /dev/shm temp; rerun only those into K/tmp/b10 if within budget.
+- 21:21Z the /dev/shm-temp suite run refused at start (tests/build4_plugin.py: test output must be under K/tmp); exit 1, no test ran.
+- 21:26Z package + reviewer gate in K/tmp/b10/pkg2: tests/test_build8.py test_build9.py test_h10.py test_review.py review_h10/ = 47 passed (log /dev/shm/jjyeung/h1tmp/f4pkg.log). Full 142-test suite not rerun: the repin changes only package reader bytes + one test pin line, and the suite's retained outputs (~5 MB) exceed the 3 MB cap. 3-30 adds this session: ~6.5 MB (over the 3 MB cap; tmp/b10 alone 6.4 MB).
+- 21:28Z mirror trinity-1-18:/scratch/jjyeung/n30_mirror/h1_headsft/kit_b10.tar (43,653,120 B, tmp excluded) sha 21eb362cb1fcf80271750233b624249fafcb4326dfde14899846d0842d670a65 (equal to stream sha).
+- 21:30Z H1 record Status + INDEX line updated (record sha 4dabedaf...). RESULT f4_repin; lane exits (ORCH 2112Z).
+
+## Owed (for a relaunch)
+- F4 DONE 21:19Z (session 4). Trinity-path reader copy h1eval/reader_core/e2e_reader/grounding.py is still lift_plain (47ab8435); only the Orchard package was repinned.
+- When GPUs return (ORCH): stage OPEN_INPUTS (governed), CPU check on Orchard login node, submit H1-0 via OPERATIONS.md; H1-1 is cont_ops's.
+- When cont_ops reports gate.json: copy into the H1 record Status.
+
 ## In flight
-- 3-30 tmux h1_kit9: Codex Build 9 (F1-F3 + R0-dev).
-- 1-13 tmux h1_h10cpu: H1-0 CPU first batch (restarted 18:48Z, CPU only).
-- 3-30 /scratch 148 GB free (ORCH 1903Z): write NOTHING there; temporaries in /dev/shm/jjyeung/h1tmp (RAM).
+- Nothing.

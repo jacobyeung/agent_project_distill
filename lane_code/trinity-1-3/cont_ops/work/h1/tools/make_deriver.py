@@ -1,5 +1,5 @@
 from pathlib import Path
-D=Path('/scratch/jjyeung/orch_n30/cont_ops/work/d0')
+D=Path('/scratch/jjyeung/orch_n30/review_h1pkt/work/d0')
 s=(D/'tools/derive_kit.py').read_text()
 s=s.replace('"""Derive a data-only kit', '"""Derive a data-only kit (or a narrowly admitted code-tree kit)')
 s=s.replace('  config: {streams:', '  code_tree: {archive: {path, sha256}, pin: {path, sha256}, archive_record?: {path, sha256}}\n           validates deterministic source archive, regenerates tree bindings, installs fixed stop bridge;\n           archive_record is required for READY and must attest this archive off scratch.\n  config: {h1?, milestones?, recipe: {milestones?, scheduled_sampling?}?, scheduled_sampling?, streams:')
@@ -33,12 +33,13 @@ def validate_h1(over):
     if set(oc.get('recipe', {}))-{'milestones', 'scheduled_sampling'}: refuse('unknown recipe keys')
     if 'milestones' in oc.get('recipe', {}) and oc['recipe']['milestones'] != [100, 200]: refuse('recipe milestones differ')
     if 'code_tree' in over:
+        if '4.json' not in over.get('add_k', {}): refuse('code_tree requires add_k 4.json')
         if new != {'h1', 'milestones', 'recipe', 'scheduled_sampling'} or oc['recipe'] != dict(milestones=[100, 200], scheduled_sampling=SAMPLING) or oc['scheduled_sampling'] != SAMPLING:
             refuse('code_tree requires the complete registered settings')
 
 def code_records(code):
     return {'k/7.json', 'k/s1_record.json', 'k/archive.json', 'k/' + Path(code['archive']['path']).name,
-            'b/r.sh', 'b/h.py', 'b/i.py', 'job.sh'}
+            'b/c.sh', 'b/p0.sh', 'b/r.sh', 'b/h.py', 'b/i.py', 'job.sh'}
 
 def read_override_pin(value):
     if not isinstance(value, dict) or set(value) != {'path', 'sha256'} or not HEX64.fullmatch(str(value['sha256'])):
@@ -52,6 +53,7 @@ def replace_once(path, before, after):
     path.write_text(text.replace(before, after))
 
 def install_code(kit, out, over, cfg, cur, launch):
+    if over['run_key'] != '17c4ffa4': refuse('unregistered run')
     value = over['code_tree']
     if not isinstance(value, dict) or set(value)-{'archive', 'pin', 'archive_record'} or not {'archive', 'pin'} <= set(value):
         refuse('unknown or incomplete code_tree keys')
@@ -106,6 +108,46 @@ def install_code(kit, out, over, cfg, cur, launch):
     replace_once(out / 'b/i.py', '        except FileNotFoundError: pass',
                  '        except (FileNotFoundError, PermissionError): pass')
     replace_once(out / 'job.sh', '#SBATCH --time=24:00:00', '#SBATCH --time=13:00:00')
+    for before, after in [
+        ('S=/tmp/jjyeung/okit_$K/root', 'S=/tmp/jjyeung/a_17c4ffa4/root'),
+        ('NX=/tmp/jjyeung/okit_$K/x_${SLURM_JOB_ID:-local}', 'NX=/tmp/jjyeung/a_17c4ffa4/x_${SLURM_JOB_ID:-local}'),
+        ('NR=${TK_RUNS_DIR:-/tmp/jjyeung/okit_$K/runs}', 'NR=/tmp/jjyeung/a_17c4ffa4/runs')]:
+        replace_once(out / 'b/c.sh', before, after)
+    replace_once(out / 'b/p0.sh', 'export TK_JOBDIR=/tmp/jjyeung/okit_$K/jobs/${SLURM_JOB_ID:?}.preflight',
+                 'export TK_JOBDIR=/tmp/jjyeung/a_17c4ffa4/jobs/${SLURM_JOB_ID:?}.preflight')
+    replace_once(out / 'b/r.sh', 'export TK_JOBDIR=/tmp/jjyeung/okit_$K/jobs/${SLURM_JOB_ID:?}.${1:-x}',
+                 'export TK_JOBDIR=/tmp/jjyeung/a_17c4ffa4/jobs/${SLURM_JOB_ID:?}.${1:-x}')
+
 '''
 s=s.replace('\ndef derive(kit, out, over):', '\n'+helper+'\ndef derive(kit, out, over):')
+s=s.replace("    out.mkdir()", "    out.mkdir(mode=0o700)\n    if 'code_tree' in over and (out.stat().st_mode & 0o777) != 0o700: refuse('directory mode differs')")
+s=s.replace("run_directory=f'/tmp/jjyeung/okit_8865619b/runs/{run}'", "run_directory=(f'/tmp/jjyeung/a_{run}/runs/{run}' if 'code_tree' in over else f'/tmp/jjyeung/okit_8865619b/runs/{run}')")
+s=s.replace('only the registered h1 block is admitted', 'only the registered settings are admitted').replace('R0 rooms not sealed in tree', 'required member is not sealed in tree')
+# Every mutation of the copied kit goes through an output-scoped writer.
+mode_helpers = Path('tools/sealed_output.py').read_text()
+s=s.replace('\ndef identity(cfg):', '\n' + mode_helpers + '\n\ndef identity(cfg):')
+s=s.replace('def replace_once(path, before, after):', 'def replace_once(fs, path, before, after):')
+s=s.replace('    path.write_text(text.replace(before, after))', '    fs.text(path, text.replace(before, after))')
+s=s.replace('replace_once(out /', 'replace_once(fs, out /')
+s=s.replace('def install_code(kit, out, over, cfg, cur, launch):', 'def install_code(kit, out, over, cfg, cur, launch, fs):')
+s=s.replace('install_code(kit, out, over, cfg, cur, launch)', 'install_code(kit, out, over, cfg, cur, launch, fs)')
+s=s.replace('shutil.copyfile(archive, out /', 'fs.copy(archive, out /')
+s=s.replace('shutil.copyfile(pin, out /', 'fs.copy(pin, out /')
+s=s.replace("shutil.copyfile(pin['path'], out /", "fs.copy(pin['path'], out /")
+s=s.replace('write(out /', 'fs.write(out /')
+s=s.replace("    out.mkdir(mode=0o700)", """    # Copy only regular files/directories; never follow a sealed link into another tree.
+    for p in kit.rglob('*'):
+        if p.is_symlink() or not (p.is_file() or p.is_dir()): refuse('unsupported source member')
+    out.mkdir(mode=0o700)
+    fs = SealedOutput(out, stat.S_IMODE((kit / 'k/1.json').stat().st_mode))""")
+s=s.replace("    (out / 'k').mkdir(); (out / 'o').mkdir(); (out / 'runs').mkdir()", """    for name in ('k', 'o', 'runs'):
+        if not changing and not (kit / name).exists(): continue
+        mode = stat.S_IMODE((kit / name).stat().st_mode) if (kit / name).exists() else 0o700
+        fs.mkdir(out / name, mode)""")
+s=s.replace("        if p.name in ('launch.json', '1.json', '0.json', old_key + '.json'): continue\n        shutil.copy2(p, out / 'k' / p.name)", """        if p.name == old_key + '.json' and changing: continue
+        fs.copy(p, out / 'k' / p.name, stat.S_IMODE(p.stat().st_mode))""")
+s=s.replace("fs.write(out / 'k' / (key + '.json'), cfg)", "fs.write(out / 'k' / (key + '.json'), cfg, stat.S_IMODE((kit / 'k' / (old_key + '.json')).stat().st_mode))")
+s=s.replace("    (out / 'SHA256SUMS.txt').write_text(''.join(f'{v}  {k}\\n' for k, v in sorted(inventory.items())))", "    fs.text(out / 'SHA256SUMS.txt', ''.join(f'{v}  {k}\\n' for k, v in sorted(inventory.items())), stat.S_IMODE((kit / 'SHA256SUMS.txt').stat().st_mode))")
+s=s.replace("    if changing:  # explicit placeholder", "    if (kit / 'ANON_OK.json').is_file():\n        fs.copy(kit / 'ANON_OK.json', out / 'ANON_OK.json', stat.S_IMODE((kit / 'ANON_OK.json').stat().st_mode))\n    if changing:  # explicit placeholder")
+s=s.replace('    return dict(config_key=key,', "    if not changing: out.chmod(stat.S_IMODE(kit.stat().st_mode))\n    return dict(config_key=key,")
 Path('tools/derive_kit_h1.py').write_text(s)

@@ -1,0 +1,30 @@
+These retained local artifacts are outside the current upload. No files were deleted. Keep the before-fix records while reviewing the hash comparisons.
+
+- [ ] `build/fx_before_fix1` — retained build/test output.
+- [ ] `build/fx_intermediate_fix1` — retained build/test output.
+- [ ] `build/fx_seed_before_fix1` — retained build/test output.
+- [ ] `build/fx_verify_r1` — retained build/test output.
+- [ ] `build/p_5c93d766ca7623f6.tar` — retained build/test output.
+- [ ] `build/p_75add9a6771a0aee.tar` — retained build/test output.
+- [ ] `build/p_7fae472c107a1c06.tar` — retained build/test output.
+- [ ] `build/p_9ccf7adbe18f4dcf.tar` — retained build/test output.
+- [ ] `build/p_b4bb3f2eedece514.tar` — retained build/test output.
+- [ ] `build/p_c00ecd2c2ca34331.tar` — retained build/test output.
+- [ ] `build/p_f58fc0d5951d5fbb.tar` — retained build/test output.
+- [ ] `build/tree_before_fix1` — retained build/test output.
+- [ ] `build/tree_python38_attempt` — retained build/test output.
+- [ ] `evidence/derivation_before_fix1` — retained build/test output.
+- [ ] `evidence/derivation_intermediate_fix1` — retained build/test output.
+- [ ] `evidence/fix1_before` — retained build/test output.
+- [ ] `evidence/fix1_tests_intermediate_fix1` — retained build/test output.
+- [ ] `evidence/fix1_tests_pre_hidden` — retained build/test output.
+- [ ] `evidence/rebuilt.tar_before_fix1` — retained build/test output.
+- [ ] `evidence/rebuilt.tar_python38_attempt` — retained build/test output.
+- [ ] `evidence/review/gate_intermediate_fix1` — retained build/test output.
+- [ ] `evidence/review/out_intermediate_fix1` — retained build/test output.
+- [ ] `evidence/staging_test_before_fix1` — retained build/test output.
+- [ ] `evidence/staging_test_intermediate_fix1` — retained build/test output.
+- [ ] `evidence/stop_bridge_before_fix1` — retained build/test output.
+- [ ] `evidence/stop_bridge_intermediate_fix1` — retained build/test output.
+- [ ] `evidence/fix1_tests_pre_direct_guard` — retained test/build output.
+- [ ] `build/p_135a21576cf0442e.tar` — retained test/build output.

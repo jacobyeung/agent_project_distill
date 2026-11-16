@@ -1,0 +1,3 @@
+- /scratch/jjyeung/orch_n30/review_h1read/work/h1c (6.0 GB reviewer copy of h1read)
+- /scratch/jjyeung/orch_n30/review_h1read/work/rk_cand2 (readk suite on candidate kit)
+- /scratch/jjyeung/orch_n30/review_h1read/work/arc (members extracted from R0 reserve tar)

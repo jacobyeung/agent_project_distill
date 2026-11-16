@@ -1,0 +1,966 @@
+{
+ "schema": "eat1-report-v1",
+ "reader": "eat1.adapters.gf1_tiny:make_reader",
+ "reader_kwargs": {
+  "tree": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1",
+  "workdir": "/scratch/jjyeung/orch_n30/b03_e2etest/work/b5_gf1_tiny"
+ },
+ "artifact": "/scratch/jjyeung/orch_n30/b03_e2etest/work/b5_gf1_tiny/artifact/ARTIFACT.json",
+ "artifact_sha256": "a7c029a7acf811ae84ee08268df34d0ebddcc7e85b79d4b9c3df64b1d7c0a562",
+ "items": 6,
+ "mode": "dynamic",
+ "started_utc": "2026-11-16T19:52:23Z",
+ "clauses": {
+  "A1": {
+   "status": "PASS",
+   "summary": "0 artifact, 7 code, 6 input, 0 outside-artifact data files opened after generate() started; 0 child-process or reader native calls",
+   "offenders": [],
+   "code_files": [
+    {
+     "path": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/evalpath/__init__.py",
+     "sha256": "320ff8e49d53c5528f439ae83544dcd0e4063933eb2168774b70ca6d9d1cdd38",
+     "source": "open"
+    },
+    {
+     "path": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/evalpath/runtime.py",
+     "sha256": "8262f0da03336719c4c8699dd302c3012bd89d5affd9ffc75921defd526ae886",
+     "source": "open"
+    },
+    {
+     "path": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_vendor/vggt/utils/__init__.py",
+     "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+     "source": "open"
+    },
+    {
+     "path": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_vendor/vggt/utils/pose_enc.py",
+     "sha256": "477972e98ca5f14cca51f9cd55538cc9f7e301f2985ebcd09c94b31e50f2d1e3",
+     "source": "open"
+    },
+    {
+     "path": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_vendor/vggt/utils/rotation.py",
+     "sha256": "e7c1f92467a022a488a864935a68ea74c54948398638591f66a55bdaf528ce20",
+     "source": "open"
+    },
+    {
+     "path": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/mdg_lora.py",
+     "sha256": "e8e1632f9f50d45a55958cba8fcc889c02dd2e8d52eba47092b1cf702632fc97",
+     "source": "open"
+    },
+    {
+     "path": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/scripted_calls.py",
+     "sha256": "26ba86160177979416f60cd20490b1a307897b65197c00223b25984ca6c75cae",
+     "source": "open"
+    }
+   ],
+   "artifact_files": [],
+   "environment_files": 1,
+   "strace": false,
+   "library_native_calls": {}
+  },
+  "A2": {
+   "status": "FAIL",
+   "summary": "model entries per item {1: 6}; 154 tokens fed that neither the model chose nor a registered handler emitted; 3 static findings",
+   "offenders": [
+    {
+     "item": "move_0",
+     "kind": "injected_token",
+     "token": 43,
+     "expected": 42,
+     "position": 135,
+     "stack": [
+      "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_decode.py:65 consume_cache_tokens",
+      "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_decode.py:472 _generate_one",
+      "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/tower_errors.py:30 decode",
+      "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_decode.py:452 generate",
+      "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/ground_context.py:62 wrapped",
+      "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/trace_format313.py:62 bound"
+     ],
+     "count": 154,
+     "items": [
+      "move_0",
+      "move_1",
+      "turn_0",
+      "turn_1"
+     ]
+    },
+    {
+     "item": "move_0",
+     "kind": "no_call_handler_registered_on_model",
+     "count": 4,
+     "items": [
+      "move_0",
+      "move_1",
+      "turn_0",
+      "turn_1"
+     ]
+    },
+    {
+     "rule": "A2.response_outside_model",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_batch_decode.py",
+     "line": 89,
+     "function": "Row.__init__",
+     "detail": "response text built outside a torch module method",
+     "text": "self.reserved = [self.tokenizer.convert_tokens_to_ids('<tool_response>'),"
+    },
+    {
+     "rule": "A2.response_outside_model",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_batch_decode.py",
+     "line": 90,
+     "function": "Row.__init__",
+     "detail": "response text built outside a torch module method",
+     "text": "self.tokenizer.convert_tokens_to_ids('</tool_response>'), model.carrier_id]"
+    },
+    {
+     "rule": "A2.response_outside_model",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_batch_decode.py",
+     "line": 142,
+     "function": "Row._call",
+     "detail": "response text built outside a torch module method",
+     "text": "wrapped = '\\n<tool_response>\\n' + text + '\\n</tool_response>' if self.ground_layout else '<tool_response>' + text + '</tool_response>'"
+    }
+   ],
+   "handlers": []
+  },
+  "A3": {
+   "status": "FAIL",
+   "summary": "72 findings in 31 call-path files {'A3.constant': 16, 'A3.threshold': 11, 'A3.reformat': 6, 'A3.unit_conversion': 3, 'A3.module_data': 36}",
+   "offenders": [
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/camera_head.py",
+     "line": 126,
+     "function": "CameraHead.activate_fov",
+     "detail": "constant 0.0001",
+     "text": "return 1e-4 + (math.pi - 2e-4) * torch.sigmoid(value)"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/camera_head.py",
+     "line": 126,
+     "function": "CameraHead.activate_fov",
+     "detail": "constant 0.0002",
+     "text": "return 1e-4 + (math.pi - 2e-4) * torch.sigmoid(value)"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/camera_head.py",
+     "line": 182,
+     "function": "CameraHead.forward_with_extras",
+     "detail": "constant 1e-06",
+     "text": "raw_grav = F.normalize(grav_pred, dim=-1, eps=1e-6)"
+    },
+    {
+     "rule": "A3.threshold",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/camera_head.py",
+     "line": 532,
+     "function": "gather_positions",
+     "detail": "comparison or clamp API positions.clamp_min()",
+     "text": "return hidden[rows, positions.clamp_min(0)]"
+    },
+    {
+     "rule": "A3.threshold",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_batch_decode.py",
+     "line": 94,
+     "function": "Row.__init__",
+     "detail": "compares against attribute state.cap (a configured value)",
+     "text": "self.finish = 'context_exhaustion' if state.cap <= 0 else None"
+    },
+    {
+     "rule": "A3.threshold",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_batch_decode.py",
+     "line": 114,
+     "function": "Row.step",
+     "detail": "compares against attribute self.state.cap (a configured value)",
+     "text": "if self.finish is None and len(self.ids) >= self.state.cap:"
+    },
+    {
+     "rule": "A3.threshold",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_batch_decode.py",
+     "line": 124,
+     "function": "Row._call",
+     "detail": "compares against MAX_CALL_TOKENS",
+     "text": "if self.active is not None and (tail.endswith('>') or len(ids) - self.active > D.MAX_CALL_TOKENS):"
+    },
+    {
+     "rule": "A3.threshold",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_batch_decode.py",
+     "line": 136,
+     "function": "Row._call",
+     "detail": "compares against max_calls",
+     "text": "if len(self.records) >= self.max_calls:"
+    },
+    {
+     "rule": "A3.reformat",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_routing.py",
+     "line": 103,
+     "function": "r2",
+     "detail": "round() sets precision outside the model",
+     "text": "return round(float(x), 2) + 0.0"
+    },
+    {
+     "rule": "A3.reformat",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_routing.py",
+     "line": 107,
+     "function": "f2",
+     "detail": "format spec .2f outside the model",
+     "text": "return f'{r2(x):.2f}'"
+    },
+    {
+     "rule": "A3.reformat",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_routing.py",
+     "line": 111,
+     "function": "s2",
+     "detail": "format spec +.2f outside the model",
+     "text": "return f'{r2(x):+.2f}'"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_routing.py",
+     "line": 119,
+     "function": "wrap",
+     "detail": "constant 180",
+     "text": "return (deg + 180) % 360 - 180 if (deg + 180) % 360 else 180"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_routing.py",
+     "line": 119,
+     "function": "wrap",
+     "detail": "constant 360",
+     "text": "return (deg + 180) % 360 - 180 if (deg + 180) % 360 else 180"
+    },
+    {
+     "rule": "A3.reformat",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_routing.py",
+     "line": 123,
+     "function": "r8",
+     "detail": "np.round() sets precision outside the model",
+     "text": "return np.round(np.asarray(a, dtype=np.float64), 8) + 0.0"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_routing.py",
+     "line": 123,
+     "function": "r8",
+     "detail": "constant 8",
+     "text": "return np.round(np.asarray(a, dtype=np.float64), 8) + 0.0"
+    },
+    {
+     "rule": "A3.unit_conversion",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_routing.py",
+     "line": 267,
+     "function": "OwnGeometry.pose",
+     "detail": "identifier yaw_degree",
+     "text": "yaw_degree=round(math.degrees(math.atan2(-level[0][2], level[2][2]))))"
+    },
+    {
+     "rule": "A3.reformat",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_routing.py",
+     "line": 267,
+     "function": "OwnGeometry.pose",
+     "detail": "round() sets precision outside the model",
+     "text": "yaw_degree=round(math.degrees(math.atan2(-level[0][2], level[2][2]))))"
+    },
+    {
+     "rule": "A3.unit_conversion",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_routing.py",
+     "line": 267,
+     "function": "OwnGeometry.pose",
+     "detail": "identifier degrees",
+     "text": "yaw_degree=round(math.degrees(math.atan2(-level[0][2], level[2][2]))))"
+    },
+    {
+     "rule": "A3.reformat",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_routing.py",
+     "line": 303,
+     "function": "OwnGeometry.turn_text",
+     "detail": "round() sets precision outside the model",
+     "text": "turn = wrap(round(math.degrees(math.atan2(a[0] * b[1] - a[1] * b[0], float(a @ b)))))"
+    },
+    {
+     "rule": "A3.unit_conversion",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_routing.py",
+     "line": 303,
+     "function": "OwnGeometry.turn_text",
+     "detail": "identifier degrees",
+     "text": "turn = wrap(round(math.degrees(math.atan2(a[0] * b[1] - a[1] * b[0], float(a @ b)))))"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_online.py",
+     "line": 398,
+     "function": "pose9",
+     "detail": "constant 518",
+     "text": "g2c, _ = pose_encoding_to_extri_intri(local[None], (518, 518), 'noT_quaR_FoV', False)"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_online.py",
+     "line": 399,
+     "function": "pose9",
+     "detail": "constant 518",
+     "text": "w2g, _ = pose_encoding_to_extri_intri(global_[None], (518, 518), 'absT_quaRy_noFoV', False)"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_online.py",
+     "line": 402,
+     "function": "pose9.lift",
+     "detail": "constant -2",
+     "text": "return torch.cat([extri, bottom], -2)"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_online.py",
+     "line": 407,
+     "function": "pose9",
+     "detail": "constant 1024",
+     "text": "box = coords.double() / 1024"
+    },
+    {
+     "rule": "A3.threshold",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_online.py",
+     "line": 411,
+     "function": "pose9",
+     "detail": "comparison or clamp API raw[1:, :3].norm(dim=-1).mean().clamp_mi()",
+     "text": "scale = raw[1:, :3].norm(dim=-1).mean().clamp_min(1e-6)"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_online.py",
+     "line": 411,
+     "function": "pose9",
+     "detail": "constant 1e-06",
+     "text": "scale = raw[1:, :3].norm(dim=-1).mean().clamp_min(1e-6)"
+    },
+    {
+     "rule": "A3.threshold",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_vendor/vggt/layers/block.py",
+     "line": 84,
+     "function": "Block.forward",
+     "detail": "compares against attribute self.sample_drop_ratio (a configured value)",
+     "text": "if self.training and self.sample_drop_ratio > 0.1:"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_vendor/vggt/layers/block.py",
+     "line": 84,
+     "function": "Block.forward",
+     "detail": "constant 0.1",
+     "text": "if self.training and self.sample_drop_ratio > 0.1:"
+    },
+    {
+     "rule": "A3.threshold",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_vendor/vggt/layers/block.py",
+     "line": 92,
+     "function": "Block.forward",
+     "detail": "compares against attribute self.sample_drop_ratio (a configured value)",
+     "text": "elif self.training and self.sample_drop_ratio > 0.0:"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_vendor/vggt/utils/rotation.py",
+     "line": 106,
+     "function": "mat_to_quat",
+     "detail": "constant 9",
+     "text": "m00, m01, m02, m10, m11, m12, m20, m21, m22 = torch.unbind(matrix.reshape(batch_dim + (9,)), dim=-1)"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_vendor/vggt/utils/rotation.py",
+     "line": 135,
+     "function": "mat_to_quat",
+     "detail": "constant 0.1",
+     "text": "flr = torch.tensor(0.1).to(dtype=q_abs.dtype, device=q_abs.device)"
+    },
+    {
+     "rule": "A3.threshold",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_vendor/vggt/utils/rotation.py",
+     "line": 140,
+     "function": "mat_to_quat",
+     "detail": "compares against 0.5",
+     "text": "out = quat_candidates[F.one_hot(q_abs.argmax(dim=-1), num_classes=4) > 0.5, :].reshape(batch_dim + (4,))"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/gf1.py",
+     "line": 58,
+     "function": "area_pool.weights",
+     "detail": "constant 1024",
+     "text": "edges = torch.linspace(0, 1024, source + 1, device=features.device)"
+    },
+    {
+     "rule": "A3.threshold",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/gf1.py",
+     "line": 60,
+     "function": "area_pool.weights",
+     "detail": "comparison or clamp API (torch.minimum(bounds[1:, None], edges[N()",
+     "text": "return (torch.minimum(bounds[1:, None], edges[None, 1:]) -"
+    },
+    {
+     "rule": "A3.threshold",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/gf1.py",
+     "line": 127,
+     "function": "Fusion.inject.visual_hook",
+     "detail": "comparison or clamp API visual.float().square().mean().sqrt().cl()",
+     "text": "visual.float().square().mean().sqrt().clamp_min(1e-12))"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/ground_context.py",
+     "line": 44,
+     "function": "from_row",
+     "detail": "constant 32",
+     "text": "mapping=FrameMap(tuple(indices),rgb_sha256=hashes) if len(indices)==32 else None"
+    },
+    {
+     "rule": "A3.module_data",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1.py",
+     "line": 206,
+     "function": "CarrierC1.geometry_features",
+     "detail": "reads self.geometry_online: instance state table holding numbers (number 16)",
+     "text": "self.geometry_online"
+    },
+    {
+     "rule": "A3.module_data",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1.py",
+     "line": 206,
+     "function": "CarrierC1.geometry_features",
+     "detail": "reads self.config: instance state number 60",
+     "text": "self.config"
+    },
+    {
+     "rule": "A3.module_data",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1.py",
+     "line": 206,
+     "function": "CarrierC1.geometry_features",
+     "detail": "reads self.geometry_runtime: instance state table holding numbers (number 0.25)",
+     "text": "self.geometry_runtime"
+    },
+    {
+     "rule": "A3.module_data",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_online.py",
+     "line": 308,
+     "function": "G3TEncoder.forward",
+     "detail": "reads self.image_size: instance state number 28",
+     "text": "self.image_size"
+    },
+    {
+     "rule": "A3.module_data",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_online.py",
+     "line": 308,
+     "function": "G3TEncoder.forward",
+     "detail": "reads self.settings: instance state table holding numbers (number 16)",
+     "text": "self.settings"
+    },
+    {
+     "rule": "A3.module_data",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_online.py",
+     "line": 295,
+     "function": "G3TEncoder._forward",
+     "detail": "reads self.settings: instance state table holding numbers (number 16)",
+     "text": "self.settings"
+    },
+    {
+     "rule": "A3.module_data",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_online.py",
+     "line": 291,
+     "function": "G3TEncoder._autocast",
+     "detail": "reads self.settings: instance state table holding numbers (number 16)",
+     "text": "self.settings"
+    },
+    {
+     "rule": "A3.module_data",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_online.py",
+     "line": 247,
+     "function": "G3TEncoder._lean",
+     "detail": "reads self.settings: instance state table holding numbers (number 16)",
+     "text": "self.settings"
+    },
+    {
+     "rule": "A3.module_data",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_online.py",
+     "line": 232,
+     "function": "G3TEncoder._call",
+     "detail": "reads self.settings: instance state table holding numbers (number 16)",
+     "text": "self.settings"
+    },
+    {
+     "rule": "A3.module_data",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_vendor/vggt/layers/patch_embed.py",
+     "line": 65,
+     "function": "PatchEmbed.forward",
+     "detail": "reads self.patch_size: instance state table holding numbers (number 14)",
+     "text": "self.patch_size"
+    },
+    {
+     "rule": "A3.module_data",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_vendor/vggt/layers/patch_embed.py",
+     "line": 65,
+     "function": "PatchEmbed.forward",
+     "detail": "reads self.embed_dim: instance state number 16",
+     "text": "self.embed_dim"
+    },
+    {
+     "rule": "A3.module_data",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_vendor/vggt/layers/attention.py",
+     "line": 50,
+     "function": "Attention.forward",
+     "detail": "reads self.head_dim: instance state number 8",
+     "text": "self.head_dim"
+    },
+    {
+     "rule": "A3.module_data",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_vendor/vggt/layers/attention.py",
+     "line": 50,
+     "function": "Attention.forward",
+     "detail": "reads self.scale: instance state number 0.3535533905932738",
+     "text": "self.scale"
+    },
+    {
+     "rule": "A3.module_data",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_vendor/vggt/layers/rope.py",
+     "line": 86,
+     "function": "RotaryPositionEmbedding2D._compute_frequency_components",
+     "detail": "reads self.base_frequency: instance state number 100",
+     "text": "self.base_frequency"
+    },
+    {
+     "rule": "A3.module_data",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_online.py",
+     "line": 281,
+     "function": "G3TEncoder._camera",
+     "detail": "reads self.settings: instance state table holding numbers (number 16)",
+     "text": "self.settings"
+    },
+    {
+     "rule": "A3.module_data",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1.py",
+     "line": 283,
+     "function": "CarrierC1.patch_injection",
+     "detail": "reads self.geometry_online: instance state table holding numbers (number 16)",
+     "text": "self.geometry_online"
+    },
+    {
+     "rule": "A3.module_data",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1.py",
+     "line": 283,
+     "function": "CarrierC1.patch_injection",
+     "detail": "reads self.gx_metrics: instance state table holding numbers (number 64)",
+     "text": "self.gx_metrics"
+    },
+    {
+     "rule": "A3.module_data",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/gf1.py",
+     "line": 105,
+     "function": "Fusion.inject",
+     "detail": "reads self.settings: instance state table holding numbers (number 16)",
+     "text": "self.settings"
+    },
+    {
+     "rule": "A3.module_data",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1.py",
+     "line": 296,
+     "function": "CarrierC1.carrier_embeddings",
+     "detail": "reads self.gx_metrics: instance state table holding numbers (number 64)",
+     "text": "self.gx_metrics"
+    },
+    {
+     "rule": "A3.module_data",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/gf1.py",
+     "line": 89,
+     "function": "Fusion.forward",
+     "detail": "reads self.settings: instance state table holding numbers (number 16)",
+     "text": "self.settings"
+    },
+    {
+     "rule": "A3.module_data",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/camera_head.py",
+     "line": 287,
+     "function": "CameraSupervision.carrier_states",
+     "detail": "reads self.settings: instance state table holding numbers (number 0.02)",
+     "text": "self.settings"
+    },
+    {
+     "rule": "A3.module_data",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/camera_head.py",
+     "line": 312,
+     "function": "CameraSupervision.predict_all",
+     "detail": "reads self.settings: instance state table holding numbers (number 0.02)",
+     "text": "self.settings"
+    },
+    {
+     "rule": "A3.module_data",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_decode.py",
+     "line": 210,
+     "function": "HeadState.geometry",
+     "detail": "reads self.pose9: instance state array (32, 9)",
+     "text": "self.pose9"
+    },
+    {
+     "rule": "A3.module_data",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_decode.py",
+     "line": 210,
+     "function": "HeadState.geometry",
+     "detail": "reads self.gravity: instance state array (3,)",
+     "text": "self.gravity"
+    },
+    {
+     "rule": "A3.module_data",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_routing.py",
+     "line": 225,
+     "function": "OwnGeometry.__init__",
+     "detail": "reads global FLIP: module-level array (3, 3)",
+     "text": "FLIP"
+    },
+    {
+     "rule": "A3.module_data",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_batch_decode.py",
+     "line": 96,
+     "function": "Row.step",
+     "detail": "reads self.reserved: instance state table holding numbers (number 43)",
+     "text": "self.reserved"
+    },
+    {
+     "rule": "A3.module_data",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_batch_decode.py",
+     "line": 96,
+     "function": "Row.step",
+     "detail": "reads self.state: instance state number 133",
+     "text": "self.state"
+    },
+    {
+     "rule": "A3.module_data",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_batch_decode.py",
+     "line": 118,
+     "function": "Row._call",
+     "detail": "reads self.ids: instance state table holding numbers (number 45)",
+     "text": "self.ids"
+    },
+    {
+     "rule": "A3.module_data",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_batch_decode.py",
+     "line": 118,
+     "function": "Row._call",
+     "detail": "reads self.state: instance state number 133",
+     "text": "self.state"
+    },
+    {
+     "rule": "A3.module_data",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_batch_decode.py",
+     "line": 118,
+     "function": "Row._call",
+     "detail": "reads self.max_calls: instance state number 200",
+     "text": "self.max_calls"
+    },
+    {
+     "rule": "A3.module_data",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_routing.py",
+     "line": 261,
+     "function": "OwnGeometry.pose",
+     "detail": "reads self.to_l1: instance state array (3, 3)",
+     "text": "self.to_l1"
+    },
+    {
+     "rule": "A3.module_data",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_routing.py",
+     "line": 261,
+     "function": "OwnGeometry.pose",
+     "detail": "reads self.down: instance state array (3,)",
+     "text": "self.down"
+    },
+    {
+     "rule": "A3.module_data",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_routing.py",
+     "line": 243,
+     "function": "OwnGeometry.camera",
+     "detail": "reads self.p: instance state array (32, 9)",
+     "text": "self.p"
+    },
+    {
+     "rule": "A3.module_data",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_batch_decode.py",
+     "line": 147,
+     "function": "Row.record",
+     "detail": "reads self.state: instance state number 133",
+     "text": "self.state"
+    },
+    {
+     "rule": "A3.module_data",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_batch_decode.py",
+     "line": 147,
+     "function": "Row.record",
+     "detail": "reads self.ids: instance state table holding numbers (number 45)",
+     "text": "self.ids"
+    },
+    {
+     "rule": "A3.module_data",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_batch_decode.py",
+     "line": 147,
+     "function": "Row.record",
+     "detail": "reads self.records: instance state table holding numbers (number 61)",
+     "text": "self.records"
+    }
+   ],
+   "scope_files": [
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/evalpath/__init__.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/evalpath/runtime.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/c1r_ref.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/camera_head.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/camera_targets.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_batch_decode.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_decode.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_routing.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_online.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_vendor/vggt/heads/camera_head.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_vendor/vggt/heads/head_act.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_vendor/vggt/layers/attention.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_vendor/vggt/layers/block.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_vendor/vggt/layers/layer_scale.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_vendor/vggt/layers/mlp.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_vendor/vggt/layers/patch_embed.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_vendor/vggt/layers/rope.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_vendor/vggt/models/aggregator.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_vendor/vggt/utils/__init__.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_vendor/vggt/utils/pose_enc.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_vendor/vggt/utils/rotation.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/gf1.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/ground_context.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/ground_lifting.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/mdg_decode.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/mdg_lora.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/p3_printed_calculator.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/scripted_calls.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/tower_errors.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/trace_format313.py"
+   ]
+  },
+  "A4": {
+   "status": "FAIL",
+   "summary": "4 offender groups (4 static)",
+   "offenders": [
+    {
+     "rule": "A4.status_literal",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_batch_decode.py",
+     "line": 156,
+     "function": "Row.record",
+     "detail": "string 'error'",
+     "text": "generated_tokens=len(self.ids), errors=sum(r['kind'] == 'error' or r.get('verify_error',False) for r in self.records))"
+    },
+    {
+     "rule": "A4.status_literal",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_decode.py",
+     "line": 499,
+     "function": "ground_layout_for",
+     "detail": "string 'error'",
+     "text": "return trace313.active() or state.ground_backend is not None or state.verify_session is not None or state.rereader is not None or (info['kind'] in ('ground','ga"
+    },
+    {
+     "rule": "A4.guard",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_decode.py",
+     "line": 516,
+     "function": "respond_state",
+     "detail": "identifier fallback",
+     "text": "context.fallback=(lambda name:state.rereader.ground(name,registry)) if state.rereader is not None else (lambda name:heads.ground(name,registry))"
+    },
+    {
+     "rule": "A4.guard",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_decode.py",
+     "line": 526,
+     "function": "respond_state",
+     "detail": "identifier fallback",
+     "text": "return respond(call_text,registry,state.geometry,context.fallback,gapper)"
+    }
+   ]
+  },
+  "A5": {
+   "status": "FAIL",
+   "summary": "parts {'iii': 'PASS', 'i': 'FAIL', 'ii': 'PASS'}",
+   "offenders": [
+    {
+     "kind": "sandboxed_run_failed",
+     "returncode": 1,
+     "stderr_tail": "ux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1027, in read_text\n    with self.open(mode='r', encoding=encoding, errors=errors) as f:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/configs/gf1_stage1.json'\n"
+    }
+   ],
+   "parts": {
+    "iii": "PASS",
+    "i": "FAIL",
+    "ii": "PASS"
+   },
+   "cache_proof": null,
+   "proven_cache_sites": [],
+   "claim_needs_live_run": false
+  },
+  "A6": {
+   "status": "FAIL",
+   "summary": "4 items whose reported calls differ from the responses the registered handler wrote",
+   "offenders": [
+    {
+     "item": "move_0",
+     "kind": "reported_calls_differ_from_observed_handler_responses",
+     "observed": 0,
+     "reported": 1,
+     "count": 4,
+     "items": [
+      "move_0",
+      "move_1",
+      "turn_0",
+      "turn_1"
+     ]
+    }
+   ]
+  }
+ },
+ "overall": "FAIL",
+ "per_type": {
+  "direct": {
+   "items": 2,
+   "call_rate": 0.0,
+   "calls_per_item": 0.0,
+   "heads_behind_fields": {},
+   "seconds_mean": 0.1386218594852835,
+   "seconds_median": 0.1386218594852835,
+   "seconds_max": 0.14776650397107005,
+   "errors": 0
+  },
+  "move": {
+   "items": 2,
+   "call_rate": 1.0,
+   "calls_per_item": 1.0,
+   "heads_behind_fields": {
+    "move": {
+     "pose_head,g3t,gf1": 2
+    }
+   },
+   "seconds_mean": 0.5950324139557779,
+   "seconds_median": 0.5950324139557779,
+   "seconds_max": 0.6367283030413091,
+   "errors": 0
+  },
+  "turn": {
+   "items": 2,
+   "call_rate": 1.0,
+   "calls_per_item": 1.0,
+   "heads_behind_fields": {
+    "turn": {
+     "pose_head,g3t,gf1": 2
+    }
+   },
+   "seconds_mean": 0.2519819204462692,
+   "seconds_median": 0.2519819204462692,
+   "seconds_max": 0.2603504699654877,
+   "errors": 0
+  }
+ },
+ "suppressed": [],
+ "perturbation": {
+  "status": "PASS",
+  "modules": {
+   "g3t": {
+    "role": "tower",
+    "responses_naming": 4,
+    "naming_changed": 4,
+    "others": 0,
+    "others_changed": 0,
+    "named_in_base": 4,
+    "errors": 0,
+    "divergences_without_cited_change": 0
+   },
+   "pose_head": {
+    "role": "head",
+    "responses_naming": 4,
+    "naming_changed": 4,
+    "others": 0,
+    "others_changed": 0,
+    "named_in_base": 4,
+    "errors": 0,
+    "divergences_without_cited_change": 0
+   }
+  },
+  "offenders": [],
+  "seeds": [
+   1,
+   2,
+   3
+  ],
+  "scales": [
+   1.0,
+   10.0
+  ],
+  "items": 6
+ },
+ "declared_modules": [
+  {
+   "path": "",
+   "role": "lm",
+   "name": "lm"
+  },
+  {
+   "path": "auxiliary_heads.geometry_encoder",
+   "role": "tower",
+   "name": "g3t"
+  },
+  {
+   "path": "auxiliary_heads.gf1",
+   "role": "connector",
+   "name": "gf1"
+  },
+  {
+   "path": "auxiliary_heads.pose",
+   "role": "head",
+   "name": "pose_head"
+  },
+  {
+   "path": "eat1_program_policy",
+   "role": "lm",
+   "name": "program_policy"
+  },
+  {
+   "path": "model.visual",
+   "role": "vit",
+   "name": "vit"
+  }
+ ],
+ "executed_scope": {
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/evalpath/__init__.py": 2,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/evalpath/runtime.py": 19,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/trace_format313.py": 12,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/ground_context.py": 15,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/mdg_lora.py": 25,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_decode.py": 192,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/scripted_calls.py": 11,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/tower_errors.py": 4,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1.py": 19,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/mdg_decode.py": 2,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/gf1.py": 96,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_online.py": 84,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/tests/test_gf1.py": 4,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_vendor/vggt/models/aggregator.py": 5,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_vendor/vggt/layers/patch_embed.py": 10,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_vendor/vggt/layers/rope.py": 34,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_vendor/vggt/layers/block.py": 9,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_vendor/vggt/layers/attention.py": 13,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_vendor/vggt/layers/layer_scale.py": 1,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_vendor/vggt/layers/mlp.py": 6,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_vendor/vggt/heads/camera_head.py": 26,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_vendor/vggt/heads/head_act.py": 14,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/c1r_ref.py": 8,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_vendor/vggt/utils/__init__.py": 1,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_vendor/vggt/utils/pose_enc.py": 22,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/g3t_vendor/vggt/utils/rotation.py": 53,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/camera_head.py": 68,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_routing.py": 45,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/ground_lifting.py": 2,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/carrier_c1_batch_decode.py": 58,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/tests/test_carrier_c1_final.py": 9,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/p3_printed_calculator.py": 1,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/camera_targets.py": 4
+ },
+ "fixture_files": [
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/tests/test_carrier_c1_final.py",
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/tests/test_gf1.py"
+ ],
+ "claim_grade": false
+}

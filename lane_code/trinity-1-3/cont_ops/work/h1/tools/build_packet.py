@@ -1,6 +1,6 @@
 import copy,hashlib,importlib.util,io,json,os,sys,tarfile
 from pathlib import Path
-H=Path(__file__).resolve().parents[1];D=H.parent/'d0';sys.path.insert(0,str(H/'tools'))
+H=Path(__file__).resolve().parents[1];D=Path('/scratch/jjyeung/orch_n30/review_h1pkt/work/d0');sys.path.insert(0,str(H/'tools'))
 import derive_kit_h1 as dk
 s=dk.sha
 w=dk.write
@@ -44,7 +44,7 @@ over['config'].update(h1=dk.H1,milestones=[100,200],scheduled_sampling=dk.SAMPLI
 paths={v['path'] for v in over['add_k'].values()} | set(over['content'].values()) | set(over['sealed_docs']) | {over['e00_listing']}
 localmap={};remotemap={}
 for path in sorted(paths):
- p=Path(path);p=p if p.is_absolute() else D/'a2'/p;n='d_'+s(p)[:16]+'.json';dest=H/'payload'/n
+ p=Path(path.replace('/scratch/jjyeung/orch_n30/cont_ops/work/d0',str(D)));p=p if p.is_absolute() else D/'a2'/p;n='d_'+s(p)[:16]+'.json';dest=H/'payload'/n
  dest.write_bytes(p.read_bytes());localmap[path]=str(dest);remotemap[str(dest)]=IN+n
 for v in over['add_k'].values():v['path']=localmap[v['path']]
 over['content']={h:localmap[p] for h,p in over['content'].items()};over['sealed_docs']=[localmap[p] for p in over['sealed_docs']];over['e00_listing']=localmap[over['e00_listing']]
@@ -54,6 +54,21 @@ for e in over['deployment']['extra']:
   e['parts']=[IN+'d_'+e['sha256'][:16]+'.json']
 over['code_tree']=dict(archive=dict(path=str(H/'payload'/name),sha256=s(H/'payload'/name)),pin=dict(path=str(H/'payload/7.json'),sha256=s(H/'payload/7.json')))
 remotemap[str(H/'payload'/name)]=IN+name;remotemap[str(H/'payload/7.json')]=IN+'7.json'
+# Bind the seed authorization before deriving; source changes never inherit 4.json.
+base_key=json.loads((D/'kitfull/k/1.json').read_text())['0']
+seed_cfg=json.loads((D/'kitfull/k'/(base_key+'.json')).read_text())
+for field in ('output','preparation_output'):seed_cfg[field]=seed_cfg[field].rsplit('/',1)[0]+'/'+tok['run']
+for field,value in over['config'].items():
+ if field in ('streams','s1_routing','init_artifact','scheduled_sampling'):seed_cfg[field].update(value)
+ elif field=='recipe':
+  seed_cfg[field]['milestones']=value['milestones'];seed_cfg[field]['scheduled_sampling'].update(value['scheduled_sampling'])
+ else:seed_cfg[field]=copy.deepcopy(value)
+seed_cfg['code']=dict(path=dk.KIT_LOGICAL+'7.json',sha256=s(H/'payload/7.json'))
+auth=json.loads((D/'jobB/4b.json').read_text())
+auth.update(config_sha256=dk.identity(seed_cfg),source_revision=code['commit'],wall_seconds=46800,production_go_granted=False)
+auth['conditions']=[x.replace(' and canary-2 resume','') for x in auth['conditions']]
+w(H/'payload/4.json',auth)
+over['add_k']['4.json']=dict(path=str(H/'payload/4.json'),sha256=s(H/'payload/4.json'))
 w(H/'build/over_seed.json',over)
 w(H/'build/path_map.json',remotemap)
 res=dk.derive(D/'kitfull',H/'build/fx_seed',dict(over,fixture=True));w(H/'evidence/fx_seed.json',res)
@@ -62,6 +77,7 @@ from d import contract
 cfg=json.loads((H/'build/fx_seed/k'/ (res['config_key']+'.json')).read_text());launch=json.loads((H/'build/fx_seed/k/launch.json').read_text())
 ident=dk.identity(cfg);cont=dk.digest(contract(launch,cfg))
 auth=json.loads((D/'jobB/4b.json').read_text());auth.update(config_sha256=ident,source_revision=code['commit'],wall_seconds=46800,production_go_granted=False)
+auth['conditions']=[x.replace(' and canary-2 resume','') for x in auth['conditions']]
 auth['scope']='Conditional binding; separate submission approval and new-source review are required.'
 auth['admission_contract_sha256']=cont
 w(H/'payload/4.json',auth)
@@ -81,5 +97,5 @@ remote['status']='BLOCKED';w(H/'payload/over.json',remote)
 w(H/'build/path_map.json',remotemap)
 ms=['m1','m50','m100','m200','m400','m600','m800','m1000','mstop','mstopB','mstopC']
 (H/'EXPORT_OBJECTS.txt').write_text(''.join(f'q8/8865619b/{tok["run"]}_{m}.tar.part{i:02d}-of-04\n' for m in ms for i in range(4)))
-w(H/'ids.json',dict(identity=ident,contract=cont,config_key=res['config_key'],code_pin=s(H/'payload/7.json'),tree=tree,trainer=dict(file=name,bytes=(H/'payload'/name).stat().st_size,sha256=s(H/'payload'/name)),tokens=tok,fixture_manifest=res['manifest_sha256']))
+w(H/'ids.json',dict(identity=ident,contract=cont,config_key=res['config_key'],code_pin=s(H/'payload/7.json'),tree=tree,trainer=dict(file=name,bytes=(H/'payload'/name).stat().st_size,sha256=s(H/'payload'/name)),tokens=tok,job_name='a15_cot_ap'+tok['job'],fixture_manifest=res['manifest_sha256']))
 print((H/'ids.json').read_text())

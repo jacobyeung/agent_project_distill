@@ -1,139 +1,100 @@
-**H1-1 Orchard packet — prepared, not authorized for submission**
+The H1-1 packet derives successfully from local trees with Orchard’s sealed permissions and passes the CPU checks. It remains unauthorized for submission. The fixed four-rank stop chain is prepared for an operator rerun; it was not executed in this sandbox. No Orchard, network, SSH, GPU, Git or deletion command ran.
 
-The packet derives a new code-tree kit from the sealed source kit. D0 regression, exact-field, source-inventory, deterministic-archive, stop-bridge, and CPU fallback checks pass. Production launch remains blocked on Orchard checks, independent review, content certification, fresh export sessions, and a separate GO. `4.json` keeps `production_go_granted=false`.
-
-H1-1 warm-starts from step 544, retains D0’s rows, seed 17, world size 4 and 1,000-step LR horizon, enables S1 and S2, and exports at 100 and 200. It ends at 200 with `stopped_for_resume=false`. The registered answer-difference rule can instead end it at 100 when the share over steps 1–50 exceeds 35%.
+H1-1 starts from step 544, retains D0’s rows, seed 17, world size 4 and 1,000-step learning-rate horizon, enables S1/S2, and exports at 100 and 200. Its normal terminal status is `H1_STOP` with `stopped_for_resume=false`. The registered answer-difference rule can end it at 100 if the share over steps 1–50 exceeds 35%.
 
 | Item | Value |
 |---|---|
 | Run | `17c4ffa4` |
 | Deployment kit | `/project/community/jjyeung/okh7/x_4b3114cf` |
-| Logical kit namespace | `8865619b` |
 | Upload bundle | `/project/community/jjyeung/okh7/i_1be16f28` |
 | Persistent slot root | `/project/community/jjyeung/okh7/r/766136c1` |
 | Job name | `a15_cot_ap5ee9da63` |
-| Trainer output | `/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/17c4ffa4` |
-| Preparation output | `/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/f/17c4ffa4` |
-| Node-local output | `/tmp/jjyeung/okit_8865619b/runs/17c4ffa4` |
+| Node-local root | `/tmp/jjyeung/a_17c4ffa4` |
+| Node-local output | `/tmp/jjyeung/a_17c4ffa4/runs/17c4ffa4` |
+| Logical and GCS namespace | `8865619b` |
 | Allocation | `advanced`, one node, four GPUs, 48 CPUs, 800G, 13 hours |
 
-The new paths are not D0’s run, deployment kit, bundle or export-session paths. The deployment reads D0’s existing m544 archive and shared rows without modifying them. The donor artifact still names immutable `469ddece/m544` inputs; those are read pins, never this leg’s output paths.
+The per-run root contains staging, namespace mounts, preflight jobs, training jobs, runs and upload archives. `c.sh` keeps the sealed logical prefixes and GCS namespace. `jb.sh` refuses any foreign entry in that root’s `runs/` before creating directories. D0’s kit, outputs, sessions and identity remain untouched. The inherited eight-GPU helper `b/jt8c.sh` is not called by this packet’s entry chain (`s.sh → jb.sh → job.sh → p0.sh/r.sh`).
 
 **Deliverables and hashes**
 
-`tools/derive_kit_h1.py` accepts one `code_tree` override with archive and code-pin file/SHA256 pairs, plus an optional archive attestation. It validates the complete sorted tar inventory, member safety, ownership, timestamps, modes and closure pins. It regenerates `7.json`, `s1_record.json`, deployment commit/trainer/record, config code pin, launch revision/source seal, archive record and manifest. READY additionally requires the new source/config authorization and an actual project archive attestation.
+| Artifact or identity | SHA256 | Reason |
+|---|---|---|
+| Configuration identity | `6e4f2846e45377f5b25da0113bf70d625d41d0bee80ae26840d2dee839f85965` | Unchanged: training settings and code remain pinned. |
+| Admission contract | `9a5270923627a9fae982acf90ac20ee4b695ac1932b98ae13038b63710a03ff9` | Unchanged: native admission requirements remain pinned. |
+| Trainer tree | `9588661986650d29f39ce8d6ec9552f131e1684f0a622f579f439a8408cfc6f9` | Pinned trainer inventory. |
+| Trainer archive | `25f1c3a7394564d9287ba382fa58c476c4fb17d20063f5b643937d388339a4ec` | Deterministic archive matches its pin. |
+| Code pin | `d6273a970c30df760465013ff6789deb5466dfa887790dcf0d33abc262a9ba45` | Unchanged: trainer inventory and closures match. |
+| Fixture manifest | `2e504f0f114b9c358a12c5b9944526daf08383132786c5e668e5aec1b3b067c5` | Pinned isolated runtime and authorization. |
+| Authorization | `73d274495f8d6bf9ae2bc3e3895bce5f5ca5ad29b8f729692389fb8209892009` | Pinned conditional authorization. |
+| Deriver | `86b2444418f9275b2207fd7de76b48c5da9446f264fe91c87ce75a75e4164b82` | Output-scoped writes restore sealed file and directory modes. |
+| Batch wrapper | `45fc96cfdc12b3ae7882c8e698ec471d419efe7eb9ceab2b6d54c3af3bd30183` | Pinned private root and foreign-run refusal. |
+| Upload archive | `620e72ebf6c2727b920767d8fd9f4f5b092af513168c1f8bf2f7c89a52df5a9c` | Changed: mode-preserving derivation and mode comparisons. |
 
-Config additions are restricted to the registered `h1` block, milestones [100, 200], and the two scheduled-sampling deltas in both locations. Other recipe, optimizer and deployment-code overrides remain refused. The runtime changes are fixed patches, not a general `b/` override. [DIFF.md](DIFF.md) explains every changed derivation-tool line and includes the exact trainer/runtime patches.
+The job name is exactly `a15_cot_ap5ee9da63`: the account-mandated opaque prefix `a15_cot_ap` plus token `5ee9da63`. Configuration identity, admission contract, trainer archive, fixture manifest and batch wrapper remain unchanged. [evidence/hash_changes_fix3.json](evidence/hash_changes_fix3.json) records the affected hashes. `DIFF.md` describes the implementation; `FIX3.md` records the local test results.
 
-| Artifact or identity | SHA256 |
+The trainer archive has 9,922,560 bytes and 796 regular files. Its sorted inventory, mode/owner/time metadata and SHA256 match the independent rebuild. The derived fixture also matches a second derivation byte for byte. The new upload is `build/p_620e72ebf6c2727b.tar` (10,280,960 bytes); `orch_h1.sh` has 13,889,155 bytes. Each upload form stays below 20 MB. `UPLOAD.json` records every carried member; `SHA256SUMS.txt` seals the packet and current evidence.
+
+The config key remains `2f7f4667`. Review approval changes the config’s admission pin and may change its filename, while its identity and native admission contract remain fixed. The complete source kit is missing two payloads locally: `k/np226_5204b3a0.tar` and `k/t_e6456bcecb8d4a8f4f68158eb68275f8befff128.tar`. Their sealed hashes remain in every fixture manifest. Complete derivation refuses their absence; the login procedure must verify complete empty-override reproduction.
+
+**Naming and permissions**
+
+Every executable entry checks that `/project/community/jjyeung/okh7` is a real directory with mode 0700. A mismatch prints the exact `chmod 700` fix command and exits before writing. The scripts use `umask 077`, create private BUN/KH/slot directories, verify their modes, and reject symlinks at those checked paths. Derive creates KH with mode 0700 and verifies it again after the final derive.
+
+`g.sh` invokes `r.py copy`, which reads the routing archive location from the SHA-verified sealed deployment record inside Python. No new process argv contains that inherited source path. It copies to `BUN/a_b8b60bce.tar`, compares the stream SHA256 against a complete readback, and verifies every regular member against the sealed member pins before writing `a.json`. `g.sh` rechecks that archive digest before extraction and verifies the receipt/SQLite pins afterward. The sealed record has no whole-archive SHA256, so the copied archive digest is recorded at runtime; the pre-existing member hashes anchor its contents. No routing archive was copied on Orchard during this task.
+
+The audit covers new argv/path/environment/log literals in the login scripts, `r.py`, the batch wrapper and added runtime lines. The local delivery filenames `orch_h1.sh` and `fin_h1.sh` are carried as script bodies; operators must not use those names as remote executable paths. New remote entrypoints are opaque (`o.sh`, `g.sh`, `z.sh`, `s.sh`, `r.py`, `jb.sh`). Trainer modules and the pinned room list remain inside private directories and archives; full private-content review is still required.
+
+**Sealed-mode writes and validation**
+
+The output writer grants owner-write permission only to an output file and its immediate parent, then restores both exact modes in `finally` blocks. It rejects links and paths outside the output root. Existing records retain their modes; new `k/` records and archives use the sealed `k/1.json` mode, while renamed configs use the original config mode. The SHA manifest retains the source manifest mode. Existing directory modes are preserved; new runtime directories use 0700. Empty overrides add no runtime directories absent from the source.
+
+`d.py` routes runtime patches, archive/pin copies, generated config/launch/source records, checksums and the ANON record through that writer. `r.py` uses it for the temporary final launch and certificate replacement. Its other writes target the mutable bundle. `z.sh` only verifies checksums and dispatches `r.py`; `v.py` performs read-only staging checks. `SHA256SUMS.txt` and `v.py` do not encode or compare modes. The prepare and final paths compare mode inventories explicitly, and their evidence records bind the inventories by digest.
+
+`tests/test_sealed_modes.py` reproduces the round-2 `b/r.sh` PermissionError using the observed 0400 files and 0500 directories. It also exercises a fully sealed tree, including `k/`, all runtime patches, new files beneath 0500 directories, failure restoration, out-of-tree refusals and mode-only comparison failures. H1, D0 and empty overrides pass on both fixture variants. Empty overrides reproduce the entire fixture byte-for-byte and mode-for-mode; source snapshots remain unchanged.
+
+Two unavailable sealed payloads use small stand-ins with a test-only manifest pin in the complete fixtures. The real incomplete source is tested separately and still refuses complete derivation. These fixtures prove permission handling, not availability of the missing production payloads. `evidence/fix3_modes.json` records the six derivations and entrypoint checks; `evidence/fix3/tests.json` records the eleven regression checks. The chain runner and existing `chain_r1/` were not modified or executed in this task.
+
+**Inherited visible names**
+
+These sealed names remain unchanged. They are explicit inherited exposures, not claims that the whole sealed runtime is anonymous.
+
+| Location | Inherited name and exposure |
 |---|---|
-| Configuration identity | `6e4f2846e45377f5b25da0113bf70d625d41d0bee80ae26840d2dee839f85965` |
-| Admission contract | `9a5270923627a9fae982acf90ac20ee4b695ac1932b98ae13038b63710a03ff9` |
-| Trainer tree | `9588661986650d29f39ce8d6ec9552f131e1684f0a622f579f439a8408cfc6f9` |
-| Trainer archive, `t_9588661986650d29.tar` | `25f1c3a7394564d9287ba382fa58c476c4fb17d20063f5b643937d388339a4ec` |
-| Code pin, `payload/7.json` | `d6273a970c30df760465013ff6789deb5466dfa887790dcf0d33abc262a9ba45` |
-| Local fixture manifest | `d68b7481fcae4a60b4b020bb02ea0c9ddddfa3b58cbcddac392bc427c7bf83d5` |
-| Draft authorization, `payload/4.json` | `a58708febdece9f89945f38c10e271506ea1189dfcb3294b01fcacaafdea4782` |
-| Derivation tool | `d9025e1cd03f4971bd936790941f566b7d9f0e46a7f38b6da62f432491eaf01b` |
-| Wrapper, `runtime/jb.sh` | `8df881ab00ea5e478812c251e0b6e38d5a5f12e8c6c5c8a109423c19c3898249` |
-| Upload archive, `build/p_7fae472c107a1c06.tar` | `7fae472c107a1c0616b4a6d7ad6e72b64eba38d069c562ec0faef76c8f04d73e` |
-| Input outer archive | `4bce1b7d524b7d63ab572867662b1665d7418c83beba64c59177d6cc1d0f0c71` |
-| Input code archive | `946b9513fcb67f37836c3a7ba537500b748be6a03bc647d8d3e1e56c6c2ab522` |
-| Supplied real-forced receipt archive | `062cec87f26efea69d66e640c988f8f35df30ae90c4de59c957b6fc4d22782e4` |
+| `build/fx/b/c.sh:11–13` | `R=/project/community/jjyeung/distill/okit`, `HX`, and `IN=$R/in`; inherited staging commands can expose the cache path in argv. |
+| `build/fx/b/c.sh:102` | `models--Qwen--Qwen3.5-9B`; the base-model cache path is sealed. |
+| `build/fx/b/c.sh:7–8`; `payload/g.sh:36–37` | The `/scratch/fsw/.../av_dataengine_cot/users/jyeung` and `/lustre/fsw/.../av_dataengine_cot/users/jyeung` prefixes identify pinned logical receipts and mounts. |
+| `build/fx/b/c.sh:16–17` | `runs/aws128p_20261025` and `/home/jjyeung/6d00e578` are inherited runtime locations. |
+| `build/fx/b/c.sh:429` | The inherited `gcsput.py split` operation keeps its command interface. |
+| `build/fx/b/p0.sh:12–31` | The inherited preflight receives `IN` and emits sealed input locations in its inventory. |
 
-The trainer tar is **9,922,560 bytes**, contains 796 regular files, and reproduces exactly on a second build. D0 has 792 members. Both use sorted relative names, UID/GID 0, empty owner names, mtime 0 and 0644/0755 modes. Sealed member modes are preserved; the four added files use 0644. The R0 file has its supplied SHA256 and 372 rooms. The flat trainer archive contains `auth/R0_ROOMS.txt`; the patched resolver opens it there.
+**Validation**
 
-The upload archive is **10,270,720 bytes**; the self-contained upload script is **13,875,057 bytes**. Each carried file and both upload forms are below 20 MB. `UPLOAD.json` lists every carried file, size and hash. `SHA256SUMS.txt` covers the primary deliverables and evidence; `payload/sums.txt`, `build/fx/SHA256SUMS.txt`, `payload/7.json` and native checkpoint/export manifests cover their member inventories. `evidence/input_pins.json` records the exact D0 inputs.
+The four original local checks (`test_derivation.py`, `test_gate_binding.py`, `test_staging.py`, and `run_fallback.py fallback_fix3`) and `test_stop_bridge.py` pass. D0 regression reproduces identity `80f4af947f0ca9edfac04041cf65e079edb92752618b2de6dc4078491a88f1ba` and contract `aaf2d7b045632f14d96cfc62adbf2a1eab5212d713ac6ebaed03c1b44309ca19`.
 
-The local draft config key is `2f7f4667`. An independently signed review changes the config-file bytes/key through the admission pin, but does not change its identity or admission contract. The final READY manifest is generated and checked on Orchard; the local FIXTURE manifest is not a READY certificate.
+The copied reviewer checks pass: altered trees/rows/settings are refused; removing `add_k 4.json` is now refused before output creation; the native gate also rejects the reviewer’s stale-authorization fixture. The faithful gate passes at 0.95 and fails at 0.94 or without camera rows. Its executable returns 1 below threshold and 2 for unreadable input. Review/archive/staging approvals are mocked only in the binding tests; those fixtures do not authorize deployment.
 
-**Validation and limits**
+`test_fix1.py` exercises all entrypoint permission refusals, private directory creation, the foreign-run refusal, all active physical roots (including preflight), the routing copy/hash/member checks, missing-authorization refusal, and the final identity assertion. It checks that `z.sh` and `s.sh` run `sha256sum -c sums.txt` before interpreting operator evidence; an altered checksum fixture is refused. `test_visible_names.py` audits the named scripts and added runtime lines, preserving the explicit sealed-prefix exceptions above and allowing `a15_cot_ap` only as the submitter’s job-name prefix before a hex suffix. Negative checks reject the prefix in paths, logs, environment values and other commands, and retain every forbidden-word check.
 
-- `evidence/derivation.json`: D0’s own overrides reproduce identity `80f4af947f0ca9edfac04041cf65e079edb92752618b2de6dc4078491a88f1ba` and contract `aaf2d7b045632f14d96cfc62adbf2a1eab5212d713ac6ebaed03c1b44309ca19`. H1 changes exactly the requested training fields, output identities, code binding and admission pin. Nine forbidden-override cases are refused.
-- Empty-override reproduction is locally limited by missing `k/np226_5204b3a0.tar` and `k/t_e6456bcecb8d4a8f4f68158eb68275f8befff128.tar`. A complete derivation correctly refuses them. Empty fixture derivation reproduces every present manifest member byte for byte except the two explicit FIXTURE safety fields in `launch.json`; both absent payload hashes remain in the manifest. The login script runs the complete empty-override comparison against Orchard’s sealed kit.
-- `evidence/archive_layout.json`, `evidence/tree_changes.json` and the unchanged native `b/v.py` tree check verify the archive and all file pins. Seven tree members differ from D0, including the four additions. Runtime and operation import closures each contain 200 files and match the new code pin.
-- `evidence/gate_binding.json` checks source/config/authorization/contract consistency through `g.check(mode='p')`. Approval evidence is supplied in memory and persistence is stubbed for this test. It does not certify review, staging, production admission or authorization.
-- `evidence/staging_test/result.json` verifies streamed archive/member hashes and rejects corruption. Shell and Python syntax checks pass. Actual Orchard staging bytes remain unverified here.
-- The new tree loads the native tiny model, runs a finite H1 S2 routing forward/backward with all 32 frame carriers, and resolves all 372 R0 rooms. `evidence/cpu/fallback_final/run/s2.json` records that check. The native first optimizer-step admission passes for the reduced CPU fixture in `run/inputs/first_step_993.json`.
+The CPU fallback completed 200 optimizer steps in 31.25 seconds, exported m100/m200, reported `stopped_for_resume=false`, and verified a 3,758,080-byte slot with SHA256 `9cb0e0eb7835121ca2085984e32ec221d30426c3ccb83eb78f4327d61e4c0a62`. It uses the native tiny model, real checkpoint/export serialization, one rank and local collective stand-ins. It does not establish distributed GPU behavior.
 
-The exact four-rank h1_headsft first-batch reproduction cannot run here. The supplied archive does not contain its `first_batch/real_fixture_batch.sh`, `tests/test_trainer.py` or `tests/test_review.py`; the model/restore/frames named by `receipts/rfb.sh` are outside the allowed inputs. Torchrun’s local TCP rendezvous is also denied by the workspace. No remote model download or other network access was used to fill those gaps.
+The exact patched `on_stop` function writes the run-dir request, and a real bwrap namespace sees the same inode. The relay survives denied `/proc` reads. The four-rank CPU cases require the supplied operator runner:
 
-The supplied receipts remain evidence from their producer, not new measurements of this derived kit. `receipts/real_forced2/SUMMARY.json` reports a diagnostic step-2 forced run with two own camera rows on each of four ranks, no refusals and no nonfinite results. The 91-test suite receipt is supplied evidence; this packet does not claim to have rerun that missing suite.
+```sh
+bash /scratch/jjyeung/orch_n30/cont_ops/work/h1/tests/RERUN_CHAIN.sh
+```
 
-**USR1 and the verified fallback**
+The runner refuses an existing `chain_r1/`, copies the fixed packet into that fresh local directory, verifies copied bytes, and runs `signal`, `fileonly`, `hfail`, and `full200` once each. It writes `chain_r1/evidence/cpu/<case>/result.json` and one PASS/FAIL line per case in `chain_r1/summary.txt`. A harness failure stops subsequent execution and records those cases as FAIL without retrying. The copied harness preserves the real wrapper suffix, job/runner/relay and training loop; it replaces admission/staging and GPU telemetry with CPU fixtures. Only shell/Python syntax was checked here; the runner and four-rank harnesses were not executed.
 
-`job.sh` ends with `exec /bin/bash .../b/r.sh`, so the wrapper’s child becomes `r.sh` after initialization. `h.py`’s expected script/root pair matches the launch arguments. The relay deliberately signals rank processes rather than torchrun.
+**Operator procedure**
 
-The code exposes a failure path: `i.py` reads descendant `/proc/<pid>/environ` without catching `PermissionError`; `h.py` also omits that exception while traversing processes. Such an error can abort the relay/supervisor. Meanwhile, the host `o/<job>.stop` marker is neither the namespace’s writable `o/` directory nor a condition polled by the training loop. Writing it does not itself stop training. The supplied incident has no traceback or process snapshot, so the exact failing PID and exception on D0 remain unconfirmed.
+1. Register the five rows from `ORCHARD_LEDGER_PENDING.jsonl` in the orchestrator’s `work/ORCHARD_LEDGER.jsonl` before any Orchard call. F2 remains an operator action because this task permits writes only inside this packet. No token was minted or registered remotely here.
+2. Verify `sha256sum -c SHA256SUMS.txt`. Confirm no conflicting allocation, private parent mode 0700, and fresh BUN/KH/slot targets. The operator must rename the failed bundle aside before re-uploading; the target-exists refusal remains active. Carry `orch_h1.sh` as the authorized wrapper’s script body, or upload the hash-checked opaque tar and extract into a new mode-0700 BUN. The login script verifies its transport and immutable payload checksums.
+3. `o.sh` derives the BLOCKED candidate, verifies identity/contract, reproduces the complete sealed kit’s bytes and modes with empty overrides, and records staging/archive checks. Run `g.sh` with an installed CPU `PY_GATE` and optional `BW_GATE`. Its faithful gate must pass and bind the original routing receipt.
+4. Obtain independent PASS review in `BUN/review.json`, bound to this source, identity and contract. Keep `production_go_granted=false` in the conditional authorization. Its expiry remains 2026-11-26T00:00:00Z; the irrelevant canary-2 condition is removed.
+5. Run `z.sh derive`. It rechecks immutable checksums, checks gate/review/staging evidence, derives KH, asserts its configuration identity, verifies mode 0700, and compares the complete byte manifest and mode inventory with a fresh expected derivation. `review.json` and `staging.json` are mutable attestations and are excluded from `sums.txt`; both are hashed in the initial `UPLOAD.json`, validated semantically, and re-pinned into the final derivation. All executable files, config overrides and `4.json` remain checksum-pinned.
+6. Review the exact final kit and external contents. Install a valid CLEAN `anon.json` certificate and run `z.sh certify`. The new source includes the identifying pinned room list; the packet does not manufacture a clean certificate.
+7. Mint fresh create-only sessions for the 44 names in `EXPORT_OBJECTS.txt`; store them only at `KH/sess.json`, mode 0600. K remains `8865619b`; export keys use run `17c4ffa4`. Check node-local capacity (the inherited 3.8-TB guard) and project slot capacity (slot bytes plus 20 GB).
+8. Obtain a separate GO bound to identity, contract, final manifest and wrapper SHA256. Run `s.sh`, which rechecks checksums and approval bindings before `sbatch`. It submits `a15_cot_ap5ee9da63` with the allocation above and USR1 3,600 seconds before timeout. Verify native admission, real first-batch/routing checks, terminal status, exports and the slot receipt.
 
-The patch catches permission failures and writes `stop.<job>.request` in the run directory, which `c.sh` binds into every rank. The trainer polls this file before training and after each optimizer update; the existing MAX reduction then selects the common checkpoint/export path. Job-specific filenames avoid stale-stop requests on same-node resume. The bridge does not require `/proc/environ`, torchrun signal forwarding or an environment variable from the host.
-
-`evidence/stop_bridge/result.json` reproduces the old uncaught exception, verifies the patched relay, executes the exact new `on_stop` function and reads its marker through a real bwrap user namespace. A complete `jb.sh → job.sh → r.sh → i.py → torchrun → bwrap/ranks` proof is **not established**: the CPU chain failed before rank startup because TCPStore sockets were denied. The failed test exited; no cluster-killed job was relaunched.
-
-The required alternate proof **passes**. `evidence/cpu/fallback_final/result.json` records a native tiny-model run with real optimizer updates, checkpoint serialization and milestone exports. It runs all 200 optimizer steps with the 1,000-step LR horizon, exports m100 and m200, returns `H1_STOP` / `h1_stop_after_step`, and sets `stopped_for_resume=false`. The loop takes 31.46 seconds on CPU. Its one-rank collectives and FSDP state gathering are local stand-ins; the model state, checkpoint payloads, hashes, export files and slot verification are real. The fixture uses reduced pose batches, not the production four-stream population or S1 own-row frequency.
-
-The unchanged wrapper launch/wait/slot-copy suffix runs after the CPU job returns 0. It publishes a verified step-200 slot of **3,758,080 bytes**, archive SHA256 `f983994b896f7b0e7dc9442dd93f0f25875e5786e2e18b26f4b3839a1e672c16`. Its reread checks every payload against the native checkpoint manifest and binding. This proves the step limit and local slot publication, not distributed GPU behavior or GCS delivery. The code path is `run_steps`: `h1_limit` → `h1_stop` → `stopping` → `checkpoint` → `export` → break → `stopped_for_resume=false`.
-
-The 13-hour budget is 28,000 seconds of training at 140 s/step, 7,200 seconds for admission (D0’s card reports about 1h45m), 3,600 seconds for staging, and 3,600 seconds for two exports plus slot persistence: 42,400 seconds, rounded to 46,800. Slurm sends USR1 at 43,200 seconds. These are planning allowances, not measured H1 wall times. The sealed recipe retains its 86,400-second budget because other recipe fields are not admitted overrides; the 200-step limit and Slurm signal provide the shorter allocation boundary.
-
-**Operator procedure, in order**
-
-1. Review this report, `DIFF.md`, `ids.json`, the CPU evidence and the new source members. Confirm no concurrent four-GPU advanced allocation conflicts. Confirm the new kit, bundle and persistent root do not exist on Orchard. The scripts refuse existing targets; they do not overwrite D0 or retry a failed deployment.
-2. Run local `sha256sum -c SHA256SUMS.txt`. Carry `orch_h1.sh` through the existing authorized Orchard wrapper as the script body. It decodes its embedded archive into `/project/community/jjyeung/okh7/i_1be16f28`, verifies its digest and file checksums, and invokes `o.sh`. Alternatively, upload `build/p_7fae472c107a1c06.tar` as one file through that wrapper, verify its SHA256, extract only into the new bundle, and run `bash o.sh`. No transport or session capability is included in this packet.
-3. `o.sh` derives a complete BLOCKED candidate in `BUN/p` from `x_07ca49df`; runs exact empty-override reproduction in `BUN/e`; and verifies identity/contract. It checks all inherited tar/extra part paths exist and hashes the changed extras and every new archive member, including the shared m544 archive. Its staging record distinguishes inherited availability/evidence from fresh byte checks. Native `c.sh` still rechecks staged inputs in the job. `archive.json` attests the uploaded trainer tar only after a hash readback on project storage.
-4. Run the faithful gate on the login node before final derivation. The source command is:
-
-   ```sh
-   nice -19 python -B rows/faithful_gate.py <routing receipt> --out gate.json
-   ```
-
-   In the opaque deployment, set `PY_GATE` to an installed CPU interpreter with the pinned trainer dependencies, then run `bash /project/community/jjyeung/okh7/i_1be16f28/g.sh`. Set `BW_GATE` if bwrap has a nonstandard location. `g.sh` runs the same gate as `f.py`, extracts the routing archive into the new bundle, verifies the unchanged receipt and SQLite pins, and binds their logical paths read-only into a private bwrap namespace. It does not rewrite the receipt. Exit **0** permits the remaining launch checks; **1** stops H1 and returns the D0-allocation decision to the orchestrator; **2** is an input/runtime blocker. Keep `gate.json`, including identity rate, counts and refusal histogram. Native preparation repeats the gate on its bound receipt.
-5. Obtain an independent PASS review in `BUN/review.json`, bound to the identity, source revision and admission contract above. Retain `admission_scope="pinned-template-and-native-data-derivation"`; name the actual reviewer and evidence. Do not promote the supplied PENDING draft merely because local fixtures pass. Verify `staging.json`, `archive.json` and the unchanged conditional `4.json`; its authorization expires 2026-11-26T00:00:00Z.
-6. Run `bash /project/community/jjyeung/okh7/i_1be16f28/z.sh derive` (or `fin_h1.sh derive` through the wrapper). This derives the final kit from the sealed source, checks the final manifest against a fresh expected derivation with the explicit READY transition, and emits `compare.json`, `result.json`, `ready.json` and `anon.json`. Both formerly absent local payload entries must retain their sealed hashes. The draft config key is not used as a final staging attestation.
-7. Perform the independent content scan on the exact final kit and every listed external file, including trainer tar members. The local pre-scan found **383 new identifying matches**, 372 in the required R0 list and 11 in its validator. `anon.json` stays UNREVIEWED until that content is reviewed under the applicable naming policy. Inherited code/module/member paths are preserved; newly selected upload destinations and the job name are opaque. After a valid CLEAN certificate binds the actual final manifest and external hashes, run `bash /project/community/jjyeung/okh7/i_1be16f28/z.sh certify`; it installs the certificate and runs `b/a.py`.
-8. The operator mints fresh sessions for the **44 exact names in `EXPORT_OBJECTS.txt`**, using the inspected `jobB/mint.py` procedure and a new private output file. Its interface is `mint.py OUT 8865619b 17c4ffa4 m1 m50 m100 m200 m400 m600 m800 m1000 mstop mstopB mstopC`. It requests create-only GCS sessions. Install the new map only at `/project/community/jjyeung/okh7/x_4b3114cf/sess.json`, mode 0600. Do not reuse or inspect D0’s session map. Confirm freshness and lifetime close to launch without exposing capability URIs. This packet contains no sessions and executes no minting.
-9. All 44 names are retained to preserve the wrapper’s exact precheck. `c.sh` could support the reduced 20 names (m100, m200 and three stop generations, four parts each), but this wrapper intentionally requires D0’s full set. Normal H1 execution uses only m100/m200; early exits can use the stop generations. Key presence and mode do not prove that sessions work.
-10. Confirm free space: the wrapper retains D0’s conservative 3.8-TB node-local admission, and project needs the slot plus 20 GB. D0’s real slot estimate is about 113 GB. The inherited GCS fallback verifies size/MD5 and publishes `SLOT_TO_GCS` before exit 6; it requires the operator’s approved Orchard cloud environment. The local proof covers the ordinary project slot path only.
-11. Obtain the separate explicit GO in `BUN/go.json`, using `go.template.json` and binding the final manifest, wrapper hash, identity and contract. Run `bash /project/community/jjyeung/okh7/i_1be16f28/s.sh` through the Orchard wrapper. It rechecks those bindings and `b/a.py`, then submits:
-
-   ```sh
-   TZ=UTC env -u TK_JOB_START sbatch -J a15_cot_ap5ee9da63 -o /dev/null \
-     -e /project/community/jjyeung/okh7/x_4b3114cf/o/%j.err -A mt01 -p advanced -N1 --ntasks=1 \
-     --gres=gpu:4 -c 48 --mem=800G -t 13:00:00 \
-     --signal=B:USR1@3600 --no-requeue /project/community/jjyeung/okh7/i_1be16f28/jb.sh
-   ```
-
-12. Watch native full-population admission, the four-rank first-step gate, finite losses, H1 metrics and the 1–50 answer-difference rule. At completion, verify m100/m200 or the registered early-stop export, the terminal report, and slot verification. A nonzero wrapper status or `SLOT_MISSING`, `SLOT_FAILED`, `SLOT_SKIPPED` is not successful persistence. `SLOT_TO_GCS`/exit 6 means the slot is remote and needs a separately checked restore procedure. Return the receipts and gate result to the orchestrator; these scripts never touch D0’s end slot or resume it.
-
-**Workspace boundary exception**
-
-The failed CPU chain reached the copied r.sh directory-creation command at `/tmp/jjyeung/okit_8865619b/jobs/991.t`, outside the requested work folder. That test path contains no intended model or checkpoint payload. The retained harness redirects this path into the workspace. No deletion or cleanup command was run.
-
-**Unverified before launch**
-
-The full routing identity rate, real rows/model first batch under this exact kit, four-rank signal delivery, real staging throughput, complete source reproduction with both missing local payloads, independent source/content approval, final remote manifest, production sessions, native admission, GPU behavior and GCS fallback are unverified here. The packet supplies executable checks and fails closed while those gates remain pending.
-
-## Self-review against R9–R12
-
-| Finding | H1 packet treatment |
-|---|---|
-| R9 §1: exact config changes, receipt relocation, division/provenance closure | Exact-field test passes. D0 rows, selection, division waiver, m544 artifact, nine archive members and full-weight pins are retained. Only the receipt’s physical upload source moves; its bytes do not change. The new code has separate source binding. |
-| R9 §1: unchanged gate/trainer assertion | Not inherited as an H1 claim. `DIFF.md` lists every code/runtime change; independent review must cover them. |
-| R9 §2: modes p/t/u, resources, expiry, separate GO | Draft 4.json binds the new source/config/contract, world 4 and 13 hours; production_go_granted stays false. In-job preparation is still required before t/u. |
-| R9 §2: fixture has stale authorization/review/staging | The H1 fixture installs its own 4/review/staging records; review/staging remain explicitly PENDING. |
-| R9 §3: 44 names, 0600, vt before restore, single TK_JOB_START | Retained. `v.py` performs the new archive check before restore. No session usability is claimed. |
-| R9 §4: six local identifying paths in carried overrides | All local closure inputs are copied to opaque `d_<hex>.json` files; the remote override contains no Trinity workspace paths. Local overrides remain local. Full content certification is pending. |
-| R9 §5: uploaded receipt bytes and precise zero-write claim | Login checks hash the new receipt and changed payloads. Zero project writes describes only the verification reads, not upload, extraction, derivation or training. |
-| R9 final: READY manifest, content certificate, native gates | Separate final derivation, expected-manifest comparison, certification and submission phases enforce those boundaries. |
-| R10 A2.1: c.sh overwrites IN | No A2 stage-2 scripts are shipped. Login scripts use BUN; the wrapper retains its reviewed paths. |
-| R10 A2.2 / R11 A2.1 / R12 deadlines: finalization and descendants | A2’s timed CPU stage is not carried. The batch allocation and GCS fallback deadline both use 46,800 seconds; the 200-step fallback is proved locally. A distributed stop deadline still needs Orchard evidence. |
-| R10 A2.3 / R11 A2.2 / R12 nonfatal logging: publication and exit preservation | No A2 publication/summary chain is carried. Native admission failure blocks training; wrapper slot code retains trainer exit status. The local successful path returns 0 with a verified slot. |
-| R10 A2.4 / R11 A2.3 / R12 anonymous output: free-form strings | No A2 helper or blacklist is carried. The new faithful gate and source content require their own content review; UNREVIEWED is retained. No inherited A2 CLEAN certificate is reused. |
-| R10 A2.5 / R11 family accounting | A2’s family census is not part of this packet. H1 reports its specified own/GT/refused per-type counts and refusal histogram; real-population results remain pending. |
-| R10 B.1 / R11 B.1: SLOT_TO_GCS hash and marker publication | The R11-reviewed checks remain intact. The only deadline change is 86,400 → 46,800. No cloud fallback execution is claimed. |
-| R10 B.2 / R11 B.2: stale staging config key | Staging binds config identity and source revision; it does not claim the draft file key is final. |
-| R10/R11: absent payload hashes, READY transition and stale fixture manifest | Missing payload manifest lines are preserved. Orchard repeats empty derivation and compares the final READY inventory after updating the expected launch hash. The local fixture hash is never installed as a READY certificate. |
-| R10/R11: refreshed external hashes and scan | Finalization enumerates every carried file plus generated gate/staging/archive/override evidence with current hashes. Certification rechecks them. |
-| R12: A2 confirmation, no new defects | Those reviewed A2 bytes are not reused. This packet’s new code is covered only by the explicitly listed local tests and remains subject to its own independent review. |
-
-The writing follows the no-archaeology skill. References to D0’s stop incident and R9–R12 remain because the requested fault analysis and review mapping require them. They are evidence boundaries, not production approval.
+Real routing identity, model/rows first batch, complete Orchard staging, distributed signal delivery under this fixed packet, GPU/NCCL behavior, production sessions and the inherited GCS fallback remain unverified. `4.json`, review/staging drafts and the GO template remain non-authorizing. No requested R1–R4 change was skipped.

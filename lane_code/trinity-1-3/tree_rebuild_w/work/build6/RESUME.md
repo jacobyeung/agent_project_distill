@@ -1,5 +1,7 @@
 # Current build state
 
+The active once-per-minute progress monitor is functions cell `608`; it emits updates and refreshes `STATUS.md`. Wait on that cell with a 60000 ms yield instead of running another status poll. `SESSION_STATE.json` records both monitor and process IDs. The monitor stops on a lost pass, a failed step, or completion; it does not stop tests. After final comparison and coverage qualify, `final_review.py` runs the verification/reporting sequence, including the authenticated substitution and socket-cause explanations. Inspect the generated report before finishing.
+
 The final sequential pass is running in exec session `58561`, through `final_pass.py`. Restaging and both kit checks completed. The seal is `427fb3cb119bda8bd938f7e8edc43fac0c013d59fefdd85d46a8a4daf9475d28`; the archive identity is in `DELIVERY.json`. The driver runs the packet suite, strengthened row proofs, complete packaged tree/base groups, coverage aggregation and comparison in that order. `FINAL_PASS.json` and `final_*.log` record each step. Keep the main tree frozen and run no other tests while this pass runs. Poll status at most once per minute. Do not retry a killed process.
 
 All focused checks pass (`proofs/final_targeted/results.json`: 16/16). The legacy FP32 fixture pins its original one-thread reduction order and restores the caller's thread count. Every expected hash remains. Encoder source is unchanged; `proofs/tensor_threads/RESULTS.json` reproduces the thread-dependent bytes. The standalone/native identity parity is validated in `GATE_IDENTITY_FIX.json`.

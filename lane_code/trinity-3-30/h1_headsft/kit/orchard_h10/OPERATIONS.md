@@ -176,8 +176,9 @@ scale. Raw model answers are never converted or reformatted.
 
 ## Reader repin after review
 
-The package retains grounding SHA prefix `47ab8435`. F4 is deferred; do not
-submit this package until ORCH approves the reader and its repin. Create a JSON
+The package pins b04's reviewed bestspread grounding (`e2e_reader/grounding.py`
+SHA prefix `d9b7e6f3`, provider `e2e_minarea_bestspread_v1`) through
+`orchard_h10/F4_REPIN_SPEC.json`. To repin again, create a JSON
 file inside K with `source` naming a directory whose only files are the full
 `e2e_reader/*.py` inventory, and `sha256` mapping each relative path to its full
 expected hash. Run through `cpu.sh`:

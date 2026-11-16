@@ -8,3 +8,4 @@
 - work/d0/jobB/wtest/, work/d0/jobB/wtest2/, work/d0/jobB/watch_b_170050.log, work/d0/jobB/check/{metrics,attempt}_{7,8,9}.* (cont_ops5 test files)
 - work/d0/gf/t.src, t.out (gpull dry test files)
 - work/h1_rr (rerun copy, 1 GB), work/h1_rr_pt, work/h1/work_rerun
+- work/h1_rr3/ (test copy of h1, 2.5 GB), work/h1read_rr/ (test copy of h1read), work/h1/chain_r1/ (chain evidence; keep until H1-1 ends), work/d0/snap/h1_prefix_2042Z.tar, work/d0/snap/h1pkt_fix2_2125Z.tar (local mirror source; keep while packet in use) — cont_ops8 2026-11-16

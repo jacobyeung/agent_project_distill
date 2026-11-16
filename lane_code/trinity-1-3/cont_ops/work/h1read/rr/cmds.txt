@@ -1,0 +1,15 @@
+`evidence/RUNTIME_FIXTURE.json` records a separate four-item integration through the actual evaluator worker, B2048/B4096 derivation, token audit and mergers, with actual RGB frames. The engine, model staging and GPU parity probe are mocks. It uses a local event loop without sockets. This proves interface integration, not GPU prompt/pixel parity or vLLM execution.
+
+`evidence/BIND_100_main.log` and `BIND_200_main.log` prove exact main-family prompt bytes against the real D0 m200 return and the accepted evaluator digest `d27804f7…`. The local reference lacks away/forward payload directories, so fresh binds for those two families are not claimed; the unchanged functions and existing suite cover their preserved code. `evidence/D0_SELF_PAIR.json` pairs all 1,825 real D0 m200 items with themselves: every type has delta 0 and interval [0,0].
+
+```bash
+(cd readk && PYTHONDONTWRITEBYTECODE=1 OPENBLAS_NUM_THREADS=1 \
+  /scratch/jjyeung/envs/p1cpu/bin/python -B -m unittest discover -s tests -p 'test_*.py' -v)
+PYTHONDONTWRITEBYTECODE=1 OPENBLAS_NUM_THREADS=1 \
+  /scratch/jjyeung/envs/p1cpu/bin/python -B -m unittest discover -s tests -p 'test_h1read.py' -v
+PYTHONDONTWRITEBYTECODE=1 OPENBLAS_NUM_THREADS=1 \
+  /scratch/jjyeung/envs/p1cpu/bin/python -B tests/runtime_fixture.py
+```
+
+Tests install the offline process/socket guard before kit imports. Fixtures remain on disk; `REMOVAL_CANDIDATES.md` lists their paths. No cleanup command ran.
+

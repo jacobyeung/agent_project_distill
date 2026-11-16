@@ -23,7 +23,7 @@ function tk_persist_exports {{ :; }}
 function tk_bwrap {{ BW=(/usr/bin/bwrap --ro-bind / / --dev-bind /dev /dev --proc /proc --bind "{H}" "{H}" --unshare-user --uid "$(id -u)" --gid "$(id -g)"); }}
 ''')
 # Keep the shipped wrapper's launch/trap/wait and complete slot-copy suffix exactly.
-s=(H/'runtime/jb.sh').read_text();newest=s[s.index('newest()'):s.index('mkdir -p /tmp')]
+s=(H/'runtime/jb.sh').read_text();newest=s[s.index('newest()'):s.index('# BEGIN directory preflight')]
 suffix=s[s.index('( [[ -f $RS/binding.json ]'):]
 wrapper=f'''#!/bin/bash
 set -uo pipefail

@@ -7,10 +7,24 @@ def emit(name,value):(L/name).write_text(json.dumps(value,indent=2)+'\n')
 tree=read('work/build6/proofs/suite_tree/results.json');base=read('work/build6/proofs/suite_base/results.json')
 assert tree['complete'] and base['complete']
 comparison=read('work/build6/SUITE_COMPARISON.json');coverage=read('work/build6/CHANGED_COVERAGE.json')
+substitution=read('work/build6/LEGACY_SUBSTITUTION.json')
+permissions={r['test']:r for r in read('work/build6/LEGACY_PERMISSION.json')}
+assert substitution['verified']
+assert all(hashlib.sha256((L/r['source']).read_bytes()).hexdigest()==r['source_sha256'] for r in substitution['sources'])
+def explained_cause(row):
+ if row['test']==substitution['test'] and row['cause']=='unclassified: AssertionError: False is not true':
+  return 'legacy substitution expectation contradicts the native no-substitution guard'
+ if row['test'] in permissions and row['cause']=='unclassified: PermissionError: [Errno 1] Operation not permitted':
+  proof=permissions[row['test']]
+  assert proof['tree_error']==row['tree_error'] and proof['base_error']==row['base_error'],'Refresh the permission explanation against final receipts'
+  if proof['socket_constructor_in_both']:return 'sandbox refuses the legacy socket-construction fixture'
+ return row['cause']
+explained_counts=dict(collections.Counter(explained_cause(r) for r in comparison['failures'] if r['preexisting']))
 legacy_lines=['# Pre-existing legacy failures','','Each listed test also fails in the untouched base. The basis records either a matching failure cause or a source-authenticated refusal preserved from Build 5. Both tracebacks and prior refusal evidence are retained in `work/build6/SUITE_COMPARISON.json`; guard hashes are in `work/build6/LEGACY_GUARDS.json`.','',
               '| Test | Cause | Basis |','|---|---|---|']
-legacy_lines.extend('| `'+r['test'].replace('|','\\|')+'` | '+r['cause'].replace('|','\\|')+' | '+r['basis']+' |'
+legacy_lines.extend('| `'+r['test'].replace('|','\\|')+'` | '+explained_cause(r).replace('|','\\|')+' | '+r['basis']+' |'
                     for r in comparison['failures'] if r['preexisting'])
+legacy_lines += ['', 'The substitution and socket explanations are authenticated by `work/build6/LEGACY_SUBSTITUTION.json` and `work/build6/LEGACY_PERMISSION.json`. They explain the retained errors without changing suite outcomes or comparison rules.']
 (B/'PREEXISTING_FAILURES.md').write_text('\n'.join(legacy_lines)+'\n')
 packet=read('work/build6/proofs/packet/results.json');pc=collections.Counter(r['outcome'] for r in packet.values())
 r2=read('work/build6/proofs/suite_tree/r2/results.json')
@@ -36,7 +50,8 @@ for variant in ('tree','base'):
  source='work/build6/proofs/suite_'+variant+'/temporary_sizes.json';sizes=read(source)
  boundaries=[{**r,'bytes':max(r['before_bytes'],r['after_bytes'])} for r in sizes]
  temporary.append(dict(variant=variant,source=source,maximum=max(boundaries,key=lambda r:r['bytes']),over_cap=[r for r in boundaries if r['bytes']>200_000_000]))
-emit('work/build6/REPORT_DETAILS.json',dict(temporary_sizes=temporary,preexisting_causes=comparison['preexisting_causes']))
+emit('work/build6/REPORT_DETAILS.json',dict(temporary_sizes=temporary,preexisting_causes=explained_counts,
+     explanation_sources=['work/build6/SUITE_COMPARISON.json','work/build6/LEGACY_SUBSTITUTION.json','work/build6/LEGACY_PERMISSION.json']))
 parity=read('work/build6/proofs/rows/PARITY.json');units=read('work/build6/proofs/rows/UNITS.json');delivery=read('work/build6/DELIVERY.json');kits=read('work/build6/kits/RESULTS.json');integration=read('work/build6/INTEGRATION_CHECK.json');audit=read('work/build6/STATIC_AUDIT.json')
 gate_fix=read('work/build6/GATE_IDENTITY_FIX.json')
 qualified=(len(packet)==202 and pc['passed']==202 and pc['failed']==0
@@ -57,8 +72,10 @@ lines=['# Build 6 report','', '**'+('CPU checks qualified; production remains bl
  'The package wrapper ran from an empty directory (`work/build6/proofs/package/INVOCATION.json`). The extension preserves the prior temporary cap and guards. Harness changes are recorded as diffs under `work/build6/`; test-input changes are in `work/build6/TEST_INPUT_ADAPTATIONS.json` and `work/build6/TEST_ADAPTATIONS.diff`.','',
  'The packet assertions are unchanged. Paths point to the integrated tree, the supplied base and fixed proof outputs; supplied supporting fixtures retain their hashes. The runner substitutes stdlib code-fingerprinted monitoring for tracing, writes subprocess snippets to files, and applies the existing temporary cap. Sources: `work/build6/PACKET_PATH_ADAPTATIONS.diff`, `work/build6/PACKET_MONITOR.diff`, `work/build6/PACKET_INPUTS.json`.','',
  '| Pre-existing cause | Events |', '|---|---:|']
-lines.extend('| '+cause.replace('|','/')+' | '+str(n)+' |' for cause,n in comparison['preexisting_causes'].items())
+lines.extend('| '+cause.replace('|','/')+' | '+str(n)+' |' for cause,n in explained_counts.items())
 lines+=['','Every pre-existing test is named with its cause and classification basis in `work/build6/PREEXISTING_FAILURES.md`. Source for every cause/count: `work/build6/SUITE_COMPARISON.json`, including both base and tree tracebacks. Existing unsupported-reader refusals also match the Build-5 receipts and authenticated guard sources (`work/build6/LEGACY_GUARDS.json`); their different base causes remain visible. Multiple errors from one test are retained individually.','',
+ 'The legacy first-batch fixture expects substitution after a deliberately failing row. Both native implementations refuse the row immediately, so its finite-result assertion fails. The guard and fixture have identical ASTs in tree and base (`work/build6/LEGACY_SUBSTITUTION.json`). This explains the stale substitution expectation without inferring an unrecorded model-forward error.','',
+ 'The previously unnamed permission failures occur in socket constructors in both tree and base. Their exact tracebacks are in `work/build6/LEGACY_PERMISSION.json`; the explained cause counts and their source paths are in `work/build6/REPORT_DETAILS.json`.','',
  '| Temporary measurement | Maximum bytes | Over-cap boundary events | Source |','|---|---:|---:|---|']
 lines.extend(f"| {r['variant']} | {r['maximum']['bytes']} | {len(r['over_cap'])} | `{r['source']}` |" for r in temporary)
 lines+=['','Legacy teacher fixtures that exceed the cap remain failures; the cap was not raised. Measurements above the cap do not establish continuous storage compliance. Exact tests are in `work/build6/REPORT_DETAILS.json`.','',

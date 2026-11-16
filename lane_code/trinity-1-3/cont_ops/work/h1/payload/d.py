@@ -42,6 +42,67 @@ def enc(v): return json.dumps(v, sort_keys=True, separators=(',', ':'), allow_na
 def digest(v): return hashlib.sha256(enc(v).encode()).hexdigest()
 def sha(p): return hashlib.sha256(Path(p).read_bytes()).hexdigest()
 def write(p, v): Path(p).write_text(enc(v) + '\n')
+"""Mode-preserving writes confined to one derived output tree."""
+from contextlib import contextmanager
+import stat
+from pathlib import Path
+
+
+def mode_inventory(root):
+    root = Path(root)
+    return {str(p.relative_to(root)): stat.S_IMODE(p.stat().st_mode)
+            for p in [root, *sorted(root.rglob('*'))]}
+
+
+class SealedOutput:
+    def __init__(self, root, file_mode=0o400):
+        root = Path(root).absolute()
+        if root != root.resolve(strict=True): refuse('symlink in output root')
+        self.root = root
+        self.file_mode = file_mode
+
+    def checked(self, path):
+        path = Path(path).absolute()
+        if (path != self.root and self.root not in path.parents) or '..' in path.parts:
+            refuse('write outside output directory')
+        for p in [path, *path.parents]:
+            if p.is_symlink(): refuse('symlink in output write')
+            if p == self.root: break
+        if path.is_file() and path.stat().st_nlink != 1:
+            refuse('linked output file')
+        return path
+
+    @contextmanager
+    def writable(self, path, mode=None):
+        path = self.checked(path)
+        if path == self.root: refuse('write must name an output member')
+        parent = path.parent
+        parent_mode = stat.S_IMODE(parent.stat().st_mode)
+        final_mode = stat.S_IMODE(path.stat().st_mode) if path.exists() else (
+            self.file_mode if mode is None else mode)
+        try:
+            parent.chmod(parent_mode | stat.S_IWUSR)
+            if path.exists(): path.chmod(final_mode | stat.S_IWUSR)
+            yield path
+        finally:
+            try:
+                if path.exists(): path.chmod(final_mode)
+            finally:
+                parent.chmod(parent_mode)
+
+    def text(self, path, text, mode=None):
+        with self.writable(path, mode) as p: p.write_text(text)
+
+    def write(self, path, value, mode=None):
+        self.text(path, enc(value) + '\n', mode)
+
+    def copy(self, source, path, mode=None):
+        with self.writable(path, mode) as p: shutil.copyfile(source, p)
+
+    def mkdir(self, path, mode):
+        with self.writable(path, mode) as p: p.mkdir(mode=mode | stat.S_IWUSR)
+
+
 def identity(cfg):  # b/i.py identity, same logic
     value = {k: v for k, v in cfg.items() if k not in ('preparation', 'admission', 'authorization', 'milestone_gate')}
     if 'readout' in value:
@@ -368,7 +429,7 @@ def validate_h1(over):
     oc = over.get('config', {})
     new = set(oc) & {'h1', 'milestones', 'recipe', 'scheduled_sampling'}
     if new and 'code_tree' not in over: refuse('new training settings require code_tree')
-    if 'h1' in oc and enc(oc['h1']) != enc(H1): refuse('only the registered h1 block is admitted')
+    if 'h1' in oc and enc(oc['h1']) != enc(H1): refuse('only the registered settings are admitted')
     if 'milestones' in oc and enc(oc['milestones']) != enc([100, 200]): refuse('only milestones [100, 200] admitted')
     for value in [oc.get('scheduled_sampling', {}), oc.get('recipe', {}).get('scheduled_sampling', {})]:
         if not isinstance(value, dict) or set(value)-set(SAMPLING) or any(enc(value[k]) != enc(SAMPLING[k]) for k in value):
@@ -376,12 +437,13 @@ def validate_h1(over):
     if set(oc.get('recipe', {}))-{'milestones', 'scheduled_sampling'}: refuse('unknown recipe keys')
     if 'milestones' in oc.get('recipe', {}) and oc['recipe']['milestones'] != [100, 200]: refuse('recipe milestones differ')
     if 'code_tree' in over:
+        if '4.json' not in over.get('add_k', {}): refuse('code_tree requires add_k 4.json')
         if new != {'h1', 'milestones', 'recipe', 'scheduled_sampling'} or oc['recipe'] != dict(milestones=[100, 200], scheduled_sampling=SAMPLING) or oc['scheduled_sampling'] != SAMPLING:
             refuse('code_tree requires the complete registered settings')
 
 def code_records(code):
     return {'k/7.json', 'k/s1_record.json', 'k/archive.json', 'k/' + Path(code['archive']['path']).name,
-            'b/r.sh', 'b/h.py', 'b/i.py', 'job.sh'}
+            'b/c.sh', 'b/p0.sh', 'b/r.sh', 'b/h.py', 'b/i.py', 'job.sh'}
 
 def read_override_pin(value):
     if not isinstance(value, dict) or set(value) != {'path', 'sha256'} or not HEX64.fullmatch(str(value['sha256'])):
@@ -389,12 +451,13 @@ def read_override_pin(value):
     if sha(value['path']) != value['sha256']: refuse('code override pin differs')
     return Path(value['path'])
 
-def replace_once(path, before, after):
+def replace_once(fs, path, before, after):
     text = path.read_text()
     if text.count(before) != 1: refuse('fixed runtime patch does not match ' + path.name)
-    path.write_text(text.replace(before, after))
+    fs.text(path, text.replace(before, after))
 
-def install_code(kit, out, over, cfg, cur, launch):
+def install_code(kit, out, over, cfg, cur, launch, fs):
+    if over['run_key'] != '17c4ffa4': refuse('unregistered run')
     value = over['code_tree']
     if not isinstance(value, dict) or set(value)-{'archive', 'pin', 'archive_record'} or not {'archive', 'pin'} <= set(value):
         refuse('unknown or incomplete code_tree keys')
@@ -414,11 +477,11 @@ def install_code(kit, out, over, cfg, cur, launch):
     if order != sorted(order) or members != code['files']: refuse('archive members differ from code pin')
     for key in ('sources', 'operation_sources'):
         if not code[key] or any(members.get(n) != h for n,h in code[key].items()): refuse('source closure differs')
-    if members.get('auth/R0_ROOMS.txt') != H1['r0_rooms']['sha256']: refuse('R0 rooms not sealed in tree')
-    shutil.copyfile(archive, out / 'k' / name); shutil.copyfile(pin, out / 'k/7.json')
+    if members.get('auth/R0_ROOMS.txt') != H1['r0_rooms']['sha256']: refuse('required member is not sealed in tree')
+    fs.copy(archive, out / 'k' / name); fs.copy(pin, out / 'k/7.json')
     record = json.loads((kit / 'k/s1_record.json').read_text())
     record['trees']['trainer'] = dict(commit=code['commit'], file_count=len(members), files=members)
-    write(out / 'k/s1_record.json', record)
+    fs.write(out / 'k/s1_record.json', record)
     cur['record'] = dict(file=KIT_LOGICAL + 's1_record.json', sha256=sha(out / 'k/s1_record.json'))
     cur['trainer'] = dict(file=code['archive']['path'], sha256=code['archive']['sha256'])
     cur['commit'] = code['commit']; cfg['code'] = dict(path=KIT_LOGICAL + '7.json', sha256=sha(out / 'k/7.json'))
@@ -433,22 +496,32 @@ def install_code(kit, out, over, cfg, cur, launch):
         if over.get('status') == 'READY': refuse('READY needs an off-scratch archive attestation')
         rec = dict(schema='s1-source-archive-v1', status='PENDING', durable=False,
                    sha256=sha(archive), tree_sha256=tree, bytes=archive.stat().st_size)
-    write(out / 'k/archive.json', rec)
+    fs.write(out / 'k/archive.json', rec)
     if '4.json' in over.get('add_k', {}):
         auth = json.loads((out / 'k/4.json').read_text())
         if auth.get('source_revision') != code['commit'] or auth.get('config_sha256') != identity(cfg) or auth.get('production_go_granted') is not False or auth.get('wall_seconds') != 46800:
             refuse('new source needs its own conditional authorization')
     # Both paths refer to the same inode through c.sh's NR -> X/runs writable bind.
-    replace_once(out / 'b/r.sh', '    printf \'USR1\\n\' >> "$stop_file"',
+    replace_once(fs, out / 'b/r.sh', '    printf \'USR1\\n\' >> "$stop_file"',
         '    printf \'USR1\\n\' >> "$stop_file"\n'
         '    run_dir=$(/usr/bin/python3 -I -c \'import json,sys; print(json.load(open(sys.argv[1]))["run_directory"])\' "$HX/k/launch.json")\n'
         '    mkdir -p "$run_dir"\n'
         '    printf \'USR1\\n\' >> "$run_dir/stop.${SLURM_JOB_ID:-local}.request"')
-    replace_once(out / 'b/h.py', 'except (FileNotFoundError, ProcessLookupError):',
+    replace_once(fs, out / 'b/h.py', 'except (FileNotFoundError, ProcessLookupError):',
                  'except (FileNotFoundError, ProcessLookupError, PermissionError):')
-    replace_once(out / 'b/i.py', '        except FileNotFoundError: pass',
+    replace_once(fs, out / 'b/i.py', '        except FileNotFoundError: pass',
                  '        except (FileNotFoundError, PermissionError): pass')
-    replace_once(out / 'job.sh', '#SBATCH --time=24:00:00', '#SBATCH --time=13:00:00')
+    replace_once(fs, out / 'job.sh', '#SBATCH --time=24:00:00', '#SBATCH --time=13:00:00')
+    for before, after in [
+        ('S=/tmp/jjyeung/okit_$K/root', 'S=/tmp/jjyeung/a_17c4ffa4/root'),
+        ('NX=/tmp/jjyeung/okit_$K/x_${SLURM_JOB_ID:-local}', 'NX=/tmp/jjyeung/a_17c4ffa4/x_${SLURM_JOB_ID:-local}'),
+        ('NR=${TK_RUNS_DIR:-/tmp/jjyeung/okit_$K/runs}', 'NR=/tmp/jjyeung/a_17c4ffa4/runs')]:
+        replace_once(fs, out / 'b/c.sh', before, after)
+    replace_once(fs, out / 'b/p0.sh', 'export TK_JOBDIR=/tmp/jjyeung/okit_$K/jobs/${SLURM_JOB_ID:?}.preflight',
+                 'export TK_JOBDIR=/tmp/jjyeung/a_17c4ffa4/jobs/${SLURM_JOB_ID:?}.preflight')
+    replace_once(fs, out / 'b/r.sh', 'export TK_JOBDIR=/tmp/jjyeung/okit_$K/jobs/${SLURM_JOB_ID:?}.${1:-x}',
+                 'export TK_JOBDIR=/tmp/jjyeung/a_17c4ffa4/jobs/${SLURM_JOB_ID:?}.${1:-x}')
+
 
 def derive(kit, out, over):
     kit, out = Path(kit), Path(out)
@@ -518,21 +591,29 @@ def derive(kit, out, over):
                 else: cfg[name][k] = copy.deepcopy(v)
     for k, v in over.get('deployment', {}).items(): cur[k] = v
 
-    out.mkdir()
+    # Copy only regular files/directories; never follow a sealed link into another tree.
+    for p in kit.rglob('*'):
+        if p.is_symlink() or not (p.is_file() or p.is_dir()): refuse('unsupported source member')
+    out.mkdir(mode=0o700)
+    fs = SealedOutput(out, stat.S_IMODE((kit / 'k/1.json').stat().st_mode))
+    if 'code_tree' in over and (out.stat().st_mode & 0o777) != 0o700: refuse('directory mode differs')
     shutil.copytree(kit / 'b', out / 'b')
     for name in ('job.sh', 'job8.sh'): shutil.copy2(kit / name, out / name)
-    (out / 'k').mkdir(); (out / 'o').mkdir(); (out / 'runs').mkdir()
+    for name in ('k', 'o', 'runs'):
+        if not changing and not (kit / name).exists(): continue
+        mode = stat.S_IMODE((kit / name).stat().st_mode) if (kit / name).exists() else 0o700
+        fs.mkdir(out / name, mode)
     for p in sorted((kit / 'k').iterdir()):
-        if p.name in ('launch.json', '1.json', '0.json', old_key + '.json'): continue
-        shutil.copy2(p, out / 'k' / p.name)
+        if p.name == old_key + '.json' and changing: continue
+        fs.copy(p, out / 'k' / p.name, stat.S_IMODE(p.stat().st_mode))
     for name, pin in over.get('add_k', {}).items():
         if sha(pin['path']) != pin['sha256']: refuse('add_k pin differs: ' + name)
-        shutil.copyfile(pin['path'], out / 'k' / name)
+        fs.copy(pin['path'], out / 'k' / name)
     if 'review.json' in over.get('add_k', {}):
         cfg['admission'] = dict(path=KIT_LOGICAL + 'review.json', sha256=sha(out / 'k/review.json'))
 
     if 'code_tree' in over:
-        install_code(kit, out, over, cfg, cur, launch)
+        install_code(kit, out, over, cfg, cur, launch, fs)
 
     # Dependency chain: every changed config pin must be staged, and config and deployment must agree.
     staged = staged_files(cur)
@@ -554,14 +635,14 @@ def derive(kit, out, over):
     closure = close(kit, out, cfg, base_cfg, cur, base_cur, over, missing)
 
     key = digest(cfg)[:8]
-    write(out / 'k' / (key + '.json'), cfg)
-    write(out / 'k/1.json', {'0': key})
-    write(out / 'k/0.json', cur)
+    fs.write(out / 'k' / (key + '.json'), cfg, stat.S_IMODE((kit / 'k' / (old_key + '.json')).stat().st_mode))
+    fs.write(out / 'k/1.json', {'0': key})
+    fs.write(out / 'k/0.json', cur)
     code = json.loads((out / 'k/7.json').read_text())
     seal = dict(schema='s1-run-seal-v1', tree_sha256=code['tree_sha256'], config_sha256=identity(cfg), archive=code['archive'])
     launch = copy.deepcopy(launch)
     launch.update(config=dict(file='k/' + key + '.json', sha256=sha(out / 'k' / (key + '.json'))), run_key=run, kit_key=kit_key,
-                  run_directory=f'/tmp/jjyeung/okit_8865619b/runs/{run}', source_seal={**seal, 'sha256': digest(seal)},
+                  run_directory=(f'/tmp/jjyeung/a_{run}/runs/{run}' if 'code_tree' in over else f'/tmp/jjyeung/okit_8865619b/runs/{run}'), source_seal={**seal, 'sha256': digest(seal)},
                   persistent_run_root=root, inherited_streams=copy.deepcopy(cfg['streams']),
                   source_selection=copy.deepcopy(cfg['s1_routing']['selection']))
     if 'in_job_admission' in launch:
@@ -588,14 +669,17 @@ def derive(kit, out, over):
         launch.update(status=status, production_authorized=False)
     if fixture:  # incomplete source: never launchable, whatever changed
         launch.update(status='FIXTURE', production_authorized=False)
-    write(out / 'k/launch.json', launch)
+    fs.write(out / 'k/launch.json', launch)
     inventory = {str(p.relative_to(out)): sha(p) for part in ('b', 'k') for p in sorted((out / part).rglob('*')) if p.is_file()}
     inventory.update({n: sha(out / n) for n in ('job.sh', 'job8.sh')})
     inventory.update({n: v for n, v in src_inventory.items() if n in missing})  # absent payloads stay listed; a later derivation sees them absent
-    (out / 'SHA256SUMS.txt').write_text(''.join(f'{v}  {k}\n' for k, v in sorted(inventory.items())))
+    fs.text(out / 'SHA256SUMS.txt', ''.join(f'{v}  {k}\n' for k, v in sorted(inventory.items())), stat.S_IMODE((kit / 'SHA256SUMS.txt').stat().st_mode))
+    if (kit / 'ANON_OK.json').is_file():
+        fs.copy(kit / 'ANON_OK.json', out / 'ANON_OK.json', stat.S_IMODE((kit / 'ANON_OK.json').stat().st_mode))
     if changing:  # explicit placeholder: a.py refuses until an independent content scan replaces it
-        write(out / 'ANON_OK.json', dict(status='UNREVIEWED', hits=None, manifest_sha256=sha(out / 'SHA256SUMS.txt'), external=[],
+        fs.write(out / 'ANON_OK.json', dict(status='UNREVIEWED', hits=None, manifest_sha256=sha(out / 'SHA256SUMS.txt'), external=[],
                                          scope='integrity-manifest-only; independent-content-scan-not-supplied'))
+    if not changing: out.chmod(stat.S_IMODE(kit.stat().st_mode))
     return dict(config_key=key, config_identity=identity(cfg), run_key=run, kit_key=kit_key, persistent_run_root=root,
                 manifest_sha256=sha(out / 'SHA256SUMS.txt'), launch_status=launch.get('status'), absent_source_files=missing,
                 closure=closure)

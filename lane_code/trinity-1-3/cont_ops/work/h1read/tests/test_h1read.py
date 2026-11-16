@@ -94,6 +94,8 @@ class Binding(unittest.TestCase):
     def test_return_selection_has_opaque_family_raw_journals(self):
         root=folder();f=root/'a7/a0/results/budget_2048/0/items_a0.jsonl';f.parent.mkdir(parents=True);f.write_text('{}\n')
         self.assertIn(str(f.relative_to(root)),A.members(root))
+        (root/'a7/ASSET_CHECK.json').write_text('{}')
+        self.assertIn('a7/ASSET_CHECK.json',A.members(root))
 
 class Assets(unittest.TestCase):
     @classmethod
@@ -167,7 +169,7 @@ class Scores(unittest.TestCase):
     def test_cap_nonanswer_refusal_zero_in_denominator(self):
         t=dict(benchmark='devrows',question_type='object_counting',thinking=True,ground_truth='2',options=[],answer_type='numerical')
         for raw,tokens,finish in [('work</think>\n2',64,'stop'),('work</think>\n2',12,'length'),
-                                 ('work</think>\nI cannot answer',12,'stop'),('',0,'stop'),('2',1,'stop')]:
+                                 ('work</think>\nI cannot answer',12,'stop'),('work</think>\n2, but I cannot determine',12,'stop'),('',0,'stop'),('2',1,'stop')]:
             self.assertEqual(X.score_policy(self.scoring.score_item,t,raw,tokens,64,finish)['score'],0)
     def test_f32_layout_adaptations_are_exactly_five_literals(self):
         pins=X.install_layout(ROOT/'kit/reader/evaluator')

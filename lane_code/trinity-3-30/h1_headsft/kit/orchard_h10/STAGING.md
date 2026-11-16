@@ -3,13 +3,13 @@
 No remote presence was checked. “Yes” below means the template registry recorded the exact asset on 2026-11-13; the job reauthenticates its bytes.
 The registry does not prove that job 170056’s frames, G3T, SAM 3, selector, or the step-544 export remain staged.
 
-Package: `orchard_h10/package`. Plan SHA256: `3e6a162ab7d31f3e451701f51d20bd9c789e80ef164dab35b719fb6289c419dc`.
+Package: `orchard_h10/package`. Plan SHA256: `b6440cf4665a4a7c6f70cbb11b769149df32da9257696966a2e4457152e920a0`.
 The code archive contains tree/, h1eval/, auth/, rows/, the dev-S1 item file, reviewed b04 code, parity_kit dependencies and pinned native metadata. It contains no weights or RGB.
 In-tar 9.json lists every member with size and SHA256; template_pins records the unmodified transport source. TOKENS.json stays on Trinity.
 
 | Input | Expected SHA256 | Bytes | Template registry |
 |---|---|---:|---|
-| code archive | `6b546beff88172ce646bf76d593969f890d61385c95827944d22b35369f7dae8` | 5291535 | new local package |
+| code archive | `4847ad12194edae7f3d573baef4bff8120db89b4495e7e54bcf474d5caf90676` | 5292625 | new local package |
 | step-544 archive | `3ed73aead82cb0bb6468321256ea25e8fdaa5a2963da31062fdf8874bda2d4c7` | 21583032320 | not listed |
 | artifact | `1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef` | 11474 | not listed |
 | heads | `8bb5e1510ee3a5a3959e82f2149c69903e98f46880b8a038bf4b951b8c21de91` | 2763214343 | not listed |

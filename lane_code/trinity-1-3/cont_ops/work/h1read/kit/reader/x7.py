@@ -5,6 +5,7 @@ from functools import lru_cache
 import hashlib
 import importlib
 import json
+import re
 from pathlib import Path
 import shutil
 import sys
@@ -57,7 +58,11 @@ def stage_assets(registration,work):
             raise ValueError('Asset bytes differ')
     if shutil.disk_usage(work).free < 200*1024**3+sum(v['bytes'] for v in registration['frames'].values()):
         raise ValueError('Asset staging would breach the local free-space floor')
-    rows=validate_items([json.loads(l) for l in Path(files['e52a690b.jsonl']['path']).read_text().splitlines()],registration)
+    item_pin=files['e52a690b.jsonl']
+    item_raw=Path(item_pin['path']).read_bytes()
+    if len(item_raw)!=item_pin['bytes'] or hashlib.sha256(item_raw).hexdigest()!=item_pin['sha256']:
+        raise ValueError('Item bytes changed before parsing')
+    rows=validate_items([json.loads(l) for l in item_raw.splitlines()],registration)
     destination=work/'f0';destination.mkdir()
     seen=set()
     with tarfile.open(files['d81f4a26.tar']['path'],'r:') as archive:
@@ -95,7 +100,8 @@ def install_layout(root):
 
 def score_policy(original,task,raw,tokens,cap=16384,finish='stop'):
     result=original(task,raw,tokens,cap=cap,finish=finish)
-    if result['hit_token_cap'] or result['parse_failed'] or not result['response_text'].strip():
+    refused = re.search(r"\b(?:cannot|can't|unable to|insufficient information|not enough information|don't know|do not know|cannot determine)\b", result['response_text'], re.I)
+    if result['hit_token_cap'] or result['parse_failed'] or not result['response_text'].strip() or refused:
         result=dict(result,score=0.0)
     return result
 

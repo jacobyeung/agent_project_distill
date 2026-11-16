@@ -80,7 +80,7 @@ def test_opaque_package_and_worker(tmp_path):
     assert (tmp_path/'metadata/a').stat().st_mode & 0o777==0o700
     cfg=read_config(package)
     assert cfg['order']==list(ORDER)
-    assert cfg['payload_pins']['b/e2e_reader/grounding.py']['sha256'].startswith('47ab8435')
+    assert cfg['payload_pins']['b/e2e_reader/grounding.py']['sha256'].startswith('d9b7e6f3')
 
 
 def test_process_guard(monkeypatch,tmp_path):
@@ -96,7 +96,7 @@ def test_process_guard(monkeypatch,tmp_path):
     assert len(seen)==1
 
 
-def test_reserve_set_and_guards(tmp_path):
+def test_reserve_set_and_guards(tmp_path,monkeypatch):
     from h1eval.items import load_manifest,build_r0dev,manifest,read_contract,encoded
     m=load_manifest(K/'items/r0dev.json');assert m==build_r0dev()
     assert m['name']=='r0dev_f32' and m['development_only']
@@ -111,7 +111,8 @@ def test_reserve_set_and_guards(tmp_path):
         with pytest.raises(ValueError):read_contract(m,arms,modes,types)
     with pytest.raises(ValueError,match='overlap R0'):manifest('devs1_routed',m['items'][:1],K/'items/r0dev.json')
     bad=copy.deepcopy(m);bad['development_only']=False
-    p=tmp_path/'0.json';p.write_bytes(encoded(bad))
+    p=tmp_path/'0.json';original=Path.read_text
+    monkeypatch.setattr(Path,'read_text',lambda self,*a,**kw:encoded(bad).decode() if self==p else original(self,*a,**kw))
     with pytest.raises(ValueError,match='development only'):load_manifest(p)
 
 
@@ -172,3 +173,36 @@ def test_allocation_export_cache(tmp_path,monkeypatch):
     p.write_bytes(b'2')
     assert c.export_hash(root,cache,'1')!=first and len(calls)==2
     c.export_hash(root,cache,'2');assert len(calls)==3
+
+
+def test_reserve_curve_constant(tmp_path,monkeypatch):
+    from h1eval import cli
+    from h1eval.runner import table
+    from h1eval.scorers import accuracy
+    item=dict(question_type='object_counting',question='How many?',answer='2',answer_type='numeric')
+    out=dict(text='</think><answer>2</answer>',finish='eos',calls=[])
+    row=dict(id='a',room_key='a',type='object_counting',arm='own',mode='none',item_set='r0dev_f32',output=out,
+             measurements=dict(M1={'call_rate':0,'false_call_rate':0},M2=accuracy(out,item)))
+    constants={'object_counting':{'dev_mra_f32':62.23376623376623,'dev_mra_f64':60.20779220779221}}
+    assert '0.6223' in table([row],constants)
+    monkeypatch.setattr(cli,'export_hash',lambda *a:'a'*64)
+    manifest=dict(count=1,item_set_sha256='b'*64,constants=constants)
+    c=cli.write_curve(tmp_path,[row],manifest,'unused',dict(lineage='SFT',step=100),32,['own'],[])
+    assert c['no_information_f32']==constants
+    text=cli.curve([tmp_path]);assert '0.6223' in text and 'task_accuracy=1.0000' in text
+
+
+def test_worker_item_copy_is_stable(tmp_path):
+    from orchard_h10.runner import commands,worker_args
+    source=tmp_path/'8.json';source.write_text('{"items":[]}')
+    cfg=dict(package=str(K),output=str(tmp_path/'r'),python='/usr/bin/python3',items=str(source),
+             export='x',binding='x',settings='x',device='cpu')
+    a=commands(cfg,ORDER[0],0,['0','1'],10,20)
+    control=tmp_path/'r/metadata/a';entry_time=(control/'5.py').stat().st_mtime_ns
+    value=json.loads((control/a[-1]).read_text());worker_args(value)
+    dest=control/'0.json';stamp=dest.stat().st_mtime_ns
+    b=commands(cfg,ORDER[0],1,['0','1'],10,20)
+    worker_args(json.loads((control/b[-1]).read_text()))
+    assert dest.stat().st_mtime_ns==stamp and (control/'5.py').stat().st_mtime_ns==entry_time
+    source.write_text('{"items":[1]}')
+    with pytest.raises(ValueError,match='changed'):worker_args(value)

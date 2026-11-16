@@ -1,6 +1,6 @@
 import copy,importlib.util,json,sys
 from pathlib import Path
-H=Path(__file__).resolve().parents[1];D=H.parent/'d0';sys.path.insert(0,str(H/'tools'))
+H=Path(__file__).resolve().parents[1];D=Path('/scratch/jjyeung/orch_n30/review_h1pkt/work/d0');sys.path.insert(0,str(H/'tools'))
 import derive_kit_h1 as dk
 out=H/'evidence/derivation';out.mkdir(exist_ok=False)
 results={}
@@ -16,7 +16,7 @@ assert changed==['k/launch.json'],changed
 actual=json.loads((out/'empty/k/launch.json').read_text());want=json.loads((D/'kitfull/k/launch.json').read_text())
 assert actual==dict(want,status='FIXTURE',production_authorized=False)
 results['empty_fixture']={'changed':changed,'only_fixture_safety_fields':True,'missing':r['absent_source_files']}
-o=json.loads((D/'a2/v5b/over_fx.json').read_text())
+o=json.loads((D/'a2/v5b/over_fx.json').read_text().replace('/scratch/jjyeung/orch_n30/cont_ops/work/d0',str(D)))
 for k,p in o['content'].items():
  if not Path(p).is_absolute():o['content'][k]=str(D/'a2'/p)
 r=dk.derive(D/'kitfull',out/'d0',o)

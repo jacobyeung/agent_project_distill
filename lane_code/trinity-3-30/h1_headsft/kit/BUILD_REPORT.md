@@ -1081,3 +1081,206 @@ Build-8 directory allocation, and reserves 256 KiB for final metadata and report
 edits. No extra outer transport archive or expanded code tree was written.
 No Git, network, SSH/SCP/rsync, GPU use, process termination, input modification,
 or file-deletion command ran. All writes were inside K.
+
+
+## Build 9
+
+F1–F3 are implemented. The final full CPU suite passed **142 tests**, with one
+permitted skip and no failures, in **197.72 seconds**. Nothing was submitted,
+staged remotely, uploaded, run on a GPU, or repinned to the deferred reader.
+
+### Delivered behavior and files
+
+- `h1eval/h10/merge.py` adds `merge_types()` and `--type-layout`. The entry
+  requires every type/GPU shard, the registered own-arm mode plan, equal
+  bindings and allocation identity, exact shard membership and exact union
+  coverage. It refuses missing shards, duplicate/foreign tuples and changed
+  bindings. The existing single-type entry remains available. Both reviewer
+  and Build-9 tests merge the read-only Build-8 rehearsal into 110 records.
+- `h1eval/scorers.py`, `statistics.py`, `runner.py` and `cli.py` preserve b04's
+  journaled `scores.answer` for M2. Without that field, they use the unchanged
+  benchmark answer scorer. Unserved/error calls never overwrite accuracy.
+  Tables and curves report their separate per-type rates, with total calls as
+  denominator; zero calls produce an undefined rate. No answer is rewritten.
+- `orchard_h10/entry.py`, `runner.py`, `job.py`, `prepare.py`, `operator.py`,
+  `common.py` and `build.py` dispatch through numeric entries/configs. Worker
+  argv is `<python> -B -I 5.py <numeric>.json`; types are indices. Items get
+  numeric private copies. A lock protects shared copies; completed copies and
+  entry files are not rewritten while other workers read them. Public package
+  config contains only opaque identifiers, sizes and hashes. Descriptive pins
+  live in `0.tgz`; input/dispatch data lives in 0700 directories. The extended
+  forbidden list scans all controlled process argv, environments and public
+  package plaintext, including template subprocesses. The template return
+  helper runs from a numeric copy without changing its source bytes.
+- `h1eval/items.py` replaces `items/r0dev.json` with the pinned `r0dev_f32` set:
+  2,169 items, 98 rooms, nine types, 32 frames, development only. Every room is
+  in R0_DEV_ROOMS and covered by the existing training exclusion. Item-source,
+  frames-manifest, room-list and summary hashes are fixed. Counts are 385
+  counting, 293 size, 290 absolute distance, 279 relative distance, 246
+  appearance, 192/194/192 direction, and 98 room size.
+- `h1eval/h10/reserve_frames.py`, `parity_adapter.py` and `launch.py` bind the
+  f32 layout to the reviewed reader and require own baseline reads of all
+  types. The optional sixth package phase requires an authenticated frames
+  archive, verified per-scene manifests/RGB and the time guard. Missing input
+  skips it. Its journals merge separately with `items/r0dev.json`. Reports and
+  curves print b10's pinned f32 constants beside accuracy/MRA on a 0–1 scale.
+- `cli.py` caches the original full export hash under a lock for one allocation.
+  The receipt binds the export path, resolved file paths, device/inode, size,
+  mtime, ctime and allocation ID. Any change forces a full rehash. Private
+  receipts and an export that remains read-only during decoding make reuse
+  safe; archive and artifact checks still run. Tests verify both file-change
+  and allocation-change invalidation. No bulk export was read here.
+- `h1eval/h10/RUN_H10.md` registers separate R0-dev baseline reads beside
+  dev-S1 at H1-1 m100/m200. `OPERATIONS.md`, `STAGING.md`, `OPEN_INPUTS.md`,
+  `INPUT_CATALOG.json`, `inventory.py`, token metadata and the package describe
+  the operator contract and open optional archive. `tests/test_build9.py`
+  covers the new contracts. All six copied reviewer probes live under
+  `tests/review_h10/`, with assertions and a fresh-interpreter pytest gate.
+
+### Conservative choices and test updates
+
+Two source qids each occur twice, but all 2,169 source rows differ. Canonical IDs
+append a source-row digest and retain the original qid; no row is dropped or
+combined. The source registration note says 100 rooms; the supplied f32 rows
+cover 98 admitted rooms, which determine this set's count.
+
+The supplied frame inventory pins per-scene manifest hashes but does not include
+those files. The adapter requires the producer's original `manifest.json`
+bytes and a `frames` list with index, relative path and SHA256. Archive layout
+and that schema remain OPEN for confirmation; incompatible input refuses.
+The CPU optional-phase proof uses stand-in outputs, not missing RGB or weights.
+
+`tests/test_build4.py::test_unserved_call_stays_zero_in_task_accuracy` becomes
+`test_unserved_call_preserves_answer_accuracy`; both correct-answer assertions
+now expect 1.0. `test_cli.py` expects the supplied R0 set to build successfully.
+Build-8 tests and their worker now exercise numeric dispatch, numeric event
+indices, in-tar config and scratch under `LANE_TEST_OUTPUT`. The six reviewer
+scripts retain their substantive checks and run against K; their temporary
+outputs no longer target /dev/shm. The merge probe selects the new type entry.
+
+`tests/build4_plugin.py` optionally compresses completed function-scoped test
+payloads losslessly. Original hashes and paths are recorded in
+`logs/b9/TEMP_COMPRESSION.json` and `test_compression.jsonl`. A `.gz` suffix
+identifies retained compressed output. Shared fixtures are compressed only
+after their module finishes. No file-deletion command ran; the old Build-8
+rehearsal and all outside inputs remain untouched.
+
+### Validation commands and results
+
+All Python commands use `bash cpu.sh`: the requested p1cpu interpreter with
+`-B`, CUDA hidden, a 32 GiB cap, and 16-thread environment limits. Pytest keeps
+its existing reader/build4 plugins, disables its cache and uses new basetemps
+under `tmp/b9`. The final complete command is:
+
+```bash
+LANE_COMPRESS_TEST_OUTPUT=1 LANE_TEST_OUTPUT="$PWD/tmp/b9" PYTHONHASHSEED=17 \
+  bash cpu.sh -m pytest \
+  tests/test_build8.py tests/test_build7.py tests/test_build7_types.py \
+  tests/test_build6.py tests/test_build4.py tests/test_review.py \
+  tests/test_reader_build4.py tests/test_build3_items.py tests/test_h10.py \
+  tests/test_cli.py tests/test_r0.py tests/test_eval.py tests/test_trainer.py \
+  tests/test_stop.py tests/test_rows.py tests/test_own_forward.py \
+  tests/test_build9.py tests/review_h10/ \
+  -q -rs -p no:cacheprovider -p tests.reader_plugin -p tests.build4_plugin \
+  --basetemp="$PWD/tmp/b9/full2" > logs/b9/full2.log 2>&1
+```
+
+| Gate | Result | Retained log |
+|---|---|---|
+| Reviewer probes plus Build 8 | 17 passed | `logs/b9/gate1.log` |
+| Initial Build 9 unit gate | 12 passed, 1 fixture failure: missing commit marker | `logs/b9/b9first.log` |
+| First full suite | 139 passed, 1 skipped, 1 fixture failure: one item/type across two shards | `logs/b9/full1.log` |
+| Corrected optional phase, package/opacity and reviewer gates | 9 passed | `logs/b9/final_gate.log` |
+| Final full suite above | **142 passed, 1 skipped, 0 failed** | `logs/b9/full2.log` |
+
+The permitted skip is `test_build6::test_real_json_loading_until_missing_weights`:
+model.json, receipt.json, artifact.json and RESTORE.json are absent from the
+specified /dev/shm fixture. No replacement was fabricated. One existing
+trainer-test tensor-to-scalar warning remains. The final suite includes missing,
+duplicate, foreign-key, binding and identity refusals; unchanged single-type
+callers; reviewed M2 agreement at 1.0; all six reviewer probes; opaque package
+and process checks; optional skip/run/time-guard proofs; R0 pins/counts/guards;
+constant display; cache invalidation; and strict repin validation.
+
+Package commands used `LANE_TEST_OUTPUT="$PWD/tmp/b9" bash cpu.sh` with:
+
+```text
+-m h1eval.cli items build --sets r0dev
+-m orchard_h10.build --out "$PWD/orchard_h10/package" --refresh
+-m orchard_h10.inventory "$PWD/orchard_h10/package"
+```
+
+`bash -n` passed for cpu.sh, first_batch/real_fixture_batch.sh, BATCH.sh and
+SUBMIT.cmd. Package checks read compressed code in memory; no tree was copied
+or expanded. The code tar expands to 24,618,426 bytes, below its 32 MiB runtime
+admission bound, but no expanded tree was written by this build.
+
+### Package pins and deferred F4
+
+Token: `b01ec87a6f29b`. Code tar: **5,292,320 bytes**.
+
+- Code tar SHA256: `9db85a6b21e0b0c167fe48d2700db9d434a537501fcbefd6a9ff7d9fe52e952c`.
+- Plan SHA256: `a75a22a8c0a6c7809a5366c2f548c27530ca4dd44f44eb7814b3104a452f1ee5`.
+- `orchard_h10/package/PACKAGE.json` SHA256: `76ea96b610fcdc0a3b7f5ca5be99ee09b5c2b4f50a4db77de01971b7b2ff59e4`.
+- Grounding SHA256: `47ab8435f45023a83175d3b580b8d530a8398ed6959694d48807df41742be92d`.
+
+F4 is deferred as instructed. Refresh preserves the reader bytes already in the
+tar and does not import b04's live grounding. After review, create one JSON spec
+with `source` pointing to a directory containing only `e2e_reader/*.py` and
+`sha256` mapping its complete relative inventory to expected full hashes. Run:
+
+```bash
+LANE_TEST_OUTPUT="$PWD/tmp/b9" bash cpu.sh -m orchard_h10.build \
+  --out "$PWD/orchard_h10/package" --refresh --reader-repin "$PWD/<spec>.json"
+```
+
+The option refuses unlisted, missing, symlinked or hash-mismatched files and
+requires the complete pinned reader inventory. A successful repin records every
+old/new hash in BUILD_REPORT and changes the package plan. Rerun the CPU suite,
+inventory and operator admission afterward. No repin was performed here.
+
+### Open inputs and storage
+
+The R0 frames archive hash/size, actual per-scene metadata layout, and every
+unresolved production dependency in OPEN_INPUTS remain open. F4 still needs
+ORCH's reader review and an explicit repin. Real-weight/RGB compatibility and
+GPU timing are unproved. Nothing in this build authorizes submission.
+
+Temporary payloads remained below 20 MB, but the observed allocated-size upper
+bound briefly reached **24,457,216 bytes**, including directory/symlink
+accounting, before lossless compression. This exceeded a 20 MB physical-space
+interpretation of the cap. The final allocation is recorded below; finished
+payloads remain recoverable, and no deletion was used to reduce the footprint.
+The numbered build/test ledger is retained because the user explicitly requested
+it; operator documentation describes only the current contract.
+
+Final measured sizes (`logs/b9/SIZE.json`):
+
+- Code, tests, item files and positive package growth: **2,639,367 bytes**.
+- All kept positive file growth before the size receipt: **2,759,462 bytes**; an additional 8,192-byte metadata reserve covers this receipt and paragraph.
+- `tmp/b9` regular-file payload: **6,133,058 bytes**.
+- `tmp/b9` unique allocated blocks, including directories: **18,018,304 bytes**.
+
+All final measured footprints meet the 3 MB kept-code and 20 MB temporary caps.
+No Git, network, SSH/SCP/rsync, GPU, process termination, outside-K write, or file
+deletion ran. Raw Build-8 inputs and the supplied R0 sources remain unchanged.
+
+The final opaque operator entry loaded the pinned package and refused the local
+Trinity path before staging or Slurm (`logs/b9/operator_local.log`). The CPU
+command was `bash cpu.sh orchard_h10/package/3.py check --gpus 4 --time 01:15:00`
+with `LANE_TEST_OUTPUT="$PWD/tmp/b9"`; its exit 1 is the expected location refusal.
+
+Reader repin hashes (old → new):
+
+- `e2e_reader/__init__.py`: `481d2c8a8b5e38f7a39cc38635a64d97672e8fa1b4520e2c8aa4d13300b9106c` → `481d2c8a8b5e38f7a39cc38635a64d97672e8fa1b4520e2c8aa4d13300b9106c`.
+- `e2e_reader/artifact.py`: `2eea58d48df4bec3613daea57328ef1128eeefe4e6ebf086144d677198725544` → `2eea58d48df4bec3613daea57328ef1128eeefe4e6ebf086144d677198725544`.
+- `e2e_reader/assemble.py`: `04f42cd15d519fd096f050c682fbcd3d9af2e46f1580e08233e7e31c0bd77c45` → `04f42cd15d519fd096f050c682fbcd3d9af2e46f1580e08233e7e31c0bd77c45`.
+- `e2e_reader/callhook.py`: `044caa0f15bc58703bb39d8b9c001a24d2b75d7f89fa8e89158e39a803aa11ae` → `044caa0f15bc58703bb39d8b9c001a24d2b75d7f89fa8e89158e39a803aa11ae`.
+- `e2e_reader/core.py`: `dbbda5b8c2b8ea6577c1bc8f9a15f38eb6b28dd6b5b2d91c6c76e3bbf7abaca6` → `dbbda5b8c2b8ea6577c1bc8f9a15f38eb6b28dd6b5b2d91c6c76e3bbf7abaca6`.
+- `e2e_reader/generate.py`: `4101148f4867c0261369e69295790224b67bfc06f6913101b2ccfe68871f9ad4` → `4101148f4867c0261369e69295790224b67bfc06f6913101b2ccfe68871f9ad4`.
+- `e2e_reader/geometry.py`: `9303922852ba1e9ffd61e121076fbdc8c61dba06b55caa42f272d8e9f3f52684` → `9303922852ba1e9ffd61e121076fbdc8c61dba06b55caa42f272d8e9f3f52684`.
+- `e2e_reader/grounding.py`: `47ab8435f45023a83175d3b580b8d530a8398ed6959694d48807df41742be92d` → `d9b7e6f3a97e7e5afd8de1f08c13e5357e307f60d6fc2d729069efdbac435d98`.
+- `e2e_reader/parity.py`: `44745c02c4fa7ee1a1433cc8bf49c80e8dc55aa20ab88029cd6e0538c4c86d96` → `44745c02c4fa7ee1a1433cc8bf49c80e8dc55aa20ab88029cd6e0538c4c86d96`.
+- `e2e_reader/real.py`: `7726e90f9d871e2303851b991752280cabc59f318899ea38b9a677cd633e49fd` → `7726e90f9d871e2303851b991752280cabc59f318899ea38b9a677cd633e49fd`.
+- `e2e_reader/servers.py`: `3cd2e6db3b0e57a4b2a63a03418e7a06f67b509c2801370b9dd46e2a2818cedf` → `3cd2e6db3b0e57a4b2a63a03418e7a06f67b509c2801370b9dd46e2a2818cedf`.
+- `e2e_reader/stage1.py`: `dc9c918960295c0efbefcd253eb3fb0f3887ed02c1c0cac64da6f5058e8f77ac` → `dc9c918960295c0efbefcd253eb3fb0f3887ed02c1c0cac64da6f5058e8f77ac`.

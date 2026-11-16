@@ -4,7 +4,7 @@ H=Path(__file__).resolve().parents[1];base=H/'evidence/cpu'/sys.argv[1];base.mkd
 kh=base/'kit';run=base/'run';slots=base/'slots'
 for p in [kh/'o',run,slots,base/'tmp']:p.mkdir(parents=True,exist_ok=True)
 (kh/'job.sh').write_text(f'#!/bin/bash\nexec /scratch/jjyeung/envs/p1cpu/bin/python -B {H}/tests/cpu_fallback.py\n')
-s=(H/'runtime/jb.sh').read_text();newest=s[s.index('newest()'):s.index('mkdir -p /tmp')];suffix=s[s.index('( [[ -f $RS/binding.json ]'):]
+s=(H/'runtime/jb.sh').read_text();newest=s[s.index('newest()'):s.index('# BEGIN directory preflight')];suffix=s[s.index('( [[ -f $RS/binding.json ]'):]
 wrapper=f'''#!/bin/bash
 set -uo pipefail
 export TK_JOB_START="$(date +%s)"

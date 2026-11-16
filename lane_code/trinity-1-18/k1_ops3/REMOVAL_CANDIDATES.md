@@ -6,7 +6,7 @@
 - /scratch/jjyeung/k1/run_convert_1 (HALTED convert root, 1.5 GB, k1_ops7)
 - work/own7/convert_test_canary, work/own7/convert_test_canary2, work/own7/canary (dry-run roots, k1_ops7)
 - work/kc_guard_tests (Codex test roots incl. patch4 full tables, k1_ops7)
-## k1_ops8 (2026-11-16T20:50Z); nothing deleted, user or orchestrator decides
+## k1_ops8 (2026-11-16T20:45Z); nothing deleted, user or orchestrator decides
 - /scratch/jjyeung/k1/run_convert_1 (HALTED convert, Output cap; superseded by run_convert_2)
 - work/own7/convert_test_canary, work/own7/convert_test_canary2, work/own7/canary (canary roots)
 - work/kc_guard_tests (large test roots)
