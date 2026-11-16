@@ -1,7 +1,12 @@
-# native_r4 lane STATUS (trinity-1-3) — operator native_r5, updated 2026-11-16T11:08Z
+# native_r4 lane STATUS (trinity-1-3) — operator native_r5, updated 2026-11-16T11:22Z
 Lane folder /scratch/jjyeung/orch_n30/native_r4; events /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/native_r4/. Record /data2/jjyeung/agent_project_data/distill_design/VSTI_NATIVE_CAMERA_READ_STEP544_20261116.md (+ INDEX line). Rules: .../orch_n30/tools/LANE_RULES.md. native_r5 session ends by ~16:20Z (6 h from 10:20Z) or 60% context: RESULT rotate.
 
-## Job (submitted 11:04Z under the conditional GO; RESULT submitted)
+## NOW (11:22Z): job 170209 FAILED in staging; BLOCKER job170209_failed_staging (11:17Z); waiting for ORCH word on a second job
+- Cause: Orchard b.tar had 10,296 hard-link entries (frames/<cache>/_staging/); kit extract (venue.py:30) accepts only files/dirs. Old tar kept as okh7/d9c35d0a/b.tar.hardlinks_06e28d71.
+- New b.tar (`--exclude=_staging`): 2,266,736,640 B, sha 0eadd83e9f859347438ffd3a483147a87d1ae05bc19eba28db4022ef73889664, 10,296 regular files (work/b2/CHECK.json). Push native_r5_upb2 at priority 0, tmux nr5_upb2, log dl/upb2.log, receipt work/streams/native_r5_upb2.RECEIPT.json.
+- After it lands: run work/orchard/q7_packet2.sh (GCS cp b, g2.json, u.py -> r2.json, packet token 8f7817fb16bc218af285dc61 = TOKEN2; no sbatch). On ORCH word: work/orchard/q8_sbatch2.sh (general check, sbatch --nice=200 gpu:1 16 CPU 200G, --time ending 16:30Z). Then RESULT with job id.
+
+## First job 170209 (submitted 11:04Z, FAILED 11:10Z in staging; return okh7/n2r/ece5eea1c1ec94e169abf835)
 - Orchard job 170209, name a15_cot_apece5eea1c1ec94e169abf835, general, 1 GPU, cpu 16, mem 200G (= job 170056), time 07:00:00, nice 200, internal deadline 16:15Z (kill 16:05Z, return reserve 600 s). Code V1c c.tar dc40cf60 (CONFIRMED_dc40cf60.md). sbatch line: `sbatch --nice=200 --gres=gpu:1 --ntasks=1 --nodes=1 --cpus-per-task=16 --mem=200G a.sh` (a.sh's own gpu:h100:1 is rejected on Orchard).
 - Packet okh7/d9c35d0a/p/ece5eea1c1ec94e169abf835/ (a.sh 82f0d491, a.json 874da946); r.json, g.json in okh7/d9c35d0a/. Return: okh7/n2r/ece5eea1c1ec94e169abf835 and gs://cmu-gpucloud-jjyeung/q8/n2r/ece5eea1c1ec94e169abf835/. Ledger work/ORCHARD_LEDGER.jsonl.
 - Inputs on Orchard okh7/d9c35d0a/ (sha256 verified 10:58Z, GCS generation): a.tar 795f7255... (1794825294704737), b.tar 06e28d71... (1794826763678301), c.tar dc40cf60... (1794825299420188), d.tar 9a1de860... (1794826765833906), FAMILY.json 3cf68794.

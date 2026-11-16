@@ -97,6 +97,10 @@ def writable(path):
     if not any(p==root or root in p.parents for root in (temp_root,output)):
         raise PermissionError('Build file policy refuses '+str(p))
 def audit(event, args):
+    if (event == 'subprocess.Popen' and compact_tmp.inventory_root
+            and (compact_tmp.inventory_root == str(temp_root) or compact_tmp.inventory_root.startswith(str(temp_root)+'/'))
+            and args[1] == ['/usr/bin/find', compact_tmp.inventory_root, '-type', 'f', '-printf', r'%s\t%p\0']):
+        return
     if reserve_probe and event=='subprocess.Popen' and args[1]==['df','-BG','--output=avail','/scratch']:
         return
     if event in ('os.'+'remove','os.'+'rmdir','shutil.'+'rmtree','os.system','socket.connect','socket.bind','os.fork','os.posix_spawn','subprocess.Popen'):

@@ -71,5 +71,5 @@ units=dict(source='work/rows_slices/slices_final/a0_units.jsonl',count_source='w
 (P/'UNITS.json').write_text(json.dumps(units,indent=2)+'\n')
 (P/'RESULTS.json').write_text(json.dumps(dict(families=result,grammar_sha256=G.SHARED_SHA256,
   boundary='Real packed-row reader and renderer plus grammar. No RGB, full scene intake or native model reader was run here.',
-  build5_byte_parity='Unverified: build5 report explicitly says historical real-row proofs were not rerun; copied original output receipts are absent.'),indent=2)+'\n')
+  build5_byte_parity='See PARITY.json: packed-output hashes match the authenticated build5 tree copy. Historical full-intake output receipts are absent.'),indent=2)+'\n')
 print(json.dumps(dict(families=result,units=units))[:4500])

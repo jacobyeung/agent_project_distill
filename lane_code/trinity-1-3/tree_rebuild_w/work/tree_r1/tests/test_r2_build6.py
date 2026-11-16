@@ -89,7 +89,7 @@ class Build6(unittest.TestCase):
             row=fixture(root,qid=unit);question='What is the room size in '+asked+'?' if unit=='ft2' else 'How wide is the sofa in inches?'
             row.update(question_type=kind,question=question,answer_unit=unit,answer='12')
             row['student_input']['question']=question
-            row['target']='<think>\nLocate: the sofa is seen in frame 2.\nRelate: the sofa is next to the wall.\n</think>\n\n12'
+            row['target']='<think>\nLocate: the stove is seen in frame 17.\nLocate: the sofa is seen in frame 2.\nRelate: the stove is to the right of the sofa.\n</think>\n\n12'
             C.validate(row,'vqa')
             self.assertNotIn('compute',row['target'])
             if unit=='ft2':
