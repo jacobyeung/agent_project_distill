@@ -1,0 +1,567 @@
+--- /dev/null
++++ b/finalize_k1.py
+@@ -0,0 +1,384 @@
++"""Finalize K1 from pinned receipts; write a new file, never replace a manifest.
++
++Run with the local sam3_capretry_native_v1 Python environment and -B.
++Timing uses imported student_pilot.s1_routing.Frames.resolve and
++student_pilot.trace_targets.patch_times. Neither function decodes source media.
++The separate receipt gate controls the two staging flags; null ARKit timing
++does not invalidate a passing frame receipt. Native phase checks remain separate.
++"""
++
++import argparse
++import copy
++import hashlib
++import importlib.util
++import json
++import os
++from pathlib import Path
++import sys
++
++sys.dont_write_bytecode = True
++BASE = Path('/scratch/jjyeung/orch_n30/k1_ops3/work')
++OUTPUT_ROOT = BASE / 'codex_finalize_v2'
++SOURCE_ROOT = Path('/scratch/jjyeung/orch_cd/k1_ops/work')
++TREE = Path('/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872')
++KIT = Path('/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a')
++MANIFEST_SHA = 'ada4797e0abc2e4a67d18788dbdd6b12be3c79b2d068d2e75f54bf70b87281d6'
++RATES_SHA = '36ae882f936ebc7a7d1a7651b5c53056c07d39ff552b2368a5c1e8068568d422'
++TIMING_KEYS = ('fps', 'timestamps', 'total_num_frames')
++GROUPS = {'scannet': 'd1', 'scannetpp': 'd2', 'arkitscenes': 'd3'}
++PATHS = {
++    'verify_mp4': BASE / 'T2.log',
++    'wd': BASE / 'WD_OUT.jsonl',
++    'wa': BASE / 'WA_OUT.jsonl',
++    'parity': BASE / 'PARITY_FINAL.json',
++    'substitutions': BASE / 'SUBSTITUTIONS_k6_replica.jsonl',
++    'accept': BASE / 'ACCEPT_MANIFEST.json',
++    'tokens': SOURCE_ROOT / 'CANON_TOKENS.jsonl',
++    'd12': SOURCE_ROOT / 'D12_MP4S.json',
++    'frame_rates': BASE / 'kit07ca49df/k/frame_rates.json',
++}
++
++
++def require(condition, message):
++    if not condition:
++        raise ValueError(message)
++
++
++def sha_bytes(raw):
++    return hashlib.sha256(raw).hexdigest()
++
++
++def load_module(name, path):
++    spec = importlib.util.spec_from_file_location(name, path)
++    module = importlib.util.module_from_spec(spec)
++    spec.loader.exec_module(module)
++    return module
++
++
++def reader_functions():
++    if str(TREE) not in sys.path:
++        sys.path.insert(0, str(TREE))
++    from student_pilot.s1_routing import Frames
++    from student_pilot.trace_targets import patch_times
++    require(Path(inspect_file(Frames)).resolve() == TREE / 'student_pilot/s1_routing.py',
++            'Reader imported from the wrong tree')
++    return Frames, patch_times
++
++
++def inspect_file(value):
++    import inspect
++    return inspect.getfile(value)
++
++
++def load_bundle():
++    """Hash precisely the bytes parsed, so each receipt pin identifies its evidence."""
++    manifest_path = BASE / 'K1_MANIFEST.staged.json'
++    raw = manifest_path.read_bytes()
++    require(sha_bytes(raw) == MANIFEST_SHA, 'Staged manifest SHA256 mismatch')
++    bundle = {'manifest': json.loads(raw), 'sources': {}, 'data': {}}
++    bundle['input'] = {'path': str(manifest_path), 'sha256': sha_bytes(raw)}
++    for name, path in PATHS.items():
++        pin = {'path': str(path), 'sha256': None}
++        bundle['sources'][name] = pin
++        try:
++            raw = path.read_bytes()
++            pin['sha256'] = sha_bytes(raw)
++            if name == 'verify_mp4':
++                value = raw.decode()
++            elif path.suffix == '.jsonl':
++                value = [json.loads(line) for line in raw.splitlines() if line.strip()]
++            else:
++                value = json.loads(raw)
++            bundle['data'][name] = value
++        except (OSError, ValueError, UnicodeError) as error:
++            pin['error'] = str(error)
++    return bundle
++
++
++def first_tokens(rows):
++    tokens = {}
++    for row in rows:
++        tokens.setdefault(row['canonical'], row['s'])
++    return tokens
++
++
++def unique_rows(rows):
++    result = {}
++    for row in rows:
++        require(row['s'] not in result, 'Duplicate token: ' + row['s'])
++        result[row['s']] = row
++    return result
++
++
++def verify_receipts(manifest, data, sources, tokens):
++    """Return all receipt failures; one failure keeps both flags false."""
++    checks = {}
++    parity_module = load_module('k1_finalize_manifest_digest', KIT / 'work/manifest_k1a.py')
++
++    def check(name, function):
++        record = dict(sources[name])
++        try:
++            require(name in data, record.get('error', 'Receipt could not be read'))
++            detail = function(data[name])
++            record.update(passed=True, details=detail)
++        except (ValueError, KeyError, TypeError, IndexError, AttributeError) as error:
++            record.update(passed=False, reason=str(error))
++        checks[name] = record
++
++    def mp4(log):
++        summaries = []
++        for line in log.splitlines():
++            try:
++                row = json.loads(line)
++            except ValueError:
++                continue
++            if isinstance(row, dict) and 'checked' in row:
++                summaries.append(row)
++        require(summaries and all(row == {'checked': 138, 'bad': []} for row in summaries),
++                'Missing or conflicting verify_mp4 summary')
++        return summaries[-1]
++
++    def decoded(rows, arkit, count):
++        indexed = unique_rows(rows)
++        expected = {tokens[c['canonical']] for c in manifest['captures']
++                    if c['canonical'].startswith('arkitscenes/') == arkit}
++        require(len(rows) == count and len(expected) == count and set(indexed) == expected,
++                'Receipt token coverage differs from selected captures')
++        require(all(not r.get('error') and not r.get('errors') and r.get('misses') == []
++                    for r in rows), 'Receipt contains errors or misses')
++        return {'tokens': len(indexed), 'errors': 0, 'misses': 0}
++
++    def parity(value):
++        require(value.get('pass_') is True and value.get('n_failures') == 0
++                and value.get('pinned_checked') == 14304 and value.get('new_frames') == 4896
++                and value.get('failures') == [], 'Frame parity counts or verdict failed')
++        digest = parity_module.digest(value)
++        require(manifest.get('k1a_frame_parity') == {
++            'sha256': digest, 'pinned_checked': 14304, 'new_frames': 4896},
++            'Parity JSON digest differs from manifest k1a_frame_parity')
++        frames = {c['canonical']: {f['index']: f['sha256'] for f in c['dense_frames']}
++                  for c in manifest['captures']}
++        require(set(value['new']) <= set(frames), 'Parity names an unselected capture')
++        require(sum(len(v) for v in value['new'].values()) == 4896,
++                'Parity new-frame list count differs')
++        for canonical, rows in value['new'].items():
++            require(len({r['index'] for r in rows}) == len(rows)
++                    and all(frames[canonical][r['index']] == r['sha256'] for r in rows),
++                    'Parity new-frame pins differ from manifest')
++        return {'json_sha256': digest, 'pinned_checked': 14304, 'new_frames': 4896}
++
++    def substitutions(rows):
++        indexed = unique_rows(rows)
++        frames = {tokens[c['canonical']]: {f['index']: f['sha256'] for f in c['dense_frames']}
++                  for c in manifest['captures']}
++        count = 0
++        for token, row in indexed.items():
++            require(row.get('substitution') == 'k6_replica_pinned_png'
++                    and row.get('misses') == [] and not row.get('error'),
++                    'Invalid substitution receipt')
++            replacements = row['frames']
++            require(len({r[0] for r in replacements}) == len(replacements),
++                    'Duplicate substituted ordinal')
++            require(all(frames[token][ordinal] == sha for ordinal, sha in replacements),
++                    'Substitution pin differs from manifest')
++            count += len(replacements)
++        require(count == 2204, 'Expected 2,204 ruled substitutions')
++        return {'tokens': len(indexed), 'substitutions': count}
++
++    def acceptance(value):
++        require(value.get('bad') == [] and value.get('pinned_ok') == 14304
++                and value.get('new_ok') == 4896 and value.get('anchors_ok') == 300,
++                'Manifest acceptance failed')
++        return value
++
++    check('verify_mp4', mp4)
++    check('wd', lambda rows: decoded(rows, False, 138))
++    check('wa', lambda rows: decoded(rows, True, 162))
++    check('parity', parity)
++    check('substitutions', substitutions)
++    check('accept', acceptance)
++    return checks
++
++
++def resolve_timing(capture, token, fps, count, observed_fps, authority=None):
++    """Adapt in-memory pins to the reader's existing resolver state.
++
++    Its constructor reads the full RGB map/plan archives. This adapter supplies
++    the same attributes from the selected manifest and receipts, without reading
++    those archives or changing reader methods. The reader computes timestamps,
++    compares independent FPS authorities, and validates count and frame identity.
++    No dataset-wide FPS fallback is enabled.
++    """
++    Frames, patch_times = reader_functions()
++    group = GROUPS[capture['canonical'].split('/')[0]]
++    inputs = copy.deepcopy(capture['model_row']['student_input'])
++    require(inputs['frame_indices'] == capture['anchor_indices'], 'Anchor indices differ')
++    pins = [capture['dense_frames'][slot] for slot in capture['anchor_slots']]
++    require(inputs['frames'] == [{k: pin[k] for k in ('path', 'sha256')} for pin in pins],
++            'Anchor frame pins differ')
++    resolver = Frames.__new__(Frames)
++    resolver.frames = {(group, token, pin['index']): {k: pin[k] for k in ('path', 'sha256')}
++                       for pin in pins}
++    resolver.plan = {'v': {token: {'g': group, 'raw_n': count}}} if count is not None else {'v': {}}
++    resolver.fps = {} if observed_fps is None else {group + '/' + token: observed_fps}
++    resolver.dataset_fps = {}
++    resolver.authority = authority
++    resolver.pins = {}
++    inputs['fps'] = fps
++    row = {'student_input': inputs,
++           'frames_pending': {'d': group, 's': token, 'i': capture['anchor_indices']}}
++    resolved, provenance = resolver.resolve(row)
++    # Check the actual returned fields through the reader again; patch_times also
++    # enforces strictly increasing ordinals, finite FPS and 32 valid timestamps.
++    row['student_input'] = resolved
++    checked, repeated = resolver.resolve(row)
++    require(checked == resolved and repeated == provenance, 'Reader result changed on validation')
++    patch_times(resolved)
++    return {key: resolved[key] for key in TIMING_KEYS}, provenance
++
++
++def fill_timing(manifest, data, sources, tokens):
++    captures = manifest['captures']
++    for capture in captures:
++        capture['model_row']['student_input'].update(dict.fromkeys(TIMING_KEYS))
++        capture['timing_source'] = 'null'
++    failures = {}
++    validations = {}
++    try:
++        d12, wd = unique_rows(data['d12']), unique_rows(data['wd'])
++    except (KeyError, ValueError, TypeError) as error:
++        d12, wd = {}, {}
++        failures['d12_sources'] = str(error)
++    for capture in captures:
++        canonical = capture['canonical']
++        if canonical.startswith('arkitscenes/'):
++            continue
++        try:
++            token = tokens[canonical]
++            original, decoded = d12[token], wd[token]
++            require(original['canonical'] == canonical
++                    and original['d'] == GROUPS[canonical.split('/')[0]],
++                    'D12 source identity differs')
++            require(type(original['n']) is int and type(decoded['meta_n']) is int
++                    and original['n'] == decoded['meta_n'], 'D12/WD frame counts disagree')
++            require(not decoded.get('error') and decoded.get('misses') == [], 'WD decode failed')
++            timing, proof = resolve_timing(capture, token, original['fps'], original['n'], decoded['fps'])
++            capture['model_row']['student_input'].update(timing)
++            capture['timing_source'] = 'd12_mp4'
++            validations[canonical] = proof
++        except (KeyError, ValueError, TypeError, IndexError) as error:
++            failures[canonical] = str(error)
++
++    arkit = [c for c in captures if c['canonical'].startswith('arkitscenes/')]
++    arkit_report = {'required': 162, 'applied': False, 'missing': [], 'reason': None}
++    candidates = []
++    try:
++        require(len(arkit) == 162, 'ARKit capture count differs')
++        require(sources['frame_rates']['sha256'] == RATES_SHA, 'Sealed frame-rate SHA256 mismatch')
++        rates = data['frame_rates']
++        require(rates.get('schema') == 's1-fps-authority-v1', 'Wrong frame-rate authority schema')
++        keys = {c['canonical']: 'd3/' + tokens[c['canonical']] for c in arkit}
++        arkit_report['missing'] = sorted(c for c, key in keys.items()
++                                         if key not in rates['by_scene']
++                                         or key in rates.get('missing_arkit_scenes', []))
++        arkit_report['covered'] = len(arkit) - len(arkit_report['missing'])
++        require(not arkit_report['missing'],
++                f"Sealed frame-rate authority lacks {len(arkit_report['missing'])} of 162 selected ARKit tokens")
++        for capture in arkit:
++            canonical = capture['canonical']
++            # This authority supplies FPS only. The reader explicitly marks the
++            # ARKit count as an ordinal lower bound when no full count is supplied.
++            timing, proof = resolve_timing(capture, tokens[canonical], rates['by_scene'][keys[canonical]],
++                                           None, None, authority=rates)
++            candidates.append((capture, timing, proof))
++        for capture, timing, proof in candidates:
++            capture['model_row']['student_input'].update(timing)
++            capture['timing_source'] = 'frame_rates_07ca49df'
++            validations[capture['canonical']] = proof
++        arkit_report['applied'] = True
++    except (KeyError, ValueError, TypeError, IndexError, AttributeError) as error:
++        arkit_report['reason'] = str(error)
++    counts = {name: sum(c['timing_source'] == name for c in captures)
++              for name in ('d12_mp4', 'frame_rates_07ca49df', 'null')}
++    return {'source_counts': counts, 'arkit': arkit_report,
++            'failures': failures, 'reader_results': validations,
++            'validation_scope': 'Reader metadata validation; no source-video decode or pixel validation',
++            'reader_functions': ['student_pilot.s1_routing.Frames.resolve',
++                                 'student_pilot.trace_targets.patch_times']}
++
++
++def finalize(bundle):
++    manifest = copy.deepcopy(bundle['manifest'])
++    data, sources = bundle['data'], bundle['sources']
++    tokens = first_tokens(data['tokens'])
++    canonicals = [c['canonical'] for c in manifest['captures']]
++    require(len(canonicals) == len(set(canonicals)) == 300, 'Expected 300 unique captures')
++    require(all(c in tokens for c in canonicals), 'Token map misses selected captures')
++    require(len({tokens[c] for c in canonicals}) == 300, 'Selected tokens are not unique')
++    receipts = verify_receipts(manifest, data, sources, tokens)
++    failed = [name for name, check in receipts.items() if not check['passed']]
++    manifest['production_ready'] = manifest['frame_staging_authorized'] = not failed
++    timing = fill_timing(manifest, data, sources, tokens)
++    reader_pins = {}
++    for name in ('s1_routing.py', 'trace_targets.py'):
++        path = TREE / 'student_pilot' / name
++        reader_pins[name] = {'path': str(path), 'sha256': sha_bytes(path.read_bytes())}
++    manifest['k1_finalize'] = {
++        'schema': 'k1-finalize-v2', 'input': bundle['input'], 'receipts': receipts,
++        'failed': failed, 'sources': copy.deepcopy(sources), 'timing': timing,
++        'reader_pins': reader_pins,
++        'flags_scope': 'Receipt admission only; GPU bindings and native phase checks remain required',
++    }
++    return manifest
++
++
++def check_phases(manifest, phases=('tower_sam', 'own', 'convert', 'all')):
++    """Run real, unmodified kit checks sequentially. This can perform heavy local I/O."""
++    pipeline = load_module('k1_finalize_pipeline', KIT / 'work/k1_pipeline.py')
++    results = {}
++    for phase in phases:
++        try:
++            pipeline.check_manifest(manifest, phase)
++            results[phase] = {'passed': True, 'message': 'PASS'}
++        except Exception as error:
++            results[phase] = {'passed': False, 'exception': type(error).__name__, 'message': str(error)}
++        print(phase + ': ' + results[phase]['message'], flush=True)
++    return results
++
++
++def write_new(path, value):
++    path = Path(path).absolute()
++    require(path.parent.resolve() == OUTPUT_ROOT.resolve(), 'Output must be directly inside codex_finalize_v2')
++    raw = (json.dumps(value, indent=2, allow_nan=False) + '\n').encode()
++    with path.open('xb') as stream:
++        stream.write(raw)
++    return {'path': str(path), 'sha256': sha_bytes(raw)}
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument('--out', type=Path, default=OUTPUT_ROOT / 'K1_MANIFEST.finalized.json')
++    parser.add_argument('--check-only', type=Path, help='Check an existing finalized output without rewriting it')
++    parser.add_argument('--run-phase-checks', action='store_true',
++                        help='Use only after approval for sequential heavy local I/O')
++    parser.add_argument('--checks-out', type=Path, default=OUTPUT_ROOT / 'PHASE_CHECKS.json')
++    parser.add_argument('--phases', nargs='+', choices=('tower_sam', 'own', 'convert', 'all'),
++                        default=['tower_sam', 'own', 'convert', 'all'])
++    args = parser.parse_args()
++    os.environ['CUDA_VISIBLE_DEVICES'] = ''
++    if args.check_only:
++        require(args.run_phase_checks, '--check-only requires --run-phase-checks')
++        require(args.check_only.resolve().parent == OUTPUT_ROOT.resolve(), 'Check only a local finalized output')
++        manifest = json.loads(args.check_only.read_bytes())
++    else:
++        manifest = finalize(load_bundle())
++        print(json.dumps({'output': write_new(args.out, manifest),
++                          'failed': manifest['k1_finalize']['failed'],
++                          'timing_source_counts': manifest['k1_finalize']['timing']['source_counts']}, indent=2))
++    if args.run_phase_checks:
++        results = check_phases(manifest, args.phases)
++        print(json.dumps({'phase_output': write_new(args.checks_out, results)}, indent=2))
++
++
++if __name__ == '__main__':
++    main()
+--- /dev/null
++++ b/test_finalize_k1.py
+@@ -0,0 +1,177 @@
++"""CPU-only tests using the real reader and immutable receipt snapshots in memory."""
++import copy
++from pathlib import Path
++import unittest
++
++import finalize_k1 as k1
++
++
++class FinalizeTests(unittest.TestCase):
++    @classmethod
++    def setUpClass(cls):
++        cls.bundle = k1.load_bundle()
++        cls.tokens = k1.first_tokens(cls.bundle['data']['tokens'])
++        cls.output = k1.finalize(cls.bundle)
++
++    def test_real_receipts_and_timing_counts(self):
++        self.assertTrue(self.output['production_ready'])
++        self.assertTrue(self.output['frame_staging_authorized'])
++        self.assertEqual(self.output['k1_finalize']['failed'], [])
++        self.assertEqual(self.output['k1_finalize']['timing']['source_counts'],
++                         {'d12_mp4': 138, 'frame_rates_07ca49df': 0, 'null': 162})
++        self.assertEqual(self.output['k1_finalize']['timing']['failures'], {})
++        self.assertEqual(len(self.output['k1_finalize']['timing']['arkit']['missing']), 75)
++
++    def test_each_failed_receipt_keeps_both_flags_false(self):
++        mutations = {
++            'verify_mp4': lambda d: d.update(verify_mp4='{"checked": 138, "bad": ["bad"]}'),
++            'wd': lambda d: d['wd'][0].update(error='planted decode error'),
++            'wa': lambda d: d['wa'][0].update(misses=[12]),
++            'parity': lambda d: d['parity'].update(pass_=False),
++            'substitutions': lambda d: d['substitutions'][0].update(frames=[]),
++            'accept': lambda d: d['accept'].update(anchors_ok=299),
++        }
++        for name, mutate in mutations.items():
++            with self.subTest(receipt=name):
++                bundle = copy.deepcopy(self.bundle)
++                mutate(bundle['data'])
++                output = k1.finalize(bundle)
++                self.assertFalse(output['production_ready'])
++                self.assertFalse(output['frame_staging_authorized'])
++                self.assertIn(name, output['k1_finalize']['failed'])
++
++    def test_missing_receipt_fails_closed(self):
++        bundle = copy.deepcopy(self.bundle)
++        bundle['data'].pop('wa')
++        bundle['sources']['wa'].update(sha256=None, error='missing receipt')
++        output = k1.finalize(bundle)
++        self.assertFalse(output['production_ready'])
++        self.assertFalse(output['frame_staging_authorized'])
++        self.assertIn('wa', output['k1_finalize']['failed'])
++
++    def test_duplicate_and_wrong_receipt_tokens_fail(self):
++        for replacement in (self.bundle['data']['wd'][1]['s'], 'unselected_token'):
++            with self.subTest(token=replacement):
++                data = copy.deepcopy(self.bundle['data'])
++                data['wd'][0]['s'] = replacement
++                checks = k1.verify_receipts(self.bundle['manifest'], data,
++                                           self.bundle['sources'], self.tokens)
++                self.assertFalse(checks['wd']['passed'])
++
++    def test_parity_uses_imported_json_digest_not_file_hash(self):
++        receipt = self.output['k1_finalize']['receipts']['parity']
++        self.assertEqual(receipt['details']['json_sha256'],
++                         self.bundle['manifest']['k1a_frame_parity']['sha256'])
++        self.assertNotEqual(receipt['sha256'], receipt['details']['json_sha256'])
++        data = copy.deepcopy(self.bundle['data'])
++        data['parity']['store_bytes'] += 1
++        checks = k1.verify_receipts(self.bundle['manifest'], data,
++                                   self.bundle['sources'], self.tokens)
++        self.assertFalse(checks['parity']['passed'])
++
++    def complete_rates_fixture(self):
++        """Synthetic coverage exists only in memory; never publish these fixtures."""
++        data = copy.deepcopy(self.bundle['data'])
++        data['frame_rates']['missing_arkit_scenes'] = []
++        for canonical, token in self.tokens.items():
++            if canonical.startswith('arkitscenes/'):
++                data['frame_rates']['by_scene']['d3/' + token] = 10.0
++        return data
++
++    def test_missing_one_arkit_token_clears_every_arkit_timing(self):
++        data = self.complete_rates_fixture()
++        manifest = copy.deepcopy(self.output)
++        arkit = [c for c in manifest['captures'] if c['canonical'].startswith('arkitscenes/')]
++        missing = arkit[-1]['canonical']
++        data['frame_rates']['by_scene'].pop('d3/' + self.tokens[missing])
++        # Seed stale non-null fields to verify that an all-or-none refusal clears them.
++        for capture in arkit:
++            capture['model_row']['student_input'].update(fps=10, timestamps=[1]*32, total_num_frames=999)
++        result = k1.fill_timing(manifest, data, self.bundle['sources'], self.tokens)
++        self.assertEqual(result['arkit']['missing'], [missing])
++        for capture in arkit:
++            self.assertEqual(capture['timing_source'], 'null')
++            self.assertTrue(all(capture['model_row']['student_input'][key] is None for key in k1.TIMING_KEYS))
++
++    def test_arkit_reader_refusal_is_atomic(self):
++        data = self.complete_rates_fixture()
++        manifest = copy.deepcopy(self.bundle['manifest'])
++        arkit = [c for c in manifest['captures'] if c['canonical'].startswith('arkitscenes/')]
++        data['frame_rates']['by_scene']['d3/' + self.tokens[arkit[-1]['canonical']]] = 0
++        result = k1.fill_timing(manifest, data, self.bundle['sources'], self.tokens)
++        self.assertFalse(result['arkit']['applied'])
++        self.assertIn('frame rate', result['arkit']['reason'])
++        self.assertTrue(all(c['timing_source'] == 'null' for c in arkit))
++        self.assertTrue(all(c['model_row']['student_input'][key] is None
++                            for c in arkit for key in k1.TIMING_KEYS))
++
++    def test_bad_sealed_hash_clears_arkit_timing(self):
++        manifest = copy.deepcopy(self.bundle['manifest'])
++        sources = copy.deepcopy(self.bundle['sources'])
++        sources['frame_rates']['sha256'] = '0' * 64
++        result = k1.fill_timing(manifest, self.complete_rates_fixture(), sources, self.tokens)
++        self.assertEqual(result['arkit']['reason'], 'Sealed frame-rate SHA256 mismatch')
++        self.assertEqual(result['source_counts']['frame_rates_07ca49df'], 0)
++
++    def test_complete_arkit_authority_uses_reader_and_marks_count_lower_bound(self):
++        manifest = copy.deepcopy(self.bundle['manifest'])
++        result = k1.fill_timing(manifest, self.complete_rates_fixture(),
++                               self.bundle['sources'], self.tokens)
++        self.assertTrue(result['arkit']['applied'])
++        self.assertEqual(result['source_counts']['frame_rates_07ca49df'], 162)
++        for canonical, proof in result['reader_results'].items():
++            self.assertEqual(proof['total_num_frames_lower_bound'], canonical.startswith('arkitscenes/'))
++
++    def test_planted_positive_wrong_fps_fails_reader_authority_check(self):
++        capture = next(c for c in self.bundle['manifest']['captures'] if c['canonical'].startswith('scannet/'))
++        token = self.tokens[capture['canonical']]
++        original = k1.unique_rows(self.bundle['data']['d12'])[token]
++        with self.assertRaisesRegex(ValueError, 'inconsistent with its native scene'):
++            k1.resolve_timing(capture, token, original['fps'] * 2, original['n'], original['fps'])
++
++    def test_planted_output_fps_fails_reader_timestamp_check(self):
++        capture = next(c for c in self.output['captures'] if c['timing_source'] == 'd12_mp4')
++        inputs = copy.deepcopy(capture['model_row']['student_input'])
++        inputs['fps'] *= 2
++        _, patch_times = k1.reader_functions()
++        with self.assertRaisesRegex(ValueError, 'Original timestamps disagree'):
++            patch_times(inputs)
++
++    def test_source_identity_and_count_mismatches_leave_timing_null(self):
++        capture = next(c for c in self.bundle['manifest']['captures'] if c['canonical'].startswith('scannet/'))
++        token = self.tokens[capture['canonical']]
++        for key, value in [('canonical', 'scannet/wrong_scene'), ('n', 1)]:
++            with self.subTest(field=key):
++                data = copy.deepcopy(self.bundle['data'])
++                k1.unique_rows(data['d12'])[token][key] = value
++                manifest = copy.deepcopy(self.bundle['manifest'])
++                result = k1.fill_timing(manifest, data, self.bundle['sources'], self.tokens)
++                self.assertIn(capture['canonical'], result['failures'])
++                changed = next(c for c in manifest['captures'] if c['canonical'] == capture['canonical'])
++                self.assertEqual(changed['timing_source'], 'null')
++
++    def test_first_token_row_wins(self):
++        self.assertEqual(k1.first_tokens([{'canonical': 'x', 's': 'first'},
++                                         {'canonical': 'x', 's': 'second'}]), {'x': 'first'})
++
++    def test_original_manifest_preserved_and_changes_are_bounded(self):
++        self.assertEqual(k1.sha_bytes((k1.BASE / 'K1_MANIFEST.staged.json').read_bytes()), k1.MANIFEST_SHA)
++        restored = copy.deepcopy(self.output)
++        restored.pop('k1_finalize')
++        restored['production_ready'] = self.bundle['manifest']['production_ready']
++        restored['frame_staging_authorized'] = self.bundle['manifest']['frame_staging_authorized']
++        for capture, original in zip(restored['captures'], self.bundle['manifest']['captures']):
++            capture.pop('timing_source')
++            for key in k1.TIMING_KEYS:
++                capture['model_row']['student_input'][key] = original['model_row']['student_input'][key]
++        self.assertEqual(restored, self.bundle['manifest'])
++
++    def test_write_refuses_existing_file_and_outside_directory(self):
++        with self.assertRaises(FileExistsError):
++            k1.write_new(Path(__file__), {})
++        with self.assertRaisesRegex(ValueError, 'inside codex_finalize_v2'):
++            k1.write_new(k1.BASE / 'K1_MANIFEST.staged.json', {})
++
++
++if __name__ == '__main__':
++    unittest.main(verbosity=2)

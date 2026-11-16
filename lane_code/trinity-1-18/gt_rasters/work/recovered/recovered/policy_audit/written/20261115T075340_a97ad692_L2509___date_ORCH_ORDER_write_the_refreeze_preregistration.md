@@ -1,0 +1,10 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=2509 utc=2026-11-15T07:53:40.271Z kind=written original_path=/scratch/jjyeung/orch_cd/policy_audit/inbox/$(date_ORCH_ORDER_write_the_refreeze_preregistration.md heredoc_quoted -->
+# ORCH ORDER: your audit is adopted; now write the pre-registration, before any K1 output exists
+
+Write `out/REFREEZE_PREREGISTRATION_20261115.md` (and a machine-readable `out/REFREEZE_PREREGISTRATION.json`, with the sha256 of both in your RESULT event). It must be complete enough that a later lane can only execute it, not shape it:
+1. Every choice your inventory marks as selected on benchmark items or unknown: the fixed list of candidates, the data it will be decided on (the K1 training captures of `/scratch/jjyeung/orch_cd/b6_build/out/CAPTURES.json` with their 242/58 room split; the held-out development captures; nothing from any benchmark), the metric, the decision rule with its threshold and tie rule, and the default if the data cannot decide.
+2. The route decision for room size and for absolute distance on the step-544 model, stated as a paired comparison with its interval rule, with the items and the answers it needs (say exactly which direct answers of the model must be generated on which captures, how many items that gives per type, and whether that number can decide at the effect sizes seen so far; if it cannot, say what larger eligible set would).
+3. What stays fixed without re-selection because your audit found it clean, with the record that shows it.
+4. The order of work and the single dated freeze, and the statement that no official native read (VSI-Bench, ReVSI, VSTI) runs before the freeze; VSTI camera routes excepted as you found them clean.
+5. How the existing K1 rules file (`b6_build/out/K1_RULES.json`, already hashed) relates to this document: additions only, no change to a registered threshold.
+Do not open any benchmark answer or score while writing it. One RESULT event when both files exist; then your idle window as before.

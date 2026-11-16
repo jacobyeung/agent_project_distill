@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=13095 utc=2026-11-12T13:52:42.795Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd/leg_s1_tree; cut -c1-1500 work/kit_s1_frozen_no_flag_complete/BUILD.json; echo; ls work/tree_s1_nf | head -30; grep -rn "ANON_OK\|UNREVIEWED\|independent-content-scan" work/tree_s1_nf/launch_s1/*.py 2>/dev/null | cut -c1-260 | head -20

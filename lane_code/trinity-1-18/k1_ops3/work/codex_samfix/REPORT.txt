@@ -1,0 +1,117 @@
+The SAM version-counter root cause is confirmed by a CPU reproduction through
+the executing kit's boundary and lazy-load paths. The patch is staged only in
+codex_samfix; the executing kc kit, mirror, and failed run remain unchanged.
+
+Failure mechanism
+
+Capture 1 commits successfully in PROGRESS.jsonl. Capture 2 saves its G3T output
+and then fails in SAM encode at vitdet.py:247, abs_pos[:, :1]. Sam3Tower.encode
+runs _load under torch.inference_mode(), so model construction produces inference
+parameters. GPU.tower offloads SAM and GPU.sam reloads it outside that context.
+PyTorch's Module._apply replaces each Parameter's data on a real device copy.
+This mixes normal tensor data with an inference-created Parameter whose version
+counter remains disabled; the next inference-mode slice raises the observed error.
+
+The reproduction uses the real GPU.tower/GPU.sam methods, Sam3Tower._load,
+encode, and SAM's actual get_abs_pos function. It replaces heavyweight SAM
+construction/assets and the image backbone with a parameterized CPU fixture.
+Its device-move stand-in calls Module._apply with Tensor.to('cpu', copy=True),
+preserving dtype, values and Parameter identity while forcing real data replacement.
+A plain .to('cpu') would be a no-op and would not test this mechanism.
+
+Fix and numerical scope
+
+patched/native_kit/boundaries.py wraps only SAM's CPU offload and device reload
+in torch.inference_mode(). fix.diff is the complete code diff, made with difflib.
+Loading SAM outside inference mode would change its initial tensor lifecycle;
+the two move guards preserve that lifecycle and leave capture 1's path unchanged.
+Both edited branches require an existing SAM model, so neither runs on capture 1.
+Settings, precision, resolution, prompts, SAM vendor code and pipeline are unchanged.
+Fixture parameters, encoded features and detections match capture 1 exactly.
+Real GPU/checkpoint numerical parity was not run and is not claimed.
+
+Other phases and captures
+
+Four capture cycles pass with the fix; independent offload-only and reload-only
+tests fail on the original code and pass with the patch.
+
+G3T: FrozenG3TTower._load and run already use inference_mode. The initial model
+move is inside _load, and GPU.tower creates a new local FrozenG3TTower per capture.
+The boundary's self.model is the own-head model, not this G3T tower. The real G3T
+_load path passes a CPU test with lightweight assets and a forced-copy module.
+
+Own: read_runtime.load_model creates/restores the model outside inference mode;
+GPU.own calls _prepare_decode under no_grad. Ordinary parameters have version
+counters. Four actual GPU.own boundary cycles pass with a normal CPU model and
+stub decoder. The second reader also checked the own model's G3TEncoder lifecycle:
+it constructs/loads under normal mode/no_grad. No matching hazard was found in
+these paths, and the patch leaves their moves alone.
+
+Convert: k1_cli uses a SimpleNamespace boundary for production conversion.
+k1_phases.convert consumes saved arrays and calls no model forward or device move.
+It cannot hit this parameter-slice mechanism through a model move. Its source
+identity checks will reject pre-patch phase receipts, including capture 1.
+The failed root also contains HALTED.json and cannot resume. A future approved
+run needs fresh phase roots/artifacts under the patched source identity.
+
+Tests and receipts
+
+Interpreter: /scratch/jjyeung/envs/sam3_capretry_native_v1/bin/python
+PyTorch: 2.10.0+cu128. CUDA_VISIBLE_DEVICES=''; CUDA remained uninitialized.
+CPU thread counts are capped at one. No network, GPU, Git, SSH, kill or deletion
+was used. Existing guard tests mock subprocess and signal calls.
+
+receipts/regression_original.log: 7 tests, 3 expected errors at the exact SAM
+slice; the other 4 pass. The round-trip test fails on capture 2.
+receipts/regression_patched.log: all 7 tests pass, including four capture cycles,
+capture-1 equality, separate offload/reload tests, and G3T/own controls.
+receipts/test_guards.log: all 7 existing guard tests pass.
+receipts/test_kit.log: the existing end-to-end CPU suite was attempted unchanged
+on scratch_kit, but setUpClass fails before any test runs: ModuleNotFoundError:
+No module named 'scipy', imported by external student_pilot.routed_features.
+This suite remains incomplete. No dependency stubs or network install were used
+to make it pass. An existing compatible SciPy installation/wheel is needed.
+receipts/verify_scratch_sources.log: the actual verify_sources.py verifies 108 files.
+receipts/bundle_validation.json: the final deployment manifest verifies against
+the staged patch plus unchanged source files; all 108 original source hashes match.
+receipts/checks.json records commands and exit codes. Regression result.json
+files retain tensor-move context events and CUDA-initialization status.
+
+Dependency pins and deployment semantics
+
+DEPENDENCIES.json and patched/out/DEPENDENCIES.json are identical deployment
+manifests. All 108 old entries remain. The 93 files under the mirror kit prefix
+now pin /scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/ instead.
+The 15 external dependencies retain their real paths outside the kit; bindings.py
+and the failed run's BINDING.json confirm the external runtime paths used.
+Unchanged files keep their exact old hashes. Only boundaries.py changes:
+old: b9edddf95aa7f3d824568f9f3bb86cb162dc0d5ca1f270e9129e290939634073
+new: 5fbe3ae6ace471c8d8ec532cdde50b0bca4db687b5fc5f7c890c9b6ad44e620c
+receipts/pins.json records every old/new path and hash; dependencies.diff shows
+the manifest changes separately from the code diff.
+
+verify_sources.py reads Path(__file__).resolve().parents[1]/out/DEPENDENCIES.json,
+next to the executing work directory, then hashes the absolute paths in its keys.
+For deployment, patched/native_kit/boundaries.py and patched/out/DEPENDENCIES.json
+belong at those same relative paths in the kc kit. No deployment was performed.
+Installing only the manifest would correctly reject the untouched boundaries.py.
+Putting it in the failed run's output directory would not affect verification.
+
+scratch_kit/out/DEPENDENCIES.json is a separate test manifest whose 93 kit keys
+point at scratch_kit; it verifies the patched test files. Do not deploy that file.
+The user-facing deployment manifest always points at kc, never scratch_kit.
+
+Independent review
+
+SECOND_READER.txt records /root/second_reader's approval of the patch and test
+mechanism, with no blocking code findings. Full existing-suite validation remains
+blocked on SciPy, and no GPU relaunch has been performed.
+
+Reproduction commands (run from codex_samfix; no network or install required):
+  CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/sam3_capretry_native_v1/bin/python -B run_checks.py
+The runner stops on an unexpected result. To run only the existing end-to-end
+suite after providing a compatible local SciPy via PYTHONPATH:
+  CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 /scratch/jjyeung/envs/sam3_capretry_native_v1/bin/python -B run_checks.py --only test_kit
+
+Writing-rule note: references to original/patched code above describe the required
+controlled comparison and deployment state, not abandoned implementation history.

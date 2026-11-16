@@ -1,0 +1,16 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=3808 utc=2026-11-11T15:20:34.845Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; S=/tmp/claude-25409/-scratch-jjyeung-orch-home-distill/71f94277-362e-467c-a4bc-ccc9ae6b87c8/scratchpad
+T=$(date -u +%Y%m%dT%H%MZ); cat > evalx/inbox/${T}_ORCH_ANSWER_think0_ranks.md <<'EOF'
+# ORCH ANSWER to RESULT queue_gaps_1515: yes to both
+1. THINK-0 cache: build it now on trinity-1-18 CPU (frame stage only, floor-uniform 64 on VSI-500 plus dev 858), at low priority so the main project's work on that node is not slowed: `nice -n 19`, at most 8 CPU threads, writes only to local disk, and stop at once if main's orchestrator or I ask. Verify the cache by count and a decode of the first and last item, and write the THINK-0 launch line with the cache path into STATUS.md.
+2. EVALX_RANKS (plan B, shards across nodes when four cards are not free on one node): build it, with a CPU test that the union of shards is exactly the 5,130 items with no duplicate and that the merge refuses a missing shard. Plan A stays the default when four cards are free on 1-18.
+Order at release (READY_QUEUE.md): r15 acceptance, READ-0a sharded, ReVSI t32 and t64, then GEO-1 when lane geo_bakeoff's kit is ready, VSTI 5,736 when eval_gaps' kit is adopted, THINK-0, FRAMES-1 dev.
+EOF
+cp evalx/work/BRIEF_SUCCESSOR7_DRAFT.md evalx/BRIEF_SUCCESSOR7.md
+for p in $(pgrep -u jjyeung -f -- "^timeout .*--prompt-file /scratch/jjyeung/orch_cd/evalx/BRIEF_SUCCESSOR6.md"); do kill -TERM -- -$p 2>/dev/null || kill -TERM $p; done
+for i in 1 2 3 4 5 6 7 8 9 10; do pgrep -u jjyeung -f -- "--prompt-file /scratch/jjyeung/orch_cd/evalx/BRIEF_SUCCESSOR6.md" >/dev/null || break; sleep 1; done
+pgrep -u jjyeung -f -- "--prompt-file /scratch/jjyeung/orch_cd/evalx/BRIEF_SUCCESSOR6.md" >/dev/null && echo "S6 STILL ALIVE" || echo "s6 stopped"
+bash orch_tools/devin_bg_acp.sh /home/jjyeung/agent_project_distill /scratch/jjyeung/orch_cd/evalx/BRIEF_SUCCESSOR7.md claude-opus-5-5-high 86000 /scratch/jjyeung/orch_cd/evalx/devin_s7.out
+sed -i 's#evalx/BRIEF_SUCCESSOR6.md#evalx/BRIEF_SUCCESSOR7.md#' $S/LANES $S/lanewatch.sh; grep -n "evalx" $S/LANES $S/lanewatch.sh | cut -c1-160
+ls -la evalx/out/devin_traces | tail -n 3
+echo "$(date -u +%Y-%m-%dT%H:%MZ) evalx rotated: successor 6 stopped (TERM) after RESULT_ready_for_successor; successor 7 launched from its own draft (BRIEF_SUCCESSOR7.md, ACP recorder, opus high, 86000 s; out devin_s7.out). Answered: build THINK-0 cache on 1-18 CPU (nice 19, <=8 threads) and EVALX_RANKS plan B. VSTI 140-video stream runs in tmux evalx_vsti140 at 5 MB/s. frontier_read PARTIAL table 1519Z (32 f, main's no-tool prompt): ReVSI-999 Argon high 86.7 [84.8, 88.5] on 748/999, Carbon medium 88.2 [84.1, 91.0] on 782/999; VSTI-450 Argon 83.33 FINAL, Carbon 82.0 on 411/450; Gemini 3.1 Pro (main) 62.8 VSI-500 / 65.9 ReVSI / 57.2 VSTI 5,736. The closed models sit about 30 points above the open ReVSI bar (57.5-58.2)." >> ORCH_HANDOFF.md

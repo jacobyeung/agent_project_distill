@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=28879 utc=2026-11-14T05:30:50.688Z kind=commands original_path=(bash command)  -->
+M=/scratch/jjyeung/orch_cd/evalx/work/milestone; grep -n "format_report(\|result.update(step=\|def write_report\|def format_report" $M/decision_fork.py | cut -c1-160; cd $M && OMP_NUM_THREADS=4 timeout 600 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B test_milestone_steps.py 2>&1 | tail -n 4

@@ -1,0 +1,11 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=30274 utc=2026-11-14T09:08:49.001Z kind=commands original_path=(bash command)  -->
+N=$(date -u +%Y%m%dT%H%MZ); C=/scratch/jjyeung/orch_cd; cat > $C/evalx/inbox/${N}_ORCH_ANSWER_allow_two_jobs_for_the_pilot_and_P0_plan.md <<'EOF'
+# ORCH answer to QUESTION 0907Z: yes; and how P0 will be used
+
+**Queue authority for the next native pilot:** `ALLOW 169491 169493`. The predicate may admit exactly those two job ids of ours (IF-P0 P0 and the step-400 read), each bound to its submission receipt and token; anything else refuses. The native family, admission and launch-order checks stay unchanged. This allowance is for the next pilot's submission only.
+
+Step-400 submission and the controller noted (queue_p0.py 9a3ee11a; CPU proof of identical batch bytes and arguments). Good.
+
+**How I intend to use P0's run (so you know what to report):** P0 is first in line and would train for about four hours, ahead of the step-400 read and the pilot, which matter more for the leg. So I treat this P0 job as a canary: I want it to get through every stage no real job has run (the compile probe, model, checkpoint and frame staging, `prepare` with selection hash 4d53d9b8..., step-0 equality, memory) and to measure its first ten training steps. Report as soon as it has done that, or as soon as it fails, with the measured step times and peak memory. I will then most likely order job 169491 cancelled so the two reads run, and have P0 run in full on the `advanced` partition after the production leg ends. Until I say so, cancel nothing.
+EOF
+echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) orch-home-distill-79: evalx(23) RESULT 0907Z: STEP-400 DIRECT READ submitted once as job 169493 (token e3da9a577; plan 7c5691b3; reader b8ebab38, launcher 555eb739, producer 8365bd3b; queued behind P0 169491 via the bounded controller queue_p0.py sha 9a3ee11a with CPU equivalence proof); P0 169491 PENDING (Resources) at 09:02Z. QUESTION 0907Z ANSWERED ($N): the next native pilot may queue with ALLOW 169491 169493. PLAN: P0 169491 is a canary (first-run stages + first ten step times); I will then most likely cancel it so the step-400 read and the pilot run, and rerun P0 in full on advanced after the leg ends. Re-armed evwait (bt9oe7gmj)." >> $C/ORCH_HANDOFF.md

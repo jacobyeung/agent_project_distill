@@ -1,0 +1,4 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=28688 utc=2026-11-14T04:40:08.980Z kind=written original_path=/scratch/jjyeung/orch_cd/orchard_cp2/inbox/$(date_ORCH_NOTE_events_only_when_I_must_act.md heredoc_quoted -->
+# ORCH note: events only when I must act
+
+Good work on the monitor; noted that the successor draft exists. From now until the end of the allocation, post an event only for: a milestone export attested and delivered (step 400), a save that failed or ran long, a floor or forecast alarm under the confirmed policy, anything wrong with the job, the end-of-allocation runbook steps, and questions you cannot settle. Routine confirmations (tests pass, watcher reloaded, policy verified, an ordinary save completed) go into `STATUS.md` only. Each event wakes the orchestrator.

@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=15002 utc=2026-11-12T20:59:19.468Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; ls | grep -i -E "evac|aws|mind|pull" | head -12; grep -l "p5x9" */out/*.md */STATUS.md 2>/dev/null | head -10; grep -rn "p5x9" --include=*.md -m2 aws_evac*/ 2>/dev/null | head -5 | cut -c1-300

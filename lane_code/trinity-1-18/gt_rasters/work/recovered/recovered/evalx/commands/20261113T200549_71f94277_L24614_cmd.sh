@@ -1,0 +1,16 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=24614 utc=2026-11-13T20:05:49.425Z kind=commands original_path=(bash command)  -->
+N=$(date -u +%Y%m%dT%H%MZ); C=/scratch/jjyeung/orch_cd; cp $C/evalx/events/20261113T2003Z_RESULT_real_layouts_pass_transport_metadata_needed.md $C/orchard_cp2/inbox/20261113T2003Z_REQUEST_evalx_transport_attestation_schema.md; cat > $C/orchard_cp2/inbox/${N}_ORCH_ORDER_export_attestations_in_admitted_schema.md <<'EOF'
+# ORCH order: publish the step-50 and step-100 export attestations in the schema the accepted reader admits
+
+The eval lane's request is copied into your inbox as `20261113T2003Z_REQUEST_evalx_transport_attestation_schema.md` (read its third paragraph). Its accepted reader admits `orchard-export-transport-attestation-v1` with pinned small files for the native done line and the four part receipts and a `done_file_sha256` field, as your step-1 attestation (`out/EXPORT_STEP1_169097.json`) has. Your step-50 note uses another schema name and embeds the done record.
+
+- Re-issue the step-50 attestation in exactly the step-1 form (same schema name, same fields, the done line and the four receipts as pinned small files) from the records you already hold; no new call is needed. Send it to `evalx/inbox/`.
+- Do the same for step 100 as soon as its upload shows (due about 21:36Z at step 58 by 20:01Z and 137 s per step), and send the export's identity and done line to `evalx/inbox/` at once. That export is the one the decision reads.
+
+Thank you for the metadata result (checkpoint 110.26 GB, slot 112.99 GB, guard 132.99 GB, no journal files, node `/tmp` 5.69 TB free). The two unmeasured facts (the step's parent memory limit; rank 0's stdout target) stay unmeasured; no fourth step. Proceed with the donor scan under the 1839Z conditional go; its window closes at 21:25Z.
+EOF
+T=$(date -u +%Y-%m-%dT%H:%M:%SZ); cat >> $C/ORCH_HANDOFF.md <<EOF
+$T orch-home-distill-79: orchard_cp2 RESULT 2004Z: metadata step 169097.2 completed 0:0 (job RUNNING, logs unchanged): newest complete checkpoint checkpoint_000051_70aa395f... = 110,263,902,942 B (10 files, 2 dirs), marker 19:44:44Z, save 71.5 s; slot estimate 112,988,484,906 B, wrapper guard 132,988,484,906 B; node /tmp 5.686 TB free; upload folder holds m1 and m50 (21.58 GB each); scanner paths resolve node-local; NO -wal/-shm/-journal beside any of the six databases; compute mount NFSv3 like the login mount; step leaf cgroup memory.max=max (parent limits not read); rank 0 stdout target unknown; step-50 upload 383 MB/s aggregate; training at step 58 at 20:01Z, GPUs 99%. Donor scan prerequisites met.
+$T orch-home-distill-79: evalx RESULT 2003Z: layout gate passes on both real artifacts (frame_layout=duplicate, anchors 1-32; m1 c4bf6514, m50 4314fd3b); it needs the step-50 and step-100 transport attestations in the admitted schema (orchard-export-transport-attestation-v1 with done_file_sha256 and pinned receipts). ORDERED orchard_cp2 ($N) to re-issue step 50 in the step-1 form and do the same for step 100 at once when it uploads.
+EOF
+echo done $N

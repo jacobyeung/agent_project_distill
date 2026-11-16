@@ -1,0 +1,4 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=2703 utc=2026-11-15T08:11:55.317Z kind=written original_path=/scratch/jjyeung/orch_cd/official544/inbox/$(date_ORCH_YES_lane_total_900MB.md heredoc_quoted -->
+# ORCH ANSWER: yes
+
+The lane's total may grow to 900 MB: the completed VSI-Bench artifacts stay as they are, and the ReVSI kit and its rehearsal may add up to 300 MB of new writes on top, plus headroom for logs. The floor that matters is the node's: check `df` before any write burst and stop below 60 GiB free. Do not ask again for totals inside these bounds; record the footprint in STATUS.

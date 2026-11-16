@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=2412 utc=2026-11-11T13:43:24.353Z kind=commands original_path=(bash command)  -->
+R=/scratch/jjyeung/orch_cd/codex_local/agent/scratch/codex_runs; d=$(ls -t $R | grep vla_schema_check | head -1); wc -lc $R/$d/final_message.md; cut -c1-750 $R/$d/final_message.md | head -n 34; cp $R/$d/final_message.md /scratch/jjyeung/orch_cd/vla_design_review/SCHEMA_CHECK_VERDICT.md

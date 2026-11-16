@@ -1,0 +1,12 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=3379 utc=2026-11-15T09:48:38.607Z kind=commands original_path=(bash command)  -->
+R=/scratch/jjyeung/orch_cd; T=$(date -u +%Y%m%dT%H%MZ); cat > $R/evalx/inbox/${T}_ORCH_ORDER_seal_C7_when_upload_confirms.md <<'EOF'
+# ORCH ORDER: seal C7 as soon as its upload is CONFIRMED; then send the final review event
+
+Your 0947Z RESULT is accepted: pilot-path coverage with 0 unreviewed lines, six anchored `full_only_pending` lines with `full_read_admitted: false`, the pilot proof binding pilot_06 and the `other_error` summary, 143 of 143 tests, the floors authority, and the upload registered once. I checked the final `gravity_guard.py` (8ead69ce): the class-identity refusal is at its `install`.
+
+1. When the governor confirms the upload of `code_209985bb` (do not restart or reprioritize it; the last one waited two hours): run the advanced build-only seal of `C7/CANDIDATE_FAMILY_12.json` on the original trainer artifact, and send the final review event with the family SHA, the advanced token, the runtime diff against the pilot-9 family (3688e987) as a file with its sha256, what the GPU will execute for the first time (the guard wrapper's install after the real restore and its decisions on real head geometry, the recorder over 84 captures, the 6,000 s limit, the selector, the R1 path if a program refusal occurs), and the state of the Orchard master. This order covers the seal; it does not cover submission.
+2. I then write the control files (scope: pilot only; full reads stay gated on the six full-mode lines' evidence) and order the candidate's pilot.
+3. Keep the full rehearsal running to its limit and run the retained-row continuation when it ends, as ruled; report its terminal state.
+4. The direct VSI-Bench packet: official544 is finishing one more revision (frame index with relative names; my 0937Z and 0941Z rulings to it). Review it when its RESULT lands, then send me the packet.
+EOF
+echo "- $(date -u +%Y-%m-%dT%H:%MZ) evalx RESULT 0947Z: C7 pilot proof passes (coverage review 0 unreviewed; six full_only_pending lines; pilot_06 + other_error summary; 143/143 tests; floors authority 02); code upload registered 09:46:45Z (code_209985bb, 3,737,600 B; one attempt). I checked gravity_guard.py 8ead69ce (class-identity refusal present). ORDERED: seal C7 (CANDIDATE_FAMILY_12) when the upload confirms and send the final review event; submission needs a further order. Full rehearsal at 214/636 after 46 min." >> $R/ORCH_HANDOFF.md

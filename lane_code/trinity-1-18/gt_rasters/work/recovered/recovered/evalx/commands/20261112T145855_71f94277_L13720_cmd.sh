@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=13720 utc=2026-11-12T14:58:55.654Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; grep -n "devin_bg_acp.sh" ORCH_HANDOFF.md | tail -3 | cut -c1-700; cat /tmp/claude-25409/-scratch-jjyeung-orch-home-distill/71f94277-362e-467c-a4bc-ccc9ae6b87c8/scratchpad/restart_lane.sh 2>/dev/null | head -40; ls -la --time-style=+%H:%M evalx/work/BRIEF_SUCCESSOR15_DRAFT.md evalx/BRIEF_SUCCESSOR14.md | cut -c20-

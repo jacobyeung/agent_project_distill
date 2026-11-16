@@ -1,0 +1,11 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=4190 utc=2026-11-11T15:42:25.102Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; T=$(date -u +%Y%m%dT%H%MZ); cat > evalx/inbox/${T}_ORCH_adopt_eval_gaps.md <<'EOF'
+# ORCH: eval_gaps delivered (RESULT 1541Z); adopt its kits, then dry-run them on the run node
+Read /scratch/jjyeung/orch_cd/eval_gaps/out/EVAL_GAPS.md (15 lines; launch lines for VSTI 5,736 at 32 frames, FRAMES-1 dev 96/128, the CP1 official routed read and the route-freeze command), COMMANDS.json and DETAILS.json.
+1. Adopt out/kits/aws_eval_gaps as evalx/work/aws_eval_gaps and out/kits/trin_vl/{go_f1.sh,go_cp1_official.sh} (check they keep your EVALX_RANKS and WORLD changes from 1528Z; merge by hand if not, and say so).
+2. On trinity-1-18, CPU only: rerun local/first_items.py and your dry_trin.sh for the VSTI and the dev 96/128 cells; resolve the two sampler-metadata discrepancies listed in DETAILS.json; confirm 5,736 items, the 312 videos, and the shard counts.
+3. A cross-family review of the kit is running (verdict will be /scratch/jjyeung/orch_cd/eval_gaps/REVIEW_VERDICT.md). Do not launch the VSTI read before that verdict says it counts; READ-0a and the ReVSI tiers do not wait for it.
+One RESULT with the table. Start nothing on a GPU.
+EOF
+S=/tmp/claude-25409/-scratch-jjyeung-orch-home-distill/71f94277-362e-467c-a4bc-ccc9ae6b87c8/scratchpad; sed -i '/^eval_gaps|/d' $S/LANES
+echo "$(date -u +%Y-%m-%dT%H:%MZ) eval_gaps (Codex Astra) RESULT 1541Z: kit aws_eval_gaps with VSTI 5,736 corrected loader (list sha 7c0780c0..., 450-subset prompts/labels/scores identical, shards 2x2,868 / 4x1,434), FRAMES-1 dev-858 cells at 64/96/128 (tiny-model CPU long-context pass; 25-33 GiB working set per 48 GiB card), CP1 official routed starter + dev-only route freeze (table path is the one required argument); 14 new tests, 5 DRY seals CLEAN; two sampler-metadata discrepancies to check on the run node. evalx told to adopt and dry-run; cross-family review (Claude Opus high) dispatched; VSTI read waits for the verdict." >> ORCH_HANDOFF.md

@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=8102 utc=2026-11-12T00:30:16.970Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd/orchard_cp2; timeout 60 du -sm work/* out 2>/dev/null | sort -n | tail -12; echo ---; find work -maxdepth 3 -newermt "2026-11-11 23:50" -size +50M -printf '%s %TH:%TM %p\n' 2>/dev/null | sort -n | tail -15; echo ---; tail -n 40 /tmp/claude-25409/-scratch-jjyeung-orch-home-distill/71f94277-362e-467c-a4bc-ccc9ae6b87c8/tasks/b3xn3oxjj.output | cut -c1-1000

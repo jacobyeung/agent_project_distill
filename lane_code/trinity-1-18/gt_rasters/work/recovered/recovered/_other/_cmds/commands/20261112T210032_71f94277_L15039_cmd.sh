@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=15039 utc=2026-11-12T21:00:32.123Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; grep -n -i "ssh\|mind\|code-aws" aws_copyoff/STATUS.md 2>/dev/null | head -8 | cut -c1-300; ls aws_copyoff | head -12; tail -1 orchard_port/out/devin_launches.jsonl 2>/dev/null | cut -c1-300

@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=15980 utc=2026-11-13T00:55:55.466Z kind=commands original_path=(bash command)  -->
+echo "$(date -u +%FT%TZ) orch-home-distill-79: LEG-S1 SUBMITTED (fourth start) as Orchard job 168872 at 00:55Z (advanced, 4 GPUs, kit ee36228a, source 37845077, config 05036aff, run 415afff7, root r/279f1525); pending on Resources; project space 1.039 TB free." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

@@ -1,0 +1,13 @@
+# k1_ops3 detail for ORCH_ANSWER 17:04Z
+
+## 1. GT rasters
+- /scratch/jjyeung/orch_cd/dose_pool on 1-18 holds only POOL_S1/{EXCLUDE_DEV_S1.tsv, EXCLUDE_EVAL_ROOMS.tsv, FRAMES_GATE.json} (T1) and 93 npz (59 arkit_gt, 34 t1_gt, dated 2026-11-11/12, copied for own_ground_gpu), none of the 300 pilot rasters. No builder: grep over orch_cd/*.py finds 'arkit_gt'/'t1_gt' only in kit_k1a/work/inventory.py and probe_sources.py, which read the rasters, not write them.
+- The kit learned raster paths from row field gt_authority.gt / gt_input of dose_pool/out/POOL_S1/*_admitted.jsonl.gz and from dose_pool/out/t1_gt/REGISTRY_H1.json, REGISTRY_H2.json (pins in CAPTURES.json "inputs"). None of those inputs are on 1-18, so I cannot name the builder or its sources from here.
+## 2. K1_RULES.json
+- Kit writer: kit_k1a/work/preregister.py dumps k1_report.RULES (json indent=2 + newline). k1_report.py is pinned in DEPENDENCIES.json (607a8a16...). I evaluated the RULES literal in memory (no file written): sha256 cb0aadee89c86e3db41c33d450eee6d7f58558d63f56d3d189e744277ad23269, 815 bytes; it matches the pre-registration's prefix cb0aadee. No file on 1-18 pins the full hash; the kit itself checks only K1_RULES.json against K1_RULES.sha256 (k1_report.py:73).
+- RUNCARD_K1.md, PROOFS.md: no generator text checked; finalize.py writes RUNCARD-related outputs but needs out/K1_MANIFEST.template.json, K1_PLAN_RESULT.json, P2_RESULT.json (absent).
+## 4. Kit text
+- Manifest "pending" (K1_MANIFEST.base.json and .draft.json, verbatim): "Operator verifies/stages pinned dense RGB and records exact bytes"; "Bind native source video metadata: fps, timestamps, total_num_frames, scene identity"; "Fill and verify step-544/G3T/SAM GPU settings"; "Resolve empty named GT identities"; "Supply reviewed visual fallback traces from rs_rows".
+- Flags: "frame_staging_authorized": false, "production_ready": false; manifest_k1a.py always writes both false; k1_pipeline.check_manifest refuses with "Plan is not staged and admitted for GPU execution" unless both are true. "unresolved_gt_names": [] already.
+- Fallback text, native_kit/INPUT_CONTRACT.md: "A fallback record contains `trace`, `answer` and `visual_evidence_verified: true`. ... The builder must establish the evidence flag; the cache does not generate or verify visual prose itself. Missing fallback evidence withholds the training target but preserves the real-failure cache label." README: "fallback targets require a supplied, evidence-checked qualitative trace."
+- Codex finalize brief (prepared, not dispatched): /scratch/jjyeung/orch_n30/k1_ops3/work/codex_finalize/BRIEF.md

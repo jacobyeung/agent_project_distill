@@ -1,0 +1,9 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=4270 utc=2026-11-11T15:51:40.810Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; T=$(date -u +%Y%m%dT%H%MZ); cat > geo_bakeoff/inbox/${T}_ORCH_ANSWER_download_blocker.md <<'EOF'
+# ORCH ANSWER: resume the downloads; this was your own size cap, not a cluster kill
+curl exit 63 means "maximum file size exceeded": your script passed `--max-filesize 44` for Pi3X's config.json, so the expected size from the API was wrong for that file (a small text file whose listed size differs from the served bytes). Nothing was killed and no rule was broken.
+- Fix the check: do not cap by the listed size. Use a generous `--max-filesize` per file (the listed size x 1.5, at least 1 MB, at most 8 GB) and verify after the download: sha256 for LFS files against the API's sha, parsed JSON for small text files. Record both in downloads.jsonl.
+- Resume from Pi3X, same rule as before: one curl at a time, 5 MB/s, free-space gate, partial files resumed with `-C -` where the server allows it.
+- Stop and post a BLOCKER only if a curl is killed by a signal, the connection is reset or times out twice on the same file, or the free-space gate trips.
+EOF
+echo "$(date -u +%Y-%m-%dT%H:%MZ) geo_bakeoff BLOCKER 1550Z download: curl exit 63 from its own --max-filesize 44 on Pi3X config.json (not a cluster kill); told to fix the size check and resume (7.4 GB of 19.9 GB down). Its scene0011_00 dry run matches gt_ceiling on 23/23 predictions; full 312-scene tower pricing running in tmux geo_bakeoff_tower_pricing; VGGT-Omega is gated (not downloaded)." >> ORCH_HANDOFF.md

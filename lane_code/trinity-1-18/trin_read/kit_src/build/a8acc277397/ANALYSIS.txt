@@ -1,0 +1,12 @@
+B2048 items=4008 scenes=288 mode=production synthetic=False
+| Task | n | B2048 | 95% CI | errors | capped src/cont | unparsed | f17 | ON16k | B4096 |
+| Counting | 565 | 63.03 | [59.3, 66.7] | 0 | 9/0 | 0 | 67.3 | 63.03 | 63.03 |
+| Object size | 953 | 72.03 | [70.0, 74.0] | 0 | 0/0 | 0 | 71.5 | 72.03 | 72.03 |
+| Relative distance | 710 | 70.56 | [65.8, 75.2] | 0 | 3/0 | 0 | 58.3 | 70.28 | 70.56 |
+| Relative direction | 968 | 88.77 | [84.5, 92.6] | 0 | 0/0 | 0 | 74.7 | 88.77 | 88.77 |
+| Route planning | 194 | 52.06 | [44.9, 59.1] | 0 | 0/0 | 0 | 57.7 | 52.06 | 52.06 |
+| Appearance order | 618 | 66.18 | [59.8, 72.3] | 0 | 0/0 | 0 | 64.1 | 66.18 | 66.18 |
+| Six-task mean | 4008 | 68.77 | [66.5, 71.0] | | | | 65.60 | 68.72 | 68.77 |
+per subtype (B2048): {'obj_appearance_order': 66.18, 'object_counting': 63.03, 'object_rel_direction_easy': 92.17, 'object_rel_direction_hard': 85.25, 'object_rel_direction_medium': 88.89, 'object_rel_distance': 70.56, 'object_size_estimation': 72.03, 'route_planning': 52.06}
+excluded: {'object_abs_distance': {'status': 'not read', 'items': 834}, 'room_size_estimation': {'status': 'not read', 'items': 288}}
+shared-venue video ('arkitscenes', '41159525'): 13 items ['object_counting', 'object_rel_direction_easy', 'object_rel_direction_hard', 'object_rel_direction_medium', 'object_size_estimation']; six-task mean all 68.77 (recomputed), without them 68.77

@@ -1,0 +1,13 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=1408 utc=2026-11-15T05:52:58.640Z kind=commands original_path=(bash command)  -->
+R=/scratch/jjyeung/orch_cd; ls -d /scratch/jjyeung/envs/planner_local_v1/lib/python3*/site-packages/sklearn /scratch/jjyeung/envs/planner_local_v1/lib/python3*/site-packages/scikit_learn-*.dist-info 2>&1 | cut -c1-140; ls /scratch/jjyeung/envs/planner_local_v1/lib/python3*/site-packages/sitecustomize.py 2>&1 | cut -c1-120
+cat > $R/b6_build/BRIEF2.md <<EOF
+# Lane b6_build, continuation: the selector's interpreter is authorized; finish B6-A
+
+Read and obey \`$R/orch_tools/CODEX_BUILD_COMMON_20261115.md\` first (2 GB cap). Then read \`$R/b6_build/BRIEF.md\` (your full specification, unchanged), your own \`STATUS.md\` and \`out/P2_RESULT.json\`.
+
+Standing answer to the P2 block: for the selector's fit code and its proofs (work items 4 and 7, proofs P2 and P5) you may use the interpreter the selector was fitted with, read-only: \`/scratch/jjyeung/envs/planner_local_v1/bin/python -I -B\` (it has scikit-learn; install nothing, write nothing into the environment; if a file \`sitecustomize.py\` is present there it only affects model-API calls and does not concern you). Record the scikit-learn, numpy and Python versions in every fit receipt. Everything else stays on \`/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B\`. If P2 then fails to reproduce the deployed coefficients to 1e-9, report the largest difference and its cause (library version, solver, data order) and continue with the other work items, marking the refit kit unproven; do not patch the fit code.
+
+Then complete every work item and proof of the brief. Lane \`o3_cache\` ($R/o3_cache) has since delivered a cue study (\`out/CUE_STUDY.md\`) and is writing a cache kit: reuse what exists there for work items 3 and 5.
+EOF
+setsid nohup bash $R/orch_tools/codex_local.sh implement $R/b6_build $R/b6_build/BRIEF2.md --model gpt-6-astra --effort high --label b6_build2 --skip-git-check < /dev/null > $R/b6_build/out/codex_stdout_02.log 2>&1 &
+echo "- $(date -u +%Y-%m-%dT%H:%MZ) b6_build RESULT 0552Z: stopped at P2 (p1cpu has no scikit-learn). Relaunched (Codex Astra high, label b6_build2, BRIEF2.md): planner_local_v1 interpreter authorized read-only for the selector fit code; continue all work items. rs_tree second pass RESULT 0551Z: tree enforces the grammar and the event-masked program allowlist; flat facing/totals rows refused, sealed distance program accepted." >> $R/ORCH_HANDOFF.md; sleep 3; pgrep -u jjyeung -af '[c]odex_dispatch.sh implement /scratch/jjyeung/orch_cd/b6_build ' | cut -c1-90

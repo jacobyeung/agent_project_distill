@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=2799 utc=2026-11-11T14:29:02.353Z kind=commands original_path=(bash command)  -->
+pgrep -u jjyeung -af 'train_proxy|resume_test|py_cpu.sh' | grep -v 'pgrep\|snapshot' | cut -c1-200; cd /scratch/jjyeung/orch_cd/dose_pool/work/kit && ls -la --time-style=+%H:%M:%S runs | cut -c20-110; timeout 40 du -s --block-size=1G runs/* 2>/dev/null | sort -rn | head -8; tail -n 4 resume_test.log | cut -c1-200

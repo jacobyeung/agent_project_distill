@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=20067 utc=2026-11-13T11:45:01.400Z kind=commands original_path=(bash command)  -->
+echo "$(date -u +%FT%TZ) orch-home-distill-79: orchard_cp2 RESULT 1145Z: wrapper jl10_template.sh (sha eaad5109) passes the reviewer's 17-case harness; changes limited to F5 (pre-publication stat and sha checks; slot records written to a unique temporary file, checked, renamed into place) and F6; sent to leg_s1_canary for the third review round." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

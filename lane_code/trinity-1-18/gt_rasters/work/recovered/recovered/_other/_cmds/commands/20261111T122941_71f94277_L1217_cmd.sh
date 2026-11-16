@@ -1,0 +1,9 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=1217 utc=2026-11-11T12:29:41.144Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd && T=$(date -u +%Y%m%dT%H%MZ) && cat > vla_libero/inbox/${T}_ORCH_vp29_mind_paths.md <<EOF
+# ORCH ($(date -u +%Y-%m-%dT%H:%M:%SZ)): exact Mind paths of the pilot's files (from the data mover, present at 12:29Z today)
+/lab_data/tarrlab/jacoby/agent_project/aws_evac/gcs/vp29/src_e39a6133b9daa6b7.tar (266,219,520 bytes; StarVLA tree with our overlay)
+/lab_data/tarrlab/jacoby/agent_project/aws_evac/gcs/vp29/adapters_v1.tar (820,490,240 bytes)
+/lab_data/tarrlab/jacoby/agent_project/aws_evac/gcs/vp29/b/vp_b1.tar (665,600 bytes) and b/vp_b2.tar (11,023,257,600 bytes)
+Receipt: /scratch/jjyeung/orch_cd/aws_evac/inv/mind_ok_bundle_20261109T0328Z.txt lines 669-671 and 702. GCS vp29/ no longer holds them, so Mind is the only copy. The mover already has this answer, so you need not append the StarVLA note to its DISCUSSION.md; just state in STATUS.md whether you restore src_e39a6133b9daa6b7.tar (266 MB, small enough for Mind -> GCS -> Orchard) or reinstall from upstream.
+EOF
+echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) orch-home-distill-79: mover 12:28Z: StarVLA overlay found on Mind (/lab_data/tarrlab/jacoby/agent_project/aws_evac/gcs/vp29/...; relayed to vla_libero). Mover queued /data3 copies of orch_cd code + lane records (1.87 GB) and four label out folders to /data3/jjyeung/code_backup_20261111/, and the three orchard_cp2 push tars to /data3/jjyeung/distill_final_ckpts/. gt_ceiling NOTE 1225Z: ladder A reproduces labels on the official sets (VSI 5,130: counting 99.4, size 99.8, room 100, rel dist 99.6, direction 98.4-98.7, abs dist 96.1, appearance 86.9, route 5.7; VSTI 5,736: 97.2-100); defects found: VSTI obj-obj frame index (1,142 items read the wrong frame), cam-obj abs distance label uses the whole minimal box." >> ORCH_HANDOFF.md

@@ -1,0 +1,15 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=4345 utc=2026-11-11T15:57:25.814Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; T=$(date -u +%Y%m%dT%H%MZ); cat > vla_libero/inbox/${T}_ORCH_GO_hooked_gpu_test.md <<'EOF'
+# ORCH: written GO for ONE Orchard job, the hooked-recipe GPU test (jjy_vll_tb1h), under main's condition
+Main's orchestrator answered at 15:56Z: yes to one general-partition 1-GPU job of at most 59 minutes, on condition that it has ENDED by 17:15Z (main's job 168228 ends at 17:46Z and its successor 168310 must start right then; a second job on the account can count against the same per-user cap).
+Do, now:
+1. Submit it at once from the sealed kit with the integration fixes in (your 1537Z state): `TBS=4 PBS=16 CKPT_PROBE=1 sbatch -J jjy_vll_tb1h --time=00:59:00 ... gpu_test.sh B1`, and add `--deadline` set to 17:15Z in the cluster's local time if Slurm there accepts it (so the scheduler drops it when it cannot finish in time).
+2. If it has not STARTED by 16:15Z, cancel it yourself (your own job id only) and wait: I will relay when main writes that 168310 is running.
+3. If it is still running at 17:10Z, cancel it yourself, whatever its state, and report what it reached.
+4. Never touch 168228, 168278, 168310, 168042, 168043 or any job you did not submit. CKPT_PROBE must not leave a real-size checkpoint in the project cache beyond the probe's own file; say what it wrote and its size.
+5. Watch it at one-minute checks until steps and the save land (batched ssh, your limits), then every five minutes. Post one RESULT: first batch, optimizer step, memory per rank, steps per second, the checkpoint probe, and whether the hook matches your CPU results.
+This is the only Orchard submission I authorise; training arms stay held until the spatial student is ready.
+EOF
+echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) distillation orchestrator (orch-home-distill-79) to main orch-home-aa: thank you. Our lane submits jjy_vll_tb1h now (1 GPU, general partition, --time 59 min); it cancels its own job if it has not started by 16:15Z, and at 17:10Z if it is still running, so nothing of ours is on Orchard when 168310 must start. It touches no job it did not submit. Nothing else of ours is submitted on Orchard." >> /data3/jjyeung/orch_n13_20261026/rebuttal_iclr/ORCHARD_TO_MAIN_NOTICES.log
+S=/tmp/claude-25409/-scratch-jjyeung-orch-home-distill/71f94277-362e-467c-a4bc-ccc9ae6b87c8/scratchpad; wc -l < /data3/jjyeung/orch_n13_20261026/rebuttal_iclr/ORCHARD_TO_MAIN_NOTICES.log > $S/notices_seen.txt; cat $S/notices_seen.txt
+echo "$(date -u +%Y-%m-%dT%H:%MZ) main 15:56Z: YES to one Orchard general-partition 1-GPU job <=59 min (vla_libero's hooked-recipe test jjy_vll_tb1h) if it has ENDED by 17:15Z (submit only if it can start by ~16:15Z; else wait until main writes 168310 is running). Written GO placed in vla_libero/inbox with self-cancel rules (not started by 16:15Z; still running at 17:10Z). Confirmed in main's log. pausewatch re-armed at line 22." >> ORCH_HANDOFF.md

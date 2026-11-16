@@ -1,0 +1,120 @@
+=== batch_entry.py
+=== job_support.py
+--- /scratch/jjyeung/orch_n30/review_k1b2/batch/job_support.py	1969-12-31 19:00:00.000000000 -0500
++++ newbatch/job_support.py	1969-12-31 19:00:00.000000000 -0500
+@@ -18,8 +18,11 @@
+     path.write_text(json.dumps(value, indent=2, sort_keys=True) + '\n')
+ 
+ def sha(path):
+-    with Path(path).open('rb') as f:
+-        return hashlib.file_digest(f, 'sha256').hexdigest()
++    digest = hashlib.sha256()
++    with Path(path).open('rb') as stream:
++        for chunk in iter(lambda: stream.read(1024**2), b''):
++            digest.update(chunk)
++    return digest.hexdigest()
+ 
+ def native(reference=None):
+     base = Path(reference or HERE / 'reference/sj/orch_cd/evalx/work/milestone')
+=== phase_support.py
+--- /scratch/jjyeung/orch_n30/review_k1b2/batch/phase_support.py	1969-12-31 19:00:00.000000000 -0500
++++ newbatch/phase_support.py	1969-12-31 19:00:00.000000000 -0500
+@@ -36,13 +36,18 @@
+     return result
+ 
+ 
+-def budget(elapsed, longest_capture, margin, allocation=12 * 3600):
+-    values = (elapsed, longest_capture, margin, allocation)
++def budget(elapsed, longest_capture, margin, allocation=43200, *,
++           deadline_unix=None, started_unix=None):
++    if deadline_unix is not None:
++        if started_unix is None or not all(math.isfinite(x) for x in (deadline_unix, started_unix)):
++            raise ValueError('Deadline requires finite absolute start and deadline times')
++        allocation = min(allocation, deadline_unix - started_unix)
++    values = (elapsed, longest_capture, margin)
+     if not all(math.isfinite(x) and x >= 0 for x in values) or longest_capture <= 0:
+         raise ValueError('Budget requires measured finite timings and a positive capture bound')
+-    seconds = math.floor(allocation - elapsed - longest_capture - margin)
+-    if seconds <= 0:
+-        raise ValueError('No capture window remains')
++    if not math.isfinite(allocation):
++        raise ValueError('Allocation must be finite')
++    seconds = max(0, math.floor(allocation - elapsed - longest_capture - margin))
+     return dict(allocation_seconds=allocation, setup_and_elapsed_seconds=elapsed,
+                 longest_capture_seconds=longest_capture, margin_seconds=margin,
+                 max_seconds=seconds)
+=== phase_worker.py
+--- /scratch/jjyeung/orch_n30/review_k1b2/batch/phase_worker.py	1969-12-31 19:00:00.000000000 -0500
++++ newbatch/phase_worker.py	1969-12-31 19:00:00.000000000 -0500
+@@ -94,10 +94,13 @@
+     if (out / 'STOP').exists() and (out / 'STOP').read_text().strip() != 'RESUME':
+         raise ValueError('STOP requires operator review')
+     elapsed = time.time() - config['started_unix']
+-    timing = budget(elapsed, config['capture_reserve_seconds'], config['return_margin_seconds'])
++    timing = budget(elapsed, config['capture_reserve_seconds'], config['return_margin_seconds'],
++                    deadline_unix=config.get('deadline_unix'), started_unix=config['started_unix'])
+     if fixture is not None:
+-        timing['max_seconds'] = fixture['max_seconds']
++        timing['max_seconds'] = min(timing['max_seconds'], fixture['max_seconds'])
+     H.dump(source / 'metadata/budget.json', timing)
++    if timing['max_seconds'] <= 0:
++        (out / 'STOP').write_text('BUDGET\n')
+     state = dict(current=None, started=None, prefill=None, tokens={}, first_three_returned=False)
+     if (out / 'TOKENS.json').exists():
+         state['tokens'] = B.load(out / 'TOKENS.json')
+@@ -144,7 +147,8 @@
+                 state['first_three_returned'] = True
+                 if not report['passed']:
+                     raise ValueError('Canary failed; STOP written and returned')
+-            if time.time() - config['started_unix'] + longest + config['return_margin_seconds'] >= 43200:
++            allocation = min(43200, config['deadline_unix'] - config['started_unix']) if config.get('deadline_unix') is not None else 43200
++            if time.time() - config['started_unix'] + longest + config['return_margin_seconds'] >= allocation:
+                 (out / 'STOP').write_text('BUDGET\n')
+ 
+     H.dump(source / 'metadata/admission.json', evidence)
+@@ -152,7 +156,10 @@
+     code, failure = 1, None
+     try:
+         sys.setprofile(observe)
+-        if fixture is not None:
++        if timing['max_seconds'] <= 0:
++            # The pinned CLI requires a positive cap; return before dispatch.
++            code = 4
++        elif fixture is not None:
+             code = F.run(manifest, out, fixture['boundary'], 'own', timing['max_seconds'])
+         else:
+             sys.argv = [str(KIT / 'work/k1_pipeline.py'), 'cache', '--manifest', config['manifest'],
+@@ -170,8 +177,9 @@
+             # The pinned phase explicitly accepts RESUME. Preserve the file and
+             # distinguish a normal allocation boundary from a canary refusal.
+             (out / 'STOP').write_text('RESUME\n')
+-        marker = 'COMPLETE.json' if code == 0 and failure is None else 'FAILED.json'
+-        H.dump(source / marker, dict(plan_sha256=plan, synthetic=fixture is not None, returncode=code))
++        if code != 4 or failure is not None:
++            marker = 'COMPLETE.json' if code == 0 and failure is None else 'FAILED.json'
++            H.dump(source / marker, dict(plan_sha256=plan, synthetic=fixture is not None, returncode=code))
+         H.snapshot_manifest(source)
+         token = 'a' + uuid.uuid4().hex[:16]
+         returned = H.publish(source, config['pool'], config['cloud'], token, plan, code, fixture is not None)
+=== stage_job.py
+--- /scratch/jjyeung/orch_n30/review_k1b2/batch/stage_job.py	1969-12-31 19:00:00.000000000 -0500
++++ newbatch/stage_job.py	1969-12-31 19:00:00.000000000 -0500
+@@ -21,7 +21,7 @@
+         uri = 'gs://cmu-gpucloud-jjyeung/' + item['name']
+         result = subprocess.run(['/usr/bin/gcloud', 'storage', 'objects', 'describe', uri, '--format=json'],
+                                 env=S.cloud_environment(assets['gcloud_config']), check=True,
+-                                capture_output=True, text=True)
++                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+         value = json.loads(result.stdout)
+         assert int(value['size']) == item['bytes'] and str(value['generation']).isdigit()
+         return dict(item, generation=str(value['generation']))
+@@ -110,6 +110,8 @@
+     # Native namespace mounts the staged project read-only. Permit only this
+     # packet's opaque return pool and the existing credential directory.
+     pool_root = str(Path(config['pointer']).parent)
+-    argv += ['--bind', pool_root, pool_root, '--ro-bind',
++    NS.physical(root, pool_root).mkdir(parents=True, exist_ok=True)
++    NS.physical(root, config['assets']['gcloud_config']).mkdir(parents=True, exist_ok=True)
++    argv += ['--bind', pool_root, pool_root, '--bind',
+              config['assets']['gcloud_config'], config['assets']['gcloud_config']]
+     return argv

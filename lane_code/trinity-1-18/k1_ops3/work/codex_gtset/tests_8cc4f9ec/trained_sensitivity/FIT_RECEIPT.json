@@ -1,0 +1,73 @@
+{"analysis": "SENSITIVITY",
+  "versions": {
+    "test": "ESTIMATOR_STAND_INS_NO_SKLEARN"
+  },
+  "fixture_only": false,
+  "scope": "eligible K1 train rooms only",
+  "thresholds": {
+    "count_accept": 0.15,
+    "pair_merge": 0.2,
+    "unique_accept": 2.0
+  },
+  "thresholds_source": "frozen deployed policy; no answer-dependent threshold fitting",
+  "train_rooms": [
+    "arkitscenes/venue381584",
+    "arkitscenes/venue381615"
+  ],
+  "heldout_rooms": [
+    "arkitscenes/venue381810"
+  ],
+  "metrics": {
+    "accept": {
+      "refit": {
+        "auc": 0.8,
+        "top1_accept_accuracy": 0.8
+      },
+      "current": {
+        "auc": 0.8,
+        "top1_accept_accuracy": 0.8
+      }
+    },
+    "pairs": {
+      "refit": {
+        "auc": 0.8,
+        "top1_accept_accuracy": 0.8
+      },
+      "current": {
+        "auc": 0.8,
+        "top1_accept_accuracy": 0.8
+      }
+    }
+  },
+  "inputs": {
+    "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/tests_8cc4f9ec/tables_sensitivity/candidates.jsonl": "00ba2de619ea803d3a69d22120e44b06f79b31b4a12dd1cabfa06e769770d5d7",
+    "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/tests_8cc4f9ec/tables_sensitivity/pairs.jsonl": "0a012561a5ab167f1066a57f02372c319522a5c3dba909f30f4dc045a89bf703",
+    "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/tests_8cc4f9ec/inventory.json": "1798625754fdf132d89b34f72e0e8db512c8a3b7633c6f3f56142ac93390b97d"
+  },
+  "upstream": {
+    "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/tests_8cc4f9ec/refit_dependencies/grd_selector/work/setsel/build.py": "fe04229bf0ddf4d657efa01eaaa4cdc07299214e06052c65c544e071292f1e59",
+    "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/tests_8cc4f9ec/refit_dependencies/grd_selector/work/setsel/fit.py": "fe04229bf0ddf4d657efa01eaaa4cdc07299214e06052c65c544e071292f1e59",
+    "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/tests_8cc4f9ec/refit_dependencies/grd_selector/work/setsel/fit_pairs.py": "fe04229bf0ddf4d657efa01eaaa4cdc07299214e06052c65c544e071292f1e59",
+    "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/tests_8cc4f9ec/refit_dependencies/grd_selector/work/setsel/setlib.py": "fe04229bf0ddf4d657efa01eaaa4cdc07299214e06052c65c544e071292f1e59"
+  },
+  "models_sha256": "8daf59316a79b909a7ed5d557de31fd1284781cc66ed3e356707a5420ab8feb2",
+  "native_policy_sha256": "22d5e5df0fbfe9c8b66fc47040f3a77150c73938348265f0bf69716b2d58fefe",
+  "table_receipt": {
+    "path": "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/tests_8cc4f9ec/tables_sensitivity/TABLE_RECEIPT.json",
+    "sha256": "e7f70b5a3c830b675272f5795d48d287ebdc052c71ecfeca73e2e3a0188c7461"
+  },
+  "gt_set": {
+    "path": "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/tests_8cc4f9ec/sensitivity.json",
+    "sha256": "e6343a50761708d8f59630fe27467e08b8ec11bb2f844a93185a7fbf45447d72",
+    "n": 3,
+    "pinned": 2,
+    "unpinned": 1,
+    "captures": [
+      "arkitscenes/41048124",
+      "arkitscenes/41069076",
+      "arkitscenes/41069175"
+    ],
+    "skipped": [],
+    "analysis": "SENSITIVITY"
+  }
+}

@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=13502 utc=2026-11-12T14:28:29.479Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; S=/tmp/claude-25409/-scratch-jjyeung-orch-home-distill/71f94277-362e-467c-a4bc-ccc9ae6b87c8/scratchpad; sed -i '/^leg_s2_p2|/d' $S/LANES; cut -c1-2600 orchard_cp2/events/20261112T1312Z_NOTE_removal_lists_and_exports.md

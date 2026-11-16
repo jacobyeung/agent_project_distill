@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=1674 utc=2026-11-15T06:20:49.555Z kind=commands original_path=(bash command)  -->
+S=/tmp/claude-25409/-scratch-jjyeung-orch-home-distill/a97ad692-7041-4f72-8b75-8f8e29df8950/scratchpad; grep -v '^b6_design|' "$S/LANES" > "$S/LANES.new"; cp "$S/LANES.new" "$S/LANES"; cp "$S/LANES" /scratch/jjyeung/orch_cd/orch_tools/session_scripts_20261115/; cut -d'|' -f1 "$S/LANES" | tr '\n' ' '

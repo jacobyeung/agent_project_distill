@@ -1,0 +1,7 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=28575 utc=2026-11-14T04:18:33.160Z kind=commands original_path=(bash command)  -->
+N=$(date -u +%Y%m%dT%H%MZ); C=/scratch/jjyeung/orch_cd; cat > $C/orchard_cp2/inbox/${N}_ORCH_ANSWER_projections_use_the_same_confirmation.md <<'EOF'
+# ORCH answer to QUESTION 041751Z: yes, the same confirmation rule covers both projections
+
+A projection computed from a window that contains one unconfirmed low sample is the same transient seen through a rate. So: compute the under-three-hours-to-150-GB alarm and the 14:25Z forecast only from samples that are confirmed (a low sample counts once the next ordinary sample is also below the floor, or stays within 20 GB of it). An unconfirmed dip is left out of the rate window and reported once as a transient. Post a projection event only when the confirmed series gives under three hours to 150 GB, or a 14:25Z forecast under 150 GB; mark it URGENT only when the forecast is under 140 GB.
+EOF
+T=$(date -u +%Y-%m-%dT%H:%M:%SZ); echo "$T orch-home-distill-79: orchard_cp2 QUESTION 041751Z (does the transient rule also debounce the projection alarms?) ANSWERED ($N): yes; projections use confirmed samples only; an unconfirmed dip is excluded from the rate window; URGENT only for a confirmed forecast under 140 GB. Re-armed evwait (bem9crnwo)." >> $C/ORCH_HANDOFF.md

@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=16199 utc=2026-11-13T01:53:24.750Z kind=commands original_path=(bash command)  -->
+echo 121 > /tmp/claude-25409/-scratch-jjyeung-orch-home-distill/71f94277-362e-467c-a4bc-ccc9ae6b87c8/scratchpad/notices_seen.txt; echo "$(date -u +%FT%TZ) orch-home-distill-79: main 01:52Z: trinity-3-3 unreachable since ~01:27Z (cause unknown; main stopped all access). Distillation has no live work on 3-3; only a redundant copy (ttl_rescue_20261110/frames64_noFH.tar) on its /scratch. No action." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

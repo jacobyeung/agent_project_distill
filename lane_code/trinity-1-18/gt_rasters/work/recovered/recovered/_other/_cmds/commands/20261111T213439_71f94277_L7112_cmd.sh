@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=7112 utc=2026-11-11T21:34:39.321Z kind=commands original_path=(bash command)  -->
+echo "$(date -u +%Y-%m-%dT%H:%MZ) dose_pool RESULT 2133Z room K fixes applied: switch scoped to ScanNet++ with valid per-frame intrinsics (GT hashes verified 807/807); evidence corrected (median |diff| 0.0125 m2, p99 0.2175, one row -3.8 m2); 10% release gate drops 12 scene rows + 1 pool row; 795 scene room rows final (384 + 411); POOL_S1 = 93,018 rows after exclusions; leg_s1_tree told." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

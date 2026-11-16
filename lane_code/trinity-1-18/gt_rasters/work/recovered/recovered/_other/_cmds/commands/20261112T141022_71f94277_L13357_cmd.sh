@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=13357 utc=2026-11-12T14:10:22.375Z kind=commands original_path=(bash command)  -->
+cat /scratch/jjyeung/orch_cd/arch_jobs/distill_legs1_src_38917ea5.receipt.json 2>/dev/null | tr -d '\n' | cut -c1-400; echo; pgrep -u jjyeung -f "copy_archive.py" | head -3; cut -c1-500 /data3/jjyeung/orch_n13_20261026/io_governor/streams/distill_legs1_src_38917ea5.write.json 2>/dev/null

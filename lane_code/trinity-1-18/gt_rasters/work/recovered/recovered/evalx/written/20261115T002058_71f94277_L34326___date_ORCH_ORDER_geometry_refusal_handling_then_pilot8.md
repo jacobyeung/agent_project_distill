@@ -1,0 +1,13 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=34326 utc=2026-11-15T00:20:58.529Z kind=written original_path=/scratch/jjyeung/orch_cd/evalx/inbox/$(date_ORCH_ORDER_geometry_refusal_handling_then_pilot8.md heredoc_quoted -->
+# ORCH order: the debugger's verdict on the geometry refusal; finish the per-capture handling, then pilot 8
+
+Record: `/scratch/jjyeung/orch_cd/leg_s1_review/DEBUG_GEOMETRY_UP_GRAVITY_169670.md` (49 lines; read sections C and E and its last section on what the next pilot must print). In short: no rotation is missing and nothing is wrong with the frames. The sealed guard tests a sign that is noise when a capture's first frame looks almost straight down (d3/41069053: 88 degrees below horizontal). Only the 47 absolute-distance items sit on ARKitScenes captures; the tower's own gravity predicts the refusal on 12 d3 captures carrying 21 items, and the checkpoint's heads may put the count anywhere from 6 to 13. The sealed trainer tree is not changed in this read; the guard's repair belongs to the next training seal.
+
+1. Finish the candidate you prepared, reader and packaging only:
+   - a per-capture `GeometryError` is recorded with its code and the pass continues;
+   - every item on a refused capture is a bound item refusal in both arms (the error code, zero scores, no decode, kept in every denominator), reported apart from mask refusals and call errors;
+   - reports give each type's scores on all items and on the items whose capture's geometry passed, with counts, and R1 is computed as before on all items and shown beside the passed-geometry subset;
+   - the pilot builds geometry for all 84 captures and prints, per capture, what the debugger's record lists (head gravity, tower gravity, pitch, roll, the guard's margin, status, items refused); its ten pairs use captures that passed, with one distance item on a d3 capture that passed if any did, and the record's named captures included in the geometry pass.
+2. CPU checks before sealing: the replay over all items still shows 150 / 0 / 0 for the universe; a synthetic refused capture turns its items into refusals in both arms and leaves every other item's records byte-identical; the full-read projection counts refused items at zero decode cost.
+3. One event with the runtime diff and test diff as files (paths and sha256), the test counts, and the selection. I start one independent review at once (the refusal rule changes what the read measures); seal, upload and build the `advanced` pilot packet meanwhile. Submission waits for ACCEPT and my control files.
+4. IF8 169652: keep observing; fetch its return when it ends; one line to if_p0's inbox; tell me, and I launch if_p0's successor to read it.

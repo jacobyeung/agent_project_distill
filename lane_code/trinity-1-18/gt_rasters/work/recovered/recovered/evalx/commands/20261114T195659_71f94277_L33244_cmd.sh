@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=33244 utc=2026-11-14T19:56:59.426Z kind=commands original_path=(bash command)  -->
+ls -t /scratch/jjyeung/orch_cd/evalx/events | head -n 3; ls -la /scratch/jjyeung/orch_cd/evalx/BRIEF_SUCCESSOR24_DRAFT.md 2>&1 | cut -c1-120; date -u +%H:%M:%SZ; ps -p 2832703 -o pid,etimes | tail -n 1

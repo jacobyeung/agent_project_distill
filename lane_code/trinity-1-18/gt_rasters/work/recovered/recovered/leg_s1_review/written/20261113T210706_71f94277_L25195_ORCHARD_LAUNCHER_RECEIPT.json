@@ -1,0 +1,20 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=25195 utc=2026-11-13T21:07:06.132Z kind=written original_path=/scratch/jjyeung/orch_cd/leg_s1_review/ORCHARD_LAUNCHER_RECEIPT.json  -->
+{
+  "verdict": "ACCEPT",
+  "reviewer": "orchestrator orch-home-distill-79 (Claude family; the author is a GPT-family lane), confirming the fixes ordered by the independent review REVIEW_VERDICT_ORCHARD_LAUNCHER.md (Claude Opus, ACCEPT AFTER FIXES). This is a diff read and test runs, not a second full review.",
+  "code_pins_sha256": "f97bbd8d6ec2342649a4896a327b97eb7a19cefa7defc141f8c06ffa6ee956da",
+  "packet_sha256": "bf86e1a617ab0a098b98841c1d58e82f6755998a70374236b48bba7ecf1b8f41",
+  "base_review": "/scratch/jjyeung/orch_cd/leg_s1_review/REVIEW_VERDICT_ORCHARD_LAUNCHER.md (packet be05cd4a, digest 45fc2217)",
+  "diff": "/scratch/jjyeung/orch_cd/evalx/work/milestone/ORCHARD_LAUNCHER_REVIEW_FIXES.patch (sha256 976abe92..., 260 lines, four files)",
+  "what_i_checked": [
+    "read the whole diff: F1 the submission now runs sbatch with the script on standard input and no script name, preceded in the same remote call by sbatch --test-only on the same input; F2 the card check takes the sole listed card or matches CUDA_VISIBLE_DEVICES, and records both identifiers; F3 the cloud client's update check and usage reporting are disabled and the config folder's metadata is recorded before and after the export fetch; the Orchard-internal staging throttle is removed (rate 0); per-read cap 256 MiB and pool cap 1 GiB; the exit receipt carries the measured archive size, or a lower bound if the local archive was cut at chain_save's 900 MB local limit; staging phase times and free space are recorded",
+    "the seven pinned files hash as in the confirmation packet and the digest recomputes (sha256 of json.dumps(code_pins, sort_keys=True)); chain_save.py and stdout_transfer.py and ORCHARD_ASSETS.json are unchanged from the reviewed packet",
+    "ran test_orchard_launcher.py and test_orchard_results.py (23 passed) and test_orchard_review_findings.py (5 passed) with the p1cpu interpreter"
+  ],
+  "known_and_accepted": [
+    "a refused --test-only leaves the intent spent although no job was created (the remote call prints EVALX_TEST_ONLY_RC); a new intent then needs the orchestrator's word",
+    "low items L1 to L4 of the base review are deferred until after the step-100 read",
+    "nothing here has run on Orchard; the step-50 rehearsal is the first live proof (sbatch answer, GPU and mount readings, cloud client behaviour, per-phase times, archive size against the 256 MiB cap)"
+  ],
+  "issued_utc": "2026-11-13T21:10Z"
+}

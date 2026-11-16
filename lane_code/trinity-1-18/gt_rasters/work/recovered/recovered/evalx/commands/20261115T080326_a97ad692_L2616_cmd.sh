@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=2616 utc=2026-11-15T08:03:26.242Z kind=commands original_path=(bash command)  -->
+R=/scratch/jjyeung/orch_cd; C7=$R/evalx/work/milestone/native_package_s24_07; g=$(ls $C7/sources/sj/orch_cd/evalx/work/milestone/native/out2/gravity_guard.py 2>/dev/null || find $C7 -maxdepth 8 -name gravity_guard.py | head -1); echo "file: $g"; wc -l $g; sha256sum $g | cut -c1-16; cat $g | cut -c1-170

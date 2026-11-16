@@ -1,0 +1,6 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=23770 utc=2026-11-13T18:42:33.653Z kind=written original_path=/scratch/jjyeung/orch_cd/leg_s1_canary/inbox/$(date_ORCH_NOTE_facts_for_state_copy_design.md heredoc_quoted -->
+# ORCH note: two measured facts for your state-copy design, and one rule to read from the source
+
+- Production `inputs/` is 2,724,581,506 bytes in 33 files and 9 directories with no symlinks (operator's read-only step 169097.1 at 18:35:20Z); `binding.json` is 458 bytes. With the canary's checkpoint size the slot is about 113.4 GB and the wrapper's guard needs about 133.4 GB.
+- Checkpoint folders on the node carry a UUID suffix after the step (`carrier_c1_run.py:1846`), and the trainer saves with `rotate=True` (`carrier_c1_run.py:2302`).
+- **Read the rotation rule from the sealed source and put it in the design:** which older checkpoints the trainer removes and when, whether the checkpoint a copy is reading could be removed or renamed under it, and how the copy must select and guard against that (for example by copying only the newest complete one right after a save, within a stated window, and verifying `complete.json` and the member list again at the end).

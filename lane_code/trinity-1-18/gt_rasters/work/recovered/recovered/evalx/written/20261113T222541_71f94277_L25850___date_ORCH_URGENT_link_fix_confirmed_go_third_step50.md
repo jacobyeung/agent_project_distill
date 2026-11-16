@@ -1,0 +1,8 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=25850 utc=2026-11-13T22:25:41.833Z kind=written original_path=/scratch/jjyeung/orch_cd/evalx/inbox/$(date_ORCH_URGENT_link_fix_confirmed_go_third_step50.md heredoc_quoted -->
+# ORCH, urgent: runtime-link fix confirmed; submit the step-50 rehearsal again, once
+
+I read `ORCHARD_RUNTIME_LINK_FIX.patch` (f6fcf9f1, 56 lines, `orchard_stage.py` only), verified the seven pins and digest 50deb489 against packet c840babf, and ran your link, mount, launcher, return and review-finding tests (42 pass). Finding the two entries on the local parts instead of spending an Orchard job was the right call. Receipt: `/scratch/jjyeung/orch_cd/leg_s1_review/ORCHARD_LAUNCHER_RECEIPT_LINK_FIX.json`.
+
+**Go:** one further step-50 rehearsal submission, new token and intent, queue check and notices line in the same call. Jobs 169274 and 169307 stay as evidence.
+
+Report the job id at start, and then the first of: a refusal (with its retained evidence), or the end of staging and the start of the first generation phase. From that second report on, the step-100 decision read is yours to submit once as pre-authorized (its attestation is in your inbox as `20261113T214733Z_EXPORT_STEP100_169097.json`); if `general` allows only one of your jobs at a time, let the rehearsal finish its first complete read phase, then stop waiting for the rest of it and submit step 100 when the slot frees. Say which you did.

@@ -1,0 +1,29 @@
+--- k1_downstream.v1_91a2dbf9.sh	2026-11-15 21:29:38.643368072 -0500
++++ k1_downstream.sh	2026-11-16 01:41:19.596379072 -0500
+@@ -7,7 +7,8 @@
+ 
+ BUILD=/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset
+ KIT=/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a
+-MANIFEST=/scratch/jjyeung/orch_n30/k1_ops3/work/codex_arkit_timing/K1_MANIFEST.arkit_timing.json
++MANIFEST_V1=/scratch/jjyeung/orch_n30/k1_ops3/work/codex_arkit_timing/K1_MANIFEST.arkit_timing.json
++MANIFEST=/scratch/jjyeung/orch_n30/k1_ops3/work/manifest_v2/a40fbc19.json
+ GTSETS=/scratch/jjyeung/orch_n30/k1_ops3/work/gt_sets
+ PY=/scratch/jjyeung/envs/p1cpu/bin/python
+ export CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1
+@@ -20,6 +21,16 @@
+ test -f /scratch/jjyeung/orch_n30/k1_ops3/kc/devs1_masks/out/kit/work/vendor/MODELS.json
+ nice -n 10 "$K1_REFIT_PY" -B -c 'import numpy, sklearn'
+ nice -n 10 "$PY" -B "$KIT/work/verify_sources.py"
++# Amendment 2: tables run on manifest v2; its 300 capture entries and gpu.artifact equal v1's.
++sha256sum -c --strict - <<SUMS
++91a2dbf9a0bdad1a45af44a5a3a2607d40f9f7a630f742fc4531544c00cade7c  $MANIFEST_V1
++e684e0c7d8a75e4296e34ba4980aa6d7088f6c2f2053d7850ee790e7cf215146  $MANIFEST
++SUMS
++nice -n 10 "$PY" -B -c 'import json,sys
++c=lambda x:json.dumps(x,sort_keys=True,separators=(",",":"))
++a,b=(json.load(open(p)) for p in sys.argv[1:3])
++assert len(a["captures"])==len(b["captures"])==300 and all(c(x)==c(y) for x,y in zip(a["captures"],b["captures"])),"v2 captures differ from v1"
++assert c(a["gpu"]["artifact"])==c(b["gpu"]["artifact"]),"v2 artifact pin differs from v1"' "$MANIFEST_V1" "$MANIFEST"
+ INVENTORY=$(nice -n 10 "$PY" -B -c 'import json,sys;print(json.load(open(sys.argv[1]))["inventory"]["path"])' "$MANIFEST")
+ 
+ 

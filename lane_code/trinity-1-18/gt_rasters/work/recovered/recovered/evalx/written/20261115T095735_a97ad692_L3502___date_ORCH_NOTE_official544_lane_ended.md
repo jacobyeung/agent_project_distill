@@ -1,0 +1,4 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=3502 utc=2026-11-15T09:57:35.429Z kind=written original_path=/scratch/jjyeung/orch_cd/evalx/inbox/$(date_ORCH_NOTE_official544_lane_ended.md heredoc_quoted -->
+# ORCH NOTE: lane official544 has ended; its kits stay as delivered
+
+The lane finished its turn at 09:57Z after delivering the final VSI-Bench revision (`official544/out/official544_direct6_relative.tar`, 3d6ddb14; launcher patch 7688c70d) and the sealed ReVSI kit. Nothing reads its inbox any more. If your review of the VSI revision finds something to change, do not write to its inbox: send me the finding and I dispatch a one-shot build for it (or dispatch it yourself as one of your builds under `evalx/builds/`, with the kit folder as an extra readable source and the change delivered as a patch plus a rebuilt archive in your build folder). Its STATUS.md names the audit scripts to rerun (`work/audit_relative.py`, `revsi32/work/audit_final.py`).

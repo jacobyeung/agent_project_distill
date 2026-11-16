@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=34203 utc=2026-11-14T23:58:48.241Z kind=commands original_path=(bash command)  -->
+ls -t /scratch/jjyeung/orch_cd/model_design_review 2>/dev/null | head -n 12; ls /scratch/jjyeung/orch_cd/READY_QUEUE.md /scratch/jjyeung/orch_cd/*/READY_QUEUE.md 2>/dev/null | head -n 5

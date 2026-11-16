@@ -1,0 +1,11 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=20682 utc=2026-11-13T12:30:03.638Z kind=commands original_path=(bash command)  -->
+/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B - <<'PY'
+import datetime
+now=datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+M="/home/jjyeung/.claude/projects/-scratch-jjyeung-orch-home-distill/memory/result-vsi-routed-official-20261113.md"
+with open(M,"a") as f:
+    f.write("\nParent CP1 m200 on the same official set (2026-11-13, evalx RESULT 1229Z; files `/scratch/jjyeung/orch_cd/evalx/work/o5130/`; trained layout 32 duplicate, true timing, greedy, thinking on at 16,384): 62.02, and 63.00 at budget 2,048; f17 is 63.79 (CP1 minus f17 -1.77 [-3.70, +0.18] at the trained read). Per task against f17: relative direction +11.4 (86.0 against 74.7), relative distance +7.5; route planning -22.7 (35.1 against 57.7; 43 thinking traces never close; -15.5 at budget 2,048), counting -3.8, absolute distance -2.5, object size -3.4. Routed around the parent: 63.70 strict at the frozen setting (+1.68 [+0.89, +2.48]), 64.00 with fallback at baseline proposals (+1.98 [+1.22, +2.74]); absolute distance 50.91 direct against about 63.3 routed with fallback (+12.4). So LEG-S1's parent starts about 1.8 points below f17 on the official set, strongest on direction and weakest on route planning; routing adds about the same to either student. The open bar at this size is about 75 ([[sota-bars-9b-20261109]]).\n")
+with open("/scratch/jjyeung/orch_cd/ORCH_HANDOFF.md","a") as f:
+    f.write(now+" orch-home-distill-79: evalx (s17) RESULT 1229Z: PARENT CP1 m200 ON OFFICIAL VSI-BENCH 5,130 (1-18 GPUs 2 and 3, 11:31-12:24Z, 1.7 GPU-h, 0 errors): 62.02 at ON16k (63.00 at B2048, 63.09 at B4096) vs f17 63.79 (-1.77 [-3.70, +0.18]); CP1 leads rel direction +11.4 and rel distance +7.5; trails route planning -22.7 (43 unclosed traces), counting -3.8, abs distance -2.5, size -3.4. Routed around the parent: strict frozen 63.70 (+1.68 [+0.89, +2.48]); fallback baseline 64.00 (+1.98 [+1.22, +2.74]); abs distance 50.91 -> 63.49 with fallback. Memory file result-vsi-routed-official-20261113.md extended.\n")
+PY
+date -u +%T

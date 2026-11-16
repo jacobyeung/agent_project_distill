@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=34098 utc=2026-11-14T23:18:04.031Z kind=commands original_path=(bash command)  -->
+echo "- $(date -u +%Y-%m-%dT%H:%MZ) evalx(24) RESULT 2317Z: NATIVE PILOT 7 submitted once = job 169670 on advanced (token eb3422001, family 2d35df00, step 544) after the controller-local control-namespace adapter (5 filesystem tests incl. real extra/missing payload refusals; 66 rows pass). IF8 169652 at step 71 at 23:16Z." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

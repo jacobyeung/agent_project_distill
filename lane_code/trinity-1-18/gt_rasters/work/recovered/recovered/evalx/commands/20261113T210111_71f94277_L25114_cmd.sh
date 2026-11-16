@@ -1,0 +1,28 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=25114 utc=2026-11-13T21:01:11.647Z kind=commands original_path=(bash command)  -->
+N=$(date -u +%Y%m%dT%H%MZ); C=/scratch/jjyeung/orch_cd; cat > $C/leg_s1_canary/inbox/${N}_ORCH_ORDER_state_copy_confirmation_two_transport_fixes.md <<'EOF'
+# ORCH order: confirmation is RUN for the cheap variant and RUN for the full copy after an accepted cheap run; make two transport fixes now
+
+Result: `/scratch/jjyeung/orch_cd/leg_s1_review/STATE_COPY_CONFIRMATION.md` (24 lines; read it in full). Both HIGH fixes hold; rates, start rule, names, time limit and the byte-identical validator are confirmed; 78 of 78 fixtures pass; with today's facts the full copy would be admitted with at least 2.0 TB of disk headroom. No finding can disturb the trainer; each only loses a result or blocks a run.
+
+Fix these two before the cheap run, as a small diff on the operator-side transport only (the node helper stays byte-identical; say so with hashes), each with a test:
+
+1. **MEDIUM-2 (`operator_transport.py:308`, inherited at `:204`):** the worker's `srun` inherits the 512 MiB address-space limit and Slurm passes it on to the step, so `srun` itself may fail under it. Reset the limit for the `srun` child; the helper applies its own limit inside the step.
+2. **MEDIUM-1 (`operator_transport.py:300`, `live_entry.py:188`):** `unpack_fetch` refuses any nonzero exit, so a NOT_ACCEPTED record and the memory discovery report never reach the operator; and with no finite memory limit the cheap run stops before measuring anything, although my 2041Z ruling expects its other measurements. Let the fetch return the record for every exit code, clearly labelled, and let the cheap run complete its measurements and its copy when no finite limit is found, reporting that fact (full mode stays blocked on it). If changing `live_entry.py` alters the node bundle's hash, say so; that part then needs my diff read too.
+
+LOW items after the cheap run, not now, except this one because it can lose a result: `live_entry.py:471-474`, a memory alarm during cleanup turning a printed success into exit 1. Fix it in the same diff if it is a few lines.
+
+The full copy's two acceptance conditions go into the operator file as explicit lines of the cheap run's acceptance record: (a) the memory limit the helper watches belongs to the cgroup that holds the trainer, not only to the helper's own step; (b) `srun` completed under the limits it was given.
+
+Post one RESULT with the diff file and the new hashes; I read the diff myself and then give the operator its order for the cheap run, for the window after the step-100 export and the next save (about 21:50Z).
+EOF
+cat > $C/orchard_cp2/inbox/${N}_ORCH_NOTE_prepare_for_state_copy_cheap_run.md <<'EOF'
+# ORCH note: prepare for the cheap state-copy run; do not run anything yet
+
+Thank you for the donor scan and the post-scan check. Next inside the job, after step 100's export and the following ordinary save have completed (the save is due about 21:45Z), comes the **cheap variant of the state copy**: the job's `inputs/` folder, `binding.json` and the checkpoint's small records (about 2.7 GB) archived on the node's private disk and uploaded to GCS through the kit's own uploader, as a live rehearsal of the whole path. It has passed an independent safety check and a confirmation (`/scratch/jjyeung/orch_cd/leg_s1_review/STATE_COPY_SAFETY.md`, `STATE_COPY_CONFIRMATION.md`). Two small transport fixes are being made now; the final operator procedure and my written order follow. No order exists yet.
+
+Prepare meanwhile, without running or minting anything:
+- Read the operator procedure of the current bundle: `/scratch/jjyeung/orch_cd/leg_s1_canary/out/STATE_COPY_OPERATOR_169097_20261113T2049Z_0cc93187.json` (it will be re-issued with the fixes; the shape stays). Tell me if any step in it cannot be done with your access path or your minting tool.
+- Minting: it asks for sessions for fresh object names under a new prefix, each name carrying the run, the checkpoint step and an attempt nonce; you mint only names absent from your tool's local map and record them. Create-only is not required (my ruling to the lane). Say how long minting five sessions takes.
+- Step 100 first: its export RESULT, attestation in the step-1 form and identity to `evalx/inbox/` remain your priority around 21:35Z.
+EOF
+T=$(date -u +%Y-%m-%dT%H:%M:%SZ); echo "$T orch-home-distill-79: STATE-COPY CONFIRMATION (Claude Opus high; leg_s1_review/STATE_COPY_CONFIRMATION.md): cheap variant RUN; full copy RUN after an accepted cheap run whose record shows (a) the watched memory limit belongs to the trainer's cgroup and (b) srun completed under its inherited limits. HIGH-1 and HIGH-2 hold (full copy would be admitted with >= 2.0 TB disk headroom today); T = 1,604 s, 3T = 4,813 s recomputed; validator byte-identical; 78/78 fixtures. MEDIUM-1: fetch refuses nonzero exits (NOT_ACCEPTED and memory report never reach the operator; no finite limit stops the cheap run before measuring). MEDIUM-2: the worker's srun inherits the 512 MiB address-space limit and may fail. Feasibility: full copy fits its 40-min step only if the cheap run measures >= ~170 MB/s on one upload stream and ~141 GB of memory headroom. ORDERED the two transport fixes from leg_s1_canary ($N); operator told to prepare (read the procedure, minting time) but not to run." >> $C/ORCH_HANDOFF.md; echo done $N

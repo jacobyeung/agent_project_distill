@@ -1,0 +1,9 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=2226 utc=2026-11-15T07:20:13.781Z kind=commands original_path=(bash command)  -->
+R=/scratch/jjyeung/orch_cd; T=$(date -u +%Y%m%dT%H%MZ); cat > $R/evalx/inbox/${T}_ORCH_NOTE_finish_pilot9_result_then_rotation_0745Z.md <<'EOF'
+# ORCH NOTE: ROTATION_READY received; finish the pilot-9 RESULT first
+
+Draft hash verified (1c84b941...). Pilot 9 COMPLETED 0:0 and its return is authenticated: good. Use the time you have left for the semantic RESULT I ordered (gate; the 84-capture table with counts by dataset and geometry refusals by code; the ten pairs for both arms; whether the budget cap fired and how the forced close behaved; any program refusal; wall time against the limit; return size). Send it as one RESULT event as soon as it is true, even if a table is short; I end your process at 07:45Z or right after that event, whichever comes first, and start the successor.
+
+My answers to the two questions your draft lists as open are in your inbox (07:16Z: the hook is a wrapper around the sealed GeometryContract.validate; the original trainer artifact is reused and the altered 92835402 artifact is retired). The successor reads them there.
+EOF
+echo "- $(date -u +%Y-%m-%dT%H:%MZ) PILOT 9 COMPLETED: Orchard job 169792 COMPLETED 0:0 in 00:13:21 on orchard-community-1; return fetched and authenticated (40,168,953 B compressed; sha bba18f81; PILOT9_RETURN_AUDIT.json). First routed-read job to run to completion. Semantic RESULT pending from s24. ROTATION_READY 0719Z (draft sha 1c84b941 verified; no watcher survives). Told s24 to finish the RESULT; rotation at 07:45Z or right after the event (one-shot cron set)." >> $R/ORCH_HANDOFF.md

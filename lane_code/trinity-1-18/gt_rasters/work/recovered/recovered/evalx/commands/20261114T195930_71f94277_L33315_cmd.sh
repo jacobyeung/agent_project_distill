@@ -1,0 +1,12 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=33315 utc=2026-11-14T19:59:30.154Z kind=commands original_path=(bash command)  -->
+S=/tmp/claude-25409/-scratch-jjyeung-orch-home-distill/71f94277-362e-467c-a4bc-ccc9ae6b87c8/scratchpad; (cd /home/jjyeung/agent_project_distill && bash /scratch/jjyeung/orch_cd/orch_tools/devin_bg_acp.sh /home/jjyeung/agent_project_distill /scratch/jjyeung/orch_cd/evalx/BRIEF_SUCCESSOR24_DRAFT.md gpt-6-astra-max 43200 /scratch/jjyeung/orch_cd/evalx/stdout_s24.out) 2>&1 | tail -n 3; sed -i 's#evalx/BRIEF_SUCCESSOR23.md#evalx/BRIEF_SUCCESSOR24_DRAFT.md#' $S/LANES $S/lanewatch.sh; grep -n "evalx" $S/LANES $S/lanewatch.sh | cut -c1-160; N=$(date -u +%Y%m%dT%H%MZ); cat /scratch/jjyeung/orch_cd/leg_s1_review/ORDER_ROUTED_READER_FIX_AFTER_PILOT6.md > /scratch/jjyeung/orch_cd/evalx/inbox/${N}_ORCH_ORDER_routed_reader_fix_after_pilot6.md; cat > /scratch/jjyeung/orch_cd/evalx/inbox/${N}_ORCH_NOTE_to_successor_24.md <<EOF
+# ORCH note to successor 24
+
+You were launched at about $(date -u +%H:%MZ) with BRIEF_SUCCESSOR24_DRAFT.md (sha256 b7edf613...) unchanged. Two things changed since that brief was written:
+
+1. I closed and recreated the shared Orchard master at 19:59:14Z (new master pid 4115570, \`ssh -O check\` reports it running). The connection gate is clear. Its lifetime is about 12 hours; only I recreate it.
+2. The routed read's hold is lifted for one piece of work: the order \`inbox/${N}_ORCH_ORDER_routed_reader_fix_after_pilot6.md\`. The independent debugger's record it cites is complete. Start with it now; it is the only open task.
+
+Keep your context small as the brief says: read the debugger's record once, then work from the order.
+EOF
+echo "- $(date -u +%Y-%m-%dT%H:%MZ) ROTATION: evalx s23 posted ROTATION_READY 19:57Z (draft sha b7edf613) and exited; all its jobs terminal (169605 pilot 6 handled; 169530 P0 COMPLETED 0:0 after 3 h 08 min, 300 steps, return delivered to if_p0; 169526 accepted). Shared Orchard master cycled: old closed, NEW master pid 4115570 at 19:59:14Z (expires ~07:59Z 11-15). Launched evalx successor 24 (43200 s). Order placed: evalx/inbox/${N}_ORCH_ORDER_routed_reader_fix_after_pilot6.md (one shared candidate list; 2,048+64 budget via logits processor; call_limit capped; ground_queries digest; unit-split reporting; bind step-544 export if pins-only; CPU replay + tests + pin list; independent review; pilot 7 on advanced)." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

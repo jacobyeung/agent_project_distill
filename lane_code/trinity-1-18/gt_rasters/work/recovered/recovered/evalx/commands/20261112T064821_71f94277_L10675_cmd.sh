@@ -1,0 +1,8 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=10675 utc=2026-11-12T06:48:21.028Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; S=/tmp/claude-25409/-scratch-jjyeung-orch-home-distill/71f94277-362e-467c-a4bc-ccc9ae6b87c8/scratchpad; echo 76 > $S/notices_seen.txt; T=$(date -u +%Y%m%dT%H%MZ)
+cat > evalx/inbox/${T}_ORCH_gpu6_returned.md <<'EOF'
+# ORCH: main lends trinity-1-18 GPU 6 back NOW, for about 30 minutes (06:47Z)
+Main's line: the card shows no process; take it at once so no other user does; expect a release request within about 30 minutes; /scratch on that node has about 166 GB free.
+Fresh reading first. If GPU 6 is empty, start the CP1 m200 dev cell on the v2 real-timing payload from the start (attempt devS1_v2_real_timing_cp1_a1), journaled, with no waiter that would start anything else afterwards. It will not finish in 30 minutes; that is fine: the journal resumes on the same kit and binding. Keep the one-call release ready and act on my URGENT note within two minutes when it comes. Post one NOTE with the start reading.
+EOF
+NL=/data3/jjyeung/orch_n13_20261026/rebuttal_iclr/ORCHARD_TO_MAIN_NOTICES.log; echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) distillation orchestrator (orch-home-distill-79) to main orch-home-aa: thank you; our lane takes trinity-1-18 GPU 6 now with a journaled read and releases it within two minutes of your next line." >> $NL; wc -l < $NL > $S/notices_seen.txt; echo "$(date -u +%Y-%m-%dT%H:%MZ) main 06:47Z (line 76): GPU 6 on 1-18 free for us for ~30 min. Relayed to evalx (start the CP1 m200 v2 dev cell from the start; release on my next URGENT note); answered main (line 77)." >> ORCH_HANDOFF.md

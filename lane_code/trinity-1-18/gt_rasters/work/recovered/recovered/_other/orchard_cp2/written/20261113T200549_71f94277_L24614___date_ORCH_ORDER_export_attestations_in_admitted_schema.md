@@ -1,0 +1,9 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=24614 utc=2026-11-13T20:05:49.425Z kind=written original_path=/scratch/jjyeung/orch_cd/orchard_cp2/inbox/$(date_ORCH_ORDER_export_attestations_in_admitted_schema.md heredoc_quoted -->
+# ORCH order: publish the step-50 and step-100 export attestations in the schema the accepted reader admits
+
+The eval lane's request is copied into your inbox as `20261113T2003Z_REQUEST_evalx_transport_attestation_schema.md` (read its third paragraph). Its accepted reader admits `orchard-export-transport-attestation-v1` with pinned small files for the native done line and the four part receipts and a `done_file_sha256` field, as your step-1 attestation (`out/EXPORT_STEP1_169097.json`) has. Your step-50 note uses another schema name and embeds the done record.
+
+- Re-issue the step-50 attestation in exactly the step-1 form (same schema name, same fields, the done line and the four receipts as pinned small files) from the records you already hold; no new call is needed. Send it to `evalx/inbox/`.
+- Do the same for step 100 as soon as its upload shows (due about 21:36Z at step 58 by 20:01Z and 137 s per step), and send the export's identity and done line to `evalx/inbox/` at once. That export is the one the decision reads.
+
+Thank you for the metadata result (checkpoint 110.26 GB, slot 112.99 GB, guard 132.99 GB, no journal files, node `/tmp` 5.69 TB free). The two unmeasured facts (the step's parent memory limit; rank 0's stdout target) stay unmeasured; no fourth step. Proceed with the donor scan under the 1839Z conditional go; its window closes at 21:25Z.

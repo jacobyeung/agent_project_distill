@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=19143 utc=2026-11-13T10:27:46.662Z kind=commands original_path=(bash command)  -->
+until grep -q '"status": "\(done\|failed\|killed\)"' /scratch/jjyeung/orch_cd/arch_jobs/distill_legs1_src_b01ce449.receipt.json 2>/dev/null; do sleep 20; done; cut -c1-900 /scratch/jjyeung/orch_cd/arch_jobs/distill_legs1_src_b01ce449.receipt.json | tr '\n' ' '; echo; tail -n 3 /scratch/jjyeung/orch_cd/arch_jobs/distill_legs1_src_b01ce449.log | cut -c1-300

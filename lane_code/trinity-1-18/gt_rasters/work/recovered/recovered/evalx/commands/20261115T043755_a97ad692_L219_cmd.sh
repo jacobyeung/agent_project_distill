@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=219 utc=2026-11-15T04:37:55.638Z kind=commands original_path=(bash command)  -->
+R=/scratch/jjyeung/orch_cd; timeout 100 bash $R/orchard_kit/work/ossh.sh orchard 'true'; echo "ossh rc=$?"; ls -la /tmp/cm-okit-orchard 2>&1 | cut -c1-100; echo "== diff"; cat $R/evalx/work/milestone/native_package_s24_05/RUNTIME_DIFF_97f1297b_02.patch; echo; echo "== ORDER form"; cat $R/leg_s1_review/NATIVE_PILOT_CONTROL_eaa37a773/ORDER.md; echo "== REVIEW form"; cat $R/leg_s1_review/NATIVE_PILOT_CONTROL_eaa37a773/REVIEW.json | cut -c1-4000

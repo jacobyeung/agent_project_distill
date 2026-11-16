@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=9027 utc=2026-11-12T02:43:11.769Z kind=commands original_path=(bash command)  -->
+bash /tmp/claude-25409/-scratch-jjyeung-orch-home-distill/71f94277-362e-467c-a4bc-ccc9ae6b87c8/scratchpad/tick.sh; tail -n 3 /scratch/jjyeung/orch_cd/orchard_cp2/work/rt/gov/mdg_chain*.log 2>/dev/null | cut -c1-220; grep -E "orchard_cp2_push|\| running" /data3/jjyeung/orch_n13_20261026/io_governor/STATE.md | cut -c1-230

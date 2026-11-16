@@ -1,0 +1,28 @@
+ARKit timing is complete; native phase checks await explicit heavy-I/O approval.
+
+The new manifest is K1_MANIFEST.arkit_timing.json, SHA256 91a2dbf9a0bdad1a45af44a5a3a2607d40f9f7a630f742fc4531544c00cade7c. Its input remains unchanged at c3bbc378d659567c37dbb8aa12e5ab5f54fe23e40c2bd2dc198ab3d62d372380. OUTPUT_AUDIT.json confirms that only fps, timestamps and total_num_frames change within the 162 ARKit captures. The other 138 captures, flags, frame pins, inventory and GPU settings are unchanged.
+
+All 87 covered captures exactly match the actual student reader for all three timing fields. AGREEMENT_87.tsv gives one row per capture. TIMING_VALIDATION.json includes both complete 32-timestamp arrays, field comparisons, reader proofs and diagnostics. The sealed frame-rate file matches SHA256 36ae882f936ebc7a7d1a7651b5c53056c07d39ff552b2368a5c1e8068568d422. SOURCE_PINS.json identifies the evidence and code. Both imported reader files match the input manifest's reader pins.
+
+All 75 uncovered captures pass Frames.resolve and patch_times through the unchanged finalize_k1.py adapter. DERIVED_75.tsv contains every capture's fps, count, 32 timestamps, reader verdict, implied rates and gap counts. DERIVED_75.json also contains all sampled intervals and absolute source timestamps. All 162 captures have nominal fps 10.0. The uncovered count lower bounds range from 331 to 3242.
+
+The derivation takes the median adjacent index/time slope independently on plan dense indices, WA dense indices, plan anchors and WA anchors. Each median must be within 0.5% of a positive integer, and all four integers must agree. It rounds to that nominal rate; it does not claim the measured clock rate equals exactly 10 Hz. The rule is tested against the 87 sealed captures before any uncovered capture is derived or any manifest is constructed. A disagreement returns no manifest. The actual reader then checks every candidate.
+
+The reader computes timestamps as index/fps and total_num_frames as max(anchor_indices)+1 when no raw_n plan is supplied, exactly as finalize_k1.py uses the sealed authority. This count is an ordinal lower bound, not a full archive count. WA n_members refers to a separate roughly 60-Hz archive grid and cannot replace the reader's count. Fetch-plan targets and WA source_ts agree with dt_ms and the fetcher's timestamp tolerance. The token map uses the first row per canonical.
+
+The uncovered plan-dense median rates range from 10.003953228866928 to 10.004187895982092; WA-dense medians range from 9.999999999989607 to 10.00769822941441. Every one of the 4725 observed dense intervals and 2325 anchor intervals is longer than 1.5 nominal periods because these are sparse samples. These spans are explicitly reported, not counted as missing source frames. No interval has excess elapsed time above its index-implied duration greater than 1.5 periods (0.15 seconds). The maximum uncovered WA dense excess is 0.0659999999996217 seconds. Sparse metadata cannot establish whether unobserved archive intervals contain gaps. TIMELINE_SUMMARY.json gives all four sample-set summaries.
+
+Timing provenance lives in k1_finalize.timing.timing_source, keyed by canonical capture: d12_mp4=138, frame_rates_07ca49df=87, derived_wa_validated=75. Existing per-capture timing_source fields are preserved to satisfy the restriction that only the three timing values may change capture digests. The top-level map is authoritative; legacy per-capture ARKit timing_source values remain null strings. The manifest explicitly documents this distinction.
+
+The WA pixel hashes differ from the current manifest at 2200 ARKit entries. Timing validation does not revalidate those substituted pixels or change their pins. The native checks must still hash the actual staged frames. Receipt admission flags retain their existing scope and values.
+
+Ten tests passed in 2.606 seconds. TEST_OUTPUT.txt preserves the complete output. Tests cover a one-ULP disagreement on one covered capture (all uncovered work and publication blocked), a planted gap through the complete derivation, sparse interval handling, reader rejection of corrupted timestamps, output exclusivity, write boundaries, first-token selection, malformed dt_ms, invalid rates and bounded manifest edits. The exclusive-creation fixture is retained because file deletion is prohibited. arkit_timing.py and test_arkit_timing.py contain the complete code; CODE_FULL.txt combines both.
+
+Native check_manifest results: own NOT RUN; tower_sam NOT RUN. PHASE_CHECKS.pending.json records that explicit approval is pending. No observed GPU-setting refusal is claimed or quoted. The checks use the unchanged kc kit through finalize_k1.check_phases; they will rehash thousands of frame files plus model weights. The cluster rule states, "Ask before any heavy IO command." The required frame and tower-weight reads also extend outside the named read-only directories, under /scratch/jjyeung/k1_frames and /scratch/jjyeung/k1/g3t. The approval question names both checks and these reads.
+
+After explicit approval, run from this directory:
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 CUDA_VISIBLE_DEVICES='' /scratch/jjyeung/envs/sam3_capretry_native_v1/bin/python -B arkit_timing.py --check-phases K1_MANIFEST.arkit_timing.json
+
+This command performs metadata/hash checks only and writes PHASE_CHECKS.json exclusively. It does not execute the own phase. A second reader is still required before any own-phase execution. No Git, SSH, GPU execution, network request, deletion or write outside this build directory occurred.
+
+SHA256SUMS lists the deliverable hashes. The no-archaeology skill governed this report. No borderline history-only sentences were retained.

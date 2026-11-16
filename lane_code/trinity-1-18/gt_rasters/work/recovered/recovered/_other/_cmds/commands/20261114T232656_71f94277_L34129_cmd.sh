@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=34129 utc=2026-11-14T23:26:56.090Z kind=commands original_path=(bash command)  -->
+echo "- $(date -u +%Y-%m-%dT%H:%MZ) Queue watcher fired (23:26Z): main's request queue carries a USER-RULING of 2026-11-14 (rebuttal session, ~05:50-08:30 PT): priority = Gemma-4-31B and Qwen3.6-27B VSIBench ground-truth runs with fixed tools (r3141, r3140) on local GPUs; original-SPLIT timing cancelled. No request to distillation; our jobs are on Orchard only. Watcher re-armed." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

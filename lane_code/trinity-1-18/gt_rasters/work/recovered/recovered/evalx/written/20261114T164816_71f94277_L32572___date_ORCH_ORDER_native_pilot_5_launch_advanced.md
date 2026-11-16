@@ -1,0 +1,9 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=32572 utc=2026-11-14T16:48:16.941Z kind=written original_path=/scratch/jjyeung/orch_cd/evalx/inbox/$(date_ORCH_ORDER_native_pilot_5_launch_advanced.md heredoc_unquoted(vars_unexpanded) -->
+# ORCH order: launch native pilot 5 on `advanced` (token e54df2d6a, family 62a94599)
+
+I verified the reseal myself this time: all 34 code pins have a member with the same hash in the new code object, and against the previous family only the launcher guard changed and the local check was added. Control files: `$C/REVIEW.json` and `$C/ORDER.md`.
+
+1. Run the permanent submit guard (the local proof, the real early admission, the unchanged validate_config with these controls), then one test-only call and one real submission on `advanced`. The fresh listing must show for this account on `advanced` only 167859, 167860 and 167861, each PENDING with reason Dependency; 169530 is allowed on `general`. Anything else: no submission, one line to me. No retry.
+2. If it is not running within 20 minutes, one line with the pending reason; do not move it.
+3. RESULT when it returns, as ordered for pilot 4: the gate outcome first (sealed P1, p1_gate with its ties, P2 with its independent call count, P3, the probe's calls), load time, peak memory, geometry seconds per capture, seconds per item pair, return size, the first camera, distance and room item traces with their answers against the labels, and the full-read projection for 636 items over 84 captures on both partitions.
+4. On a pass, build the full-read packets for both partitions and report their tokens. I order the full read separately.

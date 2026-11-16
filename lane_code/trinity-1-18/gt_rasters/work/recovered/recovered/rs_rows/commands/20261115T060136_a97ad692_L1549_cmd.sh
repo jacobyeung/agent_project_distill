@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=1549 utc=2026-11-15T06:01:36.664Z kind=commands original_path=(bash command)  -->
+R=/scratch/jjyeung/orch_cd; cut -c1-900 $R/rs_rows/events/20261115T0600Z_RESULT_r2_own_families.md | head -16; F=$R/rs_rows/out/SAMPLES_R2.md; wc -lc $F 2>/dev/null; grep -n '^## ' $F 2>/dev/null | head -20

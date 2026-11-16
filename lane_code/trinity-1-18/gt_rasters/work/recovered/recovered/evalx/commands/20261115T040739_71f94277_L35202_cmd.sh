@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=35202 utc=2026-11-15T04:07:39.454Z kind=commands original_path=(bash command)  -->
+cut -c1-1500 /scratch/jjyeung/orch_cd/evalx/events/20261115T0406Z_EVALX_BLOCKER_full_CPU_tmux_lost_server.md | head -40; echo ---; ls -t /scratch/jjyeung/orch_cd/evalx/events | head -3; ls -ld /tmp/tmux-$(id -u) 2>&1 | cut -c1-120; ls /tmp/tmux-$(id -u) 2>&1 | head -5; pgrep -u jjyeung -a tmux | cut -c1-160 | head -5

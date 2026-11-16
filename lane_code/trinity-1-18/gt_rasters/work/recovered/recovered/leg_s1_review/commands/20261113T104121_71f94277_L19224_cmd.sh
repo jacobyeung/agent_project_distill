@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=19224 utc=2026-11-13T10:41:21.130Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd/leg_s1_fourstream_kit/template; grep -n "attestation\|reviewer\|verdict\|admission_scope\|reviewed_utc\|note" b/g.py b/d.py b/a.py 2>/dev/null | cut -c1-260 | head -n 30; grep -n "stale\|world8\|5cc11620" /scratch/jjyeung/orch_cd/leg_s1_review/CONFIG_BINDING_CHECK_a7ad7051.md | cut -c1-300 | head -n 8; sha256sum /scratch/jjyeung/orch_cd/leg_s1_review/CONFIG_BINDING_CHECK_a7ad7051.md | cut -c1-64

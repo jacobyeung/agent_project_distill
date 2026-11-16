@@ -1,0 +1,26 @@
+Independent review: /root/second_reader
+
+Verdict: approve the two SAM device-move inference_mode guards. No blocking code findings.
+
+The reviewer inspected the patch, source lifecycle, dependency migration, CPU
+regression implementation and results. Original code failed three cases with the
+exact version-counter error; patched code passed all seven. Offload-only and
+reload-only tests independently establish the need for both guards. The tests
+exercise real GPU boundary methods, lazy Sam3Tower loading, Module._apply, and
+the actual get_abs_pos function extracted from the SAM source.
+
+Capture 1 never enters either modified branch. Fixture features, detections and
+parameters are exactly equal. Four capture cycles pass. G3T already loads and
+moves under inference mode and is reconstructed each capture. Own models load
+normally and use no_grad; leave their moves unchanged. Convert moves no models.
+
+All 108 pins remain: 93 kit paths move to kc; 15 actual external dependencies
+retain their paths. Only boundaries.py changes hash.
+
+Operational finding: source-identity checks reject pre-patch phase receipts
+because boundaries.py is included. Use fresh phase roots and artifacts under
+the patched source identity; do not relabel old receipts.
+
+Review limitation: no real CUDA/checkpoint execution. The reviewer observed the
+existing test_kit.py setup failure caused by missing SciPy. Approval applies to
+the patch, not to a claim that the full existing CPU suite passed or to a relaunch.

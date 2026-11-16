@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=6585 utc=2026-11-11T20:43:19.734Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; sed -n 1,7p frontier_read/STATUS.md | cut -c1-700; pgrep -u jjyeung -af "[r]un_frontier.py" | cut -c1-150; tail -n 3 frontier_read/devin.out 2>/dev/null | cut -c1-300; ls -t frontier_read/out/devin_traces 2>/dev/null | head -2

@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=19527 utc=2026-11-13T11:05:18.961Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; sed -n '531,534p;718p' evalx/STATUS.md | cut -c1-420; ls -la evalx/work/trin_vl/tssh_long.sh 2>/dev/null | cut -c20-120; sed -n '1,25p' evalx/work/trin_vl/tssh_long.sh 2>/dev/null | cut -c1-200

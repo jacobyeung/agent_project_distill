@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=546 utc=2026-11-15T04:58:40.813Z kind=commands original_path=(bash command)  -->
+R=/scratch/jjyeung/orch_cd; sed -n '196,232p' $R/codex_local/agent/scripts/codex_dispatch.sh | cut -c1-200; echo "== which"; command -v codex; type codex 2>&1 | head -5 | cut -c1-200

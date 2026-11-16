@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=5532 utc=2026-11-11T17:36:54.120Z kind=commands original_path=(bash command)  -->
+echo "$(date -u +%Y-%m-%dT%H:%MZ) evalx RESULT 1736Z: THINK-0 budget CP1 m200 variant built (work/diag_d32_cp1, 44/44 CPU tests, model view on 1-18 by symlinks, sha-checked, no weights copied); dry runs pass for 1 and 2 cards. Runs first at release, then T0 m800." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

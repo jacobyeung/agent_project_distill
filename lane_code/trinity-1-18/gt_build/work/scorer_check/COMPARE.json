@@ -1,0 +1,348 @@
+{
+ "thresholds": {
+  "n_raw": 10.999999999999998,
+  "n": 10,
+  "authority": [
+   0.5,
+   0.55,
+   0.6,
+   0.65,
+   0.7,
+   0.75,
+   0.8,
+   0.85,
+   0.8999999999999999,
+   0.95
+  ],
+  "surviving": [
+   0.5,
+   0.55,
+   0.6,
+   0.65,
+   0.7,
+   0.75,
+   0.8,
+   0.8499999999999999,
+   0.8999999999999999,
+   0.95
+  ],
+  "bitwise_equal": [
+   true,
+   true,
+   true,
+   true,
+   true,
+   true,
+   true,
+   false,
+   true,
+   true
+  ],
+  "one_minus_authority": [
+   0.5,
+   0.44999999999999996,
+   0.4,
+   0.35,
+   0.30000000000000004,
+   0.25,
+   0.19999999999999996,
+   0.15000000000000002,
+   0.10000000000000009,
+   0.050000000000000044
+  ],
+  "one_minus_surviving": [
+   0.5,
+   0.44999999999999996,
+   0.4,
+   0.35,
+   0.30000000000000004,
+   0.25,
+   0.19999999999999996,
+   0.15000000000000013,
+   0.10000000000000009,
+   0.050000000000000044
+  ]
+ },
+ "grid": {
+  "n_pairs": 13952,
+  "n_diff": 1737,
+  "pairs_by_class": {
+   "target_zero": 1736,
+   "target_negative": 1742,
+   "target_positive_finite": 6944,
+   "nonfinite": 2643,
+   "none": 887
+  },
+  "diff_by_class": {
+   "target_zero": 6,
+   "target_negative": 1725,
+   "target_positive_finite": 6
+  },
+  "diff_examples": {
+   "target_positive_finite": [
+    [
+     1.1500000000000002e-09,
+     1e-09,
+     0.7,
+     0.8
+    ],
+    [
+     0.34500000000000003,
+     0.3,
+     0.7,
+     0.8
+    ],
+    [
+     1.1500000000000001,
+     1.0,
+     0.7,
+     0.8
+    ],
+    [
+     2.55,
+     3.0,
+     0.7,
+     0.8
+    ],
+    [
+     3.45,
+     3.0,
+     0.7,
+     0.8
+    ],
+    [
+     8.05,
+     7.0,
+     0.7,
+     0.8
+    ]
+   ],
+   "target_zero": [
+    [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    [
+     0.0,
+     -0.0,
+     0.0,
+     1.0
+    ],
+    [
+     -0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    [
+     -0.0,
+     -0.0,
+     0.0,
+     1.0
+    ],
+    [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    [
+     0.0,
+     -0.0,
+     0.0,
+     1.0
+    ]
+   ],
+   "target_negative": [
+    [
+     0.0,
+     -1.0,
+     1.0,
+     0.0
+    ],
+    [
+     0.0,
+     -2.5,
+     1.0,
+     0.0
+    ],
+    [
+     -0.0,
+     -1.0,
+     1.0,
+     0.0
+    ],
+    [
+     -0.0,
+     -2.5,
+     1.0,
+     0.0
+    ],
+    [
+     -1.0,
+     -2.5,
+     1.0,
+     0.0
+    ],
+    [
+     -2.5,
+     -1.0,
+     1.0,
+     0.0
+    ]
+   ]
+  }
+ },
+ "random_positive": {
+  "n": 200000,
+  "n_diff": 1054
+ },
+ "parse": [
+  {
+   "input": "None",
+   "authority_to_float": null,
+   "surviving_official_to_float": null,
+   "k1_float": "None passed through"
+  },
+  {
+   "input": "''",
+   "authority_to_float": null,
+   "surviving_official_to_float": null,
+   "k1_float": "raises ValueError"
+  },
+  {
+   "input": "'3'",
+   "authority_to_float": 3.0,
+   "surviving_official_to_float": 3.0,
+   "k1_float": 3.0
+  },
+  {
+   "input": "'3.5'",
+   "authority_to_float": 3.5,
+   "surviving_official_to_float": 3.5,
+   "k1_float": 3.5
+  },
+  {
+   "input": "'-2'",
+   "authority_to_float": 2.0,
+   "surviving_official_to_float": -2.0,
+   "k1_float": -2.0
+  },
+  {
+   "input": "'0'",
+   "authority_to_float": 0.0,
+   "surviving_official_to_float": 0.0,
+   "k1_float": 0.0
+  },
+  {
+   "input": "'abc'",
+   "authority_to_float": null,
+   "surviving_official_to_float": null,
+   "k1_float": "raises ValueError"
+  },
+  {
+   "input": "'3.5 m'",
+   "authority_to_float": 3.5,
+   "surviving_official_to_float": null,
+   "k1_float": "raises ValueError"
+  },
+  {
+   "input": "'<ANSWER>4.2</ANSWER>'",
+   "authority_to_float": 4.2,
+   "surviving_official_to_float": null,
+   "k1_float": "raises ValueError"
+  },
+  {
+   "input": "'about 3 or 4'",
+   "authority_to_float": 4.0,
+   "surviving_official_to_float": null,
+   "k1_float": "raises ValueError"
+  },
+  {
+   "input": "'nan'",
+   "authority_to_float": null,
+   "surviving_official_to_float": null,
+   "k1_float": NaN
+  },
+  {
+   "input": "'inf'",
+   "authority_to_float": null,
+   "surviving_official_to_float": null,
+   "k1_float": Infinity
+  },
+  {
+   "input": "'1e3'",
+   "authority_to_float": 3.0,
+   "surviving_official_to_float": 1000.0,
+   "k1_float": 1000.0
+  },
+  {
+   "input": "True",
+   "authority_to_float": 1.0,
+   "surviving_official_to_float": 1.0,
+   "k1_float": 1.0
+  },
+  {
+   "input": "2",
+   "authority_to_float": 2.0,
+   "surviving_official_to_float": 2.0,
+   "k1_float": 2.0
+  },
+  {
+   "input": "2.5",
+   "authority_to_float": 2.5,
+   "surviving_official_to_float": 2.5,
+   "k1_float": 2.5
+  }
+ ],
+ "aggregate_full": {
+  "authority_overall": 0.509797297297297,
+  "surviving_overall": 0.5097972972972973,
+  "equal": false,
+  "abs_diff": 3.3306690738754696e-16
+ },
+ "aggregate_missing_hard": {
+  "authority_overall": 0.516554054054054,
+  "surviving_overall": 0.5192192192192192,
+  "equal": false,
+  "abs_diff": 0.0026651651651652397
+ },
+ "k1_endpoint_constants": {
+  "n": 120000,
+  "n_diff": 2487,
+  "examples": [
+   [
+    3.774,
+    4.44,
+    0.7,
+    0.8
+   ],
+   [
+    8.601999999999999,
+    10.12,
+    0.7,
+    0.8
+   ],
+   [
+    4.581499999999999,
+    5.39,
+    0.7,
+    0.8
+   ],
+   [
+    6.443,
+    7.58,
+    0.7,
+    0.8
+   ],
+   [
+    9.6985,
+    11.41,
+    0.7,
+    0.8
+   ]
+  ]
+ }
+}

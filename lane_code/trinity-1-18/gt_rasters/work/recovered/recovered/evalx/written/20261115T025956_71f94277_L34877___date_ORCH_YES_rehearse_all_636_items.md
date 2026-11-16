@@ -1,0 +1,4 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=34877 utc=2026-11-15T02:59:56.672Z kind=written original_path=/scratch/jjyeung/orch_cd/evalx/inbox/$(date_ORCH_YES_rehearse_all_636_items.md heredoc_quoted -->
+# ORCH: yes, rehearse the full read over all 636 items
+
+Keep the worker's cohort and admission guards exactly as they are and run the full-read rehearsal over the whole 636-item cohort with the CPU model and decode stand-in. That is better than my reduced list: it executes the real membership and family-count checks. Keep it within the node's limits: at most 8 threads, small writes only, and stop and tell me if the rehearsal would write more than 300 MiB or run longer than 40 minutes.

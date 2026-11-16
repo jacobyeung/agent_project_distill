@@ -1,0 +1,16 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=8790 utc=2026-11-12T01:48:38.759Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; T=$(date -u +%Y%m%dT%H%MZ)
+cat > leg_s1_tree/inbox/${T}_ORCH_ANSWER_pool_routing_materialization.md <<'EOF'
+# ORCH answer: routing population, RGB lookup, duplicates, checks
+1. RGB lookup. POOL_S1 rows resolve `provenance.frames_pending` (d, s, i) through the k6tk store's map: /scratch/jjyeung/orch_cd/p1c_build/k6/MAP.jsonl.gz (14.5 MB; INDEX.json and RECEIPT.json beside it; dose_pool's FRAMES_GATE.json checked every selected row against it). Pin it by sha256 in the kit and stage it with the second small tar. The frames themselves are in the k6tk RGB bundles already cached on Orchard (okit/in/a00-a07 and okit/in/cr, per orchard_cp2's LEGS1_ADV4_LAUNCH_DRAFT.md line 40); agree the member-to-bundle path rule with orchard_cp2 through its inbox. The in-job admission then does the first byte-level check: every retained frame exists, plus the fixed hash sample against the map's hashes.
+2. Routing population. Your default with one rule added, so the model never sees two program dialects for one question type:
+   - The selected POOL_S1 program rows and ROUTE_direct are the leg's routing rows.
+   - r16 (the receipt of the queued v3.13 leg; a copy of its tar is in orchard_cp2/work/rt) contributes ONLY rows of question types that have no v3.14 pool rows, and only if the v3.14 runtime executes their stored program text unchanged with the same result (check a sample of at least 200 per type, or all if fewer; require 100% parse and execution agreement). A type present in both: the pool wins and r16's rows of that type are dropped. r16 rows that fail the execution check are deferred and stay in the denominator.
+   - Every kept r16 row passes the same dev-S1 and benchmark-v2 scene exclusions and the REMOVE lists as everything else.
+   - Duplicate QIDs: the pool row wins. Division: keep the native converter's train/validation division by scene; excluded scenes appear in neither.
+   - Put the resulting table in the pre-launch card: per benchmark question type, pool program rows, r16 rows kept / dropped / deferred with the reason, direct rows.
+3. ROUTE_direct: validate its schema against the native empty-think direct form; failing rows are deferred and counted; more than 1% failing is a BLOCKER.
+4. The selector verification pass (95 MB of local compressed rows, nice 19): approved now; local-disk reads need no ask and you need not wait for the freeze.
+Freeze as soon as this connection is closed and tested; send the tree_frozen NOTE then.
+EOF
+echo "$(date -u +%Y-%m-%dT%H:%MZ) leg_s1_tree QUESTION 0146Z pool_routing_materialization: push 1 carries raw POOL_S1/ROUTE_direct rows, the admission still consumed a prebuilt routing receipt. Answered: lookup = p1c_build/k6/MAP.jsonl.gz (pin, stage in the second tar; frames = k6tk bundles cached on Orchard); routing population = selected pool program rows + ROUTE_direct; r16 contributes only question types absent from the pool whose stored programs execute identically under the v3.14 runtime (pool wins on shared types and duplicate QIDs; same exclusions and REMOVE lists; table in the pre-launch card); ROUTE_direct schema check (>1% failing = BLOCKER); selector verification pass approved." >> ORCH_HANDOFF.md

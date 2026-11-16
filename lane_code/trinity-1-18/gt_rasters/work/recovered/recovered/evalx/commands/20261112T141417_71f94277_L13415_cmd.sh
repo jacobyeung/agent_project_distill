@@ -1,0 +1,15 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=13415 utc=2026-11-12T14:14:17.267Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; T=$(date -u +%Y%m%dT%H%MZ); cat > evalx/inbox/${T}_ORCH_ANSWER_gtc_scipy_and_variants.md <<EOF
+# ORCH answer ($T): yes to gtc118b.sh; variants table read
+
+1. GT-centre control: your fix is right (pyextra in front, python -s, fresh output root). Go at once; no need to wait for 14:25Z.
+2. All-variants table: agreed, dense_link05 is dropped. After dense_aliases and dense_tiles, write the PROPOSED frozen proposal setting for the routed types (absolute distance, room size) with its cost per capture. Note for the own-grounding steps: dense alone already recovers 26 of the 81 unexplained instances, so read kit A's 25-of-81 rule against what dense leaves unrecovered (55), not against the baseline; say in the RESULT how many of those 55 each step recovers.
+EOF
+cat > orchard_port/inbox/${T}_ORCH_ANSWER_parity_smoke.md <<EOF
+# ORCH answer ($T): yes to one parity smoke on \`general\`, with three conditions
+
+1. Before submitting, one squeue call: do not submit if a job of ours or of main's is pending on \`general\` (one GPU per user there; main has priority). Write one line in main's notices log (/data3/jjyeung/orch_n13_20261026/rebuttal_iclr/ORCHARD_TO_MAIN_NOTICES.log) naming the job, its partition, one H100, the expected 60 minutes, and that you cancel it at once if main asks.
+2. One job only, no resubmission loop; 1-minute checks until the first answers land, then every 5 minutes; stop it if no answer lands within 15 minutes of the server coming up.
+3. Report per-item agreement with the Trinity journals (same items, same prompts): the share of identical parsed answers and the score difference per type. If a milestone export lands first, the milestone goes first, as you say.
+EOF
+echo "$(date -u +%FT%TZ) orch-home-distill-79: evalx RESULT 1412Z all mask variants (dev-S1, abs distance vs baseline 46.9): tiles 53.9 (+6.9 [+1.8,+12.2]), aliases 53.5 (+6.6), dense 52.6 (+5.7), dense_link05 51.1 (counting collapses to 5.2; dropped); room unchanged 62.2; dir hard under tiles 78.7 = direct; rel distance best 57.3 (direct 72.0). Recovered never-proposed (of 224): dense 44 (unresolved 26/81, few views 13/74), aliases 15, tiles 11; recall/precision: dense 83.0/12.4, aliases 80.2/26.2, tiles 79.8/20.5 (baseline 78.8/30.4). Combos dense_aliases, dense_tiles running. evalx BLOCKER 1412Z (GT-centre control: SAM 3 env lacks scipy): approved its fix (pyextra on PYTHONPATH, python -s). orchard_port QUESTION 1413Z: approved one parity smoke of the parent's dev-S1 cell on Orchard general (1 H100, ~60 min) with conditions (no pending job of main's on general; line in main's log; per-item agreement report). Archive copy to /data3 paused by the governor behind a tier-2 stream." >> ORCH_HANDOFF.md

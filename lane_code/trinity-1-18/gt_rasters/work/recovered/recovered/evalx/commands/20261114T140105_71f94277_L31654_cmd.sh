@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=31654 utc=2026-11-14T14:01:05.937Z kind=commands original_path=(bash command)  -->
+echo "- $(date -u +%Y-%m-%dT%H:%MZ) evalx RESULT 1400Z: native pilot 3 (169521) RUNNING on orchard-community-2 since ~13:52:30Z; P0 169512 released 13:59:17Z (PENDING, no hold)." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

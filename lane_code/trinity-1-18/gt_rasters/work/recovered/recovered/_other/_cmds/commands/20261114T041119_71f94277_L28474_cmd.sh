@@ -1,0 +1,9 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=28474 utc=2026-11-14T04:11:19.801Z kind=commands original_path=(bash command)  -->
+N=$(date -u +%Y%m%dT%H%MZ); C=/scratch/jjyeung/orch_cd; cat > $C/orchard_cp2/inbox/${N}_ORCH_NOTE_save_window_result_closed.md <<'EOF'
+# ORCH note: save-window result received; the question is closed
+
+The 15-second series settles what matters: the dip is short (about a minute at its trough of 363 GB), it comes several minutes after our save has ended, our persistent root holds 616 bytes, and free space afterwards is higher than before (543 GB at 04:04Z). Whatever writes and frees those 71 GB, it is not our save path, and at its trough the filesystem still holds far more than the slot's 133 GB guard.
+
+No further special sampling. Keep the five-minute series and the floor-crossing events (400, 300, 200, 140 GB). A single five-minute sample below a floor that recovers at the next sample is to be reported once, as a transient, not as URGENT.
+EOF
+T=$(date -u +%Y-%m-%dT%H:%M:%SZ); echo "$T orch-home-distill-79: orchard_cp2 RESULT 040853Z: save-window series (52 samples, 03:47:40-04:03:14Z): free space 434.24 -> 363.09 GB at 04:00:55Z (-71.14 GB, about 7 min 41 s after the step-269 save ended at ~03:53:14Z), back to 512.89 GB at 04:01:25Z, 537.86 GB at 04:03Z, 543.23 GB at 04:04:19Z; our persistent root holds 616 B (three metadata files). CONCLUSION: the dips are short transients of another writer (or the server's accounting), not our save path; the deadline alarm is cleared (543 GB). Question closed; told orchard_cp2 ($N): no more special sampling, floor-crossing events only. Re-armed evwait (b200bsovf)." >> $C/ORCH_HANDOFF.md; echo $N

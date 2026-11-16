@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=29855 utc=2026-11-14T08:14:50.773Z kind=commands original_path=(bash command)  -->
+C=/scratch/jjyeung/orch_cd/evalx; N=$C/work/milestone/native_fix_s22_01/orchard_native; ls $N | head -n 30; cat $C/out/NATIVE_PILOT_INPUTS_S22.json | cut -c1-1800; echo; grep -n "REVIEW\|launch_line\|LAUNCH\|verdict\|orch_order\|ORCH" $N/native_launcher.py 2>/dev/null | cut -c1-200 | head -n 30

@@ -1,0 +1,61 @@
+[
+  {
+    "name": "regression_original",
+    "command": [
+      "/scratch/jjyeung/envs/sam3_capretry_native_v1/bin/python",
+      "-B",
+      "test_inference_moves.py",
+      "--kit-root",
+      "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a"
+    ],
+    "returncode": 1,
+    "expected_returncode": 1,
+    "log": "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_samfix/receipts/regression_original.log"
+  },
+  {
+    "name": "regression_patched",
+    "command": [
+      "/scratch/jjyeung/envs/sam3_capretry_native_v1/bin/python",
+      "-B",
+      "test_inference_moves.py",
+      "--kit-root",
+      "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_samfix/scratch_kit"
+    ],
+    "returncode": 0,
+    "expected_returncode": 0,
+    "log": "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_samfix/receipts/regression_patched.log"
+  },
+  {
+    "name": "test_kit",
+    "command": [
+      "/scratch/jjyeung/envs/sam3_capretry_native_v1/bin/python",
+      "-B",
+      "scratch_kit/native_kit/test_kit.py"
+    ],
+    "returncode": 1,
+    "expected_returncode": 0,
+    "log": "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_samfix/receipts/test_kit.log"
+  },
+  {
+    "name": "test_guards",
+    "command": [
+      "/scratch/jjyeung/envs/sam3_capretry_native_v1/bin/python",
+      "-B",
+      "scratch_kit/native_kit/test_guards.py"
+    ],
+    "returncode": 0,
+    "expected_returncode": 0,
+    "log": "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_samfix/receipts/test_guards.log"
+  },
+  {
+    "name": "verify_scratch_sources",
+    "command": [
+      "/scratch/jjyeung/envs/sam3_capretry_native_v1/bin/python",
+      "-B",
+      "scratch_kit/work/verify_sources.py"
+    ],
+    "returncode": 0,
+    "expected_returncode": 0,
+    "log": "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_samfix/receipts/verify_scratch_sources.log"
+  }
+]

@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=19772 utc=2026-11-13T11:26:26.852Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd/evalx; ls -la work/BRIEF_SUCCESSOR17_DRAFT.md 2>&1 | cut -c20-120; ls -t events | head -n 2; head -n 3 work/BRIEF_SUCCESSOR17_DRAFT.md 2>/dev/null | cut -c1-160

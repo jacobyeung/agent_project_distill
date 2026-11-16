@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=27551 utc=2026-11-14T02:12:35.948Z kind=commands original_path=(bash command)  -->
+C=/scratch/jjyeung/orch_cd/leg_s1_canary; ls -d $C/work/*contin* 2>/dev/null | head; F=$(ls -d $C/work/*contin*/ 2>/dev/null | head -n 1); ls $F | head -n 20; echo ---; E=$(ls $C/work/*contin*/entry.sh 2>/dev/null | head -n 1); sha256sum $E | cut -c1-16; sed -n '1,22p' $E | cut -c1-220; echo ...; sed -n '44,70p' $E | cut -c1-220

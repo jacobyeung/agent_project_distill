@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=25404 utc=2026-11-13T21:24:08.715Z kind=commands original_path=(bash command)  -->
+C=/scratch/jjyeung/orch_cd; ls -d $C/posediag* $C/pose_diag* 2>/dev/null | head; grep -n -o -E "/scratch/[A-Za-z0-9_./-]+" /data2/jjyeung/agent_project_data/distill_design/POSE_PLATEAU_DIAGNOSIS_20261109.md | sort -u | head -n 12; df -BG --output=avail /scratch | tail -n 1; ls -la /tmp/cm-okit-orchard 2>&1 | cut -c1-70; ls -t $C/orchard_cp2/events | head -n 2; ls -t $C/evalx/events | head -n 1

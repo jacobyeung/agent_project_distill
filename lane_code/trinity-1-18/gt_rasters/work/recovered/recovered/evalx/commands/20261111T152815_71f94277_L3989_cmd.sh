@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=3989 utc=2026-11-11T15:28:15.397Z kind=commands original_path=(bash command)  -->
+echo "$(date -u +%Y-%m-%dT%H:%MZ) evalx RESULT 1528Z: EVALX_RANKS (shards across nodes) built in kit aws_vl64o with merge_shards refusing a missing shard; 6/6 shard tests + 6/6 frame tests; plan A (4 cards on one node) unchanged; host B needs t0m800 + videos (about 23 GB over IB) first." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

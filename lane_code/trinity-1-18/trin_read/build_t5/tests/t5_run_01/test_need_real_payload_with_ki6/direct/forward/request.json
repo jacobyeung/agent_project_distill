@@ -1,0 +1,104 @@
+{
+  "binding": "0647706fe59ab8d7ba62c3cb2d63def85bed365f748c84e01f1f8430a48a8f4a",
+  "build_only": true,
+  "cells": [
+    {
+      "benchmarks": [
+        "devrows"
+      ],
+      "decoding": "greedy",
+      "frames": 32,
+      "layout": "duplicate",
+      "max_tokens": 16384,
+      "model": "cp1m200",
+      "name": "devS1_v3_forward_twins_real_timing_cp1m200",
+      "thinking": true
+    }
+  ],
+  "datasets": [
+    {
+      "benchmark": "devrows",
+      "rows": {
+        "path": "/scratch/jjyeung/orch_n30/evalx27/work/pull/x27c/r2/sj/orch_cd/legs1_reads/work/vendor/r4/DEV_FORWARD_TWINS/TASKS.jsonl",
+        "sha256": "4d6c3a9411d091d1f583a9e308525ca08dec55df05fe7c0a1c7c39e8043239af"
+      }
+    }
+  ],
+  "devs1": {
+    "adapter_sha256": "9ccf84f1a2b9e7b99abf1975a98f67d1ea610cb1acc72728a60c2b2234a6c099",
+    "code_pins_sha256": "4604bacf1289a35754c6a9c66f2d41d8fa9fabd53a67c832b13deeb90c54c402",
+    "fps_rule": "S1-FPS1",
+    "frames_root": "/scratch/jjyeung/orch_n30/trin_read/build_t5/tests/t5_run_01/test_need_real_payload_with_ki6/pulled",
+    "missing_policy": "exclude missing canonical; score unavailable released labels only under canonical view",
+    "model": "cp1m200",
+    "payload": "/scratch/jjyeung/orch_n30/evalx27/work/pull/x27c/r2/sj/orch_cd/legs1_reads/work/vendor/r4/DEV_FORWARD_TWINS",
+    "pins": {
+      "CELL_FAMILY.json": "acab51084ba268f2c125b8c864cdd9b503254389f46ee21a0687f5e881e10f6a",
+      "CELL_ITEMS.json": "0d6bb1f469bf6707b4f21cffa67c5793d4cddde8310cb3f98895fd8a5a25b48b",
+      "EXCLUDED.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "FPS_AUTHORITY.source.json": "36ae882f936ebc7a7d1a7651b5c53056c07d39ff552b2368a5c1e8068568d422",
+      "FPS_RULE.json": "d9af606320e78823fb2e0fa3c80358c77d7e3cdc2326684a501893c04af3094f",
+      "FRAMES.json": "c5e0dad804a59bb6f4932137d129e3a7dc1cf675e6342ff94e36979b7ca29439",
+      "ITEMS.jsonl": "2c608ab969174156823d55cdbf57844d3311cae0b013514a0314cfd3bd7cee8b",
+      "PROMPT_SOURCES.json": "554829c09314a5fc686f99a503d23eb1f6e6b28c3942abca3b74274bb948fe73",
+      "ROWS.jsonl": "11bd4edb3b1aa14f1b54ef3f4eb430cdcbcade0910a4fea389910a1d29ce04c7",
+      "SOURCE_PINS.json": "ee64665df6aaf4ffb4cf53383765a2142e5150a42ea075e0973d18aa14fe512b",
+      "STRATA.jsonl": "7f845055d418e28434480b0c72e3d14ef844dab52d8481cddaddbae2b5b3747f",
+      "TASKS.jsonl": "4d6c3a9411d091d1f583a9e308525ca08dec55df05fe7c0a1c7c39e8043239af",
+      "TIMING_AUTHORITY.json": "7827fb117e158809c59bda741976a872761790bbd2298047ba8c6f33ba72ea43",
+      "WITHHOLD_SCENES.json": "88e1a708e240920fb39e34ede6f47c189be830538388db7a214b60ca258df05e",
+      "cells_cp1m200.json": "4c34c33eed0df666e8efa5c4cc399abe462186931dc3f3d2728cc44813a1bae5",
+      "cells_f17.json": "039b1ae9fe3b56247f176c2332479598eea959cde443dfe97e750d16ac50e705"
+    },
+    "timing_authority_sha256": "7827fb117e158809c59bda741976a872761790bbd2298047ba8c6f33ba72ea43",
+    "timing_version": "devS1_v2_real_timing"
+  },
+  "engine_version": "0.32.0",
+  "gpus": 1,
+  "inflight": 16,
+  "legs1": {
+    "artifact": {
+      "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/469ddece/m544/artifact.json",
+      "sha256": "1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef"
+    },
+    "decision_arm": "B2048",
+    "export_bytes_verified": false,
+    "export_verification": null,
+    "family": "forward",
+    "name": "LEG-S1-m544",
+    "parent_standin": false,
+    "protocol_slot": "cp1m200",
+    "step": 544,
+    "wrapper_dependencies": {
+      "out/common.py": "1954de01cc935fb744ebc92a3ede19a94658d2ce4fefb3c1e1ba40b03d2508c4",
+      "out/export_check.py": "0400842c559565b66db50d6c8fde7c323e8600a82d70685d469a4b316d7ec8d2"
+    },
+    "wrapper_sha256": "d16b64b902a651f0d3989cfe3eb3dc5ea599e960ef5158e5e36a0901dcfb1f8a"
+  },
+  "max_model_len": 49152,
+  "max_seqs": 32,
+  "max_tokens": 16384,
+  "models": {
+    "base": {
+      "kind": "snapshot",
+      "manifest": {
+        "path": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/90da7ac2/m/base_manifest.json",
+        "sha256": "ae9247f7c316e7661bfbe4301c28d75b6871db7427d675b8e1cc4c0c41b4b252"
+      },
+      "path": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/85fc3486"
+    },
+    "cp1m200": {
+      "kind": "c1_export",
+      "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/469ddece/m544/artifact.json",
+      "sha256": "1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef"
+    }
+  },
+  "output": "/scratch/jjyeung/orch_n30/trin_read/build_t5/tests/t5_run_01/test_need_real_payload_with_ki6/direct/forward/results",
+  "roots": {
+    "video_root": "/scratch/jjyeung/orch_n30/trin_read/build_t5/tests/t5_run_01/test_need_real_payload_with_ki6/direct/forward/virtual_video_identity_only"
+  },
+  "smoke_items": 0,
+  "source_sha256": "d27804f736545f7ebed6b55124b4bd215991695d96ed9106d82a142e91302aaa",
+  "temperature": 0,
+  "thinking": true
+}

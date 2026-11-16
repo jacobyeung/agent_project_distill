@@ -1,0 +1,11 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=27454 utc=2026-11-14T01:52:15.786Z kind=written original_path=/scratch/jjyeung/orch_cd/leg_s1_canary/inbox/$(date_ORCH_TASK_fix_checker_writes_before_overlap_refusal.md heredoc_quoted -->
+# ORCH task: fix the continuation checker's write-before-refusal (operator BLOCKER 0151Z)
+
+The operator pre-checked your continuation checker (bundle 85d60ca5, binding ca5c4193; its 44 bound files verify) and found one defect before any Orchard call:
+
+- `entry.sh` lines 25-26 create `$PARENT/job_$SLURM_JOB_ID` before `control.bootstrap` (lines 103-107) checks that inputs and outputs do not overlap. When the check refuses, the exit trap calls `control.finalize` (lines 233-239), which writes `RESULT.json` into that same directory. With the results parent set to the persistent root or to the kit, the checker therefore creates a directory and a failure record inside a protected input and then exits 1.
+- Evidence and reproducer (read-only for you): `/scratch/jjyeung/orch_cd/orchard_cp2/out/CONTINUATION_ENTRY_OVERLAP_20261114T014950Z.json` (sha 740e9d45...), `/scratch/jjyeung/orch_cd/orchard_cp2/work/check_continuation_entry_overlap.py`.
+
+**Fix, smallest form:** validate containment before anything is created (resolve the results parent, the persistent root, the kit and every input; refuse if any contains or equals another); on a refusal at that stage write nothing anywhere except a line on standard error and the exit code; only after the check passes create the job directory and arm the trap. Add the operator's two negative cases as tests, plus one for a results parent that is a link into a protected root. Audit the rest of the entry path for the same pattern (anything written before its admission check) and list what you found, including "none".
+
+Deliver a new bundle with the diff against 85d60ca5 (runtime and tests separately), hashes, and the test count. No ssh, no network. The fixture rehearsal on Orchard stays held until I confirm the diff and the one-GPU slot is free.

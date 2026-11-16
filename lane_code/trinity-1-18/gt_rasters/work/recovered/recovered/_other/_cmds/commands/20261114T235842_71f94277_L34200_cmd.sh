@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=34200 utc=2026-11-14T23:58:42.448Z kind=commands original_path=(bash command)  -->
+F=/scratch/jjyeung/orch_cd/model_design_review/READY_QUEUE.md; ls -la $F 2>&1 | cut -c1-120; wc -l $F 2>/dev/null; cut -c1-520 $F 2>/dev/null | head -n 40

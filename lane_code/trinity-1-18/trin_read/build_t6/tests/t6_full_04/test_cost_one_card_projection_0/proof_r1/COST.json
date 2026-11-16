@@ -1,0 +1,85 @@
+{
+  "arms": {
+    "B2048": {
+      "allocated_wall_seconds_per_item": 7.5,
+      "generated_items": 1,
+      "reused_items": 1,
+      "seconds_per_item": 5.0,
+      "sum_request_seconds": 10.0,
+      "tokens_per_sum_latency": 0.3
+    },
+    "B4096": {
+      "allocated_wall_seconds_per_item": 7.5,
+      "generated_items": 1,
+      "reused_items": 1,
+      "seconds_per_item": 5.0,
+      "sum_request_seconds": 10.0,
+      "tokens_per_sum_latency": 0.3
+    },
+    "ON16k": {
+      "allocated_wall_seconds_per_item": 15.0,
+      "generated_items": 2,
+      "reused_items": 0,
+      "seconds_per_item": 10.0,
+      "sum_request_seconds": 20.0,
+      "tokens_per_sum_latency": 0.3
+    }
+  },
+  "card": null,
+  "families": {
+    "away": {
+      "items": 150,
+      "per_task": {
+        "object_rel_direction_easy": 50,
+        "object_rel_direction_hard": 50,
+        "object_rel_direction_medium": 50
+      },
+      "projected_wall_minutes": 75.0
+    },
+    "camera": {
+      "items": 450,
+      "per_task": {
+        "camera_displacement": 150,
+        "camera_movement_direction": 150,
+        "camera_rotation": 150
+      },
+      "projected_wall_minutes": 225.0
+    },
+    "forward": {
+      "items": 150,
+      "per_task": {
+        "object_rel_direction_easy": 50,
+        "object_rel_direction_hard": 50,
+        "object_rel_direction_medium": 50
+      },
+      "projected_wall_minutes": 75.0
+    },
+    "main": {
+      "items": 1525,
+      "per_task": {
+        "object_abs_distance": 150,
+        "object_counting": 150,
+        "object_rel_direction_easy": 150,
+        "object_rel_direction_hard": 150,
+        "object_rel_direction_medium": 150,
+        "object_rel_distance": 150,
+        "object_size_estimation": 150,
+        "relative_count": 139,
+        "relative_size_object": 150,
+        "room_size_estimation": 36,
+        "route_planning": 150
+      },
+      "projected_wall_minutes": 762.5
+    }
+  },
+  "limitations": "Assumes the proof mix, concurrency and setup cost per item transfer to all families. Arm seconds/item sum concurrent request latency; allocated arm wall times are estimates, not measured arm wall times. Includes proof setup in EXIT; excludes outer preflight, transfer and stage-export. No reuse latency is counted twice.",
+  "milestone_items": 2275,
+  "model": "Linear EXIT wall_seconds / proof items \u00d7 full e193 counts on one card.",
+  "projected_wall_minutes": 1137.5,
+  "proof": "/scratch/jjyeung/orch_n30/trin_read/build_t6/tests/t6_full_04/test_cost_one_card_projection_0/proof_r1",
+  "proof_items": 2,
+  "proof_wall_seconds": 60,
+  "reference": "e193c2a3c",
+  "schema": 1,
+  "wall_seconds_per_item": 30.0
+}

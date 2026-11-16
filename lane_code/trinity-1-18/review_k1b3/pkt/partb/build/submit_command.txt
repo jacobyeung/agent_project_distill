@@ -1,0 +1,6 @@
+# Run on Orchard only after independent review, amendment registration and ORCH GO.
+# Embedded a.json deadline_unix=1794831300; return_margin_seconds=900.
+# Build before submission: build_package.py --deadline-unix EPOCH_OR_none
+# First job: 2026-11-16T12:30:00Z (1794832200) minus 900 = 1794831300.
+# Later resume: rebuild a fresh CONFIG/a.json and batch with a new deadline or none.
+/usr/local/bin/sbatch --parsable --account=mt01 --partition=general --nodes=1 --ntasks=1 --gres=gpu:1 --cpus-per-task=16 --mem=200G --time=12:00:00 --no-requeue --output=/dev/null --error=/dev/null --chdir=/tmp --job-name=a15_cot_apb7e31d84a90c62f5 < a7e31d84.sh

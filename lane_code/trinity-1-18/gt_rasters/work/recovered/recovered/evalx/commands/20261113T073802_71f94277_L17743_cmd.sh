@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=17743 utc=2026-11-13T07:38:02.320Z kind=commands original_path=(bash command)  -->
+B=/scratch/jjyeung/orch_cd/evalx/BRIEF_SUCCESSOR15.md; for i in 1 2 3 4 5 6 7 8 9 10 11 12; do pgrep -u jjyeung -f -- "devin_record.py .*--prompt-file $B" >/dev/null || break; sleep 2; done; pgrep -u jjyeung -af -- "devin_record.py .*--prompt-file $B" | cut -c1-120; echo "alive_count=$(pgrep -u jjyeung -f -- "devin_record.py .*--prompt-file $B" | wc -l)"

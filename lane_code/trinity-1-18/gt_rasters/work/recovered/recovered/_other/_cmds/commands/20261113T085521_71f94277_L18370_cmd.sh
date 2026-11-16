@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=18370 utc=2026-11-13T08:55:21.520Z kind=commands original_path=(bash command)  -->
+echo "$(date -u +%FT%TZ) orch-home-distill-79: CANARY 168942 round 1 (patch 7fa89b05 dropped 08:53:15Z, accepted): REMOVE assertion no longer fires; new failure in phase 3 at canary_smoke.py:161 'Native prepared receipt changed during smoke admission' (~08:54Z). Patch request 001 open; cancel deadline 09:14Z. Loop time so far: failure -> patch 11 min -> next result 2 min." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

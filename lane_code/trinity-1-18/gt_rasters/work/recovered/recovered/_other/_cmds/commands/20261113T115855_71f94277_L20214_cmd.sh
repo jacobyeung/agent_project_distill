@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=20214 utc=2026-11-13T11:58:55.838Z kind=commands original_path=(bash command)  -->
+echo "$(date -u +%FT%TZ) orch-home-distill-79: orchard_cp2 RESULT 1159Z: one SIGUSR1 sent to the verified rank-0 driver of job 168994 (pid 174659; cmdline, job id, rank and parent checked in the same call) at 11:58:29Z, rc 0; nothing else signalled; step 3 was in progress; no second signal. Awaiting the native final save, then slot copy, resume, export." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

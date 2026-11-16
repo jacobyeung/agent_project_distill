@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=26739 utc=2026-11-14T00:12:10.013Z kind=commands original_path=(bash command)  -->
+T=$(date -u +%Y-%m-%dT%H:%M:%SZ); echo "$T orch-home-distill-79: evalx RESULT 0010Z: step-100 read job 169328 RUNNING on orchard-community-1; staged; main generation began 00:07:51Z (rehearsal took 65.7 min end to end, so the return is expected about 01:05Z and the decision packet about 01:15Z). Re-armed evwait (bjj4m3z6y)." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

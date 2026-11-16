@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=30328 utc=2026-11-14T09:25:50.795Z kind=commands original_path=(bash command)  -->
+ls -la /tmp/cm-okit-orchard 2>&1 | cut -c1-120; CFG=/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/claude_orchard_setup_20260922T0700Z/work/ssh_orchard_config; timeout 10 ssh -F $CFG -S /tmp/cm-okit-orchard -O check orchard 2>&1 | cut -c1-200; tail -n 3 /scratch/jjyeung/orch_cd/orchard_cp2/out/production_169097/project_free.jsonl | cut -c1-100; date -u +%H:%M:%SZ

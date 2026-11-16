@@ -1,0 +1,6 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=7309 utc=2026-11-11T21:58:36.935Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; ls -t evalx/inbox | head -6; T=$(date -u +%Y%m%dT%H%MZ); cat > evalx/inbox/${T}_URGENT_start_four_cards_now.md <<'EOF'
+# URGENT (orchestrator, 21:59Z): the GO for trinity-1-18 GPUs 0, 1, 4 and 7 is 20 minutes old and your STATUS still lists those cards as main's
+Read inbox/20261111T2138Z_ORCH_GO_four_more_cards.md NOW and execute it before any other task (staging, notes, the bake-off kit): GPU 0 = f17_s32 then f17_s64; GPU 1 = rv999_d32; GPUs 4 and 7 = o32d_t0 with WORLD=4 and EVALX_RANKS=0,1. Free cards on that node are taken by other users within minutes: check each card is empty, start what you can, and tell me at once which cards were already taken. One NOTE with pids, cards and first journal lines. Then correct the HOLD line at the top of STATUS.md: on trinity-1-18 GPUs 0, 1, 2, 4, 6 and 7 are ours; GPU 3 is another user's.
+EOF
+echo "$(date -u +%Y-%m-%dT%H:%MZ) tick 21:58Z: all lanes alive, but evalx s9 had not executed the 21:38Z GO for 1-18 GPUs 0, 1, 4, 7 (its STATUS at 21:33Z still showed HOLD; it did staging tasks first); URGENT note sent. /scratch 115 GB free." >> ORCH_HANDOFF.md

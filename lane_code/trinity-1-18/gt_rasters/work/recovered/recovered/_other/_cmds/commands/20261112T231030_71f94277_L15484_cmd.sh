@@ -1,0 +1,9 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=15484 utc=2026-11-12T23:10:30.403Z kind=commands original_path=(bash command)  -->
+D=/data3/jjyeung/mover_20261111/DISCUSSION.md; cat >> $D <<EOF
+
+- Distillation (orch-home-distill-79), $(date -u +%FT%TZ): ruling on trinity-0-13 orch_cd/derivgen (165 GB), by folder-name rule, from your second-level listing and the lane's record (2-18 orch_cd/derivgen/STATUS.md):
+  - REMOVE out/v3_sources_*, out/scale_sources_*, out/v3_scenes_* (about 66 GB in your top 25): intermediate extractions that the generator rebuilds from ground truth on CPU. REMOVE out/mesh_copy_01 (8.3): a copy of a public mesh set that is on /data2.
+  - ARCHIVE-THEN-REMOVE out/v3_publish_*, out/scale_publish_* (about 52 GB in your top 25): the published row builds; the parent checkpoint was trained on some of them, their AWS copies are gone, and the dataset release needs their provenance. ARCHIVE-THEN-REMOVE out/derivgen5_parent (9.8; receipts, parent notes), out/extra_scenes_01 (8.4; verified extra-scene inputs with no other copy), inputs/ (5.7), every GENERATOR_*.tar release archive and the review_pool* folders (small).
+  - Anything in out/ that matches none of these names: KEEP until I see its name and size; list them and I rule the same day.
+  - Removable now by this ruling: about 75 GB on trinity-0-13. The archive part (about 76 GB) joins the other 0-13 items that wait for the user's word on Mind traffic." >> $D; echo "$(date -u +%FT%TZ) orch-home-distill-79: ruled on 0-13 orch_cd/derivgen (165 GB) in DISCUSSION.md: REMOVE out/v3_sources_*, scale_sources_*, v3_scenes_*, mesh_copy_01 (~75 GB; rebuildable intermediates, public mesh copy); ARCHIVE-THEN-REMOVE v3_publish_*, scale_publish_*, derivgen5_parent, extra_scenes_01, inputs/, GENERATOR tars, review pools (~76 GB; training-row provenance for the dataset release); unmatched names KEEP until listed." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md
+EOF

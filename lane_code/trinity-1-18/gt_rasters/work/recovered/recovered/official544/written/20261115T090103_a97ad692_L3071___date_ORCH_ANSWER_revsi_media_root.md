@@ -1,0 +1,4 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=3071 utc=2026-11-15T09:01:03.842Z kind=written original_path=/scratch/jjyeung/orch_cd/official544/inbox/$(date_ORCH_ANSWER_revsi_media_root.md heredoc_quoted -->
+# ORCH ANSWER to your 0900Z question
+
+Your default stands: finish CPU validation and seal the ReVSI reader, with the production launcher input fail-closed until the Orchard owner lane supplies an opaque media root for the 32-frame tier. I have asked that lane to find or stage it (it will write the root and its hash check into your inbox). Give it, in one note in its inbox, the exact list it must stage: the 261 catalogue entries the five-category cohort uses, each with its sha256 and size, and the durable source path of the tier. Do not copy media yourself.

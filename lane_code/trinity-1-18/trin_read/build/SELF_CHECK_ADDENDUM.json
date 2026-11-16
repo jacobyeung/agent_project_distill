@@ -1,0 +1,278 @@
+{
+  "checks": {
+    "bootstrap_payload": {
+      "passed": true
+    },
+    "bwrap_hash": {
+      "passed": true
+    },
+    "cpu_namespace": {
+      "command": [
+        "/scratch/jjyeung/orch_n30/trin_read/root/bwrap",
+        "--unshare-net",
+        "--dev",
+        "/dev",
+        "--tmpfs",
+        "/dev/shm",
+        "--proc",
+        "/proc",
+        "--ro-bind",
+        "/usr",
+        "/usr",
+        "--symlink",
+        "usr/bin",
+        "/bin",
+        "--symlink",
+        "usr/sbin",
+        "/sbin",
+        "--symlink",
+        "usr/lib",
+        "/lib",
+        "--symlink",
+        "usr/lib64",
+        "/lib64",
+        "--ro-bind",
+        "/etc",
+        "/etc",
+        "--ro-bind",
+        "/scratch/jjyeung/orch_n30/trin_read/root",
+        "/scratch/jjyeung/orch_n30/trin_read/root",
+        "--chdir",
+        "/scratch/jjyeung/orch_n30/trin_read/root",
+        "--die-with-parent",
+        "/bin/true"
+      ],
+      "returncode": 1,
+      "stderr": "/scratch/jjyeung/orch_n30/trin_read/root/bwrap: /lib64/libselinux.so.1: no version information available (required by /scratch/jjyeung/orch_n30/trin_read/root/bwrap)\n/scratch/jjyeung/orch_n30/trin_read/root/bwrap: /lib64/libc.so.6: version `GLIBC_2.33' not found (required by /scratch/jjyeung/orch_n30/trin_read/root/bwrap)\n/scratch/jjyeung/orch_n30/trin_read/root/bwrap: /lib64/libc.so.6: version `GLIBC_2.34' not found (required by /scratch/jjyeung/orch_n30/trin_read/root/bwrap)\n/scratch/jjyeung/orch_n30/trin_read/root/bwrap: /lib64/libc.so.6: version `GLIBC_2.38' not found (required by /scratch/jjyeung/orch_n30/trin_read/root/bwrap)\n"
+    },
+    "pieces": {
+      "errors": [
+        {
+          "error": "No recorded size for large file",
+          "path": "/scratch/jjyeung/orch_n30/trin_read/root/fsw/ap/8865619b/runs/469ddece/m544/full_weights/model.safetensors.index.json"
+        }
+      ],
+      "files": 18,
+      "hashed": 12,
+      "size_only": 6
+    }
+  },
+  "note": "Large file sizes are checked, not large-file content hashes. Literal CONFIG exceptions are reported separately.",
+  "passed": false,
+  "portability": {
+    "findings": [
+      {
+        "field": "$.assets.base_archive",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "external_path",
+        "value": "/project/community/jjyeung/f3069074.tar"
+      },
+      {
+        "field": "$.assets.base_manifest.path",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "namespace_alias",
+        "value": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/90da7ac2/m/base_manifest.json"
+      },
+      {
+        "field": "$.assets.bwrap",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "external_path",
+        "value": "/project/community/jjyeung/cp4tk_rt/kit/bwrap"
+      },
+      {
+        "field": "$.assets.bwrap_pin.path",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "external_path",
+        "value": "/project/community/jjyeung/cp4tk_rt/kit/bwrap"
+      },
+      {
+        "field": "$.assets.camera_archive.path",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "external_path",
+        "value": "/project/community/jjyeung/bd8ae51c/p/d59945c1/5e297c41.tar"
+      },
+      {
+        "field": "$.assets.gcloud_config",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "external_path",
+        "value": "/project/community/jjyeung/gcloud"
+      },
+      {
+        "field": "$.assets.groups[0][0][0]",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "external_path",
+        "value": "/home/jjyeung/okit/p/d59945c1/4fe70504.00"
+      },
+      {
+        "field": "$.assets.groups[0][1][0]",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "external_path",
+        "value": "/home/jjyeung/okit/p/d59945c1/4fe70504.01"
+      },
+      {
+        "field": "$.assets.groups[1][0][0]",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "external_path",
+        "value": "/home/jjyeung/okit/p/d59945c1/50011a59.00"
+      },
+      {
+        "field": "$.assets.groups[1][1][0]",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "external_path",
+        "value": "/home/jjyeung/okit/p/d59945c1/50011a59.01"
+      },
+      {
+        "field": "$.assets.groups[1][2][0]",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "external_path",
+        "value": "/home/jjyeung/okit/p/d59945c1/50011a59.02"
+      },
+      {
+        "field": "$.assets.groups[1][3][0]",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "external_path",
+        "value": "/home/jjyeung/okit/p/d59945c1/50011a59.03"
+      },
+      {
+        "field": "$.assets.groups[1][4][0]",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "external_path",
+        "value": "/home/jjyeung/okit/p/d59945c1/50011a59.04"
+      },
+      {
+        "field": "$.assets.groups[1][5][0]",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "external_path",
+        "value": "/project/community/jjyeung/bd8ae51c/p/d59945c1/50011a59.05"
+      },
+      {
+        "field": "$.assets.groups[1][6][0]",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "external_path",
+        "value": "/project/community/jjyeung/bd8ae51c/p/d59945c1/50011a59.06"
+      },
+      {
+        "field": "$.assets.groups[1][7][0]",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "external_path",
+        "value": "/project/community/jjyeung/bd8ae51c/p/d59945c1/50011a59.07"
+      },
+      {
+        "field": "$.assets.groups[1][8][0]",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "external_path",
+        "value": "/project/community/jjyeung/bd8ae51c/p/d59945c1/50011a59.08"
+      },
+      {
+        "field": "$.assets.groups[1][9][0]",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "external_path",
+        "value": "/project/community/jjyeung/bd8ae51c/p/d59945c1/50011a59.09"
+      },
+      {
+        "field": "$.assets.groups[2][0][0]",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "external_path",
+        "value": "/project/community/jjyeung/bd8ae51c/p/d59945c1/371be2e2.00"
+      },
+      {
+        "field": "$.assets.observed_host",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "hostname",
+        "value": "orchard-login-001"
+      },
+      {
+        "field": "$.output",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "namespace_alias",
+        "value": "/scratch/jjyeung/apb59bef09f3/o"
+      },
+      {
+        "field": "$.pool",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "external_path",
+        "value": "/project/community/jjyeung/okh7/x27ret"
+      },
+      {
+        "field": "$.release.transport.path",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "namespace_alias",
+        "value": "/scratch/jjyeung/apb59bef09f3/p/TRANSPORT.json"
+      },
+      {
+        "field": "$.spec.artifact.path",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "namespace_alias",
+        "value": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/469ddece/m544/artifact.json"
+      },
+      {
+        "field": "$.spec.inputs.frame_plan",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "namespace_alias",
+        "value": "/scratch/jjyeung/apb59bef09f3/p/cohort/FRAME_PLAN.json"
+      },
+      {
+        "field": "$.spec.inputs.rows",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "namespace_alias",
+        "value": "/scratch/jjyeung/apb59bef09f3/q0.jsonl"
+      },
+      {
+        "field": "$.spec.inputs.video_root",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "external_path",
+        "value": "/project/community/jjyeung/3e0e8a36"
+      },
+      {
+        "field": "$.spec.interpreters.p1cpu",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "namespace_alias",
+        "value": "/scratch/jjyeung/envs/p1cpu/bin/python"
+      },
+      {
+        "field": "$.spec.interpreters.vllm",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "namespace_alias",
+        "value": "/scratch/jjyeung/apb59bef09f3/p/vllm_isolated.sh"
+      },
+      {
+        "field": "$.spec.models.base.manifest.path",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "namespace_alias",
+        "value": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/90da7ac2/m/base_manifest.json"
+      },
+      {
+        "field": "$.spec.models.base.path",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "namespace_alias",
+        "value": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/85fc3486"
+      },
+      {
+        "field": "$.spec.models.cp1m200.path",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "namespace_alias",
+        "value": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/469ddece/m544/artifact.json"
+      },
+      {
+        "field": "$.spec.package",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "namespace_alias",
+        "value": "/scratch/jjyeung/apb59bef09f3/p"
+      },
+      {
+        "field": "$.spec.run",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "namespace_alias",
+        "value": "/scratch/jjyeung/apb59bef09f3/r"
+      }
+    ],
+    "literal_requirement_passed": false,
+    "scope": "CONFIG.json string values only; not a scan of binary weights, archives or all source text."
+  },
+  "small_file_bytes": 65536,
+  "stage_complete": false,
+  "unverifiable": [
+    "a0: STAGING.json has no extracted-file inventory",
+    "trinity_runner: not installed; run stage from build before copying"
+  ]
+}

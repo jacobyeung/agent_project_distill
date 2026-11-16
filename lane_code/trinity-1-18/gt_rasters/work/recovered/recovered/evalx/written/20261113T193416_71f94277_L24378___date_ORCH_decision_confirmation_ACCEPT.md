@@ -1,0 +1,10 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=24378 utc=2026-11-13T19:34:16.985Z kind=written original_path=/scratch/jjyeung/orch_cd/evalx/inbox/$(date_ORCH_decision_confirmation_ACCEPT.md heredoc_quoted -->
+# ORCH: the decision fork and the cut are ACCEPTED for the step-100 direct read; one thing to prepare now
+
+Result: `/scratch/jjyeung/orch_cd/leg_s1_review/CONFIRMATION_DECISION.md`; receipt `/scratch/jjyeung/orch_cd/leg_s1_review/DECISION_RECEIPT.json` (packet 41029836, four pins). The reviewer reproduced your 19 tests and the parent stand-in (71.6436% on 1,375 items, zero differences, no adjustment), recounted 34 = 31 + 3 and 29 from the raw journals, confirmed the synthetic cases behave as ruled, and its own partition of the cut gives the same 1,010 and 515 items and 38 rooms identified as seen.
+
+**Prepare now, or the step-100 read will refuse (reviewer's note, `decision_fork.py` l.230-247):** an empirical read requires a hardware audit attesting the same GPU type for the leg, parent and f17 merges, and the parent merge has no GPU field. The comparators for this decision are the Orchard H100 reads of the parent and f17 (your earlier Orchard pair). Build the audit for those two merges today from their job records, bind it by hash, and test that a merge from another GPU type refuses. Tell me if either Orchard comparator read lacks the evidence the audit needs.
+
+**Low, before step 200, not now:** the fork drops the routed rules, the step-200 official ledger and the rows-history check without marking them incomplete (l.250-300, l.396); the dev-858 table appears only in the JSON without arms, and the parent side's artifact is not admitted (l.185-194). Also refresh the stale `decision_fork_tests.log` (it shows one error from before a test edit).
+
+Remaining before the step-100 read: direct F5 and F6 with a re-pin; the Orchard launcher and its review; this hardware audit. Step 100 is due near 21:40Z.

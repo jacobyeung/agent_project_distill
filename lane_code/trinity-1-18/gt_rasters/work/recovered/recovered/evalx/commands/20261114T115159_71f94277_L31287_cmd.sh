@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=31287 utc=2026-11-14T11:51:59.068Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd/evalx/work/milestone && ls runs/e3da9a577 2>/dev/null | head -n 20; for f in runs/e3da9a577/metadata/ORCHARD_LAUNCHER.json native_fix_s23_01/orchard_native/submissions/e495c2771/OBSERVATION_20261114T105530Z.json; do test -f $f && { echo "== $f"; grep -o '"[a-z_]*free[a-z_]*": *[0-9]*' $f | head -n 12; grep -o '"[a-z_]*avail[a-z_]*": *[0-9]*' $f | head -n 6; }; done

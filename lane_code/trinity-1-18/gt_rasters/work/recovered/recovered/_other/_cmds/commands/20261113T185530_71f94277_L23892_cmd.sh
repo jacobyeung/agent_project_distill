@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=23892 utc=2026-11-13T18:55:30.896Z kind=commands original_path=(bash command)  -->
+C=/scratch/jjyeung/orch_cd; ls -lt --time-style=+%H:%M $C/leg_s1_tree/out | head -n 8 | cut -c1-140; tail -n 4 $C/leg_s1_tree/work/inbox_seen.txt 2>/dev/null | cut -c1-140; sed -n '92,110p' $C/leg_s1_tree/out/PRELAUNCH_CARD.md | cut -c1-520

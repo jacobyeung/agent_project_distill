@@ -1,0 +1,13 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=635 utc=2026-11-15T05:08:10.077Z kind=written original_path=/scratch/jjyeung/orch_cd/next_queue/inbox/$(date_ORCH_ORDER_apply_review_fixes.md heredoc_unquoted(vars_unexpanded) -->
+# ORCH ORDER: apply the independent review, then write the short ready queue
+
+An independent review (another model family) checked 33 of your numbers (31 match, none wrong, 2 citation or wording faults) and returned ADOPT AFTER FIXES: `$R/nq_review/out/REVIEW_VERDICT_NEXT_QUEUE.md`. Read it whole. Revise `out/NEXT_QUEUE_20261115.md` in place (keep a copy of the current file as `out/NEXT_QUEUE_20261115.pre_review.md`), accepting each finding or answering it with evidence in a short "Review disposition" section:
+1. Continuation rule: restate it so it can flip (metre-only items for the learned-against-scripted gap; a dose read such as native step 400 against 544); say plainly that the two pending reads decide what goes into the reseal.
+2. The direct reader leaves routed types unserved: mark every direct read of the leg (official VSI-Bench, ReVSI, VSTI) with the tasks and items that are call artifacts, and add a build brief B11 for the native adapter that ReVSI and VSTI need (inputs, caches that need a GPU pass, CPU proof).
+3. Run order R1, R2, R4, R3 (with the adapter), then M8.
+4. Add candidate DX (scale the direct path): price eligible, scene-checked, non-answer-only direct traces at about ten times the current direct stream against the published on-base fusion and data-scale evidence the review cites; label it a guess where it is one. Split direct-path RL from routed RL. Move GF-1 into the B1 stack; the user's ruling on stages is that an alignment stage trains only the geometry adapter with the language model frozen, then full fine-tuning follows, so present Stage 1 as that alignment stage, not as a separate harm screen.
+5. Correct T1's anchors (what is a T1 increment on official VSI-Bench and what is not) and restate what the stacked seal contains.
+6. The minor points.
+Already launched from your briefs (do not re-brief them): B2 as lane `rs_rows`, B3 as `rs_contracts`, B4 as `rs_cover`, B1 with B8 as `rs_tree`, and a data census for DX as `dx_census`.
+
+Then write `out/READY_QUEUE_20261115.md`, at most 60 lines: runs in order with the exact start gate and owner lane of each, builds in order with their state, and what waits for the user. I install it as the project's ready queue. Send one RESULT event when both files are done.

@@ -1,0 +1,16 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=12549 utc=2026-11-12T12:38:49.785Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; T=$(date -u +%Y%m%dT%H%MZ); for l in orchard_port orchard_cp2; do cat > $l/inbox/${T}_ORCH_PAUSE_streams_and_one_card_for_main.md <<EOF
+# ORCH ($T): act first: pause every stream through the head node or NFS until main releases; leave one advanced card for main
+
+Main has priority and asked two things in its notices log (12:29Z and 12:38Z).
+1. **Streams.** Main runs one internet download at 20 MB/s (the whole per-user limit) until about 13:20Z. Pause now every governed stream of yours that passes the head node or NFS: pushes to Orchard, pulls from Orchard, reads or writes on /data* or /home. Start no new one. Small ssh polls through the limiter may continue (one batched call per 10 minutes). Resume only after I write that main has released (I watch its log); do not resume on the clock.
+2. **Orchard advanced partition.** Main needs one H100 in account mt01, partition advanced, for about one hour for a timing job. The 4-GPU-per-user cap is shared, so submit nothing to advanced (LEG-S1 included) until I write a GO that says main's job has finished or main has released the card. Work on the Orchard login node that reads only (your sha pass) may continue.
+Reply with one NOTE naming what you paused and its state (bytes landed, resumable or restart).
+EOF
+done
+cat > evalx/inbox/${T}_ORCH_PAUSE_nfs_head_streams.md <<EOF
+# ORCH ($T): until main releases, start no stream through the head node or NFS
+
+Main runs one internet download at the whole per-user limit (20 MB/s) until about 13:20Z. Your mask-recall variants on 1-18 read node-local disk and continue. Start no pull, push, or /data* or /home read above a few MB until I write that main has released. No reply needed unless you had one running.
+EOF
+N=/data3/jjyeung/orch_n13_20261026/rebuttal_iclr/ORCHARD_TO_MAIN_NOTICES.log; echo "$(date -u +%FT%TZ) distillation orch-home-distill-79 to main orch-home-aa: both done. (1) Streams: I told my lanes at ${T} to pause every stream through the head node or NFS (Orchard pushes of orchard_port and orchard_cp2; nothing else of ours was moving) and to resume only after your line here. (2) Advanced: distillation submits nothing to mt01/advanced until your timing job has finished or you release the card here; LEG-S1 (4 GPUs, the whole per-user cap) was not submitted and stays held. Running on 1-18 GPU 2 under vnice: mask-proposal variants, node-local IO only." >> $N; wc -l < $N > /tmp/claude-25409/-scratch-jjyeung-orch-home-distill/71f94277-362e-467c-a4bc-ccc9ae6b87c8/scratchpad/notices_seen.txt; cat /tmp/claude-25409/-scratch-jjyeung-orch-home-distill/71f94277-362e-467c-a4bc-ccc9ae6b87c8/scratchpad/notices_seen.txt; echo "$(date -u +%FT%TZ) orch-home-distill-79: main's notices 12:29Z (leave one H100 free on mt01/advanced ~1 h for its timing job) and 12:38Z (pause governed streams through head node/NFS until ~13:20Z; main downloads at 20 MB/s by user instruction): told orchard_port, orchard_cp2 (act-first pause; no advanced submit until main releases), evalx (start none); replied in main's log line 96. LEG-S1 GO now also waits on main's release of the advanced card." >> ORCH_HANDOFF.md

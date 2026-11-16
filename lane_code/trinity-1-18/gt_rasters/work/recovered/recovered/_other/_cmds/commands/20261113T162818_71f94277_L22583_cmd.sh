@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=22583 utc=2026-11-13T16:28:18.224Z kind=commands original_path=(bash command)  -->
+C=/scratch/jjyeung/orch_cd; grep -n -m 12 -E "169097|project_free|admission|staging|probe" $C/orchard_cp2/STATUS.md | cut -c1-420; echo ==; tail -n 3 $C/orchard_cp2/out/production_169097/project_free.jsonl 2>/dev/null | cut -c1-300; ls -t $C/orchard_cp2/out/production_169097 2>/dev/null | head -n 8

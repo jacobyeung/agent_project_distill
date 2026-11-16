@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=17858 utc=2026-11-13T07:42:36.191Z kind=commands original_path=(bash command)  -->
+until [ -s /scratch/jjyeung/orch_cd/combo2_review/REVIEW_VERDICT.md ] || ! tmux has-session -t cx_combo2_review 2>/dev/null; do sleep 30; done; sleep 20; echo "verdict file:"; head -n 40 /scratch/jjyeung/orch_cd/combo2_review/REVIEW_VERDICT.md 2>&1 | cut -c1-600; echo "tmux alive: $(tmux has-session -t cx_combo2_review 2>/dev/null && echo yes || echo no)"; tail -c 600 /scratch/jjyeung/orch_cd/combo2_review/codex_stdout.log

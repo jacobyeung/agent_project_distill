@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=24257 utc=2026-11-13T19:24:56.037Z kind=commands original_path=(bash command)  -->
+C=/scratch/jjyeung/orch_cd; grep -n -o -E "[^ ]*(cp1|CP1)[^ ]*m200[^ ]*" $C/ORCH_STATE_20261111T0935Z.md | head -n 8; grep -n -i -E "c1a42588" $C/ORCH_HANDOFF.md | head -n 4 | cut -c1-300; grep -rn -l "c1a4258816b3f561" $C/orchard_cp2/out/FINAL_STAGING_b01ce449_fourstream_a7ad7051.json $C/leg_s1_fourstream_kit/final_b/k 2>/dev/null | head -n 5

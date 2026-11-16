@@ -1,0 +1,39 @@
+K1 finalize result
+
+The new manifest passes all six receipt gates. production_ready and frame_staging_authorized are true; these flags admit the frame receipts and do not establish native GPU readiness. The input manifest remains unchanged.
+
+Timing sources: d12_mp4 = 138; frame_rates_07ca49df = 0; null = 162.
+The sealed ARKit authority has the required SHA256 and covers 87 selected tokens. It lacks 75 selected tokens, so all 162 ARKit captures retain null fps, timestamps, and total_num_frames. The complete missing list and each capture's timing source are recorded in the manifest.
+
+The finalizer imports Frames.resolve and patch_times from the specified student reader tree. Frames.resolve computes timestamps and checks FPS against independent D12/WD authorities, frame counts, and anchor identities. It validates each result again, and patch_times checks its 32 ordinals and timestamps. These are metadata checks; the finalizer does not decode videos or rehash RGB bytes. clean_media.validate_media cannot import because this tree lacks student_pilot.detailed_audit; the requested equivalent reader path is used. If a future complete ARKit authority passes, the resolver's frame-count lower-bound status is recorded explicitly.
+
+Receipt byte SHA256 pins are in k1_finalize.receipts. PARITY_FINAL.json also records the imported manifest_k1a.digest result, which equals the input manifest's k1a_frame_parity.sha256. The 2,204 ruled substitutions are pinned and checked against the manifest. The source token map uses the first row for each canonical capture.
+
+Tests: 15 tests passed in 8.360 seconds. TEST_OUTPUT.txt contains the complete unittest output. Tests cover all six failed receipt gates, missing receipts, duplicate and wrong tokens, JSON digest mismatch, incomplete ARKit coverage, atomic reader refusal, sealed-hash rejection, reader count semantics, positive wrong FPS, corrupted output FPS, source identity and count mismatches, first-token selection, bounded manifest edits, and exclusive output creation.
+
+Native phase results (unmodified kit_k1a/work/k1_pipeline.py):
+  tower_sam: NOT RUN; heavy local I/O approval is pending.
+  own: Native source-video metadata is unresolved
+  convert: PASS
+  all: Native source-video metadata is unresolved
+
+own and all stop at null ARKit timing before reaching the unbound GPU settings. No GPU-setting refusal is claimed. Native imports and the kit's dependency-pin verification pass.
+
+The remaining tower_sam check rehashes 19,200 frames (about 5.3 GB) and model weights. The Trinity rule says, "Ask before any heavy IO command." The approval question remains unanswered. No heavy check has run.
+
+After approval, run this from the output directory:
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 CUDA_VISIBLE_DEVICES='' /scratch/jjyeung/envs/sam3_capretry_native_v1/bin/python -B finalize_k1.py --check-only K1_MANIFEST.finalized.json --run-phase-checks --phases tower_sam --checks-out PHASE_CHECKS.tower_sam.json
+
+Files:
+  finalize_k1.py: finalizer and native phase-check entry point.
+  test_finalize_k1.py: tests against the actual reader and in-memory receipt fixtures.
+  K1_MANIFEST.finalized.json: new manifest with receipt pins and per-capture timing provenance.
+  TEST_OUTPUT.txt: complete test output.
+  FINALIZE_OUTPUT.txt: output-manifest SHA256 and timing counts.
+  PHASE_CHECKS.lightweight.json: structured results for own, convert, and all.
+  PHASE_OUTPUT.txt: verbatim phase messages.
+  CODE_DIFF.patch: full additions for both Python files, generated without Git.
+  REPORT.txt: this report.
+  SHA256SUMS: hashes of every deliverable above (excluding this checksum file itself).
+
+The summary and no-archaeology skills govern this report. No borderline history-only sentences were retained.

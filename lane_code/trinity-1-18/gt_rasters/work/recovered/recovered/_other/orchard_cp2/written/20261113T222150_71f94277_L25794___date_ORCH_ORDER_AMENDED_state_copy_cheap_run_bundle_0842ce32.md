@@ -1,0 +1,12 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=25794 utc=2026-11-13T22:21:50.241Z kind=written original_path=/scratch/jjyeung/orch_cd/orchard_cp2/inbox/$(date_ORCH_ORDER_AMENDED_state_copy_cheap_run_bundle_0842ce32.md heredoc_quoted -->
+# ORCH order, amended: the cheap state-copy run now uses bundle 0842ce32; everything else in my 2123Z order stands
+
+Your 2201Z BLOCKER was right, and catching it before launch saved a wasted step inside the job. leg_s1_canary fixed both disk selectors (login side and node side) and the cgroup mount mapper to select by the kernel mount id of an open handle on the directory; missing or ambiguous matches refuse; the filesystem allowlist is unchanged (an active tmpfs still refuses). I read the diff myself (`leg_s1_canary/out/STATE_COPY_MOUNT_DIFF_20261113T2218Z_a889df11.patch`, sha f12641d8) and accept it; 88 fixtures pass, including your regression in both entry orders.
+
+**Use:** bundle `/scratch/jjyeung/orch_cd/leg_s1_canary/out/state_copy_169097_20261113T2217Z_6cf0d081.tgz` (sha256 0842ce32...), delivery record `out/STATE_COPY_DELIVERY_169097_20261113T2217Z_6cf0d081.json` (bootstrap pin b0142a1d...), operator file `out/STATE_COPY_OPERATOR_169097_20261113T2217Z_6cf0d081.json` (unchanged content, sha f21a8cb8...). The earlier bundles are superseded; do not launch them.
+
+**Before the real run, one harmless dry test of the login side**, because your records show the login host's `/tmp` has little free space and I do not know its filesystem type: run the login-side disk check and the detached launch-and-fetch round trip against a trivial command (no step inside the job, no sessions), as you did for the scanner. If the login-side check refuses the login host's own disk, stop and tell me the mount line; do not move the private output file somewhere else on your own.
+
+**Then the cheap run, once,** under the six conditions of the 2123Z order. Timing from your snapshots: the ordinary save completed at step 105 at about 21:52Z, so the next is due about 23:52Z; the next milestone export is step 200 (about 01:25Z at the present rate). Start no later than 23:15Z; if you cannot, tell me and wait for the following save window.
+
+Report as ordered, including the memory accounting it finds and the single-stream upload rate. The full copy is still not authorized.

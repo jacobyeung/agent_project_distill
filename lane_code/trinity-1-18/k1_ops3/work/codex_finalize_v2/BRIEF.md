@@ -1,0 +1,18 @@
+# Codex build v2: K1 finalize step (orchestrator GO 2026-11-15T20:37Z)
+
+Model gpt-6-astra, effort high. Write only in /scratch/jjyeung/orch_n30/k1_ops3/work/codex_finalize_v2/ on trinity-1-18. Read-only: /scratch/jjyeung/orch_cd/**, /scratch/jjyeung/k1/**, /scratch/jjyeung/k1_frames/**, and /scratch/jjyeung/orch_n30/k1_ops3/work/* outside codex_finalize_v2/. No Git, ssh, kill, GPU, network, deletion, or recursive search outside the named folders. Read /home/jjyeung/.claude/CLAUDE.md "Key Trinity Cluster Rules" first. Previous attempt: /home/jjyeung/agent_project_distill/agent/scratch/codex_runs/20261115T201019Z_k1_finalize/final_message.md (stopped: ARKit captures lack video timing).
+
+## Goal
+Write `finalize_k1.py` plus tests. Input: `/scratch/jjyeung/orch_n30/k1_ops3/work/K1_MANIFEST.staged.json` (sha256 ada4797e0abc2e4a67d18788dbdd6b12be3c79b2d068d2e75f54bf70b87281d6). Output: a NEW manifest file in codex_finalize_v2/, never in place. Token map canonical -> s: `/scratch/jjyeung/orch_cd/k1_ops/work/CANON_TOKENS.jsonl` (first row per canonical).
+
+(a) Flags. Set `production_ready` and `frame_staging_authorized` true only if every receipt below passes; pin each receipt's sha256 in the output (a `k1_finalize` block). Otherwise both false with the failed list.
+ - verify_mp4: the line `{"checked": 138, "bad": []}` in work/T2.log.
+ - work/WD_OUT.jsonl: 138 tokens, no error, no misses. work/WA_OUT.jsonl: 162 tokens, no error, no misses.
+ - work/PARITY_FINAL.json: pass_ true, n_failures 0, pinned_checked 14304, new_frames 4896; its sha256 equals the manifest's `k1a_frame_parity` record as manifest_k1a.py computes it (digest of the JSON, see kit_k1a/work/manifest_k1a.py). It was computed with work/SUBSTITUTIONS_k6_replica.jsonl (2,204 orchestrator-ruled substitutions of Orchard-replica pinned PNGs); pin that file too.
+ - work/ACCEPT_MANIFEST.json: `bad` empty, pinned_ok 14304, new_ok 4896, anchors_ok 300.
+(b) ScanNet / ScanNet++ (138 captures): fill `model_row.student_input.fps`, `timestamps`, `total_num_frames` with the student reader's own function(s) (leg_s1_tree tree_s1_admissionfix_168872/student_pilot/, e.g. clean_media.validate_media and what tests/test_clean_r1313.py::test_fps_timestamps_ordinals_frame_count_and_source_video_identity_fail_closed uses). Sources: `/scratch/jjyeung/orch_cd/k1_ops/work/D12_MP4S.json` (fps, n per token) and work/WD_OUT.jsonl (fps, meta_n). Import the reader's code; do not reimplement it. Run validate_media (or the reader's equivalent) on each result.
+(c) ARKitScenes (162 captures): fill timing ONLY from the sealed kit 07ca49df's `work/kit07ca49df/k/frame_rates.json` (sha256 36ae882f936ebc7a7d1a7651b5c53056c07d39ff552b2368a5c1e8068568d422; keys `by_scene` "<group>/<token>" -> fps, plus covered/missing lists) if it covers all 162 tokens AND the reader's validate_media accepts the result. Otherwise leave ARKit timing null for every ARKit capture (all-or-none) and record why.
+Record per capture which source set its timing (`d12_mp4`, `frame_rates_07ca49df`, or `null`).
+Then import kit_k1a/work/k1_pipeline.py (from /scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a, the kit copy) and run `check_manifest(m, phase)` on the output for `tower_sam`, `own`, `convert` and `all`; print each refusal message. Note that `own` and `all` also check GPU settings that are not yet bound (expected refusals; report them verbatim).
+Unit tests: a failed receipt keeps both flags false; missing ARKit coverage leaves all ARKit timing null; a planted wrong fps fails the reader's check.
+Report: files written with sha256, the code diff (the new files in full is fine), test output, per-capture timing-source counts, and check_manifest output per phase.

@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=23024 utc=2026-11-13T17:28:39.280Z kind=commands original_path=(bash command)  -->
+C=/scratch/jjyeung/orch_cd; grep -n -i "leg_s1_tree" $C/ORCH_HANDOFF.md | grep -i -E "successor 6|launched|relaunch" | tail -n 4 | cut -c1-500; sed -n '1,30p' $C/orch_tools/devin_bg_acp.sh | cut -c1-200; sed -n '88,100p' $C/leg_s1_tree/BRIEF_SUCCESSOR6.md | cut -c1-500; du -sb $C/leg_s1_tree 2>/dev/null | cut -f1

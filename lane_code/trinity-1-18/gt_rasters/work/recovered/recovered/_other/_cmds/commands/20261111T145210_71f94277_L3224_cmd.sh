@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=3224 utc=2026-11-11T14:52:10.238Z kind=commands original_path=(bash command)  -->
+echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) orch-home-distill-79: vla_where RESULT 1451Z: occlusion alternative written into VLA_SCHEMA.md (step 8 + cross_view_occlusion_rel: 0.05) and schema_examples.py (every check passes; no worked example's result changes; .pre_occlusion copies kept); 73 provider tests pass; archive out/vla_where_v4_20261111T1451Z.tar; NOTEs posted to the other three VLA lanes." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

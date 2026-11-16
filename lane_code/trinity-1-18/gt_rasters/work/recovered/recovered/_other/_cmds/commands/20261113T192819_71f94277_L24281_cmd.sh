@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=24281 utc=2026-11-13T19:28:19.373Z kind=commands original_path=(bash command)  -->
+C=/scratch/jjyeung/orch_cd/leg_s1_canary; ls -lt --time-style=+%m-%dT%H:%M $C | head -n 8 | cut -c1-120; O=$(ls -t $C/*.out 2>/dev/null | head -n 1); echo "OUT=$O"; tail -c 900 "$O"; echo; sed -n '1,16p' $C/STATUS.md | cut -c1-560; ls -t $C/inbox | head -n 6; ls -t $C/out | head -n 8; tail -n 1 $C/out/devin_launches.jsonl | cut -c1-300

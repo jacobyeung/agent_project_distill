@@ -1,0 +1,1620 @@
+K1 declared-GT-set downstream patch — ready for independent review; not deployed.
+
+The scratch kit supports --gt-set for tables, refit, render/responses and report.
+The manifest remains byte-identical. No capture dictionary or capture digest changes.
+The declared set controls GT reads and capture iteration. Pinned entries must match
+the manifest SHA; every raster read verifies the declared SHA. Unpinned entries
+require --sensitivity. Receipts and reports retain valid JSON and put SENSITIVITY
+on their first line when that flag is present.
+
+The gt_set receipt object records path, SHA256, n, pinned/unpinned counts, selected
+captures, skipped canonicals and analysis label. FIT_RECEIPT pins TABLE_RECEIPT.
+RENDER_RECEIPT pins the fit, table receipt and analysis rows. Per-capture COMPLETE
+receipts carry the same set metadata. Report --ids-from derives the expected row
+IDs from the tabled captures in the unchanged manifest and verifies table/fit
+lineage. Missing, extra, duplicate or wrongly assigned outcome rows are refused.
+
+Deployment changes (five source files plus DEPENDENCIES.json):
+  work/gt_set.py: new shared set validation, selection and receipt helper.
+  work/k1_pipeline.py: optional selection for GT checks, tables and responses.
+  work/k1_cli.py: downstream-only --gt-set and --sensitivity flags.
+  work/refit/train.py: table/set validation and fit receipt propagation.
+  work/k1_report.py: --ids-from, declared denominator and report provenance.
+DEPENDENCIES.json retains all original entries and changes only four existing
+source pins, adding the new helper pin. All keys use the kc deployment paths.
+The scratch tests verify those keys through an explicit scratch-path mapping;
+they do not re-pin the deployment to the scratch copy or edit the live kit.
+
+Identity evidence:
+  B.source_identity() is equal before/after at the scratch location.
+  Mapping the scratch prefix to the deployment prefix equals the separately
+  imported original identity and the copied live tower/SAM BINDING sources.
+  k1_phases.py, native_kit/*, K1_RULES.* and all phase producer pins are unchanged.
+  The original executed kit still matches the complete copy-time hash inventory.
+  cached(), cache_capture(), raw_proposals(), cache_run(), native_backend(),
+  printed_cues() and every report statistic function have identical syntax trees.
+
+Tests and limits:
+  Native kit: 19 tests pass. Native guards: 7 tests pass.
+  Downstream suite: 16 tests pass; real-proposal bridge: 1 test passes.
+  All tests use nice -n 10, empty CUDA visibility and one OMP/MKL/OpenBLAS thread.
+  Candidate and nonempty pair tables are byte-identical to unchanged-kit output
+  for an all-capture fixture. Default report bytes are exactly equal. Default
+  TABLE_RECEIPT bytes match after substituting only different output-directory
+  paths. The all-set report's scientific payload is byte-identical after removing
+  the requested provenance fields. Whole enriched receipts/reports cannot also
+  be byte-identical: the request requires them to contain new set metadata.
+  Subset tests check selected rows, skipped lists, hashes and report denominator.
+  Sensitivity tests check refusal without the flag and first-line labels through
+  tables, fit, render and report. Hash/digest/missing-cache checks fail closed.
+  Old code rejects the new keyword and the subset report denominator.
+  The full downstream fixture executes native table construction and rendering.
+  Refit estimator calls, metrics and missing reference dependencies use explicit
+  test stand-ins. These tests validate handoffs, not fitted coefficients or K1
+  numerical results. No production analysis was run or scored.
+
+Real-capture compatibility:
+  Two copied run_tower_sam_2 directories pass unchanged checked_phase() with the
+  documented deployment-path mapping. Their BINDING manifest/source/producer
+  identities match the new kit. They contain PHASE_COMPLETE, tower, proposals
+  and parity files, not CACHE_COMPLETE or geometry. Direct cached() therefore
+  correctly refuses them. Literal acceptance of these raw directories as
+  converted caches is neither possible nor safe.
+  A separate bridge combines their real tower/proposal bytes with explicitly
+  synthetic own depth/gravity and the old converted-cache schema. Both old and
+  patched cached() accept it, and patched tables pass their actual cache-entry
+  checks. GT loading and label construction are stubbed only in this bridge.
+  It proves schema compatibility, not completion of production own/convert.
+  DEPENDENCIES verifies installed source bytes at startup; its aggregate digest
+  is not stored in phase BINDING. The changed downstream source files and new
+  helper are outside B.source_identity(). Existing phase receipts thus remain
+  valid when the patch is deployed at the original paths with the new pins.
+
+Production prerequisites still required:
+  A completed own/convert cache is not present under /scratch/jjyeung/k1.
+  Neither supplied Python environment has scikit-learn.
+  The existing refit's setlib.py and current MODELS.json paths are absent.
+  Restore those approved dependencies; this patch does not invent model weights
+  or replace the frozen fitting algorithms. The operator script checks them.
+  K1_CONVERT_CACHE and K1_REFIT_PY are required operator parameters because their
+  completed/approved values are not available in this workspace.
+
+Orchard Part B:
+  The own-only package needs no change for this feature. Its phase code, native
+  sources, capture identities and producer pins remain equal. Its returned own
+  artifacts must pass the unchanged convert stage with tower/SAM, after which
+  both analyses use this same patched tables -> refit -> render -> report chain.
+  If an operator chooses to deploy these downstream files on Orchard too, copy
+  the new helper and matching DEPENDENCIES together. That is not required to
+  execute own. No Orchard package file was edited.
+
+Deployment and operation:
+  Independent review must finish before use. Nothing has been copied into kc.
+  After tower_sam has ended, the operator copies the five listed source files
+  from this scratch kit to their identical relative paths in the executed kit,
+  then installs the provided DEPENDENCIES.json as out/DEPENDENCIES.json.
+  Do not deploy test artifacts, test dependency stand-ins, or scratch lane links.
+  Run operator_commands.sh with K1_CONVERT_CACHE and K1_REFIT_PY set. It contains
+  the exact eight stage commands, writes fresh analysis roots inside this
+  workspace, and does not run any phase or edit any manifest/GT set.
+  If stages fail, preserve their outputs; do not relaunch cluster-killed work
+  without the required operator answer. The primary/sensitivity verdict handling
+  remains the amendment's rule: disagreement on a registered mark declares no
+  verdict and goes to the orchestrator. This patch changes no mark or threshold.
+
+Writing skill: no-archaeology. The old/new comparisons below are retained because
+the requested compatibility and identity proofs require a reference implementation.
+
+
+=== IDENTITY PROOF ===
+{
+  "changed_files": {
+    "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/gt_set.py": {
+      "after": "5d36d1ea98c14b2e3181a4571a87dc81efa980bd88a2302e27a1ecc13833a4f8",
+      "before": null
+    },
+    "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/k1_cli.py": {
+      "after": "f14df4eda722337e0e7187a759e287eed79bb3201b03ffef351591ce5241c0da",
+      "before": "3cc7b95ff591d68dc0184ac76d7b706a3b7920c94a2132b0eedd99c1c7e49013"
+    },
+    "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/k1_pipeline.py": {
+      "after": "deb51a265425e092870c7eadb2fd498b5942b466bb759b39c84fa96e0c762157",
+      "before": "46c10147710bf7e8d087c51147464cce72cfc3cff10c89f20a4ddb6bcad76111"
+    },
+    "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/k1_report.py": {
+      "after": "14b35f83184267f85a946079767d7903d3e1c31d73946bd2600bbe6b2efe862d",
+      "before": "607a8a16f9a42b88bbc5e7f36aafb0bc6b700507f269a914ca4c84f2bcb9136a"
+    },
+    "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/refit/train.py": {
+      "after": "4087716014ab26e7fdb91f336e3d8ee81f97e82b85a4c340376e872c655ecfef",
+      "before": "57fff4ec9158afe83e6990280efc87bb53ac8eae0465232b26d1eeb1a4af8f44"
+    }
+  },
+  "deployment_source_identity": {
+    "/scratch/jjyeung/orch_cd/evalx/work/milestone/native_package_s24_05/sources/sj/orch_cd/evalx/work/milestone/native/out2/geometry.py": "56099cf8b68d74ee14edecf01d747234f6575ebfa4dc394eba204748a4dd1a11",
+    "/scratch/jjyeung/orch_cd/evalx/work/milestone/native_package_s24_05/sources/sj/orch_cd/evalx/work/milestone/native/out2/perception.py": "088d32c43481bdcbef5e82bfdd7fdc1d0d417710779fe4cc3f77d43534ecd2be",
+    "/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872/student_pilot/candidate_policy.py": "2cc13f27ffe7fe1aa0bbbfc3dbcd543897c37d6acb85e44aa3a1d6e1f4c0dbb1",
+    "/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872/student_pilot/carrier_c1_decode.py": "e612a7c1874f2aeaedcf613421308efe978523edf0ec09db7886996378ae9a4d",
+    "/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872/student_pilot/live_instances314.py": "c542e17e08f230fb97fc79cd6c024943ae91a03dc37a1110dfb5cb2d5ed0cc4e",
+    "/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872/student_pilot/routed_features.py": "736c5a642fe28656c5508022210b050a87e49821381980a9c6f79007ef1fda13",
+    "/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872/student_pilot/tower_read.py": "2cd338e1935803fdd4784b1626095a88a7641a222b394984977b8ec47c674634",
+    "/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872/student_pilot/tower_scale.py": "7a2035804c227996ea179e60b31248bb28e210bf241f6c35d5ee34e56c122d74",
+    "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/bindings.py": "945ffbb8d0b7d5d9eda36ef7959469b2e222fb9cf758d7c7e4fd2acf55ebc553",
+    "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/boundaries.py": "5fbe3ae6ace471c8d8ec532cdde50b0bca4db687b5fc5f7c890c9b6ad44e620c",
+    "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/build_manifest.py": "d1500a768e3be71e98444e4849c8db362341a118f7ff8f821b741cedb63b1108",
+    "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/pipeline.py": "ef68b2cdd96c8b12ba066940552d8d7bbbb059e49ed7958a7e988973113f6544",
+    "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/rehearse.py": "d70d22d70bdc23ddde5d53ed60b4b8e03f2df76aba75b42462d2fdf3d789dedc",
+    "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/run.py": "08c2a41e29c677460bbc40dcdddff7cf202c098dc75d4d59c37bdc6cac9c4c1a",
+    "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/shard.py": "7bbd48ed3fde5df8647e30c06249a046ff228bce8de597b30dd9ba5987b8b503",
+    "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/vendor_sam/variant_cache.py": "cb702acdd4e88a47f1ce7d8556ecce0c54936382422e94c031b9d83b5e02a284",
+    "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/vendor_sam/variantlib.py": "10219e028f26caa5d6cf76e42e6739f8ebd68204faf135874974e593d5440198",
+    "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/vendor_sam/vendor/sam_backend.py": "356802c9c86c79975a479fab84227ab14fedd67910239760cb4456e8c9c15d3c",
+    "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/watchdog.py": "92dfad3db1d947f65edd6d49442fe1b13d3adfa5d26407bbe14e7d7b50ef0f48"
+  },
+  "frozen_gt_sets": {
+    "GT_SET_PRIMARY_296.json": {
+      "analysis": "PRIMARY",
+      "captures": [
+        "arkitscenes/41048124",
+        "arkitscenes/41069076",
+        "arkitscenes/41069175",
+        "arkitscenes/41069181",
+        "arkitscenes/41098061",
+        "arkitscenes/41098085",
+        "arkitscenes/41098191",
+        "arkitscenes/41125564",
+        "arkitscenes/41125837",
+        "arkitscenes/41126341",
+        "arkitscenes/41126367",
+        "arkitscenes/41126453",
+        "arkitscenes/41126744",
+        "arkitscenes/41126757",
+        "arkitscenes/41126783",
+        "arkitscenes/41126996",
+        "arkitscenes/41127027",
+        "arkitscenes/41159381",
+        "arkitscenes/41159425",
+        "arkitscenes/41159621",
+        "arkitscenes/41159653",
+        "arkitscenes/41159675",
+        "arkitscenes/41159723",
+        "arkitscenes/42444513",
+        "arkitscenes/42444748",
+        "arkitscenes/42444814",
+        "arkitscenes/42444845",
+        "arkitscenes/42444887",
+        "arkitscenes/42444907",
+        "arkitscenes/42445056",
+        "arkitscenes/42445092",
+        "arkitscenes/42445454",
+        "arkitscenes/42445474",
+        "arkitscenes/42445924",
+        "arkitscenes/42445931",
+        "arkitscenes/42446074",
+        "arkitscenes/42446080",
+        "arkitscenes/42897467",
+        "arkitscenes/42897480",
+        "arkitscenes/42897512",
+        "arkitscenes/42897607",
+        "arkitscenes/42897622",
+        "arkitscenes/42897668",
+        "arkitscenes/42897783",
+        "arkitscenes/42897784",
+        "arkitscenes/42897802",
+        "arkitscenes/42897955",
+        "arkitscenes/42897967",
+        "arkitscenes/42898089",
+        "arkitscenes/42898109",
+        "arkitscenes/42898141",
+        "arkitscenes/42898163",
+        "arkitscenes/42898213",
+        "arkitscenes/42898236",
+        "arkitscenes/42898405",
+        "arkitscenes/42898477",
+        "arkitscenes/42898541",
+        "arkitscenes/42898587",
+        "arkitscenes/42898715",
+        "arkitscenes/42898740",
+        "arkitscenes/42898745",
+        "arkitscenes/42898756",
+        "arkitscenes/42898786",
+        "arkitscenes/42898792",
+        "arkitscenes/42898983",
+        "arkitscenes/42898990",
+        "arkitscenes/42899003",
+        "arkitscenes/42899209",
+        "arkitscenes/42899247",
+        "arkitscenes/42899285",
+        "arkitscenes/42899477",
+        "arkitscenes/42899483",
+        "arkitscenes/42899559",
+        "arkitscenes/42899811",
+        "arkitscenes/42899851",
+        "arkitscenes/42899906",
+        "arkitscenes/43649382",
+        "arkitscenes/43649403",
+        "arkitscenes/43649426",
+        "arkitscenes/43649474",
+        "arkitscenes/43649681",
+        "arkitscenes/43649714",
+        "arkitscenes/43828507",
+        "arkitscenes/43828554",
+        "arkitscenes/43828583",
+        "arkitscenes/43895863",
+        "arkitscenes/43896055",
+        "arkitscenes/43896365",
+        "arkitscenes/43896416",
+        "arkitscenes/43896469",
+        "arkitscenes/43896478",
+        "arkitscenes/44358118",
+        "arkitscenes/44358426",
+        "arkitscenes/44358557",
+        "arkitscenes/44358593",
+        "arkitscenes/44796221",
+        "arkitscenes/44796254",
+        "arkitscenes/44796279",
+        "arkitscenes/44796297",
+        "arkitscenes/44796304",
+        "arkitscenes/44796324",
+        "arkitscenes/44796332",
+        "arkitscenes/44796349",
+        "arkitscenes/44796392",
+        "arkitscenes/44796450",
+        "arkitscenes/44796473",
+        "arkitscenes/45260873",
+        "arkitscenes/45261007",
+        "arkitscenes/45261289",
+        "arkitscenes/45261397",
+        "arkitscenes/45662791",
+        "arkitscenes/45662816",
+        "arkitscenes/45662908",
+        "arkitscenes/45662959",
+        "arkitscenes/45663064",
+        "arkitscenes/45663205",
+        "arkitscenes/45663206",
+        "arkitscenes/47115174",
+        "arkitscenes/47115265",
+        "arkitscenes/47115350",
+        "arkitscenes/47115412",
+        "arkitscenes/47115415",
+        "arkitscenes/47204274",
+        "arkitscenes/47204392",
+        "arkitscenes/47204407",
+        "arkitscenes/47204482",
+        "arkitscenes/47204517",
+        "arkitscenes/47204813",
+        "arkitscenes/47204836",
+        "arkitscenes/47330995",
+        "arkitscenes/47331154",
+        "arkitscenes/47331188",
+        "arkitscenes/47331189",
+        "arkitscenes/47331294",
+        "arkitscenes/47331479",
+        "arkitscenes/47331495",
+        "arkitscenes/47331557",
+        "arkitscenes/47331606",
+        "arkitscenes/47331711",
+        "arkitscenes/47331771",
+        "arkitscenes/47331815",
+        "arkitscenes/47331878",
+        "arkitscenes/47331880",
+        "arkitscenes/47331928",
+        "arkitscenes/47331946",
+        "arkitscenes/47332026",
+        "arkitscenes/47332044",
+        "arkitscenes/47332125",
+        "arkitscenes/47332192",
+        "arkitscenes/47332204",
+        "arkitscenes/47332383",
+        "arkitscenes/47332400",
+        "arkitscenes/47332430",
+        "arkitscenes/47332436",
+        "arkitscenes/47332581",
+        "arkitscenes/47332592",
+        "arkitscenes/47332704",
+        "arkitscenes/47332705",
+        "arkitscenes/47332710",
+        "scannet/scene0150_01",
+        "scannet/scene0150_02",
+        "scannet/scene0160_03",
+        "scannet/scene0173_01",
+        "scannet/scene0192_00",
+        "scannet/scene0192_01",
+        "scannet/scene0201_02",
+        "scannet/scene0204_00",
+        "scannet/scene0232_02",
+        "scannet/scene0242_02",
+        "scannet/scene0254_00",
+        "scannet/scene0255_01",
+        "scannet/scene0280_00",
+        "scannet/scene0330_00",
+        "scannet/scene0344_01",
+        "scannet/scene0348_01",
+        "scannet/scene0350_00",
+        "scannet/scene0361_00",
+        "scannet/scene0361_01",
+        "scannet/scene0368_00",
+        "scannet/scene0370_01",
+        "scannet/scene0388_00",
+        "scannet/scene0398_00",
+        "scannet/scene0408_01",
+        "scannet/scene0448_00",
+        "scannet/scene0452_02",
+        "scannet/scene0478_00",
+        "scannet/scene0478_01",
+        "scannet/scene0479_01",
+        "scannet/scene0479_02",
+        "scannet/scene0480_00",
+        "scannet/scene0480_01",
+        "scannet/scene0498_00",
+        "scannet/scene0505_01",
+        "scannet/scene0505_04",
+        "scannet/scene0508_00",
+        "scannet/scene0513_00",
+        "scannet/scene0526_01",
+        "scannet/scene0540_02",
+        "scannet/scene0567_00",
+        "scannet/scene0567_01",
+        "scannet/scene0579_02",
+        "scannet/scene0588_03",
+        "scannet/scene0614_02",
+        "scannet/scene0624_00",
+        "scannet/scene0630_06",
+        "scannet/scene0638_00",
+        "scannet/scene0676_00",
+        "scannet/scene0676_01",
+        "scannet/scene0692_03",
+        "scannet/scene0694_01",
+        "scannetpp/00a231a370",
+        "scannetpp/036bce3393",
+        "scannetpp/067e2e4e61",
+        "scannetpp/07b8312ea9",
+        "scannetpp/07ff1c45bb",
+        "scannetpp/0f69aefe3d",
+        "scannetpp/10c8ab99f4",
+        "scannetpp/116456116b",
+        "scannetpp/124a6e789b",
+        "scannetpp/126d03d821",
+        "scannetpp/19cfd590f4",
+        "scannetpp/1a8e0d78c0",
+        "scannetpp/1b75758486",
+        "scannetpp/1d003b07bd",
+        "scannetpp/206bccc898",
+        "scannetpp/2150596d57",
+        "scannetpp/260fa55d50",
+        "scannetpp/268513240f",
+        "scannetpp/2779f8f9e2",
+        "scannetpp/27be88d408",
+        "scannetpp/2a496183e1",
+        "scannetpp/2c7c10379b",
+        "scannetpp/2ebbca3e57",
+        "scannetpp/2f5996ff01",
+        "scannetpp/302a7f6b67",
+        "scannetpp/35f2120068",
+        "scannetpp/3928249b53",
+        "scannetpp/3a520af32a",
+        "scannetpp/3aa115e55e",
+        "scannetpp/3b753d9ae8",
+        "scannetpp/3c8d535d49",
+        "scannetpp/3caf4324fd",
+        "scannetpp/4117a4f02c",
+        "scannetpp/4291be3b44",
+        "scannetpp/469f112e38",
+        "scannetpp/4a1a3a7dc5",
+        "scannetpp/4e2db5058c",
+        "scannetpp/58960ff105",
+        "scannetpp/66c98f4a9b",
+        "scannetpp/67ab69f888",
+        "scannetpp/689fec23d7",
+        "scannetpp/698c3bf2bb",
+        "scannetpp/6ad6cef000",
+        "scannetpp/6b40d1a939",
+        "scannetpp/6cc2231b9c",
+        "scannetpp/709ab5bffe",
+        "scannetpp/712dc47104",
+        "scannetpp/72f527a47c",
+        "scannetpp/7543973e1a",
+        "scannetpp/7739004a45",
+        "scannetpp/778769dad8",
+        "scannetpp/77fe971eba",
+        "scannetpp/79eb3fbc63",
+        "scannetpp/7b4a316aea",
+        "scannetpp/867d97cf3d",
+        "scannetpp/872268d1bf",
+        "scannetpp/87957b7c0b",
+        "scannetpp/8a20d62ac0",
+        "scannetpp/98b4ec142f",
+        "scannetpp/9c7b4394af",
+        "scannetpp/9ee1527aa6",
+        "scannetpp/a30646cae6",
+        "scannetpp/a9e4791c7e",
+        "scannetpp/abb6639ceb",
+        "scannetpp/acd69a1746",
+        "scannetpp/ad2d07fd11",
+        "scannetpp/adf4ab4a53",
+        "scannetpp/aee88e3a93",
+        "scannetpp/bb87c292ad",
+        "scannetpp/c178491bc5",
+        "scannetpp/c31ebd4b22",
+        "scannetpp/c40466a844",
+        "scannetpp/c465f388d1",
+        "scannetpp/d7abfc4b17",
+        "scannetpp/d82aaa88dc",
+        "scannetpp/dc5f00843f",
+        "scannetpp/dfa70fb232",
+        "scannetpp/e51b753e48",
+        "scannetpp/e898c76c1f",
+        "scannetpp/e8ea9b4da8",
+        "scannetpp/edced53026",
+        "scannetpp/ef9428c5cd",
+        "scannetpp/f38b0108a1",
+        "scannetpp/f3f016ba3f",
+        "scannetpp/f8e13ab4ae",
+        "scannetpp/fe1733741f"
+      ],
+      "expected_rows": 1387,
+      "heldout_captures": 57,
+      "n": 296,
+      "path": "/scratch/jjyeung/orch_n30/k1_ops3/work/gt_sets/GT_SET_PRIMARY_296.json",
+      "pinned": 296,
+      "sha256": "2b82af5241db3c8048e9998f766b5dcd24accdaab93bbd8a169aefba39a1f121",
+      "skipped": [
+        "arkitscenes/41125829",
+        "arkitscenes/42899325",
+        "arkitscenes/45261532",
+        "scannetpp/ef69d58016"
+      ],
+      "train_captures": 239,
+      "unpinned": 0
+    },
+    "GT_SET_SENSITIVITY_300.json": {
+      "analysis": "SENSITIVITY",
+      "captures": [
+        "arkitscenes/41048124",
+        "arkitscenes/41069076",
+        "arkitscenes/41069175",
+        "arkitscenes/41069181",
+        "arkitscenes/41098061",
+        "arkitscenes/41098085",
+        "arkitscenes/41098191",
+        "arkitscenes/41125564",
+        "arkitscenes/41125829",
+        "arkitscenes/41125837",
+        "arkitscenes/41126341",
+        "arkitscenes/41126367",
+        "arkitscenes/41126453",
+        "arkitscenes/41126744",
+        "arkitscenes/41126757",
+        "arkitscenes/41126783",
+        "arkitscenes/41126996",
+        "arkitscenes/41127027",
+        "arkitscenes/41159381",
+        "arkitscenes/41159425",
+        "arkitscenes/41159621",
+        "arkitscenes/41159653",
+        "arkitscenes/41159675",
+        "arkitscenes/41159723",
+        "arkitscenes/42444513",
+        "arkitscenes/42444748",
+        "arkitscenes/42444814",
+        "arkitscenes/42444845",
+        "arkitscenes/42444887",
+        "arkitscenes/42444907",
+        "arkitscenes/42445056",
+        "arkitscenes/42445092",
+        "arkitscenes/42445454",
+        "arkitscenes/42445474",
+        "arkitscenes/42445924",
+        "arkitscenes/42445931",
+        "arkitscenes/42446074",
+        "arkitscenes/42446080",
+        "arkitscenes/42897467",
+        "arkitscenes/42897480",
+        "arkitscenes/42897512",
+        "arkitscenes/42897607",
+        "arkitscenes/42897622",
+        "arkitscenes/42897668",
+        "arkitscenes/42897783",
+        "arkitscenes/42897784",
+        "arkitscenes/42897802",
+        "arkitscenes/42897955",
+        "arkitscenes/42897967",
+        "arkitscenes/42898089",
+        "arkitscenes/42898109",
+        "arkitscenes/42898141",
+        "arkitscenes/42898163",
+        "arkitscenes/42898213",
+        "arkitscenes/42898236",
+        "arkitscenes/42898405",
+        "arkitscenes/42898477",
+        "arkitscenes/42898541",
+        "arkitscenes/42898587",
+        "arkitscenes/42898715",
+        "arkitscenes/42898740",
+        "arkitscenes/42898745",
+        "arkitscenes/42898756",
+        "arkitscenes/42898786",
+        "arkitscenes/42898792",
+        "arkitscenes/42898983",
+        "arkitscenes/42898990",
+        "arkitscenes/42899003",
+        "arkitscenes/42899209",
+        "arkitscenes/42899247",
+        "arkitscenes/42899285",
+        "arkitscenes/42899325",
+        "arkitscenes/42899477",
+        "arkitscenes/42899483",
+        "arkitscenes/42899559",
+        "arkitscenes/42899811",
+        "arkitscenes/42899851",
+        "arkitscenes/42899906",
+        "arkitscenes/43649382",
+        "arkitscenes/43649403",
+        "arkitscenes/43649426",
+        "arkitscenes/43649474",
+        "arkitscenes/43649681",
+        "arkitscenes/43649714",
+        "arkitscenes/43828507",
+        "arkitscenes/43828554",
+        "arkitscenes/43828583",
+        "arkitscenes/43895863",
+        "arkitscenes/43896055",
+        "arkitscenes/43896365",
+        "arkitscenes/43896416",
+        "arkitscenes/43896469",
+        "arkitscenes/43896478",
+        "arkitscenes/44358118",
+        "arkitscenes/44358426",
+        "arkitscenes/44358557",
+        "arkitscenes/44358593",
+        "arkitscenes/44796221",
+        "arkitscenes/44796254",
+        "arkitscenes/44796279",
+        "arkitscenes/44796297",
+        "arkitscenes/44796304",
+        "arkitscenes/44796324",
+        "arkitscenes/44796332",
+        "arkitscenes/44796349",
+        "arkitscenes/44796392",
+        "arkitscenes/44796450",
+        "arkitscenes/44796473",
+        "arkitscenes/45260873",
+        "arkitscenes/45261007",
+        "arkitscenes/45261289",
+        "arkitscenes/45261397",
+        "arkitscenes/45261532",
+        "arkitscenes/45662791",
+        "arkitscenes/45662816",
+        "arkitscenes/45662908",
+        "arkitscenes/45662959",
+        "arkitscenes/45663064",
+        "arkitscenes/45663205",
+        "arkitscenes/45663206",
+        "arkitscenes/47115174",
+        "arkitscenes/47115265",
+        "arkitscenes/47115350",
+        "arkitscenes/47115412",
+        "arkitscenes/47115415",
+        "arkitscenes/47204274",
+        "arkitscenes/47204392",
+        "arkitscenes/47204407",
+        "arkitscenes/47204482",
+        "arkitscenes/47204517",
+        "arkitscenes/47204813",
+        "arkitscenes/47204836",
+        "arkitscenes/47330995",
+        "arkitscenes/47331154",
+        "arkitscenes/47331188",
+        "arkitscenes/47331189",
+        "arkitscenes/47331294",
+        "arkitscenes/47331479",
+        "arkitscenes/47331495",
+        "arkitscenes/47331557",
+        "arkitscenes/47331606",
+        "arkitscenes/47331711",
+        "arkitscenes/47331771",
+        "arkitscenes/47331815",
+        "arkitscenes/47331878",
+        "arkitscenes/47331880",
+        "arkitscenes/47331928",
+        "arkitscenes/47331946",
+        "arkitscenes/47332026",
+        "arkitscenes/47332044",
+        "arkitscenes/47332125",
+        "arkitscenes/47332192",
+        "arkitscenes/47332204",
+        "arkitscenes/47332383",
+        "arkitscenes/47332400",
+        "arkitscenes/47332430",
+        "arkitscenes/47332436",
+        "arkitscenes/47332581",
+        "arkitscenes/47332592",
+        "arkitscenes/47332704",
+        "arkitscenes/47332705",
+        "arkitscenes/47332710",
+        "scannet/scene0150_01",
+        "scannet/scene0150_02",
+        "scannet/scene0160_03",
+        "scannet/scene0173_01",
+        "scannet/scene0192_00",
+        "scannet/scene0192_01",
+        "scannet/scene0201_02",
+        "scannet/scene0204_00",
+        "scannet/scene0232_02",
+        "scannet/scene0242_02",
+        "scannet/scene0254_00",
+        "scannet/scene0255_01",
+        "scannet/scene0280_00",
+        "scannet/scene0330_00",
+        "scannet/scene0344_01",
+        "scannet/scene0348_01",
+        "scannet/scene0350_00",
+        "scannet/scene0361_00",
+        "scannet/scene0361_01",
+        "scannet/scene0368_00",
+        "scannet/scene0370_01",
+        "scannet/scene0388_00",
+        "scannet/scene0398_00",
+        "scannet/scene0408_01",
+        "scannet/scene0448_00",
+        "scannet/scene0452_02",
+        "scannet/scene0478_00",
+        "scannet/scene0478_01",
+        "scannet/scene0479_01",
+        "scannet/scene0479_02",
+        "scannet/scene0480_00",
+        "scannet/scene0480_01",
+        "scannet/scene0498_00",
+        "scannet/scene0505_01",
+        "scannet/scene0505_04",
+        "scannet/scene0508_00",
+        "scannet/scene0513_00",
+        "scannet/scene0526_01",
+        "scannet/scene0540_02",
+        "scannet/scene0567_00",
+        "scannet/scene0567_01",
+        "scannet/scene0579_02",
+        "scannet/scene0588_03",
+        "scannet/scene0614_02",
+        "scannet/scene0624_00",
+        "scannet/scene0630_06",
+        "scannet/scene0638_00",
+        "scannet/scene0676_00",
+        "scannet/scene0676_01",
+        "scannet/scene0692_03",
+        "scannet/scene0694_01",
+        "scannetpp/00a231a370",
+        "scannetpp/036bce3393",
+        "scannetpp/067e2e4e61",
+        "scannetpp/07b8312ea9",
+        "scannetpp/07ff1c45bb",
+        "scannetpp/0f69aefe3d",
+        "scannetpp/10c8ab99f4",
+        "scannetpp/116456116b",
+        "scannetpp/124a6e789b",
+        "scannetpp/126d03d821",
+        "scannetpp/19cfd590f4",
+        "scannetpp/1a8e0d78c0",
+        "scannetpp/1b75758486",
+        "scannetpp/1d003b07bd",
+        "scannetpp/206bccc898",
+        "scannetpp/2150596d57",
+        "scannetpp/260fa55d50",
+        "scannetpp/268513240f",
+        "scannetpp/2779f8f9e2",
+        "scannetpp/27be88d408",
+        "scannetpp/2a496183e1",
+        "scannetpp/2c7c10379b",
+        "scannetpp/2ebbca3e57",
+        "scannetpp/2f5996ff01",
+        "scannetpp/302a7f6b67",
+        "scannetpp/35f2120068",
+        "scannetpp/3928249b53",
+        "scannetpp/3a520af32a",
+        "scannetpp/3aa115e55e",
+        "scannetpp/3b753d9ae8",
+        "scannetpp/3c8d535d49",
+        "scannetpp/3caf4324fd",
+        "scannetpp/4117a4f02c",
+        "scannetpp/4291be3b44",
+        "scannetpp/469f112e38",
+        "scannetpp/4a1a3a7dc5",
+        "scannetpp/4e2db5058c",
+        "scannetpp/58960ff105",
+        "scannetpp/66c98f4a9b",
+        "scannetpp/67ab69f888",
+        "scannetpp/689fec23d7",
+        "scannetpp/698c3bf2bb",
+        "scannetpp/6ad6cef000",
+        "scannetpp/6b40d1a939",
+        "scannetpp/6cc2231b9c",
+        "scannetpp/709ab5bffe",
+        "scannetpp/712dc47104",
+        "scannetpp/72f527a47c",
+        "scannetpp/7543973e1a",
+        "scannetpp/7739004a45",
+        "scannetpp/778769dad8",
+        "scannetpp/77fe971eba",
+        "scannetpp/79eb3fbc63",
+        "scannetpp/7b4a316aea",
+        "scannetpp/867d97cf3d",
+        "scannetpp/872268d1bf",
+        "scannetpp/87957b7c0b",
+        "scannetpp/8a20d62ac0",
+        "scannetpp/98b4ec142f",
+        "scannetpp/9c7b4394af",
+        "scannetpp/9ee1527aa6",
+        "scannetpp/a30646cae6",
+        "scannetpp/a9e4791c7e",
+        "scannetpp/abb6639ceb",
+        "scannetpp/acd69a1746",
+        "scannetpp/ad2d07fd11",
+        "scannetpp/adf4ab4a53",
+        "scannetpp/aee88e3a93",
+        "scannetpp/bb87c292ad",
+        "scannetpp/c178491bc5",
+        "scannetpp/c31ebd4b22",
+        "scannetpp/c40466a844",
+        "scannetpp/c465f388d1",
+        "scannetpp/d7abfc4b17",
+        "scannetpp/d82aaa88dc",
+        "scannetpp/dc5f00843f",
+        "scannetpp/dfa70fb232",
+        "scannetpp/e51b753e48",
+        "scannetpp/e898c76c1f",
+        "scannetpp/e8ea9b4da8",
+        "scannetpp/edced53026",
+        "scannetpp/ef69d58016",
+        "scannetpp/ef9428c5cd",
+        "scannetpp/f38b0108a1",
+        "scannetpp/f3f016ba3f",
+        "scannetpp/f8e13ab4ae",
+        "scannetpp/fe1733741f"
+      ],
+      "expected_rows": 1429,
+      "heldout_captures": 58,
+      "n": 300,
+      "path": "/scratch/jjyeung/orch_n30/k1_ops3/work/gt_sets/GT_SET_SENSITIVITY_300.json",
+      "pinned": 296,
+      "sha256": "e305c4be0d604df277d06e7d9b1e13893dfa659d7ab6663f0de798773d58d650",
+      "skipped": [],
+      "train_captures": 242,
+      "unpinned": 4
+    }
+  },
+  "manifest_digest": "aa2fefb545d25762a4cfffb0a34bd053bfbbfbb8b064ca5256cab8d0d7506eda",
+  "manifest_sha256": "91a2dbf9a0bdad1a45af44a5a3a2607d40f9f7a630f742fc4531544c00cade7c",
+  "original_kit_unchanged": true,
+  "phase_binding_source_producer_manifest_equal": true,
+  "producer_sha256": "80d763d4149f1b7989d806f3bfab0660e631c27e79d0300cd8300fbdb88f075d",
+  "protected_files_unchanged": true,
+  "same_location_identity_before_after_equal": true,
+  "verified_deployment_pins": 109
+}
+
+=== NEW PINS ===
+{
+  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/gt_set.py": {
+    "after": "5d36d1ea98c14b2e3181a4571a87dc81efa980bd88a2302e27a1ecc13833a4f8",
+    "before": null
+  },
+  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/k1_cli.py": {
+    "after": "f14df4eda722337e0e7187a759e287eed79bb3201b03ffef351591ce5241c0da",
+    "before": "3cc7b95ff591d68dc0184ac76d7b706a3b7920c94a2132b0eedd99c1c7e49013"
+  },
+  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/k1_pipeline.py": {
+    "after": "deb51a265425e092870c7eadb2fd498b5942b466bb759b39c84fa96e0c762157",
+    "before": "46c10147710bf7e8d087c51147464cce72cfc3cff10c89f20a4ddb6bcad76111"
+  },
+  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/k1_report.py": {
+    "after": "14b35f83184267f85a946079767d7903d3e1c31d73946bd2600bbe6b2efe862d",
+    "before": "607a8a16f9a42b88bbc5e7f36aafb0bc6b700507f269a914ca4c84f2bcb9136a"
+  },
+  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/refit/train.py": {
+    "after": "4087716014ab26e7fdb91f336e3d8ee81f97e82b85a4c340376e872c655ecfef",
+    "before": "57fff4ec9158afe83e6990280efc87bb53ac8eae0465232b26d1eeb1a4af8f44"
+  }
+}
+
+=== REAL PHASE CHECKS ===
+[
+  {
+    "canonical": "arkitscenes/47115174",
+    "phase_check": "PASS",
+    "cached": "requires CACHE_COMPLETE.json and geometry.npz after own/convert",
+    "receipt_sha256": "16740694fd36f767c1b302a140f9225346202db73bab6fd0c7270d25a16f54b6"
+  },
+  {
+    "canonical": "arkitscenes/47332026",
+    "phase_check": "PASS",
+    "cached": "requires CACHE_COMPLETE.json and geometry.npz after own/convert",
+    "receipt_sha256": "2809b8364233c7f0bc2965cc120b97b84504ce31f4ebb1a3b605a99d853dcf18"
+  }
+]
+
+=== REAL CACHE BRIDGE ===
+[
+  {
+    "canonical": "arkitscenes/47115174",
+    "old_cached": "PASS",
+    "patched_cached": "PASS",
+    "own_geometry": "TEST FIXTURE ONLY",
+    "real_proposals_sha256": "4764f47c247914c59e1f25f8ff8c28f2413f3966aa69c15f044dd64c70cd94d8"
+  },
+  {
+    "canonical": "arkitscenes/47332026",
+    "old_cached": "PASS",
+    "patched_cached": "PASS",
+    "own_geometry": "TEST FIXTURE ONLY",
+    "real_proposals_sha256": "02249657af59a979e1a858c7c8bd85e170246a43f7ca2d40236ff16f63889183"
+  }
+]
+
+=== REFIT PREREQUISITES ===
+{
+  "/scratch/jjyeung/envs/p1cpu/bin/python": {
+    "python": "3.12.13 (main, Jun 23 2026, 15:18:55) [Clang 22.1.3 ]",
+    "sklearn": false
+  },
+  "/scratch/jjyeung/envs/sam3_capretry_native_v1/bin/python": {
+    "python": "3.12.13 | packaged by conda-forge | (main, Mar  5 2026, 16:50:00) [GCC 14.3.0]",
+    "sklearn": false
+  },
+  "refit_files": {
+    "/scratch/jjyeung/orch_n30/k1_ops3/kc/devs1_masks/out/kit/work/vendor/MODELS.json": false,
+    "/scratch/jjyeung/orch_n30/k1_ops3/kc/grd_selector/work/setsel/setlib.py": false
+  }
+}
+
+=== EXACT OPERATOR COMMANDS ===
+#!/usr/bin/env bash
+# Run only after independent review and deployment, after tower_sam has ended.
+# This file does not deploy or change phase artifacts.
+set -euo pipefail
+: "${K1_CONVERT_CACHE:?Set this to the completed convert output root, not the tower_sam root}"
+: "${K1_REFIT_PY:?Set this to an approved CPU Python with numpy and scikit-learn}"
+
+BUILD=/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset
+KIT=/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a
+MANIFEST=/scratch/jjyeung/orch_n30/k1_ops3/work/codex_arkit_timing/K1_MANIFEST.arkit_timing.json
+GTSETS=/scratch/jjyeung/orch_n30/k1_ops3/work/gt_sets
+PY=/scratch/jjyeung/envs/p1cpu/bin/python
+export CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1
+export NUMEXPR_NUM_THREADS=1 PYTHONDONTWRITEBYTECODE=1 HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
+export XDG_CACHE_HOME="$BUILD/runtime_cache" HF_HOME="$BUILD/runtime_cache/hf" TRITON_CACHE_DIR="$BUILD/runtime_cache/triton"
+cd "$BUILD"
+
+# These are existing refit prerequisites, not part of this patch.
+test -f /scratch/jjyeung/orch_n30/k1_ops3/kc/grd_selector/work/setsel/setlib.py
+test -f /scratch/jjyeung/orch_n30/k1_ops3/kc/devs1_masks/out/kit/work/vendor/MODELS.json
+nice -n 10 "$K1_REFIT_PY" -B -c 'import numpy, sklearn'
+nice -n 10 "$PY" -B "$KIT/work/verify_sources.py"
+INVENTORY=$(nice -n 10 "$PY" -B -c 'import json,sys;print(json.load(open(sys.argv[1]))["inventory"]["path"])' "$MANIFEST")
+
+PRIMARY="$BUILD/analyses/primary_296"
+SENSITIVITY="$BUILD/analyses/sensitivity_300"
+
+nice -n 10 "$PY" -B "$KIT/work/k1_pipeline.py" tables --manifest "$MANIFEST" --cache "$K1_CONVERT_CACHE" --gt-set "$GTSETS/GT_SET_PRIMARY_296.json" --out "$PRIMARY/tables"
+nice -n 10 "$K1_REFIT_PY" -B "$KIT/work/refit/train.py" --candidates "$PRIMARY/tables/candidates.jsonl" --pairs "$PRIMARY/tables/pairs.jsonl" --inventory "$INVENTORY" --gt-set "$GTSETS/GT_SET_PRIMARY_296.json" --out "$PRIMARY/refit"
+nice -n 10 "$PY" -B "$KIT/work/k1_pipeline.py" render --manifest "$MANIFEST" --cache "$K1_CONVERT_CACHE" --fit "$PRIMARY/refit" --gt-set "$GTSETS/GT_SET_PRIMARY_296.json" --out "$PRIMARY/render"
+nice -n 10 "$PY" -B "$KIT/work/k1_report.py" --rows "$PRIMARY/render/K1_ANALYSIS_INPUT.jsonl" --inventory "$INVENTORY" --manifest "$MANIFEST" --fit "$PRIMARY/refit/FIT_RECEIPT.json" --ids-from "$PRIMARY/tables/TABLE_RECEIPT.json" --gt-set "$GTSETS/GT_SET_PRIMARY_296.json" --out "$PRIMARY/REPORT.json"
+
+nice -n 10 "$PY" -B "$KIT/work/k1_pipeline.py" tables --manifest "$MANIFEST" --cache "$K1_CONVERT_CACHE" --gt-set "$GTSETS/GT_SET_SENSITIVITY_300.json" --sensitivity --out "$SENSITIVITY/tables"
+nice -n 10 "$K1_REFIT_PY" -B "$KIT/work/refit/train.py" --candidates "$SENSITIVITY/tables/candidates.jsonl" --pairs "$SENSITIVITY/tables/pairs.jsonl" --inventory "$INVENTORY" --gt-set "$GTSETS/GT_SET_SENSITIVITY_300.json" --sensitivity --out "$SENSITIVITY/refit"
+nice -n 10 "$PY" -B "$KIT/work/k1_pipeline.py" render --manifest "$MANIFEST" --cache "$K1_CONVERT_CACHE" --fit "$SENSITIVITY/refit" --gt-set "$GTSETS/GT_SET_SENSITIVITY_300.json" --sensitivity --out "$SENSITIVITY/render"
+nice -n 10 "$PY" -B "$KIT/work/k1_report.py" --rows "$SENSITIVITY/render/K1_ANALYSIS_INPUT.jsonl" --inventory "$INVENTORY" --manifest "$MANIFEST" --fit "$SENSITIVITY/refit/FIT_RECEIPT.json" --ids-from "$SENSITIVITY/tables/TABLE_RECEIPT.json" --gt-set "$GTSETS/GT_SET_SENSITIVITY_300.json" --sensitivity --out "$SENSITIVITY/REPORT.json"
+
+=== UNIFIED DIFF (also gtset.diff) ===
+--- a/work/gt_set.py
++++ b/work/gt_set.py
+@@ -0,0 +1,90 @@
++"""Explicit downstream GT selection; manifest and capture identities stay frozen."""
++import hashlib
++import json
++from pathlib import Path
++import gate
++
++
++def _unique(pairs):
++    result = {}
++    for key, value in pairs:
++        if key in result:
++            raise ValueError('Duplicate GT set key: ' + key)
++        result[key] = value
++    return result
++
++
++def load(path, sensitivity=False):
++    if path is None:
++        if sensitivity:
++            raise ValueError('--sensitivity requires --gt-set')
++        return None
++    data = Path(path).read_bytes()
++    entries = json.loads(data, object_pairs_hook=_unique)
++    if not isinstance(entries, dict) or not entries:
++        raise ValueError('GT set must be a nonempty canonical mapping')
++    for canonical, pin in entries.items():
++        if not isinstance(pin, dict) or type(pin.get('pinned')) is not bool:
++            raise ValueError('GT set requires a boolean pinned field: ' + canonical)
++        if not isinstance(pin.get('path'), str) or not Path(pin['path']).is_absolute():
++            raise ValueError('GT set requires absolute raster paths')
++        sha = pin.get('sha256')
++        if not isinstance(sha, str) or len(sha) != 64 or any(c not in '0123456789abcdef' for c in sha):
++            raise ValueError('Invalid GT set sha256')
++        if not pin['pinned'] and not sensitivity:
++            raise ValueError('Unpinned GT requires --sensitivity')
++    return dict(path=str(Path(path).resolve()), sha256=hashlib.sha256(data).hexdigest(),
++                entries=entries, sensitivity=bool(sensitivity))
++
++
++def metadata(selection, canonicals):
++    if selection is None:
++        return None
++    entries = selection['entries']
++    if not set(entries) <= set(canonicals):
++        raise ValueError('GT set contains captures outside the manifest/inventory')
++    return dict(path=selection['path'], sha256=selection['sha256'], n=len(entries),
++                pinned=sum(p['pinned'] for p in entries.values()),
++                unpinned=sum(not p['pinned'] for p in entries.values()),
++                captures=sorted(entries), skipped=sorted(set(canonicals) - set(entries)),
++                analysis='SENSITIVITY' if selection['sensitivity'] else 'PRIMARY')
++
++
++def select(m, selection):
++    meta = metadata(selection, [c['canonical'] for c in m['captures']])
++    captures = m['captures'] if selection is None else [c for c in m['captures'] if c['canonical'] in selection['entries']]
++    if selection is not None:
++        for c in captures:
++            pin = selection['entries'][c['canonical']]
++            if pin['pinned'] and pin['sha256'] != c['gt']['sha256']:
++                raise ValueError('Pinned GT differs from manifest pin: ' + c['canonical'])
++            if 'manifest_pin' in pin and pin['manifest_pin'] != c['gt']['sha256']:
++                raise ValueError('GT manifest_pin differs: ' + c['canonical'])
++    return captures, meta
++
++
++def require(receipt, meta):
++    if receipt.get('gt_set') != meta:
++        raise ValueError('Downstream GT set receipt differs; use the same --gt-set and --sensitivity')
++
++
++def write(path, record, meta, *, exclusive=True):
++    """Keep JSON parseable while making the analysis visible on its first line."""
++    record = dict(record, gt_set=meta)
++    body = json.dumps(record, indent=2, allow_nan=False)
++    body = '{"analysis": ' + json.dumps(meta['analysis']) + ',\n' + body[2:] + '\n'
++    with Path(path).open('x' if exclusive else 'w') as stream:
++        stream.write(body)
++
++
++def pin(path):
++    return dict(path=str(Path(path).resolve()), sha256=gate.sha(path))
++
++
++def check_table(receipt, m, selection):
++    captures, meta = select(m, selection)
++    require(receipt, meta)
++    digest = hashlib.sha256(json.dumps(m, sort_keys=True, allow_nan=False).encode()).hexdigest()
++    if receipt['manifest_sha256'] != digest or receipt['inventory'] != m['inventory']:
++        raise ValueError('Table manifest binding differs')
++    return captures, meta
+--- a/work/k1_pipeline.py
++++ b/work/k1_pipeline.py
+@@ -4,6 +4,7 @@
+ from types import SimpleNamespace as NS
+ sys.path[:0]=[str(Path(__file__).parent),str(Path(__file__).parent/'refit')]
+ import gate
++import gt_set as G
+ sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'native_kit'))
+ import numpy as np
+ def _native():
+@@ -16,10 +17,13 @@
+  """Shared frozen pricing comparator; dev-S1 calls must set fixture=True."""
+  from backend import price_capture
+  return price_capture(*args,**kwargs)
+-def check_manifest(m,phase="all"):
++def check_manifest(m,phase="all",gt_set=None,sensitivity=False):
+  _native()
+  if m.get('production_ready') is not True or m.get('frame_staging_authorized') is not True:raise ValueError('Plan is not staged and admitted for GPU execution')
+  if m.get('unresolved_dense_sources') or m.get('unresolved_gt_names'):raise ValueError('Unresolved dense source or GT identity')
++ selection=G.load(gt_set,sensitivity)
++ if selection is not None and phase!='downstream':raise ValueError('GT sets are downstream only')
++ selected,_=G.select(m,selection);selected_ids={c['canonical'] for c in selected}
+  inv=B.load(m['inventory']['path'])
+  if gate.sha(m['inventory']['path'])!=m['inventory']['sha256'] or not inv['pilot_complete']:raise ValueError('K1 inventory pin differs')
+  pilot={c['canonical']:c for c in inv['pilot']}
+@@ -34,7 +38,7 @@
+   if phase in ('all','own') and any(si.get(k) is None for k in ('fps','timestamps','total_num_frames')):raise ValueError('Native source-video metadata is unresolved')
+   pins=[c['dense_frames'][i] for i in c['anchor_slots']] if phase=='own' else c['dense_frames'] if phase in ('all','tower_sam') else []
+   for pin in pins:B.checked(pin)
+-  if phase in ('all','downstream'):B.checked(c['gt'])
++  if phase in ('all','downstream') and c['canonical'] in selected_ids:B.checked(c['gt'] if selection is None else selection['entries'][c['canonical']])
+  keys={'tower_sam':('tower_weights','tower_config','sam_checkpoint','sam_receipt'),'own':('artifact','config','data_receipt'),'convert':(),'downstream':()}
+  for key in keys.get(phase,('artifact','config','data_receipt','tower_weights','tower_config','sam_checkpoint','sam_receipt')):B.checked(m['gpu'][key])
+  return m
+@@ -91,32 +95,39 @@
+  for pin in receipt['files'].values():B.checked(pin)
+  raw=B.load(dest/'candidates.json');geo=load_geometry(dest/'geometry.npz',FrameMap(tuple(c['anchor_indices'])),'tower_scaled')
+  return raw,geo,receipt
+-def gt_arrays(c):
++def gt_arrays(c,selection=None):
+  _native()
+- with np.load(B.checked(c['gt']),allow_pickle=False) as z:
++ with np.load(B.checked(c['gt'] if selection is None else selection['entries'][c['canonical']]),allow_pickle=False) as z:
+   return dict(instances=z['instances'] if 'instances' in z else z['inst'],frame_indices=z['frame_indices'])
+-def tables(m,cache,out):
++def tables(m,cache,out,gt_set=None,sensitivity=False):
+  _native()
+  import build_tables
++ selection=G.load(gt_set,sensitivity);captures,meta=G.select(m,selection)
+  out=Path(out);out.mkdir(parents=True,exist_ok=False)
+  with (out/'candidates.jsonl').open('w') as cf,(out/'pairs.jsonl').open('w') as pf:
+-  for c in m['captures']:
++  for c in captures:
+    raw,geo,receipt=cached(c,Path(cache)/B.digest(c['canonical'])[:16])
+-   rows,pairs=build_tables.build_capture(c,raw,geo,gt_arrays(c))
++   rows,pairs=build_tables.build_capture(c,raw,geo,gt_arrays(c,selection))
+    for row in rows:cf.write(json.dumps(row)+'\n')
+    for row in pairs:pf.write(json.dumps(row)+'\n')
+- B.write(out/'TABLE_RECEIPT.json',dict(manifest_sha256=B.digest(m),inventory=m['inventory'],producer_sha256=B.sha(build_tables.__file__),build_sha256=gate.sha(gate.ROOT/'grd_selector/work/setsel/build.py'),files={n:B.pin(out/n) for n in ['candidates.jsonl','pairs.jsonl']}))
+-def responses(m,cache,fit_dir,out):
++ record=dict(manifest_sha256=B.digest(m),inventory=m['inventory'],producer_sha256=B.sha(build_tables.__file__),build_sha256=gate.sha(gate.ROOT/'grd_selector/work/setsel/build.py'),files={n:B.pin(out/n) for n in ['candidates.jsonl','pairs.jsonl']})
++ if meta is None:B.write(out/'TABLE_RECEIPT.json',record)
++ else:G.write(out/'TABLE_RECEIPT.json',record,meta)
++def responses(m,cache,fit_dir,out,gt_set=None,sensitivity=False):
+  _native()
+  import render
++ selection=G.load(gt_set,sensitivity);captures,meta=G.select(m,selection)
+  fit_dir=Path(fit_dir);fit_path=fit_dir/'FIT_RECEIPT.json';fit=B.load(fit_path);policy=fit_dir/'NATIVE_POLICY.json'
++ G.require(fit,meta)
++ if meta is not None:
++  table_pin=fit['table_receipt'];table=B.load(B.checked(table_pin));G.check_table(table,m,selection)
+  if fit.get('fixture_only') is not False:raise ValueError('Fixture refit cannot render training responses')
+  if B.sha(policy)!=fit['native_policy_sha256']:raise ValueError('Native refit pin differs')
+  if fit['inputs'].get(m['inventory']['path'])!=m['inventory']['sha256']:raise ValueError('Refit inventory differs')
+  if set(fit['train_rooms'])&set(fit['heldout_rooms']):raise ValueError('Refit room leakage')
+  out=Path(out);out.mkdir(parents=True,exist_ok=False);all_rows=[];analysis=[]
+- for c in m['captures']:
+-  raw,geo,receipt=cached(c,Path(cache)/B.digest(c['canonical'])[:16]);gt=gt_arrays(c);results=[]
++ for c in captures:
++  raw,geo,receipt=cached(c,Path(cache)/B.digest(c['canonical'])[:16]);gt=gt_arrays(c,selection);results=[]
+   dest=out/B.digest(c['canonical'])[:16];dest.mkdir()
+   for row in c['rows']:
+    backend=native_backend(c,row,geo,raw,policy,dest/'audit') if row['operands'] else None
+@@ -131,9 +142,12 @@
+      label='excluded' if result['decision']['label']=='left_out' else result['decision']['label'],
+      rendered_label=rendered['label'],training_target_available='target' in rendered,printed_cues=printed_cues(result)))
+   B.write(dest/'responses.json',results)
+-  B.write(dest/'COMPLETE.json',dict(capture_sha256=B.digest(c),sources=receipt['sources'],eligible_refit_sha256=B.sha(fit_path),files={'responses.json':B.pin(dest/'responses.json')}))
++  complete=dict(capture_sha256=B.digest(c),sources=receipt['sources'],eligible_refit_sha256=B.sha(fit_path),files={'responses.json':B.pin(dest/'responses.json')})
++  if meta is None:B.write(dest/'COMPLETE.json',complete)
++  else:G.write(dest/'COMPLETE.json',complete,meta)
+  render.write_rows(all_rows,out/'rows')
+  (out/'K1_ANALYSIS_INPUT.jsonl').write_text(''.join(json.dumps(x)+'\n' for x in analysis))
++ if meta is not None:G.write(out/'RENDER_RECEIPT.json',dict(manifest_sha256=B.digest(m),fit=G.pin(fit_path),table_receipt=fit['table_receipt'],files={'analysis':B.pin(out/'K1_ANALYSIS_INPUT.jsonl')}),meta)
+ def printed_cues(result):
+  _native()
+  import re
+--- a/work/k1_cli.py
++++ b/work/k1_cli.py
+@@ -21,7 +21,11 @@
+     p.add_argument('--own-cache')
+     p.add_argument('--cpu-fixture', action='store_true')
+     p.add_argument('--preflight-out')
++    p.add_argument('--gt-set')
++    p.add_argument('--sensitivity', action='store_true')
+     a = p.parse_args()
++    if (a.gt_set or a.sensitivity) and a.stage not in ('tables', 'render'):
++        p.error('--gt-set/--sensitivity are downstream only')
+     if a.max_bytes <= 0:
+         p.error('--max-bytes must be a positive integer')
+     if a.stage in ('cache', 'preflight') and (not a.phase or a.max_seconds <= 0):
+@@ -33,7 +37,7 @@
+             raise ValueError('CPU stand-ins cannot run production manifests or render')
+         run.validate_manifest(m, synthetic=True)
+     else:
+-        K.check_manifest(m, a.phase if a.stage in ('cache', 'preflight') else 'downstream')
++        K.check_manifest(m, a.phase if a.stage in ('cache', 'preflight') else 'downstream', a.gt_set, a.sensitivity)
+     if a.stage == 'preflight':
+         B.write(a.out, dict(manifest_sha256=B.digest(m), captures=len(m['captures']), phase=a.phase,
+                             fixture_only=a.cpu_fixture, gpu_run=False))
+@@ -56,7 +60,7 @@
+         return F.run(m, a.out, boundary, a.phase, a.max_seconds, a.tower_cache, a.own_cache,
+                      max_bytes=a.max_bytes)
+     if a.stage == 'tables':
+-        K.tables(m, a.cache, a.out)
++        K.tables(m, a.cache, a.out, a.gt_set, a.sensitivity)
+     if a.stage == 'render':
+-        K.responses(m, a.cache, a.fit, a.out)
++        K.responses(m, a.cache, a.fit, a.out, a.gt_set, a.sensitivity)
+     return 0
+--- a/work/refit/train.py
++++ b/work/refit/train.py
+@@ -5,6 +5,7 @@
+ HERE=Path(__file__).resolve().parent
+ sys.path[:0]=[str(HERE.parent),str(HERE)]
+ import gate
++import gt_set as G
+ SOURCE=gate.ROOT/'grd_selector/work/setsel'
+ sys.path.insert(0,str(SOURCE))
+ import fit,fit_pairs,setlib as L
+@@ -41,17 +42,21 @@
+  top=[max(g,key=lambda x:(x[1],x[0].get('features',{}).get('peak',0)))[0]['y'] for g in groups.values()]
+  return dict(auc=float(roc_auc_score(y,p)),average_precision=float(average_precision_score(y,p)),
+              top1_accept_accuracy=float(np.mean(top)),n=len(y),objects=len(top),top1_definition='highest probability candidate per object; ties by SAM peak')
+-def train(candidate_path,pair_path,inventory_path,out,*,fixture=False):
++def train(candidate_path,pair_path,inventory_path,out,*,fixture=False,gt_set=None,sensitivity=False):
++ selection=G.load(gt_set,sensitivity)
+  inv=json.loads(Path(inventory_path).read_text())
++ meta=G.metadata(selection,[c['canonical'] for c in inv['pilot']])
++ if fixture and selection is not None:raise ValueError('GT-set refit requires bound tables')
+  if not inv['pilot_complete']:raise ValueError('Incomplete K1 selection')
+  if not fixture:
+   table_receipt=Path(candidate_path).parent/'TABLE_RECEIPT.json'
+-  t=json.loads(table_receipt.read_text())
++  t=json.loads(table_receipt.read_text());G.require(t,meta)
+   if t['inventory']['sha256']!=gate.sha(inventory_path):raise ValueError('Table inventory differs')
+   for path in [candidate_path,pair_path]:
+    if t['files'][Path(path).name]['sha256']!=gate.sha(path):raise ValueError('Unbound fit table')
+  _,groups=L.load(candidate_path);cands=[r for g in groups.values() for r in g]
+  audit_features(cands);pair_rows,X,y=fit_pairs.load(pair_path);audit_features(pair_rows,True)
++ if meta is not None and any(r['scene'] not in selection['entries'] for r in cands+pair_rows):raise ValueError('Fit table contains captures outside GT set')
+  cs,rooms=split_rows(cands,inv['pilot']);ps,_=split_rows(pair_rows,inv['pilot'])
+  pred,model,_=fit.fit_predict(cs['train'],cs['heldout'],L.FEATS['portable_np'],'logistic')
+  ptr=[r for r in ps['train'] if r['y']>=0]
+@@ -77,9 +82,13 @@
+  # Native policy and frozen price_masks consume the portable NumPy fields.
+  report['models_sha256']=gate.sha(out/'MODELS.json')
+  report['native_policy_sha256']=gate.sha(out/'NATIVE_POLICY.json')
+- (out/'FIT_RECEIPT.json').write_text(json.dumps(report,indent=2)+'\n')
++ if meta is None:(out/'FIT_RECEIPT.json').write_text(json.dumps(report,indent=2)+'\n')
++ else:
++  report['table_receipt']=G.pin(table_receipt)
++  G.write(out/'FIT_RECEIPT.json',report,meta)
++  report=json.loads((out/'FIT_RECEIPT.json').read_text())
+  return report
+ def main():
+- p=argparse.ArgumentParser();p.add_argument('--candidates',required=True);p.add_argument('--pairs',required=True);p.add_argument('--inventory',required=True);p.add_argument('--out',required=True);a=p.parse_args()
+- print(json.dumps(train(a.candidates,a.pairs,a.inventory,a.out),indent=2))
++ p=argparse.ArgumentParser();p.add_argument('--candidates',required=True);p.add_argument('--pairs',required=True);p.add_argument('--inventory',required=True);p.add_argument('--out',required=True);p.add_argument('--gt-set');p.add_argument('--sensitivity',action='store_true');a=p.parse_args()
++ print(json.dumps(train(a.candidates,a.pairs,a.inventory,a.out,gt_set=a.gt_set,sensitivity=a.sensitivity),indent=2))
+ if __name__=='__main__':main()
+--- a/work/k1_report.py
++++ b/work/k1_report.py
+@@ -3,6 +3,7 @@
+ from pathlib import Path
+ sys.path.insert(0,str(Path(__file__).parent))
+ import gate
++import gt_set as G
+ sys.path.insert(0,str(gate.ROOT/'o3_cache/work/kit/vendor_sam/vendor'))
+ from score_and_aggregate_orchard import official_mra
+ RULES=dict(schema='b6-k1-rules-v1',seed=17,trust_relative_tolerance=.15,min_trust_fallback_share=.40,
+@@ -68,13 +69,30 @@
+   missing_nonstatus_cues='unmeasured, never substituted with candidate proxies',
+   reused_study=str(gate.ROOT/'o3_cache/out/CUE_STUDY.md'))
+ def main():
+- p=argparse.ArgumentParser();p.add_argument('--rows',required=True);p.add_argument('--inventory',required=True);p.add_argument('--manifest',required=True);p.add_argument('--fit',required=True);p.add_argument('--out',required=True);a=p.parse_args()
++ p=argparse.ArgumentParser();p.add_argument('--rows',required=True);p.add_argument('--inventory',required=True);p.add_argument('--manifest',required=True);p.add_argument('--fit',required=True);p.add_argument('--out',required=True);p.add_argument('--gt-set');p.add_argument('--sensitivity',action='store_true');p.add_argument('--ids-from');a=p.parse_args()
+  rules=Path(__file__).resolve().parents[1]/'out/K1_RULES.json'
+  if json.loads(rules.read_text())!=RULES or gate.sha(rules)!=(rules.with_suffix('.sha256').read_text().split()[0]):raise ValueError('Preregistration changed')
+  manifest=json.loads(Path(a.manifest).read_text());fit=json.loads(Path(a.fit).read_text())
+  if manifest['inventory']['sha256']!=gate.sha(a.inventory) or fit.get('fixture_only') is not False:raise ValueError('K1 manifest or fit provenance differs')
+- ids=[r['id'] for c in manifest['captures'] for r in c['rows']]
++ captures=manifest['captures'];meta=None
++ if a.gt_set or a.ids_from or a.sensitivity:
++  if not a.ids_from:raise ValueError('--gt-set report requires --ids-from TABLE_RECEIPT')
++  table=json.loads(Path(a.ids_from).read_text())
++  selection=G.load(a.gt_set or table['gt_set']['path'],a.sensitivity)
++  captures,meta=G.check_table(table,manifest,selection);G.require(fit,meta)
++  if fit.get('table_receipt')!=G.pin(a.ids_from):raise ValueError('Fit/table receipt binding differs')
++  for pin in table['files'].values():
++   if gate.sha(pin['path'])!=pin['sha256'] or fit['inputs'].get(pin['path'])!=pin['sha256']:raise ValueError('Fit/table file binding differs')
++ else:G.require(fit,None)
++ ids=[r['id'] for c in captures for r in c['rows']]
+  if len(set(ids))!=len(ids):raise ValueError('Duplicate planned K1 IDs')
+- r=report([json.loads(l) for l in open(a.rows)],json.loads(Path(a.inventory).read_text()),fit,ids)
+- r['rules_sha256']=gate.sha(rules);Path(a.out).write_text(json.dumps(r,indent=2)+'\n')
++ with open(a.rows) as stream:rows=[json.loads(l) for l in stream]
++ r=report(rows,json.loads(Path(a.inventory).read_text()),fit,ids)
++ r['rules_sha256']=gate.sha(rules)
++ if meta is None:Path(a.out).write_text(json.dumps(r,indent=2)+'\n')
++ else:
++  expected={row['id']:c['canonical'] for c in captures for row in c['rows']}
++  if any(expected.get(row['id'])!=row['canonical'] for row in rows):raise ValueError('Report row capture differs')
++  r['expected_rows']=len(ids);r['table_receipt']=G.pin(a.ids_from)
++  G.write(a.out,r,meta,exclusive=False)
+ if __name__=='__main__':main()
+--- a/out/DEPENDENCIES.json
++++ b/out/DEPENDENCIES.json
+@@ -1,14 +1,30 @@
+ {
++  "/scratch/jjyeung/orch_cd/evalx/work/milestone/native_package_s24_05/sources/sj/orch_cd/evalx/work/milestone/native/out2/geometry.py": "56099cf8b68d74ee14edecf01d747234f6575ebfa4dc394eba204748a4dd1a11",
++  "/scratch/jjyeung/orch_cd/evalx/work/milestone/native_package_s24_05/sources/sj/orch_cd/evalx/work/milestone/native/out2/perception.py": "088d32c43481bdcbef5e82bfdd7fdc1d0d417710779fe4cc3f77d43534ecd2be",
++  "/scratch/jjyeung/orch_cd/grd_selector/work/setsel/build.py": "1d0c3d6e5f82129b0d2d97302abadea56e16382f021ba3381023d659f786b907",
++  "/scratch/jjyeung/orch_cd/grd_selector/work/setsel/fit.py": "0d639005279c3a2a27b5de4936c42ff57094dcdb550bd21d8072c23de5c8bd3a",
++  "/scratch/jjyeung/orch_cd/grd_selector/work/setsel/fit_pairs.py": "cdce7f6c5d652aa57d83df947ee7eb8c46cf3005f5088f4c897ddee2ca094a0e",
++  "/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872/student_pilot/candidate_policy.py": "2cc13f27ffe7fe1aa0bbbfc3dbcd543897c37d6acb85e44aa3a1d6e1f4c0dbb1",
++  "/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872/student_pilot/carrier_c1_decode.py": "e612a7c1874f2aeaedcf613421308efe978523edf0ec09db7886996378ae9a4d",
++  "/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872/student_pilot/live_instances314.py": "c542e17e08f230fb97fc79cd6c024943ae91a03dc37a1110dfb5cb2d5ed0cc4e",
++  "/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872/student_pilot/routed_features.py": "736c5a642fe28656c5508022210b050a87e49821381980a9c6f79007ef1fda13",
++  "/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872/student_pilot/tower_read.py": "2cd338e1935803fdd4784b1626095a88a7641a222b394984977b8ec47c674634",
++  "/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872/student_pilot/tower_scale.py": "7a2035804c227996ea179e60b31248bb28e210bf241f6c35d5ee34e56c122d74",
++  "/scratch/jjyeung/orch_cd/o3_cache/out/CUE_METRICS.json": "98e4f9c4cb0801c202f5809f8b6b479fe32271c7135f5b5428c65f3caf3f2ebc",
++  "/scratch/jjyeung/orch_cd/o3_cache/out/CUE_STUDY.md": "776723064906a09c6b947e2fa119cb94f1a381719d4bc740905f800ffe28d93a",
++  "/scratch/jjyeung/orch_cd/rs_tree/work/tree_r1/student_pilot/r1_contract.py": "b868268aca43fe10527e54d28fc8fa5dff254a5a5dfba0a8b89fe2d1d8aacbe5",
++  "/scratch/jjyeung/orch_cd/sam3_tower/out/BATCH_MEASUREMENTS_FINAL.json": "3e0a5c0d88971d3beb51a77439e5e980ea3c86c58eb06f3f7f6a4ba6c00d2397",
+   "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/bindings.py": "945ffbb8d0b7d5d9eda36ef7959469b2e222fb9cf758d7c7e4fd2acf55ebc553",
+   "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/boundaries.py": "5fbe3ae6ace471c8d8ec532cdde50b0bca4db687b5fc5f7c890c9b6ad44e620c",
+   "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/build_manifest.py": "d1500a768e3be71e98444e4849c8db362341a118f7ff8f821b741cedb63b1108",
++  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/launch.sh": "2e1f753ab44da141368d4fa46447fceed6196ef1f3d01132b82362e57cd5d1c3",
++  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/orchard_smoke.sh": "c1298f9c90866791cb9f6cd82a84ea0b71afd1473518408f4cdc6c02a896e810",
+   "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/pipeline.py": "ef68b2cdd96c8b12ba066940552d8d7bbbb059e49ed7958a7e988973113f6544",
+   "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/rehearse.py": "d70d22d70bdc23ddde5d53ed60b4b8e03f2df76aba75b42462d2fdf3d789dedc",
+   "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/run.py": "08c2a41e29c677460bbc40dcdddff7cf202c098dc75d4d59c37bdc6cac9c4c1a",
+   "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/shard.py": "7bbd48ed3fde5df8647e30c06249a046ff228bce8de597b30dd9ba5987b8b503",
+   "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/test_guards.py": "24a0f59e64517702cc5c05cbb885b0d6dd31feecd850b247ec193c17dd0c23e3",
+   "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/test_kit.py": "dd17130abf85f9ea4f74b3753575276a245be9af98518a6c898c9f244fdb2221",
+-  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/watchdog.py": "92dfad3db1d947f65edd6d49442fe1b13d3adfa5d26407bbe14e7d7b50ef0f48",
+   "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/vendor_sam/analyze.py": "1985c5fec0b220dec931e837604b318221bda91b61f9e3f880b10fd7abc8045d",
+   "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/vendor_sam/cache_masks.py": "e1a2730e4566b555a9129fcdce06ff1290d9916fc2d0f9a59cadbf8f1fb0629c",
+   "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/vendor_sam/compare.py": "5ece00cc7f992ebd0cea542b7152f902945582bbf4d6ca3a9e5e14929f78a738",
+@@ -56,55 +72,40 @@
+   "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/vendor_sam/verifykit/model.py": "56c6cee99b92fdac547772715706f7fb65abc6499d35898feff7776516f4552b",
+   "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/vendor_sam/vsi_build_items.py": "925f92100e977cc641fbb3032f28777876f65b25de1ae8b6213834dcf3443604",
+   "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/vendor_sam/vsi_build_manifest.py": "5a0ffefb3056868eb611383c85b204af3210645a60c20b62649061667cb2fda4",
+-  "/scratch/jjyeung/orch_cd/evalx/work/milestone/native_package_s24_05/sources/sj/orch_cd/evalx/work/milestone/native/out2/geometry.py": "56099cf8b68d74ee14edecf01d747234f6575ebfa4dc394eba204748a4dd1a11",
+-  "/scratch/jjyeung/orch_cd/evalx/work/milestone/native_package_s24_05/sources/sj/orch_cd/evalx/work/milestone/native/out2/perception.py": "088d32c43481bdcbef5e82bfdd7fdc1d0d417710779fe4cc3f77d43534ecd2be",
+-  "/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872/student_pilot/tower_read.py": "2cd338e1935803fdd4784b1626095a88a7641a222b394984977b8ec47c674634",
+-  "/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872/student_pilot/tower_scale.py": "7a2035804c227996ea179e60b31248bb28e210bf241f6c35d5ee34e56c122d74",
+-  "/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872/student_pilot/candidate_policy.py": "2cc13f27ffe7fe1aa0bbbfc3dbcd543897c37d6acb85e44aa3a1d6e1f4c0dbb1",
+-  "/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872/student_pilot/routed_features.py": "736c5a642fe28656c5508022210b050a87e49821381980a9c6f79007ef1fda13",
+-  "/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872/student_pilot/live_instances314.py": "c542e17e08f230fb97fc79cd6c024943ae91a03dc37a1110dfb5cb2d5ed0cc4e",
+-  "/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872/student_pilot/carrier_c1_decode.py": "e612a7c1874f2aeaedcf613421308efe978523edf0ec09db7886996378ae9a4d",
+-  "/scratch/jjyeung/orch_cd/o3_cache/out/CUE_STUDY.md": "776723064906a09c6b947e2fa119cb94f1a381719d4bc740905f800ffe28d93a",
+-  "/scratch/jjyeung/orch_cd/o3_cache/out/CUE_METRICS.json": "98e4f9c4cb0801c202f5809f8b6b479fe32271c7135f5b5428c65f3caf3f2ebc",
+-  "/scratch/jjyeung/orch_cd/sam3_tower/out/BATCH_MEASUREMENTS_FINAL.json": "3e0a5c0d88971d3beb51a77439e5e980ea3c86c58eb06f3f7f6a4ba6c00d2397",
+-  "/scratch/jjyeung/orch_cd/grd_selector/work/setsel/build.py": "1d0c3d6e5f82129b0d2d97302abadea56e16382f021ba3381023d659f786b907",
+-  "/scratch/jjyeung/orch_cd/grd_selector/work/setsel/fit.py": "0d639005279c3a2a27b5de4936c42ff57094dcdb550bd21d8072c23de5c8bd3a",
+-  "/scratch/jjyeung/orch_cd/grd_selector/work/setsel/fit_pairs.py": "cdce7f6c5d652aa57d83df947ee7eb8c46cf3005f5088f4c897ddee2ca094a0e",
+-  "/scratch/jjyeung/orch_cd/rs_tree/work/tree_r1/student_pilot/r1_contract.py": "b868268aca43fe10527e54d28fc8fa5dff254a5a5dfba0a8b89fe2d1d8aacbe5",
+-  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/proof_p3.py": "4f33969e9d647ef5a1293c9feaa66512b1408dfec5fd9493f839026094864f77",
+-  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/prooflib.py": "68ccec451217d9f5a48de7b778c468104567981f45bea3151912cb4e575b3b67",
+-  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/proof_p1.py": "e18e15d8c8bb18760a481e5d5a840c7c1672c28b34a97b33f78671ad3e43eb1f",
+-  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/preregister.py": "4d2b54b6465664f4d524df946ed3d11530dc90db1011e81c0b33f48a19f7d2c2",
+-  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/proof_p4_p7.py": "1a66acd5a22d39b4a395b76e79fb329adc737a5aa542922c263bb1f04b884203",
+-  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/proof_handoff.py": "2a8fdd6c8e66a42e4d52f4bcfb2d9a95cc4225b8475219239e7d660d6f90ad1a",
++  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/watchdog.py": "92dfad3db1d947f65edd6d49442fe1b13d3adfa5d26407bbe14e7d7b50ef0f48",
++  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/audit_delivery.py": "f02694b7c3bf205fc9116f231472ba34f76a87db9563d93868410fb49df04364",
++  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/backend.py": "565aa29e425400fe687c8c1845a0dd51075fd0a87c1c82414de66478b43f7872",
++  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/bind_known_settings.py": "2b573cf4a6410a3e6bb856d0d4626ef576dd24cde55e14722895f73c0cdf5362",
+   "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/finalize.py": "61727e5747703a7ab297f400f2e820078948c2d650845fa154059c89ed13e715",
+   "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/first_batch.py": "6baa98d5e0ed11ae1ad55ece4759be74e087c668a1272430626a14471e68ec51",
++  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/gate.py": "654cb19ebcbdadfbae87be2b3010d81e70a35b285cfe24a156096984d2436706",
++  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/gt_set.py": "5d36d1ea98c14b2e3181a4571a87dc81efa980bd88a2302e27a1ecc13833a4f8",
++  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/inspect_metadata.py": "e73d1a3ff17b5975ecd421baee81ba7f9c76a599b49665995eab3fb4cc65e3b4",
++  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/inventory.py": "b1533d0c74fb03807f88f6246ba0b6594eff143e6ee3e7ddd33f51219c1b8015",
++  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/k1_cli.py": "f14df4eda722337e0e7187a759e287eed79bb3201b03ffef351591ce5241c0da",
++  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/k1_phases.py": "80d763d4149f1b7989d806f3bfab0660e631c27e79d0300cd8300fbdb88f075d",
++  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/k1_pipeline.py": "deb51a265425e092870c7eadb2fd498b5942b466bb759b39c84fa96e0c762157",
++  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/k1_report.py": "14b35f83184267f85a946079767d7903d3e1c31d73946bd2600bbe6b2efe862d",
++  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/manifest_k1a.py": "70841ce1af83fcb31080fde4d88bbeb79738706b7ae902b7e9f6504a3ff4d3fc",
++  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/parity_live.py": "d6e96488619e9675cc65ef464eabe4191780f235f622901b4c6dd4af76e39e1c",
++  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/prepare_k1.py": "8bb6e237b8638bf440104f9e1bbf6a736a178d4eed82de36624da14dc57a7234",
++  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/preregister.py": "4d2b54b6465664f4d524df946ed3d11530dc90db1011e81c0b33f48a19f7d2c2",
++  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/probe_replay.py": "6b9c194fe40e76133f7e3ea52f1d16cdda054f271947149aa88e8d3558f62dfe",
++  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/probe_sources.py": "18a4d8f743bdfcc34aa6611e6f148eef2c8b519c1e38c6c711eeb4b5ae50f7ca",
++  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/proof_handoff.py": "2a8fdd6c8e66a42e4d52f4bcfb2d9a95cc4225b8475219239e7d660d6f90ad1a",
++  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/proof_kit.py": "2554df29765e7a24afb5a1749e0fc5b1f04f9cebb826f79eff609ab99e3e350a",
++  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/proof_p1.py": "e18e15d8c8bb18760a481e5d5a840c7c1672c28b34a97b33f78671ad3e43eb1f",
++  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/proof_p3.py": "4f33969e9d647ef5a1293c9feaa66512b1408dfec5fd9493f839026094864f77",
++  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/proof_p4_p7.py": "1a66acd5a22d39b4a395b76e79fb329adc737a5aa542922c263bb1f04b884203",
++  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/proof_p6.py": "791030bb38ea3d968579dbd7ef6c93dd171fd96663d5d7e5b3abb2ea76077b0a",
++  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/prooflib.py": "68ccec451217d9f5a48de7b778c468104567981f45bea3151912cb4e575b3b67",
++  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/refit/build_tables.py": "341193168421714dd50a4ce87dc578a57f4cc92b6aea8a15dae31ccd9d516857",
++  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/refit/proof_p2.py": "da2b5a05b12fb62f0c4223d4876496889a29eb6c0a90ed84a4b2d5e99d82d9da",
++  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/refit/proof_p5.py": "8a74af11cbd734b17c6c531309e51b5fd2d758750c28ef68afab96a60b5b0be1",
++  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/refit/train.py": "4087716014ab26e7fdb91f336e3d8ee81f97e82b85a4c340376e872c655ecfef",
+   "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/render.py": "f74277d872e036a8c1f636ce846d4cc0658f001973cef2ee3b1adbcfd9f8ce37",
+-  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/probe_sources.py": "18a4d8f743bdfcc34aa6611e6f148eef2c8b519c1e38c6c711eeb4b5ae50f7ca",
++  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/run_k1.sh": "d70a932872ba5b9f46acd190ee17a727f3ceff2bfc0a3c5f8df2cc06e4baec55",
++  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/stall_state.py": "19095a69f01e8e8133dfb40fd07644114afbdf8774c7cc0e4e59a5fbe20b9810",
+   "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/verify_sources.py": "d1c89ec5f2314d1e85a4266ae94f918af396bd06911845afbc37166d9fde7214",
+-  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/k1_pipeline.py": "46c10147710bf7e8d087c51147464cce72cfc3cff10c89f20a4ddb6bcad76111",
+-  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/manifest_k1a.py": "70841ce1af83fcb31080fde4d88bbeb79738706b7ae902b7e9f6504a3ff4d3fc",
+-  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/inventory.py": "b1533d0c74fb03807f88f6246ba0b6594eff143e6ee3e7ddd33f51219c1b8015",
+-  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/run_k1.sh": "d70a932872ba5b9f46acd190ee17a727f3ceff2bfc0a3c5f8df2cc06e4baec55",
+-  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/prepare_k1.py": "8bb6e237b8638bf440104f9e1bbf6a736a178d4eed82de36624da14dc57a7234",
+-  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/k1_cli.py": "3cc7b95ff591d68dc0184ac76d7b706a3b7920c94a2132b0eedd99c1c7e49013",
+-  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/probe_replay.py": "6b9c194fe40e76133f7e3ea52f1d16cdda054f271947149aa88e8d3558f62dfe",
+-  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/k1_phases.py": "80d763d4149f1b7989d806f3bfab0660e631c27e79d0300cd8300fbdb88f075d",
+-  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/bind_known_settings.py": "2b573cf4a6410a3e6bb856d0d4626ef576dd24cde55e14722895f73c0cdf5362",
+-  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/proof_p6.py": "791030bb38ea3d968579dbd7ef6c93dd171fd96663d5d7e5b3abb2ea76077b0a",
+-  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/gate.py": "654cb19ebcbdadfbae87be2b3010d81e70a35b285cfe24a156096984d2436706",
+-  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/k1_report.py": "607a8a16f9a42b88bbc5e7f36aafb0bc6b700507f269a914ca4c84f2bcb9136a",
+-  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/parity_live.py": "d6e96488619e9675cc65ef464eabe4191780f235f622901b4c6dd4af76e39e1c",
+-  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/watchdog.py": "e6ddff4f2be83187256bc4e36e6e1d1f34ec4882e1be48663ee0545d1fc62fa0",
+-  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/stall_state.py": "19095a69f01e8e8133dfb40fd07644114afbdf8774c7cc0e4e59a5fbe20b9810",
+-  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/audit_delivery.py": "f02694b7c3bf205fc9116f231472ba34f76a87db9563d93868410fb49df04364",
+-  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/backend.py": "565aa29e425400fe687c8c1845a0dd51075fd0a87c1c82414de66478b43f7872",
+-  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/inspect_metadata.py": "e73d1a3ff17b5975ecd421baee81ba7f9c76a599b49665995eab3fb4cc65e3b4",
+-  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/proof_kit.py": "2554df29765e7a24afb5a1749e0fc5b1f04f9cebb826f79eff609ab99e3e350a",
+-  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/refit/train.py": "57fff4ec9158afe83e6990280efc87bb53ac8eae0465232b26d1eeb1a4af8f44",
+-  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/refit/proof_p2.py": "da2b5a05b12fb62f0c4223d4876496889a29eb6c0a90ed84a4b2d5e99d82d9da",
+-  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/refit/build_tables.py": "341193168421714dd50a4ce87dc578a57f4cc92b6aea8a15dae31ccd9d516857",
+-  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/refit/proof_p5.py": "8a74af11cbd734b17c6c531309e51b5fd2d758750c28ef68afab96a60b5b0be1",
+-  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/launch.sh": "2e1f753ab44da141368d4fa46447fceed6196ef1f3d01132b82362e57cd5d1c3",
+-  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/orchard_smoke.sh": "c1298f9c90866791cb9f6cd82a84ea0b71afd1473518408f4cdc6c02a896e810"
++  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/watchdog.py": "e6ddff4f2be83187256bc4e36e6e1d1f34ec4882e1be48663ee0545d1fc62fa0"
+ }
+
+=== FULL LOG: build_evidence.log ===
+PASS: identities, original kit, manifest binding, protected files, and 109 mapped deployment pins
+
+=== FULL LOG: test_gtset.log ===
+Artifacts: /scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/tests_3ce3f664
+test_a_report_default_bytes_and_all_set_statistics_identical (__main__.GTSetTests.test_a_report_default_bytes_and_all_set_statistics_identical) ... /scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/k1_report.py:78: ResourceWarning: unclosed file <_io.TextIOWrapper name='/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/tests_3ce3f664/rows_old.jsonl' mode='r' encoding='UTF-8'>
+  r=report([json.loads(l) for l in open(a.rows)],json.loads(Path(a.inventory).read_text()),fit,ids)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/kc/k1_build/work/kit_k1a/work/k1_report.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/tests_3ce3f664/rows_plain.jsonl' mode='r' encoding='UTF-8'>
+  r=report([json.loads(l) for l in open(a.rows)],json.loads(Path(a.inventory).read_text()),fit,ids)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/kc/k1_build/work/kit_k1a/work/k1_report.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/tests_3ce3f664/rows_all.jsonl' mode='r' encoding='UTF-8'>
+  r=report([json.loads(l) for l in open(a.rows)],json.loads(Path(a.inventory).read_text()),fit,ids)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/kc/k1_build/work/kit_k1a/work/k1_report.py:94: ResourceWarning: unclosed file <_io.TextIOWrapper name='/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/tests_3ce3f664/rows_all.jsonl' mode='r' encoding='UTF-8'>
+  if any(expected.get(row['id'])!=row['canonical'] for row in [json.loads(l) for l in open(a.rows)]):raise ValueError('Report row capture differs')
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_a_tables_identical_with_all_set_and_default (__main__.GTSetTests.test_a_tables_identical_with_all_set_and_default) ... FAIL
+test_b_subset_receipt_and_tables (__main__.GTSetTests.test_b_subset_receipt_and_tables) ... FAIL
+test_c_unpinned_requires_flag_and_first_lines (__main__.GTSetTests.test_c_unpinned_requires_flag_and_first_lines) ... /scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/kc/k1_build/work/kit_k1a/work/k1_report.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/tests_3ce3f664/rows_sensitivity.jsonl' mode='r' encoding='UTF-8'>
+  r=report([json.loads(l) for l in open(a.rows)],json.loads(Path(a.inventory).read_text()),fit,ids)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/kc/k1_build/work/kit_k1a/work/k1_report.py:94: ResourceWarning: unclosed file <_io.TextIOWrapper name='/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/tests_3ce3f664/rows_sensitivity.jsonl' mode='r' encoding='UTF-8'>
+  if any(expected.get(row['id'])!=row['canonical'] for row in [json.loads(l) for l in open(a.rows)]):raise ValueError('Report row capture differs')
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_d_capture_digest_mismatch_fails (__main__.GTSetTests.test_d_capture_digest_mismatch_fails) ... ok
+test_d_corrupt_cache_pin_fails (__main__.GTSetTests.test_d_corrupt_cache_pin_fails) ... ok
+test_d_missing_cache_fails (__main__.GTSetTests.test_d_missing_cache_fails) ... ok
+test_e_old_cache_accepted_and_manifest_unchanged (__main__.GTSetTests.test_e_old_cache_accepted_and_manifest_unchanged) ... ok
+test_invalid_set_and_phase_options (__main__.GTSetTests.test_invalid_set_and_phase_options) ... ok
+test_manifest_checks_skip_absent_unselected_gt (__main__.GTSetTests.test_manifest_checks_skip_absent_unselected_gt) ... ok
+test_old_code_does_not_support_declared_sets (__main__.GTSetTests.test_old_code_does_not_support_declared_sets) ... /scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/k1_report.py:78: ResourceWarning: unclosed file <_io.TextIOWrapper name='/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/tests_3ce3f664/rows_subsetold_denominator.jsonl' mode='r' encoding='UTF-8'>
+  r=report([json.loads(l) for l in open(a.rows)],json.loads(Path(a.inventory).read_text()),fit,ids)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_report_missing_extra_and_wrong_capture_rows_refused (__main__.GTSetTests.test_report_missing_extra_and_wrong_capture_rows_refused) ... /scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/kc/k1_build/work/kit_k1a/work/k1_report.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/tests_3ce3f664/rows_subsetmissing.jsonl' mode='r' encoding='UTF-8'>
+  r=report([json.loads(l) for l in open(a.rows)],json.loads(Path(a.inventory).read_text()),fit,ids)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/kc/k1_build/work/kit_k1a/work/k1_report.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/tests_3ce3f664/rows_subsetextra.jsonl' mode='r' encoding='UTF-8'>
+  r=report([json.loads(l) for l in open(a.rows)],json.loads(Path(a.inventory).read_text()),fit,ids)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/kc/k1_build/work/kit_k1a/work/k1_report.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/tests_3ce3f664/rows_subsetwrong_capture.jsonl' mode='r' encoding='UTF-8'>
+  r=report([json.loads(l) for l in open(a.rows)],json.loads(Path(a.inventory).read_text()),fit,ids)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/kc/k1_build/work/kit_k1a/work/k1_report.py:94: ResourceWarning: unclosed file <_io.TextIOWrapper name='/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/tests_3ce3f664/rows_subsetwrong_capture.jsonl' mode='r' encoding='UTF-8'>
+  if any(expected.get(row['id'])!=row['canonical'] for row in [json.loads(l) for l in open(a.rows)]):raise ValueError('Report row capture differs')
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_set_hash_and_pinned_manifest_guards (__main__.GTSetTests.test_set_hash_and_pinned_manifest_guards) ... ok
+
+======================================================================
+FAIL: test_a_tables_identical_with_all_set_and_default (__main__.GTSetTests.test_a_tables_identical_with_all_set_and_default)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/test_gtset.py", line 138, in test_a_tables_identical_with_all_set_and_default
+    self.assertTrue(expected)
+AssertionError: b'' is not true
+
+======================================================================
+FAIL: test_b_subset_receipt_and_tables (__main__.GTSetTests.test_b_subset_receipt_and_tables)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/test_gtset.py", line 162, in test_b_subset_receipt_and_tables
+    self.assertTrue(rows)
+AssertionError: [] is not true
+
+----------------------------------------------------------------------
+Ran 13 tests in 34.059s
+
+FAILED (failures=2)
+
+=== FULL LOG: test_gtset_final.log ===
+Artifacts: /scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/tests_8cc4f9ec
+test_a_report_default_bytes_and_all_set_statistics_identical (__main__.GTSetTests.test_a_report_default_bytes_and_all_set_statistics_identical) ... /scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/k1_report.py:78: ResourceWarning: unclosed file <_io.TextIOWrapper name='/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/tests_8cc4f9ec/rows_old.jsonl' mode='r' encoding='UTF-8'>
+  r=report([json.loads(l) for l in open(a.rows)],json.loads(Path(a.inventory).read_text()),fit,ids)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_a_tables_identical_with_all_set_and_default (__main__.GTSetTests.test_a_tables_identical_with_all_set_and_default) ... ok
+test_b_subset_receipt_and_tables (__main__.GTSetTests.test_b_subset_receipt_and_tables) ... ok
+test_c_unpinned_requires_flag_and_first_lines (__main__.GTSetTests.test_c_unpinned_requires_flag_and_first_lines) ... ok
+test_d_capture_digest_mismatch_fails (__main__.GTSetTests.test_d_capture_digest_mismatch_fails) ... ok
+test_d_corrupt_cache_pin_fails (__main__.GTSetTests.test_d_corrupt_cache_pin_fails) ... ok
+test_d_missing_cache_fails (__main__.GTSetTests.test_d_missing_cache_fails) ... ok
+test_e_old_cache_accepted_and_manifest_unchanged (__main__.GTSetTests.test_e_old_cache_accepted_and_manifest_unchanged) ... ok
+test_invalid_set_and_phase_options (__main__.GTSetTests.test_invalid_set_and_phase_options) ... ok
+test_manifest_checks_skip_absent_unselected_gt (__main__.GTSetTests.test_manifest_checks_skip_absent_unselected_gt) ... ok
+test_old_code_does_not_support_declared_sets (__main__.GTSetTests.test_old_code_does_not_support_declared_sets) ... /scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/k1_report.py:78: ResourceWarning: unclosed file <_io.TextIOWrapper name='/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/tests_8cc4f9ec/rows_subsetold_denominator.jsonl' mode='r' encoding='UTF-8'>
+  r=report([json.loads(l) for l in open(a.rows)],json.loads(Path(a.inventory).read_text()),fit,ids)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_real_phase_copies_preserve_bindings (__main__.GTSetTests.test_real_phase_copies_preserve_bindings) ... ok
+test_refit_and_render_propagate_subset_and_sensitivity (__main__.GTSetTests.test_refit_and_render_propagate_subset_and_sensitivity) ... ok
+test_refit_rejects_cross_set_and_unflagged_sensitivity (__main__.GTSetTests.test_refit_rejects_cross_set_and_unflagged_sensitivity) ... ok
+test_report_missing_extra_and_wrong_capture_rows_refused (__main__.GTSetTests.test_report_missing_extra_and_wrong_capture_rows_refused) ... ok
+test_set_hash_and_pinned_manifest_guards (__main__.GTSetTests.test_set_hash_and_pinned_manifest_guards) ... ok
+
+----------------------------------------------------------------------
+Ran 16 tests in 289.531s
+
+OK
+
+=== FULL LOG: test_gtset_full.log ===
+Artifacts: /scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/tests_810d78d4
+test_a_report_default_bytes_and_all_set_statistics_identical (__main__.GTSetTests.test_a_report_default_bytes_and_all_set_statistics_identical) ... /scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/k1_report.py:78: ResourceWarning: unclosed file <_io.TextIOWrapper name='/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/tests_810d78d4/rows_old.jsonl' mode='r' encoding='UTF-8'>
+  r=report([json.loads(l) for l in open(a.rows)],json.loads(Path(a.inventory).read_text()),fit,ids)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_a_tables_identical_with_all_set_and_default (__main__.GTSetTests.test_a_tables_identical_with_all_set_and_default) ... ok
+test_b_subset_receipt_and_tables (__main__.GTSetTests.test_b_subset_receipt_and_tables) ... ok
+test_c_unpinned_requires_flag_and_first_lines (__main__.GTSetTests.test_c_unpinned_requires_flag_and_first_lines) ... ok
+test_d_capture_digest_mismatch_fails (__main__.GTSetTests.test_d_capture_digest_mismatch_fails) ... ok
+test_d_corrupt_cache_pin_fails (__main__.GTSetTests.test_d_corrupt_cache_pin_fails) ... ok
+test_d_missing_cache_fails (__main__.GTSetTests.test_d_missing_cache_fails) ... ok
+test_e_old_cache_accepted_and_manifest_unchanged (__main__.GTSetTests.test_e_old_cache_accepted_and_manifest_unchanged) ... ok
+test_invalid_set_and_phase_options (__main__.GTSetTests.test_invalid_set_and_phase_options) ... ok
+test_manifest_checks_skip_absent_unselected_gt (__main__.GTSetTests.test_manifest_checks_skip_absent_unselected_gt) ... ok
+test_old_code_does_not_support_declared_sets (__main__.GTSetTests.test_old_code_does_not_support_declared_sets) ... /scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/k1_report.py:78: ResourceWarning: unclosed file <_io.TextIOWrapper name='/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/tests_810d78d4/rows_subsetold_denominator.jsonl' mode='r' encoding='UTF-8'>
+  r=report([json.loads(l) for l in open(a.rows)],json.loads(Path(a.inventory).read_text()),fit,ids)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_real_phase_copies_preserve_bindings (__main__.GTSetTests.test_real_phase_copies_preserve_bindings) ... ok
+test_refit_and_render_propagate_subset_and_sensitivity (__main__.GTSetTests.test_refit_and_render_propagate_subset_and_sensitivity) ... ERROR
+test_refit_rejects_cross_set_and_unflagged_sensitivity (__main__.GTSetTests.test_refit_rejects_cross_set_and_unflagged_sensitivity) ... ERROR
+test_report_missing_extra_and_wrong_capture_rows_refused (__main__.GTSetTests.test_report_missing_extra_and_wrong_capture_rows_refused) ... ok
+test_set_hash_and_pinned_manifest_guards (__main__.GTSetTests.test_set_hash_and_pinned_manifest_guards) ... ok
+
+======================================================================
+ERROR: test_refit_and_render_propagate_subset_and_sensitivity (__main__.GTSetTests.test_refit_and_render_propagate_subset_and_sensitivity)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/test_gtset.py", line 284, in test_refit_and_render_propagate_subset_and_sensitivity
+    train = self.refit_adapter()
+            ^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/test_gtset.py", line 266, in refit_adapter
+    models = B.load(gate.ROOT / 'devs1_masks/out/kit/work/vendor/MODELS.json')
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/kc/k1_build/work/kit_k1a/native_kit/bindings.py", line 24, in load
+    if p.stat().st_size>20_000_000:raise ValueError('Metadata exceeds bounded reader')
+       ^^^^^^^^
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py", line 840, in stat
+    return os.stat(self, follow_symlinks=follow_symlinks)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/kc/devs1_masks/out/kit/work/vendor/MODELS.json'
+
+======================================================================
+ERROR: test_refit_rejects_cross_set_and_unflagged_sensitivity (__main__.GTSetTests.test_refit_rejects_cross_set_and_unflagged_sensitivity)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/test_gtset.py", line 314, in test_refit_rejects_cross_set_and_unflagged_sensitivity
+    train = self.refit_adapter()
+            ^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/test_gtset.py", line 266, in refit_adapter
+    models = B.load(gate.ROOT / 'devs1_masks/out/kit/work/vendor/MODELS.json')
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/kc/k1_build/work/kit_k1a/native_kit/bindings.py", line 24, in load
+    if p.stat().st_size>20_000_000:raise ValueError('Metadata exceeds bounded reader')
+       ^^^^^^^^
+  File "/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py", line 840, in stat
+    return os.stat(self, follow_symlinks=follow_symlinks)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/kc/devs1_masks/out/kit/work/vendor/MODELS.json'
+
+----------------------------------------------------------------------
+Ran 16 tests in 69.343s
+
+FAILED (errors=2)
+
+=== FULL LOG: test_guards.log ===
+test_builder_refuses_duplicate_admitted_ids (__main__.Guards.test_builder_refuses_duplicate_admitted_ids) ... ok
+test_halted_refuses_launch (__main__.Guards.test_halted_refuses_launch) ... ok
+test_partition_limits (__main__.Guards.test_partition_limits) ... ok
+test_partitions_are_disjoint_complete (__main__.Guards.test_partitions_are_disjoint_complete) ... ok
+test_stall_signals_only_owned_group (__main__.Guards.test_stall_signals_only_owned_group) ... ok
+test_supervisor_nonzero_no_retry (__main__.Guards.test_supervisor_nonzero_no_retry) ... ok
+test_supervisor_success (__main__.Guards.test_supervisor_success) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.011s
+
+OK
+
+=== FULL LOG: test_kit.log ===
+test_corrupt_pin_and_bound_read (__main__.KitTests.test_corrupt_pin_and_bound_read) ... ok
+test_exact_tolerance_and_zero (__main__.KitTests.test_exact_tolerance_and_zero) ... ok
+test_failure_trace_has_no_followup_gap (__main__.KitTests.test_failure_trace_has_no_followup_gap) ... ok
+test_fallback_requires_evidence (__main__.KitTests.test_fallback_requires_evidence) ... ok
+test_frame_and_operand_contracts (__main__.KitTests.test_frame_and_operand_contracts) ... ok
+test_gt_anchor_and_identity (__main__.KitTests.test_gt_anchor_and_identity) ... ok
+test_incomplete_and_halted_are_preserved (__main__.KitTests.test_incomplete_and_halted_are_preserved) ... ok
+test_manifest_duplicate_and_plan (__main__.KitTests.test_manifest_duplicate_and_plan) ... ok
+test_native_fixture_response_cues (__main__.KitTests.test_native_fixture_response_cues) ... ok
+test_numeric_agreement_requires_identity (__main__.KitTests.test_numeric_agreement_requires_identity) ... ok
+test_resume_keeps_bytes (__main__.KitTests.test_resume_keeps_bytes) ... ok
+test_runtime_printed_answer_is_target (__main__.KitTests.test_runtime_printed_answer_is_target) ... ok
+test_sparse_geometry_refused (__main__.KitTests.test_sparse_geometry_refused) ... ok
+test_stop_and_cap_before_work (__main__.KitTests.test_stop_and_cap_before_work) ... ok
+test_synthetic_cannot_pass_production (__main__.KitTests.test_synthetic_cannot_pass_production) ... ok
+test_three_real_pipeline_outcomes (__main__.KitTests.test_three_real_pipeline_outcomes) ... ok
+test_unknown_overlap_and_heldout_refused (__main__.KitTests.test_unknown_overlap_and_heldout_refused) ... ok
+test_unknown_success_is_not_fallback (__main__.KitTests.test_unknown_success_is_not_fallback) ... ok
+test_wrong_gt_never_changes_response (__main__.KitTests.test_wrong_gt_never_changes_response) ... ok
+
+----------------------------------------------------------------------
+Ran 19 tests in 70.948s
+
+OK
+
+=== FULL LOG: test_real_bridge.log ===
+Artifacts: /scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/tests_2930d95d
+test_real_proposals_enter_tables_with_fixture_own_geometry (__main__.GTSetTests.test_real_proposals_enter_tables_with_fixture_own_geometry)
+Bridge test only: real tower/SAM, explicitly synthetic own depth/gravity. ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 3.229s
+
+OK
+
+=== FILE HASHES ===
+{
+  "/data2/jjyeung/agent_project_data/distill_design/REFREEZE_AMENDMENT_1_K1_RASTERS_20261115.md": "ab687d7db91e9d494e6822426e40cbb516c3c40a82e445c17cae3cdc7040c527",
+  "/data2/jjyeung/agent_project_data/distill_design/REFREEZE_PREREGISTRATION_20261115.md": "ca4a4fbe849be0aa8089b706a7d6b98d629bb008482624eafc1d62608736fa6a",
+  "/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/k1_ops3/PART_B_JOB_DESCRIPTION.md": "6fc02b23372f1b3b26a449b753d25f1f371cb6015888f1337b0e3804c864ff88",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_arkit_timing/K1_MANIFEST.arkit_timing.json": "91a2dbf9a0bdad1a45af44a5a3a2607d40f9f7a630f742fc4531544c00cade7c",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/DEPENDENCIES.json": "aa0a728148bbf076fe1d42a6fe4bb053c761052ec653faa02f7a06e240b8ca42",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/build_evidence.py": "956c9cdc4028f63e121f7fefdd4a635da89ad4fcc5cac44367fa07734f4d0854",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/evidence/build_evidence.log": "10e31c772c91ba0e63ece5970e03b53ac77b156be23cd9b1e32b2298d487af14",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/evidence/copied_files.json": "6baaff2f090d5656351b9a6aacf3651904786b4d54b60df280443c5941268658",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/evidence/frozen_inputs_before.json": "687a269819361f183c605bb1d2f767c72280b930dbb529b5a6c847aca31dc47d",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/evidence/identity_after.json": "5a391e8497a1fd3935ae1a949c5ca37a2b1857ac57b883083819579d45882e4f",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/evidence/identity_before.json": "637834f4fdf3f6ca1f2fb56d74c01d10f94cbabb07114bc56499eb05068a8c75",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/evidence/identity_original.json": "38a322494c68f70a55899ba8e0a588a62cc7776ebfbe6071f97b68816ad7ffff",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/evidence/identity_proof.json": "400a1ff4d2ca6438541db740f3c60af0b7b8286a55fd181bf1fcb4b2b4dd1156",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/evidence/new_pins.json": "f8745e03fa433338620d5e5654c9318c0cefc315663365d9adb2d969393975b4",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/evidence/real_cache_bridge.json": "207fcc7dbd0c7efe05c6c57a6b8375bba258ff1fe9710b40b9bfda0979d567b3",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/evidence/real_phase_checks.json": "b7de669bf00a4313b1a0da58c7663be53a7f24495ebf076d6dd6922e1be80c96",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/evidence/refit_prerequisites.json": "bdefff92b8e73b8c1b52eaaa8f41c8e6dd78e5950ec9b5dfbf7de87db92bd9a7",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/evidence/test_gtset.log": "c6dfa9e54bd3addc9ac79e37532feb5e026633134008bfd1ba522ca86281f256",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/evidence/test_gtset_final.log": "14c8291d8abe9d5be2577c3ce86f7bafbf68bb85e35ab28cc7b9bec70092074b",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/evidence/test_gtset_full.log": "4df0a195a281ff6834405e6cab7989bca2fe2b4bd867f1e7bd610cafea64bf29",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/evidence/test_guards.log": "4969e721b365927fb195a88fb0e296c6731cda260428b590ad447cd74933e3aa",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/evidence/test_kit.log": "ae119f87ad8e2b549c952e2e05b0f278a148781d2437b7852580460b09cf9e78",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/evidence/test_real_bridge.log": "b70d929369523d67abe24b901fd006d65655c22e6823bedba3aff60f35829e40",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/evidence/unchanged_functions.json": "4aa224a7d9bd72ea81fb98eed9b9f4cbf040cca81a1781431a7b551141d42861",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/finalize_report.py": "2c511977ab1da725b98ad8f3397d7e84dfaa9845def0924ee4ba307b54388b1c",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/gtset.diff": "d9fd7e6d36c7b036be5633e6e5135bd59e98fbbe2dfb5b4e9913003a5dec748c",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/kc/k1_build/work/kit_k1a/out/DEPENDENCIES.json": "aa0a728148bbf076fe1d42a6fe4bb053c761052ec653faa02f7a06e240b8ca42",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/kc/k1_build/work/kit_k1a/out/K1_RULES.json": "cb0aadee89c86e3db41c33d450eee6d7f58558d63f56d3d189e744277ad23269",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/kc/k1_build/work/kit_k1a/out/K1_RULES.sha256": "55c86fdfcad60820525c4d657fa0c1c8409a26e5d2d3c9e5e585b212e2f52b09",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/kc/k1_build/work/kit_k1a/work/gt_set.py": "5d36d1ea98c14b2e3181a4571a87dc81efa980bd88a2302e27a1ecc13833a4f8",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/kc/k1_build/work/kit_k1a/work/k1_cli.py": "f14df4eda722337e0e7187a759e287eed79bb3201b03ffef351591ce5241c0da",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/kc/k1_build/work/kit_k1a/work/k1_phases.py": "80d763d4149f1b7989d806f3bfab0660e631c27e79d0300cd8300fbdb88f075d",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/kc/k1_build/work/kit_k1a/work/k1_pipeline.py": "deb51a265425e092870c7eadb2fd498b5942b466bb759b39c84fa96e0c762157",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/kc/k1_build/work/kit_k1a/work/k1_report.py": "14b35f83184267f85a946079767d7903d3e1c31d73946bd2600bbe6b2efe862d",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/kc/k1_build/work/kit_k1a/work/refit/train.py": "4087716014ab26e7fdb91f336e3d8ee81f97e82b85a4c340376e872c655ecfef",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/operator_commands.sh": "43f182c7459f9a004f68dbb283b4bee29e6b23bccd865781ae6c4e7b305353d3",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/real_phase_copies/01949c4249271126/PHASE_COMPLETE.json": "16740694fd36f767c1b302a140f9225346202db73bab6fd0c7270d25a16f54b6",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/real_phase_copies/01949c4249271126/candidates.json": "4764f47c247914c59e1f25f8ff8c28f2413f3966aa69c15f044dd64c70cd94d8",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/real_phase_copies/01949c4249271126/parity_raw.jsonl": "9bca789e4507466f3470c970c2963cfc6f8157aa1fa9ae271cd2446c719c73af",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/real_phase_copies/01949c4249271126/tower.npz": "eb20a63ac9ac4b6a22b019cc844141d8ec3a41b9c3a53260200aa50b2e78c975",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/real_phase_copies/0269f4aee84d8be3/PHASE_COMPLETE.json": "2809b8364233c7f0bc2965cc120b97b84504ce31f4ebb1a3b605a99d853dcf18",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/real_phase_copies/0269f4aee84d8be3/candidates.json": "02249657af59a979e1a858c7c8bd85e170246a43f7ca2d40236ff16f63889183",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/real_phase_copies/0269f4aee84d8be3/parity_raw.jsonl": "9bee969194bf8b5ea660081f59fd9870e9d329e47b3e6459982931aaf222a2c2",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/real_phase_copies/0269f4aee84d8be3/tower.npz": "13e0d0dfd9aa4843d639fd7336a37e78651a537ba7403f714273dfdaf35e1574",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/real_phase_copies/BINDING.json": "f4afc9e4c1ddca3b4247b00e9410c9263f119767d1bfd936c1a0b72c29c8a9c4",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset/test_gtset.py": "cbf122b17d77d159cf77484ec0b3e2efb2e9c46d46de4644200ab6db44036cd6",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/gt_sets/GT_SET_PRIMARY_296.json": "2b82af5241db3c8048e9998f766b5dcd24accdaab93bbd8a169aefba39a1f121",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/gt_sets/GT_SET_SENSITIVITY_300.json": "e305c4be0d604df277d06e7d9b1e13893dfa659d7ab6663f0de798773d58d650",
+  "/scratch/jjyeung/orch_n30/k1_ops3/work/gt_sets/SHA256SUMS": "cc128099343c8bf6387bcff116b95d2528a362fb3b3362bfca76ca5456b7689e"
+}

@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=8983 utc=2026-11-12T02:28:22.492Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd/miss_vis_run; ps -o pid,stat,etime,cmd -p 2973991,2973992,2973993 2>/dev/null | cut -c1-160; ls -t *.out 2>/dev/null | head -3; ls -t out/devin_traces 2>/dev/null | head -2; tail -n 3 BRIEF.md | cut -c1-400; ls out | head -20

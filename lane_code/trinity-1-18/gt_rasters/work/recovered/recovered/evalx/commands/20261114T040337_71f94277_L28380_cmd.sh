@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=28380 utc=2026-11-14T04:03:37.033Z kind=commands original_path=(bash command)  -->
+tail -n 6 /tmp/claude-25409/-scratch-jjyeung-orch-home-distill/71f94277-362e-467c-a4bc-ccc9ae6b87c8/tasks/bv6z3mnor.output | cut -c1-400; for p in 2345555; do kill -0 $p 2>/dev/null && echo "successor $p alive"; done; ls /scratch/jjyeung/orch_cd/evalx/events | tail -n 2

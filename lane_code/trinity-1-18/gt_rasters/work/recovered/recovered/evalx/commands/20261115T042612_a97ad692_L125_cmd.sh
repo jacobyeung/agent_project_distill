@@ -1,0 +1,17 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=125 utc=2026-11-15T04:26:12.947Z kind=commands original_path=(bash command)  -->
+R=/scratch/jjyeung/orch_cd; S=/tmp/claude-25409/-scratch-jjyeung-orch-home-distill/a97ad692-7041-4f72-8b75-8f8e29df8950/scratchpad; T=$(date -u +%Y%m%dT%H%MZ); F=$R/official544/inbox/${T}_ORCH_ANSWER_torchvision.md
+cat > "$F" <<'EOF'
+# ORCH ANSWER: torchvision for the CPU video-processing rehearsal
+
+Facts I checked on trinity-2-18: `/scratch/jjyeung/envs/p1cpu` holds torch 2.11.0+cpu (Python 3.12) and no torchvision; the only local torchvision is 0.25.0+cu128 in `/scratch/jjyeung/envs/sam3_capretry_native_v1` (Python 3.12, torch 2.10.0+cu128), which is built for another torch and must not be mixed into p1cpu. `/scratch/jjyeung/envs/p1cpu_wheels` holds no torchvision wheel.
+
+Ruling (in this order; stop at the first that works):
+1. Fetch ONE wheel, the torchvision build that pairs with torch 2.11.0 on CPU (expected `torchvision-0.26.0+cpu-cp312-cp312-manylinux_2_28_x86_64.whl` from `https://download.pytorch.org/whl/cpu/`; a few MB), with `curl -L --limit-rate 8M --max-time 300`, into `official544/work/tv_overlay/`. One attempt per URL, no retry loop. Record its sha256 and size. Unzip it into `official544/work/tv_overlay/site/` (a wheel is a zip; do not run pip, do not touch p1cpu). Before use, read its METADATA and confirm it requires torch 2.11.0; if it names another torch, do not use it and go to step 2. Add the overlay with `site.addsitedir` or `sys.path.insert` inside the rehearsal entrypoint only: never in the kit that will run on a GPU node.
+2. If the fetch fails or the pairing is wrong: run only the processor/tokenization stage of the rehearsal under `/scratch/jjyeung/envs/sam3_capretry_native_v1/bin/python -I -s -B` with `CUDA_VISIBLE_DEVICES=""` (read-only use of that environment), provided its transformers loads `producer_tokenizer_5f9e4d49`. If it cannot, write one BLOCKER event and keep the launch-readiness hold.
+
+Either way the RESULT states, side by side, the torch, torchvision and transformers versions of (a) the rehearsal and (b) the environment the GPU read will run in, and says plainly that pixel values can differ between torchvision builds: the rehearsal proves the path and the token layout (frame count, grid, token count per frame), not bit-equal pixels. Compare the token counts and frame layout with the accepted step-544 dev-S1 packet's recorded values for the same settings.
+
+Disk: this node's /scratch has 139 GB free; the overlay and all rehearsal writes stay under 300 MiB in total. Continue the scoring and input inventories meanwhile, as your default says.
+EOF
+echo "- $(date -u +%Y-%m-%dT%H:%MZ) NEW SESSION (successor of orch-home-distill-79; scratchpad $S): read ORCH_STATE and the handoff tail; both lanes alive (evalx 4116416, official544 572680); old watchers were dead. official544 QUESTION 0421Z (no torchvision in p1cpu): answered $(basename $F): fetch one torchvision 0.26.0+cpu cp312 wheel into a lane overlay (never into p1cpu or the GPU kit), else run the processor stage under sam3_capretry_native_v1 on CPU; RESULT states version differences." >> $R/ORCH_HANDOFF.md
+ls -1d $R/*/events/* | sort > "$S/ev_seen.txt"; wc -l < /data3/jjyeung/orch_n13_20261026/rebuttal_iclr/ORCHARD_TO_MAIN_NOTICES.log > "$S/notices_seen.txt"; cat "$S/notices_seen.txt"; ls -la "$F" | cut -c1-200

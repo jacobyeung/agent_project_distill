@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=30230 utc=2026-11-14T08:58:26.979Z kind=commands original_path=(bash command)  -->
+C=/scratch/jjyeung/orch_cd/leg_s1_canary; f=$(ls -t $C/out/devin_traces/*.jsonl 2>/dev/null | head -n 1); stat -c '%y' "$f" | cut -c1-19; date '+now local %Y-%m-%d %H:%M:%S'; ls $C/inbox | tail -n 2

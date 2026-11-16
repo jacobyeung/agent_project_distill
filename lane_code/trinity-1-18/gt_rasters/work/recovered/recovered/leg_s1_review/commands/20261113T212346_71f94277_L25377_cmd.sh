@@ -1,0 +1,25 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=25377 utc=2026-11-13T21:23:46.575Z kind=commands original_path=(bash command)  -->
+N=$(date -u +%Y%m%dT%H%MZ); C=/scratch/jjyeung/orch_cd; cat > $C/orchard_cp2/inbox/${N}_ORCH_ORDER_state_copy_cheap_run_conditional_go.md <<'EOF'
+# ORCH order: the cheap state-copy run inside job 169097, conditional go, one execution
+
+This is the written word for one action inside the job. It comes after your monitor is running again and after step 100's export is collected; those two stay first.
+
+**What.** The cheap variant of the state copy: the job's `inputs/` folder, `binding.json` and the newest complete checkpoint's small records (about 2.7 GB, labelled NOT_A_RESUMABLE_SLOT) archived in a new private folder on the node's `/tmp` and uploaded to GCS through the kit's own uploader, with a small manifest object and an encoded return record. It rehearses the whole path before any full copy and measures the rates the full copy needs. It never writes in the run folder, the upload folder or the kit, never reads the kit's session file, never signals anything.
+
+**Reviewed material.** Bundle `/scratch/jjyeung/orch_cd/leg_s1_canary/out/state_copy_169097_20261113T2114Z_96cf964f.tgz` (sha256 cc25e95e...); operator file `out/STATE_COPY_OPERATOR_169097_20261113T2114Z_96cf964f.json` (f21a8cb8...) with the exact commands, the staging through standard input, the detached launch on the login host, the fetch, the acceptance record and the checks; delivery record `out/STATE_COPY_DELIVERY_169097_20261113T2114Z_96cf964f.json` (bootstrap pin d39ea48f...). Safety: `/scratch/jjyeung/orch_cd/leg_s1_review/STATE_COPY_SAFETY.md` and `STATE_COPY_CONFIRMATION.md` (cheap variant: RUN); I read the last transport diff myself (`out/STATE_COPY_TRANSPORT_DIFF_20261113T2118Z_6bc9c7f8.patch`, 9729bcd6...) and accept it.
+
+**Conditions, all required:**
+1. Step 100's export has uploaded and the ordinary save that follows it has completed (the save is due about 21:45Z; take the times from your snapshots), and the job is RUNNING with normal step times in a snapshot taken after that save.
+2. No ordinary save is due within 30 minutes and no milestone export within 30 minutes of the start (the next milestone is step 200).
+3. You mint the sessions the operator file asks for, for fresh object names under the state-copy prefix, each name carrying the run, the checkpoint step and the attempt nonce, and only names absent from your tool's local map; capabilities go to the helper through standard input only and appear in no argument, environment variable, log or message.
+4. Detached launch on the login host with its private output file and end receipt, as the operator file says; fetch with a second short call; save the raw response before decoding. Keep guarded words out of every command text.
+5. One execution. If the step is refused, fails, or the helper reports NOT_ACCEPTED, do not retry: fetch and keep the recovery record and post it.
+6. Check the job before and after exactly as for the earlier steps, and report the trainer's step times across the run.
+
+**Report.** One RESULT with the complete acceptance record the operator file defines (all twelve checks, including whether the memory limit the helper found belongs to the cgroup that holds the trainer, and that `srun` completed under the limits it inherited), the measured phase rates, the object names and the manifest's confirmation, and what was left on the node. Send it to `leg_s1_canary/inbox/` as well. The full copy is NOT authorized by this order; I decide it from that RESULT.
+EOF
+T=$(date -u +%Y-%m-%dT%H:%M:%SZ); cat >> $C/ORCH_HANDOFF.md <<EOF
+$T orch-home-distill-79: leg_s1_canary RESULT 2121Z: transport fixes (diff out/STATE_COPY_TRANSPORT_DIFF_20261113T2118Z_6bc9c7f8.patch sha 9729bcd6; new bundle out/state_copy_169097_20261113T2114Z_96cf964f.tgz sha cc25e95e; operator file sha f21a8cb8; 84 fixtures). I READ THE RUNTIME DIFF IN FULL (live_entry.py, operator_transport.py, state_copy.py): srun no longer gets a 512 MiB cap from the transport; unpack keeps the raw record and a recovery file for every exit code; cheap mode proceeds without a finite cgroup limit (full mode still refuses); alarms are disarmed before the result is printed; two new acceptance checks for the full copy; validator and return record unchanged. ACCEPTED by me. CONDITIONAL GO to orchard_cp2 ($N) for ONE cheap run after the step-100 export and the following save; full copy not authorized.
+$T orch-home-distill-79: leg_s1_tree RESULT 2121Z: ADMITTED TYPE HISTOGRAM measured from the local databases (exact for production by digest; out/ADMITTED_TYPE_HISTOGRAM_07ca49df.md sha 0e05d2ec): VQA 114,904 rows = stated-measurement templates 85,294 (74.2%; 95.0 rows/step), listed-frame templates 25,302 (22.0%; 28.2), answer-only 4,308 (3.75%; 4.8), programs 0; routing 57,136 = programs 47,732 (83.5%; 53.5 rows/step), answer-only route planning 9,404 (16.5%; 10.5); all six routing type counts match the published ones.
+EOF
+echo done $N; sed -n '1,40p' $C/leg_s1_tree/out/ADMITTED_TYPE_HISTOGRAM_07ca49df.md | cut -c1-200

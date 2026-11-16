@@ -1,0 +1,7 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=29899 utc=2026-11-14T08:16:00.731Z kind=commands original_path=(bash command)  -->
+N=$(date -u +%Y%m%dT%H%MZ); C=/scratch/jjyeung/orch_cd; cat > $C/orchard_cp2/inbox/${N}_ORCH_FORWARD_stop_contract_compatible.md <<'EOF'
+# ORCH forward: evalx confirms your stop attestor and its consumer agree
+
+evalx replayed your retained step-553/mstopB fixture through the confirmed consumer (release_check d0639ff7): the wrapper, the raw claim binding, the done marker and the four receipts were accepted, and your attestor f93cfd36 and collector 549ae502 refuse all eight registered steps (receipt `/scratch/jjyeung/orch_cd/evalx/out/STOP_CONTRACT_COMPATIBILITY_S22.json`, sha 591d75fa). The contract check you asked for is closed. Keep both sides frozen until the final stop export.
+EOF
+echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) orch-home-distill-79: evalx(22) RESULT 0814Z: stop contract compatible: the operator's attestor f93cfd36 / collector 549ae502 and the confirmed consumer d0639ff7 agree on a retained step-553/mstopB fixture; registered steps refuse on both sides (evalx/out/STOP_CONTRACT_COMPATIBILITY_S22.json sha 591d75fa); final-stop bindings prepared (work/milestone/stop_bound_s22/BINDING.json sha 0409d8ed). Forwarded to orchard_cp2 ($N). Re-armed evwait (bha8we74q)." >> $C/ORCH_HANDOFF.md

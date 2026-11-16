@@ -1,0 +1,38 @@
+--- a/kit_k1a/work/k1_cli.py
++++ b/kit_k1a/work/k1_cli.py
+@@ -16,11 +16,14 @@
+     p.add_argument('--fit')
+     p.add_argument('--phase', choices=F.PHASES)
+     p.add_argument('--max-seconds', type=int, default=14400)
++    p.add_argument('--max-bytes', type=int, default=1_500_000_000)
+     p.add_argument('--tower-cache')
+     p.add_argument('--own-cache')
+     p.add_argument('--cpu-fixture', action='store_true')
+     p.add_argument('--preflight-out')
+     a = p.parse_args()
++    if a.max_bytes <= 0:
++        p.error('--max-bytes must be a positive integer')
+     if a.stage in ('cache', 'preflight') and (not a.phase or a.max_seconds <= 0):
+         p.error('cache/preflight requires a phase and positive time cap')
+     m = B.load(a.manifest)
+@@ -50,7 +53,8 @@
+                 raise ValueError('GPU phase requires a CUDA interpreter')
+             from boundaries import GPU
+             boundary = GPU(m['gpu'], phase=a.phase)
+-        return F.run(m, a.out, boundary, a.phase, a.max_seconds, a.tower_cache, a.own_cache)
++        return F.run(m, a.out, boundary, a.phase, a.max_seconds, a.tower_cache, a.own_cache,
++                     max_bytes=a.max_bytes)
+     if a.stage == 'tables':
+         K.tables(m, a.cache, a.out)
+     if a.stage == 'render':
+--- a/kit_k1a/out/DEPENDENCIES.json
++++ b/kit_k1a/out/DEPENDENCIES.json
+@@ -87,7 +87,7 @@
+   "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/inventory.py": "b1533d0c74fb03807f88f6246ba0b6594eff143e6ee3e7ddd33f51219c1b8015",
+   "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/run_k1.sh": "d70a932872ba5b9f46acd190ee17a727f3ceff2bfc0a3c5f8df2cc06e4baec55",
+   "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/prepare_k1.py": "8bb6e237b8638bf440104f9e1bbf6a736a178d4eed82de36624da14dc57a7234",
+-  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/k1_cli.py": "24395f01b59faacf12c8118d7fee57ec52e8aeba0438a7c27357ce69b8cf2953",
++  "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/k1_cli.py": "3cc7b95ff591d68dc0184ac76d7b706a3b7920c94a2132b0eedd99c1c7e49013",
+   "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/probe_replay.py": "6b9c194fe40e76133f7e3ea52f1d16cdda054f271947149aa88e8d3558f62dfe",
+   "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/k1_phases.py": "80d763d4149f1b7989d806f3bfab0660e631c27e79d0300cd8300fbdb88f075d",
+   "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work/bind_known_settings.py": "2b573cf4a6410a3e6bb856d0d4626ef576dd24cde55e14722895f73c0cdf5362",

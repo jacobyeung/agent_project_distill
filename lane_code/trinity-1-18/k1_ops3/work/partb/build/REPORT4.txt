@@ -1,0 +1,66 @@
+The CPU batch rehearsal passes locally. It executes packet/a7e31d84.sh, its
+authenticated embedded unpacker, and batch_entry.main/allocation. All six cases
+pass: success, returned staging error, pool-space refusal, returned worker error,
+failed error publication, and local-space refusal. Success commits six captures
+and verifies both the canary return and final return through pool/cloud stand-ins.
+
+The success path runs the probe, lock, unchanged 200-GiB gate, stage_job.stage,
+NS.physical, namespace-command construction, native_bootstrap argument/spec and
+entrypoint checks, phase worker, logging, canary, and return. Staging authenticates
+the real metadata/model tars, trainer tar, and unchanged source bundle. The export
+uses four fixture parts; base weights use a separate fixture model inventory;
+anchors use one PNG; runtime/numpy/closure/FLA imports use stubs before the real
+CPU environment executes CPU.own. A separate manifest checks all 300 captures
+before a six-capture phase run. Production weights and GPU forwards are untested.
+
+The shell's rehearsal interpreter intercepts execv to install these adapters.
+Local mapped mode uses a workspace directory for /tmp and exact metadata-path
+mapping. Namespace mode uses a real job_tmp/424242 bind and the real S.namespace
+command, with additional CPU-runtime/package binds. No free-space bypass exists.
+The refusal tests inject lower readings only. All adapters and coverage probes
+live in RH-only files absent from both job packets; the isolated production
+entrypoint has no rehearsal flag or import that can activate them.
+
+The real local namespace attempt passed storage_proof(job='424242') on ext4
+/dev/nvme0n1p4, with /tmp rooted at job_tmp/424242. The real admission probe measured
+960910835712 free bytes. Inner bwrap then refused NETLINK_ROUTE creation. Full
+namespace execution on 1-3 remains for the operator; this is not a GPU rehearsal.
+
+Observer coverage uses executed AST probes in an in-memory copy of observe,
+including expression lines. phase_worker.py is byte-identical. A callback test
+checks equal results and excludes an untaken branch; coverage is not inferred
+from TOKENS/CANARY files. Union coverage merges only matching source hashes.
+Local union: batch_entry 65/65; stage_job 103/103; embedded bootstrap 23/24
+(the unsafe-member rejection is untaken); phase_worker 157/169. Its remaining
+lines are 25,26,33,37,42,95,115,116,129,158,159,160: metadata refusals/no-mapping,
+STOP refusal, real prefill observation, missing-observation refusal, and the
+production CLI dispatch. The CPU fixture calls the phase directly. See
+out/UNEXECUTED_UNION.txt for every monitored file; no full-line-coverage claim.
+
+Job fixes: none. Upload/batch packets, manifest v2, and kit files: unchanged.
+evidence/REPORT4_JOB.diff is empty. REPORT4_VALIDATION.json under evidence verifies
+the embedded job/helper bytes and protected packet hashes, observer semantics,
+two-run collection, stale-run exclusion, and source-hash separation.
+
+Local passing runs: evidence/v2_f8a343d61d and evidence/batch_84831dcd16.
+Combined local output: out/RH_RESULT.tar, 195205120 bytes,
+SHA256 c0b2469cbd74a92cf41a1c2729d33b298161cab575d7e994b65d6d298fdcd3d7.
+The one-command namespace attempt is recorded in evidence/REPORT4_NAMESPACE_LOCAL.txt
+and rh/local/out/RH_RESULT.tar. Its collector exits 0; RESULT.json records both
+rehearsal exits as 1 and preserves the namespace diagnostic and real storage proof.
+
+Portable archive: rh/RH_1_3.tar
+Bytes: 1705666560
+SHA256: ca3c45330120fbf2c02cae5452ad08261c156e487a459403887b21a086667441
+Built with nice 19, one thread, build_rh.py --pack-env. run_rh.sh runs both
+rehearsals and returns their new evidence plus union coverage in out/RH_RESULT.tar,
+including diagnostics when namespaces fail. REPORT4_ARCHIVE_VALIDATION.json under
+evidence checks the packaged scripts and protected files. No GPU, network,
+submission, Git, SSH, kill, deletion, or write outside this workspace was used.
+
+On 1-3, after the operator places this archive at the path below, run:
+mkdir /scratch/jjyeung/orch_n30/k1_partb_rh/r3
+nice -n 19 tar -xf /scratch/jjyeung/orch_n30/k1_partb_rh/RH_1_3.tar -C /scratch/jjyeung/orch_n30/k1_partb_rh/r3
+cd /scratch/jjyeung/orch_n30/k1_partb_rh/r3 && bash run_rh.sh
+Use a fresh r3; mkdir must refuse an existing directory. The collector's zero exit
+means the result archive exists; check out/RESULT.json for rehearsals_passed=true.

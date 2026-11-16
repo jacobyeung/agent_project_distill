@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=12833 utc=2026-11-12T13:23:17.020Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; ls -t orchard_cp2/inbox | head -4; ls leg_s1_tree/out | grep -i "cold\|stage" | head; cat leg_s1_tree/out/nf_release_verification.exit 2>/dev/null; tail -c 600 leg_s1_tree/out/nf_release_verification.log

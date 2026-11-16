@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=26291 utc=2026-11-13T23:15:12.191Z kind=commands original_path=(bash command)  -->
+C=/scratch/jjyeung/orch_cd/orchard_cp2; grep -l -- "--overlap" $C/work/*.sh $C/work/*.py 2>/dev/null | head -n 12; echo ---; grep -h -n -- "--export\|--overlap" $C/work/*.sh $C/work/*.py 2>/dev/null | cut -c1-300 | head -n 20; echo ---; cat $C/out/STATE_COPY_CHEAP_169097/helper_diagnostic.json | head -c 1200

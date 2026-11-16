@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=18549 utc=2026-11-13T09:18:23.227Z kind=commands original_path=(bash command)  -->
+echo "$(date -u +%FT%TZ) orch-home-distill-79: SMOKE WORKBENCH SUBMITTED: Orchard job 168962 (general, CPU, 16 CPUs, 8 h, 12 rounds, bundle d0b7bb3b, tree 2580c65c), RUNNING on orchard-community-2 since ~09:16:41Z; notices line 126. Canary 168942 still in phase 4 (since 09:05:53Z); snapshot ordered." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

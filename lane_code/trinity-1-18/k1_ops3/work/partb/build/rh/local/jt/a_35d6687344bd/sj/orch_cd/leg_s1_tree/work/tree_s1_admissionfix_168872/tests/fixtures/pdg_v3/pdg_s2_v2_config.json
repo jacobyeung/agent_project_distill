@@ -1,0 +1,148 @@
+{
+ "adapter_dtype": "float32",
+ "answer_format_instruction": "Think it through, then finish with the final answer alone on the last line: the option letter for a multiple-choice question, or the number for a numeric question.",
+ "attention_implementation": "sdpa",
+ "base_restart": "original_checkpoint_only",
+ "betas": [
+  0.9,
+  0.999
+ ],
+ "camera": {
+  "embed_dim": 2048,
+  "feature_layers": null,
+  "gate": null,
+  "head_only_steps": 0,
+  "num_heads": 16,
+  "point_depth": {
+   "context_depth": 2,
+   "d_proj": 256,
+   "max_depth_m": 25.0,
+   "min_depth_m": 0.05,
+   "mlp_hidden": 256,
+   "num_heads": 8,
+   "num_points_per_frame": 64,
+   "silog_lambda": 0.5,
+   "vit_layers": [
+    9,
+    17,
+    25
+   ],
+   "weight": 0.05,
+   "weight_grad": 0.5,
+   "weight_metric": 0.5,
+   "weight_silog": 1.0
+  },
+  "refine_iterations": 4,
+  "stage_gamma": 0.6,
+  "supervision": {
+   "path": "/project/community/jjyeung/distill/lb/51f013139e77.npz",
+   "sha256": "51f013139e775bf1f0adadac6a8f5973d019717ffca800698d81b74980312c04"
+  },
+  "trajectory_balance": false,
+  "trunk_depth": 4,
+  "warmup_ratio": 0.0,
+  "weight": 0.1,
+  "weight_focal": 0.5,
+  "weight_gravity": 0.05,
+  "weight_rot": 1.0,
+  "weight_scale": 0.02,
+  "weight_trans": 1.0
+ },
+ "checkpoint_every_steps": 200,
+ "clip_norm": 1.0,
+ "effective_batch_size": 256,
+ "epochs": 1,
+ "frames": {
+  "count": 32,
+  "pixels_per_frame": [
+   16384,
+   147456
+  ]
+ },
+ "full_ft": {
+  "init": {
+   "kind": "base"
+  },
+  "init_modules": {
+   "geometry": {
+    "path": "/project/community/jjyeung/distill/runs/aws128p_20261025/r1pdgs1_51cb25ac/attempt-8559006-0/publication/geometry/geometry_projector.safetensors",
+    "sha256": "e0fd78deba1e95ff6701738f9efae14105f5cd1b0f2e7e2c53a99ccc9757d26a"
+   },
+   "heads": {
+    "path": "/project/community/jjyeung/distill/runs/aws128p_20261025/r1pdgs1_51cb25ac/attempt-8559006-0/publication/auxiliary_heads.pt",
+    "sha256": "e8e3a2562cd974cc9bcf6e88618d9aa178357177124ce784498a4ecd13288902"
+   }
+  },
+  "learning_rates": {
+   "geometry": 1e-05,
+   "heads": 0.0001,
+   "llm": 1e-05,
+   "merger": 1e-05,
+   "vision_blocks": 2e-06
+  },
+  "train": {
+   "llm": true,
+   "merger": true,
+   "vision_blocks": true
+  }
+ },
+ "geometry": {
+  "encoder": {
+   "input": "square_pad_1024_bilinear_518",
+   "name": "g3t",
+   "pooling": "roi_align_valid_region_aligned_sr2_patch_grid",
+   "repository": "thatbrguy/g3t",
+   "revision": "c55e91a04f1cbbad67359072536351201fd19e8b",
+   "source_sha256": "8223a095c258d8f2a720af8c5821f52ecbed1fe64ae127d4b78b8239354b868d"
+  },
+  "feature_dim": 2048,
+  "frames_per_token": 2,
+  "injection": "add_spatial_mllm_connector_to_merged_video_tokens",
+  "layer": 23,
+  "projector": {
+   "hidden": "merged_width",
+   "init": "hf_init_weights_normal_0.02_bias_0_norm_1",
+   "merge": "2x2_spatial_x_2_frames_concat",
+   "norm": "rmsnorm_eps_1e-6",
+   "store_grid": "unmerged_patch_grid",
+   "type": "spatial_mllm_mlp_add"
+  },
+  "schema": "geometry-input-v1",
+  "store": {
+   "manifest": "/project/community/jjyeung/distill/fs/a4710e2b/manifest.jsonl",
+   "manifest_sha256": "bc13ab5c2323c829262721151dec0b2ea3f71b3368f9b8fb4864ccded77937c2"
+  }
+ },
+ "gradient_checkpointing": "non_reentrant_text_and_vision",
+ "group_parameters": {
+  "mergers": 573440,
+  "text": 86556672,
+  "vision": 15399936
+ },
+ "learning_rate": 1e-05,
+ "lora_alpha": 64,
+ "lora_dropout": 0.05,
+ "lora_rank": 32,
+ "loss_reduction": "segment_normalized_answer_plus_0p5_trace_then_global_row_mean",
+ "max_microbatch_size": 8,
+ "max_sequence_tokens": 16384,
+ "max_steps": null,
+ "max_target_tokens_including_eos": 8192,
+ "memory_fit_safety_factor": 1.15,
+ "memory_fraction": 0.9,
+ "microbatch_size": "auto",
+ "optimizer": "AdamW",
+ "padding": "repeat_epoch_prefix_then_zero_weight_rank_slots",
+ "parallel": "fsdp",
+ "precision": "bfloat16",
+ "schedule": "cosine",
+ "seed": 17,
+ "shuffle": "python_random_seed17_plus_epoch",
+ "target_truncation": false,
+ "targets": "exact_text_attention_mlp_vision_attention_mlp_mergers",
+ "trainable_parameters": 102530048,
+ "version": "vlm-lora-ddp-v2",
+ "warmup_ratio": 0.03,
+ "weight_decay": 0.0,
+ "world_size": 32
+}

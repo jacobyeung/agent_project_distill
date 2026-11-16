@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=12383 utc=2026-11-12T12:31:26.800Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; /scratch/jjyeung/envs/p1cpu/bin/python -I -s /scratch/jjyeung/io_governor/copy_archive.py --help 2>&1 | head -25; head -c 1500 mask_recall/out/NEVER_PROPOSED.md; wc -c mask_recall/out/DESIGN_RECORD.md

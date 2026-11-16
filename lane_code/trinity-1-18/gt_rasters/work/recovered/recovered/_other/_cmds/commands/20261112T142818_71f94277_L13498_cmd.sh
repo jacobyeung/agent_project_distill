@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=13498 utc=2026-11-12T14:28:18.767Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; D=$(ls -d codex_local/agent/scratch/codex_runs/*_leg_s2_p2 | tail -1); cut -c1-3200 $D/final_message.md 2>/dev/null; echo ====; cut -c1-3200 orchard_cp2/events/20261112T1427Z_RESULT_staging_verified.md

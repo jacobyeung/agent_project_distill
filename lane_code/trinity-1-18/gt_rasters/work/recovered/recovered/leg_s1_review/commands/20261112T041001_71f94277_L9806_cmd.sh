@@ -1,0 +1,30 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=9806 utc=2026-11-12T04:10:01.964Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; T=$(date -u +%Y%m%dT%H%MZ); wc -l leg_s1_review/REVIEW_VERDICT.md
+cat > leg_s1_tree/inbox/${T}_ORCH_review_verdict_launch_after_fixes.md <<'EOF'
+# ORCH: the independent review is in: LAUNCH AFTER FIXES, bound to your final seal 0059ba9e (it hash-checked all 782 files)
+Read /scratch/jjyeung/orch_cd/leg_s1_review/REVIEW_VERDICT.md whole (nine numbered findings with file:line, evidence and a fix each, plus what checked out and what it could not verify). Fix all nine, each with a test that fails without the fix, then reseal and post a NOTE `tree_frozen` with the new seal and one line per finding (fixed, how, test name); the same reviewer checks the changes.
+The order that matters for the launch:
+1. Finding 1 is a hard blocker: the gate wants a 900 s stop reserve while the builder writes 3,600 for world 4, so every world-4 job would exit at job.sh:15. Make the gate take the value from the reviewed template for the world size and test READY at world 4.
+2. Finding 2 (a silent restart from the parent when the node-local run folder is empty): the kit itself must refuse it. A fresh start is allowed only when no earlier leg of this run exists in the persistent location (the mirror of binding.json or a state slot); otherwise the job restores a verified slot or stops. Agree the persistent paths with orchard_cp2 through its inbox; its wrapper may do the copy, but the refusal lives in the kit.
+3. Finding 3 (exclusions could match nothing and still pass): fail closed on an unknown dataset prefix, write per-source removal counts for both scene lists into receipt.json before step 1, and refuse a source that holds scenes of the excluded datasets yet removes zero rows; state how the job knows which sources must remove something.
+4. Finding 4: no checkpoint or export may be kept from a step whose first-step verdict failed.
+5. Finding 5: add the disk guard, and make the stall guard tolerate the real startup (the 9B load and staging), for example by a heartbeat the trainer writes during startup.
+Findings 6 to 9 as written. For finding 7, show on 20 r16 camera rows that the evaluator's extractor reads their answer form, or convert the form by a stated rule and count it.
+Put in the pre-launch card, as a stated limit: the dev-S1 scenes are held out of THIS leg, but the parent (CP1 m200) and the MDG init were trained before that list existed, so dev-S1 compares the leg with its parent on equal terms and is not a clean generalization number.
+Keep REVIEW_PACKET.md, the kit and the card moving in parallel; the RESULT follows the new seal.
+EOF
+cat > orchard_cp2/inbox/${T}_ORCH_review_points_for_wrapper.md <<'EOF'
+# ORCH: two points from the tree review that touch your wrapper (/scratch/jjyeung/orch_cd/leg_s1_review/REVIEW_VERDICT.md, findings 1 and 2)
+1. The kit's gate refused the 3,600 s stop reserve at world 4 (it expected 900); leg_s1_tree is fixing the gate. Your job script keeps `--signal=B:USR1@3600`.
+2. Silent cold restart: today only your wrapper restores the state slot; if that step were skipped, the kit's mode chooser would start fresh from the parent. leg_s1_tree is making the kit refuse a fresh start whenever an earlier leg of the run exists in the persistent location. Agree with it, through its inbox, the exact persistent paths it will check (the state slots A/B with their verified flags and a mirror of binding.json), and make your wrapper write the binding mirror at the first leg's start. Reply to it, not to me, unless something conflicts.
+The second small tar (sealed kit, source archive, MAP, K6 plan) waits for the lane's next seal.
+EOF
+python3 - <<'EOF'
+p='/scratch/jjyeung/orch_cd/ORCH_STATE_20261111T0935Z.md'
+s=open(p).read()
+add=("\n- dev-S1 limit (review 2026-11-12): its scenes are held out of LEG-S1 only; the parents (CP1 m200, T0 m800, f17) and the MDG init were trained before the list existed. Use dev-S1 for paired comparisons of a leg with its parent and for freezing rules, never as a clean generalization number.\n- LEG-S1 review (leg_s1_review/REVIEW_VERDICT.md, seal 0059ba9e): LAUNCH AFTER FIXES, nine findings (gate refuses the world-4 stop reserve; silent cold restart; exclusions can match nothing; checkpoint before the first-step verdict; no disk guard and a stall guard shorter than startup; four smaller). The lane fixes and reseals; the same reviewer re-checks; then second tar to Orchard, pre-launch card to the user, my GO.\n")
+i=s.find('\n## ', s.find('- Orchard (2026-11-12T00:35Z)'))
+s=s[:i]+add+s[i:] if i>0 else s+add
+open(p,'w').write(s)
+EOF
+echo "$(date -u +%Y-%m-%dT%H:%MZ) LEG-S1 REVIEW (Claude Opus; leg_s1_review/REVIEW_VERDICT.md; bound to final seal 0059ba9e, 782 files hash-checked): LAUNCH AFTER FIXES. (1) BLOCKER launch_s1/b/g.py:50 wants stop_before_seconds 900, build.py:128 writes 3600 at world 4 -> every world-4 job exits at job.sh:15; (2) r8.py:144 starts fresh when the node-local run folder is empty (restore only in orchard_cp2's wrapper) -> silent cold restart; (3) s1_exclusions.matches accepts any prefix and admission never requires a removal count > 0; real counts unmeasured; (4) step-1 checkpoint/export written before the first-step verdict; (5) no disk guard; stall guard 1200 s < 3600 s startup; (6) first-step contract counts streams, not microsteps; (7) r16 camera rows use v3.11 answer form, extractor unchecked; (8) evaluator checks trained groups only if exported; (9) trainer suite failures = source's, so resume/fail-closed trainer tests never run. Checks out: accumulation reproduces the 320-row reference batch, filters reach every stream, RD1/FPS1/label rules match rulings, 44 rows well formed. Caveat: parents trained before dev-S1 existed. Sent pointer notes to leg_s1_tree (fix all, reseal) and orchard_cp2 (wrapper points); state file updated." >> ORCH_HANDOFF.md

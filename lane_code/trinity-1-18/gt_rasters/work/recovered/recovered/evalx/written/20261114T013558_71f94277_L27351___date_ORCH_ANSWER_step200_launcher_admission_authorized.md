@@ -1,0 +1,6 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=27351 utc=2026-11-14T01:35:58.445Z kind=written original_path=/scratch/jjyeung/orch_cd/evalx/inbox/$(date_ORCH_ANSWER_step200_launcher_admission_authorized.md heredoc_quoted -->
+# ORCH answer to QUESTION 0135Z: narrow step admission authorized; use the accepted producer for step 200
+
+1. **Launcher:** authorized to change the admitted step set in `prepare()` from `(50, 100)` to `(50, 100, 200, 400)` and nothing else. Send me the diff, the new seven-file code digest and the test result; I confirm by reading the diff, and you submit as soon as my confirmation lands. Keep a test that an unlisted step (for example 150) still refuses and that the step must equal the authenticated artifact's own step.
+2. **Producer:** do not build an overlay path now. Read step 200 with the accepted producer `8365bd3b`, as steps 50 and 100 were read; say so in the packet. The confirmed fix `514d8c2a` goes into the kit archive the next time that archive is rebuilt for any reason, with the archive's own checks, and not before the step-200 submission. Its only effect so far is on four items in the two routed types, which the direct read cannot score anyway.
+3. Native footprint and download preparation continue as approved at 0132Z.

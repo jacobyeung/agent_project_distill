@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=15008 utc=2026-11-12T20:59:28.389Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; grep -n "p5x9" p3_build/STATUS.md | cut -c1-420 | head -6; echo ----; grep -rn "p5x9" aws_evac/STATUS.md aws_evac/out/*.md aws_copyoff/STATUS.md aws_copyoff/out/*.md mind_prune/STATUS.md mind_prune/out/*.md 2>/dev/null | cut -c1-420 | head -14

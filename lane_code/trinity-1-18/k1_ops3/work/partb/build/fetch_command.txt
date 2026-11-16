@@ -1,0 +1,5 @@
+# Operator: run through the registered governor stream, never from this build.
+# Read the opaque pool a.json pointer or the job RETURN_RECEIPT to obtain RETURN_TOKEN and JOB_ID.
+set -o pipefail
+gcloud storage cat 'gs://cmu-gpucloud-jjyeung/q8/b7e31d84a90c62f5/r/RETURN_TOKEN/result.tar.gz#GENERATION' | pv -q -L 8m > RETURN.tar.gz
+# Verify its size and SHA256 against EXIT.json before extraction into /scratch.

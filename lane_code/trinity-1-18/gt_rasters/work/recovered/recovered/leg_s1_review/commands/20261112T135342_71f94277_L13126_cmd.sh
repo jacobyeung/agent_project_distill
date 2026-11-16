@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=13126 utc=2026-11-12T13:53:42.396Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; grep -n -i "content scan\|scan certificate\|ANON_OK\|anonym" leg_s1_tree/out/PRELAUNCH_CARD.md leg_s1_tree/out/REVIEW_PACKET.md leg_s1_tree/out/REVIEW_RESPONSE.md orchard_cp2/out/LEGS1_ADV4_LAUNCH_DRAFT.md leg_s1_review/REVIEW_VERDICT_NF.md 2>/dev/null | cut -c1-420 | head -14; ls p1c_anon/scan | head; grep -n -i "scan" p1c_anon/HANDOFF.md | cut -c1-300 | head -10

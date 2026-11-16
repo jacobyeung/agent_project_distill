@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=31452 utc=2026-11-14T12:43:28.820Z kind=commands original_path=(bash command)  -->
+W=/scratch/jjyeung/orch_cd/leg_s1_review/work_debug_parity; ls $W | head -n 30; grep -l "token_ids" $W/*.py 2>/dev/null | head -n 5; grep -h -o "/scratch/jjyeung/orch_cd/evalx[^'\" ]*" $W/*.py 2>/dev/null | sort -u | head -n 12

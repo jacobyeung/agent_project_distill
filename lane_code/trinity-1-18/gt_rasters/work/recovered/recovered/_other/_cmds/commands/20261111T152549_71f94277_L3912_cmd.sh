@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=3912 utc=2026-11-11T15:25:49.794Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd/leg_s1_rehearsal; ls events out 2>/dev/null | head; tail -n 12 dispatch.out | cut -c1-600; ls -t /scratch/jjyeung/orch_cd/codex_local/agent/scratch/codex_runs | head -4

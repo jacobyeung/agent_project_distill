@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=33956 utc=2026-11-14T22:54:30.596Z kind=commands original_path=(bash command)  -->
+E=/scratch/jjyeung/orch_cd/evalx/events/20261114T2254Z_EVALX_RESULT_corrected_pilot7_2d35df00_eb3422001_ready.md; fold -w 2000 -s $E | tail -n +12 | cut -c1-2000 | head -n 14; D=/scratch/jjyeung/orch_cd/evalx/work/milestone/native_package_s24_02; ls $D | grep -i "diff\|REVIEW\|seal\|READY" | head; ls $D/packages 2>/dev/null | head

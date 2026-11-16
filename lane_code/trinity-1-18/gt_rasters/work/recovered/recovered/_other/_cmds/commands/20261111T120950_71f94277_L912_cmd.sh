@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=912 utc=2026-11-11T12:09:50.302Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd/toolprog 2>/dev/null && ls events | grep -i 'RESULT\|ORACLE\|GT' | tail -n 12; for f in events/20261107T0946Z_F1_RESULT.md events/20261107T0946Z_OWN_HEAD_RESULT.md; do echo "=== $f ($(wc -l < $f) lines)"; cut -c1-1300 $f | head -n 45; done

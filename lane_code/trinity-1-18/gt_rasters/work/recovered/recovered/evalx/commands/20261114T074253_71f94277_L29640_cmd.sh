@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=29640 utc=2026-11-14T07:42:53.559Z kind=commands original_path=(bash command)  -->
+D=/scratch/jjyeung/orch_cd/evalx/work/milestone/stop_claim_s21; grep -n "^+    def test_\|subTest\|assertRaises" $D/TEST_ADDITIONS.patch | cut -c1-170 | head -n 40; tail -n 5 $D/AFTER.log | cut -c1-160; cd $D && timeout 300 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B run_tests.py 2>&1 | tail -n 4 | cut -c1-200

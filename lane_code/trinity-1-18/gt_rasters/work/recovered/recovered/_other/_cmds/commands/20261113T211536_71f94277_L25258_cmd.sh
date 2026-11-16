@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=25258 utc=2026-11-13T21:15:36.719Z kind=commands original_path=(bash command)  -->
+C=/scratch/jjyeung/orch_cd; ls -d $C/orchard_kit* 2>/dev/null | head; grep -l "cm-okit-orchard" $C/orchard_kit/work/*.sh $C/orchard_kit/*.md $C/orchard_cp2/work/*.sh $C/orchard_port/work/*.sh 2>/dev/null | head -n 8; grep -n -h "ControlMaster=yes\|ControlPersist\| -M \|-fN" $C/orchard_kit/work/*.sh $C/orchard_cp2/work/*.sh $C/orchard_port/work/*.sh 2>/dev/null | cut -c1-260 | head -n 6

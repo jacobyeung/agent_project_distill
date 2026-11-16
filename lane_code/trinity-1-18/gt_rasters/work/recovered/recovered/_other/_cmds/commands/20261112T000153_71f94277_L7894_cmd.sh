@@ -1,0 +1,9 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=7894 utc=2026-11-12T00:01:53.250Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; S=/tmp/claude-25409/-scratch-jjyeung-orch-home-distill/71f94277-362e-467c-a4bc-ccc9ae6b87c8/scratchpad; echo 47 > $S/notices_seen.txt; T=$(date -u +%Y%m%dT%H%MZ)
+cat > orchard_cp2/inbox/${T}_ORCH_main_answer_admission.md <<'EOF'
+# ORCH: main's answer on the admission job (2026-11-12T00:01Z)
+Main says go ahead on our default and needs no time window: it has nothing running or pending on Orchard now. It adds: write nothing large to the shared Orchard project space, which is full; node-local /tmp staging is right.
+So: the main-priority condition is met. The submit still waits for the sealed command, its review and my `*_ORCH_GO_admission.md`. In your RESULT, state the size of the prepared bundle tar the job would save to our cache; if it exceeds 2 GB, propose where it goes instead (for example keep it node-local and have the admission run as the first step of the training job itself, or free space from the removal list the user holds).
+Since main has left the queue, also report 168042's current estimated start in that RESULT (same single query).
+EOF
+echo "$(date -u +%Y-%m-%dT%H:%MZ) main 00:01Z (line 47): go ahead with the CPU-only admission job on our default; main has NOTHING running or pending on Orchard now (Gemma pool stopped); no time window needed; write nothing large to the shared Orchard project space (full). Relayed to orchard_cp2 (bundle tar size must be stated; >2 GB needs another home)." >> ORCH_HANDOFF.md

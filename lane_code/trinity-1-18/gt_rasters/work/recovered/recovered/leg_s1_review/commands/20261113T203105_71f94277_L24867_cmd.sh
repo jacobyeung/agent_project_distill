@@ -1,0 +1,19 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=24867 utc=2026-11-13T20:31:05.848Z kind=commands original_path=(bash command)  -->
+N=$(date -u +%Y%m%dT%H%MZ); C=/scratch/jjyeung/orch_cd; cat > $C/leg_s1_tree/inbox/${N}_ORCH_ORDER_design_record_warm_start.md <<'EOF'
+# ORCH order: the row match is the result I needed; now write the durable design record
+
+Your 2030Z RESULT settles the open question of the warm-start contingency for the two rebuilt streams that can be compared: production and the local admission give identical ordered-row digests for routing (57,136 rows) and VQA (114,904 rows) under the frozen scanner, in two different environments. Keep `out/DONOR_ROW_ORDER_ATTESTATION_07ca49df.json` (sha bd1eaf23) and the full capture; they are the donor's attestation.
+
+`/scratch` is cleared after seven days, so write the durable record now (the user's rule: every design task leaves a record so that no later agent explores the same path twice):
+
+- File `/data2/jjyeung/agent_project_data/distill_design/LEGS1_WARM_START_CONTINGENCY_20261113.md`, at most 80 lines, in this order: the question; the answer; the reasons with evidence (file paths and hashes of the patches 3d2e5fa8, e0770534, d2eb7e3b, the two review verdicts in `/scratch/jjyeung/orch_cd/leg_s1_review/`, the scanner bundle and its safety verdict, the production scan's figures, the row match); every option considered and rejected with the reason (configuration only; exact resume from exports; byte gate alone; counts or index hashes alone; an early stop by signal); what might not work and how we would notice (pose and pointing streams not compared locally; BF16 rounding and a fresh optimizer in the first steps; the real export layout; GPU and FSDP paths untested); the tests that would settle each; the status (not sealed; a confirmation review of d2eb7e3b is owed before any seal; release only on the orchestrator's word).
+- One line in `/data2/jjyeung/agent_project_data/distill_design/INDEX.md` pointing at it.
+- Copy the three patch files, the attestation and the two operator files into `/data2/jjyeung/agent_project_data/distill_design/legs1_warm_start_20261113/` as ONE tar archive with a SHA256 file beside it (small, a few hundred KB; one write, no folder of small files). This is the one write to `/data2` this order allows; it is far below any limit, so no question is needed.
+- Do not `cd` into `/data2/jjyeung` or run Git there.
+
+Then return to your queue (nothing else is urgent for you; stay available for the comparison of pose and pointing if a second admission ever exists).
+EOF
+T=$(date -u +%Y-%m-%dT%H:%M:%SZ); cat >> $C/ORCH_HANDOFF.md <<EOF
+$T orch-home-distill-79: DONOR ROW SCAN DONE AND MATCHED (leg_s1_tree RESULT 2030Z): production capture covers all 387,266 donor rows (776.85 s inside the 840 s bound; peak RSS 54 MB; 2 CPUs); routing (57,136 rows, da0668d0...) and VQA (114,904 rows, fdb4e41f...) ordered-row digests are IDENTICAL between production on Orchard and the local admission on trinity-2-18 -> a fresh admission reproduces the donor's ordered rows for the rebuilt streams that can be compared (pose and pointing not comparable locally). Donor attestation: leg_s1_tree/out/DONOR_ROW_ORDER_ATTESTATION_07ca49df.json (sha bd1eaf23); comparison receipt out/PRODUCTION_LOCAL_ROW_COMPARISON_07ca49df.json (512a3532). Training undisturbed during the scan: step 67 at 20:20:15Z, last three steps 134.4 / 135.4 / 137.0 s; step 100 due ~21:35Z. ORDERED leg_s1_tree ($N): durable design record distill_design/LEGS1_WARM_START_CONTINGENCY_20261113.md + INDEX line + one small tar of the patches and attestation. Project free 345.2 GB at 20:26Z.
+EOF
+echo done $N

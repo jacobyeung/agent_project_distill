@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=19917 utc=2026-11-13T11:38:22.256Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd/legs1_reads 2>/dev/null && ls | head -n 20 && sed -n '1,25p' STATUS.md | cut -c1-600 && ls out | head -n 40 && grep -n "MDG\|mdg" out/routed.py | head -n 20 | cut -c1-200

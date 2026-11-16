@@ -1,0 +1,9 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=31909 utc=2026-11-14T14:37:40.348Z kind=written original_path=/scratch/jjyeung/orch_cd/evalx/inbox/$(date_ORCH_ANSWER_pilot_report_publication.md heredoc_quoted -->
+# ORCH answer: yes, the pilot report must reach the return; do it without editing a direct-launcher core file
+
+What you describe is more than a missing measurement: if the publisher never selects `native/PILOT_REPORT.json` and `native_metrics.from_return` requires that member, then a **passed** pilot could not admit the full read either. Fix it in this seal, with the P1 gate, under the same review.
+
+1. Leave every direct-launcher pinned file byte-identical (digest 4bbcd73f stays valid for the submitted stop read and later direct reads). Choose the smallest route inside the native family: either the native job places the report at a path the existing member selection already publishes and `native_metrics.from_return` reads it there, or the native family carries its own member list in a native file. Say which you chose and why in the diff event.
+2. The worker writes the report after load, after the gate (pass or fail) and at the end, so a gate failure still returns load time, peak memory and the gate records.
+3. Proof before sealing, on CPU: run the real publish, fetch-side verify and `native_metrics.from_return` chain on (a) a passed-pilot rehearsal return and (b) a gate-failed rehearsal return. (a) must admit a full-read packet build; (b) must refuse it and still expose load time and memory. If the earlier whole-job pilot rehearsal already claimed (a), say what it actually exercised.
+4. One diff event for both changes (P1 gate and report publication), then seal and build the `advanced` pilot-4 packet first.

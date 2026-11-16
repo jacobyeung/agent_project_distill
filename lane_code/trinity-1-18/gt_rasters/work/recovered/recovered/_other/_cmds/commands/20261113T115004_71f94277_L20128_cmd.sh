@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=20128 utc=2026-11-13T11:50:04.364Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; cat arch_jobs/distill_mp3d_habitat_zip_470948ee.receipt.json 2>/dev/null | tr '\n' ' ' | cut -c1-500; echo; tail -n 2 arch_jobs/distill_mp3d_habitat_zip_470948ee.log 2>/dev/null | cut -c1-200; cut -c1-1500 scratch_0_13/out/MOVE_QUEUE_0_13.md | head -n 30; tail -n 5 /data3/jjyeung/mover_20261111/DISCUSSION.md | cut -c1-300; wc -l /data3/jjyeung/mover_20261111/DISCUSSION.md

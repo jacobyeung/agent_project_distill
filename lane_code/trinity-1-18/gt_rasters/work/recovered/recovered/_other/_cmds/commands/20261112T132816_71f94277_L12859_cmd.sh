@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=12859 utc=2026-11-12T13:28:16.511Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; D=$(ls -d codex_local/agent/scratch/codex_runs/*_leg_s2_tree | tail -1); ls $D; cut -c1-3000 $D/final_message.md 2>/dev/null; echo ====; tail -c 500 leg_s2_tree/dispatch.out; echo ====; head -c 1500 leg_s2_tree/out/STATUS.md; ls leg_s2_tree/out | head -40; cut -c1-1500 orchard_cp2/events/20261112T1319Z_NOTE_orchard_space_checks.md

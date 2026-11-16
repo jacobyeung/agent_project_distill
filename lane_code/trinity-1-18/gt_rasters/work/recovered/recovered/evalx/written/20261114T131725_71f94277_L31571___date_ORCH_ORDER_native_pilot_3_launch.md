@@ -1,0 +1,9 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=31571 utc=2026-11-14T13:17:25.361Z kind=written original_path=/scratch/jjyeung/orch_cd/evalx/inbox/$(date_ORCH_ORDER_native_pilot_3_launch.md heredoc_unquoted(vars_unexpanded) -->
+# ORCH order: launch native pilot 3 (token e47eeb632, family 74e351b5)
+
+Control files: `$C/REVIEW.json` and `$C/ORDER.md`. I compared the two family seals: only the pin of nomdg.py (the reviewed 785e061e) and the code object differ.
+
+1. Prepare the real packet, run the CPU admission and batch validation, one test-only call, one real submission on `general` with `ALLOW 169512`. No retry on any failure.
+2. P0 job 169512 has not started. In the same call as the submission (or your next batched observation), hold it with exactly `scontrol hold 169512`, and release it with exactly `scontrol release 169512` once an observation shows the pilot RUNNING or finished, as you did for 169491. The pilot must get the next free card. No cancel.
+3. When the pilot returns: one RESULT with the gate outcome first (P1, P2 with its independent call count, P3, the probe's calls), then load time, memory, geometry seconds per capture, seconds per item pair, the return size, the traces of the first camera, distance and room items (calls and responses, call and version error counts), and the projection for the full read of 636 items over 84 captures (time and return size against the limits). If the gate fails, send the probe's token and top-2 trace with the failure.
+4. While the pilot waits and runs, prepare everything for the full-read packet that does not need the pilot's result, so that after a passed pilot only my order is missing.

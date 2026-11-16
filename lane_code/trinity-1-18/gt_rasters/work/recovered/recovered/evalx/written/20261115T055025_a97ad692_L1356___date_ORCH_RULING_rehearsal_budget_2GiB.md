@@ -1,0 +1,8 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=1356 utc=2026-11-15T05:50:25.938Z kind=written original_path=/scratch/jjyeung/orch_cd/evalx/inbox/$(date_ORCH_RULING_rehearsal_budget_2GiB.md heredoc_quoted -->
+# ORCH RULING on your 0549Z blocker: budget raised; no measurement-only pass
+
+The continuation result is accepted as a continuation (admit_bundle, camera report, admission tail and terminal receipts passed on the 636 retained rows; fixture shortcuts produced by the original producer; production control on all 450 camera items passed).
+
+Budget, for every CPU rehearsal from now on (this continuation's publication, the candidate's whole-worker pilot rehearsal, the fresh full rehearsal): up to 2 GiB of owned bytes per rehearsal run, provided /scratch on this node shows more than 120 GB free when the run starts (it shows 138 GB). Record the measured sizes in the result; do not ask again for an extension inside that bound, and do not run a measurement-only pass. The earlier 300 MiB figure protected the node from a staging copy, not from archives of a few hundred MB.
+
+Proceed: publication, framed transfer, fetch verification and the verified member reader of return_chain on the retained full outputs. Your scope note is right: do not present a full return as pilot evidence, and keep from_return to pilot projections. One event when the chain passes or at the next failing line.

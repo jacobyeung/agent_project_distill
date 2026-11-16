@@ -1,0 +1,49 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=1183 utc=2026-11-11T12:28:40.261Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd && REC=/scratch/jjyeung/orch_cd/model_design_review/MODEL_IMPROVEMENT_PLAN_20261111.md
+cat > gf1_fusion/BRIEF.md <<EOF
+# gf1_fusion (Codex Astra): build and CPU-test the connector that feeds the geometry tower's features into the language model (build B2, experiment FUS-1)
+Your folder: /scratch/jjyeung/orch_cd/gf1_fusion. Read the design record first, local copy: $REC. Your specification is its sections "Fusion design", "Ranked experiment queue" item 5 (FUS-1) and "Builds to start today" item B2, plus "Options considered and rejected" (why scalar gates and random-init connectors are out) and "Risks and early signs". Where this brief and the record differ, the record wins; say so in your RESULT.
+
+## Why (the user, 2026-11-11)
+"do we need to add a g3t or 4d reconstruction as a vision encoder? how to combine those features with the current vlm?" and "we should preemptively develop all this code and test it! so when it's time to actually run, we don't need to debug and waste time!" Our student (Qwen3.5-9B) already carries a frozen geometry tower (G3T) whose heads give pose and depth; its features do not yet reach the language model. A published model on the same base gains several VSI-Bench points from multi-layer fusion of geometry features into the visual tokens (68.1 naive, 72.8 multi-layer).
+
+## Standing answers (the orchestrator cannot answer a running Codex session)
+- You may read this node's local disk (/scratch) with one serial process. You write only inside your folder and your private /dev/shm; at most 3 GB under your folder. No GPU, no ssh, no git, no deletion outside your folder, no loopback sockets. /home and /data* are overloaded network storage: open named files only, never search or list recursively there, never write there.
+- The newest student code is /scratch/jjyeung/orch_cd/integ_v3/work/tree (read-only): the trainer and model wrapper under student_pilot/ (students.py, full_ft.py, ddp_training.py, fsdp_training.py, runner.py, cli.py), the tower in g3t_online.py and tower_read.py, and CPU fixtures in tests/cpu_stubs.py and /scratch/jjyeung/orch_cd/integ_v3/scripts/acceptance_cpu_e2e.py (the tiny native Qwen fixture; it also shows which Python environment runs the tree). Earlier connector code (the GXC camera-token path, the PDG gates) is in that tree or in /scratch/jjyeung/orch_cd/orchard_cp2/work (list one level; the Orchard trainer worktree is named there). Decide which tree is the right base, say why, copy it into work/tree_gf1 and change only the copy.
+- Debug and rerun ordinary failures of your own scripts up to three times. Never hold on a question: decide, and state your assumption in the RESULT.
+
+## Build
+1. The connector exactly as B2 specifies: a bank of G3T layers (11, 17 and 23 by default; configurable to layers 12-23 with a top-2 router), LayerNorm and a projection per layer, area pooling onto the Qwen merger grid, a sum, and a zero-initialised output matrix into the visual tokens before LM layer 0; a switch for injection into LM layers 0, 1 and 2; the existing camera-token path reused; the tower under no_grad on the dense frames, with the LM's frames nested inside them.
+2. Two configs: Stage 1 (LM frozen, connector only, sized for one 48 GB card) and Stage 2 (full fine-tuning at world size 4 for the 4 x H100 allocation), each with the learning rates the record gives or cites.
+3. CPU acceptance, all required: step-0 bit identity (with the zero-initialised output the model's logits equal the checkpoint's exactly); the patch-alignment test (a synthetic tower feature placed at a known patch lands on the matching visual token after pooling); every rank's first batch through the full forward and backward on CPU with the tiny fixture, for both configs; gradients reach the connector and, in Stage 1, nothing else; save, load and resume (step 3 after a resume equals step 3 uninterrupted, optimizer state included); a peak-memory estimate per frame count (32, 64, 96, 128) from tensor shapes; the tree's existing test suite still passes (report pre-existing failures separately).
+4. A launch script per config with a stall guard on its log, and out/PRELAUNCH_CARD.md: the question, the one thing that differs between arms, confounds, the pre-registered rule, the decision it changes, the data mix, cost.
+
+## Deliver
+- work/tree_gf1 (the changed copy), out/GF1.patch (a unified diff against the base tree), out/PRELAUNCH_CARD.md, out/RECORD.md (a design record: question, answer, evidence, options considered and rejected, risks and how we would notice, tests that would settle it, status; I copy it to the record folder).
+- events/<UTC stamp from date -u +%Y%m%dT%H%MZ>_RESULT_gf1_fusion.md, at most 12 lines: the base tree chosen and why, what is built, each acceptance check with pass or fail and the numbers, the memory estimates, anything unfinished with its reason.
+EOF
+cat > model_design_review/BRIEF.md <<EOF
+# model_design_review (Codex Astra, read-only): try to refute the model-improvement plan before we build on it
+Your folder: /scratch/jjyeung/orch_cd/model_design_review. Review MODEL_IMPROVEMENT_PLAN_20261111.md in this folder (346 lines). You are a second model family checking the first one's work: find what is wrong, unsupported, mis-ranked or unbuildable. Do not rewrite the plan and do not praise it.
+
+## Standing answers (the orchestrator cannot answer a running Codex session)
+- You may read this node's local disk (/scratch) with one serial process. You write nothing. No GPU, no ssh, no git. /home and /data* are overloaded network storage: open named files only (the plan cites saved notes under /home/jjyeung/.claude/projects/-scratch-jjyeung-orch-home-distill/memory/ and records under /data2/jjyeung/agent_project_data/distill_design/; open the ones you need by name), never search or list recursively there.
+- Web access is allowed for checking cited sources. Never hold on a question: decide and say what you assumed.
+
+## Check, in this order
+1. Our own numbers. For every internal number the plan's answer and gap decomposition rest on (the 80.1 ceiling and its per-type table, "95-100 with annotated quantities", the main project's agent with ground-truth tools at 94.8 ReVSI / 93.6 VSTI / 79.4 on 328 VSI items, grounding costing 17-27 points, depth about 8, pose 1-2, 64 frames +4.6, the stack reaching about 72.4), open the cited file and say whether it supports the sentence as written, including item counts and which set. /scratch/jjyeung/orch_cd/toolprog/events/20261107T0946Z_OWN_HEAD_RESULT.md holds the per-type ceiling table.
+2. Published numbers and claims: the frontier and open bars (GPT-6 Astra 73.05 / 70.33; ConsiSpace 76.6 at 50 frames; GeoWeaver-10B 75.05 / 57.5 with 68.1 naive and 72.8 multi-layer; Cambrian-P), the data scales (0.6-8.5M rows; about +4 per doubling), and the fusion evidence. Open each source and report mismatches in number, protocol, frame count or split.
+3. The ranking. Does the queue order follow from points per GPU-hour by the plan's own numbers? Name any experiment that should move up or down, and any high-value lever the plan misses (for example evaluating existing checkpoints on the official full sets first, since the plan says no official 5,130-item read of our student exists).
+4. Each experiment's logic: one thing changed, the confounds, whether the pre-registered rule is decidable at the stated item counts, the no-information baseline, the cost arithmetic.
+5. The claim "what it takes to pass GeoWeaver-10B": check the arithmetic of the stack and say which terms are measured and which are estimates stacked on estimates. Note that the open top is stated as ConsiSpace at 76.6: does the plan aim at the right bar?
+6. Conflicts with the user's rulings: no seed replicates; no control-only GPU runs; gains must come from our method rather than replication of a published one (is the fusion connector a replication, and how should it be presented?); evaluation may use as many frames as helps; at least about 100 scored items per type before attributing a change; build and CPU-test every candidate before GPUs.
+
+## Deliver (as your final message; you cannot write files)
+A verdict of at most 45 lines: "BUILD AS IS", "BUILD WITH CHANGES" or "DO NOT BUILD YET"; then findings ranked by how much they would change a decision or waste GPU-hours, each with the plan's section and line, the evidence (file and line, or URL), and the smallest fix; then the statements you checked and found correct, in one line.
+EOF
+S=/tmp/claude-25409/-scratch-jjyeung-orch-home-distill/71f94277-362e-467c-a4bc-ccc9ae6b87c8/scratchpad
+for l in grd_selector:36000 dose_pool:36000 frontier_read:28800; do n=${l%%:*}; t=${l##*:}; bash orch_tools/devin_bg.sh /home/jjyeung/agent_project_distill /scratch/jjyeung/orch_cd/$n/BRIEF.md claude-opus-5-5-high $t /scratch/jjyeung/orch_cd/$n/devin.out; printf '%s|%s/BRIEF.md||\n' $n $n >> $S/LANES; done
+tmux new-session -d -s cx_gf1_fusion "bash /scratch/jjyeung/orch_cd/orch_tools/codex_local.sh implement /scratch/jjyeung/orch_cd/gf1_fusion /scratch/jjyeung/orch_cd/gf1_fusion/BRIEF.md --model gpt-6-astra --effort high --skip-git-check --label gf1_fusion > /scratch/jjyeung/orch_cd/gf1_fusion/dispatch.out 2>&1"
+tmux new-session -d -s cx_model_review "bash /scratch/jjyeung/orch_cd/orch_tools/codex_local.sh review /scratch/jjyeung/orch_cd/model_design_review /scratch/jjyeung/orch_cd/model_design_review/BRIEF.md --net --skip-git-check --label model_design_review > /scratch/jjyeung/orch_cd/model_design_review/dispatch.out 2>&1"
+printf 'gf1_fusion|tmux:cx_gf1_fusion||\nmodel_design_review|tmux:cx_model_review||\n' >> $S/LANES
+tmux ls | grep -c '^cx_'

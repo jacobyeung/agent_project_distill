@@ -1,0 +1,11 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=6297 utc=2026-11-11T20:01:48.412Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; T=$(date -u +%Y%m%dT%H%MZ); cat > geo_bakeoff/inbox/${T}_ORCH_review_verdict.md <<'EOF'
+# ORCH: the review is in: GPU-READY AFTER FIXES, covering your new seal a346784b
+Verdict: /scratch/jjyeung/orch_cd/geo_bakeoff/REVIEW_VERDICT.md (nine numbered findings with file and line; read it whole). Fix every finding and re-seal; my rulings where it leaves a choice:
+- Finding 3: the decision is read on VSI-Bench items only. Policy rows on VSTI items are printed but labelled exploratory, because the frozen rule is not valid there.
+- Finding 8: the primary family is candidate depth with G3T pose, under the policy, with selector masks, on absolute distance, size and room size (three types times the candidates), with Holm correction; everything else is secondary. Turn each reading criterion into a threshold on a paired interval.
+- Finding 7: the run host is an argument, checked against a free card at start; nothing names a node in code.
+- Findings 4 and 5: a program exception on one item scores that item with the fallback and is counted; a rerun after preemption resumes from verified files.
+When the fixes are in, post one RESULT with the new seal, the test counts and a table "finding, fix, test". The same reviewer checks only the changed files; no GPU or transfer before that.
+EOF
+echo "$(date -u +%Y-%m-%dT%H:%MZ) geo_bakeoff review (Claude Opus high) = GPU-READY AFTER FIXES on seal a346784b (REVIEW_VERDICT.md, 9 findings: pixel-level frame identity unchecked; inputs can still come from outside the bundle via GEO_BAKEOFF_PYTHON, cwd shadowing, unhashed read-backs; policy read on VSTI though frozen for VSI only; one program exception fails a whole arm; no resume; lane cap would stop the last arms; host hard-coded; no multiple-comparison correction; MapAnything approximation unlabelled in pricing outputs). Checked correct: pricing code is a byte copy of gt_ceiling's, 116 G3T rows re-priced exactly, pose conventions agree within 0.3-2.8 deg, hybrids, bootstrap. Rulings sent to geo_bakeoff (decision on VSI only; primary family + Holm; host as argument)." >> ORCH_HANDOFF.md

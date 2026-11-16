@@ -1,0 +1,27 @@
+The rehearsal uses one outer bwrap to map <extracted-root>/jt onto /tmp and the package onto /tmp/b7e31d84. Its stage, home, cache, and temporary files live under private /tmp. The unchanged NS.namespace builder constructs the inner namespace. A package alias at /scratch/jjyeung/a7e31d84 lets the unchanged phase enforce its scratch-output requirement. Every physical write stays inside the extracted directory, regardless of its name.
+
+Only rh_prepare.py and build_rh.py changed. REPORT3.diff contains their unified diff. The 19 protected file hashes match both the workspace and the rebuilt archive, including the source packet, batch packet, manifest v2, and job modules. No kit file changed. The builder preserves an existing RH archive by renaming it.
+
+The host collector writes out/RH_RESULT.tar after the outer bwrap exits, including on failure. It retains outer.log and namespace.log, records nested user-namespace refusals, and includes each new rehearse_v2 evidence run with COVERAGE.json (executed_lines and unexecuted_lines), RESULT.json, and its other files. NAMESPACE_ENTERED.json records execution inside the inner namespace. Stale evidence is excluded.
+
+Archive: rh/RH_1_3.tar
+Bytes: 1705635840
+SHA256: 1dba19642bc63640c5ee92b4c86a89a79461d1c8b007c77e967146dd9d5f61ca
+Built with: nice -n 19 /scratch/jjyeung/envs/p1cpu/bin/python -B build_rh.py --pack-env
+Both environments, inputs/model.tar (8005668f...), and inputs/a.tar are packed.
+
+On trinity-1-3, extract RH_1_3.tar under /scratch/jjyeung/orch_n30/k1_partb_rh after the operator moves the existing directory aside by renaming it. Run:
+cd /scratch/jjyeung/orch_n30/k1_partb_rh && bash run_rh.sh
+
+If that directory cannot be renamed, extract into the fresh directory /scratch/jjyeung/orch_n30/k1_partb_rh2 and run:
+cd /scratch/jjyeung/orch_n30/k1_partb_rh2 && bash run_rh.sh
+
+Local command: nice -n 19 bash rh/local/run_rh.sh
+Exit: 0 (the result archive was returned; the inner namespace did not execute).
+Outer namespace: started. Inner bwrap exit: 1.
+Inner stderr: bwrap: loopback: Failed to create NETLINK_ROUTE socket: Operation not permitted
+Result: rh/local/out/RH_RESULT.tar (20480 bytes)
+Result SHA256: f1e0ce2150fb5f26611c5623f1f82ec611ba2d41d7ad849b8ec8dfa57601e947
+Full local output: evidence/REPORT3_LOCAL_RUN.txt
+
+Four stub-based checks pass: outer failure, nested refusal, rehearsal failure, and successful evidence collection without stale coverage. These checks do not credit namespace execution. The real local run remains blocked by NETLINK_ROUTE; execution and coverage on 1-3 await the operator. Check evidence/REPORT3_VALIDATION.json and evidence/report3_checks_ccbbb2d9/RESULT.json.

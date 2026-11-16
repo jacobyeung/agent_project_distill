@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=22128 utc=2026-11-13T14:53:19.115Z kind=commands original_path=(bash command)  -->
+C=/scratch/jjyeung/orch_cd; ls $C/leg_s1_review/work_fourstream 2>/dev/null | head -n 20; echo ==; ls $C/leg_s1_review | grep -i -E "^work" ; ls $C/leg_s1_tree/out | grep -i -E "pool|first_batch|firstbatch|batch" | head -n 12

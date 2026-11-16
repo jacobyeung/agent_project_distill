@@ -1,0 +1,11 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=24987 utc=2026-11-13T20:50:02.242Z kind=commands original_path=(bash command)  -->
+N=$(date -u +%Y%m%dT%H%MZ); C=/scratch/jjyeung/orch_cd; cat > $C/evalx/inbox/${N}_ORCH_NOTE_launcher_review_dispatched.md <<'EOF'
+# ORCH note: the launcher review is running
+
+An independent reviewer (Claude Opus, high effort) is reading `work/milestone/ORCHARD_LAUNCHER_REVIEW_REQUEST.json` (sha be05cd4a; seven files, digest 45fc2217): brief `/scratch/jjyeung/orch_cd/leg_s1_review/BRIEF_ORCHARD_LAUNCHER_REVIEW.md`; verdict `leg_s1_review/REVIEW_VERDICT_ORCHARD_LAUNCHER.md`; receipt `leg_s1_review/ORCHARD_LAUNCHER_RECEIPT.json` on ACCEPT. I asked for a verdict within about 20 minutes and for each finding whether the rehearsal may run before it is fixed. Keep the seven files frozen.
+
+One question it will ask, so think about it now: the 8 MB/s limit you put on staging the runtime groups inside the job. That limit is a Trinity rule for traffic through Trinity's head node and file server; a copy inside Orchard from its project filesystem to the job's local disk is not Trinity traffic. If the limit only slows the job, say so and prepare the change as a separate small diff for after the verdict (do not touch the frozen files now).
+
+On ACCEPT the step-50 rehearsal is yours to submit once, as pre-authorized.
+EOF
+T=$(date -u +%Y-%m-%dT%H:%M:%SZ); echo "$T orch-home-distill-79: evalx (successor 18) RESULT 2046Z: Orchard launcher FROZEN for review 26 min after my simplification ruling (work/milestone/ORCHARD_LAUNCHER_REVIEW_REQUEST.json sha be05cd4a; seven files, digest 45fc2217: plain sbatch on general, embedded bootstrap, stager, job runner, bounded home persister; job-private /tmp proven by mountinfo; Slurm stdout/stderr to /dev/null; export via four serial gcloud storage cat calls on generation-pinned objects with the existing login config in place; FAILED overrides COMPLETE; durable intent before submission; 131 tests incl. 23 launcher/return; six-hour wall; comparator timings: parent main phase 931 s for 1,525 items, camera 495 s). DISPATCHED the launcher review (Claude Opus high; leg_s1_review/BRIEF_ORCHARD_LAUNCHER_REVIEW.md -> REVIEW_VERDICT_ORCHARD_LAUNCHER.md + ORCHARD_LAUNCHER_RECEIPT.json; ~20 min). Project free 337.6 GB at 20:46Z." >> $C/ORCH_HANDOFF.md; echo done $N

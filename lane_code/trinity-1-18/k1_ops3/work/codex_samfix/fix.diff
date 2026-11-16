@@ -1,0 +1,22 @@
+--- a/native_kit/boundaries.py
++++ b/native_kit/boundaries.py
+@@ -50,7 +50,10 @@
+   s=self.settings
+   if s['tower_weights']['sha256']!=WEIGHTS_SHA256 or s['tower_config']['sha256']!=CONFIG_SHA256:raise ValueError('Frozen tower identity differs')
+   if self.model is not None:self.model.to('cpu')
+-  if self.sam_model is not None:self.sam_model._backend.model.to('cpu')
++  if self.sam_model is not None:
++   import torch
++   # SAM loads inference tensors lazily; preserve that state across device copies.
++   with torch.inference_mode():self.sam_model._backend.model.to('cpu')
+   tower=FrozenG3TTower(dict(weights_path=str(B.checked(s['tower_weights'])),config_path=str(B.checked(s['tower_config'])),device=self.device,dense_frames=len(images),depth_chunk_size=8,dtype='bf16'))
+   return tower.run(dict(tower_native_frames=images,tower_frame_indices=[f['index'] for f in c['dense_frames']],tower_anchor_slots=c['anchor_slots'],frame_indices=c['anchor_indices']))
+  def own(self,c,images,state):
+@@ -83,5 +86,6 @@
+   if self.sam_model is None:
+    settings=dict(device=self.device,checkpoint_path=str(B.checked(s['sam_checkpoint'])),source_root=s['sam_source'],receipt_path=str(B.checked(s['sam_receipt'])))
+    self.sam_model=attach_sam3_tower(torch.nn.Linear(1,1),settings,enabled=True)
+-  else:self.sam_model._backend.model.to(self.device)
++  else:
++   with torch.inference_mode():self.sam_model._backend.model.to(self.device)
+   return self.sam_model

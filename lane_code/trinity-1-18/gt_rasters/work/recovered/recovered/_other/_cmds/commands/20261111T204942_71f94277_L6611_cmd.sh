@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=6611 utc=2026-11-11T20:49:42.655Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd/codex_local/agent/scratch/codex_runs; d=$(ls -d *swap_review 2>/dev/null | tail -1); echo "$d"; cat $d/meta.json 2>/dev/null | grep -E "exit_code|end_time" | cut -c1-80; cat $d/final_message.md 2>/dev/null | cut -c1-3500; tmux ls 2>/dev/null | grep -c cx_swap_review

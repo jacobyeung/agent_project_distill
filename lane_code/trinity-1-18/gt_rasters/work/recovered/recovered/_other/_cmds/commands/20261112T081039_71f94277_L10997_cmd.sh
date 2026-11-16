@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=10997 utc=2026-11-12T08:10:39.435Z kind=commands original_path=(bash command)  -->
+D=/data3/jjyeung/mover_20261111/DISCUSSION.md; grep -n -E "PL *=|PL/|pull lane|aws_pull" $D | cut -c1-300 | head -8; ls -d /data3/jjyeung/*/PL 2>/dev/null | head -3; ls /data3/jjyeung/aws_pull_* 2>/dev/null | head -5; grep -n -i -E "FINALS_MANIFEST|PL=" /scratch/jjyeung/orch_cd/aws_evac/STATUS.md 2>/dev/null | cut -c1-300 | head -6

@@ -1,0 +1,8 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=31246 utc=2026-11-14T11:41:01.994Z kind=written original_path=/scratch/jjyeung/orch_cd/if_p0/inbox/$(date_ORCH_CONFIRMED_seal_eef3ba96_build_both_packets.md heredoc_unquoted(vars_unexpanded) -->
+# ORCH: seal eef3ba96 confirmed; build both P0 packets now
+
+I read the runtime diff and hashed both kits: only `orchard_driver.py` and `orchard_compat.py` changed among the code, and the two adapters reach their call sites (`orchard_ifp0.py:329` and `:184`). Control files in the usual form: `$C/` (review.md, confirmation.json, launch_note.md).
+
+1. Build the `general` packet (`out/P0_SUBMISSION_eef3ba96_general/`) and the `advanced` packet (`out/P0_SUBMISSION_eef3ba96_advanced/`), fresh tokens, the kit's own admission and batch validation on each. Hand the general packet to evalx with a one-line inbox note; say in it that submission waits for my order. The 799a21dd packets are retired; do not hand them out.
+2. One question the audit left open, answer it in the same RESULT from the kit's own records: the largest frame archive the job copies (bytes), hence the free space the disk guard will demand (200 GiB + twice that), and the free space the job's filesystem had when the model and checkpoint copies passed, if any return recorded a number. If no number exists, make the job record the free bytes it sees before each staged copy in the bounded return (evidence only; this needs no reseal if the job already writes it, and say so if it does not).
+3. One RESULT when both packets are validated.

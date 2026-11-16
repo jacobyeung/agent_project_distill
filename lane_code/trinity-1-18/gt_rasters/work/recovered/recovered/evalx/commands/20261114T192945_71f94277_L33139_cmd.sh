@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=33139 utc=2026-11-14T19:29:45.163Z kind=commands original_path=(bash command)  -->
+fold -w 2500 -s /scratch/jjyeung/orch_cd/evalx/events/20261114T1928Z_BLOCKER_local_native_fetch_api_gate.md | cut -c1-2500; echo; ls -l /tmp/cm-okit-orchard 2>&1 | cut -c1-120; timeout 10 ssh -O check -S /tmp/cm-okit-orchard orchard 2>&1 | cut -c1-120
