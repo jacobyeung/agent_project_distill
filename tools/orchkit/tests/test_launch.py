@@ -60,6 +60,8 @@ class LaunchBase(unittest.TestCase):
               '#!/bin/bash\necho call >> %s/ossh_calls\nexport HOME=%s/home PATH=%s/bin:$PATH\n'
               '[ "$1" = "bash -s" ] || exit 9\nexec bash -s\n' % (self.base, self.base, self.base),
               0o755)
+        write(os.path.join(self.base, 'bin', 'squeue'),
+              '#!/bin/bash\ncat %s/live 2>/dev/null || true\n' % self.base, 0o755)
         os.makedirs(os.path.join(self.base, 'home'))
         os.makedirs(os.path.join(self.base, 'pool'))
         words = os.path.join(self.base, 'words.txt')
@@ -274,6 +276,20 @@ class SubmitTest(LaunchBase):
         third, prep3 = self.prepare(kit3, dry3)
         self.assertFalse(launch.submit(prep3, self.go('GO %s\n' % third['token']),
                                        out=io.StringIO())['executed'])
+
+    def test_a_live_job_seen_on_the_batch_host_blocks_sbatch(self):
+        write(os.path.join(self.base, 'live'), 'a15_cot_apaaaaaaaaaaaaaaaa\n')
+        kit, dry = self.kit()
+        record, prep = self.prepare(kit, dry)
+        with self.assertRaises(launch.LaunchError) as caught:
+            launch.submit(prep, self.go('GO %s\n' % record['token']), execute=True,
+                          out=io.StringIO())
+        self.assertIn('REFUSED_LIVE', str(caught.exception))
+        self.assertEqual(self.calls('sbatch_calls'), [])
+        record, prep = self.prepare(kit, dry)
+        result = launch.submit(prep, self.go('GO %s, queue behind aaaaaaaaaaaaaaaa\n' % record['token']),
+                               execute=True, out=io.StringIO())
+        self.assertEqual(result['job_id'], 4242)
 
     def test_status_and_fetch_through_a_fake_transport(self):
         kit, dry = self.kit()

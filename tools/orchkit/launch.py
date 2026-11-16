@@ -252,6 +252,18 @@ def render(config, token, payload):
     return text
 
 
+def live_check(partition):
+    """Bash that refuses when one of our jobs is live on a one-job partition, unless its name is in
+    QUEUE_BEHIND (set by submit from the GO file, ahead of the pinned script)."""
+    if partition not in ONE_JOB_PARTITIONS:
+        return ': no one-job gate on %s' % partition
+    return '\n'.join([
+        'for live in $(squeue -h -u "${USER:-$(id -un)}" -p %s -o %%j </dev/null | grep "^%s" || true); do' % (
+            partition, PREFIX),
+        '  case " ${QUEUE_BEHIND:-} " in *" $live "*) ;; *) echo "LIVE $live"; exit 6;; esac',
+        'done'])
+
+
 def submit_script(config, token, script):
     """Bash for the batch host: check home quota and pool room, then sbatch; submit nothing when
     either is short."""
@@ -290,6 +302,7 @@ def submit_script(config, token, script):
         'body=$(mktemp "${TMPDIR:-/tmp}/.b.XXXXXXXX")',
         "cat > \"$body\" <<'BATCH_%s'" % token, script.rstrip('\n'), 'BATCH_%s' % token,
         'test "$(sha256sum "$body" | cut -c1-64)" = "%s" || { echo "BODY DIFFERS"; exit 4; }' % digest,
+        live_check(config['job']['partition']),
         'sbatch --test-only "$body" </dev/null >/dev/null 2>&1 || { echo "TEST-ONLY REFUSED"; exit 5; }',
         'jid=$(sbatch --parsable "$body" </dev/null)',
         'echo "JOBID=${jid%%;*}"', ''])
@@ -441,8 +454,11 @@ def submit(prep, go, execute=False, ledger_file=None, transport=None, out=sys.st
         return {'executed': False, 'argv': argv}
     util.write_json(os.path.join(prep, 'SUBMIT_INTENT.json'),
                     {'token': token, 'utc': util.utc_iso(), 'go': os.path.abspath(go)})
+    behind = sorted(set(PREFIX + found for found in re.findall(r'(?<![0-9a-f])([0-9a-f]{16})(?![0-9a-f])',
+                                                                 go_text) if found != token))
     with open(os.path.join(prep, record['stdin']), 'rb') as handle:
-        body = handle.read()
+        body = ('QUEUE_BEHIND=%s\n' % ("'%s'" % ' '.join(behind) if behind and re.search(
+            r'queue[ _-]behind', go_text, re.I) else "''")).encode('utf-8') + handle.read()
     code, stdout, stderr = (transport or run_transport)(argv, body)
     text = stdout.decode('utf-8', 'replace')
     found = re.search(r'^JOBID=(\d+)\s*$', text, re.M)
@@ -452,6 +468,8 @@ def submit(prep, go, execute=False, ledger_file=None, transport=None, out=sys.st
         result.update(status='SUBMITTED', job_id=int(found.group(1)))
     elif re.search(r'^SHORT ', text, re.M):
         result.update(status='REFUSED_ROOM', job_id=None)
+    elif re.search(r'^LIVE ', text, re.M):
+        result.update(status='REFUSED_LIVE', job_id=None)
     else:
         result.update(status='UNCERTAIN', job_id=None)
     util.write_json(os.path.join(prep, 'SUBMISSION.json'), result)
