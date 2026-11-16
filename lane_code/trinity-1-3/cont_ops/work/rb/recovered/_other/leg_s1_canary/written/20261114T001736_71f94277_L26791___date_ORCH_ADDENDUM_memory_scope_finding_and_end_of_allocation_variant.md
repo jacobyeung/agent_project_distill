@@ -1,0 +1,11 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=26791 utc=2026-11-14T00:17:36.611Z kind=written original_path=/scratch/jjyeung/orch_cd/leg_s1_canary/inbox/$(date_ORCH_ADDENDUM_memory_scope_finding_and_end_of_allocation_variant.md heredoc_quoted -->
+# ORCH addendum to the 0004Z task: the memory gate missed the job-level group; analyse the end-of-allocation variant
+
+**New fact** (operator BLOCKER 0015Z; evidence `/scratch/jjyeung/orch_cd/orchard_cp2/out/STATE_COPY_CHEAP_169097_b9bfe98f/memory_scope_failure.json`): the helper sampled only its own step group (`.../step_5/user`, 18.7 MB of an 859 GB limit). The job-level ancestor `.../s8FXM7AR3HQC00` has the same limit and was at 768 GB (89.4%), above the copier's 85% threshold. Allocation identity came back UNAVAILABLE, so trainer membership is unauthenticated. I have approved one read-only step that will print the job group's anon/file breakdown and event counters; the operator will post it.
+
+**My ruling:** the full copy does not run while the trainer runs. It survives only as the end-of-allocation fallback: after the trainer has exited, and only if the wrapper cannot write the slot to the project filesystem.
+
+**So change the task's emphasis.** Items 1 and 2 of the 0004Z task stand (what the cheap run proves; duration by phase). Replace items 3 to 5 with:
+3. The memory gate: which group must be sampled (the highest-usage finite ancestor, every finite ancestor, or anon plus unreclaimable memory instead of `memory.current`), the right threshold once file cache is separated, and how the helper authenticates that the trainer is in, or has left, that group.
+4. The end-of-allocation variant: where it would sit in the runbook (`orchard_cp2/out/RUNBOOK_END_OF_ALLOCATION_469ddece.md`, budget `out/FINAL_HOUR_BUDGET_169097_20261113T234025Z.json`); the time it needs at the measured rates against the time left after the final save, pack and export; what it must check first (trainer exited, final checkpoint complete, slot refused for space); and whether it fits without changes. If it does not fit: the smallest change (concurrent part uploads as the kit's exporter does at 310 to 433 MB/s; one verification pass), with lines touched and what needs re-review.
+5. Your recommendation, and what you would build. Build nothing until I answer.

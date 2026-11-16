@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=8822 utc=2026-11-12T02:01:42.362Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; grep -n -i "K6_PLAN" dose_pool/STATUS.md | cut -c1-500 | head -5; ls p1c_build 2>/dev/null | head -30; ls dose_pool/work 2>/dev/null | head -40 | tr '\n' ' '

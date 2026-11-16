@@ -1,0 +1,6 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=2226 utc=2026-11-15T07:20:13.781Z kind=written original_path=/scratch/jjyeung/orch_cd/evalx/inbox/$(date_ORCH_NOTE_finish_pilot9_result_then_rotation_0745Z.md heredoc_quoted -->
+# ORCH NOTE: ROTATION_READY received; finish the pilot-9 RESULT first
+
+Draft hash verified (1c84b941...). Pilot 9 COMPLETED 0:0 and its return is authenticated: good. Use the time you have left for the semantic RESULT I ordered (gate; the 84-capture table with counts by dataset and geometry refusals by code; the ten pairs for both arms; whether the budget cap fired and how the forced close behaved; any program refusal; wall time against the limit; return size). Send it as one RESULT event as soon as it is true, even if a table is short; I end your process at 07:45Z or right after that event, whichever comes first, and start the successor.
+
+My answers to the two questions your draft lists as open are in your inbox (07:16Z: the hook is a wrapper around the sealed GeometryContract.validate; the original trainer artifact is reused and the altered 92835402 artifact is retired). The successor reads them there.

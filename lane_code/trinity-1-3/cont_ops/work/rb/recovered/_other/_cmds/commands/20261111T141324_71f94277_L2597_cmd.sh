@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=2597 utc=2026-11-11T14:13:24.772Z kind=commands original_path=(bash command)  -->
+R=/scratch/jjyeung/orch_cd/codex_local/agent/scratch/codex_runs; d=$(ls -t $R | grep 'vla_schema_check2' | head -1); echo "== $d"; cut -c1-700 $R/$d/final_message.md | head -n 24; cp $R/$d/final_message.md /scratch/jjyeung/orch_cd/vla_design_review/SCHEMA_CHECK2_VERDICT.md; echo; echo "== dyn_probe pass 2"; cut -c1-420 /scratch/jjyeung/orch_cd/dyn_probe/events/20261111T1412Z_RESULT_dyn_probe_pass2.md | head -n 13

@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=34190 utc=2026-11-14T23:58:36.721Z kind=commands original_path=(bash command)  -->
+S=/tmp/claude-25409/-scratch-jjyeung-orch-home-distill/71f94277-362e-467c-a4bc-ccc9ae6b87c8/scratchpad; echo "INBOX_TO_DISTILL_ORCH_20261114T2358Z_main_gpus_released.md" >> $S/inbox_seen.txt; F=/scratch/jjyeung/orch_cd/ORCH_STATE_20261111T0935Z.md; n=$(grep -n "^## Plan of record" $F | cut -d: -f1); sed -n "${n},$((n+15))p" $F | cut -c1-900

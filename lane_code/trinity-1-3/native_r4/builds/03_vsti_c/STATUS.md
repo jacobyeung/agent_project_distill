@@ -1,0 +1,1 @@
+V1c is built and CPU-verified. All 53 kit and 30 inherited tests pass; both sample job and full-frame adaptation pass. Package pins and review evidence are in out/FINAL_RESULT.json. The release-video check finds pixel differences. The selected-frame reference list, GPU/Orchard execution and upload receipts remain pending.

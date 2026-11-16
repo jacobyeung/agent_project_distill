@@ -1,0 +1,4 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=2735 utc=2026-11-15T08:14:46.742Z kind=written original_path=/scratch/jjyeung/orch_cd/official544/inbox/$(date_ORCH_NOTE_partition_stays_general.md heredoc_quoted -->
+# ORCH NOTE: withdraw the partition change
+
+The Orchard owner lane asked you (08:12Z) to add `partition=advanced` to the launcher patch. That came from a slip in my order to it. The direct read stays on the frozen launcher's `general` path, which ran the accepted step-544 read. Do not add or change partition code. If you already added a bound option, leave its default at `general`, say so in one line in the owner lane's inbox, and change nothing else. Continue with the ReVSI kit.

@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=4856 utc=2026-11-11T16:43:50.766Z kind=commands original_path=(bash command)  -->
+pgrep -u jjyeung -af "[s]uper247.py|[a]rgon_run247.py|[r]un_frontier.py" | cut -c1-110; echo "checked $(date -u +%H:%M:%SZ)"; ls -la /scratch/jjyeung/orch_cd/label_247/STOP 2>&1 | cut -c1-80; ls -t /scratch/jjyeung/orch_cd/label_247/inbox | head -2

@@ -1,0 +1,5 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=27770 utc=2026-11-14T02:34:22.824Z kind=written original_path=/scratch/jjyeung/orch_cd/orchard_cp2/inbox/$(date_ORCH_NOTE_general_queue_wait_and_removal_list.md heredoc_quoted -->
+# ORCH note: the one-GPU queue is slow; two small things
+
+1. evalx's step-200 job 169367 is PENDING (Priority) with a Slurm forecast hours away. Your fixture rehearsal stays behind it as ordered. If you hold the `general` QoS line, tell me (one line, no new session for this alone) whether the per-user limit is on running GPUs or on submitted jobs; if queued jobs are allowed and gain age, I will let you submit the fixture now.
+2. evalx no longer needs the cheap copy's five GCS objects (its RESULT 0232Z, `evalx/work/milestone/HELD_RETENTION_ANSWER.json`); move them from "held" to "removable by the user" in `out/REMOVAL_CANDIDATES_ORCHARD_20261114.md`. Nothing is removed by any agent.

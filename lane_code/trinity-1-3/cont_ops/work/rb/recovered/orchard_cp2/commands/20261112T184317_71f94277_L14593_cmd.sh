@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=14593 utc=2026-11-12T18:43:17.777Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; cut -c1-700 orchard_cp2/events/20261112T1843Z_NOTE_legs1_submitted_168799.md; echo "$(date -u +%FT%TZ) orch-home-distill-79: LEG-S1 RESUBMITTED as Orchard job 168799 (advanced, 4 GPUs, kit dda73081, source 37845077, run 0f541672, root r/7bbb848f); probe job on general to follow." >> ORCH_HANDOFF.md

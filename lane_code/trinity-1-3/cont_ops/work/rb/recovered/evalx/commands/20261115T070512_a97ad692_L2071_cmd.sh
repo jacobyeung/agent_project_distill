@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=2071 utc=2026-11-15T07:05:12.815Z kind=commands original_path=(bash command)  -->
+R=/scratch/jjyeung/orch_cd; date -u +%H:%MZ; ls -la --time-style=+%H:%M $R/evalx/BRIEF_SUCCESSOR2*_DRAFT.md 2>&1 | cut -c20-140; ls -t $R/evalx/events | head -3; echo "== 11-14 rotation lines"; grep -n 'ROTATION\|SUCCESSOR24\|successor 24' $R/ORCH_HANDOFF.md | sed -n '1,8p' | cut -c1-560

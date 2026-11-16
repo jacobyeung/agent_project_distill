@@ -1,0 +1,4 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=1471 utc=2026-11-15T05:57:55.559Z kind=commands original_path=(bash command)  -->
+R=/scratch/jjyeung/orch_cd; F=$R/b11_native/out/B11_REPORT.md; wc -lc $F; grep -n '^#' $F | cut -c1-110 | head -30; sed -n '1,200p' $R/b11_native/events/20261115T0557Z_RESULT_b11_delivery.md | cut -c1-900 | head -40; S=/tmp/claude-25409/-scratch-jjyeung-orch-home-distill/a97ad692-7041-4f72-8b75-8f8e29df8950/scratchpad; grep -v '^b11_native|' "$S/LANES" > "$S/LANES.new"; cp "$S/LANES.new" "$S/LANES"; /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B -c "
+import re
+p='$S/lanewatch.sh'; s=open(p).read(); s=re.sub(r'\n  \[b11_native\]=\"[^\"]*\"','',s); open(p,'w').write(s)"; cp "$S/LANES" "$S/lanewatch.sh" $R/orch_tools/session_scripts_20261115/

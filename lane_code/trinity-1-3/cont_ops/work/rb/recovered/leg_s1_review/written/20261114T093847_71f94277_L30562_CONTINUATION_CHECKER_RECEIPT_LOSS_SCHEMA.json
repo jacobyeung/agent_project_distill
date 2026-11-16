@@ -1,0 +1,22 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=30562 utc=2026-11-14T09:38:47.293Z kind=written original_path=/scratch/jjyeung/orch_cd/leg_s1_review/CONTINUATION_CHECKER_RECEIPT_LOSS_SCHEMA.json heredoc_unquoted(vars_unexpanded) -->
+{
+  "verdict": "ACCEPT: the checker's loss parser now matches the sealed producer's native record",
+  "reviewer": "orchestrator orch-home-distill-79 (Claude family; the author is a GPT-family lane). A diff read against the producer's source; not a full review of the checker.",
+  "bundle": "$C/out/continuation_check_20261114T092849Z.tgz (sha256 026cb6962ed29b18..., 319,658 B)",
+  "binding_sha256_prefix": "f544dd1bed77ad89",
+  "previous_bundle_sha256_prefix": "aee5221e",
+  "diff": "$C/out/CONTINUATION_LOSS_SCHEMA_20261114T093218Z_RUNTIME.patch (sha256 9591217115488fae..., 41 lines, loss_alarm.py normalize only)",
+  "what_i_checked": [
+    "the diff changes only normalize(): a record must be an object; each rank's step must be an integer equal to the record's; skipped_microsteps must be a list of {microstep, stream} objects with strictly increasing integer microsteps and a known stream; skip_totals must be {skipped, total} non-negative integers with skipped <= total, and skipped > 0 whenever the step lists an event",
+    "the producer (carrier_c1_run.py lines 1276, 1432-1449, 1585; fetch_plan and fetch_nominal): one event at most per microstep in plan order, so strictly increasing holds; SKIPPED is the run-cumulative dict with exactly the keys skipped and total; a skip covers a whole nominal group including its first slice, so a listed event always comes with skipped >= 1; a correct production row cannot be refused",
+    "the normalized skip count (event-list length) is carried in the record only; no alarm, gate or resume rule in loss_alarm.py reads it, so the loss policy is unchanged",
+    "the bundle and the diff hash as the lane's RESULT states"
+  ],
+  "not_checked": [
+    "the 42 tests and the replay over eight production steps (author's record); I did not rerun them",
+    "the tests and packaging diffs beyond their stated hashes",
+    "the checker on a real continuation: none is authorized by this receipt"
+  ],
+  "grants": "no job, no fixture rerun, no continuation; the delivery's production_authorized stays false",
+  "issued_utc": "$N"
+}

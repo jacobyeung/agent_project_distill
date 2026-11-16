@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=18213 utc=2026-11-13T08:35:22.294Z kind=commands original_path=(bash command)  -->
+T=/tmp/claude-25409/-scratch-jjyeung-orch-home-distill/71f94277-362e-467c-a4bc-ccc9ae6b87c8/tasks; cut -c1-2600 $T/b09w94vy2.output | head -n 110; date -u +%FT%TZ; echo ----; cd /scratch/jjyeung/orch_cd; du -sh --apparent-size legs1_dbs leg_s1_tree leg_s1_canary combo2_review evalx 2>/dev/null; df -BG /scratch | tail -n 1; ls -la --time-style=+%H:%M legs1_dbs/* 2>/dev/null | head -n 12 | cut -c20-160

@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=29993 utc=2026-11-14T08:25:35.606Z kind=commands original_path=(bash command)  -->
+echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) orch-home-distill-79: evalx(23) RESULT 0824Z: NATIVE PILOT 169477 RUNNING on orchard-community-2 (H100, same node as production) since ~08:20Z; staging phases done: base, bwrap, closure, depth parts, fla, numpy, runtime, runtime_spec (overlay and ptxas assertions passed), small objects, trainer; no parity or item result yet. Re-armed evwait (br1mgpcnq)." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

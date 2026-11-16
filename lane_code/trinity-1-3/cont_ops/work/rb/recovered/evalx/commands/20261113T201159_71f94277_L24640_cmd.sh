@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=24640 utc=2026-11-13T20:11:59.708Z kind=commands original_path=(bash command)  -->
+C=/scratch/jjyeung/orch_cd/evalx/work/milestone; ls $C | grep -i -E "^test.*(hardware|decision|fork)" | head; cd /scratch/jjyeung/orch_home_distill && W=/scratch/jjyeung/orch_cd/leg_s1_review/work_decision_confirm_orch && mkdir -p $W && timeout 120 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B -m pytest -q -p no:cacheprovider $C/test_decision_fork.py 2>&1 | tail -n 4

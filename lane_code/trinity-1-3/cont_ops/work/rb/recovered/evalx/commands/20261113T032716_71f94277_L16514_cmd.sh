@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=16514 utc=2026-11-13T03:27:16.529Z kind=commands original_path=(bash command)  -->
+echo "$(date -u +%FT%TZ) orch-home-distill-79: evalx RESULT 0326Z: nothing of evalx reads mdg_build/work/data/t0mind, t0m, t0m800 on 2-18 (no links; 1-18 holds its own copy; Mind has t0mind). Ruled in DISCUSSION.md: the user may take all three (27.6 GB), no freeze." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

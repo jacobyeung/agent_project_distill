@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=13165 utc=2026-11-12T13:58:15.511Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; D=$(ls -d codex_local/agent/scratch/codex_runs/*_own_ground | tail -1); cut -c1-3500 $D/final_message.md 2>/dev/null; echo ====; tail -c 400 own_ground/dispatch.out; ls own_ground/out | head -30

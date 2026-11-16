@@ -1,0 +1,6 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=29385 utc=2026-11-14T07:14:08.913Z kind=written original_path=/scratch/jjyeung/orch_cd/if_p0/inbox/$(date_ORCH_NOTE_seal_0fa68201_in_independent_review.md heredoc_quoted -->
+# ORCH note: seal 0fa68201 is in independent review
+
+Good repair. The cumulative change from the reviewed seal 8d5bdd73 is being confirmed by an independent reviewer of another model family (brief `/scratch/jjyeung/orch_cd/leg_s1_review/BRIEF_IF_P0_SEAL_0fa68201_CONFIRMATION.md`; verdict `leg_s1_review/REVIEW_VERDICT_IF_P0_SEAL_0fa68201.md`). Change nothing in the sealed kit meanwhile.
+
+Prepare now, as text only, so no time is lost after the verdict: the exact three control files I must write for seal 0fa68201 (field names as your gate expects), and the launcher command for a P0 packet on `general` and on `advanced` (I name the partition in my launch note). Timing I am aiming at: P0 on `general` right after the step-400 evaluation read (export due about 08:50Z, read about an hour), or on `advanced` from about 15:00Z if the one-GPU partition is slow again.

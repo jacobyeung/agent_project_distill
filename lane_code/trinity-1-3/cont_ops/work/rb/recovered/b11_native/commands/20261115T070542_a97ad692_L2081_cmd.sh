@@ -1,0 +1,16 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=2081 utc=2026-11-15T07:05:42.356Z kind=commands original_path=(bash command)  -->
+R=/scratch/jjyeung/orch_cd; T=$(date -u +%Y%m%dT%H%MZ); cat > $R/evalx/inbox/${T}_ORCH_TASK_prepare_rotation_now.md <<'EOF'
+# ORCH TASK: prepare rotation now (your session ends about 07:59Z)
+
+Pilot 9 (job 169792) is submitted; its one-minute pending checks come first. Between checks, write `BRIEF_SUCCESSOR25_DRAFT.md` and post the ROTATION_READY event by 07:20Z, then keep observing the job until I end your process and start the successor.
+
+The successor is an operator on another model family. It will observe and fetch jobs, run CPU rehearsals, read diffs and talk to Orchard, and it will hand every code change to a separate one-shot build agent that has none of your context and cannot ssh, see /dev/shm or ask questions. So the draft must be complete for such a reader:
+1. **Live job**: 169792, how to observe it without new logins beyond the cadence, how to fetch and authenticate its return, the RESULT I ordered at 06:57Z, the permanent no-retry guards, and what must never be resubmitted (every retired family and token, with paths).
+2. **The current object and family** (4d05c37b, family 3688e987, token ebe307cf4): pilot only; flies no full read.
+3. **The separate candidate**, item by item, each with its state, proof files and what remains: R1 (program_refusal rows out of the pilot's timing checks), the 6,000 s limit, the selector that does not assume camera items (label-free official fixture), the gravity guard as a post-authentication reader-side override (my 0645Z ruling; the training tree stays byte-identical), the whole-worker pilot rehearsal, the fresh full rehearsal on the candidate sources, and the two uploads (code object and the 9.9 MB runtime tree artifact) that need my order.
+4. **For a build agent**: for each remaining code change, the exact files, the functions, the test to add, and the rehearsal command that must execute the changed lines; where the whole-worker rehearsal harness lives and how to run it; the pin graph and every place a changed file is pinned.
+5. **Every ruling in force** (P1 ties, candidate universe, budgets, refusal accounting, rehearsal budget of 2 GiB, the account rule, the Orchard master rule: only ORCH restores it), and the small-writes authority.
+6. **Queued work after the candidate's pilot**, in order: the dev-S1 full read (needs my projection scenario), the official VSI-Bench direct read (lane official544 will deliver a launcher patch for you to adopt), the official native read of the 1,122 routed items, the native VSTI adapter (`/scratch/jjyeung/orch_cd/b11_native/work/B11_READER.patch` and its report), and the student-head phase of the grounding test on Orchard (`/scratch/jjyeung/orch_cd/k1_ops/out/K1_LAUNCH_PACKET.md`, section 6).
+State the draft's sha256 in the ROTATION_READY event, and whether any watcher of yours survives your exit.
+EOF
+echo "- $(date -u +%Y-%m-%dT%H:%MZ) Rotation check 07:05Z: seal event and submission exist; BRIEF_SUCCESSOR25_DRAFT.md not yet written. Ordered rotation prep (evalx/inbox/${T}_ORCH_TASK_prepare_rotation_now.md): draft for an operator successor on another model family with separate build agents, ROTATION_READY by 07:20Z." >> $R/ORCH_HANDOFF.md

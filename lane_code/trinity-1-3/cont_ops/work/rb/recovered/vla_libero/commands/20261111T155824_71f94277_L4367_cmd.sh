@@ -1,0 +1,7 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=4367 utc=2026-11-11T15:58:24.513Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; cat >> vla_libero/BRIEF.md <<'EOF'
+
+## Restart note (2026-11-11T15:59Z)
+Your earlier session delivered its final RESULT (events/20261111T1537Z_RESULT_blind_priors_integration_ready.md) and ended. This session has ONE task, and it is time-critical: the newest note in inbox/ (`*_ORCH_GO_hooked_gpu_test.md`): submit the hooked-recipe GPU test jjy_vll_tb1h on Orchard NOW, under the self-cancel rules written there (cancel your own job if it has not started by 16:15Z, and at 17:10Z if it is still running). Read STATUS.md first for how you reach Orchard and where the sealed kit is; redo nothing that is done. Babysit the job as the note says, post one RESULT, then exit. No other Orchard submission.
+EOF
+bash orch_tools/devin_bg_acp.sh /home/jjyeung/agent_project_distill /scratch/jjyeung/orch_cd/vla_libero/BRIEF.md claude-opus-5-5-high 14400 /scratch/jjyeung/orch_cd/vla_libero/devin_r2.out; echo "$(date -u +%Y-%m-%dT%H:%MZ) tick 15:58Z: vla_libero had exited after its final RESULT; relaunched (ACP recorder, opus high, 4 h) with one task: the Orchard hooked-recipe GPU test under main's condition. All other lanes alive; /scratch 162 GB free." >> ORCH_HANDOFF.md; sleep 3; pgrep -u jjyeung -f -- "--prompt-file /scratch/jjyeung/orch_cd/vla_libero/BRIEF.md" | head -1

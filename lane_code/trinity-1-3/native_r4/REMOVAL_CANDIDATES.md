@@ -1,0 +1,6 @@
+- /scratch/jjyeung/orch_n30/native_r4/from113/ (8.4 GB IB copy of native_r2 inputs) once the read and proof are done.
+- /scratch/jjyeung/orch_n30/native_r4/dl/*.withdrawn.* (empty .part files and logs of withdrawn streams).
+- Orchard /project/community/jjyeung/okh7/d9c35d0a/c.tar.v1b_7895f182 (superseded V1b code) after the read.
+- builds/05_vsti_e/ (aborted first V1e dispatch, restarted as 06_vsti_e)
+- builds/06_vsti_e/ (V1e dispatch stopped at 10:33Z on ORCH 1021Z 'do not build V1e')
+- Orchard login /tmp/x_ece5eea1c1ec94e169abf835 (empty dir from a failed extract, 11:14Z)

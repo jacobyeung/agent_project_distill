@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=27287 utc=2026-11-14T01:29:25.182Z kind=commands original_path=(bash command)  -->
+T=$(date -u +%Y-%m-%dT%H:%M:%SZ); echo "$T orch-home-distill-79: orchard_cp2 RESULT 0127Z: step-200 artifact delivered to evalx (11,474 B, sha baccafbf; step 200; config/base/mode/trace binding/source seal match step 1); training through step 202 at 01:24Z; the export's transport attestation is pending (two of four upload receipts in the 01:24Z snapshot). Re-armed evwait (bebz1ay35)." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

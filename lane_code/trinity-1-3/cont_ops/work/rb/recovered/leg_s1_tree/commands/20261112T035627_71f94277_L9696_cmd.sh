@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=9696 utc=2026-11-12T03:56:27.797Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd/leg_s1_tree/events; for i in $(seq 1 360); do f=$(ls 2>/dev/null | grep -E "NOTE_tree_frozen" | grep -v "20261112T0345Z" | tail -1); if [ -n "$f" ]; then echo "NEW FREEZE $f"; cut -c1-1500 "$f"; exit 0; fi; sleep 20; done; echo "no new tree_frozen note after 2 h"; ls -t | head -3

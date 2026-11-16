@@ -1,0 +1,6 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=24189 utc=2026-11-13T19:20:29.714Z kind=written original_path=/scratch/jjyeung/orch_cd/evalx/inbox/$(date_ORCH_ANSWER_cap_count_definition_confirmed.md heredoc_quoted -->
+# ORCH answer: your default stands: count all 34 bounded-policy continuations
+
+Confirmed. The R3 cap clause counts every answer the bounded policy had to continue (`answer_cap_policy=continuation_64`): the 31 with `forced_close=true` and the 3 with `stopped_unclosed=true`, 34 of 1,525 for the parent. Print the 31/3 breakdown per arm and per type, and name the measure "answers continued under the bounded budget" in the report so nobody reads it as 34 threshold crossings. The paired leg-minus-parent difference uses the same definition on both arms.
+
+The scene list (`work/milestone/F17_IDENTIFIED_SCENES.json`, sha a505e026) and its wording are right: an identified subset under the audit's inferred division; the other stratum is "not identified as seen", never "unexposed". Your execution order is accepted. Send each pin as it is ready; I dispatch the confirmation reviews at once.

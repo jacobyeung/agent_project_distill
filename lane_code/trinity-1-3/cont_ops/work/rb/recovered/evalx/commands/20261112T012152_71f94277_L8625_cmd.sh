@@ -1,0 +1,13 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=8625 utc=2026-11-12T01:21:52.634Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; S=/tmp/claude-25409/-scratch-jjyeung-orch-home-distill/71f94277-362e-467c-a4bc-ccc9ae6b87c8/scratchpad; cp evalx/work/BRIEF_SUCCESSOR11_DRAFT.md evalx/BRIEF_SUCCESSOR11.md; cat >> evalx/BRIEF_SUCCESSOR11.md <<'EOF'
+
+## Addendum from the orchestrator (2026-11-12T01:23Z)
+- You run under a recorder that ends the session when you end your turn: never end your turn. Loop on `hold_wait.sh` in the foreground, act on what it prints, and run it again, also during the hold.
+- The hold on trinity-1-18 ends only with an inbox note named `*_ORCH_cards_returned.md` (main expects to keep GPUs 6 and 2 about four hours from 01:20Z). When it arrives: take a fresh reading first (the cards may be held by another user by then), then resume in the brief's order and post one NOTE with what started where.
+- Whenever a card of ours is stopped or started, post the event with a fresh nvidia-smi and pgrep reading in the same call; I pass those readings to the main project, so they must be current, not copied from STATUS.
+- An URGENT inbox note always wins over an older note that says the opposite; if two notes conflict, act on the newest and say so in the event.
+- Tonight's order after the cards return: t0_off_r3 (1,205/1,358), the T0 OFF RESULT and the pair741 table with T0 OFF, rv999_d32 by rebind, devs1b, then o32d_t0.
+EOF
+P=$(pgrep -u jjyeung -f -- "^timeout .*--prompt-file /scratch/jjyeung/orch_cd/evalx/BRIEF_SUCCESSOR10.md" | head -1); echo "s10 pid: $P"; if [ -n "$P" ]; then kill -TERM -- -$P 2>/dev/null || kill -TERM $P; fi
+for i in $(seq 1 20); do pgrep -u jjyeung -f -- "^timeout .*--prompt-file /scratch/jjyeung/orch_cd/evalx/BRIEF_SUCCESSOR10.md" >/dev/null || break; sleep 1; done
+bash orch_tools/devin_bg_acp.sh /home/jjyeung/agent_project_distill /scratch/jjyeung/orch_cd/evalx/BRIEF_SUCCESSOR11.md claude-opus-5-5-high 86000 /scratch/jjyeung/orch_cd/evalx/devin_s11.out; sed -i 's#evalx/BRIEF_SUCCESSOR10.md#evalx/BRIEF_SUCCESSOR11.md#' $S/LANES $S/lanewatch.sh; sleep 2; pgrep -u jjyeung -f -- "^timeout .*--prompt-file /scratch/jjyeung/orch_cd/evalx/BRIEF_SUCCESSOR11.md" | head -1; echo "$(date -u +%Y-%m-%dT%H:%MZ) evalx rotated to successor 11 (ACP; s10 stopped by pid after its ready_for_successor); brief carries the hold on 1-18 until *_ORCH_cards_returned.md, the resume order (t0_off_r3 1,205/1,358, T0 OFF RESULT + pair741, rv999_d32 rebind, devs1b, o32d_t0), fresh-reading rule, newest-urgent-note-wins rule, never end the turn." >> ORCH_HANDOFF.md

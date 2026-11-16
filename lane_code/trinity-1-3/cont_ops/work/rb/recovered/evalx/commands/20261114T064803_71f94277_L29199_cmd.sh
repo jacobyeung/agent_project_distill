@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=29199 utc=2026-11-14T06:48:03.030Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd && timeout 60 find evalx/work/milestone -maxdepth 4 -name 'pull.py' -printf '%p %s\n' 2>/dev/null | head -n 10; grep -n "pull.py\|need_frames" evalx/work/milestone/orchard_stage.py evalx/work/milestone/orchard_launcher.py 2>/dev/null | cut -c1-220 | head -n 12

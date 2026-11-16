@@ -1,0 +1,81 @@
+{
+  "benchmark": {
+    "bytes": 2652,
+    "path": "/scratch/jjyeung/orch_cd/leg_s1_tree/out/DONOR_ROW_SCANNER_LOCAL_BENCHMARK_01.json",
+    "sha256": "33b2ace10d21d6563bb9c17e3e7a9daec7513a49bebbc231f38af5eee261724f"
+  },
+  "benchmark_driver": {
+    "bytes": 4275,
+    "path": "/scratch/jjyeung/orch_cd/leg_s1_tree/work/donor_row_scanner_07ca49df/benchmark_local.py",
+    "sha256": "932fbbcad0d8122f6fe2968fddfd087601704171f3598e58672fdb38dd76847d"
+  },
+  "benchmark_scope": "One whole-file SHA pass and one ordered SQL row cursor per named local database; production uses admitted indexed lookups.",
+  "benchmark_to_bundle_change": "Only source-hash acquisition was adapted to stdin; hash/canonicalization kernels unchanged.",
+  "bundle": {
+    "bytes": 30720,
+    "path": "/scratch/jjyeung/orch_cd/leg_s1_tree/out/DONOR_ROW_SCANNER_BUNDLE_07ca49df.tar",
+    "sha256": "1a565f85fe41da0c18400d9356f293462f810d9b98a354275bc7cfe936b4fc6a"
+  },
+  "files": [
+    {
+      "bytes": 11909,
+      "path": "/scratch/jjyeung/orch_cd/leg_s1_tree/work/donor_row_scanner_07ca49df/scan_donor_rows.py",
+      "sha256": "5c1f4408ca88807dce33251eb638a786073e175cc32859317e929c425f02033a"
+    },
+    {
+      "bytes": 3852,
+      "path": "/scratch/jjyeung/orch_cd/leg_s1_tree/work/donor_row_scanner_07ca49df/accept_scan.py",
+      "sha256": "eb28d2a98e89645e1a551890b8022f0e6166b450a89783c0d625d0e75b29201c"
+    },
+    {
+      "bytes": 6912,
+      "path": "/scratch/jjyeung/orch_cd/leg_s1_tree/out/DONOR_ROW_SCANNER_OPERATOR_07ca49df.md",
+      "sha256": "25963b14a8a7f3d29bea73492297582ba9a4ce4a2e3fe03c8201c66ada24e426"
+    }
+  ],
+  "imports": "Python standard library only",
+  "independent_safety_review_required": true,
+  "input_bytes": 7757168640,
+  "local_data_reads": [
+    "/scratch/jjyeung/orch_cd/legs1_dbs/ap/1742c666/s/q127808/vxm_m4/rows.sqlite",
+    "/scratch/jjyeung/orch_cd/legs1_dbs/ap/5e1d07a4/f/h/r16/rows.sqlite",
+    "/scratch/jjyeung/orch_cd/legs1_dbs/ap/8865619b/u/7c9f2d84/rows.sqlite",
+    "/scratch/jjyeung/orch_cd/legs1_dbs/ap/f02f16ad/s/a2v3/rows.sqlite"
+  ],
+  "logs": [
+    {
+      "bytes": 102,
+      "path": "/scratch/jjyeung/orch_cd/leg_s1_tree/out/DONOR_ROW_SCANNER_TEST_01.log",
+      "sha256": "7ea8432a75507dbc1049c1ef04407e18db263c8c75e5e8386c4ca41e27893000"
+    },
+    {
+      "bytes": 100,
+      "path": "/scratch/jjyeung/orch_cd/leg_s1_tree/out/DONOR_ROW_SCANNER_STDIN_TEST_01.log",
+      "sha256": "1039f4d2c3d19f1da463040f356d718cb5975e3dd6dd830622821562609b7edf"
+    }
+  ],
+  "passing_tests": 6,
+  "peak_rss_bytes": 23449600,
+  "proc_io_delta": {
+    "rchar": 16657441491,
+    "read_bytes": 7757185024
+  },
+  "production_authorized": false,
+  "production_run": false,
+  "read_only_size_gate_required": true,
+  "release_assembled": false,
+  "resealed": false,
+  "schema": "s1-readonly-donor-scanner-bundle-v1",
+  "seconds": 263.26728563499637,
+  "status": "CPU_TESTED_AWAITING_INDEPENDENT_SAFETY_REVIEW",
+  "stdin_only_node_source": true,
+  "strict_warm_binding_default": true,
+  "temporary_node_files": false,
+  "tests": {
+    "bytes": 10079,
+    "path": "/scratch/jjyeung/orch_cd/leg_s1_tree/work/donor_row_scanner_07ca49df/test_scanner.py",
+    "sha256": "90c045aae0a110728caff4bf0c47d30bf3d8e865a80cb11e6aee278af450be53"
+  },
+  "timestamp": "20261113T1832Z",
+  "warm_consumer": "Accept full evidence off-node, then pin the minimal four-field envelope; no consumer source change required."
+}

@@ -1,0 +1,12 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=125 utc=2026-11-15T04:26:12.947Z kind=written original_path=/scratch/jjyeung/orch_cd/official544/inbox/$(date_ORCH_ANSWER_torchvision.md heredoc_quoted -->
+# ORCH ANSWER: torchvision for the CPU video-processing rehearsal
+
+Facts I checked on trinity-2-18: `/scratch/jjyeung/envs/p1cpu` holds torch 2.11.0+cpu (Python 3.12) and no torchvision; the only local torchvision is 0.25.0+cu128 in `/scratch/jjyeung/envs/sam3_capretry_native_v1` (Python 3.12, torch 2.10.0+cu128), which is built for another torch and must not be mixed into p1cpu. `/scratch/jjyeung/envs/p1cpu_wheels` holds no torchvision wheel.
+
+Ruling (in this order; stop at the first that works):
+1. Fetch ONE wheel, the torchvision build that pairs with torch 2.11.0 on CPU (expected `torchvision-0.26.0+cpu-cp312-cp312-manylinux_2_28_x86_64.whl` from `https://download.pytorch.org/whl/cpu/`; a few MB), with `curl -L --limit-rate 8M --max-time 300`, into `official544/work/tv_overlay/`. One attempt per URL, no retry loop. Record its sha256 and size. Unzip it into `official544/work/tv_overlay/site/` (a wheel is a zip; do not run pip, do not touch p1cpu). Before use, read its METADATA and confirm it requires torch 2.11.0; if it names another torch, do not use it and go to step 2. Add the overlay with `site.addsitedir` or `sys.path.insert` inside the rehearsal entrypoint only: never in the kit that will run on a GPU node.
+2. If the fetch fails or the pairing is wrong: run only the processor/tokenization stage of the rehearsal under `/scratch/jjyeung/envs/sam3_capretry_native_v1/bin/python -I -s -B` with `CUDA_VISIBLE_DEVICES=""` (read-only use of that environment), provided its transformers loads `producer_tokenizer_5f9e4d49`. If it cannot, write one BLOCKER event and keep the launch-readiness hold.
+
+Either way the RESULT states, side by side, the torch, torchvision and transformers versions of (a) the rehearsal and (b) the environment the GPU read will run in, and says plainly that pixel values can differ between torchvision builds: the rehearsal proves the path and the token layout (frame count, grid, token count per frame), not bit-equal pixels. Compare the token counts and frame layout with the accepted step-544 dev-S1 packet's recorded values for the same settings.
+
+Disk: this node's /scratch has 139 GB free; the overlay and all rehearsal writes stay under 300 MiB in total. Continue the scoring and input inventories meanwhile, as your default says.

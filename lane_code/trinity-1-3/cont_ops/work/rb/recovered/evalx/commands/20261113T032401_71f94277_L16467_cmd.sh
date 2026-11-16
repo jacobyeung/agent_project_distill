@@ -1,0 +1,14 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=16467 utc=2026-11-13T03:24:01.183Z kind=commands original_path=(bash command)  -->
+D=/data3/jjyeung/mover_20261111/DISCUSSION.md; cat >> $D <<'EOF'
+
+- Distillation (orch-home-distill-79), answer to the mover's 03:23Z question (2): **yes, with two conditions.**
+  - The user may remove the trinity-2-18 sources of batch 4 and of the ttower parts (aws_tk, aws_tu, aws_tg) ahead of the Mind receipt once a sha256-verified archive sits on two nodes (trinity-2-18 mover_freeze and trinity-3-30), and both archive copies stay until the Mind push verifies. Today showed why one /scratch copy is not enough: a node dropped off the network and a sole copy was lost to the cleaner this week.
+  - Exception, no space at stake: keep the sources of the pointing masks (streams2/work/extra/x1/point/data2root/p5x9 and mixdata/out/pointing_v2/data2root/p5x9) and of the renderer (streams2/work/scannet) until their Mind receipt. They are under 0.1 GB and cannot be rebuilt.
+  - More room on trinity-2-18 if the labmate's 200 GB needs it: mdg_build/work/data/t0mind, t0m800 and t0m (27.6 GB; T0 m800 weights with a copy on Mind) can go as soon as my card operator confirms that nothing on 2-18 still reads them; I am asking it now and will write REMOVE or KEEP here within the hour. My lanes need 110 GiB free on 2-18 /scratch while the training leg is being launched; tell me before the labmate's data would push free space below that, and I will name what else of mine can go.
+EOF
+cd /scratch/jjyeung/orch_cd; T=$(date -u +%Y%m%dT%H%MZ); cat > evalx/inbox/${T}_ORCH_QUESTION_t0mind_on_2-18.md <<EOF
+# ORCH question ($T): does anything of yours still read the T0 weights on trinity-2-18?
+
+Labmates need disk on 2-18. /scratch/jjyeung/orch_cd/mdg_build/work/data/{t0mind,t0m800,t0m} (27.6 GB, the T0 m800 weights; your STATUS links to t0mind) have a copy on Mind and a staged copy of yours on 1-18. Answer in one RESULT within 20 minutes: (a) which of your kits, cells or links on 2-18 or 1-18 resolve into those three folders, (b) whether any read you still owe needs them on 2-18, (c) REMOVE-safe or KEEP for each. If nothing reads them, I rule REMOVE for the user. Also list anything else of yours on 2-18 /scratch above 1 GB that is safe to remove (pulled result folders whose RESULTs are posted), with sizes.
+EOF
+echo "$(date -u +%FT%TZ) orch-home-distill-79: mover 03:23Z: USER ran five removal blocks (3-30 330 GB free, 2-18 208, 0-13 201); a labmate wants 200 GB per node. Answered question (2) in DISCUSSION.md: yes, sources of batch 4 + ttower parts may go ahead of the Mind receipt once a verified archive sits on two nodes (2-18 mover_freeze and 3-30), both kept until Mind verifies; exception: p5x9 mask sources and the renderer stay. Asked evalx whether mdg_build t0mind/t0m800/t0m (27.6 GB) is still read on 2-18." >> ORCH_HANDOFF.md

@@ -1,0 +1,379 @@
+{
+  "counts": {
+    "ORCHARD-ONLY": 27,
+    "PASS": 15,
+    "PASS-REHEARSAL": 4
+  },
+  "objects": "out/OBJECT_AUDIT.json",
+  "production_admission": false,
+  "rows": [
+    {
+      "actual": "Batch checks assigned job digits, exclusive private root, and a fresh token. Earlier job covers the unchanged runtime/base/export/frames/trainer, not the new packet or authorization.",
+      "check": 1,
+      "expected": "assigned job and private root",
+      "site": "BATCH.sh:7-12",
+      "source": "Pilot 9 job 169792, family 3688e987: /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/FAMILY.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/ORCHARD_NATIVE.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/logs/worker.log; out/c8r/FAMILY_C8R.json; out/OBJECT_AUDIT.json",
+      "status": "ORCHARD-ONLY"
+    },
+    {
+      "actual": "Batch authenticates its literal payload digest; a production C8r packet is not supplied. Earlier job covers the unchanged runtime/base/export/frames/trainer, not the new packet or authorization.",
+      "check": 2,
+      "expected": "literal payload digest",
+      "site": "BATCH.sh:8-10",
+      "source": "Pilot 9 job 169792, family 3688e987: /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/FAMILY.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/ORCHARD_NATIVE.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/logs/worker.log; out/c8r/FAMILY_C8R.json; out/OBJECT_AUDIT.json",
+      "status": "ORCHARD-ONLY"
+    },
+    {
+      "actual": "Batch checks unique safe regular members and the payload size bound; a production C8r packet is not supplied. Earlier job covers the unchanged runtime/base/export/frames/trainer, not the new packet or authorization.",
+      "check": 3,
+      "expected": "32 MiB, unique relative regular members",
+      "site": "BATCH.sh:13-25",
+      "source": "Pilot 9 job 169792, family 3688e987: /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/FAMILY.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/ORCHARD_NATIVE.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/logs/worker.log; out/c8r/FAMILY_C8R.json; out/OBJECT_AUDIT.json",
+      "status": "ORCHARD-ONLY"
+    },
+    {
+      "actual": "Native job validates the actual CONFIG schema, mode, partition, step, token and GPU count. Earlier job covers the unchanged runtime/base/export/frames/trainer, not the new packet or authorization.",
+      "check": 4,
+      "expected": "config schema, mode, partition, step, token, GPU count",
+      "site": "native_job.py:257;native_common.py:114-122",
+      "source": "Pilot 9 job 169792, family 3688e987: /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/FAMILY.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/ORCHARD_NATIVE.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/logs/worker.log; out/c8r/FAMILY_C8R.json; out/OBJECT_AUDIT.json",
+      "status": "ORCHARD-ONLY"
+    },
+    {
+      "actual": "Native job checks Orchard host, user, partition and assigned allocation. Earlier job covers the unchanged runtime/base/export/frames/trainer, not the new packet or authorization.",
+      "check": 5,
+      "expected": "partition, root, user and allocation",
+      "site": "native_job.py:67-75",
+      "source": "Pilot 9 job 169792, family 3688e987: /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/FAMILY.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/ORCHARD_NATIVE.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/logs/worker.log; out/c8r/FAMILY_C8R.json; out/OBJECT_AUDIT.json",
+      "status": "ORCHARD-ONLY"
+    },
+    {
+      "actual": "Early admission hashes the actual FAMILY, REVIEW and ORDER; new authority documents are not supplied. Earlier job covers the unchanged runtime/base/export/frames/trainer, not the new packet or authorization.",
+      "check": 6,
+      "expected": "family, review and order pins",
+      "site": "native_job.py:83-86",
+      "source": "Pilot 9 job 169792, family 3688e987: /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/FAMILY.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/ORCHARD_NATIVE.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/logs/worker.log; out/c8r/FAMILY_C8R.json; out/OBJECT_AUDIT.json",
+      "status": "ORCHARD-ONLY"
+    },
+    {
+      "actual": "Native admission compares CONFIG assets, limits and worker contract to FAMILY and requires ACCEPT. Earlier job covers the unchanged runtime/base/export/frames/trainer, not the new packet or authorization.",
+      "check": 7,
+      "expected": "family assets, limits, contract and ACCEPT",
+      "site": "native_common.py:73-111",
+      "source": "Pilot 9 job 169792, family 3688e987: /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/FAMILY.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/ORCHARD_NATIVE.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/logs/worker.log; out/c8r/FAMILY_C8R.json; out/OBJECT_AUDIT.json",
+      "status": "ORCHARD-ONLY"
+    },
+    {
+      "actual": "Native admission authenticates the authorization, plan and exact order line for a fresh token. Earlier job covers the unchanged runtime/base/export/frames/trainer, not the new packet or authorization.",
+      "check": 8,
+      "expected": "authorization, plan and one order line",
+      "site": "native_common.py:68-70,89-103",
+      "source": "Pilot 9 job 169792, family 3688e987: /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/FAMILY.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/ORCHARD_NATIVE.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/logs/worker.log; out/c8r/FAMILY_C8R.json; out/OBJECT_AUDIT.json",
+      "status": "ORCHARD-ONLY"
+    },
+    {
+      "actual": "18 bootstrap pins equal code pins and exact archive members",
+      "check": 9,
+      "expected": "bootstrap pin map",
+      "site": "native_job.py:89-91",
+      "source": "out/c8r/FAMILY_C8R.json; out/c8r/code_c8r.tar; out/OBJECT_AUDIT.json",
+      "status": "PASS"
+    },
+    {
+      "actual": "Storage proof verifies the job-private mount and available disk. Earlier job covers the unchanged runtime/base/export/frames/trainer, not the new packet or authorization.",
+      "check": 10,
+      "expected": "job-private local storage",
+      "site": "native_job.py:175-178;orchard_stage.py:120",
+      "source": "Pilot 9 job 169792, family 3688e987: /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/FAMILY.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/ORCHARD_NATIVE.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/logs/worker.log; out/c8r/FAMILY_C8R.json; out/OBJECT_AUDIT.json",
+      "status": "ORCHARD-ONLY"
+    },
+    {
+      "actual": "Card checks require an empty exclusive assigned H100. Earlier job covers the unchanged runtime/base/export/frames/trainer, not the new packet or authorization.",
+      "check": 11,
+      "expected": "empty exclusive H100",
+      "site": "native_job.py:179,194;native_job.py:38-64",
+      "source": "Pilot 9 job 169792, family 3688e987: /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/FAMILY.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/ORCHARD_NATIVE.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/logs/worker.log; out/c8r/FAMILY_C8R.json; out/OBJECT_AUDIT.json",
+      "status": "ORCHARD-ONLY"
+    },
+    {
+      "actual": "5 exact objects; 957286400 bytes below the staging bound",
+      "check": 12,
+      "expected": "five objects under one billion bytes",
+      "site": "native_stage.py:400-402",
+      "source": "out/OBJECT_AUDIT.json",
+      "status": "PASS"
+    },
+    {
+      "actual": "Staging validates the live cloud name, prefix, generation, size and digest; code generation/MD5 await upload. Earlier job covers the unchanged runtime/base/export/frames/trainer, not the new packet or authorization.",
+      "check": 13,
+      "expected": "prefix, name, generation, size and digest",
+      "site": "native_stage.py:34-41,143-148",
+      "source": "Pilot 9 job 169792, family 3688e987: /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/FAMILY.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/ORCHARD_NATIVE.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/logs/worker.log; out/c8r/FAMILY_C8R.json; out/OBJECT_AUDIT.json",
+      "status": "ORCHARD-ONLY"
+    },
+    {
+      "actual": "Every local small-object SHA256, size, and available MD5 matches; code MD5 is computed locally, cloud generation remains row 13",
+      "check": 14,
+      "expected": "per-part size, SHA256, optional MD5; whole SHA256",
+      "site": "orchard_stage.py:142-149",
+      "source": "out/OBJECT_AUDIT.json",
+      "status": "PASS"
+    },
+    {
+      "actual": "Every member digest, size and expanded-byte total matches: {\"code\": 46, \"metadata\": 47, \"masks\": 614, \"model\": 1, \"geometry\": 464}",
+      "check": 15,
+      "expected": "member maps and expanded limits",
+      "site": "native_stage.py:409-410",
+      "source": "out/OBJECT_AUDIT.json; out/c8r/code_c8r.tar",
+      "status": "PASS"
+    },
+    {
+      "actual": "Staging authenticates runtime, numpy, closure and trainer archives; trainer was recomputed locally, runtime and closure bytes are unavailable here. Earlier job covers the unchanged runtime/base/export/frames/trainer, not the new packet or authorization.",
+      "check": 16,
+      "expected": "runtime, numpy, closure and trainer identities",
+      "site": "native_stage.py:411-441",
+      "source": "Pilot 9 job 169792, family 3688e987: /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/FAMILY.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/ORCHARD_NATIVE.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/logs/worker.log; out/c8r/FAMILY_C8R.json; out/OBJECT_AUDIT.json",
+      "status": "ORCHARD-ONLY"
+    },
+    {
+      "actual": "Staging checks safe interpreter links and a unique runtime interpreter. Earlier job covers the unchanged runtime/base/export/frames/trainer, not the new packet or authorization.",
+      "check": 17,
+      "expected": "safe interpreter links and unique interpreter",
+      "site": "native_stage.py:95-106,425-431",
+      "source": "Pilot 9 job 169792, family 3688e987: /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/FAMILY.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/ORCHARD_NATIVE.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/logs/worker.log; out/c8r/FAMILY_C8R.json; out/OBJECT_AUDIT.json",
+      "status": "ORCHARD-ONLY"
+    },
+    {
+      "actual": "b01ce449beffe35be3bf0b48ad3d69f331f1523f96a69cbd3d10aab3dbb42a99; every tree source also equals its trainer archive member",
+      "check": 18,
+      "expected": "tree_sources and source-map digest",
+      "site": "native_stage.py:435-438",
+      "source": "out/OBJECT_AUDIT.json; /scratch/jjyeung/orch_n30/native_r2/work/obj/t_b01ce449beffe35b.tar",
+      "status": "PASS"
+    },
+    {
+      "actual": "Staging authenticates the production bwrap executable; sandbox bwrap is not that runtime proof. Earlier job covers the unchanged runtime/base/export/frames/trainer, not the new packet or authorization.",
+      "check": 19,
+      "expected": "bwrap size and digest",
+      "site": "native_stage.py:444",
+      "source": "Pilot 9 job 169792, family 3688e987: /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/FAMILY.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/ORCHARD_NATIVE.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/logs/worker.log; out/c8r/FAMILY_C8R.json; out/OBJECT_AUDIT.json",
+      "status": "ORCHARD-ONLY"
+    },
+    {
+      "actual": "Staging authenticates FLA bytes and members against its manifest; the manifest pin passes locally. Earlier job covers the unchanged runtime/base/export/frames/trainer, not the new packet or authorization.",
+      "check": 20,
+      "expected": "FLA manifest, bytes and members",
+      "site": "native_stage.py:445-455",
+      "source": "Pilot 9 job 169792, family 3688e987: /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/FAMILY.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/ORCHARD_NATIVE.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/logs/worker.log; out/c8r/FAMILY_C8R.json; out/OBJECT_AUDIT.json",
+      "status": "ORCHARD-ONLY"
+    },
+    {
+      "actual": "Worker and sitecustomize asset pins equal their exact code members and runtime-spec inputs",
+      "check": 21,
+      "expected": "entrypoint and sitecustomize asset pins",
+      "site": "native_stage.py:160-175",
+      "source": "out/OBJECT_AUDIT.json; out/c8r/FAMILY_C8R.json; out/c8r/code_c8r.tar",
+      "status": "PASS"
+    },
+    {
+      "actual": "cc724d5ee1b0bd62ba759be3eb0831afd009cd7635ea5966ddc0fd26c4599fb7",
+      "check": 22,
+      "expected": "model-manifest pin",
+      "site": "native_stage.py:460-466",
+      "source": "/scratch/jjyeung/orch_n30/native_r2/work/obj/model_8005668fc14ce5ee.tar; out/c8r/FAMILY_C8R.json",
+      "status": "PASS"
+    },
+    {
+      "actual": "Staging verifies base archive and weight inventory; only tokenizer/config inputs are supplied locally. Earlier job covers the unchanged runtime/base/export/frames/trainer, not the new packet or authorization.",
+      "check": 23,
+      "expected": "base archive and model-file inventory",
+      "site": "native_stage.py:460-471",
+      "source": "Pilot 9 job 169792, family 3688e987: /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/FAMILY.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/ORCHARD_NATIVE.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/logs/worker.log; out/c8r/FAMILY_C8R.json; out/OBJECT_AUDIT.json",
+      "status": "ORCHARD-ONLY"
+    },
+    {
+      "actual": "Staging verifies the depth-file identities; those weights are unavailable here. Earlier job covers the unchanged runtime/base/export/frames/trainer, not the new packet or authorization.",
+      "check": 24,
+      "expected": "three depth-file identities",
+      "site": "native_stage.py:472-473",
+      "source": "Pilot 9 job 169792, family 3688e987: /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/FAMILY.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/ORCHARD_NATIVE.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/logs/worker.log; out/c8r/FAMILY_C8R.json; out/OBJECT_AUDIT.json",
+      "status": "ORCHARD-ONLY"
+    },
+    {
+      "actual": "Staging authenticates export parts, total bytes, headers and artifact; artifact is recomputed locally, tensor transport is unavailable. Earlier job covers the unchanged runtime/base/export/frames/trainer, not the new packet or authorization.",
+      "check": 25,
+      "expected": "export parts, size, hash, headers and artifact",
+      "site": "native_stage.py:480-499",
+      "source": "Pilot 9 job 169792, family 3688e987: /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/FAMILY.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/ORCHARD_NATIVE.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/logs/worker.log; out/c8r/FAMILY_C8R.json; out/OBJECT_AUDIT.json",
+      "status": "ORCHARD-ONLY"
+    },
+    {
+      "actual": "46000e96334535933239800d1437afc49cc74ca4017c337a43798c9906b8b694",
+      "check": 26,
+      "expected": "frame_puller pin",
+      "site": "native_stage.py:197-204",
+      "source": "out/c8r/code_c8r.tar; out/c8r/FAMILY_C8R.json",
+      "status": "PASS"
+    },
+    {
+      "actual": "4864 frame hashes match the family inventory exactly",
+      "check": 27,
+      "expected": "frame inventory",
+      "site": "native_stage.py:205-212",
+      "source": "/scratch/jjyeung/orch_n30/native_r2/work/obj/frames.tar; out/OBJECT_AUDIT.json",
+      "status": "PASS"
+    },
+    {
+      "actual": "The launched namespace authenticates the real controls, complete code-pin map and checkpoint step. Earlier job covers the unchanged runtime/base/export/frames/trainer, not the new packet or authorization.",
+      "check": 28,
+      "expected": "real controls, code pins and checkpoint step",
+      "site": "native_job.py:182-183;native_common.py:123-133",
+      "source": "Pilot 9 job 169792, family 3688e987: /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/FAMILY.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/ORCHARD_NATIVE.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/logs/worker.log; out/c8r/FAMILY_C8R.json; out/OBJECT_AUDIT.json",
+      "status": "ORCHARD-ONLY"
+    },
+    {
+      "actual": "Native job requires a fresh exclusive output directory for the assigned token. Earlier job covers the unchanged runtime/base/export/frames/trainer, not the new packet or authorization.",
+      "check": 29,
+      "expected": "fresh output directory",
+      "site": "native_job.py:184",
+      "source": "Pilot 9 job 169792, family 3688e987: /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/FAMILY.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/ORCHARD_NATIVE.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/logs/worker.log; out/c8r/FAMILY_C8R.json; out/OBJECT_AUDIT.json",
+      "status": "ORCHARD-ONLY"
+    },
+    {
+      "actual": "Both guard members have executable mode 0755 and unchanged hashes",
+      "check": 30,
+      "expected": "vnice pin and executable guard scripts",
+      "site": "native_job.py:195",
+      "source": "out/c8r/code_c8r.tar; out/c8r/FAMILY_C8R.json",
+      "status": "PASS"
+    },
+    {
+      "actual": "Bootstrap verifies isolated flags, schema, runtime archive and tree digest; constants pass locally, production interpreter boot is unexecuted. Earlier job covers the unchanged runtime/base/export/frames/trainer, not the new packet or authorization.",
+      "check": 31,
+      "expected": "isolated flags, schema, ARCHIVE and SOURCE",
+      "site": "native_bootstrap.py:32-36",
+      "source": "Pilot 9 job 169792, family 3688e987: /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/FAMILY.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/ORCHARD_NATIVE.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/logs/worker.log; out/c8r/FAMILY_C8R.json; out/OBJECT_AUDIT.json",
+      "status": "ORCHARD-ONLY"
+    },
+    {
+      "actual": "Bootstrap checks the exact interpreter and overlay identities; local env312 is a rehearsal environment. Earlier job covers the unchanged runtime/base/export/frames/trainer, not the new packet or authorization.",
+      "check": 32,
+      "expected": "interpreter and overlay identities",
+      "site": "native_bootstrap.py:37-45",
+      "source": "Pilot 9 job 169792, family 3688e987: /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/FAMILY.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/ORCHARD_NATIVE.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/logs/worker.log; out/c8r/FAMILY_C8R.json; out/OBJECT_AUDIT.json",
+      "status": "ORCHARD-ONLY"
+    },
+    {
+      "actual": "b3eeec3c45e00249b9d60db057b55fbd3ed1e7f2a53e6d88eba2bdaf36b94c58",
+      "check": 33,
+      "expected": "sitecustomize pin and alias path",
+      "site": "native_bootstrap.py:47-53",
+      "source": "out/c8r/code_c8r.tar; out/c8r/FAMILY_C8R.json",
+      "status": "PASS"
+    },
+    {
+      "actual": "Bootstrap checks seven import origins/pins and required versions; production FLA/runtime imports were not run. Earlier job covers the unchanged runtime/base/export/frames/trainer, not the new packet or authorization.",
+      "check": 34,
+      "expected": "seven import pins, origins and required versions",
+      "site": "native_bootstrap.py:56-68",
+      "source": "Pilot 9 job 169792, family 3688e987: /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/FAMILY.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/ORCHARD_NATIVE.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/logs/worker.log; out/c8r/FAMILY_C8R.json; out/OBJECT_AUDIT.json",
+      "status": "ORCHARD-ONLY"
+    },
+    {
+      "actual": "cedb7bea5b94e345adcbf95f779c9be3d36e0064460055eca0bddefbcee7ebc7 equals worker member, code pin and bootstrap pin",
+      "check": 35,
+      "expected": "entrypoint pin and command target",
+      "site": "native_bootstrap.py:86-87",
+      "source": "out/c8r/code_c8r.tar; out/c8r/FAMILY_C8R.json",
+      "status": "PASS"
+    },
+    {
+      "actual": "Worker validates real config admission and assigned Orchard allocation; C8r whole-worker namespace is blocked here. Earlier job covers the unchanged runtime/base/export/frames/trainer, not the new packet or authorization.",
+      "check": 36,
+      "expected": "complete config admission and allocation",
+      "site": "native_worker.py:248-254",
+      "source": "Pilot 9 job 169792, family 3688e987: /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/FAMILY.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/ORCHARD_NATIVE.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/logs/worker.log; out/c8r/FAMILY_C8R.json; out/OBJECT_AUDIT.json",
+      "status": "ORCHARD-ONLY"
+    },
+    {
+      "actual": "21 adapter hashes equal exact members and code pins",
+      "check": 37,
+      "expected": "adapter pin map",
+      "site": "native_worker.py:16-23",
+      "source": "out/OBJECT_AUDIT.json; out/c8r/code_c8r.tar; out/c8r/FAMILY_C8R.json",
+      "status": "PASS"
+    },
+    {
+      "actual": "Real cohort/input and selection validation executed; worker, kernels and reader bytes match C8r",
+      "check": 38,
+      "expected": "input pins, cohort, 152/636/84, counts, keys and selection",
+      "site": "native_worker.py:26-41;camera_cohort.py:42-71",
+      "source": "/scratch/jjyeung/orch_n30/native_r2/builds/01_c8/work/rh_pilot_06/worker.log:1; /scratch/jjyeung/orch_n30/native_r2/builds/01_c8/work/rh_pilot_06/worker.log:4; /scratch/jjyeung/orch_n30/native_r2/builds/01_c8/work/rh_pilot_06/runs/c80000001/native/probe/PILOT_REPORT.json; out/OBJECT_AUDIT.json",
+      "status": "PASS-REHEARSAL"
+    },
+    {
+      "actual": "Both kernel pins match exact members; real AST partition succeeded: geometry,geometry_restore,pair,parity,restore",
+      "check": 39,
+      "expected": "nomdg and geometry kernel-source pins",
+      "site": "native_worker.py:127;kernels.py:117-129",
+      "source": "out/OBJECT_AUDIT.json; out/NATIVE_PIN_GRAPH.json",
+      "status": "PASS"
+    },
+    {
+      "actual": "Runtime tree validation and authenticated model restoration precede first GPU use; tree bytes pass locally, model load is a CPU fixture. Earlier job covers the unchanged runtime/base/export/frames/trainer, not the new packet or authorization.",
+      "check": 40,
+      "expected": "runtime tree and restore source identities",
+      "site": "runtime_tree.py:10-36;nomdg.py:306",
+      "source": "Pilot 9 job 169792, family 3688e987: /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/FAMILY.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/ORCHARD_NATIVE.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/logs/worker.log; out/c8r/FAMILY_C8R.json; out/OBJECT_AUDIT.json",
+      "status": "ORCHARD-ONLY"
+    },
+    {
+      "actual": "Restoration validates config, artifact, receipts, preparation, source seals and init-spec; the actual weight restore was not run here. Earlier job covers the unchanged runtime/base/export/frames/trainer, not the new packet or authorization.",
+      "check": 41,
+      "expected": "config, artifact, receipt, preparation, source seals and init-spec",
+      "site": "read_runtime.py:12-92",
+      "source": "Pilot 9 job 169792, family 3688e987: /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/FAMILY.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/ORCHARD_NATIVE.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/logs/worker.log; out/c8r/FAMILY_C8R.json; out/OBJECT_AUDIT.json",
+      "status": "ORCHARD-ONLY"
+    },
+    {
+      "actual": "3be02a82ed2983715db108fe0326dea59ccd1571bae3d6ae476c27074ba06f8e exact cache-bind bytes; producer c4a505fc88b61028a57f0a4cb4074a2ee0adb6f17eeed10aa93c9bf30764024e equals the reader kernel pin; only producer differs from legacy JSON",
+      "check": 42,
+      "expected": "mask-cache producer equals sealed nomdg",
+      "site": "native_worker.py:179;perception.py:70",
+      "source": "/scratch/jjyeung/orch_n30/native_r2/builds/01_c8/work/rh_pilot_06/MASK_CACHE_REBOUND.json; out/c8r/code_c8r.tar; out/c8r/FAMILY_C8R.json",
+      "status": "PASS"
+    },
+    {
+      "actual": "Real masks validation and operand binding executed on the same object and reader; exact rebound receipt is shipped",
+      "check": 43,
+      "expected": "mask headers, frozen kit, SAM, provenance, operands and cache pins",
+      "site": "perception.py:64-89",
+      "source": "/scratch/jjyeung/orch_n30/native_r2/builds/01_c8/work/rh_pilot_06/worker.log:4; /scratch/jjyeung/orch_n30/native_r2/builds/01_c8/work/rh_pilot_06/CACHE_BIND_PROOF.json:22; /scratch/jjyeung/orch_n30/native_r2/builds/01_c8/work/rh_pilot_06/RESULT.json:15; out/OBJECT_AUDIT.json",
+      "status": "PASS-REHEARSAL"
+    },
+    {
+      "actual": "Real raw-cache and frame checks executed for every capture using unchanged geometry/routed sources",
+      "check": 44,
+      "expected": "raw G3T constants and pins, capture rows and frame hashes",
+      "site": "geometry.py:104-117;routed.py:28",
+      "source": "/scratch/jjyeung/orch_n30/native_r2/builds/01_c8/work/rh_pilot_06/worker.log:5; /scratch/jjyeung/orch_n30/native_r2/builds/01_c8/work/rh_pilot_06/worker.log:88; out/OBJECT_AUDIT.json",
+      "status": "PASS-REHEARSAL"
+    },
+    {
+      "actual": "Pilot terminal and return chain passed with complete geometry dispositions; guard report revalidated locally; full tail still pending",
+      "check": 45,
+      "expected": "all 84 capture dispositions, ten-pair refusal coverage or explicit insufficient coverage",
+      "site": "native_job.terminal;native_metrics.project",
+      "source": "/scratch/jjyeung/orch_n30/native_r2/builds/01_c8/work/rh_pilot_06/RESULT.json:15; /scratch/jjyeung/orch_n30/native_r2/builds/01_c8/work/rh_pilot_06/worker.log:88; /scratch/jjyeung/orch_n30/native_r2/builds/01_c8/work/rh_pilot_06/runs/c80000001/native/probe/PILOT_REPORT.json; out/tests/results.log",
+      "status": "PASS-REHEARSAL"
+    },
+    {
+      "actual": "Job probes the new pool before staging, enforces the existing pool cap and fresh token directory, and verifies return copies. Local stand-in tests pass; live quota and cloud credentials remain unchecked. The new return pool/GCS path is not covered by the earlier job.",
+      "check": 46,
+      "expected": "fresh pool/token directory; pool at most one GiB",
+      "site": "orchard_results.py:44-88",
+      "source": "Pilot 9 job 169792, family 3688e987: /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/FAMILY.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/metadata/ORCHARD_NATIVE.json; /scratch/jjyeung/orch_n30/native_r2/work/p9/logs/worker.log; out/c8r/FAMILY_C8R.json; out/OBJECT_AUDIT.json",
+      "status": "ORCHARD-ONLY"
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=20365 utc=2026-11-13T12:13:21.230Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; du -s --apparent-size -BG leg_s1_local_admission leg_s1_fourstream_kit legs1_routed leg_s1_canary leg_s1_tree evalx orchard_cp2 from_0_13 legs1_dbs combo2_review leg_s1_review 2>/dev/null | sort -rn | head -n 12; echo ----; timeout 60 find /scratch/jjyeung -maxdepth 2 -mmin -35 -type d 2>/dev/null | head -n 20; df -BG /scratch | tail -n 1

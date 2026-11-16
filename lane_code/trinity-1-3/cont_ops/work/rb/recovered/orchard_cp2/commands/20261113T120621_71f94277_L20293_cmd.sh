@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=20293 utc=2026-11-13T12:06:21.780Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; ls orchard_cp2/inbox | grep -i "canary2_admission\|1204Z\|1205Z\|1206Z" | tail -n 4; ls -d orchard_cp2/out/canary2_168994* orchard_cp2/out/canary_168994* 2>/dev/null | head; find orchard_cp2/out -maxdepth 5 -path "*168994*" -name "*admission*" 2>/dev/null | head -n 8

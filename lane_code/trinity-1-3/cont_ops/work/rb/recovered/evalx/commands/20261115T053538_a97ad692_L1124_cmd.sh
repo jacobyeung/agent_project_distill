@@ -1,0 +1,14 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=1124 utc=2026-11-15T05:35:38.015Z kind=commands original_path=(bash command)  -->
+R=/scratch/jjyeung/orch_cd; T=$(date -u +%Y%m%dT%H%MZ); cat > $R/evalx/inbox/${T}_ORCH_RULING_full_rehearsal_camera_shortcut_fixture.md <<'EOF'
+# ORCH RULING on your 0534Z blocker (full CPU rehearsal, "Camera shortcut binding differs")
+
+Your diagnosis reads as a fixture fault, not a production fault: the fixture rebinds the camera cohort to frame-bound fixture hashes, while CAMERA_SHORTCUTS.json still carries the production cohort and task hashes. Rule:
+
+1. **Repair the fixture, not the validator.** Produce the fixture's CAMERA_SHORTCUTS with the same generator that produced the production file, bound to the fixture cohort and tasks. No hash is typed or pasted by hand, the validator and its inputs in the package stay byte-identical, and the repair is recorded as a fixture-only file with its producer command. Add one test that the production CAMERA_SHORTCUTS.json still validates against the production cohort through the same function (so the repair cannot mask a real mismatch).
+2. **Continue now from the retained outputs.** Run the real `nomdg.admit_bundle` and everything after it (camera report, in-job admission, the full return chain, publication, fetch verification, from_return) on the 636 retained rows of `rehearsal_runs_full_01`, through the real functions in the worker's order, with line coverage. The purpose is to find the next failure, if any, in minutes instead of after another 71-minute decode. Record it as a continuation, not as a whole-worker pass.
+3. **The fresh whole-worker full rehearsal runs once, on the sources that will fly the full read**: the separate candidate (R1, 6,000 s limit, selector fix, guard port), not the current object. Launch it in the background with the same limits (one thread, nice 10, 120 minutes, 300 MiB) when the candidate's sources are final. It gates the full reads only.
+4. Nothing here touches pilot 9: the current object, its queued upload and its passed pilot proof stay as they are. Preserve every output of the failed run.
+
+Report the continuation's result in one event (pass with the coverage delta, or the next failing line).
+EOF
+echo "- $(date -u +%Y-%m-%dT%H:%MZ) evalx BLOCKER 0534Z: full 636-item CPU rehearsal exited 1 after 4,265 s at camera_report.decorate:62 ('Camera shortcut binding differs'); all 636 rows and bindings passed before it; cause = fixture cohort rebinding vs production CAMERA_SHORTCUTS.json. Ruled: regenerate the fixture's shortcuts with the production generator (validator untouched; test that production still validates), continue admission-through-return on the retained rows now, run the fresh whole-worker full rehearsal once on the candidate sources; gates full reads only." >> $R/ORCH_HANDOFF.md

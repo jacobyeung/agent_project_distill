@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=25183 utc=2026-11-13T21:06:49.593Z kind=commands original_path=(bash command)  -->
+C=/scratch/jjyeung/orch_cd/evalx/work/milestone; cd /scratch/jjyeung/orch_home_distill && timeout 300 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B -m pytest -q -p no:cacheprovider $C/test_orchard_review_findings.py 2>&1 | tail -n 2

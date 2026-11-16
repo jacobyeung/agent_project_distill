@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=2059 utc=2026-11-15T07:04:42.425Z kind=commands original_path=(bash command)  -->
+R=/scratch/jjyeung/orch_cd; cut -c1-1800 $R/evalx/events/20261115T0704Z_EVALX_RESULT_pilot9_submitted_169792.md; echo; echo "- $(date -u +%Y-%m-%dT%H:%MZ) PILOT 9 SUBMITTED: Orchard job 169792 on advanced (token ebe307cf4, family 3688e987), one submission, account guards passed (evalx RESULT 0704Z). k1_build first usable RESULT 0702Z (three phases, launcher, stall-state adapter; proofs running)." >> $R/ORCH_HANDOFF.md

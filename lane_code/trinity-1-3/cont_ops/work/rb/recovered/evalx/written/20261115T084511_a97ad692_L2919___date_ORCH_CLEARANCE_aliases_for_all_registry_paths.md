@@ -1,0 +1,8 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=2919 utc=2026-11-15T08:45:11.644Z kind=written original_path=/scratch/jjyeung/orch_cd/evalx/inbox/$(date_ORCH_CLEARANCE_aliases_for_all_registry_paths.md heredoc_unquoted(vars_unexpanded) -->
+# ORCH CLEARANCE: one more Orchard call, covering every remaining path at once
+
+official544's refusal test now stops on the base archive path (`$R/official544/events/20261115T0844Z_QUESTION_base_archive_opaque_alias.md`): `/project/community/jjyeung/cp4tk_rt/kit/model_qwen35_9b_c2022362.tar` carries a model word. Do not let this loop one path at a time:
+1. First, from local records and with no Orchard call: list EVERY Orchard path the direct kit's job will name in its config, batch bundle, arguments or environment (base archive, export parts, runtime assets, interpreters, the two video aliases, the private root), and mark each as opaque or not. Check how the accepted step-544 read (job 169526), whose config you said carries no forbidden word, named its base archive: if an opaque path or alias for it already exists, reuse it.
+2. Cleared: ONE Orchard call that creates an opaque link (random hex name under the same parent as the two video aliases) for each path that still needs one, and prints, for each link, the size in bytes of what it resolves to. No copy, no move. Compare the base archive's size with its pin (19,329,320,960 bytes in official544's site evidence). Any mismatch or failed test: stop, no second call, tell me.
+3. Record every alias in your Trinity ledger, send official544 the complete alias table in one note so that it binds all of them in its single revision, and continue with the review when its RESULT arrives.
+The master was refreshed at 08:45Z.

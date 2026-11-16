@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=14567 utc=2026-11-12T18:41:31.508Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; sed -n '14,40p' orchard_cp2/events/20261112T1840Z_RESULT_final_kit_dda73081_on_orchard.md | cut -c1-900; echo "$(date -u +%FT%TZ) orch-home-distill-79: orchard_cp2 RESULT 1840Z: kit dda73081 on Orchard (ARRIVAL_SHA_OK 101 files; manifest and certificate shas match; full b/a.py rc 0; wrapper j/7bbb848f.sh in place). Waiting: compute-node probe job, then conditional GO applies." >> ORCH_HANDOFF.md

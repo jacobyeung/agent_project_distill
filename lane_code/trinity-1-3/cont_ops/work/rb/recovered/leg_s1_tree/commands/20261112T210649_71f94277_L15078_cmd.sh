@@ -1,0 +1,21 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=15078 utc=2026-11-12T21:06:49.432Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; T=$(date -u +%Y%m%dT%H%MZ); cat > orchard_port/inbox/${T}_ORCH_ANSWER_pointing_masks.md <<EOF
+# ORCH answer ($T): route 1 go for p5x9; p6q2/p6q3 rows are dropped for this leg
+
+Fast and clear, thank you.
+1. **p5x9:** prepare the archive locally now (members under p5x9/..., with a sha256 list). Before packing, compare every file with the rows' sha pins once leg_s1_tree gives you the distinct-pin list, and report: pins total, pins with a matching file, pins without one, files no pin uses. If the two local trees disagree on a file, say so. Push it (one governed stream) only after leg_s1_tree tells you the destination and the archive name its k/0.json entry expects.
+2. **p6q2 and p6q3:** (b). The leg trains its pointing stream on the rows whose masks exist; the rows that pin the lost stores are excluded and counted. Rebuilding those masks is a separate task for a later leg; do not start it.
+3. One more read-only check, since code-aws's ap/ is empty: tell me in the same RESULT whether anything else the leg's rows may reference existed only there. leg_s1_tree's census of external file classes (in progress) will name the classes; for each class it marks as not staged, look the same way you did here (2-18 /scratch, Mind's member lists, GCS) and report where a copy exists.
+EOF
+cat > leg_s1_tree/inbox/${T}_ORCH_RULING_pointing_rows.md <<EOF
+# ORCH ruling ($T): the leg's pointing stream keeps only rows whose masks exist; p5x9 is staged; p6q2/p6q3 rows are excluded
+
+orchard_port's findings (its RESULT 2105Z, in /scratch/jjyeung/orch_cd/orchard_port/events/): p5x9 (set b2a) exists on this node in two trees (mixdata/out/pointing_v2/data2root/p5x9, 8,704 files; streams2/work/extra/x1/point/data2root/p5x9, 3,840 files; 28 MB together; the failing pin's file is present, sha256 8dd7035c...). p6q2 (pa3) and p6q3 (pa3b) exist nowhere: they were written on code-aws, never copied off, and code-aws's ap/ is now empty.
+**Ruling:** this leg trains pointing on the rows whose masks exist and can be verified against their pins. The rows that pin p6q2 or p6q3, and any p5x9 row whose mask is absent or mismatched, are excluded and counted; the card states it. No rebuild of the lost masks for this leg.
+**From you, in the census NOTE (keep to this order):**
+1. Per pointing set (b2a, pa3, pa3b): rows, distinct mask pins, and for p5x9 the distinct-pin list as a file for orchard_port (send it by inbox now; it checks coverage and packs the archive).
+2. The smallest change that excludes the uncovered rows: the existing pinned exclusion list (exclude_qids.pointing) if it reaches the pointing stream's preparation before the mask is opened; otherwise say what does. Kit data only if possible; tell me before any source change. State the resulting pointing population, the expected repeats over 1,000 steps at 32 rows per step, and what changes in the identities (config identity, admission contract digest, which records must be reissued).
+3. How p5x9 is staged into data2root on Orchard through k/0.json (an added staged archive; say the entry, the archive name and destination orchard_port must use).
+4. Every other external file class of every stream, as ordered at 2046Z, each marked staged (with its 0.json line) or not staged. code-aws is empty, so anything that existed only there is gone: say which classes those are. The stat-only checker stays a condition of the next GO.
+EOF
+echo "$(date -u +%FT%TZ) orch-home-distill-79: orchard_port RESULT 2105Z pointing_masks_located: p5x9 (b2a) exists only on 2-18 /scratch (mixdata/out/pointing_v2/data2root/p5x9 8,704 files + streams2/work/extra/x1/point/data2root/p5x9 3,840 files; 28 MB; the failing pin's file present); p6q2 (pa3) and p6q3 (pa3b) exist nowhere (written on code-aws by sb.py jobs q113454/q114382; copy-off covered receipts and rows only; code-aws ap/ is now EMPTY). Ruled: stage p5x9 (route 1, 28 MB push after pin-coverage check); pointing stream keeps only rows with verifiable masks; p6q2/p6q3 rows excluded and counted for this leg; mask rebuild deferred. leg_s1_tree: per-set row counts, smallest exclusion change, staging entry, full census; orchard_port: check other not-staged classes." >> ORCH_HANDOFF.md

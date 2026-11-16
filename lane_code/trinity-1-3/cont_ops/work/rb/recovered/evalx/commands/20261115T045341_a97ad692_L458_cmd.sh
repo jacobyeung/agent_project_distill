@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=458 utc=2026-11-15T04:53:41.809Z kind=commands original_path=(bash command)  -->
+R=/scratch/jjyeung/orch_cd; grep -n -i -m 6 'torchvision' $R/evalx/work/milestone/STATUS_RETAINED_20261114T0358Z.md | cut -c1-700; echo "== orchard_kit work (names only)"; ls $R/orchard_kit/work | head -40 | tr '\n' ' '; echo; grep -l -s -i 'torchvision' $R/orchard_kit/work/*.txt $R/orchard_kit/work/*.json $R/orchard_kit/work/*.md $R/orchard_kit/work/*.log $R/orchard_kit/work/*/*.txt $R/orchard_kit/work/*/*.json 2>/dev/null | head -8

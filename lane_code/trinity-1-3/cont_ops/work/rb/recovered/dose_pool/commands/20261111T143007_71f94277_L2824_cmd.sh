@@ -1,0 +1,9 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=2824 utc=2026-11-11T14:30:07.943Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd && ls -la --time-style=+%H:%M:%S dose_pool/work/kit/runs | cut -c20-100; pgrep -u jjyeung -af 'train_proxy|resume_test|py_cpu' | grep -v 'pgrep\|snapshot' | cut -c1-160; T=$(date -u +%Y%m%dT%H%MZ); cat > dose_pool/inbox/${T}_ORCH_STOP_disk_full.md <<EOF
+# ORCH ($(date -u +%Y-%m-%dT%H:%M:%SZ)): STOP. Your resume test filled this node's /scratch to 100% (166 GB in work/kit/runs)
+- /scratch on trinity-2-18 reached 0 bytes free at about 14:27Z. work/kit/runs held 166 GB of test checkpoints (resume2_cpu_A 36 GB, resume3_cpu_A 39, resume3_cpu_B 39, resume4_cpu_A 36, resume4_cpu_B 19) against your cap of 8 GB. Every lane on the node, the main project's work here and other users lost the ability to write.
+- Now: run NO test that saves a checkpoint; do not rerun resume_test.sh or train_proxy.py; write nothing larger than 100 MB anywhere on /scratch. The 2B proxy kit is deferred and needs no further tests.
+- Do not delete anything yourself. Post one event (events/<UTC stamp>_RESULT_disk_incident.md, at most 6 lines): what wrote the folders, why the cap was exceeded, whether any of your scripts removes run folders (resume4_cpu_B disappeared at about 14:31Z), and the exact list of paths under work/kit/runs with sizes that are test artefacts with no value. The user decides their removal.
+- Then continue only the scoping RESULT I asked for (reading and counting, no large files).
+EOF
+df -h /scratch | tail -n 1 | cut -c1-80; ls -la --time-style=+%H:%M /scratch/jjyeung/orch_cd/label_247/inbox /scratch/jjyeung/orch_cd/frontier_read/inbox | grep 'more_key' | cut -c20-100

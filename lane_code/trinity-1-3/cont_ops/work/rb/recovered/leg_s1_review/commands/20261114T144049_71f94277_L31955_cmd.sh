@@ -1,0 +1,30 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=31955 utc=2026-11-14T14:40:49.077Z kind=commands original_path=(bash command)  -->
+N=$(date -u +%Y%m%dT%H%MZ); cat > /scratch/jjyeung/orch_cd/orchard_cp2/inbox/${N}_ORCH_TASK_build_continuation_packet.md <<'EOF'
+# ORCH task: after your end RESULT, build the continuation of LEG-S1, build-only
+
+The registered plan is 1,000 steps; the first allocation reached step 544 and no stop rule has fired (step 100 passed; steps 200 and 400 continue). The default recorded with the user on 2026-11-13 is to continue to 1,000 steps while the rules pass. I intend to launch the second allocation on `advanced` (4 H100, 24 h) as soon as its gates pass and I have shown the user the pre-launch check. Nothing is submitted without my written order.
+
+1. Finish the end RESULT first (slot A's records, the terminal metadata read, whether the end audit ran, the loss baseline's status). Keep it short.
+2. Then build the continuation packet for the same kit 07ca49df and run 469ddece: exact resume from slot A at step 544, steps 545 to 1,000, the same save cadence, milestone exports 600, 800 and 1,000 through the numbered route, the same wall-clock stop rule. State exactly which installed files are reused and which must be new (wrapper, resume arguments, job script), and prove on CPU everything that can be proved without the node (argument binding, slot A's metadata and hashes against the wrapper's own verification record, the resume path's file inventory).
+3. List every gate between now and the trainer's first resumed step, with its status and who runs it: the continuation checker (bundle 026cb696) and what it needs from the first allocation (the source-matched loss baseline); the checks inside the first one to three resumed steps and who stops the job if they fail; project-filesystem space (440 GB free; slot B needs about 113 GB; say what the wrapper does with slot A while B is written); staged inputs still present on the project filesystem; anything consumed by the first allocation that must be re-authorized.
+4. Give the projected timing from measured numbers: restore time, first step, 456 steps at the measured rate, saves, end slot; and whether one 24-hour allocation finishes step 1,000 with margin.
+5. One RESULT: CONTINUATION_READY with the exact submission command and the list from item 3, or what is missing. Ask the canary lane (its inbox) for anything about the checker; it has a parallel task.
+EOF
+cat > /scratch/jjyeung/orch_cd/leg_s1_canary/inbox/${N}_ORCH_TASK_continuation_readiness_statement.md <<'EOF'
+# ORCH task: continuation readiness of LEG-S1 from the checker's side
+
+Job 169097 completed at 14:19:39Z (exit 0), final step 544, slot A saved. I intend to continue to step 1,000 with a second allocation as soon as the gates pass. The operator (orchard_cp2) is building the launch packet. From you, one RESULT of at most 25 lines:
+
+1. What exactly `canary3_status: FAIL` in your deliveries means for an exact resume from a real slot: what was compared, what differed, and whether the production kit's resume path is the one that failed or a different one. Cite the record.
+2. What the checker (bundle 026cb696) verifies on a real continuation, in order: which checks run before the trainer starts (on what inputs, CPU or GPU, how long), which run on the first one, two and three resumed steps, what each needs from the first allocation (the eight native rows you hold, the source-matched baseline, slot A's metadata), and who must act on a failed verdict and how fast.
+3. What evidence exists today that a resume from a saved slot continues the same training state (optimizer, schedule position, data order, random state), and what remains unproven until the real resume. For each unproven item, how we would notice in the first steps, and what a silent failure would look like at the step-600 read.
+4. Anything you must build or bind before the launch (for example a real baseline capture from the first allocation's last rows), done now on CPU without any Orchard call; ask the operator through its inbox for files only it holds.
+
+No job, no ssh. Coordinate with the operator by inbox notes.
+EOF
+D=/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918; cat > $D/INBOX_TO_NONTRAINING_ORCHESTRATOR_${N}_orchard_advanced_second_leg.md <<EOF
+# From the distillation orchestrator (orch-home-distill-79), written $(date -u +%Y-%m-%dT%H:%MZ)
+
+Our production run on Orchard (job 169097, four H100 on the advanced partition) ended at 14:19Z at step 544 of its planned 1,000. The advanced allocation is free now. Unless you need it, I plan to submit the run's second and last allocation there (four H100, about 17 to 18 hours) at about 16:00Z, after its checks pass. It yields at a save whenever you ask: write to my inbox (INBOX_TO_DISTILLATION_ORCHESTRATOR in this folder, or whichever channel you use) and I stop it at the next save. Until then one short evaluation job of ours (about ten minutes) may use the allocation. Our one general-partition slot is in use by the run's final evaluation read. If you want the advanced allocation first, tell me before 16:00Z and I wait.
+EOF
+echo "- $(date -u +%Y-%m-%dT%H:%MZ) CONTINUATION PREP: facts in leg_s1_review/CONTINUATION_FACTS_20261114.md (plan 1,000 steps; 456 left = ~17 h; mix pose 64/VQA 128/routing 64/pointing 32). The default recorded with the user 2026-11-13T10:02Z (SAVED_USER_QUESTIONS) is 'continue to 1,000 steps only if the rule passes' -> rules passed, so I prepare the second allocation: operator ordered to build the continuation packet (inbox ${N}_ORCH_TASK_build_continuation_packet.md); canary ordered to state checker readiness and what canary3 FAIL means; main informed (INBOX_TO_NONTRAINING_ORCHESTRATOR_${N}_orchard_advanced_second_leg.md; I wait if main wants advanced before 16:00Z). Launch needs: packet READY, gates, final read seen, pre-launch check shown to the user." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

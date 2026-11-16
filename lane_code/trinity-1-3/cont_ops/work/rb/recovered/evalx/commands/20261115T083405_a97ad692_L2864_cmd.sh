@@ -1,0 +1,25 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=2864 utc=2026-11-15T08:34:05.658Z kind=commands original_path=(bash command)  -->
+R=/scratch/jjyeung/orch_cd; T=$(date -u +%Y%m%dT%H%MZ); timeout 100 bash $R/orchard_kit/work/ossh.sh orchard 'true'; echo "ossh rc=$?"; cat > $R/evalx/inbox/${T}_ORCH_YES_video_view_plan_and_call.md <<EOF
+# ORCH ANSWER to your 0832Z question: plan approved; the one Orchard call is cleared
+
+The plan is approved as written: two opaque aliases, a pinned 288-name manifest with sha256, each file copied from exactly one root into the job-private directory, refusal on overlap, absence, a hash mismatch, a count other than 288, or a forbidden word; no symlinks inside the job; site evidence citing \`OFFICIAL_RESULTS.md:41-51\` and the recorded video-set hash.
+
+Cleared: the ONE call you describe (tests, two links \`3e0e8a36\` and \`8b677689\`, one listing with per-tree counts and bytes, distinct names, overlap). Expected 220 and 68, 288 distinct, 0 overlap. The master was refreshed at 08:34Z. Any other outcome: no second call, tell me.
+
+Two more things for the same kit revision, so that official544 reseals once:
+1. official544 found at 08:32Z that the reviewed kit a817e38a must NOT be submitted: generation and merge select different probe items once the item set is larger than the rehearsal's (\`$R/official544/events/20261115T0832Z_BLOCKER_full_vsi_merge_probe_selector.md\`; its full-membership check \`out/FULL_VSI_PROBE_SELECTOR_CHECK.json\`). The job would have failed with "Prompt/pixel parity failed" after generation. I am ordering it to fix that and the two-root staging in one revision.
+2. When the revision arrives, review the incremental diff against a817e38a, rerun the CPU dry run AND its full-membership check (all 4,008 items through the production import and install order, generation and merge selecting the same probes), then the packet and your RESULT. Retire a817e38a in your ledger.
+Also tell me in one line what "the C7 pilot fix" in build 04 is.
+EOF
+cat > $R/official544/inbox/${T}_ORCH_ORDER_one_kit_revision_probe_selector_and_two_roots.md <<EOF
+# ORCH ORDER: one revision of the VSI-Bench six-task kit; a817e38a is retired
+
+Your 08:32Z blocker is accepted and it was a good catch: generation and merge selecting different probes would have failed the GPU job after generation. a817e38a must never be submitted; record it as retired.
+
+Make ONE revision of the VSI-Bench kit that carries both changes, then keep the ReVSI kit on the same code:
+1. **Probe selector.** Your proposed fix (the layout gate's selected function is the one \`merge\` uses) with the tests you named: full VSI-Bench membership (all 4,008 direct items) through the production import and install order, generation and merge selecting the identical probe ids, and a fixture larger than sixteen items per type. Add a test that fails if any other module captured the old function at import time (search the kit for every importer of \`probe_tasks\` and list them in the report).
+2. **Two video roots.** The official videos are not at the path your launch input names (that path belongs to the other cluster). On Orchard they are split over two trees, 220 and 68 files, recorded in \`$R/official_reads/OFFICIAL_RESULTS.md\` lines 41 to 51. The owner lane's plan is in \`$R/evalx/events/20261115T0832Z_EVALX_QUESTION_direct6_video_view_plan_and_one_call.md\` and I approved it: \`LAUNCHER_INPUT.json\` carries two opaque alias roots (the owner lane gives you their names after its one Orchard call) and pins the 288-name manifest with sha256 (\`$R/official_reads/vid/trinity_video_sha256.json\`); the adapter copies each named file from exactly one root into the job-private directory, checks every hash, and refuses on overlap, absence, mismatch, a count other than 288, or a forbidden word in any path or argument; no symlink inside the job. Correct the site evidence to cite that record. Tests with two fixture trees as the plan lists.
+3. Rerun the real-item CPU rehearsal and the namespace dry run on the revised kit, with line coverage, and send one RESULT with the diff against a817e38a. The owner lane reviews and adopts it.
+The partition stays \`general\` (my 08:17Z note). Lane total 900 MB as granted; check \`df\` first.
+EOF
+echo "- $(date -u +%Y-%m-%dT%H:%MZ) official544 BLOCKER 0832Z: the reviewed VSI kit a817e38a selects different probe items in generation and merge on the full item set (found by a full-membership CPU check and the ReVSI rehearsal: 'Prompt/pixel parity failed' after generation); a817e38a RETIRED. evalx(s25) QUESTION 0832Z: 288 official videos on Orchard = 220 (q7e stage) + 68 (cp4tk_eval inputs); plan: two opaque aliases, pinned 288-name manifest, per-file copy with hashes into the private root. APPROVED the plan and cleared the one Orchard call (master refreshed 08:34Z). ORDER to official544: one kit revision with the probe-selector fix and the two-root staging; the owner lane re-reviews (incl. full-membership check)." >> $R/ORCH_HANDOFF.md

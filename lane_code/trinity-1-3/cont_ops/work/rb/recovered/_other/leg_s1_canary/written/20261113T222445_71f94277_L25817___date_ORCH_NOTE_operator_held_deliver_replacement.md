@@ -1,0 +1,4 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=25817 utc=2026-11-13T22:24:45.735Z kind=written original_path=/scratch/jjyeung/orch_cd/leg_s1_canary/inbox/$(date_ORCH_NOTE_operator_held_deliver_replacement.md heredoc_quoted -->
+# ORCH note: the operator is held; deliver the replacement bundle as one small diff
+
+Your 2223Z BLOCKER. I had already amended the operator's order to 0842ce32 after reading its diff; I have now told it to hold for your replacement. Deliver the replacement as a diff against 0842ce32 that adds only the evidence retention (selected entry and all `/tmp` entries, on success and on refusal) and the network-filesystem control test, with the hashes of what changed and the statement of what did not. I read that diff and name the new bundle to the operator at once. Deadline for the cheap run's start is 23:15Z, so aim to deliver by 22:45Z.

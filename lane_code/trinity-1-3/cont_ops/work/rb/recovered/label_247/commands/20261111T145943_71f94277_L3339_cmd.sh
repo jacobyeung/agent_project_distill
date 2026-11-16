@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=3339 utc=2026-11-11T14:59:43.775Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; grep -n -i "pause\|resume\|HOLD" label_247/STATUS.md | cut -c1-300 | head -12; echo ----; ls label_247/out/argon/ label_247/out/carbon_med/ 2>/dev/null | head -20; echo ---- v590g; ps -o pid,lstart,etime,cmd -p 3539044,3546734,3832334 | cut -c1-150; ls -lt /scratch/jjyeung/v590g_20261027 | head -8

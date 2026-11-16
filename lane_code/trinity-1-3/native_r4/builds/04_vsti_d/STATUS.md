@@ -1,0 +1,1 @@
+V1d is built and CPU-verified. All 59 kit and 30 inherited tests pass. Both CPU sample paths pass with 9 items in 2 scenes and synthetic tower/heads/logits. The reference archive is unchanged. See out/FINAL_RESULT.json for hashes, namespace outcome and unchecked work.

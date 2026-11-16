@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=23874 utc=2026-11-13T18:55:14.768Z kind=commands original_path=(bash command)  -->
+C=/scratch/jjyeung/orch_cd; ls $C/legs1_reads/out | head -n 40; wc -l $C/legs1_reads/out/decision.py; grep -n -i -E "step-100|m100|stop rule|registered" $C/leg_s1_tree/out/PRELAUNCH_CARD.md | cut -c1-200 | head -n 12; ls $C/legs1_reads/*.md 2>/dev/null | head

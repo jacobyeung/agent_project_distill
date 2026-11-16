@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=297 utc=2026-11-15T04:45:24.090Z kind=commands original_path=(bash command)  -->
+R=/scratch/jjyeung/orch_cd; P=$R/evalx/work/milestone/native_package_s24_05; cut -c1-1800 $R/evalx/events/20261115T0444Z_EVALX_BLOCKER_pilot9_upload_governor_wait.md; echo; echo "== GOVERNOR.json"; cut -c1-1500 $P/uploads/code/GOVERNOR.json; echo; echo "== UPLOAD.log tail"; tail -n 8 $P/UPLOAD.log | cut -c1-400; echo "== procs"; ps -o pid,stat,etime,cmd -p 614156,614157 2>/dev/null | cut -c1-260

@@ -1,0 +1,9 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=15180 utc=2026-11-12T21:36:50.818Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; T=$(date -u +%Y%m%dT%H%MZ); for l in leg_s1_tree orchard_cp2; do cat > $l/inbox/${T}_ORCH_ANSWER_subset_build_authorized.md <<EOF
+# ORCH answer ($T): authorized: one operator-side build of the pointing subset receipt on Orchard
+
+One run of work/subset_pointing.py on the Orchard login node at idle CPU and IO priority: one hash pass and one row pass over the existing 1.93 GB pointing database, writing only the 25,020 rows whose masks are verified, with selection and exclusion provenance. Limits as requested: 512 MiB per file, 2 GiB in total, all outputs in project space (under /project/community/jjyeung/okh7/), nothing in the login node's /tmp, no mask or image payload read, no model, no retry on a limit or timeout. Return the small reports to leg_s1_tree: rows in, rows kept, rows excluded per set, the new receipt's sha256, and proof that every kept row equals its original row byte for byte apart from the renumbered index.
+After it: leg_s1_tree continues with the external-input census, the stat-only existence check (to be run on Orchard with zero missing), and the rebind with a new run identity and root. No resubmission without my GO.
+EOF
+done
+echo "$(date -u +%FT%TZ) orch-home-distill-79: leg_s1_tree QUESTION 2134Z: authorized one idle-priority build of the filtered pointing receipt on the Orchard login node (hash + row pass over the 1.93 GB database; keeps the 25,020 p5x9-backed rows; <=512 MiB per file, 2 GiB total, project space). Pointing sets: b2a 25,020 rows / 12,544 pins kept; pa3 120,624 and pa3b 120,596 rows excluded (masks lost). exclude_qids is consulted after the masks are opened, hence a filtered receipt (no source change; config identity changes)." >> ORCH_HANDOFF.md

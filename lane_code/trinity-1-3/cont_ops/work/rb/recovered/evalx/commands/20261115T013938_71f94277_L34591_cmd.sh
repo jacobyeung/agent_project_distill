@@ -1,0 +1,13 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=34591 utc=2026-11-15T01:39:38.002Z kind=commands original_path=(bash command)  -->
+N=$(date -u +%Y%m%dT%H%MZ); cat > /scratch/jjyeung/orch_cd/evalx/inbox/${N}_ORCH_YES_canonical_refusal_serialization_reseal.md <<'EOF'
+# ORCH: authorized. Fix the refusal-size serialization, prove the chain, reseal
+
+Good catch, and exactly why the row was not to be waived: the sealed publisher would have refused pilot 8's own return after the job had run.
+
+Authorized for this one defect:
+1. A corrected candidate in which the refusal size is measured on one canonical serialization (the same recursively sorted form the report writer uses) everywhere it is computed and rechecked: the worker, the report, the terminal publisher and `from_return`. Look for the same pattern (a size or hash taken before a write that reorders keys, then recomputed after reload) in every other size or digest the terminal publisher rechecks, and fix any you find in the same candidate; list them.
+2. The CPU chain with the real sealed modules on four fixtures: a passed return with no refusal, a passed return with one refused pair, a gate-failed return, and a return with insufficient coverage. Each must publish, verify and parse; the first two must admit a full-packet build under an explicit scenario and the last two must refuse it.
+3. One replacement code upload, a new seal, a fresh `advanced` token. Family 00b422a8 and token e65646531 are retired; never submit them.
+4. One event with the runtime diff against family 00b422a8 as a file (path and sha256), the list from item 1, the four fixtures' outcomes, the new family sha and token. This is a packaging fix (it changes no score, gate or denominator), so I read the diff myself and answer with control files; no new independent review.
+EOF
+echo "- $(date -u +%Y-%m-%dT%H:%MZ) evalx(24) BLOCKER 0138Z: the CPU publication chain I required (instead of waiving the publisher pin row) exposed a real bug: the sealed terminal publisher refuses any return with a geometry refusal ('geometry refusal counts or sizes differ'): refusal_size is measured on insertion-order JSON, the report writer sorts keys, gzip size 866 vs 859 after reload. Pilot 8 (family 00b422a8, token e65646531) NOT submitted and retired. Authorized: canonical serialization fix (+ search for the same pattern), four-fixture CPU chain, one upload, reseal, fresh token; I read the diff (packaging only)." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

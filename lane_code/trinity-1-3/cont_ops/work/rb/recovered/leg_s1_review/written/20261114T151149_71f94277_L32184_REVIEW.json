@@ -1,0 +1,19 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=32184 utc=2026-11-14T15:11:49.700Z kind=written original_path=/scratch/jjyeung/orch_cd/leg_s1_review/NATIVE_PILOT_CONTROL_e3e6c6421/REVIEW.json heredoc_unquoted(vars_unexpanded) -->
+{
+  "verdict": "ACCEPT",
+  "reviewer": "Claude Opus (Anthropic), independent reviews REVIEW_VERDICT_ORCHARD_NATIVE_FAMILY.md, REVIEW_VERDICT_ORCHARD_NATIVE_FIXES.md, REVIEW_VERDICT_NATIVE_PROBE_FIX.md and REVIEW_VERDICT_NATIVE_P1_GATE.md (ACCEPT AFTER FIXES on family e58e5a1e: findings F1 and F2); orchestrator orch-home-distill-79 (Claude) confirmed the follow-up diff. The author is a GPT-family lane.",
+  "synthetic": false,
+  "family_sha256": "$FAM",
+  "scope": "pilot and full modes; the full read additionally needs an authenticated passed pilot and the orchestrator's separate order",
+  "followup_diff_read": {
+    "diff": "/scratch/jjyeung/orch_cd/evalx/work/milestone/native_p1_s23_02/RUNTIME.diff (sha256 3b2c1ad39d29af47..., 63 lines)",
+    "previous_family_sha256": "e58e5a1e4bf0332a8b0764efed9618c7ecb6beab9c293de1359f0ab9ab30522f",
+    "what_i_checked": [
+      "F1: native_worker.py no longer builds the report object before the parity kernel; it prints a pilot_loaded line after restoration and builds the report with its loaded checkpoint inside the finally that follows the parity kernel, so the kernel's exclusive mkdir runs first",
+      "F2: in nomdg.py's P1 gate a mismatch with a missing cached record, missing fields, non-integer ids or non-finite logits or margins is counted as rejected instead of raising; the tie rule (equal top-2 sets, both margins at most 1.0, cap max(1, checked // 100)) is unchanged",
+      "the two family seals differ in 12 of 8,913 pinned values: the pins of nomdg.py (6b61d819) and native_worker.py (8611b515) and the code object (code_0521775d7ee21337.tar, generation 1794668957175340); the on-disk files hash to those pins"
+    ],
+    "not_checked": "the author's 68 CPU tests, including the new test that runs the real parity kernel through its mkdir; pilot 4 is the first real job to evaluate p1_gate on a GPU and to publish the report"
+  },
+  "issued_utc": "$T"
+}

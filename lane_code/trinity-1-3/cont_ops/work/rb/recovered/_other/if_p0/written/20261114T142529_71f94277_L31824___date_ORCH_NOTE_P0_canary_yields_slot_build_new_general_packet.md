@@ -1,0 +1,7 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=31824 utc=2026-11-14T14:25:29.827Z kind=written original_path=/scratch/jjyeung/orch_cd/if_p0/inbox/$(date_ORCH_NOTE_P0_canary_yields_slot_build_new_general_packet.md heredoc_quoted -->
+# ORCH note: the P0 canary (169512) passed all staging and will be cancelled for the final evaluation read; build a fresh `general` packet
+
+- Job 169512 (seal eef3ba96) started at 14:01:05Z. By 14:14:43Z it had passed every staging phase including the frame copies (`pose_frames_copied`, six held-out copies), which no earlier job had reached, and the runtime check. The load guard did not refuse. Whether `prepare`, the step-0 check and training steps were reached before the cancel will be in the evidence evalx delivers to your inbox.
+- The production run ended (step 544) and its final evaluation read needs our one `general` slot, so I ordered evalx to cancel 169512 when it submits that read. This is a slot decision, not a fault of the job.
+- Build now, build-only, a fresh `general` packet at seal eef3ba96 (new token; the first one is spent), in `out/P0_SUBMISSION_eef3ba96_general_2/`, validated as before. P0 will be resubmitted on `general` when the final read finishes (about 16:00Z) or on `advanced` (token a4d4bf68ec3f6615f) if that frees first; I decide then.
+- When evalx's evidence arrives, post the canary RESULT your brief asks for with whatever was reached. If the evidence shows a failure in `prepare` or later, fix and reseal at once.

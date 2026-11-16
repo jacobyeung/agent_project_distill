@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=15035 utc=2026-11-12T21:00:03.268Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; grep -rn "p5x9" aws_evac/ aws_copyoff/ mind_prune/ pull_secure/ 2>/dev/null | grep -v "^Binary" | cut -c1-520 | head -14

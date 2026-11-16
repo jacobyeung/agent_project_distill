@@ -1,0 +1,23 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=26465 utc=2026-11-13T23:36:24.644Z kind=written original_path=/scratch/jjyeung/orch_cd/leg_s1_review/STATE_COPY_CONFIRMATION_EXEC_FIX.json heredoc_unquoted(vars_unexpanded) -->
+{
+  "verdict": "ACCEPT",
+  "reviewer": "orchestrator orch-home-distill-79 (Claude family; the author is a GPT-family lane). Diff reads on top of STATE_COPY_SAFETY.md, STATE_COPY_CONFIRMATION.md and my acceptance of bundle acf803e7; not a new full review.",
+  "bundle_sha256_prefix": "d93d0359fcb38e00",
+  "bootstrap_sha256_prefix": "3e719e271e20ae5a",
+  "operator_file_sha256_prefix": "54f3592e14d2db5c",
+  "previous_bundle_sha256_prefix": "acf803e7",
+  "why": "the cheap execution of 23:08Z returned 2 at task startup: srun --export=NONE could not resolve the bare name env; the node helper never started",
+  "what_i_checked": [
+    "runtime diff e0f95bfb (1,065 B): only worker_command changes; /usr/bin/env plus PATH, LANG, LC_ALL, HOME and TMPDIR set explicitly; the node-private path is unchanged",
+    "test diff fe8df785: the launch line through a stand-in srun that calls execve with an empty environment must produce the helper's first frame",
+    "operator-file diff f05911ce: the two compute-step command lines and one explanatory note",
+    "the three archive hashes match the lane's RESULT",
+    "evidence that the node has the named programs: the donor row scan ran with /usr/bin/env, /usr/bin/nice and /usr/bin/ionice inside job 169097; node tracebacks show /usr/lib/python3.12 and the runtime facts record /usr/bin/python3 3.12.3"
+  ],
+  "not_checked": [
+    "the 95 fixtures (author's record STATE_COPY_FIXTURES_20261113T2325Z_25060716.json); I did not rerun them",
+    "the real node stager under the real srun: the cheap execution is that proof",
+    "the release validator's local folder-count stop (1,058 fixture folders against 1,024) is a scratch-folder bound, accepted as recorded"
+  ],
+  "issued_utc": "$(date -u +%Y-%m-%dT%H:%MZ)"
+}

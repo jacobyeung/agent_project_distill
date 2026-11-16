@@ -1,0 +1,12 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=3291 utc=2026-11-15T09:37:12.623Z kind=commands original_path=(bash command)  -->
+R=/scratch/jjyeung/orch_cd; T=$(date -u +%Y%m%dT%H%MZ); cat > $R/official544/inbox/${T}_ORCH_RULING_frame_index_paths.md <<'EOF'
+# ORCH RULING on your 0936Z blocker: sanitize the frame index if the reader's 36 accepted files stay untouched; otherwise one recorded exemption
+
+The 288 literals are provenance paths of another cluster. They are meaningless on the machine that will run the job, so the cleaner result is an index without them.
+
+Decision rule:
+1. **Sanitize** if you can do it without changing any of the 36 accepted reader files: regenerate `FRAMES_INDEX.jsonl` with each video named by its manifest-relative name (for example `arkitscenes/41069025.mp4`, the same names the pinned 288-entry manifest uses) and no absolute path, repin it, and rerun the real-item CPU rehearsal and the namespace dry run. Show in the RESULT (a) how the reader resolves a video from the index at run time (file and line), so that it is clear the relative name is joined to the job-private video directory and nothing ever opened the old absolute string, and (b) that the layout probes and per-question hashes are unchanged for the rehearsed items.
+2. **If the accepted reader consumes those strings in a way that sanitizing would change its behaviour or its files:** leave the index as it is and add ONE explicit exemption for that one data file, by sha256, with the reason recorded in the scan output ("provenance strings inside a data file in the job-private directory; never a path, argument, environment value, job name or log name of the job"). No other exemption.
+Either way the whole-bundle scan must then pass with its exemptions listed, and the packet states which branch you took. Tell the owner lane in one line when the revision is final.
+EOF
+echo "- $(date -u +%Y-%m-%dT%H:%MZ) official544 BLOCKER 0936Z: the whole-bundle path scan finds 288 absolute-path literals of the other cluster in the kit's FRAMES_INDEX.jsonl (provenance). Ruled: sanitize to manifest-relative names if the 36 accepted reader files stay untouched (repin, rerun rehearsal and dry run, show how the reader resolves videos); otherwise one recorded exemption for that data file by sha256. rs_tree6b RESULT 0934Z: disk guard in place (the local materializer refuses full stores; harness sizes temp bytes per test); /scratch 92 GiB." >> $R/ORCH_HANDOFF.md

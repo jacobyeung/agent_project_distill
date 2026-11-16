@@ -1,0 +1,5 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=22391 utc=2026-11-13T15:36:14.755Z kind=commands original_path=(bash command)  -->
+C=/scratch/jjyeung/orch_cd; T=$(date -u +%Y-%m-%dT%H:%M:%SZ); cat >> $C/ORCH_HANDOFF.md <<EOF
+$T orch-home-distill-79: PRODUCTION JOB 169097 RUNNING (orchard_cp2 RESULT 1535Z): LEG-S1 kit 07ca49df, run 469ddece, on orchard-community-2, advanced, 4 GPUs, 48 CPUs, 800G, 24 h; Slurm start 15:25:38Z (wall limit 2026-11-14T15:25Z); submitted 15:23:34Z with every gate passing in the submitting call (project free 646.6 GB against the 300 GB floor; main's eight advanced jobs held or dependent); wrapper recorded TK_JOB_START=1794583539 and 5,864 GiB free on /tmp (3.8 TB guard passed); staging advancing at 15:33Z; metadata import gate PASS; runtime probe receipts not yet confirmed. Main's notices log carries the job line. Records: orchard_cp2/out/PRODUCTION_469ddece_GO1518_SUBMISSION.json, out/production_169097/. Expected: first production step ~18:25Z, step 100 ~23:30Z to 01:00Z.
+EOF
+echo logged

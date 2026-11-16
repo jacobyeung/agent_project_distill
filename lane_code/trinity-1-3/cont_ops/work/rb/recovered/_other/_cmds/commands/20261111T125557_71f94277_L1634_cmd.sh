@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=1634 utc=2026-11-11T12:55:57.064Z kind=commands original_path=(bash command)  -->
+tmux ls | grep '^cx_' | cut -c1-40; cd /scratch/jjyeung/orch_cd; ls aws_vl128_build/events gf1_fusion/events 2>/dev/null | head; for l in rft1_kit diag_kits aws_vl128_build gf1_fusion; do echo "-- $l dispatch.out: $(head -c 200 $l/dispatch.out | tr '\n' ' ')"; done

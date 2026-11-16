@@ -1,0 +1,13 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=25954 utc=2026-11-13T22:44:19.865Z kind=commands original_path=(bash command)  -->
+N=$(date -u +%Y%m%dT%H%MZ); C=/scratch/jjyeung/orch_cd; cat > $C/if_p0/inbox/${N}_ORCH_RULING_addendum_pose_exposure_and_headroom_gate.md <<'EOF'
+# ORCH ruling, addendum: the lineage saw these scenes with pose supervision; add a headroom gate after the baseline arm
+
+I read the audit table myself (`/scratch/jjyeung/orch_cd/init_audit/F17_EXPOSURE.md`, lines 20 to 26). The exposure is not only through question rows: the lineage's pose streams include the dev-S1 scenes ("C1-a pose mix rows, ancestor of T0: 283,040 rows, 10,560 on 152 dev-S1 scenes"; "T0 a2v3 pose mix rows: 27,604 rows, 1,097 on 152 dev-S1 scenes"). So the frozen checkpoint was trained on camera pose for these very scenes, two stages back.
+
+My ruling stands (the comparison of IF8 with P0 is paired on one frozen checkpoint), with two additions:
+
+1. **Put those two audit rows into the attestation and into the run plan's first paragraph**, in plain words: the read is on scenes whose poses the lineage trained on earlier; it measures what the branches add for the probe, not generalization to new scenes.
+2. **A headroom gate between the arms.** Run P0 first, as planned, and read its direction error on the cohort at step 300 with a clip-level bootstrap interval. If P0 is already at or below 12 degrees (near what the geometry tower gives, 7.5 to 10.9 degrees in the earlier diagnosis), the cohort has no room to show a 5-degree gain: stop, report, and do not run IF8 on it; I then decide on another held-out set. Otherwise IF8 follows. Put this gate and its number into the run plan and the kit's arm sequencing.
+3. In the run plan, add one paragraph on what a cleaner held-out pose set would need (scenes with posed video that neither this lineage nor the reported benchmarks contain), from what the staging record and the data on this node show exists; an estimate is enough, do not build it.
+EOF
+T=$(date -u +%Y-%m-%dT%H:%M:%SZ); echo "$T orch-home-distill-79: ADDENDUM to the if_p0 ruling ($N): the audit shows POSE supervision on the dev-S1 scenes in the lineage (C1-a pose mix 10,560 rows / 152 scenes; T0 a2v3 1,097 rows / 152 scenes); added a headroom gate: P0 first; if P0's direction error on the cohort is <= 12 deg at step 300, stop and do not run IF8 on it; attestation and run plan state the exposure plainly; one paragraph on what a cleaner held-out pose set would need." >> $C/ORCH_HANDOFF.md; echo done $N

@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=26143 utc=2026-11-13T22:52:42.172Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd/leg_s1_tree/work/warm_start_review2fix_07ca49df && sha256sum student_pilot/s1_row_order.py student_pilot/s1_warm_start.py accept_scan.py run_all.py | cut -c1-12,65- && OMP_NUM_THREADS=4 timeout 900 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B run_all.py 2>&1 | tail -n 15

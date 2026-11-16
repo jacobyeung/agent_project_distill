@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=16060 utc=2026-11-13T01:22:30.583Z kind=commands original_path=(bash command)  -->
+echo "$(date -u +%FT%TZ) orch-home-distill-79: orchard_cp2 RESULT 0121Z: job 168872 staging PASS in 19 min (31 joins incl. the three extras; s.py PASS incl. p5x9 archive 12,544 members, 9,128 MDG rasters, all frame archives; init mirror verified); mode p launched on 4 GPUs at 01:17:06Z; RUN.json written in r/279f1525." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

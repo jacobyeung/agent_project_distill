@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=7959 utc=2026-11-12T00:16:13.189Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; grep -n -i -E "mdg|raster|grounding|pdg" orchard_cp2/out/ORCHARD_REMOVAL_LIST.md | cut -c1-400 | head -20; echo ----; ls -d mdg* 2>/dev/null; ls mdg_next/out 2>/dev/null | head -30; grep -n -i -E "Orchard|/project/community|clips|raster" mdg_next/STATUS.md 2>/dev/null | cut -c1-400 | head -20

@@ -1,0 +1,14 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=3639 utc=2026-11-11T15:11:26.613Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; echo "$(date -u +%Y-%m-%dT%H:%MZ) label_247 back on Argon 32 / Carbon 48 since 15:10:03Z (RESULT key_resumed; lane STOP path label_247/STOP); frontier_read off the key since 15:09:33Z (ReVSI Argon 748/999, Carbon 782/999; VSTI Argon 450/450, Carbon 411/450), resumes when main's block ends. Watchers: evwait buxbym255, pausewatch bx1wh4xvr (exits on any new line from main), lanewatch bhgoohdjl, queue_watcher b7kfnioz8, 15:12Z check bd76cop2z. Agents: integ_v314 review (Opus high), READY_QUEUE inventory (Sonnet medium)." >> ORCH_HANDOFF.md
+python3 - <<'EOF'
+p='/scratch/jjyeung/orch_cd/ORCH_STATE_20261111T0935Z.md'
+s=open(p).read()
+old="(2) Gemini key: main asked PAUSE ALL from 15:15Z (its estimate of the end 19:45Z; release arrives in ORCHARD_TO_MAIN_NOTICES.log). frontier_read and label_247 hold URGENT notes (inbox, 1500Z); write RESUME notes to both inboxes and to dose_pool when main releases."
+new="(2) Gemini key (main, 15:06Z): Argon and Carbon may run; never Gemini 3.1 Pro or Flash during main's block (to about 19:45Z). label_247 runs at Argon 32 / Carbon 48 (resumed 15:10Z); frontier_read is off the key until main writes its block is over (then write RESUME in frontier_read/inbox and dose_pool/inbox). If main writes PAUSE in its notices log, scratchpad/pausewatch.sh (background, re-arm after each firing with the log's line count as argument) sends TERM to label_247's supervisor and drivers within a minute; main will also give notice before an hour of timing Argon and Carbon themselves."
+assert old in s; s=s.replace(old,new,1)
+anchor="- Main's orchestrator is orch-home-aa:"
+add="- Built ahead during the holds (15:07Z, USER: plan better, build and debug now): leg_s1_rehearsal (Codex Astra, tmux cx_leg_s1_rehearsal; tiny-model end-to-end rehearsal + silent-fallback audit on integ_v314/work/tree_v314), vla_integ (Codex Astra, tmux cx_vla_integ; four VLA packages in one process), geo_bakeoff (Devin gpt-6-astra-max; geometry-backend bake-off kit priced with gt_ceiling/work/tg/run_tg.py, record GEOMETRY_BACKEND_BAKEOFF_20261111.md), evalx CPU dry run of READ-0 starters, READY_QUEUE_DRAFT.md (Sonnet inventory; I rank it into READY_QUEUE.md), integ_v314 cross-family review (integ_v314/REVIEW_VERDICT.md). gf1_fusion pass 2b RESULT 1507Z fixed all 8 findings. OWED NEXT: merge tree_v314 + tree_gf1 + selector defaults into one tree for LEG-S1 (Codex Astra) after the v3.14 review; plan revision with a per-type points budget after gt_ceiling task 5.\n"
+assert anchor in s; s=s.replace(anchor, add+anchor,1)
+open(p,'w').write(s)
+EOF
+date -u +%H:%M:%SZ

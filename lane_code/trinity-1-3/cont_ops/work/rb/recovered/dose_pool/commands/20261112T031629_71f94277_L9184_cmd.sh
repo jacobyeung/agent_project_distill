@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=9184 utc=2026-11-12T03:16:29.494Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd/dose_pool; ls frames | head; ls frames/t1 | head; grep -n -i -E "GT\.npz|gt_npz|GT_DIR" STATUS.md | cut -c1-300 | head -8; grep -rn -l "GT.npz" work/dosepool/*.py work/*.py 2>/dev/null | head -5; ls work/room 2>/dev/null | head -5

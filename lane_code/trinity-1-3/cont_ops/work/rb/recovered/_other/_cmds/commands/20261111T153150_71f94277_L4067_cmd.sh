@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=4067 utc=2026-11-11T15:31:50.158Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd/vla_integ; grep -n -i "cache\|memo" out/BREAKS.md | cut -c1-600; head -n 6 out/00_cache_schema.patch | cut -c1-160; head -n 6 out/10_cache_root.patch | cut -c1-160; tmux ls 2>/dev/null | grep -c cx_vla_integ

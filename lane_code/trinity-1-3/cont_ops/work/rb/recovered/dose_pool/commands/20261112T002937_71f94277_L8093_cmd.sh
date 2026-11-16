@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=8093 utc=2026-11-12T00:29:37.677Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; timeout 90 du -sm leg_s1_tree miss_vis_run orchard_cp2 geo_bakeoff evalx dose_pool mdg_assets_inv 2>/dev/null; df -BG --output=avail /scratch | tail -1; timeout 30 du -sm /scratch/jjyeung 2>/dev/null | tail -1; ls -d /scratch/* 2>/dev/null | head -40 | tr '\n' ' '

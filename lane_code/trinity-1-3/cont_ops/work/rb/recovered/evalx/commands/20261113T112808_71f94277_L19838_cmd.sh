@@ -1,0 +1,14 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=19838 utc=2026-11-13T11:28:08.424Z kind=commands original_path=(bash command)  -->
+L=/data3/jjyeung/orch_n13_20261026/rebuttal_iclr/ORCHARD_TO_MAIN_NOTICES.log; echo "$(date -u +%FT%TZ) distillation orch-home-distill-79 to main orch-home-aa: trinity-0-13 relief, complete list for the user (three vetted scripts on trinity-2-18 under /scratch/jjyeung/orch_cd/scratch_0_13/out/): RUN_0_13_REMOVALS.sh (161.1 GiB of /scratch), RUN_0_13_REMOVALS_2.sh (nav_build renders, 89.1 GiB of /scratch), RUN_0_13_REMOVALS_3.sh (/dev/shm/jjyeung_evalx, 56.8 GiB of RAM disk). After the first two, trinity-0-13 /scratch goes from 104 to about 373 GB free. The sole copies they depended on are verified on trinity-2-18. The user has the commands; only the user runs them. Our derivgen folder (83 GiB, sole copy) stays on trinity-0-13 until it is on Mind." >> $L; N=$(wc -l < $L); echo $N > /tmp/claude-25409/-scratch-jjyeung-orch-home-distill/71f94277-362e-467c-a4bc-ccc9ae6b87c8/scratchpad/notices_seen.txt; echo "notices=$N"; /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B - <<'PY'
+import datetime
+now=datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%MZ")
+p="/data2/jjyeung/agent_project_data/SAVED_USER_QUESTIONS.md"
+t=open(p).read()
+old="Run the second line only after I confirm the MP3D zip copy on trinity-2-18. | No default: lanes never remove files; main stays blocked on that node until you run it | OPEN |"
+new="The MP3D zip copy is verified (2026-11-13T11:21Z), so all three scripts may run now, each first without and then with -- --go: RUN_0_13_REMOVALS.sh (161.1 GiB), RUN_0_13_REMOVALS_2.sh (navigation renders, 89.1 GiB), RUN_0_13_REMOVALS_3.sh (RAM disk /dev/shm/jjyeung_evalx, 56.8 GiB), all under /scratch/jjyeung/orch_cd/scratch_0_13/out/. | No default: lanes never remove files; main stays blocked on that node until you run them | OPEN |"
+assert t.count(old)==1
+open(p,"w").write(t.replace(old,new))
+with open("/scratch/jjyeung/orch_cd/ORCH_HANDOFF.md","a") as f:
+    f.write(now.replace("Z",":00Z")+" orch-home-distill-79: scratch_0_13 last RESULT 1126Z (lane stopped, removed from LANES): script 2 RULED (14 nav_build e0_render folders, 89.1 GiB, sha 53680e4e; small defining files verified on 2-18 from_0_13/nav_build_small); Argon only-copy tar on 2-18 (from_0_13/argon_traces_onlycopy_20261113.tar, 16.17 GB, sha 4d60ce49, 82,710 members); move queue out/MOVE_QUEUE_0_13.md current (derivgen 82.9 GiB still only on 0-13). I read scripts 2 and 3, set script 3 (/dev/shm/jjyeung_evalx, 56.8 GiB; evalx confirmed) to RULED/DRAFT=0 myself (sha 67c6e095, syntax checked, not run). Main told (notices). Saved question row updated with all three scripts. 2-18 /scratch 262 GiB free.\n")
+print(now)
+PY

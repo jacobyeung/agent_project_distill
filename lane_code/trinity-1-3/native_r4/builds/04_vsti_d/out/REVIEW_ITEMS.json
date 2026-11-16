@@ -1,0 +1,101 @@
+{
+  "F1": {
+    "evidence": [
+      "out/SCORER_CHECK.json",
+      "out/HISTORICAL_FORMS.json"
+    ],
+    "fix": "Strict authority parser/metrics; fuzzy diagnostic retained; strict canary recomputation.",
+    "tests": [
+      "test_comparators",
+      "test_f1_strict_answer_forms",
+      "test_f1_historical_answer_forms",
+      "test_f1_canary_strict_recomputation"
+    ]
+  },
+  "F2": {
+    "fix": "Shared packet path and /dev/null batch output.",
+    "tests": [
+      "test_f2_shared_packet",
+      "test_primary_packet"
+    ]
+  },
+  "F3": {
+    "fix": "Staged bwrap for both allocation entries; explicit Trinity host fallback.",
+    "tests": [
+      "test_f3_s1_staged_namespace",
+      "test_namespace_shared_memory"
+    ]
+  },
+  "S1": {
+    "fix": "Preserve Slurm CUDA_VISIBLE_DEVICES.",
+    "tests": [
+      "test_f3_s1_staged_namespace"
+    ]
+  },
+  "S2": {
+    "fix": "Failed proof receipt continues to read; headline states failed/diverged.",
+    "tests": [
+      "test_s2_proof_failure_continues",
+      "test_s4_geometry_scope",
+      "test_resume_disjoint_and_pin_rejection"
+    ]
+  },
+  "S3": {
+    "evidence": [
+      "out/PARITY_POLICY_CPU.json"
+    ],
+    "fix": "Exclude refused independent-response positions with reasons; retain full-token and prompt/head checks.",
+    "tests": [
+      "test_s3_parity_refusal_exclusion",
+      "test_inherited_gate_and_failure"
+    ]
+  },
+  "S4": {
+    "evidence": [
+      "out/GEOMETRY_SCOPE_CPU.json"
+    ],
+    "fix": "Only geometry-dependent camera items auto-zero; other items decode with all calls refused and own-geometry fallback disabled.",
+    "tests": [
+      "test_s4_geometry_scope",
+      "test_refused_geometry_is_scored"
+    ]
+  },
+  "S5": {
+    "fix": "Observed-item scores and scene intervals on PARTIAL type/subtask rows; primary requires all five complete subtasks.",
+    "tests": [
+      "test_partial_type_score_count_and_scene_bootstrap",
+      "test_partial_subtask_uses_only_completed_items",
+      "test_complete_subtask_preserves_v1c_estimator_and_interval",
+      "test_empty_rows_have_no_imputed_score",
+      "test_primary_requires_all_five_complete_subtasks",
+      "test_refusal_distribution_score_and_wording"
+    ]
+  },
+  "S6": {
+    "fix": "Primary line names refused subtasks and counts plus proof status and auto-zero counts.",
+    "tests": [
+      "test_s4_geometry_scope"
+    ]
+  },
+  "S7": {
+    "fix": "Separate item cutoff and kill; 600-second reserve; account for earlier sealed GPU cap.",
+    "tests": [
+      "test_s7_distinct_deadlines",
+      "test_deadline_and_rates"
+    ]
+  },
+  "S8": {
+    "evidence": [
+      "out/FULL_ADAPT.json",
+      "out/RELEASE_CHECK.json",
+      "out/INDEX_CHECK.json"
+    ],
+    "fix": "Assert full video frame count; compare all scene indices when own list is supplied.",
+    "pending": "Own selected-frame list absent; command in out/FRAME_CHECKS.md.",
+    "tests": [
+      "test_s8_frame_count_rejected",
+      "test_s8_index_comparison",
+      "test_synthetic_video"
+    ]
+  }
+}

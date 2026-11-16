@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=26275 utc=2026-11-13T23:14:43.141Z kind=commands original_path=(bash command)  -->
+C=/scratch/jjyeung/orch_cd; cat $C/orchard_cp2/out/STATE_COPY_CHEAP_169097/result.raw | head -c 600; echo; echo ---; ls $C/orchard_cp2/out/STATE_COPY_CHEAP_169097/; echo ---; ls -d $C/leg_s1_canary/work/*state_copy* 2>/dev/null | tail -n 5

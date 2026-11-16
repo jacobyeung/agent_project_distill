@@ -1,0 +1,7 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=29177 utc=2026-11-14T06:46:54.247Z kind=commands original_path=(bash command)  -->
+N=$(date -u +%Y%m%dT%H%MZ); C=/scratch/jjyeung/orch_cd; src=$C/evalx/inbox/20261114T031906Z_model_cc724d5e.json; sha256sum $src | cut -c1-64; cp -n $src $C/if_p0/inbox/${N}_model_manifest_cc724d5e.json && sha256sum $C/if_p0/inbox/${N}_model_manifest_cc724d5e.json | cut -c1-16; cat > $C/if_p0/inbox/${N}_ORCH_ANSWER_model_manifest_already_held.md <<EOF
+# ORCH answer to QUESTION 0646Z: the model manifest bytes are already on this node
+
+The exact 1,621-byte manifest (sha256 cc724d5e...) was returned earlier by a read-only step inside the production job. I copied it into your inbox as \`${N}_model_manifest_cc724d5e.json\`; verify the hash and use it for the manifest-driven model inventory test against the base archive's listing. No operator read is needed for it. The FLA manifest from d00 is still on its way from the operator.
+EOF
+echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) orch-home-distill-79: if_p0 QUESTION 0646Z (needs the model manifest payload from e00) ANSWERED ($N): the exact bytes (sha cc724d5e) were already held from the in-job read; copied evalx/inbox/20261114T031906Z_model_cc724d5e.json into if_p0's inbox. Re-armed evwait (bkur874h7)." >> $C/ORCH_HANDOFF.md

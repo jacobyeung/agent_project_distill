@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=150 utc=2026-11-15T04:26:31.641Z kind=commands original_path=(bash command)  -->
+R=/scratch/jjyeung/orch_cd; wc -lc $R/model_design_review/READY_QUEUE.md $R/official544/BRIEF.md $R/leg_s1_tree/STATUS.md $R/leg_s1_review/CONTINUATION_FACTS_20261114.md 2>/dev/null; echo "== READY_QUEUE head"; cut -c1-420 $R/model_design_review/READY_QUEUE.md | head -45

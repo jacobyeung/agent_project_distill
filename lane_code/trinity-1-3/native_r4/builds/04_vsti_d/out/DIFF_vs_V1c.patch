@@ -1,0 +1,628 @@
+--- a/REPORT.md
++++ b/REPORT.md
+@@ -2,54 +2,54 @@
+ 
+ In-job dev-S1 proof: not run (synthetic rehearsal).
+ 
+-Frames are the comparator reads' prepared 32-frame sets, decoded with av 15.1 from VSI-Bench copies of the ScanNet videos (SHA differs from the VSTI release); item pairing with f17 and P1 m200 holds. Release-video pixel check: not run; 0/0 identical frames.
++Frames are the comparator reads' prepared 32-frame sets, decoded with av 15.1 from VSI-Bench copies of the ScanNet videos (SHA differs from the VSTI release); item pairing with f17 and P1 m200 holds. Release-video pixel check: complete; 0/160 identical frames.
+ 
+ Own selected-frame index comparison: pending; the separately staged reference list is required.
+ 
+-Primary: unavailable; proof not run (synthetic); subtasks with refused calls: camera_displacement (1), camera_movement_direction (2), camera_obj_abs_dist (4), camera_obj_rel_dist (8); geometry auto-zero: none; missing items are never imputed. Source: `/scratch/jjyeung/orch_n30/native_r4/builds/03_vsti_c/work/ns_bfb1c68684094d87b62795f3fcd33950/run/job/REPORT.json`.
++Primary: PARTIAL; incomplete subtasks: camera_displacement, camera_movement_direction, camera_obj_abs_dist, camera_obj_rel_dist, obj_obj_relative_pos; proof not run (synthetic); subtasks with refused calls: camera_displacement (1), camera_movement_direction (2), camera_obj_abs_dist (4), camera_obj_rel_dist (8); geometry auto-zero: none; missing items are never imputed. Source: `/scratch/jjyeung/orch_n30/native_r4/builds/04_vsti_d/work/cli_d_final/report/REPORT.json`.
+ 
+ only move, turn and pose are served, by frozen G3T run on this read's frames with step-544's own scale and gravity; every other call is refused.
+-
+-Refusals use the runtime's recoverable error format (trace 3.13).
+ 
+ The scale rule remains unaudited; the depth-head lineage before step 544 was not established.
+ 
+ This rehearsal uses synthetic checkpoint depth/gravity and token generation. The statement above specifies the production serving policy.
+ 
+-Completed items: 9; missing items: 0. Source: `/scratch/jjyeung/orch_n30/native_r4/builds/03_vsti_c/work/ns_bfb1c68684094d87b62795f3fcd33950/run/job/REPORT.json`.
++Completed items: 9; missing items: 0. Source: `/scratch/jjyeung/orch_n30/native_r4/builds/04_vsti_d/work/cli_d_final/report/REPORT.json`.
+ 
+ | Type or subtask | Items | Any call | Served | Refused | Score | 95% scene interval |
+ |---|---:|---:|---:|---:|---:|---|
+-| camera_displacement | 1 | 1 | 1 | 1 | incomplete (1/50) | unavailable |
+-| camera_movement_direction | 2 | 2 | 2 | 2 | incomplete (2/50) | unavailable |
+-| camera_obj_abs_dist | 2 | 2 | 0 | 4 | incomplete (2/50) | unavailable |
+-| camera_obj_rel_dist_v1 | 2 | 2 | 0 | 4 | incomplete (2/50) | unavailable |
+-| camera_obj_rel_dist_v2 | 1 | 1 | 0 | 2 | incomplete (1/50) | unavailable |
+-| camera_obj_rel_dist_v3 | 1 | 1 | 0 | 2 | incomplete (1/50) | unavailable |
+-| obj_obj_relative_pos_lr | 0 | 0 | 0 | 0 | incomplete (0/50) | unavailable |
+-| obj_obj_relative_pos_nf | 0 | 0 | 0 | 0 | incomplete (0/50) | unavailable |
+-| obj_obj_relative_pos_ud | 0 | 0 | 0 | 0 | incomplete (0/50) | unavailable |
+-| camera_displacement | 1 | 1 | 1 | 1 | incomplete (1/50) | unavailable |
+-| camera_movement_direction | 2 | 2 | 2 | 2 | incomplete (2/50) | unavailable |
+-| camera_obj_abs_dist | 2 | 2 | 0 | 4 | incomplete (2/50) | unavailable |
+-| camera_obj_rel_dist | 4 | 4 | 0 | 8 | incomplete (4/150) | unavailable |
+-| obj_obj_relative_pos | 0 | 0 | 0 | 0 | incomplete (0/150) | unavailable |
++| camera_displacement | 1/50 | 1 | 1 | 1 | 0.00% PARTIAL | [0.00, 0.00] |
++| camera_movement_direction | 2/50 | 2 | 2 | 2 | 0.00% PARTIAL | [0.00, 0.00] |
++| camera_obj_abs_dist | 2/50 | 2 | 0 | 4 | 10.00% PARTIAL | [0.00, 20.00] |
++| camera_obj_rel_dist_v1 | 2/50 | 2 | 0 | 4 | 50.00% PARTIAL | [50.00, 50.00] |
++| camera_obj_rel_dist_v2 | 1/50 | 1 | 0 | 2 | 0.00% PARTIAL | [0.00, 0.00] |
++| camera_obj_rel_dist_v3 | 1/50 | 1 | 0 | 2 | 100.00% PARTIAL | [100.00, 100.00] |
++| obj_obj_relative_pos_lr | 0/50 | 0 | 0 | 0 | unavailable PARTIAL | unavailable |
++| obj_obj_relative_pos_nf | 0/50 | 0 | 0 | 0 | unavailable PARTIAL | unavailable |
++| obj_obj_relative_pos_ud | 0/50 | 0 | 0 | 0 | unavailable PARTIAL | unavailable |
++| camera_displacement | 1/50 | 1 | 1 | 1 | 0.00% PARTIAL | [0.00, 0.00] |
++| camera_movement_direction | 2/50 | 2 | 2 | 2 | 0.00% PARTIAL | [0.00, 0.00] |
++| camera_obj_abs_dist | 2/50 | 2 | 0 | 4 | 10.00% PARTIAL | [0.00, 20.00] |
++| camera_obj_rel_dist | 4/150 | 4 | 0 | 8 | 50.00% PARTIAL | [50.00, 50.00] |
++| obj_obj_relative_pos | 0/150 | 0 | 0 | 0 | unavailable PARTIAL | unavailable |
+ 
+-All table values, room sensitivity intervals, refusal answer distributions, scripted scores, paired differences against other models, gravity refusals and timing: `/scratch/jjyeung/orch_n30/native_r4/builds/03_vsti_c/work/ns_bfb1c68684094d87b62795f3fcd33950/run/job/REPORT.json`.
++All table values, room sensitivity intervals, refusal answer distributions, scripted scores, paired differences against other models, gravity refusals and timing: `/scratch/jjyeung/orch_n30/native_r4/builds/04_vsti_d/work/cli_d_final/report/REPORT.json`.
++
++The refusal string is the runtime's recoverable error format (trace 3.13). No training row has an error response (0 of 165 checked by the reviewer), so step 544 has no trained recovery after a refused call. The report shows, per type, what it answers after a refused call (answer distribution) and how those items score.
+ 
+ | Type | Forced closes | No final answer | Gravity refusals | Refusal items | Refusal-item score |
+ |---|---:|---:|---:|---:|---:|
+-| camera_displacement | 0 | 0 | 0 | 1 | unavailable |
+-| camera_movement_direction | 0 | 0 | 0 | 2 | unavailable |
+-| camera_obj_abs_dist | 0 | 0 | 0 | 2 | unavailable |
+-| camera_obj_rel_dist_v1 | 0 | 0 | 0 | 2 | unavailable |
+-| camera_obj_rel_dist_v2 | 0 | 0 | 0 | 1 | unavailable |
+-| camera_obj_rel_dist_v3 | 0 | 0 | 0 | 1 | unavailable |
++| camera_displacement | 0 | 0 | 0 | 1 | 0.00% |
++| camera_movement_direction | 0 | 0 | 0 | 2 | 0.00% |
++| camera_obj_abs_dist | 0 | 0 | 0 | 2 | 10.00% |
++| camera_obj_rel_dist_v1 | 0 | 0 | 0 | 2 | 50.00% |
++| camera_obj_rel_dist_v2 | 0 | 0 | 0 | 1 | 0.00% |
++| camera_obj_rel_dist_v3 | 0 | 0 | 0 | 1 | 100.00% |
+ | obj_obj_relative_pos_lr | 0 | 0 | 0 | 0 | unavailable |
+ | obj_obj_relative_pos_nf | 0 | 0 | 0 | 0 | unavailable |
+ | obj_obj_relative_pos_ud | 0 | 0 | 0 | 0 | unavailable |
+ 
+-Refusal-answer distributions and refused-call names follow. Source: `/scratch/jjyeung/orch_n30/native_r4/builds/03_vsti_c/work/ns_bfb1c68684094d87b62795f3fcd33950/run/job/REPORT.json`.
++Refusal-answer distributions and refused-call names follow. Source: `/scratch/jjyeung/orch_n30/native_r4/builds/04_vsti_d/work/cli_d_final/report/REPORT.json`.
+ 
+ - camera_displacement: calls {"depth_at": 1}; final answers {"<answer>1.0</answer>": 1}.
+ - camera_movement_direction: calls {"depth_at": 2}; final answers {"<answer>A</answer>": 2}.
+@@ -60,8 +60,8 @@
+ 
+ | Camera type | Native | Scripted camera program |
+ |---|---:|---:|
+-| camera_displacement | unavailable | unavailable |
+-| camera_movement_direction | unavailable | unavailable |
++| camera_displacement | 0.00% (1/50) PARTIAL | unavailable |
++| camera_movement_direction | 0.00% (2/50) PARTIAL | unavailable |
+ 
+ | Other model | Camera type | Same-item count | Other-model score | Native minus other model | 95% scene interval |
+ |---|---|---:|---:|---:|---|
+@@ -70,10 +70,10 @@
+ | p1m200 (other models) | camera_displacement | 1 | unavailable | unavailable | unavailable |
+ | p1m200 (other models) | camera_movement_direction | 2 | unavailable | unavailable | unavailable |
+ 
+-Camera comparisons use exactly the recorded item keys; intervals and differences are in percentage points. All values: `/scratch/jjyeung/orch_n30/native_r4/builds/03_vsti_c/work/ns_bfb1c68684094d87b62795f3fcd33950/run/job/REPORT.json`.
++Camera comparisons use exactly the recorded item keys; intervals and differences are in percentage points. All values: `/scratch/jjyeung/orch_n30/native_r4/builds/04_vsti_d/work/cli_d_final/report/REPORT.json`.
+ 
+-Timing by shard: [{"geometry_seconds": 0.9466269568074495, "seconds": 1.245226080995053, "shard": "0/1"}]. Source: `/scratch/jjyeung/orch_n30/native_r4/builds/03_vsti_c/work/ns_bfb1c68684094d87b62795f3fcd33950/run/job/REPORT.json`.
++Timing by shard: [{"geometry_seconds": 1.018385736970231, "seconds": 1.2996088899672031, "shard": "0/1"}]. Source: `/scratch/jjyeung/orch_n30/native_r4/builds/04_vsti_d/work/cli_d_final/report/REPORT.json`.
+ 
+-The intervals resample whole scenes; room sensitivity resamples scene prefixes. Intervals describe the observed items, and missing types have no score.
++The intervals resample whole scenes; room sensitivity resamples scene prefixes. Type and subtask scores average completed items only; partial rows are marked PARTIAL. Empty rows have no score or interval. Missing items are never imputed. The primary requires all five subtasks to be complete.
+ 
+ Unchecked: GPU decoding and real tower validity
+--- a/code/report.py
++++ b/code/report.py
+@@ -6,13 +6,17 @@
+ from scorer import TYPES,GROUPS,collapse
+ 
+ DISCLOSURE="only move, turn and pose are served, by frozen G3T run on this read's frames with step-544's own scale and gravity; every other call is refused"
++REFUSAL_NOTE="The refusal string is the runtime's recoverable error format (trace 3.13). No training row has an error response (0 of 165 checked by the reviewer), so step 544 has no trained recovery after a refused call. The report shows, per type, what it answers after a refused call (answer distribution) and how those items score."
+ 
+ def estimate(values,types):
+     if not values:return None
+     scores={t:np.mean([r['score'] for r in values if r['question_type']==t]) for t in types if any(r['question_type']==t for r in values)}
+-    if len(scores)!=len(types):return None
+-    if set(types)==set(TYPES):return collapse(scores)['primary']
+-    return float(np.mean(list(scores.values())))
++    if set(types)==set(TYPES):
++        if len(scores)!=len(types):return None
++        return collapse(scores)['primary']
++    if all(sum(r['question_type']==t for r in values)==50 for t in types):
++        return float(np.mean(list(scores.values())))
++    return float(np.mean([r['score'] for r in values]))
+ 
+ def interval(values,types,cluster='scene',repeats=2000):
+     if not values or estimate(values,types) is None:return None
+@@ -23,12 +27,16 @@
+         for row in groups[key]:
+             j=types.index(row['question_type']);sums[i,j]+=row['score'];counts[i,j]+=1
+     rng=np.random.default_rng(544);weights=rng.multinomial(len(names),[1/len(names)]*len(names),size=repeats)
+-    den=weights@counts;num=weights@sums;valid=np.all(den>0,axis=1)
+-    means=num[valid]/den[valid]
+-    if not len(means):return None
+-    if set(types)==set(TYPES):
+-        boot=np.mean([np.mean(means[:,[types.index(t) for t in ts]],axis=1) for ts in GROUPS.values()],axis=0)
+-    else:boot=means.mean(axis=1)
++    den=weights@counts;num=weights@sums
++    if set(types)==set(TYPES) or all(sum(r['question_type']==t for r in values)==50 for t in types):
++        valid=np.all(den>0,axis=1);means=num[valid]/den[valid]
++        if not len(means):return None
++        if set(types)==set(TYPES):
++            boot=np.mean([np.mean(means[:,[types.index(t) for t in ts]],axis=1) for ts in GROUPS.values()],axis=0)
++        else:boot=means.mean(axis=1)
++    else:
++        valid=den.sum(axis=1)>0
++        boot=num[valid].sum(axis=1)/den[valid].sum(axis=1)
+     lo,hi=np.quantile(boot,[.025,.975])
+     return dict(confidence=.95,low=float(lo),high=float(hi),clusters=len(names),replicates=repeats,valid_replicates=int(valid.sum()),seed=544)
+ 
+@@ -37,15 +45,15 @@
+     refused=[r for r in values if any(c['refused'] for c in r['calls'])]
+     expected=50*len(types);complete=all(sum(r['question_type']==t for r in values)==50 for t in types)
+     return dict(items=len(values),expected=expected,complete=complete,
+-        status='complete' if complete else f'incomplete ({len(values)}/{expected})',items_with_any_call=sum(bool(r['calls']) for r in values),
++        status='complete' if complete else 'PARTIAL',items_with_any_call=sum(bool(r['calls']) for r in values),
+         camera_calls_served=sum(c['name'] in ('move','turn','pose') and c['kind']!='error' for c in calls),
+         calls_refused=dict(Counter(c['name'] for c in calls if c['refused'])),
+         camera_call_errors=sum(c['name'] in ('move','turn','pose') and c['kind']=='error' and not c['refused'] for c in calls),
+-        score=estimate(values,types) if complete else None,scene_interval=interval(values,types) if complete else None,room_interval=interval(values,types,'room') if complete else None,
++        score=estimate(values,types),scene_interval=interval(values,types),room_interval=interval(values,types,'room'),
+         forced_closes=sum(r['forced_close'] for r in values),no_final_answers=sum(r['no_final_answer'] for r in values),
+         gravity_refusals=sum(bool(r['geometry_refusal']) for r in values),geometry_auto_zero=sum(r.get('geometry_auto_zero',False) for r in values),seconds=sum(r['seconds'] for r in values),
+         refusal_cost=dict(items=len(refused),answers=dict(Counter(r['answer'] or '<none>' for r in refused)),
+-                          score=float(np.mean([r['score'] for r in refused])) if refused and complete else None,
++                          score=float(np.mean([r['score'] for r in refused])) if refused else None,
+                           per_item=[dict(key=r['key'],answer=r['answer'],score=r['score']) for r in refused]))
+ 
+ def build(merged_path,output,comparators=(),proof_path=None,release_path=None):
+@@ -69,7 +77,8 @@
+     per_type={t:metrics([r for r in native if r['question_type']==t],[t]) for t in TYPES}
+     subtasks={g:metrics([r for r in native if r['question_type'] in ts],ts) for g,ts in GROUPS.items()}
+     primary=metrics(native,list(TYPES))
+-    if not bundle['complete']:primary.update(score=None,scene_interval=None,room_interval=None)
++    primary['incomplete_subtasks']=[g for g,m in subtasks.items() if not m['complete']]
++    if primary['incomplete_subtasks']:primary.update(score=None,scene_interval=None,room_interval=None)
+     compared={}
+     for path in comparators:
+         label=path.get('label') if isinstance(path,dict) else None
+@@ -88,31 +97,33 @@
+                 paired_difference=estimate(paired,[t]) if len(paired)==50 else None,scene_interval=interval(paired,[t]) if len(paired)==50 else None,room_interval=interval(paired,[t],'room') if len(paired)==50 else None)
+         compared[label or Path(path).name.split('.')[0]]=dict(label='other models',source=pin(path),types=groups)
+     result=dict(schema='read-report-v1',synthetic=bundle['synthetic'],complete=bundle['complete'],
+-        source=pin(merged_path),proof=proof,proof_source=proof_pin,proof_summary=proof_note,frames=frame_note,index_check=index_check,release_check=release,disclosure=DISCLOSURE,missing=bundle['missing'],per_type=per_type,
++        source=pin(merged_path),proof=proof,proof_source=proof_pin,proof_summary=proof_note,frames=frame_note,index_check=index_check,release_check=release,disclosure=DISCLOSURE,refusal_note=REFUSAL_NOTE,missing=bundle['missing'],per_type=per_type,
+         subtasks=subtasks,primary=primary,other_models=compared,
+         scripted={t:metrics([r for r in script if r['question_type']==t],[t]) for t in CAMERA},
+         timing=dict(shards=[dict(shard=c['shard'],seconds=c['seconds'],geometry_seconds=c.get('geometry_seconds')) for c in bundle['completions']]),
+         gravity=[c['gravity'] for c in bundle['completions']],
+         not_checked=['GPU decoding and real tower validity' ] if bundle['synthetic'] else [])
++    for m in result['scripted'].values():
++        if not m['complete']:m.update(score=None,scene_interval=None,room_interval=None)
+     dest=Path(output);dump(dest/'REPORT.json',result)
+     source=str(dest/'REPORT.json')
+     heading='Synthetic rehearsal' if bundle['synthetic'] else 'Read result'
+-    score_text='unavailable' if primary['score'] is None else f"{100*primary['score']:.2f}%"
++    score_text='PARTIAL; incomplete subtasks: '+', '.join(primary['incomplete_subtasks']) if primary['score'] is None else f"{100*primary['score']:.2f}%"
+     refused_names=', '.join(f'{name} ({sum(m["calls_refused"].values())})' for name,m in subtasks.items() if m['calls_refused']) or 'none'
+     zeros=', '.join(f'{name} ({m["geometry_auto_zero"]})' for name,m in subtasks.items() if m['geometry_auto_zero']) or 'none'
+     text=[heading+'\n',proof_note+'\n',frame_note+'\n',index_note+'\n',f'Primary: {score_text}; proof {proof_state}; subtasks with refused calls: {refused_names}; geometry auto-zero: {zeros}; missing items are never imputed. Source: `{source}`.\n',DISCLOSURE+'.\n',
+-          "Refusals use the runtime's recoverable error format (trace 3.13).\n",
+           'The scale rule remains unaudited; the depth-head lineage before step 544 was not established.\n',
+           'This rehearsal uses synthetic checkpoint depth/gravity and token generation. The statement above specifies the production serving policy.\n' if bundle['synthetic'] else '',
+           f"Completed items: {len(native)}; missing items: {len(bundle['missing'])}. Source: `{source}`.\n",
+           '| Type or subtask | Items | Any call | Served | Refused | Score | 95% scene interval |',
+           '|---|---:|---:|---:|---:|---:|---|']
+     for name,m in list(per_type.items())+list(subtasks.items()):
+-        val=m['status'] if m['score'] is None else f"{100*m['score']:.2f}%"
++        val='unavailable' if m['score'] is None else f"{100*m['score']:.2f}%"
++        if not m['complete']:val+=' PARTIAL'
+         ci=m['scene_interval'];span='unavailable' if ci is None else f"[{100*ci['low']:.2f}, {100*ci['high']:.2f}]"
+-        text.append(f"| {name} | {m['items']} | {m['items_with_any_call']} | {m['camera_calls_served']} | {sum(m['calls_refused'].values())} | {val} | {span} |")
++        text.append(f"| {name} | {m['items']}/{m['expected']} | {m['items_with_any_call']} | {m['camera_calls_served']} | {sum(m['calls_refused'].values())} | {val} | {span} |")
+     text.extend(['',f'All table values, room sensitivity intervals, refusal answer distributions, scripted scores, paired differences against other models, gravity refusals and timing: `{source}`.',
+-                 '', '| Type | Forced closes | No final answer | Gravity refusals | Refusal items | Refusal-item score |',
++                 '', REFUSAL_NOTE, '', '| Type | Forced closes | No final answer | Gravity refusals | Refusal items | Refusal-item score |',
+                  '|---|---:|---:|---:|---:|---:|'])
+     for name,m in per_type.items():
+         cost=m['refusal_cost'];val='unavailable' if cost['score'] is None else f"{100*cost['score']:.2f}%"
+@@ -124,7 +135,8 @@
+     text.extend(['', '| Camera type | Native | Scripted camera program |', '|---|---:|---:|'])
+     def percent(value):return 'unavailable' if value is None else f'{100*value:.2f}%'
+     for name,m in result['scripted'].items():
+-        text.append(f"| {name} | {percent(per_type[name]['score'])} | {percent(m['score'])} |")
++        native_m=per_type[name]
++        text.append(f"| {name} | {percent(native_m['score'])} ({native_m['items']}/{native_m['expected']}){' PARTIAL' if not native_m['complete'] else ''} | {percent(m['score']) if m['complete'] else 'unavailable'} |")
+     text.extend(['', '| Other model | Camera type | Same-item count | Other-model score | Native minus other model | 95% scene interval |',
+                  '|---|---|---:|---:|---:|---|'])
+     for model,value in compared.items():
+@@ -134,6 +146,6 @@
+             text.append(f"| {model} (other models) | {name} | {m['items']} | {percent(m['other_model_score'])} | {difference} | {span} |")
+     text.extend(['',f'Camera comparisons use exactly the recorded item keys; intervals and differences are in percentage points. All values: `{source}`.',
+                  '',f"Timing by shard: {json.dumps(result['timing']['shards'],sort_keys=True)}. Source: `{source}`.",
+-                 '', 'The intervals resample whole scenes; room sensitivity resamples scene prefixes. Intervals describe the observed items, and missing types have no score.',
++                 '', 'The intervals resample whole scenes; room sensitivity resamples scene prefixes. Type and subtask scores average completed items only; partial rows are marked PARTIAL. Empty rows have no score or interval. Missing items are never imputed. The primary requires all five subtasks to be complete.',
+                  '', 'Unchecked: '+('; '.join(result['not_checked']) or 'No additional checks claimed beyond the run receipts.')])
+     (dest/'REPORT.md').write_text('\n'.join(text)+'\n');return result
+--- a/out/ASSETS.json
++++ b/out/ASSETS.json
+@@ -10,7 +10,7 @@
+     ]
+   ],
+   "base_root": "/scratch/jjyeung/orch_n30/trin_read/root",
+-  "code": "/scratch/jjyeung/orch_n30/native_r4/builds/03_vsti_c/code",
++  "code": "/scratch/jjyeung/orch_n30/native_r4/builds/04_vsti_d/code",
+   "cpu_python": "/scratch/jjyeung/orch_n30/native_r4/from113/env312/bin/python3.12",
+   "cpu_roots": [
+     "/scratch/jjyeung/orch_n30/native_r4"
+@@ -26,8 +26,8 @@
+     "sha256": "4e4a6ac51788f7dd1ca9e0fc68f95109a129a636ce5f763e5b4ef3c3109f91c8"
+   },
+   "fla_relative_root": "p",
+-  "fla_root": "/scratch/jjyeung/orch_n30/native_r4/builds/03_vsti_c/work/fla/ebe69df8/p",
+-  "inputs": "/scratch/jjyeung/orch_n30/native_r4/builds/03_vsti_c/work/input",
++  "fla_root": "/scratch/jjyeung/orch_n30/native_r4/builds/04_vsti_d/work/fla/ebe69df8/p",
++  "inputs": "/scratch/jjyeung/orch_n30/native_r4/builds/04_vsti_d/work/input",
+   "interpreter_root": "/scratch/jjyeung/orch_n30/native_r4/from113/env312",
+   "metadata_archive": {
+     "path": "/scratch/jjyeung/orch_n30/native_r4/from113/work/obj/metadata_e10fbb95487f3baf.tar",
+@@ -44,7 +44,7 @@
+     "sha256": "ffc81db4b3b1c3d1e42ac91159d504dc57b36eebfc75f537d15a426bbe6a8a22"
+   },
+   "runtime_relative_root": "rwtrain_torch211_cu129",
+-  "runtime_root": "/scratch/jjyeung/orch_n30/native_r4/builds/03_vsti_c/work/runtime/rwtrain_torch211_cu129",
++  "runtime_root": "/scratch/jjyeung/orch_n30/native_r4/builds/04_vsti_d/work/runtime/rwtrain_torch211_cu129",
+   "tower_config": "/scratch/jjyeung/orch_n30/native_r4/dl/g3t_config.json",
+   "tree": "/scratch/jjyeung/orch_n30/native_r4/from113/work/tree",
+   "tree_logical": "/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872",
+--- a/out/DECISIONS.md
++++ b/out/DECISIONS.md
+@@ -6,13 +6,15 @@
+ - S2: Record proof exceptions, missing or malformed receipts, timeouts, call errors and replay failures as a failed proof receipt, then continue to the independent read canary. Token divergence also continues. Stopping the read on a proof exception would change the current ruling and is not the default. If the allocation deadline has already expired, no later phase can run.
+ - S3: Exclude runtime-refused call records from independent response parity and record their positions and reason. Keep full-token P1 and pixel/prompt P3 checks. P2 still compares the checkpoint heads. With no served calls, no independent served-response comparison is claimed. Probing a served historical camera item was the other allowed option; it would require extra proof assets in the read namespace.
+ - S4: Auto-zero only camera displacement/direction items whose camera program needs the refused capture geometry. Other types decode without admitted camera geometry; every call, including move/turn/pose, receives the runtime refusal. Disable own-geometry fallback for that decode. Record both the capture refusal and each refused call; replay the refusal bytes. The report distinguishes auto-zero counts from decoded capture refusals.
+-- S5/S6: Withhold scores and confidence intervals for incomplete types and subtasks. Show `incomplete (n/50)` for each type; subtasks use their full expected denominator. Withhold incomplete paired and scripted scores too. The primary line names all subtasks with refused calls and their call counts, plus proof status and auto-zero counts.
++- S5/S6: Types and subtasks report completed/expected counts, scores over completed items and scene-clustered intervals, with PARTIAL on each incomplete row. Use the observed-item mean for partial subtasks, including when a constituent type has no observations; never impute missing items. Complete subtasks retain V1c's official balanced-type score and bootstrap estimator unchanged. Print the primary only when all five native subtasks are complete; otherwise print PARTIAL and name incomplete subtasks. Empty rows have no score or interval. Incomplete paired and scripted scores remain withheld. The primary line also names all subtasks with refused calls and their call counts, plus proof status and auto-zero counts.
+ - S7: Reserve 600 seconds for return. Stop starting items at deadline minus reserve minus 1.25 times the maximum observed complete-item time, with a 100-second initial floor. Kill the read subprocess at deadline minus reserve. These are distinct times; an unseen slow item can still overrun its estimate. Keep the sealed six-hour GPU-phase cap.
+ - S8: Preserve the comparator-prepared frames. Compare all scene ordinals with the separately staged own selected-frame list and record each difference; do not silently change frames. That list is absent from `in/vsti`, so the comparison is pending, with an exact operator command. The release-video check now requires the full decoded frame count to match the selection. The five release videos are present; the full frame-count checks pass, but selected pixels differ. See out/RELEASE_CHECK.json.
+ - Preserve the sealed ten-item canary: four camera and six other items, then 96 camera and 344 other items. Do not change membership to force a 90/350 remainder.
+ - Build named comparison reports on Trinity from returned journals. The Orchard allocation returns journals, merged records, proof and completion receipts without generating the named report.
+-- Refusals use `error: call_unavailable; answer directly from the video`, the runtime's recoverable error format (trace 3.13). This build makes no claim that the checkpoint was trained on those bytes.
++- Refusals use `error: call_unavailable; answer directly from the video`, the runtime's recoverable error format (trace 3.13). No training row has an error response (0 of 165 checked by the reviewer), so step 544 has no trained recovery after a refused call. Keep the per-type refusal answer distributions and scores, with this explanation above them.
+ - CPU rehearsals use synthetic raw tower arrays and checkpoint/logit boundaries. Real frame hashes, preparation, decoder control flow, refusal injection, replay, scoring and reporting execute. No GPU or real frozen-weight tower computation runs here.
+ - The brief forbids reading skills under `/home`; apply its supplied prose rules directly. No network, SSH, Git, other agents or external writes are used.
+ 
+ When the sealed GPU-phase cap expires before the absolute deadline, the wrapper passes an earlier effective deadline to the worker. The item-start margin is therefore preserved relative to either subprocess kill boundary.
++
++V1d defaults: preserve out/d.tar byte for byte; change only report behavior and wording in production code. Reuse the CPU fixture tower; no real tower or GPU run is authorized by this small build. Prior V1c evidence copied into out/ remains historical unless this build regenerates it. The original 165-row review is attributed to the reviewer, not rerun here.
+--- a/out/LEGALITY.md
++++ b/out/LEGALITY.md
+@@ -1,6 +1,6 @@
+ Only move, turn and pose are served on this read. The frozen public G3T tower runs on the read's own verified frames; the step-544 checkpoint supplies depth scale and gravity through C8r's preparation code. This build fits no parameters. The report discloses the scale rule as unaudited; the review did not establish the depth head's lineage before step 544.
+ 
+-`code/policy.py:20` enforces the camera-only dispatcher. Every other recognized call receives `error: call_unavailable; answer directly from the video`, the runtime's recoverable error format (trace 3.13). The response is injected through the existing decoder loop so the item can continue. Tags outside the recognized call grammar remain text. The tests do not establish training exposure to the refusal string.
++`code/policy.py:20` enforces the camera-only dispatcher. Every other recognized call receives `error: call_unavailable; answer directly from the video`, the runtime's recoverable error format (trace 3.13). The response is injected through the existing decoder loop so the item can continue. Tags outside the recognized call grammar remain text. No training row has an error response (0 of 165 checked by the reviewer), so step 544 has no trained recovery after a refused call. The report shows, per type, what it answers after a refused call (answer distribution) and how those items score.
+ 
+ `code/engine.py:121` calls the shared capture preparation helper in `code/sj/orch_cd/evalx/work/milestone/native/out2/geometry.py`. That helper retains C8r's depth-ratio estimator, camera conversion and gravity guard. `out/GEOMETRY_CPU.json` records bit-identical scale, camera matrices, intrinsics and guard decisions using the same real raw cache and synthetic checkpoint heads. Actual checkpoint preparation and GPU proof remain unexecuted.
+ 
+@@ -12,7 +12,7 @@
+ 
+ `code/engine.py:193` checks canary membership, strict scores, parse outcomes, call accounting, replay and timing. GPU parity keeps full token/cache and prompt/pixel checks while excluding refused response positions from independent served-response comparisons, with reasons recorded. No refusal is presented as a successful served call.
+ 
+-`code/o.py:197` turns a failed proof process or receipt into a bound failure record and continues the read. `code/report.py:51` requires the in-job proof receipt for a non-synthetic report and states its status on the primary line. The same line names every subtask with refused calls and its count. Incomplete types and subtasks receive no score or confidence interval.
++`code/o.py:197` turns a failed proof process or receipt into a bound failure record and continues the read. `code/report.py` requires the in-job proof receipt for a non-synthetic report and states its status on the primary line. The same line names every subtask with refused calls and its count. Incomplete types and subtasks print completed/expected counts, scores over completed items and scene-clustered intervals, with PARTIAL on the same line. Empty rows have no score or interval. The primary is printed only when all five subtasks are complete; otherwise it says PARTIAL and lists the incomplete subtasks. Missing items are never imputed.
+ 
+ `out/FULL_ADAPT.json` verifies all required frame hashes and agreement with V1b's bound manifests. These are the comparators' prepared frames from VSI-Bench copies of the ScanNet videos, decoded with av 15.1; they are not claimed to be identical to VSTI release videos. The full selected-frame reference list is unavailable. The five release-video checks pass the frame-count assertions; none of their 160 selected frames is byte-identical. `out/INDEX_CHECK.json`, `out/RELEASE_CHECK.json` and `out/FRAME_CHECKS.md` record the results, pending index comparison and operator commands. The decoder now asserts the complete video frame count.
+ 
+--- a/out/RUN_ORCHARD.md
++++ b/out/RUN_ORCHARD.md
+@@ -42,11 +42,11 @@
+ Build the named report locally after receiving the return, outside the Codex sandbox. This preserves the returned `/r` paths for hash checks and keeps report names off Orchard:
+ 
+ ```bash
+-cd /scratch/jjyeung/orch_n30/native_r4/builds/03_vsti_c
++cd /scratch/jjyeung/orch_n30/native_r4/builds/04_vsti_d
+ ./work/py work/report_return.py --archive work/returned.tar.gz --root work/returned_report
+ ```
+ 
+-The report appears in `work/returned_report/report/`. It requires the bound proof receipt, including a failed receipt when appropriate, names refused subtasks on the primary line, and withholds incomplete scores. This local namespace command is provided for the operator; it was not executed against an Orchard return.
++The report appears in `work/returned_report/report/`. It requires the bound proof receipt, including a failed receipt when appropriate, names refused subtasks on the primary line, and shows observed-item scores and intervals on PARTIAL type/subtask rows. This local namespace command is provided for the operator; it was not executed against an Orchard return.
+ 
+ Unchecked: Orchard admission, staged bwrap execution, actual CUDA allocation, H100 tower/decoding/proof, remote transfers and deadline return duration. `out/UNEXECUTED.md` records these limits. Upload receipts remain pending in `out/ADDITIONS.pending.json`.
+ 
+--- a/out/RUN_TRINITY.md
++++ b/out/RUN_TRINITY.md
+@@ -5,7 +5,7 @@
+ Use the build's interpreter wrapper for host preparation:
+ 
+ ```bash
+-cd /scratch/jjyeung/orch_n30/native_r4/builds/03_vsti_c
++cd /scratch/jjyeung/orch_n30/native_r4/builds/04_vsti_d
+ ./work/py code/entry.py adapt --items /scratch/jjyeung/orch_n30/native_r4/in/vsti/vstibench_repr_450_v3.json --media /scratch/jjyeung/orch_n30/native_r4/in/vsti/media.json --frames /scratch/jjyeung/orch_n30/native_r4/in/vsti/frames --out work/input --logical-root /i
+ ./work/py -c 'from pathlib import Path; Path("work/input/SPEC.json").write_bytes(Path("out/SPEC.json").read_bytes())'
+ ```
+@@ -81,6 +81,6 @@
+ ./work/py out/rehearsal/run_rehearsal.py --fixture-tower
+ ```
+ 
+-This uses private shared memory and the production token/error-response loop. The exact command and namespace result are written to `out/rehearsal/NAMESPACE.json`. V1's operator rehearsal passed; this build does not infer V1c namespace success from it. V1c's in-sandbox library and CLI results are `out/rehearsal/RESULT.json` and `work/cli_sealed/RESULT.json`.
++This uses private shared memory and the production token/error-response loop. The exact command and namespace result are written to `out/rehearsal/NAMESPACE.json`. This build's namespace attempt and CPU fallback are recorded in `out/rehearsal/RESULT.json`; the CLI rehearsal is `work/cli_d_final/RESULT.json`.
+ 
+ The full selected-frame index comparison and its missing input are documented in `out/FRAME_CHECKS.md`. The real release-video check completed; none of the selected frames is byte-identical. See `out/RELEASE_CHECK.json`.
+--- a/out/SIZING.md
++++ b/out/SIZING.md
+@@ -1,26 +1 @@
+-These projections use the job-170056 rates supplied in the build brief. They are not measurements of this build.
+-
+-| Phase | Projected seconds | Basis |
+-|---|---:|---|
+-| Staging and one load | about 1,800 | Supplied rate, excluding geometry |
+-| Tower | 1,181.8 | 311 scenes × 3.8; about 10 GB peak GPU memory |
+-| Checkpoint scale/gravity | 311 × g | g is unmeasured |
+-| Historical proof geometry | p × g | p distinct selected captures |
+-| Proof decode and repeat | 159.8–879.8 | Two repeats of 3 displacement, 3 direction and 4 rotation items; rotation assumed 10–100 seconds |
+-| Canary | 86.6–626.6 | 4 camera and 6 other items |
+-| Remaining camera items | 638.4 | 48 × 6.0 + 48 × 7.3 |
+-| Remaining other items | 3,440–34,400 | 344 × assumed 10–100 seconds |
+-| Additional restoration | L | Unmeasured; processes load separately |
+-| Return reserve | 600 | Scheduling allowance, not measured transfer time |
+-
+-The subtotal excluding scale/gravity, proof, additional restoration and return is 7,146.8–38,646.8 seconds. A full first job is not promised under the 21,600-second GPU-phase cap. The fixed canary membership is recorded in `out/CANARY_KEYS.json` and checked against the complete input in `out/FULL_ADAPT.json`.
+-
+-The canary projects remaining work using 1.25 times each type's maximum observed item-pair duration, with the inherited camera floors and 100 seconds for unseen other types. Deadline admission uses the maximum across all observed complete item pairs, with an initial 100-second floor. These serve different purposes: the first estimates remaining work; the second reserves room for a slow item to finish before merge.
+-
+-`code/budget.py` sets the item-start cutoff to deadline − 600 − 1.25 × maximum item time. The outer wrapper kills the subprocess at deadline − 600. At the initial floor, those times differ by 125 seconds. `tests/test_v1c.py:test_s7_distinct_deadlines` checks the separation after a measured 200-second item. An unseen slower item can still exceed the margin; committed journals survive a timeout.
+-
+-The 600-second return reserve exceeds the documented sequential channel timeout allowance of 540 seconds, but archive creation and transfers can vary. No Orchard return duration is certified here. Reporting runs later on Trinity, so the allocation's read phase finishes with merge and completion rather than a named report.
+-
+-The build uses less than its 6 GB local limit; `out/FINAL_RESULT.json` records the final byte inventory. Real tower weights and runtime environments remain external read-only assets. The full adapted frame store is local to this build.
+-
+-When the sealed GPU-phase cap expires before the absolute deadline, the wrapper passes an earlier effective deadline to the worker. The item-start margin is therefore preserved relative to either subprocess kill boundary.
++V1d writes only inside this build directory, with a 2 GB limit. `out/FINAL_RESULT.json` records the measured footprint. The code archive is rebuilt and the reference archive remains byte-identical to V1c. Large model/runtime assets are external read-only operator inputs and are not copied or staged by this build.
+--- a/out/rehearsal/RUNBOOK.md
++++ b/out/rehearsal/RUNBOOK.md
+@@ -1,7 +1,7 @@
+ Run outside the sandbox on trinity-1-3:
+ 
+ ```bash
+-cd /scratch/jjyeung/orch_n30/native_r4/builds/03_vsti_c
++cd /scratch/jjyeung/orch_n30/native_r4/builds/04_vsti_d
+ ./work/py out/rehearsal/run_rehearsal.py --fixture-tower
+ ```
+ 
+--- a/tests/test_v1c.py
++++ b/tests/test_v1c.py
+@@ -120,8 +120,8 @@
+         self.assertIn('proof failed',headline)
+         for name,m in result['subtasks'].items():
+             if m['calls_refused']:self.assertIn(name+' ('+str(sum(m['calls_refused'].values()))+')',headline)
+-        self.assertTrue(all(m['score'] is None and m['scene_interval'] is None for m in result['per_type'].values()))
+-        self.assertIn('incomplete (',text)
++        self.assertTrue(all(m['score'] is not None and m['scene_interval'] is not None for m in result['per_type'].values() if m['items']))
++        self.assertIn('PARTIAL',text)
+         dump(B/'out/GEOMETRY_SCOPE_CPU.json',dict(passed=True,synthetic=True,auto_zero=sum(r['geometry_auto_zero'] for r in data),decoded_other=len(other),headline=headline))
+         index=dict(status='complete',scenes=2,matching=1,differences=[dict(scene='fixture',frames=[dict(slot=2,prepared=1,reference=2)])])
+         dump(root/'INDEX.json',index);bound=deepcopy(self.bound);bound['inputs']['INDEX_CHECK.json']=pin(root/'INDEX.json')
+@@ -131,7 +131,7 @@
+         self.assertIn('1/2 scenes match',(root/'report_indices/REPORT.md').read_text())
+     def test_s5_complete_and_incomplete_types(self):
+         base=dict(calls=[],forced_close=False,no_final_answer=False,geometry_refusal=None,seconds=1,answer='A',score=1.,scene='s',room='r',question_type='camera_displacement')
+-        partial=report.metrics([base]*49,['camera_displacement']);self.assertIsNone(partial['score']);self.assertEqual(partial['status'],'incomplete (49/50)')
++        partial=report.metrics([base]*49,['camera_displacement']);self.assertEqual(partial['score'],1.);self.assertEqual(partial['status'],'PARTIAL')
+         self.assertEqual(report.metrics([base]*50,['camera_displacement'])['score'],1.)
+     def test_s7_distinct_deadlines(self):
+         b=budget.Budget('2026-11-16T16:15:00Z',clock=lambda:budget.timestamp('2026-11-16T16:02:00Z'))
+--- a/tests/test_v1d.py
++++ b/tests/test_v1d.py
+@@ -0,0 +1,92 @@
++"""Partial report and refusal disclosure regressions."""
++from pathlib import Path
++from unittest.mock import patch
++import sys,unittest,uuid
++import numpy as np
++B=Path(__file__).resolve().parents[1];sys.path.append(str(B/'code'))
++import report
++from adapter import dump,pin
++from scorer import TYPES,GROUPS,collapse
++
++class ReportChanges(unittest.TestCase):
++    def row(self,t,i,score=1.,refused=False):
++        return dict(key=t+str(i),question_type=t,arm='native',score=score,
++            scene='scene'+str(i%3)+'_00',room='scene'+str(i%3),
++            calls=[dict(name='depth_at',kind='error',refused=True)] if refused else [],
++            answer='A' if score else '',forced_close=False,no_final_answer=not bool(score),
++            geometry_refusal=None,seconds=1.)
++    def build(self,rows,complete=False):
++        root=B/'work'/('report_d_'+uuid.uuid4().hex);root.mkdir()
++        dump(root/'truth.json',{r['key']:dict(scene=r['scene'],room=r['room']) for r in rows})
++        bound=dict(inputs={'SCORES.json':pin(root/'truth.json')})
++        dump(root/'bound.json',bound)
++        dump(root/'merged.json',dict(bound=pin(root/'bound.json'),synthetic=True,items=rows,
++            complete=complete,missing=[],completions=[]))
++        with patch.object(report,'validate_bound',return_value=bound):
++            value=report.build(root/'merged.json',root)
++        return value,(root/'REPORT.md').read_text()
++    def test_partial_type_score_count_and_scene_bootstrap(self):
++        rows=[self.row(TYPES[0],i,float(i%3==0)) for i in range(49)]
++        value,text=self.build(rows)
++        m=value['per_type'][TYPES[0]]
++        self.assertEqual(m['status'],'PARTIAL');self.assertEqual(m['items'],49)
++        self.assertAlmostEqual(m['score'],17/49)
++        weights=np.random.default_rng(544).multinomial(3,[1/3]*3,size=2000)
++        boot=(weights@np.array([17.,0.,0.]))/(weights@np.array([17.,16.,16.]))
++        expected=np.quantile(boot,[.025,.975])
++        self.assertEqual([m['scene_interval']['low'],m['scene_interval']['high']],list(expected))
++        line=next(x for x in text.splitlines() if x.startswith('| '+TYPES[0]+' |'))
++        for token in ('49/50','34.69%','PARTIAL','['):self.assertIn(token,line)
++        self.assertIsNone(value['primary']['score'])
++    def test_partial_subtask_uses_only_completed_items(self):
++        name,types=next((g,ts) for g,ts in GROUPS.items() if len(ts)==3)
++        rows=[self.row(types[0],i,1.) for i in range(3)]+[self.row(types[1],0,0.)]
++        value,text=self.build(rows);m=value['subtasks'][name]
++        self.assertEqual(m['score'],.75);self.assertEqual(m['items'],4)
++        self.assertIsNotNone(m['scene_interval']);self.assertIsNotNone(m['room_interval'])
++        line=next(x for x in text.splitlines() if x.startswith('| '+name+' |'))
++        for token in ('4/150','75.00%','PARTIAL','['):self.assertIn(token,line)
++    def test_complete_subtask_preserves_v1c_estimator_and_interval(self):
++        import types
++        old=types.ModuleType('v1c_report')
++        source=B.parent/'03_vsti_c/code/report.py'
++        exec(compile(source.read_text(),str(source),'exec'),old.__dict__)
++        name,ts=next((g,ts) for g,ts in GROUPS.items() if len(ts)==3)
++        rows=[self.row(t,i,float((i+j)%4==0)) for j,t in enumerate(ts) for i in range(50)]
++        self.assertEqual(report.estimate(rows,ts),old.estimate(rows,ts))
++        self.assertEqual(report.interval(rows,ts),old.interval(rows,ts))
++        self.assertEqual(report.interval(rows,ts,'room'),old.interval(rows,ts,'room'))
++    def test_empty_rows_have_no_imputed_score(self):
++        value,text=self.build([])
++        for m in list(value['per_type'].values())+list(value['subtasks'].values()):
++            self.assertEqual(m['items'],0);self.assertEqual(m['status'],'PARTIAL')
++            self.assertIsNone(m['score']);self.assertIsNone(m['scene_interval'])
++        headline=next(x for x in text.splitlines() if x.startswith('Primary:'))
++        self.assertIn('Primary: PARTIAL',headline)
++        for name in GROUPS:self.assertIn(name,headline)
++        self.assertIn('0/50',text)
++    def test_primary_requires_all_five_complete_subtasks(self):
++        rows=[self.row(t,i,float(j%2)) for j,t in enumerate(TYPES) for i in range(50)]
++        partial,text=self.build(rows[:-1],complete=True)
++        missing=next(g for g,ts in GROUPS.items() if TYPES[-1] in ts)
++        self.assertEqual(partial['primary']['incomplete_subtasks'],[missing])
++        self.assertIsNone(partial['primary']['score'])
++        headline=next(x for x in text.splitlines() if x.startswith('Primary:'))
++        self.assertIn('PARTIAL; incomplete subtasks: '+missing,headline)
++        full,text=self.build(rows,complete=True)
++        self.assertAlmostEqual(full['primary']['score'],collapse({t:float(j%2) for j,t in enumerate(TYPES)})['primary'])
++        self.assertIsNotNone(full['primary']['scene_interval'])
++        self.assertNotIn('PARTIAL',next(x for x in text.splitlines() if x.startswith('Primary:')))
++    def test_refusal_distribution_score_and_wording(self):
++        rows=[self.row(TYPES[0],0,1.,True),self.row(TYPES[0],1,0.,True),self.row(TYPES[0],2,1.)]
++        value,text=self.build(rows);cost=value['per_type'][TYPES[0]]['refusal_cost']
++        self.assertEqual(cost['items'],2);self.assertEqual(cost['answers'],{'A':1,'<none>':1})
++        self.assertEqual(cost['score'],.5);self.assertEqual(len(cost['per_item']),2)
++        self.assertEqual(value['refusal_note'],report.REFUSAL_NOTE)
++        self.assertLess(text.index(report.REFUSAL_NOTE),text.index('| Type | Forced closes'))
++        self.assertLess(text.index(report.REFUSAL_NOTE),text.index('Refusal-answer distributions'))
++        for phrase in ("runtime's recoverable error format (trace 3.13)",'0 of 165 checked by the reviewer','step 544 has no trained recovery after a refused call'):
++            self.assertIn(phrase,text);self.assertIn(phrase,(B/'out/LEGALITY.md').read_text())
++        self.assertIn('50.00%',text)
++
++if __name__=='__main__':unittest.main()
+--- a/work/finalize_d.py
++++ b/work/finalize_d.py
+@@ -0,0 +1,72 @@
++"""Validate and seal the small report build."""
++from pathlib import Path
++import ast,difflib,json,re,sys,time
++B=Path(__file__).resolve().parents[1];S=B.parent/'03_vsti_c'
++sys.path.append(str(B/'code'))
++from adapter import dump,load,pin,sha
++import engine
++log=B/'work/tests_d_final.log';assert re.search(r'Ran 59 tests.*\n\nOK\s*$',log.read_text(),re.S)
++legacy=load(B/'out/LEGACY_TESTS.json');extra=load(B/'out/LEGACY_EXTRA.json')
++assert legacy['run']==28 and not legacy['failures'] and not legacy['errors'] and extra['passed'] and extra['run']==2
++inventory=[]
++for p in sorted((B/'tests').glob('test_*.py')):
++    inventory.extend(dict(file=str(p.relative_to(B)),test=n.name) for n in ast.walk(ast.parse(p.read_text())) if isinstance(n,ast.FunctionDef) and n.name.startswith('test_'))
++assert len(inventory)==59
++dump(B/'out/TESTS.json',dict(passed=True,kit_run=59,inherited_run=30,kit_log=pin(log),inherited=pin(B/'out/LEGACY_TESTS.json'),extra=pin(B/'out/LEGACY_EXTRA.json'),inventory=inventory,source_pins=engine.source_pins(),unexecuted_inherited=[r for r in legacy['inventory'] if not r['executed'] and r['test'] not in extra['tests']]))
++cli=load(B/'work/cli_d_final/RESULT.json');rh=load(B/'out/rehearsal/RESULT.json')
++assert cli['passed'] and rh['passed'] and cli['items']==rh['items']==9 and cli['captures']==rh['captures']==2
++for name in ('REPORT.json','REPORT.md'):(B/name).write_bytes((B/'work/cli_d_final/report'/name).read_bytes())
++report=load(B/'REPORT.json');assert report['primary']['score'] is None and report['primary']['incomplete_subtasks']
++assert all(m['score'] is not None and m['scene_interval'] is not None for m in report['per_type'].values() if m['items'])
++assert report['refusal_note'] in (B/'REPORT.md').read_text()
++package=load(B/'out/PACKAGE.json');family=load(B/'out/FAMILY.json')
++for k in ('code','reference','family'):assert sha(package[k]['path'])==package[k]['sha256']
++assert family['code_sources']==engine.source_pins()
++assert sha(S/'out/c.tar')=='dc40cf60212a34c2789a9821bb558e0592074c4d81b0bb1239e55c238f093eaa'
++assert sha(S/'out/FAMILY.json')=='3cf68794ee715bdad6936486ce64edc72c40b08165f9e0763c126aaa685eecf6'
++assert sha(S/'out/d.tar')==package['reference']['sha256']=='9a1de8608ea0e75e2f2436259b81f0e991b2007002a59de11d85062e8384d08f'
++coverage=load(B/'out/UNEXECUTED.json');assert all(sha(B/f['file'])==f['sha256'] for f in coverage['files'])
++review=load(B/'out/REVIEW_ITEMS.json');review['S5']=dict(fix='Observed-item scores and scene intervals on PARTIAL type/subtask rows; primary requires all five complete subtasks.',tests=[r['test'] for r in inventory if r['file']=='tests/test_v1d.py'])
++dump(B/'out/REVIEW_ITEMS.json',review)
++files=[p.relative_to(B) for folder in ('code','tests') for p in (B/folder).rglob('*') if p.is_file()]
++files += [Path(p) for p in ('out/DECISIONS.md','out/LEGALITY.md','out/RUN_TRINITY.md','out/RUN_ORCHARD.md','out/SIZING.md','out/ASSETS.json','out/rehearsal/RUNBOOK.md','work/py','work/ns_op.py','work/package_d.py','work/finalize_d.py','REPORT.md')]
++patch=[];stats=[]
++for rel in sorted(files):
++    p=B/rel;old=S/rel
++    if old.is_file() and p.read_bytes()==old.read_bytes():continue
++    lines=list(difflib.unified_diff(old.read_text().splitlines(True) if old.is_file() else [],p.read_text().splitlines(True),fromfile='a/'+str(rel),tofile='b/'+str(rel)))
++    patch.extend(lines);stats.append(dict(file=str(rel),added=sum(x.startswith('+') and not x.startswith('+++') for x in lines),removed=sum(x.startswith('-') and not x.startswith('---') for x in lines)))
++(B/'out/DIFF_vs_V1c.patch').write_text(''.join(patch))
++summary=dict(files=stats,added=sum(x['added'] for x in stats),removed=sum(x['removed'] for x in stats),production_changed=['code/report.py'],scope='Sources, tests, report prose, operator paths and packaging helpers; generated JSON evidence and binary archives are pinned separately.')
++dump(B/'out/DIFF_STATS.json',summary)
++descriptions={'code/report.py':'Reports observed-item scores and intervals for partial rows, gates the primary, and explains refusal recovery above the existing refusal results.','tests/test_v1c.py':'Updates only the assertions superseded by the partial-score ruling.','tests/test_v1d.py':'Checks partial and empty rows, grouped estimates, scene bootstrap intervals, primary gating and refusal wording.','out/LEGALITY.md':'States the reviewer training-row finding and partial-report contract.','out/DECISIONS.md':'Records the observed-item scoring default, unchanged reference archive and review attribution.','REPORT.md':'Shows the regenerated CPU sample report with partial scores and the refusal explanation.'}
++(B/'out/DIFF_FILES.md').write_text(summary['scope']+'\n\n'+'\n'.join('- `'+r['file']+'`: '+descriptions.get(r['file'],'Makes the local build, package or operator instructions use the V1d artifacts.') for r in stats)+'\n')
++footprint=sum(p.stat().st_size for p in B.rglob('*') if p.is_file() and not any(n in p.relative_to(B).parts for n in ('.git','.agents','.aws','.codex')))
++assert footprint<2_000_000_000
++not_checked=['GPU decode and real frozen-weight tower','Actual checkpoint heads and historical GPU equality','Orchard namespace, transfers and submission','Full-frame adaptation and release-video checks were inherited from V1c, not rerun','The reviewer training-row audit was not rerun','Own selected-frame reference remains unavailable']
++value=dict(status='built and CPU-verified',launch_ready=False,package=package,tests=pin(B/'out/TESTS.json'),rehearsal=pin(B/'out/rehearsal/RESULT.json'),cli_rehearsal=pin(B/'work/cli_d_final/RESULT.json'),report=pin(B/'REPORT.json'),patch=pin(B/'out/DIFF_vs_V1c.patch'),diff=summary,coverage=dict(source=pin(B/'out/UNEXECUTED.json'),counts=coverage['counts'],authored_counts=coverage['authored_counts']),reference_byte_identical=True,v1c_archive_hashes_unchanged=True,footprint_bytes_before_final_receipts=footprint,limit_bytes=2_000_000_000,not_checked=not_checked,operator_command='cd '+str(B)+' && ./work/py out/rehearsal/run_rehearsal.py --fixture-tower')
++dump(B/'out/FINAL_RESULT.json',value)
++(B/'STATUS.md').write_text('V1d is built and CPU-verified. All 59 kit and 30 inherited tests pass. Both CPU sample paths pass with 9 items in 2 scenes and synthetic tower/heads/logits. The reference archive is unchanged. See out/FINAL_RESULT.json for hashes, namespace outcome and unchecked work.\n')
++dump(B/'STATUS.json',dict(status='complete',result=pin(B/'out/FINAL_RESULT.json')))
++lines=[
++'RESULT: V1d built and CPU-verified; no job submitted. Evidence: out/FINAL_RESULT.json.',
++'Partial types/subtasks show counts, observed-item scores, scene intervals and PARTIAL: code/report.py; REPORT.md.',
++'The primary requires all five complete subtasks; otherwise it lists incomplete subtasks: REPORT.json; REPORT.md.',
++'Refusal recovery wording attributes the 0/165 training-row finding to the reviewer: out/LEGALITY.md; REPORT.md.',
++'Per-type refusal answer distributions and observed-item scores are preserved: REPORT.json; REPORT.md.',
++'Tests: 59 kit and 30 inherited pass: out/TESTS.json; work/tests_d_final.log.',
++'CPU library and CLI sample paths: 9 items, 2 scenes; synthetic tower/heads/logits: out/rehearsal/RESULT.json; work/cli_d_final/RESULT.json.',
++'Namespace outcome: '+rh['namespace']+'; out/rehearsal/NAMESPACE.json. Operator command: out/rehearsal/RUNBOOK.md.',
++'Code SHA256 '+package['code']['sha256']+': out/c.tar.',
++'Reference SHA256 '+package['reference']['sha256']+': out/d.tar; byte-identical to V1c.',
++'Family SHA256 '+package['family']['sha256']+': out/FAMILY.json.',
++'Only production report.py changed; archive members and source pins verified: out/PACKAGE_VERIFY.json.',
++'Diff +'+str(summary['added'])+'/-'+str(summary['removed'])+': out/DIFF_vs_V1c.patch; out/DIFF_STATS.json.',
++'Coverage counts '+json.dumps(coverage['counts'],sort_keys=True)+': out/UNEXECUTED.json.',
++'Footprint '+str(footprint)+' bytes, below 2 GB: out/FINAL_RESULT.json.',
++'GPU/real tower, checkpoint/proof, Orchard, transfers, full-frame/release reruns and reviewer-audit rerun were not checked: out/FINAL_RESULT.json.',
++'Defaults: out/DECISIONS.md. V1c remains unchanged: out/FINAL_RESULT.json.'
++]
++assert len(lines)<=20
++event=B/'events'/(time.strftime('%Y%m%dT%H%MZ',time.gmtime())+'_RESULT_final.md');event.write_text('\n'.join(lines)+'\n')
++print(json.dumps(dict(event=str(event),footprint=footprint,package=package,coverage=coverage['counts']),indent=2))
+--- a/work/ns_op.py
++++ b/work/ns_op.py
+@@ -1,5 +1,5 @@
+ import json,subprocess,uuid,os
+-B='/scratch/jjyeung/orch_n30/native_r4/builds/03_vsti_c'
++B='/scratch/jjyeung/orch_n30/native_r4/builds/04_vsti_d'
+ n=json.load(open(B+'/out/rehearsal/NAMESPACE.json'))
+ cmd=n['command']; old=cmd[cmd.index('--dest')+1].split('/run/job')[0]
+ new=B+'/work/ns_op_'+uuid.uuid4().hex[:8]
+--- a/work/package_d.py
++++ b/work/package_d.py
+@@ -0,0 +1,27 @@
++"""Package the report change while preserving the reference archive."""
++from pathlib import Path
++import hashlib,sys,tarfile,json
++B=Path(__file__).resolve().parents[1];S=B.parent/'03_vsti_c'
++sys.path.append(str(B/'code'))
++from adapter import dump,load,pin,sha
++import engine
++expected='9a1de8608ea0e75e2f2436259b81f0e991b2007002a59de11d85062e8384d08f'
++assert sha(B/'out/d.tar')==sha(S/'out/d.tar')==expected
++with tarfile.open(B/'out/c.tar','w') as archive:
++    for p in sorted((B/'code').rglob('*')):
++        if not p.is_file():continue
++        info=tarfile.TarInfo(str(p.relative_to(B/'code')))
++        info.size=p.stat().st_size;info.mtime=0;info.mode=p.stat().st_mode&0o777
++        with p.open('rb') as stream:archive.addfile(info,stream)
++family=load(S/'out/FAMILY.json');family['code']=pin(B/'out/c.tar');family['code_sources']=engine.source_pins()
++family['added']['c'].update(sha256=sha(B/'out/c.tar'),bytes=(B/'out/c.tar').stat().st_size)
++dump(B/'out/FAMILY.json',family);dump(B/'out/ADDITIONS.pending.json',family['added'])
++dump(B/'out/PACKAGE.json',dict(code=pin(B/'out/c.tar'),reference=pin(B/'out/d.tar'),family=pin(B/'out/FAMILY.json'),launch_ready=family['launch_ready']))
++with tarfile.open(B/'out/c.tar') as archive:
++    assert {m.name for m in archive if m.isfile()}=={str(p.relative_to(B/'code')) for p in (B/'code').rglob('*') if p.is_file()}
++    for member in archive:
++        if member.isfile():assert hashlib.sha256(archive.extractfile(member).read()).hexdigest()==sha(B/'code'/member.name)
++changes=[k for k,v in family['code_sources'].items() if load(S/'out/FAMILY.json')['code_sources'].get(k)!=v]
++assert changes==['report.py']
++dump(B/'out/PACKAGE_VERIFY.json',dict(passed=True,package=pin(B/'out/PACKAGE.json'),source_pins_equal=True,archive_members_verified=True,changed_production_files=changes,reference_byte_identical=True,reference_source=pin(S/'out/d.tar')))
++print(json.dumps(load(B/'out/PACKAGE.json'),indent=2))
+--- a/work/py
++++ b/work/py
+@@ -2,5 +2,5 @@
+ export PYTHONPATH=/scratch/jjyeung/orch_n30/native_r4/work/np226:/scratch/jjyeung/orch_n30/native_r4/from113/work/pyextra
+ export OMP_NUM_THREADS=4 OPENBLAS_NUM_THREADS=4 MKL_NUM_THREADS=4 NUMEXPR_NUM_THREADS=4
+ export PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES=''
+-export XDG_CACHE_HOME=/scratch/jjyeung/orch_n30/native_r4/builds/03_vsti_c/work/cache
++export XDG_CACHE_HOME=/scratch/jjyeung/orch_n30/native_r4/builds/04_vsti_d/work/cache
+ exec nice -n 10 /scratch/jjyeung/orch_n30/native_r4/from113/env312/bin/python3.12 -s -B "$@"

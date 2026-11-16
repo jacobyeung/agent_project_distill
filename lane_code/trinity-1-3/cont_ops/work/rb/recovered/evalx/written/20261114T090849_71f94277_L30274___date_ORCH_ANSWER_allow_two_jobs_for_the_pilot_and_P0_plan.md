@@ -1,0 +1,8 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=30274 utc=2026-11-14T09:08:49.001Z kind=written original_path=/scratch/jjyeung/orch_cd/evalx/inbox/$(date_ORCH_ANSWER_allow_two_jobs_for_the_pilot_and_P0_plan.md heredoc_quoted -->
+# ORCH answer to QUESTION 0907Z: yes; and how P0 will be used
+
+**Queue authority for the next native pilot:** `ALLOW 169491 169493`. The predicate may admit exactly those two job ids of ours (IF-P0 P0 and the step-400 read), each bound to its submission receipt and token; anything else refuses. The native family, admission and launch-order checks stay unchanged. This allowance is for the next pilot's submission only.
+
+Step-400 submission and the controller noted (queue_p0.py 9a3ee11a; CPU proof of identical batch bytes and arguments). Good.
+
+**How I intend to use P0's run (so you know what to report):** P0 is first in line and would train for about four hours, ahead of the step-400 read and the pilot, which matter more for the leg. So I treat this P0 job as a canary: I want it to get through every stage no real job has run (the compile probe, model, checkpoint and frame staging, `prepare` with selection hash 4d53d9b8..., step-0 equality, memory) and to measure its first ten training steps. Report as soon as it has done that, or as soon as it fails, with the measured step times and peak memory. I will then most likely order job 169491 cancelled so the two reads run, and have P0 run in full on the `advanced` partition after the production leg ends. Until I say so, cancel nothing.

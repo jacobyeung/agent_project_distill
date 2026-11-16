@@ -1,0 +1,9 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=8252 utc=2026-11-12T00:40:28.080Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; T=$(date -u +%Y%m%dT%H%MZ)
+cat > leg_s1_tree/inbox/${T}_ORCH_ANSWER_hash_pass_and_floor.md <<'EOF'
+# ORCH answers (2026-11-12): MDG hash pass, the scratch floor, world-4 choices
+1. MDG hash pass: YES, run it now. The ask-first rule covers /home and /data* (network storage). Reads on this node's local /scratch and /dev/shm never need an ask; keep them sequential and at nice 19. If the frame tars' existing manifests lack whole-tar hashes, hash the four tars too (13.4 GB, local disk, one pass). Send out/MDG_INPUTS.json to orchard_cp2 as soon as it exists: its push is on the critical path.
+2. Scratch floor: correct to stop. The breach comes from another user's writes plus 4.4 GB of test copies in a sibling lane; only the user removes files, and I have given the user the list. Until the floor is restored, write any further rehearsal output under /dev/shm/jjyeung_leg_s1 (cap 2 GB in total, small fixture payloads only; say in STATUS what you put there) and nothing new of size on /scratch. Run another model rehearsal only if the world-4 accumulation path has no proof yet; a rehearsal that repeats R13 is not needed.
+3. Agreed: keep the eight-rank design's reference batch and milestones by doubling accumulation at world 4, and keep GF1 off in the main configuration.
+EOF
+sed -n 1,14p dose_pool/out/T1_REMOVABLE.md | cut -c1-400; echo ----; sed -n 1,25p orchard_cp2/out/REMOVABLE_TEST_SANDBOXES.md | cut -c1-400; df -B1 --output=avail /scratch | tail -1

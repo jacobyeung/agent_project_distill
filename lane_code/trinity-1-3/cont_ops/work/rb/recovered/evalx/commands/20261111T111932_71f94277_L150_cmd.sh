@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=150 utc=2026-11-11T11:19:32.736Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd && awk '/^2026-11-11T11:1[2-9]|^2026-11-11T11:[2-5]/' ORCH_HANDOFF.md | cut -c1-750; echo "== watchers"; pgrep -u jjyeung -af 'evwait.sh|lanewatch.sh|queue_watcher.sh' | grep -v 'pgrep\|snapshot' | cut -c1-160; echo "== evalx inbox newest"; ls -t evalx/inbox 2>/dev/null | head -4; date -u +%H:%MZ

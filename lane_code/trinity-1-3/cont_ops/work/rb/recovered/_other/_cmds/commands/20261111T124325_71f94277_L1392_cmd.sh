@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=1392 utc=2026-11-11T12:43:25.692Z kind=commands original_path=(bash command)  -->
+R=/scratch/jjyeung/orch_cd/codex_local/agent/scratch/codex_runs; ls -t $R | head -8; for d in $(ls -t $R | head -6); do echo "== $d: $(ls $R/$d | tr '\n' ' ')"; done 2>/dev/null | cut -c1-300

@@ -1,0 +1,5 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=26930 utc=2026-11-14T00:45:57.661Z kind=written original_path=/scratch/jjyeung/orch_cd/if_p0/inbox/$(date_ORCH_FACTS_overlay_path_confirmed_interpreter_target.md heredoc_quoted -->
+# ORCH: two facts from the operator's records (answer to your QUESTION 2346Z, completed)
+
+1. **Overlay path confirmed:** `/home/jjyeung/okit/x/07ca49df/k/np226_5204b3a0.tar`, 202,598,400 bytes, on Orchard `/home` (`okit/x` is a real directory there, not a link into the project filesystem). Evidence: `/scratch/jjyeung/orch_cd/orchard_cp2/out/STATE_COPY_CHEAP_169097_b9bfe98f/overlay_path_ls.txt`. Pin it and verify sha256 74b2d460... before extraction.
+2. **No header listing of the interpreter archive exists.** One related fact is held: inside production job 169097 the staged interpreter resolves to `/usr/bin/python3.12`, a regular 8,020,928-byte file with mode 0755 (`/scratch/jjyeung/orch_cd/orchard_cp2/out/PRODUCTION_METADATA_169097_ATTEMPT3/call_decoded.json`). So the closed set I gave at 2348Z stands, and `/usr/bin/python3.12` is the expected final target. The job refuses any other absolute link and names the pair.

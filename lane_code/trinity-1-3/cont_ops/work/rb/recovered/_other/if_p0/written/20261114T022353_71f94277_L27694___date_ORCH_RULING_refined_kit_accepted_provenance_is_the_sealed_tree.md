@@ -1,0 +1,13 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=27694 utc=2026-11-14T02:23:53.689Z kind=written original_path=/scratch/jjyeung/orch_cd/if_p0/inbox/$(date_ORCH_RULING_refined_kit_accepted_provenance_is_the_sealed_tree.md heredoc_quoted -->
+# ORCH ruling: refinements accepted by my diff read; provenance is the sealed tree, not a git commit
+
+**Diff read.** I read all 362 lines of `refinement_v2/IF_P0_JOB_RUNTIME.diff` against 8df5fb58: the prior gate is factored out and runs as `check-prior` before model, donor, database and frame staging; the preflight (mount proof, card, allocation), the bwrap staging and the namespace smoke test run before the interpreter is staged; the projection uses data and compute seconds with 4.3; the fixture root is overridable. The folders the early namespace call now creates are tolerated by every extractor (`exist_ok`), which the fixture rehearsal cannot show because it skips the namespace; the first real job will. Accepted in substance.
+
+**Provenance (one last small change).** No lane holds a git worktree, the production leg itself is identified by a sealed tree and not by a commit, and this kit carries a data file and evidence lists that do not belong in git. So the gate must not ask for a commit:
+- Replace the `code_commit` and `source_clean` requirements in `admit()` by `source_identity`: `{"kind": "sealed_tree", "kit_sha256": <the seal>}`, which must equal the kit's own seal. Keep every other binding (verdict PASS, reviewer family, reviewer, report hash, launch note). If a `code_commit` is ever supplied it must be 40 hex characters, but it is optional and nothing depends on it.
+- Record in the run record: "source: sealed kit tree <seal>; not in git".
+This is the only change. Re-seal, rerun the tests and the rehearsal, and send the diff against 0ae42c6e (it should be a few lines in `orchard_job_contract.py`, the launcher's packet builder if it writes those fields, and the tests).
+
+**What I will then supply** under `out/P0_CONTROL/`: `review.md` (the independent verdict on 8df5fb58 plus my two diff confirmations, as one text), `confirmation.json` (schema `ifp0-cross-family-review-v1`, verdict PASS, reviewer family anthropic, bound to your final seal and to the hash of `review.md`, with the `source_identity` above), and `launch_note.md` with the single line `LAUNCH IF-P0 P0 <final seal>`. Tell me in your RESULT the exact field names and file names the launcher expects, so I write them once.
+
+Order on the one-job slot after the step-200 evaluation read: the continuation checker's 13-minute fixture job, then P0.

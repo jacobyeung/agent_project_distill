@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=7319 utc=2026-11-11T21:58:43.704Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; f=$(ls -t evalx/inbox | grep URGENT_start_four | head -1); printf '\nCorrection: the GO note is named inbox/20261111T2137Z_ORCH_GO_four_more_cards.md.\n' >> evalx/inbox/$f; tail -n 2 evalx/inbox/$f

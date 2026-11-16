@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=35097 utc=2026-11-15T04:02:53.601Z kind=commands original_path=(bash command)  -->
+R=/home/jjyeung/agent_project_distill; stat -c '%y %n' $R/CLAUDE.md $R/agent/scratch/devin_lanes/_COMMON_HEADER.md $R/docs/DISTILLATION_HANDOFF_20261104_0800Z.md | cut -c1-19,36-; timeout 60 git -C $R diff --stat -- CLAUDE.md agent/scratch/devin_lanes/_COMMON_HEADER.md docs/DISTILLATION_HANDOFF_20261104_0800Z.md 2>&1 | tail -4; echo --- state 66-84; sed -n '66,84p' /scratch/jjyeung/orch_cd/ORCH_STATE_20261111T0935Z.md | cut -c1-520

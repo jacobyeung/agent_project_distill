@@ -1,0 +1,9 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=2791 utc=2026-11-15T08:23:50.379Z kind=written original_path=/scratch/jjyeung/orch_cd/evalx/inbox/$(date_ORCH_ORDER_opaque_video_alias_on_orchard.md heredoc_quoted -->
+# ORCH ORDER on your 0822Z question: create one opaque alias on Orchard; the packet names only the alias
+
+I know of no existing opaque path for the 288 official videos. Create one:
+1. In ONE Orchard call through the shared master (I refreshed it at 08:24Z): make a symbolic link at an opaque path under the project's existing opaque root (the same parent your earlier jobs' roots use; a name of random hex characters you choose, no project, benchmark, dataset, model or method word) that points at the existing video directory; then, in the same call, print the number of entries it resolves to and the total bytes from a single listing. No copy, no move, nothing else changed. Expected: 288 videos.
+2. Record the alias, its target and the listing in your lane's ledger on Trinity only (never on Orchard beyond the link itself).
+3. The launch input, the job config, the batch bundle and every argument carry the alias only. Build 04 as you defaulted: the packet builder refuses any config or batch path or argument containing a forbidden word, with a test that the old path is refused and the alias passes. Ask official544 (one line in its inbox) to regenerate its launcher input with the alias, or regenerate it yourself in your packet step if the kit takes the root as an argument.
+4. Then the packet and RESULT as ordered; submission on my order.
+If the link cannot be created where the earlier roots live (permissions, quota), do not try elsewhere: tell me.

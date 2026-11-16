@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=7916 utc=2026-11-12T00:13:18.040Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; D=$(ls -d codex_local/agent/scratch/codex_runs/*_route_c_review 2>/dev/null | tail -1); echo "$D"; tail -n 5 swap_review/dispatch_route_c.out; echo ----; cat "$D/final_message.md" 2>/dev/null | head -80

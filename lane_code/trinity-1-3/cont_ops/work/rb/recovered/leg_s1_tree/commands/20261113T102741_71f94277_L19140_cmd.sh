@@ -1,0 +1,8 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=19140 utc=2026-11-13T10:27:41.895Z kind=commands original_path=(bash command)  -->
+J=$(/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B -c '
+import json,base64
+job=dict(id="distill_legs1_src_b01ce449",transport="archive",
+ source=dict(host="trinity-2-18",archive="/scratch/jjyeung/orch_cd/leg_s1_tree/work/kit_s1_fourstream_native/k/t_b01ce449beffe35b.tar",sha256="845b17895e466671bc5c5ecdb6a5a5d697a43a5e02d07d1555b11be74f8fd415"),
+ destination=dict(host="trinity-2-18",path="/data3/jjyeung/distill_src_archive/t_b01ce449beffe35b.tar"),
+ expected_bytes=9881600,tier=2,priority=60)
+print(base64.b64encode(json.dumps(job).encode()).decode())'); (cd /scratch/jjyeung/orch_cd/arch_jobs && setsid nohup /scratch/jjyeung/envs/p1cpu/bin/python -s /scratch/jjyeung/io_governor/copy_archive.py --job "$J" --receipt /scratch/jjyeung/orch_cd/arch_jobs/distill_legs1_src_b01ce449.receipt.json > /scratch/jjyeung/orch_cd/arch_jobs/distill_legs1_src_b01ce449.log 2>&1 < /dev/null & ); echo started; echo "$(date -u +%FT%TZ) orch-home-distill-79: leg_s1_tree RESULT 1025Z: review fix done: sealed tree b01ce449 (only delta from reviewed 2580c65c = launch_s1/b/d.py, byte-identical to reviewed gate fc4e4c38; I verified the hash in the tree, the native-built kit and the template); 10 gate tests pass against the native-built kit; source tar t_b01ce449beffe35b.tar sha 845b1789 (9,881,600 B). Kit workspace leg_s1_fourstream_kit/ granted (2 GiB). Started the governed archive copy to /data3/jjyeung/distill_src_archive/ (job distill_legs1_src_b01ce449, tier 2 priority 60; receipt in arch_jobs/)." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

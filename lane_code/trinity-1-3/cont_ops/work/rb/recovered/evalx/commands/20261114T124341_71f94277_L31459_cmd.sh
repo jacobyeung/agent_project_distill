@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=31459 utc=2026-11-14T12:43:41.147Z kind=commands original_path=(bash command)  -->
+W=/scratch/jjyeung/orch_cd/leg_s1_review/work_debug_parity; find $W/plain -maxdepth 6 -type f | head -n 20; R=/scratch/jjyeung/orch_cd/evalx/work/milestone/runs; ls $R | head; ls $R/bffa0d6ef 2>/dev/null | head; ls $R/bffa0d6ef/direct 2>/dev/null | head; ls $R/bffa0d6ef/direct/main 2>/dev/null | head -n 12

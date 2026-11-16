@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=25244 utc=2026-11-13T21:15:17.219Z kind=commands original_path=(bash command)  -->
+N=$(date -u +%Y%m%dT%H%MZ); C=/scratch/jjyeung/orch_cd; ls -la /tmp/cm-okit-orchard 2>&1 | head -n 2; grep -n -i "master\|ControlPath\|ControlPersist\|cm-okit" $C/orchard_cp2/work/oc.sh | head -n 12 | cut -c1-220; ls -t $C/orchard_cp2/work | grep -i -E "master|ssh|conn" | head -n 8

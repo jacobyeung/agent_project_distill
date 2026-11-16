@@ -1,0 +1,6 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=12020 utc=2026-11-12T11:50:35.512Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; T=$(date -u +%Y%m%dT%H%MZ); cat > leg_s1_tree/inbox/${T}_ORCH_ANSWER_caps_final.md <<'EOF'
+# ORCH answer: caps raised once more, with margin, so you need not ask again
+RAM-fixture cap: 2,600,000,000 bytes. Lane cap on /scratch: 3,300,000,000 bytes. Retain all evidence; inventory the RAM directories for the user's later removal as you propose. Within these caps decide yourself; ask again only if a single new artifact would exceed 200 MB. Priority stays: finish the world-4 first-batch check on the new mix, then seal, freeze note, kit, card, RESULT.
+EOF
+echo "$(date -u +%Y-%m-%dT%H:%MZ) leg_s1_tree QUESTION 1148Z (RAM fixtures 2.18 GB > 2.1 GB cap): caps raised to 2.6 GB RAM / 3.3 GB lane, with an instruction not to ask again below 200 MB per artifact. First-batch check on the new mix: 116 rows checked so far, finite losses." >> ORCH_HANDOFF.md

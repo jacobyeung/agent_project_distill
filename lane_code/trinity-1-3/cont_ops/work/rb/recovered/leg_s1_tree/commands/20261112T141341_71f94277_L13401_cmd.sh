@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=13401 utc=2026-11-12T14:13:41.166Z kind=commands original_path=(bash command)  -->
+head -c 5000 /tmp/claude-25409/-scratch-jjyeung-orch-home-distill/71f94277-362e-467c-a4bc-ccc9ae6b87c8/tasks/bb8xhndkc.output; echo; ls -t /scratch/jjyeung/orch_cd/leg_s1_tree/events | head -3; cat /scratch/jjyeung/orch_cd/arch_jobs/distill_legs1_src_38917ea5.receipt.json 2>/dev/null | tr -d '\n' | cut -c1-300

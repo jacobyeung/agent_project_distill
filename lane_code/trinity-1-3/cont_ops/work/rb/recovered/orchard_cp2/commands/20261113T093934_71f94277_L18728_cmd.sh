@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=18728 utc=2026-11-13T09:39:34.670Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd/orchard_cp2/out/canary_168942/results/job_168942/round_003/phase_4_train 2>/dev/null && ls | head -n 30 && for f in $(ls | grep -i "rank0*0.*steps" | head -n 1); do echo "== $f"; cut -c1-1500 "$f"; done; tail -n 25 worker.log 2>/dev/null | cut -c1-400

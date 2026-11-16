@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=4260 utc=2026-11-11T15:51:26.793Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd/geo_bakeoff; cat events/20261111T1550Z_BLOCKER_download_weights.md | cut -c1-1500; echo; sed -n 1,10p STATUS.md | cut -c1-700; ls -la /scratch/jjyeung/geo_bakeoff_assets 2>/dev/null | head; du -sh /scratch/jjyeung/geo_bakeoff_assets 2>/dev/null

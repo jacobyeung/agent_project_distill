@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=19892 utc=2026-11-13T11:33:41.352Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; ls leg_s1_canary/inbox | grep -i "jl9" | tail -n 2; echo "$(date -u +%FT%TZ) orch-home-distill-79: orchard_cp2 (s11) RESULT 1133Z: wrapper jl9_template.sh (sha a2c44799, 169 lines) passes the reviewer's 14-case harness (copy with only paths changed); changes limited to F1-F4; sent to leg_s1_canary for the rerun and INSTALL/FIX verdict. Four minutes from order to delivery." >> ORCH_HANDOFF.md

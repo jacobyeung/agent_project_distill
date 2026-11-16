@@ -1,0 +1,22 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=31131 utc=2026-11-14T11:31:00.922Z kind=commands original_path=(bash command)  -->
+D=/data2/jjyeung/agent_project_data/distill_design; R=/scratch/jjyeung/orch_cd/leg_s1_review/DEBUG_NATIVE_PILOT_PARITY_169501.md; test -e $D/ROUTED_READ_PARITY_PROBE_169501_20261114.md && echo EXISTS || { cat $R > $D/ROUTED_READ_PARITY_PROBE_169501_20261114.md; printf '%s\n' "- [ROUTED_READ_PARITY_PROBE_169501_20261114.md](ROUTED_READ_PARITY_PROBE_169501_20261114.md): Why the routed-read pilot's parity gate failed on the leg (job 169501): the probe question is outside the leg's training and the gate accepted only \`<pose \` calls, while the leg's camera calls are \`<move from=i to=j>\` and \`<turn from=i to=j>\` (opener ids 248078, 248080), which the reader serves. Holds the token evidence, the call-detection code lines, what the leg emits on all 636 routed items in the plain read, the rejected explanations, the fix (probe = a real camera item; accept move/turn/pose; P2 needs one call) and what the next pilot must print. Status: fix ordered 2026-11-14." >> $D/INDEX.md; echo written; }
+N=$(date -u +%Y%m%dT%H%MZ); cat > /scratch/jjyeung/orch_cd/evalx/inbox/${N}_ORCH_ORDER_fix_parity_probe_then_pilot_3.md <<'EOF'
+# ORCH order: fix the parity gate's probe (cause found), reseal, pilot 3
+
+Cause, established from tokens and code by an independent debugger: `/scratch/jjyeung/orch_cd/leg_s1_review/DEBUG_NATIVE_PILOT_PARITY_169501.md` (54 lines; read sections 1, 4 and 6). In short: the probe question ("Read the camera pose at Frame 1 using <pose frame=1> ...") is outside the leg's training, and the gate accepts only `<pose ` calls. The leg's camera calls are `<move from=i to=j>` and `<turn from=i to=j>` (opener ids 248078 and 248080), which the reader already detects and serves; on the plain step-200 read all 450 camera items open with them and the distance and room items open with `<ground ...>` forms. The runtime, the load, the tokenizer and the prompt are correct. Nothing else is wrong.
+
+Priority: the `general` slot is idle, so this comes before the step-400 packet unless that packet is within five minutes of done.
+
+1. Change only `nomdg.py` `run` (about lines 271-285) and its test file:
+   - the probe is an unchanged bound camera item with its own question: the first key of family camera_displacement;
+   - `camera_call` is true when any head call starts with `<move `, `<turn ` or `<pose ` (as the sealed tree's own gate does, evalpath/parity.py:297);
+   - P2 must have checked at least one independent call; zero calls fails the gate.
+   Scoring, call detection, the item loop, the denominators and the tokenizer staging stay byte-identical.
+2. CPU check before sealing, with the tiny-model harness of NATIVE_CPU_SMOKE: replay real leg ids (for example `[248078, 494, 28, 16, 23, 310, 28, 17, 18, 29]` and one distance item's `<ground obj=...>` ids from the plain read) through the decode loop; assert the call is detected and served, the new gate passes and the old gate fails.
+3. The pilot prints, right after load: the routing token ids and tokenizer length; for the probe, each generated id with its piece and the top-2 ids and margin; the calls with kind and response; P2's independent call count; and the same lines for the first scored camera, distance and room items. These go into the bounded return even if a later step fails.
+4. As soon as the runtime diff and test diff exist (before the upload and the seal), post one event with their paths and sha256. I start the one independent review of that short diff at once; you seal and upload meanwhile. The pilot packet waits for the review's ACCEPT and my new order with fresh control files.
+5. Then finish the step-400 packet.
+
+Keep your context small: you need no further reading of the debugger's sources.
+EOF
+echo "- $(date -u +%Y-%m-%dT%H:%MZ) Debugger verdict on pilot 169501 (leg_s1_review/DEBUG_NATIVE_PILOT_PARITY_169501.md; design record ROUTED_READ_PARITY_PROBE_169501_20261114.md + INDEX): probe out of distribution; gate accepts only '<pose ' while the leg calls '<move'/'<turn' (ids 248078/248080), which the reader serves; runtime/load/tokenizer/prompt correct. Ordered evalx (inbox ${N}_ORCH_ORDER_fix_parity_probe_then_pilot_3.md): change probe to a real camera item, accept move/turn/pose, P2 >= 1 call, CPU replay, instrumentation; diff to me for one independent review; pilot 3 on my order." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

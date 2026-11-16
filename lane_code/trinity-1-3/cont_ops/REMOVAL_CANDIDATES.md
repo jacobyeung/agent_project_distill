@@ -1,0 +1,8 @@
+# Removal candidates (cont_ops; user decides)
+- /scratch/jjyeung/orch_n30/cont_ops/work/d0/t2_pass2/k/np226_5204b3a0.tar and t_e6456bcecb8d4a8f4f68158eb68275f8befff128.tar: empty files I created in a test kit (0 B).
+- /scratch/jjyeung/orch_n30/cont_ops/work/d0/out_repro*, t2_* test kits (lane-local, small).
+- d0/t2_pass2/b/__pycache__, d0/t2_pass3/b/__pycache__ (bytecode from my test imports)
+- /scratch/jjyeung/orch_n30/cont_ops/work/d0/testruns/*, work/d0/v1/out_v1_t1..t5, out_v1a_t1, out_v1a_t2, work/d0/job/t1 (cont_ops2 test outputs)
+- 2026-11-15T22:12Z cont_ops3: Orchard /project/community/jjyeung/okh7/x_7cb63d1e (superseded derived kit, about 250 MB; never used by a job); Orchard okh7/i_bb09a77d/{over.json,4.json,ja.sh,pool_selection_13b52fee.json,derive.result.json,derive.err} (superseded r7 bundle files; r8/ holds the current ones); Orchard login /tmp/b8.2132488.tar (empty file, login /tmp tmpfs full); okh7/x_3b862883/o/.wtest_done and i_bb09a77d/.wtest_done once job A has run. Local: work/d0/testruns/*, work/d0/v1/out_v1_t*, work/d0/job/{t1,t2,t3,vt_test}, work/d0/orch_r7.
+- 2026-11-16 cont_ops4: work/d0/a2/{dry_v4,dry_v4_0,dry_v4_1,dryb_v4,dry_v5,dry_v5_0,t_s2,t_fam,t_gslot,v5b/r10_superseded,v5a3/r11_superseded,.tb.*} (test and superseded builds); work/mirror_d0_v5.tar after the mirror is no longer needed; Orchard okh7/i_bb09a77d/a2/{ja2.sh,fam.py,s2.py,s2.sh,s2sum.py} (superseded job files, unused).
+- work/d0/jobB/wtest/, work/d0/jobB/wtest2/, work/d0/jobB/watch_b_170050.log, work/d0/jobB/check/{metrics,attempt}_{7,8,9}.* (cont_ops5 test files)

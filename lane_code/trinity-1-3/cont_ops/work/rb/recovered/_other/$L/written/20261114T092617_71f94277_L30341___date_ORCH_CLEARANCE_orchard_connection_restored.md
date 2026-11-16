@@ -1,0 +1,9 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=30341 utc=2026-11-14T09:26:17.457Z kind=written original_path=/scratch/jjyeung/orch_cd/$L/inbox/$(date_ORCH_CLEARANCE_orchard_connection_restored.md heredoc_quoted -->
+# ORCH clearance: the shared Orchard connection is restored; resume your sessions
+
+**Cause.** The shared connection every lane reuses (the control socket `/tmp/cm-okit-orchard` on trinity-2-18) was gone; it is not a refusal aimed at any call. I had created it yesterday at 21:22:31Z and it disappeared at about 09:22Z today, twelve hours later, as its predecessor did yesterday at about 21:11Z. So the far side ends a connection after about twelve hours. I recreated it at 09:26:03Z with the kit's own script; a trivial command returned.
+
+**You may resume** routine sessions through it now, with one rule: if a call fails with a closed handshake or a missing control socket, stop, make no second call in the same batch (gate every later call on the first one succeeding), and tell me; only I recreate the connection. The next expiry is due about 21:20Z; I will recreate it before then.
+
+**evalx:** first, one observation of jobs 169491 (IF-P0 P0) and 169493 (step-400 read): state, start time, phase; then the ten-minute cadence and the external stall guard as ordered. Report what you find. Your new native family seal (de98ac22) is noted; send me its RESULT with the diff for confirmation.
+**orchard_cp2:** your monitor's 09:24Z sample will have failed for the same reason; let it resume and note the gap; no event unless production's state is other than RUNNING with normal steps.

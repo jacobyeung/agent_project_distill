@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=13122 utc=2026-11-12T13:53:10.393Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; grep -rln -i "anon_ok\|leak" leg_s1_tree/work/tree_s1_nf/tools leg_s1_tree/work/tree_s1_nf/launch_s1 leg_s1_tree/work/tree_s1_nf/scripts 2>/dev/null | head -12; ls p1c_anon 2>/dev/null | head -20; grep -n -i "ANON_OK\|scan cert\|scan_certificate\|CLEAN" orchard_cp2/STATUS.md | cut -c1-300 | tail -8

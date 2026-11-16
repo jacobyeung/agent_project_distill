@@ -1,0 +1,119 @@
+{
+  "schema": "orchard-continuation-gates-v1",
+  "status": "BUILD_ONLY_CONTINUATION_NOT_READY",
+  "kit": "07ca49df",
+  "run": "469ddece",
+  "saved_step": 544,
+  "first_step": 545,
+  "target_step": 1000,
+  "automatic_submission": false,
+  "passing_a_gate_is_launch_authority": false,
+  "gates": [
+    {
+      "name": "User approval and separate written orders",
+      "status": "MISSING",
+      "owner": "USER and ORCH",
+      "requirement": "Authorize the real CPU workflow and, separately, any GPU continuation. The consumed first-allocation GO grants neither. No submission, reservation, dependency chain or timeout default is permitted."
+    },
+    {
+      "name": "Held slot and native-prefix identity",
+      "status": "PASS_HELD_METADATA_ONLY",
+      "owner": "cp2",
+      "evidence": "CPU_PROOF.json",
+      "requirement": "Slot A at 544 matches the wrapper's published content-check record, archive stat/digest record and native complete marker. The full original metrics prefix matches the native source. This is not a payload rehash or state-restore comparison."
+    },
+    {
+      "name": "Native recipe and argument binding",
+      "status": "PASS_LOCAL_CPU_PROOF",
+      "owner": "cp2",
+      "evidence": "CPU_PROOF.json",
+      "requirement": "Reuse the 95-file kit and wrapper without edits. The native selector chooses u; the entry uses arm 0; dispatch passes resume_pin=latest and smoke_steps=None. Keep the global 1000-step schedule, world four, seed 17, offset zero and existing wall/save rules."
+    },
+    {
+      "name": "Real CPU checker installation and admission",
+      "status": "MISSING_AUTHORITY_AND_NATIVE_PREFLIGHT",
+      "owner": "canary builds; ORCH authorizes placement; designated operator installs and submits",
+      "requirement": "Use the complete confirmed 58-file bundle, archive 026cb6962ed29b18a8466fd216583548e84679d59dae418ff18c1b41bda8fd5e, binding f544dd1bed77ad895cc8fe7af05421579917ae40aad8f99d93e9d94062303315. Resolve canonical kit, slot, bundle and disjoint results paths; verify the scheduler executable, current limits and Main's priority. The bound entry requires general, 16 CPUs, 800G, zero GPUs and a five-hour maximum. Advanced is not a drop-in replacement.",
+      "private_free_bytes_required": 554291183104,
+      "production_size_duration_measured": false
+    },
+    {
+      "name": "Real saved-versus-restored state equality",
+      "status": "MISSING",
+      "owner": "canary checker and independent result review",
+      "requirement": "Require a real PASS with scope CPU_NATIVE_RESTORE_EQUALITY_WORLD4_NO_UPDATE, bound to original slot A/544 and complete marker 0450e3a3c0265131175d4751329eba9f4605a5f391450a0c98b4e6fdefddc31c. Reject FIXTURE_PASS and metadata-only receipts. Continue from the original slot, never the CPU-reserialized copy.",
+      "limits": "CPU equality does not exercise CUDA RNG installation, CUDA/NCCL behavior, decoded/augmented data or an uninterrupted GPU numerical trajectory."
+    },
+    {
+      "name": "Numerical loss baseline after real CPU PASS",
+      "status": "MISSING",
+      "owner": "canary post-PASS capture; cp2 consumes",
+      "requirement": "Capture and authenticate the complete original metrics prefix, 86552359 bytes with SHA256 607fc9f232a967bb28097829ad9a84914f62507a37b6cae7e983a43f41c3449f, and original attempt 169097. Require a contiguous 5-20-step window ending at 544, preferably 525-544. Publish READY only after the matching real CPU PASS. Hashes, steps 1-8 and a partial tail cannot provide the missing numerical baseline.",
+      "full_prefix_on_trinity": false
+    },
+    {
+      "name": "Fresh protected source and staged-input checks",
+      "status": "PENDING_AUTHORIZED_PREFLIGHT",
+      "owner": "cp2 and the native checker/admission",
+      "requirement": "Revalidate the same slot A, persistent RUN/binding records and absence of a newer selected slot. Preserve all inputs and confirm the unchanged staging declarations still resolve to valid project files. The 28 expected run-input pins are not a fresh archive-header or staged-filesystem inventory."
+    },
+    {
+      "name": "Fresh project space and final slot B",
+      "status": "PENDING_AUTHORIZED_PREFLIGHT",
+      "owner": "cp2; normal wrapper enforces the write-time guard",
+      "held_sample_at": "2026-11-14T14:22:59.208630+00:00",
+      "held_free_bytes": 439526359040,
+      "slot_B_reference_bytes": 112988477440,
+      "reference_free_after_B_bytes": 326537881600,
+      "requirement": "Measure fresh free space without reserving it. At normal completion the wrapper chooses B, leaves newest verified A untouched, writes B .part files, rechecks archive and contents, then publishes B's index. It requires the measured checkpoint+inputs+binding size plus 20000000000 bytes. An insufficient-space skip leaves A and exports intact; no manual copy or alternate destination follows."
+    },
+    {
+      "name": "Advanced allocation, source and native entry",
+      "status": "PENDING_SEPARATE_GO_AND_JOB",
+      "owner": "ORCH authorizes; cp2 submits only under that order; native gates enforce",
+      "requirement": "Freshly admit one advanced node with four H100s, 48 CPUs, 800G, 24 hours and no requeue, respecting Main's protected jobs. Keep the allocation clock through restore/staging/admission. Require the 3.8 TB initial node-local floor, exact kit inventory, restored archive hash/manifest/binding, no cold fallback, complete mode-p admission and native tensor-derived disk guards. The effective configuration must remain 84ea03af6049a179bf4a44619b1534fdcb528b5511544189236254b5d66842cb."
+    },
+    {
+      "name": "Job-bound early observation and optimization-stop procedure",
+      "status": "MISSING",
+      "owner": "cp2 prepares and operates; ORCH authorizes; independent review covers any admission/control change",
+      "requirement": "Bind observation to the new attempt and completed steps 545, 546 and 547. The existing 600-second persister and five-minute watcher do not guarantee timely per-step observation. Establish and authorize a verified job-owned optimization-stop procedure before launch. The demonstrated wall guard is not evidence for the unverified USR1 route. Loss-alarm utilities do not send signals."
+    },
+    {
+      "name": "Native first resumed update",
+      "status": "PENDING_FUTURE_JOB",
+      "owner": "native all_rank_native_v1 admission; cp2 observes and reports",
+      "requirement": "At step 545 require all four ranks, the recipe's stream/microstep counts, no skipped/substituted/encoding-error rows, finite losses/components/gradient norms and correct step/device. Inspect inputs/first_step_<NEW_JOB>.json. The trainer raises on failure after the update; its metrics row appears only after the first-step checkpoint. Detect exit/no-progress instead of waiting forever for a missing row."
+    },
+    {
+      "name": "Secondary checks on the first three resumed steps",
+      "status": "PENDING_BASELINE_AND_FUTURE_JOB",
+      "owner": "cp2",
+      "requirement": "Check each of 545, 546 and 547. Wrong parent/binding/first step/sequence, malformed evidence or nonfinite losses alarm immediately. One or two valid completed steps remain PENDING. On three steps compare each stream's four-rank mean-loss median against max(0.5*abs(baseline median), 6*1.4826*MAD, 1e-6). On ALARM, use only the separately authorized verified stop path, prove optimization stopped, preserve A and the evidence, and obtain ORCH disposition. No suspect output becomes continuation authority. Zero further updates cannot be guaranteed."
+    },
+    {
+      "name": "New-job operator tools, exports and closeout allowances",
+      "status": "PENDING_NEW_JOB_BINDING_AND_AUTHORITY",
+      "owner": "cp2 and ORCH; evalx receives authenticated exports",
+      "requirement": "Create new job-bound monitoring/publication records and any required tool variants; do not relabel or edit frozen 169097 tools. Numbered exports 600, 800 and 1000 require their real artifact, four receipts and native done marker. Do not republish consumed exports or mint sessions. The old EOF audit, terminal read, stop-claim read, CPU fixture, state-copy/header/model/source probes and watcher allowance do not authorize another execution. Reauthorize any new one-shot or intervention explicitly.",
+      "end_rule": "Keep the 86400-second wall, 3600-second native reserve, normal guarded slot and 45-minute work/15-minute margin runbook structure. No extension, manual slot, restart or uploader-only intervention inherits authority from job 169097."
+    }
+  ],
+  "reused_files": {
+    "kit": "All 95 entries in the unchanged release manifest de6e7e0fac4036889fb4112792fbaa2d6f362a0cde09722ba6e93a6a39e7f32b",
+    "wrapper": "/home/jjyeung/okit/j/07ca49df.sh",
+    "wrapper_sha256": "553f57e3de2026bdfef2fad6ac5908550ba391d138d29d1deec83bb23923523c",
+    "job_script": "/home/jjyeung/okit/x/07ca49df/job.sh",
+    "job_script_sha256": "737849b3c940b4b871e87c7db969e45c4afe1309f996f18c12550189b229e268",
+    "new_resume_arguments": "None; the native path selects u, arm 0, resume latest."
+  },
+  "new_records_or_integration": [
+    "Real CPU checker result and review",
+    "Authenticated READY loss baseline",
+    "Separate user approval and written ORCH orders",
+    "Reviewed job-bound early observer and verified optimization-stop plan",
+    "New job-bound monitor/publisher configuration, native authorization, attempt, metrics and first-step report"
+  ],
+  "unexecuted_submission_example": "cd /home/jjyeung/okit && env -u TK_JOB_START sbatch /home/jjyeung/okit/j/07ca49df.sh",
+  "submission_example_is_not_a_ready_or_authorized_command": true
+}

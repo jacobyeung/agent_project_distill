@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=9522 utc=2026-11-12T03:42:18.972Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd/evalx; for i in $(seq 1 30); do f=$(ls events 2>/dev/null | grep -i -E "gpu6_released" | tail -1); if [ -n "$f" ]; then echo "FOUND $f"; cat "events/$f" | cut -c1-1500; exit 0; fi; sleep 10; done; echo "NO gpu6_released event after 5 min"; date -u +%H:%M:%SZ; ls -t events | head -3; tail -n 2 work/inbox_seen.txt

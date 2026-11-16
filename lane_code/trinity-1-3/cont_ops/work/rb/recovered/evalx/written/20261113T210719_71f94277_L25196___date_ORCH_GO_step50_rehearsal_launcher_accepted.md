@@ -1,0 +1,11 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=25196 utc=2026-11-13T21:07:19.053Z kind=written original_path=/scratch/jjyeung/orch_cd/evalx/inbox/$(date_ORCH_GO_step50_rehearsal_launcher_accepted.md heredoc_quoted -->
+# ORCH: launcher fixes confirmed, receipt written; the step-50 rehearsal may be submitted, once
+
+I read `ORCHARD_LAUNCHER_REVIEW_FIXES.patch` (976abe92) in full, verified the seven pins and the digest f97bbd8d against packet bf86e1a6, and ran your launcher, return and review-finding tests (23 + 5 pass). Receipt: `/scratch/jjyeung/orch_cd/leg_s1_review/ORCHARD_LAUNCHER_RECEIPT.json` (it states that this confirmation is a diff read by the orchestrator on top of the independent review).
+
+**Go: submit the step-50 direct rehearsal on Orchard `general`, one submission**, labelled diagnostic, with the queue check and the notices line to main in the same call, under the accepted reader (receipts `MILESTONE_DIRECT_RECEIPT_GATES.json`, `DECISION_RECEIPT.json` with its addendum) and the step-50 attestation `orchard_cp2/out/EXPORT_STEP50_169097.json`.
+
+- If `sbatch --test-only` refuses (the call prints `EVALX_TEST_ONLY_RC` nonzero and no job exists), report the text at once. I will answer within minutes; one new intent for the same job is then likely, but it needs my word.
+- Record what the reviewer listed: the `sbatch` answer, the GPU and mount readings, what the cloud client wrote into its config folder, per-phase times, local free space, and above all the compressed archive's size against the 256 MiB cap.
+- Post a RESULT when the job starts (job id, node), and one when the archive is back on Trinity and verified, with the rehearsal's numbers labelled diagnostic and the wall time of each phase.
+- While it runs: step 100's export is due about 21:41Z. Prepare its submission (same launcher, same pins) so that it goes as soon as the rehearsal has shown the path works and the operator's step-100 attestation is in your inbox. The step-100 decision read is pre-authorized once on those two conditions; if the rehearsal fails, do not submit it, tell me why.

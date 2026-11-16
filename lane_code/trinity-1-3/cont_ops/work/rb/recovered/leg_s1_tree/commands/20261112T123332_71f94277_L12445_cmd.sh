@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=12445 utc=2026-11-12T12:33:32.755Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; grep -n -i "letter\|fixture" devs1_direct/REVIEW_VERDICT_R5.md | cut -c1-500 | head -6; echo ===; ls pool_r2/out pool_r2/out/r2 pool_r2/out/r2/TOTALCOUNT 2>/dev/null | head -50; echo ===; head -c 1800 pool_r2/out/MIXTURE_SPEC.md; echo; ls back_dir/out/r2 | head -20; du -sh leg_s1_tree/work/tree_s1_nf 2>/dev/null

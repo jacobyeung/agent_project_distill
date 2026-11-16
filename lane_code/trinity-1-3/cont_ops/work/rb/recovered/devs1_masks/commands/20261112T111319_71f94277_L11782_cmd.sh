@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=11782 utc=2026-11-12T11:13:19.745Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; S=/tmp/claude-25409/-scratch-jjyeung-orch-home-distill/71f94277-362e-467c-a4bc-ccc9ae6b87c8/scratchpad; for L in trace_diag devs1_masks; do D=$(ls -d codex_local/agent/scratch/codex_runs/*_$L 2>/dev/null | tail -1); echo "== $L $D"; tail -n 2 $L/dispatch.out | cut -c1-240; cut -c1-2600 "$D/final_message.md" 2>/dev/null | head -32; done; sed -i '/^trace_diag|/d;/^devs1_masks|/d' $S/LANES

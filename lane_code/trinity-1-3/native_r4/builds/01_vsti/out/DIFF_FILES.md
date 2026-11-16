@@ -1,0 +1,17 @@
+- `adapter.py`: Change 1 adapts opaque prompt records and SHA-verified local frames, and changes 5–6 fix the canary and shard order.
+- `boundary.py`: Changes 3 and 5 receive a deterministic CPU model boundary that exercises the real token and response loop.
+- `engine.py`: Changes 2–6 run fresh geometry, preserve the gravity guard and replay checks, and commit shard journals.
+- `entry.py`: Changes 1–10 expose the same neutral commands to both venues and the CPU harness.
+- `orchard.py`: Change 7 uses the common job path and inherited return transport inside an allocation.
+- `paths.py`: Change 7 resolves local code and the supplied authenticated trainer tree.
+- `policy.py`: Change 3 intercepts non-camera calls at the existing response dispatcher and records recoverable refusals.
+- `proof.py`: Change 10 runs original-policy repeats and compares token, call, response-byte and answer equality.
+- `proof_stage.py`: Change 10 isolates the original read inputs and returned geometry for the historical proof.
+- `report.py`: Change 8 reports official groups, clustered intervals, refusal costs and paired comparisons.
+- `s0.py`: Change 9 includes a byte-identical copy of score_and_aggregate.py.
+- `s1.py`: Change 9 includes a byte-identical copy of scoring.py.
+- `s2.py`: Change 9 includes a byte-identical copy of the mechanical score-index authority.
+- `s3.py`: Change 9 includes a byte-identical copy of score_record_core.py containing the five-subtask formula.
+- `scorer.py`: Change 9 wraps the unchanged scoring authority and verifies the recorded comparator answers.
+- `sj/orch_cd/evalx/work/milestone/native/out2/geometry.py`: Change 2 adds explicit new-frame inputs, CPU tower execution and gravity telemetry to the inherited tower phase.
+- `venue.py`: Change 7 constructs the private namespace, validates local archive staging and builds a sealed packet.

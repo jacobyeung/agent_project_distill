@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=33829 utc=2026-11-14T22:05:53.139Z kind=commands original_path=(bash command)  -->
+echo "- $(date -u +%Y-%m-%dT%H:%MZ) evalx(24) RESULT 2204Z: IF8 submitted once = job 169652 on general (token a1cafcdc02be21b39, seal eef3ba96; job name a15_cot_apa1cafcdc02be21b39). Pilot 7's account rule will need 169652 named as the allowed general job." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

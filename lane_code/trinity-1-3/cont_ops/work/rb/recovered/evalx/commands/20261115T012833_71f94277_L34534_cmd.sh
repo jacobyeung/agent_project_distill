@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=34534 utc=2026-11-15T01:28:33.795Z kind=commands original_path=(bash command)  -->
+B=/scratch/jjyeung/orch_cd/evalx/work/milestone; ls $B/native_geometry_candidate_s24_03 | head -n 30; ls $B/native_package_s24_03/packages 2>/dev/null | head; grep -c "" $B/native_package_s24_03/RUNTIME.diff; grep "^+++ \|^--- " $B/native_package_s24_03/RUNTIME.diff | cut -c1-150 | awk 'NR%2==0' | head -n 20

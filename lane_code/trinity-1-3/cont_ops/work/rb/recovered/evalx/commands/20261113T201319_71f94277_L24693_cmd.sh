@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=24693 utc=2026-11-13T20:13:19.583Z kind=commands original_path=(bash command)  -->
+C=/scratch/jjyeung/orch_cd/evalx; tail -n 1 $C/out/devin_launches.jsonl | cut -c1-400; O=$(tail -n 1 $C/out/devin_launches.jsonl | /scratch/jjyeung/envs/p1cpu/bin/python -I -c "import sys,json; print(json.loads(sys.stdin.read())['stdout'])"); tail -c 1200 "$O"; echo; ls -t $C/*.md | head -n 5; ls -t $C/work/ | grep -i -E "brief|successor" | head -n 5; sed -n '1,14p' $C/STATUS.md | cut -c1-700

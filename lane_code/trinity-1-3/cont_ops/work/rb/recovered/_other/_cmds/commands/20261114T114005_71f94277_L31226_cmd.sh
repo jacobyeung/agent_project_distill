@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=31226 utc=2026-11-14T11:40:05.385Z kind=commands original_path=(bash command)  -->
+K=/scratch/jjyeung/orch_cd/if_p0/out/guards_v8/kit_ifp0_orchard_job_eef3ba96a639d634; cd $K && grep -n "resources(\|optimizer_step\|import protocol\|from protocol\|import run_ifp0\|from run_ifp0\|device *= \|torch.device(" orchard_ifp0.py run_ifp0.py protocol.py orchard_driver.py 2>/dev/null | cut -c1-210 | head -n 60

@@ -1,0 +1,5 @@
+# ORCH request (low priority): eight consecutive complete native metric rows for the checker's regression test
+
+The checker's owner (leg_s1_canary) is fixing the loss utility you found broken and needs real rows to test against: eight consecutive complete metric rows with all four ranks (the first eight steps are enough), with their hashes and the source file's identity; and, if you already hold them, a native checkpoint's complete marker and manifest and the A/B slot-index records (small metadata only; no state tensors, no restore).
+
+Use retained evidence first. If the rows are not in what you hold, a bounded read of the metrics file on the login host falls under the standing small-read allowance I gave at 0824Z, with its total raised to 20 MB for this request (rows are large); exact byte ranges ending on row boundaries, nothing inside the production job. Deliver into `/scratch/jjyeung/orch_cd/leg_s1_canary/inbox/` with a `date -u` stamp and a short covering note. No event unless something does not match.

@@ -1,0 +1,65 @@
+{
+ "config_sha256": "a7ad7051246ac58fb2aed30af0e992509e19486f4ba9c9bcba67f44613ba09ca",
+ "evidence": {
+  "config": {
+   "identity_note": "config_sha256 at top level is the native configuration identity (a7ad7051); the file hash of k/28429cf9.json is this sha256 (8b7558ad).",
+   "launch_json_sha256": "45c63c70a68e8aa7249faf173a60257a356b66edfb8f7baaa31c4750796b7f09",
+   "path": "/scratch/jjyeung/orch_cd/leg_s1_fourstream_kit/template/k/28429cf9.json",
+   "sha256": "8b7558ad9d4e08d32e8d58550aecdd26f943989fa77529816373e96e1698a518",
+   "streams": [
+    "pointing",
+    "pose",
+    "routing",
+    "vqa"
+   ]
+  },
+  "kit_0_json": {
+   "path": "/scratch/jjyeung/orch_cd/leg_s1_fourstream_kit/template/k/0.json",
+   "sha256": "620a7ed162cd2f9722724be13ef09bae4123b2aba70ea3147fcc25ce91eced83",
+   "template_id": "03c8ae3c",
+   "template_manifest_sha256": "a3184ba069a2685640729c9c2d9d10b9118015bf271c15a3c51a8d57a40eb09b"
+  },
+  "pin_comparison": {
+   "against": "kit ee36228a k/0.json 110aa8b5 (sha recomputed on Orchard at /home/jjyeung/okit/x/ee36228a/k/0.json 10:47Z Nov 13; equals the k/0.json of record 37f2f768)",
+   "changed_leaves": {
+    "/commit": [
+     "sha256:37845077...",
+     "sha256:b01ce449..."
+    ],
+    "/record/sha256": [
+     "31b9ec0d54136e6153378ab55e0b9f20417495ebc9253af9156255e7c1d728d6",
+     "51f4d75e10ba94cd1d4a3e6b390ce8beba68efef299f929da603c0df90616ae9"
+    ],
+    "/trainer/file": [
+     ".../ap/8865619b/k/t_37845077e30ea5a2.tar",
+     ".../ap/8865619b/k/t_b01ce449beffe35b.tar"
+    ],
+    "/trainer/sha256": [
+     "3f7c7a7824070238d57b44594052d005b7e615da54c1fe1e53bb5e24aedd45c7",
+     "845b17895e466671bc5c5ecdb6a5a5d697a43a5e02d07d1555b11be74f8fd415"
+    ]
+   },
+   "leaves": "38170 vs 38170: 38166 unchanged byte for byte, 4 changed, 0 added, 0 removed (diff out/FOURSTREAM_K0_DIFF_110aa8b5_vs_620a7ed1.json, d3dc2c77)",
+   "newly_hashed": "k/s1_record.json 51f4d75e (79,607 B) and k/t_b01ce449beffe35b.tar 845b1789 (9,881,600 B) are kit-internal files that ship inside the kit; both hashed in the template at 10:47Z and match their pins and SHA256SUMS.txt. Neither is on Orchard yet (no new kit under x/); their Orchard copies are verified by the kit push's ARRIVAL_SHA_OK and the stage5 sums. The tar also matches the durable archive receipt (FOURSTREAM_FINAL_ARCHIVE.json, a3440273).",
+   "not_required": "No input left k/0.json. The MDG entries (staged_inputs directories/0 manifest k/input_mdg_rasters.json; files/5,6 u/4d66fc2a/i/mdg.json 7ef13713 and mdg.pt a3ec5da5) are still listed with unchanged, previously verified pins, but config 28429cf9 has no mdg stream, so they are not required.",
+   "pins_newly_hashed": 2,
+   "pins_reused": 12676,
+   "pins_total": 12678,
+   "reused": "All 12,676 unchanged sha256 pins keep record 37f2f768 (native staging of census 168856 plus carried record 5615bb8f); the same pins staged natively again in workbench 168962 (stage PASS, smoke round 0 PASS 09:36Z)."
+  },
+  "previous_record": {
+   "path": "out/FINAL_STAGING_37845077_ptr71b0b866_native.json",
+   "sha256": "37f2f768d313ee74f6c54d8c8b96dfda480ced893b99822ddc21488a9affb332"
+  },
+  "run_identity": {
+   "admission_contract_sha256": "c9d8a90a79b73241b2996a41c74a3598c4072f8a1db479379604409508d8b453",
+   "persistent_root": "/home/jjyeung/okit/r/5da50f2b (absent on Orchard 10:47Z; not created)",
+   "run": "469ddece"
+  },
+  "scope": "Read-only input verification: one Orchard login call (two small sha256sum and three ls). No project write."
+ },
+ "missing": [],
+ "project_community_write_bytes": 0,
+ "source_revision": "sha256:b01ce449beffe35be3bf0b48ad3d69f331f1523f96a69cbd3d10aab3dbb42a99",
+ "status": "PASS"
+}

@@ -1,0 +1,8 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=12843 utc=2026-11-12T13:23:31.288Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; T=$(date -u +%Y%m%dT%H%MZ); cat > leg_s1_tree/inbox/${T}_ORCH_RESULT_accepted_stand_by.md <<EOF
+# ORCH ($T): RESULT accepted; stand by for launch support
+
+I checked the complete kit myself: both archives sit in k/ at their pinned shas and in SHA256SUMS.txt, and NF_RELEASE_VERIFICATION.json is PASS (423 passed, 3 skipped). The launch now waits on Orchard only (its project space is full and main holds one advanced card until about 14:00Z).
+Until the job has passed its first save, stay available: check your inbox every 10 minutes and do nothing else (no rebuilds, no new files beyond STATUS). orchard_cp2 may ask you about receipt counts, the type report or a staging error; answer in its inbox. Do not end your turn.
+EOF
+echo "$(date -u +%FT%TZ) orch-home-distill-79: leg_s1_tree RESULT 1322Z accepted: source seal 38917ea5 unchanged; complete kit work/kit_s1_frozen_no_flag_complete id ae3cfc04 (Orchard home x/ae3cfc04; config dccc2257, run f9d0a7b9, persistent root r/0d67d2c5 unchanged); I verified both archives' sha256 in k/ and SHA256SUMS; cold staging from an empty stage passes (out/NF_COLD_STAGE_v2.json: 37 keys, 54 pins); release verification PASS 423/426 (3 input-dependent skips); card has N1/N2. Lane stands by for launch support. Remaining gates: Orchard project space (user), main's advanced card (~14:00Z), orchard_cp2 push of ae3cfc04 + b/a.py + 0.json check, then my GO." >> ORCH_HANDOFF.md

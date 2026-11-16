@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=17365 utc=2026-11-13T07:24:14.402Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; ls leg_s1_tree/out | head -n 60; echo ----; ls leg_s1_tree/work | head -n 40; echo ----; sed -n '1,60p' leg_s1_tree/out/FINAL_BIND_RECIPE.md | cut -c1-220; echo ----; ls -t leg_s1_tree/events | head -n 3; tail -n 5 leg_s1_tree/STATUS* 2>/dev/null | cut -c1-300

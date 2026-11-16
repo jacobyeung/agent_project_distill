@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=31407 utc=2026-11-14T12:19:10.161Z kind=commands original_path=(bash command)  -->
+echo "- $(date -u +%Y-%m-%dT%H:%MZ) evalx RESULT 1218Z: IF-P0 canary submitted once = job 169512 (seal eef3ba96, token aded62aed7218d81a, general, 12 h); PENDING (Priority) at 12:17:31Z; observation every 10 min; only ORCH cancels." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

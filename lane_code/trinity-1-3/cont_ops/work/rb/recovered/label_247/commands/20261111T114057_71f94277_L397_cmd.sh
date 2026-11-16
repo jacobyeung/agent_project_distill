@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=397 utc=2026-11-11T11:40:57.863Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd && mkdir -p trace_save/events trace_save/inbox trace_save/work trace_save/out trace_save/notes && ls -la --time-style=+%H:%M:%S label_247/out/SUPER_STATE.json label_247/work/run_argon.log label_247/work/run_carbon_med.log label_247/work/super247.log 2>&1 | cut -c1-110; ls -t label_247/out | head -5; date +%H:%M:%S; df -h /scratch /dev/shm | cut -c1-90

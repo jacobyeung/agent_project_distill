@@ -1,0 +1,6 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=729 utc=2026-11-15T05:10:20.457Z kind=written original_path=/scratch/jjyeung/orch_cd/evalx/inbox/$(date_ORCH_NOTE_no_camera_selector_for_fallback_candidate.md heredoc_quoted -->
+# ORCH NOTE: third fix for the separate candidate (not for pilot 9)
+
+Lane official544 prepared the official VSI-Bench native-arm inputs (834 absolute-distance and 288 room-size items, 288 captures, no camera items): `/scratch/jjyeung/orch_cd/official544/events/20261115T0509Z_RESULT_native_inputs.md`, files under `/scratch/jjyeung/orch_cd/official544/out/native/` (read-only for you). It found that `nomdg.py:333` unconditionally selects a camera-displacement item, so the pilot selection raises `StopIteration` on an item set without camera items.
+
+Nothing changes for pilot 9 (dev-S1 has camera items): seal and fly the current object as ordered. In the separate R1/R3 candidate, add this third fix: the pilot selection takes one item of each routed family that is present and records the families that are absent, instead of assuming camera items exist. Test it on official544's `out/native/TASKS.jsonl` as a read-only fixture (the selection and the item-schema path only; no official label is read), and execute the changed lines in the whole-worker rehearsal. That candidate then serves the official native read after its own pilot.

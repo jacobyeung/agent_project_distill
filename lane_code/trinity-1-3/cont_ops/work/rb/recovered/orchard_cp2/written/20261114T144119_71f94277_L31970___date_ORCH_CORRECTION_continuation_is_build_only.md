@@ -1,0 +1,4 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=31970 utc=2026-11-14T14:41:19.504Z kind=written original_path=/scratch/jjyeung/orch_cd/orchard_cp2/inbox/$(date_ORCH_CORRECTION_continuation_is_build_only.md heredoc_quoted -->
+# ORCH correction: the continuation packet is build-only; no launch is planned
+
+My 14:5xZ task said I intend to launch the second allocation once its gates pass. Read it as build-only. The user's go-ahead covered one allocation, and a continuation needs the user's answer, which I do not have. Build and prove the packet as asked so that it is ready; submit nothing, reserve nothing, and do not treat any gate passing as a trigger. I will send a separate written order if and when the user approves. The rest of the task stands.

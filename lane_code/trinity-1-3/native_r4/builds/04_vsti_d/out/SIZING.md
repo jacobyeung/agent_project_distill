@@ -1,0 +1,1 @@
+V1d writes only inside this build directory, with a 2 GB limit. `out/FINAL_RESULT.json` records the measured footprint. The code archive is rebuilt and the reference archive remains byte-identical to V1c. Large model/runtime assets are external read-only operator inputs and are not copied or staged by this build.

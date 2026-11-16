@@ -1,0 +1,6 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=30345 utc=2026-11-14T09:26:28.047Z kind=commands original_path=(bash command)  -->
+M=/home/jjyeung/.claude/projects/-scratch-jjyeung-orch-home-distill/memory; cat >> $M/orchard-queue-facts-20261112.md <<'EOF'
+
+**Orchard access and queue facts added 2026-11-14:** the shared ssh control connection (`/tmp/cm-okit-orchard` on trinity-2-18, created by `/scratch/jjyeung/orch_cd/orchard_kit/work/ossh.sh`) is ended by the far side after about 12 hours (created 21:22Z, gone 09:22Z; the one before died the same way); lanes then see `kex_exchange_identification: Connection closed by remote host`; the orchestrator recreates it with `timeout 100 bash .../ossh.sh orchard 'true'`, ideally before the 12 hours are up. `sbatch` and `srun` are `/usr/local/bin/...`; the login host's clock is UTC-5 (query Slurm with `TZ=UTC`); `general` allows queued jobs behind one running job and its start forecasts are very pessimistic (jobs forecast for 13 hours started within minutes to an hour); `srun --export=NONE` needs absolute program paths and an explicit environment.
+EOF
+echo ok

@@ -1,0 +1,16 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=27422 utc=2026-11-14T01:40:29.461Z kind=written original_path=/scratch/jjyeung/orch_cd/leg_s1_review/ORCHARD_LAUNCHER_RECEIPT_STEP_SET.json heredoc_unquoted(vars_unexpanded) -->
+{
+  "verdict": "ACCEPT",
+  "reviewer": "orchestrator orch-home-distill-79 (Claude family; the author is a GPT-family lane). A diff read on top of the independent launcher review and my receipts ORCHARD_LAUNCHER_RECEIPT.json, _MOUNT_FIX.json and _LINK_FIX.json; not a new full review.",
+  "code_pins_sha256": "b13c6dcc7b38c8fa5b28876d44f24f135da9e45f87953f6f7377009d3de9f9f7",
+  "previous_code_pins_sha256": "50deb48967c55fcf7975fabc61f4042598959f3276866576f074acc93ac5ea7e",
+  "diff": "/scratch/jjyeung/orch_cd/evalx/work/milestone/STEP200_LAUNCHER.diff (sha256 62f440cb..., one line in orchard_launcher.py prepare(): admitted steps (50, 100) -> (50, 100, 200, 400))",
+  "orchard_launcher_py_sha256_now": "$H",
+  "what_i_checked": [
+    "read the diff: only the step tuple changes; the artifact-hash, artifact-step and source-seal bindings on the same condition are untouched",
+    "the review request lists seven pins; orchard_launcher.py is the only file whose pin differs from the accepted set by the author's statement, and its current hash is recorded above",
+    "the author's log shows 20 launcher tests passing, including refusal of step 150 and of a transport/artifact step mismatch; I did not rerun them"
+  ],
+  "producer_for_step_200": "8365bd3b (the accepted producer; no overlay path added)",
+  "issued_utc": "$(date -u +%Y-%m-%dT%H:%MZ)"
+}

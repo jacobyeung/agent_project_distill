@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=27678 utc=2026-11-14T02:23:03.203Z kind=commands original_path=(bash command)  -->
+ls -a /scratch/jjyeung/orch_cd/leg_s1_tree/work/ | head -n 40; ls -a /scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872 2>/dev/null | head -n 20; cat /scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872/.git 2>/dev/null | head -n 2

@@ -1,0 +1,24 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=20827 utc=2026-11-13T12:40:20.793Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd && /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B - <<'PY'
+p="/scratch/jjyeung/orch_cd/ORCH_STATE_20261111T0935Z.md"
+L=open(p).read().split("\n")
+a=[i for i,x in enumerate(L) if x.startswith("## Active lanes at ")][0]
+b=[i for i,x in enumerate(L) if x.startswith("Ended with final RESULTs")][0]
+new=[
+"## Active lanes at 2026-11-13T12:40Z (launch Devin lanes with orch_tools/devin_bg_acp.sh from /home/jjyeung/agent_project_distill; health: scratchpad tick.sh, LANES file; log every action in ORCH_HANDOFF.md)",
+"LEG-S1 (four streams, no MDG) has run real optimizer steps only in canaries. Production is NOT launched. Final kit 07ca49df is assembled (leg_s1_fourstream_kit/final_a; source b01ce449, identity a7ad7051, contract c9d8a90a, run 469ddece, root r/5da50f2b) and under its content scan. PRODUCTION GO LIST: (1) scan certificate leg_s1_review/ANON_OK_07ca49df.json -> leg_s1_tree builds final_b -> orchard_cp2 pushes, runs b/a.py and the native probe; (2) wrapper built from the reviewed template orchard_cp2/work/adm/jl10_template.sh (sha eaad5109); (3) canary 3 (bundle 89808e96, installed in okit/cn3_ee36228a; ONE submission pre-authorized after job 168994 ends) must show a real export and resume; (4) leg_s1_canary's answer on why USR1 did nothing in 168994 and whether production depends on it; (5) export sessions incl. step 1 for evalx's read; (6) my written GO, queue check, one notices line to main. Open with the USER (asked once each, defaults in force, rows in SAVED_USER_QUESTIONS.md): native admission memory limit 256 GiB vs 800 GB allocation (default keep; unproven); parent lineage saw STI-Bench/ReSTI/MindCube scenes (default launch, never report those); leg cost ~64 h for 1,000 steps (default commit to step 100); three trinity-0-13 scripts for the user to run (scratch_0_13/out/RUN_0_13_REMOVALS*.sh; main is blocked on that disk).",
+"Measured: warm step 210-227 s (72 microsteps per rank), save 65-69 s (110 GB), slot copy 4 min 50 s, staging 20-33 min, slice admission 10 min; full admission > 2 h (VQA rebuild serial, 93 min, re-hashes every frame per reference); first step ~3 h after job start, step 100 ~9.5 h. Parent CP1 m200 official VSI-Bench 62.02 (f17 63.79); routed abs distance + room size adds +1.4 to +2.0 around either student (official_reads/ROUTED_ABSDIST_ROOM_VSI5130_20261113.md).",
+"| lane | executor | state | next |",
+"|---|---|---|---|",
+"| leg_s1_tree (successor 6) | Devin gpt-6-astra-max | final_a assembled; binder accepts the composite evidence set (my 1141Z ruling; production mode p is the full-population gate); card out/PRELAUNCH_CARD.md | final_b on the scan certificate; peak-memory measurement of the admission process (my 1203Z note); frame-pin cache proposal for the next seal |",
+"| leg_s1_canary | Devin gpt-6-astra-max | canary 1 (168942): 2 steps, 2 saves, slot copy; canary 2 (168994): launch probe on host network PASS, native slice admission PASS, steps with profile, USR1 had no effect, ends 12:51Z without slot/resume/export; canary 3 delivered | watch canary 3; USR1 analysis; live-copy helper is design only (needs my permission) |",
+"| orchard_cp2 (successor 11) | Devin opus high | operator: submits only on my word; canary 3 installed; four row databases on 2-18 legs1_dbs/ (a3v2 not pulled) | submit canary 3 once after 168994 ends; push and gate the final kit; build the wrapper from jl10 |",
+"| evalx (successor 17) | Devin opus high | owns the step-100 dev-S1 read on Orchard (runner b/rm.sh; rehearsal on the step-1 export, one job pre-authorized); official reads done today | export identity from orchard_cp2 at launch; routed scope from legs1_routed's run card |",
+"| legs1_routed | Devin gpt-6-astra-max | no-MDG routed reader delivered, review USE AFTER FIXES (leg_s1_review/REVIEW_VERDICT_ROUTED_NOMDG.md); fixes ordered into out2/ | building a held-out camera cohort from 52 dev-S1 clips (dev-S1 has no camera items; camera types are 62 percent of routing rows); bind into R1; baseline reads priced |",
+"Ended today: orchard_port (relaunch from its STATUS for milestone reads if evalx does not cover them), scratch_0_13 (final; scripts and move queue written).",
+]
+L[a:b]=new
+open(p,"w").write("\n".join(L))
+print("ok",a,b)
+PY
+echo "$(date -u +%FT%TZ) orch-home-distill-79: orchard_cp2 RESULT 1239Z: canary 3 bundle 89808e96 installed at okit/cn3_ee36228a (19 files verified), not submitted; waits for 168994 to end. State file's lane table rewritten to 12:40Z (production GO list, measured timings, open user questions)." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

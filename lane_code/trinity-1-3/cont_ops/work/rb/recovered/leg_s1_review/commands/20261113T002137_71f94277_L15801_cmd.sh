@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=15801 utc=2026-11-13T00:21:37.460Z kind=commands original_path=(bash command)  -->
+echo "$(date -u +%FT%TZ) orch-home-distill-79: dispatched the independent review of the pointing config change + readout phase boundary (Claude Opus high; leg_s1_review/BRIEF_POINTING_REVIEW.md -> REVIEW_VERDICT_POINTING.md + FINAL_REVIEW_05036aff.json)." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

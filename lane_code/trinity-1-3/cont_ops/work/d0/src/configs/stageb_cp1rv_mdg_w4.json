@@ -1,0 +1,267 @@
+{
+  "schema": "carrier-c1-run-v1",
+  "init": "base",
+  "parallel": "fsdp",
+  "all_frames": true,
+  "training_mode": "final",
+  "carrier_placement": "append_after_temporal_group_video_tokens_v1",
+  "frame_layout": "duplicate",
+  "frame_markers": true,
+  "depth_enabled": true,
+  "depth_fov_source": "pose_head",
+  "world_size": 4,
+  "reference_world_size": 32,
+  "steps": 800,
+  "milestones": [
+    100,
+    200,
+    400,
+    800
+  ],
+  "mix": [
+    "pose",
+    "vqa",
+    "vqa",
+    "mdg",
+    "routing",
+    "pose",
+    "vqa",
+    "vqa",
+    "pointing",
+    "routing"
+  ],
+  "base_identity": "PLACEHOLDER_BASE_IDENTITY",
+  "code": {
+    "path": "/PLACEHOLDER/code.json",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "streams": {
+    "pose": {
+      "path": "/PLACEHOLDER/pose_receipt.json",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    "vqa": {
+      "path": "/PLACEHOLDER/vqa_receipt.json",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    "pointing": {
+      "path": "/PLACEHOLDER/pointing_receipt.json",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    "routing": {
+      "path": "/PLACEHOLDER/routing_receipt.json",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    "mdg": {
+      "path": "/PLACEHOLDER/mdg/clips.jsonl",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    }
+  },
+  "exclusions": {
+    "path": "/PLACEHOLDER/benchmark_test_exclusions.json",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "report_exclusions": {
+    "path": "/PLACEHOLDER/reported_overlap.json",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "preparation_output": "/PLACEHOLDER/prepared",
+  "preparation": {
+    "path": "/PLACEHOLDER/prepared/receipt.json",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "output": "/PLACEHOLDER/run",
+  "admission": {
+    "path": "/PLACEHOLDER/admission.json",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "authorization": {
+    "path": "/PLACEHOLDER/authorization.json",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "init_artifact": {
+    "artifact": {
+      "path": "/PLACEHOLDER/cp1_rv/artifact.json",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    "lm": "full",
+    "heads": [
+      "pose",
+      "depth"
+    ]
+  },
+  "pose_lr_scale": 0.3,
+  "lm_lr_scale": 1.0,
+  "pointing_weights": {
+    "decision": 5.0,
+    "row_mean": 2.0
+  },
+  "scheduled_sampling": {
+    "seed": 17,
+    "max_own_probability": 1.0,
+    "pose_open_deg": 45.0,
+    "pose_full_deg": 25.0,
+    "fov_open_deg": 2.0,
+    "depth_open_absrel": 0.25,
+    "ema_steps": 100,
+    "force_from_step": null,
+    "exposure_from_step": null,
+    "exposure_probability": 0.0
+  },
+  "mdg": {
+    "clips_jsonl": {
+      "path": "/PLACEHOLDER/mdg/clips.jsonl",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    "frame_root": "/PLACEHOLDER/frames",
+    "rasters": "/PLACEHOLDER/rasters",
+    "confusers": {
+      "path": "/PLACEHOLDER/mdg/confusers.json",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    "vocab": {
+      "path": "/PLACEHOLDER/mdg/vocab.json",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    "exclude_scenes": {
+      "path": "/PLACEHOLDER/mdg/excluded_scenes.json",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    "stem_weights": {
+      "path": "/PLACEHOLDER/resnet18-f37072fd.pth",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    "init_artifact": "/PLACEHOLDER/mdg_a",
+    "weight": 1.0,
+    "lr_scale": 1.0,
+    "label_chunk": 8,
+    "max_visible": 24,
+    "absent_share": 0.3,
+    "lora_rank": 0,
+    "lora_lr": 0.0001
+  },
+  "recipe": {
+    "steps": 800,
+    "global_batch": 320,
+    "world_size": 4,
+    "seed": 17,
+    "learning_rate": 0.0001,
+    "lm_learning_rate": 1e-05,
+    "encoder_learning_rate": 1e-05,
+    "weight_decay": 0.01,
+    "warmup_ratio": 0.03,
+    "clip_norm": 1.0,
+    "resume_every_seconds": 1800,
+    "milestones": [
+      100,
+      200,
+      400,
+      800
+    ],
+    "mix": [
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "mdg",
+      "mdg",
+      "mdg",
+      "mdg",
+      "mdg",
+      "mdg",
+      "mdg",
+      "mdg",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "pointing",
+      "pointing",
+      "pointing",
+      "pointing",
+      "pointing",
+      "pointing",
+      "pointing",
+      "pointing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing"
+    ],
+    "weights": {
+      "pose": 1.0,
+      "depth": 0.05,
+      "depth_fov": 0.05,
+      "vqa": 1.0,
+      "pointing": 1.0,
+      "routing": 1.0
+    },
+    "wall_seconds": 14400,
+    "stop_before_seconds": 900,
+    "scheduled_sampling": {
+      "seed": 17,
+      "max_own_probability": 1.0,
+      "pose_open_deg": 45.0,
+      "pose_full_deg": 25.0,
+      "fov_open_deg": 2.0,
+      "depth_open_absrel": 0.25,
+      "ema_steps": 100,
+      "force_from_step": null,
+      "exposure_from_step": null,
+      "exposure_probability": 0.0
+    },
+    "reference_world_size": 32
+  }
+}

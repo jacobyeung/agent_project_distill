@@ -1,0 +1,363 @@
+--- a/student_pilot/carrier_c1_run.py
++++ b/student_pilot/carrier_c1_run.py
+@@ -791,7 +791,8 @@
+             c1r_align.attach(model, receipt['align'], training=True)
+         if init:
+             model.init_report.update(init_from_artifact(model, init, verify=verify_assets, part='heads',
+-                                                        **({'evaluation': True} if evaluation else {})))
++                                                        **({'evaluation': True} if evaluation else {}),
++                                                        **({'require_all_heads': True} if receipt.get('warm_start') else {})))
+     elif receipt['training_mode'] == 'pose_only' and receipt.get('init_artifact'):
+         # Warm-started pose-only run: the milestone's LM and vision weights, then its pose head.
+         init = receipt['init_artifact']
+@@ -856,7 +857,7 @@
+     return local if (local/'.verified').is_file() else None
+ 
+ 
+-def init_from_artifact(model, spec, verify=True, part='heads', evaluation=False):
++def init_from_artifact(model, spec, verify=True, part='heads', evaluation=False, require_all_heads=False):
+     """Warm-start from a C1-family milestone export (carrier-c1-artifact-v1).
+ 
+     part 'lm': lm 'full' replaces every base tensor (LM and frozen vision) with the export;
+@@ -922,6 +923,8 @@
+     live = model.auxiliary_heads.state_dict()
+     wanted = {k for k in live if keep(k)}
+     selected = {k: v for k, v in state.items() if keep(k)}
++    if require_all_heads:
++        report['unselected_export_keys'] = sorted(set(state) - set(selected))
+     # A pose_only donor (C1-a, C1-r) trained with zero gravity and scale weights, so it never built
+     # those branches; the final-mode head has them, and they keep their planned init.
+     optional = (('pose.head.gravity_branch.', 'pose.head.scale_branch.', 'pose.head.scale_token')
+@@ -1614,7 +1617,9 @@
+     counts = {k:v['count'] for k,v in receipt['streams'].items()}
+     recipe = recipe_for(cfg)
+     offset = cfg.get('row_start_step', 0)
+-    plan = next(data.mixed_indices(counts,offset+1,start_step=offset,training_mode=cfg.get('training_mode', 'mixed'),
++    from .s1_warm_start import start_step as warm_start_step
++    initial = warm_start_step(receipt)
++    plan = next(data.mixed_indices(counts,offset+initial+1,start_step=offset+initial,training_mode=cfg.get('training_mode', 'mixed'),
+                                    mix=recipe['mix'],world=recipe['world_size']))
+     rank_shapes = []
+     try:
+@@ -1625,7 +1630,7 @@
+                 rank_shapes.append(dict(rank=rank,stream=stream,tokens=list(batch['input_ids'].shape)))
+         frozen_before = {n: p.detach().clone() for n,p in model.model.visual.named_parameters()}
+         representative = {g['name']: g['params'][0].detach().clone() for g in optimizer.param_groups}
+-        step, pose_batch = optimize_step(model,optimizer,rows,plan,0,torch.device('cpu'),1)
++        step, pose_batch = optimize_step(model,optimizer,rows,plan,0,torch.device('cpu'),initial+1)
+         checks = dict(frozen_base_vision=all(torch.equal(p,frozen_before[n]) for n,p in model.model.visual.named_parameters()),
+                       lm_update=not torch.equal(optimizer.param_groups[0]['params'][0],representative['llm']),
+                       finite_gradients=all(np.isfinite(x) for x in step['gradient_norms'].values()))
+--- a/student_pilot/s1_warm_start.py
++++ b/student_pilot/s1_warm_start.py
+@@ -16,14 +16,18 @@
+     if 'warm_start' not in cfg:
+         return
+     value = cfg['warm_start']
+-    if not isinstance(value, dict) or set(value) != {'schema', 'donor_config'} or value['schema'] != SCHEMA:
++    if (not isinstance(value, dict) or not {'schema', 'donor_config'} <= set(value)
++            or set(value) - {'schema', 'donor_config', 'donor_row_order'} or value['schema'] != SCHEMA):
+         raise ValueError('Warm start needs its schema and pinned effective donor configuration')
+-    pin = value['donor_config']
+-    if (not isinstance(pin, dict) or set(pin) != {'path', 'sha256'}
+-            or not isinstance(pin['path'], str) or not Path(pin['path']).is_absolute()
+-            or '..' in Path(pin['path']).parts
+-            or not isinstance(pin['sha256'], str) or not re.fullmatch('[0-9a-f]{64}', pin['sha256'])):
+-        raise ValueError('Warm donor configuration needs an absolute path/SHA256 pin')
++    for key in ('donor_config', 'donor_row_order'):
++        if key not in value:
++            continue
++        pin = value[key]
++        if (not isinstance(pin, dict) or set(pin) != {'path', 'sha256'}
++                or not isinstance(pin['path'], str) or not Path(pin['path']).is_absolute()
++                or '..' in Path(pin['path']).parts
++                or not isinstance(pin['sha256'], str) or not re.fullmatch('[0-9a-f]{64}', pin['sha256'])):
++            raise ValueError('Warm donor metadata needs an absolute path/SHA256 pin')
+     init = cfg.get('init_artifact', {})
+     if (cfg.get('training_mode') != 'final' or cfg.get('depth_enabled') is not True
+             or set(cfg.get('streams', {})) != {'pointing', 'pose', 'routing', 'vqa'}
+@@ -31,6 +35,9 @@
+             or init.get('lm') != 'full' or set(init.get('heads', [])) != HEADS
+             or cfg.get('recipe', {}).get('steps') != 1000 or cfg['recipe'].get('seed') != 17):
+         raise ValueError('Warm continuation is scoped to the four-stream final leg with all heads and no row offset')
++    sampling = cfg.get('scheduled_sampling', {})
++    if sampling.get('max_own_probability') != 0 or sampling.get('exposure_probability') != 0:
++        raise ValueError('Warm continuation requires zero own-value probabilities because gate EMAs are not restored')
+ 
+ 
+ def content(value):
+@@ -102,19 +109,29 @@
+             or {name: value['receipt'] for name, value in before['streams'].items()} != donor['streams']):
+         raise ValueError('Warm donor configuration, preparation, or source identity differs')
+     check_export(before, artifact)
+-    before_rows = row_identity(before)
+-    if row_identity(receipt) != before_rows:
+-        raise ValueError('Warm admitted row content/order differs from the donor')
++    from .s1_warm_data_identity import check
++    check(before, donor, receipt, cfg)
++    if cfg['warm_start'].get('donor_row_order'):
++        from .s1_row_order import SCHEMA as row_method, verify
++        before_rows = verify(cfg['warm_start']['donor_row_order'], donor_pin, donor['preparation'], receipt)
++    else:
++        row_method = 'native-file-pins-v1'
++        before_rows = row_identity(before)
++        if row_identity(receipt) != before_rows:
++            raise ValueError('Warm admitted row content/order differs from the donor')
+     parent = load(pinned(donor['init_artifact']['artifact']))
+     return dict(schema=SCHEMA, donor_run=DONOR_RUN, donor_config=donor_pin,
+                 donor_preparation=donor['preparation'], artifact=artifact_pin, step=step,
+-                row_identity_sha256=before_rows, inherited_head_params=inherited_names(parent),
++                row_identity_sha256=before_rows, row_identity_method=row_method,
++                inherited_head_params=inherited_names(parent),
+                 optimizer='fresh_adamw', base_precision='bf16_export_to_fp32_trainable_masters',
+                 random_state='fresh_seed_not_restored', exact_resume=False)
+ 
+ 
+ def model_loaded(model, lineage):
+     report = model.init_report
++    if report.get('unselected_export_keys') != []:
++        raise ValueError('Warm continuation must not discard any export key')
+     if (lineage.get('schema') != SCHEMA or report.get('step') != lineage['step']
+             or report.get('kept') or report.get('planned_init')
+             or report.get('head_tensors') != len(model.auxiliary_heads.state_dict())):
+--- /dev/null
++++ b/student_pilot/s1_warm_data_identity.py
+@@ -0,0 +1,137 @@
++import copy
++from pathlib import Path
++import re
++
++from .p3_provenance import digest, load, pinned
++
++
++REBUILT = ('pointing', 'routing', 'vqa')
++EXECUTION = ('config_sha256', 'trainer_commit', 'source_seal')
++PIN_FIELDS = ('path', 'sha256')
++
++
++def pin_fields(prefix, content=True):
++    return {prefix + (key,) for key in PIN_FIELDS if content or key == 'path'}
++
++
++def preparation_allowlist():
++    allowed = pin_fields(('native_preparation',))
++    for name in REBUILT:
++        for prefix in (('streams', name), ('streams', name, 'scene_source')):
++            for key in ('database', 'indices', 'receipt'):
++                allowed.update(pin_fields(prefix + (key,)))
++        allowed.update(pin_fields(('scene_filter_report', 'expected', name, 'population', 'database')))
++    for prefix in (('streams', 'pose'), ('streams', 'pose', 'scene_source')):
++        allowed.update(pin_fields(prefix + ('order',)))
++        for key in ('receipt', 'database', 'division'):
++            allowed.update(pin_fields(prefix + (key,), False))
++        for i in ('0', '1'):
++            for key in ('receipt', 'database', 'division'):
++                allowed.update(pin_fields(prefix + ('sources', i, key), False))
++    for key in (('model',), ('division',), ('camera', 'supervision')):
++        allowed.update(pin_fields(key, False))
++    allowed.update(pin_fields(('scene_filter_report', 'upstream', 'routing', 'expected', '@pool', 'reference')))
++    return allowed
++
++
++def stream_allowlist(name):
++    allowed = pin_fields(('database',), name in REBUILT)
++    for key in (('model',), ('division',), ('camera', 'supervision')):
++        allowed.update(pin_fields(key, False))
++    if name == 'routing':
++        allowed.update(pin_fields(('materialization',)))
++        allowed.update(pin_fields(('source_scene_exclusions', 'expected', '@pool', 'reference')))
++    if name == 'pose':
++        for i in ('0', '1'):
++            allowed.update(pin_fields(('sources', i, 'receipt'), False))
++    return allowed
++
++
++def permitted(path, allowed):
++    return any(len(path) == len(pattern) and all(
++        expected == actual or expected == '@pool' and actual.startswith('pool/')
++        for actual, expected in zip(path, pattern)) for pattern in allowed)
++
++
++def compare(before, after, allowed, scope, path=()):
++    if type(before) is not type(after):
++        raise ValueError('Warm preparation settings differ in type: ' + scope + '/' + '/'.join(path))
++    if isinstance(before, dict):
++        if before.keys() != after.keys():
++            raise ValueError('Warm preparation settings differ in fields: ' + scope + '/' + '/'.join(path))
++        for key in before:
++            compare(before[key], after[key], allowed, scope, path + (key,))
++    elif isinstance(before, list):
++        if len(before) != len(after):
++            raise ValueError('Warm preparation settings differ in length: ' + scope + '/' + '/'.join(path))
++        for i, (left, right) in enumerate(zip(before, after)):
++            compare(left, right, allowed, scope, path + (str(i),))
++    elif before != after:
++        if not permitted(path, allowed):
++            raise ValueError('Warm preparation settings differ: ' + scope + '/' + '/'.join(path))
++        if path[-1] == 'path':
++            if not isinstance(after, str) or not Path(after).is_absolute() or '..' in Path(after).parts:
++                raise ValueError('Warm rebuilt pin has an invalid path')
++        elif not isinstance(after, str) or not re.fullmatch('[0-9a-f]{64}', after):
++            raise ValueError('Warm rebuilt pin has an invalid SHA256')
++
++
++def execution_stamp(receipt):
++    seal = receipt.get('source_seal')
++    if not isinstance(seal, dict):
++        raise ValueError('Warm preparation requires a source/configuration binding')
++    body = {key: value for key, value in seal.items() if key != 'sha256'}
++    if (set(body) != {'schema', 'tree_sha256', 'config_sha256', 'archive'}
++            or body['schema'] != 's1-run-seal-v1' or seal['sha256'] != digest(body)
++            or body['config_sha256'] != receipt.get('config_sha256')
++            or 'trainer_commit' in receipt and receipt['trainer_commit'] != 'sha256:' + body['tree_sha256']):
++        raise ValueError('Warm preparation execution provenance is malformed')
++
++
++def effective_before(receipt, cfg):
++    value = copy.deepcopy(receipt)
++    value.update(align=cfg.get('align'), frame_markers=cfg.get('frame_markers', False),
++                 pointing_weights=cfg.get('pointing_weights'),
++                 camera={**value.get('camera', {}), **cfg.get('camera_overrides', {})})
++    return value
++
++
++def consistent_pins(receipt, cfg):
++    if {name: value['receipt'] for name, value in receipt['streams'].items()} != cfg['streams']:
++        raise ValueError('Warm stream pins differ from the effective configuration')
++    for name, value in receipt['streams'].items():
++        prior = value.get('scene_source', value)
++        for key in ('receipt', 'database'):
++            if key in prior and key in value and prior[key] != value[key]:
++                raise ValueError('Warm stream aliases disagree on their pinned source')
++        expected = receipt.get('scene_filter_report', {}).get('expected', {}).get(name, {}).get('population', {})
++        if 'database' in expected and expected['database'] != value.get('database'):
++            raise ValueError('Warm scene census disagrees with its stream database')
++
++
++def check(before, donor, receipt, cfg):
++    if list(before['streams']) != list(receipt['streams']):
++        raise ValueError('Warm preparation settings differ in stream order')
++    if receipt.get('init_artifact') != cfg['init_artifact']:
++        raise ValueError('Warm preparation init differs from the selected export')
++    for value, config in ((before, donor), (receipt, cfg)):
++        execution_stamp(value)
++        consistent_pins(value, config)
++    old = effective_before(before, donor)
++    new = copy.deepcopy(receipt)
++    for key, default in (('align', None), ('frame_markers', False), ('pointing_weights', None)):
++        new.setdefault(key, default)
++    for key in EXECUTION:
++        if (key in old) != (key in new):
++            raise ValueError('Warm preparation execution fields are missing')
++        old.pop(key, None)
++        new.pop(key, None)
++    for key in ('init_artifact', 'warm_start'):
++        old.pop(key, None)
++        new.pop(key, None)
++    compare(old, new, preparation_allowlist(), 'prepared')
++    for name in before['streams']:
++        current = load(pinned(cfg['streams'][name]))
++        previous = current if donor['streams'][name]['sha256'] == cfg['streams'][name]['sha256'] else load(
++            pinned(donor['streams'][name]))
++        compare(previous, current, stream_allowlist(name), 'stream/' + name)
+--- /dev/null
++++ b/student_pilot/s1_row_order.py
+@@ -0,0 +1,98 @@
++import hashlib
++import json
++from pathlib import Path
++import sqlite3
++
++from .p3_provenance import digest, load, pinned
++
++
++SCHEMA = 's1-ordered-row-content-v1'
++ATTESTATION = 's1-donor-row-order-v1'
++
++
++def canonical(value):
++    if isinstance(value, dict):
++        if set(value) == {'path', 'sha256'}:
++            return {'sha256': value['sha256']}
++        return {key: canonical(part) for key, part in value.items()}
++    if isinstance(value, list):
++        return [canonical(part) for part in value]
++    return value
++
++
++def fingerprint(receipt):
++    streams = receipt['streams']
++    if set(streams) != {'pointing', 'pose', 'routing', 'vqa'}:
++        raise ValueError('Ordered-row identity requires the four admitted streams')
++    connections, signatures = {}, []
++
++    def database(pin):
++        key = (pin['path'], pin['sha256'])
++        if key not in connections:
++            path = pinned(pin)
++            if Path(str(path) + '-wal').exists() or Path(str(path) + '-journal').exists():
++                raise ValueError('Ordered-row identity requires closed immutable databases')
++            connections[key] = sqlite3.connect(path.as_uri() + '?mode=ro&immutable=1', uri=True)
++        return connections[key]
++
++    try:
++        for name, value in streams.items():
++            count = value['count']
++            if type(count) is not int or count < 1:
++                raise ValueError('Ordered-row identity requires a positive integer count')
++            if value.get('kind') == 'mix':
++                order = load(pinned(value['order']))
++                sources = value['sources']
++                if any(part.get('kind') != 'rows' for part in sources):
++                    raise ValueError('This donor-order schema supports database pose sources only')
++            else:
++                indices = load(pinned(value['indices'])) if 'indices' in value else range(count)
++                order, sources = [(0, index) for index in indices], [value]
++            if len(order) != count:
++                raise ValueError('Ordered-row mapping length differs from the admitted count')
++            h = hashlib.sha256()
++            for pair in order:
++                if (not isinstance(pair, (list, tuple)) or len(pair) != 2
++                        or any(type(index) is not int or index < 0 for index in pair)
++                        or pair[0] >= len(sources)):
++                    raise ValueError('Ordered-row mapping contains an invalid database index')
++                part, index = pair
++                row = database(sources[part]['database']).execute(
++                    'SELECT row,target FROM rows WHERE i=?', (index,)).fetchone()
++                if row is None:
++                    raise ValueError('Ordered-row mapping names a missing row')
++                payload = json.dumps(canonical([json.loads(row[0]), json.loads(row[1])]),
++                                     sort_keys=True, separators=(',', ':'), allow_nan=False).encode()
++                h.update(len(payload).to_bytes(8, 'big'))
++                h.update(payload)
++            signatures.append(dict(name=name, count=count, sha256=h.hexdigest()))
++    finally:
++        for connection in connections.values():
++            connection.close()
++    value = dict(schema=SCHEMA, streams=signatures)
++    return {**value, 'sha256': digest(value)}
++
++
++def snapshot(config_pin):
++    from .carrier_c1_run import identity
++
++    cfg = load(pinned(config_pin))
++    receipt = load(pinned(cfg['preparation']))
++    if receipt.get('config_sha256') != identity(cfg):
++        raise ValueError('Donor row attestation requires the effective configuration and its preparation')
++    return dict(schema=ATTESTATION, config=config_pin, preparation=cfg['preparation'], rows=fingerprint(receipt))
++
++
++def verify(attestation_pin, donor_config_pin, donor_preparation_pin, current_receipt):
++    value = load(pinned(attestation_pin))
++    if (set(value) != {'schema', 'config', 'preparation', 'rows'} or value['schema'] != ATTESTATION
++            or value['config'] != donor_config_pin or value['preparation'] != donor_preparation_pin):
++        raise ValueError('Donor ordered-row attestation is not bound to this donor')
++    rows = value['rows']
++    if (not isinstance(rows, dict) or set(rows) != {'schema', 'streams', 'sha256'}
++            or rows['schema'] != SCHEMA
++            or rows['sha256'] != digest({key: part for key, part in rows.items() if key != 'sha256'})):
++        raise ValueError('Donor ordered-row attestation is malformed')
++    if fingerprint(current_receipt) != rows:
++        raise ValueError('Warm ordered row content differs from the donor attestation')
++    return rows['sha256']

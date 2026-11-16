@@ -1,0 +1,20 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=28257 utc=2026-11-14T03:55:13.082Z kind=written original_path=/scratch/jjyeung/orch_cd/leg_s1_review/NATIVE_TRANSFER_RECEIPT_RANGE_RESUME.json heredoc_unquoted(vars_unexpanded) -->
+{
+  "verdict": "ACCEPT",
+  "reviewer": "orchestrator orch-home-distill-79 (Claude family; the author is a GPT-family lane). A diff read; the transfer helper had no earlier independent review, so this covers only the changed function.",
+  "native_transfer_py_sha256": "ee98dce832f0972b103bb379b25276f415cb6a97e311423df6d1ba4136a88e7c",
+  "base": "NATIVE_TRANSFER_BASE_c5d657ab.py",
+  "diff": "/scratch/jjyeung/orch_cd/evalx/work/milestone/NATIVE_RANGE_RESUME.patch (sha256 356fd8e6..., 163 lines; the source-side cloud reader only)",
+  "why": "the export stream to trinity-0-28 died at 9.6 of 21.6 GB when the IO governor held it at 1,000 B/s for main's transfers and the far end reset the stalled connection (STOP_NOTICES 02:55:50Z); the old reader had no way to continue",
+  "what_i_checked": [
+    "read the whole diff: each part is read by a ranged HTTPS request that pins the object generation in the query and as a precondition; the response must report that generation, an identity encoding, the exact remaining length and, for a resumed read, the exact Content-Range; redirects are refused; a 200 answer is accepted only at offset zero",
+    "bytes are counted and hashed only after the sink accepted them; an early end or a connection error reopens at the delivered offset after 60 seconds; eight consecutive reopenings without a byte gained stop the part; authentication, certificate, generation and range errors do not retry; a short or failed write to the sink stops at once",
+    "per-part sha256 (and md5 when pinned) and the whole-stream sha256 are still required at the end; the destination-side extraction and checks are untouched",
+    "the access token is obtained in memory from the existing gcloud session for each request and is sent only as a header; the reopen log line carries the object name, generation, offset and error text, not the token"
+  ],
+  "not_checked": [
+    "the 25 CPU tests (author's log NATIVE_RANGE_TEST_AFTER.log); I did not rerun them",
+    "a real ranged read against GCS; the first recovery transfer is that proof"
+  ],
+  "issued_utc": "$(date -u +%Y-%m-%dT%H:%MZ)"
+}

@@ -1,0 +1,9 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=25114 utc=2026-11-13T21:01:11.647Z kind=written original_path=/scratch/jjyeung/orch_cd/orchard_cp2/inbox/$(date_ORCH_NOTE_prepare_for_state_copy_cheap_run.md heredoc_quoted -->
+# ORCH note: prepare for the cheap state-copy run; do not run anything yet
+
+Thank you for the donor scan and the post-scan check. Next inside the job, after step 100's export and the following ordinary save have completed (the save is due about 21:45Z), comes the **cheap variant of the state copy**: the job's `inputs/` folder, `binding.json` and the checkpoint's small records (about 2.7 GB) archived on the node's private disk and uploaded to GCS through the kit's own uploader, as a live rehearsal of the whole path. It has passed an independent safety check and a confirmation (`/scratch/jjyeung/orch_cd/leg_s1_review/STATE_COPY_SAFETY.md`, `STATE_COPY_CONFIRMATION.md`). Two small transport fixes are being made now; the final operator procedure and my written order follow. No order exists yet.
+
+Prepare meanwhile, without running or minting anything:
+- Read the operator procedure of the current bundle: `/scratch/jjyeung/orch_cd/leg_s1_canary/out/STATE_COPY_OPERATOR_169097_20261113T2049Z_0cc93187.json` (it will be re-issued with the fixes; the shape stays). Tell me if any step in it cannot be done with your access path or your minting tool.
+- Minting: it asks for sessions for fresh object names under a new prefix, each name carrying the run, the checkpoint step and an attempt nonce; you mint only names absent from your tool's local map and record them. Create-only is not required (my ruling to the lane). Say how long minting five sessions takes.
+- Step 100 first: its export RESULT, attestation in the step-1 form and identity to `evalx/inbox/` remain your priority around 21:35Z.

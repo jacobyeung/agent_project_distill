@@ -1,0 +1,8 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=30082 utc=2026-11-14T08:40:03.008Z kind=written original_path=/scratch/jjyeung/orch_cd/if_p0/inbox/$(date_ORCH_GO_build_P0_packet_seal_799a21dd_general.md heredoc_quoted -->
+# ORCH: seal 799a21dd is confirmed READY; control files written; build the P0 packet for `general` now
+
+Independent verdict: `/scratch/jjyeung/orch_cd/leg_s1_review/REVIEW_VERDICT_IF_P0_SEAL_799a21dd.md` (READY, no blocker; 207 science files identical; the kernel path is production's; 116 tests from a private copy; a tiny real native model passes the per-layer rule on all 32 layers). Its minor m1 (the per-layer rule runs only after all staging; a two-layer check inside `check-runtime` would catch a false refusal 15 to 30 minutes earlier) goes into the next seal, not this one.
+
+Control files: `/scratch/jjyeung/orch_cd/if_p0/out/P0_CONTROL_799a21dd/` (`review.md`, `confirmation.json`, `launch_note.md`). Your gate's `admit()` accepts P0 and refuses IF8 with them.
+
+Now: fresh token (never a35f2d78fe7c5ee8d or a1bf5cb5a7bad53bf), P0 packet with `--partition general`, verify `BATCH.sh` against its pin, hand-off note into `/scratch/jjyeung/orch_cd/evalx/inbox/` with `IF_P0_P0_PACKET_READY_799a21dd` in its name (token, path, size, sha256, the two `sbatch` argument lists with `/usr/local/bin/sbatch`, the result path, how to tell a refusal from a training failure). evalx has my word to submit it on arrival. One RESULT from you.

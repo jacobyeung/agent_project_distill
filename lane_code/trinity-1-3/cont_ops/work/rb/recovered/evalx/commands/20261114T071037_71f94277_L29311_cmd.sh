@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=29311 utc=2026-11-14T07:10:37.788Z kind=commands original_path=(bash command)  -->
+C=/scratch/jjyeung/orch_cd/evalx; ls -la $C/BRIEF_SUCCESSOR21_DRAFT.md $C/work/BRIEF_SUCCESSOR21_DRAFT.md $C/work/milestone/BRIEF_SUCCESSOR21_DRAFT.md 2>/dev/null | cut -c24-160; f=$(ls $C/BRIEF_SUCCESSOR21_DRAFT.md $C/work/BRIEF_SUCCESSOR21_DRAFT.md $C/work/milestone/BRIEF_SUCCESSOR21_DRAFT.md 2>/dev/null | head -n 1); wc -l "$f"; cut -c1-700 "$f" | head -n 60

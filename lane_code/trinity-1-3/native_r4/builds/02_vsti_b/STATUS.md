@@ -1,0 +1,1 @@
+V1b is built and CPU-verified. The code and family are sealed in out/PACKAGE.json. Upload pins, full frames, release videos and operator GPU/namespace execution remain pending. See out/FINAL_RESULT.json and out/RUN_ORCHARD.md.
