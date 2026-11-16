@@ -64,5 +64,7 @@ Orchestrator 0e. This file replaces DISTILLATION_HANDOFF_20261103_1200Z.md as th
   - The user ran rmkit2, rmkit3, rmkit5, rmkit6 and the GCS cleanup (1.57 TB).
   - The eval minimum is restored and on the keep-list. No AWS evals without the user's explicit OK.
   - Copy lane **aws_return_copy5**: GCS ~13.7 TB; Mind ~0.7 of 7 TB, NAT-limited at ~20-50 MB/s.
-- **Gemini:** the collector is capped at 8 workers until main says r2660 and r2675 are done.
+- **Gemini:** main set MAX_WORKERS_OVERRIDE to 8 at 23:52Z, because the key is saturated: true 429s were 10-16% on its MMSI typed rows and above 2% on r2694. Main raises it again when r2694 ends (~16-20 h) and tells us.
+- **f03/f19 finals on Mind:** not verified. Their GCS→Mind fetch runs at ~0.9 MB/s, starved by the AWS ingest on the same NAT, and its 1-hour tokens expire mid-file. Resume with `/scratch/jjyeung/finals_secure/bin/mind_go_item_resume.sh f03`, then the same for f19 (Range resume from the last `got`), after the AWS Mind ingest drains or through aws_return_copy5's sync. Keep `/scratch/jjyeung/finals_2nd/{f03,f19}.tar` on 0-13 until both show VERIFY_OK.
+- **CP4T-K (22:20Z):** trainer 3e52bed2 (cuDNN SDPA off, attention guard, 0.95 alloc cap, fail-fast). Codex PASS twice. Leg 1 is job 165373, queued on advanced with an estimated start of ~07:35Z 11-05. `auto_go.sh` (setsid, 0-13) writes the .GO on a strict SMOKE_OK and watches to step 8. Then start a watcher lane from `/scratch/jjyeung/cp4tk_launch/HANDOFF.md` for m100. `meta_5130.jsonl` is staged on Orchard.
 - **Lanes rotate at 200K tokens.** Never message a large idle lane; start a successor from its HANDOFF.md instead.
