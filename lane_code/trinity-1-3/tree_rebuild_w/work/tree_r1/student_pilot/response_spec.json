@@ -1,0 +1,74 @@
+{
+  "compatibility": "Inline camera/calculator and newline-delimited ground envelopes are distinct bound-row variants. Neither is normalized.",
+  "encoding": "UTF-8",
+  "envelope": {
+    "inline": [
+      "<tool_response>",
+      "</tool_response>"
+    ],
+    "multiline": [
+      "<tool_response>\n",
+      "\n</tool_response>"
+    ]
+  },
+  "field_order": {
+    "box": [
+      "name",
+      "frames",
+      "best",
+      "box_label",
+      "f1_centre",
+      "size",
+      "yaw"
+    ],
+    "distance": [
+      "distance"
+    ],
+    "move": [
+      "dx",
+      "dy",
+      "dz",
+      "distance"
+    ],
+    "pose": [
+      "f1_centre",
+      "yaw"
+    ],
+    "turn": [
+      "turn"
+    ]
+  },
+  "newline": "LF",
+  "number_format": {
+    "angle": "integer degrees",
+    "metric": "fixed two decimals",
+    "signed_delta": "explicit sign and two decimals"
+  },
+  "rules": {
+    "angle": "u \\(-?\\d+\\.\\d{2}, -?\\d+\\.\\d{2}\\); v \\(-?\\d+\\.\\d{2}, -?\\d+\\.\\d{2}\\); dot -?\\d+\\.\\d{4}; cross -?\\d+\\.\\d{4}; theta -?\\d+ deg; (?:left|right|back|front-left|front-right|back-left|back-right|Turn Left|Turn Right|Turn Back)",
+    "area": "area -?\\d+\\.\\d{2} m\\^2",
+    "box": "[^\\n<>:]+: frames \\d+(?:,\\d+)* \\(best \\d+\\)\\nB\\d+: f1 centre \\(-?\\d+\\.\\d{2}, -?\\d+\\.\\d{2}, -?\\d+\\.\\d{2}\\) m\\nsize -?\\d+\\.\\d{2} x -?\\d+\\.\\d{2} x -?\\d+\\.\\d{2} m\\nyaw -?\\d+ deg \\(0 = \\+x; positive \\+x toward -z about \\+y\\)",
+    "camera_distances": "(?:P\\d+ -?\\d+\\.\\d{2} m\\n)+min P\\d+ -?\\d+\\.\\d{2} m",
+    "distance": "distance -?\\d+\\.\\d{2} m",
+    "error": "error: [^\\n<>]+",
+    "gap_distances": "(?:[^\\n<>:]+: -?\\d+\\.\\d{2} m\\n)+min [^\\n<>]+ -?\\d+\\.\\d{2} m",
+    "ground_probability": "[^\\n<>:]+: f\\d+ \\[\\d+,\\d+\\] -?\\d+\\.\\d{2}(?: \\| f\\d+ \\[\\d+,\\d+\\] -?\\d+\\.\\d{2})*",
+    "minimum": "min [^\\n<>]+ -?\\d+\\.\\d{2} m",
+    "move": "dx = [+-]\\d+\\.\\d{2} m, dy = [+-]\\d+\\.\\d{2} m, dz = [+-]\\d+\\.\\d{2} m, distance = -?\\d+\\.\\d{2} m",
+    "point": "P\\d+: cam\\d+ \\(-?\\d+\\.\\d{2}, -?\\d+\\.\\d{2}, -?\\d+\\.\\d{2}\\) m; f1 \\(-?\\d+\\.\\d{2}, -?\\d+\\.\\d{2}, -?\\d+\\.\\d{2}\\) m; spread -?\\d+\\.\\d{2}",
+    "points": "P\\d+: cam\\d+ \\(-?\\d+\\.\\d{2}, -?\\d+\\.\\d{2}, -?\\d+\\.\\d{2}\\) m; f1 \\(-?\\d+\\.\\d{2}, -?\\d+\\.\\d{2}, -?\\d+\\.\\d{2}\\) m; spread -?\\d+\\.\\d{2}(?:\\nP\\d+: cam\\d+ \\(-?\\d+\\.\\d{2}, -?\\d+\\.\\d{2}, -?\\d+\\.\\d{2}\\) m; f1 \\(-?\\d+\\.\\d{2}, -?\\d+\\.\\d{2}, -?\\d+\\.\\d{2}\\) m; spread -?\\d+\\.\\d{2})*",
+    "pose": "f1 centre \\(-?\\d+\\.\\d{2}, -?\\d+\\.\\d{2}, -?\\d+\\.\\d{2}\\) m, yaw -?\\d+ deg",
+    "scalar_distance": "-?\\d+\\.\\d{2} m",
+    "status": "(?:[^\\n<>:]+: )?(?:not seen|box unavailable)",
+    "turn": "turn = [+-]\\d+ deg"
+  },
+  "units": {
+    "area": "m^2",
+    "distance": "m",
+    "position": "m",
+    "size": "m",
+    "turn": "deg",
+    "yaw": "deg"
+  },
+  "version": "tool-response-text-v1"
+}

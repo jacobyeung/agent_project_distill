@@ -1,0 +1,30 @@
+{
+  "base_vit": {
+    "trainable": false,
+    "learning_rate": 0.0
+  },
+  "merger": {
+    "trainable": false,
+    "learning_rate": 0.0
+  },
+  "private_vit": {
+    "trainable": true,
+    "learning_rate": 1e-05,
+    "frozen_submodules": [
+      "merger"
+    ]
+  },
+  "pose_head": {
+    "trainable": true,
+    "learning_rate": 6e-05,
+    "inherited_learning_rate": 1e-05
+  },
+  "depth_head": {
+    "trainable": true,
+    "learning_rate": 0.0001
+  },
+  "lm": {
+    "trainable": true,
+    "learning_rate": 6e-06
+  }
+}

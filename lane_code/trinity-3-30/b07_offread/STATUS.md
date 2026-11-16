@@ -1,4 +1,4 @@
-# b07_offread STATUS (Devin lane on trinity-3-30; updated 2026-11-16 22:47Z)
+# b07_offread STATUS (Devin lane on trinity-3-30; updated 2026-11-16 23:40Z)
 Goal: official read kit (briefs/qs/07_official_native_kit.md): benchmark {revsi999t32 (first), vsibench5130} x export {step544, done:<init-rule D0>} x reader {direct, harness:<P8 freeze sha>, e2e:<b04 manifest sha>}. Summary for readers: L/out/OFFICIAL_KIT_READY.md; record distill_design/OFFICIAL_READ_KIT_B07_20261116.md (INDEX line added). L=/scratch/jjyeung/orch_n30/b07_offread, B=/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30, PY=/scratch/jjyeung/envs/p1cpu/bin/python.
 
 ## Current pieces (all tests rerun by me)

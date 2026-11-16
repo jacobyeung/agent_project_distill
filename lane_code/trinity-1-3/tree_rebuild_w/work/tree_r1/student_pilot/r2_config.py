@@ -9,12 +9,12 @@ from .r2_withheld import SHA256 as WITHHELD_SHA256
 SITE = dict(site='Orchard', parent_job=169097, partition='advanced', nodes=1, gpus_per_node=4, world=4)
 
 
-def configure(parent, geometry_connector, *, dense_manifest=None, stage=1, overrides=True, init_pin=None):
+def configure(parent, geometry_connector, *, dense_manifest=None, stage=1, overrides=True, init_pin=None, launch_inputs=None):
     if not overrides:
         from launch_r2.parent import validate_parent
         validate_parent(parent)
         return deepcopy(parent)
-    init = selected_init(init_pin)
+    init = selected_init(init_pin) if launch_inputs is None or init_pin else None
     if geometry_connector not in ('none','gf1') or stage not in (1,2):
         raise ValueError('Unknown connector or stage')
     if parent.get('camera_connector') or parent.get('camera_overrides', {}).get('g3t_prior', {}).get('carrier_connector'):
@@ -42,9 +42,9 @@ def configure(parent, geometry_connector, *, dense_manifest=None, stage=1, overr
         lineage_status='overlap_outside_claim_scope', open_question='2026-11-13',
         external_frozen=['geometry_tower','segmenter','base_model_pretraining'], qualification_rooms_bind=False)
     if geometry_connector == 'gf1':
-        if not dense_manifest:
+        if not dense_manifest and launch_inputs is None:
             raise ValueError('A2 requires a dense manifest')
-        dense = load(pinned(dense_manifest))
+        dense = load(pinned(dense_manifest)) if dense_manifest else {'schema':'r2-dense-manifest-v1', 'reconstruct_then_subsample':True, 'clips':['required input']}
         if dense.get('schema') != 'r2-dense-manifest-v1' or dense.get('reconstruct_then_subsample') is not True or not dense.get('clips'):
             raise ValueError('Dense manifest must bind reconstruction before subsampling')
         cfg['r2_dense_manifest'] = dense_manifest
@@ -57,6 +57,9 @@ def configure(parent, geometry_connector, *, dense_manifest=None, stage=1, overr
         if parent.get('geometry_online'):
             raise ValueError('A0 cannot carry a geometry encoder')
         cfg['r2_stage'] = dict(stage=stage, trainable='full', learning_rate=cfg['recipe']['learning_rate'])
+    if launch_inputs is not None:
+        from .b7_inputs import configure as bind_inputs
+        cfg = bind_inputs(cfg, launch_inputs, 'a2' if geometry_connector=='gf1' else 'a0')
     return refresh_recipe(cfg)
 
 
@@ -92,5 +95,10 @@ def apply_native(cfg, geometry=None):
         settings = {k:v for k,v in settings.items() if k != 'learning_rate'}
         if stage['stage'] == 1:
             settings['learning_rate'] = stage['learning_rate']
+        cache=value.get('b7_inputs',{}).get('gf1_cache_option',{})
+        if cache.get('enabled'):
+            if cache.get('dtype','float32') != 'float32':
+                raise ValueError('bf16_cache_gradient_parity_unqualified')
+            settings['cached_bank']=dict(root=cache['root'],dtype=cache.get('dtype','float32'))
         value['geometry_online'] = {**geometry, 'mode':'frozen', 'gf1':gf1.normalize(settings)}
     return refresh_recipe(value)

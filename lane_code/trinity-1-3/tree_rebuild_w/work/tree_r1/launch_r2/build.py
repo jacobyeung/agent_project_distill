@@ -119,7 +119,7 @@ def verify(root):
     return sha256(root/'SHA256SUMS.txt')
 
 
-def build(base, output, *, connector=None, records=None, dense_manifest=None, bindings=None, overrides=True, init_pin=None):
+def build(base, output, *, connector=None, records=None, dense_manifest=None, bindings=None, overrides=True, init_pin=None, launch_inputs=None):
     """Stage from empty. Missing evidence is represented explicitly, never invented."""
     base, output = Path(base), Path(output)
     if not overrides:
@@ -150,17 +150,21 @@ def build(base, output, *, connector=None, records=None, dense_manifest=None, bi
     for role, path in sorted(records.items()):
         pins[role] = capsule(path)
     from student_pilot.p3_provenance import pinned
-    if not init_pin:
+    if not init_pin and launch_inputs is None:
         raise ValueError('Missing pinned init selection')
-    pins['init_selection'] = capsule(pinned(init_pin))
+    if init_pin:
+        pins['init_selection'] = capsule(pinned(init_pin))
     withheld_raw = Path(records['withheld']).read_bytes()
     if hashlib.sha256(withheld_raw).hexdigest() != WITHHELD_SHA256:
         raise ValueError('Foreign withheld list')
     if sha256(TREE/'student_pilot/trace_grammar.py') != SHARED_SHA256:
         raise ValueError('Shared grammar differs')
     cfg = load(base/'k/b02e4385.json')
-    cfg = configure(cfg, connector, dense_manifest=dense_manifest, init_pin=init_pin)
+    cfg = configure(cfg, connector, dense_manifest=dense_manifest, init_pin=init_pin, launch_inputs=launch_inputs)
     cfg = relocate(cfg, paths)
+    if launch_inputs is not None:
+        # Locations describe remote source bytes, not sandbox destination pins.
+        cfg['b7_inputs'] = deepcopy(launch_inputs)
     cfg['dev_scene_exclusions'] = dict(path='u/'+sha256(TREE/'student_pilot/r2_dev_merged.json'), sha256=sha256(TREE/'student_pilot/r2_dev_merged.json'))
     cfg['benchmark_scene_exclusions'] = dict(path='u/'+sha256(base/'k/benchmark_scene_exclusions.json'), sha256=sha256(base/'k/benchmark_scene_exclusions.json'))
     cfg['r2_all_stream_exclusions'] = True
@@ -181,8 +185,9 @@ def build(base, output, *, connector=None, records=None, dense_manifest=None, bi
                 sources=sources, operation_sources=sources)
     (output/'k/7.json').write_bytes(capsule_json(code))
     registry = put(slots())
-    mix = put(table())
-    fallback = put(table(True))
+    both_path = {'minority_count':launch_inputs['minority_count']} if launch_inputs is not None else None
+    mix = put(table(both_path=both_path))
+    fallback = put(table(True,both_path=both_path))
     if bindings:
         from .closure import transport
         from student_pilot.r2_mix import preflight, validate_table
@@ -219,17 +224,28 @@ def build(base, output, *, connector=None, records=None, dense_manifest=None, bi
             raise ValueError('Reader indices require mix and population bindings')
         cfg['r2_sampling'] = {k:v for k,v in portable.items() if k in ('mix','counts','indices','source_presence')}
         cfg['r2_sampling']['portable'] = True
-    cfg['init_artifact'] = dict(artifact=dict(path='u/'+cfg['r2_identity']['init']['artifact_sha256'],
-                                            sha256=cfg['r2_identity']['init']['artifact_sha256']),
-                                heads=['pose','depth','frame_embeddings'], lm='full')
+    if cfg['r2_identity']['init'] is not None:
+        cfg['init_artifact'] = dict(artifact=dict(path='u/'+cfg['r2_identity']['init']['artifact_sha256'],
+                                                sha256=cfg['r2_identity']['init']['artifact_sha256']),
+                                    heads=['pose','depth','frame_embeddings'], lm='full')
+    else:
+        cfg['init_artifact'] = None
     from .plan import make
     cfg['output'] = 'runs/'+digest(cfg)[:8]
     cfg['preparation_output'] = 'o/'+digest(cfg)[:8]
     cfg['r2_persistence'] = dict(sessions=None, uploader=dict(path='b/gcsput.py',sha256=sha256(TREE/'launch_s1/b/gcsput.py')))
-    staging_pin = put(make(cfg, paths, base))
+    plan = make(cfg, paths, base)
+    if launch_inputs and launch_inputs.get('init') and cfg.get('init_artifact'):
+        spec = launch_inputs['init']
+        plan['entries'][cfg['init_artifact']['artifact']['path']] = dict(parts=[spec['location']],sha256=spec['sha256'])
+    staging_pin = put(plan)
     from student_pilot.r2_policy import seal_catalog, CHOICES
     cfg['r2_evaluation'] = dict(catalog=put(seal_catalog({})), choices=list(CHOICES), camera_routing=False,
                                 prereg=None, freeze=None)
+    if launch_inputs is not None:
+        cfg['r2_evaluation'].update(claim_reader=cfg['claim_reader'],read_order=cfg['read_order'],
+            training_layout={k:cfg[k] for k in ('max_pixels','min_pixels','frame_count','frame_layout','frame_markers')},
+            response_spec=launch_inputs['response_spec'],room_claim=False)
     cfg['output'] = 'runs/'+digest(cfg)[:8]
     cfg['preparation_output'] = 'o/'+digest(cfg)[:8]
     cfg_pin = put(cfg)
@@ -300,6 +316,11 @@ def build(base, output, *, connector=None, records=None, dense_manifest=None, bi
                   target_site=SITE, source_sha256=digest(files), job_name=job_name, admission=False,
                   blockers=['component evidence', 'post-filter counts', 'host admission', 'independent review'],
                   provenance={role:sha256(path) for role,path in records.items()})
+    if launch_inputs is not None:
+        result['blockers'] += cfg['b7_blockers']
+        result['claim_reader'] = cfg['claim_reader']
+        result['read_order'] = cfg['read_order']
+        result['launch_inputs'] = launch_inputs
     (output/'BUILD.json').write_bytes(capsule_json(result))
     return result
 

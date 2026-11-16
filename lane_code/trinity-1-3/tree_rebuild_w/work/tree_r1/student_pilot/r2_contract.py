@@ -54,6 +54,9 @@ def check_init(spec, metadata):
 
 
 def preparation(cfg):
+    if 'b7_inputs' in cfg:
+        from .b7_inputs import validate
+        validate(cfg['b7_inputs'], 'a2' if cfg.get('geometry_connector')=='gf1' else 'a0', verify=True)
     from .r2_scene_bindings import verify as verify_scenes
     verify_scenes(cfg)
     if 'geometry_connector' in cfg:
@@ -135,11 +138,11 @@ def validate(row, stream, expected=None, require_frames=False):
         if not isinstance(kind, str) or not kind:
             raise ValueError('Language row needs a question type')
         if row.get('events'):
-            if stream != 'routing':
+            if stream != 'routing' and row.get('routing_policy') != 'both-path-20261116':
                 raise ValueError('Programs enter only the masked routing event path')
             validate_program(row)
         else:
-            if kind in PROGRAM_TYPES or row.get('tool_output_spans') or row.get('routing'):
+            if (kind in PROGRAM_TYPES and row.get('routing_policy') != 'both-path-20261116') or row.get('tool_output_spans') or row.get('routing'):
                 raise ValueError('Program-type row offered as direct')
             answer = validate_direct(row['target'], inputs['question'], len(inputs['frames']))
             if kind in ROOM:

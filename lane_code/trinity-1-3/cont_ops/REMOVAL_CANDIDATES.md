@@ -13,3 +13,4 @@
 - Orchard okh7/i_1be16f28.f2 (2nd failed H1 bundle), okh7/t_c94bbc4e.{sh,log,g.log}; work/h1_rr5/ — cont_ops8
 - work/h1_rr6/ — cont_ops8
 - work/h1read_rr2/, work/d0/snap/h1pkt_fix5_2252Z.tar (11 GB local mirror source), work/d0/snap/h1pkt_fix2_2125Z.tar (superseded) — cont_ops8
+- trinity-0-13:/scratch/jjyeung/n30_mirror/cont_ops/h1pkt_2000Z.tar and h1pkt_fix2_2125Z.tar (~2.5 GB each? superseded by trinity-1-18 mirror h1pkt_fix5_2252Z.tar ec3011d4; 0-13 is below its free-space floor) — cont_ops8
