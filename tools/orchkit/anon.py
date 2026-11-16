@@ -94,13 +94,31 @@ MAGIC = ((b'\x1f\x8b', 'gz'), (b'BZh', 'bz2'), (b'\xfd7zXZ\x00', 'xz'), (b'PK\x0
 NAME_JSON = ('CONFIG.json', 'PINS.json', 'JOB.json', 'DRYRUN_REPORT.json')
 
 
-def _compression(data):
-    for magic, kind in MAGIC:
-        if data.startswith(magic):
-            return kind
-    if b'PK\x05\x06' in data[-65558:] and zipfile.is_zipfile(io.BytesIO(data)):
-        return 'zip'
-    return None
+UNSUPPORTED = ((b'7z\xbc\xaf\x27\x1c', '7z'), (b'Rar!\x1a\x07', 'rar'), (b'\x28\xb5\x2f\xfd', 'zstd'),
+               (b'\x04\x22\x4d\x18', 'lz4'), (b'070707', 'cpio'), (b'070701', 'cpio'),
+               (b'070702', 'cpio'), (b'!<arch>\n', 'ar'), (b'hsqs', 'squashfs'), (b'\x89LZO', 'lzo'),
+               (b'LZIP', 'lzip'), (b'\x1f\x9d', 'compress'), (b'MSCF', 'cab'))
+
+
+def _interpretations(where, data):
+    """Every container reading of a blob: a compression at its start, a zip anywhere (Python
+    reads a zip with a prefix), a tar; a container Python cannot open is 'unsupported'."""
+    kinds = [kind for magic, kind in MAGIC[:3] if data.startswith(magic)]
+    if any(data.startswith(magic) for magic, _ in UNSUPPORTED):
+        kinds.append('unsupported')
+    try:
+        if zipfile.is_zipfile(io.BytesIO(data)):
+            kinds.append('zip')
+    except (OSError, ValueError):
+        kinds.append('unsupported')
+    if len(data) > 262 and data[257:262] == b'ustar':
+        kinds.append('tar')
+    elif len(data) >= 512:
+        archive = _open_tar(data)
+        if archive is not None:
+            archive.close()
+            kinds.append('tar')
+    return kinds
 
 
 def _decompress(kind, data):
@@ -144,79 +162,93 @@ def _meta(item):
 
 
 def _expand(where, data, depth):
-    """Yield (where, bytes or None, kind) for a blob and everything inside it, failing closed:
-    a blob that is too large, nested too deep, compressed but undecodable, or a special tar member
-    is yielded with bytes None."""
+    """Yield (where, bytes or None, kind) for a blob and everything inside it under every
+    container reading that applies, failing closed: a blob that is too large, nested too deep,
+    undecodable, in an unsupported container, or a special tar member is yielded with bytes None.
+    A container's own bytes are yielded too (kind 'archive'), so its headers are scanned."""
     if len(data) > MAX_BLOB:
         yield where, None, 'too-large'
         return
-    kind = _compression(data)
-    if kind in ('gz', 'bz2', 'xz'):
-        if depth >= MAX_DEPTH:
-            yield where, None, 'too-deep'
-            return
-        yield where, data, 'archive'
-        inner = _decompress(kind, data)
-        if inner is None:
-            yield where, None, 'undecodable'
-            return
-        if len(inner) > MAX_BLOB:
-            yield where, None, 'too-large'
-            return
-        for row in _expand(where + '!' + kind, inner, depth + 1):
-            yield row
-        return
-    if kind == 'zip':
-        if depth >= MAX_DEPTH:
-            yield where, None, 'too-deep'
-            return
-        try:
-            archive = zipfile.ZipFile(io.BytesIO(data))
-            infos = archive.infolist()
-        except (zipfile.BadZipFile, OSError, ValueError):
-            yield where, None, 'undecodable'
-            return
-        yield where, data, 'archive'
-        for info in infos:
-            name = where + '!/' + info.filename
-            if info.file_size > MAX_BLOB:
-                yield name, None, 'too-large'
-                continue
-            try:
-                blob = archive.read(info)
-            except (zipfile.BadZipFile, OSError, ValueError, NotImplementedError):
-                yield name, None, 'undecodable'
-                continue
-            if info.comment:
-                yield name, info.comment, 'meta'
-            for row in _expand(name, blob, depth + 1):
-                yield row
-        return
-    archive = _open_tar(data) if _is_tar(where, data) else None
-    if archive is None:
+    kinds = _interpretations(where, data)
+    if not kinds:
         yield where, data, 'file'
         return
     if depth >= MAX_DEPTH:
         yield where, None, 'too-deep'
         return
     yield where, data, 'archive'
-    with archive:
-        for item in archive:
-            name = where + '!/' + item.name
-            meta = _meta(item)
-            if meta:
-                yield name, meta.encode('utf-8', 'replace'), 'meta'
-            if item.issym() or item.islnk():
-                yield name, item.linkname.encode('utf-8', 'replace'), 'link'
-            elif item.isdir():
-                yield name, b'', 'dir'
-            elif not item.isfile():
-                yield name, None, 'special'
-            elif item.size > MAX_BLOB:
-                yield name, None, 'too-large'
+    for kind in kinds:
+        if kind == 'unsupported':
+            yield where, None, 'unsupported-container'
+        elif kind in ('gz', 'bz2', 'xz'):
+            inner = _decompress(kind, data)
+            if inner is None:
+                yield where, None, 'undecodable'
+            elif len(inner) > MAX_BLOB:
+                yield where, None, 'too-large'
             else:
-                for row in _expand(name, archive.extractfile(item).read(), depth + 1):
+                for row in _expand(where + '!' + kind, inner, depth + 1):
                     yield row
+        elif kind == 'zip':
+            for row in _zip_members(where, data, depth):
+                yield row
+        else:
+            for row in _tar_members(where, data, depth):
+                yield row
+
+
+def _zip_members(where, data, depth):
+    try:
+        archive = zipfile.ZipFile(io.BytesIO(data))
+        infos = archive.infolist()
+    except (zipfile.BadZipFile, OSError, ValueError):
+        yield where, None, 'undecodable'
+        return
+    if archive.comment:
+        yield where + '!/', archive.comment, 'meta'
+    for info in infos:
+        name = where + '!/' + info.filename
+        if info.comment:
+            yield name, info.comment, 'meta'
+        if info.extra:
+            yield name, info.extra, 'meta'
+        if info.file_size > MAX_BLOB:
+            yield name, None, 'too-large'
+            continue
+        try:
+            blob = archive.read(info)
+        except (zipfile.BadZipFile, OSError, ValueError, NotImplementedError, RuntimeError):
+            yield name, None, 'undecodable'
+            continue
+        for row in _expand(name, blob, depth + 1):
+            yield row
+
+
+def _tar_members(where, data, depth):
+    archive = _open_tar(data)
+    if archive is None:
+        yield where, None, 'undecodable'
+        return
+    try:
+        with archive:
+            for item in archive:
+                name = where + '!/' + item.name
+                meta = _meta(item)
+                if meta:
+                    yield name, meta.encode('utf-8', 'replace'), 'meta'
+                if item.issym() or item.islnk():
+                    yield name, item.linkname.encode('utf-8', 'replace'), 'link'
+                elif item.isdir():
+                    yield name, b'', 'dir'
+                elif not item.isfile():
+                    yield name, None, 'special'
+                elif item.size > MAX_BLOB:
+                    yield name, None, 'too-large'
+                else:
+                    for row in _expand(name, archive.extractfile(item).read(), depth + 1):
+                        yield row
+    except (tarfile.TarError, EOFError, OSError):
+        yield where, None, 'undecodable'
 
 
 def walk_blobs(root, nested=True):
@@ -272,11 +304,12 @@ def _walk(root, nested=True):
 
 
 def _json_strings(value):
-    if isinstance(value, dict):
-        for key, item in value.items():
-            yield str(key)
-            for text in _json_strings(item):
-                yield text
+    """Every key and string of a JSON value parsed with object_pairs_hook=list (objects become
+    lists of [key, value] pairs, so duplicate keys are kept)."""
+    if isinstance(value, tuple) and len(value) == 2 and isinstance(value[0], str):
+        yield value[0]
+        for text in _json_strings(value[1]):
+            yield text
     elif isinstance(value, list):
         for item in value:
             for text in _json_strings(item):
@@ -299,9 +332,18 @@ def scan_tree(root, rules):
             hits.extend(scan_text(where, data.decode('utf-8', 'replace'), rules, 'name'))
         elif data:
             hits.extend(scan_bytes(where, data, rules))
-        if kind == 'file' and where in NAME_JSON:
+        if kind == 'file' and where.lower().endswith('.json') and where not in NAME_JSON:
             try:
-                parsed = json.loads(data.decode('utf-8'))
+                parsed = json.loads(data.decode('utf-8'), object_pairs_hook=list)
+            except (ValueError, UnicodeDecodeError):
+                parsed = None
+            for text in _json_strings(parsed):
+                hits.extend(row for row in scan_text(where, text, rules, 'text') if row not in hits)
+        if kind == 'file' and where in NAME_JSON:
+            hits.extend(row for row in scan_text(where, data.decode('latin-1'), rules, 'name')
+                        if row not in hits)
+            try:
+                parsed = json.loads(data.decode('utf-8'), object_pairs_hook=list)
             except (ValueError, UnicodeDecodeError):
                 hits.append({'where': where, 'scope': 'name', 'rule': 'unparseable-json'})
                 continue

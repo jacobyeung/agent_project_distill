@@ -29,6 +29,7 @@ import json
 import os
 import re
 import secrets
+import stat
 import subprocess
 import sys
 import tarfile
@@ -187,6 +188,8 @@ def kit_files(kit):
             path = os.path.join(current, name)
             if os.path.islink(path):
                 raise LaunchError('kit holds a symlink: %s' % os.path.relpath(path, kit))
+            if not stat.S_ISREG(os.lstat(path).st_mode):
+                raise LaunchError('kit holds a special file: %s' % os.path.relpath(path, kit))
             rows.append((os.path.relpath(path, kit), path))
         for name in dirs:
             if os.path.islink(os.path.join(current, name)):
@@ -359,15 +362,11 @@ def check_dryrun(path, kit_pins, config_sha):
     return {'path': os.path.abspath(path), 'verdict': 'PASS'}
 
 
-def prepare(kit, config_path, out, lane, meaning, checkout, dryrun=None, no_dryrun_reason=None,
-            sessions=None, ledger_file=None, provenance_fn=provenance, token=None, rules=None):
-    kit, out = os.path.abspath(kit), os.path.abspath(out)
-    if os.path.lexists(out):
-        raise LaunchError('refusing to reuse %s' % out)
-    check = tempfile.mkdtemp(prefix=os.path.basename(out) + '.check.', dir=os.path.dirname(out))
-    kit = snapshot(kit, os.path.join(check, 'kit'))
-    with open(config_path, 'rb') as handle:
-        config_raw = handle.read()
+def check_kit(kit, config_raw, rules):
+    """Every kit check, on one directory: the config bytes equal the kit's CONFIG.json, the config
+    validates, PINS.json is valid and named by the config, every pinned file matches, no file is
+    unpinned, no hash is copied, and nothing trips the opacity check. Returns
+    (config, manifest, kit_pins_sha256, config_sha256)."""
     kit_config = os.path.join(kit, 'CONFIG.json')
     if not os.path.isfile(kit_config) or util.sha256_file(kit_config)[0] != util.sha256_bytes(config_raw):
         raise LaunchError('--config differs from the kit CONFIG.json')
@@ -390,29 +389,48 @@ def prepare(kit, config_path, out, lane, meaning, checkout, dryrun=None, no_dryr
     copies = pins.check_single_place(kit)
     if copies:
         raise LaunchError('single-place invariant: %s' % json.dumps(copies, sort_keys=True)[:2000])
-    if no_dryrun_reason:
-        dry = {'path': None, 'verdict': None, 'no_dryrun_reason': no_dryrun_reason}
-    else:
-        dry = check_dryrun(dryrun or os.path.join(kit, 'DRYRUN_REPORT.json'), kit_pins, config_sha)
-    rules = rules or anon.load_rules()
     hits = anon.scan_tree(kit, rules)
     if hits:
         raise LaunchError('opacity: %s' % json.dumps(hits, sort_keys=True)[:2000])
-    record = provenance_fn(checkout, config_path)
-    token, name = mint_job_name(token)
-    job = {'token': token, 'job_name': name,
-           'sessions': util.read_json(sessions) if sessions else {}}
-    payload = bundle_bytes(kit, job)
-    script = render(config, token, payload)
-    remote = submit_script(config, token, script)
-    argv = transport_argv()
-    hits = anon.scan_job(rules, job_name=name, script=script, argv=config['entry'],
+    return config, manifest, kit_pins, config_sha
+
+
+def build_submission(kit, config, job, rules):
+    """The batch script and the submission script, rebuilt deterministically from a checked kit and
+    JOB.json, after the opacity check of every part bound for the batch host."""
+    script = render(config, job['token'], bundle_bytes(kit, job))
+    remote = submit_script(config, job['token'], script)
+    hits = anon.scan_job(rules, job_name=job['job_name'], script=script, argv=config['entry'],
                          env=(config.get('return') or {}).get('gcs_env') or {})
     hits += anon.scan_text('script', script, rules, 'name')
     hits += anon.scan_text('submit', remote, rules, 'name')
     hits += anon.scan_text('JOB.json', util.canonical_json(job).decode('utf-8'), rules, 'name')
     if hits:
         raise LaunchError('opacity: %s' % json.dumps(hits, sort_keys=True)[:2000])
+    return script, remote
+
+
+def prepare(kit, config_path, out, lane, meaning, checkout, dryrun=None, no_dryrun_reason=None,
+            sessions=None, ledger_file=None, provenance_fn=provenance, token=None, rules=None):
+    kit, out = os.path.abspath(kit), os.path.abspath(out)
+    if os.path.lexists(out):
+        raise LaunchError('refusing to reuse %s' % out)
+    check = tempfile.mkdtemp(prefix=os.path.basename(out) + '.check.', dir=os.path.dirname(out))
+    kit = snapshot(kit, os.path.join(check, 'kit'))
+    with open(config_path, 'rb') as handle:
+        config_raw = handle.read()
+    rules = rules or anon.load_rules()
+    config, manifest, kit_pins, config_sha = check_kit(kit, config_raw, rules)
+    if no_dryrun_reason:
+        dry = {'path': None, 'verdict': None, 'no_dryrun_reason': no_dryrun_reason}
+    else:
+        dry = check_dryrun(dryrun or os.path.join(kit, 'DRYRUN_REPORT.json'), kit_pins, config_sha)
+    record = provenance_fn(checkout, config_path)
+    token, name = mint_job_name(token)
+    job = {'token': token, 'job_name': name,
+           'sessions': util.read_json(sessions) if sessions else {}}
+    script, remote = build_submission(kit, config, job, rules)
+    argv = transport_argv()
     target = config.get('return') or {}
     gcs = ('%s/%s' % (target['gcs_prefix'].rstrip('/'), token)) if target.get('gcs_prefix') else None
     text = meaning + ('' if not no_dryrun_reason else ' | no-dryrun: ' + no_dryrun_reason)
@@ -425,6 +443,7 @@ def prepare(kit, config_path, out, lane, meaning, checkout, dryrun=None, no_dryr
     os.rename(check, out)
     util.atomic_write(os.path.join(out, 'BATCH.sh'), script.encode('utf-8'))
     util.atomic_write(os.path.join(out, 'SUBMIT.sh'), remote.encode('utf-8'))
+    util.write_json(os.path.join(out, 'JOB.json'), job)
     submit = {'schema': 'orchkit-submit-v1', 'token': token, 'job_name': name, 'argv': argv,
               'stdin': 'SUBMIT.sh', 'script_sha256': util.sha256_bytes(script.encode('utf-8')),
               'submit_sha256': util.sha256_bytes(remote.encode('utf-8')),
@@ -453,7 +472,41 @@ def _names(text, token):
     return re.search(r'(?<![0-9a-f])%s(?![0-9a-f])' % token, text) is not None
 
 
-def submit(prep, go, execute=False, ledger_file=None, transport=None, out=sys.stdout):
+def _go_names(text, token):
+    """True when a line of the GO file starts with the word GO and names the token."""
+    return any(_names(line, token) for line in text.splitlines()
+               if re.match(r'^\s*GO(?![\w-])', line))
+
+
+def rebuild(prep, record, rows, rules=None):
+    """The exact submission bytes, rebuilt from PREP/kit and PREP/JOB.json and anchored to the
+    ledger: the minted row of the token must name this kit and config, the kit must pass every
+    check again, and BATCH.sh, SUBMIT.sh and the transport argv in PREP must equal the rebuild.
+    Nothing in SUBMIT.json is trusted beyond the token."""
+    token, name = mint_job_name(record['token'])
+    minted = [row for row in rows if row.get('event') == 'minted']
+    if len(minted) != 1:
+        raise LaunchError('ledger must hold exactly one minted row for %s' % token)
+    kit = os.path.join(prep, 'kit')
+    with open(os.path.join(kit, 'CONFIG.json'), 'rb') as handle:
+        config_raw = handle.read()
+    config, _, kit_pins, config_sha = check_kit(kit, config_raw, rules or anon.load_rules())
+    if (minted[0].get('kit_pins_sha256'), minted[0].get('config_sha256')) != (kit_pins, config_sha):
+        raise LaunchError('the ledger row of %s names another kit or config' % token)
+    job = util.read_json(os.path.join(prep, 'JOB.json'))
+    if job.get('token') != token or job.get('job_name') != name or record.get('job_name') != name:
+        raise LaunchError('the prepared scripts do not belong to token %s' % token)
+    script, remote = build_submission(kit, config, job, rules or anon.load_rules())
+    for file_name, expect in (('BATCH.sh', script), ('SUBMIT.sh', remote)):
+        with open(os.path.join(prep, file_name), 'rb') as handle:
+            if handle.read() != expect.encode('utf-8'):
+                raise LaunchError('%s differs from its rebuild; prepare again' % file_name)
+    if record.get('argv') != transport_argv() or record.get('stdin') != 'SUBMIT.sh':
+        raise LaunchError('the transport command differs from the one prepare recorded')
+    return remote.encode('utf-8')
+
+
+def submit(prep, go, execute=False, ledger_file=None, transport=None, out=sys.stdout, rules=None):
     prep = os.path.abspath(prep)
     record = _load_prep(prep)
     token = record['token']
@@ -461,8 +514,8 @@ def submit(prep, go, execute=False, ledger_file=None, transport=None, out=sys.st
         raise LaunchError('no GO file at %s' % go)
     with open(go, 'rb') as handle:
         go_text = handle.read().decode('utf-8', 'replace')
-    if not _names(go_text, token):
-        raise LaunchError('the GO file does not name token %s' % token)
+    if not _go_names(go_text, token):
+        raise LaunchError('no line of the GO file starts with GO and names token %s' % token)
     rows = ledger.lookup(token, ledger_file)
     if not any(row.get('event') == 'minted' for row in rows):
         raise LaunchError('ledger has no minted row for %s' % token)
@@ -480,20 +533,7 @@ def submit(prep, go, execute=False, ledger_file=None, transport=None, out=sys.st
     out.write('%s < %s\n' % (' '.join(argv), os.path.join(prep, record['stdin'])))
     if not execute:
         return {'executed': False, 'argv': argv}
-    with open(os.path.join(prep, record['stdin']), 'rb') as handle:
-        pinned = handle.read()
-    if util.sha256_bytes(pinned) != record['submit_sha256']:
-        raise LaunchError('%s changed after prepare' % record['stdin'])
-    _, name = mint_job_name(token)
-    text = pinned.decode('utf-8', 'replace')
-    names = re.findall(r'^#SBATCH --job-name=(\S+)$', text, re.M)
-    digests = re.findall(r'^test "\$\(sha256sum "\$body" \| cut -c1-64\)" = "([0-9a-f]{64})"', text, re.M)
-    if names != [name] or digests != [record['script_sha256']] or record.get('job_name') != name:
-        raise LaunchError('the prepared scripts do not belong to token %s' % token)
-    minted = [row for row in rows if row.get('event') == 'minted']
-    if any(row.get('kit_pins_sha256') != record['kit_pins_sha256'] or
-           row.get('config_sha256') != record['config_sha256'] for row in minted):
-        raise LaunchError('the ledger row of %s names another kit or config' % token)
+    pinned = rebuild(prep, record, rows, rules)
     try:
         fd = os.open(os.path.join(prep, 'SUBMIT_INTENT.json'), os.O_WRONLY | os.O_CREAT | os.O_EXCL,
                      0o600)
@@ -510,7 +550,7 @@ def submit(prep, go, execute=False, ledger_file=None, transport=None, out=sys.st
                                                                  go_text) if found != token))
     body = ('QUEUE_BEHIND=%s\n' % ("'%s'" % ' '.join(behind) if behind and re.search(
         r'queue[ _-]behind', go_text, re.I) else "''")).encode('utf-8') + pinned
-    code, stdout, stderr = (transport or run_transport)(argv, body)
+    code, stdout, stderr = (transport or run_transport)(transport_argv(), body)
     text = stdout.decode('utf-8', 'replace')
     found = re.search(r'^JOBID=(\d+)\s*$', text, re.M)
     result = {'token': token, 'utc': util.utc_iso(), 'rc': code, 'stdout': text[-4000:],

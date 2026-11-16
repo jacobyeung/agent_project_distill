@@ -49,7 +49,8 @@ def fake_provenance(checkout, config_path):
 class LaunchBase(unittest.TestCase):
     def setUp(self):
         self.base = tempfile.mkdtemp(prefix='orchkit_launch_')
-        self.saved = dict((key, os.environ.get(key)) for key in ('ORCHKIT_LEDGER', 'ORCHKIT_OSSH'))
+        self.saved = dict((key, os.environ.get(key)) for key in ('ORCHKIT_LEDGER', 'ORCHKIT_OSSH',
+                                                                 'ORCHKIT_ANON_WORDS'))
         self.ledger = os.path.join(self.base, 'ledger.jsonl')
         os.environ['ORCHKIT_LEDGER'] = self.ledger
         os.environ['ORCHKIT_OSSH'] = os.path.join(self.base, 'fake_ossh.sh')
@@ -67,6 +68,7 @@ class LaunchBase(unittest.TestCase):
         words = os.path.join(self.base, 'words.txt')
         write(words, 'text zzqqxxnever\n')
         self.loose = anon.load_rules(words)
+        os.environ['ORCHKIT_ANON_WORDS'] = words
         self.count = 0
 
     def tearDown(self):
@@ -190,9 +192,9 @@ class PrepareTest(LaunchBase):
         config['return']['pool'] = '/project/x/pool'
         config['job']['root_parent'] = '/tmp'
         kit, dry = self.kit(config, entry="MODEL = 'qwen'\n")
-        self.assertIn('opacity', self.assertRefused(kit, dry, rules=anon.load_rules()))
+        self.assertIn('opacity', self.assertRefused(kit, dry, rules=anon.load_rules(anon.WORDS)))
         kit, dry = self.kit(config)
-        record, _ = self.prepare(kit, dry, rules=anon.load_rules())
+        record, _ = self.prepare(kit, dry, rules=anon.load_rules(anon.WORDS))
         self.assertRegex(record['job_name'], launch.JOB_NAME.pattern)
 
     def test_prepare_refuses_a_provenance_refusal(self):
@@ -420,7 +422,7 @@ class ReviewFindingsTest(LaunchBase):
                 config['return']['pool'] = '/project/u/split/logs'
             kit, dry = self.kit(config)
             with self.assertRaises(launch.LaunchError, msg=change) as caught:
-                self.prepare(kit, dry, rules=anon.load_rules())
+                self.prepare(kit, dry, rules=anon.load_rules(anon.WORDS))
             self.assertIn('opacity', str(caught.exception))
 
     def test_oc04_token_with_newline_is_refused(self):
@@ -506,7 +508,7 @@ class ReviewFindingsTest(LaunchBase):
                               transport=lambda argv, body: calls.append(body), out=io.StringIO())
         finally:
             launch._load_prep = real
-        self.assertIn('changed after prepare', str(caught.exception))
+        self.assertIn('differs from its rebuild', str(caught.exception))
         self.assertEqual(calls, [])
 
     def test_oc11_a_kit_changed_after_it_is_read_cannot_ship(self):
@@ -542,6 +544,55 @@ class ReviewFindingsTest(LaunchBase):
                           transport=lambda argv, body: calls.append(body), out=io.StringIO())
         self.assertIn('do not belong', str(caught.exception))
         self.assertEqual(calls, [])
+
+    def test_oc16_altered_submission_script_or_argv_is_refused(self):
+        kit, dry = self.kit()
+        for change in ('script', 'argv'):
+            record, prep = self.prepare(kit, dry)
+            stored = util.read_json(os.path.join(prep, 'SUBMIT.json'))
+            if change == 'script':
+                path = os.path.join(prep, 'SUBMIT.sh')
+                with open(path, 'ab') as handle:
+                    handle.write(b"sbatch --wrap='echo extra'\n")
+                stored['submit_sha256'] = util.sha256_file(path)[0]
+            else:
+                stored['argv'][-1] = "bash -s; echo extra"
+            util.write_json(os.path.join(prep, 'SUBMIT.json'), stored)
+            calls = []
+            with self.assertRaises(launch.LaunchError, msg=change) as caught:
+                launch.submit(prep, self.go('GO %s\n' % record['token']), execute=True,
+                              transport=lambda argv, body: calls.append(body), out=io.StringIO())
+            self.assertRegex(str(caught.exception), 'differs from its rebuild|transport command differs')
+            self.assertEqual(calls, [])
+
+    def test_oc17_duplicate_config_keys_are_names_too(self):
+        config = self.config()
+        config['return']['pool'] = '/project/x/pool'
+        config['job']['root_parent'] = '/tmp'
+        kit, dry = self.kit(config)
+        path = os.path.join(kit, 'CONFIG.json')
+        with open(path, 'rb') as handle:
+            raw = handle.read()
+        hidden = raw.replace(b'"job":', b'"job":{"root_parent":"/tmp/split"},"job":', 1)
+        hits = anon.scan_tree(self.write_kit_copy(kit, hidden), anon.load_rules(anon.WORDS))
+        self.assertTrue(any(hit['where'] == 'CONFIG.json' for hit in hits))
+
+    def write_kit_copy(self, kit, config_raw):
+        self.count += 1
+        target = os.path.join(self.base, 'copy%d' % self.count)
+        launch.snapshot(kit, target)
+        os.chmod(os.path.join(target, 'CONFIG.json'), 0o600)
+        write(os.path.join(target, 'CONFIG.json'), config_raw)
+        return target
+
+    def test_go_line_must_start_with_go(self):
+        kit, dry = self.kit()
+        record, prep = self.prepare(kit, dry)
+        for text in ('NO_GO %s\n', 'NO-GO %s\n', 'GO_AFTER_FIXES %s\n', 'verdict: NO GO for %s\n'):
+            with self.assertRaises(launch.LaunchError, msg=text):
+                launch.submit(prep, self.go(text % record['token']), out=io.StringIO())
+        self.assertFalse(launch.submit(prep, self.go('# review\nGO: %s\n' % record['job_name']),
+                                       out=io.StringIO())['executed'])
 
 
 if __name__ == '__main__':

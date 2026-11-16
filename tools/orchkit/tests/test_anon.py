@@ -170,6 +170,41 @@ class AnonTest(unittest.TestCase):
         path = self.write('run.pyz', b'#!/usr/bin/env python3\n' + raw.getvalue())
         self.assertIn('run.pyz!/x', [hit['where'] for hit in anon.scan_tree(path, anon.load_rules())])
 
+    def test_review_oc15_every_container_reading_is_inspected(self):
+        raw = io.BytesIO()
+        with tarfile.open(fileobj=raw, mode='w') as archive:
+            blob = gzip.compress(b'qwen')
+            item = tarfile.TarInfo('x.gz')
+            item.size = len(blob)
+            archive.addfile(item, io.BytesIO(blob))
+        empty = io.BytesIO()
+        with zipfile.ZipFile(empty, 'w'):
+            pass
+        path = self.write('a.bin', raw.getvalue() + empty.getvalue())
+        self.assertIn('a.bin!/x.gz!gz', [hit['where'] for hit in anon.scan_tree(path, anon.load_rules())])
+        path = self.write('b.bin', b'7z\xbc\xaf\x27\x1c' + b'\x00' * 40)
+        self.assertEqual(anon.scan_tree(path, anon.load_rules())[0]['rule'], 'unsupported-container')
+
+    def test_v7_tar_with_a_trailing_zip_and_json_escapes(self):
+        raw = io.BytesIO()
+        with tarfile.open(fileobj=raw, mode='w', format=tarfile.USTAR_FORMAT) as archive:
+            blob = gzip.compress(b'qwen')
+            item = tarfile.TarInfo('x.gz')
+            item.size = len(blob)
+            archive.addfile(item, io.BytesIO(blob))
+        data = bytearray(raw.getvalue())
+        data[257:265] = b'\x00' * 8
+        data[148:156] = b' ' * 8
+        data[148:156] = ('%06o\x00 ' % sum(data[:512])).encode('ascii')
+        empty = io.BytesIO()
+        with zipfile.ZipFile(empty, 'w'):
+            pass
+        path = self.write('v7.bin', bytes(data) + empty.getvalue())
+        hits = anon.scan_tree(path, anon.load_rules())
+        self.assertTrue(hits)
+        path = self.write('d.json', b'{"m": "q\\u0077en"}')
+        self.assertTrue(anon.scan_tree(path, anon.load_rules()))
+
 
 if __name__ == '__main__':
     unittest.main()
