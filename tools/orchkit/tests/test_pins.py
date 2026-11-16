@@ -142,7 +142,7 @@ class PinsTest(unittest.TestCase):
         inner = tar_bytes({'deep/pin.txt': sha.encode()})
         write(os.path.join(self.root, 'lib/outer.tar'), tar_bytes({'inner.tar': inner}))
         found = pins.check_single_place(self.root)
-        self.assertEqual([row['where'] for row in found], ['lib/outer.tar!/inner.tar!/deep/pin.txt'])
+        self.assertIn('lib/outer.tar!/inner.tar!/deep/pin.txt', [row['where'] for row in found])
 
     def test_check_cli_exit_codes(self):
         self.kit()
@@ -171,6 +171,20 @@ class PinsTest(unittest.TestCase):
         self.assertGreaterEqual(code['groups'], 0)
         self.assertGreater(full['groups'], code['groups'])
         self.assertGreaterEqual(full['disagreeing'], 1)
+
+    def test_review_oc10_hash_in_a_compression_header_or_unscannable_blob_fails(self):
+        import gzip
+        digest = util.sha256_bytes(b'\x00\x01' * 100)
+        raw = io.BytesIO()
+        with gzip.GzipFile(filename=digest, fileobj=raw, mode='wb', mtime=0) as handle:
+            handle.write(b'clean')
+        write(os.path.join(self.root, 'a.bin'), raw.getvalue())
+        util.write_json(os.path.join(self.root, 'PINS.json'), self.manifest())
+        found = pins.check_single_place(self.root)
+        self.assertEqual([row['where'] for row in found], ['a.bin'])
+        write(os.path.join(self.root, 'a.bin'), b'\x1f\x8b broken')
+        found = pins.check_single_place(self.root)
+        self.assertEqual(found[0]['reason'], 'unscannable (undecodable)')
 
 
 if __name__ == '__main__':

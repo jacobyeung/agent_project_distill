@@ -227,6 +227,13 @@ def walk_blobs(root, nested=True):
             yield where, data
 
 
+def walk_all(root):
+    """Yield (where, bytes or None, kind) for everything under root, archive raw bytes and header
+    fields included; bytes are None for a blob that cannot be read (see _expand)."""
+    for row in _walk(root):
+        yield row
+
+
 def _walk(root, nested=True):
     root = str(root)
     if os.path.isfile(root) or os.path.islink(root):

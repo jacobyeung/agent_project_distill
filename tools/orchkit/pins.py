@@ -27,7 +27,7 @@ if __package__ in (None, ''):
     import orchkit  # noqa: F401
     __package__ = 'orchkit'  # noqa: A001
 from . import util  # noqa: E402
-from .anon import walk_blobs  # noqa: E402
+from .anon import walk_all, walk_blobs  # noqa: E402
 
 SCHEMA = 'orchkit-pins-v1'
 ROLES = ('code', 'config', 'input', 'weights', 'env', 'record')
@@ -179,8 +179,9 @@ def _field_matches(pattern, path):
 def check_single_place(kit, allow=DEFAULT_ALLOW):
     """Return the violations of the single-place invariant in a packed kit directory.
 
-    Each violation is {where, field, value, reason}. The scan covers every file and every member of
-    every nested tar, except the top-level PINS.json.
+    Each violation is {where, field, value, reason}. The scan covers every file, the raw bytes of
+    every archive or compressed file, every member at any depth and tar header fields, except the
+    top-level PINS.json; a blob it cannot read is itself a violation.
     """
     kit = str(kit)
     manifest = validate_manifest(util.read_json(os.path.join(kit, MANIFEST)))
@@ -192,8 +193,12 @@ def check_single_place(kit, allow=DEFAULT_ALLOW):
     if os.path.isfile(config_path):
         identities.add(util.sha256_file(config_path)[0])
     violations = []
-    for where, data in walk_blobs(kit):
-        if where == MANIFEST:
+    for where, data, kind in walk_all(kit):
+        if where == MANIFEST or kind == 'dir':
+            continue
+        if data is None:
+            violations.append({'where': where, 'field': None, 'value': None,
+                               'reason': 'unscannable (%s)' % kind})
             continue
         top = where.split('!/')[0]
         parsed = None
