@@ -220,6 +220,30 @@ class AnonTest(unittest.TestCase):
         path = self.write('a.zip', raw.getvalue()[:-22])
         self.assertEqual(anon.scan_tree(path, anon.load_rules())[0]['rule'], 'unsupported-container')
 
+    def test_review_oc23_octal_named_and_slash_escapes(self):
+        cases = {'o.py': b'x = "q\\167en"\n', 'n.py': b'x = "q\\N{LATIN SMALL LETTER W}en"\n',
+                 's.json': b'{"p": "\\/data2\\/secret"}'}
+        for name, data in sorted(cases.items()):
+            self.assertTrue(anon.scan_tree(self.write(name, data), anon.load_rules()), name)
+
+    def test_review_oc24_damaged_prefixed_zip_and_bad_checksum_tar(self):
+        raw = io.BytesIO()
+        with zipfile.ZipFile(raw, 'w', zipfile.ZIP_DEFLATED) as archive:
+            archive.writestr('x', b'qwen')
+        path = self.write('p.zip', b'#!/usr/bin/env python3\n' + raw.getvalue()[:-22])
+        self.assertEqual(anon.scan_tree(path, anon.load_rules())[0]['rule'], 'unsupported-container')
+        raw = io.BytesIO()
+        with tarfile.open(fileobj=raw, mode='w', format=tarfile.USTAR_FORMAT) as archive:
+            blob = gzip.compress(b'qwen')
+            item = tarfile.TarInfo('x.gz')
+            item.size = len(blob)
+            archive.addfile(item, io.BytesIO(blob))
+        data = bytearray(raw.getvalue())
+        data[257:265] = b'\x00' * 8
+        data[148:156] = b'0000000\x00'
+        path = self.write('t.tar', bytes(data))
+        self.assertEqual(anon.scan_tree(path, anon.load_rules())[0]['rule'], 'unsupported-container')
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -26,6 +26,7 @@ import os
 import re
 import sys
 import tarfile
+import unicodedata
 import zipfile
 
 WORDS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ANON_WORDS.txt')
@@ -78,14 +79,23 @@ def scan_text(where, text, rules, scope='text'):
     return hits
 
 
-ESCAPE = re.compile(r'\\(?:u([0-9a-fA-F]{4})|U([0-9a-fA-F]{8})|x([0-9a-fA-F]{2}))')
+ESCAPE = re.compile(r'\\(?:u([0-9a-fA-F]{4})|U([0-9a-fA-F]{8})|x([0-9a-fA-F]{2})|([0-7]{1,3})|N\{([^}]{1,80})\})')
 
 
 def _unescape(text):
+    """Resolve JSON and Python escapes: \\uXXXX, \\UXXXXXXXX, \\xXX, octal \\NNN, \\N{NAME}; any other
+    backslash pair (\\/, \\n) becomes its second character."""
     def one(match):
+        if match.group(5) is not None:
+            try:
+                return unicodedata.lookup(match.group(5))
+            except KeyError:
+                return ''
+        if match.group(4) is not None:
+            return chr(int(match.group(4), 8))
         code = int(match.group(1) or match.group(2) or match.group(3), 16)
         return chr(code) if code < 0x110000 else ''
-    return ESCAPE.sub(one, text)
+    return re.sub(r'\\(.)', r'\1', ESCAPE.sub(one, text))
 
 
 def text_views(data):
@@ -142,7 +152,7 @@ def _interpretations(where, data):
         zipped = False
     if zipped:
         kinds.append('zip')
-    elif data.startswith((b'PK\x03\x04', b'PK\x05\x06', b'PK\x07\x08')):
+    elif b'PK\x03\x04' in data or b'PK\x05\x06' in data:
         kinds.append('unsupported')
     if len(data) > 262 and data[257:262] == b'ustar':
         kinds.append('tar')
@@ -151,7 +161,23 @@ def _interpretations(where, data):
         if archive is not None:
             archive.close()
             kinds.append('tar')
+        elif _tar_like(data):
+            kinds.append('unsupported')
     return kinds
+
+
+OCTAL = re.compile(rb'^[0-7 ]*\x00?[ \x00]*$')
+
+
+def _tar_like(data):
+    """A first block shaped like a tar header (a printable name, octal mode, size and checksum
+    fields) that tarfile still refuses: a damaged tar, refused rather than read as text."""
+    head = data[:512]
+    name = head[:100].rstrip(b'\x00')
+    if not name or any(byte < 32 or byte > 126 for byte in name):
+        return False
+    return all(OCTAL.match(head[start:end]) and head[start:end].strip(b' \x00')
+               for start, end in ((100, 108), (124, 136), (148, 156)))
 
 
 def _decompress(kind, data):
