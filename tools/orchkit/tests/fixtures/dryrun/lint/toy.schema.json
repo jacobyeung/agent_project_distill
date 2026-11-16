@@ -1,0 +1,15 @@
+{
+  "type": "object",
+  "required": ["schema", "kit_pins_sha256", "job", "entry", "n_items", "budgets", "records", "spec"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {"enum": ["orchkit-config-v1"]},
+    "kit_pins_sha256": {"type": "string", "pattern": "^[0-9a-fA-F]{64}$"},
+    "job": {"type": "object", "required": ["partition"], "properties": {"partition": {"enum": ["general", "advanced"]}}},
+    "entry": {"type": "array", "items": {"type": "string"}},
+    "n_items": {"type": "integer", "minimum": 0},
+    "budgets": {"type": "object", "additionalProperties": {"type": "object"}},
+    "records": {"type": "array", "items": {"type": "object"}},
+    "spec": {"type": ["object", "null"]}
+  }
+}

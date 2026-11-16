@@ -1,0 +1,8 @@
+{
+  "schema": "orchkit-rowprofile-v1",
+  "id_field": "qid",
+  "required": ["qid", "student_input"],
+  "when": [{"config": {"frame_layout": "duplicate"}, "positive_int": ["student_input.fps", "student_input.total_num_frames"]}],
+  "forbid_substrings": ["/scratch/jjyeung/", "/home/", "/data2/", "/data3/", "trinity-", "orch_n30"],
+  "unique": ["qid"]
+}
