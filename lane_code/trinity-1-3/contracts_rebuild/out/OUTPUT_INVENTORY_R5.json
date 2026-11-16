@@ -1,0 +1,1892 @@
+{
+  "calculator_operations": [
+    "angle",
+    "area",
+    "cam_dist",
+    "closest",
+    "dist",
+    "turn"
+  ],
+  "sources": [
+    {
+      "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/trees/r5_applied/trace_format/contracts.py",
+      "sha256": "59f7d3907d34423bd1950eef0002c757b3b1435101a4cb9e5d0aedf41f1600d9",
+      "statements": [
+        {
+          "line": 18,
+          "statement": "return float(value)"
+        },
+        {
+          "line": 22,
+          "statement": "return dict(contract_epoch=True, heading_plane_min=heading_plane_min()) if new_contracts() else {}"
+        },
+        {
+          "line": 29,
+          "statement": "return _epoch.get()"
+        },
+        {
+          "line": 50,
+          "statement": "return mode"
+        },
+        {
+          "line": 56,
+          "statement": "text = text.strip().removeprefix('<tool_response>').removesuffix('</tool_response>').strip()"
+        },
+        {
+          "line": 59,
+          "statement": "first = text.splitlines()[0].strip()"
+        },
+        {
+          "line": 60,
+          "statement": "body = first.split(': ', 1)[1] if ': ' in first and not first.lower().startswith('error:') else first"
+        },
+        {
+          "line": 67,
+          "statement": "return body if body in RUNTIME_STATUSES else 'ok'"
+        },
+        {
+          "line": 73,
+          "statement": "return (name + ': ' if name else '') + status"
+        },
+        {
+          "line": 88,
+          "statement": "return bool(np.linalg.norm(np.asarray(geometry.cam(frame)[0])[2, :2]) >= threshold)"
+        },
+        {
+          "line": 93,
+          "statement": "return '(heading unavailable, '+number(values[1])+', heading unavailable)'"
+        },
+        {
+          "line": 114,
+          "statement": "return None"
+        },
+        {
+          "line": 130,
+          "statement": "return EpochMeta(sealed.__name__, (), {'__module__': sealed.__module__})"
+        },
+        {
+          "line": 55,
+          "statement": "return 'missing response'"
+        },
+        {
+          "line": 58,
+          "statement": "return 'missing response'"
+        },
+        {
+          "line": 62,
+          "statement": "return 'error'"
+        },
+        {
+          "line": 66,
+          "statement": "return 'ok'"
+        },
+        {
+          "line": 78,
+          "statement": "return True"
+        },
+        {
+          "line": 85,
+          "statement": "return bool(np.linalg.norm((np.asarray(rotation).T @ down)[:2]) >= threshold)"
+        },
+        {
+          "line": 87,
+          "statement": "return True"
+        },
+        {
+          "line": 113,
+          "statement": "return np.column_stack((np.cross(forward, up), up, forward))"
+        },
+        {
+          "line": 122,
+          "statement": "return getattr(current if new_contracts() else sealed, name)"
+        },
+        {
+          "line": 129,
+          "statement": "return type.__call__(implementations[key], *args, **kwargs)"
+        }
+      ]
+    },
+    {
+      "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/trees/r5_applied/trace_format/calculator.py",
+      "sha256": "49cc8db0355e00d5c050444a32fff985514912e85de9159e99d84183b74ee786",
+      "statements": [
+        {
+          "line": 65,
+          "statement": "return call"
+        },
+        {
+          "line": 69,
+          "statement": "return x.quantize(Decimal(1).scaleb(-places), rounding=ROUND_HALF_EVEN)"
+        },
+        {
+          "line": 80,
+          "statement": "return d"
+        },
+        {
+          "line": 85,
+          "statement": "return tuple(_number(v) for v in x)"
+        },
+        {
+          "line": 97,
+          "statement": "return x"
+        },
+        {
+          "line": 101,
+          "statement": "return \"(\" + \", \".join(f\"{x:.2f}\" for x in v) + \")\""
+        },
+        {
+          "line": 108,
+          "statement": "return {\"delta\": delta, \"squares\": squares, \"sumsq\": sumsq,\n            \"value\": _q(sumsq.sqrt()), \"unit\": \"m\"}"
+        },
+        {
+          "line": 153,
+          "statement": "return command"
+        },
+        {
+          "line": 92,
+          "statement": "return value"
+        },
+        {
+          "line": 94,
+          "statement": "return [_json(v) for v in x]"
+        },
+        {
+          "line": 96,
+          "statement": "return {k: _json(v) for k, v in x.items()}"
+        },
+        {
+          "line": 131,
+          "statement": "return {\"op\": op, \"arguments\": args}"
+        },
+        {
+          "line": 145,
+          "statement": "return \",\".join(a[key])"
+        },
+        {
+          "line": 178,
+          "statement": "line = (f\"{expected}: cam{actual_frame} {_vec_text(cam)} m; f1 {public_f1} m; \"\n                f\"spread {reliability:.2f}\")"
+        },
+        {
+          "line": 180,
+          "statement": "point = {\"label\": expected, \"camera\": cam, \"f1\": point, \"spread\": reliability,\n                 \"requested_frame\": requested_frame, \"actual_frame\": actual_frame, \"line\": line}"
+        },
+        {
+          "line": 186,
+          "statement": "return published"
+        },
+        {
+          "line": 252,
+          "statement": "return _json({\"api_version\": API_VERSION, \"spec_sha256\": SPEC_SHA256, \"command\": command,\n                      **parsed, \"result\": result, \"text\": text,\n                      \"injected_text\": \"<tool_response>\"+text+\"</tool_response>\"})"
+        },
+        {
+          "line": 198,
+          "statement": "text = f\"{result['value']:.2f} m\""
+        },
+        {
+          "line": 62,
+          "statement": "return function(*args, **kwargs)"
+        },
+        {
+          "line": 214,
+          "statement": "text = f\"min {names[indices[0]]} {minimum:.2f} m\""
+        },
+        {
+          "line": 216,
+          "statement": "text = \"\\n\".join(f\"{name} {r['value']:.2f} m\" for name, r in zip(names, rows)) + \"\\n\" + text"
+        },
+        {
+          "line": 242,
+          "statement": "text = (f\"{vectors}; dot {dot:.4f}; \"\n                    f\"cross {cross:.4f}; theta {theta} deg; {label}\")"
+        },
+        {
+          "line": 251,
+          "statement": "text = f\"area {result['value']:.2f} m^2\""
+        }
+      ]
+    },
+    {
+      "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/trees/r5_applied/student_pilot/carrier_c1_decode.py",
+      "sha256": "59a5b704506a7c6a4477c636745159d742d8401c4ca62f3d839def6651ea75e1",
+      "statements": [
+        {
+          "line": 70,
+          "statement": "return output, cache"
+        },
+        {
+          "line": 98,
+          "statement": "match = GROUND_FORM.fullmatch(text)"
+        },
+        {
+          "line": 103,
+          "statement": "return match[1]"
+        },
+        {
+          "line": 107,
+          "statement": "match = GAP_FORM.fullmatch(text)"
+        },
+        {
+          "line": 115,
+          "statement": "return match[1], names[0] if len(names) == 1 else names"
+        },
+        {
+          "line": 120,
+          "statement": "return name + ': ' + (' | '.join(f'f{i+1} [{int(uv[i][0])},{int(uv[i][1])}] {prob[i]:.2f}'\n                                    for i in frames) if frames else 'not seen')"
+        },
+        {
+          "line": 137,
+          "statement": "return [dict(name=name, prob=p.tolist(), uv=v.long().tolist()) for name, p, v in zip(names, prob, uv)]"
+        },
+        {
+          "line": 429,
+          "statement": "return state"
+        },
+        {
+          "line": 454,
+          "statement": "return _generate_one(model, processor, batch, **kwargs)"
+        },
+        {
+          "line": 475,
+          "statement": "return row.record()"
+        },
+        {
+          "line": 497,
+          "statement": "return result"
+        },
+        {
+          "line": 501,
+          "statement": "return trace313.active() or state.ground_backend is not None or state.verify_session is not None or state.rereader is not None or (info['kind'] in ('ground','gap','error') and (state.mdg is not None or info['kind']=='gap'))"
+        },
+        {
+          "line": 537,
+          "statement": "return respond(call_text,registry,state.geometry,context.fallback,gapper)"
+        },
+        {
+          "line": 598,
+          "statement": "return dict(calls=len(record['calls']), mismatches=mismatches,\n                byte_equal=mismatches == 0 and not queue and not any(pending.values()) and used == set(ground_queries))"
+        },
+        {
+          "line": 76,
+          "statement": "match = form.search(text)"
+        },
+        {
+          "line": 93,
+          "statement": "return dict(name=name, frame=frames[0]) if name == 'pose' else dict(name=name, i=frames[0], j=frames[1])"
+        },
+        {
+          "line": 199,
+          "statement": "return self.ground_cache[name]"
+        },
+        {
+          "line": 208,
+          "statement": "return values"
+        },
+        {
+          "line": 211,
+          "statement": "return routing.OwnGeometry(self.pose9, self.gravity, self.depth)"
+        },
+        {
+          "line": 244,
+          "statement": "return geometry.turn_text(call['i'], call['j']), dict(kind='head', **call)"
+        },
+        {
+          "line": 453,
+          "statement": "return generate_batch(model, processor, batch, **kwargs)"
+        },
+        {
+          "line": 509,
+          "statement": "text, info = _respond_state(state,call_text,registry)"
+        },
+        {
+          "line": 510,
+          "statement": "return text, dict(info, **contract_identity())"
+        },
+        {
+          "line": 515,
+          "statement": "return formatted"
+        },
+        {
+          "line": 544,
+          "statement": "return replay(record)"
+        },
+        {
+          "line": 551,
+          "statement": "return item['depth']"
+        },
+        {
+          "line": 572,
+          "statement": "return ground_text(name, q['prob'], q['uv'], q['tau'])"
+        },
+        {
+          "line": 576,
+          "statement": "return 'not seen' if mdg_replay is None else mdg_replay.gap(a, b)"
+        },
+        {
+          "line": 596,
+          "statement": "text, _ = respond(call['call'], registry, geometry, ground, gap)"
+        },
+        {
+          "line": 597,
+          "statement": "mismatches += text != call['response']"
+        },
+        {
+          "line": 89,
+          "statement": "return dict(name=name, frame=frame, pts=pts)"
+        },
+        {
+          "line": 181,
+          "statement": "return self.mdg_backend.ground(name, self.mdg_states, registry)"
+        },
+        {
+          "line": 219,
+          "statement": "return (gapper(a, b) if gapper is not None else 'not seen'), dict(kind='gap', a=a, b=b)"
+        },
+        {
+          "line": 224,
+          "statement": "return grounder(name), dict(kind='ground', name=name)"
+        },
+        {
+          "line": 227,
+          "statement": "return registry.execute(call_text)['text'], dict(kind='calculator')"
+        },
+        {
+          "line": 233,
+          "statement": "lines = []"
+        },
+        {
+          "line": 239,
+          "statement": "return '\\n'.join(lines), dict(kind='head', **call)"
+        },
+        {
+          "line": 241,
+          "statement": "return geometry.pose_text(call['frame']), dict(kind='head', **call)"
+        },
+        {
+          "line": 243,
+          "statement": "return geometry.move_text(call['i'], call['j']), dict(kind='head', **call)"
+        },
+        {
+          "line": 246,
+          "statement": "return f'error: {exc.code}', dict(kind='error', code=exc.code)"
+        },
+        {
+          "line": 248,
+          "statement": "return f'error: {exc.reason}', dict(kind='error', code=exc.reason)"
+        },
+        {
+          "line": 250,
+          "statement": "return f'error: {exc}', dict(kind='error', code='head_readout')"
+        },
+        {
+          "line": 336,
+          "statement": "return model.carrier_embeddings(output, positions, g3t)"
+        },
+        {
+          "line": 344,
+          "statement": "return args, values"
+        },
+        {
+          "line": 367,
+          "statement": "return result"
+        },
+        {
+          "line": 532,
+          "statement": "return state.verify_session.ground(name,context)"
+        },
+        {
+          "line": 567,
+          "statement": "return v3_replay.ground(name,q)"
+        },
+        {
+          "line": 569,
+          "statement": "return hrp_replay.ground(name)"
+        },
+        {
+          "line": 571,
+          "statement": "return mdg_replay.ground(name)"
+        },
+        {
+          "line": 575,
+          "statement": "return v3_replay.gap(a,b)"
+        },
+        {
+          "line": 334,
+          "statement": "return output"
+        },
+        {
+          "line": 534,
+          "statement": "return 'error: '+exc.code,dict(kind='error',code=exc.code)"
+        },
+        {
+          "line": 536,
+          "statement": "return 'error: verify_out_of_memory',dict(kind='error',code='verify_out_of_memory',error_type=type(exc).__name__)"
+        }
+      ]
+    },
+    {
+      "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/trees/r5_applied/student_pilot/carrier_c1_routing.py",
+      "sha256": "d268630b2119646937278e09e96bdbc52b8afd34c08874868f75de80803b5ae7",
+      "statements": [
+        {
+          "line": 99,
+          "statement": "return {**row, 'student_input': {**inputs, 'question': flag + '\\n' + inputs['question']}}"
+        },
+        {
+          "line": 103,
+          "statement": "return round(float(x), 2) + 0.0"
+        },
+        {
+          "line": 107,
+          "statement": "return f'{r2(x):.2f}'"
+        },
+        {
+          "line": 111,
+          "statement": "return f'{r2(x):+.2f}'"
+        },
+        {
+          "line": 115,
+          "statement": "return '(' + ', '.join(f2(x) for x in p) + ')'"
+        },
+        {
+          "line": 119,
+          "statement": "return (deg + 180) % 360 - 180 if (deg + 180) % 360 else 180"
+        },
+        {
+          "line": 123,
+          "statement": "return np.round(np.asarray(a, dtype=np.float64), 8) + 0.0"
+        },
+        {
+          "line": 136,
+          "statement": "parts, spans, segments, cursor = [], [], [], 0"
+        },
+        {
+          "line": 172,
+          "statement": "return ''.join(parts), spans, segments"
+        },
+        {
+          "line": 177,
+          "statement": "return target, spans"
+        },
+        {
+          "line": 194,
+          "statement": "return target, spans"
+        },
+        {
+          "line": 205,
+          "statement": "return np.column_stack((right, down, forward))"
+        },
+        {
+          "line": 386,
+          "statement": "return queries"
+        },
+        {
+          "line": 390,
+          "statement": "return calculator if str(row.get('trace_revision')) in V3_TRACE_REVISIONS else calculator_v2"
+        },
+        {
+          "line": 442,
+          "statement": "return render_full(events, row['answer'])"
+        },
+        {
+          "line": 477,
+          "statement": "return ids, train, offsets"
+        },
+        {
+          "line": 484,
+          "statement": "return suffix_mask(processor.tokenizer, suffix, target, spans)"
+        },
+        {
+          "line": 495,
+          "statement": "return result"
+        },
+        {
+          "line": 518,
+          "statement": "return batch, dict(qid=row['routing']['qid'], values=mode, suffix_tokens=len(ids),\n                       trained_tokens=int(sum(train)), tool_spans=len(spans),\n                       target_sha256=hashlib.sha256(target.encode()).hexdigest())"
+        },
+        {
+          "line": 530,
+          "statement": "return finish(batch, ids, train, row, target, spans, 'gt', offsets, segments)"
+        },
+        {
+          "line": 537,
+          "statement": "return finish(batch, ids, train, row, target, spans, mode, offsets, segments)"
+        },
+        {
+          "line": 555,
+          "statement": "return out"
+        },
+        {
+          "line": 565,
+          "statement": "return out"
+        },
+        {
+          "line": 586,
+          "statement": "return schedule"
+        },
+        {
+          "line": 669,
+          "statement": "return OwnGeometry(pose9, up, None, recorded=recorded), ('own' if 'depth_at' not in names else 'own_pose_gt_depth')"
+        },
+        {
+          "line": 687,
+          "statement": "return torch.from_numpy(uv), index"
+        },
+        {
+          "line": 704,
+          "statement": "return OwnGeometry(pose, up, depth_fn, require_up=require_up)"
+        },
+        {
+          "line": 721,
+          "statement": "return processor._routing_tokens"
+        },
+        {
+          "line": 770,
+          "statement": "return dict(qid=row['qid'], dataset=dataset, scene=scene, category='routing_trace',\n                student_input=dict(frames=[dict(path=relocate(f['path']), sha256=f['sha256']) for f in frames],\n                                   frame_indices=[f['source_index'] for f in frames],\n                                   timestamps=[f['source_index'] / fps for f in frames], fps=fps,\n                                   total_num_frames=rgb['total_num_frames'],\n                                   question=row['question'], options=row.get('options') or [],\n                                   **({'geometry_dense': rgb['geometry_dense']} if 'geometry_dense' in rgb else {})),\n                target=target,\n                routing=dict(qid=row['qid'], question_type=row['question_type'], form=row['form'],\n                             events=row['events'], answer=row['answer'], gt_answer=row['gt_answer'],\n                             tool_output_spans=row['tool_output_spans'],\n                             physical_group=row['provenance'].get('physical_group'), canonical=canonical,\n                             source_row_sha256=source_sha, **source_identity,\n                             category=row.get('category', 'direct' if not row['tool_output_spans'] else 'route'),\n                             head_layout=row.get('head_layout', 'paired_anchor'),\n                             **{k: row[k] for k in ('gt_pose9', 'gt_up', 'trace_revision', 'ground_record',\n                                                    'candidate_id', 'training_admitted') if k in row}))"
+        },
+        {
+          "line": 797,
+          "statement": "return ALIAS[dataset] + '/' + token"
+        },
+        {
+          "line": 826,
+          "statement": "return None"
+        },
+        {
+          "line": 840,
+          "statement": "return set(alias_names(data))"
+        },
+        {
+          "line": 848,
+          "statement": "return f'{ALIAS.get(dataset, dataset)}/{rest}'"
+        },
+        {
+          "line": 853,
+          "statement": "return sorted({alias_key(k) for k in data['scenes']} | {alias_key(k) for k in data.get('physical_groups', [])}\n                  | {'/'.join(t) for t in data.get('rung1_tokens', [])})"
+        },
+        {
+          "line": 859,
+          "statement": "return bool(names) and any(k in names for k in keys if k)"
+        },
+        {
+          "line": 866,
+          "statement": "return keys"
+        },
+        {
+          "line": 884,
+          "statement": "return dict(qid=raw['qid'], dataset=dataset, scene=scene, category='routing_trace', student_input=inputs,\n                target=target, routing=dict(qid=raw['qid'], question_type=raw['question_type'], form='direct_empty_think',\n                                            canonical=raw.get('canonical'),\n                                            events=[], answer=raw['answer'], gt_answer=raw['answer'],\n                                            tool_output_spans=[], category='direct', head_layout='n/a'))"
+        },
+        {
+          "line": 1014,
+          "statement": "return receipt"
+        },
+        {
+          "line": 1070,
+          "statement": "return dict(rows=done, byte_equal=equal, fraction=equal / done if done else None, diffs=diffs)"
+        },
+        {
+          "line": 1080,
+          "statement": "return hashlib.sha256(raw).hexdigest()"
+        },
+        {
+          "line": 97,
+          "statement": "return row"
+        },
+        {
+          "line": 135,
+          "statement": "return ground_rows.render_ground(events, answer)"
+        },
+        {
+          "line": 142,
+          "statement": "cursor += len(text)"
+        },
+        {
+          "line": 183,
+          "statement": "return ground_rows.validate(row)"
+        },
+        {
+          "line": 268,
+          "statement": "return rotation, -rotation @ self.p[k - 1, :3]"
+        },
+        {
+          "line": 274,
+          "statement": "return vertical, horizontal"
+        },
+        {
+          "line": 278,
+          "statement": "return dict(camera_R_L1=r8(self.to_l1 @ rotation), camera_t_L1=r8(self.to_l1 @ centre))"
+        },
+        {
+          "line": 287,
+          "statement": "return self._poses[k]"
+        },
+        {
+          "line": 308,
+          "statement": "return [r2(x * s) for x, s in zip(cam, (1, -1, 1))], [r2(x) for x in f1], r2(spread)"
+        },
+        {
+          "line": 320,
+          "statement": "return f\"f1 centre {vec(p['camera_t_L1'])} m, yaw {p['yaw_degree']} deg\""
+        },
+        {
+          "line": 340,
+          "statement": "return f'dx = {s2(local[0])} m, dy = {s2(local[1])} m, dz = {s2(local[2])} m, distance = {f2(distance)} m'"
+        },
+        {
+          "line": 349,
+          "statement": "return f'turn = {turn:+d} deg'"
+        },
+        {
+          "line": 361,
+          "statement": "return p['camera'], p['f1'], p['spread']"
+        },
+        {
+          "line": 372,
+          "statement": "return f\"turn = {values[call_id + '.turn']['value']:+d} deg\""
+        },
+        {
+          "line": 628,
+          "statement": "return dict(p_depth=top if (forced or depth_open) else floor, p_pose=top if forced else max(pose, floor),\n                    forced=forced, exposure_floor=floor, ema=dict(ema))"
+        },
+        {
+          "line": 636,
+          "statement": "return u_depth < state['p_depth'], u_pose < state['p_pose']"
+        },
+        {
+          "line": 648,
+          "statement": "return None, 'no_head_calls'"
+        },
+        {
+          "line": 650,
+          "statement": "return None, 'pose_gate_closed'"
+        },
+        {
+          "line": 653,
+          "statement": "return None, 'gates_closed'"
+        },
+        {
+          "line": 667,
+          "statement": "return OwnGeometry(pose9, up, geometry.depth, fov=own_pose[:, 7:9]), \\\n            ('own' if pose_own else 'own_depth_gt_pose')"
+        },
+        {
+          "line": 703,
+          "statement": "return depth[f - 1, slot:slot + len(STENCIL)]"
+        },
+        {
+          "line": 758,
+          "statement": "return path"
+        },
+        {
+          "line": 809,
+          "statement": "return 'frame_substitution'"
+        },
+        {
+          "line": 811,
+          "statement": "return 'frame_substitution'"
+        },
+        {
+          "line": 834,
+          "statement": "return set()"
+        },
+        {
+          "line": 837,
+          "statement": "return set(data['names'])"
+        },
+        {
+          "line": 846,
+          "statement": "return key"
+        },
+        {
+          "line": 262,
+          "statement": "return np.eye(3), np.zeros(3)"
+        },
+        {
+          "line": 295,
+          "statement": "return list(cam), [r2(x) for x in f1], spread"
+        },
+        {
+          "line": 313,
+          "statement": "return 'f1 centre (0.00, 0.00, 0.00) m, yaw 0 deg'"
+        },
+        {
+          "line": 316,
+          "statement": "return 'f1 centre '+partial_f1(p['camera_t_L1'], f2)+' m, yaw heading unavailable'"
+        },
+        {
+          "line": 318,
+          "statement": "return 'f1 centre '+vec(self.camera_pose(k)['camera_t_L1'])+f' m, yaw heading unavailable (frame {k})'"
+        },
+        {
+          "line": 334,
+          "statement": "return (f'dx = heading unavailable (frame {i}), dy = {s2(-self.down @ delta)} m, '\n                    f'dz = heading unavailable (frame {i}), distance = {f2(distance)} m')"
+        },
+        {
+          "line": 346,
+          "statement": "return 'turn = heading unavailable (frames '+','.join(map(str, missing))+')'"
+        },
+        {
+          "line": 367,
+          "statement": "return f\"f1 centre {vec(values[call_id + '.t']['value'])} m, yaw {values[call_id + '.yaw']['value']} deg\""
+        },
+        {
+          "line": 370,
+          "statement": "return (f'dx = {s2(d[0])} m, dy = {s2(d[1])} m, dz = {s2(d[2])} m, '\n                    f\"distance = {f2(values[call_id + '.distance']['value'])} m\")"
+        },
+        {
+          "line": 661,
+          "statement": "return None, 'gt_pose_missing'"
+        },
+        {
+          "line": 732,
+          "statement": "parts = tokens['constituents'][opener]"
+        },
+        {
+          "line": 733,
+          "statement": "rows[index] = rows[parts].float().mean(0).to(rows.dtype)"
+        },
+        {
+          "line": 734,
+          "statement": "head[index] = head[parts].float().mean(0).to(head.dtype)"
+        },
+        {
+          "line": 817,
+          "statement": "return 'movement_without_move'"
+        },
+        {
+          "line": 821,
+          "statement": "return 'movement_margin'"
+        },
+        {
+          "line": 825,
+          "statement": "return 'rotation_near_180'"
+        },
+        {
+          "line": 436,
+          "statement": "event['text'] = text"
+        },
+        {
+          "line": 757,
+          "statement": "return new + path[len(old):]"
+        },
+        {
+          "line": 929,
+          "statement": "raw = json.loads(line)"
+        },
+        {
+          "line": 415,
+          "statement": "text, _ = respond(call['token'], registry, geometry)"
+        },
+        {
+          "line": 978,
+          "statement": "raw = json.loads(line)"
+        },
+        {
+          "line": 417,
+          "statement": "lines = []"
+        },
+        {
+          "line": 426,
+          "statement": "text = '\\n'.join(lines)"
+        },
+        {
+          "line": 428,
+          "statement": "text = geometry.response(event['call_id'], name)"
+        },
+        {
+          "line": 167,
+          "statement": "text = event['response']['text'] if kind == 'calculator_response' else event['text']"
+        },
+        {
+          "line": 430,
+          "statement": "text = geometry.pose_text(call['arguments']['frame'])"
+        },
+        {
+          "line": 432,
+          "statement": "text = geometry.move_text(call['arguments']['from'], call['arguments']['to'])"
+        },
+        {
+          "line": 434,
+          "statement": "text = geometry.turn_text(call['arguments']['from'], call['arguments']['to'])"
+        }
+      ]
+    },
+    {
+      "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/trees/r5_applied/student_pilot/ground_lifting.py",
+      "sha256": "55946ca1b528c60497c75e8c50155b0b9901816fb5986db3f480b4556102cd6d",
+      "statements": [
+        {
+          "line": 20,
+          "statement": "text = f'{float(value):.2f}'"
+        },
+        {
+          "line": 23,
+          "statement": "return '0.00' if text == '-0.00' else text"
+        },
+        {
+          "line": 33,
+          "statement": "return uv[((uv >= 20) & (uv <= 980)).all(1)]"
+        },
+        {
+          "line": 61,
+          "statement": "return np.array([*best[1], max(z1 - z0, .02)])"
+        },
+        {
+          "line": 90,
+          "statement": "return camera, f1"
+        },
+        {
+          "line": 104,
+          "statement": "return d[np.isfinite(d) & (d > 0)]"
+        },
+        {
+          "line": 114,
+          "statement": "return keep if keep.sum() >= min_keep else np.ones(len(depth), bool)"
+        },
+        {
+          "line": 180,
+          "statement": "return result"
+        },
+        {
+          "line": 195,
+          "statement": "return (f\"{result['name']}: frames {frames} (best {result['best']})\\n\"\n            + point['line'] + '\\n' + size)"
+        },
+        {
+          "line": 218,
+          "statement": "return None"
+        },
+        {
+          "line": 223,
+          "statement": "return 'not seen' if distance is None else number(distance) + ' m'"
+        },
+        {
+          "line": 236,
+          "statement": "lines = [f\"{b['name']}: {value} m\" for b, value in zip(candidates, displayed)]"
+        },
+        {
+          "line": 238,
+          "statement": "return '\\n'.join(lines)"
+        },
+        {
+          "line": 85,
+          "statement": "return camera, (centre - t1)[[0, 2, 1]]"
+        },
+        {
+          "line": 111,
+          "statement": "return np.ones(len(depth), bool)"
+        },
+        {
+          "line": 160,
+          "statement": "return result"
+        },
+        {
+          "line": 185,
+          "statement": "return result['name'] + ': not seen'"
+        },
+        {
+          "line": 201,
+          "statement": "return None"
+        },
+        {
+          "line": 232,
+          "statement": "return 'not seen'"
+        },
+        {
+          "line": 252,
+          "statement": "return p['camera_R_L1'][[0, 2, 1]], p['camera_t_L1'][[0, 2, 1]]"
+        },
+        {
+          "line": 255,
+          "statement": "return self.geometry.fov(frame)"
+        },
+        {
+          "line": 272,
+          "statement": "return (depth[y0, x0] * (1-fx) * (1-fy) + depth[y0, x1] * fx * (1-fy)\n                + depth[y1, x0] * (1-fx) * fy + depth[y1, x1] * fx * fy)"
+        },
+        {
+          "line": 298,
+          "statement": "return Pc @ R.T + t, Pc, spread"
+        },
+        {
+          "line": 78,
+          "statement": "return (R.T @ (centre - t)) * [1, -1, 1], basis.T @ (centre - t1)"
+        },
+        {
+          "line": 171,
+          "statement": "return result"
+        },
+        {
+          "line": 217,
+          "statement": "return distance"
+        },
+        {
+          "line": 288,
+          "statement": "return self._depth(frame-1, *np.asarray(points).T)"
+        }
+      ]
+    },
+    {
+      "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/trees/r5_applied/trace_format/ground_v313.py",
+      "sha256": "c01b125171a5e4a17c1c5a0072a73fc2b9e9e434e5fe407c119461fcb51a99d3",
+      "statements": [
+        {
+          "line": 38,
+          "statement": "return dict(distance_m=distance, positions=[A[ai], B[bi]], frames=[i, j], indices=[ai, bi])"
+        },
+        {
+          "line": 51,
+          "statement": "return f\"{point['label']}: {name} {role} {coords}{tail}\""
+        },
+        {
+          "line": 56,
+          "statement": "a, b = [line.split(':', 1)[0] for line in lines]"
+        },
+        {
+          "line": 57,
+          "statement": "return registry.execute(f'<dist {a} {b}>')['text']"
+        },
+        {
+          "line": 75,
+          "statement": "lines = [point_line(backend, geometry, registry, n, 'support centroid', f, p)\n             for n, f, p in zip(names, frames, centres)]"
+        },
+        {
+          "line": 77,
+          "statement": "lines += [point_line(backend, geometry, registry, n, 'nearest point', f, p)\n              for n, f, p in zip(names, frames, positions)]"
+        },
+        {
+          "line": 79,
+          "statement": "c0, c1, p0, p1 = [registry._points[line.split(':', 1)[0]]['f1'] for line in lines]"
+        },
+        {
+          "line": 84,
+          "statement": "return lines"
+        },
+        {
+          "line": 348,
+          "statement": "return provide"
+        },
+        {
+          "line": 438,
+          "statement": "return components"
+        },
+        {
+          "line": 453,
+          "statement": "return components"
+        },
+        {
+          "line": 471,
+          "statement": "lines = ['<think>', 'I will list the observed instances and their first eligible frames.']"
+        },
+        {
+          "line": 503,
+          "statement": "lines += ['</think>', f'<answer>{answer}</answer>']"
+        },
+        {
+          "line": 504,
+          "statement": "suffix = '\\n'.join(lines)"
+        },
+        {
+          "line": 508,
+          "statement": "return dict(qid=item['qid'], type=item['type'], question=item['question'], options=item.get('options', []),\n                answer=answer, answer_content=content, suffix=suffix, suffix_tokens=tokens,\n                events=list(session.events), spec_version='3.13', training_admitted=False,\n                program_audit=dict(observed_counts=counts, first_frames=first,\n                                   gt_authority=item['gt_authority']))"
+        },
+        {
+          "line": 532,
+          "statement": "return selected, dict(answer_letters=report, gap_minimum_positions=report,\n                         policy='exact equality within option count; shortage drops rows')"
+        },
+        {
+          "line": 26,
+          "statement": "return None"
+        },
+        {
+          "line": 83,
+          "statement": "return None"
+        },
+        {
+          "line": 140,
+          "statement": "return sorted(result, key=lambda r: (r['first'], r['instance_id']))"
+        },
+        {
+          "line": 154,
+          "statement": "lines, distances = [], []"
+        },
+        {
+          "line": 173,
+          "statement": "return body + '\\n' + '\\n'.join(lines)"
+        },
+        {
+          "line": 207,
+          "statement": "printed_distance = pair_distance(registry, lines[-2:])"
+        },
+        {
+          "line": 220,
+          "statement": "return '\\n'.join(lines)"
+        },
+        {
+          "line": 227,
+          "statement": "return room.format_result(result)"
+        },
+        {
+          "line": 338,
+          "statement": "return body"
+        },
+        {
+          "line": 347,
+          "statement": "return selector.keypoint_extent(selections, names[0], axis, min_support=min_support)"
+        },
+        {
+          "line": 362,
+          "statement": "return {normalized(l) for l in pooled} if pooled else {normalized(name)}"
+        },
+        {
+          "line": 377,
+          "statement": "return result"
+        },
+        {
+          "line": 425,
+          "statement": "return out"
+        },
+        {
+          "line": 437,
+          "statement": "return frames"
+        },
+        {
+          "line": 452,
+          "statement": "return frames"
+        },
+        {
+          "line": 461,
+          "statement": "return boxes.render(item, session, token_count)"
+        },
+        {
+          "line": 466,
+          "statement": "return row"
+        },
+        {
+          "line": 475,
+          "statement": "body = session.execute(call)"
+        },
+        {
+          "line": 476,
+          "statement": "lines += [call, legacy.wrap(body)]"
+        },
+        {
+          "line": 71,
+          "statement": "return None"
+        },
+        {
+          "line": 73,
+          "statement": "return None"
+        },
+        {
+          "line": 144,
+          "statement": "return 'unresolved'"
+        },
+        {
+          "line": 146,
+          "statement": "return 'not seen'"
+        },
+        {
+          "line": 149,
+          "statement": "return (self.backend.render_gap(self.objects[a], objects[0]) if len(bs) == 1 else\n                    self.backend.render_gaps(self.objects[a], objects))"
+        },
+        {
+          "line": 153,
+          "statement": "return 'not seen'"
+        },
+        {
+          "line": 160,
+          "statement": "distance = pair_distance(registry, lines[-2:])"
+        },
+        {
+          "line": 164,
+          "statement": "body = distances[0]"
+        },
+        {
+          "line": 169,
+          "statement": "body = '\\n'.join([f'{n}: {d}' for n,d in zip(bs,distances)]\n                             + [f'min {winners} {minimum:.2f} m'])"
+        },
+        {
+          "line": 179,
+          "statement": "return 'unresolved'"
+        },
+        {
+          "line": 181,
+          "statement": "return 'not seen'"
+        },
+        {
+          "line": 183,
+          "statement": "return 'unavailable'"
+        },
+        {
+          "line": 186,
+          "statement": "return 'unresolved' if result.get('status') == 'ambiguous' else 'unavailable'"
+        },
+        {
+          "line": 200,
+          "statement": "lines = surface_support(self.backend, self.geometry, registry, names, frames, positions, surfaces)"
+        },
+        {
+          "line": 204,
+          "statement": "lines = [point_line(self.backend, self.geometry, registry, n, role, frame, pos)\n                     for n, role, frame, pos in zip(objects, roles, frames, positions)]"
+        },
+        {
+          "line": 233,
+          "statement": "return self._room()"
+        },
+        {
+          "line": 236,
+          "statement": "return super().execute(call)"
+        },
+        {
+          "line": 242,
+          "statement": "body = boxes.ground(self, legacy.valid_name(m[1]))"
+        },
+        {
+          "line": 346,
+          "statement": "return selector.keypoint_gap(selections, *names, min_support=min_support)"
+        },
+        {
+          "line": 202,
+          "statement": "return 'unavailable'"
+        },
+        {
+          "line": 245,
+          "statement": "body, _ = self.box_registry.gap(legacy.valid_name(m[1]), bs, m[3])"
+        },
+        {
+          "line": 250,
+          "statement": "body = 'frame unavailable'"
+        },
+        {
+          "line": 254,
+          "statement": "body, _ = boxes.cam_gap_body(self.box_registry, k, names, centre)"
+        },
+        {
+          "line": 262,
+          "statement": "body = f'{name}: {len(entries)} found'"
+        },
+        {
+          "line": 264,
+          "statement": "lines = []"
+        },
+        {
+          "line": 270,
+          "statement": "body += '\\n' + '\\n'.join(lines)"
+        },
+        {
+          "line": 277,
+          "statement": "body = name + ': unresolved'"
+        },
+        {
+          "line": 292,
+          "statement": "body = self._gap(a, bs)"
+        },
+        {
+          "line": 280,
+          "statement": "body = name + ': not seen'"
+        },
+        {
+          "line": 286,
+          "statement": "body = self.backend.render_ground(obj, self.registry)"
+        },
+        {
+          "line": 297,
+          "statement": "body = self._keypoints('surface_pair', names)"
+        },
+        {
+          "line": 299,
+          "statement": "body = self._keypoints('extent_ends', [legacy.valid_name(m[1])])"
+        },
+        {
+          "line": 303,
+          "statement": "body = super().execute(call)"
+        },
+        {
+          "line": 305,
+          "statement": "return body"
+        }
+      ]
+    },
+    {
+      "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/trees/r5_applied/trace_format/box_v313.py",
+      "sha256": "3a09cc1dafaaf51fc27e5653cdb82aa3ae34521c6ed9cb2c0c34050a4e1e3b6f",
+      "statements": [
+        {
+          "line": 36,
+          "statement": "text = format(float(v), f'.{places}f')"
+        },
+        {
+          "line": 37,
+          "statement": "return text[1:] if text.startswith('-') and float(text) == 0 else text"
+        },
+        {
+          "line": 48,
+          "statement": "return dict(centre=c, lengths=l, axes=a)"
+        },
+        {
+          "line": 59,
+          "statement": "return float(cdist(*points, metric='euclidean').min())"
+        },
+        {
+          "line": 71,
+          "statement": "return p @ x['axes'] + x['centre']"
+        },
+        {
+          "line": 76,
+          "statement": "return float(cKDTree(grid_points(a)).query(grid_points(b), workers=1)[0].min())"
+        },
+        {
+          "line": 80,
+          "statement": "return float(np.linalg.norm(grid_points(value) - np.asarray(centre, float), axis=1).min())"
+        },
+        {
+          "line": 86,
+          "statement": "return min(f(a, b) for a in As for b in Bs)"
+        },
+        {
+          "line": 100,
+          "statement": "return x['centre'], x['lengths'][horizontal+[vertical]], yaw"
+        },
+        {
+          "line": 118,
+          "statement": "return x['centre'], lengths, yaw"
+        },
+        {
+          "line": 123,
+          "statement": "return box(centre,lengths,[[c,0,-s],[s,0,c],[0,1,0]])"
+        },
+        {
+          "line": 133,
+          "statement": "return '\\n'.join([f'{name}: frames '+','.join(map(str,frames))+f' (best {best})',\n        f'{label}: f1 centre ('+', '.join(number(t,2) for t in centre)+') m',\n        'size '+' x '.join(number(t,2) for t in lengths)+' m',\n        f'yaw {yaw} deg (0 = +x; positive +x toward -z about +y)'])"
+        },
+        {
+          "line": 146,
+          "statement": "m = re.fullmatch(pattern, body)"
+        },
+        {
+          "line": 157,
+          "statement": "return dict(name=name,label=label,frames=frames,best=int(best),value=value)"
+        },
+        {
+          "line": 161,
+          "statement": "return {k:v.tolist() for k,v in box(**value).items()}"
+        },
+        {
+          "line": 166,
+          "statement": "lines = body.split('\\n')"
+        },
+        {
+          "line": 167,
+          "statement": "m = re.fullmatch('(' + old.NAME + r'): ([2-9]|[1-9][0-9]+) instances', lines[0])"
+        },
+        {
+          "line": 173,
+          "statement": "blocks = ['\\n'.join(lines[1 + 4 * i:5 + 4 * i]) for i in range(n)]"
+        },
+        {
+          "line": 178,
+          "statement": "return blocks"
+        },
+        {
+          "line": 279,
+          "statement": "return '\\n'.join([f'{n}: {d} m' for n,d in zip(names,printed)]+[f'min {winners} {minimum:.2f} m']),values"
+        },
+        {
+          "line": 292,
+          "statement": "return (np.asarray(geometry.cam(k)[1],float)-t)@F"
+        },
+        {
+          "line": 311,
+          "statement": "return boxes_"
+        },
+        {
+          "line": 367,
+          "statement": "return results"
+        },
+        {
+          "line": 386,
+          "statement": "lines=['<think>',f'I will ground the boxes and ask the tool for their distance from the camera in frame {k}.']"
+        },
+        {
+          "line": 413,
+          "statement": "lines+=['</think>',f'<answer>{answer}</answer>']"
+        },
+        {
+          "line": 413,
+          "statement": "suffix='\\n'.join(lines)"
+        },
+        {
+          "line": 415,
+          "statement": "return dict(qid=item['qid'],type=item['type'],question=item['question'],options=item.get('options',[]),suffix=suffix,\n        answer=answer,answer_content=content,suffix_tokens=tokens,events=list(session.events),spec_version='3.14',\n        not_seen=bool(failure),simulated_misses=sorted(session.simulated_misses),\n        program_audit=dict(target_distance_rule='camera_box_grid_5cm',box_provider=session.box_provider_id,\n                           numpy_version=np.__version__,unrounded_replay_m=values,independent_target=item.get('gt_answer')),\n        training_admitted=False)"
+        },
+        {
+          "line": 431,
+          "statement": "return box((np.asarray(centre)-t)@F,lengths,np.asarray(axes).reshape(3,3)@F)"
+        },
+        {
+          "line": 462,
+          "statement": "parts=[p for p in parts if len(p)]"
+        },
+        {
+          "line": 465,
+          "statement": "P=np.concatenate(parts)"
+        },
+        {
+          "line": 466,
+          "statement": "f=np.concatenate([np.full(len(p),j) for j,p in enumerate(parts)])"
+        },
+        {
+          "line": 471,
+          "statement": "return P[support[vid]>=min_frames]"
+        },
+        {
+          "line": 476,
+          "statement": "return P[np.isfinite(P).all(1)]"
+        },
+        {
+          "line": 524,
+          "statement": "return PolicyBoxProvider() if geometry_mode=='predicted' else FusedBoxProvider()"
+        },
+        {
+          "line": 615,
+          "statement": "return body"
+        },
+        {
+          "line": 630,
+          "statement": "lines=['<think>','I will ground the boxes and ask the tool to measure their sampled-box distances.']"
+        },
+        {
+          "line": 659,
+          "statement": "lines+=['</think>',f'<answer>{answer}</answer>']"
+        },
+        {
+          "line": 659,
+          "statement": "suffix='\\n'.join(lines)"
+        },
+        {
+          "line": 665,
+          "statement": "return dict(qid=item['qid'],type=item['type'],question=item['question'],options=item.get('options',[]),suffix=suffix,\n        answer=answer,answer_content=content,suffix_tokens=tokens,events=list(session.events),spec_version='3.13',\n        not_seen=bool(failure),simulated_misses=sorted(session.simulated_misses),program_audit=audit,training_admitted=False)"
+        },
+        {
+          "line": 701,
+          "statement": "return {'centroid': c, 'axesLengths': np.array([hi[0] - lo[0], hi[1] - lo[1], max(z1 - z0, 0.02)]), 'normalizedAxes': axes.ravel()}"
+        },
+        {
+          "line": 713,
+          "statement": "return {'centroid': c, 'axesLengths': L, 'normalizedAxes': b['normalizedAxes']}"
+        },
+        {
+          "line": 70,
+          "statement": "return grid_points(value, step / 2)"
+        },
+        {
+          "line": 96,
+          "statement": "return tilted_public_fields(x)"
+        },
+        {
+          "line": 169,
+          "statement": "return [body]"
+        },
+        {
+          "line": 193,
+          "statement": "blocks = split_instances(body)"
+        },
+        {
+          "line": 218,
+          "statement": "return records[0] if len(records) == 1 else records"
+        },
+        {
+          "line": 232,
+          "statement": "return labels if labels is None or len(labels) > 1 else labels[0]"
+        },
+        {
+          "line": 252,
+          "statement": "lines=[f'{n}: {d} m' for n,d in zip(bs,printed)]"
+        },
+        {
+          "line": 255,
+          "statement": "return '\\n'.join(lines+[f'min {winners} {minimum:.2f} m']),values"
+        },
+        {
+          "line": 260,
+          "statement": "return 'frame unavailable', []"
+        },
+        {
+          "line": 276,
+          "statement": "return f'distance {printed[0]} m', values"
+        },
+        {
+          "line": 286,
+          "statement": "return np.asarray(geometry.cam(k)[1],float)"
+        },
+        {
+          "line": 305,
+          "statement": "return None"
+        },
+        {
+          "line": 323,
+          "statement": "body=response[len('<tool_response>\\n'):-len('\\n</tool_response>')]"
+        },
+        {
+          "line": 389,
+          "statement": "body=session.execute(call)"
+        },
+        {
+          "line": 389,
+          "statement": "return body"
+        },
+        {
+          "line": 391,
+          "statement": "body=emit(f'<ground obj=\"{old.valid_name(name)}\" mode=\"box\">')"
+        },
+        {
+          "line": 425,
+          "statement": "return box(centre, lengths, np.asarray(axes).reshape(3,3))"
+        },
+        {
+          "line": 441,
+          "statement": "return in_f1(geometry,raw['centroid'],raw['axesLengths'],raw['normalizedAxes'])"
+        },
+        {
+          "line": 451,
+          "statement": "parts=[np.asarray(obj['points'].get(str(k),[]),float).reshape(-1,3) for k in obj['frames']]"
+        },
+        {
+          "line": 452,
+          "statement": "points=np.concatenate(parts) if parts else np.zeros((0,3))"
+        },
+        {
+          "line": 457,
+          "statement": "return in_f1(geometry,raw['centroid'],raw['axesLengths'],raw['normalizedAxes'])"
+        },
+        {
+          "line": 464,
+          "statement": "return np.zeros((0,3))"
+        },
+        {
+          "line": 491,
+          "statement": "return obj['points_cut']"
+        },
+        {
+          "line": 497,
+          "statement": "return in_f1(geometry,raw['centroid'],raw['axesLengths'],raw['normalizedAxes'])"
+        },
+        {
+          "line": 501,
+          "statement": "parts=[_finite(cut.get(str(k),[])) for k in obj['frames']]"
+        },
+        {
+          "line": 502,
+          "statement": "points=np.concatenate([vote_points(parts,self.vox,self.min_frames),B])"
+        },
+        {
+          "line": 505,
+          "statement": "return self._fit(points,geometry)"
+        },
+        {
+          "line": 508,
+          "statement": "return self._fit(B,geometry) if len(B)>=4 else None"
+        },
+        {
+          "line": 521,
+          "statement": "return FusedBoxProvider()"
+        },
+        {
+          "line": 523,
+          "statement": "return FittedBoxProvider(fit_gbox)"
+        },
+        {
+          "line": 534,
+          "statement": "return in_f1(geometry,c,raw['axesLengths'],a)"
+        },
+        {
+          "line": 548,
+          "statement": "return name+': '+status"
+        },
+        {
+          "line": 606,
+          "statement": "body=blocks[0] if len(blocks)==1 else '\\n'.join([f'{name}: {len(blocks)} instances',*blocks])"
+        },
+        {
+          "line": 633,
+          "statement": "body=session.execute(call)"
+        },
+        {
+          "line": 633,
+          "statement": "return body"
+        },
+        {
+          "line": 635,
+          "statement": "body=emit(f'<ground obj=\"{old.valid_name(name)}\" mode=\"box\">')"
+        },
+        {
+          "line": 638,
+          "statement": "body=emit(f'<gap a=\"{a}\"'+''.join(f' b=\"{b}\"' for b in bs)+f' rule=\"{rule}\">')"
+        },
+        {
+          "line": 677,
+          "statement": "return {'centroid': c, 'axesLengths': np.array([0.05, 0.05, 0.05]), 'normalizedAxes': np.eye(3).ravel()}"
+        },
+        {
+          "line": 709,
+          "statement": "return b"
+        },
+        {
+          "line": 251,
+          "statement": "return f'distance {printed[0]} m', values"
+        },
+        {
+          "line": 266,
+          "statement": "return status, []"
+        },
+        {
+          "line": 325,
+          "statement": "failure=re.fullmatch(re.escape(m[1])+r': ('+'|'.join(map(re.escape,RUNTIME_STATUSES))+')',body)"
+        },
+        {
+          "line": 392,
+          "statement": "failure=(name,response_status(body))"
+        },
+        {
+          "line": 403,
+          "statement": "lines+=[CAM_MEASUREMENT,f'The nearest is {content}, so the answer is {answer}.']"
+        },
+        {
+          "line": 407,
+          "statement": "lines+=[CAM_MEASUREMENT,f'The camera gap is {answer} m.']"
+        },
+        {
+          "line": 439,
+          "statement": "return None"
+        },
+        {
+          "line": 453,
+          "statement": "return None"
+        },
+        {
+          "line": 504,
+          "statement": "points=np.concatenate(parts) if parts else np.zeros((0,3))"
+        },
+        {
+          "line": 582,
+          "statement": "return name+': unresolved'"
+        },
+        {
+          "line": 605,
+          "statement": "return partial[0] if len(partial)==1 else '\\n'.join([f'{name}: {len(partial)} instances', *partial])"
+        },
+        {
+          "line": 614,
+          "statement": "return name+': box unavailable'"
+        },
+        {
+          "line": 636,
+          "statement": "failure=(name,response_status(body))"
+        },
+        {
+          "line": 241,
+          "statement": "return status, []"
+        },
+        {
+          "line": 334,
+          "statement": "blocks=split_instances(body)"
+        },
+        {
+          "line": 337,
+          "statement": "record=registry.ingest(body,audit['full_precision_box'],_gap_audit(audit,1))"
+        },
+        {
+          "line": 341,
+          "statement": "record=registry.ingest(body,list(audit['full_precision_boxes']),None if gb is None else list(gb))[0]"
+        }
+      ]
+    },
+    {
+      "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/trees/r5_applied/trace_format/room_v314.py",
+      "sha256": "37c8d5fcfa24bbc29155a18f4400ad91dd5326a22b019edd66809f192afd1d07",
+      "statements": [
+        {
+          "line": 50,
+          "statement": "return frames"
+        },
+        {
+          "line": 122,
+          "statement": "return pc @ R.T + t"
+        },
+        {
+          "line": 140,
+          "statement": "return dict(points=points, frames=frames, geometry_mode=geometry_mode,\n                gravity_source='scene_z_up' if geometry_mode == 'sensor'\n                else str(getattr(geo, 'gravity_source', 'own' if hasattr(geo, 'grids') else 'geometry_z_up')))"
+        },
+        {
+          "line": 146,
+          "statement": "return from_points(**sample(geometry, geometry_mode))"
+        },
+        {
+          "line": 199,
+          "statement": "return dict(frames=list(frames), floor_height_m=height, area_m2=area,\n                floor_cells=count, supported_cells=supported, min_frames=threshold,\n                geometry_mode=geometry_mode, gravity_source=gravity_source, **PARAMETERS)"
+        },
+        {
+          "line": 208,
+          "statement": "return (f\"room: frames {','.join(map(str, result['frames']))}\\n\"\n            f\"floor height {height} m\\n\"\n            f\"floor cells {result['floor_cells']}; supported cells {result['supported_cells']}; \"\n            f\"cell size 0.05 m; min frames {result['min_frames']}\\n\"\n            f\"area {result['area_m2']:.2f} m^2\")"
+        },
+        {
+          "line": 217,
+          "statement": "m = re.fullmatch(r'room: frames ([1-9][0-9]*(?:,[1-9][0-9]*)*)\\n'\n                     r'floor height ('+f+r') m\\nfloor cells ([1-9][0-9]*); '\n                     r'supported cells ([1-9][0-9]*); cell size 0.05 m; min frames ([12])\\n'\n                     r'area ('+f+r') m\\^2', body)"
+        },
+        {
+          "line": 229,
+          "statement": "return dict(frames=frames, floor_height_m=float(m[2]), floor_cells=int(m[3]),\n                supported_cells=int(m[4]), min_frames=int(m[5]), area_m2=float(m[6]))"
+        }
+      ]
+    },
+    {
+      "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/trees/r5_applied/trace_format/ground_v312.py",
+      "sha256": "0acdc6a67d3892b179a22164dcb0f91d003f23dec5e225d798f430b2b86828e3",
+      "statements": [
+        {
+          "line": 30,
+          "statement": "return mod"
+        },
+        {
+          "line": 36,
+          "statement": "return name"
+        },
+        {
+          "line": 40,
+          "statement": "return '<tool_response>\\n' + body + '\\n</tool_response>'"
+        },
+        {
+          "line": 89,
+          "statement": "return result"
+        },
+        {
+          "line": 96,
+          "statement": "return found[0]"
+        },
+        {
+          "line": 105,
+          "statement": "body = value.get('body', '')"
+        },
+        {
+          "line": 109,
+          "statement": "reason = continuation_reason(item, body, value['answer'])"
+        },
+        {
+          "line": 112,
+          "statement": "return body, item.get('option_letter_map', {}).get(value['answer'], value['answer'])"
+        },
+        {
+          "line": 145,
+          "statement": "lines, points, absent, audit = ['<think>', plan], {}, False, {}"
+        },
+        {
+          "line": 244,
+          "statement": "suffix = '\\n'.join(lines)"
+        },
+        {
+          "line": 250,
+          "statement": "return dict(qid=item['qid'], type=typ, question=item['question'], options=item.get('options', []),\n                suffix=suffix, answer=answer, answer_content=content, suffix_tokens=tokens,\n                events=list(session.events), spec_version=getattr(session, 'spec_version', '3.12.2'), not_seen=absent,\n                simulated_misses=sorted(session.simulated_misses), program_audit=audit)"
+        },
+        {
+          "line": 262,
+          "statement": "return True"
+        },
+        {
+          "line": 286,
+          "statement": "return True"
+        },
+        {
+          "line": 293,
+          "statement": "return {t: dict(sorted(c.items())) for t, c in sorted(out.items())}"
+        },
+        {
+          "line": 298,
+          "statement": "return balance(rows, distributions, per_type, _select_content)"
+        },
+        {
+          "line": 351,
+          "statement": "return selected, report"
+        },
+        {
+          "line": 77,
+          "statement": "event = dict(call=call, response=wrap(body))"
+        },
+        {
+          "line": 79,
+          "statement": "return body"
+        },
+        {
+          "line": 118,
+          "statement": "return T.parse_vsi(q)"
+        },
+        {
+          "line": 149,
+          "statement": "body = session.execute(call)"
+        },
+        {
+          "line": 151,
+          "statement": "return body"
+        },
+        {
+          "line": 154,
+          "statement": "body = emit(f'<ground obj=\"{valid_name(name)}\">')"
+        },
+        {
+          "line": 159,
+          "statement": "m = re.search(r'^([P][1-9][0-9]*): cam', body, re.M)"
+        },
+        {
+          "line": 165,
+          "statement": "body = emit(f'<gap a=\"{roles[\"a\"]}\" b=\"{roles[\"b\"]}\">')"
+        },
+        {
+          "line": 166,
+          "statement": "absent = body == 'not seen'"
+        },
+        {
+          "line": 315,
+          "statement": "return row['answer_content']"
+        },
+        {
+          "line": 61,
+          "statement": "body = self.backend.render_ground(result, self.registry)"
+        },
+        {
+          "line": 124,
+          "statement": "return roles"
+        },
+        {
+          "line": 168,
+          "statement": "answer = content = body.splitlines()[0].removesuffix(' m')"
+        },
+        {
+          "line": 179,
+          "statement": "body = emit(f'<gap a=\"{roles[\"target\"]}\"' + ''.join(f' b=\"{c}\"' for c in roles['cands']) + '>')"
+        },
+        {
+          "line": 180,
+          "statement": "absent = body == 'not seen'"
+        },
+        {
+          "line": 306,
+          "statement": "return row['answer']"
+        },
+        {
+          "line": 314,
+          "statement": "return matches[0] if matches else 'unbinned'"
+        },
+        {
+          "line": 76,
+          "statement": "body = self.registry.execute(call)['text']"
+        },
+        {
+          "line": 182,
+          "statement": "gap_lines = [line for line in body.splitlines() if not re.match(r'^P[1-9][0-9]*:', line)]"
+        },
+        {
+          "line": 185,
+          "statement": "distances = [(Decimal(line.rsplit(': ', 1)[1].removesuffix(' m')), candidate)\n                         for candidate, line in zip(roles['cands'], gap_lines[:-1])]"
+        },
+        {
+          "line": 214,
+          "statement": "body = emit(call)"
+        },
+        {
+          "line": 221,
+          "statement": "content = body.rsplit('; ', 1)[1]"
+        },
+        {
+          "line": 68,
+          "statement": "body = 'not seen'"
+        },
+        {
+          "line": 70,
+          "statement": "body = self.backend.render_gaps(self.objects[a], [self.objects[b] for b in bs])"
+        },
+        {
+          "line": 72,
+          "statement": "body = self.backend.render_gap(self.objects[a], self.objects[bs[0]])"
+        }
+      ]
+    },
+    {
+      "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/trees/r5_applied/student_pilot/ground_sources.py",
+      "sha256": "aaff18266b90b7ffc4f9dbddddfd331728422e8d12f3e458e4dc10b0bd1b4da7",
+      "statements": [
+        {
+          "line": 12,
+          "statement": "return cache_key(cache, name) if new_contracts() else codec.phrase(name)"
+        },
+        {
+          "line": 21,
+          "statement": "return [p for p in proposals if p.score >= RETAINED_SCORE_FLOOR\n            and p.joint > NATIVE_JOINT_THRESHOLD]"
+        },
+        {
+          "line": 43,
+          "statement": "return candidates"
+        },
+        {
+          "line": 51,
+          "statement": "return h.hexdigest()"
+        },
+        {
+          "line": 30,
+          "statement": "return []"
+        },
+        {
+          "line": 73,
+          "statement": "return self.fetch(name)"
+        },
+        {
+          "line": 96,
+          "statement": "return MaskBatch(values['mask'][0],values['prob'][0],self.frame_indices,b.tau)"
+        },
+        {
+          "line": 123,
+          "statement": "return native_gate(proposals), rejected"
+        },
+        {
+          "line": 128,
+          "statement": "return native_candidates(self.cache, name, self.reader)"
+        },
+        {
+          "line": 136,
+          "statement": "return self.reader.rle_decode(instances[proposal.index]['mask'])"
+        },
+        {
+          "line": 168,
+          "statement": "return cache"
+        },
+        {
+          "line": 173,
+          "statement": "return native_gate(proposals), rejected"
+        },
+        {
+          "line": 176,
+          "statement": "return native_candidates(self._detect(name), name, self.codec)"
+        },
+        {
+          "line": 179,
+          "statement": "return self.native_masks[name,proposal.frame,proposal.index]"
+        },
+        {
+          "line": 192,
+          "statement": "return self.fetch(name, geometry, ofs, grids)"
+        },
+        {
+          "line": 201,
+          "statement": "return {c.id: 1. for c in candidates}"
+        },
+        {
+          "line": 121,
+          "statement": "return self.live.proposals_for(name, geometry, ofs, grids)"
+        },
+        {
+          "line": 127,
+          "statement": "return self.live.selector_candidates(name)"
+        },
+        {
+          "line": 132,
+          "statement": "return self.live.native_mask(name,proposal)"
+        }
+      ]
+    }
+  ]
+}

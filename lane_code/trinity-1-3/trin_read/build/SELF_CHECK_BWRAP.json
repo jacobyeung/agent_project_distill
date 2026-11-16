@@ -1,0 +1,1235 @@
+{
+  "bwrap": {
+    "path": "/usr/bin/bwrap",
+    "sha256": "e60f175f82b2d6779a543ba52152f636f6260d092e44b195713f7650fb7bed76",
+    "version": "bubblewrap 0.4.0\n",
+    "version_stderr": ""
+  },
+  "checks": {
+    "bootstrap_payload": {
+      "passed": true
+    },
+    "bwrap_hash": {
+      "passed": true
+    },
+    "cpu_namespace": {
+      "bwrap": {
+        "path": "/usr/bin/bwrap",
+        "sha256": "e60f175f82b2d6779a543ba52152f636f6260d092e44b195713f7650fb7bed76",
+        "version": "bubblewrap 0.4.0\n",
+        "version_stderr": ""
+      },
+      "command": [
+        "/usr/bin/bwrap",
+        "--unshare-net",
+        "--dev",
+        "/dev",
+        "--dev-bind",
+        "/dev/null",
+        "/dev/null",
+        "--tmpfs",
+        "/dev/shm",
+        "--proc",
+        "/proc",
+        "--dir",
+        "/trinity-probe",
+        "--ro-bind",
+        "/usr",
+        "/usr",
+        "--symlink",
+        "usr/bin",
+        "/bin",
+        "--symlink",
+        "usr/sbin",
+        "/sbin",
+        "--symlink",
+        "usr/lib",
+        "/lib",
+        "--symlink",
+        "usr/lib64",
+        "/lib64",
+        "--ro-bind",
+        "/etc",
+        "/etc",
+        "--bind",
+        "/scratch/jjyeung/orch_n30/trin_read/root",
+        "/scratch/jjyeung/orch_n30/trin_read/root",
+        "--chdir",
+        "/scratch/jjyeung/orch_n30/trin_read/root",
+        "--die-with-parent",
+        "/bin/true"
+      ],
+      "returncode": 1,
+      "stderr": "bwrap: loopback: Failed to create NETLINK_ROUTE socket: Operation not permitted\n"
+    },
+    "pieces": {
+      "errors": [],
+      "files": 19,
+      "hashed": 14,
+      "size_only": 5
+    },
+    "runner": {
+      "errors": [],
+      "files": 3,
+      "hashed": 3,
+      "size_only": 0
+    }
+  },
+  "missing_pieces": [
+    "base",
+    "reader_payload",
+    "runtime_0",
+    "runtime_1",
+    "runtime_2"
+  ],
+  "note": "Large file sizes are checked, not large-file content hashes. Pinned evidence does not fail the path audit.",
+  "passed": false,
+  "portability": {
+    "findings": [
+      {
+        "fails": false,
+        "field": "$.assets.base_archive",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "/project/community/jjyeung/f3069074.tar"
+      },
+      {
+        "fails": false,
+        "field": "$.assets.base_manifest.path",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "namespace_alias",
+        "mapped_path": "/scratch/jjyeung/orch_n30/trin_read/root/m/ap/90da7ac2/m/base_manifest.json",
+        "value": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/90da7ac2/m/base_manifest.json"
+      },
+      {
+        "fails": false,
+        "field": "$.assets.base_manifest.sha256",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "ae9247f7c316e7661bfbe4301c28d75b6871db7427d675b8e1cc4c0c41b4b252"
+      },
+      {
+        "fails": false,
+        "field": "$.assets.bwrap",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "/project/community/jjyeung/cp4tk_rt/kit/bwrap"
+      },
+      {
+        "fails": false,
+        "field": "$.assets.bwrap_pin.path",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "/project/community/jjyeung/cp4tk_rt/kit/bwrap"
+      },
+      {
+        "fails": false,
+        "field": "$.assets.bwrap_pin.sha256",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "e318903862396f96de3df57264e0158682b952fd3fb53ac23d876413e7b30f71"
+      },
+      {
+        "fails": false,
+        "field": "$.assets.camera_archive.path",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "/project/community/jjyeung/bd8ae51c/p/d59945c1/5e297c41.tar"
+      },
+      {
+        "fails": false,
+        "field": "$.assets.camera_archive.sha256",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "9eb53a96642d8bc0c731bd49861a6ce1935c9013e9eb9147da4d94df6f760ff5"
+      },
+      {
+        "fails": false,
+        "field": "$.assets.gcloud_config",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "/project/community/jjyeung/gcloud"
+      },
+      {
+        "fails": false,
+        "field": "$.assets.groups[0][0][0]",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "/home/jjyeung/okit/p/d59945c1/4fe70504.00"
+      },
+      {
+        "fails": false,
+        "field": "$.assets.groups[0][0][2]",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "273174ae1d1bc812a8843b3e2eec77e77b66b4a10d60c8871ea47529c395e2d7"
+      },
+      {
+        "fails": false,
+        "field": "$.assets.groups[0][1][0]",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "/home/jjyeung/okit/p/d59945c1/4fe70504.01"
+      },
+      {
+        "fails": false,
+        "field": "$.assets.groups[0][1][2]",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "c733222251bfa18ca823a719e025e3924fda21cffffc6f50cd19bb8ece4860a3"
+      },
+      {
+        "fails": false,
+        "field": "$.assets.groups[1][0][0]",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "/home/jjyeung/okit/p/d59945c1/50011a59.00"
+      },
+      {
+        "fails": false,
+        "field": "$.assets.groups[1][0][2]",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "a4ca7e645d1c4384bdb9506ef3e823e3964e18948f48cc627709f843744ea976"
+      },
+      {
+        "fails": false,
+        "field": "$.assets.groups[1][1][0]",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "/home/jjyeung/okit/p/d59945c1/50011a59.01"
+      },
+      {
+        "fails": false,
+        "field": "$.assets.groups[1][1][2]",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "beca0e524255eb310d978ec092bfab080f45e36e05ae99bfc2c3e6aeb0882e9a"
+      },
+      {
+        "fails": false,
+        "field": "$.assets.groups[1][2][0]",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "/home/jjyeung/okit/p/d59945c1/50011a59.02"
+      },
+      {
+        "fails": false,
+        "field": "$.assets.groups[1][2][2]",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "508e09bcce4652471a5f3115344c2ab2e2fde61cc3db17d872d45c37861087c1"
+      },
+      {
+        "fails": false,
+        "field": "$.assets.groups[1][3][0]",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "/home/jjyeung/okit/p/d59945c1/50011a59.03"
+      },
+      {
+        "fails": false,
+        "field": "$.assets.groups[1][3][2]",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "6f25823a68896cbf0dc87ae26a9e4d2fa25d57b1d52739c22ccad5c5d49214ef"
+      },
+      {
+        "fails": false,
+        "field": "$.assets.groups[1][4][0]",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "/home/jjyeung/okit/p/d59945c1/50011a59.04"
+      },
+      {
+        "fails": false,
+        "field": "$.assets.groups[1][4][2]",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "139fcc93fb1b36552564fceacf201127586c237d03f43b8e3c8e45d116f1be97"
+      },
+      {
+        "fails": false,
+        "field": "$.assets.groups[1][5][0]",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "/project/community/jjyeung/bd8ae51c/p/d59945c1/50011a59.05"
+      },
+      {
+        "fails": false,
+        "field": "$.assets.groups[1][5][2]",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "1cd72e6e222dbe15efab47d01adeca45aaecf3f62fcd52a6e72dd7786b307489"
+      },
+      {
+        "fails": false,
+        "field": "$.assets.groups[1][6][0]",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "/project/community/jjyeung/bd8ae51c/p/d59945c1/50011a59.06"
+      },
+      {
+        "fails": false,
+        "field": "$.assets.groups[1][6][2]",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "010b1302ce0ec32d1db758a4bf503e9cca4583e898ec868be4dc613694f50ed6"
+      },
+      {
+        "fails": false,
+        "field": "$.assets.groups[1][7][0]",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "/project/community/jjyeung/bd8ae51c/p/d59945c1/50011a59.07"
+      },
+      {
+        "fails": false,
+        "field": "$.assets.groups[1][7][2]",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "32687478f272e14632411099b316fdbb6b2d1587708ccd1893c4819a2511ba19"
+      },
+      {
+        "fails": false,
+        "field": "$.assets.groups[1][8][0]",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "/project/community/jjyeung/bd8ae51c/p/d59945c1/50011a59.08"
+      },
+      {
+        "fails": false,
+        "field": "$.assets.groups[1][8][2]",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "d571f17a5ed9e03514ec4553919cdebacb33fe037cad39d8f0aadb1cfafcb4fc"
+      },
+      {
+        "fails": false,
+        "field": "$.assets.groups[1][9][0]",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "/project/community/jjyeung/bd8ae51c/p/d59945c1/50011a59.09"
+      },
+      {
+        "fails": false,
+        "field": "$.assets.groups[1][9][2]",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "128dfaca7b744e0cf884b7caf1bc15080fab549b8e26107adb5a9b8d2b5a51a5"
+      },
+      {
+        "fails": false,
+        "field": "$.assets.groups[2][0][0]",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "/project/community/jjyeung/bd8ae51c/p/d59945c1/371be2e2.00"
+      },
+      {
+        "fails": false,
+        "field": "$.assets.groups[2][0][2]",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "4b11b4df5ebf8a20e5c73e5ae09f4f4695f79b44e0223254a8bbaad84127b6b3"
+      },
+      {
+        "fails": false,
+        "field": "$.assets.observed_host",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "orchard-login-001"
+      },
+      {
+        "fails": false,
+        "field": "$.assets.observed_utc",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "2026-11-13T19:56Z"
+      },
+      {
+        "fails": false,
+        "field": "$.assets.schema",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "evalx-orchard-existing-assets-v1"
+      },
+      {
+        "fails": false,
+        "field": "$.assets.terminator_sha256",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "cbb91ba7455d15007bd3affeb358dc5693f3845949ee0abacf892a4402748b94"
+      },
+      {
+        "fails": false,
+        "field": "$.assets.vnice_sha256",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "3ab2b542726f32dbecdbe30104f903aa2bef3526a9257013fd5f8bcc99461c6b"
+      },
+      {
+        "fails": false,
+        "field": "$.launcher_pins.ORCHARD_ASSETS.json",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "7e1da1668b4bac1d101692486e45f45912ccdde13d9f8ba8ca72cdd2287bf809"
+      },
+      {
+        "fails": false,
+        "field": "$.launcher_pins.chain_save.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "c03862ffe60619f45a70514b0402db0411b5c6c79d2af8cbac48945575c15bdc"
+      },
+      {
+        "fails": false,
+        "field": "$.launcher_pins.orchard_job.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "b464a88866be571bdce7ddfdb1df70485c88c46102779e9c442369f1c4cbfe3c"
+      },
+      {
+        "fails": false,
+        "field": "$.launcher_pins.orchard_launcher.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "0905ed2a8150ff81156d44437c1648fc516d18a245f9ad59b22a12ad58d8f484"
+      },
+      {
+        "fails": false,
+        "field": "$.launcher_pins.orchard_results.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "6cf748b3539571935f3266e88510b222dfdbb8992a4024a0da44166f830a466e"
+      },
+      {
+        "fails": false,
+        "field": "$.launcher_pins.orchard_stage.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "4401b329597f8c4491d949b2804df7d011909837dd35a84e23e1f07279217461"
+      },
+      {
+        "fails": false,
+        "field": "$.launcher_pins.return_io.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "774f5c0c134c44fd2ca5261e2ceb0b34f4cbd0edee5cffffa4c4f091ca4c6d90"
+      },
+      {
+        "fails": false,
+        "field": "$.launcher_pins.stdout_transfer.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "85ad256cfa7836948ddba934ca82537486fc3c42cab06fa5442de86caef2e0f6"
+      },
+      {
+        "fails": false,
+        "field": "$.launcher_pins.trace_runtime.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "faec481ff5b445fdeb885a0ee70e1f83beaff05afb115dd3073fa6ce1934237d"
+      },
+      {
+        "fails": false,
+        "field": "$.launcher_review.code_pins_sha256",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "7108c46ce82ba3195a20505bf39e3c842285a9d1b41528ac1f54ab2b6cdc08ea"
+      },
+      {
+        "fails": false,
+        "field": "$.launcher_review.schema",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "new-build-integrity-v1"
+      },
+      {
+        "fails": false,
+        "field": "$.launcher_review_pin.path",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "REVIEW.json"
+      },
+      {
+        "fails": false,
+        "field": "$.launcher_review_pin.sha256",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "07e6afb0bf1d56fd89eddb3b87dd8b19bc11a085f47e455bf546c6da081c6677"
+      },
+      {
+        "fails": false,
+        "field": "$.mode",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "proof"
+      },
+      {
+        "fails": false,
+        "field": "$.output",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "/scratch/jjyeung/apb59bef09f3/o"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/TRANSPORT.json",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "23339074f3eb41507c3e3c657159415582573cd8332c3b4777b4ac577a7b3b50"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/cohort/COHORT_OFFICIAL6.jsonl",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "ccb51d5cbb552cb942518ed47badd36d4d5778a7dacaf6615e88cd1118361db8"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/cohort/MEDIA_MANIFEST.json",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "3f2aba2c25c04e06f0f0badb854e3e7b836d2a60bec8fa28453c6dd41060d5c4"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/cohort/frame_plan.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "402bdb1d5fb0559f241e951a4c303ef5495e38c347e0a970c2f412e2587e1eec"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/launcher/MODELS.json",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "72cdfbff0e93a881099096f06e22b5c7e98046d443ae3430d498d06b49cfb37a"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/parity/ACCEPTED20.json",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "cf30bbe06af9c5a7d9d9bbf40ff9344b439bc0a8a3932dc422edb658be09a5b6"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/parity/DEV20.json",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "6220488ff2488ce2084d38de4513bf35535f23a3e65b19cf216e8bcf23400b99"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/parity/PROMPT_PINS.json",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "7a43deb2ee2756d13044640c394deb4e8a5a7b6e59045f17bd7b1beb9f588637"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/parity/prove_prompts.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "e46ef2c4d566ebd2b8c5cc970877184d028e801c8cd2a4d3b3e52055e87451b2"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/proof/fakes.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "e8d8d0c1321f168341e1aa62357b710c6888f07c1302c4a54f442c58af490788"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/proof/phase_b.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "3d7171dc348f4d7cd9b5a6fda26f4e9146eaf56633d366fb5dbf2ac4458f3f79"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/proof/pull.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "46000e96334535933239800d1437afc49cc74ca4017c337a43798c9906b8b694"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/proof/runtime_checks.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "45bf7ad05d2dbfa57c7c17c7b0ac7e1cbfed0a092b60ebd0f0e84d7f6f131dd2"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/proof/selection.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "76d77f2807efbaec70c6c879219aceb2a7159e54cbcba1c45507e93bbd7f356e"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/chain.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "9084b66515fb01b1269d0b6e0ebbe3402c2b11468abcd77c9a14df4facdcc0ec"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/evaluator/budget.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "8365bd3b1db5bedc0a86e2ef9624faf01ad43d0e3d3fffda53169cd9ad003175"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/evaluator/budget_admission.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "be32a571fbb9c4024d739b51302d3881aa1ce628bb45e2e8cc9924060f653341"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/evaluator/budget_annotation.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "c63f058069e8302fcd3bd69505690ab0e784b6f368d3492429335d30cebbc4d1"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/evaluator/budget_merge.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "fc7c2872dc5daeb1eb1de61ee95b7b7a0e160fc697995ac2caf1615a4bd7ff2a"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/evaluator/c1_export.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "7716fd6750376830519ef39295992bfab6876e644c92745d6a0ec82aceec7177"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/evaluator/cells.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "8336d2d64ffd2b7f492dc6b52fb4182523eced3610483932d91e086d2b9b50ff"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/evaluator/data.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "279991a8303e75f8cf553d3b94acb3c62fea82b27a65ac736dad6ab043914e41"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/evaluator/evalpath/SOURCE_PINS.json",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "7f1d449de1498e5a6f34dbdc09309dcbeaceef76e3f20bec92f603771a345781"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/evaluator/evalpath/__init__.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "320ff8e49d53c5528f439ae83544dcd0e4063933eb2168774b70ca6d9d1cdd38"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/evaluator/evalpath/items.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "bc9211c07c803111a8c9f6af8ecb6e7bc057b0034da09ad94b02862f41526590"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/evaluator/evalpath/kit_inputs.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "e4a6bdae702ab3fb003d7c11388fc22b051f92e5f9ca3d1cf0e95c250a0cd977"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/evaluator/evalpath/official.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "a5d6d79fd29fce43791401cd01438f16f3ff6ad7a6c2651cb70d0d42088cf589"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/evaluator/evalpath/sampling.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "9235a822a813648ee0da7cf9cc79531a4cbb7b6344e8fee369e5b34e615d82e1"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/evaluator/frame_env.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "8b6ddcb0caa15e68f304d50cd41952b7e7d9eba4542c1beb1b49ecdf9b6be7ed"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/evaluator/frame_stage.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "991f297fd783a37342ab65f4fed5580b47fb25550375efdee5fce14564b3ea5c"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/evaluator/journal.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "508eca8d6877fe6898d9309f0f5c23b4580c321d27dc258ddd6fe4718cc9b1a5"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/evaluator/launch.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "80af57d28cffe87e85d76a898ab6c4cbe898d53772ce1e90ecbcee4d333009f2"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/evaluator/media.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "537fb597909e41699511d2e85c16029836cc4ba5aa0fcf25dc76f3abe5f0fc8d"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/evaluator/merge.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "5da344c8ff214bcd106b0b78635eda330aed2a85169ac03e1ef9977341d65912"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/evaluator/metric.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "aa0c7968a9a8c812222b8d3468864b54e13eb21cff25155e4a6393508beb05fc"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/evaluator/nested_sampling.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "231bad31b385b01d3fdd46d8b8341e6ebfcc67e6d06cfb8f1fc277ec5bf017f2"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/evaluator/parity.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "6e259bd1dd23ec67bb8feef5a3a06bbc2e67ecfd60cc98a876febd510f44c14c"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/evaluator/pointing.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "1ee243eb896b518c74f06f18a3d98a213a7d5f09617296b3a5d9cf26d2a2ff5c"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/evaluator/pointing_video.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "4712457ebf1e932219966a5b4eae6bddbc43a077251f717e636085c88dba1ee7"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/evaluator/provenance.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "35e544877add1d9d4b6e2167aa071ffda13da390db4a410bd4b51339655b5c7c"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/evaluator/scoring.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "0e3bcf0a578f18846f671b85582bb030137bb3169346dd5f99a10c6a8b099cce"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/evaluator/stage.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "890ea8641c08c2de4e12169c77202c8cc7b19f1bc360c0a36509c5c451474d2b"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/evaluator/think_settings.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "23af8945c30247bc80ebd0b2b7b7e6d22c0e6e70a190594d84161af49fb533df"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/evaluator/token_audit.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "20dd4f31b70350b80ddb0cab1b35294349b9ff8f76058648da5537e265cff0b0"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/evaluator/trainer/__init__.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/evaluator/trainer/batches.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "d9f5a79b63baf1144dc5d0377450491dcb04c28335dbce51093e4edde7614638"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/evaluator/trainer/layout_reference.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "596760db5b3ccf6cceb5ab2938402ba9e6c559a069ef5fd84b041ce90b71700e"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/evaluator/trainer/pose_samples.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "0484ecce014fa97f6f2b44f250ddfdee142b42662d765638f130c59ddd53a736"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/evaluator/trainer/students.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "cfe01c144680c8126328e7ad9afc7b1a002de7ba143dcea9c156e0473fe619c3"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/evaluator/trainer/trace_contract.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "aed482c7ca7d15cd22b524ba0c9bdd1595d6e0c518c0d9d1e54c3c9377cebae8"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/evaluator/worker.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "b2ac21c1549b87baff730e50279d3c4c0844966bc5e29363aef372c76574e20e"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/official_adapter.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "02b2e8df44b0c392861f4d5cdff749bc7b3cc0547229f88cb6ac6585592bfca8"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/official_score.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "b8399cb01390774726adba21565efc49cbeaf299ea737c918e8d42b0a99604e0"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/out/common.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "1954de01cc935fb744ebc92a3ede19a94658d2ce4fefb3c1e1ba40b03d2508c4"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/out/direct.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "d16b64b902a651f0d3989cfe3eb3dc5ea599e960ef5158e5e36a0901dcfb1f8a"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/out/export_check.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "0400842c559565b66db50d6c8fde7c323e8600a82d70685d469a4b316d7ec8d2"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/work/vendor/r3/CELL_ITEMS.json",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "ed6d686aad9e21ceeeebe3ef7b9b0a8ff4bb2f9334b0f546ca972003fdcce860"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/work/vendor/r3/EXCLUDED.jsonl",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "f7a212048c2cfe95538b4c35d5f9147ff107743d1811ca0c57880ca93ae38941"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/work/vendor/r3/EXCLUDED_MISSING_ROOM.jsonl",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "279889626320714771abbd38185d3b07b8abb7daf3b965301d1842bbc8dcfdfd"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/work/vendor/r3/FPS_AUTHORITY.source.json",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "36ae882f936ebc7a7d1a7651b5c53056c07d39ff552b2368a5c1e8068568d422"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/work/vendor/r3/FPS_RULE.json",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "d9af606320e78823fb2e0fa3c80358c77d7e3cdc2326684a501893c04af3094f"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/work/vendor/r3/FRAMES.json",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "c5e0dad804a59bb6f4932137d129e3a7dc1cf675e6342ff94e36979b7ca29439"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/work/vendor/r3/ITEMS.jsonl",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "00144cd0f736b4bd7908030b7feb749a926d7ef37b54c555c09bdd8c82ef9111"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/work/vendor/r3/LABEL_BLOCKERS.jsonl",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/work/vendor/r3/LABEL_SOURCE_PINS.json",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "8b69c0a012cca31376f2b46c7da58744cdfb94af4ec94f9bb646f2c92d981efb"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/work/vendor/r3/MISSING_LABELS.jsonl",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "b8aff3d740f37d95b3e4a85a3f3faac5580b2e19c02cb2360e541611a2dacd4b"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/work/vendor/r3/PINS.json",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "698d623e9f49bdcbf101719bb2b09fd7239452d1d610d827110a1423dcce9db2"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/work/vendor/r3/RELEASED_DEV.jsonl",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "edafe3e5b436f16fd22a49facd25c62216f3478c6952ccbd9e5e1eef7cae7760"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/work/vendor/r3/STRATA.jsonl",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "9ee9c29820a85cf4da89a4499d8bc644b5c88c0ad22f151a09a770b025563af0"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/work/vendor/r3/TASKS.jsonl",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "a2f3fdbdab06ab81942d44044d85090df8ec5b86908cf010cdbcb17e35637f5e"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/work/vendor/r3/TIMING_AUTHORITY.json",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "7827fb117e158809c59bda741976a872761790bbd2298047ba8c6f33ba72ea43"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/work/vendor/r3/WITHHOLD_SCENES.json",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "88e1a708e240920fb39e34ede6f47c189be830538388db7a214b60ca258df05e"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/work/vendor/r3/adapter.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "eb53eb601f7ef5ed732f0d7a9ef2275349de9553eb9c7ac39dd464bcfa03789a"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/work/vendor/r3/cells_cp1m200.json",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "472c0c9793735a044ee2f11bf2ee6f155c452ce5cbcb2b4fc262974c9c4b1135"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/work/vendor/r3/cells_f17.json",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "cbb5521184c1410861b5339dcf40100196fc661d9b4ec6bafa3d548ad8d86878"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/work/vendor/r4/adapter.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "9ccf84f1a2b9e7b99abf1975a98f67d1ea610cb1acc72728a60c2b2234a6c099"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/work/vendor/r5/adapter.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "431b5d367ccde126f02297489da5a328ecd2484bd787f8acfae73eecec3fd9d1"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/work/vendor/r5/dev_scoring.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "d7594f9dad6045a6c6fdb55e7136401a6368d1c2fabc801bc1cb7c7eaedda220"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/reader/work/vendor/r5/report.py",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "c0d60afe47a5459150d40841e923fffe90d7ea749c12fcd3ef44b21950b24fd6"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_pins.sj/apb59bef09f3/p/vllm_isolated.sh",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "f716a9695575fb41579a2f1ab9b8af64e4edcff8aecb0ab356e0cc28b005dab7"
+      },
+      {
+        "fails": false,
+        "field": "$.payload_sha256",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "cc33bc294098be8d7bba5ab73d987e6ed23d63ba3e3c0872e24d6d27c8b29a8e"
+      },
+      {
+        "fails": false,
+        "field": "$.plan_sha256",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "39b0bf5c57bc300b9a0054b259c16b22c71ee589a353877f756d070b180b81ac"
+      },
+      {
+        "fails": false,
+        "field": "$.pool",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "/project/community/jjyeung/okh7/x27ret"
+      },
+      {
+        "fails": false,
+        "field": "$.release.transport.path",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "/scratch/jjyeung/apb59bef09f3/p/TRANSPORT.json"
+      },
+      {
+        "fails": false,
+        "field": "$.release.transport.sha256",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "23339074f3eb41507c3e3c657159415582573cd8332c3b4777b4ac577a7b3b50"
+      },
+      {
+        "fails": false,
+        "field": "$.schema",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "evalx-orchard-batch-v1"
+      },
+      {
+        "fails": false,
+        "field": "$.spec.artifact.kind",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "c1_export"
+      },
+      {
+        "fails": false,
+        "field": "$.spec.artifact.path",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "namespace_alias",
+        "mapped_path": "/scratch/jjyeung/orch_n30/trin_read/root/fsw/ap/8865619b/runs/469ddece/m544/artifact.json",
+        "value": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/469ddece/m544/artifact.json"
+      },
+      {
+        "fails": false,
+        "field": "$.spec.artifact.sha256",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef"
+      },
+      {
+        "fails": false,
+        "field": "$.spec.inputs.frame_plan",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "/scratch/jjyeung/apb59bef09f3/p/cohort/FRAME_PLAN.json"
+      },
+      {
+        "fails": false,
+        "field": "$.spec.inputs.rows",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "/scratch/jjyeung/apb59bef09f3/q0.jsonl"
+      },
+      {
+        "fails": false,
+        "field": "$.spec.inputs.video_root",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "/project/community/jjyeung/3e0e8a36"
+      },
+      {
+        "fails": false,
+        "field": "$.spec.interpreters.p1cpu",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "namespace_alias",
+        "mapped_path": "/scratch/jjyeung/orch_n30/trin_read/root/sj/envs/p1cpu/bin/python",
+        "value": "/scratch/jjyeung/envs/p1cpu/bin/python"
+      },
+      {
+        "fails": false,
+        "field": "$.spec.interpreters.vllm",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "namespace_alias",
+        "mapped_path": "/scratch/jjyeung/orch_n30/trin_read/root/sj/apb59bef09f3/p/vllm_isolated.sh",
+        "value": "/scratch/jjyeung/apb59bef09f3/p/vllm_isolated.sh"
+      },
+      {
+        "fails": false,
+        "field": "$.spec.models.base.kind",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "snapshot"
+      },
+      {
+        "fails": false,
+        "field": "$.spec.models.base.manifest.path",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "namespace_alias",
+        "mapped_path": "/scratch/jjyeung/orch_n30/trin_read/root/m/ap/90da7ac2/m/base_manifest.json",
+        "value": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/90da7ac2/m/base_manifest.json"
+      },
+      {
+        "fails": false,
+        "field": "$.spec.models.base.manifest.sha256",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "ae9247f7c316e7661bfbe4301c28d75b6871db7427d675b8e1cc4c0c41b4b252"
+      },
+      {
+        "fails": false,
+        "field": "$.spec.models.base.path",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "namespace_alias",
+        "mapped_path": "/scratch/jjyeung/orch_n30/trin_read/root/m/ap/85fc3486",
+        "value": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/85fc3486"
+      },
+      {
+        "fails": false,
+        "field": "$.spec.models.cp1m200.kind",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "c1_export"
+      },
+      {
+        "fails": false,
+        "field": "$.spec.models.cp1m200.path",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "namespace_alias",
+        "mapped_path": "/scratch/jjyeung/orch_n30/trin_read/root/fsw/ap/8865619b/runs/469ddece/m544/artifact.json",
+        "value": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/469ddece/m544/artifact.json"
+      },
+      {
+        "fails": false,
+        "field": "$.spec.models.cp1m200.sha256",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef"
+      },
+      {
+        "fails": false,
+        "field": "$.spec.package",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "namespace_alias",
+        "mapped_path": "/scratch/jjyeung/orch_n30/trin_read/root/sj/apb59bef09f3/p",
+        "value": "/scratch/jjyeung/apb59bef09f3/p"
+      },
+      {
+        "fails": false,
+        "field": "$.spec.run",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "/scratch/jjyeung/apb59bef09f3/r"
+      },
+      {
+        "fails": false,
+        "field": "$.spec.schema",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "a1"
+      },
+      {
+        "fails": false,
+        "field": "$.spec.scope",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "direct"
+      },
+      {
+        "fails": false,
+        "field": "$.token",
+        "file": "/scratch/jjyeung/orch_n30/trin_read/root/bootstrap/CONFIG.json",
+        "kind": "pinned_evidence",
+        "value": "pb59bef09f3"
+      }
+    ],
+    "passed": true,
+    "pinned_template_authenticated": true,
+    "scope": "CONFIG string values and symlink targets; pinned evidence is informational. Active aliases resolve into root; large files receive no content scan.",
+    "symlinks": []
+  },
+  "small_file_bytes": 1048576,
+  "stage_complete": false,
+  "unverifiable": [
+    "a0: STAGING.json has no extracted-file inventory"
+  ]
+}

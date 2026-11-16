@@ -1,0 +1,70 @@
+{
+  "base": {
+    "tree": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/trees/r6_applied",
+    "dry": {
+      "command": [
+        "bash",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/out/apply_contract_patches_r6.sh",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/work/trees/r6_applied",
+        "--dry-run"
+      ],
+      "returncode": 0,
+      "stdout": "Validated dry run; target unchanged. Retained staging: /scratch/jjyeung/orch_n30/contracts_rebuild/work/trees/.contracts-1o1mKNcU\n",
+      "stderr": ""
+    },
+    "apply": {
+      "command": [
+        "bash",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/out/apply_contract_patches_r6.sh",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/work/trees/r6_applied"
+      ],
+      "returncode": 0,
+      "stdout": "Applied and verified; retained original: /scratch/jjyeung/orch_n30/contracts_rebuild/work/trees/.contracts-4Gn2k0vI/original\n",
+      "stderr": ""
+    },
+    "repeat": {
+      "command": [
+        "bash",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/out/apply_contract_patches_r6.sh",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/work/trees/r6_applied"
+      ],
+      "returncode": 1,
+      "stdout": "",
+      "stderr": "Hash mismatch: trace_format/contracts.py: 59f7d3907d34423bd1950eef0002c757b3b1435101a4cb9e5d0aedf41f1600d9; refuses changed or already patched file\n"
+    }
+  },
+  "tree_r1": {
+    "tree": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/trees/r6_snapshot",
+    "dry": {
+      "command": [
+        "bash",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/out/apply_contract_patches_r6.sh",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/work/trees/r6_snapshot",
+        "--dry-run"
+      ],
+      "returncode": 0,
+      "stdout": "Validated dry run; target unchanged. Retained staging: /scratch/jjyeung/orch_n30/contracts_rebuild/work/trees/.contracts-oMyfA6IH\n",
+      "stderr": ""
+    },
+    "apply": {
+      "command": [
+        "bash",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/out/apply_contract_patches_r6.sh",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/work/trees/r6_snapshot"
+      ],
+      "returncode": 0,
+      "stdout": "Applied and verified; retained original: /scratch/jjyeung/orch_n30/contracts_rebuild/work/trees/.contracts-3GtgZsqj/original\n",
+      "stderr": ""
+    },
+    "repeat": {
+      "command": [
+        "bash",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/out/apply_contract_patches_r6.sh",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/work/trees/r6_snapshot"
+      ],
+      "returncode": 1,
+      "stdout": "",
+      "stderr": "Hash mismatch: trace_format/contracts.py: 59f7d3907d34423bd1950eef0002c757b3b1435101a4cb9e5d0aedf41f1600d9; refuses changed or already patched file\n"
+    }
+  }
+}

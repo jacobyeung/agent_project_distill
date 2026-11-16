@@ -1,0 +1,12 @@
+# Build 1 summary
+
+The patches implement the reviewed gravity guard, shared candidate admission/runtime identity, explicit heading failures, row-level contract deferrals, and the already-cut MDG box bridge. The new epoch is the default; replay mode retains sealed behavior.
+
+- Changed 29 files: 27 source files and 2 inherited tests. Paths and hashes: [PATCH_MANIFEST.json](/scratch/jjyeung/orch_n30/contracts_rebuild/out/PATCH_MANIFEST.json).
+- Final CPU suite: 68 passed, including the targeted inherited open-vocabulary tests. Source: [B1_FINAL.log](/scratch/jjyeung/orch_n30/contracts_rebuild/out/B1_FINAL.log).
+- Changed executable-line coverage: geometry 204/204; candidates 245/245; box 9/9. Source: [CHANGED_LINE_COVERAGE_B1.md](/scratch/jjyeung/orch_n30/contracts_rebuild/out/CHANGED_LINE_COVERAGE_B1.md).
+- Fresh individual and ordered patch checks passed with fuzz disabled. Source: [PATCH_APPLICATION.json](/scratch/jjyeung/orch_n30/contracts_rebuild/out/PATCH_APPLICATION.json).
+- Replay OFF matches the base on all 10 synthetic fixtures. Both inverted fixtures were refused (2/2, 100%); heading-defined non-defective fixtures retain response bytes with the new epoch. Source: [CPU_PROOF_B1.json](/scratch/jjyeung/orch_n30/contracts_rebuild/out/CPU_PROOF_B1.json).
+- Inherited baseline totals: 251 passed, 46 failed, 20 skipped, 35 errors across [BASE_BEFORE_FINAL.log](/scratch/jjyeung/orch_n30/contracts_rebuild/out/BASE_BEFORE_FINAL.log) and [BASE_EXTRA.log](/scratch/jjyeung/orch_n30/contracts_rebuild/out/BASE_EXTRA.log). The broad patched run had 250 passed, 47 failed, 20 skipped, 35 errors ([BASE_AFTER_FINAL.log](/scratch/jjyeung/orch_n30/contracts_rebuild/out/BASE_AFTER_FINAL.log)); its only new failed test now passes in [B1_FINAL.log](/scratch/jjyeung/orch_n30/contracts_rebuild/out/B1_FINAL.log). Final combined test-ID comparison finds no remaining new failures ([VALIDATION_SUMMARY.json](/scratch/jjyeung/orch_n30/contracts_rebuild/out/VALIDATION_SUMMARY.json)). These are environment-constrained results, not a green inherited suite.
+
+Open limits: the CPU proof uses synthetic masks and geometry, not model inference. The inherited suite needs absent fixtures/dependencies and a less restricted test environment. Universal new-epoch byte parity is incompatible with the required heading refusal and MDG repair; the precise differences are recorded in [CPU_PROOF_B1.json](/scratch/jjyeung/orch_n30/contracts_rebuild/out/CPU_PROOF_B1.json). The real-capture effect remains records-only.

@@ -1,0 +1,45 @@
+from pathlib import Path
+import json
+K=Path(__file__).resolve().parents[1];pkg=json.loads((K/'build/PACKAGE_RESULT.json').read_text())
+lines=[
+'Built ReVSI official999 tier 32 under kit_revsi/. The VSI kit and pull inputs remain unchanged.',
+'Production reads 679 items / 261 scenes: counting 135, direction 68, relative distance 140, object size 273, route planning 63.',
+'Absolute distance (283) and room size (37): not read here: native reader required.',
+'Only evaluator/data.py changes within the evaluator; worker, metric, scoring, budgets, merges and dev Phase B remain byte-identical.',
+'B2048 is primary; ON16k and B4096 are secondary. Reports use equal subtype/category means and 10,000 scene draws, seed 544.',
+'Direction uses question text: 35 toward / 33 away. Paired parent input is supported and tested synthetically; real parent answers are absent.',
+'79 tests passed (58.37 s); the added stdin-checker test passed separately. Local proof passed: 261 generated clips, 10 ReVSI + 20 dev items.',
+'Local coverage plus child traces: 2,947/4,781 statements (61.64%), 50 modules; line audit: 2,839 missing, including 2,832 gaps.',
+'NEED_261.json totals 318,248,080 bytes. It has 189 explicit sources and 72 inferred paths; the operator must verify all source bytes/hashes.',
+'Archive creation reads each file once at 8 MB/s. Real media, GPU/runtime/parity/returns and real parent comparisons remain untested.',
+'Accepted dev-S1 main generation took 2,345 s / 1,525 items: extrapolation gives ~17.4 min for 679, plus unknown staging/frame/merge time; six-hour limit retained.',
+'Tests use .venv312 on /scratch. The unused .venv points to uv-selected /data2 Python. No SSH, submission, Git or real /data2 media read ran.',
+f"package.tar: {pkg['files']} files, {pkg['bytes']:,} bytes; {pkg['identical']} identical, {pkg['changed']} changed, {pkg['new']} new. DIFF.md lists hashes and unified diffs.",
+f"KIT_SHA256: {pkg['sha256']} (two deterministic builds matched; all 76 packaged Python files compiled).",
+'Operator commands below run from work/. PROOF_JOB.md gives full checks, polling, governed fetch and paired scoring instructions.',
+'```bash',
+'PY="$PWD/kit_revsi/.venv312/bin/python"; LAUNCHER="$PWD/kit_revsi/launcher/orchard_launcher.py"',
+'OSSH=/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/tools/ossh.sh',
+'POOL=/project/community/jjyeung/okh7/x27ret',
+'MEDIA_HEX=$(python3 -c \'import secrets;print(secrets.token_hex(8))\')',
+'MEDIA=/project/community/jjyeung/okh7/$MEDIA_HEX; ARCHIVE="$PWD/kit_revsi/media/$MEDIA_HEX.tar"',
+'# After the operator authorizes heavy media IO:',
+'"$PY" kit_revsi/media/make_archive.py --output "$ARCHIVE" > "$ARCHIVE.receipt.json"',
+'# Print this upload command, register it with the governor, then run it once with pipefail:',
+'''printf 'pv -q -L 8m %q | timeout 300 bash %q %q\\n' "$ARCHIVE" "$OSSH" "set -e; test ! -e '$MEDIA.tar'; umask 077; set -C; cat > '$MEDIA.tar'"''',
+'''SHA=$("$PY" -c 'import json,sys;print(json.load(open(sys.argv[1]))["sha256"])' "$ARCHIVE.receipt.json")''',
+'''timeout 300 bash "$OSSH" "set -e; printf '%s  %s\\n' '$SHA' '$MEDIA.tar' | sha256sum -c -; mkdir '$MEDIA'; tar -xf '$MEDIA.tar' -C '$MEDIA'"''',
+'''"$PY" kit_revsi/media/check_on_orchard.py --emit-script --root "$MEDIA" | timeout 300 bash "$OSSH" 'python3 -I -s -B -' ''',
+'''TOKEN=$(python3 -c 'import secrets;print("p"+secrets.token_hex(5))'); DEST="$PWD/kit_revsi/build/$TOKEN"''',
+'"$PY" "$LAUNCHER" prepare --mode proof --media-root "$MEDIA" --skip-phase-b --pool "$POOL" --token "$TOKEN" --destination "$DEST"',
+'# Omit --skip-phase-b to run real dev-S1 Phase B; production uses a fresh token and --mode production.',
+'SUBMIT_COMMAND=$("$PY" "$LAUNCHER" submit-command --destination "$DEST")',
+'''timeout 300 bash "$OSSH" "$SUBMIT_COMMAND" < "$DEST/BATCH.sh" > "$DEST/SUBMIT.out" 2> "$DEST/SUBMIT.err"''',
+'"$PY" "$LAUNCHER" record-submission --destination "$DEST"',
+'# After completion; fetch stops for governor registration when the archive is >=20 MB:',
+'"$PY" "$LAUNCHER" fetch --destination "$DEST"',
+'```',
+'Returns retain the VSI pool/GCS paths and caps. No real evaluation score or seven-category overall is claimed.'
+]
+assert len(lines)<=40
+(K/'REPORT.md').write_text('\n'.join(lines)+'\n');print(len(lines),'report lines')

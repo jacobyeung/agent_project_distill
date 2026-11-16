@@ -1,0 +1,474 @@
+--- /scratch/jjyeung/orch_n30/native_r2/builds/05_analysis_fix/out/native_vs_direct.orig.py
++++ /scratch/jjyeung/orch_n30/native_r2/builds/05_analysis_fix/out/native_vs_direct.py
+@@ -14,7 +14,7 @@
+ import re
+ import sys
+ 
+-BUILD = Path('/scratch/jjyeung/orch_n30/native_r2/builds/03_analysis')
++BUILD = Path('/scratch/jjyeung/orch_n30/native_r2/builds/05_analysis_fix')
+ ROOT = BUILD.parents[1]
+ META = ROOT / 'work/meta/sj/orch_cd'
+ DEFAULT_TASKS = META / 'legs1_reads/work/vendor/r3/TASKS.jsonl'
+@@ -26,11 +26,11 @@
+          'camera_movement_direction', 'camera_rotation')
+ ALIASES = {'absolute_distance_object': TYPES[0], 'absolute_size_room': TYPES[1]}
+ EXPECTED = dict(zip(TYPES, (150, 36, 150, 150, 150)))
+-CAVEAT = ('training responses came from ground-truth instances; the wider candidate universe '
+-          'changes candidate competition; tools print metric units only while 107 of 150 '
+-          'distance and 7 of 36 room items ask other units; no training row shows a failed '
+-          'ground; routing rows hold no ARKitScenes scenes in a 400-row sample; the reviewed '
+-          'guard refuses 1 capture (2 distance items) where the sealed guard refused 11')
++EXPECTED_ARTIFACT = '1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef'
++REFUSAL_CODE = 'reference_camera_up_opposes_gravity'
++DEFAULT_RAW = tuple(BUILD / ('in/direct_raw/items_leg_m544_' + x + '.jsonl') for x in ('main', 'camera'))
++PARENT_RECORD = '/home/jjyeung/.claude/projects/-scratch-jjyeung-orch-home-distill/memory/result-devs1-baseline-cp1-20261112.md'
++
+ 
+ 
+ class Refusal(ValueError):
+@@ -171,7 +171,7 @@
+                            method='d1 scene prefix; d2 scan identity; d3 venue from TASKS.room; FRAMES.scene cross-check')
+ 
+ 
+-def bootstrap(rows, draws=10000, seed=20261115):
++def bootstrap(rows, draws=50000, seed=20261115):
+     """Paired, unstratified physical-room percentile bootstrap, item-weighted."""
+     require(draws >= 10000, 'At least 10000 bootstrap draws are required')
+     if not rows:
+@@ -202,6 +202,88 @@
+     return row['scores'][label(row)]
+ 
+ 
++def producer_error(row):
++    decoded = row.get('decode') or {}
++    return bool(row.get('finish_reason') == 'error' or row.get('finish') == 'error'
++                or row.get('derivation_error') or row.get('producer_error')
++                or decoded.get('finish') == 'error' or decoded.get('finish_reason') == 'error'
++                or decoded.get('derivation_error') or decoded.get('producer_error'))
++
++
++def answer_states(row, direct=False):
++    """Exclusive decoded-answer states; geometry refusals have their own census."""
++    if row.get('geometry_refusal'):
++        return dict(budget_forced_close=False, no_final_answer=False)
++    decoded = row.get('decode') or {}
++    no_final_answer = bool(row.get('no_answer') or row.get('parse_failed')
++        or row.get('strict_no_answer') or row.get('call_limit')
++        or decoded.get('strict_no_answer') or decoded.get('parse_failed')
++        or decoded.get('finish') == 'call_limit' or row.get('finish_reason') == 'call_limit')
++    if direct:
++        no_final_answer |= bool(row.get('hit_token_cap') or row.get('stopped_unclosed'))
++        # The accepted return's raw_generation can contain only the final answer.
++        # stopped_unclosed is the reader's evidence for missing thinking closure.
++        budget_fire = bool(row.get('forced_close'))
++    else:
++        if 'text' in decoded:
++            no_final_answer |= not bool(re.search(r'</think\s*>', decoded['text'] or '', re.I))
++        budget_fire = bool(row.get('capped') or row.get('forced_close') or row.get('hit_token_cap')
++            or (row.get('decode_budget') or {}).get('fired')
++            or (decoded.get('decode_budget') or {}).get('fired')
++            or decoded.get('finish') in ('max_new_tokens', 'context_exhaustion'))
++    return dict(budget_forced_close=budget_fire and not no_final_answer,
++                no_final_answer=no_final_answer)
++
++
++def merge_direct_raw(compact, raw_rows, keys):
++    """Validate every shared field before supplementing the primary compact rows."""
++    raw = index(raw_rows, 'raw direct', set(keys))
++    require(set(raw) == set(keys), 'Raw direct lacks expected keys')
++    merged = []
++    for row in compact:
++        if row['key'] not in raw:
++            merged.append(row)
++            continue
++        rr = raw[row['key']]
++        for field in row.keys() & rr.keys():
++            require(row[field] == rr[field], 'Raw/compact disagreement: ' + row['key'] + '/' + field)
++        require(all(f in rr for f in ('forced_close', 'hit_token_cap', 'parse_failed', 'finish_reason', 'derivation_error')),
++                'Raw direct missing state fields: ' + row['key'])
++        require(rr.get('budget') == 2048 and rr.get('arm') == 'B2048' and rr.get('status') == 'complete',
++                'Raw direct provenance disagreement: ' + row['key'])
++        merged.append({**rr, **row})
++    return merged
++
++
++def artifact_check(bundle, arms, direct_artifact):
++    observed = sorted({r.get('checkpoint_sha256', '') for a in ARMS for r in arms[a].values()})
++    synthetic_missing = bundle.get('synthetic') and observed == ['']
++    if not synthetic_missing:
++        require(observed == [EXPECTED_ARTIFACT], 'Native export artifact disagreement or missing digest')
++    if bundle.get('artifact_sha256'):
++        require(bundle['artifact_sha256'] == EXPECTED_ARTIFACT, 'Bundle export artifact disagreement')
++    if direct_artifact is not None:
++        require(direct_artifact == EXPECTED_ARTIFACT, 'Direct export artifact disagreement')
++    return dict(status='PASS' if direct_artifact and not synthetic_missing else 'PARTIAL',
++                expected_sha256=EXPECTED_ARTIFACT, native_sha256=observed, direct_sha256=direct_artifact,
++                caveat=('Synthetic rows lack checkpoint identity; ' if synthetic_missing else '') +
++                       ('direct export artifact digest unavailable locally; cross-arm byte identity not verified'
++                        if direct_artifact is None else 'direct export artifact bytes hashed locally'))
++
++
++def native_budget_fire(row):
++    decoded = row.get('decode') or {}
++    receipt = row.get('decode_budget') or decoded.get('decode_budget') or {}
++    if 'fired' in receipt:
++        return bool(receipt['fired'])
++    return bool(row.get('capped')) and decoded.get('finish') != 'call_limit'
++
++
++def capped_score(row, direct=False):
++    states = answer_states(row, direct)
++    return 0 if any(states.values()) else row['score'] if direct else native_score(row)
++
++
+ def counts(keys, arms, direct, tasks, refused):
+     result = {}
+     for arm, rows in arms.items():
+@@ -209,7 +291,8 @@
+         model_rows = [r for r in rs if tasks[r['key']]['native'] not in refused]
+         result[arm] = dict(items=len(rs), geometry_refused_items=len(rs) - len(model_rows),
+             geometry_refused_captures=len({tasks[r['key']]['native'] for r in rs} & refused),
+-            capped=sum(bool(r['capped']) for r in rs),
++            native_budget_fires=sum(native_budget_fire(r) for r in rs),
++            native_capped_recorded=sum(bool(r['capped']) for r in rs),
+             no_answer=sum(bool(r['no_answer']) for r in model_rows),
+             no_answer_including_geometry=sum(bool(r['no_answer']) for r in rs),
+             program_refusals=sum(r.get('decode', {}).get('finish') == 'program_refusal' for r in rs),
+@@ -217,8 +300,14 @@
+             call_error_items=sum(bool(r['call_errors']) for r in rs),
+             version_errors=sum(r['version_errors'] for r in rs),
+             budget_truncated_call_items=sum(bool(r['budget_truncated_calls']) for r in rs))
+-    result['direct'] = dict(items=len(keys), capped=sum(bool(direct[k]['hit_token_cap']) for k in keys),
++    result['direct'] = dict(items=len(keys), direct_hit_token_cap=sum(bool(direct[k]['hit_token_cap']) for k in keys),
++                            direct_forced_close=sum(bool(direct[k].get('forced_close')) for k in keys),
+                             parse_failed=sum(bool(direct[k]['parse_failed']) for k in keys))
++    for arm in (*ARMS, 'direct'):
++        rs = [direct[k] if arm == 'direct' else arms[arm][k] for k in keys]
++        result[arm]['producer_errors'] = sum(producer_error(r) for r in rs)
++        for state in ('budget_forced_close', 'no_final_answer'):
++            result[arm][state] = sum(answer_states(r, arm == 'direct')[state] for r in rs)
+     return result
+ 
+ 
+@@ -270,7 +359,7 @@
+ 
+ 
+ def analyze(bundle, admission, direct_rows, task_rows, room_map, subset=False, plumbing=False,
+-            draws=10000, seed=20261115):
++            draws=50000, seed=20261115, raw_rows=None, direct_artifact=None):
+     require(bundle.get('schema') == 'legs1-r1-nomdg-v1', 'Unexpected bundle schema')
+     keys = bundle['expected_keys']
+     require(len(keys) == len(set(keys)), 'Duplicate expected key')
+@@ -279,6 +368,10 @@
+     arms = {a: index(bundle['arms'][a], a, keyset if subset else None) for a in ARMS}
+     for a in ARMS:
+         require(set(arms[a]) == keyset, 'Missing or unexpected key in ' + a)
++    artifacts = artifact_check(bundle, arms, direct_artifact)
++    require(raw_rows is not None or bundle.get('synthetic'), 'Raw direct rows required')
++    if raw_rows is not None:
++        direct_rows = merge_direct_raw(direct_rows, raw_rows, keys)
+     # Full mode validates duplicates across the whole accepted direct file.
+     direct = index(direct_rows, 'direct', keyset if subset else None)
+     require(keyset <= set(direct), 'Direct read lacks expected keys')
+@@ -327,6 +420,9 @@
+         require(dr['id'] == task['id'], 'Direct identity disagreement: ' + key)
+         require(dr.get('budget') == 2048, 'Direct budget disagreement: ' + key)
+         require(dr['stratum'] == task['stratum'] and family(dr) == family(task), 'Direct task disagreement: ' + key)
++        if raw_rows is not None:
++            require(str(dr.get('ground_truth')).strip() == str(task.get(label(task))).strip(),
++                    'Raw direct label disagreement: ' + key)
+         authority = label(task)
+         require(task.get('ground_truth') is not None and task.get(authority) is not None,
+                 'Missing label evidence: ' + key)
+@@ -349,18 +445,19 @@
+             ref = row.get('geometry_refusal')
+             require(bool(ref) == (cap in refused), 'Geometry refusal set disagreement: ' + key)
+             if ref:
++                require(ref.get('code') == REFUSAL_CODE, 'Geometry refusal code disagreement: ' + key)
+                 require(ref.get('capture') == cap, 'Geometry refusal capture disagreement: ' + key)
+                 require(native_score(row) == 0 and not row['called'] and row['no_answer'],
+                         'Geometry refusal must score zero without decoding: ' + key)
+             val = native_score(row)
+             require(isinstance(val, (int, float)) and math.isfinite(val) and 0 <= val <= 1,
+                     'Invalid native score: ' + key)
+-            if row['capped'] or row['no_answer']:
+-                require(val == 0, 'Capped/unparsed native answer has nonzero recorded score: ' + key)
++            if answer_states(row)['no_final_answer'] or producer_error(row):
++                require(val == 0, 'No-final-answer/producer-error native row has nonzero recorded score: ' + key)
+         val = dr['score']
+         require(isinstance(val, (int, float)) and math.isfinite(val) and 0 <= val <= 1, 'Invalid direct score: ' + key)
+-        if dr['hit_token_cap'] or dr['parse_failed']:
+-            require(val == 0, 'Capped/unparsed direct answer has nonzero recorded score: ' + key)
++        if answer_states(dr, True)['no_final_answer'] or producer_error(dr):
++            require(val == 0, 'No-final-answer/producer-error direct row has nonzero recorded score: ' + key)
+     rates = call_rates(keys, arms)
+     for typ, rate in rates.items():
+         close(report['per_type'][typ], rate, 'Admission call rate/' + typ)
+@@ -396,15 +493,34 @@
+         for t in (*TYPES, 'camera_all'):
+             groups[g + '/' + t] = [k for k in groups[t] if k in set(groups[g])]
+     output_groups = {}
++    interval_cache = {}
+     for name, group in groups.items():
+         output_groups[name] = {}
+-        for selection in ('all_items', 'passed_geometry'):
++        for selection in ('all_items', 'capped_zeroed', 'passed_geometry', 'no_producer_error', 'metre_only'):
+             selected = group if selection == 'all_items' else [k for k in group if task_rows[k]['native'] not in refused]
++            if selection == 'capped_zeroed':
++                selected = group
++            elif selection == 'no_producer_error':
++                selected = [k for k in group if not producer_error(direct[k])
++                            and not any(producer_error(arms[a][k]) for a in ARMS)]
++            elif selection == 'metre_only':
++                selected = [k for k in group if (family(arms['unflagged'][k]),
++                    arms['unflagged'][k]['question_unit']['unit']) in
++                    ((TYPES[0], 'meters'), (TYPES[1], 'square meters'))]
+             rows = [(task_rows[k]['room'], native_score(arms['unflagged'][k]),
+                      native_score(arms['scripted'][k]), direct[k]['score']) for k in selected]
+-            intervals = bootstrap(rows, draws, seed)
++            if selection == 'capped_zeroed':
++                rows = [(task_rows[k]['room'], capped_score(arms['unflagged'][k]),
++                         capped_score(arms['scripted'][k]), capped_score(direct[k], True)) for k in selected]
++            cache_key = tuple(rows)
++            if cache_key not in interval_cache:
++                interval_cache[cache_key] = bootstrap(rows, draws, seed)
++            intervals = interval_cache[cache_key]
+             means = {a: pct([native_score(arms[a][k]) for k in selected]) for a in ARMS}
+             direct_mean = pct([direct[k]['score'] for k in selected])
++            if selection == 'capped_zeroed':
++                means = {a: pct([r[j + 1] for r in rows]) for j, a in enumerate(ARMS)}
++                direct_mean = pct([r[3] for r in rows])
+             output_groups[name][selection] = dict(items=len(selected), rooms=len({r[0] for r in rows}),
+                 native_pct=means['unflagged'], scripted_pct=means['scripted'], direct_pct=direct_mean,
+                 differences={a: dict(points=means[a] - direct_mean if selected else None,
+@@ -414,7 +530,29 @@
+                          items=extended_units[t]['groups']['all']['all_items']) for t in TYPES[:2]}
+     unit_check['matches_brief_full_counts'] = (unit_check[TYPES[0]] == dict(other_units=107, items=150)
+                                               and unit_check[TYPES[1]] == dict(other_units=7, items=36))
+-    all_result = output_groups['all']['all_items']
++    metre_check = {t: output_groups[t]['metre_only']['items'] for t in TYPES[:2]}
++    if not subset:
++        require(metre_check == dict(zip(TYPES[:2], (43, 29))), 'Metre-only cohort counts differ')
++        require(unit_check['matches_brief_full_counts'], 'Other-unit cohort counts differ')
++    claims = {}
++    for name, selections in output_groups.items():
++        if name.split('/')[-1] not in TYPES:
++            continue
++        claims[name] = {}
++        for arm in ARMS:
++            primary = selections['all_items']['differences'][arm]
++            capped = selections['capped_zeroed']['differences'][arm]
++            def signature(d):
++                if d['points'] is None:
++                    return None
++                lo, hi = d['paired95_rooms']
++                return ((d['points'] > 0) - (d['points'] < 0), lo > 0 or hi < 0)
++            changed = signature(primary) != signature(capped)
++            claims[name][arm] = dict(capped_rule_changed=changed, primary=primary, capped_zeroed=capped,
++                claim='unresolved under the capped rule' if changed else
++                      'no selected items' if primary['points'] is None else 'paired comparison; see interval and caveats')
++    caveats = report_caveats(counted, output_groups, unit_check, guard)
++
+     mode = 'PLUMBING — not model scores' if plumbing or subset or bundle.get('synthetic') else 'REAL_FULL_READ — pending independent analysis review'
+     return dict(schema='native-vs-direct-devs1-v1', mode=mode, items=len(keys),
+         method=dict(name='paired physical-room percentile bootstrap', draws=draws, seed=seed,
+@@ -424,7 +562,7 @@
+                     caveat='Marginal intervals; no multiple-comparison adjustment; descriptive dev-S1 comparison'),
+         room_map_summary=room_map['summary'], label_pairing=dict(status='PASS', counts=dict(label_counts), keys=dict(label_keys),
+                     rule='primary: ground_truth == released_answer; otherwise ground_truth == answer',
+-                    evidence='Metadata labels, scorer and item identity checked; compact direct file does not contain raw labels or predictions'),
++                    evidence='Metadata labels, scorer and item identity checked; raw direct ground_truth checked when raw rows supplied; scores not recomputed'),
+         unit_check=unit_check, r1_call_rates_recomputed=rates,
+         r1_call_rates_reported={t:{k:report['per_type'][t][k] for k in rates[t]} for t in rates},
+         r1_call_rate_definition='R1 decoded denominator excludes geometry refusals only; program refusals remain included',
+@@ -433,57 +571,109 @@
+         unit_definition='other_units means not meter_based, including centimeters; unknown units remain separate',
+         gravity_guard_report=report['gravity_guard_report'], geometry_refusal_comparison=comparison,
+         program_refusals_reported=report.get('program_refusals'),
+-        conclusion=None if mode.startswith('PLUMBING') else dict(
+-            native_point_estimate_above_direct=all_result['differences']['unflagged']['points'] > 0,
+-            native_interval_excludes_zero_above=all_result['differences']['unflagged']['paired95_rooms'][0] > 0,
+-            headline_authorized=False, reason='Independent review required by F1 before any headline'),
+-        caveat_exact=CAVEAT,
+-        not_checked=['Original direct return archive, raw direct predictions, checkpoint byte identity, and scorer execution',
++        claims=claims, artifact_check=artifacts, metre_only_check=metre_check,
++        caveats=caveats, counts_per_type={t: output_groups[t]['all_items']['counts'] for t in TYPES},
++        raw_direct_check=dict(status='PASS' if raw_rows is not None else 'SYNTHETIC', keys=len(keys),
++                             rule='Every shared field equal; compact remains primary'),
++        parent_direct={t: 'parent direct mean: no sourced record (searched: ' + PARENT_RECORD + ')' for t in TYPES[2:]},
++        not_checked=['Original direct return archive authentication, scorer execution, and direct/native frame equality',
++                     artifacts['caveat'],
++                     'Independent d3 venue identity and the d2 one-scan-per-room assumption',
+                      'Training-instance, candidate-universe, failed-ground and routing-sample caveats are supplied context, not re-audited',
+                      'Gravity estimates and guard mathematics were not rerun; guard reports, capture lists and item flags were cross-checked',
+                      'Independent analysis review and full-run job admission are outside this program'])
+ 
+ 
++def report_caveats(counted, groups, unit_check, guard):
++    distance, room = (unit_check[t] for t in TYPES[:2])
++    camera_parse = groups['camera_all']['all_items']['counts']['direct']['parse_failed']
++    distance_cap = groups[TYPES[0]]['all_items']['counts']['direct']['direct_hit_token_cap']
++    room_rooms = groups[TYPES[1]]['all_items']['rooms']
++    d1_rooms = groups['d1/' + TYPES[0]]['all_items']['rooms']
++    refused = counted['unflagged']
++    sealed = (f"sealed guard {guard['sealed_refused_count']} (recorded in IN_JOB_ADMISSION)"
++              if 'sealed_refused_count' in guard else
++              'sealed guard 11 (pilot-era replay; supplied context)')
++    return [
++        'On the camera types the direct arm\'s calls go unserved, so native minus direct measures serving, not routing against a direct answer.',
++        'Training responses came from ground-truth instances (supplied context).',
++        f"{distance['other_units']} of {distance['items']} distance and {room['other_units']} of {room['items']} room items ask other units; tools print metric units only. Other units means not metre-based and includes centimetres.",
++        f'The direct arm leaves routed calls unserved: {camera_parse} camera direct items fail to parse and {distance_cap} distance items hit the answer cap in this selection. Native minus direct partly measures the direct harness; it does not show that calls beat a direct answer from a model that stops at its first call.',
++        'Parents saw the dev-S1 scenes, so this read is not independent (supplied context).',
++        f'Room size rests on {room_rooms} physical rooms and d1 distance on {d1_rooms}; percentile intervals can under-cover with so few rooms.',
++        'The wider universe changes candidate competition (supplied context).',
++        'No training row shows a failed ground (supplied context).',
++        'No ARKitScenes routing rows exist (supplied context; not re-audited).',
++        f"The reviewed guard refuses {refused['geometry_refused_captures']} captures ({refused['geometry_refused_items']} items) in this selection; {sealed}."]
++
++
+ def markdown(result, output_path):
+     source = str(output_path / 'NATIVE_VS_DIRECT.json')
+-    lines = [result['mode'], '', 'Every value in the following tables is sourced from `' + source + '`.', '',
+-             'Intervals resample physical rooms with replacement, retain all paired items, and recompute the item-weighted difference. '
+-             f"The report uses {result['method']['draws']} draws, fixed seed {result['method']['seed']}, and linear-interpolated percentile endpoints. "
+-             'Input paths/hashes are in the source JSON. Empty groups are NA.', '',
+-             '| Group | Selection | Items | Rooms | Native % | Scripted % | Direct % | Native − direct pp [95% CI] | Scripted − direct pp [95% CI] |',
+-             '|---|---|---:|---:|---:|---:|---:|---|---|']
++    lines = [result['mode'], '', result['caveats'][0], '',
++             'Every numerical value below comes from `' + source + '`; supplied context is labelled.', '']
++    for group, arms in result['claims'].items():
++        for arm, claim in arms.items():
++            if claim['capped_rule_changed']:
++                lines.append(f"{group}, {arm}: unresolved under the capped rule (sign or interval exclusion of zero changes).")
++    lines += ['', 'Caveats for this selection:', ''] + ['- ' + c for c in result['caveats']] + ['']
++    lines += ['Primary claims use all items, per type and per type within each capture group. Distance and room carry the routing question; camera types carry the serving question. '
++              'Sensitivities cover passed geometry, producer errors excluded from every arm, capped answers zeroed in every arm, and metre-only questions. '
++              'Scripted minus direct is reported beside native minus direct. Camera and all-type pools are descriptive only.', '',
++              'Primary scoring retains parsed budget_forced_close answers as recorded; no_final_answer rows must score zero. Both states stay in the denominator. '
++              'The capped_zeroed sensitivity assigns zero to both states in every arm.', '',
++              f"Intervals use {result['method']['draws']} paired physical-room bootstrap draws, seed {result['method']['seed']}, item weighting, and 95% linear percentile endpoints. "
++              'Intervals are marginal, without multiple-comparison adjustment. Empty groups are NA.', '',
++              'Artifact check: ' + result['artifact_check']['status'] + '. ' + result['artifact_check']['caveat'] + '.', '']
++    for typ, value in result['parent_direct'].items():
++        lines.append(typ + ' (unpaired): ' + value)
+     def f(x):
+         return 'NA' if x is None else f'{x:.3f}'
+-    for group, selections in result['groups'].items():
+-        for selection, row in selections.items():
+-            diffs = []
+-            for a in ARMS:
+-                d = row['differences'][a]
+-                diffs.append('NA' if d['points'] is None else f"{d['points']:+.3f} [{d['paired95_rooms'][0]:+.3f}, {d['paired95_rooms'][1]:+.3f}]")
+-            lines.append(f"| {group} | {selection} | {row['items']} | {row['rooms']} | {f(row['native_pct'])} | {f(row['scripted_pct'])} | {f(row['direct_pct'])} | {' | '.join(diffs)} |")
+-    lines += ['', 'Counts use the same source JSON. No-answer counts exclude geometry refusals; all-item counts remain intact.', '',
+-              '| Arm | Items | Refused items | Refused captures | Capped | No answer | Program refusals | Call errors | Budget-truncated call items | Parse failed |',
+-              '|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|']
+-    for a, c in result['counts'].items():
+-        fields = ('items','geometry_refused_items','geometry_refused_captures','capped','no_answer','program_refusals','call_errors','budget_truncated_call_items','parse_failed')
+-        lines.append('| ' + a + ' | ' + ' | '.join(str(c.get(x, 'NA')) for x in fields) + ' |')
+-    lines += ['', 'R1 call rates below match the admission report. Program refusals remain in the R1 decoded denominator.', '',
++    routed_caveats = ' '.join(result['caveats'])
++    for descriptive in (False, True):
++        lines += ['', '## Descriptive pooled comparisons' if descriptive else '## Per-type paired comparisons', '',
++                  '| Group | Selection | Items | Rooms | Native % | Scripted % | Direct % | Native − direct pp [95% CI] | Scripted − direct pp [95% CI] | Claim and caveats |',
++                  '|---|---|---:|---:|---:|---:|---:|---|---|---|']
++        for group, selections in result['groups'].items():
++            if (group.split('/')[-1] not in TYPES) != descriptive:
++                continue
++            for selection, row in selections.items():
++                if selection == 'metre_only' and group.split('/')[-1] not in TYPES[:2]:
++                    continue
++                diffs = []
++                for a in ARMS:
++                    d = row['differences'][a]
++                    diffs.append('NA' if d['points'] is None else f"{d['points']:+.3f} [{d['paired95_rooms'][0]:+.3f}, {d['paired95_rooms'][1]:+.3f}]")
++                caveat = 'Descriptive only.' if descriptive else ' '.join(
++                    a + ': ' + c['claim'] + '.' for a, c in result['claims'][group].items())
++                if group.split('/')[-1] in TYPES[:2]:
++                    caveat += ' ' + routed_caveats
++                elif not descriptive:
++                    caveat += ' ' + result['caveats'][0]
++                lines.append(f"| {group} | {selection} | {row['items']} | {row['rooms']} | {f(row['native_pct'])} | {f(row['scripted_pct'])} | {f(row['direct_pct'])} | {' | '.join(diffs)} | {caveat} |")
++    lines += ['', '## Counts by arm and type', '',
++              'Geometry refusals have a separate census and are excluded from decoded-answer state counts. Native budget fires, direct hit_token_cap, and direct forced_close are separate measures. '
++              'Producer errors score zero in the primary; no_producer_error excludes their paired keys from every arm.', '',
++              '| Type | Arm | Measure | Count |', '|---|---|---|---:|']
++    for typ, arms in [('all (descriptive)', result['counts']), *result['counts_per_type'].items()]:
++        for arm, counters in arms.items():
++            for name, value in counters.items():
++                lines.append(f'| {typ} | {arm} | {name} | {value} |')
++    lines += ['', 'R1 call rates match admission. Program refusals remain in the decoded denominator.', '',
+               '| Type | All items | Decoded items | Call rate decoded % | Call rate all % |', '|---|---:|---:|---:|---:|']
+     for t, c in result['r1_call_rates_recomputed'].items():
+         lines.append(f"| {t} | {c['items']} | {c['call_rate_denominator_items']} | {f(c['call_rate_decoded_items_pct'])} | {f(c['call_rate_all_items_pct'])} |")
+-    lines += ['', 'Unit groups use question_unit checked against the metadata question. Other units means not metre-based; centimeters are metric and other units. '
+-              'Passed-geometry unit counts exclude refused items. Direct uses the identical key groups.', '',
+-              '| Type | Unit group | Selection | Items | Native % | Scripted % | Direct % |', '|---|---|---|---:|---:|---:|---:|']
++    lines += ['', 'Unit groups use question_unit checked against the metadata question. Other units means not metre-based; centimetres are metric and other units. '
++              'Passed-geometry unit counts exclude refused items. Direct uses identical key groups. These unit summaries are descriptive.', '',
++              '| Type | Unit group | Selection | Items | Native % | Scripted % | Direct % | Caveats |', '|---|---|---|---:|---:|---:|---:|---|']
+     for t, categories in result['unit_scores_with_direct'].items():
+         for category, groups in categories.items():
+             for name, c in groups.items():
+                 for selection, count, field in (('all_items','all_items','all_item_scores_pct'),('passed_geometry','items','scores_pct')):
+-                    lines.append(f"| {t} | {category}/{name} | {selection} | {c[count]} | {f(c[field]['unflagged'])} | {f(c[field]['scripted'])} | {f(c[field]['direct'])} |")
++                    lines.append(f"| {t} | {category}/{name} | {selection} | {c[count]} | {f(c[field]['unflagged'])} | {f(c[field]['scripted'])} | {f(c[field]['direct'])} | {routed_caveats if t in TYPES[:2] else result['caveats'][0]} |")
+     lines += ['', 'Label pairing: ' + result['label_pairing']['rule'] + '. ' + result['label_pairing']['evidence'] + '.', '',
+-              'Observed unit counts (source: `' + source + '`): ' + json.dumps(result['unit_check'], sort_keys=True), '',
+-              'Required caveat, reproduced verbatim from `' + str(BUILD / 'BRIEF.md') + '`:', '', '> ' + CAVEAT, '',
+-              'The caveat describes the full cohort; subset outputs do not verify its full-cohort counts.', '',
+-              'Not checked:', ''] + ['- ' + s + '.' for s in result['not_checked']]
++              'Observed unit counts: ' + json.dumps(result['unit_check'], sort_keys=True),
++              'Metre-only counts: ' + json.dumps(result['metre_only_check'], sort_keys=True), '',
++              'Not checked:', ''] + ['- ' + s + '.' for s in result['not_checked'] if s]
+     lines += ['', 'Input provenance:', ''] + ['- `' + v['path'] + '` (sha256 `' + v['sha256'] + '`).' for v in result['sources'].values()]
+     return '\n'.join(lines) + '\n'
+ 
+@@ -493,13 +683,18 @@
+     parser.add_argument('--bundle', type=Path, required=True)
+     parser.add_argument('--admission', type=Path, required=True)
+     parser.add_argument('--direct', type=Path, default=DEFAULT_DIRECT)
++    parser.add_argument('--direct-raw', type=Path, nargs='+', default=DEFAULT_RAW)
++    artifact_candidates = (BUILD / 'in/direct_raw/metadata/EXPORT_ARTIFACT.json',
++                           ROOT / 'work/direct/metadata/EXPORT_ARTIFACT.json',
++                           ROOT / 'work/direct/EXPORT_ARTIFACT.json')
++    parser.add_argument('--direct-artifact', type=Path, default=next((p for p in artifact_candidates if p.is_file()), None), help='Local direct metadata/EXPORT_ARTIFACT.json; hash its bytes')
+     parser.add_argument('--tasks', type=Path, default=DEFAULT_TASKS)
+     parser.add_argument('--frames', type=Path, default=DEFAULT_FRAMES)
+     parser.add_argument('--camera-tasks', type=Path, default=DEFAULT_CAMERA)
+     parser.add_argument('--output', type=Path, default=BUILD / 'out')
+     parser.add_argument('--subset', type=Path, help='JSON key list; restrict inputs and label output PLUMBING')
+     parser.add_argument('--plumbing', action='store_true')
+-    parser.add_argument('--draws', type=int, default=10000)
++    parser.add_argument('--draws', type=int, default=50000)
+     parser.add_argument('--seed', type=int, default=20261115)
+     args = parser.parse_args(argv)
+     try:
+@@ -511,17 +706,24 @@
+             require(set(selected) <= set(bundle['expected_keys']), 'Subset keys outside bundle')
+             bundle['expected_keys'] = selected
+         tasks, room_map = metadata(args.tasks, args.frames, args.camera_tasks, set(bundle['expected_keys']))
++        raw_rows = [r for path in args.direct_raw for r in jsonl(path)]
+         result = analyze(bundle, read(args.admission), read(args.direct), tasks, room_map,
+-                         subset=bool(args.subset), plumbing=args.plumbing, draws=args.draws, seed=args.seed)
++                         subset=bool(args.subset), plumbing=args.plumbing, draws=args.draws, seed=args.seed, raw_rows=raw_rows,
++                         direct_artifact=sha256(args.direct_artifact) if args.direct_artifact else None)
+         sources = {name: dict(path=str(path.resolve()), sha256=sha256(path)) for name, path in
+                    (('bundle', args.bundle), ('admission', args.admission), ('direct', args.direct),
+                     ('tasks', args.tasks), ('frames', args.frames), ('camera_tasks', args.camera_tasks),
+                     ('script', Path(__file__)))}
++        for i, path in enumerate(args.direct_raw):
++            sources['direct_raw_' + str(i)] = dict(path=str(path.resolve()), sha256=sha256(path))
++        if args.direct_artifact:
++            sources['direct_artifact'] = dict(path=str(args.direct_artifact.resolve()), sha256=sha256(args.direct_artifact))
+         if args.subset:
+             sources['subset'] = dict(path=str(args.subset.resolve()), sha256=sha256(args.subset))
+-        for name, path in (('brief', BUILD / 'BRIEF.md'), ('orchestrator', BUILD / 'in/20261115T2358Z_ORCH_GO_full.md'),
++        for name, path in (('brief', BUILD / 'in/BRIEF_03.md'), ('fix_ruling', BUILD / 'in/20261116T0126Z_ORCH_RULING_forced_close_and_fixes.md'), ('analysis_review', BUILD / 'in/review_an/REVIEW_VERDICT_ANALYSIS.md'), ('orchestrator', BUILD / 'in/20261115T2358Z_ORCH_GO_full.md'),
+                            ('review', BUILD / 'in/REVIEW_VERDICT_C8R.md')):
+             sources[name] = dict(path=str(path), sha256=sha256(path))
++        result['artifact_check']['searched_paths'] = [str(p) for p in artifact_candidates]
+         result['sources'] = sources
+         room_map.update(mode=result['mode'], sources=sources)
+         write(args.output / 'ROOM_MAP.json', room_map)

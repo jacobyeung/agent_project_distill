@@ -1,0 +1,1834 @@
+--- /dev/null
++++ b/student_pilot/R2_DATA_PATH.md
+@@ -0,0 +1,23 @@
++# Next-leg data entry
++
++Run `python -m student_pilot.r2_intake --manifest FAMILY/MANIFEST.json --output intake.json` from an installed source tree. The command writes JSON to the output file and stdout, and prints per-type counts and reasons on stderr. Local slices default to the build brief's limit; the limit is enforced across manifests of the same family by the materializer.
++
++The envelope is `r2-family-manifest-v1` with `family`, native `stream` (`vqa`, `routing`, `pose`, or `pointing`), population `count`, pinned JSONL or gzip `rows`, `row_bindings` mapping QID to the canonical row digest, pinned `scene_coverage`, `exclusions`, `prefiltered`, and `upstream_receipts`. A line contains a native row or `{row: NATIVE_ROW, target_record: NATIVE_POSE_TARGET}`. A native row may also carry `target_record`. This envelope is the documented integration default until the rows lane publishes its manifests; unknown envelopes refuse rather than guessing their meaning.
++
++Scene coverage binds the row-file hash and the same exclusion pins, with `rows[QID] = {status: "known", names: [dataset-qualified names]}`. Names include the alias, canonical scene and physical room where known. Unknown coverage refuses. `r2_exclusions.SEALED` pins all supplied exclusion records by content, so callers can relocate records but cannot substitute their own lists. Upstream receipts bind those same pins and per-type `seen`, `admitted`, `refused`, and `reasons`. An upstream-filtered population must supply receipts. Qualification-only rooms are not an extra exclusion; the supplied evaluation and room-split exclusions remain active.
++
++Direct rows declare `trace_contract = "next-leg-r2-v1"`, keep their native question, options, answer and target, and use explicit `Locate:`, `Relate:`, and `Step:` lines. The exact grammar is data in `trace_grammar.RULES`. Its `SOURCE_SHA256` hashes that data using canonical JSON; the tree seal binds executable code. Replace that module atomically with the rows lane's reviewed validator and compare both the data and refusal corpus. The current validator is deliberately conservative; it is a syntax and provenance gate, not proof that a visual relation is true.
++
++Program rows retain the native `derivgen-row-v2` event structure. Only absolute distance and the camera types in `trace_grammar.PROGRAM_TYPES` enter routing. The adapter checks native rendering, adds answer delimiters to legacy camera answers, and rerenders response spans. Ground-form rows carrying this contract use the native ground-event renderer and declare `response_source` as ground truth or deployed, with source-row lineage. This admits a failed-call continuation without treating it as a legacy successful ground-truth record. Such a continuation must locate its fallback evidence and cannot call again. `carrier_c1_routing.encode` and `finish` own response-token masking. Room size enters VQA as direct text. A lineage-less room row is excluded by missing source-row and frame lineage, without an external QID list.
++
++Rows lacking RGB pins require a pinned `frame_map`, keyed by QID. Each entry holds the native RGB manifest (`frames` with `source_index`, `fps`, `total_num_frames`, and optional `dense_source`). The adapter checks source ordinals before joining. A pending lineage record must match dataset, scene and indices. Pose `student_input.frame_prefix` prefixes relative frame filenames. A missing frame map is a metadata failure, not permission to fabricate pins.
++
++Run `python -m student_pilot.r2_materialize --manifest FAMILY/MANIFEST.json --output NEW_DIRECTORY`. Repeat `--manifest` for distinct families. The API's `select_types` maps manifest paths to explicit type selections; select sealed routing's program types before combining it with re-rendered route-planning rows. An unfiltered ID collision refuses. `--metadata-only` records the frame-host boundary without opening RGB; `--no-dense` produces the control path. All other missing RGB or dense metadata produces a `needs the frame host` receipt and no store receipt.
++
++The materializer writes native `rows(i,row,target)` SQLite stores, a pinned membership manifest and a combined receipt consumed by `carrier_c1_run.Rows`. Membership binds the final adapted row, its native target record and stream, and checks them on every read. Rows retain `r2_source_sha256` and `r2_envelope_sha256` for the original row and enclosing line. For wrapped lines, `row_bindings` hashes the complete wrapper, including the target record. Set `STUDENT_R2_LOCAL_NODE=1` on local proof nodes; full-store requests refuse. Trinity hostnames also refuse full stores. A separate admitted frame-host caller can set `STUDENT_R2_FRAME_HOST=1` and pass `--full`; that path is not executed on this node and requires the later job's resource guards.
++
++All RGB paths pass through JSON `STUDENT_FRAME_ROOT_MAP`, using the longest path-component prefix. No unmapped logical shared-storage path is opened. The hash memo is process-local, bounded, and invalidated by device, inode, size or nanosecond mtime changes. Distinct files with identical expected content still require independent authentication; trusting a hash string alone would weaken refusal. Dense reconstruction inputs are selected by `dense_eval.nested_indices`; clips are keyed by ordered source ordinal and SHA-256 pairs. Each row retains its own clock and paths. The forward reconstructs from dense RGB before selecting language-model views, as implemented by the existing GF-1 path.
++
++Next-leg configurations set `r2` to `{contract, init, mode: "warm_start", run_id, code_sha256, mixture_sha256, export_metadata}` and supply `r2_membership`. Membership without this binding refuses. `init` must equal `r2_contract.INIT`. `export_metadata` pins `metadata/EXPORT_ARTIFACT.json`; it must contain the accepted `artifact_sha256`. Optional parent fields must agree if supplied. The code identity is the native source seal's `tree_sha256`; the mixture identity is `digest({recipe, streams, route_table})`. Preparation verifies these bindings before any model load. The surviving parent configuration value is a prefix, never a fabricated complete hash. Existing legacy configurations remain usable for regression tests; build-two configurations must declare this contract.
++
++Not checked here: real row envelopes, real RGB content and dense coverage, the Orchard export metadata's exact additional fields, pretrained tokenizer behavior, model weights, GPU memory or distributed execution. The external contract patches, configurations and launch remain outside this build.
+--- a/student_pilot/carrier_c1_routing.py
++++ b/student_pilot/carrier_c1_routing.py
+@@ -180,6 +180,9 @@
+ def check_row(row):
+     """Admission of one derivgen-row-v2 routing row; the stored target must re-render exactly."""
+     if row.get('form') in ground_rows.FORMS.values():
++        if row.get('trace_contract') == 'next-leg-r2-v1':
++            from .r2_contract import event_row
++            return event_row(row)
+         return ground_rows.validate(row)
+     if row.get('schema') != 'derivgen-row-v2' or row.get('form') not in FORMS:
+         raise ValueError('Routing rows require derivgen-row-v2 canonical v3.8 form')
+--- a/student_pilot/carrier_c1_run.py
++++ b/student_pilot/carrier_c1_run.py
+@@ -440,6 +440,8 @@
+ 
+ def prepare(cfg):
+     """Authenticate existing databases once; never duplicate the A1 payload."""
++    from .r2_contract import preparation
++    preparation(cfg)
+     from .trace_version import metadata
+     version_metadata = metadata(cfg)
+     validate(cfg)
+@@ -605,7 +607,7 @@
+                   depth_enabled=cfg.get('depth_enabled', True), recipe=cfg['recipe'])
+     result.update({k: cfg[k] for k in ('frame_layout', 'frame_pair_gap_seconds', 'skip_unsupervised_lm',
+                                        'depth_fov_source', 'depth_init', 'exclusions', 'report_exclusions',
+-                                       'tool_mode_flag', 'ground_target_filter', 's1_route_policy') if k in cfg})
++                                       'tool_mode_flag', 'ground_target_filter', 's1_route_policy', 'r2_membership') if k in cfg})
+     if 'mdg' in cfg:
+         result['mdg'] = cfg['mdg']
+     if 'validation' in cfg:
+@@ -632,6 +634,8 @@
+ 
+ 
+ def prepared(cfg, admission=False):
++    from .r2_contract import preparation
++    preparation(cfg)
+     validate(cfg)
+     commit = authenticate(cfg)
+     receipt = load(pinned(cfg['preparation']))
+@@ -982,6 +986,8 @@
+ 
+ class Rows:
+     def __init__(self, receipt, processor):
++        from .r2_contract import Admission
++        self.r2_admission = Admission(receipt['r2_membership']) if receipt.get('r2_membership') else None
+         self.connections = {k: connect(v['database']) for k, v in receipt['streams'].items() if v.get('kind') not in ('mix', 'mdg')}
+         self.processor = processor
+         self.placement = receipt.get('carrier_placement', data.C1_A)
+@@ -1028,6 +1034,8 @@
+         if row is None:
+             raise ValueError('Missing planned C1 row')
+         value = json.loads(row[0])
++        if self.r2_admission is not None:
++            self.r2_admission.check(value, stream, json.loads(row[1]))
+         if stream == 'routing':
+             value = routing.tool_mode(value, self.tool_flag)
+         return value, json.loads(row[1])
+--- a/student_pilot/dense_eval.py
++++ b/student_pilot/dense_eval.py
+@@ -21,7 +21,7 @@
+ 
+ def attach_dense(row, dense, settings, verify=True):
+     from .gf1 import dense_inputs
+-    from .p3_provenance import pinned
++    from .r2_frames import verify_frame
+     result = copy.deepcopy(row)
+     result["student_input"]["geometry_dense"] = copy.deepcopy(dense)
+     admitted, positions = dense_inputs(result, settings)
+@@ -33,15 +33,14 @@
+         raise ValueError("Dense evaluation timestamps or source bounds differ")
+     if verify:
+         for frame in {value["path"]: value for value in admitted["frames"]}.values():
+-            if not Path(frame["path"]).is_relative_to("/scratch"):
+-                raise ValueError("Dense RGB must be staged on local scratch")
+-            pinned(frame)
++            verify_frame(frame)
+     return result, positions
+ 
+ 
+ def decode_dense(video_pin, sparse, settings, destination):
+     import av
+     from .p3_provenance import file_pin, pinned
++    from .r2_frames import verify_frame
+     destination = Path(destination)
+     destination.mkdir(parents=True, exist_ok=False)
+     wanted = nested_indices(sparse["total_num_frames"], sparse["frame_indices"], settings["dense_frames"])
+@@ -55,7 +54,7 @@
+             if index not in wanted:
+                 continue
+             if index in existing:
+-                pinned(existing[index])
++                verify_frame(existing[index])
+                 frames[index] = existing[index]
+             else:
+                 path = destination / f"frame_{index:08d}.png"
+--- a/student_pilot/pose_samples.py
++++ b/student_pilot/pose_samples.py
+@@ -171,13 +171,11 @@
+ 
+ def load_frames(inputs):
+     from PIL import Image
+-    from .common import binding
+-    from .orchard_paths import resolve_read
++    from .r2_frames import verify_frame
+ 
+     images = []
+     for frame in inputs["frames"]:
+-        binding(frame["path"], frame["sha256"])
+-        with Image.open(resolve_read(frame["path"])) as image:
++        with Image.open(verify_frame(frame)) as image:
+             if image.mode != "RGB":
+                 raise ValueError(f"Source is not RGB: {frame['path']}")
+             images.append(np.asarray(image).copy())
+--- /dev/null
++++ b/student_pilot/r2_adapters.py
+@@ -0,0 +1,38 @@
++"""Metadata joins for native sealed event rows and frames_pending direct rows."""
++from copy import deepcopy
++from .p3_provenance import digest
++
++
++def normalize(raw, frame_map=None):
++    row = deepcopy(raw)
++    provenance = row.get('provenance', {})
++    if not row.get('dataset') or not row.get('scene'):
++        from .carrier_c1_routing import alias_of
++        key = provenance.get('alias') or alias_of(provenance['canonical'])
++        row['dataset'], row['scene'] = key.split('/', 1)
++    pending = row.get('frames_pending') or provenance.get('frames_pending')
++    inputs = row.get('student_input', {})
++    if pending is not None and (pending.get('d') != row['dataset'] or pending.get('s') != row['scene']
++                                or pending.get('i') != inputs.get('frame_indices')):
++        raise ValueError('Wrong scene or indices in pending RGB lineage')
++    if not inputs.get('frames'):
++        if frame_map is None or row['qid'] not in frame_map:
++            raise ValueError('needs frame metadata: supply the pinned frame_map join before intake')
++        rgb = deepcopy(frame_map[row['qid']])
++        indices = [pin['source_index'] for pin in rgb['frames']]
++        expected = inputs.get('frame_indices', provenance.get('frame_indices'))
++        if indices != expected:
++            raise ValueError('Frame map differs from source ordinals')
++        rgb['frames'] = [dict(path=p['path'], sha256=p['sha256']) for p in rgb['frames']]
++        row['student_input'] = dict(rgb, frame_indices=indices, timestamps=[i/rgb['fps'] for i in indices],
++                                    question=row['question'], options=row.get('options') or [])
++    if row.get('events'):
++        from .carrier_c1_routing import check_row, render
++        check_row(row)
++        # Sealed camera rows have bare answers. Add only the required delimiter;
++        # the event sequence, response bytes and numerical answer are unchanged.
++        if not row['target'].rstrip().endswith('</answer>'):
++            row['answer'] = '<answer>'+str(row['answer'])+'</answer>'
++            row['target'], row['tool_output_spans'] = render(row['events'], row['answer'])
++    row['r2_source_sha256'] = digest(raw)
++    return row
+--- /dev/null
++++ b/student_pilot/r2_contract.py
+@@ -0,0 +1,175 @@
++"""Next-leg row membership and initialization; no optimizer state crosses epochs."""
++from copy import deepcopy
++import json
++import math
++from pathlib import PurePosixPath
++import re
++from .p3_provenance import digest, load, pinned
++from .trace_grammar import PROGRAM_TYPES, validate_direct, validate_program
++
++CONTRACT = 'next-leg-r2-v1'
++INIT = dict(artifact_sha256='1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef',
++            parent_run='469ddece', parent_kit='07ca49df', step=544,
++            parent_source_seal='b01ce449beffe35be3bf0b48ad3d69f331f1523f96a69cbd3d10aab3dbb42a99',
++            parent_configuration_prefix='a7ad7051')
++
++
++def check_init(spec, metadata):
++    if spec.get('contract') != CONTRACT or spec.get('init') != INIT:
++        raise ValueError('Next-leg init identity differs from the accepted export')
++    if spec.get('mode') != 'warm_start' or not spec.get('run_id') or spec['run_id'] == INIT['parent_run']:
++        raise ValueError('Changed code or mixture refuses exact resume of 469ddece; use a new warm-start run')
++    for key in ('code_sha256', 'mixture_sha256'):
++        if not re.fullmatch('[0-9a-f]{64}', str(spec.get(key, ''))):
++            raise ValueError('New run needs full code and mixture identities')
++    if metadata.get('artifact_sha256') != INIT['artifact_sha256']:
++        raise ValueError('EXPORT_ARTIFACT.json does not bind the accepted artifact sha256')
++    # Only the parent configuration prefix survives. Do not invent the rest.
++    for key in ('parent_run', 'parent_kit', 'step', 'parent_source_seal'):
++        if key in metadata and metadata[key] != INIT[key]:
++            raise ValueError('Export metadata contradicts ' + key)
++    if 'parent_configuration' in metadata and not metadata['parent_configuration'].startswith(INIT['parent_configuration_prefix']):
++        raise ValueError('Export parent configuration prefix differs')
++    return deepcopy(spec)
++
++
++def preparation(cfg):
++    spec = cfg.get('r2')
++    if cfg.get('r2_membership') and spec is None:
++        raise ValueError('Next-leg membership requires the init and new-run binding')
++    if spec is not None:
++        check_init(spec, load(pinned(spec['export_metadata'])))
++        if cfg.get('init_artifact', {}).get('artifact', {}).get('sha256') != INIT['artifact_sha256']:
++            raise ValueError('Trainer init artifact differs from next-leg binding')
++        if load(pinned(cfg['code'])).get('tree_sha256') != spec['code_sha256']:
++            raise ValueError('New run code identity differs')
++        if digest({key: cfg.get(key) for key in ('recipe', 'streams', 'route_table')}) != spec['mixture_sha256']:
++            raise ValueError('New run mixture identity differs')
++        Admission(cfg['r2_membership'])
++    return spec
++
++
++def expand_frames(inputs):
++    result = deepcopy(inputs)
++    prefix = result.pop('frame_prefix', None)
++    if prefix is not None:
++        from pathlib import PurePosixPath
++        result['frames'] = [{**pin, 'path': str(PurePosixPath(prefix) / pin['path'])} for pin in result['frames']]
++    return result
++
++
++def frame_metadata(inputs):
++    frames, indices = inputs.get('frames'), inputs.get('frame_indices')
++    if (not isinstance(frames, list) or len(frames) != 32 or not isinstance(indices, list)
++            or len(indices) != 32 or any(type(i) is not int or i < 0 for i in indices)
++            or indices != sorted(set(indices)) or indices[0] != 0):
++        raise ValueError('Expected ordered native frame pins and source ordinals')
++    fps, total = inputs.get('fps'), inputs.get('total_num_frames')
++    if (type(fps) not in (int, float) or not math.isfinite(fps) or fps <= 0
++            or type(total) is not int or total <= indices[-1]):
++        raise ValueError('Invalid row clock or source bounds')
++    if inputs.get('timestamps') != [i/fps for i in indices]:
++        raise ValueError('Row timestamps differ from its own clock')
++    for pin in frames:
++        if (not isinstance(pin, dict) or not isinstance(pin.get('path'), str)
++                or not PurePosixPath(pin['path']).is_absolute() or '..' in PurePosixPath(pin['path']).parts
++                or not re.fullmatch('[0-9a-f]{64}', str(pin.get('sha256', '')))):
++            raise ValueError('Missing or malformed RGB pin')
++
++
++def validate(row, stream, expected=None, require_frames=False):
++    if expected is not None and digest(row) != expected:
++        raise ValueError('Stale pin or wrong scene: row differs from membership')
++    if not row.get('qid') or not row.get('dataset') or not row.get('scene'):
++        raise ValueError('Row identity or scene is missing')
++    inputs = expand_frames(row['student_input'])
++    frame_metadata(inputs)
++    if stream in ('vqa', 'routing'):
++        kind = row.get('question_type', row.get('routing', {}).get('question_type'))
++        if not isinstance(kind, str) or not kind:
++            raise ValueError('Language row needs a question type')
++        if row.get('events'):
++            if stream != 'routing':
++                raise ValueError('Programs enter only the masked routing event path')
++            validate_program(row)
++        else:
++            if kind in PROGRAM_TYPES or row.get('tool_output_spans') or row.get('routing'):
++                raise ValueError('Program-type row offered as direct')
++            if row.get('trace_contract') != CONTRACT:
++                raise ValueError('Old-format direct row')
++            answer = validate_direct(row['target'], inputs['question'], len(inputs['frames']))
++            if answer.removeprefix('<answer>').removesuffix('</answer>') != str(row['answer']):
++                raise ValueError('Answer differs from target')
++            if kind in ('room_size_estimation', 'object_size_estimation', 'camera_object_abs_distance', 'object_counting'):
++                numeric = answer.removeprefix('<answer>').removesuffix('</answer>')
++                if not re.fullmatch(r'\d+(?:\.\d+)?', numeric):
++                    raise ValueError('Numeric direct type needs a numeric final answer')
++            unit = row.get('answer_unit')
++            if unit and unit not in {'m': ('m', 'meters', 'metres'), 'cm': ('cm', 'centimeters', 'centimetres'),
++                                     'ft': ('ft', 'feet'), 'm2': ('square meters', 'square metres')}:
++                raise ValueError('Unknown answer unit')
++            spellings = {'m': ('meters', 'metres'), 'cm': ('centimeters', 'centimetres'),
++                         'ft': ('feet',), 'm2': ('square meters', 'square metres')}
++            if unit and not any(re.search(r'\b'+re.escape(s)+r'\b', inputs['question'], re.I) for s in (*spellings[unit], unit)):
++                raise ValueError('Wrong-unit target')
++    elif stream not in ('pose', 'pointing'):
++        raise ValueError('Unknown native stream')
++    if require_frames:
++        from .r2_frames import verify_frame
++        for pin in inputs['frames']:
++            verify_frame(pin)
++    return inputs
++
++
++def perception(row, stream, target):
++    if stream == 'pose':
++        import torch
++        from .decoupled_v import target_tensors
++        values = target_tensors(target, all_frames=True)
++        if (values['aux_camera_target'].shape != (1, 32, 9)
++                or any(not torch.isfinite(value).all() for value in values.values())):
++            raise ValueError('Invalid native pose target')
++    elif stream == 'pointing':
++        value = json.loads(row['target'].split('</think>')[-1].strip())
++        point = value.get('point_2d')
++        if set(value) != {'point_2d'} or (point is not None and
++                (not isinstance(point, list) or len(point) != 2 or any(type(v) is not int or not 0 <= v <= 1000 for v in point))):
++            raise ValueError('Invalid native pointing target')
++
++
++class Admission:
++    def __init__(self, pin):
++        self.manifest = load(pinned(pin))
++        if self.manifest.get('contract') != CONTRACT:
++            raise ValueError('Wrong membership contract')
++
++    def check(self, row, stream, target=None):
++        expected = self.manifest['rows'].get(row['qid'])
++        if expected is None or expected != digest(dict(row=row, target=target, stream=stream)):
++            raise ValueError('Row missing or changed in sealed membership')
++        from .r2_frames import verify_frame
++        inputs = row['student_input']
++        for pin in inputs.get('geometry_dense', inputs)['frames']:
++            verify_frame(pin)
++        return row
++
++
++def event_row(row):
++    """Reviewed R2 ground events, including failed-call continuations, use native spans."""
++    from .ground_rows import render_ground
++    if (row.get('schema') != 'derivgen-row-v2' or row.get('infrastructure_only') is not False
++            or row.get('response_source') not in ('ground_truth', 'deployed')
++            or not re.fullmatch('[0-9a-f]{64}', row.get('provenance', {}).get('source_row_sha256', ''))):
++        raise ValueError('R2 program lacks its event schema or response lineage')
++    target, spans, _ = render_ground(row['events'], row['answer'])
++    if target != row['target'] or spans != row['tool_output_spans']:
++        raise ValueError('R2 events differ from target or response spans')
++    failed = False
++    for event in row['events']:
++        if failed and event['kind'] == 'ground_call':
++            raise ValueError('R2 fallback calls again after a failed response')
++        if event['kind'] == 'ground_response' and re.search(r'not seen|failed|no linked candidate', event['text'], re.I):
++            failed = True
++    if failed and 'Locate:' not in target:
++        raise ValueError('Failed response needs a located direct continuation')
++    return target, spans
+--- /dev/null
++++ b/student_pilot/r2_dense.py
+@@ -0,0 +1,37 @@
++"""Build dense RGB membership before the forward reconstructs and subsamples geometry."""
++from copy import deepcopy
++from .dense_eval import nested_indices
++from .p3_provenance import digest
++from .r2_contract import expand_frames
++
++
++def build_training(row, count=64):
++    result = deepcopy(row)
++    sparse = result['student_input'] = expand_frames(row['student_input'])
++    source = sparse.pop('dense_source', None)
++    if source is None:
++        from .r2_frames import NeedsFrameHost
++        raise NeedsFrameHost('needs the frame host: dense source manifest is missing for ' + row['qid'])
++    wanted = nested_indices(sparse['total_num_frames'], sparse['frame_indices'], count)
++    frames = {}
++    for pin in source['frames']:
++        ordinal = pin['source_index']
++        if ordinal in frames and frames[ordinal]['sha256'] != pin['sha256']:
++            raise ValueError('Conflicting dense content at source ordinal')
++        frames[ordinal] = dict(path=pin['path'], sha256=pin['sha256'])
++    for ordinal, pin in zip(sparse['frame_indices'], sparse['frames'], strict=True):
++        if ordinal not in frames or frames[ordinal]['sha256'] != pin['sha256']:
++            raise ValueError('Sparse RGB differs from dense content')
++        # Preserve each row's logical path; content identity never includes it.
++        frames[ordinal] = pin
++    if not set(wanted) <= frames.keys():
++        from .r2_frames import NeedsFrameHost
++        raise NeedsFrameHost('needs the frame host: dense source lacks selected ordinals')
++    dense = dict(frames=[frames[i] for i in wanted], frame_indices=wanted,
++                 timestamps=[i/sparse['fps'] for i in wanted], fps=sparse['fps'],
++                 total_num_frames=sparse['total_num_frames'])
++    sparse['geometry_dense'] = dense
++    clip_key = digest([(i, frames[i]['sha256']) for i in wanted])
++    from .gf1 import dense_inputs
++    dense_inputs(result, {'dense_frames': count})
++    return result, clip_key
+--- /dev/null
++++ b/student_pilot/r2_exclusions.py
+@@ -0,0 +1,81 @@
++"""Apply every copied exclusion record, with pinned row-scene coverage."""
++import re
++from .p3_provenance import load, pinned
++
++ROLES = ('benchmark', 'dev_ids', 'eval_ids', 'frames_gate', 'eval_rooms', 'room_split', 'dev_manifest')
++ALIASES = {'d1': 'scannet', 'd2': 'scannetppv2', 'd3': 'arkitscenes', 'scannetpp': 'scannetppv2'}
++SEALED = dict(benchmark='3119aa4a9594e4507372b99243afc8210fe217393466ac4e5ae78485e7c83970',
++              dev_ids='951902eea28b6a56e49f1e44761802e05fc4ff25e7ebcb84dfa4bc77fea0a824',
++              eval_ids='a5d707acfafeed88a9009cd2fb89f3bfdf53d43fea67b183c589765299e27255',
++              frames_gate='eb2957fcaecaf1380aa9b56208902479a21eafcbe1696cc7cd8a41d95a29e352',
++              eval_rooms='267efeb1ecf1c1c8329cb4b1809ed05069d9f8d0178a35caba25a9e430a4fd33',
++              room_split='246a49f7fefd3c4df4a64eabe4dcce93e0ff8e445644510b510447f0c852fded',
++              dev_manifest='e6fe4a7e3c5a9f929d1cb9393915b93020233c0f31d46ded4638cdbd17ccbafb')
++
++
++def normalize(name):
++    corpus, scene = name.split('/', 1)
++    return ALIASES.get(corpus, corpus) + '/' + scene
++
++
++class Exclusions:
++    def __init__(self, pins):
++        if set(pins) != set(ROLES):
++            raise ValueError('All exclusion records are required')
++        if {role: pin['sha256'] for role, pin in pins.items()} != SEALED:
++            raise ValueError('Exclusion records differ from the sealed build inputs')
++        self.pins, self.names, self.qids = pins, {}, {}
++        records = {}
++        for role, pin in pins.items():
++            path = pinned(pin)
++            if role in ('dev_ids', 'eval_ids'):
++                self.qids[role] = {line.split('\t')[1].strip() for line in path.read_text().splitlines() if line.strip()}
++            else:
++                records[role] = load(path)
++        bench = records['benchmark']
++        self.corpora = set(ALIASES.values()) | set(bench.get('other_corpora', {}))
++        self.names['benchmark'] = set(bench['scenes'] + bench['physical_groups'])
++        self.names['benchmark'].update('/'.join(x) for x in bench['rung1_tokens'])
++        self.names['benchmark'].update(c+'/'+s for c, scenes in bench.get('other_corpora', {}).items() for s in scenes)
++        rooms = records['eval_rooms']
++        self.alias_rooms = {normalize(k): normalize(v) for k, v in rooms['alias_rooms'].items()}
++        self.names['eval_rooms'] = set(rooms['evaluation_rooms'])
++        self.names['room_split'] = set(s for k, values in records['room_split'].items() if k.endswith('_scenes') for s in values)
++        self.names['dev_manifest'] = {s[k] for s in records['dev_manifest']['captures'] for k in ('native', 'scene')}
++        self.names = {k: {normalize(x) for x in names} for k, names in self.names.items()}
++        self.frames_gate = records['frames_gate']
++
++    def check(self, row, coverage):
++        if not isinstance(coverage, dict) or not coverage.get('names') or coverage.get('status') != 'known':
++            raise ValueError('Unknown scene overlap: scene_coverage is required')
++        names = {normalize(x) for x in coverage['names']}
++        if any(name.split('/')[0] not in self.corpora for name in names):
++            raise ValueError('Unknown scene corpus overlap')
++        key = normalize(row['dataset']+'/'+row['scene'])
++        if key not in names:
++            raise ValueError('Wrong scene: independent coverage differs')
++        for value in (row.get('canonical'), row.get('provenance', {}).get('canonical')):
++            if value and normalize(value) not in names:
++                raise ValueError('Wrong canonical scene in coverage')
++        names.update(self.alias_rooms[n] for n in list(names) if n in self.alias_rooms)
++        names.update(re.sub(r'_(\d\d)$', '', n) for n in list(names) if n.startswith('scannet/scene'))
++        reasons = [role for role, excluded in self.names.items() if names & excluded]
++        ids = {row['qid'], row.get('source_qid'), row.get('provenance', {}).get('source_qid')}
++        reasons.extend(role for role, excluded in self.qids.items() if ids & excluded)
++        return reasons
++
++
++def upstream(pins, exclusions):
++    result = []
++    for pin in pins:
++        receipt = load(pinned(pin))
++        if receipt.get('exclusions') != exclusions or not isinstance(receipt.get('counts'), dict):
++            raise ValueError('Upstream exclusions differ or counts are missing')
++        for counts in receipt['counts'].values():
++            if (set(counts) != {'seen', 'admitted', 'refused', 'reasons'}
++                    or any(type(counts[k]) is not int or counts[k] < 0 for k in ('seen', 'admitted', 'refused'))
++                    or counts['seen'] != counts['admitted'] + counts['refused']
++                    or not isinstance(counts['reasons'], dict)):
++                raise ValueError('Invalid upstream exclusion accounting')
++        result.append(dict(pin=pin, receipt=receipt))
++    return result
+--- /dev/null
++++ b/student_pilot/r2_frames.py
+@@ -0,0 +1,81 @@
++"""Mapped RGB reads and a bounded, identity-invalidated process hash memo."""
++from collections import OrderedDict
++import hashlib
++import json
++import os
++from pathlib import Path
++from threading import RLock
++
++
++class NeedsFrameHost(FileNotFoundError):
++    """The manifest is usable, but this host lacks its mapped RGB bytes."""
++
++
++def resolve_frame(path):
++    raw = Path(path)
++    if not raw.is_absolute() or '..' in raw.parts:
++        raise ValueError('Frame path must be absolute without traversal')
++    mapping = json.loads(os.environ.get('STUDENT_FRAME_ROOT_MAP', '{}'))
++    if not isinstance(mapping, dict):
++        raise ValueError('STUDENT_FRAME_ROOT_MAP must be a JSON object')
++    for old in sorted(mapping, key=len, reverse=True):
++        source, destination = Path(old), Path(mapping[old])
++        if not source.is_absolute() or not destination.is_absolute() or '..' in destination.parts:
++            raise ValueError('Invalid frame root map')
++        if raw.is_relative_to(source):
++            target = destination / raw.relative_to(source)
++            if not target.resolve().is_relative_to(destination.resolve()):
++                raise ValueError('Frame symlink escapes mapped root')
++            raw = target
++            break
++    resolved = raw.resolve()
++    if resolved.parts[1] == 'home' or resolved.parts[1].startswith('data'):
++        raise NeedsFrameHost('needs the frame host: unmapped logical frame root ' + str(raw))
++    if not raw.is_file():
++        raise NeedsFrameHost('needs the frame host: missing mapped RGB ' + str(raw))
++    return raw
++
++
++class FrameMemo:
++    def __init__(self, capacity=8192):
++        if capacity < 1:
++            raise ValueError('Frame memo capacity must be positive')
++        self.capacity, self.values, self.hashes, self.requests = capacity, OrderedDict(), 0, 0
++        self.lock = RLock()
++
++    @staticmethod
++    def identity(stat):
++        return stat.st_dev, stat.st_ino, stat.st_size, stat.st_mtime_ns
++
++    def verify(self, pin):
++        path = resolve_frame(pin['path'])
++        with self.lock:
++            self.requests += 1
++            with path.open('rb') as handle:
++                identity = self.identity(os.fstat(handle.fileno()))
++                value = self.values.get(identity)
++                if value is None:
++                    hasher = hashlib.sha256()
++                    for block in iter(lambda: handle.read(1 << 20), b''):
++                        hasher.update(block)
++                    value = hasher.hexdigest()
++                    self.hashes += 1
++                if identity != self.identity(os.fstat(handle.fileno())) or identity != self.identity(path.stat()):
++                    raise ValueError('Frame changed while hashing')
++            if value != pin['sha256']:
++                raise ValueError('Stale frame pin: ' + pin['path'])
++            self.values[identity] = value
++            self.values.move_to_end(identity)
++            while len(self.values) > self.capacity:
++                self.values.popitem(last=False)
++            return path
++
++    def stats(self):
++        return dict(requests=self.requests, hashes=self.hashes, cached=len(self.values), capacity=self.capacity)
++
++
++MEMO = FrameMemo()
++
++
++def verify_frame(pin):
++    return MEMO.verify(pin)
+--- /dev/null
++++ b/student_pilot/r2_intake.py
+@@ -0,0 +1,110 @@
++"""python -m student_pilot.r2_intake --manifest FAMILY --output REPORT
++
++Envelope schema and the rows-lane replacement boundary are in R2_DATA_PATH.md.
++"""
++import argparse
++from collections import Counter
++import gzip
++import json
++import os
++from pathlib import Path
++import sys
++from .p3_provenance import digest, load, pinned, write
++from .r2_contract import validate, perception
++from .r2_adapters import normalize
++from .r2_exclusions import Exclusions, upstream
++
++
++def read_rows(pin, limit):
++    path = pinned(pin)
++    opener = gzip.open if path.suffix == '.gz' else open
++    with opener(path, 'rt') as handle:
++        for index, line in enumerate(handle):
++            if limit is not None and index >= limit:
++                break
++            yield json.loads(line)
++
++
++def intake(manifest_path, *, limit=2000, select_types=None):
++    manifest = load(manifest_path)
++    if manifest.get('schema') != 'r2-family-manifest-v1' or not manifest.get('family'):
++        raise ValueError('Old-format or unnamed family manifest')
++    remote_full = (limit is None and os.environ.get('STUDENT_R2_FRAME_HOST') == '1'
++                   and os.environ.get('STUDENT_R2_LOCAL_NODE') != '1'
++                   and not os.uname().nodename.startswith('trinity'))
++    if not remote_full and (type(limit) is not int or not 1 <= limit <= 2000):
++        raise ValueError('Local slices must contain at most 2000 rows per family')
++    if manifest.get('scene_coverage') is None:
++        raise ValueError('scene_coverage=None refuses; unknown overlap is not a pass')
++    rule = Exclusions(manifest['exclusions'])
++    coverage = load(pinned(manifest['scene_coverage']))
++    if coverage.get('exclusions') != manifest['exclusions'] or coverage.get('rows_sha256') != manifest['rows']['sha256']:
++        raise ValueError('Scene coverage pins differ from this population')
++    previous = upstream(manifest['upstream_receipts'], manifest['exclusions'])
++    frame_map = load(pinned(manifest['frame_map'])) if manifest.get('frame_map') else None
++    if manifest.get('prefiltered') and not previous:
++        raise ValueError('Prefiltered rows require upstream receipts')
++    admitted, counts, refusals, seen = [], {}, [], set()
++    for raw in read_rows(manifest['rows'], limit):
++        row = raw['row'] if 'row' in raw else raw
++        kind = row.get('question_type', manifest['stream'])
++        value = counts.setdefault(kind, dict(seen=0, admitted=0, refused=0, reasons=Counter()))
++        value['seen'] += 1
++        try:
++            qid = row['qid']
++            if qid in seen:
++                raise ValueError('Duplicate QID within family')
++            seen.add(qid)
++            if select_types is not None and kind not in select_types:
++                raise ValueError('type_selection')
++            if kind == 'room_size_estimation' and not (row.get('provenance', {}).get('source_row_sha256') and row.get('provenance', {}).get('frame_indices')):
++                raise ValueError('lineage_less_room: missing source-row and frame lineage')
++            expected = manifest['row_bindings'].get(qid)
++            if expected is None:
++                raise ValueError('Missing sealed row membership')
++            if digest(raw) != expected:
++                raise ValueError('Stale pin or wrong scene: row differs from membership')
++            row = normalize(row, frame_map)
++            row['r2_envelope_sha256'] = digest(raw)
++            validate(row, manifest['stream'])
++            perception(row, manifest['stream'], raw.get('target_record', {}))
++            reasons = rule.check(row, coverage['rows'].get(qid))
++            if reasons:
++                raise ValueError('excluded:' + ','.join(reasons))
++        except (KeyError, TypeError, ValueError) as error:
++            reason = str(error)
++            value['refused'] += 1
++            value['reasons'][reason] += 1
++            refusals.append(dict(qid=row.get('qid'), type=kind, reason=reason))
++        else:
++            value['admitted'] += 1
++            admitted.append(dict(row=row, target=raw.get('target_record', {}), stream=manifest['stream'],
++                                 family=manifest['family']))
++    report = dict(schema='r2-intake-report-v1', family=manifest['family'], counts=counts,
++                  refusals=refusals, upstream=previous, exclusions=manifest['exclusions'],
++                  manifest_path=str(manifest_path), manifest_sha256=digest(manifest),
++                  slice_limit=limit, population_count=manifest['count'])
++    return admitted, report
++
++
++def text_report(report):
++    return '\n'.join(f"{kind}: admitted={c['admitted']} refused={c['refused']} reasons={dict(c['reasons'])}"
++                     for kind, c in sorted(report['counts'].items()))
++
++
++def main(argv=None):
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument('--manifest', required=True)
++    parser.add_argument('--output', required=True)
++    parser.add_argument('--limit', type=int, default=2000)
++    parser.add_argument('--select-type', action='append')
++    args = parser.parse_args(argv)
++    _, report = intake(args.manifest, limit=args.limit, select_types=args.select_type)
++    write(Path(args.output), report)
++    print(json.dumps(report, sort_keys=True))
++    print(text_report(report), file=sys.stderr)
++    return int(bool(report['refusals']))
++
++
++if __name__ == '__main__':
++    raise SystemExit(main())
+--- /dev/null
++++ b/student_pilot/r2_materialize.py
+@@ -0,0 +1,107 @@
++"""Manifest intake to native SQLite stores; frame-host boundary is an explicit receipt."""
++import argparse
++import json
++import os
++from pathlib import Path
++import sqlite3
++from .p3_provenance import digest, file_pin, write
++from .r2_contract import CONTRACT, expand_frames
++from .r2_dense import build_training
++from .r2_frames import MEMO, NeedsFrameHost, verify_frame
++from .r2_intake import intake
++
++MAX_ROWS_PER_FAMILY = 2000
++
++
++def materialize(manifests, output, *, limit=2000, full=False, select_types=None, metadata_only=False, dense=True):
++    if full and (os.environ.get('STUDENT_R2_LOCAL_NODE') == '1' or (Path.cwd()/'.r2_local_node').exists()
++                 or os.uname().nodename.startswith('trinity')):
++        raise ValueError('Full store forbidden on a local node; use slices of at most 2000 rows per family')
++    if full:
++        if os.environ.get('STUDENT_R2_FRAME_HOST') != '1':
++            raise ValueError('Full materialization requires an explicit frame-host admission')
++        limit = None
++    output = Path(output)
++    output.mkdir(parents=True, exist_ok=False)
++    rows, reports, identities, family_counts = [], [], {}, {}
++    for manifest in manifests:
++        accepted, report = intake(manifest, limit=limit, select_types=(select_types or {}).get(str(manifest)))
++        reports.append(report)
++        family = report['family']
++        family_counts[family] = family_counts.get(family, 0) + sum(c['seen'] for c in report['counts'].values())
++        if not full and family_counts[family] > MAX_ROWS_PER_FAMILY:
++            raise ValueError('Combined manifests exceed the per-family slice limit')
++        for item in accepted:
++            row = item['row']
++            if row['qid'] in identities:
++                raise ValueError('Unfiltered route-planning ID collision: select sealed routing by type before combining re-rendered rows; QID=' + row['qid'])
++            identities[row['qid']] = item['family']
++            rows.append(item)
++    before, missing, built, clips = MEMO.stats(), [], [], {}
++    for item in rows:
++        try:
++            row = item['row']
++            if dense:
++                row, key = build_training(row)
++                clips.setdefault(key, []).append(row['qid'])
++            else:
++                row = {**row, 'student_input': expand_frames(row['student_input'])}
++            if metadata_only:
++                raise NeedsFrameHost('needs the frame host: metadata-only proof; RGB was not read')
++            for pin in row['student_input'].get('geometry_dense', row['student_input'])['frames']:
++                verify_frame(pin)
++            if item['stream'] == 'routing':
++                from .carrier_c1_routing import c1_row
++                inputs = row['student_input']
++                rgb = dict(inputs, frames=[dict(pin, source_index=i) for i, pin in zip(inputs['frame_indices'], inputs['frames'], strict=True)])
++                row = c1_row(row, rgb)
++            built.append({**item, 'row': row})
++        except NeedsFrameHost as error:
++            missing.append(dict(qid=item['row']['qid'], family=item['family'], reason=str(error)))
++    report = dict(schema='r2-materialization-v1', intake=reports, missing=missing,
++                  status='needs the frame host' if missing else 'ready',
++                  hashes_before=before, hashes_after=MEMO.stats(), content_clips=clips,
++                  frame_roots=sorted({str(Path(p['path']).parent) for item in rows for p in expand_frames(item['row']['student_input'])['frames']}))
++    if missing:
++        write(output/'materialization.json', report)
++        return report
++    # Admission failure is never hidden by a partially useful store.
++    unexpected = [r for rep in reports for r in rep['refusals'] if r['reason'] != 'type_selection' and not r['reason'].startswith(('excluded:', 'lineage_less_room:'))]
++    if unexpected:
++        write(output/'materialization.json', report)
++        raise ValueError('Intake refused invalid rows; see materialization.json')
++    streams, members = {}, {}
++    for stream in sorted({item['stream'] for item in built}):
++        path = output/(stream+'.sqlite')
++        with sqlite3.connect(path) as connection:
++            connection.execute('CREATE TABLE rows (i INTEGER PRIMARY KEY, row TEXT NOT NULL, target TEXT NOT NULL)')
++            selected = [item for item in built if item['stream'] == stream]
++            for index, item in enumerate(selected):
++                connection.execute('INSERT INTO rows VALUES (?,?,?)', (index, json.dumps(item['row']), json.dumps(item['target'])))
++                members[item['row']['qid']] = digest(dict(row=item['row'], target=item['target'], stream=stream))
++        streams[stream] = dict(database=file_pin(path), count=len(selected))
++    membership = output/'membership.json'
++    write(membership, dict(contract=CONTRACT, rows=members, intake=reports, content_clips=clips))
++    receipt = dict(schema='r2-native-stores-v1', streams=streams, r2_membership=file_pin(membership),
++                   frame_layout='duplicate', training_mode='final')
++    write(output/'receipt.json', receipt)
++    report['receipt'] = file_pin(output/'receipt.json')
++    write(output/'materialization.json', report)
++    return report
++
++
++def main(argv=None):
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument('--manifest', action='append', required=True)
++    parser.add_argument('--output', required=True)
++    parser.add_argument('--limit', type=int, default=2000)
++    parser.add_argument('--metadata-only', action='store_true')
++    parser.add_argument('--no-dense', action='store_true')
++    parser.add_argument('--full', action='store_true')
++    args = parser.parse_args(argv)
++    print(json.dumps(materialize(args.manifest, args.output, limit=args.limit,
++                                metadata_only=args.metadata_only, dense=not args.no_dense, full=args.full), sort_keys=True))
++
++
++if __name__ == '__main__':
++    main()
+--- /dev/null
++++ b/student_pilot/r2_real_proof.py
+@@ -0,0 +1,51 @@
++"""Run metadata-only family proofs when the row and sealed-metadata lanes publish."""
++import argparse
++from pathlib import Path
++from .p3_provenance import load, pinned, write
++from .r2_materialize import materialize
++
++
++def prove(rows_dir, sealed_meta_dir, output):
++    rows_dir, sealed_meta_dir, output = Path(rows_dir), Path(sealed_meta_dir), Path(output)
++    index = sealed_meta_dir/'REAL_ROW_INPUTS.json'
++    if not rows_dir.is_dir() or not index.is_file():
++        raise ValueError('Real-row inputs absent: require rows_dir and sealed_meta_dir/REAL_ROW_INPUTS.json; no proof was run')
++    spec = load(index)
++    if spec.get('schema') != 'r2-real-proof-inputs-v1' or not spec.get('expected_families'):
++        raise ValueError('Real-row proof needs an explicit complete family inventory')
++    manifests = [pinned(pin) for pin in spec['manifests']]
++    if any(not (p.resolve().is_relative_to(rows_dir.resolve()) or p.resolve().is_relative_to(sealed_meta_dir.resolve())) for p in manifests):
++        raise ValueError('Proof manifest is outside its published roots')
++    values = [load(p) for p in manifests]
++    if set(v['family'] for v in values) != set(spec['expected_families']):
++        raise ValueError('Published family inventory is incomplete')
++    if set(v['stream'] for v in values) != {'vqa', 'routing', 'pose', 'pointing'}:
++        raise ValueError('Real proof requires every native stream, including both pose sources in its inventory')
++    output.mkdir(parents=True, exist_ok=False)
++    results = []
++    for i, path in enumerate(manifests):
++        report = materialize([path], output/str(i), metadata_only=True, limit=2000,
++                             select_types={str(path): spec.get('select_types', {}).get(str(path))})
++        if report['status'] != 'needs the frame host' or not report['missing']:
++            raise ValueError('Family did not reach the frame-host boundary: ' + str(path))
++        invalid = [r for rep in report['intake'] for r in rep['refusals'] if not r['reason'].startswith(('excluded:', 'lineage_less_room:', 'type_selection'))]
++        if invalid:
++            raise ValueError('Real family has invalid rows; inspect its intake receipt: ' + str(path))
++        results.append(dict(manifest=str(path), report=report))
++    result = dict(status='metadata reached frame-host boundary', rgb_read=False, results=results,
++                  input_inventory=str(index), limit_per_family=2000)
++    write(output/'REAL_ROW_PROOF.json', result)
++    return result
++
++
++def main(argv=None):
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument('rows_dir')
++    parser.add_argument('sealed_meta_dir')
++    parser.add_argument('--output', required=True)
++    args = parser.parse_args(argv)
++    prove(args.rows_dir, args.sealed_meta_dir, args.output)
++
++
++if __name__ == '__main__':
++    main()
+--- /dev/null
++++ b/student_pilot/trace_grammar.py
+@@ -0,0 +1,152 @@
++"""Trace ruling grammar. Replace this module atomically with the reviewed rows-lane copy.
++
++SOURCE_SHA256 hashes RULES (canonical JSON); the tree inventory pins this code too.
++This conservative syntax gate cannot prove that a pictured relation is true. Scene,
++frame and row membership evidence is checked separately by r2_contract.
++"""
++import ast
++import hashlib
++import json
++import math
++import operator
++import re
++
++RULES = {
++    'schema': 'r2-trace-grammar-v1',
++    'line_kinds': ['Locate', 'Relate', 'Step', 'Call'],
++    'program_types': ['object_abs_distance', 'camera_displacement', 'camera_movement_direction', 'camera_rotation'],
++    'numbers': ['frame index', 'listed item count', 'printed response value', 'explicit arithmetic', 'question constant'],
++    'direct_answer': 'Numeric estimates only after </think>; never in a trace.',
++    'locate': 'Object is seen in frame N; one frame per named object, N is a one-based student slot.',
++    'count': 'Step: list [item; item]; count = N. Items must name previously located objects.',
++    'arithmetic': 'Step: compute EXPR = VALUE. Operands must already be supported.',
++    'unit_factors_from_meters': {'centimeters': 100, 'centimetres': 100, 'feet': 3.28084, 'inches': 39.3701},
++    'forbid': ['tool tags in direct targets', 'empty think', 'answer restatement', 'filler-only steps',
++               'glued units', 'number words except question constants and half turn', 'seconds for frames',
++               'exhaustive frame lists', 'absent in'],
++}
++SOURCE_SHA256 = hashlib.sha256(json.dumps(RULES, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
++PROGRAM_TYPES = frozenset(RULES['program_types'])
++NUMBER = r'(?<![\w.])-?\d+(?:\.\d+)?(?![\w.])'
++WORDS = r'\b(zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand|million|half|quarter|dozen|couple)\b'
++RELATION = r'\b(left|right|ahead|behind|front|above|below|nearest|farthest|before|after|between|longest|shortest|larger|smaller|closer|farther|nearer|inside|outside|next|opposite)\b'
++STEP = r'\b(face|facing|turn|swap|threshold|closest|farthest|longest|dimension|waypoint|heading|forward|combined|list|compute|count)\b'
++
++
++def numbers(text):
++    return {float(x) for x in re.findall(NUMBER, text)}
++
++
++def arithmetic(expression, allowed):
++    operations = {ast.Add: operator.add, ast.Sub: operator.sub, ast.Mult: operator.mul, ast.Div: operator.truediv}
++    def evaluate(node):
++        if isinstance(node, ast.Constant) and type(node.value) in (int, float) and node.value in allowed:
++            return node.value
++        if isinstance(node, ast.BinOp) and type(node.op) in operations:
++            return operations[type(node.op)](evaluate(node.left), evaluate(node.right))
++        raise ValueError('Arithmetic uses unsupported operands or operations')
++    try:
++        value = evaluate(ast.parse(expression, mode='eval').body)
++    except (SyntaxError, ZeroDivisionError) as error:
++        raise ValueError('Invalid explicit arithmetic') from error
++    if not math.isfinite(value):
++        raise ValueError('Nonfinite arithmetic')
++    return value
++
++
++def validate_direct(target, question, frame_count):
++    match = re.fullmatch(r'<think>\s*\n(.*?)\n</think>\s*(\S[\s\S]*)', target, re.S)
++    if not match:
++        raise ValueError('Missing trace or answer')
++    think, answer = match.groups()
++    if not think.strip():
++        raise ValueError('Empty think block')
++    if re.search(r'<(?!/?answer\b)[^>]+>', answer) or '<' in think or '<tool_response' in target:
++        raise ValueError('Direct target carries a call or response tag')
++    if re.search(r'\d(?:\.\d+)?\s*(?:seconds?|secs?\b)|\babsent in\b|\bframes\s+\d', think, re.I):
++        raise ValueError('Seconds, exhaustive visibility or absence statements are forbidden')
++    if re.search(r'\d(?:cm|mm|km|ft|inches|meters|metres|m\b|deg)', think, re.I):
++        raise ValueError('Integers or decimals glued to units')
++    question_words = set(re.findall(WORDS, question.lower()))
++    word_text = re.sub(r'\bhalf turn\b', '', think.lower())
++    if set(re.findall(WORDS, word_text)) - question_words:
++        raise ValueError('Unsupported number words')
++    allowed, located = numbers(question), set()
++    for line in think.strip().splitlines():
++        parsed = re.fullmatch(r'(Locate|Relate|Step):\s*(\S.*)', line.strip())
++        if not parsed:
++            raise ValueError('Trace line must be Locate, Relate or Step')
++        kind, body = parsed.groups()
++        if re.search(r'\b(?:the answer is|so the answer|option [A-Z] is correct)\b', body, re.I):
++            raise ValueError('Answer restatement is not reasoning')
++        residual = body
++        if kind == 'Locate':
++            found = re.fullmatch(r'(.+?) (?:is (?:first )?seen|is visible|appears) in frame (\d+)(?:[.,] (?:at|in) the [a-z -]+)?\.?', body, re.I)
++            if not found or not 1 <= int(found[2]) <= frame_count:
++                raise ValueError('Locate requires one valid frame per object')
++            obj = found[1].casefold()
++            if obj in located:
++                raise ValueError('An object has an exhaustive or duplicate frame list')
++            located.add(obj)
++            residual = re.sub(r'frame \d+', 'frame', body)
++        elif kind == 'Relate':
++            if (not re.search(RELATION, body, re.I) or not located
++                    or not any(obj.removeprefix('the ') in body.casefold() for obj in located)):
++                raise ValueError('Relate must relate located objects')
++        else:
++            listing = re.fullmatch(r'list \[(.+)\]; count = (\d+)\.?', body)
++            computation = re.fullmatch(r'compute (.+?) = (-?\d+(?:\.\d+)?)\.?', body)
++            if listing:
++                items = [s.strip().casefold() for s in listing[1].split(';')]
++                if len(set(items)) != len(items) or not set(items) <= located or len(items) != int(listing[2]):
++                    raise ValueError('Count differs from the listed located items')
++                allowed.add(float(len(items)))
++            elif computation:
++                value = arithmetic(computation[1], allowed)
++                if not math.isclose(value, float(computation[2]), rel_tol=1e-9, abs_tol=1e-9):
++                    raise ValueError('Explicit arithmetic result differs')
++                allowed.add(value)
++            elif not re.search(STEP, body, re.I) or not (set(re.findall(r'[a-z]{4,}', body.lower())) & set(re.findall(r'[a-z]{4,}', question.lower()))):
++                raise ValueError('Filler Step does not express the question logic')
++        if numbers(residual) - allowed:
++            raise ValueError('Trace contains an unsupported number')
++        if re.search(r'\d\s*(?:m|cm|ft|meters?|metres?|degrees?|square)\b', residual, re.I) and kind != 'Step':
++            raise ValueError('Direct trace states a measurement')
++    return answer.strip()
++
++
++def validate_program(row):
++    from .carrier_c1_routing import check_row
++    if row.get('question_type') not in PROGRAM_TYPES:
++        raise ValueError('Call on a direct type; room size is direct')
++    target, spans = check_row(row)
++    if not spans or not re.search(r'</think>\s*<answer>.+</answer>\s*$', target, re.S):
++        raise ValueError('Program needs masked responses and an <answer> ending')
++    response_ranges = [(m.start(), m.end()) for m in re.finditer(r'<tool_response>.*?</tool_response>', target, re.S)]
++    if (response_ranges != [(s['start'], s['end']) for s in spans]
++            or target.count('<tool_response>') != len(spans) or target.count('</tool_response>') != len(spans)):
++        raise ValueError('Every response must be an event with a masked span')
++    # Canonical sealed events define Call lines; responses are external text, never targets.
++    calls = [e.get('call_id') for e in row['events'] if e['kind'] in ('tool_call', 'calculator_call', 'ground_call')]
++    if any(s['call_id'] not in calls for s in spans):
++        raise ValueError('Response has no corresponding call')
++    allowed = numbers(row['question'])
++    for event in row['events']:
++        kind = event['kind']
++        if kind in ('tool_response', 'ground_response', 'calculator_response'):
++            printed = event['response']['text'] if kind == 'calculator_response' else event['text']
++            allowed.update(numbers(printed))
++        elif kind in ('plan', 'canonical_text', 'correction'):
++            prose = event['text'].split('</think>')[0].replace('<think>', '')
++            prose = re.sub(r'frame \d+', 'frame', prose)
++            for unit, factor in RULES['unit_factors_from_meters'].items():
++                if unit in row['question'].lower() and any(re.search(r'\d\s*m\b', row['target'][s['start']:s['end']]) for s in spans):
++                    allowed.add(factor)
++            for expr, result in re.findall(r'compute ([\d. +*/()-]+) = (-?\d+(?:\.\d+)?)', prose):
++                value = arithmetic(expr, allowed)
++                if not math.isclose(value, float(result), rel_tol=1e-9, abs_tol=1e-9):
++                    raise ValueError('Program arithmetic result differs')
++                allowed.add(value)
++            if numbers(prose) - allowed:
++                raise ValueError('Program prose states an unprinted number')
++    return target, spans
+--- /dev/null
++++ b/tests/test_r2_data_path.py
+@@ -0,0 +1,345 @@
++"""CPU producer/reader proof. RGB is synthetic and always declared as such."""
++from copy import deepcopy
++import json
++import os
++from pathlib import Path
++import re
++import tempfile
++from types import SimpleNamespace
++import unittest
++from unittest.mock import patch
++import numpy as np
++from PIL import Image
++import torch
++from student_pilot import r2_contract as C, r2_frames as F, trace_grammar as G
++from student_pilot import carrier_c1_routing as routing
++from student_pilot.p3_provenance import digest, file_pin, load, write
++from student_pilot.r2_intake import intake, main as intake_main, text_report
++from student_pilot.r2_materialize import materialize, main as materialize_main
++from student_pilot.r2_dense import build_training
++
++LANE = Path(__file__).resolve().parents[3]
++RECORDS = LANE/'work/records'
++SOURCES = dict(benchmark='revsi_dev/BENCH_SCENE_EXCLUSIONS_v2.json',
++               dev_ids='dose_pool/out/POOL_S1/EXCLUDE_DEV_S1.tsv',
++               eval_ids='dose_pool/out/POOL_S1/EXCLUDE_EVAL_ROOMS.tsv',
++               frames_gate='dose_pool/out/POOL_S1/FRAMES_GATE.json',
++               eval_rooms='own_probe/out/EVAL_ROOMS.json', room_split='ofs_e1/out/ROOM_SPLIT.json',
++               dev_manifest='devs1_masks/out/MANIFEST.json')
++
++
++def directory():
++    return Path(tempfile.mkdtemp(prefix='r2_', dir=os.environ['TMPDIR']))
++
++
++def fixture(root, qid='direct', stream='vqa', fps=10):
++    store = root/'frames'
++    store.mkdir(exist_ok=True)
++    pins = []
++    for i in range(64):
++        path = store/f'{i}.png'
++        if not path.exists():
++            Image.new('RGB', (32, 32), (i, 80, 130)).save(path)
++        pins.append(dict(path=f'/logical/r2/{i}.png', sha256=file_pin(path)['sha256']))
++    indices = list(range(0, 64, 2))
++    question = 'Is the stove to the left or right of the sofa?'
++    target = '<think>\nLocate: the stove is seen in frame 17.\nLocate: the sofa is seen in frame 2.\nRelate: the stove is to the right of the sofa.\n</think>\n\nA'
++    row = dict(qid=qid, dataset='d1', scene='fixture_clean', canonical='scannet/fixture_clean',
++               question_type='object_rel_direction_easy', trace_contract=C.CONTRACT,
++               question=question, options=['A. right', 'B. left'], answer='A', target=target,
++               provenance=dict(canonical='scannet/fixture_clean', source_row_sha256='e'*64, frame_indices=indices),
++               student_input=dict(frames=pins[::2], frame_indices=indices, timestamps=[i/fps for i in indices],
++                                  fps=fps, total_num_frames=64, question=question, options=['A. right', 'B. left'],
++                                  dense_source=dict(frames=[dict(pin, source_index=i) for i, pin in enumerate(pins)])))
++    if stream == 'routing':
++        events = [dict(kind='plan', text='Call: measure camera displacement between frame 1 and frame 25.'),
++                  dict(kind='tool_call', token='<move from=1 to=25>', call_id='move'),
++                  dict(kind='tool_response', text='dx = -0.21 m, dy = +0.28 m, dz = -0.07 m, distance = 0.35 m', call_id='move'),
++                  dict(kind='canonical_text', text='\nStep: the printed distance is 0.35 m.')]
++        answer = '<answer>0.35</answer>'
++        target, spans = routing.render(events, answer)
++        row.update(schema='derivgen-row-v2', form='spec-v3.8-calculator-v2', infrastructure_only=False,
++                   events=events, tool_output_spans=spans, answer=answer, gt_answer='0.35', target=target,
++                   question_type='camera_displacement')
++        row['provenance']['alias'] = 'd1/fixture_clean'
++        row['question'] = row['student_input']['question'] = 'How far in meters did the camera move from frame 1 to frame 25?'
++    if stream == 'pose':
++        row['student_input']['frame_prefix'] = '/logical/r2'
++        row['student_input']['frames'] = [{**p, 'path': Path(p['path']).name} for p in pins[::2]]
++        row['target_record'] = dict(camera=[[0., 0., 0., 0., 0., 0., 1., 1., 1.]]*32,
++            camera_mask=[True]*32, trajectory_scale=1., gravity=[0., -1., 0.], gravity_mask=True,
++            point_depth=dict(uv=[[[500., 500.]]]*32, depth=[[2.]]*32, mask=[[True]]*32))
++    if stream == 'pointing':
++        row['target'] = '<think>\n\n</think>\n\n{"point_2d": [500, 500]}'
++        row['pointing'] = dict(frame=1, kind='gt_instance_mask')
++    return row
++
++
++def manifest(root, rows, stream='vqa', family=None, upstream=False):
++    root.mkdir(exist_ok=True)
++    path = root/'rows.jsonl'
++    path.write_text(''.join(json.dumps(r)+'\n' for r in rows))
++    pins = {role: file_pin(RECORDS/name) for role, name in SOURCES.items()}
++    coverage = dict(exclusions=pins, rows_sha256=file_pin(path)['sha256'], rows={
++        r['qid']: dict(status='known', names=[r['dataset']+'/'+r['scene'], r.get('canonical', 'scannet/fixture_clean')])
++        for r in rows})
++    write(root/'coverage.json', coverage)
++    previous = []
++    if upstream:
++        write(root/'upstream.json', dict(exclusions=pins, counts=dict(example=dict(seen=4, admitted=3, refused=1, reasons={'dev_ids': 1}))))
++        previous = [file_pin(root/'upstream.json')]
++    result = dict(schema='r2-family-manifest-v1', family=family or stream, stream=stream, count=len(rows),
++                  rows=file_pin(path), row_bindings={r['qid']: digest(r) for r in rows},
++                  scene_coverage=file_pin(root/'coverage.json'), exclusions=pins,
++                  prefiltered=upstream, upstream_receipts=previous)
++    write(root/'MANIFEST.json', result)
++    return root/'MANIFEST.json'
++
++
++class TinyTokenizer:
++    """Lossless stand-in for the unavailable pretrained tokenizer."""
++    pad_token_id, eos_token_id, eos_token = 0, 1, '<eos>'
++    special = {'<eos>': 1, '<|fim_middle|>': 5, '<|video_pad|>': 61}
++
++    def encode(self, text, **kwargs):
++        return self(text)['input_ids']
++
++    def __call__(self, text, **kwargs):
++        ids, offsets, i = [], [], 0
++        while i < len(text):
++            token = next((t for t in self.special if text.startswith(t, i)), text[i])
++            ids.append(self.special.get(token, ord(token[0])+100))
++            offsets.append((i, i+len(token)))
++            i += len(token)
++        return dict(input_ids=ids, offset_mapping=offsets)
++
++    def decode(self, ids, **kwargs):
++        reverse = {v: k for k, v in self.special.items()}
++        return ''.join(reverse.get(int(i), chr(int(i)-100) if int(i) >= 100 else '<visual>') for i in ids)
++
++    def convert_tokens_to_ids(self, token):
++        return self.special.get(token, self.eos_token_id)
++
++
++class TinyProcessor:
++    """Only the pretrained processor boundary stands in; actual RGB loaders run."""
++    video_token_id = 61
++
++    def __init__(self):
++        self.tokenizer = TinyTokenizer()
++        self.video_processor = SimpleNamespace(merge_size=2, temporal_patch_size=2)
++
++    def apply_chat_template(self, messages, **kwargs):
++        prefix = 'Question: '+messages[0]['content'][1]['text']+'\n<think>\n'
++        return prefix if len(messages) == 1 else prefix+messages[-1]['content'].removeprefix('<think>\n')+'<eos>\n'
++
++    def __call__(self, text, videos, video_metadata, **kwargs):
++        metadata, arrays = video_metadata[0], videos[0]
++        ids = self.tokenizer.encode(text[0])
++        for i in range(0, len(arrays), 2):
++            timestamp = sum(metadata.frames_indices[i:i+2])/(2*metadata.fps)
++            ids += self.tokenizer.encode(f'<{timestamp:.1f} seconds>') + [62, 61, 63]
++        pixels = arrays[:, ::8, ::8].reshape(len(arrays)//2, 2, 2, 2, 2, 2, 3)
++        pixels = pixels.transpose(0, 2, 4, 6, 1, 3, 5).reshape(-1, 24)
++        token_ids = torch.tensor([ids])
++        return dict(input_ids=token_ids, mm_token_type_ids=torch.where(token_ids == 61, 2, 0), video_grid_thw=torch.tensor([[len(arrays)//2, 2, 2]]),
++                    pixel_values_videos=torch.tensor(pixels, dtype=torch.float32)/255)
++
++
++class GrammarTests(unittest.TestCase):
++    def test_all_required_mutations(self):
++        bad = ['', 'Relate: The answer is A.', 'Step: So the answer is A.', 'Step: Option A is correct.',
++               'Step: think carefully.\nStep: consider the image.', 'Locate: the chair is seen in frame 2 seconds.',
++               'Locate: the chair is seen in frames 1, 2, 3.', 'Relate: the chair is absent in frame 2.',
++               'Step: estimate 120cm.', 'Step: estimate 3m.', 'Step: estimate 2.5ft.',
++               'Step: estimate half a meter.', 'Step: estimate a dozen.', 'Step: estimate a couple of meters.',
++               'Step: estimate three meters.', 'Step: estimate 73 meters.', '<move from=1 to=2>',
++               '<tool_response>distance 2 m</tool_response>', 'The answer is A.']
++        results = []
++        for trace in bad:
++            with self.subTest(trace=trace), self.assertRaises(ValueError):
++                G.validate_direct('<think>\n'+trace+'\n</think>\nA', 'Estimate the object size in meters.', 32)
++            results.append(dict(mutation=trace, result='refused'))
++        (LANE/'out/MUTATIONS.json').write_text(json.dumps(results, indent=2))
++
++    def test_locate_counts_arithmetic_and_question_constants(self):
++        text = '<think>\nLocate: chair a is seen in frame 1.\nLocate: chair b is seen in frame 2.\nStep: list [chair a; chair b]; count = 2.\nStep: compute 2 + 2 = 4.\n</think>\n4'
++        self.assertEqual(G.validate_direct(text, 'Count chairs.', 32), '4')
++        self.assertEqual(G.arithmetic('2 * 3 - 2 / 2', {2, 3}), 5)
++        self.assertEqual(G.validate_direct('<think>\nStep: facing away is a half turn; left and right swap.\n</think>\nA', 'Facing away, which side?', 32), 'A')
++        for changed in (text.replace('frame 2', 'frame 33'), text.replace('chair b is', 'chair a is'),
++                        text.replace('count = 2', 'count = 3'), text.replace('= 4', '= 5'),
++                        text.replace('2 + 2', '2 + 99'), text.replace('2 + 2', '2 / 0')):
++            with self.assertRaises(ValueError):
++                G.validate_direct(changed, 'Count chairs.', 32)
++
++
++class DataPathTests(unittest.TestCase):
++    def setUp(self):
++        self.root = directory()
++        self.row = fixture(self.root)
++        self.enterContext(patch.dict(os.environ, STUDENT_FRAME_ROOT_MAP=json.dumps({'/logical/r2': str(self.root/'frames')}), STUDENT_R2_LOCAL_NODE='1'))
++
++    def test_init_warm_start_and_preparation_refusals(self):
++        spec = dict(contract=C.CONTRACT, init=C.INIT, mode='warm_start', run_id='new-run', code_sha256='a'*64, mixture_sha256='b'*64)
++        meta = dict(C.INIT, parent_configuration='a7ad7051-prefix-only')
++        self.assertEqual(C.check_init(spec, meta), spec)
++        for change in (dict(mode='exact_resume'), dict(run_id='469ddece'), dict(init={}), dict(code_sha256='short')):
++            with self.assertRaises(ValueError):
++                C.check_init({**spec, **change}, meta)
++        for change in (dict(artifact_sha256='0'*64), dict(parent_run='wrong'), dict(parent_configuration='wrong')):
++            with self.assertRaises(ValueError):
++                C.check_init(spec, {**meta, **change})
++        write(self.root/'EXPORT_ARTIFACT.json', meta)
++        spec['export_metadata'] = file_pin(self.root/'EXPORT_ARTIFACT.json')
++        cfg = dict(r2=spec, init_artifact=dict(artifact=dict(sha256=C.INIT['artifact_sha256'])))
++        write(self.root/'code.json', dict(tree_sha256=spec['code_sha256']))
++        write(self.root/'membership.json', dict(contract=C.CONTRACT, rows={}))
++        cfg.update(code=file_pin(self.root/'code.json'), r2_membership=file_pin(self.root/'membership.json'))
++        spec['mixture_sha256'] = digest({key: cfg.get(key) for key in ('recipe', 'streams', 'route_table')})
++        C.preparation(cfg)
++        for field in ('code_sha256', 'mixture_sha256'):
++            changed = deepcopy(cfg); changed['r2'][field] = 'f'*64
++            with self.assertRaises(ValueError):
++                C.preparation(changed)
++        self.assertIsNone(C.preparation({}))
++        with self.assertRaisesRegex(ValueError, 'membership requires'):
++            C.preparation({'r2_membership': cfg['r2_membership']})
++        from student_pilot import carrier_c1_run as run
++        for entry in (C.preparation, run.prepare, run.prepared):
++            with self.assertRaisesRegex(ValueError, 'init artifact'):
++                entry({**cfg, 'init_artifact': {}})
++
++    def test_intake_mutations_and_upstream_accounting(self):
++        path = manifest(self.root/'good', [self.row], upstream=True)
++        accepted, report = intake(path)
++        self.assertEqual(len(accepted), 1)
++        self.assertEqual(report['upstream'][0]['receipt']['counts']['example']['refused'], 1)
++        self.assertIn('admitted=1', text_report(report))
++        self.assertEqual(intake_main(['--manifest', str(path), '--output', str(self.root/'cli.json')]), 0)
++        mutations = [dict(trace_contract='old'), dict(target='A'), dict(scene='wrong'),
++                     dict(target=self.row['target'].replace('right of', '73 meters right of')),
++                     dict(question_type='camera_displacement'), dict(tool_output_spans=[{}])]
++        for i, change in enumerate(mutations):
++            row = {**self.row, **change}
++            path = manifest(self.root/f'bad{i}', [row])
++            if 'scene' in change:
++                value = load(path); value['row_bindings'][row['qid']] = digest(self.row); path.write_text(json.dumps(value))
++            admitted, refused = intake(path)
++            self.assertFalse(admitted)
++            self.assertEqual(sum(c['refused'] for c in refused['counts'].values()), 1)
++        wrong_unit = deepcopy(self.row)
++        wrong_unit['answer_unit'] = 'ft'
++        with self.assertRaisesRegex(ValueError, 'Wrong-unit'):
++            C.validate(wrong_unit, 'vqa')
++        room = {**self.row, 'question_type': 'room_size_estimation', 'provenance': {}}
++        admitted, refused = intake(manifest(self.root/'room', [room]))
++        self.assertFalse(admitted)
++        self.assertIn('lineage_less_room', refused['refusals'][0]['reason'])
++
++    def test_content_clocks_aliases_and_dense_rule(self):
++        from student_pilot.dense_eval import nested_indices, attach_dense
++        keys = []
++        for fps in (30, 10):
++            row = fixture(self.root, qid=str(fps), stream='pose' if fps == 30 else 'vqa', fps=fps)
++            if fps == 30:
++                row['canonical'] = 'd1/fixture_clean'
++            built, key = build_training(row)
++            keys.append(key)
++            dense = built['student_input']['geometry_dense']
++            self.assertEqual(dense['frame_indices'], nested_indices(64, list(range(0, 64, 2))))
++            self.assertEqual(dense['timestamps'], [i/fps for i in range(64)])
++            attach_dense(built, dense, {'dense_frames': 64})
++        self.assertEqual(keys[0], keys[1])
++        # A second store path holds identical bytes; dense identity ignores path.
++        row = deepcopy(self.row)
++        row['student_input']['frames'] = [{**p, 'path': p['path'].replace('/logical/r2', '/other/store')} for p in row['student_input']['frames']]
++        self.assertEqual(build_training(row)[1], keys[0])
++
++    def test_frame_memo_and_stale_pin(self):
++        memo = F.FrameMemo(capacity=2)
++        pin = self.row['student_input']['frames'][0]
++        self.assertEqual(memo.verify(pin), self.root/'frames/0.png')
++        memo.verify(pin)
++        self.assertEqual(memo.hashes, 1)
++        for p in self.row['student_input']['frames'][1:3]:
++            memo.verify(p)
++        self.assertEqual(len(memo.values), 2)
++        memo.verify(pin)
++        self.assertEqual(memo.hashes, 4)
++        with self.assertRaisesRegex(ValueError, 'Stale'):
++            memo.verify({**pin, 'sha256': '0'*64})
++        Image.new('RGB', (32, 32), (99, 98, 97)).save(self.root/'frames/0.png')
++        with self.assertRaisesRegex(ValueError, 'Stale'):
++            memo.verify(pin)
++
++    def test_marker_full_store_and_route_collision(self):
++        path = manifest(self.root/'vqa', [self.row])
++        with self.assertRaisesRegex(ValueError, 'Full store forbidden'):
++            materialize([path], self.root/'full', full=True)
++        report = materialize([path], self.root/'marker', metadata_only=True)
++        self.assertEqual(report['status'], 'needs the frame host')
++        self.assertFalse((self.root/'marker/receipt.json').exists())
++        with patch.dict(os.environ, STUDENT_FRAME_ROOT_MAP='{}'):
++            report = materialize([path], self.root/'absent')
++            self.assertEqual(report['status'], 'needs the frame host')
++        route = {**self.row, 'question_type': 'route_planning'}
++        first = manifest(self.root/'sealed', [route], family='sealed')
++        second = manifest(self.root/'rendered', [route], family='rendered')
++        with self.assertRaisesRegex(ValueError, 'Unfiltered route-planning ID collision'):
++            materialize([first, second], self.root/'collision')
++        report = materialize([first, second], self.root/'filtered', select_types={str(first): list(G.PROGRAM_TYPES)})
++        self.assertEqual(report['status'], 'ready')
++
++    def test_real_producers_and_reader_each_family(self):
++        from student_pilot.carrier_c1_run import Rows
++        paths = []
++        for stream in ('vqa', 'routing', 'pose', 'pointing'):
++            row = fixture(self.root, qid=stream, stream=stream, fps=30 if stream == 'pose' else 10)
++            paths.append(manifest(self.root/stream, [row], stream=stream))
++        report = materialize(paths, self.root/'native')
++        self.assertEqual(report['status'], 'ready')
++        receipt = load(report['receipt']['path'])
++        reader = Rows(receipt, TinyProcessor())
++        from tests.test_carrier_c1 import fixture as model_fixture
++        model, _, _ = model_fixture(training_mode='final')
++        model.model.language_model.embed_tokens = torch.nn.Embedding(512, 32)
++        model.lm_head = torch.nn.Linear(32, 512, bias=False)
++        model.config.text_config.vocab_size = 512
++        model.frame_layout = 'duplicate'
++        model.auxiliary_heads.depth.config.p3['frame_layout'] = 'duplicate'
++        model.recipe = {**model.recipe, 'weights': {**model.recipe['weights'], 'routing': 1.0}}
++        model.eval()
++        proofs = []
++        reader_before = F.MEMO.stats()
++        try:
++            for stream in ('vqa', 'routing', 'pose', 'pointing'):
++                batch, targets, audit = reader.get(stream, 0)
++                with torch.no_grad():
++                    forward = model(batch, targets, stream=stream)
++                self.assertTrue(torch.isfinite(forward['loss']))
++                self.assertTrue(torch.isfinite(batch['pixel_values_videos']).all())
++                if stream == 'routing':
++                    self.assertEqual(audit['tool_spans'], 1)
++                    row, _ = reader.row(stream, 0)
++                    target, spans, _ = routing.render_full(row['routing']['events'], row['routing']['answer'])
++                    ids, keep, _ = routing.suffix_tokens(reader.processor, row, target, spans)
++                    start = int(batch['aux_suffix_start'][0])
++                    self.assertTrue((batch['labels'][0, start:start+len(ids)][~torch.tensor(keep)] == -100).all())
++                proofs.append(dict(family=stream, encoded=True, finite_loss=float(forward['loss']), sequence_tokens=int(batch['input_ids'].shape[1])))
++        finally:
++            reader.close()
++        (LANE/'out/CPU_PATH_PROOF.json').write_text(json.dumps(dict(families=proofs, frame_bytes='synthetic RGB fixture, no real frames',
++              stand_ins=['TinyProcessor', 'TinyTokenizer', 'random tiny native Qwen and CarrierC1 in place of pretrained weights'],
++              materialize_hashes_before=report['hashes_before'], materialize_hashes_after=report['hashes_after'],
++              reader_hashes_before=reader_before, reader_hashes_after=F.MEMO.stats()), indent=2))
++
++    def test_program_refuses_direct_type_and_bad_spans(self):
++        row = fixture(self.root, stream='routing')
++        G.validate_program(row)
++        for change in (dict(question_type='room_size_estimation'), dict(tool_output_spans=[]),
++                       dict(target=row['target']+'bad'), dict(events=[])):
++            with self.assertRaises(ValueError):
++                G.validate_program({**row, **change})
++        with self.assertRaisesRegex(ValueError, 'masked routing'):
++            C.validate(row, 'vqa')
+--- /dev/null
++++ b/tests/test_r2_dense_decode.py
+@@ -0,0 +1,32 @@
++"""Real codec smoke for the evaluation frame-root path when PyAV is installed."""
++import importlib.util
++import unittest
++from tests.test_r2_data_path import directory, fixture
++from student_pilot.p3_provenance import file_pin
++from student_pilot.dense_eval import decode_dense
++import json
++import os
++from unittest.mock import patch
++
++
++@unittest.skipUnless(importlib.util.find_spec('av'), 'Frame-host decoder needs PyAV')
++class Decode(unittest.TestCase):
++    def test_real_video_and_mapped_sparse_frames(self):
++        import av
++        import numpy as np
++        root = directory()
++        row = fixture(root)
++        movie = root/'clip.mp4'
++        with av.open(str(movie), 'w') as container:
++            stream = container.add_stream('mpeg4', rate=10)
++            stream.width, stream.height, stream.pix_fmt = 32, 32, 'yuv420p'
++            stream.codec_context.max_b_frames = 1
++            for i in range(64):
++                frame = av.VideoFrame.from_ndarray(np.full((32, 32, 3), i, dtype=np.uint8), format='rgb24')
++                for packet in stream.encode(frame):
++                    container.mux(packet)
++            for packet in stream.encode():
++                container.mux(packet)
++        with patch.dict(os.environ, STUDENT_FRAME_ROOT_MAP=json.dumps({'/logical/r2': str(root/'frames')})):
++            dense = decode_dense(file_pin(movie), row['student_input'], {'dense_frames': 64}, root/'decoded')
++        self.assertEqual(dense['frame_indices'], list(range(64)))
+--- /dev/null
++++ b/tests/test_r2_families.py
+@@ -0,0 +1,125 @@
++"""Language-family rendering and masked ground/fallback event integration."""
++from copy import deepcopy
++import json
++import os
++from unittest.mock import patch
++import unittest
++from tests.test_r2_data_path import directory, fixture, manifest, TinyProcessor, LANE
++from student_pilot import carrier_c1_routing as R, r2_contract as C, trace_grammar as G
++from student_pilot.ground_rows import render_ground
++from student_pilot.r2_materialize import materialize
++from student_pilot.carrier_c1_run import Rows
++from student_pilot.p3_provenance import load
++
++
++def ground(root, family):
++    row = fixture(root, qid=family)
++    failed = family == 'recovery'
++    question = 'What is the distance between the ceiling lamp and heater in centimeters?'
++    answer = '2.55' if failed else '255'
++    question = question.replace('centimeters', 'meters') if failed else question
++    call = '<ground obj="ceiling lamp" mode="box">' if failed else '<gap a="ceiling lamp" b="heater" rule="box_grid_5cm">'
++    response = 'ceiling lamp: not seen' if failed else 'distance 2.55 m'
++    step = '\nLocate: the ceiling lamp is seen in frame 16.\nLocate: the heater is seen in frame 13.' if failed else '\nStep: compute 2.55 * 100 = 255.'
++    events = [dict(kind='ground_trace_start', trace_revision='3.14'),
++              dict(kind='canonical_text', text='<think>\nCall: measure the box gap.\n'),
++              dict(kind='ground_call', token=call+'\n', call_id='g'),
++              dict(kind='ground_response', text='<tool_response>'+response+'</tool_response>', call_id='g'),
++              dict(kind='canonical_text', text=step+'\n</think>\n<answer>'+answer+'</answer>')]
++    if not failed:
++        grounds = []
++        for i, name in enumerate(('ceiling lamp', 'heater')):
++            grounds.extend([dict(kind='ground_call', token=f'<ground obj="{name}" mode="box">\n', call_id=f'box{i}'),
++                            dict(kind='ground_response', text=f'<tool_response>{name}: best frame 13; B{i}: centre (1.44, 1.10, 0.80) m; size 0.43 x 0.43 x 0.04 m; yaw 64 deg</tool_response>', call_id=f'box{i}')])
++        events[2:2] = grounds
++    target, spans, _ = render_ground(events, answer)
++    row.update(schema='derivgen-row-v2', form='spec-v3.14-ground-v1', infrastructure_only=False,
++               response_source='ground_truth', question_type='object_abs_distance', events=events,
++               answer=answer, gt_answer=answer, target=target, tool_output_spans=spans, question=question)
++    row['student_input']['question'] = question
++    row['provenance']['alias'] = 'd1/fixture_clean'
++    return row
++
++
++class Families(unittest.TestCase):
++    def test_each_rendered_family_uses_native_encoder(self):
++        root = directory()
++        rows = []
++        for family, kind in [('facing', 'object_rel_direction_hard'), ('totals', 'object_counting'),
++                             ('relative_distance', 'object_rel_distance'), ('object_size', 'object_size_estimation'),
++                             ('appearance_order', 'object_appearance_order'), ('route_planning', 'route_planning'),
++                             ('box_3d', 'object_3d_box'), ('room_size', 'room_size_estimation')]:
++            row = fixture(root, qid=family)
++            row['question_type'] = kind
++            if family == 'totals':
++                row['target'] = '<think>\nLocate: chair a is seen in frame 1.\nLocate: chair b is seen in frame 2.\nStep: list [chair a; chair b]; count = 2.\n</think>\n2'
++                row['answer'] = '2'
++                row['question'] = row['student_input']['question'] = 'How many chairs are visible?'
++            if family in ('room_size', 'object_size'):
++                row['answer'] = '12.18' if family == 'room_size' else '101'
++                row['question'] = row['student_input']['question'] = ('What is the combined room size in square meters?' if family == 'room_size' else 'What is the longest dimension of the stove in centimeters?')
++                logic = 'Step: the question asks for the combined visible floor area.' if family == 'room_size' else 'Locate: the stove is seen in frame 17.\nStep: the question asks for the longest dimension.'
++                row['target'] = '<think>\n'+logic+'\n</think>\n'+row['answer']
++            if family == 'box_3d':
++                row['answer'] = '{"center": [0, 0, 0], "size": [1, 1, 1], "rotation": [0, 0, 0]}'
++                row['target'] = '<think>\nLocate: the stove is seen in frame 17.\n</think>\n'+row['answer']
++            rows.append((family, 'vqa', row))
++        for family in ('units', 'recovery'):
++            rows.append((family, 'routing', ground(root, family)))
++        for family in ('camera_movement_direction', 'camera_rotation'):
++            row = fixture(root, qid=family, stream='routing')
++            row['question_type'] = family
++            if family == 'camera_rotation':
++                row['events'][1]['token'] = '<turn from=1 to=25>'
++            row['answer'] = '<answer>A</answer>'
++            row['target'], row['tool_output_spans'] = R.render(row['events'], row['answer'])
++            rows.append((family, 'routing', row))
++        paths = [manifest(root/family, [row], stream=stream, family=family) for family, stream, row in rows]
++        with patch.dict(os.environ, STUDENT_FRAME_ROOT_MAP=json.dumps({'/logical/r2': str(root/'frames')})):
++            report = materialize(paths, root/'stores')
++            self.assertEqual(report['status'], 'ready')
++            receipt = load(report['receipt']['path'])
++            reader = Rows(receipt, TinyProcessor())
++            proofs = []
++            try:
++                for stream, value in receipt['streams'].items():
++                    for i in range(value['count']):
++                        batch, _, audit = reader.get(stream, i)
++                        row, _ = reader.row(stream, i)
++                        self.assertGreater(int((batch['labels'] != -100).sum()), 0)
++                        if stream == 'routing':
++                            self.assertGreater(audit['tool_spans'], 0)
++                        proofs.append(dict(family=row['qid'], stream=stream, encoded=True))
++            finally:
++                reader.close()
++        (LANE/'out/FAMILY_ENCODER_PROOF.json').write_text(json.dumps(dict(rows=proofs, fixture_only=True), indent=2))
++
++    def test_ground_event_fail_closed(self):
++        root = directory()
++        row = ground(root, 'units')
++        G.validate_program(row)
++        for changes in (dict(response_source='unknown'), dict(target='changed')):
++            with self.assertRaises(ValueError):
++                C.event_row({**row, **changes})
++        invalid = deepcopy(row)
++        invalid['events'][-1]['text'] = invalid['events'][-1]['text'].replace('= 255.', '= 256.')
++        invalid['target'], invalid['tool_output_spans'], _ = render_ground(invalid['events'], invalid['answer'])
++        with self.assertRaises(ValueError):
++            G.validate_program(invalid)
++        smuggled = deepcopy(row)
++        smuggled['events'][1]['text'] += '<tool_response>unmasked response</tool_response>'
++        smuggled['target'], smuggled['tool_output_spans'], _ = render_ground(smuggled['events'], smuggled['answer'])
++        with self.assertRaisesRegex(ValueError, 'masked span'):
++            G.validate_program(smuggled)
++        fallback = ground(root, 'recovery')
++        G.validate_program(fallback)
++        missing = deepcopy(fallback)
++        missing['events'][-1]['text'] = '\n</think>\n<answer>2.55</answer>'
++        missing['target'], missing['tool_output_spans'], _ = render_ground(missing['events'], missing['answer'])
++        with self.assertRaises(ValueError):
++            C.event_row(missing)
++        repeated = deepcopy(fallback)
++        repeated['events'].insert(-1, dict(kind='ground_call', token='<ground obj="ceiling lamp" mode="box">', call_id='retry'))
++        repeated['target'], repeated['tool_output_spans'], _ = render_ground(repeated['events'], repeated['answer'])
++        with self.assertRaises(ValueError):
++            C.event_row(repeated)
+--- /dev/null
++++ b/tests/test_r2_preparation.py
+@@ -0,0 +1,77 @@
++"""Native preparation propagates membership, using the base's CPU rehearsal gate."""
++import json
++from pathlib import Path
++import unittest
++from unittest.mock import patch
++from student_pilot import carrier_c1_run as trainer
++from student_pilot.r2_contract import CONTRACT, INIT
++from student_pilot.carrier_c1_sweep import recipe_for
++from student_pilot.p3_provenance import digest, file_pin, load, sha256, source_files, write
++from student_pilot.source_seal import inventory
++from student_pilot.r2_materialize import materialize
++from tests.test_r2_data_path import RECORDS, SOURCES, TinyProcessor, directory, fixture, manifest
++
++
++class PreparationProof(unittest.TestCase):
++    def test_native_preparation_membership(self):
++        root = directory()
++        manifests = []
++        for stream in ('pose', 'vqa', 'pointing', 'routing'):
++            row = fixture(root, qid=stream, stream=stream)
++            if stream == 'pose':
++                row.update(category='camera_pose_only', pose_sample=dict(recording=dict(sampling=dict(variant='all_frames32'))))
++            manifests.append(manifest(root/stream, [row], stream))
++        with patch.dict('os.environ', STUDENT_FRAME_ROOT_MAP=json.dumps({'/logical/r2': str(root/'frames')}), S1_CPU_REHEARSAL='1'):
++            report = materialize(manifests, root/'stores')
++            native = load(report['receipt']['path'])
++            write(root/'division.json', dict(train_scenes=['d1/fixture_clean'], heldout_scenes=[]))
++            division = file_pin(root/'division.json')
++            # Metadata stands in at the unavailable pretrained-model boundary.
++            # No model weights or producer/reader functions are replaced.
++            model_root = root/'model'
++            model_root.mkdir()
++            write(model_root/'config.json', dict(model_type='qwen3_5',
++                text_config=dict(hidden_size=32, num_hidden_layers=1),
++                vision_config=dict(hidden_size=32, depth=1)))
++            write(root/'model.json', dict(kind='base', base_identity='synthetic-rehearsal',
++                root=str(model_root), rehearsal=True, files={'config.json': sha256(model_root/'config.json')}))
++            tree = Path(trainer.__file__).parent.parent
++            sources = {str(p.relative_to(tree)): sha256(p) for p in source_files([Path(trainer.__file__)])}
++            code_sha256 = digest(inventory(tree))
++            write(root/'source.json', dict(schema='c1-rehearsal-source-v1', sources=sources,
++                content_sha256=digest(sources), tree_sha256=code_sha256))
++            receipts = {}
++            for name, stream in native['streams'].items():
++                receipt = dict(schema='c1-stream-v1', stream=name, division=division,
++                    count=stream['count'], database=stream['database'], heldout_overlap=0, gt_masks_only=True)
++                if name == 'pose':
++                    receipt.update(schema='decoupled-v-preparation-v1', rehearsal=True,
++                        model=file_pin(root/'model.json'), inputs=dict(division=division),
++                        settings=dict(anchors=list(range(1, 33)), temporal_grouping='fused_pairs_all_frames',
++                                      camera=dict(point_depth={})))
++                if name == 'routing':
++                    receipt['schema'] = trainer.routing.ROUTING_SCHEMA
++                write(root/(name+'_receipt.json'), receipt)
++                receipts[name] = file_pin(root/(name+'_receipt.json'))
++            cfg = dict(schema='carrier-c1-run-v1', trace_program_version='3.14', training_mode='final',
++                carrier_placement=trainer.data.C1_A, init='base', parallel='fsdp', all_frames=True,
++                base_identity='synthetic-rehearsal', code=file_pin(root/'source.json'), streams=receipts,
++                preparation_output=str(root/'prepared'), frame_layout='duplicate', r2_membership=native['r2_membership'],
++                depth_fov_source='pose_head', world_size=4, mix=list(receipts),
++                exclusions=file_pin(RECORDS/SOURCES['benchmark']),
++                init_artifact=dict(artifact=dict(path=str(root/'unavailable-export'), sha256=INIT['artifact_sha256']), lm='full', heads=[]))
++            cfg['scheduled_sampling'] = dict(seed=0, max_own_probability=0., pose_open_deg=1., pose_full_deg=0.,
++                fov_open_deg=1., depth_open_absrel=1., ema_steps=1, force_from_step=None,
++                exposure_from_step=None, exposure_probability=0.)
++            cfg['recipe'] = recipe_for(cfg)
++            # Preparation authenticates metadata; the unavailable weight load is outside this proof.
++            write(root/'EXPORT_ARTIFACT.json', INIT)
++            cfg['r2'] = dict(contract=CONTRACT, init=INIT, mode='warm_start', run_id='synthetic-preparation',
++                code_sha256=code_sha256, mixture_sha256=digest({key: cfg.get(key) for key in ('recipe', 'streams', 'route_table')}),
++                export_metadata=file_pin(root/'EXPORT_ARTIFACT.json'))
++            prepared = trainer.prepare(cfg)
++            self.assertEqual({name: value['count'] for name, value in prepared['streams'].items()}, dict(pose=1, vqa=1, pointing=1, routing=1))
++            self.assertEqual(prepared['r2_membership'], native['r2_membership'])
++            self.assertEqual(load(root/'prepared/receipt.json')['r2_membership'], native['r2_membership'])
++            reader = trainer.Rows(prepared, TinyProcessor())
++            self.assertEqual(reader.row('vqa', 0)[0]['qid'], 'vqa')
+--- /dev/null
++++ b/tests/test_r2_refusals.py
+@@ -0,0 +1,240 @@
++"""Adversarial metadata branches; no producer or reader function is replaced."""
++from copy import deepcopy
++import gzip
++import io
++import json
++import os
++from pathlib import Path
++import runpy
++import sys
++import unittest
++from unittest.mock import patch
++from contextlib import redirect_stdout, redirect_stderr
++from tests.test_r2_data_path import directory, fixture, manifest, SOURCES, RECORDS
++from student_pilot import r2_contract as C, r2_frames as F, trace_grammar as G
++from student_pilot import carrier_c1_routing as routing
++from student_pilot.p3_provenance import file_pin, load, digest, write
++from student_pilot.r2_intake import intake, read_rows
++from student_pilot.r2_dense import build_training
++from student_pilot.r2_materialize import materialize
++from student_pilot.r2_exclusions import Exclusions, upstream
++from student_pilot.r2_adapters import normalize
++from student_pilot.r2_real_proof import prove
++
++
++class Refusals(unittest.TestCase):
++    def setUp(self):
++        self.root = directory()
++        self.row = fixture(self.root)
++        self.pins = {role: file_pin(RECORDS/name) for role, name in SOURCES.items()}
++        self.enterContext(patch.dict(os.environ, STUDENT_FRAME_ROOT_MAP=json.dumps({'/logical/r2': str(self.root/'frames')}), STUDENT_R2_LOCAL_NODE='1'))
++
++    def test_mapping_paths_and_race(self):
++        for path in ('relative.png', '/scratch/../home/file'):
++            with self.assertRaises(ValueError):
++                F.resolve_frame(path)
++        for mapping in ('[]', '{"relative":"relative"}'):
++            with patch.dict(os.environ, STUDENT_FRAME_ROOT_MAP=mapping), self.assertRaises(ValueError):
++                F.resolve_frame('/logical/r2/0.png')
++        with patch.dict(os.environ, STUDENT_FRAME_ROOT_MAP='{}'), self.assertRaises(F.NeedsFrameHost):
++            F.resolve_frame('/data2/not-opened.png')
++        outside = self.root/'outside.png'
++        outside.write_bytes(b'fixture')
++        (self.root/'frames/escape.png').symlink_to(outside)
++        with self.assertRaisesRegex(ValueError, 'symlink'):
++            F.resolve_frame('/logical/r2/escape.png')
++        with self.assertRaises(ValueError):
++            F.FrameMemo(0)
++        # Fault injection changes the real file between its two fstat calls.
++        # It does not stand in for RGB reads or the hasher.
++        original, calls = os.fstat, []
++        def racing_stat(fd):
++            calls.append(fd)
++            if len(calls) == 2:
++                path = self.root/'frames/0.png'
++                os.utime(path, ns=(path.stat().st_atime_ns, path.stat().st_mtime_ns+1_000_000))
++            return original(fd)
++        with patch.object(F.os, 'fstat', side_effect=racing_stat), self.assertRaisesRegex(ValueError, 'changed while hashing'):
++            F.FrameMemo().verify(self.row['student_input']['frames'][0])
++
++    def test_frame_and_row_schema(self):
++        for changes in (dict(frames=[]), dict(fps=0), dict(total_num_frames=1), dict(timestamps=[]),
++                        dict(frames=[dict(path='x', sha256='bad')]*32)):
++            row = deepcopy(self.row); row['student_input'].update(changes)
++            with self.assertRaises(ValueError):
++                C.validate(row, 'vqa')
++        for changes in (dict(qid=''), dict(answer='B'), dict(answer_unit='yards'), dict(question_type=None),
++                        dict(question_type='object_size_estimation')):
++            with self.assertRaises(ValueError):
++                C.validate({**self.row, **changes}, 'vqa')
++        with self.assertRaises(ValueError):
++            C.validate(self.row, 'vqa', expected='0'*64)
++        with self.assertRaises(ValueError):
++            C.validate(self.row, 'unknown')
++        C.validate(self.row, 'vqa', expected=digest(self.row), require_frames=True)
++        for i, value in enumerate((dict(contract='bad'), dict(contract=C.CONTRACT, rows={}))):
++            path = self.root/f'membership{i}.json'; write(path, value)
++            with self.assertRaises(ValueError):
++                C.Admission(file_pin(path)).check(self.row, 'vqa')
++        pose = fixture(self.root, stream='pose')
++        target = pose['target_record']; target['camera'][0][0] = float('nan')
++        with self.assertRaises(ValueError):
++            C.perception(pose, 'pose', target)
++        pointing = fixture(self.root, stream='pointing')
++        pointing['target'] = '<think>\n\n</think>\n{"point_2d": [9999, 0]}'
++        with self.assertRaises(ValueError):
++            C.perception(pointing, 'pointing', {})
++
++    def test_dense_missing_and_conflicts(self):
++        for i in range(4):
++            row = deepcopy(self.row)
++            source = row['student_input']['dense_source']['frames']
++            if i == 0:
++                row['student_input'].pop('dense_source')
++            elif i == 1:
++                source.append({**source[0], 'sha256': '0'*64})
++            elif i == 2:
++                source[0]['sha256'] = '0'*64
++            else:
++                row['student_input']['dense_source']['frames'] = source[::2]
++            with self.assertRaises((ValueError, F.NeedsFrameHost)):
++                build_training(row)
++
++    def test_scene_and_upstream_refusals(self):
++        with self.assertRaises(ValueError):
++            Exclusions({})
++        changed = deepcopy(self.pins); changed['benchmark']['sha256'] = '0'*64
++        with self.assertRaises(ValueError):
++            Exclusions(changed)
++        exclusions = Exclusions(self.pins)
++        for coverage in (None, dict(status='unknown', names=['d1/fixture_clean']),
++                         dict(status='known', names=['unknown/scene']),
++                         dict(status='known', names=['d1/wrong']),
++                         dict(status='known', names=['d1/fixture_clean'])):
++            row = {**self.row, 'canonical': 'scannet/different'}
++            with self.assertRaises(ValueError):
++                exclusions.check(row, coverage)
++        excluded = {**self.row, 'scene': 'scene0000_00', 'canonical': 'scannet/scene0000_00'}
++        excluded['provenance'] = {**excluded['provenance'], 'canonical': excluded['canonical']}
++        admitted, report = intake(manifest(self.root/'excluded', [excluded]))
++        self.assertFalse(admitted)
++        self.assertIn('excluded:', report['refusals'][0]['reason'])
++        for i, value in enumerate((dict(exclusions={}), dict(exclusions=self.pins, counts=dict(x={})))):
++            path = self.root/f'previous{i}.json'; write(path, value)
++            with self.assertRaises(ValueError):
++                upstream([file_pin(path)], self.pins)
++
++    def test_manifest_errors_and_bounded_stream(self):
++        original = manifest(self.root/'m', [self.row])
++        for i, changes in enumerate((dict(schema='old'), dict(scene_coverage=None), dict(prefiltered=True),
++                                     dict(row_bindings={}))):
++            value = {**load(original), **changes}
++            path = self.root/f'm{i}.json'; write(path, value)
++            if 'row_bindings' in changes:
++                self.assertFalse(intake(path)[0])
++            else:
++                with self.assertRaises(ValueError):
++                    intake(path)
++        with self.assertRaises(ValueError):
++            intake(original, limit=None)
++        path = self.root/'badcoverage.json'; value = load(load(original)['scene_coverage']['path'])
++        value['rows_sha256'] = '0'*64; write(path, value)
++        bad = load(original); bad['scene_coverage'] = file_pin(path)
++        write(self.root/'m_badcoverage.json', bad)
++        with self.assertRaises(ValueError):
++            intake(self.root/'m_badcoverage.json')
++        duplicate = manifest(self.root/'duplicate', [self.row, self.row])
++        self.assertEqual(len(intake(duplicate)[0]), 1)
++        with gzip.open(self.root/'slice.gz', 'wt') as handle:
++            handle.write(json.dumps(self.row)+'\n'+json.dumps(self.row)+'\n')
++        self.assertEqual(len(list(read_rows(file_pin(self.root/'slice.gz'), 1))), 1)
++
++    def test_adapters_native_program_and_pending_join(self):
++        row = fixture(self.root, stream='routing')
++        row['answer'] = '0.35'; row['target'], row['tool_output_spans'] = routing.render(row['events'], row['answer'])
++        inputs = row.pop('student_input')
++        row.pop('dataset'); row.pop('scene')
++        rgb = dict(inputs, frames=[dict(p, source_index=i) for i, p in zip(inputs['frame_indices'], inputs['frames'], strict=True)])
++        adapted = normalize(row, {row['qid']: rgb})
++        self.assertTrue(adapted['target'].endswith('</answer>'))
++        G.validate_program(adapted)
++        with self.assertRaises(ValueError):
++            normalize(row)
++        changed = deepcopy(rgb); changed['frames'][0]['source_index'] = 1
++        with self.assertRaises(ValueError):
++            normalize(row, {row['qid']: changed})
++        pending = deepcopy(self.row)
++        pending['frames_pending'] = dict(d='d1', s='wrong', i=inputs['frame_indices'])
++        with self.assertRaises(ValueError):
++            normalize(pending)
++
++    def test_grammar_arithmetic_program_and_measurements(self):
++        for expression, allowed in (('2 +', {2}), ('2 / 0', {2, 0}), ('1e308 * 1e308', {1e308})):
++            with self.assertRaises(ValueError):
++                G.arithmetic(expression, allowed)
++        for text, question in (('Relate: the chair is right of the stove.', 'Which side?'),
++                               ('Locate: stove is seen in frame 1.\nRelate: stove is 3 meters right of sofa.', 'Threshold 3 meters.'),
++                               ('Locate: stove is seen in frame 1.\nRelate: it is A.', 'Which side?')):
++            with self.assertRaises(ValueError):
++                G.validate_direct('<think>\n'+text+'\n</think>\nA', question, 32)
++        for mutation in ('ending', 'call_id', 'number'):
++            row = fixture(self.root, stream='routing')
++            if mutation == 'ending':
++                row['answer'] = '0.35'
++            elif mutation == 'call_id':
++                row['events'][2]['call_id'] = 'unmatched'
++            else:
++                row['events'][-1]['text'] = '\nStep: distance is 999 m.'
++            row['target'], row['tool_output_spans'] = routing.render(row['events'], row['answer'])
++            with self.assertRaises(ValueError):
++                G.validate_program(row)
++
++    def test_cli_native_entries_and_failed_build(self):
++        original = manifest(self.root/'m', [self.row])
++        for module, args in (
++            ('student_pilot.r2_intake', ['--manifest', str(original), '--output', str(self.root/'cli_intake.json')]),
++            ('student_pilot.r2_materialize', ['--manifest', str(original), '--output', str(self.root/'cli_stores'), '--no-dense'])):
++            with patch.object(sys, 'argv', [module, *args]), redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
++                try:
++                    runpy.run_module(module, run_name='__main__')
++                except SystemExit as error:
++                    self.assertEqual(error.code, 0)
++        with patch.dict(os.environ, STUDENT_R2_LOCAL_NODE='0'), self.assertRaises(ValueError):
++            materialize([original], self.root/'full', full=True)
++        bad = manifest(self.root/'bad', [{**self.row, 'target': 'A'}])
++        with self.assertRaisesRegex(ValueError, 'invalid rows'):
++            materialize([bad], self.root/'invalid')
++        extra = manifest(self.root/'extra', [{**self.row, 'qid': 'second'}])
++        with patch('student_pilot.r2_materialize.MAX_ROWS_PER_FAMILY', 1), self.assertRaisesRegex(ValueError, 'Combined manifests'):
++            materialize([original, extra], self.root/'combined')
++
++    def test_real_proof_declared_fixture_inventory(self):
++        with self.assertRaisesRegex(ValueError, 'inputs absent'):
++            prove(self.root/'absent', self.root, self.root/'out')
++        index = self.root/'REAL_ROW_INPUTS.json'
++        index.write_text('{}')
++        with self.assertRaisesRegex(ValueError, 'inventory'):
++            prove(self.root, self.root, self.root/'out')
++        paths = [manifest(self.root/stream, [fixture(self.root, qid=stream, stream=stream)], stream=stream)
++                 for stream in ('vqa', 'routing', 'pose', 'pointing')]
++        spec = dict(schema='r2-real-proof-inputs-v1', expected_families=['vqa', 'routing', 'pose', 'pointing'], manifests=[file_pin(p) for p in paths])
++        index.write_text(json.dumps(spec))
++        result = prove(self.root, self.root, self.root/'proof_fixture')
++        self.assertFalse(result['rgb_read'])
++        with patch.object(sys, 'argv', ['proof', str(self.root), str(self.root), '--output', str(self.root/'proof_cli')]):
++            runpy.run_module('student_pilot.r2_real_proof', run_name='__main__')
++        for i, changes in enumerate((dict(expected_families=['missing']), dict(manifests=[file_pin(paths[0])], expected_families=['vqa']))):
++            index.write_text(json.dumps({**spec, **changes}))
++            with self.assertRaises(ValueError):
++                prove(self.root, self.root, self.root/f'fail{i}')
++        # The declared roots cannot name a manifest from an unrelated publication.
++        child = self.root/'child'; child.mkdir()
++        (child/'REAL_ROW_INPUTS.json').write_text(json.dumps(spec))
++        with self.assertRaisesRegex(ValueError, 'outside'):
++            prove(child, child, child/'out')
++        for i, rows in enumerate(([], [self.row, {**self.row, 'qid': 'bad', 'target': 'A'}])):
++            path = manifest(self.root/f'proof_bad{i}', rows, family='vqa')
++            revised = {**spec, 'manifests': [file_pin(path), *spec['manifests'][1:]]}
++            index.write_text(json.dumps(revised))
++            with self.assertRaisesRegex(ValueError, 'boundary|invalid rows'):
++                prove(self.root, self.root, self.root/f'proof_badout{i}')

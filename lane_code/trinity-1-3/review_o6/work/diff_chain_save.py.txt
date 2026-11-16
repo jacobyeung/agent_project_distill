@@ -1,0 +1,52 @@
+--- x27/gs/f665/sj/orch_cd/evalx/work/milestone/chain_save.py	1969-12-31 19:00:00.000000000 -0500
++++ /scratch/jjyeung/orch_n30/review_o6/work/pkg/launcher/chain_save.py	1969-12-31 19:00:00.000000000 -0500
+@@ -8,12 +8,13 @@
+ 
+ 
+ MIN_FREE = 200*1024**3
+-ARCHIVE_LIMIT = 900000000
++ARCHIVE_LIMIT = 199999999
+ PROJECT_LIMIT = 20000000000
+ DIRECT_FILES = ('request.json', 'BIND_STATUS.json', 'PROMPT_PINS.json', 'LAYOUT_ADMISSION.json', 'kit/CODE_PINS.json',
+                 'frames/0.json', 'results')
+ TOP_FILES = ('PLAN.json', 'SPEC.json', 'AUTHORIZATION.json', 'RELEASE.json', 'HARDWARE.json',
+-             'START.json', 'COMPLETE.json', 'FAILED.json', 'STEPS.jsonl', 'CODE_PINS.json')
++             'START.json', 'COMPLETE.json', 'FAILED.json', 'STEPS.jsonl', 'CODE_PINS.json',
++             'FRAME_PLAN.json', 'PARITY.json', 'TRACE.json.gz')
+ 
+ 
+ class BudgetError(RuntimeError):
+@@ -75,11 +76,19 @@
+ def members(source):
+     source = Path(source)
+     selected = [source/name for name in TOP_FILES]
+-    for family in ('main', 'away', 'forward', 'camera'):
+-        selected.extend(source/'direct'/family/name for name in DIRECT_FILES)
+-        selected.append(source/'merged'/family)
+-    selected.extend(source/'native'/name for name in (
+-        'MASK_CACHE.json', 'geometry', 'probe', 'paired', 'R1.json', 'R1.json.pin.json'))
++    selected.extend(source/'a0'/name for name in DIRECT_FILES if name!='results')
++    # Keep each generation and receipt once; omit resumable duplicate shards.
++    selected.extend(source/'a0/results/0'/name for name in ('items_a0.jsonl','summary_a0.json','p0_a0.json'))
++    for budget in (2048,4096):
++        selected.extend(source/'a0/results/0'/name for name in (f'budget_{budget}.jsonl',f'budget_{budget}.meta.jsonl'))
++        selected.extend(source/f'a0/results/budget_{budget}'/name for name in ('request.json','0/summary_a0.json'))
++    # A failed read may stop before merge; retain its original partial journals.
++    if not (source/'a0/results/0/items_a0.jsonl').exists():
++        selected.append(source/'a0/results/0/g0.jsonl')
++    for budget in (2048,4096):
++        if not (source/f'a0/results/0/budget_{budget}.jsonl').exists():
++            selected.extend(source/'a0/results/0'/name for name in (f'budget_{budget}.g0.jsonl',f'budget_{budget}.g0.meta.jsonl'))
++    selected.extend((source/'report', source/'a0/CODE_PINS.json'))
+     selected.extend((source/'metadata', source/'logs'))
+     result = {}
+     for selected_path in selected:
+@@ -88,6 +97,8 @@
+                 raise ValueError('Weights/images cannot enter the read-result archive: '+str(path))
+             relative = str(path.relative_to(source))
+             result[relative] = path
++    if sum(p.stat().st_size for p in result.values())>512*1024**2:
++        raise BudgetError('Evidence exceeds the return verifier expanded-byte allowance')
+     if not result:
+         raise ValueError('No read evidence exists to save')
+     return result

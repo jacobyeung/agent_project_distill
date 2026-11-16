@@ -1,0 +1,113 @@
+{
+  "audit_only": false,
+  "authority_fps_by_dataset": {},
+  "base_model": {
+    "path": "/scratch/jjyeung/orch_n30/review_c5/work/tmp/suite_r1/pt/test_build_defers_one_row_and_3/model.json",
+    "sha256": "b501d127b4f2a6491e85b461119187b8a08fce60b1d017ef0a69dfec18dd7a84"
+  },
+  "blockers": [],
+  "contract_deferred_qids": {
+    "contract_manifest_missing": {
+      "count": 1,
+      "qids": [
+        "legacy"
+      ]
+    },
+    "contract_operator_fault": {
+      "count": 1,
+      "qids": [
+        "operator"
+      ]
+    }
+  },
+  "contract_epoch": true,
+  "direct_rule": "S1-RD1",
+  "direct_rule_audit": {},
+  "division": {
+    "path": "/scratch/jjyeung/orch_n30/review_c5/work/tmp/suite_r1/pt/test_build_defers_one_row_and_3/division.json",
+    "sha256": "132c22923e9294a24caa2f80f4725114920e02686e49697ff1e666873dedfe2f"
+  },
+  "fps_policy": "source_then_scene_then_uniform_authority_dataset",
+  "fps_rule": "S1-FPS1",
+  "frame_bytes_verified": false,
+  "frame_rate_sources": {
+    "d1": {
+      "fixture": 1
+    }
+  },
+  "heading_plane_min": 0.17,
+  "inputs": {
+    "frame_map": {},
+    "frame_plan": {},
+    "schema": "s1-routing-inputs-v1",
+    "selection": {
+      "path": "/scratch/jjyeung/orch_n30/review_c5/work/tmp/suite_r1/pt/test_build_defers_one_row_and_3/pool.json",
+      "sha256": "82e47ea195f6b79d9fdefcf01dac7f58a6ff0bf2d66c29865a7183eaa290193d"
+    }
+  },
+  "legacy": {
+    "path": "/scratch/jjyeung/orch_n30/review_c5/work/tmp/suite_r1/pt/test_build_defers_one_row_and_3/legacy.json",
+    "sha256": "ab6093253178031d6e58fe567714678ff642276652d5154d6d3d9b86dd8f99a6"
+  },
+  "legacy_compatibility": {
+    "object_abs_distance": {
+      "disposition": "COMPATIBLE"
+    }
+  },
+  "native_fps_by_dataset": {
+    "d1": [
+      1.0
+    ]
+  },
+  "native_rows": 1,
+  "pool_selection_counts": {
+    "fixture": {
+      "per_type": {
+        "object_abs_distance": 2
+      },
+      "status": "ELIGIBLE"
+    }
+  },
+  "production_authorized": false,
+  "relocation": {
+    "path": "/scratch/jjyeung/orch_n30/review_c5/work/tmp/suite_r1/pt/test_build_defers_one_row_and_3/materialized/pool/relocation.json",
+    "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+  },
+  "resolved_selection": {
+    "path": "/scratch/jjyeung/orch_n30/review_c5/work/tmp/suite_r1/pt/test_build_defers_one_row_and_3/pool.json",
+    "sha256": "82e47ea195f6b79d9fdefcf01dac7f58a6ff0bf2d66c29865a7183eaa290193d"
+  },
+  "schema": "s1-routing-materialization-v1",
+  "source_deferrals": {},
+  "source_denominator": 3,
+  "source_scene_exclusions": {
+    "upstream": {
+      "pool": {
+        "datasets": {
+          "fixture": {}
+        },
+        "expected": {
+          "fixture": {}
+        },
+        "sources": {
+          "fixture": {}
+        }
+      }
+    }
+  },
+  "status": "PASS",
+  "types": {
+    "object_abs_distance": {
+      "direct_rows": 0,
+      "pool_deferred": {
+        "contract_operator_fault": 1
+      },
+      "pool_program_rows": 1,
+      "r16_deferred": {
+        "contract_manifest_missing": 1
+      },
+      "r16_dropped": {},
+      "r16_kept": 0
+    }
+  }
+}

@@ -1,0 +1,14 @@
+--- build5/test_runner.py
++++ build6/test_runner.py
+@@ -178,9 +178,11 @@
+     def addError(self, test, error):
+         super().addError(test,error)
+         (output/'latest_error.json').write_text(json.dumps(dict(test=test.id(),traceback=self._exc_info_to_string(error,test))))
++        (output/'live_errors.json').write_text(json.dumps([(t.id(), e) for t,e in self.errors],indent=2))
+     def addFailure(self, test, error):
+         super().addFailure(test,error)
+         (output/'latest_failure.json').write_text(json.dumps(dict(test=test.id(),traceback=self._exc_info_to_string(error,test))))
++        (output/'live_failures.json').write_text(json.dumps([(t.id(), e) for t,e in self.failures],indent=2))
+     def startTest(self, test):
+         global reserve_probe
+         self.started = time.monotonic()

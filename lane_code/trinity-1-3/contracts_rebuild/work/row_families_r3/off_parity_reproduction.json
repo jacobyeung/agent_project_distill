@@ -1,0 +1,49 @@
+{
+  "source_path": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/row_families_r3/test_off_parity.py",
+  "arms": {
+    "base": {
+      "row": {
+        "answer": "0.90",
+        "answer_content": "0.90",
+        "candidate_id": "ground-72296b246150fdf2d84d7d09dcc382fde9d342efa7b2fc3f2d362bbdd4e053a7",
+        "events": [
+          {
+            "call": "<ground obj=\"chair\">",
+            "response": "<tool_response>\nchair: frames 2,3,4,5 (best 2)\nP1: cam2 (-0.64, -0.05, 2.05) m; f1 (-0.62, -0.05, 2.07) m; spread 0.00\nsize 0.40 x 0.02 x 0.86 m\n</tool_response>"
+          },
+          {
+            "call": "<ground obj=\"table\">",
+            "response": "<tool_response>\ntable: frames 2,3,4,5 (best 2)\nP2: cam2 (0.66, -0.06, 2.13) m; f1 (0.68, -0.06, 2.14) m; spread 0.00\nsize 0.43 x 0.02 x 0.89 m\n</tool_response>"
+          },
+          {
+            "call": "<gap a=\"chair\" b=\"table\">",
+            "response": "<tool_response>\n0.90 m\n</tool_response>"
+          }
+        ],
+        "not_seen": false,
+        "options": [],
+        "program_audit": {
+          "unrounded_gap_m": 0.8958842309749848
+        },
+        "qid": "bare-ground-regression",
+        "question": "How far is the chair from the table?",
+        "simulated_misses": [],
+        "spec_version": "3.12.2",
+        "suffix": "<think>\nI will ground both objects and read their closest-point distance.\n<ground obj=\"chair\">\n<tool_response>\nchair: frames 2,3,4,5 (best 2)\nP1: cam2 (-0.64, -0.05, 2.05) m; f1 (-0.62, -0.05, 2.07) m; spread 0.00\nsize 0.40 x 0.02 x 0.86 m\n</tool_response>\n<ground obj=\"table\">\n<tool_response>\ntable: frames 2,3,4,5 (best 2)\nP2: cam2 (0.66, -0.06, 2.13) m; f1 (0.68, -0.06, 2.14) m; spread 0.00\nsize 0.43 x 0.02 x 0.89 m\n</tool_response>\n<gap a=\"chair\" b=\"table\">\n<tool_response>\n0.90 m\n</tool_response>\nThe closest-point distance is 0.90 m.\n</think>\n<answer>0.90</answer>",
+        "suffix_tokens": 84,
+        "type": "object_abs_distance"
+      },
+      "status": "rendered"
+    },
+    "off": {
+      "error": "PrintedPointRegistry.register() got an unexpected keyword argument 'heading_defined'",
+      "error_type": "TypeError",
+      "status": "error"
+    },
+    "on": {
+      "error": "PrintedPointRegistry.register() got an unexpected keyword argument 'heading_defined'",
+      "error_type": "TypeError",
+      "status": "error"
+    }
+  }
+}

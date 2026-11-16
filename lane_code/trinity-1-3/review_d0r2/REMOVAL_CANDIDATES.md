@@ -1,0 +1,2 @@
+- /scratch/jjyeung/orch_n30/review_d0r2/{recon1,recon2,snap1,cur,old,full,tmp} (review copies)
+- /tmp/tmpq_z5i7bq (stage_export identity test, a few KB)

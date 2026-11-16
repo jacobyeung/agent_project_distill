@@ -1,0 +1,194 @@
+{
+  "suite": {
+    "bootstrap_oracle": true,
+    "cases": 8,
+    "f17_cli": true,
+    "fixture_parity": "Synthetic receipts; no inference or actual pixel-parity claim",
+    "paired_reports": 3,
+    "pass_": true
+  },
+  "cases": [
+    {
+      "arms": [
+        "ON16k"
+      ],
+      "family": "DEV_BACKDIR",
+      "kit": "aws_eval_gaps",
+      "layout": "spread",
+      "no_gpu": true,
+      "original_failure_reproduced": false,
+      "pass_": true,
+      "per_type": {
+        "object_rel_direction_easy": 50,
+        "object_rel_direction_hard": 50,
+        "object_rel_direction_medium": 50
+      },
+      "synthetic": true,
+      "tasks": 150
+    },
+    {
+      "arms": [
+        "ON16k",
+        "B2048",
+        "B4096"
+      ],
+      "family": "DEV_BACKDIR",
+      "kit": "aws_vl64rt",
+      "layout": "duplicate",
+      "no_gpu": true,
+      "original_failure_reproduced": false,
+      "pass_": true,
+      "per_type": {
+        "object_rel_direction_easy": 50,
+        "object_rel_direction_hard": 50,
+        "object_rel_direction_medium": 50
+      },
+      "synthetic": true,
+      "tasks": 150
+    },
+    {
+      "arms": [
+        "ON16k"
+      ],
+      "family": "DEV_FORWARD_TWINS",
+      "kit": "aws_eval_gaps",
+      "layout": "spread",
+      "no_gpu": true,
+      "original_failure_reproduced": false,
+      "pass_": true,
+      "per_type": {
+        "object_rel_direction_easy": 50,
+        "object_rel_direction_hard": 50,
+        "object_rel_direction_medium": 50
+      },
+      "synthetic": true,
+      "tasks": 150
+    },
+    {
+      "arms": [
+        "ON16k",
+        "B2048",
+        "B4096"
+      ],
+      "family": "DEV_FORWARD_TWINS",
+      "kit": "aws_vl64rt",
+      "layout": "duplicate",
+      "no_gpu": true,
+      "original_failure_reproduced": false,
+      "pass_": true,
+      "per_type": {
+        "object_rel_direction_easy": 50,
+        "object_rel_direction_hard": 50,
+        "object_rel_direction_medium": 50
+      },
+      "synthetic": true,
+      "tasks": 150
+    },
+    {
+      "arms": [
+        "ON16k"
+      ],
+      "family": "main",
+      "kit": "aws_eval_gaps",
+      "layout": "duplicate",
+      "no_gpu": true,
+      "original_failure_reproduced": true,
+      "pass_": true,
+      "per_type": {
+        "object_abs_distance": 150,
+        "object_counting": 150,
+        "object_rel_direction_easy": 150,
+        "object_rel_direction_hard": 150,
+        "object_rel_direction_medium": 150,
+        "object_rel_distance": 150,
+        "object_size_estimation": 150,
+        "relative_count": 139,
+        "relative_size_object": 150,
+        "room_size_estimation": 36,
+        "route_planning": 150
+      },
+      "synthetic": true,
+      "tasks": 1525
+    },
+    {
+      "arms": [
+        "ON16k"
+      ],
+      "family": "main",
+      "kit": "aws_eval_gaps",
+      "layout": "spread",
+      "no_gpu": true,
+      "original_failure_reproduced": true,
+      "pass_": true,
+      "per_type": {
+        "object_abs_distance": 150,
+        "object_counting": 150,
+        "object_rel_direction_easy": 150,
+        "object_rel_direction_hard": 150,
+        "object_rel_direction_medium": 150,
+        "object_rel_distance": 150,
+        "object_size_estimation": 150,
+        "relative_count": 139,
+        "relative_size_object": 150,
+        "room_size_estimation": 36,
+        "route_planning": 150
+      },
+      "synthetic": true,
+      "tasks": 1525
+    },
+    {
+      "arms": [
+        "ON16k",
+        "B2048",
+        "B4096"
+      ],
+      "family": "main",
+      "kit": "aws_vl64rt",
+      "layout": "duplicate",
+      "no_gpu": true,
+      "original_failure_reproduced": true,
+      "pass_": true,
+      "per_type": {
+        "object_abs_distance": 150,
+        "object_counting": 150,
+        "object_rel_direction_easy": 150,
+        "object_rel_direction_hard": 150,
+        "object_rel_direction_medium": 150,
+        "object_rel_distance": 150,
+        "object_size_estimation": 150,
+        "relative_count": 139,
+        "relative_size_object": 150,
+        "room_size_estimation": 36,
+        "route_planning": 150
+      },
+      "synthetic": true,
+      "tasks": 1525
+    },
+    {
+      "arms": [
+        "ON16k"
+      ],
+      "family": "main",
+      "kit": "aws_vl64rt",
+      "layout": "spread",
+      "no_gpu": true,
+      "original_failure_reproduced": true,
+      "pass_": true,
+      "per_type": {
+        "object_abs_distance": 150,
+        "object_counting": 150,
+        "object_rel_direction_easy": 150,
+        "object_rel_direction_hard": 150,
+        "object_rel_direction_medium": 150,
+        "object_rel_distance": 150,
+        "object_size_estimation": 150,
+        "relative_count": 139,
+        "relative_size_object": 150,
+        "room_size_estimation": 36,
+        "route_planning": 150
+      },
+      "synthetic": true,
+      "tasks": 1525
+    }
+  ]
+}

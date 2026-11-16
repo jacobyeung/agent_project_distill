@@ -1,0 +1,253 @@
+{
+  "status": "provisional; final packaged comparison remains authoritative",
+  "tree": "work/build5/proofs/legacy_tree/results.json",
+  "base": "work/build5/proofs/legacy_base/tests.log",
+  "cases": [
+    {
+      "test": "tests.test_gf1.GF1Tests.test_step_zero_checkpoint_identity",
+      "method": "tests.test_gf1.GF1Tests.test_step_zero_checkpoint_identity",
+      "reason": "AssertionError: 1 != 2",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_gf1.py\", line 113, in test_step_zero_checkpoint_identity\n    self.assertEqual(model.auxiliary_heads.geometry_encoder.calls,2)\nAssertionError: 1 != 2\n"
+    },
+    {
+      "test": "tests.test_gf1_contracts.Contracts.test_prefix_and_supervised_forward_share_one_tower_call",
+      "method": "tests.test_gf1_contracts.Contracts.test_prefix_and_supervised_forward_share_one_tower_call",
+      "reason": "AssertionError: 1 != 2",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_gf1_contracts.py\", line 124, in test_prefix_and_supervised_forward_share_one_tower_call\n    self.assertEqual(model.auxiliary_heads.geometry_encoder.calls,2)\nAssertionError: 1 != 2\n"
+    },
+    {
+      "test": "tests.test_gf1_contracts.Contracts.test_routed_head_features_feed_connector_without_replacing_fp32_modules",
+      "method": "tests.test_gf1_contracts.Contracts.test_routed_head_features_feed_connector_without_replacing_fp32_modules",
+      "reason": "AssertionError: 1 != 2",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_gf1_contracts.py\", line 81, in test_routed_head_features_feed_connector_without_replacing_fp32_modules\n    self.assertEqual(encoder.calls,2);self.assertTrue(result['metrics']['gx']['shared_head_tower'])\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 1 != 2\n"
+    },
+    {
+      "test": "tests.test_gx_dense_binding.DenseCacheBinding.test_loader_runtime_identity_equals_cp1",
+      "method": "tests.test_gx_dense_binding.DenseCacheBinding.test_loader_runtime_identity_equals_cp1",
+      "reason": "Diff is 712 characters long. Set self.maxDiff to None to see it.",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_gx_dense_binding.py\", line 12, in test_loader_runtime_identity_equals_cp1\n    self.assertEqual(c1r_dense.runtime_identity(), E6456BC_RUNTIME)\nAssertionError: {'c1r[80 chars]'c1r_ref.py': 'b83a0d948bde2948292f60a6b967298[465 chars]d9c'} != {'c1r[80 chars]'c1r_dense.py': '949eb50e0ed4cdf00453c2746d443[465 chars]194'}\nDiff is 712 characters long. Set self.maxDiff to None to see it.\n"
+    },
+    {
+      "test": "tests.test_mdg_eval.MDGEval.test_changed_png_and_config_fail_closed",
+      "method": "tests.test_mdg_eval.MDGEval.test_changed_png_and_config_fail_closed",
+      "reason": "AssertionError: \"pinned input\" does not match \"Legacy reader has no authenticated R2 bank adapter: student_pilot/mdg_eval.py:run_export\"",
+      "traceback": "ValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/mdg_eval.py:run_export\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_mdg_eval.py\", line 172, in test_changed_png_and_config_fail_closed\n    with self.assertRaisesRegex(ValueError, 'pinned input'):\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: \"pinned input\" does not match \"Legacy reader has no authenticated R2 bank adapter: student_pilot/mdg_eval.py:run_export\"\n"
+    },
+    {
+      "test": "tests.test_pd_build2.GateTests.test_heldout_contract",
+      "method": "tests.test_pd_build2.GateTests.test_heldout_contract",
+      "reason": "AssertionError: \"not on the held-out\" does not match \"Legacy reader has no authenticated R2 bank adapter: student_pilot/gate_eval.py:evaluate\"",
+      "traceback": "ValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/gate_eval.py:evaluate\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_pd_build2.py\", line 880, in test_heldout_contract\n    with self.assertRaisesRegex(ValueError, 'not on the held-out'):\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: \"not on the held-out\" does not match \"Legacy reader has no authenticated R2 bank adapter: student_pilot/gate_eval.py:evaluate\"\n"
+    },
+    {
+      "test": "tests.test_pd_build2.GateTests.test_missing_predictions_raise_and_unmeasured_criteria_fail",
+      "method": "tests.test_pd_build2.GateTests.test_missing_predictions_raise_and_unmeasured_criteria_fail",
+      "reason": "AssertionError: \"Missing prediction\" does not match \"Legacy reader has no authenticated R2 bank adapter: student_pilot/gate_eval.py:evaluate\"",
+      "traceback": "ValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/gate_eval.py:evaluate\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_pd_build2.py\", line 871, in test_missing_predictions_raise_and_unmeasured_criteria_fail\n    with self.assertRaisesRegex(ValueError, 'Missing prediction'):\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: \"Missing prediction\" does not match \"Legacy reader has no authenticated R2 bank adapter: student_pilot/gate_eval.py:evaluate\"\n"
+    },
+    {
+      "test": "tests.test_provisional.AdmissionTests.test_train_and_evaluate_entry_still_require_fresh_supervisor_timestamp (operation='evaluate')",
+      "method": "tests.test_provisional.AdmissionTests.test_train_and_evaluate_entry_still_require_fresh_supervisor_timestamp",
+      "reason": "AssertionError: \"older than five minutes\" does not match \"Legacy reader has no authenticated R2 bank adapter: student_pilot/diagnostic.py:evaluate\"",
+      "traceback": "ValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/diagnostic.py:evaluate\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_provisional.py\", line 387, in test_train_and_evaluate_entry_still_require_fresh_supervisor_timestamp\n    with self.subTest(operation=operation.__name__), self.assertRaisesRegex(ValueError, \"older than five minutes\"):\n                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: \"older than five minutes\" does not match \"Legacy reader has no authenticated R2 bank adapter: student_pilot/diagnostic.py:evaluate\"\n"
+    },
+    {
+      "test": "tests.test_provisional_pipeline.ProvisionalPipelineTests.test_provisional_scope_refuses_unrequested_benchmarks_before_output",
+      "method": "tests.test_provisional_pipeline.ProvisionalPipelineTests.test_provisional_scope_refuses_unrequested_benchmarks_before_output",
+      "reason": "AssertionError: \"scoped\" does not match \"Legacy reader has no authenticated R2 bank adapter: student_pilot/benchmark_eval/generate.py:generate_run\"",
+      "traceback": "ValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/benchmark_eval/generate.py:generate_run\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_provisional_pipeline.py\", line 330, in test_provisional_scope_refuses_unrequested_benchmarks_before_output\n    with patch.object(generate, \"load_generation\", return_value=unsupported), self.assertRaisesRegex(ValueError, \"scoped\"):\n                                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: \"scoped\" does not match \"Legacy reader has no authenticated R2 bank adapter: student_pilot/benchmark_eval/generate.py:generate_run\"\n"
+    },
+    {
+      "test": "tests.test_c1_blockers.BlockerTests.test_pose_only_sparse_readout_with_optional_depth",
+      "method": "tests.test_c1_blockers.BlockerTests.test_pose_only_sparse_readout_with_optional_depth",
+      "reason": "ValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/all_frame_readout.py:evaluate",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_c1_blockers.py\", line 108, in test_pose_only_sparse_readout_with_optional_depth\n    report = scoring.evaluate([record], {'pose'}, [('d','s')], [])\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/all_frame_readout.py\", line 107, in evaluate\n    unsupported_entry('student_pilot/all_frame_readout.py:evaluate')\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/r2_policy.py\", line 199, in unsupported_entry\n    raise ValueError('Legacy reader has no authenticated R2 bank adapter: '+entry)\nValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/all_frame_readout.py:evaluate\n"
+    },
+    {
+      "test": "tests.test_carrier_c1_clip.ClipTests.test_evaluate_emits_both_readouts_and_pose_only_gate_requires_them",
+      "method": "tests.test_carrier_c1_clip.ClipTests.test_evaluate_emits_both_readouts_and_pose_only_gate_requires_them",
+      "reason": "ValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/carrier_c1_run.py:evaluate",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_carrier_c1_clip.py\", line 165, in test_evaluate_emits_both_readouts_and_pose_only_gate_requires_them\n    sparse_report=run.evaluate(unbound,artifact,root/'sparse.json')\n                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/carrier_c1_run.py\", line 3191, in evaluate\n    unsupported_entry('student_pilot/carrier_c1_run.py:evaluate')\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/r2_policy.py\", line 199, in unsupported_entry\n    raise ValueError('Legacy reader has no authenticated R2 bank adapter: '+entry)\nValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/carrier_c1_run.py:evaluate\n"
+    },
+    {
+      "test": "tests.test_gf1_contracts.Contracts.test_nonzero_warm_camera_context_is_preserved",
+      "method": "tests.test_gf1_contracts.Contracts.test_nonzero_warm_camera_context_is_preserved",
+      "reason": "AttributeError: 'NoneType' object has no attribute 'mlp'",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_gf1_contracts.py\", line 133, in test_nonzero_warm_camera_context_is_preserved\n    gf1.check_camera_context(model,{})\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/gf1.py\", line 288, in check_camera_context\n    output = model.auxiliary_heads.pose.cam_token_connector.mlp[2]\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAttributeError: 'NoneType' object has no attribute 'mlp'\n"
+    },
+    {
+      "test": "tests.test_gf1_review.ReviewRegression.test_export_round_trip_evaluator_loader_and_missing_init_refusal",
+      "method": "tests.test_gf1_review.ReviewRegression.test_export_round_trip_evaluator_loader_and_missing_init_refusal",
+      "reason": "AttributeError: 'NoneType' object has no attribute 'mlp'",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_gf1_review.py\", line 167, in test_export_round_trip_evaluator_loader_and_missing_init_refusal\n    model.auxiliary_heads.pose.cam_token_connector.mlp[2].weight.normal_(std=.01)\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAttributeError: 'NoneType' object has no attribute 'mlp'\n"
+    },
+    {
+      "test": "tests.test_gx_carrier.GXTests.test_run_loop_m0_custom_budget_and_fail_fast_checkpoint",
+      "method": "tests.test_gx_carrier.GXTests.test_run_loop_m0_custom_budget_and_fail_fast_checkpoint",
+      "reason": "TypeError: 'NoneType' object is not subscriptable",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_gx_carrier.py\", line 968, in test_run_loop_m0_custom_budget_and_fail_fast_checkpoint\n    report = run.run_steps(model, model, optimizer, Rows(batch, target), dict(pose=32),\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/carrier_c1_run.py\", line 2328, in run_steps\n    milestone(cfg, Path(saved['path']).parent, 'checkpoint', rank, distributed)\n                        ~~~~~^^^^^^^^\nTypeError: 'NoneType' object is not subscriptable\n"
+    },
+    {
+      "test": "tests.test_gx_carrier.GXTests.test_run_loop_rechecks_paired_later_windows_and_retains_each_verdict",
+      "method": "tests.test_gx_carrier.GXTests.test_run_loop_rechecks_paired_later_windows_and_retains_each_verdict",
+      "reason": "TypeError: 'NoneType' object is not subscriptable",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_gx_carrier.py\", line 747, in test_run_loop_rechecks_paired_later_windows_and_retains_each_verdict\n    report = run.run_steps(None, None, None, None, dict(pose=32), directory, cfg, {},\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/carrier_c1_run.py\", line 2328, in run_steps\n    milestone(cfg, Path(saved['path']).parent, 'checkpoint', rank, distributed)\n                        ~~~~~^^^^^^^^\nTypeError: 'NoneType' object is not subscriptable\n"
+    },
+    {
+      "test": "tests.test_gx_s6.S6NativeReadoutTests.test_evaluate_sparse_and_contiguous_pass_native_config_and_probe_retains_it",
+      "method": "tests.test_gx_s6.S6NativeReadoutTests.test_evaluate_sparse_and_contiguous_pass_native_config_and_probe_retains_it",
+      "reason": "ValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/carrier_c1_run.py:evaluate",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_gx_s6.py\", line 400, in test_evaluate_sparse_and_contiguous_pass_native_config_and_probe_retains_it\n    run.evaluate(cfg, {}, directory/'native_readout.json')\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/carrier_c1_run.py\", line 3191, in evaluate\n    unsupported_entry('student_pilot/carrier_c1_run.py:evaluate')\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/r2_policy.py\", line 199, in unsupported_entry\n    raise ValueError('Legacy reader has no authenticated R2 bank adapter: '+entry)\nValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/carrier_c1_run.py:evaluate\n"
+    },
+    {
+      "test": "tests.test_mdg_eval.MDGEval.test_export_tampering_and_unjournaled_recovery",
+      "method": "tests.test_mdg_eval.MDGEval.test_export_tampering_and_unjournaled_recovery",
+      "reason": "ValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/mdg_eval.py:run_export",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_mdg_eval.py\", line 246, in test_export_tampering_and_unjournaled_recovery\n    self.run_export()\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_mdg_eval.py\", line 105, in run_export\n    return E.run_export(self.manifest, self.png, [self.membership, self.absent], self.mdg,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/mdg_eval.py\", line 273, in run_export\n    unsupported_entry('student_pilot/mdg_eval.py:run_export')\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/r2_policy.py\", line 199, in unsupported_entry\n    raise ValueError('Legacy reader has no authenticated R2 bank adapter: '+entry)\nValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/mdg_eval.py:run_export\n"
+    },
+    {
+      "test": "tests.test_mdg_eval.MDGEval.test_export_union_one_prefix_resume_and_packed_masks",
+      "method": "tests.test_mdg_eval.MDGEval.test_export_union_one_prefix_resume_and_packed_masks",
+      "reason": "ValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/mdg_eval.py:run_export",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_mdg_eval.py\", line 126, in test_export_union_one_prefix_resume_and_packed_masks\n    result = self.run_export()\n             ^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_mdg_eval.py\", line 105, in run_export\n    return E.run_export(self.manifest, self.png, [self.membership, self.absent], self.mdg,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/mdg_eval.py\", line 273, in run_export\n    unsupported_entry('student_pilot/mdg_eval.py:run_export')\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/r2_policy.py\", line 199, in unsupported_entry\n    raise ValueError('Legacy reader has no authenticated R2 bank adapter: '+entry)\nValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/mdg_eval.py:run_export\n"
+    },
+    {
+      "test": "tests.test_mdg_eval.MDGEval.test_rank_coverage_and_changed_world_refused",
+      "method": "tests.test_mdg_eval.MDGEval.test_rank_coverage_and_changed_world_refused",
+      "reason": "ValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/mdg_eval.py:run_export",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_mdg_eval.py\", line 162, in test_rank_coverage_and_changed_world_refused\n    self.run_export(1, 2)\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_mdg_eval.py\", line 105, in run_export\n    return E.run_export(self.manifest, self.png, [self.membership, self.absent], self.mdg,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/mdg_eval.py\", line 273, in run_export\n    unsupported_entry('student_pilot/mdg_eval.py:run_export')\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/r2_policy.py\", line 199, in unsupported_entry\n    raise ValueError('Legacy reader has no authenticated R2 bank adapter: '+entry)\nValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/mdg_eval.py:run_export\n"
+    },
+    {
+      "test": "tests.test_mdg_eval.MDGEval.test_standalone_runtime_receives_pins_and_binds_processor",
+      "method": "tests.test_mdg_eval.MDGEval.test_standalone_runtime_receives_pins_and_binds_processor",
+      "reason": "ValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/mdg_eval.py:load_runtime",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_mdg_eval.py\", line 155, in test_standalone_runtime_receives_pins_and_binds_processor\n    E.load_runtime(file_pin(self.cfg), file_pin(self.artifact), self.mdg, 'cpu', file_pin(self.bundle))\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/mdg_eval.py\", line 176, in load_runtime\n    unsupported_entry('student_pilot/mdg_eval.py:load_runtime')\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/r2_policy.py\", line 199, in unsupported_entry\n    raise ValueError('Legacy reader has no authenticated R2 bank adapter: '+entry)\nValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/mdg_eval.py:load_runtime\n"
+    },
+    {
+      "test": "tests.test_mdg_features.MDGFeatures.test_cli_writes_tiny_model_canary_and_fails_nonzero",
+      "method": "tests.test_mdg_features.MDGFeatures.test_cli_writes_tiny_model_canary_and_fails_nonzero",
+      "reason": "ValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/mdg_runtime.py:load_runtime",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_mdg_features.py\", line 255, in test_cli_writes_tiny_model_canary_and_fails_nonzero\n    mdg.main()\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/mdg_features.py\", line 366, in main\n    model, processor, native = load_runtime(cfg, device)\n                               ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/mdg_runtime.py\", line 171, in load_runtime\n    unsupported_entry('student_pilot/mdg_runtime.py:load_runtime')\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/r2_policy.py\", line 199, in unsupported_entry\n    raise ValueError('Legacy reader has no authenticated R2 bank adapter: '+entry)\nValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/mdg_runtime.py:load_runtime\n"
+    },
+    {
+      "test": "tests.test_orchard_eval_qwen36_27b.RegistryAndDeviceTests.test_cli_preserves_orchard_controls_and_forwards_loading_options",
+      "method": "tests.test_orchard_eval_qwen36_27b.RegistryAndDeviceTests.test_cli_preserves_orchard_controls_and_forwards_loading_options",
+      "reason": "ValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/orchard_eval/__main__.py:main",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_orchard_eval_qwen36_27b.py\", line 83, in test_cli_preserves_orchard_controls_and_forwards_loading_options\n    self.assertEqual(main(['cpu-check', *shared]), 0)\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/orchard_eval/__main__.py\", line 9, in main\n    unsupported_entry('student_pilot/orchard_eval/__main__.py:main')\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/r2_policy.py\", line 199, in unsupported_entry\n    raise ValueError('Legacy reader has no authenticated R2 bank adapter: '+entry)\nValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/orchard_eval/__main__.py:main\n"
+    },
+    {
+      "test": "tests.test_pd_build2.GateTests.test_driver_on_a_toy_checkpoint",
+      "method": "tests.test_pd_build2.GateTests.test_driver_on_a_toy_checkpoint",
+      "reason": "ValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/gate_driver.py:run_gate",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_pd_build2.py\", line 919, in test_driver_on_a_toy_checkpoint\n    result = gate_driver.run_gate(model, tokenizer, [row for row, _ in rows], root / 'bank.npz', heldout, [],\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/gate_driver.py\", line 71, in run_gate\n    unsupported_entry('student_pilot/gate_driver.py:run_gate')\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/r2_policy.py\", line 199, in unsupported_entry\n    raise ValueError('Legacy reader has no authenticated R2 bank adapter: '+entry)\nValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/gate_driver.py:run_gate\n"
+    },
+    {
+      "test": "tests.test_pd_build2.GateTests.test_medians_resist_one_bad_scene",
+      "method": "tests.test_pd_build2.GateTests.test_medians_resist_one_bad_scene",
+      "reason": "ValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/gate_eval.py:evaluate",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_pd_build2.py\", line 865, in test_medians_resist_one_bad_scene\n    result = self.run_gate(records)\n             ^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_pd_build2.py\", line 848, in run_gate\n    return gate_eval.evaluate(records, heads, keys, [('d1', 'train')])\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/gate_eval.py\", line 274, in evaluate\n    unsupported_entry('student_pilot/gate_eval.py:evaluate')\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/r2_policy.py\", line 199, in unsupported_entry\n    raise ValueError('Legacy reader has no authenticated R2 bank adapter: '+entry)\nValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/gate_eval.py:evaluate\n"
+    },
+    {
+      "test": "tests.test_pd_build2.GateTests.test_perfect_heads_pass_and_errors_fail",
+      "method": "tests.test_pd_build2.GateTests.test_perfect_heads_pass_and_errors_fail",
+      "reason": "ValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/gate_eval.py:evaluate",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_pd_build2.py\", line 851, in test_perfect_heads_pass_and_errors_fail\n    perfect = self.run_gate([self.scene(scene='a'), self.scene('d2', 'b', seed=1)])\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_pd_build2.py\", line 848, in run_gate\n    return gate_eval.evaluate(records, heads, keys, [('d1', 'train')])\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/gate_eval.py\", line 274, in evaluate\n    unsupported_entry('student_pilot/gate_eval.py:evaluate')\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/r2_policy.py\", line 199, in unsupported_entry\n    raise ValueError('Legacy reader has no authenticated R2 bank adapter: '+entry)\nValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/gate_eval.py:evaluate\n"
+    },
+    {
+      "test": "tests.test_provisional.AdmissionTests.test_train_and_evaluate_record_probe_after_slow_staging (operation='evaluate')",
+      "method": "tests.test_provisional.AdmissionTests.test_train_and_evaluate_record_probe_after_slow_staging",
+      "reason": "ValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/diagnostic.py:evaluate",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_provisional.py\", line 451, in test_train_and_evaluate_record_probe_after_slow_staging\n    operation(manifest_path, protocol_path, output, self.path, scratch_root=self.root,\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/diagnostic.py\", line 215, in evaluate\n    unsupported_entry('student_pilot/diagnostic.py:evaluate')\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/student_pilot/r2_policy.py\", line 199, in unsupported_entry\n    raise ValueError('Legacy reader has no authenticated R2 bank adapter: '+entry)\nValueError: Legacy reader has no authenticated R2 bank adapter: student_pilot/diagnostic.py:evaluate\n"
+    },
+    {
+      "test": "tests.test_storage.StorageTests.test_finalize_checks_every_copy_and_preserves_local_files",
+      "method": "tests.test_storage.StorageTests.test_finalize_checks_every_copy_and_preserves_local_files",
+      "reason": "PermissionError: [Errno 13] Permission denied: '/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/artifacts/trainer_tests/storage_y668o10l'",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_storage.py\", line 16, in setUp\n    self.root = Path(tempfile.mkdtemp(prefix=\"storage_\", dir=root))\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/tempfile.py\", line 384, in mkdtemp\n    _os.mkdir(file, 0o700)\nPermissionError: [Errno 13] Permission denied: '/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/artifacts/trainer_tests/storage_y668o10l'\n"
+    },
+    {
+      "test": "tests.test_storage.StorageTests.test_finalize_refuses_invalid_reload_and_step_coverage",
+      "method": "tests.test_storage.StorageTests.test_finalize_refuses_invalid_reload_and_step_coverage",
+      "reason": "PermissionError: [Errno 13] Permission denied: '/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/artifacts/trainer_tests/storage_q3w0pz05'",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_storage.py\", line 16, in setUp\n    self.root = Path(tempfile.mkdtemp(prefix=\"storage_\", dir=root))\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/tempfile.py\", line 384, in mkdtemp\n    _os.mkdir(file, 0o700)\nPermissionError: [Errno 13] Permission denied: '/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/artifacts/trainer_tests/storage_q3w0pz05'\n"
+    },
+    {
+      "test": "tests.test_storage.StorageTests.test_finalize_refuses_missing_steps_or_changed_adapter",
+      "method": "tests.test_storage.StorageTests.test_finalize_refuses_missing_steps_or_changed_adapter",
+      "reason": "PermissionError: [Errno 13] Permission denied: '/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/artifacts/trainer_tests/storage_0d0qvixo'",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_storage.py\", line 16, in setUp\n    self.root = Path(tempfile.mkdtemp(prefix=\"storage_\", dir=root))\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/tempfile.py\", line 384, in mkdtemp\n    _os.mkdir(file, 0o700)\nPermissionError: [Errno 13] Permission denied: '/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/artifacts/trainer_tests/storage_0d0qvixo'\n"
+    },
+    {
+      "test": "tests.test_storage.StorageTests.test_finalize_rejects_foreign_or_existing_publish_paths",
+      "method": "tests.test_storage.StorageTests.test_finalize_rejects_foreign_or_existing_publish_paths",
+      "reason": "PermissionError: [Errno 13] Permission denied: '/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/artifacts/trainer_tests/storage_2e0g4dze'",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_storage.py\", line 16, in setUp\n    self.root = Path(tempfile.mkdtemp(prefix=\"storage_\", dir=root))\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/tempfile.py\", line 384, in mkdtemp\n    _os.mkdir(file, 0o700)\nPermissionError: [Errno 13] Permission denied: '/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/artifacts/trainer_tests/storage_2e0g4dze'\n"
+    },
+    {
+      "test": "tests.test_storage.StorageTests.test_frame_drift_refuses_staging",
+      "method": "tests.test_storage.StorageTests.test_frame_drift_refuses_staging",
+      "reason": "PermissionError: [Errno 13] Permission denied: '/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/artifacts/trainer_tests/storage_q_faqb0_'",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_storage.py\", line 16, in setUp\n    self.root = Path(tempfile.mkdtemp(prefix=\"storage_\", dir=root))\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/tempfile.py\", line 384, in mkdtemp\n    _os.mkdir(file, 0o700)\nPermissionError: [Errno 13] Permission denied: '/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/artifacts/trainer_tests/storage_q_faqb0_'\n"
+    },
+    {
+      "test": "tests.test_storage.StorageTests.test_frames_are_hashed_deduplicated_and_only_paths_change",
+      "method": "tests.test_storage.StorageTests.test_frames_are_hashed_deduplicated_and_only_paths_change",
+      "reason": "PermissionError: [Errno 13] Permission denied: '/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/artifacts/trainer_tests/storage_y2_e23bd'",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_storage.py\", line 16, in setUp\n    self.root = Path(tempfile.mkdtemp(prefix=\"storage_\", dir=root))\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/tempfile.py\", line 384, in mkdtemp\n    _os.mkdir(file, 0o700)\nPermissionError: [Errno 13] Permission denied: '/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/artifacts/trainer_tests/storage_y2_e23bd'\n"
+    },
+    {
+      "test": "tests.test_storage.StorageTests.test_generation_header_hash_includes_written_provenance",
+      "method": "tests.test_storage.StorageTests.test_generation_header_hash_includes_written_provenance",
+      "reason": "PermissionError: [Errno 13] Permission denied: '/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/artifacts/trainer_tests/storage_bx7y5cue'",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_storage.py\", line 16, in setUp\n    self.root = Path(tempfile.mkdtemp(prefix=\"storage_\", dir=root))\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/tempfile.py\", line 384, in mkdtemp\n    _os.mkdir(file, 0o700)\nPermissionError: [Errno 13] Permission denied: '/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/artifacts/trainer_tests/storage_bx7y5cue'\n"
+    },
+    {
+      "test": "tests.test_storage.StorageTests.test_local_training_requires_staging_nonlocal_frames",
+      "method": "tests.test_storage.StorageTests.test_local_training_requires_staging_nonlocal_frames",
+      "reason": "PermissionError: [Errno 13] Permission denied: '/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/artifacts/trainer_tests/storage_5tby1jiz'",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_storage.py\", line 16, in setUp\n    self.root = Path(tempfile.mkdtemp(prefix=\"storage_\", dir=root))\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/tempfile.py\", line 384, in mkdtemp\n    _os.mkdir(file, 0o700)\nPermissionError: [Errno 13] Permission denied: '/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/artifacts/trainer_tests/storage_5tby1jiz'\n"
+    },
+    {
+      "test": "tests.test_storage.StorageTests.test_low_space_and_directory_cap_fail_closed",
+      "method": "tests.test_storage.StorageTests.test_low_space_and_directory_cap_fail_closed",
+      "reason": "PermissionError: [Errno 13] Permission denied: '/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/artifacts/trainer_tests/storage_cvch3f6p'",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_storage.py\", line 16, in setUp\n    self.root = Path(tempfile.mkdtemp(prefix=\"storage_\", dir=root))\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/tempfile.py\", line 384, in mkdtemp\n    _os.mkdir(file, 0o700)\nPermissionError: [Errno 13] Permission denied: '/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/artifacts/trainer_tests/storage_cvch3f6p'\n"
+    },
+    {
+      "test": "tests.test_storage.StorageTests.test_output_requires_an_explicit_contained_scratch_root",
+      "method": "tests.test_storage.StorageTests.test_output_requires_an_explicit_contained_scratch_root",
+      "reason": "PermissionError: [Errno 13] Permission denied: '/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/artifacts/trainer_tests/storage_b2ysw7eq'",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_storage.py\", line 16, in setUp\n    self.root = Path(tempfile.mkdtemp(prefix=\"storage_\", dir=root))\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/tempfile.py\", line 384, in mkdtemp\n    _os.mkdir(file, 0o700)\nPermissionError: [Errno 13] Permission denied: '/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/artifacts/trainer_tests/storage_b2ysw7eq'\n"
+    },
+    {
+      "test": "tests.test_storage.StorageTests.test_run_and_artifact_paths_are_immutable_and_have_provenance",
+      "method": "tests.test_storage.StorageTests.test_run_and_artifact_paths_are_immutable_and_have_provenance",
+      "reason": "PermissionError: [Errno 13] Permission denied: '/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/artifacts/trainer_tests/storage_oyg8kw2_'",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_storage.py\", line 16, in setUp\n    self.root = Path(tempfile.mkdtemp(prefix=\"storage_\", dir=root))\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/tempfile.py\", line 384, in mkdtemp\n    _os.mkdir(file, 0o700)\nPermissionError: [Errno 13] Permission denied: '/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/artifacts/trainer_tests/storage_oyg8kw2_'\n"
+    },
+    {
+      "test": "tests.test_storage.StorageTests.test_runtime_caches_are_local_without_replacing_the_hf_cache",
+      "method": "tests.test_storage.StorageTests.test_runtime_caches_are_local_without_replacing_the_hf_cache",
+      "reason": "PermissionError: [Errno 13] Permission denied: '/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/artifacts/trainer_tests/storage_x21jqfr_'",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_storage.py\", line 16, in setUp\n    self.root = Path(tempfile.mkdtemp(prefix=\"storage_\", dir=root))\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/tempfile.py\", line 384, in mkdtemp\n    _os.mkdir(file, 0o700)\nPermissionError: [Errno 13] Permission denied: '/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/artifacts/trainer_tests/storage_x21jqfr_'\n"
+    },
+    {
+      "test": "tests.test_storage.StorageTests.test_smoke_publication_requires_successful_adapter_reload",
+      "method": "tests.test_storage.StorageTests.test_smoke_publication_requires_successful_adapter_reload",
+      "reason": "PermissionError: [Errno 13] Permission denied: '/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/artifacts/trainer_tests/storage_386cz7h2'",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_storage.py\", line 16, in setUp\n    self.root = Path(tempfile.mkdtemp(prefix=\"storage_\", dir=root))\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/tempfile.py\", line 384, in mkdtemp\n    _os.mkdir(file, 0o700)\nPermissionError: [Errno 13] Permission denied: '/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/artifacts/trainer_tests/storage_386cz7h2'\n"
+    },
+    {
+      "test": "tests.test_storage.StorageTests.test_symlink_escape_is_rejected",
+      "method": "tests.test_storage.StorageTests.test_symlink_escape_is_rejected",
+      "reason": "PermissionError: [Errno 13] Permission denied: '/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/artifacts/trainer_tests/storage_zpg7zloq'",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_storage.py\", line 16, in setUp\n    self.root = Path(tempfile.mkdtemp(prefix=\"storage_\", dir=root))\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/tempfile.py\", line 384, in mkdtemp\n    _os.mkdir(file, 0o700)\nPermissionError: [Errno 13] Permission denied: '/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/artifacts/trainer_tests/storage_zpg7zloq'\n"
+    },
+    {
+      "test": "tests.test_training.AdapterReloadTests.test_exact_peft_reload_preserves_fp32_and_bf16_archives",
+      "method": "tests.test_training.AdapterReloadTests.test_exact_peft_reload_preserves_fp32_and_bf16_archives",
+      "reason": "PermissionError: [Errno 13] Permission denied: '/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/artifacts/trainer_tests/adapter_dtype_ed3n7cjz'",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/tests/test_training.py\", line 116, in test_exact_peft_reload_preserves_fp32_and_bf16_archives\n    root = Path(tempfile.mkdtemp(prefix=\"adapter_dtype_\", dir=root))\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/tempfile.py\", line 384, in mkdtemp\n    _os.mkdir(file, 0o700)\nPermissionError: [Errno 13] Permission denied: '/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tree_r1/artifacts/trainer_tests/adapter_dtype_ed3n7cjz'\n"
+    }
+  ]
+}

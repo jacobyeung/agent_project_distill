@@ -1,0 +1,49 @@
+{
+ "verdicts": {
+  "admitted:object_abs_distance:None": 13001,
+  "packed:object_abs_distance:None": 13001,
+  "admitted:room_size_estimation:None": 1083,
+  "packed:room_size_estimation:None": 1083
+ },
+ "roles": {
+  "both_in|exact": 13001,
+  "calls==roles": 13001
+ },
+ "examples": {},
+ "corrupt": {
+  "drop_last_response": {
+   "contract_missing_response": 100
+  },
+  "operator_fault": {
+   "contract_operator_fault": 100
+  },
+  "not_seen_then_gap": {
+   "contract_call_after_failed_ground": 100
+  },
+  "heading_unavailable_then_gap": {
+   "contract_call_after_failed_ground": 100
+  },
+  "quote_in_question": {
+   "None": 100
+  },
+  "call_token_none": {
+   "RAISED AttributeError: 'NoneType' object has no attribute 'strip'": 100
+  },
+  "routing_not_dict": {
+   "RAISED AttributeError: 'str' object has no attribute 'get'": 100
+  }
+ },
+ "sample_events_kinds": [
+  "ground_trace_start",
+  "canonical_text",
+  "ground_call",
+  "ground_response",
+  "canonical_text",
+  "ground_call",
+  "ground_response",
+  "canonical_text",
+  "ground_call",
+  "ground_response",
+  "canonical_text"
+ ]
+}

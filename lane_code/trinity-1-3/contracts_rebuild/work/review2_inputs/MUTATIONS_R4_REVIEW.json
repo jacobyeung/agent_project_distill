@@ -1,0 +1,428 @@
+{
+ "M1": {
+  "file": "student_pilot/geometry_profiles.py",
+  "old": "if plane[0] >= UP_PLANE_MIN:",
+  "new": "if plane[0] > UP_PLANE_MIN:",
+  "suite_rc": 1,
+  "killed": true,
+  "first_failure": [
+   "FAILED ../../rr/work/tests_r4/test_contracts.py::test_reviewed_guard_ast_grid_and_jitter"
+  ],
+  "tail": [
+   "1 failed, 17 passed in 31.11s"
+  ]
+ },
+ "M2": {
+  "file": "student_pilot/geometry_profiles.py",
+  "old": "np.median(margin[usable] / plane[usable]) <= 0",
+  "new": "np.median(margin[usable] / plane[usable]) < -0.05",
+  "suite_rc": 1,
+  "killed": true,
+  "first_failure": [
+   "FAILED ../../rr/work/tests_r4/test_contracts.py::test_reviewed_guard_ast_grid_and_jitter"
+  ],
+  "tail": [
+   "1 failed, 17 passed in 30.32s"
+  ]
+ },
+ "M3": {
+  "file": "trace_format/contracts.py",
+  "old": "(np.asarray(rotation).T @ down)[:2]",
+  "new": "(np.asarray(rotation).T @ down)[1:]",
+  "suite_rc": 1,
+  "killed": true,
+  "first_failure": [
+   "FAILED ../../rr/work/tests_r4/test_build2.py::test_head_outputs_through_bound_session[rolled]"
+  ],
+  "tail": [
+   "1 failed, 14 passed in 33.60s"
+  ]
+ },
+ "M4": {
+  "file": "trace_format/contracts.py",
+  "old": "if body.lower().startswith('error:'):\n        return 'error'",
+  "new": "",
+  "suite_rc": 1,
+  "killed": true,
+  "first_failure": [
+   "FAILED ../../rr/work/tests_r4/test_contracts.py::test_response_status[error: x-error]"
+  ],
+  "tail": [
+   "1 failed, 34 passed in 36.55s"
+  ]
+ },
+ "M5": {
+  "file": "trace_format/contracts.py",
+  "old": "'size unavailable', 'unavailable')",
+  "new": "'size unavailable')",
+  "suite_rc": 1,
+  "killed": true,
+  "first_failure": [
+   "FAILED ../../rr/work/tests_r4/test_contracts.py::test_response_status[<tool_response>\\nunavailable\\n</tool_response>-unavailable]"
+  ],
+  "tail": [
+   "1 failed, 38 passed in 37.23s"
+  ]
+ },
+ "M6": {
+  "file": "student_pilot/training_contract.py",
+  "old": "if retried or name is None or name == failed:",
+  "new": "if retried or name == failed:",
+  "suite_rc": 1,
+  "killed": true,
+  "first_failure": [
+   "FAILED ../../rr/work/tests_r4/test_review_r4.py::test_review_ground_responses_and_recovery"
+  ],
+  "tail": [
+   "1 failed, 114 passed in 50.47s"
+  ]
+ },
+ "M7": {
+  "file": "student_pilot/training_contract.py",
+  "old": "if any(code in text for code in OPERATOR_FAULTS + RUNTIME_ONLY_FAULTS):",
+  "new": "if False:",
+  "suite_rc": 1,
+  "killed": true,
+  "first_failure": [
+   "FAILED ../../rr/work/tests_r4/test_contracts.py::test_row_audit[operator-contract_operator_fault]"
+  ],
+  "tail": [
+   "1 failed, 53 passed in 42.78s"
+  ]
+ },
+ "M8": {
+  "file": "student_pilot/live_instances314.py",
+  "old": "if enabled and entry.get('depth_cut_applied', False):",
+  "new": "if entry.get('depth_cut_applied', False):",
+  "suite_rc": 1,
+  "killed": true,
+  "first_failure": [
+   "FAILED ../../rr/work/tests_r4/test_contracts.py::test_bridge_does_not_recut_and_replay"
+  ],
+  "tail": [
+   "1 failed, 47 passed in 42.45s"
+  ]
+ },
+ "M9": {
+  "file": "student_pilot/phrases.py",
+  "old": "if word.endswith('ies') and len(word) > 3:\n            word = word[:-3]+'y'\n        elif",
+  "new": "if",
+  "suite_rc": 1,
+  "killed": true,
+  "first_failure": [
+   "FAILED ../../rr/work/tests_r4/test_edges.py::test_event_forms_and_manifest_failure_reasons"
+  ],
+  "tail": [
+   "1 failed, 68 passed in 44.98s"
+  ]
+ },
+ "M10": {
+  "file": "student_pilot/carrier_c1_routing.py",
+  "old": "delta = self.camera(j)[1] - self.camera(i)[1]",
+  "new": "delta = self.camera(j)[1] - self.camera(1)[1]",
+  "suite_rc": 1,
+  "killed": true,
+  "first_failure": [
+   "FAILED ../../rr/work/tests_r4/test_review_r4.py::test_decode_attacks_and_move_source_distance"
+  ],
+  "tail": [
+   "1 failed, 130 passed in 48.93s"
+  ]
+ },
+ "M11": {
+  "file": "trace_format/box_v313.py",
+  "old": "return np.asarray(geometry.cam(k)[1],float)",
+  "new": "return np.asarray(geometry.cam(1)[1],float)",
+  "suite_rc": 1,
+  "killed": true,
+  "first_failure": [
+   "FAILED ../../rr/work/tests_r4/test_build2.py::test_b2_fixture_matrix[nadir]"
+  ],
+  "tail": [
+   "1 failed, 2 passed in 7.76s"
+  ]
+ },
+ "M12": {
+  "file": "student_pilot/s1_routing.py",
+  "old": "refusal = audit_training_contract([row], contract_manifest)[0]\n        if refusal:",
+  "new": "refusal = audit_training_contract([row], contract_manifest)[0]\n        if False:",
+  "suite_rc": 1,
+  "killed": true,
+  "first_failure": [
+   "FAILED ../../rr/work/tests_r4/test_materializer.py::test_build_defers_one_row_and_keeps_clean_row[after_failure-contract_call_after_failed_ground]"
+  ],
+  "tail": [
+   "1 failed, 105 passed in 47.24s"
+  ]
+ },
+ "M13": {
+  "file": "student_pilot/ground_v3.py",
+  "old": "names = getattr(source, 'cache', {}).get('phrases', getattr(source,'names',()))",
+  "new": "names = getattr(source,'names',())",
+  "suite_rc": 1,
+  "killed": true,
+  "first_failure": [
+   "FAILED ../../rr/work/tests_r4/test_review_r4.py::test_cache_binding_separate_reads"
+  ],
+  "tail": [
+   "1 failed, 128 passed in 48.66s"
+  ]
+ },
+ "M14": {
+  "file": "trace_format/ground_v313.py",
+  "old": "heading_defined=heading_available(geometry))",
+  "new": "heading_defined=heading_available(geometry) or role == 'nearest point')",
+  "suite_rc": 1,
+  "killed": true,
+  "first_failure": [
+   "FAILED ../../rr/work/tests_r4/test_heading_r2.py::test_ground_box_count_witness_and_keypoints"
+  ],
+  "tail": [
+   "1 failed, 98 passed in 49.39s"
+  ]
+ },
+ "M15": {
+  "file": "generator/derivgen_v7/derivgen/box_v313.py",
+  "old": "BoxRegistry = epoch_class(BoxRegistry, _runtime.BoxRegistry)",
+  "new": "",
+  "suite_rc": 1,
+  "killed": true,
+  "first_failure": [
+   "FAILED ../../rr/work/tests_r4/test_review_r4.py::test_classes_remain_classes"
+  ],
+  "tail": [
+   "1 failed, 137 passed in 52.01s"
+  ]
+ },
+ "M16": {
+  "file": "student_pilot/carrier_c1_routing.py",
+  "old": "if not recorded and (not heading_available(geometry) or",
+  "new": "if False and (not heading_available(geometry) or",
+  "suite_rc": 1,
+  "killed": true,
+  "first_failure": [
+   "FAILED ../../rr/work/tests_r4/test_review_r4.py::test_training_head_substitution_depth"
+  ],
+  "tail": [
+   "1 failed, 139 passed in 52.07s"
+  ]
+ },
+ "M17": {
+  "file": "student_pilot/s1_grounding.py",
+  "old": "batch.get(\"cache_phrases\", row.get(\"candidate_phrases\"))",
+  "new": "None",
+  "suite_rc": 1,
+  "killed": true,
+  "first_failure": [
+   "FAILED ../../rr/work/tests_r4/test_review_r4.py::test_cache_binding_separate_reads"
+  ],
+  "tail": [
+   "1 failed, 128 passed in 48.87s"
+  ]
+ },
+ "M18": {
+  "file": "trace_format/ground_v313.py",
+  "old": "heading_defined=heading_available(geometry))",
+  "new": "heading_defined=heading_available(geometry) or role.startswith('instance '))",
+  "suite_rc": 1,
+  "killed": true,
+  "first_failure": [
+   "FAILED ../../rr/work/tests_r4/test_build2.py::test_b2_fixture_matrix[vertical]"
+  ],
+  "tail": [
+   "1 failed, 4 passed in 11.10s"
+  ]
+ },
+ "R1": {
+  "file": "student_pilot/carrier_c1_routing.py",
+  "old": "if not heading_available(self, i):\n            delta",
+  "new": "if not heading_available(self):\n            delta",
+  "suite_rc": 1,
+  "killed": true,
+  "first_failure": [
+   "FAILED ../../rr/work/tests_r4/test_heading_r2.py::test_all_relative_head_pairs[nadir]"
+  ],
+  "tail": [
+   "1 failed, 93 passed in 47.34s"
+  ]
+ },
+ "R2": {
+  "file": "student_pilot/carrier_c1_routing.py",
+  "old": "missing = [k for k in dict.fromkeys((i, j)) if not heading_available(self, k)]",
+  "new": "missing = []",
+  "suite_rc": 1,
+  "killed": true,
+  "first_failure": [
+   "FAILED ../../rr/work/tests_r4/test_build2.py::test_head_outputs_through_bound_session[nadir_positive]"
+  ],
+  "tail": [
+   "1 failed, 15 passed in 31.63s"
+  ]
+ },
+ "R4": {
+  "file": "student_pilot/training_contract.py",
+  "old": "if call.startswith('<ground') and status != 'ok' and not partial_ground:",
+  "new": "if call.startswith('<ground') and status != 'ok':",
+  "suite_rc": 0,
+  "killed": false,
+  "first_failure": [],
+  "tail": [
+   "157 passed in 51.10s"
+  ]
+ },
+ "R5": {
+  "file": "generator/derivgen_v7/derivgen/box_v313.py",
+  "old": "if session.box_registry.states.get(name)!='ok':failure=(name,response_status(body));break\n    if not failure:\n        body=emit(f'<gap a=",
+  "new": "if response_status(body)!='ok':failure=(name,response_status(body));break\n    if not failure:\n        body=emit(f'<gap a=",
+  "suite_rc": 0,
+  "killed": false,
+  "first_failure": [],
+  "tail": [
+   "157 passed in 51.74s"
+  ]
+ },
+ "R6": {
+  "file": "student_pilot/carrier_c1_routing.py",
+  "old": "if not heading_available(self, k):",
+  "new": "if False:",
+  "suite_rc": 1,
+  "killed": true,
+  "first_failure": [
+   "FAILED ../../rr/work/tests_r4/test_heading_r2.py::test_frame_dependencies_and_world_rotation"
+  ],
+  "tail": [
+   "1 failed, 96 passed in 47.18s"
+  ]
+ },
+ "N1": {
+  "file": "trace_format/point_events.py",
+  "old": "f\"dx = {delta[0]:+.2f} m, dy",
+  "new": "f\"dx = {delta[0]:.2f} m, dy",
+  "suite_rc": 1,
+  "killed": true,
+  "first_failure": [
+   "FAILED ../../rr/work/tests_r4/test_row_families_r4.py::test_structured_point_program_admission"
+  ],
+  "tail": [
+   "1 failed, 147 passed in 50.79s"
+  ]
+ },
+ "N2": {
+  "file": "student_pilot/training_contract.py",
+  "old": "if ('call_id' in call or 'call_id' in event) and call.get('call_id') != event.get('call_id'):",
+  "new": "if False:",
+  "suite_rc": 0,
+  "killed": false,
+  "first_failure": [],
+  "tail": [
+   "157 passed in 52.46s"
+  ]
+ },
+ "N3": {
+  "file": "student_pilot/live_trace313.py",
+  "old": "if program_version in ('3.12', '3.12.1', '3.12.2') and re.fullmatch(",
+  "new": "if program_version in ('3.12',) and re.fullmatch(",
+  "suite_rc": 1,
+  "killed": true,
+  "first_failure": [
+   "FAILED ../../rr/work/tests_r4/test_row_families_r4.py::test_legacy_scalar_gap_audit"
+  ],
+  "tail": [
+   "1 failed, 155 passed in 52.03s"
+  ]
+ },
+ "N4": {
+  "file": "student_pilot/phrases.py",
+  "old": "for category, labels in vocabulary().items():\n                if normalize_phrase(category) in names:\n                    names.update(phrase_set(labels))",
+  "new": "pass",
+  "suite_rc": 0,
+  "killed": false,
+  "first_failure": [],
+  "tail": [
+   "157 passed in 52.87s"
+  ]
+ },
+ "N5": {
+  "file": "student_pilot/carrier_c1_routing.py",
+  "old": "return 'f1 centre '+partial_f1(self.camera_pose(k)['camera_t_L1'], f2)+f' m, yaw heading unavailable (frame {k})'",
+  "new": "return 'f1 centre '+vec(self.camera_pose(k)['camera_t_L1'])+f' m, yaw heading unavailable (frame {k})'",
+  "suite_rc": 1,
+  "killed": true,
+  "first_failure": [
+   "FAILED ../../rr/work/tests_r4/test_review_r4.py::test_decode_attacks_and_move_source_distance"
+  ],
+  "tail": [
+   "1 failed, 130 passed in 49.78s"
+  ]
+ },
+ "N6": {
+  "file": "trace_format/contracts.py",
+  "old": "if body == 'heading unavailable' and any(\n            line.startswith(('size ', 'distance ', 'count ')) and 'unavailable' not in line\n            for line in te",
+  "new": "",
+  "suite_rc": 1,
+  "killed": true,
+  "first_failure": [
+   "FAILED ../../rr/work/tests_r4/test_review_r4.py::test_review_ground_responses_and_recovery"
+  ],
+  "tail": [
+   "1 failed, 114 passed in 48.84s"
+  ]
+ },
+ "N7": {
+  "file": "student_pilot/training_contract.py",
+  "old": "r': (?:frames |[1-9][0-9]* (?:instances|found)\\n)'",
+  "new": "r': (?:frames )'",
+  "suite_rc": 0,
+  "killed": false,
+  "first_failure": [],
+  "tail": [
+   "157 passed in 51.46s"
+  ]
+ },
+ "N8": {
+  "file": "trace_format/contracts.py",
+  "old": "key = (cls, new_contracts())",
+  "new": "key = (cls, True)",
+  "suite_rc": 1,
+  "killed": true,
+  "first_failure": [
+   "FAILED ../../rr/work/tests_r4/test_class_api_r4.py::test_epoch_class_static_api_and_super"
+  ],
+  "tail": [
+   "1 failed, 16 passed in 31.23s"
+  ]
+ },
+ "N9": {
+  "file": "trace_format/box_v313.py",
+  "old": "if geometry_mode == 'sensor':\n        return FusedBoxProvider()",
+  "new": "if geometry_mode == 'sensor' and __import__('trace_format.contracts', fromlist=['x']).new_contracts():\n        return FusedBoxProvider()",
+  "suite_rc": 0,
+  "killed": false,
+  "first_failure": [],
+  "tail": [
+   "157 passed in 52.33s"
+  ]
+ },
+ "N10": {
+  "file": "student_pilot/phrases.py",
+  "old": "not word.endswith(('ss','us','is','ses','ves'))",
+  "new": "not word.endswith(('ss','us','is'))",
+  "suite_rc": 0,
+  "killed": false,
+  "first_failure": [],
+  "tail": [
+   "157 passed in 52.27s"
+  ]
+ },
+ "N11": {
+  "file": "student_pilot/s1_grounding.py",
+  "old": "batch.get(\"cache_phrases\", row.get(\"candidate_phrases\"))",
+  "new": "batch.get(\"cache_phrases\", row.get(\"candidate_manifest\", row.get(\"cache_phrases\", row.get(\"candidate_phrases\"))))",
+  "suite_rc": 0,
+  "killed": false,
+  "first_failure": [],
+  "tail": [
+   "157 passed in 52.21s"
+  ]
+ }
+}

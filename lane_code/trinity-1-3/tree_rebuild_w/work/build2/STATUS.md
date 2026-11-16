@@ -1,0 +1,5 @@
+# Build 2 status
+
+The combined suite ran 83 tests with 0 failures, 0 errors and 0 skips (`out/B2_FINAL_TEST_RESULTS.json`). The focused closing suite ran 3 tests with 0 failures and 0 errors (`out/B2_CLOSING_TEST_RESULTS.json`). The portable integration suite ran 11 tests with 0 failures and 0 errors (`out/B2_INTEGRATION_TEST_RESULTS.json`). The final native-config and kit-staging suite ran 3 tests with 0 failures and 0 errors (`out/B2_CONFIG_TEST_RESULTS.json`). The final fallback proof ran 1 test with 0 failures and 0 errors (`out/B2_FALLBACK_TEST_RESULTS.json`).
+
+The tree, inspection kits, policy slots, room binding, mix, proofs, diff, file hashes and seal are written. The final outcome and limits are in out/BUILD2_REPORT.md. The kits do not launch. Portable evidence and sampling wiring passes its synthetic proof. Opaque-source execution, legacy bank adapters, the broader evaluation audit and real input records remain incomplete. Remaining coverage statements and their honest classes are in out/B2_COVERAGE_CLASSIFIED.json.

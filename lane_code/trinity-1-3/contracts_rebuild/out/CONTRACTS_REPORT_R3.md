@@ -1,0 +1,19 @@
+The contract packet passes 140 CPU tests and kills every tested mutation. The patches apply to the sealed base and integration snapshot without fuzz or offsets. Sources: [FINAL_TEST_RESULTS_R3.json](/scratch/jjyeung/orch_n30/contracts_rebuild/out/FINAL_TEST_RESULTS_R3.json), [MUTATION_R3.json](/scratch/jjyeung/orch_n30/contracts_rebuild/out/MUTATION_R3.json), [APPLY_PROOF_R3.json](/scratch/jjyeung/orch_n30/contracts_rebuild/out/APPLY_PROOF_R3.json).
+
+A served ground remains usable for metric calls when its heading or size is unavailable. True ground failures allow only a different named retry and a direct answer. Generator entry points retain subclassable classes in both epochs. OFF reproduces the sealed generator fixture outputs byte for byte; ON changes only the documented heading fields and their private replay metadata. Sources: [GENERATOR_PARITY_R3.json](/scratch/jjyeung/orch_n30/contracts_rebuild/out/GENERATOR_PARITY_R3.json), [REVIEW_DISPOSITION_R3.md](/scratch/jjyeung/orch_n30/contracts_rebuild/out/REVIEW_DISPOSITION_R3.md).
+
+Move uses its source heading, turn uses both endpoint headings, and pose horizontal fields and yaw require the reference and queried headings. Depth horizontal coordinates in the reference frame require the reference heading. Metric fields remain available. Calculator dispatch has no heading gate. Source: [HEADING_DEPENDENCE_R3.md](/scratch/jjyeung/orch_n30/contracts_rebuild/out/HEADING_DEPENDENCE_R3.md).
+
+Cache-backed admission requires the capture's phrase binding. Admission and serving share candidate construction; cache names determine the runtime universe. Malformed records defer locally, and materialization records bounded qid examples with full counts. Sources: [REAL_ROW_AUDIT_R3.json](/scratch/jjyeung/orch_n30/contracts_rebuild/out/REAL_ROW_AUDIT_R3.json), [FINAL_TEST_RESULTS_R3.json](/scratch/jjyeung/orch_n30/contracts_rebuild/out/FINAL_TEST_RESULTS_R3.json).
+
+The replay covers 152 captures with 0 failed assertions. OFF equals base response bytes. The ON guard serves all captures; the sealed guard refuses 24. Source: [real_replay_r3/REAL_GEOMETRY_REPLAY.json](/scratch/jjyeung/orch_n30/contracts_rebuild/out/real_replay_r3/REAL_GEOMETRY_REPLAY.json).
+
+Changed-line tracing executes 629 of 629 changed executable statements. Execution coverage and mutation assertions are reported separately. Sources: [CHANGED_LINE_COVERAGE_R3.md](/scratch/jjyeung/orch_n30/contracts_rebuild/out/CHANGED_LINE_COVERAGE_R3.md), [MUTATION_R3.json](/scratch/jjyeung/orch_n30/contracts_rebuild/out/MUTATION_R3.json).
+
+Apply with `bash out/apply_contract_patches_r3.sh TARGET --dry-run`, then omit `--dry-run` to install. The operator refuses non-writable targets before staging, verifies source and destination hashes, and refuses reapplication. Source: [APPLY_PROOF_R3.json](/scratch/jjyeung/orch_n30/contracts_rebuild/out/APPLY_PROOF_R3.json).
+
+The convention guard and its constant retain the reviewed AST. The heading threshold remains configuration-bound with default 0.3. Sources: [PACKET_INTEGRITY_R3.json](/scratch/jjyeung/orch_n30/contracts_rebuild/out/PACKET_INTEGRITY_R3.json), [/scratch/jjyeung/orch_n30/contracts_rebuild/work/src_r3/trace_format/contracts.py](/scratch/jjyeung/orch_n30/contracts_rebuild/work/src_r3/trace_format/contracts.py).
+
+The language model receives tool numbers through formatted text. These CPU fixtures exercise tools and training renderers; they do not run the RGB model or establish answer quality. The capture replay uses tower geometry and synthetic masks, without a metric-scale estimate. Gravity perturbations change gravity-dependent projections; heading availability does not claim exact invariance to a changed physical gravity vector.
+
+The preserved base and prior overlays verify against their manifests. Lane storage is 2483919984 bytes. Source: [PACKET_INTEGRITY_R3.json](/scratch/jjyeung/orch_n30/contracts_rebuild/out/PACKET_INTEGRITY_R3.json).

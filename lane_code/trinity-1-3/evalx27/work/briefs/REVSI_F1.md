@@ -1,0 +1,14 @@
+# ReVSI kit fix F1: opaque Orchard job-root names (path strings only)
+
+Rules: write only under `/scratch/jjyeung/orch_n30/evalx27/work/kit_revsi/`; `work/kit/` and `work/pull/` are read-only; no ssh, submission, Git, network, or deletion outside kit_revsi/. Use the existing venv `kit_revsi/.venv312`.
+
+Read `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/review_rv/REVIEW_VERDICT_RV.md` (finding F1) and `kit_revsi/REPORT.md`, `kit_revsi/DIFF.md`.
+
+## Do
+1. Rename the seven Orchard job-root payload paths that name the benchmark to opaque names (e.g. `p/cohort/c5.jsonl`, `p/inputs/i1.json` ... keep them short, neutral, no project/benchmark/dataset/model/method word): `p/cohort/COHORT_REVSI5.jsonl`, `p/inputs/revsi999_rows_t32.json`, `revsi999_membership.json`, `revsi999_videos_t32.json`, `revsi_indices.json`; and DROP the two unused cell files `p/inputs/cells_rv999_d32_cp1m200_on.json`, `cells_tr_rv999_cp1on.json` from the package. Lines named by the reviewer: orchard_launcher.py:199,205-209; official_adapter.py:29-30,75,97; chain.py:82,86; frame_plan.py:46. Change only path strings and the package file list; file contents (bytes) of the renamed inputs stay identical, so every sha pin is unchanged.
+2. The proof step's argv paths that carry lane words (legs1, rv_merge_fix): rename them only if that touches nothing but path strings in launcher files (orchard_launcher.py / orchard_stage.py / orchard_job.py). If it would require editing reader or evaluator code, leave them and say so. Note the VSI kit f42aa1a4 has the same pre-existing paths and is not to be changed.
+3. Evidence (write `kit_revsi/F1_EVIDENCE.md`, at most 60 lines):
+   - The diff against kit 6e025a89 (the previous kit_revsi package; reconstruct it from `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/evalx27/kit_revsi_6e025a89/package.tar`, read-only): only path strings and the two removed files; a hash table proving reader, evaluator, adapter logic and scorer are otherwise byte-identical (for files with path-string edits, show the unified diff, which must contain only path-string lines).
+   - Local proof rerun from an empty directory: PASS/FAIL with the command.
+   - The full list of every path the job creates under its job root and every argv string it passes on Orchard (enumerate them from a real local proof run's job root and the recorded argv), and a case-insensitive search of that list for: split, revsi, vsi, vsibench, distill, qgen, scannet, arkit, qwen, legs1, rv_merge, official, bench; report each hit with whether it is pre-existing (Orchard asset paths, alias trees, kit file names shared with the reviewed VSI kit) or new.
+4. Rebuild package.tar deterministically, refresh KIT_SHA256, DIFF.md, REPORT.md (state the change in two lines). Do not claim checks you did not run.

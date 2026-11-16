@@ -1,0 +1,170 @@
+{
+ "M1": {
+  "file": "student_pilot/geometry_profiles.py",
+  "old": "if plane[0] >= UP_PLANE_MIN:",
+  "new": "if plane[0] > UP_PLANE_MIN:",
+  "suite_rc": 1,
+  "killed": true,
+  "tail": [
+   "FAILED ../../btests/test_contracts.py::test_reviewed_guard_ast_grid_and_jitter",
+   "!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!",
+   "1 failed, 16 passed in 31.57s"
+  ]
+ },
+ "M2": {
+  "file": "student_pilot/geometry_profiles.py",
+  "old": "np.median(margin[usable] / plane[usable]) <= 0",
+  "new": "np.median(margin[usable] / plane[usable]) < -0.05",
+  "suite_rc": 1,
+  "killed": true,
+  "tail": [
+   "FAILED ../../btests/test_contracts.py::test_reviewed_guard_ast_grid_and_jitter",
+   "!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!",
+   "1 failed, 16 passed in 31.33s"
+  ]
+ },
+ "M3": {
+  "file": "trace_format/contracts.py",
+  "old": "np.linalg.norm(np.asarray(geometry.down)[:2]) >= UP_PLANE_MIN",
+  "new": "np.linalg.norm(np.asarray(geometry.down)[1:]) >= UP_PLANE_MIN",
+  "suite_rc": 1,
+  "killed": true,
+  "tail": [
+   "FAILED ../../btests/test_build2.py::test_head_outputs_through_bound_session[rolled]",
+   "!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!",
+   "1 failed, 14 passed in 29.33s"
+  ]
+ },
+ "M4": {
+  "file": "trace_format/contracts.py",
+  "old": "if 'error:' in line.lower():\n            return 'error'",
+  "new": "",
+  "suite_rc": 1,
+  "killed": true,
+  "tail": [
+   "FAILED ../../btests/test_contracts.py::test_response_status[error: x-error]",
+   "!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!",
+   "1 failed, 33 passed in 33.95s"
+  ]
+ },
+ "M5": {
+  "file": "trace_format/contracts.py",
+  "old": "'size unavailable', 'unavailable')",
+  "new": "'size unavailable')",
+  "suite_rc": 1,
+  "killed": true,
+  "tail": [
+   "FAILED ../../btests/test_contracts.py::test_response_status[<tool_response>\\nunavailable\\n</tool_response>-unavailable]",
+   "!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!",
+   "1 failed, 37 passed in 34.92s"
+  ]
+ },
+ "M6": {
+  "file": "student_pilot/training_contract.py",
+  "old": "if retried or name is None or name == failed:",
+  "new": "if retried or name == failed:",
+  "suite_rc": 0,
+  "killed": false,
+  "tail": [
+   "........................................................................ [ 87%]",
+   "..........                                                               [100%]",
+   "82 passed in 44.60s"
+  ]
+ },
+ "M7": {
+  "file": "student_pilot/training_contract.py",
+  "old": "if any(code in text for code in OPERATOR_FAULTS) or 'error:' in text.lower():",
+  "new": "if False:",
+  "suite_rc": 1,
+  "killed": true,
+  "tail": [
+   "FAILED ../../btests/test_contracts.py::test_row_audit[operator-contract_operator_fault]",
+   "!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!",
+   "1 failed, 52 passed in 41.78s"
+  ]
+ },
+ "M8": {
+  "file": "student_pilot/live_instances314.py",
+  "old": "if enabled and entry.get('depth_cut_applied', False):",
+  "new": "if entry.get('depth_cut_applied', False):",
+  "suite_rc": 1,
+  "killed": true,
+  "tail": [
+   "FAILED ../../btests/test_contracts.py::test_bridge_does_not_recut_and_replay",
+   "!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!",
+   "1 failed, 46 passed in 38.60s"
+  ]
+ },
+ "M9": {
+  "file": "student_pilot/phrases.py",
+  "old": "if word.endswith('ies') and len(word) > 3:\n            word = word[:-3]+'y'\n        elif",
+  "new": "if",
+  "suite_rc": 1,
+  "killed": true,
+  "tail": [
+   "FAILED ../../btests/test_edges.py::test_event_forms_and_manifest_failure_reasons",
+   "!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!",
+   "1 failed, 63 passed in 43.75s"
+  ]
+ },
+ "M10": {
+  "file": "student_pilot/carrier_c1_decode.py",
+  "old": "distance = np.linalg.norm(camera(call['j'])[1]-camera(call['i'])[1])",
+  "new": "distance = np.linalg.norm(camera(call['j'])[1]-camera(1)[1])",
+  "suite_rc": 0,
+  "killed": false,
+  "tail": [
+   "........................................................................ [ 87%]",
+   "..........                                                               [100%]",
+   "82 passed in 43.34s"
+  ]
+ },
+ "M11": {
+  "file": "trace_format/box_v313.py",
+  "old": "return np.asarray(geometry.cam(k)[1],float)",
+  "new": "return np.asarray(geometry.cam(1)[1],float)",
+  "suite_rc": 1,
+  "killed": true,
+  "tail": [
+   "FAILED ../../btests/test_build2.py::test_b2_fixture_matrix[nadir] - Assertion...",
+   "!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!",
+   "1 failed, 2 passed in 7.41s"
+  ]
+ },
+ "M12": {
+  "file": "student_pilot/s1_routing.py",
+  "old": "refusal = audit_training_contract([row], contract_manifest)[0]\n        if refusal:",
+  "new": "refusal = audit_training_contract([row], contract_manifest)[0]\n        if False:",
+  "suite_rc": 1,
+  "killed": true,
+  "tail": [
+   "FAILED ../../btests/test_materializer.py::test_build_defers_one_row_and_keeps_clean_row[after_failure-contract_call_after_failed_ground]",
+   "!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!",
+   "1 failed, 74 passed in 46.28s"
+  ]
+ },
+ "M13": {
+  "file": "student_pilot/ground_v3.py",
+  "old": "names = getattr(source, 'cache', {}).get('phrases', getattr(source,'names',()))",
+  "new": "names = getattr(source,'names',())",
+  "suite_rc": 0,
+  "killed": false,
+  "tail": [
+   "........................................................................ [ 87%]",
+   "..........                                                               [100%]",
+   "82 passed in 41.48s"
+  ]
+ },
+ "M14": {
+  "file": "trace_format/ground_v313.py",
+  "old": "if not self.witness_points or not heading_available(self.geometry):",
+  "new": "if not self.witness_points:",
+  "suite_rc": 1,
+  "killed": true,
+  "tail": [
+   "FAILED ../../btests/test_edges.py::test_legacy_witness_keypoints_and_metric_move",
+   "!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!",
+   "1 failed, 59 passed in 41.78s"
+  ]
+ }
+}

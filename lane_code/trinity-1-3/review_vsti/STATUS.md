@@ -1,0 +1,3 @@
+# review_vsti STATUS (2026-11-16T09:42Z)
+Done. Verdict GO AFTER FIXES written: /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/review_vsti/REVIEW_VERDICT_VSTI_KIT.md (copy /scratch/jjyeung/orch_n30/review_vsti/out/). RESULT event: /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/review_vsti/20261116T0942Z_RESULT_vsti_kit_review.md.
+Rerun scorer evidence: /scratch/jjyeung/orch_n30/review_vsti/work/sc/SCORER_CHECK_rerun.json (sha 61c0caeb); scripts /scratch/jjyeung/orch_n30/review_vsti/out/check.py, /scratch/jjyeung/orch_n30/review_vsti/out/fmt.py. No further work owed.

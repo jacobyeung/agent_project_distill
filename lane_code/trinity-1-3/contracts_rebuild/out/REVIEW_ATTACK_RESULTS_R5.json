@@ -1,0 +1,327 @@
+{
+  "rotated_calculator": {
+    "passed": true,
+    "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/test_artifacts_r5/ROTATED_ANGLE_R5.json"
+  },
+  "heading": {
+    "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/test_artifacts_r5/HEADING_ATTACK_R5.json",
+    "physical_input_changes": [
+      {
+        "scenario": "nadir_frame_1",
+        "call": "<ground mode=\"room\">",
+        "evidence": {
+          "default": "room: frames 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32\nfloor height -1.39 m\nfloor cells 932; supported cells 723; cell size 0.05 m; min frames 2\narea 2.33 m^2",
+          "served_identical": false,
+          "text_identical": false,
+          "default_all": [
+            "room: frames 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32\nfloor height -1.39 m\nfloor cells 932; supported cells 723; cell size 0.05 m; min frames 2\narea 2.33 m^2",
+            "room: frames 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32\nfloor height -1.39 m\nfloor cells 935; supported cells 737; cell size 0.05 m; min frames 2\narea 2.34 m^2",
+            "room: frames 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32\nfloor height -1.39 m\nfloor cells 932; supported cells 719; cell size 0.05 m; min frames 2\narea 2.33 m^2",
+            "room: frames 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32\nfloor height -1.39 m\nfloor cells 939; supported cells 734; cell size 0.05 m; min frames 2\narea 2.35 m^2"
+          ],
+          "disabled_identical_to_default": true
+        }
+      },
+      {
+        "scenario": "nadir_frame_6",
+        "call": "<ground mode=\"room\">",
+        "evidence": {
+          "default": "room: frames 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32\nfloor height -1.39 m\nfloor cells 970; supported cells 735; cell size 0.05 m; min frames 2\narea 2.43 m^2",
+          "served_identical": false,
+          "text_identical": false,
+          "default_all": [
+            "room: frames 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32\nfloor height -1.39 m\nfloor cells 970; supported cells 735; cell size 0.05 m; min frames 2\narea 2.43 m^2",
+            "room: frames 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32\nfloor height -1.39 m\nfloor cells 965; supported cells 743; cell size 0.05 m; min frames 2\narea 2.41 m^2",
+            "room: frames 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32\nfloor height -1.39 m\nfloor cells 986; supported cells 735; cell size 0.05 m; min frames 2\narea 2.47 m^2",
+            "room: frames 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32\nfloor height -1.39 m\nfloor cells 977; supported cells 741; cell size 0.05 m; min frames 2\narea 2.44 m^2"
+          ],
+          "disabled_identical_to_default": true
+        }
+      },
+      {
+        "scenario": "nadir_frame_6",
+        "call": "HEAD <depth_at frame=6 pts=[[500,500]]>",
+        "evidence": {
+          "default": "P1: cam6 (0.00, 0.00, 2.00) m; f1 (0.03, 2.00, 0.12) m; spread 0.00",
+          "served_identical": false,
+          "text_identical": false,
+          "default_all": [
+            "P1: cam6 (0.00, 0.00, 2.00) m; f1 (0.03, 2.00, 0.12) m; spread 0.00",
+            "P1: cam6 (0.00, 0.00, 2.00) m; f1 (-0.02, 2.00, 0.11) m; spread 0.00",
+            "P1: cam6 (0.00, 0.00, 2.00) m; f1 (-0.02, 2.00, 0.01) m; spread 0.00",
+            "P1: cam6 (0.00, 0.00, 2.00) m; f1 (0.09, 2.00, 0.03) m; spread 0.00"
+          ],
+          "disabled_identical_to_default": true
+        }
+      }
+    ],
+    "explanation": "Room sampling changes with the rotated camera view. When a later camera rotates, its near-nadir centre ray moves in the defined reference frame; serving those depth-point coordinates is correct. Pose-k centre remains invariant. These are physical-view changes, not an arbitrary reference-basis leak."
+  },
+  "sensor_replay": {
+    "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/review2_inputs/base_sensor313_generated.json",
+    "source_kind": "Generated with sealed base code and lane fixtures; POOL has rendered rows, not live replay queries.",
+    "traces": 3,
+    "calls": 9,
+    "mismatches": 0,
+    "checks": [
+      {
+        "kind": "landscape",
+        "calls": 3,
+        "equal": true,
+        "actual": [
+          "chair: frames 2,3,4,5 (best 2)\nB1: f1 centre (-0.62, -0.06, 2.07) m\nsize 0.40 x 0.02 x 0.86 m\nyaw -3 deg (0 = +x; positive +x toward -z about +y)",
+          "table: frames 2,3,4,5 (best 2)\nB2: f1 centre (0.69, -0.06, 2.14) m\nsize 0.43 x 0.02 x 0.89 m\nyaw -3 deg (0 = +x; positive +x toward -z about +y)",
+          "distance 0.90 m"
+        ],
+        "expected": [
+          "chair: frames 2,3,4,5 (best 2)\nB1: f1 centre (-0.62, -0.06, 2.07) m\nsize 0.40 x 0.02 x 0.86 m\nyaw -3 deg (0 = +x; positive +x toward -z about +y)",
+          "table: frames 2,3,4,5 (best 2)\nB2: f1 centre (0.69, -0.06, 2.14) m\nsize 0.43 x 0.02 x 0.89 m\nyaw -3 deg (0 = +x; positive +x toward -z about +y)",
+          "distance 0.90 m"
+        ]
+      },
+      {
+        "kind": "portrait",
+        "calls": 3,
+        "equal": true,
+        "actual": [
+          "chair: frames 2,3,4,5 (best 2)\nB1: f1 centre (-0.62, -0.06, 2.07) m\nsize 0.40 x 0.02 x 0.86 m\nyaw -3 deg (0 = +x; positive +x toward -z about +y)",
+          "table: frames 2,3,4,5 (best 2)\nB2: f1 centre (0.69, -0.06, 2.14) m\nsize 0.43 x 0.02 x 0.89 m\nyaw -3 deg (0 = +x; positive +x toward -z about +y)",
+          "distance 0.90 m"
+        ],
+        "expected": [
+          "chair: frames 2,3,4,5 (best 2)\nB1: f1 centre (-0.62, -0.06, 2.07) m\nsize 0.40 x 0.02 x 0.86 m\nyaw -3 deg (0 = +x; positive +x toward -z about +y)",
+          "table: frames 2,3,4,5 (best 2)\nB2: f1 centre (0.69, -0.06, 2.14) m\nsize 0.43 x 0.02 x 0.89 m\nyaw -3 deg (0 = +x; positive +x toward -z about +y)",
+          "distance 0.90 m"
+        ]
+      },
+      {
+        "kind": "rolled",
+        "calls": 3,
+        "equal": true,
+        "actual": [
+          "chair: frames 2,3,4,5 (best 2)\nB1: f1 centre (-0.04, 0.64, 2.07) m\nsize 0.86 x 0.02 x 0.40 m\nyaw -179 deg (0 = +x; positive +x toward -z about +y)",
+          "table: frames 2,3,4,5 (best 2)\nB2: f1 centre (-0.04, -0.67, 2.14) m\nsize 0.89 x 0.02 x 0.43 m\nyaw -179 deg (0 = +x; positive +x toward -z about +y)",
+          "distance 0.91 m"
+        ],
+        "expected": [
+          "chair: frames 2,3,4,5 (best 2)\nB1: f1 centre (-0.04, 0.64, 2.07) m\nsize 0.86 x 0.02 x 0.40 m\nyaw -179 deg (0 = +x; positive +x toward -z about +y)",
+          "table: frames 2,3,4,5 (best 2)\nB2: f1 centre (-0.04, -0.67, 2.14) m\nsize 0.89 x 0.02 x 0.43 m\nyaw -179 deg (0 = +x; positive +x toward -z about +y)",
+          "distance 0.91 m"
+        ]
+      }
+    ]
+  },
+  "source_search": {
+    "eligible_live_sensor313_records": 0,
+    "eligible": [],
+    "scanned": [
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/real/x/0298d22ae6a8e2b6.jsonl.gz",
+        "records": 203
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/real/x/06edf42322b8233b.jsonl.gz",
+        "records": 411
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/real/x/086c857c721c6074.jsonl.gz",
+        "records": 384
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/real/x/1169024c0739e6c4.jsonl.gz",
+        "records": 11661
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/real/x/137de4ba701eff93.jsonl.gz",
+        "records": 203
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/real/x/2331a5bbb181ebb6.jsonl.gz",
+        "records": 85
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/real/x/2f2fd779179a5ca1.jsonl.gz",
+        "records": 5319
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/real/x/42c520ec4f5bee34.jsonl.gz",
+        "records": 9708
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/real/x/43f9b9afc69c7dff.jsonl.gz",
+        "records": 384
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/real/x/6053fd47c70c0b25.jsonl.gz",
+        "records": 6859
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/real/x/75c8f34363821322.jsonl.gz",
+        "records": 11819
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/real/x/7a1c59097139f59d.jsonl.gz",
+        "records": 11661
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/real/x/7e4e92918e312afd.jsonl.gz",
+        "records": 23465
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/real/x/8807075c04730c0e.jsonl.gz",
+        "records": 6859
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/real/x/92927870a7b4535c.jsonl.gz",
+        "records": 411
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/real/x/947c8d100170a348.jsonl.gz",
+        "records": 85
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/real/x/947cbb9fa7d6bde0.jsonl.gz",
+        "records": 10458
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/real/x/9bf0518db09a07d8.jsonl.gz",
+        "records": 5319
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/real/x/9eecedf23da3bd91.jsonl.gz",
+        "records": 11819
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/real/x/a67a3f6f489031d4.jsonl.gz",
+        "records": 23465
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/real/x/b37de067725dde5b.jsonl.gz",
+        "records": 14777
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/real/x/b6ac18d55d697a23.jsonl.gz",
+        "records": 7862
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/real/x/ba96a4182147a384.jsonl.gz",
+        "records": 14777
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/real/x/c16c5db36e04c1ef.jsonl.gz",
+        "records": 9708
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/real/x/cbff008bb2aba2ad.jsonl.gz",
+        "records": 7862
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/out/real_replay_r4/completed_r4_base.jsonl",
+        "records": 152
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/base/work/base/tree_b01ce449/configs/E2E-1C.json",
+        "records": 1
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/base/work/base/tree_b01ce449/configs/E2E-1G.json",
+        "records": 1
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/base/work/base/tree_b01ce449/configs/gate_heldout_scenes_v1.json",
+        "records": 1
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/base/work/base/tree_b01ce449/configs/gf1_stage1.json",
+        "records": 1
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/base/work/base/tree_b01ce449/configs/gf1_stage2.json",
+        "records": 1
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/base/work/base/tree_b01ce449/configs/stageb_cp1rv_mdg_w4.json",
+        "records": 1
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/base/work/base/tree_b01ce449/configs/student_benchmark_eval_v1.json",
+        "records": 1
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/base/work/base/tree_b01ce449/evalpath/SOURCE_PINS.json",
+        "records": 1
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/base/work/base/tree_b01ce449/generator/V314_MANIFEST.json",
+        "records": 1
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/base/work/base/tree_b01ce449/launch_s1/b/profile.json",
+        "records": 1
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/base/work/base/tree_b01ce449/launch_s1/b/wh.json",
+        "records": 1
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/base/work/base/tree_b01ce449/student_pilot/assets/routed_policy_v1.json",
+        "records": 1
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/base/work/base/tree_b01ce449/student_pilot/assets/s1_version.json",
+        "records": 1
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/base/work/base/tree_b01ce449/student_pilot/tower_scale_rule.json",
+        "records": 1
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/base/work/base/tree_b01ce449/tests/fixtures/benchmark_eval/dsibench/official_repo/SOURCE.json",
+        "records": 1
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/base/work/base/tree_b01ce449/tests/fixtures/benchmark_eval/vsibench/MEMBERSHIP_ANSWERABLE_500.json",
+        "records": 1
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/base/work/base/tree_b01ce449/tests/fixtures/benchmark_eval/vsibench/answerable500_gt_canonical.json",
+        "records": 3
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/base/work/base/tree_b01ce449/tests/fixtures/benchmark_eval/vstibench/vstibench_repr_450_v2.json",
+        "records": 3
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/base/work/base/tree_b01ce449/tests/fixtures/conversion_3919.json",
+        "records": 1
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/base/work/base/tree_b01ce449/tests/fixtures/pdg_v3/pdg_s1_config.json",
+        "records": 1
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/base/work/base/tree_b01ce449/tests/fixtures/pdg_v3/pdg_s2_v2_config.json",
+        "records": 1
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/base/work/base/tree_b01ce449/tests/fixtures/pdg_v3/smoke_pdg_s1_config.json",
+        "records": 1
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/base/work/base/tree_b01ce449/tests/fixtures/v3122_open_vocabulary_calls.json",
+        "records": 1
+      },
+      {
+        "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/base/work/base/tree_b01ce449/trace_format/vsi_scannet_vocab.json",
+        "records": 1
+      }
+    ],
+    "eligibility": "live_trace313.replay requires heads.ground_queries; trace_program_version must be 3.13 and every query must use sensor mode.",
+    "generated_source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/review2_inputs/base_sensor313_generated.json"
+  },
+  "review_script_logs": [
+    "/scratch/jjyeung/orch_n30/contracts_rebuild/work/binding_close_r5.log",
+    "/scratch/jjyeung/orch_n30/contracts_rebuild/work/depth_close_r5.log",
+    "/scratch/jjyeung/orch_n30/contracts_rebuild/work/provider_close_r5.log"
+  ]
+}

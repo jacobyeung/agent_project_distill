@@ -1,0 +1,4 @@
+# Addendum for trinity_read.py (orchestrator conditions for runs on trinity-0-13)
+1. Option --shm DIR (default: <root>/../shm on the run's node, created): inside bwrap, bind DIR as /dev/shm (after --dev-bind /dev /dev), and point TMPDIR, HOME, XDG_CACHE_HOME, HF_HOME, TRITON_CACHE_DIR, VLLM cache, TORCHINDUCTOR_CACHE_DIR there or under the root. Nothing of ours may land in the host /dev/shm: after each run, list host /dev/shm entries owned by the user and record them in the run report (expect none).
+2. Option --yield-file GLOB: poll every 30 s; if a matching file appears (e.g. /data2/.../events/trin_read/*_ORCH_*yield*), stop the reader cleanly (SIGTERM to the namespace process group, wait 60 s) and write YIELD.json listing what is left on disk.
+3. The root must work at the same absolute path on another node (copied by tar over IB): no host-specific absolute path besides the root itself.

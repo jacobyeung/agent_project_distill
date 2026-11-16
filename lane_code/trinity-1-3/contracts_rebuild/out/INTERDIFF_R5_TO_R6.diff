@@ -1,0 +1,418 @@
+diff -ruN /scratch/jjyeung/orch_n30/contracts_rebuild/work/src_r5/generator/derivgen_v7/derivgen/calculator.py /scratch/jjyeung/orch_n30/contracts_rebuild/work/src_r6/generator/derivgen_v7/derivgen/calculator.py
+--- /scratch/jjyeung/orch_n30/contracts_rebuild/work/src_r5/generator/derivgen_v7/derivgen/calculator.py	2026-11-15 19:45:19.196472902 -0500
++++ /scratch/jjyeung/orch_n30/contracts_rebuild/work/src_r6/generator/derivgen_v7/derivgen/calculator.py	2026-11-15 21:35:40.188070378 -0500
+@@ -248,8 +248,10 @@
+ 
+ class PrintedPointRegistry(_SealedPointRegistry):
+     def __new__(cls, *args, **kwargs):
+-        import sys
+-        contracts = sys.modules.get('trace_format.contracts')
++        try:
++            from trace_format import contracts
++        except ImportError:
++            contracts = None
+         if contracts is not None and contracts.new_contracts():
+             from trace_format import calculator as runtime
+             class Registry(runtime.PrintedPointRegistry):
+diff -ruN /scratch/jjyeung/orch_n30/contracts_rebuild/work/src_r5/student_pilot/carrier_c1_routing.py /scratch/jjyeung/orch_n30/contracts_rebuild/work/src_r6/student_pilot/carrier_c1_routing.py
+--- /scratch/jjyeung/orch_n30/contracts_rebuild/work/src_r5/student_pilot/carrier_c1_routing.py	2026-11-15 20:10:01.320792258 -0500
++++ /scratch/jjyeung/orch_n30/contracts_rebuild/work/src_r6/student_pilot/carrier_c1_routing.py	2026-11-15 21:35:40.188070378 -0500
+@@ -234,9 +234,22 @@
+             raise RenderError('invalid own gravity')
+         self.down = -up / np.linalg.norm(up)
+         self.depth = depth
++        self._bases = {}
++        self._poses = {}
++        self.to_l1  # Preserve construction-time validation in the active context.
++
++    @property
++    def to_l1(self):
++        from trace_format.contracts import new_contracts, heading_plane_min
++        key = (new_contracts(), heading_plane_min())
++        if key not in self._bases:
++            self._bases[key] = self._basis()
++        return self._bases[key]
++
++    def _basis(self):
+         from trace_format.contracts import new_contracts
+         try:
+-            self.to_l1 = FLIP @ level_basis(np.eye(3), self.down).T
++            basis = FLIP @ level_basis(np.eye(3), self.down).T
+         except RenderError:
+             if not new_contracts():
+                 raise
+@@ -244,16 +257,16 @@
+             right = np.array([1., 0., 0.])
+             right -= (right @ self.down) * self.down
+             right /= np.linalg.norm(right)
+-            self.to_l1 = np.stack((right, -self.down, np.cross(right, self.down)))
++            basis = np.stack((right, -self.down, np.cross(right, self.down)))
+         if new_contracts():
+             from trace_format.contracts import heading_available, private_metric_basis
+             if not heading_available(self):
+                 # Anchor hidden rounded operands independently of reference yaw.
+                 # These horizontal coordinates are never printed as public f1.
+-                basis = private_metric_basis(lambda k: self.camera(k)[0], -self.down)
+-                if basis is not None:
+-                    self.to_l1 = basis.T
+-        self._poses = {}
++                private = private_metric_basis(lambda k: self.camera(k)[0], -self.down)
++                if private is not None:
++                    basis = private.T
++        return basis
+ 
+     def camera(self, k):
+         if type(k) is not int or not 1 <= k <= 32:
+@@ -278,13 +291,15 @@
+         return dict(camera_R_L1=r8(self.to_l1 @ rotation), camera_t_L1=r8(self.to_l1 @ centre))
+ 
+     def pose(self, k):
+-        if k not in self._poses:
++        from trace_format.contracts import new_contracts, heading_plane_min
++        key = (new_contracts(), heading_plane_min(), k)
++        if key not in self._poses:
+             rotation, centre = self.camera(k)
+             level = r8(self.to_l1 @ level_basis(rotation, self.down))
+-            self._poses[k] = dict(camera_R_L1=r8(self.to_l1 @ rotation), camera_t_L1=r8(self.to_l1 @ centre),
++            self._poses[key] = dict(camera_R_L1=r8(self.to_l1 @ rotation), camera_t_L1=r8(self.to_l1 @ centre),
+                                   level_R_L1=level,
+                                   yaw_degree=round(math.degrees(math.atan2(-level[0][2], level[2][2]))))
+-        return self._poses[k]
++        return self._poses[key]
+ 
+     def click(self, k, uv, label=None):
+         from trace_format.contracts import new_contracts
+@@ -408,12 +423,7 @@
+                 if name not in HEAD_TOOLS:
+                     raise RenderError('unknown head tool ' + str(name))
+                 from trace_format.contracts import heading_available, new_contracts
+-                if name != 'depth_at' and not recorded and (not heading_available(geometry) or
+-                        any(not heading_available(geometry, k) for k in (call['arguments'].get('frame', 1),
+-                            call['arguments'].get('from', 1), call['arguments'].get('to', 1)))):
+-                    from .carrier_c1_decode import respond
+-                    text, _ = respond(call['token'], registry, geometry)
+-                elif name == 'depth_at':
++                if name == 'depth_at':
+                     lines = []
+                     for uv, p in zip(call['arguments']['pts'], event['points']):
+                         cam, f1, spread = (geometry.click_label(p['label']) if recorded
+diff -ruN /scratch/jjyeung/orch_n30/contracts_rebuild/work/src_r5/student_pilot/live_trace313.py /scratch/jjyeung/orch_n30/contracts_rebuild/work/src_r6/student_pilot/live_trace313.py
+--- /scratch/jjyeung/orch_n30/contracts_rebuild/work/src_r5/student_pilot/live_trace313.py	2026-11-15 19:54:27.157277598 -0500
++++ /scratch/jjyeung/orch_n30/contracts_rebuild/work/src_r6/student_pilot/live_trace313.py	2026-11-15 21:35:40.188070378 -0500
+@@ -22,11 +22,12 @@
+             sensor = (getattr(backend.geometry, 'kind', None) == 'gt' or
+                       getattr(getattr(backend.geometry, 'contract', None), 'ground_truth_substitution', False))
+             geometry_mode = 'sensor' if sensor or program_version != '3.14' else 'predicted'
+-        super().__init__(lifting,backend.geometry,None,instances=lambda name:(),
+-                         program_version=program_version, multi_instance=program_version=='3.14',
+-                         geometry_mode=geometry_mode)
+         self.contract_epoch = getattr(backend, 'contract_epoch', new_contracts())
+         self.heading_plane_min = heading_plane_min(getattr(backend, 'heading_plane_min', heading_plane_min()))
++        with contract_epoch(self.contract_epoch, heading_plane_min=self.heading_plane_min):
++            super().__init__(lifting,backend.geometry,None,instances=lambda name:(),
++                             program_version=program_version, multi_instance=program_version=='3.14',
++                             geometry_mode=geometry_mode)
+         self.owner=backend
+         self.queries=[]
+         self.memory_hits=[]
+diff -ruN /scratch/jjyeung/orch_n30/contracts_rebuild/work/src_r5/student_pilot/phrases.py /scratch/jjyeung/orch_n30/contracts_rebuild/work/src_r6/student_pilot/phrases.py
+--- /scratch/jjyeung/orch_n30/contracts_rebuild/work/src_r5/student_pilot/phrases.py	2026-11-15 19:54:27.391276232 -0500
++++ /scratch/jjyeung/orch_n30/contracts_rebuild/work/src_r6/student_pilot/phrases.py	2026-11-15 21:35:40.188070378 -0500
+@@ -134,7 +134,7 @@
+                 break
+     if entry is None and manifest is not None:
+         entry = manifest.get(str(row.get('qid')))
+-    return entry.get('phrases', []) if isinstance(entry, dict) else entry
++    return entry.get('phrases') if isinstance(entry, dict) else entry
+ 
+ 
+ def candidate_phrases(question, options=(), cache_phrases=None):
+@@ -174,14 +174,13 @@
+ 
+ 
+ def cache_view(cache, name):
+-    import copy
+-    cache = copy.deepcopy(cache)
+     wanted = normalize_phrase(name)
+     keys = [key for key in cache['phrases'] if normalize_phrase(key) == wanted]
+     if not keys:
+         return cache, wanted
+     canonical = min(keys, key=lambda key: (key != wanted, key.casefold(), key))
+     if len(keys) > 1:
++        cache = {**cache, 'frames': {k: dict(v) for k, v in cache.get('frames', {}).items()}}
+         import json
+         for frame in cache.get('frames', {}).values():
+             records = frame['phrases']
+diff -ruN /scratch/jjyeung/orch_n30/contracts_rebuild/work/tests_r5/test_build2.py /scratch/jjyeung/orch_n30/contracts_rebuild/work/tests_r6/test_build2.py
+--- /scratch/jjyeung/orch_n30/contracts_rebuild/work/tests_r5/test_build2.py	2026-11-15 19:49:21.324063867 -0500
++++ /scratch/jjyeung/orch_n30/contracts_rebuild/work/tests_r6/test_build2.py	2026-11-15 21:35:40.185070396 -0500
+@@ -60,7 +60,7 @@
+                     exceptions.append(dict(call=call,reason='Sealed lifting basis unavailable after guard pass.',off=a,on=b))
+             modes['metric_parity_asserted']=True;modes['exceptions']=exceptions
+         records[orientation]=modes
+-    (L/f'work/test_artifacts_r5/B2_fixture_{kind}_r4.json').write_text(json.dumps(dict(source=str(Path(__file__)),kind=kind,orientations=records),indent=2)+'\n')
++    (L/f'work/test_artifacts_r6/B2_fixture_{kind}_r4.json').write_text(json.dumps(dict(source=str(Path(__file__)),kind=kind,orientations=records),indent=2)+'\n')
+ 
+ def test_real_distance_parser_and_admission():
+     from student_pilot.training_contract import audit_training_contract,admission_phrases
+@@ -95,4 +95,4 @@
+                 metric=lambda t:re.search(r'distance = ([0-9.]+) m',t)[1]
+                 assert metric(records['on'][call])==metric(records['off'][call])
+         else:assert records['on'][call]==records['off'][call]
+-    (L/f'work/test_artifacts_r5/B2_heads_{kind}_r4.json').write_text(json.dumps(dict(source=str(Path(__file__)),responses=records),indent=2)+'\n')
++    (L/f'work/test_artifacts_r6/B2_heads_{kind}_r4.json').write_text(json.dumps(dict(source=str(Path(__file__)),responses=records),indent=2)+'\n')
+diff -ruN /scratch/jjyeung/orch_n30/contracts_rebuild/work/tests_r5/test_confirmation_r5.py /scratch/jjyeung/orch_n30/contracts_rebuild/work/tests_r6/test_confirmation_r5.py
+--- /scratch/jjyeung/orch_n30/contracts_rebuild/work/tests_r5/test_confirmation_r5.py	2026-11-15 20:11:34.344245621 -0500
++++ /scratch/jjyeung/orch_n30/contracts_rebuild/work/tests_r6/test_confirmation_r5.py	2026-11-15 21:35:40.186070390 -0500
+@@ -217,7 +217,7 @@
+ 
+ def test_strict_heading_comparison():
+     import importlib.util
+-    path=L/'work/row_families_r5/heading_compare.py'
++    path=L/'work/row_families_r6/heading_compare.py'
+     spec=importlib.util.spec_from_file_location('strict_heading',path)
+     module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+     old=json.loads((L/'work/row_families_r4/off.json').read_text())['results']
+diff -ruN /scratch/jjyeung/orch_n30/contracts_rebuild/work/tests_r5/test_contracts.py /scratch/jjyeung/orch_n30/contracts_rebuild/work/tests_r6/test_contracts.py
+--- /scratch/jjyeung/orch_n30/contracts_rebuild/work/tests_r5/test_contracts.py	2026-11-15 19:49:21.323063873 -0500
++++ /scratch/jjyeung/orch_n30/contracts_rebuild/work/tests_r6/test_contracts.py	2026-11-15 21:35:40.187070384 -0500
+@@ -32,7 +32,7 @@
+                 assert verdict(G.validate_up_convention,R)==verdict(namespace['validate_up_convention'],R)
+                 assert np.linalg.norm(R[0,2,:2])==pytest.approx(np.linalg.norm(R[0,:2,2]),abs=1e-12)
+                 total+=1
+-    (L/'work/test_artifacts_r5/GUARD_GRID_r4.json').write_text(json.dumps(dict(poses=total,reference=str(L/'work/ref/gravity_guard_a62e3975_recovered.py'))))
++    (L/'work/test_artifacts_r6/GUARD_GRID_r4.json').write_text(json.dumps(dict(poses=total,reference=str(L/'work/ref/gravity_guard_a62e3975_recovered.py'))))
+ 
+ @pytest.mark.parametrize('kind',['landscape','portrait','nadir','nadir_positive','vertical','rolled','inverted','inverted_portrait','small'])
+ def test_actual_cpu_session(kind,tmp_path):
+@@ -60,7 +60,7 @@
+         assert texts[CALLS[2]].startswith('distance ')
+     audit=AuditSession(s.queries,'3.14')
+     assert [audit.execute(c) for c in CALLS]==list(texts.values())
+-    (L/f'work/test_artifacts_r5/fixture_{kind}_r4.json').write_text(json.dumps(dict(plane=float(np.linalg.norm(contract.camera_to_world[0,2,:2])),
++    (L/f'work/test_artifacts_r6/fixture_{kind}_r4.json').write_text(json.dumps(dict(plane=float(np.linalg.norm(contract.camera_to_world[0,2,:2])),
+         margin=float(-contract.camera_to_world[0,2,1]),verdict='pass',responses=texts),indent=2))
+ 
+ @pytest.mark.parametrize('text,expected',[(s,s) for s in RUNTIME_STATUSES]+[
+diff -ruN /scratch/jjyeung/orch_n30/contracts_rebuild/work/tests_r5/test_generator_r4.py /scratch/jjyeung/orch_n30/contracts_rebuild/work/tests_r6/test_generator_r4.py
+--- /scratch/jjyeung/orch_n30/contracts_rebuild/work/tests_r5/test_generator_r4.py	2026-11-15 19:46:00.980231202 -0500
++++ /scratch/jjyeung/orch_n30/contracts_rebuild/work/tests_r6/test_generator_r4.py	2026-11-15 21:35:40.185070396 -0500
+@@ -35,7 +35,7 @@
+             assert '<gap ' in on['distance']
+             assert on['distance'].split('<gap ',1)[1]==off['distance'].split('<gap ',1)[1]
+             assert 'heading unavailable' in on['count']
+-    (L/'work/test_artifacts_r5/GENERATOR_PARITY_R5.json').write_text(json.dumps(dict(source=__file__,outputs=outputs,differences=differences,
++    (L/'work/test_artifacts_r6/GENERATOR_PARITY_R5.json').write_text(json.dumps(dict(source=__file__,outputs=outputs,differences=differences,
+         allowed_changes=['Partial f1 coordinates and box yaw when reference heading is undefined',
+                          'Private box operands use the metric frame when reference heading is unavailable',
+                          'Runtime audit includes metric_only and heading metadata for partial boxes']),indent=2))
+diff -ruN /scratch/jjyeung/orch_n30/contracts_rebuild/work/tests_r5/test_heading_r2.py /scratch/jjyeung/orch_n30/contracts_rebuild/work/tests_r6/test_heading_r2.py
+--- /scratch/jjyeung/orch_n30/contracts_rebuild/work/tests_r5/test_heading_r2.py	2026-11-15 19:46:00.981231196 -0500
++++ /scratch/jjyeung/orch_n30/contracts_rebuild/work/tests_r6/test_heading_r2.py	2026-11-15 21:39:35.747661636 -0500
+@@ -37,7 +37,7 @@
+         AuditSession([dict(heading_plane_min=.1),dict(heading_plane_min=.2)])
+     with contract_epoch(False,heading_plane_min=.99):
+         assert heading_available(geo)
+-    (L/'work/test_artifacts_r5/HEADING_IDENTITY_R5.json').write_text(json.dumps(dict(source=__file__,backend=s.owner.config,
++    (L/'work/test_artifacts_r6/HEADING_IDENTITY_R5.json').write_text(json.dumps(dict(source=__file__,backend=s.owner.config,
+         session=dict(contract_epoch=s.contract_epoch,heading_plane_min=s.heading_plane_min),query=s.queries[-1],replay=result),indent=2))
+ 
+ 
+@@ -52,15 +52,20 @@
+             for name in ('move','turn'):
+                 call=f'<{name} from={i} to={j}>'
+                 actual=response(s,call)
+-                # Same geometry and arithmetic; only availability policy is disabled.
+-                with contract_epoch(False):expected=respond(call,PrintedPointRegistry(),own)[0]
++                # A vertical reference has no sealed basis. Compare the ON
++                # adapters there; OFF must retain the sealed error below.
++                with contract_epoch(kind == 'vertical'):
++                    expected=respond(call,PrintedPointRegistry(),own)[0]
++                if kind == 'vertical':
++                    with contract_epoch(False):
++                        assert respond(call,PrintedPointRegistry(),own)[0]=='error: vertical_camera_heading'
+                 assert actual==expected and 'heading unavailable' not in actual,(kind,call,actual,expected)
+                 results.append(dict(call=call,response=actual))
+     depth=response(s,'<depth_at frame=1 pts=[[500,500]]>')
+     assert 'cam1 (' in depth and 'spread ' in depth and 'f1 (heading unavailable,' in depth
+     pose=response(s,'<pose frame=2>')
+     assert 'yaw heading unavailable' in pose
+-    (L/f'work/test_artifacts_r5/RELATIVE_HEADS_{kind}_R5.json').write_text(json.dumps(dict(source=__file__,kind=kind,
++    (L/f'work/test_artifacts_r6/RELATIVE_HEADS_{kind}_R5.json').write_text(json.dumps(dict(source=__file__,kind=kind,
+         comparisons=len(results),responses=results,depth=depth,pose=pose),indent=2))
+ 
+ 
+@@ -112,7 +117,7 @@
+         else:
+             assert x==y
+         records[call]=dict(defined=x,undefined=y)
+-    (L/'work/test_artifacts_r5/CALCULATOR_FIELDS_R5.json').write_text(json.dumps(dict(source=__file__,responses=records),indent=2))
++    (L/'work/test_artifacts_r6/CALCULATOR_FIELDS_R5.json').write_text(json.dumps(dict(source=__file__,responses=records),indent=2))
+ 
+ 
+ def test_ground_box_count_witness_and_keypoints(tmp_path):
+@@ -137,7 +142,7 @@
+         frames=[2,2],distance_m=float(np.linalg.norm(positions[0]-positions[1])))
+     text=legacy._keypoints('extent_ends',['chair'])
+     assert 'observed endpoint distance ' in text and 'extent start cam2' in text
+-    (L/'work/test_artifacts_r5/GROUND_FIELDS_R5.json').write_text(json.dumps(dict(source=__file__,gap=gap,extent=text),indent=2))
++    (L/'work/test_artifacts_r6/GROUND_FIELDS_R5.json').write_text(json.dumps(dict(source=__file__,gap=gap,extent=text),indent=2))
+ 
+ 
+ def test_all_ground_fields_match_defined_computation(tmp_path):
+@@ -170,7 +175,7 @@
+     prob=[.8]*32;uv=[[500,400]]*32
+     with contract_epoch(True,heading_plane_min=.99):text=ground_text('chair',prob,uv,.5)
+     with contract_epoch(False):assert ground_text('chair',prob,uv,.5)==text
+-    (L/'work/test_artifacts_r5/ALL_GROUND_PARITY_R5.json').write_text(json.dumps(dict(source=__file__,defined=outputs[.01],partial=outputs[.3]),indent=2))
++    (L/'work/test_artifacts_r6/ALL_GROUND_PARITY_R5.json').write_text(json.dumps(dict(source=__file__,defined=outputs[.01],partial=outputs[.3]),indent=2))
+ 
+ 
+ def test_vertical_generator_and_off_identity():
+diff -ruN /scratch/jjyeung/orch_n30/contracts_rebuild/work/tests_r5/test_materializer.py /scratch/jjyeung/orch_n30/contracts_rebuild/work/tests_r6/test_materializer.py
+--- /scratch/jjyeung/orch_n30/contracts_rebuild/work/tests_r5/test_materializer.py	2026-11-15 20:13:49.378451938 -0500
++++ /scratch/jjyeung/orch_n30/contracts_rebuild/work/tests_r6/test_materializer.py	2026-11-15 21:35:40.186070390 -0500
+@@ -101,4 +101,4 @@
+         with sqlite3.connect(receipt['database']['path']) as con:
+             rows=[json.loads(r[0]) for r in con.execute('SELECT row FROM rows')]
+         assert next(row for row in rows if row['qid']==case)['candidate_phrases']==sorted(names)
+-    (L/f'work/test_artifacts_r5/materializer_{case}_r4.json').write_text(json.dumps(report,indent=2))
++    (L/f'work/test_artifacts_r6/materializer_{case}_r4.json').write_text(json.dumps(report,indent=2))
+diff -ruN /scratch/jjyeung/orch_n30/contracts_rebuild/work/tests_r5/test_review_c5.py /scratch/jjyeung/orch_n30/contracts_rebuild/work/tests_r6/test_review_c5.py
+--- /scratch/jjyeung/orch_n30/contracts_rebuild/work/tests_r5/test_review_c5.py	1969-12-31 19:00:00.000000000 -0500
++++ /scratch/jjyeung/orch_n30/contracts_rebuild/work/tests_r6/test_review_c5.py	2026-11-15 21:36:42.571697317 -0500
+@@ -0,0 +1,122 @@
++"""Construction/use context and strict input regressions from the confirmation review."""
++from pathlib import Path
++from types import SimpleNamespace as NS
++import ast, copy, importlib.util, json, os, subprocess, sys
++import numpy as np
++import pytest
++from fixtures_contracts import fixture, own_geometry, rotations
++from trace_format.contracts import contract_epoch
++L=Path(__file__).resolve().parents[2]
++
++
++def pitched_geometry():
++    contract,make=fixture('landscape')
++    contract.camera_to_world[0,:3,:3]=rotations(-80,0)
++    contract.camera_to_world[1:,:3,:3]=np.array([rotations()@np.array(
++        [[np.cos(a),0,np.sin(a)],[0,1,0],[-np.sin(a),0,np.cos(a)]])
++        for a in np.radians(np.arange(1,32)*7.)])
++    return own_geometry(make())
++
++
++@pytest.mark.parametrize('query', [(False,.3),(True,.1)])
++def test_basis_uses_query_context(query):
++    from student_pilot.carrier_c1_decode import respond
++    from trace_format.calculator import PrintedPointRegistry
++    calls=['<depth_at frame=2 pts=[[300,500]]>','<pose frame=3>','<move from=1 to=3>']
++    with contract_epoch(True,heading_plane_min=.3):
++        cross=pitched_geometry()
++        cross.pose(3)  # Populate the pose cache in the construction context.
++    with contract_epoch(query[0],heading_plane_min=query[1]):
++        fresh=pitched_geometry()
++        actual=[respond(c,PrintedPointRegistry(),cross)[0] for c in calls]
++        expected=[respond(c,PrintedPointRegistry(),fresh)[0] for c in calls]
++        assert actual==expected
++        assert 'f1 (-0.24, 0.00, 2.12)' in actual[0]
++        assert 'yaw -14 deg' in actual[1]
++    with contract_epoch(True,heading_plane_min=.3):
++        assert cross.pose_text(3)==pitched_geometry().pose_text(3)
++
++
++@pytest.mark.parametrize('ambient,backend_epoch',[(True,False),(False,True)])
++def test_live_provider_uses_backend_epoch(ambient,backend_epoch,tmp_path):
++    from fixtures_contracts import masks, head_state, response
++    from student_pilot.ground_sources import MaskProvider
++    from student_pilot.ground_v3 import GroundV3
++    from student_pilot.scene_state import SceneState
++    from student_pilot.live_trace313 import LiveSession,AuditSession
++    geo=fixture()[1]()
++    with contract_epoch(backend_epoch,heading_plane_min=.1):
++        owner=GroundV3(SceneState('a'*64,geo.frame_map,geo.identity),geo,
++            MaskProvider(masks,'fixture',('chair',)),mask_source='mdg',audit_dir=tmp_path)
++    with contract_epoch(ambient):
++        session=LiveSession(owner,program_version='3.13',geometry_mode='sensor')
++        assert session.box_provider_id==('fit_gbox_fused_full_v1' if backend_epoch else 'fit_gbox_best_v1')
++        session.bind_state(head_state(geo,owner))
++        call='<ground obj="chair" mode="box">'
++        text=response(session,call)
++        audit=AuditSession(session.queries,'3.13')
++        assert audit.execute(call)==text
++        assert session.heading_plane_min==.1
++
++
++def test_generator_import_order():
++    import student_pilot
++    tree=Path(student_pilot.__file__).resolve().parents[1]
++    code="""import sys
++sys.path[:0]=[sys.argv[1],sys.argv[1]+'/generator/derivgen_v7']
++from derivgen.calculator import PrintedPointRegistry
++assert 'trace_format.contracts' not in sys.modules
++reg=PrintedPointRegistry()
++p=reg.register(camera=[1,2,3],f1=[4,5,6],spread=0,requested_frame=2,heading_defined=False)
++assert 'heading unavailable' in p['line']
++"""
++    p=subprocess.run([sys.executable,'-I','-s','-B','-c',code,str(tree)],capture_output=True,text=True)
++    assert p.returncode==0,p.stderr
++
++
++def test_cache_view_shares_mask_payload_without_mutation():
++    from student_pilot.phrases import cache_view
++    mask={'counts':[1,4,2],'size':[2,4]}
++    cache={'phrases':['chair','chairs'],'frames':{'0':{'phrases':{
++        'chair':{'presence':.2,'instances':[{'score':.3,'mask':mask}]},
++        'chairs':{'presence':.9,'instances':[]}}}}}
++    original=copy.deepcopy(cache)
++    view,key=cache_view(cache,'chair')
++    assert view['frames']['0']['phrases'][key]['instances'][0]['mask'] is mask
++    assert cache==original
++    assert view['frames']['0']['phrases'][key]['presence']==.9
++    assert cache_view({'phrases':['chair'],'frames':{}},'chair')[1]=='chair'
++
++
++def test_missing_manifest_phrases(tmp_path):
++    from student_pilot.phrases import candidate_binding
++    from student_pilot.s1_grounding import build_backend
++    row=dict(qid='missing',question_type='object_abs_distance',uses_mask_cache=True,
++             candidate_manifest={},student_input=dict(question='How far is the chair from the table?',options=[]))
++    assert candidate_binding(row) is None
++    with contract_epoch(True),pytest.raises(ValueError,match='contract_manifest_missing'):
++        build_backend(row,dict(frame_indices=list(range(32)),video_sha256='a'*64),dict(sha256='b'*64),tmp_path)
++
++
++@pytest.mark.parametrize('name,args',[('pose',{'frame':3}),('move',{'from':1,'to':3}),('turn',{'from':1,'to':3})])
++def test_rerender_head_arguments(name,args):
++    from student_pilot.carrier_c1_routing import rerender
++    row=dict(events=[dict(kind='plan',text='Read.'),dict(kind='tool_call',call_id='c1',name=name,
++        arguments=args,token=f'<{name} noncanonical>'),dict(kind='tool_response',call_id='c1',name=name,text='x')],
++        answer='<answer>x</answer>',trace_revision='3.14')
++    for kind in ('landscape','nadir_positive'):
++        with contract_epoch(True):
++            geo=own_geometry(fixture(kind)[1]())
++            text,_,_=rerender(row,geo)
++            expected=getattr(geo,name+'_text')(*args.values())
++            assert expected in text and 'error:' not in text
++
++
++@pytest.mark.parametrize('before,after',[({'a':'x'},{'a':'x','b':'y'}),({'a':'x','b':'y'},{'a':'x'}),
++    ({'a':1},{'a':2}),({'a':False},{'a':0}),({'a':[1,None]},{'a':[1,0]})])
++def test_strict_row_structure(before,after):
++    path=Path(os.environ.get('R6_COMPARE',str(L/'work/row_families_r6/heading_compare.py')))
++    spec=importlib.util.spec_from_file_location('compare_c5',path)
++    mod=importlib.util.module_from_spec(spec);spec.loader.exec_module(mod)
++    assert not mod.row_texts_valid(before,after)
++    assert mod.row_texts_valid(before,copy.deepcopy(before))
+diff -ruN /scratch/jjyeung/orch_n30/contracts_rebuild/work/tests_r5/test_review_r4.py /scratch/jjyeung/orch_n30/contracts_rebuild/work/tests_r6/test_review_r4.py
+--- /scratch/jjyeung/orch_n30/contracts_rebuild/work/tests_r5/test_review_r4.py	2026-11-15 19:46:00.980231202 -0500
++++ /scratch/jjyeung/orch_n30/contracts_rebuild/work/tests_r6/test_review_r4.py	2026-11-15 21:35:40.185070396 -0500
+@@ -156,7 +156,7 @@
+             values.append(dict(noise=noise,calls=calls,responses=texts,defined=baseline))
+         if case=='A':assert len({tuple(re.sub(r'dy = [^,]+', 'dy = gravity projection', t) for t in v['responses'][:2]) for v in values})==1
+         records[case]=values
+-    (L/'work/test_artifacts_r5/DECODE_ATTACK_R5.json').write_text(json.dumps(dict(source=str(Path(__file__)),cases=records),indent=2))
++    (L/'work/test_artifacts_r6/DECODE_ATTACK_R5.json').write_text(json.dumps(dict(source=str(Path(__file__)),cases=records),indent=2))
+ 
+ 
+ @pytest.mark.parametrize('roll',[30,45,80])

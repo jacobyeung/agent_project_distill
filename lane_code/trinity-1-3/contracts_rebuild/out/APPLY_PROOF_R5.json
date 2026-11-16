@@ -1,0 +1,189 @@
+{
+  "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/out/PATCH_MANIFEST_R5.json",
+  "base_source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/base/work/base/tree_b01ce449",
+  "ordered": {
+    "dry_run": {
+      "command": [
+        "bash",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/out/apply_contract_patches_r5.sh",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/work/trees/r5_complete_proof/base",
+        "--dry-run"
+      ],
+      "returncode": 0,
+      "output": "Validated dry run; target unchanged. Retained staging: /scratch/jjyeung/orch_n30/contracts_rebuild/work/trees/r5_complete_proof/.contracts-lpxPVtht\n"
+    },
+    "apply": {
+      "command": [
+        "bash",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/out/apply_contract_patches_r5.sh",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/work/trees/r5_complete_proof/base"
+      ],
+      "returncode": 0,
+      "output": "Applied and verified; retained original: /scratch/jjyeung/orch_n30/contracts_rebuild/work/trees/r5_complete_proof/.contracts-MKrjuVcw/original\n"
+    },
+    "all_patched_hashes_match": true,
+    "untouched_files_equal": true,
+    "dry_run_target_unchanged": true
+  },
+  "refusals": {
+    "readonly": {
+      "command": [
+        "bash",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/out/apply_contract_patches_r5.sh",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/work/trees/r5_complete_proof/base"
+      ],
+      "returncode": 1,
+      "output": "target_not_writable: /scratch/jjyeung/orch_n30/contracts_rebuild/work/trees/r5_complete_proof/base; staging not created\n",
+      "no_staging_created": true,
+      "unchanged": true
+    },
+    "reapplication": {
+      "command": [
+        "bash",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/out/apply_contract_patches_r5.sh",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/work/trees/r5_complete_proof/base"
+      ],
+      "returncode": 1,
+      "output": "Hash mismatch: trace_format/contracts.py: 59f7d3907d34423bd1950eef0002c757b3b1435101a4cb9e5d0aedf41f1600d9; refuses changed or already patched file\n",
+      "unchanged": true
+    },
+    "integration_reapplication": {
+      "command": [
+        "bash",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/out/apply_contract_patches_r5.sh",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/work/trees/r5_complete_snapshot"
+      ],
+      "returncode": 1,
+      "output": "Hash mismatch: trace_format/contracts.py: 59f7d3907d34423bd1950eef0002c757b3b1435101a4cb9e5d0aedf41f1600d9; refuses changed or already patched file\n",
+      "unchanged": true
+    }
+  },
+  "integration": {
+    "tree": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/trees/r5_complete_snapshot",
+    "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/tree_r1/tree_r1_build1_fab2eea8.tar",
+    "plan": {
+      "command": [
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/out/contract_hash_checks_r5.py",
+        "pre",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/work/trees/r5_complete_snapshot"
+      ],
+      "returncode": 0,
+      "output": "PATCH_geometry_on_tree_r1_r5.diff\nPATCH_candidates_r5.diff\nPATCH_box_r5.diff\n"
+    },
+    "steps": [
+      {
+        "dry_run": {
+          "command": [
+            "patch",
+            "--batch",
+            "--forward",
+            "-p1",
+            "-F0",
+            "--no-backup-if-mismatch",
+            "-d",
+            "/scratch/jjyeung/orch_n30/contracts_rebuild/work/trees/r5_complete_snapshot",
+            "-i",
+            "/scratch/jjyeung/orch_n30/contracts_rebuild/out/PATCH_geometry_on_tree_r1_r5.diff",
+            "--dry-run"
+          ],
+          "returncode": 0,
+          "output": "checking file trace_format/contracts.py\nchecking file student_pilot/geometry_profiles.py\nchecking file student_pilot/ground_lifting.py\nchecking file trace_format/box_v313.py\nchecking file trace_format/ground_v313.py\nchecking file student_pilot/live_trace313.py\nchecking file student_pilot/carrier_c1_decode.py\nchecking file student_pilot/carrier_c1_routing.py\nchecking file generator/derivgen_v7/derivgen/ground_v313.py\nchecking file generator/derivgen_v7/derivgen/box_v313.py\nchecking file generator/derivgen_v7/derivgen/calculator.py\nchecking file generator/derivgen_v7/derivgen/trace.py\nchecking file trace_format/point_events.py\nchecking file trace_format/calculator.py\nchecking file student_pilot/p3_printed_calculator.py\nchecking file student_pilot/carrier_c1_run.py\n"
+        },
+        "apply": {
+          "command": [
+            "patch",
+            "--batch",
+            "--forward",
+            "-p1",
+            "-F0",
+            "--no-backup-if-mismatch",
+            "-d",
+            "/scratch/jjyeung/orch_n30/contracts_rebuild/work/trees/r5_complete_snapshot",
+            "-i",
+            "/scratch/jjyeung/orch_n30/contracts_rebuild/out/PATCH_geometry_on_tree_r1_r5.diff"
+          ],
+          "returncode": 0,
+          "output": "patching file trace_format/contracts.py\npatching file student_pilot/geometry_profiles.py\npatching file student_pilot/ground_lifting.py\npatching file trace_format/box_v313.py\npatching file trace_format/ground_v313.py\npatching file student_pilot/live_trace313.py\npatching file student_pilot/carrier_c1_decode.py\npatching file student_pilot/carrier_c1_routing.py\npatching file generator/derivgen_v7/derivgen/ground_v313.py\npatching file generator/derivgen_v7/derivgen/box_v313.py\npatching file generator/derivgen_v7/derivgen/calculator.py\npatching file generator/derivgen_v7/derivgen/trace.py\npatching file trace_format/point_events.py\npatching file trace_format/calculator.py\npatching file student_pilot/p3_printed_calculator.py\npatching file student_pilot/carrier_c1_run.py\n"
+        }
+      },
+      {
+        "dry_run": {
+          "command": [
+            "patch",
+            "--batch",
+            "--forward",
+            "-p1",
+            "-F0",
+            "--no-backup-if-mismatch",
+            "-d",
+            "/scratch/jjyeung/orch_n30/contracts_rebuild/work/trees/r5_complete_snapshot",
+            "-i",
+            "/scratch/jjyeung/orch_n30/contracts_rebuild/out/PATCH_candidates_r5.diff",
+            "--dry-run"
+          ],
+          "returncode": 0,
+          "output": "checking file student_pilot/phrases.py\nchecking file student_pilot/scene_state.py\nchecking file student_pilot/sam3_tower.py\nchecking file student_pilot/ground_admission.py\nchecking file student_pilot/s1_grounding.py\nchecking file student_pilot/ground_v3.py\nchecking file student_pilot/ground_sources.py\nchecking file student_pilot/routed_features.py\nchecking file ofs/core.py\nchecking file generator/derivgen_v7/derivgen/room_rows_v314.py\nchecking file generator/derivgen_v7/derivgen/ground_v312_io.py\nchecking file generator/derivgen_v7/derivgen/ground_v313_distance.py\nchecking file trace_format/category_vocab.py\nchecking file student_pilot/training_contract.py\nchecking file student_pilot/s1_routing.py\nchecking file student_pilot/ground_rows.py\nchecking file tests/test_e2e_open_vocabulary.py\nchecking file tests/test_sam3_tower.py\n"
+        },
+        "apply": {
+          "command": [
+            "patch",
+            "--batch",
+            "--forward",
+            "-p1",
+            "-F0",
+            "--no-backup-if-mismatch",
+            "-d",
+            "/scratch/jjyeung/orch_n30/contracts_rebuild/work/trees/r5_complete_snapshot",
+            "-i",
+            "/scratch/jjyeung/orch_n30/contracts_rebuild/out/PATCH_candidates_r5.diff"
+          ],
+          "returncode": 0,
+          "output": "patching file student_pilot/phrases.py\npatching file student_pilot/scene_state.py\npatching file student_pilot/sam3_tower.py\npatching file student_pilot/ground_admission.py\npatching file student_pilot/s1_grounding.py\npatching file student_pilot/ground_v3.py\npatching file student_pilot/ground_sources.py\npatching file student_pilot/routed_features.py\npatching file ofs/core.py\npatching file generator/derivgen_v7/derivgen/room_rows_v314.py\npatching file generator/derivgen_v7/derivgen/ground_v312_io.py\npatching file generator/derivgen_v7/derivgen/ground_v313_distance.py\npatching file trace_format/category_vocab.py\npatching file student_pilot/training_contract.py\npatching file student_pilot/s1_routing.py\npatching file student_pilot/ground_rows.py\npatching file tests/test_e2e_open_vocabulary.py\npatching file tests/test_sam3_tower.py\n"
+        }
+      },
+      {
+        "dry_run": {
+          "command": [
+            "patch",
+            "--batch",
+            "--forward",
+            "-p1",
+            "-F0",
+            "--no-backup-if-mismatch",
+            "-d",
+            "/scratch/jjyeung/orch_n30/contracts_rebuild/work/trees/r5_complete_snapshot",
+            "-i",
+            "/scratch/jjyeung/orch_n30/contracts_rebuild/out/PATCH_box_r5.diff",
+            "--dry-run"
+          ],
+          "returncode": 0,
+          "output": "checking file student_pilot/live_instances314.py\n"
+        },
+        "apply": {
+          "command": [
+            "patch",
+            "--batch",
+            "--forward",
+            "-p1",
+            "-F0",
+            "--no-backup-if-mismatch",
+            "-d",
+            "/scratch/jjyeung/orch_n30/contracts_rebuild/work/trees/r5_complete_snapshot",
+            "-i",
+            "/scratch/jjyeung/orch_n30/contracts_rebuild/out/PATCH_box_r5.diff"
+          ],
+          "returncode": 0,
+          "output": "patching file student_pilot/live_instances314.py\n"
+        }
+      }
+    ],
+    "all_patched_hashes_match": true,
+    "untouched_files_equal": true
+  },
+  "tree": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/trees/r5_complete_proof/base",
+  "full_tree_copies": 4
+}

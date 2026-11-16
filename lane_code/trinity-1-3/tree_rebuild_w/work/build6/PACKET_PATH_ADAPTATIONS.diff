@@ -1,0 +1,44 @@
+--- test_edges.py
++++ test_edges.py
+@@ -10,7 +10,7 @@
+     import ast
+     from pathlib import Path
+     from tests.test_sam3_tower import TowerTests
+-    base=L/'work/base/work/base/tree_b01ce449/student_pilot/sam3_tower.py'
++    base=Path(__file__).resolve().parents[4]/'work/base/tree_b01ce449/student_pilot/sam3_tower.py'
+     tree=ast.parse(base.read_text())
+     nodes=[n for n in tree.body if (isinstance(n,ast.FunctionDef) and n.name=='normalize_phrase') or
+            (isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='SINGULAR' for t in n.targets))]
+--- test_row_families_r4.py
++++ test_row_families_r4.py
+@@ -7,7 +7,7 @@
+ from trace_format.contracts import contract_epoch
+ from student_pilot.training_contract import audit_training_contract, call_responses
+ 
+-L=Path(__file__).resolve().parents[2]
++L=Path(__file__).resolve().parents[2]/'proofs/packet'
+ W=L/'work/row_families_r5'
+ 
+ def test_bare_ground_off_parity():
+--- fixtures_contracts.py
++++ fixtures_contracts.py
+@@ -1,7 +1,7 @@
+ from pathlib import Path
+ from types import SimpleNamespace as NS
+ import numpy as np
+-L=Path(__file__).resolve().parents[2]
++L=Path(__file__).resolve().parents[2]/'proofs/packet'
+ 
+ def rotations(pitch=0., roll=0.):
+     p,r=np.radians([pitch,roll])
+--- test_review_c5.py
++++ test_review_c5.py
+@@ -6,7 +6,7 @@
+ import pytest
+ from fixtures_contracts import fixture, own_geometry, rotations
+ from trace_format.contracts import contract_epoch
+-L=Path(__file__).resolve().parents[2]
++L=Path(__file__).resolve().parents[2]/'proofs/packet'
+ 
+ 
+ def pitched_geometry():

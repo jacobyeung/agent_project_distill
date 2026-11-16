@@ -1,0 +1,117 @@
+--- x27/gs/f665/sj/orch_cd/evalx/work/milestone/orchard_job.py	1969-12-31 19:00:00.000000000 -0500
++++ /scratch/jjyeung/orch_n30/review_o6/work/pkg/launcher/orchard_job.py	1969-12-31 19:00:00.000000000 -0500
+@@ -95,7 +95,7 @@
+                                 '--format=csv,noheader,nounits'],
+                                check=True, capture_output=True, text=True, timeout=30)
+     own = subprocess.run(['pgrep', '-fu', os.environ['USER'],
+-                          '[/]evalx/work/milestone|[/]legs1_reads/out/direct.py'],
++                          '[/]a[a-z][0-9a-f]+/p/reader/chain.py'],
+                          capture_output=True, text=True, timeout=30)
+     visible = os.environ.get('CUDA_VISIBLE_DEVICES', '')
+     rows = [[item.strip() for item in row] for row in csv.reader(query.stdout.splitlines()) if row]
+@@ -115,7 +115,7 @@
+                 pgrep=own.stdout, pgrep_returncode=own.returncode)
+ 
+ 
+-def namespace(root):
++def namespace(root, config=None):
+     root = Path(root)
+     argv = [str(root/'bwrap')]
+     for name in ('usr', 'bin', 'sbin', 'lib', 'lib64', 'etc', 'opt', 'run', 'sys'):
+@@ -130,6 +130,11 @@
+              '--bind', str(root/'m/ap'), str(AP),
+              '--ro-bind', str(root/'sj/uv-python/cpython-3.12.13-linux-x86_64-gnu'), UV,
+              '--dir', '/home/jjyeung', '--die-with-parent', '--chdir', str(root)]
++    if config is not None:
++        package=physical(root,config['spec']['package'])
++        for row in json.loads((package/'cohort/MEDIA_MANIFEST.json').read_text()):
++            argv += ['--ro-bind',str(root/'v'/(row['sha256']+'.mp4')),
++                     config['spec']['inputs']['video_root']+'/'+row['relative_path']]
+     return argv
+ 
+ 
+@@ -139,7 +144,7 @@
+         (root/name).mkdir(exist_ok=True)
+     return dict(PATH='/usr/local/bin:/usr/bin:/bin', USER=os.environ['USER'],
+                 SLURM_JOB_ID=os.environ['SLURM_JOB_ID'],
+-                CUDA_VISIBLE_DEVICES=os.environ['CUDA_VISIBLE_DEVICES'],
++                CUDA_VISIBLE_DEVICES=os.environ.get('CUDA_VISIBLE_DEVICES', ''),
+                 HOME=str(root/'home'), TMPDIR=str(root/'temp'), XDG_CACHE_HOME=str(root/'cache'),
+                 HF_HOME=str(root/'cache/hf'), HF_HUB_OFFLINE='1', TRANSFORMERS_OFFLINE='1',
+                 HF_HUB_DISABLE_TELEMETRY='1', TOKENIZERS_PARALLELISM='false',
+@@ -163,6 +168,11 @@
+     output = physical(root, config['output'])
+     process, code, failure = None, 1, None
+     evidence = {}
++    proof = config.get('mode') == 'proof'
++    if proof:
++        from proof_card import card as selected_card
++    else:
++        selected_card = card
+ 
+     def interrupted(number, frame):
+         raise RuntimeError('Orchard allocation signal '+str(number))
+@@ -173,19 +183,18 @@
+         evidence['storage'] = storage_proof(root, job=os.environ['SLURM_JOB_ID'])
+         local_environment = environment(root)
+         os.environ.update({key: local_environment[key] for key in ('HOME', 'TMPDIR', 'XDG_CACHE_HOME')})
+-        evidence['initial_card'] = card(require_empty=True)
++        evidence['initial_card'] = selected_card(require_empty=True)
+         evidence['staging'] = S.stage(root, config, physical)
+         output.mkdir(parents=True)
+         for path in (source.parent, output):
+             proof = storage_proof(path, job=os.environ['SLURM_JOB_ID'])
+             if proof['source'] != evidence['storage']['source']:
+                 raise ValueError('Runtime output does not use the proven job-local disk')
+-        evidence['launch_card'] = card(require_empty=True)
+-        command = namespace(root)+[config['spec']['interpreters']['p1cpu'], '-I', '-s', '-B',
+-            str(SJ/'orch_cd/evalx/work/milestone/execute_chain.py'),
+-            '--spec', config['records']['SPEC'], '--authorization', config['records']['AUTHORIZATION'],
+-            '--release', config['records']['RELEASE'], '--stage', config['records']['STAGE'],
+-            '--output', config['output'], '--persisted-input-bytes', '0']
++        evidence['launch_card'] = selected_card(require_empty=True)
++        command = namespace(root,config)+[config['spec']['interpreters']['vllm'], '-s', '-B',
++            str(root/'bootstrap/trace_runtime.py'), '--script',
++            str(Path(config['spec']['package'])/'reader/chain.py'), '--root', str(root),
++            '--config', str(root/'bootstrap/CONFIG.json')]
+         with (root/'chain.log').open('xb') as log:
+             process = subprocess.Popen(command, env=environment(root), cwd=root,
+                                        stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
+@@ -206,7 +215,7 @@
+         (source/'metadata').mkdir(exist_ok=True)
+         (source/'logs').mkdir(exist_ok=True)
+         try:
+-            evidence['final_card'] = card()
++            evidence['final_card'] = selected_card()
+         except Exception as error:
+             evidence['final_card_error'] = str(error)
+             failure, code = failure or 'Final GPU evidence unavailable', code or 1
+@@ -232,6 +241,10 @@
+                     stream.seek(max(0, path.stat().st_size-2*1024**2))
+                     (source/'logs'/('launcher_'+name)).write_bytes(stream.read(2*1024**2))
+         try:
++            import trace_runtime
++            trace_runtime.snapshot()
++            trace_runtime.collect(root, source/'TRACE.json.gz')
++            A.ARCHIVE_LIMIT = (19000000 if proof else 200000000) - 1
+             result = R.publish(source, R.AUTHORIZED_POOL, config['token'], config['plan_sha256'], code)
+             code = code if result['status'] == 'COMPLETE' else code or 1
+         except Exception as error:
+@@ -251,14 +264,11 @@
+     review = json.loads((Path(args.config).parent/'REVIEW.json').read_text())
+     digest = S.hashlib.sha256(json.dumps(config['launcher_pins'], sort_keys=True).encode()).hexdigest()
+     if (S.sha(Path(args.config).parent/'REVIEW.json') != config['launcher_review_pin']['sha256']
+-            or review.get('verdict') != 'ACCEPT' or not review.get('reviewer')
+-            or review.get('code_pins_sha256') != digest):
+-        raise ValueError('The batch package lacks its frozen launcher review')
++            or review.get('schema') != 'new-build-integrity-v1' or review.get('code_pins_sha256') != digest):
++        raise ValueError('Build integrity record differs')
+     for path, expected in config['launcher_pins'].items():
+         if S.sha(Path(args.config).parent/Path(path).name) != expected:
+-            raise ValueError('A reviewed batch dependency differs')
+-    if review.get('synthetic') is True:
+-        raise ValueError('A synthetic review cannot authorize an Orchard job')
++            raise ValueError('A packaged dependency differs')
+     import orchard_launcher as L
+     payload = Path(args.config).parent/'payload.tar.gz'
+     if S.sha(payload) != config['payload_sha256']:

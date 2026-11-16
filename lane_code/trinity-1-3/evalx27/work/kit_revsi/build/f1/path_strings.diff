@@ -1,0 +1,89 @@
+--- 6e025a89/build/package.py
++++ F1/build/package.py
+@@ -10,2 +10,2 @@
+-names.update(('cohort/COHORT_REVSI5.jsonl','proof/LOCAL_PROOF.json','build/package.py','build/evidence.py','build/BASE_FILES.json'))
+-names=sorted(names)
++names.update(('cohort/c5.jsonl','proof/LOCAL_PROOF.json','build/package.py','build/evidence.py','build/BASE_FILES.json'))
++names=sorted(names - {'inputs/cells_rv999_d32_cp1m200_on.json','inputs/cells_tr_rv999_cp1on.json'})
+
+--- 6e025a89/cohort/frame_plan.py
++++ F1/cohort/frame_plan.py
+@@ -46 +46 @@
+-    indices=json.loads((Path(__file__).resolve().parents[1]/'inputs/revsi_indices.json').read_text())
++    indices=json.loads((Path(__file__).resolve().parents[1]/'inputs/i4.json').read_text())
+
+--- 6e025a89/launcher/orchard_launcher.py
++++ F1/launcher/orchard_launcher.py
+@@ -199 +199 @@
+-        inputs=dict(rows=str(payload_root/'inputs/revsi999_rows_t32.json'),video_root=str(logical/'v0'),
++        inputs=dict(rows=str(payload_root/'inputs/i1.json'),video_root=str(logical/'v0'),
+@@ -208 +208 @@
+-            if p.is_file() and p.suffix in ('.py','.json','.jsonl') and p.name not in ('meta_5130.jsonl','COHORT_OFFICIAL6.jsonl','FRAME_PLAN.json','REVSI_PUSH_FILES.json','REVSI999_PROVENANCE.json'):
++            if p.is_file() and p.suffix in ('.py','.json','.jsonl') and p.name not in ('meta_5130.jsonl','COHORT_OFFICIAL6.jsonl','FRAME_PLAN.json','REVSI_PUSH_FILES.json','REVSI999_PROVENANCE.json','cells_rv999_d32_cp1m200_on.json','cells_tr_rv999_cp1on.json'):
+
+--- 6e025a89/proof/run.py
++++ F1/proof/run.py
+@@ -31 +31 @@
+-    all_rows=O.read_rows(ROOT/'cohort/COHORT_REVSI5.jsonl');chosen=F.select(all_rows);chosen_ids={str(r['id']) for r in chosen}
++    all_rows=O.read_rows(ROOT/'cohort/c5.jsonl');chosen=F.select(all_rows);chosen_ids={str(r['id']) for r in chosen}
+@@ -38 +38 @@
+-        indices=json.loads((ROOT/'inputs/revsi_indices.json').read_text())[Path(rel).stem]['32-frame']
++        indices=json.loads((ROOT/'inputs/i4.json').read_text())[Path(rel).stem]['32-frame']
+@@ -58 +58 @@
+-    payload[pfx+'cohort/COHORT_REVSI5.jsonl']=''.join(json.dumps(r)+'\n' for r in chosen).encode()
++    payload[pfx+'cohort/c5.jsonl']=''.join(json.dumps(r)+'\n' for r in chosen).encode()
+@@ -63 +63 @@
+-    fixture_videos=json.loads((ROOT/'inputs/revsi999_videos_t32.json').read_text())
++    fixture_videos=json.loads((ROOT/'inputs/i3.json').read_text())
+@@ -67 +67 @@
+-    payload[pfx+'inputs/revsi999_videos_t32.json']=video_bytes
++    payload[pfx+'inputs/i3.json']=video_bytes
+@@ -110 +110 @@
+-    def score(dest,cohort,output,**kwargs):return original_score(dest,package/'cohort/COHORT_REVSI5.jsonl',output,allow_partial=True)
++    def score(dest,cohort,output,**kwargs):return original_score(dest,package/'cohort/c5.jsonl',output,allow_partial=True)
+
+--- 6e025a89/reader/chain.py
++++ F1/reader/chain.py
+@@ -82 +82 @@
+-        cohort=HERE.parent/'cohort/COHORT_REVSI5.jsonl'
++        cohort=HERE.parent/'cohort/c5.jsonl'
+@@ -86 +86 @@
+-            cohort.write_text(''.join(json.dumps(r)+'\n' for r in A.load_rows(HERE.parent/'cohort/COHORT_REVSI5.jsonl') if str(r['id']) in selected))
++            cohort.write_text(''.join(json.dumps(r)+'\n' for r in A.load_rows(HERE.parent/'cohort/c5.jsonl') if str(r['id']) in selected))
+
+--- 6e025a89/reader/official_adapter.py
++++ F1/reader/official_adapter.py
+@@ -29,2 +29,2 @@
+-    names={'rows':'revsi999_rows_t32.json','membership':'revsi999_membership.json',
+-           'videos':'revsi999_videos_t32.json','indices':'revsi_indices.json'}
++    names={'rows':'i1.json','membership':'i2.json',
++           'videos':'i3.json','indices':'i4.json'}
+@@ -75 +75 @@
+-        expected = sorted(str(r['id']) for r in select(load_rows(HERE.parent/'cohort/COHORT_REVSI5.jsonl')))
++        expected = sorted(str(r['id']) for r in select(load_rows(HERE.parent/'cohort/c5.jsonl')))
+@@ -97 +97 @@
+-        cfg['datasets'][0]['example_ids']=sorted(str(r['id']) for r in select(load_rows(HERE.parent/'cohort/COHORT_REVSI5.jsonl')))
++        cfg['datasets'][0]['example_ids']=sorted(str(r['id']) for r in select(load_rows(HERE.parent/'cohort/c5.jsonl')))
+
+--- 6e025a89/reader/official_score.py
++++ F1/reader/official_score.py
+@@ -193 +193 @@
+-    p=argparse.ArgumentParser();p.add_argument('--dest',required=True);p.add_argument('--cohort',default=str(Path(__file__).resolve().parents[1]/'cohort/COHORT_REVSI5.jsonl'));p.add_argument('--output',required=True);p.add_argument('--parent-answers')
++    p=argparse.ArgumentParser();p.add_argument('--dest',required=True);p.add_argument('--cohort',default=str(Path(__file__).resolve().parents[1]/'cohort/c5.jsonl'));p.add_argument('--output',required=True);p.add_argument('--parent-answers')
+
+--- 6e025a89/tests/test_kit.py
++++ F1/tests/test_kit.py
+@@ -24,2 +24,2 @@
+-def spec():return A.dataset(ROOT/'inputs/revsi999_rows_t32.json')
+-def cohort():return O.read_rows(ROOT/'cohort/COHORT_REVSI5.jsonl')
++def spec():return A.dataset(ROOT/'inputs/i1.json')
++def cohort():return O.read_rows(ROOT/'cohort/c5.jsonl')
+@@ -38 +38 @@
+-    native=json.loads((ROOT/'inputs/revsi999_rows_t32.json').read_text());gt={r['example_id']:r['ground_truth'] for r in native}
++    native=json.loads((ROOT/'inputs/i1.json').read_text());gt={r['example_id']:r['ground_truth'] for r in native}
+@@ -66 +66 @@
+-    p=fresh('tamper');p.mkdir();rows=json.loads((ROOT/'inputs/revsi999_rows_t32.json').read_text())[:-1];file=F.js(p/'rows.json',rows)
++    p=fresh('tamper');p.mkdir();rows=json.loads((ROOT/'inputs/i1.json').read_text())[:-1];file=F.js(p/'rows.json',rows)
+@@ -214 +214 @@
+-    videos=json.loads((ROOT/'inputs/revsi999_videos_t32.json').read_text())
++    videos=json.loads((ROOT/'inputs/i3.json').read_text())

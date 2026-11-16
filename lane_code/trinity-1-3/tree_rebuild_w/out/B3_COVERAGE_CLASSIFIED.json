@@ -1,0 +1,101 @@
+{
+  "schema": "build3-changed-statement-coverage-v1",
+  "definition": "Executable AST statements intersecting changed lines; docstrings and compile-time global/nonlocal declarations excluded",
+  "total": 4370,
+  "executed": 4358,
+  "production_total": 2604,
+  "production_executed": 2592,
+  "unexecuted_by_class": {
+    "CPU-only": 0,
+    "frame-host": 10,
+    "model-loader": 0,
+    "GPU": 2
+  },
+  "statements": [
+    {
+      "file": "launch_r2/host.py",
+      "line": 185,
+      "statement": "                        raise ValueError('CPU boundary received a GPU tensor')",
+      "category": "GPU",
+      "reason": "Negative tensor-device branch requires a CUDA tensor; actual CUDA is forbidden in this build"
+    },
+    {
+      "file": "launch_r2/host.py",
+      "line": 251,
+      "statement": "            raise ValueError('Missing delivered init archive and member inventory')",
+      "category": "frame-host",
+      "reason": "Full-mode admission mutation requires the real sealed pose inputs and an off-Trinity host"
+    },
+    {
+      "file": "launch_r2/host.py",
+      "line": 253,
+      "statement": "            os.environ['STUDENT_R2_FRAME_HOST'] = '0'",
+      "category": "frame-host",
+      "reason": "Full-mode admission mutation requires the real sealed pose inputs and an off-Trinity host"
+    },
+    {
+      "file": "launch_r2/host.py",
+      "line": 254,
+      "statement": "            try:",
+      "category": "frame-host",
+      "reason": "Full-mode admission mutation requires the real sealed pose inputs and an off-Trinity host"
+    },
+    {
+      "file": "launch_r2/host.py",
+      "line": 255,
+      "statement": "                materialize(paths['manifests'], output/'e', full=True)",
+      "category": "frame-host",
+      "reason": "Full-mode admission mutation requires the real sealed pose inputs and an off-Trinity host"
+    },
+    {
+      "file": "launch_r2/host.py",
+      "line": 257,
+      "statement": "                if str(error) != 'Full materialization requires an explicit frame-host admission':",
+      "category": "frame-host",
+      "reason": "Full-mode admission mutation requires the real sealed pose inputs and an off-Trinity host"
+    },
+    {
+      "file": "launch_r2/host.py",
+      "line": 258,
+      "statement": "                    raise",
+      "category": "frame-host",
+      "reason": "Full-mode admission mutation requires the real sealed pose inputs and an off-Trinity host"
+    },
+    {
+      "file": "launch_r2/host.py",
+      "line": 260,
+      "statement": "                raise ValueError('Full-store admission mutation unexpectedly passed')",
+      "category": "frame-host",
+      "reason": "Full-mode admission mutation requires the real sealed pose inputs and an off-Trinity host"
+    },
+    {
+      "file": "student_pilot/carrier_c1_run.py",
+      "line": 2936,
+      "statement": "                        raise ValueError('Encoding-only admission requires CPU tensors')",
+      "category": "GPU",
+      "reason": "Negative tensor-device branch requires a CUDA tensor; actual CUDA is forbidden in this build"
+    },
+    {
+      "file": "student_pilot/r2_materialize.py",
+      "line": 25,
+      "statement": "        if os.environ.get('STUDENT_R2_FRAME_HOST') != '1':",
+      "category": "frame-host",
+      "reason": "Full-store branch is prohibited on Trinity"
+    },
+    {
+      "file": "student_pilot/r2_materialize.py",
+      "line": 26,
+      "statement": "            raise ValueError('Full materialization requires an explicit frame-host admission')",
+      "category": "frame-host",
+      "reason": "Full-store branch is prohibited on Trinity"
+    },
+    {
+      "file": "student_pilot/r2_materialize.py",
+      "line": 27,
+      "statement": "        limit = None",
+      "category": "frame-host",
+      "reason": "Full-store branch is prohibited on Trinity"
+    }
+  ],
+  "strict_cpu_gate": true
+}

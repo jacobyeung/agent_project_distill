@@ -1,0 +1,1604 @@
+{
+  "launch_r2/bootstrap.py": [
+    [
+      17,
+      "raise ValueError('Capsule differs')"
+    ]
+  ],
+  "launch_r2/build.py": [
+    [
+      43,
+      "raise ValueError('Unexpected capsule fields')"
+    ]
+  ],
+  "launch_r2/distributed.py": [
+    [
+      66,
+      "environment[opaque] = environment.pop(native)"
+    ],
+    [
+      79,
+      "os.environ[native]=os.environ[opaque]"
+    ]
+  ],
+  "launch_r2/entry.py": [
+    [
+      12,
+      "return None"
+    ],
+    [
+      59,
+      "from student_pilot.r2_policy import preparation"
+    ],
+    [
+      60,
+      "preparation(cfg['r2_build2'], root)"
+    ],
+    [
+      61,
+      "packet = launch.get('inputs')"
+    ],
+    [
+      62,
+      "if not packet:"
+    ],
+    [
+      63,
+      "raise ValueError('Missing frame-host input inventory')"
+    ],
+    [
+      64,
+      "from .host import run_packet"
+    ],
+    [
+      65,
+      "prepared = host_receipt(root,launch)"
+    ],
+    [
+      66,
+      "if prepared is None:"
+    ],
+    [
+      67,
+      "prepared = run_packet(root, packet, full=True)"
+    ],
+    [
+      68,
+      "cfg = prepared['config']"
+    ],
+    [
+      69,
+      "if mode in ('p', 'c'):"
+    ],
+    [
+      70,
+      "return prepared"
+    ],
+    [
+      71,
+      "if not launch.get('production_authorized'):"
+    ],
+    [
+      72,
+      "raise ValueError('Missing production authorization and independent review')"
+    ],
+    [
+      73,
+      "from .distributed import launch as launch_workers"
+    ],
+    [
+      74,
+      "return launch_workers(root,cfg,mode,launch)"
+    ]
+  ],
+  "launch_r2/host.py": [
+    [
+      190,
+      "raise ValueError('CPU boundary received a GPU tensor')"
+    ],
+    [
+      222,
+      "raise ValueError('Missing bound kit configuration')"
+    ],
+    [
+      225,
+      "raise ValueError('Packet configuration differs from bound kit')"
+    ],
+    [
+      227,
+      "from .staging import read, stage_inputs"
+    ],
+    [
+      228,
+      "zero=read(root/'k/0.json')"
+    ],
+    [
+      229,
+      "stage_inputs(read(root/zero['staging']['path'])['entries'],root)"
+    ],
+    [
+      254,
+      "cfg = apply_native(cfg, load(pinned(packet['geometry_assets'])))"
+    ],
+    [
+      273,
+      "raise ValueError('Missing delivered init archive and member inventory')"
+    ],
+    [
+      275,
+      "os.environ['STUDENT_R2_FRAME_HOST'] = '0'"
+    ],
+    [
+      276,
+      "try:"
+    ],
+    [
+      277,
+      "materialize(paths['manifests'], output/'e', full=True)"
+    ],
+    [
+      279,
+      "if str(error) != 'Full materialization requires an explicit frame-host admission':"
+    ],
+    [
+      280,
+      "raise"
+    ],
+    [
+      282,
+      "raise ValueError('Full-store admission mutation unexpectedly passed')"
+    ]
+  ],
+  "launch_r2/parent.py": [
+    [
+      13,
+      "raise ValueError('Invalid sealed stream record')"
+    ],
+    [
+      23,
+      "raise ValueError('Override-free configuration differs')"
+    ],
+    [
+      32,
+      "raise ValueError('Parent configuration serialization differs')"
+    ]
+  ],
+  "launch_r2/persistence.py": [
+    [
+      16,
+      "raise ValueError('Persistence plan differs from checkpoint disk guard')"
+    ],
+    [
+      26,
+      "raise ValueError('Missing durable state persistence binding')"
+    ],
+    [
+      31,
+      "raise ValueError('State is outside the node-local run')"
+    ],
+    [
+      35,
+      "from student_pilot.carrier_c1_run import complete_states"
+    ],
+    [
+      36,
+      "if marker not in complete_states(output, value['binding']):"
+    ],
+    [
+      37,
+      "raise ValueError('Native state predicate refused')"
+    ],
+    [
+      38,
+      "for name, pin in value['files'].items():"
+    ],
+    [
+      39,
+      "if sha256(directory/name) != pin['sha256']:"
+    ],
+    [
+      40,
+      "raise ValueError('State member digest differs')"
+    ],
+    [
+      46,
+      "return load(receipt)"
+    ],
+    [
+      55,
+      "raise ValueError('Node-local archive reserve is insufficient')"
+    ],
+    [
+      57,
+      "raise ValueError('State symlink refused')"
+    ],
+    [
+      63,
+      "raise ValueError('Archive inventory differs')"
+    ],
+    [
+      70,
+      "raise ValueError('Archive or source changed')"
+    ],
+    [
+      72,
+      "sessions = pinned(spec['sessions'])"
+    ],
+    [
+      73,
+      "tool = pinned(spec['uploader'])"
+    ],
+    [
+      74,
+      "module_spec = importlib.util.spec_from_file_location('durable_writer', tool)"
+    ],
+    [
+      75,
+      "module = importlib.util.module_from_spec(module_spec)"
+    ],
+    [
+      76,
+      "module_spec.loader.exec_module(module)"
+    ],
+    [
+      77,
+      "def uploader(path, key):"
+    ],
+    [
+      78,
+      "if module.main(['split',str(sessions),key,str(path),'4','4']):"
+    ],
+    [
+      79,
+      "raise ValueError('Durable upload failed')"
+    ],
+    [
+      80,
+      "values = [json.loads(line) for line in Path(str(sessions)+'.receipts.jsonl').read_text().splitlines()]"
+    ],
+    [
+      81,
+      "return [v for v in values if v['name'].startswith(key+'.part')]"
+    ],
+    [
+      84,
+      "raise ValueError('Upload lacks all verified generations')"
+    ],
+    [
+      89,
+      "raise ValueError('Upload ranges differ')"
+    ],
+    [
+      94,
+      "raise ValueError('Upload range exceeds archive')"
+    ],
+    [
+      98,
+      "raise ValueError('Upload range digest differs')"
+    ],
+    [
+      101,
+      "raise ValueError('Upload does not cover archive')"
+    ],
+    [
+      114,
+      "if 'r2_identity' not in cfg:"
+    ],
+    [
+      115,
+      "return"
+    ],
+    [
+      116,
+      "result = [None]"
+    ],
+    [
+      117,
+      "if rank == 0:"
+    ],
+    [
+      118,
+      "try:"
+    ],
+    [
+      119,
+      "upload(cfg, directory, kind)"
+    ],
+    [
+      121,
+      "result[0] = str(error)"
+    ],
+    [
+      122,
+      "if distributed:"
+    ],
+    [
+      123,
+      "import torch.distributed as dist"
+    ],
+    [
+      124,
+      "dist.broadcast_object_list(result, src=0)"
+    ],
+    [
+      125,
+      "if result[0]:"
+    ],
+    [
+      126,
+      "raise ValueError('Durable persistence refused: '+result[0])"
+    ]
+  ],
+  "launch_r2/plan.py": [
+    [
+      53,
+      "elif original:"
+    ],
+    [
+      54,
+      "role = 'model' if '/models/' in original else 'art' if '/art/' in original else None"
+    ],
+    [
+      55,
+      "if role:"
+    ],
+    [
+      56,
+      "pin = parent[role]"
+    ],
+    [
+      57,
+      "entries[name] = dict(directory=dict(parts=[pin['file']], sha256=pin['sha256']),"
+    ],
+    [
+      60,
+      "raise ValueError('Unresolved relative directory: '+original)"
+    ],
+    [
+      62,
+      "raise ValueError('Unknown relative staging pin: '+name)"
+    ]
+  ],
+  "launch_r2/runtime.py": [
+    [
+      83,
+      "parent = previous(frame, event, arg) if previous is not None else None"
+    ],
+    [
+      84,
+      "if frame.f_code.co_filename in selected:"
+    ],
+    [
+      85,
+      "if event == 'line':"
+    ],
+    [
+      86,
+      "hits.add((frame.f_code.co_filename, frame.f_lineno))"
+    ],
+    [
+      87,
+      "return trace"
+    ],
+    [
+      88,
+      "return parent"
+    ]
+  ],
+  "launch_r2/staging.py": [
+    [
+      27,
+      "value = json.loads(Path(path).read_text())"
+    ],
+    [
+      28,
+      "if isinstance(value, dict) and value.get('encoding') == 'base64-json':"
+    ],
+    [
+      29,
+      "raw = base64.b64decode(value['payload'], validate=True)"
+    ],
+    [
+      30,
+      "if hashlib.sha256(raw).hexdigest() != value['sha256']:"
+    ],
+    [
+      31,
+      "raise ValueError('Capsule digest differs')"
+    ],
+    [
+      32,
+      "return json.loads(raw)"
+    ],
+    [
+      33,
+      "return value"
+    ],
+    [
+      51,
+      "if m.issym() or m.islnk():"
+    ],
+    [
+      52,
+      "link = (target.parent / m.linkname).resolve() if m.issym() else (destination / m.linkname).resolve()"
+    ],
+    [
+      53,
+      "if destination not in link.parents:"
+    ],
+    [
+      54,
+      "raise ValueError('Archive link escaped node-local root')"
+    ],
+    [
+      55,
+      "archive.extractall(str(destination))"
+    ],
+    [
+      66,
+      "with destination.open('xb') as out:"
+    ],
+    [
+      67,
+      "for part in entry['parts']:"
+    ],
+    [
+      68,
+      "with open(part, 'rb') as source:"
+    ],
+    [
+      69,
+      "shutil.copyfileobj(source, out, 1024 * 1024)"
+    ],
+    [
+      72,
+      "if not entry.get('inventory'):"
+    ],
+    [
+      73,
+      "raise ValueError('Archive has no authenticated inventory')"
+    ],
+    [
+      74,
+      "return destination"
+    ],
+    [
+      98,
+      "raise ValueError('Unresolved staging input: '+name)"
+    ],
+    [
+      107,
+      "source = entry.get('archive', entry.get('directory'))"
+    ],
+    [
+      108,
+      "key = source.get('sha256') or source['inventory_sha256']"
+    ],
+    [
+      109,
+      "if key not in archives:"
+    ],
+    [
+      110,
+      "path = assemble(source, local/'a'/key)"
+    ],
+    [
+      111,
+      "archives[key] = local/'x'/key"
+    ],
+    [
+      112,
+      "unpack(path, archives[key])"
+    ],
+    [
+      113,
+      "for member, expected in source.get('inventory', {}).items():"
+    ],
+    [
+      114,
+      "checked(archives[key]/member, expected)"
+    ],
+    [
+      115,
+      "origin = archives[key]/entry.get('member', '')"
+    ],
+    [
+      116,
+      "if entry.get('directory'):"
+    ],
+    [
+      117,
+      "target.parent.mkdir(parents=True, exist_ok=True)"
+    ],
+    [
+      118,
+      "target.symlink_to(origin, target_is_directory=True)"
+    ],
+    [
+      120,
+      "checked(origin, entry['sha256'])"
+    ],
+    [
+      121,
+      "target.parent.mkdir(parents=True, exist_ok=True)"
+    ],
+    [
+      122,
+      "os.link(str(origin), str(target))"
+    ],
+    [
+      128,
+      "bw = checked(plan['bwrap']['file'], plan['bwrap']['sha256'])"
+    ],
+    [
+      129,
+      "union = local/'root/aws/u'"
+    ],
+    [
+      130,
+      "union.mkdir(parents=True, exist_ok=True)"
+    ],
+    [
+      131,
+      "cmd = [str(bw)]"
+    ],
+    [
+      132,
+      "for name in ('/usr', '/bin', '/sbin', '/lib', '/lib64', '/etc', '/opt', '/run', '/sys', '/project'):"
+    ],
+    [
+      133,
+      "if Path(name).exists():"
+    ],
+    [
+      134,
+      "cmd += ['--ro-bind', name, name]"
+    ],
+    [
+      135,
+      "cmd += ['--dev-bind', '/dev', '/dev', '--proc', '/proc', '--tmpfs', '/home',"
+    ],
+    [
+      144,
+      "return cmd"
+    ],
+    [
+      148,
+      "root = Path(root).resolve()"
+    ],
+    [
+      149,
+      "sys.path.insert(0, str(root/'b'))"
+    ],
+    [
+      150,
+      "import a"
+    ],
+    [
+      151,
+      "a.main(root, build_only=False)"
+    ],
+    [
+      152,
+      "zero = read(root/'k/0.json')"
+    ],
+    [
+      153,
+      "plan = read(checked(root/zero['staging']['path'], zero['staging']['sha256']))"
+    ],
+    [
+      154,
+      "launch = read(root/'k/launch.json')"
+    ],
+    [
+      155,
+      "cfg = read(checked(root/launch['config']['file'], launch['config']['sha256']))"
+    ],
+    [
+      156,
+      "validate_plan(cfg, plan['entries'])"
+    ],
+    [
+      157,
+      "local = Path('/tmp/jjyeung/okit_'+zero['commit'][-16:])"
+    ],
+    [
+      158,
+      "local.mkdir(parents=True, exist_ok=False)"
+    ],
+    [
+      159,
+      "signal.signal(signal.SIGUSR1, lambda *_: (local/'stop').write_text('USR1\\n'))"
+    ],
+    [
+      161,
+      "for name in ('b', 'k'):"
+    ],
+    [
+      162,
+      "shutil.copytree(str(root/name), str(local/'kit'/name))"
+    ],
+    [
+      163,
+      "for name in ('ANON_OK.json', 'SHA256SUMS.txt', 'job.sh'):"
+    ],
+    [
+      164,
+      "shutil.copyfile(str(root/name), str(local/'kit'/name))"
+    ],
+    [
+      165,
+      "(local/'kit/o').mkdir()"
+    ],
+    [
+      166,
+      "(local/'kit/runs').mkdir()"
+    ],
+    [
+      167,
+      "(local/'tmp').mkdir()"
+    ],
+    [
+      168,
+      "archive = checked(plan['venv']['file'], plan['venv']['sha256'])"
+    ],
+    [
+      169,
+      "unpack(archive, local/'root/c7d31ddd/venvs')"
+    ],
+    [
+      170,
+      "env = {k:v for k,v in os.environ.items() if k.startswith('SLURM_') or k in ("
+    ],
+    [
+      172,
+      "env.update(TMPDIR=str(local/'tmp'), XDG_CACHE_HOME=str(local/'tmp/c'),"
+    ],
+    [
+      175,
+      "process = subprocess.Popen(command(root, mode, local, plan), env=env,"
+    ],
+    [
+      177,
+      "for line in iter(process.stdout.readline, b''):"
+    ],
+    [
+      178,
+      "print(json.dumps(dict(code='L01',sha256=hashlib.sha256(line).hexdigest())),flush=True)"
+    ],
+    [
+      179,
+      "return process.wait()"
+    ],
+    [
+      183,
+      "try:"
+    ],
+    [
+      184,
+      "sys.exit(main(*sys.argv[1:]))"
+    ],
+    [
+      187,
+      "print(json.dumps(dict(code='E01', sha256=hashlib.sha256(str(error).encode()).hexdigest())))"
+    ],
+    [
+      188,
+      "sys.exit(2)"
+    ]
+  ],
+  "launch_r2/worker.py": [
+    [
+      10,
+      "sys.path.insert(0,os.environ['K2'])"
+    ],
+    [
+      11,
+      "from launch_r2.distributed import worker"
+    ],
+    [
+      12,
+      "return worker(root,mode,arm)"
+    ]
+  ],
+  "launch_s1/b/a.py": [
+    [
+      16,
+      "return value"
+    ]
+  ],
+  "launch_s1/b/gcsput.py": [
+    [
+      24,
+      "for attempt in range(1):"
+    ],
+    [
+      54,
+      "if attempt == 0:"
+    ]
+  ],
+  "student_pilot/carrier_c1_run.py": [
+    [
+      787,
+      "from .r2_openers import initialize"
+    ],
+    [
+      788,
+      "initialize(model, processor, receipt)"
+    ],
+    [
+      2207,
+      "from launch_r2.persistence import milestone"
+    ],
+    [
+      2208,
+      "if 'r2_identity' in cfg and not cfg.get('r2_sampling'):"
+    ],
+    [
+      2209,
+      "raise ValueError('Missing bound r2_sampling table')"
+    ],
+    [
+      2239,
+      "milestone(cfg, output/'m0', 'export', rank, distributed)"
+    ],
+    [
+      2315,
+      "if os.environ.get('K3'):"
+    ],
+    [
+      2316,
+      "stop[0] = stop[0] or Path(os.environ['K3']).is_file()"
+    ],
+    [
+      2326,
+      "saved = checkpoint(output/f'checkpoint_{step:06d}',wrapped,optimizer,bound,step,rotate=True, **checkpoint_options())"
+    ],
+    [
+      2327,
+      "milestone(cfg, Path(saved['path']).parent, 'checkpoint', rank, distributed)"
+    ],
+    [
+      2337,
+      "milestone(cfg, output/f'm{step}', 'export', rank, distributed)"
+    ],
+    [
+      2944,
+      "raise ValueError('Encoding-only admission requires CPU tensors')"
+    ],
+    [
+      3138,
+      "from .r2_policy import legacy_reader_guard"
+    ],
+    [
+      3139,
+      "legacy_reader_guard(cfg, artifact_pin)"
+    ]
+  ],
+  "student_pilot/ground_rows.py": [
+    [
+      98,
+      "raise ValueError('Unknown absolute label unit')"
+    ]
+  ],
+  "student_pilot/grounding_eval.py": [
+    [
+      80,
+      "from .r2_policy import legacy_reader_guard"
+    ],
+    [
+      81,
+      "legacy_reader_guard(cfg, artifact)"
+    ]
+  ],
+  "student_pilot/p3_provenance.py": [
+    [
+      39,
+      "raise ValueError('Capsule digest differs')"
+    ]
+  ],
+  "student_pilot/r2_adapters.py": [
+    [
+      18,
+      "audit=dict(simulated=True,status='not seen')"
+    ],
+    [
+      21,
+      "raise ValueError('Raw pool response is not paired with a printed call')"
+    ],
+    [
+      43,
+      "raise ValueError('Published event target or response spans differ')"
+    ]
+  ],
+  "student_pilot/r2_contract.py": [
+    [
+      197,
+      "raise ValueError('R2 events differ from target or response spans')"
+    ]
+  ],
+  "student_pilot/r2_grammar.py": [
+    [
+      16,
+      "raise ValueError('Shared grammar digest differs')"
+    ],
+    [
+      51,
+      "raise ValueError('Arithmetic uses unsupported operands or operations')"
+    ],
+    [
+      64,
+      "raise ValueError('Missing trace or answer')"
+    ],
+    [
+      67,
+      "raise ValueError('Empty think block')"
+    ],
+    [
+      69,
+      "raise ValueError('Direct target carries a call or response tag')"
+    ],
+    [
+      71,
+      "raise ValueError('Seconds, exhaustive visibility or absence statements are forbidden')"
+    ],
+    [
+      73,
+      "raise ValueError('Integers or decimals glued to units')"
+    ],
+    [
+      77,
+      "raise ValueError('Unsupported number words')"
+    ],
+    [
+      82,
+      "raise ValueError('Trace line must be Locate, Relate or Step')"
+    ],
+    [
+      90,
+      "raise ValueError('Locate requires one valid frame per object')"
+    ],
+    [
+      93,
+      "raise ValueError('An object has an exhaustive or duplicate frame list')"
+    ],
+    [
+      96,
+      "elif kind == 'Relate':"
+    ],
+    [
+      97,
+      "if (not re.search(RELATION, body, re.I) or not located"
+    ],
+    [
+      99,
+      "raise ValueError('Relate must relate located objects')"
+    ],
+    [
+      101,
+      "listing = re.fullmatch(r'list \\[(.+)\\]; count = (\\d+)\\.?', body)"
+    ],
+    [
+      102,
+      "computation = re.fullmatch(r'compute (.+?) = (-?\\d+(?:\\.\\d+)?)\\.?', body)"
+    ],
+    [
+      103,
+      "if listing:"
+    ],
+    [
+      104,
+      "items = [s.strip().casefold() for s in listing[1].split(';')]"
+    ],
+    [
+      105,
+      "if len(set(items)) != len(items) or not set(items) <= located or len(items) != int(listing[2]):"
+    ],
+    [
+      106,
+      "raise ValueError('Count differs from the listed located items')"
+    ],
+    [
+      107,
+      "allowed.add(float(len(items)))"
+    ],
+    [
+      108,
+      "elif computation:"
+    ],
+    [
+      109,
+      "value = arithmetic(computation[1], allowed)"
+    ],
+    [
+      110,
+      "if not math.isclose(value, float(computation[2]), rel_tol=1e-9, abs_tol=1e-9):"
+    ],
+    [
+      111,
+      "raise ValueError('Explicit arithmetic result differs')"
+    ],
+    [
+      112,
+      "allowed.add(value)"
+    ],
+    [
+      113,
+      "elif not re.search(STEP, body, re.I) or not (set(re.findall(r'[a-z]{4,}', body.lower())) & set(re.findall(r'[a-z]{4,}', question.lower()))):"
+    ],
+    [
+      114,
+      "raise ValueError('Filler Step does not express the question logic')"
+    ],
+    [
+      116,
+      "raise ValueError('Trace contains an unsupported number')"
+    ],
+    [
+      118,
+      "raise ValueError('Direct trace states a measurement')"
+    ],
+    [
+      119,
+      "return answer.strip()"
+    ],
+    [
+      125,
+      "raise ValueError('Call on a direct type; room size is direct')"
+    ],
+    [
+      132,
+      "raise ValueError('Every response must be an event with a masked span')"
+    ],
+    [
+      144,
+      "raise ValueError('Missing trace or answer')"
+    ],
+    [
+      165,
+      "raise ValueError('Frames must be named by number')"
+    ]
+  ],
+  "student_pilot/r2_materialize.py": [
+    [
+      25,
+      "if os.environ.get('STUDENT_R2_FRAME_HOST') != '1':"
+    ],
+    [
+      26,
+      "raise ValueError('Full materialization requires an explicit frame-host admission')"
+    ],
+    [
+      27,
+      "limit = None"
+    ],
+    [
+      75,
+      "family_report = next(r for r in reports if r['family'] == item['family'])"
+    ],
+    [
+      76,
+      "kind = item['row'].get('question_type', item['stream'])"
+    ],
+    [
+      77,
+      "reason = 'materialization: '+str(error)"
+    ],
+    [
+      78,
+      "family_report['refusals'].append(dict(qid=item['row']['qid'], type=kind, reason=reason))"
+    ],
+    [
+      79,
+      "count = family_report['counts'][kind]"
+    ],
+    [
+      80,
+      "count['admitted'] -= 1"
+    ],
+    [
+      81,
+      "count['refused'] += 1"
+    ],
+    [
+      82,
+      "count['reasons'][reason] += 1"
+    ],
+    [
+      91,
+      "write(output/'materialization.json', report)"
+    ],
+    [
+      92,
+      "raise ValueError('Full materialization requires the bound sampling table')"
+    ],
+    [
+      94,
+      "from .r2_mix import check_actual"
+    ],
+    [
+      95,
+      "check_actual(built, mix_binding)"
+    ]
+  ],
+  "student_pilot/r2_mix.py": [
+    [
+      107,
+      "from collections import Counter"
+    ],
+    [
+      108,
+      "mix = validate_table(load(bound(binding['mix_pin'], binding.get('root'))))"
+    ],
+    [
+      109,
+      "counts = Counter()"
+    ],
+    [
+      110,
+      "streams = {c['type']:c['stream'] for c in mix['cells']}"
+    ],
+    [
+      111,
+      "for item in items:"
+    ],
+    [
+      112,
+      "cell = (item.get('mix_cell') or {}).get('type')"
+    ],
+    [
+      113,
+      "if streams.get(cell) != item['stream']:"
+    ],
+    [
+      114,
+      "raise ValueError('Missing or wrong final mix-cell membership')"
+    ],
+    [
+      115,
+      "counts[cell] += 1"
+    ],
+    [
+      116,
+      "for cell, draws in allocation(mix).items():"
+    ],
+    [
+      117,
+      "if counts[cell] == 0:"
+    ],
+    [
+      118,
+      "raise ValueError('Empty or invalid mix cell: '+cell)"
+    ],
+    [
+      119,
+      "if draws/counts[cell] > 4:"
+    ],
+    [
+      120,
+      "raise ValueError('Cell exceeds 4.0 repeats: '+cell)"
+    ],
+    [
+      121,
+      "return dict(counts)"
+    ]
+  ],
+  "student_pilot/r2_openers.py": [
+    [
+      14,
+      "raise ValueError('Unknown routing opener initialization')"
+    ],
+    [
+      29,
+      "raise ValueError('Routing opener lineage or vocabulary differs')"
+    ]
+  ],
+  "student_pilot/r2_policy.py": [
+    [
+      106,
+      "raise ValueError('Caller catalog differs from sealed membership')"
+    ],
+    [
+      160,
+      "raise ValueError('Repeated item in sealed bank files')"
+    ],
+    [
+      189,
+      "raise ValueError('Legacy reader has no authenticated R2 bank adapter; use the bound bank gateway')"
+    ]
+  ],
+  "student_pilot/trace_grammar.py": [
+    [
+      98,
+      "return None"
+    ],
+    [
+      106,
+      "value /= Decimal(parts[1])"
+    ],
+    [
+      108,
+      "value /= 100"
+    ],
+    [
+      111,
+      "return None"
+    ],
+    [
+      117,
+      "return False"
+    ],
+    [
+      126,
+      "spans.add(match.span(1) if match.group(1) else match.span(2))"
+    ],
+    [
+      181,
+      "continue"
+    ],
+    [
+      183,
+      "preceding = masked[:match.start()].lower()"
+    ],
+    [
+      184,
+      "if re.search(r'\\b(?:nearest|closest|farthest|this|that|each|which|other|the)\\s+$', preceding) or not preceding.strip():"
+    ],
+    [
+      185,
+      "continue"
+    ],
+    [
+      187,
+      "continue"
+    ],
+    [
+      189,
+      "continue"
+    ],
+    [
+      193,
+      "errors.append(match.group())"
+    ],
+    [
+      200,
+      "return len(frames)"
+    ],
+    [
+      216,
+      "return False"
+    ],
+    [
+      221,
+      "if re.search(r'\\b(?:distinct|instances?|each .*?once)\\b', line, re.I):"
+    ],
+    [
+      222,
+      "return False"
+    ],
+    [
+      223,
+      "names = []"
+    ],
+    [
+      224,
+      "previous_end = 0"
+    ],
+    [
+      225,
+      "for match in frames:"
+    ],
+    [
+      226,
+      "prefix = line[previous_end:match.start()]"
+    ],
+    [
+      227,
+      "previous_end = match.end()"
+    ],
+    [
+      228,
+      "words = _words(prefix) - {'locate', 'find', 'step', 'clearly', 'visible'}"
+    ],
+    [
+      229,
+      "ordinal = re.search(r'\\b(?:first|second|third|fourth|fifth)\\b', prefix, re.I)"
+    ],
+    [
+      231,
+      "instance = ordinal.group().lower() if ordinal and re.match(r'\\s+(?!seen\\b)[a-z]+', prefix[ordinal.end():], re.I) else None"
+    ],
+    [
+      232,
+      "if not words:"
+    ],
+    [
+      233,
+      "return True"
+    ],
+    [
+      234,
+      "if any(words & earlier and instance == earlier_instance for earlier, earlier_instance in names):"
+    ],
+    [
+      235,
+      "return True"
+    ],
+    [
+      236,
+      "names.append((words, instance))"
+    ],
+    [
+      237,
+      "return False"
+    ],
+    [
+      261,
+      "return [m.group(1).strip() for p in appearance.group(1).rstrip('.').split(';')"
+    ],
+    [
+      277,
+      "vocabulary = re.sub(r'\\(s\\)', 's', question + '\\n' + '\\n'.join(options), flags=re.I).lower()"
+    ],
+    [
+      278,
+      "name = re.sub(r'\\(s\\)', 's', name, flags=re.I).lower()"
+    ],
+    [
+      279,
+      "name = re.sub(r'^(?:the |first |second |third |fourth |fifth )+', '', name)"
+    ],
+    [
+      280,
+      "variants = [name]"
+    ],
+    [
+      281,
+      "if re.search(r'\\s+[a-z]$', name):"
+    ],
+    [
+      282,
+      "variants.append(name[:-2])  # Named instances such as chair a / chair b."
+    ],
+    [
+      283,
+      "for value in list(variants):"
+    ],
+    [
+      284,
+      "if value.endswith('s'):"
+    ],
+    [
+      285,
+      "variants.append(value[:-1])"
+    ],
+    [
+      286,
+      "return any(re.search(r'(?<!\\w)' + re.escape(value) + r'(?:s|es)?(?!\\w)', vocabulary) for value in variants)"
+    ],
+    [
+      292,
+      "return 'Step'"
+    ],
+    [
+      309,
+      "return 'Step'"
+    ],
+    [
+      317,
+      "raise ValueError('form must be direct/program and n_frames must be nonnegative')"
+    ],
+    [
+      326,
+      "add('empty_think', 1, think_text, 'The think body is empty.')"
+    ],
+    [
+      327,
+      "add('no_evidence', 1, think_text, 'The trace contains no evidence.')"
+    ],
+    [
+      328,
+      "return violations"
+    ],
+    [
+      353,
+      "with localcontext() as ctx:"
+    ],
+    [
+      354,
+      "ctx.prec = 120"
+    ],
+    [
+      355,
+      "answer_variants = {numeric_answer.quantize(Decimal(1).scaleb(-i), rounding=ROUND_HALF_UP) for i in range(3)} | {numeric_answer}"
+    ],
+    [
+      370,
+      "add('layout', line_no, original, 'Nested think/answer tags are not allowed.')"
+    ],
+    [
+      386,
+      "if step.group(1) == str(next_step):"
+    ],
+    [
+      387,
+      "step_spans.add(step.span(1))"
+    ],
+    [
+      389,
+      "add('number_not_allowed', line_no, original, 'Step labels must count consecutively from 1.')"
+    ],
+    [
+      390,
+      "next_step += 1"
+    ],
+    [
+      413,
+      "add('absence_claim', line_no, original, 'Direct traces cannot claim frame absence.')"
+    ],
+    [
+      415,
+      "add('direct_call', line_no, original, 'Untagged tool responses are forbidden in direct form.')"
+    ],
+    [
+      417,
+      "add('relate_without_locate', line_no, original, 'Explicit Relate requires an earlier Locate label.')"
+    ],
+    [
+      421,
+      "add('duplicate_object', line_no, original, 'Object already located: ' + name)"
+    ],
+    [
+      429,
+      "add('exhaustive_frames', line_no, original, 'An exhaustive pin enumeration is not a Locate citation.')"
+    ],
+    [
+      434,
+      "add('number_word', line_no, original, 'Approximate number spelling is not evidence.')"
+    ],
+    [
+      436,
+      "add('angle_or_coordinate', line_no, original, 'Direct traces cannot assert an angle.')"
+    ],
+    [
+      441,
+      "add('angle_or_coordinate', line_no, original, 'Direct traces use spatial words, not angle/coordinate calculations.')"
+    ],
+    [
+      463,
+      "add('number_not_allowed', line_no, original, 'Arithmetic contains an invalid numeric literal.')"
+    ],
+    [
+      464,
+      "continue"
+    ],
+    [
+      471,
+      "valid = expected == cv"
+    ],
+    [
+      481,
+      "add('number_not_allowed', line_no, original, 'Arithmetic is undefined or exceeds numeric bounds.')"
+    ],
+    [
+      485,
+      "items = [x.strip() for x in explicit_count.group(1).split(';') if x.strip()]"
+    ],
+    [
+      486,
+      "if int(explicit_count.group(2)) != len(items):"
+    ],
+    [
+      487,
+      "add('list_count', line_no, original, 'Stated count differs from explicit list length.')"
+    ],
+    [
+      488,
+      "list_spans.add(explicit_count.span(2))"
+    ],
+    [
+      491,
+      "add('number_not_allowed', line_no, original, 'Non-ASCII numeric spelling: ' + char)"
+    ],
+    [
+      506,
+      "if unit.group()[0].isspace() and not re.match(r'\\s*(?:[.,;:!?)]|$)', line[unit.end():]):"
+    ],
+    [
+      507,
+      "unit = None"
+    ],
+    [
+      511,
+      "if not counting or (not structural and value not in prior_counts and value not in prior_results and span not in results):"
+    ],
+    [
+      512,
+      "add('stated_estimate', line_no, original, 'The direct numeric answer is stated without a licensed count.')"
+    ],
+    [
+      514,
+      "add('number_not_allowed', line_no, original, 'A count must match an earlier explicit list.')"
+    ],
+    [
+      517,
+      "filler_lines.append(line_no)"
+    ],
+    [
+      530,
+      "add('filler_only', filler_lines[0], originals[filler_lines[0] - 1], 'Every substantive line is generic filler.')"
+    ],
+    [
+      535,
+      "add('layout', 0, '', 'Unbalanced tool_response tags.')"
+    ],
+    [
+      541,
+      "if not isinstance(row, dict):"
+    ],
+    [
+      542,
+      "return [Violation('layout', 0, '', 'Row must be a JSON object.')]"
+    ],
+    [
+      543,
+      "qtype = row.get('question_type') or row.get('type') or row.get('category')"
+    ],
+    [
+      544,
+      "form = row.get('form', 'program' if qtype in PROGRAM_TYPES else 'direct')"
+    ],
+    [
+      545,
+      "target = row.get('target', '')"
+    ],
+    [
+      546,
+      "answer = str(row.get('answer', ''))"
+    ],
+    [
+      547,
+      "if not isinstance(target, str) or form not in {'direct', 'program'}:"
+    ],
+    [
+      548,
+      "return [Violation('layout', 0, '', 'Target must be text and form must be direct/program.')]"
+    ],
+    [
+      549,
+      "ending = '\\n\\n' + answer if form == 'direct' else '\\n<answer>' + answer + '</answer>'"
+    ],
+    [
+      550,
+      "pattern = r'<think>\\n(?P<body>.*?)\\n</think>' + re.escape(ending) + r'\\n?'"
+    ],
+    [
+      551,
+      "match = re.fullmatch(pattern, target, re.S)"
+    ],
+    [
+      552,
+      "errors = []"
+    ],
+    [
+      553,
+      "if match is None or 'answer' not in row:"
+    ],
+    [
+      554,
+      "errors.append(Violation('layout', 0, target[:240], 'Target layout or answer bytes do not match the selected form.'))"
+    ],
+    [
+      555,
+      "body_match = re.search(r'<think>(.*?)</think>', target, re.S)"
+    ],
+    [
+      556,
+      "if body_match is None:"
+    ],
+    [
+      557,
+      "return errors"
+    ],
+    [
+      559,
+      "inputs = row.get('student_input') or {}"
+    ],
+    [
+      560,
+      "indices = row.get('frame_indices', inputs.get('frame_indices'))"
+    ],
+    [
+      561,
+      "errors.extend(validate_trace(body_match.group(1), form=form,"
+    ],
+    [
+      566,
+      "return errors"
+    ],
+    [
+      576,
+      "parser.error('--limit must be nonnegative')"
+    ],
+    [
+      586,
+      "rows += 1"
+    ],
+    [
+      587,
+      "try:"
+    ],
+    [
+      588,
+      "if len(line) > 4 * 1024 * 1024:"
+    ],
+    [
+      589,
+      "ended = line.endswith('\\n')"
+    ],
+    [
+      590,
+      "line = line[:240]"
+    ],
+    [
+      591,
+      "while not ended:"
+    ],
+    [
+      592,
+      "chunk = handle.readline(4 * 1024 * 1024)"
+    ],
+    [
+      593,
+      "ended = not chunk or chunk.endswith('\\n')"
+    ],
+    [
+      594,
+      "raise ValueError('Row exceeds the 4 Mi-character streaming bound')"
+    ],
+    [
+      595,
+      "errors = validate_row(json.loads(line))"
+    ],
+    [
+      597,
+      "errors = [Violation('layout', 0, line[:240], 'Malformed JSON row: ' + str(exc))]"
+    ],
+    [
+      598,
+      "if errors:"
+    ],
+    [
+      599,
+      "failed += 1"
+    ],
+    [
+      600,
+      "by_rule = {}"
+    ],
+    [
+      601,
+      "for violation in errors:"
+    ],
+    [
+      602,
+      "by_rule.setdefault(violation.rule_id, violation)"
+    ],
+    [
+      603,
+      "for rule, violation in by_rule.items():"
+    ],
+    [
+      604,
+      "counts[rule] += 1"
+    ],
+    [
+      605,
+      "if len(examples[rule]) < 3:"
+    ],
+    [
+      606,
+      "examples[rule].append({'row_no': rows, **violation._asdict()})"
+    ]
+  ]
+}

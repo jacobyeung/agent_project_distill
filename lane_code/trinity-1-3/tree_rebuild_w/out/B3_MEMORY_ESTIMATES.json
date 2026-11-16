@@ -1,0 +1,120 @@
+[
+  {
+    "frames": 32,
+    "dense_frames": 64,
+    "visual_tokens": 4160,
+    "stage": 1,
+    "world_size": 4,
+    "supported": true,
+    "camera_frames": 32,
+    "second_pass_cost": {
+      "dense_tokens": 87936,
+      "camera_tokens": 43968,
+      "tokenwise_fraction": 0.5,
+      "global_attention_fraction": 0.25,
+      "shared_parameters": true
+    },
+    "parameter_assumptions": {
+      "base": 9000000000,
+      "tower": 1200000000,
+      "own_heads": 500000000,
+      "connector": 10501120
+    },
+    "tensor_assumptions": {
+      "lm_hidden": 4096,
+      "lm_layers": 32,
+      "mlp": 12288,
+      "bank_layers": 3,
+      "patch_grid": [
+        37,
+        37
+      ],
+      "qwen_merger_grid": [
+        10,
+        13
+      ],
+      "text_tokens": 1024,
+      "attention": "memory-efficient SDPA; no N squared materialization"
+    },
+    "fixed_GiB": {
+      "base_weights_optimizer": 4.191,
+      "frozen_tower": 2.2352,
+      "own_heads": 1.8626,
+      "connector_weights_grad_adam": 0.1565
+    },
+    "dynamic_GiB": {
+      "dense_rgb": 0.1919,
+      "camera_rgb": 0.096,
+      "camera_selected_bank": 0.5013,
+      "dense_selected_bank": 1.0027,
+      "tower_working": 2.0127,
+      "connector_raw_bank": 0.5013,
+      "connector_projection_work": 1.504,
+      "lm_checkpoint_inputs": 1.2656,
+      "lm_layer_work": 1.1074,
+      "assistant_logits": 0.9473,
+      "fsdp_layer_gather": 0.8125
+    },
+    "estimate_GiB": 22.07,
+    "measured": false
+  },
+  {
+    "frames": 32,
+    "dense_frames": 64,
+    "visual_tokens": 4160,
+    "stage": 2,
+    "world_size": 4,
+    "supported": true,
+    "camera_frames": 32,
+    "second_pass_cost": {
+      "dense_tokens": 87936,
+      "camera_tokens": 43968,
+      "tokenwise_fraction": 0.5,
+      "global_attention_fraction": 0.25,
+      "shared_parameters": true
+    },
+    "parameter_assumptions": {
+      "base": 9000000000,
+      "tower": 1200000000,
+      "own_heads": 500000000,
+      "connector": 10501120
+    },
+    "tensor_assumptions": {
+      "lm_hidden": 4096,
+      "lm_layers": 32,
+      "mlp": 12288,
+      "bank_layers": 3,
+      "patch_grid": [
+        37,
+        37
+      ],
+      "qwen_merger_grid": [
+        10,
+        13
+      ],
+      "text_tokens": 1024,
+      "attention": "memory-efficient SDPA; no N squared materialization"
+    },
+    "fixed_GiB": {
+      "base_weights_optimizer": 33.5276,
+      "frozen_tower": 2.2352,
+      "own_heads": 7.4506,
+      "connector_weights_grad_adam": 0.1565
+    },
+    "dynamic_GiB": {
+      "dense_rgb": 0.1919,
+      "camera_rgb": 0.096,
+      "camera_selected_bank": 0.5013,
+      "dense_selected_bank": 1.0027,
+      "tower_working": 2.0127,
+      "connector_raw_bank": 0.5013,
+      "connector_projection_work": 1.504,
+      "lm_checkpoint_inputs": 1.2656,
+      "lm_layer_work": 1.1074,
+      "assistant_logits": 0.9473,
+      "fsdp_layer_gather": 1.625
+    },
+    "estimate_GiB": 64.95,
+    "measured": false
+  }
+]

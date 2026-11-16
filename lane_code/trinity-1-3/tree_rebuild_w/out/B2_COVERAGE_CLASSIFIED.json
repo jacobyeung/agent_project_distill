@@ -1,0 +1,52 @@
+{
+  "schema": "build2-changed-statement-coverage-v1",
+  "total": 2944,
+  "executed": 2939,
+  "production_total": 1705,
+  "production_executed": 1700,
+  "unexecuted_by_class": {
+    "CPU-only": 0,
+    "model-loader": 2,
+    "frame-host": 3,
+    "GPU": 0
+  },
+  "statements": [
+    {
+      "file": "student_pilot/carrier_c1_run.py",
+      "line": 1617,
+      "statement": "    plan = next(data.mixed_indices(counts,offset+1,start_step=offset,training_mode=cfg.get('training_mode', 'mixed'),",
+      "category": "model-loader",
+      "reason": "Native admission path requires loaded model/host receipts; not exercised by the focused producer proof."
+    },
+    {
+      "file": "student_pilot/carrier_c1_run.py",
+      "line": 2933,
+      "statement": "    plans = list(data.mixed_indices(counts, steps, training_mode=cfg.get('training_mode', 'mixed'),",
+      "category": "model-loader",
+      "reason": "Native admission path requires loaded model/host receipts; not exercised by the focused producer proof."
+    },
+    {
+      "file": "student_pilot/r2_materialize.py",
+      "line": 24,
+      "statement": "        if os.environ.get('STUDENT_R2_FRAME_HOST') != '1':",
+      "category": "frame-host",
+      "reason": "Full-store branch is prohibited on Trinity."
+    },
+    {
+      "file": "student_pilot/r2_materialize.py",
+      "line": 25,
+      "statement": "            raise ValueError('Full materialization requires an explicit frame-host admission')",
+      "category": "frame-host",
+      "reason": "Full-store branch is prohibited on Trinity."
+    },
+    {
+      "file": "student_pilot/r2_materialize.py",
+      "line": 26,
+      "statement": "        limit = None",
+      "category": "frame-host",
+      "reason": "Full-store branch is prohibited on Trinity."
+    }
+  ],
+  "strict_cpu_gate": true,
+  "source": "out/B2_COMBINED_COVERAGE.json"
+}

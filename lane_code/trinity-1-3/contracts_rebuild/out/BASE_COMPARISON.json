@@ -1,0 +1,21 @@
+{
+  "before": {
+    "passed": 251,
+    "skipped": 20,
+    "failed": 66
+  },
+  "after": {
+    "passed": 250,
+    "skipped": 20,
+    "failed": 67
+  },
+  "regressions": {
+    "tests/test_e2e_open_vocabulary.py::OpenVocabulary::test_unknown_name_flag_changes_no_response_bytes": {
+      "outcome": "failed",
+      "when": "call",
+      "detail": "tests/test_e2e_open_vocabulary.py:45: in test_unknown_name_flag_changes_no_response_bytes\n    self.assertTrue(unknown.queries[0]['name_outside_decoder_vocabulary'])\nE   AssertionError: False is not true"
+    }
+  },
+  "improved": [],
+  "new_tests": []
+}

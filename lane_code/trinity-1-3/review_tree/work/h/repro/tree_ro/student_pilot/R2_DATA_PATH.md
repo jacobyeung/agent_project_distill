@@ -1,0 +1,19 @@
+# Next-leg data entry
+
+`r2_intake` reads a pinned `r2-family-manifest-v1` envelope with native row bindings, scene coverage, every sealed exclusion and upstream accounting. Unknown overlap refuses. Local slices contain at most the configured local row limit; full materialization refuses on Trinity. The independent frame host owns complete population preparation.
+
+The shared validator is `trace_grammar.py`. Its exact code SHA256 is bound by `r2_grammar.SHARED_SHA256`; the wrapper adapts native event syntax and preserves additional refusals. Direct targets have substantive think content. Native program events retain masked response spans and answer delimiters. Room size and route planning are direct. Route-planning rows belong to VQA, use mapped frames and unique QIDs, and must come from VQA-division scenes. `r2_mix.check_route_rows` validates that source selection.
+
+`r2_withheld.Withheld` accepts only the shared room-file bytes pinned by `SHA256`. The intake and native membership reader enforce capture aliases, including the sealed exclusion tokens. Each intake report contains `rows_withheld` for its family. The fixed draw does not silently substitute the lost room digest.
+
+`r2_materialize.materialize` accepts `mix_binding` and runs the metadata repeat check before creating an output directory or reading family rows. A bound count table must reconcile complete filtered-population receipts, sealed exclusion identities and the shared withheld digest. The final-reader index map feeds `r2_mix.plans` through the native `mixed_indices` entry. The sampler preserves stream quotas and same-step facing pairs. Frame-host preparation must produce and bind these real metadata inputs; local fixture counts never admit production.
+
+The materializer writes native SQLite rows, target membership and dense RGB metadata. Root mapping precedes frame authentication. Dense clips use the shared nested-index rule and content identities; reconstruction precedes subsampling. The control configuration requires only the existing sparse frame inputs. Fusion requires a dense manifest and a frozen tower; no camera connector is added.
+
+`r2_policy` separates externally pretrained frozen components, inherited lineage, new training components and evaluation-time program choices. Missing records refuse. The bank reader hashes actual item identities and its implementation, ignores caller labels, requires the dated freeze where applicable and returns mandatory venue-inclusive and venue-excluded score labels. The selector restrictions remain active after the freeze. Development reads are paired comparisons only. Integrators must route all lineage evaluation and export readers through this gateway.
+
+`launch_r2.build` creates a bounded inspection kit from an empty directory. It uses the sealed launch inventory machinery and byte verifier, opaque content filenames, relative operational paths and one closure. Its optional `bindings` carries a component registry, mix, filtered counts and final-reader indices; `launch_r2.closure` transports their nested pins together. The registry otherwise includes missing evidence slots. The job entry verifies the kit and stops. Executing the opaque source representation and adding the production job entry remain unfinished; the inspection kit is not launch admission.
+
+The native inference and grounding-runtime entrypoints refuse recognized restricted-lineage reads because their legacy bank formats do not yet have authenticated adapters. The JSON bank gateway remains the supported policy reader. These entry guards do not constitute an audit of every export and evaluation reader.
+
+The retained proofs and exact limitations are documented in the lane's `out/BUILD2_REPORT.md`, `out/GRAMMAR_DIVERGENCE.md`, `out/COMPONENT_POLICY.md` and `out/B2_COVERAGE_CLASSIFIED.json`.

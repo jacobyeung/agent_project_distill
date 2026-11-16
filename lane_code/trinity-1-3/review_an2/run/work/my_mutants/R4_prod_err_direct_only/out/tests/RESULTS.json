@@ -1,0 +1,22 @@
+{
+  "mode": "PLUMBING \u2014 not model scores",
+  "tests_run": 49,
+  "failures": [
+    {
+      "test": "test_full_fixture_cli (test_native_vs_direct.IntegrationTests.test_full_fixture_cli)",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/review_an2/run/work/my_mutants/R4_prod_err_direct_only/out/tests/test_native_vs_direct.py\", line 402, in test_full_fixture_cli\n    self.assertEqual(completed.returncode,0,completed.stderr)\nAssertionError: 2 != 0 : REFUSED: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/builds/01_c8/work/rh_full_01/runs/c80000002/native/R1.json'\n\n"
+    },
+    {
+      "test": "test_real_pilot_cli (test_native_vs_direct.IntegrationTests.test_real_pilot_cli)",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/review_an2/run/work/my_mutants/R4_prod_err_direct_only/out/tests/test_native_vs_direct.py\", line 425, in test_real_pilot_cli\n    self.assertTrue((PILOT/'PILOT_CHECK.json').exists(),'Verified real pilot test has not run')\nAssertionError: False is not true : Verified real pilot test has not run\n"
+    },
+    {
+      "test": "test_producer_errors_drop_keys_from_all_arms (test_native_vs_direct.SyntheticTests.test_producer_errors_drop_keys_from_all_arms)",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/review_an2/run/work/my_mutants/R4_prod_err_direct_only/out/tests/test_native_vs_direct.py\", line 337, in test_producer_errors_drop_keys_from_all_arms\n    self.assertEqual(row['items'], 2)\nAssertionError: 3 != 2\n"
+    }
+  ],
+  "errors": [],
+  "skipped": [],
+  "successful": false,
+  "test_source": "/scratch/jjyeung/orch_n30/review_an2/run/work/my_mutants/R4_prod_err_direct_only/out/tests/test_native_vs_direct.py"
+}

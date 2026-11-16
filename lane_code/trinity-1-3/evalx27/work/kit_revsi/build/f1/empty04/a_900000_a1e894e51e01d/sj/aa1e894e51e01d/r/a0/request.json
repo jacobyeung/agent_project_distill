@@ -1,0 +1,154 @@
+{
+  "binding": "57eb19f873489f347228d6872e89fe98a201fa1046f6cd399c300ac91b8a113f",
+  "build_only": false,
+  "cells": [
+    {
+      "benchmarks": [
+        "revsi"
+      ],
+      "decoding": "greedy",
+      "frames": 32,
+      "layout": "duplicate",
+      "max_tokens": 16384,
+      "model": "cp1m200",
+      "name": "a0",
+      "thinking": true
+    }
+  ],
+  "datasets": [
+    {
+      "benchmark": "revsi",
+      "example_ids": [
+        "1",
+        "1002",
+        "1094",
+        "1099",
+        "3474",
+        "3479",
+        "4881",
+        "5237",
+        "6197",
+        "6198"
+      ],
+      "indices": {
+        "path": "/scratch/jjyeung/orch_n30/evalx27/work/kit_revsi/build/f1/empty04/a_900000_a1e894e51e01d/sj/aa1e894e51e01d/p/inputs/i4.json",
+        "sha256": "290111cf9c2bfa8fec66e70395922b830c2738633abf736600489cdff4b429b2"
+      },
+      "membership": {
+        "path": "/scratch/jjyeung/orch_n30/evalx27/work/kit_revsi/build/f1/empty04/a_900000_a1e894e51e01d/sj/aa1e894e51e01d/p/inputs/i2.json",
+        "sha256": "03456abc2fcd8199ed4fb4a3af54651ed07df2e5a1efa752aa165006ad4b6850"
+      },
+      "question_types": [
+        "object_counting_multiple",
+        "object_counting_single",
+        "object_rel_direction_backward_easy",
+        "object_rel_direction_backward_hard",
+        "object_rel_direction_forward_easy",
+        "object_rel_direction_forward_hard",
+        "object_rel_distance_closest",
+        "object_rel_distance_farthest",
+        "object_size_estimation",
+        "route_planning"
+      ],
+      "rows": {
+        "path": "/scratch/jjyeung/orch_n30/evalx27/work/kit_revsi/build/f1/empty04/a_900000_a1e894e51e01d/sj/aa1e894e51e01d/p/inputs/i1.json",
+        "sha256": "511c7e8a190235bd17b87a903db569abd5f6b245f444b50dfc3785c06f9be1e9"
+      },
+      "set": "official999",
+      "tier": 32,
+      "videos": {
+        "path": "/scratch/jjyeung/orch_n30/evalx27/work/kit_revsi/build/f1/empty04/a_900000_a1e894e51e01d/sj/aa1e894e51e01d/p/inputs/i3.json",
+        "sha256": "f450da3f9c410d4b8241f4ec2bb9aeeae061ad8093f62a1a87794fdffb991dd7"
+      }
+    }
+  ],
+  "engine_version": "0.32.0",
+  "gpus": 1,
+  "inflight": 16,
+  "max_model_len": 49152,
+  "max_seqs": 32,
+  "max_tokens": 16384,
+  "mode": "proof",
+  "models": {
+    "base": {
+      "kind": "snapshot",
+      "manifest": {
+        "path": "/scratch/jjyeung/orch_n30/evalx27/work/kit_revsi/build/f1/empty04/a_900000_a1e894e51e01d/m/ap/90da7ac2/m/base_manifest.json",
+        "sha256": "1fd55a583c9dd18dcf10473989490b3b63240fc204b5d2a3ef7bfd66484956b5"
+      },
+      "path": "/scratch/jjyeung/orch_n30/evalx27/work/kit_revsi/build/f1/empty04/a_900000_a1e894e51e01d/m/ap/85fc3486"
+    },
+    "cp1m200": {
+      "kind": "c1_export",
+      "path": "/scratch/jjyeung/orch_n30/evalx27/work/kit_revsi/build/f1/empty04/a_900000_a1e894e51e01d/fsw/ap/8865619b/runs/469ddece/m544/artifact.json",
+      "sha256": "67be87bc1c1edeafbc69312b6eaf3160e0331813612870df144b1459e090a700"
+    }
+  },
+  "output": "/scratch/jjyeung/orch_n30/evalx27/work/kit_revsi/build/f1/empty04/a_900000_a1e894e51e01d/sj/aa1e894e51e01d/r/a0/results",
+  "reader": {
+    "code_pins": {
+      "chain.py": "96cf9ad22618899ddafe4b5ee8c337598f5612e9d4e5bc5cb8ded7061d833084",
+      "evaluator/budget.py": "8365bd3b1db5bedc0a86e2ef9624faf01ad43d0e3d3fffda53169cd9ad003175",
+      "evaluator/budget_admission.py": "be32a571fbb9c4024d739b51302d3881aa1ce628bb45e2e8cc9924060f653341",
+      "evaluator/budget_annotation.py": "c63f058069e8302fcd3bd69505690ab0e784b6f368d3492429335d30cebbc4d1",
+      "evaluator/budget_merge.py": "fc7c2872dc5daeb1eb1de61ee95b7b7a0e160fc697995ac2caf1615a4bd7ff2a",
+      "evaluator/c1_export.py": "7716fd6750376830519ef39295992bfab6876e644c92745d6a0ec82aceec7177",
+      "evaluator/cells.py": "8336d2d64ffd2b7f492dc6b52fb4182523eced3610483932d91e086d2b9b50ff",
+      "evaluator/data.py": "5c667bc55150adc13a50131b624962ea9a9f510f5b803f258ad9a31a710ef045",
+      "evaluator/evalpath/SOURCE_PINS.json": "7f1d449de1498e5a6f34dbdc09309dcbeaceef76e3f20bec92f603771a345781",
+      "evaluator/evalpath/__init__.py": "320ff8e49d53c5528f439ae83544dcd0e4063933eb2168774b70ca6d9d1cdd38",
+      "evaluator/evalpath/items.py": "bc9211c07c803111a8c9f6af8ecb6e7bc057b0034da09ad94b02862f41526590",
+      "evaluator/evalpath/kit_inputs.py": "e4a6bdae702ab3fb003d7c11388fc22b051f92e5f9ca3d1cf0e95c250a0cd977",
+      "evaluator/evalpath/official.py": "a5d6d79fd29fce43791401cd01438f16f3ff6ad7a6c2651cb70d0d42088cf589",
+      "evaluator/evalpath/sampling.py": "9235a822a813648ee0da7cf9cc79531a4cbb7b6344e8fee369e5b34e615d82e1",
+      "evaluator/frame_env.py": "8b6ddcb0caa15e68f304d50cd41952b7e7d9eba4542c1beb1b49ecdf9b6be7ed",
+      "evaluator/frame_stage.py": "991f297fd783a37342ab65f4fed5580b47fb25550375efdee5fce14564b3ea5c",
+      "evaluator/journal.py": "508eca8d6877fe6898d9309f0f5c23b4580c321d27dc258ddd6fe4718cc9b1a5",
+      "evaluator/launch.py": "80af57d28cffe87e85d76a898ab6c4cbe898d53772ce1e90ecbcee4d333009f2",
+      "evaluator/media.py": "537fb597909e41699511d2e85c16029836cc4ba5aa0fcf25dc76f3abe5f0fc8d",
+      "evaluator/merge.py": "5da344c8ff214bcd106b0b78635eda330aed2a85169ac03e1ef9977341d65912",
+      "evaluator/metric.py": "aa0c7968a9a8c812222b8d3468864b54e13eb21cff25155e4a6393508beb05fc",
+      "evaluator/nested_sampling.py": "231bad31b385b01d3fdd46d8b8341e6ebfcc67e6d06cfb8f1fc277ec5bf017f2",
+      "evaluator/parity.py": "6e259bd1dd23ec67bb8feef5a3a06bbc2e67ecfd60cc98a876febd510f44c14c",
+      "evaluator/pointing.py": "1ee243eb896b518c74f06f18a3d98a213a7d5f09617296b3a5d9cf26d2a2ff5c",
+      "evaluator/pointing_video.py": "4712457ebf1e932219966a5b4eae6bddbc43a077251f717e636085c88dba1ee7",
+      "evaluator/provenance.py": "35e544877add1d9d4b6e2167aa071ffda13da390db4a410bd4b51339655b5c7c",
+      "evaluator/scoring.py": "0e3bcf0a578f18846f671b85582bb030137bb3169346dd5f99a10c6a8b099cce",
+      "evaluator/stage.py": "890ea8641c08c2de4e12169c77202c8cc7b19f1bc360c0a36509c5c451474d2b",
+      "evaluator/think_settings.py": "23af8945c30247bc80ebd0b2b7b7e6d22c0e6e70a190594d84161af49fb533df",
+      "evaluator/token_audit.py": "20dd4f31b70350b80ddb0cab1b35294349b9ff8f76058648da5537e265cff0b0",
+      "evaluator/trainer/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "evaluator/trainer/batches.py": "d9f5a79b63baf1144dc5d0377450491dcb04c28335dbce51093e4edde7614638",
+      "evaluator/trainer/layout_reference.py": "596760db5b3ccf6cceb5ab2938402ba9e6c559a069ef5fd84b041ce90b71700e",
+      "evaluator/trainer/pose_samples.py": "0484ecce014fa97f6f2b44f250ddfdee142b42662d765638f130c59ddd53a736",
+      "evaluator/trainer/students.py": "cfe01c144680c8126328e7ad9afc7b1a002de7ba143dcea9c156e0473fe619c3",
+      "evaluator/trainer/trace_contract.py": "aed482c7ca7d15cd22b524ba0c9bdd1595d6e0c518c0d9d1e54c3c9377cebae8",
+      "evaluator/worker.py": "b2ac21c1549b87baff730e50279d3c4c0844966bc5e29363aef372c76574e20e",
+      "official_adapter.py": "a10f34f4b6d240e0e366e56c9928f1c7d9cd080a91886d6a3a1d6c1381b35109",
+      "official_score.py": "b279ddc18acd3e019b8343214d963a60d3bafcd929f2a3e4d965a0aa1b88d409",
+      "out/common.py": "1954de01cc935fb744ebc92a3ede19a94658d2ce4fefb3c1e1ba40b03d2508c4",
+      "out/direct.py": "d16b64b902a651f0d3989cfe3eb3dc5ea599e960ef5158e5e36a0901dcfb1f8a",
+      "out/export_check.py": "0400842c559565b66db50d6c8fde7c323e8600a82d70685d469a4b316d7ec8d2"
+    },
+    "decision_arm": "B2048",
+    "export_verification": {
+      "artifact": {
+        "path": "/scratch/jjyeung/orch_n30/evalx27/work/kit_revsi/build/f1/empty04/a_900000_a1e894e51e01d/fsw/ap/8865619b/runs/469ddece/m544/artifact.json",
+        "sha256": "67be87bc1c1edeafbc69312b6eaf3160e0331813612870df144b1459e090a700"
+      },
+      "bytes": 72,
+      "scope": "direct",
+      "status": "VERIFIED",
+      "step": 544,
+      "tensor_count": 1
+    },
+    "step": 544
+  },
+  "roots": {
+    "revsi_video_root": "/scratch/jjyeung/orch_n30/evalx27/work/kit_revsi/build/f1/empty04/videos"
+  },
+  "smoke_items": 0,
+  "source_sha256": "fdfe944a8e10e313fe31ad594fc698f02dd9e707ae1fe35c478874002d024a69",
+  "temperature": 0,
+  "thinking": true
+}

@@ -1,0 +1,174 @@
+off mismatches []
+==== 96 
+ OLD: P#: cam# (#, #, #) m; f# (#, #, #) m; spread # 
+ NEW: P#: cam# (#, #, #) m; f# (heading unavailable, #, heading unavailable) m; spread #
+  ex ('ground/absolute_direction_object', 'nadir_positive/0')
+   - P1: cam2 (-0.85, 0.00, 2.00) m; f1 (-0.83, 0.00, 2.02) m; spread 0.00
+   + P1: cam2 (-0.85, 0.00, 2.00) m; f1 (heading unavailable, 0.00, heading unavailable) m; spread 0.00
+  ex ('ground/absolute_direction_object', 'nadir_positive/0')
+   - P2: cam3 (1.15, 0.00, 2.70) m; f1 (1.19, 0.00, 2.73) m; spread 0.00
+   + P2: cam3 (1.15, 0.00, 2.70) m; f1 (heading unavailable, 0.00, heading unavailable) m; spread 0.00
+==== 66 
+ OLD: B#: f# centre (#, #, #) m 
+ NEW: B#: f# centre (heading unavailable, #, heading unavailable) m
+  ex ('adapter/ground', 'nadir_positive/0')
+   - B1: f1 centre (-0.82, 0.00, 2.04) m
+   + B1: f1 centre (heading unavailable, 0.00, heading unavailable) m
+  ex ('adapter/ground', 'nadir_positive/0')
+   - B2: f1 centre (1.18, 0.00, 2.75) m
+   + B2: f1 centre (heading unavailable, 0.00, heading unavailable) m
+==== 66 
+ OLD: yaw # deg (# = +x; positive +x toward -z about +y) 
+ NEW: yaw heading unavailable
+  ex ('adapter/ground', 'nadir_positive/0')
+   - yaw 0 deg (0 = +x; positive +x toward -z about +y)
+   + yaw heading unavailable
+  ex ('adapter/ground', 'nadir_positive/0')
+   - yaw -180 deg (0 = +x; positive +x toward -z about +y)
+   + yaw heading unavailable
+==== 9 
+ OLD: P#: chair instance # cam# (#, #, #) m; f# (#, #, #) m; first # 
+ NEW: P#: chair instance # cam# (#, #, #) m; f# (heading unavailable, #, heading unavailable) m; first #
+  ex ('ground/object_appearance_order', 'nadir_positive/0')
+   - P1: chair instance 1 cam2 (-0.85, 0.00, 2.00) m; f1 (-0.83, 0.00, 2.02) m; first 2
+   + P1: chair instance 1 cam2 (-0.85, 0.00, 2.00) m; f1 (heading unavailable, 0.00, heading unavailable) m; first 2
+  ex ('ground/object_appearance_order', 'nadir_positive/1')
+   - P1: chair instance 1 cam2 (-0.87, 0.00, 2.05) m; f1 (-0.85, 0.00, 2.06) m; first 2
+   + P1: chair instance 1 cam2 (-0.87, 0.00, 2.05) m; f1 (heading unavailable, 0.00, heading unavailable) m; first 2
+==== 6 
+ OLD: P#: table instance # cam# (#, #, #) m; f# (#, #, #) m; first # 
+ NEW: P#: table instance # cam# (#, #, #) m; f# (heading unavailable, #, heading unavailable) m; first #
+  ex ('ground/object_appearance_order', 'nadir_positive/0')
+   - P2: table instance 1 cam3 (1.15, 0.00, 2.70) m; f1 (1.19, 0.00, 2.73) m; first 3
+   + P2: table instance 1 cam3 (1.15, 0.00, 2.70) m; f1 (heading unavailable, 0.00, heading unavailable) m; first 3
+  ex ('ground/object_appearance_order', 'nadir_positive/1')
+   - P2: table instance 1 cam3 (1.17, 0.00, 2.75) m; f1 (1.21, 0.00, 2.78) m; first 3
+   + P2: table instance 1 cam3 (1.17, 0.00, 2.75) m; f1 (heading unavailable, 0.00, heading unavailable) m; first 3
+==== 6 
+ OLD: box unavailable 
+ NEW: distance # m
+  ex ('runtime/mdg_distance', 'landscape/0')
+   - box unavailable
+   + distance 0.69 m
+  ex ('runtime/mdg_distance', 'landscape/1')
+   - box unavailable
+   + distance 0.69 m
+==== 3 
+ OLD: P#: chair extent start cam# (#, #, #) m; f# (#, #, #) m
+P#: chair extent end cam# (#, #, #) m; f# (#, #, #) m 
+ NEW: P#: chair extent start cam# (#, #, #) m; f# (heading unavailable, #, heading unavailable) m
+P#: chair extent end cam# (#, #, #) m; f# (heading unavailable, #, h
+  ex ('keypoints/extent_ends', 'nadir_positive/0')
+   - P2: chair extent start cam4 (-1.02, 0.39, 2.00) m; f1 (-0.96, 0.39, 2.04) m|P3: chair extent end cam4 (-0.68, -0.39, 2.00) m; f1 (-0.62, -0.39, 2.04) m
+   + P2: chair extent start cam4 (-1.02, 0.39, 2.00) m; f1 (heading unavailable, 0.39, heading unavailable) m|P3: chair extent end cam4 (-0.68, -0.39, 2.00) m; f1 (heading unavailable, -0.39, heading unavailable) m
+  ex ('keypoints/extent_ends', 'nadir_positive/1')
+   - P2: chair extent start cam4 (-1.04, 0.40, 2.05) m; f1 (-0.98, 0.40, 2.09) m|P3: chair extent end cam4 (-0.70, -0.40, 2.05) m; f1 (-0.64, -0.40, 2.09) m
+   + P2: chair extent start cam4 (-1.04, 0.40, 2.05) m; f1 (heading unavailable, 0.40, heading unavailable) m|P3: chair extent end cam4 (-0.70, -0.40, 2.05) m; f1 (heading unavailable, -0.40, heading unavailable) m
+==== 3 
+ OLD: P#: chair support centroid cam# (#, #, #) m; f# (#, #, #) m
+P#: table support centroid cam# (#, #, #) m; f# (#, #, #) m
+P#: chair nearest point cam# (#, #, #) m 
+ NEW: P#: chair support centroid cam# (#, #, #) m; f# (heading unavailable, #, heading unavailable) m
+P#: table support centroid cam# (#, #, #) m; f# (heading unavail
+  ex ('keypoints/surface_pair', 'nadir_positive/0')
+   - P3: chair support centroid cam4 (-0.85, 0.00, 2.00) m; f1 (-0.79, 0.00, 2.04) m|P4: table support centroid cam4 (1.15, 0.00, 2.70) m; f1 (1.21, 0.00, 2.75) m|P5: chair nearest point cam4 (-0.68, 0.36, 2.00) m; f1 (-0.62, 0.36, 2.04) m|P6: table nearest point cam4 (0.92, 0.36, 2.70) m; f1 (0.98, 0.36
+   + P3: chair support centroid cam4 (-0.85, 0.00, 2.00) m; f1 (heading unavailable, 0.00, heading unavailable) m|P4: table support centroid cam4 (1.15, 0.00, 2.70) m; f1 (heading unavailable, 0.00, heading unavailable) m|P5: chair nearest point cam4 (-0.68, 0.36, 2.00) m; f1 (heading unavailable, 0.36, 
+  ex ('keypoints/surface_pair', 'nadir_positive/1')
+   - P3: chair support centroid cam4 (-0.87, 0.00, 2.05) m; f1 (-0.81, 0.00, 2.09) m|P4: table support centroid cam4 (1.17, 0.00, 2.75) m; f1 (1.23, 0.00, 2.79) m|P5: chair nearest point cam4 (-0.70, 0.37, 2.05) m; f1 (-0.64, 0.37, 2.09) m|P6: table nearest point cam4 (0.94, 0.37, 2.75) m; f1 (1.00, 0.37
+   + P3: chair support centroid cam4 (-0.87, 0.00, 2.05) m; f1 (heading unavailable, 0.00, heading unavailable) m|P4: table support centroid cam4 (1.17, 0.00, 2.75) m; f1 (heading unavailable, 0.00, heading unavailable) m|P5: chair nearest point cam4 (-0.70, 0.37, 2.05) m; f1 (heading unavailable, 0.37, 
+==== 3 
+ OLD: chairs: not seen 
+ NEW: chairs: frames #,#,#,# (best #)
+B#: f# centre (#, #, #) m
+size # x # x # m
+yaw # deg (# = +x; positive +x toward -z about +y)
+  ex ('recovery/normalized_phrase', 'fixture/0')
+   - chairs: not seen
+   + chairs: frames 2,3,4,5 (best 2)|B1: f1 centre (-0.82, 0.00, 2.04) m|size 0.39 x 0.04 x 0.78 m|yaw 0 deg (0 = +x; positive +x toward -z about +y)
+  ex ('recovery/normalized_phrase', 'fixture/1')
+   - chairs: not seen
+   + chairs: frames 2,3,4,5 (best 2)|B1: f1 centre (-0.84, 0.00, 2.09) m|size 0.40 x 0.05 x 0.80 m|yaw 0 deg (0 = +x; positive +x toward -z about +y)
+==== 3 
+ OLD: <depth_at frame=# pts=[(#,#)]><tool_response>P#: cam# (#, #, #) m; f# (#, #, #) m; spread #</tool_response> 
+ NEW: <depth_at frame=# pts=[(#,#)]><tool_response>error: malformed_call</tool_response>
+  ex ('routing/depth_at', 'nadir_positive/0')
+   - <depth_at frame=2 pts=[(300,500)]><tool_response>P1: cam2 (-0.51, 0.00, 2.06) m; f1 (-0.49, 0.00, 2.07) m; spread 0.00</tool_response>
+   + <depth_at frame=2 pts=[(300,500)]><tool_response>error: malformed_call</tool_response>
+  ex ('routing/depth_at', 'nadir_positive/1')
+   - <depth_at frame=3 pts=[(350,500)]><tool_response>P1: cam3 (-0.39, 0.00, 2.06) m; f1 (-0.35, 0.00, 2.09) m; spread 0.00</tool_response>
+   + <depth_at frame=3 pts=[(350,500)]><tool_response>error: malformed_call</tool_response>
+==== 3 
+ OLD: <move from=# to=#><tool_response>dx = +# m, dy = +# m, dz = +# m, distance = # m</tool_response> 
+ NEW: <move from=# to=#><tool_response>dx = heading unavailable (frame #), dy = +# m, dz = heading unavailable (frame #), distance = # m</tool_response>
+  ex ('routing/move', 'nadir_positive/0')
+   - <move from=1 to=2><tool_response>dx = +0.02 m, dy = +0.00 m, dz = +0.01 m, distance = 0.03 m</tool_response>
+   + <move from=1 to=2><tool_response>dx = heading unavailable (frame 1), dy = +0.00 m, dz = heading unavailable (frame 1), distance = 0.03 m</tool_response>
+  ex ('routing/move', 'nadir_positive/1')
+   - <move from=1 to=3><tool_response>dx = +0.04 m, dy = +0.00 m, dz = +0.03 m, distance = 0.05 m</tool_response>
+   + <move from=1 to=3><tool_response>dx = heading unavailable (frame 1), dy = +0.00 m, dz = heading unavailable (frame 1), distance = 0.05 m</tool_response>
+==== 3 
+ OLD: <pose frame=#><tool_response>f# centre (#, #, #) m, yaw # deg</tool_response> 
+ NEW: <pose frame=#><tool_response>f# centre (heading unavailable, #, heading unavailable) m, yaw heading unavailable</tool_response>
+  ex ('routing/pose', 'nadir_positive/0')
+   - <pose frame=1><tool_response>f1 centre (0.00, 0.00, 0.00) m, yaw 0 deg</tool_response>
+   + <pose frame=1><tool_response>f1 centre (heading unavailable, 0.00, heading unavailable) m, yaw heading unavailable</tool_response>
+  ex ('routing/pose', 'nadir_positive/1')
+   - <pose frame=2><tool_response>f1 centre (0.02, 0.00, 0.01) m, yaw 0 deg</tool_response>
+   + <pose frame=2><tool_response>f1 centre (heading unavailable, 0.00, heading unavailable) m, yaw heading unavailable</tool_response>
+==== 3 
+ OLD: <turn from=# to=#><tool_response>turn = +# deg</tool_response> 
+ NEW: <turn from=# to=#><tool_response>turn = heading unavailable (frames #)</tool_response>
+  ex ('routing/turn', 'nadir_positive/0')
+   - <turn from=1 to=2><tool_response>turn = +0 deg</tool_response>
+   + <turn from=1 to=2><tool_response>turn = heading unavailable (frames 1)</tool_response>
+  ex ('routing/turn', 'nadir_positive/1')
+   - <turn from=1 to=3><tool_response>turn = +0 deg</tool_response>
+   + <turn from=1 to=3><tool_response>turn = heading unavailable (frames 1)</tool_response>
+==== 3 
+ OLD: chair: box unavailable 
+ NEW: chair: frames #,#,#,# (best #)
+B#: f# centre (#, #, #) m
+size # x # x # m
+yaw # deg (# = +x; positive +x toward -z about +y)
+  ex ('runtime/mdg_distance', 'landscape/0')
+   - chair: box unavailable
+   + chair: frames 2,3,4,5 (best 2)|B1: f1 centre (-0.63, -0.06, 2.09) m|size 0.65 x 0.07 x 1.21 m|yaw -3 deg (0 = +x; positive +x toward -z about +y)
+  ex ('runtime/mdg_distance', 'landscape/1')
+   - chair: box unavailable
+   + chair: frames 2,3,4,5 (best 2)|B1: f1 centre (-0.63, -0.06, 2.09) m|size 0.65 x 0.07 x 1.21 m|yaw -3 deg (0 = +x; positive +x toward -z about +y)
+==== 3 
+ OLD: table: box unavailable 
+ NEW: table: frames #,#,#,# (best #)
+B#: f# centre (#, #, #) m
+size # x # x # m
+yaw # deg (# = +x; positive +x toward -z about +y)
+  ex ('runtime/mdg_distance', 'landscape/0')
+   - table: box unavailable
+   + table: frames 2,3,4,5 (best 2)|B2: f1 centre (0.72, -0.07, 2.17) m|size 0.74 x 0.07 x 1.25 m|yaw -3 deg (0 = +x; positive +x toward -z about +y)
+  ex ('runtime/mdg_distance', 'landscape/1')
+   - table: box unavailable
+   + table: frames 2,3,4,5 (best 2)|B2: f1 centre (0.72, -0.07, 2.17) m|size 0.74 x 0.07 x 1.25 m|yaw -3 deg (0 = +x; positive +x toward -z about +y)
+==== 3 
+ OLD: chair: box unavailable 
+ NEW: chair: frames #,#,#,# (best #)
+B#: f# centre (heading unavailable, #, heading unavailable) m
+size # x # x # m
+yaw heading unavailable
+  ex ('runtime/mdg_distance', 'nadir_positive/0')
+   - chair: box unavailable
+   + chair: frames 2,3,4,5 (best 2)|B1: f1 centre (heading unavailable, -0.06, heading unavailable) m|size 0.65 x 0.07 x 1.21 m|yaw heading unavailable
+  ex ('runtime/mdg_distance', 'nadir_positive/1')
+   - chair: box unavailable
+   + chair: frames 2,3,4,5 (best 2)|B1: f1 centre (heading unavailable, -0.06, heading unavailable) m|size 0.65 x 0.07 x 1.21 m|yaw heading unavailable
+==== 3 
+ OLD: table: box unavailable 
+ NEW: table: frames #,#,#,# (best #)
+B#: f# centre (heading unavailable, #, heading unavailable) m
+size # x # x # m
+yaw heading unavailable
+  ex ('runtime/mdg_distance', 'nadir_positive/0')
+   - table: box unavailable
+   + table: frames 2,3,4,5 (best 2)|B2: f1 centre (heading unavailable, -0.07, heading unavailable) m|size 0.74 x 0.07 x 1.25 m|yaw heading unavailable
+  ex ('runtime/mdg_distance', 'nadir_positive/1')
+   - table: box unavailable
+   + table: frames 2,3,4,5 (best 2)|B2: f1 centre (heading unavailable, -0.07, heading unavailable) m|size 0.74 x 0.07 x 1.25 m|yaw heading unavailable

@@ -1,0 +1,392 @@
+diff -ruN p_r2/generator/derivgen_v7/derivgen/box_v313.py p_r3/generator/derivgen_v7/derivgen/box_v313.py
+--- p_r2/generator/derivgen_v7/derivgen/box_v313.py	2026-11-15 18:43:57.361248335 -0500
++++ p_r3/generator/derivgen_v7/derivgen/box_v313.py	2026-11-15 18:43:57.405248071 -0500
+@@ -556,7 +556,7 @@
+     return {'centroid': c, 'axesLengths': L, 'normalizedAxes': b['normalizedAxes']}
+ 
+ # Training executes the deployed formatter; epoch OFF retains sealed replay.
+-from trace_format.contracts import RUNTIME_STATUSES, response_status, new_contracts
++from trace_format.contracts import RUNTIME_STATUSES, response_status, new_contracts, epoch_class
+ from trace_format import box_v313 as _runtime
+ 
+ def _epoch_dispatch(sealed, current):
+@@ -564,12 +564,12 @@
+         return (current if new_contracts() else sealed)(*args, **kwargs)
+     return call
+ 
+-BoxRegistry = _epoch_dispatch(BoxRegistry, _runtime.BoxRegistry)
++BoxRegistry = epoch_class(BoxRegistry, _runtime.BoxRegistry)
+ ground = _epoch_dispatch(ground, _runtime.ground)
+ split_instances = _epoch_dispatch(split_instances, _runtime.split_instances)
+ replay_audit = _epoch_dispatch(replay_audit, _runtime.replay_audit)
+ cam_gap_body = _epoch_dispatch(cam_gap_body, _runtime.cam_gap_body)
+ camera_centre_f1 = _epoch_dispatch(camera_centre_f1, _runtime.camera_centre_f1)
+ in_f1 = _epoch_dispatch(in_f1, _runtime.in_f1)
+-FittedBoxProvider = _epoch_dispatch(FittedBoxProvider, _runtime.FittedBoxProvider)
+-FusedBoxProvider = _epoch_dispatch(FusedBoxProvider, _runtime.FusedBoxProvider)
++FittedBoxProvider = epoch_class(FittedBoxProvider, _runtime.FittedBoxProvider)
++FusedBoxProvider = epoch_class(FusedBoxProvider, _runtime.FusedBoxProvider)
+diff -ruN p_r2/generator/derivgen_v7/derivgen/ground_v313.py p_r3/generator/derivgen_v7/derivgen/ground_v313.py
+--- p_r2/generator/derivgen_v7/derivgen/ground_v313.py	2026-11-15 18:43:57.361248335 -0500
++++ p_r3/generator/derivgen_v7/derivgen/ground_v313.py	2026-11-15 18:43:57.405248071 -0500
+@@ -502,7 +502,7 @@
+                          policy='exact equality within option count; shortage drops rows')
+ 
+ # Training executes the deployed formatter; epoch OFF retains sealed replay.
+-from trace_format.contracts import RUNTIME_STATUSES, response_status, new_contracts
++from trace_format.contracts import RUNTIME_STATUSES, response_status, new_contracts, epoch_class
+ from trace_format import ground_v313 as _runtime
+ 
+ def _epoch_dispatch(sealed, current):
+@@ -510,8 +510,8 @@
+         return (current if new_contracts() else sealed)(*args, **kwargs)
+     return call
+ 
+-Session = _epoch_dispatch(Session, _runtime.Session)
++Session = epoch_class(Session, _runtime.Session)
+ point_line = _epoch_dispatch(point_line, _runtime.point_line)
+ witness_pair = _epoch_dispatch(witness_pair, _runtime.witness_pair)
+ surface_support = _epoch_dispatch(surface_support, _runtime.surface_support)
+-GTInstances = _epoch_dispatch(GTInstances, _runtime.GTInstances)
++GTInstances = epoch_class(GTInstances, _runtime.GTInstances)
+diff -ruN p_r2/student_pilot/carrier_c1_routing.py p_r3/student_pilot/carrier_c1_routing.py
+--- p_r2/student_pilot/carrier_c1_routing.py	2026-11-15 18:43:57.361248335 -0500
++++ p_r3/student_pilot/carrier_c1_routing.py	2026-11-15 18:43:57.405248071 -0500
+@@ -305,7 +305,7 @@
+             p = self.camera_pose(k)
+             return 'f1 centre '+partial_f1(p['camera_t_L1'], f2)+' m, yaw heading unavailable'
+         if not heading_available(self, k):
+-            return f"f1 centre {vec(self.camera_pose(k)['camera_t_L1'])} m, yaw heading unavailable (frame {k})"
++            return 'f1 centre '+partial_f1(self.camera_pose(k)['camera_t_L1'], f2)+f' m, yaw heading unavailable (frame {k})'
+         p = self.pose(k)
+         return f"f1 centre {vec(p['camera_t_L1'])} m, yaw {p['yaw_degree']} deg"
+ 
+diff -ruN p_r2/student_pilot/ground_v3.py p_r3/student_pilot/ground_v3.py
+--- p_r2/student_pilot/ground_v3.py	2026-11-15 18:43:57.364248317 -0500
++++ p_r3/student_pilot/ground_v3.py	2026-11-15 18:43:57.408248053 -0500
+@@ -69,11 +69,11 @@
+             rule=rule, threshold=threshold, verify=self.verify.identity, verify_threshold=verify_threshold,
+             ambiguity_margin=ambiguity_margin, weights=weights, selector=selector_identity)
+         from trace_format.contracts import new_contracts, heading_plane_min
+-        from .phrases import phrase_set
++        from .phrases import candidate_phrases
+         self.contract_epoch = new_contracts()
+         self.heading_plane_min = heading_plane_min()
+         names = getattr(source, 'cache', {}).get('phrases', getattr(source,'names',()))
+-        self.config['candidate_universe'] = list(phrase_set(names)) if self.contract_epoch else sorted(getattr(source,'names',()))
++        self.config['candidate_universe'] = list(candidate_phrases('', (), names)) if self.contract_epoch else sorted(getattr(source,'names',()))
+         if self.contract_epoch:
+             self.config['contract_epoch'] = True
+             self.config['heading_plane_min'] = self.heading_plane_min
+diff -ruN p_r2/student_pilot/phrases.py p_r3/student_pilot/phrases.py
+--- p_r2/student_pilot/phrases.py	2026-11-15 18:43:57.364248317 -0500
++++ p_r3/student_pilot/phrases.py	2026-11-15 18:43:57.407248059 -0500
+@@ -4,9 +4,13 @@
+ from trace_format.contracts import new_contracts
+ 
+ SINGULAR = {'shelves':'shelf', 'bookshelves':'bookshelf', 'clothes':'clothing',
+-            'blinds':'window blind', 'people':'person', 'mice':'mouse'}
++            'blinds':'window blind', 'people':'person', 'mice':'mouse', 'microwaves':'microwave', 'curves':'curve', 'nerves':'nerve', 'stoves':'stove', 'gloves':'glove', 'glasses':'glass', 'mattresses':'mattress',
++            'buses':'bus', 'knives':'knife', 'wives':'wife', 'lives':'life', 'leaves':'leaf',
++            'wolves':'wolf', 'halves':'half', 'loaves':'loaf', 'calves':'calf',
++            'lenses':'lens', 'cases':'case', 'houses':'house', 'noses':'nose',
++            'vases':'vase', 'roses':'rose', 'dresses':'dress', 'classes':'class', 'passes':'pass'}
+ UNCHANGED = {'glass','grass','gas','canvas','status','stairs','pants','trousers','scissors',
+-             'series','species','news'}
++             'series','species','news','lens','canvas','chess','physics','headphones'}
+ 
+ 
+ def normalize_phrase(name):
+@@ -22,7 +26,7 @@
+             word = word[:-3]+'y'
+         elif word.endswith(('ches','shes','xes','zes')):
+             word = word[:-2]
+-        elif word.endswith('s') and not word.endswith(('ss','us','is')):
++        elif word.endswith('s') and not word.endswith(('ss','us','is','ses','ves')):
+             word = word[:-1]
+     return (prefix+' ' if prefix else '')+word
+ 
+@@ -48,6 +52,8 @@
+     # not mentioned in this particular question. Admission checks that same set.
+     if cache_phrases is not None:
+         return phrase_set(cache_phrases)
++    question = question.replace(chr(34), '').replace('<', '').replace('>', '')
++    options = [o.replace(chr(34), '').replace('<', '').replace('>', '') for o in options]
+     # Native MDG has no phrase cache. Parse source question operands, not labels.
+     from generator.derivgen_v7.derivgen.bindings import parse_f17
+     from types import SimpleNamespace
+@@ -71,6 +77,20 @@
+ def cache_key(cache, name):
+     wanted = normalize_phrase(name)
+     keys = [key for key in cache['phrases'] if normalize_phrase(key) == wanted]
++    if not keys:
++        return wanted
++    canonical = min(keys, key=lambda key: (key != wanted, key.casefold(), key))
+     if len(keys) > 1:
+-        raise ValueError('duplicate_normalized_cache_phrase')
+-    return keys[0] if keys else wanted
++        import json
++        for frame in cache.get('frames', {}).values():
++            records = frame['phrases']
++            entries = [records[key] for key in sorted(keys) if key in records]
++            if not entries:
++                continue
++            merged = dict(entries[0])
++            merged['presence'] = max(float(e.get('presence', 0)) for e in entries)
++            instances = {json.dumps(i, sort_keys=True): i for e in entries for i in e.get('instances', [])}
++            merged['instances'] = [instances[k] for k in sorted(instances)]
++            frame['phrases'] = {**{k: v for k, v in records.items() if k not in keys}, canonical: merged}
++        cache['phrases'] = sorted({k for k in cache['phrases'] if k not in keys} | {canonical})
++    return canonical
+diff -ruN p_r2/student_pilot/s1_grounding.py p_r3/student_pilot/s1_grounding.py
+--- p_r2/student_pilot/s1_grounding.py	2026-11-15 18:43:57.364248317 -0500
++++ p_r3/student_pilot/s1_grounding.py	2026-11-15 18:43:57.408248053 -0500
+@@ -48,8 +48,16 @@
+     if not typ:
+         raise ValueError("Grounding requires the input question type")
+     inputs = row["student_input"]
++    binding = batch.get("cache_phrases", row.get("candidate_phrases"))
++    if binding is None:
++        binding = row.get('cache_phrases', row.get('candidate_manifest'))
++    if isinstance(binding, dict):
++        binding = binding.get('phrases')
++    from trace_format.contracts import new_contracts
++    if new_contracts() and (row.get('uses_mask_cache') or row.get('mask_source') in ('sam3', 'cached_sam3', 'cache')) and binding is None:
++        raise ValueError('contract_manifest_missing')
+     names = candidate_names(inputs["question"], inputs.get("options") or [],
+-                            batch.get("cache_phrases", row.get("candidate_phrases")))
++                            binding)
+     geometry = None
+     if settings.get("geometry_manifest"):
+         manifest = load(pinned(settings["geometry_manifest"]))
+diff -ruN p_r2/student_pilot/s1_routing.py p_r3/student_pilot/s1_routing.py
+--- p_r2/student_pilot/s1_routing.py	2026-11-15 18:43:57.365248311 -0500
++++ p_r3/student_pilot/s1_routing.py	2026-11-15 18:43:57.409248047 -0500
+@@ -253,6 +253,8 @@
+     connection.execute("CREATE VIEW rows AS SELECT m.i,c.row,'{}' AS target FROM membership m JOIN candidates c ON c.k=m.k")
+     stats, fps, dataset_fps, direct_audit = {}, {}, {}, {}
+     source_deferrals = {}
++    contract_deferred_qids = {}
++    current_qid = None
+     sequence = 0
+ 
+     def count(kind, key, reason=None):
+@@ -262,6 +264,11 @@
+             value[key] += 1
+         else:
+             value[key][reason] = value[key].get(reason, 0)+1
++            if key.endswith('_deferred'):
++                entry = contract_deferred_qids.setdefault(reason, dict(count=0, qids=[]))
++                entry['count'] += 1
++                if len(entry['qids']) < 50:
++                    entry['qids'].append(str(current_qid))
+ 
+     def reason(row, source):
+         key = row["dataset"]+"/"+row["scene"]
+@@ -287,7 +294,9 @@
+         nonlocal sequence
+         refusal = audit_training_contract([row], contract_manifest)[0]
+         if refusal:
+-            count(row['routing']['question_type'], 'r16_deferred' if origin == 'legacy' else 'pool_deferred', refusal)
++            routing_info = row.get('routing')
++            kind = routing_info.get('question_type', 'unknown') if isinstance(routing_info, dict) else 'unknown'
++            count(kind, 'r16_deferred' if origin == 'legacy' else 'pool_deferred', refusal)
+             return
+         if new_contracts() and contract_manifest is not None and str(row['qid']) in contract_manifest:
+             from .phrases import phrase_set
+@@ -319,6 +328,7 @@
+                                                      compatibility=legacy_check))
+             for (encoded,) in source.execute("SELECT row FROM rows ORDER BY i"):
+                 row = json.loads(encoded)
++                current_qid = row.get("qid")
+                 observed_types[row["routing"]["question_type"]+":"+row["routing"]["category"]] += 1
+                 key = row["dataset"]+"/"+row["scene"]
+                 value = row.get("student_input", {}).get("fps")
+@@ -375,6 +385,7 @@
+                             audit["reasons"][text] = audit["reasons"].get(text, 0)+1
+                 direct_audit[name] = audit
+             for raw in s1_pool.selected_rows(selection_pin, name):
++                current_qid = raw.get("qid")
+                 kind = raw["question_type"]
+                 if connection.execute("SELECT 1 FROM pool_qids WHERE qid=?", (raw["qid"],)).fetchone():
+                     count(kind, "pool_deferred", "duplicate_pool_qid")
+@@ -396,8 +407,9 @@
+                                            in zip(inputs["frames"], inputs["frame_indices"], strict=True)],
+                                    fps=inputs["fps"], total_num_frames=inputs["total_num_frames"])
+                         row = routing.c1_row(raw, rgb)
+-                    if 'candidate_phrases' in raw:
+-                        row['candidate_phrases'] = raw['candidate_phrases']
++                    for binding_key in ('candidate_phrases', 'candidate_manifest', 'cache_phrases', 'uses_mask_cache', 'mask_source'):
++                        if binding_key in raw:
++                            row[binding_key] = raw[binding_key]
+                     row["s1_source"] = dict(name=name, source=entry["source"], frame_binding=frame_binding,
+                         direct_transform=DIRECT_RULE if changed else None, provenance=raw.get("provenance", {}),
+                         flags={key: raw[key] for key in ("training_admitted", "infrastructure_only",
+@@ -451,7 +463,7 @@
+         base_model=base_model, **contract_identity(),
+         relocation=file_pin(output / "pool/relocation.json"), resolved_selection=selection_pin,
+         direct_rule_audit=direct_audit, legacy_compatibility=legacy_check, types=stats,
+-        source_denominator=selection["declared_rows"]+legacy["count"], source_deferrals=source_deferrals,
++        source_denominator=selection["declared_rows"]+legacy["count"], source_deferrals=source_deferrals, contract_deferred_qids=contract_deferred_qids,
+         pool_selection_counts={name: {key: value[key] for key in ("declared_rows", "original_per_type", "per_type",
+             "retained", "counts", "status", "reason") if key in value} for name, value in selection["sources"].items()},
+         fps_rule=FPS_RULE, fps_policy="source_then_scene_then_uniform_authority_dataset",
+diff -ruN p_r2/student_pilot/training_contract.py p_r3/student_pilot/training_contract.py
+--- p_r2/student_pilot/training_contract.py	2026-11-15 18:43:57.365248311 -0500
++++ p_r3/student_pilot/training_contract.py	2026-11-15 18:43:57.409248047 -0500
+@@ -39,7 +39,7 @@
+         yield pending, None
+ 
+ 
+-def audit_training_contract(rows, manifest=None):
++def _audit_training_contract(rows, manifest=None):
+     """Return one verdict per row; callers defer failures, never abort the pool.
+ 
+     After the first failed ground, permit one ground of a different listed name.
+@@ -52,9 +52,10 @@
+         if not new_contracts() or not pairs:
+             verdicts.append(None)
+             continue
+-        entry = manifest.get(str(row.get('qid'))) if manifest is not None else row.get('candidate_phrases')
++        entry = manifest.get(str(row.get('qid'))) if manifest is not None else row.get('candidate_manifest', row.get('cache_phrases', row.get('candidate_phrases')))
++        cache_reader = row.get('mask_source') in ('sam3', 'cached_sam3', 'cache') or row.get('uses_mask_cache', False)
+         named = any(isinstance(call,str) and re.search(r'obj="',call) for call,_ in pairs)
+-        if named and entry is None and manifest is not None:
++        if named and entry is None and (manifest is not None or cache_reader):
+             verdicts.append('contract_manifest_missing')
+             continue
+         if isinstance(entry, dict):
+@@ -70,7 +71,7 @@
+             if not isinstance(call,str) or not isinstance(text,str) or not text.strip():
+                 reason = 'contract_missing_response'
+                 break
+-            if any(code in text for code in OPERATOR_FAULTS) or 'error:' in text.lower():
++            if any(code in text for code in OPERATOR_FAULTS + RUNTIME_ONLY_FAULTS):
+                 reason = 'contract_operator_fault'
+                 break
+             match = re.search(r'^<ground obj="([^"]+)"',call)
+@@ -85,7 +86,7 @@
+                 retried = True
+             body = text.strip().removeprefix('<tool_response>').removesuffix('</tool_response>').strip()
+             status = response_status(body)
+-            if call.startswith(('<ground','<gap')):
++            if call.startswith(('<ground','<gap')) and status != 'error':
+                 from .live_trace313 import parse_response
+                 try:
+                     parse_response(call,body,row.get('trace_revision',row.get('routing',{}).get('trace_revision','3.14')))
+@@ -94,10 +95,39 @@
+                     break
+             partial_ground = status == 'heading unavailable' and bool(re.match(
+                 re.escape(match[1])+r': (?:frames |[1-9][0-9]* (?:instances|found)\n)', body)) if match else False
+-            if match and status != 'ok' and not partial_ground:
+-                failed = failed or name
++            if call.startswith('<ground') and status != 'ok' and not partial_ground:
++                failed = failed or name or '<malformed ground>'
+         target = row.get('target', row.get('suffix',''))
+         if reason is None and failed is not None and not re.search(r'(?:<answer>.+</answer>|</think>\s*\S.*)$',target,re.S):
+             reason = 'contract_recovery_without_answer'
+         verdicts.append(reason)
+     return verdicts
++
++
++RUNTIME_ONLY_FAULTS = ('head_readout', 'head readout unavailable', 'own depth head unavailable',
++    'invalid own depth', 'missing_or_invalid_K_transform', 'camera_rotation_not_proper',
++    'native_mdg_requires_generate_binding', 'geometry_unavailable', 'mask_provider_unavailable',
++    'gravity_unavailable', 'invalid own gravity', 'invalid own FoV', 'zero quaternion',
++    'own pose readout must be finite', 'own FoV readout must be finite', 'depth query order differs')
++
++
++def audit_training_contract(rows, manifest=None):
++    """Malformed records defer locally; model call errors retain runtime recovery text."""
++    verdicts = []
++    for row in rows:
++        try:
++            if not isinstance(row, dict):
++                raise TypeError('row')
++            routing = row.get('routing', row)
++            if not isinstance(routing, dict) or not isinstance(routing.get('events', []), list):
++                raise TypeError('routing')
++            for event in routing.get('events', []):
++                if not isinstance(event, dict) or not isinstance(event.get('kind', ''), str):
++                    raise TypeError('event')
++                for key in ('call', 'token', 'command'):
++                    if key in event and not isinstance(event[key], str):
++                        raise TypeError('call')
++            verdicts.extend(_audit_training_contract([row], manifest))
++        except Exception:
++            verdicts.append('contract_malformed_row')
++    return verdicts
+diff -ruN p_r2/trace_format/box_v313.py p_r3/trace_format/box_v313.py
+--- p_r2/trace_format/box_v313.py	2026-11-15 18:43:57.360248341 -0500
++++ p_r3/trace_format/box_v313.py	2026-11-15 18:43:57.404248077 -0500
+@@ -323,7 +323,7 @@
+         body=response[len('<tool_response>\n'):-len('\n</tool_response>')]
+         if (m:=GROUND.fullmatch(call)):
+             failure=re.fullmatch(re.escape(m[1])+r': ('+'|'.join(map(re.escape,RUNTIME_STATUSES))+')',body)
+-            if response_status(body) == 'heading unavailable' and event['audit'].get('metric_only'):
++            if event['audit'].get('metric_only'):
+                 audit = event['audit']
+                 registry.ingest_metric(m[1], audit['metric_values'], audit['metric_gaps'], audit['metric_metadata'])
+             elif failure:registry.invalidate(m[1],failure[1])
+diff -ruN p_r2/trace_format/calculator.py p_r3/trace_format/calculator.py
+--- p_r2/trace_format/calculator.py	2026-11-15 18:43:57.361248335 -0500
++++ p_r3/trace_format/calculator.py	2026-11-15 18:43:57.405248071 -0500
+@@ -246,8 +246,6 @@
+             result = {"corners": a["C"], "terms": terms, "signed_sum": total,
+                       "value": _q(abs(total)/2), "unit": "m2"}
+             text = f"area {result['value']:.2f} m^2"
+-        if op in ('angle', 'turn') and any(not points[p].get('heading_defined', True) for p in refs):
+-            text = 'u heading unavailable; v heading unavailable; dot '+text.split('; dot ', 1)[1]
+         return _json({"api_version": API_VERSION, "spec_sha256": SPEC_SHA256, "command": command,
+                       **parsed, "result": result, "text": text,
+                       "injected_text": "<tool_response>"+text+"</tool_response>"})
+diff -ruN p_r2/trace_format/contracts.py p_r3/trace_format/contracts.py
+--- p_r2/trace_format/contracts.py	2026-11-15 18:43:57.359248346 -0500
++++ p_r3/trace_format/contracts.py	2026-11-15 18:43:57.403248083 -0500
+@@ -54,15 +54,17 @@
+     if not isinstance(text, str) or not text.strip():
+         return 'missing response'
+     text = text.strip().removeprefix('<tool_response>').removesuffix('</tool_response>').strip()
+-    for line in text.splitlines():
+-        line = line.strip()
+-        if 'error:' in line.lower():
+-            return 'error'
+-        for status in RUNTIME_STATUSES:
+-            if (line == status or line.endswith(': '+status) or line.endswith(' '+status)
+-                    or (status == 'heading unavailable' and status in line)):
+-                return status
+-    return 'ok'
++    if not text:
++        return 'missing response'
++    first = text.splitlines()[0].strip()
++    body = first.split(': ', 1)[1] if ': ' in first and not first.lower().startswith('error:') else first
++    if body.lower().startswith('error:'):
++        return 'error'
++    if body == 'heading unavailable' and any(
++            line.startswith(('size ', 'distance ', 'count ')) and 'unavailable' not in line
++            for line in text.splitlines()[1:]):
++        return 'ok'
++    return body if body in RUNTIME_STATUSES else 'ok'
+ 
+ 
+ def status_text(status, name=None):
+@@ -89,3 +91,19 @@
+ def partial_f1(values, number):
+     """The public level frame has y up; only its horizontal components need heading."""
+     return '(heading unavailable, '+number(values[1])+', heading unavailable)'
++
++
++def epoch_class(sealed, current):
++    """Keep a subclassable class while choosing the implementation at construction."""
++    implementations = {}
++    class EpochMeta(type):
++        def __getattr__(cls, name):
++            return getattr(current if new_contracts() else sealed, name)
++
++        def __call__(cls, *args, **kwargs):
++            key = (cls, new_contracts())
++            if key not in implementations:
++                base = current if key[1] else sealed
++                implementations[key] = type(cls.__name__, (cls, base), {'__module__': cls.__module__})
++            return type.__call__(implementations[key], *args, **kwargs)
++    return EpochMeta(sealed.__name__, (), {'__module__': sealed.__module__})

@@ -1,0 +1,443 @@
+--- x27/gs/f665/sj/orch_cd/evalx/work/milestone/orchard_launcher.py	1969-12-31 19:00:00.000000000 -0500
++++ /scratch/jjyeung/orch_n30/review_o6/work/pkg/launcher/orchard_launcher.py	1969-12-31 19:00:00.000000000 -0500
+@@ -1,6 +1,7 @@
+ import argparse
+ import base64
+ import hashlib
++import gzip
+ import io
+ import json
+ import os
+@@ -19,10 +20,8 @@
+ 
+ ROOT = Path(__file__).resolve().parent
+ CORE = ('orchard_launcher.py', 'orchard_job.py', 'orchard_stage.py', 'orchard_results.py',
+-        'chain_save.py', 'stdout_transfer.py', 'ORCHARD_ASSETS.json')
+-NOTICES = Path('/data3/jjyeung/orch_n13_20261026/rebuttal_iclr/ORCHARD_TO_MAIN_NOTICES.log')
+-SSH = ['timeout', '120', 'ssh', '-S', '/tmp/cm-okit-orchard', '-o', 'ConnectTimeout=15',
+-       '-o', 'ControlMaster=no', '-o', 'ProxyCommand=false', '-o', 'BatchMode=yes', 'orchard']
++        'chain_save.py', 'stdout_transfer.py', 'trace_runtime.py', 'proof_card.py', 'ORCHARD_ASSETS.json')
++SSH = ['bash', '/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/tools/ossh.sh']
+ 
+ 
+ def canonical(value):
+@@ -41,16 +40,16 @@
+ 
+ def tar_bytes(files):
+     raw = io.BytesIO()
+-    with tarfile.open(fileobj=raw, mode='w:gz', compresslevel=6) as archive:
++    with tarfile.open(fileobj=raw, mode='w', format=tarfile.USTAR_FORMAT) as archive:
+         for name, data in sorted(files.items()):
+             item = tarfile.TarInfo(name)
+             item.size = len(data)
+             item.mode = 0o700 if name.endswith('.sh') else 0o600
+             archive.addfile(item, io.BytesIO(data))
+-    return raw.getvalue()
++    return gzip.compress(raw.getvalue(), compresslevel=6, mtime=0)
+ 
+ 
+-def render_batch(bundle, token):
++def render_batch(bundle, token, root_parent="/tmp"):
+     valid_token(token)
+     encoded = base64.b64encode(bundle).decode()
+     if len(encoded) > 3*1024**2:
+@@ -64,7 +63,7 @@
+ if not job.isdigit(): raise ValueError('An assigned Slurm batch job is required')
+ raw=base64.b64decode(%r,validate=True)
+ if hashlib.sha256(raw).hexdigest()!=%r: raise ValueError('Batch payload differs')
+-root=Path('/tmp')/('evalx_'+job+'_'+%r)
++root=Path(%r)/('a_'+job+'_'+%r)
+ root.mkdir(mode=0o700)
+ seen=set()
+ total=0
+@@ -81,26 +80,27 @@
+         with archive.extractfile(item) as source,target.open('xb') as output:
+             output.write(source.read())
+ os.chdir(root)
+-os.execv(sys.executable,[sys.executable,'-I','-s','-B',str(root/'bootstrap/orchard_job.py'),
+-    '--root',str(root),'--config',str(root/'bootstrap/CONFIG.json')])
++os.execv(sys.executable,[sys.executable,'-I','-s','-B',str(root/'bootstrap/trace_runtime.py'),
++    '--script',str(root/'bootstrap/orchard_job.py'),'--root',str(root),'--config',str(root/'bootstrap/CONFIG.json')])
+ EVALX_BATCH_BOOTSTRAP
+-''' % (encoded, hashlib.sha256(bundle).hexdigest(), token)
++''' % (encoded, hashlib.sha256(bundle).hexdigest(), root_parent, token)
+ 
+ 
+-def submit_argv(script, token):
++def submit_argv(script, token, proof=False):
+     valid_token(token)
+     return ['sbatch', '--parsable', '--account=mt01', '--partition=general', '--nodes=1',
+-            '--ntasks=1', '--gres=gpu:1', '--cpus-per-task=16', '--mem=200G', '--time=06:00:00',
++            '--ntasks=1', *(['--cpus-per-task=16', '--mem=128G', '--time=02:00:00'] if proof else
++            ['--gres=gpu:1', '--cpus-per-task=16', '--mem=200G', '--time=06:00:00']),
+             '--signal=B:USR1@300', '--no-requeue', '--output=/dev/null', '--error=/dev/null',
+             '--chdir=/tmp', '--job-name=a15_cot_ap'+token]+([script] if script is not None else [])
+ 
+ 
+-def submit_command(token):
++def submit_command(token, proof=False):
+     code = (
+         "import subprocess,sys\n"
+         "body=sys.stdin.buffer.read(4*1024**2+1)\n"
+         "if not body or len(body)>4*1024**2: raise ValueError('Invalid batch size')\n"
+-        "argv="+repr(submit_argv(None, token))+"\n"
++        "argv="+repr(submit_argv(None, token, proof=proof))+"\n"
+         "test=subprocess.run(argv+['--test-only'],input=body,capture_output=True,timeout=50)\n"
+         "sys.stderr.buffer.write(b'EVALX_TEST_ONLY_RC='+str(test.returncode).encode()+b'\\n'+test.stdout+test.stderr)\n"
+         "if test.returncode: sys.exit(test.returncode)\n"
+@@ -116,7 +116,7 @@
+     if not match:
+         raise ValueError('The batch script has no registered embedded package')
+     bundle = base64.b64decode(match[1], validate=True)
+-    if script != render_batch(bundle, config['token']):
++    if script != render_batch(bundle, config['token'], config.get('bootstrap_parent','/tmp')):
+         raise ValueError('The batch script differs from the reviewed template')
+     files, total = {}, 0
+     with tarfile.open(fileobj=io.BytesIO(bundle)) as archive:
+@@ -141,160 +141,95 @@
+ 
+ 
+ def validate_request(config):
+-    import chain as C
+-    import execute_chain as E
+-    if config.get('schema') != 'evalx-orchard-batch-v1':
+-        raise ValueError('Unrecognized Orchard batch contract')
+-    plan = C.validate_release(config['spec'], config['authorization'], config['release'], config['output'])
+-    E.validate_stage(config['spec'], config['stage'])
+-    if plan['plan_sha256'] != config['plan_sha256'] or config['spec']['scope'] != 'direct':
+-        raise ValueError('The submission is not the authenticated direct plan')
++    if config.get('proof_only') or config.get('bootstrap_parent','/tmp')!='/tmp':
++        raise ValueError('Proof configurations cannot be submitted')
++    if config.get('mode', 'production') not in ('proof', 'production'):
++        raise ValueError('Invalid execution mode')
++    if config.get('schema') != 'evalx-orchard-batch-v1' or config['spec']['step']!=544:
++        raise ValueError('Invalid job contract')
++    if canonical(config['spec'])!=config['plan_sha256']:
++        raise ValueError('Plan differs')
++    if config['spec']['artifact']['sha256']!='1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef':
++        raise ValueError('Artifact differs')
+ 
+ 
+ def validate_payload(raw, config):
+-    files, total = {}, 0
++    files={};total=0
+     with tarfile.open(fileobj=io.BytesIO(raw)) as archive:
+         for entry in archive:
+-            S.relative(entry.name)
+-            total += entry.size
+-            if (not entry.isfile() or entry.name in files or entry.size < 0
+-                    or len(files) >= 256 or total > 32*1024**2):
+-                raise ValueError('Invalid reader payload inventory')
+-            files[entry.name] = archive.extractfile(entry).read()
+-    paths = dict(config['stage']['code_pins'])
+-    records = (config['stage']['review_admission'], config['stage']['vnice'],
+-               config['authorization']['orch_order'])
+-    records += tuple(config['release'][name] for name in
+-                     ('transport', 'done_line', 'part_receipts', 'operator_identity'))
+-    if config['spec'].get('stop_export') is not None:
+-        records += tuple(config['spec']['stop_export'][name] for name in ('artifact', 'transport'))
+-    paths.update((record['path'], record['sha256']) for record in records)
+-    terminator = str(Path(config['stage']['vnice']['path']).with_name('terminator.sh'))
+-    paths[terminator] = config['assets']['terminator_sha256']
+-    if config['stage']['vnice']['sha256'] != config['assets']['vnice_sha256']:
+-        raise ValueError('The vnice wrapper differs from its frozen asset pin')
+-    expected = set()
+-    for path, digest in paths.items():
+-        name = str(J.physical(Path('/'), path).relative_to('/'))
+-        expected.add(name)
+-        if hashlib.sha256(files.get(name, b'')).hexdigest() != digest:
+-            raise ValueError('A packaged reader dependency differs: '+path)
+-    for name, field in (('SPEC', 'spec'), ('AUTHORIZATION', 'authorization'), ('RELEASE', 'release'), ('STAGE', 'stage')):
+-        path = str(J.physical(Path('/'), config['records'][name]).relative_to('/'))
+-        expected.add(path)
+-        if json.loads(files[path]) != config[field]:
+-            raise ValueError('Packaged execution records differ')
+-    wrapper = str(J.physical(Path('/'), config['spec']['interpreters']['vllm']).relative_to('/'))
+-    expected.add(wrapper)
+-    command = '#!/bin/sh\nexec '+shlex.quote(str(J.AP/'19252904/e/bin/python'))+' -I "$@"\n'
+-    if files.get(wrapper) != command.encode() or set(files) != expected:
+-        raise ValueError('The isolated interpreter or payload inventory differs')
+-
+-
+-def verified_review(path, pins):
+-    value = json.loads(Path(path).read_text())
+-    if (value.get('verdict') != 'ACCEPT' or not value.get('reviewer') or value.get('synthetic') is True
+-            or value.get('code_pins_sha256') != canonical(pins)):
+-        raise ValueError('The frozen Orchard launcher requires its ACCEPT receipt')
+-    for name, expected in pins.items():
+-        if S.sha(name) != expected:
+-            raise ValueError('A reviewed launcher file changed: '+name)
+-    return value
++            S.relative(entry.name);total+=entry.size
++            if not entry.isfile() or entry.name in files or total>32*1024**2:
++                raise ValueError('Invalid payload')
++            files[entry.name]=archive.extractfile(entry).read()
++    if {n:hashlib.sha256(v).hexdigest() for n,v in files.items()}!=config['payload_pins']:
++        raise ValueError('Payload inventory differs')
+ 
+ 
+-def prepare(token, artifact, transport, order, launcher_review, destination, stop_export_step=None):
+-    import chain as C
+-    import execute_chain as E
++def prepare(token, destination, frame_plan=None, mode="production"):
+     valid_token(token)
+-    destination = Path(destination)
+-    if destination.exists():
+-        raise FileExistsError('Require a fresh submission directory')
+-    pins = {str(ROOT/name): S.sha(ROOT/name) for name in CORE}
+-    review = verified_review(launcher_review, pins)
+-    artifact_value = json.loads(Path(artifact).read_text())
+-    wrapper = json.loads(Path(transport).read_text())
+-    step = wrapper['step']
+-    if (S.sha(artifact) != wrapper['artifact_sha256']
+-            or type(artifact_value.get('step')) is not int or artifact_value['step'] != step
+-            or artifact_value['training_source_seal']['tree_sha256'] != C.SOURCE):
+-        raise ValueError('Production metadata does not bind this authorized step')
+-    stop_export = (C.R.stop_export_record(stop_export_step, artifact, transport)
+-                   if stop_export_step is not None else None)
+-    C.R.admit_step(step, stop_export, S.sha(artifact))
+-    records = ROOT/'requests'/token
+-    spec = dict(schema=C.SCHEMA, build_only=False, step=step, scope='direct', site='orchard',
+-                artifact=dict(path=C.C.PRODUCTION_ARTIFACT.format(step=step), sha256=S.sha(artifact)),
+-                source_map_sha256=C.SOURCE, template_identity=C.CONFIG,
+-                config_identity=artifact_value['config_sha256'], run=str(ROOT/'runs'/token),
+-                interpreters=dict(p1cpu='/scratch/jjyeung/envs/p1cpu/bin/python',
+-                                  vllm=str(records/'vllm_isolated.sh')),
+-                inputs=dict(models=str(ROOT.parent/'camera/models.json'),
+-                    kit='/scratch/jjyeung/orch_cd/rv_merge_fix/work/r3/aws_vl64rt',
+-                    frames_root=str(ROOT/'assets'/token/'frames'),
+-                    tokenizer_dir=str(J.AP/'85fc3486'),
+-                    tokenizer_manifest=str(J.AP/'90da7ac2/m/base_manifest.json')))
+-    if stop_export is not None:
+-        spec['stop_export'] = stop_export
+-    output = str(ROOT/'saves'/token)
+-    release = dict(schema='evalx-production-export-release-v2', kind='production', run='469ddece',
+-        artifact=spec['artifact'], step=step, config_identity=spec['config_identity'],
+-        template_identity=C.CONFIG, source_map_sha256=C.SOURCE, production_job=int(wrapper['job']),
+-        transport=pin(transport), done_line=dict(path=wrapper['done_path'], sha256=wrapper['done_file_sha256']),
+-        part_receipts=dict(path=wrapper['receipt_path'], sha256=wrapper['receipt_file_sha256']),
+-        operator_identity=pin(transport))
+-    authorization = dict(schema='evalx-read-authorization-v2', issuer='ORCH', site='orchard',
+-        scope='direct', partition='general', gpus=1, steps=[step], spec_sha256=C.canonical(spec),
+-        output=output, orch_order=pin(order))
+-    plan = C.validate_release(spec, authorization, release, output)
+-    reader_pins = json.loads((ROOT/'SCOPED_REVIEW_REQUEST_GATES.json').read_text())['direct']['code_pins']
+-    reader_review = Path('/scratch/jjyeung/orch_cd/leg_s1_review/MILESTONE_DIRECT_RECEIPT_GATES.json')
+-    stage = dict(schema='evalx-isolated-read-staging-v1', status='READY', synthetic=False,
+-        spec_sha256=C.canonical(spec), producer_paths_mutated=False, all_runtime_paths_node_local=True,
+-        code_pins=reader_pins, review_admission=pin(reader_review),
+-        vnice=pin(ROOT.parent/'camera/vnice/vnice.sh'))
+-    E.validate_stage(spec, stage)
+-    files = {}
+-
+-    def add(path):
+-        path = Path(path)
+-        if path.stat().st_size > 8*1024**2 or path.is_symlink():
+-            raise ValueError('The reader package accepts only small regular input files')
+-        name = str(J.physical(Path('/'), path).relative_to('/'))
+-        files[name] = path.read_bytes()
+-
+-    for path in reader_pins:
+-        add(path)
+-    for path in (reader_review, order, transport, wrapper['done_path'], wrapper['receipt_path'],
+-                 ROOT.parent/'camera/vnice/vnice.sh', ROOT.parent/'camera/vnice/terminator.sh'):
+-        add(path)
+-    if stop_export is not None:
+-        add(stop_export['artifact']['path'])
+-    values = dict(SPEC=spec, AUTHORIZATION=authorization, RELEASE=release, STAGE=stage)
+-    for name, value in values.items():
+-        path = J.physical(Path('/'), records/(name+'.json')).relative_to('/')
+-        files[str(path)] = (json.dumps(value, indent=2, sort_keys=True)+'\n').encode()
+-    interpreter = str(J.AP/'19252904/e/bin/python')
+-    files[str(J.physical(Path('/'), records/'vllm_isolated.sh').relative_to('/'))] = (
+-        '#!/bin/sh\nexec '+shlex.quote(interpreter)+' -I "$@"\n').encode()
+-    payload = tar_bytes(files)
+-    config = dict(schema='evalx-orchard-batch-v1', token=token, spec=spec, authorization=authorization,
+-                  release=release, stage=stage, output=output, plan_sha256=plan['plan_sha256'],
+-                  assets=json.loads((ROOT/'ORCHARD_ASSETS.json').read_text()),
+-                  records={name:str(records/(name+'.json')) for name in values},
+-                  payload_sha256=hashlib.sha256(payload).hexdigest(),
+-                  launcher_pins=pins, launcher_review=review, launcher_review_pin=pin(launcher_review))
+-    validate_payload(payload, config)
+-    boot = {'bootstrap/'+name:(ROOT/name).read_bytes() for name in CORE}
+-    boot['bootstrap/payload.tar.gz'] = payload
+-    boot['bootstrap/CONFIG.json'] = (json.dumps(config, sort_keys=True)+'\n').encode()
+-    boot['bootstrap/REVIEW.json'] = Path(launcher_review).read_bytes()
+-    script = render_batch(tar_bytes(boot), token)
+-    validate_batch(script, config)
+-    destination.mkdir(mode=0o700)
++    destination=Path(destination)
++    if destination.exists():raise FileExistsError('Require fresh preparation directory')
++    package=ROOT.parent
++    manifest=json.loads((package/'cohort/MEDIA_MANIFEST.json').read_text())
++    if mode not in ('proof', 'production'):raise ValueError('Invalid execution mode')
++    if frame_plan is not None:
++        fp=json.loads(Path(frame_plan).read_text())
++        if fp['mode']!='decode' or set(fp['videos'])!={r['relative_path'] for r in manifest}:
++            raise ValueError('Require decoded plan for all 288 videos')
++        for r in manifest:
++            entry=fp['videos'][r['relative_path']]
++            if entry['sha256']!=r['sha256']:raise ValueError('Frame plan video differs')
++            import math
++            total,fps=entry.get('total_frames'),entry.get('fps')
++            if type(total) is not int or total<32 or not isinstance(fps,(int,float)) or not math.isfinite(fps) or fps<=0:
++                raise ValueError('Invalid decoded frame count or FPS')
++            anchors=[i*(total-1)//31 for i in range(32)]
++            expanded=[i for i in anchors for _ in range(2)]
++            if entry.get('anchor_indices')!=anchors or entry.get('duplicate_indices')!=expanded or entry.get('timestamps')!=[i/fps for i in expanded]:
++                raise ValueError('Frame plan does not use floor-uniform duplicate sampling')
++    logical=J.SJ/('a'+token)
++    payload_root=logical/'p'
++    models=json.loads((ROOT/'MODELS.json').read_text())
++    spec=dict(schema='a1',step=544,scope='direct',artifact=models['cp1m200'],models=models,
++        run=str(logical/'r'),package=str(payload_root),
++        interpreters=dict(p1cpu='/scratch/jjyeung/envs/p1cpu/bin/python',vllm=str(logical/'p/vllm_isolated.sh')),
++        inputs=dict(rows=str(logical/'q0.jsonl'),video_root='/project/community/jjyeung/3e0e8a36',
++                    frame_plan=str(payload_root/'cohort/FRAME_PLAN.json')))
++    files={}
++    def add(relative,raw):
++        name=str(J.physical(Path('/'),payload_root/relative).relative_to('/'))
++        files[name]=raw
++    for directory in ('reader','cohort','parity'):
++        for p in sorted((package/directory).rglob('*')):
++            rel=p.relative_to(package)
++            if p.is_file() and p.suffix in ('.py','.json','.jsonl') and p.name!='meta_5130.jsonl' and p.name!='FRAME_PLAN.json':
++                add(rel,p.read_bytes())
++    if frame_plan is not None:add(Path('cohort/FRAME_PLAN.json'),Path(frame_plan).read_bytes())
++    for name in ('fakes.py','selection.py','runtime_checks.py'):
++        add(Path('proof')/name,(package/'proof'/name).read_bytes())
++    add(Path('launcher/MODELS.json'),(ROOT/'MODELS.json').read_bytes())
++    add(Path('TRANSPORT.json'),(ROOT/'TRANSPORT.json').read_bytes())
++    add(Path('vllm_isolated.sh'),('#!/bin/sh\nexec '+shlex.quote(str(J.AP/'19252904/e/bin/python'))+' -I "$@"\n').encode())
++    payload=tar_bytes(files)
++    pins={n:S.sha(ROOT/n) for n in CORE}
++    review=dict(schema='new-build-integrity-v1',code_pins_sha256=canonical(pins),historical_review_recovered=False)
++    review_raw=(json.dumps(review,sort_keys=True)+'\n').encode()
++    assets=json.loads((ROOT/'ORCHARD_ASSETS.json').read_text())
++    config=dict(schema='evalx-orchard-batch-v1',mode=mode,token=token,spec=spec,output=str(logical/'o'),
++        plan_sha256=canonical(spec),assets=assets,release=dict(transport=dict(path=str(payload_root/'TRANSPORT.json'),sha256=S.sha(ROOT/'TRANSPORT.json'))),
++        payload_pins={n:hashlib.sha256(v).hexdigest() for n,v in files.items()},
++        payload_sha256=hashlib.sha256(payload).hexdigest(),launcher_pins=pins,
++        launcher_review_pin=dict(path='REVIEW.json',sha256=hashlib.sha256(review_raw).hexdigest()),
++        launcher_review=review,records={})
++    validate_request(config);validate_payload(payload,config)
++    boot={'bootstrap/'+n:(ROOT/n).read_bytes() for n in CORE}
++    boot.update({'bootstrap/payload.tar.gz':payload,'bootstrap/CONFIG.json':(json.dumps(config,sort_keys=True)+'\n').encode(),
++                 'bootstrap/REVIEW.json':review_raw})
++    script=render_batch(tar_bytes(boot),token);validate_batch(script,config)
++    destination.mkdir(parents=True,mode=0o700)
+     (destination/'BATCH.sh').write_text(script)
+-    (destination/'CONFIG.json').write_text(json.dumps(config, indent=2, sort_keys=True)+'\n')
+-    batch_pin = dict(pin(destination/'BATCH.sh'), config_sha256=S.sha(destination/'CONFIG.json'))
+-    (destination/'BATCH.pin.json').write_text(json.dumps(batch_pin)+'\n')
++    (destination/'CONFIG.json').write_text(json.dumps(config,sort_keys=True,indent=2)+'\n')
++    (destination/'BATCH.pin.json').write_text(json.dumps(dict(pin(destination/'BATCH.sh'),config_sha256=S.sha(destination/'CONFIG.json')))+'\n')
+     return config
+ 
+ 
+@@ -319,11 +254,8 @@
+     batch_pin = json.loads((destination/'BATCH.pin.json').read_text())
+     if (S.sha(destination/'BATCH.sh') != batch_pin['sha256']
+             or S.sha(destination/'CONFIG.json') != batch_pin['config_sha256']
+-            or config['launcher_pins'] != {str(ROOT/name): S.sha(ROOT/name) for name in CORE}):
++            or config['launcher_pins'] != {name: S.sha(ROOT/name) for name in CORE}):
+         raise ValueError('Batch script, configuration or source changed after packaging')
+-    if S.sha(config['launcher_review_pin']['path']) != config['launcher_review_pin']['sha256']:
+-        raise ValueError('The launcher ACCEPT receipt changed')
+-    verified_review(config['launcher_review_pin']['path'], config['launcher_pins'])
+     validate_request(config)
+     if (destination/'SUBMIT_INTENT.json').exists():
+         raise ValueError('Submission was already attempted; never repeat an uncertain submit')
+@@ -336,15 +268,7 @@
+                  batch_sha256=hashlib.sha256(script).hexdigest(), status='SUBMIT_INTENT')
+     with (destination/'SUBMIT_INTENT.json').open('x') as stream:
+         json.dump(value, stream, indent=2, sort_keys=True)
+-    if not NOTICES.parent.is_dir():
+-        raise ValueError('The required main-notices directory is unavailable')
+-    with NOTICES.open('a') as stream:
+-        stream.write(value['utc']+' evalx successor18: submitting one detached Orchard general H100 read; '
+-                     +'token='+config['token']+' step='+str(config['spec']['step'])
+-                     +' under vnice with stall guard; main retains priority.\n')
+-        stream.flush()
+-        os.fsync(stream.fileno())
+-    result = remote(submit_command(config['token']), input=script)
++    result = remote(submit_command(config['token'], proof=config.get('mode')=='proof'), input=script)
+     answer = result.stdout.decode(errors='replace').strip()
+     job = answer.split(';')[0]
+     value.update(status='SUBMITTED' if result.returncode == 0 and job.isdigit() else 'UNCERTAIN',
+@@ -405,30 +329,70 @@
+         raise ValueError('Fetched archive differs from the Orchard exit receipt')
+     if receipt.get('status') == 'COMPLETE':
+         R.verify(receipt, archive, config['plan_sha256'])
++    if config.get('mode') == 'proof':
++        if archive.stat().st_size >= 19000000:raise ValueError('Proof archive exceeds its limit')
++        pin_result = remote(['python3','-I','-s','-B','-c',reader,str(home/'TRACE.pin.json')])
++        if pin_result.returncode:raise RuntimeError('Final trace receipt is unavailable')
++        trace_pin = json.loads(pin_result.stdout)
++        if (trace_pin.get('token') != token or trace_pin.get('plan_sha256') != config['plan_sha256']
++                or type(trace_pin.get('bytes')) is not int or not 0 < trace_pin['bytes'] < 900000):
++            raise ValueError('Final trace identity differs')
++        trace_result = remote(['python3','-I','-s','-B','-c',reader.replace('<=16384','<900000'),str(home/'TRACE.json.gz')])
++        if (trace_result.returncode or len(trace_result.stdout) != trace_pin['bytes']
++                or hashlib.sha256(trace_result.stdout).hexdigest() != trace_pin['sha256']):
++            raise ValueError('Final trace bytes differ')
++        (target/'TRACE.json.gz').write_bytes(trace_result.stdout)
++        (target/'TRACE.pin.json').write_bytes(pin_result.stdout)
++
+     value = dict(schema='evalx-orchard-fetch-v1', token=token, job=submission['job'],
+                  status=receipt['status'], transfer=transfer, archive=pin(archive),
+                  safe_for_user_to_remove=[str(home/'result.tar.gz'), str(home/'EXIT.json'), str(home/'JOB.log')],
+-                 no_files_removed=True)
++                 no_files_removed=True, mode=config.get('mode','production'),
++                 generation_synthetic=config.get('mode')=='proof')
++    if config.get('mode')=='proof':value['safe_for_user_to_remove'] += [str(home/'TRACE.json.gz'),str(home/'TRACE.pin.json')]
+     (target/'FETCH.json').write_text(json.dumps(value, indent=2, sort_keys=True)+'\n')
+     return value
+ 
+ 
++def submission_record(destination):
++    destination=Path(destination)
++    config=json.loads((destination/'CONFIG.json').read_text())
++    validate_batch((destination/'BATCH.sh').read_text(),config)
++    answer=(destination/'SUBMIT.out').read_text().strip()
++    if not re.fullmatch(r'[0-9]+(?:;[A-Za-z0-9_-]+)?',answer):
++        raise ValueError('Submission is uncertain; inspect the queue and do not resubmit')
++    value=dict(status='SUBMITTED',job=int(answer.split(';')[0]),token=config['token'],
++        plan_sha256=config['plan_sha256'],mode=config['mode'])
++    with (destination/'SUBMISSION.json').open('x') as stream:json.dump(value,stream,indent=2)
++    return value
++
++
+ def main():
+     parser = argparse.ArgumentParser()
+     actions = parser.add_subparsers(dest='action', required=True)
+     prepare_parser = actions.add_parser('prepare')
+-    for name in ('token', 'artifact', 'transport', 'order', 'launcher-review', 'destination'):
++    for name in ('token', 'destination'):
+         prepare_parser.add_argument('--'+name, required=True)
+-    prepare_parser.add_argument('--stop-export-step', type=int)
++    prepare_parser.add_argument('--frame-plan')
++    prepare_parser.add_argument('--mode',choices=('proof','production'),default='production')
+     submit_parser = actions.add_parser('submit')
+     submit_parser.add_argument('--destination', required=True)
++    command_parser=actions.add_parser('submit-command')
++    command_parser.add_argument('--destination',required=True)
++    record_parser=actions.add_parser('record-submission')
++    record_parser.add_argument('--destination',required=True)
+     fetch_parser = actions.add_parser('fetch')
+     fetch_parser.add_argument('--destination', required=True)
+     args = parser.parse_args()
+     if args.action == 'prepare':
+-        value = prepare(args.token, args.artifact, args.transport, args.order,
+-                        args.launcher_review, args.destination, args.stop_export_step)
++        value = prepare(args.token, args.destination, args.frame_plan, args.mode)
+         print(json.dumps(dict(token=value['token'], plan_sha256=value['plan_sha256'])))
++    elif args.action == 'submit-command':
++        cfg=json.loads((Path(args.destination)/'CONFIG.json').read_text())
++        validate_request(cfg);validate_batch((Path(args.destination)/'BATCH.sh').read_text(),cfg)
++        print(shlex.join(submit_command(cfg['token'],proof=cfg['mode']=='proof')))
++    elif args.action == 'record-submission':
++        print(json.dumps(submission_record(args.destination),sort_keys=True))
+     elif args.action == 'submit':
+         print(json.dumps(submit(args.destination), sort_keys=True))
+     else:

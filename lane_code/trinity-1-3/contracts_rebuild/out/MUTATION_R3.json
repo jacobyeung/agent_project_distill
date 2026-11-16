@@ -1,0 +1,735 @@
+{
+  "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/mutation_r3/run_r3.py",
+  "adaptation": "M3/M10/M14/M16/M18 target the equivalent frame-specific or field-specific r3 branch; all other reviewed mutations retain the reviewed behavior change.",
+  "mutations": {
+    "M1": {
+      "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/src_r3/student_pilot/geometry_profiles.py",
+      "old": "if plane[0] >= UP_PLANE_MIN:",
+      "new": "if plane[0] > UP_PLANE_MIN:",
+      "command": [
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/work/run_tests_r3.py",
+        "overlay",
+        "MUTATION_M1_R3",
+        "contract",
+        "-x",
+        "-k",
+        "reviewed_guard_ast_grid"
+      ],
+      "returncode": 1,
+      "killed": true,
+      "failing_tests": {
+        "tests_r3/test_contracts.py::test_reviewed_guard_ast_grid_and_jitter": {
+          "outcome": "failed",
+          "when": "call",
+          "detail": "../../../../tests_r3/test_contracts.py:17: in test_reviewed_guard_ast_grid_and_jitter\n    assert ast.dump(fn(a))==ast.dump(fn(b))\nE   AssertionError: assert 'FunctionDef(...pe_params=[])' == 'FunctionDef(...pe_params=[])'\nE     \nE     Skipping 1184 identical leading characters in diff, use -v to show\nE     - ), ops=[Gt()], comparators=[Name(id='UP_PLANE_MIN', ctx=Load())]), body=[Assign(targets=[Name(id='invalid', ctx=Store())], value=Compare(left=Subscript(value=Name(id='margin', ctx=Load()), slice=Constant(value=0), ctx=Load()), ops=[LtE()], comparators=[Constant(value=0)]))], orelse=[Assign(targets=[Name(id='usable', ctx=Store())], value=Compare(left=Name(id='plane', ctx=Load()), ops=[GtE()], comparators=[Name(id='UP_PLANE_MIN', ctx=Load())])), Assign(targets=[Name(id='invalid', ctx=Store())], value=Bool...\nE     \nE     ...Full output truncated (4 lines hidden), use '-vv' to show"
+        }
+      },
+      "log": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/mutation_r3/M1_r3.log",
+      "description": "Change the convention boundary comparison from inclusive to strict"
+    },
+    "M2": {
+      "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/src_r3/student_pilot/geometry_profiles.py",
+      "old": "np.median(margin[usable] / plane[usable]) <= 0",
+      "new": "np.median(margin[usable] / plane[usable]) < -0.05",
+      "command": [
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/work/run_tests_r3.py",
+        "overlay",
+        "MUTATION_M2_R3",
+        "contract",
+        "-x",
+        "-k",
+        "reviewed_guard_ast_grid"
+      ],
+      "returncode": 1,
+      "killed": true,
+      "failing_tests": {
+        "tests_r3/test_contracts.py::test_reviewed_guard_ast_grid_and_jitter": {
+          "outcome": "failed",
+          "when": "call",
+          "detail": "../../../../tests_r3/test_contracts.py:17: in test_reviewed_guard_ast_grid_and_jitter\n    assert ast.dump(fn(a))==ast.dump(fn(b))\nE   AssertionError: assert 'FunctionDef(...pe_params=[])' == 'FunctionDef(...pe_params=[])'\nE     \nE     Skipping 2152 identical leading characters in diff, use -v to show\nE     - ), ops=[Lt()], comparators=[UnaryOp(op=USub(), operand=Constant(value=0.05))])]))]), If(test=Name(id='invalid', ctx=Load()), body=[Raise(exc=Call(func=Name(id='GeometryError', ctx=Load()), args=[Constant(value='reference_camera_up_opposes_gravity')], keywords=[]))], orelse=[])], decorator_list=[], type_params=[])\nE     ?           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                ^^^^^^^^^^^^^\nE     + ), ops=[LtE()], comparators=[Constant(value=0)])]))]), If(test=Name(id='invalid', ctx=Load()), body=[Raise...\nE     \nE     ...Full output truncated (2 lines hidden), use '-vv' to show"
+        }
+      },
+      "log": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/mutation_r3/M2_r3.log",
+      "description": "Weaken the usable-frame median convention threshold"
+    },
+    "M3": {
+      "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/src_r3/trace_format/contracts.py",
+      "old": "(np.asarray(rotation).T @ down)[:2]",
+      "new": "(np.asarray(rotation).T @ down)[1:]",
+      "command": [
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/work/run_tests_r3.py",
+        "overlay",
+        "MUTATION_M3_R3",
+        "contract",
+        "-x",
+        "-k",
+        "decode_attacks"
+      ],
+      "returncode": 1,
+      "killed": true,
+      "failing_tests": {
+        "tests_r3/test_review_r3.py::test_decode_attacks_and_move_source_distance": {
+          "outcome": "failed",
+          "when": "call",
+          "detail": "../../../../tests_r3/test_review_r3.py:132: in test_decode_attacks_and_move_source_distance\n    assert 'f1 centre (heading unavailable,' in texts[2]\nE   AssertionError: assert 'f1 centre (heading unavailable,' in 'f1 centre (0.10, 0.00, 0.05) m, yaw 20 deg'"
+        }
+      },
+      "log": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/mutation_r3/M3_r3.log",
+      "description": "Use the wrong gravity projection components for heading availability"
+    },
+    "M4": {
+      "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/src_r3/trace_format/contracts.py",
+      "old": "    if body.lower().startswith('error:'):\n        return 'error'\n",
+      "new": "",
+      "command": [
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/work/run_tests_r3.py",
+        "overlay",
+        "MUTATION_M4_R3",
+        "contract",
+        "-x",
+        "-k",
+        "response_status"
+      ],
+      "returncode": 1,
+      "killed": true,
+      "failing_tests": {
+        "tests_r3/test_contracts.py::test_response_status[error: x-error]": {
+          "outcome": "failed",
+          "when": "call",
+          "detail": "../../../../tests_r3/test_contracts.py:72: in test_response_status\n    assert response_status(text)==expected\nE   AssertionError: assert 'ok' == 'error'\nE     \nE     - error\nE     + ok"
+        }
+      },
+      "log": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/mutation_r3/M4_r3.log",
+      "description": "Stop recognizing runtime error responses"
+    },
+    "M5": {
+      "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/src_r3/trace_format/contracts.py",
+      "old": "'size unavailable', 'unavailable')",
+      "new": "'size unavailable')",
+      "command": [
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/work/run_tests_r3.py",
+        "overlay",
+        "MUTATION_M5_R3",
+        "contract",
+        "-x",
+        "-k",
+        "response_status"
+      ],
+      "returncode": 1,
+      "killed": true,
+      "failing_tests": {
+        "tests_r3/test_contracts.py::test_response_status[<tool_response>\\nunavailable\\n</tool_response>-unavailable]": {
+          "outcome": "failed",
+          "when": "call",
+          "detail": "../../../../tests_r3/test_contracts.py:72: in test_response_status\n    assert response_status(text)==expected\nE   AssertionError: assert 'ok' == 'unavailable'\nE     \nE     - unavailable\nE     + ok"
+        }
+      },
+      "log": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/mutation_r3/M5_r3.log",
+      "description": "Stop recognizing bare unavailable responses"
+    },
+    "M6": {
+      "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/src_r3/student_pilot/training_contract.py",
+      "old": "if retried or name is None or name == failed:",
+      "new": "if retried or name == failed:",
+      "command": [
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/work/run_tests_r3.py",
+        "overlay",
+        "MUTATION_M6_R3",
+        "contract",
+        "-x",
+        "-k",
+        "review_ground_responses"
+      ],
+      "returncode": 1,
+      "killed": true,
+      "failing_tests": {
+        "tests_r3/test_review_r3.py::test_review_ground_responses_and_recovery": {
+          "outcome": "failed",
+          "when": "call",
+          "detail": "../../../../tests_r3/test_review_r3.py:27: in test_review_ground_responses_and_recovery\n    assert audit_training_contract([row])==['contract_call_after_failed_ground']\nE   AssertionError: assert [None] == ['contract_ca...ailed_ground']\nE     \nE     At index 0 diff: None != 'contract_call_after_failed_ground'\nE     Use -v to get more diff"
+        }
+      },
+      "log": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/mutation_r3/M6_r3.log",
+      "description": "Allow a gap immediately after a failed ground"
+    },
+    "M7": {
+      "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/src_r3/student_pilot/training_contract.py",
+      "old": "if any(code in text for code in OPERATOR_FAULTS + RUNTIME_ONLY_FAULTS):",
+      "new": "if False:",
+      "command": [
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/work/run_tests_r3.py",
+        "overlay",
+        "MUTATION_M7_R3",
+        "contract",
+        "-x",
+        "-k",
+        "model_errors_use_runtime_text"
+      ],
+      "returncode": 1,
+      "killed": true,
+      "failing_tests": {
+        "tests_r3/test_review_r3.py::test_model_errors_use_runtime_text": {
+          "outcome": "failed",
+          "when": "call",
+          "detail": "../../../../tests_r3/test_review_r3.py:52: in test_model_errors_use_runtime_text\n    assert audit_training_contract([row])==['contract_operator_fault']\nE   AssertionError: assert [None] == ['contract_operator_fault']\nE     \nE     At index 0 diff: None != 'contract_operator_fault'\nE     Use -v to get more diff"
+        }
+      },
+      "log": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/mutation_r3/M7_r3.log",
+      "description": "Admit operator faults"
+    },
+    "M8": {
+      "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/src_r3/student_pilot/live_instances314.py",
+      "old": "if enabled and entry.get('depth_cut_applied', False):",
+      "new": "if entry.get('depth_cut_applied', False):",
+      "command": [
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/work/run_tests_r3.py",
+        "overlay",
+        "MUTATION_M8_R3",
+        "contract",
+        "-x",
+        "-k",
+        "bridge_does_not_recut"
+      ],
+      "returncode": 1,
+      "killed": true,
+      "failing_tests": {
+        "tests_r3/test_contracts.py::test_bridge_does_not_recut_and_replay": {
+          "outcome": "failed",
+          "when": "call",
+          "detail": "../../../../tests_r3/test_contracts.py:126: in test_bridge_does_not_recut_and_replay\n    assert 'points_cut' not in bridge_cut(dict(points=points),dict(depth_cut_applied=True),False)\nE   AssertionError: assert 'points_cut' not in {'points': {'2': [[1, 2, 3]]}, 'points_cut': {'2': [[1, 2, 3]]}}\nE    +  where {'points': {'2': [[1, 2, 3]]}, 'points_cut': {'2': [[1, 2, 3]]}} = <function bridge_cut at 0x7fd00ae3ff60>({'points': {'2': [[1, 2, 3]]}, 'points_cut': {'2': [[1, 2, 3]]}}, {'depth_cut_applied': True}, False)\nE    +    where {'points': {'2': [[1, 2, 3]]}, 'points_cut': {'2': [[1, 2, 3]]}} = dict(points={'2': [[1, 2, 3]]})\nE    +    and   {'depth_cut_applied': True} = dict(depth_cut_applied=True)"
+        }
+      },
+      "log": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/mutation_r3/M8_r3.log",
+      "description": "Apply the depth-cut bridge with the contract epoch disabled"
+    },
+    "M9": {
+      "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/src_r3/student_pilot/phrases.py",
+      "old": "        if word.endswith('ies') and len(word) > 3:\n            word = word[:-3]+'y'\n        elif",
+      "new": "        if",
+      "command": [
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/work/run_tests_r3.py",
+        "overlay",
+        "MUTATION_M9_R3",
+        "contract",
+        "-x",
+        "-k",
+        "normalizer_exceptions"
+      ],
+      "returncode": 1,
+      "killed": true,
+      "failing_tests": {
+        "tests_r3/test_review_r3.py::test_normalizer_exceptions_and_duplicate_merge": {
+          "outcome": "failed",
+          "when": "call",
+          "detail": "../../../../tests_r3/test_review_r3.py:92: in test_normalizer_exceptions_and_duplicate_merge\n    assert normalize_phrase(raw)==expected\nE   AssertionError: assert 'batterie' == 'battery'\nE     \nE     - battery\nE     ?       ^\nE     + batterie\nE     ?       ^^"
+        }
+      },
+      "log": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/mutation_r3/M9_r3.log",
+      "description": "Remove the ies-to-y normalization rule"
+    },
+    "M10": {
+      "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/src_r3/student_pilot/carrier_c1_routing.py",
+      "old": "delta = self.camera(j)[1] - self.camera(i)[1]",
+      "new": "delta = self.camera(j)[1] - self.camera(1)[1]",
+      "command": [
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/work/run_tests_r3.py",
+        "overlay",
+        "MUTATION_M10_R3",
+        "contract",
+        "-x",
+        "-k",
+        "decode_attacks"
+      ],
+      "returncode": 1,
+      "killed": true,
+      "failing_tests": {
+        "tests_r3/test_review_r3.py::test_decode_attacks_and_move_source_distance": {
+          "outcome": "failed",
+          "when": "call",
+          "detail": "../../../../tests_r3/test_review_r3.py:141: in test_decode_attacks_and_move_source_distance\n    assert f'distance = {expected} m' in texts[0]\nE   AssertionError: assert 'distance = 0.18 m' in 'dx = heading unavailable (frame 2), dy = +0.00 m, dz = heading unavailable (frame 2), distance = 0.28 m'"
+        }
+      },
+      "log": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/mutation_r3/M10_r3.log",
+      "description": "Measure fallback move distance from the reference instead of the source frame"
+    },
+    "M11": {
+      "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/src_r3/trace_format/box_v313.py",
+      "old": "return np.asarray(geometry.cam(k)[1],float)",
+      "new": "return np.asarray(geometry.cam(1)[1],float)",
+      "command": [
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/work/run_tests_r3.py",
+        "overlay",
+        "MUTATION_M11_R3",
+        "contract",
+        "-x",
+        "-k",
+        "camera_gap_uses_named_frame"
+      ],
+      "returncode": 1,
+      "killed": true,
+      "failing_tests": {
+        "tests_r3/test_review_r3.py::test_camera_gap_uses_named_frame": {
+          "outcome": "failed",
+          "when": "call",
+          "detail": "../../../../tests_r3/test_review_r3.py:191: in test_camera_gap_uses_named_frame\n    np.testing.assert_array_equal(camera_centre_f1(geo,k),geo.cam(k)[1])\nE   AssertionError: \nE   Arrays are not equal\nE   \nE   Mismatched elements: 2 / 3 (66.7%)\nE   Max absolute difference among violations: 0.02\nE   Max relative difference among violations: 1.\nE    ACTUAL: array([0., 0., 0.])\nE    DESIRED: array([0.02 , 0.015, 0.   ])"
+        }
+      },
+      "log": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/mutation_r3/M11_r3.log",
+      "description": "Measure camera gap from the reference instead of the named camera"
+    },
+    "M12": {
+      "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/src_r3/student_pilot/s1_routing.py",
+      "old": "refusal = audit_training_contract([row], contract_manifest)[0]\n        if refusal:",
+      "new": "refusal = audit_training_contract([row], contract_manifest)[0]\n        if False:",
+      "command": [
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/work/run_tests_r3.py",
+        "overlay",
+        "MUTATION_M12_R3",
+        "contract",
+        "-x",
+        "-k",
+        "build_defers_one_row"
+      ],
+      "returncode": 1,
+      "killed": true,
+      "failing_tests": {
+        "tests_r3/test_materializer.py::test_build_defers_one_row_and_keeps_clean_row[after_failure-contract_call_after_failed_ground]": {
+          "outcome": "failed",
+          "when": "call",
+          "detail": "../../../../tests_r3/test_materializer.py:78: in test_build_defers_one_row_and_keeps_clean_row\n    assert report['contract_deferred_qids']['contract_manifest_missing']['qids']==['legacy'] + ([case] if expected=='contract_manifest_missing' else [])\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE   KeyError: 'contract_manifest_missing'"
+        }
+      },
+      "log": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/mutation_r3/M12_r3.log",
+      "description": "Skip materializer contract deferral"
+    },
+    "M13": {
+      "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/src_r3/student_pilot/ground_v3.py",
+      "old": "names = getattr(source, 'cache', {}).get('phrases', getattr(source,'names',()))",
+      "new": "names = getattr(source,'names',())",
+      "command": [
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/work/run_tests_r3.py",
+        "overlay",
+        "MUTATION_M13_R3",
+        "contract",
+        "-x",
+        "-k",
+        "cache_binding_separate_reads"
+      ],
+      "returncode": 1,
+      "killed": true,
+      "failing_tests": {
+        "tests_r3/test_review_r3.py::test_cache_binding_separate_reads": {
+          "outcome": "failed",
+          "when": "call",
+          "detail": "../../../../tests_r3/test_review_r3.py:82: in test_cache_binding_separate_reads\n    assert direct.config['candidate_universe']==list(admission_phrases('',[],json.loads(a.read_text())['phrases']))==['couch','table']\nE   AssertionError: assert ['chair'] == ['couch', 'table']\nE     \nE     At index 0 diff: 'chair' != 'couch'\nE     Right contains one more item: 'table'\nE     Use -v to get more diff"
+        }
+      },
+      "log": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/mutation_r3/M13_r3.log",
+      "description": "Use source.names instead of capture cache phrases"
+    },
+    "M14": {
+      "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/src_r3/trace_format/ground_v313.py",
+      "old": "heading_defined=heading_available(geometry))",
+      "new": "heading_defined=heading_available(geometry) or role == 'nearest point')",
+      "command": [
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/work/run_tests_r3.py",
+        "overlay",
+        "MUTATION_M14_R3",
+        "contract",
+        "-x",
+        "-k",
+        "ground_box_count_witness"
+      ],
+      "returncode": 1,
+      "killed": true,
+      "failing_tests": {
+        "tests_r3/test_heading_r2.py::test_ground_box_count_witness_and_keypoints": {
+          "outcome": "failed",
+          "when": "call",
+          "detail": "../../../../tests_r3/test_heading_r2.py:129: in test_ground_box_count_witness_and_keypoints\n    assert gap.count('f1 (heading unavailable,')==2\nE   AssertionError: assert 0 == 2\nE    +  where 0 = <built-in method count of str object at 0x7f175bd8b0f0>('f1 (heading unavailable,')\nE    +    where <built-in method count of str object at 0x7f175bd8b0f0> = '0.89 m\\nP1: chair nearest point cam2 (-0.44, 0.37, 2.06) m; f1 (-0.42, 0.37, 2.07) m\\nP2: table nearest point cam2 (0.45, 0.38, 2.11) m; f1 (0.47, 0.38, 2.12) m'.count"
+        }
+      },
+      "log": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/mutation_r3/M14_r3.log",
+      "description": "Print witness horizontal coordinates without checking heading availability"
+    },
+    "M15": {
+      "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/src_r3/generator/derivgen_v7/derivgen/box_v313.py",
+      "old": "BoxRegistry = epoch_class(BoxRegistry, _runtime.BoxRegistry)\n",
+      "new": "",
+      "command": [
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/work/run_tests_r3.py",
+        "overlay",
+        "MUTATION_M15_R3",
+        "contract",
+        "-x",
+        "-k",
+        "classes_remain_classes"
+      ],
+      "returncode": 1,
+      "killed": true,
+      "failing_tests": {
+        "tests_r3/test_review_r3.py::test_classes_remain_classes": {
+          "outcome": "failed",
+          "when": "call",
+          "detail": "../../../../tests_r3/test_review_r3.py:179: in test_classes_remain_classes\n    if enabled:assert isinstance(registry,RB.BoxRegistry)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE   AssertionError: assert False\nE    +  where False = isinstance(<generator.derivgen_v7.derivgen.box_v313.BoxRegistry object at 0x7f964c3f4e90>, <class 'trace_format.box_v313.BoxRegistry'>)\nE    +    where <class 'trace_format.box_v313.BoxRegistry'> = <module 'trace_format.box_v313' from '/scratch/jjyeung/orch_n30/contracts_rebuild/work/mutation_r3/src/trace_format/box_v313.py'>.BoxRegistry"
+        }
+      },
+      "log": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/mutation_r3/M15_r3.log",
+      "description": "Drop the generator BoxRegistry epoch dispatch"
+    },
+    "M16": {
+      "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/src_r3/student_pilot/carrier_c1_routing.py",
+      "old": "if not recorded and (not heading_available(geometry) or",
+      "new": "if False and (not heading_available(geometry) or",
+      "command": [
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/work/run_tests_r3.py",
+        "overlay",
+        "MUTATION_M16_R3",
+        "contract",
+        "-x",
+        "-k",
+        "training_head_substitution"
+      ],
+      "returncode": 1,
+      "killed": true,
+      "failing_tests": {
+        "tests_r3/test_review_r3.py::test_training_head_substitution_depth": {
+          "outcome": "failed",
+          "when": "call",
+          "detail": "../../../../tests_r3/test_review_r3.py:207: in test_training_head_substitution_depth\n    assert expected in text and len(spans)==1\nE   AssertionError: assert ('P1: cam2 (0.00, 0.00, 2.09) m; f1 (heading unavailable, 0.00, heading unavailable) m; spread 0.00' in '<think>\\n<depth_at frame=2 pts=[[500,500]]><tool_response>P1: cam2 (0.00, 0.00, 2.09) m; f1 (0.02, 0.00, 2.10) m; spread 0.00</tool_response>\\n</think>\\n\\n1')"
+        }
+      },
+      "log": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/mutation_r3/M16_r3.log",
+      "description": "Drop training head-response heading dispatch"
+    },
+    "M17": {
+      "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/src_r3/student_pilot/s1_grounding.py",
+      "old": "batch.get(\"cache_phrases\", row.get(\"candidate_phrases\"))",
+      "new": "None",
+      "command": [
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/work/run_tests_r3.py",
+        "overlay",
+        "MUTATION_M17_R3",
+        "contract",
+        "-x",
+        "-k",
+        "cache_binding_separate_reads"
+      ],
+      "returncode": 1,
+      "killed": true,
+      "failing_tests": {
+        "tests_r3/test_review_r3.py::test_cache_binding_separate_reads": {
+          "outcome": "failed",
+          "when": "call",
+          "detail": "../../../../tests_r3/test_review_r3.py:72: in test_cache_binding_separate_reads\n    backend=build_backend(dict(runtime_row,student_input=inputs,question_type='object_abs_distance'),\n../../../../mutation_r3/src/student_pilot/s1_grounding.py:38: in build_backend\n    return _build_backend(row, batch, artifact_pin, audit_dir, settings)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n../../../../mutation_r3/src/student_pilot/s1_grounding.py:58: in _build_backend\n    raise ValueError('contract_manifest_missing')\nE   ValueError: contract_manifest_missing"
+        }
+      },
+      "log": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/mutation_r3/M17_r3.log",
+      "description": "Drop cache_phrases wiring in build_backend"
+    },
+    "M18": {
+      "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/src_r3/trace_format/ground_v313.py",
+      "old": "heading_defined=heading_available(geometry))",
+      "new": "heading_defined=heading_available(geometry) or role.startswith('instance '))",
+      "command": [
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/work/run_tests_r3.py",
+        "overlay",
+        "MUTATION_M18_R3",
+        "contract",
+        "-x",
+        "-k",
+        "ground_box_count_witness"
+      ],
+      "returncode": 1,
+      "killed": true,
+      "failing_tests": {
+        "tests_r3/test_heading_r2.py::test_ground_box_count_witness_and_keypoints": {
+          "outcome": "failed",
+          "when": "call",
+          "detail": "../../../../tests_r3/test_heading_r2.py:122: in test_ground_box_count_witness_and_keypoints\n    assert 'heading unavailable' in text\nE   AssertionError: assert 'heading unavailable' in 'chair: 1 found\\nP2: chair instance 1 cam2 (-0.64, -0.05, 2.05) m; f1 (-0.62, -0.05, 2.07) m; first 2'"
+        }
+      },
+      "log": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/mutation_r3/M18_r3.log",
+      "description": "Print instance horizontal coordinates without checking heading availability"
+    },
+    "M19": {
+      "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/src_r3/trace_format/contracts.py",
+      "old": "    first = text.splitlines()[0].strip()",
+      "new": "    if 'size unavailable' in text:\n        return 'size unavailable'\n    first = text.splitlines()[0].strip()",
+      "command": [
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/work/run_tests_r3.py",
+        "overlay",
+        "MUTATION_M19_R3",
+        "contract",
+        "-x",
+        "-k",
+        "review_ground_responses"
+      ],
+      "returncode": 1,
+      "killed": true,
+      "failing_tests": {
+        "tests_r3/test_review_r3.py::test_review_ground_responses_and_recovery": {
+          "outcome": "failed",
+          "when": "call",
+          "detail": "../../../../tests_r3/test_review_r3.py:24: in test_review_ground_responses_and_recovery\n    assert response_status(text)=='ok'\nE   AssertionError: assert 'size unavailable' == 'ok'\nE     \nE     - ok\nE     + size unavailable"
+        }
+      },
+      "log": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/mutation_r3/M19_r3.log",
+      "description": "Treat a served point with missing size as failed"
+    },
+    "M20": {
+      "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/src_r3/trace_format/contracts.py",
+      "old": "    return EpochMeta(sealed.__name__, (), {'__module__': sealed.__module__})",
+      "new": "    return lambda *a, **kw: (current if new_contracts() else sealed)(*a, **kw)",
+      "command": [
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/work/run_tests_r3.py",
+        "overlay",
+        "MUTATION_M20_R3",
+        "contract",
+        "-x",
+        "-k",
+        "classes_remain_classes"
+      ],
+      "returncode": 1,
+      "killed": true,
+      "failing_tests": {
+        "tests_r3/test_review_r3.py::test_classes_remain_classes": {
+          "outcome": "failed",
+          "when": "call",
+          "detail": "../../../../tests_r3/test_review_r3.py:177: in test_classes_remain_classes\n    assert isinstance(cls,type)\nE   assert False\nE    +  where False = isinstance(<function epoch_class.<locals>.<lambda> at 0x7fd69efa4040>, type)"
+        }
+      },
+      "log": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/mutation_r3/M20_r3.log",
+      "description": "Turn dispatched generator classes into functions"
+    },
+    "M21": {
+      "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/src_r3/student_pilot/training_contract.py",
+      "old": "(manifest is not None or cache_reader)",
+      "new": "(manifest is not None)",
+      "command": [
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/work/run_tests_r3.py",
+        "overlay",
+        "MUTATION_M21_R3",
+        "contract",
+        "-x",
+        "-k",
+        "cache_binding_separate_reads"
+      ],
+      "returncode": 1,
+      "killed": true,
+      "failing_tests": {
+        "tests_r3/test_review_r3.py::test_cache_binding_separate_reads": {
+          "outcome": "failed",
+          "when": "call",
+          "detail": "../../../../tests_r3/test_review_r3.py:64: in test_cache_binding_separate_reads\n    assert audit_training_contract([row])==['contract_manifest_missing']\nE   AssertionError: assert [None] == ['contract_manifest_missing']\nE     \nE     At index 0 diff: None != 'contract_manifest_missing'\nE     Use -v to get more diff"
+        }
+      },
+      "log": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/mutation_r3/M21_r3.log",
+      "description": "Admit cache-backed named grounds without a phrase manifest"
+    },
+    "M22": {
+      "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/src_r3/student_pilot/carrier_c1_routing.py",
+      "old": "if not heading_available(self, k):",
+      "new": "if False:",
+      "command": [
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/work/run_tests_r3.py",
+        "overlay",
+        "MUTATION_M22_R3",
+        "contract",
+        "-x",
+        "-k",
+        "decode_attacks"
+      ],
+      "returncode": 1,
+      "killed": true,
+      "failing_tests": {
+        "tests_r3/test_review_r3.py::test_decode_attacks_and_move_source_distance": {
+          "outcome": "failed",
+          "when": "call",
+          "detail": "../../../../tests_r3/test_review_r3.py:138: in test_decode_attacks_and_move_source_distance\n    assert 'f1 centre (heading unavailable,' in texts[2]\nE   AssertionError: assert 'f1 centre (heading unavailable,' in 'f1 centre (0.10, 0.00, 0.05) m, yaw 0 deg'"
+        }
+      },
+      "log": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/mutation_r3/M22_r3.log",
+      "description": "Ignore the queried pose frame heading"
+    },
+    "M23": {
+      "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/src_r3/trace_format/calculator.py",
+      "old": "        return _json({\"api_version\": API_VERSION",
+      "new": "        if op in ('angle', 'turn') and any(not points[p].get('heading_defined', True) for p in refs):\n            text = 'heading unavailable'\n        return _json({\"api_version\": API_VERSION",
+      "command": [
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/work/run_tests_r3.py",
+        "overlay",
+        "MUTATION_M23_R3",
+        "contract",
+        "-x",
+        "-k",
+        "calculator_field_scope"
+      ],
+      "returncode": 1,
+      "killed": true,
+      "failing_tests": {
+        "tests_r3/test_heading_r2.py::test_calculator_field_scope_and_shared_implementation": {
+          "outcome": "failed",
+          "when": "call",
+          "detail": "../../../../tests_r3/test_heading_r2.py:109: in test_calculator_field_scope_and_shared_implementation\n    assert x==y\nE   AssertionError: assert 'u (1.00, 0.4... 54 deg; left' == 'heading unavailable'\nE     \nE     - heading unavailable\nE     + u (1.00, 0.40); v (0.30, 1.20); dot 0.7800; cross 1.0800; theta 54 deg; left"
+        }
+      },
+      "log": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/mutation_r3/M23_r3.log",
+      "description": "Gate calculator responses on point heading availability"
+    },
+    "M24": {
+      "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/src_r3/student_pilot/training_contract.py",
+      "old": "        except Exception:\n            verdicts.append('contract_malformed_row')",
+      "new": "        except Exception:\n            raise",
+      "command": [
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/work/run_tests_r3.py",
+        "overlay",
+        "MUTATION_M24_R3",
+        "contract",
+        "-x",
+        "-k",
+        "malformed_rows_defer"
+      ],
+      "returncode": 1,
+      "killed": true,
+      "failing_tests": {
+        "tests_r3/test_review_r3.py::test_malformed_rows_defer[None]": {
+          "outcome": "failed",
+          "when": "call",
+          "detail": "../../../../tests_r3/test_review_r3.py:37: in test_malformed_rows_defer\n    assert audit_training_contract([damage])==['contract_malformed_row']\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n../../../../mutation_r3/src/student_pilot/training_contract.py:118: in audit_training_contract\n    raise TypeError('row')\nE   TypeError: row"
+        }
+      },
+      "log": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/mutation_r3/M24_r3.log",
+      "description": "Raise on malformed training records"
+    },
+    "M25": {
+      "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/src_r3/student_pilot/phrases.py",
+      "old": "merged['instances'] = [instances[k] for k in sorted(instances)]",
+      "new": "merged['instances'] = entries[0].get('instances', [])",
+      "command": [
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "/scratch/jjyeung/orch_n30/contracts_rebuild/work/run_tests_r3.py",
+        "overlay",
+        "MUTATION_M25_R3",
+        "contract",
+        "-x",
+        "-k",
+        "normalizer_exceptions"
+      ],
+      "returncode": 1,
+      "killed": true,
+      "failing_tests": {
+        "tests_r3/test_review_r3.py::test_normalizer_exceptions_and_duplicate_merge": {
+          "outcome": "failed",
+          "when": "call",
+          "detail": "../../../../tests_r3/test_review_r3.py:99: in test_normalizer_exceptions_and_duplicate_merge\n    assert cache==other and len(cache['frames']['0']['phrases']['chair']['instances'])==2\nE   AssertionError: assert ({'frames': {'...s': ['chair']} == {'frames': {'...s': ['chair']}\nE     \nE     Omitting 2 identical items, use -vv to show\nE     Use -v to get more diff and 1 == 2)\nE    +  where 1 = len([{'mask': 'b', 'score': 0.9}])"
+        }
+      },
+      "log": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/mutation_r3/M25_r3.log",
+      "description": "Discard one alias record while merging cache phrases"
+    }
+  },
+  "reviewed_count": 18,
+  "new_count": 7,
+  "killed": 25,
+  "baseline_suite": "/scratch/jjyeung/orch_n30/contracts_rebuild/out/FINAL_TEST_RESULTS_R3.json"
+}

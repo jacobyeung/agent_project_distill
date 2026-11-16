@@ -1,0 +1,100 @@
+--- /scratch/jjyeung/orch_n30/contracts_rebuild/work/row_families_r5/heading_compare.py	2026-11-15 20:22:50.376256924 -0500
++++ /scratch/jjyeung/orch_n30/contracts_rebuild/work/row_families_r6/heading_compare.py	2026-11-15 21:36:42.610697084 -0500
+@@ -34,14 +34,11 @@
+ 
+ 
+ def row_texts_valid(old,new):
+-    """Validate all changed strings, plus dependent span and token accounting."""
+-    if isinstance(old,str) and isinstance(new,str):return old==new or heading_text(old,new)
+-    if isinstance(old,dict) and isinstance(new,dict):
+-        for key in set(old)&set(new):
+-            # Numerical private geometry and derived positions are checked by the
+-            # caller; this walk establishes that no served string changed values.
+-            if not row_texts_valid(old[key],new[key]):return False
+-    elif isinstance(old,list) and isinstance(new,list):
+-        if len(old)!=len(new):return False
+-        return all(row_texts_valid(a,b) for a,b in zip(old,new))
+-    return True
++    """Reject structural or scalar changes; allow only exact heading text substitutions."""
++    if type(old) is not type(new):return False
++    if isinstance(old,str):return old==new or heading_text(old,new)
++    if isinstance(old,dict):
++        return old.keys()==new.keys() and all(row_texts_valid(old[k],new[k]) for k in old)
++    if isinstance(old,list):
++        return len(old)==len(new) and all(row_texts_valid(a,b) for a,b in zip(old,new))
++    return old==new
+--- /scratch/jjyeung/orch_n30/contracts_rebuild/work/row_families_r5/compare.py	2026-11-15 20:22:50.690255056 -0500
++++ /scratch/jjyeung/orch_n30/contracts_rebuild/work/row_families_r6/compare.py	2026-11-15 21:41:31.818967158 -0500
+@@ -5,7 +5,7 @@
+ from collections import Counter,defaultdict
+ from pathlib import Path
+ L=Path(__file__).resolve().parents[2];W=Path(__file__).resolve().parent
+-sys.path.insert(0,str(L/'work/trees/r5_applied'))
++sys.path.insert(0,str(L/'work/trees/r6_applied'))
+ from trace_format.contracts import contract_epoch
+ from student_pilot.training_contract import audit_training_contract
+ ap=argparse.ArgumentParser();ap.add_argument('--output',default='comparison.json');a=ap.parse_args()
+@@ -18,7 +18,7 @@
+             for r in other:r['artifact_source']=str(extra)
+             data['results'].extend(other)
+ index={arm:{(r['family'],r['variant']):r for r in data['results']} for arm,data in arms.items()}
+-manifest=json.loads((L/'out/PATCH_MANIFEST_R5.json').read_text())
++manifest=json.loads((L/'out/PATCH_MANIFEST_R6.json').read_text())
+ changed=set(manifest['files'])
+ def encoded(x):return json.dumps(x,ensure_ascii=False,separators=(',',':'),allow_nan=False).encode()
+ def diffs(x,y,path=''):
+@@ -36,12 +36,12 @@
+     return [] if x==y else [(path,x,y)]
+ 
+ reasons={
+- 'heading_fields_withheld':'out/CONTRACTS_REPORT_R5.md',
+- 'metric_only_boxes':'out/CONTRACTS_REPORT_R5.md',
+- 'mdg_bridge':'out/CONTRACTS_REPORT_R5.md',
+- 'normalized_phrases':'out/CONTRACTS_REPORT_R5.md',
+- 'open_vocabulary_names':'out/PATCH_MANIFEST_R5.json',
+- 'statuses':'out/CONTRACTS_REPORT_R5.md',
++ 'heading_fields_withheld':'out/CONTRACTS_REPORT_R6.md',
++ 'metric_only_boxes':'out/CONTRACTS_REPORT_R6.md',
++ 'mdg_bridge':'out/CONTRACTS_REPORT_R6.md',
++ 'normalized_phrases':'out/CONTRACTS_REPORT_R6.md',
++ 'open_vocabulary_names':'out/PATCH_MANIFEST_R6.json',
++ 'statuses':'out/CONTRACTS_REPORT_R6.md',
+ }
+ def mapping(family,variant,path,old,new):
+     # This is a conservative first-pass classification. Unmapped changes remain
+@@ -90,12 +90,33 @@
+             unbound=audit_training_contract([row])[0]
+             verdict=audit_training_contract([row],manifest=binding)[0]
+         outcome['audit']=dict(verdict='admitted' if verdict is None else 'deferred',reason=verdict,unbound_verdict='admitted' if unbound is None else 'deferred',unbound_reason=unbound,
+-            candidate_binding_source=str(W/'candidate_bindings.json'),source_path=str(L/'work/trees/r5_applied/student_pilot/training_contract.py'))
++            candidate_binding_source=str(W/'candidate_bindings.json'),source_path=str(L/'work/trees/r6_applied/student_pilot/training_contract.py'))
+         # Also audit the exact base row under the ON rules to distinguish existing
+         # format incompatibility from a new rendering regression.
+         if valid(b):
+             with contract_epoch(True):outcome['base_row_under_on_audit']=audit_training_contract([b['row']],manifest={str(b['row'].get('qid')):names})[0]
+-    current_texts_valid = valid(b) and valid(n) and row_texts_valid(b['row'],n['row'])
++    current_texts_valid = False
++    if valid(b) and valid(n):
++        # First validate known audit payload and derived accounting changes.
++        # Then require exact key sets, leaf types and scalar values in the
++        # remaining row, allowing only heading substitutions in its strings.
++        current_texts_valid = True
++        def normalize(old, new, path=''):
++            if type(old) is type(new) and isinstance(old, dict):
++                extra = set(new) - set(old)
++                for key in extra:
++                    reason = mapping(family, variant, path+'/'+key, {'missing': True}, new[key])
++                    if reason not in ('metric_only_boxes', 'mdg_bridge', 'normalized_phrases'):
++                        return new
++                if set(old) - set(new):return new
++                return {key: normalize(old[key],new[key],path+'/'+key) for key in old}
++            if type(old) is type(new) and isinstance(old, list) and len(old)==len(new):
++                return [normalize(a,b,path+'/'+str(i)) for i,(a,b) in enumerate(zip(old,new))]
++            if isinstance(old,str) and isinstance(new,str):return new
++            reason = mapping(family, variant, path, old, new)
++            return old if reason is not None else new
++        checked = normalize(b['row'], n['row'])
++        current_texts_valid = row_texts_valid(b['row'], checked)
+     if valid(b) and valid(n):
+         for path,old,new in diffs(b['row'],n['row']):
+             reason=mapping(family,variant,path,old,new)

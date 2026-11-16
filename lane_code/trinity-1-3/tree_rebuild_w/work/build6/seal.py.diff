@@ -1,0 +1,11 @@
+--- build5/seal.py
++++ build6/seal.py
+@@ -23,7 +23,7 @@
+         continue
+     if old!=new:parts.extend(difflib.unified_diff(old,new,fromfile='a/'+name,tofile='b/'+name))
+ (L/'out/TREE.diff').write_text(''.join(parts))
+-seal=dict(schema='build5-tree-seal-v1',tree_sha256=digest(files),files=files,
++seal=dict(schema='build6-tree-seal-v1',tree_sha256=digest(files),files=files,
+     inventory_sha256=hashlib.sha256((L/'out/TREE_FILES.sha256').read_bytes()).hexdigest(),
+     diff_sha256=hashlib.sha256((L/'out/TREE.diff').read_bytes()).hexdigest(),
+     base=str(base.relative_to(L)),status='NOT READY FOR PRODUCTION',production_authorized=False)

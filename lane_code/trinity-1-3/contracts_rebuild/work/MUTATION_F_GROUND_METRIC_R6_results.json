@@ -1,0 +1,7 @@
+{
+  "tests_r6/test_confirmation_r5.py::test_grounded_calculator_metric_basis_and_generator_parity": {
+    "outcome": "failed",
+    "when": "call",
+    "detail": "../../../tests_r6/test_confirmation_r5.py:70: in test_grounded_calculator_metric_basis_and_generator_parity\n    assert registry.register(**kw)['line']==generated.register(**kw)['line']\n           ^^^^^^^^^^^^^^^^^^^^^^^\ntrace_format/calculator.py:62: in call\n    return function(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^\ntrace_format/calculator.py:174: in register\n    cam, point, reliability = _vector(camera), _vector(f1), _number(spread)\n                                               ^^^^^^^^^^^\ntrace_format/calculator.py:85: in _vector\n    return tuple(_number(v) for v in x)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntrace_format/calculator.py:85: in <genexpr>\n    return tuple(_number(v) for v in x)\n                 ^^^^^^^^^^\ntrace_format/calculator.py:77: in _number\n    _require(d == _q(d), \"unrounded_printed_number\")\ntrace_format/calculator.py:52: in _require\n    raise CalculatorError(reason)\nE   trace_format.calculator.CalculatorError: unrounded_printed_number"
+  }
+}

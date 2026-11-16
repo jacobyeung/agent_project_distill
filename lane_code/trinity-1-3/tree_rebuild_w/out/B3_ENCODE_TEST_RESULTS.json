@@ -1,0 +1,21 @@
+{
+  "tests": 1,
+  "failures": [],
+  "errors": [
+    [
+      "test_native_prepare_and_every_rank_encode (tests.test_r2_build3.Build3.test_native_prepare_and_every_rank_encode)",
+      "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild/work/tree_r1/tests/test_r2_build3.py\", line 60, in test_native_prepare_and_every_rank_encode\n    first = R.first_batch_check(cfg,range(4),root/'first.json',encode_only=True)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild/work/tree_r1/student_pilot/carrier_c1_run.py\", line 2971, in first_batch_check\n    return encode_plan_rows(receipt, processor_for_receipt(manifest, receipt), plans, ranks, out_path)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild/work/tree_r1/student_pilot/carrier_c1_run.py\", line 2938, in encode_plan_rows\n    batch, _, _ = rows.get(stream, int(indices[rank]))\n                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild/work/tree_r1/student_pilot/carrier_c1_run.py\", line 1065, in get\n    batch, targets, audit = data.encode(self.processor, row, target, stream, self.placement, self.mode, **options)\n                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild/work/tree_r1/student_pilot/carrier_c1_data.py\", line 435, in encode\n    encode_layout_row(processor, row, frame_layout, frame_pair_gap_seconds, **options))\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild/work/tree_r1/student_pilot/carrier_c1_data.py\", line 185, in encode_layout_row\n    arrays = augment(arrays, row['pose_sample']['augment'])\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild/work/tree_r1/student_pilot/pose_samples.py\", line 154, in augment\n    from torchvision.transforms.v2 import functional as TF\nModuleNotFoundError: No module named 'torchvision'\n"
+    ]
+  ],
+  "skipped": [],
+  "records": [
+    {
+      "test": "tests.test_r2_build3.Build3.test_native_prepare_and_every_rank_encode",
+      "tmp_before": 74165012,
+      "tmp_after": 74383784,
+      "seconds": 31.20374404801987
+    }
+  ],
+  "tmp_bytes": 74383784,
+  "lane_bytes": 458779398
+}

@@ -1,0 +1,9 @@
+--- build5/compact_tmp.py
++++ build6/compact_tmp.py
+@@ -44,5 +44,5 @@
+ if __name__=='__main__':
+     L=Path(__file__).resolve().parents[2]
+     rows=compact(L/'work/tmp')
+-    (L/'work/build5/TMP_COMPACTION.json').write_text(json.dumps(rows,indent=2)+'\n')
++    (L/'work/build6/TMP_COMPACTION.json').write_text(json.dumps(rows,indent=2)+'\n')
+     print(json.dumps(dict(overwritten=len(rows),original_bytes=sum(r['bytes'] for r in rows))))

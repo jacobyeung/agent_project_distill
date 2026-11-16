@@ -1,0 +1,22 @@
+{
+  "mode": "PLUMBING \u2014 not model scores",
+  "tests_run": 49,
+  "failures": [
+    {
+      "test": "test_full_fixture_cli (test_native_vs_direct.IntegrationTests.test_full_fixture_cli)",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/review_an2/run/work/my_mutants/R3_signature_interval_only/out/tests/test_native_vs_direct.py\", line 402, in test_full_fixture_cli\n    self.assertEqual(completed.returncode,0,completed.stderr)\nAssertionError: 2 != 0 : REFUSED: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/builds/01_c8/work/rh_full_01/runs/c80000002/native/R1.json'\n\n"
+    },
+    {
+      "test": "test_real_pilot_cli (test_native_vs_direct.IntegrationTests.test_real_pilot_cli)",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/review_an2/run/work/my_mutants/R3_signature_interval_only/out/tests/test_native_vs_direct.py\", line 425, in test_real_pilot_cli\n    self.assertTrue((PILOT/'PILOT_CHECK.json').exists(),'Verified real pilot test has not run')\nAssertionError: False is not true : Verified real pilot test has not run\n"
+    },
+    {
+      "test": "test_capped_sign_change_flagged_per_type_and_group (test_native_vs_direct.SyntheticTests.test_capped_sign_change_flagged_per_type_and_group)",
+      "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/review_an2/run/work/my_mutants/R3_signature_interval_only/out/tests/test_native_vs_direct.py\", line 323, in test_capped_sign_change_flagged_per_type_and_group\n    self.assertEqual(result['claims'][group]['unflagged']['claim'], 'unresolved under the capped rule')\nAssertionError: 'paired comparison; see interval and caveats' != 'unresolved under the capped rule'\n- paired comparison; see interval and caveats\n+ unresolved under the capped rule\n\n"
+    }
+  ],
+  "errors": [],
+  "skipped": [],
+  "successful": false,
+  "test_source": "/scratch/jjyeung/orch_n30/review_an2/run/work/my_mutants/R3_signature_interval_only/out/tests/test_native_vs_direct.py"
+}

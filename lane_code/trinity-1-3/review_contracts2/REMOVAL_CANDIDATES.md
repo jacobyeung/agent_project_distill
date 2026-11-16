@@ -1,0 +1,1 @@
+- work/mut/ (34 mutant tree copies, ~350 MB) and work/tmp/ : scratch from review_contracts2 mutation and attack runs; safe to remove after the r4 verdict is consumed.

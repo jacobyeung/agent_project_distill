@@ -1,0 +1,1094 @@
+--- a/trace_format/contracts.py
++++ b/trace_format/contracts.py
+@@ -0,0 +1,109 @@
++"""Epoch selection and public failure grammar shared by serving and row rendering."""
++from contextlib import contextmanager
++from contextvars import ContextVar
++import re
++import math
++
++_epoch = ContextVar('contract_epoch', default=True)
++HEADING_PLANE_MIN_DEFAULT = 0.3
++_UNSET = object()
++_heading_plane_min = ContextVar('heading_plane_min', default=HEADING_PLANE_MIN_DEFAULT)
++
++
++def heading_plane_min(value=_UNSET):
++    """Read or validate the configuration-bound heading threshold."""
++    value = _heading_plane_min.get() if value is _UNSET else value
++    if type(value) not in (int, float) or not math.isfinite(value) or not 0 < value < 1:
++        raise ValueError('heading_plane_min_must_be_finite_in_open_interval_0_1')
++    return float(value)
++
++
++def contract_identity():
++    return dict(contract_epoch=True, heading_plane_min=heading_plane_min()) if new_contracts() else {}
++
++RUNTIME_STATUSES = ('unresolved', 'not seen', 'box unavailable', 'heading unavailable',
++                    'frame unavailable', 'size unavailable', 'unavailable')
++
++
++def new_contracts():
++    return _epoch.get()
++
++
++@contextmanager
++def contract_epoch(enabled=True, *, heading_plane_min=_UNSET):
++    if type(enabled) is not bool:
++        raise ValueError('contract_epoch_must_be_boolean')
++    threshold = globals()['heading_plane_min'](heading_plane_min)
++    heading_token = _heading_plane_min.set(threshold)
++    token = _epoch.set(enabled)
++    try:
++        yield
++    finally:
++        _epoch.reset(token)
++        _heading_plane_min.reset(heading_token)
++
++
++def geometry_mode(session):
++    mode = getattr(session, 'geometry_mode', 'sensor')
++    if mode not in ('sensor', 'predicted'):
++        raise ValueError('unknown_geometry_mode')
++    return mode
++
++
++def response_status(text):
++    if not isinstance(text, str) or not text.strip():
++        return 'missing response'
++    text = text.strip().removeprefix('<tool_response>').removesuffix('</tool_response>').strip()
++    if not text:
++        return 'missing response'
++    first = text.splitlines()[0].strip()
++    body = first.split(': ', 1)[1] if ': ' in first and not first.lower().startswith('error:') else first
++    if body.lower().startswith('error:'):
++        return 'error'
++    if body == 'heading unavailable' and any(
++            line.startswith(('size ', 'distance ', 'count ')) and 'unavailable' not in line
++            for line in text.splitlines()[1:]):
++        return 'ok'
++    return body if body in RUNTIME_STATUSES else 'ok'
++
++
++def status_text(status, name=None):
++    if status not in RUNTIME_STATUSES:
++        raise ValueError('unknown_runtime_status')
++    return (name + ': ' if name else '') + status
++
++
++def heading_available(geometry, frame=1):
++    if not new_contracts():
++        return True
++    import numpy as np
++    threshold = heading_plane_min()
++    if getattr(geometry, 'down', None) is not None:
++        down = np.asarray(geometry.down, float)
++        down = down / np.linalg.norm(down)
++        rotation = np.eye(3) if frame == 1 else geometry.camera(frame)[0]
++        return bool(np.linalg.norm((np.asarray(rotation).T @ down)[:2]) >= threshold)
++    if geometry is None or not hasattr(geometry, 'cam'):
++        return True
++    return bool(np.linalg.norm(np.asarray(geometry.cam(frame)[0])[2, :2]) >= threshold)
++
++
++def partial_f1(values, number):
++    """The public level frame has y up; only its horizontal components need heading."""
++    return '(heading unavailable, '+number(values[1])+', heading unavailable)'
++
++
++def epoch_class(sealed, current):
++    """Keep a subclassable class while choosing the implementation at construction."""
++    implementations = {}
++    class EpochMeta(type):
++        def __getattr__(cls, name):
++            return getattr(current if new_contracts() else sealed, name)
++
++        def __call__(cls, *args, **kwargs):
++            key = (cls, new_contracts())
++            if key not in implementations:
++                base = current if key[1] else sealed
++                implementations[key] = type(cls.__name__, (cls, base), {'__module__': cls.__module__})
++            return type.__call__(implementations[key], *args, **kwargs)
++    return EpochMeta(sealed.__name__, (), {'__module__': sealed.__module__})
+--- a/student_pilot/geometry_profiles.py
++++ b/student_pilot/geometry_profiles.py
+@@ -9,10 +9,28 @@
+ import math
+ import numpy as np
+ from .scene_state import FrameMap, digest
++from trace_format.contracts import new_contracts
+ 
+ 
+ class GeometryError(ValueError):
+     pass
++
++
++UP_PLANE_MIN = .3
++
++
++def validate_up_convention(rotations):
++    """Ignore ill-conditioned roll signs; retain upright-convention refusals."""
++    R = np.asarray(rotations, float)
++    plane = np.linalg.norm(R[:, 2, :2], axis=1)
++    margin = -R[:, 2, 1]
++    if plane[0] >= UP_PLANE_MIN:
++        invalid = margin[0] <= 0
++    else:
++        usable = plane >= UP_PLANE_MIN
++        invalid = usable.any() and np.median(margin[usable] / plane[usable]) <= 0
++    if invalid:
++        raise GeometryError('reference_camera_up_opposes_gravity')
+ 
+ 
+ PROFILES = {
+@@ -93,7 +111,9 @@
+         if (not np.allclose(R @ R.transpose(0, 2, 1), np.eye(3), atol=1e-6)
+                 or not np.allclose(np.linalg.det(R), 1., atol=1e-6)):
+             raise GeometryError('camera_rotation_not_proper')
+-        if -R[0, 2, 1] <= 0:
++        if new_contracts():
++            validate_up_convention(R)
++        elif -R[0, 2, 1] <= 0:
+             raise GeometryError('reference_camera_up_opposes_gravity')
+         return self
+ 
+--- a/student_pilot/ground_lifting.py
++++ b/student_pilot/ground_lifting.py
+@@ -5,6 +5,7 @@
+ artifact paths, learned parameters or harness imports enter this module.
+ """
+ import math
++from trace_format.contracts import heading_available, status_text
+ 
+ VERSION = "3.12.2"
+ from trace_format.program_errors import ProgramRefusal
+@@ -60,8 +61,10 @@
+     return np.array([*best[1], max(z1 - z0, .02)])
+ 
+ 
+-def public_centres(geometry, frame, centre):
++def public_centres(geometry, frame, centre, *, metric_only=False):
+     """Transform one W centroid into camera y-up and camera-1's level frame."""
++    if not metric_only and not heading_available(geometry):
++        raise ValueError('heading unavailable')
+     R, t = (np.asarray(x, dtype=np.float64) for x in geometry.cam(frame))
+     R1, t1 = (np.asarray(x, dtype=np.float64) for x in geometry.cam(1))
+     if (R.shape != (3, 3) or R1.shape != (3, 3) or t.shape != (3,) or t1.shape != (3,)
+@@ -71,7 +74,10 @@
+     heading = R1[:, 2].copy()
+     heading -= (heading @ up) * up
+     if np.linalg.norm(heading) < 1e-6:
+-        raise ValueError('Undefined level basis')
++        if not metric_only:
++            raise ValueError('Undefined level basis')
++        camera = (R.T @ (centre - t)) * [1, -1, 1]
++        return camera, (centre - t1)[[0, 2, 1]]
+     heading /= np.linalg.norm(heading)
+     right = np.cross(heading, up)
+     camera = (R.T @ (centre - t)) * [1, -1, 1]
+@@ -151,7 +157,11 @@
+     P = np.asarray(result['points'][str(best)])
+     try:
+         centre = np.median(P, axis=0)
+-        camera, f1 = public_centres(geometry, best, centre)
++        if heading_available(geometry):
++            camera, f1 = public_centres(geometry, best, centre)
++        else:
++            camera, f1 = public_centres(geometry, best, centre, metric_only=True)
++            result['heading_unavailable'] = True
+     except (ValueError, FloatingPointError):
+         return result
+     try:
+@@ -161,7 +171,7 @@
+     except (ValueError, FloatingPointError):
+         size = None
+     result.update(seen=True, best=best, prob=float(prob[best - 1]), camera=camera.tolist(),
+-                  f1=f1.tolist(), size=size, spread=spreads[best])
++                  f1=None if f1 is None else f1.tolist(), size=size, spread=spreads[best])
+     return result
+ 
+ 
+@@ -172,7 +182,8 @@
+     rounded = lambda xs: [number(x) for x in xs]
+     point = registry.register(camera=list(map(float, rounded(result['camera']))),
+                               f1=list(map(float, rounded(result['f1']))),
+-                              spread=float(number(result['spread'])), requested_frame=result['best'])
++                              spread=float(number(result['spread'])), requested_frame=result['best'],
++                              heading_defined=not result.get('heading_unavailable', False))
+     frames = ','.join(map(str, result['frames']))
+     size = 'size unavailable' if result['size'] is None else 'size ' + ' x '.join(rounded(result['size'])) + ' m'
+     return (f"{result['name']}: frames {frames} (best {result['best']})\n"
+@@ -230,7 +241,8 @@
+     def cam(self, frame):
+         if self.geometry is None:
+             raise ValueError('Coordinate basis unavailable')
+-        p = self.geometry.pose(frame)
++        from trace_format.contracts import new_contracts
++        p = self.geometry.camera_pose(frame) if new_contracts() else self.geometry.pose(frame)
+         return p['camera_R_L1'][[0, 2, 1]], p['camera_t_L1'][[0, 2, 1]]
+ 
+     def fov_of(self, frame):
+--- a/trace_format/box_v313.py
++++ b/trace_format/box_v313.py
+@@ -4,6 +4,7 @@
+ import numpy as np
+ from scipy.spatial.distance import cdist
+ from . import ground_v312 as old
++from .contracts import RUNTIME_STATUSES, heading_available, status_text, response_status
+ 
+ RULE = 'sampled_box_512'
+ # v3.14: the benchmark's own sampler (5 cm grid over each full box minus its inner half box), minimum over all
+@@ -170,7 +171,9 @@
+     if len(lines) != 1 + 4 * n:
+         raise ValueError('malformed_multi_instance_box')
+     blocks = ['\n'.join(lines[1 + 4 * i:5 + 4 * i]) for i in range(n)]
+-    if any(parse(b)['name'] != m[1] for b in blocks):
++    observations = [b.replace('heading unavailable', '0.00').replace(
++        'yaw 0.00', 'yaw 0 deg (0 = +x; positive +x toward -z about +y)') for b in blocks]
++    if any(parse(b)['name'] != m[1] for b in observations):
+         raise ValueError('box_name_mismatch')
+     return blocks
+ 
+@@ -214,6 +217,16 @@
+         self.states[records[0]['name']]='ok'
+         return records[0] if len(records) == 1 else records
+ 
++    def ingest_metric(self, name, values, gaps, metadata):
++        labels = []
++        for value, gap, meta in zip(values, gaps, metadata):
++            label = f'B{len(self.records)+1}'
++            self.records[label] = dict(name=name, label=label, value=box(**value),
++                gap_value=box(**gap), **meta)
++            labels.append(label)
++        self.bindings[name] = labels
++        self.states[name] = 'ok'
++
+     def audit_labels(self, name):
+         labels = self.bindings.get(name)
+         return labels if labels is None or len(labels) > 1 else labels[0]
+@@ -224,7 +237,7 @@
+         if not bs or len(set(names)) != len(names):
+             raise old.RowRefusal('duplicate_gap_operand')
+         states=[self.states.get(n,'not seen') for n in names]
+-        for status in ('unresolved','not seen','box unavailable'):
++        for status in RUNTIME_STATUSES:
+             if status in states:return status, []
+         if rule not in RULES:
+             raise ValueError('unknown_distance_rule')
+@@ -249,7 +262,7 @@
+     if not names or len(set(names)) != len(names):
+         raise old.RowRefusal('duplicate_gap_operand')
+     states=[registry.states.get(n,'not seen') for n in names]
+-    for status in ('unresolved','not seen','box unavailable'):
++    for status in RUNTIME_STATUSES:
+         if status in states:return status, []
+     values=[]
+     for n in names:
+@@ -268,6 +281,9 @@
+ 
+ def camera_centre_f1(geometry, k):
+     """Camera centre of frame k in f1 (the frame of every printed box)."""
++    if not heading_available(geometry):
++        # Private metric operands stay in the existing world frame; none are printed.
++        return np.asarray(geometry.cam(k)[1],float)
+     R,t=(np.asarray(v,float) for v in geometry.cam(1))
+     up=np.array([0.,0.,1.]);heading=R[:,2]-R[2,2]*up
+     if np.linalg.norm(heading)<1e-6:raise ValueError('undefined_level_basis')
+@@ -306,8 +322,11 @@
+             raise ValueError('invalid_response_wrapper')
+         body=response[len('<tool_response>\n'):-len('\n</tool_response>')]
+         if (m:=GROUND.fullmatch(call)):
+-            failure=re.fullmatch(re.escape(m[1])+r': (not seen|unresolved|box unavailable)',body)
+-            if failure:registry.invalidate(m[1],failure[1])
++            failure=re.fullmatch(re.escape(m[1])+r': ('+'|'.join(map(re.escape,RUNTIME_STATUSES))+')',body)
++            if event['audit'].get('metric_only'):
++                audit = event['audit']
++                registry.ingest_metric(m[1], audit['metric_values'], audit['metric_gaps'], audit['metric_metadata'])
++            elif failure:registry.invalidate(m[1],failure[1])
+             else:
+                 audit=event['audit']
+                 if not audit.get('box_provider') or audit.get('numpy_version') != np.__version__:
+@@ -369,8 +388,8 @@
+     def emit(call):
+         body=session.execute(call);lines.extend([call,old.wrap(body)]);return body
+     for name in names:
+-        emit(f'<ground obj="{old.valid_name(name)}" mode="box">')
+-        if session.box_registry.states[name]!='ok':failure=(name,session.box_registry.states[name]);break
++        body=emit(f'<ground obj="{old.valid_name(name)}" mode="box">')
++        if session.box_registry.states.get(name)!='ok':failure=(name,response_status(body));break
+     if not failure:
+         emit(f'<gap camera="{k}"'+''.join(f' b="{n}"' for n in names)+' rule="box_grid_5cm">')
+         values=replay_audit(session.events)
+@@ -402,6 +421,8 @@
+ 
+ 
+ def in_f1(geometry, centre, lengths, axes):
++    if not heading_available(geometry):
++        return box(centre, lengths, np.asarray(axes).reshape(3,3))
+     R,t=(np.asarray(v,float) for v in geometry.cam(1))
+     up=np.array([0.,0.,1.]);heading=R[:,2]-R[2,2]*up
+     if np.linalg.norm(heading)<1e-6:raise ValueError('undefined_level_basis')
+@@ -523,6 +544,7 @@
+         session.box_registry.invalidate(name,status)
+         return name+': '+status
+     blocks,values,gaps,tags,metadata=[],[],[],[],[]
++    metric_only = not heading_available(session.geometry)
+     gap_box=getattr(session.box_provider,'gap_box',None)
+     try:
+         for obj in entries:
+@@ -538,7 +560,7 @@
+             if value is None:
+                 if multi:continue
+                 raise ValueError('provider_unavailable')
+-            if session.spec_version == '3.13':
++            if session.spec_version == '3.13' and not metric_only:
+                 axes = box(**value)['axes']
+                 vertical = int(np.argmax(np.abs(axes[:, 1])))
+                 horizontal = [i for i in range(3) if i != vertical]
+@@ -550,12 +572,34 @@
+                 g=gap_box(name,obj,session.geometry,best)
+                 if g is not None:gvalue,tag=g,'best_view'
+             label=f'B{len(session.box_registry.records)+1+len(blocks)}'
+-            blocks.append(serialize(name,label,obj['frames'],best,value));values.append(value);gaps.append(gvalue);tags.append(tag)
+-            metadata.append(dict(areas=obj['areas'], instance_id=str(obj.get('instance_id',label))))
++            blocks.append('' if metric_only else serialize(name,label,obj['frames'],best,value));values.append(value);gaps.append(gvalue);tags.append(tag)
++            metadata.append(dict(areas=obj['areas'], instance_id=str(obj.get('instance_id',label)), **(dict(frames=obj['frames'], best=best, gap_operand=tag) if metric_only else {})))
+         if len(blocks)>MAX_INSTANCES:
+             session.box_registry.invalidate(name,'unresolved')
+             return name+': unresolved'
+         if not blocks:raise ValueError('provider_unavailable')
++        if metric_only:
++            session.box_registry.ingest_metric(name, values, gaps, metadata)
++            partial = []
++            from .contracts import partial_f1
++            for value, meta, label in zip(values, metadata, session.box_registry.bindings[name]):
++                R, origin = session.geometry.cam(1)
++                forward = np.asarray(R)[:,2].copy(); forward[2] = 0
++                if np.linalg.norm(forward) >= 1e-6:
++                    forward /= np.linalg.norm(forward)
++                    basis = np.column_stack((np.cross(forward,[0.,0.,1.]), [0.,0.,1.], forward))
++                else:
++                    # Private metric frame only; horizontal observations remain withheld.
++                    basis = np.eye(3)[:,[0,2,1]]
++                observation = box((value['centre']-origin)@basis, value['lengths'], value['axes']@basis)
++                centre, lengths, _ = public_fields(observation)
++                height = centre[1]
++                partial.append('\n'.join([
++                    f'{name}: frames '+','.join(map(str,meta['frames']))+f" (best {meta['best']})",
++                    f'{label}: f1 centre '+partial_f1([0, height, 0], lambda x: number(x,2))+' m',
++                    'size '+' x '.join(number(v,2) for v in lengths)+' m',
++                    'yaw heading unavailable']))
++            return partial[0] if len(partial)==1 else '\n'.join([f'{name}: {len(partial)} instances', *partial])
+         body=blocks[0] if len(blocks)==1 else '\n'.join([f'{name}: {len(blocks)} instances',*blocks])
+         session.box_registry.ingest(body,values[0] if len(values)==1 else values,
+                                     None if gap_box is None else (gaps[0] if len(gaps)==1 else gaps))
+@@ -586,7 +630,7 @@
+         body=session.execute(call);lines.extend([call,old.wrap(body)]);return body
+     for name in [a,*bs]:
+         body=emit(f'<ground obj="{old.valid_name(name)}" mode="box">')
+-        if session.box_registry.states[name]!='ok':failure=(name,session.box_registry.states[name]);break
++        if session.box_registry.states.get(name)!='ok':failure=(name,response_status(body));break
+     if not failure:
+         body=emit(f'<gap a="{a}"'+''.join(f' b="{b}"' for b in bs)+f' rule="{rule}">')
+         values=replay_audit(session.events)
+--- a/trace_format/ground_v313.py
++++ b/trace_format/ground_v313.py
+@@ -11,6 +11,7 @@
+ from . import room_v314 as room
+ from .instance_policy314 import valid_mask, mask_floor
+ from .program_errors import ProgramRefusal
++from .contracts import heading_available, status_text, response_status
+ 
+ INSTANCE = re.compile(r'<ground obj="(' + legacy.NAME + r')" mode="instances">')
+ SURFACE = re.compile(r'<surface_pair a="(' + legacy.NAME + r')" b="(' + legacy.NAME + r')" mode="closest_visible">')
+@@ -38,18 +39,20 @@
+ 
+ 
+ def point_line(backend, geometry, registry, name, role, frame, position, tail=''):
+-    camera, f1 = backend.public_centres(geometry, frame, np.asarray(position, float))
++    camera, f1 = backend.public_centres(geometry, frame, np.asarray(position, float),
++                                        **({'metric_only': True} if not heading_available(geometry) else {}))
+     if camera[2] <= 0:
+         raise legacy.RowRefusal('point_behind_camera')
+     rounded = lambda xs: [float(backend.number(x)) for x in xs]
+-    point = registry.register(camera=rounded(camera), f1=rounded(f1), spread=0., requested_frame=int(frame))
++    point = registry.register(camera=rounded(camera), f1=rounded(f1), spread=0., requested_frame=int(frame),
++                              heading_defined=heading_available(geometry))
+     # Reliability zero is an internal registry placeholder; no spread is asserted.
+     coords = point['line'].split(': ', 1)[1].rsplit('; spread ', 1)[0]
+     return f"{point['label']}: {name} {role} {coords}{tail}"
+ 
+ 
+ def pair_distance(registry, lines):
+-    """Use the calculator's Decimal arithmetic on the published f1 points."""
++    """Use the shared Decimal measurement; withheld horizontal operands remain private."""
+     a, b = [line.split(':', 1)[0] for line in lines]
+     return registry.execute(f'<dist {a} {b}>')['text']
+ 
+@@ -306,6 +309,10 @@
+             records=[self.box_registry.records[l] for l in labels]
+             if self.spec_version=='3.14':
+                 private['instance_metadata']=[{k:r[k] for k in ('areas','instance_id')} for r in records]
++            if not heading_available(self.geometry):
++                private.update(metric_only=True, metric_values=[boxes.audit_box(r['value']) for r in records],
++                    metric_gaps=[boxes.audit_box(r['gap_value']) for r in records],
++                    metric_metadata=[{k:r[k] for k in ('frames','best','areas','instance_id','gap_operand')} for r in records])
+             policy=self.box_provider_id==boxes.POLICY_ID
+             if len(records)==1:
+                 private['full_precision_box']=boxes.audit_box(records[0]['value'])
+--- a/student_pilot/live_trace313.py
++++ b/student_pilot/live_trace313.py
+@@ -7,6 +7,7 @@
+ from . import ground_lifting as lifting
+ from .ground_replay import restore_geometry
+ from .p3_printed_calculator import PrintedPointRegistry
++from trace_format.contracts import RUNTIME_STATUSES, response_status, new_contracts, contract_epoch, heading_plane_min, contract_identity, HEADING_PLANE_MIN_DEFAULT
+ 
+ 
+ class LiveSession(Session):
+@@ -24,9 +25,15 @@
+         super().__init__(lifting,backend.geometry,None,instances=lambda name:(),
+                          program_version=program_version, multi_instance=program_version=='3.14',
+                          geometry_mode=geometry_mode)
++        self.contract_epoch = getattr(backend, 'contract_epoch', new_contracts())
++        self.heading_plane_min = heading_plane_min(getattr(backend, 'heading_plane_min', heading_plane_min()))
+         self.owner=backend
+         self.queries=[]
+         self.memory_hits=[]
++
++    def execute(self, call):
++        with contract_epoch(self.contract_epoch, heading_plane_min=self.heading_plane_min):
++            return super().execute(call)
+ 
+     def _room(self):
+         from .live_instances314 import ExactFrames
+@@ -38,7 +45,7 @@
+         finally:
+             self.geometry = geometry
+         inputs = self.room_inputs
+-        self.queries.append(dict(kind='room', geometry_mode=self.geometry_mode,
++        self.queries.append(dict(kind='room', geometry_mode=self.geometry_mode, **contract_identity(),
+             frames=inputs['frames'], gravity_source=inputs['gravity_source'],
+             points=[pack_array(p) for p in inputs['points']]))
+         self.memory_hits.append(False)
+@@ -59,7 +66,7 @@
+         if self.spec_version == '3.14':
+             from .live_instances314 import query_instances
+             query = query_instances(self.owner, name, self.state)
+-            query.update(geometry_mode=self.geometry_mode, box_provider_id=self.box_provider_id)
++            query.update(geometry_mode=self.geometry_mode, box_provider_id=self.box_provider_id, **contract_identity())
+             self.queries.append(query)
+             self.memory_hits.append(query['memory_hit'])
+             return entries(query)
+@@ -80,7 +87,7 @@
+             source=self.owner.queries
+         if not source or source[-1]['name']!=name:raise ValueError('live_ground_missing_audit')
+         query=deepcopy(source[-1])
+-        query.update(geometry_mode=self.geometry_mode, box_provider_id=self.box_provider_id)
++        query.update(geometry_mode=self.geometry_mode, box_provider_id=self.box_provider_id, **contract_identity())
+         self.queries.append(query)
+         return entries(query)
+ 
+@@ -107,6 +114,14 @@
+ 
+ class AuditSession(Session):
+     def __init__(self,queries,program_version='3.13'):
++        epochs = {q.get('contract_epoch', False) for q in queries}
++        if len(epochs) > 1:
++            raise ValueError('replay_contract_epoch_mismatch')
++        self.contract_epoch = next(iter(epochs), False)
++        thresholds = {heading_plane_min(q.get('heading_plane_min', HEADING_PLANE_MIN_DEFAULT)) for q in queries}
++        if len(thresholds) > 1:
++            raise ValueError('replay_heading_plane_min_mismatch')
++        self.heading_plane_min = next(iter(thresholds), heading_plane_min())
+         modes = {query.get('geometry_mode', 'sensor') for query in queries}
+         if len(modes) > 1:
+             raise ValueError('replay_geometry_mode_mismatch')
+@@ -116,6 +131,10 @@
+         if any(query.get('box_provider_id', self.box_provider_id) != self.box_provider_id for query in queries):
+             raise ValueError('replay_box_provider_mismatch')
+         self.pending=list(queries)
++
++    def execute(self, call):
++        with contract_epoch(self.contract_epoch, heading_plane_min=self.heading_plane_min):
++            return super().execute(call)
+ 
+     def _room(self):
+         from .ground_replay import unpack_array
+@@ -156,9 +175,17 @@
+             from trace_format.program_errors import ProgramRefusal
+             raise ProgramRefusal('form_requires_v3.14')
+         return room_v314.parse_response(body)
++    if 'heading unavailable' in body and call.startswith('<ground'):
++        # Check the full existing grammar with only withheld components restored as placeholders.
++        normalized = body.replace('heading unavailable', '0.00')
++        normalized = normalized.replace('yaw 0.00', 'yaw 0 deg (0 = +x; positive +x toward -z about +y)')
++        if not body.startswith(re.search(r'obj="([^"]+)"',call)[1]+': heading unavailable'):
++            return parse_response(call, normalized, program_version)
+     if call.startswith('<ground'):
+         name=re.search(r'obj="([^"]+)"',call)[1]
+-        if body in [name+': '+s for s in ('not seen','unresolved','box unavailable')]:return
++        if body in [name+': '+s for s in RUNTIME_STATUSES]:return
++        if body.startswith(name+': heading unavailable\n') and all(
++                line == 'size unavailable' or re.fullmatch(r'size [0-9]+\.[0-9]{2} x [0-9]+\.[0-9]{2} x [0-9]+\.[0-9]{2} m', line) for line in body.splitlines()[1:]):return
+         if 'mode="box"' in call:
+             blocks=box_v313.split_instances(body)
+             if len(blocks)>box_v313.MAX_INSTANCES:raise ValueError('too_many_instances')
+@@ -167,6 +194,7 @@
+             if len({b['label'] for b in parsed})!=len(parsed):raise ValueError('duplicate_box_label')
+             return
+         if 'mode="instances"' in call:
++            if re.fullmatch(re.escape(name)+r': (0|[1-9][0-9]*) found\nheading unavailable', body):return
+             lines=body.splitlines()
+             m=re.fullmatch(re.escape(name)+r': (0|[1-9][0-9]*) found',lines[0])
+             if not m or len(lines)!=1+int(m[1]):raise ValueError('malformed_instance_response')
+@@ -188,7 +216,7 @@
+             r'(?:size '+f+' x '+f+' x '+f+r' m|size unavailable)')
+         if not re.fullmatch(pattern,body):raise ValueError('malformed_ground_response')
+     elif call.startswith('<gap'):
+-        if body in ('not seen','unresolved','box unavailable'):return
++        if body in RUNTIME_STATUSES:return
+         if body=='frame unavailable' and box_v313.CAMGAP.fullmatch(call):return
+         f=r'(?:0|[1-9][0-9]*)\.[0-9]{2}'
+         if body.startswith('distance '):
+@@ -212,7 +240,10 @@
+         parse_response(call['call'],call['response'],version)
+         text=session.execute(call['call'])
+         mismatches+=text!=call['response']
+-    return dict(calls=len(record['calls']),mismatches=mismatches,byte_equal=not mismatches and not session.pending,
++    from collections import Counter
++    statuses = Counter(response_status(call['response']) for call in record['calls'])
++    metrics = dict(response_statuses=dict(statuses), ok_responses=statuses['ok']) if session.contract_epoch else {}
++    return dict(**metrics, calls=len(record['calls']),mismatches=mismatches,byte_equal=not mismatches and not session.pending,
+                 response_format='3.13 revision 5' if version=='3.13' else '3.14',replay_source='recorded masks, geometry and selection state')
+ 
+ 
+--- a/student_pilot/carrier_c1_decode.py
++++ b/student_pilot/carrier_c1_decode.py
+@@ -227,13 +227,15 @@
+             return registry.execute(call_text)['text'], dict(kind='calculator')
+         if geometry is None:
+             raise routing.RenderError('head readout unavailable')
++        from trace_format.contracts import heading_available
+         call = parse_head(call_text)
+         if call['name'] == 'depth_at':
+             lines = []
+             for uv in call['pts']:
+                 cam, f1, spread = geometry.click(call['frame'], uv)
+                 lines.append(registry.register(camera=cam, f1=f1, spread=spread, requested_frame=call['frame'],
+-                                               actual_frame=call['frame'])['line'])
++                                               actual_frame=call['frame'],
++                                               heading_defined=heading_available(geometry))['line'])
+             return '\n'.join(lines), dict(kind='head', **call)
+         if call['name'] == 'pose':
+             return geometry.pose_text(call['frame']), dict(kind='head', **call)
+@@ -500,6 +502,15 @@
+ 
+ 
+ def respond_state(state,call_text,registry):
++    from trace_format.contracts import contract_epoch, new_contracts, heading_plane_min, contract_identity
++    session = getattr(state, 'live_trace_session', None)
++    with contract_epoch(getattr(session, 'contract_epoch', new_contracts()),
++                        heading_plane_min=getattr(session, 'heading_plane_min', heading_plane_min())):
++        text, info = _respond_state(state,call_text,registry)
++        return text, dict(info, **contract_identity())
++
++
++def _respond_state(state,call_text,registry):
+     formatted=trace313.respond(call_text,registry)
+     if formatted is not None:return formatted
+     heads=state.heads
+--- a/student_pilot/carrier_c1_routing.py
++++ b/student_pilot/carrier_c1_routing.py
+@@ -237,7 +237,17 @@
+             raise RenderError('invalid own gravity')
+         self.down = -up / np.linalg.norm(up)
+         self.depth = depth
+-        self.to_l1 = FLIP @ level_basis(np.eye(3), self.down).T
++        from trace_format.contracts import new_contracts
++        try:
++            self.to_l1 = FLIP @ level_basis(np.eye(3), self.down).T
++        except RenderError:
++            if not new_contracts():
++                raise
++            # Private metric coordinates only. No horizontal component of this basis is published.
++            right = np.array([1., 0., 0.])
++            right -= (right @ self.down) * self.down
++            right /= np.linalg.norm(right)
++            self.to_l1 = np.stack((right, -self.down, np.cross(right, self.down)))
+         self._poses = {}
+ 
+     def camera(self, k):
+@@ -258,6 +268,10 @@
+             raise RenderError('invalid own FoV')
+         return vertical, horizontal
+ 
++    def camera_pose(self, k):
++        rotation, centre = self.camera(k)
++        return dict(camera_R_L1=r8(self.to_l1 @ rotation), camera_t_L1=r8(self.to_l1 @ centre))
++
+     def pose(self, k):
+         if k not in self._poses:
+             rotation, centre = self.camera(k)
+@@ -268,9 +282,10 @@
+         return self._poses[k]
+ 
+     def click(self, k, uv, label=None):
++        from trace_format.contracts import new_contracts
+         if self.depth is None:
+             cam, spread = self.recorded[label]
+-            pose = self.pose(k)
++            pose = self.camera_pose(k) if new_contracts() else self.pose(k)
+             f1 = pose['camera_R_L1'] @ (np.asarray(cam, dtype=np.float64) * [1, -1, 1]) + pose['camera_t_L1']
+             return list(cam), [r2(x) for x in f1], spread
+         uv = np.asarray(uv, dtype=np.float64)
+@@ -283,22 +298,37 @@
+         vertical, horizontal = self.fov(k)
+         ray = np.array([(uv[0] / 500 - 1) * math.tan(horizontal / 2), (uv[1] / 500 - 1) * math.tan(vertical / 2), 1.])
+         cam = r8(ray * p30)
+-        pose = self.pose(k)
++        pose = self.camera_pose(k) if new_contracts() else self.pose(k)
+         f1 = pose['camera_R_L1'] @ cam + pose['camera_t_L1']
+         return [r2(x * s) for x, s in zip(cam, (1, -1, 1))], [r2(x) for x in f1], r2(spread)
+ 
+     def pose_text(self, k):
++        from trace_format.contracts import heading_available, partial_f1
++        if not heading_available(self):
++            p = self.camera_pose(k)
++            return 'f1 centre '+partial_f1(p['camera_t_L1'], f2)+' m, yaw heading unavailable'
++        if not heading_available(self, k):
++            return 'f1 centre '+partial_f1(self.camera_pose(k)['camera_t_L1'], f2)+f' m, yaw heading unavailable (frame {k})'
+         p = self.pose(k)
+         return f"f1 centre {vec(p['camera_t_L1'])} m, yaw {p['yaw_degree']} deg"
+ 
+     def move_text(self, i, j):
+-        pi, pj = self.pose(i), self.pose(j)
++        from trace_format.contracts import heading_available, new_contracts
++        if not heading_available(self, i):
++            delta = self.camera(j)[1] - self.camera(i)[1]
++            return (f'dx = heading unavailable (frame {i}), dy = {s2(-self.down @ delta)} m, '
++                    f'dz = heading unavailable (frame {i}), distance = {f2(np.linalg.norm(delta))} m')
++        pi, pj = self.pose(i), self.camera_pose(j) if new_contracts() else self.pose(j)
+         local = pi['level_R_L1'].T @ (pj['camera_t_L1'] - pi['camera_t_L1'])
+         distance = float(np.linalg.norm(local))
+         local[1] *= -1
+         return f'dx = {s2(local[0])} m, dy = {s2(local[1])} m, dz = {s2(local[2])} m, distance = {f2(distance)} m'
+ 
+     def turn_text(self, i, j):
++        from trace_format.contracts import heading_available
++        missing = [k for k in dict.fromkeys((i, j)) if not heading_available(self, k)]
++        if missing:
++            return 'turn = heading unavailable (frames '+','.join(map(str, missing))+')'
+         a, b = (self.pose(k)['level_R_L1'][[0, 2], 2] for k in (i, j))
+         turn = wrap(round(math.degrees(math.atan2(a[0] * b[1] - a[1] * b[0], float(a @ b)))))
+         return f'turn = {turn:+d} deg'
+@@ -362,7 +392,13 @@
+                 name, call = event['name'], calls[event['call_id']]
+                 if name not in HEAD_TOOLS:
+                     raise RenderError('unknown head tool ' + str(name))
+-                if name == 'depth_at':
++                from trace_format.contracts import heading_available
++                if not recorded and (not heading_available(geometry) or
++                        any(not heading_available(geometry, k) for k in (call['arguments'].get('frame', 1),
++                            call['arguments'].get('from', 1), call['arguments'].get('to', 1)))):
++                    from .carrier_c1_decode import respond
++                    text, _ = respond(call['token'], registry, geometry)
++                elif name == 'depth_at':
+                     lines = []
+                     for uv, p in zip(call['arguments']['pts'], event['points']):
+                         cam, f1, spread = (geometry.click_label(p['label']) if recorded
+--- a/generator/derivgen_v7/derivgen/ground_v313.py
++++ b/generator/derivgen_v7/derivgen/ground_v313.py
+@@ -500,3 +500,18 @@
+     report = {str(n): dict(Counter(r['answer'] for r in selected if len(r['options']) == n)) for n in groups}
+     return selected, dict(answer_letters=report, gap_minimum_positions=report,
+                          policy='exact equality within option count; shortage drops rows')
++
++# Training executes the deployed formatter; epoch OFF retains sealed replay.
++from trace_format.contracts import RUNTIME_STATUSES, response_status, new_contracts, epoch_class
++from trace_format import ground_v313 as _runtime
++
++def _epoch_dispatch(sealed, current):
++    def call(*args, **kwargs):
++        return (current if new_contracts() else sealed)(*args, **kwargs)
++    return call
++
++Session = epoch_class(Session, _runtime.Session)
++point_line = _epoch_dispatch(point_line, _runtime.point_line)
++witness_pair = _epoch_dispatch(witness_pair, _runtime.witness_pair)
++surface_support = _epoch_dispatch(surface_support, _runtime.surface_support)
++GTInstances = epoch_class(GTInstances, _runtime.GTInstances)
+--- a/generator/derivgen_v7/derivgen/box_v313.py
++++ b/generator/derivgen_v7/derivgen/box_v313.py
+@@ -214,7 +214,7 @@
+         if not bs or len(set(names)) != len(names):
+             raise old.RowRefusal('duplicate_gap_operand')
+         states=[self.states.get(n,'not seen') for n in names]
+-        for status in ('unresolved','not seen','box unavailable'):
++        for status in RUNTIME_STATUSES:
+             if status in states:return status, []
+         if rule not in RULES:
+             raise ValueError('unknown_distance_rule')
+@@ -236,7 +236,7 @@
+     if not names or len(set(names)) != len(names):
+         raise old.RowRefusal('duplicate_gap_operand')
+     states=[registry.states.get(n,'not seen') for n in names]
+-    for status in ('unresolved','not seen','box unavailable'):
++    for status in RUNTIME_STATUSES:
+         if status in states:return status, []
+     values=[]
+     for n in names:
+@@ -272,7 +272,7 @@
+             raise ValueError('invalid_response_wrapper')
+         body=response[len('<tool_response>\n'):-len('\n</tool_response>')]
+         if (m:=GROUND.fullmatch(call)):
+-            failure=re.fullmatch(re.escape(m[1])+r': (not seen|unresolved|box unavailable)',body)
++            failure=re.fullmatch(re.escape(m[1])+r': ('+'|'.join(map(re.escape,RUNTIME_STATUSES))+')',body)
+             if failure:registry.invalidate(m[1],failure[1])
+             else:
+                 audit=event['audit']
+@@ -331,8 +331,8 @@
+     def emit(call):
+         body=session.execute(call);lines.extend([call,old.wrap(body)]);return body
+     for name in names:
+-        emit(f'<ground obj="{old.valid_name(name)}" mode="box">')
+-        if session.box_registry.states[name]!='ok':failure=(name,session.box_registry.states[name]);break
++        body=emit(f'<ground obj="{old.valid_name(name)}" mode="box">')
++        if session.box_registry.states.get(name)!='ok':failure=(name,response_status(body));break
+     if not failure:
+         emit(f'<gap camera="{k}"'+''.join(f' b="{n}"' for n in names)+' rule="box_grid_5cm">')
+         values=replay_audit(session.events)
+@@ -470,7 +470,7 @@
+         body=session.execute(call);lines.extend([call,old.wrap(body)]);return body
+     for name in [a,*bs]:
+         body=emit(f'<ground obj="{old.valid_name(name)}" mode="box">')
+-        if session.box_registry.states[name]!='ok':failure=(name,session.box_registry.states[name]);break
++        if session.box_registry.states.get(name)!='ok':failure=(name,response_status(body));break
+     if not failure:
+         body=emit(f'<gap a="{a}"'+''.join(f' b="{b}"' for b in bs)+f' rule="{rule}">')
+         values=replay_audit(session.events)
+@@ -554,3 +554,22 @@
+     c = np.asarray(b['centroid'], float).copy(); c[2] = (z0 + z1) / 2
+     L = np.asarray(b['axesLengths'], float).copy(); L[2] = max(z1 - z0, 0.02)
+     return {'centroid': c, 'axesLengths': L, 'normalizedAxes': b['normalizedAxes']}
++
++# Training executes the deployed formatter; epoch OFF retains sealed replay.
++from trace_format.contracts import RUNTIME_STATUSES, response_status, new_contracts, epoch_class
++from trace_format import box_v313 as _runtime
++
++def _epoch_dispatch(sealed, current):
++    def call(*args, **kwargs):
++        return (current if new_contracts() else sealed)(*args, **kwargs)
++    return call
++
++BoxRegistry = epoch_class(BoxRegistry, _runtime.BoxRegistry)
++ground = _epoch_dispatch(ground, _runtime.ground)
++split_instances = _epoch_dispatch(split_instances, _runtime.split_instances)
++replay_audit = _epoch_dispatch(replay_audit, _runtime.replay_audit)
++cam_gap_body = _epoch_dispatch(cam_gap_body, _runtime.cam_gap_body)
++camera_centre_f1 = _epoch_dispatch(camera_centre_f1, _runtime.camera_centre_f1)
++in_f1 = _epoch_dispatch(in_f1, _runtime.in_f1)
++FittedBoxProvider = epoch_class(FittedBoxProvider, _runtime.FittedBoxProvider)
++FusedBoxProvider = epoch_class(FusedBoxProvider, _runtime.FusedBoxProvider)
+--- a/trace_format/calculator.py
++++ b/trace_format/calculator.py
+@@ -15,6 +15,11 @@
+ It must never break a category tie. Angles use whole degrees and refuse rounded
+ categorical boundaries 0/90/135/180, as the producer does. There are no derived
+ labels, means, transforms, scalar rankings, option choices or external inputs.
++
++When a point has no reference heading, its camera coordinates and vertical
++coordinate are public. The registry retains its rounded metric operands privately
++for invariant measurements. Horizontal components never enter injected text;
++only the resulting formatted measurement reaches the language model.
+ """
+ import math
+ import re
+@@ -154,7 +159,7 @@
+         self._points = {}
+ 
+     @_decimal_context
+-    def register(self, *, camera, f1, spread, requested_frame, actual_frame=None, label=None):
++    def register(self, *, camera, f1, spread, requested_frame, actual_frame=None, label=None, heading_defined=True):
+         actual_frame = requested_frame if actual_frame is None else actual_frame
+         _require(all(type(k) is int and 1 <= k <= 32 for k in (requested_frame, actual_frame)),
+                  "invalid_point_frame")
+@@ -168,10 +173,14 @@
+             _require(label == expected, "nonsequential_point_label")
+         cam, point, reliability = _vector(camera), _vector(f1), _number(spread)
+         _require(reliability >= 0, "invalid_point_spread")
+-        line = (f"{expected}: cam{actual_frame} {_vec_text(cam)} m; f1 {_vec_text(point)} m; "
++        from .contracts import partial_f1
++        public_f1 = _vec_text(point) if heading_defined else partial_f1(point, lambda x: f'{x:.2f}')
++        line = (f"{expected}: cam{actual_frame} {_vec_text(cam)} m; f1 {public_f1} m; "
+                 f"spread {reliability:.2f}")
+         point = {"label": expected, "camera": cam, "f1": point, "spread": reliability,
+                  "requested_frame": requested_frame, "actual_frame": actual_frame, "line": line}
++        if not heading_defined:
++            point["heading_defined"] = False
+         published = _json(point)
+         self._points[expected] = point
+         return published
+--- a/student_pilot/p3_printed_calculator.py
++++ b/student_pilot/p3_printed_calculator.py
+@@ -1,242 +1,4 @@
+-"""SPEC 6.2 printed-point calculator; standalone, standard-library-only vendoring unit.
+-
+-PrintedPointRegistry.register(*, camera, f1, spread, requested_frame,
+-                              actual_frame=None, label=None) -> dict
+-    Accept only finite JSON numbers already rounded to two decimals. Return the
+-    allocated point, frame metadata and exact canonical response line. An optional
+-    label must be the next P label. Returned containers never alias the registry.
+-PrintedPointRegistry.execute(command: str) -> dict
+-    Parse one exact label-only SPEC command. Return named results, unwrapped text
+-    and injected_text (including tool_response markers) from the same computation.
+-
+-Distances/minima use displayed two-decimal distances. All equal displayed minima
+-are retained; the first input-order witness only controls the printed min line.
+-Closest prints only that min line; its JSON result retains every computed pair.
+-It must never break a category tie. Angles use whole degrees and refuse rounded
+-categorical boundaries 0/90/135/180, as the producer does. There are no derived
+-labels, means, transforms, scalar rankings, option choices or external inputs.
+-"""
+-import math
+-import re
+-from decimal import Context, Decimal, DecimalException, InvalidOperation, ROUND_HALF_EVEN, localcontext
+-from functools import wraps
+-
+-API_VERSION = "printed-point-calculator-v3"
+-SPEC_SHA256 = "b908ca9d8eac9f29122948f4523501a7b680c4056b376711c81e29483e7502ac"
+-_LABEL = r"P[1-9][0-9]*"
+-_LIST = _LABEL + r"(?:," + _LABEL + r")*"
+-_FORMS = (
+-    ("dist", rf"<dist ({_LABEL}) ({_LABEL})>"),
+-    ("closest", rf"<closest A=({_LIST}) B=({_LIST})>"),
+-    ("cam_dist", rf"<cam_dist ({_LIST})>"),
+-    ("angle", rf"<angle S=({_LABEL}) F=({_LABEL}) Q=({_LABEL}) rule=(easy|medium|hard|turn)>"),
+-    ("turn", rf"<turn from=({_LABEL}) at=({_LABEL}) to=({_LABEL})>"),
+-    ("area", rf"<area C=({_LIST})>"),
+-)
+-
+-
+-class CalculatorError(ValueError):
+-    """Fail-closed input/command refusal; reason is stable and machine readable."""
+-    def __init__(self, reason):
+-        super().__init__(reason)
+-        self.reason = reason
+-
+-
+-def _require(ok, reason):
+-    if not ok:
+-        raise CalculatorError(reason)
+-
+-
+-def _decimal_context(function):
+-    @wraps(function)
+-    def call(*args, **kwargs):
+-        # Isolate rounding and traps from an inference caller's Decimal context.
+-        # This precision covers finite float inputs and their squared products.
+-        with localcontext(Context(prec=1024, rounding=ROUND_HALF_EVEN)):
+-            try:
+-                return function(*args, **kwargs)
+-            except DecimalException as exc:
+-                raise CalculatorError("calculator_numeric_range") from exc
+-    return call
+-
+-
+-def _q(x, places=2):
+-    return x.quantize(Decimal(1).scaleb(-places), rounding=ROUND_HALF_EVEN)
+-
+-
+-def _number(x):
+-    _require(type(x) in (int, float), "invalid_printed_number")
+-    d = Decimal(str(x))
+-    _require(d.is_finite(), "nonfinite_printed_number")
+-    try:
+-        _require(d == _q(d), "unrounded_printed_number")
+-    except InvalidOperation as exc:
+-        raise CalculatorError("invalid_printed_number") from exc
+-    return d
+-
+-
+-def _vector(x):
+-    _require(isinstance(x, (list, tuple)) and len(x) == 3, "invalid_printed_vector")
+-    return tuple(_number(v) for v in x)
+-
+-
+-def _json(x):
+-    if isinstance(x, Decimal):
+-        value = float(x)
+-        _require(math.isfinite(value), "nonfinite_result")
+-        return value
+-    if isinstance(x, (list, tuple)):
+-        return [_json(v) for v in x]
+-    if isinstance(x, dict):
+-        return {k: _json(v) for k, v in x.items()}
+-    return x
+-
+-
+-def _vec_text(v):
+-    return "(" + ", ".join(f"{x:.2f}" for x in v) + ")"
+-
+-
+-def _distance(a, b):
+-    delta = tuple(x-y for x, y in zip(a, b))
+-    squares = tuple(_q(x*x, 4) for x in delta)
+-    sumsq = _q(sum(squares), 4)
+-    return {"delta": delta, "squares": squares, "sumsq": sumsq,
+-            "value": _q(sumsq.sqrt()), "unit": "m"}
+-
+-
+-def parse_command(command):
+-    """Return JSON {op, arguments}; accept only the six exact SPEC spellings."""
+-    _require(type(command) is str, "invalid_calculator_command")
+-    for op, pattern in _FORMS:
+-        match = re.fullmatch(pattern, command)
+-        if not match:
+-            continue
+-        a = match.groups()
+-        if op == "dist": args = {"a": a[0], "b": a[1]}
+-        elif op == "closest": args = {"A": a[0].split(","), "B": a[1].split(",")}
+-        elif op == "cam_dist": args = {"points": a[0].split(",")}
+-        elif op == "angle": args = dict(zip(("S", "F", "Q", "rule"), a))
+-        elif op == "turn": args = dict(zip(("from", "at", "to"), a))
+-        else:
+-            args = {"C": a[0].split(",")}
+-            _require(len(args["C"]) >= 3, "insufficient_area_points")
+-        refs = [p for key, v in args.items() if key != "rule"
+-                for p in (v if isinstance(v, list) else [v])]
+-        _require(op == "turn" or len(refs) == len(set(refs)), "duplicate_point_reference")
+-        return {"op": op, "arguments": args}
+-    raise CalculatorError("unsupported_calculator_command")
+-
+-
+-def format_command(op, **arguments):
+-    """Format strict named label arguments; validate by the same grammar as parsing."""
+-    keys = {"dist": {"a", "b"}, "closest": {"A", "B"}, "cam_dist": {"points"},
+-            "angle": {"S", "F", "Q", "rule"}, "turn": {"from", "at", "to"}, "area": {"C"}}
+-    _require(type(op) is str and op in keys and set(arguments) == keys[op],
+-             "unsupported_calculator_arguments")
+-    a = arguments
+-    def labels(key):
+-        _require(isinstance(a[key], (list, tuple)) and all(type(p) is str for p in a[key]),
+-                 "invalid_point_list")
+-        return ",".join(a[key])
+-    if op == "dist": command = f"<dist {a['a']} {a['b']}>"
+-    elif op == "closest": command = f"<closest A={labels('A')} B={labels('B')}>"
+-    elif op == "cam_dist": command = f"<cam_dist {labels('points')}>"
+-    elif op == "angle": command = f"<angle S={a['S']} F={a['F']} Q={a['Q']} rule={a['rule']}>"
+-    elif op == "turn": command = f"<turn from={a['from']} at={a['at']} to={a['to']}>"
+-    else: command = f"<area C={labels('C')}>"
+-    parse_command(command)
+-    return command
+-
+-
+-class PrintedPointRegistry:
+-    """One registry per trace; only register publishes new immutable P labels."""
+-    def __init__(self):
+-        self._points = {}
+-
+-    @_decimal_context
+-    def register(self, *, camera, f1, spread, requested_frame, actual_frame=None, label=None):
+-        actual_frame = requested_frame if actual_frame is None else actual_frame
+-        _require(all(type(k) is int and 1 <= k <= 32 for k in (requested_frame, actual_frame)),
+-                 "invalid_point_frame")
+-        _require(actual_frame == requested_frame or
+-                 (requested_frame % 2 == 1 and actual_frame == requested_frame+1),
+-                 "invalid_point_frame_substitution")
+-        expected = "P" + str(len(self._points)+1)
+-        if label is not None:
+-            _require(type(label) is str and re.fullmatch(_LABEL, label) is not None, "malformed_point_label")
+-            _require(label not in self._points, "duplicate_point_label")
+-            _require(label == expected, "nonsequential_point_label")
+-        cam, point, reliability = _vector(camera), _vector(f1), _number(spread)
+-        _require(reliability >= 0, "invalid_point_spread")
+-        line = (f"{expected}: cam{actual_frame} {_vec_text(cam)} m; f1 {_vec_text(point)} m; "
+-                f"spread {reliability:.2f}")
+-        point = {"label": expected, "camera": cam, "f1": point, "spread": reliability,
+-                 "requested_frame": requested_frame, "actual_frame": actual_frame, "line": line}
+-        published = _json(point)
+-        self._points[expected] = point
+-        return published
+-
+-    @_decimal_context
+-    def execute(self, command):
+-        parsed = parse_command(command)
+-        op, a = parsed["op"], parsed["arguments"]
+-        refs = [p for key, v in a.items() if key != "rule"
+-                for p in (v if isinstance(v, list) else [v])]
+-        _require(all(p in self._points for p in refs), "unknown_point_label")
+-        points = self._points
+-        if op == "dist":
+-            result = {"a": a["a"], "b": a["b"], **_distance(points[a["a"]]["f1"], points[a["b"]]["f1"])}
+-            text = f"{result['value']:.2f} m"
+-        elif op in ("closest", "cam_dist"):
+-            if op == "closest":
+-                rows = [{"a": p, "b": q, **_distance(points[p]["f1"], points[q]["f1"])}
+-                        for p in a["A"] for q in a["B"]]
+-                names = [r["a"]+"-"+r["b"] for r in rows]
+-                witnesses = [{"a": r["a"], "b": r["b"]} for r in rows]
+-            else:
+-                rows = [{"point": p, **_distance(points[p]["camera"], (Decimal(0),)*3)} for p in a["points"]]
+-                names = [r["point"] for r in rows]
+-                witnesses = [{"point": r["point"]} for r in rows]
+-            minimum = min(r["value"] for r in rows)
+-            indices = [i for i, r in enumerate(rows) if r["value"] == minimum]
+-            minima = [witnesses[i] for i in indices]
+-            result = {"pairs" if op == "closest" else "points": rows, "value": minimum, "unit": "m",
+-                      "witness": minima[0], "minima": minima, "tied": len(minima) > 1}
+-            text = f"min {names[indices[0]]} {minimum:.2f} m"
+-            if op == "cam_dist":
+-                text = "\n".join(f"{name} {r['value']:.2f} m" for name, r in zip(names, rows)) + "\n" + text
+-        elif op in ("angle", "turn"):
+-            if op == "angle":
+-                s, f, q = (points[a[key]]["f1"] for key in ("S", "F", "Q"))
+-                u, v = [tuple(p[i]-s[i] for i in (0, 2)) for p in (f, q)]
+-            else:
+-                origin, at, target = (points[a[key]]["f1"] for key in ("from", "at", "to"))
+-                u = tuple(at[i]-origin[i] for i in (0, 2))
+-                v = tuple(target[i]-at[i] for i in (0, 2))
+-            _require(all(sum(x*x for x in p) > Decimal("0.000000000001") for p in (u, v)),
+-                     "degenerate_heading")
+-            dot, cross = _q(u[0]*v[0]+u[1]*v[1], 4), _q(u[0]*v[1]-u[1]*v[0], 4)
+-            _require(dot != 0 or cross != 0, "degenerate_printed_angle")
+-            theta = round(math.degrees(math.atan2(float(cross), float(dot))))
+-            _require(theta != 0 if op == "turn" else abs(theta) not in (0, 90, 135, 180), "rounding_boundary")
+-            side = "left" if theta > 0 else "right"
+-            rule = "turn" if op == "turn" else a["rule"]
+-            if rule == "hard": label = ("front-" if abs(theta) < 90 else "back-") + side
+-            elif rule == "medium": label = "back" if abs(theta) >= 135 else side
+-            elif rule == "turn": label = "Turn Back" if abs(theta) >= 135 else "Turn " + side.title()
+-            else: label = side
+-            result = {"u": u, "v": v, "dot": dot, "cross": cross, "theta": theta,
+-                      "unit": "degree", "rule": rule, "label": label}
+-            text = (f"u {_vec_text(u)}; v {_vec_text(v)}; dot {dot:.4f}; "
+-                    f"cross {cross:.4f}; theta {theta} deg; {label}")
+-        else:
+-            corners = [points[p]["f1"] for p in a["C"]]
+-            terms = [_q(p[0]*corners[(i+1) % len(corners)][2]-p[2]*corners[(i+1) % len(corners)][0], 4)
+-                     for i, p in enumerate(corners)]
+-            total = _q(sum(terms), 4)
+-            result = {"corners": a["C"], "terms": terms, "signed_sum": total,
+-                      "value": _q(abs(total)/2), "unit": "m2"}
+-            text = f"area {result['value']:.2f} m^2"
+-        return _json({"api_version": API_VERSION, "spec_sha256": SPEC_SHA256, "command": command,
+-                      **parsed, "result": result, "text": text,
+-                      "injected_text": "<tool_response>"+text+"</tool_response>"})
++"""Alias the shared formatter so calculator receipts hash the implementation itself."""
++import sys
++from trace_format import calculator
++sys.modules[__name__] = calculator
+--- a/student_pilot/carrier_c1_run.py
++++ b/student_pilot/carrier_c1_run.py
+@@ -38,6 +38,11 @@
+ def identity(cfg):
+     value = {k: v for k, v in cfg.items() if k not in
+              ('preparation', 'admission', 'authorization', 'milestone_gate')}
++    if value.get('contract_epoch', True):
++        from trace_format.contracts import heading_plane_min, HEADING_PLANE_MIN_DEFAULT
++        value['heading_plane_min'] = heading_plane_min(value.get('heading_plane_min', HEADING_PLANE_MIN_DEFAULT))
++    else:
++        value.pop('heading_plane_min', None)
+     if 'readout' in value:
+         value['readout'] = {k: v for k, v in value['readout'].items() if k != 'contiguous_clips'}
+     if value.get('frame_layout') == 'spread':

@@ -1,0 +1,11 @@
+The r2 packet is ready for review. It binds the heading threshold, serves every available heading-independent field, and preserves the guard AST. Sources: [CONTRACTS_REPORT_R2.md](/scratch/jjyeung/orch_n30/contracts_rebuild/out/CONTRACTS_REPORT_R2.md), [PACKET_INTEGRITY_R2.json](/scratch/jjyeung/orch_n30/contracts_rebuild/out/PACKET_INTEGRITY_R2.json).
+
+The installed-tree suite passes 108 tests; relative-head fixtures pass 5766 exact response comparisons. Sources: [FINAL_TEST_RESULTS_R2.json](/scratch/jjyeung/orch_n30/contracts_rebuild/out/FINAL_TEST_RESULTS_R2.json), [RELATIVE_HEADS_nadir_R2.json](/scratch/jjyeung/orch_n30/contracts_rebuild/out/RELATIVE_HEADS_nadir_R2.json), [RELATIVE_HEADS_nadir_positive_R2.json](/scratch/jjyeung/orch_n30/contracts_rebuild/out/RELATIVE_HEADS_nadir_positive_R2.json), [RELATIVE_HEADS_vertical_R2.json](/scratch/jjyeung/orch_n30/contracts_rebuild/out/RELATIVE_HEADS_vertical_R2.json).
+
+The replay covers 152 captures with 0 failed assertions. All 41 affected ARKitScenes captures retain heading-free outputs. The 17 already served by the sealed guard lose only reference-heading fields. OFF equals base byte-for-byte. Source: [real_replay_r2/REAL_GEOMETRY_REPLAY.json](/scratch/jjyeung/orch_n30/contracts_rebuild/out/real_replay_r2/REAL_GEOMETRY_REPLAY.json).
+
+The patches pass zero-fuzz base/snapshot application and reject reapplication. Apply with [apply_contract_patches_r2.sh](/scratch/jjyeung/orch_n30/contracts_rebuild/out/apply_contract_patches_r2.sh); begin with `--dry-run`. Evidence: [APPLY_PROOF_R2.json](/scratch/jjyeung/orch_n30/contracts_rebuild/out/APPLY_PROOF_R2.json). Field table: [HEADING_DEPENDENCE_R2.md](/scratch/jjyeung/orch_n30/contracts_rebuild/out/HEADING_DEPENDENCE_R2.md). Coverage: [CHANGED_LINE_COVERAGE_R2.md](/scratch/jjyeung/orch_n30/contracts_rebuild/out/CHANGED_LINE_COVERAGE_R2.md).
+
+The replay retains 12 ordinary calculator refusals that also occur with heading defined. Source: [real_replay_r2/REAL_GEOMETRY_REPLAY.json](/scratch/jjyeung/orch_n30/contracts_rebuild/out/real_replay_r2/REAL_GEOMETRY_REPLAY.json).
+
+The replay uses tower geometry and synthetic masks. It measures tool behavior, not RGB-model answer quality or calibrated metric accuracy.

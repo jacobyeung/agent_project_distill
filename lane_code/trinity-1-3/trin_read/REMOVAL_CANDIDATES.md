@@ -1,0 +1,6 @@
+- /tmp/trin_read_build.tar on trinity-1-3 (741 MB, superseded mirror tar; deletion blocked by rm_guard, queued)
+- dl/*.part.withdrawn.* and dl/*.log.withdrawn.* (0-byte parts and logs of streams withdrawn 03:03Z and 04:25Z)
+- work/probe_tmp/ (CPU probe scratch)
+- dl/base.tar (19.3 GB; staged into root/ 10:48Z, verified)
+- work/pycfix/drifted.tar (drifted pyc evidence, small) - keep until the review has seen it
+- dl/runtime_0.tar.part.refused.1794809877 (689 MB, unused)

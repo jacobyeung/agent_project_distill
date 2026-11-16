@@ -1,0 +1,11 @@
+# contracts_rebuild STATUS (trinity-1-3) — 2026-11-16T03:12:45Z — DONE: r6 CONFIRMED (ORCH 0308Z), tree_rebuild2 integrates; nothing owed
+- Base b01ce449 at work/base/work/base/tree_b01ce449 (read-only). Guard ref work/ref/gravity_guard_a62e3975_recovered.py. Second tree work/tree_r1/tree_r1_build1_fab2eea8.tar.
+- CURRENT packet r6 (Build 9, Codex Astra high, done 02:58Z): out/*_r6*, *_R6*; apply out/apply_contract_patches_r6.sh TARGET [--dry-run]; interdiff out/INTERDIFF_R5_TO_R6.diff (418 lines, 6ee1264e); report out/CONTRACTS_REPORT_R6.md, out/BUILD9_SUMMARY.md. Sources work/src_r6, tests work/tests_r6, row families work/row_families_r6, mutations work/mutation_r6.
+- Evidence: 202/202 on both trees; 87 killed + 4 equivalent; OFF = base; real POOL 195,564 / 0 deferred / 0 bare gaps; G3T 152 / 0 failed. Operator check work/opcheck_r6.log.
+- RESULT 20261116T0301Z (r6) confirmed by the orchestrator 0308Z; final RESULT 20261116T0312Z written. No lane process runs.
+- Rulings this session: L-2c keep deferral (ORCH 0235Z); r6 scope accepted with per-item line counts (ORCH 0235Z).
+- History: r5 checked by review_c5 (CONFIRMED AFTER FIXES F-1, F-2); r4 by review_contracts2.
+- Mirrors on trinity-3-30 /scratch/jjyeung/n30_mirror/contracts_rebuild/: contracts_rebuild_r6.tar (1e5d62e9...), _r5.tar (b15d430b...), _r4.tar (65cc135a...), _r2.tar, _b2.tar.
+- Inputs: work/real/eb3429c5.tar (f0e71513...), work/real/geometry_8c58df1547371bdb.tar (8c58df15..., extracted x_geo).
+- Record: /data2/jjyeung/agent_project_data/distill_design/CONTRACTS_REBUILD_20261115.md (updated for r6).
+- Lane size 3.8 GB of 4 GB cap: next build needs room; removal candidates in REMOVAL_CANDIDATES.md (mirror/*.tar 620 MB, old trees).

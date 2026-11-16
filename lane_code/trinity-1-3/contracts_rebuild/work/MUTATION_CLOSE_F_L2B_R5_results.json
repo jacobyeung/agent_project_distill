@@ -1,0 +1,12 @@
+{
+  "tests_r5/test_confirmation_r5.py::test_generator_refusal_type[unbacked]": {
+    "outcome": "passed",
+    "when": "call",
+    "detail": ""
+  },
+  "tests_r5/test_confirmation_r5.py::test_generator_refusal_type[mismatch]": {
+    "outcome": "failed",
+    "when": "call",
+    "detail": "generator/derivgen_v7/derivgen/trace.py:244: in render\n    token, text = structured_tool_pair(call, e)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntrace_format/point_events.py:5: in structured_tool_pair\n    raise ValueError('mismatched_tool_response')\nE   ValueError: mismatched_tool_response\n\nThe above exception was the direct cause of the following exception:\n../../../tests_r5/test_confirmation_r5.py:146: in test_generator_refusal_type\n    with pytest.raises(Refusal):render([call,event],'<answer>x</answer>')\n                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ngenerator/derivgen_v7/derivgen/trace.py:246: in render\n    raise ValueError(str(exc)) from exc\nE   ValueError: mismatched_tool_response"
+  }
+}

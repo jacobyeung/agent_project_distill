@@ -1,0 +1,206 @@
+{
+  "tests": {
+    "tests_r6/test_review_c5.py::test_basis_uses_query_context[query0]": {
+      "r5": {
+        "outcome": "failed",
+        "when": "call",
+        "detail": "../../tests_r6/test_review_c5.py:33: in test_basis_uses_query_context\n    assert actual==expected\nE   AssertionError: assert ['P1: cam2 (-...nce = 0.05 m'] == ['P1: cam2 (-...nce = 0.05 m']\nE     \nE     At index 0 diff: 'P1: cam2 (-0.51, 0.00, 2.06) m; f1 (-0.50, 0.00, 2.07) m; spread 0.00' != 'P1: cam2 (-0.51, 0.00, 2.06) m; f1 (-0.24, 0.00, 2.12) m; spread 0.00'\nE     Use -v to get more diff"
+      },
+      "r6": {
+        "outcome": "passed",
+        "when": "call",
+        "detail": ""
+      },
+      "fails_r5_passes_r6": true
+    },
+    "tests_r6/test_review_c5.py::test_basis_uses_query_context[query1]": {
+      "r5": {
+        "outcome": "failed",
+        "when": "call",
+        "detail": "../../tests_r6/test_review_c5.py:33: in test_basis_uses_query_context\n    assert actual==expected\nE   AssertionError: assert ['P1: cam2 (-...nce = 0.05 m'] == ['P1: cam2 (-...nce = 0.05 m']\nE     \nE     At index 0 diff: 'P1: cam2 (-0.51, 0.00, 2.06) m; f1 (-0.50, 0.00, 2.07) m; spread 0.00' != 'P1: cam2 (-0.51, 0.00, 2.06) m; f1 (-0.24, 0.00, 2.12) m; spread 0.00'\nE     Use -v to get more diff"
+      },
+      "r6": {
+        "outcome": "passed",
+        "when": "call",
+        "detail": ""
+      },
+      "fails_r5_passes_r6": true
+    },
+    "tests_r6/test_review_c5.py::test_live_provider_uses_backend_epoch[True-False]": {
+      "r5": {
+        "outcome": "failed",
+        "when": "call",
+        "detail": "../../tests_r6/test_review_c5.py:53: in test_live_provider_uses_backend_epoch\n    assert session.box_provider_id==('fit_gbox_fused_full_v1' if backend_epoch else 'fit_gbox_best_v1')\nE   AssertionError: assert 'fit_gbox_fused_full_v1' == 'fit_gbox_best_v1'\nE     \nE     - fit_gbox_best_v1\nE     + fit_gbox_fused_full_v1"
+      },
+      "r6": {
+        "outcome": "passed",
+        "when": "call",
+        "detail": ""
+      },
+      "fails_r5_passes_r6": true
+    },
+    "tests_r6/test_review_c5.py::test_live_provider_uses_backend_epoch[False-True]": {
+      "r5": {
+        "outcome": "failed",
+        "when": "call",
+        "detail": "../../tests_r6/test_review_c5.py:53: in test_live_provider_uses_backend_epoch\n    assert session.box_provider_id==('fit_gbox_fused_full_v1' if backend_epoch else 'fit_gbox_best_v1')\nE   AssertionError: assert 'fit_gbox_best_v1' == 'fit_gbox_fused_full_v1'\nE     \nE     - fit_gbox_fused_full_v1\nE     + fit_gbox_best_v1"
+      },
+      "r6": {
+        "outcome": "passed",
+        "when": "call",
+        "detail": ""
+      },
+      "fails_r5_passes_r6": true
+    },
+    "tests_r6/test_review_c5.py::test_generator_import_order": {
+      "r5": {
+        "outcome": "failed",
+        "when": "call",
+        "detail": "../../tests_r6/test_review_c5.py:74: in test_generator_import_order\n    assert p.returncode==0,p.stderr\nE   AssertionError: Traceback (most recent call last):\nE       File \"<string>\", line 6, in <module>\nE       File \"/scratch/jjyeung/orch_n30/contracts_rebuild/work/trees/r5_applied/generator/derivgen_v7/derivgen/calculator.py\", line 57, in call\nE         return function(*args, **kwargs)\nE                ^^^^^^^^^^^^^^^^^^^^^^^^^\nE     TypeError: PrintedPointRegistry.register() got an unexpected keyword argument 'heading_defined'\nE     \nE   assert 1 == 0\nE    +  where 1 = CompletedProcess(args=['/scratch/jjyeung/envs/p1cpu/bin/python', '-I', '-s', '-B', '-c', \"import sys\\nsys.path[:0]=[sy...^^^^^^^^^^^^^^^^\\nTypeError: PrintedPointRegistry.register() got an unexpected keyword argument \\'heading_defined\\'\\n').returncode"
+      },
+      "r6": {
+        "outcome": "passed",
+        "when": "call",
+        "detail": ""
+      },
+      "fails_r5_passes_r6": true
+    },
+    "tests_r6/test_review_c5.py::test_cache_view_shares_mask_payload_without_mutation": {
+      "r5": {
+        "outcome": "failed",
+        "when": "call",
+        "detail": "../../tests_r6/test_review_c5.py:85: in test_cache_view_shares_mask_payload_without_mutation\n    assert view['frames']['0']['phrases'][key]['instances'][0]['mask'] is mask\nE   AssertionError: assert {'counts': [1, 4, 2], 'size': [2, 4]} is {'counts': [1, 4, 2], 'size': [2, 4]}"
+      },
+      "r6": {
+        "outcome": "passed",
+        "when": "call",
+        "detail": ""
+      },
+      "fails_r5_passes_r6": true
+    },
+    "tests_r6/test_review_c5.py::test_missing_manifest_phrases": {
+      "r5": {
+        "outcome": "failed",
+        "when": "call",
+        "detail": "../../tests_r6/test_review_c5.py:96: in test_missing_manifest_phrases\n    assert candidate_binding(row) is None\nE   AssertionError: assert [] is None\nE    +  where [] = <function candidate_binding at 0x7f8ac0e5fec0>({'candidate_manifest': {}, 'qid': 'missing', 'question_type': 'object_abs_distance', 'student_input': {'options': [], 'question': 'How far is the chair from the table?'}, ...})"
+      },
+      "r6": {
+        "outcome": "passed",
+        "when": "call",
+        "detail": ""
+      },
+      "fails_r5_passes_r6": true
+    },
+    "tests_r6/test_review_c5.py::test_rerender_head_arguments[pose-args0]": {
+      "r5": {
+        "outcome": "failed",
+        "when": "call",
+        "detail": "../../tests_r6/test_review_c5.py:112: in test_rerender_head_arguments\n    assert expected in text and 'error:' not in text\nE   AssertionError: assert ('f1 centre (heading unavailable, 0.00, heading unavailable) m, yaw heading unavailable' in '<think>\\nRead.\\n\\n<pose noncanonical><tool_response>error: malformed_call</tool_response>\\n</think>\\n\\n<answer>x</answer>')"
+      },
+      "r6": {
+        "outcome": "passed",
+        "when": "call",
+        "detail": ""
+      },
+      "fails_r5_passes_r6": true
+    },
+    "tests_r6/test_review_c5.py::test_rerender_head_arguments[move-args1]": {
+      "r5": {
+        "outcome": "failed",
+        "when": "call",
+        "detail": "../../tests_r6/test_review_c5.py:112: in test_rerender_head_arguments\n    assert expected in text and 'error:' not in text\nE   AssertionError: assert ('dx = heading unavailable (frame 1), dy = +0.00 m, dz = heading unavailable (frame 1), distance = 0.05 m' in '<think>\\nRead.\\n\\n<move noncanonical><tool_response>error: malformed_call</tool_response>\\n</think>\\n\\n<answer>x</answer>')"
+      },
+      "r6": {
+        "outcome": "passed",
+        "when": "call",
+        "detail": ""
+      },
+      "fails_r5_passes_r6": true
+    },
+    "tests_r6/test_review_c5.py::test_rerender_head_arguments[turn-args2]": {
+      "r5": {
+        "outcome": "failed",
+        "when": "call",
+        "detail": "../../tests_r6/test_review_c5.py:112: in test_rerender_head_arguments\n    assert expected in text and 'error:' not in text\nE   AssertionError: assert ('turn = heading unavailable (frames 1)' in '<think>\\nRead.\\n\\n<turn noncanonical><tool_response>error: malformed_call</tool_response>\\n</think>\\n\\n<answer>x</answer>')"
+      },
+      "r6": {
+        "outcome": "passed",
+        "when": "call",
+        "detail": ""
+      },
+      "fails_r5_passes_r6": true
+    },
+    "tests_r6/test_review_c5.py::test_strict_row_structure[before0-after0]": {
+      "r5": {
+        "outcome": "failed",
+        "when": "call",
+        "detail": "../../tests_r6/test_review_c5.py:121: in test_strict_row_structure\n    assert not mod.row_texts_valid(before,after)\nE   AssertionError: assert not True\nE    +  where True = <function row_texts_valid at 0x7f8aa6cd8a40>({'a': 'x'}, {'a': 'x', 'b': 'y'})\nE    +    where <function row_texts_valid at 0x7f8aa6cd8a40> = <module 'compare_c5' from '/scratch/jjyeung/orch_n30/contracts_rebuild/work/row_families_r5/heading_compare.py'>.row_texts_valid"
+      },
+      "r6": {
+        "outcome": "passed",
+        "when": "call",
+        "detail": ""
+      },
+      "fails_r5_passes_r6": true
+    },
+    "tests_r6/test_review_c5.py::test_strict_row_structure[before1-after1]": {
+      "r5": {
+        "outcome": "failed",
+        "when": "call",
+        "detail": "../../tests_r6/test_review_c5.py:121: in test_strict_row_structure\n    assert not mod.row_texts_valid(before,after)\nE   AssertionError: assert not True\nE    +  where True = <function row_texts_valid at 0x7f8aa6cd8ea0>({'a': 'x', 'b': 'y'}, {'a': 'x'})\nE    +    where <function row_texts_valid at 0x7f8aa6cd8ea0> = <module 'compare_c5' from '/scratch/jjyeung/orch_n30/contracts_rebuild/work/row_families_r5/heading_compare.py'>.row_texts_valid"
+      },
+      "r6": {
+        "outcome": "passed",
+        "when": "call",
+        "detail": ""
+      },
+      "fails_r5_passes_r6": true
+    },
+    "tests_r6/test_review_c5.py::test_strict_row_structure[before2-after2]": {
+      "r5": {
+        "outcome": "failed",
+        "when": "call",
+        "detail": "../../tests_r6/test_review_c5.py:121: in test_strict_row_structure\n    assert not mod.row_texts_valid(before,after)\nE   AssertionError: assert not True\nE    +  where True = <function row_texts_valid at 0x7f8aa6cd9300>({'a': 1}, {'a': 2})\nE    +    where <function row_texts_valid at 0x7f8aa6cd9300> = <module 'compare_c5' from '/scratch/jjyeung/orch_n30/contracts_rebuild/work/row_families_r5/heading_compare.py'>.row_texts_valid"
+      },
+      "r6": {
+        "outcome": "passed",
+        "when": "call",
+        "detail": ""
+      },
+      "fails_r5_passes_r6": true
+    },
+    "tests_r6/test_review_c5.py::test_strict_row_structure[before3-after3]": {
+      "r5": {
+        "outcome": "failed",
+        "when": "call",
+        "detail": "../../tests_r6/test_review_c5.py:121: in test_strict_row_structure\n    assert not mod.row_texts_valid(before,after)\nE   AssertionError: assert not True\nE    +  where True = <function row_texts_valid at 0x7f8aa6cd99e0>({'a': False}, {'a': 0})\nE    +    where <function row_texts_valid at 0x7f8aa6cd99e0> = <module 'compare_c5' from '/scratch/jjyeung/orch_n30/contracts_rebuild/work/row_families_r5/heading_compare.py'>.row_texts_valid"
+      },
+      "r6": {
+        "outcome": "passed",
+        "when": "call",
+        "detail": ""
+      },
+      "fails_r5_passes_r6": true
+    },
+    "tests_r6/test_review_c5.py::test_strict_row_structure[before4-after4]": {
+      "r5": {
+        "outcome": "failed",
+        "when": "call",
+        "detail": "../../tests_r6/test_review_c5.py:121: in test_strict_row_structure\n    assert not mod.row_texts_valid(before,after)\nE   AssertionError: assert not True\nE    +  where True = <function row_texts_valid at 0x7f8aa6cda0c0>({'a': [1, None]}, {'a': [1, 0]})\nE    +    where <function row_texts_valid at 0x7f8aa6cda0c0> = <module 'compare_c5' from '/scratch/jjyeung/orch_n30/contracts_rebuild/work/row_families_r5/heading_compare.py'>.row_texts_valid"
+      },
+      "r6": {
+        "outcome": "passed",
+        "when": "call",
+        "detail": ""
+      },
+      "fails_r5_passes_r6": true
+    }
+  },
+  "all_fail_r5_pass_r6": true,
+  "source_paths": [
+    "/scratch/jjyeung/orch_n30/contracts_rebuild/work/R6_OLD_results.json",
+    "/scratch/jjyeung/orch_n30/contracts_rebuild/work/R6_NEW_results.json"
+  ],
+  "strict_compare_r5": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/row_families_r5/heading_compare.py",
+  "baseline_parity": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/CONTEXT_PARITY_R6.json"
+}

@@ -1,0 +1,7 @@
+{
+  "tests_r6/test_row_families_r4.py::test_bare_ground_off_parity": {
+    "outcome": "failed",
+    "when": "call",
+    "detail": "../../../tests_r6/test_row_families_r4.py:20: in test_bare_ground_off_parity\n    assert render(item,s,lambda text:len(text.split())) == base\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ngenerator/derivgen_v7/derivgen/ground_v312.py:154: in render\n    body = emit(f'<ground obj=\"{valid_name(name)}\">')\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ngenerator/derivgen_v7/derivgen/ground_v312.py:149: in emit\n    body = session.execute(call)\n           ^^^^^^^^^^^^^^^^^^^^^\ngenerator/derivgen_v7/derivgen/ground_v312.py:61: in execute\n    body = self.backend.render_ground(result, self.registry)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nstudent_pilot/ground_lifting.py:189: in render_ground\n    point = registry.register(camera=list(map(float, rounded(result['camera']))),\ngenerator/derivgen_v7/derivgen/calculator.py:57: in call\n    return function(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^\nE   TypeError: PrintedPointRegistry.register() got an unexpected keyword argument 'heading_defined'"
+  }
+}

@@ -1,0 +1,72 @@
+from pathlib import Path
+import os
+import sys
+import json
+import tempfile
+import shutil
+import signal
+L=Path(__file__).resolve().parents[1]
+tree=L/'work/trees'/sys.argv[1]
+tag=sys.argv[2]
+os.chdir(tree)
+sys.path[:0]=[str(tree),str(L/'work/tests')]
+root=L/'work/tmp'/tag
+root.mkdir(parents=True,exist_ok=True)
+tempfile.tempdir=str(root)
+tempfile.TemporaryDirectory.cleanup=lambda self: self._finalizer.detach()
+tempfile.TemporaryDirectory._cleanup=classmethod(lambda cls,*args,**kwargs: None)
+shutil.rmtree=lambda *args,**kwargs: None
+for key in ('STUDENT_PILOT_TEST_OUTPUT','STUDENT_CONVERTER_TEST_OUTPUT','CLEAN_VSI590K_TEST_ROOT','LANE_TEST_OUTPUT','TMPDIR'):
+    os.environ[key]=str(root)
+os.environ['CLEAN_VSI590K_WORKSPACE']=str(tree)
+os.environ['PYTEST_DISABLE_PLUGIN_AUTOLOAD']='1'
+def audit(event,args):
+    if event in ('subprocess.Popen','os.system','socket.connect'):
+        raise PermissionError('CPU proof does not launch external commands or network connections')
+    if event in ('os.remove','os.rmdir'):
+        raise PermissionError('Proof retains all fixtures')
+    if event=='open' and isinstance(args[0],(str,bytes)):
+        path=Path(os.fsdecode(args[0])).absolute()
+        if str(path).startswith(('/home/','/data/','/data2/','/data3/')):
+            raise PermissionError('Proof does not access external records: '+str(path))
+        flags=args[2]
+        if flags & (os.O_WRONLY|os.O_RDWR|os.O_CREAT) and not path.is_relative_to(L):
+            raise PermissionError('Proof writes only in lane: '+str(path))
+sys.addaudithook(audit)
+import pytest
+class Coverage:
+    current='collection'
+    hits={}
+    results={}
+    def pytest_collectstart(self,collector):
+        self.current=collector.nodeid+' [collection]'
+    def trace(self, frame,event,arg):
+        if not frame.f_code.co_filename.startswith(str(tree)):
+            return None
+        if event=='line':
+            name=str(Path(frame.f_code.co_filename).relative_to(tree))
+            self.hits.setdefault(name,{}).setdefault(str(frame.f_lineno),set()).add(self.current)
+        return self.trace
+    def pytest_runtest_setup(self,item):
+        self.current=item.nodeid
+        (root/'current_test.txt').write_text(item.nodeid)
+        signal.signal(signal.SIGALRM,lambda *args: (_ for _ in ()).throw(TimeoutError('CPU test exceeded 90 seconds')))
+        signal.alarm(90)
+    def pytest_runtest_teardown(self,item):
+        signal.alarm(0)
+    def pytest_runtest_logreport(self,report):
+        if report.when=='call' or report.failed or report.skipped:
+            self.results[report.nodeid]=dict(outcome=report.outcome,when=report.when,
+                detail=str(report.longrepr) if report.failed or report.skipped else '')
+cov=Coverage()
+args=(json.loads((L/('work/base_tests_extra.json' if sys.argv[3]=='base-extra' else 'work/base_tests.json')).read_text())
+      if sys.argv[3].startswith('base') else ([] if sys.argv[3]=='tree' else [str(L/'work/tests')]))
+args+=['-q','-p','no:cacheprovider','--basetemp',str(root/'pytest'), '--tb=short',
+       '--log-file', str(root/'pytest.log'),'--continue-on-collection-errors']
+if len(sys.argv)>4: args+=sys.argv[4:]
+if not sys.argv[3].startswith('base'):sys.settrace(cov.trace)
+result=pytest.main(args,plugins=[cov])
+sys.settrace(None)
+(L/f'out/{tag}_results.json').write_text(json.dumps(cov.results,indent=2))
+(L/f'out/{tag}_trace.json').write_text(json.dumps({k:{n:sorted(ts) for n,ts in v.items()} for k,v in cov.hits.items()}))
+raise SystemExit(result)

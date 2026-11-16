@@ -1,0 +1,744 @@
+{
+  "source": "/scratch/jjyeung/orch_n30/review_c5/work/tests_r5/test_generator_r4.py",
+  "outputs": {
+    "landscape": {
+      "off": {
+        "count": "<think>\nI count each observed instance once across the sampled frames.\n<ground obj=\"chair\" mode=\"instances\">\n<tool_response>\nchair: 1 found\nP1: chair instance 1 cam2 (-0.65, -0.06, 2.05) m; f1 (-0.63, -0.06, 2.07) m; first 2\n</tool_response>\nSo there are 1.\n</think>\n<answer>1</answer>",
+        "distance": "<think>\nI will ground the boxes and ask the tool to measure their box distance.\n<ground obj=\"chair\" mode=\"box\">\n<tool_response>\nchair: frames 2,3,4,5 (best 2)\nB1: f1 centre (-0.62, -0.07, 2.09) m\nsize 0.65 x 0.07 x 1.13 m\nyaw -3 deg (0 = +x; positive +x toward -z about +y)\n</tool_response>\n<ground obj=\"table\" mode=\"box\">\n<tool_response>\ntable: frames 2,3,4,5 (best 2)\nB2: f1 centre (0.71, -0.07, 2.17) m\nsize 0.70 x 0.07 x 1.17 m\nyaw -3 deg (0 = +x; positive +x toward -z about +y)\n</tool_response>\n<gap a=\"chair\" b=\"table\" rule=\"box_grid_5cm\">\n<tool_response>\ndistance 0.66 m\n</tool_response>\nThe box gap is the smallest distance between points on a 5 cm grid over the two objects' full boxes, taken over every pair of instances.\nThe box distance is 0.66 m.\n</think>\n<answer>0.66</answer>",
+        "count_events": [
+          {
+            "call": "<ground obj=\"chair\" mode=\"instances\">",
+            "response": "<tool_response>\nchair: 1 found\nP1: chair instance 1 cam2 (-0.65, -0.06, 2.05) m; f1 (-0.63, -0.06, 2.07) m; first 2\n</tool_response>",
+            "audit": {
+              "box_provider": "fit_gbox_fused_full_v1",
+              "numpy_version": "2.2.6",
+              "distance_rule": null
+            }
+          }
+        ],
+        "distance_events": [
+          {
+            "call": "<ground obj=\"chair\" mode=\"box\">",
+            "response": "<tool_response>\nchair: frames 2,3,4,5 (best 2)\nB1: f1 centre (-0.62, -0.07, 2.09) m\nsize 0.65 x 0.07 x 1.13 m\nyaw -3 deg (0 = +x; positive +x toward -z about +y)\n</tool_response>",
+            "audit": {
+              "box_provider": "fit_gbox_fused_full_v1",
+              "numpy_version": "2.2.6",
+              "distance_rule": null,
+              "instance_metadata": [
+                {
+                  "areas": {
+                    "2": 0.12299107142857142,
+                    "3": 0.12299107142857142,
+                    "4": 0.12299107142857142,
+                    "5": 0.12299107142857142
+                  },
+                  "instance_id": "1"
+                }
+              ],
+              "full_precision_box": {
+                "centre": [
+                  -0.6213682278905894,
+                  -0.06785592215401787,
+                  2.0918362044022576
+                ],
+                "lengths": [
+                  0.6506593109312149,
+                  0.06979233368496196,
+                  1.1330205078125002
+                ],
+                "axes": [
+                  [
+                    0.9982108805543407,
+                    0.0,
+                    0.05979162100936657
+                  ],
+                  [
+                    -0.05979162100936657,
+                    0.0,
+                    0.9982108805543407
+                  ],
+                  [
+                    0.0,
+                    1.0,
+                    0.0
+                  ]
+                ]
+              },
+              "box_label": "B1"
+            }
+          },
+          {
+            "call": "<ground obj=\"table\" mode=\"box\">",
+            "response": "<tool_response>\ntable: frames 2,3,4,5 (best 2)\nB2: f1 centre (0.71, -0.07, 2.17) m\nsize 0.70 x 0.07 x 1.17 m\nyaw -3 deg (0 = +x; positive +x toward -z about +y)\n</tool_response>",
+            "audit": {
+              "box_provider": "fit_gbox_fused_full_v1",
+              "numpy_version": "2.2.6",
+              "distance_rule": null,
+              "instance_metadata": [
+                {
+                  "areas": {
+                    "2": 0.12299107142857142,
+                    "3": 0.12299107142857142,
+                    "4": 0.12299107142857142,
+                    "5": 0.12299107142857142
+                  },
+                  "instance_id": "2"
+                }
+              ],
+              "full_precision_box": {
+                "centre": [
+                  0.7122854705946423,
+                  -0.07024152483258927,
+                  2.168269259207811
+                ],
+                "lengths": [
+                  0.6976307914188443,
+                  0.06886292258735871,
+                  1.1747685546875
+                ],
+                "axes": [
+                  [
+                    0.998454731179185,
+                    0.0,
+                    0.05557112366959476
+                  ],
+                  [
+                    -0.05557112366959476,
+                    0.0,
+                    0.998454731179185
+                  ],
+                  [
+                    0.0,
+                    1.0,
+                    0.0
+                  ]
+                ]
+              },
+              "box_label": "B2"
+            }
+          },
+          {
+            "call": "<gap a=\"chair\" b=\"table\" rule=\"box_grid_5cm\">",
+            "response": "<tool_response>\ndistance 0.66 m\n</tool_response>",
+            "audit": {
+              "box_provider": "fit_gbox_fused_full_v1",
+              "numpy_version": "2.2.6",
+              "distance_rule": "box_grid_5cm",
+              "sampler": {
+                "rule": "box_grid_5cm",
+                "step": 0.05,
+                "inner_half_box_removed": true,
+                "dtype": "float64",
+                "instances": "min_over_pairs"
+              },
+              "ordered_box_labels": [
+                "B1",
+                "B2"
+              ]
+            }
+          }
+        ]
+      },
+      "on": {
+        "count": "<think>\nI count each observed instance once across the sampled frames.\n<ground obj=\"chair\" mode=\"instances\">\n<tool_response>\nchair: 1 found\nP1: chair instance 1 cam2 (-0.65, -0.06, 2.05) m; f1 (-0.63, -0.06, 2.07) m; first 2\n</tool_response>\nSo there are 1.\n</think>\n<answer>1</answer>",
+        "distance": "<think>\nI will ground the boxes and ask the tool to measure their box distance.\n<ground obj=\"chair\" mode=\"box\">\n<tool_response>\nchair: frames 2,3,4,5 (best 2)\nB1: f1 centre (-0.62, -0.07, 2.09) m\nsize 0.65 x 0.07 x 1.13 m\nyaw -3 deg (0 = +x; positive +x toward -z about +y)\n</tool_response>\n<ground obj=\"table\" mode=\"box\">\n<tool_response>\ntable: frames 2,3,4,5 (best 2)\nB2: f1 centre (0.71, -0.07, 2.17) m\nsize 0.70 x 0.07 x 1.17 m\nyaw -3 deg (0 = +x; positive +x toward -z about +y)\n</tool_response>\n<gap a=\"chair\" b=\"table\" rule=\"box_grid_5cm\">\n<tool_response>\ndistance 0.66 m\n</tool_response>\nThe box gap is the smallest distance between points on a 5 cm grid over the two objects' full boxes, taken over every pair of instances.\nThe box distance is 0.66 m.\n</think>\n<answer>0.66</answer>",
+        "count_events": [
+          {
+            "call": "<ground obj=\"chair\" mode=\"instances\">",
+            "response": "<tool_response>\nchair: 1 found\nP1: chair instance 1 cam2 (-0.65, -0.06, 2.05) m; f1 (-0.63, -0.06, 2.07) m; first 2\n</tool_response>",
+            "audit": {
+              "box_provider": "fit_gbox_fused_full_v1",
+              "numpy_version": "2.2.6",
+              "distance_rule": null
+            }
+          }
+        ],
+        "distance_events": [
+          {
+            "call": "<ground obj=\"chair\" mode=\"box\">",
+            "response": "<tool_response>\nchair: frames 2,3,4,5 (best 2)\nB1: f1 centre (-0.62, -0.07, 2.09) m\nsize 0.65 x 0.07 x 1.13 m\nyaw -3 deg (0 = +x; positive +x toward -z about +y)\n</tool_response>",
+            "audit": {
+              "box_provider": "fit_gbox_fused_full_v1",
+              "numpy_version": "2.2.6",
+              "distance_rule": null,
+              "instance_metadata": [
+                {
+                  "areas": {
+                    "2": 0.12299107142857142,
+                    "3": 0.12299107142857142,
+                    "4": 0.12299107142857142,
+                    "5": 0.12299107142857142
+                  },
+                  "instance_id": "1"
+                }
+              ],
+              "full_precision_box": {
+                "centre": [
+                  -0.6213682278905894,
+                  -0.06785592215401787,
+                  2.0918362044022576
+                ],
+                "lengths": [
+                  0.6506593109312149,
+                  0.06979233368496196,
+                  1.1330205078125002
+                ],
+                "axes": [
+                  [
+                    0.9982108805543407,
+                    0.0,
+                    0.05979162100936657
+                  ],
+                  [
+                    -0.05979162100936657,
+                    0.0,
+                    0.9982108805543407
+                  ],
+                  [
+                    0.0,
+                    1.0,
+                    0.0
+                  ]
+                ]
+              },
+              "box_label": "B1"
+            }
+          },
+          {
+            "call": "<ground obj=\"table\" mode=\"box\">",
+            "response": "<tool_response>\ntable: frames 2,3,4,5 (best 2)\nB2: f1 centre (0.71, -0.07, 2.17) m\nsize 0.70 x 0.07 x 1.17 m\nyaw -3 deg (0 = +x; positive +x toward -z about +y)\n</tool_response>",
+            "audit": {
+              "box_provider": "fit_gbox_fused_full_v1",
+              "numpy_version": "2.2.6",
+              "distance_rule": null,
+              "instance_metadata": [
+                {
+                  "areas": {
+                    "2": 0.12299107142857142,
+                    "3": 0.12299107142857142,
+                    "4": 0.12299107142857142,
+                    "5": 0.12299107142857142
+                  },
+                  "instance_id": "2"
+                }
+              ],
+              "full_precision_box": {
+                "centre": [
+                  0.7122854705946423,
+                  -0.07024152483258927,
+                  2.168269259207811
+                ],
+                "lengths": [
+                  0.6976307914188443,
+                  0.06886292258735871,
+                  1.1747685546875
+                ],
+                "axes": [
+                  [
+                    0.998454731179185,
+                    0.0,
+                    0.05557112366959476
+                  ],
+                  [
+                    -0.05557112366959476,
+                    0.0,
+                    0.998454731179185
+                  ],
+                  [
+                    0.0,
+                    1.0,
+                    0.0
+                  ]
+                ]
+              },
+              "box_label": "B2"
+            }
+          },
+          {
+            "call": "<gap a=\"chair\" b=\"table\" rule=\"box_grid_5cm\">",
+            "response": "<tool_response>\ndistance 0.66 m\n</tool_response>",
+            "audit": {
+              "box_provider": "fit_gbox_fused_full_v1",
+              "numpy_version": "2.2.6",
+              "distance_rule": "box_grid_5cm",
+              "sampler": {
+                "rule": "box_grid_5cm",
+                "step": 0.05,
+                "inner_half_box_removed": true,
+                "dtype": "float64",
+                "instances": "min_over_pairs"
+              },
+              "ordered_box_labels": [
+                "B1",
+                "B2"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "nadir_positive": {
+      "off": {
+        "count": "<think>\nI count each observed instance once across the sampled frames.\n<ground obj=\"chair\" mode=\"instances\">\n<tool_response>\nchair: 1 found\nP1: chair instance 1 cam2 (-0.65, -0.06, 2.05) m; f1 (-0.63, -0.06, 2.07) m; first 2\n</tool_response>\nSo there are 1.\n</think>\n<answer>1</answer>",
+        "distance": "<think>\nI will ground the boxes and ask the tool to measure their box distance.\n<ground obj=\"chair\" mode=\"box\">\n<tool_response>\nchair: frames 2,3,4,5 (best 2)\nB1: f1 centre (-0.62, -0.07, 2.09) m\nsize 0.65 x 0.07 x 1.13 m\nyaw -3 deg (0 = +x; positive +x toward -z about +y)\n</tool_response>\n<ground obj=\"table\" mode=\"box\">\n<tool_response>\ntable: frames 2,3,4,5 (best 2)\nB2: f1 centre (0.71, -0.07, 2.17) m\nsize 0.70 x 0.07 x 1.17 m\nyaw -3 deg (0 = +x; positive +x toward -z about +y)\n</tool_response>\n<gap a=\"chair\" b=\"table\" rule=\"box_grid_5cm\">\n<tool_response>\ndistance 0.66 m\n</tool_response>\nThe box gap is the smallest distance between points on a 5 cm grid over the two objects' full boxes, taken over every pair of instances.\nThe box distance is 0.66 m.\n</think>\n<answer>0.66</answer>",
+        "count_events": [
+          {
+            "call": "<ground obj=\"chair\" mode=\"instances\">",
+            "response": "<tool_response>\nchair: 1 found\nP1: chair instance 1 cam2 (-0.65, -0.06, 2.05) m; f1 (-0.63, -0.06, 2.07) m; first 2\n</tool_response>",
+            "audit": {
+              "box_provider": "fit_gbox_fused_full_v1",
+              "numpy_version": "2.2.6",
+              "distance_rule": null
+            }
+          }
+        ],
+        "distance_events": [
+          {
+            "call": "<ground obj=\"chair\" mode=\"box\">",
+            "response": "<tool_response>\nchair: frames 2,3,4,5 (best 2)\nB1: f1 centre (-0.62, -0.07, 2.09) m\nsize 0.65 x 0.07 x 1.13 m\nyaw -3 deg (0 = +x; positive +x toward -z about +y)\n</tool_response>",
+            "audit": {
+              "box_provider": "fit_gbox_fused_full_v1",
+              "numpy_version": "2.2.6",
+              "distance_rule": null,
+              "instance_metadata": [
+                {
+                  "areas": {
+                    "2": 0.12299107142857142,
+                    "3": 0.12299107142857142,
+                    "4": 0.12299107142857142,
+                    "5": 0.12299107142857142
+                  },
+                  "instance_id": "1"
+                }
+              ],
+              "full_precision_box": {
+                "centre": [
+                  -0.6213682278905894,
+                  -0.06785592215401787,
+                  2.0918362044022576
+                ],
+                "lengths": [
+                  0.6506593109312149,
+                  0.06979233368496196,
+                  1.1330205078125002
+                ],
+                "axes": [
+                  [
+                    0.9982108805543407,
+                    0.0,
+                    0.05979162100936657
+                  ],
+                  [
+                    -0.05979162100936657,
+                    0.0,
+                    0.9982108805543407
+                  ],
+                  [
+                    0.0,
+                    1.0,
+                    0.0
+                  ]
+                ]
+              },
+              "box_label": "B1"
+            }
+          },
+          {
+            "call": "<ground obj=\"table\" mode=\"box\">",
+            "response": "<tool_response>\ntable: frames 2,3,4,5 (best 2)\nB2: f1 centre (0.71, -0.07, 2.17) m\nsize 0.70 x 0.07 x 1.17 m\nyaw -3 deg (0 = +x; positive +x toward -z about +y)\n</tool_response>",
+            "audit": {
+              "box_provider": "fit_gbox_fused_full_v1",
+              "numpy_version": "2.2.6",
+              "distance_rule": null,
+              "instance_metadata": [
+                {
+                  "areas": {
+                    "2": 0.12299107142857142,
+                    "3": 0.12299107142857142,
+                    "4": 0.12299107142857142,
+                    "5": 0.12299107142857142
+                  },
+                  "instance_id": "2"
+                }
+              ],
+              "full_precision_box": {
+                "centre": [
+                  0.7122854705946423,
+                  -0.07024152483258927,
+                  2.168269259207811
+                ],
+                "lengths": [
+                  0.6976307914188443,
+                  0.06886292258735871,
+                  1.1747685546875
+                ],
+                "axes": [
+                  [
+                    0.998454731179185,
+                    0.0,
+                    0.05557112366959476
+                  ],
+                  [
+                    -0.05557112366959476,
+                    0.0,
+                    0.998454731179185
+                  ],
+                  [
+                    0.0,
+                    1.0,
+                    0.0
+                  ]
+                ]
+              },
+              "box_label": "B2"
+            }
+          },
+          {
+            "call": "<gap a=\"chair\" b=\"table\" rule=\"box_grid_5cm\">",
+            "response": "<tool_response>\ndistance 0.66 m\n</tool_response>",
+            "audit": {
+              "box_provider": "fit_gbox_fused_full_v1",
+              "numpy_version": "2.2.6",
+              "distance_rule": "box_grid_5cm",
+              "sampler": {
+                "rule": "box_grid_5cm",
+                "step": 0.05,
+                "inner_half_box_removed": true,
+                "dtype": "float64",
+                "instances": "min_over_pairs"
+              },
+              "ordered_box_labels": [
+                "B1",
+                "B2"
+              ]
+            }
+          }
+        ]
+      },
+      "on": {
+        "count": "<think>\nI count each observed instance once across the sampled frames.\n<ground obj=\"chair\" mode=\"instances\">\n<tool_response>\nchair: 1 found\nP1: chair instance 1 cam2 (-0.65, -0.06, 2.05) m; f1 (heading unavailable, -0.06, heading unavailable) m; first 2\n</tool_response>\nSo there are 1.\n</think>\n<answer>1</answer>",
+        "distance": "<think>\nI will ground the boxes and ask the tool to measure their box distance.\n<ground obj=\"chair\" mode=\"box\">\n<tool_response>\nchair: frames 2,3,4,5 (best 2)\nB1: f1 centre (heading unavailable, -0.07, heading unavailable) m\nsize 0.65 x 0.07 x 1.13 m\nyaw heading unavailable\n</tool_response>\n<ground obj=\"table\" mode=\"box\">\n<tool_response>\ntable: frames 2,3,4,5 (best 2)\nB2: f1 centre (heading unavailable, -0.07, heading unavailable) m\nsize 0.70 x 0.07 x 1.17 m\nyaw heading unavailable\n</tool_response>\n<gap a=\"chair\" b=\"table\" rule=\"box_grid_5cm\">\n<tool_response>\ndistance 0.66 m\n</tool_response>\nThe box gap is the smallest distance between points on a 5 cm grid over the two objects' full boxes, taken over every pair of instances.\nThe box distance is 0.66 m.\n</think>\n<answer>0.66</answer>",
+        "count_events": [
+          {
+            "call": "<ground obj=\"chair\" mode=\"instances\">",
+            "response": "<tool_response>\nchair: 1 found\nP1: chair instance 1 cam2 (-0.65, -0.06, 2.05) m; f1 (heading unavailable, -0.06, heading unavailable) m; first 2\n</tool_response>",
+            "audit": {
+              "box_provider": "fit_gbox_fused_full_v1",
+              "numpy_version": "2.2.6",
+              "distance_rule": null
+            }
+          }
+        ],
+        "distance_events": [
+          {
+            "call": "<ground obj=\"chair\" mode=\"box\">",
+            "response": "<tool_response>\nchair: frames 2,3,4,5 (best 2)\nB1: f1 centre (heading unavailable, -0.07, heading unavailable) m\nsize 0.65 x 0.07 x 1.13 m\nyaw heading unavailable\n</tool_response>",
+            "audit": {
+              "box_provider": "fit_gbox_fused_full_v1",
+              "numpy_version": "2.2.6",
+              "distance_rule": null,
+              "instance_metadata": [
+                {
+                  "areas": {
+                    "2": 0.12299107142857142,
+                    "3": 0.12299107142857142,
+                    "4": 0.12299107142857142,
+                    "5": 0.12299107142857142
+                  },
+                  "instance_id": "1"
+                }
+              ],
+              "metric_only": true,
+              "metric_values": [
+                {
+                  "centre": [
+                    -0.6213682278905894,
+                    2.0918362044022576,
+                    -0.06785592215401787
+                  ],
+                  "lengths": [
+                    0.6506593109312149,
+                    0.06979233368496196,
+                    1.1330205078125002
+                  ],
+                  "axes": [
+                    [
+                      0.9982108805543407,
+                      0.05979162100936657,
+                      0.0
+                    ],
+                    [
+                      -0.05979162100936657,
+                      0.9982108805543407,
+                      0.0
+                    ],
+                    [
+                      0.0,
+                      0.0,
+                      1.0
+                    ]
+                  ]
+                }
+              ],
+              "metric_gaps": [
+                {
+                  "centre": [
+                    -0.6213682278905894,
+                    2.0918362044022576,
+                    -0.06785592215401787
+                  ],
+                  "lengths": [
+                    0.6506593109312149,
+                    0.06979233368496196,
+                    1.1330205078125002
+                  ],
+                  "axes": [
+                    [
+                      0.9982108805543407,
+                      0.05979162100936657,
+                      0.0
+                    ],
+                    [
+                      -0.05979162100936657,
+                      0.9982108805543407,
+                      0.0
+                    ],
+                    [
+                      0.0,
+                      0.0,
+                      1.0
+                    ]
+                  ]
+                }
+              ],
+              "metric_metadata": [
+                {
+                  "frames": [
+                    2,
+                    3,
+                    4,
+                    5
+                  ],
+                  "best": 2,
+                  "areas": {
+                    "2": 0.12299107142857142,
+                    "3": 0.12299107142857142,
+                    "4": 0.12299107142857142,
+                    "5": 0.12299107142857142
+                  },
+                  "instance_id": "1",
+                  "gap_operand": "printed_box"
+                }
+              ],
+              "full_precision_box": {
+                "centre": [
+                  -0.6213682278905894,
+                  2.0918362044022576,
+                  -0.06785592215401787
+                ],
+                "lengths": [
+                  0.6506593109312149,
+                  0.06979233368496196,
+                  1.1330205078125002
+                ],
+                "axes": [
+                  [
+                    0.9982108805543407,
+                    0.05979162100936657,
+                    0.0
+                  ],
+                  [
+                    -0.05979162100936657,
+                    0.9982108805543407,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    1.0
+                  ]
+                ]
+              },
+              "box_label": "B1"
+            }
+          },
+          {
+            "call": "<ground obj=\"table\" mode=\"box\">",
+            "response": "<tool_response>\ntable: frames 2,3,4,5 (best 2)\nB2: f1 centre (heading unavailable, -0.07, heading unavailable) m\nsize 0.70 x 0.07 x 1.17 m\nyaw heading unavailable\n</tool_response>",
+            "audit": {
+              "box_provider": "fit_gbox_fused_full_v1",
+              "numpy_version": "2.2.6",
+              "distance_rule": null,
+              "instance_metadata": [
+                {
+                  "areas": {
+                    "2": 0.12299107142857142,
+                    "3": 0.12299107142857142,
+                    "4": 0.12299107142857142,
+                    "5": 0.12299107142857142
+                  },
+                  "instance_id": "2"
+                }
+              ],
+              "metric_only": true,
+              "metric_values": [
+                {
+                  "centre": [
+                    0.7122854705946423,
+                    2.168269259207811,
+                    -0.07024152483258927
+                  ],
+                  "lengths": [
+                    0.6976307914188443,
+                    0.06886292258735871,
+                    1.1747685546875
+                  ],
+                  "axes": [
+                    [
+                      0.998454731179185,
+                      0.05557112366959476,
+                      0.0
+                    ],
+                    [
+                      -0.05557112366959476,
+                      0.998454731179185,
+                      0.0
+                    ],
+                    [
+                      0.0,
+                      0.0,
+                      1.0
+                    ]
+                  ]
+                }
+              ],
+              "metric_gaps": [
+                {
+                  "centre": [
+                    0.7122854705946423,
+                    2.168269259207811,
+                    -0.07024152483258927
+                  ],
+                  "lengths": [
+                    0.6976307914188443,
+                    0.06886292258735871,
+                    1.1747685546875
+                  ],
+                  "axes": [
+                    [
+                      0.998454731179185,
+                      0.05557112366959476,
+                      0.0
+                    ],
+                    [
+                      -0.05557112366959476,
+                      0.998454731179185,
+                      0.0
+                    ],
+                    [
+                      0.0,
+                      0.0,
+                      1.0
+                    ]
+                  ]
+                }
+              ],
+              "metric_metadata": [
+                {
+                  "frames": [
+                    2,
+                    3,
+                    4,
+                    5
+                  ],
+                  "best": 2,
+                  "areas": {
+                    "2": 0.12299107142857142,
+                    "3": 0.12299107142857142,
+                    "4": 0.12299107142857142,
+                    "5": 0.12299107142857142
+                  },
+                  "instance_id": "2",
+                  "gap_operand": "printed_box"
+                }
+              ],
+              "full_precision_box": {
+                "centre": [
+                  0.7122854705946423,
+                  2.168269259207811,
+                  -0.07024152483258927
+                ],
+                "lengths": [
+                  0.6976307914188443,
+                  0.06886292258735871,
+                  1.1747685546875
+                ],
+                "axes": [
+                  [
+                    0.998454731179185,
+                    0.05557112366959476,
+                    0.0
+                  ],
+                  [
+                    -0.05557112366959476,
+                    0.998454731179185,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    0.0,
+                    1.0
+                  ]
+                ]
+              },
+              "box_label": "B2"
+            }
+          },
+          {
+            "call": "<gap a=\"chair\" b=\"table\" rule=\"box_grid_5cm\">",
+            "response": "<tool_response>\ndistance 0.66 m\n</tool_response>",
+            "audit": {
+              "box_provider": "fit_gbox_fused_full_v1",
+              "numpy_version": "2.2.6",
+              "distance_rule": "box_grid_5cm",
+              "sampler": {
+                "rule": "box_grid_5cm",
+                "step": 0.05,
+                "inner_half_box_removed": true,
+                "dtype": "float64",
+                "instances": "min_over_pairs"
+              },
+              "ordered_box_labels": [
+                "B1",
+                "B2"
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  "differences": {
+    "landscape": [],
+    "nadir_positive": [
+      "count_events[0].response",
+      "distance_events[0].audit.metric_metadata",
+      "distance_events[0].audit.metric_gaps",
+      "distance_events[0].audit.metric_values",
+      "distance_events[0].audit.full_precision_box",
+      "distance_events[0].audit.metric_only",
+      "distance_events[0].response",
+      "distance_events[1].audit.metric_metadata",
+      "distance_events[1].audit.metric_gaps",
+      "distance_events[1].audit.metric_values",
+      "distance_events[1].audit.full_precision_box",
+      "distance_events[1].audit.metric_only",
+      "distance_events[1].response"
+    ]
+  },
+  "allowed_changes": [
+    "Partial f1 coordinates and box yaw when reference heading is undefined",
+    "Private box operands use the metric frame when reference heading is unavailable",
+    "Runtime audit includes metric_only and heading metadata for partial boxes"
+  ]
+}

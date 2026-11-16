@@ -1,0 +1,283 @@
+diff -ruN p_r3/generator/derivgen_v7/derivgen/calculator.py p4/generator/derivgen_v7/derivgen/calculator.py
+--- p_r3/generator/derivgen_v7/derivgen/calculator.py	1969-12-31 19:00:00.000000000 -0500
++++ p4/generator/derivgen_v7/derivgen/calculator.py	2026-11-15 18:35:57.989123654 -0500
+@@ -240,3 +240,11 @@
+         return _json({"api_version": API_VERSION, "spec_sha256": SPEC_SHA256, "command": command,
+                       **parsed, "result": result, "text": text,
+                       "injected_text": "<tool_response>"+text+"</tool_response>"})
++
++
++# Lifted points use the serving calculator under the active contract epoch.
++from trace_format.contracts import epoch_class
++from trace_format import calculator as _runtime
++
++CalculatorError = _runtime.CalculatorError
++PrintedPointRegistry = epoch_class(PrintedPointRegistry, _runtime.PrintedPointRegistry)
+diff -ruN p_r3/generator/derivgen_v7/derivgen/trace.py p4/generator/derivgen_v7/derivgen/trace.py
+--- p_r3/generator/derivgen_v7/derivgen/trace.py	1969-12-31 19:00:00.000000000 -0500
++++ p4/generator/derivgen_v7/derivgen/trace.py	2026-11-15 18:35:57.989123654 -0500
+@@ -237,27 +237,10 @@
+             for node, item in e["values"].items():
+                 places = 0 if item["unit"] == "degree" else 2
+                 printed[node] = value(item["value"], places)
+-            if name == "depth_at":
+-                import json
+-                k = args.get("image_frame", args["frame"])
+-                image = f" image_frame={k}" if "image_frame" in args else ""
+-                pts = json.dumps(args["pts"], separators=(",", ":"))
+-                sentence.append(f"<depth_at frame={args['frame']}{image} pts={pts}>", role="assistant")
+-                sentence.append("\n".join(p["line"] for p in e["points"]))
+-            elif name == "pose":
+-                k = args["frame"]
+-                sentence.append(f"<pose frame={k}>", role="assistant")
+-                sentence.append(f"gives f1 centre {get('t')} m ({e['call_id']}.t), "
+-                                f"camera-to-f1 matrix {get('R')} ({e['call_id']}.R), and "
+-                                f"L_{k}-to-f1 matrix {get('level_R')} ({e['call_id']}.level_R); "
+-                                f"yaw {value(e['values'][e['call_id']+'.yaw']['value'], 0)} degrees ({e['call_id']}.yaw), positive to the left.")
+-            elif name == "move":
+-                sentence.append(f"<move from={args['from']} to={args['to']}>", role="assistant")
+-                delta = e["values"][e["call_id"]+".delta"]["value"]
+-                sentence.append(f"dx = {delta[0]:+.2f} m, dy = {delta[1]:+.2f} m, dz = {delta[2]:+.2f} m, "
+-                                f"distance = {get('distance')} m (L_{args['from']}, dy positive down; "
+-                                f"{e['call_id']}.delta; {e['call_id']}.distance).")
+-            else: raise Refusal("unbacked_tool", name)
++            from trace_format.point_events import structured_tool_pair
++            token, text = structured_tool_pair(call, e)
++            sentence.append(token, role="assistant")
++            sentence.append(text)
+         elif kind == "arithmetic":
+             args = [printed[a] if isinstance(a, str) else str(a) for a in e["args"]]
+             printed[e["id"]] = value(e["value"], e["places"])
+diff -ruN p_r3/student_pilot/ground_lifting.py p4/student_pilot/ground_lifting.py
+--- p_r3/student_pilot/ground_lifting.py	2026-11-15 18:43:57.404248077 -0500
++++ p4/student_pilot/ground_lifting.py	2026-11-15 18:35:57.987123666 -0500
+@@ -5,7 +5,7 @@
+ artifact paths, learned parameters or harness imports enter this module.
+ """
+ import math
+-from trace_format.contracts import heading_available, status_text
++from trace_format.contracts import heading_available, status_text, new_contracts
+ 
+ VERSION = "3.12.2"
+ from trace_format.program_errors import ProgramRefusal
+@@ -180,10 +180,11 @@
+         return result['name'] + ': not seen'
+     # Registry decimal arithmetic must consume exactly the displayed values.
+     rounded = lambda xs: [number(x) for x in xs]
++    extra = {'heading_defined': not result.get('heading_unavailable', False)} if new_contracts() else {}
+     point = registry.register(camera=list(map(float, rounded(result['camera']))),
+                               f1=list(map(float, rounded(result['f1']))),
+                               spread=float(number(result['spread'])), requested_frame=result['best'],
+-                              heading_defined=not result.get('heading_unavailable', False))
++                              **extra)
+     frames = ','.join(map(str, result['frames']))
+     size = 'size unavailable' if result['size'] is None else 'size ' + ' x '.join(rounded(result['size'])) + ' m'
+     return (f"{result['name']}: frames {frames} (best {result['best']})\n"
+diff -ruN p_r3/student_pilot/live_trace313.py p4/student_pilot/live_trace313.py
+--- p_r3/student_pilot/live_trace313.py	2026-11-15 18:43:57.404248077 -0500
++++ p4/student_pilot/live_trace313.py	2026-11-15 18:35:57.988123660 -0500
+@@ -219,6 +219,9 @@
+         if body in RUNTIME_STATUSES:return
+         if body=='frame unavailable' and box_v313.CAMGAP.fullmatch(call):return
+         f=r'(?:0|[1-9][0-9]*)\.[0-9]{2}'
++        if program_version in ('3.12', '3.12.1', '3.12.2') and re.fullmatch(
++                r'<gap a="[^"\n]+" b="[^"\n]+">', call) and re.fullmatch(f+' m', body):
++            return
+         if body.startswith('distance '):
+             if not re.fullmatch('distance '+f+' m',body):raise ValueError('malformed_gap_response')
+         else:
+diff -ruN p_r3/student_pilot/phrases.py p4/student_pilot/phrases.py
+--- p_r3/student_pilot/phrases.py	2026-11-15 18:43:57.407248059 -0500
++++ p4/student_pilot/phrases.py	2026-11-15 18:35:57.992123636 -0500
+@@ -47,6 +47,78 @@
+     return [label for label in labels if normalize_phrase(label) == normalize_phrase(name)]
+ 
+ 
++# Complete angle-question templates from the admitted native POOL. Each slot
++# retains its entire referring phrase; none comes from the generated tool calls.
++ANGLE_TEMPLATES = (
++    'At the location of the {stand}, facing the {face}, what angle (in degrees) {sense} do I rotate to directly see the {query}?',
++    "At the {stand}, facing the {face}, what's the precise angle of {sense} rotation required to turn toward the {query}?",
++    'At the {stand}, when facing the {face}, how many degrees should I turn {sense} to face toward the {query}?',
++    'From my position at the {stand}, looking toward the {face}, how many degrees should I rotate {sense} to view the {query}?',
++    'From my standpoint at the {stand}, facing toward the {face}, how many degrees {sense} must I rotate to directly face the {query}?',
++    'From the {stand} and facing the {face}, how many degrees {sense} do I precisely rotate to face the {query}?',
++    "From the {stand}, oriented toward the {face}, what's the angle of rotation {sense} needed to look directly at the {query}?",
++    "I'm at the {stand} facing the {face}; how many degrees {sense} must I rotate to align my view with the {query}?",
++    "I'm at the {stand}, looking towards the {face}. How many degrees {sense} should I rotate to look at the {query}?",
++    "If I'm located at the {stand}, viewing the {face}, how many degrees of rotation {sense} are necessary to face the {query}?",
++    "If I'm positioned at the {stand}, looking directly at the {face}, how many degrees must I rotate {sense} to align myself with the {query}?",
++    "If I'm standing at the {stand}, looking at the {face}, what's the {sense} degree measurement needed to see the {query}?",
++    'If at the {stand} and directly facing the {face}, what {sense} angle adjustment is needed to look at the {query}?',
++    'Located at the {stand} and facing toward the {face}, how many degrees {sense} rotation will it take to directly face the {query}?',
++    'Positioned at the {stand} and oriented toward the {face}, how many degrees {sense} should I turn to face the {query}?',
++    "Standing at the {stand} and directed toward the {face}, what's the degree measurement I need to rotate {sense} to face the {query}?",
++    'Standing at the {stand} and oriented to the {face}, how much should I rotate {sense}, in degrees, to face the {query}?',
++    'Standing at the {stand} with eyes toward the {face}, how many degrees must I rotate {sense} to point toward the {query}?',
++    'Standing at the {stand}, facing the {face}, how many degrees do I have to rotate in {sense} to face the {query} exactly?',
++    'Standing at the {stand}, facing toward the {face}, how far {sense} do I rotate (in degrees) to see the {query}?',
++    "Standing at the {stand}, looking toward the {face}, what's the number of degrees needed to rotate {sense} to look directly at the {query}?",
++    'Standing by the {stand} and facing toward the {face}, how far in degrees do I turn {sense} to face the {query}?',
++    'Standing by the {stand}, looking toward the {face}, how far {sense} in degrees must I turn to see the {query}?',
++    'Starting from the {stand} and looking at the {face}, how many degrees of {sense} rotation are required to look at the {query}?',
++    "When positioned at the {stand} and viewing the {face}, what's the required angle of {sense} rotation to face the {query}?",
++)
++ANGLE_PATTERNS = tuple(re.compile(''.join(
++    r'(?:counterclockwise|clockwise)' if part == '{sense}' else
++    r'(?P<'+part[1:-1]+r'>.+?)' if part in ('{stand}', '{face}', '{query}') else re.escape(part)
++    for part in re.split(r'(\{[a-z]+\})', template)), re.I) for template in ANGLE_TEMPLATES)
++
++
++def source_template_candidates(question, options, option_map):
++    from generator.derivgen_v7.derivgen.paraphrase import parse_paraphrase
++    from generator.derivgen_v7.derivgen.ground_v312_quality import direction_question
++    from types import SimpleNamespace
++    canonical = re.match(r'If I am standing by the (.+?) and facing the (.+?), is the (.+?) to ', question)
++    if canonical:
++        roles = dict(zip(('stand', 'face', 'query'), canonical.groups()))
++        for kind in ('object_rel_direction_easy', 'object_rel_direction_medium', 'object_rel_direction_hard'):
++            if question == direction_question(dict(type=kind, roles=roles)):
++                return phrase_set(roles.values())
++    for kind in ('object_rel_direction_easy', 'object_rel_direction_medium', 'object_rel_direction_hard',
++                 'object_rel_distance', 'obj_appearance_order'):
++        roles = parse_paraphrase(dict(question=question, question_type=kind, options=list(options)),
++                                SimpleNamespace(option_texts=option_map))
++        if roles:
++            return phrase_set(n for key, v in roles.items() if key != 'parser'
++                              for n in (v if isinstance(v, list) else [v]))
++    count = re.fullmatch(r'Are there more, fewer, or the same number of (.+?)\(s\) as (.+?)\(s\) in this room\?', question, re.I)
++    if count:
++        return phrase_set(count.groups())
++    for pattern in ANGLE_PATTERNS:
++        match = pattern.fullmatch(question)
++        if match:
++            names = set(phrase_set(match.groupdict().values()))
++            # Native generation can name a category by its bound annotation label
++            # (dose_t0.rename_roles). Cache-backed candidates never use this path.
++            from trace_format.category_vocab import vocabulary
++            for category, labels in vocabulary().items():
++                if normalize_phrase(category) in names:
++                    names.update(phrase_set(labels))
++            aliases = {'sofa': 'couch', 'computer tower': 'tower',
++                       'computer mouse': 'mouse', 'ceiling light': 'ceiling lamp'}
++            names.update(aliases[n] for n in tuple(names) if n in aliases)
++            return tuple(sorted(names))
++    return None
++
++
+ def candidate_phrases(question, options=(), cache_phrases=None):
+     # Cache phrases are the capture-wide competition universe, including names
+     # not mentioned in this particular question. Admission checks that same set.
+@@ -58,6 +130,9 @@
+     from generator.derivgen_v7.derivgen.bindings import parse_f17
+     from types import SimpleNamespace
+     from trace_format.ground_v312 import option_map
++    parsed = source_template_candidates(question, options, option_map)
++    if parsed is not None:
++        return parsed
+     kinds = ('absolute_distance_object','relative_distance_object','absolute_size_object',
+              'relative_direction_object','absolute_direction_object','absolute_count','relative_count')
+     for kind in kinds:
+diff -ruN p_r3/student_pilot/training_contract.py p4/student_pilot/training_contract.py
+--- p_r3/student_pilot/training_contract.py	2026-11-15 18:43:57.409248047 -0500
++++ p4/student_pilot/training_contract.py	2026-11-15 18:35:57.993123630 -0500
+@@ -22,21 +22,31 @@
+         kind = event.get('kind', '')
+         if 'call' in event and 'response' in event:
+             if pending is not None:
+-                yield pending, None
++                yield pending[0], None
+                 pending = None
+-            yield event['call'], event['response']
++            value = event['response']
++            if isinstance(value, dict):
++                value = value.get('text', value.get('injected_text'))
++            yield event['call'], value
+         elif kind.endswith('_call') or ('call' in event and 'response' not in event):
+             if pending is not None:
+-                yield pending, None
+-            pending = event.get('token', event.get('command', event.get('text', event.get('call', '')))).strip()
++                yield pending[0], None
++            token = event.get('token', event.get('command', event.get('text', event.get('call'))))
++            pending = (token.strip() if token is not None else None, event)
+         elif kind.endswith('_response'):
++            token, call = pending if pending is not None else (None, {})
++            if ('call_id' in call or 'call_id' in event) and call.get('call_id') != event.get('call_id'):
++                raise ValueError('mismatched_call_id')
+             value = event.get('text', event.get('response'))
+             if isinstance(value, dict):
+                 value = value.get('text', value.get('injected_text'))
+-            yield pending, value
++            if token is None and kind == 'tool_response' and 'values' in event:
++                from trace_format.point_events import structured_tool_pair
++                token, value = structured_tool_pair(call, event)
++            yield token, value
+             pending = None
+     if pending is not None:
+-        yield pending, None
++        yield pending[0], None
+ 
+ 
+ def _audit_training_contract(rows, manifest=None):
+@@ -89,7 +99,10 @@
+             if call.startswith(('<ground','<gap')) and status != 'error':
+                 from .live_trace313 import parse_response
+                 try:
+-                    parse_response(call,body,row.get('trace_revision',row.get('routing',{}).get('trace_revision','3.14')))
++                    routing = row.get('routing', {})
++                    version = row.get('trace_revision', routing.get('trace_revision',
++                              row.get('spec_version', routing.get('spec_version', '3.14'))))
++                    parse_response(call, body, version)
+                 except (ValueError, IndexError, TypeError):
+                     reason = 'contract_unknown_status'
+                     break
+diff -ruN p_r3/trace_format/box_v313.py p4/trace_format/box_v313.py
+--- p_r3/trace_format/box_v313.py	2026-11-15 18:43:57.404248077 -0500
++++ p4/trace_format/box_v313.py	2026-11-15 18:35:57.987123666 -0500
+@@ -516,6 +516,8 @@
+     heads at inference, and own-value readouts during scheduled sampling) uses the fusion policy."""
+     if geometry_mode not in GEOMETRY_MODES:
+         raise ValueError('unknown_geometry_mode')
++    if geometry_mode == 'sensor':
++        return FusedBoxProvider()
+     if version=='3.13':
+         return FittedBoxProvider(fit_gbox)
+     return PolicyBoxProvider() if geometry_mode=='predicted' else FusedBoxProvider()
+diff -ruN p_r3/trace_format/point_events.py p4/trace_format/point_events.py
+--- p_r3/trace_format/point_events.py	1969-12-31 19:00:00.000000000 -0500
++++ p4/trace_format/point_events.py	2026-11-15 18:35:57.989123654 -0500
+@@ -0,0 +1,34 @@
++"""Print structured point-program head events for generation and admission."""
++
++def structured_tool_pair(call, event):
++    if call['call_id'] != event['call_id'] or call['name'] != event['name']:
++        raise ValueError('mismatched_tool_response')
++    args, name = call['arguments'], call['name']
++    def value(v, places=2):
++        if isinstance(v, list): return '(' + ', '.join(value(x, places) for x in v) + ')'
++        return f'{v:.{places}f}' if isinstance(v, (int, float)) else str(v)
++    e = event
++    get = lambda key: value(e['values'][e['call_id']+'.'+key]['value'])
++    parts = []
++    if name == "depth_at":
++        import json
++        k = args.get("image_frame", args["frame"])
++        image = f" image_frame={k}" if "image_frame" in args else ""
++        pts = json.dumps(args["pts"], separators=(",", ":"))
++        parts.append(f"<depth_at frame={args['frame']}{image} pts={pts}>")
++        parts.append("\n".join(p["line"] for p in e["points"]))
++    elif name == "pose":
++        k = args["frame"]
++        parts.append(f"<pose frame={k}>")
++        parts.append(f"gives f1 centre {get('t')} m ({e['call_id']}.t), "
++                        f"camera-to-f1 matrix {get('R')} ({e['call_id']}.R), and "
++                        f"L_{k}-to-f1 matrix {get('level_R')} ({e['call_id']}.level_R); "
++                        f"yaw {value(e['values'][e['call_id']+'.yaw']['value'], 0)} degrees ({e['call_id']}.yaw), positive to the left.")
++    elif name == "move":
++        parts.append(f"<move from={args['from']} to={args['to']}>")
++        delta = e["values"][e["call_id"]+".delta"]["value"]
++        parts.append(f"dx = {delta[0]:+.2f} m, dy = {delta[1]:+.2f} m, dz = {delta[2]:+.2f} m, "
++                        f"distance = {get('distance')} m (L_{args['from']}, dy positive down; "
++                        f"{e['call_id']}.delta; {e['call_id']}.distance).")
++    else: raise ValueError("unbacked_tool: " + str(name))
++    return tuple(parts)

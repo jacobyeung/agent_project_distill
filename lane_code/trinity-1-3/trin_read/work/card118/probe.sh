@@ -1,0 +1,2 @@
+hostname -s; date -u +%FT%TZ; df -h /scratch | tail -1; ls -d /scratch/jjyeung/orch_n30/trin_read 2>&1
+for r in 1 2; do date -u +%FT%TZ; nvidia-smi --query-gpu=index,name,memory.used,utilization.gpu --format=csv,noheader; nvidia-smi --query-compute-apps=gpu_uuid,pid,used_memory --format=csv,noheader; nvidia-smi --query-gpu=index,uuid --format=csv,noheader; for p in $(nvidia-smi --query-compute-apps=pid --format=csv,noheader); do ps -o pid=,user=,etime=,comm= -p $p; done; [ $r = 1 ] && sleep 310; done

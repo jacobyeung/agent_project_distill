@@ -1,0 +1,555 @@
+[
+  {
+    "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/real/x/7e4e92918e312afd.jsonl.gz",
+    "line": 3,
+    "row": {
+      "qid": "vsi590k_024936",
+      "type": "object_rel_direction_medium",
+      "question": "If I am standing by the bookshelf and facing the door, is the desk to my left, right, or back?\nAn object is to my back if I would have to turn at least 135 degrees in order to face it.",
+      "options": [
+        "A. right",
+        "B. back",
+        "C. left"
+      ],
+      "roles": {
+        "face": "door",
+        "parser": "paraphrase-v2",
+        "query": "desk",
+        "stand": "bookshelf"
+      },
+      "events": [
+        {
+          "call": "<ground obj=\"bookshelf\">",
+          "response": "<tool_response>\nbookshelf: frames 20,21,22,23,24,25,26,29,30,31 (best 29)\nP1: cam29 (0.02, 0.07, 0.92) m; f1 (1.34, -0.89, 0.41) m; spread 0.01\nsize 1.29 x 0.44 x 0.58 m\n</tool_response>"
+        },
+        {
+          "call": "<ground obj=\"door\">",
+          "response": "<tool_response>\ndoor: frames 1,2,3,31,32 (best 2)\nP2: cam2 (-0.29, -0.02, 0.85) m; f1 (-0.41, -0.54, 0.50) m; spread 0.01\nsize 0.44 x 0.05 x 0.87 m\n</tool_response>"
+        },
+        {
+          "call": "<ground obj=\"desk\">",
+          "response": "<tool_response>\ndesk: frames 1,11,12,14,15,16,17,18,19,20 (best 17)\nP3: cam17 (0.07, 0.13, 0.93) m; f1 (1.42, -1.05, 3.39) m; spread 0.00\nsize 1.13 x 0.55 x 0.52 m\n</tool_response>"
+        },
+        {
+          "call": "<angle S=P1 F=P2 Q=P3 rule=medium>",
+          "response": "<tool_response>\nu (-1.75, 0.09); v (0.08, 2.98); dot 0.1282; cross -5.2222; theta -89 deg; right\n</tool_response>"
+        }
+      ],
+      "spec_version": "3.12.2",
+      "mask_source": "gt",
+      "suffix": "<think>\nI will ground the three objects and compare their directions on the floor.\n<ground obj=\"bookshelf\">\n<tool_response>\nbookshelf: frames 20,21,22,23,24,25,26,29,30,31 (best 29)\nP1: cam29 (0.02, 0.07, 0.92) m; f1 (1.34, -0.89, 0.41) m; spread 0.01\nsize 1.29 x 0.44 x 0.58 m\n</tool_response>\n<ground obj=\"door\">\n<tool_response>\ndoor: frames 1,2,3,31,32 (best 2)\nP2: cam2 (-0.29, -0.02, 0.85) m; f1 (-0.41, -0.54, 0.50) m; spread 0.01\nsize 0.44 x 0.05 x 0.87 m\n</tool_response>\n<ground obj=\"desk\">\n<tool_response>\ndesk: frames 1,11,12,14,15,16,17,18,19,20 (best 17)\nP3: cam17 (0.07, 0.13, 0.93) m; f1 (1.42, -1.05, 3.39) m; spread 0.00\nsize 1.13 x 0.55 x 0.52 m\n</tool_response>\nOn the floor, cross > 0 means left; cross < 0 means right.\n<angle S=P1 F=P2 Q=P3 rule=medium>\n<tool_response>\nu (-1.75, 0.09); v (0.08, 2.98); dot 0.1282; cross -5.2222; theta -89 deg; right\n</tool_response>\nThe printed direction is right, so the answer is A.\n</think>\n<answer>A</answer>"
+    }
+  },
+  {
+    "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/real/x/7e4e92918e312afd.jsonl.gz",
+    "line": 5,
+    "row": {
+      "qid": "vsi590k_010125",
+      "type": "object_rel_direction_hard",
+      "question": "If I am standing by the monitor and facing the bookshelf, is the door to my front-left, front-right, back-left, or back-right?\nThe directions refer to the quadrants of a Cartesian plane (if I am standing at the origin and facing along the positive y-axis).",
+      "options": [
+        "A. front-left",
+        "B. back-right",
+        "C. front-right",
+        "D. back-left"
+      ],
+      "roles": {
+        "face": "bookshelf",
+        "parser": "paraphrase-v2",
+        "query": "door",
+        "stand": "monitor"
+      },
+      "events": [
+        {
+          "call": "<ground obj=\"monitor\">",
+          "response": "<tool_response>\nmonitor: frames 1,14,15,16,18 (best 16)\nP1: cam16 (0.15, 0.28, 1.09) m; f1 (1.37, -0.49, 3.69) m; spread 0.01\nsize 0.60 x 0.05 x 0.29 m\n</tool_response>"
+        },
+        {
+          "call": "<ground obj=\"bookshelf\">",
+          "response": "<tool_response>\nbookshelf: frames 20,21,22,23,24,25,26,29,30,31 (best 29)\nP2: cam29 (0.02, 0.07, 0.92) m; f1 (1.34, -0.89, 0.41) m; spread 0.01\nsize 1.29 x 0.44 x 0.58 m\n</tool_response>"
+        },
+        {
+          "call": "<ground obj=\"door\">",
+          "response": "<tool_response>\ndoor: frames 1,2,3,31,32 (best 2)\nP3: cam2 (-0.29, -0.02, 0.85) m; f1 (-0.41, -0.54, 0.50) m; spread 0.01\nsize 0.44 x 0.05 x 0.87 m\n</tool_response>"
+        },
+        {
+          "call": "<angle S=P1 F=P2 Q=P3 rule=hard>",
+          "response": "<tool_response>\nu (-0.03, -3.28); v (-1.78, -3.19); dot 10.5166; cross -5.7427; theta -29 deg; front-right\n</tool_response>"
+        }
+      ],
+      "spec_version": "3.12.2",
+      "mask_source": "gt",
+      "suffix": "<think>\nI will ground the three objects and compare their directions on the floor.\n<ground obj=\"monitor\">\n<tool_response>\nmonitor: frames 1,14,15,16,18 (best 16)\nP1: cam16 (0.15, 0.28, 1.09) m; f1 (1.37, -0.49, 3.69) m; spread 0.01\nsize 0.60 x 0.05 x 0.29 m\n</tool_response>\n<ground obj=\"bookshelf\">\n<tool_response>\nbookshelf: frames 20,21,22,23,24,25,26,29,30,31 (best 29)\nP2: cam29 (0.02, 0.07, 0.92) m; f1 (1.34, -0.89, 0.41) m; spread 0.01\nsize 1.29 x 0.44 x 0.58 m\n</tool_response>\n<ground obj=\"door\">\n<tool_response>\ndoor: frames 1,2,3,31,32 (best 2)\nP3: cam2 (-0.29, -0.02, 0.85) m; f1 (-0.41, -0.54, 0.50) m; spread 0.01\nsize 0.44 x 0.05 x 0.87 m\n</tool_response>\nOn the floor, cross > 0 means left; cross < 0 means right.\n<angle S=P1 F=P2 Q=P3 rule=hard>\n<tool_response>\nu (-0.03, -3.28); v (-1.78, -3.19); dot 10.5166; cross -5.7427; theta -29 deg; front-right\n</tool_response>\nThe printed direction is front-right, so the answer is C.\n</think>\n<answer>C</answer>"
+    }
+  },
+  {
+    "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/real/x/7e4e92918e312afd.jsonl.gz",
+    "line": 9,
+    "row": {
+      "qid": "vsi590k_024906",
+      "type": "object_rel_direction_medium",
+      "question": "If I am standing by the desk and facing the lamp, is the door to my left, right, or back?\nAn object is to my back if I would have to turn at least 135 degrees in order to face it.",
+      "options": [
+        "A. back",
+        "B. right",
+        "C. left"
+      ],
+      "roles": {
+        "face": "lamp",
+        "parser": "paraphrase-v2",
+        "query": "door",
+        "stand": "desk"
+      },
+      "events": [
+        {
+          "call": "<ground obj=\"desk\">",
+          "response": "<tool_response>\ndesk: frames 1,11,12,14,15,16,17,18,19,20 (best 17)\nP1: cam17 (0.07, 0.13, 0.93) m; f1 (1.42, -1.05, 3.39) m; spread 0.00\nsize 1.13 x 0.55 x 0.52 m\n</tool_response>"
+        },
+        {
+          "call": "<ground obj=\"lamp\">",
+          "response": "<tool_response>\nlamp: frames 1,2,3,4,5,32 (best 5)\nP2: cam5 (-0.46, -0.37, 1.32) m; f1 (-0.46, -1.33, 1.43) m; spread 0.01\nsize 0.25 x 0.21 x 0.20 m\n</tool_response>"
+        },
+        {
+          "call": "<ground obj=\"door\">",
+          "response": "<tool_response>\ndoor: frames 1,2,3,31,32 (best 2)\nP3: cam2 (-0.29, -0.02, 0.85) m; f1 (-0.41, -0.54, 0.50) m; spread 0.01\nsize 0.44 x 0.05 x 0.87 m\n</tool_response>"
+        },
+        {
+          "call": "<angle S=P1 F=P2 Q=P3 rule=medium>",
+          "response": "<tool_response>\nu (-1.88, -1.96); v (-1.83, -2.89); dot 9.1048; cross 1.8464; theta 11 deg; left\n</tool_response>"
+        }
+      ],
+      "spec_version": "3.12.2",
+      "mask_source": "gt",
+      "suffix": "<think>\nI will ground the three objects and compare their directions on the floor.\n<ground obj=\"desk\">\n<tool_response>\ndesk: frames 1,11,12,14,15,16,17,18,19,20 (best 17)\nP1: cam17 (0.07, 0.13, 0.93) m; f1 (1.42, -1.05, 3.39) m; spread 0.00\nsize 1.13 x 0.55 x 0.52 m\n</tool_response>\n<ground obj=\"lamp\">\n<tool_response>\nlamp: frames 1,2,3,4,5,32 (best 5)\nP2: cam5 (-0.46, -0.37, 1.32) m; f1 (-0.46, -1.33, 1.43) m; spread 0.01\nsize 0.25 x 0.21 x 0.20 m\n</tool_response>\n<ground obj=\"door\">\n<tool_response>\ndoor: frames 1,2,3,31,32 (best 2)\nP3: cam2 (-0.29, -0.02, 0.85) m; f1 (-0.41, -0.54, 0.50) m; spread 0.01\nsize 0.44 x 0.05 x 0.87 m\n</tool_response>\nOn the floor, cross > 0 means left; cross < 0 means right.\n<angle S=P1 F=P2 Q=P3 rule=medium>\n<tool_response>\nu (-1.88, -1.96); v (-1.83, -2.89); dot 9.1048; cross 1.8464; theta 11 deg; left\n</tool_response>\nThe printed direction is left, so the answer is C.\n</think>\n<answer>C</answer>"
+    }
+  },
+  {
+    "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/real/x/7e4e92918e312afd.jsonl.gz",
+    "line": 11,
+    "row": {
+      "qid": "vsi590k_024940",
+      "type": "object_rel_direction_medium",
+      "question": "If I am standing by the desk and facing the bookshelf, is the lamp to my left, right, or back?\nAn object is to my back if I would have to turn at least 135 degrees in order to face it.",
+      "options": [
+        "A. left",
+        "B. right",
+        "C. back"
+      ],
+      "roles": {
+        "face": "bookshelf",
+        "parser": "paraphrase-v2",
+        "query": "lamp",
+        "stand": "desk"
+      },
+      "events": [
+        {
+          "call": "<ground obj=\"desk\">",
+          "response": "<tool_response>\ndesk: frames 1,11,12,14,15,16,17,18,19,20 (best 17)\nP1: cam17 (0.07, 0.13, 0.93) m; f1 (1.42, -1.05, 3.39) m; spread 0.00\nsize 1.13 x 0.55 x 0.52 m\n</tool_response>"
+        },
+        {
+          "call": "<ground obj=\"bookshelf\">",
+          "response": "<tool_response>\nbookshelf: frames 20,21,22,23,24,25,26,29,30,31 (best 29)\nP2: cam29 (0.02, 0.07, 0.92) m; f1 (1.34, -0.89, 0.41) m; spread 0.01\nsize 1.29 x 0.44 x 0.58 m\n</tool_response>"
+        },
+        {
+          "call": "<ground obj=\"lamp\">",
+          "response": "<tool_response>\nlamp: frames 1,2,3,4,5,32 (best 5)\nP3: cam5 (-0.46, -0.37, 1.32) m; f1 (-0.46, -1.33, 1.43) m; spread 0.01\nsize 0.25 x 0.21 x 0.20 m\n</tool_response>"
+        },
+        {
+          "call": "<angle S=P1 F=P2 Q=P3 rule=medium>",
+          "response": "<tool_response>\nu (-0.08, -2.98); v (-1.88, -1.96); dot 5.9912; cross -5.4456; theta -42 deg; right\n</tool_response>"
+        }
+      ],
+      "spec_version": "3.12.2",
+      "mask_source": "gt",
+      "suffix": "<think>\nI will ground the three objects and compare their directions on the floor.\n<ground obj=\"desk\">\n<tool_response>\ndesk: frames 1,11,12,14,15,16,17,18,19,20 (best 17)\nP1: cam17 (0.07, 0.13, 0.93) m; f1 (1.42, -1.05, 3.39) m; spread 0.00\nsize 1.13 x 0.55 x 0.52 m\n</tool_response>\n<ground obj=\"bookshelf\">\n<tool_response>\nbookshelf: frames 20,21,22,23,24,25,26,29,30,31 (best 29)\nP2: cam29 (0.02, 0.07, 0.92) m; f1 (1.34, -0.89, 0.41) m; spread 0.01\nsize 1.29 x 0.44 x 0.58 m\n</tool_response>\n<ground obj=\"lamp\">\n<tool_response>\nlamp: frames 1,2,3,4,5,32 (best 5)\nP3: cam5 (-0.46, -0.37, 1.32) m; f1 (-0.46, -1.33, 1.43) m; spread 0.01\nsize 0.25 x 0.21 x 0.20 m\n</tool_response>\nOn the floor, cross > 0 means left; cross < 0 means right.\n<angle S=P1 F=P2 Q=P3 rule=medium>\n<tool_response>\nu (-0.08, -2.98); v (-1.88, -1.96); dot 5.9912; cross -5.4456; theta -42 deg; right\n</tool_response>\nThe printed direction is right, so the answer is B.\n</think>\n<answer>B</answer>"
+    }
+  },
+  {
+    "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/real/x/7e4e92918e312afd.jsonl.gz",
+    "line": 13,
+    "row": {
+      "qid": "vsi590k_010146",
+      "type": "object_rel_direction_hard",
+      "question": "If I am standing by the door and facing the telephone, is the lamp to my front-left, front-right, back-left, or back-right?\nThe directions refer to the quadrants of a Cartesian plane (if I am standing at the origin and facing along the positive y-axis).",
+      "options": [
+        "A. back-right",
+        "B. back-left",
+        "C. front-left",
+        "D. front-right"
+      ],
+      "roles": {
+        "face": "telephone",
+        "query": "lamp",
+        "stand": "door"
+      },
+      "events": [
+        {
+          "call": "<ground obj=\"door\">",
+          "response": "<tool_response>\ndoor: frames 1,2,3,31,32 (best 2)\nP1: cam2 (-0.29, -0.02, 0.85) m; f1 (-0.41, -0.54, 0.50) m; spread 0.01\nsize 0.44 x 0.05 x 0.87 m\n</tool_response>"
+        },
+        {
+          "call": "<ground obj=\"telephone\">",
+          "response": "<tool_response>\ntelephone: frames 12,13,14,15,16 (best 15)\nP2: cam15 (-0.04, 0.05, 0.71) m; f1 (1.04, -0.69, 4.31) m; spread 0.00\nsize 0.17 x 0.17 x 0.12 m\n</tool_response>"
+        },
+        {
+          "call": "<ground obj=\"lamp\">",
+          "response": "<tool_response>\nlamp: frames 1,2,3,4,5,32 (best 5)\nP3: cam5 (-0.46, -0.37, 1.32) m; f1 (-0.46, -1.33, 1.43) m; spread 0.01\nsize 0.25 x 0.21 x 0.20 m\n</tool_response>"
+        },
+        {
+          "call": "<angle S=P1 F=P2 Q=P3 rule=hard>",
+          "response": "<tool_response>\nu (1.45, 3.81); v (-0.05, 0.93); dot 3.4708; cross 1.5390; theta 24 deg; front-left\n</tool_response>"
+        }
+      ],
+      "spec_version": "3.12.2",
+      "mask_source": "gt",
+      "suffix": "<think>\nI will ground the three objects and compare their directions on the floor.\n<ground obj=\"door\">\n<tool_response>\ndoor: frames 1,2,3,31,32 (best 2)\nP1: cam2 (-0.29, -0.02, 0.85) m; f1 (-0.41, -0.54, 0.50) m; spread 0.01\nsize 0.44 x 0.05 x 0.87 m\n</tool_response>\n<ground obj=\"telephone\">\n<tool_response>\ntelephone: frames 12,13,14,15,16 (best 15)\nP2: cam15 (-0.04, 0.05, 0.71) m; f1 (1.04, -0.69, 4.31) m; spread 0.00\nsize 0.17 x 0.17 x 0.12 m\n</tool_response>\n<ground obj=\"lamp\">\n<tool_response>\nlamp: frames 1,2,3,4,5,32 (best 5)\nP3: cam5 (-0.46, -0.37, 1.32) m; f1 (-0.46, -1.33, 1.43) m; spread 0.01\nsize 0.25 x 0.21 x 0.20 m\n</tool_response>\nOn the floor, cross > 0 means left; cross < 0 means right.\n<angle S=P1 F=P2 Q=P3 rule=hard>\n<tool_response>\nu (1.45, 3.81); v (-0.05, 0.93); dot 3.4708; cross 1.5390; theta 24 deg; front-left\n</tool_response>\nThe printed direction is front-left, so the answer is C.\n</think>\n<answer>C</answer>"
+    }
+  },
+  {
+    "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/real/x/7e4e92918e312afd.jsonl.gz",
+    "line": 15,
+    "row": {
+      "qid": "vsi590k_010135",
+      "type": "object_rel_direction_hard",
+      "question": "If I am standing by the monitor and facing the bookshelf, is the lamp to my front-left, front-right, back-left, or back-right?\nThe directions refer to the quadrants of a Cartesian plane (if I am standing at the origin and facing along the positive y-axis).",
+      "options": [
+        "A. back-right",
+        "B. front-right",
+        "C. front-left",
+        "D. back-left"
+      ],
+      "roles": {
+        "face": "bookshelf",
+        "parser": "paraphrase-v2",
+        "query": "lamp",
+        "stand": "monitor"
+      },
+      "events": [
+        {
+          "call": "<ground obj=\"monitor\">",
+          "response": "<tool_response>\nmonitor: frames 1,14,15,16,18 (best 16)\nP1: cam16 (0.15, 0.28, 1.09) m; f1 (1.37, -0.49, 3.69) m; spread 0.01\nsize 0.60 x 0.05 x 0.29 m\n</tool_response>"
+        },
+        {
+          "call": "<ground obj=\"bookshelf\">",
+          "response": "<tool_response>\nbookshelf: frames 20,21,22,23,24,25,26,29,30,31 (best 29)\nP2: cam29 (0.02, 0.07, 0.92) m; f1 (1.34, -0.89, 0.41) m; spread 0.01\nsize 1.29 x 0.44 x 0.58 m\n</tool_response>"
+        },
+        {
+          "call": "<ground obj=\"lamp\">",
+          "response": "<tool_response>\nlamp: frames 1,2,3,4,5,32 (best 5)\nP3: cam5 (-0.46, -0.37, 1.32) m; f1 (-0.46, -1.33, 1.43) m; spread 0.01\nsize 0.25 x 0.21 x 0.20 m\n</tool_response>"
+        },
+        {
+          "call": "<angle S=P1 F=P2 Q=P3 rule=hard>",
+          "response": "<tool_response>\nu (-0.03, -3.28); v (-1.83, -2.26); dot 7.4677; cross -5.9346; theta -38 deg; front-right\n</tool_response>"
+        }
+      ],
+      "spec_version": "3.12.2",
+      "mask_source": "gt",
+      "suffix": "<think>\nI will ground the three objects and compare their directions on the floor.\n<ground obj=\"monitor\">\n<tool_response>\nmonitor: frames 1,14,15,16,18 (best 16)\nP1: cam16 (0.15, 0.28, 1.09) m; f1 (1.37, -0.49, 3.69) m; spread 0.01\nsize 0.60 x 0.05 x 0.29 m\n</tool_response>\n<ground obj=\"bookshelf\">\n<tool_response>\nbookshelf: frames 20,21,22,23,24,25,26,29,30,31 (best 29)\nP2: cam29 (0.02, 0.07, 0.92) m; f1 (1.34, -0.89, 0.41) m; spread 0.01\nsize 1.29 x 0.44 x 0.58 m\n</tool_response>\n<ground obj=\"lamp\">\n<tool_response>\nlamp: frames 1,2,3,4,5,32 (best 5)\nP3: cam5 (-0.46, -0.37, 1.32) m; f1 (-0.46, -1.33, 1.43) m; spread 0.01\nsize 0.25 x 0.21 x 0.20 m\n</tool_response>\nOn the floor, cross > 0 means left; cross < 0 means right.\n<angle S=P1 F=P2 Q=P3 rule=hard>\n<tool_response>\nu (-0.03, -3.28); v (-1.83, -2.26); dot 7.4677; cross -5.9346; theta -38 deg; front-right\n</tool_response>\nThe printed direction is front-right, so the answer is B.\n</think>\n<answer>B</answer>"
+    }
+  },
+  {
+    "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/real/x/7a1c59097139f59d.jsonl.gz",
+    "line": 1,
+    "row": {
+      "qid": "vsi590k_037561",
+      "type": "object_rel_direction_easy",
+      "question": "If I am standing by the lamp and facing the desk, is the clock to the left or the right of the desk?",
+      "options": [
+        "A. right",
+        "B. left"
+      ],
+      "roles": {
+        "face": "desk",
+        "parser": "paraphrase-v2",
+        "query": "clock",
+        "stand": "lamp"
+      },
+      "events": [
+        {
+          "call": "<ground obj=\"lamp\">",
+          "response": "<tool_response>\nlamp: frames 1,2,3,4,5,32 (best 5)\nP1: cam5 (-0.46, -0.37, 1.32) m; f1 (-0.46, -1.33, 1.43) m; spread 0.01\nsize 0.25 x 0.21 x 0.20 m\n</tool_response>"
+        },
+        {
+          "call": "<ground obj=\"desk\">",
+          "response": "<tool_response>\ndesk: frames 1,11,12,14,15,16,17,18,19,20 (best 17)\nP2: cam17 (0.07, 0.13, 0.93) m; f1 (1.42, -1.05, 3.39) m; spread 0.00\nsize 1.13 x 0.55 x 0.52 m\n</tool_response>"
+        },
+        {
+          "call": "<ground obj=\"clock\">",
+          "response": "<tool_response>\nclock: frames 27,28 (best 28)\nP3: cam28 (0.27, 0.20, 1.10) m; f1 (0.81, 0.36, -0.05) m; spread 0.00\nsize 0.29 x 0.02 x 0.25 m\n</tool_response>"
+        },
+        {
+          "call": "<angle S=P1 F=P2 Q=P3 rule=easy>",
+          "response": "<tool_response>\nu (1.88, 1.96); v (1.27, -1.48); dot -0.5132; cross -5.2716; theta -96 deg; right\n</tool_response>"
+        }
+      ],
+      "spec_version": "3.14",
+      "mask_source": "gt",
+      "suffix": "<think>\nI will ground the three objects and compare their directions on the floor.\n<ground obj=\"lamp\">\n<tool_response>\nlamp: frames 1,2,3,4,5,32 (best 5)\nP1: cam5 (-0.46, -0.37, 1.32) m; f1 (-0.46, -1.33, 1.43) m; spread 0.01\nsize 0.25 x 0.21 x 0.20 m\n</tool_response>\n<ground obj=\"desk\">\n<tool_response>\ndesk: frames 1,11,12,14,15,16,17,18,19,20 (best 17)\nP2: cam17 (0.07, 0.13, 0.93) m; f1 (1.42, -1.05, 3.39) m; spread 0.00\nsize 1.13 x 0.55 x 0.52 m\n</tool_response>\n<ground obj=\"clock\">\n<tool_response>\nclock: frames 27,28 (best 28)\nP3: cam28 (0.27, 0.20, 1.10) m; f1 (0.81, 0.36, -0.05) m; spread 0.00\nsize 0.29 x 0.02 x 0.25 m\n</tool_response>\nOn the floor, cross > 0 means left; cross < 0 means right.\n<angle S=P1 F=P2 Q=P3 rule=easy>\n<tool_response>\nu (1.88, 1.96); v (1.27, -1.48); dot -0.5132; cross -5.2716; theta -96 deg; right\n</tool_response>\nThe printed direction is right, so the answer is A.\n</think>\n<answer>A</answer>"
+    }
+  },
+  {
+    "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/real/x/7a1c59097139f59d.jsonl.gz",
+    "line": 2,
+    "row": {
+      "qid": "vsi590k_037564",
+      "type": "object_rel_direction_easy",
+      "question": "If I am standing by the bookshelf and facing the monitor, is the clock to the left or the right of the monitor?",
+      "options": [
+        "A. left",
+        "B. right"
+      ],
+      "roles": {
+        "face": "monitor",
+        "parser": "paraphrase-v2",
+        "query": "clock",
+        "stand": "bookshelf"
+      },
+      "events": [
+        {
+          "call": "<ground obj=\"bookshelf\">",
+          "response": "<tool_response>\nbookshelf: frames 20,21,22,23,24,25,26,29,30,31 (best 29)\nP1: cam29 (0.02, 0.07, 0.92) m; f1 (1.34, -0.89, 0.41) m; spread 0.01\nsize 1.29 x 0.44 x 0.58 m\n</tool_response>"
+        },
+        {
+          "call": "<ground obj=\"monitor\">",
+          "response": "<tool_response>\nmonitor: frames 1,14,15,16,18 (best 16)\nP2: cam16 (0.15, 0.28, 1.09) m; f1 (1.37, -0.49, 3.69) m; spread 0.01\nsize 0.60 x 0.05 x 0.29 m\n</tool_response>"
+        },
+        {
+          "call": "<ground obj=\"clock\">",
+          "response": "<tool_response>\nclock: frames 27,28 (best 28)\nP3: cam28 (0.27, 0.20, 1.10) m; f1 (0.81, 0.36, -0.05) m; spread 0.00\nsize 0.29 x 0.02 x 0.25 m\n</tool_response>"
+        },
+        {
+          "call": "<angle S=P1 F=P2 Q=P3 rule=easy>",
+          "response": "<tool_response>\nu (0.03, 3.28); v (-0.53, -0.46); dot -1.5247; cross 1.7246; theta 131 deg; left\n</tool_response>"
+        }
+      ],
+      "spec_version": "3.14",
+      "mask_source": "gt",
+      "suffix": "<think>\nI will ground the three objects and compare their directions on the floor.\n<ground obj=\"bookshelf\">\n<tool_response>\nbookshelf: frames 20,21,22,23,24,25,26,29,30,31 (best 29)\nP1: cam29 (0.02, 0.07, 0.92) m; f1 (1.34, -0.89, 0.41) m; spread 0.01\nsize 1.29 x 0.44 x 0.58 m\n</tool_response>\n<ground obj=\"monitor\">\n<tool_response>\nmonitor: frames 1,14,15,16,18 (best 16)\nP2: cam16 (0.15, 0.28, 1.09) m; f1 (1.37, -0.49, 3.69) m; spread 0.01\nsize 0.60 x 0.05 x 0.29 m\n</tool_response>\n<ground obj=\"clock\">\n<tool_response>\nclock: frames 27,28 (best 28)\nP3: cam28 (0.27, 0.20, 1.10) m; f1 (0.81, 0.36, -0.05) m; spread 0.00\nsize 0.29 x 0.02 x 0.25 m\n</tool_response>\nOn the floor, cross > 0 means left; cross < 0 means right.\n<angle S=P1 F=P2 Q=P3 rule=easy>\n<tool_response>\nu (0.03, 3.28); v (-0.53, -0.46); dot -1.5247; cross 1.7246; theta 131 deg; left\n</tool_response>\nThe printed direction is left, so the answer is A.\n</think>\n<answer>A</answer>"
+    }
+  },
+  {
+    "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/real/x/7a1c59097139f59d.jsonl.gz",
+    "line": 4,
+    "row": {
+      "qid": "vsi590k_037565",
+      "type": "object_rel_direction_easy",
+      "question": "If I am standing by the bookshelf and facing the door, is the telephone to the left or the right of the door?",
+      "options": [
+        "A. right",
+        "B. left"
+      ],
+      "roles": {
+        "face": "door",
+        "parser": "paraphrase-v2",
+        "query": "telephone",
+        "stand": "bookshelf"
+      },
+      "events": [
+        {
+          "call": "<ground obj=\"bookshelf\">",
+          "response": "<tool_response>\nbookshelf: frames 20,21,22,23,24,25,26,29,30,31 (best 29)\nP1: cam29 (0.02, 0.07, 0.92) m; f1 (1.34, -0.89, 0.41) m; spread 0.01\nsize 1.29 x 0.44 x 0.58 m\n</tool_response>"
+        },
+        {
+          "call": "<ground obj=\"door\">",
+          "response": "<tool_response>\ndoor: frames 1,2,3,31,32 (best 2)\nP2: cam2 (-0.29, -0.02, 0.85) m; f1 (-0.41, -0.54, 0.50) m; spread 0.01\nsize 0.44 x 0.05 x 0.87 m\n</tool_response>"
+        },
+        {
+          "call": "<ground obj=\"telephone\">",
+          "response": "<tool_response>\ntelephone: frames 12,13,14,15,16 (best 15)\nP3: cam15 (-0.04, 0.05, 0.71) m; f1 (1.04, -0.69, 4.31) m; spread 0.00\nsize 0.17 x 0.17 x 0.12 m\n</tool_response>"
+        },
+        {
+          "call": "<angle S=P1 F=P2 Q=P3 rule=easy>",
+          "response": "<tool_response>\nu (-1.75, 0.09); v (-0.30, 3.90); dot 0.8760; cross -6.7980; theta -83 deg; right\n</tool_response>"
+        }
+      ],
+      "spec_version": "3.14",
+      "mask_source": "gt",
+      "suffix": "<think>\nI will ground the three objects and compare their directions on the floor.\n<ground obj=\"bookshelf\">\n<tool_response>\nbookshelf: frames 20,21,22,23,24,25,26,29,30,31 (best 29)\nP1: cam29 (0.02, 0.07, 0.92) m; f1 (1.34, -0.89, 0.41) m; spread 0.01\nsize 1.29 x 0.44 x 0.58 m\n</tool_response>\n<ground obj=\"door\">\n<tool_response>\ndoor: frames 1,2,3,31,32 (best 2)\nP2: cam2 (-0.29, -0.02, 0.85) m; f1 (-0.41, -0.54, 0.50) m; spread 0.01\nsize 0.44 x 0.05 x 0.87 m\n</tool_response>\n<ground obj=\"telephone\">\n<tool_response>\ntelephone: frames 12,13,14,15,16 (best 15)\nP3: cam15 (-0.04, 0.05, 0.71) m; f1 (1.04, -0.69, 4.31) m; spread 0.00\nsize 0.17 x 0.17 x 0.12 m\n</tool_response>\nOn the floor, cross > 0 means left; cross < 0 means right.\n<angle S=P1 F=P2 Q=P3 rule=easy>\n<tool_response>\nu (-1.75, 0.09); v (-0.30, 3.90); dot 0.8760; cross -6.7980; theta -83 deg; right\n</tool_response>\nThe printed direction is right, so the answer is A.\n</think>\n<answer>A</answer>"
+    }
+  },
+  {
+    "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/real/x/7a1c59097139f59d.jsonl.gz",
+    "line": 274,
+    "row": {
+      "qid": "vsi590k_101008",
+      "type": "absolute_direction_object",
+      "question": "Standing at the ceiling light with eyes toward the plant, how many degrees must I rotate counterclockwise to point toward the monitor?",
+      "options": [],
+      "roles": {
+        "ccw": true,
+        "face": "plant",
+        "query": "monitor",
+        "stand": "ceiling lamp"
+      },
+      "events": [
+        {
+          "call": "<ground obj=\"ceiling lamp\">",
+          "response": "<tool_response>\nceiling lamp: frames 4,19,32 (best 19)\nP1: cam19 (0.02, 0.38, 0.86) m; f1 (0.27, 1.02, 3.05) m; spread 0.02\nsize 0.21 x 0.13 x 0.02 m\n</tool_response>"
+        },
+        {
+          "call": "<ground obj=\"plant\">",
+          "response": "<tool_response>\nplant: frames 23,24,31 (best 23)\nP2: cam23 (0.30, 0.10, 0.55) m; f1 (0.98, -0.27, 3.39) m; spread 0.02\nsize 0.16 x 0.13 x 0.07 m\n</tool_response>"
+        },
+        {
+          "call": "<ground obj=\"monitor\">",
+          "response": "<tool_response>\nmonitor: frames 2,3,10,11,12,14,15,16,17,18,20,21,23,32 (best 17)\nP3: cam17 (-0.19, 0.20, 1.04) m; f1 (-0.36, -0.23, 2.92) m; spread 0.01\nsize 0.57 x 0.06 x 0.35 m\n</tool_response>"
+        },
+        {
+          "call": "<angle S=P1 F=P2 Q=P3 rule=medium>",
+          "response": "<tool_response>\nu (0.71, 0.34); v (-0.63, -0.13); dot -0.4915; cross 0.1219; theta 166 deg; back\n</tool_response>"
+        }
+      ],
+      "spec_version": "3.14",
+      "mask_source": "gt",
+      "suffix": "<think>\nI compute the signed floor angle from the three printed centres.\n<ground obj=\"ceiling lamp\">\n<tool_response>\nceiling lamp: frames 4,19,32 (best 19)\nP1: cam19 (0.02, 0.38, 0.86) m; f1 (0.27, 1.02, 3.05) m; spread 0.02\nsize 0.21 x 0.13 x 0.02 m\n</tool_response>\n<ground obj=\"plant\">\n<tool_response>\nplant: frames 23,24,31 (best 23)\nP2: cam23 (0.30, 0.10, 0.55) m; f1 (0.98, -0.27, 3.39) m; spread 0.02\nsize 0.16 x 0.13 x 0.07 m\n</tool_response>\n<ground obj=\"monitor\">\n<tool_response>\nmonitor: frames 2,3,10,11,12,14,15,16,17,18,20,21,23,32 (best 17)\nP3: cam17 (-0.19, 0.20, 1.04) m; f1 (-0.36, -0.23, 2.92) m; spread 0.01\nsize 0.57 x 0.06 x 0.35 m\n</tool_response>\n<angle S=P1 F=P2 Q=P3 rule=medium>\n<tool_response>\nu (0.71, 0.34); v (-0.63, -0.13); dot -0.4915; cross 0.1219; theta 166 deg; back\n</tool_response>\nThe counterclockwise rotation is (166) mod 360 = 166 degrees.\n</think>\n<answer>166</answer>"
+    }
+  },
+  {
+    "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/real/x/7a1c59097139f59d.jsonl.gz",
+    "line": 275,
+    "row": {
+      "qid": "vsi590k_101007",
+      "type": "absolute_direction_object",
+      "question": "Standing at the plant with eyes toward the basket, how many degrees must I rotate clockwise to point toward the ceiling light?",
+      "options": [],
+      "roles": {
+        "ccw": false,
+        "face": "basket",
+        "query": "ceiling lamp",
+        "stand": "plant"
+      },
+      "events": [
+        {
+          "call": "<ground obj=\"plant\">",
+          "response": "<tool_response>\nplant: frames 23,24,31 (best 23)\nP1: cam23 (0.30, 0.10, 0.55) m; f1 (0.98, -0.27, 3.39) m; spread 0.02\nsize 0.16 x 0.13 x 0.07 m\n</tool_response>"
+        },
+        {
+          "call": "<ground obj=\"basket\">",
+          "response": "<tool_response>\nbasket: frames 2,3,4,5,25,26,27,28,31 (best 27)\nP2: cam27 (0.00, -0.24, 1.18) m; f1 (1.85, -1.01, 2.40) m; spread 0.02\nsize 0.64 x 0.40 x 0.30 m\n</tool_response>"
+        },
+        {
+          "call": "<ground obj=\"ceiling lamp\">",
+          "response": "<tool_response>\nceiling lamp: frames 4,19,32 (best 19)\nP3: cam19 (0.02, 0.38, 0.86) m; f1 (0.27, 1.02, 3.05) m; spread 0.02\nsize 0.21 x 0.13 x 0.02 m\n</tool_response>"
+        },
+        {
+          "call": "<angle S=P1 F=P2 Q=P3 rule=medium>",
+          "response": "<tool_response>\nu (0.87, -0.99); v (-0.71, -0.34); dot -0.2811; cross -0.9987; theta -106 deg; right\n</tool_response>"
+        }
+      ],
+      "spec_version": "3.14",
+      "mask_source": "gt",
+      "suffix": "<think>\nI compute the signed floor angle from the three printed centres.\n<ground obj=\"plant\">\n<tool_response>\nplant: frames 23,24,31 (best 23)\nP1: cam23 (0.30, 0.10, 0.55) m; f1 (0.98, -0.27, 3.39) m; spread 0.02\nsize 0.16 x 0.13 x 0.07 m\n</tool_response>\n<ground obj=\"basket\">\n<tool_response>\nbasket: frames 2,3,4,5,25,26,27,28,31 (best 27)\nP2: cam27 (0.00, -0.24, 1.18) m; f1 (1.85, -1.01, 2.40) m; spread 0.02\nsize 0.64 x 0.40 x 0.30 m\n</tool_response>\n<ground obj=\"ceiling lamp\">\n<tool_response>\nceiling lamp: frames 4,19,32 (best 19)\nP3: cam19 (0.02, 0.38, 0.86) m; f1 (0.27, 1.02, 3.05) m; spread 0.02\nsize 0.21 x 0.13 x 0.02 m\n</tool_response>\n<angle S=P1 F=P2 Q=P3 rule=medium>\n<tool_response>\nu (0.87, -0.99); v (-0.71, -0.34); dot -0.2811; cross -0.9987; theta -106 deg; right\n</tool_response>\nThe clockwise rotation is (-(-106)) mod 360 = 106 degrees.\n</think>\n<answer>106</answer>"
+    }
+  },
+  {
+    "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/real/x/7a1c59097139f59d.jsonl.gz",
+    "line": 278,
+    "row": {
+      "qid": "vsi590k_100993",
+      "type": "absolute_direction_object",
+      "question": "Standing at the computer mouse with eyes toward the bed, how many degrees must I rotate clockwise to point toward the basket?",
+      "options": [],
+      "roles": {
+        "ccw": false,
+        "face": "bed",
+        "query": "basket",
+        "stand": "mouse"
+      },
+      "events": [
+        {
+          "call": "<ground obj=\"mouse\">",
+          "response": "<tool_response>\nmouse: frames 17,18,20,23 (best 18)\nP1: cam18 (-0.21, -0.14, 0.84) m; f1 (0.11, -0.54, 3.05) m; spread 0.01\nsize 0.07 x 0.02 x 0.02 m\n</tool_response>"
+        },
+        {
+          "call": "<ground obj=\"bed\">",
+          "response": "<tool_response>\nbed: frames 1,2,3,5,6,7,8,27,28,29,30 (best 5)\nP2: cam5 (0.27, -0.12, 1.45) m; f1 (0.95, -0.91, 0.42) m; spread 0.01\nsize 1.67 x 0.85 x 0.58 m\n</tool_response>"
+        },
+        {
+          "call": "<ground obj=\"basket\">",
+          "response": "<tool_response>\nbasket: frames 2,3,4,5,25,26,27,28,31 (best 27)\nP3: cam27 (0.00, -0.24, 1.18) m; f1 (1.85, -1.01, 2.40) m; spread 0.02\nsize 0.64 x 0.40 x 0.30 m\n</tool_response>"
+        },
+        {
+          "call": "<angle S=P1 F=P2 Q=P3 rule=medium>",
+          "response": "<tool_response>\nu (0.84, -2.63); v (1.74, -0.65); dot 3.1711; cross 4.0302; theta 52 deg; left\n</tool_response>"
+        }
+      ],
+      "spec_version": "3.14",
+      "mask_source": "gt",
+      "suffix": "<think>\nI compute the signed floor angle from the three printed centres.\n<ground obj=\"mouse\">\n<tool_response>\nmouse: frames 17,18,20,23 (best 18)\nP1: cam18 (-0.21, -0.14, 0.84) m; f1 (0.11, -0.54, 3.05) m; spread 0.01\nsize 0.07 x 0.02 x 0.02 m\n</tool_response>\n<ground obj=\"bed\">\n<tool_response>\nbed: frames 1,2,3,5,6,7,8,27,28,29,30 (best 5)\nP2: cam5 (0.27, -0.12, 1.45) m; f1 (0.95, -0.91, 0.42) m; spread 0.01\nsize 1.67 x 0.85 x 0.58 m\n</tool_response>\n<ground obj=\"basket\">\n<tool_response>\nbasket: frames 2,3,4,5,25,26,27,28,31 (best 27)\nP3: cam27 (0.00, -0.24, 1.18) m; f1 (1.85, -1.01, 2.40) m; spread 0.02\nsize 0.64 x 0.40 x 0.30 m\n</tool_response>\n<angle S=P1 F=P2 Q=P3 rule=medium>\n<tool_response>\nu (0.84, -2.63); v (1.74, -0.65); dot 3.1711; cross 4.0302; theta 52 deg; left\n</tool_response>\nThe clockwise rotation is (-(52)) mod 360 = 308 degrees.\n</think>\n<answer>308</answer>"
+    }
+  },
+  {
+    "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/real/x/b6ac18d55d697a23.jsonl.gz",
+    "line": 3169,
+    "row": {
+      "qid": "vsi590k_095297",
+      "type": "absolute_direction_object",
+      "question": "From the ceiling light, oriented toward the refrigerator, what's the angle of rotation clockwise needed to look directly at the computer mouse?",
+      "options": [],
+      "roles": {
+        "ccw": false,
+        "face": "refrigerator",
+        "query": "mouse",
+        "stand": "ceiling lamp"
+      },
+      "events": [
+        {
+          "call": "<ground obj=\"ceiling lamp\">",
+          "response": "<tool_response>\nceiling lamp: frames 30 (best 30)\nP1: cam30 (-1.00, 1.57, 3.50) m; f1 (0.04, 0.73, -0.78) m; spread 0.03\nsize 0.22 x 0.08 x 0.02 m\n</tool_response>"
+        },
+        {
+          "call": "<ground obj=\"refrigerator\">",
+          "response": "<tool_response>\nrefrigerator: frames 17,25,32 (best 32)\nP2: cam32 (0.41, -0.45, 1.47) m; f1 (-0.17, -1.04, -3.63) m; spread 0.00\nsize 0.45 x 0.01 x 0.51 m\n</tool_response>"
+        },
+        {
+          "call": "<ground obj=\"mouse\">",
+          "response": "<tool_response>\nmouse: frames 3,4,5,9 (best 4)\nP3: cam4 (-0.09, -0.31, 0.67) m; f1 (-0.84, -0.79, 1.15) m; spread 0.02\nsize 0.03 x 0.00 x 0.02 m\n</tool_response>"
+        },
+        {
+          "call": "<angle S=P1 F=P2 Q=P3 rule=medium>",
+          "response": "<tool_response>\nu (-0.21, -2.85); v (-0.88, 1.93); dot -5.3157; cross -2.9133; theta -151 deg; back\n</tool_response>"
+        }
+      ],
+      "spec_version": "3.14",
+      "mask_source": "gt",
+      "suffix": "<think>\nI compute the signed floor angle from the three printed centres.\n<ground obj=\"ceiling lamp\">\n<tool_response>\nceiling lamp: frames 30 (best 30)\nP1: cam30 (-1.00, 1.57, 3.50) m; f1 (0.04, 0.73, -0.78) m; spread 0.03\nsize 0.22 x 0.08 x 0.02 m\n</tool_response>\n<ground obj=\"refrigerator\">\n<tool_response>\nrefrigerator: frames 17,25,32 (best 32)\nP2: cam32 (0.41, -0.45, 1.47) m; f1 (-0.17, -1.04, -3.63) m; spread 0.00\nsize 0.45 x 0.01 x 0.51 m\n</tool_response>\n<ground obj=\"mouse\">\n<tool_response>\nmouse: frames 3,4,5,9 (best 4)\nP3: cam4 (-0.09, -0.31, 0.67) m; f1 (-0.84, -0.79, 1.15) m; spread 0.02\nsize 0.03 x 0.00 x 0.02 m\n</tool_response>\n<angle S=P1 F=P2 Q=P3 rule=medium>\n<tool_response>\nu (-0.21, -2.85); v (-0.88, 1.93); dot -5.3157; cross -2.9133; theta -151 deg; back\n</tool_response>\nThe clockwise rotation is (-(-151)) mod 360 = 151 degrees.\n</think>\n<answer>151</answer>"
+    }
+  },
+  {
+    "source": "/scratch/jjyeung/orch_n30/contracts_rebuild/work/real/x/b6ac18d55d697a23.jsonl.gz",
+    "line": 4531,
+    "row": {
+      "qid": "vsi590k_108593",
+      "type": "absolute_direction_object",
+      "question": "Standing at the whiteboard, facing toward the ceiling light, how far clockwise do I rotate (in degrees) to see the computer mouse?",
+      "options": [],
+      "roles": {
+        "ccw": false,
+        "face": "ceiling lamp",
+        "query": "mouse",
+        "stand": "whiteboard"
+      },
+      "events": [
+        {
+          "call": "<ground obj=\"whiteboard\">",
+          "response": "<tool_response>\nwhiteboard: frames 7,8,9,13,14,20,21,22 (best 13)\nP1: cam13 (0.42, 0.22, 1.27) m; f1 (-0.58, 0.25, -1.60) m; spread 0.02\nsize 1.33 x 0.04 x 0.83 m\n</tool_response>"
+        },
+        {
+          "call": "<ground obj=\"ceiling lamp\">",
+          "response": "<tool_response>\nceiling lamp: frames 18,24 (best 24)\nP2: cam24 (0.94, -0.51, 2.38) m; f1 (1.81, 1.12, 0.97) m; spread 0.00\nsize 0.53 x 0.00 x 0.04 m\n</tool_response>"
+        },
+        {
+          "call": "<ground obj=\"mouse\">",
+          "response": "<tool_response>\nmouse: frames 26 (best 26)\nP3: cam26 (-0.09, 0.05, 0.89) m; f1 (2.07, -0.45, -1.35) m; spread 0.00\nsize unavailable\n</tool_response>"
+        },
+        {
+          "call": "<angle S=P1 F=P2 Q=P3 rule=medium>",
+          "response": "<tool_response>\nu (2.39, 2.57); v (2.65, 0.25); dot 6.9760; cross -6.2130; theta -42 deg; right\n</tool_response>"
+        }
+      ],
+      "spec_version": "3.14",
+      "mask_source": "gt",
+      "suffix": "<think>\nI compute the signed floor angle from the three printed centres.\n<ground obj=\"whiteboard\">\n<tool_response>\nwhiteboard: frames 7,8,9,13,14,20,21,22 (best 13)\nP1: cam13 (0.42, 0.22, 1.27) m; f1 (-0.58, 0.25, -1.60) m; spread 0.02\nsize 1.33 x 0.04 x 0.83 m\n</tool_response>\n<ground obj=\"ceiling lamp\">\n<tool_response>\nceiling lamp: frames 18,24 (best 24)\nP2: cam24 (0.94, -0.51, 2.38) m; f1 (1.81, 1.12, 0.97) m; spread 0.00\nsize 0.53 x 0.00 x 0.04 m\n</tool_response>\n<ground obj=\"mouse\">\n<tool_response>\nmouse: frames 26 (best 26)\nP3: cam26 (-0.09, 0.05, 0.89) m; f1 (2.07, -0.45, -1.35) m; spread 0.00\nsize unavailable\n</tool_response>\n<angle S=P1 F=P2 Q=P3 rule=medium>\n<tool_response>\nu (2.39, 2.57); v (2.65, 0.25); dot 6.9760; cross -6.2130; theta -42 deg; right\n</tool_response>\nThe clockwise rotation is (-(-42)) mod 360 = 42 degrees.\n</think>\n<answer>42</answer>"
+    }
+  }
+]

@@ -1,0 +1,14 @@
+--- build5/coverage.py
++++ build6/coverage.py
+@@ -74,9 +74,9 @@
+ record=dict(method='AST changed statement starts relative to untouched base; stdlib monitoring filtered by compiled-source fingerprints and exact current-file hashes.',
+     changed_statements=len(rows),executed=sum(r['executed'] for r in rows),classes=dict(Counter(r['classification'] for r in rows)),
+     coverage_sources=accepted,excluded_sources=excluded,statements=rows)
+-(L/'work/build5/CHANGED_COVERAGE.json').write_text(json.dumps(record,indent=2)+'\n')
++(L/'work/build6/CHANGED_COVERAGE.json').write_text(json.dumps(record,indent=2)+'\n')
+ gaps={}
+ for row in rows:
+     if row['classification']=='CPU-reachable unresolved':gaps.setdefault(row['file'],[]).append((row['line'],row['text']))
+-(L/'work/build5/GAPS.json').write_text(json.dumps(gaps,indent=2)+'\n')
++(L/'work/build6/GAPS.json').write_text(json.dumps(gaps,indent=2)+'\n')
+ print(json.dumps(dict(classes=record['classes'],cpu_gaps={k:len(v) for k,v in gaps.items()})))

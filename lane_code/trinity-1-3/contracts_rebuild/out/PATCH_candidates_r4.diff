@@ -1,0 +1,821 @@
+--- a/student_pilot/phrases.py
++++ b/student_pilot/phrases.py
+@@ -0,0 +1,171 @@
++"""Open-vocabulary operand identity. Aliases retain their full referring phrase."""
++import re
++import unicodedata
++from trace_format.contracts import new_contracts
++
++SINGULAR = {'shelves':'shelf', 'bookshelves':'bookshelf', 'clothes':'clothing',
++            'blinds':'window blind', 'people':'person', 'mice':'mouse', 'microwaves':'microwave', 'curves':'curve', 'nerves':'nerve', 'stoves':'stove', 'gloves':'glove', 'glasses':'glass', 'mattresses':'mattress',
++            'buses':'bus', 'knives':'knife', 'wives':'wife', 'lives':'life', 'leaves':'leaf',
++            'wolves':'wolf', 'halves':'half', 'loaves':'loaf', 'calves':'calf',
++            'lenses':'lens', 'cases':'case', 'houses':'house', 'noses':'nose',
++            'vases':'vase', 'roses':'rose', 'dresses':'dress', 'classes':'class', 'passes':'pass'}
++UNCHANGED = {'glass','grass','gas','canvas','status','stairs','pants','trousers','scissors',
++             'series','species','news','lens','canvas','chess','physics','headphones'}
++
++
++def normalize_phrase(name):
++    if not isinstance(name, str) or not name.strip() or any(
++            ord(c) < 32 or ord(c) == 127 or c in '<>"' for c in name):
++        raise ValueError('invalid_object_name')
++    text = ' '.join(unicodedata.normalize('NFKC',name).casefold().replace('_',' ').split())
++    prefix, _, word = text.rpartition(' ')
++    if word in SINGULAR:
++        word = SINGULAR[word]
++    elif word not in UNCHANGED:
++        if word.endswith('ies') and len(word) > 3:
++            word = word[:-3]+'y'
++        elif word.endswith(('ches','shes','xes','zes')):
++            word = word[:-2]
++        elif word.endswith('s') and not word.endswith(('ss','us','is','ses','ves')):
++            word = word[:-1]
++    return (prefix+' ' if prefix else '')+word
++
++
++def phrase_set(names):
++    return tuple(sorted({normalize_phrase(n) for n in names}))
++
++
++def annotation_phrase(name):
++    if new_contracts():
++        return normalize_phrase(name)
++    return ' '.join(unicodedata.normalize('NFKC', str(name)).casefold().split())
++
++
++def annotation_labels(name, labels, sealed_match):
++    if not new_contracts():
++        return sealed_match(name, labels)
++    return [label for label in labels if normalize_phrase(label) == normalize_phrase(name)]
++
++
++# Complete angle-question templates from the admitted native POOL. Each slot
++# retains its entire referring phrase; none comes from the generated tool calls.
++ANGLE_TEMPLATES = (
++    'At the location of the {stand}, facing the {face}, what angle (in degrees) {sense} do I rotate to directly see the {query}?',
++    "At the {stand}, facing the {face}, what's the precise angle of {sense} rotation required to turn toward the {query}?",
++    'At the {stand}, when facing the {face}, how many degrees should I turn {sense} to face toward the {query}?',
++    'From my position at the {stand}, looking toward the {face}, how many degrees should I rotate {sense} to view the {query}?',
++    'From my standpoint at the {stand}, facing toward the {face}, how many degrees {sense} must I rotate to directly face the {query}?',
++    'From the {stand} and facing the {face}, how many degrees {sense} do I precisely rotate to face the {query}?',
++    "From the {stand}, oriented toward the {face}, what's the angle of rotation {sense} needed to look directly at the {query}?",
++    "I'm at the {stand} facing the {face}; how many degrees {sense} must I rotate to align my view with the {query}?",
++    "I'm at the {stand}, looking towards the {face}. How many degrees {sense} should I rotate to look at the {query}?",
++    "If I'm located at the {stand}, viewing the {face}, how many degrees of rotation {sense} are necessary to face the {query}?",
++    "If I'm positioned at the {stand}, looking directly at the {face}, how many degrees must I rotate {sense} to align myself with the {query}?",
++    "If I'm standing at the {stand}, looking at the {face}, what's the {sense} degree measurement needed to see the {query}?",
++    'If at the {stand} and directly facing the {face}, what {sense} angle adjustment is needed to look at the {query}?',
++    'Located at the {stand} and facing toward the {face}, how many degrees {sense} rotation will it take to directly face the {query}?',
++    'Positioned at the {stand} and oriented toward the {face}, how many degrees {sense} should I turn to face the {query}?',
++    "Standing at the {stand} and directed toward the {face}, what's the degree measurement I need to rotate {sense} to face the {query}?",
++    'Standing at the {stand} and oriented to the {face}, how much should I rotate {sense}, in degrees, to face the {query}?',
++    'Standing at the {stand} with eyes toward the {face}, how many degrees must I rotate {sense} to point toward the {query}?',
++    'Standing at the {stand}, facing the {face}, how many degrees do I have to rotate in {sense} to face the {query} exactly?',
++    'Standing at the {stand}, facing toward the {face}, how far {sense} do I rotate (in degrees) to see the {query}?',
++    "Standing at the {stand}, looking toward the {face}, what's the number of degrees needed to rotate {sense} to look directly at the {query}?",
++    'Standing by the {stand} and facing toward the {face}, how far in degrees do I turn {sense} to face the {query}?',
++    'Standing by the {stand}, looking toward the {face}, how far {sense} in degrees must I turn to see the {query}?',
++    'Starting from the {stand} and looking at the {face}, how many degrees of {sense} rotation are required to look at the {query}?',
++    "When positioned at the {stand} and viewing the {face}, what's the required angle of {sense} rotation to face the {query}?",
++)
++ANGLE_PATTERNS = tuple(re.compile(''.join(
++    r'(?:counterclockwise|clockwise)' if part == '{sense}' else
++    r'(?P<'+part[1:-1]+r'>.+?)' if part in ('{stand}', '{face}', '{query}') else re.escape(part)
++    for part in re.split(r'(\{[a-z]+\})', template)), re.I) for template in ANGLE_TEMPLATES)
++
++
++def source_template_candidates(question, options, option_map):
++    from generator.derivgen_v7.derivgen.paraphrase import parse_paraphrase
++    from generator.derivgen_v7.derivgen.ground_v312_quality import direction_question
++    from types import SimpleNamespace
++    canonical = re.match(r'If I am standing by the (.+?) and facing the (.+?), is the (.+?) to ', question)
++    if canonical:
++        roles = dict(zip(('stand', 'face', 'query'), canonical.groups()))
++        for kind in ('object_rel_direction_easy', 'object_rel_direction_medium', 'object_rel_direction_hard'):
++            if question == direction_question(dict(type=kind, roles=roles)):
++                return phrase_set(roles.values())
++    for kind in ('object_rel_direction_easy', 'object_rel_direction_medium', 'object_rel_direction_hard',
++                 'object_rel_distance', 'obj_appearance_order'):
++        roles = parse_paraphrase(dict(question=question, question_type=kind, options=list(options)),
++                                SimpleNamespace(option_texts=option_map))
++        if roles:
++            return phrase_set(n for key, v in roles.items() if key != 'parser'
++                              for n in (v if isinstance(v, list) else [v]))
++    count = re.fullmatch(r'Are there more, fewer, or the same number of (.+?)\(s\) as (.+?)\(s\) in this room\?', question, re.I)
++    if count:
++        return phrase_set(count.groups())
++    for pattern in ANGLE_PATTERNS:
++        match = pattern.fullmatch(question)
++        if match:
++            names = set(phrase_set(match.groupdict().values()))
++            # Native generation can name a category by its bound annotation label
++            # (dose_t0.rename_roles). Cache-backed candidates never use this path.
++            from trace_format.category_vocab import vocabulary
++            for category, labels in vocabulary().items():
++                if normalize_phrase(category) in names:
++                    names.update(phrase_set(labels))
++            aliases = {'sofa': 'couch', 'computer tower': 'tower',
++                       'computer mouse': 'mouse', 'ceiling light': 'ceiling lamp'}
++            names.update(aliases[n] for n in tuple(names) if n in aliases)
++            return tuple(sorted(names))
++    return None
++
++
++def candidate_phrases(question, options=(), cache_phrases=None):
++    # Cache phrases are the capture-wide competition universe, including names
++    # not mentioned in this particular question. Admission checks that same set.
++    if cache_phrases is not None:
++        return phrase_set(cache_phrases)
++    question = question.replace(chr(34), '').replace('<', '').replace('>', '')
++    options = [o.replace(chr(34), '').replace('<', '').replace('>', '') for o in options]
++    # Native MDG has no phrase cache. Parse source question operands, not labels.
++    from generator.derivgen_v7.derivgen.bindings import parse_f17
++    from types import SimpleNamespace
++    from trace_format.ground_v312 import option_map
++    parsed = source_template_candidates(question, options, option_map)
++    if parsed is not None:
++        return parsed
++    kinds = ('absolute_distance_object','relative_distance_object','absolute_size_object',
++             'relative_direction_object','absolute_direction_object','absolute_count','relative_count')
++    for kind in kinds:
++        roles = parse_f17(dict(question=question, question_type=kind, options=list(options)),
++                          SimpleNamespace(option_texts=option_map))
++        if roles:
++            values = [v for k,v in roles.items() if k != 'parser']
++            return phrase_set(n for v in values for n in (v if isinstance(v,list) else [v]) if isinstance(n,str))
++    values = list(option_map(list(options)).values()) if options else []
++    # Common distance wording also used by the native head's prompt.
++    match = re.search(r'(?:distance between|far is) (?:the )?(.+?) (?:and|from) (?:the )?(.+?)(?:\s+\(in [^()]+\))?(?:[?.]|$)', question, re.I)
++    if match:
++        values.extend(match.groups())
++    return phrase_set(values)
++
++
++def cache_key(cache, name):
++    wanted = normalize_phrase(name)
++    keys = [key for key in cache['phrases'] if normalize_phrase(key) == wanted]
++    if not keys:
++        return wanted
++    canonical = min(keys, key=lambda key: (key != wanted, key.casefold(), key))
++    if len(keys) > 1:
++        import json
++        for frame in cache.get('frames', {}).values():
++            records = frame['phrases']
++            entries = [records[key] for key in sorted(keys) if key in records]
++            if not entries:
++                continue
++            merged = dict(entries[0])
++            merged['presence'] = max(float(e.get('presence', 0)) for e in entries)
++            instances = {json.dumps(i, sort_keys=True): i for e in entries for i in e.get('instances', [])}
++            merged['instances'] = [instances[k] for k in sorted(instances)]
++            frame['phrases'] = {**{k: v for k, v in records.items() if k not in keys}, canonical: merged}
++        cache['phrases'] = sorted({k for k in cache['phrases'] if k not in keys} | {canonical})
++    return canonical
+--- a/student_pilot/scene_state.py
++++ b/student_pilot/scene_state.py
+@@ -11,6 +11,10 @@
+ 
+ 
+ def normalize_name(name):
++    from trace_format.contracts import new_contracts
++    if new_contracts():
++        from .phrases import normalize_phrase
++        return normalize_phrase(name)
+     if not isinstance(name, str) or not name.strip() or any(
+             ord(c) < 32 or ord(c) == 127 or c in '<>"' for c in name):
+         raise ValueError('invalid_object_name')
+--- a/student_pilot/sam3_tower.py
++++ b/student_pilot/sam3_tower.py
+@@ -25,6 +25,10 @@
+ 
+ 
+ def normalize_phrase(label: str) -> str:
++    from trace_format.contracts import new_contracts
++    if new_contracts():
++        from .phrases import normalize_phrase as shared_phrase
++        return shared_phrase(label)
+     label = ' '.join(label.lower().replace('_', ' ').split())
+     return SINGULAR.get(label, label)
+ 
+--- a/student_pilot/ground_admission.py
++++ b/student_pilot/ground_admission.py
+@@ -8,6 +8,10 @@
+ 
+ 
+ def normalized_name(name):
++    from trace_format.contracts import new_contracts
++    if new_contracts():
++        from .phrases import normalize_phrase
++        return normalize_phrase(name)
+     return ' '.join(unicodedata.normalize('NFKC', name).casefold().split())
+ 
+ 
+--- a/student_pilot/s1_grounding.py
++++ b/student_pilot/s1_grounding.py
+@@ -20,7 +20,11 @@
+     return dict(name=NAME, weights=weights)
+ 
+ 
+-def candidate_names(question, options):
++def candidate_names(question, options, cache_phrases=None):
++    from trace_format.contracts import new_contracts
++    if new_contracts():
++        from .phrases import candidate_phrases
++        return candidate_phrases(question, options, cache_phrases)
+     from trace_format.category_vocab import vocabulary, normalized
+     text = normalized(" ".join([question, *options]))
+     return tuple(sorted(name for name in vocabulary()
+@@ -28,8 +32,15 @@
+ 
+ 
+ def build_backend(row, batch, artifact_pin, audit_dir, settings=None):
++    from trace_format.contracts import contract_epoch, new_contracts, heading_plane_min
+     settings = settings or {}
+-    allowed = {"ground_candidate_policy", "geometry_manifest", "depth_source", "allow_own_fallback"}
++    with contract_epoch(settings.get('contract_epoch', new_contracts()), heading_plane_min=settings.get('heading_plane_min', heading_plane_min())):
++        return _build_backend(row, batch, artifact_pin, audit_dir, settings)
++
++
++def _build_backend(row, batch, artifact_pin, audit_dir, settings=None):
++    settings = settings or {}
++    allowed = {"ground_candidate_policy", "geometry_manifest", "depth_source", "allow_own_fallback", "contract_epoch", "heading_plane_min"}
+     if set(settings) - allowed:
+         raise ValueError("Unknown LEG-S1 grounding setting")
+     frames = FrameMap(tuple(batch["frame_indices"]))
+@@ -37,7 +48,16 @@
+     if not typ:
+         raise ValueError("Grounding requires the input question type")
+     inputs = row["student_input"]
+-    names = candidate_names(inputs["question"], inputs.get("options") or [])
++    binding = batch.get("cache_phrases", row.get("candidate_phrases"))
++    if binding is None:
++        binding = row.get('cache_phrases', row.get('candidate_manifest'))
++    if isinstance(binding, dict):
++        binding = binding.get('phrases')
++    from trace_format.contracts import new_contracts
++    if new_contracts() and (row.get('uses_mask_cache') or row.get('mask_source') in ('sam3', 'cached_sam3', 'cache')) and binding is None:
++        raise ValueError('contract_manifest_missing')
++    names = candidate_names(inputs["question"], inputs.get("options") or [],
++                            binding)
+     geometry = None
+     if settings.get("geometry_manifest"):
+         manifest = load(pinned(settings["geometry_manifest"]))
+--- a/student_pilot/ground_v3.py
++++ b/student_pilot/ground_v3.py
+@@ -68,7 +68,15 @@
+             source=source.identity, geometry=scene.geometry_identity, frames=scene.frames.source_indices,
+             rule=rule, threshold=threshold, verify=self.verify.identity, verify_threshold=verify_threshold,
+             ambiguity_margin=ambiguity_margin, weights=weights, selector=selector_identity)
+-        self.config['candidate_universe'] = sorted(getattr(source,'names',()))
++        from trace_format.contracts import new_contracts, heading_plane_min
++        from .phrases import candidate_phrases
++        self.contract_epoch = new_contracts()
++        self.heading_plane_min = heading_plane_min()
++        names = getattr(source, 'cache', {}).get('phrases', getattr(source,'names',()))
++        self.config['candidate_universe'] = list(candidate_phrases('', (), names)) if self.contract_epoch else sorted(getattr(source,'names',()))
++        if self.contract_epoch:
++            self.config['contract_epoch'] = True
++            self.config['heading_plane_min'] = self.heading_plane_min
+         self.candidate_policy = None
+         if ground_candidate_policy is not None:
+             from .candidate_policy import Policy
+--- a/student_pilot/ground_sources.py
++++ b/student_pilot/ground_sources.py
+@@ -5,6 +5,12 @@
+ from pathlib import Path
+ import numpy as np
+ from .scene_state import normalize_name
++from .phrases import cache_key
++from trace_format.contracts import new_contracts
++
++def cache_phrase(cache, name, codec):
++    return cache_key(cache, name) if new_contracts() else codec.phrase(name)
++
+ 
+ # Storage/lifting floor and the semantic admission gate are separate contracts.
+ RETAINED_SCORE_FLOOR = .3
+@@ -19,7 +25,7 @@
+ def native_candidates(cache, name, codec):
+     """Keep mask-centroid clicks before surface erosion or geometric linking."""
+     from ofs import core as O, hrp_reference as H
+-    phrase = codec.phrase(name)
++    phrase = cache_phrase(cache, name, codec)
+     if phrase not in cache['phrases']:
+         return []
+     candidates = []
+@@ -111,20 +117,20 @@
+         self.provenance = 'ttower_v1_external_frame_manifest'
+ 
+     def proposals_for(self, name, geometry, ofs, grids):
+-        if self.reader.phrase(name) not in self.cache['phrases'] and self.live is not None:
++        if cache_phrase(self.cache, name, self.reader) not in self.cache['phrases'] and self.live is not None:
+             return self.live.proposals_for(name, geometry, ofs, grids)
+         proposals, rejected = ofs.lift(self.cache, name, geometry, floor=RETAINED_SCORE_FLOOR, grids=grids)
+         return native_gate(proposals), rejected
+ 
+     def selector_candidates(self, name):
+-        if self.reader.phrase(name) not in self.cache['phrases'] and self.live is not None:
++        if cache_phrase(self.cache, name, self.reader) not in self.cache['phrases'] and self.live is not None:
+             return self.live.selector_candidates(name)
+         return native_candidates(self.cache, name, self.reader)
+ 
+     def native_mask(self,name,proposal):
+-        if self.reader.phrase(name) not in self.cache['phrases'] and self.live is not None:
++        if cache_phrase(self.cache, name, self.reader) not in self.cache['phrases'] and self.live is not None:
+             return self.live.native_mask(name,proposal)
+-        record=self.cache['frames'][str(proposal.frame-1)]['phrases'][self.reader.phrase(name)]
++        record=self.cache['frames'][str(proposal.frame-1)]['phrases'][cache_phrase(self.cache, name, self.reader)]
+         instances=sorted(record.get('instances') or [],key=lambda p:-float(p['score']))
+         return self.reader.rle_decode(instances[proposal.index]['mask'])
+ 
+@@ -148,7 +154,7 @@
+         detected = detect(self.encoded, name)
+         if len(detected) != 32:
+             raise ValueError('tower_detection_frame_count')
+-        phrase = self.codec.phrase(name)
++        phrase = normalize_name(name) if new_contracts() else self.codec.phrase(name)
+         cache = dict(phrases=[phrase], frames={})
+         for k, rec in enumerate(detected):
+             if len(rec.scores) != len(rec.masks):
+--- a/student_pilot/routed_features.py
++++ b/student_pilot/routed_features.py
+@@ -3,6 +3,8 @@
+ from scipy import ndimage
+ 
+ from . import routed_candidates as candidates
++from .ground_sources import cache_phrase
++from .scene_state import normalize_name
+ 
+ 
+ SHAPE = (480, 640)
+@@ -31,7 +33,7 @@
+ def detections(source, name, frame_map):
+     if hasattr(source, "cache"):
+         codec, cache = source.reader, source.cache
+-        if codec.phrase(name) not in cache["phrases"]:
++        if cache_phrase(cache, name, codec) not in cache["phrases"]:
+             if source.live is None:
+                 return [[] for _ in range(32)], "sam3"
+             codec, cache = source.live.codec, source.live._detect(name)
+@@ -56,7 +58,7 @@
+                         for i in range(1, count+1)] if probability >= batch.tau else [])
+         return out, "native_mask"
+     frame_map.require(source.frame_indices)
+-    phrase = codec.phrase(name)
++    phrase = cache_phrase(cache, name, codec)
+     out = []
+     for slot in range(32):
+         record = cache["frames"][str(slot)]["phrases"].get(phrase)
+@@ -285,6 +287,9 @@
+ 
+ 
+ def select_instances(owner, name, exact_geometry):
++    from trace_format.contracts import new_contracts
++    if new_contracts():
++        name = normalize_name(name)
+     if getattr(owner, 'geometry_error', None):
+         raise ValueError('live_ground_invalid_geometry')
+     cache = getattr(owner, "_routed_candidate_cache", None)
+--- a/ofs/core.py
++++ b/ofs/core.py
+@@ -86,8 +86,13 @@
+ 
+ def lift(cache, name, geo, floor=.3, prior=None, grids=None):
+     """Lift every eligible cached proposal, preserving score-sorted local indices."""
+-    from rk.sam3mask import tower
+-    phrase = tower().phrase(name)
++    from trace_format.contracts import new_contracts
++    from student_pilot.phrases import cache_key
++    if new_contracts():
++        phrase = cache_key(cache, name)
++    else:
++        from rk.sam3mask import tower
++        phrase = tower().phrase(name)
+     if phrase not in cache['phrases']:
+         return [], []
+     grids = lift_grid(geo) if grids is None else grids
+--- a/generator/derivgen_v7/derivgen/room_rows_v314.py
++++ b/generator/derivgen_v7/derivgen/room_rows_v314.py
+@@ -2,6 +2,7 @@
+ import math
+ import re
+ from . import ground_v312 as G, room_v314 as R
++from trace_format.contracts import geometry_mode
+ 
+ TYPE = 'room_size_estimation'
+ QUESTION = ('What is the size of this room (in square meters)? \n'
+@@ -22,7 +23,7 @@
+         raise G.RowRefusal('independent_gt_authority_missing')
+     if item['question'] != QUESTION or item.get('options'):
+         raise G.RowRefusal('room_question_template_mismatch')
+-    if session.geometry_mode != 'sensor':
++    if geometry_mode(session) != 'sensor':
+         raise G.RowRefusal('room_training_requires_sensor')
+     if session.events:
+         raise ValueError('render requires a fresh session')
+--- a/generator/derivgen_v7/derivgen/ground_v312_io.py
++++ b/generator/derivgen_v7/derivgen/ground_v312_io.py
+@@ -13,6 +13,7 @@
+ import numpy as np
+ from scipy import ndimage
+ from .instance_policy314 import valid_mask
++from student_pilot.phrases import annotation_labels
+ 
+ from .ground_v312 import (Session, TYPES, RowRefusal, histogram, load_backend,
+                           parse_roles, render, replay, select_balanced)
+@@ -53,6 +54,11 @@
+         up = np.array([0., 0., 1.])
+         heading = rotation[:, 2] - rotation[2, 2]*up
+         if np.linalg.norm(heading) < 1e-6:
++            from trace_format.contracts import new_contracts
++            if new_contracts():
++                # Keep native world coordinates private when no reference heading exists.
++                self.basis = np.eye(3)
++                return
+             raise ValueError('undefined GT level basis')
+         heading /= np.linalg.norm(heading)
+         self.basis = np.column_stack((np.cross(heading, up), heading, up))
+@@ -112,7 +118,7 @@
+     def masks(self, name):
+         if name not in self.cache:
+             T, geo = self.programs.T, self.geo
+-            labels = T.match_labels(name, geo.labels)
++            labels = annotation_labels(name, geo.labels, T.match_labels)
+             ids = [iid for iid, label in zip(geo.ids, geo.labels) if label in labels]
+             native = np.isin(geo.inst, ids)
+             masks = np.stack([ndimage.zoom(m, (80/m.shape[0], 112/m.shape[1]),
+@@ -144,11 +150,11 @@
+             return self.validate_operands_multi(item)
+         bindings = {}
+         for name in operands(item):
+-            labels = self.programs.T.match_labels(name, self.geo.labels)
++            labels = annotation_labels(name, self.geo.labels, self.programs.T.match_labels)
+             ids = [int(i) for i, label in zip(self.geo.ids, self.geo.labels) if label in labels]
+             if len(ids) != 1:
+                 raise RowRefusal('single_instance_required')
+-            from .ground_v312_quality import normalized
++            from student_pilot.phrases import annotation_phrase as normalized
+             if normalized(name) not in {normalized(label) for label in labels}:
+                 raise RowRefusal('unresolved_qualified_name')
+             bindings[name] = ids[0]
+@@ -174,14 +180,14 @@
+ 
+     def validate_operands_multi(self, item):
+         """v3.14 distance rows: every native instance of each operand name enters (at most MAX_INSTANCES)."""
+-        from .ground_v312_quality import normalized
++        from student_pilot.phrases import annotation_phrase as normalized
+         from .ground_v312_degenerate import degeneracy_reasons_multi
+         from . import box_v313 as boxes_mod
+         if item['type'] not in ('object_abs_distance', 'object_rel_distance'):
+             raise RowRefusal('multi_instance_distance_only')
+         sets = {}
+         for name in operands(item):
+-            labels = self.programs.T.match_labels(name, self.geo.labels)
++            labels = annotation_labels(name, self.geo.labels, self.programs.T.match_labels)
+             ids = [int(i) for i, label in zip(self.geo.ids, self.geo.labels) if label in labels]
+             if not ids or len(ids) > boxes_mod.MAX_INSTANCES:
+                 raise RowRefusal('instance_count_unsupported')
+--- a/generator/derivgen_v7/derivgen/ground_v313_distance.py
++++ b/generator/derivgen_v7/derivgen/ground_v313_distance.py
+@@ -10,7 +10,7 @@
+     """v3.14 (multi_instance=True): every instance of an operand name enters, as one entry per instance; the
+     benchmark label is the minimum over instance pairs. v3.13 keeps the single-instance requirement."""
+     from .ground_v312_io import operands
+-    from .ground_v312_quality import normalized
++    from student_pilot.phrases import annotation_phrase as normalized
+     item['trace_revision'] = '3.13' if rule == boxes.RULE and not multi_instance else '3.14'
+     item['target_distance_rule'] = rule
+     item['independent_ordered_boxes'] = []
+--- a/trace_format/category_vocab.py
++++ b/trace_format/category_vocab.py
+@@ -5,6 +5,10 @@
+ 
+ 
+ def normalized(text):
++    from trace_format.contracts import new_contracts
++    if new_contracts():
++        from student_pilot.phrases import normalize_phrase
++        return normalize_phrase(str(text))
+     return ' '.join(unicodedata.normalize('NFKC', str(text)).casefold().split())
+ 
+ 
+--- a/student_pilot/training_contract.py
++++ b/student_pilot/training_contract.py
+@@ -0,0 +1,146 @@
++"""Per-row admission against the deployed operand and response contract."""
++import re
++from .phrases import candidate_phrases, normalize_phrase, phrase_set
++from trace_format.contracts import RUNTIME_STATUSES, response_status, new_contracts
++
++OPERATOR_FAULTS = ('requires a fixed named candidate universe', 'outside the fixed candidate universe',
++    'form_requires_v3.13', 'form_requires_v3.14', 'frozen_fusion_requires_depth_cut_receipt',
++    'mask_source_unavailable_for_type')
++
++
++def admission_phrases(question, options, cache_phrases, operands=()):
++    names = candidate_phrases(question, options, cache_phrases)
++    if any(normalize_phrase(n) not in names for n in operands):
++        raise ValueError('contract_operand_outside_candidates')
++    return names
++
++
++def call_responses(row):
++    events = row.get('routing', row).get('events', [])
++    pending = None
++    for event in events:
++        kind = event.get('kind', '')
++        if 'call' in event and 'response' in event:
++            if pending is not None:
++                yield pending[0], None
++                pending = None
++            value = event['response']
++            if isinstance(value, dict):
++                value = value.get('text', value.get('injected_text'))
++            yield event['call'], value
++        elif kind.endswith('_call') or ('call' in event and 'response' not in event):
++            if pending is not None:
++                yield pending[0], None
++            token = event.get('token', event.get('command', event.get('text', event.get('call'))))
++            pending = (token.strip() if token is not None else None, event)
++        elif kind.endswith('_response'):
++            token, call = pending if pending is not None else (None, {})
++            if ('call_id' in call or 'call_id' in event) and call.get('call_id') != event.get('call_id'):
++                raise ValueError('mismatched_call_id')
++            value = event.get('text', event.get('response'))
++            if isinstance(value, dict):
++                value = value.get('text', value.get('injected_text'))
++            if token is None and kind == 'tool_response' and 'values' in event:
++                from trace_format.point_events import structured_tool_pair
++                token, value = structured_tool_pair(call, event)
++            yield token, value
++            pending = None
++    if pending is not None:
++        yield pending[0], None
++
++
++def _audit_training_contract(rows, manifest=None):
++    """Return one verdict per row; callers defer failures, never abort the pool.
++
++    After the first failed ground, permit one ground of a different listed name.
++    No further call is legal, even if that retry succeeds. End in a direct answer.
++    """
++    verdicts = []
++    for row in rows:
++        reason = None
++        pairs = list(call_responses(row))
++        if not new_contracts() or not pairs:
++            verdicts.append(None)
++            continue
++        entry = manifest.get(str(row.get('qid'))) if manifest is not None else row.get('candidate_manifest', row.get('cache_phrases', row.get('candidate_phrases')))
++        cache_reader = row.get('mask_source') in ('sam3', 'cached_sam3', 'cache') or row.get('uses_mask_cache', False)
++        named = any(isinstance(call,str) and re.search(r'obj="',call) for call,_ in pairs)
++        if named and entry is None and (manifest is not None or cache_reader):
++            verdicts.append('contract_manifest_missing')
++            continue
++        if isinstance(entry, dict):
++            entry = entry.get('phrases', [])
++        inputs = row.get('student_input', row)
++        names = admission_phrases(inputs.get('question',''), inputs.get('options',[]), entry)
++        if named and not names and entry is None:
++            verdicts.append('contract_manifest_missing')
++            continue
++        failed = None
++        retried = False
++        for call, text in pairs:
++            if not isinstance(call,str) or not isinstance(text,str) or not text.strip():
++                reason = 'contract_missing_response'
++                break
++            if any(code in text for code in OPERATOR_FAULTS + RUNTIME_ONLY_FAULTS):
++                reason = 'contract_operator_fault'
++                break
++            match = re.search(r'^<ground obj="([^"]+)"',call)
++            name = normalize_phrase(match[1]) if match else None
++            if name is not None and name not in names:
++                reason = 'contract_operand_outside_candidates'
++                break
++            if failed is not None:
++                if retried or name is None or name == failed:
++                    reason = 'contract_call_after_failed_ground'
++                    break
++                retried = True
++            body = text.strip().removeprefix('<tool_response>').removesuffix('</tool_response>').strip()
++            status = response_status(body)
++            if call.startswith(('<ground','<gap')) and status != 'error':
++                from .live_trace313 import parse_response
++                try:
++                    routing = row.get('routing', {})
++                    version = row.get('trace_revision', routing.get('trace_revision',
++                              row.get('spec_version', routing.get('spec_version', '3.14'))))
++                    parse_response(call, body, version)
++                except (ValueError, IndexError, TypeError):
++                    reason = 'contract_unknown_status'
++                    break
++            partial_ground = status == 'heading unavailable' and bool(re.match(
++                re.escape(match[1])+r': (?:frames |[1-9][0-9]* (?:instances|found)\n)', body)) if match else False
++            if call.startswith('<ground') and status != 'ok' and not partial_ground:
++                failed = failed or name or '<malformed ground>'
++        target = row.get('target', row.get('suffix',''))
++        if reason is None and failed is not None and not re.search(r'(?:<answer>.+</answer>|</think>\s*\S.*)$',target,re.S):
++            reason = 'contract_recovery_without_answer'
++        verdicts.append(reason)
++    return verdicts
++
++
++RUNTIME_ONLY_FAULTS = ('head_readout', 'head readout unavailable', 'own depth head unavailable',
++    'invalid own depth', 'missing_or_invalid_K_transform', 'camera_rotation_not_proper',
++    'native_mdg_requires_generate_binding', 'geometry_unavailable', 'mask_provider_unavailable',
++    'gravity_unavailable', 'invalid own gravity', 'invalid own FoV', 'zero quaternion',
++    'own pose readout must be finite', 'own FoV readout must be finite', 'depth query order differs')
++
++
++def audit_training_contract(rows, manifest=None):
++    """Malformed records defer locally; model call errors retain runtime recovery text."""
++    verdicts = []
++    for row in rows:
++        try:
++            if not isinstance(row, dict):
++                raise TypeError('row')
++            routing = row.get('routing', row)
++            if not isinstance(routing, dict) or not isinstance(routing.get('events', []), list):
++                raise TypeError('routing')
++            for event in routing.get('events', []):
++                if not isinstance(event, dict) or not isinstance(event.get('kind', ''), str):
++                    raise TypeError('event')
++                for key in ('call', 'token', 'command'):
++                    if key in event and not isinstance(event[key], str):
++                        raise TypeError('call')
++            verdicts.extend(_audit_training_contract([row], manifest))
++        except Exception:
++            verdicts.append('contract_malformed_row')
++    return verdicts
+--- a/student_pilot/s1_routing.py
++++ b/student_pilot/s1_routing.py
+@@ -10,6 +10,8 @@
+ 
+ from . import carrier_c1_routing as routing
+ from .p3_provenance import file_pin, load, pinned, write
++from .training_contract import audit_training_contract
++from trace_format.contracts import new_contracts, contract_identity, heading_plane_min
+ 
+ 
+ DIRECT_RULE = "S1-RD1"
+@@ -192,6 +194,12 @@
+ 
+ 
+ def build(cfg, directory, division_pin, base_model, *, audit_only=False):
++    from trace_format.contracts import contract_epoch
++    with contract_epoch(cfg.get('contract_epoch', new_contracts()), heading_plane_min=cfg.get('heading_plane_min', heading_plane_min())):
++        return _build(cfg, directory, division_pin, base_model, audit_only=audit_only)
++
++
++def _build(cfg, directory, division_pin, base_model, *, audit_only=False):
+     from . import s1_pool
+     from .carrier_c1_run import division_admits, processor_for_receipt
+     from .row_removals import Removals
+@@ -212,6 +220,7 @@
+     relocation = relocate(spec["selection"], spec.get("catalog", {}), output / "pool", tokenizer=tokenizer)
+     selection_pin = relocation["relocated"]
+     selection = load(pinned(selection_pin))
++    contract_manifest = load(pinned(spec['candidate_manifest'])) if spec.get('candidate_manifest') else None
+     if selection["implementation"] != s1_pool.implementation():
+         raise ValueError("Routing selection belongs to another implementation")
+     if selection.get("blockers"):
+@@ -244,6 +253,8 @@
+     connection.execute("CREATE VIEW rows AS SELECT m.i,c.row,'{}' AS target FROM membership m JOIN candidates c ON c.k=m.k")
+     stats, fps, dataset_fps, direct_audit = {}, {}, {}, {}
+     source_deferrals = {}
++    contract_deferred_qids = {}
++    current_qid = None
+     sequence = 0
+ 
+     def count(kind, key, reason=None):
+@@ -253,6 +264,11 @@
+             value[key] += 1
+         else:
+             value[key][reason] = value[key].get(reason, 0)+1
++            if key.endswith('_deferred'):
++                entry = contract_deferred_qids.setdefault(reason, dict(count=0, qids=[]))
++                entry['count'] += 1
++                if len(entry['qids']) < 50:
++                    entry['qids'].append(str(current_qid))
+ 
+     def reason(row, source):
+         key = row["dataset"]+"/"+row["scene"]
+@@ -276,6 +292,16 @@
+ 
+     def add(row, origin, source):
+         nonlocal sequence
++        refusal = audit_training_contract([row], contract_manifest)[0]
++        if refusal:
++            routing_info = row.get('routing')
++            kind = routing_info.get('question_type', 'unknown') if isinstance(routing_info, dict) else 'unknown'
++            count(kind, 'r16_deferred' if origin == 'legacy' else 'pool_deferred', refusal)
++            return
++        if new_contracts() and contract_manifest is not None and str(row['qid']) in contract_manifest:
++            from .phrases import phrase_set
++            entry = contract_manifest[str(row['qid'])]
++            row['candidate_phrases'] = list(phrase_set(entry.get('phrases', []) if isinstance(entry, dict) else entry))
+         spans = routing.render(row["routing"]["events"], row["routing"]["answer"])[1] if row["routing"]["events"] else []
+         ids, _, _ = routing.suffix_tokens(processor, row, row["target"], spans)
+         if len(ids) > cfg["recipe"].get("max_routing_suffix_tokens", 9600):
+@@ -302,6 +328,7 @@
+                                                      compatibility=legacy_check))
+             for (encoded,) in source.execute("SELECT row FROM rows ORDER BY i"):
+                 row = json.loads(encoded)
++                current_qid = row.get("qid")
+                 observed_types[row["routing"]["question_type"]+":"+row["routing"]["category"]] += 1
+                 key = row["dataset"]+"/"+row["scene"]
+                 value = row.get("student_input", {}).get("fps")
+@@ -358,12 +385,17 @@
+                             audit["reasons"][text] = audit["reasons"].get(text, 0)+1
+                 direct_audit[name] = audit
+             for raw in s1_pool.selected_rows(selection_pin, name):
++                current_qid = raw.get("qid")
+                 kind = raw["question_type"]
+                 if connection.execute("SELECT 1 FROM pool_qids WHERE qid=?", (raw["qid"],)).fetchone():
+                     count(kind, "pool_deferred", "duplicate_pool_qid")
+                     continue
+                 connection.execute("INSERT INTO pool_qids VALUES (?)", (raw["qid"],))
+                 try:
++                    refusal = audit_training_contract([raw], contract_manifest)[0]
++                    if refusal:
++                        count(kind, "pool_deferred", refusal)
++                        continue
+                     changed = False
+                     if entry["kind"] == "rows":
+                         raw, changed = direct_transform(raw)
+@@ -375,6 +407,9 @@
+                                            in zip(inputs["frames"], inputs["frame_indices"], strict=True)],
+                                    fps=inputs["fps"], total_num_frames=inputs["total_num_frames"])
+                         row = routing.c1_row(raw, rgb)
++                    for binding_key in ('candidate_phrases', 'candidate_manifest', 'cache_phrases', 'uses_mask_cache', 'mask_source'):
++                        if binding_key in raw:
++                            row[binding_key] = raw[binding_key]
+                     row["s1_source"] = dict(name=name, source=entry["source"], frame_binding=frame_binding,
+                         direct_transform=DIRECT_RULE if changed else None, provenance=raw.get("provenance", {}),
+                         flags={key: raw[key] for key in ("training_admitted", "infrastructure_only",
+@@ -425,10 +460,10 @@
+     materialization = dict(schema="s1-routing-materialization-v1",
+         status="BLOCKED" if blockers else "METADATA_ONLY" if audit_only else "PASS",
+         inputs=spec, legacy=cfg["streams"]["routing"], division=division_pin, direct_rule=DIRECT_RULE,
+-        base_model=base_model,
++        base_model=base_model, **contract_identity(),
+         relocation=file_pin(output / "pool/relocation.json"), resolved_selection=selection_pin,
+         direct_rule_audit=direct_audit, legacy_compatibility=legacy_check, types=stats,
+-        source_denominator=selection["declared_rows"]+legacy["count"], source_deferrals=source_deferrals,
++        source_denominator=selection["declared_rows"]+legacy["count"], source_deferrals=source_deferrals, contract_deferred_qids=contract_deferred_qids,
+         pool_selection_counts={name: {key: value[key] for key in ("declared_rows", "original_per_type", "per_type",
+             "retained", "counts", "status", "reason") if key in value} for name, value in selection["sources"].items()},
+         fps_rule=FPS_RULE, fps_policy="source_then_scene_then_uniform_authority_dataset",
+--- a/student_pilot/ground_rows.py
++++ b/student_pilot/ground_rows.py
+@@ -78,7 +78,14 @@
+             raise ValueError("Packed grounding field mismatch: " + key)
+     if row["question_type"] != record["type"] or record["spec_version"] != row["trace_revision"]:
+         raise ValueError("Packed grounding type mismatch")
+-    if record.get("not_seen") or record.get("gt_agrees") is not True or record.get("training_admitted") is not False:
++    from trace_format.contracts import new_contracts
++    recovery = new_contracts() and record.get('not_seen')
++    if recovery:
++        from .training_contract import audit_training_contract
++        verdict = audit_training_contract([dict(row, events=record['events'])])[0]
++        if verdict:
++            raise ValueError(verdict)
++    if (record.get("not_seen") and not recovery) or record.get("gt_agrees") is not True or record.get("training_admitted") is not False:
+         raise ValueError("Grounding membership flags differ")
+     validate_evidence(record)
+     target, spans, _ = render_ground(row["events"], row["answer"])
+--- a/tests/test_e2e_open_vocabulary.py
++++ b/tests/test_e2e_open_vocabulary.py
+@@ -8,7 +8,7 @@
+ import numpy as np
+ 
+ from student_pilot import mdg_decode as D, mdg_features as F, mdg_stream
+-from student_pilot.ground_admission import LABELS, qualification
++from student_pilot.ground_admission import LABELS, qualification, normalized_name
+ from student_pilot.p3_printed_calculator import PrintedPointRegistry
+ from tests.test_ground_backend import Geometry, masks
+ 
+@@ -42,6 +42,7 @@
+                 b=known.ground(name,None,PrintedPointRegistry())
+                 self.assertEqual(a,b)
+                 self.assertNotIn('not seen',a)
+-                self.assertTrue(unknown.queries[0]['name_outside_decoder_vocabulary'])
++                self.assertEqual(unknown.queries[0]['name_outside_decoder_vocabulary'],
++                                 normalized_name(name) not in {normalized_name(label) for label in LABELS})
+                 self.assertFalse(known.queries[0]['name_outside_decoder_vocabulary'])
+                 self.assertFalse(unknown.queries[0]['qualified'])
+--- a/tests/test_sam3_tower.py
++++ b/tests/test_sam3_tower.py
+@@ -217,7 +217,9 @@
+         namespace = {}
+         exec(compile(ast.Module(body=nodes, type_ignores=[]), str(reference), 'exec'), namespace)
+         for label in list(namespace['SINGULAR']) + ['  Kitchen_Cabinets ', 'TV', 'trash  bin', 'office chairs']:
+-            self.assertEqual(normalize_phrase(label), namespace['phrase'](label))
++            from trace_format.contracts import contract_epoch
++            with contract_epoch(False):
++                self.assertEqual(normalize_phrase(label), namespace['phrase'](label))
+ 
+ 
+ if __name__ == '__main__':
