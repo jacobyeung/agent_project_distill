@@ -14,7 +14,7 @@ The decode loop (`carrier_c1_decode.py`, `carrier_c1_batch_decode.py`), the calc
 | Clause | Verdict | Evidence |
 |---|---|---|
 | A5 (iii) tower inside the call | **PASS** | `b5:student_pilot/carrier_c1.py:156` registers `G3TEncoder` as `auxiliary_heads.geometry_encoder`, and `:162` registers `Fusion` as `auxiliary_heads.gf1`. The routed prefill calls `model.geometry_features` and `model.patch_injection` (`b5:student_pilot/carrier_c1_decode.py:328,360`). Dynamic run: `module_runs tower:g3t = 1` per called item. |
-| A5 (ii) perturbation | **PASS** | g3t perturbation changed 4/4 naming responses and 0 others. pose_head changed 4/4 (`work/b5_gf1_tiny/run4/EAT1_REPORT.json`). |
+| A5 (ii) perturbation | **PASS** | g3t perturbation changed 4/4 naming responses and 0 others. pose_head changed 4/4 (`work/b5_gf1_tiny/run6/EAT1_REPORT.json`). |
 | A5 cache | note | `b5:student_pilot/gf1.py:223-232` is a per-row `ClipCache` that memoises the live tower output within one row, keyed by tensor versions. It is not a precomputed cache, but the scanner flags it. The reviewer decides. |
 | A1 one artifact | **conditional** | The export drops `geometry_encoder.*` from `heads.pt` (`b5:student_pilot/carrier_c1_run.py:2002-2006`) and reloads the encoder from its pinned path (`carrier_c1_run.py:814`, `g3t_online.py:199-204`, which verifies the sha256). A1 passes only if the claimed artifact manifest lists that weights file by sha256 with role `tower`. The export directory alone is not one artifact. |
 | A3 | model code | The 35 constants in `gf1.py`/`g3t_online.py` (image size 518, layer indices, pooling) run inside module forwards or methods of the registered tower and connector classes. `dense_frames=64` is a config parameter (`gf1.py:12`). |

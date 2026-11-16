@@ -5,7 +5,7 @@ sys.path.insert(0, '/scratch/jjyeung/orch_n30/b04_e2ehook/heads/selector')
 import common as C
 sys.path.insert(0, str(C.HERE / 'src118/scratch/jjyeung/orch_cd/grd_selector/work/setsel'))
 import fit, setlib as L
-rows = [r for r in C.load() if r['split'] == 'train']
+rows = C.load(splits=('train',))
 rooms = sorted({r['room'] for r in rows}); rng = random.Random(C.SEED); rng.shuffle(rooms)
 fold = {r: i % 5 for i, r in enumerate(rooms)}
 oof_r, oof_p = [], []

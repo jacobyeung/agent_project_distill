@@ -6,17 +6,17 @@ Run from `/scratch/jjyeung/orch_n30/h1_headsft/kit` in b09's checkpoint-read env
 ```sh
 K=$PWD
 PY=/scratch/jjyeung/envs/p1cpu/bin/python
-"$PY" -B -m h1eval.cli items build
-"$PY" -B -m h1eval.cli run --export "$RL_EXPORT" --items items/revsi999.json --arms own --modes scale_scene:2,scale_translation:2,rotate_translation:90,negate_turn --out "$K/runs/rl_step100" --frames 32
+"$PY" -B -m h1eval.cli items build --sets revsi999,devs1_routed,devs1_direct_main
+"$PY" -B -m h1eval.cli run --export "$RL_EXPORT" --items items/revsi999.json --arms own --modes scale_translation:0.5,scale_translation:2,rotate_translation:180,negate_turn,scale_scene:0.5,scale_scene:2 --out "$K/runs/rl_step100" --frames 32
 "$PY" -B -m h1eval.cli pair --a "$K/runs/sft_step200" --b "$K/runs/rl_step100"
 "$PY" -B -m h1eval.cli curve "$K/runs/rl_step100" "$K/runs/sft_step200"
 ```
 
 `items build` writes immutable ready manifests; unavailable sets exit nonzero.
 RevSI has 999 items (283 meter-distance, 37 room), with zero R0 overlaps.
-The staged native C8r inventory has 636 IDs, but its 450 camera tasks are absent.
-The e193 direct inventory needs 300 missing forward/away tasks (1,825 IDs total).
-Supply complete task files with `--routed-tasks FILE --direct-tasks FILE`.
+The native C8r routed set has 636 items, including 450 camera tasks.
+The ready e193 direct set has 1,825 items: 1,525 main and 150 each forward/away.
+To rebuild it, supply both pinned twin files with `--forward-tasks FILE --away-tasks FILE`.
 The builder checks fixed membership, type counts, room keys and the R0 pin.
 `r0dev` refuses without `--r0dev-items FILE`; supplied rooms must belong to R0-dev.
 
@@ -38,3 +38,18 @@ Each run writes `items.jsonl`, `report.md` and `curve.json`, including all hashe
 Intervals resample rooms 10,000 times with seed 20261115. Pair reports B minus A
 on shared items (M3 uses shared eligible items) and refuses incompatible bindings.
 Curve prints per-type metrics and hashes, ordered by SFT step, then RL step.
+
+Each perturbation applies only to its registered type. Parameter-bearing keys such
+as `scale_translation:0.5` and `scale_translation:2` remain distinct in records,
+paired statistics and curves. The tower arm decodes each item only once.
+M1 reports explicit pass flags: routed call rate >=98%, exact sequence >=95%,
+answer-before-call <=1%; direct false calls <=2% overall and <=5% per type.
+ReVSI distance uses the registered >=95% call-rate threshold.
+M2 reports per-item own-minus-tower task accuracy in percentage points, with the
+room bootstrap. A type passes when its lower 95% bound is strictly above -5.
+
+S1 preparation checks camera materialization on the config-bound routing receipt.
+A rate below 95%, missing receipt or empty camera denominator refuses launch.
+An operator can run `bash cpu.sh rows/faithful_gate.py ROWS_OR_SQLITE_RECEIPT`;
+the JSON report includes the identity rate, per-type counts and refusal histogram.
+The real receipt bound by these configs is not staged on this node.

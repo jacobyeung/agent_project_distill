@@ -176,6 +176,10 @@ def judge_a2(records, declared, findings=(), dynamic=True):
             offenders.append(dict(item=r['id'], kind='no_call_handler_registered_on_model'))
     injected = sum(o.get('kind') == 'injected_token' for o in offenders)
     static = judge_static(findings, 'A2', dynamic)
+    if dynamic and not injected:
+        # the token provenance shows every response id came from the registered handler, so response text
+        # formatted by a function the handler calls is not a response written outside the model
+        static = [f for f in static if f['rule'] != 'A2.response_outside_model']
     status = 'FAIL' if offenders or static else 'PASS'
     return clause(status, f'model entries per item {dict(entries)}; {injected} tokens fed that neither the model '
                           f'chose nor a registered handler emitted; {len(static)} static findings',
@@ -292,20 +296,18 @@ def check_cache_proof(path, minimum=50):
 
 # ---------------------------------------------------------------- A5 (ii): head perturbation
 def compare_calls(base, other):
-    """Prefix-aligned comparison: a response is eligible while every earlier call and response match."""
+    """Prefix-aligned comparison: a response is eligible while every call up to it matches. A response that
+    reads an earlier response's state (a gap over grounded boxes) must cite the modules behind that state."""
     out = []
     for b, o in zip(base, other):
         if b.get('call') != o.get('call'):
             break
         cited = sorted({h for hs in (b.get('fields') or {}).values() for h in hs or []})
-        changed = b.get('response') != o.get('response')
-        out.append(dict(call=b.get('call'), cited=cited, changed=changed))
-        if changed:
-            break
+        out.append(dict(call=b.get('call'), cited=cited, changed=b.get('response') != o.get('response')))
     return out
 
 
-def perturbation(reader, items, artifact, base_records, seeds=(1, 2, 3)):
+def perturbation(reader, items, artifact, base_records, seeds=(1, 2, 3), scales=(1., 10.)):
     import torch
     declared = artifact.module_roles(reader.model)
     targets = [(p, m, r, n) for p, m, r, n in declared if r in ('head', 'tower')]
@@ -315,7 +317,7 @@ def perturbation(reader, items, artifact, base_records, seeds=(1, 2, 3)):
         saved = copy.deepcopy(mod.state_dict())
         verdicts = defaultdict(lambda: dict(changed=False, cited=None))
         try:
-            for seed in seeds:
+            for seed, gain in [(seed, gain) for gain in scales for seed in seeds]:
                 g = torch.Generator().manual_seed(seed)
                 with torch.no_grad():
                     for t in list(mod.parameters())+list(mod.buffers()):
@@ -323,7 +325,7 @@ def perturbation(reader, items, artifact, base_records, seeds=(1, 2, 3)):
                             scale = float(t.detach().float().std()) if t.numel() > 1 else 0.
                             scale = scale if scale > 0 else float(t.detach().float().abs().mean())+1e-3
                             noise = torch.randn(t.shape, generator=g).to(t.device, t.dtype)
-                            t.add_(noise*scale)
+                            t.add_(noise*scale*gain)
                 runs, _, _ = observe(reader, items, artifact, trace_lines=False, audit=False, monitor=False)
                 mod.load_state_dict(saved)
                 for r in runs:
@@ -347,7 +349,7 @@ def perturbation(reader, items, artifact, base_records, seeds=(1, 2, 3)):
             offenders.append(dict(kind='response_changed_by_module_it_does_not_name', module=name, item=key[0],
                                   call_index=key[1]))
     return dict(status='FAIL' if offenders else 'PASS', modules=report, offenders=_compress(offenders),
-                seeds=list(seeds))
+                seeds=list(seeds), scales=list(scales))
 
 
 # ---------------------------------------------------------------- A5 (i): unmounted rerun

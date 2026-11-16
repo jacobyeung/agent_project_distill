@@ -399,7 +399,8 @@ def check_kit(kit, config_raw, rules):
 def build_submission(kit, config, job, rules):
     """The batch script and the submission script, rebuilt deterministically from a checked kit and
     JOB.json, after the opacity check of every part bound for the batch host."""
-    script = render(config, job['token'], bundle_bytes(kit, job))
+    payload = bundle_bytes(kit, job)
+    script = render(config, job['token'], payload)
     remote = submit_script(config, job['token'], script)
     hits = anon.scan_job(rules, job_name=job['job_name'], script=script, argv=config['entry'],
                          env=(config.get('return') or {}).get('gcs_env') or {})
@@ -408,7 +409,7 @@ def build_submission(kit, config, job, rules):
     hits += anon.scan_text('JOB.json', util.canonical_json(job).decode('utf-8'), rules, 'name')
     if hits:
         raise LaunchError('opacity: %s' % json.dumps(hits, sort_keys=True)[:2000])
-    return script, remote
+    return script, remote, util.sha256_bytes(payload)
 
 
 def prepare(kit, config_path, out, lane, meaning, checkout, dryrun=None, no_dryrun_reason=None,
@@ -430,13 +431,13 @@ def prepare(kit, config_path, out, lane, meaning, checkout, dryrun=None, no_dryr
     token, name = mint_job_name(token)
     job = {'token': token, 'job_name': name,
            'sessions': util.read_json(sessions) if sessions else {}}
-    script, remote = build_submission(kit, config, job, rules)
+    script, remote, payload_sha = build_submission(kit, config, job, rules)
     argv = transport_argv()
     target = config.get('return') or {}
     gcs = ('%s/%s' % (target['gcs_prefix'].rstrip('/'), token)) if target.get('gcs_prefix') else None
     text = meaning + ('' if not no_dryrun_reason else ' | no-dryrun: ' + no_dryrun_reason)
     row = ledger.make_row('minted', token, lane=lane, meaning=text, kit_pins_sha256=kit_pins,
-                          config_sha256=config_sha, partition=config['job']['partition'],
+                          config_sha256=config_sha, payload_sha256=payload_sha, partition=config['job']['partition'],
                           gpus=config['job']['gpus'], time_limit_s=config['job']['time_limit_s'],
                           pool=target.get('pool'), gcs=gcs, state='prepared')
     row = ledger._fit(row)
@@ -498,26 +499,35 @@ def rebuild(prep, record, rows, rules=None):
         raise LaunchError('the ledger row of %s names another kit or config' % token)
     if job.get('token') != token or job.get('job_name') != name or record.get('job_name') != name:
         raise LaunchError('the prepared scripts do not belong to token %s' % token)
-    script, remote = build_submission(kit, config, job, rules or anon.load_rules())
+    script, remote, payload_sha = build_submission(kit, config, job, rules or anon.load_rules())
+    if minted[0].get('payload_sha256') != payload_sha:
+        raise LaunchError('the payload of %s differs from the one its ledger row names' % token)
+    if minted[0].get('partition') != config['job']['partition'] or \
+            record.get('partition') != config['job']['partition']:
+        raise LaunchError('the partition of %s differs between config, ledger and SUBMIT.json' % token)
     for file_name, expect in (('BATCH.sh', script), ('SUBMIT.sh', remote)):
         with open(os.path.join(prep, file_name), 'rb') as handle:
             if handle.read() != expect.encode('utf-8'):
                 raise LaunchError('%s differs from its rebuild; prepare again' % file_name)
     if record.get('argv') != transport_argv() or record.get('stdin') != 'SUBMIT.sh':
         raise LaunchError('the transport command differs from the one prepare recorded')
-    return remote.encode('utf-8')
+    return remote.encode('utf-8'), config
 
 
-def _live_gate(record, token, go_text, ledger_file):
+def minted_payload(rows):
+    return [row for row in rows if row.get('event') == 'minted'][0].get('payload_sha256')
+
+
+def _live_gate(partition, token, go_text, ledger_file):
     """Refuse when the ledger shows another of our jobs live on a one-job partition, unless the GO
     file says "queue behind" and names it."""
-    if record['partition'] in ONE_JOB_PARTITIONS:
-        live = [row for row in ledger.live(ledger_file, [record['partition']])
+    if partition in ONE_JOB_PARTITIONS:
+        live = [row for row in ledger.live(ledger_file, [partition])
                 if row.get('token') != token]
         behind = re.search(r'queue[ _-]behind', go_text, re.I) is not None
         if live and not (behind and all(_names(go_text, row['token']) for row in live)):
             raise LaunchError('our job %s is live on %s; the GO file must say "queue behind" and '
-                              'name it' % (','.join(row['token'] for row in live), record['partition']))
+                              'name it' % (','.join(row['token'] for row in live), partition))
 
 
 class partition_lock(object):
@@ -590,14 +600,15 @@ def submit(prep, go, execute=False, ledger_file=None, transport=None, out=sys.st
     if any(row.get('event') == 'submitted' for row in rows) or \
             os.path.exists(os.path.join(prep, 'SUBMIT_INTENT.json')):
         raise LaunchError('already submitted or attempted; never repeat an uncertain submit')
-    _live_gate(record, token, go_text, ledger_file)
+    _live_gate(record['partition'], token, go_text, ledger_file)
     argv = record['argv']
     out.write('%s < %s\n' % (' '.join(argv), os.path.join(prep, record['stdin'])))
     if not execute:
         return {'executed': False, 'argv': argv}
-    with partition_lock(record['partition'], ledger_file):
-        _live_gate(record, token, go_text, ledger_file)
-        pinned = rebuild(prep, record, rows, rules)
+    pinned, config = rebuild(prep, record, rows, rules)
+    partition = config['job']['partition']
+    with partition_lock(partition, ledger_file):
+        _live_gate(partition, token, go_text, ledger_file)
         try:
             fd = os.open(os.path.join(prep, 'SUBMIT_INTENT.json'), os.O_WRONLY | os.O_CREAT | os.O_EXCL,
                          0o600)
@@ -633,8 +644,8 @@ def submit(prep, go, execute=False, ledger_file=None, transport=None, out=sys.st
             ledger.append(ledger.make_row(
                 'submitted', token, job_id=result['job_id'], lane=record.get('lane'),
                 kit_pins_sha256=record['kit_pins_sha256'], config_sha256=record['config_sha256'],
-                partition=record['partition'], gpus=record['gpus'],
-                time_limit_s=record['time_limit_s'], pool=record['pool'], gcs=record['gcs'],
+                payload_sha256=minted_payload(rows), partition=partition, gpus=config['job']['gpus'],
+                time_limit_s=config['job']['time_limit_s'], pool=record['pool'], gcs=record['gcs'],
                 state='PENDING'), ledger_file)
             return dict(result, executed=True)
         raise LaunchError('submission %s: %s' % (result['status'], text[-500:]))

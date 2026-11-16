@@ -33,11 +33,16 @@ for variant in ('tree','base'):
  temporary.append(dict(variant=variant,source=source,maximum=max(boundaries,key=lambda r:r['bytes']),over_cap=[r for r in boundaries if r['bytes']>200_000_000]))
 emit('work/build6/REPORT_DETAILS.json',dict(temporary_sizes=temporary,preexisting_causes=comparison['preexisting_causes']))
 parity=read('work/build6/proofs/rows/PARITY.json');units=read('work/build6/proofs/rows/UNITS.json');delivery=read('work/build6/DELIVERY.json');kits=read('work/build6/kits/RESULTS.json');integration=read('work/build6/INTEGRATION_CHECK.json');audit=read('work/build6/STATIC_AUDIT.json')
-qualified=pc['passed']==202 and pc['failed']==0 and not comparison['regressions'] and not lost and coverage['classes'].get('CPU-reachable unresolved',0)==0
+gate_fix=read('work/build6/GATE_IDENTITY_FIX.json')
+qualified=(len(packet)==202 and pc['passed']==202 and pc['failed']==0
+           and not r2['errors'] and not r2['failures']
+           and not comparison['regressions'] and not lost
+           and coverage['classes'].get('CPU-reachable unresolved',0)==0 and gate_fix['validated'])
 lines=['# Build 6 report','', '**'+('CPU checks qualified; production remains blocked.' if qualified else 'CPU qualification incomplete; production remains blocked.')+'**','',
  'The accepted contracts are installed. The kits require a pinned init, preserve the route table, gate final family admission, accept direct square-foot and inch answers, and require metric scores by asked unit. No launch, remote service or GPU work was performed.','',
  '## Integration','',f"The integration has {integration['exact']} exact files and {integration['merged']} merged files. Every hunk is accounted for; both level-basis functions remain byte-identical. Source: `work/build6/INTEGRATION_CHECK.json`; hashes, hunk dispositions and the recovery adaptation: `out/CONTRACTS_INTEGRATION.md`.",'',
  'The recovery adaptation preserves simulated-GT recovery with contracts OFF and applies the accepted training audit with contracts ON. The protected artifact modes, pinned grammar and sealed exclusions remain unchanged (`work/build6/STATIC_AUDIT.json`).','',
+ 'The standalone launch gate also mirrors the native heading-threshold identity rule. Its native-parity assertion remains and covers both epochs and invalid thresholds. This additional integration repair is outside the packet manifest (`work/build6/GATE_IDENTITY_FIX.json`, `work/build6/GATE_IDENTITY_FIX.diff`).','',
  '## Suites','', '| Suite | Run | Passed | Pre-existing failure events | Remaining failure events | Fixed diagnostic cases | Source |', '|---|---:|---:|---:|---:|---:|---|',
  f"| Packet | {len(packet)} | {pc['passed']} | 0 | {pc['failed']} | {len(pf)} | `work/build6/PACKET_COMPARISON.json` |",
  f"| Packaged tree | {comparison['run']} | {comparison['passed']} | {comparison['preexisting']} | {comparison['regressions']} | {len(fixed)} | `work/build6/SUITE_COMPARISON.json`, `work/build6/FIXES.json` |",
@@ -54,7 +59,7 @@ lines.extend(f"| {r['variant']} | {r['maximum']['bytes']} | {len(r['over_cap'])}
 lines+=['','Legacy teacher fixtures that exceed the cap remain failures; the cap was not raised. Measurements above the cap do not establish continuous storage compliance. Exact tests are in `work/build6/REPORT_DETAILS.json`.','',
  '## Changed-statement coverage','', '| Class | Statements |','|---|---:|']
 lines.extend('| '+k+' | '+str(v)+' |' for k,v in coverage['classes'].items())
-lines+=['','Source: `work/build6/CHANGED_COVERAGE.json`. The denominator is the union of changed AST statement starts against the untouched base. Hits require the current file hash and compiled-code fingerprint. Each external-input classification names its missing input; unresolved CPU statements remain explicit in `work/build6/GAPS.json`.','',
+lines+=['','Source: `work/build6/CHANGED_COVERAGE.json`. The denominator includes statement headers and simple statements whose spans touch edited lines against the untouched base, including edited continuation lines. Hits require an observed statement-head line, the current file hash and the compiled-code fingerprint. Each external-input classification names its missing input; unresolved CPU statements remain explicit in `work/build6/GAPS.json`.','',
  '## Row proofs','', 'These counts cover packed-row production, validation and grammar. Full frame and scene joins remain unchecked.','', '| Family | Rows | OFF admitted / deferred | ON admitted / deferred | OFF equals build 5 | Source |','|---|---:|---:|---:|---|---|']
 for r in parity['families']:
  lines.append(f"| {r['family']} | {r['rows']} | {r['off']['admitted']} / {r['off']['deferred']} | {r['on']['admitted']} / {r['on']['deferred']} | {r['off_equals_build5']} | `{r['source']}` |")

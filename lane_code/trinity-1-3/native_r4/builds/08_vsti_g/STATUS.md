@@ -1,0 +1,1 @@
+V1g is built and CPU-verified. The snapshot bind is isolated; d.tar is unchanged. All 70 kit and 30 inherited tests pass. The audit covers 931 paths/directory closures with zero unbound. Sandbox namespace creation and exact payload-selected filenames remain unverified. See out/FINAL_RESULT.json.

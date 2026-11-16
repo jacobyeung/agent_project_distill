@@ -9,8 +9,8 @@ K=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(K/'tree'))
 from student_pilot.carrier_c1_sweep import recipe_for
 from student_pilot.h1 import CAMERA_TYPES, validate
-BASE=Path('/scratch/jjyeung/orch_n30/tree_rebuild/work/kit07ca49df_meta/m/k/b02e4385.json')
-OVER=Path('/scratch/jjyeung/orch_n30/h1_headsft/work/from13/q13.out')
+BASE=K/'auth/d0_base.json'
+OVER=K/'auth/d0_override.txt'
 NEEDS_64=[
  'carrier_c1_data frame ingestion, layouts, frame ids and position maps must accept 64 frames',
  'CarrierC1 camera_settings max_groups and pose carrier/target masks must grow from 32 to 64',
@@ -40,7 +40,7 @@ def build(frames=32):
         c=copy.deepcopy(base)
         c['h1']=dict(faithful_own_camera_rows=True,routing_pose_targets=s2,camera_types=list(CAMERA_TYPES),
                      stop_after_step=200,metrics=True,
-                     r0_rooms=dict(path=str(K.parent/'work/auth/R0_ROOMS.txt'),
+                     r0_rooms=dict(path='auth/R0_ROOMS.txt',
                          sha256='bdb5d40244cdaf5060fd0a549acc2844a41039ecf78a23ef021a77eab188a4e3'))
         c['scheduled_sampling'].update(max_own_probability=.5,force_from_step=1)
         c['milestones']=[100,200];c['recipe']=recipe_for(c);validate(c)

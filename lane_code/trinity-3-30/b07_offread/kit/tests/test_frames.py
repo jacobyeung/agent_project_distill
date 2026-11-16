@@ -36,3 +36,8 @@ def test_unknown_export_layout_refused():
 def test_layout_outside_evaluator_refused(count, layout):
     with pytest.raises(F.FrameError):
         F.bind_frames(count, layout, override_reason='x')
+
+
+def test_blank_override_reason_does_not_admit_a_mismatch():
+    with pytest.raises(F.FrameError):
+        F.bind_frames(64, 'spread', override_reason='   ')

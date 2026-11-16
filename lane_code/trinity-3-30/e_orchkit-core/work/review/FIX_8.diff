@@ -1,0 +1,300 @@
+diff --git a/tools/orchkit/anon.py b/tools/orchkit/anon.py
+index 2778089..9d1f201 100644
+--- a/tools/orchkit/anon.py
++++ b/tools/orchkit/anon.py
+@@ -26,6 +26,7 @@ import os
+ import re
+ import sys
+ import tarfile
++import unicodedata
+ import zipfile
+ 
+ WORDS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ANON_WORDS.txt')
+@@ -78,14 +79,23 @@ def scan_text(where, text, rules, scope='text'):
+     return hits
+ 
+ 
+-ESCAPE = re.compile(r'\\(?:u([0-9a-fA-F]{4})|U([0-9a-fA-F]{8})|x([0-9a-fA-F]{2}))')
++ESCAPE = re.compile(r'\\(?:u([0-9a-fA-F]{4})|U([0-9a-fA-F]{8})|x([0-9a-fA-F]{2})|([0-7]{1,3})|N\{([^}]{1,80})\})')
+ 
+ 
+ def _unescape(text):
++    """Resolve JSON and Python escapes: \\uXXXX, \\UXXXXXXXX, \\xXX, octal \\NNN, \\N{NAME}; any other
++    backslash pair (\\/, \\n) becomes its second character."""
+     def one(match):
++        if match.group(5) is not None:
++            try:
++                return unicodedata.lookup(match.group(5))
++            except KeyError:
++                return ''
++        if match.group(4) is not None:
++            return chr(int(match.group(4), 8))
+         code = int(match.group(1) or match.group(2) or match.group(3), 16)
+         return chr(code) if code < 0x110000 else ''
+-    return ESCAPE.sub(one, text)
++    return re.sub(r'\\(.)', r'\1', ESCAPE.sub(one, text))
+ 
+ 
+ def text_views(data):
+@@ -142,7 +152,7 @@ def _interpretations(where, data):
+         zipped = False
+     if zipped:
+         kinds.append('zip')
+-    elif data.startswith((b'PK\x03\x04', b'PK\x05\x06', b'PK\x07\x08')):
++    elif b'PK\x03\x04' in data or b'PK\x05\x06' in data:
+         kinds.append('unsupported')
+     if len(data) > 262 and data[257:262] == b'ustar':
+         kinds.append('tar')
+@@ -151,9 +161,25 @@ def _interpretations(where, data):
+         if archive is not None:
+             archive.close()
+             kinds.append('tar')
++        elif _tar_like(data):
++            kinds.append('unsupported')
+     return kinds
+ 
+ 
++OCTAL = re.compile(rb'^[0-7 ]*\x00?[ \x00]*$')
++
++
++def _tar_like(data):
++    """A first block shaped like a tar header (a printable name, octal mode, size and checksum
++    fields) that tarfile still refuses: a damaged tar, refused rather than read as text."""
++    head = data[:512]
++    name = head[:100].rstrip(b'\x00')
++    if not name or any(byte < 32 or byte > 126 for byte in name):
++        return False
++    return all(OCTAL.match(head[start:end]) and head[start:end].strip(b' \x00')
++               for start, end in ((100, 108), (124, 136), (148, 156)))
++
++
+ def _decompress(kind, data):
+     """Decompressed bytes bounded by MAX_BLOB + 1, or None when the stream does not decode, does
+     not end, or carries bytes after its end."""
+diff --git a/tools/orchkit/launch.py b/tools/orchkit/launch.py
+index c8001a8..20e3463 100644
+--- a/tools/orchkit/launch.py
++++ b/tools/orchkit/launch.py
+@@ -399,7 +399,8 @@ def check_kit(kit, config_raw, rules):
+ def build_submission(kit, config, job, rules):
+     """The batch script and the submission script, rebuilt deterministically from a checked kit and
+     JOB.json, after the opacity check of every part bound for the batch host."""
+-    script = render(config, job['token'], bundle_bytes(kit, job))
++    payload = bundle_bytes(kit, job)
++    script = render(config, job['token'], payload)
+     remote = submit_script(config, job['token'], script)
+     hits = anon.scan_job(rules, job_name=job['job_name'], script=script, argv=config['entry'],
+                          env=(config.get('return') or {}).get('gcs_env') or {})
+@@ -408,7 +409,7 @@ def build_submission(kit, config, job, rules):
+     hits += anon.scan_text('JOB.json', util.canonical_json(job).decode('utf-8'), rules, 'name')
+     if hits:
+         raise LaunchError('opacity: %s' % json.dumps(hits, sort_keys=True)[:2000])
+-    return script, remote
++    return script, remote, util.sha256_bytes(payload)
+ 
+ 
+ def prepare(kit, config_path, out, lane, meaning, checkout, dryrun=None, no_dryrun_reason=None,
+@@ -430,13 +431,13 @@ def prepare(kit, config_path, out, lane, meaning, checkout, dryrun=None, no_dryr
+     token, name = mint_job_name(token)
+     job = {'token': token, 'job_name': name,
+            'sessions': util.read_json(sessions) if sessions else {}}
+-    script, remote = build_submission(kit, config, job, rules)
++    script, remote, payload_sha = build_submission(kit, config, job, rules)
+     argv = transport_argv()
+     target = config.get('return') or {}
+     gcs = ('%s/%s' % (target['gcs_prefix'].rstrip('/'), token)) if target.get('gcs_prefix') else None
+     text = meaning + ('' if not no_dryrun_reason else ' | no-dryrun: ' + no_dryrun_reason)
+     row = ledger.make_row('minted', token, lane=lane, meaning=text, kit_pins_sha256=kit_pins,
+-                          config_sha256=config_sha, partition=config['job']['partition'],
++                          config_sha256=config_sha, payload_sha256=payload_sha, partition=config['job']['partition'],
+                           gpus=config['job']['gpus'], time_limit_s=config['job']['time_limit_s'],
+                           pool=target.get('pool'), gcs=gcs, state='prepared')
+     row = ledger._fit(row)
+@@ -498,26 +499,35 @@ def rebuild(prep, record, rows, rules=None):
+         raise LaunchError('the ledger row of %s names another kit or config' % token)
+     if job.get('token') != token or job.get('job_name') != name or record.get('job_name') != name:
+         raise LaunchError('the prepared scripts do not belong to token %s' % token)
+-    script, remote = build_submission(kit, config, job, rules or anon.load_rules())
++    script, remote, payload_sha = build_submission(kit, config, job, rules or anon.load_rules())
++    if minted[0].get('payload_sha256') != payload_sha:
++        raise LaunchError('the payload of %s differs from the one its ledger row names' % token)
++    if minted[0].get('partition') != config['job']['partition'] or \
++            record.get('partition') != config['job']['partition']:
++        raise LaunchError('the partition of %s differs between config, ledger and SUBMIT.json' % token)
+     for file_name, expect in (('BATCH.sh', script), ('SUBMIT.sh', remote)):
+         with open(os.path.join(prep, file_name), 'rb') as handle:
+             if handle.read() != expect.encode('utf-8'):
+                 raise LaunchError('%s differs from its rebuild; prepare again' % file_name)
+     if record.get('argv') != transport_argv() or record.get('stdin') != 'SUBMIT.sh':
+         raise LaunchError('the transport command differs from the one prepare recorded')
+-    return remote.encode('utf-8')
++    return remote.encode('utf-8'), config
+ 
+ 
+-def _live_gate(record, token, go_text, ledger_file):
++def minted_payload(rows):
++    return [row for row in rows if row.get('event') == 'minted'][0].get('payload_sha256')
++
++
++def _live_gate(partition, token, go_text, ledger_file):
+     """Refuse when the ledger shows another of our jobs live on a one-job partition, unless the GO
+     file says "queue behind" and names it."""
+-    if record['partition'] in ONE_JOB_PARTITIONS:
+-        live = [row for row in ledger.live(ledger_file, [record['partition']])
++    if partition in ONE_JOB_PARTITIONS:
++        live = [row for row in ledger.live(ledger_file, [partition])
+                 if row.get('token') != token]
+         behind = re.search(r'queue[ _-]behind', go_text, re.I) is not None
+         if live and not (behind and all(_names(go_text, row['token']) for row in live)):
+             raise LaunchError('our job %s is live on %s; the GO file must say "queue behind" and '
+-                              'name it' % (','.join(row['token'] for row in live), record['partition']))
++                              'name it' % (','.join(row['token'] for row in live), partition))
+ 
+ 
+ class partition_lock(object):
+@@ -590,14 +600,15 @@ def submit(prep, go, execute=False, ledger_file=None, transport=None, out=sys.st
+     if any(row.get('event') == 'submitted' for row in rows) or \
+             os.path.exists(os.path.join(prep, 'SUBMIT_INTENT.json')):
+         raise LaunchError('already submitted or attempted; never repeat an uncertain submit')
+-    _live_gate(record, token, go_text, ledger_file)
++    _live_gate(record['partition'], token, go_text, ledger_file)
+     argv = record['argv']
+     out.write('%s < %s\n' % (' '.join(argv), os.path.join(prep, record['stdin'])))
+     if not execute:
+         return {'executed': False, 'argv': argv}
+-    with partition_lock(record['partition'], ledger_file):
+-        _live_gate(record, token, go_text, ledger_file)
+-        pinned = rebuild(prep, record, rows, rules)
++    pinned, config = rebuild(prep, record, rows, rules)
++    partition = config['job']['partition']
++    with partition_lock(partition, ledger_file):
++        _live_gate(partition, token, go_text, ledger_file)
+         try:
+             fd = os.open(os.path.join(prep, 'SUBMIT_INTENT.json'), os.O_WRONLY | os.O_CREAT | os.O_EXCL,
+                          0o600)
+@@ -633,8 +644,8 @@ def submit(prep, go, execute=False, ledger_file=None, transport=None, out=sys.st
+             ledger.append(ledger.make_row(
+                 'submitted', token, job_id=result['job_id'], lane=record.get('lane'),
+                 kit_pins_sha256=record['kit_pins_sha256'], config_sha256=record['config_sha256'],
+-                partition=record['partition'], gpus=record['gpus'],
+-                time_limit_s=record['time_limit_s'], pool=record['pool'], gcs=record['gcs'],
++                payload_sha256=minted_payload(rows), partition=partition, gpus=config['job']['gpus'],
++                time_limit_s=config['job']['time_limit_s'], pool=record['pool'], gcs=record['gcs'],
+                 state='PENDING'), ledger_file)
+             return dict(result, executed=True)
+         raise LaunchError('submission %s: %s' % (result['status'], text[-500:]))
+diff --git a/tools/orchkit/ledger.py b/tools/orchkit/ledger.py
+index f64f6c8..d9ec4e2 100644
+--- a/tools/orchkit/ledger.py
++++ b/tools/orchkit/ledger.py
+@@ -26,7 +26,7 @@ SCHEMA = 'orchkit-ledger-v1'
+ PRODUCTION = ('/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/'
+               'ORCHARD_LEDGER.jsonl')
+ FIELDS = ('schema', 'utc', 'event', 'token', 'job_name', 'job_id', 'lane', 'meaning',
+-          'kit_pins_sha256', 'config_sha256', 'partition', 'gpus', 'time_limit_s', 'pool', 'gcs',
++          'kit_pins_sha256', 'config_sha256', 'payload_sha256', 'partition', 'gpus', 'time_limit_s', 'pool', 'gcs',
+           'state')
+ EVENTS = ('minted', 'submitted', 'ended')
+ TOKEN = re.compile(r'^[0-9a-f]{16}\Z')
+@@ -69,7 +69,7 @@ def validate(row, strict=True):
+             raise LedgerError('token must be 16 lowercase hex')
+         if row['job_name'] != PREFIX + row['token'] or not JOB_NAME.match(row['job_name']):
+             raise LedgerError('job_name must be %s plus the token' % PREFIX)
+-        for key in ('kit_pins_sha256', 'config_sha256'):
++        for key in ('kit_pins_sha256', 'config_sha256', 'payload_sha256'):
+             if row[key] is not None and not HEX64.match(str(row[key])):
+                 raise LedgerError('%s must be 64 hex or null' % key)
+         if row['job_id'] is not None and type(row['job_id']) is not int:
+diff --git a/tools/orchkit/tests/test_anon.py b/tools/orchkit/tests/test_anon.py
+index f3a27bb..8dc23c8 100644
+--- a/tools/orchkit/tests/test_anon.py
++++ b/tools/orchkit/tests/test_anon.py
+@@ -220,6 +220,30 @@ class AnonTest(unittest.TestCase):
+         path = self.write('a.zip', raw.getvalue()[:-22])
+         self.assertEqual(anon.scan_tree(path, anon.load_rules())[0]['rule'], 'unsupported-container')
+ 
++    def test_review_oc23_octal_named_and_slash_escapes(self):
++        cases = {'o.py': b'x = "q\\167en"\n', 'n.py': b'x = "q\\N{LATIN SMALL LETTER W}en"\n',
++                 's.json': b'{"p": "\\/data2\\/secret"}'}
++        for name, data in sorted(cases.items()):
++            self.assertTrue(anon.scan_tree(self.write(name, data), anon.load_rules()), name)
++
++    def test_review_oc24_damaged_prefixed_zip_and_bad_checksum_tar(self):
++        raw = io.BytesIO()
++        with zipfile.ZipFile(raw, 'w', zipfile.ZIP_DEFLATED) as archive:
++            archive.writestr('x', b'qwen')
++        path = self.write('p.zip', b'#!/usr/bin/env python3\n' + raw.getvalue()[:-22])
++        self.assertEqual(anon.scan_tree(path, anon.load_rules())[0]['rule'], 'unsupported-container')
++        raw = io.BytesIO()
++        with tarfile.open(fileobj=raw, mode='w', format=tarfile.USTAR_FORMAT) as archive:
++            blob = gzip.compress(b'qwen')
++            item = tarfile.TarInfo('x.gz')
++            item.size = len(blob)
++            archive.addfile(item, io.BytesIO(blob))
++        data = bytearray(raw.getvalue())
++        data[257:265] = b'\x00' * 8
++        data[148:156] = b'0000000\x00'
++        path = self.write('t.tar', bytes(data))
++        self.assertEqual(anon.scan_tree(path, anon.load_rules())[0]['rule'], 'unsupported-container')
++
+ 
+ if __name__ == '__main__':
+     unittest.main()
+diff --git a/tools/orchkit/tests/test_launch.py b/tools/orchkit/tests/test_launch.py
+index d562f39..bc940ee 100644
+--- a/tools/orchkit/tests/test_launch.py
++++ b/tools/orchkit/tests/test_launch.py
+@@ -604,7 +604,7 @@ class ReviewFindingsTest(LaunchBase):
+             value = real(path, config_raw, rules)
+             write(os.path.join(prep, 'kit', 'code', 'entry.py'), "MODEL = 'changed'\n")
+             job = util.read_json(os.path.join(prep, 'JOB.json'))
+-            script, remote = launch.build_submission(os.path.join(prep, 'kit'), value[0], job, rules)
++            script, remote, _ = launch.build_submission(os.path.join(prep, 'kit'), value[0], job, rules)
+             write(os.path.join(prep, 'BATCH.sh'), script)
+             write(os.path.join(prep, 'SUBMIT.sh'), remote)
+             return value
+@@ -666,6 +666,44 @@ class ReviewFindingsTest(LaunchBase):
+                           out=io.StringIO(), transport=transport)
+         self.assertIn('queue behind', str(caught.exception))
+ 
++    def test_oc22_partition_comes_from_the_anchored_config(self):
++        kit, dry = self.kit()
++        record, prep = self.prepare(kit, dry)
++        stored = util.read_json(os.path.join(prep, 'SUBMIT.json'))
++        stored['partition'] = 'advanced'
++        util.write_json(os.path.join(prep, 'SUBMIT.json'), stored)
++        calls = []
++        with self.assertRaises(launch.LaunchError) as caught:
++            launch.submit(prep, self.go('GO %s\n' % record['token']), execute=True,
++                          transport=lambda argv, body: calls.append(body), out=io.StringIO())
++        self.assertIn('partition', str(caught.exception))
++        self.assertEqual(calls, [])
++
++    def test_oc26_job_file_and_every_kit_file_are_anchored(self):
++        kit, dry = self.kit()
++        for change in ('JOB', 'DRYRUN'):
++            record, prep = self.prepare(kit, dry)
++            job = util.read_json(os.path.join(prep, 'JOB.json'))
++            if change == 'JOB':
++                job['sessions'] = {'result.tar.gz': 'https://example.invalid/other'}
++                util.write_json(os.path.join(prep, 'JOB.json'), job)
++            else:
++                write(os.path.join(prep, 'kit', 'DRYRUN_REPORT.json'), '{"note": "added later"}')
++            config = util.read_json(os.path.join(prep, 'kit', 'CONFIG.json'))
++            script, remote, _ = launch.build_submission(os.path.join(prep, 'kit'), config, job, self.loose)
++            write(os.path.join(prep, 'BATCH.sh'), script)
++            write(os.path.join(prep, 'SUBMIT.sh'), remote)
++            stored = util.read_json(os.path.join(prep, 'SUBMIT.json'))
++            stored.update(script_sha256=util.sha256_bytes(script.encode()),
++                          submit_sha256=util.sha256_bytes(remote.encode()))
++            util.write_json(os.path.join(prep, 'SUBMIT.json'), stored)
++            calls = []
++            with self.assertRaises(launch.LaunchError, msg=change) as caught:
++                launch.submit(prep, self.go('GO %s\n' % record['token']), execute=True,
++                              transport=lambda argv, body: calls.append(body), out=io.StringIO())
++            self.assertIn('payload', str(caught.exception))
++            self.assertEqual(calls, [])
++
+ 
+ if __name__ == '__main__':
+     unittest.main()

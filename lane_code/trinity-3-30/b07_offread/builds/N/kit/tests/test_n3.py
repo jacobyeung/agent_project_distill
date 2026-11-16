@@ -103,7 +103,7 @@ def test_native_production_frame_mapping_uses_64_clip_positions(tmp_path,clips,k
     runtime.frames(bind_frames())
     G=module('_n3_dense_validation',V1/'sj/orch_cd/evalx/work/milestone/native/out2/geometry.py')
     capture=runtime.captures['fixture:x'];dense=runtime.dense['fixture:x']
-    assert G.validate_dense(capture,dense)==(list(range(64)),mapping['clips']['x.mp4']['anchor_slots'])
+    assert G.validate_dense(runtime.geometry_captures['fixture:x'],dense)==(list(range(64)),mapping['clips']['x.mp4']['anchor_slots'])
     assert len(dense['frames'])==64 and len(capture['frames'])==32
     assert len(runtime.sampled['fixture:x']['native_frames'])==64
     assert len(runtime.sampled['fixture:x']['model_frames'])==32

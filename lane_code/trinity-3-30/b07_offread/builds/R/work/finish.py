@@ -8,6 +8,8 @@ import tarfile
 import types
 import dis
 
+import os
+RUN_PREFIX=os.environ.get('REPIN_RUN_PREFIX','fix1')
 ROOT=Path.cwd()
 OUT=ROOT/'out'
 def sha(data):return hashlib.sha256(data).hexdigest()
@@ -63,7 +65,7 @@ words=sorted({w for r in name_rows for w in r['words']})
 # Merge source-line evidence, retaining process boundaries and source hashes.
 coverage=[]
 for key in ('vsi','revsi'):
- work=ROOT/'work'/('fix1_'+key+'_done')
+ work=ROOT/'work'/(RUN_PREFIX+'_'+key+'_done')
  result=json.loads((work/'RESULT.json').read_text())
  main=json.loads((OUT/('coverage_'+key+'_done.json')).read_text())
  pins=json.loads((OUT/('coverage_'+key+'_done_pins.json')).read_text())

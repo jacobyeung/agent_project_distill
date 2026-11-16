@@ -26,7 +26,7 @@ def main():
     # The C8r default boundary deliberately injects failures and cannot match the reference.
     import perception as P
     import nomdg as N
-    expected=read(config['reference']['path']);by={r['key']:r['decode'] for r in expected}
+    expected=read(config['reference']['path']);by={r['key']:deepcopy(r['decode']) for r in expected}
     original=P.generate
     if a.role=='proof':
         tasks,_=N.tasks_and_captures(config['baseline']['worker']['inputs'])

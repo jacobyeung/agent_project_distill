@@ -83,3 +83,54 @@ def summarize(shapes):
         d['faithful_answer_differs_from_gt_rate'] = d['answer_differs']/d['own'] if d['own'] else None
         d['segment_ce'] = {k: loss/n for k, (loss,n) in d['segments'].items() if n}
     return out
+
+
+STOP_RULE = 'h1_own_camera_answer_differs_gt_35pct_steps1_50'
+STOP_DEFINITION = dict(direction='option changes', displacement='relative difference > 0.10',
+                       rotation='wrapped absolute difference > 10 degrees', threshold=.35,
+                       window=[1,50], stop_step=100)
+
+
+def global_answer_counts(shapes, device, distributed=False):
+    """Sum successful own camera rows across ranks once per optimizer step."""
+    rows=[s['h1'] for s in shapes if s.get('h1',{}).get('type') in CAMERA_TYPES
+          and s['h1'].get('values')=='own']
+    count=torch.tensor([sum(bool(r.get('answer_differs')) for r in rows),len(rows)],
+                       dtype=torch.int64,device=device)
+    if distributed:torch.distributed.all_reduce(count)
+    differs,own=map(int,count.tolist())
+    return dict(answer_differs=differs,own=own,share=differs/own if own else None)
+
+
+class AnswerStop:
+    def __init__(self):
+        self.differs=0;self.own=0;self.last_step=0
+    def update(self,step,counts):
+        if step!=self.last_step+1:raise ValueError('H1 stop history must cover consecutive steps')
+        self.last_step=step
+        if step<=50:
+            self.differs+=counts['answer_differs'];self.own+=counts['own']
+        share=self.differs/self.own if self.own else None
+        return dict(rule=STOP_RULE,definition=STOP_DEFINITION,window_answer_differs=self.differs,
+                    window_own=self.own,window_share=share,
+                    triggered=step>=50 and share is not None and share>.35)
+    def replay(self,output,start_step):
+        import json
+        from pathlib import Path
+        found={}
+        for path in sorted(Path(output).glob('metrics_*.jsonl')):
+            with path.open() as handle:
+                for line in handle:
+                    record=json.loads(line);step=record['step']
+                    if step>start_step:continue
+                    ranks=[r for r in record['ranks'] if r is not None]
+                    counts=[r.get('h1_answer_counts') for r in ranks]
+                    if not counts or any(c is None or c!=counts[0] for c in counts):
+                        raise ValueError('H1 resume requires consistent all-reduced answer counts')
+                    if step in found and found[step]!=counts[0]:raise ValueError('Conflicting H1 stop history')
+                    found[step]=counts[0]
+        state=None
+        for step in range(1,start_step+1):
+            if step not in found:raise ValueError('Missing H1 stop history at step '+str(step))
+            state=self.update(step,found[step])
+        return state

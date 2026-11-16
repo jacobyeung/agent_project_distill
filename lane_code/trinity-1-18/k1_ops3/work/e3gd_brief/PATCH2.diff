@@ -1,0 +1,469 @@
+--- e3gd_review/harness.py
++++ e3gd/harness.py
+@@ -16,6 +16,9 @@
+ import traceback
+ import warnings
+ from collections import defaultdict
++from contextvars import ContextVar
++from functools import lru_cache
++from types import FunctionType, SimpleNamespace
+ 
+ ROOT = Path(__file__).resolve().parent
+ assert ROOT == Path('/scratch/jjyeung/orch_n30/k1_ops3/work/e3gd')
+@@ -24,13 +27,15 @@
+ TOWERS = Path('/scratch/jjyeung/k1/run_tower_sam_2')
+ CONVERTER = Path('/scratch/jjyeung/orch_cd/evalx/work/milestone/native_package_s24_05/sources/sj/orch_cd/evalx/work/milestone/native/out2/geometry.py')
+ IMPORTED = set()
++_PIN_HASH_PATH = ContextVar('gd_pin_hash_path', default=None)
+ 
+ 
+ def audit(event, args):
+     if event != 'open' or not isinstance(args[0], (str, bytes)):
+         return
+     p = Path(os.fsdecode(args[0])).absolute()
+-    if p.name == 'candidates.json':
++    if p.name == 'candidates.json' and not (
++            _PIN_HASH_PATH.get() == p.resolve() and args[1] == 'r'):
+         raise PermissionError('Grounding kill-test boundary: candidates.json is forbidden')
+     mode, flags = args[1:3]
+     writing = (isinstance(mode, str) and any(c in mode for c in 'wax+')) or (
+@@ -68,51 +73,114 @@
+ SCALES = ('S1', 'S2', 'S3', 'S4', 'SO')
+ GRAVITIES = ('GO', 'G1')
+ SEALED_VALIDATE = geometry_profiles.GeometryContract.validate
+-REVIEWED_VALIDATE = None
+ GRAVITY_RECORDER = gravity_guard.Recorder()
+ 
+ 
++def reviewed_loader():
++    """Bind the unchanged loaders to a private contract; never patch shared classes."""
++    class ReviewedContract(geometry_profiles.GeometryContract):
++        pass
++
++    gravity_guard.install(SimpleNamespace(GeometryContract=ReviewedContract,
++        GeometryError=geometry_profiles.GeometryError), GRAVITY_RECORDER)
++
++    def bind(fn, **replacements):
++        return FunctionType(fn.__code__, dict(fn.__globals__, **replacements),
++                            fn.__name__, fn.__defaults__, fn.__closure__)
++
++    return bind(load_geometry,
++        legacy_from_heads=bind(geometry_profiles.legacy_from_heads, GeometryContract=ReviewedContract),
++        scaled_from_heads=bind(geometry_profiles.scaled_from_heads, GeometryContract=ReviewedContract))
++
++
++REVIEWED_LOAD_GEOMETRY = reviewed_loader()
++
++
+ def load_reviewed_geometry(path, c):
+-    """Use the reviewed validator only for this serial deployed-geometry load."""
+-    global REVIEWED_VALIDATE
+-    previous = geometry_profiles.GeometryContract.validate
+-    assert previous is SEALED_VALIDATE, 'reviewed validator leaked outside GD_reviewed'
++    with gravity_guard.capture('E3_GD_reviewed', c['canonical']):
++        return REVIEWED_LOAD_GEOMETRY(path, FrameMap(tuple(c['anchor_indices'])), 'tower_scaled')
++
++
++@lru_cache(maxsize=1)
++def k1_source_identity():
++    """K1 bindings.source_identity paths, without importing its proposal backend."""
++    native = Path('/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit')
++    paths = [CONVERTER, CONVERTER.with_name('perception.py'),
++             native / 'vendor_sam/vendor/sam_backend.py',
++             native / 'vendor_sam/variantlib.py', native / 'vendor_sam/variant_cache.py']
++    paths += [TREE / 'student_pilot' / n for n in (
++        'tower_read.py', 'tower_scale.py', 'candidate_policy.py', 'routed_features.py',
++        'live_instances314.py', 'carrier_c1_decode.py')]
++    paths += [p for p in native.glob('*.py') if not p.name.startswith('test_')]
++    return {str(p): sha(p) for p in paths}
++
++
++def receipt_pin_sha(path):
++    """Hash opaque cache bytes; never expose proposal content to scoring."""
++    token = _PIN_HASH_PATH.set(Path(path).resolve())
+     try:
+-        if REVIEWED_VALIDATE is None:
+-            gravity_guard.install(geometry_profiles, GRAVITY_RECORDER)
+-            REVIEWED_VALIDATE = geometry_profiles.GeometryContract.validate
+-        geometry_profiles.GeometryContract.validate = REVIEWED_VALIDATE
+-        with gravity_guard.capture('E3_GD_reviewed', c['canonical']):
+-            return load_geometry(path, FrameMap(tuple(c['anchor_indices'])), 'tower_scaled')
++        return sha(path)
+     finally:
+-        geometry_profiles.GeometryContract.validate = previous
++        _PIN_HASH_PATH.reset(token)
++
++
++def deployed_receipt(c, gd_dir):
++    dest = (gd_dir / digest(c['canonical'])[:16]).resolve()
++    receipt_path = dest / 'CACHE_COMPLETE.json'
++    if not dest.is_relative_to('/scratch'):
++        raise ValueError('Stage GD inputs onto local disk')
++    receipt = json.loads(receipt_path.read_text())
++    if receipt.get('capture_sha256') != digest(c):
++        raise ValueError('Cache capture differs')
++    refusal = receipt.get('geometry_refusal')
++    votes = receipt.get('gravity_verdict', {})
++    if (receipt.get('gravity_guard') != gravity_guard.identity()
++            or set(votes) != {'sealed_refused', 'reviewed_refused'}
++            or any(type(v) is not bool for v in votes.values())
++            or receipt.get('sources') != k1_source_identity()
++            or receipt.get('phase') != 'unselected_cache_no_responses'):
++        raise ValueError('Cache guard/source binding differs')
++    names = {'candidates.json', 'parity_raw.jsonl'}
++    if refusal or receipt.get('geometry') is None:
++        code = 'reference_camera_up_opposes_gravity'
++        if (refusal != dict(code=code, message=code) or receipt.get('geometry') is not None
++                or not votes['reviewed_refused']):
++            raise ValueError('Cache geometry refusal differs')
++        # The receipt remains authoritative even if an unadmitted file exists.
++        names.add('REFUSED_GEOMETRY.npz')
++    else:
++        if votes['reviewed_refused'] or not receipt.get('geometry'):
++            raise ValueError('Cache geometry verdict differs')
++        names.add('geometry.npz')
++    pins = receipt.get('files', {})
++    if set(pins) != names or any(
++            Path(pin['path']).resolve() != (dest / name).resolve()
++            for name, pin in pins.items()):
++        raise ValueError('Cache file binding differs')
++    for name, pin in pins.items():
++        path = Path(pin['path']).resolve()
++        if not path.is_relative_to('/scratch'):
++            raise ValueError('Stage GD inputs onto local disk')
++        if receipt_pin_sha(path) != pin['sha256']:
++            raise ValueError('Cache file hash mismatch: ' + name)
++    return dest, receipt_path, receipt
+ 
+ 
+ def deployed_conditions(c, gd_dir, f):
+-    options = [gd_dir / c['canonical'] / 'geometry.npz',
+-               gd_dir / (c['canonical'].replace('/', '__') + '.npz'),
+-               gd_dir / digest(c['canonical'])[:16] / 'geometry.npz']
+-    paths = [p for p in options if p.is_file()]
+-    if len(paths) > 1:
+-        raise ValueError('GD requires exactly one deployed geometry file for ' + c['canonical'])
+-    if not paths:
+-        reason = 'FileNotFoundError:deployed_geometry_missing'
+-        detail = dict(path=str(options[-1]), refusal=reason)
+-        receipt_path = options[-1].parent / 'CACHE_COMPLETE.json'
+-        if receipt_path.is_file():
+-            receipt = json.loads(receipt_path.read_text())
+-            refusal = receipt.get('geometry_refusal')
+-            if isinstance(refusal, dict) and refusal.get('code'):
+-                reason = 'GeometryError:' + refusal['code']
+-                detail.update(refusal=reason, geometry_refusal=refusal,
+-                              gravity_verdict=receipt.get('gravity_verdict'),
+-                              cache_receipt=str(receipt_path))
++    dest, receipt_path, receipt = deployed_receipt(c, gd_dir)
++    path = dest / 'geometry.npz'
++    detail = dict(path=str(path), cache_receipt=str(receipt_path),
++                  capture_sha256=receipt['capture_sha256'],
++                  gravity_verdict=receipt['gravity_verdict'])
++    if receipt.get('geometry_refusal'):
++        refusal = receipt['geometry_refusal']
++        reason = 'GeometryError:' + refusal['code']
++        detail.update(refusal=reason, geometry_refusal=refusal)
+         for arm in ('GD_sealed', 'GD_reviewed'):
+             f[arm] = dict(detail)
+             yield arm, (reason, None), 'predicted'
+         return
+-    path = paths[0]
+-    pin = dict(path=str(path), sha256=sha(path))
++    pin = dict(detail, sha256=receipt['files']['geometry.npz']['sha256'])
+     for arm in ('GD_sealed', 'GD_reviewed'):
+         f[arm] = dict(pin)
+         try:
+@@ -124,6 +192,10 @@
+             f[arm]['refusal'] = reason
+             yield arm, (reason, None), 'predicted'
+         else:
++            if arm == 'GD_reviewed':
++                sealed, reviewed = GRAVITY_RECORDER.records[('E3_GD_reviewed', c['canonical'])]
++                if dict(sealed_refused=sealed, reviewed_refused=reviewed) != receipt['gravity_verdict']:
++                    raise ValueError('Cache gravity verdict differs')
+             yield arm, geo, 'predicted'
+ 
+ 
+@@ -641,7 +713,7 @@
+                 converter=dict(path=str(CONVERTER), sha256=sha(CONVERTER)),
+                 harness_sha256={p.name:sha(p) for p in [ROOT / 'harness.py', ROOT / 'room_rules.py', ROOT / 'run.sh']},
+                 elapsed_seconds=time.monotonic() - start, timings=dict(TIMINGS),
+-                forbidden_data_access='candidates.json blocked by Python audit hook', **(extra or {}))
++                forbidden_data_access='candidates.json blocked except opaque GD receipt pin hashing', **(extra or {}))
+ 
+ 
+ def unit_tests():
+--- e3gd_review/run.sh
++++ e3gd/run.sh
+@@ -4,7 +4,7 @@
+ export CUDA_VISIBLE_DEVICES=''
+ export OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 NUMEXPR_NUM_THREADS=8
+ export PYTHONDONTWRITEBYTECODE=1
+-export XDG_CACHE_HOME="$PWD/.cache" HF_HOME="$PWD/.cache/hf" TRITON_CACHE_DIR="$PWD/.cache/triton"
+-export MPLCONFIGDIR="$PWD/.cache/matplotlib" TMPDIR="$PWD/tmp"
+-mkdir -p "$TMPDIR" out
++export XDG_CACHE_HOME="$PWD/out/.cache" HF_HOME="$PWD/out/.cache/hf" TRITON_CACHE_DIR="$PWD/out/.cache/triton"
++export MPLCONFIGDIR="$PWD/out/.cache/matplotlib" TMPDIR="$PWD/out/tmp"
++mkdir -p "$TMPDIR" "$XDG_CACHE_HOME" "$HF_HOME" "$TRITON_CACHE_DIR" "$MPLCONFIGDIR"
+ exec /scratch/jjyeung/envs/planner_local_v1/bin/python -B harness.py "$@"
+--- e3gd_review/test_gd.py
++++ e3gd/test_gd.py
+@@ -5,6 +5,7 @@
+ load/features/evaluate functions on three selected captures with frozen fits.
+ """
+ import argparse
++from concurrent.futures import ThreadPoolExecutor
+ import copy
+ import hashlib
+ import json
+@@ -13,6 +14,7 @@
+ import sys
+ import time
+ import types
++from threading import Barrier
+ from unittest.mock import patch
+ 
+ import harness as H
+@@ -34,14 +36,138 @@
+ def baseline():
+     source = (ORIGINAL / 'harness.py').read_bytes()
+     assert hashlib.sha256(source).hexdigest() == 'a38d1ad20f6c0cd7843320d0ba98dc6f43f16624c715a04a47ee51ef16c9cfa1'
+-    # Redirect only the workspace assertion; __file__ binds all writes to e3gd.
++    # Redirect writes and retain the active harness audit hook, not a duplicate.
+     source = source.decode().replace(str(ORIGINAL), str(H.ROOT))
++    source = source.replace('sys.addaudithook(audit)', '# The current harness audit hook is active.')
+     mod = types.ModuleType('e3_original_test')
+     mod.__file__ = str(H.ROOT / 'harness.py')
+     exec(compile(source, str(ORIGINAL / 'harness.py'), 'exec'), mod.__dict__)
+     mod.OUT = H.OUT / 'baseline'
+     mod.OUT.mkdir(exist_ok=True)
+     return mod
++
++
++def cache_receipt(dest, capture, refused=False):
++    """Build a complete K1-shaped fixture; proposal payloads are opaque dummies."""
++    dest.mkdir(parents=True, exist_ok=True)
++    payload = dest / 'opaque_fixture'
++    payload.write_bytes(b'{}\n')
++    candidate = dest / 'candidates.json'
++    if not candidate.exists():
++        candidate.symlink_to(payload)
++    (dest / 'parity_raw.jsonl').write_bytes(b'{}\n')
++    name = 'REFUSED_GEOMETRY.npz' if refused else 'geometry.npz'
++    if refused:
++        (dest / name).write_bytes(b'opaque refusal evidence; never loaded\n')
++    code = CODE.split(':', 1)[1]
++    receipt = dict(capture_sha256=H.digest(capture),
++        geometry=None if refused else dict(depth_scale_count=1),
++        gravity_guard=H.gravity_guard.identity(), sources=H.k1_source_identity(),
++        phase='unselected_cache_no_responses',
++        gravity_verdict=dict(sealed_refused=refused or capture['canonical'] == NAMES[2],
++                             reviewed_refused=refused),
++        files={n:dict(path=str(dest / n), sha256=H.receipt_pin_sha(dest / n))
++               for n in (name, 'candidates.json', 'parity_raw.jsonl')})
++    if refused:
++        receipt['geometry_refusal'] = dict(code=code, message=code)
++    H.dump(dest / 'CACHE_COMPLETE.json', receipt)
++    return receipt
++
++
++def raises(expected, message, fn):
++    try:
++        fn()
++    except expected as exc:
++        assert message in str(exc), str(exc)
++    else:
++        raise AssertionError('expected ' + expected.__name__ + ': ' + message)
++
++
++def receipt_checks(root, capture, source):
++    c = dict(capture, canonical='synthetic/bypass')
++    gd = root / 'bypass_convert'
++    dest = gd / H.digest(c['canonical'])[:16]
++    cache_receipt(dest, c, refused=True)
++    # Reproduce both alternate layouts and an unadmitted digest-path file.
++    alternate = gd / c['canonical'] / 'geometry.npz'
++    alternate.parent.mkdir(parents=True)
++    alternate.write_bytes(source.read_bytes())
++    (gd / (c['canonical'].replace('/', '__') + '.npz')).write_bytes(source.read_bytes())
++    (dest / 'geometry.npz').write_bytes(source.read_bytes())
++    diag = {}
++    with patch.object(H, 'load_geometry', side_effect=AssertionError('refusal bypass')), \
++         patch.object(H, 'load_reviewed_geometry', side_effect=AssertionError('refusal bypass')):
++        result = list(H.deployed_conditions(c, gd, diag))
++    assert len(result) == 2 and all(v == (CODE, None) for _, v, _ in result)
++    assert all(d['refusal'] == CODE for d in diag.values())
++
++    good = cache_receipt(dest, c)
++    def rejected(edit, message):
++        bad = copy.deepcopy(good)
++        edit(bad)
++        H.dump(dest / 'CACHE_COMPLETE.json', bad)
++        raises(ValueError, message, lambda: list(H.deployed_conditions(c, gd, {})))
++    rejected(lambda r:r.update(capture_sha256='0'*64), 'Cache capture differs')
++    rejected(lambda r:r['files']['geometry.npz'].update(sha256='0'*64), 'Cache file hash mismatch: geometry.npz')
++    rejected(lambda r:r['files']['parity_raw.jsonl'].update(sha256='0'*64), 'Cache file hash mismatch: parity_raw.jsonl')
++    rejected(lambda r:r['files']['candidates.json'].update(sha256='0'*64), 'Cache file hash mismatch: candidates.json')
++    rejected(lambda r:r['files']['geometry.npz'].update(path=str(alternate)), 'Cache file binding differs')
++    rejected(lambda r:r.update(sources={}), 'Cache guard/source binding differs')
++    rejected(lambda r:r.update(gravity_guard={}), 'Cache guard/source binding differs')
++    rejected(lambda r:r['gravity_verdict'].update(reviewed_refused=True), 'Cache geometry verdict differs')
++    rejected(lambda r:r['gravity_verdict'].update(sealed_refused=True), 'Cache gravity verdict differs')
++    rejected(lambda r:r.update(geometry=None), 'Cache geometry refusal differs')
++    H.dump(dest / 'CACHE_COMPLETE.json', good)
++    # The admitted digest path wins even when both alternate forms exist.
++    assert all(not isinstance(v, tuple) for _, v, _ in H.deployed_conditions(c, gd, {}))
++    (dest / 'geometry.npz').rename(dest / 'geometry_missing.npz')
++    raises(FileNotFoundError, 'geometry.npz', lambda:list(H.deployed_conditions(c, gd, {})))
++    # A raw proposal read remains forbidden after hashing or an exception.
++    raises(PermissionError, 'candidates.json', lambda:(dest/'candidates.json').read_text())
++    print('PASS receipt binding: bypass refused in both arms; missing receipt/file, capture, all file pins, source, guard, disposition errors raise', flush=True)
++
++
++def thread_isolation(capture, source):
++    entered, finished = Barrier(2), Barrier(2)
++    validate = H.gravity_guard.validate_up_convention
++    def paused(rotations):
++        entered.wait(timeout=10)
++        finished.wait(timeout=10)
++        return validate(rotations)
++    def sealed_worker():
++        entered.wait(timeout=10)
++        try:
++            raises(H.geometry_profiles.GeometryError, 'reference_camera_up_opposes_gravity',
++                lambda:H.load_geometry(source,H.FrameMap(tuple(capture['anchor_indices'])),'tower_scaled'))
++            sealed()
++        finally:
++            finished.wait(timeout=10)
++    with patch.object(H.gravity_guard, 'validate_up_convention', paused):
++        with ThreadPoolExecutor(max_workers=2) as pool:
++            reviewed = pool.submit(H.load_reviewed_geometry, source, capture)
++            other = pool.submit(sealed_worker)
++            other.result(timeout=20)
++            geo = reviewed.result(timeout=20)
++    geo.contract.validate()
++    sealed()
++    print('PASS two-thread barrier: concurrent plain sealed load raises GeometryError:reference_camera_up_opposes_gravity; reviewed load succeeds', flush=True)
++
++
++def run_destinations(root):
++    source = (H.ROOT / 'run.sh').read_text()
++    prefix, command = source.rsplit('\nexec ', 1)
++    assert command.strip() == '/scratch/jjyeung/envs/planner_local_v1/bin/python -B harness.py "$@"'
++    keys = ('XDG_CACHE_HOME', 'HF_HOME', 'TRITON_CACHE_DIR', 'MPLCONFIGDIR', 'TMPDIR')
++    probe = '\n' + sys.executable + " -B - <<'PY'\nimport os,json\nprint(json.dumps(dict(os.environ)))\nPY\n"
++    env = json.loads(subprocess.run(['bash', '-c', prefix+probe], check=True,
++                                   text=True, capture_output=True).stdout)
++    for key in keys:
++        assert Path(env[key]).resolve().is_relative_to(H.ROOT / 'out'), (key, env[key])
++    for key in ('OMP_NUM_THREADS', 'MKL_NUM_THREADS', 'OPENBLAS_NUM_THREADS', 'NUMEXPR_NUM_THREADS'):
++        assert env[key] == '8'
++    assert env['CUDA_VISIBLE_DEVICES'] == ''
++    H.dump(root / 'RUN_DESTINATIONS.json', {k:env[k] for k in keys})
++    print('PASS run.sh: every configured cache/temp destination resolves under out; interpreter and eight-thread settings unchanged', flush=True)
+ 
+ 
+ def check_aggregation(root):
+@@ -78,8 +204,7 @@
+     empty = root / 'empty_convert'
+     empty.mkdir()
+     diag = {}
+-    result = list(H.deployed_conditions(capture, empty, diag))
+-    assert all(x[1] == ('FileNotFoundError:deployed_geometry_missing', None) for x in result)
++    raises(FileNotFoundError, 'CACHE_COMPLETE.json', lambda:list(H.deployed_conditions(capture, empty, diag)))
+     sealed()
+     with H.np.load(source, allow_pickle=False) as z:
+         arrays = {k:z[k] for k in z.files}
+@@ -95,12 +220,13 @@
+         else:
+             values['scale'] = H.np.array(-1.)
+         H.np.savez(dest / 'geometry.npz', **values)
++        cache_receipt(dest, c)
+         diag = {}
+         result = list(H.deployed_conditions(c, dest.parent, diag))
+         assert all(x[1] == (expected, None) for x in result)
+         assert all(d['refusal'] == expected and d['sha256'] == H.sha(dest / 'geometry.npz') for d in diag.values())
+         sealed()
+-    with patch.object(H, 'load_geometry', side_effect=RuntimeError('test_non_geometry_failure')):
++    with patch.object(H, 'REVIEWED_LOAD_GEOMETRY', side_effect=RuntimeError('test_non_geometry_failure')):
+         try:
+             H.load_reviewed_geometry(source, capture)
+         except RuntimeError as exc:
+@@ -115,7 +241,7 @@
+     else:
+         raise AssertionError('second install succeeded')
+     sealed()
+-    print('PASS edge cases: missing file, reviewed refusal, invalid scale, finally restoration, one install', flush=True)
++    print('PASS edge cases: missing receipt raises; reviewed refusal, invalid scale, exception isolation, one install', flush=True)
+ 
+ 
+ def room_refusals(root, old, fits):
+@@ -132,6 +258,7 @@
+               K=geo.K[0], K_frames=geo.K, c2w=geo.C, valid=np.ones(32,bool))
+     f = dict(SO=1., h_raw=1., span=1., gravity=dict(GO=[0,-1,0],G1=[0,-1,0]))
+     bf, af = copy.deepcopy(f), copy.deepcopy(f)
++    cache_receipt(root/'empty_convert'/H.digest(c['canonical'])[:16], c, refused=True)
+     before = old.evaluate_capture(c,gt,tower,[40,48],bf,fits,None,False)
+     after = H.evaluate_capture(c,gt,tower,[40,48],af,fits,root/'empty_convert',False)
+     assert encoded(before) == encoded([r for r in after if not r['arm'].startswith('GD_')])
+@@ -143,11 +270,11 @@
+         selected = [r for r in after if r['arm'].startswith(arm+'+')]
+         assert {r['arm'] for r in selected} == {arm+'+'+rule for rule in ('R0','R1','R2')}
+         assert all(r['pred'] is None and r['mra'] == 0 and
+-                   r['refusal_code'] == 'FileNotFoundError:deployed_geometry_missing' for r in selected)
++                   r['refusal_code'] == CODE for r in selected)
+         assert local_fits['R2'][arm]['n_refused'] == 1
+     H.dump(root/'ROOM_REFUSALS.json',dict(items=after,fits=local_fits))
+     sealed()
+-    print('PASS synthetic room: non-GD byte parity; missing GD scores zero in R0/R1/R2; R2 train denominator', flush=True)
++    print('PASS synthetic room: non-GD byte parity; receipt refusal scores zero in R0/R1/R2; R2 train denominator', flush=True)
+ 
+ 
+ def main():
+@@ -173,14 +300,22 @@
+         dest = fixture / H.digest(name)[:16]
+         dest.mkdir()
+         if name == NAMES[1]:
+-            H.dump(dest / 'CACHE_COMPLETE.json', dict(geometry=None,
+-                geometry_refusal=dict(code=CODE.split(':',1)[1], message=CODE.split(':',1)[1]),
+-                gravity_verdict=dict(sealed_refused=True, reviewed_refused=True)))
+-            fixtures.append(dict(capture=name, kind='synthetic missing/refused disposition'))
++            cache_receipt(dest, c, refused=True)
++            # A complete refusal must score zero despite valid bypass geometry.
++            source = CANARY / dest.name / 'geometry.npz'
++            alternate = fixture / name / 'geometry.npz'
++            alternate.parent.mkdir(parents=True)
++            alternate.write_bytes(source.read_bytes())
++            (dest / 'geometry.npz').write_bytes(source.read_bytes())
++            fixtures.append(dict(capture=name, kind='synthetic refusal with alternate and unadmitted geometry'))
+         else:
+             source = CANARY / dest.name / 'geometry.npz'
+             (dest / 'geometry.npz').write_bytes(source.read_bytes())
+             assert H.sha(dest / 'geometry.npz') == H.sha(source)
++            original_receipt = json.loads((source.parent/'CACHE_COMPLETE.json').read_text())
++            assert original_receipt['sources'] == H.k1_source_identity()
++            assert original_receipt['capture_sha256'] == H.digest(c)
++            cache_receipt(dest, c)
+             fixtures.append(dict(capture=name, source=str(source), sha256=H.sha(source)))
+     H.dump(root / 'FIXTURE.json', fixtures)
+     parity = []
+@@ -221,8 +356,18 @@
+     sealed()
+     print('PASS original harness unit tests under sealed validator after GD_reviewed loads', flush=True)
+     edge_cases(root, cs[NAMES[0]], fixture / H.digest(NAMES[0])[:16] / 'geometry.npz')
++    receipt_checks(root, cs[NAMES[0]], fixture / H.digest(NAMES[0])[:16] / 'geometry.npz')
++    thread_isolation(cs[NAMES[2]], fixture / H.digest(NAMES[2])[:16] / 'geometry.npz')
++    run_destinations(root)
+     room_refusals(root,old,fits)
+     check_aggregation(root)
++    for split in ('train', 'heldout'):
++        for ref in ('GD_reviewed', 'GD_sealed'):
++            result = subprocess.run([sys.executable, '-B', 'agg.py', str(captures_out),
++                split, str(H.ROOT/'out/FITS.json'), ref], text=True, capture_output=True, check=True)
++            (root/f'real_agg_{split}_{ref}.txt').write_text(result.stdout)
++            assert f'vs {ref}:' in result.stdout
++    print('PASS real-capture aggregation: train/heldout and both GD references', flush=True)
+     result = dict(status='PASS', fixture=str(fixture), captures=parity,
+                   elapsed_seconds=time.monotonic()-start, guard_identity=H.gravity_guard.identity())
+     H.dump(root / 'RESULT.json', result)

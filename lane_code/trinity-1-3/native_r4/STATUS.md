@@ -1,8 +1,10 @@
-# native_r4 lane STATUS (trinity-1-3) — operator native_r5, updated 2026-11-16T13:57Z
+# native_r4 lane STATUS (trinity-1-3) — operator native_r5, updated 2026-11-16T14:50Z
 Lane folder /scratch/jjyeung/orch_n30/native_r4; events /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/native_r4/. Record /data2/jjyeung/agent_project_data/distill_design/VSTI_NATIVE_CAMERA_READ_STEP544_20261116.md (+ INDEX line). Rules: .../orch_n30/tools/LANE_RULES.md. native_r5 session ends by ~16:20Z (6 h from 10:20Z) or 60% context: RESULT rotate.
 
-## NOW (13:57Z): third job 170254 (a15_cot_apd12e2a0337651f2637e988f9, V1f) submitted ~13:55Z (RESULT submitted3)
-- Poll: `timeout 300 bash .../tools/ossh.sh 'bash -s' < work/orchard/poll3.sh` every 5 min until proof+canary seen, then 10 min; poll3 lowers TimeLimit while PENDING (end <= 17:40Z). Proof >20 min = BLOCKER. Return: okh7/n2r/d12e2a0337651f2637e988f9 + GCS q8/n2r/ same; fetch through governor; merge journals; report with builds/04_vsti_d code.
+## NOW (14:50Z): fourth job 170294 (a15_cot_apd627d31523064791d2ce3456, V1g c.tar 6a3192ac) submitted 14:49Z (RESULT submitted4); ORCH 1434Z: no fifth job today, any failure -> Codex Astra diagnosis
+- Poll: work/orchard/poll4.sh every 5 min (lowers limit while pending, end <= 17:35Z). Packet p/d627d31523064791d2ce3456, deadline 17:33Z. Return okh7/n2r/d627d31523064791d2ce3456.
+- Orchard okh7/d9c35d0a: c.tar/FAMILY.json/c = V1g; V1f kept as *.v1f_*, c_v1f/; dry_v1g/ = small snapshot files for the real-input check (removal candidate).
+- Job 170254 (V1f) failed at the student load: unbound snapshot path in the read namespace (fixed in V1g).
 - V1f builds/07_vsti_f (c.tar 063e09f8, family c6ad8e73) on Orchard as c.tar/FAMILY.json/c/ (V1c kept as *.v1c_*, c_v1c/). GCS c gen 1794832620770863; r3.json, g3.json.
 - Packet p/d12e2a0337651f2637e988f9 (TOKEN3; letter-leading), --deadline-utc 17:35Z. Watcher tmux nr5_watch3 (work/orchard/watch3.sh, log watch3.log) runs q11_sbatch3.sh every ~5 min: refuses if own job on general or past 15:40Z; on submit copies to q11.out. Then: RESULT with job id; poll with a poll3.sh (copy of poll2.sh with job id/token); lower TimeLimit while pending so end <= 17:40Z.
 - 170228 cause of no return: digit-leading token rejected by publisher (V1f DIAGNOSIS.md); first failure unknown.

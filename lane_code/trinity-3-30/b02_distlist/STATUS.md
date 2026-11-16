@@ -23,4 +23,5 @@ Brief: /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch
 1. Read EV/*_ORCH_* and inbox/ for (a) the Tier A review verdict and append order, (b) a 790-vs-150 word.
 2. If ORCH orders the append: append tierA/APPEND_LINE.txt (fill time from `date -u`) after the Registration block of distill_design/NEXT_LEG_INIT_RULE_20261116.md; check `sed '/^## Registration$/,$d' FILE | sha256sum` still = d53f9c1a... before and after.
 3. If ORCH orders 790: `python3 -I code/build_list_790.py --items work/pull/b113/sj/mask_recall_run/kit/out/ITEMS.jsonl --fixed150 out/frozen/DISTANCE_LIST_DEVS1_150.jsonl --out out/frozen790`, copy to EV/tier790/; then build a 790 TASKS file needs FRAMES c5e0dad8 (on trinity-1-13 native_r2) incl. a frames check for the 2 extra captures; no Orchard submit without ORCH GO naming the job.
-4. Never look at any candidate's distance score before the list is frozen. Finish or rotate by 22:30Z.
+4. 3-30 /scratch is at its floor (ORCH 1507Z): add at most 100 MB here; larger work goes to trinity-1-18 or 1-3. Lane folder 214 MB; REMOVAL_CANDIDATES.md lists 106 MB of extracted tars.
+5. Never look at any candidate's distance score before the list is frozen. Finish or rotate by 22:30Z.

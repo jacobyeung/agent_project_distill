@@ -61,7 +61,7 @@ for rank in range(4):
  model,base,targets=tiny();model.recipe=copy.deepcopy(recipe)
  model.train()
  rows=Rows(base,targets)
- plan=next(mixed_indices({s:rows.count(s) for s in ('pose','vqa','pointing','routing')},1,seed=17,training_mode='final',mix=recipe['mix'],world=4))
+ plan=next(mixed_indices({s:rows.count(s) for s in ('pose','vqa','pointing','routing')},2 if a.h1 else 1,start_step=1 if a.h1 else 0,seed=17,training_mode='final',mix=recipe['mix'],world=4))
  captured=[]
  def capture(module,args,kwargs,output):
   if kwargs.get('stream')=='readout': return
@@ -72,9 +72,11 @@ for rank in range(4):
  handle=model.register_forward_hook(capture,with_kwargs=True)
  optimizer=torch.optim.AdamW(parameter_groups(model,recipe))
  gates=routing.Gates(recipe['scheduled_sampling'],False)
- info,_=run.optimize_step(model,optimizer,rows,plan,rank,torch.device('cpu'),1,gates=gates)
+ info,_=run.optimize_step(model,optimizer,rows,plan,rank,torch.device('cpu'),2 if a.h1 else 1,gates=gates)
  handle.remove()
- report=dict(rank=rank,microsteps=captured,rows=len(captured),h1=info.get('h1'),
+ own_rows=sum(v['own'] for v in info.get('h1',{}).values())
+ if a.h1:assert own_rows>0, ('No own camera rows',rank)
+ report=dict(rank=rank,step=2 if a.h1 else 1,own_rows=own_rows,microsteps=captured,rows=len(captured),h1=info.get('h1'),
              gates=info['gates'],parameters={n:digest_tensor(v) for n,v in model.state_dict().items()},
              peak_rss_kib=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
  reports.append(report)

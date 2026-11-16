@@ -61,6 +61,8 @@ REPLAY_FUNCTION = 'generator.derivgen_v7.derivgen.ground_v312.replay'
 OPERATOR_FAULTS = ('Routed policy requires a fixed named candidate universe', 'form_requires_v3.13',
                    'frozen_fusion_requires_depth_cut_receipt', 'mask_source_unavailable_for_type')
 SHA = re.compile(r'[0-9a-f]{64}')
+# tag syntax of the sealed trace validator (trace_grammar.py a41ba191, TAG): a math '<' in prose is not a tag
+TAG = re.compile(r'<\s*/?\s*([A-Za-z_][\w.-]*)\b[^>]*>')
 RECORD_FIELDS = ('qid', 'type', 'question', 'options', 'answer', 'gt_answer', 'candidate_id', 'spec_version',
                  'events', 'suffix')
 PINS = {'dev_scene_exclusions.json': 'a1869ae28f6d3f1815993da776f4c4798f67bad4c555c3bb80cc48fcecb23af5',
@@ -271,8 +273,10 @@ def call_ok(call, patterns):
     return True
 
 
-def events_sha256(events):
-    return hashlib.sha256(json.dumps(events, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+def events_sha256(events, spec_version):
+    """Binds the replayed events and the grammar version of the Session that replayed them."""
+    payload = dict(spec_version=spec_version, events=events)
+    return hashlib.sha256(json.dumps(payload, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
 
 
 def replay_receipt(record, session, pipeline_sha256):
@@ -282,8 +286,14 @@ def replay_receipt(record, session, pipeline_sha256):
     if str(TREE) not in sys.path:
         sys.path.insert(0, str(TREE))
     from generator.derivgen_v7.derivgen.ground_v312 import replay
+    # sealed Sessions: ground_v313 sets '3.12.2' / '3.13' / '3.14'; the legacy ground_v312 Session has no attribute
+    # and its renderer records '3.12.2' (ground_v312.py:252, getattr(session, 'spec_version', '3.12.2'))
+    version = getattr(session, 'spec_version', '3.12.2')
+    if version != record['spec_version']:
+        raise ValueError(f'session spec_version {version!r} differs from record {record["spec_version"]!r}')
     replay(record, session)
-    return dict(function=REPLAY_FUNCTION, ok=True, session_sha256=pipeline_sha256, events_sha256=events_sha256(record['events']))
+    return dict(function=REPLAY_FUNCTION, ok=True, session_sha256=pipeline_sha256,
+                events_sha256=events_sha256(record['events'], version))
 
 
 def response_body(event):
@@ -331,14 +341,14 @@ def record_problem(item, response, *, head):
     receipt = rec.get('replay')
     if not (isinstance(receipt, dict) and receipt.get('function') == REPLAY_FUNCTION and receipt.get('ok') is True
             and receipt.get('session_sha256') == response['pipeline_sha256']
-            and receipt.get('events_sha256') == events_sha256(events)):
+            and receipt.get('events_sha256') == events_sha256(events, rec['spec_version'])):
         return 'record_replay_missing'
     if any(f in ev['response'] for ev in events for f in OPERATOR_FAULTS):
         return 'record_operator_fault'
     prose = rec['suffix']
     for ev in events:
         prose = prose.replace(ev['call'] + '\n' + ev['response'], '', 1)
-    if '<' in re.sub(r'</?(?:think|answer)>', '', prose):
+    if any(m[1].lower() not in ('think', 'answer') for m in TAG.finditer(prose)):
         return 'record_unrecorded_tag'
     if rec['gt_answer'] != item['answer'] or not isinstance(rec['answer'], str):
         return 'record_gt'

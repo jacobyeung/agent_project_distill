@@ -18,13 +18,13 @@ def camera_fixtures():
         c[k,:3,:3] = [[np.cos(a),0,np.sin(a)],[0,1,0],[-np.sin(a),0,np.cos(a)]]
         c[k,:3,3] = [k*.19, k*.003, k*.075]
     clip = dict(recording_id='h1-synthetic', dataset='scannet', scene='h1synthetic',
-                frames=[dict(path=str(K/'tmp'/f'frame{i}.png'),sha256='a'*64,source_index=i) for i in range(32)],
+                frames=[dict(path=str(K/'tmp/b4'/f'frame{i}.png'),sha256='a'*64,source_index=i) for i in range(32)],
                 fps=30., total_num_frames=32,
                 **_encode(c, [[500,0,320],[0,500,240],[0,0,1]], [480,640], [0,-1,0]))
     from unittest.mock import patch
     # Synthetic scene only: no production exclusion file is available on this node.
     with patch('generator.derivgen_v7.derivgen.goal_exclusions.goal_tokens', return_value=set()):
-        rows, refusals = camera_rows(clip, seed=17, per_type=4, distribution={}, manifest_dir=K/'tmp'/'manifests')
+        rows, refusals = camera_rows(clip, seed=17, per_type=4, distribution={}, manifest_dir=K/'tmp/b4'/'manifests')
     assert len(rows)==12, refusals
     return rows, clip, refusals
 

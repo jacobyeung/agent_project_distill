@@ -1,0 +1,744 @@
+F.....F.F..F.....FFF..FFFFF.....F..FF.FF....................F....FF      [100%]
+=================================== FAILURES ===================================
+_______________ test_prepare_opaque_config_and_refuse_submission _______________
+
+tmp_path = PosixPath('/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_prepare_opaque_config_and0')
+
+    def test_prepare_opaque_config_and_refuse_submission(tmp_path):
+>       p=tmp_path/'manifest.json';dump(p,{'fixture':True})
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^
+
+kit/tests/test_admission.py:17: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+offnative/io.py:23: in dump
+    p = owned(path)
+        ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = PosixPath('/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_prepare_opaque_config_and0/manifest.json')
+
+    def owned(path):
+        p = Path(path).resolve()
+        if not p.is_relative_to(ROOT):
+>           raise ValueError('write outside build N')
+E           ValueError: write outside build N
+
+offnative/io.py:19: ValueError
+___________________ test_answer_bytes_reach_official_scorer ____________________
+
+tmp_path = PosixPath('/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_answer_bytes_reach_offici0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f51336cd070>
+
+    def test_answer_bytes_reach_official_scorer(tmp_path,monkeypatch):
+        import offnative.scoring as scoring
+>       p=tmp_path/'labels.json';dump(p,[dict(id='1',example_id='1',question_type='object_abs_distance',ground_truth='2')])
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+kit/tests/test_contracts.py:53: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+offnative/io.py:23: in dump
+    p = owned(path)
+        ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = PosixPath('/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_answer_bytes_reach_offici0/labels.json')
+
+    def owned(path):
+        p = Path(path).resolve()
+        if not p.is_relative_to(ROOT):
+>           raise ValueError('write outside build N')
+E           ValueError: write outside build N
+
+offnative/io.py:19: ValueError
+__________________________ test_bind_eat1_production ___________________________
+
+tmp_path = PosixPath('/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_bind_eat1_production0')
+
+    def test_bind_eat1_production(tmp_path):
+>       p=tmp_path/'e2e.json';dump(p,{'fixture':True})
+                              ^^^^^^^^^^^^^^^^^^^^^^^^
+
+kit/tests/test_contracts.py:70: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+offnative/io.py:23: in dump
+    p = owned(path)
+        ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = PosixPath('/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_bind_eat1_production0/e2e.json')
+
+    def owned(path):
+        p = Path(path).resolve()
+        if not p.is_relative_to(ROOT):
+>           raise ValueError('write outside build N')
+E           ValueError: write outside build N
+
+offnative/io.py:19: ValueError
+_________________ test_unserved_call_is_not_counted_as_served __________________
+
+tmp_path = PosixPath('/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_unserved_call_is_not_coun0')
+
+    def test_unserved_call_is_not_counted_as_served(tmp_path):
+>       p=tmp_path/'labels.json';dump(p,[dict(id='1',example_id='1',question_type='object_abs_distance',ground_truth='2')])
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+kit/tests/test_contracts.py:87: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+offnative/io.py:23: in dump
+    p = owned(path)
+        ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = PosixPath('/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_unserved_call_is_not_coun0/labels.json')
+
+    def owned(path):
+        p = Path(path).resolve()
+        if not p.is_relative_to(ROOT):
+>           raise ValueError('write outside build N')
+E           ValueError: write outside build N
+
+offnative/io.py:19: ValueError
+_____________________ test_dense_source_freeze_and_mapping _____________________
+
+tmp_path = PosixPath('/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_dense_source_freeze_and_m0')
+
+    def test_dense_source_freeze_and_mapping(tmp_path):
+        with pytest.raises(ValueError,match='g3t-source'):bind_source(None)
+        with pytest.raises(ValueError,match='diagnostic'):bind_source('clip32',production=True)
+        assert bind_source('clip32')['label']==CLIP_LABEL
+        with pytest.raises(ValueError,match='mapping'):bind_source('original',mapping=tmp_path/'missing')
+        p=tmp_path/'mapping.json'
+>       dump(p,{'schema':'revsi-dense64-v1','registration':'signed freeze','clips':{'x':{
+            'path':'x.mp4','clip_sha256':'a'*64,'original_sha256':'b'*64,'anchor_indices':list(range(0,64,2)),
+            'dense_indices':list(range(64)),'dense_decode_indices':list(range(64)),'anchor_slots':list(range(0,64,2))}}})
+
+kit/tests/test_n2.py:16: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+offnative/io.py:23: in dump
+    p = owned(path)
+        ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = PosixPath('/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_dense_source_freeze_and_m0/mapping.json')
+
+    def owned(path):
+        p = Path(path).resolve()
+        if not p.is_relative_to(ROOT):
+>           raise ValueError('write outside build N')
+E           ValueError: write outside build N
+
+offnative/io.py:19: ValueError
+______________ test_packet_scans_actual_bytes_and_can_be_unpacked ______________
+
+tmp_path = PosixPath('/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_packet_scans_actual_bytes0')
+
+    def test_packet_scans_actual_bytes_and_can_be_unpacked(tmp_path):
+        import tarfile,io,zlib
+        files={'0.py':b'print("revsi sam3 trinity")','a/b':b'model'}
+>       p=tmp_path/'packet.tar';receipt=packet(files,p,'a'*24)
+                                        ^^^^^^^^^^^^^^^^^^^^^^
+
+kit/tests/test_n2.py:27: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+offnative/transport.py:27: in packet
+    destination=owned(destination)
+                ^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = PosixPath('/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_packet_scans_actual_bytes0/packet.tar')
+
+    def owned(path):
+        p = Path(path).resolve()
+        if not p.is_relative_to(ROOT):
+>           raise ValueError('write outside build N')
+E           ValueError: write outside build N
+
+offnative/io.py:19: ValueError
+_____________________ test_watchdog_reserves_return_window _____________________
+
+tmp_path = PosixPath('/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_watchdog_reserves_return_0')
+
+    def test_watchdog_reserves_return_window(tmp_path):
+        from offnative.watchdog import run
+        from datetime import datetime,timezone
+        import time
+        deadline=datetime.fromtimestamp(time.time()+601,timezone.utc).isoformat()
+>       r=run([sys.executable,'-B','-c','import time;time.sleep(10)'],tmp_path,tmp_path/'deadline.json',
+              deadline_utc=deadline)
+
+kit/tests/test_n2.py:41: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+offnative/watchdog.py:34: in run
+    dump(receipt,result)
+offnative/io.py:23: in dump
+    p = owned(path)
+        ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = PosixPath('/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_watchdog_reserves_return_0/deadline.json')
+
+    def owned(path):
+        p = Path(path).resolve()
+        if not p.is_relative_to(ROOT):
+>           raise ValueError('write outside build N')
+E           ValueError: write outside build N
+
+offnative/io.py:19: ValueError
+________________________ test_frozen_proposal_pipeline _________________________
+
+tmp_path = PosixPath('/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_frozen_proposal_pipeline0')
+
+    def test_frozen_proposal_pipeline(tmp_path):
+        import hashlib,io
+        import numpy as np
+        from PIL import Image
+        from offnative.proposals import build
+        frames=tmp_path/'frames';frames.mkdir()
+        captures=[];items=[]
+        for video in range(2):
+            entries=[]
+            for i in range(32):
+                data=io.BytesIO();Image.fromarray(np.full((16,16,3),i+video*32,dtype=np.uint8)).save(data,format='PNG')
+                raw=data.getvalue();h=hashlib.sha256(raw).hexdigest();name=h[:2]+'/'+h+'.png'
+                p=frames/name;p.parent.mkdir(exist_ok=True);p.write_bytes(raw)
+                entries.append({'path':name,'sha256':h,'index':i})
+            scene='fixture/'+str(video)
+            captures.append(dict(native=scene,scene=scene,anchor_indices=list(range(32)),frames=entries,
+                                 hw=[16,16],names={'chair':'chair'},phrases=['chair']))
+            items.append(dict(scene=scene,question='Where is the chair?',operands=['chair'],options=[]))
+>       p=build(captures,items,frames,tmp_path/'proposals',checkpoint=None,source=None,stub=True)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+kit/tests/test_n2.py:83: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+offnative/proposals.py:30: in build
+    destination=owned(destination)
+                ^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = PosixPath('/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_frozen_proposal_pipeline0/proposals')
+
+    def owned(path):
+        p = Path(path).resolve()
+        if not p.is_relative_to(ROOT):
+>           raise ValueError('write outside build N')
+E           ValueError: write outside build N
+
+offnative/io.py:19: ValueError
+________________ test_return_authentication_rejects_changed_job ________________
+
+tmp_path = PosixPath('/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_return_authentication_rej0')
+
+    def test_return_authentication_rejects_changed_job(tmp_path):
+        from offnative.transport import authenticate
+        d=tmp_path/'d';d.mkdir()
+>       dump(d/'CONFIG.json',{'token':'a'*24,'x0':'b'*64})
+
+kit/tests/test_n2.py:97: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+offnative/io.py:23: in dump
+    p = owned(path)
+        ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = PosixPath('/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_return_authentication_rej0/d/CONFIG.json')
+
+    def owned(path):
+        p = Path(path).resolve()
+        if not p.is_relative_to(ROOT):
+>           raise ValueError('write outside build N')
+E           ValueError: write outside build N
+
+offnative/io.py:19: ValueError
+____________________ test_r_stage_plan_covers_full_manifest ____________________
+
+tmp_path = PosixPath('/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_r_stage_plan_covers_full_0')
+
+    def test_r_stage_plan_covers_full_manifest(tmp_path):
+        from offnative.stage_plan import prepare
+        from offnative.cohort import cohort,media302
+        from offnative.paths import r_launcher
+        from offkit.bind import STEP544_SHA
+        b={'benchmark':'revsi999t32','binding_sha256':'b'*64,'export':{'kind':'step544','sha256':STEP544_SHA}}
+        inputs={'uploaded_media_root':'/project/community/jjyeung/okh7/12345678/','media':media302(cohort('revsi999t32'))}
+>       c,boot=prepare(b,inputs,tmp_path/'r','a'*24,'/project/community/jjyeung/okh7/12345678')
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+kit/tests/test_n2.py:118: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+offnative/stage_plan.py:35: in prepare
+    dump(d/'NATIVE_STAGE_CONFIG.json',config)
+offnative/io.py:23: in dump
+    p = owned(path)
+        ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = PosixPath('/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_r_stage_plan_covers_full_0/r/NATIVE_STAGE_CONFIG.json')
+
+    def owned(path):
+        p = Path(path).resolve()
+        if not p.is_relative_to(ROOT):
+>           raise ValueError('write outside build N')
+E           ValueError: write outside build N
+
+offnative/io.py:19: ValueError
+____________________ test_portable_worker_sources[harness] _____________________
+
+tmp_path = PosixPath('/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_portable_worker_sources_h0')
+kind = 'harness'
+
+    @pytest.mark.parametrize('kind',['harness','e2e'])
+    def test_portable_worker_sources(tmp_path,kind):
+        import subprocess,os
+        from offnative.portable import sources,ROOTS
+        from offnative.paths import OFFKIT
+        from offnative.io import extract
+        files,pins=sources()
+        files['r.json']=json.dumps(ROOTS).encode()
+        p=tmp_path/'sources.tar';p.write_bytes(tar_bytes(files))
+>       dest=tmp_path/'staged';extract(p,dest,max_bytes=64*1024**2)
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+kit/tests/test_n2.py:137: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+offnative/io.py:42: in extract
+    destination = owned(destination)
+                  ^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = PosixPath('/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_portable_worker_sources_h0/staged')
+
+    def owned(path):
+        p = Path(path).resolve()
+        if not p.is_relative_to(ROOT):
+>           raise ValueError('write outside build N')
+E           ValueError: write outside build N
+
+offnative/io.py:19: ValueError
+______________________ test_portable_worker_sources[e2e] _______________________
+
+tmp_path = PosixPath('/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_portable_worker_sources_e0')
+kind = 'e2e'
+
+    @pytest.mark.parametrize('kind',['harness','e2e'])
+    def test_portable_worker_sources(tmp_path,kind):
+        import subprocess,os
+        from offnative.portable import sources,ROOTS
+        from offnative.paths import OFFKIT
+        from offnative.io import extract
+        files,pins=sources()
+        files['r.json']=json.dumps(ROOTS).encode()
+        p=tmp_path/'sources.tar';p.write_bytes(tar_bytes(files))
+>       dest=tmp_path/'staged';extract(p,dest,max_bytes=64*1024**2)
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+kit/tests/test_n2.py:137: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+offnative/io.py:42: in extract
+    destination = owned(destination)
+                  ^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = PosixPath('/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_portable_worker_sources_e0/staged')
+
+    def owned(path):
+        p = Path(path).resolve()
+        if not p.is_relative_to(ROOT):
+>           raise ValueError('write outside build N')
+E           ValueError: write outside build N
+
+offnative/io.py:19: ValueError
+_____________________ test_media_staging_checks_every_hash _____________________
+
+tmp_path = PosixPath('/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_media_staging_checks_ever0')
+clips = (PosixPath('/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_media_staging_checks_ever0/clips'), {'clips': ...4', 'sha256': '493b311163a944c464e8de53380555fba25cd9e2c35444d616b15ecde2defbfb', ...}], 'hashes_pending': False, ...})
+
+    def test_media_staging_checks_every_hash(tmp_path,clips):
+        import tarfile
+        root,mapping,manifest=clips
+        archive=tmp_path/'media.tar'
+        with tarfile.open(archive,'w') as out:
+            for prefix in ('a','b'):out.add(root/prefix/'x.mp4',arcname=prefix+'/x.mp4')
+>       receipt=stage(manifest,tmp_path/'staged',archive=archive,
+                      archive_pin={'sha256':sha(archive),'bytes':archive.stat().st_size})
+
+kit/tests/test_n3.py:66: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+offnative/media.py:99: in stage
+    destination = owned(destination)
+                  ^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = PosixPath('/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_media_staging_checks_ever0/staged')
+
+    def owned(path):
+        p = Path(path).resolve()
+        if not p.is_relative_to(ROOT):
+>           raise ValueError('write outside build N')
+E           ValueError: write outside build N
+
+offnative/io.py:19: ValueError
+_____ test_native_production_frame_mapping_uses_64_clip_positions[harness] _____
+
+tmp_path = PosixPath('/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_native_production_frame_m0')
+clips = (PosixPath('/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_native_production_frame_m0/clips'), {'clips': ...4', 'sha256': '493b311163a944c464e8de53380555fba25cd9e2c35444d616b15ecde2defbfb', ...}], 'hashes_pending': False, ...})
+kind = 'harness'
+
+    @pytest.mark.parametrize('kind',['harness','e2e'])
+    def test_native_production_frame_mapping_uses_64_clip_positions(tmp_path,clips,kind):
+        from offnative.production import Runtime
+        from offkit.frames import bind_frames
+        from offnative.paths import V1,module
+        root,mapping,manifest=clips
+>       p=tmp_path/'mapping.json';dump(p,mapping)
+                                  ^^^^^^^^^^^^^^^
+
+kit/tests/test_n3.py:90: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+offnative/io.py:23: in dump
+    p = owned(path)
+        ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = PosixPath('/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_native_production_frame_m0/mapping.json')
+
+    def owned(path):
+        p = Path(path).resolve()
+        if not p.is_relative_to(ROOT):
+>           raise ValueError('write outside build N')
+E           ValueError: write outside build N
+
+offnative/io.py:19: ValueError
+_______ test_native_production_frame_mapping_uses_64_clip_positions[e2e] _______
+
+tmp_path = PosixPath('/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_native_production_frame_m1')
+clips = (PosixPath('/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_native_production_frame_m1/clips'), {'clips': ...4', 'sha256': '493b311163a944c464e8de53380555fba25cd9e2c35444d616b15ecde2defbfb', ...}], 'hashes_pending': False, ...})
+kind = 'e2e'
+
+    @pytest.mark.parametrize('kind',['harness','e2e'])
+    def test_native_production_frame_mapping_uses_64_clip_positions(tmp_path,clips,kind):
+        from offnative.production import Runtime
+        from offkit.frames import bind_frames
+        from offnative.paths import V1,module
+        root,mapping,manifest=clips
+>       p=tmp_path/'mapping.json';dump(p,mapping)
+                                  ^^^^^^^^^^^^^^^
+
+kit/tests/test_n3.py:90: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+offnative/io.py:23: in dump
+    p = owned(path)
+        ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = PosixPath('/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_native_production_frame_m1/mapping.json')
+
+    def owned(path):
+        p = Path(path).resolve()
+        if not p.is_relative_to(ROOT):
+>           raise ValueError('write outside build N')
+E           ValueError: write outside build N
+
+offnative/io.py:19: ValueError
+________________________ test_vsi_whole_worker[harness] ________________________
+
+tmp_path = PosixPath('/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_vsi_whole_worker_harness_0')
+kind = 'harness'
+
+    @pytest.mark.parametrize('kind',['harness','e2e'])
+    def test_vsi_whole_worker(tmp_path,kind):
+        env=dict(os.environ,OPENBLAS_NUM_THREADS='1',OMP_NUM_THREADS='1',HF_HUB_OFFLINE='1',TRANSFORMERS_OFFLINE='1')
+        with (tmp_path/'execution.log').open('wb') as log:
+>           subprocess.run([sys.executable,'-B','-m','offnative.rehearse',str(tmp_path/'run'),kind,'vsibench5130'],
+                           env=env,cwd=ROOT,stdout=log,stderr=log,check=True,timeout=120)
+
+kit/tests/test_n3.py:133: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+input = None, capture_output = False, timeout = 120, check = True
+popenargs = (['/scratch/jjyeung/envs/p1cpu/bin/python', '-B', '-m', 'offnative.rehearse', '/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_vsi_whole_worker_harness_0/run', 'harness', ...],)
+kwargs = {'cwd': PosixPath('/scratch/jjyeung/orch_n30/review_offnative/work/base/builds/N'), 'env': {'AGENT_TRANSCRIPTS': '/hom...redWriter name='/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_vsi_whole_worker_harness_0/execution.log'>}
+process = <Popen: returncode: 1 args: ['/scratch/jjyeung/envs/p1cpu/bin/python', '-B',...>
+stdout = None, stderr = None, retcode = 1
+
+    def run(*popenargs,
+            input=None, capture_output=False, timeout=None, check=False, **kwargs):
+        """Run command with arguments and return a CompletedProcess instance.
+    
+        The returned instance will have attributes args, returncode, stdout and
+        stderr. By default, stdout and stderr are not captured, and those attributes
+        will be None. Pass stdout=PIPE and/or stderr=PIPE in order to capture them,
+        or pass capture_output=True to capture both.
+    
+        If check is True and the exit code was non-zero, it raises a
+        CalledProcessError. The CalledProcessError object will have the return code
+        in the returncode attribute, and output & stderr attributes if those streams
+        were captured.
+    
+        If timeout (seconds) is given and the process takes too long,
+         a TimeoutExpired exception will be raised.
+    
+        There is an optional argument "input", allowing you to
+        pass bytes or a string to the subprocess's stdin.  If you use this argument
+        you may not also use the Popen constructor's "stdin" argument, as
+        it will be used internally.
+    
+        By default, all communication is in bytes, and therefore any "input" should
+        be bytes, and the stdout and stderr will be bytes. If in text mode, any
+        "input" should be a string, and stdout and stderr will be strings decoded
+        according to locale encoding, or by "encoding" if set. Text mode is
+        triggered by setting any of text, encoding, errors or universal_newlines.
+    
+        The other arguments are the same as for the Popen constructor.
+        """
+        if input is not None:
+            if kwargs.get('stdin') is not None:
+                raise ValueError('stdin and input arguments may not both be used.')
+            kwargs['stdin'] = PIPE
+    
+        if capture_output:
+            if kwargs.get('stdout') is not None or kwargs.get('stderr') is not None:
+                raise ValueError('stdout and stderr arguments may not be used '
+                                 'with capture_output.')
+            kwargs['stdout'] = PIPE
+            kwargs['stderr'] = PIPE
+    
+        with Popen(*popenargs, **kwargs) as process:
+            try:
+                stdout, stderr = process.communicate(input, timeout=timeout)
+            except TimeoutExpired as exc:
+                process.kill()
+                if _mswindows:
+                    # Windows accumulates the output in a single blocking
+                    # read() call run on child threads, with the timeout
+                    # being done in a join() on those threads.  communicate()
+                    # _after_ kill() is required to collect that and add it
+                    # to the exception.
+                    exc.stdout, exc.stderr = process.communicate()
+                else:
+                    # POSIX _communicate already populated the output so
+                    # far into the TimeoutExpired exception.
+                    process.wait()
+                raise
+            except:  # Including KeyboardInterrupt, communicate handled that.
+                process.kill()
+                # We don't call process.wait() as .__exit__ does that for us.
+                raise
+            retcode = process.poll()
+            if check and retcode:
+>               raise CalledProcessError(retcode, process.args,
+                                         output=stdout, stderr=stderr)
+E               subprocess.CalledProcessError: Command '['/scratch/jjyeung/envs/p1cpu/bin/python', '-B', '-m', 'offnative.rehearse', '/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_vsi_whole_worker_harness_0/run', 'harness', 'vsibench5130']' returned non-zero exit status 1.
+
+/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/subprocess.py:571: CalledProcessError
+__________________________ test_vsi_whole_worker[e2e] __________________________
+
+tmp_path = PosixPath('/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_vsi_whole_worker_e2e_0')
+kind = 'e2e'
+
+    @pytest.mark.parametrize('kind',['harness','e2e'])
+    def test_vsi_whole_worker(tmp_path,kind):
+        env=dict(os.environ,OPENBLAS_NUM_THREADS='1',OMP_NUM_THREADS='1',HF_HUB_OFFLINE='1',TRANSFORMERS_OFFLINE='1')
+        with (tmp_path/'execution.log').open('wb') as log:
+>           subprocess.run([sys.executable,'-B','-m','offnative.rehearse',str(tmp_path/'run'),kind,'vsibench5130'],
+                           env=env,cwd=ROOT,stdout=log,stderr=log,check=True,timeout=120)
+
+kit/tests/test_n3.py:133: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+input = None, capture_output = False, timeout = 120, check = True
+popenargs = (['/scratch/jjyeung/envs/p1cpu/bin/python', '-B', '-m', 'offnative.rehearse', '/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_vsi_whole_worker_e2e_0/run', 'e2e', ...],)
+kwargs = {'cwd': PosixPath('/scratch/jjyeung/orch_n30/review_offnative/work/base/builds/N'), 'env': {'AGENT_TRANSCRIPTS': '/hom...ufferedWriter name='/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_vsi_whole_worker_e2e_0/execution.log'>}
+process = <Popen: returncode: 1 args: ['/scratch/jjyeung/envs/p1cpu/bin/python', '-B',...>
+stdout = None, stderr = None, retcode = 1
+
+    def run(*popenargs,
+            input=None, capture_output=False, timeout=None, check=False, **kwargs):
+        """Run command with arguments and return a CompletedProcess instance.
+    
+        The returned instance will have attributes args, returncode, stdout and
+        stderr. By default, stdout and stderr are not captured, and those attributes
+        will be None. Pass stdout=PIPE and/or stderr=PIPE in order to capture them,
+        or pass capture_output=True to capture both.
+    
+        If check is True and the exit code was non-zero, it raises a
+        CalledProcessError. The CalledProcessError object will have the return code
+        in the returncode attribute, and output & stderr attributes if those streams
+        were captured.
+    
+        If timeout (seconds) is given and the process takes too long,
+         a TimeoutExpired exception will be raised.
+    
+        There is an optional argument "input", allowing you to
+        pass bytes or a string to the subprocess's stdin.  If you use this argument
+        you may not also use the Popen constructor's "stdin" argument, as
+        it will be used internally.
+    
+        By default, all communication is in bytes, and therefore any "input" should
+        be bytes, and the stdout and stderr will be bytes. If in text mode, any
+        "input" should be a string, and stdout and stderr will be strings decoded
+        according to locale encoding, or by "encoding" if set. Text mode is
+        triggered by setting any of text, encoding, errors or universal_newlines.
+    
+        The other arguments are the same as for the Popen constructor.
+        """
+        if input is not None:
+            if kwargs.get('stdin') is not None:
+                raise ValueError('stdin and input arguments may not both be used.')
+            kwargs['stdin'] = PIPE
+    
+        if capture_output:
+            if kwargs.get('stdout') is not None or kwargs.get('stderr') is not None:
+                raise ValueError('stdout and stderr arguments may not be used '
+                                 'with capture_output.')
+            kwargs['stdout'] = PIPE
+            kwargs['stderr'] = PIPE
+    
+        with Popen(*popenargs, **kwargs) as process:
+            try:
+                stdout, stderr = process.communicate(input, timeout=timeout)
+            except TimeoutExpired as exc:
+                process.kill()
+                if _mswindows:
+                    # Windows accumulates the output in a single blocking
+                    # read() call run on child threads, with the timeout
+                    # being done in a join() on those threads.  communicate()
+                    # _after_ kill() is required to collect that and add it
+                    # to the exception.
+                    exc.stdout, exc.stderr = process.communicate()
+                else:
+                    # POSIX _communicate already populated the output so
+                    # far into the TimeoutExpired exception.
+                    process.wait()
+                raise
+            except:  # Including KeyboardInterrupt, communicate handled that.
+                process.kill()
+                # We don't call process.wait() as .__exit__ does that for us.
+                raise
+            retcode = process.poll()
+            if check and retcode:
+>               raise CalledProcessError(retcode, process.args,
+                                         output=stdout, stderr=stderr)
+E               subprocess.CalledProcessError: Command '['/scratch/jjyeung/envs/p1cpu/bin/python', '-B', '-m', 'offnative.rehearse', '/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_vsi_whole_worker_e2e_0/run', 'e2e', 'vsibench5130']' returned non-zero exit status 1.
+
+/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/subprocess.py:571: CalledProcessError
+______________________ test_stage_reuses_r_archive_reader ______________________
+
+tmp_path = PosixPath('/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_stage_reuses_r_archive_re0')
+
+    def test_stage_reuses_r_archive_reader(tmp_path):
+        p=tmp_path/'a.tar';p.write_bytes(tar_bytes({'1':b'weights stand-in','2':b'config stand-in'}))
+>       result=archive(p,sha(p),tmp_path/'stage',max_bytes=100000)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+kit/tests/test_staging.py:10: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+offnative/staging.py:8: in archive
+    destination=owned(destination)
+                ^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = PosixPath('/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_stage_reuses_r_archive_re0/stage')
+
+    def owned(path):
+        p = Path(path).resolve()
+        if not p.is_relative_to(ROOT):
+>           raise ValueError('write outside build N')
+E           ValueError: write outside build N
+
+offnative/io.py:19: ValueError
+______________ test_changed_response_stops_before_official_decode ______________
+
+tmp_path = PosixPath('/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_changed_response_stops_be0')
+
+    def test_changed_response_stops_before_official_decode(tmp_path):
+        d=tmp_path/'mutated'
+>       with pytest.raises(PhaseFailure):run(d,'harness',mutate_proof=True)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+kit/tests/test_worker.py:27: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+offnative/rehearse.py:24: in run
+    labels = dest/'labels.json'; dump(labels,items)
+                                 ^^^^^^^^^^^^^^^^^^
+offnative/io.py:23: in dump
+    p = owned(path)
+        ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = PosixPath('/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_changed_response_stops_be0/mutated/labels.json')
+
+    def owned(path):
+        p = Path(path).resolve()
+        if not p.is_relative_to(ROOT):
+>           raise ValueError('write outside build N')
+E           ValueError: write outside build N
+
+offnative/io.py:19: ValueError
+_____________________ test_fixture_cannot_claim_production _____________________
+
+tmp_path = PosixPath('/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_fixture_cannot_claim_prod0')
+
+    def test_fixture_cannot_claim_production(tmp_path):
+        from offnative.worker import Worker
+        from types import SimpleNamespace
+        source=ROOT/'work/n2_rehearsal_e2e_release'
+        b=load(source/'BINDING.json');c=load(source/'CONFIG.json')
+        with pytest.raises(ValueError,match='synthetic status'):
+>           Worker(c,b,[],SimpleNamespace(synthetic=True),None,tmp_path/'out',fixture=False)
+
+kit/tests/test_worker.py:39: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+offnative/worker.py:41: in __init__
+    self.runtime, self.scorer, self.out = runtime, scorer, owned(out)
+                                                           ^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = PosixPath('/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_fixture_cannot_claim_prod0/out')
+
+    def owned(path):
+        p = Path(path).resolve()
+        if not p.is_relative_to(ROOT):
+>           raise ValueError('write outside build N')
+E           ValueError: write outside build N
+
+offnative/io.py:19: ValueError
+
+During handling of the above exception, another exception occurred:
+
+tmp_path = PosixPath('/scratch/jjyeung/orch_n30/review_offnative/work/pt1/bt/test_fixture_cannot_claim_prod0')
+
+    def test_fixture_cannot_claim_production(tmp_path):
+        from offnative.worker import Worker
+        from types import SimpleNamespace
+        source=ROOT/'work/n2_rehearsal_e2e_release'
+        b=load(source/'BINDING.json');c=load(source/'CONFIG.json')
+>       with pytest.raises(ValueError,match='synthetic status'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E        Regex: 'synthetic status'
+E        Input: 'write outside build N'
+
+kit/tests/test_worker.py:38: AssertionError
+=========================== short test summary info ============================
+FAILED kit/tests/test_admission.py::test_prepare_opaque_config_and_refuse_submission
+FAILED kit/tests/test_contracts.py::test_answer_bytes_reach_official_scorer
+FAILED kit/tests/test_contracts.py::test_bind_eat1_production - ValueError: w...
+FAILED kit/tests/test_contracts.py::test_unserved_call_is_not_counted_as_served
+FAILED kit/tests/test_n2.py::test_dense_source_freeze_and_mapping - ValueErro...
+FAILED kit/tests/test_n2.py::test_packet_scans_actual_bytes_and_can_be_unpacked
+FAILED kit/tests/test_n2.py::test_watchdog_reserves_return_window - ValueErro...
+FAILED kit/tests/test_n2.py::test_frozen_proposal_pipeline - ValueError: writ...
+FAILED kit/tests/test_n2.py::test_return_authentication_rejects_changed_job
+FAILED kit/tests/test_n2.py::test_r_stage_plan_covers_full_manifest - ValueEr...
+FAILED kit/tests/test_n2.py::test_portable_worker_sources[harness] - ValueErr...
+FAILED kit/tests/test_n2.py::test_portable_worker_sources[e2e] - ValueError: ...
+FAILED kit/tests/test_n3.py::test_media_staging_checks_every_hash - ValueErro...
+FAILED kit/tests/test_n3.py::test_native_production_frame_mapping_uses_64_clip_positions[harness]
+FAILED kit/tests/test_n3.py::test_native_production_frame_mapping_uses_64_clip_positions[e2e]
+FAILED kit/tests/test_n3.py::test_vsi_whole_worker[harness] - subprocess.Call...
+FAILED kit/tests/test_n3.py::test_vsi_whole_worker[e2e] - subprocess.CalledPr...
+FAILED kit/tests/test_staging.py::test_stage_reuses_r_archive_reader - ValueE...
+FAILED kit/tests/test_worker.py::test_changed_response_stops_before_official_decode
+FAILED kit/tests/test_worker.py::test_fixture_cannot_claim_production - Asser...
+20 failed, 47 passed in 10.71s

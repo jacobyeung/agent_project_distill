@@ -1,22 +1,24 @@
-# Whole-worker rehearsal
+# Whole-worker CPU rehearsal
 
-Run outside the Codex sandbox on the same compute node:
+The operator reports a passing CPU fixture at `out/rehearsal/whole/31f44f39c63b4d68be53660ff5780980/RESULT.json`. It covers stage, prepare, proof, canary, native_subset, merge, admit, publish, fetch and report. The proof passes 20/20 comparisons; the unchanged report refuses the 20-item fixture with return code 3, as designed (same `RESULT.json`; `OPERATOR_EVIDENCE_G3.json`). G3 records this supplied evidence without reading or modifying `out/rehearsal/whole/` and does not rerun the namespace worker.
+
+Run this command outside the Codex sandbox on the same compute node:
 
 ```sh
 /scratch/jjyeung/orch_n30/b01_d0guard/guard_kit/build2/out/rehearsal/run_whole_worker.sh
 ```
 
-The command creates a fresh directory under `out/rehearsal/whole/`. It stages local tensor stand-ins, invokes the unchanged checker, starts separate checkpoint processes, publishes the proof and canary with verified local readback, runs the candidate subset, merges and admits the result, archives it, fetches it locally, and invokes the unchanged report. A namespace failure stops the command; it does not retry.
+The launcher uses `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B`, `nice -n 10`, and one thread per numerical library. It creates a fresh operator run under `out/rehearsal/whole/`. A namespace failure stops the command; it does not retry.
 
-The command calls the same phase coordinator as production (`../guard_kit/worker.py:coordinate`). Stage-failure and proof-failure tests exercise its terminal receipt and return paths (`../PROCESS_TESTS.json`). The namespace, tiny checker setup and shared-asset adapters remain rehearsal-specific.
+`run_whole_worker.py:split_mounts` supports bwrap 0.4.0 by splitting directory binds into `--dir` and per-child binds along later mount paths. This lets bwrap create nested mountpoints without writing inside a read-only bind. This adapter stays outside the production code tar (`../CODE_MANIFEST.json`).
 
-The sandbox attempt stopped before checkpoint execution (`whole/sandbox/RESULT.json`, `whole/sandbox/namespace.stderr`). The tensor checker passed independently through a read-only path adapter (`whole/TENSOR_CHECKS.json`). Metadata restoration passed through the same kind of adapter (`../RESTORATION_TEST.json`). Neither result establishes a whole-worker pass.
+`inside_whole.py` explicitly prepends `/scratch/jjyeung/orch_n30/b01_d0guard/work/tvoverlay3` to `sys.path`. The p1cpu environment lacks torchvision, which the Qwen3VL video processor needs. The operator supplied torchvision `0.26.0+cpu` from `/scratch/jjyeung/orch_n30/b01_d0guard/work/whl/torchvision-0.26.0+cpu-cp312-cp312-manylinux_2_28_x86_64.whl`, SHA256 `cf547dc0975eb40bc3249be4ccbeb736597d2c3ece305b1c4e5b7a5dd7363567` (`OPERATOR_EVIDENCE_G3.json`). G3 did not read or install that wheel. The proof `generate` stand-in accepts and forwards `*args`, including the caller's fifth positional argument. These changes stay outside the production code tar.
 
-The candidate uses the supplied milestone metadata (`whole/sandbox/fixture/PREPARATION.json`). Each tiny artifact changes only `heads.sha256` and `full_weights.sha256`; those fields bind actual tiny files. All other artifact fields, including trained-group fingerprints, remain identical. The C8r model boundary bypasses tensor loading, so those retained fingerprints are not validated against tiny model tensors. `cpu_boundary.py` is read unchanged from the supplied C8r rehearsal; the wrapper supplies its local roots and replaces proof token generation with the pinned historical tokens. It does not establish GPU backend identity.
+The command shares the production phase coordinator (`../guard_kit/worker.py:coordinate`). It stages tiny local exports, invokes the unchanged checker, starts separate checkpoint processes, publishes proof and canary receipts with local readback, reads the candidate subset, merges and admits it, archives and fetches the return, and invokes the unchanged report. Production merge compares canonical JSON digests and then uses journal rows; differing content refuses with `MERGE_DIFF.json` (`../guard_kit/admission.py`, `../G2_TESTS.json`).
 
-The worker configuration and a local-transport projection are written to each fixture directory. `PREPARATION.json` records their differences and all additional boundaries. The shared production objects use the supplied extracted read-only assets. The rehearsal does not re-run production cloud staging or allocation admission; therefore a pass would not prove that the entire production packet differs only in transport.
+The fixture cannot establish real tensor restoration, GPU parity or token identity. Each tiny artifact re-derives only `heads.sha256` and `full_weights.sha256`; other artifact fields retain the supplied metadata values. Model boundaries bypass actual tensor loading, so retained trained-group fingerprints do not validate tiny tensors. The proof substitutes pinned historical tokens. The configuration projections and boundary declarations belong to each operator run's `PREPARATION.json` and phase `BOUNDARY.json` files. Shared pre-staged assets and allocation boundaries also prevent a claim that a full production packet was tested with transport alone changed.
 
-The candidate subset contains the sealed canary plus proof-list items in the accepted order, for a total of twenty (`inside_whole.py`, emitted `candidate_BOUNDARY.json`). The unchanged full-list report must refuse this incomplete result. The command records its refusal rather than filling unexecuted items. The separate full recorded-row report fixture passes against itself (`../rehearsal/records_pass/RESULT.json`); it has no model decode.
+The candidate subset preserves the sealed canary and fills from the proof list in accepted order (`inside_whole.py`). The report's incomplete-read refusal is expected; no unexecuted items are filled. The separate full recorded-row fixture at `records_pass/RESULT.json` has no model decode.
 
 Run the proof-mismatch variant outside the sandbox:
 
@@ -24,6 +26,6 @@ Run the proof-mismatch variant outside the sandbox:
 /scratch/jjyeung/orch_n30/b01_d0guard/guard_kit/build2/out/rehearsal/run_whole_worker.sh --mismatch
 ```
 
-A valid mismatch result publishes `PROOF.json` with failure and creates no candidate canary or arm. The namespace-free recorded-row mismatch already passes (`records_mismatch/RESULT.json`); checkpoint-process failure and publication-before-tail tests pass separately (`../PROCESS_TESTS.json`).
+A valid mismatch publishes a failed `PROOF.json` and creates no candidate canary or arm. The supplied whole-worker pass does not establish this variant. Namespace-free mismatch evidence remains at `records_mismatch/RESULT.json`; process failure and receipt-ordering tests are indexed in `../PROCESS_TESTS.json`.
 
-The operator must inspect `RESULT.json`, both phase logs, `PROOF.json`, `CANARY.json`, `IN_JOB_ADMISSION.json`, and publication readbacks. This command is runnable but its namespace-dependent portion is unexecuted and may reveal further integration defects.
+Inspect the run's `RESULT.json`, phase logs, `PROOF.json`, `CANARY.json`, `IN_JOB_ADMISSION.json` and publication readbacks. The CPU-fixture blocker is closed; real runtime validation and production authority remain required (`../RELEASE_BLOCKERS.json`).

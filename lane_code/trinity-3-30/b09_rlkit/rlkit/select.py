@@ -42,7 +42,8 @@ OWN_SCHEMA = 'rlkit-own-row-v1'
 ARTIFACT_POLICY = dict(pose_sources=('own', 'tower'), mask_sources=(None, 'mdg'), ground_backends=('ground_v3', 'mdg'),
                        ground_backend_types=(None, 'GroundV3'), call_kinds=('head', 'calculator', 'error', 'ground', 'gap'),
                        geometry_sources=(None, 'same_checkpoint_own'), geometry_prefixes=('same_checkpoint_own:',),
-                       source_prefixes=('native_mdg:',), query_provenance=('unspecified', 'None'), presence_sources=('None',))
+                       source_prefixes=('native_mdg:',), query_provenance=('unspecified', 'None'), presence_sources=('None',),
+                       source_provenances=('unspecified',), presence_identities=(None,), verify_identities=())
 
 
 def artifact_policy(rec, policy=None):
@@ -73,6 +74,14 @@ def artifact_policy(rec, policy=None):
             return f'grounding identities {gid} / {sid} are outside the artifact'
         if gid.split(':', 1)[1] != sid.split(':', 1)[1]:
             return 'grounding geometry and mask source name different artifacts'
+        if src.get('source_provenance', 'missing') not in p['source_provenances']:
+            return f'mask source provenance {src.get("source_provenance")} is outside the artifact'
+        if src.get('presence_identity', 'missing') not in p['presence_identities']:
+            return f'presence prior {src.get("presence_identity")} is outside the artifact'
+        if src.get('rescue', True):
+            return 'a rescue stage served candidates'
+        if not (src.get('verify_stubbed') or src.get('verify_identity') in p['verify_identities']):
+            return f'verifier {src.get("verify_identity")} is not stubbed or listed'
     bad = [q for q in src.get('query_provenance', ['missing']) if q not in p['query_provenance']]
     if bad:
         return f'query provenance {bad} is outside the artifact'

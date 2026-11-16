@@ -9,6 +9,8 @@ import sys
 import tarfile
 import unittest
 import uuid
+from types import SimpleNamespace
+from unittest.mock import patch
 B=Path(__file__).resolve().parents[2];W=B.parents[1]/'work';K=B/'out/guard_kit'
 sys.path[:0]=[str(K),str(W/'from113/work/tree')]
 import closure,packet
@@ -157,7 +159,91 @@ class G2(unittest.TestCase):
   c=self.fixture_packet();c['done']['sha256']='0'*64
   with self.assertRaisesRegex(ValueError,'seal'):packet.admit(c,read(self.d/'FAMILY.json'),read(self.d/'REVIEW.json'),(self.d/'ORDER.md').read_text())
 
+class MergeAdmission(unittest.TestCase):
+ """Exercise production merge with JSON journals and small metadata/model boundaries."""
+ def setUp(self):
+  self.d=B/'work/tests'/uuid.uuid4().hex;self.d.mkdir(parents=True)
+  self.keys=['devrows:a','devrows:b']
+  self.tasks=[dict(id=k.split(':')[1],question_type='camera',room='r',stratum='primary') for k in self.keys]
+  self.request=dict(keys=self.keys,inputs={},artifact=dict(sha256='a'*64),binding={'fixture':True},
+                    perceptions={t['id']:{'fixture':t['id']} for t in self.tasks},geometry_refusals=[],
+                    grounding=dict(geometry_manifest=str(self.d/'geometry.json')),adapter_sources={})
+  self.rows=[dict(key=k,arm='unflagged',question_type='camera',room='r',stratum='primary',
+                  checkpoint_sha256='a'*64,binding=self.request['binding'],
+                  perception_identity=digest(self.request['perceptions'][t['id']]),mask_source='fixture',
+                  called=True,no_answer=False,call_errors=0,version_errors=0,scores={'released_answer':1.0},
+                  coordinates={'nested':[(1,2),(3,4)]}) for k,t in zip(self.keys,self.tasks)]
+  self.journal=self.d/'paired/results/items.jsonl';self.journal.parent.mkdir(parents=True)
+  self.record(self.rows)
+  write(self.d/'paired/request.json',self.request)
+  write(self.d/'paired/results/GPU_PARITY.json',{'pass':True})
+  write(self.d/'geometry.json',{'records':[]})
+  N=SimpleNamespace(load=read,validate_request=lambda request,live:request,
+      rows=lambda p:[json.loads(line) for line in p.read_text().splitlines()],
+      tasks_and_captures=lambda inputs:(self.tasks,[]),family=lambda q:q,FAMILIES=['camera'],
+      mask_source=lambda q:'fixture',checked=lambda p:p,Q=SimpleNamespace(REPORT_SEMANTICS={}),
+      pin=lambda p:dict(path=str(p),sha256=sha(p)))
+  self.session=SimpleNamespace(N=N,destination=self.d)
+  self.output=self.d/'merged'
+ def record(self,rows):
+  self.journal.write_text(''.join(json.dumps(row)+'\n' for row in rows))
+ def merge(self,rows=None,keys=None,fixture=False):
+  from admission import merge
+  modules={'r1':SimpleNamespace(accounting=lambda decoded:{}),
+           'gravity_guard':SimpleNamespace(report=lambda:{},identity=lambda:{}),
+           'native_metrics':SimpleNamespace(validate_gravity_guard=lambda *args:None,program_refusals=lambda rows:{})}
+  with patch.dict(sys.modules,modules):
+   return merge(self.session,self.rows if rows is None else rows,self.keys if keys is None else keys,self.output,fixture)
+ def assert_no_admission(self):
+  self.assertFalse((self.output/'R1.json').exists())
+  self.assertFalse((self.output/'IN_JOB_ADMISSION.json').exists())
+ def test_tuple_list_equal_rows_admit_journal_values(self):
+  self.assertNotEqual(self.rows,self.session.N.rows(self.journal))
+  result=self.merge()
+  self.assertEqual(result['arms']['unflagged'],self.session.N.rows(self.journal))
+  self.assertIsInstance(result['arms']['unflagged'][0]['coordinates']['nested'][0],list)
+  self.assertEqual(read(self.output/'IN_JOB_ADMISSION.json')['status'],'PASS')
+  self.assertFalse((self.output/'MERGE_DIFF.json').exists())
+ def test_changed_score_refuses_with_diff(self):
+  rows=deepcopy(self.rows);rows[0]['scores']['released_answer']=0.5
+  with self.assertRaisesRegex(ValueError,'authenticated native journal'):self.merge(rows)
+  self.assertEqual(read(self.output/'MERGE_DIFF.json'),{'keys':[self.keys[0]],'fields':{self.keys[0]:['scores']}})
+  self.assert_no_admission()
+ def test_missing_journal_key_refuses(self):
+  self.record(self.rows[:1])
+  with self.assertRaisesRegex(ValueError,'cardinality'):self.merge()
+  self.assert_no_admission()
+ def test_foreign_journal_key_refuses(self):
+  rows=deepcopy(self.rows);rows[1]['key']='devrows:foreign';self.record(rows)
+  with self.assertRaisesRegex(ValueError,'authenticated native journal'):self.merge()
+  self.assert_no_admission()
+ def test_missing_memory_key_refuses(self):
+  with self.assertRaisesRegex(ValueError,'membership'):self.merge(self.rows[:1])
+  self.assert_no_admission()
+ def test_duplicate_journal_key_refuses(self):
+  self.record([self.rows[0],self.rows[0]])
+  with self.assertRaisesRegex(ValueError,'cardinality'):self.merge()
+  self.assert_no_admission()
+ def test_absent_versus_null_field_is_reported(self):
+  rows=deepcopy(self.rows);rows[0]['optional']=None
+  with self.assertRaisesRegex(ValueError,'authenticated native journal'):self.merge(rows)
+  self.assertEqual(read(self.output/'MERGE_DIFF.json')['fields'],{self.keys[0]:['optional']})
+  self.assert_no_admission()
+ def test_boolean_integer_difference_refuses(self):
+  rows=deepcopy(self.rows);rows[0]['called']=1
+  with self.assertRaisesRegex(ValueError,'authenticated native journal'):self.merge(rows)
+  self.assertEqual(read(self.output/'MERGE_DIFF.json')['fields'],{self.keys[0]:['called']})
+  self.assert_no_admission()
+ def test_json_equality_still_checks_gpu_parity(self):
+  write(self.d/'paired/results/GPU_PARITY.json',{'pass':False})
+  with self.assertRaisesRegex(ValueError,'GPU parity failed'):self.merge()
+  self.assert_no_admission()
+ def test_json_equality_still_checks_full_denominator(self):
+  self.record(self.rows[:1])
+  with self.assertRaisesRegex(ValueError,'full denominator'):self.merge(self.rows[:1],self.keys[:1])
+  self.assert_no_admission()
+
 if __name__=='__main__':
- suite=unittest.defaultTestLoader.loadTestsFromTestCase(G2);r=unittest.TextTestRunner(verbosity=2).run(suite)
+ suite=unittest.defaultTestLoader.loadTestsFromModule(sys.modules[__name__]);r=unittest.TextTestRunner(verbosity=2).run(suite)
  write(B/'out/G2_TESTS.json',dict(tests=r.testsRun,failures=len(r.failures),errors=len(r.errors),status='PASS' if r.wasSuccessful() else 'FAIL'))
  sys.exit(not r.wasSuccessful())

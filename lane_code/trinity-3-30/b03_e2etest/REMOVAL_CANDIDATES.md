@@ -1,1 +1,2 @@
 - work/mirror/b03_e2etest_eat1_v1.tar and trinity-1-18:/scratch/jjyeung/n30_mirror/b03_e2etest/b03_e2etest_eat1_v1.tar and v1b (superseded by v1c); work/tmp/eat1_test_* (unit-test scratch)
+- work/mirror/b03_e2etest_eat1_v1c.tar and the trinity-1-18 copy (superseded by v2); work/b04_tiny (first b04 attempt, artifact bound to the wrong tree path)

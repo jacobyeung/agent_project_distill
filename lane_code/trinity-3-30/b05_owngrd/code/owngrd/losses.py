@@ -115,7 +115,31 @@ def supervised_contrastive(embeddings, ids, frames, weights, temperature, zero):
     return (loss*x.new_tensor(weights)[valid]).mean()
 
 
+def fp32_tree(value):
+    if isinstance(value, torch.Tensor):
+        return value.float() if value.is_floating_point() else value
+    if isinstance(value, dict):
+        return {k: fp32_tree(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return type(value)(fp32_tree(v) for v in value)
+    return value
+
+
+NO_PRESENCE = {'disputed_absent', 'miss', 'sliver', 'invalid_frame'}
+
+
+def distill_presence(row, role):
+    return row.get('why') in ('uncertain_absent', 'not_annotatable') or (
+        role in ('confuser', 'absent') and row.get('why') == 'absent')
+
+
 def compute_losses(out, targets, cfg):
+    # Keep every loss and its floating inputs in fp32, including under an outer autocast.
+    with torch.autocast(device_type=out['masks'].device.type, enabled=False), torch.autocast('cuda', enabled=False):
+        return _compute_losses(fp32_tree(out), fp32_tree(targets), cfg)
+
+
+def _compute_losses(out, targets, cfg):
     """targets contains one name record per output name; all frame indices are clip positions."""
     if len(targets) != len(out['masks']):
         raise ValueError('One target record required per name')
@@ -128,17 +152,18 @@ def compute_losses(out, targets, cfg):
         rows = target['frames']
         if len(rows) != out['presence'].shape[1] or len(target['decoder']) != out['masks'].shape[1]:
             raise ValueError('Targets do not match clip or decoder frame counts')
-        valid = [i for i, r in enumerate(rows) if r['presence'] is not None]
+        valid = [i for i, r in enumerate(rows) if r['presence'] is not None and r.get('why') not in NO_PRESENCE]
         if valid:
             label = out['presence'].new_tensor([rows[i]['presence'] for i in valid])
             parts['presence'].append(F.binary_cross_entropy_with_logits(out['presence'][n, valid], label))
         if target['clip_presence'] is not None:
             parts['clip'].append(F.binary_cross_entropy_with_logits(out['clip'][n], out['clip'].new_tensor(float(target['clip_presence']))))
-        distill = [i for i, r in enumerate(rows) if r['presence'] is None or target['role'] in ('confuser', 'absent')]
+        distill = [i for i, r in enumerate(rows) if distill_presence(r, target['role'])]
         if distill:
             label = out['presence'].new_tensor([rows[i]['teacher_presence'] for i in distill])
             parts['distill'].append(F.binary_cross_entropy_with_logits(out['presence'][n, distill], label))
         for f, frame in enumerate(target['decoder']):
+            row = rows[int(out['frame_ids'][f])]
             masks, logits, boxes = out['masks'][n, f], out['match'][n, f], out['boxes'][n, f]
             truth = [t for t in frame['targets'] if (t['mask'] > .5).any()]
             qi, ti = match_queries(masks, logits, boxes, truth, cfg.points)
@@ -158,19 +183,25 @@ def compute_losses(out, targets, cfg):
                     identity_ids.append(hard['instance'])
                     identity_frames.append(int(out['frame_ids'][f]))
                     identity_weights.append(hard['weight'])
+            ignored = [p for p in frame.get('proposals', []) if p.get('cls') == 'DISPUTED']
+            ignored += [p for p in frame['hardneg'] if p.get('selection_only')]
+            for proposal in ignored:
+                overlaps = mask_iou(masks.detach().sigmoid(), proposal['mask'].to(masks)) > .5
+                match_weight[overlaps] = 0
             parts['match'].append((focal(logits, match_target)*match_weight).mean())
-            if frame['presence'] is not None:
+            if row['presence'] is not None and row.get('why') not in NO_PRESENCE:
                 parts['presence'].append(F.binary_cross_entropy_with_logits(out['decoder_presence'][n, f],
-                    logits.new_tensor(float(frame['presence']))))
-            if frame['presence'] is None or target['role'] in ('confuser', 'absent'):
+                    logits.new_tensor(float(row['presence']))))
+            if distill_presence(row, target['role']):
                 parts['distill'].append(F.binary_cross_entropy_with_logits(out['decoder_presence'][n, f],
-                    logits.new_tensor(frame['teacher_presence'])))
-            for soft in frame['soft']:
+                    logits.new_tensor(row['teacher_presence'])))
+            for soft in frame['soft'] if distill_presence(row, target['role']) else []:
                 overlaps = mask_iou(masks.detach().sigmoid(), soft['mask'].to(masks))
                 q = int(overlaps.argmax())
-                # Joint probability uses the same product as inference, without an unstable inverse sigmoid.
-                joint = out['scores'][n, f, q].float().clamp(1e-6, 1-1e-6)
-                parts['distill'].append(F.binary_cross_entropy(joint, joint.new_tensor(soft['joint'])))
+                log_joint = F.logsigmoid(out['decoder_presence'][n, f]) + F.logsigmoid(logits[q])
+                log_absent = torch.log1p(-log_joint.exp().clamp(max=1-1e-6))
+                label = logits.new_tensor(soft['joint'])
+                parts['distill'].append(-label*log_joint - (1-label)*log_absent)
             if qi:
                 pred = masks[qi]
                 gt = torch.stack([truth[t]['mask'].to(masks) for t in ti])

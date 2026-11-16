@@ -6,6 +6,7 @@ histograms and no-information constants."""
 import sys, os, json, glob, re, hashlib, collections, numpy as np
 sys.path.insert(0, '/scratch/jjyeung/orch_n30/rows_rebuild3/work/validator'); import trace_grammar as g
 assert hashlib.sha256(open(g.__file__, 'rb').read()).hexdigest().startswith('a41ba191')
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); import rooms as RM
 FLOOR, EPS = 0.002, 0.0005
 D, roots = sys.argv[1], sys.argv[2:]
 R = {}
@@ -39,6 +40,7 @@ for fam in ('count_single', 'count_total', 'appearance', 'first_seen'):
         for e in g.validate_row(r): vrules[e.rule_id] += 1
         if fi != r['student_input']['frame_indices']: fail('pins differ')
         if EL.get(alias, {}).get('excluded') or alias not in EL: fail('scene not eligible')
+        if RM.status(pv['canonical']) != 'ok': fail('room is ' + RM.status(pv['canonical']))
         if hashlib.sha256(open(R[pv['raster']], 'rb').read()).hexdigest() != pv['raster_sha256']: fail('raster sha')
         q = r['student_input']['question']; qkeys[(alias, q)] += 1; per_scene[alias] += 1; hist[r['answer']] += 1
         if fam == 'count_single' or fam == 'count_total':

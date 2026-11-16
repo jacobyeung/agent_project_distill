@@ -15,3 +15,6 @@
 - Rehearsal canary: take the first subset rows, or preserve the sealed canary membership. Default: preserve the sealed membership and refuse a subset that omits any canary item (`out/guard_kit/checkpoint.py`).
 - Phase lifecycle: duplicate orchestration in the CPU runner, or call the production coordinator through explicit boundary adapters. Default: share the coordinator; record staging and allocation differences as unresolved rehearsal coverage (`out/guard_kit/worker.py`, `out/rehearsal/run_whole_worker.py`).
 - Receipt transport: wait through long cloud timeouts, or bound cloud attempts after a verified result-pool copy. Default: bound cloud attempts and reserve return time so early receipts can be acknowledged promptly (`out/guard_kit/transport.py`, `out/SIZING.json`).
+
+- G3 seal inventory: enumerate the live code directory or retain the sealed production member list. Default: retain the sealed list and verify that only `admission.py` changes; operator backups and rehearsal code stay excluded (`out/G3_SEAL.json`).
+- G3 evidence boundary: reopen the operator's run directory or record the supplied result. Default: use the operator's CPU-fixture report and leave `out/rehearsal/whole/` untouched; real tensors, GPU parity and token identity remain unproven (`out/rehearsal/OPERATOR_EVIDENCE_G3.json`).

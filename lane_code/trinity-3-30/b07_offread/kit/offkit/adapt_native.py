@@ -12,6 +12,9 @@ import re
 from pathlib import Path
 
 
+SCRIPTED = 'scripted'
+
+
 def _val(x):
     if isinstance(x, str) and x[:1] in '{[' :
         try:
@@ -58,7 +61,26 @@ def producer_error(row):
                 or _bool(row.get('producer_error')) or dec.get('finish') == 'error' or _bool(dec.get('producer_error')))
 
 
+SCRIPT_FIELDS = ('script_mode', 'script_answer')
+
+
+def check_not_scripted(row):
+    """Refuse a C8r scripted record. perception.scripted() writes script_answer / script_mode into the
+    decoded record, which the journal stores as row['decode'], so the fields are checked in the row
+    and in its decode, in dict or string form, and the arm label is compared case- and space-blind."""
+    if str(row.get('arm', '')).strip().lower() == SCRIPTED:
+        raise ValueError('row %s is from the scripted arm; it is never scored' % row.get('key'))
+    raw = row.get('decode')
+    dec = _val(raw)
+    for d in (row, dec if isinstance(dec, dict) else {}):
+        if any(d.get(f) is not None for f in SCRIPT_FIELDS):
+            raise ValueError('row %s carries a script answer; it is never scored' % row.get('key'))
+    if isinstance(raw, str) and not isinstance(dec, dict) and any(f in raw for f in SCRIPT_FIELDS):
+        raise ValueError('row %s carries a script answer; it is never scored' % row.get('key'))
+
+
 def unify(row, *, id_of=lambda r: str(r['key']), score_field='answer'):
+    check_not_scripted(row)
     st = states(row)
     scores = _val(row.get('scores')) or {}
     err = producer_error(row)
@@ -70,14 +92,11 @@ def unify(row, *, id_of=lambda r: str(r['key']), score_field='answer'):
                 calls=calls, calls_served=max(0, calls - bad), parse_failed=False, arm=row.get('arm'))
 
 
-SCRIPTED = 'scripted'
-
-
 def from_journal(path, arm, **kw):
     """Rows of one arm. The C8r `scripted` arm answers through a harness unit conversion (c8r
     perception.py), which USER ruling 4 (2026-11-16) bans, so it is refused, as is any row that
     carries a script answer."""
-    if arm == SCRIPTED:
+    if str(arm).strip().lower() == SCRIPTED:
         raise ValueError('the scripted arm answers through a harness unit conversion; it is never scored')
     out = []
     with Path(path).open() as f:
@@ -85,7 +104,5 @@ def from_journal(path, arm, **kw):
             if line.strip():
                 r = json.loads(line)
                 if r.get('arm') == arm:
-                    if r.get('script_mode') is not None or r.get('script_answer') is not None:
-                        raise ValueError('row %s carries a script answer; it is never scored' % r.get('key'))
                     out.append(unify(r, **kw))
     return out

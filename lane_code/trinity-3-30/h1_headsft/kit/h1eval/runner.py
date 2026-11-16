@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 from collections import defaultdict
 from . import scorers
+from .modes import mode_key, applies
 from e2e_reader.core import E2EGenerator
 
 
@@ -61,14 +62,14 @@ def run(items,factory,arms,modes,output):
             item=dict(item)
             for arm in arms:
                 base=factory(arm,{'name':'none'},item)(item)
-                for mode in [{'name':'none'},*modes] if arm=='own' else [{'name':'none'}]:
+                for mode in [{'name':'none'},*(m for m in modes if applies(m,item))] if arm=='own' else [{'name':'none'}]:
                     value=base if mode['name']=='none' else factory(arm,mode,item)(item)
                     measurements=measure(value,item,None if mode['name']=='none' else base)
                     # Keep text and pose readouts; depth grids are reduced by M2 before journaling.
                     saved={**value}
                     if 'heads' in saved:saved['heads']={k:v for k,v in saved['heads'].items() if k!='depth_grid'}
-                    row=dict(id=item['id'],room_key=item.get('room_key'),type=scorers.metadata(item)['question_type'],arm=arm,mode=mode['name'],
-                             intervention=mode,output=saved,measurements=measurements)
+                    row=dict(id=item['id'],room_key=item.get('room_key'),type=scorers.metadata(item)['question_type'],arm=arm,mode=mode_key(mode),
+                             item_set=item.get('item_set'),intervention=mode,output=saved,measurements=measurements)
                     f.write(json.dumps(row,allow_nan=False)+'\n');f.flush();rows.append(row)
     (output/'report.md').write_text(table(rows));return rows
 

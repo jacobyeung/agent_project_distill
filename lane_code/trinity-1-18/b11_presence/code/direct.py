@@ -107,6 +107,7 @@ def media(cap):
 
 
 PLACEHOLDER = '<|vision_start|><|video_pad|><|vision_end|>'
+SHIM = 'vllm023_outer_vision_pair'
 
 
 def engine_prompt(text):
@@ -176,7 +177,7 @@ def gpu_read(a):
     ident = model_identity(a.model)
     bind = {i['id']: binding_for(i, caps[i['capture']], ident) for i in items}
     prior = read_journal(journal)
-    stale = [k for k, r in prior.items() if k in bind and r.get('binding') != bind[k]]
+    stale = [k for k, r in prior.items() if k in bind and (r.get('binding') != bind[k] or r.get('prompt_shim') != SHIM)]
     if stale:
         raise SystemExit(f'{len(stale)} journal rows carry another binding (e.g. {stale[0]}); use a new --out')
     done = {k for k in prior if k in bind}
@@ -218,7 +219,7 @@ def gpu_read(a):
             c = o.outputs[0]
             ids = list(c.token_ids)
             row = {k: v for k, v in t.items()}
-            row.update(status='complete', binding=bind[t['example_id']], prompt_shim='vllm023_outer_vision_pair', model=CELL['model'], cell=CELL['name'], vllm_version=vllm.__version__,
+            row.update(status='complete', binding=bind[t['example_id']], prompt_shim=SHIM, model=CELL['model'], cell=CELL['name'], vllm_version=vllm.__version__,
                        raw_generation=c.text, token_ids_sha256=hashlib.sha256(json.dumps(ids).encode()).hexdigest(),
                        prompt_tokens=len(o.prompt_token_ids), finish_reason=c.finish_reason)
             row['full'] = score_item(t, c.text, len(ids), cap=CELL['max_tokens'], finish=c.finish_reason)
@@ -226,15 +227,15 @@ def gpu_read(a):
             row['B2048_meta'] = meta
             if meta['forced_close'] or meta['stopped_unclosed']:
                 creq, tail = continuation(tok, r, ids, BUDGET)
-                cont_idx.append(j); cont_req.append((creq, ids[:BUDGET], tail))
+                cont_idx.append(j); cont_req.append((creq, ids[:BUDGET], list(o.prompt_token_ids) + tail))
                 row['B2048'] = None
             else:
                 row['B2048'] = row['full']
             rows.append(row)
         if cont_req:
             cres = llm.generate([q for q, _, _ in cont_req], close_params)
-            for j, (q, pre, tail), o in zip(cont_idx, cont_req, cres):
-                if list(o.prompt_token_ids)[-len(tail):] != tail:
+            for j, (q, pre, full), o in zip(cont_idx, cont_req, cres):
+                if list(o.prompt_token_ids) != full:
                     raise SystemExit('Continuation prompt token IDs differ from exact prefix + close: ' + chunk_t[j]['example_id'])
                 c = o.outputs[0]
                 if len(c.token_ids) > 64:

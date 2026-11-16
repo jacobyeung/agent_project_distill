@@ -604,7 +604,7 @@ class ReviewFindingsTest(LaunchBase):
             value = real(path, config_raw, rules)
             write(os.path.join(prep, 'kit', 'code', 'entry.py'), "MODEL = 'changed'\n")
             job = util.read_json(os.path.join(prep, 'JOB.json'))
-            script, remote = launch.build_submission(os.path.join(prep, 'kit'), value[0], job, rules)
+            script, remote, _ = launch.build_submission(os.path.join(prep, 'kit'), value[0], job, rules)
             write(os.path.join(prep, 'BATCH.sh'), script)
             write(os.path.join(prep, 'SUBMIT.sh'), remote)
             return value
@@ -665,6 +665,44 @@ class ReviewFindingsTest(LaunchBase):
             launch.submit(prep2, self.go('GO %s\n' % second['token']), execute=True,
                           out=io.StringIO(), transport=transport)
         self.assertIn('queue behind', str(caught.exception))
+
+    def test_oc22_partition_comes_from_the_anchored_config(self):
+        kit, dry = self.kit()
+        record, prep = self.prepare(kit, dry)
+        stored = util.read_json(os.path.join(prep, 'SUBMIT.json'))
+        stored['partition'] = 'advanced'
+        util.write_json(os.path.join(prep, 'SUBMIT.json'), stored)
+        calls = []
+        with self.assertRaises(launch.LaunchError) as caught:
+            launch.submit(prep, self.go('GO %s\n' % record['token']), execute=True,
+                          transport=lambda argv, body: calls.append(body), out=io.StringIO())
+        self.assertIn('partition', str(caught.exception))
+        self.assertEqual(calls, [])
+
+    def test_oc26_job_file_and_every_kit_file_are_anchored(self):
+        kit, dry = self.kit()
+        for change in ('JOB', 'DRYRUN'):
+            record, prep = self.prepare(kit, dry)
+            job = util.read_json(os.path.join(prep, 'JOB.json'))
+            if change == 'JOB':
+                job['sessions'] = {'result.tar.gz': 'https://example.invalid/other'}
+                util.write_json(os.path.join(prep, 'JOB.json'), job)
+            else:
+                write(os.path.join(prep, 'kit', 'DRYRUN_REPORT.json'), '{"note": "added later"}')
+            config = util.read_json(os.path.join(prep, 'kit', 'CONFIG.json'))
+            script, remote, _ = launch.build_submission(os.path.join(prep, 'kit'), config, job, self.loose)
+            write(os.path.join(prep, 'BATCH.sh'), script)
+            write(os.path.join(prep, 'SUBMIT.sh'), remote)
+            stored = util.read_json(os.path.join(prep, 'SUBMIT.json'))
+            stored.update(script_sha256=util.sha256_bytes(script.encode()),
+                          submit_sha256=util.sha256_bytes(remote.encode()))
+            util.write_json(os.path.join(prep, 'SUBMIT.json'), stored)
+            calls = []
+            with self.assertRaises(launch.LaunchError, msg=change) as caught:
+                launch.submit(prep, self.go('GO %s\n' % record['token']), execute=True,
+                              transport=lambda argv, body: calls.append(body), out=io.StringIO())
+            self.assertIn('payload', str(caught.exception))
+            self.assertEqual(calls, [])
 
 
 if __name__ == '__main__':

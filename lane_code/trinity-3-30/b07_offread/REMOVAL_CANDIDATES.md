@@ -1,0 +1,31 @@
+# Removal candidates (lane b07_offread, trinity-3-30); the user deletes, the lane never does
+Scratch on 3-30 is at its floor (ORCH 1507Z). Every item below is regenerable test scratch; the authoritative evidence (out/ logs, code.tar, packages) stays.
+
+- `/scratch/jjyeung/orch_n30/b07_offread/builds/N/work/pytest_01` (124K): pytest/scratch fixture output or superseded copy.
+- `/scratch/jjyeung/orch_n30/b07_offread/builds/N/work/pytest_02` (676K): pytest/scratch fixture output or superseded copy.
+- `/scratch/jjyeung/orch_n30/b07_offread/builds/N/work/pytest_b07n3` (234M): pytest/scratch fixture output or superseded copy.
+- `/scratch/jjyeung/orch_n30/b07_offread/builds/N/work/pytest_b07rp2` (234M): pytest/scratch fixture output or superseded copy.
+- `/scratch/jjyeung/orch_n30/b07_offread/builds/N/work/pytest_b07v2` (105M): pytest/scratch fixture output or superseded copy.
+- `/scratch/jjyeung/orch_n30/b07_offread/builds/N/work/pytest_b07v3` (73M): pytest/scratch fixture output or superseded copy.
+- `/scratch/jjyeung/orch_n30/b07_offread/builds/N/work/pytest_b07v4` (30M): pytest/scratch fixture output or superseded copy.
+- `/scratch/jjyeung/orch_n30/b07_offread/builds/N/work/pytest_b07v5` (30M): pytest/scratch fixture output or superseded copy.
+- `/scratch/jjyeung/orch_n30/b07_offread/builds/N/work/pytest_b07verify` (800K): pytest/scratch fixture output or superseded copy.
+- `/scratch/jjyeung/orch_n30/b07_offread/builds/N/work/pytest_final` (800K): pytest/scratch fixture output or superseded copy.
+- `/scratch/jjyeung/orch_n30/b07_offread/builds/N/work/pytest_n2_01` (1.5M): pytest/scratch fixture output or superseded copy.
+- `/scratch/jjyeung/orch_n30/b07_offread/builds/N/work/pytest_n2_02` (19M): pytest/scratch fixture output or superseded copy.
+- `/scratch/jjyeung/orch_n30/b07_offread/builds/N/work/pytest_n2_03` (30M): pytest/scratch fixture output or superseded copy.
+- `/scratch/jjyeung/orch_n30/b07_offread/builds/N/work/pytest_n2_04` (105M): pytest/scratch fixture output or superseded copy.
+- `/scratch/jjyeung/orch_n30/b07_offread/builds/N/work/pytest_n2_final` (105M): pytest/scratch fixture output or superseded copy.
+- `/scratch/jjyeung/orch_n30/b07_offread/builds/N/work/pytest_n2_release` (105M): pytest/scratch fixture output or superseded copy.
+- `/scratch/jjyeung/orch_n30/b07_offread/builds/N/work/pytest_n3_final` (234M): pytest/scratch fixture output or superseded copy.
+- `/scratch/jjyeung/orch_n30/b07_offread/builds/N/work/pytest_n3_first` (191M): pytest/scratch fixture output or superseded copy.
+- `/scratch/jjyeung/orch_n30/b07_offread/builds/N/work/pytest_n3_release` (234M): pytest/scratch fixture output or superseded copy.
+- `/scratch/jjyeung/orch_n30/b07_offread/builds/N/work/pytest_n3_second` (234M): pytest/scratch fixture output or superseded copy.
+- `/scratch/jjyeung/orch_n30/b07_offread/builds/N/work/repin2_20261116T143156Z_tests` (234M): pytest/scratch fixture output or superseded copy.
+- `/scratch/jjyeung/orch_n30/b07_offread/builds/R/work/pytest_b07rp2` (23M): pytest/scratch fixture output or superseded copy.
+- `/scratch/jjyeung/orch_n30/b07_offread/builds/R/work/pytest_b07verify` (23M): pytest/scratch fixture output or superseded copy.
+- `/scratch/jjyeung/orch_n30/b07_offread/builds/R/work/pytest_tmp` (4.0K): pytest/scratch fixture output or superseded copy.
+- `/scratch/jjyeung/orch_n30/b07_offread/kit_v2` (280K): pytest/scratch fixture output or superseded copy.
+- `/scratch/jjyeung/orch_n30/b07_offread/work/stage_rv/A.tar` (0): pytest/scratch fixture output or superseded copy.
+- `/scratch/jjyeung/orch_n30/b07_offread/work/stage_rv/t` (40K): pytest/scratch fixture output or superseded copy.
+- `/scratch/jjyeung/orch_n30/b07_offread/work/stage_rv/t2` (648K): pytest/scratch fixture output or superseded copy.

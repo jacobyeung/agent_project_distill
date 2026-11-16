@@ -1,0 +1,358 @@
+--- V1f/code/o.py
++++ V1g/code/o.py
+@@ -285,6 +285,12 @@
+                   (S.physical(root,original['assets']['tree_root']),original['assets']['tree_root'],False),
+                   (root/'c','/x',False),(root/'c',root/'c',False),(root/'a','/a',False),
+                   (root/'b','/b',False),(root/'e','/d',False)]
++        # The processor and base loader open the staged snapshot at its sealed logical path.
++        model_manifest=load(S.physical(root,original['assets']['model_manifest']['path']))
++        snapshot=Path(model_manifest['root'])
++        if not snapshot.is_relative_to(S.PROJECT) or '..' in snapshot.parts:
++            raise ValueError('student snapshot is outside the staged project')
++        bindings.append((S.physical(root,snapshot),snapshot,False))
+         for value in runtime['import_paths'].values():bindings.append((value,value,False))
+         venv=Path(runtime['python']['path']).parent.parent
+         bindings += [(venv,venv,False),(root/'z.json',root/'z.json',False),(root/'w.json',root/'w.json',False)]
+--- V1f/tests/test_v1g.py
++++ V1g/tests/test_v1g.py
+@@ -0,0 +1,23 @@
++"""Real staged paths must be covered by the production read bindings."""
++from pathlib import Path
++import sys,unittest
++B=Path(__file__).resolve().parents[1]
++sys.path.append(str(B/'work'))
++import path_audit
++class Paths(unittest.TestCase):
++    def test_real_metadata_audit(self):
++        value=path_audit.build();path_audit.assert_audit(value)
++        self.assertEqual(value['step'],544)
++        self.assertEqual(len(value['model_members']),13)
++        rows=[r for r in value['paths'] if r['path'].startswith(value['model_root'])]
++        self.assertTrue(rows)
++        self.assertTrue(all(r['target']==value['model_root'] and r['writable'] is False for r in rows))
++        self.assertFalse(any(b['target']=='/project/community/jjyeung' for b in value['bindings']))
++    def test_missing_snapshot_fails_closed(self):
++        value=path_audit.build(omit_snapshot=True)
++        with self.assertRaises(ValueError):path_audit.assert_audit(value)
++        self.assertIn(value['model_root']+'/tokenizer_config.json',value['unbound'])
++    def test_escape_fails_closed(self):
++        value=path_audit.build();value['paths'][0]['bound']=False
++        with self.assertRaises(ValueError):path_audit.assert_audit(value)
++if __name__=='__main__':unittest.main()
+--- V1f/out/rehearsal/RUNBOOK.md
++++ V1g/out/rehearsal/RUNBOOK.md
+@@ -1,25 +1,18 @@
+-Run the CPU namespace rehearsal outside the Codex sandbox on trinity-1-3:
++From the build directory, run the audit and CPU namespace rehearsal:
+ 
+ ```bash
+-cd /scratch/jjyeung/orch_n30/native_r4/builds/07_vsti_f
++cd /scratch/jjyeung/orch_n30/native_r4/builds/08_vsti_g
++./work/py work/path_audit.py
++./work/py -m unittest discover -s tests -v
++./work/py work/adapt_legacy.py
++./work/py work/legacy_extra.py
+ ./work/py out/rehearsal/run_rehearsal.py --fixture-tower
+ ```
+ 
+-The harness uses explicit host bwrap, private shared memory, synthetic tower/head/token boundaries, and the production preparation, decoder, replay and report logic. The optional frame-index fixture is explicitly absent, matching V1c's inherited test conditions. The shared reference list now uses a different schema; this build does not change the production adapter.
++The rehearsal recomputes the real-metadata audit before attempting bwrap and inside the namespace. Any unbound required path aborts the run. The missing-snapshot regression test confirms that the processor path fails without the added mount. The model snapshot bind comes directly from the production binding code, rather than the synthetic fixture.
+ 
+-The full 311-scene return-size rehearsal already ran on CPU. Its command is:
++Inspect PATH_AUDIT.json for exact files, directory coverage, physical sources and read-only targets. The audit authenticates the locally available metadata/model archives and step-544 artifact. The local inputs lack the full-weights/index and depth-head metadata payloads; exact payload-selected filenames, GPU loading and runtime opens require the real staged job.
+ 
+-```bash
+-./work/py work/rehearse_return_f.py
+-./work/py work/verify_return_f.py
+-```
++The CPU pipeline uses synthetic tower/head/token boundaries and the production geometry, decoder, replay and report logic. The optional frame-index fixture is explicitly absent, as in the inherited tests. This does not alter production inputs.
+ 
+-This creates a fresh local fixture and archive; it uses production-shape arrays and the actual return publisher with remote transport calls mocked. See out/RETURN_SIZE.json. No GPU, Orchard namespace, live return channel or remote deadline timing is certified.
+-
+-Build the named report from an actual returned full archive with:
+-
+-```bash
+-./work/py work/report_return.py --archive work/returned.tar.gz --root work/returned_report
+-```
+-
+-A diagnostic minimal return may lack the prepared input manifests or MERGED needed for a report. A full return that omits scaled arrays remains reportable but does not contain those arrays for resume. Inspect INVENTORY.json before resuming.
++In the Codex sandbox, bwrap exits with a NETLINK_ROUTE permission error. The harness records this in NAMESPACE.json and executes the CPU pipeline without a namespace. RESULT.json therefore reports CPU success and namespace unavailability separately. Run the command outside that sandbox to check namespace creation; this build does not certify an Orchard mount or a real checkpoint load.
+--- V1f/out/rehearsal/run_rehearsal.py
++++ V1g/out/rehearsal/run_rehearsal.py
+@@ -9,6 +9,8 @@
+ B=Path(__file__).resolve().parents[2];R=B.parents[1]
+ sys.path.append(str(B/'code'))
+ from adapter import *
++sys.path.append(str(B/'work'))
++from path_audit import build as audit_paths, assert_audit
+ 
+ def inner(dest,force_fixture=False):
+     import coverage
+@@ -43,6 +45,8 @@
+ 
+ def main():
+     p=argparse.ArgumentParser();p.add_argument('--inner',action='store_true');p.add_argument('--dest');p.add_argument('--fixture-tower',action='store_true');a=p.parse_args()
++    audit=audit_paths();assert_audit(audit)
++    if not a.inner:dump(B/'out/PATH_AUDIT.json',audit)
+     if a.inner:return inner(a.dest,a.fixture_tower)
+     from venue import namespace
+     root=B/'work'/('ns_'+uuid.uuid4().hex)
+@@ -58,6 +62,7 @@
+     else:
+         # A denied nested namespace is a sandbox capability result, not a killed cluster job.
+         dest=B/'work'/('rh_'+uuid.uuid4().hex);value=inner(dest,a.fixture_tower);value['namespace']='not available; see NAMESPACE.json'
++    value['path_audit']=pin(B/'out/PATH_AUDIT.json');value['path_audit_passed']=True
+     value['path']=str(dest);dump(B/'out/rehearsal/RESULT.json',value)
+     for name in ('REPORT.json','REPORT.md'):(B/name).write_bytes((dest/name).read_bytes())
+ if __name__=='__main__':main()
+--- V1f/work/path_audit.py
++++ V1g/work/path_audit.py
+@@ -0,0 +1,136 @@
++"""Audit the real sealed input paths against the allocation wrapper's binding code."""
++import ast, hashlib, json, sys, tarfile
++from pathlib import Path
++from types import SimpleNamespace
++B=Path(__file__).resolve().parents[1];R=B.parents[1]
++sys.path.append(str(B/'code'))
++from adapter import load,dump,pin,sha
++from venue import FSW,AP
++PROJECT=Path('/project/community/jjyeung');ROOT=Path('/tmp/a15_PATH_AUDIT')
++OBJ=R/'from113/work/obj'
++
++def physical(root,path):
++    p=Path(path)
++    for logical,folder in ((PROJECT,'project'),(Path(FSW),'fsw'),(Path(AP),'m/ap'),(Path('/scratch/jjyeung'),'sj')):
++        if p.is_relative_to(logical):return root/folder/p.relative_to(logical)
++    raise ValueError('unregistered staged path: '+str(p))
++
++def absolute(value,trail=''):
++    if isinstance(value,dict):
++        for k,v in value.items():yield from absolute(v,trail+'.'+k)
++    elif isinstance(value,list):
++        for i,v in enumerate(value):yield from absolute(v,trail+'.'+str(i))
++    elif isinstance(value,str) and value.startswith('/'):yield trail,value
++
++def read_bindings(original,model,omit_snapshot=False):
++    a=original['assets'];root=ROOT
++    runtime=dict(python=dict(path=str(root/'runtime/rwtrain_torch211_cu129/bin/python3.12')),
++        import_paths=dict(fla=str(root/'fla/p'),numpy=str(root/'numpy'),kit=str(physical(root,a['kit_import_root'])),
++                          anyhost=str(root/'closure'),aliases=str(physical(root,a['aliases_root']))))
++    source=(B/'code/o.py').read_text()
++    start=source.index('        bindings=[',source.index('def run(config_path):'))
++    end=source.index('        # Authenticated runtime overlays',start)
++    block='\n'.join(line[8:] for line in source[start:end].splitlines())
++    ctx=dict(root=root,original=original,runtime=runtime,Path=Path,FSW=FSW,AP=AP,
++             S=SimpleNamespace(physical=physical,PROJECT=PROJECT),load=lambda p:model)
++    exec(compile(block,str(B/'code/o.py'),'exec'),ctx)
++    bindings=ctx['bindings']
++    if omit_snapshot:bindings=[b for b in bindings if str(b[1])!=model['root']]
++    bindings += [(root/'run','/r',True),(root/'cache','/cache',True),(root/'tmp','/tmp',True)]
++    return bindings,runtime
++
++def build(omit_snapshot=False):
++    f=load(B/'out/FAMILY.json');a=f['parent_config']['assets'];docs={};document_hashes={};sources=[]
++    # Read small metadata only; never unpack or hash any large checkpoint.
++    for role in ('metadata','model'):
++        record=next(x for x in a['small_objects'] if x['role']==role)
++        archive=OBJ/Path(record['name']).name
++        if sha(archive)!=record['sha256']:raise ValueError('real metadata archive pin differs')
++        sources.append(pin(archive))
++        with tarfile.open(archive) as t:
++            for m in t:
++                if m.isfile() and m.name.endswith('.json') and m.size<16*1024**2:
++                    raw=t.extractfile(m).read()
++                    if hashlib.sha256(raw).hexdigest()!=record['members'][m.name]['sha256']:raise ValueError('metadata member differs')
++                    logical=str(Path(FSW)/m.name[4:]) if m.name.startswith('fsw/') else str(Path('/scratch/jjyeung')/m.name[3:]) if m.name.startswith('sj/') else None
++                    if logical:
++                        docs[logical]=json.loads(raw);document_hashes[logical]=hashlib.sha256(raw).hexdigest()
++    if sha(B/'out/d.tar')!='9a1de8608ea0e75e2f2436259b81f0e991b2007002a59de11d85062e8384d08f':raise ValueError('reference archive differs')
++    with tarfile.open(B/'out/d.tar') as t:
++        request=json.load(t.extractfile('native/paired/request.json'))
++        media=json.load(t.extractfile('d.json'))
++    artifact=load(OBJ/'m544_artifact.json')
++    if sha(OBJ/'m544_artifact.json')!=request['artifact']['sha256']:raise ValueError('step-544 artifact differs')
++    sources += [pin(OBJ/'m544_artifact.json'),pin(B/'out/d.tar')]
++    for key in ('config','data_receipt'):
++        if document_hashes[request[key]['path']]!=request[key]['sha256']:raise ValueError('request metadata differs')
++    cfg=docs[request['config']['path']];receipt=docs[cfg['preparation']['path']]
++    for record in (cfg['preparation'],cfg['code'],receipt['model']):
++        if document_hashes[record['path']]!=record['sha256']:raise ValueError('nested metadata pin differs')
++    model=docs[receipt['model']['path']]
++    if receipt['model']!=a['model_manifest']:raise ValueError('model manifest differs')
++    if cfg.get('align') or receipt.get('geometry_online') or receipt.get('mdg'):
++        raise ValueError('unaudited model-loader branch')
++    bindings,runtime=read_bindings(f['parent_config'],model,omit_snapshot)
++    records={}
++    def add(path,origin,kind='file'):
++        p=Path(path)
++        if not p.is_absolute() or '..' in p.parts:raise ValueError('noncanonical read path '+str(p))
++        key=(str(p),kind);records.setdefault(key,set()).add(origin)
++    for k in ('artifact','config','data_receipt'):add(request[k]['path'],'request.'+k)
++    for k in ('preparation','code'):add(cfg[k]['path'],'config.'+k)
++    add(receipt['model']['path'],'preparation.model')
++    add(model['root'],'processor_for / load_model and optional Transformers local-file probes','subtree')
++    for name in ('processor_config.json','generation_config.json','added_tokens.json','special_tokens_map.json','chat_template.json'):
++        add(Path(model['root'])/name,'optional Transformers local-file existence probe')
++    for name in model['files']:add(Path(model['root'])/name,'model.files: tokenizer, processor and base weights')
++    for k in ('heads','full_weights'):add(artifact[k]['path'],'step-544 artifact.'+k)
++    # Payload manifests are unavailable locally. Their complete child namespace is audited;
++    # stage verifies the export inventory, and full_ft requires basename-only shard names.
++    add(Path(artifact['full_weights']['path']).parent,'full_ft.read_export index and all shard children','subtree')
++    for item in a['depth']:add(item['logical_path'],'load_depth_stage1: heads metadata, encoder copy and point-depth weights')
++    for name in a['tree_sources']:add(Path(a['tree_root'])/name,'sealed trainer tree (conservative complete inventory)')
++    for p in sorted((B/'code').rglob('*')):
++        if p.is_file():add(Path('/x')/p.relative_to(B/'code'),'shipped adapter/import/source verification')
++    for n in ('c.json','d.json','e.json','s.json','f.jsonl','g.jsonl','selected_frames_vstibench.json'):add('/d/'+n,'read input or optional existence probe')
++    for path,origin,kind in [('/b/frames','media-selected RGB frames','subtree'),('/r/i','prepared input manifests and frame store','subtree'),('/r/v','resume input validation','subtree'),('/r/cell/g/raw','tower receipt and raw NPZ inputs','subtree'),('/r/cell/g/scaled','scale outputs and geometry manifest','subtree'),('/r/p/PROOF.json','read proof receipt','file'),('/r','journals, resume segments, phase receipts and merged return','subtree'),('/a/model.safetensors','frozen tower input','file'),('/a/config.json','frozen tower configuration','file'),('/a/model.safetensors.RECEIPT.json','frozen tower receipt','file')]:add(path,origin,kind)
++    for p in runtime['import_paths'].values():add(p,'native runtime import closure','subtree')
++    add(Path(runtime['python']['path']).parent.parent,'native Python interpreter and installed packages','subtree')
++    for n in ('z.json','w.json'):add(ROOT/n,'allocation runtime/worker spec')
++    for n in ('home','temp','cache'):add(ROOT/n,'allocation runtime environment','subtree')
++    for n in ('usr','etc','bin','sbin','lib','lib64','sys','opt','run','proc','dev'):
++        bindings.append((Path('/')/n,Path('/')/n,n in ('proc','dev')))
++        add('/'+n,'venue.namespace system/runtime closure','subtree')
++    rows=[]
++    for (p,kind),origins in sorted(records.items()):
++        matches=[b for b in bindings if Path(p).is_relative_to(Path(b[1]))
++                 and not (Path(p).is_relative_to(ROOT) and str(b[1])=='/tmp')]
++        match=max(matches,key=lambda b:len(str(b[1]))) if matches else None
++        rows.append(dict(path=p,kind=kind,origins=sorted(origins),bound=match is not None,
++                         target=str(match[1]) if match else None,physical=str(Path(match[0])/Path(p).relative_to(match[1])) if match else None,
++                         writable=match[2] if match else None))
++    # Preserve references that are metadata values, not file-open instructions.
++    informational=[]
++    for name,value in [('config',cfg),('data_receipt',docs[request['data_receipt']['path']]),('preparation',receipt),('artifact',artifact),('media',media)]:
++        for field,path in absolute(value,name):
++            if (path,'file') not in records and (path,'directory') not in records:
++                informational.append(dict(field=field,path=path,role=('source-media provenance only; adapter reads staged /b/frames and does not open original video/receipt locations' if name=='media' else 'provenance/training metadata; read_runtime.prepared compares values without opening training streams; init_artifact is explicitly omitted before loading')))
++    unbound=[r['path'] for r in rows if not r['bound']]
++    return dict(schema='read-path-audit-v1',passed=not unbound,unbound=unbound,paths=rows,
++                bindings=[dict(source=str(s),target=str(t),writable=w) for s,t,w in bindings],
++                sources=sources,audit_source=pin(__file__),source_pins={str(p.relative_to(B)):sha(p) for p in [B/'code/o.py',B/'code/a.py',B/'code/engine.py']},
++                model_root=model['root'],model_members=list(model['files']),step=artifact['step'],
++                informational_references=informational,
++                scope='Real pinned metadata and source-level path closure for prepare and read; subtree rows cover runtime-generated filenames and manifest-selected children, not a GPU open trace.',
++                unavailable_payload_metadata=['step-544 full_weights.json/index payload','depth heads.json payload'],
++                not_checked=['Actual GPU checkpoint load','Orchard mount execution','Payload byte availability beyond the staging attestations'],
++                prohibited_loads='No object-grounding selector or VSTI-fitted file is loaded; camera_only policy and geometry preparation are unchanged.')
++
++def assert_audit(value):
++    if not value['passed'] or value['unbound']:raise ValueError('unbound read paths: '+repr(value['unbound']))
++    if not value['paths'] or any(not r['bound'] for r in value['paths']):raise ValueError('incomplete read audit')
++
++def main():
++    result=build();dump(B/'out/PATH_AUDIT.json',result);assert_audit(result)
++    print('Real-metadata path audit:',len(result['paths']),'paths/closures; zero unbound')
++if __name__=='__main__':main()
+--- V1f/work/package_g.py
++++ V1g/work/package_g.py
+@@ -0,0 +1,34 @@
++"""Seal V1g with the exact reference archive and unchanged family policy."""
++from pathlib import Path
++import difflib,sys,tarfile
++B=Path(__file__).resolve().parents[1];OLD=B.parent/'07_vsti_f';sys.path.append(str(B/'code'))
++from adapter import *
++import engine
++assert sha(B/'out/d.tar')==sha(OLD/'out/d.tar')=='9a1de8608ea0e75e2f2436259b81f0e991b2007002a59de11d85062e8384d08f'
++with tarfile.open(B/'out/c.tar','w') as t:
++ for p in sorted((B/'code').rglob('*')):
++  if not p.is_file():continue
++  info=tarfile.TarInfo(str(p.relative_to(B/'code')));info.size=p.stat().st_size;info.mtime=0;info.mode=p.stat().st_mode&0o777
++  with p.open('rb') as stream:t.addfile(info,stream)
++f=load(OLD/'out/FAMILY.json');f['code']=pin(B/'out/c.tar');f['code_sources']=engine.source_pins()
++f['added']['c'].update(sha256=sha(B/'out/c.tar'),bytes=(B/'out/c.tar').stat().st_size,generation=None,verified=False)
++dump(B/'out/FAMILY.json',f)
++patch=[];changed=[]
++for group in ('code','tests','out/rehearsal'):
++ for p in sorted((B/group).rglob('*')):
++  if not p.is_file() or group=='out/rehearsal' and p.name not in ('RUNBOOK.md','run_rehearsal.py'):continue
++  rel=p.relative_to(B);old=OLD/rel
++  if old.exists() and old.read_bytes()==p.read_bytes():continue
++  changed.append(str(rel))
++  patch.extend(difflib.unified_diff(old.read_text().splitlines(True) if old.exists() else [],p.read_text().splitlines(True),fromfile='V1f/'+str(rel),tofile='V1g/'+str(rel)))
++for name in ('work/path_audit.py','work/package_g.py','work/finalize_g.py'):
++ p=B/name
++ if p.exists():
++  old=OLD/name
++  patch.extend(difflib.unified_diff(old.read_text().splitlines(True) if old.exists() else [],p.read_text().splitlines(True),fromfile='V1f/'+name,tofile='V1g/'+name))
++(B/'out/DIFF_vs_V1f.patch').write_text(''.join(patch))
++assert [p for p in changed if p.startswith('code/')]==['code/o.py']
++old_batch=[line for line in (OLD/'code/o.py').read_text().splitlines() if '#SBATCH' in line]
++assert old_batch==[line for line in (B/'code/o.py').read_text().splitlines() if '#SBATCH' in line]
++dump(B/'out/PACKAGE.json',dict(code=pin(B/'out/c.tar'),family=pin(B/'out/FAMILY.json'),reference=pin(B/'out/d.tar'),changed=changed,batch_directives_identical=True))
++print('V1g sealed; only production code change is the student snapshot binding.')
+--- V1f/work/finalize_g.py
++++ V1g/work/finalize_g.py
+@@ -0,0 +1,72 @@
++"""Verify the isolated snapshot-bind change and seal local evidence."""
++from pathlib import Path
++import ast,hashlib,json,re,sys,tarfile,time
++B=Path(__file__).resolve().parents[1];OLD=B.parent/'07_vsti_f'
++sys.path.append(str(B/'code'));sys.path.append(str(B/'work'))
++from adapter import load,dump,pin,sha
++import engine,path_audit
++old=(OLD/'code/o.py').read_text();new=(B/'code/o.py').read_text()
++start=new.index('        # The processor and base loader')
++end=new.index("        for value in runtime['import_paths']",start)
++assert new[:start]+new[end:]==old
++changed=[]
++for p in sorted((B/'code').rglob('*')):
++ if p.is_file() and p.read_bytes()!=(OLD/'code'/p.relative_to(B/'code')).read_bytes():changed.append(str(p.relative_to(B)))
++assert changed==['code/o.py']
++f=load(B/'out/FAMILY.json');baseline=load(OLD/'out/FAMILY.json');expected=json.loads(json.dumps(baseline))
++for k in ('code','code_sources'):expected[k]=f[k]
++expected['added']['c']=f['added']['c'];assert expected==f
++assert f['code_sources']==engine.source_pins()
++assert sha(B/'out/d.tar')==sha(OLD/'out/d.tar')=='9a1de8608ea0e75e2f2436259b81f0e991b2007002a59de11d85062e8384d08f'
++with tarfile.open(B/'out/c.tar') as t:
++ members=t.getmembers();assert all(m.isfile() for m in members)
++ assert {m.name for m in members}=={str(p.relative_to(B/'code')) for p in (B/'code').rglob('*') if p.is_file()}
++ for m in members:assert hashlib.sha256(t.extractfile(m).read()).hexdigest()==sha(B/'code'/m.name)
++audit=load(B/'out/PATH_AUDIT.json');path_audit.assert_audit(audit);assert audit==path_audit.build()
++kit=B/'work/kit_final.log';assert re.search(r'Ran 70 tests.*\n\nOK\s*$',kit.read_text(),re.S)
++assert (B/'work/audit_test.log').read_text().rstrip().endswith('OK')
++legacy=load(B/'out/LEGACY_TESTS.json');extra=load(B/'out/LEGACY_EXTRA.json')
++assert legacy['run']==28 and not legacy['errors'] and not legacy['failures']
++assert extra['run']==2 and extra['passed']
++rh=load(B/'out/rehearsal/RESULT.json');assert rh['passed'] and rh['path_audit_passed']
++assert rh['path_audit']==pin(B/'out/PATH_AUDIT.json')
++seen=set();unique=allocated=0
++for p in B.rglob('*'):
++ if not p.is_file():continue
++ st=p.stat()
++ if (st.st_dev,st.st_ino) not in seen:
++  seen.add((st.st_dev,st.st_ino));unique+=st.st_size;allocated+=st.st_blocks*512
++assert unique<3_000_000_000 and allocated<3_000_000_000
++footprint=dict(unique_bytes=unique,allocated_bytes=allocated,limit_bytes=3_000_000_000)
++dump(B/'out/TESTS.json',dict(passed=True,kit_run=70,inherited_run=30,kit_log=pin(kit),audit_tests=pin(B/'work/audit_test.log'),
++ inherited=pin(B/'out/LEGACY_TESTS.json'),extra=pin(B/'out/LEGACY_EXTRA.json'),cpu_rehearsal=pin(B/'out/rehearsal/RESULT.json'),namespace_executed=rh['namespace']=='executed'))
++dump(B/'out/PACKAGE_VERIFY.json',dict(passed=True,changed_code=changed,only_snapshot_binding_changed=True,
++ family_policy_unchanged=True,d_byte_identical=True,code_members_verified=True,footprint=footprint))
++pkg=load(B/'out/PACKAGE.json')
++for k in ('code','family','reference'):assert pkg[k]==pin(B/'out'/dict(code='c.tar',family='FAMILY.json',reference='d.tar')[k])
++unchecked=['Actual GPU processor/model/head loading and scale/read execution',
++ 'Actual namespace mount: sandbox bwrap NETLINK_ROUTE denied',
++ 'Exact payload-selected export/index/depth filenames: local metadata payloads unavailable; audit uses complete directory coverage',
++ 'Orchard execution, served-output equality and live return transport']
++dump(B/'out/FINAL_RESULT.json',dict(status='built; CPU verified; namespace and exact payload audit limited',package=pkg,
++ audit=pin(B/'out/PATH_AUDIT.json'),tests=pin(B/'out/TESTS.json'),verify=pin(B/'out/PACKAGE_VERIFY.json'),not_checked=unchecked))
++lines=[
++'RESULT: V1g built; only the read-only student snapshot binding changes production code (code/o.py).',
++'Code SHA256 '+pkg['code']['sha256']+' (out/c.tar).',
++'Family SHA256 '+pkg['family']['sha256']+' (out/FAMILY.json).',
++'Reference SHA256 '+pkg['reference']['sha256']+'; byte-identical to V1f (out/d.tar).',
++'Audit SHA256 '+sha(B/'out/PATH_AUDIT.json')+' (out/PATH_AUDIT.json).',
++'Diff SHA256 '+sha(B/'out/DIFF_vs_V1f.patch')+' (out/DIFF_vs_V1f.patch).',
++f"Audit: {len(audit['paths'])} exact paths/directory closures; zero unbound; missing-snapshot regression fails closed (out/PATH_AUDIT.json; work/audit_test.log).",
++'Tests: 70 kit and 30 inherited pass (out/TESTS.json).',
++'CPU pipeline passes; namespace creation is denied by sandbox NETLINK_ROUTE permissions (out/rehearsal/RESULT.json; out/rehearsal/NAMESPACE.json).',
++'No object-grounding selector or VSTI-fitted file is loaded (out/DECISIONS.md).',
++'Served calls, frames, tokens, scores, proof, phase order, budgets and return code are byte-identical (out/PACKAGE_VERIFY.json).',
++f"Footprint: {unique} unique bytes; {allocated} allocated; cap 3000000000 bytes (out/PACKAGE_VERIFY.json).",
++'Unchecked: exact export/index/depth payload-selected filenames; audit uses directory coverage (out/PATH_AUDIT.json).',
++'Unchecked: GPU load/scale/read, Orchard mounts, output equality and live transport; no submission (out/FINAL_RESULT.json).',
++'Operator command and audit gate: out/rehearsal/RUNBOOK.md.'
++]
++(B/'events'/(time.strftime('%Y%m%dT%H%MZ',time.gmtime())+'_RESULT_final.md')).write_text('\n'.join(lines)+'\n')
++(B/'STATUS.md').write_text('V1g is built and CPU-verified. The snapshot bind is isolated; d.tar is unchanged. All 70 kit and 30 inherited tests pass. The audit covers 931 paths/directory closures with zero unbound. Sandbox namespace creation and exact payload-selected filenames remain unverified. See out/FINAL_RESULT.json.\n')
++print('Final package verified; final RESULT written.')

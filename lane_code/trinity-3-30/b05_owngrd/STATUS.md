@@ -22,17 +22,22 @@ Goal: own-encoder grounding head (branch O): teacher pass (SAM 3) -> label audit
 - Real-label CPU runs: tmp_real/run1, run2 (manifest tmp_real/man4.json: 4 ARKit captures, frames in work/frames; labels work/labels_partial from 38 pulled teacher captures in work/pull/teacher_k1). Codex originals of edited files: work/codex/{head,train}.py.codex_orig.
 - owngrd/audit_sample.py renders POS/MISS contact sheets + AUDIT_SAMPLE.tsv for the P7 audit (tested on stub).
 - RESULT head_kit_ready_review_request (13:5xZ) asked ORCH for the refute review and a pilot card.
+- K1 teacher pass DONE 14:30Z (286/286, 0 failures): 3-30 work/teacher_k1_full/teacher_k1 (120 MB); copy still in trinity-1-13:/dev/shm/jjyeung/b05 (REMOVAL_CANDIDATES.md). Cards 2,3 on 1-13 released (idle since 14:29/14:31Z).
+- Labels DONE: work/labels_k1 (286 captures, LABEL_SUMMARY.json sha 80cf2afb...): POS 19,817, HARDNEG 46,795, DISPUTED 8,673, MISS rows 25,952; agreed positive frames 13,896, ABSENT 103,134.
+- All 9,152 K1 frames now on 3-30: work/frames (2.4 GB).
+- Mirror: trinity-1-18:/scratch/jjyeung/n30_mirror/b05_owngrd/B05_K1_TEACHER_LABELS.tar (teacher_k1_full, labels_k1, manifests, auth), 150,261,760 B, sha256 7e9b6d8e4d98056bff9718b251865f9a9e7ba9800343a966f2e46a3d6141f62c (equal on 3-30 work/).
+- Audit proxy: work/audit_p7 (96 tiles, sheets 00-05, AUDIT_SAMPLE.tsv; I viewed sheets 00, 02, 05; verdict column not filled).
+- Review review_owngrd DONE: GO AFTER FIXES (events/review_owngrd/REVIEW_VERDICT_OWNGRD.md, 8 fixes); ORCH ORDER 1428Z: fix all eight, reviewer tests (review_owngrd/work/code2/tests/test_review_refute.py, test_review_resume.py) are the gate, pilot cap 4 A6000-h, then pilot may take a gpu_fill2 card, no third review.
+- Record: distill_design/OWN_GROUNDING_HEAD_K1_20261116.md + INDEX line (pilot bar = 0.70 x unambiguous recall@5 ceiling, fixed before the pilot).
 ## In flight
-- Reviewer lane review_owngrd (Devin Opus high, 7200 s cap, ORCH 1355Z order) launched 14:02Z on trinity-3-30, pid 230893, brief orch_n30/briefs/review_owngrd.md; verdict -> events/review_owngrd/REVIEW_VERDICT_OWNGRD.md. Do not change code/ while it reviews (or tell it via its inbox).
-- Codex Astra dispatch b05_head_build (started 12:49Z): receipts /home/jjyeung/agent_project_distill/agent/scratch/codex_runs/20261116T124913Z_b05_head_build/ (transcript.log); check `grep b05 .../codex_runs/RUNNING.registry`. Writes code/owngrd/{vit,head,losses,data,train,export}.py, tests, code/HEAD_README.md, tmp_codex/BUILD_REPORT.json.
-- K1 teacher pass on trinity-1-13 cards 2,3 (ORCH_CARD 1259Z), launched 13:12Z, tmux b05_teacher_0/1 under vnice; inputs /dev/shm/jjyeung/b05/{stage,lane}; outputs /dev/shm/jjyeung/b05/teacher_k1 (DONE.json per capture, PROGRESS.<i>of2.jsonl, worker_<i>.log). Poll: work/x118/poll113.sh via tssh trinity-1-13. Manifest TEACHER_K1_113.json sha 886e47a3... (frame/gate paths moved to /dev/shm). ~30 s/capture/card, ETA ~14:30Z. 1-13 /scratch is below floor: write nothing there.
-- No governor stream, no Orchard job.
+- Codex Astra b05_head_fixes (14:47Z): brief work/codex/FIXES_BRIEF.md; receipts /home/jjyeung/agent_project_distill/agent/scratch/codex_runs/20261116T144753Z_b05_head_fixes/; delivers tmp_codex/FIXES_DONE.md, updated BUILD_REPORT.json, tmp_codex/smoke_fix. Do not edit code/ while it runs.
+- No GPU job, no governor stream, no Orchard job.
 ## Next
-1. When the teacher pass completes (286 DONE.json): tar teacher_k1 from 1-13 over IB to 3-30 work/teacher_k1 and to 1-18; then run `python -m owngrd.labels --manifest work/manifests/TEACHER_K1.json --teacher-root .../teacher_k1 --out .../labels_k1` on 1-18, bring LABEL_SUMMARY + labels back over IB.
-2. Wait for review_owngrd verdict (fix findings), then ask ORCH for the pilot GO + card. Pilot command template in code/HEAD_README.md (train manifest must hold only K1 train captures; data.py splits 10% of rooms to train_val; --hours 4).
-3. Label audit (step 2): POS yield per dataset, P7 proxy on a sample (visual check of overlays).
-4. Pilot (step 3) needs ORCH_CARD + review; env allospatial_1111_v1 must be copied to the GPU node over IB (ask size first).
-5. Mirror sealed code/labels to a second node.
+1. When Codex finishes: run the full suite (allospatial env) incl. reviewer tests, check FIXES_DONE.md against each verdict item, re-run real-ViT first batch, write new CODE_SHA256SUMS.
+2. Build the pilot manifest: `python -m owngrd.split_manifest --in work/manifests/TEACHER_K1.json --split train --out work/manifests/TRAIN_K1.json`; frame paths must point where the pilot runs.
+3. Ask gpu_fill2/ORCH for one A6000 (QUESTION event); stage env allospatial_1111_v1 (6.4 GB) + m544sub (2.9 GB) + frames + labels + teacher + code to the card node (/dev/shm on 1-13 already holds frames; check du first, list in REMOVAL_CANDIDATES.md); run pilot `python -m owngrd.train ... --device cuda --hours 4` under vnice in tmux; poll every minute then 10 min.
+4. After the pilot: stop-rule verdict RESULT; K1 held-out read plan (53 captures) vs SAM 3 + selector.
+5. Extension beyond K1 (more pool captures need frames + GT rasters, builder events/gt_build2): ask ORCH after the pilot verdict.
 ## Defaults in force
-- No GPU until ORCH_CARD. Frame count parameter 32/64 (USER ruling): K1 block has only 32 frames and 32-frame rasters; 64 needs the extension blocks. ReVSI first for reads.
-Updated: 20261116T1402Z
+- No GPU until ORCH_CARD. Frame count parameter 32/64 (USER ruling): K1 block has only 32 frames and 32-frame rasters. ReVSI first for reads. MISS weight 0.25.
+Updated: 20261116T1453Z

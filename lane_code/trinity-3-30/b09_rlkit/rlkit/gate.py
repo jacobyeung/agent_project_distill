@@ -13,7 +13,7 @@ g = 1 only when every check passes:
          trace's own explicit arithmetic lines (`a x b = c`) to the answer; every operand is a
          printed value, an earlier result, a unit-conversion constant or a question constant;
        - program trace, option answer: nearest option to the final derived value (numeric options;
-         its x1.37 replay must move the option),
+         its x1.37 replay must move that value by more than 5%),
          or argmin/argmax over printed gap distances (closest/farthest questions);
        - direct trace: the answer is not detached (a final statement naming another option,
          or a stated count different from the answer, fails);
@@ -35,7 +35,10 @@ COUNT_LINE = re.compile(r'(' + NUM + r')\s+instances?\b', re.I)
 ARITH = re.compile(r'(?P<a>' + NUM + r')\s*(?P<op>[+*/x×−-])\s*(?P<b>' + NUM + r')\s*=\s*(?P<c>' + NUM + r')')
 RESPONSE = re.compile(r'<tool_response>(.*?)</tool_response>', re.S)
 CALL_GAP = re.compile(r'<gap a="([^"]+)"((?: b="[^"]+")+)[^>]*>\s*<tool_response>(.*?)</tool_response>', re.S)
-FAILED_RESPONSE = re.compile(r'^\s*(?:error:|[^\n]*:\s*not seen\s*$)', re.I | re.M)
+# A failed call: 'error: ...', 'name: not seen', or the bare bodies failed gaps, lifts and live traces
+# print ('not seen', 'unresolved', 'box unavailable', 'no linked candidate').
+FAILED_RESPONSE = re.compile(r'^\s*(?:error:|(?:[^\n]*:\s*)?(?:not seen|unresolved|box unavailable)\s*$|[^\n]*no linked candidate)',
+                             re.I | re.M)
 CONVERSIONS = (100.0, 1000.0, 3.28084, 39.3701, 10.7639, 0.3048, 2.54, 0.01, 0.001, 12.0)
 STATED_COUNT = re.compile(r'\b(?:there (?:are|is)|count(?:s| is)?|total(?: is)?|so)\s*(?:of\s*)?(\d+)\b', re.I)
 SCALE = 1.37
@@ -273,7 +276,8 @@ def program_option(body, prompt, answer):
         nearest = lambda x: min(numeric, key=lambda kv: abs(kv[1] - x))[0]  # noqa: E731
         if nearest(value(final)) != answer:
             return ['answer_not_projected_from_printed_values'], None
-        if nearest(value(final, SCALE)) == answer:
+        v, vs = value(final), value(final, SCALE)
+        if not abs(vs - v) > 0.05 * max(abs(v), 1e-9):  # the final value must follow the printed values
             return ['replay_invariant'], None
         return [], dict(kind='nearest_numeric_option')
     return ['unsupported_projection:categorical_option'], None

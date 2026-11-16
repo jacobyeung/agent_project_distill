@@ -1,0 +1,125 @@
+{
+  "binding": "5914160a4005d37215d88c30fdee8b8596b53b206e37482abb210c629cc89dbd",
+  "build_only": true,
+  "camera_leg": {
+    "baseline_pins_sha256": "2b2103edc35616378c25be316c13cbd8e647be4fcc3d360715a3e2052bb2aa38",
+    "cohort_sha256": "639a6614a9c5bfe5ebb2d795ba3892766110cc09943aa3d155745a345ee322fd",
+    "generation_code_pins": {
+      "direct.py": "db7ed324175af5a4f505c9144f826aa1b75a1360223baa45e70cfdc786b9a154",
+      "vendor/r3/adapter.py": "eb53eb601f7ef5ed732f0d7a9ef2275349de9553eb9c7ac39dd464bcfa03789a",
+      "vendor/r4/adapter.py": "ac3871f64e413969e8e9bff61d03c121d295425f07200b71a10e246cca02c22b",
+      "vendor/r5/adapter.py": "4b7425ace6aae470706276514d59c10af15770aab10e134553de863d7e8f5329",
+      "vendor/r5/dev_scoring.py": "608a6959e7834939ae99e23b57cafbc4a4b8329b73e8b8b0f945d0c72386fade",
+      "vendor/r5/report.py": "09d29806451648d755bdd27d5632ef519507470035dc091654d13dcec9366005"
+    },
+    "leg_reader_sha256": "d16b64b902a651f0d3989cfe3eb3dc5ea599e960ef5158e5e36a0901dcfb1f8a",
+    "schema": "devs1-camera-leg-v1",
+    "tasks_sha256": "f59090ffc8fd0f4d80a2b049e2624660c0f46dbc1d26016145f4747850a432ac",
+    "wrapper_sha256": "2ec1b4e1676118615988062b37b4e0287f24664bece928fa0a1cdd24cd3d95de"
+  },
+  "cells": [
+    {
+      "benchmarks": [
+        "devrows"
+      ],
+      "decoding": "greedy",
+      "frames": 32,
+      "layout": "duplicate",
+      "max_tokens": 16384,
+      "model": "cp1m200",
+      "name": "devS1_camera_real_timing_cp1m200",
+      "thinking": true
+    }
+  ],
+  "datasets": [
+    {
+      "benchmark": "devrows",
+      "rows": {
+        "path": "/scratch/jjyeung/orch_n30/trin_read/root/sj/orch_cd/evalx/work/camera/payload/TASKS.jsonl",
+        "sha256": "f59090ffc8fd0f4d80a2b049e2624660c0f46dbc1d26016145f4747850a432ac"
+      }
+    }
+  ],
+  "devs1": {
+    "adapter_sha256": "ac3871f64e413969e8e9bff61d03c121d295425f07200b71a10e246cca02c22b",
+    "code_pins_sha256": "4604bacf1289a35754c6a9c66f2d41d8fa9fabd53a67c832b13deeb90c54c402",
+    "fps_rule": "S1-FPS1",
+    "frames_root": "/scratch/jjyeung/orch_n30/trin_read/build_t5/tests/t5b_full_02/e193_binds0/camera_step544/pulled",
+    "missing_policy": "exclude missing canonical; score unavailable released labels only under canonical view",
+    "model": "cp1m200",
+    "payload": "/scratch/jjyeung/orch_n30/trin_read/root/sj/orch_cd/evalx/work/camera/payload",
+    "pins": {
+      "CAMERA_COHORT.json": "639a6614a9c5bfe5ebb2d795ba3892766110cc09943aa3d155745a345ee322fd",
+      "CELL_FAMILY.json": "6659945c2c840b81c3d60c21d677199bdac9caff4aea687fc9cccb09a21bf2bb",
+      "CELL_ITEMS.json": "8991cbc2cdb8625000fe816ac76f9e255167edd6bc51c601d36eff93220914e0",
+      "EXCLUDED.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "FPS_AUTHORITY.source.json": "36ae882f936ebc7a7d1a7651b5c53056c07d39ff552b2368a5c1e8068568d422",
+      "FPS_RULE.json": "d9af606320e78823fb2e0fa3c80358c77d7e3cdc2326684a501893c04af3094f",
+      "FRAMES.json": "c5e0dad804a59bb6f4932137d129e3a7dc1cf675e6342ff94e36979b7ca29439",
+      "ITEMS.jsonl": "66450e5485cb965fba09e50a83f03516d2cb1e94499bb58281381a480c167e8f",
+      "PROMPT_SOURCES.json": "e0cc2524e0d214f7ea698e60baf1f909fce0e020dfbed6c037abefe4a4d39bc8",
+      "ROWS.jsonl": "f59090ffc8fd0f4d80a2b049e2624660c0f46dbc1d26016145f4747850a432ac",
+      "SOURCE_PINS.json": "e540722926e82fdc496ce8058f4be1127119440c54a112bc7ebacde111b4a325",
+      "STRATA.jsonl": "ec15488cc1e5cbb9ce0036c1fd3b4a0d55ec1939ff388648a69b1a74dd867b97",
+      "TASKS.jsonl": "f59090ffc8fd0f4d80a2b049e2624660c0f46dbc1d26016145f4747850a432ac",
+      "TIMING_AUTHORITY.json": "7827fb117e158809c59bda741976a872761790bbd2298047ba8c6f33ba72ea43",
+      "WITHHOLD_SCENES.json": "88e1a708e240920fb39e34ede6f47c189be830538388db7a214b60ca258df05e",
+      "cells_cp1m200.json": "2fdc07f2b0839e8a39d61cbcb506967df33cf9ab8bd401825595210f727e8853",
+      "cells_f17.json": "017fd984d98e1fe77cdbb42053d59caa5ac96ddc8e5e509942d19997089f32e6"
+    },
+    "timing_authority_sha256": "7827fb117e158809c59bda741976a872761790bbd2298047ba8c6f33ba72ea43",
+    "timing_version": "devS1_v2_real_timing"
+  },
+  "engine_version": "0.32.0",
+  "gpus": 1,
+  "inflight": 16,
+  "legs1": {
+    "artifact": {
+      "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/469ddece/m544/artifact.json",
+      "sha256": "1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef"
+    },
+    "decision_arm": "B2048",
+    "export_bytes_verified": false,
+    "export_verification": null,
+    "family": "camera",
+    "name": "LEG-S1-m544",
+    "parent_standin": false,
+    "protocol_slot": "cp1m200",
+    "step": 544,
+    "wrapper_dependencies": {
+      "out/common.py": "1954de01cc935fb744ebc92a3ede19a94658d2ce4fefb3c1e1ba40b03d2508c4",
+      "out/export_check.py": "0400842c559565b66db50d6c8fde7c323e8600a82d70685d469a4b316d7ec8d2"
+    },
+    "wrapper_sha256": "d16b64b902a651f0d3989cfe3eb3dc5ea599e960ef5158e5e36a0901dcfb1f8a"
+  },
+  "max_model_len": 49152,
+  "max_seqs": 32,
+  "max_tokens": 16384,
+  "models": {
+    "base": {
+      "kind": "snapshot",
+      "manifest": {
+        "path": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/90da7ac2/m/base_manifest.json",
+        "sha256": "ae9247f7c316e7661bfbe4301c28d75b6871db7427d675b8e1cc4c0c41b4b252"
+      },
+      "path": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/85fc3486"
+    },
+    "cp1m200": {
+      "kind": "c1_export",
+      "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/469ddece/m544/artifact.json",
+      "sha256": "1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef"
+    }
+  },
+  "output": "/scratch/jjyeung/orch_n30/trin_read/build_t5/tests/t5b_full_02/e193_binds0/camera_step544/direct/camera/results",
+  "roots": {
+    "video_root": "/scratch/jjyeung/orch_n30/trin_read/build_t5/tests/t5b_full_02/e193_binds0/camera_step544/direct/camera/virtual_video_identity_only"
+  },
+  "smoke_items": 0,
+  "source_sha256": "d27804f736545f7ebed6b55124b4bd215991695d96ed9106d82a142e91302aaa",
+  "temperature": 0,
+  "thinking": true,
+  "trinity_binding": {
+    "contract_sha256": "de37837d33638f844983d0c0a1a92c6594d1f910671c91ba70067e8ece4a7fa4",
+    "wrapper_sha256": "2ec1b4e1676118615988062b37b4e0287f24664bece928fa0a1cdd24cd3d95de"
+  }
+}

@@ -46,10 +46,10 @@ For e2e, use `--reader e2e:<manifest-sha256> --e2e-manifest <file> --eat1-report
 
 Every production input role needs a safe relative logical path, SHA256, byte count, and uploaded source. Inputs above 20 MB need a governed transfer receipt. ReVSI also needs `revsi_media_manifest`, `original_mapping`, and a pinned `revsi_archive` role. Bootstrap stages its clips under `work/runtime/revsi_media`; R retains the export/runtime gates and hash-checked media copies. Additional runtime assets, labels, original proof inputs, and the loaded e2e entry must resolve within the staged namespace.
 
-`vendor/ACTIVE.json` selects immutable snapshots for b04, R, C8r, V1c, and the trainer tree. Each snapshot has a `PIN.json`. The following command deliberately creates a new content-addressed snapshot, updates the active selection, and writes added/removed/changed names and unified text diffs to `out/VENDOR_REFRESH.json`. It does not edit the lane or delete any snapshot. Rebuild and retest before shipping a refreshed selection.
+`vendor/ACTIVE.json` selects immutable snapshots for b04, R, C8r, V1c, and the trainer tree. Each snapshot has a `PIN.json`. The following command deliberately creates a new content-addressed snapshot, updates the active selection, and writes added/removed/changed names and unified text diffs to `out/VENDOR_REFRESH.json`. For `OFFKIT`, the command refreshes external module pins without copying the owner package; its recorded diff includes old and new hashes. It runs before normal startup pin verification. It does not edit the lane or delete any snapshot. Rebuild and retest before shipping a refreshed selection.
 
 ```bash
-"$PY" -B -m offnative.vendor --refresh B04
+"$PY" -B -m offnative.vendor --refresh R OFFKIT
 ```
 
 Offkit is imported unchanged and is not copied into the new bundle. `out/OFFKIT_EXTERNAL_PINS.json` pins every owner module and startup verifies those bytes. An extracted bundle uses `OFFNATIVE_ROOTS=r.json`; its environment must provide the pinned offkit package, normally at `d/00/offkit`, before bootstrap. Portable CPU tests explicitly supply that external dependency through `PYTHONPATH`. Weights, runtime environments, media, tokenizer assets, and proof inputs are separate pinned assets.
@@ -68,3 +68,13 @@ The seven worker phases are stage, frames, towers, proof, canary, read, and scor
 ```
 
 Future transfers above 20 MB must use the existing IO governor. Keep transfers serial, poll at most once a minute, and stop after an unexpected transfer failure. Trinity limits remain 8 MB/s for shared reads or internet traffic, 4 MB/s for shared writes, and 18 MB/s aggregate per user. This build executes no network, SSH, submission, upload, or remote fetch.
+
+The job-170056 identity proof is reduced under the pinned `out/PROOF_MASKS_LOST.json` declaration. Its five distance mask files were lost with an unreachable node. Camera items retain token, call, response, and answer equality with independently recomputed responses. Distance items retain token, call, and answer equality plus served-query/response digest equality, but lack independent re-serving from the original masks. A changed served query or response cannot retain its pinned digest; a backend change affecting items outside these five is caught only by the canary. The CPU receipt uses forced tokens and recorded distance query digests; it does not establish model-logit equality. Reduced mode requires the exact declaration hash and selected distance keys; absent or changed loss records fail closed.
+
+```bash
+"$PY" -B -m offnative.replay out --mode reduced \
+  --lost-masks out/PROOF_MASKS_LOST.json \
+  --lost-masks-sha256 f1ba60b7d987d57420ddd457428adbcb8069e508fd1bc00ac9c5498add1a5362
+```
+
+Production proof assets must explicitly set `proof_mode: reduced` and `lost_masks: {path, sha256}` with that pinned record. Generation still runs the original model and must match the selected token, call, answer, and digest identities. Camera replay remains independent. Without this declaration, the full proof requirements apply.

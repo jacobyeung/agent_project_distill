@@ -16,6 +16,9 @@ import time
 import traceback
 import warnings
 from collections import defaultdict
+from contextvars import ContextVar
+from functools import lru_cache
+from types import FunctionType, SimpleNamespace
 
 ROOT = Path(__file__).resolve().parent
 assert ROOT == Path('/scratch/jjyeung/orch_n30/k1_ops3/work/e3gd')
@@ -24,13 +27,15 @@ MANIFEST = Path('/scratch/jjyeung/orch_n30/k1_ops3/work/codex_arkit_timing/K1_MA
 TOWERS = Path('/scratch/jjyeung/k1/run_tower_sam_2')
 CONVERTER = Path('/scratch/jjyeung/orch_cd/evalx/work/milestone/native_package_s24_05/sources/sj/orch_cd/evalx/work/milestone/native/out2/geometry.py')
 IMPORTED = set()
+_PIN_HASH_PATH = ContextVar('gd_pin_hash_path', default=None)
 
 
 def audit(event, args):
     if event != 'open' or not isinstance(args[0], (str, bytes)):
         return
     p = Path(os.fsdecode(args[0])).absolute()
-    if p.name == 'candidates.json':
+    if p.name == 'candidates.json' and not (
+            _PIN_HASH_PATH.get() == p.resolve() and args[1] == 'r'):
         raise PermissionError('Grounding kill-test boundary: candidates.json is forbidden')
     mode, flags = args[1:3]
     writing = (isinstance(mode, str) and any(c in mode for c in 'wax+')) or (
@@ -68,51 +73,114 @@ TIMINGS = defaultdict(float)
 SCALES = ('S1', 'S2', 'S3', 'S4', 'SO')
 GRAVITIES = ('GO', 'G1')
 SEALED_VALIDATE = geometry_profiles.GeometryContract.validate
-REVIEWED_VALIDATE = None
 GRAVITY_RECORDER = gravity_guard.Recorder()
 
 
+def reviewed_loader():
+    """Bind the unchanged loaders to a private contract; never patch shared classes."""
+    class ReviewedContract(geometry_profiles.GeometryContract):
+        pass
+
+    gravity_guard.install(SimpleNamespace(GeometryContract=ReviewedContract,
+        GeometryError=geometry_profiles.GeometryError), GRAVITY_RECORDER)
+
+    def bind(fn, **replacements):
+        return FunctionType(fn.__code__, dict(fn.__globals__, **replacements),
+                            fn.__name__, fn.__defaults__, fn.__closure__)
+
+    return bind(load_geometry,
+        legacy_from_heads=bind(geometry_profiles.legacy_from_heads, GeometryContract=ReviewedContract),
+        scaled_from_heads=bind(geometry_profiles.scaled_from_heads, GeometryContract=ReviewedContract))
+
+
+REVIEWED_LOAD_GEOMETRY = reviewed_loader()
+
+
 def load_reviewed_geometry(path, c):
-    """Use the reviewed validator only for this serial deployed-geometry load."""
-    global REVIEWED_VALIDATE
-    previous = geometry_profiles.GeometryContract.validate
-    assert previous is SEALED_VALIDATE, 'reviewed validator leaked outside GD_reviewed'
+    with gravity_guard.capture('E3_GD_reviewed', c['canonical']):
+        return REVIEWED_LOAD_GEOMETRY(path, FrameMap(tuple(c['anchor_indices'])), 'tower_scaled')
+
+
+@lru_cache(maxsize=1)
+def k1_source_identity():
+    """K1 bindings.source_identity paths, without importing its proposal backend."""
+    native = Path('/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit')
+    paths = [CONVERTER, CONVERTER.with_name('perception.py'),
+             native / 'vendor_sam/vendor/sam_backend.py',
+             native / 'vendor_sam/variantlib.py', native / 'vendor_sam/variant_cache.py']
+    paths += [TREE / 'student_pilot' / n for n in (
+        'tower_read.py', 'tower_scale.py', 'candidate_policy.py', 'routed_features.py',
+        'live_instances314.py', 'carrier_c1_decode.py')]
+    paths += [p for p in native.glob('*.py') if not p.name.startswith('test_')]
+    return {str(p): sha(p) for p in paths}
+
+
+def receipt_pin_sha(path):
+    """Hash opaque cache bytes; never expose proposal content to scoring."""
+    token = _PIN_HASH_PATH.set(Path(path).resolve())
     try:
-        if REVIEWED_VALIDATE is None:
-            gravity_guard.install(geometry_profiles, GRAVITY_RECORDER)
-            REVIEWED_VALIDATE = geometry_profiles.GeometryContract.validate
-        geometry_profiles.GeometryContract.validate = REVIEWED_VALIDATE
-        with gravity_guard.capture('E3_GD_reviewed', c['canonical']):
-            return load_geometry(path, FrameMap(tuple(c['anchor_indices'])), 'tower_scaled')
+        return sha(path)
     finally:
-        geometry_profiles.GeometryContract.validate = previous
+        _PIN_HASH_PATH.reset(token)
+
+
+def deployed_receipt(c, gd_dir):
+    dest = (gd_dir / digest(c['canonical'])[:16]).resolve()
+    receipt_path = dest / 'CACHE_COMPLETE.json'
+    if not dest.is_relative_to('/scratch'):
+        raise ValueError('Stage GD inputs onto local disk')
+    receipt = json.loads(receipt_path.read_text())
+    if receipt.get('capture_sha256') != digest(c):
+        raise ValueError('Cache capture differs')
+    refusal = receipt.get('geometry_refusal')
+    votes = receipt.get('gravity_verdict', {})
+    if (receipt.get('gravity_guard') != gravity_guard.identity()
+            or set(votes) != {'sealed_refused', 'reviewed_refused'}
+            or any(type(v) is not bool for v in votes.values())
+            or receipt.get('sources') != k1_source_identity()
+            or receipt.get('phase') != 'unselected_cache_no_responses'):
+        raise ValueError('Cache guard/source binding differs')
+    names = {'candidates.json', 'parity_raw.jsonl'}
+    if refusal or receipt.get('geometry') is None:
+        code = 'reference_camera_up_opposes_gravity'
+        if (refusal != dict(code=code, message=code) or receipt.get('geometry') is not None
+                or not votes['reviewed_refused']):
+            raise ValueError('Cache geometry refusal differs')
+        # The receipt remains authoritative even if an unadmitted file exists.
+        names.add('REFUSED_GEOMETRY.npz')
+    else:
+        if votes['reviewed_refused'] or not receipt.get('geometry'):
+            raise ValueError('Cache geometry verdict differs')
+        names.add('geometry.npz')
+    pins = receipt.get('files', {})
+    if set(pins) != names or any(
+            Path(pin['path']).resolve() != (dest / name).resolve()
+            for name, pin in pins.items()):
+        raise ValueError('Cache file binding differs')
+    for name, pin in pins.items():
+        path = Path(pin['path']).resolve()
+        if not path.is_relative_to('/scratch'):
+            raise ValueError('Stage GD inputs onto local disk')
+        if receipt_pin_sha(path) != pin['sha256']:
+            raise ValueError('Cache file hash mismatch: ' + name)
+    return dest, receipt_path, receipt
 
 
 def deployed_conditions(c, gd_dir, f):
-    options = [gd_dir / c['canonical'] / 'geometry.npz',
-               gd_dir / (c['canonical'].replace('/', '__') + '.npz'),
-               gd_dir / digest(c['canonical'])[:16] / 'geometry.npz']
-    paths = [p for p in options if p.is_file()]
-    if len(paths) > 1:
-        raise ValueError('GD requires exactly one deployed geometry file for ' + c['canonical'])
-    if not paths:
-        reason = 'FileNotFoundError:deployed_geometry_missing'
-        detail = dict(path=str(options[-1]), refusal=reason)
-        receipt_path = options[-1].parent / 'CACHE_COMPLETE.json'
-        if receipt_path.is_file():
-            receipt = json.loads(receipt_path.read_text())
-            refusal = receipt.get('geometry_refusal')
-            if isinstance(refusal, dict) and refusal.get('code'):
-                reason = 'GeometryError:' + refusal['code']
-                detail.update(refusal=reason, geometry_refusal=refusal,
-                              gravity_verdict=receipt.get('gravity_verdict'),
-                              cache_receipt=str(receipt_path))
+    dest, receipt_path, receipt = deployed_receipt(c, gd_dir)
+    path = dest / 'geometry.npz'
+    detail = dict(path=str(path), cache_receipt=str(receipt_path),
+                  capture_sha256=receipt['capture_sha256'],
+                  gravity_verdict=receipt['gravity_verdict'])
+    if receipt.get('geometry_refusal'):
+        refusal = receipt['geometry_refusal']
+        reason = 'GeometryError:' + refusal['code']
+        detail.update(refusal=reason, geometry_refusal=refusal)
         for arm in ('GD_sealed', 'GD_reviewed'):
             f[arm] = dict(detail)
             yield arm, (reason, None), 'predicted'
         return
-    path = paths[0]
-    pin = dict(path=str(path), sha256=sha(path))
+    pin = dict(detail, sha256=receipt['files']['geometry.npz']['sha256'])
     for arm in ('GD_sealed', 'GD_reviewed'):
         f[arm] = dict(pin)
         try:
@@ -124,6 +192,10 @@ def deployed_conditions(c, gd_dir, f):
             f[arm]['refusal'] = reason
             yield arm, (reason, None), 'predicted'
         else:
+            if arm == 'GD_reviewed':
+                sealed, reviewed = GRAVITY_RECORDER.records[('E3_GD_reviewed', c['canonical'])]
+                if dict(sealed_refused=sealed, reviewed_refused=reviewed) != receipt['gravity_verdict']:
+                    raise ValueError('Cache gravity verdict differs')
             yield arm, geo, 'predicted'
 
 
@@ -641,7 +713,7 @@ def receipt(start, status, extra=None):
                 converter=dict(path=str(CONVERTER), sha256=sha(CONVERTER)),
                 harness_sha256={p.name:sha(p) for p in [ROOT / 'harness.py', ROOT / 'room_rules.py', ROOT / 'run.sh']},
                 elapsed_seconds=time.monotonic() - start, timings=dict(TIMINGS),
-                forbidden_data_access='candidates.json blocked by Python audit hook', **(extra or {}))
+                forbidden_data_access='candidates.json blocked except opaque GD receipt pin hashing', **(extra or {}))
 
 
 def unit_tests():

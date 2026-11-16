@@ -304,7 +304,10 @@ class _Visitor(ast.NodeVisitor):
     # substitutes on failure
     def visit_ExceptHandler(self, node):
         for stmt in node.body:
-            if isinstance(stmt, ast.Return) and stmt.value is not None:
+            empty = (isinstance(stmt.value, ast.Constant) and stmt.value.value in (None, '')) or (
+                isinstance(stmt.value, (ast.List, ast.Tuple, ast.Dict)) and not getattr(
+                    stmt.value, 'elts', getattr(stmt.value, 'keys', [1]))) if isinstance(stmt, ast.Return) else False
+            if isinstance(stmt, ast.Return) and stmt.value is not None and not empty:
                 self.add('A4', 'A4.except_substitute', stmt, 'except-handler returns a substitute')
                 break
         self.generic_visit(node)

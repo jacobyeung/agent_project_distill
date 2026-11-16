@@ -55,7 +55,8 @@ def synthetic_target(frames=4):
     rows, decoder = [], []
     for f in range(frames):
         presence = 1 if f < 2 else None
-        rows.append(dict(presence=presence, teacher_presence=.8, pos_inst=[7], gt_visible=[7]))
+        rows.append(dict(presence=presence, why='pos' if presence else 'uncertain_absent',
+                         teacher_presence=.8, pos_inst=[7], gt_visible=[7]))
         decoder.append(dict(presence=presence, teacher_presence=.8,
             targets=[dict(mask=mask, instance=7, weight=1., low_resolution=False, cls='POS'),
                      dict(mask=other, instance=9, weight=labels.MISS_WEIGHT, low_resolution=True, cls='MISS')],
@@ -146,7 +147,9 @@ def test_clustering_selection_and_metrics():
     assert selection_target(candidates, masks, target) == (None, 'multiple_instances')
     metric = Metrics()
     metric.instances, metric.covered, metric.pos_iou = 10, 8, [.5, .7]
-    metric.pairs = [dict(confidence=1-i/10, correct=i < 7, absent=i >= 8, candidate=True, ambiguous=False) for i in range(10)]
+    metric.names, metric.names_covered = 10, 8
+    metric.pairs = [dict(confidence=1-i/10, correct=i < 7, absent=i >= 8, candidate=True,
+                         selected=True, present=i < 8, ambiguous=False) for i in range(10)]
     result = metric.result()
     assert result['candidate_recall_at5'] == .8 and result['mask_iou_pos'] == .6
     assert result['false_presence_absent_at85'] == .5

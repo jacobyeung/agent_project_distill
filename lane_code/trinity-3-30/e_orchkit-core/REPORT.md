@@ -1,4 +1,4 @@
-# orchkit-core: build report (branch eff/orchkit-core, head 9d58cab7)
+# orchkit-core: build report (branch eff/orchkit-core, head 633e3d0b)
 
 ## What I built
 
@@ -11,7 +11,7 @@
 | 76ddbe90 | `ret.py` (job side): the job driver and the one return path (bounded tar, pool, GCS resumable session upload with ranged resume, receipt) |
 | 4ef7a925 | `launch.py` (prepare/submit/status/fetch), `templates/job.sh.tmpl`, `pack.py`, `schema/` (header, `read`, `generic`), `examples/read_step.config.json` |
 | e263c512 | submit also refuses, on the batch host, when `squeue` shows one of our jobs live on a one-job partition |
-| 9d58cab7 | fixes for review findings OC-01..OC-08 (see "Review") |
+| 9d58cab7, 7a3a4cf8, 4601700f, cb6a5f04, fbe5ece7, 9e1313f6, 5b3301f2, 3c731cbc, 633e3d0b | fixes for review findings OC-01..OC-31 (see "Review") |
 
 `util.py` is unchanged; I added no function to it.
 
@@ -19,10 +19,10 @@ How a job runs: `pack.py` assembles KIT (family code under `code/`, job-side `ut
 
 ## Tests (all in `tools/orchkit/tests/`, `TMPDIR=W/tmp`)
 
-- `cd tools/orchkit && /usr/bin/python3 -m unittest discover -s tests` (3.6.8): `Ran 88 tests in 6.134s` / `OK`.
-- `HOME=/tmp bwrap --ro-bind / / --bind W W --tmpfs /home --tmpfs /data --tmpfs /data2 --tmpfs /data3 --tmpfs /tmp --dev /dev --proc /proc /scratch/jjyeung/envs/p1cpu/bin/python -s -m pytest -q -p no:cacheprovider tests`: `88 passed in 6.22s`.
+- `cd tools/orchkit && /usr/bin/python3 -m unittest discover -s tests` (3.6.8): `Ran 108 tests in 7.842s` / `OK`.
+- `HOME=/tmp bwrap --ro-bind / / --bind W W --tmpfs /home --tmpfs /data --tmpfs /data2 --tmpfs /data3 --tmpfs /tmp --dev /dev --proc /proc /scratch/jjyeung/envs/p1cpu/bin/python -s -m pytest -q -p no:cacheprovider tests`: `108 passed in 7.69s`.
 
-Per file: util 10, pins 13, ledger 6, anon 12, stage 11, ret 8, pack 6, launch 22. The brief's test list maps as follows. (1) Pins: round trip, one changed byte, repeated path, copied hash, stale hash, record field must equal its own entry, nested tar; the audit test runs over the recovered native code and the VSTI kit. (2) Launch: the name regex over 200 mints; exactly one ledger row; refusals for a missing, failed or mismatched dry run, a schema-invalid config (header and family), an opacity hit, a provenance refusal (and `/home`, `/data*` checkouts), an unpinned or changed kit file; a GO file that does not name the token; zero transport calls without `--execute`; a short home quota and a missing pool reach no `sbatch` (the fake transport runs the real `SUBMIT.sh` under bash with fake `sbatch`/`squeue`). (3) Template: see below. (4) Stage: each policy, two `new` items on one directory fail and name both, seven unsafe member kinds, a sha mismatch naming the entry, parts, gcs by generation through a fake fetcher. (5) Return: an over-budget return refused before any byte with members listed largest first, a mid-chunk connection reset resumed by range against a fake GCS server, an entry that raises and a staging fault both still return a receipt with the traceback, a GPU job without devices, a failed pool channel. (6) Opacity: a nested tar member and the packed toy kit (no listed word, no `/scratch/` path, no `import orchkit`). Two further tests run the rendered `BATCH.sh` locally under bash with `SLURM_JOB_ID=77`: it unpacks, stages, runs the entry and returns to a pool directory, and a `SIGUSR1` sent after 3 s interrupts the entry and still returns (state `interrupted`).
+Per file (108): util 10, pins 15, ledger 6, anon 21, stage 11, ret 8, pack 6, launch 31. The brief's test list maps as follows. (1) Pins: round trip, one changed byte, repeated path, copied hash, stale hash, record field must equal its own entry, nested tar; the audit test runs over the recovered native code and the VSTI kit. (2) Launch: the name regex over 200 mints; exactly one ledger row; refusals for a missing, failed or mismatched dry run, a schema-invalid config (header and family), an opacity hit, a provenance refusal (and `/home`, `/data*` checkouts), an unpinned or changed kit file; a GO file that does not name the token; zero transport calls without `--execute`; a short home quota and a missing pool reach no `sbatch` (the fake transport runs the real `SUBMIT.sh` under bash with fake `sbatch`/`squeue`). (3) Template: see below. (4) Stage: each policy, two `new` items on one directory fail and name both, seven unsafe member kinds, a sha mismatch naming the entry, parts, gcs by generation through a fake fetcher. (5) Return: an over-budget return refused before any byte with members listed largest first, a mid-chunk connection reset resumed by range against a fake GCS server, an entry that raises and a staging fault both still return a receipt with the traceback, a GPU job without devices, a failed pool channel. (6) Opacity: a nested tar member and the packed toy kit (no listed word, no `/scratch/` path, no `import orchkit`). Two further tests run the rendered `BATCH.sh` locally under bash with `SLURM_JOB_ID=77`: it unpacks, stages, runs the entry and returns to a pool directory, and a `SIGUSR1` sent after 3 s interrupts the entry and still returns (state `interrupted`).
 
 ## Template against the existing jobs
 
@@ -50,6 +50,7 @@ Dropped: the pool write test at job start (the submission script now probes room
 - Read spec: `frames.count` is 32 or 64 (user ruling: frame count is a parameter); optional `families`.
 - `ANON_WORDS.txt`: `orchkit` is a name rule plus a text rule that allows only the format identifiers `orchkit-<format>-v1`, which PINS.json and CONFIG.json must carry.
 - The submit record `orchkit-submit-v1` (`PREP/SUBMIT.json`) and the return receipt `return-receipt-v1`.
+- Ledger rows gain `payload_sha256` (sha256 of the bundle: kit snapshot plus JOB.json). Token claims and per-partition locks live in `<ledger>.claims/`.
 
 ## Ledger import
 
@@ -91,4 +92,14 @@ First review (Codex gpt-6-astra, high, read-only; verdict W/work/review/VERDICT_
 - OC-06 the room check probed at most 8 MiB; it now reserves the whole budget.
 - OC-07 two submits could both pass the intent check; the intent is now claimed with O_EXCL before the transport.
 - OC-08 SUBMIT.sh was re-read after its check; submit now reads it once, checks it and sends those bytes.
-Re-review of the fixes: in flight (W/work/review/REVIEW_BRIEF_2.md).
+Later rounds (verdicts W/work/review/VERDICT_N.json.md, diffs FIX_N.diff), each fix with a regression test that fails on the previous head:
+- OC-09 the compressed bytes themselves were not scanned (gzip file name, trailers): fixed 7a3a4cf8.
+- OC-10 the single-place check skipped archive raw bytes: fixed 4601700f (it reads raw bytes and header fields and fails on unscannable blobs).
+- OC-11 prepare re-read the source kit after checking it; OC-12 submit trusted the token in SUBMIT.json; OC-13 prefixed zips; OC-14 duplicate JSON keys, root strings, UTF-16 hashes: fixed cb6a5f04 (prepare checks and bundles one private snapshot, kept as PREP/kit).
+- OC-15 one container reading hid another; OC-16 submit trusted SUBMIT.sh and argv; OC-17 duplicate keys in CONFIG.json: fixed fbe5ece7 (every reading inspected, unsupported containers refused, submit rebuilds both scripts from PREP/kit and PREP/JOB.json, GO must be a line starting with GO).
+- OC-18 escapes in UTF-16/32, compressed or extension-less JSON; OC-19 damaged zips; OC-20 a kit swapped between check and bundle at submit; OC-21 two copies of one preparation: fixed 9e1313f6 (text views with escapes resolved, submit snapshots PREP/kit, one claim per token beside the ledger).
+- Concurrent submissions to "general" both passed the one-job check (round 7 transcript): fixed 5b3301f2 (a per-partition lock beside the ledger).
+- OC-22 partition taken from SUBMIT.json; OC-23 octal, named and slash escapes; OC-24 damaged prefixed zips and bad-checksum tars; OC-26 JOB.json and DRYRUN_REPORT.json not anchored: fixed 3c731cbc. The minted ledger row now carries payload_sha256 (the whole bundle), a field I added to orchkit-ledger-v1.
+- OC-25 ("split" in file contents) is a specification question, not a defect: by AGENTS.md "split" is a name rule, and every Python program calls str.split.
+- Round 9 (VERDICT_9): OC-01..OC-26 fixed; OC-25 withdrawn by the reviewer under the clarified rule; OC-27 line-continuation escapes, OC-28 gzip header file names, OC-29 damaged tars with non-ASCII names, OC-30 lzma-alone and zlib streams, OC-31 cluster paths with repeated slashes or a bare mount root: fixed 633e3d0b.
+Round 10 re-review: in flight (W/work/review/REVIEW_BRIEF_10.md).

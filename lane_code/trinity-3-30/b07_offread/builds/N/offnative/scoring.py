@@ -2,7 +2,7 @@
 from pathlib import Path
 from .paths import evaluator
 from .io import load
-from offkit.adapt_native import unify
+from offkit.adapt_native import unify, check_not_scripted
 from offkit.report import key
 
 class Scorer:
@@ -13,6 +13,7 @@ class Scorer:
         self.benchmark = benchmark
 
     def score(self, item, decoded, arm):
+        check_not_scripted(dict(key=key(item), arm=arm, decode=decoded))
         # Ground truth is opened only when a result is scored.
         if self._labels is None:
             import json

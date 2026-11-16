@@ -1,0 +1,24 @@
+--- G2/admission.py
++++ G3/admission.py
+@@ -11,8 +11,20 @@
+     if len(recorded)!=len(keys) or len({r['key'] for r in recorded})!=len(keys):
+         raise ValueError('Native journal cardinality differs')
+     by_key={r['key']:r for r in recorded}
+-    if set(by_key)!=set(keys) or zero_nonanswers([by_key[k] for k in keys])!=rows:
++    # The journal is JSON: compare canonical JSON, so tuples and lists of equal content agree.
++    if set(by_key)!=set(keys):
+         raise ValueError('Merged rows differ from the authenticated native journal')
++    journaled=zero_nonanswers([by_key[k] for k in keys])
++    differences={}
++    for key,recorded_row,memory_row in zip(keys,journaled,rows):
++        if digest(recorded_row)!=digest(memory_row):
++            differences[key]=sorted(field for field in set(recorded_row)|set(memory_row)
++                if field not in recorded_row or field not in memory_row
++                or digest(recorded_row[field])!=digest(memory_row[field]))
++    if differences:
++        write(Path(destination)/'MERGE_DIFF.json',dict(keys=list(differences),fields=differences))
++        raise ValueError('Merged rows differ from the authenticated native journal')
++    rows=journaled
+     if not set(keys)<=set(request['keys']):raise ValueError('Read membership is outside the bound request')
+     if not fixture and keys!=request['keys']:raise ValueError('Production read must retain the full denominator')
+     parity=N.load(session.destination/'paired/results/GPU_PARITY.json')

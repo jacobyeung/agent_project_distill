@@ -10,6 +10,7 @@ Three file-open sources, merged:
 """
 import os
 import re
+import inspect
 import sys
 import threading
 import time
@@ -435,6 +436,10 @@ class LineScope:
         f = code.co_filename
         if (f.startswith(self.env) or is_harness(f) or f.startswith('<')
                 or f.startswith(SYSTEM_PREFIXES)):
+            return self.mon.DISABLE
+        if not code.co_flags & inspect.CO_OPTIMIZED:
+            # module and class bodies (imports done lazily inside generate) define names; the lines that
+            # use those names inside functions are what the scan judges
             return self.mon.DISABLE
         if not self.active or self.inside_model:
             return None

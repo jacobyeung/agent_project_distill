@@ -28,6 +28,10 @@ def room_keys(row):
         if dataset == 'scannet':
             name = re.sub(r'^(scene\d+)_\d+$', r'\1', name)
         result.add(dataset+'/'+name)
+    # ARKit native capture IDs and physical venue IDs are different granularities.
+    venues = {k for k in result if re.fullmatch(r'arkitscenes/venue\d+', k)}
+    if len(venues)==1 and all(k.startswith('arkitscenes/') for k in result):
+        return venues
     return result
 
 
@@ -41,7 +45,15 @@ def room_key(row):
 class Reserve(Exclusions):
     def __init__(self, pin):
         super().__init__(None)
-        path = pinned(pin)
+        if pin.get('sha256') != R0_SHA256:
+            raise ValueError('R0 pin differs from the registered R0_SHA256')
+        resolved = dict(pin)
+        if not Path(pin['path']).is_absolute():
+            root = Path(__file__).resolve().parents[2]
+            candidate = (root/pin['path']).resolve()
+            if not candidate.is_relative_to(root):raise ValueError('R0 pin escapes kit root')
+            resolved['path'] = str(candidate)
+        path = pinned(resolved)
         names = [s.strip() for s in path.read_text().splitlines() if s.strip() and not s.startswith('#')]
         if len(names) != len(set(names)) or any(not re.fullmatch(r'(scannet/scene\d+|scannetpp/[A-Za-z0-9]+)', s) for s in names):
             raise ValueError('Invalid R0 room list')

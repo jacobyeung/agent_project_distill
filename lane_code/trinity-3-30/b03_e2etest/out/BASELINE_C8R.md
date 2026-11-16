@@ -4,7 +4,7 @@ C8r fails EAT-1. It fails A2 dynamically on the tiny CPU model, and it fails A1,
 
 Code under test: code_c8r.tar (sha256 f4535bc0…, unpacked at `work/c8r_src`), and the sealed tree b01ce449 audit copy at `work/audit_copies/tree_b01ce449`. Its 792 files match RUNTIME_TREE.json. `tree:` paths below are relative to the tree, and `c8r:` paths to `native/out2/`. The allowlist is `eat1/allowlist.json`, PROPOSED and not yet reviewed. It applies USER ruling 5 (ORCH 1155Z): the fixed-math allowance covers unprojection and printing head outputs as text, so unit conversion or answer reformatting outside the model fails.
 
-## 1. Dynamic run: tiny CPU model (`work/c8r_tiny/run6/EAT1_REPORT.md`)
+## 1. Dynamic run: tiny CPU model (`work/c8r_tiny/run8/EAT1_REPORT.md`)
 The adapter `eat1/adapters/c8r_tiny.py` calls `evalpath.runtime.generate(model, processor, batch, 'routed', 16384)`, the entry C8r's routed and nomdg readers use. It runs on the tree's own tiny Qwen3.5 + CarrierC1 fixture (`tests/test_batched_routed_decode.fixture`). Items cover 6 types × 2 seeds: depth_at+dist, move, turn, pose, ground and direct. A fixed program module on `lm_head` stands in for trained LM weights. It writes no response token.
 
 | Clause | Status | Evidence |
@@ -13,7 +13,7 @@ The adapter `eat1/adapters/c8r_tiny.py` calls `evalpath.runtime.generate(model, 
 | A2 | **FAIL** | Model entries per item: 1 (12/12), so the single-entry part holds. 530 response tokens were fed by `tree:student_pilot/carrier_c1_decode.py:65` (`consume_cache_tokens`) and written by `tree:student_pilot/carrier_c1_batch_decode.py:142` (`Row._call`), which wraps `<tool_response>` text from `respond()` (`carrier_c1_decode.py:214`). No call handler is registered on the model. |
 | A3 | **FAIL** | 28 executed findings. Examples: the depth stencil-percentile estimator `tree:student_pilot/carrier_c1_routing.py:278-279` (P20/P30/P50/P80, spread); radian→degree conversion in pose and turn responses (`carrier_c1_routing.py:264,300`; constants 180/360 in `wrap` at `:119`); hard-coded frame count 32/33 (`decoupled_v.py:111-116`, `ground_context.py:44`, `p3_printed_calculator.py:159`). |
 | A4 | **FAIL** | Typed error responses replace head output: `carrier_c1_decode.py:244,248` (except → `'error: …'`, which produced `error: bad_frame` for `<pose frame=40>` and `error: head_readout` for `<ground>`). The ground fallback is at `carrier_c1_decode.py:516,526` (`context.fallback`). |
-| A5 | PASS on this path | (i) The sandboxed rerun is identical. (ii) Perturbing pose_head changed 6/6 naming responses and 0/4 others; depth_head changed 2/2 and 0/8. (iii) No tower is cited. The cache and tower violations sit in the backend (§2). |
+| A5 | PASS on this path | (i) The sandboxed rerun is identical. (ii) Perturbing pose_head changed 8/8 naming responses and 0/4 others; depth_head changed 4/4 and 0/8 (3 seeds at noise gains 1 and 10). (iii) No tower is cited. The cache and tower violations sit in the backend (§2). |
 
 Per type (A6): call rate 1.0 for every call type and 0 for direct. Seconds per item on CPU: 0.08 (direct) to 0.80 (depth_at+dist). Six findings inside head classes (camera_head, point_depth_head activations) are listed apart as model code.
 

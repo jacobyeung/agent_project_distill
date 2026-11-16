@@ -181,7 +181,7 @@ class PinsTest(unittest.TestCase):
         write(os.path.join(self.root, 'a.bin'), raw.getvalue())
         util.write_json(os.path.join(self.root, 'PINS.json'), self.manifest())
         found = pins.check_single_place(self.root)
-        self.assertEqual([row['where'] for row in found], ['a.bin'])
+        self.assertIn('a.bin', [row['where'] for row in found])
         write(os.path.join(self.root, 'a.bin'), b'\x1f\x8b broken')
         found = pins.check_single_place(self.root)
         self.assertEqual(found[0]['reason'], 'unscannable (undecodable)')

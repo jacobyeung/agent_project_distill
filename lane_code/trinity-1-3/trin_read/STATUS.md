@@ -1,5 +1,5 @@
 # trin_read STATUS (trinity-1-3) - for a successor
-Updated: 2026-11-16T14:27Z by trin_read3 (session 3, started 09:41Z). Read "trin_read3 state" first, then "Successor: resume here".
+Updated: 2026-11-16T14:55Z by trin_read3 (rotated). Successor: read "Successor (trin_read4): resume here" first, then "trin_read3 state".
 
 ## Done
 - Plan RESULT 0203Z; QUESTION 0204Z (no free card on 1-3; asks for trinity-0-13 cards 1-6; default: no 0-13 action before answer).
@@ -62,6 +62,14 @@ Updated: 2026-11-16T14:27Z by trin_read3 (session 3, started 09:41Z). Read "trin
   6. `proof --root ../root --gpu N --token pXXXX --repeat 2` under vnice; then RESULT proof (token equality share, first divergence, scores per arm, run-to-run, tok/s, s/item, peak memory, stub call count 0, SANDBOX.json). ORCH then orders one review of launcher+stub+proof.
   7. `read --first 20` short proof for the launcher; RESULT launcher with DIFF.md BEYOND list (card check, Slurm token, item filter, frame store, piecewise stage, host bwrap 0.4.0, llguidance stub, sampler, comparisons).
 - Then Task 5 planning (above).
+
+## Successor (trin_read4): resume here (state 14:55Z)
+- Everything is staged and CPU-checked on trinity-1-3 and trinity-1-18 (root complete, 4,864 frames, selfcheck 0 piece errors; one host-side portability false positive on the p1cpu link). Only a card is missing.
+- Card rule: a card on a node with >= 250 GB /scratch free (ORCH 1221Z; no /dev/shm root). Sources: tmux trr_cardpoll (1-3 + 1-18, writes work/cardpoll/CARD_FOUND.json and exits: rename it .seen.<epoch> and restart after use), events/gpu_fill/FREE_CARDS.md, *_ORCH_CARD_* events here. Off 1-3/1-18: work/send_node.sh NODE root build build_rv build_t6 kit_src work (IB), then ssh NODE bash -s < work/node_prep.sh; keep 150 GB free there; vnice except 0-13.
+- Order on a card: (1) RESULT card line; (2) `bash work/run_proof.sh GPU pXXXXXXXX` (build/, 20 items, --repeat 2, needs 256.1 GB free before each run); (3) RESULT proof (token equality share, first divergences, scores, run-to-run, tok/s, min/item set, peak memory, stub calls = 0, SANDBOX.json, build_t6 `cost --proof`); ORCH orders the one review; (4) ReVSI official999 step 544 with build_rv: rv-stage --tar dl/rv_media.tar (stream trin_read_rvmedia must have landed), rv-proof, rv-read, rv-compare vs /scratch/jjyeung/orch_n30/evalx27/work/kit_revsi/build/a348bc58686/; (5) step-544 dev-S1 baseline (build_t6 read --families main,away,forward, then items --a cont_ops readk/evidence/A544.jsonl) and D0 dev-S1 milestones (build_t6 launch_gcs.py at prio 40 -> stage-export -> read -> items); camera reads wait for the review. Rerun selfcheck after every run.
+- build_rv mirrored to trinity-1-18 same path 14:52Z (send6.log, RECV_OK); build_t6 mirrored 10:51Z.
+- Unused by ruling: build_rv_d0, build_rv2 (ORCH 1313Z, 1416Z: no D0 read on official ReVSI), build_p/build_t6p (no /dev/shm root). --link-models only after the review.
+- No removal by anyone; list in REMOVAL_CANDIDATES.md. Floor: 1-3 /scratch keeps >= 300 GB free.
 
 ## trin_read3 state (11:03Z) - read this first
 - Base LANDED 10:47Z (dl/base.tar sha 20a2ab6c..., record trin_read_base0.done.1794826039), staged 10:48Z; STAGING.json complete. RESULT 1059Z base_staged.

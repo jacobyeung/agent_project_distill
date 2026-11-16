@@ -125,8 +125,18 @@ def test_scores_units_frames_and_m4():
 # Use the reader's unchanged real-tokenizer fixture and script processor pattern.
 spec=importlib.util.spec_from_file_location('reader_tiny_fixture',Path('/scratch/jjyeung/orch_n30/b04_e2ehook/tests/test_tiny_e2e.py'))
 reader=importlib.util.module_from_spec(spec);spec.loader.exec_module(reader)
-reader.OUT=K/'tmp/h1_reader_proofs';reader.CODE_ROOTS={'reader':K/'h1eval/reader_core/e2e_reader','tree':K/'tree'}
-kit=reader.kit
+reader.OUT=K/'tmp/b4/h1_reader_proofs';reader.CODE_ROOTS={'reader':K/'h1eval/reader_core/e2e_reader','tree':K/'tree'}
+@pytest.fixture(scope='session')
+def kit(tmp_path_factory):
+    import os
+    reuse=os.environ.get('H1_TINY_FIXTURE')
+    if not reuse:return reader.kit.__wrapped__(tmp_path_factory)
+    from transformers import AutoTokenizer
+    from student_pilot.carrier_c1_routing import OPENERS
+    from h1eval.items import sha
+    root=Path(reuse);tok=AutoTokenizer.from_pretrained(root/'tokenizer',local_files_only=True)
+    return dict(root=root,digest=sha(root/'E2E_MANIFEST.json'),tok=tok,
+                openers={name:tok.convert_tokens_to_ids(name) for name in OPENERS})
 
 
 class TinyOwnHeads(nn.Module):
@@ -142,13 +152,21 @@ class TinyOwnHeads(nn.Module):
         return Heads(p,self.gravity.detach().numpy(),lambda f,uv:float(self.depth_bias.detach())+np.asarray(uv)[:,0]*.001,'capture-A')
 
 
-def generated(kit,mode,kind='all',policy='copier',unchanged=None):
+def generated(kit,mode,kind='all',policy='copier',unchanged=None,perception_factory=None):
     from e2e_reader.generate import generate
     art,model,hook=reader.load(kit);model.add_module('own_heads',TinyOwnHeads())
     class Bound(OwnPerception):
         def lazy(self,frames,prefill,timings):
             return super().lazy(frames,NS(heads=model.own_heads(prefill)),timings)
-    perception=Bound(socket,mode=mode)
+    if perception_factory is None:
+        perception=Bound(socket,mode=mode)
+    else:
+        model.h10_stage1_socket=socket
+        own=perception_factory(art,model,'cpu')
+        class Adapt:
+            def lazy(self,frames,prefill,timings):
+                return own.lazy(frames,NS(heads=model.own_heads(prefill)),timings)
+        perception=Adapt()
     tok=kit['tok'];call='<move from=1 to=9>'
     script=(reader.SCRIPT.replace(' and the room <ground mode="room"> so the answer is 1.2','') if kind=='all' else call)
     prefix=tok.encode(script,add_special_tokens=False);queue=list(prefix);last=[]

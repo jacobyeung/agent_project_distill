@@ -14,13 +14,15 @@ run, pool, reward = Path(sys.argv[1]), read_jsonl(sys.argv[2]), json.load(open(s
 head = json.loads((run / 'RUN_CONFIG.json').read_text())
 st = DrawStore(run, head['config'])
 groups = st.groups(pool, head['config']['sampling']['draws'], require_complete=False)
-by_path, by_forced, by_type, budget, tower, n_draws = {}, {}, {}, 0, 0, 0
+by_path, by_forced, by_type, budget, tower, n_draws, reasons = {}, {}, {}, 0, 0, 0, {}
 for p in pool:
     recs = groups.get(p['prompt_id']) or []
     if not recs:
         continue
     for rec, sc in zip(recs, score_group(p, recs, {**DEFAULTS, **reward})):
         n_draws += 1
+        for why in sc['reasons'] or []:
+            reasons[why] = reasons.get(why, 0) + 1
         budget += rec['budget_hit']
         tower += rec.get('tower_error') is not None
         cost_path = 'head' if rec['calls'] else 'direct'  # timing by what the decoder did; reward by the gate's form
@@ -34,7 +36,8 @@ for p in pool:
         t['n'] += 1; t['c'] += sc['c']; t['g'] += sc['g']; t['r'] += sc['r']; t['head'] += sc['path'] == 'head'
         if rec['path'] == 'free':
             t['free'] += 1; t['free_head'] += sc['path'] == 'head'
-summary = dict(draws=n_draws, budget_hits=budget, tower_errors=tower,
+summary = dict(draws=n_draws, budget_hits=budget, tower_errors=tower, gate_reasons=dict(sorted(reasons.items())),
+               response_not_forced=reasons.get('response_not_forced', 0),  # expect 0 on honest draws (review_rl2)
                paths={k: dict(n=len(v['seconds']), sec_mean=statistics.mean(v['seconds']),
                               sec_median=statistics.median(v['seconds']), own_tokens_median=statistics.median(v['own']),
                               calls_mean=statistics.mean(v['calls'])) for k, v in by_path.items()},

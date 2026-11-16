@@ -15,9 +15,14 @@ def merge(session, rows, keys, destination, fixture=False):
     if set(by_key)!=set(keys):
         raise ValueError('Merged rows differ from the authenticated native journal')
     journaled=zero_nonanswers([by_key[k] for k in keys])
-    differ=[k for k,a,b in zip(keys,journaled,rows) if digest(a)!=digest(b)]
-    if differ:
-        write(Path(destination)/'MERGE_DIFF.json',dict(keys=differ,fields={k:sorted(f for f in set(a)|set(b) if digest(a.get(f))!=digest(b.get(f))) for k,a,b in zip(keys,journaled,rows) if k in differ}))
+    differences={}
+    for key,recorded_row,memory_row in zip(keys,journaled,rows):
+        if digest(recorded_row)!=digest(memory_row):
+            differences[key]=sorted(field for field in set(recorded_row)|set(memory_row)
+                if field not in recorded_row or field not in memory_row
+                or digest(recorded_row[field])!=digest(memory_row[field]))
+    if differences:
+        write(Path(destination)/'MERGE_DIFF.json',dict(keys=list(differences),fields=differences))
         raise ValueError('Merged rows differ from the authenticated native journal')
     rows=journaled
     if not set(keys)<=set(request['keys']):raise ValueError('Read membership is outside the bound request')

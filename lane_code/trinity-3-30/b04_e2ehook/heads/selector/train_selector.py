@@ -112,7 +112,7 @@ def main():
     a = ap.parse_args()
     torch.set_num_threads(1)
     torch.use_deterministic_algorithms(True)
-    rows = [r for r in C.load() if r['split'] == 'train']
+    rows = C.load(splits=('train',))
     emb = names_table()
     gs = groups(rows, emb)
     te, tr = room_folds(gs)

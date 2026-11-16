@@ -123,12 +123,18 @@ class Artifact:
 
 
 # ------------------------------------------------------------------ audit (EAT-1 A1)
+def _roots():
+    import sysconfig
+    return tuple(sorted({os.path.realpath(sysconfig.get_paths()[k]) + '/' for k in ('stdlib', 'platstdlib', 'purelib', 'platlib')}))
+
+
+_STDLIB_ROOTS = _roots()
+
+
 def _stdlib(path):
     """Interpreter and installed-library code (python, torch, numpy, transformers): pinned by the
     runtime environment's own identity, not by this manifest."""
-    import sysconfig
-    roots = {sysconfig.get_paths()[k] for k in ('stdlib', 'platstdlib', 'purelib', 'platlib')}
-    return any(path.startswith(os.path.realpath(r) + '/') for r in roots)
+    return path.startswith(_STDLIB_ROOTS)
 
 
 _state = threading.local()
@@ -174,34 +180,60 @@ def _native_targets():
     return targets
 
 
+def _native_path(args, kwargs):
+    for value in list(args[:1]) + [kwargs.get(k) for k in ('filename', 'path', 'file', 'name')]:
+        if isinstance(value, (str, bytes, os.PathLike)):
+            return os.path.realpath(os.fsdecode(value))
+    return None
+
+
 def _guarded(original):
-    def wrapper(path, *a, **k):
+    def wrapper(*a, **k):
         audit = getattr(_state, 'audit', None)
         if audit is not None:
-            audit.record(os.path.realpath(os.fsdecode(path)), 'rb')
-        return original(path, *a, **k)
+            path = _native_path(a, k)
+            if path is None:
+                audit._refuse('native_open_without_path', repr(original))
+            else:
+                audit.record(path, 'rb')
+        return original(*a, **k)
     wrapper.__wrapped_native__ = original
     return wrapper
 
 
+def _same(value, original):
+    try:
+        return value is original or (type(value) is type(original) and bool(value == original))
+    except Exception:
+        return False
+
+
 def _patch_native():
-    swaps = []
+    """Wrap every native opener and rebind every module global that holds one, whatever its name."""
+    swaps, pairs = [], []
     for owner, name in _native_targets():
-        original = getattr(owner, name)
-        original = getattr(original, '__wrapped_native__', original)
-        wrapper = _NATIVE.setdefault(id(original), (original, _guarded(original)))[1]
-        swaps.append((owner, name, getattr(owner, name)))
+        current = getattr(owner, name)
+        original = getattr(current, '__wrapped_native__', current)
+        wrapper = next((w for o, w in _NATIVE.values() if _same(original, o)), None)
+        if wrapper is None:
+            wrapper = _guarded(original)
+            _NATIVE[len(_NATIVE)] = (original, wrapper)
+        swaps.append((owner, name, current))
         setattr(owner, name, wrapper)
-    originals = {id(v[0]): v[1] for v in _NATIVE.values()}
+        pairs.append((original, wrapper))
+    kinds = {type(o) for o, _ in pairs}
     for mod in list(sys.modules.values()):
         d = getattr(mod, '__dict__', None)
         if not isinstance(d, dict):
             continue
-        for name in ('safe_open', 'load_file'):
-            v = d.get(name)
-            if v is not None and id(v) in originals:
-                swaps.append((mod, name, v))
-                setattr(mod, name, originals[id(v)])
+        for name, value in list(d.items()):
+            if type(value) not in kinds:
+                continue
+            for original, wrapper in pairs:
+                if _same(value, original):
+                    swaps.append((mod, name, value))
+                    setattr(mod, name, wrapper)
+                    break
     return swaps
 
 

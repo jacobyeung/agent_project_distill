@@ -1,17 +1,20 @@
 from pathlib import Path
 import json,hashlib,re
+import os
+RUN_PREFIX=os.environ.get('REPIN_RUN_PREFIX','fix1')
+TEST_RUN=os.environ.get('REPIN_TEST_RUN','test_fix1')
 R=Path.cwd();O=R/'out'
 tests=int(re.search(r'(\d+) passed', (O/'tests.log').read_text())[1])
 offkit_tests=int(re.search(r'(\d+) passed', (O/'offkit_tests.log').read_text())[1])
 archives=json.loads((O/'PACKAGE_PINS.json').read_text())
 summary={}
-for p in (R/'work/test_fix1').glob('test_accepted_report_*/packet/reports/B2048.json'):
+for p in (R/'work'/TEST_RUN).glob('test_accepted_report_*/packet/reports/B2048.json'):
  r=json.loads(p.read_text());summary[r['benchmark']]=dict(items=r['items'],scenes=r['scenes'],score=r['headline']['score'],percentile_95=r['headline']['percentile_95'],first_line=r['first_line'],float_order_check=r['float_order_check'])
 assert len(summary)==2
 rehearsals={}
 step544_rehearsals={}
 for key in ('vsi','revsi'):
- r=json.loads((R/'work'/('fix1_'+key+'_done')/'RESULT.json').read_text())
+ r=json.loads((R/'work'/(RUN_PREFIX+'_'+key+'_done')/'RESULT.json').read_text())
  assert r['passed'] and r['config_mode']=='production' and r['reports'] and r['fetch']
  proof=json.loads((Path(r['config']['spec']['run'])/'metadata/P9.json').read_text())
  stage=json.loads((Path(r['job_root'])/'exports/359fcc3c_m200/RECEIPT.json').read_text())
@@ -20,7 +23,7 @@ for key in ('vsi','revsi'):
              prompt_proof=proof,full_checker_status=stage['checker']['status'],return_bytes=r['archive_bytes'],
              fetch=r['fetch'],reports=r['reports'],fixture_only=True)
  rehearsals[key]=rehear
- fixture=json.loads((R/'work'/('fix1_'+key+'_step544')/'RESULT.json').read_text())
+ fixture=json.loads((R/'work'/(RUN_PREFIX+'_'+key+'_step544')/'RESULT.json').read_text())
  assert fixture['passed'] and fixture['config_mode']=='production' and fixture['fetch'] and fixture['reports']
  for result in (r,fixture):
   for report in (Path(result['fixture_packet'])/'reports').glob('*.json'):
@@ -60,10 +63,10 @@ for line in (O/'SHIP_SHA256SUMS').read_text().splitlines():
  assert hashlib.sha256((R/name).read_bytes()).hexdigest()==digest,name
 for name,digest in json.loads((O/'OFFKIT_PINS.json').read_text()).items():
  assert hashlib.sha256((Path('/scratch/jjyeung/orch_n30/b07_offread/kit/offkit')/name).read_bytes()).hexdigest()==digest,name
-retained=O/'prev_fix1_20261116T135220Z'
-for key,digest in dict(vsi='ddf11fd2dd06dfefb2b1f0587ea569f7f7d7547b96ff2c26ff3d3296a215429e',
-                       revsi='ef31d64f3984c93e7ede5bf48e761899396b79d14930ef056fc48521741ba9d3').items():
- assert hashlib.sha256((retained/f'package_{key}.tar').read_bytes()).hexdigest()==digest
+retained=Path(json.loads((R/'work/REPIN2_RUN.json').read_text())['previous'])
+old=json.loads((retained/'PACKAGE_PINS.json').read_text())
+for key, value in old.items():
+ assert hashlib.sha256((retained/f'package_{key}.tar').read_bytes()).hexdigest()==value['sha256']
 (O/'FINAL_CHECK.json').write_text(json.dumps(dict(package_members_match_workspace=True,regular_members_only=True,
     tests=tests,offkit_tests=offkit_tests,cpu_rehearsals=4,offkit_pins_verified=True,
     ship_inventory_verified=True,retained_archives=str(retained.relative_to(R)),retained_archive_hashes_verified=True,

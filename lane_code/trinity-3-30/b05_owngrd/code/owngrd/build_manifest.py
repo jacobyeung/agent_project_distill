@@ -33,6 +33,7 @@ def main(argv=None):
     ap.add_argument('--gt-root', required=True, help='dir holding arkit_gt/gt and t1_gt/gt')
     ap.add_argument('--frame-root', required=True, help='frame store on the GPU node (<root>/<sha[:2]>/<sha>.png)')
     ap.add_argument('--out', required=True)
+    ap.add_argument('--split', choices=('train', 'heldout', 'all'), default='all')
     a = ap.parse_args(argv)
     k1 = json.loads(Path(a.k1_manifest).read_text())
     gate = Gate(a.gate_root)
@@ -40,6 +41,8 @@ def main(argv=None):
     kept, refused, missing_gt, index_mismatch = [], {}, [], []
     rasters = {}
     for c in k1['captures']:
+        if a.split != 'all' and c['k1_split'] != a.split:
+            continue
         why = gate.reasons(c['canonical'], c.get('room'))
         if why:
             refused[c['canonical']] = why
@@ -72,7 +75,7 @@ def main(argv=None):
                      'gt': {'path': str(p), 'sha256': sha256_file(p)}, 'operands': operands, 'names': names})
     receipt = gate.admit(caps)
     man = {'schema': 'owngrd-teacher-manifest-v1', 'source': {'k1_manifest': a.k1_manifest,
-           'k1_manifest_sha256': sha256_file(a.k1_manifest)}, 'gate_root': a.gate_root, 'gate_receipt': receipt,
+           'k1_manifest_sha256': sha256_file(a.k1_manifest), 'split': a.split}, 'gate_root': a.gate_root, 'gate_receipt': receipt,
            'refused': refused, 'missing_gt': missing_gt, 'index_mismatch': index_mismatch,
            'vocab_by_ds': vocab_by_ds, 'vocab_sha256': sha256_json(vocab_by_ds), 'captures': caps,
            'counts': {'captures': len(caps), 'names': sum(len(c['names']) for c in caps),

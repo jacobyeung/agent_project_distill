@@ -7,8 +7,8 @@ EAT-1 is built and passes its CPU tests. It fails C8r on A1, A2, A3, A4 and A5. 
 - `hook.py`: an audit hook on file opens plus `/proc/self/maps` windows (A1). It also holds the model monitor, which counts model entries and classifies every fed token as prompt, model argmax, registered-handler output or injected (A2). It accepts a split LM entry (model.model + lm_head). Line scope covers reader lines executed outside module forwards (A3/A4 scope).
 - `scan.py` + `allowlist.json` form the static scanner: table loads, data-file names, numeric constants, thresholds, unit conversion, guards, status literals, except-substitutes, caches, and responses written outside a module. `closure.py` computes a reader's static import closure.
 - `artifact.py` holds the `eat1-artifact-v1` manifest: files by sha256 and role, and modules by path and role.
-- `adapters/`: `c8r_tiny.py` and `gf1_tiny.py` (tree tiny fixtures, CPU) and `c8r_native.py` (the real C8r no-MDG reader, GPU, untested).
-- `toy/` holds the clean toy reader plus six planted violations (the brief's five plus a threshold hidden in a head-class method). `tests/test_eat1.py` has 16 tests; the latest run is `Ran 16 … OK` in 20 s (`work/test_run_5.log`). Run: `cd L && EAT1_TMP=$L/work/tmp /scratch/jjyeung/envs/p1cpu/bin/python -m unittest eat1.tests.test_eat1`.
+- `adapters/`: `c8r_tiny.py` and `gf1_tiny.py` (tree tiny fixtures, CPU), `b04_tiny.py` (lane b04's end-to-end reader on its tiny kit, CPU; result `out/EAT1_ON_B04_TINY.md`: A1, A2 and A5 PASS, A3 and A4 FAIL) and `c8r_native.py` (the real C8r no-MDG reader, GPU, untested).
+- `toy/` holds the clean toy reader plus six planted violations (the brief's five plus a threshold hidden in a head-class method). `tests/test_eat1.py` has 16 tests; the latest run is `Ran 16 … OK` in 23 s (`work/test_run_8.log`). Run: `cd L && EAT1_TMP=$L/work/tmp /scratch/jjyeung/envs/p1cpu/bin/python -m unittest eat1.tests.test_eat1`.
 
 ## Brief tests
 | Brief requirement | Test | Result |
@@ -31,4 +31,7 @@ EAT-1 is built and passes its CPU tests. It fails C8r on A1, A2, A3, A4 and A5. 
 4. `ClipCache` (GF-1, a per-row memo of the live tower forward) is flagged as A5.cache. Should it pass A5 (iii)?
 5. A1 for an export that leaves out the frozen tower: it passes when the claimed manifest lists the pinned tower weights by sha256.
 6. A2 counts response tokens written from Python outside a registered module as injected, even when they print head outputs exactly. This follows the brief's "a module registered on the model writes the response".
-7. A typed `error:` response or a `not seen` status that no head formats fails A4.
+7. A typed `error:` response or a `not seen` status that no head formats fails A4. An except-handler that returns nothing (`[]`, `None`, `''`) writes no token and is not a substitute.
+8. In a dynamic run, response text formatted by a function the registered handler calls does not fail A2 once the token provenance shows zero injected tokens. The static rule still applies in static-only audits.
+9. A5 (ii) perturbs at noise gains 1 and 10 over 3 seeds. A response is eligible while every call up to it matches, so a response that reads earlier state (a gap over grounded boxes) must cite the modules behind that state.
+10. Lines in module and class bodies executed by lazy imports inside generate() are out of the A3/A4 scope; the function lines that use those names are judged.

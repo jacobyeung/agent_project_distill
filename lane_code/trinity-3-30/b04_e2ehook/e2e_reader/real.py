@@ -32,8 +32,14 @@ class TowerG3T:
         from student_pilot.tower_read import FrozenG3TTower
         images = frames['native_frames']
         if self.model is None or self.model.dense_frames != len(images):
-            self.model = FrozenG3TTower(dict(weights_path=str(self.artifact.path('g3t', 'g3t/model.safetensors')),
-                                             config_path=str(self.artifact.path('g3t', 'g3t/config.json')),
+            files = self.artifact.files('g3t')
+            def named(name):
+                matches = [p for p in files if p.name == name]
+                if len(matches) != 1:
+                    raise ValueError('g3t_file_not_unique:' + name)
+                return str(matches[0])
+            self.model = FrozenG3TTower(dict(weights_path=named('model.safetensors'),
+                                             config_path=named('config.json'),
                                              device=self.device, dense_frames=len(images),
                                              depth_chunk_size=self.chunk, dtype=self.dtype))
         s = self.model.run(dict(tower_native_frames=images, tower_frame_indices=frames['dense_indices'],

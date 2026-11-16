@@ -18,7 +18,7 @@ def work(plan):
     from .worker import Worker
     from .scoring import Scorer
     b=binding(plan['spec']);config=plan['config']
-    if os.environ.get('OFFNATIVE_DEADLINE'):config=dict(config,deadline_utc=os.environ['OFFNATIVE_DEADLINE'])
+    if os.environ.get('A0_DEADLINE'):config=dict(config,deadline_utc=os.environ['A0_DEADLINE'])
     runtime=Runtime(Path.cwd()/'work/runtime',plan['items'],b,plan['inputs'])
     worker=Worker(config,b,plan['items'],runtime,Scorer(plan['inputs']['label_file'],b['benchmark']),Path.cwd()/'return')
     worker.run()
@@ -71,7 +71,7 @@ def main():
         argv=L.J.namespace(root)+['--bind',str(Path.cwd()),'/scratch/n0','--chdir','/scratch/n0',
               stage_config['spec']['interpreters']['p1cpu'],'-B','0.py','--worker']
         environment=L.J.environment(root)
-        environment['OFFNATIVE_ROOTS']='r.json'
+        environment['A0_ROOTS']='r.json'
         outcome=run(argv,Path.cwd(),Path.cwd()/'WATCHDOG.json',deadline_utc=deadline,
                     limit=limit-600,env=environment)
     returned=Path.cwd()/'return';returned.mkdir(exist_ok=True)
@@ -89,7 +89,7 @@ def main():
     dump(Path.cwd()/'EXIT.json',{'status':'COMPLETE' if outcome['returncode']==0 else 'FAILED',
         'token':config['token'],'job':int(os.environ.get('SLURM_JOB_ID','0')),
         'binding_sha256':config['x0'],'config_sha256':plan['config_sha256'],
-        'packet_sha256':os.environ.get('OFFNATIVE_PACKET_SHA256'),'synthetic':False,
+        'packet_sha256':os.environ.get('A0_PACKET_SHA256'),'synthetic':False,
         'archive':{'name':target.name,'sha256':sha(target),'bytes':target.stat().st_size}})
     (Path.cwd()/'JOB.log').write_text(json.dumps({'x0':sha(Path.cwd()/'EXIT.json')})+'\n')
     run([sys.executable,'-B','0.py','--publish'],Path.cwd(),Path.cwd()/'PUBLISH_WATCHDOG.json',

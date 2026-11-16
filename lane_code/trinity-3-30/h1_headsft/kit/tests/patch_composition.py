@@ -20,6 +20,8 @@ faithful=dict(base)
 faithful['student_pilot/h1_faithful.py']=full['student_pilot/h1_faithful.py']
 faithful['student_pilot/carrier_c1_routing.py']=full['student_pilot/carrier_c1_routing.py']
 changes=[
+("    from .source_seal import binding\n    sealed = binding(load(pinned(cfg['code'])), result['config_sha256'])\n", "    if cfg.get('h1', {}).get('faithful_own_camera_rows'):\n        from .h1_faithful import prepare_identity\n        result = prepare_identity(result, cfg)\n    from .source_seal import binding\n    sealed = binding(load(pinned(cfg['code'])), result['config_sha256'])\n"),
+("    if receipt.get('tool_mode_flag') != cfg.get('tool_mode_flag'):\n", "    if cfg.get('h1', {}).get('faithful_own_camera_rows'):\n        from .h1_faithful import require_identity\n        require_identity(receipt, cfg)\n    if receipt.get('tool_mode_flag') != cfg.get('tool_mode_flag'):\n"),
 ("    self.processor = processor\n", "    self.processor = processor\n        self.h1 = receipt.get('h1', {})\n"),
 ("'tool_mode_flag', 'ground_target_filter', 's1_route_policy') if k in cfg", "'tool_mode_flag', 'ground_target_filter', 's1_route_policy', 'h1') if k in cfg"),
 ("    if cfg.get('geometry_online'):\n        receipt = {**receipt", "    if 'h1' in cfg:\n        receipt = {**receipt, 'h1': cfg['h1']}\n    if cfg.get('geometry_online'):\n        receipt = {**receipt"),
@@ -46,7 +48,7 @@ def diff(after):
 
 for name,content in [('faithful_own_rows.patch',faithful),('h1_rest.patch',rest),('h1_trainer.patch',full)]:
     (K/'patches'/name).write_text(diff(content))
-root=Path(tempfile.mkdtemp(prefix='patch_proof_',dir=K/'tmp'))
+root=Path(tempfile.mkdtemp(prefix='patch_proof_',dir=K/'tmp/b4'))
 results=[]
 for label,patches in [('faithful_then_rest',['faithful_own_rows.patch','h1_rest.patch']),
                       ('rest_then_faithful',['h1_rest.patch','faithful_own_rows.patch']),('full',['h1_trainer.patch'])]:

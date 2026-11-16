@@ -16,11 +16,11 @@
     "loader_sha256": "555daf037f9d9883c5dffae0ae5acd02b029060686c4a274309375c4a35295b7",
     "room_exclusions": {
       "path": "/scratch/jjyeung/orch_n30/h1_headsft/kit/tree/student_pilot/h1_r0.py",
-      "sha256": "b8d31aff60a58b96e9b53deee07603fa5d118a12734e1ed787f4cd9cd7c56b83"
+      "sha256": "d822812717a78cf98a1970481eedfcfb1c28607630c89222366f474c5a04e89d"
     }
   },
-  "evaluator_code_sha256": "f62827a87061972dd0c83b8b26cc356a4de84b631437fac73e5f45cdd04c6e40",
-  "export_sha256": "b9a1c77e3e23981d22a62b35ad7be81688f31f4debcf966208314499d1751bfe",
+  "evaluator_code_sha256": "1888b4afd49efa0727aa4bddfed1c1e743536869ee4ea9ade3c9a57d19d9ab12",
+  "export_sha256": "c62053f7c312d086ed6917786e5786eae69cacd5f8856070e73bb0097be7bab8",
   "fixture": true,
   "frames": 32,
   "gt_inputs": [],
@@ -60,6 +60,11 @@
               "rooms": 1,
               "value": 1.0
             },
+            "bars": {
+              "answer_before_first_call_max": 0.01,
+              "call_rate_min": 0.98,
+              "exact_min": 0.95
+            },
             "call_rate": {
               "ci95": [
                 1.0,
@@ -177,6 +182,12 @@
               "rooms": 1,
               "value": 1.0
             },
+            "pass_flags": {
+              "answer_before_first_call": true,
+              "call_rate": true,
+              "exact": true
+            },
+            "passes_bars": true,
             "repeated_calls": {
               "ci95": [
                 0.0,
@@ -187,7 +198,19 @@
               "value": 0.0
             }
           },
-          "M2": {},
+          "M2": {
+            "bars": {
+              "own_minus_tower_lower_bound_gt": -5.0
+            },
+            "own_minus_tower": {
+              "ci95": null,
+              "n": 0,
+              "rooms": 0,
+              "unit": "percentage_points",
+              "value": null
+            },
+            "passes_bars": null
+          },
           "M3": {
             "bars": {
               "follow_min": 0.8,
@@ -199,7 +222,7 @@
           "M4": {},
           "n": 1
         },
-        "scale_translation": {
+        "scale_translation:2": {
           "M1": {
             "answer_before_first_call": {
               "ci95": [
@@ -219,6 +242,11 @@
               "rooms": 1,
               "value": 1.0
             },
+            "bars": {
+              "answer_before_first_call_max": 0.01,
+              "call_rate_min": 0.98,
+              "exact_min": 0.95
+            },
             "call_rate": {
               "ci95": [
                 1.0,
@@ -336,6 +364,12 @@
               "rooms": 1,
               "value": 1.0
             },
+            "pass_flags": {
+              "answer_before_first_call": true,
+              "call_rate": true,
+              "exact": true
+            },
+            "passes_bars": true,
             "repeated_calls": {
               "ci95": [
                 0.0,

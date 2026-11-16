@@ -4,6 +4,10 @@ import hashlib
 import json
 import sys
 import tarfile
+if '--g3' in sys.argv:
+    import runpy
+    runpy.run_path(str(Path(__file__).with_name('g3_finish.py')),run_name='__main__')
+    raise SystemExit(0)
 
 B=Path(__file__).resolve().parents[1];O=B/'out';K=O/'guard_kit'
 sys.path.insert(0,str(K))

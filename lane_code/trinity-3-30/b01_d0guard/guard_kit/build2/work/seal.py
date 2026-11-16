@@ -1,5 +1,9 @@
 from pathlib import Path
 import ast,datetime,difflib,hashlib,json,os,re,sys,tarfile
+if '--g3' in sys.argv:
+ import runpy
+ runpy.run_path(str(Path(__file__).with_name('g3_seal.py')),run_name='__main__')
+ raise SystemExit(0)
 B=Path(__file__).resolve().parents[1];O=B/'out';K=O/'guard_kit';W=B.parents[1]/'work';OLD=B.parent/'build/out'
 sys.path.insert(0,str(K));from guard_core import read,write,sha,digest
 sources=[]

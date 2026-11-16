@@ -1,17 +1,17 @@
-# e_orchkit-core STATUS (2026-11-16T14:26Z, Devin lane on trinity-3-30): BUILD DONE, review loop in progress
-Goal: build brief orch_n30/briefs/eff/orchkit-core.md (+ verdict, INTERFACES). W = /scratch/jjyeung/orch_n30/e_orchkit-core.
-Clone W/repo (W/clone symlink), branch eff/orchkit-core, head 5b3301f233da877236ad87b3a57cef752c3e41ae; 12 commits in W/PUSH_QUEUE.txt.
-In flight: Codex review round 8 (gpt-6-astra high, read-only) in tmux ock_review8, brief W/work/review/REVIEW_BRIEF_8.md (neutral wording: round 7's run ended with a Codex content flag after probing concurrency), log W/work/review/dispatch8.log (EXIT= when done), receipt /home/jjyeung/agent_project_distill/agent/scratch/codex_runs/<UTC>_ock_review8/final_message.md. Review history (W/work/review/VERDICT_N.json.md, FIX_N.diff): V1 OC-01..08 -> 9d58cab7; V2 OC-09 -> 7a3a4cf8; V3 OC-10 -> 4601700f; V4 OC-11..14 -> cb6a5f04; V5 OC-15..17 -> fbe5ece7; V6 OC-18..21 -> 9e1313f6; round 7 transcript showed concurrent one-job submissions -> partition lock 5b3301f2. 103 tests pass on 3.6 and bwrap. Every fix has a regression test that fails on the previous head.
-- ORCH 1305Z: formats confirmed; no real submission before the review's GO. Production ledger B/ORCHARD_LEDGER.jsonl created from the 151-row import (sha256 d6148bde..., did not exist before).
+# e_orchkit-core STATUS (2026-11-16T14:50Z, Devin lane on trinity-3-30): BUILD DONE, review loop in progress; ROTATING (context)
+Goal: build brief orch_n30/briefs/eff/orchkit-core.md (+ orchkit-core.verdict.md, INTERFACES.md). W = /scratch/jjyeung/orch_n30/e_orchkit-core.
+Clone W/repo (W/clone symlink), branch eff/orchkit-core, head 633e3d0b6c0573062a5b0bee0f59c7624e79819b; 14 commits in W/PUSH_QUEUE.txt (never amend; new commits only; git only inside W/repo per the brief's exception).
+## In flight
+- Codex review round 10 (gpt-6-astra high, read-only) in tmux ock_review10 on trinity-3-30. Brief W/work/review/REVIEW_BRIEF_10.md; log W/work/review/dispatch10.log (line EXIT=N when done); verdict = final_message.md in the newest /home/jjyeung/agent_project_distill/agent/scratch/codex_runs/*ock_review10 dir. Check: tmux has-session -t ock_review10. Rounds take about 10 minutes.
 ## Done
-- All modules, template, schemas, example, tests: 79 pass on /usr/bin/python3 3.6.8 and under bwrap p1cpu (W/out/test36.txt, test312.txt).
-- W/out/ORCHARD_LEDGER.imported.jsonl (151 rows). Pin audits W/out/audit_vsti.json, audit_native_code.json.
-- W/REPORT.md (built, tests, kept/changed/dropped, template differences, format additions, not proven, adoption, migration note).
-- RECORD block appended under "## Build results" in distill_design/EXPERIMENT_EFFICIENCY_20261116.md.
-- RESULT event done_review_request written.
-- Off-node copy: code reaches origin through code_sync publishing PUSH_QUEUE heads; brief rule 4 forbids ssh, so no IB mirror was made.
-## Next (only on orchestrator notes)
-1. When the review lands: apply findings as new commits (never amend queued commits), rerun both suites, post one RESULT with the verdict.
-1b. Apply review findings as new commits on eff/orchkit-core (never amend queued commits).
-2. Answer format questions from other builds (config `family`/`stage`/`return` additions, REPORT.md "Formats I added").
-## Removal candidates: W/REMOVAL_CANDIDATES.md
+- All modules (pins, ledger, anon, pack, launch, stage, ret, template, schema, example); 108 tests pass on /usr/bin/python3 3.6.8 and under bwrap p1cpu (W/out/test36.txt, test312.txt). Commands in W/REPORT.md "Tests".
+- B/ORCHARD_LEDGER.jsonl created from the 151-row import (orchestrator ruling 1305Z). New rows carry payload_sha256; token claims and partition locks in <ledger>.claims/.
+- ORCH 1305Z: formats confirmed; review = one Codex review (code by Claude models); no real submission before the review's GO.
+- Review rounds 1-9: OC-01..OC-24, OC-26..OC-31 fixed; OC-25 withdrawn (split is a name rule by AGENTS.md). Evidence: W/work/review/VERDICT_N.json.md, FIX_N.diff, REPORT.md "Review". Round 7's Codex run ended on a content flag; the neutral wording of REVIEW_BRIEF_8+ avoids it.
+- W/REPORT.md current through 633e3d0b. RECORD block appended once (states e263c512 / 79 tests; the final RESULT gives the new head).
+## Next
+1. Read round 10's verdict. If GO: write RESULT event "review_go" (head, verdict path, test counts) and stop.
+2. If NO_GO: fix each verified finding as a new commit with a regression test that fails on the previous head (copy the old head with git show into W/tmp/oldhead_<sha>/, copy the new tests in, run them there), rerun both suites, write W/work/review/FIX_10.diff and VERDICT_10.json.md, dispatch round 11 from REVIEW_BRIEF_10.md (bump head, lists, reviewer_lane, next OC id): tmux new-session -d -s ock_review11 "cd /home/jjyeung/agent_project_distill && agent/scripts/codex_dispatch.sh review W/repo BRIEF --model gpt-6-astra --effort high --label ock_review11 --skip-git-check > W/work/review/dispatch11.log 2>&1; echo EXIT=\$? >> ...".
+3. Answer out-of-spec findings in the brief (deliberate obfuscation, ledger rewriting, split in contents) instead of fixing them. If rounds keep finding only new exotic container or encoding cases, ask the orchestrator in one QUESTION whether to accept with the remaining cases listed (default: keep fixing).
+4. Keep REPORT.md "Review" and this file current.
+## Removal candidates: W/REMOVAL_CANDIDATES.md (also W/tmp/oldhead_* copies and PREP .check./.submit. dirs from tests).

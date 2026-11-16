@@ -5,10 +5,14 @@ import json, sys
 from pathlib import Path
 out, ref, *cands = map(Path, sys.argv[1:])
 out.mkdir(parents=True, exist_ok=True)
+if any(out.iterdir()):
+    raise ValueError(f'output folder must be empty: {out}')
 n = 0
 for p in sorted(ref.glob('*.json')):
     d = json.loads(p.read_text())
     seen = {(r['row_id'], r['arm']) for r in d['items']}
+    if len(seen) != len(d['items']):
+        raise ValueError(f'duplicate (row_id, arm) in reference {p}')
     for c in cands:
         q = json.loads((c / p.name).read_text())
         assert q['diagnostics']['capture'] == d['diagnostics']['capture']

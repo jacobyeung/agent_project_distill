@@ -1,0 +1,16 @@
+# Independent read-only re-review: fixes to the end-to-end reader after your NO-GO
+
+You are a read-only reviewer (Codex, GPT-6 Astra, high). Do NOT ssh, run git, write files outside /tmp-like scratch (use TMPDIR=/scratch/jjyeung/orch_n30/b04_e2ehook/work/tmp), download anything, or search recursively outside /scratch/jjyeung/orch_n30/b04_e2ehook. Never search /home or /data*. A builder is adding parity_kit/ and e2e_reader/parity.py in the same folder right now: ignore those, and real.py's TowerG3T file lookup.
+Your previous review: /home/jjyeung/agent_project_distill/agent/scratch/codex_runs/20261116T140434Z_b04_review_e2e/final_message.md (read it first). Sealed tree: /scratch/jjyeung/orch_n30/tree_rebuild/work/base/tree_b01ce449.
+Claimed fixes (verify each with a probe or test you run; tests: `cd /scratch/jjyeung/orch_n30/b04_e2ehook && TMPDIR=$PWD/work/tmp /scratch/jjyeung/envs/p1cpu/bin/python -B -m pytest -q -p no:cacheprovider tests/`):
+2. artifact.py Audit: wraps safetensors.safe_open, safetensors.torch.safe_open/load_file, tokenizers.Tokenizer.from_file during generate and rebinds module-global aliases; refuses outside .pth, every write mode (mode string or os.open flags), code outside the manifest. Limitation stated: a name bound in a function's locals before the audit starts cannot be rebound.
+3. stage1.StageOne featurises each name alone (no cross-name exclusivity), at training (heads/selector/isolate_tables.py -> data/caps_iso) and in the call; selector retrained on caps_iso (work/run_iso, eval work/SELECTOR_HELDOUT_iso.json, logistic refit work/logistic_heldout_iso.json).
+4. stage1.K1_CONTRACT cap 30 (the K1 dense raw-prompt run, mask_kit variantlib 'dense').
+5. grounding.mask_pixels keeps every pixel (no erosion, no canvas crop).
+6. stage1.median_ratio: no (0.1,10) own-depth gate; raises no_scale_points only when no confident point has positive finite depths.
+7. callhook: quoted() skips calls inside a code span or after a quote mark; MAX_CALL_TOKENS 1024. Replay vs job 170056 still 927/927 equal: out/proofs/REPLAY_170056_{suffix,nosuffix}_v3.json (rerun: tests/replay_170056.py work/n13/ret/native/R1.json work/n13/ret/native/geometry work/n13/obj/base/models--Qwen--Qwen3.5-9B/snapshots/c202236235762e1c871ad0ccb60c8ee5ba337b9a /tmp/x.json).
+8. decode_loop: responses never cut; every sampled+forced id is consumed before stopping at the cap.
+9. heads/selector/common.load(splits=) never opens tables of other splits; train_selector/logistic_cv/retrain_final use it.
+Finding 1 is disputed (see /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/b04_e2ehook/20261116T1439Z_QUESTION_review_blocker1.md): judge only whether anything on the read path now converts units or writes answer text beyond the trained v3.14 response format.
+Also check: any regression the fixes introduced (e.g. quoted() suppressing real calls; audit refusing files the real read needs: tokenizer, G3T, SAM 3, heads; write refusal breaking torch/triton caches on GPU).
+Output (final message, at most 50 lines): verdict line first (GO, GO AFTER FIXES, NO-GO for a GPU parity read once the kit exists); per claimed fix HOLDS/FAILS with evidence (file:line, command, output); then any new verified findings with severity. No style comments.

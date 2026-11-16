@@ -6,7 +6,7 @@ Model under test (every module registered on `reader.model`, every weight in one
   sam3            frozen SAM 3 stand-in: that capture's detections as a byte buffer (tower)
   gravity_head    G1: mean camera up of the tower's anchor poses, fixed math (head)
   scale_head      trained ScaleHead a90b5216 behind ScaleHeadCall (head)
-  selector_head   trained SelectorHead run_raw 1931446b (head)
+  selector_head   trained SelectorHead run_iso 6d97c524 (head)
   call_hook       e2e_reader CallHook (call_handler)
 The LM is untrained, so `ProgramPolicy` (a forward hook on lm_head) sets the logits to the program's next SAMPLED
 token; it never writes a response token. The two stand-in towers and this file are the fixture (eat1_fixture_roots).
@@ -26,7 +26,7 @@ TREE = '/scratch/jjyeung/orch_n30/tree_rebuild/work/base/tree_b01ce449'
 TOK = DATA / 'work/n13/obj/base/models--Qwen--Qwen3.5-9B/snapshots/c202236235762e1c871ad0ccb60c8ee5ba337b9a'
 K1 = Path('/scratch/jjyeung/n30_mirror/k1_ops3/run_tower_sam_2/3912542710353e09')
 SCALE = DATA / 'heads/scale/work/run1'
-SELECTOR = DATA / 'heads/selector/work/run_raw'
+SELECTOR = DATA / 'heads/selector/work/run_iso'
 for p in (str(LANE), TREE, str(LANE / 'heads/scale'), str(LANE / 'heads/selector'), str(LANE / 'heads/selector/sl118')):
     if p not in sys.path:
         sys.path.insert(0, p)

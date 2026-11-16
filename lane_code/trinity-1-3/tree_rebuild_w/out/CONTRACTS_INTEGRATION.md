@@ -341,3 +341,15 @@ Route: merged. Before: `91fd662a5d31c1f65c762a4c5d001ef10c1db31d8fa041497f19660e
 | Hunk | Disposition | Reason |
 |---|---|---|
 | @@ -38,6 +38,11 @@ | applied verbatim | Unchanged packet text. |
+
+## Standalone gate identity
+
+`launch_s1/b/i.py` is an additional integration repair outside the packet manifest. Its standalone configuration identity now matches the accepted native heading-threshold rule. The existing native-parity assertion remains, with explicit epoch and invalid-threshold cases.
+
+Before: `17766e8070e52ad72b5e6a7b01c4a2b60ff74c85f0e3ad627f5f69c93fe57502`. After: `5342dfe7a983e7c4c4ae864cdcd4f06c9b8d3ae670cc4244f44e4089d3376fd7`. Manifest patched hash: not listed.
+
+| Hunk | Disposition | Reason |
+|---|---|---|
+| @@ -94,7 +94,16 @@ | adapted | The standalone gate runs before private training modules are staged and must match native configuration identity in both contract epochs. |
+
+The exact adaptation is in `work/build6/GATE_IDENTITY_FIX.diff`. Hashes, native rule sources and validation state are in `work/build6/GATE_IDENTITY_FIX.json`.

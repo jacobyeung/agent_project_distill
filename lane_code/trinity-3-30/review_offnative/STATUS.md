@@ -1,0 +1,3 @@
+# STATUS review_offnative (done 20261116T1515Z)
+Reviewed build N c339cb7f. Verdict GO AFTER FIXES (6 fixes). Verdict: /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/review_offnative/REVIEW_VERDICT_OFFNATIVE.md; RESULT: /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/review_offnative/20261116T1515Z_RESULT_review_offnative_verdict.md.
+Copy and tests: /scratch/jjyeung/orch_n30/review_offnative/work/base (396 MB; removal candidate after fixes land), test file /scratch/jjyeung/orch_n30/review_offnative/work/test_review_offnative.py.

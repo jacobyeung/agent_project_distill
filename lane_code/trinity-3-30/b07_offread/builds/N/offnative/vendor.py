@@ -4,8 +4,25 @@ import argparse
 import difflib
 import hashlib
 import json
-from .io import dump, load, sha, digest
-from .paths import ROOT, BASE
+# Refresh must run before importing paths, whose normal startup rejects stale pins.
+ROOT = Path(__file__).resolve().parents[1]
+BASE = ROOT.parents[1]
+
+def load(path):
+    return json.loads(Path(path).read_text())
+
+def sha(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+def digest(value):
+    return hashlib.sha256(json.dumps(value, sort_keys=True).encode()).hexdigest()
+
+def dump(path, value):
+    path = Path(path).resolve()
+    if not path.is_relative_to(ROOT):
+        raise ValueError('refresh writes outside build N')
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(value, sort_keys=True, indent=2) + '\n')
 
 LIVE = {
     'B04': Path('/scratch/jjyeung/orch_n30/b04_e2ehook'),
@@ -35,6 +52,25 @@ def refresh(names):
     current = load(ROOT/'vendor/ACTIVE.json') if (ROOT/'vendor/ACTIVE.json').exists() else {}
     changes = {}
     for name in names:
+        if name == 'OFFKIT':
+            path = ROOT/'out/OFFKIT_EXTERNAL_PINS.json'
+            old = load(path)
+            owner = BASE/'kit/offkit'
+            pins = {p.name: sha(p) for p in sorted(owner.glob('*.py'))}
+            new = dict(old, files=pins)
+            changes[name] = {
+                'added': sorted(set(pins)-set(old['files'])),
+                'removed': sorted(set(old['files'])-set(pins)),
+                'changed': {n: {'old': old['files'][n], 'new': pins[n]}
+                            for n in pins.keys() & old['files'].keys()
+                            if pins[n] != old['files'][n]},
+                'diff': ''.join(difflib.unified_diff(
+                    json.dumps(old, sort_keys=True, indent=2).splitlines(True),
+                    json.dumps(new, sort_keys=True, indent=2).splitlines(True),
+                    fromfile='previous/OFFKIT_EXTERNAL_PINS.json',
+                    tofile='out/OFFKIT_EXTERNAL_PINS.json'))}
+            dump(path, new)
+            continue
         source = LIVE[name]
         content = {str(p.relative_to(source)): p.read_bytes() for p in paths(name, source)}
         pins = {n: hashlib.sha256(v).hexdigest() for n, v in content.items()}
@@ -65,5 +101,5 @@ def refresh(names):
 
 
 if __name__ == '__main__':
-    p = argparse.ArgumentParser(); p.add_argument('--refresh', nargs='+', choices=list(LIVE), required=True)
+    p = argparse.ArgumentParser(); p.add_argument('--refresh', nargs='+', choices=[*LIVE, 'OFFKIT'], required=True)
     print(json.dumps(refresh(p.parse_args().refresh), sort_keys=True))

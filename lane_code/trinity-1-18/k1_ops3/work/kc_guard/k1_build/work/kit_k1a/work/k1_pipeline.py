@@ -1,5 +1,6 @@
 """K1 label-free caching, eligible-room refit, and rendering."""
 import argparse,inspect,json,os,sys,time,shutil
+from collections import Counter
 from pathlib import Path
 from types import SimpleNamespace as NS
 sys.path[:0]=[str(Path(__file__).parent),str(Path(__file__).parent/'refit')]
@@ -108,27 +109,43 @@ def cached(c,dest):
   else:geo=load_geometry(dest/'geometry.npz',FrameMap(tuple(c['anchor_indices'])),'tower_scaled')
  if guard.verdict(c)!=receipt['gravity_verdict']:raise ValueError('Cache gravity verdict differs')
  return raw,geo,receipt
+def gt_canvas(instances):
+ """Map integer GT labels onto the deployed mask canvas; reject other shapes."""
+ from student_pilot import routed_features as F
+ from scipy import ndimage
+ if instances.ndim!=3 or not np.issubdtype(instances.dtype,np.integer):raise ValueError('GT requires integer instance-label frames')
+ shape=tuple(instances.shape[1:]);canvas=tuple(F.OUTPUT_SHAPE)
+ if canvas!=(240,320):raise ValueError('Deployed GT canvas differs')
+ if shape==canvas:return instances,'identity'
+ if shape!=canvas[::-1]:raise ValueError('GT raster differs; no silent resize')
+ # routed_features.resize uses these zoom arguments on bool masks. Sampling
+ # integer labels once preserves every instance, including background labels.
+ mapped=np.stack([ndimage.zoom(frame,(canvas[0]/shape[0],canvas[1]/shape[1]),order=0,prefilter=False) for frame in instances])
+ return mapped,'stretch_nearest_320x240_to_240x320'
 def gt_arrays(c,selection=None):
  _native()
  with np.load(B.checked(c['gt'] if selection is None else selection['entries'][c['canonical']]),allow_pickle=False) as z:
-  return dict(instances=z['instances'] if 'instances' in z else z['inst'],frame_indices=z['frame_indices'])
+  instances,mapping=gt_canvas(z['instances'] if 'instances' in z else z['inst'])
+  return dict(instances=instances,frame_indices=z['frame_indices'],gt_canvas_map=mapping)
 def tables(m,cache,out,gt_set=None,sensitivity=False):
  _native()
  import build_tables
  import k1_guard as guard
- guard.install();refused={}
+ guard.install();refused={};canvas_maps={}
  selection=G.load(gt_set,sensitivity);captures,meta=G.select(m,selection)
  out=Path(out);out.mkdir(parents=True,exist_ok=False)
  with (out/'candidates.jsonl').open('w') as cf,(out/'pairs.jsonl').open('w') as pf:
   for c in captures:
    raw,geo,receipt=cached(c,Path(cache)/B.digest(c['canonical'])[:16])
+   gt=gt_arrays(c,selection);canvas_maps[c['canonical']]=gt['gt_canvas_map']
    if geo is None:
     refused[c['canonical']]=receipt['geometry_refusal']['code'];continue
-   with guard.capture(c):rows,pairs=build_tables.build_capture(c,raw,geo,gt_arrays(c,selection))
+   with guard.capture(c):rows,pairs=build_tables.build_capture(c,raw,geo,gt)
    for row in rows:cf.write(json.dumps(row)+'\n')
    for row in pairs:pf.write(json.dumps(row)+'\n')
  guard.write_report(out)
  record=dict(geometry_refused=refused,manifest_sha256=B.digest(m),inventory=m['inventory'],producer_sha256=B.sha(build_tables.__file__),build_sha256=gate.sha(gate.ROOT/'grd_selector/work/setsel/build.py'),files={n:B.pin(out/n) for n in ['candidates.jsonl','pairs.jsonl']})
+ record.update(gt_canvas_map=canvas_maps,gt_canvas_map_counts=dict(Counter(canvas_maps.values())))
  if meta is None:B.write(out/'TABLE_RECEIPT.json',record)
  else:G.write(out/'TABLE_RECEIPT.json',record,meta)
 def responses(m,cache,fit_dir,out,gt_set=None,sensitivity=False):
@@ -145,9 +162,10 @@ def responses(m,cache,fit_dir,out,gt_set=None,sensitivity=False):
  if B.sha(policy)!=fit['native_policy_sha256']:raise ValueError('Native refit pin differs')
  if fit['inputs'].get(m['inventory']['path'])!=m['inventory']['sha256']:raise ValueError('Refit inventory differs')
  if set(fit['train_rooms'])&set(fit['heldout_rooms']):raise ValueError('Refit room leakage')
- out=Path(out);out.mkdir(parents=True,exist_ok=False);all_rows=[];analysis=[]
+ out=Path(out);out.mkdir(parents=True,exist_ok=False);all_rows=[];analysis=[];canvas_maps={}
  for c in captures:
-  raw,geo,receipt=cached(c,Path(cache)/B.digest(c['canonical'])[:16]);gt=gt_arrays(c,selection) if geo is not None else None;results=[]
+  raw,geo,receipt=cached(c,Path(cache)/B.digest(c['canonical'])[:16]);gt=gt_arrays(c,selection);results=[]
+  canvas_maps[c['canonical']]=gt['gt_canvas_map']
   dest=out/B.digest(c['canonical'])[:16];dest.mkdir()
   for row in c['rows']:
    if geo is None:
@@ -173,7 +191,9 @@ def responses(m,cache,fit_dir,out,gt_set=None,sensitivity=False):
  guard.write_report(out)
  render.write_rows(all_rows,out/'rows')
  (out/'K1_ANALYSIS_INPUT.jsonl').write_text(''.join(json.dumps(x)+'\n' for x in analysis))
- if meta is not None:G.write(out/'RENDER_RECEIPT.json',dict(manifest_sha256=B.digest(m),fit=G.pin(fit_path),table_receipt=fit['table_receipt'],files={'analysis':B.pin(out/'K1_ANALYSIS_INPUT.jsonl')}),meta)
+ record=dict(manifest_sha256=B.digest(m),fit=G.pin(fit_path),gt_canvas_map=canvas_maps,gt_canvas_map_counts=dict(Counter(canvas_maps.values())),files={'analysis':B.pin(out/'K1_ANALYSIS_INPUT.jsonl')})
+ if meta is None:B.write(out/'RENDER_RECEIPT.json',record)
+ else:G.write(out/'RENDER_RECEIPT.json',dict(record,table_receipt=fit['table_receipt']),meta)
 def printed_cues(result):
  _native()
  import re

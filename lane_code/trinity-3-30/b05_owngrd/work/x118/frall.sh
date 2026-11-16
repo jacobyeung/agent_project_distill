@@ -1,0 +1,1 @@
+cd /scratch/jjyeung/k1_frames && tar cf - -T /scratch/jjyeung/orch_n30/b05_owngrd/work/x118/frames286.txt | timeout 900 ssh -o ConnectTimeout=20 -o BatchMode=yes trinity-3-30.ib "cd /scratch/jjyeung/orch_n30/b05_owngrd/work/frames && tar xf -"; echo rc=$?

@@ -1,7 +1,7 @@
 # RL kit ready (rlkit-v1, brief 09): built, CPU-tested, not run
 
 Location: trinity-3-30:/scratch/jjyeung/orch_n30/b09_rlkit (L). How to run: L/RUN.md. Hashes: L/out/HASHES.txt.
-Tests: `bash L/rltests/run_grpo.sh rltests.test_sampler rltests.test_reward rltests.test_floor rltests.test_grpo rltests.test_select rltests.test_baselines rltests.test_e2e rltests.test_prompts rltests.test_grpo_rows rltests.test_headuse rltests.test_review_refute`: 66/66 OK on CPU, including the reviewer's 13 refute tests. On the patched tree copy, the tree's own suites test_carrier_c1_final, test_carrier_c1, test_carrier_c1_routing, test_batched_routed_decode and test_e2e_routing_rows give 46 OK and 8 skipped, and test_carrier_c1_run gives 13 OK (59 OK and 8 skipped in all), as on the original tree.
+Tests: `bash L/rltests/run_grpo.sh rltests.test_sampler rltests.test_reward rltests.test_floor rltests.test_grpo rltests.test_select rltests.test_baselines rltests.test_e2e rltests.test_prompts rltests.test_grpo_rows rltests.test_headuse rltests.test_review_refute rltests.test_review2`: 80 run, all OK, 1 skipped (the second reviewer's own vacuous case). These include both reviewers' refute tests. On the patched tree copy, the tree's own suites test_carrier_c1_final, test_carrier_c1, test_carrier_c1_routing, test_batched_routed_decode and test_e2e_routing_rows give 46 OK and 8 skipped, and test_carrier_c1_run gives 13 OK (59 OK and 8 skipped in all), as on the original tree.
 
 ## What exists
 | Part | File | State |
@@ -36,11 +36,19 @@ review_rl (Devin Opus, cross-family) returned GO AFTER FIXES on the 1327Z tar: e
 9. The constant baseline's r scores the cheapest constant trace through the same gate and reward, taking the best over the objects the question names.
 Minor fixes: the reward cap claim is restated; usage decodes greedily on both arms and counts unparsed answers apart; sampling.max_calls is gone (decode.max_calls rules); check_own re-checks the sources.
 
+Confirmation pass review_rl2 (events/review_rl2/REVIEW_VERDICT_RL2.md) returned GO AFTER FIXES. Five follow-ups landed, and its tests pass (rltests/test_review2.py, sha 6d3a4186):
+1. The numeric-option replay requires the final value to move by more than 5%, not the option, so honest top-option and widely spaced-option traces pass. The constant-dominated case still fails.
+2. Grounding provenance comes from the backend itself: source provenance, presence identity, rescue stage, and verifier identity and stub flag. All must lie inside the artifact.
+3. Bare failure bodies ('not seen', 'unresolved', 'box unavailable', 'no linked candidate') count as failed calls: never head use, and they make a trace 'recovery'.
+4. The trainer re-check (grpo_rows.source_reason) applies the selector's full rules. A test keeps the two in agreement.
+5. Source normalisation is NFKC, then [^a-z0-9] stripped.
+Minor fixes: unknown sampling keys are refused, RUN.md says how to build the fit set, and the dry run reports response_not_forced (it must be 0 on honest draws).
+
 ## Open before a run
 - Bind the export pin and the R0-rl pool (brief 10), then pick a card. The dry run needs an ORCH GO.
 - Mode (b) also needs a membership manifest for its GRPO stream databases (r2_contract.Admission refuses unlisted rows), a check on the real processor that grpo_rows.prompt_batch equals the reader's canary prompt, and its own review.
 - Mode (a) rows go through the intake (frame pins) and the every-rank CPU first batch on the real export.
-- A confirmation pass of the fixes by the reviewer (ordered; see STATUS.md).
+- The dry run is allowed as a kit test (ORCH 1428Z) once it has an idle card from gpu_fill2, b10's R0-rl rows and an export pin. No RL run.
 
 ## Defaults in force
 - The length term is capped at 0.5 x c x g, so a right answer always scores above a wrong one. This deviates from the brief's formula.

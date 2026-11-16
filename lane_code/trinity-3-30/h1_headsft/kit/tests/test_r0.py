@@ -14,6 +14,9 @@ class R0Tests(unittest.TestCase):
         import tempfile
         cls.root=Path(tempfile.mkdtemp(prefix='r0_',dir=K/'tmp'))
         p=cls.root/'rooms.txt';p.write_text('scannet/scene0001\nscannetpp/abcdef1234\n');cls.pin=file_pin(p)
+        from unittest.mock import patch
+        cls.pin_patch=patch('student_pilot.h1_r0.R0_SHA256', cls.pin['sha256'])
+        cls.pin_patch.start(); cls.addClassCleanup(cls.pin_patch.stop)
         cls.rows=[dict(dataset='scannet',scene='scene0001_00'),dict(dataset='ScanNetv2',scene='scene0001_09'),
                   dict(dataset='scannetppv2',scene='abcdef1234'),dict(dataset='scannet',scene='scene0002_01'),
                   dict(dataset='ARKitScenes',scene='abcdef1234')]

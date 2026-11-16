@@ -20,8 +20,8 @@ if (ROOT/'vendor/ACTIVE.json').is_file():
     for name, relative in json.loads((ROOT/'vendor/ACTIVE.json').read_text()).items():
         globals()[name] = ROOT/relative
 # A packed worker resolves only registered paths under its staged root.
-if os.environ.get('OFFNATIVE_ROOTS'):
-    spec = json.loads(Path(os.environ['OFFNATIVE_ROOTS']).read_text())
+if os.environ.get('A0_ROOTS'):
+    spec = json.loads(Path(os.environ['A0_ROOTS']).read_text())
     for name in ('OFFKIT','R','C8','V1','REVSI','VSI','B04','TREE','RET544','TOKENIZER'):
         if name not in spec:raise ValueError('missing staged root: '+name)
         value=Path(spec[name])

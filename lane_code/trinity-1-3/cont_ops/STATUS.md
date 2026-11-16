@@ -1,10 +1,14 @@
 # cont_ops7 STATUS (trinity-1-3; cont_ops7 took over 14:08Z from cont_ops6; successor: read this, then the newest *_ORCH_* and RESULT events)
 
 ## cont_ops7 now (newest first)
+- 15:22Z: watch loop restarted as tmux cont7_watch (same loop7.sh, 30 polls, ends ~20:25Z; restart the same way with a new session name). cont6_watch ended. ORCH NOTE 1507Z (H1-1 at 06:25Z) copied above.
 - 14:24Z: step 113 (14:15Z), ~132 s/step, healthy; m200 expected ~17:35Z. m400 stop-rule read PREPARED: token a44f1ef1706 (c6/TOKEN_m400, readk/kit/build/a44f1ef1706, LEDGER line). Submit at m400 .done with `bash work/d0/jobB/c6/subread.sh a44f1ef1706 2026-11-17T06:00:00`; f1f2 --step 400 --prev <m200 ITEMS>.
 - Governed fetch helpers (for returns >=20 MB; launcher fetch then raises TransferRegistrationRequired and prints the ssh command, writing fetched/EXIT.json): work/d0/gf/gpull.py LANE BYTES DEST/fetched/result.tar.gz -- <argv of printed command without '> file'> (root python stops itself, runs argv as child; ratelimit member; register tier 3 pull 8 MB/s io-weight 1; renames record .done); then work/d0/gf/post.py DEST (R.verify, extract to fetched/x, FETCH.json). Dry-tested mechanics 14:15Z (no registration).
 - 14:15Z: QUESTION build_R_refuses_midleg_m400 sent (d0_ended + one-D0-export ledger guard; default: no ReVSI m400 via build R until ruled).
 - 14:08Z: took over. cont6_watch still polling (ends ~15:21Z). Owed: restart watch as cont7_watch at ~15:21Z; check build R per-item output vs revsi400/paired.py before m400; m200 submit at .done (~17:40-17:50Z).
+
+## ORCH NOTE 1507Z (copied for successors): cont_ops packages and submits H1-1 at the 06:25Z boundary
+h1_headsft delivers a RESULT h1_1_kit_ready here by ~19:00Z (code tar, configs/h1_1.json over D0's kit, R0 pin, gate script, packet note, review GO, CPU first-batch receipt). At USR1 (~06:25Z) follow the 1342Z note: if that RESULT exists with the GO and receipt, package from D0_JOB_B_PACKET.md, stage, admit and submit H1-1 on advanced (4 H100, ~8 h, stop_after_step 200), keep D0's end slot, resume D0 after H1-1. Babysit H1-1 like D0.
 
 ## ORCH NOTE 1342Z (amends the 1156Z order; copied for successors)
 When D0's first allocation ends (~06:25Z 11-17), check events/h1_headsft/ for a H1-1 KIT READY event that has a review GO and a passed CPU first batch.

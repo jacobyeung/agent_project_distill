@@ -31,7 +31,8 @@ def sources():
     for name in sorted(load(C8/'RUNTIME_TREE.json')['sources']):add(TREE/name,'d/06/'+name)
     for name in ('REGISTERED_FRAME_INDICES.json','REGISTERED_FRAME_INDICES_PIN.json',
                  'REVSI_DENSE_MAPPING.json','REVSI_MEDIA_MANIFEST.json','VSI_COHORT.json',
-                 'VSI_MEDIA_MANIFEST.json','VSI_NAME_INVENTORY.json','OFFKIT_EXTERNAL_PINS.json'):
+                 'VSI_MEDIA_MANIFEST.json','VSI_NAME_INVENTORY.json','OFFKIT_EXTERNAL_PINS.json',
+                 'PROOF_MASKS_LOST.json','PROOF_POLICY_PINS.json','PROOF_KEYS.json'):
         if (ROOT/'out'/name).exists():add(ROOT/'out'/name,'out/'+name)
     for root in (R,C8,V1,B04,TREE):
         add(root/'PIN.json','pins/'+root.name+'.json')
@@ -57,7 +58,7 @@ def build(destination,config,binding,items,inputs):
     data={'config_sha256':sha(d/'CONFIG.json'),'config':config,'spec':spec,'items':items,'inputs':inputs}
     files['p.json']=json.dumps(data,sort_keys=True).encode()
     files['r.json']=json.dumps(ROOTS,sort_keys=True).encode()
-    files['0.py']=b"import os\nos.environ['OFFNATIVE_ROOTS']='r.json'\nfrom offnative.bootstrap import main\nmain()\n"
+    files['0.py']=b"import os\nos.environ['A0_ROOTS']='r.json'\nfrom offnative.bootstrap import main\nmain()\n"
     files['pins.json']=json.dumps(pins,sort_keys=True).encode()
     receipt=packet(files,d/'packet.tar',config['token'])
     dump(d/'PACKET_PINS.json',pins)

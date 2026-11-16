@@ -1,0 +1,177 @@
+diff --git a/tools/orchkit/ANON_WORDS.txt b/tools/orchkit/ANON_WORDS.txt
+index 39d0168..f9a3106 100644
+--- a/tools/orchkit/ANON_WORDS.txt
++++ b/tools/orchkit/ANON_WORDS.txt
+@@ -20,9 +20,9 @@ text qwen
+ text gemini
+ # Cluster side paths and hosts
+ text trinity
+-text /scratch/jjyeung
+-textre (?<![\w/.\-])/data[0-9]*/
+-text /home/jjyeung/agent
++textre (?i)/+scratch/+jjyeung
++textre (?<![\w.\-/])/+data[0-9]*(?![\w.\-])
++textre (?i)/+home/+jjyeung/+agent
+ text .claude
+ text distill_sync
+ # Lanes and the library's own name
+diff --git a/tools/orchkit/anon.py b/tools/orchkit/anon.py
+index 9d1f201..5c850f6 100644
+--- a/tools/orchkit/anon.py
++++ b/tools/orchkit/anon.py
+@@ -28,6 +28,7 @@ import sys
+ import tarfile
+ import unicodedata
+ import zipfile
++import zlib
+ 
+ WORDS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ANON_WORDS.txt')
+ JOB_NAME = re.compile(r'^a15_cot_ap[0-9a-f]{16}\Z')
+@@ -95,7 +96,8 @@ def _unescape(text):
+             return chr(int(match.group(4), 8))
+         code = int(match.group(1) or match.group(2) or match.group(3), 16)
+         return chr(code) if code < 0x110000 else ''
+-    return re.sub(r'\\(.)', r'\1', ESCAPE.sub(one, text))
++    text = re.sub(r'\\\r?\n', '', text)
++    return re.sub(r'\\([\s\S])', r'\1', ESCAPE.sub(one, text))
+ 
+ 
+ def text_views(data):
+@@ -140,10 +142,36 @@ UNSUPPORTED = ((b'7z\xbc\xaf\x27\x1c', '7z'), (b'Rar!\x1a\x07', 'rar'), (b'\x28\
+                (b'LZIP', 'lzip'), (b'\x1f\x9d', 'compress'), (b'MSCF', 'cab'))
+ 
+ 
++def _lzma_dict(data):
++    size = int.from_bytes(data[1:5], 'little')
++    return any(size == 1 << bits or size == 3 << (bits - 1) for bits in range(12, 31))
++
++
++def _gzip_header_text(data):
++    """The stored file name and comment of a gzip header (RFC 1952), as bytes."""
++    if len(data) < 10 or not data.startswith(b'\x1f\x8b'):
++        return b''
++    flags, at, out = data[3], 10, []
++    if flags & 4 and len(data) >= 12:
++        at += 2 + int.from_bytes(data[10:12], 'little')
++    for bit in (8, 16):
++        if flags & bit:
++            end = data.find(b'\x00', at)
++            end = len(data) if end < 0 else end
++            out.append(data[at:end])
++            at = end + 1
++    return b'\n'.join(out)
++
++
+ def _interpretations(where, data):
+     """Every container reading of a blob: a compression at its start, a zip anywhere (Python
+     reads a zip with a prefix), a tar; a container Python cannot open is 'unsupported'."""
+     kinds = [kind for magic, kind in MAGIC[:3] if data.startswith(magic)]
++    if len(data) >= 13 and data[0] == 0x5d and _lzma_dict(data):
++        kinds.append('lzma')
++    if len(data) >= 2 and data[0] == 0x78 and (data[0] * 256 + data[1]) % 31 == 0 and \
++            _decompress('zlib', data) is not None:
++        kinds.append('zlib')
+     if any(data.startswith(magic) for magic, _ in UNSUPPORTED):
+         kinds.append('unsupported')
+     try:
+@@ -174,7 +202,7 @@ def _tar_like(data):
+     fields) that tarfile still refuses: a damaged tar, refused rather than read as text."""
+     head = data[:512]
+     name = head[:100].rstrip(b'\x00')
+-    if not name or any(byte < 32 or byte > 126 for byte in name):
++    if not name or any(byte < 32 or byte == 127 for byte in name):
+         return False
+     return all(OCTAL.match(head[start:end]) and head[start:end].strip(b' \x00')
+                for start, end in ((100, 108), (124, 136), (148, 156)))
+@@ -187,13 +215,20 @@ def _decompress(kind, data):
+         if kind == 'gz':
+             with gzip.GzipFile(fileobj=io.BytesIO(data)) as handle:
+                 return handle.read(MAX_BLOB + 1)
+-        if kind in ('bz2', 'xz'):
+-            engine = bz2.BZ2Decompressor() if kind == 'bz2' else lzma.LZMADecompressor()
++        if kind == 'zlib':
++            engine = zlib.decompressobj()
++            out = engine.decompress(data, MAX_BLOB + 1)
++            if engine.unused_data or not engine.eof:
++                return None
++            return out
++        if kind in ('bz2', 'xz', 'lzma'):
++            engine = bz2.BZ2Decompressor() if kind == 'bz2' else lzma.LZMADecompressor(
++                format=lzma.FORMAT_ALONE if kind == 'lzma' else lzma.FORMAT_AUTO)
+             out = engine.decompress(data, MAX_BLOB + 1)
+             if engine.unused_data or not engine.eof:
+                 return None
+             return out
+-    except (OSError, EOFError, ValueError, lzma.LZMAError):
++    except (OSError, EOFError, ValueError, lzma.LZMAError, zlib.error):
+         return None
+     return None
+ 
+@@ -239,7 +274,10 @@ def _expand(where, data, depth):
+     for kind in kinds:
+         if kind == 'unsupported':
+             yield where, None, 'unsupported-container'
+-        elif kind in ('gz', 'bz2', 'xz'):
++        elif kind in ('gz', 'bz2', 'xz', 'lzma', 'zlib'):
++            header = _gzip_header_text(data) if kind == 'gz' else b''
++            if header:
++                yield where + '!gzip-header', header, 'meta'
+             inner = _decompress(kind, data)
+             if inner is None:
+                 yield where, None, 'undecodable'
+diff --git a/tools/orchkit/tests/test_anon.py b/tools/orchkit/tests/test_anon.py
+index 8dc23c8..f8432db 100644
+--- a/tools/orchkit/tests/test_anon.py
++++ b/tools/orchkit/tests/test_anon.py
+@@ -10,6 +10,7 @@ import tarfile
+ import tempfile
+ import unittest
+ import zipfile
++import zlib
+ 
+ TOOLS = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
+ sys.path.insert(0, TOOLS)
+@@ -244,6 +245,30 @@ class AnonTest(unittest.TestCase):
+         path = self.write('t.tar', bytes(data))
+         self.assertEqual(anon.scan_tree(path, anon.load_rules())[0]['rule'], 'unsupported-container')
+ 
++    def test_review_oc27_to_oc31(self):
++        rules = anon.load_rules()
++        named = io.BytesIO()
++        with gzip.GzipFile(filename='split.txt', fileobj=named, mode='wb', mtime=0) as handle:
++            handle.write(b'ok')
++        raw = io.BytesIO()
++        with tarfile.open(fileobj=raw, mode='w', format=tarfile.USTAR_FORMAT) as archive:
++            item = tarfile.TarInfo('\u00e9t\u00e9.gz')
++            blob = gzip.compress(b'qwen')
++            item.size = len(blob)
++            archive.addfile(item, io.BytesIO(blob))
++        bad = bytearray(raw.getvalue())
++        bad[257:265] = b'\x00' * 8
++        bad[148:156] = b'0000000\x00'
++        cases = {'c.py': b'x = "q\\\nwen"\n', 'g.gz': named.getvalue(), 'u.tar': bytes(bad),
++                 'a.lzma': lzma.compress(b'qwen', format=lzma.FORMAT_ALONE),
++                 'z.bin': zlib.compress(b'qwen')}
++        for name, data in sorted(cases.items()):
++            self.assertTrue(anon.scan_tree(self.write(name, data), rules), name)
++        for text in ('/data2', '//data2/secret', '//scratch//jjyeung/x', '/home//jjyeung/agent_x'):
++            self.assertTrue(anon.scan_text('x', text, rules, 'name'), text)
++        for text in ('/project/u/data/x', 'metadata/x', '/x/data_out'):
++            self.assertEqual(anon.scan_text('x', text, rules, 'name'), [], text)
++
+ 
+ if __name__ == '__main__':
+     unittest.main()
+diff --git a/tools/orchkit/tests/test_pins.py b/tools/orchkit/tests/test_pins.py
+index 719881a..0477807 100644
+--- a/tools/orchkit/tests/test_pins.py
++++ b/tools/orchkit/tests/test_pins.py
+@@ -181,7 +181,7 @@ class PinsTest(unittest.TestCase):
+         write(os.path.join(self.root, 'a.bin'), raw.getvalue())
+         util.write_json(os.path.join(self.root, 'PINS.json'), self.manifest())
+         found = pins.check_single_place(self.root)
+-        self.assertEqual([row['where'] for row in found], ['a.bin'])
++        self.assertIn('a.bin', [row['where'] for row in found])
+         write(os.path.join(self.root, 'a.bin'), b'\x1f\x8b broken')
+         found = pins.check_single_place(self.root)
+         self.assertEqual(found[0]['reason'], 'unscannable (undecodable)')

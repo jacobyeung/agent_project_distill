@@ -23,7 +23,7 @@ def factory(assets,kind):
         return reader,loaded.frames_for,tasks
     from common import checked
     geometry=load(checked(request['grounding']['geometry_manifest']))
-    masks=P.Masks(assets.get('mask_cache',request['mask_cache']))
+    masks=None if assets.get('proof_mode')=='reduced' else P.Masks(assets.get('mask_cache',request['mask_cache']))
     context=Context(processor,load(checked(request['config'])),captures,request['frames_root'],
                     geometry,masks,assets['audit_dir'],assets.get('device','cuda:0'))
     from .production import Unserved

@@ -36,7 +36,8 @@ BENCHMARK_TOKENS = ('revsi', 'vsibench', 'vstibench', 'vsti', 'devs1', 'dsibench
 
 
 def norm_source(value):
-    return re.sub(r'[\s_\-./]', '', str(value).lower())
+    import unicodedata
+    return re.sub(r'[^a-z0-9]', '', unicodedata.normalize('NFKC', str(value)).lower())
 
 
 def benchmark_source(obj):
@@ -89,6 +90,9 @@ def has_form(forcing, prompt, path):
 class SamplerConfig:
     def __init__(self, raw):
         self.raw = raw
+        unknown = set(raw.get('sampling') or {}) - set(SAMPLING_DEFAULTS)
+        if unknown:
+            raise ValueError(f'unknown sampling keys {sorted(unknown)} (the call limit is decode.max_calls)')
         s = {**SAMPLING_DEFAULTS, **(raw.get('sampling') or {})}
         self.sampling = s
         self.forcing = raw.get('forcing') or {}
@@ -137,6 +141,12 @@ def response_sources(rec, kw):
                 geometry_source=getattr(gb, 'geometry_source', None),
                 geometry_identity=getattr(getattr(gb, 'scene', None), 'geometry_identity', None),
                 source_identity=getattr(getattr(gb, 'source', None), 'identity', None),
+                source_provenance=None if gb is None else str(getattr(getattr(gb, 'source', None), 'provenance', 'unspecified')),
+                presence_identity=getattr(getattr(getattr(gb, 'stages', None), 'presence', None), 'identity', None),
+                rescue=getattr(getattr(gb, 'stages', None), 'rescue', None) is not None,
+                verify_identity=getattr(getattr(gb, 'verify', None), 'identity', None),
+                verify_stubbed=None if gb is None else (getattr(gb, 'verify', None) is None
+                                                        or bool(getattr(gb.verify, 'stubbed', False))),
                 ground_query_backends=sorted({str(q.get('backend')) for q in queries}),
                 query_provenance=sorted({str(q.get('source_provenance')) for q in queries}),
                 presence_sources=sorted({str(q.get('presence_source')) for q in queries}),

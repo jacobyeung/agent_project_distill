@@ -642,6 +642,9 @@ def prepare(cfg):
                       benchmark_scene_exclusions=cfg.get('benchmark_scene_exclusions'),
                       scene_filter_report=scene_report)
         verify(result, cfg)
+    if cfg.get('h1', {}).get('faithful_own_camera_rows'):
+        from .h1_faithful import prepare_identity
+        result = prepare_identity(result, cfg)
     from .source_seal import binding
     sealed = binding(load(pinned(cfg['code'])), result['config_sha256'])
     if sealed is not None:
@@ -684,6 +687,9 @@ def prepared(cfg, admission=False):
         receipt = {**receipt, 'carrier_placement': cfg['carrier_placement']}
     from .trace_version import resolve
     resolve(receipt, cfg)
+    if cfg.get('h1', {}).get('faithful_own_camera_rows'):
+        from .h1_faithful import require_identity
+        require_identity(receipt, cfg)
     if receipt.get('tool_mode_flag') != cfg.get('tool_mode_flag'):
         raise ValueError('C1 preparation tool_mode_flag differs from the configuration')
     if cfg.get('training_mode') == 'final':
@@ -1625,6 +1631,9 @@ def optimize_step(model, optimizer, rows, plan, rank, device, step, distributed=
     if any(s.get('h1') for s in shapes):
         from .h1 import summarize
         h1_metrics = {'h1': summarize(shapes)}
+    if getattr(rows, 'h1', {}).get('faithful_own_camera_rows'):
+        from .h1 import global_answer_counts
+        h1_metrics['h1_answer_counts'] = global_answer_counts(shapes, device, distributed)
     return dict(step=step, **h1_metrics, **({'gf1_harm_screen': screen_metrics} if gf1_enabled else {}), wall_seconds=time.perf_counter()-started, data_seconds=waiting,
                 skipped_microsteps=skipped, skip_totals=dict(SKIPPED),
                 component_normalization='components: sum over microsteps of each row-mean loss / len(plan); '
@@ -2259,7 +2268,24 @@ def run_steps(model, wrapped, optimizer, rows, counts, output, cfg, bound, devic
             dist.broadcast_object_list(reused, src=0)
         if not reused[0]:
             export(output/'m0', wrapped, model, cfg, 0, optimizer=optimizer, disk_guard=disk_budget)
+    h1_reason='h1_stop_after_step'
+    h1_state=None;answer_stop=None
+    if cfg.get('h1', {}).get('faithful_own_camera_rows'):
+        from .h1 import AnswerStop, STOP_RULE
+        answer_stop=AnswerStop()
+        states=[None]
+        if rank==0:
+            try:
+                h1_state=answer_stop.replay(output,start_step)
+                states[0]=dict(state=h1_state,differs=answer_stop.differs,own=answer_stop.own)
+            except (ValueError,KeyError) as exc:states[0]=dict(error=str(exc))
+        if distributed:dist.broadcast_object_list(states,src=0)
+        if 'error' in states[0]:raise ValueError(states[0]['error'])
+        h1_state=states[0]['state'];answer_stop.differs=states[0]['differs']
+        answer_stop.own=states[0]['own'];answer_stop.last_step=start_step
     h1_limit = cfg.get('h1', {}).get('stop_after_step')
+    if h1_state and h1_state['triggered']:
+        h1_limit=min(h1_limit or 100,100);h1_reason=STOP_RULE
     if not smoke_steps and h1_limit is not None and start_step >= h1_limit:
         if start_step != h1_limit:
             raise ValueError('H1 checkpoint is past stop_after_step')
@@ -2269,13 +2295,18 @@ def run_steps(model, wrapped, optimizer, rows, counts, output, cfg, bound, devic
         if not reused[0]:
             export(output/f'm{start_step}', wrapped, model, cfg, start_step,
                    optimizer=optimizer, disk_guard=disk_budget)
-        report = dict(schema='c1-run-v1', status='PASS', first_step=None, last_step=start_step,
+        report = dict(schema='c1-run-v1', status='H1_STOP', first_step=None, last_step=start_step,
                       steps=[], elapsed_seconds=time.monotonic()-started, stopped_for_resume=False,
-                      world_size=world, gpu_fit_measured=False, stop_reason='h1_stop_after_step')
+                      world_size=world, gpu_fit_measured=False, stop_reason=h1_reason)
         if rank == 0:
-            write(output/f'h1_stop_{start_step:06d}.json', dict(schema='h1-stop-v1', step=start_step,
-                  lr_horizon=recipe['steps'], milestone=str(output/f'm{start_step}'), reason='h1_stop_after_step'))
-            write(output/f'run_{attempt}.json', report)
+            record=dict(schema='h1-stop-v1', step=start_step, lr_horizon=recipe['steps'],
+                        milestone=str(output/f'm{start_step}'), reason=h1_reason, stop_state=h1_state)
+            path=output/f'h1_stop_{start_step:06d}.json'
+            if path.exists():
+                if load(path)!=record:raise ValueError('Existing H1 stop record differs')
+            else:write(path,record)
+            path=output/f'run_{attempt}_h1_stopped_resume.json'
+            if not path.exists():write(path,report)
         return report
     gates=None
     if recipe.get('scheduled_sampling'):
@@ -2306,6 +2337,11 @@ def run_steps(model, wrapped, optimizer, rows, counts, output, cfg, bound, devic
                               training_mode=cfg.get('training_mode', 'mixed'),
                               mix=recipe['mix'],world=recipe['world_size']),start_step+1):
         info,_=optimize_step(wrapped,optimizer,rows,plan,rank,device,step,distributed,gates)
+        if answer_stop is not None:
+            h1_state=answer_stop.update(step,info['h1_answer_counts'])
+            info['h1_answer_stop']=h1_state
+            if h1_state['triggered']:
+                h1_limit=min(h1_limit or 100,100);h1_reason=STOP_RULE
         gathered = [None]*world
         if cfg.get('first_step_admission') and step == start_step+1:
             if distributed:
@@ -2357,8 +2393,7 @@ def run_steps(model, wrapped, optimizer, rows, counts, output, cfg, bound, devic
         if distributed:
             dist.all_reduce(request,op=dist.ReduceOp.MAX)
         gate_stop=not smoke_steps and step==400 and start_step<400 and step400_gate_enabled(cfg)
-        h1_stop = bool(not smoke_steps and cfg.get('h1', {}).get('stop_after_step') is not None
-                       and step >= cfg['h1']['stop_after_step'])
+        h1_stop = bool(not smoke_steps and h1_limit is not None and step >= h1_limit)
         stopping=bool(request.item()) or step==steps or gate_stop or gx_stop or h1_stop
         info['checkpoint_seconds']=info['export_seconds']=0.
         if (not smoke_steps and (due.item() or stopping)) or gx_stop:
@@ -2390,14 +2425,15 @@ def run_steps(model, wrapped, optimizer, rows, counts, output, cfg, bound, devic
                 handle.write(json.dumps(dict(step=step,ranks=gathered))+'\n')
         if h1_stop and rank == 0:
             write(output/f'h1_stop_{step:06d}.json', dict(schema='h1-stop-v1', step=step,
-                  lr_horizon=recipe['steps'], milestone=str(output/f'm{step}'), reason='h1_stop_after_step'))
+                  lr_horizon=recipe['steps'], milestone=str(output/f'm{step}'), reason=h1_reason, stop_state=h1_state))
         if stopping:
             break
     report=dict(schema='c1-smoke-v1' if smoke_steps else 'c1-run-v1',status='PASS',
         first_step=start_step+1,last_step=step,steps=measured,elapsed_seconds=time.monotonic()-started,
-        stopped_for_resume=not bool(smoke_steps) and step<recipe['steps'],world_size=world,
+        stopped_for_resume=not h1_stop and not bool(smoke_steps) and step<recipe['steps'],world_size=world,
         gpu_fit_measured=device.type=='cuda' and distributed)
-    report['stop_reason']='h1_stop_after_step' if h1_stop else 'gx_fail_fast' if gx_stop else 'm400_gate' if gate_stop else 'budget_or_signal' if bool(request.item()) or budget_stop else 'schedule'
+    if h1_stop:report['status']='H1_STOP'
+    report['stop_reason']=h1_reason if h1_stop else 'gx_fail_fast' if gx_stop else 'm400_gate' if gate_stop else 'budget_or_signal' if bool(request.item()) or budget_stop else 'schedule'
     if cfg.get('geometry_online'):
         report['binding'] = bound
     if rank==0:

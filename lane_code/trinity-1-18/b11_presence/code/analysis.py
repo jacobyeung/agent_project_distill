@@ -325,7 +325,7 @@ def load_direct(path, items, caps, model):
         k = r.get('example_id')
         if k not in want:
             rejected['unknown_item'] += 1; continue
-        if r.get('binding') != want[k] or r.get('cell') != D.CELL['name']:
+        if r.get('binding') != want[k] or r.get('cell') != D.CELL['name'] or r.get('prompt_shim') != D.SHIM:
             rejected['binding'] += 1; continue
         b = (r.get('B2048') or {}).get('score')
         if not (isinstance(b, (int, float)) and math.isfinite(b) and 0 <= b <= 1 and r.get('score') == b):

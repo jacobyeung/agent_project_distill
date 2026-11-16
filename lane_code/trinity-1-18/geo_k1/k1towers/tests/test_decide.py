@@ -99,6 +99,25 @@ def test_room_path_ignores_secondary_and_missing_heldout_arm_scores_zero():
     assert t['da3_native']['mean'] == 0 and t['da3_native']['missing_items'] == 4 and t['da3_native']['diff'] == -100
 
 
+def test_mra_boundary_matches_e3():
+    assert D.mra(0.55, 1.0) == 0.2 and D.mra(None, 1.0) == 0.0 and D.mra(float('nan'), 1.0) == 0.0
+
+
+def test_merge_requires_empty_output_and_rejects_reference_duplicates():
+    with tempfile.TemporaryDirectory() as d:
+        d = Path(d); ref = d / 'ref'; cand = d / 'cand'; ref.mkdir(); cand.mkdir()
+        item = dict(row_id='a', arm='GT')
+        (ref / 'x.json').write_text(json.dumps(dict(diagnostics=dict(capture='x'), items=[item])))
+        (cand / 'x.json').write_text(json.dumps(dict(diagnostics=dict(capture='x', arms={}), items=[dict(row_id='a', arm='c')])))
+        out = d / 'out'
+        subprocess.run([sys.executable, str(HERE / 'merge_caps.py'), str(out), str(ref), str(cand)], check=True)
+        p = subprocess.run([sys.executable, str(HERE / 'merge_caps.py'), str(out), str(ref), str(cand)], stderr=subprocess.PIPE)
+        assert p.returncode != 0 and b'must be empty' in p.stderr
+        (ref / 'x.json').write_text(json.dumps(dict(diagnostics=dict(capture='x'), items=[item, item])))
+        p = subprocess.run([sys.executable, str(HERE / 'merge_caps.py'), str(d / 'out2'), str(ref), str(cand)], stderr=subprocess.PIPE)
+        assert p.returncode != 0 and b'duplicate' in p.stderr
+
+
 if __name__ == '__main__':
     for k, f in list(globals().items()):
         if k.startswith('test_'):

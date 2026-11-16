@@ -90,34 +90,130 @@ def faithful(row, geometry):
     return result, target, spans, segments
 
 
+def answer_differs(kind, own, gt):
+    """Registered stop metric; faithful training text remains unchanged."""
+    from decimal import Decimal
+    if kind == 'camera_movement_direction':
+        return str(own).strip() != str(gt).strip()
+    a,b=Decimal(str(own)),Decimal(str(gt))
+    if not a.is_finite() or not b.is_finite():raise ValueError('Nonfinite camera answer')
+    if kind == 'camera_displacement':return abs(a-b) > Decimal('.1')*abs(b)
+    if kind == 'camera_rotation':
+        delta=(a-b+180)%360
+        if delta<0:delta+=360
+        return abs(delta-180)>10
+    raise ValueError('Unknown camera answer type')
+
+
+ROW_FAILURES = (MaterializeRefusal, routing.RenderError, ValueError, KeyError, StopIteration, IndexError)
+
+
 def own_values(model, rows, batch, audit, index, decision, device):
-    """Every rank joins a requested readout; only camera pose draws change labels."""
+    """Join readout and failure collectives, then train GT on a refused row."""
     from .carrier_c1_run import move
-    row, _ = rows.row('routing', index)
-    raw = row['routing']
-    kind = raw.get('question_type', 'unknown')
-    info = dict(type=kind, values='gt', refused=None, answer_differs=False)
-    audit = {**audit, 'h1': info}
-    if not any(decision):
-        return batch, audit
-    # Keep the readout collective aligned even for ground/gap or closed pose gates.
-    uv, slots = routing.query_tensor([])
-    with torch.no_grad():
-        readout = model(move(routing.prefix_batch(batch), device), {'uv': uv.to(device)}, stream='readout')
-    if not camera(raw, rows.h1) or not decision[1]:
-        return batch, audit
+    import torch.distributed as dist
+    info=dict(type='unknown',values='gt',refused=None,answer_differs=False)
+    audit={**audit,'h1':info};failure=None;row=None;changed={};new=batch
     try:
-        geometry, source = routing.row_geometry(raw, readout, [], slots, False, True)
-        if geometry is None:
-            raise routing.RenderError(source)
-        result, target, spans, segments = faithful(row, geometry)
-        new, changed = routing.encode_own(rows.processor, row, batch, target, spans, segments,
-                                          source, faithful=True)
-        info.update(values='own', answer_differs=str(result['answer']) != str(raw['answer']),
-                    answer=result['answer'])
-        return new, {**audit, **changed, 'h1': info}
-    except (MaterializeRefusal, routing.RenderError) as exc:
-        info['refused'] = getattr(exc, 'reason', str(exc))
-        return batch, {**audit, 'own_refusal': info['refused']}
+        row,_=rows.row('routing',index)
+        raw=row['routing'];info['type']=raw.get('question_type','unknown')
+    except ROW_FAILURES as exc:
+        failure=exc
+    if any(decision):
+        # All ranks enter this forward, even when their local metadata failed.
+        uv,slots=routing.query_tensor([])
+        with torch.no_grad():
+            readout=model(move(routing.prefix_batch(batch),device),{'uv':uv.to(device)},stream='readout')
+        try:
+            if failure is not None:raise failure
+            if camera(raw,rows.h1) and decision[1]:
+                geometry,source=routing.row_geometry(raw,readout,[],slots,False,True)
+                if geometry is None:raise routing.RenderError(source)
+                result,target,spans,segments=faithful(row,geometry)
+                new,changed=routing.encode_own(rows.processor,row,batch,target,spans,segments,source,faithful=True)
+                differs=answer_differs(info['type'],result['answer'],raw['answer'])
+                info.update(values='own',answer_differs=differs,answer=result['answer'])
+        except ROW_FAILURES as exc:
+            failure=exc;new=batch;changed={}
+    if failure is not None:
+        info.update(values='gt',answer_differs=False,
+                    refused=str(getattr(failure,'reason',None) or type(failure).__name__+': '+str(failure))[:200])
+    flag=torch.tensor([failure is not None],dtype=torch.int32,device=device)
+    if dist.is_initialized():dist.all_reduce(flag,op=dist.ReduceOp.MAX)
+    # The flag is global, the fallback is row-local. Every rank continues to backward.
+    info['any_rank_refused']=bool(flag.item())
+    return new,{**audit,**changed,**({'own_refusal':info['refused']} if failure is not None else {})}
 
 
+def identity_check(rows):
+    """Check exact GT materialization on camera rows; count every camera refusal."""
+    from collections import Counter
+    counts=Counter();by_type={};refusals=Counter()
+    for source in rows:
+        raw=source.get('routing',source)
+        kind=raw.get('question_type',raw.get('type','unknown'))
+        if kind not in CAMERA_TYPES:continue
+        counts['rows']+=1;d=by_type.setdefault(kind,Counter());d['rows']+=1
+        try:
+            row=canonical_row(source)
+            printed={e['call_id']:e for e in row.get('events',[]) if e['kind']=='tool_response'}
+            key='identical' if materialize(row,printed)['target']==row['target'] else 'different'
+            counts[key]+=1;d[key]+=1
+        except ROW_FAILURES as exc:
+            counts['refused']+=1;d['refused']+=1
+            refusals[str(getattr(exc,'reason',None) or type(exc).__name__+': '+str(exc))]+=1
+    rate=counts['identical']/counts['rows'] if counts['rows'] else None
+    return dict(rows=counts['rows'],identical=counts['identical'],different=counts['different'],
+                refused=counts['refused'],identity_rate=rate,refusal_reasons=dict(refusals),
+                by_type=by_type,threshold=.95,passes=rate is not None and rate>=.95)
+
+
+def identity_rows(path):
+    """Stream JSONL rows, JSON receipts, or a read-only SQLite rows table."""
+    import json
+    import sqlite3
+    from pathlib import Path
+    from .p3_provenance import pinned
+    path=Path(path).resolve()
+    with path.open('rb') as handle:header=handle.read(16)
+    if header==b'SQLite format 3\x00':
+        with sqlite3.connect(path.as_uri()+'?mode=ro',uri=True) as conn:
+            for (text,) in conn.execute('SELECT row FROM rows ORDER BY i'):yield json.loads(text)
+    elif path.suffix=='.json':
+        value=json.loads(path.read_text())
+        if isinstance(value,list):yield from value
+        elif 'database' in value:
+            yield from identity_rows(pinned(value['database']))
+        elif 'streams' in value:
+            source=value['streams']['routing']
+            yield from identity_rows(pinned(source.get('receipt',source.get('database'))))
+        else:yield value
+    else:
+        with path.open() as handle:
+            for text in handle:
+                if text.strip():yield json.loads(text)
+
+
+def prepare_identity(receipt,cfg):
+    """Bind S1 admission to the config's authenticated routing receipt."""
+    from pathlib import Path
+    from .p3_provenance import pinned,write
+    if not cfg.get('h1',{}).get('faithful_own_camera_rows'):return receipt
+    source=cfg['streams']['routing']
+    report=dict(identity_check(identity_rows(pinned(source))),source_receipt=source)
+    result={**receipt,'h1_faithful_identity':report}
+    # Successful preparation writes its complete receipt in the caller.
+    # A refusal leaves the measured rate and histogram before aborting.
+    if not report['passes']:
+        write(Path(cfg['preparation_output'])/'receipt.json',result)
+    require_identity(result,cfg)
+    return result
+
+
+def require_identity(receipt,cfg):
+    if not cfg.get('h1',{}).get('faithful_own_camera_rows'):return
+    report=receipt.get('h1_faithful_identity',{})
+    rate=report.get('identity_rate')
+    if (report.get('source_receipt')!=cfg['streams']['routing'] or
+            not report.get('rows') or rate is None or rate<.95 or not report.get('passes')):
+        raise ValueError('S1 launch requires faithful identity >= 95% on the bound routing receipt')

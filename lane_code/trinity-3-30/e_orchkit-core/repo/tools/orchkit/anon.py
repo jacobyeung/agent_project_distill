@@ -26,7 +26,9 @@ import os
 import re
 import sys
 import tarfile
+import unicodedata
 import zipfile
+import zlib
 
 WORDS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ANON_WORDS.txt')
 JOB_NAME = re.compile(r'^a15_cot_ap[0-9a-f]{16}\Z')
@@ -78,14 +80,24 @@ def scan_text(where, text, rules, scope='text'):
     return hits
 
 
-ESCAPE = re.compile(r'\\(?:u([0-9a-fA-F]{4})|U([0-9a-fA-F]{8})|x([0-9a-fA-F]{2}))')
+ESCAPE = re.compile(r'\\(?:u([0-9a-fA-F]{4})|U([0-9a-fA-F]{8})|x([0-9a-fA-F]{2})|([0-7]{1,3})|N\{([^}]{1,80})\})')
 
 
 def _unescape(text):
+    """Resolve JSON and Python escapes: \\uXXXX, \\UXXXXXXXX, \\xXX, octal \\NNN, \\N{NAME}; any other
+    backslash pair (\\/, \\n) becomes its second character."""
     def one(match):
+        if match.group(5) is not None:
+            try:
+                return unicodedata.lookup(match.group(5))
+            except KeyError:
+                return ''
+        if match.group(4) is not None:
+            return chr(int(match.group(4), 8))
         code = int(match.group(1) or match.group(2) or match.group(3), 16)
         return chr(code) if code < 0x110000 else ''
-    return ESCAPE.sub(one, text)
+    text = re.sub(r'\\\r?\n', '', text)
+    return re.sub(r'\\([\s\S])', r'\1', ESCAPE.sub(one, text))
 
 
 def text_views(data):
@@ -130,10 +142,36 @@ UNSUPPORTED = ((b'7z\xbc\xaf\x27\x1c', '7z'), (b'Rar!\x1a\x07', 'rar'), (b'\x28\
                (b'LZIP', 'lzip'), (b'\x1f\x9d', 'compress'), (b'MSCF', 'cab'))
 
 
+def _lzma_dict(data):
+    size = int.from_bytes(data[1:5], 'little')
+    return any(size == 1 << bits or size == 3 << (bits - 1) for bits in range(12, 31))
+
+
+def _gzip_header_text(data):
+    """The stored file name and comment of a gzip header (RFC 1952), as bytes."""
+    if len(data) < 10 or not data.startswith(b'\x1f\x8b'):
+        return b''
+    flags, at, out = data[3], 10, []
+    if flags & 4 and len(data) >= 12:
+        at += 2 + int.from_bytes(data[10:12], 'little')
+    for bit in (8, 16):
+        if flags & bit:
+            end = data.find(b'\x00', at)
+            end = len(data) if end < 0 else end
+            out.append(data[at:end])
+            at = end + 1
+    return b'\n'.join(out)
+
+
 def _interpretations(where, data):
     """Every container reading of a blob: a compression at its start, a zip anywhere (Python
     reads a zip with a prefix), a tar; a container Python cannot open is 'unsupported'."""
     kinds = [kind for magic, kind in MAGIC[:3] if data.startswith(magic)]
+    if len(data) >= 13 and data[0] == 0x5d and _lzma_dict(data):
+        kinds.append('lzma')
+    if len(data) >= 2 and data[0] == 0x78 and (data[0] * 256 + data[1]) % 31 == 0 and \
+            _decompress('zlib', data) is not None:
+        kinds.append('zlib')
     if any(data.startswith(magic) for magic, _ in UNSUPPORTED):
         kinds.append('unsupported')
     try:
@@ -142,7 +180,7 @@ def _interpretations(where, data):
         zipped = False
     if zipped:
         kinds.append('zip')
-    elif data.startswith((b'PK\x03\x04', b'PK\x05\x06', b'PK\x07\x08')):
+    elif b'PK\x03\x04' in data or b'PK\x05\x06' in data:
         kinds.append('unsupported')
     if len(data) > 262 and data[257:262] == b'ustar':
         kinds.append('tar')
@@ -151,7 +189,23 @@ def _interpretations(where, data):
         if archive is not None:
             archive.close()
             kinds.append('tar')
+        elif _tar_like(data):
+            kinds.append('unsupported')
     return kinds
+
+
+OCTAL = re.compile(rb'^[0-7 ]*\x00?[ \x00]*$')
+
+
+def _tar_like(data):
+    """A first block shaped like a tar header (a printable name, octal mode, size and checksum
+    fields) that tarfile still refuses: a damaged tar, refused rather than read as text."""
+    head = data[:512]
+    name = head[:100].rstrip(b'\x00')
+    if not name or any(byte < 32 or byte == 127 for byte in name):
+        return False
+    return all(OCTAL.match(head[start:end]) and head[start:end].strip(b' \x00')
+               for start, end in ((100, 108), (124, 136), (148, 156)))
 
 
 def _decompress(kind, data):
@@ -161,13 +215,20 @@ def _decompress(kind, data):
         if kind == 'gz':
             with gzip.GzipFile(fileobj=io.BytesIO(data)) as handle:
                 return handle.read(MAX_BLOB + 1)
-        if kind in ('bz2', 'xz'):
-            engine = bz2.BZ2Decompressor() if kind == 'bz2' else lzma.LZMADecompressor()
+        if kind == 'zlib':
+            engine = zlib.decompressobj()
             out = engine.decompress(data, MAX_BLOB + 1)
             if engine.unused_data or not engine.eof:
                 return None
             return out
-    except (OSError, EOFError, ValueError, lzma.LZMAError):
+        if kind in ('bz2', 'xz', 'lzma'):
+            engine = bz2.BZ2Decompressor() if kind == 'bz2' else lzma.LZMADecompressor(
+                format=lzma.FORMAT_ALONE if kind == 'lzma' else lzma.FORMAT_AUTO)
+            out = engine.decompress(data, MAX_BLOB + 1)
+            if engine.unused_data or not engine.eof:
+                return None
+            return out
+    except (OSError, EOFError, ValueError, lzma.LZMAError, zlib.error):
         return None
     return None
 
@@ -213,7 +274,10 @@ def _expand(where, data, depth):
     for kind in kinds:
         if kind == 'unsupported':
             yield where, None, 'unsupported-container'
-        elif kind in ('gz', 'bz2', 'xz'):
+        elif kind in ('gz', 'bz2', 'xz', 'lzma', 'zlib'):
+            header = _gzip_header_text(data) if kind == 'gz' else b''
+            if header:
+                yield where + '!gzip-header', header, 'meta'
             inner = _decompress(kind, data)
             if inner is None:
                 yield where, None, 'undecodable'

@@ -1,4 +1,4 @@
-# b08_headrows STATUS (2026-11-16T14:21:48Z)
+# b08_headrows STATUS (2026-11-16T14:45:34Z)
 Lane: Devin successor on trinity-1-3 (predecessor headless Claude stopped at weekly limit after writing CHOICE_JOIN.md). Brief: orch_n30/briefs/b08_headrows.md -> briefs/qs/08_head_path_rows_and_choice_join.md. Lane folder /scratch/jjyeung/orch_n30/b08_headrows.
 Goal: Part A choice join + cue study (CPU); Part B head-path rows for the both-path mix (waits for brief 05 cache + ORCH ruling on the trace-ruling amendment).
 ## Part A: DONE
@@ -6,17 +6,17 @@ Goal: Part A choice join + cue study (CPU); Part B head-path rows for the both-p
 - Mirror: trinity-1-18 /scratch/jjyeung/n30_mirror/b08_headrows/b08_partA.tar sha256 617083f7ea44669742ad81b6b55901ae1e7f6b992644fd889f30d2959d7a8791 (= local out/b08_partA.tar).
 - Finding: per-item ceiling +2.0..+12.4 task pts per type (~4.5 VSI) with step 544 direct; no printed cue captures it held-out (share <= 0.05); chooser gain 0.
 ## Part B: assignment rule built; rows blocked (see out/PARTB_PREP.md d0ece44f...)
-- code/headrows/assign.py 8cfcc90f..., mask_match.py 1efbf88b..., tests 26 OK (cd code/headrows && /scratch/jjyeung/envs/p1cpu/bin/python -B -m unittest tests.test_assign tests.test_mask_match).
-- Reviews (Codex astra, read-only): R1 NO-GO 10 findings -> FIXES_R1; R2 NO-GO 11 -> FIXES_R2; R3 NO-GO 8 -> FIXES_R3; R4 NO-GO 6 -> FIXES_R4; R5 NO-GO 5 -> FIXES_R5 (replay receipts: cache lane must run assign.replay_receipt); R6 NO-GO 2 -> FIXES_R6 (events REVIEW_VERDICT_ASSIGN*.md, FIXES_R*_ASSIGN.md; work/review/). R0 reserve in eligibility (ORCH 1307Z); R0 removed from my sets: 0 (no rows yet). Spec item 7: sealed validate abs-distance needs GT-exact answers -> amended validate for both rows (tree_rebuild4).
+- code/headrows/assign.py 91d1d660..., mask_match.py 1efbf88b..., build_rows.py 4fe724a1..., tests 29 OK (cd code/headrows && /scratch/jjyeung/envs/p1cpu/bin/python -B -m unittest tests.test_assign tests.test_mask_match tests.test_build_rows). Mirror trinity-1-18 /scratch/jjyeung/n30_mirror/b08_headrows/b08_partB_kit.tar sha256 a01ab25849585fa8191b8fadd02b4d93ce6db7e94e5e346c09f095ceec5151eb (= local out/b08_partB_kit.tar).
+- Reviews (Codex astra, read-only): R1 NO-GO 10 findings -> FIXES_R1; R2 NO-GO 11 -> FIXES_R2; R3 NO-GO 8 -> FIXES_R3; R4 NO-GO 6 -> FIXES_R4; R5 NO-GO 5 -> FIXES_R5 (replay receipts: cache lane must run assign.replay_receipt); R6 NO-GO 2 -> FIXES_R6; R7 NO-GO 2 -> FIXES_R7; R8 one finding -> FIXES_R8 (not re-reviewed). RESULT event partB_assign_reviewed asks ORCH: another pass or GO (default GO) (events REVIEW_VERDICT_ASSIGN*.md, FIXES_R*_ASSIGN.md; work/review/). R0 reserve in eligibility (ORCH 1307Z); R0 removed from my sets: 0 (no rows yet). Spec item 7: sealed validate abs-distance needs GT-exact answers -> amended validate for both rows (tree_rebuild4).
 - work/auth/: dev_scene_exclusions.json a1869ae2..., benchmark_scene_exclusions.json 3119aa4a..., WITHHELD_ROOMS_80.json 634820b4..., R0_ROOMS.txt bdb5d402..., R0_SCENES.json f7c45817... (from trinity-1-18 b10_reserve/out), alias_map.json 488480ab... (rows_a2).
 - Dev-S1 dry run: all 6,161 refused as dev_s1; upper-bound head share count .34 size .46 rel-dist .42 dir .66-.70 abs-dist .46.
 - Blockers: (1) training-item responses as full v3.14 Session records (b04 reader / b05 head); (2) GT instance ids per operand; (3) recovery-row form + join (tree_rebuild4). Renderer = sealed ground_rows.pack (no new renderer needed).
 - ORCH ruled both-path (1234Z), gave me head-form rows (1243Z; rows_a2 direct only; tree_rebuild4 joins), answered 1250Z: Q1 part B goes; Q2 I draft the both-policy + validator type-gate spec (done: PARTB_PREP.md last section), tree_rebuild4 implements, one review; Q3 I order a Codex refute review of assign.py now. Q4 (cache must hold full v3.14 Session records + accepted masks; size + direction easy keep current form) unanswered, default in force.
-## In flight
-- Codex review R7 b08_confirm7_assign (gpt-6-astra high, read-only), tmux b08_review7 on trinity-1-3, receipt /home/jjyeung/agent_project_distill/agent/scratch/codex_runs/20261116T142133Z_b08_confirm7_assign/final_message.md, prompt work/review/confirm7_prompt.md. On finish: copy to events REVIEW_VERDICT_ASSIGN_R7.md; fix; RESULT event.
+- Cache request: code/headrows/cache_request.py -> out/cache_request/CACHE_REQUEST_ITEMS.jsonl (b6cfed9c..., 28,711 items; counting 7,065 room-capped -> ~1,200 heads expected). Not yet announced in an event (mention in next event).
+## In flight: none (no tmux of mine running, no Codex, no governor stream, no Orchard job).
 ## Next steps
-1. Poll inbox/ and events *_ORCH_* every 10 min; act on answers.
-2. When b04 reader or b05 head responses on training items exist: build items file (with gt_instances from rows_a2 rasters) + responses file, run assign.py, then renderer (event form, masked responses) for head rows, direct rows (abs distance) and recovery rows.
-3. Validate: sealed validator + amended type gate, 30 rows per family by hand, every-rank CPU first batch, repeat limits, eligibility; admission packet; mirror.
+1. Poll inbox/ and events *_ORCH_* every 10 min; act on answers (another review pass if ordered).
+2. When b04 reader / b05 head deliver training-item records (full Session record + accepted masks + replay receipt from assign.replay_receipt): build items JSONL from rows_a2 store rows (question, options, answer, dataset, scene, student_input) with gt_instances from GT rasters via mask_match.gt_instances; responses JSONL with selected = mask_match.selected_ids; run assign.py, then build_rows.py.
+3. Validate: sealed validator + tree_rebuild4's type gate, 30 rows per family by hand, every-rank CPU first batch, repeat limits, eligibility (R0 count); admission packet; mirror; RESULT asking for admission review.
 ## Defaults in force: ReVSI first; frame count 32/64 parameter; SFT first; room direct (no room program rows).
 ## Files a successor reads: this file, out/CHOICE_JOIN.md, out/PARTB_PREP.md, briefs/qs/08_head_path_rows_and_choice_join.md.

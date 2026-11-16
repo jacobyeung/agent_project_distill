@@ -10,9 +10,11 @@ B = L / 'work/build6'
 output = B / 'proofs/final_targeted'
 names = [
     'tests.test_r2_build6',
+    'tests.test_r2_build3.Build3.test_opener_export_keep_and_reset',
     'generator.derivgen_v7.test_v312_quality.QualityTests.test_qualifier_must_equal_literal_gt_label',
     'tests.test_c1_validation_slice.ValidationPreparation.test_validation_config_is_optional_and_requires_exact_pins',
     'tests.test_gxp_mix.MemoryFallback.test_absent_keys_preserve_normalized_identity_and_fp32_output_bytes',
+    'tests.test_s1_launch_kit.LaunchKitTests.test_all_eight_ranks_and_native_configuration_binding_are_required',
     'coverage_cases',
 ]
 env = {**os.environ, 'R2_TREE': str(L / 'work/tree_r1'),

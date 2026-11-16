@@ -1,0 +1,56 @@
+{
+ "calls": {
+  "move": 1,
+  "turn": 1,
+  "pose": 1,
+  "ground": 2,
+  "gap": 1,
+  "room": 1
+ },
+ "unserved": {
+  "room": 1
+ },
+ "responses": [
+  [
+   "<move from=1 to=9>",
+   "dx = +0.38 m, dy = +1.21 m, dz = +2.43 m, distance = 2.74 m"
+  ],
+  [
+   "<turn from=2 to=17>",
+   "turn = -129 deg"
+  ],
+  [
+   "<pose frame=3>",
+   "f1 centre (0.08, 0.22, 0.37) m, yaw 1 deg"
+  ],
+  [
+   "<ground obj=\"chair\" mode=\"box\">",
+   "chair: frames 5,6 (best 5)\nB1: f1 centre (-0.12, 2.03, 3.07) m\nsize 1.71 x 1.22 x 0.78 m\nyaw 149 deg (0 = +x; positive +x toward -z about +y)"
+  ],
+  [
+   "<ground obj=\"table\" mode=\"box\">",
+   "table: frames 5,6 (best 5)\nB2: f1 centre (0.46, 1.78, 2.71) m\nsize 1.83 x 1.02 x 1.44 m\nyaw 70 deg (0 = +x; positive +x toward -z about +y)"
+  ],
+  [
+   "<gap a=\"chair\" b=\"table\" rule=\"box_grid_5cm\">",
+   "distance 0.02 m"
+  ]
+ ],
+ "prefills": 1,
+ "steps": 92,
+ "cache_length": 374,
+ "audit": {
+  "opens": 2,
+  "data_files": [
+   "/scratch/jjyeung/orch_n30/b04_e2ehook/parity_kit/test_runs/existing/artifact0/g3t_fixture.safetensors",
+   "/scratch/jjyeung/orch_n30/b04_e2ehook/parity_kit/test_runs/existing/artifact0/sam3_fixture.safetensors"
+  ],
+  "violations": []
+ },
+ "scale": 2.5,
+ "timings": {
+  "g3t_s": 0.0013740849681198597,
+  "total_s": 2.659226124174893
+ },
+ "text": "I will read the camera and the objects.<move from=1 to=9>\n<tool_response>\ndx = +0.38 m, dy = +1.21 m, dz = +2.43 m, distance = 2.74 m\n</tool_response> then <turn from=2 to=17>\n<tool_response>\nturn = -129 deg\n</tool_response> and <pose frame=3>\n<tool_response>\nf1 centre (0.08, 0.22, 0.37) m, yaw 1 deg\n</tool_response> then <ground obj=\"chair\" mode=\"box\">\n<tool_response>\nchair: frames 5,6 (best 5)\nB1: f1 centre (-0.12, 2.03, 3.07) m\nsize 1.71 x 1.22 x 0.78 m\nyaw 149 deg (0 = +x; positive +x toward -z about +y)\n</tool_response> and <ground obj=\"table\" mode=\"box\">\n<tool_response>\ntable: frames 5,6 (best 5)\nB2: f1 centre (0.46, 1.78, 2.71) m\nsize 1.83 x 1.02 x 1.44 m\nyaw 70 deg (0 = +x; positive +x toward -z about +y)\n</tool_response> <gap a=\"chair\" b=\"table\" rule=\"box_grid_5cm\">\n<tool_response>\ndistance 0.02 m\n</tool_response> and the room <ground mode=\"room\"> so the answer is 1.2<|im_end|>"
+}

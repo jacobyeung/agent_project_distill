@@ -32,7 +32,7 @@ def scalar_metrics(row):
         if name == 'M3' and not values.get('eligible'):
             continue
         keys = {'M1':('call_rate','opener_agreement','argument_agreement','order_agreement','answer_before_first_call',
-                      'repeated_calls','extra_calls','missing_calls','first_call_token_offset','exact'),
+                      'false_call_rate','repeated_calls','extra_calls','missing_calls','first_call_token_offset','exact'),
                 'M3':('follow','stick','other'), 'M4':('score','parse_failed','hit_token_cap')}[name]
         for key in keys:
             if values.get(key) is not None:
@@ -70,6 +70,49 @@ def aggregate(rows):
         m3['bars'] = dict(follow_min=.80,stick_max=.10)
         m3['passes_bars'] = (m3['follow']['value']>=.80 and m3['stick']['value']<=.10) if 'follow' in m3 else None
         result.setdefault(kind,{}).setdefault(arm,{})[mode] = record
+    # Direct overall rates use baseline items once; type bars retain each type's denominator.
+    routed={'camera_displacement','camera_movement_direction','camera_rotation','object_abs_distance'}
+    direct={arm:[r for r in rows if r['arm']==arm and r['mode']=='none' and r['type'] not in routed]
+            for arm in {r['arm'] for r in rows}}
+    for kind, arms in result.items():
+        for arm, modes in arms.items():
+            for mode, rec in modes.items():
+                m=rec['M1']
+                val=lambda key: m.get(key,{}).get('value')
+                if kind in routed:
+                    is_revsi=any(r.get('item_set')=='revsi999' for r in groups[(kind,arm,mode)])
+                    rate=.95 if is_revsi and kind=='object_abs_distance' else .98
+                    m['bars']=dict(call_rate_min=rate,exact_min=.95,answer_before_first_call_max=.01)
+                    m['pass_flags']={k:(val(k) is not None and test(val(k))) for k,test in
+                        [('call_rate',lambda v:v>=rate),('exact',lambda v:v>=.95),
+                         ('answer_before_first_call',lambda v:v<=.01)]}
+                else:
+                    overall=bootstrap([(r['room_key'],r['measurements']['M1'].get('false_call_rate',
+                        r['measurements']['M1'].get('call_rate',0))) for r in direct[arm]])
+                    m['overall_false_call_rate']=overall
+                    m['bars']=dict(false_call_rate_max=.05,overall_false_call_rate_max=.02)
+                    value=val('false_call_rate')
+                    m['pass_flags']=dict(per_type=value is not None and value<=.05,
+                        overall=overall['value'] is not None and overall['value']<=.02)
+                m['passes_bars']=all(m['pass_flags'].values())
+    baseline={(r['id'],r['type'],r['arm']):r for r in rows if r['mode']=='none'}
+    differences=defaultdict(list)
+    for (identifier,kind,arm), own in baseline.items():
+        if arm!='own':continue
+        tower=baseline.get((identifier,kind,'tower'))
+        if tower is None:continue
+        if own['room_key']!=tower['room_key']:raise ValueError('Own/tower paired rooms differ')
+        def accuracy(r):
+            v=r['measurements'].get('M2',{}).get('task_accuracy')
+            return r['measurements'].get('M4',{}).get('score') if v is None else v
+        a,b=accuracy(own),accuracy(tower)
+        if a is not None and b is not None:differences[kind].append((own['room_key'],100*(a-b)))
+    for kind,arms in result.items():
+        if 'own' not in arms or 'none' not in arms['own']:continue
+        paired=bootstrap(differences[kind])
+        m=arms['own']['none']['M2'];m['own_minus_tower']=dict(paired,unit='percentage_points')
+        m['bars']=dict(own_minus_tower_lower_bound_gt=-5.)
+        m['passes_bars']=paired['ci95'][0]>-5 if paired['ci95'] is not None else None
     return result
 
 

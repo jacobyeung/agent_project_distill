@@ -12,7 +12,7 @@ import time
 import numpy as np
 import torch
 
-from .common import atomic_write_bytes, atomic_write_json, read_json, sha256_json
+from .common import atomic_write_bytes, atomic_write_json, read_json, sha256_file, sha256_json
 from .data import GroundingDataset
 from .head import Config, GroundingHead
 from .losses import compute_losses, mask_iou
@@ -25,6 +25,7 @@ class Stopper:
     accelerator_hour_cap: float = 60.
     accelerators: int = 1
     fail_fast_checked: bool = False
+    recall_bar: float = .70
     history: list = field(default_factory=list)
     stop_reason: str | None = None
 
@@ -45,7 +46,7 @@ class Stopper:
             return self.stop('nonfinite_validation')
         if step >= 600 and not self.fail_fast_checked:
             self.fail_fast_checked = True
-            if metrics['candidate_recall_at5'] < .70 or metrics['mask_iou_pos'] < .44:
+            if metrics['candidate_recall_at5'] < self.recall_bar or metrics['mask_iou_pos'] < .44:
                 return self.stop('fail_fast_at_600')
         if step >= 2400 and metrics['false_presence_absent_at85'] > .10:
             return self.stop('false_presence_kill')
@@ -115,7 +116,7 @@ def optimization_step(model, batch, targets, optimizer, scheduler, grad_clip=1.)
     context = torch.autocast('cuda', dtype=torch.bfloat16) if device.type == 'cuda' else nullcontext()
     with context:
         out = model(**batch, selection_targets=targets)
-        losses, details = compute_losses(out, targets, model.cfg)
+    losses, details = compute_losses(out, targets, model.cfg)
     if not all(torch.isfinite(v).all() for v in losses.values()):
         raise FloatingPointError('Nonfinite training loss')
     losses['total'].backward()
@@ -128,6 +129,7 @@ def optimization_step(model, batch, targets, optimizer, scheduler, grad_clip=1.)
 class Metrics:
     def __init__(self):
         self.instances, self.covered, self.pos_iou, self.pairs = 0, 0, [], []
+        self.names, self.names_covered = 0, 0
         self.selection_skipped = {}
 
     @torch.no_grad()
@@ -135,7 +137,7 @@ class Metrics:
         for reason, count in details['selection_skipped'].items():
             self.selection_skipped[reason] = self.selection_skipped.get(reason, 0)+count
         for n, target in enumerate(targets):
-            clusters = out['candidates'][n]
+            clusters = out['candidates'][n][:5]
             overlaps = []
             ids = target['gt_instances']
             for members in clusters:
@@ -148,31 +150,38 @@ class Metrics:
                 overlaps.append(by_id)
             self.instances += len(ids)
             self.covered += sum(any(c.get(i, 0.) >= .5 for c in overlaps) for i in ids)
+            if len(ids) == 1:
+                self.names += 1
+                self.names_covered += int(any(c.get(ids[0], 0.) >= .5 for c in overlaps))
             for f, matched in enumerate(details['matches'][n]):
                 for q, truth in matched:
                     if truth['cls'] == 'POS':
                         self.pos_iou.append(float(mask_iou(out['masks'][n, f, q].sigmoid(), truth['mask'].to(out['masks']))))
             if clusters:
                 logits = out['selection'][n]
-                chosen = int(logits[:-1].argmax())
+                chosen = int(logits[:len(clusters)].argmax())
                 confidence = float((logits[chosen]-logits[-1]).sigmoid())
-                correct = any(v >= .5 for v in overlaps[chosen].values())
+                selected = bool(logits[chosen] > logits[-1])
+                correct = selected and any(v >= .5 for v in overlaps[chosen].values())
             else:
-                confidence, correct = 0., False
+                confidence, correct, selected = 0., False, False
             self.pairs.append(dict(confidence=confidence, correct=correct, candidate=bool(clusters),
-                                   absent=target['clip_presence'] == 0, ambiguous=len(ids) > 1))
+                selected=selected, present=bool(target.get('gt_visible_instances', ids)),
+                absent=target['clip_presence'] == 0, ambiguous=len(ids) != 1))
 
     def result(self):
         # Fix coverage over all name/capture pairs using candidate-versus-none confidence.
         ordered = sorted(self.pairs, key=lambda p: -p['confidence'])
         accepted = ordered[:math.ceil(.85*len(ordered))]
-        unambiguous = [p for p in accepted if not p['ambiguous']]
+        unambiguous = [p for p in accepted if p['present'] and not p['ambiguous']]
         absent = sum(p['absent'] for p in ordered)
-        return dict(candidate_recall_at5=self.covered/max(self.instances, 1),
+        return dict(candidate_recall_at5=self.names_covered/max(self.names, 1),
+            candidate_recall_at5_all_instances=self.covered/max(self.instances, 1),
             mask_iou_pos=sum(self.pos_iou)/max(len(self.pos_iou), 1),
             on_target_share_at85=sum(p['correct'] for p in unambiguous)/max(len(unambiguous), 1),
-            false_presence_absent_at85=sum(p['absent'] and p['candidate'] for p in accepted)/max(absent, 1),
+            false_presence_absent_at85=sum(p['absent'] and p['selected'] for p in accepted)/max(absent, 1),
             coverage=len(accepted)/max(len(ordered), 1), gt_instances=self.instances,
+            unambiguous_names=self.names, present_unambiguous_at85=len(unambiguous),
             matched_pos=len(self.pos_iou), absent_pairs=absent, pairs=len(ordered), selection_skipped=self.selection_skipped)
 
 
@@ -223,7 +232,7 @@ def predict_clip(model, vit, frames, names, size_hw=(480, 640), presence_size=(3
 
 
 @torch.no_grad()
-def validate(model, vit, dataset, presence_size=(320, 416), deadline=None):
+def validate(model, vit, dataset, presence_size=(320, 416), deadline=None, indices=None):
     from .head import pooled_name
     previous = model.training
     model.eval()
@@ -233,11 +242,17 @@ def validate(model, vit, dataset, presence_size=(320, 416), deadline=None):
     cuda_rng = torch.cuda.get_rng_state_all() if next(model.parameters()).device.type == 'cuda' else None
     try:
         seed_all(1807)
-        for index in range(len(dataset)):
+        cached_capture, cached_merged = None, None
+        for index in range(len(dataset)) if indices is None else indices:
             if deadline is not None and time.monotonic() >= deadline:
                 raise TimeoutError('Validation reached the run hour cap')
             item = dataset[index]
-            merged = encode_presence(vit, item['frames'], presence_size)
+            # All names of a capture share frozen, name-independent vision features.
+            # Keep only the current capture, and discard this cache after validation.
+            if item['canonical'] != cached_capture:
+                cached_merged = encode_presence(vit, item['frames'], presence_size)
+                cached_capture = item['canonical']
+            merged = cached_merged
             query = vit.name_query([item['name']])
             logits, _ = model.presence(merged, pooled_name(query.tokens, query.mask))
             chosen = model.presence.shortlist(logits)[0]
@@ -259,6 +274,51 @@ def validate(model, vit, dataset, presence_size=(320, 416), deadline=None):
     return result
 
 
+def epoch_order(count, seed, epoch):
+    order = list(range(count))
+    random.Random(sha256_json(['owngrd-epoch-v1', seed, epoch])).shuffle(order)
+    return order
+
+
+def recall_ceilings(dataset, indices=None):
+    """Label-only visibility ceilings; no teacher inference or image reads."""
+    from .teacher import capture_key
+    names = visible_names = instances = visible_instances = 0
+    labels = {}
+    for index in range(len(dataset)) if indices is None else indices:
+        ci, name = dataset.items[index]
+        if ci not in labels:
+            labels[ci] = read_json(dataset.label_root / (capture_key(dataset.captures[ci]['canonical'])+'.labels.json.gz'))
+        label = labels[ci]
+        ids = {int(i) for i, n in label['id_name'].items() if n == name}
+        visible = {int(i) for frame in label['frames'].values() for i in frame[name]['gt_visible']} & ids
+        instances += len(ids)
+        visible_instances += len(visible)
+        if len(ids) == 1:
+            names += 1
+            visible_names += bool(visible)
+    return dict(unambiguous=visible_names/max(names, 1), all_instances=visible_instances/max(instances, 1),
+                unambiguous_names=names, visible_unambiguous_names=visible_names,
+                gt_instances=instances, visible_gt_instances=visible_instances,
+                oracle_frames=4, oracle_candidates=5)
+
+
+def rewind_log(path, step):
+    """Preserve the interrupted log and rewrite only checkpoint-committed events."""
+    if not path.exists():
+        return
+    kept = []
+    for line in path.read_text().splitlines():
+        try:
+            row = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if row.get('event') != 'stop' and row.get('step', 0) <= step:
+            kept.append(line)
+    path.rename(path.with_name(path.name+f'.before_resume.{time.time_ns()}'))
+    atomic_write_bytes(path, (''.join(line+'\n' for line in kept)).encode())
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument('--manifest', required=True)
@@ -277,6 +337,7 @@ def main(argv=None):
     ap.add_argument('--weight-decay', type=float, default=.01)
     ap.add_argument('--grad-clip', type=float, default=1.)
     ap.add_argument('--validate-every', type=int, default=200)
+    ap.add_argument('--val-items', type=int, default=0, help='Seeded train_val subset size; 0 uses all items')
     ap.add_argument('--checkpoint-every', type=int, default=200)
     ap.add_argument('--seed', type=int, default=42)
     ap.add_argument('--size', type=int, nargs=2, default=[480, 640])
@@ -285,41 +346,56 @@ def main(argv=None):
     a = ap.parse_args(argv)
     if a.hours <= 0 or min(a.steps, a.validate_every, a.checkpoint_every) <= 0:
         ap.error('Positive hour cap, steps, and intervals required')
+    if a.val_items < 0:
+        ap.error('--val-items must be nonnegative')
     seed_all(a.seed)
     cfg = Config(**read_json(a.config)) if a.config else Config()
     train = GroundingDataset(a.manifest, a.labels, a.teacher_root, 'train', a.size, seed=a.seed)
     val = GroundingDataset(a.manifest, a.labels, a.teacher_root, 'train_val', a.size, seed=a.seed)
     if not len(train) or not len(val):
         raise ValueError('Both training rooms and training-room validation must be nonempty')
+    val_indices = sorted(epoch_order(len(val), a.seed, 0)[:a.val_items]) if a.val_items else list(range(len(val)))
+    ceilings = recall_ceilings(val, val_indices)
+    recall_bar = .70*ceilings['unambiguous']
     vit = FrozenViT(a.weights, a.bundle, a.device)
     names = sorted({name for dataset in (train, val) for _, name in dataset.items})
     query = vit.name_query(names)
     run_config = {k: v for k, v in vars(a).items() if k not in ('out', 'resume', 'config')}
     run_config['head'] = asdict(cfg)
     run_config['runtime'] = dict(torch=torch.__version__, cpu_threads=torch.get_num_threads())
+    source_files = {str(p.relative_to(Path(__file__).parent)): sha256_file(p)
+                    for p in sorted(Path(__file__).parent.rglob('*.py'))}
     hashes = dict(config=sha256_json(run_config), labels=sha256_json([train.label_sha256, val.label_sha256]),
                   vit=vit.sha256, name_rows=query.rows_sha256, tokenizer=query.tokenizer_sha256,
-                  gate=train.gate.digest)
+                  gate=train.gate.digest, source=sha256_json(source_files))
     model = GroundingHead(cfg).to(a.device)
     optimizer, scheduler = make_optimizer(model, a.lr, a.weight_decay, a.warmup, a.steps)
-    cursor = dict(step=0, epoch=0, item=0)
-    stopper = Stopper(hours=a.hours, accelerator_hour_cap=a.accelerator_hour_cap)
+    cursor = dict(step=0, epoch=0, item=0, order=epoch_order(len(train), a.seed, 0))
+    stopper = Stopper(hours=a.hours, accelerator_hour_cap=a.accelerator_hour_cap, recall_bar=recall_bar)
     extra = dict(elapsed_seconds=0.)
     if a.resume:
         cursor, stopper, extra = load_checkpoint(a.resume, model, optimizer, scheduler, hashes)
     outdir = Path(a.out)
     outdir.mkdir(parents=True, exist_ok=True)
-    atomic_write_json(outdir/'RUN.json', dict(config=run_config, hashes=hashes, parameters=model.parameter_counts()))
+    atomic_write_json(outdir/'RUN.json', dict(config=run_config, hashes=hashes, source_files=source_files,
+        parameters=model.parameter_counts(), recall_ceilings=ceilings, fail_fast_recall_bar=recall_bar,
+        validation_indices=val_indices))
+    if a.resume:
+        rewind_log(outdir/'train.jsonl', cursor['step'])
     started, elapsed_before = time.monotonic(), extra['elapsed_seconds']
     reason, status = 'step_cap', 'CONTINUE'
     with open(outdir/'train.jsonl', 'a') as log:
+        if not a.resume:
+            log.write(json.dumps(dict(event='recall_ceilings', step=0, ceilings=ceilings,
+                                      fail_fast_recall_bar=recall_bar))+'\n')
+            log.flush()
         while cursor['step'] < a.steps:
             elapsed = elapsed_before + time.monotonic()-started
             status, reason = stopper.decide(cursor['step'], elapsed_seconds=elapsed)
             if status == 'STOP':
                 break
             train.set_epoch(cursor['epoch'])
-            item = train[cursor['item']]
+            item = train[cursor['order'][cursor['item']]]
             batch = encode_item(vit, item, tuple(a.presence_size))
             losses, details, norm = optimization_step(model, batch, [item['target']], optimizer, scheduler, a.grad_clip)
             cursor['step'] += 1
@@ -327,12 +403,14 @@ def main(argv=None):
             if cursor['item'] == len(train):
                 cursor['item'] = 0
                 cursor['epoch'] += 1
-            log.write(json.dumps(dict(event='train', **cursor, losses=losses, grad_norm=norm,
+                cursor['order'] = epoch_order(len(train), a.seed, cursor['epoch'])
+            position = {k: v for k, v in cursor.items() if k != 'order'}
+            log.write(json.dumps(dict(event='train', **position, canonical=item['canonical'], name=item['name'], losses=losses, grad_norm=norm,
                 lr=scheduler.get_last_lr()[0], selection_skipped=details['selection_skipped'], elapsed_seconds=elapsed))+'\n')
             if cursor['step'] % a.validate_every == 0 or cursor['step'] in (600, 2400):
                 deadline = started + min(a.hours, a.accelerator_hour_cap)*3600-elapsed_before
                 try:
-                    metric = validate(model, vit, val, tuple(a.presence_size), deadline)
+                    metric = validate(model, vit, val, tuple(a.presence_size), deadline, val_indices)
                 except TimeoutError:
                     status, reason = stopper.stop('hour_cap_during_validation')
                     break
@@ -346,11 +424,12 @@ def main(argv=None):
                                 dict(elapsed_seconds=elapsed_before+time.monotonic()-started))
             if status == 'STOP':
                 break
-        if cursor['step'] >= a.steps:
+        if cursor['step'] >= a.steps and status != 'STOP':
             status, reason = 'STOP', 'step_cap'
         save_checkpoint(outdir/'resume.pt', model, optimizer, scheduler, cursor, stopper, hashes,
                         dict(elapsed_seconds=elapsed_before+time.monotonic()-started))
-        log.write(json.dumps(dict(event='stop', **cursor, status=status, reason=reason))+'\n')
+        log.write(json.dumps(dict(event='stop', step=cursor['step'], epoch=cursor['epoch'], item=cursor['item'],
+                                  status=status, reason=reason))+'\n')
     from .export import save_head
     save_head(outdir/'export', model, hashes, dict(step=cursor['step'], reason=reason))
     return 0

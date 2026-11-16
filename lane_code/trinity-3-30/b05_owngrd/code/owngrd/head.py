@@ -306,12 +306,25 @@ class GroundingHead(nn.Module):
             selection_candidates = [dict(source='decoder', members=members, weight=1., native=False) for members in c]
             if selection_targets is not None:
                 from .data import teacher_candidates
+                from .losses import mask_iou
                 # Alternate the extra slot between sources in the training RNG stream.
                 teacher_slots = min(self.cfg.max_candidates, 2 + int(torch.randint(2, ()).item()))
                 tc = teacher_candidates(selection_targets[n], teacher_slots)
+                teacher_features = []
+                for candidate in tc:
+                    best = [(f, int(mask_iou(out['masks'][n, f].detach().sigmoid(), mask.to(pixels)).argmax()))
+                            for f, mask in candidate['members']]
+                    estimates = torch.stack([out['iou'][n, f, q] for f, q in best])
+                    embeddings = torch.stack([out['identity'][n, f, q] for f, q in best])
+                    centroid = F.normalize(embeddings.mean(0), dim=0)
+                    feature = torch.cat((features.new_tensor(candidate['features'][:4]),
+                        estimates.mean().reshape(1), (embeddings*centroid).sum(-1).mean().reshape(1)))
+                    candidate['features'] = feature
+                    teacher_features.append(feature)
                 dc = min(len(c), self.cfg.max_candidates-len(tc))
                 selection_candidates = selection_candidates[:dc] + tc
-                features = torch.cat((features[:dc], features.new_tensor([t['features'] for t in tc]).reshape(-1, 6)), 0)
+                features = torch.cat((features[:dc], torch.stack(teacher_features) if teacher_features
+                                      else features.new_empty((0, 6))), 0)
             out['selection_candidates'].append(selection_candidates)
             out['selection'].append(self.selector(features, name[n]))
         return out

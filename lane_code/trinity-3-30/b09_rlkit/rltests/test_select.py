@@ -23,7 +23,8 @@ def prompt(base, pid, **kw):
 OWN_SRC = dict(pose_source='own', mask_source='mdg', ground_backend='GroundV3', geometry_source='same_checkpoint_own',
                geometry_identity='same_checkpoint_own:abc', source_identity='native_mdg:abc',
                ground_query_backends=['ground_v3'], query_provenance=['unspecified'], presence_sources=['None'],
-               tower_state=False, verify=False, reread=False, donor=False, call_kinds=['head'])
+               source_provenance='unspecified', presence_identity=None, rescue=False, verify_identity='verify_stub',
+               verify_stubbed=True, tower_state=False, verify=False, reread=False, donor=False, call_kinds=['head'])
 
 
 class Select(unittest.TestCase):
@@ -80,7 +81,10 @@ class Select(unittest.TestCase):
                              (dict(geometry_source='configured_predicted'), 'geometry source'),
                              (dict(source_identity='sam3_external:abc'), 'identities'),
                              (dict(geometry_identity='same_checkpoint_own:other'), 'different artifacts'),
-                             (dict(query_provenance=['gt_masks']), 'provenance'), (dict(verify=True), 'verify')):
+                             (dict(query_provenance=['gt_masks']), 'provenance'), (dict(verify=True), 'verify'),
+                             (dict(source_provenance='sam3_native_joint_gt_0.5_retained_score_ge_0.3'), 'mask source provenance'),
+                             (dict(presence_identity='sam3_presence:x'), 'presence prior'), (dict(rescue=True), 'rescue'),
+                             (dict(verify_stubbed=False, verify_identity='lm_verify:x'), 'verifier')):
             out, report = self.program_case({**base, **change})
             self.assertEqual(report['counts']['barred'], 1, change)
             self.assertIn(word, out['barred'][0]['reason'])
@@ -101,3 +105,23 @@ class Select(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class PolicyAgreement(unittest.TestCase):
+    def test_trainer_recheck_agrees_with_selector(self):
+        import sys
+        sys.path.insert(0, TREE)
+        from student_pilot.grpo_rows import source_reason
+        from rlkit.select import artifact_policy
+        own_head = dict(pose_source='own', mask_source=None, ground_backend=None, ground_query_backends=['None'],
+                        query_provenance=['None'], presence_sources=['None'], tower_state=False, verify=False, reread=False,
+                        donor=False, call_kinds=['head', 'calculator'])
+        cases = [OWN_SRC, own_head] + [dict(OWN_SRC, **c) for c in (
+            dict(donor=True), dict(mask_source='gt'), dict(ground_backend='SAM3Ground'), dict(ground_query_backends=['hrp_reread']),
+            dict(geometry_source='configured_predicted'), dict(source_identity='sam3:x'), dict(query_provenance=['gt_masks']),
+            dict(presence_identity='p:x'), dict(rescue=True), dict(verify_stubbed=False), dict(call_kinds=['oracle']),
+            dict(pose_source='override'), dict(geometry_identity='same_checkpoint_own:zzz'))]
+        for src in cases:
+            self.assertEqual(artifact_policy(dict(response_sources=src)) is None, source_reason(src) is None, src)
+        self.assertIsNone(source_reason(OWN_SRC))
+        self.assertIsNone(source_reason(own_head))

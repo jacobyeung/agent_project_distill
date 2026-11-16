@@ -40,7 +40,7 @@ def record(qid, qtype, answer, gt_answer, status=None, options=None):
 def seal(rec, pipeline_sha256='0' * 64):
     """Stand-in for replay_receipt(): the fixture has no Session, so the receipt is written directly."""
     rec['replay'] = dict(function=A.REPLAY_FUNCTION, ok=True, session_sha256=pipeline_sha256,
-                         events_sha256=A.events_sha256(rec['events']))
+                         events_sha256=A.events_sha256(rec['events'], rec['spec_version']))
     return rec
 
 
@@ -301,13 +301,27 @@ class Decide(unittest.TestCase):
         del rec['replay']
 
         class Stub:
+            spec_version = '3.14'
+
             def __init__(self, bodies):
                 self.bodies = list(bodies)
 
             def execute(self, call):
                 return self.bodies.pop(0)
         receipt = A.replay_receipt(rec, Stub(['chair: 3 instances']), '0' * 64)
-        self.assertEqual(receipt['events_sha256'], A.events_sha256(rec['events']))
+        self.assertEqual(receipt['events_sha256'], A.events_sha256(rec['events'], '3.14'))
+        old = Stub(['chair: 3 instances'])
+        old.spec_version = '3.12.2'
+        with self.assertRaises(ValueError):
+            A.replay_receipt(rec, old, '0' * 64)
+
+        class Legacy:  # the ground_v312 Session defines no spec_version
+            def execute(self, call):
+                return 'chair: 3 instances'
+        legacy = dict(rec, spec_version='3.12.2')
+        self.assertEqual(A.replay_receipt(legacy, Legacy(), '0' * 64)['events_sha256'], A.events_sha256(rec['events'], '3.12.2'))
+        with self.assertRaises(ValueError):
+            A.replay_receipt(rec, Legacy(), '0' * 64)
         with self.assertRaises(Exception):
             A.replay_receipt(rec, Stub(['chair: 4 instances']), '0' * 64)
 
@@ -322,6 +336,14 @@ class Decide(unittest.TestCase):
                          ('direct', 'mask_mismatch:chair'))
         self.assertEqual(A.decide(item(answer='3', gt={'chair': 'abc'}), resp(sel={'chair': 'abc'}), E),
                          ('direct', 'mask_unverified'))
+
+    def test_review7(self):
+        r = resp()
+        r['record']['suffix'] = r['record']['suffix'].replace('<think>\n', '<think>\nOn the floor, cross > 0 means left; cross < 0 means right.\n', 1)
+        self.assertEqual(dec(item(), r, E), ('head', 'right_and_masks_match'))
+        r = resp()
+        r['record']['spec_version'] = '3.13'
+        self.assertEqual(A.decide(item(), r, E), ('drop', 'record_replay_missing'))
 
     def test_review4(self):
         for call in ('<ground obj="chair"', '<ground obj="chair" junk>', '<fly obj="chair">'):

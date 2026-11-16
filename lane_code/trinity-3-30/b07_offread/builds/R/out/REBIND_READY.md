@@ -6,14 +6,14 @@ The two packages are ready for operator preparation with the final init-selectio
 
 | Archive | Bytes | SHA256 |
 |---|---:|---|
-| [package_vsi.tar](package_vsi.tar) | 12605440 | `f63f0fdac746c55665644d4e093affe84b74e3abd774d9922f3685012d43dfad` |
-| [package_revsi.tar](package_revsi.tar) | 13824000 | `b1ce078e702db4451f9ff18b6ada5d76aa28c68b673a585965970208c8b247d2` |
+| [package_vsi.tar](package_vsi.tar) | 12605440 | `0fa0c94c46b62512365b1a5bdab8a5920571be296a430192b68ec0e10dae50ff` |
+| [package_revsi.tar](package_revsi.tar) | 13824000 | `1804c31331c325667a05f090c3b27cae2d929fe805b5cea06fd754a4ea3905b5` |
 
 Each archive contains only regular tar members. The generated payload and bootstrap tars also contain only regular members. Extract both packages into the same Trinity directory to install both benchmark choices. Submit only the generated opaque stdin batch. Do not upload these archives or BINDING.json to Orchard.
 
 ## Validation
 
-All 32 Build R tests passed in `tests.log`; all 49 offkit tests passed in `offkit_tests.log`. The tests compare exact floats against the accepted returns, verify payload and step544 staging bytes, check complete production item membership, reject invalid bindings, check submission accounting, and exercise four-part admission with the unchanged full checker. The governor-registration unit test uses process stand-ins and performs no live registration.
+All 32 Build R tests passed in `tests.log`; all 59 offkit tests passed in `offkit_tests.log`. The tests compare exact floats against the accepted returns, verify payload and step544 staging bytes, check complete production item membership, reject invalid bindings, check submission accounting, and exercise four-part admission with the unchanged full checker. The governor-registration unit test uses process stand-ins and performs no live registration.
 
 | Read | Items | Scenes | B2048 mean | Scene-bootstrap 95% interval |
 |---|---:|---:|---:|---|
@@ -305,7 +305,7 @@ c0d60afe47a5459150d40841e923fffe90d7ea749c12fcd3ef44b21950b24fd6  kit/vsi/reader
 74a8811ceb10b9666094a044c9dc18304499673b3bcb9af53a8418e0031cc4a6  kit/vsi/tests/test_kit.py
 c068c1ce472fb29766ec27d3fe498afa56e1c6722f9473557b102a8a0a967a03  kit/vsi/tests/test_pass2.py
 c8e378dde95ee969d29ab44d5f2eca6a4f26a752346fe4c82c6e2d00e8dfbd66  kit/vsi/tests/test_pass3.py
-28ac3c102b3515aeefed1aa2aab739a66a162adade323552e6c1195e1a1b0578  out/OFFKIT_PINS.json
+3c5ebe2db4a231f09cbe3a586f60c299f71ae5e930ddc3b8de2d846425fc1137  out/OFFKIT_PINS.json
 9a8b0aff2f00944996e446a2a4e88eb7099adc8b253039f395082a3469d338fe  tests/checker_fixture.py
 bf4e6d10e83bca3160cef297546ff11fa104b9d47624d57ff054a8378068b7d6  tests/line_capture.py
 bcf267c380eba178df1a4d135cc820c8833952f6c5d337f91f880a1e39f434a8  tests/parity_fixture.py

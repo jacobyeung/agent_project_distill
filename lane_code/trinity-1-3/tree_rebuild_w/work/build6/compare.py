@@ -62,8 +62,8 @@ def classify(error):
 failed=[]
 for name,error in tree['failures']+tree['errors']:
     key=canonical_test(name)
-    preexisting=key in prior and not name.startswith('tests.test_r2')
     tree_cause=classify(error);base_cause=classify(prior[key]) if key in prior else None
+    preexisting=key in prior and not name.startswith('tests.test_r2') and tree_cause==base_cause
     failed.append(dict(test=name,preexisting=preexisting,cause=base_cause if preexisting else tree_cause,
                        tree_cause=tree_cause,base_cause=base_cause,tree_error=error,base_error=prior.get(key)))
 record=dict(tree_source='work/build6/proofs/'+kind+'_tree/results.json',base_source='work/build6/proofs/'+kind+'_base/results.json',
@@ -71,6 +71,7 @@ record=dict(tree_source='work/build6/proofs/'+kind+'_tree/results.json',base_sou
     regressions=sum(not r['preexisting'] for r in failed),skipped=len(tree['skips']),
     r2_failures=sum(r['test'].startswith('tests.test_r2') for r in failed),fatal=tree.get('fatal'),failures=failed)
 record['counting_note']='Run/pass counts use unittest test methods; failure counts include subtests and setup/import errors, which are listed individually.'
+record['comparison_rule']='A legacy failure is pre-existing only when the same test fails with the same classified cause in the untouched base; differing causes remain regressions for review.'
 record['failed_methods']=len({r['test'].split(' (',1)[0] for r in failed if r['test'].startswith('tests.')})
 record['preexisting_causes']=dict(Counter(r['cause'] for r in failed if r['preexisting']))
 record['shared_grammar_failures']=sum(r['test'].startswith('published_grammar_tests.') for r in failed)

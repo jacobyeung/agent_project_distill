@@ -10,6 +10,7 @@ if not __package__:
     __package__='h1eval'
 from .items import K, build, load_manifest, sha, digest, pin
 from .statistics import aggregate, paired, DRAWS, SEED
+from .modes import mode_key, DEFAULT_MODES
 
 
 def code_hash(root=None):
@@ -24,24 +25,24 @@ def export_hash(root):
         raise ValueError('Stage the export on /scratch')
     files = sorted(p for p in root.rglob('*') if p.is_file() and '__pycache__' not in p.parts)
     if not files:raise ValueError('Export directory is empty')
-    if any(p.resolve().parts[1:2] != ('scratch',) for p in files):
-        raise ValueError('Export files must resolve to /scratch')
+    if any(not (p.resolve().is_relative_to('/scratch') or p.resolve().is_relative_to('/dev/shm')) for p in files):
+        raise ValueError('Export files must resolve to /scratch or /dev/shm')
     return digest([(str(p.relative_to(root)),sha(p)) for p in files])
 
 
 def modes(text):
     result=[]
-    defaults={'scale_scene':('k',2.),'scale_translation':('k',2.),'rotate_translation':('deg',90.)}
+    defaults={'scale_scene':('k',2.),'scale_translation':('k',2.),'rotate_translation':('deg',180.)}
     for part in text.split(','):
         name,_,value=part.strip().partition(':')
-        if name=='none':continue
+        if not name or name=='none':continue
         if name not in (*defaults,'negate_turn','donor','gt'):raise ValueError('Unknown mode '+name)
         mode={'name':name}
         if name in defaults:
             key,default=defaults[name];mode[key]=float(value) if value else default
         elif value:raise ValueError('Unexpected mode parameter')
         result.append(mode)
-    if len({v['name'] for v in result})!=len(result):raise ValueError('Duplicate modes')
+    if len({mode_key(v) for v in result})!=len(result):raise ValueError('Duplicate modes')
     return result
 
 
@@ -87,10 +88,11 @@ def run(args):
     scorer_before=code_hash()
     gt_files=gt_pins(args.gt,manifest['items'])
     factory=loader(root,settings,frames=args.frames,gt=Path(args.gt) if args.gt else None,items=manifest['items'])
-    rows=evaluate(manifest['items'],factory,arms,interventions,out)
+    rows=evaluate([{**r,'item_set':manifest['name']} for r in manifest['items']],factory,arms,interventions,out)
     if export_hash(root)!=before:raise ValueError('Export changed during evaluation')
     if code_hash()!=scorer_before:raise ValueError('Evaluator changed during evaluation')
     if gt_pins(args.gt,manifest['items'])!=gt_files:raise ValueError('GT inputs changed during evaluation')
+    for row in rows:row['item_set']=manifest['name']
     curve=write_curve(out,rows,manifest,root,settings,args.frames,arms,interventions,gt_files)
     return dict(output=str(out),items=len(rows),export_sha256=curve['export_sha256'])
 
@@ -126,7 +128,7 @@ def curve(paths):
             def metric(m,k):
                 v=values.get(m,{}).get(k,{}).get('value')
                 return '—' if v is None else f'{v:.4f}'
-            m2=', '.join(k+'='+metric('M2',k) for k in sorted(values.get('M2',{}))) or '—'
+            m2=', '.join(k+'='+metric('M2',k) for k,v in sorted(values.get('M2',{}).items()) if isinstance(v,dict) and 'value' in v) or '—'
             row=(r['lineage'],r['step'],' / '.join((kind,arm,mode)),metric('M1','call_rate'),m2,
                  metric('M3','follow')+' / '+metric('M3','stick'),metric('M4','score'),
                  r['export_sha256'],r['item_set_sha256'],r['evaluator_code_sha256'],p)
@@ -137,17 +139,17 @@ def curve(paths):
 def main(argv=None):
     parser=argparse.ArgumentParser();sub=parser.add_subparsers(dest='command',required=True)
     p=sub.add_parser('items');s=p.add_subparsers(dest='action',required=True);p=s.add_parser('build')
-    p.add_argument('--out',default=str(K/'items'));p.add_argument('--sets',default='revsi999,devs1_routed,devs1_direct,r0dev')
-    p.add_argument('--routed-tasks');p.add_argument('--direct-tasks');p.add_argument('--r0dev-items')
+    p.add_argument('--out',default=str(K/'items'));p.add_argument('--sets',default='revsi999,devs1_routed,devs1_direct_main,devs1_direct,r0dev')
+    p.add_argument('--routed-tasks');p.add_argument('--direct-tasks');p.add_argument('--forward-tasks');p.add_argument('--away-tasks');p.add_argument('--r0dev-items')
     p=sub.add_parser('run')
     for key in ('export','items','out'):p.add_argument('--'+key,required=True)
-    p.add_argument('--arms',default='own');p.add_argument('--modes',default='none');p.add_argument('--frames',type=int,default=32);p.add_argument('--gt')
+    p.add_argument('--arms',default='own');p.add_argument('--modes',default=DEFAULT_MODES);p.add_argument('--frames',type=int,default=32);p.add_argument('--gt')
     p=sub.add_parser('pair');p.add_argument('--a',required=True);p.add_argument('--b',required=True)
     p=sub.add_parser('curve');p.add_argument('runs',nargs='+')
     args=parser.parse_args(argv)
     try:
         if args.command=='items':
-            result=build(args.out,routed=args.routed_tasks,direct_tasks=args.direct_tasks,r0dev=args.r0dev_items,sets=args.sets.split(','))
+            result=build(args.out,routed=args.routed_tasks,direct_tasks=args.direct_tasks,forward_tasks=args.forward_tasks,away_tasks=args.away_tasks,r0dev=args.r0dev_items,sets=args.sets.split(','))
             print(json.dumps(result,indent=2));return int(any(v['status']!='ready' for v in result.values()))
         if args.command=='run':result=run(args)
         elif args.command=='pair':result=pair(args.a,args.b)

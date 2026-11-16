@@ -12,7 +12,7 @@ def package():
     local=[ROOT/'native_read.py']+sorted((ROOT/'kit/tests').glob('*.py'))
     local += [ROOT/n for n in ('RUN.md','SIZING.md','DIFF.md','OPEN_INPUTS.md')]
     local += [ROOT/'out'/n for n in ('OPEN_INPUTS.md','MODULE_MAP.md','ORCHARD_ONLY.md',
-        'N3_PRODUCTION_REHEARSAL.json','N3_LOCAL_MEDIA_STATUS.json')]
+        'N3_PRODUCTION_REHEARSAL.json','N3_LOCAL_MEDIA_STATUS.json','PROOF_CPU.json')]
     for p in local:files[str(p.relative_to(ROOT))]=p.read_bytes()
     files['r.json']=json.dumps(ROOTS,sort_keys=True,indent=2).encode()+b'\n'
     raw=tar_bytes(files)

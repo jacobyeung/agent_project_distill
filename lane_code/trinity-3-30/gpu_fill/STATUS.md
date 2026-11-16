@@ -1,4 +1,4 @@
-# gpu_fill STATUS (trinity-3-30), lane gpu_fill2 (Devin). Updated 2026-11-16T14:20Z. Session started 12:23Z; rotate by 18:15Z.
+# gpu_fill STATUS (trinity-3-30), lane gpu_fill2 (Devin). Updated 2026-11-16T15:10Z. Session started 12:23Z; rotate by 18:15Z.
 ## Goal
 Briefs: orch_n30/briefs/gpu_fill.md (GPU rules) and gpu_fill2.md (duties). Keep permitted free 48 GB Trinity cards working on distillation's queue until 22:30Z. Hand confirmed cards to owning lanes with ORCH_CARD notes; launch nothing; no Git, no deletion.
 ## Done
@@ -19,6 +19,11 @@ Briefs: orch_n30/briefs/gpu_fill.md (GPU rules) and gpu_fill2.md (duties). Keep 
 - 13:51Z handed 1-13 card 5 to b11 for direct.py (ORCH 1349Z): events/b11_presence/20261116T1351Z_ORCH_CARD_trinity-1-13_5.md (readings r7 13:10:05Z, r8 13:51:19Z). b11 scorer on card 1 ends ~17:10Z.
 - 14:05-14:09Z: b11 review GO; b11 direct.py relaunched on card 5 at 14:03:38Z (first start died: ninja missing). b14 runs Pi3X next on card 4 (distillation /dev/shm ~59 GB); MapAnything waits for 1-18. b04 fetches step-544 heads (<=2 GB) into /dev/shm/jjyeung/exports/m544_heads (cap 62 GB for this alone); parity read needs its review GO.
 - 14:17:26Z reading (hist/r9): cards 1-5 in use (card 5 42.8 GB loaded, 0% util); distillation /dev/shm 56 GB. Free 0,6,7.
+- 14:37Z monitor: 1-13 cards 2,3 (b05 teacher done) and 5 (b11 direct) free again; free 0,2,3,5,6,7. b05 pilot (1 card, <=4 A6000-h) may take a card after its 8 review fixes (ORCH 1428Z); it can reuse /dev/shm/jjyeung/b05 frames and exports/m544 ViT, so it fits if new stage is small.
+- ORCH 1454Z: 1-13 card 2 handed by ORCH to b05 pilot (after its fixes; +9.3 GB stage); distillation /dev/shm cap on 1-13 now 75 GB. Cards 3, 5, 0, 6, 7 remain for b04 parity, H1-0 (ask ORCH which lane if it asks) and the rest.
+- 15:03:32Z reading (hist/r10): distillation /dev/shm 74.1 of 75 GB; QUESTION 1503Z devshm_cap_full (default: b04 stages nothing more on 1-13, waits for 1-18).
+- ORCH 1504Z: cap 85 GB; b04 stages 7.1 GB on 1-13; report the total each tick. tick.sh now makes one tssh reading of 1-13 per tick (read_shm.sh -> hist/s113_<T>.txt; shm_line.py writes the line into FREE_CARDS.md; backups tick.sh.v1). These tick readings serve as the confirming readings for 1-13 cards.
+- ORCH 1507Z: 3-30 /scratch at floor; this lane adds <100 MB (hist files are KB-sized).
 ## Card wants (order of need)
 (a) trin_read: 1 card, node with >=250 GB /scratch avail (1-3 floor 300 + stage). (b) b05_owngrd: SAM 3 teacher pass, up to 4 cards, once its runner exists (CPU stage). (d) b04_e2ehook parity read (ORCH 1334Z): one free 1-13 card after its review GO, if extra /dev/shm stage <=6 GB (reuses /dev/shm/jjyeung/exports); write ORCH_CARD with fresh readings when the GO lands. (c) b11_presence: 1 card 1-2 h, best on 1-18 (export, vLLM env, K1 frames local there); default waits for ORCH_CARD in events/b11_presence.
 ## In flight

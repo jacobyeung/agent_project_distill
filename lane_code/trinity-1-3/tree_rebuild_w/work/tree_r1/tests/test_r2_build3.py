@@ -163,7 +163,8 @@ class Build3(unittest.TestCase):
                 expected = state[name][7] if policy=='keep' else state[name][[1,2]].mean(0)
                 self.assertTrue(torch.equal(attr.weight[7], expected))
         with self.assertRaisesRegex(ValueError,'Unknown'): O.initialize(live,processor,{'routing_opener_init':'x'})
-        with self.assertRaisesRegex(ValueError,'Missing'): O.initialize(live,processor,dict(init_artifact=spec,routing_opener_init='keep'))
+        with self.assertRaisesRegex(ValueError,'Missing routing vocabulary witness'):
+            O.initialize(live,processor,dict(r2_identity=dict(init=INIT),init_artifact=spec,routing_opener_init='keep'))
         (root/'v.json').write_text(json.dumps({**witness,'lineage_sha256':'f'*64}))
         with self.assertRaisesRegex(ValueError,'vocabulary'):
             O.initialize(live,processor,{**receipt,'routing_opener_init':'keep','routing_vocabulary':file_pin(root/'v.json')})

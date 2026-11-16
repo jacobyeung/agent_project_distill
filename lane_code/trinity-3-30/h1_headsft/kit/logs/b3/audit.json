@@ -1,0 +1,120 @@
+{
+  "revsi999": {
+    "count": 999,
+    "per_type": {
+      "object_abs_distance": 283,
+      "object_counting_multiple": 49,
+      "object_counting_single": 86,
+      "object_rel_direction_backward_easy": 13,
+      "object_rel_direction_backward_hard": 20,
+      "object_rel_direction_forward_easy": 20,
+      "object_rel_direction_forward_hard": 15,
+      "object_rel_distance_closest": 84,
+      "object_rel_distance_farthest": 56,
+      "object_size_estimation": 273,
+      "room_size_estimation_multiple": 16,
+      "room_size_estimation_single": 21,
+      "route_planning": 63
+    },
+    "item_set_sha256": "7cc88e80aec9a495b4ebcd7fd62b763a03dfd9c464ae2b4918c7e870f06af368",
+    "r0_check": {
+      "checked": 999,
+      "found": 0,
+      "pin": {
+        "path": "auth/R0_ROOMS.txt",
+        "sha256": "bdb5d40244cdaf5060fd0a549acc2844a41039ecf78a23ef021a77eab188a4e3"
+      }
+    }
+  },
+  "devs1_routed": {
+    "count": 636,
+    "per_type": {
+      "camera_displacement": 150,
+      "camera_movement_direction": 150,
+      "camera_rotation": 150,
+      "object_abs_distance": 150,
+      "room_size_estimation": 36
+    },
+    "item_set_sha256": "7162af725a9ee3e25e6054ee7d0cffc210c99d10ad8b097c6d3fb5b3319f7910",
+    "r0_check": {
+      "checked": 636,
+      "found": 0,
+      "pin": {
+        "path": "auth/R0_ROOMS.txt",
+        "sha256": "bdb5d40244cdaf5060fd0a549acc2844a41039ecf78a23ef021a77eab188a4e3"
+      }
+    }
+  },
+  "devs1_direct_main": {
+    "count": 1525,
+    "per_type": {
+      "object_abs_distance": 150,
+      "object_counting": 150,
+      "object_rel_direction_easy": 150,
+      "object_rel_direction_hard": 150,
+      "object_rel_direction_medium": 150,
+      "object_rel_distance": 150,
+      "object_size_estimation": 150,
+      "relative_count": 139,
+      "relative_size_object": 150,
+      "room_size_estimation": 36,
+      "route_planning": 150
+    },
+    "item_set_sha256": "93fab32ff80623d15ce7c6291399b1ea69ae59a8983c9aafa07a7daf74a38363",
+    "r0_check": {
+      "checked": 1525,
+      "found": 0,
+      "pin": {
+        "path": "auth/R0_ROOMS.txt",
+        "sha256": "bdb5d40244cdaf5060fd0a549acc2844a41039ecf78a23ef021a77eab188a4e3"
+      }
+    }
+  },
+  "camera_parse": {
+    "checked": 450,
+    "parsed": 450,
+    "rate": 1.0
+  },
+  "input_pins": 8,
+  "syntax_files": 30,
+  "operator_note_lines": 40,
+  "unpublished_reader_refusals": [
+    {
+      "command": [
+        "-m",
+        "h1eval.h10.launch",
+        "--items",
+        "/scratch/jjyeung/orch_n30/h1_headsft/kit/items/devs1_routed.json",
+        "--reader-root",
+        "/scratch/jjyeung/orch_n30/b04_e2ehook",
+        "--export",
+        "/scratch/jjyeung/orch_n30/h1_headsft/kit/tmp/b3/not-staged",
+        "--artifact-manifest",
+        "/scratch/jjyeung/orch_n30/h1_headsft/kit/tmp/b3/not-staged",
+        "--out",
+        "/scratch/jjyeung/orch_n30/h1_headsft/kit/tmp/b3/refusal",
+        "--device",
+        "cpu"
+      ],
+      "exit": 2,
+      "message": "b04 make_real is unavailable under /scratch/jjyeung/orch_n30/b04_e2ehook (e2e_reader.real:make_real); stage the published reader"
+    },
+    {
+      "command": [
+        "-m",
+        "h1eval.h10.cpu_first_batch",
+        "--reader-root",
+        "/scratch/jjyeung/orch_n30/b04_e2ehook",
+        "--export",
+        "/scratch/jjyeung/orch_n30/h1_headsft/kit/tmp/b3/not-staged",
+        "--heads",
+        "/scratch/jjyeung/orch_n30/h1_headsft/kit/tmp/b3/not-staged",
+        "--artifact-manifest",
+        "/scratch/jjyeung/orch_n30/h1_headsft/kit/tmp/b3/not-staged"
+      ],
+      "exit": 2,
+      "message": "b04 make_real is unavailable under /scratch/jjyeung/orch_n30/b04_e2ehook (e2e_reader.real:make_real); stage the published reader"
+    }
+  ],
+  "relocated_manifests": "[('revsi999', 999), ('devs1_routed', 636), ('devs1_direct_main', 1525)]"
+}

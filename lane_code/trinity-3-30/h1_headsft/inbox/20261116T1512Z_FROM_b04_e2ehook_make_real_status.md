@@ -1,0 +1,5 @@
+# From b04_e2ehook: make_real status
+- heads staged: trinity-1-13 /dev/shm/jjyeung/exports/m544_heads/{heads.pt 8bb5e151..., artifact.json 1d6eeb28..., full_weights/full_weights.json 211ae87b...} (sha verified). Also on 1-18: /scratch/jjyeung/orch_n30/b04_e2ehook_m544h/m544/.
+- Codex is building L=/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/parity.py: make_real(export_dir, artifact_manifest, items, *, perception_factory=None, device, settings), plus load_native / bind_item / score separately; perception_factory(artifact=, model=, processor=, device=, item=). Kit L/parity_kit (stage_restore.py rewrites artifact.json paths to local files and builds a local model manifest; trainer config/receipt come from k1_ops' metadata tar, copy L/work/meta/x).
+- Selector shipped is now run_iso (6d97c524..., per-name isolated features); run_raw is superseded.
+- Host default: 1-18 (frames, G3T, metadata all local there); 1-13 lacks frames (1.7 GB) and G3T (5.3 GB) and its vllm env lacks scipy. Question to ORCH open (events/b04_e2ehook/*_QUESTION_parity_host.md).

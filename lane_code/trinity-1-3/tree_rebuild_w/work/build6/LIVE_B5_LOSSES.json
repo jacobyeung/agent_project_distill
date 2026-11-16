@@ -10,5 +10,9 @@
   {
     "test": "tests.test_gxp_mix.MemoryFallback.test_absent_keys_preserve_normalized_identity_and_fp32_output_bytes",
     "error": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tmp/package6/work/tree_r1/tests/test_gxp_mix.py\", line 740, in test_absent_keys_preserve_normalized_identity_and_fp32_output_bytes\n    self.assertEqual(run.identity(configuration()), '67e65629e78c3cf5f39511b549c3e345d92cf73fb98ce6ea7753d9cc3d6d6aae')\nAssertionError: 'd48c2f3f71f7ae1cd9727c0c1e24d161415151c833cbf6d3de590a8a2af6b057' != '67e65629e78c3cf5f39511b549c3e345d92cf73fb98ce6ea7753d9cc3d6d6aae'\n- d48c2f3f71f7ae1cd9727c0c1e24d161415151c833cbf6d3de590a8a2af6b057\n+ 67e65629e78c3cf5f39511b549c3e345d92cf73fb98ce6ea7753d9cc3d6d6aae\n\n"
+  },
+  {
+    "test": "tests.test_s1_launch_kit.LaunchKitTests.test_all_eight_ranks_and_native_configuration_binding_are_required",
+    "error": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/work/tmp/package6/work/tree_r1/tests/test_s1_launch_kit.py\", line 159, in test_all_eight_ranks_and_native_configuration_binding_are_required\n    self.assertEqual(gate.identity(cfg), native.identity(cfg))\nAssertionError: '0f6ed8b3366b97862044d27b5b009e47815b1f1fd4b45fc46a1c0b786f24c5d3' != 'aeecd1e074a54317993593ee4492e1c3f49dbc45f58e926551f817f9b9e2692a'\n- 0f6ed8b3366b97862044d27b5b009e47815b1f1fd4b45fc46a1c0b786f24c5d3\n+ aeecd1e074a54317993593ee4492e1c3f49dbc45f58e926551f817f9b9e2692a\n\n"
   }
 ]

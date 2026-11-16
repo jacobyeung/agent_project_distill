@@ -17,7 +17,6 @@ import torch
 from torch import nn
 
 MAX_CALL_TOKENS = 1024  # call window; the sealed reader's 96 cut long multi-operand calls
-CONTEXT_TOKENS = 32  # text before an opener, read only to see whether the call is quoted
 CALCULATOR_TAIL = re.compile(r'<(?:dist|closest|cam_dist|angle|area) [^<>]*>$')
 GROUND_TAIL = re.compile(r'<ground\b[^<>\n]*>$|<ground obj="[^"\n]*">$')
 GAP_TAIL = re.compile(r'<gap\b[^<>\n]*>$')
@@ -89,10 +88,9 @@ class CallHook(nn.Module):
         tail = self._decode(ids[self.active:] if self.active is not None else ids[-24:])
         call = None
         if self.active is not None and (tail.endswith('>') or len(ids) - self.active > MAX_CALL_TOKENS):
-            before = self._decode(ids[max(0, self.active - CONTEXT_TOKENS):self.active])
             match = GROUND_TAIL.search(tail) or GAP_TAIL.search(tail)
             call = match.group(0) if match else tail
-            if quoted(before + tail[:match.start() if match else 0]):
+            if self._quoted(call):
                 call = None
             self.active = None
         elif self.active is None and tail.endswith('>'):
@@ -108,8 +106,13 @@ class CallHook(nn.Module):
         for pattern in patterns:
             match = pattern.search(window)
             if match:
-                return None if quoted(window[:match.start()]) else match.group(0)
+                return None if self._quoted(match.group(0)) else match.group(0)
         return None
+
+    def _quoted(self, call):
+        """The call ends the generated text; decide from everything the model wrote before it."""
+        text = self._decode(self.ids)
+        return quoted(text[:len(text) - len(call)] if text.endswith(call) else text)
 
     # ------------------------------------------------------------------ responses
     def respond(self, call):
@@ -144,9 +147,20 @@ class CallHook(nn.Module):
 
 
 def quoted(before):
-    """A call written inside a code span or right after a quote mark is an example, not a call."""
-    line = before.rsplit('\n', 1)[-1]
-    return line.count('`') % 2 == 1 or line.endswith(('"', "'"))
+    """A call inside a fenced block, inside an inline code span (any backtick run, across lines) or right after
+    a quote mark is an example, not a call. `before` is the whole generated text before the call."""
+    lines = before.split('\n')
+    fences = [i for i, line in enumerate(lines) if line.lstrip().startswith('```')]
+    if len(fences) % 2:
+        return True
+    rest = '\n'.join(lines[fences[-1] + 1:]) if fences else before
+    open_run = None
+    for run in re.findall(r'`+', rest):
+        if open_run is None:
+            open_run = len(run)
+        elif len(run) == open_run:
+            open_run = None
+    return open_run is not None or before.endswith(('"', "'"))
 
 
 def old_reader_suffix(text, info):

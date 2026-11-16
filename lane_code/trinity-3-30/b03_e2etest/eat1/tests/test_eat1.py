@@ -26,7 +26,7 @@ EXPECTED = {  # variant -> clauses that must fail (and every other clause must p
     'table': {'A1', 'A3', 'A5'},
     'second_entry': {'A2'},
     'threshold': {'A3'},
-    'guard': {'A2', 'A3', 'A4', 'A5'},  # its fallback arm parses response text outside the model (A2)
+    'guard': {'A3', 'A4', 'A5'},  # its fallback arm reads response text after decoding and substitutes the answer (A4)
     'cache': {'A1', 'A3', 'A5'},
     'head_method': {'A3'},  # a threshold in a method of a declared module class is not model code
 }
@@ -139,6 +139,8 @@ class StaticScanner(unittest.TestCase):
         (root/'bad.py').write_text(bad)
         self.assertEqual(S.scan([root/'ok.py'])[0], [])
         self.assertIn('A4.except_substitute', {f['rule'] for f in S.scan([root/'bad.py'])[0]})
+        (root/'empty.py').write_text('def f(k):\n    try:\n        return g(k)\n    except KeyError:\n        return []\n')
+        self.assertNotIn('A4.except_substitute', {f['rule'] for f in S.scan([root/'empty.py'])[0]})
 
     def test_suppression_is_reported(self):
         path = Path(tempfile.mkdtemp())/'s.py'

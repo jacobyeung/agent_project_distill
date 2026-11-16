@@ -17,7 +17,7 @@ def run(argv, cwd, receipt, *, deadline_utc, limit=21600, reserve=600, env=None)
         raise TimeoutError('return reserve already started')
     from datetime import datetime,timezone
     environment = dict(os.environ, **(env or {}))
-    environment['OFFNATIVE_DEADLINE'] = datetime.fromtimestamp(end,timezone.utc).isoformat()
+    environment['A0_DEADLINE'] = datetime.fromtimestamp(end,timezone.utc).isoformat()
     start = time.monotonic()
     result = {'subprocess_kill':kill_at,'return_seconds':reserve,'timed_out':False}
     # Only this newly created child session can be stopped by this watchdog.

@@ -10,10 +10,11 @@ size = sum(os.stat(s).st_size for s, _ in pairs)
 expected = size + 512 * (len(pairs) + 2) + 10240  # tar headers, end blocks, record padding (upper bound)
 tok = json.load(open(os.path.join(here, 'TOKENS.json')))
 src = subprocess.Popen([sys.executable, os.path.join(here, 'gated_tar.py'), os.path.join(here, 'LIST_%s.json' % which)], stdout=subprocess.PIPE)
-if which == 'A':
-    sink = open(os.path.join(here, 'A.tar'), 'xb')
-    rl = subprocess.Popen([sys.executable, '-s', GOV + '/ratelimit.py', '-q', '-L', '1000', '-B', '65536'], stdin=src.stdout, stdout=sink)
-    tail = None
+if which == 'A2':
+    rl = subprocess.Popen([sys.executable, '-s', GOV + '/ratelimit.py', '-q', '-L', '1000', '-B', '65536'], stdin=src.stdout, stdout=subprocess.PIPE)
+    tail = subprocess.Popen(['/scratch/jjyeung/envs/p1cpu/bin/python', '-B', os.path.join(here, 'scan_check.py'), os.path.join(here, 'A2_RESULT.json')],
+                            stdin=rl.stdout, stdout=open(os.path.join(here, 'A2.consumer.out'), 'w'), stderr=subprocess.STDOUT)
+    rl.stdout.close()
 else:
     d = '/project/community/jjyeung/okh7/' + tok['pool']; f = d + '/' + tok['obj'] + '.tar'
     rl = subprocess.Popen([sys.executable, '-s', GOV + '/ratelimit.py', '-q', '-L', '1000', '-B', '65536'], stdin=src.stdout, stdout=subprocess.PIPE)
@@ -30,8 +31,8 @@ else:
     raise RuntimeError('gate or ratelimit did not start; inspect, do not retry')
 args = [sys.executable, GOV + '/register.py', '--lane', 'b07_offread_rv' + which, '--pid', str(src.pid),
         '--member-pid', str(rl.pid), '--rl-pid', str(rl.pid), '--expected-bytes', str(expected), '--tier', '3',
-        '--kind', 'copy' if which == 'A' else 'push', '--nominal-mbps', '8' if which == 'A' else '4', '--allow-resume']
-if which == 'A':
+        '--kind', 'scan' if which == 'A2' else 'push', '--nominal-mbps', '8' if which == 'A2' else '4', '--allow-resume']
+if which == 'A2':
     args += ['--io-weight', '1']
 if tail is not None:
     args += ['--member-pid', str(tail.pid)]

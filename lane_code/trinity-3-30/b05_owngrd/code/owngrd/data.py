@@ -144,17 +144,17 @@ class GroundingDataset(Dataset):
                         hardneg.append(info)
                     elif p['cls'] == 'DISTILL':
                         soft.append(info)
-                    if p['cls'] != 'DISPUTED':
-                        proposals.append(info)
+                    proposals.append(info)
                 for instance in row['miss']:
                     targets.append(dict(mask=resize_mask(inst == instance, hw), instance=instance,
                                         weight=MISS_WEIGHT, low_resolution=True, cls='MISS'))
                 gt_masks = {i: resize_mask(inst == i, hw) for i in row['gt_visible']}
                 decoder.append(dict(targets=targets, hardneg=hardneg, soft=soft, gt_masks=gt_masks,
-                                    proposals=proposals, presence=row['presence'], teacher_presence=row['teacher_presence']))
+                                    proposals=proposals, presence=row['presence'], why=row['why'], teacher_presence=row['teacher_presence']))
         target = dict(name=name, role=lab['roles'][name], frames=rows, decoder=decoder,
                       clip_presence=lab['clip_presence'][name],
-                      gt_instances=sorted({i for r in rows for i in r['gt_visible']}))
+                      gt_instances=sorted(int(i) for i, label in lab['id_name'].items() if label == name),
+                      gt_visible_instances=sorted({i for r in rows for i in r['gt_visible']}))
         return dict(canonical=c['canonical'], name=name, frames=frames, size_hw=size,
                     pixels=rgb_tensor([frames[i] for i in chosen], size), frame_ids=torch.tensor(chosen),
                     target=target, frame_count=len(frames))
@@ -165,6 +165,8 @@ def teacher_candidates(target, limit=3):
     groups = {}
     for f, row in enumerate(target['decoder']):
         for k, p in enumerate(row['proposals']):
+            if p['cls'] == 'DISPUTED':
+                continue
             key = ('id', p['instance']) if p['instance'] is not None else ('proposal', f, k)
             group = groups.setdefault(key, {})
             if f not in group or p['joint'] > group[f]['joint']:

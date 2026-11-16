@@ -93,7 +93,7 @@ def submission(args):
     from .transport import submission_argv
     if getattr(args,'command','submit-command')=='submit-command':
         return {'argv':submission_argv(c,c['pool']+'/'+c['token']+'/1.sh')[:-1]+[
-            '--export=ALL,OFFNATIVE_PACKET_SHA256='+sha(d/'packet.tar'),c['pool']+'/'+c['token']+'/1.sh'],
+            '--export=ALL,A0_PACKET_SHA256='+sha(d/'packet.tar'),c['pool']+'/'+c['token']+'/1.sh'],
             'packet':str(d/'packet.tar'),'executed':False}
     answer=(d/'SUBMIT.out').read_text().strip()
     if not re.fullmatch(r'[0-9]+(?:;[A-Za-z0-9_-]+)?',answer):

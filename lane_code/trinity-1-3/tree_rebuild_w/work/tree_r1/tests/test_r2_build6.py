@@ -112,6 +112,13 @@ class Build6(unittest.TestCase):
         with self.assertRaises(ValueError): A.check_family_receipt(file_pin(path))
         path.write_text(json.dumps(dict(schema='r2-materialization-v1',status='ready',intake=reports)))
         self.assertEqual(A.check_family_receipt(file_pin(path)),A.family_admission(reports))
+        # Exercise the same pinned-receipt reader called by the launch entry.
+        for index in range(len(reports)):
+            bad=deepcopy(reports);bad[index]['counts']['x'].update(admitted=89,refused=21)
+            bad[index]['refusals'].append(dict(reason='missing frame'))
+            path.write_text(json.dumps(dict(schema='r2-materialization-v1',status='ready',intake=bad)))
+            with self.assertRaisesRegex(ValueError,'Family admission below 90%'):
+                A.check_family_receipt(file_pin(path))
 
     def test_direct_square_feet_and_inches(self):
         root=directory()

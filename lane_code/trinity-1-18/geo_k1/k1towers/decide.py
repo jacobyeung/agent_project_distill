@@ -6,7 +6,7 @@ Statistics follow E3's harness: item-weighted mean MRA x100; 95% percentile boot
 E3's fit_r2/add_r2 procedure, fitted per arm on K1 train rows only. Train tables are always computed; held-out
 tables only with --heldout-go naming an ORCH note holding a line 'GO heldout'.
 """
-import argparse, collections, glob, json
+import argparse, collections, glob, json, math
 from pathlib import Path
 
 import numpy as np
@@ -18,10 +18,12 @@ DIST_BAR, ROOM_BAR, ROOM_BAR_SENS, GUARD = 5.0, 73.4, 79.0, -2.0
 PREREG = 'dd40e6d26a723300547c84b72add275bd2488993c2f70cd1b64fba7ae29b5c88'
 
 
-def mra(pred, gt):
-    if pred is None:
-        return 0.
-    return float(np.mean([abs(pred - gt) / abs(gt) < 1 - t for t in np.arange(.5, .96, .05)]))
+def mra(pred, truth):
+    # Identical to E3 harness.mra: integer thresholds avoid np.arange accumulation at exact boundaries.
+    if pred is None or not math.isfinite(pred) or truth <= 0:
+        return 0.0
+    relative = abs(pred - truth) / abs(truth)
+    return sum(relative < (100 - theta) / 100 for theta in range(50, 100, 5)) / 10
 
 
 def fit_r2(rows):

@@ -34,7 +34,7 @@ def placement(output,item):
     opener=sum(a[0]==b[0] for a,b in zip(g,e));args=sum(a==b for a,b in zip(g,e))
     return dict(routed=bool(expected),call_rate=float(bool(got)),
                 openers=[name for name,_ in g],
-                false_call_rate=None,
+                false_call_rate=float(bool(got)) if not expected else None,
                 opener_agreement=opener/len(e) if e else None,
                 argument_agreement=args/len(e) if e else None,order_agreement=float(exact) if e else None,
                 answer_before_first_call=bool(markers and start>=0 and min(markers)<start),
@@ -175,7 +175,15 @@ def accuracy(output,item):
                         relative_error=abs(value['distance']-expected)/abs(expected) if expected else None)
             except (ValueError,TypeError) as e:d['unscored_reason']=str(e)
         calls.append(d)
-    return dict(calls=calls,**per_frame(output.get('heads',{}),meta))
+    task_accuracy=None
+    if truth is not None:
+        task={**meta,'ground_truth':truth,
+              'answer_type':meta.get('answer_type','multiple_choice' if kind=='camera_movement_direction' else 'numeric')}
+        task_accuracy=benchmark({'finish':'eos',**output},task)['score']
+        if kind in ('camera_displacement','camera_movement_direction','camera_rotation','object_abs_distance'):
+            if not calls or any(r.get('served') is False or r.get('response','').startswith('error:') for r in records(output)):
+                task_accuracy=0.
+    return dict(calls=calls,task_accuracy=task_accuracy,**per_frame(output.get('heads',{}),meta))
 
 
 def benchmark(output,item):

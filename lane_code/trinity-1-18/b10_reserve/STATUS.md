@@ -1,5 +1,5 @@
 # b10_reserve STATUS (Devin lane, trinity-1-18; lane /scratch/jjyeung/orch_n30/b10_reserve) — successor resumes from this file alone
-Updated: 20261116T1359Z.
+Updated: 20261116T1500Z.
 Percent done: ~45% (list frozen, code+tests ready; data streams queued).
 
 ## Done (all paths under the lane folder)
@@ -20,6 +20,7 @@ Percent done: ~45% (list frozen, code+tests ready; data streams queued).
 - Design record distill_design/R0_RESERVE_SCENES_20261116.md + INDEX line written; lists copied to distill_design/R0_RESERVE_20261116/ (R0_SCENES.json f7c45817, R0_ROOMS.txt, R0_DEV_ROOMS.txt, R0_REGISTRATION_NOTE.md). Update its Status/Files when frames and questions land.
 
 - ORCH 1325Z: R0 stands as registered. ORCH 1349Z: archive and mirror everything (one governed tar to /data3/jjyeung/ via copy_archive.py --writes-nfs; IB mirror to trinity-1-13:/scratch/jjyeung/n30_mirror/b10_reserve/, or trinity-3-30 if 1-13 would have <150 GB free after).
+- ORCH 1450Z: keep priority 15; if b10r0_gt has not started by 20:00Z, write a QUESTION/BLOCKER to ORCH, who asks main for a slot. R0-dev is needed for mid-leg ranking from D0 m400 on.
 - Refute review done (Codex receipt agent/scratch/codex_runs/20261116T131657Z_b10_review_r0/final_message.md): UNPROVEN, no collision; open limits T0/CP1 lists, 134 unmapped MMSI-Video clips, ScanNet++ recaptures. RESULT r0_review_verdict sent; record and note corrected (374 captures / 372 rooms).
 
 ## In flight

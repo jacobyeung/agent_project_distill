@@ -9,8 +9,8 @@ sys.path[:0] = [str(ROOT / 'heads/scale'), str(ROOT / 'heads/selector')]
 TOWER = '/scratch/jjyeung/n30_mirror/k1_ops3/run_tower_sam_2/01949c4249271126/tower.npz'
 SCALE = ROOT / 'heads/scale/work/run1'
 SCALE_RETRAIN = ROOT / 'heads/scale/work/det_a'
-SEL = ROOT / 'heads/selector/work/run_raw'
-SEL_RETRAIN = ROOT / 'heads/selector/work/run_raw_retrain'
+SEL = ROOT / 'heads/selector/work/run_iso'
+SEL_RETRAIN = ROOT / 'heads/selector/work/run_iso_retrain'
 
 
 def test_scale_forward_real_tower():

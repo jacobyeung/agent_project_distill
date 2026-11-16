@@ -152,7 +152,7 @@ class GuardTests(unittest.TestCase):
         import build_tables
         tables = self.root / 'tables'
         with patch.object(build_tables, 'build_capture', side_effect=AssertionError('Refused candidate extraction')), \
-                patch.object(K, 'gt_arrays', side_effect=AssertionError('Refused GT load')):
+                patch.object(K, 'gt_arrays', return_value={'gt_canvas_map': 'identity'}):
             K.tables(self.m, self.out, tables)
         self.assertEqual((tables / 'candidates.jsonl').read_text(), '')
         self.assertEqual((tables / 'pairs.jsonl').read_text(), '')
@@ -165,7 +165,7 @@ class GuardTests(unittest.TestCase):
         rendered = self.root / 'render'
         with patch.object(K, 'native_backend', side_effect=AssertionError('Refused backend')), \
                 patch.object(B.perception, 'execute_calls', side_effect=AssertionError('Refused calls')), \
-                patch.object(K, 'gt_arrays', side_effect=AssertionError('Refused GT load')):
+                patch.object(K, 'gt_arrays', return_value={'gt_canvas_map': 'identity'}):
             K.responses(self.m, self.out, fit, rendered)
         results = B.load(rendered / self.dest.name / 'responses.json')
         for row, result in zip(self.c['rows'], results, strict=True):
@@ -212,7 +212,7 @@ class GuardTests(unittest.TestCase):
             self.assertEqual(guard.GG._capture.get(), ('K1', c['canonical']))
             return [{'fixture': 'candidate'}], [{'fixture': 'pair'}]
         out = self.root / 'passing_tables'
-        with patch.object(build_tables, 'build_capture', side_effect=build), patch.object(K, 'gt_arrays', return_value={}):
+        with patch.object(build_tables, 'build_capture', side_effect=build), patch.object(K, 'gt_arrays', return_value={'gt_canvas_map': 'identity'}):
             K.tables(m, CANARY, out)
         self.assertEqual(B.load(out / 'TABLE_RECEIPT.json')['geometry_refused'], {})
         self.assertEqual(len((out / 'candidates.jsonl').read_text().splitlines()), 1)
@@ -228,7 +228,7 @@ class GuardTests(unittest.TestCase):
             return dict(calls=[dict(call=calls[0], kind='error', code='fixture_backend_failure', response='unavailable')])
         with patch.object(K, 'native_backend', return_value=object()), \
                 patch.object(B.perception, 'execute_calls', side_effect=execute), \
-                patch.object(K, 'gt_arrays', return_value={}):
+                patch.object(K, 'gt_arrays', return_value={'gt_canvas_map': 'identity'}):
             K.responses(m, CANARY, fit, self.root / 'passing_render')
         rows = (self.root / 'passing_render/K1_ANALYSIS_INPUT.jsonl').read_text().splitlines()
         self.assertEqual(len(rows), len(c['rows']))

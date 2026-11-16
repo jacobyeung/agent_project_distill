@@ -118,7 +118,7 @@ class OwnRows(StreamRows):
         from rlkit.select import own_row
         rec_row = self.rows['routing'][0]
         rec = dict(tokens=rec_row['tokens'], kinds=rec_row['kinds'], prompt_ids_sha256=rec_row['prompt_ids_sha256'],
-                   response_sources=dict(pose_source='own'), draw=0, seed=1, path='head', calls=[1])
+                   response_sources=rec_row['response_sources'], draw=0, seed=1, path='head', calls=[1])
         row = own_row(self.prompts[0], rec, dict(r=1., c=1., n=10, answer='1'), 'r1')
         trows, model = self.trainer_rows(), self.model().eval()
         path = os.path.join(self.tmp.name, 'own.sqlite')

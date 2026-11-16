@@ -22,7 +22,21 @@ class Unserved:
         session=P.session(None,None)
         def refuse(call):raise ValueError('unserved_secondary_arm')
         session.execute=refuse
-        return generate(self.model,self.processor,batch,max_new_tokens=16384,trace_session=session)
+        import reader_policy as Q
+        guard = None
+        def process(ids, logits):
+            nonlocal guard
+            if guard is None:
+                from student_pilot.carrier_c1_decode import MAX_CALL_TOKENS
+                if MAX_CALL_TOKENS != Q.DECODE_BUDGET['call_window_tokens']:
+                    raise ValueError('decoder call window differs')
+                guard = Q.ThinkingBudget(self.processor.tokenizer, Q.DECODE_BUDGET,
+                    openers=self.processor._routing_tokens['ids'].values())
+            return guard(ids, logits)
+        result = generate(self.model,self.processor,batch,
+            max_new_tokens=Q.DECODE_BUDGET['max_new_tokens'],
+            max_calls=Q.DECODE_BUDGET['max_calls'], logits_processor=process,trace_session=session)
+        return Q.apply_budget(result,guard) if guard is not None else result
 
 
 class Runtime:
@@ -60,6 +74,8 @@ class Runtime:
             entry=self.inputs['e2e_loaded_entry']
             path=Path(entry['path'])
             if sha(path)!=entry['sha256']:raise ValueError('b04 loaded entry differs')
+            from .geometry_adapter import install_e2e
+            install_e2e()
             self.entry=module('_native_b04_loaded',path).load(self.inputs['e2e_artifact'],self.device)
             self.reader=E2EReader(self.entry,self.entry.replay)
         return {'reviewed':result,'extra':extra}
@@ -73,7 +89,7 @@ class Runtime:
         if bound['count']!=32:
             raise ValueError('C8r current frame/cache contract requires 32 anchors')
         self.store=self.root/'frames';self.store.mkdir()
-        self.sampled={};self.captures={};self.tasks=[];self.dense={};self.provenance=[]
+        self.sampled={};self.captures={};self.geometry_captures={};self.tasks=[];self.dense={};self.provenance=[]
         inventory=name_inventory(self.items)
         if inventory['unresolved']:raise ValueError('question operands unresolved')
         media={r['relative_path']:r for r in self.inputs['media']}
@@ -104,7 +120,6 @@ class Runtime:
                 # source-video indices may repeat for a short original video.
                 dense_indices=record['dense_decode_indices'];slots=record['anchor_slots']
                 dense_images=selected(original,dense_indices)
-                indices=slots
             ff=[];dd=[]
             for index,image in zip(indices,anchors,strict=True):
                 import io,hashlib
@@ -125,17 +140,22 @@ class Runtime:
                      timestamps=[i/receipt['fps'] for i in indices],hw=list(anchors[0].shape[:2]),
                      names={n.lower():kit.normalize_phrase(n) for n in names},
                      phrases=sorted({kit.normalize_phrase(n) for n in names}))
+            self.geometry_captures[scene]=dict(cap,anchor_indices=[dense_indices[i] for i in slots])
             self.captures[scene]=cap;self.dense[scene]={'frames':dd,'anchor_slots':slots}
             # E2E owns its tower invocation. Its frames use the same model anchors.
             self.sampled[scene]=dict(native_frames=[Image.fromarray(a) for a in dense_images],
                                     model_frames=[Image.fromarray(a) for a in anchors],
-                                    dense_indices=dense_indices,anchor_indices=indices,anchor_slots=slots)
+                                    dense_indices=dense_indices,anchor_indices=indices,anchor_slots=slots,
+                                    geometry_anchor_indices=[dense_indices[i] for i in slots],
+                                    fps=receipt['fps'],total_num_frames=receipt['total'],
+                                    timestamps=cap['timestamps'],prompt_capture=cap)
             for item in self.items:
                 if item['dataset']+':'+item['scene_name']!=scene:continue
                 task=dict(item,native=scene,scene=scene,options=item.get('options',[]))
                 self.tasks.append(task)
                 self.provenance.append(dict(task,scene=cap['scene'],operands=operands(item['question']) or []))
         dump(self.root/'FRAMES.json',{'captures':list(self.captures.values())})
+        dump(self.root/'GEOMETRY_FRAMES.json',{'captures':list(self.geometry_captures.values())})
         dump(self.root/'DENSE.json',{'schema':'legs1-dense-frames-v1','captures':self.dense})
         for task in self.tasks:journal(self.root/'TASKS.jsonl',task)
         return {'videos':len(self.captures),'g3t':self.binding['read_config']['g3t']}
@@ -158,7 +178,7 @@ class Runtime:
         policy=apply(reader['freeze_values'],self.inputs)
         raw_dir=self.root/'raw'
         G.tower(NS(device=self.device,weights=self.inputs['g3t_weights']['path'],
-                   config=self.inputs['g3t_config']['path'],frames=str(self.root/'FRAMES.json'),
+                   config=self.inputs['g3t_config']['path'],frames=str(self.root/'GEOMETRY_FRAMES.json'),
                    dense_manifest=str(self.root/'DENSE.json'),dest=raw_dir))
         raw=load(raw_dir/'RAW_G3T.json');videos={};records=[]
         from routed import trainer_row
@@ -180,7 +200,11 @@ class Runtime:
             clip=row['student_input']['video_identity']['video_sha256']
             output=self.root/'geometry'/(clip+'.npz');diagnostics={};start=time.monotonic()
             with gravity_guard.capture('r0',scene):
-                outcome=GR.attempt(lambda:G.prepare_capture(raw['captures'][scene]['path'],c,row,output,prefill,diagnostics),GP.GeometryError)
+                outcome=GR.attempt(lambda:G.prepare_capture(raw['captures'][scene]['path'],self.geometry_captures[scene],row,output,prefill,diagnostics),GP.GeometryError)
+            if outcome['status']=='PASS' and c['anchor_indices']!=self.geometry_captures[scene]['anchor_indices']:
+                from .geometry_adapter import relabel
+                output,identity=relabel(output,c['anchor_indices'])
+                outcome['data']['geometry_identity']=identity
             rec=dict(native=scene,clip=clip,checkpoint=self.inputs['artifact'],status=outcome['status'],
                      error=outcome['error'],output=pin(output) if output.exists() else None,
                      diagnostics=diagnostics,seconds=time.monotonic()-start)
@@ -202,6 +226,8 @@ class Runtime:
         from .proof import in_job
         import subprocess
         dump(self.root/'proof_inputs.json',self.inputs['proof_assets'])
+        self.proof_mode = self.inputs['proof_assets'].get('proof_mode', 'full')
+        self.proof_loss_pin = self.inputs['proof_assets'].get('lost_masks')
         output=self.root/'proof_decodes.json'
         subprocess.run([sys.executable,'-B','-m','offnative.historical',str(self.root/'proof_inputs.json'),
                         self.inputs['proof_keys'],self.kind,str(output)],check=True)

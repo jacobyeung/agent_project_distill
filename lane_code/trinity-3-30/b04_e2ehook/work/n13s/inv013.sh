@@ -1,0 +1,1 @@
+hostname -s; ls -d /scratch/jjyeung/devs1_frames /dev/shm/jjyeung_mdg_next /dev/shm/jjyeung_mdg_next/g3t 2>&1; ls /scratch/jjyeung/devs1_frames | head -5; ls /scratch/jjyeung/devs1_frames | wc -l; du -sh /scratch/jjyeung/devs1_frames 2>&1|tail -1; ls -la /dev/shm/jjyeung_mdg_next/g3t 2>&1 | head; df -h /scratch | tail -1

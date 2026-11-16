@@ -25,6 +25,7 @@ while true; do
   fi
   if grep -q "^EXIT" work/streams/vid_rl.log 2>/dev/null && grep -q "^EXIT" work/streams/vid_dev.log 2>/dev/null && [ $gen_done = 1 ]; then
     nice -n 10 $PY -W ignore code/run_scenes.py decode --workers 8 >> work/pipeline.log 2>&1
+    nice -n 10 $PY -W ignore code/check_redecode.py 2 >> work/pipeline.log 2>&1
     echo "$(date -u +%FT%TZ) pipeline finished" >> work/pipeline.log; break
   fi
   sleep 300

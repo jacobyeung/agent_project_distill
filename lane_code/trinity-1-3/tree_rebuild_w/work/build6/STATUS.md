@@ -21,3 +21,14 @@ The current integration recheck passed every file hash and both unchanged level-
 The live diagnostic also found a stale memory-fixture identity hash (`work/build6/LIVE_B5_LOSSES.json`). Its repair retains the legacy configuration and numerical-output hashes while testing the accepted ON threshold and explicit OFF identities. The focused wrapper will verify it after the active suite finishes.
 
 The final harness uses a fresh extraction directory, clears stale live-result records by overwriting them, and measures unpacked bytes from the actual archive members (`work/build6/package.py`, `work/build6/test_runner.py`). These extensions await final package qualification. `work/build6/TARGETED_TEST.sh` runs the pending focused checks under the same caps.
+
+Final coverage will include statement edits on continuation lines while retaining direct head-line execution and both source fingerprints (`work/build6/coverage.py`). Its final counts remain pending.
+
+The standalone launch gate now mirrors the accepted native identity rule (`work/tree_r1/launch_s1/b/i.py`). The diagnostic exposed its missing heading threshold; the original equality assertion remains, with additional epoch and invalid-threshold cases in `work/tree_r1/tests/test_s1_launch_kit.py`. Verification is pending.
+# Current verification note
+
+Legacy comparisons now require matching classified causes in the tree and base before labeling failures pre-existing (`work/build6/compare.py`). Final qualification also explicitly requires the entire R2/shared-grammar group to have no failures (`work/build6/report.py`).
+
+The opener-witness fixture now supplies the required init identity and checks the specific missing-witness error (`work/tree_r1/tests/test_r2_build3.py`). Its focused verification is pending.
+
+The latest source parses without errors (`work/build6/check_sources.py`). The first packaged diagnostic is still running; its observed lost Build-5 passes remain the repaired fixtures and standalone gate identity (`work/build6/LIVE_B5_LOSSES.json`). Current working-tree repairs still require focused and final packaged verification.

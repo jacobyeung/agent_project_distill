@@ -91,7 +91,9 @@ class Worker:
         if (len(reference) != 10 or sum(r['question_type'] in CAMERA for r in reference) != 5
                 or sum(r['question_type'] == 'object_abs_distance' for r in reference) != 5):
             raise ValueError('proof needs five camera and five distance items')
-        result = compare(reference, actual, self.binding['reader']['kind'])
+        result = compare(reference, actual, self.binding['reader']['kind'],
+                         mode=getattr(self.runtime, 'proof_mode', 'full'),
+                         loss_pin=getattr(self.runtime, 'proof_loss_pin', None))
         dump(self.out/'PROOF.json', result)
         if not result['passed']:
             raise ValueError('identity proof mismatch')

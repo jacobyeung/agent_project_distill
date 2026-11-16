@@ -8,6 +8,7 @@ of the dataset, no sibling label sharing its head noun or plural."""
 import json, os, sys, glob, hashlib, itertools, collections, random
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gtvis import FLOOR, DENY, norm, load_raster, ambiguous
+import rooms as RM
 W = '/scratch/jjyeung/orch_n30/b12_cntapp/work/'
 ONSET_EPS = 0.0005
 CAP_APP, CAP_TOT, CAP_FS = 40, 8, 6
@@ -195,7 +196,7 @@ def main():
         for j in json.load(open(W + 'streams_ark_jobs.json')): am.setdefault(j['alias'], 'arkitscenes/' + j['id'])
         for j in json.load(open(W + 'streams_scn_jobs.json')): am.setdefault(j['alias'], 'scannet/' + j['id'])
     d0 = json.load(open(W + 'd0_pairs.json')); V = vocab(); R = raster_index(roots)
-    st = collections.Counter(); fams = collections.defaultdict(list); per_scene = {}
+    st = collections.Counter(); fams = collections.defaultdict(list); per_scene = {}; held = collections.defaultdict(list)
     for alias in sorted(SI):
         c = am.get(alias)
         if not c: st['scene: no canonical'] += 1; continue
@@ -205,6 +206,12 @@ def main():
         rows, why = gen_scene(alias, c, R[k], SI[alias], V, set(d0['count'].get(alias, [])), {tuple(x) for x in d0['app'].get(alias, [])})
         for w, n in why.items(): st[w] += n
         if rows is None: st['scene: raster pins differ'] += 1; continue
+        rs_ = RM.status(c)
+        if rs_ == 'r0': st['scene: R0 reserve room (rows dropped)'] += 1; continue
+        if rs_ == 'k1_heldout':
+            st['scene: K1 held-out room (rows filtered)'] += 1
+            for f, v in rows.items(): held[f].extend(v)
+            continue
         st['scene: used'] += 1; per_scene[alias] = {f: len(v) for f, v in rows.items()}
         for f, v in rows.items():
             for r in v:
@@ -224,6 +231,16 @@ def main():
             for r in v: fh.write(json.dumps(r, sort_keys=True) + '\n')
         man['families'][f] = dict(path=p, rows=len(v), sha256=sha_file(p), scenes=len({r['dataset'] + '/' + r['scene'] for r in v}),
                                   by_dataset=dict(collections.Counter(r['dataset'] for r in v)))
+    os.makedirs(os.path.join(out, 'filtered_k1_heldout'), exist_ok=True); man['filtered_k1_heldout'] = {}
+    for f, v in sorted(held.items()):
+        p = os.path.join(out, 'filtered_k1_heldout', f + '.jsonl')
+        with open(p, 'w') as fh:
+            for r in v: fh.write(json.dumps(r, sort_keys=True) + '\n')
+        man['filtered_k1_heldout'][f] = dict(path=p, rows=len(v), sha256=sha_file(p), scenes=sorted({r['dataset'] + '/' + r['scene'] for r in v}))
+    man['room_authorities'] = RM.AUTH
+    k1n = lambda c: c.replace('scannetppv2/', 'scannetpp/')
+    man['k1_captures_used'] = sorted({k1n(r['provenance']['canonical']) for v in fams.values() for r in v if k1n(r['provenance']['canonical']) in RM.K1_CAPTURES})
+    man['k1_captures_used_split'] = dict(collections.Counter(RM.K1_CAPTURES[c] for c in man['k1_captures_used']))
     json.dump(per_scene, open(os.path.join(out, 'PER_SCENE.json'), 'w'))
     json.dump(man, open(os.path.join(out, 'GEN_MANIFEST.json'), 'w'), indent=1)
     print(json.dumps(man, indent=1))

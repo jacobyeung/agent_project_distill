@@ -1,0 +1,76 @@
+{
+ "files": {
+  "B04_DIGEST": {
+   "role": "config",
+   "sha256": "c5e532d11adf8569d6bf896aadee25a87f9c0948d9863ac3af3efa1f2a1f4a9b"
+  },
+  "E2E_MANIFEST.json": {
+   "role": "config",
+   "sha256": "02cab86fab405ce85a924aa21217c88614b2e43125eb026da9963ec8c9d22ab5"
+  },
+  "checkpoint/config.json": {
+   "role": "lm",
+   "sha256": "2e175d75b6278415cbaccd366fee51267b9b93a0027315ffe189f7794c5bb684"
+  },
+  "checkpoint/generation_config.json": {
+   "role": "lm",
+   "sha256": "a7cb9ba62b25a6ad5f2d653fdf1205f7bb9fcf35e0abbf0f9d887cf12f20b408"
+  },
+  "checkpoint/model.safetensors": {
+   "role": "lm",
+   "sha256": "d36dd0a0fbd1d037a25f3f289af5bf98399b90e6c094986454fae1a6dc9b5cc6"
+  },
+  "g3t_fixture.safetensors": {
+   "role": "tower",
+   "sha256": "c894bffc950a55c806ded728df67401fb7a65326f1fd042b1867dc334666834f"
+  },
+  "sam3_fixture.safetensors": {
+   "role": "tower",
+   "sha256": "cd6d5b0426d7868769ec7b53d6d2c9a5d753cc5c904a62013488ceb39a24d2d6"
+  },
+  "scale_head.safetensors": {
+   "role": "head",
+   "sha256": "567f148ad98177219a6032c467ec3859938565c52bb50346dab6e3d36269c7a8"
+  },
+  "selector_head.safetensors": {
+   "role": "head",
+   "sha256": "322b5802ed1530e6eca08797f016da0f4de30fa635b87065445018c04052cf38"
+  },
+  "tokenizer/chat_template.jinja": {
+   "role": "tokenizer",
+   "sha256": "a4aee8afcf2e0711942cf848899be66016f8d14a889ff9ede07bca099c28f715"
+  },
+  "tokenizer/tokenizer.json": {
+   "role": "tokenizer",
+   "sha256": "492d681888fa9e109c393502dd4632b8b1170458ac07f99892254ebe6f0193e7"
+  },
+  "tokenizer/tokenizer_config.json": {
+   "role": "tokenizer",
+   "sha256": "66e427c470fe580fe8c7b5725d857af23d8417e37fae62667ec698306a19987b"
+  }
+ },
+ "modules": {
+  "": {
+   "name": "lm",
+   "role": "lm"
+  },
+  "call_hook": {
+   "name": "call_hook",
+   "role": "call_handler"
+  },
+  "eat1_script_policy": {
+   "name": "script_policy",
+   "role": "lm"
+  },
+  "scale_head": {
+   "name": "scale_head",
+   "role": "head"
+  },
+  "selector_head": {
+   "name": "selector_head",
+   "role": "head"
+  }
+ },
+ "root": "/scratch/jjyeung/orch_n30/b03_e2etest/work/b04_tiny/artifact",
+ "schema": "eat1-artifact-v1"
+}

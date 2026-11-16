@@ -26,7 +26,7 @@ SCHEMA = 'orchkit-ledger-v1'
 PRODUCTION = ('/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/'
               'ORCHARD_LEDGER.jsonl')
 FIELDS = ('schema', 'utc', 'event', 'token', 'job_name', 'job_id', 'lane', 'meaning',
-          'kit_pins_sha256', 'config_sha256', 'partition', 'gpus', 'time_limit_s', 'pool', 'gcs',
+          'kit_pins_sha256', 'config_sha256', 'payload_sha256', 'partition', 'gpus', 'time_limit_s', 'pool', 'gcs',
           'state')
 EVENTS = ('minted', 'submitted', 'ended')
 TOKEN = re.compile(r'^[0-9a-f]{16}\Z')
@@ -69,7 +69,7 @@ def validate(row, strict=True):
             raise LedgerError('token must be 16 lowercase hex')
         if row['job_name'] != PREFIX + row['token'] or not JOB_NAME.match(row['job_name']):
             raise LedgerError('job_name must be %s plus the token' % PREFIX)
-        for key in ('kit_pins_sha256', 'config_sha256'):
+        for key in ('kit_pins_sha256', 'config_sha256', 'payload_sha256'):
             if row[key] is not None and not HEX64.match(str(row[key])):
                 raise LedgerError('%s must be 64 hex or null' % key)
         if row['job_id'] is not None and type(row['job_id']) is not int:

@@ -1,0 +1,2 @@
+- /scratch/jjyeung/orch_n30/review_h1kit/work/sealed_copy (copy of sealed tree for patch dry-run)
+- /scratch/jjyeung/orch_n30/review_h1kit/work/kit/tmp (test temporaries)

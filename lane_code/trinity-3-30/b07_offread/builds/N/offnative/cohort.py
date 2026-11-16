@@ -58,7 +58,8 @@ def media302(items):
 
 def media_manifest(benchmark, items):
     if benchmark=='revsi999t32':return media302(items)
-    entries=load(VSI/'cohort/MEDIA_MANIFEST.json')
+    from .paths import ROOT
+    entries=load(ROOT/'out/VSI_MEDIA_MANIFEST.json')
     expected={r['dataset']+'/'+r['scene_name']+'.mp4' for r in items}
     if len(entries)!=288 or {r['relative_path'] for r in entries}!=expected:
         raise ValueError('VSI-Bench media membership differs')

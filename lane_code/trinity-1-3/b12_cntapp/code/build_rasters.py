@@ -48,6 +48,7 @@ else:
             if p.returncode: return dict(id=i, alias=jobs[i]['alias'], status='build rc %d' % p.returncode, err=p.stderr[-400:])
         return dict(id=i, alias=jobs[i]['alias'], status='ok', path=out, sha256=sha(out), fi=d['fi'])
     keys = sorted(k for k in jobs if k in lg)
+keys = keys[:int(os.environ.get('LIMIT', len(keys)))]
 os.makedirs(od, exist_ok=True)
 with ThreadPoolExecutor(nproc) as ex: res = list(ex.map(run, keys))
 with open(f'{W}/rasters/BUILD_{mode}.jsonl', 'w') as f:

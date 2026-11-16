@@ -14,12 +14,17 @@ def sha(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
-def load():
-    """All candidate rows with split/room from E3's K1 membership (SCALES_S4.json); inputs x attached in row order."""
+def load(splits=None):
+    """Candidate rows with split/room from E3's K1 membership (SCALES_S4.json); inputs x attached in row order.
+    splits: the splits to read (None = all); a table of another split is never opened."""
     S = json.load(open(SCALES))['captures']
     rows = []
     for p in sorted(glob.glob(str(CAPS / '*.json.gz'))):
+        capture = Path(p).name[:-len('.json.gz')].replace('__', '/')
+        if splits is not None and S[capture]['split'] not in splits:
+            continue
         d = json.load(gzip.open(p, 'rt'))
+        assert d['capture'] == capture
         s = S[d['capture']]
         for r, i in zip(d['rows'], d['inputs'], strict=True):
             assert (r['object_id'], r['candidate_id']) == (i['object_id'], i['candidate_id'])

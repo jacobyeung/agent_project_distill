@@ -46,7 +46,7 @@ def write_direct(path, drop=0, torn=False, bad=()):
                 drop -= 1
                 continue
             sc = float(rng.random() < 0.6)
-            row = dict(example_id=it['id'], status='complete', cell=D.CELL['name'],
+            row = dict(example_id=it['id'], status='complete', cell=D.CELL['name'], prompt_shim=D.SHIM,
                        binding=D.binding_for(it, caps[it['capture']], IDENT), score=sc, B2048=dict(score=sc))
             if ho_app and bad:
                 kind = bad.pop(0)

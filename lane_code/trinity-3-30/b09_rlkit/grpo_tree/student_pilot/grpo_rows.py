@@ -49,15 +49,53 @@ def prompt_batch(processor, row, placement, layout, gap, geometry_online=None):
             for k, v in batch.items() if k != 'labels'}
 
 
+# Same rules as rlkit.select.ARTIFACT_POLICY / artifact_policy (kept in step by rltests.test_grpo_rows).
+POLICY = dict(pose_sources=('own', 'tower'), mask_sources=(None, 'mdg'), ground_backends=('ground_v3', 'mdg'),
+              ground_backend_types=(None, 'GroundV3'), call_kinds=('head', 'calculator', 'error', 'ground', 'gap'),
+              geometry_sources=(None, 'same_checkpoint_own'), geometry_prefixes=('same_checkpoint_own:',),
+              source_prefixes=('native_mdg:',), query_provenance=('unspecified', 'None'), presence_sources=('None',),
+              source_provenances=('unspecified',), presence_identities=(None,))
+
+
+def source_reason(src):
+    p = POLICY
+    if not isinstance(src, dict):
+        return 'no response sources'
+    if src.get('donor') or src.get('verify') or src.get('reread') or src.get('tower_state'):
+        return 'donor, verify, reread or tower-state responses'
+    if src.get('pose_source') not in p['pose_sources'] or src.get('mask_source') not in p['mask_sources']:
+        return 'pose or mask source outside the artifact'
+    gb = src.get('ground_backend')
+    if gb not in p['ground_backend_types']:
+        return 'ground backend outside the artifact'
+    allowed = p['ground_backends'] + (('None',) if gb is None else ())
+    if any(b not in allowed for b in src.get('ground_query_backends', ['missing'])):
+        return 'ground query backend outside the artifact'
+    if any(q not in p['query_provenance'] for q in src.get('query_provenance', ['missing'])):
+        return 'query provenance outside the artifact'
+    if any(q not in p['presence_sources'] for q in src.get('presence_sources', ['missing'])):
+        return 'query presence outside the artifact'
+    if any(k not in p['call_kinds'] for k in src.get('call_kinds', ['missing'])):
+        return 'call kind outside the policy'
+    if gb is not None:
+        gid, sid = str(src.get('geometry_identity')), str(src.get('source_identity'))
+        if (src.get('geometry_source') not in p['geometry_sources'] or not gid.startswith(p['geometry_prefixes'])
+                or not sid.startswith(p['source_prefixes']) or gid.split(':', 1)[1] != sid.split(':', 1)[1]):
+            return 'grounding geometry or mask source outside the artifact'
+        if (src.get('source_provenance', 'missing') not in p['source_provenances']
+                or src.get('presence_identity', 'missing') not in p['presence_identities']
+                or src.get('rescue', True) or not src.get('verify_stubbed')):
+            return 'grounding stages outside the artifact'
+    return None
+
+
 def check_sources(row):
     """Trainer-side re-check of the selector's artifact policy on the row's recorded sources."""
-    src = row.get('response_sources')
-    if row.get('response_policy') != 'artifact' or not isinstance(src, dict):
+    if row.get('response_policy') != 'artifact':
         raise ValueError('RL rows need responses from heads inside the artifact')
-    if (src.get('donor') or src.get('verify') or src.get('reread') or src.get('tower_state')
-            or src.get('mask_source') not in (None, 'mdg') or src.get('geometry_source') not in (None, 'same_checkpoint_own')
-            or src.get('pose_source') not in ('own', 'tower')):
-        raise ValueError('RL row responses come from outside the artifact')
+    reason = source_reason(row.get('response_sources'))
+    if reason is not None:
+        raise ValueError('RL row responses come from outside the artifact: ' + reason)
 
 
 def check(row):

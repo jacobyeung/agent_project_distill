@@ -99,7 +99,7 @@ def test_tiny_cli_curve(kit,tmp_path):
     assert record['lineage']=='RL' and record['step']==7 and record['fixture']
     assert record['bootstrap']['draws']==10000
     assert len(record['export_sha256'])==len(record['evaluator_code_sha256'])==64
-    m=record['per_type']['camera_displacement']['own']['scale_translation']['M3']
+    m=record['per_type']['camera_displacement']['own']['scale_translation:2']['M3']
     assert m['follow']['value']==1 and m['follow']['ci95']==[1,1]
     assert m['passes_bars']
     (K/'logs/tiny_curve_build2.json').write_text(json.dumps(record,indent=2)+'\n')

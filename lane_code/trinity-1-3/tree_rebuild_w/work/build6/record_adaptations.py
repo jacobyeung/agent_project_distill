@@ -12,10 +12,12 @@ for p in sorted(T.rglob('*.py')):
 (B/'TEST_ADAPTATIONS.diff').write_text(''.join(diff))
 (B/'TEST_INPUT_ADAPTATIONS.json').write_text(json.dumps(dict(files=rows,
     reasons=['Existing init tests bind the same historical input through an explicit fixture pin; runtime defaults do not choose an artifact.',
+             'The missing-vocabulary fixture supplies the required init identity and asserts the specific witness error, preserving the intended refusal branch.',
              'Recovery mutation checks exercise the native refusal OFF and the packet refusal ON.',
              'The qualified-name fixture retains its OFF refusal and tests the earlier exact-name refusal ON.',
              'The validation fixture retains its nonmutation check and authenticates the implicit heading threshold added by the accepted identity contract.',
              'The memory fixture retains the legacy configuration and FP32 output hashes, and checks ON threshold binding plus explicit OFF identity semantics.',
+             'The launch-gate equality assertion remains; added cases require its standalone identity mirror to match the native ON/OFF and invalid-threshold rules.',
              'Synthetic metric bank entries include their asked unit; both score views use ordered unit rows that preserve order under native serialization.',
              'The packet changes its two legacy test files verbatim, as authenticated by the patch manifest.',
              'New tests cover next-leg input, unit, admission, runtime and score requirements.'],

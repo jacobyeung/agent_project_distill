@@ -37,9 +37,21 @@ for p in sorted(tree.rglob('*.py')):
     if not changed:continue
     parsed=ast.parse('\n'.join(new))
     funcs=[n for n in ast.walk(parsed) if isinstance(n,(ast.FunctionDef,ast.AsyncFunctionDef))]
-    statements={n.lineno for n in ast.walk(parsed) if isinstance(n,ast.stmt) and not (
-        isinstance(n,ast.Expr) and isinstance(n.value,ast.Constant) and isinstance(n.value.value,str))}
-    for line in sorted(statements&changed):
+    statements=set()
+    for node in ast.walk(parsed):
+        if not isinstance(node,ast.stmt) or (
+                isinstance(node,ast.Expr) and isinstance(node.value,ast.Constant) and isinstance(node.value.value,str)):
+            continue
+        # A multiline call or literal changes even when its first line does not.
+        # For compound statements, inspect the header; body statements account
+        # for their own edits rather than attributing them to every ancestor.
+        nested=[child.lineno for field in ('body','orelse','finalbody')
+                for child in getattr(node,field,()) if isinstance(child,ast.stmt)]
+        if isinstance(node,ast.Match):nested.extend(case.pattern.lineno for case in node.cases)
+        end=max(node.lineno,min(nested)-1) if nested else node.end_lineno
+        if any(number in changed for number in range(node.lineno,end+1)):
+            statements.add(node.lineno)
+    for line in sorted(statements):
         fn=next((n.name for n in sorted(funcs,key=lambda n:n.end_lineno-n.lineno) if n.lineno<=line<=n.end_lineno),'module')
         reached=line in hits.get(name,set())
         category='observed' if reached else 'CPU-reachable unresolved'
@@ -71,7 +83,7 @@ for p in sorted(tree.rglob('*.py')):
                  executed=reached,classification=category,text=new[line-1].strip())
         if reason:row['reason']=reason
         rows.append(row)
-record=dict(method='AST changed statement starts relative to untouched base; stdlib monitoring filtered by compiled-source fingerprints and exact current-file hashes.',
+record=dict(method='AST statement heads whose header or simple-statement span intersects edited lines relative to untouched base; execution requires an observed head line, compiled-source fingerprint and exact current-file hash.',
     changed_statements=len(rows),executed=sum(r['executed'] for r in rows),classes=dict(Counter(r['classification'] for r in rows)),
     coverage_sources=accepted,excluded_sources=excluded,statements=rows)
 (L/'work/build6/CHANGED_COVERAGE.json').write_text(json.dumps(record,indent=2)+'\n')

@@ -11,7 +11,7 @@ Goal: measure seconds per rollout on both paths, reward and gate rates per type,
 1. `cp SAMPLER.template.json /scratch/.../SAMPLER.json`; fill export, kit_config, artifact_pin, audit_root.
 2. `bash run_dryrun.sh SAMPLER.json POOL.jsonl RUN_DIR GPU` (stops itself at 3,300 s; rerun resumes).
 3. Reuse check: on 10 head-path prompts, sample once with `factory_config.reuse` 'draw' and once 'clip' into two run dirs; tokens and texts must be byte-equal before 'clip' may be used.
-4. Read `RUN_DIR/DRYRUN_MEASURE.json`: `paths.head.sec_mean` and `paths.direct.sec_mean` price a round (10K prompts x 8 draws); `types.*.g_rate` and `budget_hits` show whether the gate and budget fit the export; `free_call_rate` is the unforced head-path rate.
+4. Read `RUN_DIR/DRYRUN_MEASURE.json`: `paths.head.sec_mean` and `paths.direct.sec_mean` price a round (10K prompts x 8 draws); `types.*.g_rate` and `budget_hits` show whether the gate and budget fit the export; `free_call_rate` is the unforced head-path rate. `response_not_forced` must be 0: an honest draw under the real tokenizer must pass the forced-response check (review_rl2); any other count blocks round 1.
 
 ## Expected (brief 09 estimates; the dry run replaces them)
 Direct rollout about 0.5 s on an H100 at a 57-token chain, about 1 to 2 s on an A6000; head rollout about 7 s with towers live. 200 x 8 = 1,600 draws fit one hour only if the mean is under 2.2 s; otherwise the run stops at 3,300 s and the measured rates still price the round.

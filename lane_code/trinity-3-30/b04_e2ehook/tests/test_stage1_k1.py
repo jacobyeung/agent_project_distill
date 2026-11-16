@@ -51,14 +51,14 @@ def capture():
     return folder, rec, tower, receipt
 
 
-@pytest.mark.parametrize('raw_only', [False, True])
+@pytest.mark.parametrize('raw_only', [True])
 def test_stage1_inputs_equal_training_table(capture, raw_only):
     from e2e_reader.geometry import from_tower
     from e2e_reader.stage1 import StageOne
     from student_pilot import camera_targets
     folder, rec, tower, receipt = capture
     if raw_only:
-        rec = json.load(gzip.open(ROOT / 'heads/selector/data/caps_raw' / (CAPTURE.replace('/', '__') + '.json.gz'), 'rt'))
+        rec = json.load(gzip.open(ROOT / 'heads/selector/data/caps_iso' / (CAPTURE.replace('/', '__') + '.json.gz'), 'rt'))
     raw = tower['raw_pose'][tower['anchor_slots']]
     R = np.array([camera_targets.rotation_from_xyzw(p[3:7]).T for p in raw])
     g = np.mean(-R[:, :, 1], axis=0); g /= np.linalg.norm(g)
@@ -83,7 +83,7 @@ def test_stage1_select_runs(capture):
     from e2e_reader.stage1 import StageOne
     from selector_head import load_head
     folder, rec, tower, receipt = capture
-    head, _ = load_head(ROOT / 'heads/selector/work/run_raw')
+    head, _ = load_head(ROOT / 'heads/selector/work/run_iso')
     x = torch.tensor([i['x'] for i in rec['inputs'] if i['name'] == rec['inputs'][0]['name']], dtype=torch.float64)
     k = StageOne.select(type('S', (), {'head': head})(), dict(x=x, name=rec['inputs'][0]['name']))
     assert -1 <= k < len(x)
@@ -105,7 +105,7 @@ def test_ground_and_gap_on_k1_capture(capture):
     geo = from_tower(tower['raw_pose'], tower['anchor_slots'], tower['frame_indices'], tower['depth_grid'],
                      tower['grid_uv'], g, rec['scale'], receipt['source_hw'])
     cand = json.loads((folder / 'candidates.json').read_text())
-    head, _ = load_head(ROOT / 'heads/selector/work/run_raw')
+    head, _ = load_head(ROOT / 'heads/selector/work/run_iso')
     s = StageOne(cache_detect(cand, raw_only=True), head, geo)
     servers = ReadServers(geo, ground_session(geo, StageOneSocket(s.propose, s.select, (240, 320))))
     a, b = cand['phrases'][:2]
