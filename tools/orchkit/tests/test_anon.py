@@ -269,6 +269,37 @@ class AnonTest(unittest.TestCase):
         for text in ('/project/u/data/x', 'metadata/x', '/x/data_out'):
             self.assertEqual(anon.scan_text('x', text, rules, 'name'), [], text)
 
+    def test_review_oc32_to_oc36(self):
+        rules = anon.load_rules()
+        named = io.BytesIO()
+        with gzip.GzipFile(filename='split.txt', fileobj=named, mode='wb', mtime=0) as handle:
+            handle.write(b'ok')
+        alone = lambda **opts: lzma.compress(b'qwen', format=lzma.FORMAT_ALONE,
+                                             filters=[dict(id=lzma.FILTER_LZMA1, **opts)])
+        cases = {'g.gz': gzip.compress(b'first') + named.getvalue(),
+                 'p.gz': gzip.compress(b'first') + b'\x00\x00' + named.getvalue(),
+                 'lc0.lzma': alone(lc=0), 'lc4.lzma': alone(lc=4),
+                 'lp.lzma': alone(lc=1, lp=2, pb=4, dict_size=5000),
+                 'two.lzma': lzma.compress(b'ok', format=lzma.FORMAT_ALONE) + alone(),
+                 'nul.lzma': b'\x00' * 36 + alone(), 'cut.lzma': alone()[:-3] + b'',
+                 'junk.zlib': zlib.compress(b'qwen') + b'junk',
+                 'cut.zlib': zlib.compress(b'qwen' * 100)[:-6],
+                 'cr.py': b'x = "q\\\rwen"\n'}
+        for bits in (9, 10, 14):
+            engine = zlib.compressobj(wbits=bits)
+            cases['w%d.zlib' % bits] = engine.compress(b'qwen') + engine.flush()
+        for name, data in sorted(cases.items()):
+            self.assertTrue(anon.scan_tree(self.write(name, data), rules), name)
+        for name, data in (('zeros.bin', b'\x00' * 100001), ('nul.bin', b'\x00' * 20 + b'junk'),
+                           ('x.py', b'x = 1\n'), ('h.txt', b'h? ok\n'), ('m.txt', b'x^2 + 1\n')):
+            self.assertEqual(anon.scan_tree(self.write(name, data), rules), [], name)
+        for text in ('/./data2/secret', '/tmp/../data2/secret', '/home/./jjyeung/agent_x',
+                     '/scratch/./jjyeung/x', '/a/b/../../data2', '"/../data2"', 'x=/t/./../data3'):
+            self.assertTrue(anon.scan_text('x', text, rules, 'name'), text)
+            self.assertTrue(anon.scan_tree(self.write('t.json', text.encode()), rules), text)
+        for text in ('./data/x', '../data2x', '/x/./y', 'a/../b', '/x/../datasets/y'):
+            self.assertEqual(anon.scan_text('x', text, rules, 'name'), [], text)
+
 
 if __name__ == '__main__':
     unittest.main()
