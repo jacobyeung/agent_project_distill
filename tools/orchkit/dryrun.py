@@ -380,7 +380,7 @@ class DryRun(object):
             argv += ['--dir', h]
         argv += ['--dir', '/scratch', '--dir', '/tmp/home']
         binds = []
-        for root in self.env_roots() + [os.path.abspath(r) for r in self.args.ro]:
+        for root in self.env_roots() + [os.path.abspath(r) for r in self.args.ro + self.args.path]:
             binds.append({'src': root, 'dst': root, 'mode': 'ro'})
         binds.append({'src': self.out, 'dst': self.out, 'mode': 'rw'})
         binds.append({'src': self.kit_copy, 'dst': self.kit_at, 'mode': 'rw'})
@@ -404,7 +404,8 @@ class DryRun(object):
         return argv
 
     def environment(self):
-        env = {'PATH': os.path.join(self.out, 'shims', 'bin') + ':/usr/local/bin:/usr/bin:/bin',
+        path = [os.path.join(self.out, 'shims', 'bin')] + [os.path.abspath(p) for p in self.args.path]
+        env = {'PATH': ':'.join(path + ['/usr/local/bin', '/usr/bin', '/bin']),
                'HOME': '/tmp/home', 'TMPDIR': '/tmp', 'LANG': 'C.UTF-8', 'LC_ALL': 'C.UTF-8',
                'CUDA_VISIBLE_DEVICES': '', 'PYTHONPATH': os.path.join(self.out, 'shims', 'pysite')}
         for item in self.args.env:
@@ -738,6 +739,8 @@ def parser():
     r.add_argument('--wrap-python', action='append', default=[],
                    help='system interpreter path to trace through a wrapper (children run -I)')
     r.add_argument('--env', action='append', default=[])
+    r.add_argument('--path', action='append', default=[],
+                   help='directory placed on PATH after the shims (the batch host interpreter)')
     r.add_argument('--cwd')
     r.add_argument('--schema')
     r.add_argument('--opacity-words')
