@@ -1,0 +1,979 @@
+{
+ "schema": "eat1-report-v1",
+ "reader": "eat1.adapters.c8r_tiny:make_reader",
+ "reader_kwargs": {
+  "tree": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449",
+  "workdir": "/scratch/jjyeung/orch_n30/b03_e2etest/work/c8r_tiny"
+ },
+ "artifact": "/scratch/jjyeung/orch_n30/b03_e2etest/work/c8r_tiny/artifact/ARTIFACT.json",
+ "artifact_sha256": "f4ad61dd695fd5a1e862f5eae787ebf61cdc7fe513f0fb79348b249265855f45",
+ "items": 12,
+ "mode": "dynamic",
+ "started_utc": "2026-11-16T12:40:51Z",
+ "clauses": {
+  "A1": {
+   "status": "PASS",
+   "summary": "0 artifact, 5 code, 12 input, 0 outside-artifact data files opened after generate() started",
+   "offenders": [],
+   "code_files": [
+    {
+     "path": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/evalpath/__init__.py",
+     "sha256": "320ff8e49d53c5528f439ae83544dcd0e4063933eb2168774b70ca6d9d1cdd38",
+     "source": "open"
+    },
+    {
+     "path": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/evalpath/runtime.py",
+     "sha256": "3a679a27d95ee105b6fce50977ea2cd959068fe0954d5bcbb03de3e136e18fe8",
+     "source": "open"
+    },
+    {
+     "path": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/mdg_lora.py",
+     "sha256": "e8e1632f9f50d45a55958cba8fcc889c02dd2e8d52eba47092b1cf702632fc97",
+     "source": "open"
+    },
+    {
+     "path": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/scripted_calls.py",
+     "sha256": "26ba86160177979416f60cd20490b1a307897b65197c00223b25984ca6c75cae",
+     "source": "open"
+    },
+    {
+     "path": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/trace_version.py",
+     "sha256": "fa84f3ae3418af43328b0bc216272f986afaf6752d617d64c384eaa2578497f9",
+     "source": "open"
+    }
+   ],
+   "artifact_files": [],
+   "environment_files": 0,
+   "strace": false
+  },
+  "A2": {
+   "status": "FAIL",
+   "summary": "model entries per item {1: 12}; 530 tokens fed that neither the model chose nor a registered handler emitted; 5 static findings",
+   "offenders": [
+    {
+     "item": "depth_dist_0",
+     "kind": "injected_token",
+     "token": 43,
+     "expected": 49,
+     "position": 87,
+     "stack": [
+      "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_decode.py:65 consume_cache_tokens",
+      "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_decode.py:472 _generate_one",
+      "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/tower_errors.py:30 decode",
+      "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_decode.py:452 generate",
+      "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/ground_context.py:62 wrapped",
+      "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/trace_format313.py:62 bound"
+     ],
+     "count": 530,
+     "items": [
+      "depth_dist_0",
+      "depth_dist_1",
+      "ground_0",
+      "ground_1",
+      "move_0",
+      "move_1",
+      "pose_0",
+      "pose_1",
+      "turn_0",
+      "turn_1"
+     ]
+    },
+    {
+     "item": "depth_dist_0",
+     "kind": "no_call_handler_registered_on_model",
+     "count": 10,
+     "items": [
+      "depth_dist_0",
+      "depth_dist_1",
+      "ground_0",
+      "ground_1",
+      "move_0",
+      "move_1",
+      "pose_0",
+      "pose_1",
+      "turn_0",
+      "turn_1"
+     ]
+    },
+    {
+     "rule": "A2.response_outside_model",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_batch_decode.py",
+     "line": 89,
+     "function": "Row.__init__",
+     "detail": "response text built outside a torch module method",
+     "text": "self.reserved = [self.tokenizer.convert_tokens_to_ids('<tool_response>'),"
+    },
+    {
+     "rule": "A2.response_outside_model",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_batch_decode.py",
+     "line": 90,
+     "function": "Row.__init__",
+     "detail": "response text built outside a torch module method",
+     "text": "self.tokenizer.convert_tokens_to_ids('</tool_response>'), model.carrier_id]"
+    },
+    {
+     "rule": "A2.response_outside_model",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_batch_decode.py",
+     "line": 142,
+     "function": "Row._call",
+     "detail": "response text built outside a torch module method",
+     "text": "wrapped = '\\n<tool_response>\\n' + text + '\\n</tool_response>' if self.ground_layout else '<tool_response>' + text + '</tool_response>'"
+    },
+    {
+     "rule": "A2.response_outside_model",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/p3_printed_calculator.py",
+     "line": 242,
+     "function": "PrintedPointRegistry.execute",
+     "detail": "response text built outside a torch module method",
+     "text": "\"injected_text\": \"<tool_response>\"+text+\"</tool_response>\"})"
+    },
+    {
+     "rule": "A2.response_outside_model",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/tests/test_carrier_c1_final.py",
+     "line": 288,
+     "function": "FakeTokenizer.encode",
+     "detail": "response text built outside a torch module method",
+     "text": "for key, word in ((43, '<tool_response>'), (44, '</tool_response>')):"
+    }
+   ],
+   "handlers": []
+  },
+  "A3": {
+   "status": "FAIL",
+   "summary": "66 findings in 22 call-path files {'A3.threshold': 13, 'A3.constant': 49, 'A3.unit_conversion': 4}",
+   "offenders": [
+    {
+     "rule": "A3.threshold",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/evalpath/runtime.py",
+     "line": 149,
+     "function": "generate",
+     "detail": "compares against 16384",
+     "text": "if max_new_tokens is not None and (type(max_new_tokens) is not int or max_new_tokens < 16384):"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/evalpath/runtime.py",
+     "line": 149,
+     "function": "generate",
+     "detail": "constant 16384",
+     "text": "if max_new_tokens is not None and (type(max_new_tokens) is not int or max_new_tokens < 16384):"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/camera_head.py",
+     "line": 126,
+     "function": "CameraHead.activate_fov",
+     "detail": "constant 0.0001",
+     "text": "return 1e-4 + (math.pi - 2e-4) * torch.sigmoid(value)"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/camera_head.py",
+     "line": 126,
+     "function": "CameraHead.activate_fov",
+     "detail": "constant 0.0002",
+     "text": "return 1e-4 + (math.pi - 2e-4) * torch.sigmoid(value)"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/camera_head.py",
+     "line": 182,
+     "function": "CameraHead.forward_with_extras",
+     "detail": "constant 1e-06",
+     "text": "raw_grav = F.normalize(grav_pred, dim=-1, eps=1e-6)"
+    },
+    {
+     "rule": "A3.threshold",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_batch_decode.py",
+     "line": 124,
+     "function": "Row._call",
+     "detail": "compares against MAX_CALL_TOKENS",
+     "text": "if self.active is not None and (tail.endswith('>') or len(ids) - self.active > D.MAX_CALL_TOKENS):"
+    },
+    {
+     "rule": "A3.threshold",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_batch_decode.py",
+     "line": 136,
+     "function": "Row._call",
+     "detail": "compares against max_calls",
+     "text": "if len(self.records) >= self.max_calls:"
+    },
+    {
+     "rule": "A3.threshold",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_decode.py",
+     "line": 83,
+     "function": "parse_head",
+     "detail": "compares against 32",
+     "text": "if not 1 <= frame <= 32:"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_decode.py",
+     "line": 83,
+     "function": "parse_head",
+     "detail": "constant 32",
+     "text": "if not 1 <= frame <= 32:"
+    },
+    {
+     "rule": "A3.threshold",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_decode.py",
+     "line": 87,
+     "function": "parse_head",
+     "detail": "compares against 20",
+     "text": "if any(not (20 <= x <= 980) for p in pts for x in p):"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_decode.py",
+     "line": 87,
+     "function": "parse_head",
+     "detail": "constant 20",
+     "text": "if any(not (20 <= x <= 980) for p in pts for x in p):"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_decode.py",
+     "line": 87,
+     "function": "parse_head",
+     "detail": "constant 980",
+     "text": "if any(not (20 <= x <= 980) for p in pts for x in p):"
+    },
+    {
+     "rule": "A3.threshold",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_decode.py",
+     "line": 91,
+     "function": "parse_head",
+     "detail": "compares against 32",
+     "text": "if any(not 1 <= k <= 32 for k in frames):"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_decode.py",
+     "line": 91,
+     "function": "parse_head",
+     "detail": "constant 32",
+     "text": "if any(not 1 <= k <= 32 for k in frames):"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_decode.py",
+     "line": 204,
+     "function": "HeadState.depth",
+     "detail": "constant 500.0",
+     "text": "uv = torch.full((self.depth_map.shape[0], len(points), 2), 500., device=self.depth_map.device)"
+    },
+    {
+     "rule": "A3.threshold",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_decode.py",
+     "line": 291,
+     "function": "_prepare_decode",
+     "detail": "compares against 16384",
+     "text": "if max_new_tokens is not None and (type(max_new_tokens) is not int or max_new_tokens < 16384):"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_decode.py",
+     "line": 291,
+     "function": "_prepare_decode",
+     "detail": "constant 16384",
+     "text": "if max_new_tokens is not None and (type(max_new_tokens) is not int or max_new_tokens < 16384):"
+    },
+    {
+     "rule": "A3.unit_conversion",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_routing.py",
+     "line": 119,
+     "function": "wrap",
+     "detail": "identifier deg",
+     "text": "return (deg + 180) % 360 - 180 if (deg + 180) % 360 else 180"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_routing.py",
+     "line": 119,
+     "function": "wrap",
+     "detail": "constant 180",
+     "text": "return (deg + 180) % 360 - 180 if (deg + 180) % 360 else 180"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_routing.py",
+     "line": 119,
+     "function": "wrap",
+     "detail": "constant 360",
+     "text": "return (deg + 180) % 360 - 180 if (deg + 180) % 360 else 180"
+    },
+    {
+     "rule": "A3.threshold",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_routing.py",
+     "line": 201,
+     "function": "level_basis",
+     "detail": "compares against 1e-06",
+     "text": "if np.linalg.norm(forward) < 1e-6:"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_routing.py",
+     "line": 201,
+     "function": "level_basis",
+     "detail": "constant 1e-06",
+     "text": "if np.linalg.norm(forward) < 1e-6:"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_routing.py",
+     "line": 224,
+     "function": "OwnGeometry.__init__",
+     "detail": "constant 32",
+     "text": "if self.p.shape != (32, 9) or not np.isfinite(self.p).all():"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_routing.py",
+     "line": 224,
+     "function": "OwnGeometry.__init__",
+     "detail": "constant 9",
+     "text": "if self.p.shape != (32, 9) or not np.isfinite(self.p).all():"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_routing.py",
+     "line": 229,
+     "function": "OwnGeometry.__init__",
+     "detail": "constant 32",
+     "text": "if self.fov_override is not None and (self.fov_override.shape != (32, 2) or not np.isfinite(self.fov_override).all()):"
+    },
+    {
+     "rule": "A3.threshold",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_routing.py",
+     "line": 233,
+     "function": "OwnGeometry.__init__",
+     "detail": "compares against 1e-06",
+     "text": "if up.shape != (3,) or not np.isfinite(up).all() or np.linalg.norm(up) < 1e-6:"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_routing.py",
+     "line": 233,
+     "function": "OwnGeometry.__init__",
+     "detail": "constant 1e-06",
+     "text": "if up.shape != (3,) or not np.isfinite(up).all() or np.linalg.norm(up) < 1e-6:"
+    },
+    {
+     "rule": "A3.threshold",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_routing.py",
+     "line": 241,
+     "function": "OwnGeometry.camera",
+     "detail": "compares against 32",
+     "text": "if type(k) is not int or not 1 <= k <= 32:"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_routing.py",
+     "line": 241,
+     "function": "OwnGeometry.camera",
+     "detail": "constant 32",
+     "text": "if type(k) is not int or not 1 <= k <= 32:"
+    },
+    {
+     "rule": "A3.threshold",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_routing.py",
+     "line": 246,
+     "function": "OwnGeometry.camera",
+     "detail": "compares against 1e-06",
+     "text": "if np.linalg.norm(q) < 1e-6:"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_routing.py",
+     "line": 246,
+     "function": "OwnGeometry.camera",
+     "detail": "constant 1e-06",
+     "text": "if np.linalg.norm(q) < 1e-6:"
+    },
+    {
+     "rule": "A3.unit_conversion",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_routing.py",
+     "line": 264,
+     "function": "OwnGeometry.pose",
+     "detail": "identifier yaw_degree",
+     "text": "yaw_degree=round(math.degrees(math.atan2(-level[0][2], level[2][2]))))"
+    },
+    {
+     "rule": "A3.unit_conversion",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_routing.py",
+     "line": 264,
+     "function": "OwnGeometry.pose",
+     "detail": "identifier degrees",
+     "text": "yaw_degree=round(math.degrees(math.atan2(-level[0][2], level[2][2]))))"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_routing.py",
+     "line": 274,
+     "function": "OwnGeometry.click",
+     "detail": "constant 999.9",
+     "text": "points = np.clip(uv[None] + STENCIL, 0, 999.9)"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_routing.py",
+     "line": 278,
+     "function": "OwnGeometry.click",
+     "detail": "constant 20",
+     "text": "p20, p30, p50, p80 = (np.percentile(values, q) for q in (20, 30, 50, 80))"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_routing.py",
+     "line": 278,
+     "function": "OwnGeometry.click",
+     "detail": "constant 30",
+     "text": "p20, p30, p50, p80 = (np.percentile(values, q) for q in (20, 30, 50, 80))"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_routing.py",
+     "line": 278,
+     "function": "OwnGeometry.click",
+     "detail": "constant 50",
+     "text": "p20, p30, p50, p80 = (np.percentile(values, q) for q in (20, 30, 50, 80))"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_routing.py",
+     "line": 278,
+     "function": "OwnGeometry.click",
+     "detail": "constant 80",
+     "text": "p20, p30, p50, p80 = (np.percentile(values, q) for q in (20, 30, 50, 80))"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_routing.py",
+     "line": 279,
+     "function": "OwnGeometry.click",
+     "detail": "constant 0.001",
+     "text": "spread = (p80 - p20) / max(p50, 1e-3)"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_routing.py",
+     "line": 281,
+     "function": "OwnGeometry.click",
+     "detail": "constant 500",
+     "text": "ray = np.array([(uv[0] / 500 - 1) * math.tan(horizontal / 2), (uv[1] / 500 - 1) * math.tan(vertical / 2), 1.])"
+    },
+    {
+     "rule": "A3.unit_conversion",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_routing.py",
+     "line": 300,
+     "function": "OwnGeometry.turn_text",
+     "detail": "identifier degrees",
+     "text": "turn = wrap(round(math.degrees(math.atan2(a[0] * b[1] - a[1] * b[0], float(a @ b)))))"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/decoupled_v.py",
+     "line": 111,
+     "function": "features",
+     "detail": "constant 33",
+     "text": "all_frames = anchors == list(range(1, 33))"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/decoupled_v.py",
+     "line": 116,
+     "function": "features",
+     "detail": "constant 33",
+     "text": "allowed = tuple(range(1, 33)) if allow_short else (32,)"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/decoupled_v.py",
+     "line": 116,
+     "function": "features",
+     "detail": "constant 32",
+     "text": "allowed = tuple(range(1, 33)) if allow_short else (32,)"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/decoupled_v.py",
+     "line": 117,
+     "function": "features",
+     "detail": "constant 8",
+     "text": "if n not in (allowed if single_slot else ((4, 8, 12, 16) if allow_short else (16,))):"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/decoupled_v.py",
+     "line": 117,
+     "function": "features",
+     "detail": "constant 12",
+     "text": "if n not in (allowed if single_slot else ((4, 8, 12, 16) if allow_short else (16,))):"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/decoupled_v.py",
+     "line": 117,
+     "function": "features",
+     "detail": "constant 16",
+     "text": "if n not in (allowed if single_slot else ((4, 8, 12, 16) if allow_short else (16,))):"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/decoupled_v.py",
+     "line": 120,
+     "function": "features",
+     "detail": "constant 16",
+     "text": "if n != 16 or single_slot:"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/ground_context.py",
+     "line": 44,
+     "function": "from_row",
+     "detail": "constant 32",
+     "text": "mapping=FrameMap(tuple(indices),rgb_sha256=hashes) if len(indices)==32 else None"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/p3_printed_calculator.py",
+     "line": 55,
+     "function": "_decimal_context.call",
+     "detail": "constant 1024",
+     "text": "with localcontext(Context(prec=1024, rounding=ROUND_HALF_EVEN)):"
+    },
+    {
+     "rule": "A3.threshold",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/p3_printed_calculator.py",
+     "line": 159,
+     "function": "PrintedPointRegistry.register",
+     "detail": "compares against 32",
+     "text": "_require(all(type(k) is int and 1 <= k <= 32 for k in (requested_frame, actual_frame)),"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/p3_printed_calculator.py",
+     "line": 159,
+     "function": "PrintedPointRegistry.register",
+     "detail": "constant 32",
+     "text": "_require(all(type(k) is int and 1 <= k <= 32 for k in (requested_frame, actual_frame)),"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/point_depth_head.py",
+     "line": 86,
+     "function": "sincos_2d",
+     "detail": "constant 1000.0",
+     "text": "freqs = torch.exp(torch.arange(quarter, device=device, dtype=torch.float32) * (-math.log(1000.0) / max(1, quarter)))"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/point_depth_head.py",
+     "line": 90,
+     "function": "sincos_2d",
+     "detail": "constant 16",
+     "text": "angles_y = 2 * math.pi * grid_y.reshape(-1, 1) * freqs * 16"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/point_depth_head.py",
+     "line": 91,
+     "function": "sincos_2d",
+     "detail": "constant 16",
+     "text": "angles_x = 2 * math.pi * grid_x.reshape(-1, 1) * freqs * 16"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/point_depth_head.py",
+     "line": 189,
+     "function": "PointDepthHead.encode",
+     "detail": "constant 0.1",
+     "text": "fov = fov_hw.float().clamp(0.1, math.pi - 0.1)"
+    },
+    {
+     "rule": "A3.threshold",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/point_depth_head.py",
+     "line": 207,
+     "function": "PointDepthHead.query",
+     "detail": "compares against 1000",
+     "text": "if not torch.isfinite(uv).all() or torch.any(uv < 0) or torch.any(uv > 1000):"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/point_depth_head.py",
+     "line": 207,
+     "function": "PointDepthHead.query",
+     "detail": "constant 1000",
+     "text": "if not torch.isfinite(uv).all() or torch.any(uv < 0) or torch.any(uv > 1000):"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/point_depth_head.py",
+     "line": 215,
+     "function": "PointDepthHead.query",
+     "detail": "constant 1000.0",
+     "text": "phase_x = uv[..., 0] / 1000.0 * width - 0.5"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/point_depth_head.py",
+     "line": 216,
+     "function": "PointDepthHead.query",
+     "detail": "constant 1000.0",
+     "text": "phase_y = uv[..., 1] / 1000.0 * height - 0.5"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/point_depth_head.py",
+     "line": 262,
+     "function": "sample_points",
+     "detail": "constant 500.0",
+     "text": "x, y = uv[..., 0] / 500.0 - 1.0, uv[..., 1] / 500.0 - 1.0"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/point_depth_head.py",
+     "line": 313,
+     "function": "vit_grids_by_row",
+     "detail": "constant 5",
+     "text": "result.append(units.permute(0, 1, 3, 2, 4, 5).reshape(t, h, w, dim))"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/tests/test_carrier_c1_final.py",
+     "line": 288,
+     "function": "FakeTokenizer.encode",
+     "detail": "constant 43",
+     "text": "for key, word in ((43, '<tool_response>'), (44, '</tool_response>')):"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/tests/test_carrier_c1_final.py",
+     "line": 288,
+     "function": "FakeTokenizer.encode",
+     "detail": "constant 44",
+     "text": "for key, word in ((43, '<tool_response>'), (44, '</tool_response>')):"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/tests/test_carrier_c1_final.py",
+     "line": 292,
+     "function": "FakeTokenizer.encode",
+     "detail": "constant 50",
+     "text": "out.append(50 + ord(text[0]) % 10); text = text[1:]"
+    },
+    {
+     "rule": "A3.constant",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/tests/test_carrier_c1_final.py",
+     "line": 292,
+     "function": "FakeTokenizer.encode",
+     "detail": "constant 10",
+     "text": "out.append(50 + ord(text[0]) % 10); text = text[1:]"
+    }
+   ],
+   "scope_files": [
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/evalpath/__init__.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/evalpath/runtime.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/camera_head.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/camera_targets.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_batch_decode.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_decode.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_routing.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/decoupled_v.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/decoupled_vc.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/ground_context.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/ground_lifting.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/mdg_decode.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/mdg_lora.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/p3_heads.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/p3_printed_calculator.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/point_depth_head.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/scripted_calls.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/tower_errors.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/trace_format313.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/trace_version.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/tests/test_carrier_c1_final.py"
+   ]
+  },
+  "A4": {
+   "status": "FAIL",
+   "summary": "11 offender groups (10 static)",
+   "offenders": [
+    {
+     "item": "pose_0",
+     "kind": "response_without_head",
+     "call": "<pose frame=40>",
+     "response": "error: bad_frame",
+     "count": 4,
+     "items": [
+      "ground_0",
+      "ground_1",
+      "pose_0",
+      "pose_1"
+     ]
+    },
+    {
+     "rule": "A4.status_literal",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_batch_decode.py",
+     "line": 156,
+     "function": "Row.record",
+     "detail": "string 'error'",
+     "text": "generated_tokens=len(self.ids), errors=sum(r['kind'] == 'error' or r.get('verify_error',False) for r in self.records))"
+    },
+    {
+     "rule": "A4.except_substitute",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_decode.py",
+     "line": 244,
+     "function": "respond",
+     "detail": "except-handler returns a substitute",
+     "text": "return f'error: {exc.code}', dict(kind='error', code=exc.code)"
+    },
+    {
+     "rule": "A4.status_literal",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_decode.py",
+     "line": 244,
+     "function": "respond",
+     "detail": "string 'error: '",
+     "text": "return f'error: {exc.code}', dict(kind='error', code=exc.code)"
+    },
+    {
+     "rule": "A4.status_literal",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_decode.py",
+     "line": 244,
+     "function": "respond",
+     "detail": "string 'error'",
+     "text": "return f'error: {exc.code}', dict(kind='error', code=exc.code)"
+    },
+    {
+     "rule": "A4.except_substitute",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_decode.py",
+     "line": 248,
+     "function": "respond",
+     "detail": "except-handler returns a substitute",
+     "text": "return f'error: {exc}', dict(kind='error', code='head_readout')"
+    },
+    {
+     "rule": "A4.status_literal",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_decode.py",
+     "line": 248,
+     "function": "respond",
+     "detail": "string 'error: '",
+     "text": "return f'error: {exc}', dict(kind='error', code='head_readout')"
+    },
+    {
+     "rule": "A4.status_literal",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_decode.py",
+     "line": 248,
+     "function": "respond",
+     "detail": "string 'error'",
+     "text": "return f'error: {exc}', dict(kind='error', code='head_readout')"
+    },
+    {
+     "rule": "A4.status_literal",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_decode.py",
+     "line": 499,
+     "function": "ground_layout_for",
+     "detail": "string 'error'",
+     "text": "return trace313.active() or state.ground_backend is not None or state.verify_session is not None or state.rereader is not None or (info['kind'] in ('ground','ga"
+    },
+    {
+     "rule": "A4.guard",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_decode.py",
+     "line": 516,
+     "function": "respond_state",
+     "detail": "identifier fallback",
+     "text": "context.fallback=(lambda name:state.rereader.ground(name,registry)) if state.rereader is not None else (lambda name:heads.ground(name,registry))"
+    },
+    {
+     "rule": "A4.guard",
+     "file": "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_decode.py",
+     "line": 526,
+     "function": "respond_state",
+     "detail": "identifier fallback",
+     "text": "return respond(call_text,registry,state.geometry,context.fallback,gapper)"
+    }
+   ]
+  },
+  "A5": {
+   "status": "FAIL",
+   "summary": "parts {'iii': 'PASS', 'i': 'FAIL', 'ii': 'PASS'}",
+   "offenders": [
+    {
+     "kind": "sandboxed_run_failed",
+     "returncode": 1,
+     "stderr_tail": "_64-gnu/lib/python3.12/pathlib.py\", line 1047, in write_text\n    with self.open(mode='w', encoding=encoding, errors=errors, newline=newline) as f:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nOSError: [Errno 30] Read-only file system: '/scratch/jjyeung/orch_n30/b03_e2etest/work/c8r_tiny/artifact/ARTIFACT.json'\n"
+    }
+   ],
+   "parts": {
+    "iii": "PASS",
+    "i": "FAIL",
+    "ii": "PASS"
+   },
+   "cache_proof": null
+  }
+ },
+ "overall": "FAIL",
+ "per_type": {
+  "depth_dist": {
+   "items": 2,
+   "call_rate": 1.0,
+   "calls_per_item": 2.0,
+   "heads_behind_fields": {
+    "camera_points": {
+     "pose_head,depth_head": 2
+    },
+    "distance": {
+     "pose_head,depth_head": 2
+    }
+   },
+   "seconds_mean": 0.776297306525521,
+   "seconds_median": 0.776297306525521,
+   "seconds_max": 0.8167028231546283,
+   "errors": 0
+  },
+  "direct": {
+   "items": 2,
+   "call_rate": 0.0,
+   "calls_per_item": 0.0,
+   "heads_behind_fields": {},
+   "seconds_mean": 0.1619558425154537,
+   "seconds_median": 0.1619558425154537,
+   "seconds_max": 0.1636993840802461,
+   "errors": 0
+  },
+  "ground": {
+   "items": 2,
+   "call_rate": 1.0,
+   "calls_per_item": 1.0,
+   "heads_behind_fields": {
+    "(unattributed)": {
+     "none": 2
+    }
+   },
+   "seconds_mean": 0.3320189466467127,
+   "seconds_median": 0.3320189466467127,
+   "seconds_max": 0.3599625991191715,
+   "errors": 0
+  },
+  "move": {
+   "items": 2,
+   "call_rate": 1.0,
+   "calls_per_item": 1.0,
+   "heads_behind_fields": {
+    "move": {
+     "pose_head": 2
+    }
+   },
+   "seconds_mean": 0.3250838960520923,
+   "seconds_median": 0.3250838960520923,
+   "seconds_max": 0.3276536790654063,
+   "errors": 0
+  },
+  "pose": {
+   "items": 2,
+   "call_rate": 1.0,
+   "calls_per_item": 1.0,
+   "heads_behind_fields": {
+    "(unattributed)": {
+     "none": 2
+    }
+   },
+   "seconds_mean": 0.15607140655629337,
+   "seconds_median": 0.15607140655629337,
+   "seconds_max": 0.1621027891524136,
+   "errors": 0
+  },
+  "turn": {
+   "items": 2,
+   "call_rate": 1.0,
+   "calls_per_item": 1.0,
+   "heads_behind_fields": {
+    "turn": {
+     "pose_head": 2
+    }
+   },
+   "seconds_mean": 0.14584761741571128,
+   "seconds_median": 0.14584761741571128,
+   "seconds_max": 0.14806098490953445,
+   "errors": 0
+  }
+ },
+ "suppressed": [],
+ "perturbation": {
+  "status": "PASS",
+  "modules": {
+   "depth_head": {
+    "role": "head",
+    "responses_naming": 2,
+    "naming_changed": 2,
+    "others": 8,
+    "others_changed": 0
+   },
+   "pose_head": {
+    "role": "head",
+    "responses_naming": 6,
+    "naming_changed": 6,
+    "others": 4,
+    "others_changed": 0
+   }
+  },
+  "offenders": [],
+  "seeds": [
+   1,
+   2,
+   3
+  ]
+ },
+ "declared_modules": [
+  {
+   "path": "",
+   "role": "lm",
+   "name": "lm"
+  },
+  {
+   "path": "auxiliary_heads.depth",
+   "role": "head",
+   "name": "depth_head"
+  },
+  {
+   "path": "auxiliary_heads.pose",
+   "role": "head",
+   "name": "pose_head"
+  },
+  {
+   "path": "eat1_program_policy",
+   "role": "lm",
+   "name": "program_policy"
+  },
+  {
+   "path": "model.visual",
+   "role": "vit",
+   "name": "vit"
+  }
+ ],
+ "executed_scope": {
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/evalpath/__init__.py": 2,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/evalpath/runtime.py": 19,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/trace_format313.py": 12,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/trace_version.py": 8,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/ground_context.py": 15,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/mdg_lora.py": 25,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_decode.py": 228,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/scripted_calls.py": 11,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/tower_errors.py": 4,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1.py": 10,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/mdg_decode.py": 2,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/camera_head.py": 62,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/decoupled_v.py": 15,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/decoupled_vc.py": 16,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/p3_heads.py": 30,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/point_depth_head.py": 87,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_routing.py": 61,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/ground_lifting.py": 2,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/carrier_c1_batch_decode.py": 61,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/tests/test_carrier_c1_final.py": 9,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/p3_printed_calculator.py": 67,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/audit_copies/tree_b01ce449/student_pilot/camera_targets.py": 4
+ }
+}

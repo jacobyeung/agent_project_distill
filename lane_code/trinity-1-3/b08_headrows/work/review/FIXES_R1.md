@@ -1,0 +1,12 @@
+# Fixes for REVIEW_VERDICT_ASSIGN (Codex gpt-6-astra, NO-GO, 10 findings) — assign.py 177c4765..., tests 17 OK
+1. Options: exact single uppercase letter strings (`[A-Z]`), pred == answer; 'Banana', 'B.', None/None are wrong. Test test_options_and_counts_exact.
+2. Counts: exact digit strings, pred == answer (no float); '3.0', '3.0000000000000001', '03', 2^53+1 are wrong. Same test.
+3. Every operand needs GT: operands = item.operands (else GT keys); set(gt) must equal operands, each non-empty; selected keys must equal GT keys; duplicates and 'unmatched' fail. Test test_every_operand_needs_gt.
+4. Eligibility checks every identifier: (dataset, scene) and the resolved canonical capture through sealed Exclusions.matches; room, physical_group, native, canonical and canonical room through Exclusions.key against dev/benchmark names; scene prefix must agree with dataset; canonical resolved via rows_a2 alias_map.json (488480ab) or native form, unresolvable/ambiguous -> refuse. Added R0 reserve (R0_ROOMS.txt bdb5d402, R0_SCENES.json f7c45817; ORCH 1307Z). Tests test_every_identifier_is_checked, test_refuses_dev_benchmark_withheld_r0, test_alias_resolves_to_same_room.
+5. Status: must be a string; success only 'ok' exactly; real failure only when every line fullmatches '<name>: not seen'; everything else drops. Test test_statuses.
+6. Provenance: pipeline non-empty string, pipeline_sha256 64 lowercase hex. Test test_provenance_and_record.
+7. Per-room cap keys on the canonical physical room (room_key), so aliases share one cap; cap <= 2000, recovery_cap <= 2000, per_room <= 4 enforced (ValueError). Tests test_room_aliases_share_one_cap, test_select_minority_caps_and_room_limit.
+8. Numeric: Decimal arithmetic (0.85 vs 1 is inside); non-positive GT -> drop 'nonpositive_gt'. Test test_numeric_tolerance.
+9. Count answers now exact strings, matching ground_rows.validate's str(answer) == str(gt_answer).
+10. Head and recovery require the Session record ground_rows.pack consumes: RECORD_FIELDS present, qid/type equal, events[{call, response}] each found in suffix in order as call+'\n'+response; head: record answer == pred, record gt_answer == item answer, not not_seen, suffix ends '\n</think>\n<answer>A</answer>'; recovery: first status line in suffix. Failures drop. Test test_provenance_and_record.
+Dev-S1 recheck: all 6,161 dev-S1 program items still refused (dev_s1). R0 removed from my sets: 0 (no rows built yet).

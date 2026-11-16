@@ -35,7 +35,7 @@ KINDS = ('file', 'gcs', 'orchard')
 MANIFEST = 'PINS.json'
 CONFIG = 'CONFIG.json'
 HEX64 = re.compile(r'(?<![0-9a-fA-F])[0-9a-f]{64}(?![0-9a-fA-F])')
-HEX_FULL = re.compile(r'^[0-9a-f]{64}$')
+HEX_FULL = re.compile(r'^[0-9a-f]{64}\Z')
 DEFAULT_ALLOW = (('CONFIG.json', 'records[].sha256'),)
 ZERO = '0' * 64
 

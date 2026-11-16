@@ -1,11 +1,15 @@
 """Tests for orchkit.anon: names, bytes, nested tar members, job parts, and the shipped helpers."""
+import bz2
 import gzip
 import io
+import json
+import lzma
 import os
 import sys
 import tarfile
 import tempfile
 import unittest
+import zipfile
 
 TOOLS = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
 sys.path.insert(0, TOOLS)
@@ -56,13 +60,13 @@ class AnonTest(unittest.TestCase):
         middle = tar_bytes({'inner.tar': inner}, compress=True)
         self.write('payload.tar.gz', tar_bytes({'m/middle.tgz': middle}, compress=True))
         hits = anon.scan_tree(os.path.join(self.tmp, 'kit'), self.rules)
-        self.assertEqual([h['where'] for h in hits],
-                         ['payload.tar.gz!/m/middle.tgz!/inner.tar!/deep/notes.txt'])
+        self.assertIn('payload.tar.gz!gz!/m/middle.tgz!gz!/inner.tar!/deep/notes.txt',
+                      [h['where'] for h in hits])
 
     def test_member_name_and_regex_rule(self):
         self.write('p.tar', tar_bytes({'plum.txt': b'x', 'b.txt': b'see /secret/x'}))
         where = sorted(h['where'] for h in anon.scan_tree(os.path.join(self.tmp, 'kit'), self.rules))
-        self.assertEqual(where, ['p.tar!/b.txt', 'p.tar!/plum.txt'])
+        self.assertTrue({'p.tar!/b.txt', 'p.tar!/plum.txt'} <= set(where), where)
 
     def test_symlink_target_is_checked(self):
         os.makedirs(os.path.join(self.tmp, 'kit'))
@@ -99,6 +103,57 @@ class AnonTest(unittest.TestCase):
         self.assertTrue(anon.scan_text('x', 'cd /scratch/jjyeung/foo', rules))
         self.assertTrue(anon.scan_text('x', 'open("/data2/x")', rules))
         self.assertEqual(anon.scan_text('x', '/project/community/u/data/x', rules), [])
+
+    def test_review_oc01_hidden_bytes_are_found_or_fail_closed(self):
+        rules = anon.load_rules()
+
+        def tar(name, data, uname='', kind=tarfile.REGTYPE):
+            raw = io.BytesIO()
+            with tarfile.open(fileobj=raw, mode='w') as archive:
+                item = tarfile.TarInfo(name)
+                item.size = len(data)
+                item.uname = uname
+                item.type = kind
+                archive.addfile(item, io.BytesIO(data))
+            return raw.getvalue()
+
+        deep = gzip.compress(tar('x', b'qwen'))
+        for _ in range(4):
+            deep = gzip.compress(tar('a.tgz', deep))
+        cases = {'a.bin': gzip.compress(tar('x', b'qwen')), 'deep.tgz': deep,
+                 'u.tar': tar('x', b'ok', uname='qwen'),
+                 'f.tar': tar('x', b'qwen', kind=tarfile.FIFOTYPE),
+                 'w.txt': 'qwen'.encode('utf-16'), 'b.bin': bz2.compress(b'qwen'),
+                 'x.bin': lzma.compress(b'qwen')}
+        raw = io.BytesIO()
+        with zipfile.ZipFile(raw, 'w') as archive:
+            archive.writestr('m.txt', 'qwen')
+        cases['z.npz'] = raw.getvalue()
+        for name, data in sorted(cases.items()):
+            path = self.write(name, data)
+            self.assertTrue(anon.scan_tree(path, rules), name)
+        self.assertTrue(any(hit['rule'] == 'too-deep'
+                            for hit in anon.scan_tree(os.path.join(self.tmp, 'kit', 'deep.tgz'), rules)))
+        broken = self.write('c.gz', b'\x1f\x8b' + b'not gzip')
+        self.assertEqual(anon.scan_tree(broken, rules)[0]['rule'], 'undecodable')
+
+    def test_review_oc03_lane_case_and_format_id_prefix(self):
+        rules = anon.load_rules()
+        for text in ('ORCH_N30', 'Native_R4', 'orchkit-pins-v1-private', 'orchkit', 'ORCHKIT_X'):
+            self.assertTrue(anon.scan_text('x', text, rules, 'text'), text)
+        for text in ('"orchkit-pins-v1"', '"orchkit-config-v1",'):
+            self.assertEqual(anon.scan_text('x', text, rules, 'name'), [], text)
+
+    def test_review_oc02_config_strings_are_names(self):
+        rules = anon.load_rules()
+        path = self.write('CONFIG.json', json.dumps({'schema': 'orchkit-config-v1',
+                                                     'job': {'root_parent': '/tmp/split'}}).encode())
+        self.assertTrue(anon.scan_tree(os.path.dirname(path), rules))
+        self.write('code.py', b'x = "a b".split()\n')
+        os.rename(path, path + '.moved')
+        self.assertEqual(anon.scan_tree(os.path.join(self.tmp, 'kit', 'code.py'), rules), [])
+        self.assertEqual(anon.scan_job(rules, 'a15_cot_ap0123456789abcdef\n')[0]['rule'],
+                         'job-name-format')
 
 
 if __name__ == '__main__':

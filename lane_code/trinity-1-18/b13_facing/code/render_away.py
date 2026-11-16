@@ -12,8 +12,9 @@ so that the relation it states after the turn maps to the row's own answer lette
       in band words, written between the half-turn clause and the conclusion.
   rc  (class c, one axis only)  per-level rules written out: for hard and medium, one line per axis
       (front/back or band, then left/right) for this item; easy keeps the source form.
+  rab, rac  ra's phrasings combined with rb's turned-relation line or rc's per-axis lines.
 
-Usage: render_away.py --src facing_v5.jsonl.gz --kind ra|rb|rc --out DIR
+Usage: render_away.py --src facing_v5.jsonl.gz --kind ra|rb|rc|rab|rac --out DIR
 """
 import argparse
 import collections
@@ -124,7 +125,10 @@ def render(row, kind):
         raise ValueError('label: turned relation %r does not map to answer %r' % (turned, option_content(row)))
     new = dict(row)
     si = dict(row['student_input'])
-    if kind == 'ra':
+    parts = set(kind[1:])
+    if not kind.startswith('r') or not parts or not parts <= set('abc') or parts == set('bc'):
+        raise ValueError(kind)
+    if 'a' in parts:
         q = si['question']
         found = [p for p in SOURCE_PHRASES if ' and %s the %s,' % (p, n['F']) in q]
         if len(found) != 1:
@@ -134,9 +138,9 @@ def render(row, kind):
         si['question'] = q.replace(' and %s the %s,' % (found[0], n['F']), ' and %s the %s,' % (phrase, n['F']), 1)
         lines = lines[:2] + ['%s the %s.%s' % (echo, n['F'], HALF_TAIL)] + lines[3:]
         new['rendering_phrase'] = phrase
-    elif kind == 'rb':
+    if 'b' in parts:
         lines = lines[:3] + ['After the half turn, the %s is %s.' % (n['Q'], words(level, turned))] + lines[3:]
-    elif kind == 'rc':
+    if 'c' in parts:
         fb, side = rel
         tfb, tside = turned
         if level == 'hard':
@@ -150,8 +154,6 @@ def render(row, kind):
         else:
             axis = []
         lines = lines[:3] + axis + lines[3:]
-    else:
-        raise ValueError(kind)
     new['student_input'] = si
     new['target'] = '<think>\n' + '\n'.join(lines) + '\n</think>\n\n' + row['answer']
     prov = dict(row.get('provenance') or {})
@@ -159,7 +161,7 @@ def render(row, kind):
                              source_question_sha256=h(row['student_input']['question']))
     new['provenance'] = prov
     new.pop('rendering_phrase', None)
-    if kind == 'ra':
+    if 'a' in parts:
         prov['rendering']['phrase'] = phrase
     return new
 
@@ -167,7 +169,7 @@ def render(row, kind):
 def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('--src', required=True)
-    p.add_argument('--kind', required=True, choices=('ra', 'rb', 'rc'))
+    p.add_argument('--kind', required=True, choices=('ra', 'rb', 'rc', 'rab', 'rac'))
     p.add_argument('--out', required=True)
     a = p.parse_args(argv)
     out = Path(a.out)
@@ -183,7 +185,7 @@ def main(argv=None):
             if row['facing'] == 'away':
                 new = render(row, a.kind)
                 stats['away_rewritten'] += 1
-                if a.kind == 'ra':
+                if 'a' in a.kind[1:]:
                     phrases[(level_of(row), new['provenance']['rendering']['phrase'])] += 1
             else:
                 new = row

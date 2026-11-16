@@ -25,6 +25,34 @@ serve calls and the worker takes the reader as a parameter:
 Read `/data2/jjyeung/agent_project_data/distill_design/ARCHITECTURE_CURRENT.md` (the model and its
 call grammar) first.
 
+## Binding rulings (USER and orchestrator, 2026-11-16; these win over the rest of this brief)
+- ReVSI first. Build, test and rehearse the `revsi999t32` path to completion before `vsibench5130`; if
+  you run short of time, ReVSI is finished and VSI-Bench is listed as not done in NATIVE_KIT_READY.md.
+- Frame count is a parameter. Add `--frames {32,64}` and `--frame-layout {duplicate,spread}` and bind
+  them through `offkit.frames.bind_frames(count, layout, export=..., export_layout=..., override_reason=...)`
+  (new module, tests in `kit/tests/test_frames.py`). Store its dict as `read_config.frames` in the binding
+  (orchkit-read-v1 `frames` form) and pass count and layout to the evaluator's `sample_video(max_frames_num=)`
+  and `frame_list(..., layout, frames=)`. Step 544 trains on 32 duplicated anchors, so 64 on step 544 is
+  refused unless an override reason is given; a D0 `.done` export supplies its layout. The G3T dense read
+  stays as pre-registered. SIZING.md states the cost of 64 (spread) against 32 (duplicate): visual tokens,
+  tower seconds, decode seconds and H100-hours per benchmark.
+- Answers are the model's. No reader, wrapper, server or post-processor converts units or reformats an
+  answer; the official scorer's strict parse of the model's final answer is the only step between the
+  model and the score. If C8r or V1c code converts or rewrites an answer, disable that path in this kit,
+  list file and line in DIFF, and add a test that a model answer reaches the scorer byte-equal. Tower
+  outputs a call returns (metres, boxes) are call responses and stay as C8r serves them.
+- One reader core. Lane b04 (`/scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader/`) owns the end-to-end
+  reader core and the shared harness `tools/orchkit/reader/` will own read drivers. Do not fork a scorer
+  or a rule: scoring, aggregation, labels and binding are imported from `offkit` (which b04 also
+  imports). Keep the worker's own code to staging, phase orchestration and journals, put it behind one
+  `Reader` interface (`direct`, `harness`, `e2e` implement it; `e2e` delegates to b04's `generate`), and
+  write in NATIVE_KIT_READY.md how each module would map onto `tools/orchkit/reader/read.py` and an
+  orchkit-read-v1 config (`briefs/eff/INTERFACES.md` under
+  `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/`; read it once).
+- Build R (`/scratch/jjyeung/orch_n30/b07_offread/builds/R/`, direct-only re-bind, finished) is the
+  direct mode; reuse its staging, Orchard naming, governed fetch and rehearsal patterns rather than
+  writing new ones, and do not modify its files.
+
 ## Sources (read-only)
 1. Binding and report layer (import, do not copy or change): `/scratch/jjyeung/orch_n30/b07_offread/kit/offkit/`
    - `bind.bind(benchmark, export, reader, ...)` returns BINDING (groups, items, arms, export, reader,

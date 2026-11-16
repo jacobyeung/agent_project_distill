@@ -180,7 +180,7 @@ def build_return(root,runroot,dest,config,rc,failure,phase_error=None,return_err
         if not (dest/'STAGING.json').exists():dump(dest/'STAGING.json',dict(unavailable=True))
         if not (dest/'PHASES.json').exists():dump(dest/'PHASES.json',[])
     if phase_error or return_error:
-        dump(dest/'FAILURE.json',dict(error=failure,phase_error=phase_error,return_error=return_error))
+        dump(dest/'FAILURE.json',dict(error=failure or (phase_error or {}).get('error'),phase_error=phase_error,return_error=return_error))
         if (runroot/'FAILURE.json').exists():selected['FAILURE.json']=runroot/'FAILURE.json'
     dump(dest/'INVENTORY.json',inventory(runroot,selected))
     partial=True
@@ -193,6 +193,8 @@ def build_return(root,runroot,dest,config,rc,failure,phase_error=None,return_err
 def finish_return(module,root,runroot,config,rc,failure,phase_error=None):
     """A return failure must not hide the phase error or bypass both channels."""
     try:
+        if phase_error is None and (runroot/'FAILURE.json').is_file():
+            phase_error=load(runroot/'FAILURE.json').get('phase_error')
         source=build_return(root,runroot,root/'return',config,rc,failure,phase_error)
         try:
             value=publish_read(module,source,config['token'],config['binding'],rc)
@@ -307,11 +309,14 @@ def run(config_path):
         result=load(runroot/'RESULT.json');result['segments']=[Path(p).name for p in resume]+[segment];dump(runroot/'RESULT.json',result)
     except BaseException as error:
         failure=str(error);phase_error=exception_record(error);rc=rc or 1
-        dump(runroot/'FAILURE.json',dict(error=failure,phase_error=phase_error,return_error=None))
-        journals=sorted(runroot.glob('j*/COMPLETE.json'))
-        done={k for p in journals for k in load(p).get('keys',[])}
-        dump(runroot/'RESULT.json',dict(complete=False,missing=[k for k in config['family']['inputs']['keys'] if k not in done],
-            segments=[p.parent.name for p in journals],failure=failure))
+        try:
+            dump(runroot/'FAILURE.json',dict(error=failure,phase_error=phase_error,return_error=None))
+            journals=sorted(runroot.glob('j*/COMPLETE.json'))
+            done={k for p in journals for k in load(p).get('keys',[])}
+            dump(runroot/'RESULT.json',dict(complete=False,missing=[k for k in config['family']['inputs']['keys'] if k not in done],
+                segments=[p.parent.name for p in journals],failure=failure))
+        except BaseException as receipt_error:
+            phase_error['receipt_error']=exception_record(receipt_error)
     finally:
         return finish_return(R,root,runroot,config,rc,failure,phase_error)
 
@@ -327,6 +332,8 @@ def run_phase(command,entry,runroot,env,stream,remaining):
                 raise ValueError('proof receipt is incomplete')
     except Exception as error:
         if entry!='/x/p.py':raise
+        details=exception_record(error)
+        dump(Path(runroot)/'FAILURE.json',dict(error=str(error),phase_error=details,return_error=None))
         dump(Path(runroot)/'p/PROOF.json',dict(status='failed',failed=True,synthetic=False,items=10,
             identical_count=None,equal_token_share=None,records=[],proven=False,
             error=type(error).__name__+': '+str(error)))

@@ -22,8 +22,8 @@ for group in ('code','tests'):
   changed.append(str(rel))
   patch.extend(difflib.unified_diff(old.read_text().splitlines(True) if old.exists() else [],p.read_text().splitlines(True),fromfile='V1c/'+str(rel),tofile='V1f/'+str(rel)))
 (B/'out/DIFF_vs_V1c.patch').write_text(''.join(patch))
-assert [p for p in changed if p.startswith('code/')]==['code/o.py']
+assert [p for p in changed if p.startswith('code/')]==['code/o.py','code/sj/orch_cd/evalx/work/milestone/orchard_results.py']
 old_batch=[line for line in (OLD/'code/o.py').read_text().splitlines() if '#SBATCH' in line]
 assert old_batch==[line for line in (B/'code/o.py').read_text().splitlines() if '#SBATCH' in line]
 dump(B/'out/PACKAGE.json',dict(code=pin(B/'out/c.tar'),family=pin(B/'out/FAMILY.json'),reference=pin(B/'out/d.tar'),changed=changed,batch_directives_identical=True))
-print('Package rebuilt; only code/o.py changed.')
+print('Package rebuilt; only return wrapper and inherited token admission changed.')

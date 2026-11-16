@@ -1,0 +1,2698 @@
+--- C8r/admission.py
++++ G2/admission.py
+@@ -0,0 +1,64 @@
++"""Native-only merge and in-job admission against the authenticated C8r request."""
++import math
++from pathlib import Path
++from guard_core import digest, read, sha, write, rows_in_order, zero_nonanswers
++
++def merge(session, rows, keys, destination, fixture=False):
++    N=session.N;request=N.validate_request(N.load(session.destination/'paired/request.json'),live=True)
++    rows=zero_nonanswers(rows_in_order(rows,keys))
++    journal=session.destination/'paired/results/items.jsonl'
++    recorded=N.rows(journal)
++    if len(recorded)!=len(keys) or len({r['key'] for r in recorded})!=len(keys):
++        raise ValueError('Native journal cardinality differs')
++    by_key={r['key']:r for r in recorded}
++    if set(by_key)!=set(keys) or zero_nonanswers([by_key[k] for k in keys])!=rows:
++        raise ValueError('Merged rows differ from the authenticated native journal')
++    if not set(keys)<=set(request['keys']):raise ValueError('Read membership is outside the bound request')
++    if not fixture and keys!=request['keys']:raise ValueError('Production read must retain the full denominator')
++    parity=N.load(session.destination/'paired/results/GPU_PARITY.json')
++    if parity.get('pass') is not True:raise ValueError('GPU parity failed')
++    tasks,_=N.tasks_and_captures(request['inputs']);tasks={'devrows:'+t['id']:t for t in tasks}
++    from r1 import accounting
++    for row in rows:
++        key=row['key'];task=tasks[key];typ=N.family(row['question_type'])
++        if typ not in N.FAMILIES or row['question_type']!=task['question_type']:
++            raise ValueError('Item family differs from the bound task')
++        if (row.get('room'),row.get('stratum'))!=(task['room'],task['stratum']):
++            raise ValueError('Item room or label authority differs')
++        if row.get('checkpoint_sha256')!=request['artifact']['sha256'] or row.get('binding')!=request['binding']:
++            raise ValueError('Item checkpoint or request binding differs')
++        if row.get('perception_identity')!=digest(request['perceptions'][task['id']]):raise ValueError('Item perception differs')
++        if row.get('mask_source')!=N.mask_source(task['question_type']):raise ValueError('Item mask source differs')
++        if type(row.get('called')) is not bool or type(row.get('no_answer')) is not bool:
++            raise ValueError('Missing boolean call/answer accounting')
++        if any(type(row.get(k)) is not int or row[k]<0 for k in ('call_errors','version_errors')):
++            raise ValueError('Invalid call errors')
++        if 'decode' in row and any(row[k]!=v for k,v in accounting(row['decode']).items()):raise ValueError('Decode accounting differs')
++        if not row.get('scores') or any(v is not None and (type(v) not in (int,float) or not math.isfinite(v) or not 0<=v<=1) for v in row['scores'].values()):
++            raise ValueError('Invalid item score')
++        label='released_answer' if row['stratum']=='primary' else 'answer'
++        if row['scores'].get(label) is None:raise ValueError('Missing score removes an item from the denominator')
++        if row['no_answer'] and any(v not in (None,0.) for v in row['scores'].values()):raise ValueError('Non-answer has a positive score')
++        if task['id'] in request['geometry_refusals']:
++            if row!=N.geometry_refusal_pair(task,request)[0]:raise ValueError('Geometry-refused item differs')
++        elif row.get('geometry_refusal'):raise ValueError('Unbound geometry refusal')
++    import gravity_guard
++    import native_metrics
++    geom=N.load(N.checked(request['grounding']['geometry_manifest']))
++    guard=gravity_guard.report();native_metrics.validate_gravity_guard(guard,{'dev-S1':geom['records']})
++    destination=Path(destination)
++    bundle=dict(schema='legs1-r1-nomdg-v1',synthetic=fixture,arms={'unflagged':rows},expected_keys=keys,
++        artifact_sha256=request['artifact']['sha256'],binding=request['binding'],
++        perception_by_key={k:digest(request['perceptions'][tasks[k]['id']]) for k in keys},
++        adapter_sources=request['adapter_sources'],reader_semantics=dict(N.Q.REPORT_SEMANTICS),
++        report_scope='Internal instrument; never a claimed result',training_decision_allowed=False,
++        receipts=dict(request=N.pin(session.destination/'paired/request.json'),journal=N.pin(journal)))
++    write(destination/'R1.json',bundle)
++    report=dict(schema='g2-admission-v1',status='PASS',fixture=fixture,items=len(rows),
++        artifact=request['artifact'],bundle=dict(path=str(destination/'R1.json'),sha256=sha(destination/'R1.json')),
++        gravity_guard=gravity_guard.identity(),gravity_guard_report=guard,
++        geometry_manifest=request['grounding']['geometry_manifest'],request=bundle['receipts']['request'],
++        parity=N.pin(session.destination/'paired/results/GPU_PARITY.json'),
++        single_arm=True,all_calls_served=True,program_refusals=native_metrics.program_refusals(rows))
++    write(destination/'IN_JOB_ADMISSION.json',report)
++    return bundle
+--- C8r/checkpoint.py
++++ G2/checkpoint.py
+@@ -0,0 +1,78 @@
++"""One checkpoint per process; the parent owns staging and publication transport."""
++import argparse
++from copy import deepcopy
++import os
++from pathlib import Path
++import sys
++sys.path.insert(0,str(Path(__file__).resolve().parent))
++from guard_core import read,write,proof,rows_in_order,digest,check_pin
++from guard_backend import Session,authenticate_candidate,install_paths
++
++def selection(items,keys_override=None):
++    keys=items['keys'] if keys_override is None else keys_override
++    canary=items['canary_keys']
++    if (len(set(keys))!=len(keys) or not set(keys)<=set(items['keys'])
++            or keys!=[k for k in items['keys'] if k in set(keys)]
++            or len(canary)!=10 or len(set(canary))!=10 or not set(canary)<=set(keys)):
++        raise ValueError('Checkpoint selection must preserve order and the sealed canary')
++    return keys,canary
++
++def run(config,role,dest,publish,fixture=False,keys_override=None):
++    install_paths()
++    if role not in ('proof','candidate'):raise ValueError('Unknown checkpoint role')
++    worker=deepcopy(config['baseline'])
++    selected=config['candidate'] if role=='candidate' else None
++    if selected:
++        worker['step']=config['step'];worker['worker'].update({k:selected[k] for k in ('artifact','config','data_receipt')})
++        from closure import authenticate,members,unpack
++        from student_pilot import carrier_c1_run as trainer
++        files={name:(Path(config['closure_root'])/name).read_bytes() for name in config['closure_names']}
++        anchor=config.get('baseline_anchor',config['baseline']['worker']['artifact'])
++        receipt=authenticate(files,config['step'],trainer,check_pin(anchor),selected['artifact']['path'])
++        write(Path(dest)/'CLOSURE_ADMISSION.json',receipt)
++        authenticate_candidate(worker['worker'],config['baseline']['worker'],config['step'],Path(dest)/'RESTORATION.json')
++    session=None
++    try:
++        if role=='proof':
++            reference=read(check_pin(config['reference']))
++            def reader(keys):
++                nonlocal session
++                session=Session(worker,Path(dest)/role)
++                return session(keys)
++            proof(reference,reader,Path(dest)/'PROOF.json',publish,fixture=fixture)
++        else:
++            items=read(check_pin(config['items']));keys,canary=selection(items,keys_override)
++            receipt=dict(schema='g2-canary-v1',status='FAIL',keys=canary,full_started=False,fixture=fixture)
++            try:
++                session=Session(worker,Path(dest)/role)
++                head=rows_in_order(session(canary),canary)
++                receipt.update(status='PASS',items=len(head),rows_sha256=digest(head),
++                    called=sum(bool(r['called']) for r in head),no_answer=sum(bool(r['no_answer']) for r in head))
++            except Exception as error:
++                receipt['error']=str(error);raise
++            finally:
++                write(Path(dest)/'CANARY.json',receipt);publish(Path(dest)/'CANARY.json')
++            tailkeys=[k for k in keys if k not in set(canary)]
++            tail=rows_in_order(session(tailkeys),tailkeys) if tailkeys else []
++            indexed={r['key']:r for r in head+tail}
++            from admission import merge
++            merge(session,[indexed[k] for k in keys],keys,dest,fixture)
++    finally:
++        if session is not None:session.close()
++
++def main():
++    p=argparse.ArgumentParser()
++    for name in ('config','role','out'):p.add_argument('--'+name,required=True)
++    a=p.parse_args();config=read(a.config)
++    # The parent acknowledges a receipt only after durable, verified publication.
++    def publish(path):
++        write(Path(a.out)/(path.stem+'.ready.json'),dict(path=str(path)))
++        import time
++        ack=Path(a.out)/(path.stem+'.ack.json');deadline=time.monotonic()+240
++        while not ack.exists():
++            if time.monotonic()>deadline:raise TimeoutError('Receipt publication acknowledgement absent')
++            time.sleep(.5)
++        if read(ack)!=dict(status='PASS',sha256=__import__('guard_core').sha(path)):
++            raise ValueError('Receipt publication acknowledgement differs')
++    run(config,a.role,a.out,publish)
++if __name__=='__main__':main()
+--- C8r/closure.py
++++ G2/closure.py
+@@ -0,0 +1,158 @@
++"""Authenticate candidate training metadata without rewriting signed bytes."""
++from pathlib import Path, PurePosixPath
++import argparse
++import hashlib
++import io
++import json
++import sys
++import tarfile
++sys.path.insert(0, str(Path(__file__).resolve().parent))
++from guard_core import digest, read, sha, write
++
++ROOT = '/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/'
++TREE_SHA = 'b01ce449beffe35be3bf0b48ad3d69f331f1523f96a69cbd3d10aab3dbb42a99'
++ARCHIVE_SHA = '845b17895e466671bc5c5ecdb6a5a5d697a43a5e02d07d1555b11be74f8fd415'
++BASE_ARTIFACT_SHA = '1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef'
++CONFIG_ID = '4bc5442c5c9ff12e7407c173c2d1bd6f8a87ab75a298ae71cabbe2053c42bf3c'
++MAX_BYTES = 64*1024*1024
++
++def members(path):
++    result = {}; total = 0; seen = set()
++    with tarfile.open(path, 'r:') as archive:
++        for m in archive:
++            p = PurePosixPath(m.name)
++            if (p.is_absolute() or '..' in p.parts or not p.parts or str(p) in seen
++                    or not (m.isfile() or m.isdir()) or len(seen) >= 10000):
++                raise ValueError('Closure has an unsafe, repeated or linked member')
++            seen.add(str(p))
++            if m.isdir(): continue
++            total += m.size
++            if m.size > 16*1024*1024 or total > MAX_BYTES:
++                raise ValueError('Closure exceeds its small metadata limit')
++            if p.parts[0] not in ('runs', 'k'):
++                raise ValueError('Closure has an unexpected member root')
++            if p.parts[0] == 'runs' and (len(p.parts) < 3 or p.parts[1] != '359fcc3c'):
++                raise ValueError('Closure belongs to a foreign run')
++            result[str(p)] = archive.extractfile(m).read()
++    return result
++
++def load_member(files, name):
++    if name not in files: raise ValueError('Missing closure member: '+name)
++    return json.loads(files[name])
++
++def pin_member(files, pin):
++    if set(pin) != {'path','sha256'} or not pin['path'].startswith(ROOT):
++        raise ValueError('Closure pin is outside the admitted run root')
++    name = pin['path'][len(ROOT):]
++    if '..' in PurePosixPath(name).parts or name not in files:
++        raise ValueError('Missing closure pin: '+name)
++    if hashlib.sha256(files[name]).hexdigest() != pin['sha256']:
++        raise ValueError('Closure member digest differs: '+name)
++    return load_member(files,name)
++
++def authenticate(files, step, trainer, baseline_artifact, exported=None):
++    """Use the imported, unchanged trainer.identity; the runtime repeats restoration."""
++    if type(step) is not int or step <= 0: raise ValueError('Invalid closure step')
++    name = f'runs/359fcc3c/m{step}/artifact.json'
++    raw = files.get(name)
++    if raw is None: raise ValueError('Closure lacks the requested step artifact')
++    if exported is not None and raw != Path(exported).read_bytes():
++        raise ValueError('Export artifact is not byte-equal to the closure artifact')
++    art = load_member(files,name)
++    if art.get('step') != step or art.get('trained_groups',{}).get('step') != step:
++        raise ValueError('Closure artifact belongs to a foreign step')
++    data = load_member(files,'runs/359fcc3c/inputs/data_receipt.json')
++    original_cfg=pin_member(files,data['input_config'])
++    if (data['input_config']['path']!=ROOT+'k/d6827df0.json'
++            or data['input_config']['sha256']!='89f65b503de86bbc55712c7216306fb1d1f70324f5d7572c52533665e9178894'):
++        raise ValueError('Candidate input configuration differs from the admitted training run')
++    cfg = pin_member(files,data['config'])
++    prep = pin_member(files,cfg['preparation'])
++    code = pin_member(files,cfg['code'])
++    for field in ('benchmark_scene_exclusions','dev_scene_exclusions'):
++        pin_member(files,cfg[field])
++    pin_member(files,cfg['s1_route_policy']['table'])
++    binding = load_member(files,'runs/359fcc3c/binding.json')
++    identity = trainer.identity(cfg)
++    if identity != CONFIG_ID or any(x.get('config_sha256') != identity for x in (art,prep,binding)):
++        raise ValueError('Candidate training config identity differs')
++    if data.get('preparation') != cfg['preparation'] or binding.get('preparation') != cfg['preparation']:
++        raise ValueError('Preparation receipt binding differs')
++    if (binding.get('trainer_commit') != 'sha256:'+TREE_SHA or binding.get('world_size') != cfg.get('world_size')
++            or code.get('tree_sha256') != TREE_SHA or digest(code.get('files')) != TREE_SHA
++            or code.get('archive',{}).get('sha256') != ARCHIVE_SHA):
++        raise ValueError('Candidate trainer differs from the backend source tree')
++    from student_pilot import source_seal
++    source_seal.check_binding(prep.get('source_seal'),code,identity)
++    source_seal.check_export(prep,art)
++    if art.get('training_source_seal') != prep.get('source_seal'):
++        raise ValueError('Training source seal differs')
++    if sha(baseline_artifact) != BASE_ARTIFACT_SHA:
++        raise ValueError('Baseline artifact identity differs')
++    base = read(baseline_artifact)
++    groups = art['trained_groups']['groups']; old = base['trained_groups']['groups']
++    if set(groups) != set(old): raise ValueError('Trained-group membership differs')
++    chain = {}
++    for group in groups:
++        g, b = groups[group],old[group]
++        if (g['initial_sha256'] != b['final_sha256'] or g['names'] != b['names']
++                or type(g.get('gradient_steps')) is not int or not 0 < g['gradient_steps'] <= step
++                or g.get('changed') is not True or g.get('nonzero') is not True):
++            raise ValueError('Trained-group chain differs: '+group)
++        chain[group] = dict(initial_sha256=g['initial_sha256'],baseline_final_sha256=b['final_sha256'])
++    init = cfg.get('init_artifact',{})
++    if init.get('artifact',{}).get('sha256') != BASE_ARTIFACT_SHA or set(init.get('heads',[])) != set(groups) or init.get('lm') != 'full':
++        raise ValueError('Candidate initialization does not bind the baseline')
++    for field in ('base_identity','carrier_position_policy','depth_backing','frame_layout','placement',
++                  'pose_backing','trace_program_version','trace_version_binding','training_mode','anchors'):
++        if art.get(field) != base.get(field): raise ValueError('Inference artifact contract differs: '+field)
++    return dict(status='PASS',step=step,config_identity=identity,artifact_sha256=hashlib.sha256(raw).hexdigest(),
++                config=data['config'],data_receipt=dict(path=ROOT+'runs/359fcc3c/inputs/data_receipt.json',
++                    sha256=hashlib.sha256(files['runs/359fcc3c/inputs/data_receipt.json']).hexdigest()),
++                preparation=cfg['preparation'],source_tree=TREE_SHA,trained_group_chain=chain,
++                binding_sha256=hashlib.sha256(files['runs/359fcc3c/binding.json']).hexdigest(),
++                tensor_restore_checked=False)
++
++def pack(source, destination, step, trainer, baseline_artifact):
++    files = members(source)
++    admission = authenticate(files,step,trainer,baseline_artifact)
++    dest = Path(destination); dest.mkdir(parents=True,exist_ok=False)
++    inventory = {}; reverse = {}
++    with tarfile.open(dest/'metadata.tar','x') as archive:
++        for name,raw in sorted(files.items()):
++            # Same file bytes and run-relative hierarchy, with opaque component names.
++            neutral = '/'.join('a'+hashlib.sha256(p.encode()).hexdigest()[:20] for p in PurePosixPath(name).parts)
++            if neutral in reverse: raise ValueError('Archive alias collision')
++            reverse[neutral] = name
++            entry = tarfile.TarInfo(neutral); entry.size=len(raw);entry.mode=0o644
++            archive.addfile(entry,io.BytesIO(raw))
++            inventory[neutral] = dict(bytes=len(raw),sha256=hashlib.sha256(raw).hexdigest())
++    descriptor = dict(schema='g2-closure-v1',step=step,source_sha256=sha(source),
++        archive=dict(path=str((dest/'metadata.tar').resolve()),bytes=(dest/'metadata.tar').stat().st_size,
++                     sha256=sha(dest/'metadata.tar')),members=inventory,aliases=reverse,admission=admission)
++    write(dest/'CLOSURE.json',descriptor)
++    return descriptor
++
++def unpack(descriptor, destination):
++    from guard_core import verify_archive
++    archive=descriptor['archive'];verify_archive(archive['path'],archive)
++    dest=Path(destination);dest.mkdir(parents=True,exist_ok=False)
++    actual={}; files={}
++    with tarfile.open(archive['path'],'r:') as tar:
++        for m in tar:
++            if not m.isfile() or m.name in actual or m.name not in descriptor['members']:
++                raise ValueError('Candidate metadata inventory differs')
++            raw=tar.extractfile(m).read();actual[m.name]=dict(bytes=len(raw),sha256=hashlib.sha256(raw).hexdigest())
++            name=descriptor['aliases'][m.name];p=PurePosixPath(name)
++            if p.is_absolute() or '..' in p.parts: raise ValueError('Unsafe closure alias')
++            target=dest/name;target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(raw);files[name]=raw
++    if actual != descriptor['members']: raise ValueError('Candidate metadata member hashes differ')
++    return files
++
++if __name__ == '__main__':
++    p=argparse.ArgumentParser()
++    for name in ('source','out','trainer','baseline'):p.add_argument('--'+name,required=True)
++    p.add_argument('--step',type=int,required=True);a=p.parse_args()
++    sys.path.insert(0,a.trainer)
++    from student_pilot import carrier_c1_run as trainer
++    pack(a.source,a.out,a.step,trainer,a.baseline)
+--- C8r/fetch.py
++++ G2/fetch.py
+@@ -0,0 +1,15 @@
++"""Verify a fetched result against the prepared plan and unpack only safe members."""
++from pathlib import Path
++import argparse
++import sys
++sys.path.insert(0,str(Path(__file__).resolve().parent))
++from guard_core import read,write,digest
++from transport import verify_return,extract
++if __name__=='__main__':
++ p=argparse.ArgumentParser()
++ for name in ('config','receipt','archive','out'):p.add_argument('--'+name,required=True)
++ a=p.parse_args();cfg=read(a.config);receipt=read(a.receipt)
++ if cfg['plan_sha256']!=digest({k:v for k,v in cfg.items() if k!='plan_sha256'}):raise ValueError('Prepared plan seal differs')
++ verify_return(receipt,a.archive,cfg['plan_sha256'])
++ extract(a.archive,Path(a.out),300_000_000)
++ write(Path(a.out)/'FETCH_VERIFIED.json',dict(status='PASS',plan_sha256=cfg['plan_sha256'],archive=receipt['archive']))
+--- C8r/guard_backend.py
++++ G2/guard_backend.py
+@@ -0,0 +1,110 @@
++"""C8r preparation and one-arm serving in an already authenticated namespace.
++
++Staging, allocation admission, and the runtime bootstrap must precede this module.
++It cannot manufacture a preparation receipt for a new training run.
++"""
++from pathlib import Path
++from types import SimpleNamespace as NS
++import gc
++import os
++import sys
++import time
++from guard_core import check_pin, immutable, read, sha, write
++from native_arm import compile_native
++
++CORE = Path(os.environ.get('G2_CORE', str(Path(__file__).resolve().parent/'sj/orch_cd/evalx/work/milestone')))
++
++def install_paths():
++    sys.path[:0] = [str(CORE/'orchard_native'), str(CORE/'native/out2'), str(CORE)]
++
++def authenticate_candidate(worker, baseline, step, output):
++    install_paths()
++    import read_runtime
++    read_runtime.install_tree()
++    from evalpath import runtime
++    from student_pilot import carrier_c1_run as trainer
++    checks = {}
++    for field in ('inputs','expected_keys','pilot_selection','raw_tower','mask_cache',
++                  'adapter_pins','kernel_source_pins','frames_root','geometry_captures'):
++        checks[field] = immutable(worker[field], baseline[field])
++    artifact = read(check_pin(worker['artifact']))
++    cfg, receipt, model = read_runtime.prepared(worker['config'],worker['artifact'],worker['data_receipt'])
++    init = runtime.check_init_spec(receipt,worker['artifact'])
++    if artifact['step'] != step:
++        raise ValueError('Candidate checkpoint step differs')
++    baseline_cfg = read(check_pin(baseline['config']))
++    # Training metadata can differ; inference architecture and route policy cannot.
++    fields = ('base_identity','carrier_placement','training_mode','depth_enabled','depth_fov_source',
++              'frame_layout','trace_program_version','tool_mode_flag','ground_target_filter','route_table')
++    for field in fields:
++        checks['inference.'+field] = immutable(cfg.get(field),baseline_cfg.get(field))
++    values = dict(schema='g1-restoration-v1',status='PASS',independent=checks,
++        baseline=dict(config=baseline['config'],data_receipt=baseline['data_receipt'],artifact=baseline['artifact'],
++                      config_identity=trainer.identity(baseline_cfg)),
++        candidate=dict(config=worker['config'],data_receipt=worker['data_receipt'],artifact=worker['artifact'],
++                       config_identity=trainer.identity(cfg),preparation=cfg['preparation'],source_seal=artifact['source_seal'],
++                       init_spec=init,model=receipt['model']))
++    write(output,values)
++    return values
++
++class Session:
++    def __init__(self, config, destination):
++        install_paths()
++        import native_worker as W
++        import kernels as K
++        import torch
++        self.config, self.destination = config,Path(destination)
++        self.W,self.K,self.torch = W,K,torch
++        self.N,self.G = W.modules(config['worker'])
++        W.cohort(self.N,config['worker'])
++        self.context = None
++        self.bound = None
++        self.runner = None
++        self.previous_prompt = None
++        self.previous_generate = None
++    def start(self):
++        if self.context is not None:return
++        N,G,W,K = self.N,self.G,self.W,self.K
++        config,worker = self.config,self.config['worker']
++        geom=self.destination/'geometry'
++        geometry_seconds=W.prepare_full_geometry(config,N,G,geom)
++        paired=self.destination/'paired'
++        args=NS(arm='paired',scope='r1',parent_standin=False,step=config['step'],
++            config=str(check_pin(worker['config'])),dest=str(paired),
++            export=str(check_pin(worker['artifact'])),sha256=worker['artifact']['sha256'],dry=False,
++            data_receipt=str(check_pin(worker['data_receipt'])),geometry=str(geom/'GEOMETRY_MANIFEST.json'),
++            mask_cache=str(check_pin(worker['mask_cache'])),frames_root=worker['frames_root'],
++            camera_cohort=str(check_pin(worker['inputs']['camera_cohort'])),device='cuda:0',first_minute=False)
++        N.bind(args)
++        bound=N.validate_request(N.load(paired/'request.json'),live=True)
++        if bound['keys'] != worker['expected_keys']:raise ValueError('Bound cohort order differs')
++        parts=K.load_parts(dict(nomdg=Path(N.__file__),geometry=Path(G.__file__)),worker['kernel_source_pins'])
++        context=K.function(parts['restore'],vars(N))(args,bound)
++        from evalpath import runtime
++        self.previous_prompt=runtime.prompt_batch
++        self.previous_generate=N.P.generate
++        context.update(K.function(parts['parity'],{**vars(N),**context})(args,bound))
++        context.update(g=N.load(check_pin(bound['grounding']['geometry_manifest'])),masks=N.P.Masks(bound['mask_cache']))
++        self.context,self.bound,self.args=context,bound,args
++        self.runner=compile_native(parts,{**vars(N),**context},K)
++        write(self.destination/'PREPARATION.json',dict(geometry_seconds=geometry_seconds,
++             geometry_manifest=bound['grounding']['geometry_manifest'],artifact=bound['artifact'],
++             config=bound['config'],data_receipt=bound['data_receipt'],source_pins=worker['kernel_source_pins']))
++    def __call__(self,keys):
++        self.start()
++        if len(set(keys)) != len(keys) or not set(keys) <= set(self.bound['keys']):
++            raise ValueError('Requested subset differs')
++        result=[]
++        for key in keys:
++            pair=self.runner(self.args,self.bound,key)
++            if len(pair)!=1 or pair[0]['arm']!='unflagged':raise ValueError('Unexpected arm')
++            result.extend(pair)
++        return result
++    def close(self):
++        if self.previous_prompt is not None:
++            from evalpath import runtime
++            runtime.prompt_batch=self.previous_prompt
++            self.N.P.generate=self.previous_generate
++        self.runner=None;self.context=None
++        gc.collect()
++        self.torch.cuda.empty_cache()
+--- C8r/guard_core.py
++++ G2/guard_core.py
+@@ -0,0 +1,154 @@
++"""Strict inputs and sequencing for the internal guard instrument."""
++from copy import deepcopy
++import hashlib
++import json
++import math
++from pathlib import Path
++import re
++
++STEPS = (200, 400, 600, 800, 1000)
++RUN = '359fcc3c'
++ARM = 'unflagged'
++
++def digest(value):
++    return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(',', ':'), allow_nan=False).encode()).hexdigest()
++
++def sha(path):
++    with Path(path).open('rb') as stream:
++        return hashlib.file_digest(stream, 'sha256').hexdigest()
++
++def write(path, value):
++    path = Path(path)
++    path.parent.mkdir(parents=True, exist_ok=True)
++    temporary = path.with_name(path.name+'.pending')
++    with temporary.open('x') as stream:
++        json.dump(value, stream, sort_keys=True, indent=2, allow_nan=False)
++        stream.write('\n')
++        stream.flush()
++        import os
++        os.fsync(stream.fileno())
++    temporary.replace(path)
++
++def read(path):
++    return json.loads(Path(path).read_text())
++
++def check_pin(pin):
++    path = Path(pin['path'])
++    if not path.is_absolute() or '..' in path.parts or path.is_symlink() or not path.is_file():
++        raise ValueError('Noncanonical pinned file')
++    if sha(path) != pin['sha256']:
++        raise ValueError('Pinned file digest differs')
++    return path
++
++def parse_done(raw, run, step):
++    if run != RUN or type(step) is not int or step not in STEPS:
++        raise ValueError('Export is outside the candidate milestones')
++    obj = 'q8/8865619b/'+run+'_m'+str(step)+'.tar'
++    match = re.fullmatch(re.escape(obj).encode()+rb' ([1-9][0-9]*) ([0-9a-f]{64})\n?', raw)
++    if match is None:
++        raise ValueError('Completion record identity or format differs')
++    return dict(object=obj, bytes=int(match[1]), sha256=match[2].decode())
++
++def verify_archive(path, done):
++    path = Path(path)
++    if path.is_symlink() or not path.is_file() or path.stat().st_size != done['bytes']:
++        raise ValueError('Whole archive bytes differ')
++    if sha(path) != done['sha256']:
++        raise ValueError('Whole archive digest differs')
++    return done
++
++def immutable(actual, expected):
++    if actual != expected:
++        raise ValueError('Export-independent contract differs')
++    return dict(status='PASS', actual_sha256=digest(actual), expected_sha256=digest(expected))
++
++def rows_in_order(rows, keys):
++    if [r.get('key') for r in rows] != keys or len(set(keys)) != len(keys):
++        raise ValueError('Ordered item membership differs')
++    if any(r.get('arm') != ARM for r in rows):
++        raise ValueError('Only the native arm is admitted')
++    return rows
++
++def identity_record(row):
++    decoded = row.get('decode')
++    if not isinstance(decoded, dict) or not isinstance(decoded.get('tokens'), list):
++        raise ValueError('Identity proof requires actual decoded tokens')
++    if any(type(token) is not int for token in decoded['tokens']):
++        raise ValueError('Identity proof token type differs')
++    calls = decoded.get('calls')
++    if not isinstance(calls, list):
++        raise ValueError('Identity proof requires calls')
++    fields = ('call', 'kind', 'response', 'at_token', 'forced_tokens', 'spec_version', 'spec_revision')
++    for call in calls:
++        if not all(k in call for k in ('call', 'kind', 'response')):
++            raise ValueError('Identity proof call is incomplete')
++    if not isinstance(decoded.get('text'), str):
++        raise ValueError('Identity proof requires the complete answer text')
++    return dict(key=row['key'], tokens=decoded['tokens'],
++                calls=[{k:c[k] for k in fields if k in c} for c in calls],
++                answer=decoded['text'], no_answer=row['no_answer'], scores=row['scores'],
++                finish=decoded.get('finish'))
++
++def proof(reference, reread, destination, publish=lambda p: None, *, fixture=False):
++    receipt = dict(schema='g1-proof-v1', status='FAIL', candidate_started=False,
++                   reference_sha256=digest(reference), compared=[], error=None,
++                   fixture=fixture, backend_identity_proven=False)
++    try:
++        keys = [r['key'] for r in reference]
++        if len(keys) != 20:
++            raise ValueError('Identity proof requires the sealed twenty items')
++        actual = rows_in_order(reread(keys), keys)
++        for expected, observed in zip(reference, actual):
++            left, right = identity_record(expected), identity_record(observed)
++            receipt['compared'].append(dict(key=expected['key'], expected=digest(left), actual=digest(right)))
++            if left != right:
++                raise ValueError('Backend identity mismatch at '+expected['key'])
++        receipt['status'] = 'PASS'
++        receipt['backend_identity_proven'] = not fixture
++    except Exception as error:
++        receipt['error'] = str(error)
++    finally:
++        write(destination, receipt)
++        publish(Path(destination))
++    if receipt['status'] != 'PASS':
++        raise ValueError(receipt['error'])
++    return receipt
++
++def zero_nonanswers(rows):
++    result = deepcopy(rows)
++    for row in result:
++        decoded = row.get('decode') or {}
++        refused = (row.get('geometry_refusal') or row.get('refusal') or row.get('no_answer')
++                   or row.get('parse_failed') or row.get('strict_no_answer')
++                   or decoded.get('strict_no_answer') or decoded.get('parse_failed')
++                   or decoded.get('finish') in ('program_refusal', 'call_limit', 'error')
++                   or 'text' in decoded and re.search(r'</think\s*>', decoded['text'] or '', re.I) is None)
++        if refused:
++            row['scores'] = {key: None if value is None else 0.0 for key, value in row['scores'].items()}
++    return result
++
++def pipeline(reference, proof_reader, candidate_reader, keys, canary_keys, destination, publish=lambda p: None, *, fixture=False):
++    destination = Path(destination)
++    proof(reference, proof_reader, destination/'PROOF.json', publish, fixture=fixture)
++    if len(canary_keys) != 10 or len(set(canary_keys)) != 10 or not set(canary_keys) <= set(keys):
++        raise ValueError('Canary membership differs')
++    receipt = dict(schema='g1-canary-v1', status='FAIL', keys=canary_keys, full_started=False, fixture=fixture)
++    try:
++        canary = rows_in_order(candidate_reader(canary_keys), canary_keys)
++        receipt.update(status='PASS', rows_sha256=digest(canary), items=len(canary),
++                       called=sum(bool(r.get('called')) for r in canary),
++                       no_answer=sum(bool(r.get('no_answer')) for r in canary))
++    except Exception as error:
++        receipt['error'] = str(error)
++        raise
++    finally:
++        write(destination/'CANARY.json', receipt)
++        publish(destination/'CANARY.json')
++    remaining = [key for key in keys if key not in set(canary_keys)]
++    tail = rows_in_order(candidate_reader(remaining), remaining) if remaining else []
++    indexed = {r['key']:r for r in canary+tail}
++    all_rows = zero_nonanswers(rows_in_order([indexed[k] for k in keys], keys))
++    result = dict(schema='legs1-r1-nomdg-v1', synthetic=fixture, arms={ARM:all_rows}, expected_keys=keys,
++                  training_decision_allowed=False, report_scope='Internal instrument; never a claimed result')
++    write(destination/'R1.json', result)
++    return result
+--- C8r/guard_export.py
++++ G2/guard_export.py
+@@ -0,0 +1,31 @@
++"""Invoke the unchanged reviewed export admission after a sealed receipt check."""
++import argparse
++from pathlib import Path
++import sys
++from types import SimpleNamespace as NS
++sys.path.insert(0, str(Path(__file__).resolve().parent))
++from guard_core import parse_done, read, verify_archive, write
++
++def stage(root, archive, done_path, step, expected, reviewed):
++    raw=Path(done_path).read_bytes()
++    done=parse_done(raw,'359fcc3c',step)
++    if done!=expected:raise ValueError('Completion record changed after packet preparation')
++    verify_archive(archive,done)
++    # The reviewed function expects JSON. Its plain-text parser and extraction/checker remain unchanged.
++    if reviewed.parse_done(raw,'359fcc3c',step)!=done:
++        raise ValueError('Reviewed completion parser disagrees')
++    normalized=Path(root)/'candidate_done.json'
++    write(normalized,done)
++    return reviewed.stage_export(NS(root=str(root),run='359fcc3c',step=step,tar=str(archive),
++        done=str(normalized),full=True,bwrap=str(Path(root)/'bwrap')))
++
++def main():
++    p=argparse.ArgumentParser()
++    for name in ('root','archive','done','expected'):p.add_argument('--'+name,required=True)
++    p.add_argument('--step',required=True,type=int)
++    a=p.parse_args()
++    sys.path.insert(0,str(Path(__file__).resolve().parent/'reviewed'))
++    import export_stage
++    result=stage(a.root,a.archive,a.done,a.step,read(a.expected),export_stage)
++    write(Path(a.root)/'CANDIDATE_STAGE.json',result)
++if __name__=='__main__':main()
+--- C8r/names.py
++++ G2/names.py
+@@ -0,0 +1,36 @@
++"""Explicit scalar renaming with a reversible proof of other JSON values."""
++from copy import deepcopy
++import hashlib
++import re
++BAD=re.compile(r'distill|qwen(?:35)?|vsi(?:590k)?|scannet|arkit|dev-?s1|native routed-read',re.I)
++
++def neutral(value):
++    return 'k'+hashlib.sha256(value.encode()).hexdigest()[:24]
++
++def rename(value,mapping):
++    if isinstance(value,str):return mapping.get(value,value)
++    if isinstance(value,list):return [rename(v,mapping) for v in value]
++    if isinstance(value,dict):
++        result={rename(k,mapping):rename(v,mapping) for k,v in value.items()}
++        if len(result)!=len(value):raise ValueError('Renaming collision')
++        return result
++    return value
++
++def prove(original,renamed,mapping):
++    if len(set(mapping.values()))!=len(mapping):raise ValueError('Ambiguous reverse mapping')
++    inverse={v:k for k,v in mapping.items()}
++    if rename(original,mapping)!=renamed or rename(renamed,inverse)!=original:
++        raise ValueError('A value other than an approved name changed')
++    return True
++
++def scan_json(value,at='$'):
++    hits=[]
++    if isinstance(value,str):
++        if BAD.search(value):hits.append(dict(location=at,value=value))
++    elif isinstance(value,list):
++        for i,v in enumerate(value):hits.extend(scan_json(v,at+'/'+str(i)))
++    elif isinstance(value,dict):
++        for k,v in value.items():
++            if BAD.search(k):hits.append(dict(location=at+'/<key>',value=k))
++            hits.extend(scan_json(v,at+'/'+k))
++    return hits
+--- C8r/native_arm.py
++++ G2/native_arm.py
+@@ -0,0 +1,38 @@
++"""Select one arm at the existing authenticated worker AST boundary."""
++import ast
++from copy import deepcopy
++
++def select_native(pair_node):
++    result = deepcopy(pair_node)
++    matches = [n for n in ast.walk(result) if isinstance(n, ast.FunctionDef) and n.name == 'serve_pair']
++    if len(matches) != 1:
++        raise ValueError('Unrecognized item-serving boundary')
++    serve = matches[0]
++    starts = [i for i,n in enumerate(serve.body) if isinstance(n, ast.Assign)
++              and [ast.unparse(t) for t in n.targets] == ['script']]
++    if len(starts) != 1 or starts[0] < 1:
++        raise ValueError('Unrecognized scripted-arm boundary')
++    index = starts[0]
++    expected = ["script = refusal_decode(refusal, scripted=True) if refusal else P.scripted(task, refs, geo, backend)",
++                "if not P.replay(script, geo, backend)['byte_equal']:\n    raise ValueError('Scripted runtime replay differs')",
++                "pair.append(make_record(task, script, request, prefill, 'scripted'))", 'return pair']
++    if [ast.unparse(n) for n in serve.body[index:]] != expected:
++        raise ValueError('Scripted-arm source structure differs')
++    # The complete native serving prefix remains structurally identical.
++    serve.body = serve.body[:index]+[ast.Return(value=ast.Name(id='pair',ctx=ast.Load()))]
++    result.name = 'native_item'
++    return ast.fix_missing_locations(result)
++
++class NativeRefusals:
++    def __init__(self, original):self.original = original
++    def __getattr__(self, name):return getattr(self.original, name)
++    def paired_item(self, task, request, unit, serve):
++        if task['id'] in request['geometry_refusals']:
++            return [self.original.refusal_pair(task,request,unit)[0]]
++        rows = serve()
++        if len(rows) != 1 or rows[0]['arm'] != 'unflagged':
++            raise ValueError('Native arm cardinality differs')
++        return rows
++
++def compile_native(parts, namespace, kernels):
++    return kernels.function(select_native(parts['pair']), {**namespace, 'GR':NativeRefusals(namespace['GR'])})
+--- C8r/packet.py
++++ G2/packet.py
+@@ -0,0 +1,199 @@
++"""Seal a candidate packet and require exact independent review and ORCH GO."""
++import argparse
++import ast
++import base64
++from copy import deepcopy
++import hashlib
++import io
++import json
++from pathlib import Path
++import re
++import secrets
++import shlex
++import sys
++import tarfile
++import zlib
++from types import SimpleNamespace
++sys.path.insert(0,str(Path(__file__).resolve().parent))
++from guard_core import STEPS,check_pin,digest,parse_done,read,sha,write,verify_archive
++from transport import regular_tar
++from names import scan_json
++
++LIMIT=32*1024*1024
++
++def safe_tar(path):return regular_tar(path,LIMIT)
++
++def submit_argv(config,batch):
++    if not re.fullmatch('[a-f0-9]{16}',config['token']):raise ValueError('Token must be fresh hexadecimal')
++    return ['sbatch','--parsable','--account=mt01','--partition=general','--gres=gpu:1','--ntasks=1','--nodes=1',
++            '--cpus-per-task=16','--mem=200G','--time='+config['time_limit'],
++            '--signal=B:USR1@300','--no-requeue','--chdir=/tmp',
++            '--job-name=a15_cot_ap'+config['token'],str(batch)]
++
++def order_line(config):return 'ORCH GO a15_cot_ap'+config['token']+' '+str(config['step'])+' '+config['plan_sha256']
++
++def source_identity(family):
++    """Compile only the exact identity function from the pinned trainer file."""
++    source=check_pin(family['identity_source'])
++    if sha(source)!='895772a9f5e0fd09277db72a8a091782728bfe2f525567c301e4d5bf58275471':
++        raise ValueError('Trainer identity source is not the backend source')
++    parsed=ast.parse(source.read_text())
++    nodes=[n for n in parsed.body if isinstance(n,ast.FunctionDef) and n.name=='identity']
++    if len(nodes)!=1:raise ValueError('Trainer identity boundary differs')
++    ns={'digest':digest}
++    exec(compile(ast.Module(body=nodes,type_ignores=[]),str(source),'exec'),ns)
++    return SimpleNamespace(identity=ns['identity'])
++
++def packed_files(meta):
++    verify_archive(meta['archive']['path'],meta['archive']);regular_tar(meta['archive']['path'],64*1024*1024)
++    files={};actual={}
++    with tarfile.open(meta['archive']['path'],'r:') as tar:
++        for m in tar:
++            raw=tar.extractfile(m).read()
++            if m.name not in meta['aliases']:raise ValueError('Unknown closure member alias')
++            name=meta['aliases'][m.name]
++            if name in files:raise ValueError('Closure alias is not injective')
++            files[name]=raw;actual[m.name]=dict(bytes=len(raw),sha256=hashlib.sha256(raw).hexdigest())
++    if actual!=meta['members']:raise ValueError('Closure member inventory differs')
++    return files
++
++def authenticate_meta(family,meta,step):
++    from closure import authenticate
++    # source_seal has only standard-library imports; authenticate its whole trainer tree in the job.
++    sys.path.insert(0,str(check_pin(family['identity_source']).parents[1]))
++    return authenticate(packed_files(meta),step,source_identity(family),check_pin(family['baseline_artifact']))
++
++def prepare(family_path,done_path,step,metadata_path,destination,token=None):
++    family=read(family_path)
++    if step not in STEPS:raise ValueError('Candidate step is not admitted')
++    done=parse_done(Path(done_path).read_bytes(),'359fcc3c',step)
++    token=token or secrets.token_hex(8)
++    if not re.fullmatch('[a-f0-9]{16}',token):raise ValueError('Invalid token')
++    meta=read(metadata_path)
++    if meta.get('schema')!='g2-closure-v1' or meta.get('step')!=step:raise ValueError('Closure step differs')
++    admission=authenticate_meta(family,meta,step)
++    if admission!=meta['admission']:raise ValueError('Closure admission record differs')
++    for pin in family['inputs'].values():check_pin(pin)
++    for name,expected in family['code_pins'].items():
++        if sha(Path(family['code_root'])/name)!=expected:raise ValueError('Code pin differs: '+name)
++    config=dict(schema='g2-plan-v1',token=token,step=step,run='359fcc3c',gpus=1,partition='general',
++        family=dict(path=str(Path(family_path).resolve()),sha256=sha(family_path)),
++        done=done,done_sha256=sha(done_path),done_file=str(Path(done_path).resolve()),
++        closure=dict(path=str(Path(metadata_path).resolve()),sha256=sha(metadata_path)),
++        closure_archive_sha256=meta['archive']['sha256'],closure_source_sha256=meta['source_sha256'],
++        closure_object=dict(path='/project/community/jjyeung/okh7/8c9d2e74/'+token+'/m.tar',
++                            bytes=meta['archive']['bytes'],sha256=meta['archive']['sha256']),
++        artifact_sha256=admission['artifact_sha256'],time_limit=family['time_limit'],
++        gpu_seconds=family['gpu_seconds'],publication=family['publication'])
++    config['plan_sha256']=digest(config)
++    dest=Path(destination);dest.mkdir(parents=True,exist_ok=False)
++    write(dest/'CONFIG.json',config)
++    write(dest/'PREPARED.json',dict(status='PREPARED_NOT_AUTHORIZED',config_sha256=sha(dest/'CONFIG.json')))
++    return config
++
++def admit(config,family,review,order):
++    if config.get('schema')!='g2-plan-v1' or config.get('run')!='359fcc3c' or config.get('step') not in STEPS:
++        raise ValueError('Config schema, run or milestone differs')
++    if config.get('gpus')!=1 or config.get('partition')!='general':raise ValueError('Allocation shape differs')
++    if config['plan_sha256']!=digest({k:v for k,v in config.items() if k!='plan_sha256'}):raise ValueError('Plan seal differs')
++    if family.get('schema')!='g2-family-v1' or family.get('release_ready') is not True or family.get('blockers'):
++        raise ValueError('Release blocked: '+'; '.join(family.get('blockers',['unvalidated family'])))
++    if review.get('verdict')!='ACCEPT' or not review.get('reviewer') or review.get('family_sha256')!=config['family']['sha256']:
++        raise ValueError('Independent review does not bind this family')
++    if order.splitlines().count(order_line(config))!=1:raise ValueError('Exact ORCH GO is absent')
++    for field in ('time_limit','gpu_seconds','publication'):
++        if config[field]!=family[field]:raise ValueError('Family contract differs: '+field)
++    if scan_json(config) or scan_json(family):raise ValueError('Operational config/family naming scan failed')
++
++def validate_packet(payload):
++    p=Path(payload);config=read(p/'CONFIG.json');family=read(p/'FAMILY.json')
++    if sha(p/'FAMILY.json')!=config['family']['sha256']:raise ValueError('Packet family hash differs')
++    admit(config,family,read(p/'REVIEW.json'),(p/'ORDER.md').read_text())
++    for name,expected in family['code_pins'].items():
++        if sha(p/'guard_kit'/name)!=expected:raise ValueError('Packet code differs: '+name)
++    for name,pin in family['inputs'].items():
++        if sha(p/'inputs'/name)!=pin['sha256']:raise ValueError('Packet input differs: '+name)
++    if sha(p/'candidate.done')!=config['done_sha256'] or parse_done((p/'candidate.done').read_bytes(),'359fcc3c',config['step'])!=config['done']:
++        raise ValueError('Packet done record differs')
++    if sha(p/'CLOSURE.json')!=config['closure']['sha256'] or sha(p/'metadata.tar')!=config['closure_archive_sha256']:
++        raise ValueError('Packet candidate closure differs')
++    meta=read(p/'CLOSURE.json')
++    if meta['source_sha256']!=config['closure_source_sha256'] or meta['admission']['artifact_sha256']!=config['artifact_sha256']:
++        raise ValueError('Packet closure binding differs')
++    return config
++
++def packet(config_path,review_path,order_path,destination):
++    config=read(config_path);family_path=check_pin(config['family']);family=read(family_path)
++    admit(config,family,read(review_path),Path(order_path).read_text())
++    meta_path=check_pin(config['closure']);meta=read(meta_path)
++    if authenticate_meta(family,meta,config['step'])!=meta['admission']:raise ValueError('Closure admission changed')
++    verify_archive(meta['archive']['path'],meta['archive'])
++    if sha(config['done_file'])!=config['done_sha256']:raise ValueError('Done file changed')
++    sources={'CONFIG.json':Path(config_path),'FAMILY.json':family_path,'REVIEW.json':Path(review_path),
++             'ORDER.md':Path(order_path),'CLOSURE.json':meta_path,
++             'candidate.done':Path(config['done_file'])}
++    for name,pin in family['inputs'].items():sources['inputs/'+name]=check_pin(pin)
++    for name,expected in family['code_pins'].items():
++        path=Path(family['code_root'])/name
++        if sha(path)!=expected:raise ValueError('Code changed after review')
++        sources['guard_kit/'+name]=path
++    dest=Path(destination);dest.mkdir(parents=True,exist_ok=False)
++    archive=dest/'p.tar'
++    with tarfile.open(archive,'x',dereference=True) as tar:
++        for name,path in sorted(sources.items()):
++            m=tarfile.TarInfo(name);m.size=path.stat().st_size;m.mode=0o755 if path.suffix=='.sh' else 0o644
++            with path.open('rb') as inp:tar.addfile(m,inp)
++    regular_tar(archive,LIMIT)
++    from transport import copy_verified
++    copy_verified(meta['archive']['path'],dest/'m.tar')
++    # The fixed shared path carries the bounded archive; the batch pins its literal hash.
++    expected=sha(archive)
++    payload_path='/project/community/jjyeung/okh7/8c9d2e74/'+config['token']+'/p.tar'
++    bootstrap='''import hashlib,io,json,os,pathlib,tarfile
++job=os.environ.get('SLURM_JOB_ID','')
++if not job.isdigit():raise ValueError('Assigned job required')
++source=pathlib.Path(PAYLOAD)
++if source.is_symlink() or not source.is_file() or source.stat().st_size>33554432:raise ValueError('Payload source differs')
++raw=source.read_bytes()
++if len(raw)>33554432 or hashlib.sha256(raw).hexdigest()!=EXPECTED:raise ValueError('Payload differs')
++root=pathlib.Path('/tmp')/('g2_'+job+'_'+TOKEN)
++root.mkdir(mode=0o700)
++p=root/'payload';p.mkdir();seen=set();total=0
++with tarfile.open(fileobj=io.BytesIO(raw),mode='r:') as tar:
++ for m in tar:
++  n=pathlib.PurePosixPath(m.name);total+=m.size
++  if not m.isfile() or n.is_absolute() or '..' in n.parts or str(n) in seen or total>33554432:raise ValueError('Unsafe payload')
++  seen.add(str(n));target=p/str(n);target.parent.mkdir(parents=True,exist_ok=True)
++  with target.open('xb') as out:out.write(tar.extractfile(m).read())
++  target.chmod(m.mode&0o755)
++c=json.loads((p/'CONFIG.json').read_text())['closure_object']
++source=pathlib.Path(c['path'])
++if source.is_symlink() or not source.is_file() or source.stat().st_size!=c['bytes'] or c['bytes']>67108864:raise ValueError('Closure object differs')
++h=hashlib.sha256()
++with source.open('rb') as inp,(p/'metadata.tar').open('xb') as out:
++ for block in iter(lambda:inp.read(1048576),b''):
++  h.update(block);out.write(block)
++if h.hexdigest()!=c['sha256']:raise ValueError('Closure object digest differs')
++os.execv('/usr/bin/python3',['/usr/bin/python3','-I','-s','-B',str(p/'guard_kit/worker.py'),'--root',str(root),'--payload',str(p)])
++'''
++    batch='#!/bin/bash\nset -euo pipefail\numask 077\nexport OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1\nunset PYTHONPATH\nexec /usr/bin/python3 -I -s -B - <<\'G2_PY\'\n'
++    batch+='PAYLOAD='+repr(payload_path)+'\nEXPECTED='+repr(expected)+'\nTOKEN='+repr(config['token'])+'\n'+bootstrap+'G2_PY\n'
++    (dest/'BATCH.sh').write_text(batch);(dest/'BATCH.sh').chmod(0o700)
++    for name in ('CONFIG.json','FAMILY.json'):(dest/name).write_bytes(sources[name].read_bytes())
++    value=dict(schema='g2-packet-v1',plan_sha256=config['plan_sha256'],family_sha256=config['family']['sha256'],
++        closure_sha256=config['closure_source_sha256'],payload=dict(path=payload_path,bytes=archive.stat().st_size,sha256=expected),
++        batch_sha256=sha(dest/'BATCH.sh'),submit_argv=submit_argv(config,dest/'BATCH.sh'))
++    write(dest/'PACKET.json',value);(dest/'SUBMIT_COMMAND.txt').write_text(shlex.join(value['submit_argv'])+'\n')
++    return value
++
++def main():
++    p=argparse.ArgumentParser();s=p.add_subparsers(dest='cmd',required=True)
++    a=s.add_parser('prepare')
++    for name in ('family','done','metadata','out'):a.add_argument('--'+name,required=True)
++    a.add_argument('--step',required=True,type=int);a.add_argument('--token')
++    a=s.add_parser('packet')
++    for name in ('config','review','order','out'):a.add_argument('--'+name,required=True)
++    a=p.parse_args()
++    if a.cmd=='prepare':prepare(a.family,a.done,a.step,a.metadata,a.out,a.token)
++    else:packet(a.config,a.review,a.order,a.out)
++if __name__=='__main__':main()
+--- C8r/pool.py
++++ G2/pool.py
+@@ -0,0 +1,51 @@
++"""Exclusive, bounded result pool; no checkpoint or input data is stored here."""
++from contextlib import contextmanager
++import fcntl
++import os
++from pathlib import Path
++import re
++import time
++from guard_core import sha
++POOL_LIMIT=1024**3
++POOL=Path('/project/community/jjyeung/okh7/a936d80c')
++
++@contextmanager
++def lock(root):
++    root=Path(root)
++    if root!=POOL or root.resolve()!=root or not root.is_dir() or (root/'.lock').is_symlink():
++        raise ValueError('Result pool identity differs')
++    with (root/'.lock').open('a+b') as handle:
++        fcntl.flock(handle,fcntl.LOCK_EX)
++        yield
++
++def usage(root):
++    total=0;count=0;pending=[Path(root)]
++    while pending:
++        for p in pending.pop().iterdir():
++            count+=1
++            if count>10000 or p.is_symlink():raise ValueError('Result pool inventory is unsafe or unbounded')
++            if p.is_dir():pending.append(p)
++            elif p.is_file():total+=p.stat().st_size
++            else:raise ValueError('Result pool has a special member')
++    return total
++
++def reserve(root,token):
++    if not re.fullmatch('[a-f0-9]{16}',token):raise ValueError('Invalid result token')
++    with lock(root):
++        if usage(root)+16384>POOL_LIMIT:raise ValueError('Result pool quota exceeded')
++        target=Path(root)/token;target.mkdir(mode=0o700)
++    return target
++
++def publish(root,token,source):
++    source=Path(source);size=source.stat().st_size
++    with lock(root):
++        if usage(root)+size+16384>POOL_LIMIT:raise ValueError('Result pool quota exceeded')
++        dest=Path(root)/token/source.name
++        started=time.monotonic();copied=0
++        with source.open('rb') as inp,dest.open('xb') as out:
++            for block in iter(lambda:inp.read(256*1024),b''):
++                out.write(block);copied+=len(block)
++                time.sleep(max(0,copied/(4*1024**2)-(time.monotonic()-started)))
++            out.flush();os.fsync(out.fileno())
++        if copied!=size or sha(dest)!=sha(source):raise ValueError('Result pool readback differs')
++    return dict(uri=str(dest),bytes=size,sha256=sha(dest),verified=True)
+--- C8r/reviewed/chain_save.py
++++ G2/reviewed/chain_save.py
+@@ -0,0 +1,137 @@
++import argparse
++import json
++import os
++from pathlib import Path
++import shutil
++import tarfile
++import uuid
++
++
++MIN_FREE = 200*1024**3
++ARCHIVE_LIMIT = 89999999
++PROJECT_LIMIT = 20000000000
++DIRECT_FILES = ('request.json', 'BIND_STATUS.json', 'PROMPT_PINS.json', 'LAYOUT_ADMISSION.json', 'kit/CODE_PINS.json',
++                'frames/0.json', 'results')
++TOP_FILES = ('PLAN.json', 'SPEC.json', 'AUTHORIZATION.json', 'RELEASE.json', 'HARDWARE.json',
++             'START.json', 'COMPLETE.json', 'FAILED.json', 'STEPS.jsonl', 'CODE_PINS.json',
++             'FRAME_PLAN.json', 'PARITY.json', 'TRACE.json.gz')
++
++
++class BudgetError(RuntimeError):
++    pass
++
++
++def atomic_json(path, value):
++    path = Path(path)
++    if path.is_symlink():
++        raise ValueError('Status destination must not be a symlink')
++    temporary = path.parent/(path.name+'.'+uuid.uuid4().hex+'.partial')
++    with temporary.open('x') as stream:
++        json.dump(value, stream, indent=2, sort_keys=True)
++        stream.write('\n')
++        stream.flush()
++        os.fsync(stream.fileno())
++    os.replace(temporary, path)
++
++
++def local_output(path):
++    path = Path(path)
++    resolved = path.resolve()
++    if not path.is_absolute() or not any(
++            resolved.is_relative_to(root) for root in (Path('/scratch'), Path('/tmp'), Path('/dev/shm'))):
++        raise ValueError('Rolling read archives require a node-local output directory')
++    return resolved
++
++
++class LimitedWriter:
++    def __init__(self, stream, limit):
++        self.stream = stream
++        self.limit = limit
++        self.written = 0
++
++    def write(self, data):
++        if self.written+len(data) > self.limit:
++            raise BudgetError('Compressed archive exceeds the transfer-safe file limit')
++        result = self.stream.write(data)
++        self.written += result
++        return result
++
++    def __getattr__(self, name):
++        return getattr(self.stream, name)
++
++
++def regular_files(path):
++    path = Path(path)
++    if path.is_symlink():
++        raise ValueError('Refuse a symlink in read results: '+str(path))
++    if path.is_file():
++        yield path
++    elif path.is_dir():
++        for child in sorted(path.iterdir()):
++            yield from regular_files(child)
++    elif path.exists():
++        raise ValueError('Refuse a special file in read results: '+str(path))
++
++
++def members(source):
++    source = Path(source)
++    selected = [source/name for name in TOP_FILES]
++    selected.extend(source/name for name in ('ITEMS.jsonl','SUMMARY.json','metadata','logs'))
++    for family in ('main','away','forward','camera'):
++        selected.extend(source/family/name for name in ('ITEMS.jsonl','COMPLETE.json','report'))
++        for name in ('request.json','BIND_STATUS.json','PROMPT_PINS.json','kit/CODE_PINS.json','frames/0.json'):
++            selected.append(source/family/'a0'/name)
++        for rel in ('0','budget_2048/0','budget_4096/0'):
++            selected.append(source/family/'a0/results'/rel/'summary_a0.json')
++            selected.append(source/family/'a0/results'/rel/'items_a0.jsonl')
++    result = {}
++    for path in selected:
++        for item in regular_files(path):
++            result[str(item.relative_to(source))] = item
++    if sum(p.stat().st_size for p in result.values()) > 512*1024**2:
++        raise BudgetError('Expanded return exceeds its allowance')
++    return result
++
++
++def save(source, output, slot, persisted_input_bytes=0):
++    source, output = Path(source), local_output(output)
++    if slot not in (0, 1) or not 0 <= persisted_input_bytes <= PROJECT_LIMIT:
++        raise ValueError('Invalid archive slot or persistent input accounting')
++    if not output.is_dir():
++        raise ValueError('Archive output directory must exist')
++    used = sum(p.stat().st_size for p in regular_files(output))
++    if used+persisted_input_bytes+ARCHIVE_LIMIT > PROJECT_LIMIT:
++        raise BudgetError('The read would exceed its 20 GB project-write allowance')
++    if shutil.disk_usage(output).free < MIN_FREE+ARCHIVE_LIMIT:
++        raise BudgetError('The archive would breach the 200 GiB project floor')
++    paths = members(source)
++    target = output/f'save_{slot}.tar.gz'
++    temporary = output/f'.save_{slot}.{uuid.uuid4().hex}.partial'
++    if target.is_symlink():
++        raise ValueError('Archive destination must not be a symlink')
++    with temporary.open('xb') as raw:
++        limited = LimitedWriter(raw, ARCHIVE_LIMIT)
++        with tarfile.open(fileobj=limited, mode='w:gz', compresslevel=6) as archive:
++            for relative, path in sorted(paths.items()):
++                archive.add(str(path), arcname=relative, recursive=False)
++        raw.flush()
++        os.fsync(raw.fileno())
++    os.replace(temporary, target)
++    if shutil.disk_usage(output).free < MIN_FREE:
++        raise BudgetError('Project free space fell below the 200 GiB floor')
++    return dict(path=str(target), bytes=target.stat().st_size, files=len(paths),
++                project_limit_bytes=PROJECT_LIMIT, archive_limit_bytes=ARCHIVE_LIMIT)
++
++
++def main():
++    parser = argparse.ArgumentParser()
++    for name in ('source', 'output'):
++        parser.add_argument('--'+name, required=True)
++    parser.add_argument('--slot', type=int, choices=(0, 1), required=True)
++    parser.add_argument('--persisted-input-bytes', type=int, required=True)
++    args = parser.parse_args()
++    print(json.dumps(save(args.source, args.output, args.slot, args.persisted_input_bytes)))
++
++
++if __name__ == '__main__':
++    main()
+--- C8r/reviewed/checker/common.py
++++ G2/reviewed/checker/common.py
+@@ -0,0 +1,43 @@
++"""Shared deterministic files and path checks for the LEG-S1 read tools."""
++import hashlib
++import json
++import os
++from pathlib import Path
++import sys
++
++sys.dont_write_bytecode = True
++ROOT = Path(__file__).resolve().parent.parent
++VENDOR = ROOT/'work/vendor'
++TREE = ROOT/'work/tree_final'
++PARENT_SHA = 'c1a4258816b3f561c9891f74cc1138780900de5cd890320161d2c94c85a86f67'
++BASE_SHA = 'ae9247f7c316e7661bfbe4301c28d75b6871db7427d675b8e1cc4c0c41b4b252'
++
++def local(path):
++    p=Path(path).resolve()
++    if p.parts[1:2] == ('home',) or (len(p.parts)>1 and p.parts[1].startswith('data')):
++        raise ValueError('Forbidden shared-filesystem path: '+str(p))
++    return p
++
++def sha(path):
++    with local(path).open('rb') as f: return hashlib.file_digest(f,'sha256').hexdigest()
++
++def load(path): return json.loads(local(path).read_text())
++def rows(path): return [json.loads(s) for s in local(path).read_text().splitlines() if s.strip()]
++def digest(x): return hashlib.sha256(json.dumps(x,sort_keys=True,separators=(',',':'),allow_nan=False).encode()).hexdigest()
++def dump(path,x):
++    p=local(path); p.parent.mkdir(parents=True,exist_ok=True)
++    p.write_text(json.dumps(x,sort_keys=True,indent=2,allow_nan=False)+'\n')
++def pin(path): return dict(path=str(local(path)),sha256=sha(path))
++def checked(p):
++    if sha(p['path'])!=p['sha256']: raise ValueError('Pin mismatch: '+str(p['path']))
++    return local(p['path'])
++
++def vendor():
++    # The r5 modules intentionally import one another by their original names.
++    sys.path.insert(0,str(VENDOR/'r5'))
++    import adapter, report
++    return adapter, report
++
++def install_tree():
++    sys.path.insert(0,str(TREE))
++
+--- C8r/reviewed/checker/export_check.py
++++ G2/reviewed/checker/export_check.py
+@@ -0,0 +1,84 @@
++"""Read-only export authentication. Never stages or copies full model weights."""
++import argparse
++import json
++from pathlib import Path
++import re
++import struct
++import sys
++sys.path.insert(0,str(Path(__file__).resolve().parent))
++from common import *
++
++def member(root,name):
++    if not isinstance(name,str) or Path(name).name!=name: raise ValueError('Unsafe member')
++    p=local(root/name)
++    if p.parent!=root.resolve(): raise ValueError('Member escapes export')
++    return p
++
++def headers(path):
++    with local(path).open('rb') as f:
++        prefix=f.read(8)
++        if len(prefix)!=8: raise ValueError('Short safetensors header')
++        n=struct.unpack('<Q',prefix)[0]
++        if not 2<=n<=16*1024*1024: raise ValueError('Invalid safetensors header length')
++        h=json.loads(f.read(n))
++    return {k:(v['dtype'],v['shape']) for k,v in h.items() if k!='__metadata__'}
++
++def inventory(root,weight_map):
++    result={}
++    for name in sorted(set(weight_map.values())):
++        for key,value in headers(member(root,name)).items():
++            if key in result or weight_map.get(key)!=name: raise ValueError('Misplaced/duplicate tensor')
++            result[key]=value
++    if set(result)!=set(weight_map): raise ValueError('Index tensor inventory differs')
++    return result
++
++def check_export(path,expected_sha,base,step=None,scope='direct',receipt=None,header_only=False):
++    path=local(path); base=local(base)
++    if path.name!='artifact.json' or not re.fullmatch('[0-9a-f]{64}',expected_sha): raise ValueError('Require artifact.json and sha256')
++    if sha(path)!=expected_sha: raise ValueError('Artifact hash differs')
++    a=load(path)
++    if a.get('schema')!='carrier-c1-artifact-v1': raise ValueError('Artifact schema differs')
++    if step is not None and a.get('step')!=step: raise ValueError('Optimizer step differs')
++    mp=path.parent/'full_weights/full_weights.json'
++    if local(a['full_weights']['path'])!=mp.resolve(): raise ValueError('Full weights path is not local milestone; preserve original absolute mount')
++    m=load(checked(a['full_weights']))
++    if (m.get('schema'),m.get('dtype'))!=('full-ft-export-v1','bfloat16'): raise ValueError('Require full BF16 export')
++    ip=member(mp.parent,m['index']['name'])
++    if ip.name!='model.safetensors.index.json' or sha(ip)!=m['index']['sha256']: raise ValueError('Index hash differs')
++    files=m['files']; names=[r['name'] for r in files]
++    if not names or len(names)!=len(set(names)): raise ValueError('Empty/duplicate shard inventory')
++    for r in files:
++        p=member(mp.parent,r['name'])
++        if p.suffix!='.safetensors' or p.stat().st_size!=r['bytes']: raise ValueError('Missing/wrong-sized shard')
++        if not header_only and sha(p)!=r['sha256']: raise ValueError('Shard hash differs')
++        if len(headers(p))!=r['tensors']: raise ValueError('Shard tensor count differs')
++    wm=load(ip)['weight_map']
++    if set(wm.values())!=set(names) or len(wm)!=m['tensor_count']: raise ValueError('Manifest/index disagree')
++    actual=inventory(mp.parent,wm)
++    bi=base/'model.safetensors.index.json'
++    expected=inventory(base,load(bi)['weight_map']) if bi.exists() else headers(base/'model.safetensors')
++    if (set(actual)-set(expected) or any(not k.startswith('mtp.') for k in set(expected)-set(actual))
++        or any(actual[k][0]!='BF16' or expected[k][0] not in ('BF16','F32') or actual[k][1]!=expected[k][1]
++               for k in actual.keys() & expected.keys())):
++        raise ValueError('Export/native tensor names, dtypes or shapes differ')
++    result=dict(scope=scope,status='HEADER_ONLY_NOT_VERIFIED' if header_only else 'VERIFIED',
++                artifact=pin(path),step=a.get('step'),tensor_count=len(actual),bytes=sum(r['bytes'] for r in files))
++    if scope=='routed':
++        if receipt is None: raise ValueError('Routed read requires the admitted training receipt')
++        install_tree()
++        from evalpath.runtime import check_init_spec
++        result['init_spec']=check_init_spec(load(receipt),pin(path))
++        # Loader enforces the trained tensor fingerprint and exact coverage on device.
++        if 'heads' not in a: raise ValueError('Routed export lacks heads')
++        checked(a['heads'])
++        result['first_minute']='runtime.load_model must authenticate and load every trained group'
++    return result
++
++def main():
++    p=argparse.ArgumentParser(description=__doc__)
++    for k in ('export','sha256','base','output'): p.add_argument('--'+k,required=True)
++    p.add_argument('--step',type=int); p.add_argument('--scope',choices=['direct','routed'],default='direct')
++    p.add_argument('--receipt'); p.add_argument('--header-only',action='store_true')
++    a=p.parse_args(); r=check_export(a.export,a.sha256,a.base,a.step,a.scope,a.receipt,a.header_only)
++    dump(a.output,r); print(json.dumps(r))
++if __name__=='__main__': main()
+--- C8r/reviewed/export_stage.py
++++ G2/reviewed/export_stage.py
+@@ -0,0 +1,224 @@
++"""Authenticated archive admission using the reviewed stage_export function."""
++import argparse
++from contextlib import contextmanager
++import fcntl
++import hashlib
++import json
++import os
++from pathlib import Path, PurePosixPath
++import re
++import shutil
++import subprocess
++import tarfile
++import time
++from types import SimpleNamespace as NS
++import orchard_stage as S
++import orchard_job as J
++import chain_save as A
++
++CHECKER = J.SJ/'orch_cd/legs1_reads/out/export_check.py'
++CHECKER_PINS = {
++    'export_check.py': '0400842c559565b66db50d6c8fde7c323e8600a82d70685d469a4b316d7ec8d2',
++    'common.py': '1954de01cc935fb744ebc92a3ede19a94658d2ce4fefb3c1e1ba40b03d2508c4',
++}
++
++@contextmanager
++def lock(path):
++    with Path(path).open('a+b') as f:
++        fcntl.flock(f, fcntl.LOCK_EX)
++        yield
++
++
++def writable(path):
++    path = Path(path).absolute()
++    if path.resolve() != path or not path.is_relative_to('/tmp'):
++        raise ValueError('Require canonical job-local storage')
++    return path
++
++
++def logical_artifact(root, path, step):
++    allowed = {str(J.FSW/'ap/8865619b/runs'/run/('m'+str(step))/'artifact.json') for run in ('469ddece', '359fcc3c')}
++    if path not in allowed or type(step) is not int or step <= 0:
++        raise ValueError('Export lineage differs')
++    return path
++
++
++T = NS(writable=writable, EXPORT_RUNS=('469ddece', '359fcc3c'),
++       FSW=J.FSW, logical_artifact=logical_artifact, physical=J.physical,
++       load=lambda p: json.loads(Path(p).read_text()), sha=S.sha, lock=lock,
++       kit_stage=lambda: S, dump=A.atomic_json)
++
++
++def completed_local(value, tar=False):
++    path = writable(value)
++    if '.part' in path.name or not path.is_file() or (tar and path.suffix != '.tar'):
++        raise ValueError('Require a completed regular local file')
++    return path
++
++
++def run_export_checker(root, artifact, digest, step, full, receipt_dir, bwrap):
++    if not full:
++        raise ValueError('Full verification is required')
++    config = T.load(root/'bootstrap/CONFIG.json')
++    for name, pin in CHECKER_PINS.items():
++        if S.sha(J.physical(root, CHECKER.parent/name)) != pin:
++            raise ValueError('Checker source changed')
++    output = receipt_dir/'CHECK.json'
++    command = J.namespace(root, config)+[config['spec']['interpreters']['p1cpu'], '-B', str(CHECKER),
++        '--export', artifact, '--sha256', digest, '--base', config['spec']['models']['base']['path'],
++        '--step', str(step), '--output', str(output)]
++    A.atomic_json(receipt_dir/'COMMAND.json', dict(argv=command, full=True, pins=CHECKER_PINS))
++    # The checker prints model metadata; retain it as encoded evidence.
++    result = subprocess.run(command, env=J.environment(root), cwd=root, capture_output=True)
++    (receipt_dir/'check.hex').write_text(result.stdout.hex()+'\n'+result.stderr.hex()+'\n')
++    if result.returncode:
++        raise RuntimeError('Full export check failed')
++    checked = T.load(output)
++    if checked.get('status') != 'VERIFIED' or checked.get('step') != step:
++        raise ValueError('Unexpected checker result')
++    return checked
++
++
++def stage_export(args):
++    root = T.writable(args.root)
++    if args.run not in T.EXPORT_RUNS or type(args.step) is not int or args.step <= 0:
++        raise ValueError('Require an allowed run and positive step')
++    source = completed_local(args.tar, tar=True); done_path = completed_local(args.done)
++    done = T.load(done_path)
++    if (not isinstance(done, dict) or not isinstance(done.get('object'), str) or not done['object'].strip() or
++            type(done.get('bytes')) is not int or done['bytes'] <= 0 or
++            not isinstance(done.get('sha256'), str) or not re.fullmatch('[0-9a-f]{64}', done['sha256'])):
++        raise ValueError('Done record requires object, positive integer bytes, and whole-tar sha256')
++    logical = str(T.FSW/'ap/8865619b/runs'/args.run/('m'+str(args.step))/'artifact.json')
++    T.logical_artifact(root, logical, args.step)
++    dest = T.physical(root, logical).parent
++    if dest.resolve() != dest: raise ValueError('Export destination has a symlink')
++    receipt_dir = root/'exports'/(args.run+'_m'+str(args.step))
++    if receipt_dir.resolve() != receipt_dir: raise ValueError('Receipt destination has a symlink')
++    root.mkdir(parents=True, exist_ok=True)
++    with T.lock(root/'.stage-export.lock'):
++        if dest.exists() or receipt_dir.exists(): raise ValueError('Milestone or receipt exists; no overwrite or retry')
++        # Hash and parse the same open file, never the arriving partial name.
++        with source.open('rb') as stream:
++            before = source.stat()
++            if before.st_size != done['bytes']: raise ValueError('Tar bytes differ from done record')
++            h = hashlib.sha256()
++            for chunk in iter(lambda: stream.read(1024*1024), b''): h.update(chunk)
++            if h.hexdigest() != done['sha256']: raise ValueError('Tar SHA256 differs from done record')
++            stream.seek(0)
++            with tarfile.open(fileobj=stream, mode='r:') as archive:
++                members = []; names = set(); sizes = 0
++                for member in archive:
++                    path = PurePosixPath(member.name)
++                    if (path.is_absolute() or '..' in path.parts or not path.parts or
++                            path.parts[0] != dest.name or not (member.isfile() or member.isdir())):
++                        raise ValueError('Unsafe member or unexpected milestone layout: '+member.name)
++                    name = str(path)
++                    if name in names: raise ValueError('Duplicate tar member: '+name)
++                    names.add(name)
++                    rel = path.parts[1:]
++                    if rel and (rel[0] not in ('artifact.json', 'heads.pt', 'full_weights') or
++                                (rel[0] != 'full_weights' and (len(rel) != 1 or not member.isfile()))):
++                        raise ValueError('Unexpected milestone layout: '+name)
++                    if not rel and not member.isdir(): raise ValueError('Milestone root must be a directory')
++                    if rel == ('full_weights',) and not member.isdir(): raise ValueError('Weights must be a directory')
++                    members.append((member, path))
++                    if member.isfile(): sizes += member.size
++                files = {str(p) for m, p in members if m.isfile()}
++                required = {dest.name+'/'+p for p in ('artifact.json', 'heads.pt', 'full_weights/full_weights.json')}
++                if not required <= files: raise ValueError('Missing required milestone layout')
++                for name in names:
++                    if any(str(p) in files for p in PurePosixPath(name).parents):
++                        raise ValueError('File/directory collision in tar')
++                T.kit_stage().room(root, sizes)
++                receipt_dir.mkdir(parents=True)
++                receipt = dict(schema=1, status='extracting', run=args.run, step=args.step,
++                    source=str(source), done_path=str(done_path), done_sha256=T.sha(done_path), done=done,
++                    tar_bytes=before.st_size, tar_sha256=h.hexdigest(), extracted_bytes=sizes,
++                    artifact=logical, checker_mode='full' if args.full else 'header-only',
++                    members=len(members), started=time.time())
++                T.dump(receipt_dir/'RECEIPT.json', receipt)
++                try:
++                    dest.mkdir(parents=True)
++                    for member, path in members:
++                        target = dest.parent/str(path)
++                        if member.isdir(): target.mkdir(parents=True, exist_ok=True)
++                        else:
++                            target.parent.mkdir(parents=True, exist_ok=True)
++                            with archive.extractfile(member) as inp, target.open('xb') as out:
++                                shutil.copyfileobj(inp, out, 1024*1024)
++                            target.chmod(0o600)
++                    after = source.stat()
++                    if (before.st_size, before.st_mtime_ns, before.st_ino) != (after.st_size, after.st_mtime_ns, after.st_ino):
++                        raise ValueError('Tar changed during staging')
++                    receipt['status'] = 'extracted'
++                    receipt['artifact_sha256'] = T.sha(dest/'artifact.json')
++                    T.dump(receipt_dir/'RECEIPT.json', receipt)
++                    receipt['checker'] = run_export_checker(root, logical, receipt['artifact_sha256'], args.step,
++                                                           args.full, receipt_dir, args.bwrap)
++                    receipt['status'] = 'complete'
++                    return receipt
++                except Exception as error:
++                    receipt.update(status='failed', error=str(error))
++                    raise
++                finally:
++                    receipt['finished'] = time.time()
++                    T.dump(receipt_dir/'RECEIPT.json', receipt)
++
++
++def parse_done(raw, run, step):
++    """Read the uploader's one-line receipt; bytes and SHA cover the whole tar."""
++    if run not in T.EXPORT_RUNS or type(step) is not int or step <= 0:
++        raise ValueError('Invalid completion receipt identity')
++    obj = 'q8/8865619b/'+run+'_m'+str(step)+'.tar'
++    match = re.fullmatch(re.escape(obj).encode()+rb' ([1-9][0-9]*) ([0-9a-f]{64})\n?', raw)
++    if match is None:
++        raise ValueError('Completion receipt identity or format differs')
++    return dict(object=obj, bytes=int(match[1]), sha256=match[2].decode('ascii'))
++
++
++def fetch_and_stage(root, config):
++    root = Path(root)
++    step = config['spec']['step']
++    receipt = Path('/project/community/jjyeung/okh7/x_f5c353f7/o')/('gcs_359fcc3c_m'+str(step)+'.done')
++    if receipt.is_symlink() or receipt.stat().st_size > 65536:
++        raise ValueError('Invalid completion receipt')
++    raw = receipt.read_bytes()
++    done = parse_done(raw, '359fcc3c', step)
++    uri = 'gs://cmu-gpucloud-jjyeung/'+done['object']
++    (root/'archives/COMPLETE.done').write_bytes(raw)
++    target = root/'archives/export.tar'
++    partial = target.with_suffix('.partial')
++    if target.exists() or partial.exists():
++        raise ValueError('Export already attempted')
++    S.room(root, 2*done['bytes'])
++    env = S.cloud_environment(config['assets']['gcloud_config'])
++    started = time.monotonic(); count = 0; h = hashlib.sha256()
++    with partial.open('xb') as out:
++        for part in range(4):
++            obj = uri+'.part%02d-of-04'%part
++            with S.process_stream(['gcloud', 'storage', 'cat', obj], env, root/'staging.log') as inp:
++                for chunk in iter(lambda: inp.read(S.CHUNK), b''):
++                    count += len(chunk)
++                    if count > done['bytes']:
++                        raise ValueError('Export exceeds receipt size')
++                    h.update(chunk)
++                    if out.write(chunk) != len(chunk):
++                        raise OSError('Short export write')
++        out.flush(); os.fsync(out.fileno())
++    if count != done['bytes'] or h.hexdigest() != done['sha256']:
++        raise ValueError('Whole archive differs from completion receipt')
++    os.rename(partial, target)
++    local_done = root/'archives/COMPLETE.json'
++    A.atomic_json(local_done, done)
++    transfer_seconds = time.monotonic()-started
++    result = stage_export(NS(root=str(root), run='359fcc3c', step=step, tar=str(target),
++                             done=str(local_done), full=True, bwrap=str(root/'bwrap')))
++    result['transfer_seconds'] = transfer_seconds
++    result['transfer_and_admission_seconds'] = time.monotonic()-started
++    config['spec']['artifact']['sha256'] = result['artifact_sha256']
++    config['spec']['models']['cp1m200'] = dict(config['spec']['artifact'])
++    config['admission'] = result
++    # The submitted plan binds step and input receipt; resolved bytes are recorded separately.
++    A.atomic_json(root/'bootstrap/CONFIG.json', config)
++    return result
+--- C8r/reviewed/orchard_job.py
++++ G2/reviewed/orchard_job.py
+@@ -0,0 +1,279 @@
++import argparse
++import csv
++import json
++import os
++from pathlib import Path
++import re
++import signal
++import subprocess
++import sys
++import time
++
++sys.path.insert(0, str(Path(__file__).resolve().parent))
++import orchard_stage as S
++import orchard_results as R
++import chain_save as A
++
++
++SJ = Path('/scratch/jjyeung')
++FSW = Path('/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung')
++AP = Path('/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap')
++UV = '/home/jyeung/.local/share/uv/python/cpython-3.12-linux-x86_64-gnu'
++
++
++def physical(root, path):
++    path = Path(path)
++    if not path.is_absolute() or '..' in path.parts:
++        raise ValueError('Require a canonical registered path')
++    for logical, local in ((SJ, 'sj'), (FSW, 'fsw'), (AP, 'm/ap')):
++        if path.is_relative_to(logical):
++            return Path(root)/local/path.relative_to(logical)
++    raise ValueError('Path has no job-local mapping: '+str(path))
++
++
++class StorageRefusal(ValueError):
++    def __init__(self, message, evidence):
++        super().__init__(message)
++        self.evidence = evidence
++
++
++def active_mount(path):
++    anchor = Path(path)
++    while not anchor.exists():
++        anchor = anchor.parent
++    fd = os.open(anchor, os.O_PATH | os.O_DIRECTORY | os.O_CLOEXEC)
++    try:
++        for line in Path(f'/proc/self/fdinfo/{fd}').read_text().splitlines():
++            if line.startswith('mnt_id:'):
++                return dict(mount_id=int(line.split()[1]), probe_path=str(anchor))
++        raise ValueError('The directory handle has no kernel mount id')
++    finally:
++        os.close(fd)
++
++
++def storage_proof(path, mountinfo=None, job=None):
++    path = Path(path).resolve()
++    text = Path('/proc/self/mountinfo').read_text() if mountinfo is None else mountinfo
++    entries, tmp_entries = [], []
++    for line in text.splitlines():
++        before, after = line.split(' - ', 1)
++        fields, fs = before.split(), after.split()
++        decode = lambda value: re.sub(r'\\([0-7]{3})', lambda m: chr(int(m[1], 8)), value)
++        mount = Path(decode(fields[4]))
++        if mount == Path('/tmp'):
++            tmp_entries.append(line)
++        if path.is_relative_to(mount):
++            entries.append(dict(path=str(path), mount=str(mount), mount_id=int(fields[0]),
++                mount_root=decode(fields[3]), filesystem=fs[0], source=decode(fs[1]),
++                selected_mount_entry=line))
++    observed = dict(path=str(path), tmp_mount_entries=tmp_entries, selected_mount_entry=None)
++    try:
++        observed.update(active_mount(path))
++    except (OSError, ValueError) as error:
++        raise StorageRefusal('Cannot identify the work directory mount: '+str(error), observed) from error
++    matches = [entry for entry in entries if entry['mount_id'] == observed['mount_id']]
++    if len(matches) != 1:
++        raise StorageRefusal('No unique physical local storage evidence for the kernel mount id', observed)
++    value = dict(observed, **matches[0])
++    if (value['filesystem'] not in ('ext4', 'xfs', 'btrfs', 'tmpfs')
++            or (value['filesystem'] != 'tmpfs' and not value['source'].startswith('/dev/'))):
++        raise StorageRefusal('Storage is not a proven local filesystem', value)
++    if job is not None:
++        parts = Path(value['mount_root']).parts
++        if (not str(job).isdigit() or value['mount'] != '/tmp' or 'job_tmp' not in parts
++                or str(job) not in parts):
++            raise StorageRefusal('Storage is not the assigned job-private /tmp mount', value)
++        value['job'] = str(job)
++    return value
++
++
++def card(require_empty=False):
++    query = subprocess.run(['nvidia-smi', '--query-gpu=index,uuid,name,memory.used,utilization.gpu',
++                            '--format=csv,noheader,nounits'],
++                           check=True, capture_output=True, text=True, timeout=30)
++    processes = subprocess.run(['nvidia-smi', '--query-compute-apps=gpu_uuid,pid,used_memory',
++                                '--format=csv,noheader,nounits'],
++                               check=True, capture_output=True, text=True, timeout=30)
++    own = subprocess.run(['pgrep', '-fu', os.environ['USER'],
++                          '[/]a[a-z][0-9a-f]+/p/reader/chain.py'],
++                         capture_output=True, text=True, timeout=30)
++    visible = os.environ.get('CUDA_VISIBLE_DEVICES', '')
++    rows = [[item.strip() for item in row] for row in csv.reader(query.stdout.splitlines()) if row]
++    assigned = rows if len(rows) == 1 else [row for row in rows if visible in row[:2]]
++    if len(assigned) != 1 or assigned[0][2] != 'NVIDIA H100 80GB HBM3':
++        raise ValueError('The assigned card is not one authenticated H100 80GB HBM3')
++    selected = assigned[0]
++    if not visible or ',' in visible or (visible.startswith('GPU-') and visible != selected[1]):
++        raise ValueError('CUDA visibility differs from the single assigned GPU')
++    if require_empty and (float(selected[3]) > 32 or float(selected[4]) != 0
++                          or selected[1] in processes.stdout):
++        raise ValueError('The assigned GPU is not empty at the fresh check')
++    return dict(utc=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()), job=os.environ['SLURM_JOB_ID'],
++                hostname=os.uname().nodename, gpu_type=selected[2], gpu_uuid=selected[1],
++                slurm_job_gpus=os.environ.get('SLURM_JOB_GPUS'), cuda_visible_devices=visible,
++                nvidia_smi=query.stdout, compute_processes=processes.stdout,
++                pgrep=own.stdout, pgrep_returncode=own.returncode)
++
++
++def namespace(root, config=None):
++    root = Path(root)
++    argv = [str(root/'bwrap')]
++    for name in ('usr', 'bin', 'sbin', 'lib', 'lib64', 'etc', 'opt', 'run', 'sys'):
++        path = Path('/')/name
++        if path.is_symlink():
++            argv += ['--symlink', os.readlink(path), str(path)]
++        elif path.exists():
++            argv += ['--ro-bind', str(path), str(path)]
++    argv += ['--dev-bind', '/dev', '/dev', '--proc', '/proc', '--bind', '/tmp', '/tmp',
++             '--dir', '/scratch', '--bind', str(root/'sj'), str(SJ),
++             '--bind', str(root/'fsw'), str(FSW), '--dir', '/lustre',
++             '--bind', str(root/'m/ap'), str(AP),
++             '--ro-bind', str(root/'sj/uv-python/cpython-3.12.13-linux-x86_64-gnu'), UV,
++             '--dir', '/home/jjyeung', '--die-with-parent', '--chdir', str(root)]
++    if config is not None:
++        if config.get('phase_b') or config.get('families'):
++            store='/project/community/jjyeung/cp4tk_fr/k6tk'
++            argv += ['--ro-bind',store,store]
++    return argv
++
++
++def environment(root):
++    root = Path(root)
++    for name in ('cache', 'temp', 'home'):
++        (root/name).mkdir(exist_ok=True)
++    return dict(PATH='/usr/local/bin:/usr/bin:/bin', USER=os.environ['USER'],
++                SLURM_JOB_ID=os.environ['SLURM_JOB_ID'],
++                CUDA_VISIBLE_DEVICES=os.environ.get('CUDA_VISIBLE_DEVICES', ''),
++                HOME=str(root/'home'), TMPDIR=str(root/'temp'), XDG_CACHE_HOME=str(root/'cache'),
++                HF_HOME=str(root/'cache/hf'), HF_HUB_OFFLINE='1', TRANSFORMERS_OFFLINE='1',
++                HF_HUB_DISABLE_TELEMETRY='1', TOKENIZERS_PARALLELISM='false',
++                VLLM_NO_USAGE_STATS='1', DO_NOT_TRACK='1', VLLM_USE_FLASHINFER_SAMPLER='0',
++                PYTHONDONTWRITEBYTECODE='1', OMP_NUM_THREADS='8', OPENBLAS_NUM_THREADS='1')
++
++
++def stop(process):
++    if process is not None and process.poll() is None:
++        os.killpg(process.pid, signal.SIGTERM)
++        try:
++            process.wait(timeout=90)
++        except subprocess.TimeoutExpired:
++            os.killpg(process.pid, signal.SIGKILL)
++            process.wait(timeout=20)
++
++
++def run(root, config):
++    root = Path(root)
++    source = physical(root, config['spec']['run'])
++    output = physical(root, config['output'])
++    process, code, failure = None, 1, None
++    evidence = {}
++    proof = config.get('mode') == 'proof'
++    selected_card = card
++
++    def interrupted(number, frame):
++        raise RuntimeError('Orchard allocation signal '+str(number))
++
++    for number in (signal.SIGTERM, signal.SIGINT, signal.SIGUSR1):
++        signal.signal(number, interrupted)
++    try:
++        evidence['pool_write_test'] = R.write_test(config.get('pool',str(R.AUTHORIZED_POOL)), config['token'])
++        evidence['storage'] = storage_proof(root, job=os.environ['SLURM_JOB_ID'])
++        local_environment = environment(root)
++        os.environ.update({key: local_environment[key] for key in ('HOME', 'TMPDIR', 'XDG_CACHE_HOME')})
++        evidence['initial_card'] = selected_card(require_empty=True)
++        evidence['staging'] = S.stage(root, config, physical)
++        output.mkdir(parents=True)
++        for path in (source.parent, output):
++            location = storage_proof(path, job=os.environ['SLURM_JOB_ID'])
++            if location['source'] != evidence['storage']['source']:
++                raise ValueError('Runtime output does not use the proven job-local disk')
++        evidence['launch_card'] = selected_card(require_empty=True)
++        command = namespace(root,config)+[config['spec']['interpreters']['vllm'], '-s', '-B',
++            str(root/'bootstrap/trace_runtime.py'), '--script',
++            str(Path(config['spec']['package'])/'reader/chain.py'), '--root', str(root),
++            '--config', str(root/'bootstrap/CONFIG.json')]
++        with (root/'chain.log').open('xb') as log:
++            process = subprocess.Popen(command, env=environment(root), cwd=root,
++                                       stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
++            code = process.wait()
++        if code:
++            raise RuntimeError('Accepted chain exited with code '+str(code))
++        if not (source/'COMPLETE.json').is_file() or (source/'FAILED.json').exists():
++            raise ValueError('Chain completion is missing or conflicts with a failure')
++    except BaseException as error:
++        for number in (signal.SIGTERM, signal.SIGINT, signal.SIGUSR1):
++            signal.signal(number, signal.SIG_IGN)
++        failure, code = str(error), code or 1
++        if isinstance(error, StorageRefusal):
++            evidence['storage_refusal'] = error.evidence
++        stop(process)
++    finally:
++        source.mkdir(parents=True, exist_ok=True)
++        (source/'metadata').mkdir(exist_ok=True)
++        (source/'logs').mkdir(exist_ok=True)
++        try:
++            evidence['final_card'] = selected_card()
++        except Exception as error:
++            evidence['final_card_error'] = str(error)
++            failure, code = failure or 'Final GPU evidence unavailable', code or 1
++        if failure:
++            A.atomic_json(source/'FAILED.json', dict(error=failure, returncode=code))
++        A.atomic_json(source/'metadata/ORCHARD_LAUNCHER.json', evidence)
++        if (root/'STAGING.json').is_file():
++            (source/'metadata/STAGING.json').write_bytes((root/'STAGING.json').read_bytes())
++        for name in ('launch_card', 'final_card'):
++            if name in evidence:
++                (source/'metadata'/(name+'.txt')).write_text(evidence[name].get('nvidia_smi', ''))
++        artifact = physical(root, config['spec']['artifact']['path'])
++        if artifact.is_file():
++            if artifact.stat().st_size > 4*1024**2:
++                failure, code = 'Export metadata exceeds its allowance', code or 1
++                A.atomic_json(source/'FAILED.json', dict(error=failure, returncode=code))
++            else:
++                (source/'metadata/EXPORT_ARTIFACT.json').write_bytes(artifact.read_bytes())
++        for name in ('chain.log', 'staging.log'):
++            path = root/name
++            if path.is_file():
++                with path.open('rb') as stream:
++                    stream.seek(max(0, path.stat().st_size-2*1024**2))
++                    (source/'logs'/('launcher_'+name)).write_bytes(stream.read(2*1024**2))
++        try:
++            import trace_runtime
++            trace_runtime.snapshot()
++            trace_runtime.collect(root, source/'TRACE.json.gz')
++            A.ARCHIVE_LIMIT = (19900000 if proof else 89900000) - 1
++            result = R.publish(source, config.get('pool',str(R.AUTHORIZED_POOL)), config['token'], config['plan_sha256'], code, mode=config.get('mode','production'))
++            A.atomic_json(root/'RETURN.json',result)
++            code = code if result['status'] == 'COMPLETE' else code or 1
++        except Exception as error:
++            A.atomic_json(root/'RETURN_INCOMPLETE.json', dict(error=str(error), returncode=code or 1))
++            code = code or 1
++        return code
++
++
++def main():
++    parser = argparse.ArgumentParser()
++    parser.add_argument('--root', required=True)
++    parser.add_argument('--config', required=True)
++    args = parser.parse_args()
++    config = json.loads(Path(args.config).read_text())
++    if config.get('schema') != 'a2':
++        raise ValueError('Unrecognized Orchard batch contract')
++    review = json.loads((Path(args.config).parent/'REVIEW.json').read_text())
++    digest = S.hashlib.sha256(json.dumps(config['launcher_pins'], sort_keys=True).encode()).hexdigest()
++    if (S.sha(Path(args.config).parent/'REVIEW.json') != config['launcher_review_pin']['sha256']
++            or review.get('schema') != 'build-integrity-v1' or review.get('code_pins_sha256') != digest):
++        raise ValueError('Build integrity record differs')
++    for path, expected in config['launcher_pins'].items():
++        if S.sha(Path(args.config).parent/Path(path).name) != expected:
++            raise ValueError('A packaged dependency differs')
++    import orchard_launcher as L
++    payload = Path(args.config).parent/'payload.tar.gz'
++    if S.sha(payload) != config['payload_sha256']:
++        raise ValueError('The reader payload differs')
++    L.validate_payload(payload.read_bytes(), config)
++    raise SystemExit(run(args.root, config))
++
++
++if __name__ == '__main__':
++    main()
+--- C8r/reviewed/orchard_results.py
++++ G2/reviewed/orchard_results.py
+@@ -0,0 +1,194 @@
++"""Build locally, then verify independent pool and GCS returns."""
++import hashlib
++import json
++import os
++from pathlib import Path, PurePosixPath
++import re
++import subprocess
++import sys
++import tarfile
++import time
++import uuid
++import chain_save as S
++
++AUTHORIZED_POOL = Path('/project/community/jjyeung/okh7/ae71c903')
++GCS_ROOT = 'gs://cmu-gpucloud-jjyeung/q8/ae71c903'
++CLOUD_CONFIG = '/project/community/jjyeung/gcloud'
++POOL_LIMIT = 100_000_000
++READ_LIMIT = 90_000_000
++ARCHIVE_LIMIT = READ_LIMIT - 1
++EXIT_RESERVE = 100_000
++
++
++def sha(path):
++    digest=hashlib.sha256()
++    with Path(path).open('rb') as stream:
++        for chunk in iter(lambda:stream.read(1024**2),b''):digest.update(chunk)
++    return digest.hexdigest()
++
++
++def usage(path):
++    return sum(p.stat().st_size for p in S.regular_files(path))
++
++
++def pool_operation(action,pool,token,local=None,timeout=60):
++    argv=[sys.executable,'-I','-B']
++    if os.environ.get('A_TRACE_RUNNER'):
++        argv += [os.environ['A_TRACE_RUNNER'],'--root',os.environ['A_JOB_ROOT'],
++                 '--config',os.environ['A_JOB_CONFIG'],'--script']
++    argv += [str(Path(__file__).with_name('return_io.py')),action,str(pool),token]
++    if local is not None:argv+=['--local',str(local)]
++    process=subprocess.Popen(argv,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
++    try:
++        stdout,stderr=process.communicate(timeout=timeout)
++    except subprocess.TimeoutExpired:
++        # An NFS process in uninterruptible sleep may not reap after SIGKILL.
++        # Do not wait for it: the parent must retain its deadline.
++        process.kill()
++        process.stdout.close();process.stderr.close()
++        raise TimeoutError('Pool operation exceeded '+str(timeout)+' seconds')
++    if process.returncode:raise subprocess.CalledProcessError(process.returncode,argv,stdout,stderr)
++    return json.loads(stdout)
++
++
++def write_test(pool,token):
++    started=time.monotonic()
++    result=pool_operation('test',pool,token,timeout=60)
++    if time.monotonic()-started>60:raise TimeoutError('Pool write test exceeded 60 seconds')
++    return result
++
++
++class UploadError(ValueError):
++    def __init__(self,error,objects):
++        super().__init__(str(error));self.objects=objects
++
++
++def upload(local,token,names=('result.tar.gz','EXIT.json')):
++    env=dict(os.environ,CLOUDSDK_CONFIG=CLOUD_CONFIG);objects={}
++    try:
++        for name in names:
++            path=Path(local)/name;uri=GCS_ROOT+'/'+token+'/'+name
++            objects[name]=dict(uri=uri,generation=None,sha256=sha(path),bytes=path.stat().st_size,verified=False)
++            subprocess.run(['gcloud','storage','cp',str(path),uri],env=env,check=True,
++                           capture_output=True,timeout=180)
++            described=subprocess.run(['gcloud','storage','objects','describe',uri,'--format=json'],
++                           env=env,check=True,capture_output=True,text=True,timeout=60)
++            meta=json.loads(described.stdout);generation=str(meta.get('generation',''))
++            if not generation.isdigit() or int(meta.get('size',-1))!=path.stat().st_size:
++                raise ValueError('GCS object metadata differs')
++            objects[name]['generation']=generation
++            check=Path(local)/(name+'.gcs-check')
++            with check.open('xb') as out:
++                subprocess.run(['gcloud','storage','cat',uri+'#'+generation],env=env,check=True,
++                               stdout=out,stderr=subprocess.PIPE,timeout=180)
++            digest=sha(check)
++            if check.stat().st_size!=path.stat().st_size or digest!=sha(path):
++                raise ValueError('GCS object SHA256 differs')
++            objects[name]['verified']=True
++            with (Path(local)/'JOB.log').open('a') as log:
++                log.write(json.dumps(dict(upload=objects[name]),sort_keys=True)+'\n')
++    except Exception as error:
++        with (Path(local)/'JOB.log').open('a') as log:
++            log.write(json.dumps(dict(upload_error=str(error),objects=objects),sort_keys=True)+'\n')
++        raise UploadError(error,objects) from error
++    return dict(verified=True,objects=objects)
++
++
++def publish(source,pool,token,plan_sha256,returncode,synthetic=False,rate=4*1024**2,mode='production'):
++    source,pool=Path(source),Path(pool)
++    if (not re.fullmatch('[a-z][0-9a-f]{8,32}',token) or rate<=0
++        or not re.fullmatch('[0-9a-f]{64}',plan_sha256) or not pool.is_absolute()):
++        raise ValueError('Invalid return identity or pool')
++    cap=20_000_000 if mode=='proof' else 90_000_000
++    local=source.parent/('r_'+token+'_'+uuid.uuid4().hex);local.mkdir()
++    complete,failed=(source/'COMPLETE.json').is_file(),(source/'FAILED.json').is_file()
++    marker=json.loads((source/'COMPLETE.json').read_text()) if complete else {}
++    ok=complete and not failed and returncode==0 and marker.get('plan_sha256')==plan_sha256 and marker.get('synthetic') is synthetic
++    value=dict(schema='a3',token=token,plan_sha256=plan_sha256,
++        job=os.environ.get('SLURM_JOB_ID'),returncode=returncode,synthetic=synthetic,
++        conflicting_terminal_markers=complete and failed,complete=ok,status='COMPLETE' if ok else 'FAILED',
++        archive_complete=True,mode=mode)
++    archive=local/'result.tar.gz'
++    with archive.open('xb') as raw:
++        with tarfile.open(fileobj=S.LimitedWriter(raw,min(S.ARCHIVE_LIMIT,cap-(1_000_000 if mode=='proof' else EXIT_RESERVE)-1)),mode='w:gz',compresslevel=6) as tf:
++            for name,path in sorted(S.members(source).items()):tf.add(path,arcname=name,recursive=False)
++        raw.flush();os.fsync(raw.fileno())
++    value.update(archive=dict(name=archive.name,bytes=archive.stat().st_size,sha256=sha(archive)),
++                 archive_bytes=archive.stat().st_size,archive_sha256=sha(archive))
++    S.atomic_json(local/'EXIT.json',value)
++    (local/'JOB.log').write_text(json.dumps(value,sort_keys=True)+'\n')
++    receipt=dict(schema=1,token=token,plan_sha256=plan_sha256,job=value['job'],channels={},returned=False)
++    try:receipt['channels']['pool']=pool_operation('publish',pool,token,local,timeout=120)
++    except Exception as error:receipt['channels']['pool']=dict(verified=False,error=str(error))
++    try:receipt['channels']['gcs']=upload(local,token)
++    except Exception as error:receipt['channels']['gcs']=dict(verified=False,error=str(error),objects=getattr(error,'objects',{}))
++    receipt['returned']=any(c.get('verified') for c in receipt['channels'].values())
++    receipt['verified_channels']=[k for k,v in receipt['channels'].items() if v.get('verified')]
++    S.atomic_json(local/'RETURN_RECEIPT.json',receipt)
++    S.atomic_json(source/'RETURN_RECEIPT.json',receipt)
++    with (local/'JOB.log').open('a') as log:log.write(json.dumps(receipt,sort_keys=True)+'\n')
++    if usage(local)-sum(p.stat().st_size for p in local.glob('*.gcs-check'))>=cap:
++        raise S.BudgetError('Return files exceed mode cap')
++    try:pool_operation('receipt',pool,token,local,timeout=60)
++    except Exception as error:
++        receipt['pool_receipt_error']=str(error)
++        S.atomic_json(source/'RETURN_RECEIPT.json',receipt)
++    value.update(returned=receipt['returned'],verified_channels=receipt['verified_channels'],local_return=str(local))
++    if not receipt['returned']:value.update(status='INCOMPLETE',complete=False)
++    return value
++
++
++def final_trace(root,config):
++    import trace_runtime
++    root=Path(root);returned=json.loads((root/'RETURN.json').read_text())
++    local=Path(returned['local_return'])
++    trace_runtime.collect(root,local/'TRACE.json.gz')
++    pin=dict(token=config['token'],plan_sha256=config['plan_sha256'],bytes=(local/'TRACE.json.gz').stat().st_size,
++             sha256=sha(local/'TRACE.json.gz'))
++    S.atomic_json(local/'TRACE.pin.json',pin)
++    names=('result.tar.gz','EXIT.json','JOB.log','RETURN_RECEIPT.json','TRACE.json.gz','TRACE.pin.json')
++    if sum((local/n).stat().st_size for n in names if (local/n).exists())+100_000>=20_000_000:
++        raise S.BudgetError('Proof return and final trace exceed 20 MB')
++    channels={}
++    try:channels['pool']=pool_operation('trace',config['pool'],config['token'],local,timeout=60)
++    except Exception as error:channels['pool']=dict(verified=False,error=str(error))
++    try:channels['gcs']=upload(local,config['token'],('TRACE.json.gz','TRACE.pin.json'))
++    except Exception as error:channels['gcs']=dict(verified=False,error=str(error),objects=getattr(error,'objects',{}))
++    receipt=json.loads((local/'RETURN_RECEIPT.json').read_text());receipt['final_trace']=channels
++    S.atomic_json(local/'RETURN_RECEIPT.json',receipt)
++    try:pool_operation('receipt',config['pool'],config['token'],local,timeout=60)
++    except Exception as error:S.atomic_json(root/'TRACE_RETURN_INCOMPLETE.json',dict(error=str(error)))
++    return channels
++
++
++def verify(receipt, archive, expected_plan):
++    if receipt.get('synthetic') is not False:
++        raise ValueError('A synthetic return cannot admit an empirical read')
++    if (receipt.get('schema') != 'a3'
++            or receipt.get('plan_sha256') != expected_plan
++            or receipt.get('status') != 'COMPLETE' or receipt.get('complete') is not True
++            or receipt.get('conflicting_terminal_markers') is not False
++            or receipt.get('returncode') != 0):
++        raise ValueError('The returned read is incomplete or failed')
++    archive = Path(archive)
++    pin = receipt.get('archive', {})
++    if (archive.is_symlink() or archive.stat().st_size != pin.get('bytes')
++            or archive.stat().st_size > ARCHIVE_LIMIT or sha(archive) != pin.get('sha256')):
++        raise ValueError('The returned archive identity differs')
++    with tarfile.open(archive) as stream:
++        names, total = set(), 0
++        for entry in stream:
++            total += entry.size
++            if entry.name in names or len(names) >= 10000 or entry.size < 0 or total > 512*1024**2:
++                raise ValueError('Invalid or oversized result inventory')
++            names.add(entry.name)
++            path = PurePosixPath(entry.name)
++            if (not entry.isfile() or path.is_absolute() or '..' in path.parts
++                    or path.suffix in ('.pt', '.safetensors', '.png', '.jpg', '.jpeg')):
++                raise ValueError('Unsafe result archive member')
++        if 'FAILED.json' in names or 'COMPLETE.json' not in names:
++            raise ValueError('Conflicting or missing terminal markers')
++        marker = json.load(stream.extractfile('COMPLETE.json'))
++        if marker.get('plan_sha256') != expected_plan or marker.get('synthetic') is not False:
++            raise ValueError('The chain completion identity differs')
++    return receipt
+--- C8r/reviewed/orchard_stage.py
++++ G2/reviewed/orchard_stage.py
+@@ -0,0 +1,302 @@
++import base64
++from contextlib import contextmanager
++import hashlib
++import json
++import os
++from pathlib import Path, PurePosixPath
++import select
++import shutil
++import signal
++import subprocess
++import tarfile
++import time
++
++import chain_save as A
++
++
++MIN_FREE = 200*1024**3
++CHUNK = 1024**2
++RUNTIME_ABSOLUTE_LINKS = {
++    'sj/envs/p1cpu/bin/python3.12':
++        '/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/bin/python3.12',
++    'm/ap/19252904/e/bin/python':
++        '/home/jyeung/.local/share/uv/python/cpython-3.12-linux-x86_64-gnu/bin/python3.12',
++}
++
++
++def sha(path):
++    value = hashlib.sha256()
++    with Path(path).open('rb') as stream:
++        for chunk in iter(lambda: stream.read(CHUNK), b''):
++            value.update(chunk)
++    return value.hexdigest()
++
++
++def room(path, extra=0):
++    if shutil.disk_usage(path).free < MIN_FREE+extra:
++        raise ValueError('Staging would breach the 200 GiB node-local free-space floor')
++
++
++def relative(name):
++    path = PurePosixPath(name)
++    if path.is_absolute() or '..' in path.parts or '\x00' in name:
++        raise ValueError('Unsafe archive member')
++    return path
++
++
++def extract_stream(stream, destination, step, limit, links=False, strip=0, overlay=False):
++    destination = Path(destination).resolve()
++    seen, inventory, total = set(), {}, 0
++    with tarfile.open(fileobj=stream, mode='r|*') as archive:
++        for item in archive:
++            path = relative(item.name)
++            if len(path.parts) <= strip:
++                if not item.isdir():
++                    raise ValueError('Archive strip would discard a file')
++                continue
++            path = PurePosixPath(*path.parts[strip:])
++            if step is not None and path.parts[0] != 'm'+str(step):
++                raise ValueError('Export contains a foreign milestone')
++            if str(path) in seen:
++                raise ValueError('Duplicate archive member')
++            seen.add(str(path))
++            if len(seen) > 200000 or item.size < 0:
++                raise ValueError('Invalid archive inventory')
++            total += item.size
++            if total > limit:
++                raise ValueError('Archive exceeds its expanded byte allowance')
++            target = destination/str(path)
++            parent = target.parent.resolve()
++            if not parent.is_relative_to(destination) or target.is_symlink():
++                raise ValueError(f'Archive member escapes its local destination: {path} -> {item.linkname}')
++            if item.isdir():
++                target.mkdir(parents=True, exist_ok=True)
++                continue
++            target.parent.mkdir(parents=True, exist_ok=True)
++            if item.issym() and links:
++                link = PurePosixPath(item.linkname)
++                if link.is_absolute():
++                    if RUNTIME_ABSOLUTE_LINKS.get(str(path)) != item.linkname:
++                        raise ValueError(f'Runtime symlink has an unregistered absolute target: {path} -> {item.linkname}')
++                else:
++                    first_name = next((i for i, part in enumerate(link.parts) if part != '..'), len(link.parts))
++                    if '..' in link.parts[first_name:]:
++                        raise ValueError(f'Runtime symlink has ambiguous parent traversal: {path} -> {item.linkname}')
++                    if not Path(os.path.normpath(str(parent/str(link)))).is_relative_to(destination):
++                        raise ValueError(f'Runtime symlink escapes its archive: {path} -> {item.linkname}')
++                target.symlink_to(item.linkname)
++                continue
++            if item.islnk() and links:
++                source = destination/str(relative(item.linkname))
++                if not source.resolve().is_relative_to(destination) or source.is_symlink() or not source.is_file():
++                    raise ValueError(f'Unsafe runtime hard link: {path} -> {item.linkname}')
++                os.link(source, target)
++                continue
++            if not item.isfile():
++                raise ValueError('Archive links and special files are not admitted')
++            if overlay and target.exists():
++                if not target.is_file():
++                    raise ValueError('A code overlay may only replace a local regular file')
++                target.chmod(item.mode | 0o200)
++            hashed = hashlib.sha256()
++            with archive.extractfile(item) as source, target.open('wb' if overlay else 'xb') as output:
++                copied = 0
++                for chunk in iter(lambda: source.read(CHUNK), b''):
++                    copied += len(chunk)
++                    hashed.update(chunk)
++                    if output.write(chunk) != len(chunk):
++                        raise OSError('Short staging write')
++            if copied != item.size:
++                raise ValueError('Truncated archive member')
++            target.chmod(item.mode & 0o777)
++            inventory[str(path)] = dict(bytes=copied, sha256=hashed.hexdigest())
++    return inventory
++
++
++def copy_parts(parts, destination, opener, expected_sha=None, rate=0, check_space=True):
++    destination = Path(destination)
++    partial = destination.with_name(destination.name+'.partial')
++    size = sum(part['bytes'] for part in parts)
++    if destination.exists() or partial.exists():
++        raise FileExistsError('A staging destination already exists')
++    if check_space:
++        room(destination.parent, size)
++    whole = hashlib.sha256()
++    started, count = time.monotonic(), 0
++    with partial.open('xb') as output:
++        for part in parts:
++            hashed, md5, copied = hashlib.sha256(), hashlib.md5(), 0
++            with opener(part) as source:
++                for chunk in iter(lambda: source.read(CHUNK), b''):
++                    copied += len(chunk)
++                    count += len(chunk)
++                    if copied > part['bytes']:
++                        raise ValueError('Part exceeds its authenticated size')
++                    hashed.update(chunk)
++                    md5.update(chunk)
++                    whole.update(chunk)
++                    if output.write(chunk) != len(chunk):
++                        raise OSError('Short staging write')
++                    if rate:
++                        time.sleep(max(0, count/rate-(time.monotonic()-started)))
++            if copied != part['bytes'] or hashed.hexdigest() != part['sha256']:
++                raise ValueError('Part size or SHA256 differs')
++            if part.get('md5') and base64.b64encode(md5.digest()).decode() != part['md5']:
++                raise ValueError('Part MD5 differs')
++        output.flush()
++        os.fsync(output.fileno())
++    if expected_sha is not None and whole.hexdigest() != expected_sha:
++        raise ValueError('The complete archive SHA256 differs')
++    os.replace(partial, destination)
++    return dict(bytes=count, sha256=whole.hexdigest(), seconds=time.monotonic()-started)
++
++
++class ProcessStream:
++    def __init__(self, process):
++        self.process = process
++
++    def read(self, size):
++        if not select.select([self.process.stdout], [], [], 300)[0]:
++            raise RuntimeError('Staging stream made no progress for 300 seconds')
++        return os.read(self.process.stdout.fileno(), size)
++
++
++@contextmanager
++def process_stream(argv, environment, log):
++    with Path(log).open('ab') as output:
++        process = subprocess.Popen(argv, env=environment, stdout=subprocess.PIPE, stderr=output,
++                                   start_new_session=True)
++        try:
++            yield ProcessStream(process)
++            if process.wait(timeout=60):
++                raise RuntimeError('Staging command failed; no automatic retry')
++        finally:
++            if process.poll() is None:
++                os.killpg(process.pid, signal.SIGTERM)
++                try:
++                    process.wait(timeout=20)
++                except subprocess.TimeoutExpired:
++                    os.killpg(process.pid, signal.SIGKILL)
++                    process.wait(timeout=20)
++            process.stdout.close()
++
++
++def unpack(path, root, **kwargs):
++    with Path(path).open('rb') as stream:
++        return extract_stream(stream, root, None, Path(path).stat().st_size, **kwargs)
++
++
++def cloud_environment(path):
++    return dict(os.environ, CLOUDSDK_CONFIG=path,
++                CLOUDSDK_CORE_DISABLE_FILE_LOGGING='1', CLOUDSDK_CORE_DISABLE_PROMPTS='1',
++                CLOUDSDK_COMPONENT_MANAGER_DISABLE_UPDATE_CHECK='1',
++                CLOUDSDK_CORE_DISABLE_USAGE_REPORTING='1')
++
++
++def config_metadata(path):
++    result = {}
++    with os.scandir(path) as entries:
++        for entry in entries:
++            if len(result) >= 256:
++                raise ValueError('Cloud config metadata inventory exceeds its bound')
++            value = entry.stat(follow_symlinks=False)
++            result[entry.name] = dict(bytes=value.st_size, mtime_ns=value.st_mtime_ns,
++                                      directory=entry.is_dir(follow_symlinks=False))
++    return result
++
++
++def stage(root, config, physical):
++    root = Path(root)
++    assets = config['assets']
++    receipts = {}
++    last_phase = time.monotonic()
++
++    def phase(name):
++        nonlocal last_phase
++        now = time.monotonic()
++        receipts.setdefault('phases', {})[name] = dict(
++            completed_utc=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
++            seconds=now-last_phase, local_free_bytes=shutil.disk_usage(root).free)
++        last_phase = now
++        A.atomic_json(root/'STAGING.json', receipts)
++
++    phase('start')
++    archives = root/'archives'
++    archives.mkdir()
++    for index, group in enumerate(assets['groups']):
++        parts = [dict(path=p, bytes=n, sha256=h) for p, n, h in group]
++        archive = archives/f'runtime_{index}.tar'
++        receipts['runtime_'+str(index)] = copy_parts(
++            parts, archive, lambda part: Path(part['path']).open('rb'),
++            rate=0)
++        room(root, archive.stat().st_size)
++        unpack(archive, root, links=True)
++        phase('runtime_'+str(index))
++    camera = assets['camera_archive']
++    archive = archives/'a0.tar'
++    receipts['camera'] = copy_parts([camera], archive, lambda part: Path(part['path']).open('rb'))
++    room(root, archive.stat().st_size)
++    unpack(archive, root)
++    phase('a0')
++    payload = root/'bootstrap/payload.tar.gz'
++    if sha(payload) != config['payload_sha256']:
++        raise ValueError('Reader payload differs from the submitted package')
++    with payload.open('rb') as stream:
++        extract_stream(stream, root, None, 32*1024**2, overlay=True)
++    phase('reader_payload')
++    bwrap = assets['bwrap_pin']
++    target = root/'bwrap'
++    receipts['bwrap'] = copy_parts([bwrap], target, lambda part: Path(part['path']).open('rb'))
++    target.chmod(0o700)
++    phase('bwrap')
++    base = root/'m/ap/85fc3486'
++    base.mkdir(parents=True)
++    source = Path(assets['base_archive'])
++    if source.stat().st_size != assets['base_archive_bytes']:
++        raise ValueError('Base archive size differs')
++    room(root, source.stat().st_size)
++    inventory = unpack(source, base, strip=3)
++    manifest = physical(root, assets['base_manifest']['path'])
++    if sha(manifest) != assets['base_manifest']['sha256']:
++        raise ValueError('Base snapshot manifest differs')
++    for row in json.loads(manifest.read_text())['files']:
++        if inventory.get(row['path']) != {key: row[key] for key in ('bytes', 'sha256')}:
++            raise ValueError('Base snapshot payload differs from its frozen manifest')
++    receipts['base'] = dict(manifest_sha256=sha(manifest), files=len(inventory))
++    phase('base_snapshot')
++    from export_stage import fetch_and_stage
++    receipts['export'] = fetch_and_stage(root, config)
++    phase('export_verified')
++    room(root)
++    return receipts
++
++
++def stage_videos(root, config, physical):
++    root=Path(root)
++    package=physical(root,config['spec']['package'])
++    rows=json.loads((package/'cohort/MEDIA_MANIFEST.json').read_text())
++    destination=root/'v'
++    destination.mkdir()
++    verified=[]
++    for row in rows:
++        source=Path(row['alias_path'])
++        if not any(source.is_relative_to(Path('/project/community/jjyeung')/a) for a in ('3e0e8a36','8b677689')):
++            raise ValueError('Unregistered video alias')
++        source=video_source(row)
++        target=destination/(row['sha256']+'.mp4')
++        copied=copy_parts([dict(path=str(source),bytes=source.stat().st_size,sha256=row['sha256'])],target,
++                   lambda part:Path(part['path']).open('rb'))
++        verified.append(dict(relative_path=row['relative_path'],alias_path=str(source),**copied))
++    question=question_source()
++    target=physical(root,config['spec']['inputs']['rows']);target.parent.mkdir(parents=True,exist_ok=True)
++    copy_parts([dict(bytes=question.stat().st_size,sha256='d69dfb86e94cbb9821b8b2abe5a94b32cf69a9430d3ca3f482154afe45786abc')],
++               target,lambda part:question.open('rb'))
++    return dict(videos=len(rows),verified=True,files=verified)
++
++
++def video_source(row):
++    return Path(row["alias_path"])
++
++
++def question_source():
++    return Path("/project/community/jjyeung/cp4tk_eval/official/meta_5130.jsonl")
+--- C8r/reviewed/return_io.py
++++ G2/reviewed/return_io.py
+@@ -0,0 +1,68 @@
++"""Bounded pool operations with retained write-test evidence."""
++import argparse
++import fcntl
++import hashlib
++import json
++import os
++from pathlib import Path
++import shutil
++import time
++
++POOL_LIMIT = 100_000_000
++RESERVE = 100_000
++
++
++def sha(path):
++    h = hashlib.sha256()
++    with Path(path).open('rb') as f:
++        for chunk in iter(lambda: f.read(1024*1024), b''): h.update(chunk)
++    return h.hexdigest()
++
++
++def usage(pool):
++    total = 0
++    for p in pool.rglob('*'):
++        if p.is_symlink(): raise ValueError('Symlink in return pool')
++        if p.is_file(): total += p.stat().st_size
++    return total
++
++
++def operate(action, pool, token, local=None):
++    pool = Path(pool)
++    if not pool.is_absolute() or pool.is_symlink(): raise ValueError('Invalid pool')
++    pool.mkdir(parents=True, exist_ok=True)
++    with os.fdopen(os.open(pool/'POOL.lock', os.O_RDWR | os.O_CREAT, 0o600), 'rb') as lock:
++        fcntl.flock(lock, fcntl.LOCK_EX)
++        dest = pool/token
++        if action == 'test':
++            if usage(pool) + 4*1024**2 + RESERVE >= POOL_LIMIT: raise ValueError('Pool exceeds 100 MB')
++            dest.mkdir(mode=0o700)
++            data = os.urandom(4*1024**2)
++            test = dest/'.wtest'
++            started = time.monotonic()
++            with test.open('xb') as f:
++                if f.write(data) != len(data): raise OSError('Short write test')
++                f.flush(); os.fsync(f.fileno())
++            digest = sha(test)
++            if digest != hashlib.sha256(data).hexdigest(): raise ValueError('Write test SHA256 differs')
++            # Keep the write-test evidence; its bytes count toward the pool cap.
++            return dict(bytes=len(data), sha256=digest, seconds=time.monotonic()-started)
++        if not dest.is_dir() or dest.is_symlink(): raise ValueError('Missing tested pool token')
++        local = Path(local)
++        names = ['result.tar.gz', 'EXIT.json', 'JOB.log'] if action == 'publish' else (['TRACE.json.gz','TRACE.pin.json'] if action=='trace' else ['RETURN_RECEIPT.json','JOB.log'])
++        incoming = sum((local/n).stat().st_size for n in names)
++        if action=='trace' and usage(dest)+incoming+RESERVE>=20_000_000:raise ValueError('Proof return exceeds 20 MB')
++        if usage(pool) + incoming + RESERVE >= POOL_LIMIT: raise ValueError('Pool exceeds 100 MB')
++        for name in names:
++            src = local/name; partial = dest/(name+'.partial')
++            with src.open('rb') as inp, partial.open('xb') as out:
++                shutil.copyfileobj(inp, out, 256*1024); out.flush(); os.fsync(out.fileno())
++            if sha(partial) != sha(src): raise ValueError('Pool copy SHA256 differs')
++            os.replace(partial, dest/name)
++        return dict(verified=True, files={n:dict(bytes=(dest/n).stat().st_size,sha256=sha(dest/n)) for n in names})
++
++
++if __name__ == '__main__':
++    p=argparse.ArgumentParser();p.add_argument('action',choices=['test','publish','receipt','trace'])
++    p.add_argument('pool');p.add_argument('token');p.add_argument('--local');a=p.parse_args()
++    print(json.dumps(operate(a.action,a.pool,a.token,a.local),sort_keys=True))
+--- C8r/stage_candidate.py
++++ G2/stage_candidate.py
+@@ -0,0 +1,32 @@
++"""Adapt the reviewed stager's checker subprocess to the C8r namespace."""
++from pathlib import Path
++import argparse
++import subprocess
++import sys
++sys.path[:0]=[str(Path(__file__).resolve().parent/'reviewed'),str(Path(__file__).resolve().parent)]
++import export_stage as reviewed
++from guard_core import read,write,sha
++from guard_export import stage
++
++def run(root,archive,done,step,expected,checker):
++    def check(root,artifact,digest,step,full,receipt_dir,bwrap):
++        if not full:raise ValueError('Full checker required')
++        for name,pin in reviewed.CHECKER_PINS.items():
++            if sha(Path(__file__).parent/'reviewed/checker'/name)!=pin:raise ValueError('Reviewed checker source differs')
++        output=receipt_dir/'CHECK.json'
++        command=checker['namespace']+['--bind',str(receipt_dir),str(receipt_dir),
++            checker['python'],'-I','-s','-B',str(Path(__file__).parent/'reviewed/checker/export_check.py'),
++            '--export',artifact,'--sha256',digest,'--base',checker['base'],'--step',str(step),'--output',str(output)]
++        write(receipt_dir/'COMMAND.json',dict(argv=command,full=True,pins=reviewed.CHECKER_PINS))
++        result=subprocess.run(command,env=checker['environment'],capture_output=True)
++        (receipt_dir/'check.hex').write_text(result.stdout.hex()+'\n'+result.stderr.hex()+'\n')
++        if result.returncode:raise RuntimeError('Full export check failed')
++        value=read(output)
++        if value.get('status')!='VERIFIED' or value.get('step')!=step:raise ValueError('Checker receipt differs')
++        return value
++    reviewed.run_export_checker=check
++    return stage(root,archive,done,step,expected,reviewed)
++if __name__=='__main__':
++    p=argparse.ArgumentParser();p.add_argument('--request',required=True);a=p.parse_args();q=read(a.request)
++    result=run(q['root'],q['archive'],q['done'],q['step'],q['expected'],q['checker'])
++    write(Path(q['root'])/'CANDIDATE_STAGE.json',result)
+--- C8r/staging.py
++++ G2/staging.py
+@@ -0,0 +1,92 @@
++"""Stage C8r's proof export and the plan-bound candidate in one private root."""
++from copy import deepcopy
++import os
++from pathlib import Path
++import subprocess
++import sys
++import tarfile
++from guard_core import read,write,sha,verify_archive
++from guard_backend import CORE
++from closure import ROOT,unpack
++
++def reject_hardlinks(stream):
++    position=stream.tell()
++    try:
++        with tarfile.open(fileobj=stream,mode='r:*') as archive:
++            if any(member.islnk() for member in archive):
++                raise ValueError('Input archive contains a hard link; regularize it before review')
++    finally:stream.seek(position)
++
++def extraction_guard(original):
++    def checked(stream,destination,step,limit,links=False,strip=0,overlay=False):
++        # The unchanged streaming extractor already refuses all links by default.
++        # Only runtime extraction admits symlinks; preflight that seekable archive
++        # to reject hard links without seeking on the frame puller's pipe.
++        if links:reject_hardlinks(stream)
++        return original(stream,destination,step,limit,links=links,strip=strip,overlay=overlay)
++    return checked
++
++
++def stage(root,config,payload):
++    sys.path[:0]=[str(CORE/'orchard_native'),str(CORE)]
++    import native_stage as S
++    import orchard_job as J
++    original_extract=S.S.extract_stream
++    S.S.extract_stream=extraction_guard(original_extract)
++    root,payload=Path(root),Path(payload)
++    baseline=read(payload/'inputs/BASELINE_CONFIG.json')
++    # These are operational copies with exactly the sealed source bytes.
++    for key,value in config.get('asset_copies',{}).items():
++        old,new=key,value
++        def replace(v):
++            if isinstance(v,str):return new if v==old else v
++            if isinstance(v,list):return [replace(x) for x in v]
++            if isinstance(v,dict):return {k:replace(x) for k,x in v.items()}
++            return v
++        baseline['assets']=replace(baseline['assets'])
++    proof=deepcopy(baseline)
++    proof['logical_run']='/scratch/jjyeung/orch_cd/evalx/work/milestone/runs/'+config['token']
++    # The unchanged stage authenticates all shared assets and the historical export.
++    records=S.stage(root,proof)
++    S.physical(root,proof['logical_run']).mkdir(parents=True,exist_ok=False)
++    desc=read(payload/'CLOSURE.json');desc['archive']['path']=str(payload/'metadata.tar')
++    files=unpack(desc,root/'candidate_metadata')
++    artname=f'runs/359fcc3c/m{config["step"]}/artifact.json'
++    for name,raw in files.items():
++        # The export stager exclusively creates its own milestone directory.
++        if name.startswith('runs/359fcc3c/m') and '/artifact.json' in name:continue
++        target=S.physical(root,ROOT+name);target.parent.mkdir(parents=True,exist_ok=True)
++        if target.exists():
++            if target.read_bytes()!=raw:raise ValueError('Candidate metadata collides with a shared pin')
++        else:target.write_bytes(raw)
++    done=root/'candidate.done';done.write_bytes((payload/'candidate.done').read_bytes())
++    export=root/'archives/candidate.tar';expected=config['done']
++    env=S.S.cloud_environment(baseline['assets']['gcloud_config'])
++    count=0
++    with export.open('xb') as output:
++        for index in range(4):
++            name=expected['object']+f'.part{index:02d}-of-04'
++            with S.S.process_stream(['/usr/bin/gcloud','storage','cat','gs://cmu-gpucloud-jjyeung/'+name],env,root/'candidate_stage.log') as stream:
++                for chunk in iter(lambda:stream.read(1024*1024),b''):
++                    count+=len(chunk)
++                    if count>expected['bytes']:raise ValueError('Candidate export exceeds its done bytes')
++                    output.write(chunk)
++    verify_archive(export,expected)
++    model=read(S.physical(root,baseline['assets']['model_manifest']['path']))
++    runtime=records['runtime_spec']
++    checker=dict(namespace=S.namespace(root,proof),python=runtime['python']['path'],
++                 base=model['root'],environment=J.environment(root))
++    req=dict(root=str(root),archive=str(export),done=str(done),step=config['step'],expected=expected,checker=checker)
++    write(root/'candidate_stage_request.json',req)
++    subprocess.run([sys.executable,'-I','-s','-B',str(Path(__file__).parent/'stage_candidate.py'),
++                    '--request',str(root/'candidate_stage_request.json')],check=True,env=env)
++    artifact=S.physical(root,ROOT+artname)
++    if artifact.read_bytes()!=files[artname]:raise ValueError('Export and closure artifacts differ byte-for-byte')
++    worker=dict(baseline=baseline,step=config['step'],candidate={
++        **{k:desc['admission'][k] for k in ('config','data_receipt')},
++        'artifact':dict(path=ROOT+artname,sha256=sha(artifact))},
++        reference=dict(path=str(payload/'inputs/reference.json'),sha256=sha(payload/'inputs/reference.json')),
++        items=dict(path=str(payload/'inputs/items.json'),sha256=sha(payload/'inputs/items.json')),
++        closure_root=str(root/'candidate_metadata'),closure_names=sorted(files))
++    write(root/'WORKER.json',worker)
++    return proof,records
+--- C8r/transport.py
++++ G2/transport.py
+@@ -0,0 +1,127 @@
++"""Bounded publication with readback; local transport is the rehearsal substitute."""
++from pathlib import Path, PurePosixPath
++import hashlib
++import json
++import os
++import re
++import shutil
++import subprocess
++import tarfile
++from guard_core import read, sha, write, verify_archive
++
++LIMIT = 300_000_000
++
++def regular_tar(path, limit=32*1024*1024):
++    path=Path(path)
++    if path.stat().st_size>limit: raise ValueError('Archive byte limit exceeded')
++    names=set(); total=0
++    with tarfile.open(path,'r:*') as archive:
++        for m in archive:
++            p=PurePosixPath(m.name);total+=m.size
++            if (not m.isfile() or p.is_absolute() or '..' in p.parts or not p.parts
++                    or str(p) in names or total>limit or len(names)>=10000):
++                raise ValueError('Archive needs bounded unique relative regular members; no links')
++            names.add(str(p))
++    return True
++
++def extract(path,destination,limit=32*1024*1024):
++    regular_tar(path,limit);destination=Path(destination)
++    destination.mkdir(parents=True,exist_ok=False)
++    with tarfile.open(path,'r:*') as archive:
++        for m in archive:
++            target=destination/m.name;target.parent.mkdir(parents=True,exist_ok=True)
++            with archive.extractfile(m) as inp,target.open('xb') as out:shutil.copyfileobj(inp,out,1024*1024)
++            target.chmod(m.mode&0o755)
++
++def copy_verified(source,dest):
++    source,dest=Path(source),Path(dest)
++    if source.is_symlink() or not source.is_file():raise ValueError('Source must be regular')
++    dest.parent.mkdir(parents=True,exist_ok=True)
++    with source.open('rb') as inp,dest.open('xb') as out:
++        shutil.copyfileobj(inp,out,1024*1024);out.flush();os.fsync(out.fileno())
++    if dest.stat().st_size!=source.stat().st_size or sha(dest)!=sha(source):raise ValueError('Transport readback differs')
++    return dict(bytes=dest.stat().st_size,sha256=sha(dest))
++
++class Publisher:
++    def __init__(self,config,token,work):
++        if not re.fullmatch('[a-f0-9]{16}',token):raise ValueError('Invalid publication token')
++        self.config,self.token,self.work=config,token,Path(work)
++        self.work.mkdir(parents=True,exist_ok=True)
++        if config['kind']=='gcs':
++            from pool import reserve
++            reserve(Path(config['pool']),token)
++    def __call__(self,path):
++        path=Path(path)
++        if path.stat().st_size>LIMIT:raise ValueError('Publication exceeds return limit')
++        if path.name not in ('PROOF.json','CANARY.json','result.tar.gz','EXIT.json','FAILED.json'):
++            raise ValueError('Unregistered publication member')
++        if self.config['kind']=='local':
++            dest=Path(self.config['root'])/self.token/path.name
++            value=copy_verified(path,dest);value.update(uri=str(dest),verified=True)
++        elif self.config['kind']=='gcs':
++            from pool import publish as pool_publish
++            pool_value=pool_publish(Path(self.config['pool']),self.token,path)
++            try:
++                value=self.cloud(path)
++                value['pool']=pool_value
++            except Exception as error:
++                value=dict(pool_value,cloud_error=str(error),channel='pool')
++        else:raise ValueError('Unknown publication transport')
++        write(self.work/(path.name+'.published.json'),value)
++        return value
++    def cloud(self,path):
++            prefix=self.config['prefix']
++            if not re.fullmatch(r'gs://cmu-gpucloud-jjyeung/q8/[a-f0-9]+',prefix):raise ValueError('Invalid return prefix')
++            uri=prefix+'/'+self.token+'/'+path.name
++            env=dict(os.environ,CLOUDSDK_CONFIG=self.config['credentials'])
++            subprocess.run(['/usr/bin/gcloud','storage','cp',str(path),uri,'--if-generation-match=0'],env=env,check=True,timeout=30,capture_output=True)
++            result=subprocess.run(['/usr/bin/gcloud','storage','objects','describe',uri,'--format=json'],env=env,check=True,timeout=15,capture_output=True,text=True)
++            meta=json.loads(result.stdout);generation=str(meta.get('generation',''))
++            if not generation.isdigit() or int(meta.get('size',-1))!=path.stat().st_size:raise ValueError('Published object metadata differs')
++            target=self.work/(path.name+'.readback')
++            with target.open('xb') as output:
++                subprocess.run(['/usr/bin/gcloud','storage','cat',uri+'#'+generation],env=env,check=True,timeout=30,stdout=output,stderr=subprocess.PIPE)
++            if sha(target)!=sha(path) or target.stat().st_size!=path.stat().st_size:raise ValueError('Published object readback differs')
++            value=dict(uri=uri,generation=generation,sha256=sha(path),bytes=path.stat().st_size,verified=True)
++            return value
++
++def archive_result(source,output,plan,fixture=False,error=None):
++    source,output=Path(source),Path(output);output.mkdir(parents=True,exist_ok=False)
++    total=0
++    with tarfile.open(output/'result.tar.gz','w:gz',dereference=True) as archive:
++        for p in sorted(source.rglob('*')):
++            if p.is_symlink():raise ValueError('Return contains a link')
++            if not p.is_file() or p.suffix in ('.pt','.safetensors','.png','.jpg','.npz'):continue
++            total+=p.stat().st_size
++            if total>LIMIT:raise ValueError('Return expansion exceeds limit')
++            m=archive.gettarinfo(str(p),arcname=str(p.relative_to(source)))
++            m.uid=m.gid=m.mtime=0;m.uname=m.gname=''
++            with p.open('rb') as inp:archive.addfile(m,inp)
++    path=output/'result.tar.gz';regular_tar(path,LIMIT)
++    receipt=dict(schema='g2-return-v1',plan_sha256=plan,fixture=fixture,status='FAIL' if error else 'PASS',error=error,
++                 archive=dict(bytes=path.stat().st_size,sha256=sha(path)))
++    write(output/'EXIT.json',receipt);return receipt
++
++def verify_return(receipt,archive,plan,allow_fixture=False):
++    if (receipt.get('schema')!='g2-return-v1' or receipt.get('plan_sha256')!=plan
++            or receipt.get('status')!='PASS' or (receipt.get('fixture') is not False and not allow_fixture)):
++        raise ValueError('Return identity, status or authority differs')
++    verify_archive(archive,receipt['archive']);regular_tar(archive,LIMIT)
++    with tarfile.open(archive) as tar:
++        names=set(tar.getnames())
++        if not {'COMPLETE.json','PROOF.json','CANARY.json','R1.json','IN_JOB_ADMISSION.json'}<=names or 'FAILED.json' in names:
++            raise ValueError('Return is missing terminal evidence')
++        for name in ('PROOF.json','CANARY.json','IN_JOB_ADMISSION.json'):
++            phase=json.load(tar.extractfile(name))
++            if phase.get('status')!='PASS':raise ValueError('Return phase did not pass')
++            if not allow_fixture and phase.get('fixture') is not False:
++                raise ValueError('Return phase has no production identity')
++            if name=='PROOF.json' and not allow_fixture and phase.get('backend_identity_proven') is not True:
++                raise ValueError('Return lacks backend identity proof')
++            if name=='IN_JOB_ADMISSION.json':
++                if phase.get('bundle',{}).get('sha256')!=hashlib.sha256(tar.extractfile('R1.json').read()).hexdigest():
++                    raise ValueError('Returned bundle differs from in-job admission')
++        marker=json.load(tar.extractfile('COMPLETE.json'))
++        if marker.get('plan_sha256')!=plan or marker.get('fixture')!=receipt['fixture']:
++            raise ValueError('Return completion plan or fixture identity differs')
++    return receipt
+--- C8r/worker.py
++++ G2/worker.py
+@@ -0,0 +1,113 @@
++"""Production coordinator: staged proof, candidate canary/read, admission and return."""
++import argparse
++import os
++from pathlib import Path
++import re
++import signal
++import subprocess
++import sys
++import time
++sys.path.insert(0,str(Path(__file__).resolve().parent))
++from guard_core import read,write,sha,digest
++from guard_backend import CORE
++from transport import Publisher,archive_result
++
++PUBLICATION_RESERVE=300
++
++def child(command,environment,output,publisher,role,timeout):
++    """A checkpoint process cannot continue past a receipt before publication."""
++    output=Path(output);receipt='PROOF' if role=='proof' else 'CANARY'
++    started=time.monotonic();acknowledged=False
++    with (output/(role+'.log')).open('xb') as log:
++        process=subprocess.Popen(command,env=environment,stdout=log,stderr=subprocess.STDOUT)
++        try:
++            while True:
++                ready=output/(receipt+'.ready.json')
++                if not acknowledged and ready.exists():
++                    target=output/(receipt+'.json')
++                    if read(ready)!=dict(path=str(target)):raise ValueError('Receipt rendezvous path differs')
++                    publisher(target)
++                    write(output/(receipt+'.ack.json'),dict(status='PASS',sha256=sha(target)))
++                    acknowledged=True
++                code=process.poll()
++                if code is not None:break
++                if time.monotonic()-started>timeout:raise TimeoutError('Checkpoint process exceeded its budget')
++                time.sleep(.5)
++            if code or not acknowledged:raise RuntimeError('Checkpoint process failed: '+role)
++            if read(output/(receipt+'.json')).get('status')!='PASS':raise ValueError('Checkpoint receipt failed')
++        except BaseException:
++            if process.poll() is None:
++                process.terminate();process.wait(timeout=30)
++            raise
++    return dict(pid=process.pid,seconds=time.monotonic()-started,returncode=code)
++
++def coordinate(root,config,output,publisher,prepare,environment,fixture=False):
++    """The production and CPU boundary runners share this complete phase lifecycle."""
++    root,output=Path(root),Path(output);error=None;phases={}
++    deadline=time.monotonic()+config['gpu_seconds']-PUBLICATION_RESERVE
++    try:
++        commands=prepare()
++        if set(commands)!={'proof','candidate'}:raise ValueError('Checkpoint commands differ')
++        for role in ('proof','candidate'):
++            remaining=deadline-time.monotonic()
++            if remaining<=0:raise TimeoutError('No checkpoint budget remains before publication reserve')
++            phases[role]=child(commands[role],environment,output,publisher,role,remaining)
++        if phases['proof']['pid']==phases['candidate']['pid']:raise ValueError('Checkpoint processes were not distinct')
++        write(output/'COMPLETE.json',dict(status='PASS',plan_sha256=config['plan_sha256'],fixture=fixture,processes=phases))
++    except Exception as exc:
++        error=str(exc);write(output/'FAILED.json',dict(status='FAIL',error=error,phases=phases))
++        if not (output/'PROOF.json').exists():
++            write(output/'PROOF.json',dict(status='FAIL',candidate_started=False,backend_identity_proven=False,fixture=fixture,error=error))
++            publisher(output/'PROOF.json')
++        elif read(output/'PROOF.json').get('status')=='PASS' and not (output/'CANARY.json').exists():
++            write(output/'CANARY.json',dict(status='FAIL',full_started=False,fixture=fixture,error=error))
++            publisher(output/'CANARY.json')
++    finally:
++        # A caught allocation signal must not interrupt the bounded return attempt.
++        if not fixture:
++            for number in (signal.SIGTERM,signal.SIGINT,signal.SIGUSR1):signal.signal(number,signal.SIG_IGN)
++        archive_result(output,root/'returned',config['plan_sha256'],fixture=fixture,error=error)
++        publisher(root/'returned/result.tar.gz');publisher(root/'returned/EXIT.json')
++    return dict(status='FAIL' if error else 'PASS',error=error,phases=phases)
++
++def run(root,payload):
++    root,payload=Path(root),Path(payload)
++    config=read(payload/'CONFIG.json')
++    from packet import validate_packet
++    validate_packet(payload)
++    sys.path[:0]=[str(CORE/'orchard_native'),str(CORE)]
++    import native_stage as S
++    import native_job as J
++    import orchard_job as O
++    job=os.environ.get('SLURM_JOB_ID','')
++    if (not job.isdigit() or not os.uname().nodename.startswith('orchard-')
++            or os.environ.get('SLURM_JOB_PARTITION')!='general'
++            or root.resolve()!=Path('/tmp')/('g2_'+job+'_'+config['token'])):
++        raise ValueError('Assigned Orchard job and private root required')
++    if __import__('pwd').getpwuid(os.getuid()).pw_name!='jjyeung':raise ValueError('Allocation user differs')
++    O.storage_proof(root,job=job);J.card(require_empty=True)
++    for name in ('cache','temp','home'):(root/name).mkdir()
++    environment=J.environment(root)
++    output=root/'result';output.mkdir()
++    publisher=Publisher(config['publication'],config['token'],root/'publication')
++    def interrupted(number,frame):raise RuntimeError('Allocation signal '+str(number))
++    for number in (signal.SIGTERM,signal.SIGINT,signal.SIGUSR1):signal.signal(number,interrupted)
++    def prepare():
++        from staging import stage
++        stage_config,records=stage(root,config,payload)
++        runtime=records['runtime_spec']
++        entry=Path(__file__).parent/'checkpoint.py'
++        runtime['entrypoints'][entry.name]=dict(path=str(entry),sha256=sha(entry))
++        write(root/'RUNTIME.json',runtime)
++        environment['G2_CORE']='/scratch/jjyeung/orch_cd/evalx/work/milestone'
++        vnice=stage_config['assets']['vnice']
++        if sha(S.physical(root,vnice['path']))!=vnice['sha256']:raise ValueError('Priority wrapper pin differs')
++        base=S.namespace(root,stage_config)+['--bind',str(output),str(output),
++            '/bin/bash',vnice['path'],runtime['python']['path'],'-I','-s','-B',str(CORE/'native_bootstrap.py'),
++            '--spec',str(root/'RUNTIME.json'),'--',str(entry),'--config',str(root/'WORKER.json'),'--out',str(output)]
++        return {role:base+['--role',role] for role in ('proof','candidate')}
++    result=coordinate(root,config,output,publisher,prepare,environment)
++    return 1 if result['error'] else 0
++if __name__=='__main__':
++    p=argparse.ArgumentParser();p.add_argument('--root',required=True);p.add_argument('--payload',required=True);a=p.parse_args()
++    sys.exit(run(a.root,a.payload))

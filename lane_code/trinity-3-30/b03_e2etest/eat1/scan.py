@@ -9,6 +9,9 @@ Rules
   A3.table_load      a call that loads a table (json/np/pickle/torch/pandas/yaml load functions)
   A3.data_file       a string literal that names a data file (.json .npz .npy .pkl .pt .csv ...)
   A3.constant        a numeric literal outside the reviewed allowlist (allowlist.json)
+  A3.unit_conversion an identifier or string naming a unit other than the head's own (feet, inches, cm, mm,
+                     square feet, yards, degrees) or a unit-conversion helper (USER ruling 2026-11-16: the model
+                     converts units and formats answers in its CoT)
   A3.threshold       a comparison in a branch test against a non-allowlisted number, an UPPER_CASE
                      name, a threshold-like name, or a config/table lookup
   A4.guard           an identifier naming a guard, fallback, refusal, veto, substitution or rejection
@@ -35,6 +38,23 @@ STATUS = re.compile(r'not seen|unavailable|refus|fallback|no answer|cannot answe
 CACHE = re.compile(r'(mask|tower|feature|geometry|proposal|candidate|frame|sam3?|g3t|depth|pose|head)s?_?cache|'
                    r'cache_?bind|cached_(mask|tower|feature|geometry|proposal|candidate)', re.I)
 THRESHOLD_NAME = re.compile(r'thresh|tau|floor|margin|cutoff|_cut\b|^cut_|limit|min_|max_|_min$|_max$|eps', re.I)
+UNIT_WORDS = {'feet', 'foot', 'inch', 'inches', 'sqft', 'ft2', 'yard', 'yards', 'degree', 'degrees', 'centimeter',
+              'centimeters', 'centimetre', 'centimetres', 'millimeter', 'millimeters', 'millimetre', 'millimetres'}
+UNIT_ABBREV = {'ft', 'cm', 'mm', 'deg', 'yd'}  # only as one part of a compound name (dist_ft, to_cm); bare `ft` is common
+
+
+class _UnitIdent:
+    conv = re.compile(r'unit_?conv|convert_?units?', re.I)
+
+    def search(self, ident):
+        parts = [p for p in re.split(r'_+', ident.lower()) if p]
+        return bool(self.conv.search(ident) or any(p in UNIT_WORDS for p in parts)
+                    or (len(parts) > 1 and any(p in UNIT_ABBREV for p in parts)))
+
+
+UNIT_IDENT = _UnitIdent()
+UNIT_TEXT = re.compile(r'\b(feet|foot|inch(es)?|centimet\w*|millimet\w*|sq\.? ?ft|ft2|yards?|degrees?)\b|'
+                       r'\d\s?(ft|in|cm|mm)\b|\{[^}]*\}\s?(ft|in|cm|mm|°)|°', re.I)
 ENTRY_CALLS = {'generate', 'prefill', 'prompt_batch', 'apply_chat_template', '_prepare_decode', 'chat',
                'teacher_batch', 'build_prompt'}
 
@@ -123,6 +143,8 @@ class _Visitor(ast.NodeVisitor):
             self.add('A4', 'A4.guard', node, f'def {node.name}')
         if CACHE.search(node.name):
             self.add('A5', 'A5.cache', node, f'def {node.name}')
+        if UNIT_IDENT.search(node.name):
+            self.add('A3', 'A3.unit_conversion', node, f'def {node.name}')
         self.func_stack.append(node.name)
         self._entry_after_decode(node)
         self.generic_visit(node)
@@ -171,6 +193,8 @@ class _Visitor(ast.NodeVisitor):
             self.add('A4', 'A4.guard', node, f'identifier {ident}')
         if CACHE.search(ident):
             self.add('A5', 'A5.cache', node, f'identifier {ident}')
+        if UNIT_IDENT.search(ident):
+            self.add('A3', 'A3.unit_conversion', node, f'identifier {ident}')
 
     # calls
     def visit_Call(self, node):
@@ -200,6 +224,10 @@ class _Visitor(ast.NodeVisitor):
             self.add('A4', 'A4.status_literal', node, f'string {value[:80]!r}')
         if CACHE.search(value):
             self.add('A5', 'A5.cache', node, f'string {value[:80]!r}')
+        after_value = bool(self.parents) and isinstance(self.parents[-1], ast.JoinedStr) and re.match(
+            r'\s?(ft|in|cm|mm|yd)\b', value)
+        if (UNIT_TEXT.search(value) or after_value) and len(value) < 300:
+            self.add('A3', 'A3.unit_conversion', node, f'string {value[:80]!r}')
         if 'tool_response' in value and not self.in_module_class():
             self.add('A2', 'A2.response_outside_model', node,
                      'response text built outside a torch module method')
@@ -234,6 +262,19 @@ class _Visitor(ast.NodeVisitor):
         self.add('A3', 'A3.constant', node, f'constant {value!r}')
 
     # branches on thresholds
+    def visit_If(self, node):
+        # `if <test>: raise ...` refuses the item with an error; it writes no token. Its test is validation.
+        if len(node.body) == 1 and isinstance(node.body[0], ast.Raise) and not node.orelse:
+            self.parents.append(node)
+            self.parents.append(ast.Raise())
+            self.visit(node.test)
+            self.parents.pop()
+            for stmt in node.body:
+                self.visit(stmt)
+            self.parents.pop()
+            return
+        self.generic_visit(node)
+
     def visit_Compare(self, node):
         ordering = any(isinstance(o, (ast.Lt, ast.LtE, ast.Gt, ast.GtE)) for o in node.ops)
         if not self.in_context(ast.Raise) and ordering:

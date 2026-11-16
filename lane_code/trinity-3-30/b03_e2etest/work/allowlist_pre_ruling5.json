@@ -1,0 +1,60 @@
+{
+ "schema": "eat1-allowlist-v1",
+ "status": "PROPOSED, awaiting the cross-family refute review the brief orders; nothing here is reviewed yet",
+ "clause": "A3: the call handler may use unprojection with the head's intrinsics, rigid transforms, norms, minimum or argmin over point sets, unit conversion, rounding and number formatting. Every other numeric constant fails.",
+ "numbers": {
+  "0": "zero, identity offset, first index",
+  "1": "unit, one step, second index",
+  "-1": "last index, sign flip",
+  "2": "halving (midpoints), squares in norms, pairs",
+  "3": "spatial dimension (x, y, z)",
+  "4": "homogeneous 4x4 rigid transform",
+  "0.5": "half (centres, round-half)",
+  "10": "decimal base for rounding",
+  "100": "metres to centimetres; percent",
+  "1000": "metres to millimetres; kilo",
+  "0.01": "centimetres to metres",
+  "0.001": "millimetres to metres",
+  "0.3048": "feet to metres (exact definition)",
+  "3.280839895013123": "metres to feet (1/0.3048)",
+  "0.0254": "inches to metres (exact definition)",
+  "39.37007874015748": "metres to inches (1/0.0254)",
+  "2.54": "inches to centimetres",
+  "12": "inches per foot",
+  "0.09290304": "square feet to square metres (0.3048^2)",
+  "10.763910416709722": "square metres to square feet (1/0.09290304)",
+  "180": "degrees per pi radians",
+  "360": "degrees per turn",
+  "3.141592653589793": "pi",
+  "6.283185307179586": "2 pi"
+ },
+ "exempt_contexts": {
+  "subscript": "array indices and slices select fields, they do not set values",
+  "keyword": [
+   "axis",
+   "dim",
+   "ndigits",
+   "keepdim",
+   "keepdims",
+   "indent",
+   "maxsplit",
+   "stacklevel",
+   "dtype",
+   "base"
+  ],
+  "round_ndigits": "the second argument of round() is number formatting",
+  "raise": "constants inside raise statements only build error messages"
+ },
+ "loader_functions": [],
+ "head_status_formatters": [],
+ "suppress": [],
+ "notes": [
+  "loader_functions: 'relative/file.py::function' entries whose table loads read artifact files only; A1 then checks every file they open by sha256.",
+  "head_status_formatters: 'relative/file.py::function' entries that format a head's own status output (for example a presence head's 'not seen'); a status literal anywhere else fails A4.",
+  "suppress: 'rule@relative/file.py:line' entries with a reviewed reason; the report prints every suppression.",
+  "A3.threshold applies to ordering comparisons (<, <=, >, >=); equality tests against token ids are protocol, not thresholds."
+ ],
+ "threshold_exempt_names": {
+  "max_new_tokens": "a total-token cap ends decoding and writes no token; a forced close or forced answer is not covered"
+ }
+}

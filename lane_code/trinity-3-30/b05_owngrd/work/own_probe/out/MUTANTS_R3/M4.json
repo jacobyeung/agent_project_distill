@@ -1,0 +1,13 @@
+{
+  "id": "M4",
+  "description": "tuning features leak into T1 training",
+  "edits": [
+    {
+      "module": "fit_t1",
+      "old": "    x,records,inputs=load_features(args.feature_root,args.arm,'training',getattr(args,'readout','four'))",
+      "new": "    x,records,inputs=load_features(args.feature_root,args.arm,'training',getattr(args,'readout','four'));_a,_b,_=load_features(args.feature_root,args.arm,'tuning',getattr(args,'readout','four'));x=torch.cat([x,_a]);records=records+[dict(r,split='train') for r in _b]"
+    }
+  ],
+  "reviewer_spec": "/scratch/jjyeung/orch_cd/own_probe_review2/mutants/M4.json",
+  "adaptation": "Unchanged reviewer edit"
+}

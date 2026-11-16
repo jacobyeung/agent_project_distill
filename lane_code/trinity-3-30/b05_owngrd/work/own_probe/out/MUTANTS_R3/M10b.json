@@ -1,0 +1,13 @@
+{
+  "id": "M10b",
+  "description": "bootstrap pseudo-replicated items",
+  "edits": [
+    {
+      "module": "probe_common",
+      "old": "    keys=sorted(clusters)",
+      "new": "    clusters={str(i):[r] for i,r in enumerate(records*4)}\n    keys=sorted(clusters)"
+    }
+  ],
+  "reviewer_spec": "/scratch/jjyeung/orch_cd/own_probe_review2/mutants/M10b.json",
+  "adaptation": "Unchanged reviewer edit"
+}

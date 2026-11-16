@@ -1,0 +1,60 @@
+{
+  "vla": {
+    "backbone": {
+      "kind": "student",
+      "train": "full",
+      "vision": "frozen"
+    },
+    "cond": "none",
+    "control_only": false,
+    "head": {
+      "action_dim": 3,
+      "chunk": 8,
+      "tokens": {
+        "codec": "nav_click"
+      },
+      "type": "tokens"
+    },
+    "input": {
+      "cameras": [
+        "rgb"
+      ],
+      "history_frames": 32,
+      "image_px": 512,
+      "proprio": false
+    },
+    "nav": {
+      "eval": {
+        "click_backend": "vla_where.nav.ClickTranslator",
+        "early_positions": [
+          0,
+          199
+        ],
+        "primary_list": "val_unseen_600_s0",
+        "range_source": "floor_plane",
+        "step_cap": 500,
+        "success_radius_m": 3.0
+      },
+      "shake_down": {
+        "claim": false,
+        "steps": 250
+      },
+      "train": {
+        "batch_size": 32,
+        "episodes": 1082,
+        "exports": [
+          250,
+          500,
+          1000
+        ],
+        "steps": 1000,
+        "subset_seed": 0,
+        "warmup_fraction": 0.03
+      }
+    },
+    "prompt": {
+      "template": "native_thinking"
+    },
+    "schema": "vla_schema_v2"
+  }
+}

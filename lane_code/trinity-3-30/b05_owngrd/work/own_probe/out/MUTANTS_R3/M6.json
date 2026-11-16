@@ -1,0 +1,13 @@
+{
+  "id": "M6",
+  "description": "pool training masks on next frame",
+  "edits": [
+    {
+      "module": "extract",
+      "old": "                    local_masks=np.stack([masks[x['instance_id']][slot] for x in items])",
+      "new": "                    local_masks=np.stack([masks[x['instance_id']][min(slot+1,31)] for x in items])"
+    }
+  ],
+  "reviewer_spec": "/scratch/jjyeung/orch_cd/own_probe_review2/mutants/M6.json",
+  "adaptation": "Unchanged reviewer edit"
+}

@@ -1,0 +1,7 @@
+# Re-review (read-only): orchkit-core fixes for OC-01..OC-08 (branch eff/orchkit-core, head 9d58cab7)
+
+Same rules as the first review: read-only; no git, ssh, Slurm or network; no recursive search of /home or /data*. Read only /scratch/jjyeung/orch_n30/e_orchkit-core/repo/tools/orchkit/, /scratch/jjyeung/orch_n30/e_orchkit-core/work/review/VERDICT_1.json.md (your first verdict, NO_GO with OC-01..OC-08) and /scratch/jjyeung/orch_n30/e_orchkit-core/work/review/FIX_1.diff (the fix diff e263c512..9d58cab7). You may run `cd /scratch/jjyeung/orch_n30/e_orchkit-core/repo/tools/orchkit && TMPDIR=/scratch/jjyeung/orch_n30/e_orchkit-core/tmp /usr/bin/python3 -m unittest discover -s tests` and your earlier reproductions (TMPDIR as above, PYTHONPATH=/scratch/jjyeung/orch_n30/e_orchkit-core/repo/tools).
+
+Task: for each of OC-01..OC-08, rerun its reproduction against the current head and state fixed or not fixed with the output. Then look for verified defects that the fix diff itself introduced, within the first review's scope (anon.py + ANON_WORDS.txt, launch.mint_job_name, launch.submit with submit_script and live_check, and the prepare-to-submit path). Same evidence bar: a minimal reproduction with its output; no style findings.
+
+Output (final message only): one `orchkit-verdict-v1` JSON object (reviewer_lane "codex_review_orchkit_core_2"; findings carry the old id with a "status" key in text, plus any new ids OC-09...), then at most 10 lines of summary.

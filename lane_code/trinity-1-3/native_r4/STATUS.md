@@ -1,9 +1,10 @@
-# native_r4 lane STATUS (trinity-1-3) — operator native_r5, updated 2026-11-16T12:20Z
+# native_r4 lane STATUS (trinity-1-3) — operator native_r5, updated 2026-11-16T12:42Z
 Lane folder /scratch/jjyeung/orch_n30/native_r4; events /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/native_r4/. Record /data2/jjyeung/agent_project_data/distill_design/VSTI_NATIVE_CAMERA_READ_STEP544_20261116.md (+ INDEX line). Rules: .../orch_n30/tools/LANE_RULES.md. native_r5 session ends by ~16:20Z (6 h from 10:20Z) or 60% context: RESULT rotate.
 
-## NOW (12:20Z): job 170228 FAILED 12:12:59Z with NO return (BLOCKER job170228_failed_no_return); V1f fail-safe-return build running; nothing submitted
-- 170228: staging OK, prepare running at 12:08Z, exit 1:0 at 12:12:59Z, MaxRSS 138 GB, no pool/GCS return. Likely: finally-block return_members/publish raised (suffix or 512 MB cap; o.py:73-86), unverified.
-- V1f = builds/07_vsti_f (Codex astra/high, tmux nr5_codex7, 12:16Z): fail-safe minimal return, full tracebacks, INVENTORY, packet member-type check; DIAGNOSIS.md, RETURN_SIZE.json. When done: run its namespace rehearsal (out/rehearsal/RUNBOOK.md), copy c.tar to Orchard as a NEW name only after ORCH word (keep dc40cf60 c.tar), RESULT kit_v1f; needs a reader's CONFIRMED + ORCH naming a third job.
+## NOW (12:42Z): V1f staged; third job auto-submits when K1 leaves general (ORCH 1221Z), cutoff 15:40Z
+- V1f builds/07_vsti_f (c.tar 063e09f8, family c6ad8e73) on Orchard as c.tar/FAMILY.json/c/ (V1c kept as *.v1c_*, c_v1c/). GCS c gen 1794832620770863; r3.json, g3.json.
+- Packet p/d12e2a0337651f2637e988f9 (TOKEN3; letter-leading), --deadline-utc 17:35Z. Watcher tmux nr5_watch3 (work/orchard/watch3.sh, log watch3.log) runs q11_sbatch3.sh every ~5 min: refuses if own job on general or past 15:40Z; on submit copies to q11.out. Then: RESULT with job id; poll with a poll3.sh (copy of poll2.sh with job id/token); lower TimeLimit while pending so end <= 17:40Z.
+- 170228 cause of no return: digit-leading token rejected by publisher (V1f DIAGNOSIS.md); first failure unknown.
 - Second job's packet/state below.
 - Inputs: b.tar re-packed without _staging hard links (0eadd83e, 10,296 '-' + 313 'd'; GCS gen 1794829424090479); a/c/d unchanged; r2.json, g2.json in okh7/d9c35d0a/. Old b kept as b.tar.hardlinks_06e28d71. Packet p/8f7817fb16bc218af285dc61 (a.sh 2358921d, a.json ec6ef7f1). Return okh7/n2r/8f7817fb16bc218af285dc61 + GCS q8/n2r/ same.
 - sbatch --nice=200 gpu:1 16 CPU 200G --time=04:45:00. While PENDING: at each poll `scontrol update JobId=170228 TimeLimit=<16:30Z - now>`.

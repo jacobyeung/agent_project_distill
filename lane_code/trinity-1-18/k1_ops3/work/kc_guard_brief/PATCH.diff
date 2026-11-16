@@ -1,0 +1,686 @@
+--- a/k1_build/work/kit_k1a/work/k1_cli.py
++++ b/k1_build/work/kit_k1a/work/k1_cli.py
+@@ -57,6 +57,10 @@
+                 raise ValueError('GPU phase requires a CUDA interpreter')
+             from boundaries import GPU
+             boundary = GPU(m['gpu'], phase=a.phase)
++        if a.phase == 'convert':
++            import k1_guard
++            return k1_guard.run(m, a.out, boundary, a.phase, a.max_seconds, a.tower_cache,
++                                a.own_cache, max_bytes=a.max_bytes)
+         return F.run(m, a.out, boundary, a.phase, a.max_seconds, a.tower_cache, a.own_cache,
+                      max_bytes=a.max_bytes)
+     if a.stage == 'tables':
+--- a/k1_build/work/kit_k1a/work/k1_pipeline.py
++++ b/k1_build/work/kit_k1a/work/k1_pipeline.py
+@@ -5,7 +5,7 @@
+ sys.path[:0]=[str(Path(__file__).parent),str(Path(__file__).parent/'refit')]
+ import gate
+ import gt_set as G
+-sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'native_kit'))
++sys.path.insert(0,os.environ.get('K1_NATIVE_KIT',str(Path(__file__).resolve().parents[1]/'native_kit')))
+ import numpy as np
+ def _native():
+  global B,P
+@@ -88,12 +88,21 @@
+  return raw
+ def cached(c,dest):
+  _native()
++ import k1_guard as guard
++ guard.install()
+  from student_pilot.ground_profiles import load_geometry
+  from student_pilot.scene_state import FrameMap
++ dest=Path(dest)
+  receipt=B.load(dest/'CACHE_COMPLETE.json')
+  if receipt['capture_sha256']!=B.digest(c):raise ValueError('Cache capture differs')
++ guard.check_receipt(c,dest,receipt)
+  for pin in receipt['files'].values():B.checked(pin)
+- raw=B.load(dest/'candidates.json');geo=load_geometry(dest/'geometry.npz',FrameMap(tuple(c['anchor_indices'])),'tower_scaled')
++ raw=B.load(dest/'candidates.json')
++ if receipt.get('geometry_refusal'):
++  guard.restore_verdict(c,receipt)
++  return raw,None,receipt
++ with guard.capture(c):geo=load_geometry(dest/'geometry.npz',FrameMap(tuple(c['anchor_indices'])),'tower_scaled')
++ if guard.verdict(c)!=receipt['gravity_verdict']:raise ValueError('Cache gravity verdict differs')
+  return raw,geo,receipt
+ def gt_arrays(c,selection=None):
+  _native()
+@@ -102,20 +111,27 @@
+ def tables(m,cache,out,gt_set=None,sensitivity=False):
+  _native()
+  import build_tables
++ import k1_guard as guard
++ guard.install();refused={}
+  selection=G.load(gt_set,sensitivity);captures,meta=G.select(m,selection)
+  out=Path(out);out.mkdir(parents=True,exist_ok=False)
+  with (out/'candidates.jsonl').open('w') as cf,(out/'pairs.jsonl').open('w') as pf:
+   for c in captures:
+    raw,geo,receipt=cached(c,Path(cache)/B.digest(c['canonical'])[:16])
+-   rows,pairs=build_tables.build_capture(c,raw,geo,gt_arrays(c,selection))
++   if geo is None:
++    refused[c['canonical']]=receipt['geometry_refusal']['code'];continue
++   with guard.capture(c):rows,pairs=build_tables.build_capture(c,raw,geo,gt_arrays(c,selection))
+    for row in rows:cf.write(json.dumps(row)+'\n')
+    for row in pairs:pf.write(json.dumps(row)+'\n')
+- record=dict(manifest_sha256=B.digest(m),inventory=m['inventory'],producer_sha256=B.sha(build_tables.__file__),build_sha256=gate.sha(gate.ROOT/'grd_selector/work/setsel/build.py'),files={n:B.pin(out/n) for n in ['candidates.jsonl','pairs.jsonl']})
++ guard.write_report(out)
++ record=dict(geometry_refused=refused,manifest_sha256=B.digest(m),inventory=m['inventory'],producer_sha256=B.sha(build_tables.__file__),build_sha256=gate.sha(gate.ROOT/'grd_selector/work/setsel/build.py'),files={n:B.pin(out/n) for n in ['candidates.jsonl','pairs.jsonl']})
+  if meta is None:B.write(out/'TABLE_RECEIPT.json',record)
+  else:G.write(out/'TABLE_RECEIPT.json',record,meta)
+ def responses(m,cache,fit_dir,out,gt_set=None,sensitivity=False):
+  _native()
+  import render
++ import k1_guard as guard
++ guard.install()
+  selection=G.load(gt_set,sensitivity);captures,meta=G.select(m,selection)
+  fit_dir=Path(fit_dir);fit_path=fit_dir/'FIT_RECEIPT.json';fit=B.load(fit_path);policy=fit_dir/'NATIVE_POLICY.json'
+  G.require(fit,meta)
+@@ -127,17 +143,22 @@
+  if set(fit['train_rooms'])&set(fit['heldout_rooms']):raise ValueError('Refit room leakage')
+  out=Path(out);out.mkdir(parents=True,exist_ok=False);all_rows=[];analysis=[]
+  for c in captures:
+-  raw,geo,receipt=cached(c,Path(cache)/B.digest(c['canonical'])[:16]);gt=gt_arrays(c,selection);results=[]
++  raw,geo,receipt=cached(c,Path(cache)/B.digest(c['canonical'])[:16]);gt=gt_arrays(c,selection) if geo is not None else None;results=[]
+   dest=out/B.digest(c['canonical'])[:16];dest.mkdir()
+   for row in c['rows']:
+-   backend=native_backend(c,row,geo,raw,policy,dest/'audit') if row['operands'] else None
+-   record=B.perception.execute_calls(geo,backend,P.calls_for(row))
++   if geo is None:
++    record=dict(calls=[dict(call=P.calls_for(row)[0],kind='error',**receipt['geometry_refusal'],response='Geometry refused: '+receipt['geometry_refusal']['message'])])
++   else:
++    with guard.capture(c):
++     backend=native_backend(c,row,geo,raw,policy,dest/'audit') if row['operands'] else None
++     record=B.perception.execute_calls(geo,backend,P.calls_for(row))
+    for i,call in enumerate(record['calls']):
+     if P.failure(call):record['calls']=record['calls'][:i+1];break
+    match=P.mask_agreement(record,row,gt,c['anchor_indices']) if not any(P.failure(x) for x in record['calls']) else {'ok':False}
+    result=dict(id=row['id'],type=row['type'],calls=record['calls'],mask_match=match,synthetic=False)
+    result['decision']=P.classify(row,result,match);results.append(result)
+-   rendered=render.render(row,result,c,expected_calls_sha256=B.digest(result['calls']),backend_hashes={**receipt['sources'],'native_policy':B.sha(policy)},fixture=False);all_rows.append(rendered)
++   render_row={k:v for k,v in row.items() if k!='fallback'} if geo is None else row
++   rendered=render.render(render_row,result,c,expected_calls_sha256=B.digest(result['calls']),backend_hashes={**receipt['sources'],'native_policy':B.sha(policy)},fixture=False);all_rows.append(rendered)
+    analysis.append(dict(id=row['id'],canonical=c['canonical'],type=row['type'],gt_value=row['gt_value'],pred=result['decision']['value'],
+      label='excluded' if result['decision']['label']=='left_out' else result['decision']['label'],
+      rendered_label=rendered['label'],training_target_available='target' in rendered,printed_cues=printed_cues(result)))
+@@ -145,6 +166,7 @@
+   complete=dict(capture_sha256=B.digest(c),sources=receipt['sources'],eligible_refit_sha256=B.sha(fit_path),files={'responses.json':B.pin(dest/'responses.json')})
+   if meta is None:B.write(dest/'COMPLETE.json',complete)
+   else:G.write(dest/'COMPLETE.json',complete,meta)
++ guard.write_report(out)
+  render.write_rows(all_rows,out/'rows')
+  (out/'K1_ANALYSIS_INPUT.jsonl').write_text(''.join(json.dumps(x)+'\n' for x in analysis))
+  if meta is not None:G.write(out/'RENDER_RECEIPT.json',dict(manifest_sha256=B.digest(m),fit=G.pin(fit_path),table_receipt=fit['table_receipt'],files={'analysis':B.pin(out/'K1_ANALYSIS_INPUT.jsonl')}),meta)
+--- /dev/null
++++ b/k1_build/work/kit_k1a/work/k1_guard.py
+@@ -0,0 +1,109 @@
++"""Reviewed gravity installation and bound K1 capture dispositions."""
++import json
++import shutil
++from pathlib import Path
++
++import bindings as B
++import k1_phases as F
++import gravity_guard as GG
++from student_pilot import geometry_profiles
++
++CODE = 'reference_camera_up_opposes_gravity'
++_recorder = None
++_convert = F.convert
++
++
++def install():
++    global _recorder
++    if _recorder is None:
++        recorder = GG.Recorder()
++        GG.install(geometry_profiles, recorder)
++        _recorder = recorder
++
++
++def capture(c):
++    return GG.capture('K1', c['canonical'])
++
++
++def verdict(c):
++    sealed, reviewed = _recorder.records[('K1', c['canonical'])]
++    return dict(sealed_refused=sealed, reviewed_refused=reviewed)
++
++
++def restore_verdict(c, receipt):
++    with capture(c):
++        _recorder.record(**receipt['gravity_verdict'])
++
++
++def write_report(out):
++    # Reports are refreshed on resume; capture receipts remain the authority.
++    (Path(out) / 'GUARD_REPORT.json').write_text(json.dumps(GG.report(), indent=2) + '\n')
++
++
++def check_receipt(c, dest, receipt):
++    refusal = receipt.get('geometry_refusal')
++    votes = receipt.get('gravity_verdict', {})
++    if (receipt.get('gravity_guard') != GG.identity()
++            or set(votes) != {'sealed_refused', 'reviewed_refused'}
++            or any(type(v) is not bool for v in votes.values())
++            or receipt.get('sources') != B.source_identity()
++            or receipt.get('phase') != 'unselected_cache_no_responses'):
++        raise ValueError('Cache guard/source binding differs')
++    names = {'candidates.json', 'parity_raw.jsonl'}
++    if refusal:
++        if (refusal != dict(code=CODE, message=CODE) or receipt.get('geometry') is not None
++                or not votes['reviewed_refused'] or (dest / 'geometry.npz').exists()):
++            raise ValueError('Cache geometry refusal differs')
++        if 'REFUSED_GEOMETRY.npz' in receipt['files']:
++            names.add('REFUSED_GEOMETRY.npz')
++    else:
++        if votes['reviewed_refused'] or not receipt.get('geometry'):
++            raise ValueError('Cache geometry verdict differs')
++        names.add('geometry.npz')
++    if set(receipt['files']) != names or any(
++            Path(pin['path']).resolve() != (dest / name).resolve()
++            for name, pin in receipt['files'].items()):
++        raise ValueError('Cache file binding differs')
++
++
++def convert(c, boundary, dest, tower_root, own_root, progress):
++    install()
++    with capture(c):
++        try:
++            result = _convert(c, boundary, dest, tower_root, own_root, progress)
++        except geometry_profiles.GeometryError as error:
++            if str(error) != CODE or not _recorder.records.get(('K1', c['canonical']), (False, False))[1]:
++                raise
++            # The sealed converter writes before validating. Preserve that evidence
++            # under a non-loadable name; no geometry.npz is admitted for this capture.
++            names = ['candidates.json', 'parity_raw.jsonl']
++            if (dest / 'geometry.npz').exists():
++                (dest / 'geometry.npz').rename(dest / 'REFUSED_GEOMETRY.npz')
++                names.append('REFUSED_GEOMETRY.npz')
++            source = Path(tower_root) / B.digest(c['canonical'])[:16]
++            for name in ('candidates.json', 'parity_raw.jsonl'):
++                shutil.copyfile(source / name, dest / name)
++            result = dict(capture_sha256=B.digest(c), checkpoint=boundary.checkpoint,
++                          synthetic=boundary.synthetic, sources=B.source_identity(), geometry=None,
++                          geometry_refusal=dict(code=CODE, message=str(error)),
++                          files={name: B.pin(dest / name) for name in names},
++                          phase='unselected_cache_no_responses')
++            progress('geometry_refused')
++    result.update(gravity_guard=GG.identity(), gravity_verdict=verdict(c))
++    # Replace the converter's provisional receipt only after attaching the guard.
++    pending = dest / 'GUARDED_COMPLETE.json'
++    B.write(pending, result)
++    pending.replace(dest / 'CACHE_COMPLETE.json')
++    return result
++
++
++def run(m, out, *args, **kwargs):
++    install()
++    original = F.convert
++    F.convert = convert
++    try:
++        return F.run(m, out, *args, **kwargs)
++    finally:
++        F.convert = original
++        if (Path(out) / 'BINDING.json').exists():
++            write_report(out)
+--- /dev/null
++++ b/k1_build/work/kit_k1a/work/gravity_guard.py
+@@ -0,0 +1,127 @@
++"""Reader-owned gravity decision, installed only after authenticated restore."""
++import ast
++from contextlib import contextmanager
++from contextvars import ContextVar
++import hashlib
++import inspect
++from pathlib import Path
++import textwrap
++
++import numpy as np
++from student_pilot.geometry_profiles import GeometryError
++
++SEALED_VALIDATE_SHA256 = "05cc553d9e84d235fcc616563b67b4cc1ce50f4b7c10efcaf8a314a59010521a"
++UP_PLANE_MIN = .3
++
++
++def validate_up_convention(rotations):
++    """Ignore ill-conditioned roll signs; retain upright-convention refusals."""
++    R = np.asarray(rotations, float)
++    plane = np.linalg.norm(R[:, 2, :2], axis=1)
++    margin = -R[:, 2, 1]
++    if plane[0] >= UP_PLANE_MIN:
++        invalid = margin[0] <= 0
++    else:
++        usable = plane >= UP_PLANE_MIN
++        invalid = usable.any() and np.median(margin[usable] / plane[usable]) <= 0
++    if invalid:
++        raise GeometryError('reference_camera_up_opposes_gravity')
++
++
++_capture = ContextVar('gravity_guard_capture', default=None)
++_installed = False
++_recorder = None
++
++
++def identity():
++    return dict(evaluation_gravity_guard=dict(name='validate_up_convention',
++                    sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest()),
++                sealed_gravity_guard=dict(name='GeometryContract.validate',
++                    inspect_sha256=SEALED_VALIDATE_SHA256))
++
++
++@contextmanager
++def capture(capture_set, native):
++    if not isinstance(capture_set, str) or not capture_set or not isinstance(native, str) or not native:
++        raise RuntimeError('gravity_guard_capture_identity_missing')
++    token = _capture.set((capture_set, native))
++    try:
++        yield
++    finally:
++        _capture.reset(token)
++
++
++class Recorder:
++    def __init__(self):
++        self.records = {}
++        self.contracts = {}
++
++    def record(self, sealed_refused, reviewed_refused, contract=None):
++        key = _capture.get()
++        if key is None and contract is not None:
++            bound = self.contracts.get(id(contract))
++            if bound is not None and bound[0] is contract:
++                key = bound[1]
++        if key is None:
++            raise RuntimeError('gravity_guard_capture_context_missing')
++        verdict = (bool(sealed_refused), bool(reviewed_refused))
++        if key in self.records and self.records[key] != verdict:
++            raise RuntimeError('gravity_guard_capture_verdict_changed')
++        self.records[key] = verdict
++        if contract is not None:
++            self.contracts[id(contract)] = (contract, key)
++
++    def report(self):
++        result = {}
++        for capture_set in sorted({key[0] for key in self.records}):
++            rows = {native: value for (scope, native), value in self.records.items() if scope == capture_set}
++            sealed = sorted(name for name, value in rows.items() if value[0])
++            reviewed = sorted(name for name, value in rows.items() if value[1])
++            added = sorted(set(reviewed) - set(sealed))
++            result[capture_set] = dict(captures=sorted(rows), capture_count=len(rows),
++                sealed_refused=sealed, sealed_refused_count=len(sealed),
++                reviewed_refused=reviewed, reviewed_refused_count=len(reviewed),
++                reviewed_only_refused=added, reviewed_only_refused_count=len(added))
++        return result
++
++
++def report():
++    return {} if _recorder is None else _recorder.report()
++
++
++def install(geometry_profiles_module, recorder):
++    global _installed, _recorder
++    if _installed:
++        raise RuntimeError('gravity_guard_already_installed')
++    if geometry_profiles_module.GeometryError is not GeometryError:
++        raise RuntimeError('gravity_guard_exception_class_mismatch')
++    original = geometry_profiles_module.GeometryContract.validate
++    source = inspect.getsource(original)
++    if hashlib.sha256(source.encode()).hexdigest() != SEALED_VALIDATE_SHA256:
++        raise RuntimeError('sealed_validate_mismatch')
++    body = ast.parse(textwrap.dedent(source)).body[0].body
++    terminal = ast.parse("if -R[0, 2, 1] <= 0:\n    raise GeometryError('reference_camera_up_opposes_gravity')\nreturn self").body
++    if len(body) < 2 or any(ast.dump(a) != ast.dump(b) for a, b in zip(body[-2:], terminal)):
++        raise RuntimeError('sealed_validate_terminal_mismatch')
++
++    def validate(self):
++        sealed_refused = False
++        try:
++            original(self)
++        except geometry_profiles_module.GeometryError as error:
++            if str(error) != 'reference_camera_up_opposes_gravity':
++                raise
++            sealed_refused = True
++        C = np.asarray(self.camera_to_world, float)
++        R = C[:, :3, :3]
++        try:
++            validate_up_convention(R)
++        except GeometryError:
++            recorder.record(sealed_refused, True, self)
++            raise
++        recorder.record(sealed_refused, False, self)
++        return self
++
++    geometry_profiles_module.GeometryContract.validate = validate
++    _recorder = recorder
++    _installed = True
+--- /dev/null
++++ b/k1_build/work/kit_k1a/work/test_k1_guard.py
+@@ -0,0 +1,260 @@
++"""CPU guard regressions; all fixture artifacts stay in kc_guard_tests."""
++import copy
++import json
++import os
++from pathlib import Path
++import subprocess
++import sys
++import trace
++import unittest
++from unittest.mock import patch
++
++WORK = Path(__file__).resolve().parent
++ROOT = WORK.parents[3].parent / 'kc_guard_tests'
++os.environ.update(CUDA_VISIBLE_DEVICES='', PYTHONDONTWRITEBYTECODE='1',
++                  OMP_NUM_THREADS='1', OPENBLAS_NUM_THREADS='1', MKL_NUM_THREADS='1')
++sys.path.insert(0, str(WORK))
++TARGETS = [WORK / n for n in ('k1_guard.py', 'gravity_guard.py', 'k1_pipeline.py', 'k1_cli.py', 'k1_report.py')]
++hits = {}
++
++
++def tracer(frame, event, arg):
++    name = frame.f_code.co_filename
++    if name in {str(p) for p in TARGETS}:
++        if event == 'line':
++            hits.setdefault(name, set()).add(frame.f_lineno)
++        return tracer
++
++
++sys.settrace(tracer)
++import numpy as np
++import k1_pipeline as K
++K._native()
++B, P = K.B, K.P
++import k1_phases as F
++import k1_guard as guard
++from boundaries import CPU
++from student_pilot import geometry_profiles as GP
++from student_pilot import camera_targets
++
++MANIFEST = '/scratch/jjyeung/orch_n30/k1_ops3/work/manifest_v2/a40fbc19.json'
++
++
++class GuardTests(unittest.TestCase):
++    @classmethod
++    def setUpClass(cls):
++        cls.root = ROOT / os.environ.get('K1_GUARD_TEST_RUN', 'unit')
++        cls.root.mkdir()
++        cls.real = B.load(MANIFEST)
++        cls.c = copy.deepcopy(cls.real['captures'][0])
++        cls.c['rows'] = [dict(id='refused-distance', type='object_abs_distance',
++                             question='Distance between chair and table?', operands=['chair', 'table'],
++                             unit='m', gt_value=1., fallback=dict(visual_evidence_verified=True,
++                             trace='The image shows a gap.', answer='1.00')),
++                         dict(id='refused-room', type='room_size_estimation', question='Room area?',
++                              operands=[], unit='m2', gt_value=10.)]
++        cls.m = dict(captures=[cls.c], inventory=cls.real['inventory'])
++        cls.boundary = CPU()
++        cls.tower = cls.root / 'tower'
++        cls.own = cls.root / 'own'
++        key = B.digest(cls.c['canonical'])[:16]
++        a, b = cls.tower / key, cls.own / key
++        a.mkdir(parents=True); b.mkdir(parents=True)
++        state = cls.boundary.tower(cls.c, [None] * len(cls.c['dense_frames']))
++        np.savez(a / 'tower.npz', raw_pose=state.raw_pose9, depth_grid=state.depth_grid,
++                 depth_conf_grid=state.depth_conf_grid, frame_indices=state.frame_indices,
++                 anchor_slots=state.anchor_slots, grid_uv=state.grid_uv)
++        B.write(a / 'candidates.json', dict(phrases=[], frames={}, fixture_only=True))
++        (a / 'parity_raw.jsonl').write_text('')
++        F.receipt(cls.c, cls.boundary, a, 'tower_sam',
++                  ['tower.npz', 'candidates.json', 'parity_raw.jsonl'], source_hw=[80, 112])
++        depth, gravity = cls.boundary.own(cls.c, [], state)
++        np.savez(b / 'own.npz', depth=depth, gravity=gravity)
++        F.receipt(cls.c, cls.boundary, b, 'own', ['own.npz'])
++        cls.out = cls.root / 'refusal'
++        # Proper rotation: reference plane=1 and margin=-1. The real reviewed
++        # validator, converter, phase checks and receipt writer all execute.
++        rotations = np.repeat(np.array([[1., 0., 0.], [0., 0., -1.], [0., 1., 0.]])[None], 32, axis=0)
++        with patch.object(camera_targets, 'to_gravity_reference_frame',
++                          return_value=(rotations, np.zeros((32, 3)), np.ones((32, 2)))):
++            assert guard.run(cls.m, cls.out, cls.boundary, 'convert', 14400, cls.tower, cls.own) == 0
++        cls.dest = cls.out / key
++
++    def test_refusal_receipt_resume_and_cached(self):
++        r = B.load(self.dest / 'CACHE_COMPLETE.json')
++        self.assertEqual(r['gravity_guard'], guard.GG.identity())
++        self.assertEqual(r['gravity_verdict'], dict(sealed_refused=True, reviewed_refused=True))
++        self.assertEqual(r['geometry_refusal'], dict(code=guard.CODE, message=guard.CODE))
++        self.assertIsNone(r['geometry'])
++        self.assertFalse((self.dest / 'geometry.npz').exists())
++        self.assertEqual(set(r['files']), {'candidates.json', 'parity_raw.jsonl', 'REFUSED_GEOMETRY.npz'})
++        for name, pin in r['files'].items():
++            self.assertEqual(B.checked(pin), self.dest / name)
++        before = B.sha(self.dest / 'CACHE_COMPLETE.json')
++        with patch.object(guard, '_convert', side_effect=AssertionError('Resume reconverted')), \
++                patch.object(guard._recorder, 'records', {}):
++            self.assertEqual(guard.run(self.m, self.out, self.boundary, 'convert', 14400, self.tower, self.own), 0)
++            self.assertEqual(guard.verdict(self.c), r['gravity_verdict'])
++        self.assertEqual(before, B.sha(self.dest / 'CACHE_COMPLETE.json'))
++        self.assertIsNone(K.cached(self.c, self.dest)[1])
++        self.assertEqual(B.load(self.out / 'GUARD_REPORT.json')['K1']['reviewed_refused'], [self.c['canonical']])
++
++    def test_tables_and_render_keep_refusals(self):
++        import build_tables
++        tables = self.root / 'tables'
++        with patch.object(build_tables, 'build_capture', side_effect=AssertionError('Refused candidate extraction')), \
++                patch.object(K, 'gt_arrays', side_effect=AssertionError('Refused GT load')):
++            K.tables(self.m, self.out, tables)
++        self.assertEqual((tables / 'candidates.jsonl').read_text(), '')
++        self.assertEqual((tables / 'pairs.jsonl').read_text(), '')
++        self.assertEqual(B.load(tables / 'TABLE_RECEIPT.json')['geometry_refused'], {self.c['canonical']: guard.CODE})
++        fit = self.root / 'fit'; fit.mkdir()
++        B.write(fit / 'NATIVE_POLICY.json', dict(fixture_only=True))
++        B.write(fit / 'FIT_RECEIPT.json', dict(fixture_only=False,
++                native_policy_sha256=B.sha(fit / 'NATIVE_POLICY.json'),
++                inputs={self.m['inventory']['path']: self.m['inventory']['sha256']}, train_rooms=[], heldout_rooms=[]))
++        rendered = self.root / 'render'
++        with patch.object(K, 'native_backend', side_effect=AssertionError('Refused backend')), \
++                patch.object(B.perception, 'execute_calls', side_effect=AssertionError('Refused calls')), \
++                patch.object(K, 'gt_arrays', side_effect=AssertionError('Refused GT load')):
++            K.responses(self.m, self.out, fit, rendered)
++        results = B.load(rendered / self.dest.name / 'responses.json')
++        for row, result in zip(self.c['rows'], results, strict=True):
++            self.assertEqual(result['decision'], P.classify(row, result, {'ok': False}))
++            self.assertIsNone(result['decision']['value'])
++            self.assertEqual(result['mask_match'], {'ok': False})
++            self.assertEqual(len(result['calls']), 1)
++            self.assertTrue(P.failure(result['calls'][0]))
++        rows = [json.loads(s) for s in (rendered / 'K1_ANALYSIS_INPUT.jsonl').read_text().splitlines()]
++        self.assertEqual({r['id'] for r in rows}, {r['id'] for r in self.c['rows']})
++        self.assertTrue(all(r['pred'] is None and r['rendered_label'] == 'excluded'
++                            and not r['training_target_available'] and r['printed_cues']['status'] == 1 for r in rows))
++        for out in (tables, rendered):
++            self.assertEqual(B.load(out / 'GUARD_REPORT.json')['K1']['reviewed_refused'], [self.c['canonical']])
++
++    def test_other_exceptions_halt(self):
++        for name, error in [('geometry', GP.GeometryError('invalid_scale')), ('value', ValueError('mutation'))]:
++            out = self.root / ('halt_' + name)
++            with patch.object(B.geometry, 'convert', side_effect=error):
++                with self.assertRaisesRegex(type(error), str(error)):
++                    guard.run(self.m, out, self.boundary, 'convert', 14400, self.tower, self.own)
++            self.assertIn(str(error), B.load(out / 'HALTED.json')['error'])
++            self.assertFalse((out / self.dest.name / 'CACHE_COMPLETE.json').exists())
++
++    def test_matching_message_without_reviewed_verdict_halts(self):
++        c = self.real['captures'][1]
++        out = self.root / 'unreviewed_error'
++        with patch.object(guard, '_convert', side_effect=GP.GeometryError(guard.CODE)):
++            with self.assertRaisesRegex(GP.GeometryError, guard.CODE):
++                guard.run(dict(captures=[c]), out, self.boundary, 'convert', 14400, self.tower, self.own)
++        self.assertIn(guard.CODE, B.load(out / 'HALTED.json')['error'])
++
++    def test_passing_canary_cached(self):
++        c = self.real['captures'][2]
++        raw, geo, receipt = K.cached(c, ROOT / 'canary' / B.digest(c['canonical'])[:16])
++        self.assertIsNotNone(geo)
++        self.assertEqual(receipt['gravity_verdict'], dict(sealed_refused=True, reviewed_refused=False))
++
++    def test_passing_downstream_capture_context(self):
++        import build_tables
++        c = self.real['captures'][2]
++        m = dict(captures=[c], inventory=self.real['inventory'])
++        def build(*args):
++            self.assertEqual(guard.GG._capture.get(), ('K1', c['canonical']))
++            return [{'fixture': 'candidate'}], [{'fixture': 'pair'}]
++        out = self.root / 'passing_tables'
++        with patch.object(build_tables, 'build_capture', side_effect=build), patch.object(K, 'gt_arrays', return_value={}):
++            K.tables(m, ROOT / 'canary', out)
++        self.assertEqual(B.load(out / 'TABLE_RECEIPT.json')['geometry_refused'], {})
++        self.assertEqual(len((out / 'candidates.jsonl').read_text().splitlines()), 1)
++        self.assertEqual(len((out / 'pairs.jsonl').read_text().splitlines()), 1)
++        fit = self.root / 'passing_fit'; fit.mkdir()
++        B.write(fit / 'NATIVE_POLICY.json', dict(fixture_only=True))
++        B.write(fit / 'FIT_RECEIPT.json', dict(fixture_only=False,
++                native_policy_sha256=B.sha(fit / 'NATIVE_POLICY.json'),
++                inputs={m['inventory']['path']: m['inventory']['sha256']}, train_rooms=[], heldout_rooms=[]))
++        def execute(geo, backend, calls):
++            self.assertEqual(guard.GG._capture.get(), ('K1', c['canonical']))
++            geo.contract.validate()
++            return dict(calls=[dict(call=calls[0], kind='error', code='fixture_backend_failure', response='unavailable')])
++        with patch.object(K, 'native_backend', return_value=object()), \
++                patch.object(B.perception, 'execute_calls', side_effect=execute), \
++                patch.object(K, 'gt_arrays', return_value={}):
++            K.responses(m, ROOT / 'canary', fit, self.root / 'passing_render')
++        rows = (self.root / 'passing_render/K1_ANALYSIS_INPUT.jsonl').read_text().splitlines()
++        self.assertEqual(len(rows), len(c['rows']))
++
++    def test_cli_convert_stop(self):
++        import k1_cli
++        out = self.root / 'cli_stop'; out.mkdir()
++        (out / 'STOP').write_text('STOP\n')
++        args = ['k1_pipeline.py', 'cache', '--manifest', MANIFEST, '--out', str(out),
++                '--phase', 'convert', '--max-seconds', '14400',
++                '--tower-cache', str(self.tower), '--own-cache', str(self.own)]
++        with patch.object(sys, 'argv', args):
++            self.assertEqual(k1_cli.main(), 4)
++        self.assertTrue((out / 'GUARD_REPORT.json').is_file())
++        self.assertFalse((out / 'HALTED.json').exists())
++
++    def test_bad_receipt_bindings(self):
++        r = B.load(self.dest / 'CACHE_COMPLETE.json')
++        mutations = [dict(gravity_guard={}), dict(sources={}), dict(geometry={'fake': True}),
++                     dict(gravity_verdict=dict(sealed_refused=True, reviewed_refused=False)),
++                     dict(geometry_refusal=dict(code='invalid_scale', message='invalid_scale')),
++                     dict(files={}), dict(phase='wrong')]
++        for changed in mutations:
++            with self.assertRaises(ValueError):
++                guard.check_receipt(self.c, self.dest, dict(r, **changed))
++
++    def test_install_once_and_sealed_hash_failure(self):
++        current = GP.GeometryContract.validate
++        guard.install(); guard.install()
++        self.assertIs(GP.GeometryContract.validate, current)
++        # A fresh process must reject an altered sealed method before output exists.
++        code = """import sys
++sys.path.insert(0, sys.argv[1])
++import k1_pipeline as K
++K._native()
++import k1_guard as g
++g.geometry_profiles.GeometryContract.validate = g.verdict
++try:
++    g.install()
++except RuntimeError as error:
++    assert str(error) == 'sealed_validate_mismatch', error
++    print(error)
++else:
++    raise AssertionError('Installed over changed sealed method')
++"""
++        result = subprocess.run([sys.executable, '-I', '-s', '-B', '-c', code, str(WORK)],
++                                capture_output=True, text=True, check=True)
++        self.assertIn('sealed_validate_mismatch', result.stdout)
++
++    def test_report_denominators(self):
++        import k1_report as R
++        cs = self.real['captures'][:2]
++        inventory = dict(pilot=[dict(canonical=c['canonical'], split=split)
++                              for c, split in zip(cs, ['train', 'heldout'])])
++        rows = [dict(id=str(i), canonical=c['canonical'], type='object_abs_distance',
++                     gt_value=1., pred=None, label='fallback', training_target_available=False,
++                     printed_cues={'status': 1}) for i, c in enumerate(cs)]
++        metric = dict(auc=.5, top1_accept_accuracy=.5)
++        fit = dict(metrics=dict(accept=dict(refit=metric, current=metric)))
++        report = R.report(rows, inventory, fit, ['0', '1'])
++        self.assertEqual(report['heldout_items'], 1)
++        self.assertEqual(report['answered_items'], 0)
++        self.assertEqual(report['printed_cues']['status']['all']['n'], 1)
++        self.assertTrue(report['complete_row_denominator_checked'])
++        with self.assertRaisesRegex(ValueError, 'denominator'):
++            R.report(rows[:1], inventory, fit, ['0', '1'])
++
++
++if __name__ == '__main__':
++    result = unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(GuardTests))
++    sys.settrace(None)
++    coverage = {}
++    for path in TARGETS:
++        executable = set(trace._find_executable_linenos(str(path)))
++        executed = hits.get(str(path), set()) & executable
++        coverage[path.name] = dict(executable=sorted(executable), hit=sorted(executed), missing=sorted(executable-executed))
++    (ROOT / 'guard_coverage.json').write_text(json.dumps(coverage, indent=2) + '\n')
++    raise SystemExit(0 if result.wasSuccessful() else 1)
+--- original-work/convert7.sh
++++ kc_guard_brief/convert7.guard.sh
+@@ -1,8 +1,15 @@
+ #!/bin/bash
+ # K1 convert phase on CPU (run_k1.sh's command with no card). usage: convert7.sh OWN_ROOT OUT [SECONDS]
+ set -euo pipefail
++export K1_NATIVE_KIT=/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit
+ OWN=$1; OUT=$2; SEC=${3:-14400}
+-KC=/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/work
++KC=/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard/k1_build/work/kit_k1a/work
++sha256sum -c --strict - <<GUARD_SUMS
++5398de8c55f35d470f32cbfc3df2e190f286cd44fb253e9283400a3364a652a2  $KC/k1_guard.py
++b2df9c3a769ef498021ef4aa116b68912f5ff5872f03ec3abfe4b732cefbbb79  $KC/gravity_guard.py
++03aff7de2aad6b7267ca1c0464a1a950d5fa8671d4a28c53a64075eecf21cf47  $KC/k1_cli.py
++ec4b1a8a27dcc8cb5a201c8a123c02b4813ead4db1403621bc7dd30002f84e80  $KC/k1_pipeline.py
++GUARD_SUMS
+ MAN=/scratch/jjyeung/orch_n30/k1_ops3/work/manifest_v2/a40fbc19.json
+ TOWER=/scratch/jjyeung/k1/run_tower_sam_2; PY=${K1_CONVERT_PY:-/scratch/jjyeung/envs/sam3_scipy_ovl/bin/python}  # = sam3_capretry_native_v1 site-packages + scipy 1.14.1 (orch_cd/evalx/work/trin_vl/pyextra)
+ echo e684e0c7d8a75e4296e34ba4980aa6d7088f6c2f2053d7850ee790e7cf215146 $MAN | sha256sum -c --strict -
+--- original-work/k1_downstream.sh
++++ kc_guard_brief/k1_downstream.guard.sh
+@@ -2,23 +2,31 @@
+ # Run only after independent review and deployment, after tower_sam has ended.
+ # This file does not deploy or change phase artifacts.
+ set -euo pipefail
++export K1_NATIVE_KIT=/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit
+ : "${K1_CONVERT_CACHE:?Set this to the completed convert output root, not the tower_sam root}"
+ : "${K1_REFIT_PY:?Set this to an approved CPU Python with numpy and scikit-learn}"
+ 
+-BUILD=/scratch/jjyeung/orch_n30/k1_ops3/work/codex_gtset
+-KIT=/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a
++BUILD=/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard/guard_downstream
++KIT=/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard/k1_build/work/kit_k1a
++sha256sum -c --strict - <<GUARD_SUMS
++5398de8c55f35d470f32cbfc3df2e190f286cd44fb253e9283400a3364a652a2  $KIT/work/k1_guard.py
++b2df9c3a769ef498021ef4aa116b68912f5ff5872f03ec3abfe4b732cefbbb79  $KIT/work/gravity_guard.py
++03aff7de2aad6b7267ca1c0464a1a950d5fa8671d4a28c53a64075eecf21cf47  $KIT/work/k1_cli.py
++ec4b1a8a27dcc8cb5a201c8a123c02b4813ead4db1403621bc7dd30002f84e80  $KIT/work/k1_pipeline.py
++GUARD_SUMS
+ MANIFEST_V1=/scratch/jjyeung/orch_n30/k1_ops3/work/codex_arkit_timing/K1_MANIFEST.arkit_timing.json
+ MANIFEST=/scratch/jjyeung/orch_n30/k1_ops3/work/manifest_v2/a40fbc19.json
+ GTSETS=/scratch/jjyeung/orch_n30/k1_ops3/work/gt_sets
+-PY=/scratch/jjyeung/envs/p1cpu/bin/python
++PY=/scratch/jjyeung/envs/sam3_scipy_ovl/bin/python
+ export CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1
+ export NUMEXPR_NUM_THREADS=1 PYTHONDONTWRITEBYTECODE=1 HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
+ export XDG_CACHE_HOME="$BUILD/runtime_cache" HF_HOME="$BUILD/runtime_cache/hf" TRITON_CACHE_DIR="$BUILD/runtime_cache/triton"
++mkdir -p "$BUILD"
+ cd "$BUILD"
+ 
+ # These are existing refit prerequisites, not part of this patch.
+-test -f /scratch/jjyeung/orch_n30/k1_ops3/kc/grd_selector/work/setsel/setlib.py
+-test -f /scratch/jjyeung/orch_n30/k1_ops3/kc/devs1_masks/out/kit/work/vendor/MODELS.json
++test -f /scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard/grd_selector/work/setsel/setlib.py
++test -f /scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard/devs1_masks/out/kit/work/vendor/MODELS.json
+ nice -n 10 "$K1_REFIT_PY" -B -c 'import numpy, sklearn'
+ nice -n 10 "$PY" -B "$KIT/work/verify_sources.py"
+ # Amendment 2: tables run on manifest v2; its 300 capture entries and gpu.artifact equal v1's.
+@@ -39,8 +47,8 @@
+ 2b82af5241db3c8048e9998f766b5dcd24accdaab93bbd8a169aefba39a1f121  $GTSETS/GT_SET_PRIMARY_296.json
+ e305c4be0d604df277d06e7d9b1e13893dfa659d7ab6663f0de798773d58d650  $GTSETS/GT_SET_SENSITIVITY_300.json
+ 5d36d1ea98c14b2e3181a4571a87dc81efa980bd88a2302e27a1ecc13833a4f8  $KIT/work/gt_set.py
+-f14df4eda722337e0e7187a759e287eed79bb3201b03ffef351591ce5241c0da  $KIT/work/k1_cli.py
+-deb51a265425e092870c7eadb2fd498b5942b466bb759b39c84fa96e0c762157  $KIT/work/k1_pipeline.py
++03aff7de2aad6b7267ca1c0464a1a950d5fa8671d4a28c53a64075eecf21cf47  $KIT/work/k1_cli.py
++ec4b1a8a27dcc8cb5a201c8a123c02b4813ead4db1403621bc7dd30002f84e80  $KIT/work/k1_pipeline.py
+ 14b35f83184267f85a946079767d7903d3e1c31d73946bd2600bbe6b2efe862d  $KIT/work/k1_report.py
+ 4087716014ab26e7fdb91f336e3d8ee81f97e82b85a4c340376e872c655ecfef  $KIT/work/refit/train.py
+ aa0a728148bbf076fe1d42a6fe4bb053c761052ec653faa02f7a06e240b8ca42  $KIT/out/DEPENDENCIES.json

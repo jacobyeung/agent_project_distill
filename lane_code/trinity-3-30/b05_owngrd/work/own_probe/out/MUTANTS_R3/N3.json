@@ -1,0 +1,13 @@
+{
+  "id": "N3",
+  "description": "final-layer control reads penultimate tap",
+  "edits": [
+    {
+      "module": "own_feats.core",
+      "old": "    selected=maps if readout=='four' else maps[-1:]",
+      "new": "    selected=maps if readout=='four' else maps[-2:-1]"
+    }
+  ],
+  "reviewer_spec": "/scratch/jjyeung/orch_cd/own_probe_review2/mutants/N3.json",
+  "adaptation": "Unchanged reviewer edit"
+}

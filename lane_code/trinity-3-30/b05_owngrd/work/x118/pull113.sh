@@ -1,0 +1,1 @@
+cd /dev/shm/jjyeung/b05 && tar cf - teacher_k1 | timeout 600 ssh -o ConnectTimeout=20 -o BatchMode=yes trinity-3-30.ib "mkdir -p /scratch/jjyeung/orch_n30/b05_owngrd/work/pull && cd /scratch/jjyeung/orch_n30/b05_owngrd/work/pull && tar xf -"; echo pull_rc=$?; ls teacher_k1/*/DONE.json | wc -l

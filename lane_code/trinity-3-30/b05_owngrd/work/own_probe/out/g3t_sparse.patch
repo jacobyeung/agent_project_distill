@@ -1,0 +1,13 @@
+--- a/student_pilot/g3t_vendor/vggt/models/aggregator.py
++++ b/student_pilot/g3t_vendor/vggt/models/aggregator.py
+@@ -249,7 +249,9 @@
+ 
+             for i in range(len(frame_intermediates)):
+                 # concat frame and global intermediates, [B x S x P x 2C]
+-                concat_inter = torch.cat([frame_intermediates[i], global_intermediates[i]], dim=-1)
++                idx = len(output_list)
++                concat_inter = (torch.cat([frame_intermediates[i], global_intermediates[i]], dim=-1)
++                                if self.training or idx in getattr(self, '_own_keep_indices', (4, 5, 11, 17, 23, self.depth-1)) else None)
+                 output_list.append(concat_inter)
+ 
+         del concat_inter

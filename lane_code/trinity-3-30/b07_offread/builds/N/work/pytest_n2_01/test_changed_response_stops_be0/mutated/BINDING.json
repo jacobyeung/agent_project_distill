@@ -1,0 +1,65 @@
+{
+  "arms": [
+    "primary",
+    "secondary_fallback",
+    "secondary_room_unserved"
+  ],
+  "benchmark": "revsi999t32",
+  "benchmark_label": "ReVSI official999, tier 32",
+  "binding_sha256": "470ba490c85bea10e0efe00cd46c91d8d8f286530c00746ccc76cb5f2cc0dd3d",
+  "budget": "B2048 primary; native reads 2,048 + 64 tokens (pre-registration, fixed without re-selection)",
+  "export": {
+    "kind": "step544",
+    "label": "LEG-S1 step 544 (artifact 1d6eeb28)",
+    "sha256": "1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef"
+  },
+  "frame_path": "PyAV rgb24, 32 floor-uniform anchors k*(N-1)//31 at stream fps, each duplicated (accepted direct kits)",
+  "groups": [
+    "object_counting",
+    "object_rel_direction",
+    "object_rel_distance",
+    "object_size_estimation",
+    "route_planning",
+    "object_abs_distance",
+    "room_size_estimation"
+  ],
+  "items": 999,
+  "mode": "fixture",
+  "read_config": {
+    "frames": {
+      "anchor_rule": "k*(N-1)//31 for k in 0..31, PyAV rgb24 at stream fps",
+      "count": 32,
+      "layout": "duplicate",
+      "layout_override_reason": null,
+      "processor_frames": 64,
+      "temporal_groups": 32,
+      "trained": {
+        "count": 32,
+        "layout": "duplicate"
+      }
+    },
+    "g3t": {
+      "count": 32,
+      "label": "G3T on the 32 viewed frames, not the pre-registered dense 64",
+      "source": "clip32"
+    }
+  },
+  "reader": {
+    "eat1": {
+      "note": "harness backend: fails EAT-1 by construction (A1, A3, A4, A5); numbers are harness-served",
+      "passed": false
+    },
+    "freeze_file": "/scratch/jjyeung/orch_n30/b07_offread/builds/N/work/pytest_n2_01/test_changed_response_stops_be0/mutated/ROUTED_PATH_FROZEN_20261116.md",
+    "freeze_sha256": "8ee0df39db8ac9e042c58e1276937813177f4ca4e5cd8f3a355574c2d5fe7b4f",
+    "freeze_values": {
+      "fixture": true,
+      "selector": {
+        "kill_rules_passed": true,
+        "source": "K1_refit"
+      }
+    },
+    "id": "P8 ROUTED_PATH_FROZEN_20261116.md 8ee0df39db8a",
+    "kind": "harness"
+  },
+  "schema": "offkit-binding-v1"
+}

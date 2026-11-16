@@ -108,6 +108,35 @@ def _jsonable(output):
     return json.loads(json.dumps(output, default=str))
 
 
+def split_model_code(findings, model, declared):
+    """Findings inside methods of the classes of declared lm/vit/head/connector/tower modules (and their
+    submodules) are model code, for example a head's own activation constants called through a method
+    rather than forward. They are reported apart and do not fail a clause; the reviewer reads them.
+    Call-handler modules, their submodules and the root model class are never exempt."""
+    import inspect
+    handler_ids = {id(s) for _, m, role, _ in declared if role == 'call_handler' for s in m.modules()}
+    mods = {id(s): s for _, m, role, _ in declared if role in MODEL_ROLES and m is not model for s in m.modules()}
+    banned = {type(model)} | {type(s) for _, m, role, _ in declared if role == 'call_handler' for s in m.modules()}
+    classes = set()
+    for key, m in mods.items():
+        if key in handler_ids or type(m) in banned:
+            continue
+        for cls in type(m).__mro__:
+            if cls in banned:
+                break
+            if cls.__module__.startswith('torch.') or cls.__module__.startswith('transformers.'):
+                continue
+            try:
+                classes.add((str(Path(inspect.getsourcefile(cls)).resolve()), cls.__qualname__))
+            except (TypeError, OSError):
+                pass
+    keep, model_code = [], []
+    for f in findings:
+        top = f['function'].split('.')[0]
+        (model_code if (f['file'], top) in classes else keep).append(f)
+    return keep, model_code
+
+
 # ---------------------------------------------------------------- clauses
 def clause(status, summary, offenders=(), **extra):
     return dict(status=status, summary=summary, offenders=list(offenders), **extra)
@@ -404,6 +433,12 @@ def write_report(out, result):
         heads = '; '.join(f'{f}: {dict(c)}' for f, c in v['heads_behind_fields'].items()) or '-'
         lines.append(f'| {typ} | {v["items"]} | {v["call_rate"]:.3f} | {v["calls_per_item"]:.2f} | {heads} | '
                      f'{v["seconds_mean"]:.3f}, {v["seconds_median"]:.3f}, {v["seconds_max"]:.3f} |')
+    mc = [f for f in result.get('model_code_findings', []) if f.get('executed', True)]
+    if mc:
+        lines += ['', f'## Findings inside registered model classes (informational, {len(mc)}; not failing)', '']
+        lines += [f'- `{f["rule"]}` {f["file"]}:{f["line"]} ({f["function"]}): {f["detail"]}' for f in mc[:40]]
+    if result.get('fixture_files'):
+        lines += ['', '## Fixture files excluded from the call path', '']+[f'- {f}' for f in result['fixture_files']]
     lines += ['', '## Offenders by clause (file and line)', '']
     for k in ('A1', 'A2', 'A3', 'A4', 'A5'):
         c = result['clauses'][k]
@@ -442,6 +477,7 @@ def main(argv=None):
     ap.add_argument('--sandbox', action='store_true', help='A5 (i): rerun with outside directories unmounted')
     ap.add_argument('--sandbox-timeout', type=int, default=3600)
     ap.add_argument('--perturb', action='store_true', help='A5 (ii): perturb each head and tower')
+    ap.add_argument('--perturb-limit', type=int, help='A5 (ii) on the first N items only (call-balanced order)')
     ap.add_argument('--strace-log')
     ap.add_argument('--no-verify-artifact', action='store_true')
     ap.add_argument('--child', action='store_true')
@@ -461,11 +497,17 @@ def main(argv=None):
     records, lines, declared = observe(reader, items, artifact)
     strace = H.parse_strace(args.strace_log) if args.strace_log and Path(args.strace_log).is_file() else None
     a1 = judge_a1(records, artifact, input_roots, strace)
-    scope = {f for f in lines if not H.is_harness(f)}
+    fixture_roots = [str(Path(p).resolve()) for p in getattr(reader, 'eat1_fixture_roots', ())]
+    fixture = sorted(f for f in lines if any(f.startswith(r+'/') for r in fixture_roots))
+    scope = {f for f in lines if not H.is_harness(f) and f not in fixture}
     allow = S.load_allowlist(args.allowlist, args.allowlist_extra)
     findings, suppressed = S.scan(sorted(scope), allow, executed={f: set(v) for f, v in lines.items()})
+    findings, model_code = split_model_code(findings, reader.model, declared)
     sandbox = run_sandbox(args, records, artifact, input_roots, out/'a5_sandbox') if args.sandbox else None
-    perturb = perturbation(reader, items, artifact, records) if args.perturb else None
+    perturb_items = items[:args.perturb_limit] if args.perturb_limit else items
+    perturb = perturbation(reader, perturb_items, artifact, records) if args.perturb else None
+    if perturb is not None:
+        perturb['items'] = len(perturb_items)
     clauses = dict(A1=a1, A2=judge_a2(records, declared, findings, True), A3=judge_a3(findings, True, scope),
                    A4=judge_a4(records, declared, findings, True),
                    A5=judge_a5(records, declared, findings, True, sandbox, perturb,
@@ -477,7 +519,8 @@ def main(argv=None):
                   mode='dynamic', started_utc=started, clauses=clauses, overall=overall,
                   per_type=per_type(records), suppressed=suppressed, perturbation=perturb,
                   declared_modules=[dict(path=p, role=r, name=n) for p, _, r, n in declared],
-                  executed_scope={f: len(v) for f, v in lines.items()})
+                  executed_scope={f: len(v) for f, v in lines.items()}, fixture_files=fixture,
+                  model_code_findings=model_code)
     (out/'ITEMS.jsonl').write_text(''.join(json.dumps(dict(id=r['id'], type=r['type'], seconds=r['seconds'],
         error=r['error'], output=r['output'], entries=r['provenance']['entries'],
         violations=len(r['provenance']['violations']), module_runs=r['provenance']['module_runs']),

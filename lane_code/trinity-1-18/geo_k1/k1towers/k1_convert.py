@@ -7,7 +7,7 @@ GEO_TOWERS_K1_PREREG_20261116.md):
               tower_scale_rule.estimate(G3T depth, G3T confidence, candidate depth on the same grid)
   moge2_depth MoGe-2 depth and intrinsics on G3T rotations, G3T translations times moge2_scale's s
 Each file is the deployed 'scaled_g3t_depth' profile and must load through load_geometry with
-depth_scale_count 1. Output: OUT/<arm>/<dataset>__<capture>.npz plus OUT/<arm>/receipts/<digest16>.json.
+depth_scale_count 1. Output: OUT/<arm>/<dataset>__<capture>.npz plus OUT/receipts/<model>/<digest16>.json.
 No GT is read.
 """
 import argparse
@@ -186,8 +186,8 @@ def main():
             except (ValueError, AssertionError) as exc:
                 rec['arms'][arm] = dict(refused=f'{type(exc).__name__}:{exc}')
                 summary['refused'][arm][c['canonical']] = rec['arms'][arm]['refused']
-        (out / 'receipts').mkdir(parents=True, exist_ok=True)
-        (out / 'receipts' / (key[:16] + '.json')).write_text(json.dumps(rec, indent=1, default=float))
+        (out / 'receipts' / args.model).mkdir(parents=True, exist_ok=True)
+        (out / 'receipts' / args.model / (key[:16] + '.json')).write_text(json.dumps(rec, indent=1, default=float))
     (out / f'CONVERT_SUMMARY_{args.model}.json').write_text(json.dumps(summary, indent=1))
     print(json.dumps({k: summary[k] for k in ('written',)}), {a: len(v) for a, v in summary['refused'].items()},
           'missing_pred', len(summary['missing_pred']), flush=True)

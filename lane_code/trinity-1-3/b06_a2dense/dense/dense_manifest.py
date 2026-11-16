@@ -15,7 +15,7 @@ canonical name, so aliases with identical content share one clip and two clocks 
 Commands
   plan  CLIPS.jsonl.gz FRAME_MAP FRAME_PLAN FPS_AUTHORITY OUT_DIR  -> plan.json.gz, tasks_v.json.gz,
         tasks_a.json, refusals.json, summary.json   (metadata only)
-  seal  OUT_DIR WD_OUT.jsonl WA_OUT.jsonl SEALED.json            -> r2-dense-manifest-v1 + index
+  seal  OUT_DIR WD_OUT.jsonl WA_OUT.jsonl SEALED.json [PIXEL_PARITY.jsonl] -> r2-dense-manifest-v1 + index
 """
 import collections
 import gzip
@@ -276,6 +276,15 @@ def seal(entries, got):
     clips, index, refusals = {}, {}, []
     for e in entries:
         frames, bad = [], None
+        if signature_key(e['dataset'], e['scene'], e['fps'], e['total'], e['frame_indices'], e['student_sha256']) != e['sig']:
+            refusals.append(dict(sig=e['sig'], dataset=e['dataset'], scene=e['scene'], code='stale_signature',
+                                 detail='the entry no longer matches its row signature'))
+            continue
+        pins = dict(zip(e['frame_indices'], e['student_sha256']))
+        if any(f['source_index'] in pins and f['sha256'] != pins[f['source_index']] for f in e['frames']):
+            refusals.append(dict(sig=e['sig'], dataset=e['dataset'], scene=e['scene'], code='student_pin_differs',
+                                 detail='a dense frame at a student ordinal is not the row pin'))
+            continue
         for f in e['frames']:
             sha = f['sha256'] if f['sha256'] is not None else got.get((e['scene'], f['source_index']))
             if sha is None:
@@ -294,6 +303,10 @@ def seal(entries, got):
                      total_num_frames=e['total'])
         if key in clips and clips[key]['frame_indices'] != dense['frame_indices']:
             raise ValueError('content key collision')
+        if key in clips and (clips[key]['fps'], clips[key]['total_num_frames']) != (dense['fps'], dense['total_num_frames']):
+            refusals.append(dict(sig=e['sig'], dataset=e['dataset'], scene=e['scene'], code='clock_conflict',
+                                 detail='same content as a sealed clip under another fps or frame count'))
+            continue
         clips.setdefault(key, dense)
         index[e['sig']] = key
     return clips, index, refusals
@@ -313,29 +326,52 @@ def attach(row, sealed):
     return out, key
 
 
-def parity(entries, got):
-    """Student ordinals that the host fetched again: their bytes must equal the pinned bytes."""
-    equal, differ = 0, []
+def load_pixel_parity(path):
+    """{(scene, ordinal, pinned, fetched): ok} from frame_fetch/bin/dparity.py (pixel rule max|d|<=1, frac<=1e-3)."""
+    out = {}
+    if path and os.path.exists(path):
+        for line in open(path):
+            r = json.loads(line)
+            if not r['byte_equal']:
+                out[(r['s'], r['k'], r['pinned'], r['fetched'])] = bool(r['ok'])
+    return out
+
+
+def parity(entries, got, pixel=None):
+    """Student ordinals that the host produced again must match their pins: byte-equal, or decoded pixels within
+    the dparity.py tolerance. A scene with any other mismatch is held."""
+    pixel = pixel or {}
+    equal, pixel_ok, differ, observed = 0, 0, [], set()
     for e in entries:
         for i, sha in zip(e['frame_indices'], e['student_sha256']):
             again = got.get((e['scene'], i))
             if again is None:
                 continue
+            observed.add(e['scene'])
             if again == sha:
                 equal += 1
+            elif pixel.get((e['scene'], i, sha, again)):
+                pixel_ok += 1
             else:
                 differ.append(dict(scene=e['scene'], ordinal=i, pinned=sha, fetched=again))
-    return dict(checked=equal + len(differ), equal=equal, differ=len(differ), differ_list=differ[:200],
-                held_scenes=sorted({d['scene'] for d in differ}))
+    # A scene that received new frames must have re-produced at least one student frame; no evidence holds it.
+    produced = {e['scene'] for e in entries if any(f['origin'] in ('decode', 'range') for f in e['frames'])}
+    missing = sorted(produced - observed)
+    return dict(checked=equal + pixel_ok + len(differ), equal=equal, pixel_equal=pixel_ok, differ=len(differ),
+                differ_list=differ[:200], parity_missing=missing,
+                held_scenes=sorted({d['scene'] for d in differ} | set(missing)))
 
 
-def cmd_seal(out, wd_out, wa_out, sealed_path):
+def cmd_seal(out, wd_out, wa_out, sealed_path, pixel_path=None):
     entries = json.load(gzip.open(os.path.join(out, 'plan.json.gz'), 'rt'))
     got, problems = read_outputs(wd_out, wa_out)
-    par = parity(entries, got)
+    par = parity(entries, got, load_pixel_parity(pixel_path))
     held = set(par['held_scenes'])
-    refusals_held = [dict(sig=e['sig'], dataset=e['dataset'], scene=e['scene'], code='parity_held',
-                          detail='a re-fetched student frame differs from its pin') for e in entries if e['scene'] in held]
+    missing = set(par['parity_missing'])
+    refusals_held = [dict(sig=e['sig'], dataset=e['dataset'], scene=e['scene'],
+                          code='parity_missing' if e['scene'] in missing else 'parity_held',
+                          detail='no student frame of this scene was re-produced' if e['scene'] in missing
+                          else 'a re-fetched student frame differs from its pin') for e in entries if e['scene'] in held]
     clips, index, refusals = seal([e for e in entries if e['scene'] not in held], got)
     refusals += refusals_held
     value = dict(parity=par, schema='r2-dense-manifest-v1', reconstruct_then_subsample=True, dense_frames=COUNT,
@@ -351,6 +387,6 @@ if __name__ == '__main__':
     if sys.argv[1] == 'plan':
         print(json.dumps(cmd_plan(*sys.argv[2:7]), indent=1))
     elif sys.argv[1] == 'seal':
-        print(json.dumps(cmd_seal(*sys.argv[2:6])))
+        print(json.dumps(cmd_seal(*sys.argv[2:7])))
     else:
         raise SystemExit(__doc__)

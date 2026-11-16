@@ -1,0 +1,13 @@
+{
+  "id": "M12",
+  "description": "R1 on-target 0.73 -> 0.70",
+  "edits": [
+    {
+      "module": "card",
+      "old": "    r1=[parity_verdict(parity,-cfg['R1']['reference_max_deficit'])]",
+      "new": "    r1=[parity_verdict(parity,-(cfg['R1']['reference_max_deficit']+.03))]"
+    }
+  ],
+  "reviewer_spec": "/scratch/jjyeung/orch_cd/own_probe_review2/mutants/M12.json",
+  "adaptation": "R1 now uses paired parity; loosen the permitted deficit by the same 3 points"
+}

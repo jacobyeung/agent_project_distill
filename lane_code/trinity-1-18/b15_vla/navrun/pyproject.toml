@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "navrun"
+version = "0.1.0"
+description = "Renderer-free R2R-CE navigation runner for habitat-sim 0.2.4"
+requires-python = ">=3.9"
+
+[tool.setuptools.packages.find]
+include = ["navrun*"]
+exclude = ["out*", "tests*"]
+
+[tool.setuptools.package-data]
+"navrun.vendor" = ["VENDOR.json"]

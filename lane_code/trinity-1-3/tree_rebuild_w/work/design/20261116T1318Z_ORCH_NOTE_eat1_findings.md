@@ -1,0 +1,2 @@
+# ORCH NOTE: EAT-1 findings on build 5 (b03_e2etest, out/BASELINE_A2_TREE.md on trinity-3-30 /scratch/jjyeung/orch_n30/b03_e2etest/eat1)
+Fold into build 7: (1) frames must be a parameter (32 and 64): hard-coded 32 at decode.py:83,91,151 and carrier_c1.py:590; (2) the export must carry or manifest the pinned G3T weights (carrier_c1_run.py:2002-2006 drops them) so GF-1 passes A1; (3) routed types inherit A2-A4 failures from the read path; coordinate with b04_e2ehook, whose in-forward hook is the fix. Run EAT-1 on build 7 before asking for its review.

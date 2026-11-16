@@ -1,6 +1,9 @@
-# e_code-in-git STATUS (2026-11-16T11:55Z)
-Lane folder W=/scratch/jjyeung/orch_n30/e_code-in-git (trinity-3-30). Build brief briefs/eff/code-in-git.md + verdict (binding; no 30-40 h claim).
-Clone W/clone (from /scratch/jjyeung/distill_sync/repo main a38bc5b), branch eff/code-in-git. Queue W/PUSH_QUEUE.txt.
-Done: C1 (780e5f2 scripts copied unchanged; 1b94e39 queue step + 7 tests pass on py3.6 and pytest/bwrap).
-Seals of the tars (tree_sha256 via tree's own source_seal): base b01ce449beffe35b..., b1 fab2eea8, b2 cd82c5c4, b3 a1f559e2, b3b ba0c6ebf; name hex = tree_sha256 prefix. Extracted in W/tmp/x.
-Next: C2 tools/treegit/tree_commit.py (+seal_of.py written), swap queue step into B/tools/lane_code_sync.sh after the ~12:22Z hourly run (mv rename), C3 import, C4 ratchet, C5 test_cpu.
+# e_code-in-git STATUS (2026-11-16T12:52:58Z), Devin successor lane on trinity-3-30
+Goal: briefs/e_code-in-git.md + briefs/eff/code-in-git.md + verdict (binding). Build DONE; review requested.
+Lane folder W=/scratch/jjyeung/orch_n30/e_code-in-git; clone W/clone on branch eff/code-in-git, head b84804eb390b453f39b4de2a1434f39550b5b528, on GitHub (ls-remote 12:49Z). The GitHub copy is the off-node mirror of the code.
+Commits: C1 780e5f2, 1b94e39, 74d14d3; C2 1cceb98; C3 d4f4878 d887701 11226ab d34f84d 593af5f; C4 525f8fe; C5 b84804e. All queued in W/PUSH_QUEUE.txt and pushed (PUSH_DONE.txt in /scratch/jjyeung/distill_sync).
+Report: W/REPORT.md (copy at events/e_code-in-git/REPORT.md); left-out tar members W/LEFT_OUT_MEMBERS.txt. RECORD block appended under "## Build results".
+Live change: B/tools/lane_code_sync.sh = clone tools/lane_code_sync.sh @b84804e (sha256 df11e221...); rollback copy B/tools/lane_code_sync.sh.prev_20261116T1230Z.
+In flight: nothing of mine. tmux lane_sync (not mine) runs the swapped script hourly; the next run is about 13:26Z.
+Next: (1) after 13:26Z, check that /scratch/jjyeung/distill_sync/sync.log shows "verified GitHub lane-code" then "QUEUE done" and "END ok"; on failure write a BLOCKER and offer the rollback mv. (2) Act on orchestrator review findings in events/*_ORCH_*. (3) Otherwise finish; rotate by 22:30Z.
+Open question: none.

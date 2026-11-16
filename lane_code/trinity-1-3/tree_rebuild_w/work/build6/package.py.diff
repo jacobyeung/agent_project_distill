@@ -20,16 +20,22 @@
  size=sum(p.stat().st_size for p,_ in members)
  subprocess.run(['df','-BG','--output=avail','/scratch'],check=True)
  assert shutil.disk_usage('/scratch').free>=85*1024**3
-@@ -27,7 +27,7 @@
+@@ -27,8 +27,12 @@
      with tarfile.open(archive,'w') as handle:
          for p,name in sorted(members,key=lambda x:x[1]):handle.add(p,arcname=name,recursive=False)
  assert archive.stat().st_size<150_000_000
 -root=L/'work/tmp/package'
-+root=L/'work/tmp/package6'
- root.mkdir(parents=True,exist_ok=True)
+-root.mkdir(parents=True,exist_ok=True)
++sys.path.insert(0,str(L/'work/build6'))
++from compact_tmp import compact
++prior_receipts=compact(L/'work/tmp',package_files=set())
++(out/'PRIOR_TMP_RECEIPTS.json').write_text(json.dumps(prior_receipts,indent=2)+'\n')
++root=Path(tempfile.mkdtemp(prefix='package6_',dir=L/'work/tmp'))
++assert not any(root.iterdir())
  with tarfile.open(archive) as handle:
      for member in handle.getmembers():
-@@ -43,11 +43,11 @@
+         if member.issym() or member.islnk() or member.name.startswith('/') or '..' in Path(member.name).parts:
+@@ -43,11 +47,11 @@
  source_before=inventory(root/'work/tree_r1')
  base_before=inventory(root/'work/base/tree_b01ce449')
  fixtures_before=inventory(root/'fixtures')
@@ -43,7 +49,7 @@
          assert load(kit/'k/launch.json')['source_revision']==identity
          kit_results.append(dict(kit=name,sha256=verify(kit),scan=scan(kit),source_revision=identity))
  elif len(sys.argv)>1:
-@@ -56,15 +56,15 @@
+@@ -56,15 +60,15 @@
  if kit_results:
      # The delivered archive and standalone kits retain their bytes. Only these
      # verified temporary extraction copies become small hash receipts.
@@ -62,7 +68,7 @@
      output.mkdir(exist_ok=True)
      combined=dict(tests=0,passed=[],failures=[],errors=[],skips=[],fatal=None,
                    completed_modules=0,scheduled_modules=0,complete=True,
-@@ -73,12 +73,12 @@
+@@ -73,12 +77,12 @@
      for group in ('generator','legacy','r2'):
          target=output/group;target.mkdir(exist_ok=True)
          env['R2_SUITE_GROUP']=group

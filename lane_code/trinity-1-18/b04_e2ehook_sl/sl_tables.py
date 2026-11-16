@@ -104,6 +104,28 @@ def gt_arrays(c, selection):
     return dict(instances=inst, frame_indices=frames), resized
 
 
+RAW_ONLY = False
+
+
+def raw_prompts_only(raw):
+    """Drop instances SAM 3 found under an alias prompt (dense_aliases contract: 'source_prompt' differs from the
+    phrase); the phrase's presence becomes the raw prompt's own presence ('source_presence' of its instances)."""
+    out = dict(raw, frames={})
+    dropped = kept = 0
+    for k, f in raw['frames'].items():
+        phrases = {}
+        for ph, r in f['phrases'].items():
+            inst = [i for i in r.get('instances') or [] if i.get('source_prompt', ph) == ph]
+            dropped += len(r.get('instances') or []) - len(inst); kept += len(inst)
+            pres = float(inst[0]['source_presence']) if inst and 'source_presence' in inst[0] else float(r['presence'])
+            if inst and len({i.get('source_presence') for i in inst}) != 1:
+                raise ValueError('raw prompt presence differs inside one frame')
+            phrases[ph] = dict(r, instances=inst, presence=pres)
+        out['frames'][k] = dict(f, phrases=phrases)
+    out['raw_prompts_only'] = dict(kept=kept, dropped=dropped)
+    return out
+
+
 def one(c, entry, scale, selection, out):
     t0 = time.monotonic()
     folder, receipt = entry
@@ -116,6 +138,8 @@ def one(c, entry, scale, selection, out):
     except ValueError as exc:
         return dict(capture=c['canonical'], excluded=type(exc).__name__ + ':' + str(exc))
     raw = B.load(folder / 'candidates.json')
+    if RAW_ONLY:
+        raw = raw_prompts_only(raw)
     gt, gt_resized = gt_arrays(c, selection)
     head = {}
     original = F.accept_features
@@ -136,7 +160,7 @@ def one(c, entry, scale, selection, out):
     for r in rows:
         inputs.append(dict(object_id=r['object_id'], candidate_id=r['candidate_id'], name=r['name'],
                            x=head[r['name']][r['candidate_id']]))
-    rec = dict(capture=c['canonical'], gt_resized=gt_resized, rows=rows, pairs=pairs, inputs=inputs, scale=scale,
+    rec = dict(capture=c['canonical'], raw_prompts_only=raw.get('raw_prompts_only'), gt_resized=gt_resized, rows=rows, pairs=pairs, inputs=inputs, scale=scale,
                geometry_sha256=sha(out / 'geo' / (key + '.npz')), candidates_sha256=sha(folder / 'candidates.json'),
                tower_sha256=sha(folder / 'tower.npz'), seconds=time.monotonic() - t0)
     with gzip.open(out / 'caps' / (key + '.json.gz'), 'wt') as f:
@@ -159,7 +183,10 @@ def main():
     p.add_argument('--limit', type=int, default=0)
     p.add_argument('--only', default='')
     p.add_argument('--procs', type=int, default=8)
+    p.add_argument('--raw-prompts-only', action='store_true')
     a = p.parse_args()
+    global RAW_ONLY
+    RAW_ONLY = a.raw_prompts_only
     out = Path(a.out)
     (out / 'caps').mkdir(parents=True, exist_ok=True)
     from verify_sources import verify

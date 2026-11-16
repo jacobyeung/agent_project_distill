@@ -1,0 +1,13 @@
+{
+  "id": "N8",
+  "description": "SAM reference fed 1024x1024 inside provider",
+  "edits": [
+    {
+      "module": "own_feats.providers",
+      "old": "        x=pixels(frames,size_hw).to(next(self.net.parameters()).device)",
+      "new": "        x=pixels(frames,(1024,1024)).to(next(self.net.parameters()).device)"
+    }
+  ],
+  "reviewer_spec": "/scratch/jjyeung/orch_cd/own_probe_review2/mutants/N8.json",
+  "adaptation": "Unchanged reviewer edit"
+}

@@ -1,0 +1,1019 @@
+--- G1/admission.py
++++ G2/admission.py
+@@ -0,0 +1,64 @@
++"""Native-only merge and in-job admission against the authenticated C8r request."""
++import math
++from pathlib import Path
++from guard_core import digest, read, sha, write, rows_in_order, zero_nonanswers
++
++def merge(session, rows, keys, destination, fixture=False):
++    N=session.N;request=N.validate_request(N.load(session.destination/'paired/request.json'),live=True)
++    rows=zero_nonanswers(rows_in_order(rows,keys))
++    journal=session.destination/'paired/results/items.jsonl'
++    recorded=N.rows(journal)
++    if len(recorded)!=len(keys) or len({r['key'] for r in recorded})!=len(keys):
++        raise ValueError('Native journal cardinality differs')
++    by_key={r['key']:r for r in recorded}
++    if set(by_key)!=set(keys) or zero_nonanswers([by_key[k] for k in keys])!=rows:
++        raise ValueError('Merged rows differ from the authenticated native journal')
++    if not set(keys)<=set(request['keys']):raise ValueError('Read membership is outside the bound request')
++    if not fixture and keys!=request['keys']:raise ValueError('Production read must retain the full denominator')
++    parity=N.load(session.destination/'paired/results/GPU_PARITY.json')
++    if parity.get('pass') is not True:raise ValueError('GPU parity failed')
++    tasks,_=N.tasks_and_captures(request['inputs']);tasks={'devrows:'+t['id']:t for t in tasks}
++    from r1 import accounting
++    for row in rows:
++        key=row['key'];task=tasks[key];typ=N.family(row['question_type'])
++        if typ not in N.FAMILIES or row['question_type']!=task['question_type']:
++            raise ValueError('Item family differs from the bound task')
++        if (row.get('room'),row.get('stratum'))!=(task['room'],task['stratum']):
++            raise ValueError('Item room or label authority differs')
++        if row.get('checkpoint_sha256')!=request['artifact']['sha256'] or row.get('binding')!=request['binding']:
++            raise ValueError('Item checkpoint or request binding differs')
++        if row.get('perception_identity')!=digest(request['perceptions'][task['id']]):raise ValueError('Item perception differs')
++        if row.get('mask_source')!=N.mask_source(task['question_type']):raise ValueError('Item mask source differs')
++        if type(row.get('called')) is not bool or type(row.get('no_answer')) is not bool:
++            raise ValueError('Missing boolean call/answer accounting')
++        if any(type(row.get(k)) is not int or row[k]<0 for k in ('call_errors','version_errors')):
++            raise ValueError('Invalid call errors')
++        if 'decode' in row and any(row[k]!=v for k,v in accounting(row['decode']).items()):raise ValueError('Decode accounting differs')
++        if not row.get('scores') or any(v is not None and (type(v) not in (int,float) or not math.isfinite(v) or not 0<=v<=1) for v in row['scores'].values()):
++            raise ValueError('Invalid item score')
++        label='released_answer' if row['stratum']=='primary' else 'answer'
++        if row['scores'].get(label) is None:raise ValueError('Missing score removes an item from the denominator')
++        if row['no_answer'] and any(v not in (None,0.) for v in row['scores'].values()):raise ValueError('Non-answer has a positive score')
++        if task['id'] in request['geometry_refusals']:
++            if row!=N.geometry_refusal_pair(task,request)[0]:raise ValueError('Geometry-refused item differs')
++        elif row.get('geometry_refusal'):raise ValueError('Unbound geometry refusal')
++    import gravity_guard
++    import native_metrics
++    geom=N.load(N.checked(request['grounding']['geometry_manifest']))
++    guard=gravity_guard.report();native_metrics.validate_gravity_guard(guard,{'dev-S1':geom['records']})
++    destination=Path(destination)
++    bundle=dict(schema='legs1-r1-nomdg-v1',synthetic=fixture,arms={'unflagged':rows},expected_keys=keys,
++        artifact_sha256=request['artifact']['sha256'],binding=request['binding'],
++        perception_by_key={k:digest(request['perceptions'][tasks[k]['id']]) for k in keys},
++        adapter_sources=request['adapter_sources'],reader_semantics=dict(N.Q.REPORT_SEMANTICS),
++        report_scope='Internal instrument; never a claimed result',training_decision_allowed=False,
++        receipts=dict(request=N.pin(session.destination/'paired/request.json'),journal=N.pin(journal)))
++    write(destination/'R1.json',bundle)
++    report=dict(schema='g2-admission-v1',status='PASS',fixture=fixture,items=len(rows),
++        artifact=request['artifact'],bundle=dict(path=str(destination/'R1.json'),sha256=sha(destination/'R1.json')),
++        gravity_guard=gravity_guard.identity(),gravity_guard_report=guard,
++        geometry_manifest=request['grounding']['geometry_manifest'],request=bundle['receipts']['request'],
++        parity=N.pin(session.destination/'paired/results/GPU_PARITY.json'),
++        single_arm=True,all_calls_served=True,program_refusals=native_metrics.program_refusals(rows))
++    write(destination/'IN_JOB_ADMISSION.json',report)
++    return bundle
+--- G1/checkpoint.py
++++ G2/checkpoint.py
+@@ -0,0 +1,78 @@
++"""One checkpoint per process; the parent owns staging and publication transport."""
++import argparse
++from copy import deepcopy
++import os
++from pathlib import Path
++import sys
++sys.path.insert(0,str(Path(__file__).resolve().parent))
++from guard_core import read,write,proof,rows_in_order,digest,check_pin
++from guard_backend import Session,authenticate_candidate,install_paths
++
++def selection(items,keys_override=None):
++    keys=items['keys'] if keys_override is None else keys_override
++    canary=items['canary_keys']
++    if (len(set(keys))!=len(keys) or not set(keys)<=set(items['keys'])
++            or keys!=[k for k in items['keys'] if k in set(keys)]
++            or len(canary)!=10 or len(set(canary))!=10 or not set(canary)<=set(keys)):
++        raise ValueError('Checkpoint selection must preserve order and the sealed canary')
++    return keys,canary
++
++def run(config,role,dest,publish,fixture=False,keys_override=None):
++    install_paths()
++    if role not in ('proof','candidate'):raise ValueError('Unknown checkpoint role')
++    worker=deepcopy(config['baseline'])
++    selected=config['candidate'] if role=='candidate' else None
++    if selected:
++        worker['step']=config['step'];worker['worker'].update({k:selected[k] for k in ('artifact','config','data_receipt')})
++        from closure import authenticate,members,unpack
++        from student_pilot import carrier_c1_run as trainer
++        files={name:(Path(config['closure_root'])/name).read_bytes() for name in config['closure_names']}
++        anchor=config.get('baseline_anchor',config['baseline']['worker']['artifact'])
++        receipt=authenticate(files,config['step'],trainer,check_pin(anchor),selected['artifact']['path'])
++        write(Path(dest)/'CLOSURE_ADMISSION.json',receipt)
++        authenticate_candidate(worker['worker'],config['baseline']['worker'],config['step'],Path(dest)/'RESTORATION.json')
++    session=None
++    try:
++        if role=='proof':
++            reference=read(check_pin(config['reference']))
++            def reader(keys):
++                nonlocal session
++                session=Session(worker,Path(dest)/role)
++                return session(keys)
++            proof(reference,reader,Path(dest)/'PROOF.json',publish,fixture=fixture)
++        else:
++            items=read(check_pin(config['items']));keys,canary=selection(items,keys_override)
++            receipt=dict(schema='g2-canary-v1',status='FAIL',keys=canary,full_started=False,fixture=fixture)
++            try:
++                session=Session(worker,Path(dest)/role)
++                head=rows_in_order(session(canary),canary)
++                receipt.update(status='PASS',items=len(head),rows_sha256=digest(head),
++                    called=sum(bool(r['called']) for r in head),no_answer=sum(bool(r['no_answer']) for r in head))
++            except Exception as error:
++                receipt['error']=str(error);raise
++            finally:
++                write(Path(dest)/'CANARY.json',receipt);publish(Path(dest)/'CANARY.json')
++            tailkeys=[k for k in keys if k not in set(canary)]
++            tail=rows_in_order(session(tailkeys),tailkeys) if tailkeys else []
++            indexed={r['key']:r for r in head+tail}
++            from admission import merge
++            merge(session,[indexed[k] for k in keys],keys,dest,fixture)
++    finally:
++        if session is not None:session.close()
++
++def main():
++    p=argparse.ArgumentParser()
++    for name in ('config','role','out'):p.add_argument('--'+name,required=True)
++    a=p.parse_args();config=read(a.config)
++    # The parent acknowledges a receipt only after durable, verified publication.
++    def publish(path):
++        write(Path(a.out)/(path.stem+'.ready.json'),dict(path=str(path)))
++        import time
++        ack=Path(a.out)/(path.stem+'.ack.json');deadline=time.monotonic()+240
++        while not ack.exists():
++            if time.monotonic()>deadline:raise TimeoutError('Receipt publication acknowledgement absent')
++            time.sleep(.5)
++        if read(ack)!=dict(status='PASS',sha256=__import__('guard_core').sha(path)):
++            raise ValueError('Receipt publication acknowledgement differs')
++    run(config,a.role,a.out,publish)
++if __name__=='__main__':main()
+--- G1/closure.py
++++ G2/closure.py
+@@ -0,0 +1,158 @@
++"""Authenticate candidate training metadata without rewriting signed bytes."""
++from pathlib import Path, PurePosixPath
++import argparse
++import hashlib
++import io
++import json
++import sys
++import tarfile
++sys.path.insert(0, str(Path(__file__).resolve().parent))
++from guard_core import digest, read, sha, write
++
++ROOT = '/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/'
++TREE_SHA = 'b01ce449beffe35be3bf0b48ad3d69f331f1523f96a69cbd3d10aab3dbb42a99'
++ARCHIVE_SHA = '845b17895e466671bc5c5ecdb6a5a5d697a43a5e02d07d1555b11be74f8fd415'
++BASE_ARTIFACT_SHA = '1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef'
++CONFIG_ID = '4bc5442c5c9ff12e7407c173c2d1bd6f8a87ab75a298ae71cabbe2053c42bf3c'
++MAX_BYTES = 64*1024*1024
++
++def members(path):
++    result = {}; total = 0; seen = set()
++    with tarfile.open(path, 'r:') as archive:
++        for m in archive:
++            p = PurePosixPath(m.name)
++            if (p.is_absolute() or '..' in p.parts or not p.parts or str(p) in seen
++                    or not (m.isfile() or m.isdir()) or len(seen) >= 10000):
++                raise ValueError('Closure has an unsafe, repeated or linked member')
++            seen.add(str(p))
++            if m.isdir(): continue
++            total += m.size
++            if m.size > 16*1024*1024 or total > MAX_BYTES:
++                raise ValueError('Closure exceeds its small metadata limit')
++            if p.parts[0] not in ('runs', 'k'):
++                raise ValueError('Closure has an unexpected member root')
++            if p.parts[0] == 'runs' and (len(p.parts) < 3 or p.parts[1] != '359fcc3c'):
++                raise ValueError('Closure belongs to a foreign run')
++            result[str(p)] = archive.extractfile(m).read()
++    return result
++
++def load_member(files, name):
++    if name not in files: raise ValueError('Missing closure member: '+name)
++    return json.loads(files[name])
++
++def pin_member(files, pin):
++    if set(pin) != {'path','sha256'} or not pin['path'].startswith(ROOT):
++        raise ValueError('Closure pin is outside the admitted run root')
++    name = pin['path'][len(ROOT):]
++    if '..' in PurePosixPath(name).parts or name not in files:
++        raise ValueError('Missing closure pin: '+name)
++    if hashlib.sha256(files[name]).hexdigest() != pin['sha256']:
++        raise ValueError('Closure member digest differs: '+name)
++    return load_member(files,name)
++
++def authenticate(files, step, trainer, baseline_artifact, exported=None):
++    """Use the imported, unchanged trainer.identity; the runtime repeats restoration."""
++    if type(step) is not int or step <= 0: raise ValueError('Invalid closure step')
++    name = f'runs/359fcc3c/m{step}/artifact.json'
++    raw = files.get(name)
++    if raw is None: raise ValueError('Closure lacks the requested step artifact')
++    if exported is not None and raw != Path(exported).read_bytes():
++        raise ValueError('Export artifact is not byte-equal to the closure artifact')
++    art = load_member(files,name)
++    if art.get('step') != step or art.get('trained_groups',{}).get('step') != step:
++        raise ValueError('Closure artifact belongs to a foreign step')
++    data = load_member(files,'runs/359fcc3c/inputs/data_receipt.json')
++    original_cfg=pin_member(files,data['input_config'])
++    if (data['input_config']['path']!=ROOT+'k/d6827df0.json'
++            or data['input_config']['sha256']!='89f65b503de86bbc55712c7216306fb1d1f70324f5d7572c52533665e9178894'):
++        raise ValueError('Candidate input configuration differs from the admitted training run')
++    cfg = pin_member(files,data['config'])
++    prep = pin_member(files,cfg['preparation'])
++    code = pin_member(files,cfg['code'])
++    for field in ('benchmark_scene_exclusions','dev_scene_exclusions'):
++        pin_member(files,cfg[field])
++    pin_member(files,cfg['s1_route_policy']['table'])
++    binding = load_member(files,'runs/359fcc3c/binding.json')
++    identity = trainer.identity(cfg)
++    if identity != CONFIG_ID or any(x.get('config_sha256') != identity for x in (art,prep,binding)):
++        raise ValueError('Candidate training config identity differs')
++    if data.get('preparation') != cfg['preparation'] or binding.get('preparation') != cfg['preparation']:
++        raise ValueError('Preparation receipt binding differs')
++    if (binding.get('trainer_commit') != 'sha256:'+TREE_SHA or binding.get('world_size') != cfg.get('world_size')
++            or code.get('tree_sha256') != TREE_SHA or digest(code.get('files')) != TREE_SHA
++            or code.get('archive',{}).get('sha256') != ARCHIVE_SHA):
++        raise ValueError('Candidate trainer differs from the backend source tree')
++    from student_pilot import source_seal
++    source_seal.check_binding(prep.get('source_seal'),code,identity)
++    source_seal.check_export(prep,art)
++    if art.get('training_source_seal') != prep.get('source_seal'):
++        raise ValueError('Training source seal differs')
++    if sha(baseline_artifact) != BASE_ARTIFACT_SHA:
++        raise ValueError('Baseline artifact identity differs')
++    base = read(baseline_artifact)
++    groups = art['trained_groups']['groups']; old = base['trained_groups']['groups']
++    if set(groups) != set(old): raise ValueError('Trained-group membership differs')
++    chain = {}
++    for group in groups:
++        g, b = groups[group],old[group]
++        if (g['initial_sha256'] != b['final_sha256'] or g['names'] != b['names']
++                or type(g.get('gradient_steps')) is not int or not 0 < g['gradient_steps'] <= step
++                or g.get('changed') is not True or g.get('nonzero') is not True):
++            raise ValueError('Trained-group chain differs: '+group)
++        chain[group] = dict(initial_sha256=g['initial_sha256'],baseline_final_sha256=b['final_sha256'])
++    init = cfg.get('init_artifact',{})
++    if init.get('artifact',{}).get('sha256') != BASE_ARTIFACT_SHA or set(init.get('heads',[])) != set(groups) or init.get('lm') != 'full':
++        raise ValueError('Candidate initialization does not bind the baseline')
++    for field in ('base_identity','carrier_position_policy','depth_backing','frame_layout','placement',
++                  'pose_backing','trace_program_version','trace_version_binding','training_mode','anchors'):
++        if art.get(field) != base.get(field): raise ValueError('Inference artifact contract differs: '+field)
++    return dict(status='PASS',step=step,config_identity=identity,artifact_sha256=hashlib.sha256(raw).hexdigest(),
++                config=data['config'],data_receipt=dict(path=ROOT+'runs/359fcc3c/inputs/data_receipt.json',
++                    sha256=hashlib.sha256(files['runs/359fcc3c/inputs/data_receipt.json']).hexdigest()),
++                preparation=cfg['preparation'],source_tree=TREE_SHA,trained_group_chain=chain,
++                binding_sha256=hashlib.sha256(files['runs/359fcc3c/binding.json']).hexdigest(),
++                tensor_restore_checked=False)
++
++def pack(source, destination, step, trainer, baseline_artifact):
++    files = members(source)
++    admission = authenticate(files,step,trainer,baseline_artifact)
++    dest = Path(destination); dest.mkdir(parents=True,exist_ok=False)
++    inventory = {}; reverse = {}
++    with tarfile.open(dest/'metadata.tar','x') as archive:
++        for name,raw in sorted(files.items()):
++            # Same file bytes and run-relative hierarchy, with opaque component names.
++            neutral = '/'.join('a'+hashlib.sha256(p.encode()).hexdigest()[:20] for p in PurePosixPath(name).parts)
++            if neutral in reverse: raise ValueError('Archive alias collision')
++            reverse[neutral] = name
++            entry = tarfile.TarInfo(neutral); entry.size=len(raw);entry.mode=0o644
++            archive.addfile(entry,io.BytesIO(raw))
++            inventory[neutral] = dict(bytes=len(raw),sha256=hashlib.sha256(raw).hexdigest())
++    descriptor = dict(schema='g2-closure-v1',step=step,source_sha256=sha(source),
++        archive=dict(path=str((dest/'metadata.tar').resolve()),bytes=(dest/'metadata.tar').stat().st_size,
++                     sha256=sha(dest/'metadata.tar')),members=inventory,aliases=reverse,admission=admission)
++    write(dest/'CLOSURE.json',descriptor)
++    return descriptor
++
++def unpack(descriptor, destination):
++    from guard_core import verify_archive
++    archive=descriptor['archive'];verify_archive(archive['path'],archive)
++    dest=Path(destination);dest.mkdir(parents=True,exist_ok=False)
++    actual={}; files={}
++    with tarfile.open(archive['path'],'r:') as tar:
++        for m in tar:
++            if not m.isfile() or m.name in actual or m.name not in descriptor['members']:
++                raise ValueError('Candidate metadata inventory differs')
++            raw=tar.extractfile(m).read();actual[m.name]=dict(bytes=len(raw),sha256=hashlib.sha256(raw).hexdigest())
++            name=descriptor['aliases'][m.name];p=PurePosixPath(name)
++            if p.is_absolute() or '..' in p.parts: raise ValueError('Unsafe closure alias')
++            target=dest/name;target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(raw);files[name]=raw
++    if actual != descriptor['members']: raise ValueError('Candidate metadata member hashes differ')
++    return files
++
++if __name__ == '__main__':
++    p=argparse.ArgumentParser()
++    for name in ('source','out','trainer','baseline'):p.add_argument('--'+name,required=True)
++    p.add_argument('--step',type=int,required=True);a=p.parse_args()
++    sys.path.insert(0,a.trainer)
++    from student_pilot import carrier_c1_run as trainer
++    pack(a.source,a.out,a.step,trainer,a.baseline)
+--- G1/fetch.py
++++ G2/fetch.py
+@@ -0,0 +1,15 @@
++"""Verify a fetched result against the prepared plan and unpack only safe members."""
++from pathlib import Path
++import argparse
++import sys
++sys.path.insert(0,str(Path(__file__).resolve().parent))
++from guard_core import read,write,digest
++from transport import verify_return,extract
++if __name__=='__main__':
++ p=argparse.ArgumentParser()
++ for name in ('config','receipt','archive','out'):p.add_argument('--'+name,required=True)
++ a=p.parse_args();cfg=read(a.config);receipt=read(a.receipt)
++ if cfg['plan_sha256']!=digest({k:v for k,v in cfg.items() if k!='plan_sha256'}):raise ValueError('Prepared plan seal differs')
++ verify_return(receipt,a.archive,cfg['plan_sha256'])
++ extract(a.archive,Path(a.out),300_000_000)
++ write(Path(a.out)/'FETCH_VERIFIED.json',dict(status='PASS',plan_sha256=cfg['plan_sha256'],archive=receipt['archive']))
+--- G1/guard_backend.py
++++ G2/guard_backend.py
+@@ -6,12 +6,13 @@
+ from pathlib import Path
+ from types import SimpleNamespace as NS
+ import gc
++import os
+ import sys
+ import time
+ from guard_core import check_pin, immutable, read, sha, write
+ from native_arm import compile_native
+ 
+-CORE = Path(__file__).resolve().parent/'sj/orch_cd/evalx/work/milestone'
++CORE = Path(os.environ.get('G2_CORE', str(Path(__file__).resolve().parent/'sj/orch_cd/evalx/work/milestone')))
+ 
+ def install_paths():
+     sys.path[:0] = [str(CORE/'orchard_native'), str(CORE/'native/out2'), str(CORE)]
+--- G1/packet.py
++++ G2/packet.py
+@@ -1,33 +1,67 @@
+-"""Prepare a sealed candidate plan; block launch while release checks are unresolved."""
++"""Seal a candidate packet and require exact independent review and ORCH GO."""
+ import argparse
++import ast
++import base64
+ from copy import deepcopy
++import hashlib
++import io
++import json
+ from pathlib import Path
+ import re
+ import secrets
++import shlex
+ import sys
+ import tarfile
+-sys.path.insert(0, str(Path(__file__).resolve().parent))
+-from guard_core import STEPS, check_pin, digest, parse_done, read, sha, write
++import zlib
++from types import SimpleNamespace
++sys.path.insert(0,str(Path(__file__).resolve().parent))
++from guard_core import STEPS,check_pin,digest,parse_done,read,sha,write,verify_archive
++from transport import regular_tar
+ from names import scan_json
+ 
+-REQUIRED_METADATA = {'config','data_receipt','preparation','source_seal','inventory'}
++LIMIT=32*1024*1024
+ 
+-def safe_tar(path):
+-    with tarfile.open(path,'r:*') as stream:
+-        seen=set()
+-        for member in stream:
+-            name=Path(member.name)
+-            if (name.is_absolute() or '..' in name.parts or member.name in seen
+-                    or not (member.isfile() or member.isdir())):
+-                raise ValueError('Input archive must have unique safe regular members and no links')
+-            seen.add(member.name)
+-    return True
++def safe_tar(path):return regular_tar(path,LIMIT)
+ 
+-def submit_argv(config, batch):
++def submit_argv(config,batch):
+     if not re.fullmatch('[a-f0-9]{16}',config['token']):raise ValueError('Token must be fresh hexadecimal')
+-    return ['sbatch','--partition=general','--gres=gpu:1','--ntasks=1','--nodes=1',
++    return ['sbatch','--parsable','--account=mt01','--partition=general','--gres=gpu:1','--ntasks=1','--nodes=1',
+             '--cpus-per-task=16','--mem=200G','--time='+config['time_limit'],
++            '--signal=B:USR1@300','--no-requeue','--chdir=/tmp',
+             '--job-name=a15_cot_ap'+config['token'],str(batch)]
++
++def order_line(config):return 'ORCH GO a15_cot_ap'+config['token']+' '+str(config['step'])+' '+config['plan_sha256']
++
++def source_identity(family):
++    """Compile only the exact identity function from the pinned trainer file."""
++    source=check_pin(family['identity_source'])
++    if sha(source)!='895772a9f5e0fd09277db72a8a091782728bfe2f525567c301e4d5bf58275471':
++        raise ValueError('Trainer identity source is not the backend source')
++    parsed=ast.parse(source.read_text())
++    nodes=[n for n in parsed.body if isinstance(n,ast.FunctionDef) and n.name=='identity']
++    if len(nodes)!=1:raise ValueError('Trainer identity boundary differs')
++    ns={'digest':digest}
++    exec(compile(ast.Module(body=nodes,type_ignores=[]),str(source),'exec'),ns)
++    return SimpleNamespace(identity=ns['identity'])
++
++def packed_files(meta):
++    verify_archive(meta['archive']['path'],meta['archive']);regular_tar(meta['archive']['path'],64*1024*1024)
++    files={};actual={}
++    with tarfile.open(meta['archive']['path'],'r:') as tar:
++        for m in tar:
++            raw=tar.extractfile(m).read()
++            if m.name not in meta['aliases']:raise ValueError('Unknown closure member alias')
++            name=meta['aliases'][m.name]
++            if name in files:raise ValueError('Closure alias is not injective')
++            files[name]=raw;actual[m.name]=dict(bytes=len(raw),sha256=hashlib.sha256(raw).hexdigest())
++    if actual!=meta['members']:raise ValueError('Closure member inventory differs')
++    return files
++
++def authenticate_meta(family,meta,step):
++    from closure import authenticate
++    # source_seal has only standard-library imports; authenticate its whole trainer tree in the job.
++    sys.path.insert(0,str(check_pin(family['identity_source']).parents[1]))
++    return authenticate(packed_files(meta),step,source_identity(family),check_pin(family['baseline_artifact']))
+ 
+ def prepare(family_path,done_path,step,metadata_path,destination,token=None):
+     family=read(family_path)
+@@ -36,47 +70,127 @@
+     token=token or secrets.token_hex(8)
+     if not re.fullmatch('[a-f0-9]{16}',token):raise ValueError('Invalid token')
+     meta=read(metadata_path)
+-    if set(meta)!=REQUIRED_METADATA:raise ValueError('Candidate training closure is incomplete')
+-    for name in REQUIRED_METADATA:check_pin(meta[name])
+-    cfg=read(meta['config']['path']);data=read(meta['data_receipt']['path'])
+-    if '/runs/359fcc3c/' not in meta['config']['path'] or '/runs/359fcc3c/' not in meta['data_receipt']['path']:
+-        raise ValueError('Candidate configuration and data receipt must belong to the candidate run')
+-    if cfg.get('preparation')!=meta['preparation'] or cfg.get('code')!=meta['source_seal']:
+-        raise ValueError('Candidate preparation/source seal does not bind its configuration')
+-    if data.get('config')!=meta['config'] or data.get('preparation')!=meta['preparation']:
+-        raise ValueError('Candidate data receipt does not bind the preparation')
+-    destination=Path(destination);destination.mkdir(parents=True,exist_ok=False)
+-    config=dict(schema='g1-plan-v1',token=token,step=step,run='359fcc3c',gpus=1,partition='general',
++    if meta.get('schema')!='g2-closure-v1' or meta.get('step')!=step:raise ValueError('Closure step differs')
++    admission=authenticate_meta(family,meta,step)
++    if admission!=meta['admission']:raise ValueError('Closure admission record differs')
++    for pin in family['inputs'].values():check_pin(pin)
++    for name,expected in family['code_pins'].items():
++        if sha(Path(family['code_root'])/name)!=expected:raise ValueError('Code pin differs: '+name)
++    config=dict(schema='g2-plan-v1',token=token,step=step,run='359fcc3c',gpus=1,partition='general',
+         family=dict(path=str(Path(family_path).resolve()),sha256=sha(family_path)),
+-        done=done,done_sha256=sha(done_path),candidate_metadata=meta,
+-        proof_transport=family['proof_transport'],independent=family['independent'],
+-        distance_list=family['distance_list'],reference=family['reference'],
+-        time_limit=family['time_limit'],release_ready=False)
++        done=done,done_sha256=sha(done_path),done_file=str(Path(done_path).resolve()),
++        closure=dict(path=str(Path(metadata_path).resolve()),sha256=sha(metadata_path)),
++        closure_archive_sha256=meta['archive']['sha256'],closure_source_sha256=meta['source_sha256'],
++        closure_object=dict(path='/project/community/jjyeung/okh7/8c9d2e74/'+token+'/m.tar',
++                            bytes=meta['archive']['bytes'],sha256=meta['archive']['sha256']),
++        artifact_sha256=admission['artifact_sha256'],time_limit=family['time_limit'],
++        gpu_seconds=family['gpu_seconds'],publication=family['publication'])
+     config['plan_sha256']=digest(config)
+-    write(destination/'CONFIG.json',config)
+-    write(destination/'PREPARED.json',dict(status='PREPARED_NOT_AUTHORIZED',config_sha256=sha(destination/'CONFIG.json')))
++    dest=Path(destination);dest.mkdir(parents=True,exist_ok=False)
++    write(dest/'CONFIG.json',config)
++    write(dest/'PREPARED.json',dict(status='PREPARED_NOT_AUTHORIZED',config_sha256=sha(dest/'CONFIG.json')))
++    return config
++
++def admit(config,family,review,order):
++    if config.get('schema')!='g2-plan-v1' or config.get('run')!='359fcc3c' or config.get('step') not in STEPS:
++        raise ValueError('Config schema, run or milestone differs')
++    if config.get('gpus')!=1 or config.get('partition')!='general':raise ValueError('Allocation shape differs')
++    if config['plan_sha256']!=digest({k:v for k,v in config.items() if k!='plan_sha256'}):raise ValueError('Plan seal differs')
++    if family.get('schema')!='g2-family-v1' or family.get('release_ready') is not True or family.get('blockers'):
++        raise ValueError('Release blocked: '+'; '.join(family.get('blockers',['unvalidated family'])))
++    if review.get('verdict')!='ACCEPT' or not review.get('reviewer') or review.get('family_sha256')!=config['family']['sha256']:
++        raise ValueError('Independent review does not bind this family')
++    if order.splitlines().count(order_line(config))!=1:raise ValueError('Exact ORCH GO is absent')
++    for field in ('time_limit','gpu_seconds','publication'):
++        if config[field]!=family[field]:raise ValueError('Family contract differs: '+field)
++    if scan_json(config) or scan_json(family):raise ValueError('Operational config/family naming scan failed')
++
++def validate_packet(payload):
++    p=Path(payload);config=read(p/'CONFIG.json');family=read(p/'FAMILY.json')
++    if sha(p/'FAMILY.json')!=config['family']['sha256']:raise ValueError('Packet family hash differs')
++    admit(config,family,read(p/'REVIEW.json'),(p/'ORDER.md').read_text())
++    for name,expected in family['code_pins'].items():
++        if sha(p/'guard_kit'/name)!=expected:raise ValueError('Packet code differs: '+name)
++    for name,pin in family['inputs'].items():
++        if sha(p/'inputs'/name)!=pin['sha256']:raise ValueError('Packet input differs: '+name)
++    if sha(p/'candidate.done')!=config['done_sha256'] or parse_done((p/'candidate.done').read_bytes(),'359fcc3c',config['step'])!=config['done']:
++        raise ValueError('Packet done record differs')
++    if sha(p/'CLOSURE.json')!=config['closure']['sha256'] or sha(p/'metadata.tar')!=config['closure_archive_sha256']:
++        raise ValueError('Packet candidate closure differs')
++    meta=read(p/'CLOSURE.json')
++    if meta['source_sha256']!=config['closure_source_sha256'] or meta['admission']['artifact_sha256']!=config['artifact_sha256']:
++        raise ValueError('Packet closure binding differs')
+     return config
+ 
+ def packet(config_path,review_path,order_path,destination):
+-    config=read(config_path);family=read(check_pin(config['family']))
+-    if config['plan_sha256']!=digest({k:v for k,v in config.items() if k!='plan_sha256'}):
+-        raise ValueError('Plan seal differs')
+-    if family.get('release_ready') is not True or family.get('blockers'):
+-        raise ValueError('Release is blocked: '+'; '.join(family.get('blockers', ['unvalidated release'])))
+-    review=read(review_path)
+-    if (review.get('verdict')!='ACCEPT' or review.get('family_sha256')!=config['family']['sha256']):
+-        raise ValueError('Review does not authorize this family')
+-    line='LAUNCH G1 '+str(config['step'])+' '+config['token']+' '+config['plan_sha256']
+-    if Path(order_path).read_text().splitlines().count(line)!=1:raise ValueError('Exact launch order is absent')
+-    if scan_json(config) or scan_json(family):raise ValueError('Job-visible naming scan failed')
+-    # A release cannot be enabled by changing a JSON boolean alone.
+-    raise ValueError('Production batch integration is incomplete; no executable packet is emitted')
++    config=read(config_path);family_path=check_pin(config['family']);family=read(family_path)
++    admit(config,family,read(review_path),Path(order_path).read_text())
++    meta_path=check_pin(config['closure']);meta=read(meta_path)
++    if authenticate_meta(family,meta,config['step'])!=meta['admission']:raise ValueError('Closure admission changed')
++    verify_archive(meta['archive']['path'],meta['archive'])
++    if sha(config['done_file'])!=config['done_sha256']:raise ValueError('Done file changed')
++    sources={'CONFIG.json':Path(config_path),'FAMILY.json':family_path,'REVIEW.json':Path(review_path),
++             'ORDER.md':Path(order_path),'CLOSURE.json':meta_path,
++             'candidate.done':Path(config['done_file'])}
++    for name,pin in family['inputs'].items():sources['inputs/'+name]=check_pin(pin)
++    for name,expected in family['code_pins'].items():
++        path=Path(family['code_root'])/name
++        if sha(path)!=expected:raise ValueError('Code changed after review')
++        sources['guard_kit/'+name]=path
++    dest=Path(destination);dest.mkdir(parents=True,exist_ok=False)
++    archive=dest/'p.tar'
++    with tarfile.open(archive,'x',dereference=True) as tar:
++        for name,path in sorted(sources.items()):
++            m=tarfile.TarInfo(name);m.size=path.stat().st_size;m.mode=0o755 if path.suffix=='.sh' else 0o644
++            with path.open('rb') as inp:tar.addfile(m,inp)
++    regular_tar(archive,LIMIT)
++    from transport import copy_verified
++    copy_verified(meta['archive']['path'],dest/'m.tar')
++    # The fixed shared path carries the bounded archive; the batch pins its literal hash.
++    expected=sha(archive)
++    payload_path='/project/community/jjyeung/okh7/8c9d2e74/'+config['token']+'/p.tar'
++    bootstrap='''import hashlib,io,json,os,pathlib,tarfile
++job=os.environ.get('SLURM_JOB_ID','')
++if not job.isdigit():raise ValueError('Assigned job required')
++source=pathlib.Path(PAYLOAD)
++if source.is_symlink() or not source.is_file() or source.stat().st_size>33554432:raise ValueError('Payload source differs')
++raw=source.read_bytes()
++if len(raw)>33554432 or hashlib.sha256(raw).hexdigest()!=EXPECTED:raise ValueError('Payload differs')
++root=pathlib.Path('/tmp')/('g2_'+job+'_'+TOKEN)
++root.mkdir(mode=0o700)
++p=root/'payload';p.mkdir();seen=set();total=0
++with tarfile.open(fileobj=io.BytesIO(raw),mode='r:') as tar:
++ for m in tar:
++  n=pathlib.PurePosixPath(m.name);total+=m.size
++  if not m.isfile() or n.is_absolute() or '..' in n.parts or str(n) in seen or total>33554432:raise ValueError('Unsafe payload')
++  seen.add(str(n));target=p/str(n);target.parent.mkdir(parents=True,exist_ok=True)
++  with target.open('xb') as out:out.write(tar.extractfile(m).read())
++  target.chmod(m.mode&0o755)
++c=json.loads((p/'CONFIG.json').read_text())['closure_object']
++source=pathlib.Path(c['path'])
++if source.is_symlink() or not source.is_file() or source.stat().st_size!=c['bytes'] or c['bytes']>67108864:raise ValueError('Closure object differs')
++h=hashlib.sha256()
++with source.open('rb') as inp,(p/'metadata.tar').open('xb') as out:
++ for block in iter(lambda:inp.read(1048576),b''):
++  h.update(block);out.write(block)
++if h.hexdigest()!=c['sha256']:raise ValueError('Closure object digest differs')
++os.execv('/usr/bin/python3',['/usr/bin/python3','-I','-s','-B',str(p/'guard_kit/worker.py'),'--root',str(root),'--payload',str(p)])
++'''
++    batch='#!/bin/bash\nset -euo pipefail\numask 077\nexport OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1\nunset PYTHONPATH\nexec /usr/bin/python3 -I -s -B - <<\'G2_PY\'\n'
++    batch+='PAYLOAD='+repr(payload_path)+'\nEXPECTED='+repr(expected)+'\nTOKEN='+repr(config['token'])+'\n'+bootstrap+'G2_PY\n'
++    (dest/'BATCH.sh').write_text(batch);(dest/'BATCH.sh').chmod(0o700)
++    for name in ('CONFIG.json','FAMILY.json'):(dest/name).write_bytes(sources[name].read_bytes())
++    value=dict(schema='g2-packet-v1',plan_sha256=config['plan_sha256'],family_sha256=config['family']['sha256'],
++        closure_sha256=config['closure_source_sha256'],payload=dict(path=payload_path,bytes=archive.stat().st_size,sha256=expected),
++        batch_sha256=sha(dest/'BATCH.sh'),submit_argv=submit_argv(config,dest/'BATCH.sh'))
++    write(dest/'PACKET.json',value);(dest/'SUBMIT_COMMAND.txt').write_text(shlex.join(value['submit_argv'])+'\n')
++    return value
+ 
+ def main():
+     p=argparse.ArgumentParser();s=p.add_subparsers(dest='cmd',required=True)
+     a=s.add_parser('prepare')
+     for name in ('family','done','metadata','out'):a.add_argument('--'+name,required=True)
+-    a.add_argument('--step',type=int,required=True);a.add_argument('--token')
++    a.add_argument('--step',required=True,type=int);a.add_argument('--token')
+     a=s.add_parser('packet')
+     for name in ('config','review','order','out'):a.add_argument('--'+name,required=True)
+     a=p.parse_args()
+--- G1/pool.py
++++ G2/pool.py
+@@ -0,0 +1,51 @@
++"""Exclusive, bounded result pool; no checkpoint or input data is stored here."""
++from contextlib import contextmanager
++import fcntl
++import os
++from pathlib import Path
++import re
++import time
++from guard_core import sha
++POOL_LIMIT=1024**3
++POOL=Path('/project/community/jjyeung/okh7/a936d80c')
++
++@contextmanager
++def lock(root):
++    root=Path(root)
++    if root!=POOL or root.resolve()!=root or not root.is_dir() or (root/'.lock').is_symlink():
++        raise ValueError('Result pool identity differs')
++    with (root/'.lock').open('a+b') as handle:
++        fcntl.flock(handle,fcntl.LOCK_EX)
++        yield
++
++def usage(root):
++    total=0;count=0;pending=[Path(root)]
++    while pending:
++        for p in pending.pop().iterdir():
++            count+=1
++            if count>10000 or p.is_symlink():raise ValueError('Result pool inventory is unsafe or unbounded')
++            if p.is_dir():pending.append(p)
++            elif p.is_file():total+=p.stat().st_size
++            else:raise ValueError('Result pool has a special member')
++    return total
++
++def reserve(root,token):
++    if not re.fullmatch('[a-f0-9]{16}',token):raise ValueError('Invalid result token')
++    with lock(root):
++        if usage(root)+16384>POOL_LIMIT:raise ValueError('Result pool quota exceeded')
++        target=Path(root)/token;target.mkdir(mode=0o700)
++    return target
++
++def publish(root,token,source):
++    source=Path(source);size=source.stat().st_size
++    with lock(root):
++        if usage(root)+size+16384>POOL_LIMIT:raise ValueError('Result pool quota exceeded')
++        dest=Path(root)/token/source.name
++        started=time.monotonic();copied=0
++        with source.open('rb') as inp,dest.open('xb') as out:
++            for block in iter(lambda:inp.read(256*1024),b''):
++                out.write(block);copied+=len(block)
++                time.sleep(max(0,copied/(4*1024**2)-(time.monotonic()-started)))
++            out.flush();os.fsync(out.fileno())
++        if copied!=size or sha(dest)!=sha(source):raise ValueError('Result pool readback differs')
++    return dict(uri=str(dest),bytes=size,sha256=sha(dest),verified=True)
+--- G1/stage_candidate.py
++++ G2/stage_candidate.py
+@@ -0,0 +1,32 @@
++"""Adapt the reviewed stager's checker subprocess to the C8r namespace."""
++from pathlib import Path
++import argparse
++import subprocess
++import sys
++sys.path[:0]=[str(Path(__file__).resolve().parent/'reviewed'),str(Path(__file__).resolve().parent)]
++import export_stage as reviewed
++from guard_core import read,write,sha
++from guard_export import stage
++
++def run(root,archive,done,step,expected,checker):
++    def check(root,artifact,digest,step,full,receipt_dir,bwrap):
++        if not full:raise ValueError('Full checker required')
++        for name,pin in reviewed.CHECKER_PINS.items():
++            if sha(Path(__file__).parent/'reviewed/checker'/name)!=pin:raise ValueError('Reviewed checker source differs')
++        output=receipt_dir/'CHECK.json'
++        command=checker['namespace']+['--bind',str(receipt_dir),str(receipt_dir),
++            checker['python'],'-I','-s','-B',str(Path(__file__).parent/'reviewed/checker/export_check.py'),
++            '--export',artifact,'--sha256',digest,'--base',checker['base'],'--step',str(step),'--output',str(output)]
++        write(receipt_dir/'COMMAND.json',dict(argv=command,full=True,pins=reviewed.CHECKER_PINS))
++        result=subprocess.run(command,env=checker['environment'],capture_output=True)
++        (receipt_dir/'check.hex').write_text(result.stdout.hex()+'\n'+result.stderr.hex()+'\n')
++        if result.returncode:raise RuntimeError('Full export check failed')
++        value=read(output)
++        if value.get('status')!='VERIFIED' or value.get('step')!=step:raise ValueError('Checker receipt differs')
++        return value
++    reviewed.run_export_checker=check
++    return stage(root,archive,done,step,expected,reviewed)
++if __name__=='__main__':
++    p=argparse.ArgumentParser();p.add_argument('--request',required=True);a=p.parse_args();q=read(a.request)
++    result=run(q['root'],q['archive'],q['done'],q['step'],q['expected'],q['checker'])
++    write(Path(q['root'])/'CANDIDATE_STAGE.json',result)
+--- G1/staging.py
++++ G2/staging.py
+@@ -0,0 +1,92 @@
++"""Stage C8r's proof export and the plan-bound candidate in one private root."""
++from copy import deepcopy
++import os
++from pathlib import Path
++import subprocess
++import sys
++import tarfile
++from guard_core import read,write,sha,verify_archive
++from guard_backend import CORE
++from closure import ROOT,unpack
++
++def reject_hardlinks(stream):
++    position=stream.tell()
++    try:
++        with tarfile.open(fileobj=stream,mode='r:*') as archive:
++            if any(member.islnk() for member in archive):
++                raise ValueError('Input archive contains a hard link; regularize it before review')
++    finally:stream.seek(position)
++
++def extraction_guard(original):
++    def checked(stream,destination,step,limit,links=False,strip=0,overlay=False):
++        # The unchanged streaming extractor already refuses all links by default.
++        # Only runtime extraction admits symlinks; preflight that seekable archive
++        # to reject hard links without seeking on the frame puller's pipe.
++        if links:reject_hardlinks(stream)
++        return original(stream,destination,step,limit,links=links,strip=strip,overlay=overlay)
++    return checked
++
++
++def stage(root,config,payload):
++    sys.path[:0]=[str(CORE/'orchard_native'),str(CORE)]
++    import native_stage as S
++    import orchard_job as J
++    original_extract=S.S.extract_stream
++    S.S.extract_stream=extraction_guard(original_extract)
++    root,payload=Path(root),Path(payload)
++    baseline=read(payload/'inputs/BASELINE_CONFIG.json')
++    # These are operational copies with exactly the sealed source bytes.
++    for key,value in config.get('asset_copies',{}).items():
++        old,new=key,value
++        def replace(v):
++            if isinstance(v,str):return new if v==old else v
++            if isinstance(v,list):return [replace(x) for x in v]
++            if isinstance(v,dict):return {k:replace(x) for k,x in v.items()}
++            return v
++        baseline['assets']=replace(baseline['assets'])
++    proof=deepcopy(baseline)
++    proof['logical_run']='/scratch/jjyeung/orch_cd/evalx/work/milestone/runs/'+config['token']
++    # The unchanged stage authenticates all shared assets and the historical export.
++    records=S.stage(root,proof)
++    S.physical(root,proof['logical_run']).mkdir(parents=True,exist_ok=False)
++    desc=read(payload/'CLOSURE.json');desc['archive']['path']=str(payload/'metadata.tar')
++    files=unpack(desc,root/'candidate_metadata')
++    artname=f'runs/359fcc3c/m{config["step"]}/artifact.json'
++    for name,raw in files.items():
++        # The export stager exclusively creates its own milestone directory.
++        if name.startswith('runs/359fcc3c/m') and '/artifact.json' in name:continue
++        target=S.physical(root,ROOT+name);target.parent.mkdir(parents=True,exist_ok=True)
++        if target.exists():
++            if target.read_bytes()!=raw:raise ValueError('Candidate metadata collides with a shared pin')
++        else:target.write_bytes(raw)
++    done=root/'candidate.done';done.write_bytes((payload/'candidate.done').read_bytes())
++    export=root/'archives/candidate.tar';expected=config['done']
++    env=S.S.cloud_environment(baseline['assets']['gcloud_config'])
++    count=0
++    with export.open('xb') as output:
++        for index in range(4):
++            name=expected['object']+f'.part{index:02d}-of-04'
++            with S.S.process_stream(['/usr/bin/gcloud','storage','cat','gs://cmu-gpucloud-jjyeung/'+name],env,root/'candidate_stage.log') as stream:
++                for chunk in iter(lambda:stream.read(1024*1024),b''):
++                    count+=len(chunk)
++                    if count>expected['bytes']:raise ValueError('Candidate export exceeds its done bytes')
++                    output.write(chunk)
++    verify_archive(export,expected)
++    model=read(S.physical(root,baseline['assets']['model_manifest']['path']))
++    runtime=records['runtime_spec']
++    checker=dict(namespace=S.namespace(root,proof),python=runtime['python']['path'],
++                 base=model['root'],environment=J.environment(root))
++    req=dict(root=str(root),archive=str(export),done=str(done),step=config['step'],expected=expected,checker=checker)
++    write(root/'candidate_stage_request.json',req)
++    subprocess.run([sys.executable,'-I','-s','-B',str(Path(__file__).parent/'stage_candidate.py'),
++                    '--request',str(root/'candidate_stage_request.json')],check=True,env=env)
++    artifact=S.physical(root,ROOT+artname)
++    if artifact.read_bytes()!=files[artname]:raise ValueError('Export and closure artifacts differ byte-for-byte')
++    worker=dict(baseline=baseline,step=config['step'],candidate={
++        **{k:desc['admission'][k] for k in ('config','data_receipt')},
++        'artifact':dict(path=ROOT+artname,sha256=sha(artifact))},
++        reference=dict(path=str(payload/'inputs/reference.json'),sha256=sha(payload/'inputs/reference.json')),
++        items=dict(path=str(payload/'inputs/items.json'),sha256=sha(payload/'inputs/items.json')),
++        closure_root=str(root/'candidate_metadata'),closure_names=sorted(files))
++    write(root/'WORKER.json',worker)
++    return proof,records
+--- G1/transport.py
++++ G2/transport.py
+@@ -0,0 +1,127 @@
++"""Bounded publication with readback; local transport is the rehearsal substitute."""
++from pathlib import Path, PurePosixPath
++import hashlib
++import json
++import os
++import re
++import shutil
++import subprocess
++import tarfile
++from guard_core import read, sha, write, verify_archive
++
++LIMIT = 300_000_000
++
++def regular_tar(path, limit=32*1024*1024):
++    path=Path(path)
++    if path.stat().st_size>limit: raise ValueError('Archive byte limit exceeded')
++    names=set(); total=0
++    with tarfile.open(path,'r:*') as archive:
++        for m in archive:
++            p=PurePosixPath(m.name);total+=m.size
++            if (not m.isfile() or p.is_absolute() or '..' in p.parts or not p.parts
++                    or str(p) in names or total>limit or len(names)>=10000):
++                raise ValueError('Archive needs bounded unique relative regular members; no links')
++            names.add(str(p))
++    return True
++
++def extract(path,destination,limit=32*1024*1024):
++    regular_tar(path,limit);destination=Path(destination)
++    destination.mkdir(parents=True,exist_ok=False)
++    with tarfile.open(path,'r:*') as archive:
++        for m in archive:
++            target=destination/m.name;target.parent.mkdir(parents=True,exist_ok=True)
++            with archive.extractfile(m) as inp,target.open('xb') as out:shutil.copyfileobj(inp,out,1024*1024)
++            target.chmod(m.mode&0o755)
++
++def copy_verified(source,dest):
++    source,dest=Path(source),Path(dest)
++    if source.is_symlink() or not source.is_file():raise ValueError('Source must be regular')
++    dest.parent.mkdir(parents=True,exist_ok=True)
++    with source.open('rb') as inp,dest.open('xb') as out:
++        shutil.copyfileobj(inp,out,1024*1024);out.flush();os.fsync(out.fileno())
++    if dest.stat().st_size!=source.stat().st_size or sha(dest)!=sha(source):raise ValueError('Transport readback differs')
++    return dict(bytes=dest.stat().st_size,sha256=sha(dest))
++
++class Publisher:
++    def __init__(self,config,token,work):
++        if not re.fullmatch('[a-f0-9]{16}',token):raise ValueError('Invalid publication token')
++        self.config,self.token,self.work=config,token,Path(work)
++        self.work.mkdir(parents=True,exist_ok=True)
++        if config['kind']=='gcs':
++            from pool import reserve
++            reserve(Path(config['pool']),token)
++    def __call__(self,path):
++        path=Path(path)
++        if path.stat().st_size>LIMIT:raise ValueError('Publication exceeds return limit')
++        if path.name not in ('PROOF.json','CANARY.json','result.tar.gz','EXIT.json','FAILED.json'):
++            raise ValueError('Unregistered publication member')
++        if self.config['kind']=='local':
++            dest=Path(self.config['root'])/self.token/path.name
++            value=copy_verified(path,dest);value.update(uri=str(dest),verified=True)
++        elif self.config['kind']=='gcs':
++            from pool import publish as pool_publish
++            pool_value=pool_publish(Path(self.config['pool']),self.token,path)
++            try:
++                value=self.cloud(path)
++                value['pool']=pool_value
++            except Exception as error:
++                value=dict(pool_value,cloud_error=str(error),channel='pool')
++        else:raise ValueError('Unknown publication transport')
++        write(self.work/(path.name+'.published.json'),value)
++        return value
++    def cloud(self,path):
++            prefix=self.config['prefix']
++            if not re.fullmatch(r'gs://cmu-gpucloud-jjyeung/q8/[a-f0-9]+',prefix):raise ValueError('Invalid return prefix')
++            uri=prefix+'/'+self.token+'/'+path.name
++            env=dict(os.environ,CLOUDSDK_CONFIG=self.config['credentials'])
++            subprocess.run(['/usr/bin/gcloud','storage','cp',str(path),uri,'--if-generation-match=0'],env=env,check=True,timeout=30,capture_output=True)
++            result=subprocess.run(['/usr/bin/gcloud','storage','objects','describe',uri,'--format=json'],env=env,check=True,timeout=15,capture_output=True,text=True)
++            meta=json.loads(result.stdout);generation=str(meta.get('generation',''))
++            if not generation.isdigit() or int(meta.get('size',-1))!=path.stat().st_size:raise ValueError('Published object metadata differs')
++            target=self.work/(path.name+'.readback')
++            with target.open('xb') as output:
++                subprocess.run(['/usr/bin/gcloud','storage','cat',uri+'#'+generation],env=env,check=True,timeout=30,stdout=output,stderr=subprocess.PIPE)
++            if sha(target)!=sha(path) or target.stat().st_size!=path.stat().st_size:raise ValueError('Published object readback differs')
++            value=dict(uri=uri,generation=generation,sha256=sha(path),bytes=path.stat().st_size,verified=True)
++            return value
++
++def archive_result(source,output,plan,fixture=False,error=None):
++    source,output=Path(source),Path(output);output.mkdir(parents=True,exist_ok=False)
++    total=0
++    with tarfile.open(output/'result.tar.gz','w:gz',dereference=True) as archive:
++        for p in sorted(source.rglob('*')):
++            if p.is_symlink():raise ValueError('Return contains a link')
++            if not p.is_file() or p.suffix in ('.pt','.safetensors','.png','.jpg','.npz'):continue
++            total+=p.stat().st_size
++            if total>LIMIT:raise ValueError('Return expansion exceeds limit')
++            m=archive.gettarinfo(str(p),arcname=str(p.relative_to(source)))
++            m.uid=m.gid=m.mtime=0;m.uname=m.gname=''
++            with p.open('rb') as inp:archive.addfile(m,inp)
++    path=output/'result.tar.gz';regular_tar(path,LIMIT)
++    receipt=dict(schema='g2-return-v1',plan_sha256=plan,fixture=fixture,status='FAIL' if error else 'PASS',error=error,
++                 archive=dict(bytes=path.stat().st_size,sha256=sha(path)))
++    write(output/'EXIT.json',receipt);return receipt
++
++def verify_return(receipt,archive,plan,allow_fixture=False):
++    if (receipt.get('schema')!='g2-return-v1' or receipt.get('plan_sha256')!=plan
++            or receipt.get('status')!='PASS' or (receipt.get('fixture') is not False and not allow_fixture)):
++        raise ValueError('Return identity, status or authority differs')
++    verify_archive(archive,receipt['archive']);regular_tar(archive,LIMIT)
++    with tarfile.open(archive) as tar:
++        names=set(tar.getnames())
++        if not {'COMPLETE.json','PROOF.json','CANARY.json','R1.json','IN_JOB_ADMISSION.json'}<=names or 'FAILED.json' in names:
++            raise ValueError('Return is missing terminal evidence')
++        for name in ('PROOF.json','CANARY.json','IN_JOB_ADMISSION.json'):
++            phase=json.load(tar.extractfile(name))
++            if phase.get('status')!='PASS':raise ValueError('Return phase did not pass')
++            if not allow_fixture and phase.get('fixture') is not False:
++                raise ValueError('Return phase has no production identity')
++            if name=='PROOF.json' and not allow_fixture and phase.get('backend_identity_proven') is not True:
++                raise ValueError('Return lacks backend identity proof')
++            if name=='IN_JOB_ADMISSION.json':
++                if phase.get('bundle',{}).get('sha256')!=hashlib.sha256(tar.extractfile('R1.json').read()).hexdigest():
++                    raise ValueError('Returned bundle differs from in-job admission')
++        marker=json.load(tar.extractfile('COMPLETE.json'))
++        if marker.get('plan_sha256')!=plan or marker.get('fixture')!=receipt['fixture']:
++            raise ValueError('Return completion plan or fixture identity differs')
++    return receipt
+--- G1/worker.py
++++ G2/worker.py
+@@ -0,0 +1,113 @@
++"""Production coordinator: staged proof, candidate canary/read, admission and return."""
++import argparse
++import os
++from pathlib import Path
++import re
++import signal
++import subprocess
++import sys
++import time
++sys.path.insert(0,str(Path(__file__).resolve().parent))
++from guard_core import read,write,sha,digest
++from guard_backend import CORE
++from transport import Publisher,archive_result
++
++PUBLICATION_RESERVE=300
++
++def child(command,environment,output,publisher,role,timeout):
++    """A checkpoint process cannot continue past a receipt before publication."""
++    output=Path(output);receipt='PROOF' if role=='proof' else 'CANARY'
++    started=time.monotonic();acknowledged=False
++    with (output/(role+'.log')).open('xb') as log:
++        process=subprocess.Popen(command,env=environment,stdout=log,stderr=subprocess.STDOUT)
++        try:
++            while True:
++                ready=output/(receipt+'.ready.json')
++                if not acknowledged and ready.exists():
++                    target=output/(receipt+'.json')
++                    if read(ready)!=dict(path=str(target)):raise ValueError('Receipt rendezvous path differs')
++                    publisher(target)
++                    write(output/(receipt+'.ack.json'),dict(status='PASS',sha256=sha(target)))
++                    acknowledged=True
++                code=process.poll()
++                if code is not None:break
++                if time.monotonic()-started>timeout:raise TimeoutError('Checkpoint process exceeded its budget')
++                time.sleep(.5)
++            if code or not acknowledged:raise RuntimeError('Checkpoint process failed: '+role)
++            if read(output/(receipt+'.json')).get('status')!='PASS':raise ValueError('Checkpoint receipt failed')
++        except BaseException:
++            if process.poll() is None:
++                process.terminate();process.wait(timeout=30)
++            raise
++    return dict(pid=process.pid,seconds=time.monotonic()-started,returncode=code)
++
++def coordinate(root,config,output,publisher,prepare,environment,fixture=False):
++    """The production and CPU boundary runners share this complete phase lifecycle."""
++    root,output=Path(root),Path(output);error=None;phases={}
++    deadline=time.monotonic()+config['gpu_seconds']-PUBLICATION_RESERVE
++    try:
++        commands=prepare()
++        if set(commands)!={'proof','candidate'}:raise ValueError('Checkpoint commands differ')
++        for role in ('proof','candidate'):
++            remaining=deadline-time.monotonic()
++            if remaining<=0:raise TimeoutError('No checkpoint budget remains before publication reserve')
++            phases[role]=child(commands[role],environment,output,publisher,role,remaining)
++        if phases['proof']['pid']==phases['candidate']['pid']:raise ValueError('Checkpoint processes were not distinct')
++        write(output/'COMPLETE.json',dict(status='PASS',plan_sha256=config['plan_sha256'],fixture=fixture,processes=phases))
++    except Exception as exc:
++        error=str(exc);write(output/'FAILED.json',dict(status='FAIL',error=error,phases=phases))
++        if not (output/'PROOF.json').exists():
++            write(output/'PROOF.json',dict(status='FAIL',candidate_started=False,backend_identity_proven=False,fixture=fixture,error=error))
++            publisher(output/'PROOF.json')
++        elif read(output/'PROOF.json').get('status')=='PASS' and not (output/'CANARY.json').exists():
++            write(output/'CANARY.json',dict(status='FAIL',full_started=False,fixture=fixture,error=error))
++            publisher(output/'CANARY.json')
++    finally:
++        # A caught allocation signal must not interrupt the bounded return attempt.
++        if not fixture:
++            for number in (signal.SIGTERM,signal.SIGINT,signal.SIGUSR1):signal.signal(number,signal.SIG_IGN)
++        archive_result(output,root/'returned',config['plan_sha256'],fixture=fixture,error=error)
++        publisher(root/'returned/result.tar.gz');publisher(root/'returned/EXIT.json')
++    return dict(status='FAIL' if error else 'PASS',error=error,phases=phases)
++
++def run(root,payload):
++    root,payload=Path(root),Path(payload)
++    config=read(payload/'CONFIG.json')
++    from packet import validate_packet
++    validate_packet(payload)
++    sys.path[:0]=[str(CORE/'orchard_native'),str(CORE)]
++    import native_stage as S
++    import native_job as J
++    import orchard_job as O
++    job=os.environ.get('SLURM_JOB_ID','')
++    if (not job.isdigit() or not os.uname().nodename.startswith('orchard-')
++            or os.environ.get('SLURM_JOB_PARTITION')!='general'
++            or root.resolve()!=Path('/tmp')/('g2_'+job+'_'+config['token'])):
++        raise ValueError('Assigned Orchard job and private root required')
++    if __import__('pwd').getpwuid(os.getuid()).pw_name!='jjyeung':raise ValueError('Allocation user differs')
++    O.storage_proof(root,job=job);J.card(require_empty=True)
++    for name in ('cache','temp','home'):(root/name).mkdir()
++    environment=J.environment(root)
++    output=root/'result';output.mkdir()
++    publisher=Publisher(config['publication'],config['token'],root/'publication')
++    def interrupted(number,frame):raise RuntimeError('Allocation signal '+str(number))
++    for number in (signal.SIGTERM,signal.SIGINT,signal.SIGUSR1):signal.signal(number,interrupted)
++    def prepare():
++        from staging import stage
++        stage_config,records=stage(root,config,payload)
++        runtime=records['runtime_spec']
++        entry=Path(__file__).parent/'checkpoint.py'
++        runtime['entrypoints'][entry.name]=dict(path=str(entry),sha256=sha(entry))
++        write(root/'RUNTIME.json',runtime)
++        environment['G2_CORE']='/scratch/jjyeung/orch_cd/evalx/work/milestone'
++        vnice=stage_config['assets']['vnice']
++        if sha(S.physical(root,vnice['path']))!=vnice['sha256']:raise ValueError('Priority wrapper pin differs')
++        base=S.namespace(root,stage_config)+['--bind',str(output),str(output),
++            '/bin/bash',vnice['path'],runtime['python']['path'],'-I','-s','-B',str(CORE/'native_bootstrap.py'),
++            '--spec',str(root/'RUNTIME.json'),'--',str(entry),'--config',str(root/'WORKER.json'),'--out',str(output)]
++        return {role:base+['--role',role] for role in ('proof','candidate')}
++    result=coordinate(root,config,output,publisher,prepare,environment)
++    return 1 if result['error'] else 0
++if __name__=='__main__':
++    p=argparse.ArgumentParser();p.add_argument('--root',required=True);p.add_argument('--payload',required=True);a=p.parse_args()
++    sys.exit(run(a.root,a.payload))

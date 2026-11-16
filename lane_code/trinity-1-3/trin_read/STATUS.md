@@ -1,5 +1,5 @@
 # trin_read STATUS (trinity-1-3) - for a successor
-Updated: 2026-11-16T12:04Z by trin_read3 (session 3, started 09:41Z). Read "trin_read3 state" first, then "Successor: resume here".
+Updated: 2026-11-16T13:26Z by trin_read3 (session 3, started 09:41Z). Read "trin_read3 state" first, then "Successor: resume here".
 
 ## Done
 - Plan RESULT 0203Z; QUESTION 0204Z (no free card on 1-3; asks for trinity-0-13 cards 1-6; default: no 0-13 action before answer).
@@ -73,6 +73,11 @@ Updated: 2026-11-16T12:04Z by trin_read3 (session 3, started 09:41Z). Read "trin
 - frrest LANDED 11:13Z (sha 98d1815b), ingested (4,864 frames in root/k6tk); need --all absent 0 (main 1525/away 150/forward 150); k6tk shipped to 1-18 11:19Z.
 - ORCH 1118Z: any permitted node (gpu_fill writes *_ORCH_CARD_<node>_<card>.md here); 0-13 normal prio, others vnice; never 0-8/0-23/3-23, leave 0-18; IB tar from 1-3; keep 150 GB free there; >20 GB: tell main first unless the card note says done. Scripts: work/send_node.sh NODE root build build_t6 kit_src work; then ssh NODE bash -s < work/node_prep.sh.
 - ORCH CARD 1140Z: 1-13 card 0 via /dev/shm (<=40 GB, total <60 GB). Not taken: QUESTION 1151Z (proof needs root 50 GB + 38.1 GB model copies per run, and the kit's 200 GiB floor => 256.1 GB free before each run on the root's filesystem; default: wait for a disk-rich card). build_p/ + build_t6p/ (Codex trin_read_p DONE, REPORT_P.md): TRIN_AREA env relocation, PATH/ENV only.
+- ORCH 1221Z: option B (wait for a card on a node with >= 250 GB /scratch free; no /dev/shm root). Free cards list: events/gpu_fill/FREE_CARDS.md. After a passing proof the FIRST reads are ReVSI official999: step-544 baseline, then D0 m400 (m100/m200 stay on Orchard; I pull neither).
+- ReVSI: reviewed kit ea1a1b2d at /scratch/jjyeung/orch_n30/evalx27/work/kit_revsi (Orchard 170035/170037, 679 items, return build/a348bc58686/). Media pull trin_read_rvmedia (prio 40, 12:34Z, tmux trs_rvmedia, out dl/rv_media.tar, 318,453,760 B, Orchard tar sha prefix ad3635ff). Codex trin_read_rv running 12:36Z (tmux trr_codex10, brief work/CODEX_BRIEF_rv.md): build_rv = build_t6 + rv-stage/rv-proof/rv-read/rv-compare.
+- build_rv DONE 12:48Z (294 tests, REPORT_RV.md): rv-stage/rv-proof/rv-read/rv-compare; step 544 only (kit adapter pins the artifact); 64 frames needs new media. QUESTION 1313Z revsi_d0_adapter_pin. Codex trin_read_rvd0 running 13:13Z (tmux trr_codex11, brief work/CODEX_BRIEF_rvd0.md): build_rv_d0 adapter overlay, unused until ORCH yes + review.
+- ORCH 1313Z ANSWER d0_adapter: do NOT use build_rv_d0 (let Codex finish, dispatch nothing more on it). D0 binding = offkit's bind.py (lane b07_offread, /scratch/jjyeung/orch_n30/b07_offread/; build R = D0 re-bind of ea1a1b2d, cont_ops submits it on Orchard for m400). When events/b07_offread/ reports fixes 4 and 6 GO: one narrow Codex change so rv-read calls offkit's bind for export selection (PATH/ENV otherwise; say in DIFF.md it only calls the reviewed bind; no second review). First read on a free card: build_rv step 544 (parity vs 170037).
+- D0 .done seen 12:35Z: m1, m50 (21,583,032,320 B each, plain text). Check: ossh bash -s < work/orch_done.sh.
 - ORCH NOTE 1155Z (user): ReVSI first, frames 32/64 parameter, SFT first, no answer post-processing. My brief stays dev-S1 direct reads only.
 - 11:20Z monitor: 1-13 8 free cards but 144 GB scratch free; 0-28 4 free, 176 GB free (kit floor 200 GiB): unusable.
 - Next: card -> RESULT card line -> proof; m100 .done (Orchard /project/community/jjyeung/okh7/x_f5c353f7/o/gcs_359fcc3c_m100.done, ~13:00Z) -> launch_gcs.py at prio 40 -> build_t6 stage-export; 544 baseline after proof: build_t5/6 read --families main,away,forward then `items --a A544`.

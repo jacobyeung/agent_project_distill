@@ -1,0 +1,210 @@
+{
+ "schema": "eat1-report-v1",
+ "reader": "eat1.adapters.gf1_tiny:make_reader",
+ "reader_kwargs": {
+  "tree": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1",
+  "workdir": "/scratch/jjyeung/orch_n30/b03_e2etest/work/b5_gf1_tiny"
+ },
+ "artifact": "/scratch/jjyeung/orch_n30/b03_e2etest/work/b5_gf1_tiny/artifact/ARTIFACT.json",
+ "artifact_sha256": "a7c029a7acf811ae84ee08268df34d0ebddcc7e85b79d4b9c3df64b1d7c0a562",
+ "items": 6,
+ "mode": "dynamic",
+ "started_utc": "2026-11-16T13:07:01Z",
+ "clauses": {
+  "A1": {
+   "status": "PASS",
+   "summary": "0 artifact, 2 code, 6 input, 0 outside-artifact data files opened after generate() started",
+   "offenders": [],
+   "code_files": [
+    {
+     "path": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/evalpath/__init__.py",
+     "sha256": "320ff8e49d53c5528f439ae83544dcd0e4063933eb2168774b70ca6d9d1cdd38",
+     "source": "open"
+    },
+    {
+     "path": "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/evalpath/runtime.py",
+     "sha256": "8262f0da03336719c4c8699dd302c3012bd89d5affd9ffc75921defd526ae886",
+     "source": "open"
+    }
+   ],
+   "artifact_files": [],
+   "environment_files": 1,
+   "strace": false
+  },
+  "A2": {
+   "status": "FAIL",
+   "summary": "model entries per item {0: 6}; 0 tokens fed that neither the model chose nor a registered handler emitted; 0 static findings",
+   "offenders": [
+    {
+     "item": "move_0",
+     "kind": "model_entries",
+     "count": 6,
+     "items": [
+      "direct_0",
+      "direct_1",
+      "move_0",
+      "move_1",
+      "turn_0",
+      "turn_1"
+     ]
+    }
+   ],
+   "handlers": []
+  },
+  "A3": {
+   "status": "PASS",
+   "summary": "0 findings in 4 call-path files {}",
+   "offenders": [],
+   "scope_files": [
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/evalpath/__init__.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/evalpath/runtime.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/trace_format313.py",
+    "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/trace_format/program_errors.py"
+   ]
+  },
+  "A4": {
+   "status": "FAIL",
+   "summary": "2 offender groups (0 static)",
+   "offenders": [
+    {
+     "item": "move_0",
+     "kind": "reader_error",
+     "detail": "ProgramRefusal: trace_program_version_missing",
+     "count": 6,
+     "items": [
+      "direct_0",
+      "direct_1",
+      "move_0",
+      "move_1",
+      "turn_0",
+      "turn_1"
+     ]
+    },
+    {
+     "item": "move_0",
+     "kind": "answer_not_in_generated_sequence",
+     "answer": null,
+     "count": 6,
+     "items": [
+      "direct_0",
+      "direct_1",
+      "move_0",
+      "move_1",
+      "turn_0",
+      "turn_1"
+     ]
+    }
+   ]
+  },
+  "A5": {
+   "status": "PASS",
+   "summary": "parts {'iii': 'PASS', 'i': 'PASS', 'ii': 'PASS'}",
+   "offenders": [],
+   "parts": {
+    "iii": "PASS",
+    "i": "PASS",
+    "ii": "PASS"
+   },
+   "cache_proof": null
+  }
+ },
+ "overall": "FAIL",
+ "per_type": {
+  "direct": {
+   "items": 2,
+   "call_rate": 0.0,
+   "calls_per_item": 0.0,
+   "heads_behind_fields": {},
+   "seconds_mean": 0.0012603196082636714,
+   "seconds_median": 0.0012603196082636714,
+   "seconds_max": 0.0012724690604954958,
+   "errors": 2
+  },
+  "move": {
+   "items": 2,
+   "call_rate": 0.0,
+   "calls_per_item": 0.0,
+   "heads_behind_fields": {},
+   "seconds_mean": 0.008645324036478996,
+   "seconds_median": 0.008645324036478996,
+   "seconds_max": 0.015890425071120262,
+   "errors": 2
+  },
+  "turn": {
+   "items": 2,
+   "call_rate": 0.0,
+   "calls_per_item": 0.0,
+   "heads_behind_fields": {},
+   "seconds_mean": 0.001315337955020368,
+   "seconds_median": 0.001315337955020368,
+   "seconds_max": 0.0013513159938156605,
+   "errors": 2
+  }
+ },
+ "suppressed": [],
+ "perturbation": {
+  "status": "PASS",
+  "modules": {
+   "g3t": {
+    "role": "tower",
+    "responses_naming": 0,
+    "naming_changed": 0,
+    "others": 0,
+    "others_changed": 0
+   },
+   "pose_head": {
+    "role": "head",
+    "responses_naming": 0,
+    "naming_changed": 0,
+    "others": 0,
+    "others_changed": 0
+   }
+  },
+  "offenders": [],
+  "seeds": [
+   1,
+   2,
+   3
+  ]
+ },
+ "declared_modules": [
+  {
+   "path": "",
+   "role": "lm",
+   "name": "lm"
+  },
+  {
+   "path": "auxiliary_heads.geometry_encoder",
+   "role": "tower",
+   "name": "g3t"
+  },
+  {
+   "path": "auxiliary_heads.gf1",
+   "role": "connector",
+   "name": "gf1"
+  },
+  {
+   "path": "auxiliary_heads.pose",
+   "role": "head",
+   "name": "pose_head"
+  },
+  {
+   "path": "eat1_program_policy",
+   "role": "lm",
+   "name": "program_policy"
+  },
+  {
+   "path": "model.visual",
+   "role": "vit",
+   "name": "vit"
+  }
+ ],
+ "executed_scope": {
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/evalpath/__init__.py": 2,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/evalpath/runtime.py": 19,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/student_pilot/trace_format313.py": 6,
+  "/scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/b5/work/tree_r1/trace_format/program_errors.py": 2
+ },
+ "fixture_files": [],
+ "model_code_findings": []
+}

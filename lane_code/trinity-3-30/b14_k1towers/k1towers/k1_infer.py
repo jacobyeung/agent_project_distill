@@ -61,7 +61,7 @@ def select(manifest, args):
     return caps[:args.limit] if args.limit else caps
 
 
-def bind(c, folder):
+def bind(c, folder, prefix=None):
     """Check frame identities and return the 64 verified PNG paths in tower order."""
     with np.load(folder / 'tower.npz', allow_pickle=False) as z:
         frames, slots = z['frame_indices'].astype(int), z['anchor_slots'].astype(int)
@@ -74,7 +74,13 @@ def bind(c, folder):
         raise ValueError('tower anchors differ from the manifest anchor_indices')
     paths, hashes = [], []
     for f in dense:
-        p = Path(f['path'])
+        p = f['path']
+        if prefix:
+            old, new = prefix
+            if not p.startswith(old):
+                raise ValueError('frame path outside --frame-prefix: ' + p)
+            p = new + p[len(old):]
+        p = Path(p)
         h = sha(p)
         if h != f['sha256']:
             raise ValueError('dense frame sha256 mismatch: ' + str(p))
@@ -125,10 +131,15 @@ def main():
     ap.add_argument('--gt-only', action='store_true', help='only captures whose GT raster exists (the 296 priced)')
     ap.add_argument('--shard')
     ap.add_argument('--limit', type=int)
+    ap.add_argument('--frame-prefix', help='OLD=NEW: read manifest frame paths from a staged copy (sha256 still checked)')
+    ap.add_argument('--smoke-anchors', type=int,
+                    help='CPU code-path smoke only: run on N evenly spaced anchors; output root must contain /smoke')
     args = ap.parse_args()
     out = Path(args.out).resolve()
-    if not str(out).startswith('/scratch/'):
-        raise PermissionError('output must be node-local /scratch')
+    if not str(out).startswith(('/scratch/', '/dev/shm/')):
+        raise PermissionError('output must be node-local (/scratch or /dev/shm)')
+    if args.smoke_anchors and '/smoke' not in str(out):
+        raise ValueError('smoke outputs must live under a /smoke path so pricing never reads them')
     out.mkdir(parents=True, exist_ok=True)
     manifest_path = Path(args.manifest)
     manifest = json.loads(manifest_path.read_text())
@@ -154,13 +165,21 @@ def main():
         dest.mkdir(exist_ok=True)
         start = time.monotonic()
         try:
-            paths, hashes, frames, slots = bind(c, index[key])
+            paths, hashes, frames, slots = bind(c, index[key], args.frame_prefix and args.frame_prefix.split('=', 1))
+            anchor_indices = np.asarray(c['anchor_indices'])
+            smoke = {}
+            if args.smoke_anchors:
+                pos = np.linspace(0, 31, args.smoke_anchors).round().astype(int)
+                sel = slots[pos]
+                paths, hashes, frames = [paths[i] for i in sel], [hashes[i] for i in sel], frames[sel]
+                slots, anchor_indices = np.arange(len(pos)), anchor_indices[pos]
+                smoke = dict(smoke_anchor_pos=pos)
             if backend is None:
                 backend = Backend(args.model, args.device, args.threads, args.go_file)
             if args.device == 'cuda':
                 backend.torch.cuda.reset_peak_memory_stats()
             pred = backend.predict(paths)
-            arrays = dict(frame_indices=frames, anchor_slots=slots, anchor_indices=np.asarray(c['anchor_indices']),
+            arrays = dict(frame_indices=frames, anchor_slots=slots, anchor_indices=anchor_indices, **smoke,
                           depth_grid64=sample_grid(pred.depth).astype(np.float32),
                           intrinsics=pred.intrinsics.astype(np.float64), source_hw=np.asarray(pred.source_hw),
                           raster_hw=np.asarray(pred.depth.shape[-2:]))

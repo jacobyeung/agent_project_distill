@@ -52,10 +52,17 @@ def own_gravity(state):
     return np.asarray(g, np.float64)
 
 
-def real_perception(artifact, model, *, device, socket_factory=None, serve_room=False):
-    """socket_factory(frames, geometry) -> StageOneSocket (SAM 3 tower + selector head), built
-    by e2e_reader.stage1 once the selector head is sealed; None leaves ground/gap unserved."""
-    return Perception(TowerG3T(artifact, device), own_gravity, model.scale_head, socket_factory, serve_room)
+def anchor_frames(frames):
+    return [frames['native_frames'][int(s)] for s in frames['anchor_slots']]
+
+
+def real_perception(artifact, *, device, scale_head, sam3_tower=None, selector_head=None, serve_room=False):
+    """Servers of the carrier read. scale_head: heads/scale ScaleHead (loaded from the artifact's scale_head
+    component); sam3_tower + selector_head enable stage-1 ground/gap (stage1.stage1_factory); without them
+    ground/gap calls are unserved and counted. Room is unserved (room is a direct type)."""
+    from .stage1 import ScaleHeadCall, stage1_factory
+    socket = stage1_factory(sam3_tower, selector_head, anchor_frames) if sam3_tower is not None else None
+    return Perception(TowerG3T(artifact, device), own_gravity, ScaleHeadCall(scale_head), socket, serve_room)
 
 
 @torch.no_grad()

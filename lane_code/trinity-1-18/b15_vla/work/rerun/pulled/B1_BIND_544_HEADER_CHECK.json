@@ -1,0 +1,126 @@
+{
+ "artifact_sha256": "1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef",
+ "artifact_keys": [
+  "anchors",
+  "base_identity",
+  "carrier_position_policy",
+  "config_sha256",
+  "depth_backing",
+  "frame_layout",
+  "full_weights",
+  "heads",
+  "placement",
+  "pose_backing",
+  "schema",
+  "source_seal",
+  "step",
+  "trace_program_version",
+  "trace_version_binding",
+  "trained_groups",
+  "training_mode",
+  "training_source_seal"
+ ],
+ "artifact_heads": {
+  "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/469ddece/m544/heads.pt",
+  "sha256": "8bb5e1510ee3a5a3959e82f2149c69903e98f46880b8a038bf4b951b8c21de91"
+ },
+ "artifact_step": 544,
+ "full_weights_json": {
+  "base": {
+   "base_identity": "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
+  },
+  "bytes": 18819721016,
+  "cast": "fp32_master_to_bf16_round_nearest_even",
+  "dtype": "bfloat16",
+  "files": [
+   {
+    "bytes": 4203292568,
+    "name": "model-00001-of-00005.safetensors",
+    "sha256": "370aeee56b0c963d7e45d94949c9b7da141127605f8a79b6fba2ef4d475e387e",
+    "tensors": 12
+   },
+   {
+    "bytes": 4266317352,
+    "name": "model-00002-of-00005.safetensors",
+    "sha256": "1874bffecaa0b43461cf2a1065a55b452eeba14a5bfce8739f8c4a45333669ed",
+    "tensors": 131
+   },
+   {
+    "bytes": 4265727264,
+    "name": "model-00003-of-00005.safetensors",
+    "sha256": "2e7dd63b1ff6f8e2b67269878500298234934d3cebf36c48e9374d7cfbbc1a98",
+    "tensors": 128
+   },
+   {
+    "bytes": 4290296144,
+    "name": "model-00004-of-00005.safetensors",
+    "sha256": "dcb1b4d7bf4bdaabbe21b0a806ec77a30a1424f6a77321083aaf1fcd0aace60d",
+    "tensors": 126
+   },
+   {
+    "bytes": 1794087688,
+    "name": "model-00005-of-00005.safetensors",
+    "sha256": "e873690fd91e4c059a10b4453cc0d44322ecec1ea9ff2c6bcf0e248c4734fb36",
+    "tensors": 363
+   }
+  ],
+  "index": {
+   "name": "model.safetensors.index.json",
+   "sha256": "0b9c264667c8a50283feffb73508c82b6e10b82e852ea4c98bf8adae78903b70"
+  },
+  "parameters": 9409813744,
+  "schema": "full-ft-export-v1",
+  "tensor_count": 760,
+  "training": {
+   "base_dtype": "float32",
+   "base_parameters": 9409813744,
+   "compute_dtype": "bfloat16",
+   "frozen_base_parameters": 456010480,
+   "group_parameters": {
+    "llm": 8953803264
+   },
+   "learning_rates": {
+    "geometry": 0.0001,
+    "heads": 0.0001,
+    "llm": 1e-05
+   },
+   "lora": null,
+   "master_dtype": "float32",
+   "mode": "full",
+   "schema": "full-ft-v1",
+   "train": {
+    "llm": true,
+    "merger": false,
+    "vision_blocks": false
+   },
+   "trainable_parameters": 8953803264
+  }
+ },
+ "heads_pt_bytes": 2763214343,
+ "export_tensors": 760,
+ "export_tensors_no_mtp": 760,
+ "base_tensors_no_mtp": 760,
+ "only_in_export": [],
+ "n_only_in_export": 0,
+ "only_in_base": [],
+ "n_only_in_base": 0,
+ "shape_diffs": {},
+ "dtype_diffs": {
+  "F32->BF16": 48
+ },
+ "dtype_diff_examples": {
+  "F32->BF16": [
+   "model.language_model.layers.4.linear_attn.A_log",
+   "model.language_model.layers.18.linear_attn.A_log",
+   "model.language_model.layers.28.linear_attn.norm.weight",
+   "model.language_model.layers.6.linear_attn.A_log",
+   "model.language_model.layers.14.linear_attn.A_log"
+  ]
+ },
+ "groups": {
+  "language_model": 426,
+  "lm_head": 1,
+  "visual": 333
+ },
+ "verdict": "B1_HEADER_OK"
+}

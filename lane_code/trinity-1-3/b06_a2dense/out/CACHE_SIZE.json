@@ -1,0 +1,28 @@
+{
+ "rule": "bytes = layers(3) x LM anchors x merger cells x 2048 channels x dtype bytes. Every dense frame is 640x480 (k6 wd.py 640x480; ARKit wa.py x2.5 to 640x480, seen on Orchard 2026-11-16), so grid_for((640,480)) = (10,13) -> 130 merger cells per anchor for all three datasets.",
+ "per_clip_MB": {
+  "32a_float32": 102.2,
+  "32a_bfloat16": 51.1,
+  "64a_float32": 204.5,
+  "64a_bfloat16": 102.2
+ },
+ "totals_GB": {
+  "all|32a_float32": 280.2,
+  "four_streams_no_pool|32a_float32": 244.8,
+  "vqa|32a_float32": 223.5,
+  "all|32a_bfloat16": 140.1,
+  "four_streams_no_pool|32a_bfloat16": 122.4,
+  "vqa|32a_bfloat16": 111.7,
+  "all|64a_float32": 560.5,
+  "four_streams_no_pool|64a_float32": 489.5,
+  "vqa|64a_float32": 447.0,
+  "all|64a_bfloat16": 280.2,
+  "four_streams_no_pool|64a_bfloat16": 244.8,
+  "vqa|64a_bfloat16": 223.5
+ },
+ "clips": {
+  "all": 2741,
+  "four_streams_no_pool": 2394,
+  "vqa": 2186
+ }
+}

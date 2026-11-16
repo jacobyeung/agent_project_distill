@@ -2,7 +2,7 @@
 
 The contract patches are installed. Exact hashes and hunk dispositions are in `work/build6/INTEGRATION.json`.
 
-The next-leg edits require a pinned init, gate final family retention, accept direct square-feet and inches answers, and require distance/room score breakdowns by asked unit. Their tests are pending.
+The next-leg edits require a pinned init, gate final family retention, accept direct square-feet and inches answers, and require distance/room score breakdowns by asked unit. Targeted checks passed; the final suite must also verify the subsequent room-alias, exact area-unit and runtime-reader cases.
 
 The packet suite passed all 202 tests (`work/build6/proofs/packet/results.json`). Its supporting inputs retain the supplied hashes (`work/build6/PACKET_INPUTS.json`). Targeted next-leg evidence is in `work/build6/proofs/next_leg/results.json`; final source qualification is pending. Complete packed-row byte parity passed (`work/build6/proofs/rows/PARITY.json`). The empty-directory packaged tree/base diagnostic is running.
 
@@ -15,3 +15,5 @@ Completed qualification step `rows_build5`; receipt/log: `work/build6/rows_build
 Completed qualification step `rows`; receipt/log: `work/build6/rows_qualification.log`.
 
 Completed qualification step `row_compare`; receipt/log: `work/build6/row_compare_qualification.log`.
+
+The current integration recheck passed every file hash and both unchanged level-basis functions (`work/build6/INTEGRATION_CHECK.json`). Syntax, protected artifact modes, grammar and exclusion pins passed (`work/build6/STATIC_AUDIT.json`). The packaged diagnostic remains active; its current results are not final qualification.

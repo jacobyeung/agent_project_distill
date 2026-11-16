@@ -1,3 +1,21 @@
+--- build5/generator/derivgen_v7/test_v312_quality.py
++++ build6/generator/derivgen_v7/test_v312_quality.py
+@@ -174,9 +174,12 @@
+             mask=np.zeros((32,8,8),bool);mask[0,1,1 if n=='table' else 6]=True
+             return mask,mask.any(axis=(1,2)).astype(float)
+         clip.masks=masks
+-        q=item();q['roles']={'a':'wooden table','b':'bed'}
+-        with self.assertRaisesRegex(RowRefusal,'unresolved_qualified_name'):clip.validate_operands(q)
+-        q['roles']['a']='table';clip.validate_operands(q)
++        from trace_format.contracts import contract_epoch
++        for enabled,reason in ((False,'unresolved_qualified_name'),(True,'single_instance_required')):
++            with contract_epoch(enabled):
++                q=item();q['roles']={'a':'wooden table','b':'bed'}
++                with self.assertRaisesRegex(RowRefusal,reason):clip.validate_operands(q)
++                q['roles']['a']='table';clip.validate_operands(q)
+ 
+     def test_best_camera_axes_and_y_sign_independent_expected_values(self):
+         from test_v312_ground import Geometry,masks,BACKEND
 --- build5/tests/r2_init_fixture.py
 +++ build6/tests/r2_init_fixture.py
 @@ -0,0 +1,7 @@
@@ -8,6 +26,22 @@
 +PIN = file_pin(ROOT/'work/build6/INIT_INPUT.json')
 +INIT = load(ROOT/'work/build6/INIT_INPUT.json')['identity']
 +def binding(): return dict(r2_identity=dict(init=INIT))
+--- build5/tests/test_c1_validation_slice.py
++++ build6/tests/test_c1_validation_slice.py
+@@ -176,9 +176,12 @@
+         cfg = dict(schema='carrier-c1-run-v1', init='base', parallel='fsdp', all_frames=True,
+                    carrier_placement=run.data.C1_A, streams=dict(pose={}, vqa={}, pointing={}))
+         cfg['recipe'] = recipe_for(cfg)
++        raw_before = run.digest(cfg)
+         before = run.identity(cfg)
+         run.validate(cfg)
+-        self.assertEqual(before, run.digest(cfg))
++        self.assertEqual(raw_before, run.digest(cfg))
++        from trace_format.contracts import HEADING_PLANE_MIN_DEFAULT
++        self.assertEqual(before, run.digest({**cfg, 'heading_plane_min':HEADING_PLANE_MIN_DEFAULT}))
+         run.validate({**cfg, 'validation': self.cfg['validation']})
+         self.assertEqual(before, run.identity(cfg))
+         for bad in (None, {}, {'rows': self.rows}, {**self.cfg['validation'], 'other': {}},
 --- build5/tests/test_e2e_open_vocabulary.py
 +++ build6/tests/test_e2e_open_vocabulary.py
 @@ -8,7 +8,7 @@
@@ -393,7 +427,7 @@
 +
 +    def test_direct_square_feet_and_inches(self):
 +        root=directory()
-+        for unit,asked,kind in [('ft2','square feet','room_size_estimation'),('in','inches','object_size_estimation')]:
++        for unit,asked,kind in [('ft2','square feet','room_size_estimation'),('ft2','square feet','absolute_size_room'),('in','inches','object_size_estimation')]:
 +            row=fixture(root,qid=unit);question='What is the room size in '+asked+'?' if unit=='ft2' else 'How wide is the sofa in inches?'
 +            row.update(question_type=kind,question=question,answer_unit=unit,answer='12')
 +            row['student_input']['question']=question

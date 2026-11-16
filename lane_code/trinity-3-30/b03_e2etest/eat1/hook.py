@@ -253,12 +253,20 @@ class ModelMonitor:
         self.events, self.handles, self.depth = [], [], 0
         self.recording = False
         self._t0 = {}
-        if not hasattr(lm, 'register_forward_pre_hook'):
+        # lm is one module (ids in, logits out) or a pair (entry module taking ids, module returning logits),
+        # for readers whose language model and output projection are separate registered modules.
+        entry, head = lm if isinstance(lm, tuple) else (lm, lm)
+        if not all(hasattr(m, 'register_forward_pre_hook') for m in (entry, head)):
             raise ValueError('the LM entry must be a torch module')
-        self.handles.append(lm.register_forward_pre_hook(self._lm_pre, with_kwargs=True))
-        self.handles.append(lm.register_forward_hook(self._lm_post, with_kwargs=True))
+        self.split = entry is not head
+        self.handles.append(entry.register_forward_pre_hook(self._lm_pre, with_kwargs=True))
+        if self.split:
+            self.handles.append(entry.register_forward_hook(self._entry_post, with_kwargs=True))
+            self.handles.append(head.register_forward_hook(self._head_post, with_kwargs=True))
+        else:
+            self.handles.append(entry.register_forward_hook(self._lm_post, with_kwargs=True))
         for path, mod, role, name in declared:
-            if mod is lm:
+            if mod is entry or mod is head:
                 continue
             if role == 'call_handler':
                 self.handles.append(mod.register_forward_hook(self._make_handler_hook(name)))
@@ -285,6 +293,8 @@ class ModelMonitor:
         self._enter()
         if not self.recording:
             return
+        if self.split and getattr(self, '_pending', None) is not None:
+            self.events.append(('forward', self._pending, None))  # an entry forward that produced no logits
         ids = kwargs.get('input_ids', args[0] if args else None)
         self._pending = dict(ids=_ids(ids), past=_past_length(kwargs.get('past_key_values')),
                              stack=_reader_stack(), embeds=ids is None and kwargs.get('inputs_embeds') is not None)
@@ -293,6 +303,9 @@ class ModelMonitor:
         self._leave()
         if not self.recording:
             return
+        self._lm_post_body(output)
+
+    def _lm_post_body(self, output):
         pending = getattr(self, '_pending', None)
         self._pending = None
         if pending is None:
@@ -300,6 +313,13 @@ class ModelMonitor:
         logits = _logits(output)
         argmax = [int(v) for v in logits[0].argmax(-1).reshape(-1).tolist()]
         self.events.append(('forward', pending, argmax))
+
+    def _entry_post(self, module, args, kwargs, output):
+        self._leave()
+
+    def _head_post(self, module, args, kwargs, output):
+        if self.recording and getattr(self, '_pending', None) is not None:
+            self._lm_post_body(output)
 
     def _make_pre(self, role, name):
         def pre(module, args):
@@ -325,6 +345,9 @@ class ModelMonitor:
         self.recording = True
 
     def end(self):
+        if self.split and getattr(self, '_pending', None) is not None:
+            self.events.append(('forward', self._pending, None))
+            self._pending = None
         self.recording = False
         events, self.events = self.events, []
         return events
@@ -346,6 +369,13 @@ def provenance(events):
             continue
         info, argmax = event[1], event[2]
         ids, past = info['ids'], info['past']
+        if argmax is None:  # split entry run without the logits module: counts as an entry only when it restarts
+            if past == 0 and ids is not None:
+                entries += 1
+                if entries > 1:
+                    violations.append(dict(kind='second_model_entry_without_logits', at_token=fed_total,
+                                           stack=info['stack']))
+            continue
         if ids is None:
             violations.append(dict(kind='inputs_embeds_without_ids', stack=info['stack']))
             continue

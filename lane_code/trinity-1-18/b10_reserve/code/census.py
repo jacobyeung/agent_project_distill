@@ -40,6 +40,20 @@ def lines(p):
     return [x.strip() for x in open(p) if x.strip()]
 
 
+def build_universe_aliases(ds, native):
+    """Alias tokens for one capture (same families as build_universe)."""
+    d = DS[ds]
+    toks = {f"{d}/{rung1(NS_R1[ds], native)}", f"{d}/{native}"}
+    for fam in ('v590kgt scene', 'rung1 scene', 'rung2 scene'):
+        for ns in ({NS_R1[ds], ds, 'scannetpp', 'scannetppv2'} if ds == 'scannetpp' else {NS_R1[ds]}):
+            toks.add(f"{d}/v" + hashlib.sha256(f"{fam} {ns}/{native}".encode()).hexdigest()[:12])
+    if ds == 'arkitscenes':
+        toks.add(f"{d}/{posetok('arkitscenes', native)}")
+    if ds == 'scannetpp':
+        toks.add(f"{d}/{rung1('scannetpp', native)}")
+    return toks
+
+
 def build_universe():
     U = {}  # capture key -> record
     for s in lines(os.path.join(IN, 'scannet_scans.txt')):

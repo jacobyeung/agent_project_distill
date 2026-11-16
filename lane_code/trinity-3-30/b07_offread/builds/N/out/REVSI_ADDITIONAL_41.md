@@ -1,0 +1,43 @@
+The following 41 files are additional to the direct-read inventory and still require upload confirmation and content hashes.
+
+- `0988ea78-eb32-2e61-80ee-e4a44170bce9.mp4` requires a hash and an Orchard receipt. The push manifest lists its path and size.
+- `10b17940-3938-2467-8a7a-958300ba83d3.mp4` requires a hash and an Orchard receipt. The push manifest lists its path and size.
+- `286b55a2bf.mp4` requires a hash and an Orchard receipt. The push manifest lists its path and size.
+- `41254386.mp4` requires a hash and an Orchard receipt. The push manifest lists its path and size.
+- `42444954.mp4` requires a hash and an Orchard receipt. The push manifest has no entry.
+- `42445429.mp4` requires a hash and an Orchard receipt. The push manifest lists its path and size.
+- `42446167.mp4` requires a hash and an Orchard receipt. The push manifest lists its path and size.
+- `42897508.mp4` requires a hash and an Orchard receipt. The push manifest has no entry.
+- `42898519.mp4` requires a hash and an Orchard receipt. The push manifest lists its path and size.
+- `42899720.mp4` requires a hash and an Orchard receipt. The push manifest has no entry.
+- `42899725.mp4` requires a hash and an Orchard receipt. The push manifest lists its path and size.
+- `44358436.mp4` requires a hash and an Orchard receipt. The push manifest lists its path and size.
+- `45261142.mp4` requires a hash and an Orchard receipt. The push manifest has no entry.
+- `45261182.mp4` requires a hash and an Orchard receipt. The push manifest has no entry.
+- `45663164.mp4` requires a hash and an Orchard receipt. The push manifest has no entry.
+- `47115469.mp4` requires a hash and an Orchard receipt. The push manifest has no entry.
+- `47331063.mp4` requires a hash and an Orchard receipt. The push manifest has no entry.
+- `47331331.mp4` requires a hash and an Orchard receipt. The push manifest lists its path and size.
+- `47331661.mp4` requires a hash and an Orchard receipt. The push manifest lists its path and size.
+- `47333934.mp4` requires a hash and an Orchard receipt. The push manifest lists its path and size.
+- `47895353.mp4` requires a hash and an Orchard receipt. The push manifest lists its path and size.
+- `47895364.mp4` requires a hash and an Orchard receipt. The push manifest has no entry.
+- `47895552.mp4` requires a hash and an Orchard receipt. The push manifest has no entry.
+- `47895743.mp4` requires a hash and an Orchard receipt. The push manifest lists its path and size.
+- `48018559.mp4` requires a hash and an Orchard receipt. The push manifest lists its path and size.
+- `48018737.mp4` requires a hash and an Orchard receipt. The push manifest has no entry.
+- `6bde60d2-9162-246f-8dbf-dbd911924def.mp4` requires a hash and an Orchard receipt. The push manifest has no entry.
+- `7bc286c1b6.mp4` requires a hash and an Orchard receipt. The push manifest lists its path and size.
+- `ba6fdaae-a4c1-2dca-8240-6fbe1cb25eb4.mp4` requires a hash and an Orchard receipt. The push manifest lists its path and size.
+- `f2dc06b1d2.mp4` requires a hash and an Orchard receipt. The push manifest has no entry.
+- `scene0025_01.mp4` requires a hash and an Orchard receipt. The push manifest has no entry.
+- `scene0086_02.mp4` requires a hash and an Orchard receipt. The push manifest lists its path and size.
+- `scene0139_00.mp4` requires a hash and an Orchard receipt. The push manifest has no entry.
+- `scene0144_00.mp4` requires a hash and an Orchard receipt. The push manifest lists its path and size.
+- `scene0277_01.mp4` requires a hash and an Orchard receipt. The push manifest has no entry.
+- `scene0354_00.mp4` requires a hash and an Orchard receipt. The push manifest lists its path and size.
+- `scene0621_00.mp4` requires a hash and an Orchard receipt. The push manifest lists its path and size.
+- `scene0633_01.mp4` requires a hash and an Orchard receipt. The push manifest has no entry.
+- `scene0664_02.mp4` requires a hash and an Orchard receipt. The push manifest lists its path and size.
+- `scene0685_00.mp4` requires a hash and an Orchard receipt. The push manifest lists its path and size.
+- `scene0686_00.mp4` requires a hash and an Orchard receipt. The push manifest lists its path and size.

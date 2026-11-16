@@ -1,0 +1,1 @@
+set -o pipefail; cd /scratch/jjyeung/mp3d/datasets && cat R2R_VLNCE_v1-3_preprocessed.zip.sha256 && tar cf - R2R_VLNCE_v1-3_preprocessed.zip R2R_VLNCE_v1-3_preprocessed.zip.sha256 | ssh -o ConnectTimeout=20 -o BatchMode=yes trinity-1-18.ib "cd /scratch/jjyeung/orch_n30/b15_vla/navrun_inputs && tar xf -"; echo "gtzip rc=$?"

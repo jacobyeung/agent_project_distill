@@ -1,3 +1,4 @@
+import json
 import hashlib
 import os
 import sys
@@ -69,10 +70,11 @@ def test_content_key_merges_aliases_and_separates_clocks():
     entries, _, _, _ = dm.plan_all([clip('d1', 'vA', 1000)], fm, plan, {})
     got = {(e['scene'], f['source_index']): h('new', f['source_index']) for e in entries for f in e['frames'] if f['sha256'] is None}
     # alias vB of the same recording: identical pins at identical ordinals -> same clip key
-    alias = dict(entries[0], scene='vB', sig='other-sig')
+    e0 = entries[0]
+    alias = dict(e0, scene='vB', sig=dm.signature_key(e0['dataset'], 'vB', e0['fps'], e0['total'], e0['frame_indices'], e0['student_sha256']))
     got.update({('vB', i): sha for (s, i), sha in got.items() if s == 'vA'})
     clips, index, refusals = dm.seal([entries[0], alias], got)
-    assert not refusals and len(clips) == 1 and index['other-sig'] == index[entries[0]['sig']]
+    assert not refusals and len(clips) == 1 and index[alias['sig']] == index[entries[0]['sig']]
     # the same scene on a second clock (another total) is refused against the map clock, never merged
     fm2, plan2 = make_world(total=1000)
     _, refusals2, _, _ = dm.plan_all([clip('d1', 'vA', 2000)], fm2, plan2, {})
@@ -172,6 +174,37 @@ def test_parity_holds_scenes_whose_refetched_student_frames_differ():
     got[('vF', 0)] = h('different bytes')    # parity differs -> vF held
     par = dm.parity(entries, got)
     assert par['equal'] == 1 and par['differ'] == 1 and par['held_scenes'] == ['vF']
+
+
+def test_pixel_parity_admits_lsb_differences_and_holds_the_rest(tmp_path):
+    fm, plan = make_world(scenes=(('d3', 'vE'), ('d3', 'vF'), ('d3', 'vG')))
+    entries, _, _, _ = dm.plan_all([clip('d3', s, 1000, fps=10.0) for s in ('vE', 'vF', 'vG')], fm, plan, {})
+    got = {}
+    for s in ('vE', 'vF', 'vG'):
+        got[(s, 0)] = h('refetched', s)
+    p = tmp_path / 'px.jsonl'
+    p.write_text('\n'.join(json.dumps(r) for r in [
+        dict(s='vE', k=0, byte_equal=False, pinned=h('vE', 0), fetched=h('refetched', 'vE'), max=1, frac=4e-6, ok=True),
+        dict(s='vF', k=0, byte_equal=False, pinned=h('vF', 0), fetched=h('refetched', 'vF'), max=9, frac=0.2, ok=False),
+    ]) + '\n')
+    par = dm.parity(entries, got, dm.load_pixel_parity(str(p)))   # vG has no pixel record -> held
+    assert par['pixel_equal'] == 1 and par['differ'] == 2 and par['held_scenes'] == ['vF', 'vG']
+
+
+def test_review_counterexamples_refuse_clock_conflict_stale_signature_pin_change_and_missing_parity():
+    fm, plan = make_world()
+    entries, _, _, _ = dm.plan_all([clip('d1', 'vA', 1000)], fm, plan, {})
+    e0 = entries[0]
+    got = {('vA', f['source_index']): h('new', f['source_index']) for f in e0['frames'] if f['sha256'] is None}
+    other = dict(e0, fps=30.0, sig=dm.signature_key(e0['dataset'], 'vA', 30.0, e0['total'], e0['frame_indices'], e0['student_sha256']))
+    clips, index, ref = dm.seal([e0, other], got)
+    assert len(clips) == 1 and [r['code'] for r in ref] == ['clock_conflict']
+    stale = dict(e0, student_sha256=[h('x')] + e0['student_sha256'][1:])
+    assert [r['code'] for r in dm.seal([stale], got)[2]] == ['stale_signature']
+    changed = dict(e0, frames=[dict(f, sha256=h('y')) if f['source_index'] == e0['frame_indices'][0] else f for f in e0['frames']])
+    assert [r['code'] for r in dm.seal([changed], got)[2]] == ['student_pin_differs']
+    par = dm.parity([e0], got)
+    assert par['checked'] == 0 and par['parity_missing'] == ['vA'] and par['held_scenes'] == ['vA']
 
 
 def test_wa_dense_plan_capture_uses_traj_rows_and_refuses_clock_mismatch():

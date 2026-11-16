@@ -1,0 +1,1215 @@
+--- a/student_pilot/carrier_c1_data.py	2026-11-15 18:06:47.000000000 -0500
++++ b/student_pilot/carrier_c1_data.py	2026-11-16 06:53:14.591641077 -0500
+@@ -164,10 +164,18 @@
+     # Duplicate after augmentation so each temporal patch contains identical bytes.
+     original = row['student_input'] if layout == 'duplicate' else inputs
+     geometry = {}
++    bank_audit = special = None
+     if gf1:
+         from .gf1 import dense_inputs, ClipCache
+         from .g3t_online import native_square_518
+         dense, indices = dense_inputs(row, gf1)
++        if gf1.get('cached_bank') or 'geometry_bank_donor' in row['student_input']:
++            # Opt-in cached bank or shuffled-bank read; pose rows and uncached clips stay online.
++            from .gf1_cache import row_bank
++            special, bank_audit = row_bank(row, gf1, dense, indices, is_pose)
++    if special is not None:
++        geometry, arrays = special
++    elif gf1:
+         arrays = load_frames(dense)
+         if is_pose:
+             # Keep the checkpoint's sparse-frame jitter draws unchanged, and give
+@@ -195,7 +203,8 @@
+                                  metadata, row['target'], DEFAULT_PIXELS, 16384)
+     batch.update(geometry)
+     return batch, {**audit, 'frame_layout': layout, 'frame_pair_gap_seconds': gap,
+-                   'viewpoint_timestamps_seconds': row['student_input']['timestamps']}
++                   'viewpoint_timestamps_seconds': row['student_input']['timestamps'],
++                   **({'gf1_bank': bank_audit} if bank_audit is not None else {})}
+ 
+ 
+ def insert_frame_markers(batch, tokenizer, frame_layout):
+--- a/student_pilot/dense_eval.py	2026-11-15 13:44:32.000000000 -0500
++++ b/student_pilot/dense_eval.py	2026-11-16 06:53:25.017578500 -0500
+@@ -69,7 +69,9 @@
+                 total_num_frames=sparse["total_num_frames"])
+ 
+ 
+-def prepare_membership(rows, dense_by_clip, settings, output):
++def prepare_membership(rows, dense_by_clip, settings, output, shuffle=None):
++    """shuffle: None for the true read, or dict(seed=int[, grids=..., require_same_grid=bool]) for the
++    shuffled-bank baseline: every clip reads another clip's geometry bank (gf1_cache.shuffle_rows)."""
+     from .p3_provenance import write, file_pin
+     selected, identities = [], set()
+     for row in rows:
+@@ -84,6 +86,12 @@
+         selected.append(value)
+     if not selected:
+         raise ValueError("Dense benchmark membership is empty")
++    plan = None
++    if shuffle is not None:
++        from .gf1_cache import shuffle_rows
++        if not isinstance(shuffle, dict) or set(shuffle) - {"seed", "grids", "require_same_grid"}:
++            raise ValueError("Shuffled-bank option takes seed, grids and require_same_grid")
++        selected, plan = shuffle_rows(selected, settings, **shuffle)
+     output = Path(output)
+     output.mkdir(parents=True, exist_ok=False)
+     path = output / "rows.jsonl"
+@@ -93,5 +101,9 @@
+     receipt = dict(schema="dense-evaluation-v1", count=len(selected), dense_count=len(selected),
+                    dense_frames=settings["dense_frames"], student_frames=32, rows=file_pin(path),
+                    membership_sha256=hashlib.sha256("\n".join(sorted(identities)).encode()).hexdigest())
++    if plan is not None:
++        write(output / "bank_permutation.json", plan)
++        receipt["shuffled_bank"] = dict(seed=plan["seed"], permutation_sha256=plan["permutation_sha256"],
++                                        counts=plan["counts"], plan=file_pin(output / "bank_permutation.json"))
+     write(output / "receipt.json", receipt)
+     return receipt
+--- a/student_pilot/gf1.py	2026-11-15 23:40:31.376358000 -0500
++++ b/student_pilot/gf1.py	2026-11-16 06:51:00.108448078 -0500
+@@ -12,10 +12,21 @@
+                stage=1, learning_rate=1e-4, dense_frames=64, checkpointing=True, gf1_init='warm')
+ 
+ 
++# Opt-in cached pool(LayerNorm-without-affine(x)) bank; absent means the online tower path only.
++CACHED_BANK_KEYS = {'root', 'dtype'}
++CACHED_MARK = 'gf1_cached_pool_nhat_v1'
++
++
+ def normalize(value):
+-    if not isinstance(value, dict) or set(value) - set(DEFAULT):
++    if not isinstance(value, dict) or set(value) - set(DEFAULT) - {'cached_bank'}:
+         raise ValueError('Unknown GF1 setting')
+     cfg = copy.deepcopy(DEFAULT | value)
++    if 'cached_bank' in cfg:
++        cached = cfg['cached_bank']
++        if (not isinstance(cached, dict) or set(cached) != CACHED_BANK_KEYS
++                or not isinstance(cached['root'], str) or not cached['root'].startswith('/')
++                or cached['dtype'] not in ('float32', 'bfloat16')):
++            raise ValueError('GF1 cached_bank needs an absolute root and dtype float32 or bfloat16')
+     if cfg['gf1_init'] not in ('warm', 'zero'):
+         raise ValueError('GF1 init must be warm or explicit zero')
+     if cfg['stage'] == 2:
+@@ -81,11 +92,34 @@
+             nn.init.zeros_(output.weight)
+ 
+     def pooled_bank(self, bank, coords, grid):
++        if isinstance(coords, str):
++            return self.cached_bank(bank, coords, grid)
+         if bank.shape[0] != len(self.norms) or bank.ndim != 5 or not torch.isfinite(bank).all():
+             raise ValueError('GF1 bank must be finite [layers, frames, h, w, channels]')
+         return torch.stack([area_pool(proj(norm(layer.to(proj.weight.dtype))), coords, grid)
+                             for norm, proj, layer in zip(self.norms, self.projections, bank)])
+ 
++    def cached_bank(self, pooled, mark, grid, merge=2):
++        """Apply every trainable connector parameter to a cached pool(n_hat) bank.
++
++        Area weights sum to one over each in-image cell, so pool(W(g*n+b)+c) = W(g*pool(n)+b)+c.
++        pooled: [layers, frames * merger cells, channels], n_hat without the LayerNorm affine.
++        """
++        t, h, w = map(int, grid)
++        if (mark != CACHED_MARK or pooled.ndim != 3 or pooled.shape[0] != len(self.norms)
++                or h % merge or w % merge or pooled.shape[1] != t * (h // merge) * (w // merge)
++                or not torch.isfinite(pooled).all()):
++            raise ValueError('GF1 cached bank must be finite [layers, frames * merger cells, channels]')
++        result = []
++        for norm, proj, layer in zip(self.norms, self.projections, pooled):
++            if norm.weight is None or norm.bias is None or layer.shape[-1] != norm.normalized_shape[0]:
++                raise ValueError('GF1 cached bank needs an affine LayerNorm of the cached width')
++            dtype = proj.weight.dtype
++            affine = torch.addcmul(norm.bias.to(dtype), layer.to(dtype), norm.weight.to(dtype))
++            # area_pool returns FP32; keep the same dtype so cached and online rows concatenate.
++            result.append(proj(affine).float())
++        return torch.stack(result)
++
+     def forward(self, visual, *clips):
+         banks = []
+         for i in range(0, len(clips), 3):
+@@ -210,6 +244,10 @@
+ 
+ def geometry_features(model, batch):
+     from .g3t_online import features
++    if batch.get('aux_gf1_rowbanks') is not None:
++        # Cached or shuffled-donor banks; rows without an entry still run the tower online.
++        from .gf1_cache import rowbank_features
++        return rowbank_features(model, batch)
+     encoder = model.auxiliary_heads.geometry_encoder
+     required = ('aux_g3t_images', 'aux_g3t_coords', 'aux_gf1_lm_indices')
+     if any(k not in batch for k in required):
+--- a/student_pilot/gf1_cache.py	1969-12-31 19:00:00.000000000 -0500
++++ b/student_pilot/gf1_cache.py	2026-11-16 06:53:07.051686332 -0500
+@@ -0,0 +1,506 @@
++"""GF-1 cached tower bank and shuffled-bank reads.
++
++The connector computes area_pool(proj(norm(x))) per layer. Area weights are non-negative and sum to one
++over every merger cell of an ROI inside the 1024 raster, and LayerNorm's affine part and the projection are
++token-shared affine maps, so pool(W(g*n_hat+b)+c) = W(g*pool(n_hat)+b)+c with n_hat the per-token
++normalised feature without learned parameters. A cache of pool(n_hat) per layer, LM anchor frame and merger
++cell therefore keeps every connector parameter live. Rows without a cache (pose rows, whose dense frames are
++augmented per row) run the tower online. A cache whose identity differs refuses; it never falls back.
++"""
++import argparse
++import copy
++import hashlib
++import inspect
++import json
++import math
++from pathlib import Path
++
++import torch
++from torch.nn import functional as F
++
++SCHEMA = 'gf1-pooled-nhat-v1'
++DONOR_SCHEMA = 'gf1-bank-donor-v1'
++PLAN_SCHEMA = 'gf1-shuffled-bank-v1'
++TENSOR_KEY = 'pool'
++DTYPES = {'float32': torch.float32, 'bfloat16': torch.bfloat16}
++
++
++def clip_key(dense):
++    """Content key of a dense clip: digest of its (source ordinal, sha256) pairs, as r2_dense builds it."""
++    from .p3_provenance import digest
++    frames, ordinals = dense['frames'], dense['frame_indices']
++    if len(frames) != len(ordinals) or any(not isinstance(f, dict) or not f.get('sha256') for f in frames):
++        raise ValueError('GF1 cache key needs sha256-pinned dense frames')
++    return digest([(i, f['sha256']) for i, f in zip(ordinals, frames)])
++
++
++def pooled_nhat(bank, coords, grid, eps, chunk=8):
++    """bank [layers, anchors, patches, channels] -> FP32 [layers, anchors, merger cells, channels]."""
++    from .gf1 import area_pool
++    layers, frames, patches, channels = bank.shape
++    side = math.isqrt(patches)
++    t, h, w = map(int, grid)
++    if side * side != patches or frames != t or coords.shape != (t, 4):
++        raise ValueError('GF1 cache bank, ROI and grid disagree')
++    out = torch.empty(layers, t, (h // 2) * (w // 2), channels, dtype=torch.float32, device=bank.device)
++    with torch.autocast(bank.device.type, enabled=False):
++        for layer in range(layers):
++            for start in range(0, t, chunk):
++                stop = min(t, start + chunk)
++                block = bank[layer, start:stop].float().reshape(stop - start, side, side, channels)
++                normed = F.layer_norm(block, (channels,), eps=eps)
++                out[layer, start:stop] = area_pool(normed, coords[start:stop], (stop - start, h, w)).reshape(
++                    stop - start, -1, channels)
++    return out
++
++
++def code_version():
++    from . import gf1
++    parts = [SCHEMA, inspect.getsource(gf1.area_pool), inspect.getsource(pooled_nhat),
++             inspect.getsource(gf1.Fusion.cached_bank)]
++    return hashlib.sha256('\0'.join(parts).encode()).hexdigest()
++
++
++def bank_dtype(geometry_online, device_type):
++    """The dtype of the tower's layer bank: G3TEncoder autocasts on CUDA or with BF16 storage."""
++    return 'bfloat16' if device_type == 'cuda' or geometry_online.get('encoder_dtype') == 'bf16' else 'float32'
++
++
++def identity(geometry_online, *, device_type, eps, input_dim, compute_dtype, grid, dtype):
++    """Fields a cache must share with the consuming model; the clip key and anchors are checked per row."""
++    enc = geometry_online['encoder']
++    gf1 = geometry_online['gf1']
++    return dict(schema=SCHEMA, code_version=code_version(), layers=list(gf1['layers']),
++                dense_frames=gf1['dense_frames'],
++                tower=dict(weights_sha256=enc['weights']['sha256'], config_sha256=enc['config']['sha256'],
++                           source_sha256=enc['source_sha256'], input=geometry_online['input'],
++                           encoder_dtype=geometry_online.get('encoder_dtype', 'fp32')),
++                bank_dtype=bank_dtype(geometry_online, device_type),
++                norm=dict(kind='layer_norm_without_affine', eps=float(eps), input_dim=int(input_dim),
++                          compute_dtype=compute_dtype),
++                pool='gf1_area_pool_roi_1024_merge2', merger_grid=[int(v) for v in grid], dtype=dtype,
++                augment='none')
++
++
++def model_identity(model, grid, device_type):
++    fusion = model.auxiliary_heads.gf1
++    eps = {float(n.eps) for n in fusion.norms}
++    dims = {int(n.normalized_shape[0]) for n in fusion.norms}
++    dtypes = {str(p.weight.dtype).removeprefix('torch.') for p in fusion.projections}
++    if len(eps) != 1 or len(dims) != 1 or len(dtypes) != 1:
++        raise ValueError('GF1 cached bank needs one LayerNorm eps, width and projection dtype')
++    return identity(model.geometry_online, device_type=device_type, eps=eps.pop(), input_dim=dims.pop(),
++                    compute_dtype=dtypes.pop(), grid=grid, dtype=model.geometry_online['gf1']['cached_bank']['dtype'])
++
++
++def _sha256(path):
++    h = hashlib.sha256()
++    with open(path, 'rb') as f:
++        for block in iter(lambda: f.read(1 << 22), b''):
++            h.update(block)
++    return h.hexdigest()
++
++
++def write_clip(encoder, row, root, *, grid, dtype, eps=1e-5, compute_dtype='float32'):
++    """Run the frozen tower once on a dense clip and write pool(n_hat) at its LM anchors.
++
++    One file per clip, named by the clip content key, plus a JSON identity record (the commit marker)
++    holding the tensor's sha256. Rewriting an existing clip must reproduce it byte for byte.
++    """
++    from safetensors.torch import save
++    from .g3t_online import features, native_square_518
++    from .gf1 import dense_inputs
++    from .pose_samples import load_frames
++    settings = encoder.settings
++    cfg = settings['gf1']
++    if dtype not in DTYPES:
++        raise ValueError('GF1 cache dtype must be float32 or bfloat16')
++    dense, anchors = dense_inputs(row, cfg)
++    key = clip_key(dense)
++    if len(anchors) != int(grid[0]):
++        raise ValueError('GF1 cache anchors must equal the temporal merger grid')
++    device = next(encoder.parameters()).device
++    images, coords = native_square_518(load_frames(dense), expected_frames=cfg['dense_frames'])
++    mapping = torch.tensor(anchors, dtype=torch.long, device=device)
++    with torch.no_grad():
++        _, bank = features(encoder, images.to(device), coords.to(device))
++        bank = bank.index_select(1, mapping)
++        roi = coords.to(device).index_select(0, mapping)
++        pooled = pooled_nhat(bank, roi, grid, eps)
++        del bank
++    pooled = pooled.to(DTYPES[dtype]).cpu().contiguous()
++    payload = save({TENSOR_KEY: pooled})
++    record = identity(settings, device_type=device.type, eps=eps, input_dim=pooled.shape[-1],
++                      compute_dtype=compute_dtype, grid=grid, dtype=dtype)
++    record.update(clip_key=key, anchor_slots=list(anchors), dense_frame_indices=list(dense['frame_indices']),
++                  roi_1024=roi.cpu().tolist(), shape=list(pooled.shape),
++                  tensor=dict(file=key + '.safetensors', sha256=hashlib.sha256(payload).hexdigest(),
++                              bytes=len(payload)))
++    root = Path(root)
++    root.mkdir(parents=True, exist_ok=True)
++    tensor_path, record_path = root / record['tensor']['file'], root / (key + '.json')
++    if record_path.exists():
++        if json.loads(record_path.read_text()) != record or _sha256(tensor_path) != record['tensor']['sha256']:
++            raise ValueError('GF1 cache rewrite differs from the stored clip: ' + key)
++        return record
++    if tensor_path.exists():
++        raise ValueError('GF1 cache tensor exists without its identity record: ' + str(tensor_path))
++    with open(tensor_path, 'xb') as f:
++        f.write(payload)
++    with open(record_path, 'x') as f:
++        json.dump(record, f, indent=1, sort_keys=True)
++        f.write('\n')
++    return record
++
++
++class RowBank:
++    """One row's GF-1 bank source: a cached pool(n_hat) tensor, or dense frames for an online tower pass."""
++    def __init__(self, kind, mapping, record=None, tensor=None, images=None, coords=None, donor=None):
++        if kind not in ('cached', 'dense'):
++            raise ValueError('Unknown GF1 row bank kind')
++        self.kind, self.mapping, self.record, self.tensor = kind, mapping, record, tensor
++        self.images, self.coords, self.donor = images, coords, donor
++
++    def to(self, device):
++        for name in ('mapping', 'tensor', 'images', 'coords'):
++            value = getattr(self, name)
++            if value is not None:
++                setattr(self, name, value.to(device))
++        return self
++
++    def key(self):
++        source = self.record['tensor']['sha256'] if self.kind == 'cached' else id(self.images)
++        return (self.kind, source, None if self.donor is None else self.donor['clip_key'])
++
++
++class RowBanks:
++    """Per-row entries (None means: run the tower online on aux_g3t_images for that row)."""
++    def __init__(self, entries):
++        self.entries = list(entries)
++
++    def to(self, device):
++        for entry in self.entries:
++            if entry is not None:
++                entry.to(device)
++        return self
++
++    def key(self):
++        return tuple(None if e is None else e.key() for e in self.entries)
++
++
++def load_cached(settings, key, anchors):
++    """Return the clip's cached entry, None when the clip has no record, and refuse any mismatch."""
++    from safetensors.torch import load
++    root = Path(settings['root'])
++    if not root.is_dir():
++        raise ValueError('GF1 cached_bank root is missing: ' + str(root))
++    record_path = root / (key + '.json')
++    if not record_path.exists():
++        return None
++    record = json.loads(record_path.read_text())
++    if (record.get('schema') != SCHEMA or record.get('clip_key') != key or record.get('anchor_slots') != list(anchors)
++            or record.get('dtype') != settings['dtype'] or record.get('augment') != 'none'
++            or record.get('tensor', {}).get('file') != key + '.safetensors'):
++        raise ValueError('GF1 cached bank identity differs from the row: ' + key)
++    payload = (root / record['tensor']['file']).read_bytes()
++    if hashlib.sha256(payload).hexdigest() != record['tensor']['sha256']:
++        raise ValueError('GF1 cached bank tensor sha256 differs: ' + key)
++    tensor = load(payload)[TENSOR_KEY]
++    if tensor.dtype != DTYPES[settings['dtype']] or list(tensor.shape) != record['shape']:
++        raise ValueError('GF1 cached bank tensor dtype or shape differs: ' + key)
++    return RowBank('cached', torch.tensor(list(anchors), dtype=torch.long), record=record, tensor=tensor)
++
++
++def _check_anchors(anchors, n):
++    if (not isinstance(anchors, list) or not anchors or anchors[0] != 0 or anchors != sorted(set(anchors))
++            or any(type(a) is not int for a in anchors) or anchors[-1] >= n):
++        raise ValueError('GF1 bank donor anchors must be ordered dense slots starting at 0')
++
++
++def row_bank(row, cfg, dense, indices, is_pose):
++    """Encoder side: (geometry, LM arrays) for a cached or donor row, or None for the online path; plus audit."""
++    from .g3t_online import native_square_518
++    from .gf1 import ClipCache
++    from .pose_samples import load_frames
++    inputs = row['student_input']
++    own = clip_key(dense)
++    donor = inputs.get('geometry_bank_donor')
++    settings = cfg.get('cached_bank')
++    lm = lambda: load_frames(dict(frames=[dense['frames'][i] for i in indices]))
++    if donor is not None:
++        if is_pose:
++            raise ValueError('GF1 shuffled bank is a read option; pose rows keep their own augmented clip')
++        if (not isinstance(donor, dict) or donor.get('schema') != DONOR_SCHEMA
++                or set(donor) != {'schema', 'clip_key', 'geometry_dense', 'anchor_slots', 'permutation_sha256'}):
++            raise ValueError('Invalid GF1 bank donor')
++        other, anchors = donor['geometry_dense'], donor['anchor_slots']
++        if len(other.get('frames', [])) != cfg['dense_frames'] or other.get('frame_indices') != sorted(set(other['frame_indices'])):
++            raise ValueError('GF1 bank donor needs the configured ordered dense frames')
++        _check_anchors(anchors, cfg['dense_frames'])
++        if len(anchors) != len(indices):
++            raise ValueError('GF1 bank donor anchor count differs from the row')
++        key = clip_key(other)
++        if key != donor['clip_key'] or key == own:
++            raise ValueError('GF1 bank donor key differs from its frames or names the row\'s own clip')
++        entry = load_cached(settings, key, anchors) if settings else None
++        if entry is None:
++            images, coords = native_square_518(load_frames(other), expected_frames=cfg['dense_frames'])
++            entry = RowBank('dense', torch.tensor(anchors, dtype=torch.long), images=images, coords=coords)
++        entry.donor = dict(clip_key=key, own_clip_key=own, permutation_sha256=donor['permutation_sha256'])
++        geometry = dict(aux_gf1_cache=ClipCache(), aux_gf1_lm_indices=torch.tensor([indices], dtype=torch.long),
++                        aux_gf1_rowbanks=RowBanks([entry]))
++        return (geometry, lm()), dict(source='shuffled_' + entry.kind, clip_key=own, donor_clip_key=key,
++                                      permutation_sha256=donor['permutation_sha256'])
++    if is_pose:
++        return None, dict(source='online', reason='pose_row_augmented', clip_key=own)
++    entry = load_cached(settings, own, indices)
++    if entry is None:
++        return None, dict(source='online', reason='no_cache', clip_key=own)
++    geometry = dict(aux_gf1_cache=ClipCache(), aux_gf1_lm_indices=torch.tensor([indices], dtype=torch.long),
++                    aux_gf1_rowbanks=RowBanks([entry]))
++    return (geometry, lm()), dict(source='cached', clip_key=own, tensor_sha256=entry.record['tensor']['sha256'])
++
++
++def _valid_mapping(mapping, grid, n):
++    return (mapping.dtype == torch.long and mapping.ndim == 1 and len(mapping) == int(grid[0])
++            and int(mapping[0]) == 0 and len(mapping) == len(torch.unique(mapping)) and not (mapping < 0).any()
++            and not (mapping >= n).any() and bool(torch.all(mapping[1:] > mapping[:-1])))
++
++
++def rowbank_features(model, batch):
++    """Model side of gf1.geometry_features when a batch carries per-row bank entries."""
++    import math as _math
++    from .g3t_online import features
++    from .gf1 import ClipCache, CACHED_MARK, _version
++    encoder = model.auxiliary_heads.geometry_encoder
++    cfg = model.geometry_online['gf1']
++    banks = batch['aux_gf1_rowbanks']
++    rows = batch['input_ids'].shape[0]
++    n = cfg['dense_frames']
++    if not isinstance(banks, RowBanks) or len(banks.entries) != rows:
++        raise ValueError('GF1 row banks must name one entry per row')
++    online = [i for i, e in enumerate(banks.entries) if e is None]
++    maps, grids = batch.get('aux_gf1_lm_indices'), batch['video_grid_thw']
++    if maps is None or len(maps) != rows or grids.shape != (rows, 3):
++        raise ValueError('GF1 dense clip batch shape differs')
++    images = coords = None
++    if online:
++        if 'aux_g3t_images' not in batch or 'aux_g3t_coords' not in batch:
++            raise ValueError('GF1 requires dense RGB, valid ROI and explicit nested LM indices')
++        images, coords = batch['aux_g3t_images'], batch['aux_g3t_coords']
++        if images.ndim != 5 or images.shape[:2] != (rows, n) or coords.shape != (*images.shape[:2], 4):
++            raise ValueError('GF1 dense clip batch shape differs')
++    device = next(encoder.parameters()).device
++    for entry in banks.entries:
++        if entry is None:
++            continue
++        if entry.donor is not None and model.training:
++            raise ValueError('GF1 shuffled-bank donors are a read-time option only')
++        if entry.kind == 'cached' and 'cached_bank' not in cfg:
++            raise ValueError('GF1 cached bank supplied while the cached_bank switch is off')
++    cache = batch.setdefault('aux_gf1_cache', ClipCache())
++    if not isinstance(cache, ClipCache):
++        raise ValueError('GF1 cache must be owned by the encoded row')
++    sources = batch.get('aux_camera_rope_sources')
++    key = ('rowbanks', banks.key(), _version(batch['pixel_values_videos']), id(encoder),
++           _version(next(encoder.parameters())), str(device), None if images is None else _version(images),
++           None if coords is None else _version(coords), str(maps.tolist()), str(grids.tolist()),
++           None if sources is None else str(sources.tolist()), model.gx_zero_feature)
++    if cache.key == key and cache.value is not None:
++        model.gx_metrics = dict(feature_finite=True, dense_frames=n, tower_forwards=0, tower_cache_hit=True)
++        return cache.value
++    shared = batch.get('aux_gf1_shared')
++    clips, forwards, cached, donors = [], 0, 0, 0
++    for r, (entry, mapping, grid) in enumerate(zip(banks.entries, maps, grids)):
++        mapping = mapping.to(device)
++        if not _valid_mapping(mapping, grid, n):
++            raise ValueError('GF1 LM frames must be an ordered nested subset of dense frames')
++        if entry is None or entry.kind == 'dense':
++            if entry is None and shared is not None:
++                if rows != 1 or shared.encoder is not encoder or shared.layers != cfg['layers']:
++                    raise ValueError('GF1 shared tower features have a different owner or layer bank')
++                bank, roi, slots = shared.bank.to(device), coords[r].to(device), mapping
++            else:
++                image, roi = (images[r], coords[r]) if entry is None else (entry.images, entry.coords)
++                slots = mapping if entry is None else entry.mapping.to(device)
++                if image.shape[0] != n or not _valid_mapping(slots, grid, n):
++                    raise ValueError('GF1 bank donor frames or anchors differ from the configured dense clip')
++                with torch.no_grad():
++                    _, bank = features(encoder, image.to(device), roi.to(device))
++                forwards += 1
++            donors += entry is not None
++            bank = bank.index_select(1, slots)
++            side = _math.isqrt(bank.shape[2])
++            if side ** 2 != bank.shape[2]:
++                raise ValueError('GF1 tower patch grid is not square')
++            bank = bank.reshape(bank.shape[0], len(slots), side, side, bank.shape[-1])
++            clips.append((torch.zeros_like(bank) if model.gx_zero_feature else bank,
++                          roi.to(device).index_select(0, slots), grid))
++            continue
++        record = entry.record
++        expected = model_identity(model, grid.tolist(), device.type)
++        for field, value in expected.items():
++            if record.get(field) != value:
++                raise ValueError(f'GF1 cached bank identity differs in {field}: refusing the cache')
++        if entry.donor is None and record['anchor_slots'] != mapping.tolist():
++            raise ValueError('GF1 cached bank anchors differ from the row\'s nested LM indices')
++        if record['anchor_slots'] != entry.mapping.tolist():
++            raise ValueError('GF1 cached bank anchors differ from its entry')
++        pooled = entry.tensor.to(device)
++        pooled = pooled.reshape(pooled.shape[0], -1, pooled.shape[-1])
++        clips.append((torch.zeros_like(pooled) if model.gx_zero_feature else pooled, CACHED_MARK, grid))
++        cached += 1
++        donors += entry.donor is not None
++    model.gx_metrics = dict(feature_finite=True, dense_frames=n, tower_forwards=forwards, cached_rows=cached,
++                            donor_rows=donors, shared_head_tower=shared is not None)
++    cache.key, cache.value = key, (None, clips)
++    return cache.value
++
++
++# Shuffled-bank read: the no-information baseline for geometry use.
++
++def _order(keys, seed, tag):
++    return sorted(keys, key=lambda k: hashlib.sha256(f'{seed}|{tag}|{k}'.encode()).hexdigest())
++
++
++def shuffled_bank_plan(units, seed, require_same_grid=False):
++    """Fixed derangement over clips. units: [{clip_key, dataset, grid}]. Pairs prefer the same dataset and
++    grid; leftovers relax the dataset first when grids must match (cached reads), else the grid first."""
++    if type(seed) is not int:
++        raise ValueError('Shuffled-bank seed must be an integer')
++    info = {}
++    for unit in units:
++        key, value = unit['clip_key'], (unit['dataset'], tuple(int(v) for v in unit['grid']))
++        if info.setdefault(key, value) != value:
++            raise ValueError('One clip has two datasets or grids')
++    if len(info) < 2:
++        raise ValueError('A shuffled-bank read needs at least two clips')
++    donor = {}
++    def cycles(groups, tag):
++        left = []
++        for name in sorted(groups):
++            members = groups[name]
++            if len(members) < 2:
++                left += members
++                continue
++            order = _order(members, seed, f'{tag}|{name}')
++            donor.update({order[i]: order[(i + 1) % len(order)] for i in range(len(order))})
++        return left
++    def group(keys, by):
++        groups = {}
++        for k in keys:
++            groups.setdefault(repr(by(k)), []).append(k)
++        return groups
++    left = cycles(group(sorted(info), lambda k: info[k]), 'dataset_grid')
++    second = (lambda k: info[k][1]) if require_same_grid else (lambda k: info[k][0])
++    left = cycles(group(left, second), 'grid' if require_same_grid else 'dataset')
++    if not require_same_grid:
++        left = cycles({'all': left} if left else {}, 'all')
++    for k in _order(left, seed, 'insert'):
++        candidates = [a for a in sorted(donor) if not require_same_grid or
++                      info[a][1] == info[k][1] == info[donor[a]][1]]
++        if not candidates:
++            raise ValueError('No shuffled-bank partner shares this clip\'s merger grid: ' + k)
++        a = min(candidates, key=lambda a: (info[a][0] != info[k][0], info[a][1] != info[k][1], a))
++        donor[k], donor[a] = donor[a], k
++    if set(donor) != set(info) or any(k == v for k, v in donor.items()) or sorted(donor.values()) != sorted(info):
++        raise AssertionError('Shuffled-bank plan is not a derangement')
++    pairs = [dict(clip_key=k, donor_clip_key=v, dataset=info[k][0], donor_dataset=info[v][0],
++                  grid=list(info[k][1]), donor_grid=list(info[v][1])) for k, v in sorted(donor.items())]
++    permutation = hashlib.sha256(json.dumps([[p['clip_key'], p['donor_clip_key']] for p in pairs]).encode()).hexdigest()
++    counts = dict(clips=len(pairs), same_dataset_same_grid=0, same_dataset_other_grid=0,
++                  other_dataset_same_grid=0, other_dataset_other_grid=0)
++    for p in pairs:
++        same_dataset, same_grid = p['dataset'] == p['donor_dataset'], p['grid'] == p['donor_grid']
++        counts[('same' if same_dataset else 'other') + '_dataset_' + ('same' if same_grid else 'other') + '_grid'] += 1
++    return dict(schema=PLAN_SCHEMA, seed=seed, require_same_grid=require_same_grid, counts=counts,
++                permutation_sha256=permutation, pairs=pairs)
++
++
++def frame_grid(row):
++    """Video grid [32, H, W] of a row's LM frames under the trainer's pixel budget (header read only)."""
++    from PIL import Image
++    from .grounding_targets import grid_for
++    from .r2_frames import verify_frame
++    with Image.open(verify_frame(row['student_input']['frames'][0])) as image:
++        gh, gw = grid_for(image.size)
++    return [len(row['student_input']['frames']), 2 * gh, 2 * gw]
++
++
++def _dataset(row):
++    value = row.get('dataset') or row['student_input'].get('dataset') or str(row.get('scene', '')).split('/')[0]
++    if not value:
++        raise ValueError('Shuffled-bank pairing needs each row\'s dataset')
++    return value
++
++
++def shuffle_rows(rows, settings, seed, grids=None, require_same_grid=False):
++    """Attach a donor clip's dense frames to every row; returns (rows, plan). grids: clip_key -> video grid."""
++    from .gf1 import dense_inputs
++    dense_of, anchors_of, units = {}, {}, []
++    keyed = []
++    for row in rows:
++        dense, anchors = dense_inputs(row, settings)
++        key = clip_key(dense)
++        if anchors_of.setdefault(key, anchors) != anchors or dense_of.setdefault(key, dense) != dense:
++            raise ValueError('Rows of one dense clip disagree on its frames or LM anchors')
++        grid = grids[key] if grids is not None else frame_grid(row)
++        units.append(dict(clip_key=key, dataset=_dataset(row), grid=grid))
++        keyed.append(key)
++    plan = shuffled_bank_plan(units, seed, require_same_grid)
++    donors = {p['clip_key']: p['donor_clip_key'] for p in plan['pairs']}
++    result = []
++    for row, key in zip(rows, keyed):
++        row = copy.deepcopy(row)
++        other = donors[key]
++        row['student_input']['geometry_bank_donor'] = dict(
++            schema=DONOR_SCHEMA, clip_key=other, geometry_dense=copy.deepcopy(dense_of[other]),
++            anchor_slots=list(anchors_of[other]), permutation_sha256=plan['permutation_sha256'])
++        result.append(row)
++    return result, plan
++
++
++def main():
++    """Write the cache for every distinct clip of a rows JSONL (non-pose rows only)."""
++    parser = argparse.ArgumentParser(description=main.__doc__)
++    parser.add_argument('--run-config', required=True, help='C1 run config JSON with geometry_online.gf1')
++    parser.add_argument('--rows', required=True)
++    parser.add_argument('--root', required=True)
++    parser.add_argument('--dtype', choices=sorted(DTYPES), required=True)
++    parser.add_argument('--device', default='cuda:0')
++    parser.add_argument('--limit', type=int)
++    args = parser.parse_args()
++    from . import g3t_online
++    from .gf1 import dense_inputs
++    from .pose_samples import CATEGORY
++    geometry = g3t_online.normalize(json.loads(Path(args.run_config).read_text())['geometry_online'])
++    if 'gf1' not in geometry:
++        raise ValueError('The run config has no GF1 block')
++    import os
++    os.environ.setdefault('CUBLAS_WORKSPACE_CONFIG', ':4096:8')
++    # Deterministic kernels where available; write_clip refuses a rewrite that differs byte for byte.
++    torch.use_deterministic_algorithms(True, warn_only=True)
++    encoder = g3t_online.G3TEncoder(geometry)
++    encoder.load_pinned(geometry['encoder']['weights']['path'])
++    encoder.to(args.device).eval()
++    seen, written = set(), []
++    with open(args.rows) as handle:
++        for line in handle:
++            row = json.loads(line)
++            if row.get('category') == CATEGORY and 'pose_sample' in row:
++                continue
++            dense, _ = dense_inputs(row, geometry['gf1'])
++            key = clip_key(dense)
++            if key in seen:
++                continue
++            seen.add(key)
++            record = write_clip(encoder, row, args.root, grid=frame_grid(row), dtype=args.dtype)
++            written.append(dict(clip_key=key, sha256=record['tensor']['sha256'], bytes=record['tensor']['bytes']))
++            print(json.dumps(written[-1]), flush=True)
++            if args.limit and len(written) >= args.limit:
++                break
++    print(json.dumps(dict(clips=len(written), bytes=sum(w['bytes'] for w in written))))
++
++
++if __name__ == '__main__':
++    main()
+--- a/tests/test_gf1_cache.py	1969-12-31 19:00:00.000000000 -0500
++++ b/tests/test_gf1_cache.py	2026-11-16 06:58:37.674699766 -0500
+@@ -0,0 +1,565 @@
++"""GF-1 cached pool(n_hat) bank, identity refusal, online pose rows and the shuffled-bank read (CPU, tiny)."""
++import copy
++import hashlib
++import json
++import os
++from pathlib import Path
++import tempfile
++import unittest
++from unittest.mock import patch
++
++import numpy as np
++import torch
++from torch.nn import functional as F
++
++from student_pilot import gf1, gf1_cache as C, g3t_online as gx, carrier_c1_data as data, pose_samples as samples
++from student_pilot.carrier_c1 import CarrierC1
++from student_pilot.carrier_c1_data import insert_frame_carriers
++from tests.test_carrier_c1 import Tokenizer
++
++SIDE = 56          # tiny tower raster (4 x 4 patches of 14)
++GRID = (32, 4, 6)  # Qwen video grid: 32 temporal groups, 2 x 3 merger cells per frame
++FRAME_WH = (64, 48)
++
++
++def out_dir():
++    root = Path(os.environ.get('LANE_TEST_OUTPUT') or tempfile.mkdtemp())
++    return Path(tempfile.mkdtemp(prefix='gf1_cache_', dir=root))
++
++
++def settings(cached=None, encoder_bf16=False, injection='pre_lm', router=False, layers=(0, 1, 2)):
++    production = json.loads((Path(__file__).resolve().parents[1]/'configs/gf1_stage1.json').read_text())
++    value = production['gf1'] | dict(injection=injection, hidden=16, dense_frames=64, layers=list(layers),
++                                     top_k=2 if router else 0)
++    if cached is not None:
++        value['cached_bank'] = cached
++    block = dict(schema='gx-carrier-v1', mode='frozen', encoder=dict(repository=gx.REPOSITORY,
++        revision=gx.REVISION, source_sha256=gx.vendor_digest(),
++        weights=dict(path='/fixture/model.safetensors', sha256='a'*64),
++        config=dict(path='/fixture/config.json', sha256='b'*64)), input=gx.INPUT, feature=gx.FEATURE,
++        connector=dict(out_init='zero', rms_cam='warm_start_carrier_median_rms_v1', rms_scale=1.),
++        finetune=None, gf1=gf1.normalize(value))
++    if encoder_bf16:
++        block['encoder_dtype'] = 'bf16'
++    return block
++
++
++class Tiny(gx.G3TEncoder):
++    calls = 0
++    def __init__(self, block):
++        super().__init__(block, dict(aggregator=dict(img_size=SIDE, patch_size=14, embed_dim=16, depth=3,
++            num_heads=2, patch_embed='conv'), head=dict(dim_in=32, trunk_depth=1, num_heads=2)), image_size=SIDE)
++    def forward(self, images, coords=None):
++        Tiny.calls += 1
++        assert not torch.is_grad_enabled()
++        cam, local, global_, bank = super().forward(images, coords)
++        return F.pad(cam, (0, 2048-cam.shape[-1])), local, global_, F.pad(bank, (0, 2048-bank.shape[-1]))
++
++
++def small_square(frames, expected_frames=32):
++    """The native square loader at full fidelity, then resized to the tiny tower raster; ROI unchanged."""
++    images, coords = REAL_SQUARE(frames, expected_frames=expected_frames)
++    return F.interpolate(images.float(), (SIDE, SIDE), mode='bilinear', align_corners=False).half(), coords
++
++
++REAL_SQUARE = gx.native_square_518
++
++
++def model_for(block, base_bf16=False, seed=31):
++    from transformers import Qwen3_5Config, Qwen3_5ForConditionalGeneration
++    torch.manual_seed(seed)
++    text = dict(vocab_size=64, hidden_size=32, intermediate_size=64, num_hidden_layers=3,
++                num_attention_heads=4, num_key_value_heads=2, head_dim=8, use_cache=False,
++                layer_types=['linear_attention','full_attention','full_attention'], linear_key_head_dim=4,
++                linear_value_head_dim=4, linear_num_key_heads=4, linear_num_value_heads=4,
++                pad_token_id=0, rope_parameters=dict(rope_type='default', rope_theta=10000.,
++                                                    mrope_section=[1,1,2], partial_rotary_factor=1.))
++    vision = dict(depth=3, hidden_size=32, intermediate_size=64, num_heads=4, out_hidden_size=32,
++                  num_position_embeddings=16, patch_size=2, temporal_patch_size=2, spatial_merge_size=2)
++    config = Qwen3_5Config(text_config=text, vision_config=vision, image_token_id=60, video_token_id=61,
++                          vision_start_token_id=62, vision_end_token_id=63)
++    for item in (config, config.text_config, config.vision_config): item._attn_implementation = 'sdpa'
++    base = Qwen3_5ForConditionalGeneration(config).float()
++    camera = dict(embed_dim=64, num_heads=4, trunk_depth=4, refine_iterations=4,
++                  weight_gravity=.05, weight_scale=.02, supervision=dict(path='/fixture', sha256='a'*64))
++    from student_pilot.carrier_c1_sweep import recipe_for
++    cfg = dict(schema='carrier-c1-run-v1', training_mode='final', depth_enabled=False,
++        depth_fov_source='pose_head', frame_layout='duplicate', init='base', parallel='fsdp', all_frames=True,
++        carrier_placement='append_after_temporal_group_video_tokens_v1', streams=dict(pose={},vqa={},pointing={},routing={}),
++        mix=['pose','vqa','pointing','routing'], world_size=4, reference_world_size=4, steps=10, milestones=[10],
++        geometry_online=block, trace_program_version='3.14')
++    cfg['scheduled_sampling'] = dict(seed=17, max_own_probability=1., pose_open_deg=45., pose_full_deg=25.,
++        fov_open_deg=2., depth_open_absrel=.25, ema_steps=100, force_from_step=0, exposure_from_step=None,
++        exposure_probability=0.)
++    cfg['recipe'] = recipe_for(cfg)
++    with patch.object(gx, 'G3TEncoder', Tiny):
++        model = CarrierC1(base, camera, {}, 5, training_mode='final', depth_enabled=False, frame_layout='duplicate',
++                          depth_fov_source='pose_head', recipe=cfg['recipe'], geometry_online=block,
++                          geometry_runtime=dict(image_mean=[.5]*3, image_std=[.25]*3))
++    from student_pilot.trace_version import bind
++    bind(model, cfg)
++    with torch.no_grad():
++        # Open every connector path: nonzero output matrix, non-unit LayerNorm affine, live router.
++        g = torch.Generator().manual_seed(seed)
++        fusion = model.auxiliary_heads.gf1
++        for norm in fusion.norms:
++            norm.weight.copy_(1 + .5 * torch.randn(norm.weight.shape, generator=g))
++            norm.bias.copy_(.2 * torch.randn(norm.bias.shape, generator=g))
++        for output in fusion.outputs:
++            output.weight.copy_(.05 * torch.randn(output.weight.shape, generator=g))
++        if fusion.router is not None:
++            fusion.router.weight.copy_(torch.randn(fusion.router.weight.shape, generator=g))
++    if base_bf16:
++        from student_pilot import full_ft
++        for _, parameter in full_ft.base_parameters(model):
++            parameter.data = parameter.data.to(torch.bfloat16)
++    return model
++
++
++def text_batch(rows=1, seed=5):
++    t, h, w = GRID
++    cells = (h // 2) * (w // 2)
++    ids = torch.tensor([[2] + [v for _ in range(t) for v in [62] + [61]*cells + [63]] + [10, 11, 12, 13]])
++    batch = dict(input_ids=ids, attention_mask=torch.ones_like(ids), labels=torch.full_like(ids, -100),
++                 mm_token_type_ids=torch.where(ids == 61, 2, 0), video_grid_thw=torch.tensor([list(GRID)]),
++                 pixel_values_videos=torch.randn(t*h*w, 24, generator=torch.Generator().manual_seed(seed)))
++    batch['labels'][0, -2:] = ids[0, -2:]
++    batch = insert_frame_carriers(batch, Tokenizer(), frame_layout='duplicate')
++    if rows == 1:
++        return batch
++    return {k: torch.cat([v]*rows) for k, v in batch.items()}
++
++
++def write_clip_frames(root, name, seed):
++    """64 sha256-pinned PNG frames; the LM uses every second frame (nested anchors 0, 2, ..., 62)."""
++    from PIL import Image
++    root = Path(root)/name
++    root.mkdir(parents=True)
++    rng = np.random.default_rng(seed)
++    frames = []
++    for i in range(64):
++        path = root/f'frame_{i:03d}.png'
++        Image.fromarray(rng.integers(0, 256, (FRAME_WH[1], FRAME_WH[0], 3), dtype=np.uint8)).save(path)
++        frames.append(dict(path=str(path), sha256=hashlib.sha256(path.read_bytes()).hexdigest()))
++    ordinals = list(range(0, 128, 2))
++    dense = dict(frames=frames, frame_indices=ordinals, timestamps=[i/10 for i in ordinals], fps=10.,
++                 total_num_frames=200)
++    sparse = dict(frames=frames[::2], frame_indices=ordinals[::2], timestamps=dense['timestamps'][::2], fps=10.,
++                  total_num_frames=200, question='where?', options=[], geometry_dense=dense)
++    return dict(qid=name, dataset='scannet', student_input=sparse, target='A')
++
++
++def online_geometry(row):
++    images, coords = small_square(samples.load_frames(row['student_input']['geometry_dense']), 64)
++    return dict(aux_g3t_images=images[None], aux_g3t_coords=coords[None],
++                aux_gf1_lm_indices=torch.arange(0, 64, 2)[None], aux_gf1_cache=gf1.ClipCache())
++
++
++def capture(model):
++    seen = []
++    handle = model.auxiliary_heads.gf1.register_forward_hook(lambda m, a, o: seen.append(tuple(x.detach().clone() for x in o)))
++    return seen, handle
++
++
++def read(model, batch):
++    """(residuals, logits) under eval/no_grad."""
++    model.eval()
++    seen, handle = capture(model)
++    try:
++        with torch.no_grad():
++            logits = model.lm_head(model.hidden(batch)).float()
++    finally:
++        handle.remove()
++        if isinstance(batch.get('aux_gf1_cache'), gf1.ClipCache):
++            batch['aux_gf1_cache'].clear()
++    return seen[0], logits
++
++
++def grads(model, batch):
++    model.train()
++    model.zero_grad(set_to_none=True)
++    model(batch, stream='vqa')['loss'].backward()
++    return {n: p.grad.detach().clone() for n, p in model.auxiliary_heads.gf1.named_parameters() if p.grad is not None}
++
++
++def diff(a, b):
++    a, b = a.float(), b.float()
++    scale = float(b.abs().max())
++    absolute = float((a - b).abs().max())
++    return dict(max_abs=absolute, max_rel=absolute / max(scale, 1e-30), ref_max=scale)
++
++
++class CachedBank(unittest.TestCase):
++    @classmethod
++    def setUpClass(cls):
++        cls.root = out_dir()
++        cls.rows = [write_clip_frames(cls.root/'frames', name, seed) for name, seed in (('a', 1), ('b', 2), ('c', 3))]
++        cls.patcher = patch.object(gx, 'native_square_518', side_effect=small_square)
++        cls.patcher.start()
++
++    @classmethod
++    def tearDownClass(cls):
++        cls.patcher.stop()
++
++    def cache_cfg(self, dtype, tag):
++        return dict(root=str(self.root/f'cache_{tag}_{dtype}'), dtype=dtype)
++
++    def cached_batch(self, model, row, cfg):
++        record = C.write_clip(model.auxiliary_heads.geometry_encoder, row, cfg['root'], grid=list(GRID), dtype=cfg['dtype'])
++        dense, anchors = gf1.dense_inputs(row, model.geometry_online['gf1'])
++        entry = C.load_cached(cfg, C.clip_key(dense), anchors)
++        batch = text_batch()
++        batch.update(aux_gf1_cache=gf1.ClipCache(), aux_gf1_lm_indices=torch.tensor([anchors]),
++                     aux_gf1_rowbanks=C.RowBanks([entry]))
++        return batch, record
++
++    def test_algebra_holds_in_the_code(self):
++        # Area weights: non-negative, and every merger cell's weights sum to one, border cells included.
++        source = torch.eye(16).reshape(16, 4, 4).permute(1, 2, 0)[None]  # one-hot per patch
++        for roi in ([0., 128., 1024., 896.], [37.5, 101.3, 1000.2, 917.9], [0., 0., 1024., 1024.]):
++            weights = gf1.area_pool(source, torch.tensor([roi]), (1, 4, 6))
++            self.assertTrue(bool((weights >= 0).all()))
++            torch.testing.assert_close(weights.sum(-1), torch.ones(6), rtol=0, atol=2e-6)
++        # LayerNorm is affine with learned weight and bias; the projection is token-shared.
++        fusion = model_for(settings()).auxiliary_heads.gf1
++        self.assertTrue(all(n.elementwise_affine and n.bias is not None for n in fusion.norms))
++        self.assertTrue(all(p.weight.dtype == torch.float32 for p in fusion.projections))
++
++    def test_parity_cached_vs_online(self):
++        # Rule fixed before the noise floor was measured. FP32 cases: every tensor within 1e-5 relative.
++        # BF16 cases: residuals and logits within 2**-6 relative (two BF16 ulps at the largest value);
++        # each connector gradient within max(2**-6, 0.25 * floor), where floor is the same tensor's
++        # online-BF16 vs online-FP32 deviation on identical weights (the precision the trainer accepts).
++        report = dict(rule=dict(
++            fp32='max|cached-online| <= 1e-5 * max|online| for residuals, logits and connector gradients',
++            bf16_forward='max|cached-online| <= 2**-6 * max|online| for residuals and logits',
++            bf16_gradients='max|cached-online|/max|online| <= max(2**-6, 0.25 * floor_rel), floor_rel = '
++                           'online BF16 tower/base vs online FP32 tower/base on identical weights'), cases=[])
++        cases = [  # (name, base and tower in BF16, cache dtype, injection, router)
++            ('fp32_tower_fp32_cache_pre_lm', False, 'float32', 'pre_lm', False),
++            ('fp32_tower_fp32_cache_lm012', False, 'float32', 'lm_012', False),
++            ('fp32_tower_fp32_cache_router', False, 'float32', 'pre_lm', True),
++            ('fp32_tower_bf16_cache_pre_lm', False, 'bfloat16', 'pre_lm', False),
++            ('bf16_tower_bf16_base_fp32_cache_pre_lm', True, 'float32', 'pre_lm', False),
++            ('bf16_tower_bf16_base_bf16_cache_pre_lm', True, 'bfloat16', 'pre_lm', False),
++            ('bf16_tower_bf16_base_bf16_cache_lm012_router', True, 'bfloat16', 'lm_012', True),
++        ]
++        row = self.rows[0]
++        failures = []
++        for name, bf16, dtype, injection, router in cases:
++            cfg = self.cache_cfg(dtype, name)
++            block = settings(cached=cfg, encoder_bf16=bf16, injection=injection, router=router)
++            model = model_for(block, base_bf16=bf16)
++            online = text_batch(); online.update(online_geometry(row))
++            cached, record = self.cached_batch(model, row, cfg)
++            self.assertEqual(record['bank_dtype'], 'bfloat16' if bf16 else 'float32')
++            Tiny.calls = 0
++            res_o, log_o = read(model, online)
++            self.assertEqual(Tiny.calls, 1)
++            res_c, log_c = read(model, cached)
++            self.assertEqual(Tiny.calls, 1, 'cached read must not run the tower')
++            self.assertEqual(model.gx_metrics['cached_rows'], 1)
++            g_o, g_c = grads(model, online), grads(model, cached)
++            self.assertEqual(Tiny.calls, 2)
++            floor = {}
++            if bf16:
++                reference = model_for(settings(cached=cfg, injection=injection, router=router))
++                ref_batch = text_batch(); ref_batch.update(online_geometry(row))
++                res_r, log_r = read(reference, ref_batch)
++                g_r = grads(reference, ref_batch)
++                floor = {f'residual_{i}': diff(a, b) for i, (a, b) in enumerate(zip(res_o, res_r))}
++                floor['logits'] = diff(log_o, log_r)
++                floor.update({'grad.' + n: diff(g_o[n], g_r[n]) for n in g_r})
++            entry = dict(case=name, tower_and_base_dtype='bfloat16' if bf16 else 'float32', cache_dtype=dtype,
++                         connector_dtype=str(model.auxiliary_heads.gf1.projections[0].weight.dtype),
++                         residual_dtype=str(res_o[0].dtype), bank_dtype=record['bank_dtype'],
++                         injection=injection, router=router, tensors={})
++            for i, (a, b) in enumerate(zip(res_c, res_o)):
++                entry['tensors'][f'residual_{i}'] = diff(a, b)
++            entry['tensors']['logits'] = diff(log_c, log_o)
++            self.assertEqual(set(g_o), set(g_c))
++            expected = {'norms', 'projections', 'outputs'} | ({'router'} if router else set())
++            self.assertEqual({n.split('.')[0] for n in g_o}, expected)
++            for n in sorted(g_o):
++                self.assertGreater(float(g_o[n].abs().max()), 0, n)
++                entry['tensors']['grad.' + n] = diff(g_c[n], g_o[n])
++            low = not bf16 and dtype == 'float32'
++            for tensor, value in entry['tensors'].items():
++                if low:
++                    tol = 1e-5
++                elif tensor.startswith('grad.') and tensor in floor:
++                    tol = max(2**-6, .25 * floor[tensor]['max_rel'])
++                else:
++                    tol = 2**-6
++                value['tolerance_rel'] = tol
++                if tensor in floor:
++                    value['bf16_floor_rel'] = floor[tensor]['max_rel']
++                value['pass'] = value['max_rel'] <= tol
++                if not value['pass']:
++                    failures.append((name, tensor, value))
++            entry['worst_rel'] = max(v['max_rel'] for v in entry['tensors'].values())
++            entry['verdict'] = 'pass' if all(v['pass'] for v in entry['tensors'].values()) else 'fail'
++            report['cases'].append(entry)
++        report['verdict'] = 'pass' if not failures else 'fail'
++        path = Path(os.environ.get('GF1_CACHE_PARITY_OUT', str(out_dir()/'PARITY.json')))
++        path.write_text(json.dumps(report, indent=1) + '\n')
++        self.assertEqual(failures, [])
++
++    def test_zero_feature_ablation_matches(self):
++        cfg = self.cache_cfg('float32', 'zero')
++        model = model_for(settings(cached=cfg))
++        model.gx_zero_feature = True
++        online = text_batch(); online.update(online_geometry(self.rows[0]))
++        cached, _ = self.cached_batch(model, self.rows[0], cfg)
++        a, _ = read(model, online); b, _ = read(model, cached)
++        torch.testing.assert_close(b[0], a[0], rtol=0, atol=1e-6)
++
++    def test_writer_is_deterministic_and_content_addressed(self):
++        cfg = self.cache_cfg('bfloat16', 'det')
++        model = model_for(settings(cached=cfg))
++        encoder = model.auxiliary_heads.geometry_encoder
++        first = C.write_clip(encoder, self.rows[1], cfg['root'], grid=list(GRID), dtype='bfloat16')
++        again = C.write_clip(encoder, self.rows[1], cfg['root'], grid=list(GRID), dtype='bfloat16')
++        self.assertEqual(first, again)
++        key = C.clip_key(self.rows[1]['student_input']['geometry_dense'])
++        self.assertEqual(first['clip_key'], key)
++        path = Path(cfg['root'])/(key + '.safetensors')
++        self.assertEqual(hashlib.sha256(path.read_bytes()).hexdigest(), first['tensor']['sha256'])
++        self.assertEqual(first['shape'], [3, 32, 6, 2048])
++        self.assertEqual(json.loads((Path(cfg['root'])/(key + '.json')).read_text()), first)
++
++    def test_mismatched_identity_refuses(self):
++        cfg = self.cache_cfg('float32', 'refuse')
++        model = model_for(settings(cached=cfg))
++        batch, record = self.cached_batch(model, self.rows[0], cfg)
++        dense, anchors = gf1.dense_inputs(self.rows[0], model.geometry_online['gf1'])
++        key = record['clip_key']
++        record_path = Path(cfg['root'])/(key + '.json')
++        original = record_path.read_text()
++        # Model side: layer list, tower weights, merger grid, cache dtype, code version.
++        for field, value in (('layers', [0, 1, 3]), ('tower', {**record['tower'], 'weights_sha256': 'c'*64}),
++                             ('merger_grid', [32, 4, 8]), ('code_version', '0'*64), ('bank_dtype', 'bfloat16'),
++                             ('norm', {**record['norm'], 'eps': 1e-6})):
++            with self.subTest(model_side=field):
++                bad = copy.deepcopy(batch)
++                bad['aux_gf1_rowbanks'].entries[0].record = {**record, field: value}
++                with self.assertRaisesRegex(ValueError, 'identity differs in ' + field):
++                    read(model, bad)
++        # A cache built for another layer bank refuses under the live model.
++        other = model_for(settings(cached=cfg, layers=(0, 1, 2)))
++        other.geometry_online['gf1']['layers'] = [0, 1, 3]
++        with self.assertRaisesRegex(ValueError, 'identity differs in layers'):
++            read(other, copy.deepcopy(batch))
++        # Data side: clip key, anchors, tensor bytes, dtype switch.
++        with self.assertRaisesRegex(ValueError, 'identity differs from the row'):
++            C.load_cached(cfg, key, [a + 0 for a in anchors[:-1]] + [63])
++        with self.assertRaisesRegex(ValueError, 'identity differs from the row'):
++            C.load_cached({**cfg, 'dtype': 'bfloat16'}, key, anchors)
++        record_path.write_text(original.replace(record['tensor']['sha256'], 'f'*64))
++        try:
++            with self.assertRaisesRegex(ValueError, 'sha256 differs'):
++                C.load_cached(cfg, key, anchors)
++        finally:
++            record_path.write_text(original)
++        self.assertIsNotNone(C.load_cached(cfg, key, anchors))
++        # The cached input refuses when the switch is off.
++        off = model_for(settings())
++        with self.assertRaisesRegex(ValueError, 'switch is off'):
++            read(off, copy.deepcopy(batch))
++
++    def test_mixed_batch_pose_row_runs_tower_online(self):
++        cfg = self.cache_cfg('float32', 'mixed')
++        model = model_for(settings(cached=cfg))
++        cached_a, _ = self.cached_batch(model, self.rows[0], cfg)
++        single_b = text_batch(); single_b.update(online_geometry(self.rows[1]))
++        single_a = text_batch(); single_a.update(online_geometry(self.rows[0]))
++        res_a, _ = read(model, single_a)
++        res_b, _ = read(model, single_b)
++        mixed = text_batch(rows=2)
++        geo_b = online_geometry(self.rows[1])
++        # Row 0 carries a cache (its RGB slot is unused); row 1 is the augmented pose row and runs online.
++        mixed.update(aux_g3t_images=torch.cat([torch.zeros_like(geo_b['aux_g3t_images']), geo_b['aux_g3t_images']]),
++                     aux_g3t_coords=torch.cat([geo_b['aux_g3t_coords']]*2),
++                     aux_gf1_lm_indices=torch.arange(0, 64, 2)[None].repeat(2, 1), aux_gf1_cache=gf1.ClipCache(),
++                     aux_gf1_rowbanks=C.RowBanks([cached_a['aux_gf1_rowbanks'].entries[0], None]))
++        Tiny.calls = 0
++        res, _ = read(model, mixed)
++        self.assertEqual(Tiny.calls, 1)
++        self.assertEqual((model.gx_metrics['tower_forwards'], model.gx_metrics['cached_rows']), (1, 1))
++        half = res[0].shape[0] // 2
++        torch.testing.assert_close(res[0][half:], res_b[0], rtol=0, atol=0)
++        torch.testing.assert_close(res[0][:half], res_a[0], rtol=1e-5, atol=1e-6)
++
++    def encode(self, row, gf1_cfg):
++        def encode_frames(processor, question, options, arrays, *args):
++            self.lm_arrays = arrays.copy()
++            return text_batch(), {}
++        with patch.object(samples, 'encode_frames', side_effect=encode_frames), patch.object(samples, 'check_sample'), \
++             patch.object(samples, 'augment', side_effect=lambda a, s: (a.astype(np.int16) + 7).clip(0, 255).astype(np.uint8)):
++            return data.encode_layout_row(None, row, 'duplicate', None, gf1=gf1_cfg)
++
++    def test_encoder_paths_cached_pose_missing_and_off(self):
++        cfg = self.cache_cfg('float32', 'encode')
++        block = settings(cached=cfg)
++        model = model_for(block)
++        C.write_clip(model.auxiliary_heads.geometry_encoder, self.rows[0], cfg['root'], grid=list(GRID), dtype='float32')
++        gcfg = block['gf1']
++        # Off: the original keys and values, no audit field.
++        off_batch, off_audit = self.encode(self.rows[0], settings()['gf1'])
++        self.assertNotIn('aux_gf1_rowbanks', off_batch)
++        self.assertNotIn('gf1_bank', off_audit)
++        expected, _ = small_square(samples.load_frames(self.rows[0]['student_input']['geometry_dense']), 64)
++        self.assertTrue(torch.equal(off_batch['aux_g3t_images'][0], expected))
++        off_lm = self.lm_arrays
++        # Cached non-pose row: no dense RGB decode for the tower, same LM bytes.
++        batch, audit = self.encode(self.rows[0], gcfg)
++        self.assertEqual(audit['gf1_bank']['source'], 'cached')
++        self.assertNotIn('aux_g3t_images', batch)
++        self.assertEqual(batch['aux_gf1_rowbanks'].entries[0].kind, 'cached')
++        np.testing.assert_array_equal(self.lm_arrays, off_lm)
++        # Pose row: per-row augmentation, so the tower runs online even with a cache present.
++        pose = {**copy.deepcopy(self.rows[0]), 'category': samples.CATEGORY, 'pose_sample': dict(augment={})}
++        batch, audit = self.encode(pose, gcfg)
++        self.assertEqual(audit['gf1_bank'], dict(source='online', reason='pose_row_augmented', clip_key=audit['gf1_bank']['clip_key']))
++        self.assertNotIn('aux_gf1_rowbanks', batch)
++        self.assertIn('aux_g3t_images', batch)
++        # A clip without a cache file runs online and says so.
++        batch, audit = self.encode(self.rows[2], gcfg)
++        self.assertEqual((audit['gf1_bank']['source'], audit['gf1_bank']['reason']), ('online', 'no_cache'))
++        self.assertIn('aux_g3t_images', batch)
++        # A missing root refuses instead of silently running every row online.
++        with self.assertRaisesRegex(ValueError, 'root is missing'):
++            self.encode(self.rows[0], gf1.normalize({**gcfg, 'cached_bank': dict(root='/scratch/none/x', dtype='float32')}))
++
++    def test_normalize_switch(self):
++        base = dict(dense_frames=64)
++        self.assertNotIn('cached_bank', gf1.normalize(base))
++        self.assertEqual(gf1.normalize(base), gf1.normalize(dict(base)))
++        for bad in (dict(root='relative', dtype='float32'), dict(root='/x', dtype='float16'), dict(root='/x')):
++            with self.assertRaises(ValueError):
++                gf1.normalize({**base, 'cached_bank': bad})
++
++
++class ShuffledBank(unittest.TestCase):
++    @classmethod
++    def setUpClass(cls):
++        cls.root = out_dir()
++        cls.rows = [write_clip_frames(cls.root/'frames', name, seed) for name, seed in (('a', 11), ('b', 12), ('c', 13))]
++        cls.patcher = patch.object(gx, 'native_square_518', side_effect=small_square)
++        cls.patcher.start()
++
++    @classmethod
++    def tearDownClass(cls):
++        cls.patcher.stop()
++
++    def test_plan_is_a_seeded_derangement_preferring_dataset_and_grid(self):
++        units = ([dict(clip_key=f's{i}', dataset='scannet', grid=[32, 20, 26]) for i in range(5)] +
++                 [dict(clip_key=f'p{i}', dataset='scannetpp', grid=[32, 18, 28]) for i in range(3)] +
++                 [dict(clip_key='p_odd', dataset='scannetpp', grid=[32, 20, 26])] +
++                 [dict(clip_key='k0', dataset='arkitscenes', grid=[32, 20, 26])])
++        plan = C.shuffled_bank_plan(units, seed=17)
++        donors = {p['clip_key']: p['donor_clip_key'] for p in plan['pairs']}
++        self.assertEqual(sorted(donors), sorted(u['clip_key'] for u in units))
++        self.assertEqual(sorted(donors.values()), sorted(donors))
++        self.assertTrue(all(k != v for k, v in donors.items()))
++        self.assertTrue(all(donors[f's{i}'].startswith('s') or donors[f's{i}'] in ('p_odd', 'k0') for i in range(5)))
++        self.assertEqual(plan, C.shuffled_bank_plan(list(reversed(units)), seed=17))
++        self.assertNotEqual(plan['permutation_sha256'], C.shuffled_bank_plan(units, seed=18)['permutation_sha256'])
++        strict = C.shuffled_bank_plan(units, seed=17, require_same_grid=True)
++        self.assertTrue(all(p['grid'] == p['donor_grid'] for p in strict['pairs']))
++        self.assertEqual(plan['counts']['clips'], 10)
++        with self.assertRaises(ValueError):
++            C.shuffled_bank_plan(units[:1], seed=1)
++        with self.assertRaises(ValueError):
++            C.shuffled_bank_plan([dict(clip_key='x', dataset='d', grid=[32, 2, 2]),
++                                  dict(clip_key='y', dataset='d', grid=[32, 4, 4]),
++                                  dict(clip_key='z', dataset='d', grid=[32, 4, 4])], seed=1, require_same_grid=True)
++
++    def donor_batch(self, row, gf1_cfg):
++        holder = {}
++        def encode_frames(processor, question, options, arrays, *args):
++            holder['lm'] = arrays.copy()
++            return text_batch(), {}
++        with patch.object(samples, 'encode_frames', side_effect=encode_frames):
++            batch, audit = data.encode_layout_row(None, row, 'duplicate', None, gf1=gf1_cfg)
++        return batch, audit, holder['lm']
++
++    def test_swapped_bank_reaches_connector_and_true_read_is_unchanged(self):
++        block = settings()
++        model = model_for(block)
++        grids = {C.clip_key(r['student_input']['geometry_dense']): list(GRID) for r in self.rows}
++        shuffled, plan = C.shuffle_rows(self.rows, block['gf1'], seed=17, grids=grids)
++        donors = {p['clip_key']: p['donor_clip_key'] for p in plan['pairs']}
++        key_of = {C.clip_key(r['student_input']['geometry_dense']): r for r in self.rows}
++        truth = {}
++        for row in self.rows:
++            batch, audit, lm = self.donor_batch(row, block['gf1'])
++            self.assertNotIn('gf1_bank', audit)
++            self.assertNotIn('aux_gf1_rowbanks', batch)
++            batch = {**text_batch(), **{k: v for k, v in batch.items() if k.startswith('aux_g')}}
++            truth[C.clip_key(row['student_input']['geometry_dense'])] = (read(model, batch)[0][0], lm)
++        for row in shuffled:
++            own = C.clip_key(row['student_input']['geometry_dense'])
++            batch, audit, lm = self.donor_batch(row, block['gf1'])
++            self.assertEqual(audit['gf1_bank']['donor_clip_key'], donors[own])
++            self.assertEqual(audit['gf1_bank']['permutation_sha256'], plan['permutation_sha256'])
++            np.testing.assert_array_equal(lm, truth[own][1])   # the LM still sees its own frames
++            entry = batch['aux_gf1_rowbanks'].entries[0]
++            expected, _ = small_square(samples.load_frames(key_of[donors[own]]['student_input']['geometry_dense']), 64)
++            self.assertTrue(torch.equal(entry.images, expected))
++            batch = {**text_batch(), **{k: v for k, v in batch.items() if k.startswith('aux_g')}}
++            residual = read(model, batch)[0][0]
++            self.assertEqual(model.gx_metrics['donor_rows'], 1)
++            # pre_lm without router: the residual depends only on the bank, so it equals the donor's true read.
++            self.assertTrue(torch.equal(residual, truth[donors[own]][0]))
++            self.assertFalse(torch.allclose(residual, truth[own][0]))
++        # Training refuses donors; pose rows refuse donors.
++        batch, _, _ = self.donor_batch(shuffled[0], block['gf1'])
++        batch = {**text_batch(), **{k: v for k, v in batch.items() if k.startswith('aux_g')}}
++        model.train()
++        with self.assertRaisesRegex(ValueError, 'read-time option'):
++            model(batch, stream='vqa')
++        pose = {**copy.deepcopy(shuffled[0]), 'category': samples.CATEGORY, 'pose_sample': dict(augment={})}
++        with patch.object(samples, 'check_sample'), self.assertRaisesRegex(ValueError, 'pose rows'):
++            self.donor_batch(pose, block['gf1'])
++
++    def test_cached_donor_and_membership_receipt(self):
++        from student_pilot import dense_eval
++        root = out_dir()
++        cfg = dict(root=str(root/'cache'), dtype='float32')
++        block = settings(cached=cfg)
++        model = model_for(block)
++        for row in self.rows:
++            C.write_clip(model.auxiliary_heads.geometry_encoder, row, cfg['root'], grid=list(GRID), dtype='float32')
++        grids = {C.clip_key(r['student_input']['geometry_dense']): list(GRID) for r in self.rows}
++        shuffled, plan = C.shuffle_rows(self.rows, block['gf1'], seed=3, grids=grids, require_same_grid=True)
++        donors = {p['clip_key']: p['donor_clip_key'] for p in plan['pairs']}
++        for row in shuffled:
++            batch, audit, _ = self.donor_batch(row, block['gf1'])
++            self.assertEqual(audit['gf1_bank']['source'], 'shuffled_cached')
++            entry = batch['aux_gf1_rowbanks'].entries[0]
++            self.assertEqual(entry.record['clip_key'], donors[audit['gf1_bank']['clip_key']])
++            batch = {**text_batch(), **{k: v for k, v in batch.items() if k.startswith('aux_g')}}
++            read(model, batch)
++            self.assertEqual((model.gx_metrics['cached_rows'], model.gx_metrics['donor_rows']), (1, 1))
++        # Membership: off writes the original receipt; on records the permutation beside the rows.
++        dense = {r['qid']: r['student_input']['geometry_dense'] for r in self.rows}
++        plain = [dict(qid=r['qid'], dataset='scannet', student_input={k: v for k, v in r['student_input'].items()
++                                                                      if k != 'geometry_dense'} | dict(clip_id=r['qid']))
++                 for r in self.rows]
++        off = dense_eval.prepare_membership(plain, dense, dict(dense_frames=64), root/'off')
++        self.assertNotIn('shuffled_bank', off)
++        self.assertFalse((root/'off'/'bank_permutation.json').exists())
++        on = dense_eval.prepare_membership(plain, dense, dict(dense_frames=64), root/'on',
++                                           shuffle=dict(seed=3, grids=grids))
++        stored = json.loads((root/'on'/'bank_permutation.json').read_text())
++        self.assertEqual(on['shuffled_bank']['permutation_sha256'], stored['permutation_sha256'])
++        rows = [json.loads(line) for line in (root/'on'/'rows.jsonl').read_text().splitlines()]
++        self.assertTrue(all(r['student_input']['geometry_bank_donor']['clip_key'] !=
++                            C.clip_key(r['student_input']['geometry_dense']) for r in rows))
++        self.assertEqual({k: v for k, v in on.items() if k not in ('shuffled_bank', 'rows')},
++                         {k: v for k, v in off.items() if k != 'rows'})
++
++
++if __name__ == '__main__':
++    unittest.main()

@@ -126,6 +126,8 @@ class Build6(unittest.TestCase):
             if unit=='ft2':
                 bad=deepcopy(row);bad['target']=bad['target'].replace('Relate:', 'Converting to square feet: Relate:')
                 with self.assertRaises(ValueError):C.validate(bad,'vqa')
+                bad=deepcopy(row);bad['answer_unit']='ft'
+                with self.assertRaisesRegex(ValueError,'unit'):C.validate(bad,'vqa')
             row['student_input']['question']='How wide is the sofa in metres?'
             with self.assertRaisesRegex(ValueError,'unit'):C.validate(row,'vqa')
 

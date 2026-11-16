@@ -1,0 +1,36 @@
+{
+ "files": {
+  "weights.pt": {
+   "role": "lm",
+   "sha256": "f696017338a7836b63223719ac5f0637d72bf9d751ed90ddab00621d5bfa3a1c"
+  }
+ },
+ "modules": {
+  "": {
+   "name": "lm",
+   "role": "lm"
+  },
+  "auxiliary_heads.geometry_encoder": {
+   "name": "g3t",
+   "role": "tower"
+  },
+  "auxiliary_heads.gf1": {
+   "name": "gf1",
+   "role": "connector"
+  },
+  "auxiliary_heads.pose": {
+   "name": "pose_head",
+   "role": "head"
+  },
+  "eat1_program_policy": {
+   "name": "program_policy",
+   "role": "lm"
+  },
+  "model.visual": {
+   "name": "vit",
+   "role": "vit"
+  }
+ },
+ "root": "/scratch/jjyeung/orch_n30/b03_e2etest/work/b5_gf1_tiny/artifact",
+ "schema": "eat1-artifact-v1"
+}

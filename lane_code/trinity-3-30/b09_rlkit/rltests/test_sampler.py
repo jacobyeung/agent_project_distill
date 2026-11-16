@@ -52,6 +52,9 @@ class Sampler(unittest.TestCase):
                 for r in grp:
                     self.assertLessEqual(r['kinds'].count('s'), 10)
                     self.assertEqual(r['own_tokens'] + r['response_tokens'], len(r['tokens']))
+                    self.assertEqual(len(r['prompt_ids_sha256']), 64)
+                    self.assertEqual(r['response_sources']['pose_source'], 'own')
+                    self.assertFalse(r['response_sources']['donor'])
 
     def test_batched_equals_sequential_and_seeds_are_per_draw(self):
         with tempfile.TemporaryDirectory() as a, tempfile.TemporaryDirectory() as b:

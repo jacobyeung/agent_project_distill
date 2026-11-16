@@ -1,0 +1,13 @@
+{
+  "id": "M8",
+  "description": "HF arm keeps CLS/registers",
+  "edits": [
+    {
+      "module": "own_feats.providers",
+      "old": "    return out[:,-count:].reshape(frames,h//patch,w//patch,-1)",
+      "new": "    return out[:,:count].reshape(frames,h//patch,w//patch,-1)"
+    }
+  ],
+  "reviewer_spec": "/scratch/jjyeung/orch_cd/own_probe_review2/mutants/M8.json",
+  "adaptation": "Unchanged reviewer edit"
+}

@@ -1,0 +1,1 @@
+cd /project/community/jjyeung/vla_libero/out/rerun_20261116 && tar czf - --exclude='*.mp4' --exclude='*.png' --exclude='*.npz' phase.log sha_check.txt driver.out *.run.log B1_BIND_544_HEADER_CHECK.json b1_header_check.py rerun_driver.sh V/out V/logs 2>/dev/null | head -c 15000000

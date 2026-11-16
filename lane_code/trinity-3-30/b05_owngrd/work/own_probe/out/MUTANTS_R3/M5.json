@@ -1,0 +1,13 @@
+{
+  "id": "M5",
+  "description": "A2 gets 2x T1 steps",
+  "edits": [
+    {
+      "module": "fit_t1",
+      "old": "    model,val=fit(x,records,names,rules()['fit']['T1_steps'],args.device)",
+      "new": "    model,val=fit(x,records,names,rules()['fit']['T1_steps']*(2 if args.arm=='A2' else 1),args.device)"
+    }
+  ],
+  "reviewer_spec": "/scratch/jjyeung/orch_cd/own_probe_review2/mutants/M5.json",
+  "adaptation": "Unchanged reviewer edit"
+}

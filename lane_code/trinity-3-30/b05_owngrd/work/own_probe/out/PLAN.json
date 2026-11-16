@@ -1,0 +1,88 @@
+{
+  "budget_note": "Estimates, not measurements. The 240-minute ledger stops new phases; missing inputs/rules remain pending.",
+  "calibration_calls": {
+    "A1": 1320,
+    "A2": 1320,
+    "A3": 1320,
+    "A4": 165,
+    "A5": 1320,
+    "A6": 1320,
+    "A7": 1320,
+    "A8": 0
+  },
+  "estimate_dimensions": {
+    "A1": 1024,
+    "A2": 1024,
+    "A3": 1024,
+    "A4": 1024,
+    "A5": 1024,
+    "A6": 1024,
+    "A7": 1024
+  },
+  "experiment": "E-A",
+  "extract_calls": {
+    "A1": 2632,
+    "A2": 2632,
+    "A3": 2632,
+    "A4": 236,
+    "A5": 2632,
+    "A6": 2632,
+    "A7": 2632,
+    "A8": 0
+  },
+  "feature_bytes_estimate": 730834944,
+  "feature_estimate_note": "Three readouts each store 1024 fp16 channels. A8 composes its component shards in RAM.",
+  "fusion_steps": 300,
+  "online_eval_calls_g3t": 31,
+  "online_eval_calls_non_temporal": 992,
+  "online_fit_steps": {
+    "T1": 1200,
+    "T2": 1500,
+    "T3": 1500,
+    "T4": 800
+  },
+  "phase1_arms": [
+    "A1",
+    "A7",
+    "A2"
+  ],
+  "phase1_estimate_minutes": 165,
+  "phase1_tasks": [
+    "smoke",
+    "calibrate+extract",
+    "T1",
+    "T4"
+  ],
+  "phase2_arms": [
+    "A3",
+    "A5",
+    "A6",
+    "A4",
+    "A8"
+  ],
+  "provenance": {
+    "code": {
+      "/scratch/jjyeung/orch_cd/own_probe/work/plan.py": "f190cf2a71fdb8d42a73cc43363f3822c7876f3e5700e2cdab0c4293cb46268f"
+    },
+    "config": {
+      "out": "out",
+      "train": "/scratch/jjyeung/orch_cd/own_probe/out/b2_manifest.jsonl",
+      "tuning": "/scratch/jjyeung/orch_cd/own_probe/out/tuning_manifest.jsonl",
+      "weights": "out/WEIGHTS.example.json"
+    },
+    "config_sha256": "c035565503bf1f32ffc6971abe9767fbb49a8648a11ff21f14c606e4e04f2f1e",
+    "inputs": {
+      "/scratch/jjyeung/orch_cd/own_probe/out/b2_manifest.jsonl": "1e5ac2dcde1cde7c39f6703cee75e3ac2470a7479ccba20dca61ea06b1637dfa",
+      "/scratch/jjyeung/orch_cd/own_probe/out/tuning_manifest.jsonl": "a083a2a4c7ce4ed8e003e6086256b303fbe6878afdf19da384c2b0d4df8a78ed",
+      "/scratch/jjyeung/orch_cd/own_probe/work/RULES.json": "6fa7fcdcc5b652e7eaf28b9c828b0e8622d21753ef10d394610cf1eda93eeb97",
+      "out/WEIGHTS.example.json": "ba324a3aa838d6bf73547d8ec24bf26346aef040f08df2db7da0608a5cd210a0"
+    }
+  },
+  "selected_training_frames": 1640,
+  "smoke_calls_g3t": 2,
+  "smoke_calls_non_temporal": 16,
+  "training_frames": 6560,
+  "training_regions": 12411,
+  "tuning_frames": 992,
+  "tuning_member_regions": 4582
+}

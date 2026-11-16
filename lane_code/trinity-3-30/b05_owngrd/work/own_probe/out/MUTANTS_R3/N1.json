@@ -1,0 +1,13 @@
+{
+  "id": "N1",
+  "description": "layer norm skipped for one arm (A5) in extraction",
+  "edits": [
+    {
+      "module": "extract",
+      "old": "            maps=readout_maps(raw_maps,statistics=statistics);final_maps=readout_maps(raw_maps,'final',statistics)",
+      "new": "            maps=readout_maps(raw_maps,statistics=statistics) if args.arm!='A5' else [__import__('own_feats.core',fromlist=['x']).channel_reduce(m.float(),256) for m in raw_maps];final_maps=readout_maps(raw_maps,'final',statistics)"
+    }
+  ],
+  "reviewer_spec": "/scratch/jjyeung/orch_cd/own_probe_review2/mutants/N1.json",
+  "adaptation": "Skip the normalization path on A5 at the extraction boundary"
+}

@@ -29,9 +29,9 @@ FIELDS = ('schema', 'utc', 'event', 'token', 'job_name', 'job_id', 'lane', 'mean
           'kit_pins_sha256', 'config_sha256', 'partition', 'gpus', 'time_limit_s', 'pool', 'gcs',
           'state')
 EVENTS = ('minted', 'submitted', 'ended')
-TOKEN = re.compile(r'^[0-9a-f]{16}$')
-JOB_NAME = re.compile(r'^a15_cot_ap[0-9a-f]{16}$')
-HEX64 = re.compile(r'^[0-9a-f]{64}$')
+TOKEN = re.compile(r'^[0-9a-f]{16}\Z')
+JOB_NAME = re.compile(r'^a15_cot_ap[0-9a-f]{16}\Z')
+HEX64 = re.compile(r'^[0-9a-f]{64}\Z')
 PREFIX = 'a15_cot_ap'
 MAX_BYTES = 1024
 ENDED_STATES = ('COMPLETED', 'FAILED', 'CANCELLED', 'TIMEOUT', 'OUT_OF_MEMORY', 'NODE_FAIL',

@@ -32,8 +32,9 @@ class ContractEdges(unittest.TestCase):
         empty={'phrases':['Chair','chair'],'frames':{'1':{'phrases':{}}}}
         result,name=cache_view(empty,'chair')
         self.assertEqual(name,'chair');self.assertEqual(result['frames']['1']['phrases'],{})
-        row=dict(question='Where is the chair?',candidate_manifest={'phrases':['chair']},
-                 events=[dict(call='<ground obj="chair">',response='chair: not seen')])
+        row=dict(question='Where is the chair?',candidate_manifest={'phrases':{'phrases':['chair']}},
+                 events=[dict(call='<ground obj="chair">',response='error: fixture unavailable')],
+                 target='<answer>unavailable</answer>')
         with contract_epoch(True):self.assertEqual(audit_training_contract([row]),[None])
 
     def test_generator_calculator_invalid_registration_and_absent_optional_contract(self):

@@ -2,7 +2,7 @@
 from pathlib import Path
 from copy import deepcopy
 from unittest.mock import patch
-import errno,io,sys,tarfile,unittest,uuid
+import errno,io,os,sys,tarfile,unittest,uuid
 B=Path(__file__).resolve().parents[1];sys.path.append(str(B/'code'))
 from adapter import dump,load,sha
 import o
@@ -22,8 +22,7 @@ class Returns(unittest.TestCase):
         dump(self.root/'STAGING.json',dict(passed=True))
         (self.root/'b.log').write_bytes(b'x'*(2*1024**2+11)+b'tail')
         (self.root/'a.log').write_text('stage log')
-        self.patches=[patch.object(self.module,'identity',return_value=self.root/'pool'),
-                      patch.object(self.module,'pool_operation',return_value=dict(verified=True)),
+        self.patches=[patch.object(self.module,'pool_operation',return_value=dict(verified=True)),
                       patch.object(self.module,'upload',return_value=dict(verified=True))]
         self.mocks=[p.start() for p in self.patches]
         for p in self.patches:self.addCleanup(p.stop)
@@ -46,10 +45,16 @@ class Returns(unittest.TestCase):
         self.assertEqual(result['token'],self.config['token']);self.assertEqual(result['plan_sha256'],self.config['binding'])
         return data
     def test_phase_and_expanded_cap(self):
-        with (self.run/'excess.json').open('wb') as f:f.seek(512*1024**2);f.write(b' ')
+        (self.run/'excess.json').write_text('excess')
         try:raise RuntimeError('prepare phase failed')
         except RuntimeError as e:phase=o.exception_record(e)
-        data=self.assert_minimal(self.finish(phase),True)
+        original=Path.stat
+        def size(path,*args,**kwargs):
+            value=original(path,*args,**kwargs)
+            if path.name=='excess.json':
+                fields=list(value);fields[6]=512*1024**2+1;return os.stat_result(fields)
+            return value
+        with patch.object(Path,'stat',size):data=self.assert_minimal(self.finish(phase),True)
         import json
         inv=json.loads(data['INVENTORY.json'])
         self.assertIn('excess.json',inv['excluded'])
@@ -99,10 +104,64 @@ class Returns(unittest.TestCase):
         self.assertEqual(alloc.call_args.kwargs['dir'],'/dev/shm')
     def test_geometry_cap_trim_preserves_protected(self):
         p=self.run/'cell/g/scaled/huge.npz';p.parent.mkdir(parents=True)
-        with p.open('wb') as f:f.seek(512*1024**2);f.write(b' ')
-        result=self.finish();data=self.read_archive(result)
+        p.write_bytes(b'geometry')
+        original=Path.stat
+        def size(path,*args,**kwargs):
+            value=original(path,*args,**kwargs)
+            if path.name=='huge.npz':
+                fields=list(value);fields[6]=512*1024**2+1;return os.stat_result(fields)
+            return value
+        with patch.object(Path,'stat',size):result=self.finish()
+        data=self.read_archive(result)
         self.assertTrue(result['complete']);self.assertNotIn('cell/g/scaled/huge.npz',data)
         self.assertIn('j0/items.jsonl',data);self.assertIn('j0/CANARY.json',data)
+
+    def test_digit_token_real_identity_and_pool_worker(self):
+        for head in '0123456789abcdef':
+            token=head+'123456789abcdef01234567'
+            self.assertEqual(self.module.identity(self.module.AUTHORIZED_POOL,token),self.module.AUTHORIZED_POOL)
+        with self.assertRaises(ValueError):self.module.identity(self.module.AUTHORIZED_POOL,'../unsafe')
+        result=self.finish();pool=self.root/'real_pool'
+        receipt=self.module.pool_worker('publish',pool,self.config['token'],4*1024**2,local=result['local_return'])
+        self.assertTrue(receipt['verified'])
+        self.assertEqual(sha(pool/self.config['token']/'result.tar.gz'),sha(Path(result['local_return'])/'result.tar.gz'))
+
+    def test_compressed_cap_trims_only_geometry(self):
+        p=self.run/'cell/g/scaled/random.npz';p.parent.mkdir(parents=True)
+        p.write_bytes(os.urandom(200000))
+        with patch.object(self.module,'mode_limit',return_value=100000):result=self.finish()
+        data=self.read_archive(result);self.assertTrue(result['complete'])
+        self.assertNotIn('cell/g/scaled/random.npz',data)
+        for name in ('p/PROOF.json','j0/CANARY.json','j0/items.jsonl','RESULT.json'):
+            self.assertEqual(data[name],(self.run/name).read_bytes())
+    def test_proof_phase_traceback(self):
+        with patch.object(o.subprocess,'run',side_effect=RuntimeError('proof worker failed')):
+            self.assertEqual(o.run_phase([], '/x/p.py', self.run, {}, io.StringIO(), 1),0)
+        failure=load(self.run/'FAILURE.json')
+        self.assertIn('Traceback',failure['phase_error']['traceback'])
+        data=self.read_archive(self.finish());self.assertIn(b'proof worker failed',data['FAILURE.json'])
+    def test_run_phase_and_return_failure(self):
+        modules=o.imports();token=self.config['token'];tmp=self.root/'tmp';tmp.mkdir()
+        config=deepcopy(self.config);archive=self.root/'code.tar';archive.write_bytes(b'fixture')
+        config.update(added={k:dict(path=o.PREFIX+k+'.tar',name=o.CLOUD+k+'.tar',sha256='a'*64,
+                                   bytes=7,generation='1',verified=True) for k in 'abcd'},
+                      family=dict(parent_config={},inputs=dict(keys=[])))
+        config['added']['c']['path']=str(archive)
+        config['binding']=o.digest({k:v for k,v in config.items() if k!='binding'})
+        dump(self.root/'config.json',config)
+        jobroot=tmp/('a15_123_'+token)
+        def path(value):return tmp if str(value)=='/tmp' else Path(value)
+        def phase(*args,**kwargs):
+            (jobroot/'run/bad.bin').write_bytes(b'unexpected output')
+            raise RuntimeError('injected allocation phase failure')
+        with patch.object(o,'Path',side_effect=path),patch.object(o,'validate_additions'),patch.object(o,'extract'),patch.object(o,'sha',return_value='a'*64),patch.object(o,'imports',return_value=modules),patch.object(modules[3],'card',side_effect=phase),patch.dict(os.environ,SLURM_JOB_ID='123',SLURM_JOB_PARTITION='general'):
+            result=o.run(self.root/'config.json')
+        data=self.read_archive(result)
+        import json
+        failure=json.loads(data['FAILURE.json'])
+        self.assertIn('injected allocation phase failure',failure['phase_error']['traceback'])
+        self.assertIn('unexpected return member',failure['return_error']['traceback'])
+        self.assertTrue(result['returned'])
 
 class Packet(unittest.TestCase):
     def test_all_four_archives_reject_links(self):

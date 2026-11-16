@@ -7,5 +7,6 @@ for n,v in d.items():
     if not free: continue
     try: u,t=[int(x.rstrip('GB')) for x in v['scratch'].split('/')]
     except: continue
-    if n in ('trinity-1-3','trinity-1-18') or t-u>=250:
-        print(f"CANDIDATE {n} free={free} scratch_free~{t-u}GB upd={v['updated']}")
+    a=int(t-u-0.05*t)  # df Avail is about 5% of total below total-used (root reserve)
+    if n in ('trinity-1-3','trinity-1-18') or a>=250:
+        print(f"CANDIDATE {n} free={free} scratch_avail~{a}GB upd={v['updated']}")

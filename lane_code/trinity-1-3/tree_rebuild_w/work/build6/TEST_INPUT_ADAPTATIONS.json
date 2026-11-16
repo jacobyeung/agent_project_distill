@@ -1,9 +1,19 @@
 {
   "files": [
     {
+      "file": "generator/derivgen_v7/test_v312_quality.py",
+      "before": "85b52b7f8a36cec799458cbb62bca96f33d97af7019cf1de80ca576ade8e274d",
+      "after": "d6251376730e06927300b842c7aba0c9a2496ddadaf1e442faee8683c45527a9"
+    },
+    {
       "file": "tests/r2_init_fixture.py",
       "before": null,
       "after": "d617377593bd9ab27b7cea9412640a32a5efe00650119a97685b688488392c19"
+    },
+    {
+      "file": "tests/test_c1_validation_slice.py",
+      "before": "88e4dd02b1e6b29bfc7f42ea08175f6af11525f929fb27a8b488346076db92ce",
+      "after": "c7c11d3e9f6d3d550f420ae474e7a5db9a326825591b7a1da47f677f203486f9"
     },
     {
       "file": "tests/test_e2e_open_vocabulary.py",
@@ -48,7 +58,7 @@
     {
       "file": "tests/test_r2_build6.py",
       "before": null,
-      "after": "94c5baf8c26a2bbb5ded71fd072a3ce7f7ce06d466b54f8cd125170fbc498652"
+      "after": "0ccf7b34dcd78dd407af6b313410d3633838cb2de14797b97b8ee8ed64016707"
     },
     {
       "file": "tests/test_r2_data_path.py",
@@ -104,6 +114,8 @@
   "reasons": [
     "Existing init tests bind the same historical input through an explicit fixture pin; runtime defaults do not choose an artifact.",
     "Recovery mutation checks exercise the native refusal OFF and the packet refusal ON.",
+    "The qualified-name fixture retains its OFF refusal and tests the earlier exact-name refusal ON.",
+    "The validation fixture retains its nonmutation check and authenticates the implicit heading threshold added by the accepted identity contract.",
     "Synthetic metric bank entries include their asked unit and both required score views include per-unit results.",
     "The packet changes its two legacy test files verbatim, as authenticated by the patch manifest.",
     "New tests cover next-leg input, unit, admission, runtime and score requirements."

@@ -95,14 +95,27 @@ class StaticScanner(unittest.TestCase):
             with self.subTest(variant=variant):
                 self.assertIn(key, got)
 
-    def test_allowlisted_unit_conversion_and_indices_pass(self):
+    def test_indices_norms_and_printing_pass(self):
         src = ('import torch\n'
                'def fmt(points, k):\n'
                '    d = torch.linalg.norm(points[1]-points[0])\n'
-               '    return f"{float(d)*100:.1f} cm", round(float(d)/0.3048, 2), points[k, 3]\n')
+               '    return f"{float(d):.2f}", round(float(d), 2), points[k, 3]\n')
         path = Path(tempfile.mkdtemp())/'ok.py'
         path.write_text(src)
         self.assertEqual(S.scan([path])[0], [])
+
+    def test_unit_conversion_outside_the_model_fails(self):
+        cases = ['def f(d):\n    return f"{d*100:.1f} cm"\n',
+                 'def f(d):\n    return round(d/0.3048, 2)\n',
+                 'def to_feet(d):\n    return d\n',
+                 'def f(d):\n    return f"{d:.1f} ft"\n',
+                 'def f(a):\n    return a*180/3.141592653589793\n']
+        for src in cases:
+            with self.subTest(src=src):
+                path = Path(tempfile.mkdtemp())/'unit.py'
+                path.write_text(src)
+                rules = {f['rule'] for f in S.scan([path])[0]}
+                self.assertTrue(rules & {'A3.unit_conversion', 'A3.constant'}, rules)
 
     def test_fitted_constant_and_config_threshold_fail(self):
         src = ('def cut(depth, cfg):\n'
@@ -113,6 +126,16 @@ class StaticScanner(unittest.TestCase):
         path.write_text(src)
         rules = {f['rule'] for f in S.scan([path])[0]}
         self.assertEqual(rules, {'A3.threshold', 'A3.constant'})
+
+    def test_raise_only_validation_passes_but_caught_error_response_fails(self):
+        ok = 'def f(k):\n    if not 1 <= k <= 64:\n        raise ValueError(k)\n    return k\n'
+        bad = ('def f(k):\n    try:\n        return g(k)\n    except ValueError as e:\n'
+               '        return f"error: {e}"\n')
+        root = Path(tempfile.mkdtemp())
+        (root/'ok.py').write_text(ok)
+        (root/'bad.py').write_text(bad)
+        self.assertEqual(S.scan([root/'ok.py'])[0], [])
+        self.assertIn('A4.except_substitute', {f['rule'] for f in S.scan([root/'bad.py'])[0]})
 
     def test_suppression_is_reported(self):
         path = Path(tempfile.mkdtemp())/'s.py'

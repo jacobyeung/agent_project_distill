@@ -1,0 +1,51 @@
+{
+  "arms": [
+    "primary"
+  ],
+  "benchmark": "revsi999t32",
+  "benchmark_label": "ReVSI official999, tier 32",
+  "binding_sha256": "ed1ddd51617f22fb0db9c1b5f8ce1fd078a89f7fda082da018bf278cb81f97ce",
+  "budget": "B2048 primary; native reads 2,048 + 64 tokens (pre-registration, fixed without re-selection)",
+  "export": {
+    "kind": "step544",
+    "label": "LEG-S1 step 544 (artifact 1d6eeb28)",
+    "sha256": "1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef"
+  },
+  "frame_path": "PyAV rgb24, 32 floor-uniform anchors k*(N-1)//31 at stream fps, each duplicated (accepted direct kits)",
+  "groups": [
+    "object_counting",
+    "object_rel_direction",
+    "object_rel_distance",
+    "object_size_estimation",
+    "route_planning",
+    "object_abs_distance",
+    "room_size_estimation"
+  ],
+  "items": 999,
+  "mode": "fixture",
+  "read_config": {
+    "frames": {
+      "anchor_rule": "k*(N-1)//31 for k in 0..31, PyAV rgb24 at stream fps",
+      "count": 32,
+      "layout": "duplicate",
+      "layout_override_reason": null,
+      "processor_frames": 64,
+      "temporal_groups": 32,
+      "trained": {
+        "count": 32,
+        "layout": "duplicate"
+      }
+    }
+  },
+  "reader": {
+    "eat1": {
+      "note": "no EAT-1 report given",
+      "passed": null
+    },
+    "id": "e2e manifest 771752011045",
+    "kind": "e2e",
+    "manifest": "work/rehearsal_revsi_e2e_01/e2e.json",
+    "manifest_sha256": "7717520110454c6532689344cdf5a63dddf8235f8d968feec83d1f1c6019600b"
+  },
+  "schema": "offkit-binding-v1"
+}

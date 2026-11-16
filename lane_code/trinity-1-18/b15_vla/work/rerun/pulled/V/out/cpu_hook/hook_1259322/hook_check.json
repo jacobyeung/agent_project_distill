@@ -1,0 +1,137 @@
+{
+ "eligible_bounds": [],
+ "drop_incomplete": false,
+ "state_shape": [
+  1,
+  8
+ ],
+ "tail_chunk": {
+  "valid": 4,
+  "mask_rows": [
+   true,
+   true,
+   true,
+   true,
+   false,
+   false,
+   false,
+   false
+  ],
+  "mask_dtype": "float32",
+  "repeats_last": true,
+  "episode_id": "libero_spatial/task07/ep000393",
+  "t": 124
+ },
+ "head_params": {
+  "hook": 44295,
+  "starvla": 43143,
+  "proprio_map": 1152
+ },
+ "loss_starvla_no_state": 0.5632340312004089,
+ "loss_hook_with_state": 0.5632340312004089,
+ "loss_starvla_state_as_text": 0.766889750957489,
+ "step0_parity": true,
+ "grad_norm_proprio_map": 0.7725810408592224,
+ "grad_norm_lm_sum": 43.84301824501017,
+ "predict_shape": [
+  3,
+  8,
+  7
+ ],
+ "predict_in_range": true,
+ "server_strict_load": true,
+ "server_pred_max_abs_diff": 0.0,
+ "proprio_changes_prediction": true,
+ "proprio_norm": {
+  "kind": "minmax_subset_v1",
+  "min": [
+   -0.2784487307071686,
+   -0.21603193879127502,
+   0.9114092588424683,
+   2.773357629776001,
+   -1.448430061340332,
+   -0.3602774143218994,
+   0.0019603909458965063,
+   -0.03986837714910507
+  ],
+  "max": [
+   0.12963759899139404,
+   0.3580150008201599,
+   1.3102139234542847,
+   3.340601921081543,
+   0.823411762714386,
+   0.861444890499115,
+   0.0399288572371006,
+   -0.001975930528715253
+  ],
+  "count": 1229,
+  "subset_sha": "71c7f83907b1cf370a39c845570a91bf17620f2b9850c6fda688a089a212da31",
+  "data_mix": "vll_libero_spatial_d1_s0"
+ },
+ "action_norm": {
+  "kind": "minmax_subset_v1",
+  "min": [
+   -0.9375,
+   -0.8303571343421936,
+   -0.9375,
+   -0.10285714268684387,
+   -0.22607143223285675,
+   -0.24321427941322327
+  ],
+  "max": [
+   0.9375,
+   0.8892857432365417,
+   0.9375,
+   0.15214285254478455,
+   0.26249998807907104,
+   0.23357142508029938
+  ],
+  "count": 1229,
+  "subset_sha": "71c7f83907b1cf370a39c845570a91bf17620f2b9850c6fda688a089a212da31",
+  "data_mix": "vll_libero_spatial_d1_s0",
+  "gripper": "g = 1 - 2 a6, not normalised"
+ },
+ "prompt_template": {
+  "template_id": "starvla_qwenoft_985c2238_v1",
+  "template_sha256": "47e4c3d9161ec2df6b38ab4dbe4e16b2ccad17e1a0e3cd57f415031ad08f692b",
+  "template": "{instruction}{where} Please predict the next 8 robot actions: <action>\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d<action>."
+ },
+ "full_prompt_example": "pick up the black bowl on the stove and place it on the plate Please predict the next 8 robot actions: <action>\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d<action>.",
+ "gripper_in_prediction": [
+  1.0
+ ],
+ "dropout": {
+  "rows": 1000,
+  "withheld": 207,
+  "rate": 0.207,
+  "agrees_with_vla_heads": true,
+  "within_3sd": true
+ },
+ "flow_detach_False": {
+  "loss": 1.651148796081543,
+  "finite": true,
+  "grad_lm": 18.908806859337346,
+  "grad_head": 229.20891011087224,
+  "predict_shape": [
+   3,
+   8,
+   7
+  ],
+  "in_range": true,
+  "server_same_with_seed": 0.0
+ },
+ "flow_detach_True": {
+  "loss": 1.651148796081543,
+  "finite": true,
+  "grad_lm": 0,
+  "grad_head": 229.20891011087224,
+  "predict_shape": [
+   3,
+   8,
+   7
+  ],
+  "in_range": true,
+  "server_same_with_seed": 0.0
+ },
+ "verdict": "HOOK_OK"
+}

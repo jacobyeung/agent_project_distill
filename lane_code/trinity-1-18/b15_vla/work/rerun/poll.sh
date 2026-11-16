@@ -1,0 +1,1 @@
+R=/project/community/jjyeung/vla_libero/out/rerun_20261116; cat $R/phase.log; tail -3 $R/V/out/cpu_hook/log.txt 2>/dev/null; ps -u jjyeung -o pid,etime,ni,pcpu,rss,args | grep -E "vl_train|vl_eval|conformance|parity|rerun_driver" | grep -v grep | cut -c1-160

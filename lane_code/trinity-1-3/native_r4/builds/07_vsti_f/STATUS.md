@@ -1,1 +1,1 @@
-V1c copied. Return failure paths and production-size outputs are under review; no GPU or remote action runs.
+V1f is built and CPU-verified. All 67 kit and 30 inherited tests pass. The final archive matches the code; d.tar is byte-identical to V1c. Full prepare-return sizes and limitations are in out/RETURN_SIZE.json; diagnosis and hashes are in out/FINAL_RESULT.json. No remote job was submitted.

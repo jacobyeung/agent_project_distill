@@ -10,6 +10,20 @@ sys.dont_write_bytecode = True
 from pathlib import Path
 import torch
 torch.set_num_threads(8)
+from torch.overrides import TorchFunctionMode
+
+
+class _CPUOnly(TorchFunctionMode):
+    # SAM 3's builder hard-codes device="cuda" in precomputed position caches; the text path never reads them.
+    def __torch_function__(self, func, types, args=(), kwargs=None):
+        kwargs = dict(kwargs or {})
+        if 'cuda' in str(kwargs.get('device', '')):
+            kwargs['device'] = 'cpu'
+        args = tuple('cpu' if (isinstance(a, (str, torch.device)) and 'cuda' in str(a)) else a for a in args)
+        return func(*args, **kwargs)
+
+
+_CPUOnly().__enter__()
 CKPT = '/scratch/jjyeung/orch_cd/ttower/work/sam3_weights/sam3.pt'
 MANIFEST = '/scratch/jjyeung/orch_n30/k1_ops3/work/manifest_v2/a40fbc19.json'
 

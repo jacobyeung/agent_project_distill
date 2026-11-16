@@ -1,5 +1,5 @@
 # b01_d0guard STATUS (trinity-3-30) — a successor resumes from this file alone
-Updated by the b01_d0guard Claude lane. Brief: /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/briefs/b01_d0guard.md -> queue brief .../orch_n30/briefs/qs/01_d0_native_guard_kit.md. Rules: ~/.claude/CLAUDE.md Trinity rules, .../orch_n30/tools/CLAUDE_LANE_RULES.md, LANE_RULES.md. Lane folder /scratch/jjyeung/orch_n30/b01_d0guard (this node); events EV=.../orch_n30/events/b01_d0guard/. Finish or rotate by 22:30Z. No Git, no deletion, no GPU, no Orchard submission without an ORCH GO naming the job.
+Updated by the b01_d0guard Devin lane (successor, started 12:22Z, session ends by 18:20Z). Brief: /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/briefs/b01_d0guard.md -> queue brief .../orch_n30/briefs/qs/01_d0_native_guard_kit.md. Rules: ~/.claude/CLAUDE.md Trinity rules, .../orch_n30/tools/CLAUDE_LANE_RULES.md, LANE_RULES.md. Lane folder /scratch/jjyeung/orch_n30/b01_d0guard (this node); events EV=.../orch_n30/events/b01_d0guard/. Finish or rotate by 22:30Z. No Git, no deletion, no GPU, no Orchard submission without an ORCH GO naming the job.
 
 ## Layout
 - guard_kit/report/: guard_read.py (item 2 of the brief, built by this lane), inputs/ (brief-02 parser unit_from_question.py 274f04a0..., DISTANCE_LIST_DEVS1_150.jsonl 028273ec..., TASKS.jsonl a2f3fdbd...), tests/test_guard_read.py (27 tests), tests/mutants.py (25 mutants), tests/fixtures/R1_544_COMPACT.json.
@@ -8,11 +8,17 @@ Updated by the b01_d0guard Claude lane. Brief: /data2/jjyeung/agent_project_data
 - out/: selftest (guard_read on 170056 vs itself), tests/ logs.
 
 ## Done
-- guard_read.py: self-pair on job 170056's R1.json gives zero differences on every type, means equal the record (camera 82.333/94.667/75.667, metre 61.628, distance 29.867, room 53.889); out/selftest/GUARD_READ.md. 27 tests OK (out/tests/guard_read_tests.log).
-- QUESTION lane_size (default: lane up to 12 GB here; ~7 GB used).
+- guard_read.py: self-pair on job 170056's R1.json gives zero differences on every type, means equal the record (camera 82.333/94.667/75.667, metre 61.628, distance 29.867, room 53.889); out/selftest/GUARD_READ.md. 27 tests OK (out/tests/guard_read_tests.log). Mutants 25/25 killed (out/tests/guard_read_mutants.json).
+- QUESTION lane_size (default: lane up to 12 GB here; ~7.3 GB used).
+- Codex G1 (guard_kit/build/) finished 12:11Z NOT READY: components + 90 unit checks + 25/25 report mutants; blockers in build/out/RELEASE_BLOCKERS.json (candidate training closure, production integration, naming, whole-worker rehearsal). code_g1.tar dab2e6fb..., inputs_g1.tar 880b6ac4...
+- D0 candidate closure fetched 12:38Z read-only from Orchard x_f5c353f7 (runs/359fcc3c/inputs, m1+m50 artifact.json, binding.json, k/d6827df0.json, 7.json, routes, exclusions, launch/4/staging): work/d0closure/closure_359fcc3c.tar sha256 41bb90d0418ab37715ae66358e875cb4f337f7a63349df4d96498c6452cda964, extracted x/, CLOSURE_FILES.sha256. Trainer tar on Orchard k/t_b01ce449beffe35b.tar 845b1789... = local copy. m50 artifact differs from m544's only in config/run-seal/tensor/step/trained-group fields; initial hashes chain to m544 finals. QUESTION 1233Z candidate_closure (default: read-only copy allowed).
+- Orchard login gcloud (even with CLOUDSDK_CONFIG=/project/community/jjyeung/gcloud) returned rc=120 on `gcloud storage cat`; not needed now (artifacts are files in runs/359fcc3c/m<STEP>/).
 
-## In progress / next
-1. Mutant run (out/tests/guard_read_mutants.json): every mutant must be killed.
-2. Wait for Codex G1 (guard_kit/build/STATUS.md, events/*_RESULT_final.md). Then: rerun its tests, run the operator rehearsal outside the sandbox per its out/rehearsal/RUNBOOK.md, check DIFF.md / PIN_CLASSIFICATION.md / NAMING.md.
-3. Write out/GUARD_KIT_READY.md (hashes, DIFF, tests, pin table, time/disk), mirror the kit over IB to a second node (/scratch/jjyeung/n30_mirror/b01_d0guard/), STATUS to EV, RESULT event asking ORCH for the cross-family refute review of DIFF.md, pin classification and guard_read.py.
-4. Submission of any guard read needs: that review, the list sha in the init-rule record, an ORCH GO.
+## In flight
+- Codex G2 (gpt-6-astra high) in guard_kit/build2/ since 12:41Z (BRIEF.md there; codex_stdout.log; receipts agent/scratch/codex_runs/*b01_guardkit_g2*). Check: `ps -u jjyeung -o pid,cmd | grep build2`, build2/STATUS.md, build2/events/*_RESULT_final.md. Do not relaunch while it runs.
+
+## Next
+1. When G2 ends: rerun its tests; run out/rehearsal/run_whole_worker.sh outside the sandbox (userns works on this node: `unshare -Ur true` OK); check DIFF.md / PIN_CLASSIFICATION.md / NAMING.md / RUN.md.
+2. If blockers remain and time allows (m200 export ~17:50Z; m200 stop-rule read has general first from 17:30Z), dispatch a fix round G3 with the exact failures.
+3. Write out/GUARD_KIT_READY.md, mirror kit over IB to a second node /scratch/jjyeung/n30_mirror/b01_d0guard/, STATUS to EV, RESULT asking ORCH for the cross-family refute review (DIFF.md, pin classification, guard_read.py) and stating the one-reader mapping (guard_read.py scoring/rule functions importable by b04).
+4. Submission needs: review, list sha in the init-rule record, ORCH GO naming the job.

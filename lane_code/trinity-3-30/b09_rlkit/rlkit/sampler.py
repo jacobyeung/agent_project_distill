@@ -97,7 +97,24 @@ def _slim_calls(calls):
     return [{k: c[k] for k in keep if k in c} for c in calls]
 
 
-def build_record(prompt, draw, path, text, choice, rec, seconds):
+def prompt_ids_sha256(batch):
+    """Same digest as grpo_tree student_pilot.grpo_rows.ids_sha256 (json list of ints)."""
+    import hashlib
+    return hashlib.sha256(json.dumps([int(i) for i in batch['input_ids'][0].tolist()]).encode()).hexdigest()
+
+
+def response_sources(rec, kw):
+    """Where the rollout's printed responses came from: the decode kwargs the sampler passed and
+    the decoder's own per-query backend names (heads.ground_queries[].backend)."""
+    heads = rec.get('heads') or {}
+    backends = sorted({str(q.get('backend')) for q in heads.get('ground_queries') or []})
+    return dict(pose_source=kw.get('pose_source', 'own'), mask_source=kw.get('mask_source'),
+                ground_backend=None if kw.get('ground_backend') is None else type(kw['ground_backend']).__name__,
+                ground_query_backends=backends, tower_state=kw.get('tower_state') is not None,
+                donor=kw.get('donor_batch') is not None, call_kinds=sorted({str(c.get('kind')) for c in rec.get('calls', [])}))
+
+
+def build_record(prompt, draw, path, text, choice, rec, seconds, prompt_sha=None, sources=None):
     kinds, lt, lr = align(rec, choice)
     own = sum(k in ('f', 's', 'b') for k in kinds)
     return dict(
@@ -107,7 +124,8 @@ def build_record(prompt, draw, path, text, choice, rec, seconds):
         finish=rec['finish'], budget_hit=choice.budget_hit, generated_tokens=rec['generated_tokens'],
         own_tokens=own, response_tokens=len(kinds) - own, forced_prefix_tokens=kinds.count('f'),
         prompt_tokens=rec.get('prompt_tokens'), geometry_error=rec.get('geometry_error'),
-        errors=rec.get('errors', 0), tower_error=rec.get('tower_error'), seconds=seconds)
+        errors=rec.get('errors', 0), tower_error=rec.get('tower_error'), seconds=seconds,
+        prompt_ids_sha256=prompt_sha, response_sources=sources)
 
 
 def sample_prompt(cfg, backend, store, prompt):
@@ -118,6 +136,7 @@ def sample_prompt(cfg, backend, store, prompt):
         return []
     t0 = time.time()
     batch = backend.prompt_batch(prompt)
+    prompt_sha = prompt_ids_sha256(batch)
     t_batch = time.time() - t0
     made = [(d, paths[d], *make_choice(cfg, backend, prompt, d, paths[d])) for d in todo]
     out = []
@@ -128,7 +147,7 @@ def sample_prompt(cfg, backend, store, prompt):
             recs = backend.generate([batch] * len(made), [m[2] for m in made], **kw)
         per = (time.time() - t1 + t_batch) / len(made)
         for (d, path, choice, text), rec in zip(made, recs):
-            r = build_record(prompt, d, path, text, choice, rec, per)
+            r = build_record(prompt, d, path, text, choice, rec, per, prompt_sha, response_sources(rec, kw))
             store.commit(r)
             out.append(r)
     else:
@@ -137,7 +156,8 @@ def sample_prompt(cfg, backend, store, prompt):
             t1 = time.time()
             with sampling_hooks():
                 rec = backend.generate(batch, choice, **kw)
-            r = build_record(prompt, d, path, text, choice, rec, time.time() - t1 + t_batch / len(made))
+            r = build_record(prompt, d, path, text, choice, rec, time.time() - t1 + t_batch / len(made), prompt_sha,
+                             response_sources(rec, kw))
             store.commit(r)
             out.append(r)
     return out
@@ -170,6 +190,7 @@ class NativeBackend:
             self.factory = getattr(__import__(mod, fromlist=[fn]), fn)
         self.decode = raw.get('decode') or {}
         self.export = raw.get('export')
+        self.backend_cfg = b
 
     def eos_id(self):
         return self.processor.tokenizer.eos_token_id
@@ -185,7 +206,7 @@ class NativeBackend:
     def decode_kwargs(self, prompt, batch, n=1):
         kw = dict(pose_source=self.decode.get('pose_source', 'own'))
         if self.factory is not None:
-            kw.update(self.factory(self.model, self.processor, prompt, batch, cache=self.cache,
+            kw.update(self.factory(self.model, self.processor, prompt, batch, cache=self.cache, backend_cfg=self.backend_cfg,
                                    key=key_of(video=batch.get('video_sha256'), frames=batch.get('frame_indices'),
                                               export=self.export)))
         return kw

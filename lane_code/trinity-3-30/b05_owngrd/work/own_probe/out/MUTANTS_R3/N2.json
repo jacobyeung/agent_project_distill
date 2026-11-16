@@ -1,0 +1,13 @@
+{
+  "id": "N2",
+  "description": "unequal tap count: SAM provider drops first tap",
+  "edits": [
+    {
+      "module": "own_feats.providers",
+      "old": "layers=quarter_layers(len(self.net.blocks));captured={};hooks=[]",
+      "new": "layers=quarter_layers(len(self.net.blocks))[1:];captured={};hooks=[]"
+    }
+  ],
+  "reviewer_spec": "/scratch/jjyeung/orch_cd/own_probe_review2/mutants/N2.json",
+  "adaptation": "Unchanged reviewer edit"
+}

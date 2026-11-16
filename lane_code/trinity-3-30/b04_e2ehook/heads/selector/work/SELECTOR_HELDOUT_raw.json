@@ -1,0 +1,93 @@
+{
+ "head_dir": "work/run_raw",
+ "weights_sha256": "1931446b20f4ecd4ec41916bd2ca61238f23d43039c07a7ac64b5cb323d929cb",
+ "config": {
+  "epochs": 15,
+  "hidden": 32,
+  "lr": 0.003,
+  "name_mode": "none",
+  "wd": 0.001,
+  "n_hash": 4096
+ },
+ "metrics": {
+  "head": {
+   "auc": 0.9403799496862103,
+   "ap": 0.6932323571474521,
+   "top1": 0.6050955414012739,
+   "slot_acc_with_null": 0.6624203821656051,
+   "objects_without_positive": 43
+  },
+  "refit": {
+   "auc": 0.9421570470639845,
+   "ap": 0.6831092862485674,
+   "top1": 0.5987261146496815
+  },
+  "current": {
+   "auc": 0.9204961548447166,
+   "ap": 0.6494110269677388,
+   "top1": 0.6178343949044586
+  }
+ },
+ "paired": {
+  "head-refit": {
+   "auc": {
+    "point": -0.001777097377774206,
+    "ci": [
+     -0.012317698329696269,
+     0.00908530129232101
+    ],
+    "draws": 10000
+   },
+   "top1": {
+    "point": 0.006369426751592355,
+    "ci": [
+     -0.02684563758389269,
+     0.04023084934043045
+    ],
+    "draws": 10000
+   }
+  },
+  "head-current": {
+   "auc": {
+    "point": 0.019883794841493718,
+    "ci": [
+     0.0012763129263120155,
+     0.04064300337814093
+    ],
+    "draws": 10000
+   },
+   "top1": {
+    "point": -0.01273885350318471,
+    "ci": [
+     -0.0479041916167664,
+     0.02325921392628858
+    ],
+    "draws": 10000
+   }
+  }
+ },
+ "bar": {
+  "auc_ok": true,
+  "top1_ok": true,
+  "PASS": true
+ },
+ "counts": {
+  "candidates": 1541,
+  "positives": 162,
+  "objects": 157,
+  "rooms": 43,
+  "captures": 44
+ },
+ "logistic": {
+  "upstream": {
+   "fit.py": "0d639005279c3a2a27b5de4936c42ff57094dcdb550bd21d8072c23de5c8bd3a",
+   "setlib.py": "d9271cc98d1f17f7259287f0795fdaf2f8c679f694e7c2cc73ebdd0a5609492a"
+  },
+  "current_models_sha256": "cdf19409fa0427dbd243c1b2c49fc418a12245af93373615ac06e8365c835dfc",
+  "versions": {
+   "sklearn": "1.5.2",
+   "numpy": "2.2.6",
+   "python": "3.12.13 | packaged by conda-forge | (main, Mar  5 2026, 16:50:00) [GCC 14.3.0]"
+  }
+ }
+}

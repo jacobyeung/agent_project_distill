@@ -1,17 +1,25 @@
-# b04_e2ehook STATUS (lane on trinity-3-30, Claude Opus). Updated 2026-11-16T12:05Z.
-Brief: /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/briefs/b04_e2ehook.md -> queue brief briefs/qs/04_e2e_reader_hook.md.
+# b04_e2ehook STATUS (Devin lane on trinity-3-30, successor of the Claude lane). Updated 2026-11-16T13:35Z.
+Brief: /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/briefs/b04_e2ehook.md -> queue brief briefs/qs/04_e2e_reader_hook.md. Deadline 22:30Z; this Devin session rotates by ~18:15Z.
 Lane folder L=/scratch/jjyeung/orch_n30/b04_e2ehook (trinity-3-30). Python: /scratch/jjyeung/envs/p1cpu/bin/python -B. Tree (read-only, imported): /scratch/jjyeung/orch_n30/tree_rebuild/work/base/tree_b01ce449.
 ## Done
-- L/e2e_reader/: callhook.py (CallHook module, detection = port of sealed Row._call, decode_loop), geometry.py (G3T+own gravity+scale -> geometry, NO guard; guard verdicts recorded only), servers.py (camera via tree respond(); ground/gap via v3.14 Session), grounding.py (stage-1 socket: propose + selector argmax with null; lift_plain without depth cut; MinAreaBoxProvider, no tuned constant), artifact.py (manifest e2e-artifact-v1, verify, audit hook refusing data files outside manifest), generate.py (one entry, lazy in-call towers, entry counter).
-- Proof 1 (token parity vs job 170056): L/tests/replay_170056.py -> L/out/proofs/REPLAY_170056_{suffix,nosuffix}.json: 927/927 calls detected with equal text and position; forced ids equal on 462/462 comparable calls (450 camera + 12 ground/gap/room with full recorded queries); 465 ground/gap/room calls not compared (R1 kept only digests of their queries).
-- Proof 2 (guard): out/proofs/GUARD_VERDICTS_DEVS1.json: on the job's own 84 dev-S1 geometry exports the sealed guard refuses 11, reviewed guard 1 (d3/41254810); new loader refuses none.
-- Proof 3 (tiny e2e, CPU): L/tests/test_tiny_e2e.py 5 passed (every call type; 1 prefill; cache length = prompt+ids-1; cached logits == fresh forward; loader refuses outside file and changed file; head perturbation changes only its responses). Output out/proofs/TINY_E2E.json.
+- L/e2e_reader/: callhook.py, geometry.py (no guard), servers.py, grounding.py, artifact.py (manifest e2e-artifact-v1), generate.py, core.py (E2EGenerator, ORCH one-reader interface), real.py (draft, untested).
+- Proof 1 token parity vs job 170056: out/proofs/REPLAY_170056_{suffix,nosuffix}.json (927/927 calls detected; forced ids equal 462/462 comparable).
+- Proof 2 guard: out/proofs/GUARD_VERDICTS_DEVS1.json (sealed guard refuses 11/84, reviewed 1, new loader 0).
+- Proof 3 tiny e2e CPU: tests/test_tiny_e2e.py 5 passed -> out/proofs/TINY_E2E.json.
+- Scale head (heads/scale): ridge on 29 fixed-math tower features, 31 params, weights run1 a90b5216... (run2 094df94c... differs by 7.5e-17). Held-out 57 captures: within20 SH 91.2% vs S4 87.7%. Exact E3 harness on 1-18 (b04_e2ehook_sh, done 12:02Z), results pulled to heads/scale/work/out_sh, agg in work/exact_agg.txt: distance SH+G1 61.3 [54.4,67.5] vs S4+G1 62.9: -1.6 [-4.1,+1.1] -> MISSES bar (>=62.9). Oracle SO+G1 65.6.
+- Selector head (heads/selector): tables 266 captures (18 excluded E3 G1, 12 failed bounded reader). Logistic refit held-out AUC .9365 top-1 62.7%; deployed .9167/62.0%. SelectorHead run1 (09c1e6ba..., trigram name, h32, null slot) AUC .9337, top-1 58.9% (-3.8 [-7.5,0.0]) -> FAIL top-1 bar. Report heads/selector/SELECTOR_HEAD_REPORT.md; numbers work/SELECTOR_HELDOUT.json. Retrain bit-identical (work/run1_retrain).
+- Scale head report heads/scale/SCALE_HEAD_REPORT.md. Retrain bit-identical (work/det_a, det_b = a90b5216).
+- dev-S1 CPU pricing (calls fixed at scripted arm, headline labels): tests/price_devs1.py reproduces 634/634 job scores (out/proofs/PRICE_DEVS1_old.json, identity check PRICE_DEVS1_identity.json). Scale head (out/proofs/SCALE_HEAD_DEVS1.json): displacement 82.3->73.1 (-9.3 [-14.1,-5.0]), distance 54.7->51.5 (-3.1 [-6.4,-0.6]), room unserved (ORCH 1227Z: room is direct). out/proofs/PRICE_DEVS1_scale_scale_paired.json.
+- tests: tests/test_heads.py + tests/test_tiny_e2e.py 11 passed (13:04Z).
+- FINDING: K1 SAM 3 cache uses prompts=dense_aliases: 26% of instances come from alias prompts (table->desk, chair->seat, lamp->light). Raw-prompt-only tables rebuilt (sl_tables.py --raw-prompts-only, 1-18 b04_e2ehook_sl/full_raw, 266 caps) -> L/heads/selector/data/caps_raw. Logistic on raw-only: held-out AUC .9422 top-1 59.9% (work/logistic_heldout_raw.json); train OOF .9271/67.9%.
+- e2e_reader/stage1.py: StageOne socket (sam3_detect: raw name, K1 retention contract; routed producers; selector_inputs; SelectorHead.with_null argmax), ScaleHeadCall. real.py real_perception wired to them. assemble.py: manifest builder for the export host. tests/test_stage1_k1.py 4 passed (in-call inputs == K1 table inputs to <1e-9; ground/gap on a real K1 capture; ScaleHeadCall == head).
+- EAT-1 static scan (b03 eat1.scan, proposed allowlist): out/proofs/EAT1_STATIC_SCAN.json, 101 findings in static-only mode (57 constants, mostly scale-head quantile levels; guard-verdict recording; error-response fallback in servers.py; loaders).
 ## Running
-- Subagent SH (scale head): brief L/briefs/scale_head.md; outputs L/heads/scale/ (3-30), /scratch/jjyeung/orch_n30/b04_e2ehook_sh/ (1-18).
-- Subagent SL (selector head): brief L/briefs/selector_head.md (+ message: null logit, argmax only, prepare_inputs); outputs L/heads/selector/, /scratch/jjyeung/orch_n30/b04_e2ehook_sl/ (1-18).
-## Inputs copied (IB from trinity-1-13 native_r2/work)
-- L/work/n13/obj: geometry_8c58df15...tar (sha ok; extracted geo/: dev-S1 raw G3T g3s32 97 / g3s64 55), base_small.tgz (tokenizer/config, extracted base/), m544_artifact.json, export_head.tar, model_8005668f.tar.
-- L/work/n13/full_c8r/result.tar.gz (job 170056 return, sha 5c150baf... ok) extracted at L/work/n13/ret (R1.json, 84 geometry npz).
-- L/work/code_c8r.tar (C8r kit) at L/work/c8r; L/work/e3 = e3_mirror_1010Z.tar.
+- 3-30 tmux b04_selraw: SelectorHead CV+train on raw-prompt tables -> heads/selector/work/run_raw (log run_raw.log). Then: SEL_CAPS=data/caps_raw SEL_TAG=_raw python -I -B eval_selector.py work/run_raw.
 ## Next
-real.py (Qwen3.5 carrier path: tree _prepare_decode prefill + own gravity, FrozenG3TTower in call, SAM3 tower + selector, scale head), real artifact manifest, dev-S1 response-level pricing on CPU, EAT-1 static check (lane b03), parity-read kit (GPU needs ORCH GO), out/E2E_READER_READY.md, mirror, RESULT event.
+1. Eval raw-prompt head; update SELECTOR_HEAD_REPORT.md.
+2. EAT-1 static scan of e2e_reader with lane b03's /scratch/jjyeung/orch_n30/b03_e2etest/eat1/scan.py.
+3. Optional: dev-S1 price of selector / no depth cut (needs dev-S1 SAM 3 cache on 1-18).
+4. out/E2E_READER_READY.md, mirror to second node, final RESULT event asking for cross-family review + one-reader mapping.
+## Open questions (defaults in force)
+- CPU first-batch forward of the real export needs the step-544 weights (AWS only). Default: the parity kit runs it on the export host's CPU before any GPU; this lane does not pull the export to Trinity.

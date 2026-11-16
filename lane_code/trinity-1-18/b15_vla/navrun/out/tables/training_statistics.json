@@ -1,0 +1,20 @@
+{
+  "action_counts": {
+    "forward": 404912,
+    "stop": 10819,
+    "turn_left": 111177,
+    "turn_right": 104336
+  },
+  "action_probabilities": [
+    0.017139172807979164,
+    0.6414508494338164,
+    0.17612365424463441,
+    0.16528632351357003
+  ],
+  "definition": "random: iid empirical primitive frequencies including STOP, sha256(seed:episode_id) RNG; forward-only: median training forward count then STOP; instruction-prior: same forward budget divided evenly around lexical left/right/around occurrences, median training turn-run for left/right and 12 left primitives for around",
+  "median_forward_steps": 35,
+  "median_turn_run": 1,
+  "source_counts": {
+    "supplied_official_r2r_ce_gt": 10819
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "engine": {
+    "dtype": "bfloat16",
+    "enable_prefix_caching": false,
+    "gpu_memory_utilization": 0.9,
+    "inflight": 16,
+    "limit_mm_per_prompt": {
+      "image": 0,
+      "video": 1
+    },
+    "max_model_len": 49152,
+    "max_num_batched_tokens": 8192,
+    "max_num_seqs": 32,
+    "max_tokens": 16384,
+    "seed": 17,
+    "temperature": 0,
+    "tensor_parallel_size": 1,
+    "vllm": "0.32.0"
+  },
+  "fit": {
+    "full_engine_fit_48GiB": null,
+    "reason": "KV cache, CUDA graphs, activations and multimodal profiling not measured; no GPU permitted",
+    "weights_fit_48GiB": true
+  },
+  "frames": {
+    "Trinity_minutes": null,
+    "default": 32,
+    "expanded_frames": 64,
+    "hypothetical64_same_resolution_extra_visual_tokens": 2853312.0,
+    "implemented64": false,
+    "orchard_chain_stage_minutes": 8.90980798403422,
+    "orchard_generation_stage_minutes": 7.988250772158305,
+    "output_tokens_32": 119158,
+    "prompt_tokens_32": {
+      "max": 5122,
+      "median": 4538,
+      "min": 4486,
+      "total": 3111992
+    },
+    "reason": "Only tier-32 clips are supplied; official adapter and frame-plan checks require exactly 32 anchors",
+    "tier64_media_present": false,
+    "tier64_minutes": null,
+    "visual_tokens_32": 2853312.0
+  },
+  "model": {
+    "GiB": 17.52723103016615,
+    "bytes": 18819721016,
+    "dtype": "bfloat16",
+    "parameters": 9409813744
+  },
+  "runtime": {
+    "assets_identical": true,
+    "assets_sha256": "7e1da1668b4bac1d101692486e45f45912ccdde13d9f8ba8ca72cdd2287bf809",
+    "differences": [],
+    "vllm": "0.32.0"
+  },
+  "runtime_validation": "Pinned archive descriptors and existing completed staging receipts; no live import or weight scan in this build"
+}

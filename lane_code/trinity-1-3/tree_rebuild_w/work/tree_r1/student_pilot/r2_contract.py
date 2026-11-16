@@ -152,6 +152,10 @@ def validate(row, stream, expected=None, require_frames=False):
                 if not re.fullmatch(r'\d+(?:\.\d+)?', numeric):
                     raise ValueError('Numeric direct type needs a numeric final answer')
             unit = row.get('answer_unit')
+            if unit and kind in ('room_size_estimation', 'absolute_size_room'):
+                from .r2_units import asked_unit
+                if unit != asked_unit(dict(question_type=kind, student_input=inputs)):
+                    raise ValueError('Wrong-unit target')
             if unit and unit not in {'m': ('m', 'meters', 'metres'), 'cm': ('cm', 'centimeters', 'centimetres'),
                                      'ft': ('ft', 'feet'), 'in': ('in', 'inch', 'inches'), 'ft2': ('square feet', 'square foot', 'sq ft'), 'm2': ('square meters', 'square metres')}:
                 raise ValueError('Unknown answer unit')

@@ -1,0 +1,13 @@
+{
+  "id": "M9",
+  "description": "candidates mis-ordered vs labels",
+  "edits": [
+    {
+      "module": "fit_t1",
+      "old": "            feat=torch.stack([candidates[(g['object_id'],k)] for k in ids]).to(args.device)",
+      "new": "            feat=torch.stack([candidates[(g['object_id'],k)] for k in ids[::-1]]).to(args.device)"
+    }
+  ],
+  "reviewer_spec": "/scratch/jjyeung/orch_cd/own_probe_review2/mutants/M9.json",
+  "adaptation": "Unchanged reviewer edit"
+}

@@ -1,0 +1,53 @@
+{
+ "schema": "eat1-allowlist-v1",
+ "status": "PROPOSED, awaiting the cross-family refute review the brief orders; nothing here is reviewed yet",
+ "clause": "A3 (USER ruling 2026-11-16, ORCH 1155Z item 5): between heads and tokens the call handler may unproject with the head's intrinsics (with rigid transforms, norms and min/argmin over point sets) and print head outputs as text. Any unit conversion or answer reformatting outside the model fails; the model does both in its CoT. Every other numeric constant fails.",
+ "numbers": {
+  "0": "zero, identity offset, first index",
+  "1": "unit, one step, second index",
+  "-1": "last index, sign flip",
+  "2": "halving (midpoints), squares in norms, pairs",
+  "3": "spatial dimension (x, y, z)",
+  "4": "homogeneous 4x4 rigid transform",
+  "0.5": "half (pixel centres, midpoints)",
+  "3.141592653589793": "pi",
+  "6.283185307179586": "2 pi"
+ },
+ "exempt_contexts": {
+  "subscript": "array indices and slices select fields, they do not set values",
+  "keyword": [
+   "axis",
+   "dim",
+   "ndigits",
+   "keepdim",
+   "keepdims",
+   "indent",
+   "maxsplit",
+   "stacklevel",
+   "dtype",
+   "base"
+  ],
+  "round_ndigits": "the second argument of round() fixes the printed precision of a head output",
+  "raise": "constants inside raise statements only build error messages",
+  "raise_guarded_test": "the test of an `if` whose only statement is a raise: it refuses the item with an error and writes no token (a caught error that becomes a response still fails A4.except_substitute)"
+ },
+ "loader_functions": [],
+ "head_status_formatters": [],
+ "suppress": [],
+ "notes": [
+  "loader_functions: 'relative/file.py::function' entries whose table loads read artifact files only; A1 then checks every file they open by sha256.",
+  "head_status_formatters: 'relative/file.py::function' entries that format a head's own status output (for example a presence head's 'not seen'); a status literal anywhere else fails A4.",
+  "suppress: 'rule@relative/file.py:line' entries with a reviewed reason; the report prints every suppression.",
+  "A3.threshold applies to ordering comparisons (<, <=, >, >=); equality tests against token ids are protocol, not thresholds.",
+  "A3.unit_conversion: an identifier or printed unit label naming feet, inches, centimetres, millimetres, square feet, yards or degrees, or a unit-conversion helper, fails; heads print metres, radians-free values as the head defines them.",
+  "Findings inside methods of the classes of modules registered on the model (heads' own activations called through methods) are reported as model code and do not fail; the reviewer reads that list."
+ ],
+ "threshold_exempt_names": {
+  "max_new_tokens": "a total-token cap ends decoding and writes no token; a forced close or forced answer is not covered"
+ },
+ "removed_by_ruling_5": [
+  "unit conversion constants (100, 1000, 0.01, 0.001, 0.3048, 1/0.3048, 0.0254, 1/0.0254, 2.54, 12, ft2 factors)",
+  "degree constants 180 and 360",
+  "decimal base 10"
+ ]
+}

@@ -1,0 +1,124 @@
+{
+  "schema": "own-probe-rules-v3",
+  "experiment": "E-A",
+  "seed": 17,
+  "bootstrap": {
+    "draws": 4000,
+    "seed": 17,
+    "unit": "room",
+    "confidence": 0.95,
+    "paired": true,
+    "objects": "Keep all objects and observations in each sampled room; paired draws"
+  },
+  "R1": {
+    "name_consistent_min": 0.9,
+    "training_val_top1_min": 0.9,
+    "reference": "A7",
+    "reference_max_deficit": 0.03,
+    "inconclusive_allows_pilot": true
+  },
+  "R1+": {
+    "gain_min": 0.05,
+    "gain_lower_strict_min": 0.0
+  },
+  "R2": {
+    "reference": "A7",
+    "iou_ratio_min": 0.8,
+    "small_iou_ratio_min": 0.6,
+    "small_area_lt": 0.01
+  },
+  "R3": {
+    "auroc_min": 0.95,
+    "shortlist_recall_max_deficit": 0.02,
+    "shortlist_k": 4
+  },
+  "R4": {
+    "retrieval_gain_min": 0.05,
+    "member_auroc_min": 0.85,
+    "minimum_slot_gap": 8
+  },
+  "choice_order": [
+    "A1",
+    "A2",
+    "A8",
+    "A3",
+    "A5",
+    "A6"
+  ],
+  "A1_preference": {
+    "metric": "T1.features.on_target",
+    "default": "A1 unless A2 minus A1 lower 95% room-paired bound is positive",
+    "low_pass_high_fail": "Keep A1; a point-threshold disagreement cannot override the paired interval"
+  },
+  "execution_order": [
+    "A1",
+    "A7",
+    "A2",
+    "A3",
+    "A5",
+    "A6",
+    "A4",
+    "A8"
+  ],
+  "area_bins": [
+    0.0,
+    0.01,
+    0.02,
+    0.05,
+    1.000001
+  ],
+  "sampling": {
+    "training_frame_stride": 4,
+    "max_regions_per_frame": 8,
+    "region_order": "sha256(seed,scene,slot,instance_id)",
+    "mask_frames": 1500,
+    "mask_frame_order": "sha256(seed,scene,slot)"
+  },
+  "fit": {
+    "T1_steps": 1200,
+    "T2_steps": 1500,
+    "T3_steps": 1500,
+    "T4_steps": 800,
+    "fusion_steps": 300,
+    "learning_rate": 0.001,
+    "mask_learning_rate": 0.0001,
+    "weight_decay": 0.01,
+    "batch_objects": 16,
+    "hidden_dim": 256,
+    "max_parameters": 6000000,
+    "feature_dim": 1024,
+    "online_batch_size": 4,
+    "shuffle_seed": 17,
+    "learning_rate_search": [
+      0.001
+    ],
+    "online_learning_rate_search": [
+      0.0001
+    ],
+    "readouts": [
+      "four",
+      "final",
+      "unstandardized"
+    ]
+  },
+  "fusion_fit": "O5 scored proposals from training rooms only; absent inputs leave R1+ pending",
+  "T2_targets": "O5 POS native-gate masks; evaluation reports SAM and GT separately",
+  "T3_targets": "O5 POS positive, ABSENT negative; MISS and DISPUTED never train this agreement-only probe",
+  "feature_cache_bytes_max": 2000000000,
+  "dense_maps_persisted": false,
+  "clean_33": "forbidden",
+  "tuning_fit": "forbidden",
+  "selection_fallback": "Own wins unresolved paired comparisons; R1 INCONCLUSIVE allows the pilot; R2 only chooses mask keys",
+  "comparisons": {
+    "metric": "T1.features.on_target",
+    "confidence": 0.95,
+    "outside_requires_positive_paired_lower": true,
+    "control": "Standardized final layer and unstandardized four taps; no tuning-selected readout"
+  },
+  "standardization": {
+    "fit_split": "train",
+    "variance_floor": 1e-06,
+    "calibration": "All stride-selected training frames; no val or tuning tokens",
+    "layer_norm": "Before and after channel averaging"
+  }
+}

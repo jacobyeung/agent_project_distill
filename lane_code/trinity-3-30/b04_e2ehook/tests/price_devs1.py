@@ -45,10 +45,17 @@ def script_answer(task, calls):
     return P.script_answer(task, dict(errors=sum(c.get('kind') == 'error' for c in calls), calls=calls))
 
 
+def headline(task):
+    """The job's headline label: released_answer on the primary stratum, answer otherwise (nomdg.py:296)."""
+    return 'released_answer' if task['stratum'] == 'primary' else 'answer'
+
+
 def score(task, answer):
+    """routed.native_score with the job's two labels; returns the headline-label score."""
     from evalpath.run import score_item
     text = '<think>\n</think>\n\n' + (answer or '')
-    return score_item(task, dict(text=text, finish='eos'))['score']
+    label = task['answer'] if headline(task) == 'answer' else task.get('released_answer_in_options', task.get('released_answer'))
+    return score_item({**task, 'ground_truth': label}, dict(text=text, finish='eos'))['score']
 
 
 def main():
@@ -81,7 +88,7 @@ def main():
             continue
         calls = dec['calls']
         old = score(task, script_answer(task, calls))
-        recorded_check.append(abs(old - r['scores']['answer']) < 1e-12)
+        recorded_check.append(abs(old - r['scores'][headline(task)]) < 1e-12)
         row.update(old=old, hook=old)
         if scales is not None and clip in scales:
             s_old = float(np.load(geo_dir / (clip + '.npz'))['scale'])

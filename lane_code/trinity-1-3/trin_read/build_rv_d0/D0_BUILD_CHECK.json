@@ -1,0 +1,79 @@
+{
+  "adapter_original_sha256": "a10f34f4b6d240e0e366e56c9928f1c7d9cd080a91886d6a3a1d6c1381b35109",
+  "baseline_source_files_checked": [
+    "compact_items.py",
+    "compare_tokens.py",
+    "done_record.py",
+    "fixture_need.py",
+    "items_export.py",
+    "launch_gcs.py",
+    "milestone.py",
+    "model_links.py",
+    "namespace_worker.py",
+    "paired_read.py",
+    "rv-compare",
+    "rv-proof",
+    "rv-read",
+    "rv-stage",
+    "rv_entry.py",
+    "rv_read.py",
+    "trinity_read.py",
+    "validate_t5_bind.py",
+    "write_diff_t5.py"
+  ],
+  "changed_baseline_source_files": [
+    "rv_entry.py",
+    "rv_read.py"
+  ],
+  "checker_source_sha256": {
+    "common.py": "1954de01cc935fb744ebc92a3ede19a94658d2ce4fefb3c1e1ba40b03d2508c4",
+    "export_check.py": "0400842c559565b66db50d6c8fde7c323e8600a82d70685d469a4b316d7ec8d2"
+  },
+  "fixture_artifact": {
+    "kind": "c1_export",
+    "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/359fcc3c/m100/artifact.json",
+    "sha256": "5fc7e3ca2fbb75a73af7e8aba3f75788bec0f8c1e2f4ec402e7678bb25eed055"
+  },
+  "fixture_only": true,
+  "fixture_overlay_receipt": "tests/d0_full_01/test_real_adapter_bind_and_lau0/root/adapter_test/ADAPTER_OVERLAY.json",
+  "fixture_overlay_replacements": [
+    {
+      "new": "EXPORT_SHA='5fc7e3ca2fbb75a73af7e8aba3f75788bec0f8c1e2f4ec402e7678bb25eed055'",
+      "old": "EXPORT_SHA='1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef'",
+      "site": "EXPORT_SHA"
+    },
+    {
+      "new": "models['base']['path'],100)",
+      "old": "models['base']['path'],544)",
+      "site": "bind.check_export.step"
+    },
+    {
+      "new": "reader=dict(step=100,",
+      "old": "reader=dict(step=544,",
+      "site": "bind.reader.step"
+    },
+    {
+      "new": "cfg['models']['base']['path'],100)",
+      "old": "cfg['models']['base']['path'],544)",
+      "site": "launch.check_export.step"
+    }
+  ],
+  "fixture_overlay_sha256": "74b7ba9106121c6232a1b9a5e6763aaaeb37b4c33e106a0effc12e1f1cc50a92",
+  "full_test_log": {
+    "passed": 329,
+    "path": "TESTS_RV_D0_FULL_01.log",
+    "sha256": "482a0dc5d5da0eb11c7698e5680d18a563f8b93364090f672127ce7fd0da5996"
+  },
+  "new_source_files": [
+    "rv_d0.py"
+  ],
+  "payload_files": 87,
+  "payload_matches_build_rv": true,
+  "payload_pins_sha256": "4372292748d4dd10cf1e93d724803fa2a1dcfea616953707403b1bd998b63733",
+  "schema": "revsi-d0-build-check-v1",
+  "source_sha256": {
+    "rv_d0.py": "bc0e85c6e4db0469363e1a3c621db22dc9fbd83a1273d68400fe1ce4398a6f45",
+    "rv_entry.py": "0fb9cef8eac6ccce43bce66355f3651a2f7a7a2e617415ddf8539f4aab2b7615",
+    "rv_read.py": "1d633e57282aa203c512763a7d2a68613e8ec42ca61f514c57b55049629e8ae6"
+  }
+}

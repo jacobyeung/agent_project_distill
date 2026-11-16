@@ -1,0 +1,13 @@
+{
+  "id": "M2",
+  "description": "transpose Qwen merge order",
+  "edits": [
+    {
+      "module": "own_feats.core",
+      "old": "    return tokens.reshape(n,h//merge,w//merge,merge,merge,-1).permute(0,1,3,2,4,5).reshape(n,h,w,-1)",
+      "new": "    return tokens.reshape(n,h//merge,w//merge,merge,merge,-1).permute(0,2,4,1,3,5).reshape(n,h,w,-1)"
+    }
+  ],
+  "reviewer_spec": "/scratch/jjyeung/orch_cd/own_probe_review2/mutants/M2.json",
+  "adaptation": "Unchanged reviewer edit"
+}

@@ -1,0 +1,12 @@
+{
+  "id": "M13",
+  "description": "Normalize the already canonical candidate phrase; expected to stay green",
+  "adaptation": "Apply the benign normalization to candidate_phrase(g) at the current payload lookup",
+  "edits": [
+    {
+      "module": "online_probe",
+      "old": "['phrases'][candidate_phrase(g)]",
+      "new": "['phrases'][normalize_name(candidate_phrase(g))]"
+    }
+  ]
+}

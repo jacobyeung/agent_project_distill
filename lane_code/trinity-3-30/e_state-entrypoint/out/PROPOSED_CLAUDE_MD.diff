@@ -1,0 +1,23 @@
+--- a/CLAUDE.md
++++ b/CLAUDE.md
+@@ -5,9 +5,8 @@
+ 
+ Subagents and lanes can skip this section; the rules above cover their work.
+ 
+-- At session start, read the newest `docs/DISTILLATION_HANDOFF_*.md` (the UTC stamp in the name orders them). Older handoffs and `docs/DISTILLATION_SUCCESSOR_BOOTSTRAP.md` are history: search them when a task needs a specific fact, and never read them end to end.
++- At session start, read `/data2/jjyeung/agent_project_data/distill_design/CURRENT_STATE.md` first; open the newest `ORCH_STATE_SNAPSHOT_*.md` in `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/` only where it is newer than that page. You are the page's only writer: rewrite it at each ruling, as part of the snapshot step. `docs/` handoffs are history (`docs/README.md`).
+ - Operating rules (user): always autonomous; never wait for permission to restart, launch or ramp. Spread lanes across nodes.
+ - Every lane message that reaches you starts a turn over your whole context. Brief lanes to message only for questions, blockers and final results; the watchdog already reports lane state changes.
+ - Codex is the default executor for every lane it can do: builds, fixes, reviews, surveys, copies, babysitting and analysis (user, 2026-11-05). Dispatch with `agent/scripts/codex_dispatch.sh`: `implement` (GPT-6.1 Sol, high), `review` (GPT-6 Astra, high, read-only), `mech` (GPT-6.1 Terra); use Astra for hard builds or gate reviews, never max effort. Claude Opus subagents take critical debugging. Argon, Devin and Cursor are fallbacks when Codex is down.
+ - Skills in `.claude/skills/` are copies from the main repository. `agent/scripts/codex_dispatch.sh` writes receipts under `agent/scratch/codex_runs/` of this repository.
+-- Pending code change for the next epoch: make the supervisor's package path (`PKG` in `tools/recover_boundary_remediation.py`) configurable so production launches from the epoch checkout instead of the working tree.
+
+--- a/scratch/jjyeung/orch_home_distill/CLAUDE.md
++++ b/scratch/jjyeung/orch_home_distill/CLAUDE.md
+@@ -3,5 +3,5 @@
+ This directory exists so that the harness's per-command git status has no repository to scan.
+ The repository is /home/jjyeung/agent_project_distill; every path that instructions write relative to the repo root resolves there.
+ Never cd into a Git work tree (the repository, /data2/jjyeung or /data2/jjyeung/agent_project_data), since the scan follows the shell's directory; use absolute paths, git -C, or a (cd DIR && ...) subshell.
+-This orchestrator runs on trinity-3-30. trinity-2-18 and trinity-2-28 are unreachable, so nothing on their /scratch can be read. Take state from this session's own context, the newest ORCH_STATE_SNAPSHOT_*.md in /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/, the records under /data2/jjyeung/agent_project_data/distill_design/, and /data3/jjyeung/orch_n13_20261026/io_governor/.
++This orchestrator runs on trinity-3-30. trinity-2-18 and trinity-2-28 are unreachable, so nothing on their /scratch can be read. Take state from this session's own context, then /data2/jjyeung/agent_project_data/distill_design/CURRENT_STATE.md, then the newest ORCH_STATE_SNAPSHOT_*.md in /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/ where it is newer, the records under /data2/jjyeung/agent_project_data/distill_design/ (INDEX.md), and /data3/jjyeung/orch_n13_20261026/io_governor/.
+ Write orchestrator state snapshots to /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/, never only to node-local /scratch, so a node failure loses no state.

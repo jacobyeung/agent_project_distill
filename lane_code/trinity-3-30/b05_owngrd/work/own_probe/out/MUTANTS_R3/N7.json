@@ -1,0 +1,13 @@
+{
+  "id": "N7",
+  "description": "validation-selected search (best of 3) for A5 only",
+  "edits": [
+    {
+      "module": "fit_t1",
+      "old": "    model,val=fit(x,records,names,rules()['fit']['T1_steps'],args.device)",
+      "new": "    model,val=(fit(x,records,names,rules()['fit']['T1_steps'],args.device) if args.arm!='A5' else max([fit(x,records,names,rules()['fit']['T1_steps'],args.device) for _lr in (1e-3,3e-3,1e-2)],key=lambda mv:mv[1]['value']))"
+    }
+  ],
+  "reviewer_spec": "/scratch/jjyeung/orch_cd/own_probe_review2/mutants/N7.json",
+  "adaptation": "Unchanged reviewer edit"
+}

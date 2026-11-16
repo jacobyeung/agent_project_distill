@@ -21,7 +21,7 @@ from pathlib import Path
 
 from .common import atomic_write_bytes, atomic_write_json, sha256_file, sha256_json
 
-CONTRACT = {'joint_floor': 0.05, 'cap': 30, 'prompts': 'teacher_names_verbatim_normalized', 'mask_threshold': 0.5,
+CONTRACT = {'joint_floor': 0.2, 'cap': 10, 'prompts': 'teacher_names_verbatim_normalized', 'mask_threshold': 0.5,
             'resolution': 1008, 'dtype': 'bf16', 'checkpoint_sha256': '9999e2341ceef5e136daa386eecb55cb414446a00ac2b55eb2dfd2f7c3cf8c9e'}
 
 

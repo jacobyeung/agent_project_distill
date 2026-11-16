@@ -1,0 +1,13 @@
+{
+  "id": "M7",
+  "description": "GT masks as tuning candidates",
+  "edits": [
+    {
+      "module": "extract",
+      "old": "                                mask=candidate_mask(m,payloads[m['mask_ref']['path']])",
+      "new": "                                from eval_data import gt_mask as _g;mask=np.asarray(Image.fromarray(_g(gt,g['name'],slot)).resize((640,480)),bool)"
+    }
+  ],
+  "reviewer_spec": "/scratch/jjyeung/orch_cd/own_probe_review2/mutants/M7.json",
+  "adaptation": "Unchanged reviewer edit"
+}
