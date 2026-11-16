@@ -134,6 +134,14 @@ class AnonTest(unittest.TestCase):
             self.assertTrue(anon.scan_tree(path, rules), name)
         self.assertTrue(any(hit['rule'] == 'too-deep'
                             for hit in anon.scan_tree(os.path.join(self.tmp, 'kit', 'deep.tgz'), rules)))
+        named = io.BytesIO()
+        with gzip.GzipFile(filename='qwen.txt', fileobj=named, mode='wb', mtime=0) as handle:
+            handle.write(b'ok')
+        trailers = {'n.gz': named.getvalue(), 't.bz2': bz2.compress(b'ok') + b'qwen',
+                    't.xz': lzma.compress(b'ok') + b'qwen',
+                    'h.bz2': bz2.compress(b'ok') + bz2.compress(b'qwen')}
+        for name, data in sorted(trailers.items()):
+            self.assertTrue(anon.scan_tree(self.write(name, data), rules), name)
         broken = self.write('c.gz', b'\x1f\x8b' + b'not gzip')
         self.assertEqual(anon.scan_tree(broken, rules)[0]['rule'], 'undecodable')
 
