@@ -5,7 +5,7 @@ import math
 from pathlib import PurePosixPath
 import re
 from .p3_provenance import digest, load, pinned
-from .trace_grammar import PROGRAM_TYPES, validate_direct, validate_program
+from .r2_grammar import PROGRAM_TYPES, validate_direct, validate_program
 
 CONTRACT = 'next-leg-r2-v1'
 INIT = dict(artifact_sha256='1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef',
@@ -34,6 +34,10 @@ def check_init(spec, metadata):
 
 
 def preparation(cfg):
+    if 'geometry_connector' in cfg:
+        from pathlib import Path
+        from .r2_policy import preparation as policy_preparation
+        policy_preparation(cfg['r2_build2'], Path.cwd())
     spec = cfg.get('r2')
     if cfg.get('r2_membership') and spec is None:
         raise ValueError('Next-leg membership requires the init and new-run binding')
@@ -86,6 +90,8 @@ def validate(row, stream, expected=None, require_frames=False):
     frame_metadata(inputs)
     if stream in ('vqa', 'routing'):
         kind = row.get('question_type', row.get('routing', {}).get('question_type'))
+        if kind == 'route_planning' and stream != 'vqa':
+            raise ValueError('D0 route-planning rows enter VQA only')
         if not isinstance(kind, str) or not kind:
             raise ValueError('Language row needs a question type')
         if row.get('events'):
@@ -139,6 +145,8 @@ def perception(row, stream, target):
 
 class Admission:
     def __init__(self, pin):
+        from .r2_withheld import Withheld
+        self.withheld = Withheld()
         self.manifest = load(pinned(pin))
         if self.manifest.get('contract') != CONTRACT:
             raise ValueError('Wrong membership contract')
@@ -147,6 +155,8 @@ class Admission:
         expected = self.manifest['rows'].get(row['qid'])
         if expected is None or expected != digest(dict(row=row, target=target, stream=stream)):
             raise ValueError('Row missing or changed in sealed membership')
+        if self.withheld.touches(row, {}):
+            raise ValueError('Native reader refuses a withheld room')
         from .r2_frames import verify_frame
         inputs = row['student_input']
         for pin in inputs.get('geometry_dense', inputs)['frames']:
@@ -158,7 +168,7 @@ def event_row(row):
     """Reviewed R2 ground events, including failed-call continuations, use native spans."""
     from .ground_rows import render_ground
     if (row.get('schema') != 'derivgen-row-v2' or row.get('infrastructure_only') is not False
-            or row.get('response_source') not in ('ground_truth', 'deployed')
+            or row.get('response_source') != 'ground_truth'
             or not re.fullmatch('[0-9a-f]{64}', row.get('provenance', {}).get('source_row_sha256', ''))):
         raise ValueError('R2 program lacks its event schema or response lineage')
     target, spans, _ = render_ground(row['events'], row['answer'])

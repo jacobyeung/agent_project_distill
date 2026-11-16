@@ -1615,7 +1615,7 @@ def dryrun(cfg, report_path):
     recipe = recipe_for(cfg)
     offset = cfg.get('row_start_step', 0)
     plan = next(data.mixed_indices(counts,offset+1,start_step=offset,training_mode=cfg.get('training_mode', 'mixed'),
-                                   mix=recipe['mix'],world=recipe['world_size']))
+                                   mix=recipe['mix'],world=recipe['world_size'],r2_sampling=cfg.get('r2_sampling')))
     rank_shapes = []
     try:
         # Encode each rank's actual first row in every stream; no synthetic admission.
@@ -2250,7 +2250,7 @@ def run_steps(model, wrapped, optimizer, rows, counts, output, cfg, bound, devic
                                 optimizer=optimizer, disk_guard=disk_budget)
     for step,plan in enumerate(data.mixed_indices(counts,offset+steps,start_step=offset+start_step,
                               training_mode=cfg.get('training_mode', 'mixed'),
-                              mix=recipe['mix'],world=recipe['world_size']),start_step+1):
+                              mix=recipe['mix'],world=recipe['world_size'],r2_sampling=cfg.get('r2_sampling')),start_step+1):
         info,_=optimize_step(wrapped,optimizer,rows,plan,rank,device,step,distributed,gates)
         gathered = [None]*world
         if cfg.get('first_step_admission') and step == start_step+1:
@@ -2931,7 +2931,7 @@ def first_batch_check(cfg, ranks, out_path, steps=1, device='cpu', progress_dir=
         raise ValueError('A rank limit requires a checkpointed first-batch check')
     counts = {k: v['count'] for k, v in receipt['streams'].items()}
     plans = list(data.mixed_indices(counts, steps, training_mode=cfg.get('training_mode', 'mixed'),
-                                    mix=recipe['mix'], world=recipe['world_size']))
+                                    mix=recipe['mix'], world=recipe['world_size'], r2_sampling=cfg.get('r2_sampling')))
     device = torch.device(device)
     out = Path(out_path)
     journal, completed, records = None, {}, []
@@ -3092,6 +3092,8 @@ def load_artifact(model, artifact_pin):
 
 
 def inference(cfg, artifact_pin, device):
+    from .r2_policy import legacy_reader_guard
+    legacy_reader_guard(cfg, artifact_pin)
     from .trace_version import resolve
     version_artifact=load(pinned(artifact_pin))
     resolve(version_artifact,cfg)

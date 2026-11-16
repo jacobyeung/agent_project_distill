@@ -13,6 +13,7 @@ from .p3_provenance import digest, load, pinned, write
 from .r2_contract import validate, perception
 from .r2_adapters import normalize
 from .r2_exclusions import Exclusions, upstream
+from .r2_withheld import Withheld, SHA256 as WITHHELD_SHA256
 
 
 def read_rows(pin, limit):
@@ -37,6 +38,7 @@ def intake(manifest_path, *, limit=2000, select_types=None):
     if manifest.get('scene_coverage') is None:
         raise ValueError('scene_coverage=None refuses; unknown overlap is not a pass')
     rule = Exclusions(manifest['exclusions'])
+    withheld = Withheld(manifest.get('withheld_rooms'))
     coverage = load(pinned(manifest['scene_coverage']))
     if coverage.get('exclusions') != manifest['exclusions'] or coverage.get('rows_sha256') != manifest['rows']['sha256']:
         raise ValueError('Scene coverage pins differ from this population')
@@ -69,6 +71,8 @@ def intake(manifest_path, *, limit=2000, select_types=None):
             validate(row, manifest['stream'])
             perception(row, manifest['stream'], raw.get('target_record', {}))
             reasons = rule.check(row, coverage['rows'].get(qid))
+            if withheld.touches(row, coverage['rows'].get(qid, {})):
+                reasons.append('withheld_room')
             if reasons:
                 raise ValueError('excluded:' + ','.join(reasons))
         except (KeyError, TypeError, ValueError) as error:
@@ -84,11 +88,13 @@ def intake(manifest_path, *, limit=2000, select_types=None):
                   refusals=refusals, upstream=previous, exclusions=manifest['exclusions'],
                   manifest_path=str(manifest_path), manifest_sha256=digest(manifest),
                   slice_limit=limit, population_count=manifest['count'])
+    report['withheld_rooms_sha256'] = WITHHELD_SHA256
+    report['rows_withheld'] = sum('withheld_room' in r['reason'] for r in refusals)
     return admitted, report
 
 
 def text_report(report):
-    return '\n'.join(f"{kind}: admitted={c['admitted']} refused={c['refused']} reasons={dict(c['reasons'])}"
+    return f"{report['family']}: rows withheld={report['rows_withheld']}\n" + '\n'.join(f"{kind}: admitted={c['admitted']} refused={c['refused']} reasons={dict(c['reasons'])}"
                      for kind, c in sorted(report['counts'].items()))
 
 

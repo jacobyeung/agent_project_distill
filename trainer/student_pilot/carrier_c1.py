@@ -142,8 +142,9 @@ class CarrierC1(nn.Module):
         if self.geometry_online is not None:
             from .rehearsal import feature_width
             geometry_width = feature_width(self.geometry_online)
-            settings['g3t_prior'] = dict(enabled=True, cam_token_dim=geometry_width + 10, carrier_connector=True,
-                head_bypass=False, pose_prior=False, connector_out_init='zero')
+            if 'gf1' not in self.geometry_online:
+                settings['g3t_prior'] = dict(enabled=True, cam_token_dim=geometry_width + 10, carrier_connector=True,
+                    head_bypass=False, pose_prior=False, connector_out_init='zero')
         if training_mode == 'pose_only':
             settings.update(weight_gravity=0., weight_scale=0.)
         if training_mode == 'final':

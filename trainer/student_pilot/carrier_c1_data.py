@@ -446,7 +446,11 @@ def encode(processor, row, record, stream, carrier_placement=C1_A, training_mode
     return batch, targets, audit
 
 
-def mixed_indices(counts, steps, seed=17, start_step=0, training_mode='mixed', mix=None, world=8):
+def mixed_indices(counts, steps, seed=17, start_step=0, training_mode='mixed', mix=None, world=8, r2_sampling=None):
+    if r2_sampling is not None:
+        from .r2_mix import plans
+        yield from plans(r2_sampling, counts, steps, start_step, world)
+        return
     """All ranks use the same stream per microstep (FSDP collective order).
 
     Mixed: four microsteps per optimizer update across eight ranks: 16 pose, 8 VQA,

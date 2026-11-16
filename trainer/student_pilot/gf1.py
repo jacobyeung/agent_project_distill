@@ -230,9 +230,8 @@ def geometry_features(model, batch):
     if cache.key == key and cache.value is not None:
         model.gx_metrics = dict(feature_finite=True, dense_frames=images.shape[1], tower_forwards=0, tower_cache_hit=True)
         return cache.value
-    # Reuse the donor's exact student-unpatchify camera path under no_grad.
-    with torch.no_grad():
-        cameras = model.geometry_features(batch, _camera_only=True)
+    # This connector changes visual features only; the parent's pose head is unchanged.
+    cameras = None
     clips = []
     for image, roi, mapping, grid in zip(images, coords, maps, batch['video_grid_thw']):
         if (mapping.dtype != torch.long or mapping.ndim != 1 or len(mapping) != int(grid[0])

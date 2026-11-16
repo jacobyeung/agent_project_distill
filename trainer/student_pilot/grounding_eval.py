@@ -75,6 +75,8 @@ def artifact_pin(value):
 
 
 def load_runtime(cfg, artifact, gh_dir, device):
+    from .r2_policy import legacy_reader_guard
+    legacy_reader_guard(cfg, artifact)
     from . import carrier_c1_run as run
     from .grounding_head import load_artifact
     receipt, manifest = run.prepared(cfg, admission=True)

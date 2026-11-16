@@ -5,7 +5,7 @@ import os
 from unittest.mock import patch
 import unittest
 from tests.test_r2_data_path import directory, fixture, manifest, TinyProcessor, LANE
-from student_pilot import carrier_c1_routing as R, r2_contract as C, trace_grammar as G
+from student_pilot import carrier_c1_routing as R, r2_contract as C, r2_grammar as G
 from student_pilot.ground_rows import render_ground
 from student_pilot.r2_materialize import materialize
 from student_pilot.carrier_c1_run import Rows

@@ -13,7 +13,10 @@ from .r2_intake import intake
 MAX_ROWS_PER_FAMILY = 2000
 
 
-def materialize(manifests, output, *, limit=2000, full=False, select_types=None, metadata_only=False, dense=True):
+def materialize(manifests, output, *, limit=2000, full=False, select_types=None, metadata_only=False, dense=True, mix_binding=None):
+    if mix_binding is not None:
+        from .r2_mix import preflight
+        preflight(**mix_binding)
     if full and (os.environ.get('STUDENT_R2_LOCAL_NODE') == '1' or (Path.cwd()/'.r2_local_node').exists()
                  or os.uname().nodename.startswith('trinity')):
         raise ValueError('Full store forbidden on a local node; use slices of at most 2000 rows per family')

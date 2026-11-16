@@ -11,7 +11,7 @@ from unittest.mock import patch
 import numpy as np
 from PIL import Image
 import torch
-from student_pilot import r2_contract as C, r2_frames as F, trace_grammar as G
+from student_pilot import r2_contract as C, r2_frames as F, r2_grammar as G
 from student_pilot import carrier_c1_routing as routing
 from student_pilot.p3_provenance import digest, file_pin, load, write
 from student_pilot.r2_intake import intake, main as intake_main, text_report

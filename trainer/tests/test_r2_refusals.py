@@ -11,7 +11,7 @@ import unittest
 from unittest.mock import patch
 from contextlib import redirect_stdout, redirect_stderr
 from tests.test_r2_data_path import directory, fixture, manifest, SOURCES, RECORDS
-from student_pilot import r2_contract as C, r2_frames as F, trace_grammar as G
+from student_pilot import r2_contract as C, r2_frames as F, r2_grammar as G
 from student_pilot import carrier_c1_routing as routing
 from student_pilot.p3_provenance import file_pin, load, digest, write
 from student_pilot.r2_intake import intake, read_rows
