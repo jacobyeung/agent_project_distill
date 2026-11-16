@@ -1,0 +1,10 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=7069 utc=2026-11-11T21:29:43.434Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; cp codex_local/agent/scratch/codex_runs/$(ls codex_local/agent/scratch/codex_runs | grep room_k_review | tail -1)/final_message.md room_k_review/REVIEW_VERDICT.md; T=$(date -u +%Y%m%dT%H%MZ); cat > dose_pool/inbox/${T}_ORCH_room_k_verdict.md <<'EOF'
+# ORCH: the review of the per-frame-intrinsics change says ADMIT AFTER FIXES (/scratch/jjyeung/orch_cd/room_k_review/REVIEW_VERDICT.md; read it)
+Do, then the 418 ScanNet++ room rows are admitted:
+1. Scope the switch: the per-frame-K label is used only for ScanNet++ captures that carry valid per-frame intrinsics; everything else keeps the existing label path; the unset default stays unchanged. Verify each GT file's hash before computing either value.
+2. Correct your evidence: the label change is not "1 to 10 cells"; the reviewer measured up to -3.8 m2 and found 141 of 418 rows above 0.03 m2. Restate it with the distribution.
+3. Add the release gate the plan already applies to numeric rows: where a released room value exists for the scene, drop a row whose label differs from it by more than 10% (the reviewer counts 7 such rows among the pending 418 and 5 among the admitted 389, up to 37%). Apply it to every room set in the pool, pool questions included, and report the counts.
+4. Refresh the manifest (SCENE_room_sppK becomes final after the fixes), tell lane leg_s1_tree through its inbox, and post one RESULT.
+EOF
+echo "$(date -u +%Y-%m-%dT%H:%MZ) tick 21:29Z: room_k_review (Codex Astra) = ADMIT AFTER FIXES (room_k_review/REVIEW_VERDICT.md): diagnosis right and the check stays independent, but the switch must be scoped to ScanNet++ with per-frame K, GT hashes verified, the stated magnitude corrected (up to -3.8 m2; 141/418 > 0.03 m2), and a 10% release gate enforced (12 rows fail it). Sent to dose_pool. Others alive; /dev/shm 14 GB free." >> ORCH_HANDOFF.md

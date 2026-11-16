@@ -1,0 +1,20 @@
+# Records to regenerate
+
+Each record must use `r2-component-evidence-v1`, name its component, class and phase, bind every input by SHA256, and separate computed overlap from the adopted ruling. The registry accepts no unknown verdict. The schemas and refusal logic are in `work/tree_r1/student_pilot/r2_policy.py`.
+
+| Record | Must prove | Required inputs |
+|---|---|---|
+| EVIDENCE_init_m544.json | Full parent lineage; explicit checked banks; no in-scope overlap except venue 381879; inherited overlap outside scope. | Export metadata, parent membership receipts, training scene manifests, sealed exclusion records; init also binds external base pretraining. |
+| EVIDENCE_heads_pose.json | Full parent lineage; explicit checked banks; no in-scope overlap except venue 381879; inherited overlap outside scope. | Export metadata, parent membership receipts, training scene manifests, sealed exclusion records; init also binds external base pretraining. |
+| EVIDENCE_heads_depth.json | Full parent lineage; explicit checked banks; no in-scope overlap except venue 381879; inherited overlap outside scope. | Export metadata, parent membership receipts, training scene manifests, sealed exclusion records; init also binds external base pretraining. |
+| EVIDENCE_heads_frame_embeddings.json | Full parent lineage; explicit checked banks; no in-scope overlap except venue 381879; inherited overlap outside scope. | Export metadata, parent membership receipts, training scene manifests, sealed exclusion records; init also binds external base pretraining. |
+| EVIDENCE_depth_init_vc.json | Full parent lineage; explicit checked banks; no in-scope overlap except venue 381879; inherited overlap outside scope. | Export metadata, parent membership receipts, training scene manifests, sealed exclusion records; init also binds external base pretraining. |
+| EVIDENCE_grounding_selector_deployed.json | Fit or selection scenes, chosen values and chronology; applicable pre-registration choices and dated freeze. | Fitted coefficients or rule bytes, input scene lists, eligibility intersections, pre-registration and freeze evidence. |
+| EVIDENCE_box_policy.json | Fit or selection scenes, chosen values and chronology; applicable pre-registration choices and dated freeze. | Fitted coefficients or rule bytes, input scene lists, eligibility intersections, pre-registration and freeze evidence. |
+| EVIDENCE_room_policy.json | Fit or selection scenes, chosen values and chronology; applicable pre-registration choices and dated freeze. | Fitted coefficients or rule bytes, input scene lists, eligibility intersections, pre-registration and freeze evidence. |
+| EVIDENCE_alias_table.json | Fit or selection scenes, chosen values and chronology; applicable pre-registration choices and dated freeze. | Fitted coefficients or rule bytes, input scene lists, eligibility intersections, pre-registration and freeze evidence. |
+| EVIDENCE_depth_cut.json | Fit or selection scenes, chosen values and chronology; applicable pre-registration choices and dated freeze. | Fitted coefficients or rule bytes, input scene lists, eligibility intersections, pre-registration and freeze evidence. |
+| EVIDENCE_geometry_tower.json | External pretraining provenance and frozen status; disclosure, without a clean-scene claim. | Weights/config identities, upstream release identity, optimizer trainable inventory. |
+| EVIDENCE_segmenter.json | External pretraining provenance and frozen status; disclosure, without a clean-scene claim. | Weights/config identities, upstream release identity, optimizer trainable inventory. |
+| EVIDENCE_data_rows_r2.json | Complete admitted source population after every sealed exclusion and withholding; no unknown scene overlap. | Family manifests, frame map, alias resolution, upstream receipts, final membership and withheld-room SHA256. |
+| EVIDENCE_heads_gf1_connector.json | Complete admitted source population after every sealed exclusion and withholding; no unknown scene overlap. | Family manifests, frame map, alias resolution, upstream receipts, final membership and withheld-room SHA256. |

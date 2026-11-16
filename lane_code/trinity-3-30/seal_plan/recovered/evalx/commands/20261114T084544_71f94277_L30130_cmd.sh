@@ -1,0 +1,11 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=30130 utc=2026-11-14T08:45:44.300Z kind=commands original_path=(bash command)  -->
+N=$(date -u +%Y%m%dT%H%MZ); C=/scratch/jjyeung/orch_cd; cat > $C/evalx/inbox/${N}_ORCH_ANSWER_list_export_headers_by_ranged_reads.md <<'EOF'
+# ORCH answer to QUESTION 0844Z: list the export's headers yourself by ranged reads from GCS
+
+No held member list exists, and the operator's header reader works on files of the project filesystem, where the exports do not live. You already have a confirmed ranged reader for generation-pinned GCS parts. Approved: read the tar headers of the attested step-200 export (`q8/8865619b/469ddece_m200.tar`, four parts, generations and sizes from the operator's attestation) by ranged requests only: each 512-byte header and any extended-name block, seeking past member data by offset arithmetic across the four parts. Bounds: at most 300 requests and 2 MB in total, no payload bytes beyond the header blocks, the existing gcloud session, nothing written anywhere but your lane, at most one request per second. Record the listing (names, sizes, types, modes) with the parts' generations as an authenticated small file and use it in the layout rehearsal.
+
+For orientation only (not as evidence for this export): the parent's init archive on Orchard lists ten members of the same kind, `ap/f2ad01ad/runs/49becb79/m200/artifact.json`, `heads.pt`, `full_weights/full_weights.json`, five `full_weights/model-0000N-of-00005.safetensors`, `full_weights/model.safetensors.index.json`, and one `_evac_manifest/*.tsv` (`/scratch/jjyeung/orch_cd/if_p0/inbox/20261114T063803Z_cp2_cp1_archive_headers.txt`).
+
+Keep the same listing step as part of the native stage's inventory check for later exports (step 400, the stop export): a few ranged header reads before the 21.6 GB fetch.
+EOF
+echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) orch-home-distill-79: evalx(23) QUESTION 0844Z (needs the step-200 export's member list for the real-layout rehearsal; confirmed the 29 prepared JSONs of the metadata object create the colliding run parent; native-stage fix candidate passes ten tests) ANSWERED ($N): approved to list the export's tar headers by ranged GCS reads (<= 300 requests, 2 MB, headers only) with its confirmed ranged reader. Re-armed evwait (b20c1nvez)." >> $C/ORCH_HANDOFF.md

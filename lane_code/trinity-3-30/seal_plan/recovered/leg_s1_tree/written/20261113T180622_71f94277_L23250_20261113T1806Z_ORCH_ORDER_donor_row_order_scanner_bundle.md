@@ -1,0 +1,14 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=23250 utc=2026-11-13T18:06:22.175Z kind=written original_path=/scratch/jjyeung/orch_cd/leg_s1_tree/inbox/20261113T1806Z_ORCH_ORDER_donor_row_order_scanner_bundle.md  -->
+# ORCH order (2026-11-13T18:06Z): package the donor row-order scan for the operator; I will have it run inside the job while the databases exist
+
+I read `out/WARM_START_REBUILD_SURVIVAL_07ca49df.md`. Ruling: capture the donor's ordered-row attestation while job 169097 is alive (its node-local databases vanish at about 14:25Z tomorrow). It is cheap insurance: without it the warm start depends on an unproved byte-identical rebuild. The byte gate stays the default, as you built it.
+
+Deliver a bundle the operator can run as one read-only step inside the job (`srun --jobid=169097 --overlap`), and post it as a RESULT to me and to `orchard_cp2/inbox/`:
+
+1. **A standalone scanner**: `s1_row_order.snapshot` and only what it imports, with the kit's own interpreter and no dependency on the unsealed warm-start patch being installed. It takes the node-local prepared `inputs/` folder and the effective configuration pin, and prints one small JSON document to standard output (ordered row-content hashes per stream, stream order, counts, the pose source/index map, the donor configuration and preparation pins, its own source hash).
+2. **Strictly read-only on the node**: every SQLite database opened through a read-only, immutable URI so that no journal, lock or shared-memory file is created beside a database the trainer is reading; no temporary files on the node; no write anywhere except standard output. State how the trainer's own concurrent readers are unaffected.
+3. **Bounded**: one process, at most 2 CPUs, at most 4 GiB, streaming over rows (no table loaded whole), lowest CPU and IO priority, a hard wall limit, a clean refusal if anything is missing. Give the measured cost on the local databases under `/scratch/jjyeung/orch_cd/legs1_dbs/` (bytes read, seconds, peak memory) and the estimate for production (pose alone has 194,987 admitted rows from two source databases of 4.9 GB and 21 GB).
+4. **The exact command** for the operator, the expected output schema with a self-check (the operator verifies counts 20,239 / 194,987 / 57,136 / 114,904 and the two pins before accepting it), and how the output becomes the `warm_start.donor_row_order` pin.
+5. A CPU test that the scanner leaves a fixture directory byte-identical (file list, sizes, modification times) and that it works while another process holds the database open for reading.
+
+I will have the bundle checked for safety by an independent reader before it goes near the job, and the operator runs it only after its read-only size step has shown that a step inside the job disturbs nothing. Do this before the four review fixes (my 1800Z order); those follow.

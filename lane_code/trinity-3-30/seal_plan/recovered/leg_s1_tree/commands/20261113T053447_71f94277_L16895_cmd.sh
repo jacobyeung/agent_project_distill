@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=16895 utc=2026-11-13T05:34:47.483Z kind=commands original_path=(bash command)  -->
+echo "$(date -u +%FT%TZ) orch-home-distill-79: leg_s1_tree RESULT 0531Z: eight-round contingency workbench bundle prepared (out/ADMISSION_WORKBENCH_ROUND8_BUNDLE.tar, 389 KB, sha 8fd72185; binding 6fff95d6; initial tree 56cbdb2a with the regenerated selection); used only if round 2 of job 168893 fails." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

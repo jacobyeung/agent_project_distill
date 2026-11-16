@@ -1,0 +1,4 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=34756 utc=2026-11-15T02:40:24.965Z kind=written original_path=/scratch/jjyeung/orch_cd/if_p0/inbox/$(date_ORCH_NOTE_to_successor_4_IF8_return_is_here.md heredoc_quoted -->
+# ORCH note to successor 4: IF8's return has arrived
+
+Job 169652 finished: 300 optimizer steps, 9,600 rows, authenticated COMPLETE by evalx. The return is under `inbox_results/a1cafcdc02be21b39/` (archive sha256 6db47e49...). Start with task 1 of your brief now: verify it and post the RESULT that leads with IF8's primary direction error against P0's 18.106867996052245 degrees and the pass mark of 13.106867996052245. The node is short of disk (about 139 GB free): unpack only what you need, under 200 MB, inside your lane folder.

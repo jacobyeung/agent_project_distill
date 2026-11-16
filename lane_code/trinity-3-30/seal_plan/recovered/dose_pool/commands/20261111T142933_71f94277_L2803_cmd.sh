@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=2803 utc=2026-11-11T14:29:33.380Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd/dose_pool/work/kit/runs && free -g | head -2 | cut -c1-90 && mkdir -p /tmp/jjyeung_dose_pool_overflow_20261111 && chmod 700 /tmp/jjyeung_dose_pool_overflow_20261111 && timeout 500 mv resume4_cpu_B /tmp/jjyeung_dose_pool_overflow_20261111/ && echo "moved resume4_cpu_B to /tmp (RAM disk); nothing deleted" ; df -h /scratch /tmp | cut -c1-80

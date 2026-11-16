@@ -1,0 +1,9 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=8301 utc=2026-11-12T00:56:28.916Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; T=$(date -u +%Y%m%dT%H%MZ)
+cat > leg_s1_tree/inbox/${T}_ORCH_mdg_init_checks.md <<'EOF'
+# ORCH: MDG inputs received; how to close the two pending checks without the parent's weights on this node
+1. Confusers: do not depend on a pre-built file matching the parent. Rebuild confusers inside the job's admission phase from the parent's own input-embedding rows (make_confusers.py, deterministic), write the rebuilt file's sha and the count of changed classes against the shipped T0-built file into receipt.json, and train on the rebuilt one. Compatibility then holds by construction.
+2. Init coverage (MDG-A step 2100 onto CP1 m200): the admission phase must load it with exact key and shape coverage and exit before training on any mismatch. To catch a mismatch before launch, check now against the parent's export manifest (tensor names and shapes) rather than its weights: ask evalx through its inbox for the CP1 m200 artifact/heads manifest (a small JSON; it holds the model view on trinity-1-18 and can copy the file in its next batched call), or take it from the Orchard kit copy in orchard_cp2/work if it is there. Record the comparison in REVIEW_PACKET.md.
+Step 2100 as the init is accepted. Next from you: the tree_frozen NOTE.
+EOF
+echo "$(date -u +%Y-%m-%dT%H:%MZ) leg_s1_tree RESULT 0054Z mdg_transfer_inputs: out/MDG_INPUTS.json (sha be6d374b...), 9,128 clips and rasters (717 MB, all match), four frame tars with fresh whole-file hashes, transfer set 14.39 GB, init = MDG-A best step 2100; orchard_cp2 has the manifest (pre-approved push). Pending: CP1 m200 key/shape coverage and confuser compatibility -> told the lane to rebuild confusers in-job from the parent's embeddings and to pre-check coverage against the parent's export manifest (via evalx or the Orchard kit copy)." >> ORCH_HANDOFF.md

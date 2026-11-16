@@ -1,0 +1,4 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=30195 utc=2026-11-14T08:55:12.753Z kind=written original_path=/scratch/jjyeung/orch_cd/if_p0/inbox/$(date_ORCH_NOTE_next_seal_stall_timeout.md heredoc_quoted -->
+# ORCH note for the next seal (not this job): an in-job stall guard
+
+The evaluation lane, which submits your packets, pointed out that the job's controller waits on each child without a stall timeout (`command_phase` calls `process.wait()`), so a hung phase would hold the one-GPU slot for up to twelve hours. For this job the guard is external (ten-minute observations and my cancel order). In the next seal, with the reviewer's m1 (a two-layer path check inside `check-runtime`): a per-phase timeout derived from the staging budget, and during training a no-progress timeout (no new step record for N minutes), each ending the job with a failure record that names the phase. Do not re-seal for this alone.

@@ -1,0 +1,29 @@
+
+==================================== ERRORS ====================================
+___________ ERROR collecting preparers/scannet_v3/test_admission.py ____________
+ImportError while importing test module '/scratch/jjyeung/orch_n30/eff_audit/repo/clone/preparers/scannet_v3/test_admission.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+../../../../allospatial_build_1111_v1/python/lib/python3.11/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+preparers/scannet_v3/test_admission.py:16: in <module>
+    from test_runner_transport import fixture_config
+preparers/scannet_v3/test_runner_transport.py:12: in <module>
+    from google.genai import types
+E   ModuleNotFoundError: No module named 'google.genai'
+________ ERROR collecting preparers/scannet_v3/test_runner_transport.py ________
+ImportError while importing test module '/scratch/jjyeung/orch_n30/eff_audit/repo/clone/preparers/scannet_v3/test_runner_transport.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+../../../../allospatial_build_1111_v1/python/lib/python3.11/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+preparers/scannet_v3/test_runner_transport.py:12: in <module>
+    from google.genai import types
+E   ModuleNotFoundError: No module named 'google.genai'
+=========================== short test summary info ============================
+ERROR preparers/scannet_v3/test_admission.py
+ERROR preparers/scannet_v3/test_runner_transport.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+2 errors in 1.14s

@@ -1,0 +1,14 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=24096 utc=2026-11-13T19:11:14.465Z kind=written original_path=/scratch/jjyeung/orch_cd/evalx/inbox/$(date_ORCH_confirmation_result_both_scopes_accept.md heredoc_quoted -->
+# ORCH: confirmation pass result: both scopes ACCEPT; receipts written; what is still owed before the step-100 read
+
+Result: `/scratch/jjyeung/orch_cd/leg_s1_review/CONFIRMATION_MILESTONE.md` (read it in full). Receipts: `leg_s1_review/MILESTONE_DIRECT_RECEIPT.json` (digest 682aaeaa) and `leg_s1_review/MILESTONE_ROUTED_RECEIPT.json` (digest 21dd82dd), both bound to packet cf59e374. Milestone 69/69 and native 74/74 pass from the reviewer's private copy; its six inverted and out-of-space tests are in `leg_s1_review/work_milestone_confirm/milestone/test_confirm_fixed.py` (adopt them). Nothing beyond the fixes changes items, scoring, pairing, denominators, frame layout or the tool loop; the 16 newly pinned files per scope are code the chain already ran.
+
+**The step-1 rehearsals may run under these receipts** (direct on Orchard once its launcher exists and is reviewed; routed on Trinity once a GPU probe has shown a forward pass).
+
+**Owed before the step-100 decision read:**
+1. Direct F5 (the producer's done record is hash-pinned only; check its content against the artifact; `chain.py:169-173`) and F6 (assert in code that the leg is read with its training layout of 32 duplicated frames). You deferred both; they are required, with tests, and a re-pin.
+2. **N1: the Orchard launcher does not exist yet and needs its own review.** `local_output` (`chain_save.py:23-29`) checks only a path prefix, and on Orchard `/scratch/fsw` is shared project storage, so the check passes there. The launcher must write to job-local disk and bring the archive off before the job ends, as you planned; send me its pin as soon as it is built.
+3. Low items in the same pass if cheap: failed partial archives count toward the 20 GB allowance and are never cleared (N2); a failure after `COMPLETE.json` leaves both `COMPLETE.json` and `FAILED.json` (N3: make the reader of those records refuse the pair); `STATE.json` and `LAST_SAVE.json` are written non-atomically (N4); four routed modules are pinned only by hashes recorded in each request (N5: add them to the routed pins).
+4. The forked decision code with my three rulings, and the 47-scene list and cut (my 1902Z ruling), each with its pin for a confirmation review.
+
+Tell me the order and the times you expect for: the Orchard launcher, the GPU probe of the routed reader on Trinity, and the two step-1 rehearsals. Step 100 is due near 01:40Z.

@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=11186 utc=2026-11-12T08:43:21.022Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; timeout 100 du -sm leg_s1_tree evalx orchard_cp2 devs1_direct devs1_price rv_merge_fix rv_review back_dir 2>/dev/null; cd /scratch/jjyeung; timeout 60 du -sm mover_freeze mover_inv mover_mind_push_1112 tmp 2>/dev/null; df -B1 --output=avail /scratch | tail -1; ls -lat /scratch/jjyeung/mover_freeze | head -4 | cut -c1-150; ls -d /scratch/* | tr '\n' ' '

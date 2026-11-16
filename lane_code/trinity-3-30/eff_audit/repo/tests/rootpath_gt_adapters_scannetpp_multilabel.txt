@@ -1,0 +1,42 @@
+
+==================================== ERRORS ====================================
+_____ ERROR collecting gt_adapters/scannetpp_multilabel/test_admission.py ______
+ImportError while importing test module '/scratch/jjyeung/orch_n30/eff_audit/repo/clone/gt_adapters/scannetpp_multilabel/test_admission.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+../../../../uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gt_adapters/scannetpp_multilabel/test_admission.py:16: in <module>
+    from test_runner_transport import fixture_config
+collector/test_runner_transport.py:12: in <module>
+    from google.genai import types
+E   ModuleNotFoundError: No module named 'google'
+______ ERROR collecting gt_adapters/scannetpp_multilabel/test_prep_v2.py _______
+ImportError while importing test module '/scratch/jjyeung/orch_n30/eff_audit/repo/clone/gt_adapters/scannetpp_multilabel/test_prep_v2.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+../../../../uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gt_adapters/scannetpp_multilabel/test_prep_v2.py:7: in <module>
+    from prepare_gt_scene import instance_associations, rendering_proof
+gt_adapters/scannetpp_multilabel/prepare_gt_scene.py:7: in <module>
+    import cv2
+E   ModuleNotFoundError: No module named 'cv2'
+__ ERROR collecting gt_adapters/scannetpp_multilabel/test_runner_transport.py __
+ImportError while importing test module '/scratch/jjyeung/orch_n30/eff_audit/repo/clone/gt_adapters/scannetpp_multilabel/test_runner_transport.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+../../../../uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gt_adapters/scannetpp_multilabel/test_runner_transport.py:12: in <module>
+    from google.genai import types
+E   ModuleNotFoundError: No module named 'google'
+=========================== short test summary info ============================
+ERROR gt_adapters/scannetpp_multilabel/test_admission.py
+ERROR gt_adapters/scannetpp_multilabel/test_prep_v2.py
+ERROR gt_adapters/scannetpp_multilabel/test_runner_transport.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
+3 errors in 0.40s

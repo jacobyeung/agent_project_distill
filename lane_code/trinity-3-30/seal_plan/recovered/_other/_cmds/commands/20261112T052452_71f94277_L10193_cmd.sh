@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=10193 utc=2026-11-12T05:24:52.973Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd/devs1_tower; ls out/r2 | head -20; ls out/r2/kit 2>/dev/null | head -20; grep -n -i -E "pricing|geomswap|price" out/r2/*.md 2>/dev/null | cut -c1-300 | head -14

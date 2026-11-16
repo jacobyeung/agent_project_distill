@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=17327 utc=2026-11-13T07:22:58.356Z kind=commands original_path=(bash command)  -->
+ls -l /home/jjyeung/agent_project_distill/agent/scripts/queue_watcher.sh /home/jjyeung/agent_project/agent/scripts/queue_watcher.sh /scratch/jjyeung/orch_cd/orch_tools/queue_watcher.sh 2>&1 | cut -c1-200; grep -n "queue_watcher" /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md | tail -n 3 | cut -c1-300

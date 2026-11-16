@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=2961 utc=2026-11-15T08:54:51.418Z kind=commands original_path=(bash command)  -->
+R=/scratch/jjyeung/orch_cd; tail -n 6 $R/k1_ops/STATUS.md | cut -c1-500; echo "== governor rows for k1"; grep 'k1_ops' /data3/jjyeung/orch_n13_20261026/io_governor/STATE.md | cut -c1-200; echo "== newest trace write"; ls -la --time-style=+%H:%M:%S $R/k1_ops/out/devin_traces/ | tail -2 | cut -c20-120; tmux ls 2>/dev/null | grep -i k1 | head -3; date -u +%H:%M:%SZ

@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=313 utc=2026-11-11T11:25:06.627Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd/label_247 && date -u +%H:%M:%SZ; pgrep -u jjyeung -af 'argon_run247.py|super247.py' | grep -v pgrep | cut -c1-150; ls -la --time-style=+%H:%M:%S work/run_argon.log work/run_carbon_med.log work/super247.log 2>&1 | cut -c1-120; tail -n 2 work/run_argon.log | cut -c1-220; tail -n 2 work/run_carbon_med.log | cut -c1-220; ls -t events | head -2; grep -n -m1 'CURRENT STATE' STATUS.md | cut -c1-200

@@ -1,0 +1,327 @@
+=========== a8598721c7ff9494c
+--- FAILED.json
+{
+  "plan_sha256": "108ead70d1155ffa14338554347b79890157e610f11cf7ed8bbf3a8af7219324",
+  "returncode": 1,
+  "synthetic": false
+}
+
+--- logs/a.log
+{"event": "native_imports_verified", "imports": {"numpy": {"path": "/tmp/a_170206_b7e31d84a90c62f5/numpy/numpy/__init__.py", "sha256": "6ae17b070c0f70a8e3cad89a510a256942e5a1f37ea5feb120cec167ed2a6236", "version": "2.2.6"}, "scipy": {"path": "/tmp/a_170206_b7e31d84a90c62f5/numpy/scipy/__init__.py", "sha256": "099cd64551527a8f4c4dd5488fbf7f441d4dd877bb2632807fd4e1dd0a642eb8", "version": "1.14.1"}, "torch": {"path": "/tmp/a_170206_b7e31d84a90c62f5/project/c7d31ddd/venvs/rwtrain_torch211_cu129/lib/python3.12/site-packages/torch/__init__.py", "sha256": "0387d8b811b289287479c8bfdf4e1dac3a71b246f938d82da1331cf2dc8bf001", "version": "2.11.0+cu129"}, "transformers": {"path": "/tmp/a_170206_b7e31d84a90c62f5/project/c7d31ddd/venvs/rwtrain_torch211_cu129/lib/python3.12/site-packages/transformers/__init__.py", "sha256": "135ddabaeed9a78e2a40f5fd5ec948361b59650c96ce9222cba011826ee17632", "version": "5.12.1"}, "triton": {"path": "/tmp/a_170206_b7e31d84a90c62f5/fla/p/triton/__init__.py", "sha256": "fc8d0ce7535a4773769dfdcdb3a8b7bcee1bf58d3d03cc318529104c1e1431fd", "version": "3.7.1"}, "fla": {"path": "/tmp/a_170206_b7e31d84a90c62f5/fla/p/fla/__init__.py", "sha256": "f05ff60483d48c657bf0637a662508c846a4996cf8d6d03326e1de6839aec786", "version": "0.6.0"}, "PIL": {"path": "/tmp/a_170206_b7e31d84a90c62f5/project/c7d31ddd/venvs/rwtrain_torch211_cu129/lib/python3.12/site-packages/PIL/__init__.py", "sha256": "43828e12947b4bf5ec8f7d1fbceb2f47de311295f8294b15794c1a54fd5f53cd", "version": "12.1.1"}}}
+[transformers] The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
+Loading weights:   0%|          | 0/760 [00:00<?, ?it/s]Loading weights:  84%|████████▍ | 637/760 [00:00<00:00, 6322.49it/s]Loading weights: 100%|██████████| 760/760 [00:00<00:00, 6241.99it/s]
+
+--- metadata/SHA256.json
+{
+  "FAILED.json": "460a688924cfb6b86737799ffb2fd8dac03316913b3f6bf030b581cf8bef312b",
+  "logs/a.log": "5aef519c2ac96ff162d1b7d9d538a3ccb765c9574e25054afc6eeaac39079ab5",
+  "metadata/admission.json": "593dfe93a89c2d4f7b46d4ba1a6d22f43553f8f2469245f8298e873c45a5b4c2",
+  "metadata/budget.json": "15d2cad0972af21c2ad63920a4387b63028f630aaf0305708cde659190af9f7f",
+  "metadata/failure.json": "bda13579fa0afbca090e4c9940d65300c607790576c3416c23e4b14c0d348078",
+  "native/probe/BINDING.json": "e721fac7d23bc96c77bb0c80887398e4b3e056df4004aee14c0a1a88f31fa79d",
+  "native/probe/HALTED.json": "d5d0a296129879bca0c96af05a53e286037b05792e51b515b0f7ac190124a56b",
+  "native/probe/PROGRESS.jsonl": "919755075e8ca8f4fc7420259d85340d0ffe2a04f7e6c6fb9d15e507db54a5fd",
+  "native/probe/STOP": "bf36eddc0585c29e4c4cabf3eadc35cfbf20abdba0bf1428bb3f3a24759fbd9e"
+}
+
+--- metadata/admission.json
+{
+  "binding": {
+    "amendment": 2,
+    "captures_unchanged": true,
+    "manifest_sha256": "108ead70d1155ffa14338554347b79890157e610f11cf7ed8bbf3a8af7219324",
+    "producer_sha256": "80d763d4149f1b7989d806f3bfab0660e631c27e79d0300cd8300fbdb88f075d",
+    "sources": {
+      "/scratch/jjyeung/orch_cd/evalx/work/milestone/native_package_s24_05/sources/sj/orch_cd/evalx/work/milestone/native/out2/geometry.py": "56099cf8b68d74ee14edecf01d747234f6575ebfa4dc394eba204748a4dd1a11",
+      "/scratch/jjyeung/orch_cd/evalx/work/milestone/native_package_s24_05/sources/sj/orch_cd/evalx/work/milestone/native/out2/perception.py": "088d32c43481bdcbef5e82bfdd7fdc1d0d417710779fe4cc3f77d43534ecd2be",
+      "/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872/student_pilot/candidate_policy.py": "2cc13f27ffe7fe1aa0bbbfc3dbcd543897c37d6acb85e44aa3a1d6e1f4c0dbb1",
+      "/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872/student_pilot/carrier_c1_decode.py": "e612a7c1874f2aeaedcf613421308efe978523edf0ec09db7886996378ae9a4d",
+      "/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872/student_pilot/live_instances314.py": "c542e17e08f230fb97fc79cd6c024943ae91a03dc37a1110dfb5cb2d5ed0cc4e",
+      "/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872/student_pilot/routed_features.py": "736c5a642fe28656c5508022210b050a87e49821381980a9c6f79007ef1fda13",
+      "/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872/student_pilot/tower_read.py": "2cd338e1935803fdd4784b1626095a88a7641a222b394984977b8ec47c674634",
+      "/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872/student_pilot/tower_scale.py": "7a2035804c227996ea179e60b31248bb28e210bf241f6c35d5ee34e56c122d74",
+      "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/bindings.py": "945ffbb8d0b7d5d9eda36ef7959469b2e222fb9cf758d7c7e4fd2acf55ebc553",
+      "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/boundaries.py": "5fbe3ae6ace471c8d8ec532cdde50b0bca4db687b5fc5f7c890c9b6ad44e620c",
+      "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/build_manifest.py": "d1500a768e3be71e98444e4849c8db362341a118f7ff8f821b741cedb63b1108",
+      "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/pipeline.py": "ef68b2cdd96c8b12ba066940552d8d7bbbb059e49ed7958a7e988973113f6544",
+      "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/rehearse.py": "d70d22d70bdc23ddde5d53ed60b4b8e03f2df76aba75b42462d2fdf3d789dedc",
+      "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/run.py": "08c2a41e29c677460bbc40dcdddff7cf202c098dc75d4d59c37bdc6cac9c4c1a",
+      "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/shard.py": "7bbd48ed3fde5df8647e30c06249a046ff228bce8de597b30dd9ba5987b8b503",
+      "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/vendor_sam/variant_cache.py": "cb702acdd4e88a47f1ce7d8556ecce0c54936382422e94c031b9d83b5e02a284",
+      "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/vendor_sam/variantlib.py": "10219e028f26caa5d6cf76e42e6739f8ebd68204faf135874974e593d5440198",
+      "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/vendor_sam/vendor/sam_backend.py": "356802c9c86c79975a479fab84227ab14fedd67910239760cb4456e8c9c15d3c",
+      "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/watchdog.py": "92dfad3db1d947f65edd6d49442fe1b13d3adfa5d26407bbe14e7d7b50ef0f48"
+    },
+    "tower_manifest_sha256": "aa2fefb545d25762a4cfffb0a34bd053bfbbfbb8b064ca5256cab8d0d7506eda"
+  },
+  "prepared": {
+    "artifact": {
+      "path": "/scratch/jjyeung/orch_cd/evalx/inbox/20261114T141906Z_cp2_m544_artifact.json",
+      "sha256": "1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef"
+    },
+    "config_identity": "84ea03af6049a179bf4a44619b1534fdcb528b5511544189236254b5d66842cb",
+    "fresh_preparation": false,
+    "model_manifest": {
+      "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/e84d901c/arm/frozen/6f27ae81/model.json",
+      "sha256": "cc724d5ee1b0bd62ba759be3eb0831afd009cd7635ea5966ddc0fd26c4599fb7"
+    },
+    "passed": true
+  },
+  "restore": {
+    "restored": false
+  },
+  "verified_sources": 109
+}
+
+--- metadata/budget.json
+{
+  "allocation_seconds": 10800,
+  "longest_capture_seconds": 3000,
+  "margin_seconds": 900,
+  "max_seconds": 6591,
+  "setup_and_elapsed_seconds": 308.16841411590576
+}
+
+--- metadata/failure.json
+{
+  "message": "Missing or changed pinned input: /scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/97a6a3eb/runs/b19c1200/train/step_400/heads.json",
+  "type": "ValueError"
+}
+
+--- native/probe/BINDING.json
+{
+  "manifest_sha256": "108ead70d1155ffa14338554347b79890157e610f11cf7ed8bbf3a8af7219324",
+  "phase": "own",
+  "sources": {
+    "/scratch/jjyeung/orch_cd/evalx/work/milestone/native_package_s24_05/sources/sj/orch_cd/evalx/work/milestone/native/out2/geometry.py": "56099cf8b68d74ee14edecf01d747234f6575ebfa4dc394eba204748a4dd1a11",
+    "/scratch/jjyeung/orch_cd/evalx/work/milestone/native_package_s24_05/sources/sj/orch_cd/evalx/work/milestone/native/out2/perception.py": "088d32c43481bdcbef5e82bfdd7fdc1d0d417710779fe4cc3f77d43534ecd2be",
+    "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/vendor_sam/vendor/sam_backend.py": "356802c9c86c79975a479fab84227ab14fedd67910239760cb4456e8c9c15d3c",
+    "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/vendor_sam/variantlib.py": "10219e028f26caa5d6cf76e42e6739f8ebd68204faf135874974e593d5440198",
+    "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/vendor_sam/variant_cache.py": "cb702acdd4e88a47f1ce7d8556ecce0c54936382422e94c031b9d83b5e02a284",
+    "/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872/student_pilot/tower_read.py": "2cd338e1935803fdd4784b1626095a88a7641a222b394984977b8ec47c674634",
+    "/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872/student_pilot/tower_scale.py": "7a2035804c227996ea179e60b31248bb28e210bf241f6c35d5ee34e56c122d74",
+    "/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872/student_pilot/candidate_policy.py": "2cc13f27ffe7fe1aa0bbbfc3dbcd543897c37d6acb85e44aa3a1d6e1f4c0dbb1",
+    "/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872/student_pilot/routed_features.py": "736c5a642fe28656c5508022210b050a87e49821381980a9c6f79007ef1fda13",
+    "/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872/student_pilot/live_instances314.py": "c542e17e08f230fb97fc79cd6c024943ae91a03dc37a1110dfb5cb2d5ed0cc4e",
+    "/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872/student_pilot/carrier_c1_decode.py": "e612a7c1874f2aeaedcf613421308efe978523edf0ec09db7886996378ae9a4d",
+    "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/shard.py": "7bbd48ed3fde5df8647e30c06249a046ff228bce8de597b30dd9ba5987b8b503",
+    "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/watchdog.py": "92dfad3db1d947f65edd6d49442fe1b13d3adfa5d26407bbe14e7d7b50ef0f48",
+    "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/run.py": "08c2a41e29c677460bbc40dcdddff7cf202c098dc75d4d59c37bdc6cac9c4c1a",
+    "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/bindings.py": "945ffbb8d0b7d5d9eda36ef7959469b2e222fb9cf758d7c7e4fd2acf55ebc553",
+    "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/rehearse.py": "d70d22d70bdc23ddde5d53ed60b4b8e03f2df76aba75b42462d2fdf3d789dedc",
+    "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/pipeline.py": "ef68b2cdd96c8b12ba066940552d8d7bbbb059e49ed7958a7e988973113f6544",
+    "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/boundaries.py": "5fbe3ae6ace471c8d8ec532cdde50b0bca4db687b5fc5f7c890c9b6ad44e620c",
+    "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/build_manifest.py": "d1500a768e3be71e98444e4849c8db362341a118f7ff8f821b741cedb63b1108"
+  },
+  "producer_sha256": "80d763d4149f1b7989d806f3bfab0660e631c27e79d0300cd8300fbdb88f075d",
+  "tower_root": "None",
+  "own_root": "None"
+}
+
+--- native/probe/HALTED.json
+{
+  "error": "ValueError('Missing or changed pinned input: /scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/97a6a3eb/runs/b19c1200/train/step_400/heads.json')",
+  "automatic_retry": false
+}
+
+--- native/probe/PROGRESS.jsonl
+{"phase": "own", "event": "start", "canonical": null, "unix": 1794825910.2908998}
+{"phase": "own", "event": "capture_start", "canonical": "arkitscenes/41048124", "unix": 1794825910.2911837}
+{"phase": "own", "event": "failed", "canonical": null, "unix": 1794825962.0396976}
+
+--- native/probe/STOP
+Worker failure; operator review required
+
+=========== e99ce848d0e2649b6
+--- FAILED.json
+{
+  "returncode": 1
+}
+
+--- logs/a.log
+{"event": "native_imports_verified", "imports": {"numpy": {"path": "/tmp/a_170206_b7e31d84a90c62f5/numpy/numpy/__init__.py", "sha256": "6ae17b070c0f70a8e3cad89a510a256942e5a1f37ea5feb120cec167ed2a6236", "version": "2.2.6"}, "scipy": {"path": "/tmp/a_170206_b7e31d84a90c62f5/numpy/scipy/__init__.py", "sha256": "099cd64551527a8f4c4dd5488fbf7f441d4dd877bb2632807fd4e1dd0a642eb8", "version": "1.14.1"}, "torch": {"path": "/tmp/a_170206_b7e31d84a90c62f5/project/c7d31ddd/venvs/rwtrain_torch211_cu129/lib/python3.12/site-packages/torch/__init__.py", "sha256": "0387d8b811b289287479c8bfdf4e1dac3a71b246f938d82da1331cf2dc8bf001", "version": "2.11.0+cu129"}, "transformers": {"path": "/tmp/a_170206_b7e31d84a90c62f5/project/c7d31ddd/venvs/rwtrain_torch211_cu129/lib/python3.12/site-packages/transformers/__init__.py", "sha256": "135ddabaeed9a78e2a40f5fd5ec948361b59650c96ce9222cba011826ee17632", "version": "5.12.1"}, "triton": {"path": "/tmp/a_170206_b7e31d84a90c62f5/fla/p/triton/__init__.py", "sha256": "fc8d0ce7535a4773769dfdcdb3a8b7bcee1bf58d3d03cc318529104c1e1431fd", "version": "3.7.1"}, "fla": {"path": "/tmp/a_170206_b7e31d84a90c62f5/fla/p/fla/__init__.py", "sha256": "f05ff60483d48c657bf0637a662508c846a4996cf8d6d03326e1de6839aec786", "version": "0.6.0"}, "PIL": {"path": "/tmp/a_170206_b7e31d84a90c62f5/project/c7d31ddd/venvs/rwtrain_torch211_cu129/lib/python3.12/site-packages/PIL/__init__.py", "sha256": "43828e12947b4bf5ec8f7d1fbceb2f47de311295f8294b15794c1a54fd5f53cd", "version": "12.1.1"}}}
+[transformers] The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
+Loading weights:   0%|          | 0/760 [00:00<?, ?it/s]Loading weights:  84%|████████▍ | 637/760 [00:00<00:00, 6322.49it/s]Loading weights: 100%|██████████| 760/760 [00:00<00:00, 6241.99it/s]
+Traceback (most recent call last):
+  File "/tmp/a_170206_b7e31d84a90c62f5/reference/sj/orch_cd/evalx/work/milestone/native_bootstrap.py", line 94, in <module>
+    main()
+  File "/tmp/a_170206_b7e31d84a90c62f5/reference/sj/orch_cd/evalx/work/milestone/native_bootstrap.py", line 90, in main
+    runpy.run_path(str(target), run_name='__main__')
+  File "<frozen runpy>", line 286, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "/tmp/a_170206_b7e31d84a90c62f5/phase_worker.py", line 197, in <module>
+    result = run(json.loads(Path(sys.argv[1]).read_text()))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/a_170206_b7e31d84a90c62f5/phase_worker.py", line 192, in run
+    raise ValueError('Worker failed; evidence returned')
+ValueError: Worker failed; evidence returned
+
+--- metadata/SHA256.json
+{
+  "FAILED.json": "b9f87d4ceb14f54a8787da14c5985aa499e13197fe39c8f0f4ecf87e7a01957e",
+  "logs/a.log": "1677fa0c9b024f192397b75b518d3fa2e67e641d854bf913230d02adf89e432e",
+  "metadata/aa8598721c7ff9494c.json": "928094188431254a1c528d691310b7c4af4395c85707dcc7ade4f53ff9e9fc3c",
+  "metadata/admission.json": "593dfe93a89c2d4f7b46d4ba1a6d22f43553f8f2469245f8298e873c45a5b4c2",
+  "metadata/budget.json": "15d2cad0972af21c2ad63920a4387b63028f630aaf0305708cde659190af9f7f",
+  "metadata/failure.json": "bda13579fa0afbca090e4c9940d65300c607790576c3416c23e4b14c0d348078",
+  "native/probe/BINDING.json": "e721fac7d23bc96c77bb0c80887398e4b3e056df4004aee14c0a1a88f31fa79d",
+  "native/probe/HALTED.json": "d5d0a296129879bca0c96af05a53e286037b05792e51b515b0f7ac190124a56b",
+  "native/probe/PROGRESS.jsonl": "919755075e8ca8f4fc7420259d85340d0ffe2a04f7e6c6fb9d15e507db54a5fd",
+  "native/probe/STOP": "bf36eddc0585c29e4c4cabf3eadc35cfbf20abdba0bf1428bb3f3a24759fbd9e"
+}
+
+--- metadata/aa8598721c7ff9494c.json
+{
+  "archive": {
+    "bytes": 4083,
+    "name": "result.tar.gz",
+    "sha256": "e114b1e353adbab42936f446722b66b65f4ab42abb6e1d1352e9dab9e0a3be40"
+  },
+  "archive_bytes": 4083,
+  "archive_complete": true,
+  "archive_sha256": "e114b1e353adbab42936f446722b66b65f4ab42abb6e1d1352e9dab9e0a3be40",
+  "complete": false,
+  "conflicting_terminal_markers": false,
+  "job": "170206",
+  "local_return": "/scratch/jjyeung/a7e31d84/r/r_a8598721c7ff9494c_eb1ce92e2076421682f753cc211a8c22",
+  "mode": "full",
+  "plan_sha256": "108ead70d1155ffa14338554347b79890157e610f11cf7ed8bbf3a8af7219324",
+  "proof_channels": {
+    "gcs": {
+      "objects": {
+        "RETURN_RECEIPT.json": {
+          "bytes": 1481,
+          "generation": "1794825974327748",
+          "sha256": "b95148bb3f130489f14da2e90147292d23700dc0bc58c472e78ef6a2dddbecf0",
+          "uri": "gs://cmu-gpucloud-jjyeung/q8/b7e31d84a90c62f5/r/a8598721c7ff9494c/RETURN_RECEIPT.json",
+          "verified": true
+        }
+      },
+      "verified": true
+    },
+    "pool": {
+      "sha256": "b95148bb3f130489f14da2e90147292d23700dc0bc58c472e78ef6a2dddbecf0",
+      "verified": true
+    }
+  },
+  "returncode": 1,
+  "returned": true,
+  "schema": "evalx-orchard-result-return-v1",
+  "status": "FAILED",
+  "synthetic": false,
+  "token": "a8598721c7ff9494c",
+  "verified_channels": [
+    "pool",
+    "gcs"
+  ]
+}
+
+--- metadata/admission.json
+{
+  "binding": {
+    "amendment": 2,
+    "captures_unchanged": true,
+    "manifest_sha256": "108ead70d1155ffa14338554347b79890157e610f11cf7ed8bbf3a8af7219324",
+    "producer_sha256": "80d763d4149f1b7989d806f3bfab0660e631c27e79d0300cd8300fbdb88f075d",
+    "sources": {
+      "/scratch/jjyeung/orch_cd/evalx/work/milestone/native_package_s24_05/sources/sj/orch_cd/evalx/work/milestone/native/out2/geometry.py": "56099cf8b68d74ee14edecf01d747234f6575ebfa4dc394eba204748a4dd1a11",
+      "/scratch/jjyeung/orch_cd/evalx/work/milestone/native_package_s24_05/sources/sj/orch_cd/evalx/work/milestone/native/out2/perception.py": "088d32c43481bdcbef5e82bfdd7fdc1d0d417710779fe4cc3f77d43534ecd2be",
+      "/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872/student_pilot/candidate_policy.py": "2cc13f27ffe7fe1aa0bbbfc3dbcd543897c37d6acb85e44aa3a1d6e1f4c0dbb1",
+      "/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872/student_pilot/carrier_c1_decode.py": "e612a7c1874f2aeaedcf613421308efe978523edf0ec09db7886996378ae9a4d",
+      "/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872/student_pilot/live_instances314.py": "c542e17e08f230fb97fc79cd6c024943ae91a03dc37a1110dfb5cb2d5ed0cc4e",
+      "/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872/student_pilot/routed_features.py": "736c5a642fe28656c5508022210b050a87e49821381980a9c6f79007ef1fda13",
+      "/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872/student_pilot/tower_read.py": "2cd338e1935803fdd4784b1626095a88a7641a222b394984977b8ec47c674634",
+      "/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872/student_pilot/tower_scale.py": "7a2035804c227996ea179e60b31248bb28e210bf241f6c35d5ee34e56c122d74",
+      "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/bindings.py": "945ffbb8d0b7d5d9eda36ef7959469b2e222fb9cf758d7c7e4fd2acf55ebc553",
+      "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/boundaries.py": "5fbe3ae6ace471c8d8ec532cdde50b0bca4db687b5fc5f7c890c9b6ad44e620c",
+      "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/build_manifest.py": "d1500a768e3be71e98444e4849c8db362341a118f7ff8f821b741cedb63b1108",
+      "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/pipeline.py": "ef68b2cdd96c8b12ba066940552d8d7bbbb059e49ed7958a7e988973113f6544",
+      "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/rehearse.py": "d70d22d70bdc23ddde5d53ed60b4b8e03f2df76aba75b42462d2fdf3d789dedc",
+      "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/run.py": "08c2a41e29c677460bbc40dcdddff7cf202c098dc75d4d59c37bdc6cac9c4c1a",
+      "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/shard.py": "7bbd48ed3fde5df8647e30c06249a046ff228bce8de597b30dd9ba5987b8b503",
+      "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/vendor_sam/variant_cache.py": "cb702acdd4e88a47f1ce7d8556ecce0c54936382422e94c031b9d83b5e02a284",
+      "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/vendor_sam/variantlib.py": "10219e028f26caa5d6cf76e42e6739f8ebd68204faf135874974e593d5440198",
+      "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/vendor_sam/vendor/sam_backend.py": "356802c9c86c79975a479fab84227ab14fedd67910239760cb4456e8c9c15d3c",
+      "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/watchdog.py": "92dfad3db1d947f65edd6d49442fe1b13d3adfa5d26407bbe14e7d7b50ef0f48"
+    },
+    "tower_manifest_sha256": "aa2fefb545d25762a4cfffb0a34bd053bfbbfbb8b064ca5256cab8d0d7506eda"
+  },
+  "prepared": {
+    "artifact": {
+      "path": "/scratch/jjyeung/orch_cd/evalx/inbox/20261114T141906Z_cp2_m544_artifact.json",
+      "sha256": "1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef"
+    },
+    "config_identity": "84ea03af6049a179bf4a44619b1534fdcb528b5511544189236254b5d66842cb",
+    "fresh_preparation": false,
+    "model_manifest": {
+      "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/e84d901c/arm/frozen/6f27ae81/model.json",
+      "sha256": "cc724d5ee1b0bd62ba759be3eb0831afd009cd7635ea5966ddc0fd26c4599fb7"
+    },
+    "passed": true
+  },
+  "restore": {
+    "restored": false
+  },
+  "verified_sources": 109
+}
+
+--- metadata/budget.json
+{
+  "allocation_seconds": 10800,
+  "longest_capture_seconds": 3000,
+  "margin_seconds": 900,
+  "max_seconds": 6591,
+  "setup_and_elapsed_seconds": 308.16841411590576
+}
+
+--- metadata/failure.json
+{
+  "message": "Missing or changed pinned input: /scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/97a6a3eb/runs/b19c1200/train/step_400/heads.json",
+  "type": "ValueError"
+}
+
+--- native/probe/BINDING.json
+{
+  "manifest_sha256": "108ead70d1155ffa14338554347b79890157e610f11cf7ed8bbf3a8af7219324",
+  "phase": "own",
+  "sources": {
+    "/scratch/jjyeung/orch_cd/evalx/work/milestone/native_package_s24_05/sources/sj/orch_cd/evalx/work/milestone/native/out2/geometry.py": "56099cf8b68d74ee14edecf01d747234f6575ebfa4dc394eba204748a4dd1a11",
+    "/scratch/jjyeung/orch_cd/evalx/work/milestone/native_package_s24_05/sources/sj/orch_cd/evalx/work/milestone/native/out2/perception.py": "088d32c43481bdcbef5e82bfdd7fdc1d0d417710779fe4cc3f77d43534ecd2be",
+    "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/vendor_sam/vendor/sam_backend.py": "356802c9c86c79975a479fab84227ab14fedd67910239760cb4456e8c9c15d3c",
+    "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/vendor_sam/variantlib.py": "10219e028f26caa5d6cf76e42e6739f8ebd68204faf135874974e593d5440198",
+    "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/vendor_sam/variant_cache.py": "cb702acdd4e88a47f1ce7d8556ecce0c54936382422e94c031b9d83b5e02a284",
+    "/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872/student_pilot/tower_read.py": "2cd338e1935803fdd4784b1626095a88a7641a222b394984977b8ec47c674634",
+    "/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872/student_pilot/tower_scale.py": "7a2035804c227996ea179e60b31248bb28e210bf241f6c35d5ee34e56c122d74",
+    "/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872/student_pilot/candidate_policy.py": "2cc13f27ffe7fe1aa0bbbfc3dbcd543897c37d6acb85e44aa3a1d6e1f4c0dbb1",
+    "/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872/student_pilot/routed_features.py": "736c5a642fe28656c5508022210b050a87e49821381980a9c6f79007ef1fda13",
+    "/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872/student_pilot/live_instances314.py": "c542e17e08f230fb97fc79cd6c024943ae91a03dc37a1110dfb5cb2d5ed0cc4e",
+    "/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_admissionfix_168872/student_pilot/carrier_c1_decode.py": "e612a7c1874f2aeaedcf613421308efe978523edf0ec09db7886996378ae9a4d",
+    "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/shard.py": "7bbd48ed3fde5df8647e30c06249a046ff228bce8de597b30dd9ba5987b8b503",
+    "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/watchdog.py": "92dfad3db1d947f65edd6d49442fe1b13d3adfa5d26407bbe14e7d7b50ef0f48",
+    "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/run.py": "08c2a41e29c677460bbc40dcdddff7cf202c098dc75d4d59c37bdc6cac9c4c1a",
+    "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/bindings.py": "945ffbb8d0b7d5d9eda36ef7959469b2e222fb9cf758d7c7e4fd2acf55ebc553",
+    "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/rehearse.py": "d70d22d70bdc23ddde5d53ed60b4b8e03f2df76aba75b42462d2fdf3d789dedc",
+    "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/pipeline.py": "ef68b2cdd96c8b12ba066940552d8d7bbbb059e49ed7958a7e988973113f6544",
+    "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/boundaries.py": "5fbe3ae6ace471c8d8ec532cdde50b0bca4db687b5fc5f7c890c9b6ad44e620c",
+    "/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit/build_manifest.py": "d1500a768e3be71e98444e4849c8db362341a118f7ff8f821b741cedb63b1108"
+  },
+  "producer_sha256": "80d763d4149f1b7989d806f3bfab0660e631c27e79d0300cd8300fbdb88f075d",
+  "tower_root": "None",
+  "own_root": "None"
+}
+
+--- native/probe/HALTED.json
+{
+  "error": "ValueError('Missing or changed pinned input: /scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/97a6a3eb/runs/b19c1200/train/step_400/heads.json')",
+  "automatic_retry": false
+}
+
+--- native/probe/PROGRESS.jsonl
+{"phase": "own", "event": "start", "canonical": null, "unix": 1794825910.2908998}
+{"phase": "own", "event": "capture_start", "canonical": "arkitscenes/41048124", "unix": 1794825910.2911837}
+{"phase": "own", "event": "failed", "canonical": null, "unix": 1794825962.0396976}
+
+--- native/probe/STOP
+Worker failure; operator review required
+

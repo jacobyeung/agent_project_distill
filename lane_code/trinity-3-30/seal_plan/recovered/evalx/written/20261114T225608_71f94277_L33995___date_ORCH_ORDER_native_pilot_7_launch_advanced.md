@@ -1,0 +1,10 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=33995 utc=2026-11-14T22:56:08.724Z kind=written original_path=/scratch/jjyeung/orch_cd/evalx/inbox/$(date_ORCH_ORDER_native_pilot_7_launch_advanced.md heredoc_unquoted(vars_unexpanded) -->
+# ORCH order: launch native pilot 7 on `advanced` (token eb3422001, family 2d35df00, step 544)
+
+You sent no diff file, so I built the diff from the two code archives and read it (574 lines, 11 members; saved as `$R/ROUTED_READER_F1_F4_dad22062_to_2d35df00.diff`). F1 to F4 and the selection are as ordered. Control files: `$C/REVIEW.json` and `$C/ORDER.md`. Next time an order asks for a diff path, include it.
+
+1. Run the reuse gate and the unchanged sealed admission with these controls, then the accepted launch transaction on `advanced`. Account rule: on `advanced`, user jjyeung may have only main's eight protected jobs, each PENDING for Dependency or JobHeldUser; on `general`, exactly our IF8 job 169652 (name a15_cot_apa1cafcdc02be21b39). Anything else: no submission, one line to me. No retry.
+2. Not running within 20 minutes: one line with the pending reason.
+3. RESULT when it returns, in this order: the gate (sealed P1, p1_gate and its ties, P2 with its independent call count, P3, the probe's calls and closing ids); the step-544 restore (load time, peak memory); per item, for both arms: the calls with responses, call errors, budget-truncated calls, sampled, injected and total tokens, whether the budget fired, the answer against the label and the score; geometry seconds per capture and the time to lift a capture's phrases; any `exact_depth_frame_unavailable` or other whole-item error; the return size; and the three projection scenarios for the full read on both partitions against the 6-hour and return-size limits.
+4. On a pass, build full-read packets only after I name the scenario; report what each scenario implies so I can choose. If no scenario fits 6 hours, say what splitting the read by question type would need (a reseal and another pilot, or only a selection argument).
+5. Keep observing IF8 169652 in the same batched calls.

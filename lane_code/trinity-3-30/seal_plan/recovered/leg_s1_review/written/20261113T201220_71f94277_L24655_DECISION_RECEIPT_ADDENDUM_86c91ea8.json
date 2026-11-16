@@ -1,0 +1,20 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=24655 utc=2026-11-13T20:12:20.477Z kind=written original_path=/scratch/jjyeung/orch_cd/leg_s1_review/DECISION_RECEIPT_ADDENDUM_86c91ea8.json  -->
+{
+  "verdict": "ACCEPT",
+  "scope": "one-function change to decision_fork.py::validate_hardware after the confirmation review (finding N1 of CONFIRMATION_MILESTONE_GATES.md)",
+  "reviewer": "orchestrator orch-home-distill-79 (Claude family; the author is a GPT-family lane); a diff read and two test runs, not a full review",
+  "base_receipt": "/scratch/jjyeung/orch_cd/leg_s1_review/DECISION_RECEIPT.json",
+  "previous_sha256": "03efe24d0129e930ab449da42b5c0bcf2febe133d65ecebc891ab46c96a3aa26",
+  "new_sha256": "86c91ea89b9b08fd61d330de6f2b121758b686f3f338d793388783e7814cb1a6",
+  "what_i_checked": [
+    "diff of the accepted copy (leg_s1_review/work_decision_confirm/code/decision_fork.py) against evalx/work/milestone/decision_fork.py: 17 changed lines, all inside validate_hardware plus one import (csv); no other function differs",
+    "the new code parses GPU model names from the evidence text (raw nvidia-smi CSV lines in either of two column layouts, or the nvidia_smi field of a JSON record) and requires the observed set to equal {GPU_TYPE}; an empty observed set refuses, a mixed set refuses, a label cannot override the evidence",
+    "GPU_TYPE is 'NVIDIA H100 80GB HBM3' (line 15)",
+    "ran test_decision_fork.py (8 passed) and test_hardware_audit.py (4 passed, including the A6000-evidence case) with the p1cpu interpreter"
+  ],
+  "not_checked": [
+    "the leg's own hardware evidence, which does not exist until the step-100 read runs",
+    "anything outside validate_hardware (covered by the base receipt at the previous hash)"
+  ],
+  "issued_utc": "2026-11-13T20:13Z"
+}

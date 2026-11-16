@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=25343 utc=2026-11-13T21:22:27.777Z kind=commands original_path=(bash command)  -->
+cat /scratch/jjyeung/orch_cd/orchard_kit/work/ossh.sh | cut -c1-80 | head -n 3; date -u +%H:%M:%SZ; timeout 100 bash /scratch/jjyeung/orch_cd/orchard_kit/work/ossh.sh orchard 'hostname; date -u +%H:%M:%SZ; squeue -h -u jjyeung -o "%i|%T|%P|%M|%R" | head -n 5' < /dev/null 2>&1 | grep -v -i numpy | tail -n 8; echo "rc=${PIPESTATUS[0]}"; ls -la /tmp/cm-okit-orchard 2>&1 | head -n 1

@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=32990 utc=2026-11-14T18:59:02.073Z kind=commands original_path=(bash command)  -->
+fold -w 3500 -s /tmp/claude-25409/-scratch-jjyeung-orch-home-distill/71f94277-362e-467c-a4bc-ccc9ae6b87c8/tasks/bimvy2kaj.output | tail -n 60 | cut -c1-3500; echo "- $(date -u +%Y-%m-%dT%H:%MZ) evalx RESULT 1858Z: native pilot 6 submitted once = job 169605 on advanced (token e702b65e2, family 2b9d7815) after the reuse-gate path fix." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

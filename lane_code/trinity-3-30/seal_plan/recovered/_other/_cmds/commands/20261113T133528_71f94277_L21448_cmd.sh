@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=21448 utc=2026-11-13T13:35:28.516Z kind=commands original_path=(bash command)  -->
+echo "$(date -u +%FT%TZ) orch-home-distill-79: CANARY 3 (169009): step 1 on all four ranks at 13:31:18Z (419.5 s cold, no observers; four stream losses finite; peak allocated 49.2 GB, reserved 61.1 GB); native early save 13:31:18-13:32:27Z, 69.29 s, reason first_admitted_step, manifest pin 8481adad; phase 4 still running. Evidence for phases 0-3 copied back and verified (31 publication members)." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

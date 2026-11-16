@@ -1,0 +1,31 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=1639 utc=2026-11-11T12:56:27.772Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd && cut -c1-420 aws_vl128_build/events/20261111T1255Z_RESULT_aws_vl128.md | head -14; T=$(date -u +%Y%m%dT%H%MZ); NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ); P=/scratch/jjyeung/orch_cd/model_design_review/MODEL_IMPROVEMENT_PLAN_20261111.md
+cat > evalx/inbox/${T}_ORCH_vl128_done_and_read0.md <<EOF
+# ORCH ($NOW): the aws_vl128 kit is built; the revised plan names your queue READ-0
+- Codex finished work/aws_vl128 (its RESULT: /scratch/jjyeung/orch_cd/aws_vl128_build/events/20261111T1255Z_RESULT_aws_vl128.md). Run its tests once, then seal it. It is used only after the reads below.
+- The plan was revised after review (read $P, "Ranked experiment queue" item 1, READ-0, line 266, and item 6, FRAMES-1). Your order after acceptance r15: (a) T0 m800 direct on VSI-Bench 5,130 at 64 frames; (b) T0 m800 direct on ReVSI's official 999 at 32 frames and at its 64 tier, and on VSTI 5,736 at 64 frames; (c) CP1 m200 routed, with the route table frozen on dev before any official item is scored. The vnice reruns follow, then FRAMES-1 at 96 and 128 with the frame count chosen on dev only.
+- Before any VSTI number: lane gt_ceiling found that the harness function to32() rescales "frame N of M" and reads the wrong frame on the 1,142 VSTI items whose scenes have invalid poses (/scratch/jjyeung/orch_cd/gt_ceiling/events/20261111T1225Z_NOTE_ladder_a.md). Check whether your VSTI path maps frames the same way, and say so in STATUS.md.
+EOF
+cat > dose_pool/inbox/${T}_ORCH_plan_revised.md <<EOF
+# ORCH ($NOW): the plan was revised after review; your scope narrows
+- Read $P, "Data and the scaling test" (line 194) and "Builds to start today". Count usable questions first (at most 288,662 before exclusions and filters); cut nested pools at 50K, 100K, 200K and "all that pass"; repeats and paraphrases do not count as new data.
+- The 2B proxy run is deferred, so do NOT download the Qwen3.5-2B weights: I withdraw my earlier yes. If the download already started or finished, leave the file where it is, say so in STATUS.md and delete nothing. The proxy kit stops after its CPU tests on random-init weights.
+- The pool is a training stream for the next 9B leg (the plan's LEG-S1): deliver it in the trainer's row format with a first-batch test, and regenerate when lane gt_ceiling posts program fixes (its v3.14 programs).
+EOF
+cat > grd_selector/inbox/${T}_ORCH_plan_revised.md <<EOF
+# ORCH ($NOW): the plan was revised after review; your acceptance rule changed
+- Read $P, "Grounding" (line 173) and "Ranked experiment queue" item 5 (line 284). Add question-context features and an abstain outcome; compare against the deployed selector by object on-target share on identical objects (the 211 clean objects plus the official ScanNet operands); verdicts are GO, NO-GO or INCONCLUSIVE, and a failure does not show that names cannot settle identity.
+EOF
+cat > frontier_read/inbox/${T}_ORCH_plan_revised.md <<EOF
+# ORCH ($NOW): the main project already has two of your cells
+- The revised plan ($P, "Frontier bars", line 232) cites the main project's lane: on VSI-500 at 32 frames Argon (high) scores 76.68 and Carbon (medium) 75.97, provisional. Find those result files, report them with their settings and do not rerun VSI-500 unless a setting differs from what you would use. Continue with ReVSI 999 and VSTI-450 v3, and list frames, resolution and task set beside each score.
+EOF
+cat > gt_ceiling/inbox/${T}_ORCH_plan_revised.md <<EOF
+# ORCH ($NOW): the plan was revised after review; what it asks of you
+- Read $P, "Ceiling evidence" (line 28), "Are pose and depth all you need?" (line 48), "Gap decomposition" (line 95) and queue item 2 (PROG-0, line 272): ladders B and C on the full ScanNet parts of VSI-Bench and VSTI, then at 64 and 128 frames; per type, the split between formula defects (fixable on CPU) and missing evidence (objects never seen in the sampled frames); fix the VSTI camera-object whole-box rule and the to32() frame index; the fixed programs become the v3.14 trace programs, so deliver them as a pinned program set with a test per fix.
+- I still need your clean point for the recording restart (inbox note of 12:36Z): post events/<UTC stamp>_RESULT_ready_for_restart.md when you reach one.
+EOF
+cat >> /data2/jjyeung/agent_project_data/SAVED_USER_QUESTIONS.md <<EOF
+| $(date -u +%Y-%m-%dT%H:%MZ) | [orch-home-distill-79] Downloads and copies: your admin rules say heavy IO waits for your answer, while your 11-01 note allowed downloads under 100 GB without asking. Today I approved three small throttled transfers on that note: 7.65 GB of public TUM and Bonn sequences at 4 MB/s (done), a 388 MB ReVSI video stream from /data2 at 8 MB/s (queued behind main), and 4.55 GB of Qwen3.5-2B weights (withdrawn; the run it served is deferred). Which rule holds from now on? | From now on every download or /data* copy above 2 GB waits for your explicit yes; smaller ones run throttled, one at a time. | OPEN |
+EOF
+echo "$NOW orch-home-distill-79: model_design_v2 DONE: MODEL_IMPROVEMENT_PLAN_20261111.md rewritten in place (391 lines; all 20 findings accepted). Standing: f17 63.79 official VSI (32 f); main's lane (provisional) Argon high 76.68 and Carbon medium 75.97 on VSI-500 at 32 f vs f17 60.99; bars 76.6 / 75.05 / ReVSI 57.5-58.2. Scenario with measured levers 68.8-72.4; the five unrouted tasks need 6.7-12.5 each. Queue: READ-0, PROG-0, THINK-0, ARK-1a, GRD-1, FRAMES-1, RFT-1, LEG-S1; deferred GRD-2 parity, DOSE-1 proxy, policy-gradient RL. Relayed to evalx, dose_pool (2B weights download withdrawn), grd_selector, frontier_read, gt_ceiling. Dispatched Codex Sol: rft1_kit (tmux cx_rft1_kit, B4) and diag_kits (tmux cx_diag_kits, THINK-0 + ARK-1a). aws_vl128 kit built by Codex (RESULT 1255Z); evalx told to test and seal. Heavy-IO rule conflict saved as an open question; default: anything above 2 GB waits for the user's yes." >> ORCH_HANDOFF.md; sed -i '/^aws_vl128_build|/d' /tmp/claude-25409/-scratch-jjyeung-orch-home-distill/71f94277-362e-467c-a4bc-ccc9ae6b87c8/scratchpad/LANES

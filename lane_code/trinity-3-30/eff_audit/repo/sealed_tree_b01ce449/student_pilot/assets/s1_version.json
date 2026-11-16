@@ -1,0 +1,25 @@
+{
+  "schema": "leg-s1-runtime-version-v1",
+  "trace_program_version": "3.14",
+  "ground_candidate_policy": {
+    "name": "routed_default_v1",
+    "weights": "routed_policy_v1.json",
+    "sha256": "e78463c537c6172720c818c162c35d3a956143850db19fb251b66dd3004207b4"
+  },
+  "route_table": "external pinned input; never an inference choice override",
+  "depth_source": "tower_scaled",
+  "missing_geometry": "same-checkpoint own heads when explicitly allowed",
+  "invalid_geometry": "refuse",
+  "geometry_mode": "predicted",
+  "tool_mode_flag": null,
+  "gf1_first_leg_default": false,
+  "ground_target_filter": {
+    "reference_min_mask_px": 154,
+    "reference_shape": [240, 320],
+    "min_largest_component_fraction": 0.6,
+    "connectivity": 4,
+    "scope": "all grounding training targets",
+    "excluded_targets": "unknown supervision; never negative labels"
+  },
+  "cpu_switch_definition": "student_pilot.rehearsal.ENVIRONMENT"
+}

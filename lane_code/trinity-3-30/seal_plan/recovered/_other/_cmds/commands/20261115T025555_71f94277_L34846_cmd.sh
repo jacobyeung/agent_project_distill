@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=34846 utc=2026-11-15T02:55:55.258Z kind=commands original_path=(bash command)  -->
+kill 459259 2>/dev/null; for i in $(seq 1 20); do if ps -p 459259 >/dev/null 2>&1; then sleep 2; else break; fi; done; ps -p 459259 >/dev/null 2>&1 && echo "still alive" || echo "if_p0 lane ended"; echo "- $(date -u +%Y-%m-%dT%H:%MZ) Ended the closed if_p0 lane process (pid 459259) so it does not poll idle; its final record and STATUS are written." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

@@ -1,0 +1,45 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=5056 utc=2026-11-11T16:58:55.902Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; T=$(date -u +%Y%m%dT%H%MZ)
+cat > evalx/inbox/${T}_ORCH_plan_rev2_order.md <<'EOF'
+# ORCH: plan revision 2 is adopted (/scratch/jjyeung/orch_cd/model_design_review/PLAN_DELTA_REV2.md, 50 lines: read it). What changes for you
+1. One CPU task now, the cheapest test of the lineage question. T0 m800 trails f17 on VSI-500 (57.8 against 60.99) and 32 of its 500 answers hit the output cap and scored zero. Join the two on the same 500 items (T0: pulled5/dd_t0m800.jsonl; f17: its rows in the official 5,130 per-question file, or main's VSI-500 file if you can name it) and report: both scores on the uncapped items only, per type; where the capped items fall by type; what T0 would score if capped items scored at its uncapped per-type mean. One RESULT.
+2. Order at release (all at the trained layout), replacing my 1602Z order:
+   (1) the v3.14 canary of the merged tree together with the r15 acceptance, 1 card, when lane leg_s1_tree delivers the tree (its launch line comes from that lane; you run it);
+   (2) ReVSI 999 at 32 duplicate, T0 m800, 1 card;
+   (3) THINK-0 at 32 duplicate, 2 cards;
+   (4) VSI-Bench 5,130 at 32 duplicate, T0 m800, 4 cards;
+   (5) the GF-1 Stage 1 canary, when leg_s1_tree's kit names it;
+   (6) the geometry bake-off, when lane geo_bakeoff's kit is reviewed;
+   (7) VSTI 5,736 on CP1 m200 end to end (routed camera types on the tower's pose, direct elsewhere), 2-4 cards: say now what it needs that is not on trinity-1-18 (CP1 m200's export and runtime, which lane orchard_cp2 holds on Orchard; size; how it gets here) and which route table it would use. The route choice for VSTI may not be made on VSTI scenes: every dev scene is a VSTI test scene, so tell me which choices the read makes and where each was frozen. A review of the plan is checking the same point; do not bind this read before I write.
+   (8) a selector cache on the VSTI scans; (9) fillers of 1-2 card-hours: dev cells T0 at 64 duplicate, f17 at 32 and 64 spread.
+3. Dropped: every 64-frame official read, FRAMES-1 at 96/128, ARK-1a (the bake-off's ARKit arm replaces it), the CP1 official routed read on VSI-Bench and ReVSI.
+EOF
+cat > leg_s1_tree/inbox/${T}_ORCH_plan_rev2_decisions.md <<'EOF'
+# ORCH: plan revision 2 is adopted: decisions that bind your tree, kit and pre-launch card
+Read /scratch/jjyeung/orch_cd/model_design_review/PLAN_DELTA_REV2.md (50 lines) and the plan's section on LEG-S1 (MODEL_IMPROVEMENT_PLAN_20261111.md in the same folder).
+1. Lineage: LEG-S1 starts from CP1 m200 (the carrier lineage with heads). f17's direct strength enters as direct rows and a thinking budget, not as weights.
+2. Route table of the leg: absolute distance and the camera types route; room size routes once its rows exist (Codex lane room_tool is building the program: /scratch/jjyeung/orch_cd/room_tool, patch out/ROOM_TOOL.patch when its RESULT lands; merge it); relative distance and the direction types carry both forms and stay direct by default; counting, size, appearance order and route planning stay direct. Head-backed rows are generated in sensor mode (ground truth, all frames fused), so no row is regenerated when perception improves.
+3. Perception upgrades live in the runtime only: the selector's routed default, the fusion policy (gt_ceiling/work/port, review pending), G3T depth as the depth source (gt_ceiling RESULT 1656Z: G3T depth has per-frame scale log-sd 0.021 and AbsRel 0.021 against the V-C head's 0.077 and 0.072; aligning V-C to G3T recovers half; a multi-view self-consistency solve does not work).
+4. GF-1 (fusion connector) stays in the tree but joins the first leg only after its Stage 1 GPU canary passes: make it a config switch that is off in the LEG-S1 launch config, with the canary's launch line in the kit.
+5. Removal lists: apply jobs 1, 2 and 3. Job 4's list is HELD (its models reject about 40% of the rows where grounding had missed, with a known over-rejection bias): the builder must run without it.
+6. A question you must answer in your RESULT: the tool-mode flag. The plan says headline evaluation passes no flag and the model itself chooses between a program and a direct answer, the flag being a development override (the user's rule: no harness, end to end). Confirm from the code what the flag does at training (which rows carry it, how the model learns to choose) and at inference (default, what a missing flag does), and say whether "the model chooses" is what the current tree implements.
+7. The pre-registered reading at m200 has four parts (programs written end to end; routing wins on absolute distance and room size; direct tasks within 1.8 points of f17; the headline +2.0 over the best baseline): put it in the pre-launch card word for word from the plan, with the exact reads that test each part.
+8. Timing: Orchard's slot is estimated for 2026-11-12T17:45Z. LEG-S1 replaces the two pending v3.13 jobs only if your chain passes on CPU and the GPU canary passes by 2026-11-12T12:00Z. Say in STATUS.md what stands between you and that gate.
+EOF
+python3 - <<'EOF'
+p='/scratch/jjyeung/orch_cd/READY_QUEUE.md'
+s=open(p).read()
+s+='''
+## REVISION 17:00Z (plan revision 2 adopted; supersedes the order above; detail in model_design_review/PLAN_DELTA_REV2.md)
+Trinity, at release, all at the trained layout: (1) v3.14 canary of the merged tree + r15 acceptance, 1 card; (2) ReVSI 999 on T0 m800, 1 card; (3) THINK-0, 2 cards; (4) VSI-Bench 5,130 on T0 m800, 4 cards; (5) GF-1 Stage 1 canary; (6) geometry bake-off (lower urgency since G3T depth already has AbsRel 0.021 and per-frame scale log-sd 0.021: gt_ceiling RESULT 1656Z); (7) VSTI 5,736 on CP1 m200 end to end (not bound until the plan review settles where its route choices are frozen); (8) selector cache on the VSTI scans; (9) fillers: dev cells T0 64 duplicate, f17 32/64 spread; then the dense SAM 3 re-cache.
+Orchard: LEG-S1 (from CP1 m200) replaces 168042/168043 only if leg_s1_tree's chain passes on CPU and the GPU canary passes by 2026-11-12T12:00Z; otherwise 168042 runs as queued and LEG-S1 enters at its boundary.
+Route table (deployable, selector masks + fusion policy + G3T depth): route absolute distance (+9.2) and room size (+12.4); direct size and counting; relative distance and directions direct by default until masks improve; VSTI camera displacement and movement route on pose.
+CPU work that must land first: merged tree (leg_s1_tree), fusion-policy port + its review, room-size program (room_tool), runtime re-pricing and the mask-loss decomposition (gt_ceiling 6.5, 6.6), T0-against-f17 join (evalx), plan review (plan_review2).
+'''
+open(p,'w').write(s)
+EOF
+cat >> /data2/jjyeung/agent_project_data/SAVED_USER_QUESTIONS.md <<'EOF'
+
+| 2026-11-11T17:00Z | distillation orch-home-distill-79 | Claim order for goal 1 and the label rule for numeric training rows. Plan revision 2 (/scratch/jjyeung/orch_cd/model_design_review/PLAN_DELTA_REV2.md) recommends: claim VSTI-Bench first (our tower answers the two camera types at 84-98 where the closed models score 32-68; projected 87.5 against Argon's 83.3, an estimate), ReVSI second (open bar 57.5-58.2 within reach, closed models 83-88 are 25-30 points away), VSI-Bench last (63.79 official against about 77); and train numeric rows only where the frame-tied label and the released label agree within 10%. | DEFAULT (in force until you say otherwise): follow the recommendation; all three benchmarks are still read officially. |
+EOF
+echo "$(date -u +%Y-%m-%dT%H:%MZ) PLAN REVISION 2 landed (Claude Fable high; model_design_review/MODEL_IMPROVEMENT_PLAN_20261111.md 321 lines + design record + PLAN_DELTA_REV2.md) and ADOPTED: lineage = CP1 m200; route table as measured; perception upgrades runtime-only; GF-1 after its canary; removal lists j1-j3 (j4 held); room renderer/program built now (Codex Astra room_tool, tmux cx_room_tool); GPU order revised (READY_QUEUE.md 17:00Z); Orchard gate 2026-11-12T12:00Z; budget: deployable ~66.5, perfect geometry 69.5, perfect masks 81.5 (scenarios), LEG-S1 at m200 65-69 (estimate), VSTI projection 87.5 vs Argon 83.3 (estimate, mixed checkpoints). Codex Astra review of the revision dispatched (tmux cx_plan_review2 -> plan_review2/REVIEW_VERDICT.md). Notes to evalx (T0-vs-f17 join; order; VSTI on CP1 m200 needs) and leg_s1_tree (decisions; flag semantics question). User question saved (claim order VSTI/ReVSI/VSI; 10% label rule) with default = recommendation. gt_ceiling RESULT 1656Z task 6.3: GT-free multi-view scale solve fails (pose error confounds); V-C aligned to G3T: per-frame scale log-sd 0.077 -> 0.026, abs +4.6, size +6.8; G3T export itself 0.021 (AbsRel 0.021) and best: abs +6.5, size +12.9, cam-obj abs +6.1 over V-C under the policy; GT geometry under the policy: abs 84.3, size 86.2, room 91.2." >> ORCH_HANDOFF.md

@@ -1,0 +1,10 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=2837 utc=2026-11-15T08:27:15.522Z kind=written original_path=/scratch/jjyeung/orch_cd/evalx/inbox/$(date_URGENT_ORCH_CORRECTION_video_tree_is_68_not_288.md heredoc_unquoted(vars_unexpanded) -->
+# URGENT ORCH CORRECTION to my answer of a minute ago: that directory holds 68 of the 288 videos
+
+I misread the record. `$R/official_reads/OFFICIAL_RESULTS.md` lines 41 to 51 say: the "q7 stage" on Orchard held 220 of the 288 official videos; the 68 missing ones were installed under `/project/community/jjyeung/cp4tk_eval/inputs/data2root/jjyeung/agent_project_data/vsibench_videos/`; and jobs that source `tke_common.sh` (`tke_stage`) or run `or_job.sh` stage that tree NEXT TO the q7 stage. The 288-of-288 check of job 165643 ran over that combined staged view, not over one directory.
+
+So:
+- If you have not made the alias call yet, do not make it as I wrote it. If you have, report what it printed (a count of 68 would confirm this) and make no further call.
+- Establish from local records first, with no Orchard call: where the q7 stage lives and how `tke_stage` and `or_job.sh` assemble the combined view (their sources or copies are under `$R/official_reads/kit`, `$R/official_reads/bin` and the lanes that ran the reference models' official reads; `$R/evalx/events/20261113T1132Z_NOTE_cp1_official5130_started_1-18_gpu23.md` and the reference model's Orchard job records name them).
+- Then propose the smallest change: the direct kit's PREPARE assembles the same combined view inside its job-private root, by the same function or an equivalent it tests, from the q7 stage and one opaque alias of the 68-video tree; every public path and argument stays opaque. Tell me the plan and the one Orchard call it needs (alias plus counts of both trees: expected 220 and 68, 288 distinct names in total) before making it.
+- official544's site evidence is wrong on this point; include the correction in your note to it.

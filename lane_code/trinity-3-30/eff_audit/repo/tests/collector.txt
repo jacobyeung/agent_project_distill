@@ -1,0 +1,43 @@
+
+==================================== ERRORS ====================================
+______________________ ERROR collecting test_admission.py ______________________
+ImportError while importing test module '/scratch/jjyeung/orch_n30/eff_audit/repo/clone/collector/test_admission.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+../../../../../uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+test_admission.py:16: in <module>
+    from test_runner_transport import fixture_config
+test_runner_transport.py:12: in <module>
+    from google.genai import types
+E   ModuleNotFoundError: No module named 'google'
+__________________ ERROR collecting test_runner_transport.py ___________________
+ImportError while importing test module '/scratch/jjyeung/orch_n30/eff_audit/repo/clone/collector/test_runner_transport.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+../../../../../uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+test_runner_transport.py:12: in <module>
+    from google.genai import types
+E   ModuleNotFoundError: No module named 'google'
+__________________ ERROR collecting test_sparse_grounding.py ___________________
+ImportError while importing test module '/scratch/jjyeung/orch_n30/eff_audit/repo/clone/collector/test_sparse_grounding.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+../../../../../uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+test_sparse_grounding.py:8: in <module>
+    from donor_grounding import GTGroundingError, _load_instance_mesh
+donor_grounding.py:47: in <module>
+    import cv2
+E   ModuleNotFoundError: No module named 'cv2'
+=========================== short test summary info ============================
+ERROR test_admission.py
+ERROR test_runner_transport.py
+ERROR test_sparse_grounding.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
+3 errors in 0.66s
+rc=2

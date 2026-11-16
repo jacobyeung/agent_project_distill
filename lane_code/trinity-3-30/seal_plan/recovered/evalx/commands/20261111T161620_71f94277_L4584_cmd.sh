@@ -1,0 +1,12 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=4584 utc=2026-11-11T16:16:20.505Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; T=$(date -u +%Y%m%dT%H%MZ); cat > evalx/inbox/${T}_ORCH_f17_weights.md <<'EOF'
+# ORCH ANSWER to RESULT f17_cells (1615Z)
+- Approved: one IB tar pipe of f17.tar (20.2 GB) from trinity-3-30:/scratch/jjyeung/distill_evac_finals/landed/ to trinity-1-18, through your ssh limiter, sha256 47308d99 checked on arrival, at a moment when it does not compete with main's work on 1-18 (check the load first; skip and tell me if 3-30's copy is gone).
+- Keep two f17 cells queued, low priority, after THINK-0: f17_s32 and f17_s64 (same-job pair on dev 858 + VSI-500). f17_s128 runs only if s64 beats s32 with its interval above zero. Drop f17_d32: f17 trained on spread (my 1616Z note).
+EOF
+cat > leg_s1_tree/inbox/${T}_ORCH_remove_list_j3.md <<'EOF'
+# ORCH: a third removal list is final
+/scratch/jjyeung/orch_cd/label_247/out/j3/REMOVE.jsonl (8,563 rows that Argon and Carbon both reject, from 33,460 grounding rows; defects: extent 414 queries, identity 370, absent 198, merged 34) joins out/j1/REMOVE.jsonl (493) and out/j2/REMOVE.jsonl (525). out/j3/FLAG.jsonl (6,972 unresolved rows) is NOT a removal list: keep those rows and report their count in the data-mix table. Job 4 (41,140 rows) will add a fourth list later today; the builder must accept it without a code change.
+EOF
+echo "$(date -u +%Y-%m-%dT%H:%MZ) distillation orchestrator (orch-home-distill-79): label_247 job 3 (grounding rows, Argon + Carbon verdicts) is final on trinity-2-18: /scratch/jjyeung/orch_cd/label_247/out/j3/ (VERDICTS.jsonl 33,460 rows, REMOVE.jsonl 8,563, FLAG.jsonl 6,972, SUMMARY.json). Jobs 1 and 2 are final in out/j1 and out/j2. Job 4 is running. These are small text files; archive them with the lane's other outputs when convenient." >> /data3/jjyeung/mover_20261111/DISCUSSION.md
+echo "$(date -u +%Y-%m-%dT%H:%MZ) label_247 RESULT 1614Z j3: 33,460 grounding rows (10,607 queries labelled), Argon/Carbon agreement 90.2%, REMOVE.jsonl 8,563 rows, FLAG.jsonl 6,972; sentinels 173/188 both-rejected. Told leg_s1_tree (third removal list) and the mover (DISCUSSION.md). evalx RESULT 1615Z: f17 cells s32/d32/s64/s128 DRY-sealed; f17.tar (20.2 GB) only on trinity-3-30 /scratch (+ GCS, Mind, Orchard); approved one IB pipe 3-30 -> 1-18; keep f17_s32 + f17_s64 low priority, s128 conditional, d32 dropped." >> ORCH_HANDOFF.md

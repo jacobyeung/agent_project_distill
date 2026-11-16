@@ -1,0 +1,37 @@
+
+==================================== ERRORS ====================================
+_____ ERROR collecting student/compact_targets/tests/test_traceev_build.py _____
+ImportError while importing test module '/scratch/jjyeung/orch_n30/eff_audit/repo/clone/student/compact_targets/tests/test_traceev_build.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+../../../../uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+student/compact_targets/tests/test_traceev_build.py:13: in <module>
+    from student.compact_targets import traceev_build as build
+student/compact_targets/traceev_build.py:16: in <module>
+    from . import traceev_extract as extract
+student/compact_targets/traceev_extract.py:21: in <module>
+    from tools.gtmeasure import assets, geometry
+tools/gtmeasure/geometry.py:7: in <module>
+    import shapely
+E   ModuleNotFoundError: No module named 'shapely'
+____ ERROR collecting student/compact_targets/tests/test_traceev_extract.py ____
+ImportError while importing test module '/scratch/jjyeung/orch_n30/eff_audit/repo/clone/student/compact_targets/tests/test_traceev_extract.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+../../../../uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+student/compact_targets/tests/test_traceev_extract.py:13: in <module>
+    from student.compact_targets import traceev_extract as extract
+student/compact_targets/traceev_extract.py:21: in <module>
+    from tools.gtmeasure import assets, geometry
+tools/gtmeasure/geometry.py:7: in <module>
+    import shapely
+E   ModuleNotFoundError: No module named 'shapely'
+=========================== short test summary info ============================
+ERROR student/compact_targets/tests/test_traceev_build.py
+ERROR student/compact_targets/tests/test_traceev_extract.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+2 errors in 0.90s

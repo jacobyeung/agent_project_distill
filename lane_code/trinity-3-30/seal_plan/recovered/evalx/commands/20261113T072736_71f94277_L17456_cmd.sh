@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=17456 utc=2026-11-13T07:27:36.720Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; ls -d evalx/work/*combo* evalx/out/*combo* evalx/*combo* 2>/dev/null | head; grep -n -i "kit_combo2" evalx/STATUS.md | head -n 5 | cut -c1-400; ls -t evalx/events | grep -i -E "combo|variant|proposal" | head -n 5; sed -n '40,70p' official_reads/FUSION_PROPOSAL_SETTING_PROPOSED_VSI_20261112.md | cut -c1-500

@@ -1,0 +1,11 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=19976 utc=2026-11-13T11:41:20.196Z kind=written original_path=/scratch/jjyeung/orch_cd/leg_s1_tree/inbox/20261113T1141Z_ORCH_RULING_bind_without_full_workbench.md  -->
+# ORCH ruling (2026-11-13T11:41Z): the workbench full round stopped on the diagnostic's own memory limit; bind on the evidence in hand; production's mode p is the full-population gate
+
+Job 168962's full-population round was killed at its 256 GB request during pose mix, after 2 hours of rebuilds on 16 CPUs. It is a limit of the diagnostic, not a defect: at full population on Orchard it passed the pointing rebuild, the VQA rebuild (289 rows removed by remove list 2, so your fix works at full size) and the routing materialization with the new pool. A rerun would take about 2.7 hours and would finish after a production job's own admission.
+
+**Ruling (this replaces the condition "workbench full-population PASS" in my earlier binding orders):**
+1. The final kit may bind on this evidence: the smoke round PASS of job 168962; the full-round phases above; canary 2 (job 168994) admission PASS through your native smoke path; your local full-population metadata pass on the four databases; and production start 4 (job 168872), which passed the pose mix at full population under the production memory request before it failed on the VQA row that your fix now removes.
+2. The production job's own mode p (48 CPUs, 800 GB) is the full-population gate. Its preflight and fail-fast behaviour stay as built.
+3. Adapt the final binder to this ruling: it accepts the evidence set in item 1 by hash (operator publications and your local receipts), still refuses anything less, and records the scope honestly in the kit's records. Update its tests accordingly.
+4. The card states plainly what has not passed at full population on Orchard: native prepare with the pose mix including a3v2, parent grounding, the final filter and receipt, the frame audit; and the peak memory seen in the diagnostic (256 GB reached in pose mix on a 256 GB request).
+5. Assemble final_a as soon as item 3 is done and post it as a RESULT for the scan certificate. The production GO stays mine and still waits for: the scan certificate, the push and the kit's own gates on Orchard, the reviewed slot wrapper, and canary 2 through its resume phase.

@@ -1,0 +1,10 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=28837 utc=2026-11-14T05:15:17.363Z kind=written original_path=/scratch/jjyeung/orch_cd/evalx/inbox/$(date_ORCH_RULING_step200_direct_read.md heredoc_quoted -->
+# ORCH ruling on the step-200 direct packet (cf0e02b4): nothing stops; three records for the next seal
+
+1. **No registered stop condition applies or fails.** The direct stop test is still clear (no tested type wholly below zero against f17). The registered step-200 rule concerns routed types after a dose increase; no increase was authorized and the routed read does not exist yet, so that rule is not evaluated. The leg continues to the end of its allocation.
+2. **Budget clause:** same ruling as at step 100. On the 1,339 non-routed items the leg reaches the budget 8 times against the parent's 40 (wholly below zero), so no adjustment; the excess is the direct harness on routed types.
+3. **Watch list:** relative distance and size are back inside zero against the parent; route planning is now -3.3 [-14.6, +8.0] against f17 and +30.7 against the parent. Keep the same watch list for step 400 and the final read.
+4. **Facing-away controls (36 / 18 / 14 against forward 92 / 90 / 86 and majority constants 54 / 40 / 36):** recorded as a defect of the lineage that this leg does not fix: the answers stay in the front half-plane. Nothing changes in this run. For the step-400 packet, replace the five lexical examples by a small unfiltered random sample (seed 17, ten items across at least five rooms, all three difficulty levels) and report, over all 150 away items, how often the away answer equals the forward twin's answer unchanged, how often it equals its 180-degree opposite, and how often neither.
+5. **Camera raw numbers:** the displacement cell's 132 unparsed answers are almost certainly the same harness effect as absolute distance (routing calls with no tool response). In the step-400 packet say in one line what the unparsed outputs are (first 200 characters of three of them). Camera types are judged by the routed read.
+
+Proceed: the step-set review fixes, then the native family. No reply needed.

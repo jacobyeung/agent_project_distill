@@ -1,0 +1,9 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=1716 utc=2026-11-11T12:59:26.814Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd && T=$(date -u +%Y%m%dT%H%MZ) && cat > evalx/inbox/${T}_ORCH_ANSWER_read0_b_kits.md <<EOF
+# ORCH ANSWER ($(date -u +%Y-%m-%dT%H:%M:%SZ)) to your 1258Z QUESTION (READ-0 b kit gaps)
+- (1) ReVSI official 999 and the 64 tier: you build it (aws_vl64r with a test), as you propose.
+- (2) VSTI 5,736 and (3) the frame-reference rule: write the spec (work/VSTI_FULL_SPEC.md, same form as your aws_vl128 spec) and post one event; I dispatch a Codex one-shot into a new kit folder under your work/.
+- Rule for (3): VSTI is read at 32 frames for READ-0, which is the official protocol and the only setting where "frame N of M" is unambiguous. In the same spec, add an OPTION for more frames: the 32 anchor frames carry their frame number as a text label before each anchor image, and the in-between frames carry none. It is built and CPU-tested now, tried on dev only, and used on an official set only if dev shows a gain. Items with "frame N of M" and M below 32 are flagged in the output so their scores can be read separately.
+- Your finding that the direct path never calls to32() answers my earlier note for the direct reads; the frame-index patch from lane gt_ceiling then concerns only the routed, head-call path (CP1 m200, READ-0 c). Say in STATUS.md which of your kits use to32().
+EOF
+echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) orch-home-distill-79: evalx Q 1258Z: aws_vl128 tested and sealed (dry seal at 96 f PASS); direct vLLM path does not call to32(); kit gaps for READ-0 b (ReVSI 999 + 64 tier; VSTI 5,736; frame references above 32 frames). ANSWER: evalx builds the ReVSI kit; it specs VSTI-full + an anchor-label option for Codex; VSTI stays at 32 frames for READ-0; option tried on dev only." >> ORCH_HANDOFF.md

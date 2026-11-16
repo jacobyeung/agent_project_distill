@@ -1,0 +1,101 @@
+
+==================================== ERRORS ====================================
+___________ ERROR collecting tools/gtmeasure/tests/test_geometry.py ____________
+ImportError while importing test module '/scratch/jjyeung/orch_n30/eff_audit/repo/clone/tools/gtmeasure/tests/test_geometry.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+../../../../uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/gtmeasure/tests/test_geometry.py:5: in <module>
+    from tools.gtmeasure.geometry import camera_object_distance, object_count, object_distance, object_size, room_area
+tools/gtmeasure/geometry.py:7: in <module>
+    import shapely
+E   ModuleNotFoundError: No module named 'shapely'
+___________ ERROR collecting tools/gtmeasure/tests/test_pipeline.py ____________
+ImportError while importing test module '/scratch/jjyeung/orch_n30/eff_audit/repo/clone/tools/gtmeasure/tests/test_pipeline.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+../../../../uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/gtmeasure/tests/test_pipeline.py:12: in <module>
+    from tools.gtmeasure.generate import load_authority_samples, process_scene
+tools/gtmeasure/generate.py:13: in <module>
+    from .questions import generate_scene
+tools/gtmeasure/questions.py:9: in <module>
+    from .geometry import camera_object_distance, object_count, object_distance, object_size
+tools/gtmeasure/geometry.py:7: in <module>
+    import shapely
+E   ModuleNotFoundError: No module named 'shapely'
+_____ ERROR collecting tools/gtmeasure/tests/test_room_convention_audit.py _____
+ImportError while importing test module '/scratch/jjyeung/orch_n30/eff_audit/repo/clone/tools/gtmeasure/tests/test_room_convention_audit.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+../../../../uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/gtmeasure/tests/test_room_convention_audit.py:5: in <module>
+    from tools.gtmeasure.room_convention_audit import alpha_areas, area_label, reference_summary, scene_identity
+tools/gtmeasure/room_convention_audit.py:14: in <module>
+    from .geometry import room_area
+tools/gtmeasure/geometry.py:7: in <module>
+    import shapely
+E   ModuleNotFoundError: No module named 'shapely'
+__________ ERROR collecting tools/gtmeasure/tests/test_room_corpus.py __________
+ImportError while importing test module '/scratch/jjyeung/orch_n30/eff_audit/repo/clone/tools/gtmeasure/tests/test_room_corpus.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+../../../../uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/gtmeasure/tests/test_room_corpus.py:9: in <module>
+    from tools.gtmeasure.room_corpus import replay
+tools/gtmeasure/room_corpus.py:9: in <module>
+    from .generate import counts, sources
+tools/gtmeasure/generate.py:13: in <module>
+    from .questions import generate_scene
+tools/gtmeasure/questions.py:9: in <module>
+    from .geometry import camera_object_distance, object_count, object_distance, object_size
+tools/gtmeasure/geometry.py:7: in <module>
+    import shapely
+E   ModuleNotFoundError: No module named 'shapely'
+__________ ERROR collecting tools/gtmeasure/tests/test_room_labels.py __________
+ImportError while importing test module '/scratch/jjyeung/orch_n30/eff_audit/repo/clone/tools/gtmeasure/tests/test_room_labels.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+../../../../uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/gtmeasure/tests/test_room_labels.py:12: in <module>
+    from tools.gtmeasure.questions import generate_scene, rewrite_room_row
+tools/gtmeasure/questions.py:9: in <module>
+    from .geometry import camera_object_distance, object_count, object_distance, object_size
+tools/gtmeasure/geometry.py:7: in <module>
+    import shapely
+E   ModuleNotFoundError: No module named 'shapely'
+___________ ERROR collecting tools/gtmeasure/tests/test_structure.py ___________
+ImportError while importing test module '/scratch/jjyeung/orch_n30/eff_audit/repo/clone/tools/gtmeasure/tests/test_structure.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+../../../../uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/gtmeasure/tests/test_structure.py:13: in <module>
+    from tools.gtmeasure import conventions, formats, generate, questions
+tools/gtmeasure/generate.py:13: in <module>
+    from .questions import generate_scene
+tools/gtmeasure/questions.py:9: in <module>
+    from .geometry import camera_object_distance, object_count, object_distance, object_size
+tools/gtmeasure/geometry.py:7: in <module>
+    import shapely
+E   ModuleNotFoundError: No module named 'shapely'
+=========================== short test summary info ============================
+ERROR tools/gtmeasure/tests/test_geometry.py
+ERROR tools/gtmeasure/tests/test_pipeline.py
+ERROR tools/gtmeasure/tests/test_room_convention_audit.py
+ERROR tools/gtmeasure/tests/test_room_corpus.py
+ERROR tools/gtmeasure/tests/test_room_labels.py
+ERROR tools/gtmeasure/tests/test_structure.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 6 errors during collection !!!!!!!!!!!!!!!!!!!!
+6 errors in 0.73s

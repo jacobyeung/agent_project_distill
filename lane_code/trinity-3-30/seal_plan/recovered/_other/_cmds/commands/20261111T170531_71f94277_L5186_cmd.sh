@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=5186 utc=2026-11-11T17:05:31.405Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd/codex_local/agent/scratch/codex_runs; for r in 20261111T165758Z_plan_review2 20261111T165347Z_port_review; do echo "== $r"; ls $r | head; cat $r/meta.json 2>/dev/null | cut -c1-400; echo; cat $r/final_message.md 2>/dev/null | cut -c1-2500; done

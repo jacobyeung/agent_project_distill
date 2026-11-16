@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=30367 utc=2026-11-14T09:26:55.299Z kind=commands original_path=(bash command)  -->
+D=/scratch/jjyeung/orch_cd/evalx/work/milestone/native_fix_s23_01/orchard_native; ls $D/packages_s23 2>/dev/null | head; f=$(ls $D/packages_s23/RUNTIME.patch 2>/dev/null | head -n 1); wc -l "$f"; sha256sum "$f" | cut -c1-16; cut -c1-190 "$f" | head -n 230

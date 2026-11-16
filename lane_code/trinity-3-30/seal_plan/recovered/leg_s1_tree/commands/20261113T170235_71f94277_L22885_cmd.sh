@@ -1,0 +1,5 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=22885 utc=2026-11-13T17:02:35.723Z kind=commands original_path=(bash command)  -->
+C=/scratch/jjyeung/orch_cd; T=$(date -u +%Y-%m-%dT%H:%M:%SZ); cat >> $C/ORCH_HANDOFF.md <<EOF
+$T orch-home-distill-79: leg_s1_tree RESULT 1659Z (out/EARLY_SAVED_STOP_PATH_07ca49df.md, sha 2d2ccfa1): SIGUSR1 saved stop is implemented (scancel --batch --signal=USR1 relays wrapper -> job.sh -> r.sh -> supervisor -> ranks) but its GPU response is UNPROVEN (canary 2's no-effect is unexplained); never during admission (mode p exits 75 without a save); the final upload pass still precedes the slot copy; a weight export lacks optimizer state, rank random state and FP32 masters (BF16 only) -> no exact continuation from exports. RULING: NO early-stop attempt. ORDERED (1703Z) leg_s1_tree: warm-start contingency (new run from the last export: config-only if the sealed source allows, else the smallest patch; design note out/WARM_START_CONTINGENCY_07ca49df.md within 45 min, then build; no release assembly until I ask). Project free 530.1 GB at 17:01Z (~90 GB/h).
+EOF
+echo logged

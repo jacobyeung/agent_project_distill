@@ -1,0 +1,7 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=29028 utc=2026-11-14T06:16:21.880Z kind=commands original_path=(bash command)  -->
+N=$(date -u +%Y%m%dT%H%MZ); C=/scratch/jjyeung/orch_cd; cat > $C/orchard_cp2/inbox/${N}_ORCH_ANSWER_seek_only_header_reader_authorized.md <<'EOF'
+# ORCH answer to QUESTION 061524Z: the seek-only header reader is authorized for the CP1 parts
+
+No joined file exists and none is to be made. Authorized: a bounded, read-only header reader that treats `m200.p00` through `m200.p10` as one logical file, reads each 512-byte tar header, and seeks past the member data (crossing part boundaries by offset arithmetic). Bounds: at most 20,000 headers, 120 seconds, no more than a few MB read in total, nothing written on the project filesystem, login host only, run once; test it locally first on a small tar split into parts at awkward offsets (a header straddling a part boundary, long names with extended headers). Output the member names and sizes as a text file with the other three listings. If it stops at a bound, deliver what it has and say so.
+EOF
+echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) orch-home-distill-79: orchard_cp2 QUESTION 061524Z: the CP1 init archive is eleven raw parts (distill/okit/in/cr/m200.p00-p10; combined sha 8cbf9e58), no joined file; a tar listing through cat would read 21.6 GB. ANSWERED ($N): bounded seek-only header reader across the parts authorized (read-only, <= 20,000 headers, 120 s, login host, once, tested locally first). Re-armed evwait (be79fsj1u)." >> $C/ORCH_HANDOFF.md

@@ -1,0 +1,17 @@
+{
+  "tests": 22,
+  "failures": [
+    [
+      "test_pool_rows_cannot_reach_store_or_rank (tests.test_r2_build3b.Build3b.test_pool_rows_cannot_reach_store_or_rank)",
+      "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild/work/tree_r1/tests/test_r2_build3b.py\", line 401, in test_pool_rows_cannot_reach_store_or_rank\n    self.assertEqual({item['row']['qid'] for item in admitted},selected[source])\nAssertionError: Items in the second set but not the first:\n'T0_gen_r20'\n"
+    ]
+  ],
+  "errors": [
+    [
+      "test_authorized_command_and_mutations (tests.test_r2_launch_dispatch.Dispatch.test_authorized_command_and_mutations)",
+      "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild/work/tree_r1/tests/test_r2_launch_dispatch.py\", line 44, in test_authorized_command_and_mutations\n    D.launch(root,cfg,'t',launch)\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild/work/tree_r1/launch_r2/distributed.py\", line 67, in launch\n    hashes=load(Path(root)/'b/wh.json')\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild/work/tree_r1/student_pilot/p3_provenance.py\", line 33, in load\n    value = json.loads(Path(path).read_text(), object_pairs_hook=unique,\n                       ^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1027, in read_text\n    with self.open(mode='r', encoding=encoding, errors=errors) as f:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/scratch/jjyeung/orch_n30/tree_rebuild/work/tmp/run_1794785685777447652/r2_r0_bzyr1/b/wh.json'\n"
+    ]
+  ],
+  "skips": [],
+  "tmp_bytes": 0
+}

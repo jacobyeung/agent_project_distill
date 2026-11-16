@@ -1,0 +1,17 @@
+# Lane rows_a2 (headless Claude Opus lane on trinity-1-3): build the next leg's (A2) training rows
+First read /home/jjyeung/.claude/CLAUDE.md section "Key Trinity Cluster Rules", then B/tools/LANE_RULES.md (B = /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30) and obey it. You are a Claude Code lane running ON trinity-1-3 (no ssh needed for local work; ssh to other Trinity nodes only via `bash B/tools/tssh.sh <node> 'bash -s' < script`). Lane folder /scratch/jjyeung/orch_n30/rows_a2 (up to 150 GB; 1-3 must keep 300 GB free). Events folder B/events/rows_a2/. You may build code yourself (Claude is unlimited until 15:00 PT) or dispatch Codex; you never review your own work for an admission gate. No Git, no deletion, no GPU, no Orchard submission. Finish or rotate by 22:45Z with STATUS.md exact enough for a Devin successor.
+
+## Why
+D0 (Orchard 170111, step ~25 of ~515 in its first 24 h) is the first leg under the trace ruling. The next leg, A2 = A0 plus geometry fusion, must be ready to launch the moment D0 ends or stops (the D0 step-200 stop verdict arrives ~18:00-19:30Z). No rows lane is running; rows are on the critical path. Build experiments first: the run must never wait on its data.
+
+## Read (named files only; never search /home or /data*)
+In /data2/jjyeung/agent_project_data/distill_design/: NEXT_LEG_REBUILD_PLAN_20261115.md, NEXT_LEG_TREE_REBUILD_20261115.md, A0_AFTER_NATIVE_READ_DESIGN_20261116.md, TRACE_RULING_20261115.md, DENSE_FRAMES_PLAN_20261115.md, D0_ROWS_ADMISSION_20261115.md, D0_V5_NULL_FRAME_COUNT_20261116.md, B6_GROUNDING_DESIGN_20261115.md, CONTRACTS_REBUILD_20261115.md, and NEXT_LEG_INIT_RULE_20261116.md / REFREEZE_AMENDMENT_3_* once lane amend3_reg registers them (today). Events: B/events/rows_rebuild/STATUS.md (the D0 v5 store and its builders live in /scratch/jjyeung/orch_n30/rows_rebuild on THIS node), B/events/tree_rebuild/STATUS.md and 20261116T0620Z_ORCH_ANSWER_square_feet.md, B/briefs/rows_rebuild3.md, B/events/review_rows/REVIEW_VERDICT_D0_ROWS.md.
+
+## Do (in this order; each a RESULT event)
+1. Plan: write work/PLAN.md: the exact row sets A2 needs beyond D0 v5, each with source, builder, validator and count, and which tree build (tree_rebuild3, build 6 on this node) consumes them and in what format. Note any conflict between the records and say which you follow.
+2. Verified first-seen frames for counting and size (the 19,146 procedure-only rows D0 kept): compute and verify the frame of first appearance from the permitted sources; rows whose frame cannot be verified are listed as deferred with the reason (the denominator keeps them).
+3. A share of direct room-size rows asked in square feet (square feet is a valid direct answer unit per the ORCH answer), with exact conversions and the share stated.
+4. The frame-host inputs that kits A0 8cdda797 and A2 58a9b42e need (both say GO=false): find why, qualify each input with sha256 against its manifest, and close what can be closed.
+5. Validate every new row with the sealed validator, read 30 random rows of each new set yourself against the trace ruling (no answer-only rows, no stated measurements on direct rows, programs only for absolute distance, room size and the three camera types), and write the admission packet. Then ask in a RESULT for one independent refute review; I order the reviewer.
+6. When a set is admitted, mirror it over InfiniBand to a second node (LANE_RULES "Reporting").
+Rules: tests and proofs never write real-size checkpoints; check df -h /scratch every step.

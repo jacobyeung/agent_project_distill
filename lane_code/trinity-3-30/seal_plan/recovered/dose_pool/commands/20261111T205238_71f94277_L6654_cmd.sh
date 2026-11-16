@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=6654 utc=2026-11-11T20:52:38.071Z kind=commands original_path=(bash command)  -->
+df -BG --output=avail /scratch | tail -1; echo "$(date -u +%Y-%m-%dT%H:%MZ) dose_pool RESULT 2052Z: T1 complete (half 2: 243 ScanNet++ scenes, 9.42 GB pull, GT.npz 243/243; rows gen_r2 9,708 + gaps 5,319; all validators pass; content = released 100%; frames resolve). POOL_S1 = 102,216 rows in 11 sets. Owed by dose_pool: dev-S1 proposal, scene-generated room rows, T1 half-2 removable mesh list." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

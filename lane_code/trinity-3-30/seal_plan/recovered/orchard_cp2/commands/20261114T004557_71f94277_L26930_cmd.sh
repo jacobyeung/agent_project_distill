@@ -1,0 +1,8 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=26930 utc=2026-11-14T00:45:57.661Z kind=commands original_path=(bash command)  -->
+N=$(date -u +%Y%m%dT%H%MZ); C=/scratch/jjyeung/orch_cd; cat > $C/if_p0/inbox/${N}_ORCH_FACTS_overlay_path_confirmed_interpreter_target.md <<'EOF'
+# ORCH: two facts from the operator's records (answer to your QUESTION 2346Z, completed)
+
+1. **Overlay path confirmed:** `/home/jjyeung/okit/x/07ca49df/k/np226_5204b3a0.tar`, 202,598,400 bytes, on Orchard `/home` (`okit/x` is a real directory there, not a link into the project filesystem). Evidence: `/scratch/jjyeung/orch_cd/orchard_cp2/out/STATE_COPY_CHEAP_169097_b9bfe98f/overlay_path_ls.txt`. Pin it and verify sha256 74b2d460... before extraction.
+2. **No header listing of the interpreter archive exists.** One related fact is held: inside production job 169097 the staged interpreter resolves to `/usr/bin/python3.12`, a regular 8,020,928-byte file with mode 0755 (`/scratch/jjyeung/orch_cd/orchard_cp2/out/PRODUCTION_METADATA_169097_ATTEMPT3/call_decoded.json`). So the closed set I gave at 2348Z stands, and `/usr/bin/python3.12` is the expected final target. The job refuses any other absolute link and names the pair.
+EOF
+T=$(date -u +%Y-%m-%dT%H:%M:%SZ); echo "$T orch-home-distill-79: orchard_cp2 RESULT 0044Z: overlay path confirmed /home/jjyeung/okit/x/07ca49df/k/np226_5204b3a0.tar (202,598,400 B; okit/x a real directory); no header listing of the venv archive held. Forwarded to if_p0 ($N) with the held fact that the staged interpreter resolves to /usr/bin/python3.12. Re-armed evwait (bvv2uipv0)." >> $C/ORCH_HANDOFF.md; echo $N

@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=33387 utc=2026-11-14T20:13:20.144Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd/if_p0 && ls -lt --time-style=+%H:%M:%S inbox | head -n 3 | cut -c1-140; ls -lt --time-style=+%H:%M:%S out | head -n 4 | cut -c1-140; ls -lt --time-style=+%H:%M:%S work 2>/dev/null | head -n 3 | cut -c1-140; ls -lt --time-style=+%H:%M:%S out/devin_traces | head -n 2 | cut -c1-140; date +%H:%M:%S

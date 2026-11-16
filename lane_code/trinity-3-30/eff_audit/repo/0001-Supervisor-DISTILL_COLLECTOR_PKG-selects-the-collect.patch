@@ -1,0 +1,90 @@
+From ee5604c75b728aaf879aeeb549f0a4cd4a0f3ec5 Mon Sep 17 00:00:00 2001
+From: jacobyeung <hohorocks@gmail.com>
+Date: Mon, 16 Nov 2026 06:14:09 -0500
+Subject: [PATCH] Supervisor: DISTILL_COLLECTOR_PKG selects the collector
+ package (epoch checkout), refuses a path without collect.py
+
+---
+ tools/monitor_v5_remediation.py       |  2 +-
+ tools/recover_boundary_remediation.py |  6 ++++-
+ tools/tests/test_collector_pkg_env.py | 38 +++++++++++++++++++++++++++
+ 3 files changed, 44 insertions(+), 2 deletions(-)
+ create mode 100644 tools/tests/test_collector_pkg_env.py
+
+diff --git a/tools/monitor_v5_remediation.py b/tools/monitor_v5_remediation.py
+index b6d4027..51fb430 100644
+--- a/tools/monitor_v5_remediation.py
++++ b/tools/monitor_v5_remediation.py
+@@ -6,7 +6,7 @@ DATA=Path('/data2/jjyeung/agent_project_data/vsi_distill_training_20260917')
+ R=DATA/'runtime_control/gt_teacher_r1313/RELAUNCH_20260918'
+ ROOT=DATA/'collection_gt_r1313'
+ PKG=Path('/home/jjyeung/agent_project_r1313_gt_teacher/agent/rounds/candidates/r1313_vsi_distill_gt_training')
+-PKGS=(PKG,Path('/home/jjyeung/agent_project_distill/collector'))
++PKGS=(PKG,Path(os.environ.get('DISTILL_COLLECTOR_PKG','/home/jjyeung/agent_project_distill/collector')).resolve())
+ PY='/data2/jjyeung/envs/planner/bin/python'
+ COORD='/home/jjyeung/agent_project/agent/coord.py'
+ WORK='training_trace_collection__r1313_gt__train50k__s17__76e67ed6e8'
+diff --git a/tools/recover_boundary_remediation.py b/tools/recover_boundary_remediation.py
+index 00e15c3..6bb0471 100644
+--- a/tools/recover_boundary_remediation.py
++++ b/tools/recover_boundary_remediation.py
+@@ -3,7 +3,11 @@ from pathlib import Path
+ from datetime import datetime,timezone
+ R=Path(os.environ['R1315_RUNTIME'])
+ ROOT=Path('/data2/jjyeung/agent_project_data/vsi_distill_training_20260917/collection_gt_r1313')
+-PKG=Path('/home/jjyeung/agent_project_distill/collector')
++# The collector package the supervisor launches and recognizes. Set DISTILL_COLLECTOR_PKG to an
++# immutable epoch checkout's collector/ (agent_project_distill_epochs/<commit>/collector) so production
++# never runs from the working tree; the default keeps the old behaviour.
++PKG=Path(os.environ.get('DISTILL_COLLECTOR_PKG','/home/jjyeung/agent_project_distill/collector')).resolve()
++if not (PKG/'collect.py').is_file():raise SystemExit(f'DISTILL_COLLECTOR_PKG has no collect.py: {PKG}')
+ OUT=R
+ UID=25409
+ def now():return datetime.now(timezone.utc).isoformat()
+diff --git a/tools/tests/test_collector_pkg_env.py b/tools/tests/test_collector_pkg_env.py
+new file mode 100644
+index 0000000..88f7364
+--- /dev/null
++++ b/tools/tests/test_collector_pkg_env.py
+@@ -0,0 +1,38 @@
++"""DISTILL_COLLECTOR_PKG selects the supervisor's collector package."""
++import os
++import subprocess
++import sys
++from pathlib import Path
++
++TOOLS = Path(__file__).resolve().parents[1]
++
++
++def _pkg(tmp_path, value):
++    env = dict(os.environ, R1315_RUNTIME=str(tmp_path))
++    env.pop('DISTILL_COLLECTOR_PKG', None)
++    if value is not None:
++        env['DISTILL_COLLECTOR_PKG'] = value
++    return subprocess.run(
++        [sys.executable, '-B', '-c', 'import recover_boundary_remediation as r; print(r.PKG)'],
++        cwd=TOOLS, env=env, capture_output=True, text=True)
++
++
++def test_override_points_at_epoch_checkout(tmp_path):
++    epoch = tmp_path / 'epoch' / 'collector'
++    epoch.mkdir(parents=True)
++    (epoch / 'collect.py').write_text('')
++    out = _pkg(tmp_path, str(epoch))
++    assert out.returncode == 0, out.stderr
++    assert out.stdout.strip() == str(epoch.resolve())
++
++
++def test_override_without_collect_py_refuses(tmp_path):
++    out = _pkg(tmp_path, str(tmp_path))
++    assert out.returncode != 0
++    assert 'no collect.py' in out.stderr
++
++
++def test_default_is_repository_collector(tmp_path):
++    out = _pkg(tmp_path, str(TOOLS.parent / 'collector'))
++    assert out.returncode == 0, out.stderr
++    assert out.stdout.strip() == str((TOOLS.parent / 'collector').resolve())
+-- 
+2.31.1
+

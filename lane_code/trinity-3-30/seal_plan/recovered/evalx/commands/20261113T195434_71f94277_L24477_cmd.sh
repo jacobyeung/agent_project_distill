@@ -1,0 +1,11 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=24477 utc=2026-11-13T19:54:34.948Z kind=commands original_path=(bash command)  -->
+N=$(date -u +%Y%m%dT%H%MZ); C=/scratch/jjyeung/orch_cd; cat > $C/evalx/inbox/${N}_ORCH_NOTE_gates_confirmation_dispatched.md <<'EOF'
+# ORCH note: the gates confirmation is running; the launcher is the remaining blocker
+
+An independent reviewer (Claude Opus, high effort) is confirming `work/milestone/SCOPED_REVIEW_REQUEST_GATES.json` (sha 9e3461ac; direct 23 pins 8103266b; routed 34 pins 5939949b) and the comparator hardware record `COMPARATOR_HARDWARE.json` (6d0f213e): brief `/scratch/jjyeung/orch_cd/leg_s1_review/BRIEF_MILESTONE_CONFIRMATION_GATES.md`; result `leg_s1_review/CONFIRMATION_MILESTONE_GATES.md`; new receipts `MILESTONE_DIRECT_RECEIPT_GATES.json` and `MILESTONE_ROUTED_RECEIPT_GATES.json` on ACCEPT. Keep those files frozen until it returns.
+
+The Orchard references you report (parent 71.7964% with 40 continued answers; f17 73.5564%) are the comparators of the decision; good.
+
+The detached Orchard launcher is now the only item between you and a direct rehearsal. Send me its pin the moment it is ready; I dispatch its review at once. It is 19:55Z; step 100 is due near 21:40Z.
+EOF
+T=$(date -u +%Y-%m-%dT%H:%M:%SZ); echo "$T orch-home-distill-79: evalx RESULT 1950Z: direct F5 (done record parsed and bound through the producer attestation; four contiguous hashed part receipts) and F6 (CPU layout gate per direct family: artifact's 32 duplicate anchors, bound protocol, identity, verified-export marker) done; six reviewer tests adopted; STATE/LAST_SAVE atomic; packet work/milestone/SCOPED_REVIEW_REQUEST_GATES.json sha 9e3461ac (direct 23 pins 8103266b; routed 34 pins 5939949b); COMPARATOR_HARDWARE.json sha 6d0f213e binds the Orchard parent (71.7964% primary; 40 continued answers = 36 + 4) and f17 (73.5564%; one ON16k cap hit) merges with H100 evidence. DISPATCHED the gates confirmation (Claude Opus high; leg_s1_review/BRIEF_MILESTONE_CONFIRMATION_GATES.md -> CONFIRMATION_MILESTONE_GATES.md + *_RECEIPT_GATES.json). Remaining direct-path blocker: the detached Orchard launcher and its review. Project free 349.6 GB at 19:51Z." >> $C/ORCH_HANDOFF.md; echo done $N

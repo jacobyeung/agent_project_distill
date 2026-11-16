@@ -1,0 +1,1 @@
+- work/rec_v1, work/rec_v2_stale, work/rec_v3_prev: earlier extraction outputs of this lane, regenerable from work/raw_*.jsonl with work/post.py (~25 MB each).

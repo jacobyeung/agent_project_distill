@@ -1,0 +1,14 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=6335 utc=2026-11-11T20:05:49.133Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; T=$(date -u +%Y%m%dT%H%MZ); cat > miss_vis_run/inbox/${T}_ORCH_GO_scannetpp_pilot.md <<'EOF'
+# ORCH: GO for step 2 of your plan only: the ScanNet++ sensor-depth pilot on the 28 hand-read scenes
+Approved: stream depth.bin for the 28 scenes (about 14 GB of reads, below the cluster's 30 GB planning threshold), ONE stream at no more than 5 MB/s, extracting only the frames the MISS rows use, peak /scratch use under 2 GB as you planned. Before you start, check that no other stream of ours reads /data* (lane dose_pool's T1 pull; the governor's state) and that /scratch has at least 110 GB free; stop on any kill or drop and post a BLOCKER, no retry loop.
+Then run visibility.py with the registered sensor depth on those scenes' MISS rows and answer one question: does it mark HIDDEN the rows the hand read judged BAD (the five BAD scenes are in this set) while sparing the FINE ones, and how do its verdicts split across the models' statuses (agreed reject by defect, agreed accept, disagree, unsure)? If it separates them, write the drop list for these 28 scenes and the exact command and size for the remaining 81 scenes (41 GB, which needs planning with an admin: I take that to the user). Step 1 (ScanNet frames on code-aws) is NOT approved: no jobs run on AWS.
+One RESULT, then exit.
+EOF
+cat >> miss_vis_run/BRIEF.md <<'EOF'
+
+## Restart note (2026-11-11T20:07Z)
+Your earlier sessions delivered the circularity RESULT and the probe RESULT and ended. This session has ONE task: the newest note in inbox/ (`*_ORCH_GO_scannetpp_pilot.md`): the ScanNet++ sensor-depth pilot on the 28 hand-read scenes, exactly as that note limits it. Read STATUS.md and out/SENSOR_DEPTH_PLAN.md first. Post one RESULT, then exit.
+EOF
+bash orch_tools/devin_bg_acp.sh /home/jjyeung/agent_project_distill /scratch/jjyeung/orch_cd/miss_vis_run/BRIEF.md claude-opus-5-5-high 10800 /scratch/jjyeung/orch_cd/miss_vis_run/devin_r3.out
+echo "$(date -u +%Y-%m-%dT%H:%MZ) miss_vis_run RESULT 2004Z probe: gt_dense_source_world.npz is mesh depth (not sensor): do not pull the 165 (17.1 GB). Sensor-depth plan (out/SENSOR_DEPTH_PLAN.md): ScanNet frames from .sens on code-aws (NOT approved: no AWS jobs); ScanNet++ pilot on the 28 hand-read scenes (~14 GB read, streaming, <2 GB on /scratch) APPROVED and lane relaunched (ACP, opus high, 3 h); ScanNet++ rest 81 scenes ~41 GB needs admin planning (to the user if the pilot separates BAD from FINE)." >> ORCH_HANDOFF.md

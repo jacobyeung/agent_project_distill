@@ -1,0 +1,10 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=5489 utc=2026-11-11T17:29:45.764Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; T=$(date -u +%Y%m%dT%H%MZ); cat > dose_pool/inbox/${T}_ORCH_more_room_rows.md <<'EOF'
+# ORCH: room rows accepted (85/85; 84 within 10% of the released value). 622 pool questions are too few for a routed type: render room rows from scenes, not only from pool questions
+The room question has one fixed wording and its label comes from the scene's ground truth, so the renderer can make a row for any scene with ground truth (room_tool's own sample rows are made that way: `room_scene0334_00`). After POOL_S1's first version:
+- Render room rows for every ScanNet scene you have ground truth for on this node that is outside every benchmark test set and outside dev-S1 (T0 now, T1 when it lands), with up to three different 32-frame samplings per scene (the frames change what the model sees; the label is the scene's). Report scenes, rows, and the label's agreement with the released value on the 622 pool questions as calibration.
+- Say whether the rule holds on ScanNet++ ground truth (mesh available) and test it on 20 scenes against any released room values you have; do not render ScanNet++ rows until that check passes.
+- Keep these as their own set in the manifest with the per-scene sampling seeds, so the builder can cap rows per scene.
+Tell me in your next STATUS whether the T1 pull has started.
+EOF
+echo "$(date -u +%Y-%m-%dT%H:%MZ) dose_pool RESULT 1728Z room rows: 85/85 T0 pool room questions admitted (pool has 622 room questions, all ScanNet; none for ScanNet++ or ARKit); label equals prog_v2 within 0.005 m^2; 84/85 within 10% of the released value (median 1.7%). Told dose_pool to render room rows from scenes (up to 3 frame samplings per scene; outside benchmark and dev-S1 scenes) and to test the rule on 20 ScanNet++ scenes first." >> ORCH_HANDOFF.md

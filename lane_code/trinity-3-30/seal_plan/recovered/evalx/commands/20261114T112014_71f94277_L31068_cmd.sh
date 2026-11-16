@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=31068 utc=2026-11-14T11:20:14.082Z kind=commands original_path=(bash command)  -->
+ls /scratch/jjyeung/orch_cd/evalx/work/milestone/native_fix_s23_01/orchard_native/submissions/e495c2771/ | head -n 30; ls /scratch/jjyeung/orch_cd/evalx/work/milestone/native_fix_s23_01/orchard_native/submissions/e495c2771/fetched 2>/dev/null | head; ls -t /scratch/jjyeung/orch_cd/if_p0/inbox | head -n 3; ls /scratch/jjyeung/orch_cd/if_p0/inbox_results/; ls /scratch/jjyeung/orch_cd/legs1_routed/out2 | head -n 40

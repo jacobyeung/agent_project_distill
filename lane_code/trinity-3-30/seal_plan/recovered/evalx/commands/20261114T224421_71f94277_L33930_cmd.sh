@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=33930 utc=2026-11-14T22:44:21.783Z kind=commands original_path=(bash command)  -->
+E=/scratch/jjyeung/orch_cd/evalx/events/20261114T2243Z_EVALX_RESULT_pilot7_F1_F4_replacement_preupload.md; fold -w 2000 -s $E | tail -n +12 | cut -c1-2000 | head -n 12; D=/scratch/jjyeung/orch_cd/evalx/work/milestone/native_package_s24_02; ls $D | head -n 40; for f in $D/RUNTIME*.diff $D/*F1*diff; do test -f "$f" && wc -l "$f"; done 2>/dev/null

@@ -1,0 +1,3 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=30562 utc=2026-11-14T09:38:47.293Z kind=written original_path=/scratch/jjyeung/orch_cd/orchard_cp2/inbox/$(date_ORCH_NOTE_continuation_checker_bundle_026cb696.md heredoc_unquoted(vars_unexpanded) -->
+# ORCH note: continuation checker bundle is now 026cb696
+The canary lane's checker bundle $C/out/continuation_check_20261114T092849Z.tgz (sha256 026cb6962ed29b18..., binding f544dd1b...) replaces aee5221e; my receipt is $R/CONTINUATION_CHECKER_RECEIPT_LOSS_SCHEMA.json. Use it only if I order a continuation check. No job now, no reply needed. Watcher restart at 09:32:59Z noted.

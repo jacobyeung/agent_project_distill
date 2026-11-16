@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=3189 utc=2026-11-15T09:25:15.611Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd/rs_tree && du -sm work/* out 2>/dev/null | sort -rn | head -12; echo "== newest big files"; find work -maxdepth 4 -type f -size +200M -printf '%TH:%TM %s %p\n' 2>/dev/null | sort | tail -12 | cut -c1-170; df -BG --output=avail /scratch | tail -1; cut -c1-700 events/20261115T0921Z_RESULT_r6_core.md

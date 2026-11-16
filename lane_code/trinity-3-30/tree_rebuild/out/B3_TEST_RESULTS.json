@@ -1,0 +1,209 @@
+{
+  "tests": 31,
+  "failures": [],
+  "errors": [
+    [
+      "test_four_stream_record_identity (tests.test_r2_build3.Build3.test_four_stream_record_identity)",
+      "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild/work/tree_r1/tests/test_r2_build3.py\", line 82, in test_four_stream_record_identity\n    with self.assertRaises(ValueError): parent.layout_config(value,{},layout)\n                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild/work/tree_r1/launch_r2/parent.py\", line 24, in layout_config\n    if 'mdg' in parent or set(parent['streams']) != {'pose', 'vqa', 'routing', 'pointing'}:\n                              ~~~~~~^^^^^^^^^^^\nKeyError: 'streams'\n"
+    ],
+    [
+      "test_kits_real_entry_from_empty (tests.test_r2_build3.Build3.test_kits_real_entry_from_empty)",
+      "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild/work/tree_r1/tests/test_r2_build3.py\", line 142, in test_kits_real_entry_from_empty\n    result=B.build(LANE/'work/kit07ca49df_meta/m',kit,connector=connector,records=inputs(),\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild/work/tree_r1/launch_r2/build.py\", line 220, in build\n    scan(output)\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild/work/tree_r1/launch_r2/build.py\", line 61, in scan\n    scan_value(load(path), hashes)\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild/work/tree_r1/launch_r2/build.py\", line 42, in scan_value\n    scan_value(item, hashes, key if field not in ('env','args','parts') else field)\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild/work/tree_r1/launch_r2/build.py\", line 42, in scan_value\n    scan_value(item, hashes, key if field not in ('env','args','parts') else field)\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild/work/tree_r1/launch_r2/build.py\", line 50, in scan_value\n    raise ValueError('Non-opaque or absolute operational string')\nValueError: Non-opaque or absolute operational string\n"
+    ],
+    [
+      "test_opener_export_keep_and_reset (tests.test_r2_build3.Build3.test_opener_export_keep_and_reset)",
+      "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild/work/tree_r1/tests/test_r2_build3.py\", line 59, in test_opener_export_keep_and_reset\n    live.init_report = R.init_from_artifact(live, spec, part='lm')\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild/work/tree_r1/student_pilot/carrier_c1_run.py\", line 909, in init_from_artifact\n    report['lm_tensors'] = load_export_masters(model, directory)\n                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild/work/tree_r1/student_pilot/carrier_c1_run.py\", line 983, in load_export_masters\n    raise ValueError('Full-weights tensor shape or dtype differs: ' + name)\nValueError: Full-weights tensor shape or dtype differs: embed.weight\n"
+    ]
+  ],
+  "skipped": [],
+  "records": [
+    {
+      "test": "tests.test_r2_build3.Build3.test_cpu_resource_mutations",
+      "tmp_before": 0,
+      "tmp_after": 3,
+      "seconds": 1.203691913979128
+    },
+    {
+      "test": "tests.test_r2_build3.Build3.test_four_stream_record_identity",
+      "tmp_before": 3,
+      "tmp_after": 1803404,
+      "seconds": 1.1739171240478754
+    },
+    {
+      "test": "tests.test_r2_build3.Build3.test_init_delivered_archive_mapping",
+      "tmp_before": 1803404,
+      "tmp_after": 1823927,
+      "seconds": 1.1977685540914536
+    },
+    {
+      "test": "tests.test_r2_build3.Build3.test_kits_real_entry_from_empty",
+      "tmp_before": 1823927,
+      "tmp_after": 18399661,
+      "seconds": 7.713172859977931
+    },
+    {
+      "test": "tests.test_r2_build3.Build3.test_opener_export_keep_and_reset",
+      "tmp_before": 18399661,
+      "tmp_after": 18401371,
+      "seconds": 1.300270114094019
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_0",
+      "tmp_before": 18401371,
+      "tmp_after": 18401371,
+      "seconds": 1.173787103034556
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_1",
+      "tmp_before": 18401371,
+      "tmp_after": 18401371,
+      "seconds": 1.1896339259110391
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_10",
+      "tmp_before": 18401371,
+      "tmp_after": 18401371,
+      "seconds": 1.185576980933547
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_11",
+      "tmp_before": 18401371,
+      "tmp_after": 18401371,
+      "seconds": 1.2311122440733016
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_12",
+      "tmp_before": 18401371,
+      "tmp_after": 18401371,
+      "seconds": 1.1782157581765205
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_13",
+      "tmp_before": 18401371,
+      "tmp_after": 18401371,
+      "seconds": 1.1702679661102593
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_14",
+      "tmp_before": 18401371,
+      "tmp_after": 18401371,
+      "seconds": 1.192984984954819
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_15",
+      "tmp_before": 18401371,
+      "tmp_after": 18401371,
+      "seconds": 1.1793158380314708
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_16",
+      "tmp_before": 18401371,
+      "tmp_after": 18401371,
+      "seconds": 1.1746201699133962
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_17",
+      "tmp_before": 18401371,
+      "tmp_after": 18401371,
+      "seconds": 1.1830362149048597
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_18",
+      "tmp_before": 18401371,
+      "tmp_after": 18401371,
+      "seconds": 1.1976180612109601
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_19",
+      "tmp_before": 18401371,
+      "tmp_after": 18401371,
+      "seconds": 1.1789892229717225
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_2",
+      "tmp_before": 18401371,
+      "tmp_after": 18401371,
+      "seconds": 1.1700724861584604
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_20",
+      "tmp_before": 18401371,
+      "tmp_after": 18401371,
+      "seconds": 1.2284505679272115
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_21",
+      "tmp_before": 18401371,
+      "tmp_after": 18401371,
+      "seconds": 1.1715540688019246
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_22",
+      "tmp_before": 18401371,
+      "tmp_after": 18401371,
+      "seconds": 1.2068718438968062
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_23",
+      "tmp_before": 18401371,
+      "tmp_after": 18401371,
+      "seconds": 1.1804967438802123
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_24",
+      "tmp_before": 18401371,
+      "tmp_after": 18401371,
+      "seconds": 1.1762911088299006
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_25",
+      "tmp_before": 18401371,
+      "tmp_after": 18401371,
+      "seconds": 1.172657571034506
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_3",
+      "tmp_before": 18401371,
+      "tmp_after": 18401371,
+      "seconds": 1.268841452198103
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_4",
+      "tmp_before": 18401371,
+      "tmp_after": 18401371,
+      "seconds": 1.1720003730151802
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_5",
+      "tmp_before": 18401371,
+      "tmp_after": 18401371,
+      "seconds": 1.1932723759673536
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_6",
+      "tmp_before": 18401371,
+      "tmp_after": 18401371,
+      "seconds": 1.195925250183791
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_7",
+      "tmp_before": 18401371,
+      "tmp_after": 18401371,
+      "seconds": 1.1825613740365952
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_8",
+      "tmp_before": 18401371,
+      "tmp_after": 18401371,
+      "seconds": 1.1791441719979048
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_9",
+      "tmp_before": 18401371,
+      "tmp_after": 18401371,
+      "seconds": 1.1975079709663987
+    }
+  ],
+  "tmp_bytes": 18401371,
+  "lane_bytes": 399578150
+}

@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=30675 utc=2026-11-14T10:28:17.367Z kind=commands original_path=(bash command)  -->
+L=/scratch/jjyeung/orch_cd/if_p0; tail -n 25 $L/STATUS.md | cut -c1-400; echo ---; ls -t $L/*.out $L/logs/*.out 2>/dev/null | head -n 3; ls -t $L/inbox | head -n 5; ls $L/BRIEF* 

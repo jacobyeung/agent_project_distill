@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=26498 utc=2026-11-13T23:47:20.426Z kind=commands original_path=(bash command)  -->
+C=/scratch/jjyeung/orch_cd; grep -l 'np226' $C/orchard_cp2/work/* $C/orchard_cp2/out/*.json $C/orchard_cp2/out/*.md $C/leg_s1_fourstream_kit/final_b/* 2>/dev/null | head -n 12; echo ---; grep -h -n 'np226' $C/orchard_cp2/out/FINAL_STAGING_b01ce449_fourstream_a7ad7051.json | cut -c1-300 | head -n 8

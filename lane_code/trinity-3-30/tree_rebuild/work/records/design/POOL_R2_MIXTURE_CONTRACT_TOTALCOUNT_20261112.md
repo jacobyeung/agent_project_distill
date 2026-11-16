@@ -1,0 +1,19 @@
+# Design record
+
+**Question.** Can a reviewed row set enter the next training run through configuration, with a reproducible share, intact paired direct controls, and an explicit resume boundary? Can multi-object counting examples teach the total rather than separate counts?
+
+**Answer.** The patch binds extra pool manifests, forms, rational shares, seeds, removal expectations and optional twin groups to configuration identity. It selects a fixed subset and feeds it through native materialization. The first consumer retains 12,500 of 33,985 away programs alongside 37,500 forward programs. It adds no model operation. The total-count pool supplies 2,335 questions in both training forms and 150 held-out questions.
+
+**Evidence.** ReVSI has 49 multi-object counting items. T0 thinking-off scores 1.4286%, has 41 parse failures and zero exact totals; its single-object score is 55.3488%. CP1 thinking-on and T0 thinking-on score 66.1224% and 42.4490% on multi-object items. The new traces use the existing per-category instance calls, add their counts explicitly and end with one number. Source IDs and tool evidence independently agree on all 2,485 labels.
+
+**Decisions.** Select unique rows by a stable hash rank. Reject unrepresentable exact shares, insufficient sources, excluded scenes and mismatched removal counts. Select direct twins together and abort if either later fails native admission. Keep base code paths and the 320-row stream recipe intact. Sample up to 80 questions per arity/answer bucket, without duplication or relabeling. Form labels by unioning disjoint native annotation IDs in one capture and frame set.
+
+**Rejected options.** Letter weights do not define the requested source share. Unbound sampler weights could silently change a resumed leg. Independent direct-row selection could orphan twins. Repeating a constant answer to reach a target size would strengthen the failure. Benchmark answers, released separate-count sentences and synthetic geometry do not supply training labels.
+
+**Risks and detection.** A quarter overall share need not be a quarter within each difficulty; the receipt reports each type. Away content may create a heading prior; compare held-out away and forward controls after training. Added routing rows dilute all existing routing families; the mix table quantifies the change. New total questions may overfit wording; compare held-out two- and three-category items, single-object counting and paraphrases. Retained GT evidence can inherit annotation errors; agreement here is not a fresh relift. Distinct-ID checks reject overlapping categories, and a future raw-annotation replay would test the remaining label risk.
+
+**Open validation.** Restore the original pinned r16 database and rerun full legacy-plus-pool materialization. Run socket-enabled distributed checkpoint/resume and the full 320-row real-RGB first-batch test in an authorized environment. Train paired controls to distinguish format learning from better perception. No benchmark or training benefit has been measured.
+
+**Status.** The patch applies with zero fuzz. Selection indices and the no-extra native row database preserve bytes. Sixteen new tests pass; the existing suites have the same 382 passes and same constrained failures as the base. Native metadata, kit construction, the 40-forward CPU fixture and a shimmed one-rank resume check pass. Total-count rows, independent labels, balanced distributions and r4-format dev timing pass. Production admission and distributed qualification remain incomplete for the reasons above.
+
+**Benchmark adaptation.** This row kind was added after ReVSI leaf scores exposed the weakness. Scores on its multi-object counting items are adapted to its question format. The training labels come only from excluded-scene-safe pool annotations.

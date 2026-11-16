@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=15527 utc=2026-11-12T23:28:19.719Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; tail -1 leg_s1_tree/out/devin_launches.jsonl | cut -c1-500; ls -t leg_s1_tree/*.out 2>/dev/null | head -2; f=$(ls -t leg_s1_tree/*.out 2>/dev/null | head -1); tail -c 600 "$f"; echo; echo ==== STATUS; head -c 2600 leg_s1_tree/STATUS.md; echo; echo ==== NOTE; cut -c1-1800 leg_s1_tree/events/20261112T2312Z_NOTE_self_staging_census_ready.md

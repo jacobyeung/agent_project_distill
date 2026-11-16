@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=29256 utc=2026-11-14T06:58:17.755Z kind=commands original_path=(bash command)  -->
+C=/scratch/jjyeung/orch_cd; ls $C/if_p0/inbox | tail -n 5; f=$(ls $C/if_p0/inbox/*m_sha* $C/if_p0/inbox/*m.sha* $C/if_p0/inbox/*fla* 2>/dev/null | head -n 1); [ -n "$f" ] && sha256sum "$f" | cut -c1-16,65- || echo "m.sha not delivered yet"; tail -n 3 $C/orchard_cp2/STATUS.md | cut -c1-300

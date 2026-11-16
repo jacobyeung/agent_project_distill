@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=3105 utc=2026-11-15T09:04:05.777Z kind=commands original_path=(bash command)  -->
+echo "- $(date -u +%Y-%m-%dT%H:%MZ) Queue watcher fired (09:03Z): main recorded a USER-RULING of about 00:50 PT on its own rebuttal cell (Gemma on DSI-Bench in the 4-D configuration, round r3169). Nothing for distillation. Watcher re-armed. rs_rows(3) RESULT 0901Z: superset validator in place with mutation tests; room rows and re-validation building." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

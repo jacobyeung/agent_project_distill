@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=25218 utc=2026-11-13T21:13:20.608Z kind=commands original_path=(bash command)  -->
+C=/scratch/jjyeung/orch_cd/orchard_cp2; date -u +%H:%M:%SZ; ls -lt --time-style=+%H:%M:%S $C/out/production_169097 | head -n 4 | cut -c30-120; tail -n 3 $C/logs/monitor_20261113T205448Z.log 2>/dev/null | cut -c1-300; pgrep -u jjyeung -af "monitor_production_469ddece" | cut -c1-160 | head -n 3

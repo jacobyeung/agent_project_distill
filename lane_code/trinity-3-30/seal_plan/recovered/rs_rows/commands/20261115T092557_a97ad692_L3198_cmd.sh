@@ -1,0 +1,11 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=3198 utc=2026-11-15T09:25:57.455Z kind=commands original_path=(bash command)  -->
+R=/scratch/jjyeung/orch_cd; S=/tmp/claude-25409/-scratch-jjyeung-orch-home-distill/a97ad692-7041-4f72-8b75-8f8e29df8950/scratchpad; kill -TERM 1206981 2>/dev/null; sleep 5; ps -o pid,stat,cmd -p 1206981,1206956 2>/dev/null | cut -c1-90; echo "rs_tree dispatcher left: $(pgrep -u jjyeung -f 'codex_dispatch.sh implement /scratch/jjyeung/orch_cd/rs_tre[e] ' | tr '\n' ' ')"; df -BG --output=avail /scratch | tail -1
+cat >> $R/REMOVAL_CANDIDATES_TRINITY_20261114.md <<'EOF'
+
+## Added 2026-11-15T09:27Z by the distillation orchestrator (trinity-2-18)
+- `/scratch/jjyeung/orch_cd/rs_tree/work/fixtures/r3_wna3p_8x` (8.2 GB): a test's temporary materialized store, written at 09:21Z by the tree lane's sixth pass, which exceeded its 2 GB cap. Regenerable; nothing reads it. Removing it is the quickest way to bring this node back above 100 GiB free.
+- `/scratch/jjyeung/orch_cd/rs_tree/work/fixtures/` as a whole is 9.8 GB in 371 test folders; only the newest few are referenced by reports (`out/FIRST_BATCH_R3.json`, `out/TESTS_R5.json`); the rest are regenerable.
+- `/scratch/jjyeung/k1_buf` (empty; the buffer plan was withdrawn).
+EOF
+echo "- $(date -u +%Y-%m-%dT%H:%MZ) DISK FLAG (tick 09:24Z): /scratch fell from 100 to 93 GiB. WRITER FOUND, OURS: rs_tree sixth pass wrote an 8.2 GB test store (rs_tree/work/fixtures/r3_wna3p_8x, 09:21Z); the lane folder is 9.9 GB against a 2 GB cap. STOPPED the Codex process (pid 1206981, TERM) before its next test could write another. Added the folder to REMOVAL_CANDIDATES_TRINITY_20261114.md for the user. Relaunch follows with a hard write budget. evwait had fired (restarting). rs_rows third pass complete (ended): 208,318 rows pass the superset grammar; room size 465 direct rows; unit family 22,280 distance program rows; 15,324 rows excluded by room and lineage gates." >> $R/ORCH_HANDOFF.md
+grep -v '^rs_rows|\|^rs_tree|' "$S/LANES" > "$S/LANES.new"; cp "$S/LANES.new" "$S/LANES"; cut -d'|' -f1 "$S/LANES" | tr '\n' ' '

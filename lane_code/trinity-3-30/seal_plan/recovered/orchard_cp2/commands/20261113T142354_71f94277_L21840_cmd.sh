@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=21840 utc=2026-11-13T14:23:54.644Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd/orchard_cp2/out/canary3_169009 2>/dev/null && ls -t | head -n 12 && f=$(ls -t | grep -i -E "resume|phase7|live" | head -n 1); echo "== $f"; cut -c1-1800 "$f" | head -n 40; sed -n '12,30p' /scratch/jjyeung/orch_cd/orchard_cp2/events/20261113T142316Z_RESULT_canary3_terminal_FAIL.md | cut -c1-600

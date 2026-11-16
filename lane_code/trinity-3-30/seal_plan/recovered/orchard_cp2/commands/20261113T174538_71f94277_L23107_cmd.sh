@@ -1,0 +1,5 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=23107 utc=2026-11-13T17:45:38.838Z kind=commands original_path=(bash command)  -->
+C=/scratch/jjyeung/orch_cd; T=$(date -u +%Y-%m-%dT%H:%M:%SZ); cat >> $C/ORCH_HANDOFF.md <<EOF
+$T orch-home-distill-79: FULL DATA ADMISSION PASSED on Orchard (orchard_cp2 RESULT 1744Z; attestation out/DATA_ADMISSION_169097.json sha 7e9a8efd; native receipt sha ebc2983e): mode p exited 0 at 17:26:18Z (2 h 0 min 40 s after job start: staging ~16 min, preparation 2,991 s, frame audit 3,118 s; peak process RSS 1.28 GiB each; the 256 GiB native cap held). Admitted: pointing 20,239, pose 194,987, routing 57,136, VQA 114,904; frame audit: every retained frame reference exists; fixed 64-frame hash sample per source verified (seed 17), not a full re-hash; unique frames per source: pointing 10,464, pose 96,934 + 221,715, routing 82,304, VQA 72,832. MODE t (training) LAUNCHED on four GPUs at 17:28:26Z. Memory-cap question moved to SAVED_USER_QUESTIONS_ANSWERED.md (Answered by AGENT: evidence). Project free 520.0 GB at 17:41Z.
+EOF
+echo logged

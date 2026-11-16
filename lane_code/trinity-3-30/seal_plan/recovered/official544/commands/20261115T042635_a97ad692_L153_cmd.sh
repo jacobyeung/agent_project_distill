@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=153 utc=2026-11-15T04:26:35.794Z kind=commands original_path=(bash command)  -->
+R=/scratch/jjyeung/orch_cd; ls -la $R/model_design_review/ | cut -c1-160; ls -d $R/READY_QUEUE* $R/*/READY_QUEUE* 2>/dev/null; echo "== BRIEF official544"; cut -c1-1200 $R/official544/BRIEF.md

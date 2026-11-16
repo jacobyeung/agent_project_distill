@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=28197 utc=2026-11-14T03:45:17.192Z kind=commands original_path=(bash command)  -->
+sed -e 's/<ref_snippet[^>]*>//g' /scratch/jjyeung/orch_cd/leg_s1_canary/events/20261114T0345Z_RESULT_packed_four_worker_feasibility.md | fold -w 1000 -s | tail -n +13

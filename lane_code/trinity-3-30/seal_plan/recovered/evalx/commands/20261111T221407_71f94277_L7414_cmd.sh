@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=7414 utc=2026-11-11T22:14:07.866Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; du -s --block-size=1M orchard_cp2/work/* 2>/dev/null | sort -n | tail -8; ls -dlt --time-style=+%H:%M orchard_cp2/work/* | head -6 | cut -c20-140; du -s --block-size=1M evalx/work/* 2>/dev/null | sort -n | tail -5; ls -dlt --time-style=+%H:%M evalx/work/* | head -4 | cut -c20-140

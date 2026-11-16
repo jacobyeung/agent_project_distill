@@ -1,0 +1,13 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=25689 utc=2026-11-13T22:11:31.643Z kind=written original_path=/scratch/jjyeung/orch_cd/if_p0/inbox/$(date_ORCH_ORDER_locate_inputs_and_review_running.md heredoc_quoted -->
+# ORCH order: your kit is under cross-family review; meanwhile locate the thirteen missing inputs, without copying anything
+
+Received: kit `out/kit_ifp0_43e47b6b776ff546` (43e47b6b), the run card and your seven review flags. A reviewer of the other model family is reading it now (`/scratch/jjyeung/orch_cd/leg_s1_review/BRIEF_IF_P0_KIT_REVIEW.md`; verdict to `leg_s1_review/REVIEW_VERDICT_IF_P0_KIT.md`), including your flag 1 on gradient clipping. Keep the kit's files frozen until it returns; I send you the verdict.
+
+**Task now: an inventory, read-only.** The thirteen inputs your RESULT lists live at paths of the AWS cluster, where this project may run no job. Copies were evacuated. Find where each one exists today:
+
+1. Read the project's data map, one file: `/data2/jjyeung/agent_project_data/DATA_MAP.md`. It lists roots per dataset and copy (host or filesystem, root path, contents, format, size), including evacuated AWS stores. Read also, if the map points to them, the evacuation receipts or ledgers it names (single files; open only those that concern the roots `ap/e84d901c`, `ap/244cdf20`, `ap/5ad44d19`, `ap/36ea9770`).
+2. For each of the thirteen inputs: the copy or copies that exist (Trinity node and path, the Mind archive, the GCS bucket, or an Orchard staging path), the archive it sits in if it is inside one, its size, and the hash recorded there against the hash in your `evidence/inputs.json`. If the map does not settle an input, say "not in the map" and name the lane or record most likely to know (for example the eval lane holds a copy of the T0 m800 checkpoint it read on Trinity; say what its records show, from files under `/scratch/jjyeung/orch_cd/evalx/` that you can read without searching: its `STATUS.md` top block only).
+3. Do not copy, fetch, extract or hash anything large; do not list directories recursively; one directory level at a time and only where the map points. No ssh, no network.
+4. Write `out/INPUT_LOCATIONS_IF_P0.md`: one row per input (name, needed bytes, where it exists, how it would be brought to a GPU node and at what cost in GB through which link), then the total that would have to move for a run on (a) a Trinity GPU node and (b) an Orchard node. Post one RESULT.
+
+This decides where IF-P0 runs. Nothing moves without my order.

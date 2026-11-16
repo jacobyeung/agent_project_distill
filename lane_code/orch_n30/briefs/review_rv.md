@@ -1,0 +1,20 @@
+# Lane review_rv (runs on trinity-1-3): independent review of the kit for the ReVSI direct read of the step-544 student
+
+Lane folder: /scratch/jjyeung/orch_n30/review_rv on trinity-1-3. Events folder: /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/review_rv/. First read /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/tools/LANE_RULES.md and obey it. You are a reviewer: read-only everywhere except your lane folder and events folder; no GPU, no Orchard call, no copy above 20 MB; you fix nothing and do not talk to the builder.
+
+## What you review
+Lane evalx27 built, on the chain runner of its reviewed VSI-Bench kit f42aa1a4, a kit for a direct read of LEG-S1 step 544 on ReVSI official 999 at the 32-frame tier: five direct categories, 679 items on 261 scenes (counting 135, direction 68, relative distance 140, size 273, route 63); absolute distance (283) and room size (37) are routed types and are not read. Its number will be set beside the parent's 58.63 and the open bar of 57.5, so a wrong cohort, frame path or scorer gives a wrong headline.
+- Builder's claim: /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/evalx27/20261115T1933Z_RESULT_revsi_plan_kit_ready.md and the folder kit_revsi_6e025a89/ beside it (REPORT, DIFF, PROOF, LINES, NEED_261). Working tree, same node, read-only: /scratch/jjyeung/orch_n30/evalx27/work/kit_revsi/ and work/kit/ (the reviewed VSI kit).
+- The VSI kit's review, as method and baseline: /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/review_o6/REVIEW_VERDICT_O6.md. Do not repeat what it settled for the 85 identical files; verify they are identical by hash, then review the differences.
+- Background: /home/jjyeung/agent_project/AGENTS.md section 3 (scoring authority; search that one file for the heading, read only that section); records REVSI_DEV_SET_20261108.md and LEG_S1_ORCHARD_READ.json under /data2/jjyeung/agent_project_data/distill_design/ where a check needs them.
+
+## Do this, in this order, and form your own view before reading the builder's REPORT
+1. From the pinned inputs alone (rows, membership, videos, indices), derive the cohort yourself: which of the 999 items belong to the five direct categories, how each category is identified, and the per-category counts. Compare with the builder's 679.
+2. Review every changed or new file against f42aa1a4: evaluator/data.py (the revsi branch and its optional filter: can it change item order, identities or prompt text of kept items?), chain.py, official_adapter.py, official_score.py, the launcher's media root and stage, frame_plan.py. For each difference say whether it can change a prompt, a frame, a decoded token or a score.
+3. Frames: the 32-frame tier videos map to the lineage's trained layout exactly as the parent's ReVSI read did; say what the kit does and whether it equals that read's path as far as the surviving code and records show.
+4. Scorer: the ReVSI metric per category as the benchmark authority defines it; errored, capped and unparsed answers count as wrong and stay in the denominator; the report labels the five-category mean as such and never presents it as the seven-category ReVSI score; a comparison with the parent's 58.63 must be per category, and the kit must not claim a paired comparison without the parent's per-item answers.
+5. Stage the kit from an empty directory on CPU and run its local proof yourself; list every production line that neither the local proof nor the planned proof job executes.
+6. Legality: direct read only; no routed or native path reachable; nothing tuned on benchmark items; names and paths on Orchard free of project, benchmark, dataset, model and method words; the media upload goes to the project filesystem, not Orchard /home.
+
+## Verdict
+REVIEW_VERDICT_RV.md in your events folder: GO, GO AFTER FIXES (each with file, line and why it matters for the number) or NO-GO; the files you read and did not read; every builder claim you could not confirm. Then one RESULT event of at most 20 lines. Then stop.

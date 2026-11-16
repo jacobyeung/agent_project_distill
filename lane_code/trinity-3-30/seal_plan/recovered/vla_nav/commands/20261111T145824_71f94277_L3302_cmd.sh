@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=3302 utc=2026-11-11T14:58:24.288Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; tail -c 700 vla_nav/events/20261111T1455Z_QUESTION_trainer_prompt_parity.md; echo; echo ----; ls -t vla_nav/events | head -5; grep -n "ANSWER_FORMAT_INSTRUCTION\|enable_thinking" integ_v3/work/tree/student_pilot/batches.py 2>/dev/null | head -12

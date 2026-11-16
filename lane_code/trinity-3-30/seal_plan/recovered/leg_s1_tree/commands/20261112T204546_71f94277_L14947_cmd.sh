@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=14947 utc=2026-11-12T20:45:46.549Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; sed -n '/Traceback/,/checkpoint to copy/p' orchard_cp2/out/f168826/168826.out 2>/dev/null | tail -25 | cut -c1-400; ls orchard_cp2/out/f168826/ | head; ls -t leg_s1_tree/events | head -3

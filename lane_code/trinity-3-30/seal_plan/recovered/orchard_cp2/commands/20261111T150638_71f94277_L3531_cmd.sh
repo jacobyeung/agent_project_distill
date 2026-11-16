@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=3531 utc=2026-11-11T15:06:38.123Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; cat dyn_probe/events/20261111T1412Z_RESULT_dyn_probe_pass2.md | cut -c1-1400; echo ----; du -sh integ_v314/work/tree_v314 2>/dev/null; ls integ_v314/work/tree_v314 | head -30; ls integ_v314/work/tree_v314/student_pilot | wc -l; ls integ_v314/work/tree_v314/student_pilot/tests 2>/dev/null | wc -l; ls orchard_cp2/work | head -20

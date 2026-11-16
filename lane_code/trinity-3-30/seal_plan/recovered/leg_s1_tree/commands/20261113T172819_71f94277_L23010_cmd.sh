@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=23010 utc=2026-11-13T17:28:19.096Z kind=commands original_path=(bash command)  -->
+C=/scratch/jjyeung/orch_cd/leg_s1_tree; ls -lt --time-style=+%m-%dT%H:%M $C | head -n 12; O=$(ls -t $C/*.out $C/*.stdout $C/logs/*.out 2>/dev/null | head -n 1); echo "OUT=$O"; tail -c 1500 "$O" 2>/dev/null; echo; head -n 14 $C/STATUS.md | cut -c1-500; ls -t $C/inbox | head -n 3; ls -t $C/work | head -n 5

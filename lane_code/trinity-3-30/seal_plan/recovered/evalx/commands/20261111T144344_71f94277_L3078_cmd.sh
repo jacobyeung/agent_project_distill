@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=3078 utc=2026-11-11T14:43:44.540Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd && sed -n '1,22p' evalx/STATUS.md | cut -c1-330; echo "== local GPUs (2-18)"; nvidia-smi --query-compute-apps=pid,used_memory,gpu_uuid --format=csv,noheader 2>/dev/null | head -8; ps -o user= -p $(nvidia-smi --query-compute-apps=pid --format=csv,noheader 2>/dev/null | tr '\n' ',' | sed 's/,$//') 2>/dev/null | sort | uniq -c

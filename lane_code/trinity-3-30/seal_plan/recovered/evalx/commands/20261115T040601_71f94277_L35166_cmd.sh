@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=35166 utc=2026-11-15T04:06:01.962Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd && grep -n -i -E 'gcs|gs://|durable|mind|sole cop|purge|mstop|export' orchard_cp2/events/20261114T143821Z_RESULT_end_of_allocation_169097.md | cut -c1-330 | head -16; echo --- o5130; ls evalx/work/o5130 2>/dev/null | head -20; ls official_reads 2>/dev/null | head; echo --- evalx events on official; ls evalx/events | grep -i -E 'o5130|official|5130' | tail -6

@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=18381 utc=2026-11-13T08:55:34.122Z kind=commands original_path=(bash command)  -->
+echo "$(date -u +%FT%TZ) orch-home-distill-79: orchard_cp2 RESULT 0855Z: governor admitted the row-database pulls after the tier-2 re-registration: pointing (218 MB) landed 08:41Z, VQA vxm_m4 (1.30 GB) 08:45Z at 5.3 MB/s, routing r16 (1.35 GB) 08:52Z at 3.3 MB/s, all sha-verified and announced to leg_s1_tree; pose a2v3 (4.89 GB) running at ~4.1 MB/s, due ~09:12Z. a3v2 stays on Orchard." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

@@ -1,0 +1,22 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=34558 utc=2026-11-15T01:29:34.826Z kind=written original_path=/scratch/jjyeung/orch_cd/leg_s1_review/NATIVE_PILOT_CONTROL_e65646531/REVIEW.json heredoc_unquoted(vars_unexpanded) -->
+{
+  "verdict": "ACCEPT",
+  "reviewer": "Claude Opus (Anthropic), independent reviews and records REVIEW_VERDICT_ROUTED_READER_FIX.md, DEBUG_GEOMETRY_UP_GRAVITY_169670.md and REVIEW_VERDICT_GEOMETRY_REFUSAL.md (ACCEPT AFTER FIXES on the geometry-refusal candidate: findings F1 to F4), with the earlier reviews of this family; orchestrator orch-home-distill-79 (Claude) read the incremental diff. The author is a GPT-family lane.",
+  "synthetic": false,
+  "family_sha256": "$FAM",
+  "scope": "pilot and full modes for the step-544 stop export (artifact $ART); the full read additionally needs an authenticated passed pilot of this exact family and artifact, and the orchestrator's separate order naming a projection scenario",
+  "followup_diff_read": {
+    "diff": "$R/ROUTED_READER_GEOMETRY_F1_F4_incremental.diff (sha256 ${DS}; 286 lines over six files; built by the orchestrator between the reviewed candidate's files and the sealed sources)",
+    "reviewed_candidate_diff_sha256": "84a20d0bcfa88ef49f43beb6f89aeea30ddb0571cfc0d8c8738807eb6fc4a178",
+    "what_i_checked": [
+      "F1: r1.py computes the learned call rate over decoded items (items minus geometry-refused items), fails a type with no decoded item, keeps every item in the score denominators and reports both rates and the number excluded; the gap and zero-error conditions are unchanged",
+      "F2: geometry_refusals.py re-raises every GeometryError whose code is not reference_camera_up_opposes_gravity; the metrics validation accepts only that code in a refusal record",
+      "F3: geometry-refused pairs are kept out of the no-answer and both-failed counts and out of the unit tables' model rows, with their own counts",
+      "F4: the full read compares its recomputed refused captures with the pilot's over all 84 names and reports both directions of difference without refusing",
+      "the pilot selects one refused distance pair when any capture refuses plus nine passed pairs (distance on d1, d2, d3), and the projection validates that the refused sample pair executed no decode",
+      "geometry.py, nomdg.py, perception.py, routed.py, native_job.py and native_common.py are identical between the reviewed candidate and the sealed sources"
+    ],
+    "not_checked": "the author's 78 tests and the byte-identity test of passing captures' numerics were not rerun by me; packaging-side helpers (native_local_check.py, native_pin_graph.py, native_cpu_replica.py) were not read; pilot 8 is the first job to run geometry over 84 captures with the checkpoint's heads and to exercise a real refusal"
+  },
+  "issued_utc": "$T"
+}

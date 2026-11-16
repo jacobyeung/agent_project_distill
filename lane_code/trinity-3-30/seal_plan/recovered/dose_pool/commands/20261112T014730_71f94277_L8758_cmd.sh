@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=8758 utc=2026-11-12T01:47:30.130Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd/dose_pool/out/POOL_S1; grep -n -i -E "frames_pending|k6|MAP|frame store|lookup|resolve" MANIFEST.md | cut -c1-600 | head -20; echo ----; grep -rn -i -E "k6.*MAP|MAP.*k6" ../../STATUS.md 2>/dev/null | cut -c1-500 | head -8

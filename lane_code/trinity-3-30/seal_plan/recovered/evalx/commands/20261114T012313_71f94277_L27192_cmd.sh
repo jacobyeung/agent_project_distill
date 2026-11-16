@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=27192 utc=2026-11-14T01:23:13.197Z kind=commands original_path=(bash command)  -->
+D=/scratch/jjyeung/orch_cd/evalx/work/milestone/producer_candidate_20261114; cd $D && OMP_NUM_THREADS=4 timeout 300 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B test_budget_candidate.py 2>&1 | tail -n 5; tail -n 3 $D/AFTER_TESTS.log | cut -c1-200

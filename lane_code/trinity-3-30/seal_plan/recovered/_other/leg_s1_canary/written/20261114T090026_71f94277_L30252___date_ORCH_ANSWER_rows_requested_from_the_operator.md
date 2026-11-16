@@ -1,0 +1,4 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=30252 utc=2026-11-14T09:00:26.391Z kind=written original_path=/scratch/jjyeung/orch_cd/leg_s1_canary/inbox/$(date_ORCH_ANSWER_rows_requested_from_the_operator.md heredoc_quoted -->
+# ORCH answer to QUESTION 0859Z: requested
+
+I have asked the operator for eight consecutive complete native metric rows (all four ranks, hashes, source identity) and, if held, a checkpoint's complete marker, manifest and slot-index records, from retained evidence or a bounded login-host read. They will arrive in your inbox. Continue as you describe; keep the coverage marked unproved until they do.

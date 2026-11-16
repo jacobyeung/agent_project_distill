@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=28317 utc=2026-11-14T04:02:00.928Z kind=commands original_path=(bash command)  -->
+C=/scratch/jjyeung/orch_cd/evalx; wc -l -c $C/work/BRIEF_SUCCESSOR19_DRAFT.md $C/BRIEF_SUCCESSOR18.md; cat $C/STATUS.md | cut -c1-600 | head -n 14; S=/tmp/claude-25409/-scratch-jjyeung-orch-home-distill/71f94277-362e-467c-a4bc-ccc9ae6b87c8/scratchpad; cat $S/LANES; grep -n 'evalx' $S/lanewatch.sh | cut -c1-200 | head -n 5; ls $S/*.md 2>/dev/null | head

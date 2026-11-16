@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=359 utc=2026-11-11T11:38:34.773Z kind=commands original_path=(bash command)  -->
+ls -lt --time-style=+%m-%dT%H:%M /home/jjyeung/agent_project/agent/scripts | head -n 12 | cut -c1-150; echo "== distill orch_tools"; ls -lt --time-style=+%m-%dT%H:%M /scratch/jjyeung/orch_cd/orch_tools | head -n 15 | cut -c1-150; echo "== devin session store"; ls -la --time-style=+%m-%dT%H:%M /home/jjyeung/.local/share/devin/cli 2>&1 | head -n 12 | cut -c1-150

@@ -1,0 +1,4 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=1824 utc=2026-11-15T06:43:14.989Z kind=commands original_path=(bash command)  -->
+O=/tmp/claude-25409/-scratch-jjyeung-orch-home-distill/a97ad692-7041-4f72-8b75-8f8e29df8950/tasks/b9tueteat.output; cat $O | cut -c1-300; R=/scratch/jjyeung/orch_cd; S=/tmp/claude-25409/-scratch-jjyeung-orch-home-distill/a97ad692-7041-4f72-8b75-8f8e29df8950/scratchpad; date -u +%H:%MZ; for L in $(grep -o 'EXITED:[a-z0-9_]*' $O | cut -d: -f2); do echo "== $L newest event: $(ls -t $R/$L/events 2>/dev/null | head -1)"; grep -v "^$L|" "$S/LANES" > "$S/LANES.new"; cp "$S/LANES.new" "$S/LANES"; /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B -c "
+import re
+p='$S/lanewatch.sh'; s=open(p).read(); s=re.sub(r'\n  \[$L\]=\"[^\"]*\"','',s); open(p,'w').write(s)"; done; cp "$S/LANES" "$S/lanewatch.sh" $R/orch_tools/session_scripts_20261115/; cut -d'|' -f1 "$S/LANES" | tr '\n' ' '

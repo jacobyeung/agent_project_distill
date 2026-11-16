@@ -1,0 +1,21 @@
+{
+  "tests": 1,
+  "failures": [],
+  "errors": [
+    [
+      "test_unpatched_dense64_non_square_impulse_to_input_id (tests.test_gf1_review.ReviewRegression.test_unpatched_dense64_non_square_impulse_to_input_id)",
+      "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild/work/base/tree_b01ce449/tests/test_gf1_review.py\", line 73, in test_unpatched_dense64_non_square_impulse_to_input_id\n    batch,audit=data.encode_layout_row(processor,dict(student_input=sparse,target='A'),'duplicate',None,\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild/work/base/tree_b01ce449/student_pilot/carrier_c1_data.py\", line 194, in encode_layout_row\n    batch, audit = encode_frames(processor, inputs['question'], inputs.get('options') or [], arrays,\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild/work/base/tree_b01ce449/student_pilot/pose_samples.py\", line 208, in encode_frames\n    batch = processor(text=[prompt], videos=[arrays], video_metadata=[metadata], do_sample_frames=False,\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild/work/base/tree_b01ce449/tests/test_gf1_review.py\", line 52, in __call__\n    packed=self.video_processor(videos=videos,video_metadata=video_metadata,**kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/transformers/video_processing_utils.py\", line 178, in __call__\n    return self.preprocess(videos, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/transformers/video_processing_utils.py\", line 369, in preprocess\n    preprocessed_videos = self._preprocess(videos=videos, **kwargs)\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/transformers/models/qwen3_vl/video_processing_qwen3_vl.py\", line 191, in _preprocess\n    stacked_videos = self.convert_to_rgb(stacked_videos)\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/transformers/video_processing_utils.py\", line 195, in convert_to_rgb\n    video = tvF.grayscale_to_rgb(video)\n            ^^^\nNameError: name 'tvF' is not defined\n"
+    ]
+  ],
+  "skipped": [],
+  "records": [
+    {
+      "test": "tests.test_gf1_review.ReviewRegression.test_unpatched_dense64_non_square_impulse_to_input_id",
+      "tmp_before": 30410174,
+      "tmp_after": 30411297,
+      "seconds": 12.006337417988107
+    }
+  ],
+  "tmp_bytes": 30411297,
+  "lane_bytes": 118105964
+}

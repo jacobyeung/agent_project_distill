@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=16832 utc=2026-11-13T05:00:15.283Z kind=commands original_path=(bash command)  -->
+echo "$(date -u +%FT%TZ) orch-home-distill-79: orchard_cp2 RESULT 0459Z: a second workbench job with 8 rounds needs a new bundle from leg_s1_tree (the installed wrapper caps rounds at 3 and pins the initial patch); general allows one job per user, so it can start only after 168893 ends. No action from me." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

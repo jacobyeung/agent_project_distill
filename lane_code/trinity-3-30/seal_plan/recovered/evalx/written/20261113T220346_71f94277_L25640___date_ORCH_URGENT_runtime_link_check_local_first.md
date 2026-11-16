@@ -1,0 +1,12 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=25640 utc=2026-11-13T22:03:46.590Z kind=written original_path=/scratch/jjyeung/orch_cd/evalx/inbox/$(date_ORCH_URGENT_runtime_link_check_local_first.md heredoc_quoted -->
+# ORCH, urgent: find the offending runtime link on CPU first, locally if the archives are here; then fix, I confirm, one more attempt
+
+Your 2201Z BLOCKER. The mount fix worked on the real node (job 169307 selected the ext4 job mount), and runtime group 0 staged in 20.5 s. The refusal in group 1 ("Runtime symlink escapes its archive") is the extractor judging a link by resolving it on the host.
+
+**Find the member before another job touches a GPU:**
+1. **Local first.** The three runtime groups were pushed to Orchard from Trinity. If the parts of group 1 (`50011a59.*`) and the other two groups exist on a Trinity `/scratch` you can read (your own or orchard_port's push sources), with the hashes in `ORCHARD_ASSETS.json`, run your extractor on all three on CPU here, into a private folder on `/scratch`, and name every link it would refuse with its target. That needs no Orchard job and no question. Stay within your lane's disk allowance; if the archives are larger than you may hold, read them in place and extract only the link entries (names and targets), not the files.
+2. **If they are not local:** one CPU-only job on Orchard `general` is authorized for this preflight (no GPU, job-local storage, no export, at most 15 minutes), through the accepted launcher's submission path or the simplest equivalent; report the job id.
+
+**The fix I expect, to be confirmed by me from the diff:** judge a link by its target computed within the extraction root (lexically, without resolving through the host's filesystem); a relative link that stays inside the root passes; an absolute target passes only if it is one of an explicit, pinned list of registered runtime links (list them, with why each is needed, for example the interpreter); everything else still refuses, and the refusal names the member and target. Keep every traversal guard. Tests: the real offending entry passes, a link escaping with `..` refuses, an unlisted absolute target refuses.
+
+Then post the diff, digest and test log; I confirm within minutes and you make one more step-50 attempt. Step 100's export is authenticated and waiting; a correct read later is better than a fast one now.

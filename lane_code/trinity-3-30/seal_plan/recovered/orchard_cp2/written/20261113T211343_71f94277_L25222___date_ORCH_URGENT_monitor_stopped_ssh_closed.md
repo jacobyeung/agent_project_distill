@@ -1,0 +1,11 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=25222 utc=2026-11-13T21:13:43.383Z kind=written original_path=/scratch/jjyeung/orch_cd/orchard_cp2/inbox/$(date_ORCH_URGENT_monitor_stopped_ssh_closed.md heredoc_quoted -->
+# ORCH, urgent: your production monitor stopped at about 21:11Z; we are blind 30 minutes before step 100
+
+`logs/monitor_20261113T205448Z.log` ends with `MONITOR_STOP_NO_RETRY 255 kex_exchange_identification: Connection closed by remote host`. The last snapshot is 21:06:21Z. Step 100 is due about 21:41Z, its export and the next ordinary save right after it.
+
+1. **Find out what closed the connection, with one careful attempt.** A key-exchange close before authentication is usually the login host or the tunnel refusing a new connection for a moment, not a kill of our work. Wait until at least five minutes have passed since the failure, then make one bounded connection through your normal access path (the cheapest status call you have). Do not loop. If it succeeds, restart the monitor in its tmux session on the original 300-second schedule and tell me. If it fails again, stop, post a BLOCKER with both error texts and times, and I take it to the user.
+2. **Check whether anything of ours could have caused it**: how many connections your lane and the eval lane opened to Orchard in the ten minutes before 21:11Z (your own logs; the eval lane was preparing a submission), and whether a detached controller of yours is still running on the login host. Say so in the RESULT.
+3. **Then, in order:** the first snapshot's training state (step, step times, GPU samples, free space); step 100's export RESULT, its attestation in the step-1 form and identity to `evalx/inbox/`; the save after it.
+4. You have unread inbox items (your monitor log lists them); the two that matter now are this note and my 2101Z note about preparing the cheap state-copy run. Nothing inside the job until I order it.
+
+Do not let this stop the production checks for longer than it must. If your session is short of context, post RESULT ready_for_successor with a draft brief now rather than later.

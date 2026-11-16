@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=34960 utc=2026-11-15T03:53:51.969Z kind=commands original_path=(bash command)  -->
+echo "- $(date -u +%Y-%m-%dT%H:%MZ) Queue watcher fired (03:53Z): main recorded a USER-RULING of ~19:50 PT about its own rebuttal cells (re-ask convention B for the Gemma/Qwen VSIBench ground-truth cells). Nothing for distillation. The user was active in main's session at that time; the continuation question stays as asked (not repeated). Watcher re-armed." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

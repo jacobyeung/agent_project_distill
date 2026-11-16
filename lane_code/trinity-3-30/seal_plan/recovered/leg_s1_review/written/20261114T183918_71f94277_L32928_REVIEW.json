@@ -1,0 +1,19 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=32928 utc=2026-11-14T18:39:18.871Z kind=written original_path=/scratch/jjyeung/orch_cd/leg_s1_review/NATIVE_PILOT_CONTROL_e702b65e2/REVIEW.json heredoc_unquoted(vars_unexpanded) -->
+{
+  "verdict": "ACCEPT",
+  "reviewer": "Claude Opus (Anthropic), independent reviews REVIEW_VERDICT_ORCHARD_NATIVE_FAMILY.md, REVIEW_VERDICT_ORCHARD_NATIVE_FIXES.md, REVIEW_VERDICT_NATIVE_PROBE_FIX.md, REVIEW_VERDICT_NATIVE_P1_GATE.md and the independent audit NATIVE_PIN_GRAPH_AUDIT.md (46 checks; findings #35 and #42); orchestrator orch-home-distill-79 (Claude) verified this reseal. The author is a GPT-family lane.",
+  "synthetic": false,
+  "family_sha256": "$FAM",
+  "scope": "pilot and full modes; the full read additionally needs an authenticated passed pilot of this exact family and the orchestrator's separate order",
+  "reseal_check": {
+    "previous_family_sha256": "62a94599cc05478e56986c39edea4c8f82139392a1966d5145b175f09be05bfe",
+    "why": "pilot job 169589 was refused by the bootstrap: the runtime spec pinned the old worker hash; the audit also found the mask cache bound to a reader hash that matches no sealed reader",
+    "what_i_checked": [
+      "against the previous family 28 pinned values differ: assets.worker_entrypoint is now 8611b515 and equals the code pin of native_worker.py; worker_contract.mask_cache names the new receipt 709990e5; the code object (code_fd3b8cc4a94e446d.tar, generation 1794680410160761) adds that receipt, native_cpu_replica.py and native_pin_graph.py and carries the changed native_launcher.py and native_local_check.py; the reader, worker, job and metrics pins are unchanged",
+      "the old and new mask receipts (1,248 values each) differ in exactly one value, producer_sha256, and the new value equals the sealed reader pin 6b61d819; the kernel source pin equals the code pin",
+      "the 46-row record REUSE_COMPARISONS.json (sha f92a1b20): 14 executed locally, 9 statically proved, 13 covered by a named earlier pilot, 6 live only, all passed; rows 7, 8, 28 and 36 wait only for these control files"
+    ],
+    "not_checked": "the 111 family tests and 9 reuse-gate tests, the reuse receipt's hash walk and the upload receipts (author's records); the new submission-side helpers were not independently reviewed (they can only refuse); pilot 6 is the first job to run the bootstrap entrypoint check with these pins, the P1 gate on a GPU, the mask check, the five captures and ten item pairs, and to publish the report"
+  },
+  "issued_utc": "$T"
+}

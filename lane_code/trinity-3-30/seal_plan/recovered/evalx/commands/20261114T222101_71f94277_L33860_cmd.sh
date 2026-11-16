@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=33860 utc=2026-11-14T22:21:01.966Z kind=commands original_path=(bash command)  -->
+echo "- $(date -u +%Y-%m-%dT%H:%MZ) evalx(24) RESULT 2220Z: IF8 job 169652 RUNNING on orchard-community-1 (a different host from P0's): the in-job exact prior check PASSED (P0 return admitted; no float mismatch); staging at heldout_11 at 22:17:36Z; first-ten steps and memory pending." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

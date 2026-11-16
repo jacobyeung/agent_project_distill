@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=2823 utc=2026-11-15T08:26:34.089Z kind=commands original_path=(bash command)  -->
+R=/scratch/jjyeung/orch_cd; grep -n '165643\|288 videos\|video' $R/official_reads/OFFICIAL_RESULTS.md | cut -c1-420 | head -12; echo "== evalx notes on official videos (11-10)"; ls $R/evalx/events | grep -i '2026111[0-1].*video\|vsi.*video\|official.*video' | head -8; grep -rl --include=*.md '165643' $R/evalx/events 2>/dev/null | head -4

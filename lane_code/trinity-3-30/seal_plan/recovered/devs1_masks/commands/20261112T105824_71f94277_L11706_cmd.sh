@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=11706 utc=2026-11-12T10:58:24.414Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; timeout 60 du -sm trace_diag legs1_reads pool_r2 devs1_masks orchard_port leg_s1_tree 2>/dev/null; df -B1 --output=avail /scratch | tail -1

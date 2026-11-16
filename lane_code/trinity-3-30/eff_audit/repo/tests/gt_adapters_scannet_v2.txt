@@ -1,0 +1,62 @@
+
+==================================== ERRORS ====================================
+______________________ ERROR collecting test_admission.py ______________________
+ImportError while importing test module '/scratch/jjyeung/orch_n30/eff_audit/repo/clone/gt_adapters/scannet_v2/test_admission.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+test_admission.py:13: in <module>
+    from audit_package import HERE, verify_contract
+E   ModuleNotFoundError: No module named 'audit_package'
+______________________ ERROR collecting test_collector.py ______________________
+ImportError while importing test module '/scratch/jjyeung/orch_n30/eff_audit/repo/clone/gt_adapters/scannet_v2/test_collector.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+test_collector.py:3: in <module>
+    from census import grade,select_attempt,recorded_cap,mechanically_complete,perceptual_evidence
+E   ModuleNotFoundError: No module named 'census'
+__________________ ERROR collecting test_runner_transport.py ___________________
+ImportError while importing test module '/scratch/jjyeung/orch_n30/eff_audit/repo/clone/gt_adapters/scannet_v2/test_runner_transport.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+test_runner_transport.py:12: in <module>
+    from google.genai import types
+E   ModuleNotFoundError: No module named 'google'
+___________________ ERROR collecting test_scannet_adapter.py ___________________
+ImportError while importing test module '/scratch/jjyeung/orch_n30/eff_audit/repo/clone/gt_adapters/scannet_v2/test_scannet_adapter.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+test_scannet_adapter.py:13: in <module>
+    import cv2
+E   ModuleNotFoundError: No module named 'cv2'
+____________________ ERROR collecting test_trace_archive.py ____________________
+ImportError while importing test module '/scratch/jjyeung/orch_n30/eff_audit/repo/clone/gt_adapters/scannet_v2/test_trace_archive.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+test_trace_archive.py:11: in <module>
+    from trace_archive import Archive, JournalList, install_archive, restore_snapshot  # noqa: E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   ModuleNotFoundError: No module named 'trace_archive'
+=========================== short test summary info ============================
+ERROR test_admission.py
+ERROR test_collector.py
+ERROR test_runner_transport.py
+ERROR test_scannet_adapter.py
+ERROR test_trace_archive.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 5 errors during collection !!!!!!!!!!!!!!!!!!!!
+5 errors in 0.33s
+rc=2

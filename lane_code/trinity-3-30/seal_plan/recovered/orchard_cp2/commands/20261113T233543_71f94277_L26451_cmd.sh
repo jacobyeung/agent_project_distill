@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=26451 utc=2026-11-13T23:35:43.467Z kind=commands original_path=(bash command)  -->
+C=/scratch/jjyeung/orch_cd; grep -l 'python3.12' $C/orchard_cp2/events/*.md 2>/dev/null | tail -n 8; echo ---; grep -h -n 'python3.12' $C/orchard_cp2/events/*.md 2>/dev/null | cut -c1-300 | tail -n 10; echo ---; grep -n 'python3.12\|PYTHON' $C/leg_s1_canary/events/20261113T2247Z_RESULT_state_copy_complete_mount_and_login_169097.md | cut -c1-300 | head -n 5

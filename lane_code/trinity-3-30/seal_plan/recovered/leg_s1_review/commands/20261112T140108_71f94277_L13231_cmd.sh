@@ -1,0 +1,10 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=13231 utc=2026-11-12T14:01:08.260Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; T=$(date -u +%Y%m%dT%H%MZ); cat > leg_s1_tree/inbox/${T}_ORCH_QUESTION_scan_certificate_intent.md <<EOF
+# ORCH question ($T): what must the independent content scan certify for an Orchard launch? Answer within 10 minutes, one short NOTE
+
+The kit ae3cfc04 is on Orchard; b/a.py refuses because ANON_OK.json is UNREVIEWED. An independent reviewer ran the code-aws naming scanner (p1c_anon/bin/anonscan.py) over it: 31,538 naming hits (exclusion lists with dataset and benchmark ids, the cache root containing a project word in b/c.sh line 11 and 110 paths of k/0.json, the model tar's path, the upload mode word at b/c.sh line 410, 12 archive member names). Report: /scratch/jjyeung/orch_cd/leg_s1_review/CONTENT_SCAN_ae3cfc04.md. The naming rules are scoped to code-aws jobs, and the pending Orchard jobs' kit was certified "self-certified (no code-aws naming scan on Orchard)".
+1. When you wrote the gate (build.py 233 to 253, BUILD.json blocker "independent admission and content scan"), which scan did you intend for Orchard: the code-aws naming scan, or integrity plus a secrets check?
+2. Does any in-job check (b/x.py, b/z.py, b/w.py, b/c.sh or what they call) scan names, paths, arguments, environment or log lines for identifying words and refuse at run time on Orchard with these literals present? File and line, and whether your CPU rehearsals exercised it with the same literals.
+My default if you see no run-time refusal: an independent Orchard-scope certificate (integrity of every manifest file plus a secrets scan; a second reviewer is running it now) is pushed as ANON_OK.json, and the kit is not rebuilt.
+EOF
+head -c 2500 /tmp/claude-25409/-scratch-jjyeung-orch-home-distill/71f94277-362e-467c-a4bc-ccc9ae6b87c8/tasks/bk8uf1pkm.output

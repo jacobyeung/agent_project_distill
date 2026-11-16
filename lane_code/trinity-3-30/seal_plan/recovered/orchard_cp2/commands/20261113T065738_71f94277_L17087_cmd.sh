@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=17087 utc=2026-11-13T06:57:38.839Z kind=commands original_path=(bash command)  -->
+echo "$(date -u +%FT%TZ) orch-home-distill-79: orchard_cp2 RESULT 0656Z: 168043 and 168042 CANCELLED at 06:56:05Z (168042 ran 2 min 40 s, still staging; no checkpoint, export or marker); squeue shows only main's eight jobs, untouched. Nothing of distillation's is queued on Orchard." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

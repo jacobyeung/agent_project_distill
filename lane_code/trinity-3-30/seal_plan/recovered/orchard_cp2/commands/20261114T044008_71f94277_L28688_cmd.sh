@@ -1,0 +1,7 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=28688 utc=2026-11-14T04:40:08.980Z kind=commands original_path=(bash command)  -->
+N=$(date -u +%Y%m%dT%H%MZ); C=/scratch/jjyeung/orch_cd; cat > $C/orchard_cp2/inbox/${N}_ORCH_NOTE_events_only_when_I_must_act.md <<'EOF'
+# ORCH note: events only when I must act
+
+Good work on the monitor; noted that the successor draft exists. From now until the end of the allocation, post an event only for: a milestone export attested and delivered (step 400), a save that failed or ran long, a floor or forecast alarm under the confirmed policy, anything wrong with the job, the end-of-allocation runbook steps, and questions you cannot settle. Routine confirmations (tests pass, watcher reloaded, policy verified, an ordinary save completed) go into `STATUS.md` only. Each event wakes the orchestrator.
+EOF
+T=$(date -u +%Y-%m-%dT%H:%M:%SZ); echo "$T orch-home-distill-79: orchard_cp2 RESULT 043822Z: monitor policy verified live; production through step 283; project space 587.88 GB at 04:34Z; policy archive in distill_design (ORCHARD_SPACE_POLICY_169097_20261114T043702Z.tar.gz) and record ORCHARD_SAVE_WINDOW_169097.md; successor draft BRIEF_SUCCESSOR13_DRAFT.md exists. Told orchard_cp2 ($N): events only when I must act. Re-armed evwait (b00i947qx)." >> $C/ORCH_HANDOFF.md

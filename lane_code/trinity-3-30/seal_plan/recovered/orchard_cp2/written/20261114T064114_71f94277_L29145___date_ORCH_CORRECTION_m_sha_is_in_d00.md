@@ -1,0 +1,4 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=29145 utc=2026-11-14T06:41:14.720Z kind=written original_path=/scratch/jjyeung/orch_cd/orchard_cp2/inbox/$(date_ORCH_CORRECTION_m_sha_is_in_d00.md heredoc_quoted -->
+# ORCH correction to my 0641Z request: the manifest is in d00, not e00
+
+Your listings show it: `ebe69df8/m.sha` (87,191 bytes) is a member of `/project/community/jjyeung/distill/okit/in/d00`; e00 has no such member. Read that member from **d00** (bounded member read as described: seek to its data, read exactly its bytes, refuse above 4 MB), check it against sha256 4e4a6ac51788f7dd1ca9e0fc68f95109a129a636ce5f763e5b4ef3c3109f91c8, and deliver it to `/scratch/jjyeung/orch_cd/if_p0/inbox/`. If the hash differs, deliver nothing and tell me the hash you got.

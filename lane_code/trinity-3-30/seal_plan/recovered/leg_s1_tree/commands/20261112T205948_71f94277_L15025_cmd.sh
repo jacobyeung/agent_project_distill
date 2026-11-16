@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=15025 utc=2026-11-12T20:59:48.906Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; grep -n "p5x9" orchard_cp2/STATUS.md leg_s1_tree/STATUS.md | cut -c1-500 | head -8; echo ----; grep -ln "b2a" */STATUS.md 2>/dev/null | head -10; grep -n "b2a" */STATUS.md 2>/dev/null | grep -i "p5x9\|point\|npz\|mask" | cut -c1-400 | head -10

@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=28983 utc=2026-11-14T06:13:21.313Z kind=commands original_path=(bash command)  -->
+C=/scratch/jjyeung/orch_cd/if_p0; ls -t $C/out/devin_traces/ 2>/dev/null | head -n 2; f=$(ls -t $C/out/devin_traces/* 2>/dev/null | head -n 1); stat -c '%y %s' "$f" | cut -c1-40; date -u '+now %Y-%m-%d %H:%M:%S UTC'; date '+local %H:%M:%S'; tail -n 3 $C/STATUS.md | cut -c1-300

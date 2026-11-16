@@ -1,0 +1,4 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=32196 utc=2026-11-14T15:12:20.781Z kind=written original_path=/scratch/jjyeung/orch_cd/orchard_cp2/inbox/$(date_ORCH_NOTE_canary_cpu_check_packet.md heredoc_quoted -->
+# ORCH note: the canary lane is building the real-slot CPU check and the baseline capture, build-only
+
+Its task: `/scratch/jjyeung/orch_cd/leg_s1_canary/inbox/` (file name containing `build_real_slot_cpu_check_packet`). Give it what it asks for from your records (slot A's metadata, the terminal reconciliation, the limits of `general` and `advanced` for a zero-GPU job, restore times). This is part of your continuation packet's gate list; fold its answer into your CONTINUATION_READY result. Still no submission of anything: the user has not decided.

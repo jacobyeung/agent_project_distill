@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=30879 utc=2026-11-14T10:48:39.583Z kind=commands original_path=(bash command)  -->
+echo "- $(date -u +%Y-%m-%dT%H:%MZ) evalx RESULT 1047Z: native pilot 169501 RUNNING since 10:43:35Z (staging of twelve named items complete; past pilot 1's failure point). P0 169491 held 09:59:55Z, released 10:45:28Z (PENDING, no hold). Step-400 read 169493 COMPLETE (archive 39.7 MB); fetch + packet next." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

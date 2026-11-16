@@ -1,0 +1,18 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=1356 utc=2026-11-15T05:50:25.938Z kind=commands original_path=(bash command)  -->
+R=/scratch/jjyeung/orch_cd; T=$(date -u +%Y%m%dT%H%MZ); cat > $R/evalx/inbox/${T}_ORCH_RULING_rehearsal_budget_2GiB.md <<'EOF'
+# ORCH RULING on your 0549Z blocker: budget raised; no measurement-only pass
+
+The continuation result is accepted as a continuation (admit_bundle, camera report, admission tail and terminal receipts passed on the 636 retained rows; fixture shortcuts produced by the original producer; production control on all 450 camera items passed).
+
+Budget, for every CPU rehearsal from now on (this continuation's publication, the candidate's whole-worker pilot rehearsal, the fresh full rehearsal): up to 2 GiB of owned bytes per rehearsal run, provided /scratch on this node shows more than 120 GB free when the run starts (it shows 138 GB). Record the measured sizes in the result; do not ask again for an extension inside that bound, and do not run a measurement-only pass. The earlier 300 MiB figure protected the node from a staging copy, not from archives of a few hundred MB.
+
+Proceed: publication, framed transfer, fetch verification and the verified member reader of return_chain on the retained full outputs. Your scope note is right: do not present a full return as pilot evidence, and keep from_return to pilot projections. One event when the chain passes or at the next failing line.
+EOF
+/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B - <<'PY'
+p='/scratch/jjyeung/orch_cd/ORCH_STATE_20261111T0935Z.md'; s=open(p).read()
+old='**CONTINUATION (steps 545 to 1,000'
+new=('**ELIGIBILITY 2026-11-15 (b6_design; distill_design/B6_GROUNDING_DESIGN_20261115.md):** the deployed frozen mask selector was fitted on 84 dev scans = 44 rooms that include all 44 VSTI rooms and 18 ReVSI rooms. It is legal for VSI-Bench and dev-S1 reads only. No ReVSI or VSTI read that uses masks, and no training response of the seal, may use it; lane b6_build refits it on eligible training captures first (kill test K1 on 300 eligible captures, 3-6 GPU-h). VSTI camera routes use pose only and are unaffected. Grounding in this seal is a guard (about +0.2 VSI points); own-encoder grounding is a side experiment (brief B6-B; teacher labels now also at /scratch/jjyeung/orch_cd/b6_owngrd/labels/, sha 189140d7).\n**TRACE RULING 2026-11-15 (adopted; distill_design/TRACE_RULING_20261115.md; memory trace-ruling-20261115):** program rows only for absolute distance, room size and three camera types; direct rows carry qualitative traces; deployed responses with trust and fallback rows for distance and room; the sealed leg trained 15.3 answer-only and 95.0 stated-measurement rows of 192 language rows per step. No builder row is admitted before it passes rs_rows/work/trace_grammar.py and I have read fixed-seed samples. Two points proceed on defaults (SAVED_USER_QUESTIONS.md rows of 05:45Z).\n'+old)
+assert old in s and 'ELIGIBILITY 2026-11-15' not in s
+open(p,'w').write(s.replace(old,new,1))
+PY
+echo "- $(date -u +%Y-%m-%dT%H:%MZ) evalx BLOCKER 0549Z: full continuation passed admit_bundle, camera report, admission tail, terminal receipts on 636 retained rows (82 s); stopped before publication on its 300 MiB budget. Ruled: 2 GiB per CPU rehearsal while /scratch > 120 GB free; no measurement-only pass; proceed with publication/fetch/member reader. State file: ELIGIBILITY and TRACE RULING notes added." >> $R/ORCH_HANDOFF.md

@@ -1,0 +1,9 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=28710 utc=2026-11-14T04:41:21.655Z kind=commands original_path=(bash command)  -->
+N=$(date -u +%Y%m%dT%H%MZ); C=/scratch/jjyeung/orch_cd; wc -l $C/if_p0/out/crossseal_v5/*.diff 2>/dev/null | tail -n 6; cat > $C/if_p0/inbox/${N}_ORCH_NOTE_seal_93392de4_received_hold.md <<'EOF'
+# ORCH note: seal 93392de4 received; hold
+
+Received with thanks. I confirm its diffs (from 8d5bdd73 through 810f8085 to 93392de4) before any later-arm packet, and that is only needed once P0's real result exists. Until then change nothing and build no packet.
+
+Next for you: when evalx reports that P0 job 169413 has started, read its first observations with me in mind (the preflight, the namespace smoke test, check-runtime, the selection hash 4d53d9b8 and skip counts, the frame plan, step-0 equality, peak memory, data seconds against wall seconds). If any of those differs from what the kit expects, post a BLOCKER at once with what the job printed. When the result archive lands in `inbox_results/<token>/`, verify it, write the read (P0's direction error with its interval, the headroom gate, the IF8 time projection under both the 12-hour and the 24-hour limit) and post one RESULT.
+EOF
+T=$(date -u +%Y-%m-%dT%H:%M:%SZ); echo "$T orch-home-distill-79: if_p0 RESULT 0440Z: kit v5 sealed (out/crossseal_v5/kit_ifp0_orchard_job_93392de4f82c6451; seal 93392de4; archive cc0c95b6; 85 tests; cross-seal rehearsals pass): pinned predecessor admission (8d5bdd73) with a table of byte-identical science files, 12 h on general and 24 h on advanced. Confirmation deferred until P0's real result exists; told if_p0 ($N) to hold and to read P0's first observations and result. Re-armed evwait (b483l2c1q)." >> $C/ORCH_HANDOFF.md

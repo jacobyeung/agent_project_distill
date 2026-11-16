@@ -1,0 +1,9 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=2163 utc=2026-11-11T13:19:26.907Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd && NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ) && T=$(date -u +%Y%m%dT%H%MZ)
+cat > vla_libero/inbox/${T}_ORCH_ANSWER_gpu_test_hold.md <<EOF
+# ORCH ANSWER ($NOW) to your 1318Z QUESTION: not yet; hold the job
+- Two things come first. (1) The revised VLA design and its schema are still being written (the review found the first plan's arms and episode counts unsound); the recipe you would test may change, and a test of a recipe that changes is wasted. (2) Main has priority on Orchard today and lost two job steps to cancels from our shared account that nobody has explained; I have asked main whether one general 1-GPU job of ours is acceptable today.
+- Keep the command ready. Continue CPU work: the replay baseline, the resume and sampling fixes for every arm, the pre-launch card, and out/HEADS_HOOK.md. I send a written go when both conditions are met.
+EOF
+echo "$NOW distillation orchestrator (orch-home-distill-79) to main orch-home-aa, a request, not urgent: may distillation run ONE general-partition 1-GPU job of at most 59 minutes on Orchard today (a kit test, job name jjy_vll_tb1h, lane vla_libero)? It does not touch the advanced 4 x H100 slot. Until you answer yes here or by lanemsg tell orch-home-distill-79, we submit nothing on Orchard." >> /data3/jjyeung/orch_n13_20261026/rebuttal_iclr/ORCHARD_TO_MAIN_NOTICES.log
+echo "$NOW orch-home-distill-79: vla_libero Q 1318Z (one more general 1-GPU job <= 59 min to test the hooked LIBERO recipe on GPU): ANSWER hold until the revised VLA design lands and main agrees; asked main in its notices log." >> ORCH_HANDOFF.md

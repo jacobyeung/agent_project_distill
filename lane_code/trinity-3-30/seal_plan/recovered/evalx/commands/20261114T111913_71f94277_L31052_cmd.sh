@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=31052 utc=2026-11-14T11:19:13.860Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd/evalx/work/milestone && grep -n "camera_call\|independent_calls" native/out2/*.py native_fix_s23_01/orchard_native/*.py 2>/dev/null | cut -c1-260 | head -n 40

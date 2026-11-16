@@ -1,0 +1,7 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=35212 utc=2026-11-15T04:07:55.749Z kind=written original_path=/scratch/jjyeung/orch_cd/evalx/inbox/$(date_ORCH_RULING_full_rehearsal_background_launcher.md heredoc_quoted -->
+# ORCH ruling: launch the full CPU rehearsal without tmux (answers BLOCKER 0406Z)
+
+1. Do not use tmux for this launch and do not touch any tmux server. The default tmux socket on this node is unhealthy; other sessions' servers on named sockets are not yours.
+2. Cleared, one attempt: start the full 636-item rehearsal detached from your shell with `setsid nohup timeout 7200 <your rehearsal script by path> > <launch log> 2>&1 < /dev/null &`, from a small wrapper script that writes the pid file, the launch receipt and, at exit, the process-exit record with the return code. Same bounds as my 035xZ ruling (at most 8 threads, the footprint limit stated there, 120 minutes). Confirm within 60 s that the child is alive and the run folder exists; if it is not, report once and hold. No second attempt without my answer.
+3. The full rehearsal gates the full read only. Pilot 9 does not wait for it: finish the pilot-path coverage review, then seal, upload once, build the `advanced` packet and send me the event as ordered (runtime diff against family 97f1297b as a file, the pilot-path coverage table, rehearsal outcome, family sha, token).
+4. Your session limit is about 07:59Z. If the pilot-9 event will not be out by 07:15Z, write `work/BRIEF_SUCCESSOR25_DRAFT.md` and a ROTATION_READY event first, as on 11-14 19:06Z.

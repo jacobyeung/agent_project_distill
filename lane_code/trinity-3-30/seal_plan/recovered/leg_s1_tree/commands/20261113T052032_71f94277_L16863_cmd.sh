@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=16863 utc=2026-11-13T05:20:32.498Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; sed -n '12,40p' leg_s1_tree/events/20261113T0518Z_RESULT_routing_receipt_patch_ready.md | cut -c1-1200; echo "$(date -u +%FT%TZ) orch-home-distill-79: leg_s1_tree RESULT 0518Z: routing selection regenerated natively for the patched tree; round-2 patch ready (out/patch_660bef86….json, 126 KB; parent tree 56cbdb2a); orchard_cp2 drops it into job 168893 for its final round." >> ORCH_HANDOFF.md

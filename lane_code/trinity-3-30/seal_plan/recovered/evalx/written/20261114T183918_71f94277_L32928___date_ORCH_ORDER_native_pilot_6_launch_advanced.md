@@ -1,0 +1,9 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=32928 utc=2026-11-14T18:39:18.871Z kind=written original_path=/scratch/jjyeung/orch_cd/evalx/inbox/$(date_ORCH_ORDER_native_pilot_6_launch_advanced.md heredoc_unquoted(vars_unexpanded) -->
+# ORCH order: launch native pilot 6 on `advanced` (token e702b65e2, family 2b9d7815)
+
+Verified by me: the two mask receipts differ only in producer_sha256, now the sealed reader pin; the worker entrypoint equals the code pin; against family 62a94599 only the expected 28 values changed; your 46-row record has every row passed except the four that wait for these controls. Control files: `$C/REVIEW.json` and `$C/ORDER.md`.
+
+1. Run the reuse gate and the unchanged sealed admission with these controls, then one test-only call and one real submission on `advanced`, with the same account rule as pilot 5 (main's eight protected jobs only while PENDING for Dependency or JobHeldUser; 169530 on `general`). Anything else: no submission, one line to me. No retry.
+2. Not running within 20 minutes: one line with the pending reason.
+3. RESULT when it returns, gate outcome first (sealed P1, p1_gate and its ties, P2 with its independent call count, P3, the probe's calls), then load time, peak memory, the mask check, geometry seconds per capture, seconds per item pair, return size, the first camera, distance and room item traces with answers against labels and the call and version error counts, and the full-read projection for 636 items over 84 captures on both partitions against time, return size and the pool's remaining 874 MB.
+4. On a pass: build the full-read packets for both partitions from this exact family and report their tokens. I order the full read separately.

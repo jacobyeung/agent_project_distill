@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=12496 utc=2026-11-12T12:35:11.141Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; tmux ls 2>/dev/null | grep cx_ | cut -c1-60; tail -c 300 leg_s2_tree/dispatch.out; echo; tail -c 300 r5_fixture/dispatch.out; echo; ls -t codex_local/agent/scratch/codex_runs | head -3

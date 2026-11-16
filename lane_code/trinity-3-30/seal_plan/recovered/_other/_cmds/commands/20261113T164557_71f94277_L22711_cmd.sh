@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=22711 utc=2026-11-13T16:45:57.655Z kind=commands original_path=(bash command)  -->
+K=/scratch/jjyeung/orch_cd/leg_s1_fourstream_kit/final_b; ls -la $K/arm | head -n 8; grep -n -E '/arm|"arm"|arm/' $K/b/*.sh $K/job.sh 2>/dev/null | cut -c1-220 | head -n 20; echo ==; grep -l -E "NX/arm|/arm/|'arm'|\"arm\"" $K/b/*.py 2>/dev/null | head; grep -n -E "NX=|NR=|HX=|TK_JOBDIR=" $K/b/c.sh | cut -c1-200 | head -n 8

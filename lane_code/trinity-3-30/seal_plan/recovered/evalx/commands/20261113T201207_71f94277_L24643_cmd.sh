@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=24643 utc=2026-11-13T20:12:07.464Z kind=commands original_path=(bash command)  -->
+C=/scratch/jjyeung/orch_cd/evalx/work/milestone; timeout 120 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B -m pytest -q -p no:cacheprovider $C/test_hardware_audit.py 2>&1 | tail -n 3; grep -n "GPU_TYPE *=" $C/decision_fork.py | head -n 2; grep -n -c "A6000" $C/test_hardware_audit.py

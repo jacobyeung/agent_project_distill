@@ -1,0 +1,11 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=387 utc=2026-11-15T04:49:43.762Z kind=commands original_path=(bash command)  -->
+R=/scratch/jjyeung/orch_cd; /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B - <<'PY'
+p='/scratch/jjyeung/orch_cd/ORCH_STATE_20261111T0935Z.md'
+s=open(p).read()
+old='Review briefs and verdicts of today: leg_s1_review/ (BRIEF_* and REVIEW_VERDICT_*, DONOR_SCANNER_SAFETY.md, CONFIRMATION_MILESTONE.md). Reviewers are Claude Opus high through the Agent tool (builders are GPT lanes).'
+new=('**EXECUTORS (USER 2026-11-14 PT: "i prefer you use codex for astra, devin for fable or opus"; memory codex-default-executor):** Astra runs through Codex (`orch_tools/codex_local.sh review|implement <dir> <prompt-file> --label NAME`), never through Devin; Opus or Fable runs through Devin (`orch_tools/devin_bg_acp.sh /home/jjyeung/agent_project_distill <brief> claude-opus-5-5-high|claude-opus-5-5-max|claude-fable-5-2-xhigh <seconds> <stdout>`), not through the Agent tool. The three live lanes were launched on Devin gpt-6-astra-max before this ruling and run to their end; apply the rule at every new launch and rotation: the evalx successor is a Devin Opus operator lane, and the code fixes it needs go out as Codex Astra dispatches.\n'
+     'Review briefs and verdicts: leg_s1_review/ (BRIEF_* and REVIEW_VERDICT_*, DONOR_SCANNER_SAFETY.md, CONFIRMATION_MILESTONE.md). Reviews of GPT-built code are Claude Opus high on Devin.')
+assert old in s
+open(p,'w').write(s.replace(old,new))
+PY
+echo "- $(date -u +%Y-%m-%dT%H:%MZ) USER RULING: \"i prefer you use codex for astra, devin for fable or opus\". Memory codex-default-executor rewritten; state file EXECUTORS line added. Running lanes (evalx, official544, next_queue on Devin Astra; one Agent-tool Opus review of pilot-9 coverage) run to their end; every new launch and rotation follows the rule (evalx successor = Devin Opus operator + Codex Astra fix dispatches)." >> $R/ORCH_HANDOFF.md; grep -c 'EXECUTORS (USER 2026-11-14' $R/ORCH_STATE_20261111T0935Z.md

@@ -1,0 +1,13 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=25907 utc=2026-11-13T22:42:41.572Z kind=commands original_path=(bash command)  -->
+N=$(date -u +%Y%m%dT%H%MZ); C=/scratch/jjyeung/orch_cd; cat > $C/evalx/inbox/${N}_ORCH_ANSWER_no_early_stop_let_rehearsal_complete.md <<'EOF'
+# ORCH answer: do not stop the rehearsal early; let job 169311 run to completion, then submit step 100 at once
+
+Your 2241Z question. I withdraw the option I gave you in my 2225Z note of stopping after the first complete phase. Reasons:
+
+- The later phases (the camera cohort, the final merge, the COMPLETE record and the full result archive against the 256 MiB cap) have never run through this launcher. If the rehearsal is cut after the main phase, the first run to exercise them is the decision read itself, and a failure there costs more than the 45 minutes the early stop would save.
+- A complete step-50 read is useful in its own right: with step 100 it gives two points on the leg's path against the two comparators. Report it labelled diagnostic.
+- The trainer does not wait for us; the delay costs nothing but time.
+
+So: send no signal to 169311. Post one RESULT when the main phase's merge is authenticated (the path is then proven as far as a complete read phase), and one when the job ends, with the phase times, the archive size, and the step-50 numbers through the accepted decision code labelled diagnostic. Submit the step-100 read as soon as the `general` slot is free and the rehearsal has ended COMPLETE; if it ends any other way, tell me why before submitting.
+EOF
+T=$(date -u +%Y-%m-%dT%H:%M:%SZ); echo "$T orch-home-distill-79: evalx RESULT 2241Z: third step-50 rehearsal job 169311 (general, orchard-community-1, started 22:32:04Z, launcher digest 50deb489): mount gate passed, three runtime groups staged (13.7 / 59.6 / 3.9 s), base snapshot verified (100.2 s), step-50 export downloaded from GCS in 135.7 s (159 MB/s) and matches archive sha cdbccdc7, extracted in 26.8 s; frame staging advancing; generation not yet started. QUESTION 2241Z (stop after the main phase with scancel --signal=USR1 --batch to free the slot?). ANSWER ($N): NO early stop; let the rehearsal complete (later phases and the full archive are otherwise first exercised by the decision read; a complete step-50 read is a second data point); step-100 read right after a COMPLETE end. Project free 449.3 GB at 22:39Z." >> $C/ORCH_HANDOFF.md; echo done $N

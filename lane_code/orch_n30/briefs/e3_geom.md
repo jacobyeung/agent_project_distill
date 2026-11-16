@@ -1,0 +1,20 @@
+# Lane e3_geom (runs on trinity-1-18): price the tools' geometry in benchmark points, without training
+
+Lane folder: /scratch/jjyeung/orch_n30/e3_geom on trinity-1-18 (cap 20 GB). Events folder: /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/e3_geom/. First read /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/tools/LANE_RULES.md and obey it. You are an operator and analyst: code goes to Codex as the rules describe; a script of a few lines is yours. Record: /data2/jjyeung/agent_project_data/distill_design/E3_BACKEND_GEOMETRY_PRICING_20261116.md (question, answer, evidence, options rejected, what might be wrong, status) with its INDEX line.
+
+## Why
+Routed programs compute distances and room areas from the frozen tower's geometry. With ground-truth masks, ground-truth geometry scores 82.1 on distance against the tower's 66.1, and 99.2 against 55.0 on room area: geometry, not grounding, is most of the gap. The design review after the first native read (/data2/jjyeung/agent_project_data/distill_design/A0_AFTER_NATIVE_READ_DESIGN_20261116.md: read its sections on option (d) "programs with a better backend" for distance and room, lever 6, and experiment E3) asks one question that needs no training: does a stronger metric scale or a floor rule make room programs beat direct answers by at least 10 points on square-metre questions, and lift metre-distance programs, on held-out rooms? The answer decides whether room size routes in a later leg and what the geometry-fusion leg should target. Every candidate is priced in points on the tasks, not in depth error alone.
+
+## Facts
+- The K1 tower phase finished tonight on this node: 300 captures with tower geometry under /scratch/jjyeung/k1/run_tower_sam_2 (read-only; mirrored). Ground-truth rasters for 296 captures sit at the manifest paths under /scratch/jjyeung/orch_cd/dose_pool/out/ (read-only). Lane k1_ops5 (folder /scratch/jjyeung/orch_n30/k1_ops3) operates K1: read its STATUS.md in /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/k1_ops3/ for paths, and never write under its folders, /scratch/jjyeung/k1 or /scratch/jjyeung/orch_cd.
+- K1 is a registered kill test on grounding. You compute no grounding mark of it (no mask overlap, no selector score, no kill mark) and print none; you use its captures for geometry only, with the room split the design record names (111 training rooms, 24 held-out, plus dev-S1's 36 room items if their geometry is reachable).
+- GPUs: none needed for candidates that re-fit scale or floor on the cached tower outputs. If a candidate needs a new tower pass, write a QUESTION first; card 4 of this node is in use for a reader proof from about 06:40Z, and trinity-0-13's cards are free on my word.
+- The node's CPUs are heavily loaded by other users; keep jobs to 8 threads.
+
+## Deliver
+1. Within 40 minutes, a RESULT event named plan: which geometry outputs the cached tower phase holds, which candidates can be computed from them on CPU (raw scale, scale fitted per capture on what signal, floor-plane rules, any other the record names), how each is turned into a distance or area answer through the deployed program's arithmetic, and the scoring (the benchmark's MRA on metre and square-metre questions).
+2. The pricing, fitted on the training rooms and reported on the held-out rooms only: per candidate, task points on distance and room with intervals over rooms, against the deployed setting, and against ground-truth geometry as the ceiling; then what that is worth on VSI-Bench's eight-task mean, with the arithmetic shown. State which results rest on ground-truth masks and which on predicted masks.
+3. One RESULT event of at most 30 lines with the answer first. Say plainly if no candidate clears the 10-point bar.
+
+## Limits
+No training, no Orchard job, no paid key, no benchmark item (VSI-Bench, ReVSI, VSTI). No Git, no deletion. Your session ends after 5 hours: a RESULT event named rotate before then or at 60% of your context.

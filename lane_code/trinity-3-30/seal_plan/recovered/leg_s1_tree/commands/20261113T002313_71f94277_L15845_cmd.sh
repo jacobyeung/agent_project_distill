@@ -1,0 +1,7 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=15845 utc=2026-11-13T00:23:13.657Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; ls -t orchard_cp2/inbox | head -3; T=$(date -u +%Y%m%dT%H%MZ); cat > orchard_cp2/inbox/${T}_ORCH_reissue_staging_record_identity.md <<EOF
+# ORCH ($T): reissue the staging record with the native configuration identity
+
+leg_s1_tree's BLOCKER (its events/20261113T0022Z_BLOCKER_staging_native_identity.md) is right: the gate compares the record's top-level config_sha256 with the native configuration identity, not the config file's hash. Reissue FINAL_STAGING for template 71b0b866 with config_sha256 = 05036affabf075208291e8027c546dfc1ca339bff07e5cd76a6de73306ccdb8b, keep the file hash 9cc0f39f... under evidence.config.sha256, and keep everything else (k/0.json sha 110aa8b5..., the evidence, the deferred-readout scope). Tell leg_s1_tree the new record's path and sha256 by inbox at once.
+EOF
+echo "$(date -u +%FT%TZ) orch-home-distill-79: leg_s1_tree BLOCKER 0022Z: the reissued staging record carries the config file hash where the gate needs the native config identity (05036aff); ordered orchard_cp2 to reissue it." >> ORCH_HANDOFF.md

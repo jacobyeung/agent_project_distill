@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=2783 utc=2026-11-11T14:28:34.470Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd/dose_pool && timeout 60 du -s --block-size=1G work/* out/* 2>/dev/null | sort -rn | head -8; echo "== processes of this lane writing"; pgrep -u jjyeung -af 'dose_pool' | grep -v 'pgrep\|snapshot' | cut -c1-170 | head -8; df -h /scratch | tail -n 1

@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=29006 utc=2026-11-14T06:15:08.056Z kind=commands original_path=(bash command)  -->
+echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) orch-home-distill-79: if_p0 BLOCKER 0614Z repeats the authenticated P0 failure (same facts as evalx's 0605Z); its fix task is my 0607Z note. No new action. Re-armed evwait (bdqlngzm3)." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

@@ -1,0 +1,8 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=2471 utc=2026-11-11T13:54:06.008Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd && T=$(date -u +%Y%m%dT%H%MZ) && cat > vla_libero/inbox/${T}_ORCH_ANSWER_conformance.md <<EOF
+# ORCH ANSWER ($(date -u +%Y-%m-%dT%H:%M:%SZ)) to your 1353Z RESULT
+- The orientation contradiction (dataset images mirror the MuJoCo view; K with fx < 0) goes into the corrected schema now; I sent your evidence to the lane writing it. Keep your convention; vla_where and dyn_probe will be told to follow it.
+- The seeding fix (build the model under set_seed) is right; record it in the pre-launch card as a difference from the October pilot.
+- Disk: leave the 960 MB transfer tar where it is; I delete nothing and neither do you. Your cap on this node's /scratch is now 6 GB.
+EOF
+echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) orch-home-distill-79: vla_libero RESULT 1353Z: kit retargeted to the schema; T-4 (19/20 projections in mask), T-5, T-6 pass; hand-eye fitted from 72 replayed states (t = 0.050, 0.000, -0.097 m, residual 6e-8 m); schema contradiction found and measured (dataset images mirror the MuJoCo view left-right: K needs fx < 0), sent to the schema-fix agent; StarVLA seeding bug fixed (it seeded after building the model, so each run's head init differed, the pilot included); /scratch cap raised to 6 GB (a 960 MB transfer tar stays). Blind-prior run is going in tmux vll_blind." >> ORCH_HANDOFF.md

@@ -1,0 +1,16 @@
+# Lane review_k1b3 (runs on trinity-1-18): confirm the four fixes to the K1 own-phase package (the first reader has ended)
+
+Lane folder: /scratch/jjyeung/orch_n30/review_k1b3 on trinity-1-18. Events folder: /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/review_k1b2/ (the first reader's folder; write your files there so the operator's submission condition can fire). First read /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/tools/LANE_RULES.md and obey it. You are a reviewer: read-only except your lane folder and that events folder; no GPU, no Orchard call, no copy above 20 MB, no Git, no deletion. You fix nothing and you do not talk to the builder. Keep tests small: the node is loaded.
+
+## What and why
+The K1 own phase is one Orchard GPU job (a15_cot_apb7e31d84a90c62f5) that reads the step-544 student's depth and gravity heads on 300 captures. The first review said GO AFTER FIXES: /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/review_k1b2/REVIEW_VERDICT_K1_PART_B.md (F1 mount points for the pool and gcloud_config under the read-only project path, reproduced; F2 gcloud_config read-write for the in-namespace publish; F3 interpreter path and a chunked sha; F4 a deadline so the job ends cleanly by 12:30Z). The builder fixed them: /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/k1_ops3/20261116T0825Z_RESULT_part_b_fixes_F1_F4.md; packet /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/k1_ops3/partb/REVIEW_C_k1ops5.tgz (sha256 22079a20...: REPORT5.txt, evidence/REPORT5_JOB.diff, the new job files, the output of the rehearsal on a read-only project layout). New batch sha256: fc9ed8a8ef64bd3c287939f3a804a0f5c63fd52c036b18255426461415bd9636. The job's queue slot is open now and must start by about 10:00Z.
+
+## Do
+1. Read evidence/REPORT5_JOB.diff line by line against F1 to F4: each finding fixed, not fixed, or fixed with a new defect (file and line). Nothing else may have changed in a job file: list anything that did.
+2. F1: rerun the first reader's bwrap reproduction (its notes are in /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/review_k1b2/ and under /scratch/jjyeung/orch_n30/review_k1b2/bwt2/ on this node) against the fixed stage_job, or read the builder's run 4 output and say which you did.
+3. F4: the deadline arithmetic at both budget sites, on constructed start times (a start at 09:30Z, at 11:50Z, and after the deadline): the job must stop cleanly with its return written, never be killed by the wall limit, and never start a capture it cannot finish.
+4. F2 and F3: what remains untested (real gcloud authentication and upload inside the namespace; the compute node's Python) and what the job does if either fails: does it fail before or after staging 25 GB, and is a partial return written?
+5. Confirm the batch sha256 of the file the operator will submit.
+
+## Verdict
+Write CONFIRMED_fc9ed8a8.md (or NOT_CONFIRMED_fc9ed8a8.md with the reasons) in /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/review_k1b2/, at most 15 lines, the first line saying CONFIRMED or NOT CONFIRMED for batch fc9ed8a8..., then one RESULT event there. Then stop. Aim for 20 minutes.

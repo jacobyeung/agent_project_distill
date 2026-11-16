@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=35231 utc=2026-11-15T04:09:13.484Z kind=commands original_path=(bash command)  -->
+ls -l /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/lanes/tools/trinity_ssh.sh 2>&1 | cut -c1-200; grep -n 'trinity_ssh' /scratch/jjyeung/orch_cd/evalx/BRIEF_SUCCESSOR24_DRAFT.md | head -3 | cut -c1-300

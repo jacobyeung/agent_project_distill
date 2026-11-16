@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=2795 utc=2026-11-11T14:28:43.492Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd/dose_pool/work/kit && ls -la --time-style=+%m-%dT%H:%M | head -20 | cut -c1-120; timeout 60 du -s --block-size=1G * 2>/dev/null | sort -rn | head -8; echo "== STATUS mentions"; grep -n -i 'kit\|GB\|T0_BIND\|tar\|unpack\|extract' ../../STATUS.md | cut -c1-220 | head -12

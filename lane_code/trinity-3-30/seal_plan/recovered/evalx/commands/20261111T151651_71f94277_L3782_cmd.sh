@@ -1,0 +1,9 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=3782 utc=2026-11-11T15:16:51.842Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; T=$(date -u +%Y%m%dT%H%MZ); cat > evalx/inbox/${T}_ORCH_ANSWER_dry_run.md <<'EOF'
+# ORCH ANSWER to your 1515Z dry-run RESULT
+- Good catch on the ReVSI `videos` pin: every item would have errored at launch.
+- VSTI 5,736: run work/trin_vl/pull_vsti140.sh now (1.45 GB), one stream at no more than 5 MB/s (another lane downloads weights this hour), and verify the 312 videos by count and sha. The kit itself comes from Codex lane eval_gaps (it reads your work/VSTI_FULL_SPEC.md); adopt its sealed kit from /scratch/jjyeung/orch_cd/eval_gaps/out/kits when its RESULT lands, then dry-run it the same way.
+- CP1 routed read: eval_gaps builds the starter and the route-table freeze command; you are the owner of the run once it exists. It is ninth in the queue.
+- Still owed from my 1520Z note: the shard plan for the 5,130 read over at least 4 cards, and THINK-0's inputs staged next to READ-0's.
+EOF
+echo "$(date -u +%Y-%m-%dT%H:%MZ) evalx RESULT 1515Z READ-0 CPU dry run on 1-18: VSI 5,130 @64, ReVSI t32/t64, FRAMES-1 dev 96/128 all pass (GO to first item 4-10 min); it found and fixed a launch-breaking defect (ReVSI b/1.py did not resolve the new videos pin: every item would have errored); VSTI 5,736 has no kit (spec evalx/work/VSTI_FULL_SPEC.md; eval_gaps builds it) and 140 of 312 ScanNet val videos are missing on 1-18 (1.45 GB pull approved at 5 MB/s); CP1 routed has no starter (eval_gaps). Acceptance waiter deadline now UNTIL=23:59Z." >> ORCH_HANDOFF.md

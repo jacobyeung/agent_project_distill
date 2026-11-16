@@ -1,0 +1,6 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=15912 utc=2026-11-13T00:44:02.752Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; T=$(date -u +%Y%m%dT%H%MZ); cat > leg_s1_tree/inbox/${T}_ORCH_scan_dispatched_ee36228a.md <<EOF
+# ORCH ($T): the independent scan of final_a (kit ee36228a, manifest f6fc4091...) is running
+Its certificate will be /scratch/jjyeung/orch_cd/leg_s1_review/ANON_OK_ee36228a.json (report CONTENT_SCAN_FINAL_ee36228a.md). I tell you when it exists. One request for the future: when a step needs me to act (a scan, a record, a ruling), post it as a QUESTION or a RESULT, not a NOTE; my event watcher does not wake on NOTE events, and this request waited 12 minutes.
+EOF
+echo "$(date -u +%FT%TZ) orch-home-distill-79: leg_s1_tree NOTE 0030Z (seen at the 00:43Z tick; NOTE events do not wake evwait): final_a assembled: kit ee36228a (work/kit_s1_pointing_final_a; manifest f6fc4091); binds review a08e148f, corrected staging 37f2f768, authorization 0020Z, archive attestation; config 05036aff, contract 40011ab2, run 415afff7, root r/279f1525. Dispatched the independent scanner (Claude Opus high; leg_s1_review/BRIEF_FINAL_KIT_SCAN_ee36228a.md -> ANON_OK_ee36228a.json)." >> ORCH_HANDOFF.md

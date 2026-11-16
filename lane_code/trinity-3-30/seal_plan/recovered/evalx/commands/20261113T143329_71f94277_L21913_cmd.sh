@@ -1,0 +1,11 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=21913 utc=2026-11-13T14:33:29.893Z kind=commands original_path=(bash command)  -->
+/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B - <<'PY'
+import datetime
+now=datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+M="/home/jjyeung/.claude/projects/-scratch-jjyeung-orch-home-distill/memory/result-f17-devs1-vs-parent-20261112.md"
+with open(M,"a") as f:
+    f.write("\nCamera-motion development cohort (built 2026-11-13 because dev-S1 had no camera items: 450 questions, 150 each for camera displacement, movement direction and rotation, on 52 held-out dev-S1 clips; `/scratch/jjyeung/orch_cd/legs1_routed/out2/CAMERA_COHORT.json`, independently checked SOUND). Direct reads on Orchard (evalx RESULTS 20261113T1429Z; capture-clustered intervals): parent CP1 m200 13.5 displacement / 22.0 direction / 9.3 rotation, all below the best label-fitted shortcut (24.5 / 34.7 / 13.6; the constant scores 16.7 / 25.3 / 10.1), with 51 of 150 displacement answers unparsable; f17 34.1 / 53.3 / 8.1. f17 leads the parent by 20.6 [13.8, 27.4] on displacement and 31.3 [20.4, 42.4] on direction; rotation is at chance for both. Camera types are 62 percent of LEG-S1's program rows, so the leg's step-100 read on these three types starts from a parent near chance; neither baseline emits programs, so only the leg has a routed arm.\n")
+with open("/scratch/jjyeung/orch_cd/ORCH_HANDOFF.md","a") as f:
+    f.write(now+" orch-home-distill-79: evalx RESULTS 1429Z: BASELINE CAMERA READS on the frozen 450-item cohort (Orchard, direct; 10,000 capture-clustered draws): CP1 m200 (B2048 primary) displacement 13.53 [9.21, 18.12] (51 parse failures), direction 22.00 [14.97, 29.45], rotation 9.33 [6.08, 12.68], all below the best shortcut (24.53 / 34.67 / 13.60); f17 34.13 [28.68, 39.70] / 53.33 [46.31, 60.42] / 8.07 [4.56, 12.08]; CP1 minus f17: -20.60 [-27.40, -13.80] displacement, -31.33 [-42.36, -20.42] direction, +1.27 [-2.91, 5.34] rotation. Camera-reader review fixes F1-F8 all done (32 CPU tests; report pins shortcuts and decision.py; subset without the 19 same-group items; runner re-verifies after staging, two alternating archives, 200 GiB project floor). Memory result-f17-devs1-vs-parent extended.\n")
+PY
+date -u +%T

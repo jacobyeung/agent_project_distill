@@ -1,0 +1,31 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=5659 utc=2026-11-11T17:47:28.395Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; T=$(date -u +%Y%m%dT%H%MZ); cat > grd_selector/inbox/${T}_ORCH_task_accept_v2.md <<'EOF'
+# ORCH: task "accept v2": the largest remaining routed loss is now your accept step and the proposals (CPU only)
+Since your last session the geometry side changed: a fusion policy and G3T depth (lane gt_ceiling; read its events 20261111T1632Z, 1648Z and above all 20261111T1745Z_RESULT_t6_6_mask_loss_causes.md) make routed absolute distance and room size beat direct with your masks. With geometry fixed, the loss of your selector against ground-truth masks is, in points: relative distance 32.4 = wrong object accepted 12.0 + never proposed 7.3 + linking 5.4 + fewer frames 4.2; directions 15.6 to 19.0 = wrong object 6.8 to 9.5 + never proposed 6.0 to 7.9; absolute distance 12.8 = never proposed 5.7 + linking 2.8 + wrong object 2.5; size 14.8 = fewer frames 4.5 + never proposed 3.0; counting = never proposed 22.2 + linking and split or merge 13.7 + accept errors 7.8. Extent now costs at most 2.4. Your earlier sensitivity run (denser proposals change nothing) was made under the old geometry and no longer holds.
+Do, pricing everything with gt_ceiling's policy and G3T depth (its work/tg/price_sel.py imports your price2.py; import it read-only, or ask it for the entry point through its inbox), choosing on dev only and reporting on the 1,493 VSI items with paired intervals:
+1. Read the wrong-object accepts: for relative distance and the direction types, 30 cases by hand. Which confusion is it: another instance of the right category (and does the question need the nearest or a specific one), a different category that the phrase also matched, a part of the object, a reflection or picture? Give the shares.
+2. Fix what features on CPU can fix, each as its own priced arm: a size prior per category from training-side ground truth (a candidate whose lifted extents are implausible for its name is rejected); agreement of a candidate's 3D centre across frames; phrase handling (synonyms and plural forms pooled; the label vocabulary the v3.14 programs use); for multi-instance questions, keep every accepted instance instead of the top one when the program takes a minimum over instances. Refit the accept model with what helps.
+3. Re-run your proposal sensitivity under the new geometry: what does recall of never-proposed objects buy now per type, and does your dense re-cache kit (out/RUN_CARD_DENSE.md) move up? Rewrite its pre-registered reading.
+4. Counting: price the learned merge again under the new geometry and say what identity work (split and merge) is worth against the 13.7.
+5. Update out/RUN_CARD_PRES32_V3.md: what the student's own verification features (presence, V3 boxes, a yes/no check on a zoomed crop) would have to deliver on the wrong-object cases to be worth their GPU-hours, with the cases from item 1 as its test set.
+No GPU, no call on any paid key, no test that saves model state, under 2 GB of new files. One RESULT per item; update your record in place.
+EOF
+cat >> grd_selector/BRIEF.md <<'EOF'
+
+## Restart note (2026-11-11T17:48Z)
+Your earlier sessions delivered the selector, its routed default and the dense re-cache kit, and ended. This session has ONE task: the newest note in inbox/ (`*_ORCH_task_accept_v2.md`). Read STATUS.md and your RESULT events first; redo nothing that is done. CPU only. Post one RESULT per item, keep STATUS.md current, and check inbox/ every 10 minutes while you work.
+EOF
+bash orch_tools/devin_bg_acp.sh /home/jjyeung/agent_project_distill /scratch/jjyeung/orch_cd/grd_selector/BRIEF.md claude-opus-5-5-high 28800 /scratch/jjyeung/orch_cd/grd_selector/devin_r4.out
+S=/tmp/claude-25409/-scratch-jjyeung-orch-home-distill/71f94277-362e-467c-a4bc-ccc9ae6b87c8/scratchpad; printf 'grd_selector|grd_selector/BRIEF.md||\n' >> $S/LANES
+python3 - <<'EOF'
+p='/scratch/jjyeung/orch_cd/READY_QUEUE.md'
+s=open(p).read()
+s+='''
+## REVISION 17:48Z: grounding is the binding lever (gt_ceiling RESULT 1745Z, geometry fixed = policy + G3T depth)
+Selector masks against GT masks lose: relative distance 32.4 (wrong object accepted 12.0, never proposed 7.3, linking 5.4, fewer frames 4.2); directions 15.6-19.0 (wrong object 6.8-9.5, never proposed 6.0-7.9); absolute distance 12.8 (never proposed 5.7); size 14.8 (fewer frames 4.5); counting: never proposed 22.2, linking and split/merge 13.7, accept errors 7.8. Extent costs at most 2.4.
+So: the dense SAM 3 re-cache (grd_selector out/RUN_CARD_DENSE.md, 1.7-2.3 GPU-h) moves back UP, to right after THINK-0 and the canary, pending grd_selector's new sensitivity run under the new geometry; the student-feature run (out/RUN_CARD_PRES32_V3.md) follows if its card shows it can fix the wrong-object accepts. CPU now: grd_selector "accept v2" (size priors, 3D agreement, phrase pooling, multi-instance keep-all).
+Order under plan revision 2 (evalx STATUS): f17_s32 dev; THINK-0 budget on CP1 m200 then T0 m800; canary + r15; dense SAM 3 re-cache; G3T ARKit arm; ReVSI t32 + VSI 5,130 at 32 duplicate; VSTI 5,736 direct; GF-1 canary; other bake-off backends; fillers.
+'''
+open(p,'w').write(s)
+EOF
+echo "$(date -u +%Y-%m-%dT%H:%MZ) gt_ceiling RESULT 1745Z task 6.6 (geometry fixed: policy + G3T depth; 76 scans): selector vs GT masks: rel 59.1 vs 91.5 (wrong object accepted 12.0, never proposed 7.3, linking 5.4, fewer frames 4.2, extent 1.5); easy/medium/hard 81.0/84.4/78.2 vs 100/100/95.5 (wrong object 9.5/6.8/9.0; never proposed 7.9/6.8/6.0); abs 66.5 vs 79.3 (never proposed 5.7); size 62.3 vs 77.1 (fewer frames 4.5); counting: never proposed 22.2, linking/split-merge 13.7, accept 7.8. Extent <= 2.4. NEXT GROUNDING WORK: accept model (wrong instance/category) then proposals; grd_selector relaunched (ACP, opus high) with task accept v2 (CPU); dense SAM 3 re-cache moved back up in READY_QUEUE.md." >> ORCH_HANDOFF.md; sleep 2; pgrep -u jjyeung -f -- "^timeout .*--prompt-file /scratch/jjyeung/orch_cd/grd_selector/BRIEF.md" | head -1

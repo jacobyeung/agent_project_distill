@@ -1,0 +1,17 @@
+# Lane review_vsti2 (runs on trinity-1-3): confirm the fixes to the VSTI native read kit (the first reader has ended)
+
+Lane folder: /scratch/jjyeung/orch_n30/review_vsti2 on trinity-1-3. Events folder: /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/review_vsti/ (the first reader's folder; write your files there so the operator's submission condition can fire). First read /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/tools/LANE_RULES.md and obey it. You are a reviewer: read-only except your lane folder and that events folder; test in copies; no GPU, no Orchard call, no copy above 20 MB, no Git, no deletion. You fix nothing and you do not talk to the builder.
+
+## What and why
+The kit reads VSTI-450 natively with only camera calls served: the first official-benchmark number for a student that writes its own programs. The first review said GO AFTER FIXES, legality holding: /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/review_vsti/REVIEW_VERDICT_VSTI_KIT.md (F1 scorer through the strict official path, F2 packet not on the login node's /tmp, F3 the staged bwrap, S1 to S8). The builder delivered kit V1c: /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/native_r4/20261116T1010Z_RESULT_kit_v1c.md; docs, code, family and diffs in /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/native_r4/kit_v1c_docs.tar (sha256 e511260...); build on this node /scratch/jjyeung/orch_n30/native_r4/builds/03_vsti_c (out/DIFF_vs_V1b.patch, +189/-61; out/SCORER_CHECK.json; out/HISTORICAL_FORMS.json; out/UNEXECUTED.md; out/RUN_ORCHARD.md). Code tar sha256 dc40cf60....
+
+## Do
+1. out/DIFF_vs_V1b.patch line by line against F1 to F3 and S1 to S8: each fixed, not fixed, or fixed with a new defect (file and line). List anything else that changed and say whether it can change a served call, a frame, a token, a score or the legality the first review confirmed.
+2. F1: rerun the scorer check yourself: the kit's own score() on the 900 comparator rows (primaries 66.95 and 68.71) and on answers in the student's "<answer>...</answer>" form; confirm strict parsing equals the benchmark authority's (/home/jjyeung/agent_project/AGENTS.md section 3: search that one file for the heading and read only that section).
+3. F2 and F3: from out/RUN_ORCHARD.md and the job script, what the compute node sees at start: the packet path, the output path, the bwrap binary; nothing on a login-node /tmp, nothing under Orchard /home.
+4. S2 to S7: a proof failure ends only the proof; refused positions are excluded from parity with reasons; a geometry refusal zeroes only the camera items that depend on it; incomplete types print no score; the headline names refused subtasks and the proof's status; the item cutoff precedes the kill with its reserve, on constructed times around the 16:15Z deadline.
+5. Legality again on the changed lines only: still nothing fitted or selected on a benchmark item reachable on a VSTI item.
+6. Confirm the sha256 of the code tar the operator will stage.
+
+## Verdict
+Write CONFIRMED_dc40cf60.md (or NOT_CONFIRMED_dc40cf60.md with reasons) in /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/review_vsti/, at most 15 lines, first line CONFIRMED or NOT CONFIRMED for code tar dc40cf60..., then one RESULT event there. Then stop. Aim for 30 minutes; the job's slot is open from about 11:00Z.

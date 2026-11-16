@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=11219 utc=2026-11-12T08:58:36.373Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; timeout 100 du -sm leg_s1_tree evalx orchard_cp2 devs1_direct rv_merge_fix 2>/dev/null; cd /scratch/jjyeung; timeout 60 du -sm mover_freeze tmp mover_inv 2>/dev/null; df -B1 --output=avail /scratch | tail -1; find /scratch/jjyeung -maxdepth 1 -mmin -20 2>/dev/null | head -12

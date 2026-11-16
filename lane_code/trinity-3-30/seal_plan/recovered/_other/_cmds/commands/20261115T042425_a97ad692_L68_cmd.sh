@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=68 utc=2026-11-15T04:24:25.638Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd/orch_tools && ls -la session_scripts_20261115/ && echo ---- && ls -la . | head -40 && echo ---- PROCS && ps -o pid,lstart,etime,cmd -p 1256002 2>/dev/null | cut -c1-200; pgrep -af '[e]vwait.sh|[l]anewatch.sh|[q]ueue_watcher.sh|[p]ausewatch.sh' | cut -c1-220; echo ---- LANES; pgrep -af '[e]valx/BRIEF_SUCCESSOR24_DRAFT.md|[o]fficial544/BRIEF.md' | cut -c1-200; echo ---- df; df -h /scratch | tail -1

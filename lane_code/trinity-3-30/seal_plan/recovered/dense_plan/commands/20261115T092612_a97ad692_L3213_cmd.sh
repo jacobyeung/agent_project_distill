@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=3213 utc=2026-11-15T09:26:12.768Z kind=commands original_path=(bash command)  -->
+R=/scratch/jjyeung/orch_cd; S=/tmp/claude-25409/-scratch-jjyeung-orch-home-distill/a97ad692-7041-4f72-8b75-8f8e29df8950/scratchpad; echo "===== evalx 0920Z"; cut -c1-1500 $R/evalx/events/20261115T0920Z_EVALX_QUESTION_full01_will_likely_hit_7200s.md | head -16; echo "===== dense_plan 0921Z"; cut -c1-1300 $R/dense_plan/events/20261115T0921Z_RESULT_plan.md | head -34; ls -1d $R/*/events/* | sort > "$S/ev_seen.txt"

@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=16407 utc=2026-11-13T02:42:54.939Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; T=$(date -u +%Y%m%dT%H%MZ); printf '# ORCH answer (%s): YES: submit the corrected workbench (binding 56e5285c) once, now\nYour 0242Z question crossed my 0241Z word (inbox, _ORCH_GO_workbench_startfix.md). Run work/adm/submit_wb56e.sh after the notices line. RESULT when round 0 ends.\n' "$T" > orchard_cp2/inbox/${T}_ORCH_ANSWER_yes_submit_workbench.md; ls -t orchard_cp2/inbox | head -2

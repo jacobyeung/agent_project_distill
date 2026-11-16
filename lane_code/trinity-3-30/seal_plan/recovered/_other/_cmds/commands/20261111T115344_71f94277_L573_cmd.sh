@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=573 utc=2026-11-11T11:53:44.726Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd/integ_v3 && ls scripts | head -8; head -c 700 dispatch_run15.out; echo; echo "=== r15 brief head"; sed -n '1,12p' BRIEF_RUN15.md | cut -c1-500; echo "=== tree"; ls work/tree | head -30; echo "=== envs"; ls /scratch/jjyeung/envs | head -30; echo "=== history of launch cmd"; grep -n 'codex_local.sh' /scratch/jjyeung/orch_cd/integ_v3/scripts/* 2>/dev/null | head -3 | cut -c1-400

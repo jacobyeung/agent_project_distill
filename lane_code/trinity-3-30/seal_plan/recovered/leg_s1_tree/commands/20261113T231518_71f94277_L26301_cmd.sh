@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=26301 utc=2026-11-13T23:15:18.605Z kind=commands original_path=(bash command)  -->
+C=/scratch/jjyeung/orch_cd; ls $C/leg_s1_tree/out | grep -i -E 'operator|scanner' | head; echo ---; grep -h -o 'srun[^"]\{0,400\}' $C/leg_s1_tree/out/*OPERATOR*r2* 2>/dev/null | head -n 5 | cut -c1-500; echo ---; grep -rh -o 'srun [^"]\{0,300\}' $C/orchard_cp2/out/SMALL_RECORDS_169097_20261113T184356Z/ 2>/dev/null | head -n 3 | cut -c1-400

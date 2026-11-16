@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=18662 utc=2026-11-13T09:31:05.601Z kind=commands original_path=(bash command)  -->
+echo "$(date -u +%FT%TZ) orch-home-distill-79: CANARY 168942 round 3: loopback rendezvous WORKS: all four rank identity files at 09:23:56Z; run root bound at 09:25:06Z; at ~09:29Z the four H100s hold 57.4 / 57.4 / 57.3 / 57.3 GB (of 81.5; tripwire 76 GiB) with utilization 100 / 0 / 100 / 100 percent; no step JSON yet. First time the leg's model is on GPUs with real data." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=22056 utc=2026-11-13T14:51:38.463Z kind=commands original_path=(bash command)  -->
+C=/scratch/jjyeung/orch_cd; ls $C/leg_s1_tree/out | grep -i -E "row|sample|read|trace|example" | head -n 20; echo ==; grep -l -i -E "rows read|five rows|sampled rows|read [0-9]+ rows" $C/leg_s1_review/REVIEW_VERDICT*.md 2>/dev/null; echo ==; grep -n -i -E "example|sample" $C/leg_s1_tree/out/PRELAUNCH_CARD.md | cut -c1-240 | head; echo ==; ls $C/legs1_dbs/ap 2>/dev/null | head; ls -R $C/legs1_dbs 2>/dev/null | head -n 30

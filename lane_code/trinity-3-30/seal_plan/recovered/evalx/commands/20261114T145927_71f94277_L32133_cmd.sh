@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=32133 utc=2026-11-14T14:59:27.768Z kind=commands original_path=(bash command)  -->
+echo "- $(date -u +%Y-%m-%dT%H:%MZ) evalx RESULT 1458Z: IF-P0 full run submitted once = job 169530 (general, token a9fa8d8e44ae3c98e, seal eef3ba96), PENDING behind final read 169526; canary 169512 left a 436 KB terminal return (marked FAILED = cancelled), to be fetched for if_p0." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

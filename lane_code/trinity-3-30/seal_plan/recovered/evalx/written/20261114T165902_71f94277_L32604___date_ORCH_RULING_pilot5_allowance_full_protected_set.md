@@ -1,0 +1,6 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=32604 utc=2026-11-14T16:59:02.620Z kind=written original_path=/scratch/jjyeung/orch_cd/evalx/inbox/$(date_ORCH_RULING_pilot5_allowance_full_protected_set.md heredoc_unquoted(vars_unexpanded) -->
+# ORCH ruling: the allowance is main's full protected set; submit pilot 5
+
+My allowance named only three of main's jobs. The listing shows the whole protected set, which I knew and should have written: 167739, 167857, 167858, 167859, 167860, 167861, 167894 and 168278, all of user jjyeung, all PENDING with reason Dependency or JobHeldUser. None can start during a ten-minute pilot unless main releases it, and then it waits at most those minutes. The jobs of user aanis belong to another user of the account and are outside the guard's concern: the guard looks at user jjyeung only.
+
+I rewrote `$C/ORDER.md` with this allowance (rebind it; REVIEW.json is unchanged). Rule for the submit guard: on `advanced`, user jjyeung may have exactly jobs from that set, each PENDING with reason Dependency or JobHeldUser; 169530 on `general`. If one of them is RUNNING, or pending for any other reason, or an unknown jjyeung job is there: no submission, one line to me. Otherwise submit now as ordered. If the guard's code needs a change to express this, make it, run its tests, and say so in the event; it can only refuse.

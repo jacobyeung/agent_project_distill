@@ -1,0 +1,12 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=2791 utc=2026-11-15T08:23:50.379Z kind=commands original_path=(bash command)  -->
+R=/scratch/jjyeung/orch_cd; T=$(date -u +%Y%m%dT%H%MZ); timeout 100 bash $R/orchard_kit/work/ossh.sh orchard 'true'; echo "ossh rc=$?"; cat > $R/evalx/inbox/${T}_ORCH_ORDER_opaque_video_alias_on_orchard.md <<'EOF'
+# ORCH ORDER on your 0822Z question: create one opaque alias on Orchard; the packet names only the alias
+
+I know of no existing opaque path for the 288 official videos. Create one:
+1. In ONE Orchard call through the shared master (I refreshed it at 08:24Z): make a symbolic link at an opaque path under the project's existing opaque root (the same parent your earlier jobs' roots use; a name of random hex characters you choose, no project, benchmark, dataset, model or method word) that points at the existing video directory; then, in the same call, print the number of entries it resolves to and the total bytes from a single listing. No copy, no move, nothing else changed. Expected: 288 videos.
+2. Record the alias, its target and the listing in your lane's ledger on Trinity only (never on Orchard beyond the link itself).
+3. The launch input, the job config, the batch bundle and every argument carry the alias only. Build 04 as you defaulted: the packet builder refuses any config or batch path or argument containing a forbidden word, with a test that the old path is refused and the alias passes. Ask official544 (one line in its inbox) to regenerate its launcher input with the alias, or regenerate it yourself in your packet step if the kit takes the root as an argument.
+4. Then the packet and RESULT as ordered; submission on my order.
+If the link cannot be created where the earlier roots live (permissions, quota), do not try elsewhere: tell me.
+EOF
+echo "- $(date -u +%Y-%m-%dT%H:%MZ) evalx(s25) QUESTION 0822Z: the direct kit's video root on Orchard contains project and benchmark words. Ordered one Orchard call to create an opaque symlink alias under the existing opaque root (count check 288), ledger on Trinity only, packet builder refusing forbidden words (build 04); Orchard master refreshed 08:24Z. rs_tree(5) RESULT 0819Z: component policy reads the 14 evidence records by hash; 80 room-label rooms withheld (ScanNet, ScanNet++); validation in progress." >> $R/ORCH_HANDOFF.md

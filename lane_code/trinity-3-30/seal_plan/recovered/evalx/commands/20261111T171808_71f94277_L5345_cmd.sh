@@ -1,0 +1,5 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=5345 utc=2026-11-11T17:18:08.295Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; S=/tmp/claude-25409/-scratch-jjyeung-orch-home-distill/71f94277-362e-467c-a4bc-ccc9ae6b87c8/scratchpad; wc -l evalx/work/BRIEF_SUCCESSOR8_DRAFT.md; grep -n -i "hold\|think0_budget\|7b\|VSTI_ROUTE" evalx/work/BRIEF_SUCCESSOR8_DRAFT.md | cut -c1-220 | head -8; cp evalx/work/BRIEF_SUCCESSOR8_DRAFT.md evalx/BRIEF_SUCCESSOR8.md
+P=$(pgrep -u jjyeung -f -- "^timeout .*--prompt-file /scratch/jjyeung/orch_cd/evalx/BRIEF_SUCCESSOR7.md" | head -1); echo "s7 pid: $P"; if [ -n "$P" ]; then kill -TERM -- -$P 2>/dev/null || kill -TERM $P; fi
+for i in $(seq 1 20); do pgrep -u jjyeung -f -- "^timeout .*--prompt-file /scratch/jjyeung/orch_cd/evalx/BRIEF_SUCCESSOR7.md" >/dev/null || break; sleep 1; done
+pgrep -u jjyeung -f -- "^timeout .*--prompt-file /scratch/jjyeung/orch_cd/evalx/BRIEF_SUCCESSOR7.md" >/dev/null && echo "S7 STILL ALIVE" || echo "s7 stopped"

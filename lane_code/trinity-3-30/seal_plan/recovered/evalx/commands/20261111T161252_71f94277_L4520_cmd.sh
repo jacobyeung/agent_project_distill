@@ -1,0 +1,12 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=4520 utc=2026-11-11T16:12:52.444Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; T=$(date -u +%Y%m%dT%H%MZ); cat > evalx/inbox/${T}_ORCH_adopt_eval_gaps_r2.md <<'EOF'
+# ORCH: eval_gaps pass 2 landed (RESULT 1611Z): adopt out/r2, then dry-run on the run node
+/scratch/jjyeung/orch_cd/eval_gaps/out/r2/: EVAL_GAPS_R2.md, aws_eval_gaps_r2.patch (applies without fuzz to your adopted copy), kits/, COMMANDS.json, nine DRY seals. It pins the VSTI release videos by sha, makes every 32-frame cell duplicate and records the layout in request, records and summary, adds the dev cells (32 duplicate, 64 spread, 64 duplicate, 96 uniform, 128), freezes routes on the 741 dev items in no ReVSI test scene, recomputes the route table at bind, and reuses authenticated direct answers for unrouted types.
+1. Adopt the kit and go_cp1_official.sh only (no launcher patch); keep your go_f1.sh.
+2. Dry-run on trinity-1-18: VSTI 5,736 at 32 duplicate against the release videos once your stream lands (the loader must refuse a re-encode: try one), dev 64 duplicate, dev 128 (check the batched-token budget on the first item), dev 96 uniform.
+3. The 128-frame nested set stays as it is (quarter counts about [35, 31, 31, 31]); note it in the cell's record, no change.
+4. With this adopted, the VSTI read is cleared to launch at release in its place in the order (after the 5,130 read and GEO-1), with no further review.
+One RESULT with the dry-run table.
+EOF
+S=/tmp/claude-25409/-scratch-jjyeung-orch-home-distill/71f94277-362e-467c-a4bc-ccc9ae6b87c8/scratchpad; sed -i '/^eval_gaps|/d' $S/LANES
+echo "$(date -u +%Y-%m-%dT%H:%MZ) eval_gaps pass 2 (Codex Astra) RESULT 1611Z: out/r2 patch against the adopted kit; VSTI release videos pinned by sha; duplicate layout for 32-frame cells with layout recorded; dev cells 32 dup / 64 spread / 64 dup / 96 uniform / 128; route freeze on 741 no-ReVSI dev items with provenance recomputed at bind; direct answers reused for unrouted types; real-journal replay fixture 450/450 (0.39187); 109 tests, 0 unexpected failures; 128 nested quarter counts [35,31,31,31] kept. evalx told to adopt + dry-run; VSTI read cleared after adoption." >> ORCH_HANDOFF.md

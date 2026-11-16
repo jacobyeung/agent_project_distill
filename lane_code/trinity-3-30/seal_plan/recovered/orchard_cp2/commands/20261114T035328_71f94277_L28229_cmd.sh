@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=28229 utc=2026-11-14T03:53:28.324Z kind=commands original_path=(bash command)  -->
+T=$(date -u +%Y-%m-%dT%H:%M:%SZ); echo "$T orch-home-distill-79: leg_s1_canary RESULT 0352Z: design record published distill_design/ORCHARD_PACKED_JOB_FEASIBILITY_20261114.md (41 lines, sha 3889d63c; INDEX line appended). Packed job not built. Re-armed evwait (bcioxyupm)." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md; tail -n 3 /scratch/jjyeung/orch_cd/orchard_cp2/out/production_169097/project_free.jsonl | cut -c1-120

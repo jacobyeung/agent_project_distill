@@ -1,0 +1,2 @@
+- trinity-1-13 /tmp/jjyeung_rk1_113.txt (listing scratch file from the 02:10Z ssh, under 10 KB)
+- trinity-3-30 /scratch/jjyeung/orch_n30/recover_k1/work/{code_4d05c37b29479787.tar, code4d/, combo3/, n118.tar, n118/, smoke/} once the orchestrator has taken the files (about 12 MB)

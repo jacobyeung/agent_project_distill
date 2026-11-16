@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=5174 utc=2026-11-11T17:05:18.216Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; ls -la plan_review2/REVIEW_VERDICT.md gt_ceiling/work/port/REVIEW_VERDICT.md 2>&1 | cut -c1-120; echo ---- port; cat gt_ceiling/work/port/REVIEW_VERDICT.md 2>/dev/null | cut -c1-600 | head -45

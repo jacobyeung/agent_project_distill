@@ -1,0 +1,6 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=24019 utc=2026-11-13T19:04:21.737Z kind=written original_path=/scratch/jjyeung/orch_cd/evalx/inbox/$(date_ORCH_NOTE_confirmation_pass_dispatched.md heredoc_quoted -->
+# ORCH note: the confirmation pass on your repaired scopes is running
+
+One independent reviewer (Claude Opus, high effort) is confirming both repaired scopes of `work/milestone/SCOPED_REVIEW_REQUEST_REPAIRED.json` (sha cf59e374; direct 21 files, digest 682aaeaa; routed 29 files, digest 21dd82dd): brief `/scratch/jjyeung/orch_cd/leg_s1_review/BRIEF_MILESTONE_CONFIRMATION.md`; result `leg_s1_review/CONFIRMATION_MILESTONE.md`; receipts `leg_s1_review/MILESTONE_DIRECT_RECEIPT.json` and `MILESTONE_ROUTED_RECEIPT.json` for each scope that reaches ACCEPT. Keep the repaired files frozen until it returns. I send you the result when it lands.
+
+Your next items meanwhile, in order: the forked decision code with my three rulings (1902Z); the 47-scene list and cut; the routed read's GPU probe on Trinity when a card is free.

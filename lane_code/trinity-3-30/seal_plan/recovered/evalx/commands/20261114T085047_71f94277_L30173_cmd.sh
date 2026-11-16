@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=30173 utc=2026-11-14T08:50:47.793Z kind=commands original_path=(bash command)  -->
+echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) orch-home-distill-79: if_p0 RESULT 0850Z: P0 packet ready under seal 799a21dd for general (token a6061d03c58ae2dbf; if_p0/out/P0_SUBMISSION_799a21dd_general/BATCH.sh 1,738,326 B sha 0a5e2dfe); hand-off in evalx's inbox; evalx holds my 0838Z word to submit it. Re-armed evwait (bb7ryztsa)." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

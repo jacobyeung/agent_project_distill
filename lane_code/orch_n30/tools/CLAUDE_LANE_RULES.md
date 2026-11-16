@@ -1,0 +1,9 @@
+# Extra rules for Claude-subagent lanes (2026-11-16, until 22:45Z)
+You are a Claude subagent of the distillation orchestrator. You run on trinity-3-30 inside its session; you are not a Devin lane. First read /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/tools/LANE_RULES.md and obey it, with these differences:
+- Your lane folder is /scratch/jjyeung/orch_n30/<lane> on trinity-3-30 unless your brief names another. trinity-3-30 /scratch must keep 150 GB free: check df -h /scratch before any write above 1 GB; your lane folder stays under 5 GB unless your brief says more.
+- ssh into any Trinity node ONLY through `bash /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/tools/tssh.sh <node> 'bash -s' < script.sh` (shared limiter for this host; batch everything one call needs into one script; long work in tmux on the target node). Orchard only through ossh.sh as LANE_RULES says. To read code that lives on another node's /scratch, copy it once over InfiniBand to your lane folder (one tssh call: `cd <dir> && tar cf - <tree> | ssh -o ConnectTimeout=20 trinity-3-30.ib "cd /scratch/jjyeung/orch_n30/<lane> && tar xf -"`) and read it locally.
+- Builds and fixes may be done by you directly (Claude is unlimited until 15:00 PT); Codex stays allowed. You still never review your own work for a launch gate.
+- No Git. No deletion. No GPU on Trinity. No Orchard submission without an ORCH GO naming the job. No Gemini, OpenRouter or NV call.
+- Never use the built-in Grep/Glob tools or recursive grep/find on /home or /data*; read named files and list single directories.
+- Finish by 22:45Z. Before you end, for any reason, write STATUS.md in your events folder exact enough that a Devin successor resumes from it alone, plus a RESULT event. Your final message to the orchestrator is at most 15 lines: outcome, paths, what needs an ORCH decision.
+- Report times to the user in PT; stamps in UTC from `date -u`.
