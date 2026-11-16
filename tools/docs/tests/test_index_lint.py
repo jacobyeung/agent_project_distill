@@ -43,7 +43,7 @@ class CurrentIndexTest(unittest.TestCase):
 
     def test_unlisted_files(self):
         unlisted = self.files_of('unlisted')
-        self.assertEqual(len(unlisted), 27)
+        self.assertEqual(len(unlisted), 25)
         for name in ('FIRST_CONFIG_20261115.md', 'ORCHARD_POSE_KIT_20261109.md',
                      'SPLIT_FLASH_SUBSETS_20261112.md', 'REFREEZE_PREREGISTRATION_20261115.json',
                      'if_p0_20261114', 'legs1_warm_start_20261113'):
@@ -52,6 +52,7 @@ class CurrentIndexTest(unittest.TestCase):
     def test_rows_without_a_folder_file_and_without_verdict(self):
         self.assertEqual(self.counts.get('empty_row', 0), 0)
         self.assertEqual(self.counts['outside_folder'], 4)
+        self.assertEqual(self.files_of('missing'), ['FINAL_VERDICTS.tsv'])
         self.assertEqual(self.counts['no_verdict'], 196)
         self.assertEqual(self.counts['long_row'], 145)
 
