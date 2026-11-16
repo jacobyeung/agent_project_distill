@@ -1,6 +1,7 @@
 """Two arms share a source identity and differ by one connector selection."""
 from copy import deepcopy
-from .p3_provenance import load, pinned
+from pathlib import Path
+from .p3_provenance import load, pinned, file_pin
 from .r2_contract import INIT, CONTRACT
 from .r2_grammar import SHARED_SHA256
 from .r2_withheld import SHA256 as WITHHELD_SHA256
@@ -16,6 +17,8 @@ def configure(parent, geometry_connector, *, dense_manifest=None, stage=1):
     cfg = deepcopy({k:v for k,v in parent.items() if k != 'mdg'})
     from launch_r2.parent import layout_config
     cfg.update(layout_config(cfg, {}, 'four'))
+    cfg.update(dev_scene_exclusions=file_pin(Path(__file__).with_name('r2_dev_merged.json')),
+               r2_all_stream_exclusions=True, r2_scene_rebuild=None, scene_coverage=None)
     cfg['geometry_connector'] = geometry_connector
     cfg['routing_opener_init'] = 'keep'
     cfg['stream_layout'] = 'four'

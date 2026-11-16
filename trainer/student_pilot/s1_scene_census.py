@@ -66,7 +66,7 @@ class Census:
                     identifiers.append("d1/"+scene)
         for value in (row, row.get("routing"), row.get("provenance")):
             if isinstance(value, dict):
-                identifiers.extend(value[key] for key in ("canonical", "physical_group", "room")
+                identifiers.extend(value[key] for key in ("canonical", "physical_group", "room", "alias")
                                    if isinstance(value.get(key), str) and "/" in value[key])
         if not identifiers:
             raise SceneCoverageError("Independent scene census cannot identify a source scene")

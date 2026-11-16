@@ -9,8 +9,17 @@ from student_pilot.p3_provenance import file_pin, load, pinned, write
 
 
 def parent_launcher():
-    sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'launch_s1/b'))
-    return importlib.import_module('launch_s1.b.i')
+    previous = {name: sys.modules.get(name) for name in ('v', 'q0')}
+    try:
+        for name in previous:
+            sys.modules[name] = importlib.import_module('launch_s1.b.'+name)
+        return importlib.import_module('launch_s1.b.i')
+    finally:
+        for name, module in previous.items():
+            if module is None:
+                sys.modules.pop(name, None)
+            else:
+                sys.modules[name] = module
 
 
 def authorized(root, launch, cfg, mode, environment=None):

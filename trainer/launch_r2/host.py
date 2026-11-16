@@ -82,6 +82,8 @@ def watchdog(guard):
 def input_paths(packet, root):
     """Every required input is pinned; both pose sources are independent inputs."""
     required = ('manifests', 'pose_sources', 'configuration', 'pose_template', 'real_proof', 'counts')
+    if packet.get('scene_rebuild'):
+        required = required[:-1]
     if not packet.get('pose_sources') or len(packet['pose_sources']) != 2:
         raise ValueError('Missing pose source: require both sealed pose sources')
     for key in required:
@@ -154,6 +156,8 @@ def native_config(template, native, pose_template, output):
             value = {**pose, 'count':store['count'], 'database':store['database']}
         if name == 'routing':
             value.update(schema=run.routing.ROUTING_SCHEMA, scene_role='train')
+        if cfg.get('r2_all_stream_exclusions'):
+            value['source_scene_exclusions'] = load(pinned(cfg['r2_scene_rebuild']))['reports'][name]
         write(output/(name+'.json'), value)
         streams[name] = file_pin(output/(name+'.json'))
     cfg.update(streams=streams, r2_membership=native['r2_membership'],
@@ -204,7 +208,7 @@ def execute_packet(root, packet, guard, *, full):
     from .runtime import bounded_writes, obligations, statement_hits, checked_hits, init_layout
     paths = input_paths(packet, root)
     guard.tick()
-    if full and any(load(paths[key][0]).get('synthetic') for key in ('configuration','real_proof','counts')):
+    if full and any(load(paths[key][0]).get('synthetic') for key in ('configuration','real_proof','counts') if key in paths):
         raise ValueError('Synthetic inputs cannot admit the full host job')
     if full and {pin['sha256'] for pin in packet['pose_sources']} != POSE_SHA256:
         raise ValueError('Pose sources differ from the sealed source pins')
@@ -212,11 +216,18 @@ def execute_packet(root, packet, guard, *, full):
     if {value.get('pose_source_sha256') for value in pose_headers} != {pin['sha256'] for pin in packet['pose_sources']}:
         raise ValueError('Pose manifests do not bind both supplied pose sources')
     cfg = load(paths['configuration'][0])
+    scene_result = None
+    if cfg.get('r2_all_stream_exclusions'):
+        if not (root/packet['output']).resolve().is_relative_to(root):
+            raise ValueError('Job output must be a new folder inside its job root')
+        from student_pilot.r2_scene_bindings import prepare_host
+        with bounded_writes(root, max(guard.limits.values())):
+            cfg, paths['manifests'], scene_result = prepare_host(root, packet, cfg, paths['manifests'], full=full)
     from student_pilot.r2_policy import preparation
     repeats = None
     if 'r2_build2' in cfg:
         repeats = preparation(cfg['r2_build2'], root)
-        if packet['counts']['sha256'] != cfg['r2_build2']['counts']['sha256']:
+        if scene_result is None and packet['counts']['sha256'] != cfg['r2_build2']['counts']['sha256']:
             raise ValueError('Host counts differ from the admitted mixture')
         if not cfg.get('r2_sampling'):
             raise ValueError('Missing final-reader type indices')
@@ -231,9 +242,9 @@ def execute_packet(root, packet, guard, *, full):
             raise ValueError('Missing frozen tower assets')
         cfg = apply_native(cfg, load(pinned(packet['geometry_assets'])))
     output = root/packet['output']
-    if not output.resolve().is_relative_to(root) or output.exists():
+    if not output.resolve().is_relative_to(root) or (output.exists() and scene_result is None):
         raise ValueError('Job output must be a new folder inside its job root')
-    output.mkdir(parents=True)
+    output.mkdir(parents=True, exist_ok=scene_result is not None)
     from student_pilot.r2_materialize import materialize
     from student_pilot.r2_real_proof import prove
     from student_pilot import carrier_c1_run as run
@@ -274,7 +285,7 @@ def execute_packet(root, packet, guard, *, full):
         metadata = prove(proof['rows_dir'], proof['sealed_meta_dir'], output/'c')
         result = dict(config=cfg, first_batch=first, metadata=metadata,
                       boundary='CPU tensors before model forward', production_authorized=False,
-                      repeats=repeats, statements=checked_hits(required,hits),
+                      repeats=repeats, scene_rebuild=scene_result, statements=checked_hits(required,hits),
                       schema='r2-host-preparation-v1',full_store=full,packet_digest=digest(packet),
                       source_revision='sha256:'+cfg['r2']['code_sha256'])
         write(output/'0.json', result)

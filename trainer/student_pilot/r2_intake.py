@@ -18,7 +18,9 @@ from .r2_withheld import Withheld, SHA256 as WITHHELD_SHA256
 
 def read_rows(pin, limit):
     path = pinned(pin)
-    opener = gzip.open if path.suffix == '.gz' else open
+    with path.open('rb') as handle:
+        header = handle.read(2)
+    opener = gzip.open if header == b'\x1f\x8b' else open
     with opener(path, 'rt') as handle:
         for index, line in enumerate(handle):
             if limit is not None and index >= limit:
@@ -38,6 +40,12 @@ def intake(manifest_path, *, limit=2000, select_types=None):
     if manifest.get('scene_coverage') is None:
         raise ValueError('scene_coverage=None refuses; unknown overlap is not a pass')
     rule = Exclusions(manifest['exclusions'])
+    merged = None
+    if manifest.get('dev_scene_exclusions'):
+        from .r2_scene_bindings import require_merged
+        from .s1_exclusions import Exclusions as NativeExclusions
+        require_merged(manifest['dev_scene_exclusions'])
+        merged = NativeExclusions(manifest['dev_scene_exclusions'], manifest['exclusions']['benchmark'])
     withheld = Withheld(manifest.get('withheld_rooms'))
     coverage = load(pinned(manifest['scene_coverage']))
     if coverage.get('exclusions') != manifest['exclusions'] or coverage.get('rows_sha256') != manifest['rows']['sha256']:
@@ -73,6 +81,8 @@ def intake(manifest_path, *, limit=2000, select_types=None):
             reasons = rule.check(row, coverage['rows'].get(qid))
             if withheld.touches(row, coverage['rows'].get(qid, {})):
                 reasons.append('withheld_room')
+            if merged is not None and merged.excluded(row):
+                reasons.append('merged_dev_or_benchmark')
             if reasons:
                 raise ValueError('excluded:' + ','.join(reasons))
         except (KeyError, TypeError, ValueError) as error:

@@ -86,7 +86,7 @@ class Exclusions:
         for source in (row, row.get("routing") or {}, row.get("provenance") or {}):
             if not isinstance(source, dict):
                 continue
-            for field in ("canonical", "physical_group", "room"):
+            for field in ("canonical", "physical_group", "room", "alias"):
                 value = source.get(field)
                 if isinstance(value, str) and "/" in value:
                     keys.append(value)
@@ -316,6 +316,8 @@ def coverage_report(rule, streams, policy=None):
         observed_dev = current["dev_matches"]+earlier["dev_matches"]
         observed_benchmark = current["benchmark_matches"]+earlier["benchmark_matches"]
         benchmark_reference = sum(benchmark) if all(value is not None for value in benchmark) else None
+        if reference.get('exact_rebuilt_population') and (observed_dev != dev or observed_benchmark != benchmark_reference):
+            raise ValueError('Filter differs from independent scene census: '+name)
         records[name] = dict(parts=sources, native=current, upstream=earlier, references=refs,
                              reference_dev_rows=dev, reference_benchmark_rows=benchmark_reference,
                              reference_comparison="NOT_COMPARED",

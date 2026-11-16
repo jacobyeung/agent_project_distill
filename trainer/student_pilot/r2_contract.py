@@ -34,6 +34,8 @@ def check_init(spec, metadata):
 
 
 def preparation(cfg):
+    from .r2_scene_bindings import verify as verify_scenes
+    verify_scenes(cfg)
     if 'geometry_connector' in cfg:
         from pathlib import Path
         from .r2_policy import preparation as policy_preparation

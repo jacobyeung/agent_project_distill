@@ -2,6 +2,7 @@
 from copy import deepcopy
 import json
 import os
+import sys
 from pathlib import Path
 from types import SimpleNamespace
 import unittest
@@ -55,3 +56,11 @@ class Dispatch(unittest.TestCase):
         (LANE/'out/B3_DISTRIBUTED_COMMAND_PROOF.json').write_text(json.dumps(dict(command=command,
             executed=False,stand_ins=['subprocess.run at GPU worker creation','carrier_c1_run.train at GPU training boundary'],
             parent_function='launch_s1.b.i.launcher',authorization_fixture=True),indent=2)+'\n')
+
+    def test_parent_dependencies_are_isolated(self):
+        sentinels={name:object() for name in ('v','q0')}
+        with patch.dict(sys.modules,sentinels):
+            native=D.parent_launcher()
+            self.assertEqual(native.checked.__module__,'launch_s1.b.v')
+            self.assertEqual(native.enabled.__module__,'launch_s1.b.q0')
+            for name,value in sentinels.items():self.assertIs(sys.modules[name],value)

@@ -149,6 +149,11 @@ def build(base, output, *, connector=None, records=None, dense_manifest=None, bi
     cfg = load(base/'k/b02e4385.json')
     cfg = configure(cfg, connector, dense_manifest=dense_manifest)
     cfg = relocate(cfg, paths)
+    cfg['dev_scene_exclusions'] = put_bytes((TREE/'student_pilot/r2_dev_merged.json').read_bytes())
+    cfg['benchmark_scene_exclusions'] = put_bytes((base/'k/benchmark_scene_exclusions.json').read_bytes())
+    cfg['r2_all_stream_exclusions'] = True
+    cfg['scene_coverage'] = None
+    cfg['r2_scene_rebuild'] = None
     # The parent source archive keeps native import semantics behind an opaque name.
     files = tree_files(TREE)
     from student_pilot.source_seal import archive, check_archive
@@ -244,7 +249,7 @@ def build(base, output, *, connector=None, records=None, dense_manifest=None, bi
     from .host import ESTIMATES, LIMITS
     (output/'k/f.json').write_text(json.dumps(dict(schema='r2-frame-host-packet-v1',
         manifests=None,pose_sources=None,configuration=None,pose_template=None,real_proof=None,counts=None,
-        dense=None,init_archive=None,init_members=None,init_member_limit=None,
+        dense=None,init_archive=None,init_members=None,init_member_limit=None,scene_rebuild=None,
         output='o/ee000004',wall_seconds=21600,idle_seconds=1200,limits=LIMITS,
         estimates=ESTIMATES,estimates_source='user build brief',
         boundary='CPU tensors before model forward',production_authorized=False))+'\n')
