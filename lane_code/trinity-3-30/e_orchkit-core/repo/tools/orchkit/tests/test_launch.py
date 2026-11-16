@@ -49,7 +49,8 @@ def fake_provenance(checkout, config_path):
 class LaunchBase(unittest.TestCase):
     def setUp(self):
         self.base = tempfile.mkdtemp(prefix='orchkit_launch_')
-        self.saved = dict((key, os.environ.get(key)) for key in ('ORCHKIT_LEDGER', 'ORCHKIT_OSSH'))
+        self.saved = dict((key, os.environ.get(key)) for key in ('ORCHKIT_LEDGER', 'ORCHKIT_OSSH',
+                                                                 'ORCHKIT_ANON_WORDS'))
         self.ledger = os.path.join(self.base, 'ledger.jsonl')
         os.environ['ORCHKIT_LEDGER'] = self.ledger
         os.environ['ORCHKIT_OSSH'] = os.path.join(self.base, 'fake_ossh.sh')
@@ -67,6 +68,7 @@ class LaunchBase(unittest.TestCase):
         words = os.path.join(self.base, 'words.txt')
         write(words, 'text zzqqxxnever\n')
         self.loose = anon.load_rules(words)
+        os.environ['ORCHKIT_ANON_WORDS'] = words
         self.count = 0
 
     def tearDown(self):
@@ -190,9 +192,9 @@ class PrepareTest(LaunchBase):
         config['return']['pool'] = '/project/x/pool'
         config['job']['root_parent'] = '/tmp'
         kit, dry = self.kit(config, entry="MODEL = 'qwen'\n")
-        self.assertIn('opacity', self.assertRefused(kit, dry, rules=anon.load_rules()))
+        self.assertIn('opacity', self.assertRefused(kit, dry, rules=anon.load_rules(anon.WORDS)))
         kit, dry = self.kit(config)
-        record, _ = self.prepare(kit, dry, rules=anon.load_rules())
+        record, _ = self.prepare(kit, dry, rules=anon.load_rules(anon.WORDS))
         self.assertRegex(record['job_name'], launch.JOB_NAME.pattern)
 
     def test_prepare_refuses_a_provenance_refusal(self):
@@ -420,7 +422,7 @@ class ReviewFindingsTest(LaunchBase):
                 config['return']['pool'] = '/project/u/split/logs'
             kit, dry = self.kit(config)
             with self.assertRaises(launch.LaunchError, msg=change) as caught:
-                self.prepare(kit, dry, rules=anon.load_rules())
+                self.prepare(kit, dry, rules=anon.load_rules(anon.WORDS))
             self.assertIn('opacity', str(caught.exception))
 
     def test_oc04_token_with_newline_is_refused(self):
@@ -506,8 +508,163 @@ class ReviewFindingsTest(LaunchBase):
                               transport=lambda argv, body: calls.append(body), out=io.StringIO())
         finally:
             launch._load_prep = real
-        self.assertIn('changed after prepare', str(caught.exception))
+        self.assertIn('differs from its rebuild', str(caught.exception))
         self.assertEqual(calls, [])
+
+    def test_oc11_a_kit_changed_after_it_is_read_cannot_ship(self):
+        kit, dry = self.kit()
+        source = os.path.join(kit, 'code', 'entry.py')
+        with open(source, 'rb') as handle:
+            original = handle.read()
+
+        def provenance_then_swap(checkout, config_path):
+            write(source, "MODEL = 'qwen'\n")
+            return fake_provenance(checkout, config_path)
+
+        record, prep = self.prepare(kit, dry, provenance_fn=provenance_then_swap)
+        with open(os.path.join(prep, 'BATCH.sh')) as handle:
+            script = handle.read()
+        digits = script.split("PAYLOAD = '''\n", 1)[1].split("\n'''", 1)[0].replace('\n', '')
+        with tarfile.open(fileobj=io.BytesIO(bytes.fromhex(digits)), mode='r:gz') as archive:
+            shipped = archive.extractfile('kit/code/entry.py').read()
+        self.assertEqual(shipped, original)
+        with open(os.path.join(prep, 'kit', 'code', 'entry.py'), 'rb') as handle:
+            self.assertEqual(handle.read(), original)
+
+    def test_oc12_submit_metadata_must_match_the_scripts(self):
+        kit, dry = self.kit()
+        first, prep1 = self.prepare(kit, dry)
+        second, _ = self.prepare(kit, dry)
+        record = util.read_json(os.path.join(prep1, 'SUBMIT.json'))
+        record.update(token=second['token'], job_name=second['job_name'])
+        util.write_json(os.path.join(prep1, 'SUBMIT.json'), record)
+        calls = []
+        with self.assertRaises(launch.LaunchError) as caught:
+            launch.submit(prep1, self.go('GO %s\n' % second['token']), execute=True,
+                          transport=lambda argv, body: calls.append(body), out=io.StringIO())
+        self.assertIn('do not belong', str(caught.exception))
+        self.assertEqual(calls, [])
+
+    def test_oc16_altered_submission_script_or_argv_is_refused(self):
+        kit, dry = self.kit()
+        for change in ('script', 'argv'):
+            record, prep = self.prepare(kit, dry)
+            stored = util.read_json(os.path.join(prep, 'SUBMIT.json'))
+            if change == 'script':
+                path = os.path.join(prep, 'SUBMIT.sh')
+                with open(path, 'ab') as handle:
+                    handle.write(b"sbatch --wrap='echo extra'\n")
+                stored['submit_sha256'] = util.sha256_file(path)[0]
+            else:
+                stored['argv'][-1] = "bash -s; echo extra"
+            util.write_json(os.path.join(prep, 'SUBMIT.json'), stored)
+            calls = []
+            with self.assertRaises(launch.LaunchError, msg=change) as caught:
+                launch.submit(prep, self.go('GO %s\n' % record['token']), execute=True,
+                              transport=lambda argv, body: calls.append(body), out=io.StringIO())
+            self.assertRegex(str(caught.exception), 'differs from its rebuild|transport command differs')
+            self.assertEqual(calls, [])
+
+    def test_oc17_duplicate_config_keys_are_names_too(self):
+        config = self.config()
+        config['return']['pool'] = '/project/x/pool'
+        config['job']['root_parent'] = '/tmp'
+        kit, dry = self.kit(config)
+        path = os.path.join(kit, 'CONFIG.json')
+        with open(path, 'rb') as handle:
+            raw = handle.read()
+        hidden = raw.replace(b'"job":', b'"job":{"root_parent":"/tmp/split"},"job":', 1)
+        hits = anon.scan_tree(self.write_kit_copy(kit, hidden), anon.load_rules(anon.WORDS))
+        self.assertTrue(any(hit['where'] == 'CONFIG.json' for hit in hits))
+
+    def write_kit_copy(self, kit, config_raw):
+        self.count += 1
+        target = os.path.join(self.base, 'copy%d' % self.count)
+        launch.snapshot(kit, target)
+        os.chmod(os.path.join(target, 'CONFIG.json'), 0o600)
+        write(os.path.join(target, 'CONFIG.json'), config_raw)
+        return target
+
+    def test_go_line_must_start_with_go(self):
+        kit, dry = self.kit()
+        record, prep = self.prepare(kit, dry)
+        for text in ('NO_GO %s\n', 'NO-GO %s\n', 'GO_AFTER_FIXES %s\n', 'verdict: NO GO for %s\n'):
+            with self.assertRaises(launch.LaunchError, msg=text):
+                launch.submit(prep, self.go(text % record['token']), out=io.StringIO())
+        self.assertFalse(launch.submit(prep, self.go('# review\nGO: %s\n' % record['job_name']),
+                                       out=io.StringIO())['executed'])
+
+    def test_oc20_a_kit_changed_during_submit_cannot_ship(self):
+        kit, dry = self.kit()
+        record, prep = self.prepare(kit, dry)
+        real = launch.check_kit
+        sent = []
+
+        def check_then_swap(path, config_raw, rules):
+            value = real(path, config_raw, rules)
+            write(os.path.join(prep, 'kit', 'code', 'entry.py'), "MODEL = 'changed'\n")
+            job = util.read_json(os.path.join(prep, 'JOB.json'))
+            script, remote = launch.build_submission(os.path.join(prep, 'kit'), value[0], job, rules)
+            write(os.path.join(prep, 'BATCH.sh'), script)
+            write(os.path.join(prep, 'SUBMIT.sh'), remote)
+            return value
+
+        launch.check_kit = check_then_swap
+        try:
+            with self.assertRaises(launch.LaunchError):
+                launch.submit(prep, self.go('GO %s\n' % record['token']), execute=True,
+                              transport=lambda argv, body: sent.append(body) or (0, b'JOBID=9\n', b''),
+                              out=io.StringIO())
+        finally:
+            launch.check_kit = real
+        self.assertEqual(sent, [])
+
+    def test_oc21_two_copies_of_one_preparation_submit_once(self):
+        kit, dry = self.kit(self.config(partition='advanced'))
+        record, prep = self.prepare(kit, dry)
+        copy = prep + '_copy'
+        launch.snapshot(prep, copy)
+        sent = []
+        go = self.go('GO %s\n' % record['token'])
+
+        def transport(argv, body):
+            sent.append(body)
+            if len(sent) == 1:
+                with self.assertRaises(launch.LaunchError) as caught:
+                    launch.submit(copy, go, execute=True, out=io.StringIO(), transport=transport)
+                self.assertRegex(str(caught.exception), 'already claimed|in progress')
+            return 0, ('JOBID=%d\n' % (40 + len(sent))).encode(), b''
+
+        launch.submit(prep, go, execute=True, out=io.StringIO(), transport=transport)
+        self.assertEqual(len(sent), 1)
+        rows = [row for row in ledger.lookup(record['token'], self.ledger) if row['event'] == 'submitted']
+        self.assertEqual(len(rows), 1)
+        with self.assertRaises(launch.LaunchError) as caught:
+            launch.claim_token(record['token'])
+        self.assertIn('already claimed', str(caught.exception))
+
+    def test_concurrent_submissions_to_a_one_job_partition_are_serialized(self):
+        kit, dry = self.kit()
+        first, prep1 = self.prepare(kit, dry)
+        second, prep2 = self.prepare(kit, dry)
+        sent = []
+
+        def transport(argv, body):
+            sent.append(body)
+            if len(sent) == 1:
+                with self.assertRaises(launch.LaunchError) as caught:
+                    launch.submit(prep2, self.go('GO %s\n' % second['token']), execute=True,
+                                  out=io.StringIO(), transport=transport)
+                self.assertIn('in progress', str(caught.exception))
+            return 0, b'JOBID=51\n', b''
+
+        launch.submit(prep1, self.go('GO %s\n' % first['token']), execute=True, out=io.StringIO(),
+                      transport=transport)
+        self.assertEqual(len(sent), 1)
+        with self.assertRaises(launch.LaunchError) as caught:
+            launch.submit(prep2, self.go('GO %s\n' % second['token']), execute=True,
+                          out=io.StringIO(), transport=transport)
+        self.assertIn('queue behind', str(caught.exception))
 
 
 if __name__ == '__main__':

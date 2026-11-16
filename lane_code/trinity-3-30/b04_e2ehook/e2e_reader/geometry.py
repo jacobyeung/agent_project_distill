@@ -1,100 +1,42 @@
 """Geometry of one read from tensors of the same generate(): frozen G3T outputs, the
 checkpoint's own gravity head, and the scale head's output. Fixed math only: the tree's
 gravity-reference conversion, pinhole intrinsics from the field of view, one scale applied
-once. No gravity guard: the own gravity head's output is used as is.
+once. The own gravity head's output is used as is.
 
-The contract checks of the tree's GeometryContract.validate still run (shapes, proper
-rotations, finite intrinsics). Only its terminal statement, the sealed gravity guard
-`if -R[0,2,1] <= 0: raise reference_camera_up_opposes_gravity`, is not applied; its verdict
-and the reviewed C8r guard's verdict are recorded for the report, never acted on.
+The geometry is the tree's ProfileGeometry over `ReaderContract`: the sealed
+GeometryContract.validate (shapes, proper rotations, finite intrinsics), compiled without its
+terminal up-axis statement. Lane diagnostics (tests/guard_diag.py) print what the old checks
+would have said; nothing in the read computes them.
 """
 import ast
 import hashlib
 import inspect
 import textwrap
-import threading
-from types import SimpleNamespace as NS
 
 import numpy as np
 
 SEALED_VALIDATE_SHA256 = '05cc553d9e84d235fcc616563b67b4cc1ce50f4b7c10efcaf8a314a59010521a'
-GUARD = 'reference_camera_up_opposes_gravity'
-UP_PLANE_MIN = .3  # reviewed C8r guard constant; used only to RECORD its verdict (report item 5)
-_lock = threading.Lock()
+TERMINAL = "if -R[0, 2, 1] <= 0:\n    raise GeometryError('reference_camera_up_opposes_gravity')\nreturn self"
+_contract = {}
 
 
-def _check_sealed_validate(GP):
+def reader_contract(GP):
+    """GeometryContract subclass whose validate is the sealed body minus its last two statements."""
+    if 'cls' in _contract:
+        return _contract['cls']
     source = inspect.getsource(GP.GeometryContract.validate)
     if hashlib.sha256(source.encode()).hexdigest() != SEALED_VALIDATE_SHA256:
         raise RuntimeError('sealed_validate_mismatch')
-    body = ast.parse(textwrap.dedent(source)).body[0].body
-    terminal = ast.parse("if -R[0, 2, 1] <= 0:\n    raise GeometryError('reference_camera_up_opposes_gravity')\nreturn self").body
-    if len(body) < 2 or any(ast.dump(a) != ast.dump(b) for a, b in zip(body[-2:], terminal)):
+    fn = ast.parse(textwrap.dedent(source)).body[0]
+    terminal = ast.parse(TERMINAL).body
+    if len(fn.body) < 2 or any(ast.dump(a) != ast.dump(b) for a, b in zip(fn.body[-2:], terminal)):
         raise RuntimeError('sealed_validate_terminal_mismatch')
-
-
-def reviewed_guard_refuses(R):
-    """Verdict of C8r's reviewed guard (gravity_guard.validate_up_convention); report only."""
-    R = np.asarray(R, float)
-    plane = np.linalg.norm(R[:, 2, :2], axis=1)
-    margin = -R[:, 2, 1]
-    if plane[0] >= UP_PLANE_MIN:
-        return bool(margin[0] <= 0)
-    usable = plane >= UP_PLANE_MIN
-    return bool(usable.any() and np.median(margin[usable] / plane[usable]) <= 0)
-
-
-class no_guard:
-    """Context in which the tree's GeometryContract.validate runs every check except the terminal
-    gravity guard (used when tree code rebuilds a geometry inside a call, e.g. replay restore)."""
-    def __enter__(self):
-        from student_pilot import geometry_profiles as GP
-        _check_sealed_validate(GP)
-        _lock.acquire()
-        self.GP, self.original = GP, GP.GeometryContract.validate
-        original = self.original
-
-        def validate(contract):
-            try:
-                return original(contract)
-            except GP.GeometryError as error:
-                if str(error) != GUARD:
-                    raise
-                return contract
-        GP.GeometryContract.validate = validate
-        return self
-
-    def __exit__(self, *exc):
-        self.GP.GeometryContract.validate = self.original
-        _lock.release()
-        return False
-
-
-def unguarded(contract_factory):
-    """Build a ProfileGeometry with every contract check except the terminal gravity guard."""
-    from student_pilot import geometry_profiles as GP
-    _check_sealed_validate(GP)
-    verdict = dict(sealed_guard_refuses=False)
-    with _lock:
-        original = GP.GeometryContract.validate
-
-        def validate(self):
-            try:
-                return original(self)
-            except GP.GeometryError as error:
-                if str(error) != GUARD:
-                    raise
-                verdict['sealed_guard_refuses'] = True
-                return self  # the terminal guard is the last statement; every other check passed
-        GP.GeometryContract.validate = validate
-        try:
-            geometry = contract_factory(GP)
-        finally:
-            GP.GeometryContract.validate = original
-    R = np.asarray(geometry.C)[:, :3, :3]
-    verdict['reviewed_guard_refuses'] = reviewed_guard_refuses(R)
-    geometry.guard_verdicts = verdict
-    return geometry
+    fn.body = fn.body[:-2] + ast.parse('return self').body
+    fn.decorator_list = []
+    namespace = dict(vars(GP))
+    exec(compile(ast.fix_missing_locations(ast.Module([fn], [])), GP.__file__, 'exec'), namespace)
+    _contract['cls'] = type('ReaderContract', (GP.GeometryContract,), dict(validate=namespace['validate']))
+    return _contract['cls']
 
 
 def from_arrays(*, K, canvas_to_source, camera_to_world, scale, depth_grid, grid_uv, anchor_frame_indices):
@@ -103,12 +45,13 @@ def from_arrays(*, K, canvas_to_source, camera_to_world, scale, depth_grid, grid
     anchors = [int(a) for a in np.asarray(anchor_frame_indices).tolist()]
 
     def make(GP):
-        c = GP.GeometryContract('scaled_g3t_depth', FrameMap(tuple(anchors)), anchors[0],
+        c = reader_contract(GP)('scaled_g3t_depth', FrameMap(tuple(anchors)), anchors[0],
                                 np.asarray(K, float), np.asarray(canvas_to_source, float),
                                 np.asarray(camera_to_world, float), float(scale),
                                 'g3t', 'unscaled', 'unscaled', 0, 0)
         return GP.ProfileGeometry(c, np.asarray(depth_grid), np.asarray(grid_uv))
-    return unguarded(make)
+    from student_pilot import geometry_profiles as GP
+    return make(GP)
 
 
 def from_tower(raw_pose9, anchor_slots, frame_indices, depth_grid, grid_uv, gravity, scale, source_hw):

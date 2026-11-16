@@ -1,0 +1,1 @@
+- /tmp/b12_pkt_test (test packet of rows_k1, trinity-1-3 /tmp)

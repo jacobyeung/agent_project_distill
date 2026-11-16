@@ -9,8 +9,10 @@ read from the trace ('head' when it holds a tool response, else 'direct'), not t
 forcing. n_min: the shortest valid trace of that path for the type (registered table from
 validated SFT rows, floored at one Locate/Call line); when the table lacks the cell, the
 shortest right and valid rollout of that path in the group. Deviation from the brief's formula: the
-length term is capped at cap_frac of c*g (default 0.5), so a right answer always keeps
-more than half its score and never falls to or below a wrong one (r = 0).
+length term is capped at cap_frac of c*g (default 0.5), so a right, valid answer keeps at least
+half its score and always stays above a zero-score one (r = 0). Between two partially right answers
+the term can invert the order (a short c = 0.7 trace at r = 0.7 beats a long exact one at r = 0.5);
+that is the intended trade at the cap and the reason cap_frac stays at 0.5.
 """
 from .gate import gate
 from .score import score
@@ -18,8 +20,15 @@ from .score import score
 DEFAULTS = dict(lam=0.2, cap_frac=0.5, n_floor=12, n_ref_default=256, allow_stated_option=False)
 
 
-def path_taken(form):
-    return 'head' if form == 'program' else 'direct'
+def path_taken(form, recovery=False):
+    """'head' for a program trace with a served head response; 'recovery' when every call failed
+    (it is charged against the direct floor, so a junk failing call buys nothing); else 'direct'."""
+    if form == 'program':
+        return 'recovery' if recovery else 'head'
+    return 'direct'
+
+
+FLOOR_CELL = dict(head='head', direct='direct', recovery='direct')
 
 
 def length_term(base, n, n_min, n_ref, lam, cap_frac):
@@ -35,7 +44,7 @@ def score_one(prompt, rec, cfg):
     return dict(prompt_id=rec['prompt_id'], draw=rec['draw'], forced=rec['path'], c=s['c'], answer=s['answer'],
                 parse_failure=s['parse_failure'], g=gt['g'], form=gt['form'], recovery=gt['recovery'],
                 reasons=gt['reasons'], provenance=gt['provenance'], n=rec['own_tokens'],
-                path=path_taken(gt['form']), calls=len(rec.get('calls', [])))
+                path=path_taken(gt['form'], gt['recovery']), calls=len(rec.get('calls', [])))
 
 
 def score_group(prompt, records, cfg=None):
@@ -46,9 +55,10 @@ def score_group(prompt, records, cfg=None):
     n_ref = (cfg.get('n_ref') or {}).get(prompt['type'], cfg['n_ref_default'])
     for row in rows:
         base = row['c'] * row['g']
-        n_min, source = table.get(row['path']), 'table'
+        cell = FLOOR_CELL[row['path']]
+        n_min, source = table.get(cell), 'table'
         if n_min is None:
-            valid = [o['n'] for o in rows if o['c'] * o['g'] > 0 and o['path'] == row['path']]
+            valid = [o['n'] for o in rows if o['c'] * o['g'] > 0 and FLOOR_CELL[o['path']] == cell]
             n_min, source = (min(valid) if valid else row['n']), 'group'
         n_min = max(int(n_min), int(cfg['n_floor']))
         pen = length_term(base, row['n'], n_min, n_ref, cfg['lam'], cfg['cap_frac'])

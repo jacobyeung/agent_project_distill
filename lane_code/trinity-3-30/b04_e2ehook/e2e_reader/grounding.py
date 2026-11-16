@@ -77,10 +77,16 @@ class MinAreaBoxProvider:
         return in_f1(geometry, raw['centroid'], raw['axesLengths'], raw['normalizedAxes'])
 
 
+def mask_pixels(mask):
+    """Centres of every pixel of a boolean mask on the 0..1000 canvas of geometry.lift."""
+    rows, cols = np.nonzero(mask)
+    h, w = mask.shape
+    return np.column_stack(((cols + .5) / w * 1000, (rows + .5) / h * 1000))
+
+
 def lift_plain(name, masks, geometry):
     """Unproject every pixel of the selected mask in each frame with this read's geometry.
-    Keeps finite points in front of the camera; no spread filter, no depth cut."""
-    from student_pilot.ground_lifting import mask_pixels
+    Keeps finite points in front of the camera; no erosion, no canvas crop, no spread filter, no depth cut."""
     masks = np.asarray(masks, bool)
     if masks.ndim != 3 or masks.shape[0] != 32:
         raise ValueError('masks_must_be_32_H_W')

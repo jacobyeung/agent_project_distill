@@ -59,7 +59,7 @@ class StreamRows(unittest.TestCase):
 
     def model(self):
         m = copy.deepcopy(self.be.model)
-        m.recipe = {**m.recipe, 'weights': {**m.recipe['weights'], 'routing': 1.}, 'grpo': dict(kl_beta=.04)}
+        m.recipe = {**m.recipe, 'weights': {**m.recipe['weights'], 'routing': 1.}, 'grpo': dict(kl_beta=.04, temperature=1.0)}
         return m
 
     def test_trainer_path_equals_kit_path(self):
@@ -93,6 +93,11 @@ class StreamRows(unittest.TestCase):
             bad = dict(row, old_logp=[0.] * len(row['tokens']))
             with self.assertRaisesRegex(ValueError, 'sampled positions'):
                 grpo_rows.encode(self.be.processor, bad, None, 'duplicate', None)
+            with self.assertRaisesRegex(ValueError, 'outside the artifact'):
+                grpo_rows.encode(self.be.processor, dict(row, response_sources=dict(row['response_sources'], donor=True)),
+                                 None, 'duplicate', None)
+            with self.assertRaisesRegex(ValueError, 'temperature'):
+                grpo_rows.encode(self.be.processor, dict(row, temperature=None), None, 'duplicate', None)
             bad = dict(row, stream='routing')
             with self.assertRaisesRegex(ValueError, 'tool responses'):
                 grpo_rows.encode(self.be.processor, bad, None, 'duplicate', None)
@@ -129,3 +134,6 @@ class OwnRows(StreamRows):
             self.assertGreater(float(out['components']['routing']), 0.)
             with self.assertRaisesRegex(ValueError, 'inside the artifact'):
                 grpo_rows.encode(self.be.processor, dict(row, response_policy=None), None, 'duplicate', None)
+            with self.assertRaisesRegex(ValueError, 'outside the artifact'):
+                grpo_rows.encode(self.be.processor, dict(row, response_sources=dict(pose_source='own', mask_source='gt')),
+                                 None, 'duplicate', None)

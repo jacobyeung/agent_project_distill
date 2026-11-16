@@ -35,3 +35,17 @@ def selected(path,indices):
             if i>=indices[-1]:break
     if set(images)!=wanted:raise ValueError('original video lacks registered frames')
     return [images[i] for i in indices]
+
+
+def aligned_dense(path, anchors, total):
+    """Keep the model anchors, filling a 64-frame full-video grid without repeats."""
+    if total < 64 or len(set(anchors)) != 32:
+        raise ValueError('dense 64 requires at least 64 source frames and 32 distinct anchors')
+    indices=set(anchors)
+    candidates={i*(total-1)//63 for i in range(64)}-indices
+    while len(indices)<64:
+        # Deterministic widest-gap coverage; ties use the earlier frame.
+        value=max(candidates,key=lambda x:(min(abs(x-y) for y in indices),-x))
+        indices.add(value);candidates.remove(value)
+    indices=sorted(indices)
+    return selected(path,indices),indices,[indices.index(i) for i in anchors]

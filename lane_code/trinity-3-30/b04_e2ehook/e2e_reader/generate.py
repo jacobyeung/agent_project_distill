@@ -39,7 +39,8 @@ class Perception:
                 tower = self.g3t(frames)
                 timings['g3t_s'] = time.perf_counter() - t0
                 with torch.no_grad():
-                    log_s = float(self.scale_head(tower))
+                    log_s = float(self.scale_head(tower, prefill_state) if getattr(self.scale_head, 'reads_prefill', False)
+                                  else self.scale_head(tower))
                 gravity = self.gravity(prefill_state)
                 geometry = from_tower(tower['raw_pose9'], tower['anchor_slots'], tower['frame_indices'],
                                       tower['depth_grid'], tower['grid_uv'], gravity, float(torch.tensor(log_s).exp()),
@@ -48,7 +49,6 @@ class Perception:
                 session = ground_session(geometry, socket) if socket is not None else None
                 built['servers'] = ReadServers(geometry, session, serve_room=self.serve_room)
                 built['scale'] = float(torch.tensor(log_s).exp())
-                built['guard_verdicts'] = geometry.guard_verdicts
             return built['servers']
 
         def route(family):
@@ -110,4 +110,4 @@ def generate(model, hook, perception, frames, prompt_ids, *, artifact, eos_ids, 
     return dict(tokens=list(hook.ids), text=hook.tokenizer.decode(hook.ids, skip_special_tokens=False),
                 finish=finish, hook=hook.report(), audit=audit.report(), model_prefills=counter.prefills,
                 model_steps=counter.steps, cache_length=cache[0].get_seq_length(), timings=timings,
-                scale=built.get('scale'), guard_verdicts=built.get('guard_verdicts'))
+                scale=built.get('scale'))

@@ -1,0 +1,14 @@
+READER e2e [e2e fixture]; EAT-1 PASSED for this reader; MODE production; EXPORT step544 sha256 1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef; BENCHMARK VSI-Bench official 5,130; FRAMES 32 duplicate; BINDING d818e3953938; ARM primary (primary)
+eight-task mean: 48.98 95% CI [48.14, 49.77]; groups object_counting, object_abs_distance, object_size_estimation, room_size_estimation, object_rel_distance, object_rel_direction, route_planning, obj_appearance_order; items 5130; scenes 288
+object_counting: 49.57 [47.27, 51.88]; n=565; call rate=0.00%; calls=0 served=0; refusals=10; forced closes=7; errors=0; unparsed=0
+object_abs_distance: 49.10 [47.03, 51.20]; n=834; call rate=100.00%; calls=834 served=834; refusals=17; forced closes=9; errors=0; unparsed=0; NOTE distance route first selected on VSI-Bench ScanNet items (POLICY_AUDIT row 1); its dev-S1 confirmation (+8.1) is unit conversion; the route has no clean confirmation (amendment 3 item 5)
+object_size_estimation: 48.52 [46.79, 50.23]; n=953; call rate=0.00%; calls=0 served=0; refusals=21; forced closes=9; errors=0; unparsed=0
+room_size_estimation: 50.00 [47.09, 53.56]; n=288; call rate=100.00%; calls=288 served=288; refusals=6; forced closes=2; errors=0; unparsed=0; NOTE served routed room, post-read deviation from D2, no gain established, room rule from C4 (incumbent rv, selected on VSI-Bench ScanNet items)
+object_rel_distance: 51.31 [49.35, 53.97]; n=710; call rate=0.00%; calls=0 served=0; refusals=14; forced closes=9; errors=0; unparsed=0
+object_rel_direction: 47.79 [45.91, 50.06]; n=968; call rate=0.00%; calls=0 served=0; refusals=18; forced closes=10; errors=0; unparsed=0
+  subtypes: object_rel_direction_easy 45.18 (n=217), object_rel_direction_medium 49.36 (n=378), object_rel_direction_hard 48.82 (n=373)
+route_planning: 48.55 [44.24, 53.22]; n=194; call rate=0.00%; calls=0 served=0; refusals=5; forced closes=1; errors=0; unparsed=0
+obj_appearance_order: 47.00 [44.90, 49.77]; n=618; call rate=0.00%; calls=0 served=0; refusals=12; forced closes=6; errors=0; unparsed=0
+object_abs_distance asked in meters: 49.10 [47.03, 51.20]; n=834; call rate=100.00%; refusals=17; forced closes=9
+room_size_estimation asked in square_meters: 50.00 [47.09, 53.56]; n=288; call rate=100.00%; refusals=6; forced closes=2
+direction toward (question-text diagnostic, not an official leaf): 47.79 [45.91, 50.06]; n=968

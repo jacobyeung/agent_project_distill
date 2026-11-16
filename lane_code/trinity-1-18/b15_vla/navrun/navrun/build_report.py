@@ -6,6 +6,7 @@ from collections import Counter
 from .paths import ROOT, OUT, R2R_GT
 from .io import read_json, write_json
 from .package_source import package_source
+from .runner import execution_sha256
 
 
 def main():
@@ -13,7 +14,9 @@ def main():
     plans = read_json(OUT/'tables/subset_plans.json')
     replay = read_json(OUT/'tables/replay.json')
     locations = read_json(OUT/'tables/location_replay.json')
-    diag = read_json(OUT/'tables/oracle_click_diagnostics.json')['summary']
+    comparison = read_json(OUT/'tables/controller_comparison.json')
+    assert comparison['execution_sha256'] == execution_sha256(), 'Stale controller proofs'
+    rand = read_json(OUT/'lists/rand100.json')
     stats = read_json(OUT/'tables/training_statistics.json')
     log = (OUT/'unit_tests.log').read_text()
     match = re.search(r'Ran (\d+) tests in ([\d.]+)s', log)
@@ -38,11 +41,10 @@ def main():
         '```sh',
         './run.sh -m unittest discover -s tests',
         './run.sh -m navrun.proofs plans  # tracks, statistics, both replays, 1%/10% rows',
-        './run.sh -m navrun.proofs eval   # dense-reference proofs and both click variants',
-        './run.sh -m navrun.click_diagnostics  # unchanged geodesic policy, decision traces',
+        './run.sh -m navrun.controller_proofs  # both controllers/leads and rand100',
         './run.sh -m navrun.build_report',
         '```', '',
-        f'Unit gate: **{count} passed, 0 failed, 0 skipped in {seconds:.3f} s**. All 105 existing tests pass. Added tests cover official-id loading, coverage, malformed GT, cache refresh, GT arc-length leads, duplicates, endpoint/tie behavior, STOP boundaries and resume identity.', '',
+        f'Unit gate: **{count} passed, 0 failed, 0 skipped in {seconds:.3f} s**. All 118 existing tests pass. Tests cover the 102-episode stall replay, recovery direction and reset, external click backend, config defaults, rand100 order/identity and malformed releases.', '',
         'Official GT root: `../navrun_inputs/refs/r2r_vlnce_preprocessed/R2R_VLNCE_v1-3_preprocessed`. The loader validates primitive streams, forward counts, location alignment, complete requested-id coverage and start positions. Official files override cached reconstructions; R2RIE and greedy reconstruction remain labelled fallbacks and serve **0 training episodes**.', '',
         '| GT file | SHA256 |', '|---|---|',
     ]
@@ -73,38 +75,49 @@ def main():
             lines.append(f'| {name} | {r["n"]} | {r["SR"]:.6f} | {r["SPL"]:.6f} | {r["nDTW"]:.6f} | {r["SDTW"]:.6f} |')
     lines += ['',
         'All 1,839 val-unseen episodes use official `val_unseen_gt.locations` for nDTW/SDTW; sparse-reference count is zero. FastDTW uses radius 1 and Euclidean costs after consecutive-position deduplication. R2RIE proofs retain their supplied dense references. The full-val shortest-path oracle record is SR 1.000 / SPL 0.999.', '',
-        f'Blind policies use official training statistics: median forward count {stats["median_forward_steps"]}, median turn run {stats["median_turn_run"]}. Random draws iid primitive frequencies, including STOP, with SHA256(seed:episode_id) RNG. Instruction-prior splits the forward budget around lexical left/right/around occurrences. Record policy details and exact list hashes are unavailable.', '',
-        '| Oracle-click on the fixed 600 ids | SR | SPL | OSR | nDTW | SDTW | 500-step caps |', '|---|---:|---:|---:|---:|---:|---:|',
+        f'Blind policies use official training statistics: median forward count {stats["median_forward_steps"]}, median turn run {stats["median_turn_run"]}. Random draws iid primitive frequencies, including STOP, with SHA256(seed:episode_id) RNG. Instruction-prior splits the forward budget around lexical left/right/around occurrences. The record does not specify its blind-policy implementations.', '',
+        '| Oracle-click, fixed 600 ids | Version | SR | SPL | OSR | nDTW | SDTW | Step caps | Stationary tails |',
+        '|---|---|---:|---:|---:|---:|---:|---:|---:|',
     ]
     for name,label in [('oracle-click','Geodesic lead, STOP <1 m'),('oracle-gt-click','GT-location lead, STOP <3 m')]:
-        r=get(name,small)
-        results=read_json(OUT/'tables'/f'{name}_{small}.json')['results']
-        caps=sum(x['termination']=='step_cap' for x in results)
-        lines.append(f'| {label} | {r["SR"]:.6f} | {r["SPL"]:.6f} | {r["OSR"]:.6f} | {r["nDTW"]:.6f} | {r["SDTW"]:.6f} | {caps} |')
+        for version in ('v1','v2'):
+            r=comparison['cells'][f'{name}_{version}_{small}']
+            lines.append(f'| {label} | {version} | {r["SR"]:.6f} | {r["SPL"]:.6f} | {r["OSR"]:.6f} | {r["nDTW"]:.6f} | {r["SDTW"]:.6f} | {r["step_caps"]} | {r["stationary_tails"]} |')
     lines += [
-        '| Record GT lead, no occlusion | 0.802 | 0.792 | 0.847 | unavailable | unavailable | unavailable |', '',
+        '| Record GT lead, no occlusion | record | 0.802 | 0.792 | 0.847 | unavailable | unavailable | unavailable | unavailable |', '',
         'Geodesic lead interpolates 2 m along the current shortest path to the goal. GT lead chooses the nearest 3-D GT location (first index wins ties), then interpolates 2 m forward along that path, clamping at its endpoint. It requests STOP when geodesic goal distance is strictly below the 3 m success radius. It has no monotonic-index restriction.', '',
-        'Both variants project the lead point and use the same floor-plane lift/controller without occlusion. The GT lookahead uses `vla_where.nav.CLICK.max_leg_m=2.0`; standoff is 0.5 m, turns are 15 degrees, forward steps are 0.25 m, and SENSOR is 512 px / 90 degrees / 1.25 m. The success radius comes from the record and Config. No parameters were tuned to the record’s scores. Lead source and STOP radius both differ, so this comparison does not isolate either effect.', '',
-        f'Geodesic diagnostics reproduce **{diag["unchanged_action_streams"]}/600** saved action streams exactly. Its {diag["step_caps"]} capped tails partition into {diag["capped_tail_classes"]}; tails use the last 20 decisions, stationary means every position is within 1e-4 m of the final one, and repeated states round pose/heading to 5 decimals.', '',
-        '| Overlapping observations among 201 geodesic caps | Episodes |', '|---|---:|',
+        'Both variants use the same floor-plane lift without occlusion. Schema 8.2 supplies the 2 m maximum leg, 0.5 m standoff, 15-degree turn and 0.25 m forward step. SENSOR supplies 512 px / 90 degrees / 1.25 m. The 3 m success radius comes from the record and Config. Lead source and STOP radius both differ between variants.', '',
+        '`Config.controller_version="v2"` is the NU/oracle-click default; `"v1"` preserves vla_where exactly. Config files use `vla.nav.eval.controller_version`. The sealed vla_where source is unchanged. V2 retains normal v1 commands, cancels the remaining leg at the first blocked forward step, then turns one quantum and probes one forward step per decision until motion resumes.', '',
+        'A blocked step moves less than 1e-6 m, the existing diagnostic zero-motion tolerance. Recovery starts toward the blocked leg’s bearing (left for zero) and keeps that direction despite subsequent bearing changes; this prevents alternating corrections from stalling. STOP takes precedence. Recovery uses no fitted bearing threshold, budget or score-dependent parameter.', '',
+        'Both the model-facing click decoder and an injected vla_where `ClickTranslator` pass through the same versioned controller. Only navrun receives displacement. Backend observations remain the five schema-8.4 fields; `executed_commanded` receives actual issued forward primitives × 0.25 m. Waypoint decoding and GT training-row conversion retain schema 8.2 behavior.', '',
+        'The fixture `tests/fixtures/controller_v1_stalls.json` stores the 102 ids, v1 action streams, controller-source hash and final 20 decision observations. CPU replay reproduces all 102 v1 streams/tails exactly; v2 leaves **0/102 stationary tails**. Full evaluation also reproduces **1,200/1,200 v1 action streams and metrics** across both leads.', '',
+        'Stationary tails require at least 20 decisions, with every last-20 decision position within 1e-4 m of the final decision position; heading changes do not count as movement. The step cap is 500 primitives. Residual step caps remain failures even when a tail moves.', '',
+        'The four residual GT-lead stationary tails (619, 1077, 1076, 1369) alternate explicit 90-degree left/right outputs and issue no forward primitives in their last 20 decisions. Blocked-forward recovery therefore does not trigger. Their traces are in `out/tables/controller_v2_residual_tails.json`.', '',
+        'Changes to the reported click numbers are logged below as **v2 minus v1** (metric fractions, not percentage points). Training proofs and the full/600 blind-policy numbers are unchanged.', '',
+        '| Lead | ΔSR | ΔSPL | ΔOSR | ΔnDTW | ΔSDTW | ΔStep caps | ΔStationary tails |',
+        '|---|---:|---:|---:|---:|---:|---:|---:|',
     ]
-    for label,key in [('At least one blocked forward step','capped_with_blocked_forward'),
-                      ('Repeated pose/heading in final 20 decisions','capped_with_tail_repeated_pose_heading'),
-                      ('Near-point clamp in final 20 decisions','capped_with_tail_clamp'),
-                      ('Out-of-view turn in final 20 decisions','capped_with_tail_out_of_view'),
-                      ('Nonzero bearing rounded to zero turns in final 20','capped_with_tail_zero_turn_nonzero_bearing'),
-                      ('Bearing sign changes in final 20','capped_with_tail_turn_direction_changes'),
-                      ('Empty commands in final 20','capped_with_tail_empty_commands'),
-                      ('Within success radius at a decision boundary','capped_with_success_at_decision')]:
-        lines.append(f'| {label} | {diag[key]} |')
+    for name,label in [('oracle-click','Geodesic'),('oracle-gt-click','GT-location')]:
+        d=comparison['v2_minus_v1'][name]
+        values=' | '.join(f'{d[k]:+.6f}' for k in ('SR','SPL','OSR','nDTW','SDTW'))
+        lines.append(f'| {label} | {values} | {d["step_caps"]:+d} | {d["stationary_tails"]:+d} |')
     lines += ['',
-        f'Of the 118 stationary tails, 102 have nonzero bearings rounded to zero turns at every one of the last 20 decisions; none of the 201 tails consists entirely of turn-only commands. The controller repeatedly commands blocked forward motion when a small correction rounds to zero turns. Near-point clamps lift y=0.99 to at least 1.276 m forward range and approximately 0.75 m commanded travel, which can sustain overshoot near corners/goals. These are overlapping trace observations, not mutually exclusive causal attributions. The 1 m STOP rule misses {diag["capped_with_OSR"]} episodes that reach the 3 m success radius; {diag["capped_final_within_success"]} finish inside it. No empty-command decision-cap failure explains the 201 step caps.', '',
-        'Resume signatures cover code, config, ordered ids, episode contents, metric references and policy identity; the GT-click identity also hashes its lead references and controller defaults. Journals preserve completed episodes. `out/STOP` stops at primitive boundaries.', '',
-        'Unavailable checks: GPU rendering/depth occlusion, habitat-lab parity, `nav.contracts.validate_public`, MIP rand100 ids, real model/tokenizer integration and real detection AUC/ATD. Scene manifests for student/G3T/SAM3 remain provenance unknown. Train/val-unseen/test scene sets are disjoint.', '',
-        f'Source archive: `out/navrun_src.tgz` (package, tests, configs, wrapper, README and pyproject; excludes output data). **SHA256: {sha}**.', '',
-        'Evidence: `out/tables/{replay,location_replay,subset_plans,official_gt_sources,oracle_click_diagnostics,evaluation_summary_all}.json`, per-policy tables, journals and `out/unit_tests.log`.',
+        'rand100 is **READY**: 100 episodes / 10 scenes from Open-Nav’s OpenNav_R2R-CE_100 release, in file order. All ids, scenes, trajectories and start positions match v1-3 val-unseen. The .json.gz source is plain JSON; gzip is detected by magic bytes. Drive id: `1SfrPWqCIiivwduCYPMe-Za1wOt4eU6G9`.', '',
+        f'Source SHA256: `{rand["source_sha256"]}`. Ordered-id SHA256 (UTF-8 ids, trailing LF): `{rand["ordered_id_sha256"]}`. Frozen list: `out/lists/rand100.json`.', '',
+        '| rand100 policy | SR | Record SR | ΔSR | SPL | OSR | nDTW |',
+        '|---|---:|---:|---:|---:|---:|---:|',
     ]
-    assert len(lines)<=130, len(lines)
+    for name,record in [('oracle',1.),('random',.030),('forward-only',.060),('instruction-prior',.060)]:
+        r=comparison['cells'][name+'_rand100']
+        lines.append(f'| {name} | {r["SR"]:.6f} | {record:.3f} | {r["SR"]-record:+.6f} | {r["SPL"]:.6f} | {r["OSR"]:.6f} | {r["nDTW"]:.6f} |')
+    lines += ['',
+        'rand100 uses official dense GT references and the same fixed training statistics and policy definitions as the full/600 proofs. Blind-prior differences from the record are reported without fitting policies to those scores.', '',
+        'Resume signatures cover code, config, ordered ids, episode contents, metric references and policy identity; the GT-click identity also hashes its lead references and controller defaults. Journals preserve completed episodes. `out/STOP` stops at primitive boundaries.', '',
+        'Unavailable checks: GPU rendering/depth occlusion, habitat-lab parity, `nav.contracts.validate_public`, real model/tokenizer integration and real detection AUC/ATD. Scene manifests for student/G3T/SAM3 remain provenance unknown. Train/val-unseen/test scene sets are disjoint.', '',
+        f'Source archive: `out/navrun_src.tgz` (package, tests including fixtures, configs, wrapper, README and pyproject; excludes output data). **SHA256: {sha}**.', '',
+        'Evidence: `out/tables/controller_comparison.json`, versioned click tables, `*_rand100.json`, existing training/metric proofs, journals, `out/controller_proofs.log` and `out/unit_tests.log`.',
+    ]
+    assert len(lines)<=150, len(lines)
     (ROOT/'BUILD_REPORT.md').write_text('\n'.join(lines)+'\n')
     print(f'BUILD_REPORT.md: {len(lines)} lines; archive sha256 {sha}')
 

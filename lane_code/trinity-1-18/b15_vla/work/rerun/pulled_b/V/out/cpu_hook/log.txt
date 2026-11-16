@@ -1,0 +1,71 @@
+== 2026-11-16T13:59:32Z cpu_hook mix=vll_libero_spatial_d1_s0 kit=e6bccd3deea4d7ab
+== hook_check
+   -0.24321427941322327
+  ],
+  "max": [
+   0.9375,
+   0.8892857432365417,
+   0.9375,
+   0.15214285254478455,
+   0.26249998807907104,
+   0.23357142508029938
+  ],
+  "count": 1229,
+  "subset_sha": "71c7f83907b1cf370a39c845570a91bf17620f2b9850c6fda688a089a212da31",
+  "data_mix": "vll_libero_spatial_d1_s0",
+  "gripper": "g = 1 - 2 a6, not normalised"
+ },
+ "prompt_template": {
+  "template_id": "starvla_qwenoft_985c2238_v1",
+  "template_sha256": "47e4c3d9161ec2df6b38ab4dbe4e16b2ccad17e1a0e3cd57f415031ad08f692b",
+  "template": "{instruction}{where} Please predict the next 8 robot actions: <action>\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d<action>."
+ },
+ "full_prompt_example": "pick up the black bowl on the stove and place it on the plate Please predict the next 8 robot actions: <action>\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d<action>.",
+ "gripper_in_prediction": [
+  1.0
+ ],
+ "dropout": {
+  "rows": 1000,
+  "withheld": 207,
+  "rate": 0.207,
+  "agrees_with_vla_heads": true,
+  "within_3sd": true
+ },
+ "flow_detach_False": {
+  "loss": 1.651148796081543,
+  "finite": true,
+  "grad_lm": 18.908806859337346,
+  "grad_head": 229.20891011087224,
+  "predict_shape": [
+   3,
+   8,
+   7
+  ],
+  "in_range": true,
+  "server_same_with_seed": 0.0
+ },
+ "flow_detach_True": {
+  "loss": 1.651148796081543,
+  "finite": true,
+  "grad_lm": 0,
+  "grad_head": 229.20891011087224,
+  "predict_shape": [
+   3,
+   8,
+   7
+  ],
+  "in_range": true,
+  "server_same_with_seed": 0.0
+ },
+ "verdict": "HOOK_OK"
+}
+HOOK_OK
+straight rc=0
+resumed rc=0
+trace keys ['batch_fp', 'gate_proprio', 'loss', 'loss_rank_mean', 'lr', 'param_norms', 'param_sums', 'samples_per_s', 'step', 'step_s', 't', 'utc']
+straight [(1, 0.9861299, '1d7b7e9f5f11df2b', 0.0, 24.0684), (2, 0.7019841, 'd631b0f2f27eb99c', 0.008336092345416546, 24.0683), (3, 0.3647024, 'bc70f73431f3b967', 0.012925125658512115, None), (4, 0.5427384, 'd16691a84caf900e', 0.014269773848354816, 24.0682)]
+resumed  [(3, 0.3647024, 'bc70f73431f3b967', 0.012925125658512115), (4, 0.5427384, 'd16691a84caf900e', 0.014269773848354816)]
+slots {'current': {'step': 2, 'world': 1, 'utc': '2026-11-16T14:05:37Z'}, 'steps_2': {'step': 2, 'world': 1, 'utc': '2026-11-16T14:05:37Z'}}
+proprio_norm.json True | config head_hook True
+HOOK_RESUME_EXACT
+CPU_HOOK_DONE

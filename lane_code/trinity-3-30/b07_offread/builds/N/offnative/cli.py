@@ -6,7 +6,7 @@ import re
 import secrets
 from .paths import ROOT, r_launcher
 from .io import dump, load, sha, digest, journal, owned, extract
-from .cohort import cohort, media302, name_inventory, canary
+from .cohort import cohort, media_manifest, name_inventory, canary
 from .reporting import report
 from offkit.bind import bind, check_ledger, ledger_append
 from offkit.frames import bind_frames
@@ -20,22 +20,13 @@ def binding(args):
         raise ValueError('Direct mode is owned by build R; use builds/R/kit/rebind.py')
     b = bind(args.benchmark,args.export,args.reader,mode=args.mode,freeze_file=args.freeze_file,
              e2e_manifest=args.e2e_manifest,eat1_report=args.eat1_report,
-             init_selection=args.init_selection,ledger=args.ledger)
-    layout = None
-    if args.export.startswith('done:'):
-        # The .done format has three fields; its producer supplies a separately pinned layout record.
-        if args.export_layout:
-            record = load(args.export_layout)
-            if record.get('export_sha256') != b['export']['sha256']:
-                raise ValueError('export layout concerns another export')
-            layout = record['frames']
-            b['export']['layout_record_sha256'] = sha(args.export_layout)
-    frames = bind_frames(args.frames,args.frame_layout,export=b['export']['kind'],
-                         export_layout=layout,override_reason=args.override_reason)
+             init_selection=args.init_selection,ledger=args.ledger,
+             frames=(args.frames,args.frame_layout),frames_override_reason=args.override_reason)
+    frames = b['frames']
     from .source import bind_source
-    g3t = bind_source(getattr(args,'g3t_source',None), freeze=b['reader'].get('freeze_values'),
-                      mapping=getattr(args,'original_mapping',None), production=args.mode=='production',
-                      reader=b['reader']['kind'])
+    g3t = bind_source(getattr(args,'g3t_source','original'), freeze=b['reader'].get('freeze_values'),
+                      mapping=getattr(args,'original_mapping',None), production=args.mode!='fixture',
+                      reader=b['reader']['kind'], benchmark=args.benchmark)
     b['read_config'] = dict(frames=frames, g3t=g3t)
     b['frame_path'] = frames['anchor_rule']+'; layout '+frames['layout']
     b['binding_sha256'] = digest({k:v for k,v in b.items() if k!='binding_sha256'})
@@ -52,7 +43,7 @@ def prepare(args):
     job = 'a15_cot_ap'+secrets.token_hex(8)
     dump(dest/'BINDING.json',b)
     dump(dest/'COHORT.json',items)
-    dump(dest/'NEED_302.json',media302(items))
+    dump(dest/'MEDIA_MANIFEST.json',media_manifest(args.benchmark,items))
     dump(dest/'NAMES.json',name_inventory(items))
     dump(dest/'CANARY.json',canary(items,ReadMode(args.benchmark,b['reader']['kind'])))
     # Only opaque identities and numeric parameters belong in an Orchard-facing config.
@@ -146,10 +137,10 @@ def main():
     q.add_argument('--export',required=True)
     q.add_argument('--reader',required=True)
     q.add_argument('--mode',choices=['proof','production','fixture'],default='production')
-    for name in ('freeze-file','e2e-manifest','eat1-report','init-selection','export-layout','override-reason','token'):
+    for name in ('freeze-file','e2e-manifest','eat1-report','init-selection','override-reason','token'):
         q.add_argument('--'+name)
-    q.add_argument('--g3t-source',choices=['clip32','original'])
-    q.add_argument('--original-mapping')
+    q.add_argument('--g3t-source',choices=['clip32','original'],default='original')
+    q.add_argument('--original-mapping',default=str(ROOT/'out/REVSI_DENSE_MAPPING.json'))
     q.add_argument('--inputs')
     q.add_argument('--frames',type=int,choices=[32,64],default=32)
     q.add_argument('--frame-layout',choices=['duplicate','spread'],default='duplicate')

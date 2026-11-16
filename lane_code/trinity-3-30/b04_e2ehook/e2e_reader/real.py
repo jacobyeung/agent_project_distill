@@ -56,13 +56,15 @@ def anchor_frames(frames):
     return [frames['native_frames'][int(s)] for s in frames['anchor_slots']]
 
 
-def real_perception(artifact, *, device, scale_head, sam3_tower=None, selector_head=None, serve_room=False):
-    """Servers of the carrier read. scale_head: heads/scale ScaleHead (loaded from the artifact's scale_head
-    component); sam3_tower + selector_head enable stage-1 ground/gap (stage1.stage1_factory); without them
-    ground/gap calls are unserved and counted. Room is unserved (room is a direct type)."""
-    from .stage1 import ScaleHeadCall, stage1_factory
+def real_perception(artifact, *, device, scale_head=None, sam3_tower=None, selector_head=None, serve_room=False):
+    """Servers of the carrier read. scale_head: a heads/scale ScaleHead (from the artifact's scale_head component),
+    or None for OwnDepthScale (the checkpoint's own depth head through the tree's frozen estimator, the default in
+    force); sam3_tower + selector_head enable stage-1 ground/gap (stage1.stage1_factory); without them ground/gap
+    calls are unserved and counted. Room is unserved (room is a direct type)."""
+    from .stage1 import OwnDepthScale, ScaleHeadCall, stage1_factory
     socket = stage1_factory(sam3_tower, selector_head, anchor_frames) if sam3_tower is not None else None
-    return Perception(TowerG3T(artifact, device), own_gravity, ScaleHeadCall(scale_head), socket, serve_room)
+    scale = OwnDepthScale() if scale_head is None else ScaleHeadCall(scale_head)
+    return Perception(TowerG3T(artifact, device), own_gravity, scale, socket, serve_room)
 
 
 @torch.no_grad()
@@ -101,6 +103,5 @@ def generate_real(model, processor, batch, frames, hook, perception, *, artifact
     return dict(tokens=list(hook.ids), text=processor.tokenizer.decode(hook.ids, skip_special_tokens=False),
                 finish=finish, calls=hook.report(), audit=audit.report(), entries=entries,
                 prompt_tokens=int(prompt.shape[1]), timings=timings, scale=built.get('scale'),
-                guard_verdicts=built.get('guard_verdicts'),
                 heads=dict(pose9=state.heads.pose9.tolist(),
                            gravity=None if state.heads.gravity is None else state.heads.gravity.tolist()))

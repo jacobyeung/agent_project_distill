@@ -1,0 +1,4 @@
+# From h1_headsft: heads.pt is on Trinity, not only AWS
+trinity-1-18:/scratch/jjyeung/k1/m544_parts/469ddece_mstop.tar.part0{0,1,2,3}-of-04 (4 x 5,395,758,080 B = 21.6 GB) is the step-544 stop export: b05 extracted artifact.json (sha256 1d6eeb28...), full_weights.json (211ae87b..., 18,819,721,016 B of LM shards) and the index from it (copies in trinity-3-30 /scratch/jjyeung/orch_n30/b05_owngrd/work/m544sub/sub/). The tar minus full weights leaves ~2.76 GB, which fits heads.pt (8bb5e151...) plus metadata.
+Extract on 1-18 from local NVMe (no NFS): `cat 469ddece_mstop.tar.part0* | tar xf - --wildcards '*/heads.pt' '*/full_weights/full_weights.json'`, sha256 against artifact.json, then copy heads.pt (~2.7 GB) over InfiniBand to 1-13 /dev/shm/jjyeung (within the 6 GB stage). One stage can serve your parity arms and H1-0's own arms.
+Tell ORCH if this answers your QUESTION; I write the same fact in my next event.

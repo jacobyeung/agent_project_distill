@@ -15,18 +15,33 @@ CHAIRS = {'chair': ['chair:1', 'chair:2', 'chair:3']}
 
 def item(qid='q1', qtype='object_counting', answer='3', gt=None, **kw):
     gt = CHAIRS if gt is None else gt
-    d = dict(CLEAN, qid=qid, type=qtype, answer=answer, gt_instances=gt, operands=list(gt))
+    d = dict(CLEAN, qid=qid, type=qtype, answer=answer, gt_instances=gt, operands=list(gt), question='q?',
+             options=OPTS if qtype in A.OPTION else [])
     d.update(kw)
     return d
 
 
-def record(qid, qtype, answer, gt_answer, status=None):
+OPTS = ['A. left', 'B. right', 'C. back', 'D. front']
+
+
+def record(qid, qtype, answer, gt_answer, status=None, options=None):
     call = '<ground obj="chair">'
     resp = '<tool_response>\n' + (status or 'chair: 3 instances') + '\n</tool_response>'
     tail = ('\n</think>\n<answer>' + answer + '</answer>') if status is None else '\nI answer from the frames.\n</think>\n<answer>' + answer + '</answer>'
-    return dict(qid=qid, type=qtype, question='q?', options=[], answer=answer, gt_answer=gt_answer, candidate_id='c',
-                spec_version='3.14', events=[dict(call=call, response=resp)],
-                suffix='<think>\nI will ground the chairs.\n' + call + '\n' + resp + tail)
+    options = (OPTS if qtype in A.OPTION else []) if options is None else options
+    rec = dict(qid=qid, type=qtype, question='q?', options=options, answer=answer, gt_answer=gt_answer, candidate_id='c',
+               spec_version='3.14', events=[dict(call=call, response=resp)],
+               suffix='<think>\nI will ground the chairs.\n' + call + '\n' + resp + tail)
+    if qtype in A.OPTION:
+        rec['answer_content'] = dict(o.split('. ', 1) for o in options).get(answer)
+    return seal(rec)
+
+
+def seal(rec, pipeline_sha256='0' * 64):
+    """Stand-in for replay_receipt(): the fixture has no Session, so the receipt is written directly."""
+    rec['replay'] = dict(function=A.REPLAY_FUNCTION, ok=True, session_sha256=pipeline_sha256,
+                         events_sha256=A.events_sha256(rec['events']))
+    return rec
 
 
 def resp(qid='q1', pred='3', status='ok', sel=None, qtype='object_counting', gt_answer='3', **kw):
@@ -36,6 +51,13 @@ def resp(qid='q1', pred='3', status='ok', sel=None, qtype='object_counting', gt_
                            None if status == 'ok' else status))
     r.update(kw)
     return r
+
+
+def dec(it, r, e):
+    """decide() after re-sealing an edited record, to probe the checks that run after the replay receipt."""
+    if r is not None and isinstance(r.get('record'), dict) and 'events' in r['record']:
+        seal(r['record'], r.get('pipeline_sha256', '0' * 64))
+    return A.decide(it, r, e)
 
 
 class Eligibility(unittest.TestCase):
@@ -60,9 +82,30 @@ class Eligibility(unittest.TestCase):
         r0 = sorted(r for r in E.r0 if r.startswith('scannet/'))[0]
         self.assertEqual(E.reason(dict(item(), scene=r0 + '_00', room=None)), 'r0_reserve')
 
+    def test_review2_identifier_bypasses(self):
+        for room, want in (('d1/scene0155_99', 'eligibility_error'), ('scannet++/09c1414f1b', 'eligibility_error'),
+                           ('scannet/scene0161_99', 'eligibility_error'), ('d1/scene0183', 'eligibility_error')):
+            self.assertTrue(E.reason(dict(item(), room=room)).startswith(want), room)
+        self.assertEqual(E.reason(dict(item(), scene='scannet++/09c1414f1b', dataset='scannet++', room=None)), 'benchmark')
+        r0 = sorted(r for r in E.r0 if r.startswith('scannet/'))[0]
+        self.assertEqual(E.reason(dict(item(), dataset='d1', scene=r0.split('/')[1] + '_00', room=None)), 'r0_reserve')
+
+    def test_review2_clean_aliases_resolve(self):
+        for ds, sc, room in (('d2', 'v012679495aa0', 'scannetpp/216b9e55e8'), ('d3', 'v00475f483e27', 'arkitscenes/44796432')):
+            it = dict(item(), dataset=ds, scene=sc, room=None)
+            self.assertIsNone(E.reason(it), sc)
+            self.assertEqual(it['room_key'], room)
+        it = dict(item(), dataset='scannet++', scene='00dd871005', room=None)
+        self.assertIsNone(E.reason(it))
+        a = dict(item(), dataset='d3', scene='40777060', room='d3/40777060')
+        b = dict(item(), dataset='arkitscenes', scene='arkitscenes/40777060', room='arkitscenes/40777060')
+        ra, rb = E.reason(a), E.reason(b)
+        self.assertEqual((ra, rb), (None, None))
+        self.assertEqual(a['room_key'], b['room_key'])
+
     def test_every_identifier_is_checked(self):
-        self.assertEqual(E.reason(dict(item(), room='d1/scene0155')), 'dev_s1')
-        self.assertEqual(E.reason(dict(item(), physical_group='scannet/scene0011_00')), 'benchmark')
+        self.assertTrue(E.reason(dict(item(), room='d1/scene0155')).startswith('eligibility_error:identity_conflict'))
+        self.assertTrue(E.reason(dict(item(), physical_group='scannet/scene0011_00')).startswith('eligibility_error:identity_conflict'))
         self.assertTrue(E.reason(dict(item(), dataset='scannet', scene='arkitscenes/41069053')).startswith('eligibility_error'))
         self.assertTrue(E.reason(dict(item(), dataset='nope')).startswith('eligibility_error'))
         self.assertTrue(E.reason(dict(item(), dataset='d1', scene='vunknown000000', room=None)).startswith('eligibility_error'))
@@ -94,9 +137,14 @@ class Decide(unittest.TestCase):
         self.assertEqual(mk('170')[0], 'head')
         self.assertEqual(mk('0.85', '1')[0], 'head')
         self.assertEqual(mk('230.01')[0], 'direct')
-        for bad in ('nan', 'inf', 'abc', ''):
+        for bad in ('nan', 'inf', 'abc', '', '2e2', ' 200', 200.0):
             self.assertEqual(mk(bad)[0], 'direct', bad)
-        self.assertEqual(mk('0', '0'), ('drop', 'nonpositive_gt'))
+        self.assertEqual(mk('0', '1e-1000000000'), ('drop', 'gt_malformed'))
+        self.assertEqual(mk('0', '0')[0], 'head')
+        self.assertEqual(mk('0.01', '0')[0], 'direct')
+        self.assertEqual(mk('1', '-1'), ('drop', 'negative_gt'))
+        self.assertEqual(mk('1.15000000000000000000000000001', '1')[0], 'direct')
+        self.assertEqual(mk('1.15', '1')[0], 'head')
 
     def test_options_and_counts_exact(self):
         g = {'a': ['a:0'], 'b': ['b:0']}
@@ -104,10 +152,11 @@ class Decide(unittest.TestCase):
             return A.decide(item(qtype='object_rel_direction_hard', answer=a, gt=g),
                             resp(pred=p, sel=g, qtype='object_rel_direction_hard', gt_answer=a), E)[0]
         self.assertEqual(d('B', 'B'), 'head')
-        for bad in ('C', 'Banana', 'B but actually C', 'b', 'B.', None):
+        for bad in ('C', 'Banana', 'B but actually C', 'b', 'B.', None, ' B'):
             self.assertEqual(d(bad, 'B'), 'direct', bad)
-        self.assertEqual(d(None, None), 'direct')
-        for bad in ('3.0', '3.0000000000000001', '03', ' 3x'):
+        self.assertEqual(d(None, None), 'drop')
+        self.assertEqual(d('B', ' B'), 'drop')
+        for bad in ('3.0', '3.0000000000000001', '03', ' 3x', ' 3', 3):
             self.assertEqual(A.decide(item(), resp(pred=bad), E)[0], 'direct', bad)
         self.assertEqual(A.decide(item(answer='9007199254740992'), resp(pred='9007199254740993'), E)[0], 'direct')
 
@@ -121,23 +170,198 @@ class Decide(unittest.TestCase):
         self.assertEqual(A.decide(item(), r, E), ('drop', 'no_status'))
 
     def test_provenance_and_record(self):
-        self.assertEqual(A.decide(item(), resp(pipeline=''), E), ('drop', 'response_without_provenance'))
-        self.assertEqual(A.decide(item(), resp(pipeline_sha256='not-a-sha256'), E), ('drop', 'response_without_provenance'))
+        self.assertEqual(dec(item(), resp(pipeline=''), E), ('drop', 'response_without_provenance'))
+        self.assertEqual(dec(item(), resp(pipeline_sha256='not-a-sha256'), E), ('drop', 'response_without_provenance'))
         r = resp()
         del r['record']
-        self.assertEqual(A.decide(item(), r, E), ('drop', 'record_missing'))
+        self.assertEqual(dec(item(), r, E), ('drop', 'record_missing'))
         r = resp()
         r['record']['answer'] = '4'
-        self.assertEqual(A.decide(item(), r, E), ('drop', 'record_answer'))
+        self.assertEqual(dec(item(), r, E)[0], 'drop')
+        r = resp(pred='4')
+        r['record'] = record('q1', 'object_counting', '3', '3')
+        self.assertEqual(dec(item(answer='4'), r, E), ('drop', 'record_gt'))
+        r = resp()
+        r['pred'] = '3'
+        r['record'] = dict(record('q1', 'object_counting', '3', '3'))
+        r['record']['answer'] = '3'
+        r2 = dict(r, pred=' 3')
+        self.assertEqual(dec(item(), r2, E), ('direct', 'response_wrong'))
         r = resp()
         r['record']['suffix'] = r['record']['suffix'].replace('<answer>3</answer>', '<answer>4</answer>')
-        self.assertEqual(A.decide(item(), r, E), ('drop', 'record_suffix'))
+        self.assertTrue(dec(item(), r, E)[1].startswith('sealed_pack_refused'))
         r = resp()
         r['record']['events'][0]['response'] = 'other'
-        self.assertEqual(A.decide(item(), r, E), ('drop', 'record_events'))
+        self.assertEqual(dec(item(), r, E)[0], 'drop')
         r = resp()
         r['record']['gt_answer'] = '4'
-        self.assertEqual(A.decide(item(), r, E), ('drop', 'record_gt'))
+        self.assertEqual(dec(item(), r, E), ('drop', 'record_gt'))
+        r = resp()
+        r['record']['gt_answer'] = ' 3 '
+        self.assertEqual(dec(item(), r, E), ('drop', 'record_gt'))
+        for flag, value in (('gt_agrees', False), ('training_admitted', True), ('not_seen', True)):
+            r = resp()
+            r['record'][flag] = value
+            self.assertTrue(dec(item(), r, E)[1].startswith('sealed_pack_refused'), flag)
+        r = resp()
+        r['record']['suffix'] = r['record']['suffix'][len('<think>\n'):]
+        self.assertTrue(dec(item(), r, E)[1].startswith('sealed_pack_refused'))
+        r = resp()
+        r['record']['suffix'] = r['record']['suffix'].replace('<ground obj="chair">', 'not a call')
+        r['record']['events'][0]['call'] = 'not a call'
+        self.assertEqual(dec(item(), r, E), ('drop', 'record_call_grammar'))
+        r = resp()
+        old = r['record']['events'][0]['response']
+        r['record']['suffix'] = r['record']['suffix'].replace(old, 'garbage')
+        r['record']['events'][0]['response'] = 'garbage'
+        self.assertTrue(dec(item(), r, E)[1].startswith('sealed_pack_refused'))
+        r = resp()
+        r['record']['spec_version'] = '9.99'
+        self.assertTrue(dec(item(), r, E)[1].startswith('sealed_pack_refused'))
+
+    def test_review3_gt_whitespace_and_options(self):
+        r = resp(pred='3')
+        r['record'] = record('q1', 'object_counting', '3', ' 3 ')
+        self.assertEqual(A.decide(item(answer=' 3 '), r, E)[0], 'drop')
+        g = {'a': ['a:0'], 'b': ['b:0']}
+        it = item(qtype='object_rel_distance', answer='B', gt=g)
+        ok = resp(pred='B', sel=g, qtype='object_rel_distance', gt_answer='B')
+        self.assertEqual(A.decide(it, ok, E)[0], 'head')
+        r = copy.deepcopy(ok)
+        del r['record']['answer_content']
+        self.assertEqual(A.decide(it, r, E), ('drop', 'record_options'))
+        r = copy.deepcopy(ok)
+        r['record']['options'] = ['A. right', 'B. left', 'C. back', 'D. front']
+        r['record']['answer_content'] = 'left'
+        self.assertEqual(A.decide(it, r, E), ('drop', 'record_question'))
+        r = copy.deepcopy(ok)
+        r['record']['answer_content'] = 'left'
+        self.assertEqual(A.decide(it, r, E)[0], 'drop')
+        r = copy.deepcopy(ok)
+        r['record']['question'] = 'other?'
+        self.assertEqual(A.decide(it, r, E), ('drop', 'record_question'))
+
+    def test_review3_recovery(self):
+        r = resp(status='chair: not seen', pred=None)
+        r['record']['not_seen'] = True
+        self.assertEqual(dec(item(), r, E), ('recovery', 'real_failure'))
+        r = resp(status='chair: not seen', pred=None)
+        r['record']['events'][0]['call'] = '<ground obj="table">'
+        r['record']['suffix'] = r['record']['suffix'].replace('<ground obj="chair">', '<ground obj="table">')
+        self.assertEqual(dec(item(), r, E), ('drop', 'record_status_operand'))
+        g = {'sofa': ['sofa:0']}
+        r = resp(status='chair: not seen', pred=None, qtype='object_abs_distance', gt_answer='-1')
+        self.assertEqual(dec(item(qtype='object_abs_distance', answer='-1', gt=g), r, E), ('drop', 'negative_gt'))
+
+    def test_review5(self):
+        r = resp(qtype='object_rel_direction_medium', pred='A', gt_answer='A', sel={'a': ['a:0']})
+        call = '<angle S=P1 F=P2 Q=P3 rule=medium>'
+        body = '<tool_response>\ntheta 45 deg; left\n</tool_response>'
+        rec = r['record']
+        rec['events'].append(dict(call=call, response=body))
+        rec['suffix'] = rec['suffix'].replace('\n</think>', '\n' + call + '\n' + body + '\n</think>')
+        seal(rec)
+        it = item(qtype='object_rel_direction_medium', answer='A', gt={'a': ['a:0']})
+        self.assertEqual(A.decide(it, r, E)[1], 'sealed_pack_refused:unprinted_point_reference')
+        self.assertTrue(A.call_ok(call, A.call_patterns()))
+        self.assertFalse(A.call_ok('<ground obj=" chair">', A.call_patterns()))
+        r = resp()
+        r['record']['events'][0]['call'] = '<ground obj=" chair">'
+        r['record']['suffix'] = r['record']['suffix'].replace('<ground obj="chair">', '<ground obj=" chair">')
+        seal(r['record'])
+        self.assertEqual(A.decide(item(), r, E), ('drop', 'record_call_grammar'))
+        r = resp()
+        del r['record']['replay']
+        self.assertEqual(A.decide(item(), r, E), ('drop', 'record_replay_missing'))
+        r = resp()
+        r['record']['replay']['session_sha256'] = '1' * 64
+        self.assertEqual(A.decide(item(), r, E), ('drop', 'record_replay_missing'))
+        r = resp()
+        r['record']['events'][0]['response'] += ' '
+        self.assertEqual(A.decide(item(), r, E), ('drop', 'record_replay_missing'))
+        r = resp(status='chair: not seen', pred=None)
+        pre = dict(call='<ground obj="table">', response='<tool_response>\nmask_source_unavailable_for_type\n</tool_response>')
+        r['record']['events'].insert(0, pre)
+        r['record']['suffix'] = r['record']['suffix'].replace('<think>\n', '<think>\n' + pre['call'] + '\n' + pre['response'] + '\n', 1)
+        seal(r['record'])
+        self.assertEqual(A.decide(item(), r, E), ('drop', 'record_operator_fault'))
+        for body in ('chair: unresolved', 'chair: box unavailable', 'frame unavailable', 'chair: 0 found'):
+            r = resp()
+            old = r['record']['events'][0]['response']
+            new = '<tool_response>\n' + body + '\n</tool_response>'
+            r['record']['events'][0]['response'] = new
+            r['record']['suffix'] = r['record']['suffix'].replace(old, new)
+            seal(r['record'])
+            self.assertEqual(A.decide(item(), r, E), ('drop', 'record_failure_in_head'), body)
+        for state in ('unresolved', 'box unavailable'):
+            self.assertEqual(A.decide(item(), resp(status='chair: ' + state, pred=None), E), ('recovery', 'real_failure'), state)
+
+    def test_replay_receipt_uses_sealed_replay(self):
+        rec = record('q1', 'object_counting', '3', '3')
+        del rec['replay']
+
+        class Stub:
+            def __init__(self, bodies):
+                self.bodies = list(bodies)
+
+            def execute(self, call):
+                return self.bodies.pop(0)
+        receipt = A.replay_receipt(rec, Stub(['chair: 3 instances']), '0' * 64)
+        self.assertEqual(receipt['events_sha256'], A.events_sha256(rec['events']))
+        with self.assertRaises(Exception):
+            A.replay_receipt(rec, Stub(['chair: 4 instances']), '0' * 64)
+
+    def test_review6(self):
+        r = resp()
+        r['record']['suffix'] = r['record']['suffix'].replace('<think>\n', '<think>\n<ground obj="table">\n', 1)
+        self.assertEqual(dec(item(), r, E), ('drop', 'record_unrecorded_tag'))
+        r = resp(status='chair: not seen', pred=None)
+        r['record']['suffix'] = r['record']['suffix'].replace('<think>\n', '<think>\n<gap a="x" b="y">\n', 1)
+        self.assertEqual(dec(item(), r, E), ('drop', 'record_unrecorded_tag'))
+        self.assertEqual(A.decide(item(), resp(sel={'chair': {'chair:1': False, 'chair:2': 0, 'chair:3': 0}}), E),
+                         ('direct', 'mask_mismatch:chair'))
+        self.assertEqual(A.decide(item(answer='3', gt={'chair': 'abc'}), resp(sel={'chair': 'abc'}), E),
+                         ('direct', 'mask_unverified'))
+
+    def test_review4(self):
+        for call in ('<ground obj="chair"', '<ground obj="chair" junk>', '<fly obj="chair">'):
+            for status in ('ok', 'chair: not seen'):
+                r = resp(status=status, pred='3' if status == 'ok' else None)
+                old = r['record']['events'][0]['call']
+                r['record']['events'][0]['call'] = call
+                r['record']['suffix'] = r['record']['suffix'].replace(old, call)
+                self.assertEqual(dec(item(), r, E), ('drop', 'record_call_grammar'), (call, status))
+        for body in ('chair: not seen', 'mask_source_unavailable_for_type'):
+            r = resp()
+            old = r['record']['events'][0]['response']
+            new = '<tool_response>\n' + body + '\n</tool_response>'
+            r['record']['events'][0]['response'] = new
+            r['record']['suffix'] = r['record']['suffix'].replace(old, new)
+            self.assertIn(dec(item(), r, E), (('drop', 'record_failure_in_head'), ('drop', 'record_operator_fault')), body)
+        g = {'a': ['a:0']}
+        r = resp(status='chair: not seen', pred=None, qtype='object_rel_distance', gt_answer='Z')
+        self.assertEqual(dec(item(qtype='object_rel_distance', answer='Z', gt=g), r, E), ('drop', 'gt_not_an_option'))
+        r = resp(pred='1', sel={'chair': [None]}, gt_answer='1')
+        self.assertEqual(dec(item(answer='1', gt={'chair': [None]}), r, E), ('direct', 'mask_unverified'))
+        r = resp(pred='1', sel={'chair': [None]}, gt_answer='1')
+        self.assertEqual(dec(item(answer='1', gt={'chair': ['chair:1']}), r, E)[0], 'direct')
+        name = 'chair: office'
+        r = resp(status=name + ': not seen', pred=None)
+        call = '<ground obj="' + name + '">'
+        r['record']['suffix'] = r['record']['suffix'].replace('<ground obj="chair">', call)
+        r['record']['events'][0]['call'] = call
+        self.assertEqual(dec(item(gt={name: ['c:1']}), r, E), ('recovery', 'real_failure'))
+
+    def test_recovery_needs_the_failure_event(self):
+        self.assertEqual(dec(item(), resp(status='chair: not seen', pred=None), E), ('recovery', 'real_failure'))
+        r = resp(status='chair: not seen', pred=None)
+        ok = record('q1', 'object_counting', '3', '3')
+        r['record']['events'] = ok['events']
+        r['record']['suffix'] = ok['suffix'].replace('\n</think>', '\nchair: not seen\n</think>')
+        self.assertEqual(dec(item(), r, E), ('drop', 'record_status'))
+        r = resp(status='chair: not seen', pred=None)
+        r['record']['suffix'] = r['record']['suffix'].rsplit('\n</think>', 1)[0]
+        self.assertTrue(dec(item(), r, E)[1].startswith('sealed_pack_refused'))
 
     def test_types(self):
         g = {'sofa': ['sofa:0']}

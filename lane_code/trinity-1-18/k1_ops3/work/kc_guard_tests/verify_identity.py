@@ -29,7 +29,7 @@ assert B.sha(ROOT.parent/'manifest_v2/a40fbc19.json')=='e684e0c7d8a75e4296e34ba4
 assert len(m['captures'])==300
 for c in m['captures']:F.checked_phase(c,'/scratch/jjyeung/k1/run_tower_sam_2','tower_sam')
 for c in m['captures'][:3]:F.checked_phase(c,str(ROOT.parent/'own7/canary/native/probe'),'own')
-canary=ROOT/'canary'
+canary=ROOT/os.environ.get('K1_CANARY_ROOT', 'canary')
 receipts=[]
 for c in m['captures'][:3]:
  raw,geo,r=K.cached(c,canary/B.digest(c['canonical'])[:16])
@@ -39,7 +39,7 @@ assert receipts[2]['gravity_verdict']==dict(sealed_refused=True,reviewed_refused
 assert guard.GG.report()==B.load(canary/'GUARD_REPORT.json')
 events=[json.loads(line) for line in (canary/'PROGRESS.jsonl').read_text().splitlines()]
 assert [e['canonical'] for e in events if e['event']=='capture_start'][-1]==m['captures'][3]['canonical']
-assert B.digest(m['captures'][3]['canonical'])[:16] in (ROOT/'canary.log').read_text()
+assert B.digest(m['captures'][3]['canonical'])[:16] in canary.with_suffix('.log').read_text()
 assert B.load(canary/'HALTED.json')['error'].startswith('FileNotFoundError')
 proof=dict(private_before=before,private_after=after,bound_before=bound_before,bound_after=bound_after,baseline_pairs=paired,
  tower_checked=300,own_checked=3,canary=receipts,guard_report=guard.GG.report(),expected_halt=B.load(canary/'HALTED.json'))

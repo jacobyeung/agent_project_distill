@@ -134,6 +134,14 @@ class AnonTest(unittest.TestCase):
             self.assertTrue(anon.scan_tree(path, rules), name)
         self.assertTrue(any(hit['rule'] == 'too-deep'
                             for hit in anon.scan_tree(os.path.join(self.tmp, 'kit', 'deep.tgz'), rules)))
+        named = io.BytesIO()
+        with gzip.GzipFile(filename='qwen.txt', fileobj=named, mode='wb', mtime=0) as handle:
+            handle.write(b'ok')
+        trailers = {'n.gz': named.getvalue(), 't.bz2': bz2.compress(b'ok') + b'qwen',
+                    't.xz': lzma.compress(b'ok') + b'qwen',
+                    'h.bz2': bz2.compress(b'ok') + bz2.compress(b'qwen')}
+        for name, data in sorted(trailers.items()):
+            self.assertTrue(anon.scan_tree(self.write(name, data), rules), name)
         broken = self.write('c.gz', b'\x1f\x8b' + b'not gzip')
         self.assertEqual(anon.scan_tree(broken, rules)[0]['rule'], 'undecodable')
 
@@ -154,6 +162,63 @@ class AnonTest(unittest.TestCase):
         self.assertEqual(anon.scan_tree(os.path.join(self.tmp, 'kit', 'code.py'), rules), [])
         self.assertEqual(anon.scan_job(rules, 'a15_cot_ap0123456789abcdef\n')[0]['rule'],
                          'job-name-format')
+
+    def test_review_oc13_prefixed_zip_is_opened(self):
+        raw = io.BytesIO()
+        with zipfile.ZipFile(raw, 'w', zipfile.ZIP_DEFLATED) as archive:
+            archive.writestr('x', b'qwen')
+        path = self.write('run.pyz', b'#!/usr/bin/env python3\n' + raw.getvalue())
+        self.assertIn('run.pyz!/x', [hit['where'] for hit in anon.scan_tree(path, anon.load_rules())])
+
+    def test_review_oc15_every_container_reading_is_inspected(self):
+        raw = io.BytesIO()
+        with tarfile.open(fileobj=raw, mode='w') as archive:
+            blob = gzip.compress(b'qwen')
+            item = tarfile.TarInfo('x.gz')
+            item.size = len(blob)
+            archive.addfile(item, io.BytesIO(blob))
+        empty = io.BytesIO()
+        with zipfile.ZipFile(empty, 'w'):
+            pass
+        path = self.write('a.bin', raw.getvalue() + empty.getvalue())
+        self.assertIn('a.bin!/x.gz!gz', [hit['where'] for hit in anon.scan_tree(path, anon.load_rules())])
+        path = self.write('b.bin', b'7z\xbc\xaf\x27\x1c' + b'\x00' * 40)
+        self.assertEqual(anon.scan_tree(path, anon.load_rules())[0]['rule'], 'unsupported-container')
+
+    def test_v7_tar_with_a_trailing_zip_and_json_escapes(self):
+        raw = io.BytesIO()
+        with tarfile.open(fileobj=raw, mode='w', format=tarfile.USTAR_FORMAT) as archive:
+            blob = gzip.compress(b'qwen')
+            item = tarfile.TarInfo('x.gz')
+            item.size = len(blob)
+            archive.addfile(item, io.BytesIO(blob))
+        data = bytearray(raw.getvalue())
+        data[257:265] = b'\x00' * 8
+        data[148:156] = b' ' * 8
+        data[148:156] = ('%06o\x00 ' % sum(data[:512])).encode('ascii')
+        empty = io.BytesIO()
+        with zipfile.ZipFile(empty, 'w'):
+            pass
+        path = self.write('v7.bin', bytes(data) + empty.getvalue())
+        hits = anon.scan_tree(path, anon.load_rules())
+        self.assertTrue(hits)
+        path = self.write('d.json', b'{"m": "q\\u0077en"}')
+        self.assertTrue(anon.scan_tree(path, anon.load_rules()))
+
+    def test_review_oc18_escapes_in_any_encoding_or_layer(self):
+        plain = b'{"m": "q\\u0077en"}'
+        cases = {'a16.json': plain.decode().encode('utf-16'), 'a32.json': plain.decode().encode('utf-32'),
+                 'a16le.json': plain.decode().encode('utf-16-le'), 'c.json.gz': gzip.compress(plain),
+                 'noext.bin': plain, 'py.txt': b"x = 'q\\x77en'\n"}
+        for name, data in sorted(cases.items()):
+            self.assertTrue(anon.scan_tree(self.write(name, data), anon.load_rules()), name)
+
+    def test_review_oc19_damaged_zip_fails_closed(self):
+        raw = io.BytesIO()
+        with zipfile.ZipFile(raw, 'w', zipfile.ZIP_DEFLATED) as archive:
+            archive.writestr('x', b'qwen')
+        path = self.write('a.zip', raw.getvalue()[:-22])
+        self.assertEqual(anon.scan_tree(path, anon.load_rules())[0]['rule'], 'unsupported-container')
 
 
 if __name__ == '__main__':

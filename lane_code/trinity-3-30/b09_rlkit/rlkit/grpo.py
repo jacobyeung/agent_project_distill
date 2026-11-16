@@ -69,6 +69,7 @@ def attach(prompt_batch, record, advantage, reserved):
             mask[0, P + i] = True
             old[0, P + i] = float(record['logp_tempered'][i])
     out.update(labels=labels, aux_pg_mask=mask, aux_old_logp=old, aux_ref_logp=torch.zeros_like(old),
+               aux_pg_temperature=torch.tensor([float(record.get('temperature', 1.0))]),
                aux_pg_advantage=torch.tensor([float(advantage)], dtype=torch.float32, device=ids.device),
                aux_pg_reserved=torch.tensor(list(reserved), dtype=torch.long, device=ids.device))
     return out
@@ -77,7 +78,13 @@ def attach(prompt_batch, record, advantage, reserved):
 def to_row(prompt, record, advantage, ref_logp, reserved):
     """rlkit-grpo-row-v1 for the trainer's stream databases (grpo_tree student_pilot/grpo_rows.py).
     ref_logp: per generated position (None off sampled positions), from the reference export."""
+    from .select import artifact_policy
     kinds = record['kinds']
+    reason = artifact_policy(record)
+    if reason is not None:
+        raise ValueError('GRPO row refused: ' + reason)
+    if record.get('temperature') is None:
+        raise ValueError('record lacks its sampling temperature')
     if record.get('prompt_ids_sha256') is None:
         raise ValueError('record lacks prompt_ids_sha256 (sampled before rlkit recorded it)')
     old = [record['logp_tempered'][i] if k == 's' else None for i, k in enumerate(kinds)]
@@ -85,6 +92,8 @@ def to_row(prompt, record, advantage, ref_logp, reserved):
     return dict(schema=ROW_SCHEMA, prompt_row=prompt['row'], stream='routing' if 'r' in kinds else 'vqa',
                 tokens=record['tokens'], kinds=kinds, old_logp=old, ref_logp=ref, advantage=float(advantage),
                 reserved=[int(i) for i in reserved], prompt_ids_sha256=record['prompt_ids_sha256'],
+                temperature=float(record['temperature']), top_p=record.get('top_p'), response_policy='artifact',
+                response_sources=record['response_sources'],
                 prompt_id=prompt['prompt_id'], draw=record['draw'], seed=record['seed'])
 
 

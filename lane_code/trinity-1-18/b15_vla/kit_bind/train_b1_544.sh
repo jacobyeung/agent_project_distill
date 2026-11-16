@@ -9,7 +9,7 @@
 #SBATCH --mem=480G
 #SBATCH --time=1-00:00:00
 #SBATCH --no-requeue
-#SBATCH --output=/project/community/jjyeung/vla_libero/logs/slurm_%j.out
+#SBATCH --output=/project/community/jjyeung/45e92888780e/logs/j_%j.out
 # B1 bound to the step-544 export (artifact 1d6eeb28f51688c4...; archive okh7/i_bb09a77d/m.tar, sha256 3ed73aea...),
 # heads dropped: only m544/full_weights (LM + ViT, 760 tensors, header-checked equal in names and shapes to base
 # Qwen3.5-9B c2022362) enter the backbone; heads.pt is never extracted. The sealed kit is unchanged: this wrapper
@@ -28,4 +28,4 @@ got=$(sha256sum $X/$ART | cut -d' ' -f1); [ "$got" = "$WANT_ART" ] || { echo "RE
 cp $X/$ART $X/$PRE/full_weights/student_artifact.json
 echo "B1_BIND m544 artifact=$got files=$(ls $X/$PRE/full_weights | tr '\n' ' ')"
 export B1_SRC=dir:$X/$PRE/full_weights
-exec bash ${KIT_TRAIN_ARM:-/project/community/jjyeung/vla_libero/kit/train_arm.sh} "$@"
+exec bash ${KIT_TRAIN_ARM:-/project/community/jjyeung/45e92888780e/kit/train_arm.sh} "$@"

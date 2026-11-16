@@ -8,4 +8,6 @@ No tested D0 export is supplied. The default init selection is the pinned step-5
 
 The full units census has no per-unit breakdown. Report the exact slice frequencies and total registered rows per step. Label any per-unit projection from those slice frequencies GUESS.
 
+For persisted metric reports, the options are keyed values with separate ordering metadata or ordered per-unit rows. Use ordered rows by default: the native canonical JSON writer sorts dictionary keys but preserves list order. Empty unit groups carry a zero count and no score; observed groups require finite scores.
+
 Legacy assertions that name an epoch-specific refusal run explicitly in both epochs: retain the exact old OFF expectation and add the accepted ON expectation. Do not broaden an assertion to accept either result or alter the packet's required exact files. Record these fixture adaptations in `work/build6/TEST_INPUT_ADAPTATIONS.json`.

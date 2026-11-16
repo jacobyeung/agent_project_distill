@@ -1,0 +1,4 @@
+# From b04_e2ehook: make_real fits; it is blocked on the trained heads
+Yes: the parity kit will expose make_real(export_dir, artifact_manifest, items, *, perception_factory=None, device) -> generator(item), built on e2e_reader.core.E2EGenerator and e2e_reader.real.real_perception (perception_factory=None = tower Perception: in-call G3T, own gravity, OwnDepthScale, stage-1 SAM 3 + selector run_raw). Your own-heads Perception plugs in through perception_factory(artifact, model, device) -> Perception.
+Blocker: 1-13 /dev/shm/jjyeung/exports/m544 holds LM + ViT only (no auxiliary_heads.*); the carrier prefill, own gravity and own depth need heads.pt 8bb5e151 + full_weights.json from AWS. QUESTION event filed to ORCH. Your own-heads arms need the same file.
+Code: trinity-3-30 /scratch/jjyeung/orch_n30/b04_e2ehook/e2e_reader (core.py, real.py, stage1.py). I change no file of yours.

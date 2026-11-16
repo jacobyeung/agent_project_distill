@@ -16,7 +16,8 @@ from collections import Counter
 import torch
 from torch import nn
 
-MAX_CALL_TOKENS = 96  # sealed call window (carrier_c1_decode.MAX_CALL_TOKENS)
+MAX_CALL_TOKENS = 1024  # call window; the sealed reader's 96 cut long multi-operand calls
+CONTEXT_TOKENS = 32  # text before an opener, read only to see whether the call is quoted
 CALCULATOR_TAIL = re.compile(r'<(?:dist|closest|cam_dist|angle|area) [^<>]*>$')
 GROUND_TAIL = re.compile(r'<ground\b[^<>\n]*>$|<ground obj="[^"\n]*">$')
 GAP_TAIL = re.compile(r'<gap\b[^<>\n]*>$')
@@ -75,6 +76,10 @@ class CallHook(nn.Module):
     def push_eos(self, token):
         self.ids.append(int(token))
 
+    def forward(self, token):
+        """Handler entry for one sampled token: the response ids to force (empty when no call closed)."""
+        return torch.tensor(self.push_sampled(int(token)), dtype=torch.long)
+
     def push_sampled(self, token):
         """Append one sampled non-EOS token; return the response ids to force (possibly empty)."""
         ids = self.ids
@@ -84,18 +89,27 @@ class CallHook(nn.Module):
         tail = self._decode(ids[self.active:] if self.active is not None else ids[-24:])
         call = None
         if self.active is not None and (tail.endswith('>') or len(ids) - self.active > MAX_CALL_TOKENS):
+            before = self._decode(ids[max(0, self.active - CONTEXT_TOKENS):self.active])
             match = GROUND_TAIL.search(tail) or GAP_TAIL.search(tail)
-            call, self.active = (match.group(0) if match else tail), None
+            call = match.group(0) if match else tail
+            if quoted(before + tail[:match.start() if match else 0]):
+                call = None
+            self.active = None
         elif self.active is None and tail.endswith('>'):
-            window = self._decode(ids[-MAX_CALL_TOKENS:])
-            match = GROUND_TAIL.search(window) or GAP_TAIL.search(window) or CALCULATOR_TAIL.search(window)
-            call = match.group(0) if match else None
+            call = self._search(GROUND_TAIL, GAP_TAIL, CALCULATOR_TAIL)
         if call is None and tail.endswith('>'):
-            match = EXTRA_TAIL.search(self._decode(ids[-MAX_CALL_TOKENS:]))
-            call = match.group(0) if match else None
+            call = self._search(EXTRA_TAIL)
         if call is None:
             return []
         return self.respond(call)
+
+    def _search(self, *patterns):
+        window = self._decode(self.ids[-MAX_CALL_TOKENS:])
+        for pattern in patterns:
+            match = pattern.search(window)
+            if match:
+                return None if quoted(window[:match.start()]) else match.group(0)
+        return None
 
     # ------------------------------------------------------------------ responses
     def respond(self, call):
@@ -110,8 +124,8 @@ class CallHook(nn.Module):
             self.unserved[family] += 1
             self.records.append(dict(call=call, family=family, served=False, at_token=len(self.ids)))
             return []
-        if info.get('kind') == 'error' and info.get('direct_answer_fallback') and not self.error_suffix:
-            text = text.removesuffix('; answer directly from the video')
+        if self.error_suffix:
+            text = old_reader_suffix(text, info)
         wrapped = ('\n' + OPEN + '\n' + text + '\n' + CLOSE) if self.ground_layout else (OPEN + text + CLOSE)
         forced = self.tokenizer.encode(wrapped, add_special_tokens=False)
         self.records.append(dict(call=call, family=family, served=True, response=text,
@@ -129,6 +143,17 @@ class CallHook(nn.Module):
                     records=[{k: v for k, v in r.items() if k != 'audit'} for r in self.records])
 
 
+def quoted(before):
+    """A call written inside a code span or right after a quote mark is an example, not a call."""
+    line = before.rsplit('\n', 1)[-1]
+    return line.count('`') % 2 == 1 or line.endswith(('"', "'"))
+
+
+def old_reader_suffix(text, info):
+    """Replay parity only (error_suffix=True): the old reader appended this to ground/gap errors."""
+    return text + '; answer directly from the video' if info.get('kind') == 'error' else text
+
+
 def install(model, hook):
     """Register the hook as a submodule of the model (the artifact's one entry point)."""
     if getattr(model, 'call_hook', None) is not None:
@@ -141,7 +166,9 @@ def install(model, hook):
 def decode_loop(step, prefill_output, hook, *, eos_ids, cap, logits_processor=None):
     """One sequence, greedy. `step(token_ids)` consumes the given ids into the running cache
     (one forward per id, native positions) and returns the last output. The model is entered
-    exactly once per prefill; responses go through the same cache."""
+    exactly once per prefill; responses go through the same cache. `cap` bounds sampled plus
+    forced tokens; a response is never cut, and every sampled and forced id enters the cache
+    before the loop stops."""
     output, finish = prefill_output, None
     eos_ids = set(int(e) for e in eos_ids)
     while finish is None:
@@ -155,13 +182,10 @@ def decode_loop(step, prefill_output, hook, *, eos_ids, cap, logits_processor=No
             hook.push_eos(token)
             finish = 'eos'
             break
-        forced = hook.push_sampled(token)
-        room = cap - len(hook.ids)
-        forced = forced[:max(0, room)]
+        forced = hook(token).tolist()
         for t in forced:
             hook.push_forced(t)
+        output = step([token] + list(forced))
         if len(hook.ids) >= cap:
             finish = 'max_new_tokens'
-            break
-        output = step([token] + list(forced))
     return finish

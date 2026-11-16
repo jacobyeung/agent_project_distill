@@ -25,7 +25,7 @@ def load_raster(path):
                 if i >= 0: cent[int(i)][f + 1] = float(s[i + 1] / k[i + 1] / W)
     labels = {int(i): norm(l) for i, l in zip(z['ids'], z['labels'])}
     return dict(share=share, cent=cent, labels=labels, fi=[int(x) for x in z['frame_indices']], shape=list(inst.shape),
-                valid=[bool(x) for x in z['valid']] if 'valid' in z.files else None)
+                valid=[bool(v) and bool(m) for v, m in zip(z['valid'], (z['depth'] > 0).any(axis=(1, 2)))] if 'valid' in z.files else None)
 def first_seen(rs, iid, floor=FLOOR):
     v = [f for f, s in rs['share'].get(iid, {}).items() if s >= floor]
     return min(v) if v else None

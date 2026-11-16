@@ -985,3 +985,458 @@ These are all runtime and test changes against `/scratch/jjyeung/orch_n30/k1_ops
 ```
 
 READY
+
+
+## Fixes after review_k1c
+
+Both requested fixes pass their regression checks. Refusal receipts require pinned `REFUSED_GEOMETRY.npz`. `cached()` checks its hash, loads it inside `guard.capture(c)`, requires the installed reviewed guard to raise `GeometryError('reference_camera_up_opposes_gravity')`, and compares the re-derived verdict with `gravity_verdict`. Passing evidence, missing evidence, mismatched verdicts, and other exceptions halt the operation. The reader no longer restores a verdict supplied by a receipt. Convert requires the evidence file before writing a refusal receipt.
+
+Convert resume uses the same check through the unchanged `k1_phases.run()` call to `cached()`. Both forged variants are rejected on direct reads and halt convert resume. The planted refusal resumes successfully with an empty recorder and re-derives `(sealed_refused=True, reviewed_refused=True)`.
+
+`k1_downstream.guard.sh` sets `PY=/scratch/jjyeung/envs/p1cpu/bin/python`, exactly matching line 13 of the original launcher. `convert7.guard.sh` retains `sam3_scipy_ovl`. Both launchers pin the updated runtime files. The final comment-only clarification in `k1_guard.py` describes evidence reloads; its executable statements are the ones exercised by the tests below.
+
+The guard suite passes 13/13 under each interpreter. Under `p1cpu` (NumPy 2.2.6, SciPy 1.14.1), this includes passing-canary `cached()`, planted-refusal `cached()` and resume, and passing/refused tables and render fixtures. The three added tests cover forged refusal reads and resume, a changed sealed verdict, and propagation of non-guard geometry errors and `ValueError` during refusal reload. Tables/render fixtures use synthetic proposals, fit metadata, GT reads, and backend calls; they verify guard context, refusal handling, and row retention, without measuring fitted-model accuracy.
+
+The protected source identity files, `k1_phases.py`, reviewed `gravity_guard.py`, and manifest v2 remain byte-equal. The identity proof checks 20 protected paths, compares the complete bound source map, and accepts all 300 tower and all 3 own phase receipts. `k1_report.py` is unchanged.
+
+The exact first-build delta is [PATCH2.diff](/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard_brief/PATCH2.diff), also embedded below. Comparison inputs are in `/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard_tests/patch2_before`. The local forge test changes only workspace/output paths and parent-directory creation. Its byte-identical reviewer copy is `/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard_tests/rev_forge.original.py`; the reviewer folder was read-only.
+
+**Commands and outputs**
+
+All commands ran on `trinity-1-18` with GPUs disabled, one CPU thread per numerical library, offline model settings, and caches under `kc_guard_tests`. No SSH, Git, network, deletion, or real signal/termination commands ran. The supervisor tests mock process launches and signals.
+
+The complete check commands are preserved in [run_patch2_checks.sh](/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard_tests/run_patch2_checks.sh). They run `test_k1_guard.py` under both interpreters, the local reviewer forge test under `p1cpu`, `verify_identity.py` against the fresh canary, `test_kit`, `test_guards`, `verify_sources.py` under both interpreters, and both launcher syntax checks.
+
+```bash
+bash /scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard_tests/run_patch2_checks.sh > /scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard_tests/patch2_checks.log 2>&1
+```
+
+```text
+patch2_guard_sam3: exit 0
+----------------------------------------------------------------------
+Ran 13 tests in 3.452s
+
+OK
+patch2_guard_p1cpu: exit 0
+----------------------------------------------------------------------
+Ran 13 tests in 3.274s
+
+OK
+patch2_forge: exit 0
+a rejected ValueError('Cache refusal geometry passed reviewed guard')
+b rejected ValueError('Cache file binding differs')
+{'K1': {'captures': ['arkitscenes/41069076'], 'capture_count': 1, 'sealed_refused': [], 'sealed_refused_count': 0, 'reviewed_refused': [], 'reviewed_refused_count': 0, 'reviewed_only_refused': [], 'reviewed_only_refused_count': 0}}
+patch2_identity: exit 0
+{"identity_files": 20, "private_equal": true, "bound_equal": true, "baseline_equal": true, "tower_checked": 300, "own_checked": 3, "canary_receipts": 3, "expected_halt_capture": 4}
+patch2_test_kit: exit 0
+----------------------------------------------------------------------
+Ran 19 tests in 33.295s
+
+OK
+patch2_test_guards: exit 0
+----------------------------------------------------------------------
+Ran 7 tests in 0.010s
+
+OK
+patch2_verify_sources: exit 0
+{"verified_source_files": 109}
+patch2_verify_sources_p1cpu: exit 0
+{"verified_source_files": 109}
+Launcher syntax: exit 0
+```
+
+The named downstream test output is [patch2_guard_p1cpu.log](/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard_tests/patch2_guard_p1cpu.log):
+
+```text
+test_bad_receipt_bindings (__main__.GuardTests.test_bad_receipt_bindings) ... ok
+test_cli_convert_stop (__main__.GuardTests.test_cli_convert_stop) ... ok
+test_forged_refusals_rejected_and_resume_halts (__main__.GuardTests.test_forged_refusals_rejected_and_resume_halts) ... ok
+test_install_once_and_sealed_hash_failure (__main__.GuardTests.test_install_once_and_sealed_hash_failure) ... ok
+test_matching_message_without_reviewed_verdict_halts (__main__.GuardTests.test_matching_message_without_reviewed_verdict_halts) ... ok
+test_other_exceptions_halt (__main__.GuardTests.test_other_exceptions_halt) ... ok
+test_passing_canary_cached (__main__.GuardTests.test_passing_canary_cached) ... ok
+test_passing_downstream_capture_context (__main__.GuardTests.test_passing_downstream_capture_context) ... ok
+test_refusal_receipt_resume_and_cached (__main__.GuardTests.test_refusal_receipt_resume_and_cached) ... ok
+test_refusal_reload_propagates_other_errors (__main__.GuardTests.test_refusal_reload_propagates_other_errors) ... ok
+test_refusal_verdict_must_match_evidence (__main__.GuardTests.test_refusal_verdict_must_match_evidence) ... ok
+test_report_denominators (__main__.GuardTests.test_report_denominators) ... ok
+test_tables_and_render_keep_refusals (__main__.GuardTests.test_tables_and_render_keep_refusals) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 3.274s
+
+OK
+```
+
+The final launcher pin checks recompute every `$KC`/`$KIT` hash and verify the interpreter lines. Both launchers pass `bash -n`.
+
+```text
+{"launcher": "convert7.guard.sh", "checked_pins": 4, "sha256": "9c7df7dad545718e428f4c2381cb365071b9497e2af6b145e18d316899aed065"}
+{"launcher": "k1_downstream.guard.sh", "checked_pins": 10, "sha256": "ab7d513928c4f3c58f0f5b96863d517f17664f614b1ac8ee3234a6a2d02f53e4"}
+{"python": "/scratch/jjyeung/envs/p1cpu/bin/python", "numpy": "2.2.6", "scipy": "1.14.1", "downstream_matches_original": true}
+```
+
+The real canary command used the same exported environment as the check script and the unchanged 300-capture manifest:
+
+```bash
+/scratch/jjyeung/envs/sam3_scipy_ovl/bin/python -I -s -B /scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard/k1_build/work/kit_k1a/work/k1_pipeline.py cache \
+  --manifest /scratch/jjyeung/orch_n30/k1_ops3/work/manifest_v2/a40fbc19.json \
+  --out /scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard_tests/canary_patch2 --phase convert --max-seconds 14400 \
+  --tower-cache /scratch/jjyeung/k1/run_tower_sam_2 \
+  --own-cache /scratch/jjyeung/orch_n30/k1_ops3/work/own7/canary/native/probe > /scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard_tests/canary_patch2.log 2>&1
+```
+
+The command exits 1 at capture 4 (`arkitscenes/41069181`) because its own `PHASE_COMPLETE.json` is absent. All three preceding receipts pass `cached()`. The third capture (`arkitscenes/41069175`) has sealed refusal `true` and reviewed refusal `false`. The checked report at `/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard_tests/canary_patch2/GUARD_REPORT.json` is:
+
+```json
+{
+  "K1": {
+    "captures": [
+      "arkitscenes/41048124",
+      "arkitscenes/41069076",
+      "arkitscenes/41069175"
+    ],
+    "capture_count": 3,
+    "sealed_refused": [
+      "arkitscenes/41069175"
+    ],
+    "sealed_refused_count": 1,
+    "reviewed_refused": [],
+    "reviewed_refused_count": 0,
+    "reviewed_only_refused": [],
+    "reviewed_only_refused_count": 0
+  }
+}
+```
+
+The full protected before/after maps and phase checks are in [identity_proof.json](/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard_tests/identity_proof.json). The canary halt is expected; no complete 300-capture downstream run is claimed.
+
+**Current SHA-256 values**
+
+| File relative to work/ | SHA-256 |
+|---|---|
+| `kc_guard/k1_build/work/kit_k1a/work/k1_guard.py` | `93da46e591c5752082fceb43547ad0acc7e033e75e741dc31a98d68e6c2a626c` |
+| `kc_guard/k1_build/work/kit_k1a/work/k1_pipeline.py` | `6b732ab92dd8c0e90c1704c0b8235372ab3f4a75ae6b362a2f50dac3a08cd1d6` |
+| `kc_guard/k1_build/work/kit_k1a/work/test_k1_guard.py` | `fdd4294560658679b0d40472feecec6bcc07f5e14d05c3184bc7af98e4ffb938` |
+| `kc_guard_brief/convert7.guard.sh` | `9c7df7dad545718e428f4c2381cb365071b9497e2af6b145e18d316899aed065` |
+| `kc_guard_brief/k1_downstream.guard.sh` | `ab7d513928c4f3c58f0f5b96863d517f17664f614b1ac8ee3234a6a2d02f53e4` |
+| `kc_guard_tests/verify_identity.py` | `2e1ce69ba6057c21bffe694cc122f1fd8d111a0a6b82b787a614b21ba37ad273` |
+| `kc_guard_tests/rev_forge.py` | `f616ceb2f91d6a4c704fc693d9506ae648f4b2587e607a1af20cdc3418763f04` |
+| `kc_guard_tests/run_patch2_checks.sh` | `7d19385d0396518ffeb33ed0d9ad3be3704578d5cd401a5a41757e3dcf85c27c` |
+| `kc_guard/k1_build/work/kit_k1a/work/k1_cli.py` | `03aff7de2aad6b7267ca1c0464a1a950d5fa8671d4a28c53a64075eecf21cf47` |
+| `kc_guard/k1_build/work/kit_k1a/work/gravity_guard.py` | `b2df9c3a769ef498021ef4aa116b68912f5ff5872f03ec3abfe4b732cefbbb79` |
+| `kc_guard/k1_build/work/kit_k1a/work/k1_phases.py` | `80d763d4149f1b7989d806f3bfab0660e631c27e79d0300cd8300fbdb88f075d` |
+| `kc_guard/k1_build/work/kit_k1a/work/k1_report.py` | `14b35f83184267f85a946079767d7903d3e1c31d73946bd2600bbe6b2efe862d` |
+| `manifest_v2/a40fbc19.json` | `e684e0c7d8a75e4296e34ba4980aa6d7088f6c2f2053d7850ee790e7cf215146` |
+| `kc_guard_brief/PATCH2.diff` | `f6e1f8a3144a4c1470140863ffe3bc2b83eb6c83a9287dfe8702f54a97a2fcc7` |
+
+**Unit-suite coverage limits**
+
+These executable lines were absent from both unit-suite traces. The lists exclude the separately executed real canary and source verification commands. Production refit and full downstream execution remain outside this check.
+
+| File | Lines absent from both unit traces |
+|---|---|
+| `k1_guard.py` | 55 |
+| `gravity_guard.py` | 46, 62–64, 66, 69, 95, 97, 101, 105, 113 |
+| `k1_pipeline.py` | 18–19, 46–51, 53–60, 62–74, 76, 78–88, 112–114, 133, 143, 172, 189–208, 210–212 |
+| `k1_cli.py` | 28, 30, 32, 35–38, 42–44, 47–48, 50–51, 55–59, 64–70 |
+| `k1_report.py` | 18, 35–40, 72–92, 94–97 |
+
+The review-history heading and first-build comparison are retained because the user explicitly requested an appended review record and `PATCH2.diff`. No open questions remain for these two fixes.
+
+**Unified diff since the first build**
+
+```diff
+--- a/kc_guard/k1_build/work/kit_k1a/work/k1_guard.py
++++ b/kc_guard/k1_build/work/kit_k1a/work/k1_guard.py
+@@ -30,13 +30,8 @@
+     return dict(sealed_refused=sealed, reviewed_refused=reviewed)
+ 
+ 
+-def restore_verdict(c, receipt):
+-    with capture(c):
+-        _recorder.record(**receipt['gravity_verdict'])
+-
+-
+ def write_report(out):
+-    # Reports are refreshed on resume; capture receipts remain the authority.
++    # Reports use verdicts validated during conversion or cache reload.
+     (Path(out) / 'GUARD_REPORT.json').write_text(json.dumps(GG.report(), indent=2) + '\n')
+ 
+ 
+@@ -54,8 +49,7 @@
+         if (refusal != dict(code=CODE, message=CODE) or receipt.get('geometry') is not None
+                 or not votes['reviewed_refused'] or (dest / 'geometry.npz').exists()):
+             raise ValueError('Cache geometry refusal differs')
+-        if 'REFUSED_GEOMETRY.npz' in receipt['files']:
+-            names.add('REFUSED_GEOMETRY.npz')
++        names.add('REFUSED_GEOMETRY.npz')
+     else:
+         if votes['reviewed_refused'] or not receipt.get('geometry'):
+             raise ValueError('Cache geometry verdict differs')
+@@ -75,11 +69,9 @@
+             if str(error) != CODE or not _recorder.records.get(('K1', c['canonical']), (False, False))[1]:
+                 raise
+             # The sealed converter writes before validating. Preserve that evidence
+-            # under a non-loadable name; no geometry.npz is admitted for this capture.
+-            names = ['candidates.json', 'parity_raw.jsonl']
+-            if (dest / 'geometry.npz').exists():
+-                (dest / 'geometry.npz').rename(dest / 'REFUSED_GEOMETRY.npz')
+-                names.append('REFUSED_GEOMETRY.npz')
++            # under a distinct name; no geometry.npz is admitted for this capture.
++            names = ['candidates.json', 'parity_raw.jsonl', 'REFUSED_GEOMETRY.npz']
++            (dest / 'geometry.npz').rename(dest / 'REFUSED_GEOMETRY.npz')
+             source = Path(tower_root) / B.digest(c['canonical'])[:16]
+             for name in ('candidates.json', 'parity_raw.jsonl'):
+                 shutil.copyfile(source / name, dest / name)
+--- a/kc_guard/k1_build/work/kit_k1a/work/k1_pipeline.py
++++ b/kc_guard/k1_build/work/kit_k1a/work/k1_pipeline.py
+@@ -98,10 +98,14 @@
+  guard.check_receipt(c,dest,receipt)
+  for pin in receipt['files'].values():B.checked(pin)
+  raw=B.load(dest/'candidates.json')
+- if receipt.get('geometry_refusal'):
+-  guard.restore_verdict(c,receipt)
+-  return raw,None,receipt
+- with guard.capture(c):geo=load_geometry(dest/'geometry.npz',FrameMap(tuple(c['anchor_indices'])),'tower_scaled')
++ with guard.capture(c):
++  if receipt.get('geometry_refusal'):
++   try:load_geometry(dest/'REFUSED_GEOMETRY.npz',FrameMap(tuple(c['anchor_indices'])),'tower_scaled')
++   except guard.geometry_profiles.GeometryError as error:
++    if str(error)!=guard.CODE:raise
++   else:raise ValueError('Cache refusal geometry passed reviewed guard')
++   geo=None
++  else:geo=load_geometry(dest/'geometry.npz',FrameMap(tuple(c['anchor_indices'])),'tower_scaled')
+  if guard.verdict(c)!=receipt['gravity_verdict']:raise ValueError('Cache gravity verdict differs')
+  return raw,geo,receipt
+ def gt_arrays(c,selection=None):
+--- a/kc_guard/k1_build/work/kit_k1a/work/test_k1_guard.py
++++ b/kc_guard/k1_build/work/kit_k1a/work/test_k1_guard.py
+@@ -3,6 +3,7 @@
+ import json
+ import os
+ from pathlib import Path
++import shutil
+ import subprocess
+ import sys
+ import trace
+@@ -38,6 +39,7 @@
+ from student_pilot import camera_targets
+ 
+ MANIFEST = '/scratch/jjyeung/orch_n30/k1_ops3/work/manifest_v2/a40fbc19.json'
++CANARY = ROOT / os.environ.get('K1_CANARY_ROOT', 'canary')
+ 
+ 
+ class GuardTests(unittest.TestCase):
+@@ -99,6 +101,53 @@
+         self.assertIsNone(K.cached(self.c, self.dest)[1])
+         self.assertEqual(B.load(self.out / 'GUARD_REPORT.json')['K1']['reviewed_refused'], [self.c['canonical']])
+ 
++    def test_forged_refusals_rejected_and_resume_halts(self):
++        c = self.real['captures'][1]
++        key = B.digest(c['canonical'])[:16]
++        source = CANARY / key
++        for evidence in (True, False):
++            out = self.root / ('forged_with_evidence' if evidence else 'forged_without_evidence')
++            dest = out / key
++            dest.mkdir(parents=True)
++            names = ['candidates.json', 'parity_raw.jsonl']
++            for name in names:
++                shutil.copyfile(source / name, dest / name)
++            if evidence:
++                shutil.copyfile(source / 'geometry.npz', dest / 'REFUSED_GEOMETRY.npz')
++                names.append('REFUSED_GEOMETRY.npz')
++            r = B.load(source / 'CACHE_COMPLETE.json')
++            r.update(geometry=None, geometry_refusal=dict(code=guard.CODE, message=guard.CODE),
++                     gravity_verdict=dict(sealed_refused=False, reviewed_refused=True),
++                     files={name: B.pin(dest / name) for name in names})
++            B.write(dest / 'CACHE_COMPLETE.json', r)
++            message = 'refusal geometry passed reviewed guard' if evidence else 'file binding differs'
++            with patch.object(guard._recorder, 'records', {}):
++                with self.assertRaisesRegex(ValueError, message):
++                    K.cached(c, dest)
++                with patch.object(guard, '_convert', side_effect=AssertionError('Resume reconverted')):
++                    with self.assertRaisesRegex(ValueError, message):
++                        guard.run(dict(captures=[c]), out, self.boundary, 'convert', 14400, self.tower, self.own)
++                self.assertIn(message, B.load(out / 'HALTED.json')['error'])
++                self.assertFalse(guard._recorder.records.get(('K1', c['canonical']), (False, False))[1])
++
++    def test_refusal_verdict_must_match_evidence(self):
++        r = B.load(self.dest / 'CACHE_COMPLETE.json')
++        r['gravity_verdict']['sealed_refused'] = False
++        original = B.load
++        def load(path):
++            return r if Path(path) == self.dest / 'CACHE_COMPLETE.json' else original(path)
++        with patch.object(B, 'load', side_effect=load), patch.object(guard._recorder, 'records', {}):
++            with self.assertRaisesRegex(ValueError, 'Cache gravity verdict differs'):
++                K.cached(self.c, self.dest)
++            self.assertEqual(guard.verdict(self.c), dict(sealed_refused=True, reviewed_refused=True))
++
++    def test_refusal_reload_propagates_other_errors(self):
++        from student_pilot import ground_profiles
++        for error in (GP.GeometryError('invalid_scale'), ValueError('mutation')):
++            with patch.object(ground_profiles, 'load_geometry', side_effect=error):
++                with self.assertRaisesRegex(type(error), str(error)):
++                    K.cached(self.c, self.dest)
++
+     def test_tables_and_render_keep_refusals(self):
+         import build_tables
+         tables = self.root / 'tables'
+@@ -151,7 +200,7 @@
+ 
+     def test_passing_canary_cached(self):
+         c = self.real['captures'][2]
+-        raw, geo, receipt = K.cached(c, ROOT / 'canary' / B.digest(c['canonical'])[:16])
++        raw, geo, receipt = K.cached(c, CANARY / B.digest(c['canonical'])[:16])
+         self.assertIsNotNone(geo)
+         self.assertEqual(receipt['gravity_verdict'], dict(sealed_refused=True, reviewed_refused=False))
+ 
+@@ -164,7 +213,7 @@
+             return [{'fixture': 'candidate'}], [{'fixture': 'pair'}]
+         out = self.root / 'passing_tables'
+         with patch.object(build_tables, 'build_capture', side_effect=build), patch.object(K, 'gt_arrays', return_value={}):
+-            K.tables(m, ROOT / 'canary', out)
++            K.tables(m, CANARY, out)
+         self.assertEqual(B.load(out / 'TABLE_RECEIPT.json')['geometry_refused'], {})
+         self.assertEqual(len((out / 'candidates.jsonl').read_text().splitlines()), 1)
+         self.assertEqual(len((out / 'pairs.jsonl').read_text().splitlines()), 1)
+@@ -180,7 +229,7 @@
+         with patch.object(K, 'native_backend', return_value=object()), \
+                 patch.object(B.perception, 'execute_calls', side_effect=execute), \
+                 patch.object(K, 'gt_arrays', return_value={}):
+-            K.responses(m, ROOT / 'canary', fit, self.root / 'passing_render')
++            K.responses(m, CANARY, fit, self.root / 'passing_render')
+         rows = (self.root / 'passing_render/K1_ANALYSIS_INPUT.jsonl').read_text().splitlines()
+         self.assertEqual(len(rows), len(c['rows']))
+ 
+--- a/kc_guard_brief/convert7.guard.sh
++++ b/kc_guard_brief/convert7.guard.sh
+@@ -5,10 +5,10 @@
+ OWN=$1; OUT=$2; SEC=${3:-14400}
+ KC=/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard/k1_build/work/kit_k1a/work
+ sha256sum -c --strict - <<GUARD_SUMS
+-5398de8c55f35d470f32cbfc3df2e190f286cd44fb253e9283400a3364a652a2  $KC/k1_guard.py
++93da46e591c5752082fceb43547ad0acc7e033e75e741dc31a98d68e6c2a626c  $KC/k1_guard.py
+ b2df9c3a769ef498021ef4aa116b68912f5ff5872f03ec3abfe4b732cefbbb79  $KC/gravity_guard.py
+ 03aff7de2aad6b7267ca1c0464a1a950d5fa8671d4a28c53a64075eecf21cf47  $KC/k1_cli.py
+-ec4b1a8a27dcc8cb5a201c8a123c02b4813ead4db1403621bc7dd30002f84e80  $KC/k1_pipeline.py
++6b732ab92dd8c0e90c1704c0b8235372ab3f4a75ae6b362a2f50dac3a08cd1d6  $KC/k1_pipeline.py
+ GUARD_SUMS
+ MAN=/scratch/jjyeung/orch_n30/k1_ops3/work/manifest_v2/a40fbc19.json
+ TOWER=/scratch/jjyeung/k1/run_tower_sam_2; PY=${K1_CONVERT_PY:-/scratch/jjyeung/envs/sam3_scipy_ovl/bin/python}  # = sam3_capretry_native_v1 site-packages + scipy 1.14.1 (orch_cd/evalx/work/trin_vl/pyextra)
+--- a/kc_guard_brief/k1_downstream.guard.sh
++++ b/kc_guard_brief/k1_downstream.guard.sh
+@@ -9,15 +9,15 @@
+ BUILD=/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard/guard_downstream
+ KIT=/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard/k1_build/work/kit_k1a
+ sha256sum -c --strict - <<GUARD_SUMS
+-5398de8c55f35d470f32cbfc3df2e190f286cd44fb253e9283400a3364a652a2  $KIT/work/k1_guard.py
++93da46e591c5752082fceb43547ad0acc7e033e75e741dc31a98d68e6c2a626c  $KIT/work/k1_guard.py
+ b2df9c3a769ef498021ef4aa116b68912f5ff5872f03ec3abfe4b732cefbbb79  $KIT/work/gravity_guard.py
+ 03aff7de2aad6b7267ca1c0464a1a950d5fa8671d4a28c53a64075eecf21cf47  $KIT/work/k1_cli.py
+-ec4b1a8a27dcc8cb5a201c8a123c02b4813ead4db1403621bc7dd30002f84e80  $KIT/work/k1_pipeline.py
++6b732ab92dd8c0e90c1704c0b8235372ab3f4a75ae6b362a2f50dac3a08cd1d6  $KIT/work/k1_pipeline.py
+ GUARD_SUMS
+ MANIFEST_V1=/scratch/jjyeung/orch_n30/k1_ops3/work/codex_arkit_timing/K1_MANIFEST.arkit_timing.json
+ MANIFEST=/scratch/jjyeung/orch_n30/k1_ops3/work/manifest_v2/a40fbc19.json
+ GTSETS=/scratch/jjyeung/orch_n30/k1_ops3/work/gt_sets
+-PY=/scratch/jjyeung/envs/sam3_scipy_ovl/bin/python
++PY=/scratch/jjyeung/envs/p1cpu/bin/python
+ export CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1
+ export NUMEXPR_NUM_THREADS=1 PYTHONDONTWRITEBYTECODE=1 HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
+ export XDG_CACHE_HOME="$BUILD/runtime_cache" HF_HOME="$BUILD/runtime_cache/hf" TRITON_CACHE_DIR="$BUILD/runtime_cache/triton"
+@@ -48,7 +48,7 @@
+ e305c4be0d604df277d06e7d9b1e13893dfa659d7ab6663f0de798773d58d650  $GTSETS/GT_SET_SENSITIVITY_300.json
+ 5d36d1ea98c14b2e3181a4571a87dc81efa980bd88a2302e27a1ecc13833a4f8  $KIT/work/gt_set.py
+ 03aff7de2aad6b7267ca1c0464a1a950d5fa8671d4a28c53a64075eecf21cf47  $KIT/work/k1_cli.py
+-ec4b1a8a27dcc8cb5a201c8a123c02b4813ead4db1403621bc7dd30002f84e80  $KIT/work/k1_pipeline.py
++6b732ab92dd8c0e90c1704c0b8235372ab3f4a75ae6b362a2f50dac3a08cd1d6  $KIT/work/k1_pipeline.py
+ 14b35f83184267f85a946079767d7903d3e1c31d73946bd2600bbe6b2efe862d  $KIT/work/k1_report.py
+ 4087716014ab26e7fdb91f336e3d8ee81f97e82b85a4c340376e872c655ecfef  $KIT/work/refit/train.py
+ aa0a728148bbf076fe1d42a6fe4bb053c761052ec653faa02f7a06e240b8ca42  $KIT/out/DEPENDENCIES.json
+--- a/kc_guard_tests/verify_identity.py
++++ b/kc_guard_tests/verify_identity.py
+@@ -29,7 +29,7 @@
+ assert len(m['captures'])==300
+ for c in m['captures']:F.checked_phase(c,'/scratch/jjyeung/k1/run_tower_sam_2','tower_sam')
+ for c in m['captures'][:3]:F.checked_phase(c,str(ROOT.parent/'own7/canary/native/probe'),'own')
+-canary=ROOT/'canary'
++canary=ROOT/os.environ.get('K1_CANARY_ROOT', 'canary')
+ receipts=[]
+ for c in m['captures'][:3]:
+  raw,geo,r=K.cached(c,canary/B.digest(c['canonical'])[:16])
+@@ -39,7 +39,7 @@
+ assert guard.GG.report()==B.load(canary/'GUARD_REPORT.json')
+ events=[json.loads(line) for line in (canary/'PROGRESS.jsonl').read_text().splitlines()]
+ assert [e['canonical'] for e in events if e['event']=='capture_start'][-1]==m['captures'][3]['canonical']
+-assert B.digest(m['captures'][3]['canonical'])[:16] in (ROOT/'canary.log').read_text()
++assert B.digest(m['captures'][3]['canonical'])[:16] in canary.with_suffix('.log').read_text()
+ assert B.load(canary/'HALTED.json')['error'].startswith('FileNotFoundError')
+ proof=dict(private_before=before,private_after=after,bound_before=bound_before,bound_after=bound_after,baseline_pairs=paired,
+  tower_checked=300,own_checked=3,canary=receipts,guard_report=guard.GG.report(),expected_halt=B.load(canary/'HALTED.json'))
+--- /dev/null
++++ b/kc_guard_tests/rev_forge.py
+@@ -0,0 +1,24 @@
++import json,sys,shutil
++from pathlib import Path
++WORK=Path('/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard/k1_build/work/kit_k1a/work')
++sys.path.insert(0,str(WORK))
++import k1_pipeline as K
++K._native();B=K.B
++import k1_guard as guard
++T=Path('/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard_tests')
++m=B.load('/scratch/jjyeung/orch_n30/k1_ops3/work/manifest_v2/a40fbc19.json')
++c=m['captures'][1];key=B.digest(c['canonical'])[:16]
++src=T/'canary_patch2'/key
++for variant,evidence in (('a',True),('b',False)):
++    d=T/'forge_patch2'/variant/key;d.mkdir(parents=True)
++    for n in ('candidates.json','parity_raw.jsonl'):shutil.copyfile(src/n,d/n)
++    names=['candidates.json','parity_raw.jsonl']
++    if evidence:shutil.copyfile(src/'geometry.npz',d/'REFUSED_GEOMETRY.npz');names.append('REFUSED_GEOMETRY.npz')
++    r=B.load(src/'CACHE_COMPLETE.json')
++    r.update(geometry=None,geometry_refusal=dict(code=guard.CODE,message=guard.CODE),
++             gravity_verdict=dict(sealed_refused=False,reviewed_refused=True),files={n:B.pin(d/n) for n in names})
++    B.write(d/'CACHE_COMPLETE.json',r)
++    try:
++        raw,geo,rr=K.cached(c,d);print(variant,'evidence' if evidence else 'no-evidence','FORGED REFUSAL ACCEPTED geo=',geo)
++    except Exception as e:print(variant,'rejected',repr(e))
++print(guard.GG.report())
+--- /dev/null
++++ b/kc_guard_tests/run_patch2_checks.sh
+@@ -0,0 +1,33 @@
++#!/usr/bin/env bash
++set -euo pipefail
++cd /scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard
++export CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1
++export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1
++export HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
++export K1_NATIVE_KIT=/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit
++T=/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard_tests
++W=$PWD/k1_build/work/kit_k1a/work
++export XDG_CACHE_HOME="$T/runtime_cache" HF_HOME="$T/runtime_cache/hf" TRITON_CACHE_DIR="$T/runtime_cache/triton"
++export K1_CANARY_ROOT=canary_patch2
++SAM=/scratch/jjyeung/envs/sam3_scipy_ovl/bin/python
++P1=/scratch/jjyeung/envs/p1cpu/bin/python
++run_check() {
++    local name=$1
++    shift
++    "$@" > "$T/$name.log" 2>&1
++    printf '%s: exit 0\n' "$name"
++    tail -n 4 "$T/$name.log"
++}
++run_check patch2_guard_sam3 env K1_GUARD_TEST_RUN=patch2_unit_sam3 "$SAM" -I -s -B "$W/test_k1_guard.py"
++cp "$T/guard_coverage.json" "$T/guard_coverage_patch2_sam3.json"
++run_check patch2_guard_p1cpu env K1_GUARD_TEST_RUN=patch2_unit_p1cpu "$P1" -I -s -B "$W/test_k1_guard.py"
++cp "$T/guard_coverage.json" "$T/guard_coverage_patch2_p1cpu.json"
++run_check patch2_forge "$P1" -I -s -B "$T/rev_forge.py"
++run_check patch2_identity "$SAM" -I -s -B "$T/verify_identity.py"
++run_check patch2_test_kit "$SAM" -I -s -B "$T/run_existing.py" test_kit
++run_check patch2_test_guards "$SAM" -I -s -B "$T/run_existing.py" test_guards
++run_check patch2_verify_sources "$SAM" -I -s -B "$W/verify_sources.py"
++run_check patch2_verify_sources_p1cpu "$P1" -I -s -B "$W/verify_sources.py"
++bash -n ../kc_guard_brief/convert7.guard.sh
++bash -n ../kc_guard_brief/k1_downstream.guard.sh
++printf 'Launcher syntax: exit 0\n'
+```
+
+READY

@@ -34,11 +34,13 @@ prior_receipts=compact(L/'work/tmp',package_files=set())
 root=Path(tempfile.mkdtemp(prefix='package6_',dir=L/'work/tmp'))
 assert not any(root.iterdir())
 with tarfile.open(archive) as handle:
-    for member in handle.getmembers():
+    archive_members=handle.getmembers()
+    unpacked_bytes=sum(member.size for member in archive_members if member.isfile())
+    for member in archive_members:
         if member.issym() or member.islnk() or member.name.startswith('/') or '..' in Path(member.name).parts:
             raise ValueError('Unsafe package member')
     handle.extractall(root,filter='data')
-    package_members=[member.name for member in handle.getmembers() if member.isfile()]
+    package_members=[member.name for member in archive_members if member.isfile()]
 (root/'package_members.json').write_text(json.dumps(package_members))
 kit_results=[]
 sys.path.insert(0,str(root/'work/tree_r1'))
@@ -74,6 +76,11 @@ for variant,path in [('tree',root/'work/tree_r1'),('base',root/'work/base/tree_b
                   completed_modules=0,scheduled_modules=0,complete=True,
                   coverage_code_filter='compiled-source fingerprint',groups=[])
     combined_hits={};source_hashes=None;sizes=[];module_inventory=[];codes={};returncodes=[]
+    for group in ('generator','legacy','r2'):
+        target=output/group;target.mkdir(exist_ok=True)
+        for name in ('live_errors.json','live_failures.json'):
+            (target/name).write_text('[]\n')
+        (target/'progress.json').write_text(json.dumps(dict(completed=0,last=None,status='pending')))
     for group in ('generator','legacy','r2'):
         target=output/group;target.mkdir(exist_ok=True)
         env['R2_SUITE_GROUP']=group
@@ -112,5 +119,5 @@ for variant,path in [('tree',root/'work/tree_r1'),('base',root/'work/base/tree_b
 assert inventory(root/'work/tree_r1')==source_before,'Packaged source changed during tests'
 assert inventory(root/'work/base/tree_b01ce449')==base_before,'Packaged comparison base changed during tests'
 (out/'ARCHIVE.json').write_text(json.dumps(dict(status='verified',
-    sha256=hashlib.sha256(archive.read_bytes()).hexdigest(),bytes=archive.stat().st_size,unpacked_bytes=size,
+    sha256=hashlib.sha256(archive.read_bytes()).hexdigest(),bytes=archive.stat().st_size,unpacked_bytes=unpacked_bytes,
     source_sha256=digest(source_before),base_sha256=digest(base_before),fixtures_sha256=digest(fixtures_before)),indent=2))

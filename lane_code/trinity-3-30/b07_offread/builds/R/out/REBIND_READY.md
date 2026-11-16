@@ -1,30 +1,30 @@
 # Re-bind readiness
 
-The two packages are ready for operator preparation with the final init-selection record. Nothing was submitted. The builder did not choose a D0 export. The init-selection owner must supply the decision required by item 7; `prepare` checks its selected SHA against the completion record.
+The two packages are ready for operator preparation with the final init-selection record. Nothing was submitted. The builder did not choose a D0 export. The init-selection owner must supply the decision required by item 7; `prepare` checks the selected SHA and step, registered rule hash and D0-ended reference against the completion record.
 
 ## Packages
 
 | Archive | Bytes | SHA256 |
 |---|---:|---|
-| [package_vsi.tar](package_vsi.tar) | 12595200 | `ddf11fd2dd06dfefb2b1f0587ea569f7f7d7547b96ff2c26ff3d3296a215429e` |
-| [package_revsi.tar](package_revsi.tar) | 13813760 | `ef31d64f3984c93e7ede5bf48e761899396b79d14930ef056fc48521741ba9d3` |
+| [package_vsi.tar](package_vsi.tar) | 12605440 | `f63f0fdac746c55665644d4e093affe84b74e3abd774d9922f3685012d43dfad` |
+| [package_revsi.tar](package_revsi.tar) | 13824000 | `b1ce078e702db4451f9ff18b6ada5d76aa28c68b673a585965970208c8b247d2` |
 
 Each archive contains only regular tar members. The generated payload and bootstrap tars also contain only regular members. Extract both packages into the same Trinity directory to install both benchmark choices. Submit only the generated opaque stdin batch. Do not upload these archives or BINDING.json to Orchard.
 
 ## Validation
 
-All 18 tests passed in `tests.log`. The tests compare exact floats against the accepted returns, verify payload and step544 staging bytes, check complete production item membership, reject invalid bindings, check submission accounting, and exercise four-part admission with the unchanged full checker. The governor-registration unit test uses process stand-ins and performs no live registration.
+All 32 Build R tests passed in `tests.log`; all 49 offkit tests passed in `offkit_tests.log`. The tests compare exact floats against the accepted returns, verify payload and step544 staging bytes, check complete production item membership, reject invalid bindings, check submission accounting, and exercise four-part admission with the unchanged full checker. The governor-registration unit test uses process stand-ins and performs no live registration.
 
 | Read | Items | Scenes | B2048 mean | Scene-bootstrap 95% interval |
 |---|---:|---:|---:|---|
 | `vsibench5130` | 4008 | 288 | 68.77 | [66.5, 71.0] |
 | `revsi999t32` | 679 | 261 | 64.94 | [61.3, 68.4] |
 
-`VALIDATION.json` records the exact values. B2048 is primary; ON16k and B4096 are secondary. All three budgets reproduce the accepted headline and group floats. The imported offkit aggregator can differ from the accepted scorer by floating-point accumulation order. The reporter first checks agreement within 1e-12, then retains the unchanged accepted scorer’s recomputed floats. It records every correction. It does not take values from a benchmark report file during production reporting. The offkit files remain unchanged; `OFFKIT_PINS.json` records their hashes.
+`VALIDATION.json` records the exact values. B2048 is primary; ON16k and B4096 are secondary. All three budgets reproduce the accepted headline and group floats. The imported offkit aggregator can differ from the accepted scorer by floating-point accumulation order. The reporter first checks agreement within 1e-12, then retains the unchanged accepted scorer’s recomputed floats. It records every correction. It does not take values from a benchmark report file during production reporting. The six imported offkit files match `OFFKIT_PINS.json`; the launcher verifies their content before importing offkit and before every action. Each archive includes that manifest.
 
 Both complete D0 CPU rehearsals passed staging, whole-tar authentication, the unchanged full export checker, the accepted prompt-byte proof with a template stand-in, fake-model decoding, processor comparisons, budget continuation, merge, pool publication, verified local fetch, and labelled report generation. VSI decoded 14 fixture items: two per non-direction group and four direction items so that all three direction subtypes appear. ReVSI decoded two fixture items per category, for ten total. Separate production-loader tests selected exactly 4,008 and 679 accepted IDs, with no absolute-distance or room-size item. The full cohorts were not decoded by a model in this build.
 
-The rehearsal CONFIG retains production mode and the accepted budgets and decoding policy. Local model, media, path and transport stand-ins replace the remote assets. The task-provider boundary supplies the fixed accepted proof subset with constant synthetic answers, and a fixture membership assertion checks those IDs. Fixture reports say `EXPORT fixture`. These rehearsals test control flow, not model quality or real-processor equivalence.
+The rehearsal CONFIG retains production mode and the accepted budgets and decoding policy. Local model, media, path and transport stand-ins replace the remote assets. The task-provider boundary supplies the fixed accepted proof subset with constant synthetic answers, and a fixture membership assertion checks those IDs. Fixture reports say `EXPORT fixture`; their binding and worker CONFIG retain production mode to exercise the production path. These rehearsals test control flow, not model quality or real-processor equivalence.
 
 `rehearsal_vsi_done.log` and `rehearsal_revsi_done.log` record the final D0 passes. `rehearsal_vsi.log` and `rehearsal_revsi.log` record the step544-path fixture passes. `COVERAGE_vsi.json` and `COVERAGE_revsi.json` identify executed lines and source hashes, including child prompt-proof and checker processes. `ORCHARD_ONLY.md` and `COVERAGE_LIMITS.json` list unobserved runtime lines and explain the hardware and transport boundaries.
 
@@ -36,20 +36,28 @@ The new return pool is `/project/community/jjyeung/okh7/9e6b70a213c84fd0/`; GCS 
 
 ## Operation and limits
 
-[RUN.md](../RUN.md) gives exact preparation, submission, polling, governed fetch and report commands for both benchmarks. VSI takes the accepted 35-minute reference plus D0 staging; ReVSI takes 13 minutes plus staging. Allow roughly 9–27 additional minutes for a 21.583 GB export under the stated transfer assumptions. Reserve 220 GB and 180 GB of additional job-local disk, respectively, while preserving the 200 GiB free-space floor. The build occupies about 0.83 GB, below its 2 GB limit.
+[RUN.md](../RUN.md) gives exact preparation, submission, polling, governed fetch and report commands for both benchmarks. VSI takes the accepted 35-minute reference plus D0 staging; ReVSI takes 13 minutes plus staging. Allow roughly 9–27 additional minutes for a 21.583 GB export under the stated transfer assumptions. Reserve 220 GB and 180 GB of additional job-local disk, respectively, while preserving the 200 GiB free-space floor. The build remains below its 2 GB limit; `FINAL_CHECK.json` records its measured size.
 
 No SSH, network, Git, GPU, Slurm or Orchard command ran. Real Orchard runtime interiors, credentials, media, H100 execution, real-processor parity, live governor admission and remote return channels remain unverified. The runtime checks refuse before decoding if export authentication or prompt proof fails. No benchmark answer or score selected an export, item, budget or policy. No external source file was modified.
 
 The documentation applies the no-archaeology skill. It retains no borderline project-history sentence; accepted package identities and diff baselines are required provenance.
+
+## Review fixes
+
+Fix 4: `kit/rebind.py:113` admits only the five init-rule candidates. The reviewed `export_stage.parse_done` call remains at `kit/rebind.py:120`. Tests refuse an m100 completion record with matching SHA, selected step, rule hash and D0-ended fields; a separate test checks the launcher guard independently of offkit.
+
+Fix 6: `kit/rebind.py:25` verifies `bind.py`, `report.py`, `spec.py`, `adapt_direct.py`, `frames.py` and `__init__.py` against the shipped manifest before importing them. Every action repeats the check. Tests refuse mutations to each module on `sys.path`, prove that changed code does not execute, and refuse mutations after import for all five actions.
+
+The verified-binding report API is used at `kit/rebind.py:311`. Bindings hash the 32-duplicate frame layout. `RUN.md` specifies every required init-selection field and the production ledger.
 
 ## Shipped file hashes
 
 `SHIP_SHA256SUMS` contains the same complete inventory below. These hashes cover every file shipped inside either archive.
 
 ```text
-7af924dff9bfe511709bf1ab7b31936550c84271970a43134725abcb3f2de778  DIFF.md
-be74cbae65465ff4b9b03431461c92a8468268faa598dd753e73e291c2cf87f7  RUN.md
-fab9532726fcdb525b25e45700adf386bb2723ae6c3954158945ef38a90db16b  kit/rebind.py
+2a5df73030de24eedbf70d2a65179c5c09d2d2ec25a54c23e22658a44d5a26a0  DIFF.md
+1872a6a255da32f5bee2fabe0671f7813d814b89691c156551c55ea7650283f6  RUN.md
+343c0e22163beb29845b88223612f7e11f667bfc64803cc3269aa4e53c9985d0  kit/rebind.py
 826bc7a9b92bdc50d1beda0f268507da90af700cf9ba5434071efb251c9878c8  kit/revsi/PROOF_JOB.md
 90d0f20b5c766ecb7c6755dfde60f0d98a1d5f1ca9165f1f02d16004ae6e521e  kit/revsi/build/BASE_FILES.json
 25e9cbd568da22a698228079985a931e86986358ef9afea2f64efcf556bc1d3b  kit/revsi/build/evidence.py
@@ -297,10 +305,11 @@ c0d60afe47a5459150d40841e923fffe90d7ea749c12fcd3ef44b21950b24fd6  kit/vsi/reader
 74a8811ceb10b9666094a044c9dc18304499673b3bcb9af53a8418e0031cc4a6  kit/vsi/tests/test_kit.py
 c068c1ce472fb29766ec27d3fe498afa56e1c6722f9473557b102a8a0a967a03  kit/vsi/tests/test_pass2.py
 c8e378dde95ee969d29ab44d5f2eca6a4f26a752346fe4c82c6e2d00e8dfbd66  kit/vsi/tests/test_pass3.py
+28ac3c102b3515aeefed1aa2aab739a66a162adade323552e6c1195e1a1b0578  out/OFFKIT_PINS.json
 9a8b0aff2f00944996e446a2a4e88eb7099adc8b253039f395082a3469d338fe  tests/checker_fixture.py
 bf4e6d10e83bca3160cef297546ff11fa104b9d47624d57ff054a8378068b7d6  tests/line_capture.py
 bcf267c380eba178df1a4d135cc820c8833952f6c5d337f91f880a1e39f434a8  tests/parity_fixture.py
-329a0bd1d702daa80756aba0fa5a990d13a9520dd5254d7a31cc0683db1a01d8  tests/rehearse.py
+47447c77cca02f52e1a501dbb7a1da8892b6e8d79dea0f9b3103bdc5afb17010  tests/rehearse.py
 c96cee0b856ae8e48685fd4f8a4b81a4c6bb78f42c083d64bee80fe0bd23c33f  tests/test_admission.py
-362d62ef865a35d1fd47138e9e1a71db1dc86dbd986587fa5749d3135d4d4854  tests/test_rebind.py
+d2dc6ea7d4210634225f8aee046c197a3fcfbe57c831bd81af696ecac9e1469e  tests/test_rebind.py
 ```

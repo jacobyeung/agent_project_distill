@@ -45,6 +45,15 @@ class HarnessReader:
         import reader_policy
         decoded = perception.generate(self.model, self.processor, batch, geometry, backend,
                                       budget=reader_policy.DECODE_BUDGET)
+        import re
+        source=getattr(backend,'frozen_mask_source',None)
+        if source is not None:
+            names=[name for call in decoded.get('calls',[]) for name in
+                   re.findall(r'\b(?:obj|a|b)="([^"<>]+)"',call['call'])]
+            try:perception.require_phrases('runtime',names,source.cache['phrases'])
+            except perception.MaskOperandMissing as exc:
+                decoded['strict_no_answer']=True
+                decoded['operand_refusal']=str(exc)
         if any('mask_cache_operand_missing' in str(c.get('code','')) or
                'mask_source_unavailable' in str(c.get('code','')) for c in decoded.get('calls',[])):
             decoded['strict_no_answer'] = True

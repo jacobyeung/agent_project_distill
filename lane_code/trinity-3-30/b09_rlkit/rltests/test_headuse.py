@@ -7,8 +7,11 @@ from rltests.test_reward import EOS, FT, FT_BODY, program
 from rlkit import headuse, sampler, store as storemod
 
 GOOD = program(FT_BODY.format(conv='Converting to feet: 3.22 x 3.28084 = 10.56.\n'), '10.56')
-CALLS = [dict(call='<ground obj="cup" mode="box">'), dict(call='<ground obj="trash can" mode="box">'),
-         dict(call='<gap a="cup" b="trash can" rule="box_grid_5cm">')]
+import re as _re
+_RESP = [m.strip('\n') for m in _re.findall(r'<tool_response>(.*?)</tool_response>', GOOD, _re.S)]
+CALLS = [dict(call='<ground obj="cup" mode="box">', kind='ground', response=_RESP[0]),
+         dict(call='<ground obj="trash can" mode="box">', kind='ground', response=_RESP[1]),
+         dict(call='<gap a="cup" b="trash can" rule="box_grid_5cm">', kind='gap', response=_RESP[2])]
 
 
 def rec(draw, text, calls, path='free', n=80):
@@ -53,9 +56,12 @@ class HeadUse(unittest.TestCase):
         self.assertTrue(head['calls'])
         res = headuse.usage_for(raw, be, prompts, groups)
         self.assertIn('p1|2', res)
-        orig = [c['response'] for c in head['calls']]
-        self.assertEqual(res['p1|2']['responses'][0], headuse.perturb_text(orig[0]))
-        self.assertNotEqual(res['p1|2']['responses'][0], orig[0])
+        u = res['p1|2']
+        self.assertEqual(u['responses'][0], headuse.perturb_text(u['base_responses'][0]))
+        self.assertNotEqual(u['responses'][0], u['base_responses'][0])
+        self.assertEqual(u['base_responses'][0], head['calls'][0]['response'])  # same forced call, same served value
+        again = headuse.usage_for(raw, be, prompts, groups)
+        self.assertEqual(again, res)  # greedy: no sampling noise
 
 
 if __name__ == '__main__':

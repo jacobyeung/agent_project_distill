@@ -1,0 +1,1 @@
+The production blockers and media source identities are recorded in [out/OPEN_INPUTS.md](out/OPEN_INPUTS.md). All four benchmark × reader combinations remain NOT READY. See [RUN.md](RUN.md) for the local hash/pixel check, CPU tests, dependency refresh, and future operator commands.

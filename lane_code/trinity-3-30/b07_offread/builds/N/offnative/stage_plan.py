@@ -9,7 +9,8 @@ from .io import dump,sha,load
 def prepare(binding,inputs,destination,token,pool):
     R=r_launcher();L=R.launcher(binding['benchmark'])
     d=Path(destination)
-    config=L.prepare(token,d,mode='production',pool=pool,media_root=inputs['uploaded_media_root'],phase_b=False)
+    options=dict(media_root=inputs['uploaded_media_root'],phase_b=False) if binding['benchmark']=='revsi999t32' else {}
+    config=L.prepare(token,d,mode='production',pool=pool,**options)
     boot=R.boot_files(d/'BATCH.sh')
     config.update(x0=binding['binding_sha256'],x1=binding['export']['sha256'],x2=0)
     if binding['export']['kind']=='done':

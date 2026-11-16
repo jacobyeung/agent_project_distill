@@ -123,15 +123,22 @@ class PresenceHead(nn.Module):
     def __init__(self, cfg):
         super().__init__()
         d = cfg.presence_dim
+        self.vision_norm, self.name_norm = nn.LayerNorm(cfg.vit_dim), nn.LayerNorm(cfg.name_dim)
         self.vision, self.name = nn.Linear(cfg.vit_dim, d), nn.Linear(cfg.name_dim, d)
+        self.pool_q, self.pool_k = nn.Linear(d, d), nn.Linear(d, d)
         self.position = nn.Linear(1, d)
         self.temporal = Block(d, cfg.heads, 4*d, cross=False)
         self.frame, self.clip = nn.Linear(d, 1), nn.Linear(d, 1)
 
     def forward(self, merged, name):
-        # Spatial mean keeps the cost linear in the full clip's frame count.
+        # Name-conditioned attention pooling over each frame's merged tokens (design 1.4: the head reads the
+        # tokens, so small objects are not averaged away), plus the frame mean as context.
         frames = merged.shape[0]
-        x = self.vision(merged.mean((1, 2)))[None] + self.name(name)[:, None]
+        v = self.vision(self.vision_norm(merged.flatten(1, 2).float()))
+        q = self.name(self.name_norm(name.float()))
+        att = torch.einsum('nd,tld->ntl', self.pool_q(q), self.pool_k(v)) / math.sqrt(v.shape[-1])
+        pooled = torch.einsum('ntl,tld->ntd', att.softmax(-1), v)
+        x = pooled + v.mean(1)[None] + q[:, None]
         t = torch.linspace(-1, 1, frames, device=x.device)[:, None]
         x = self.temporal(x + self.position(t)[None])
         return self.frame(x).squeeze(-1), self.clip(x.mean(1)).squeeze(-1)

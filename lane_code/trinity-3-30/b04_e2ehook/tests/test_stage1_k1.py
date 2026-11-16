@@ -127,3 +127,23 @@ def test_scale_head_call_equals_head(capture):
              depth_conf_grid=tower['depth_conf_grid'], points_grid=tower['points_grid'], grid_uv=tower['grid_uv'])
     with torch.no_grad():
         assert float(ScaleHeadCall(head)(t)) == float(head(**prepare_inputs(folder / 'tower.npz'))[0])
+
+
+def test_own_depth_scale_equals_frozen_estimator(capture):
+    """OwnDepthScale on a stub depth head that returns 2.5 x the tower depth gives scale 2.5 exactly, and equals
+    the tree's estimate_scale on the same grids."""
+    from types import SimpleNamespace as NS
+    from e2e_reader.stage1 import OwnDepthScale
+    from student_pilot.tower_scale import estimate_scale
+    folder, rec, tower, receipt = capture
+    d = torch.as_tensor(tower['depth_grid'], dtype=torch.float64)
+
+    class StubDepth:
+        def query(self, depth_map, uv):
+            assert uv.shape == (32, 51 * 51, 2)
+            return (2.5 * d).reshape(32, -1)
+    state = NS(heads=NS(depth_map=torch.zeros(1), depth_head=StubDepth()))
+    t = dict(depth_grid=tower['depth_grid'], depth_conf_grid=tower['depth_conf_grid'], grid_uv=tower['grid_uv'])
+    log_s = float(OwnDepthScale()(t, state))
+    want, _, _ = estimate_scale(tower['depth_grid'], tower['depth_conf_grid'], 2.5 * tower['depth_grid'].astype(float))
+    assert abs(np.exp(log_s) - want) < 1e-9

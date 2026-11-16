@@ -8,8 +8,7 @@ from offnative.io import load, rows
 
 @pytest.mark.parametrize('kind',['harness','e2e'])
 def test_rehearsed_result(kind):
-    suffix='04' if kind=='harness' else '03'
-    d=ROOT/'work'/('rehearsal_revsi_'+kind+'_'+suffix)
+    d=ROOT/'work'/('n2_rehearsal_'+kind+'_release')
     result=load(d/'RESULT.json')
     assert result['passed'] and result['items']==26 and result['videos']==2
     assert len(list((d/'return/receipts').glob('*.json')))==7
@@ -34,7 +33,7 @@ def test_changed_response_stops_before_official_decode(tmp_path):
 def test_fixture_cannot_claim_production(tmp_path):
     from offnative.worker import Worker
     from types import SimpleNamespace
-    source=ROOT/'work/rehearsal_revsi_e2e_03'
+    source=ROOT/'work/n2_rehearsal_e2e_release'
     b=load(source/'BINDING.json');c=load(source/'CONFIG.json')
     with pytest.raises(ValueError,match='synthetic status'):
         Worker(c,b,[],SimpleNamespace(synthetic=True),None,tmp_path/'out',fixture=False)

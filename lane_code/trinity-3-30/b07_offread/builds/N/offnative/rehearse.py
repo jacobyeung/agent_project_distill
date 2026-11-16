@@ -11,10 +11,10 @@ from offkit.bind import bind
 from offkit.frames import bind_frames
 from offkit.report import ReadMode
 
-def run(destination, kind, *, mutate_proof=False):
+def run(destination, kind, *, mutate_proof=False, benchmark='revsi999t32'):
     dest = Path(destination)
     dest.mkdir(parents=True, exist_ok=False)
-    mode = ReadMode('revsi999t32', kind)
+    mode = ReadMode(benchmark, kind)
     items = []
     for typ in mode.types:
         for i in range(2):
@@ -31,24 +31,26 @@ def run(destination, kind, *, mutate_proof=False):
     else:
         f = dest/'e2e.json'; dump(f, {'fixture':True})
         kwargs['e2e_manifest'] = f
-    b = bind('revsi999t32','step544',kind+':'+sha(f),mode='fixture',**kwargs)
+    b = bind(benchmark,'step544',kind+':'+sha(f),mode='fixture',**kwargs)
     from .source import bind_source
-    b['read_config'] = dict(frames=bind_frames(),g3t=bind_source('clip32',reader=kind))
+    b['read_config'] = dict(frames=b['frames'],g3t=bind_source('original',reader=kind,benchmark=benchmark))
     b['binding_sha256'] = digest({k:v for k,v in b.items() if k!='binding_sha256'})
     dump(dest/'BINDING.json', b)
     config = dict(schema='orchkit-config-v1', binding_sha256=b['binding_sha256'],
                   transport={'kind':'local_fixture'}, reader=kind, frames=b['read_config']['frames'],
                   production_admissible=False)
     dump(dest/'CONFIG.json',config)
-    runtime = Runtime(dest/'assets',items,kind,mutate_proof=mutate_proof)
-    worker = Worker(config,b,items,runtime,Scorer(labels),dest/'return',fixture=True)
+    runtime = Runtime(dest/'assets',items,kind,mutate_proof=mutate_proof,benchmark=benchmark)
+    worker = Worker(config,b,items,runtime,Scorer(labels,benchmark),dest/'return',fixture=True)
     worker.run()
     report(b,items,dest/'return',dest/'reports',fixture=True,repetitions=100)
     dump(dest/'RESULT.json',dict(passed=True,phases=7,items=len(items),videos=2,reader=kind,
         official_decodes=worker.official_decodes,tower_calls=runtime.entry.tower_calls,
         production_config_transport_only=False,
-        limitations=['Production loader and harness decoder are not exercised.','Synthetic tower arrays replace tower inference.']))
+        limitations=['Real-export model restoration and live staging have not run.','Synthetic tower arrays replace tower inference.','The production CONFIG with real input pins has not run.'],
+        decode_core='C8r perception and carrier native decode' if kind=='harness' else 'b04 audited generate',
+        source=b['read_config']['g3t']))
     return dest/'RESULT.json'
 
 if __name__=='__main__':
-    print(run(sys.argv[1],sys.argv[2]))
+    print(run(sys.argv[1],sys.argv[2],benchmark=sys.argv[3] if len(sys.argv)>3 else 'revsi999t32'))

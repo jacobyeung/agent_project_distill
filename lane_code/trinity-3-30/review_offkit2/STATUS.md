@@ -1,0 +1,4 @@
+# review_offkit2 STATUS (20261116T1414Z): DONE
+Verdict GO AFTER FIXES: /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/review_offkit/REVIEW_VERDICT_OFFKIT2.md (lane copy /scratch/jjyeung/orch_n30/review_offkit2/out/). RESULT: /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/review_offkit/20261116T1414Z_RESULT_review_offkit2_verdict.md.
+Work: /scratch/jjyeung/orch_n30/review_offkit2/work/kc (kit copy and refute2 tests), /scratch/jjyeung/orch_n30/review_offkit2/work/kc_patch (trial fix of adapt_native.py:88). Test copies: /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/review_offkit/review_offkit2_tests/. Nothing is owed.
+Earlier lane review_offkit: DONE, with verdict REVIEW_VERDICT_OFFKIT.md in the same events folder.

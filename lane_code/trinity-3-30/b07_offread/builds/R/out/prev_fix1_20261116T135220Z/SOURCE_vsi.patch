@@ -1,0 +1,1639 @@
+--- accepted/launcher/export_stage.py
++++ kit/vsi/launcher/export_stage.py
+@@ -0,0 +1,224 @@
++"""Authenticated archive admission using the reviewed stage_export function."""
++import argparse
++from contextlib import contextmanager
++import fcntl
++import hashlib
++import json
++import os
++from pathlib import Path, PurePosixPath
++import re
++import shutil
++import subprocess
++import tarfile
++import time
++from types import SimpleNamespace as NS
++import orchard_stage as S
++import orchard_job as J
++import chain_save as A
++
++CHECKER = J.SJ/'orch_cd/legs1_reads/out/export_check.py'
++CHECKER_PINS = {
++    'export_check.py': '0400842c559565b66db50d6c8fde7c323e8600a82d70685d469a4b316d7ec8d2',
++    'common.py': '1954de01cc935fb744ebc92a3ede19a94658d2ce4fefb3c1e1ba40b03d2508c4',
++}
++
++@contextmanager
++def lock(path):
++    with Path(path).open('a+b') as f:
++        fcntl.flock(f, fcntl.LOCK_EX)
++        yield
++
++
++def writable(path):
++    path = Path(path).absolute()
++    if path.resolve() != path or not path.is_relative_to('/tmp'):
++        raise ValueError('Require canonical job-local storage')
++    return path
++
++
++def logical_artifact(root, path, step):
++    allowed = {str(J.FSW/'ap/8865619b/runs'/run/('m'+str(step))/'artifact.json') for run in ('469ddece', '359fcc3c')}
++    if path not in allowed or type(step) is not int or step <= 0:
++        raise ValueError('Export lineage differs')
++    return path
++
++
++T = NS(writable=writable, EXPORT_RUNS=('469ddece', '359fcc3c'),
++       FSW=J.FSW, logical_artifact=logical_artifact, physical=J.physical,
++       load=lambda p: json.loads(Path(p).read_text()), sha=S.sha, lock=lock,
++       kit_stage=lambda: S, dump=A.atomic_json)
++
++
++def completed_local(value, tar=False):
++    path = writable(value)
++    if '.part' in path.name or not path.is_file() or (tar and path.suffix != '.tar'):
++        raise ValueError('Require a completed regular local file')
++    return path
++
++
++def run_export_checker(root, artifact, digest, step, full, receipt_dir, bwrap):
++    if not full:
++        raise ValueError('Full verification is required')
++    config = T.load(root/'bootstrap/CONFIG.json')
++    for name, pin in CHECKER_PINS.items():
++        if S.sha(J.physical(root, CHECKER.parent/name)) != pin:
++            raise ValueError('Checker source changed')
++    output = receipt_dir/'CHECK.json'
++    command = J.namespace(root, config)+[config['spec']['interpreters']['p1cpu'], '-B', str(CHECKER),
++        '--export', artifact, '--sha256', digest, '--base', config['spec']['models']['base']['path'],
++        '--step', str(step), '--output', str(output)]
++    A.atomic_json(receipt_dir/'COMMAND.json', dict(argv=command, full=True, pins=CHECKER_PINS))
++    # The checker prints model metadata; retain it as encoded evidence.
++    result = subprocess.run(command, env=J.environment(root), cwd=root, capture_output=True)
++    (receipt_dir/'check.hex').write_text(result.stdout.hex()+'\n'+result.stderr.hex()+'\n')
++    if result.returncode:
++        raise RuntimeError('Full export check failed')
++    checked = T.load(output)
++    if checked.get('status') != 'VERIFIED' or checked.get('step') != step:
++        raise ValueError('Unexpected checker result')
++    return checked
++
++
++def stage_export(args):
++    root = T.writable(args.root)
++    if args.run not in T.EXPORT_RUNS or type(args.step) is not int or args.step <= 0:
++        raise ValueError('Require an allowed run and positive step')
++    source = completed_local(args.tar, tar=True); done_path = completed_local(args.done)
++    done = T.load(done_path)
++    if (not isinstance(done, dict) or not isinstance(done.get('object'), str) or not done['object'].strip() or
++            type(done.get('bytes')) is not int or done['bytes'] <= 0 or
++            not isinstance(done.get('sha256'), str) or not re.fullmatch('[0-9a-f]{64}', done['sha256'])):
++        raise ValueError('Done record requires object, positive integer bytes, and whole-tar sha256')
++    logical = str(T.FSW/'ap/8865619b/runs'/args.run/('m'+str(args.step))/'artifact.json')
++    T.logical_artifact(root, logical, args.step)
++    dest = T.physical(root, logical).parent
++    if dest.resolve() != dest: raise ValueError('Export destination has a symlink')
++    receipt_dir = root/'exports'/(args.run+'_m'+str(args.step))
++    if receipt_dir.resolve() != receipt_dir: raise ValueError('Receipt destination has a symlink')
++    root.mkdir(parents=True, exist_ok=True)
++    with T.lock(root/'.stage-export.lock'):
++        if dest.exists() or receipt_dir.exists(): raise ValueError('Milestone or receipt exists; no overwrite or retry')
++        # Hash and parse the same open file, never the arriving partial name.
++        with source.open('rb') as stream:
++            before = source.stat()
++            if before.st_size != done['bytes']: raise ValueError('Tar bytes differ from done record')
++            h = hashlib.sha256()
++            for chunk in iter(lambda: stream.read(1024*1024), b''): h.update(chunk)
++            if h.hexdigest() != done['sha256']: raise ValueError('Tar SHA256 differs from done record')
++            stream.seek(0)
++            with tarfile.open(fileobj=stream, mode='r:') as archive:
++                members = []; names = set(); sizes = 0
++                for member in archive:
++                    path = PurePosixPath(member.name)
++                    if (path.is_absolute() or '..' in path.parts or not path.parts or
++                            path.parts[0] != dest.name or not (member.isfile() or member.isdir())):
++                        raise ValueError('Unsafe member or unexpected milestone layout: '+member.name)
++                    name = str(path)
++                    if name in names: raise ValueError('Duplicate tar member: '+name)
++                    names.add(name)
++                    rel = path.parts[1:]
++                    if rel and (rel[0] not in ('artifact.json', 'heads.pt', 'full_weights') or
++                                (rel[0] != 'full_weights' and (len(rel) != 1 or not member.isfile()))):
++                        raise ValueError('Unexpected milestone layout: '+name)
++                    if not rel and not member.isdir(): raise ValueError('Milestone root must be a directory')
++                    if rel == ('full_weights',) and not member.isdir(): raise ValueError('Weights must be a directory')
++                    members.append((member, path))
++                    if member.isfile(): sizes += member.size
++                files = {str(p) for m, p in members if m.isfile()}
++                required = {dest.name+'/'+p for p in ('artifact.json', 'heads.pt', 'full_weights/full_weights.json')}
++                if not required <= files: raise ValueError('Missing required milestone layout')
++                for name in names:
++                    if any(str(p) in files for p in PurePosixPath(name).parents):
++                        raise ValueError('File/directory collision in tar')
++                T.kit_stage().room(root, sizes)
++                receipt_dir.mkdir(parents=True)
++                receipt = dict(schema=1, status='extracting', run=args.run, step=args.step,
++                    source=str(source), done_path=str(done_path), done_sha256=T.sha(done_path), done=done,
++                    tar_bytes=before.st_size, tar_sha256=h.hexdigest(), extracted_bytes=sizes,
++                    artifact=logical, checker_mode='full' if args.full else 'header-only',
++                    members=len(members), started=time.time())
++                T.dump(receipt_dir/'RECEIPT.json', receipt)
++                try:
++                    dest.mkdir(parents=True)
++                    for member, path in members:
++                        target = dest.parent/str(path)
++                        if member.isdir(): target.mkdir(parents=True, exist_ok=True)
++                        else:
++                            target.parent.mkdir(parents=True, exist_ok=True)
++                            with archive.extractfile(member) as inp, target.open('xb') as out:
++                                shutil.copyfileobj(inp, out, 1024*1024)
++                            target.chmod(0o600)
++                    after = source.stat()
++                    if (before.st_size, before.st_mtime_ns, before.st_ino) != (after.st_size, after.st_mtime_ns, after.st_ino):
++                        raise ValueError('Tar changed during staging')
++                    receipt['status'] = 'extracted'
++                    receipt['artifact_sha256'] = T.sha(dest/'artifact.json')
++                    T.dump(receipt_dir/'RECEIPT.json', receipt)
++                    receipt['checker'] = run_export_checker(root, logical, receipt['artifact_sha256'], args.step,
++                                                           args.full, receipt_dir, args.bwrap)
++                    receipt['status'] = 'complete'
++                    return receipt
++                except Exception as error:
++                    receipt.update(status='failed', error=str(error))
++                    raise
++                finally:
++                    receipt['finished'] = time.time()
++                    T.dump(receipt_dir/'RECEIPT.json', receipt)
++
++
++def parse_done(raw, run, step):
++    """Read the uploader's one-line receipt; bytes and SHA cover the whole tar."""
++    if run not in T.EXPORT_RUNS or type(step) is not int or step <= 0:
++        raise ValueError('Invalid completion receipt identity')
++    obj = 'q8/8865619b/'+run+'_m'+str(step)+'.tar'
++    match = re.fullmatch(re.escape(obj).encode()+rb' ([1-9][0-9]*) ([0-9a-f]{64})\n?', raw)
++    if match is None:
++        raise ValueError('Completion receipt identity or format differs')
++    return dict(object=obj, bytes=int(match[1]), sha256=match[2].decode('ascii'))
++
++
++def fetch_and_stage(root, config):
++    root = Path(root)
++    step = config['spec']['step']
++    receipt = Path('/project/community/jjyeung/okh7/x_f5c353f7/o')/('gcs_359fcc3c_m'+str(step)+'.done')
++    if receipt.is_symlink() or receipt.stat().st_size > 65536:
++        raise ValueError('Invalid completion receipt')
++    raw = receipt.read_bytes()
++    done = parse_done(raw, '359fcc3c', step)
++    uri = 'gs://cmu-gpucloud-jjyeung/'+done['object']
++    (root/'archives/COMPLETE.done').write_bytes(raw)
++    target = root/'archives/export.tar'
++    partial = target.with_suffix('.partial')
++    if target.exists() or partial.exists():
++        raise ValueError('Export already attempted')
++    S.room(root, 2*done['bytes'])
++    env = S.cloud_environment(config['assets']['gcloud_config'])
++    started = time.monotonic(); count = 0; h = hashlib.sha256()
++    with partial.open('xb') as out:
++        for part in range(4):
++            obj = uri+'.part%02d-of-04'%part
++            with S.process_stream(['gcloud', 'storage', 'cat', obj], env, root/'staging.log') as inp:
++                for chunk in iter(lambda: inp.read(S.CHUNK), b''):
++                    count += len(chunk)
++                    if count > done['bytes']:
++                        raise ValueError('Export exceeds receipt size')
++                    h.update(chunk)
++                    if out.write(chunk) != len(chunk):
++                        raise OSError('Short export write')
++        out.flush(); os.fsync(out.fileno())
++    if count != done['bytes'] or h.hexdigest() != done['sha256']:
++        raise ValueError('Whole archive differs from completion receipt')
++    os.rename(partial, target)
++    local_done = root/'archives/COMPLETE.json'
++    A.atomic_json(local_done, done)
++    transfer_seconds = time.monotonic()-started
++    result = stage_export(NS(root=str(root), run='359fcc3c', step=step, tar=str(target),
++                             done=str(local_done), full=True, bwrap=str(root/'bwrap')))
++    result['transfer_seconds'] = transfer_seconds
++    result['transfer_and_admission_seconds'] = time.monotonic()-started
++    config['spec']['artifact']['sha256'] = result['artifact_sha256']
++    config['spec']['models']['cp1m200'] = dict(config['spec']['artifact'])
++    config['admission'] = result
++    # The submitted plan binds step and input receipt; resolved bytes are recorded separately.
++    A.atomic_json(root/'bootstrap/CONFIG.json', config)
++    return result
+--- accepted/launcher/gate.py
++++ kit/vsi/launcher/gate.py
+@@ -0,0 +1,120 @@
++"""Authenticate the selected bytes and require the existing parity proof."""
++import argparse
++import json
++from pathlib import Path
++import re
++import subprocess
++import sys
++
++
++def validate(config):
++    for key in ('x0', 'x1'):
++        if not re.fullmatch('[0-9a-f]{64}', config.get(key, '')):
++            raise ValueError('X0 identity differs')
++    if config.get('x2') not in (0, 1):
++        raise ValueError('X0 type differs')
++
++
++def stage(root, config, physical):
++    import orchard_stage as S
++    if config.get('x2'):
++        import s1
++        return s1.stage(root, config, physical)
++    return S.stage(root, config, physical)
++
++
++def before(root, config):
++    import export_stage as E
++    validate(config)
++    step = config['spec']['step']
++    if step not in (100, 200, 400, 600, 800, 1000):
++        raise ValueError('X1 step differs')
++    path = Path('/project/community/jjyeung/okh7/x_f5c353f7/o') / ('gcs_359fcc3c_m'+str(step)+'.done')
++    if path.is_symlink() or path.stat().st_size > 65536:
++        raise ValueError('X1 receipt differs')
++    done = E.parse_done(path.read_bytes(), '359fcc3c', step)
++    if done['sha256'] != config['x1'] or done['bytes'] != config['x3']:
++        raise ValueError('X1 receipt differs')
++
++
++def after(root, config, receipts):
++    import orchard_stage as S
++    import orchard_job as J
++    validate(config)
++    if config['x2']:
++        got = receipts['export']
++        if (got.get('tar_sha256') != config['x1'] or got.get('status') != 'complete'
++                or got.get('checker', {}).get('status') != 'VERIFIED'):
++            raise ValueError('X1 admission differs')
++    else:
++        if S.sha(J.physical(root, config['spec']['artifact']['path'])) != config['x1']:
++            raise ValueError('X1 artifact differs')
++
++
++def parity(config, root):
++    package = Path(config['spec']['package'])
++    target = Path(config['spec']['run']) / 'p9'
++    target.parent.mkdir(parents=True, exist_ok=True)
++    argv = [config['spec']['interpreters']['vllm'], '-s', '-B',
++            str(package/'parity/prove_prompts.py'), '--output', str(target),
++            '--processor-dir', config['spec']['models']['base']['path'],
++            '--reader-root', '/scratch/jjyeung/orch_cd/legs1_reads',
++            '--kit-root', '/scratch/jjyeung/orch_cd/rv_merge_fix/work/r3/aws_vl64rt']
++    result = subprocess.run(argv, capture_output=True)
++    receipt = dict(passed=False, returncode=result.returncode)
++    try:
++        observed = json.loads((target/'PARITY.json').read_text())
++        receipt['passed'] = result.returncode == 0 and all(observed.get(k) is True for k in
++            ('processor_checked', 'all_prompt_bytes_equal', 'prompt_pins_equal'))
++    except (OSError, ValueError):
++        pass
++    receipt['observed'] = locals().get('observed')
++    evidence = target.parent/'metadata'
++    evidence.mkdir(exist_ok=True)
++    (evidence/'P9.json').write_text(json.dumps(receipt)+'\n')
++    if not receipt['passed']:
++        raise ValueError('P9 failed')
++    return receipt
++
++
++def run(config, root):
++    validate(config)
++    parity(config, root)
++    package = Path(config['spec']['package'])
++    sys.path.insert(0, str(package/'reader'))
++    import chain
++    if config['x2']:
++        import official_adapter as A
++        admission = config['admission']
++        if admission['tar_sha256'] != config['x1'] or admission['status'] != 'complete':
++            raise ValueError('X1 admission differs')
++        A.EXPORT_SHA = admission['artifact_sha256']
++        original_check = A.check_export
++        def check(path, digest, base, step):
++            if digest != A.EXPORT_SHA or step != 544:
++                raise ValueError('X1 check differs')
++            return original_check(path, digest, base, config['spec']['step'])
++        A.check_export = check
++        original_bind = A.bind
++        def bind(*args, **kwargs):
++            cfg = original_bind(*args, **kwargs)
++            cfg['reader']['step'] = config['spec']['step']
++            cfg['binding'] = A.binding(cfg)
++            A.dump(Path(args[0])/'request.json', cfg)
++            return cfg
++        A.bind = bind
++    result = chain.run(config)
++    if config['x2']:
++        path = Path(config['spec']['run'])/'AUTHORIZATION.json'
++        value = json.loads(path.read_text())
++        value['step'] = config['spec']['step']
++        path.write_text(json.dumps(value)+'\n')
++    return result
++
++
++if __name__ == '__main__':
++    p = argparse.ArgumentParser()
++    p.add_argument('--config', required=True)
++    p.add_argument('--root')
++    a = p.parse_args()
++    run(json.loads(Path(a.config).read_text()), a.root)
+--- accepted/launcher/orchard_job.py
++++ kit/vsi/launcher/orchard_job.py
+@@ -188 +188,4 @@
+-        evidence['staging'] = S.stage(root, config, physical)
++        import gate
++        gate.validate(config)
++        evidence['staging'] = gate.stage(root, config, physical)
++        gate.after(root, config, evidence['staging'])
+@@ -197 +200 @@
+-            str(Path(config['spec']['package'])/'reader/chain.py'), '--root', str(root),
++            str(root/'bootstrap/gate.py'), '--root', str(root),
+@@ -225,0 +229 @@
++        A.atomic_json(source/'metadata/X0.json', {k: config.get(k) for k in ('x0', 'x1', 'x2')})
+--- accepted/launcher/orchard_launcher.py
++++ kit/vsi/launcher/orchard_launcher.py
+@@ -23 +23 @@
+-        'chain_save.py', 'stdout_transfer.py', 'trace_runtime.py', 'return_io.py', 'ORCHARD_ASSETS.json')
++        'chain_save.py', 'stdout_transfer.py', 'trace_runtime.py', 'return_io.py', 'ORCHARD_ASSETS.json', 'export_stage.py', 'gate.py', 's1.py')
+@@ -285 +285 @@
+-def fetch(destination):
++def fetch(destination, transfer=None):
+@@ -325 +325 @@
+-            if ap['bytes']>=20_000_000:
++            if ap['bytes']>=20_000_000 and transfer is None:
+@@ -330 +330,4 @@
+-                subprocess.run(SSH+[shlex.join(command)],stdout=out,stderr=err,check=True,timeout=180)
++                if transfer is None:
++                    subprocess.run(SSH+[shlex.join(command)],stdout=out,stderr=err,check=True,timeout=180)
++                else:
++                    transfer(SSH+[shlex.join(command)],out,err,ap['bytes'])
+--- accepted/launcher/orchard_results.py
++++ kit/vsi/launcher/orchard_results.py
+@@ -14,2 +14,2 @@
+-AUTHORIZED_POOL = Path('/project/community/jjyeung/okh7/x27ret')
+-GCS_ROOT = 'gs://cmu-gpucloud-jjyeung/q8/x27r'
++AUTHORIZED_POOL = Path('/project/community/jjyeung/okh7/9e6b70a213c84fd0')
++GCS_ROOT = 'gs://cmu-gpucloud-jjyeung/q8/9e6b70a213c84fd0'
+--- accepted/launcher/return_io.py
++++ kit/vsi/launcher/return_io.py
+@@ -1 +1 @@
+-"""Bounded pool operations; only the explicitly authorized .wtest is removed."""
++"""Bounded pool operations with retained write-test evidence."""
+@@ -48,2 +48 @@
+-            # The user authorizes removal of this one test file only.
+-            test.unlink()
++            # Keep the write-test evidence; its bytes count toward the pool cap.
+--- accepted/launcher/s1.py
++++ kit/vsi/launcher/s1.py
+@@ -0,0 +1,338 @@
++import base64
++from contextlib import contextmanager
++import hashlib
++import json
++import os
++from pathlib import Path, PurePosixPath
++import select
++import shutil
++import signal
++import subprocess
++import tarfile
++import time
++
++import chain_save as A
++
++
++MIN_FREE = 200*1024**3
++CHUNK = 1024**2
++RUNTIME_ABSOLUTE_LINKS = {
++    'sj/envs/p1cpu/bin/python3.12':
++        '/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/bin/python3.12',
++    'm/ap/19252904/e/bin/python':
++        '/home/jyeung/.local/share/uv/python/cpython-3.12-linux-x86_64-gnu/bin/python3.12',
++}
++
++
++def sha(path):
++    value = hashlib.sha256()
++    with Path(path).open('rb') as stream:
++        for chunk in iter(lambda: stream.read(CHUNK), b''):
++            value.update(chunk)
++    return value.hexdigest()
++
++
++def room(path, extra=0):
++    if shutil.disk_usage(path).free < MIN_FREE+extra:
++        raise ValueError('Staging would breach the 200 GiB node-local free-space floor')
++
++
++def relative(name):
++    path = PurePosixPath(name)
++    if path.is_absolute() or '..' in path.parts or '\x00' in name:
++        raise ValueError('Unsafe archive member')
++    return path
++
++
++def extract_stream(stream, destination, step, limit, links=False, strip=0, overlay=False):
++    destination = Path(destination).resolve()
++    seen, inventory, total = set(), {}, 0
++    with tarfile.open(fileobj=stream, mode='r|*') as archive:
++        for item in archive:
++            path = relative(item.name)
++            if len(path.parts) <= strip:
++                if not item.isdir():
++                    raise ValueError('Archive strip would discard a file')
++                continue
++            path = PurePosixPath(*path.parts[strip:])
++            if step is not None and path.parts[0] != 'm'+str(step):
++                raise ValueError('Export contains a foreign milestone')
++            if str(path) in seen:
++                raise ValueError('Duplicate archive member')
++            seen.add(str(path))
++            if len(seen) > 200000 or item.size < 0:
++                raise ValueError('Invalid archive inventory')
++            total += item.size
++            if total > limit:
++                raise ValueError('Archive exceeds its expanded byte allowance')
++            target = destination/str(path)
++            parent = target.parent.resolve()
++            if not parent.is_relative_to(destination) or target.is_symlink():
++                raise ValueError(f'Archive member escapes its local destination: {path} -> {item.linkname}')
++            if item.isdir():
++                target.mkdir(parents=True, exist_ok=True)
++                continue
++            target.parent.mkdir(parents=True, exist_ok=True)
++            if item.issym() and links:
++                link = PurePosixPath(item.linkname)
++                if link.is_absolute():
++                    if RUNTIME_ABSOLUTE_LINKS.get(str(path)) != item.linkname:
++                        raise ValueError(f'Runtime symlink has an unregistered absolute target: {path} -> {item.linkname}')
++                else:
++                    first_name = next((i for i, part in enumerate(link.parts) if part != '..'), len(link.parts))
++                    if '..' in link.parts[first_name:]:
++                        raise ValueError(f'Runtime symlink has ambiguous parent traversal: {path} -> {item.linkname}')
++                    if not Path(os.path.normpath(str(parent/str(link)))).is_relative_to(destination):
++                        raise ValueError(f'Runtime symlink escapes its archive: {path} -> {item.linkname}')
++                target.symlink_to(item.linkname)
++                continue
++            if item.islnk() and links:
++                source = destination/str(relative(item.linkname))
++                if not source.resolve().is_relative_to(destination) or source.is_symlink() or not source.is_file():
++                    raise ValueError(f'Unsafe runtime hard link: {path} -> {item.linkname}')
++                os.link(source, target)
++                continue
++            if not item.isfile():
++                raise ValueError('Archive links and special files are not admitted')
++            if overlay and target.exists():
++                if not target.is_file():
++                    raise ValueError('A code overlay may only replace a local regular file')
++                target.chmod(item.mode | 0o200)
++            hashed = hashlib.sha256()
++            with archive.extractfile(item) as source, target.open('wb' if overlay else 'xb') as output:
++                copied = 0
++                for chunk in iter(lambda: source.read(CHUNK), b''):
++                    copied += len(chunk)
++                    hashed.update(chunk)
++                    if output.write(chunk) != len(chunk):
++                        raise OSError('Short staging write')
++            if copied != item.size:
++                raise ValueError('Truncated archive member')
++            target.chmod(item.mode & 0o777)
++            inventory[str(path)] = dict(bytes=copied, sha256=hashed.hexdigest())
++    return inventory
++
++
++def copy_parts(parts, destination, opener, expected_sha=None, rate=0, check_space=True):
++    destination = Path(destination)
++    partial = destination.with_name(destination.name+'.partial')
++    size = sum(part['bytes'] for part in parts)
++    if destination.exists() or partial.exists():
++        raise FileExistsError('A staging destination already exists')
++    if check_space:
++        room(destination.parent, size)
++    whole = hashlib.sha256()
++    started, count = time.monotonic(), 0
++    with partial.open('xb') as output:
++        for part in parts:
++            hashed, md5, copied = hashlib.sha256(), hashlib.md5(), 0
++            with opener(part) as source:
++                for chunk in iter(lambda: source.read(CHUNK), b''):
++                    copied += len(chunk)
++                    count += len(chunk)
++                    if copied > part['bytes']:
++                        raise ValueError('Part exceeds its authenticated size')
++                    hashed.update(chunk)
++                    md5.update(chunk)
++                    whole.update(chunk)
++                    if output.write(chunk) != len(chunk):
++                        raise OSError('Short staging write')
++                    if rate:
++                        time.sleep(max(0, count/rate-(time.monotonic()-started)))
++            if copied != part['bytes'] or hashed.hexdigest() != part['sha256']:
++                raise ValueError('Part size or SHA256 differs')
++            if part.get('md5') and base64.b64encode(md5.digest()).decode() != part['md5']:
++                raise ValueError('Part MD5 differs')
++        output.flush()
++        os.fsync(output.fileno())
++    if expected_sha is not None and whole.hexdigest() != expected_sha:
++        raise ValueError('The complete archive SHA256 differs')
++    os.replace(partial, destination)
++    return dict(bytes=count, sha256=whole.hexdigest(), seconds=time.monotonic()-started)
++
++
++class ProcessStream:
++    def __init__(self, process):
++        self.process = process
++
++    def read(self, size):
++        if not select.select([self.process.stdout], [], [], 300)[0]:
++            raise RuntimeError('Staging stream made no progress for 300 seconds')
++        return os.read(self.process.stdout.fileno(), size)
++
++
++@contextmanager
++def process_stream(argv, environment, log):
++    with Path(log).open('ab') as output:
++        process = subprocess.Popen(argv, env=environment, stdout=subprocess.PIPE, stderr=output,
++                                   start_new_session=True)
++        try:
++            yield ProcessStream(process)
++            if process.wait(timeout=60):
++                raise RuntimeError('Staging command failed; no automatic retry')
++        finally:
++            if process.poll() is None:
++                os.killpg(process.pid, signal.SIGTERM)
++                try:
++                    process.wait(timeout=20)
++                except subprocess.TimeoutExpired:
++                    os.killpg(process.pid, signal.SIGKILL)
++                    process.wait(timeout=20)
++            process.stdout.close()
++
++
++def unpack(path, root, **kwargs):
++    with Path(path).open('rb') as stream:
++        return extract_stream(stream, root, None, Path(path).stat().st_size, **kwargs)
++
++
++def cloud_environment(path):
++    return dict(os.environ, CLOUDSDK_CONFIG=path,
++                CLOUDSDK_CORE_DISABLE_FILE_LOGGING='1', CLOUDSDK_CORE_DISABLE_PROMPTS='1',
++                CLOUDSDK_COMPONENT_MANAGER_DISABLE_UPDATE_CHECK='1',
++                CLOUDSDK_CORE_DISABLE_USAGE_REPORTING='1')
++
++
++def config_metadata(path):
++    result = {}
++    with os.scandir(path) as entries:
++        for entry in entries:
++            if len(result) >= 256:
++                raise ValueError('Cloud config metadata inventory exceeds its bound')
++            value = entry.stat(follow_symlinks=False)
++            result[entry.name] = dict(bytes=value.st_size, mtime_ns=value.st_mtime_ns,
++                                      directory=entry.is_dir(follow_symlinks=False))
++    return result
++
++
++def stage(root, config, physical):
++    root = Path(root)
++    assets = config['assets']
++    receipts = {}
++    last_phase = time.monotonic()
++
++    def phase(name):
++        nonlocal last_phase
++        now = time.monotonic()
++        receipts.setdefault('phases', {})[name] = dict(
++            completed_utc=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
++            seconds=now-last_phase, local_free_bytes=shutil.disk_usage(root).free)
++        last_phase = now
++        A.atomic_json(root/'STAGING.json', receipts)
++
++    phase('start')
++    archives = root/'archives'
++    archives.mkdir()
++    for index, group in enumerate(assets['groups']):
++        parts = [dict(path=p, bytes=n, sha256=h) for p, n, h in group]
++        archive = archives/f'runtime_{index}.tar'
++        receipts['runtime_'+str(index)] = copy_parts(
++            parts, archive, lambda part: Path(part['path']).open('rb'),
++            rate=0)
++        unpack(archive, root, links=True)
++        phase('runtime_'+str(index))
++    camera = assets['camera_archive']
++    archive = archives/'a0.tar'
++    receipts['camera'] = copy_parts([camera], archive, lambda part: Path(part['path']).open('rb'))
++    unpack(archive, root)
++    phase('a0')
++    payload = root/'bootstrap/payload.tar.gz'
++    if sha(payload) != config['payload_sha256']:
++        raise ValueError('Reader payload differs from the submitted package')
++    with payload.open('rb') as stream:
++        extract_stream(stream, root, None, 32*1024**2, overlay=True)
++    phase('reader_payload')
++    bwrap = assets['bwrap_pin']
++    target = root/'bwrap'
++    receipts['bwrap'] = copy_parts([bwrap], target, lambda part: Path(part['path']).open('rb'))
++    target.chmod(0o700)
++    phase('bwrap')
++    base = root/'m/ap/85fc3486'
++    base.mkdir(parents=True)
++    source = Path(assets['base_archive'])
++    if source.stat().st_size != assets['base_archive_bytes']:
++        raise ValueError('Base archive size differs')
++    room(root, source.stat().st_size)
++    inventory = unpack(source, base, strip=3)
++    manifest = physical(root, assets['base_manifest']['path'])
++    if sha(manifest) != assets['base_manifest']['sha256']:
++        raise ValueError('Base snapshot manifest differs')
++    for row in json.loads(manifest.read_text())['files']:
++        if inventory.get(row['path']) != {key: row[key] for key in ('bytes', 'sha256')}:
++            raise ValueError('Base snapshot payload differs from its frozen manifest')
++    receipts['base'] = dict(manifest_sha256=sha(manifest), files=len(inventory))
++    phase('base_snapshot')
++    if config.get('x2') == 1:
++        import gate
++        gate.before(root, config)
++        receipts['videos'] = stage_videos(root, config, physical)
++        from export_stage import fetch_and_stage
++        receipts['export'] = fetch_and_stage(root, config)
++        gate.after(root, config, receipts)
++        phase('export_verified')
++    else:
++        transport = json.loads(physical(root, config['release']['transport']['path']).read_text())
++        receipts['export_transport'] = transport
++        environment = cloud_environment(assets['gcloud_config'])
++
++        def cloud(part):
++            uri = 'gs://cmu-gpucloud-jjyeung/'+part['name']+'#'+str(part['generation'])
++            return process_stream(['gcloud', 'storage', 'cat', uri], environment, root/'staging.log')
++
++        archive = archives/'export.tar'
++        before = config_metadata(assets['gcloud_config'])
++        try:
++            receipts['export'] = copy_parts(transport['parts'], archive, cloud,
++                                            expected_sha=transport['archive_sha256'])
++        finally:
++            after = config_metadata(assets['gcloud_config'])
++            receipts['gcloud_config_observation'] = dict(
++                before=before, after=after, shared_config=True, attribution_exclusive=False,
++                changed=[name for name in sorted(set(before) | set(after)) if before.get(name) != after.get(name)])
++            phase('export_fetch')
++        if receipts['export']['bytes'] != transport['archive_bytes']:
++            raise ValueError('Export byte count differs')
++        destination = physical(root, config['spec']['artifact']['path']).parent.parent
++        destination.mkdir(parents=True)
++        room(root, archive.stat().st_size)
++        with archive.open('rb') as stream:
++            extract_stream(stream, destination, config['spec']['step'], archive.stat().st_size)
++        if sha(physical(root, config['spec']['artifact']['path'])) != config['spec']['artifact']['sha256']:
++            raise ValueError('Downloaded production artifact differs')
++        phase('export_extract')
++    if 'videos' not in receipts:
++        receipts['videos'] = stage_videos(root, config, physical)
++    phase('videos')
++    room(root)
++    return receipts
++
++
++def stage_videos(root, config, physical):
++    root=Path(root)
++    package=physical(root,config['spec']['package'])
++    rows=json.loads((package/'cohort/MEDIA_MANIFEST.json').read_text())
++    destination=root/'v'
++    destination.mkdir()
++    verified=[]
++    for row in rows:
++        source=Path(row['alias_path'])
++        if not any(source.is_relative_to(Path('/project/community/jjyeung')/a) for a in ('3e0e8a36','8b677689')):
++            raise ValueError('Unregistered video alias')
++        source=video_source(row)
++        target=destination/(row['sha256']+'.mp4')
++        copied=copy_parts([dict(path=str(source),bytes=source.stat().st_size,sha256=row['sha256'])],target,
++                   lambda part:Path(part['path']).open('rb'))
++        verified.append(dict(relative_path=row['relative_path'],alias_path=str(source),**copied))
++    question=question_source()
++    target=physical(root,config['spec']['inputs']['rows']);target.parent.mkdir(parents=True,exist_ok=True)
++    copy_parts([dict(bytes=question.stat().st_size,sha256='d69dfb86e94cbb9821b8b2abe5a94b32cf69a9430d3ca3f482154afe45786abc')],
++               target,lambda part:question.open('rb'))
++    return dict(videos=len(rows),verified=True,files=verified)
++
++
++def video_source(row):
++    return Path(row["alias_path"])
++
++
++def question_source():
++    return Path("/project/community/jjyeung/cp4tk_eval/official/meta_5130.jsonl")
+--- accepted/launcher/trace_runtime.py
++++ kit/vsi/launcher/trace_runtime.py
+@@ -84 +84 @@
+-    elif Path(a.script).name in ('chain.py','phase_b.py'):rest=['--config',a.config]+rest
++    elif Path(a.script).name in ('chain.py','phase_b.py','gate.py'):rest=['--config',a.config]+rest
+--- /dev/null
++++ kit/rebind.py
+@@ -0,0 +1,322 @@
++"""Prepare, verify, and label the two accepted direct readers."""
++import argparse
++import base64
++import fcntl
++import hashlib
++import io
++import json
++from pathlib import Path
++import re
++import shlex
++import os
++import signal
++import subprocess
++import time
++import sys
++import tarfile
++
++ROOT = Path(__file__).resolve().parents[1]
++KIT = Path(__file__).resolve().parent
++sys.path.insert(0, '/scratch/jjyeung/orch_n30/b07_offread/kit')
++from offkit.bind import bind, ledger_append, check_ledger, sha256_file
++from offkit.adapt_direct import from_return
++from offkit import report as reports
++NAMES = {'vsibench5130': 'vsi', 'revsi999t32': 'revsi'}
++POOL = '/project/community/jjyeung/okh7/9e6b70a213c84fd0'
++LEDGER = '/scratch/jjyeung/orch_n30/b07_offread/out/OFFICIAL_READ_LEDGER.jsonl'
++
++
++def dump(path, value):
++    Path(path).write_text(json.dumps(value, sort_keys=True, indent=2)+'\n')
++
++
++def canonical(value):
++    return hashlib.sha256(json.dumps(value, sort_keys=True).encode()).hexdigest()
++
++
++def launcher(benchmark):
++    directory = KIT/NAMES[benchmark]/'launcher'
++    sys.path.insert(0, str(directory))
++    import orchard_launcher as L
++    if L.ROOT != directory:
++        raise ValueError('Use a fresh process for each benchmark')
++    return L
++
++
++def unpack(raw):
++    with tarfile.open(fileobj=io.BytesIO(raw)) as archive:
++        files = {}
++        for m in archive:
++            if not m.isfile() or m.name in files or Path(m.name).is_absolute() or '..' in Path(m.name).parts:
++                raise ValueError('Unsafe packet')
++            files[m.name] = archive.extractfile(m).read()
++        return files
++
++
++def boot_files(path):
++    raw = re.search(r"^raw=base64.b64decode\('([^']+)'", Path(path).read_text(), re.M)
++    return unpack(base64.b64decode(raw[1]))
++
++
++def checked(destination):
++    d = Path(destination)
++    b = json.loads((d/'BINDING.json').read_text())
++    body = {k:v for k,v in b.items() if k != 'binding_sha256'}
++    if canonical(body) != b.get('binding_sha256'):
++        raise ValueError('BINDING.json was tampered with')
++    L = launcher(b['benchmark'])
++    c = json.loads((d/'CONFIG.json').read_text())
++    L.validate_batch((d/'BATCH.sh').read_text(), c)
++    pins = json.loads((d/'BATCH.pin.json').read_text())
++    if sha256_file(d/'BATCH.sh') != pins['sha256'] or sha256_file(d/'CONFIG.json') != pins['config_sha256']:
++        raise ValueError('Prepared packet was tampered with')
++    if (c.get('x0') != b['binding_sha256'] or c.get('x1') != b['export']['sha256']
++            or c.get('mode') != b['mode']):
++        raise ValueError('Binding differs from the packet')
++    return b, c, L
++
++
++def prepare(a):
++    if not re.fullmatch('[a-f][0-9a-f]{8,32}', a.token or ''):
++        raise ValueError('Token must be opaque hexadecimal with a leading a-f')
++    b = bind(a.benchmark, a.export, 'direct', mode=a.mode,
++             init_selection=a.init_selection, ledger=a.ledger)
++    step = None
++    if b['export']['kind'] == 'done':
++        m = re.fullmatch(r'q8/8865619b/359fcc3c_m(100|200|400|600|800|1000)\.tar', b['export']['object'])
++        if not m:
++            raise ValueError('The selected completion record has an unregistered lineage or step')
++        step = int(m[1])
++        # The reviewed parser also rejects extra lines, tabs, and noncanonical spacing.
++        L = launcher(a.benchmark)
++        import export_stage as E
++        rec = E.parse_done(Path(a.export[5:]).read_bytes(), '359fcc3c', step)
++        if rec['sha256'] != b['export']['sha256']:
++            raise ValueError('Completion record changed')
++    L = launcher(a.benchmark)
++    d = Path(a.destination)
++    c = L.prepare(a.token, d, mode=a.mode, pool=POOL, **({'media_root':'/project/community/jjyeung/okh7/313db5a47f11ff0c/'} if a.benchmark=='revsi999t32' else {}))
++    files = boot_files(d/'BATCH.sh')
++    c.update(x0=b['binding_sha256'], x1=b['export']['sha256'], x2=int(step is not None))
++    if step is not None:
++        c['x3'] = b['export']['bytes']
++        c['phase_b'] = False
++        c['spec']['step'] = step
++        artifact = dict(kind='c1_export', path=str(L.J.FSW/'ap/8865619b/runs/359fcc3c'/('m'+str(step))/'artifact.json'), sha256=None)
++        c['spec']['artifact'] = artifact
++        c['spec']['models']['cp1m200'] = dict(artifact)
++        c['plan_sha256'] = L.canonical(c['spec'])
++    files['bootstrap/CONFIG.json'] = (json.dumps(c, sort_keys=True)+'\n').encode()
++    script = L.render_batch(L.tar_bytes(files), a.token)
++    L.validate_batch(script, c)
++    (d/'BATCH.sh').write_text(script)
++    dump(d/'CONFIG.json', c)
++    dump(d/'BATCH.pin.json', dict(sha256=sha256_file(d/'BATCH.sh'), config_sha256=sha256_file(d/'CONFIG.json')))
++    dump(d/'BINDING.json', b)
++    ledger = ROOT/'work/ORCHARD_LEDGER.jsonl'
++    ledger.parent.mkdir(parents=True, exist_ok=True)
++    with ledger.open('a') as f:
++        f.write(json.dumps(dict(token=a.token, benchmark=a.benchmark, export=b['export'],
++                               binding_sha256=b['binding_sha256'], mode=a.mode, destination=str(d)))+'\n')
++    checked(d)
++    return dict(binding_sha256=b['binding_sha256'], batch_sha256=sha256_file(d/'BATCH.sh'))
++
++
++def validate_live(c, L):
++    if c.get('proof_only') or c.get('bootstrap_parent','/tmp') != '/tmp':
++        raise ValueError('A local fixture cannot be submitted')
++    if c['launcher_pins'] != {n:sha256_file(L.ROOT/n) for n in L.CORE}:
++        raise ValueError('Launcher sources changed after preparation')
++    if canonical(c['spec']) != c['plan_sha256']:
++        raise ValueError('Plan differs')
++
++
++def record(a):
++    b, c, L = checked(a.destination)
++    validate_live(c, L)
++    path = Path(a.ledger)
++    path.parent.mkdir(parents=True, exist_ok=True)
++    # Serialize validation and append across both benchmark invocations.
++    with path.with_suffix(path.suffix+'.lock').open('a') as lock:
++        fcntl.flock(lock, fcntl.LOCK_EX)
++        check_ledger(path, b['export'], b['benchmark'])
++        if b['mode'] == 'production' and path.exists():
++            for line in path.read_text().splitlines():
++                r = json.loads(line)
++                if all(r.get(k) == v for k,v in dict(export_sha256=b['export']['sha256'], benchmark=b['benchmark'], reader='direct', mode='production').items()):
++                    raise ValueError('Production submission is already recorded')
++        result = L.submission_record(a.destination)
++        if b['mode'] == 'production':
++            ledger_append(path, b)
++        return result
++
++
++def governed_transfer(argv, output, errors, size, token):
++    """Register a stopped source and a live rate limiter before payload IO."""
++    helpers = Path('/scratch/jjyeung/io_governor')
++    for name in ('register.py','ratelimit.py'):
++        if not (helpers/name).is_file():
++            raise ValueError('The IO governor helpers are unavailable')
++    lane = 'r'+token
++    record = Path('/data3/jjyeung/orch_n13_20261026/io_governor/streams')/(lane+'.json')
++    if record.exists():
++        raise ValueError('An IO stream record already exists; reconcile it before fetching')
++    stop_code = 'import os,signal,sys,subprocess;os.kill(os.getpid(),signal.SIGSTOP);raise SystemExit(subprocess.call(sys.argv[1:]))'
++    source = subprocess.Popen([sys.executable,'-B','-c',stop_code,*argv],stdout=subprocess.PIPE,stderr=errors)
++    pacer = None
++    try:
++        pacer = subprocess.Popen([sys.executable,'-B',str(helpers/'ratelimit.py'),'-q','-L','1000','-B','65536'],
++                                 stdin=source.stdout,stdout=output,stderr=errors)
++        source.stdout.close()
++        deadline = time.monotonic()+30
++        while True:
++            state = Path(f'/proc/{source.pid}/stat').read_text().rsplit(')',1)[1].split()[0]
++            ready = Path(f'/proc/{pacer.pid}/comm').read_text().strip()=='ratelimit'
++            if state=='T' and ready: break
++            if source.poll() is not None or pacer.poll() is not None or time.monotonic()>deadline:
++                raise RuntimeError('The stopped IO pipeline did not become ready')
++            time.sleep(0.05)
++        subprocess.run([sys.executable,'-B',str(helpers/'register.py'),'--lane',lane,'--pid',str(source.pid),
++            '--member-pid',str(pacer.pid),'--rl-pid',str(pacer.pid),'--expected-bytes',str(size),
++            '--tier','3','--kind','pull','--nominal-mbps','8','--tunnel-mbps','8',
++            '--io-weight','1','--tunnel-weight','1','--allow-resume'],check=True,stdout=errors,stderr=errors)
++        source_code = source.wait()
++        pacer_code = pacer.wait()
++        if source_code or pacer_code:
++            raise RuntimeError('The governed transfer failed; do not retry it automatically')
++        if record.exists():
++            record.rename(record.with_name(lane+'.done.'+str(time.time_ns())))
++    finally:
++        for process in (source,pacer):
++            if process is not None and process.poll() is None:
++                process.terminate()
++                if process is source: os.kill(process.pid,signal.SIGCONT)
++                process.wait(timeout=20)
++
++
++def fetch(a):
++    b, c, L = checked(a.destination)
++    target = Path(a.destination)/'fetched'
++    if a.return_dir:
++        source = Path(a.return_dir)
++        receipt = json.loads((source/'EXIT.json').read_text())
++        import orchard_results as R
++        if receipt['token'] != c['token']:
++            raise ValueError('Return token differs')
++        R.verify(receipt, source/'result.tar.gz', c['plan_sha256'])
++        target.mkdir(exist_ok=True)
++        for name in ('EXIT.json','result.tar.gz'):
++            with (target/name).open('xb') as out, (source/name).open('rb') as inp:
++                import shutil
++                shutil.copyfileobj(inp, out, 1<<20)
++    elif not (target/'result.tar.gz').exists():
++        def transfer(argv, out, err, size):
++            try:
++                governed_transfer(argv, out, err, size, c['token'])
++            except Exception as error:
++                raise L.TransferRegistrationRequired('Governed transfer stopped; reconcile it without retry: '+str(error)) from error
++        L.fetch(a.destination, transfer=transfer)
++    import orchard_results as R
++    receipt = json.loads((target/'EXIT.json').read_text())
++    R.verify(receipt, target/'result.tar.gz', c['plan_sha256'])
++    if receipt['token'] != c['token']:
++        raise ValueError('Return token differs')
++    dest = target/'return'
++    if dest.exists():
++        raise ValueError('Return is already extracted')
++    with tarfile.open(target/'result.tar.gz') as tf:
++        x = json.load(tf.extractfile('metadata/X0.json'))
++        if x != {k:c[k] for k in ('x0','x1','x2')}:
++            raise ValueError('Return binding differs')
++        tf.extractall(dest, filter='data')
++    return dict(return_dir=str(dest))
++
++
++def report(a):
++    b, c, L = checked(a.destination)
++    source = Path(a.return_dir) if a.return_dir else Path(a.destination)/'fetched/return'
++    accepted = Path('/scratch/jjyeung/orch_n30/b07_offread/in')/('ret_'+NAMES[b['benchmark']])
++    if a.accepted_return:
++        if b['export']['kind'] != 'step544' or source.resolve() != accepted:
++            raise ValueError('Only the named accepted step544 return is allowed')
++    else:
++        x = json.loads((source/'metadata/X0.json').read_text())
++        if x != {k:c[k] for k in ('x0','x1','x2')}:
++            raise ValueError('Return binding differs')
++        marker = json.loads((source/'COMPLETE.json').read_text())
++        if marker.get('plan_sha256') != c['plan_sha256'] or (source/'FAILED.json').exists():
++            raise ValueError('Return completion differs')
++    cohort_path = KIT/NAMES[b['benchmark']]/'cohort'/('COHORT_OFFICIAL6.jsonl' if b['benchmark']=='vsibench5130' else 'c5.jsonl')
++    cohort = reports.read_jsonl(cohort_path)
++    mode = reports.ReadMode(b['benchmark'], 'direct')
++    result = {}
++    output = Path(a.destination)/'reports'
++    native = Path(a.destination)/'native/results/0'
++    native.mkdir(parents=True, exist_ok=True)
++    alias = native/'budget_16384.jsonl'
++    if not alias.exists():
++        alias.symlink_to((source/'a0/results/0/items_a0.jsonl').resolve())
++    source_rows = {str(r['example_id']):r for r in reports.read_jsonl(source/'a0/results/0/items_a0.jsonl')}
++    for arm, budget in (('B2048',2048),('ON16k',16384),('B4096',4096)):
++        items = from_return(Path(a.destination)/'native' if budget==16384 else source/'a0', budget)
++        for item in items:
++            r = source_rows.get(item['id'], {})
++            item['source_capped'] = r.get('output_tokens',0)>=16384 or (r.get('max_new_tokens')==16384 and r.get('finish_reason')=='length')
++        rep = reports.aggregate(mode, cohort, items)
++        # Preserve the accepted scorer's floating-point accumulation order.
++        sys.path.insert(0, str(KIT/NAMES[b['benchmark']]/'reader'))
++        import official_score
++        raw = reports.read_jsonl(source/'a0/results/0'/('items_a0.jsonl' if budget==16384 else f'budget_{budget}.jsonl'))
++        legacy = official_score.aggregate(cohort, raw, list(source_rows.values()))
++        headline = legacy['six_task_mean' if b['benchmark']=='vsibench5130' else 'five_category_mean']
++        corrections = []
++        for label, current, expected in [('headline', rep['headline'], headline)] + [
++                (g, rep['groups'][g], v) for g,v in legacy['groups'].items()]:
++            for field in ('score','percentile_95'):
++                old, new = current[field], expected[field]
++                aa, bb = (old,new) if isinstance(old,list) else ([old],[new])
++                if any(abs(x-y)>1e-12 for x,y in zip(aa,bb)):
++                    raise ValueError('Aggregation disagrees with the accepted scorer')
++                if old != new: corrections.append(dict(group=label,field=field,offkit=old,accepted_order=new))
++                current[field] = new
++        rep['float_order_check'] = dict(tolerance=1e-12, corrections=corrections)
++
++        rep = reports.label_report(rep, reader={'kind':'direct','id':b['reader']['id'],'eat1':{'passed':None}},
++            export=b['export'], arm='primary', role='primary' if budget==2048 else 'secondary', arm_label=arm)
++        rep['binding_sha256'] = b['binding_sha256']
++        rep['budget'] = arm
++        result[arm] = reports.write(rep, output, arm)
++    return result
++
++
++def main():
++    p = argparse.ArgumentParser(description=__doc__)
++    p.add_argument('action', choices=('prepare','submit-command','record-submission','fetch','report'))
++    p.add_argument('--benchmark', choices=tuple(NAMES))
++    p.add_argument('--export', default='step544')
++    p.add_argument('--init-selection')
++    p.add_argument('--ledger', default=LEDGER)
++    p.add_argument('--mode', choices=('proof','production'), default='production')
++    p.add_argument('--token')
++    p.add_argument('--destination', required=True)
++    p.add_argument('--return-dir')
++    p.add_argument('--accepted-return', action='store_true')
++    a = p.parse_args()
++    if a.action=='prepare':
++        if not a.benchmark: p.error('--benchmark is required for prepare')
++        result = prepare(a)
++    elif a.action=='submit-command':
++        b,c,L = checked(a.destination)
++        validate_live(c, L)
++        rows = check_ledger(a.ledger, b['export'], b['benchmark'])
++        if b['mode']=='production' and any(all(r.get(k)==v for k,v in dict(export_sha256=b['export']['sha256'],benchmark=b['benchmark'],reader='direct',mode='production').items()) for r in rows):
++            raise ValueError('Production submission is already recorded')
++        print(shlex.join(L.submit_command(c['token'], proof=c['mode']=='proof')))
++        return
++    else:
++        result = {'record-submission':record, 'fetch':fetch, 'report':report}[a.action](a)
++    print(json.dumps(result, sort_keys=True))
++
++
++if __name__=='__main__':
++    main()
+--- /dev/null
++++ RUN.md
+@@ -0,0 +1,81 @@
++# Operator commands
++
++This kit prepares one direct-only read per benchmark and selected export. Run these commands on `trinity-3-30`. The builder has submitted nothing. The submitted stdin batch is the only new input sent to Orchard; the package archives and `BINDING.json` stay on Trinity.
++
++The init-selection owner must supply the final JSON decision under item 7 of `NEXT_LEG_INIT_RULE_20261116.md`. Its `selected_sha256` must equal the whole-tar SHA256 in the selected plain-text `.done` file. The launcher verifies that identity; it does not select a milestone or evaluate the init rule. Use the same decision and export for both benchmarks. Do not infer the decision from an official benchmark result.
++
++Set the two input paths to the owner's actual records. The example deliberately requires existing environment variables rather than inventing a selected export.
++
++```bash
++cd /scratch/jjyeung/orch_n30/b07_offread/builds/R
++export PYTHONDONTWRITEBYTECODE=1 OPENBLAS_NUM_THREADS=1
++PY=/scratch/jjyeung/envs/p1cpu/bin/python
++LAUNCHER=$PWD/kit/rebind.py
++OSSH=/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/tools/ossh.sh
++LEDGER=/scratch/jjyeung/orch_n30/b07_offread/out/OFFICIAL_READ_LEDGER.jsonl
++: "${SELECTED_DONE:?Set SELECTED_DONE to the selected export completion record}"
++: "${INIT_SELECTION:?Set INIT_SELECTION to the final init-selection JSON}"
++EXPORT="done:$SELECTED_DONE"
++```
++
++For an explicit step544 reproduction, use `EXPORT=step544` and omit `--init-selection`. Do not submit both step544 and D0 by default. The accepted step544 returns already provide the reference scores.
++
++Prepare VSI-Bench with this command.
++
++```bash
++TOKEN=a$("$PY" -B -c 'import secrets; print(secrets.token_hex(6))')
++DEST=$PWD/work/$TOKEN
++"$PY" -B "$LAUNCHER" prepare --benchmark vsibench5130 --export "$EXPORT" \
++  --init-selection "$INIT_SELECTION" --ledger "$LEDGER" --mode production \
++  --token "$TOKEN" --destination "$DEST"
++```
++
++Prepare ReVSI with this command, using a fresh token and the same export selection. Finish and record the first submission before preparing or submitting the second.
++
++```bash
++TOKEN=a$("$PY" -B -c 'import secrets; print(secrets.token_hex(6))')
++DEST=$PWD/work/$TOKEN
++"$PY" -B "$LAUNCHER" prepare --benchmark revsi999t32 --export "$EXPORT" \
++  --init-selection "$INIT_SELECTION" --ledger "$LEDGER" --mode production \
++  --token "$TOKEN" --destination "$DEST"
++```
++
++Use the following submission block once for each prepared destination. Coordinate the general queue allocation with its owner before submitting. The generated command performs `sbatch --test-only` and then submits the same stdin batch. It requests one H100 through `general`, with `--gres=gpu:1 --cpus-per-task=16 --mem=200G --time=06:00:00` on the command line. The batch contains no `#SBATCH` directives. Record the response immediately. An uncertain response must be reconciled by token before any further submission.
++
++```bash
++"$PY" -B -c 'import pathlib,sys; p=pathlib.Path(sys.argv[1]); assert p.stat().st_size < 20000000' "$DEST/BATCH.sh"
++CMD=$("$PY" -B "$LAUNCHER" submit-command --destination "$DEST" --ledger "$LEDGER")
++timeout 300 bash "$OSSH" "$CMD" < "$DEST/BATCH.sh" > "$DEST/SUBMIT.out" 2> "$DEST/SUBMIT.err"
++"$PY" -B "$LAUNCHER" record-submission --destination "$DEST" --ledger "$LEDGER"
++JOB=$("$PY" -B -c 'import json,sys; print(json.load(open(sys.argv[1]))["job"])' "$DEST/SUBMISSION.json")
++```
++
++No generated input exceeds 20 MB. The launcher additionally caps the embedded batch bundle at 3 MiB after base64 encoding. No bulk input upload is needed: the job uses the registered Orchard runtimes, base, media and four GCS export parts. If an operator adds a new input over 20 MB, stop this workflow and arrange its opaque, governed upload before submission; do not send the local package archives or binding records to Orchard.
++
++Poll no more than once per minute. Each invocation below is a single observation.
++
++```bash
++sleep 60
++timeout 300 bash "$OSSH" "TZ=UTC squeue -j $JOB -o '%.18i %.32j %.10T %.10M %.20S'"
++sleep 60
++timeout 300 bash "$OSSH" "TZ=UTC sacct -j $JOB --format=JobID,JobName,State,ExitCode,Elapsed,Start,End -P"
++```
++
++Fetch and report after completion.
++
++```bash
++"$PY" -B "$LAUNCHER" fetch --destination "$DEST"
++"$PY" -B "$LAUNCHER" report --destination "$DEST"
++```
++
++The fetch command registers every archive transfer with the existing serial IO governor. It starts the source stopped, waits for the local `ratelimit.py` process, and registers the verified pipe through `/scratch/jjyeung/io_governor/register.py`. It uses tier 3, an 8 MB/s ceiling, and a 1000 B/s initial floor. It waits for admission, verifies the returned size and SHA256, and renames the completed stream record. The node agent must already be live. The kit neither starts a governor nor retries an interrupted transfer. Receipts and other bounded metadata use the accepted transport. The pool and GCS fallback remain available; an incomplete archive is never reported.
++
++The proposed return pool is `/project/community/jjyeung/okh7/9e6b70a213c84fd0/`. GCS returns use `gs://cmu-gpucloud-jjyeung/q8/9e6b70a213c84fd0/<token>/`. The pool retains the readk write test, lock and 100 MB total cap. Production returns remain below 90 MB each. The pool can refuse a later return if its retained bytes exhaust the shared cap; the independent GCS channel can still return it. Token meanings reside only in `work/ORCHARD_LEDGER.jsonl`. Reports identify the export, reader, benchmark, primary arm and budget on Trinity.
++
++Allow about 35 minutes for VSI-Bench and 13 minutes for ReVSI, based on accepted jobs 170008 and 170037. Add D0 staging and full export verification. For a 21.583 GB archive, the transfer term is `21,583 / throughput_MB_per_second` seconds; it is about 3.6 minutes at 100 MB/s or 12 minutes at 30 MB/s. Reserve another 5–15 minutes for extraction and full verification. These throughput figures are planning assumptions, not measurements. Plan approximately 44–62 minutes for VSI-Bench and 22–40 minutes for ReVSI, plus queue time and governed return time.
++
++Reserve 220 GB of additional job-local disk for VSI-Bench and 180 GB for ReVSI. Start with at least 440 GB and 400 GB free, respectively, to retain the accepted 200 GiB floor. These conservative estimates cover retained runtime/export archives, extracted runtimes, base and export weights, reader model copies, frames and returns. Staging checks actual free space. ReVSI's pinned media total is 318,248,080 bytes. The VSI media inventory provides hashes but no byte counts, so its disk estimate remains conservative.
++
++Use `--mode proof` only for an explicitly requested proof allocation. Proof uses the accepted small item selection and fake generation. A D0 proof omits the accepted step544-only Phase B token comparison; the accepted prompt proof and processor checks still run. Production has no Phase B.
++
++The CPU tests use local stand-ins and never authorize a submission. Their fixture bindings say `EXPORT fixture`, and submit-command rejects their local bootstrap roots. Their reported values are not benchmark results.
+--- /dev/null
++++ tests/checker_fixture.py
+@@ -0,0 +1,10 @@
++"""Trace the unchanged checker in a CPU-only subprocess."""
++from pathlib import Path
++import runpy
++import sys
++from line_capture import capture
++script=sys.argv[1]
++sys.argv=sys.argv[1:]
++output=Path(sys.argv[sys.argv.index('--output')+1]).with_name('CHECK_LINES.json')
++with capture(output):
++    runpy.run_path(script,run_name='__main__')
+--- /dev/null
++++ tests/line_capture.py
+@@ -0,0 +1,22 @@
++"""Capture executed source lines in a local fixture subprocess."""
++from contextlib import contextmanager
++import hashlib
++import json
++from pathlib import Path
++import sys
++
++@contextmanager
++def capture(output):
++    root=str(Path(__file__).resolve().parents[1])+'/'
++    lines={}
++    def trace(frame,event,arg):
++        name=frame.f_code.co_filename
++        if not name.startswith(root) or not name.endswith('.py'):return None
++        if event=='line':lines.setdefault(name,set()).add(frame.f_lineno)
++        return trace
++    sys.settrace(trace)
++    try:yield
++    finally:
++        sys.settrace(None)
++        output=Path(output);output.parent.mkdir(parents=True,exist_ok=True)
++        output.write_text(json.dumps({n:dict(sha256=hashlib.sha256(Path(n).read_bytes()).hexdigest(),lines=sorted(v)) for n,v in lines.items()},indent=1)+'\n')
+--- /dev/null
++++ tests/parity_fixture.py
+@@ -0,0 +1,18 @@
++"""Run the accepted prompt proof with a local chat-template stand-in."""
++from pathlib import Path
++import sys
++package=Path(sys.argv[1])
++sys.path.insert(0,str(package/'proof'))
++import fakes
++class Processor(fakes.Processor):
++    def apply_chat_template(self,messages,**kwargs):
++        return '<|im_start|>user\n<|vision_start|><|video_pad|><|vision_end|>'+messages[0]['content'][1]['text']+'<|im_end|>\n<|im_start|>assistant\n<think>\n'
++fakes.install(Processor())
++# Install a small transformer loader without importing the real transformer runtime.
++from types import SimpleNamespace
++fakes.module('transformers',AutoProcessor=SimpleNamespace(from_pretrained=lambda *a,**k:Processor()))
++sys.path.insert(0,str(package/'parity'))
++import prove_prompts
++from line_capture import capture
++with capture(Path(sys.argv[2]).parent/'metadata/PARITY_LINES.json'):
++    prove_prompts.prove(sys.argv[2],processor_dir='/unused',kit_root=package/'reader')
+--- /dev/null
++++ tests/rehearse.py
+@@ -0,0 +1,130 @@
++"""Exercise production worker code with local transport and model stand-ins."""
++import json
++import os
++from pathlib import Path
++import selectors
++import sys
++import threading
++import traceback
++
++ROOT=Path(__file__).resolve().parents[1]
++key=sys.argv[1]
++WORK=Path(sys.argv[2]).resolve()
++package=ROOT/'kit'/key
++# Bound the event-loop wait in this CPU-only test environment.
++select=selectors.EpollSelector.select
++def bounded(self,timeout=None):return select(self,0.1 if timeout is None else min(timeout,0.1))
++selectors.EpollSelector.select=bounded
++source=(package/'proof/run.py').read_text()
++source=source.replace("ROOT=Path(__file__).resolve().parents[1]", "ROOT=Path("+repr(str(package))+")")
++source=source.replace("mode='proof'", "mode='production'")
++source=source.replace("config['proof_only']=True;config['bootstrap_parent']=str(work)","config['bootstrap_parent']=str(work)\n    config.update(x0='a'*64,x1=F.sha(ap),x2=0)")
++source=source.replace("pool=ROOT/'launcher/test_runs'/token/'pool';pool.parent.mkdir(parents=True)", "pool=work/'pool'")
++source=source.replace("synthetic=True,rate=", "synthetic=False,rate=")
++source=source.replace("trace_source=ROOT/'proof/_bootstrap_current.py'", "trace_source=work/'_bootstrap_current.py'")
++source=source.replace("                    chain.main()", "                    import gate\n                    gate.run(json.loads((root/'bootstrap/CONFIG.json').read_text()),root)")
++# Preserve production item selection in CONFIG; the fixture data provider supplies a subset.
++source=source.replace("    original_loader=data.official_rows", "    original_tasks=data.tasks_for\n    original_loader=data.official_rows")
++if key=='revsi':
++ source=source.replace("    original_score=O.score_run", "    original_tasks=data.tasks_for\n    original_score=O.score_run")
++source=source.replace("    with ExitStack() as stack:","""    def fixture_tasks(spec,roots):
++        rows=original_tasks(spec,roots)
++        return [dict(r,answer='3',ground_truth='3',released_answer='3') for r in rows if r['example_id'] in chosen_ids]
++    def fixture_membership(cfg):
++        ts=A.tasks(cfg)
++        assert {t['example_id'] for t in ts}==chosen_ids
++        return ts
++    import gate
++    with ExitStack() as stack:
++        stack.enter_context(patch.object(data,'tasks_for',fixture_tasks))
++        stack.enter_context(patch.object(A,'membership',fixture_membership))
++""")
++# The real accepted parity script runs in a separate CPU process with a fixed template fixture.
++source=source.replace("        raise ValueError('Unexpected fixture command: '+str(argv))", """        if any(str(x).endswith('prove_prompts.py') for x in argv):
++            target=argv[argv.index('--output')+1]
++            with patch.object(J.subprocess,'run',original_run),patch.object(J.subprocess,'Popen',original_popen):
++                return original_run([sys.executable,'-B',str(Path(__file__).resolve().parent/'parity_fixture.py'),str(ROOT),target],capture_output=True)
++        raise ValueError('Unexpected fixture command: '+str(argv))""")
++source=source.replace("        F.js(out/'PARITY.json',dict(processor_checked=False,fixture=True))", "        raise AssertionError('Production must use the bootstrap parity proof')")
++# The copied payload is the active adapter source in both kits.
++if key=='vsi':
++ source=source.replace("(chain,'utility',utility),(A,'EXPORT_SHA'", "(chain,'utility',utility),(A,'HERE',package/'reader'),(A,'EXPORT_SHA'")
++source=source.replace("    config.update(x0='a'*64,x1=F.sha(ap),x2=0)", '''    sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'kit'))
++    import rebind as B
++    binding=B.bind('vsibench5130' if ROOT.name=='vsi' else 'revsi999t32','step544','direct')
++    binding['export']=dict(kind='fixture',sha256=F.sha(ap),label='CPU fixture with synthetic answers')
++    binding['binding_sha256']=B.canonical({k:v for k,v in binding.items() if k!='binding_sha256'})
++    config.update(x0=binding['binding_sha256'],x1=F.sha(ap),x2=0)''')
++# Rehearsal provenance remains outside the submitted CONFIG.
++source=source.replace("    F.js(work/'RESULT.json',result)","""    result['config_mode']=config['mode']
++    result['phase_b_items']=0
++    result['real_processor']=False
++    result['boundaries']=['Local archive, media, namespace, GPU and process transports are stand-ins.',
++        'The task provider supplies the fixed accepted proof subset with constant synthetic answers.',
++        'The engine and tokenizer are fakes; the pre-decode parity proof uses a fixed chat-template stand-in.']
++    result['config']=config
++    packet=work/'packet';packet.mkdir()
++    (packet/'BATCH.sh').write_text(script)
++    B.dump(packet/'CONFIG.json',config)
++    B.dump(packet/'BINDING.json',binding)
++    B.dump(packet/'BATCH.pin.json',dict(sha256=B.sha256_file(packet/'BATCH.sh'),config_sha256=B.sha256_file(packet/'CONFIG.json')))
++    from types import SimpleNamespace as NS
++    result['fetch']=B.fetch(NS(destination=packet,return_dir=pool/token))
++    result['reports']=B.report(NS(destination=packet,return_dir=None,accepted_return=False))
++    result['fixture_packet']=str(packet)
++    F.js(work/'RESULT.json',result)""")
++if '--done' in sys.argv:
++    source=source.replace("    artifact=physical(root,config['spec']['artifact']['path'])", """    config['spec']['step']=200
++    config['spec']['artifact']['path']=str(J.FSW/'ap/8865619b/runs/359fcc3c/m200/artifact.json')
++    artifact=physical(root,config['spec']['artifact']['path'])""")
++    source=source.replace("    base,bm,export,ap=F.models(fixture,artifact,real_base)", """    base,bm,export,ap=F.models(fixture,artifact,real_base)
++    avalue=json.loads(ap.read_text());avalue['step']=200;F.js(ap,avalue)
++    (export/'heads.pt').write_bytes(b'fixture')""")
++    source=source.replace("'m544/'+str(p.relative_to(export))", "'m200/'+str(p.relative_to(export))")
++    source=source.replace("{'m/ap/90da7ac2/m/base_manifest.json':bm.read_bytes()}", "{'m/ap/90da7ac2/m/base_manifest.json':bm.read_bytes(), **{'sj/orch_cd/legs1_reads/out/'+n:(ROOT/'reader/out'/n).read_bytes() for n in ('common.py','export_check.py')}}")
++    source=source.replace("binding['export']=dict(kind='fixture',sha256=F.sha(ap)", "binding['export']=dict(kind='fixture',sha256=export_tar['sha256']")
++    source=source.replace("config.update(x0=binding['binding_sha256'],x1=F.sha(ap),x2=0)", "config.update(x0=binding['binding_sha256'],x1=export_tar['sha256'],x2=1,x3=export_tar['bytes'])")
++    source=source.replace("        with (fixture/'e.tar').open('rb') as stream:yield stream", """        raw=(fixture/'e.tar').read_bytes();n=len(raw)//4
++        idx=int(argv[-1].split('.part')[1][:2])
++        yield io.BytesIO(raw[idx*n:(idx+1)*n] if idx<3 else raw[idx*n:])""")
++    source=source.replace("        if any(str(x).endswith('prove_prompts.py')", """        if '--export' in argv:
++            argv=list(argv);argv[2]=str(ROOT/'reader/out/export_check.py')
++            argv[argv.index('--export')+1]=str(artifact)
++            with patch.object(J.subprocess,'run',original_run),patch.object(J.subprocess,'Popen',original_popen):
++                return original_run([argv[0],'-B',str(Path(__file__).resolve().parent/'checker_fixture.py'),*argv[2:]],**kwargs)
++        if any(str(x).endswith('prove_prompts.py')""")
++    source=source.replace("    with ExitStack() as stack:", """    import export_stage as E,s1
++    receipts=fixture/'receipt';receipts.mkdir()
++    (receipts/'gcs_359fcc3c_m200.done').write_text('q8/8865619b/359fcc3c_m200.tar '+str(export_tar['bytes'])+' '+export_tar['sha256']+chr(10))
++    def local_path(value):
++        return receipts if str(value)=='/project/community/jjyeung/okh7/x_f5c353f7/o' else Path(value)
++    with ExitStack() as stack:
++        stack.enter_context(patch.object(E,'Path',local_path))
++        stack.enter_context(patch.object(gate,'Path',local_path))
++        stack.enter_context(patch.object(E,'writable',lambda v:Path(v).resolve()))
++        stack.enter_context(patch.object(E.T,'writable',lambda v:Path(v).resolve()))
++        stack.enter_context(patch.object(s1,'MIN_FREE',0))
++        stack.enter_context(patch.object(s1,'stage_videos',S.stage_videos))
++""")
++    source=source.replace("    B.dump(packet/'CONFIG.json',config)", "    B.dump(packet/'CONFIG.json',json.loads(B.boot_files(packet/'BATCH.sh')['bootstrap/CONFIG.json']))")
++# The source is retained so the exact fixture changes can be audited.
++WORK.parent.mkdir(parents=True,exist_ok=True)
++(ROOT/'out'/('rehearsal_'+key+('_done' if '--done' in sys.argv else '')+'_source.py')).write_text(source)
++lines={}
++rootstr=str(ROOT)
++def tracer(frame,event,arg):
++    name=frame.f_code.co_filename
++    if not name.startswith(rootstr) or not name.endswith('.py'):return None
++    if event=='line':lines.setdefault(name,set()).add(frame.f_lineno)
++    return tracer
++sys.settrace(tracer);threading.settrace(tracer)
++try:
++    scope={'__name__':'fixture_module','__file__':str(Path(__file__).resolve())}
++    exec(compile(source,str(ROOT/'out'/('rehearsal_'+key+('_done' if '--done' in sys.argv else '')+'_source.py')),'exec'),scope)
++    result=scope['run'](WORK)
++    print(json.dumps({k:v for k,v in result.items() if k!='config'},indent=2))
++finally:
++    sys.settrace(None);threading.settrace(None)
++    (ROOT/'out'/('coverage_'+key+('_done' if '--done' in sys.argv else '')+'.json')).write_text(json.dumps({n:sorted(v) for n,v in sorted(lines.items())},indent=1)+'\n')
++    import hashlib
++    (ROOT/'out'/('coverage_'+key+('_done' if '--done' in sys.argv else '')+'_pins.json')).write_text(json.dumps({n:hashlib.sha256(Path(n).read_bytes()).hexdigest() for n in lines if Path(n).is_file()},indent=1)+'\n')
+--- /dev/null
++++ tests/test_admission.py
+@@ -0,0 +1,89 @@
++"""Exercise the unchanged four-part stager and full checker on tiny exports."""
++from contextlib import contextmanager
++import copy
++import io
++import json
++from pathlib import Path
++import subprocess
++import sys
++from types import SimpleNamespace as NS
++import pytest
++
++ROOT=Path(__file__).resolve().parents[1]
++sys.path.insert(0,str(ROOT/'kit/vsi/launcher'))
++sys.path.insert(0,str(ROOT/'kit/vsi/proof'))
++import export_stage as E
++import orchard_stage as S
++import orchard_job as J
++import gate
++import fixtures as F
++
++
++def test_four_parts_full_checker_and_bound_hash(tmp_path,monkeypatch):
++    root=tmp_path/'root';root.mkdir();(root/'archives').mkdir();(root/'bootstrap').mkdir()
++    logical=str(J.FSW/'ap/8865619b/runs/359fcc3c/m200/artifact.json')
++    artifact=J.physical(root,logical)
++    fixture=tmp_path/'fixture';fixture.mkdir()
++    base,bm,export,ap=F.models(fixture,artifact)
++    a=json.loads(ap.read_text());a['step']=200;F.js(ap,a)
++    (export/'heads.pt').write_bytes(b'fixture')
++    archive=F.archive(fixture/'export.tar',{'m200/'+str(p.relative_to(export)):p.read_bytes() for p in export.rglob('*') if p.is_file()})
++    done=fixture/'input.done';done.write_text('q8/8865619b/359fcc3c_m200.tar '+str(archive['bytes'])+' '+archive['sha256']+'\n')
++    cloud=fixture/'cloud';cloud.mkdir()
++    c=dict(x0='a'*64,x1=archive['sha256'],x2=1,x3=archive['bytes'],spec=dict(step=200,artifact=dict(path=logical,kind='c1_export',sha256=None),
++        models={'base':{'path':str(base)}},interpreters={'p1cpu':sys.executable}),assets={'gcloud_config':str(cloud)})
++    F.js(root/'bootstrap/CONFIG.json',c)
++    for name in E.CHECKER_PINS:
++        target=J.physical(root,E.CHECKER.parent/name);target.parent.mkdir(parents=True,exist_ok=True)
++        target.write_bytes((ROOT/'kit/vsi/reader/out'/name).read_bytes())
++    raw=Path(archive['path']).read_bytes();size=len(raw)//4
++    parts=[raw[i*size:(i+1)*size] if i<3 else raw[i*size:] for i in range(4)]
++    requests=[]
++    @contextmanager
++    def process(argv,env,log):
++        requests.append(argv[-1]);idx=int(argv[-1].split('.part')[1][:2])
++        yield io.BytesIO(parts[idx])
++    original=E.Path
++    def path(value):
++        if str(value).startswith('/project/community/jjyeung/okh7/x_f5c353f7/o'):
++            # fetch_and_stage creates the receipt path using /, so map the parent.
++            return fixture/'receipt'
++        return original(value)
++    receipts=fixture/'receipt';receipts.mkdir()
++    (receipts/'gcs_359fcc3c_m200.done').write_bytes(done.read_bytes())
++    monkeypatch.setattr(E,'Path',path)
++    monkeypatch.setattr(gate,'Path',path)
++    monkeypatch.setattr(E.T,'writable',lambda p:original(p).resolve())
++    monkeypatch.setattr(E,'writable',lambda p:original(p).resolve())
++    monkeypatch.setattr(S,'MIN_FREE',0)
++    monkeypatch.setattr(S,'process_stream',process)
++    monkeypatch.setattr(J,'namespace',lambda *a:[])
++    original_run=subprocess.run
++    def run(argv,**kw):
++        argv=list(argv);argv[2]=str(J.physical(root,E.CHECKER))
++        argv[argv.index('--export')+1]=str(artifact)
++        # The full checker itself runs unchanged in a separate CPU interpreter.
++        return original_run(argv,**kw)
++    monkeypatch.setattr(E.subprocess,'run',run)
++    monkeypatch.setattr(J,'environment',lambda r:dict(__import__('os').environ,PYTHONDONTWRITEBYTECODE='1'))
++    gate.before(root,c)
++    result=E.fetch_and_stage(root,c)
++    assert len(requests)==4 and result['status']=='complete'
++    assert result['checker']['status']=='VERIFIED' and result['checker']['step']==200
++    assert result['checker_mode']=='full'
++    assert result['tar_sha256']==c['x1']
++    gate.after(root,c,{'export':result})
++    bad=copy.deepcopy(c);bad['x1']='b'*64
++    with pytest.raises(ValueError,match='X1 receipt'):gate.before(root,bad)
++    with pytest.raises(ValueError,match='X1 admission'):gate.after(root,bad,{'export':result})
++
++
++def test_tampered_tar_is_refused_before_extraction(tmp_path,monkeypatch):
++    root=tmp_path/'root';root.mkdir()
++    source=tmp_path/'a.tar';source.write_bytes(b'not a tar')
++    done=tmp_path/'a.json';done.write_text(json.dumps(dict(object='x',bytes=9,sha256='a'*64)))
++    monkeypatch.setattr(E.T,'writable',lambda p:Path(p).resolve())
++    monkeypatch.setattr(E,'writable',lambda p:Path(p).resolve())
++    args=NS(root=str(root),run='359fcc3c',step=200,tar=str(source),done=str(done),full=True,bwrap='/unused')
++    with pytest.raises(ValueError,match='Tar SHA256'):E.stage_export(args)
++    assert not (root/'exports').exists()
+--- /dev/null
++++ tests/test_rebind.py
+@@ -0,0 +1,201 @@
++import base64
++import hashlib
++import io
++import json
++import os
++from pathlib import Path
++import re
++import subprocess
++import sys
++import tarfile
++import pytest
++
++ROOT=Path(__file__).resolve().parents[1]
++PY='/scratch/jjyeung/envs/p1cpu/bin/python'
++IN=Path('/scratch/jjyeung/orch_n30/b07_offread/in')
++sys.path.insert(0,str(ROOT/'kit'))
++import rebind as B
++
++
++def cli(*args,ok=True):
++    p=subprocess.run([PY,'-B',str(ROOT/'kit/rebind.py'),*map(str,args)],capture_output=True,text=True,
++        env=dict(os.environ,OPENBLAS_NUM_THREADS='1',PYTHONDONTWRITEBYTECODE='1'))
++    if ok: assert p.returncode==0,p.stderr
++    else: assert p.returncode!=0,p.stdout
++    return p
++
++
++def prep(tmp,bench='vsibench5130',export='step544',extra=()):
++    d=tmp/'packet'
++    cli('prepare','--benchmark',bench,'--export',export,'--token','a00123456','--destination',d,*extra)
++    return d
++
++
++@pytest.mark.parametrize('bench,key,count,headline',[
++ ('vsibench5130','vsi',4008,'six_task_mean'),('revsi999t32','revsi',679,'five_category_mean')])
++def test_accepted_report(tmp_path,bench,key,count,headline):
++    d=prep(tmp_path,bench)
++    cli('report','--destination',d,'--return-dir',IN/('ret_'+key),'--accepted-return')
++    for arm in ('B2048','ON16k','B4096'):
++        actual=json.loads((d/'reports'/f'{arm}.json').read_text())
++        accepted=json.loads((IN/('ret_'+key)/'report'/f'{arm}.json').read_text())
++        assert actual['items']==count
++        assert actual['headline']['score']==accepted[headline]['score']
++        assert actual['headline']['percentile_95']==accepted[headline]['percentile_95']
++        for g in accepted['groups']:
++            assert actual['groups'][g]['score']==accepted['groups'][g]['score']
++            assert actual['groups'][g]['percentile_95']==accepted['groups'][g]['percentile_95']
++        assert (d/'reports'/f'{arm}.txt').read_text().splitlines()[0]==actual['first_line']
++        assert actual['arm']=='primary'
++        assert actual['not_read']==['object_abs_distance','room_size_estimation']
++
++
++@pytest.mark.parametrize('bench,key', [('vsibench5130','vsi'),('revsi999t32','revsi')])
++def test_payload_and_membership(tmp_path,bench,key):
++    d=prep(tmp_path,bench)
++    accepted=ROOT/'work/accepted_vsi' if key=='vsi' else IN/'kit_revsi'
++    script="""import sys,json
++from pathlib import Path
++sys.path.insert(0,sys.argv[1]+'/launcher')
++import orchard_launcher as L
++kw={'media_root':'/project/community/jjyeung/okh7/313db5a47f11ff0c/'} if sys.argv[3]=='revsi' else {}
++L.prepare('a00123456',sys.argv[2],**kw)
++"""
++    p=subprocess.run([PY,'-B','-c',script,str(accepted),str(tmp_path/'accepted'),key],capture_output=True,text=True)
++    assert p.returncode==0,p.stderr
++    got=B.boot_files(d/'BATCH.sh'); old=B.boot_files(tmp_path/'accepted/BATCH.sh')
++    assert got['bootstrap/payload.tar.gz']==old['bootstrap/payload.tar.gz']
++    assert got['bootstrap/orchard_stage.py']==old['bootstrap/orchard_stage.py']
++    payload=B.unpack(got['bootstrap/payload.tar.gz'])
++    assert all('BINDING.json' not in n for n in payload)
++    assert 'BINDING.json' not in str(got.keys())
++    a=json.loads((tmp_path/'accepted/CONFIG.json').read_text());c=json.loads((d/'CONFIG.json').read_text())
++    for name in ('spec','payload_pins','payload_sha256','assets','release'):
++        assert a[name]==c[name]
++    for n,data in payload.items():
++        if '/reader/' in n or '/cohort/' in n or '/inputs/' in n or '/parity/' in n:
++            assert data==B.unpack(old['bootstrap/payload.tar.gz'])[n]
++    # Invoke the accepted production loader and its membership guard without a model.
++    script="""import sys,json
++from pathlib import Path
++p=Path(sys.argv[1]);sys.path.insert(0,str(p/'reader'))
++import official_adapter as A
++if sys.argv[2]=='vsi':
++ cfg={'datasets':[dict(benchmark='official5130',rows=dict(path=str(p/'cohort/meta_5130.jsonl'),sha256=A.ROWS_SHA),question_types=sorted(A.COUNTS))], 'roots':{'video_root':'/unused'},'mode':'production'}
++ cohort=p/'cohort/COHORT_OFFICIAL6.jsonl'
++else:
++ cfg={'datasets':[A.dataset(p/'inputs/i1.json')],'roots':{'revsi_video_root':'/unused'},'mode':'production'}
++ cohort=p/'cohort/c5.jsonl'
++ts=A.membership(cfg); rows=A.load_rows(cohort)
++assert {t['example_id'] for t in ts}=={str(r['id']) for r in rows}
++assert not any(t['question_type'] in ('object_abs_distance','room_size_estimation') for t in ts)
++print(json.dumps({'items':len(ts),'scenes':len({(r['dataset'],r['scene_name']) for r in rows})}))
++"""
++    p=subprocess.run([PY,'-B','-c',script,str(ROOT/'kit'/key),key],capture_output=True,text=True)
++    assert p.returncode==0,p.stderr
++    assert json.loads(p.stdout)==dict(items=4008 if key=='vsi' else 679,scenes=288 if key=='vsi' else 261)
++
++
++def done_files(tmp,sha='a'*64):
++    done=tmp/'m200.done';done.write_text('q8/8865619b/359fcc3c_m200.tar 10240 '+sha+'\n')
++    sel=tmp/'selection.json';sel.write_text(json.dumps({'selected_sha256':sha}))
++    return done,sel
++
++
++@pytest.mark.parametrize('case',['missing_selection','mismatch','second','malformed','spacing','lineage'])
++def test_binding_refusals(tmp_path,case):
++    done,sel=done_files(tmp_path)
++    ledger=tmp_path/'ledger.jsonl'
++    extra=['--init-selection',str(sel),'--ledger',str(ledger)]
++    if case=='missing_selection':extra=[]
++    if case=='mismatch':sel.write_text(json.dumps({'selected_sha256':'b'*64}))
++    if case=='second':ledger.write_text(json.dumps({'export_kind':'done','export_sha256':'b'*64})+'\n')
++    if case=='malformed':done.write_text('broken\n')
++    if case=='spacing':done.write_text(done.read_text().replace(' 10240','\t10240'))
++    if case=='lineage':done.write_text(done.read_text().replace('359fcc3c','11111111'))
++    cli('prepare','--benchmark','vsibench5130','--export','done:'+str(done),'--token','a00123456',
++        '--destination',tmp_path/'refused',*extra,ok=False)
++    assert not (tmp_path/'refused').exists()
++
++
++@pytest.mark.parametrize('bench,key',[('vsibench5130','vsi'),('revsi999t32','revsi')])
++def test_done_prepare_and_tamper(tmp_path,bench,key):
++    done,sel=done_files(tmp_path)
++    d=prep(tmp_path,bench,'done:'+str(done),('--init-selection',str(sel),'--ledger',str(tmp_path/'l.jsonl')))
++    c=json.loads((d/'CONFIG.json').read_text());assert c['spec']['step']==200
++    assert c['x1']=='a'*64
++    assert not (tmp_path/'l.jsonl').exists()
++    assert (ROOT/'kit'/key/'launcher/export_stage.py').read_bytes()==(IN/'readk/kit/launcher/export_stage.py').read_bytes()
++    b=json.loads((d/'BINDING.json').read_text());b['export']['sha256']='b'*64
++    (d/'BINDING.json').write_text(json.dumps(b))
++    cli('submit-command','--destination',d,ok=False)
++
++
++def test_submission_is_only_ledger_writer(tmp_path):
++    d=prep(tmp_path)
++    ledger=tmp_path/'official.jsonl'
++    assert not ledger.exists()
++    (d/'SUBMIT.out').write_text('123456;cluster\n')
++    cli('record-submission','--destination',d,'--ledger',ledger)
++    assert len(ledger.read_text().splitlines())==1
++    cli('record-submission','--destination',d,'--ledger',ledger,ok=False)
++    assert len(ledger.read_text().splitlines())==1
++
++
++def test_submit_shape(tmp_path):
++    d=prep(tmp_path)
++    command=cli('submit-command','--destination',d,'--ledger',tmp_path/'l').stdout
++    for s in ('--gres=gpu:1','--cpus-per-task=16','--mem=200G','--partition=general','a15_cot_apa00123456'):
++        assert s in command
++    assert '#SBATCH' not in (d/'BATCH.sh').read_text()
++    assert all(x not in command for x in ('vsibench','revsi','D0','BINDING'))
++
++
++def test_gate_refuses_before_chain(tmp_path,monkeypatch):
++    sys.path.insert(0,str(ROOT/'kit/vsi/launcher'))
++    import gate
++    c=dict(x0='a'*64,x1='b'*64,x2=0,spec={'package':str(ROOT/'kit/vsi'),'run':str(tmp_path/'run'),
++        'interpreters':{'vllm':PY},'models':{'base':{'path':'/unused'}}})
++    def run(argv,**kwargs):
++        target=Path(argv[argv.index('--output')+1]);target.mkdir(parents=True)
++        (target/'PARITY.json').write_text(json.dumps(dict(processor_checked=True,all_prompt_bytes_equal=False,prompt_pins_equal=True)))
++        return subprocess.CompletedProcess(argv,0,b'',b'')
++    monkeypatch.setattr(gate.subprocess,'run',run)
++    with pytest.raises(ValueError,match='P9 failed'):gate.run(c,tmp_path)
++    assert json.loads((tmp_path/'run/metadata/P9.json').read_text())['passed'] is False
++    c['x2']=1
++    with pytest.raises(ValueError,match='X1 admission'):
++        gate.after(tmp_path,c,{'export':{'tar_sha256':'c'*64,'status':'complete','checker':{'status':'VERIFIED'}}})
++
++
++def test_governed_transfer_registers_only_stopped_source(monkeypatch):
++    calls=[]
++    class Proc:
++        def __init__(self,pid):
++            self.pid=pid;self.stdout=io.BytesIO();self.code=None
++        def poll(self):return self.code
++        def wait(self,**kw):self.code=0;return 0
++        def terminate(self):raise AssertionError('A completed fixture must not be stopped')
++    processes=[Proc(101),Proc(102)]
++    def popen(argv,**kw):
++        calls.append(('popen',argv,kw))
++        return processes[len([r for r in calls if r[0]=='popen'])-1]
++    class P:
++        def __init__(self,v):self.v=str(v)
++        def __truediv__(self,n):return P(self.v+'/'+str(n))
++        def __str__(self):return self.v
++        def is_file(self):return True
++        def exists(self):return any(r[0]=='register' for r in calls)
++        def read_text(self):return '101 (python) T 1' if self.v.endswith('/stat') else 'ratelimit\n'
++        def with_name(self,n):return P('/record/'+n)
++        def rename(self,p):calls.append(('rename',str(p)))
++    def register(argv,**kw):
++        assert len([r for r in calls if r[0]=='popen'])==2
++        assert '--allow-resume' in argv and '--rl-pid' in argv
++        calls.append(('register',argv))
++    monkeypatch.setattr(B,'Path',P)
++    monkeypatch.setattr(B.subprocess,'Popen',popen)
++    monkeypatch.setattr(B.subprocess,'run',register)
++    B.governed_transfer(['approved-fixture-source'],io.BytesIO(),io.BytesIO(),123,'a00123456')
++    assert calls[-1][0]=='rename'
++    assert 'SIGSTOP' in calls[0][1][3]

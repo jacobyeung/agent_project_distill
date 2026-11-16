@@ -3,6 +3,7 @@ import math
 import numpy as np
 from .vendor import nav_text as NT
 from .click import controller, ClickTranslator
+from .controller_v2 import ControllerV2
 
 TEXT = dict(A='forward', B='turn_left', C='turn_right', D='stop')
 
@@ -10,11 +11,18 @@ class Decoder:
     def __init__(self, config, click_backend=None):
         self.config = config
         self.click_backend = click_backend or ClickTranslator(history_frames=config.history_frames)
+        self.click_controller = ControllerV2()
         self.reset()
 
     def reset(self):
         self.forward_residual = self.turn_residual = 0.
         self.click_backend.reset()
+        self.click_controller.reset()
+
+    def executed(self, action, displacement_m):
+        if self.config.output_format == 'click' and self.config.controller_version == 'v2':
+            return self.click_controller.executed(action, displacement_m)
+        return False
 
     def decode(self, answer, observation):
         fmt = self.config.output_format
@@ -23,6 +31,9 @@ class Decoder:
                 return None, {}
             if fmt == 'click':
                 primitives, waypoint, info = self.click_backend.decide(answer, observation)
+                if self.config.controller_version == 'v2':
+                    primitives, info = self.click_controller.decide(primitives, waypoint, info)
+                info = dict(info, controller_version=self.config.controller_version)
                 return primitives, dict(info, waypoint=waypoint)
             return NT.primitives(NT.parse(answer, fmt)), {}
         if fmt == 'text':

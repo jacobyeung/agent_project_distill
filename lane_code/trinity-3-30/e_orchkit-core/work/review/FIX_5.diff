@@ -1,0 +1,589 @@
+diff --git a/tools/orchkit/anon.py b/tools/orchkit/anon.py
+index 445db33..851c5c4 100644
+--- a/tools/orchkit/anon.py
++++ b/tools/orchkit/anon.py
+@@ -94,13 +94,31 @@ MAGIC = ((b'\x1f\x8b', 'gz'), (b'BZh', 'bz2'), (b'\xfd7zXZ\x00', 'xz'), (b'PK\x0
+ NAME_JSON = ('CONFIG.json', 'PINS.json', 'JOB.json', 'DRYRUN_REPORT.json')
+ 
+ 
+-def _compression(data):
+-    for magic, kind in MAGIC:
+-        if data.startswith(magic):
+-            return kind
+-    if b'PK\x05\x06' in data[-65558:] and zipfile.is_zipfile(io.BytesIO(data)):
+-        return 'zip'
+-    return None
++UNSUPPORTED = ((b'7z\xbc\xaf\x27\x1c', '7z'), (b'Rar!\x1a\x07', 'rar'), (b'\x28\xb5\x2f\xfd', 'zstd'),
++               (b'\x04\x22\x4d\x18', 'lz4'), (b'070707', 'cpio'), (b'070701', 'cpio'),
++               (b'070702', 'cpio'), (b'!<arch>\n', 'ar'), (b'hsqs', 'squashfs'), (b'\x89LZO', 'lzo'),
++               (b'LZIP', 'lzip'), (b'\x1f\x9d', 'compress'), (b'MSCF', 'cab'))
++
++
++def _interpretations(where, data):
++    """Every container reading of a blob: a compression at its start, a zip anywhere (Python
++    reads a zip with a prefix), a tar; a container Python cannot open is 'unsupported'."""
++    kinds = [kind for magic, kind in MAGIC[:3] if data.startswith(magic)]
++    if any(data.startswith(magic) for magic, _ in UNSUPPORTED):
++        kinds.append('unsupported')
++    try:
++        if zipfile.is_zipfile(io.BytesIO(data)):
++            kinds.append('zip')
++    except (OSError, ValueError):
++        kinds.append('unsupported')
++    if len(data) > 262 and data[257:262] == b'ustar':
++        kinds.append('tar')
++    elif len(data) >= 512:
++        archive = _open_tar(data)
++        if archive is not None:
++            archive.close()
++            kinds.append('tar')
++    return kinds
+ 
+ 
+ def _decompress(kind, data):
+@@ -144,79 +162,93 @@ def _meta(item):
+ 
+ 
+ def _expand(where, data, depth):
+-    """Yield (where, bytes or None, kind) for a blob and everything inside it, failing closed:
+-    a blob that is too large, nested too deep, compressed but undecodable, or a special tar member
+-    is yielded with bytes None."""
++    """Yield (where, bytes or None, kind) for a blob and everything inside it under every
++    container reading that applies, failing closed: a blob that is too large, nested too deep,
++    undecodable, in an unsupported container, or a special tar member is yielded with bytes None.
++    A container's own bytes are yielded too (kind 'archive'), so its headers are scanned."""
+     if len(data) > MAX_BLOB:
+         yield where, None, 'too-large'
+         return
+-    kind = _compression(data)
+-    if kind in ('gz', 'bz2', 'xz'):
+-        if depth >= MAX_DEPTH:
+-            yield where, None, 'too-deep'
+-            return
+-        yield where, data, 'archive'
+-        inner = _decompress(kind, data)
+-        if inner is None:
+-            yield where, None, 'undecodable'
+-            return
+-        if len(inner) > MAX_BLOB:
+-            yield where, None, 'too-large'
+-            return
+-        for row in _expand(where + '!' + kind, inner, depth + 1):
+-            yield row
+-        return
+-    if kind == 'zip':
+-        if depth >= MAX_DEPTH:
+-            yield where, None, 'too-deep'
+-            return
+-        try:
+-            archive = zipfile.ZipFile(io.BytesIO(data))
+-            infos = archive.infolist()
+-        except (zipfile.BadZipFile, OSError, ValueError):
+-            yield where, None, 'undecodable'
+-            return
+-        yield where, data, 'archive'
+-        for info in infos:
+-            name = where + '!/' + info.filename
+-            if info.file_size > MAX_BLOB:
+-                yield name, None, 'too-large'
+-                continue
+-            try:
+-                blob = archive.read(info)
+-            except (zipfile.BadZipFile, OSError, ValueError, NotImplementedError):
+-                yield name, None, 'undecodable'
+-                continue
+-            if info.comment:
+-                yield name, info.comment, 'meta'
+-            for row in _expand(name, blob, depth + 1):
+-                yield row
+-        return
+-    archive = _open_tar(data) if _is_tar(where, data) else None
+-    if archive is None:
++    kinds = _interpretations(where, data)
++    if not kinds:
+         yield where, data, 'file'
+         return
+     if depth >= MAX_DEPTH:
+         yield where, None, 'too-deep'
+         return
+     yield where, data, 'archive'
+-    with archive:
+-        for item in archive:
+-            name = where + '!/' + item.name
+-            meta = _meta(item)
+-            if meta:
+-                yield name, meta.encode('utf-8', 'replace'), 'meta'
+-            if item.issym() or item.islnk():
+-                yield name, item.linkname.encode('utf-8', 'replace'), 'link'
+-            elif item.isdir():
+-                yield name, b'', 'dir'
+-            elif not item.isfile():
+-                yield name, None, 'special'
+-            elif item.size > MAX_BLOB:
+-                yield name, None, 'too-large'
++    for kind in kinds:
++        if kind == 'unsupported':
++            yield where, None, 'unsupported-container'
++        elif kind in ('gz', 'bz2', 'xz'):
++            inner = _decompress(kind, data)
++            if inner is None:
++                yield where, None, 'undecodable'
++            elif len(inner) > MAX_BLOB:
++                yield where, None, 'too-large'
+             else:
+-                for row in _expand(name, archive.extractfile(item).read(), depth + 1):
++                for row in _expand(where + '!' + kind, inner, depth + 1):
+                     yield row
++        elif kind == 'zip':
++            for row in _zip_members(where, data, depth):
++                yield row
++        else:
++            for row in _tar_members(where, data, depth):
++                yield row
++
++
++def _zip_members(where, data, depth):
++    try:
++        archive = zipfile.ZipFile(io.BytesIO(data))
++        infos = archive.infolist()
++    except (zipfile.BadZipFile, OSError, ValueError):
++        yield where, None, 'undecodable'
++        return
++    if archive.comment:
++        yield where + '!/', archive.comment, 'meta'
++    for info in infos:
++        name = where + '!/' + info.filename
++        if info.comment:
++            yield name, info.comment, 'meta'
++        if info.extra:
++            yield name, info.extra, 'meta'
++        if info.file_size > MAX_BLOB:
++            yield name, None, 'too-large'
++            continue
++        try:
++            blob = archive.read(info)
++        except (zipfile.BadZipFile, OSError, ValueError, NotImplementedError, RuntimeError):
++            yield name, None, 'undecodable'
++            continue
++        for row in _expand(name, blob, depth + 1):
++            yield row
++
++
++def _tar_members(where, data, depth):
++    archive = _open_tar(data)
++    if archive is None:
++        yield where, None, 'undecodable'
++        return
++    try:
++        with archive:
++            for item in archive:
++                name = where + '!/' + item.name
++                meta = _meta(item)
++                if meta:
++                    yield name, meta.encode('utf-8', 'replace'), 'meta'
++                if item.issym() or item.islnk():
++                    yield name, item.linkname.encode('utf-8', 'replace'), 'link'
++                elif item.isdir():
++                    yield name, b'', 'dir'
++                elif not item.isfile():
++                    yield name, None, 'special'
++                elif item.size > MAX_BLOB:
++                    yield name, None, 'too-large'
++                else:
++                    for row in _expand(name, archive.extractfile(item).read(), depth + 1):
++                        yield row
++    except (tarfile.TarError, EOFError, OSError):
++        yield where, None, 'undecodable'
+ 
+ 
+ def walk_blobs(root, nested=True):
+@@ -272,11 +304,12 @@ def _walk(root, nested=True):
+ 
+ 
+ def _json_strings(value):
+-    if isinstance(value, dict):
+-        for key, item in value.items():
+-            yield str(key)
+-            for text in _json_strings(item):
+-                yield text
++    """Every key and string of a JSON value parsed with object_pairs_hook=list (objects become
++    lists of [key, value] pairs, so duplicate keys are kept)."""
++    if isinstance(value, tuple) and len(value) == 2 and isinstance(value[0], str):
++        yield value[0]
++        for text in _json_strings(value[1]):
++            yield text
+     elif isinstance(value, list):
+         for item in value:
+             for text in _json_strings(item):
+@@ -299,9 +332,18 @@ def scan_tree(root, rules):
+             hits.extend(scan_text(where, data.decode('utf-8', 'replace'), rules, 'name'))
+         elif data:
+             hits.extend(scan_bytes(where, data, rules))
++        if kind == 'file' and where.lower().endswith('.json') and where not in NAME_JSON:
++            try:
++                parsed = json.loads(data.decode('utf-8'), object_pairs_hook=list)
++            except (ValueError, UnicodeDecodeError):
++                parsed = None
++            for text in _json_strings(parsed):
++                hits.extend(row for row in scan_text(where, text, rules, 'text') if row not in hits)
+         if kind == 'file' and where in NAME_JSON:
++            hits.extend(row for row in scan_text(where, data.decode('latin-1'), rules, 'name')
++                        if row not in hits)
+             try:
+-                parsed = json.loads(data.decode('utf-8'))
++                parsed = json.loads(data.decode('utf-8'), object_pairs_hook=list)
+             except (ValueError, UnicodeDecodeError):
+                 hits.append({'where': where, 'scope': 'name', 'rule': 'unparseable-json'})
+                 continue
+diff --git a/tools/orchkit/launch.py b/tools/orchkit/launch.py
+index 23c5534..a1558f5 100644
+--- a/tools/orchkit/launch.py
++++ b/tools/orchkit/launch.py
+@@ -29,6 +29,7 @@ import json
+ import os
+ import re
+ import secrets
++import stat
+ import subprocess
+ import sys
+ import tarfile
+@@ -187,6 +188,8 @@ def kit_files(kit):
+             path = os.path.join(current, name)
+             if os.path.islink(path):
+                 raise LaunchError('kit holds a symlink: %s' % os.path.relpath(path, kit))
++            if not stat.S_ISREG(os.lstat(path).st_mode):
++                raise LaunchError('kit holds a special file: %s' % os.path.relpath(path, kit))
+             rows.append((os.path.relpath(path, kit), path))
+         for name in dirs:
+             if os.path.islink(os.path.join(current, name)):
+@@ -359,15 +362,11 @@ def check_dryrun(path, kit_pins, config_sha):
+     return {'path': os.path.abspath(path), 'verdict': 'PASS'}
+ 
+ 
+-def prepare(kit, config_path, out, lane, meaning, checkout, dryrun=None, no_dryrun_reason=None,
+-            sessions=None, ledger_file=None, provenance_fn=provenance, token=None, rules=None):
+-    kit, out = os.path.abspath(kit), os.path.abspath(out)
+-    if os.path.lexists(out):
+-        raise LaunchError('refusing to reuse %s' % out)
+-    check = tempfile.mkdtemp(prefix=os.path.basename(out) + '.check.', dir=os.path.dirname(out))
+-    kit = snapshot(kit, os.path.join(check, 'kit'))
+-    with open(config_path, 'rb') as handle:
+-        config_raw = handle.read()
++def check_kit(kit, config_raw, rules):
++    """Every kit check, on one directory: the config bytes equal the kit's CONFIG.json, the config
++    validates, PINS.json is valid and named by the config, every pinned file matches, no file is
++    unpinned, no hash is copied, and nothing trips the opacity check. Returns
++    (config, manifest, kit_pins_sha256, config_sha256)."""
+     kit_config = os.path.join(kit, 'CONFIG.json')
+     if not os.path.isfile(kit_config) or util.sha256_file(kit_config)[0] != util.sha256_bytes(config_raw):
+         raise LaunchError('--config differs from the kit CONFIG.json')
+@@ -390,29 +389,48 @@ def prepare(kit, config_path, out, lane, meaning, checkout, dryrun=None, no_dryr
+     copies = pins.check_single_place(kit)
+     if copies:
+         raise LaunchError('single-place invariant: %s' % json.dumps(copies, sort_keys=True)[:2000])
+-    if no_dryrun_reason:
+-        dry = {'path': None, 'verdict': None, 'no_dryrun_reason': no_dryrun_reason}
+-    else:
+-        dry = check_dryrun(dryrun or os.path.join(kit, 'DRYRUN_REPORT.json'), kit_pins, config_sha)
+-    rules = rules or anon.load_rules()
+     hits = anon.scan_tree(kit, rules)
+     if hits:
+         raise LaunchError('opacity: %s' % json.dumps(hits, sort_keys=True)[:2000])
+-    record = provenance_fn(checkout, config_path)
+-    token, name = mint_job_name(token)
+-    job = {'token': token, 'job_name': name,
+-           'sessions': util.read_json(sessions) if sessions else {}}
+-    payload = bundle_bytes(kit, job)
+-    script = render(config, token, payload)
+-    remote = submit_script(config, token, script)
+-    argv = transport_argv()
+-    hits = anon.scan_job(rules, job_name=name, script=script, argv=config['entry'],
++    return config, manifest, kit_pins, config_sha
++
++
++def build_submission(kit, config, job, rules):
++    """The batch script and the submission script, rebuilt deterministically from a checked kit and
++    JOB.json, after the opacity check of every part bound for the batch host."""
++    script = render(config, job['token'], bundle_bytes(kit, job))
++    remote = submit_script(config, job['token'], script)
++    hits = anon.scan_job(rules, job_name=job['job_name'], script=script, argv=config['entry'],
+                          env=(config.get('return') or {}).get('gcs_env') or {})
+     hits += anon.scan_text('script', script, rules, 'name')
+     hits += anon.scan_text('submit', remote, rules, 'name')
+     hits += anon.scan_text('JOB.json', util.canonical_json(job).decode('utf-8'), rules, 'name')
+     if hits:
+         raise LaunchError('opacity: %s' % json.dumps(hits, sort_keys=True)[:2000])
++    return script, remote
++
++
++def prepare(kit, config_path, out, lane, meaning, checkout, dryrun=None, no_dryrun_reason=None,
++            sessions=None, ledger_file=None, provenance_fn=provenance, token=None, rules=None):
++    kit, out = os.path.abspath(kit), os.path.abspath(out)
++    if os.path.lexists(out):
++        raise LaunchError('refusing to reuse %s' % out)
++    check = tempfile.mkdtemp(prefix=os.path.basename(out) + '.check.', dir=os.path.dirname(out))
++    kit = snapshot(kit, os.path.join(check, 'kit'))
++    with open(config_path, 'rb') as handle:
++        config_raw = handle.read()
++    rules = rules or anon.load_rules()
++    config, manifest, kit_pins, config_sha = check_kit(kit, config_raw, rules)
++    if no_dryrun_reason:
++        dry = {'path': None, 'verdict': None, 'no_dryrun_reason': no_dryrun_reason}
++    else:
++        dry = check_dryrun(dryrun or os.path.join(kit, 'DRYRUN_REPORT.json'), kit_pins, config_sha)
++    record = provenance_fn(checkout, config_path)
++    token, name = mint_job_name(token)
++    job = {'token': token, 'job_name': name,
++           'sessions': util.read_json(sessions) if sessions else {}}
++    script, remote = build_submission(kit, config, job, rules)
++    argv = transport_argv()
+     target = config.get('return') or {}
+     gcs = ('%s/%s' % (target['gcs_prefix'].rstrip('/'), token)) if target.get('gcs_prefix') else None
+     text = meaning + ('' if not no_dryrun_reason else ' | no-dryrun: ' + no_dryrun_reason)
+@@ -425,6 +443,7 @@ def prepare(kit, config_path, out, lane, meaning, checkout, dryrun=None, no_dryr
+     os.rename(check, out)
+     util.atomic_write(os.path.join(out, 'BATCH.sh'), script.encode('utf-8'))
+     util.atomic_write(os.path.join(out, 'SUBMIT.sh'), remote.encode('utf-8'))
++    util.write_json(os.path.join(out, 'JOB.json'), job)
+     submit = {'schema': 'orchkit-submit-v1', 'token': token, 'job_name': name, 'argv': argv,
+               'stdin': 'SUBMIT.sh', 'script_sha256': util.sha256_bytes(script.encode('utf-8')),
+               'submit_sha256': util.sha256_bytes(remote.encode('utf-8')),
+@@ -453,7 +472,41 @@ def _names(text, token):
+     return re.search(r'(?<![0-9a-f])%s(?![0-9a-f])' % token, text) is not None
+ 
+ 
+-def submit(prep, go, execute=False, ledger_file=None, transport=None, out=sys.stdout):
++def _go_names(text, token):
++    """True when a line of the GO file starts with the word GO and names the token."""
++    return any(_names(line, token) for line in text.splitlines()
++               if re.match(r'^\s*GO(?![\w-])', line))
++
++
++def rebuild(prep, record, rows, rules=None):
++    """The exact submission bytes, rebuilt from PREP/kit and PREP/JOB.json and anchored to the
++    ledger: the minted row of the token must name this kit and config, the kit must pass every
++    check again, and BATCH.sh, SUBMIT.sh and the transport argv in PREP must equal the rebuild.
++    Nothing in SUBMIT.json is trusted beyond the token."""
++    token, name = mint_job_name(record['token'])
++    minted = [row for row in rows if row.get('event') == 'minted']
++    if len(minted) != 1:
++        raise LaunchError('ledger must hold exactly one minted row for %s' % token)
++    kit = os.path.join(prep, 'kit')
++    with open(os.path.join(kit, 'CONFIG.json'), 'rb') as handle:
++        config_raw = handle.read()
++    config, _, kit_pins, config_sha = check_kit(kit, config_raw, rules or anon.load_rules())
++    if (minted[0].get('kit_pins_sha256'), minted[0].get('config_sha256')) != (kit_pins, config_sha):
++        raise LaunchError('the ledger row of %s names another kit or config' % token)
++    job = util.read_json(os.path.join(prep, 'JOB.json'))
++    if job.get('token') != token or job.get('job_name') != name or record.get('job_name') != name:
++        raise LaunchError('the prepared scripts do not belong to token %s' % token)
++    script, remote = build_submission(kit, config, job, rules or anon.load_rules())
++    for file_name, expect in (('BATCH.sh', script), ('SUBMIT.sh', remote)):
++        with open(os.path.join(prep, file_name), 'rb') as handle:
++            if handle.read() != expect.encode('utf-8'):
++                raise LaunchError('%s differs from its rebuild; prepare again' % file_name)
++    if record.get('argv') != transport_argv() or record.get('stdin') != 'SUBMIT.sh':
++        raise LaunchError('the transport command differs from the one prepare recorded')
++    return remote.encode('utf-8')
++
++
++def submit(prep, go, execute=False, ledger_file=None, transport=None, out=sys.stdout, rules=None):
+     prep = os.path.abspath(prep)
+     record = _load_prep(prep)
+     token = record['token']
+@@ -461,8 +514,8 @@ def submit(prep, go, execute=False, ledger_file=None, transport=None, out=sys.st
+         raise LaunchError('no GO file at %s' % go)
+     with open(go, 'rb') as handle:
+         go_text = handle.read().decode('utf-8', 'replace')
+-    if not _names(go_text, token):
+-        raise LaunchError('the GO file does not name token %s' % token)
++    if not _go_names(go_text, token):
++        raise LaunchError('no line of the GO file starts with GO and names token %s' % token)
+     rows = ledger.lookup(token, ledger_file)
+     if not any(row.get('event') == 'minted' for row in rows):
+         raise LaunchError('ledger has no minted row for %s' % token)
+@@ -480,20 +533,7 @@ def submit(prep, go, execute=False, ledger_file=None, transport=None, out=sys.st
+     out.write('%s < %s\n' % (' '.join(argv), os.path.join(prep, record['stdin'])))
+     if not execute:
+         return {'executed': False, 'argv': argv}
+-    with open(os.path.join(prep, record['stdin']), 'rb') as handle:
+-        pinned = handle.read()
+-    if util.sha256_bytes(pinned) != record['submit_sha256']:
+-        raise LaunchError('%s changed after prepare' % record['stdin'])
+-    _, name = mint_job_name(token)
+-    text = pinned.decode('utf-8', 'replace')
+-    names = re.findall(r'^#SBATCH --job-name=(\S+)$', text, re.M)
+-    digests = re.findall(r'^test "\$\(sha256sum "\$body" \| cut -c1-64\)" = "([0-9a-f]{64})"', text, re.M)
+-    if names != [name] or digests != [record['script_sha256']] or record.get('job_name') != name:
+-        raise LaunchError('the prepared scripts do not belong to token %s' % token)
+-    minted = [row for row in rows if row.get('event') == 'minted']
+-    if any(row.get('kit_pins_sha256') != record['kit_pins_sha256'] or
+-           row.get('config_sha256') != record['config_sha256'] for row in minted):
+-        raise LaunchError('the ledger row of %s names another kit or config' % token)
++    pinned = rebuild(prep, record, rows, rules)
+     try:
+         fd = os.open(os.path.join(prep, 'SUBMIT_INTENT.json'), os.O_WRONLY | os.O_CREAT | os.O_EXCL,
+                      0o600)
+@@ -510,7 +550,7 @@ def submit(prep, go, execute=False, ledger_file=None, transport=None, out=sys.st
+                                                                  go_text) if found != token))
+     body = ('QUEUE_BEHIND=%s\n' % ("'%s'" % ' '.join(behind) if behind and re.search(
+         r'queue[ _-]behind', go_text, re.I) else "''")).encode('utf-8') + pinned
+-    code, stdout, stderr = (transport or run_transport)(argv, body)
++    code, stdout, stderr = (transport or run_transport)(transport_argv(), body)
+     text = stdout.decode('utf-8', 'replace')
+     found = re.search(r'^JOBID=(\d+)\s*$', text, re.M)
+     result = {'token': token, 'utc': util.utc_iso(), 'rc': code, 'stdout': text[-4000:],
+diff --git a/tools/orchkit/tests/test_anon.py b/tools/orchkit/tests/test_anon.py
+index 93d4a6b..e5ce726 100644
+--- a/tools/orchkit/tests/test_anon.py
++++ b/tools/orchkit/tests/test_anon.py
+@@ -170,6 +170,41 @@ class AnonTest(unittest.TestCase):
+         path = self.write('run.pyz', b'#!/usr/bin/env python3\n' + raw.getvalue())
+         self.assertIn('run.pyz!/x', [hit['where'] for hit in anon.scan_tree(path, anon.load_rules())])
+ 
++    def test_review_oc15_every_container_reading_is_inspected(self):
++        raw = io.BytesIO()
++        with tarfile.open(fileobj=raw, mode='w') as archive:
++            blob = gzip.compress(b'qwen')
++            item = tarfile.TarInfo('x.gz')
++            item.size = len(blob)
++            archive.addfile(item, io.BytesIO(blob))
++        empty = io.BytesIO()
++        with zipfile.ZipFile(empty, 'w'):
++            pass
++        path = self.write('a.bin', raw.getvalue() + empty.getvalue())
++        self.assertIn('a.bin!/x.gz!gz', [hit['where'] for hit in anon.scan_tree(path, anon.load_rules())])
++        path = self.write('b.bin', b'7z\xbc\xaf\x27\x1c' + b'\x00' * 40)
++        self.assertEqual(anon.scan_tree(path, anon.load_rules())[0]['rule'], 'unsupported-container')
++
++    def test_v7_tar_with_a_trailing_zip_and_json_escapes(self):
++        raw = io.BytesIO()
++        with tarfile.open(fileobj=raw, mode='w', format=tarfile.USTAR_FORMAT) as archive:
++            blob = gzip.compress(b'qwen')
++            item = tarfile.TarInfo('x.gz')
++            item.size = len(blob)
++            archive.addfile(item, io.BytesIO(blob))
++        data = bytearray(raw.getvalue())
++        data[257:265] = b'\x00' * 8
++        data[148:156] = b' ' * 8
++        data[148:156] = ('%06o\x00 ' % sum(data[:512])).encode('ascii')
++        empty = io.BytesIO()
++        with zipfile.ZipFile(empty, 'w'):
++            pass
++        path = self.write('v7.bin', bytes(data) + empty.getvalue())
++        hits = anon.scan_tree(path, anon.load_rules())
++        self.assertTrue(hits)
++        path = self.write('d.json', b'{"m": "q\\u0077en"}')
++        self.assertTrue(anon.scan_tree(path, anon.load_rules()))
++
+ 
+ if __name__ == '__main__':
+     unittest.main()
+diff --git a/tools/orchkit/tests/test_launch.py b/tools/orchkit/tests/test_launch.py
+index 5212e9e..f9d0840 100644
+--- a/tools/orchkit/tests/test_launch.py
++++ b/tools/orchkit/tests/test_launch.py
+@@ -49,7 +49,8 @@ def fake_provenance(checkout, config_path):
+ class LaunchBase(unittest.TestCase):
+     def setUp(self):
+         self.base = tempfile.mkdtemp(prefix='orchkit_launch_')
+-        self.saved = dict((key, os.environ.get(key)) for key in ('ORCHKIT_LEDGER', 'ORCHKIT_OSSH'))
++        self.saved = dict((key, os.environ.get(key)) for key in ('ORCHKIT_LEDGER', 'ORCHKIT_OSSH',
++                                                                 'ORCHKIT_ANON_WORDS'))
+         self.ledger = os.path.join(self.base, 'ledger.jsonl')
+         os.environ['ORCHKIT_LEDGER'] = self.ledger
+         os.environ['ORCHKIT_OSSH'] = os.path.join(self.base, 'fake_ossh.sh')
+@@ -67,6 +68,7 @@ class LaunchBase(unittest.TestCase):
+         words = os.path.join(self.base, 'words.txt')
+         write(words, 'text zzqqxxnever\n')
+         self.loose = anon.load_rules(words)
++        os.environ['ORCHKIT_ANON_WORDS'] = words
+         self.count = 0
+ 
+     def tearDown(self):
+@@ -190,9 +192,9 @@ class PrepareTest(LaunchBase):
+         config['return']['pool'] = '/project/x/pool'
+         config['job']['root_parent'] = '/tmp'
+         kit, dry = self.kit(config, entry="MODEL = 'qwen'\n")
+-        self.assertIn('opacity', self.assertRefused(kit, dry, rules=anon.load_rules()))
++        self.assertIn('opacity', self.assertRefused(kit, dry, rules=anon.load_rules(anon.WORDS)))
+         kit, dry = self.kit(config)
+-        record, _ = self.prepare(kit, dry, rules=anon.load_rules())
++        record, _ = self.prepare(kit, dry, rules=anon.load_rules(anon.WORDS))
+         self.assertRegex(record['job_name'], launch.JOB_NAME.pattern)
+ 
+     def test_prepare_refuses_a_provenance_refusal(self):
+@@ -420,7 +422,7 @@ class ReviewFindingsTest(LaunchBase):
+                 config['return']['pool'] = '/project/u/split/logs'
+             kit, dry = self.kit(config)
+             with self.assertRaises(launch.LaunchError, msg=change) as caught:
+-                self.prepare(kit, dry, rules=anon.load_rules())
++                self.prepare(kit, dry, rules=anon.load_rules(anon.WORDS))
+             self.assertIn('opacity', str(caught.exception))
+ 
+     def test_oc04_token_with_newline_is_refused(self):
+@@ -506,7 +508,7 @@ class ReviewFindingsTest(LaunchBase):
+                               transport=lambda argv, body: calls.append(body), out=io.StringIO())
+         finally:
+             launch._load_prep = real
+-        self.assertIn('changed after prepare', str(caught.exception))
++        self.assertIn('differs from its rebuild', str(caught.exception))
+         self.assertEqual(calls, [])
+ 
+     def test_oc11_a_kit_changed_after_it_is_read_cannot_ship(self):
+@@ -543,6 +545,55 @@ class ReviewFindingsTest(LaunchBase):
+         self.assertIn('do not belong', str(caught.exception))
+         self.assertEqual(calls, [])
+ 
++    def test_oc16_altered_submission_script_or_argv_is_refused(self):
++        kit, dry = self.kit()
++        for change in ('script', 'argv'):
++            record, prep = self.prepare(kit, dry)
++            stored = util.read_json(os.path.join(prep, 'SUBMIT.json'))
++            if change == 'script':
++                path = os.path.join(prep, 'SUBMIT.sh')
++                with open(path, 'ab') as handle:
++                    handle.write(b"sbatch --wrap='echo extra'\n")
++                stored['submit_sha256'] = util.sha256_file(path)[0]
++            else:
++                stored['argv'][-1] = "bash -s; echo extra"
++            util.write_json(os.path.join(prep, 'SUBMIT.json'), stored)
++            calls = []
++            with self.assertRaises(launch.LaunchError, msg=change) as caught:
++                launch.submit(prep, self.go('GO %s\n' % record['token']), execute=True,
++                              transport=lambda argv, body: calls.append(body), out=io.StringIO())
++            self.assertRegex(str(caught.exception), 'differs from its rebuild|transport command differs')
++            self.assertEqual(calls, [])
++
++    def test_oc17_duplicate_config_keys_are_names_too(self):
++        config = self.config()
++        config['return']['pool'] = '/project/x/pool'
++        config['job']['root_parent'] = '/tmp'
++        kit, dry = self.kit(config)
++        path = os.path.join(kit, 'CONFIG.json')
++        with open(path, 'rb') as handle:
++            raw = handle.read()
++        hidden = raw.replace(b'"job":', b'"job":{"root_parent":"/tmp/split"},"job":', 1)
++        hits = anon.scan_tree(self.write_kit_copy(kit, hidden), anon.load_rules(anon.WORDS))
++        self.assertTrue(any(hit['where'] == 'CONFIG.json' for hit in hits))
++
++    def write_kit_copy(self, kit, config_raw):
++        self.count += 1
++        target = os.path.join(self.base, 'copy%d' % self.count)
++        launch.snapshot(kit, target)
++        os.chmod(os.path.join(target, 'CONFIG.json'), 0o600)
++        write(os.path.join(target, 'CONFIG.json'), config_raw)
++        return target
++
++    def test_go_line_must_start_with_go(self):
++        kit, dry = self.kit()
++        record, prep = self.prepare(kit, dry)
++        for text in ('NO_GO %s\n', 'NO-GO %s\n', 'GO_AFTER_FIXES %s\n', 'verdict: NO GO for %s\n'):
++            with self.assertRaises(launch.LaunchError, msg=text):
++                launch.submit(prep, self.go(text % record['token']), out=io.StringIO())
++        self.assertFalse(launch.submit(prep, self.go('# review\nGO: %s\n' % record['job_name']),
++                                       out=io.StringIO())['executed'])
++
+ 
+ if __name__ == '__main__':
+     unittest.main()

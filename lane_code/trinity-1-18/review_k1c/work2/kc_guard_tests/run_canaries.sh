@@ -1,0 +1,8 @@
+set -u
+export CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
+export K1_NATIVE_KIT=/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit
+export XDG_CACHE_HOME=/scratch/jjyeung/orch_n30/review_k1c/work2/kc_guard_tests/runtime_cache HF_HOME=/scratch/jjyeung/orch_n30/review_k1c/work2/kc_guard_tests/runtime_cache TRITON_CACHE_DIR=/scratch/jjyeung/orch_n30/review_k1c/work2/kc_guard_tests/runtime_cache
+OWN=/scratch/jjyeung/orch_n30/k1_ops3/work/own7/canary/native/probe
+( cd /scratch/jjyeung/orch_n30/review_k1c/work2/kc_guard && /scratch/jjyeung/envs/sam3_scipy_ovl/bin/python -I -s -B /scratch/jjyeung/orch_n30/review_k1c/work2/kc_guard/k1_build/work/kit_k1a/work/k1_pipeline.py cache --manifest /scratch/jjyeung/orch_n30/k1_ops3/work/manifest_v2/a40fbc19.json --out /scratch/jjyeung/orch_n30/review_k1c/work2/kc_guard_tests/canary --phase convert --max-seconds 900 --preflight-out /scratch/jjyeung/orch_n30/review_k1c/work2/kc_guard_tests/canary.preflight.json --tower-cache /scratch/jjyeung/k1/run_tower_sam_2 --own-cache $OWN > /scratch/jjyeung/orch_n30/review_k1c/work2/kc_guard_tests/canary.log 2>&1; echo direct rc=$? >> /scratch/jjyeung/orch_n30/review_k1c/work2/kc_guard_tests/canaries.done ) &
+( bash /scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard_brief/convert7.guard.sh $OWN /scratch/jjyeung/orch_n30/review_k1c/work2/kc_guard_tests/canary_launcher 900 > /scratch/jjyeung/orch_n30/review_k1c/work2/kc_guard_tests/canary_launcher.log 2>&1; echo launcher rc=$? >> /scratch/jjyeung/orch_n30/review_k1c/work2/kc_guard_tests/canaries.done ) &
+wait

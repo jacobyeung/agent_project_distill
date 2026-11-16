@@ -1,0 +1,22 @@
+== 2026-11-16T14:07:36Z cpu_rotate mix=vll_libero_spatial_d1_s0 kit=e6bccd3deea4d7ab
+rot rc=0
+res rc=0
+disk rc=5 (expect 5)
+early rc=3 (expect 3)
+PREFLIGHT_REFUSED impossible dir=/project/community/jjyeung/45e92888780e/out/rerun_20261116b/V/work/rotate_runs/1596082 free=2372G need=999999G
+preflight rc=1 (expect 1)
+PREFLIGHT_OK small dir=/project/community/jjyeung/45e92888780e/out/rerun_20261116b/V/work/rotate_runs/1596082 free=2372G need=1G
+preflight rc=0 (expect 0)
+Resumed full state from 
+PASS one rolling state left ['current', 'steps_6', 'steps_8'] current->steps_6
+PASS steps_2 then steps_4 removed [(4, 'steps_2'), (6, 'steps_4')]
+PASS sizes recorded [('state', 2, 0.24), ('export', 3, 0.12), ('state', 4, 0.24), ('state', 6, 0.24), ('export', 7, 0.12), ('final_link', 7, None)]
+PASS final_model hard-linked to step-7 export nlink=2
+PASS resume ran step 7 only [7]
+PASS resume step 7 bit-exact (0.44218963384628296, 0.44218963384628296)
+PASS state skipped when short [{'steps': 2, 'utc': '2026-11-16T14:12:58Z', 'state_skipped': 2, 'free_gb': 2371.2, 'need_gb': 1000001.0}]
+PASS export refused when short 
+PASS no state dir written when short 
+PASS early-loss stop at step 2 {'step': 2, 'reason': 'early loss blow-up: rank-mean loss 0.7019841074943542 > 1e-06 x step-1 loss 0.9861299395561218 (step 2 <= 50)', 'utc': '2026-11-16T14:13:29Z'}
+ROTATE_TEST_OK
+CPU_ROTATE_DONE

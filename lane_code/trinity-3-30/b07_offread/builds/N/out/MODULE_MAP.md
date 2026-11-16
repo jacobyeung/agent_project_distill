@@ -1,19 +1,18 @@
-The shared reader driver belongs under `tools/orchkit/reader/`. The end-to-end reader core remains in b04. The following mapping keeps the worker focused on orchestration and preserves the imported scoring and binding owners.
+The shared read driver belongs under `tools/orchkit/reader/`. Offkit continues to own binding, frame guards, record states, aggregation, labels, and report rendering. The accepted evaluator owns scoring, and b04 owns the end-to-end core.
 
-| Build N module | Shared destination | Responsibility |
+| Build N modules | Shared destination | Responsibility |
 |---|---|---|
-| `native_read.py`, `offnative/cli.py` | `tools/orchkit/reader/read.py` | The entry binds parameters and dispatches preparation, fetch, and report operations. |
-| `offnative/worker.py` | `tools/orchkit/reader/read.py` | The driver executes phases, records failures, gates official decoding, and constructs arm journals. |
-| `offnative/readers.py` | `tools/orchkit/reader/readers.py` | The interface delegates direct mode to build R, harness generation to C8r, and end-to-end generation to b04. |
-| `offnative/staging.py` | `tools/orchkit/reader/staging.py` | The staging adapter imports the reviewed archive reader. |
-| `offnative/frames.py` | `tools/orchkit/reader/frames.py` | The adapter uses the accepted evaluator sampler and layout function. |
-| `offnative/cohort.py` | `tools/orchkit/reader/cohort.py` | The inventory exposes question fields, complete IDs, canary membership, and media requirements. |
-| `offnative/scoring.py` | `tools/orchkit/reader/scoring.py` | The adapter passes unchanged model bytes to the official scorer and imports `offkit.adapt_native.unify`. |
-| `offnative/reporting.py` | `tools/orchkit/reader/reporting.py` | The reporter imports offkit aggregation, cohort checks, labels, and rendering. |
-| `offnative/proof.py`, `offnative/replay.py` | `tools/orchkit/reader/proof.py` | The proof code chooses fixed reference keys and checks the decode protocol. |
-| `offnative/io.py`, `offnative/paths.py` | `tools/orchkit/util.py` and dependency injection | The shared integration should replace build-local ownership paths and reuse the common utility owner. |
-| `offnative/fixture.py`, `offnative/rehearse.py`, `offnative/census.py` | `tools/orchkit/tests/` | The test helpers provide synthetic boundaries and execution evidence. |
+| `cli`, `worker`, `bootstrap` | `reader/read.py` and launcher integration | Bind a read, execute ordered phases, gate official decoding, and authenticate completion. |
+| `readers`, `c8`, `production`, `freeze` | `reader/readers.py` and `reader/context.py` | Build the native context, apply pinned policy weights, and call the existing reader cores. |
+| `staging`, `stage_plan` | `reader/staging.py` | Compose and invoke R's reviewed stage/export gates. |
+| `proposals` | `reader/proposals.py` | Run the frozen proposal programs and bind native C8r cache receipts. |
+| `frames`, `source`, `media`, `cohort` | `reader/frames.py` and `reader/cohort.py` | Bind frame/source choices and construct question-only inventories. |
+| `proof`, `historical`, `replay` | `reader/proof.py` | Select fixed historical items, restore the original context, and check decode and query identities. |
+| `transport`, `portable`, `watchdog` | Shared pack/return/watch modules | Pack opaque bytes, preserve deadlines, and reuse governed transfers. |
+| `scoring`, `reporting` | `reader/scoring.py` and `reader/reporting.py` | Adapt records without copying scorer or reporting rules. |
+| `fixture`, `native_fixture`, `cache_fixture`, `rehearse`, `census` | `tests/` | Supply explicit synthetic boundaries and executed-line evidence. |
+| `paths`, `io`, `package`, `vendor`, `admission` | Shared utility, pins, and admission modules | Resolve staged roots, pin files, enforce input checks, and assemble deliverables. |
 
-The `read_config.frames` dict in `BINDING.json` comes directly from `offkit.frames.bind_frames`. Its count, layout, and override reason match the `orchkit-read-v1` frames form. The remaining required read-config fields are not assembled into a production packet in this build. That packet must bind export, item, scorer, comparison, and rule logical paths through the shared pin manifest.
+The `read_config.frames` dictionary is the `frames` dictionary returned by `offkit.bind.bind`. `read_config.g3t` binds source, frame count, report qualification, and any mapping identity. The packed worker receives a minimal read specification and binding digest; the operator's full `BINDING.json` stays local.
 
-The current dependency paths are absolute Trinity paths. The code tar is a review and handoff artifact, not a portable Orchard packet. The shared integration must replace those paths with staged, pinned roots. This limitation is enforced by the launcher's unconditional production refusal.
+`portable.py` supplies relative dependency roots and a pin inventory. Both readers' CPU fixtures pass from isolated source bundles with the pinned offkit package supplied externally. Offkit is not copied into the bundle. The production runtime uses R's staged namespace and still requires a complete production-CONFIG rehearsal. This build does not claim that its build-local input manifest is already the final shared orchkit pin/config integration.

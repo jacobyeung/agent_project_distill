@@ -739,13 +739,14 @@
 +    elif Path(a.script).name in ('chain.py','phase_b.py','gate.py'):rest=['--config',a.config]+rest
 --- /dev/null
 +++ kit/rebind.py
-@@ -0,0 +1,322 @@
+@@ -0,0 +1,350 @@
 +"""Prepare, verify, and label the two accepted direct readers."""
 +import argparse
 +import base64
 +import fcntl
 +import hashlib
 +import io
++import importlib.util
 +import json
 +from pathlib import Path
 +import re
@@ -759,10 +760,36 @@
 +
 +ROOT = Path(__file__).resolve().parents[1]
 +KIT = Path(__file__).resolve().parent
-+sys.path.insert(0, '/scratch/jjyeung/orch_n30/b07_offread/kit')
-+from offkit.bind import bind, ledger_append, check_ledger, sha256_file
++sys.path.append('/scratch/jjyeung/orch_n30/b07_offread/kit')
++OFFKIT_MODULES = ('bind.py', 'report.py', 'spec.py', 'adapt_direct.py', 'frames.py', '__init__.py')
++
++
++def verify_offkit_pins():
++    """Check the resolved package before importing or using any offkit code."""
++    pins = json.loads((ROOT/'out/OFFKIT_PINS.json').read_text())
++    if set(pins) != set(OFFKIT_MODULES):
++        raise ValueError('OFFKIT_PINS.json must cover all six imported modules')
++    spec = importlib.util.find_spec('offkit')
++    if spec is None or spec.origin is None or spec.submodule_search_locations is None:
++        raise ValueError('offkit is not a source package')
++    directory = Path(spec.origin).resolve().parent
++    if [Path(p).resolve() for p in spec.submodule_search_locations] != [directory]:
++        raise ValueError('offkit package search path differs from its source')
++    for name in OFFKIT_MODULES:
++        path = directory/name
++        if hashlib.sha256(path.read_bytes()).hexdigest() != pins[name]:
++            raise ValueError('offkit content pin mismatch: '+name)
++        module_name = 'offkit' if name == '__init__.py' else 'offkit.'+name[:-3]
++        loaded = sys.modules.get(module_name)
++        if loaded is not None and Path(loaded.__file__).resolve() != path.resolve():
++            raise ValueError('offkit loaded module differs from its pinned source: '+name)
++
++
++verify_offkit_pins()
++from offkit.bind import bind, ledger_append, check_ledger, sha256_file, verify_binding, binding_sha256
 +from offkit.adapt_direct import from_return
 +from offkit import report as reports
++verify_offkit_pins()
 +NAMES = {'vsibench5130': 'vsi', 'revsi999t32': 'revsi'}
 +POOL = '/project/community/jjyeung/okh7/9e6b70a213c84fd0'
 +LEDGER = '/scratch/jjyeung/orch_n30/b07_offread/out/OFFICIAL_READ_LEDGER.jsonl'
@@ -801,11 +828,10 @@
 +
 +
 +def checked(destination):
++    verify_offkit_pins()
 +    d = Path(destination)
 +    b = json.loads((d/'BINDING.json').read_text())
-+    body = {k:v for k,v in b.items() if k != 'binding_sha256'}
-+    if canonical(body) != b.get('binding_sha256'):
-+        raise ValueError('BINDING.json was tampered with')
++    verify_binding(b)
 +    L = launcher(b['benchmark'])
 +    c = json.loads((d/'CONFIG.json').read_text())
 +    L.validate_batch((d/'BATCH.sh').read_text(), c)
@@ -819,13 +845,14 @@
 +
 +
 +def prepare(a):
++    verify_offkit_pins()
 +    if not re.fullmatch('[a-f][0-9a-f]{8,32}', a.token or ''):
 +        raise ValueError('Token must be opaque hexadecimal with a leading a-f')
 +    b = bind(a.benchmark, a.export, 'direct', mode=a.mode,
 +             init_selection=a.init_selection, ledger=a.ledger)
 +    step = None
 +    if b['export']['kind'] == 'done':
-+        m = re.fullmatch(r'q8/8865619b/359fcc3c_m(100|200|400|600|800|1000)\.tar', b['export']['object'])
++        m = re.fullmatch(r'q8/8865619b/359fcc3c_m(200|400|600|800|1000)\.tar', b['export']['object'])
 +        if not m:
 +            raise ValueError('The selected completion record has an unregistered lineage or step')
 +        step = int(m[1])
@@ -1023,8 +1050,8 @@
 +                current[field] = new
 +        rep['float_order_check'] = dict(tolerance=1e-12, corrections=corrections)
 +
-+        rep = reports.label_report(rep, reader={'kind':'direct','id':b['reader']['id'],'eat1':{'passed':None}},
-+            export=b['export'], arm='primary', role='primary' if budget==2048 else 'secondary', arm_label=arm)
++        rep = reports.label_report(rep, binding=b, arm='primary',
++            role='primary' if budget==2048 else 'secondary', arm_label=arm)
 +        rep['binding_sha256'] = b['binding_sha256']
 +        rep['budget'] = arm
 +        result[arm] = reports.write(rep, output, arm)
@@ -1032,6 +1059,7 @@
 +
 +
 +def main():
++    verify_offkit_pins()
 +    p = argparse.ArgumentParser(description=__doc__)
 +    p.add_argument('action', choices=('prepare','submit-command','record-submission','fetch','report'))
 +    p.add_argument('--benchmark', choices=tuple(NAMES))
@@ -1064,12 +1092,14 @@
 +    main()
 --- /dev/null
 +++ RUN.md
-@@ -0,0 +1,81 @@
+@@ -0,0 +1,83 @@
 +# Operator commands
 +
 +This kit prepares one direct-only read per benchmark and selected export. Run these commands on `trinity-3-30`. The builder has submitted nothing. The submitted stdin batch is the only new input sent to Orchard; the package archives and `BINDING.json` stay on Trinity.
 +
-+The init-selection owner must supply the final JSON decision under item 7 of `NEXT_LEG_INIT_RULE_20261116.md`. Its `selected_sha256` must equal the whole-tar SHA256 in the selected plain-text `.done` file. The launcher verifies that identity; it does not select a milestone or evaluate the init rule. Use the same decision and export for both benchmarks. Do not infer the decision from an official benchmark result.
++The init-selection owner must supply the final JSON decision under item 7 of `NEXT_LEG_INIT_RULE_20261116.md`. Its `selected_sha256` must equal the whole-tar SHA256 in the selected plain-text `.done` file. Its `selected_step` must be one of 200, 400, 600, 800 or 1000 and match the object `q8/8865619b/359fcc3c_m<step>.tar`. Its `init_rule_sha256` must be `d53f9c1ac74c4c9e7a3d3bbdbcf74a0853ca529d62bb1d3afe1c03f121e260ba`. Its `d0_ended` object must contain a nonempty `event` reference and a `reason` of `completed_step_1000`, `stopped_under_rule` or `no_further_allocation`. The launcher checks these fields and the reviewed completion-record parser; it does not choose a milestone or evaluate the owner's selection decision. Use the same decision and export for both benchmarks. Do not infer the decision from an official benchmark result.
++
++Every launcher import and action verifies all six offkit source hashes against `out/OFFKIT_PINS.json`. Keep that manifest with the extracted packages. A missing manifest or changed module refuses before preparation, reporting or any other action. Production binding requires the ledger. The binding hash covers the accepted 32-duplicate frame layout, and reports take their identity and mode from the verified binding.
 +
 +Set the two input paths to the owner's actual records. The example deliberately requires existing environment variables rather than inventing a selected export.
 +
@@ -1146,6 +1176,17 @@
 +Use `--mode proof` only for an explicitly requested proof allocation. Proof uses the accepted small item selection and fake generation. A D0 proof omits the accepted step544-only Phase B token comparison; the accepted prompt proof and processor checks still run. Production has no Phase B.
 +
 +The CPU tests use local stand-ins and never authorize a submission. Their fixture bindings say `EXPORT fixture`, and submit-command rejects their local bootstrap roots. Their reported values are not benchmark results.
+--- /dev/null
++++ out/OFFKIT_PINS.json
+@@ -0,0 +1,8 @@
++{
++  "__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
++  "adapt_direct.py": "667b19b9dc4b8c6572fd19e6eb71a9cb466a6ec1165957895dab9986b19c1128",
++  "bind.py": "bd74a97f3363404a71d7fa25f8ef86d871af6d4831ccb48017ce647fbd3d02a4",
++  "frames.py": "d6e3d55020322258235d9741ff931cf448a48a7c66e1a5a58ee0bfe6a8e9ccca",
++  "report.py": "2656c0532e98eb7530b31392efbc94527f2db88ece3adb47b58ce2d51124ecfc",
++  "spec.py": "539a67a31eff6741f5a76e7c78723d5ab6e61eca6f88f43a4fcd1fee51208532"
++}
 --- /dev/null
 +++ tests/checker_fixture.py
 @@ -0,0 +1,10 @@
@@ -1261,9 +1302,9 @@
 + source=source.replace("(chain,'utility',utility),(A,'EXPORT_SHA'", "(chain,'utility',utility),(A,'HERE',package/'reader'),(A,'EXPORT_SHA'")
 +source=source.replace("    config.update(x0='a'*64,x1=F.sha(ap),x2=0)", '''    sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'kit'))
 +    import rebind as B
-+    binding=B.bind('vsibench5130' if ROOT.name=='vsi' else 'revsi999t32','step544','direct')
++    binding=B.bind('vsibench5130' if ROOT.name=='vsi' else 'revsi999t32','step544','direct', ledger=work/'official.jsonl')
 +    binding['export']=dict(kind='fixture',sha256=F.sha(ap),label='CPU fixture with synthetic answers')
-+    binding['binding_sha256']=B.canonical({k:v for k,v in binding.items() if k!='binding_sha256'})
++    binding['binding_sha256']=B.binding_sha256(binding)
 +    config.update(x0=binding['binding_sha256'],x1=F.sha(ap),x2=0)''')
 +# Rehearsal provenance remains outside the submitted CONFIG.
 +source=source.replace("    F.js(work/'RESULT.json',result)","""    result['config_mode']=config['mode']
@@ -1432,7 +1473,7 @@
 +    assert not (root/'exports').exists()
 --- /dev/null
 +++ tests/test_rebind.py
-@@ -0,0 +1,201 @@
+@@ -0,0 +1,275 @@
 +import base64
 +import hashlib
 +import io
@@ -1462,7 +1503,8 @@
 +
 +def prep(tmp,bench='vsibench5130',export='step544',extra=()):
 +    d=tmp/'packet'
-+    cli('prepare','--benchmark',bench,'--export',export,'--token','a00123456','--destination',d,*extra)
++    cli('prepare','--benchmark',bench,'--export',export,'--token','a00123456','--destination',d,
++        '--ledger',tmp/'official.jsonl',*extra)
 +    return d
 +
 +
@@ -1470,6 +1512,10 @@
 + ('vsibench5130','vsi',4008,'six_task_mean'),('revsi999t32','revsi',679,'five_category_mean')])
 +def test_accepted_report(tmp_path,bench,key,count,headline):
 +    d=prep(tmp_path,bench)
++    binding=json.loads((d/'BINDING.json').read_text())
++    assert binding['frames']['count']==32 and binding['frames']['layout']=='duplicate'
++    changed=json.loads(json.dumps(binding));changed['frames']['count']=64
++    with pytest.raises(ValueError,match='binding_sha256'):B.verify_binding(changed)
 +    cli('report','--destination',d,'--return-dir',IN/('ret_'+key),'--accepted-return')
 +    for arm in ('B2048','ON16k','B4096'):
 +        actual=json.loads((d/'reports'/f'{arm}.json').read_text())
@@ -1483,6 +1529,8 @@
 +        assert (d/'reports'/f'{arm}.txt').read_text().splitlines()[0]==actual['first_line']
 +        assert actual['arm']=='primary'
 +        assert actual['not_read']==['object_abs_distance','room_size_estimation']
++        assert actual['binding_sha256']==binding['binding_sha256']
++        assert actual['frames']==binding['frames'] and actual['mode']=='production'
 +
 +
 +@pytest.mark.parametrize('bench,key', [('vsibench5130','vsi'),('revsi999t32','revsi')])
@@ -1531,9 +1579,11 @@
 +    assert json.loads(p.stdout)==dict(items=4008 if key=='vsi' else 679,scenes=288 if key=='vsi' else 261)
 +
 +
-+def done_files(tmp,sha='a'*64):
-+    done=tmp/'m200.done';done.write_text('q8/8865619b/359fcc3c_m200.tar 10240 '+sha+'\n')
-+    sel=tmp/'selection.json';sel.write_text(json.dumps({'selected_sha256':sha}))
++def done_files(tmp,sha='a'*64,step=200):
++    from offkit.bind import INIT_RULE_SHA
++    done=tmp/f'm{step}.done';done.write_text(f'q8/8865619b/359fcc3c_m{step}.tar 10240 '+sha+'\n')
++    sel=tmp/'selection.json';sel.write_text(json.dumps(dict(selected_sha256=sha,selected_step=step,
++        init_rule_sha256=INIT_RULE_SHA,d0_ended=dict(reason='completed_step_1000',event='fixture:D0-ended'))))
 +    return done,sel
 +
 +
@@ -1543,7 +1593,9 @@
 +    ledger=tmp_path/'ledger.jsonl'
 +    extra=['--init-selection',str(sel),'--ledger',str(ledger)]
 +    if case=='missing_selection':extra=[]
-+    if case=='mismatch':sel.write_text(json.dumps({'selected_sha256':'b'*64}))
++    if case=='mismatch':
++        selection=json.loads(sel.read_text());selection['selected_sha256']='b'*64
++        sel.write_text(json.dumps(selection))
 +    if case=='second':ledger.write_text(json.dumps({'export_kind':'done','export_sha256':'b'*64})+'\n')
 +    if case=='malformed':done.write_text('broken\n')
 +    if case=='spacing':done.write_text(done.read_text().replace(' 10240','\t10240'))
@@ -1564,6 +1616,69 @@
 +    b=json.loads((d/'BINDING.json').read_text());b['export']['sha256']='b'*64
 +    (d/'BINDING.json').write_text(json.dumps(b))
 +    cli('submit-command','--destination',d,ok=False)
++
++
++def test_m100_refused_with_matching_selection(tmp_path):
++    done,sel=done_files(tmp_path,step=100)
++    p=cli('prepare','--benchmark','vsibench5130','--export','done:'+str(done),
++        '--init-selection',sel,'--ledger',tmp_path/'ledger.jsonl','--token','a00123456',
++        '--destination',tmp_path/'refused',ok=False)
++    assert 'rule candidate' in p.stderr
++    assert not (tmp_path/'refused').exists()
++
++
++def test_launcher_independently_refuses_m100(monkeypatch,tmp_path):
++    from types import SimpleNamespace as NS
++    monkeypatch.setattr(B,'bind',lambda *a,**kw:dict(export=dict(kind='done',
++        object='q8/8865619b/359fcc3c_m100.tar')))
++    a=NS(token='a00123456',benchmark='vsibench5130',export='done:fixture',mode='production',
++         init_selection='fixture',ledger=tmp_path/'ledger.jsonl')
++    with pytest.raises(ValueError,match='unregistered lineage or step'):B.prepare(a)
++
++
++def offkit_copy(tmp_path):
++    source=Path(B.reports.__file__).parent
++    target=tmp_path/'offkit';target.mkdir()
++    for name in B.OFFKIT_MODULES:(target/name).write_bytes((source/name).read_bytes())
++    return target
++
++
++@pytest.mark.parametrize('name',B.OFFKIT_MODULES)
++def test_mutated_offkit_refused_before_import(tmp_path,name):
++    target=offkit_copy(tmp_path)
++    # Executing the changed module would produce a distinct error.
++    (target/name).write_text("raise RuntimeError('UNVERIFIED_MODULE_EXECUTED')\n"+(target/name).read_text())
++    p=subprocess.run([PY,'-B','-c',
++        'import sys;sys.path[:0]=sys.argv[1:];import rebind',str(tmp_path),str(ROOT/'kit')],
++        capture_output=True,text=True)
++    assert p.returncode!=0 and 'offkit content pin mismatch: '+name in p.stderr
++    assert 'UNVERIFIED_MODULE_EXECUTED' not in p.stderr
++
++
++@pytest.mark.parametrize('action',['prepare','submit-command','record-submission','fetch','report'])
++def test_offkit_rechecked_before_each_action(tmp_path,action):
++    target=offkit_copy(tmp_path)
++    script="""import sys
++from pathlib import Path
++sys.path[:0]=sys.argv[1:3]
++import rebind
++p=Path(sys.argv[1])/'offkit/frames.py'
++p.write_text(p.read_text()+'\\n# changed after import\\n')
++sys.argv=['rebind',sys.argv[3],'--destination',sys.argv[1]+'/unused']
++rebind.main()
++"""
++    p=subprocess.run([PY,'-B','-c',script,str(tmp_path),str(ROOT/'kit'),action],capture_output=True,text=True)
++    assert p.returncode!=0 and 'offkit content pin mismatch: frames.py' in p.stderr
++    assert not (tmp_path/'unused').exists()
++
++
++def test_identical_offkit_copy_is_accepted(tmp_path):
++    target=offkit_copy(tmp_path)
++    p=subprocess.run([PY,'-B','-c',
++        'import sys;sys.path[:0]=sys.argv[1:];import rebind;print(rebind.reports.__file__)',
++        str(tmp_path),str(ROOT/'kit')],capture_output=True,text=True)
++    assert p.returncode==0,p.stderr
++    assert str(target/'report.py') in p.stdout
 +
 +
 +def test_submission_is_only_ledger_writer(tmp_path):

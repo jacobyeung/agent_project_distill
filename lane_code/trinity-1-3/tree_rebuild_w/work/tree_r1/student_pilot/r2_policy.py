@@ -2,6 +2,7 @@
 import hashlib
 import inspect
 import json
+import math
 from pathlib import Path
 import re
 from .p3_provenance import digest, load, pinned, sha256
@@ -170,9 +171,16 @@ def require_scores(receipt, scores):
         raise ValueError('Both venue-inclusive and venue-excluded scores are required')
     for result in scores.values():
         for kind, units in receipt.get('metric_units', {}).items():
-            breakdown = result.get('by_asked_unit', {}).get(kind, {}) if isinstance(result, dict) else {}
-            if list(breakdown) != units:
+            breakdown = result.get('by_asked_unit', {}).get(kind, []) if isinstance(result, dict) else []
+            if (not isinstance(breakdown, list)
+                    or [row.get('unit') if isinstance(row, dict) else None for row in breakdown] != units):
                 raise ValueError('Metric scores require every asked unit, metres first')
+            for row in breakdown:
+                count, score = row.get('count'), row.get('score')
+                if (type(count) is not int or count < 0
+                        or (count == 0 and score is not None)
+                        or (count > 0 and (type(score) not in (int, float) or not math.isfinite(score)))):
+                    raise ValueError('Metric unit scores require valid counts and finite observed scores')
     return scores
 
 

@@ -36,11 +36,11 @@ def validate_media(entries, *, production):
     return dict(files=len(entries),missing=missing)
 
 
-def reviewed_modules():
+def reviewed_modules(benchmark='revsi999t32'):
     """Import the reviewed implementations without modifying their source bytes."""
     from .paths import R, module
     import sys
-    root=R/'kit/revsi/launcher'
+    root=R/('kit/revsi/launcher' if benchmark=='revsi999t32' else 'kit/vsi/launcher')
     if str(root) not in sys.path:sys.path.insert(0,str(root))
     import s1, export_stage, gate
     for obj,name in ((s1,'s1.py'),(export_stage,'export_stage.py'),(gate,'gate.py')):
@@ -49,18 +49,38 @@ def reviewed_modules():
     return s1,export_stage,gate
 
 
-def stage_reviewed(root, config, physical):
+def stage_reviewed(root, config, physical, *, benchmark='revsi999t32', media_sources=None):
     """The R gate selects step-544 or the authenticated D0 stager unchanged."""
-    s1, export_stage, gate=reviewed_modules()
+    s1, export_stage, gate=reviewed_modules(benchmark)
     gate.validate(config)
-    receipt=gate.stage(root,config,physical)
-    gate.after(root,config,receipt)
-    return receipt
+    import orchard_stage
+    originals=[]
+    source_originals=[]
+    # Runtime symlinks retain R's checks; hard links are refused before extraction.
+    for owner in (s1,orchard_stage):
+        original=owner.unpack
+        originals.append((owner,original))
+        def checked_unpack(path,destination,_original=original,**kwargs):
+            reject_hardlinks(path)
+            return _original(path,destination,**kwargs)
+        owner.unpack=checked_unpack
+        if media_sources is not None and hasattr(owner,'video_source'):
+            source_originals.append((owner,owner.video_source))
+            def media_source(row,media_root):
+                return Path(media_sources[row['relative_path']])
+            owner.video_source=media_source
+    try:
+        receipt=gate.stage(root,config,physical)
+        gate.after(root,config,receipt)
+        return receipt
+    finally:
+        for owner,original in originals:owner.unpack=original
+        for owner,original in source_originals:owner.video_source=original
 
 
-def stage_files(entries, destination):
+def stage_files(entries, destination, *, benchmark='revsi999t32'):
     """Copy pinned tower/media files using R's hash-checked streaming primitive."""
-    s1,_,_=reviewed_modules()
+    s1,_,_=reviewed_modules(benchmark)
     destination=owned(destination)
     destination.mkdir(parents=True,exist_ok=False)
     seen=set();receipts={}
@@ -75,3 +95,10 @@ def stage_files(entries, destination):
                                      expected_sha=row['sha256'],check_space=True)
     dump(destination/'STAGED.json',receipts)
     return receipts
+
+
+def reject_hardlinks(path):
+    import tarfile
+    with tarfile.open(path) as archive:
+        for item in archive:
+            if item.islnk():raise ValueError('input tar contains a hard link: '+item.name)

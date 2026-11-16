@@ -1,0 +1,243 @@
+diff --git a/tools/orchkit/anon.py b/tools/orchkit/anon.py
+index 851c5c4..2778089 100644
+--- a/tools/orchkit/anon.py
++++ b/tools/orchkit/anon.py
+@@ -78,14 +78,44 @@ def scan_text(where, text, rules, scope='text'):
+     return hits
+ 
+ 
+-def scan_bytes(where, data, rules):
+-    """Text rules over the bytes read as Latin-1, and again with NUL bytes dropped, so UTF-16 and
+-    UTF-32 text cannot hide a word."""
+-    hits = scan_text(where, data.decode('latin-1'), rules, 'text')
++ESCAPE = re.compile(r'\\(?:u([0-9a-fA-F]{4})|U([0-9a-fA-F]{8})|x([0-9a-fA-F]{2}))')
++
++
++def _unescape(text):
++    def one(match):
++        code = int(match.group(1) or match.group(2) or match.group(3), 16)
++        return chr(code) if code < 0x110000 else ''
++    return ESCAPE.sub(one, text)
++
++
++def text_views(data):
++    """Every text reading of a blob that a standard decoder gives: Latin-1, NUL bytes dropped,
++    UTF-16 and UTF-32 (either byte order, with or without a BOM), each also with JSON and Python
++    escapes (\\uXXXX, \\UXXXXXXXX, \\xXX) resolved."""
++    views = [data.decode('latin-1')]
+     if b'\x00' in data:
+-        seen = set(hit['rule'] for hit in hits)
+-        hits.extend(hit for hit in scan_text(where, data.replace(b'\x00', b'').decode('latin-1'),
+-                                             rules, 'text') if hit['rule'] not in seen)
++        views.append(data.replace(b'\x00', b'').decode('latin-1'))
++        for codec in ('utf-16', 'utf-16-le', 'utf-16-be', 'utf-32', 'utf-32-le', 'utf-32-be'):
++            try:
++                views.append(data.decode(codec))
++            except (UnicodeDecodeError, ValueError):
++                continue
++    out = []
++    for view in views:
++        out.append(view)
++        if '\\' in view:
++            out.append(_unescape(view))
++    return out
++
++
++def scan_bytes(where, data, rules, scope='text'):
++    """Rules over every text view of the bytes (see text_views); one hit per rule."""
++    hits, seen = [], set()
++    for view in text_views(data):
++        for hit in scan_text(where, view, rules, scope):
++            if hit['rule'] not in seen:
++                seen.add(hit['rule'])
++                hits.append(hit)
+     return hits
+ 
+ 
+@@ -107,9 +137,12 @@ def _interpretations(where, data):
+     if any(data.startswith(magic) for magic, _ in UNSUPPORTED):
+         kinds.append('unsupported')
+     try:
+-        if zipfile.is_zipfile(io.BytesIO(data)):
+-            kinds.append('zip')
++        zipped = zipfile.is_zipfile(io.BytesIO(data))
+     except (OSError, ValueError):
++        zipped = False
++    if zipped:
++        kinds.append('zip')
++    elif data.startswith((b'PK\x03\x04', b'PK\x05\x06', b'PK\x07\x08')):
+         kinds.append('unsupported')
+     if len(data) > 262 and data[257:262] == b'ustar':
+         kinds.append('tar')
+@@ -329,19 +362,11 @@ def scan_tree(root, rules):
+             hits.append({'where': where, 'scope': 'size', 'rule': kind})
+             continue
+         if kind in ('link', 'meta'):
+-            hits.extend(scan_text(where, data.decode('utf-8', 'replace'), rules, 'name'))
++            hits.extend(scan_bytes(where, data, rules, 'name'))
+         elif data:
+             hits.extend(scan_bytes(where, data, rules))
+-        if kind == 'file' and where.lower().endswith('.json') and where not in NAME_JSON:
+-            try:
+-                parsed = json.loads(data.decode('utf-8'), object_pairs_hook=list)
+-            except (ValueError, UnicodeDecodeError):
+-                parsed = None
+-            for text in _json_strings(parsed):
+-                hits.extend(row for row in scan_text(where, text, rules, 'text') if row not in hits)
+         if kind == 'file' and where in NAME_JSON:
+-            hits.extend(row for row in scan_text(where, data.decode('latin-1'), rules, 'name')
+-                        if row not in hits)
++            hits.extend(row for row in scan_bytes(where, data, rules, 'name') if row not in hits)
+             try:
+                 parsed = json.loads(data.decode('utf-8'), object_pairs_hook=list)
+             except (ValueError, UnicodeDecodeError):
+diff --git a/tools/orchkit/launch.py b/tools/orchkit/launch.py
+index a1558f5..1a66130 100644
+--- a/tools/orchkit/launch.py
++++ b/tools/orchkit/launch.py
+@@ -479,21 +479,22 @@ def _go_names(text, token):
+ 
+ 
+ def rebuild(prep, record, rows, rules=None):
+-    """The exact submission bytes, rebuilt from PREP/kit and PREP/JOB.json and anchored to the
+-    ledger: the minted row of the token must name this kit and config, the kit must pass every
++    """The exact submission bytes, rebuilt from a private snapshot of PREP/kit (read once, then
++    checked and bundled) and PREP/JOB.json (read once), and anchored to the ledger: the minted row of the token must name this kit and config, the kit must pass every
+     check again, and BATCH.sh, SUBMIT.sh and the transport argv in PREP must equal the rebuild.
+     Nothing in SUBMIT.json is trusted beyond the token."""
+     token, name = mint_job_name(record['token'])
+     minted = [row for row in rows if row.get('event') == 'minted']
+     if len(minted) != 1:
+         raise LaunchError('ledger must hold exactly one minted row for %s' % token)
+-    kit = os.path.join(prep, 'kit')
++    job = util.read_json(os.path.join(prep, 'JOB.json'))
++    kit = snapshot(os.path.join(prep, 'kit'),
++                   os.path.join(tempfile.mkdtemp(prefix='.submit.', dir=prep), 'kit'))
+     with open(os.path.join(kit, 'CONFIG.json'), 'rb') as handle:
+         config_raw = handle.read()
+     config, _, kit_pins, config_sha = check_kit(kit, config_raw, rules or anon.load_rules())
+     if (minted[0].get('kit_pins_sha256'), minted[0].get('config_sha256')) != (kit_pins, config_sha):
+         raise LaunchError('the ledger row of %s names another kit or config' % token)
+-    job = util.read_json(os.path.join(prep, 'JOB.json'))
+     if job.get('token') != token or job.get('job_name') != name or record.get('job_name') != name:
+         raise LaunchError('the prepared scripts do not belong to token %s' % token)
+     script, remote = build_submission(kit, config, job, rules or anon.load_rules())
+@@ -506,6 +507,27 @@ def rebuild(prep, record, rows, rules=None):
+     return remote.encode('utf-8')
+ 
+ 
++def claim_token(token, ledger_file=None):
++    """Claim a token once for the whole account: an exclusive file beside the shared ledger, so two
++    copies of one preparation cannot both reach the transport."""
++    claims = ledger.ledger_path(ledger_file) + '.claims'
++    if not os.path.isdir(claims):
++        try:
++            os.makedirs(claims, 0o700)
++        except OSError:
++            if not os.path.isdir(claims):
++                raise
++    try:
++        fd = os.open(os.path.join(claims, token), os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
++    except OSError:
++        raise LaunchError('token %s was already claimed for submission; never repeat a submit' % token)
++    with os.fdopen(fd, 'wb') as handle:
++        handle.write(util.canonical_json({'token': token, 'utc': util.utc_iso(),
++                                          'pid': os.getpid()}) + b'\n')
++        handle.flush()
++        os.fsync(handle.fileno())
++
++
+ def submit(prep, go, execute=False, ledger_file=None, transport=None, out=sys.stdout, rules=None):
+     prep = os.path.abspath(prep)
+     record = _load_prep(prep)
+@@ -544,6 +566,7 @@ def submit(prep, go, execute=False, ledger_file=None, transport=None, out=sys.st
+                                           'go': os.path.abspath(go)}) + b'\n')
+         handle.flush()
+         os.fsync(handle.fileno())
++    claim_token(token, ledger_file)
+     if any(row.get('event') == 'submitted' for row in ledger.lookup(token, ledger_file)):
+         raise LaunchError('ledger already shows %s submitted' % token)
+     behind = sorted(set(PREFIX + found for found in re.findall(r'(?<![0-9a-f])([0-9a-f]{16})(?![0-9a-f])',
+diff --git a/tools/orchkit/tests/test_anon.py b/tools/orchkit/tests/test_anon.py
+index e5ce726..f3a27bb 100644
+--- a/tools/orchkit/tests/test_anon.py
++++ b/tools/orchkit/tests/test_anon.py
+@@ -205,6 +205,21 @@ class AnonTest(unittest.TestCase):
+         path = self.write('d.json', b'{"m": "q\\u0077en"}')
+         self.assertTrue(anon.scan_tree(path, anon.load_rules()))
+ 
++    def test_review_oc18_escapes_in_any_encoding_or_layer(self):
++        plain = b'{"m": "q\\u0077en"}'
++        cases = {'a16.json': plain.decode().encode('utf-16'), 'a32.json': plain.decode().encode('utf-32'),
++                 'a16le.json': plain.decode().encode('utf-16-le'), 'c.json.gz': gzip.compress(plain),
++                 'noext.bin': plain, 'py.txt': b"x = 'q\\x77en'\n"}
++        for name, data in sorted(cases.items()):
++            self.assertTrue(anon.scan_tree(self.write(name, data), anon.load_rules()), name)
++
++    def test_review_oc19_damaged_zip_fails_closed(self):
++        raw = io.BytesIO()
++        with zipfile.ZipFile(raw, 'w', zipfile.ZIP_DEFLATED) as archive:
++            archive.writestr('x', b'qwen')
++        path = self.write('a.zip', raw.getvalue()[:-22])
++        self.assertEqual(anon.scan_tree(path, anon.load_rules())[0]['rule'], 'unsupported-container')
++
+ 
+ if __name__ == '__main__':
+     unittest.main()
+diff --git a/tools/orchkit/tests/test_launch.py b/tools/orchkit/tests/test_launch.py
+index f9d0840..9be4fc3 100644
+--- a/tools/orchkit/tests/test_launch.py
++++ b/tools/orchkit/tests/test_launch.py
+@@ -594,6 +594,52 @@ class ReviewFindingsTest(LaunchBase):
+         self.assertFalse(launch.submit(prep, self.go('# review\nGO: %s\n' % record['job_name']),
+                                        out=io.StringIO())['executed'])
+ 
++    def test_oc20_a_kit_changed_during_submit_cannot_ship(self):
++        kit, dry = self.kit()
++        record, prep = self.prepare(kit, dry)
++        real = launch.check_kit
++        sent = []
++
++        def check_then_swap(path, config_raw, rules):
++            value = real(path, config_raw, rules)
++            write(os.path.join(prep, 'kit', 'code', 'entry.py'), "MODEL = 'changed'\n")
++            job = util.read_json(os.path.join(prep, 'JOB.json'))
++            script, remote = launch.build_submission(os.path.join(prep, 'kit'), value[0], job, rules)
++            write(os.path.join(prep, 'BATCH.sh'), script)
++            write(os.path.join(prep, 'SUBMIT.sh'), remote)
++            return value
++
++        launch.check_kit = check_then_swap
++        try:
++            with self.assertRaises(launch.LaunchError):
++                launch.submit(prep, self.go('GO %s\n' % record['token']), execute=True,
++                              transport=lambda argv, body: sent.append(body) or (0, b'JOBID=9\n', b''),
++                              out=io.StringIO())
++        finally:
++            launch.check_kit = real
++        self.assertEqual(sent, [])
++
++    def test_oc21_two_copies_of_one_preparation_submit_once(self):
++        kit, dry = self.kit(self.config(partition='advanced'))
++        record, prep = self.prepare(kit, dry)
++        copy = prep + '_copy'
++        launch.snapshot(prep, copy)
++        sent = []
++        go = self.go('GO %s\n' % record['token'])
++
++        def transport(argv, body):
++            sent.append(body)
++            if len(sent) == 1:
++                with self.assertRaises(launch.LaunchError) as caught:
++                    launch.submit(copy, go, execute=True, out=io.StringIO(), transport=transport)
++                self.assertIn('already claimed', str(caught.exception))
++            return 0, ('JOBID=%d\n' % (40 + len(sent))).encode(), b''
++
++        launch.submit(prep, go, execute=True, out=io.StringIO(), transport=transport)
++        self.assertEqual(len(sent), 1)
++        rows = [row for row in ledger.lookup(record['token'], self.ledger) if row['event'] == 'submitted']
++        self.assertEqual(len(rows), 1)
++
+ 
+ if __name__ == '__main__':
+     unittest.main()

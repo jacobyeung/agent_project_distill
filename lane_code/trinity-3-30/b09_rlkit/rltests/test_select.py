@@ -20,6 +20,12 @@ def prompt(base, pid, **kw):
     return dict(base, prompt_id=pid, scene_key='s_' + pid, source='reserve_r0_rl', row=dict(ROW, qid=pid), **kw)
 
 
+OWN_SRC = dict(pose_source='own', mask_source='mdg', ground_backend='GroundV3', geometry_source='same_checkpoint_own',
+               geometry_identity='same_checkpoint_own:abc', source_identity='native_mdg:abc',
+               ground_query_backends=['ground_v3'], query_provenance=['unspecified'], presence_sources=['None'],
+               tower_state=False, verify=False, reread=False, donor=False, call_kinds=['head'])
+
+
 class Select(unittest.TestCase):
     def setUp(self):
         self.validator, self.program_types = tree_validator(TREE)
@@ -52,15 +58,15 @@ class Select(unittest.TestCase):
         p = prompt(FT, 'c')
         p['row'] = dict(ROW, qid='c', question_type='object_abs_distance')
         text = program(FT_BODY.format(conv='Converting to feet: 3.22 x 3.28084 = 10.56.\n'), '10.56')
-        calls = [dict(call='<gap a="cup" b="trash can" rule="box_grid_5cm">', response='distance 3.22 m', kind='head')]
+        import re
+        calls = [dict(call='<served>', response=m.strip('\n'), kind='head')
+                 for m in re.findall(r'<tool_response>(.*?)</tool_response>', text, re.S)]
         r = rec('c', 0, text, 80, 'head', calls)
         r.update(kinds='ff' + 'r' * 10 + 's' * 68, prompt_ids_sha256='a' * 64, response_sources=sources)
         return self.run_select([p], {'c': [r]})
 
     def test_artifact_head_winner_trains_as_own_row(self):
-        src = dict(pose_source='own', mask_source='mdg', ground_backend='GroundV3', ground_query_backends=['ground_v3'],
-                   tower_state=False, donor=False, call_kinds=['head'])
-        out, report = self.program_case(src)
+        out, report = self.program_case(dict(OWN_SRC))
         self.assertEqual(report['counts']['own_rows'], 1, out)
         row = out['own_rows'][0]
         self.assertEqual((row['schema'], row['stream'], row['response_policy']), ('rlkit-own-row-v1', 'routing', 'artifact'))
@@ -68,10 +74,13 @@ class Select(unittest.TestCase):
         self.assertEqual(report['kept_by_type_path'], {'object_abs_distance': {'head': 1}})
 
     def test_outside_responses_are_barred(self):
-        base = dict(pose_source='own', mask_source='mdg', ground_backend='GroundV3', ground_query_backends=['ground_v3'],
-                    tower_state=False, donor=False, call_kinds=['head'])
+        base = dict(OWN_SRC)
         for change, word in ((dict(donor=True), 'donor'), (dict(mask_source='gt'), 'mask source'),
-                             (dict(ground_query_backends=['hrp_reread']), 'backends'), (dict(pose_source='override'), 'pose')):
+                             (dict(ground_query_backends=['hrp_reread']), 'backends'), (dict(pose_source='override'), 'pose'),
+                             (dict(geometry_source='configured_predicted'), 'geometry source'),
+                             (dict(source_identity='sam3_external:abc'), 'identities'),
+                             (dict(geometry_identity='same_checkpoint_own:other'), 'different artifacts'),
+                             (dict(query_provenance=['gt_masks']), 'provenance'), (dict(verify=True), 'verify')):
             out, report = self.program_case({**base, **change})
             self.assertEqual(report['counts']['barred'], 1, change)
             self.assertIn(word, out['barred'][0]['reason'])

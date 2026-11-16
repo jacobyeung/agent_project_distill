@@ -4,6 +4,8 @@ The two tables cover every changed source line. The packet payloads, item invent
 
 PATH/ENV identifies only return-path substitutions and the Trinity package prefix. BEYOND identifies every other addition or removal. The complete line text appears in `out/SOURCE_vsi.patch` and `out/SOURCE_revsi.patch`; `out/SOURCE_DIFF.json` records the ranges and hashes. The new `RUN.md`, test files and this diff document are BEYOND in their entirety. This document excludes its own text from the patch to avoid self-reference.
 
+The launcher admits only init-rule candidates 200, 400, 600, 800 and 1000 and retains the reviewed `export_stage.parse_done` call. It verifies all six imported offkit modules against the shipped `out/OFFKIT_PINS.json` before import and every action. Reports use the verified binding, including its hashed frame layout. These launcher and manifest changes are BEYOND.
+
 ## VSI-Bench
 
 | File | Accepted lines | Shipped lines | Class |
@@ -23,14 +25,15 @@ PATH/ENV identifies only return-path substitutions and the Trinity package prefi
 | `launcher/return_io.py` | 48–49 | 48–48 | BEYOND |
 | `launcher/s1.py` | None. | 1–338 | BEYOND |
 | `launcher/trace_runtime.py` | 84–84 | 84–84 | BEYOND |
-| `kit/rebind.py` is new on Trinity. | None. | 1–322 | BEYOND |
-| `RUN.md` is new on Trinity. | None. | 1–81 | BEYOND |
+| `kit/rebind.py` is new on Trinity. | None. | 1–350 | BEYOND |
+| `RUN.md` is new on Trinity. | None. | 1–83 | BEYOND |
+| `out/OFFKIT_PINS.json` is new on Trinity. | None. | 1–8 | BEYOND |
 | `tests/checker_fixture.py` is new on Trinity. | None. | 1–10 | BEYOND |
 | `tests/line_capture.py` is new on Trinity. | None. | 1–22 | BEYOND |
 | `tests/parity_fixture.py` is new on Trinity. | None. | 1–18 | BEYOND |
 | `tests/rehearse.py` is new on Trinity. | None. | 1–130 | BEYOND |
 | `tests/test_admission.py` is new on Trinity. | None. | 1–89 | BEYOND |
-| `tests/test_rebind.py` is new on Trinity. | None. | 1–201 | BEYOND |
+| `tests/test_rebind.py` is new on Trinity. | None. | 1–275 | BEYOND |
 
 
 ## ReVSI
@@ -52,12 +55,13 @@ PATH/ENV identifies only return-path substitutions and the Trinity package prefi
 | `launcher/return_io.py` | 48–49 | 48–48 | BEYOND |
 | `launcher/s1.py` | None. | 1–335 | BEYOND |
 | `launcher/trace_runtime.py` | 84–84 | 84–84 | BEYOND |
-| `kit/rebind.py` is new on Trinity. | None. | 1–322 | BEYOND |
-| `RUN.md` is new on Trinity. | None. | 1–81 | BEYOND |
+| `kit/rebind.py` is new on Trinity. | None. | 1–350 | BEYOND |
+| `RUN.md` is new on Trinity. | None. | 1–83 | BEYOND |
+| `out/OFFKIT_PINS.json` is new on Trinity. | None. | 1–8 | BEYOND |
 | `tests/checker_fixture.py` is new on Trinity. | None. | 1–10 | BEYOND |
 | `tests/line_capture.py` is new on Trinity. | None. | 1–22 | BEYOND |
 | `tests/parity_fixture.py` is new on Trinity. | None. | 1–18 | BEYOND |
 | `tests/rehearse.py` is new on Trinity. | None. | 1–130 | BEYOND |
 | `tests/test_admission.py` is new on Trinity. | None. | 1–89 | BEYOND |
-| `tests/test_rebind.py` is new on Trinity. | None. | 1–201 | BEYOND |
+| `tests/test_rebind.py` is new on Trinity. | None. | 1–275 | BEYOND |
 

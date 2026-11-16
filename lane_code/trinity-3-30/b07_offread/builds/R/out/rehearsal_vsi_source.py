@@ -78,9 +78,9 @@ def run(work,real_base=None,real_videos=False):
     config['bootstrap_parent']=str(work)
     sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'kit'))
     import rebind as B
-    binding=B.bind('vsibench5130' if ROOT.name=='vsi' else 'revsi999t32','step544','direct')
+    binding=B.bind('vsibench5130' if ROOT.name=='vsi' else 'revsi999t32','step544','direct', ledger=work/'official.jsonl')
     binding['export']=dict(kind='fixture',sha256=F.sha(ap),label='CPU fixture with synthetic answers')
-    binding['binding_sha256']=B.canonical({k:v for k,v in binding.items() if k!='binding_sha256'})
+    binding['binding_sha256']=B.binding_sha256(binding)
     config.update(x0=binding['binding_sha256'],x1=F.sha(ap),x2=0)
     config['plan_sha256']=L.canonical(config['spec'])
     boot['bootstrap/payload.tar.gz']=L.tar_bytes(payload)
@@ -144,7 +144,7 @@ def run(work,real_base=None,real_videos=False):
             try:
                 with redirect_stdout(log),redirect_stderr(log),patch.object(sys,'argv',['chain.py','--config',str(root/'bootstrap/CONFIG.json')]):
                     import gate
-                    gate.run(config,root)
+                    gate.run(json.loads((root/'bootstrap/CONFIG.json').read_text()),root)
                 self.returncode=0
             except BaseException:
                 import traceback

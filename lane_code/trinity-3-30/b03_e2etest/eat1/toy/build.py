@@ -17,6 +17,7 @@ VARIANTS = {
     'threshold': planted.ThresholdReader,
     'guard': planted.GuardReader,
     'cache': planted.CacheReader,
+    'head_method': planted.HeadMethodReader,
 }
 QUESTIONS = [('move', 'move|how far did the camera move from frame 1 to frame 2?'),
              ('depth', 'depth|how far is the centre of frame 1?')]

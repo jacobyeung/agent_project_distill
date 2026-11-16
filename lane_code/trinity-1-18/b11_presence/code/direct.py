@@ -5,6 +5,10 @@ thinking on), duplicate layout of the 32 K1 student anchors, media.kwargs, greed
 prefix caching off; budget arm B2048 by budget.classify/continuation (force-close after 2048 thinking tokens, 64 answer
 tokens); scoring.score_item. Frames come from the K1 capture's student_input PNGs (sha-checked), not the reader cache.
 Prompt parity: parity.compare on the first 16 items (pixels on the first 2), as the reader does.
+vLLM 0.23 shim: vLLM 0.23 replaces the whole '<|vision_start|><|video_pad|><|vision_end|>' with the per-frame expansion,
+while the trainer's HF processor (and so training) keeps that outer vision_start/vision_end pair. The engine prompt
+therefore wraps the placeholder in one extra pair so the engine's token ids equal the trainer's; parity.compare checks
+exact equality against parity.trainer_encode on every run. HF-side checks (cpu-check, pixel check) use the plain prompt.
 Journal: out/direct/journal.jsonl, one row per item, each bound (binding sha) to cell, checkpoint files, item and frames;
 resume accepts only complete rows with the current binding, repairs a torn final line (kept in journal.torn.<epoch>),
 and rejects malformed interior lines. Parity runs on the first 16 selected items on every invocation.
@@ -26,11 +30,24 @@ def sha_json(x):
     return hashlib.sha256(json.dumps(x, sort_keys=True).encode()).hexdigest()
 
 
+def file_sha(p):
+    h = hashlib.sha256()
+    with open(p, 'rb') as f:
+        for b in iter(lambda: f.read(1 << 24), b''):
+            h.update(b)
+    return h.hexdigest()
+
+
 def model_identity(model):
+    """sha256 of every file in the checkpoint folder (weights, config, tokenizer, processor, templates; the listing
+    itself records which optional files are absent); every shard named by the index must be present."""
     m = Path(model)
-    return {n: hashlib.sha256((m / n).read_bytes()).hexdigest()
-            for n in ('config.json', 'model.safetensors.index.json', 'tokenizer.json', 'chat_template.jinja',
-                      'preprocessor_config.json', 'video_preprocessor_config.json')}
+    ident = {p.name: file_sha(p) for p in sorted(m.iterdir()) if p.is_file()}
+    shards = set(json.loads((m / 'model.safetensors.index.json').read_text())['weight_map'].values())
+    missing = shards - set(ident)
+    if missing:
+        raise SystemExit(f'checkpoint shards missing: {sorted(missing)}')
+    return ident
 
 
 def binding_for(item, cap, ident):
@@ -43,10 +60,12 @@ def read_journal(journal):
     rows = {}
     if not journal.exists():
         return rows
-    lines = journal.read_bytes().split(b'\n')
+    raw = journal.read_bytes()
+    lines = raw.split(b'\n')
     if lines and lines[-1] == b'':
         lines = lines[:-1]
     good = []
+    unterminated = bool(raw) and not raw.endswith(b'\n')
     for i, line in enumerate(lines):
         try:
             r = json.loads(line)
@@ -64,6 +83,11 @@ def read_journal(journal):
         good.append(line)
         if r.get('status') == 'complete':
             rows[r['example_id']] = r
+    else:
+        if unterminated:
+            with open(journal, 'ab') as f:
+                f.write(b'\n')
+            print('terminated an unterminated final record', flush=True)
     return rows
 
 
@@ -82,10 +106,20 @@ def media(cap):
     return arrays, meta
 
 
-def request(processor, task, arrays, meta):
+PLACEHOLDER = '<|vision_start|><|video_pad|><|vision_end|>'
+
+
+def engine_prompt(text):
+    if text.count(PLACEHOLDER) != 1:
+        raise ValueError('expected exactly one video placeholder')
+    return text.replace(PLACEHOLDER, '<|vision_start|>' + PLACEHOLDER + '<|vision_end|>')
+
+
+def request(processor, task, arrays, meta, shim=False):
     from parity import prompt
     from media import kwargs
-    return dict(prompt=prompt(processor, task, CELL),
+    text = prompt(processor, task, CELL)
+    return dict(prompt=engine_prompt(text) if shim else text,
                 multi_modal_data={'video': [(arrays, {**meta, 'do_sample_frames': False})]},
                 mm_processor_kwargs=kwargs(len(arrays)))
 
@@ -158,7 +192,7 @@ def gpu_read(a):
     preqs, parity = [], []
     for t in ptasks:
         arrays, meta = media(caps[t['capture']])
-        preqs.append((request(processor, t, arrays, meta), arrays, meta))
+        preqs.append((request(processor, t, arrays, meta, shim=True), arrays, meta))
     first = llm.generate([q for q, _, _ in preqs], probe)
     for i, (t, (q, arrays, meta), r) in enumerate(zip(ptasks, preqs, first)):
         parity.append(compare(processor, llm.llm_engine, t, arrays, meta, r.prompt_token_ids, pixels=i < 2, cell=CELL))
@@ -173,7 +207,7 @@ def gpu_read(a):
     reqs = []
     for t in tasks:
         arrays, meta = media(caps[t['capture']])
-        reqs.append(request(processor, t, arrays, meta))
+        reqs.append(request(processor, t, arrays, meta, shim=True))
     for s in range(0, len(tasks), a.chunk):
         chunk_t, chunk_r = tasks[s:s + a.chunk], reqs[s:s + a.chunk]
         started = time.monotonic()
@@ -184,22 +218,24 @@ def gpu_read(a):
             c = o.outputs[0]
             ids = list(c.token_ids)
             row = {k: v for k, v in t.items()}
-            row.update(status='complete', binding=bind[t['example_id']], model=CELL['model'], cell=CELL['name'], vllm_version=vllm.__version__,
+            row.update(status='complete', binding=bind[t['example_id']], prompt_shim='vllm023_outer_vision_pair', model=CELL['model'], cell=CELL['name'], vllm_version=vllm.__version__,
                        raw_generation=c.text, token_ids_sha256=hashlib.sha256(json.dumps(ids).encode()).hexdigest(),
                        prompt_tokens=len(o.prompt_token_ids), finish_reason=c.finish_reason)
             row['full'] = score_item(t, c.text, len(ids), cap=CELL['max_tokens'], finish=c.finish_reason)
             meta = classify(tok, ids, BUDGET)
             row['B2048_meta'] = meta
             if meta['forced_close'] or meta['stopped_unclosed']:
-                creq, _ = continuation(tok, r, ids, BUDGET)
-                cont_idx.append(j); cont_req.append((creq, ids[:BUDGET]))
+                creq, tail = continuation(tok, r, ids, BUDGET)
+                cont_idx.append(j); cont_req.append((creq, ids[:BUDGET], tail))
                 row['B2048'] = None
             else:
                 row['B2048'] = row['full']
             rows.append(row)
         if cont_req:
-            cres = llm.generate([q for q, _ in cont_req], close_params)
-            for j, (q, pre), o in zip(cont_idx, cont_req, cres):
+            cres = llm.generate([q for q, _, _ in cont_req], close_params)
+            for j, (q, pre, tail), o in zip(cont_idx, cont_req, cres):
+                if list(o.prompt_token_ids)[-len(tail):] != tail:
+                    raise SystemExit('Continuation prompt token IDs differ from exact prefix + close: ' + chunk_t[j]['example_id'])
                 c = o.outputs[0]
                 if len(c.token_ids) > 64:
                     raise SystemExit('continuation exceeded 64 tokens')

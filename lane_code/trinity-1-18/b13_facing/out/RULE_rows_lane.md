@@ -5,7 +5,7 @@ The class table of the newest D0 milestone read (`out/m<step>/dev<step>.md`, 150
 
 ## Rule
 1. If F2 passes at the read (away lower bounds above 54/40/36, at most 20% of pairs answered alike, toward delta not below zero), keep D0's rows. No rendering is taken.
-2. Otherwise count the wrong away answers in classes a, b and c. Use ReVSI's counts when a ReVSI read exists (ReVSI ranks first, USER 2026-11-16); otherwise use the dev twins' counts.
+2. Otherwise count the wrong away answers in classes a, b and c on the dev twins at the newest D0 milestone. When b10_reserve's ReVSI-style questions on R0-dev rooms exist, they rank first, because ReVSI ranks first (USER 2026-11-16). Never read an official ReVSI or VSI-Bench result of a mid-leg export for this choice (ORCH RULING 1416Z, cont_ops); the official ReVSI tables exist only for step 544 and for the export the init rule selects.
 3. Take the rendering for the largest class: a -> `ra`, b -> `rb`, c -> `rc`.
 4. When the second class is within 3 items (ReVSI) or 10 items (dev) of the largest, take both renderings: a with b -> `rab`, a with c -> `rac`. When b and c tie, take `rc`, because its axis lines write the turned relation for hard and medium, where c occurs. A b-with-c form is not built.
 5. If class d (the forward relation is itself wrong) holds the most errors, no away rendering helps. Hand the case to the direction rows, since the toward twin fails too.

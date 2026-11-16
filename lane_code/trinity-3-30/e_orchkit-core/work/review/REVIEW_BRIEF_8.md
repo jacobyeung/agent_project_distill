@@ -1,0 +1,12 @@
+# Correctness review (read-only) of orchkit-core guards, round 7 (branch eff/orchkit-core, head 5b3301f2)
+
+Rules: read-only; no git, ssh, Slurm or network commands; no recursive search of /home or /data*. Read only /scratch/jjyeung/orch_n30/e_orchkit-core/repo/tools/orchkit/ and, in /scratch/jjyeung/orch_n30/e_orchkit-core/work/review/, your earlier verdicts VERDICT_1..6.json.md and the change diffs FIX_1..7.diff (FIX_7 is 9e1313f6..5b3301f2; it adds a per-partition lock around submission after your round-7 run showed two concurrent submissions to "general" both passing the one-job check). You may run `cd /scratch/jjyeung/orch_n30/e_orchkit-core/repo/tools/orchkit && TMPDIR=/scratch/jjyeung/orch_n30/e_orchkit-core/tmp /usr/bin/python3 -m unittest discover -s tests` and small python checks (TMPDIR as above, PYTHONPATH=/scratch/jjyeung/orch_n30/e_orchkit-core/repo/tools).
+
+Specification the guards must meet:
+1. Naming policy (anon.py, ANON_WORDS.txt): no listed word or cluster path may appear, by accident, in any file of a kit or in the job name, batch script, submission script, entry argv or environment, including inside standard containers (gzip, bz2, xz, zip, tar with header fields) and standard text encodings (UTF-8/16/32, JSON and Python escapes); a container Python cannot open is refused. Encodings our own code would have to invent on purpose are outside the specification.
+2. Job names (launch.mint_job_name): exactly a15_cot_ap plus 16 lowercase hex.
+3. Submission (launch.submit, rebuild, check_kit, build_submission, submit_script, live_check, claim_token, partition_lock): a job is sent only when a GO line names its token; at most once per token; not while another of our jobs is live on a one-job partition unless the GO says "queue behind" and names it; only with the bytes rebuilt from PREP/kit and PREP/JOB.json that match the token's minted ledger row; the remote script checks home and pool room before sbatch.
+
+Task: rerun your earlier reproductions OC-01..OC-21 and state for each whether the current head meets the specification; then report any other input the guards accept that the specification says they must refuse. Evidence bar: a minimal reproduction with its output; no style findings.
+
+Output (final message only): one `orchkit-verdict-v1` JSON object (reviewer_lane "codex_review_orchkit_core_8"; old ids with a "status" key in text; new ids from OC-22), then at most 10 lines of summary.

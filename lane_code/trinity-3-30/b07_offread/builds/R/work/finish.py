@@ -17,6 +17,7 @@ with tarfile.open(ROOT/'work/accepted_revsi.tar') as tf:
  base['revsi']={m.name:tf.extractfile(m).read() for m in tf if m.isfile()}
 assert sha(Path('/scratch/jjyeung/orch_n30/b07_offread/in/x27/kit/package.tar').read_bytes())=='f42aa1a4aec049e03a321e88ccd8a5004a3e95963b08f18242db625bdec95684'
 diffs=['# Changes against the accepted packages\n\nThe two tables cover every changed source line. The packet payloads, item inventories, step544 stager and scoring sources retain their accepted bytes. The new bootstrap checks authenticate the binding and require prompt parity before decoding. The D0 dispatcher stages media before the unchanged full checker needs its namespace bindings.\n\nPATH/ENV identifies only return-path substitutions and the Trinity package prefix. BEYOND identifies every other addition or removal. The complete line text appears in `out/SOURCE_vsi.patch` and `out/SOURCE_revsi.patch`; `out/SOURCE_DIFF.json` records the ranges and hashes. The new `RUN.md`, test files and this diff document are BEYOND in their entirety. This document excludes its own text from the patch to avoid self-reference.\n']
+diffs.append('\nThe launcher admits only init-rule candidates 200, 400, 600, 800 and 1000 and retains the reviewed `export_stage.parse_done` call. It verifies all six imported offkit modules against the shipped `out/OFFKIT_PINS.json` before import and every action. Reports use the verified binding, including its hashed frame layout. These launcher and manifest changes are BEYOND.\n')
 rows=[]
 for key in ('vsi','revsi'):
  new=getfiles(ROOT/'kit'/key)
@@ -37,7 +38,7 @@ for key in ('vsi','revsi'):
  wrapper=(ROOT/'kit/rebind.py').read_text().splitlines(True)
  diffs.append(f'| `kit/rebind.py` is new on Trinity. | None. | 1–{len(wrapper)} | BEYOND |\n')
  diff.extend(difflib.unified_diff([],wrapper,fromfile='/dev/null',tofile='kit/rebind.py',n=0))
- for name in ['RUN.md']+[str(p.relative_to(ROOT)) for p in sorted((ROOT/'tests').glob('*.py'))]:
+ for name in ['RUN.md','out/OFFKIT_PINS.json']+[str(p.relative_to(ROOT)) for p in sorted((ROOT/'tests').glob('*.py'))]:
   text=(ROOT/name).read_text().splitlines(True)
   diffs.append(f'| `{name}` is new on Trinity. | None. | 1–{len(text)} | BEYOND |\n')
   diff.extend(difflib.unified_diff([],text,fromfile='/dev/null',tofile=name,n=0))
@@ -62,7 +63,7 @@ words=sorted({w for r in name_rows for w in r['words']})
 # Merge source-line evidence, retaining process boundaries and source hashes.
 coverage=[]
 for key in ('vsi','revsi'):
- work=ROOT/'work'/('coverage_'+key)
+ work=ROOT/'work'/('fix1_'+key+'_done')
  result=json.loads((work/'RESULT.json').read_text())
  main=json.loads((OUT/('coverage_'+key+'_done.json')).read_text())
  pins=json.loads((OUT/('coverage_'+key+'_done_pins.json')).read_text())
@@ -93,11 +94,11 @@ for row in coverage:
 # Build flat regular-file archives; no inode reuse or tar hard-link entries are possible.
 shipped={}
 archives={}
-common=['kit/rebind.py','RUN.md','DIFF.md']+[str(p.relative_to(ROOT)) for p in sorted((ROOT/'tests').glob('*.py'))]
+common=['kit/rebind.py','RUN.md','DIFF.md','out/OFFKIT_PINS.json']+[str(p.relative_to(ROOT)) for p in sorted((ROOT/'tests').glob('*.py'))]
 for key in ('vsi','revsi'):
  files={**{name:(ROOT/name).read_bytes() for name in common},**{'kit/'+key+'/'+n:v for n,v in getfiles(ROOT/'kit'/key).items()}}
  path=OUT/('package_'+key+'.tar')
- with tarfile.open(path,'w',format=tarfile.PAX_FORMAT) as tf:
+ with tarfile.open(path,'x',format=tarfile.PAX_FORMAT) as tf:
   for name,raw in sorted(files.items()):
    m=tarfile.TarInfo(name);m.size=len(raw);m.mode=0o700 if name.endswith('.sh') else 0o644;m.mtime=0
    tf.addfile(m,io.BytesIO(raw));shipped[name]=sha(raw)
@@ -108,7 +109,10 @@ for key in ('vsi','revsi'):
   if name.endswith('.py'):compile(raw,name,'exec')
 (OUT/'SHIP_SHA256SUMS').write_text(''.join(h+'  '+n+'\n' for n,h in sorted(shipped.items())))
 (OUT/'PACKAGE_PINS.json').write_text(json.dumps(archives,indent=1)+'\n')
-(OUT/'OFFKIT_PINS.json').write_text(json.dumps({n:sha((Path('/scratch/jjyeung/orch_n30/b07_offread/kit/offkit')/n).read_bytes()) for n in ('bind.py','adapt_direct.py','report.py','spec.py')},indent=1)+'\n')
+pins=json.loads((OUT/'OFFKIT_PINS.json').read_text())
+assert set(pins)=={'bind.py','report.py','spec.py','adapt_direct.py','frames.py','__init__.py'}
+for n,h in pins.items():
+ assert sha((Path('/scratch/jjyeung/orch_n30/b07_offread/kit/offkit')/n).read_bytes())==h,n
 size=sum(p.stat().st_size for p in ROOT.rglob('*') if p.is_file() and not p.is_symlink())
 assert size<2_000_000_000,size
 print(json.dumps(dict(archives=archives,workspace_bytes=size,shipped_files=len(shipped)),indent=2))

@@ -1,6 +1,8 @@
 """Gate g of one rollout: grammar, provenance and counterfactual replay.
 
 g = 1 only when every check passes:
+  0. every <tool_response> span in the text is a response the decoder forced (rec['calls'], in
+     order, byte-equal): sampled pieces that spell the delimiters cannot fabricate a response;
   1. termination: the decoder ended on EOS, not on the sampled-token budget, a call limit,
      a tower failure or context exhaustion;
   2. layout and grammar: the sealed validator a41ba191 (vendored, pinned) accepts the
@@ -10,7 +12,8 @@ g = 1 only when every check passes:
        - program trace, numeric answer: a chain from printed response values through the
          trace's own explicit arithmetic lines (`a x b = c`) to the answer; every operand is a
          printed value, an earlier result, a unit-conversion constant or a question constant;
-       - program trace, option answer: nearest option to a derived value (numeric options),
+       - program trace, option answer: nearest option to the final derived value (numeric options;
+         its x1.37 replay must move the option),
          or argmin/argmax over printed gap distances (closest/farthest questions);
        - direct trace: the answer is not detached (a final statement naming another option,
          or a stated count different from the answer, fails);
@@ -80,6 +83,20 @@ def printed_values(body):
 def all_calls_failed(body):
     resps = [m.group(1) for m in RESPONSE.finditer(body)]
     return bool(resps) and all(FAILED_RESPONSE.search(r) for r in resps)
+
+
+def forced_mismatch(body, rec):
+    """Every <tool_response> span in the text must be a response the decoder forced, in order and
+    byte for byte (rec['calls'][i]['response']); sampled sub-word pieces can spell the delimiters."""
+    spans = [m.group(1).strip('\n') for m in RESPONSE.finditer(body)]
+    calls = rec.get('calls') or []
+    if len(spans) != len(calls):
+        return 'response_not_forced'
+    if any(span != str(c.get('response', '')) for span, c in zip(spans, calls)):
+        return 'response_not_forced'
+    if calls and 'r' not in (rec.get('kinds') or 'r'):
+        return 'response_not_forced'
+    return None
 
 
 def outside_responses(body):
@@ -249,19 +266,16 @@ def program_option(body, prompt, answer):
         printed, nodes, value, errors = derive(body, prompt.get('question', ''))
         if errors:
             return errors, None
-        for node in reversed(nodes):
-            if not uses_printed(node):
-                continue
-            x = value(node)
-            pick = min(numeric, key=lambda kv: abs(kv[1] - x))[0]
-            if pick == answer:
-                xs = value(node, SCALE)
-                if min(numeric, key=lambda kv: abs(kv[1] - xs))[0] == answer and len(numeric) > 1:
-                    # scaled witness lands on the same option: try each other option's value
-                    if all(min(numeric, key=lambda kv: abs(kv[1] - v))[0] == answer for _, v in numeric):
-                        return ['replay_invariant'], None
-                return [], dict(kind='nearest_numeric_option')
-        return ['answer_not_projected_from_printed_values'], None
+        # Only the final derived value projects to an option; its scaled replay must move the option.
+        final = next((node for node in reversed(nodes) if uses_printed(node)), None)
+        if final is None:
+            return ['answer_not_projected_from_printed_values'], None
+        nearest = lambda x: min(numeric, key=lambda kv: abs(kv[1] - x))[0]  # noqa: E731
+        if nearest(value(final)) != answer:
+            return ['answer_not_projected_from_printed_values'], None
+        if nearest(value(final, SCALE)) == answer:
+            return ['replay_invariant'], None
+        return [], dict(kind='nearest_numeric_option')
     return ['unsupported_projection:categorical_option'], None
 
 
@@ -281,6 +295,9 @@ def gate(prompt, rec, scored, *, allow_stated_option=False):
         text, body, tail, form = split(rec['text'])
     except ValueError as exc:
         return dict(g=0, form=None, recovery=False, reasons=reasons + [str(exc)], provenance=None)
+    mismatch = forced_mismatch(body, rec)
+    if mismatch:
+        reasons.append(mismatch)
     if reasons:
         return dict(g=0, form=form, recovery=False, reasons=reasons, provenance=None)
     qtype = prompt['type']

@@ -89,7 +89,7 @@ def scene_facts(rs, ds, V):
         onset = min(seen) if seen else None
         clean = onset is not None and all(valid[p - 1] for p in range(1, onset)) and \
             all(rs['share'].get(i, {}).get(p, 0) < ONSET_EPS for i in ids for p in range(1, onset))
-        cats[cat] = dict(plural=plural(cat), n=len(ids), insts=insts, allvis=all(x[1] is not None for x in insts), onset=onset, clean=clean)
+        cats[cat] = dict(plural=plural(cat), n=len(ids), insts=insts, allvis=all(x[1] is not None and all(valid[p - 1] for p in range(1, x[1])) for x in insts), onset=onset, clean=clean)
     return cats, why
 
 def base_row(alias, si, qt, qid, q, opts, ans, target, prov):

@@ -30,13 +30,8 @@ def verdict(c):
     return dict(sealed_refused=sealed, reviewed_refused=reviewed)
 
 
-def restore_verdict(c, receipt):
-    with capture(c):
-        _recorder.record(**receipt['gravity_verdict'])
-
-
 def write_report(out):
-    # Reports are refreshed on resume; capture receipts remain the authority.
+    # Reports use verdicts validated during conversion or cache reload.
     (Path(out) / 'GUARD_REPORT.json').write_text(json.dumps(GG.report(), indent=2) + '\n')
 
 
@@ -54,8 +49,7 @@ def check_receipt(c, dest, receipt):
         if (refusal != dict(code=CODE, message=CODE) or receipt.get('geometry') is not None
                 or not votes['reviewed_refused'] or (dest / 'geometry.npz').exists()):
             raise ValueError('Cache geometry refusal differs')
-        if 'REFUSED_GEOMETRY.npz' in receipt['files']:
-            names.add('REFUSED_GEOMETRY.npz')
+        names.add('REFUSED_GEOMETRY.npz')
     else:
         if votes['reviewed_refused'] or not receipt.get('geometry'):
             raise ValueError('Cache geometry verdict differs')
@@ -75,11 +69,9 @@ def convert(c, boundary, dest, tower_root, own_root, progress):
             if str(error) != CODE or not _recorder.records.get(('K1', c['canonical']), (False, False))[1]:
                 raise
             # The sealed converter writes before validating. Preserve that evidence
-            # under a non-loadable name; no geometry.npz is admitted for this capture.
-            names = ['candidates.json', 'parity_raw.jsonl']
-            if (dest / 'geometry.npz').exists():
-                (dest / 'geometry.npz').rename(dest / 'REFUSED_GEOMETRY.npz')
-                names.append('REFUSED_GEOMETRY.npz')
+            # under a distinct name; no geometry.npz is admitted for this capture.
+            names = ['candidates.json', 'parity_raw.jsonl', 'REFUSED_GEOMETRY.npz']
+            (dest / 'geometry.npz').rename(dest / 'REFUSED_GEOMETRY.npz')
             source = Path(tower_root) / B.digest(c['canonical'])[:16]
             for name in ('candidates.json', 'parity_raw.jsonl'):
                 shutil.copyfile(source / name, dest / name)

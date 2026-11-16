@@ -4,7 +4,7 @@ C8r fails EAT-1. It fails A2 dynamically on the tiny CPU model, and it fails A1,
 
 Code under test: code_c8r.tar (sha256 f4535bc0…, unpacked at `work/c8r_src`), and the sealed tree b01ce449 audit copy at `work/audit_copies/tree_b01ce449`. Its 792 files match RUNTIME_TREE.json. `tree:` paths below are relative to the tree, and `c8r:` paths to `native/out2/`. The allowlist is `eat1/allowlist.json`, PROPOSED and not yet reviewed. It applies USER ruling 5 (ORCH 1155Z): the fixed-math allowance covers unprojection and printing head outputs as text, so unit conversion or answer reformatting outside the model fails.
 
-## 1. Dynamic run: tiny CPU model (`work/c8r_tiny/run5/EAT1_REPORT.md`)
+## 1. Dynamic run: tiny CPU model (`work/c8r_tiny/run6/EAT1_REPORT.md`)
 The adapter `eat1/adapters/c8r_tiny.py` calls `evalpath.runtime.generate(model, processor, batch, 'routed', 16384)`, the entry C8r's routed and nomdg readers use. It runs on the tree's own tiny Qwen3.5 + CarrierC1 fixture (`tests/test_batched_routed_decode.fixture`). Items cover 6 types × 2 seeds: depth_at+dist, move, turn, pose, ground and direct. A fixed program module on `lm_head` stands in for trained LM weights. It writes no response token.
 
 | Clause | Status | Evidence |

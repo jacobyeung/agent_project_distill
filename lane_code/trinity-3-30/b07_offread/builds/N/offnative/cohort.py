@@ -2,7 +2,7 @@
 import hashlib
 import json
 import re
-from .paths import REVSI
+from .paths import REVSI, VSI
 from .io import load
 from offkit.report import ReadMode, check_cohort, index, key
 from offkit.spec import subtype_group
@@ -15,9 +15,9 @@ def questions(path):
     return [{k:r[k] for k in SAFE if k in r} for r in raw]
 
 def cohort(benchmark):
-    if benchmark != 'revsi999t32':
-        raise ValueError('VSI-Bench integration is not completed in this build')
-    q = questions(REVSI / 'inputs/i1.json')
+    if benchmark not in ('revsi999t32','vsibench5130'):
+        raise ValueError('unknown benchmark')
+    q = questions(REVSI/'inputs/i1.json' if benchmark=='revsi999t32' else VSI/'cohort/meta_5130.jsonl')
     mode = ReadMode(benchmark, 'harness')
     check_cohort(mode, q)
     index(q, 'cohort')
@@ -54,6 +54,15 @@ def media302(items):
                 source=p.get('source'), source_evidence='REVSI_PUSH_FILES.json' if p else None,
                 upload_required=True, status='hash_required' if p else 'manifest_entry_and_hash_required'))
     return out
+
+
+def media_manifest(benchmark, items):
+    if benchmark=='revsi999t32':return media302(items)
+    entries=load(VSI/'cohort/MEDIA_MANIFEST.json')
+    expected={r['dataset']+'/'+r['scene_name']+'.mp4' for r in items}
+    if len(entries)!=288 or {r['relative_path'] for r in entries}!=expected:
+        raise ValueError('VSI-Bench media membership differs')
+    return [dict(r,bytes=r.get('bytes'),status='bytes_required' if not r.get('bytes') else 'pinned') for r in entries]
 
 def operands(question):
     # This covers the official absolute-distance template, without guessing unmatched text.

@@ -4,6 +4,8 @@ from .worker import merge
 from offkit import report as R
 
 def report(binding, cohort, returned, out, *, fixture=False, repetitions=10000):
+    if binding['reader']['kind']=='harness' and binding.get('read_config',{}).get('g3t',{}).get('source') not in ('clip32','original'):
+        raise ValueError('harness report lacks a bound G3T source')
     complete = load(returned/'COMPLETE.json')
     if not complete.get('complete') or bool(complete.get('fixture')) != fixture:
         raise ValueError('return is incomplete or fixture status differs')
@@ -21,8 +23,7 @@ def report(binding, cohort, returned, out, *, fixture=False, repetitions=10000):
     for arm in binding['arms']:
         records = merge(ids, [rows(returned/(arm+'.jsonl'))])
         rep = R.aggregate(mode, cohort, records, repetitions=repetitions)
-        export = binding['export'] if not fixture else dict(binding['export'], kind='fixture')
-        rep = R.label_report(rep, reader=binding['reader'], export=export, arm=arm, role=arm,
+        rep = R.label_report(rep, binding=binding, arm=arm, role=arm,
                              arm_label='Synthetic CPU fixture; not a benchmark result.' if fixture else None)
         rep['binding_sha256'] = binding['binding_sha256']
         source = binding.get('read_config',{}).get('g3t',{})
@@ -30,7 +31,9 @@ def report(binding, cohort, returned, out, *, fixture=False, repetitions=10000):
             from .source import CLIP_LABEL
             rep['g3t_source'] = CLIP_LABEL
             # offkit owns the label and report format.
-            rep = R.label_report(rep, reader=binding['reader'], export=export, arm=arm, role=arm,
+            if not fixture:
+                raise ValueError('clip32 is diagnostic only; claimed reports are refused')
+            rep = R.label_report(rep, binding=binding, arm=arm, role=arm,
                                  arm_label=CLIP_LABEL+('; Synthetic CPU fixture; not a benchmark result.' if fixture else ''))
         reports[arm] = R.write(rep, out, arm)
     return reports

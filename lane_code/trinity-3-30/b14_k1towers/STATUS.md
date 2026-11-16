@@ -1,4 +1,4 @@
-# b14_k1towers STATUS (Devin successor lane on trinity-3-30; updated 2026-11-16T13:25Z)
+# b14_k1towers STATUS (Devin successor lane on trinity-3-30; updated 2026-11-16T14:08Z)
 Goal: queue brief briefs/qs/14_geo_towers_k1.md: price 4 kit towers (MoGe-2, MapAnything, DA3, Pi3X) on K1 under the C-rule with E3's harness.
 ## Done (Claude lane, 11:43-12:00Z)
 - Prereg note: distill_design/GEO_TOWERS_K1_PREREG_20261116.md, sha256 dd40e6d26a723300547c84b72add275bd2488993c2f70cd1b64fba7ae29b5c88 (copy in k1towers/). No INDEX line yet.
@@ -11,13 +11,15 @@ Goal: queue brief briefs/qs/14_geo_towers_k1.md: price 4 kit towers (MoGe-2, Map
 - CPU pi3x at 64 frames: impossible (asked for 427 GB). Added k1_infer --smoke-anchors N (diagnostic, output must be under /smoke; original kept at work/k1_infer.py.claude_orig); pi3x smoke at 16 anchors in tmux b14 window smoke_pi3x -> geo_k1/smoke/pi3x, logs/smoke_pi3x.log.
 - CPU first passes all done (pred_cpu/{moge2,mapanything,da3}, smoke/pi3x): AbsRel MoGe-2 0.089, DA3 0.055, MapAnything 0.340 raw/0.040 aligned (GT/pred 0.75), Pi3X 0.023 (16 anchors). Relative anchor rotation vs GT ~10-12 deg for every joint tower and G3T alike (capture-level, not a convention error; k1towers/pose_check.py).
 - QUESTION event 20261116T1258Z_QUESTION_gpu_card_and_review.md asks for ORCH_CARD (2 cards ~6 h) and a reviewer. Default: no GPU until an ORCH_CARD note arrives.
+- MoGe-2 GPU pass DONE 13:57Z (300/300, 7 s/capture) -> 1-18 geo_k1/pred_gpu/moge2. Converted (282 written; 18 refused 'reference_camera_up_opposes_gravity', the same captures E3's S4+G1 refuses) -> geo_k1/geom/moge2_{scale,depth}; priced -> harness/out_moge2/captures; merged with out_ref -> harness/out_merged_m; train tables geo_k1/out/decide_train_moge2.json.
+- K1 TRAIN (S4+G1 reference; held-out unread): distance moge2_scale 73.53 vs S4+G1 67.36, paired +6.17 [+3.92,+8.73]; moge2_depth +4.97 [+2.52,+7.58]; GT 82.30. Room R0 moge2_scale 61.18 vs 56.27, +4.91 [-2.06,+11.88] (guard needs >= -2); moge2_depth+R0 70.64 (+14.36); SO+G1+R0 76.91.
 ## In flight
-- MoGe-2 GPU pass: trinity-1-13 card 4 (ORCH_CARD 20261116T1318Z_ORCH_CARD_trinity-1-13_4.md; empty readings 13:14:45Z and 13:22:21Z), tmux b14_moge2 under vnice, launched 13:22Z, ~7 s/capture, 300 captures, ETA ~14:00Z. Stage /dev/shm/jjyeung/b14 (14 GB; see REMOVAL_CANDIDATES.md); outputs /dev/shm/jjyeung/b14/out/moge2/<digest16>/{pred.npz,DONE.json}, progress.jsonl; log logs/run_moge2.log (ends 'EXIT n'). Launch script work/scripts/launch13_moge2.sh, stage script stage13_run.sh (from 1-18).
-- Codex review DONE: codex_runs/20261116T131340Z_b14_k1t_review/final_message.md: FAIL, all 4 blocking items in decide.py (regex/rounding/zero guard/winner rule); should-fix: candidate R2 fits missing; note: E3 edit A drops refused captures from S1's median. No blocking item in k1_infer/k1_convert/k1_price.
+- DA3 GPU pass on 1-13 card 4, tmux b14_da3 under vnice, launched 13:58Z, 9 s/capture, ETA ~14:45Z; outputs /dev/shm/jjyeung/b14/out/da3; log logs/run_da3.log. Stage now 21 GB (ORCH 1327Z allows 20.8 GB peak).
+- Codex review3 of final decide.py + merge_caps.py (codex_runs/*_b14_k1t_review3).
+- QUESTION 20261116T1405Z_QUESTION_mapanything_pi3x_stage.md (default: nothing more on 1-13 after DA3; wait for a 1-18 card or ORCH note).
 ## Next steps
-1. Fix decide.py (full-precision bootstrap identical to agg.py, per-type winner, G3T ties, None checks) and add candidate R2 fits; re-review that file only.
-2. When MoGe-2 finishes: pull out/moge2 to 1-18 geo_k1/pred_gpu/moge2 over IB; on 1-13 remove assets/moge2 (ORCH 1318Z swap), stage assets/da3 from 1-18 (peak 19.7 GB), launch DA3 on card 4 (header MODEL=da3 in launch13_tmpl.sh).
-3. On 1-18: k1_convert per model -> geo_k1/geom/<arm>; k1_price --no-reference? no: full run with all arms -> harness/out_k1t/captures; decide.py train only.
+1. When DA3 ends: pull /dev/shm/jjyeung/b14/out/da3 to 1-18 geo_k1/pred_gpu/da3 (pull_moge2.sh with moge2->da3), then price118_tmpl.sh MODEL=da3, merge (out_ref + out_moge2 + out_da3), decide train.
+2. On 1-18 per model: work/scripts/price118_tmpl.sh with MODEL=<m> header (k1_convert -> geo_k1/geom/<arm>; k1_price --no-reference 4 shards -> harness/out_<m>/captures). Then merge_caps.py harness/out_merged harness/out_ref/captures harness/out_<m>/captures...; decide.py train only.
 4. MapAnything (needs kit out/sources/dinov2_pin.json staged) and Pi3X (64 frames, check GPU memory) after DA3, card permitting.
 5. Held-out only after an ORCH note with 'GO heldout'. Then design record + INDEX line, mirror, RESULT.
 ## Open questions / defaults

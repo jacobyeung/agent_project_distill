@@ -1,0 +1,50 @@
+{
+  "arms": [
+    "primary"
+  ],
+  "benchmark": "revsi999t32",
+  "benchmark_label": "ReVSI official999, tier 32",
+  "binding_sha256": "43deb728a6a216303dac8d6bd81aa3d308efe844d616b78e8ab813bad150f043",
+  "budget": "B2048 primary; native reads 2,048 + 64 tokens (pre-registration, fixed without re-selection)",
+  "export": {
+    "kind": "fixture",
+    "label": "CPU fixture with synthetic answers",
+    "sha256": "37d797a97e4be7d4498fbe956c931582a07f5138a213665e059fdaaf8d5da571"
+  },
+  "frame_path": "PyAV rgb24, 32 floor-uniform anchors k*(N-1)//31 for k in 0..31, PyAV rgb24 at stream fps, layout duplicate",
+  "frames": {
+    "anchor_rule": "k*(N-1)//31 for k in 0..31, PyAV rgb24 at stream fps",
+    "count": 32,
+    "layout": "duplicate",
+    "layout_override_reason": null,
+    "processor_frames": 64,
+    "temporal_groups": 32,
+    "trained": {
+      "count": 32,
+      "layout": "duplicate"
+    }
+  },
+  "groups": [
+    "object_counting",
+    "object_rel_direction",
+    "object_rel_distance",
+    "object_size_estimation",
+    "route_planning"
+  ],
+  "items": 679,
+  "mode": "production",
+  "reader": {
+    "direct_kit": {
+      "accepted_return_sha256": "785a097ff750fc3d82a5ffd18cb299527fbe1e207d5166c86326edddd21c2036",
+      "job": 170037,
+      "kit": "ea1a1b2d5b965017f7cacce9c02c13cbbe5522d87be8cc55ab755176ecd55d3b"
+    },
+    "eat1": {
+      "note": "direct reader: no call is served; EAT-1 concerns served calls",
+      "passed": null
+    },
+    "id": "direct kit ea1a1b2d",
+    "kind": "direct"
+  },
+  "schema": "offkit-binding-v1"
+}

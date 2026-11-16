@@ -1,0 +1,7 @@
+# Re-review 4 (read-only): orchkit-core fixes for OC-01..OC-14 (branch eff/orchkit-core, head cb6a5f04)
+
+Same rules as before: read-only; no git, ssh, Slurm or network; no recursive search of /home or /data*. Read only /scratch/jjyeung/orch_n30/e_orchkit-core/repo/tools/orchkit/, your verdicts /scratch/jjyeung/orch_n30/e_orchkit-core/work/review/VERDICT_{1,2,3,4}.json.md, and the fix diffs FIX_1.diff to FIX_4.diff in the same folder (e263c512..9d58cab7..7a3a4cf8..4601700f..cb6a5f04). You may run `cd /scratch/jjyeung/orch_n30/e_orchkit-core/repo/tools/orchkit && TMPDIR=/scratch/jjyeung/orch_n30/e_orchkit-core/tmp /usr/bin/python3 -m unittest discover -s tests` and your reproductions (TMPDIR as above, PYTHONPATH=/scratch/jjyeung/orch_n30/e_orchkit-core/repo/tools).
+
+Task: rerun the reproduction of each of OC-01..OC-14 against the current head and state fixed or not fixed with the output. Then look for verified defects introduced by FIX_4.diff, and for any remaining way, within the first review's scope (anon.py + ANON_WORDS.txt, launch.mint_job_name, launch.submit with submit_script and live_check, the prepare-to-submit path, and pins.check_single_place as prepare uses it), for a byte to reach the batch host unchecked or for a job to be submitted without a GO naming its token. Same evidence bar: a minimal reproduction with its output.
+
+Output (final message only): one `orchkit-verdict-v1` JSON object (reviewer_lane "codex_review_orchkit_core_5"; old ids with a "status" key in text, new ids from OC-15), then at most 10 lines of summary.

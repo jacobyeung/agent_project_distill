@@ -4,7 +4,7 @@ read.py calls this through one small interface).
     gen = E2EGenerator(model, processor, artifact, perception, hook, read_config)
     out = gen(item)        # item: {'id', 'row' (trainer row with frames + question), 'frames'}
     out -> {'id', 'text', 'tokens', 'finish', 'calls', 'audit', 'seconds', 'heads', 'scale',
-            'guard_verdicts', 'frames': {'layout', 'count'}}
+            'frames': {'layout', 'count'}}
 
 The generator writes no answer: the scored answer is the model's own text (USER 2026-11-16:
 the model converts units and formats numbers in its CoT; no reader post-processes them).

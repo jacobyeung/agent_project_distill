@@ -122,8 +122,8 @@ class Policy(unittest.TestCase):
             self.read(bank,caller_catalog_pin=bank[1])
         _, receipt=self.read(bank, freeze_pin=self.freeze)
         self.assertEqual(receipt['required_scores'],['all','without_venue_381879'])
-        P.require_scores(receipt, dict(all=dict(by_asked_unit={'distance':{'m':dict(count=1,score=0)}}),
-                                       without_venue_381879=dict(by_asked_unit={'distance':{'m':dict(count=0,score=None)}})))
+        P.require_scores(receipt, dict(all=dict(by_asked_unit={'distance':[dict(unit='m',count=1,score=0)]}),
+                                       without_venue_381879=dict(by_asked_unit={'distance':[dict(unit='m',count=0,score=None)]})))
         with self.assertRaises(ValueError): P.require_scores(receipt, dict(all=0))
         for denied in ['STI-Bench','ReSTI','MindCube','unknown']:
             with self.assertRaisesRegex(ValueError,'outside'):

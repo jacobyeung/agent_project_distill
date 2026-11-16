@@ -1,5 +1,6 @@
 {
- "tests": 18,
+ "tests": 32,
+ "offkit_tests": 49,
  "accepted": {
   "vsibench5130": {
    "items": 4008,
@@ -9,7 +10,7 @@
     0.6652883247661289,
     0.7097730303847354
    ],
-   "first_line": "READER direct [direct kit f42aa1a4]; EAT-1 NOT RUN for this reader; EXPORT step544 sha256 1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef; BENCHMARK VSI-Bench official 5,130; ARM primary (primary); direct-only: routed types not read",
+   "first_line": "READER direct [direct kit f42aa1a4]; EAT-1 NOT RUN for this reader; MODE production; EXPORT step544 sha256 1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef; BENCHMARK VSI-Bench official 5,130; FRAMES 32 duplicate; BINDING 0cc205859f21; ARM primary (primary); direct-only: routed types not read",
    "float_order_check": {
     "tolerance": 1e-12,
     "corrections": [
@@ -78,7 +79,7 @@
     0.6125632874246052,
     0.6838746053521584
    ],
-   "first_line": "READER direct [direct kit ea1a1b2d]; EAT-1 NOT RUN for this reader; EXPORT step544 sha256 1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef; BENCHMARK ReVSI official999, tier 32; ARM primary (primary); direct-only: routed types not read",
+   "first_line": "READER direct [direct kit ea1a1b2d]; EAT-1 NOT RUN for this reader; MODE production; EXPORT step544 sha256 1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef; BENCHMARK ReVSI official999, tier 32; FRAMES 32 duplicate; BINDING 446a2d6b7689; ARM primary (primary); direct-only: routed types not read",
    "float_order_check": {
     "tolerance": 1e-12,
     "corrections": [
@@ -173,14 +174,14 @@
     }
    },
    "full_checker_status": "VERIFIED",
-   "return_bytes": 45889,
+   "return_bytes": 45804,
    "fetch": {
-    "return_dir": "/scratch/jjyeung/orch_n30/b07_offread/builds/R/work/coverage_vsi/packet/fetched/return"
+    "return_dir": "/scratch/jjyeung/orch_n30/b07_offread/builds/R/work/fix1_vsi_done/packet/fetched/return"
    },
    "reports": {
-    "B2048": "13f5371b1a85e05cbc16d9e3b5269a0763c825f4f146a6c5a6c586c814e814c1",
-    "B4096": "774c3016e6a30a820055d86dfcda65fb3ac2754328792191f299861115001394",
-    "ON16k": "7c41bf89d201faab376a8a1ef19deca6e40ad270dfebdf4035bca434bc8916df"
+    "B2048": "6bde3b9b042cf0cae73cfcb27a0389c62a5aa52d93ea6ff528a597ae7dcb3156",
+    "B4096": "cfa898799c9d46d38d4d7d3c9677829e6c9fc6feba2e22db5c2933eb9377354e",
+    "ON16k": "0221f8eb91748f8fc1311af5d212ddc286a9bd96f28b854140ee4a72e3331d14"
    },
    "fixture_only": true
   },
@@ -222,16 +223,52 @@
     }
    },
    "full_checker_status": "VERIFIED",
-   "return_bytes": 234141,
+   "return_bytes": 234061,
    "fetch": {
-    "return_dir": "/scratch/jjyeung/orch_n30/b07_offread/builds/R/work/coverage_revsi/packet/fetched/return"
+    "return_dir": "/scratch/jjyeung/orch_n30/b07_offread/builds/R/work/fix1_revsi_done/packet/fetched/return"
    },
    "reports": {
-    "B2048": "4a5ffdf8d43a773711bf5610b02923aeb02129235f4fc3c1140dc1c947431cf7",
-    "B4096": "5f0a787ea1e7a06f03218d970ad7e450131156f215a42e7a7fe6d5b5c0066a0f",
-    "ON16k": "8a065178f879ea6e52449783ca1831c26edbdc9455e6b997bb07aa5814a3ee30"
+    "B2048": "d6921377846bbf30cc44f0df73f5a7db90d69928d155da3fe308abd0d05986c9",
+    "B4096": "f1606cb54a435b19cb3d531b8411f51909b18ef70fcb1ed140f0bd1cc98abd92",
+    "ON16k": "eea6de299ee7c8c08ccb8b98e7e42bf46bc3e4e0f961e1afd61b6145bc68342b"
    },
    "fixture_only": true
   }
+ },
+ "step544_rehearsals": {
+  "vsi": {
+   "passed": true,
+   "fixture_decoded_items": 14,
+   "fetch": {
+    "return_dir": "/scratch/jjyeung/orch_n30/b07_offread/builds/R/work/fix1_vsi_step544/packet/fetched/return"
+   },
+   "reports": {
+    "B2048": "575aaad487b47dfcdc38711d92ea45ba0eb4e4f3f24eab4ec1e339f57db724bc",
+    "B4096": "02ea6a0cdf02aa4009de9da3337eff6a3e8a1ebe0560cda2639bdc8fec291eee",
+    "ON16k": "a79e0b3669e6aae8283ab43fdc6a3e1c243218d10a33108098e5ea58e87e19c7"
+   },
+   "fixture_only": true
+  },
+  "revsi": {
+   "passed": true,
+   "fixture_decoded_items": 10,
+   "fetch": {
+    "return_dir": "/scratch/jjyeung/orch_n30/b07_offread/builds/R/work/fix1_revsi_step544/packet/fetched/return"
+   },
+   "reports": {
+    "B2048": "20599a2965adb9d4a3a1a1e2846e6c885281f96b49cacee8fe6478a9f93c7cc9",
+    "B4096": "be1adec417896ce6f1db3772a41c03ce303e3b867ee5b6cad84cbf31fc1582c4",
+    "ON16k": "c514ace571dd9d332192711c4af17288e5cba4cd684786dc7f1bde87fba3eebf"
+   },
+   "fixture_only": true
+  }
+ },
+ "offkit_pins": {
+  "__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "adapt_direct.py": "667b19b9dc4b8c6572fd19e6eb71a9cb466a6ec1165957895dab9986b19c1128",
+  "bind.py": "bd74a97f3363404a71d7fa25f8ef86d871af6d4831ccb48017ce647fbd3d02a4",
+  "frames.py": "d6e3d55020322258235d9741ff931cf448a48a7c66e1a5a58ee0bfe6a8e9ccca",
+  "report.py": "2656c0532e98eb7530b31392efbc94527f2db88ece3adb47b58ce2d51124ecfc",
+  "spec.py": "539a67a31eff6741f5a76e7c78723d5ab6e61eca6f88f43a4fcd1fee51208532"
  }
 }

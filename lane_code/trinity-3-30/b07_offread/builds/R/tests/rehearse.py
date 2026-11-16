@@ -51,9 +51,9 @@ if key=='vsi':
  source=source.replace("(chain,'utility',utility),(A,'EXPORT_SHA'", "(chain,'utility',utility),(A,'HERE',package/'reader'),(A,'EXPORT_SHA'")
 source=source.replace("    config.update(x0='a'*64,x1=F.sha(ap),x2=0)", '''    sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'kit'))
     import rebind as B
-    binding=B.bind('vsibench5130' if ROOT.name=='vsi' else 'revsi999t32','step544','direct')
+    binding=B.bind('vsibench5130' if ROOT.name=='vsi' else 'revsi999t32','step544','direct', ledger=work/'official.jsonl')
     binding['export']=dict(kind='fixture',sha256=F.sha(ap),label='CPU fixture with synthetic answers')
-    binding['binding_sha256']=B.canonical({k:v for k,v in binding.items() if k!='binding_sha256'})
+    binding['binding_sha256']=B.binding_sha256(binding)
     config.update(x0=binding['binding_sha256'],x1=F.sha(ap),x2=0)''')
 # Rehearsal provenance remains outside the submitted CONFIG.
 source=source.replace("    F.js(work/'RESULT.json',result)","""    result['config_mode']=config['mode']

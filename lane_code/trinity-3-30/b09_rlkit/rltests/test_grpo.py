@@ -27,7 +27,8 @@ def rollouts(tmp, backend, draws=4):
 
 def with_grpo(model, **grpo_settings):
     """Production recipes weigh routing 1 (kit b02e4385); the tiny fixture's recipe weighs it 0."""
-    model.recipe = {**model.recipe, 'weights': {**model.recipe['weights'], 'routing': 1.}, 'grpo': grpo_settings}
+    model.recipe = {**model.recipe, 'weights': {**model.recipe['weights'], 'routing': 1.},
+                    'grpo': {'temperature': TEMP, **grpo_settings}}
     return model
 
 
@@ -144,14 +145,22 @@ class Rows(unittest.TestCase):
             self.assertGreater(float(model(plain, stream='routing')['components']['routing']), 0.)
 
     def test_mask_outside_labels_refused(self):
+        model = with_grpo(copy.deepcopy(self.backend.model))
         b = pg_batch(self.backend, self.head, 1.)
         b['aux_pg_mask'][0, 3] = True
-        with self.assertRaises(ValueError):
-            self.backend.model(b, stream='routing')
+        with self.assertRaisesRegex(ValueError, 'without a label'):
+            model(b, stream='routing')
         partial = dict(b)
         partial.pop('aux_ref_logp')
-        with self.assertRaises(ValueError):
-            self.backend.model(partial, stream='routing')
+        with self.assertRaisesRegex(ValueError, 'every field'):
+            model(partial, stream='routing')
+
+    def test_temperature_mismatch_refused(self):
+        model = with_grpo(copy.deepcopy(self.backend.model), temperature=0.7)
+        b = pg_batch(self.backend, self.head, 1.)
+        with self.assertRaisesRegex(ValueError, 'another temperature'):
+            model(b, stream='routing')
+        self.assertEqual(grpo_loss.SETTINGS['temperature'], sampler.SAMPLING_DEFAULTS['temperature'])
 
     def test_exact_resume(self):
         rows = [r for g in self.groups.values() for r in g if 's' in r['kinds']][:2]

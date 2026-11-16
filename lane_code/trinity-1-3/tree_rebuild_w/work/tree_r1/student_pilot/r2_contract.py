@@ -6,6 +6,7 @@ from pathlib import PurePosixPath
 import re
 from .p3_provenance import digest, load, pinned
 from .r2_grammar import PROGRAM_TYPES, validate_direct, validate_program
+from .r2_units import ROOM, asked_unit
 
 CONTRACT = 'next-leg-r2-v1'
 def init_identity(value):
@@ -141,19 +142,18 @@ def validate(row, stream, expected=None, require_frames=False):
             if kind in PROGRAM_TYPES or row.get('tool_output_spans') or row.get('routing'):
                 raise ValueError('Program-type row offered as direct')
             answer = validate_direct(row['target'], inputs['question'], len(inputs['frames']))
-            if kind in ('room_size_estimation', 'absolute_size_room'):
+            if kind in ROOM:
                 prose = row['target'].split('</think>', 1)[0]
                 if re.search(r'converting|conversion|Step: compute|\d+(?:\.\d+)?\s*(?:square|sq\.?|m\^?2|ft\^?2)', prose, re.I):
                     raise ValueError('Direct room trace must remain qualitative without area or conversion')
             if answer.removeprefix('<answer>').removesuffix('</answer>') != str(row['answer']):
                 raise ValueError('Answer differs from target')
-            if kind in ('room_size_estimation', 'absolute_size_room', 'object_size_estimation', 'camera_object_abs_distance', 'object_counting'):
+            if kind in (*ROOM, 'object_size_estimation', 'camera_object_abs_distance', 'object_counting'):
                 numeric = answer.removeprefix('<answer>').removesuffix('</answer>')
                 if not re.fullmatch(r'\d+(?:\.\d+)?', numeric):
                     raise ValueError('Numeric direct type needs a numeric final answer')
             unit = row.get('answer_unit')
-            if unit and kind in ('room_size_estimation', 'absolute_size_room'):
-                from .r2_units import asked_unit
+            if unit and kind in ROOM:
                 if unit != asked_unit(dict(question_type=kind, student_input=inputs)):
                     raise ValueError('Wrong-unit target')
             if unit and unit not in {'m': ('m', 'meters', 'metres'), 'cm': ('cm', 'centimeters', 'centimetres'),

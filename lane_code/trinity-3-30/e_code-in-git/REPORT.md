@@ -60,7 +60,7 @@ I swapped in the new `B/tools/lane_code_sync.sh` (the file at b84804e, unchanged
 I also removed the false refusal line from `/scratch/jjyeung/distill_sync/PUSH_REFUSED.txt`; the copy before the edit is `PUSH_REFUSED.txt.prev_20261116T1233Z`.
 
 ## Not proven
-- The full hourly run with the new step, which follows the `lane-code` push. Only `--queue-only` has run live; the first full run is at 13:26Z.
+(Proven since: the full hourly run at 13:26Z verified `lane-code` 09130505, then the queue step pushed 4 heads, ending `END ok` at 13:27:50Z.)
 - A restore from GitHub over the network.
 - The `cpu_skip` list comes from audit section 5. I did not run the student, materialize or collector directories hermetically, so some listed paths may pass now that the plugin sets the output variables.
 - `requirements-cpu.txt`: nothing is installed or built. p1cpu already has av 15.1.0 and peft 0.20.0, so the audit's missing list was too long.

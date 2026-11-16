@@ -115,7 +115,7 @@ class Build6(unittest.TestCase):
 
     def test_direct_square_feet_and_inches(self):
         root=directory()
-        for unit,asked,kind in [('ft2','square feet','room_size_estimation'),('ft2','square feet','absolute_size_room'),('in','inches','object_size_estimation')]:
+        for unit,asked,kind in [('ft2','square feet',name) for name in U.ROOM]+[('in','inches','object_size_estimation')]:
             row=fixture(root,qid=unit);question='What is the room size in '+asked+'?' if unit=='ft2' else 'How wide is the sofa in inches?'
             row.update(question_type=kind,question=question,answer_unit=unit,answer='12')
             row['student_input']['question']=question
@@ -138,15 +138,25 @@ class Build6(unittest.TestCase):
                dict(question_type='room_size_estimation',question='What area in square metres?',score=8),
                dict(question_type='object_counting',question='How many?',score=10)]
         result=U.score_by_unit(items)
-        self.assertEqual(list(result['distance']),['m','ft'])
-        self.assertEqual(list(result['room']),['m2','ft2'])
-        self.assertEqual(result['distance']['m'],dict(count=1,score=4))
+        self.assertEqual([row['unit'] for row in result['distance']],['m','ft'])
+        self.assertEqual([row['unit'] for row in result['room']],['m2','ft2'])
+        self.assertEqual(result['distance'][0],dict(unit='m',count=1,score=4))
         for kind in U.DISTANCE:
             self.assertEqual(U.score_by_unit([dict(question_type=kind,question='How far in metres?',score=4)]),
-                             {'distance':{'m':dict(count=1,score=4)}})
+                             {'distance':[dict(unit='m',count=1,score=4)]})
         receipt=dict(required_scores=['all','without_venue_381879'],metric_units=U.metric_units(items))
         values={k:dict(by_asked_unit=result) for k in receipt['required_scores']}
         self.assertEqual(P.require_scores(receipt,values),values)
+        from student_pilot.p3_provenance import load
+        path=directory()/'scores.json';write(path,values)
+        self.assertEqual(P.require_scores(receipt,load(path)),values)
+        bad=deepcopy(values)
+        bad['all']['by_asked_unit']['distance']=list(reversed(bad['all']['by_asked_unit']['distance']))
+        with self.assertRaisesRegex(ValueError,'metres first'):P.require_scores(receipt,bad)
+        bad=deepcopy(values);bad['all']['by_asked_unit']['distance'][0]['score']=float('nan')
+        with self.assertRaisesRegex(ValueError,'finite'):P.require_scores(receipt,bad)
+        bad['all']['by_asked_unit']['distance'][0].update(count=0,score=None)
+        self.assertEqual(P.require_scores(receipt,bad),bad)
         with self.assertRaises(ValueError):P.require_scores(receipt,{k:1 for k in values})
         for question in ('How far in centimetres?','How far in inches?'):
             self.assertIn(U.asked_unit(dict(question_type='object_abs_distance',question=question)),('cm','in'))

@@ -15,7 +15,8 @@ for p in sorted(T.rglob('*.py')):
              'Recovery mutation checks exercise the native refusal OFF and the packet refusal ON.',
              'The qualified-name fixture retains its OFF refusal and tests the earlier exact-name refusal ON.',
              'The validation fixture retains its nonmutation check and authenticates the implicit heading threshold added by the accepted identity contract.',
-             'Synthetic metric bank entries include their asked unit and both required score views include per-unit results.',
+             'The memory fixture retains the legacy configuration and FP32 output hashes, and checks ON threshold binding plus explicit OFF identity semantics.',
+             'Synthetic metric bank entries include their asked unit; both score views use ordered unit rows that preserve order under native serialization.',
              'The packet changes its two legacy test files verbatim, as authenticated by the patch manifest.',
              'New tests cover next-leg input, unit, admission, runtime and score requirements.'],
     assertions_dropped=False),indent=2)+'\n')

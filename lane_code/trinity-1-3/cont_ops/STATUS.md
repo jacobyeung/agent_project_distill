@@ -1,4 +1,16 @@
-# cont_ops6 STATUS (trinity-1-3; session start 09:45Z, rotate by 14:40Z; updated 2026-11-16T10:05Z; successor: read this, then the newest *_ORCH_* and RESULT events)
+# cont_ops7 STATUS (trinity-1-3; cont_ops7 took over 14:08Z from cont_ops6; successor: read this, then the newest *_ORCH_* and RESULT events)
+
+## cont_ops7 now (newest first)
+- 14:24Z: step 113 (14:15Z), ~132 s/step, healthy; m200 expected ~17:35Z. m400 stop-rule read PREPARED: token a44f1ef1706 (c6/TOKEN_m400, readk/kit/build/a44f1ef1706, LEDGER line). Submit at m400 .done with `bash work/d0/jobB/c6/subread.sh a44f1ef1706 2026-11-17T06:00:00`; f1f2 --step 400 --prev <m200 ITEMS>.
+- Governed fetch helpers (for returns >=20 MB; launcher fetch then raises TransferRegistrationRequired and prints the ssh command, writing fetched/EXIT.json): work/d0/gf/gpull.py LANE BYTES DEST/fetched/result.tar.gz -- <argv of printed command without '> file'> (root python stops itself, runs argv as child; ratelimit member; register tier 3 pull 8 MB/s io-weight 1; renames record .done); then work/d0/gf/post.py DEST (R.verify, extract to fetched/x, FETCH.json). Dry-tested mechanics 14:15Z (no registration).
+- 14:15Z: QUESTION build_R_refuses_midleg_m400 sent (d0_ended + one-D0-export ledger guard; default: no ReVSI m400 via build R until ruled).
+- 14:08Z: took over. cont6_watch still polling (ends ~15:21Z). Owed: restart watch as cont7_watch at ~15:21Z; check build R per-item output vs revsi400/paired.py before m400; m200 submit at .done (~17:40-17:50Z).
+
+## ORCH NOTE 1342Z (amends the 1156Z order; copied for successors)
+When D0's first allocation ends (~06:25Z 11-17), check events/h1_headsft/ for a H1-1 KIT READY event that has a review GO and a passed CPU first batch.
+- If it exists, do NOT submit D0's second allocation. Keep the end slot and write a RESULT; h1_headsft submits H1-1 on advanced. D0 resumes from its end slot after H1-1 (~8-10 h).
+- If it does not, submit D0's second allocation as ordered.
+A STOP verdict under the stop rule still wins.
 
 ## ORCH ORDER 1156Z (inherited by every successor; copied verbatim)
 - When the first 24 h leg of 170111 ends (USR1 ~06:25Z 11-17, end slot saved), submit the second 24 h allocation from the end slot (GCS fallback if the Orchard project filesystem is full) WITHOUT waiting for ORCH, UNLESS f1f2.py's mechanical verdict under distill_design/D0_STOP_RULE_20261116.md (as amended) says STOP at a read already taken. A STOP verdict: submit nothing, write a RESULT, keep the end slot.
@@ -18,7 +30,10 @@
 - If build R is not GO by the time the m400 export lands, tell ORCH; then revsi400 gets its review.
 - Build R: lane folder /scratch/jjyeung/orch_n30/b07_offread on trinity-1-3 (kit/offkit; mirror trinity-1-18:/scratch/jjyeung/n30_mirror/b07_offread/b07_mirror_1235Z.tar sha 0bddb861); events/b07_offread/ for its GO and package path. Before m400: check that revsi400/paired.py (--current = packet from revsi400/unpack_result.py, ea1a1b2d per-item format) accepts build R's per-item output; if not, one small Codex adapter with tests.
 
-## cont_ops6 now (newest first; updated 13:14Z)
+## cont_ops6 now (newest first; updated 14:06Z)
+- SUCCESSOR FIRST: the watch loop tmux `cont6_watch` (work/d0/jobB/c6/loop7.sh, 10-min q3.sh polls) ends by itself near 15:21Z; restart it with `tmux new -d -s cont7_watch "bash /scratch/jjyeung/orch_n30/cont_ops/work/d0/jobB/c6/loop7.sh"` (30 polls = 5 h). `bash work/d0/jobB/c6/tick.sh` prints a digest (new ORCH events, review_d0r files, latest poll, last metrics row, free space).
+- 14:02Z: step 103, about 132 s/step, all losses finite (VQA 0.078, pose 0.154, pointing 0.364, routing 0.0002). m1 10:02:26Z, m50 12:03:57Z, m100 13:56:15Z uploaded (.done present). m100 read SKIPPED per ORCH 1221Z. Expected: m200 about 17:40Z, m400 about 00:55Z Nov 17, USR1 06:25Z Nov 17 near step 515.
+- Owed next: m200 read submit (see "m200 PREPARED" below), its f1f2.py verdict to ORCH as a RESULT; at m400 the stop-rule read (prepare a fresh token, --prev the m200 ITEMS), then the ReVSI m400 read with build R (ORCH 1305Z); at leg end the second-allocation decision (ORCH 1156Z + 1342Z).
 - 13:05Z MIRROR: confirmed read kit (readk incl. prepared builds ae3be05b81a, a4cadd8934b; excl. evidence/test_*, chain_*) = work/d0/snap/readk_confirmed_1300Z.tar and trinity-0-13:/scratch/jjyeung/n30_mirror/cont_ops/readk_confirmed_1300Z.tar, both sha256 6db5bb7e (over ib0).
 - 13:00Z RESULT revsi400_kit SENT: work/d0/revsi400/ built (Codex done ~12:58Z), 106 tests OK on my rerun (evidence/cont6_rerun_tests.log); pins evidence/FINAL_PINS.json 8f1faf79, paired.py dd3213bf, orchard_launcher.py 59bafe82; proof 21 min + production 25 min afterok; commands REPORT.md. FALLBACK ONLY per ORCH 1305Z (no review ordered).
 - m200 PREPARED 12:31Z: token a4cadd8934b (c6/TOKEN_m200), readk/kit/build/a4cadd8934b/. Submit at once when $KB/o/gcs_359fcc3c_m200.done exists (~17:50Z; general is ours from 17:30Z per ORCH 1102Z): `bash work/d0/jobB/c6/subread.sh a4cadd8934b 2026-11-17T06:00:00`; if it exits 9 (a job of mine still on general), check squeue -p general and write a BLOCKER. Then RESULT with job id; when returns arrive, fetch per REPORT.md (governor for >=20 MB), `f1f2.py --step 200 --a evidence/A544.jsonl --b ITEMS.jsonl`, RESULT with verdict to ORCH before anyone acts.

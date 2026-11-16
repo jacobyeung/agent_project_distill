@@ -44,6 +44,8 @@ class Worker:
             raise ValueError('runtime synthetic status differs from the worker mode')
         if (binding['mode'] == 'fixture') != fixture:
             raise ValueError('fixture binding cannot become a production read')
+        if not fixture and binding['read_config']['g3t'].get('source')=='clip32':
+            raise ValueError('clip32 is diagnostic only; claimed reads are refused')
         if config.get('binding_sha256', config.get('x0')) != binding['binding_sha256']:
             raise ValueError('worker config names another binding')
         self.mode = ReadMode(binding['benchmark'], binding['reader']['kind'])

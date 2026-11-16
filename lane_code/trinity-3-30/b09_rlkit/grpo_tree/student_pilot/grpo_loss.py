@@ -16,7 +16,8 @@ Every aux_pg_mask position must be a supervised label position (labels != -100);
 spans are already -100 in routing rows, so they never enter the loss.
 
 Settings come from the model recipe's `grpo` block (inside the run configuration hash):
-  clip_low 0.2, clip_high 0.2, kl_beta 0.04, temperature 1.0, norm 'token'
+  clip_low 0.2, clip_high 0.2, kl_beta 0.04, temperature 0.7 (the sampler default), norm 'token'
+  aux_pg_temperature [B] float must equal the setting: the rows' sampling temperature
   norm 'token': sum over the microbatch's PG tokens / their count;
   norm 'seq'  : mean over rows of each row's token mean (rows with no PG token weigh zero).
 The temperature must equal the sampler's, and aux_old_logp must be the tempered log prob the
@@ -24,8 +25,8 @@ sampler recorded (logp_tempered), so the ratio starts at 1 on the export that sa
 """
 import torch
 
-SETTINGS = dict(clip_low=0.2, clip_high=0.2, kl_beta=0.04, temperature=1.0, norm='token')
-FIELDS = ('aux_pg_advantage', 'aux_pg_mask', 'aux_old_logp', 'aux_ref_logp', 'aux_pg_reserved')
+SETTINGS = dict(clip_low=0.2, clip_high=0.2, kl_beta=0.04, temperature=0.7, norm='token')  # temperature = the sampler's
+FIELDS = ('aux_pg_advantage', 'aux_pg_mask', 'aux_old_logp', 'aux_ref_logp', 'aux_pg_reserved', 'aux_pg_temperature')
 
 
 def settings(recipe):
@@ -91,6 +92,8 @@ def loss_from_logits(logits, labels, valid, batch, recipe):
     """Loss over the forward's supervised positions. `logits` are the lm_head outputs at
     `valid` positions (the forward's own memory-saving gather); labels/valid are already shifted."""
     s = settings(recipe)
+    if (batch['aux_pg_temperature'].float() - s['temperature']).abs().max() > 1e-6:
+        raise ValueError('GRPO rows were sampled at another temperature than the loss uses')
     mask = batch['aux_pg_mask'][:, 1:].bool()
     if (mask & ~valid).any():
         raise ValueError('aux_pg_mask marks a position without a label (prompt or tool response)')

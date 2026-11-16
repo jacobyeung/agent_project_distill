@@ -58,7 +58,7 @@ def describe(result, observations, positions):
 def main():
     eps=verify_manifest(read_json(OUT/'lists/val_unseen_600_s0.json'),load_split('val_unseen'))
     prior={r['episode_id']:r for r in read_json(OUT/'tables/oracle-click_val_unseen_600_s0.json')['results']}
-    env=Environment(Config(output_format='click')); policy=ObservedClick(env); runner=Runner(env)
+    env=Environment(Config(output_format='click',controller_version='v1')); policy=ObservedClick(env); runner=Runner(env)
     details=[]
     for i,e in enumerate(eps):
         r=runner.episode(e,policy)

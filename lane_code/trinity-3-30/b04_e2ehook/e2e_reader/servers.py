@@ -2,9 +2,7 @@
 formatter (fixed math: transforms, norms, rounding); values come from this read's tensors."""
 from copy import deepcopy
 
-from .geometry import camera_geometry, no_guard
-
-ERROR_SUFFIX = '; answer directly from the video'
+from .geometry import camera_geometry
 
 
 class ReadServers:
@@ -27,11 +25,9 @@ class ReadServers:
         session = self.session
         session.registry = self.registry
         try:
-            with no_guard():
-                text = session.execute(call)
+            text = session.execute(call)
         except ValueError as exc:
-            return ('error: ' + str(exc) + ERROR_SUFFIX,
-                    dict(kind='error', code=str(exc), spec_version=session.spec_version, direct_answer_fallback=True))
+            return ('error: ' + str(exc), dict(kind='error', code=str(exc), spec_version=session.spec_version))
         self.registry._points = session.registry._points
         session.registry = self.registry
         kind = 'gap' if call.startswith('<gap') else 'ground' if call.startswith('<ground') else 'keypoint'

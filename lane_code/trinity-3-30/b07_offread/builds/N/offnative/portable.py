@@ -1,12 +1,12 @@
 """Assemble relative source roots and an opaque reviewable worker packet."""
 from pathlib import Path
 import json
-from .paths import ROOT,OFFKIT,R,C8,V1,REVSI,B04,TREE
+from .paths import ROOT,OFFKIT,R,C8,V1,REVSI,VSI,B04,TREE
 from .io import load,sha,dump,digest
 from .transport import packet
 
 ROOTS={'OFFKIT':'d/00','R':'d/01','C8':'d/02','V1':'d/03','REVSI':'d/04',
-       'B04':'d/05','TREE':'d/06','RET544':'a/00','TOKENIZER':'a/01'}
+       'B04':'d/05','TREE':'d/06','VSI':'d/07','RET544':'a/00','TOKENIZER':'a/01'}
 
 
 def sources():
@@ -16,10 +16,10 @@ def sources():
         import hashlib
         pins.append({'logical_path':target,'sha256':hashlib.sha256(raw).hexdigest(),'bytes':len(raw)})
     for p in sorted((ROOT/'offnative').glob('*.py')):add(p,'offnative/'+p.name)
-    for p in sorted((OFFKIT/'offkit').glob('*.py')):add(p,'d/00/offkit/'+p.name)
-    add(R/'kit/rebind.py','d/01/kit/rebind.py')
-    for p in sorted((R/'kit/revsi/launcher').glob('*')):
-        if p.is_file() and p.suffix in ('.py','.json'):add(p,'d/01/kit/revsi/launcher/'+p.name)
+    # offkit stays owner-supplied: import it unchanged; never copy or fork it.
+    for p in sorted((R/'kit').rglob('*')):
+        if p.is_file() and p.suffix in ('.py','.json','.jsonl','.sh'):add(p,'d/01/kit/'+str(p.relative_to(R/'kit')))
+    add(R/'out/OFFKIT_PINS.json','d/01/out/OFFKIT_PINS.json')
     for p in sorted(C8.glob('*.py')):add(p,'d/02/'+p.name)
     for name in ('RUNTIME_TREE.json','CAMERA_SHORTCUTS.json'):
         add(C8/name,'d/02/'+name)
@@ -29,6 +29,12 @@ def sources():
     for p in sorted((REVSI/'reader/evaluator').rglob('*.py')):add(p,'d/04/reader/evaluator/'+str(p.relative_to(REVSI/'reader/evaluator')))
     for p in sorted((B04/'e2e_reader').glob('*.py')):add(p,'d/05/e2e_reader/'+p.name)
     for name in sorted(load(C8/'RUNTIME_TREE.json')['sources']):add(TREE/name,'d/06/'+name)
+    for name in ('REGISTERED_FRAME_INDICES.json','REGISTERED_FRAME_INDICES_PIN.json',
+                 'REVSI_DENSE_MAPPING.json','REVSI_MEDIA_MANIFEST.json','VSI_COHORT.json',
+                 'VSI_MEDIA_MANIFEST.json','VSI_NAME_INVENTORY.json','OFFKIT_EXTERNAL_PINS.json'):
+        if (ROOT/'out'/name).exists():add(ROOT/'out'/name,'out/'+name)
+    for root in (R,C8,V1,B04,TREE):
+        add(root/'PIN.json','pins/'+root.name+'.json')
     return files,{'schema':'orchkit-pins-v1','entries':pins}
 
 
@@ -42,7 +48,7 @@ def build(destination,config,binding,items,inputs):
         inputs=dict(inputs,reviewed_stage_config='work/runtime/bootstrap/CONFIG.json')
     # The full operator BINDING.json stays local. The worker receives a minimal read spec.
     spec={'schema':'orchkit-read-v1','x0':binding['binding_sha256'],
-          'benchmark_code':0,'reader_code':int(binding['reader']['kind']=='e2e'),
+          'benchmark_code':int(binding['benchmark']=='vsibench5130'),'reader_code':int(binding['reader']['kind']=='e2e'),
           'mode_code':{'fixture':0,'proof':1,'production':2}[binding['mode']],
           'export':{'kind':binding['export']['kind'],'sha256':binding['export']['sha256']},
           'frames':binding['read_config']['frames'],'g3t':binding['read_config']['g3t'],

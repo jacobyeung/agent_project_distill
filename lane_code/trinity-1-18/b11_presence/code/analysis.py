@@ -308,14 +308,30 @@ def cluster_boot(rooms, diffs, draws=10000, seed=0):
     return float(np.mean(diffs)), float(np.percentile(est, 2.5)), float(np.percentile(est, 97.5))
 
 
-def load_direct(path):
-    out = {}
-    if path and Path(path).is_file():
-        rows, _ = jsonl_rows(path)
-        for r in rows:
-            if r.get('status') == 'complete' and isinstance(r.get('score'), (int, float)) and math.isfinite(r['score']):
-                out[r['example_id']] = r
-    return out
+def load_direct(path, items, caps, model):
+    """Complete direct rows that carry the binding direct.py computes for this item, checkpoint and frames, a B2048
+    score in [0, 1] equal to the top-level score, and the direct cell name; rejected rows are counted by reason."""
+    out, rejected = {}, defaultdict(int)
+    if not (path and Path(path).is_file()):
+        return out, dict(rejected)
+    sys.path.insert(0, str(Path(__file__).parent))
+    import direct as D
+    ident = D.model_identity(model)
+    want = {i['id']: D.binding_for(i, caps[i['capture']], ident) for i in items if i['capture'] in caps}
+    rows, _ = jsonl_rows(path)
+    for r in rows:
+        if r.get('status') != 'complete':
+            rejected['not_complete'] += 1; continue
+        k = r.get('example_id')
+        if k not in want:
+            rejected['unknown_item'] += 1; continue
+        if r.get('binding') != want[k] or r.get('cell') != D.CELL['name']:
+            rejected['binding'] += 1; continue
+        b = (r.get('B2048') or {}).get('score')
+        if not (isinstance(b, (int, float)) and math.isfinite(b) and 0 <= b <= 1 and r.get('score') == b):
+            rejected['score'] += 1; continue
+        out[k] = r
+    return out, dict(rejected)
 
 
 def item_scores(item, caps, arm_logits, head, tau, consts, direct):
@@ -444,7 +460,7 @@ def price_phase(a):
     caps = {k: c for k, c in load_captures(a.prep).items() if c['split'] == 'heldout'}
     items = [i for i in load_items(a.prep) if i['split'] == 'heldout']
     logits, timing, problems = load_logits(a.journals, caps)
-    direct = load_direct(a.direct)
+    direct, rejected = load_direct(a.direct, items, caps, a.model)
     heads = {arm: (Head.from_frozen(d), d['tau']) for arm, d in fz['arms'].items()}
     lt, ln = fz['constant']['letter'], fz['constant']['count']
     arms = {}
@@ -479,6 +495,7 @@ def price_phase(a):
     report = dict(phase='price', frozen_sha256=sha_file(out / 'FROZEN.json'), frozen=dict(primary_arm=primary,
                   cv_train_exact=fz['cv_train_exact']), arms=arms, summary=summary, decision=decision,
                   heldout_pairs={arm: len(v) for arm, v in logits.items()}, direct_rows=len(direct),
+                  direct_rejected=rejected,
                   problems={k: len(v) for k, v in problems.items()}, timing=summarize_timing(timing))
     (out / 'ANALYSIS_heldout.json').write_text(json.dumps(report, indent=1, sort_keys=True) + '\n')
     with open(out / 'ANALYSIS_heldout.items.jsonl', 'w') as f:
@@ -504,6 +521,7 @@ if __name__ == '__main__':
     ap.add_argument('--journals', default=str(LANE / 'out/journals'))
     ap.add_argument('--direct', default=str(LANE / 'out/direct/journal.jsonl'))
     ap.add_argument('--out-dir', default=str(LANE / 'out/analysis'))
+    ap.add_argument('--model', default=str(LANE / 'work/model_m544'), help='checkpoint the direct rows must be bound to')
     ap.add_argument('--read-heldout', action='store_true', help='price held-out items from FROZEN.json (after review GO)')
     a = ap.parse_args()
     print(json.dumps(price_phase(a) if a.read_heldout else fit_phase(a)))

@@ -8,7 +8,7 @@ EAT-1 is built and passes its CPU tests. It fails C8r on A1, A2, A3, A4 and A5. 
 - `scan.py` + `allowlist.json` form the static scanner: table loads, data-file names, numeric constants, thresholds, unit conversion, guards, status literals, except-substitutes, caches, and responses written outside a module. `closure.py` computes a reader's static import closure.
 - `artifact.py` holds the `eat1-artifact-v1` manifest: files by sha256 and role, and modules by path and role.
 - `adapters/`: `c8r_tiny.py` and `gf1_tiny.py` (tree tiny fixtures, CPU) and `c8r_native.py` (the real C8r no-MDG reader, GPU, untested).
-- `toy/` holds the clean toy reader plus five planted violations. `tests/test_eat1.py` has 16 tests; the latest run is `Ran 16 … OK` in 24 s (`work/test_run_4.log`). Run: `cd L && EAT1_TMP=$L/work/tmp /scratch/jjyeung/envs/p1cpu/bin/python -m unittest eat1.tests.test_eat1`.
+- `toy/` holds the clean toy reader plus six planted violations (the brief's five plus a threshold hidden in a head-class method). `tests/test_eat1.py` has 16 tests; the latest run is `Ran 16 … OK` in 20 s (`work/test_run_5.log`). Run: `cd L && EAT1_TMP=$L/work/tmp /scratch/jjyeung/envs/p1cpu/bin/python -m unittest eat1.tests.test_eat1`.
 
 ## Brief tests
 | Brief requirement | Test | Result |
@@ -27,7 +27,7 @@ EAT-1 is built and passes its CPU tests. It fails C8r on A1, A2, A3, A4 and A5. 
 ## For the refute review: interpretations to check against the user's wording
 1. A3 fixed math follows USER ruling 5 (ORCH 1155Z): unprojection, rigid transforms, norms and min/argmin, and printing head outputs as text. Unit conversion and answer reformatting fail. The allowlist keeps 0, ±1, 2, 3, 4, 0.5 and π, plus `round(x, n)` precision.
 2. `if <test>: raise` validation is exempt: it refuses the item with an error and writes no token. A caught error that becomes a response still fails A4.
-3. Findings inside methods of declared head, tower and connector classes count as model code; they are listed and do not fail. Call-handler classes and the root model class are never exempt. Open question: could a call handler hide inside a head's method?
+3. Plain constants (A3.constant) inside methods of declared head, tower and connector classes count as model code: they are listed and do not fail. Thresholds, tables, guards, statuses and caches in those methods still fail; the planted `head_method` variant (a threshold in `RulePerception.adjust`) fails A3 in the tests. Call-handler classes and the root model class are never exempt. Residual hole: a fitted multiplier written as a plain constant in a head method passes.
 4. `ClipCache` (GF-1, a per-row memo of the live tower forward) is flagged as A5.cache. Should it pass A5 (iii)?
 5. A1 for an export that leaves out the frozen tower: it passes when the claimed manifest lists the pinned tower weights by sha256.
 6. A2 counts response tokens written from Python outside a registered module as injected, even when they print head outputs exactly. This follows the brief's "a module registered on the model writes the response".

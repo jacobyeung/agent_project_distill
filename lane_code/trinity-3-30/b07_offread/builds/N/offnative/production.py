@@ -29,7 +29,7 @@ class Runtime:
     synthetic=False
     def __init__(self,root,items,binding,inputs):
         self.root=owned(root);self.items=items;self.binding=binding;self.inputs=inputs
-        if self.root.exists() and set(p.name for p in self.root.iterdir())!={'bootstrap'}:
+        if self.root.exists() and not (self.root/'STAGE_READY.json').exists() and set(p.name for p in self.root.iterdir())!={'bootstrap'}:
             raise ValueError('runtime directory already used')
         self.root.mkdir(parents=True,exist_ok=True)
         self.device=inputs.get('device','cuda:0')
@@ -44,8 +44,13 @@ class Runtime:
                 stage_config['x1']!=self.binding['export']['sha256']):
             raise ValueError('reviewed stage plan names another binding/export')
         L=r_launcher().launcher(self.binding['benchmark'])
-        result=stage_reviewed(self.root,stage_config,L.J.physical)
-        extra=stage_files(self.inputs['extra_files'],self.root/'extra')
+        ready=load(self.root/'STAGE_READY.json')
+        if (ready['x0']!=self.binding['binding_sha256'] or ready['x1']!=self.binding['export']['sha256'] or
+                ready['config_sha256']!=sha(self.inputs['reviewed_stage_config']) or
+                ready['staging_sha256']!=sha(self.root/'STAGING.json') or
+                ready['extra_sha256']!=sha(self.root/'extra/STAGED.json')):
+            raise ValueError('outer staging receipt differs')
+        result=load(self.root/'STAGING.json');extra=load(self.root/'extra/STAGED.json')
         # Models are loaded only after the reviewed full export admission succeeds.
         if self.kind=='harness':
             self.model,self.processor,self.model_info=load_model(self.inputs['config'],
@@ -65,31 +70,41 @@ class Runtime:
         from .source import bind_source
         from .cohort import name_inventory,operands
         P=install();kit,_=P.cache_tools()
-        if self.kind=='harness' and bound['count']!=32:
+        if bound['count']!=32:
             raise ValueError('C8r current frame/cache contract requires 32 anchors')
         self.store=self.root/'frames';self.store.mkdir()
         self.sampled={};self.captures={};self.tasks=[];self.dense={};self.provenance=[]
         inventory=name_inventory(self.items)
         if inventory['unresolved']:raise ValueError('question operands unresolved')
         media={r['relative_path']:r for r in self.inputs['media']}
-        mapping=load(self.inputs['original_mapping'])['clips'] if self.inputs.get('original_mapping') else {}
+        mapping={}
+        if self.binding['benchmark']=='revsi999t32' and self.binding['read_config']['g3t']['source']=='original':
+            path=self.inputs['original_mapping']
+            if sha(path)!=self.binding['read_config']['g3t']['mapping_sha256']:
+                raise ValueError('original mapping differs from the bound source')
+            mapping=load(path)['clips']
         for scene,names in inventory['names'].items():
             dataset,scene_name=scene.split(':',1)
-            media_name=scene_name+'.mp4';entry=media[media_name]
+            media_name=(dataset+'/' if self.binding['benchmark']=='vsibench5130' else '')+scene_name+'.mp4';entry=media[media_name]
             video=Path(self.inputs['media_root'])/(entry['sha256']+'.mp4')
             if sha(video)!=entry['sha256']:raise ValueError('media content differs')
             frames,receipt=sample(video,bound)
             anchors=frames[::2] if bound['layout']=='duplicate' else frames
             indices=receipt['indices'];dense_images=list(anchors);dense_indices=list(indices);slots=list(range(32))
-            if self.kind=='harness' and self.binding['read_config']['g3t']['source']=='original':
+            if self.binding['read_config']['g3t']['source']=='original' and self.binding['benchmark']=='vsibench5130':
+                from .frames import aligned_dense
+                dense_images,dense_indices,slots=aligned_dense(video,indices,receipt['total'])
+            elif self.binding['read_config']['g3t']['source']=='original':
                 from .frames import selected
                 record=mapping[media_name]
                 if record['clip_sha256']!=sha(video):raise ValueError('original mapping names another clip')
-                original=Path(self.inputs['original_root'])/record['path']
+                original=self.root/'revsi_media'/record['path']
                 if sha(original)!=record['original_sha256']:raise ValueError('original video hash differs')
-                dense_indices=record['dense_indices'];slots=record['anchor_slots']
+                # Geometry uses positions in the official 64-frame clip. Registered
+                # source-video indices may repeat for a short original video.
+                dense_indices=record['dense_decode_indices'];slots=record['anchor_slots']
                 dense_images=selected(original,dense_indices)
-                indices=record['anchor_indices']
+                indices=slots
             ff=[];dd=[]
             for index,image in zip(indices,anchors,strict=True):
                 import io,hashlib
@@ -112,8 +127,9 @@ class Runtime:
                      phrases=sorted({kit.normalize_phrase(n) for n in names}))
             self.captures[scene]=cap;self.dense[scene]={'frames':dd,'anchor_slots':slots}
             # E2E owns its tower invocation. Its frames use the same model anchors.
-            self.sampled[scene]=dict(native_frames=[Image.fromarray(a) for a in anchors],
-                                    dense_indices=indices,anchor_indices=indices,anchor_slots=list(range(bound['count'])))
+            self.sampled[scene]=dict(native_frames=[Image.fromarray(a) for a in dense_images],
+                                    model_frames=[Image.fromarray(a) for a in anchors],
+                                    dense_indices=dense_indices,anchor_indices=indices,anchor_slots=slots)
             for item in self.items:
                 if item['dataset']+':'+item['scene_name']!=scene:continue
                 task=dict(item,native=scene,scene=scene,options=item.get('options',[]))

@@ -1,0 +1,420 @@
+--- a/student_pilot/carrier_c1.py
++++ b/student_pilot/carrier_c1.py
+@@ -504,6 +504,11 @@
+                 components['depth'], components['depth_fov'] = self.auxiliary_heads.depth(batch, targets, fov=fov)
+                 metrics['depth_absrel'] = getattr(self.auxiliary_heads.depth, 'last_absrel', None)
+         elif stream == 'routing':
++            if targets is not None and targets.get('h1_pose'):
++                pose = self.auxiliary_heads.pose
++                components['pose'] = pose.loss(hidden.float(),
++                    {**targets, 'aux_camera_positions': batch['aux_camera_positions']}).mean()
++                metrics['pose_parts'] = {k: float(v.float().mean()) for k, v in pose.last_components.items()}
+             labels = batch['labels'][:, 1:]
+             valid = labels != -100
+             if not valid.any():
+--- a/student_pilot/carrier_c1_run.py
++++ b/student_pilot/carrier_c1_run.py
+@@ -60,6 +60,9 @@
+ 
+ 
+ def validate(cfg):
++    if 'h1' in cfg:
++        from .h1 import validate as validate_h1
++        validate_h1(cfg)
+     if cfg.get('trace_program_version', '3.13') not in ('3.13', '3.14'):
+         raise ValueError('Unsupported trace_program_version')
+     data.layout_settings(cfg)
+@@ -447,12 +450,18 @@
+     validate_s1_route_policy(cfg)
+     from .row_removals import Removals
+     removals = Removals(cfg.get('remove_files', ()))
++    r0_filter = None
++    if cfg.get('h1', {}).get('r0_rooms') is not None:
++        from .h1_r0 import Reserve
++        r0_filter = Reserve(cfg['h1']['r0_rooms'])
+     scene_filter = None
+     if cfg.get('dev_scene_exclusions') or cfg.get('benchmark_scene_exclusions'):
+         from .s1_exclusions import Exclusions
+         scene_filter = Exclusions(cfg.get('dev_scene_exclusions'), cfg.get('benchmark_scene_exclusions'))
+ 
+     def prepare_exclusions(row, benchmark, reported, name='pose'):
++        if r0_filter is not None and r0_filter.excluded(row):
++            return False, 0  # The reserve selection pass drops and counts this row.
+         hit, overlap = excluded_row(row, benchmark, reported, name)
+         return hit and not (scene_filter is not None and scene_filter.excluded(row)), overlap
+ 
+@@ -475,7 +484,8 @@
+             raise ValueError('The composite pose stream is final-mode only and needs the exclusion list')
+         mix, pose = c1_pose_mix.prepare(cfg['streams']['pose'], cfg['preparation_output'],
+                                         pose_benchmark, reported, prepare_exclusions,
+-                                        check=lambda row, target: pose_row_check(cfg, row, target))
++                                        check=lambda row, target: None if r0_filter is not None and r0_filter.excluded(row)
++                                        else pose_row_check(cfg, row, target))
+     prefix = paired_prefix(cfg, pose) if mix is None else None
+     if prefix is not None:
+         pose = prefix
+@@ -527,6 +537,8 @@
+             with connect(receipt['database']) as conn:
+                 for (row,) in conn.execute('SELECT row FROM rows ORDER BY i'):
+                     row = json.loads(row)
++                    if r0_filter is not None and r0_filter.excluded(row):
++                        continue
+                     if not data.single_image_row(row, name, training_mode=cfg.get('training_mode', 'mixed'),
+                                                  geometry_online=cfg.get('geometry_online')):
+                         data.layout_inputs(row, *data.layout_settings(cfg), verify_partners=True)
+@@ -538,6 +550,9 @@
+             with connect(receipt['database']) as conn:
+                 for index, row, target in conn.execute('SELECT i,row,target FROM rows ORDER BY i'):
+                     row = json.loads(row)
++                    if r0_filter is not None and r0_filter.excluded(row):
++                        selected.append(index)
++                        continue
+                     removals.assert_clean(row)
+                     if name == 'pointing' and cfg.get('ground_target_filter') and row['pointing']['kind'] == 'gt_instance_mask':
+                         from .ground_target_filter import mask_quality, pointing_key
+@@ -627,6 +642,9 @@
+     sealed = binding(load(pinned(cfg['code'])), result['config_sha256'])
+     if sealed is not None:
+         result['source_seal'] = sealed
++    if cfg.get('h1', {}).get('r0_rooms') is not None:
++        from .h1_r0 import prepare as reserve_prepare
++        result = reserve_prepare(result, cfg)
+     write(Path(cfg['preparation_output'])/'receipt.json', result)
+     return result
+ 
+@@ -635,6 +653,9 @@
+     validate(cfg)
+     commit = authenticate(cfg)
+     receipt = load(pinned(cfg['preparation']))
++    if cfg.get('h1', {}).get('r0_rooms') is not None or 'h1_r0' in receipt:
++        from .h1_r0 import before_admission
++        receipt = before_admission(receipt, cfg)
+     from .s1_route_policy import validate as validate_s1_route_policy
+     if receipt.get('s1_route_policy') != validate_s1_route_policy(cfg):
+         raise ValueError('Preparation frozen route table binding differs')
+@@ -743,6 +764,9 @@
+         if (review.get('verdict') != 'PASS' or not review.get('reviewer')
+                 or review.get('config_sha256') != identity(cfg) or review.get('preparation') != cfg['preparation']):
+             warn(cfg, 'Parent must bind independent C1 admission')
++    if cfg.get('h1', {}).get('r0_rooms') is not None:
++        from .h1_r0 import prepare as reserve_prepare
++        receipt = reserve_prepare(receipt, cfg, phase='admission')
+     return receipt, model
+ 
+ 
+@@ -1043,6 +1067,12 @@
+         if stream == 'routing':
+             batch, audit = routing.encode(self.processor, row, self.placement, self.mode, self.layout, self.gap,
+                                            geometry_online=self.geometry_online)
++            if self.h1.get('routing_pose_targets'):
++                from .h1 import pose_targets
++                targets, counts = pose_targets(row, batch, self.h1)
++                audit = {**audit, 'h1_pose': counts, 'h1': dict(
++                    type=row['routing']['question_type'], values='gt', refused=None, answer_differs=False)}
++                return batch, targets, audit
+             return batch, None, audit
+         if self.mode == 'pose_only' and not dense_pose_row(row, target):
+             raise ValueError('Pose-only index selected a non-dense row')
+@@ -1494,7 +1524,7 @@
+         shapes.append(dict(stream=stream, tokens=list(batch['input_ids'].shape),
+                            **({k: audit[k] for k in ('substituted_from', 'encode_errors') if k in audit}
+                               if isinstance(audit, dict) else {}),
+-                           **({k: audit[k] for k in ('qid', 'values', 'own_refusal', 'own_skip', 'trained_tokens')
++                           **({k: audit[k] for k in ('qid', 'values', 'own_refusal', 'own_skip', 'trained_tokens', 'h1', 'h1_pose')
+                                if k in audit} if stream == 'routing' else {}),
+                            **({'segments': result['metrics']['segments']}
+                               if 'segments' in result.get('metrics', {}) else {}),
+@@ -1581,7 +1611,11 @@
+     after_optimizer = memory_stats(device)
+     if device.type == 'cuda':
+         torch.cuda.synchronize(device)
+-    return dict(step=step, **({'gf1_harm_screen': screen_metrics} if gf1_enabled else {}), wall_seconds=time.perf_counter()-started, data_seconds=waiting,
++    h1_metrics = {}
++    if any(s.get('h1') for s in shapes):
++        from .h1 import summarize
++        h1_metrics = {'h1': summarize(shapes)}
++    return dict(step=step, **h1_metrics, **({'gf1_harm_screen': screen_metrics} if gf1_enabled else {}), wall_seconds=time.perf_counter()-started, data_seconds=waiting,
+                 skipped_microsteps=skipped, skip_totals=dict(SKIPPED),
+                 component_normalization='components: sum over microsteps of each row-mean loss / len(plan); '
+                                         'stream_means: row-mean loss of each stream over its own microsteps',
+@@ -2199,7 +2233,7 @@
+     # Training step s reads the sampler's plan step row_start_step + s (a warm start continues its donor's order).
+     offset = cfg.get('row_start_step', 0)
+     output=Path(output);attempt=rehearsal.attempt_id() if rehearsal.enabled() else os.environ.get('SLURM_JOB_ID','cpu')
+-    measured=[]; step=start_step; gate_stop=False; gx_stop=False
++    measured=[]; step=start_step; gate_stop=False; gx_stop=False; h1_stop=False
+     gx_history = []
+     if cfg.get('geometry_online'):
+         gx_history = copy.deepcopy(resume_history) if resume_history is not None else gx_step_history(output, start_step)
+@@ -2215,6 +2249,24 @@
+             dist.broadcast_object_list(reused, src=0)
+         if not reused[0]:
+             export(output/'m0', wrapped, model, cfg, 0, optimizer=optimizer, disk_guard=disk_budget)
++    h1_limit = cfg.get('h1', {}).get('stop_after_step')
++    if not smoke_steps and h1_limit is not None and start_step >= h1_limit:
++        if start_step != h1_limit:
++            raise ValueError('H1 checkpoint is past stop_after_step')
++        reused = [existing_export(output/f'm{start_step}', cfg, start_step) if rank == 0 else None]
++        if distributed:
++            dist.broadcast_object_list(reused, src=0)
++        if not reused[0]:
++            export(output/f'm{start_step}', wrapped, model, cfg, start_step,
++                   optimizer=optimizer, disk_guard=disk_budget)
++        report = dict(schema='c1-run-v1', status='PASS', first_step=None, last_step=start_step,
++                      steps=[], elapsed_seconds=time.monotonic()-started, stopped_for_resume=False,
++                      world_size=world, gpu_fit_measured=False, stop_reason='h1_stop_after_step')
++        if rank == 0:
++            write(output/f'h1_stop_{start_step:06d}.json', dict(schema='h1-stop-v1', step=start_step,
++                  lr_horizon=recipe['steps'], milestone=str(output/f'm{start_step}'), reason='h1_stop_after_step'))
++            write(output/f'run_{attempt}.json', report)
++        return report
+     gates=None
+     if recipe.get('scheduled_sampling'):
+         gates=routing.Gates(recipe['scheduled_sampling'],getattr(model,'depth_stage1',False))
+@@ -2295,14 +2347,16 @@
+         if distributed:
+             dist.all_reduce(request,op=dist.ReduceOp.MAX)
+         gate_stop=not smoke_steps and step==400 and start_step<400 and step400_gate_enabled(cfg)
+-        stopping=bool(request.item()) or step==steps or gate_stop or gx_stop
++        h1_stop = bool(not smoke_steps and cfg.get('h1', {}).get('stop_after_step') is not None
++                       and step >= cfg['h1']['stop_after_step'])
++        stopping=bool(request.item()) or step==steps or gate_stop or gx_stop or h1_stop
+         info['checkpoint_seconds']=info['export_seconds']=0.
+         if (not smoke_steps and (due.item() or stopping)) or gx_stop:
+             tick=time.perf_counter()
+             checkpoint(output/f'checkpoint_{step:06d}',wrapped,optimizer,bound,step,rotate=True, **checkpoint_options())
+             info['checkpoint_seconds']=time.perf_counter()-tick
+             last_save=time.monotonic()
+-        if not smoke_steps and (step in recipe['milestones'] or (stopping and recipe.get('export_at_stop'))):
++        if not smoke_steps and (step in recipe['milestones'] or h1_stop or (stopping and recipe.get('export_at_stop'))):
+             tick=time.perf_counter()
+             reused = [existing_export(output/f'm{step}', cfg, step) if rank == 0 else None]
+             if distributed:
+@@ -2324,13 +2378,16 @@
+             measured.append(gathered)
+             with (output/f'metrics_{attempt}.jsonl').open('a') as handle:
+                 handle.write(json.dumps(dict(step=step,ranks=gathered))+'\n')
++        if h1_stop and rank == 0:
++            write(output/f'h1_stop_{step:06d}.json', dict(schema='h1-stop-v1', step=step,
++                  lr_horizon=recipe['steps'], milestone=str(output/f'm{step}'), reason='h1_stop_after_step'))
+         if stopping:
+             break
+     report=dict(schema='c1-smoke-v1' if smoke_steps else 'c1-run-v1',status='PASS',
+         first_step=start_step+1,last_step=step,steps=measured,elapsed_seconds=time.monotonic()-started,
+         stopped_for_resume=not bool(smoke_steps) and step<recipe['steps'],world_size=world,
+         gpu_fit_measured=device.type=='cuda' and distributed)
+-    report['stop_reason']='gx_fail_fast' if gx_stop else 'm400_gate' if gate_stop else 'budget_or_signal' if bool(request.item()) or budget_stop else 'schedule'
++    report['stop_reason']='h1_stop_after_step' if h1_stop else 'gx_fail_fast' if gx_stop else 'm400_gate' if gate_stop else 'budget_or_signal' if bool(request.item()) or budget_stop else 'schedule'
+     if cfg.get('geometry_online'):
+         report['binding'] = bound
+     if rank==0:
+--- /dev/null
++++ b/student_pilot/h1.py
+@@ -0,0 +1,85 @@
++"""Opt-in faithful camera SFT and routing camera supervision."""
++import copy
++import re
++from collections import Counter
++
++import numpy as np
++import torch
++
++from . import carrier_c1_routing as routing
++from .camera_targets import trajectory_scale
++from .h1_faithful import camera, canonical_row, printed_camera, faithful, own_values
++from generator.derivgen_v7.derivgen.materialize import materialize, MaterializeRefusal
++
++CAMERA_TYPES = routing.CAMERA_MOTION
++
++
++def validate(cfg):
++    h = cfg.get('h1', {})
++    if not isinstance(h, dict) or set(h) - {'faithful_own_camera_rows', 'routing_pose_targets',
++                                           'camera_types', 'stop_after_step', 'metrics', 'r0_rooms'}:
++        raise ValueError('Unknown H1 configuration')
++    for key in ('faithful_own_camera_rows', 'routing_pose_targets', 'metrics'):
++        if key in h and type(h[key]) is not bool:
++            raise ValueError('h1.' + key + ' must be boolean')
++    if tuple(h.get('camera_types', CAMERA_TYPES)) != CAMERA_TYPES:
++        raise ValueError('H1 camera_types must be the three camera motion types in canonical order')
++    stop = h.get('stop_after_step')
++    if stop is not None and (type(stop) is not int or not 1 <= stop <= cfg['recipe']['steps']):
++        raise ValueError('h1.stop_after_step must be within the unchanged LR horizon')
++    if h.get('faithful_own_camera_rows'):
++        s = cfg['scheduled_sampling']
++        if s['max_own_probability'] != .5 or s['force_from_step'] != 1:
++            raise ValueError('H1 S1 requires max_own_probability=0.5 and force_from_step=1')
++    if h.get('r0_rooms') is not None:
++        from .h1_r0 import Reserve
++        Reserve(h['r0_rooms'])
++    return h
++
++
++def pose_targets(row, batch, settings):
++    """Reuse the pose stream target contract, masking missing camera labels."""
++    raw = row.get('routing', row)
++    valid = camera(raw, settings) and 'gt_pose9' in raw and 'gt_up' in raw
++    reason = None if valid else ('missing_gt_fields' if camera(raw, settings) else 'non_camera')
++    p = np.asarray(raw['gt_pose9'], dtype=np.float32) if valid else np.tile([0,0,0,0,0,0,1,1,1], (32,1))
++    up = np.asarray(raw['gt_up'], dtype=np.float32) if valid else np.array([0,-1,0], dtype=np.float32)
++    if p.shape != (32,9) or up.shape != (3,) or not np.isfinite(p).all() or not np.isfinite(up).all():
++        raise ValueError('H1 routing GT must be finite gt_pose9[32,9] and gt_up[3]')
++    if valid and (not np.allclose(np.linalg.norm(p[:,3:7], axis=1), 1, atol=1e-4)
++                  or not np.isclose(np.linalg.norm(up), 1, atol=1e-4)):
++        raise ValueError('H1 routing GT quaternion and gravity must be unit vectors')
++    positions = batch['aux_camera_positions']
++    if positions.shape != (1,32) or (valid and not (positions >= 0).all()):
++        raise ValueError('H1 pose targets require all 32 frame carriers')
++    mask = np.full(32, valid)
++    targets = dict(aux_camera_target=torch.tensor(p, dtype=torch.float32)[None],
++                   aux_camera_mask=torch.tensor(mask)[None],
++                   aux_camera_scale=torch.tensor([trajectory_scale(p, mask) if valid else 0.]),
++                   aux_gravity_target=torch.tensor(up, dtype=torch.float32)[None],
++                   aux_gravity_mask=torch.tensor([valid]), h1_pose=torch.tensor(True))
++    return targets, dict(supervised=int(valid), missing=int(reason == 'missing_gt_fields'), reason=reason)
++
++
++def summarize(shapes):
++    out = {}
++    for row in shapes:
++        h = row.get('h1')
++        if h is None:
++            continue
++        d = out.setdefault(h['type'], dict(own=0, gt=0, refused=0, refusal_reasons={},
++                                          answer_differs=0, pose_supervised=0, pose_missing=0, segments={}))
++        d[h['values']] += 1
++        if h.get('refused'):
++            d['refused'] += 1
++            r = h['refused']; d['refusal_reasons'][r] = d['refusal_reasons'].get(r, 0) + 1
++        d['answer_differs'] += int(h.get('answer_differs', False))
++        pose = row.get('h1_pose', {})
++        d['pose_supervised'] += pose.get('supervised', 0)
++        d['pose_missing'] += pose.get('missing', 0)
++        for name, (loss, n) in row.get('segments', {}).items():
++            sums = d['segments'].setdefault(name, [0., 0]); sums[0] += loss; sums[1] += n
++    for d in out.values():
++        d['faithful_answer_differs_from_gt_rate'] = d['answer_differs']/d['own'] if d['own'] else None
++        d['segment_ce'] = {k: loss/n for k, (loss,n) in d['segments'].items() if n}
++    return out
+--- /dev/null
++++ b/student_pilot/h1_r0.py
+@@ -0,0 +1,119 @@
++"""Pinned reserve-room exclusion using the trainer's scene and selection machinery."""
++import copy
++import re
++from pathlib import Path
++from .s1_exclusions import Exclusions, selection
++from .carrier_c1_routing import excluded
++from .p3_provenance import pinned, digest, file_pin, load, write
++
++R0_SHA256 = 'bdb5d40244cdaf5060fd0a549acc2844a41039ecf78a23ef021a77eab188a4e3'
++
++
++def room_keys(row):
++    rule = Exclusions(None)
++    rule.corpora.update(('3rscan', 'multiscan'))
++    rule.aliases.update(scannetv2='d1', scannetppv2='d2')
++    # Native task files use native/scene_name; trainer rows use scene/canonical.
++    row = copy.deepcopy(row)
++    for field in ('native', 'room_key'):
++        if isinstance(row.get(field), str):
++            row.setdefault('canonical', row[field])
++    if not row.get('scene'):
++        row['scene'] = row.get('scene_name', row.get('scene_id'))
++    keys = rule.identifiers(row)
++    result = set()
++    for key in keys:
++        dataset, name = key.split('/', 1)
++        dataset = {'d1': 'scannet', 'd2': 'scannetpp', 'd3': 'arkitscenes'}.get(dataset, dataset)
++        if dataset == 'scannet':
++            name = re.sub(r'^(scene\d+)_\d+$', r'\1', name)
++        result.add(dataset+'/'+name)
++    return result
++
++
++def room_key(row):
++    keys = room_keys(row)
++    if len(keys) != 1:
++        raise ValueError('Ambiguous room identifiers: '+str(sorted(keys)))
++    return next(iter(keys))
++
++
++class Reserve(Exclusions):
++    def __init__(self, pin):
++        super().__init__(None)
++        path = pinned(pin)
++        names = [s.strip() for s in path.read_text().splitlines() if s.strip() and not s.startswith('#')]
++        if len(names) != len(set(names)) or any(not re.fullmatch(r'(scannet/scene\d+|scannetpp/[A-Za-z0-9]+)', s) for s in names):
++            raise ValueError('Invalid R0 room list')
++        self.rooms = set(names)
++        self.pin = pin
++
++    def identifiers(self, row):
++        return room_keys(row)
++
++    def excluded(self, row):
++        return excluded(self.rooms, *self.identifiers(row))
++
++    def counts(self, source):
++        return self.sources.setdefault(source, dict(seen=0, removed=0, retained=0))
++
++    def expect(self, source, rows, population=None):
++        # selection() supplies a census iterator; keep() counts its second pass.
++        pass
++
++    def keep(self, row, source):
++        reject = self.excluded(row)
++        c = self.counts(source)
++        c['seen'] += 1
++        c['removed'] += int(reject)
++        c['retained'] += int(not reject)
++        return not reject
++
++
++def apply(streams, pin, output):
++    rule = Reserve(pin)
++    result = {}
++    for name, value in streams.items():
++        key, selected, changes = selection(name, value, rule)
++        path = Path(output)/('h1_r0_'+name+'_'+digest(selected)+'.json')
++        if path.exists():
++            if load(path) != selected:
++                raise ValueError('R0 selection file differs')
++        else:
++            write(path, selected)
++        result[name] = {**copy.deepcopy(value), **changes, key: file_pin(path)}
++    counts = {}
++    for source, values in rule.sources.items():
++        c = counts.setdefault(source.split('/')[0], dict(seen=0, removed=0, retained=0))
++        for k, v in values.items():
++            c[k] += v
++    return result, dict(pin=pin, per_stream=counts, per_source=rule.sources)
++
++
++def prepare(receipt, cfg, phase='preparation'):
++    pin = cfg.get('h1', {}).get('r0_rooms')
++    if pin is None:
++        return receipt
++    streams, report = apply(receipt['streams'], pin, cfg['preparation_output'])
++    if any(v['count'] == 0 for v in streams.values()):
++        raise ValueError('R0 exclusions leave a required stream empty')
++    result = {**receipt, 'streams': streams, 'h1_r0': report}
++    if phase == 'preparation':
++        result['h1_r0_sources'] = receipt['streams']
++    return result
++
++
++def before_admission(receipt, cfg):
++    pin = cfg.get('h1', {}).get('r0_rooms')
++    old = receipt.get('h1_r0', {}).get('pin')
++    if old is not None and old != pin:
++        raise ValueError('R0 preparation pin differs')
++    if pin is None:
++        return receipt
++    Reserve(pin)  # authenticate again before admission and any frame loading
++    if old is not None:
++        expected, report = apply(receipt['h1_r0_sources'], pin, cfg['preparation_output'])
++        if expected != receipt['streams'] or report != receipt['h1_r0']:
++            raise ValueError('R0 preparation selections or accounting differ')
++        return {**receipt, 'streams': receipt['h1_r0_sources']}
++    return receipt

@@ -15,7 +15,8 @@ Updated by the b01_d0guard Devin lane (successor, started 12:22Z, session ends b
 - Orchard login gcloud (even with CLOUDSDK_CONFIG=/project/community/jjyeung/gcloud) returned rc=120 on `gcloud storage cat`; not needed now (artifacts are files in runs/359fcc3c/m<STEP>/).
 
 ## In flight
-- Codex G2 (gpt-6-astra high) in guard_kit/build2/ since 12:41Z (BRIEF.md there; codex_stdout.log; receipts agent/scratch/codex_runs/*b01_guardkit_g2*). Check: `ps -u jjyeung -o pid,cmd | grep build2`, build2/STATUS.md, build2/events/*_RESULT_final.md. Do not relaunch while it runs.
+- Codex G2 finished 13:18Z NOT_READY (guard_kit/build2/events/20261116T1318Z_RESULT_final.md): closure admission PASS with unchanged C8r restoration checks (out/CLOSURE_ADMISSION.json, RESTORATION_TEST.json), dual staging/coordinator/canary/admission/packet implemented, 124 checks pass, 25/25 mutants. code_g2.tar 15d144c0..., FAMILY 6a1d5c22.... Open: naming inside signed metadata/trainer paths; whole-worker; review.
+- Whole-worker rehearsal outside the sandbox (I run it): fixed bwrap 0.4 mountpoint bug with split_mounts() in build2/out/rehearsal/run_whole_worker.py (original kept as run_whole_worker.g2_orig.py). Run 2: namespace + staging PASS, proof failed: p1cpu lacks torchvision. Run 3 uses /scratch/jjyeung/envs/pdtest_v1 (py3.12.13, torch 2.10, torchvision 0.25, transformers 5.12.1) via run_whole_worker_tv.sh; logs out/whole_run3.log, result in newest build2/out/rehearsal/whole/<hex>/RESULT.json.
 
 ## Next
 1. When G2 ends: rerun its tests; run out/rehearsal/run_whole_worker.sh outside the sandbox (userns works on this node: `unshare -Ur true` OK); check DIFF.md / PIN_CLASSIFICATION.md / NAMING.md / RUN.md.

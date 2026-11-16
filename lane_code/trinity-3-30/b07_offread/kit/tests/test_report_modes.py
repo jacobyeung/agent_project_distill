@@ -9,6 +9,8 @@ from pathlib import Path
 
 import pytest
 
+from offkit import bind as B
+from offkit import frames as F
 from offkit import report as R
 
 IN = Path(os.environ.get('OFFKIT_IN', '/scratch/jjyeung/orch_n30/b07_offread/in'))
@@ -43,7 +45,16 @@ READER = dict(direct=dict(kind='direct', id='direct kit f42aa1a4', eat1=dict(pas
               harness=dict(kind='harness', id='P8 fixture', eat1=dict(passed=False)),
               e2e=dict(kind='e2e', id='e2e fixture', eat1=dict(passed=True)),
               e2e_fail=dict(kind='e2e', id='e2e fixture', eat1=dict(passed=False)))
-EXPORT = dict(kind='step544', sha256=R.__dict__.get('STEP544', '1d6eeb28'))
+EXPORT = dict(kind='step544', sha256=B.STEP544_SHA)
+ARMS = dict(direct=['primary'], harness=['primary', 'secondary_fallback', 'secondary_room_unserved'],
+            e2e=['primary'], e2e_fail=['primary'])
+
+
+def binding(bench, reader, mode='production', **frames):
+    body = dict(schema='offkit-binding-v1', benchmark=bench, mode=mode, reader=READER[reader], export=EXPORT,
+                arms=ARMS[reader], frames=F.bind_frames(**frames))
+    body['binding_sha256'] = B.binding_sha256(body)
+    return body
 
 
 @need
@@ -63,7 +74,7 @@ def test_full_read_denominators_and_labels(bench, cohort_fn, items, scenes, grou
     assert rep['groups']['object_counting']['call_rate'] == 0.0
     assert sum(g['refusals'] for g in rep['groups'].values()) == len(range(0, items, 50))
     assert set(rep['by_asked_unit']) == {'object_abs_distance', 'room_size_estimation'}
-    lab = R.label_report(rep, reader=READER[reader], export=EXPORT, arm='primary', role='primary')
+    lab = R.label_report(rep, binding=binding(bench, reader), arm='primary', role='primary')
     text = R.render(lab)
     first = text.splitlines()[0]
     assert first.startswith(f'READER {reader} ') and 'EAT-1 ' in first
@@ -82,7 +93,7 @@ def test_full_read_denominators_and_labels(bench, cohort_fn, items, scenes, grou
 def test_e2e_without_pass_is_marked_unclaimable():
     cohort = vsi_cohort()
     rep = R.aggregate(R.ReadMode('vsibench5130', 'e2e'), cohort, synth(cohort), repetitions=50)
-    text = R.render(R.label_report(rep, reader=READER['e2e_fail'], export=EXPORT, arm='primary', role='primary'))
+    text = R.render(R.label_report(rep, binding=binding('vsibench5130', 'e2e_fail'), arm='primary', role='primary'))
     assert 'EAT-1 FAILED' in text.splitlines()[0] and 'not a claimable result' in text.splitlines()[0]
 
 
@@ -119,7 +130,7 @@ def test_direct_mode_refuses_routed_items_and_reports_not_read():
     six = [r for r in cohort if r['question_type'] not in ('object_abs_distance', 'room_size_estimation')]
     assert len(six) == 4008
     rep = R.aggregate(R.ReadMode('vsibench5130', 'direct'), six, synth(six), repetitions=10)
-    lab = R.label_report(rep, reader=READER['direct'], export=EXPORT, arm='primary', role='primary')
+    lab = R.label_report(rep, binding=binding('vsibench5130', 'direct'), arm='primary', role='primary')
     text = R.render(lab)
     assert 'object_abs_distance: not read by this reader' in text
     assert 'not the eight-task mean' in text and 'direct-only' in text.splitlines()[0]
@@ -175,3 +186,34 @@ def test_official_unit_census():
     assert v == Counter(meters=834, square_meters=288)
     rv = Counter(R.asked_unit(r['question']) for r in revsi_cohort() if r['question_type'].startswith(('object_abs', 'room_size')))
     assert sum(rv.values()) == 320 and rv['unstated'] == 0
+
+
+@need
+def test_label_comes_from_a_verified_matching_binding():
+    cohort = vsi_cohort()
+    rep = R.aggregate(R.ReadMode('vsibench5130', 'harness'), cohort, synth(cohort), repetitions=20)
+    with pytest.raises(ValueError, match='differs from the aggregate reader'):
+        R.label_report(rep, binding=binding('vsibench5130', 'e2e'), arm='primary', role='primary')
+    with pytest.raises(ValueError, match='benchmark'):
+        R.label_report(rep, binding=binding('revsi999t32', 'harness'), arm='primary', role='primary')
+    tampered = binding('vsibench5130', 'harness')
+    tampered['reader'] = dict(tampered['reader'], kind='e2e')
+    with pytest.raises(ValueError, match='binding_sha256'):
+        R.label_report(rep, binding=tampered, arm='primary', role='primary')
+    unknown = binding('vsibench5130', 'harness')
+    unknown['reader'] = dict(unknown['reader'], kind='Harness')
+    unknown['binding_sha256'] = B.binding_sha256(unknown)
+    with pytest.raises(ValueError, match='unknown reader kind'):
+        R.label_report(rep, binding=unknown, arm='primary', role='primary')
+    with pytest.raises(ValueError, match='not an arm'):
+        R.label_report(rep, binding=binding('vsibench5130', 'harness'), arm='scripted', role='primary')
+
+
+@need
+def test_mode_and_frame_override_are_printed():
+    cohort = vsi_cohort()
+    rep = R.aggregate(R.ReadMode('vsibench5130', 'e2e'), cohort, synth(cohort), repetitions=20)
+    first = R.label_report(rep, binding=binding('vsibench5130', 'e2e', mode='fixture', count=64, layout='spread',
+                                                override_reason='layout probe'), arm='primary', role='primary')['first_line']
+    assert 'MODE fixture' in first and 'fixture binding: not a benchmark result' in first
+    assert 'FRAMES 64 spread' in first and 'frame layout differs from training: layout probe' in first

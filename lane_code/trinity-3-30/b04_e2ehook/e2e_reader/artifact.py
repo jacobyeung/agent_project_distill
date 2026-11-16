@@ -16,8 +16,9 @@ import threading
 from pathlib import Path
 
 SCHEMA = 'e2e-artifact-v1'
-CODE_SUFFIXES = ('.py', '.pyc', '.so', '.pth')
-SYSTEM_PREFIXES = ('/proc/', '/sys/', '/dev/')
+CODE_SUFFIXES = ('.py', '.pyc', '.so')
+SYSTEM_PREFIXES = ('/proc/', '/sys/', '/dev/null', '/dev/urandom', '/dev/random')
+WRITE_FLAGS = frozenset('wax+')
 REQUIRED_ROLES = ('checkpoint', 'tokenizer', 'g3t', 'scale_head')  # sam3 + selector_head for stage-1 ground
 
 
@@ -146,7 +147,62 @@ def _hook(event, args):
     except Exception:
         return
     mode = args[1] if len(args) > 1 and isinstance(args[1], str) else 'r'
+    if len(args) > 2 and isinstance(args[2], int) and args[2] & (os.O_WRONLY | os.O_RDWR | os.O_CREAT | os.O_APPEND | os.O_TRUNC):
+        mode = 'w'
     audit.record(path, mode)
+
+
+# Native readers open files below the audit layer (safetensors and tokenizers in Rust). The audit
+# wraps them so the path is checked before the native open; every module attribute bound to an
+# original is rebound while an audit is active.
+_NATIVE = {}
+
+
+def _native_targets():
+    targets = []
+    try:
+        import safetensors
+        import safetensors.torch as st
+        targets += [(safetensors, 'safe_open'), (st, 'safe_open'), (st, 'load_file')]
+    except ImportError:
+        pass
+    try:
+        import tokenizers
+        targets.append((tokenizers.Tokenizer, 'from_file'))
+    except ImportError:
+        pass
+    return targets
+
+
+def _guarded(original):
+    def wrapper(path, *a, **k):
+        audit = getattr(_state, 'audit', None)
+        if audit is not None:
+            audit.record(os.path.realpath(os.fsdecode(path)), 'rb')
+        return original(path, *a, **k)
+    wrapper.__wrapped_native__ = original
+    return wrapper
+
+
+def _patch_native():
+    swaps = []
+    for owner, name in _native_targets():
+        original = getattr(owner, name)
+        original = getattr(original, '__wrapped_native__', original)
+        wrapper = _NATIVE.setdefault(id(original), (original, _guarded(original)))[1]
+        swaps.append((owner, name, getattr(owner, name)))
+        setattr(owner, name, wrapper)
+    originals = {id(v[0]): v[1] for v in _NATIVE.values()}
+    for mod in list(sys.modules.values()):
+        d = getattr(mod, '__dict__', None)
+        if not isinstance(d, dict):
+            continue
+        for name in ('safe_open', 'load_file'):
+            v = d.get(name)
+            if v is not None and id(v) in originals:
+                swaps.append((mod, name, v))
+                setattr(mod, name, originals[id(v)])
+    return swaps
 
 
 def install_audit():
@@ -157,42 +213,53 @@ def install_audit():
 
 
 class Audit:
-    """Context active for the duration of one generate(): records opens, refuses data files
-    outside the artifact. Writes are refused too (a read has no outputs on disk)."""
+    """Context active for the duration of one generate(): records opens (Python and the wrapped
+    native readers), refuses data and code outside the artifact, and refuses every write mode
+    (a read has no outputs on disk)."""
 
     def __init__(self, artifact, *, enforce=True):
         self.artifact, self.enforce = artifact, enforce
         self.opens, self.violations, self.entries = [], [], 0
+        self._swaps = []
+
+    def _refuse(self, kind, path):
+        self.violations.append((kind, path))
+        if self.enforce:
+            raise PermissionError(f'e2e_artifact_refuses:{kind}:{path}')
 
     def record(self, path, mode):
         self.opens.append((path, mode))
         if path.startswith(SYSTEM_PREFIXES):
             return
+        if WRITE_FLAGS & set(mode):
+            return self._refuse('write', path)
         if path in self.artifact.allowed:
             return
-        if path.endswith(CODE_SUFFIXES):
+        if path.endswith(CODE_SUFFIXES) or (path.endswith('.pth') and _stdlib(path)):
             source = path
             if path.endswith('.pyc') and '/__pycache__/' in path:
                 head, tail = path.rsplit('/__pycache__/', 1)
                 source = head + '/' + tail.split('.', 1)[0] + '.py'
             if source not in self.artifact.code and not _stdlib(path):
-                self.violations.append(('code_outside_manifest', path))
+                self._refuse('code_outside_manifest', path)
             return
         if os.path.isdir(path):
             return
-        self.violations.append(('data_outside_manifest', path))
-        if self.enforce:
-            raise PermissionError('e2e_artifact_refuses:' + path)
+        self._refuse('data_outside_manifest', path)
 
     def __enter__(self):
         install_audit()
         if getattr(_state, 'audit', None) is not None:
             raise RuntimeError('nested_generate_audit')
+        self._swaps = _patch_native()
         _state.audit = self
         return self
 
     def __exit__(self, *exc):
         _state.audit = None
+        for owner, name, value in reversed(self._swaps):
+            setattr(owner, name, value)
+        self._swaps = []
         return False
 
     def report(self):

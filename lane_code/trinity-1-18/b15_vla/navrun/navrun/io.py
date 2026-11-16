@@ -5,7 +5,10 @@ from pathlib import Path
 
 def read_json(path):
     path = Path(path)
-    with (gzip.open(path, 'rt') if path.suffix == '.gz' else path.open()) as f:
+    # OpenNav's .json.gz release is plain JSON; detect gzip by its magic bytes.
+    with path.open('rb') as raw:
+        compressed = raw.read(2) == b'\x1f\x8b'
+    with (gzip.open(path, 'rt') if compressed else path.open()) as f:
         return json.load(f)
 
 def write_json(path, data):

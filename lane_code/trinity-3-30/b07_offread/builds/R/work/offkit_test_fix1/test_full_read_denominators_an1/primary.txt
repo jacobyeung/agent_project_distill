@@ -1,0 +1,17 @@
+READER harness [P8 fixture]; EAT-1 FAILED for this reader; MODE production; EXPORT step544 sha256 1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef; BENCHMARK ReVSI official999, tier 32; FRAMES 32 duplicate; BINDING 07b8972a3b57; ARM primary (primary); harness-served, not an end-to-end result
+seven-category mean: 51.51 95% CI [49.44, 53.61] (harness-served, not an end-to-end result); groups object_counting, object_rel_direction, object_rel_distance, object_size_estimation, route_planning, object_abs_distance, room_size_estimation; items 999; scenes 302
+object_counting: 48.26 [42.75, 53.44] (harness-served, not an end-to-end result); n=135; call rate=0.00%; calls=0 served=0; refusals=3; forced closes=2; errors=0; unparsed=0
+  subtypes: object_counting_single 49.34 (n=86), object_counting_multiple 47.17 (n=49)
+object_rel_direction: 56.96 [50.62, 65.34] (harness-served, not an end-to-end result); n=68; call rate=0.00%; calls=0 served=0; refusals=1; forced closes=1; errors=0; unparsed=0
+  subtypes: object_rel_direction_forward_easy 57.35 (n=20), object_rel_direction_backward_easy 57.66 (n=13), object_rel_direction_forward_hard 51.43 (n=15), object_rel_direction_backward_hard 61.40 (n=20)
+object_rel_distance: 52.40 [48.23, 57.21] (harness-served, not an end-to-end result); n=140; call rate=0.00%; calls=0 served=0; refusals=3; forced closes=1; errors=0; unparsed=0
+  subtypes: object_rel_distance_closest 51.80 (n=84), object_rel_distance_farthest 53.01 (n=56)
+object_size_estimation: 48.04 [44.77, 51.08] (harness-served, not an end-to-end result); n=273; call rate=0.00%; calls=0 served=0; refusals=6; forced closes=3; errors=0; unparsed=0
+route_planning: 50.52 [43.69, 57.63] (harness-served, not an end-to-end result); n=63; call rate=0.00%; calls=0 served=0; refusals=2; forced closes=0; errors=0; unparsed=0
+object_abs_distance: 50.72 [47.67, 53.46] (harness-served, not an end-to-end result); n=283; call rate=100.00%; calls=283 served=283; refusals=5; forced closes=3; errors=0; unparsed=0; NOTE distance route first selected on VSI-Bench ScanNet items (POLICY_AUDIT row 1); its dev-S1 confirmation (+8.1) is unit conversion; the route has no clean confirmation (amendment 3 item 5)
+room_size_estimation: 53.70 [43.93, 63.77] (harness-served, not an end-to-end result); n=37; call rate=100.00%; calls=37 served=37; refusals=0; forced closes=1; errors=0; unparsed=0; NOTE served routed room, post-read deviation from D2, no gain established, room rule from C4 (incumbent rv, selected on VSI-Bench ScanNet items)
+  subtypes: room_size_estimation_single 53.03 (n=21), room_size_estimation_multiple 54.38 (n=16)
+object_abs_distance asked in meters: 50.72 [47.67, 53.46] (harness-served, not an end-to-end result); n=283; call rate=100.00%; refusals=5; forced closes=3
+room_size_estimation asked in square_meters: 53.70 [43.93, 63.77] (harness-served, not an end-to-end result); n=37; call rate=100.00%; refusals=0; forced closes=1
+direction toward (question-text diagnostic, not an official leaf): 54.39 [44.66, 63.77] (harness-served, not an end-to-end result); n=35
+direction away (question-text diagnostic, not an official leaf): 59.53 [49.13, 69.77] (harness-served, not an end-to-end result); n=33

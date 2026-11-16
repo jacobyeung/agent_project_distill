@@ -12,9 +12,10 @@ so SFT and RL curves pair; h1_headsft's evaluator sets replace the default set w
   placement        against the type's expected head sequence (EXPECTED.json, default from the
                    trained program traces): exact, superset (expected is a subsequence), missing,
                    or none (no call); estimate_first flags a stated measurement before the first call
-  usage            counterfactual: the same draw (same seed, same forced span) re-decoded with every
-                   unit-bearing value in the printed responses scaled by 1.37; usage_rate = share of
-                   called rollouts whose answer moves (numbers: relative change > 5%; options: letter)
+  usage            counterfactual: the draw's forced span decoded greedily twice, with the printed
+                   responses and with every unit-bearing value in them scaled by 1.37; usage_rate =
+                   share of called rollouts whose answer moves (numbers: relative change > 5%;
+                   options: letter); unparsed answers are counted apart, never as moved
   reward split     mean c, g, r, n and length term for rollouts that called a head and that did not;
                    the length term charges call tokens, so this split shows whether it pushes the
                    policy off its heads
@@ -28,7 +29,7 @@ from contextlib import contextmanager
 from pathlib import Path
 
 from .common import atomic_write_bytes, atomic_write_json, read_jsonl
-from .gate import NUM, RESPONSE
+from .gate import FAILED_RESPONSE, NUM, RESPONSE
 from .reward import DEFAULTS as REWARD_DEFAULTS, score_group
 from .store import DrawStore
 
@@ -38,11 +39,21 @@ EXPECTED_DEFAULT = {'object_abs_distance': ['ground', 'ground', 'gap']}
 STATED = re.compile(r'\d+(?:\.\d+)?\s*(?:m|cm|mm|ft|feet|in|inches|m\^2|m²|square met(?:er|re)s?)(?![A-Za-z])')
 
 
+NOT_HEAD_KINDS = ('calculator', 'error')
+
+
+def head_call(c):
+    """A call counts as head use when a head served it: not a calculator or error response, and the
+    printed response did not fail ('not seen', 'error: ...')."""
+    return c.get('kind') not in NOT_HEAD_KINDS and not FAILED_RESPONSE.search(str(c.get('response', '')))
+
+
 def openers(rec):
     out = []
     for c in rec.get('calls', []):
-        m = OPENER.match(c.get('call') or '')
-        out.append(m.group(1) if m else 'unknown')
+        if head_call(c):
+            m = OPENER.match(c.get('call') or '')
+            out.append(m.group(1) if m else 'unknown')
     return out
 
 
@@ -63,8 +74,8 @@ def placement(rec, expected):
 
 
 def estimate_first(rec):
-    """A stated measurement in the model's own text before the first call."""
-    calls = rec.get('calls', [])
+    """A stated measurement in the model's own text before the first head call."""
+    calls = [c for c in rec.get('calls', []) if head_call(c)]
     if not calls:
         return False
     first = rec['text'].find(calls[0].get('call') or '\0')
@@ -95,7 +106,7 @@ def summarize(prompts, groups, reward_cfg=None, expected=None, usage=None):
         for rec, sc in zip(recs, score_group(p, recs, cfg)):
             t = types.setdefault(p['type'], dict(n=0, called=0, free=0, free_called=0, heads={}, placement={},
                                                  estimate_first=0, split={'called': [], 'not_called': []},
-                                                 usage_n=0, usage_moved=0))
+                                                 usage_n=0, usage_moved=0, usage_unparsed=0))
             calls = openers(rec)
             t['n'] += 1
             t['called'] += bool(calls)
@@ -112,8 +123,11 @@ def summarize(prompts, groups, reward_cfg=None, expected=None, usage=None):
             rewards.append(sc['r'])
             u = usage.get(f'{p["prompt_id"]}|{rec["draw"]}')
             if u is not None and calls:
-                t['usage_n'] += 1
-                t['usage_moved'] += bool(u['moved'])
+                if u['moved'] is None:
+                    t['usage_unparsed'] += 1
+                else:
+                    t['usage_n'] += 1
+                    t['usage_moved'] += bool(u['moved'])
     out = {}
     for qtype, t in sorted(types.items()):
         split = {k: (dict(rollouts=len(v), **{m: sum(x[m] for x in v) / len(v) for m in ('c', 'g', 'r', 'n', 'length_term')})
@@ -123,6 +137,7 @@ def summarize(prompts, groups, reward_cfg=None, expected=None, usage=None):
                           placement=t['placement'], expected=expected.get(qtype),
                           estimate_first_rate=t['estimate_first'] / max(1, t['called']),
                           usage_rate=t['usage_moved'] / t['usage_n'] if t['usage_n'] else None, usage_n=t['usage_n'],
+                          usage_unparsed=t['usage_unparsed'],
                           reward_split=split)
     return dict(types=out, mean_reward=sum(rewards) / len(rewards) if rewards else None, rollouts=len(rewards))
 
@@ -165,23 +180,38 @@ def perturbed_responses(scale=SCALE):
 
 
 def usage_for(raw, backend, prompts, groups, limit=None, scale=SCALE):
-    """Re-decode called draws with perturbed responses; {prompt_id|draw: {moved, answer, perturbed_answer}}."""
+    """Counterfactual usage of called draws: the same forced span, decoded greedily twice, once with the
+    printed responses and once with them perturbed, so sampling noise cannot move the answer.
+    {prompt_id|draw: {moved, answer, perturbed_answer, responses}}; moved is None when either answer
+    fails to parse (reported separately, never counted as moved)."""
     from . import sampler as S
+    from .forcing import SamplingChoice, encode_exact, forced_text
     from .score import score
     cfg = S.SamplerConfig(raw)
     out, done = {}, 0
+    tok = backend.processor.tokenizer
     for p in prompts:
         for rec in groups.get(p['prompt_id']) or []:
-            if not rec.get('calls') or (limit is not None and done >= limit):
+            if not openers(rec) or (limit is not None and done >= limit):
                 continue
-            batch = backend.prompt_batch(p)
-            choice, _ = S.make_choice(cfg, backend, p, rec['draw'], rec['path'])
-            kw = backend.decode_kwargs(p, batch, n=1)
-            with S.sampling_hooks(), perturbed_responses(scale):
-                new = backend.generate(batch, choice, **kw)
-            a, b = score(p, rec['text'])['answer'], score(p, new['text'])['answer']
-            out[f'{p["prompt_id"]}|{rec["draw"]}'] = dict(moved=moved(a, b, p.get('options')), answer=a, perturbed_answer=b,
-                                                         responses=[c['response'] for c in new.get('calls', [])])
+            text = forced_text(cfg.forcing, p, rec['path'])
+            prefix = encode_exact(tok, text) if text else []
+
+            def decode(perturb):
+                choice = SamplingChoice(prefix, seed=rec['seed'], temperature=1.0, top_p=1e-9,
+                                        max_sampled_tokens=cfg.sampling['max_sampled_tokens'], eos_id=backend.eos_id())
+                batch = backend.prompt_batch(p)
+                kw = backend.decode_kwargs(p, batch, n=1)
+                with S.sampling_hooks():
+                    if perturb:
+                        with perturbed_responses(scale):
+                            return backend.generate(batch, choice, **kw)
+                    return backend.generate(batch, choice, **kw)
+            base, new = decode(False), decode(True)
+            a, b = score(p, base['text'])['answer'], score(p, new['text'])['answer']
+            out[f'{p["prompt_id"]}|{rec["draw"]}'] = dict(
+                moved=None if a is None or b is None else moved(a, b, p.get('options')), answer=a, perturbed_answer=b,
+                responses=[c['response'] for c in new.get('calls', [])], base_responses=[c['response'] for c in base.get('calls', [])])
             done += 1
     return out
 

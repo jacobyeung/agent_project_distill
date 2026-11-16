@@ -82,6 +82,18 @@ def load_rand100(path, episodes):
     if path is None:
         raise FileNotFoundError('BLOCKED_IDS_MISSING: MIP OpenNav-100 id list')
     data = read_json(path)
+    if isinstance(data, dict) and 'episodes' in data:
+        from .episodes import Episode
+        import numpy as np
+        supplied = [Episode.from_dict(row) for row in data['episodes']]
+        data = manifest('rand100', supplied)
+        by_id = {e.episode_id:e for e in episodes}
+        for e in supplied:
+            if e.episode_id not in by_id:
+                raise ValueError('Unknown rand100 episode: '+e.episode_id)
+            target = by_id[e.episode_id]
+            if not np.allclose(e.start_position, target.start_position, rtol=0, atol=2e-6):
+                raise ValueError('rand100 start position mismatch: '+e.episode_id)
     if isinstance(data, list):
         data = dict(records=data, ids=[str(r['episode_id']) for r in data])
         data['ordered_id_sha256'] = ordered_id_sha256(data['ids'])
@@ -89,6 +101,19 @@ def load_rand100(path, episodes):
     if len(out) != 100:
         raise ValueError('OpenNav-100 must have exactly 100 episodes')
     return out
+
+def freeze_rand100(path, episodes, output):
+    from pathlib import Path
+    import hashlib
+    selected = load_rand100(path, episodes)
+    data = manifest('rand100', selected, status='READY',
+                    source='Open-Nav OpenNav_R2R-CE_100 release',
+                    source_path=str(path),
+                    source_sha256=hashlib.sha256(Path(path).read_bytes()).hexdigest(),
+                    google_drive_id='1SfrPWqCIiivwduCYPMe-Za1wOt4eU6G9',
+                    order='source file order', validated=['episode_id','scene','trajectory_id','start_position'])
+    write_json(output, data)
+    return selected
 
 def select_pairs(pairs, n=300, seed=0):
     ids = sorted(pairs, key=int)

@@ -36,8 +36,13 @@ class MaskMatch(unittest.TestCase):
         self.assertEqual(M.match_candidate(r, {10: box(0, 4, 0, 2)})[0], 3)          # IoU 0.5
         self.assertIsNone(M.match_candidate(r, {10: box(0, 4, 0, 1)})[0])          # IoU 0.25
         self.assertIsNone(M.match_candidate(r, {10: box(0, 8, 0, 8)})[0])          # covers everything
+        self.assertEqual(M.match_candidate(r, {np.int64(10): box(0, 4, 0, 4)})[0], 3)
+        self.assertEqual(M.match_candidate(r, {'20': box(0, 4, 0, 4)})[0], 3)
         with self.assertRaises(ValueError):
-            M.match_candidate(r, {11: box(0, 4, 0, 4)})
+            M.match_candidate(r, {10: box(0, 4, 0, 4), 20: box(0, 8, 0, 8), '10': box(0, 4, 0, 4)})
+        for bad in (11, 10.5, 10.0, '10.5', True, np.bool_(True)):
+            with self.assertRaises(ValueError):
+                M.match_candidate(r, {bad: box(0, 4, 0, 4)})
 
     def test_feeds_assign(self):
         r = raster()

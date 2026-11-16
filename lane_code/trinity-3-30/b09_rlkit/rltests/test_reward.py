@@ -31,6 +31,19 @@ def rec(text, n, draw=0, finish='eos', budget=False, path='free'):
                 budget_hit=budget, calls=[])
 
 
+def served(r):
+    """Give a planted program trace the calls a decoder would have forced (one per printed response)."""
+    import re as _re
+    r['calls'] = [dict(call='<served>', response=m.strip('\n'), kind='head')
+                  for m in _re.findall(r'<tool_response>(.*?)</tool_response>', r['text'], _re.S)]
+    r['kinds'] = 'sr'
+    return r
+
+
+def prec(text, n, draw=0, **kw):
+    return served(rec(text, n, draw, **kw))
+
+
 def direct(body, answer):
     return body + '</think>\n\n' + answer
 
@@ -84,10 +97,10 @@ class Planted(unittest.TestCase):
         self.assertEqual([r['r'] for r in rows], [0.0, 0.0])
 
     def test_program_chain_conversion_and_replay(self):
-        good = rec(program(FT_BODY.format(conv='Converting to feet: 3.22 x 3.28084 = 10.56.\n'), '10.56'), 120, 0)
-        detached = rec(program(FT_BODY.format(conv='The distance is about ten feet.\n'), '10.56'), 110, 1)
-        wrong_arith = rec(program(FT_BODY.format(conv='Converting to feet: 3.22 x 3.28084 = 11.56.\n'), '11.56'), 120, 2)
-        untraced = rec(program(FT_BODY.format(conv='Converting to feet: 3.25 x 3.28084 = 10.66.\n'), '10.66'), 120, 3)
+        good = prec(program(FT_BODY.format(conv='Converting to feet: 3.22 x 3.28084 = 10.56.\n'), '10.56'), 120, 0)
+        detached = prec(program(FT_BODY.format(conv='The distance is about ten feet.\n'), '10.56'), 110, 1)
+        wrong_arith = prec(program(FT_BODY.format(conv='Converting to feet: 3.22 x 3.28084 = 11.56.\n'), '11.56'), 120, 2)
+        untraced = prec(program(FT_BODY.format(conv='Converting to feet: 3.25 x 3.28084 = 10.66.\n'), '10.66'), 120, 3)
         rows = score_group(FT, [good, detached, wrong_arith, untraced], CFG)
         self.assertEqual(rows[0]['g'], 1, rows[0]['reasons'])
         self.assertEqual(rows[0]['path'], 'head')
@@ -105,7 +118,7 @@ class Planted(unittest.TestCase):
 
     def test_constant_only_computation_fails(self):
         body = FT_BODY.format(conv='Converting: 100 x 0.1 = 10.\n')
-        rows = score_group(dict(FT, question=FT_Q + ' Use 0.1 as the factor.'), [rec(program(body, '10'), 100)], CFG)
+        rows = score_group(dict(FT, question=FT_Q + ' Use 0.1 as the factor.'), [prec(program(body, '10'), 100)], CFG)
         self.assertEqual(rows[0]['g'], 0)
         self.assertIn('constant_only_computation', rows[0]['reasons'])
 
@@ -115,7 +128,7 @@ class Planted(unittest.TestCase):
                 '<gap a="couch" b="piano bench" rule="box_grid_5cm">\n<tool_response>\ndistance 0.40 m\n</tool_response>\n'
                 '<gap a="couch" b="door" rule="box_grid_5cm">\n<tool_response>\ndistance 3.00 m\n</tool_response>\n'
                 'Step 1: the piano bench is nearest, with the smallest printed distance.\n')
-        rows = score_group(REL, [rec(program(body, 'D'), 80, 0), rec(program(body, 'B'), 80, 1)], CFG)
+        rows = score_group(REL, [prec(program(body, 'D'), 80, 0), prec(program(body, 'B'), 80, 1)], CFG)
         self.assertEqual(rows[0]['g'], 1, rows[0]['reasons'])
         self.assertEqual(rows[0]['provenance']['kind'], 'gap_extreme')
         self.assertEqual(rows[1]['g'], 0)
@@ -123,3 +136,18 @@ class Planted(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class Served(unittest.TestCase):
+    def test_recovery_trace_is_charged_against_the_direct_floor(self):
+        fail = '<ground obj="zebra">\n<tool_response>\nzebra: not seen\n</tool_response>\n'
+        tab = dict(CFG, n_min={'object_rel_distance': {'direct': 20, 'head': 60}})
+        d, rcv = score_group(REL, [rec(direct(REL_SHORT, 'D'), 50, 0), prec(program(fail + REL_SHORT, 'D'), 50, 1)], tab)
+        self.assertEqual((rcv['g'], rcv['path'], rcv['n_min']), (1, 'recovery', 20), rcv['reasons'])
+        self.assertLessEqual(rcv['r'], d['r'])
+
+    def test_response_must_equal_the_forced_one(self):
+        r = prec(program(FT_BODY.format(conv='Converting to feet: 3.22 x 3.28084 = 10.56.\n'), '10.56'), 120)
+        self.assertEqual(score_group(FT, [r], CFG)[0]['g'], 1)
+        r['calls'][2]['response'] = 'distance 9.99 m'
+        self.assertIn('response_not_forced', score_group(FT, [r], CFG)[0]['reasons'])

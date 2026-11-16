@@ -109,7 +109,7 @@ def _jsonable(output):
 
 
 def split_model_code(findings, model, declared):
-    """Findings inside methods of the classes of declared lm/vit/head/connector/tower modules (and their
+    """Plain-constant findings (A3.constant) inside methods of the classes of declared lm/vit/head/connector/tower modules (and their
     submodules) are model code, for example a head's own activation constants called through a method
     rather than forward. They are reported apart and do not fail a clause; the reviewer reads them.
     Call-handler modules, their submodules and the root model class are never exempt."""
@@ -133,7 +133,9 @@ def split_model_code(findings, model, declared):
     keep, model_code = [], []
     for f in findings:
         top = f['function'].split('.')[0]
-        (model_code if (f['file'], top) in classes else keep).append(f)
+        # only plain constants (activation offsets, canvas scales) count as model code; a threshold, table,
+        # guard, status or cache inside such a method still fails
+        (model_code if (f['file'], top) in classes and f['rule'] == 'A3.constant' else keep).append(f)
     return keep, model_code
 
 

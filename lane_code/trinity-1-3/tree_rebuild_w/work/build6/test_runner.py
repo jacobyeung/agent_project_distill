@@ -292,6 +292,9 @@ if tree.name != 'tree_b01ce449' and not sys.argv[2:] and group in (None,'r2') an
     modules.append(part)
     suite.addTests(part)
 (output/'TEST_INVENTORY.json').write_text(json.dumps(dict(modules=names,discovered_tests=suite.countTestCases()),indent=2))
+for name in ('live_errors.json','live_failures.json'):
+    (output/name).write_text('[]\n')
+(output/'progress.json').write_text(json.dumps(dict(completed=0,last=None,status='running')))
 result = Result(sys.stdout, True, 1)
 completed_modules = 0
 (output/'scratch_receipts.jsonl').write_text('')

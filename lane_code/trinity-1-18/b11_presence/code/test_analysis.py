@@ -32,13 +32,31 @@ for cname, c in sorted(caps.items()):
             f.write(json.dumps(dict(timing={sub: dict(seconds=10.0, queries=len(rs), prefix_tokens=100)}, n=len(rs))) + '\n')
 
 
-def write_direct(path, drop=0, torn=False):
+import direct as D
+IDENT = D.model_identity(LANE / 'work/model_m544')
+
+
+def write_direct(path, drop=0, torn=False, bad=()):
+    """bad: kinds of invalid rows to put in place of the first held-out appearance items: binding, score, mismatch."""
+    bad = list(bad)
     with open(path, 'w') as f:
         for n, it in enumerate(sorted(items, key=lambda i: i['id'])):
-            if it['split'] == 'heldout' and it['type'] == 'obj_appearance_order' and drop and n % 7 == 0:
+            ho_app = it['split'] == 'heldout' and it['type'] == 'obj_appearance_order'
+            if ho_app and drop and n % 7 == 0:
                 drop -= 1
                 continue
-            f.write(json.dumps(dict(example_id=it['id'], status='complete', score=float(rng.random() < 0.6))) + '\n')
+            sc = float(rng.random() < 0.6)
+            row = dict(example_id=it['id'], status='complete', cell=D.CELL['name'],
+                       binding=D.binding_for(it, caps[it['capture']], IDENT), score=sc, B2048=dict(score=sc))
+            if ho_app and bad:
+                kind = bad.pop(0)
+                if kind == 'binding':
+                    row['binding'] = '0' * 64
+                elif kind == 'score':
+                    row['score'] = row['B2048']['score'] = -1.0
+                else:
+                    row['score'] = 1.0 - sc
+            f.write(json.dumps(row) + '\n')
         if torn:
             f.write('{"status":')
 
@@ -85,6 +103,12 @@ r = subprocess.run(PY + ['--journals', str(J), '--out-dir', str(W / 'an0'), '--d
                          '--read-heldout'], capture_output=True, text=True)
 d = json.loads((W / 'an0/ANALYSIS_heldout.json').read_text())['decision']
 checks['incomplete_no_decision'] = r.returncode == 0 and d['status'] == 'incomplete' and d['head_path'] is None and d['missing'] == 3
+write_direct(W / 'direct_bad.jsonl', bad=['binding', 'score', 'mismatch'])
+r = subprocess.run(PY + ['--journals', str(J), '--out-dir', str(W / 'an0'), '--direct', str(W / 'direct_bad.jsonl'),
+                         '--read-heldout'], capture_output=True, text=True)
+rb = json.loads((W / 'an0/ANALYSIS_heldout.json').read_text())
+checks['invalid_direct_rejected'] = rb['decision']['status'] == 'incomplete' and rb['decision']['missing'] == 3 and \
+    rb['direct_rejected'] == dict(binding=1, score=2, unknown_item=1093)
 write_direct(W / 'direct.jsonl', torn=True)
 outs = []
 for i in range(2):

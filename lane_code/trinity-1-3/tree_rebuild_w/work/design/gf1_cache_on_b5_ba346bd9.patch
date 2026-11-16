@@ -137,8 +137,8 @@
      required = ('aux_g3t_images', 'aux_g3t_coords', 'aux_gf1_lm_indices')
      if any(k not in batch for k in required):
 --- a/student_pilot/gf1_cache.py	1969-12-31 19:00:00.000000000 -0500
-+++ b/student_pilot/gf1_cache.py	2026-11-16 06:53:07.051686332 -0500
-@@ -0,0 +1,506 @@
++++ b/student_pilot/gf1_cache.py	2026-11-16 08:09:52.908136407 -0500
+@@ -0,0 +1,509 @@
 +"""GF-1 cached tower bank and shuffled-bank reads.
 +
 +The connector computes area_pool(proj(norm(x))) per layer. Area weights are non-negative and sum to one
@@ -396,7 +396,7 @@
 +        return None, dict(source='online', reason='pose_row_augmented', clip_key=own)
 +    entry = load_cached(settings, own, indices)
 +    if entry is None:
-+        return None, dict(source='online', reason='no_cache', clip_key=own)
++        raise ValueError('GF1 cached_bank has no record for clip ' + own + '; write the cache for every non-pose clip first')
 +    geometry = dict(aux_gf1_cache=ClipCache(), aux_gf1_lm_indices=torch.tensor([indices], dtype=torch.long),
 +                    aux_gf1_rowbanks=RowBanks([entry]))
 +    return (geometry, lm()), dict(source='cached', clip_key=own, tensor_sha256=entry.record['tensor']['sha256'])
@@ -583,8 +583,11 @@
 +    for row in rows:
 +        dense, anchors = dense_inputs(row, settings)
 +        key = clip_key(dense)
-+        if anchors_of.setdefault(key, anchors) != anchors or dense_of.setdefault(key, dense) != dense:
-+            raise ValueError('Rows of one dense clip disagree on its frames or LM anchors')
++        content = (list(dense['frame_indices']), [f['sha256'] for f in dense['frames']], dense.get('timestamps'))
++        first = dense_of.setdefault(key, dense)
++        if (anchors_of.setdefault(key, anchors) != anchors
++                or (list(first['frame_indices']), [f['sha256'] for f in first['frames']], first.get('timestamps')) != content):
++            raise ValueError('Rows of one dense clip disagree on its frames, timestamps or LM anchors')
 +        grid = grids[key] if grids is not None else frame_grid(row)
 +        units.append(dict(clip_key=key, dataset=_dataset(row), grid=grid))
 +        keyed.append(key)
@@ -646,8 +649,8 @@
 +if __name__ == '__main__':
 +    main()
 --- a/tests/test_gf1_cache.py	1969-12-31 19:00:00.000000000 -0500
-+++ b/tests/test_gf1_cache.py	2026-11-16 06:58:37.674699766 -0500
-@@ -0,0 +1,565 @@
++++ b/tests/test_gf1_cache.py	2026-11-16 08:10:33.606894141 -0500
+@@ -0,0 +1,581 @@
 +"""GF-1 cached pool(n_hat) bank, identity refusal, online pose rows and the shuffled-bank read (CPU, tiny)."""
 +import copy
 +import hashlib
@@ -1073,10 +1076,9 @@
 +        self.assertEqual(audit['gf1_bank'], dict(source='online', reason='pose_row_augmented', clip_key=audit['gf1_bank']['clip_key']))
 +        self.assertNotIn('aux_gf1_rowbanks', batch)
 +        self.assertIn('aux_g3t_images', batch)
-+        # A clip without a cache file runs online and says so.
-+        batch, audit = self.encode(self.rows[2], gcfg)
-+        self.assertEqual((audit['gf1_bank']['source'], audit['gf1_bank']['reason']), ('online', 'no_cache'))
-+        self.assertIn('aux_g3t_images', batch)
++        # A non-pose clip without a cache record refuses; the writer covers every clip before training.
++        with self.assertRaisesRegex(ValueError, 'has no record'):
++            self.encode(self.rows[2], gcfg)
 +        # A missing root refuses instead of silently running every row online.
 +        with self.assertRaisesRegex(ValueError, 'root is missing'):
 +            self.encode(self.rows[0], gf1.normalize({**gcfg, 'cached_bank': dict(root='/scratch/none/x', dtype='float32')}))
@@ -1124,6 +1126,23 @@
 +            C.shuffled_bank_plan([dict(clip_key='x', dataset='d', grid=[32, 2, 2]),
 +                                  dict(clip_key='y', dataset='d', grid=[32, 4, 4]),
 +                                  dict(clip_key='z', dataset='d', grid=[32, 4, 4])], seed=1, require_same_grid=True)
++
++    def test_path_aliases_of_one_clip_share_a_donor_and_content_conflicts_refuse(self):
++        cfg = settings()['gf1']
++        alias = copy.deepcopy(self.rows[0])
++        for f in alias['student_input']['geometry_dense']['frames'] + alias['student_input']['frames']:
++            f['path'] = '/alias' + f['path']
++        rows, plan = C.shuffle_rows([self.rows[0], alias, self.rows[1], self.rows[2]], cfg, seed=5,
++                                    grids={C.clip_key(gf1.dense_inputs(r, cfg)[0]): [32, 20, 26] for r in self.rows})
++        self.assertEqual(rows[0]['student_input']['geometry_bank_donor']['clip_key'],
++                         rows[1]['student_input']['geometry_bank_donor']['clip_key'])
++        self.assertEqual(plan['counts']['clips'], 3)
++        bad = copy.deepcopy(self.rows[0])
++        for part in (bad['student_input']['geometry_dense'], bad['student_input']):
++            part['timestamps'] = [t + 1. for t in part['timestamps']]
++        with self.assertRaisesRegex(ValueError, 'disagree'):
++            C.shuffle_rows([self.rows[0], bad, self.rows[1]], cfg, seed=5,
++                           grids={C.clip_key(gf1.dense_inputs(r, cfg)[0]): [32, 20, 26] for r in self.rows})
 +
 +    def donor_batch(self, row, gf1_cfg):
 +        holder = {}

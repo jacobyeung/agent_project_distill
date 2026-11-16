@@ -98,10 +98,14 @@ def cached(c,dest):
  guard.check_receipt(c,dest,receipt)
  for pin in receipt['files'].values():B.checked(pin)
  raw=B.load(dest/'candidates.json')
- if receipt.get('geometry_refusal'):
-  guard.restore_verdict(c,receipt)
-  return raw,None,receipt
- with guard.capture(c):geo=load_geometry(dest/'geometry.npz',FrameMap(tuple(c['anchor_indices'])),'tower_scaled')
+ with guard.capture(c):
+  if receipt.get('geometry_refusal'):
+   try:load_geometry(dest/'REFUSED_GEOMETRY.npz',FrameMap(tuple(c['anchor_indices'])),'tower_scaled')
+   except guard.geometry_profiles.GeometryError as error:
+    if str(error)!=guard.CODE:raise
+   else:raise ValueError('Cache refusal geometry passed reviewed guard')
+   geo=None
+  else:geo=load_geometry(dest/'geometry.npz',FrameMap(tuple(c['anchor_indices'])),'tower_scaled')
  if guard.verdict(c)!=receipt['gravity_verdict']:raise ValueError('Cache gravity verdict differs')
  return raw,geo,receipt
 def gt_arrays(c,selection=None):

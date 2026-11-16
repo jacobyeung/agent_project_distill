@@ -11,6 +11,7 @@ def test_default_and_spread_cost():
 def test_step544_guard(count,layout):
     with pytest.raises(FrameError):bind_frames(count,layout)
 
-def test_done_layout_required():
-    with pytest.raises(FrameError):bind_frames(export='done')
-    assert bind_frames(64,'spread',export='done',export_layout={'count':64,'layout':'spread'})['count']==64
+def test_done_layout_owned_by_offkit():
+    assert bind_frames(export='done')['count']==32
+    with pytest.raises(FrameError):bind_frames(64,'spread',export='done')
+    assert bind_frames(64,'spread',export='done',override_reason='Explicit diagnostic')['count']==64

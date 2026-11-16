@@ -17,7 +17,8 @@ from pathlib import Path
 from types import SimpleNamespace as NS
 
 HERE = Path(__file__).resolve().parent
-sys.path[:0] = [str(HERE.parent), '/scratch/jjyeung/orch_n30/tree_rebuild/work/base/tree_b01ce449']
+sys.path[:0] = [str(HERE.parent), str(HERE), '/scratch/jjyeung/orch_n30/tree_rebuild/work/base/tree_b01ce449']
+import guard_diag  # noqa: E402
 
 
 def tokenizer(path):
@@ -68,7 +69,7 @@ def main():
         result['decoded'] += 1
         clip = row['perception']['clip']
         geometry = G.from_npz(Path(gdir) / (clip + '.npz'))
-        v = geometry.guard_verdicts
+        v = guard_diag.verdicts(geometry)
         if v['sealed_guard_refuses']:
             result['guard']['sealed'].append(clip)
         if v['reviewed_guard_refuses']:
@@ -78,6 +79,7 @@ def main():
         # positions, and their ground/gap/room responses are counted as not compared.
         session = PolicyAudit(queries, '3.14') if isinstance(queries, list) else None
         servers = ReadServers(geometry, session, serve_room=True)
+        servers.session_call = guard_diag.without_sealed_check(servers.session_call)
         hook = CallHook(tok, openers.values(), ground_layout=True, error_suffix=suffix)
         hook.begin(servers.mapping())
         eos = {248046, tok.eos_token_id}

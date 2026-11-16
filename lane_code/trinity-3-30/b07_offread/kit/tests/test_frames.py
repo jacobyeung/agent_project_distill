@@ -16,14 +16,20 @@ def test_64_spread_on_step544_refused_without_override():
     assert f['layout_override_reason'] == 'layout probe' and f['temporal_groups'] == 32
 
 
-def test_64_export_binds_its_own_layout():
-    f = F.bind_frames(64, 'spread', export='done:x', export_layout=dict(count=64, layout='spread'))
-    assert f['layout_override_reason'] is None
+def test_d0_lineage_trained_layout_is_known():
+    assert F.bind_frames(export='done')['layout_override_reason'] is None
+    with pytest.raises(F.FrameError):
+        F.bind_frames(64, 'spread', export='done')
+
+
+def test_caller_cannot_supply_a_trained_layout():
+    with pytest.raises(TypeError):
+        F.bind_frames(64, 'spread', export='step544', export_layout=dict(count=64, layout='spread'))
 
 
 def test_unknown_export_layout_refused():
     with pytest.raises(F.FrameError):
-        F.bind_frames(export='done:x')
+        F.bind_frames(export='other')
 
 
 @pytest.mark.parametrize('count,layout', [(64, 'duplicate'), (48, 'spread'), (32, 'P0.5')])

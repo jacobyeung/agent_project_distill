@@ -3,6 +3,7 @@ import copy
 import json
 import os
 from pathlib import Path
+import shutil
 import subprocess
 import sys
 import trace
@@ -38,6 +39,7 @@ from student_pilot import geometry_profiles as GP
 from student_pilot import camera_targets
 
 MANIFEST = '/scratch/jjyeung/orch_n30/k1_ops3/work/manifest_v2/a40fbc19.json'
+CANARY = ROOT / os.environ.get('K1_CANARY_ROOT', 'canary')
 
 
 class GuardTests(unittest.TestCase):
@@ -99,6 +101,53 @@ class GuardTests(unittest.TestCase):
         self.assertIsNone(K.cached(self.c, self.dest)[1])
         self.assertEqual(B.load(self.out / 'GUARD_REPORT.json')['K1']['reviewed_refused'], [self.c['canonical']])
 
+    def test_forged_refusals_rejected_and_resume_halts(self):
+        c = self.real['captures'][1]
+        key = B.digest(c['canonical'])[:16]
+        source = CANARY / key
+        for evidence in (True, False):
+            out = self.root / ('forged_with_evidence' if evidence else 'forged_without_evidence')
+            dest = out / key
+            dest.mkdir(parents=True)
+            names = ['candidates.json', 'parity_raw.jsonl']
+            for name in names:
+                shutil.copyfile(source / name, dest / name)
+            if evidence:
+                shutil.copyfile(source / 'geometry.npz', dest / 'REFUSED_GEOMETRY.npz')
+                names.append('REFUSED_GEOMETRY.npz')
+            r = B.load(source / 'CACHE_COMPLETE.json')
+            r.update(geometry=None, geometry_refusal=dict(code=guard.CODE, message=guard.CODE),
+                     gravity_verdict=dict(sealed_refused=False, reviewed_refused=True),
+                     files={name: B.pin(dest / name) for name in names})
+            B.write(dest / 'CACHE_COMPLETE.json', r)
+            message = 'refusal geometry passed reviewed guard' if evidence else 'file binding differs'
+            with patch.object(guard._recorder, 'records', {}):
+                with self.assertRaisesRegex(ValueError, message):
+                    K.cached(c, dest)
+                with patch.object(guard, '_convert', side_effect=AssertionError('Resume reconverted')):
+                    with self.assertRaisesRegex(ValueError, message):
+                        guard.run(dict(captures=[c]), out, self.boundary, 'convert', 14400, self.tower, self.own)
+                self.assertIn(message, B.load(out / 'HALTED.json')['error'])
+                self.assertFalse(guard._recorder.records.get(('K1', c['canonical']), (False, False))[1])
+
+    def test_refusal_verdict_must_match_evidence(self):
+        r = B.load(self.dest / 'CACHE_COMPLETE.json')
+        r['gravity_verdict']['sealed_refused'] = False
+        original = B.load
+        def load(path):
+            return r if Path(path) == self.dest / 'CACHE_COMPLETE.json' else original(path)
+        with patch.object(B, 'load', side_effect=load), patch.object(guard._recorder, 'records', {}):
+            with self.assertRaisesRegex(ValueError, 'Cache gravity verdict differs'):
+                K.cached(self.c, self.dest)
+            self.assertEqual(guard.verdict(self.c), dict(sealed_refused=True, reviewed_refused=True))
+
+    def test_refusal_reload_propagates_other_errors(self):
+        from student_pilot import ground_profiles
+        for error in (GP.GeometryError('invalid_scale'), ValueError('mutation')):
+            with patch.object(ground_profiles, 'load_geometry', side_effect=error):
+                with self.assertRaisesRegex(type(error), str(error)):
+                    K.cached(self.c, self.dest)
+
     def test_tables_and_render_keep_refusals(self):
         import build_tables
         tables = self.root / 'tables'
@@ -151,7 +200,7 @@ class GuardTests(unittest.TestCase):
 
     def test_passing_canary_cached(self):
         c = self.real['captures'][2]
-        raw, geo, receipt = K.cached(c, ROOT / 'canary' / B.digest(c['canonical'])[:16])
+        raw, geo, receipt = K.cached(c, CANARY / B.digest(c['canonical'])[:16])
         self.assertIsNotNone(geo)
         self.assertEqual(receipt['gravity_verdict'], dict(sealed_refused=True, reviewed_refused=False))
 
@@ -164,7 +213,7 @@ class GuardTests(unittest.TestCase):
             return [{'fixture': 'candidate'}], [{'fixture': 'pair'}]
         out = self.root / 'passing_tables'
         with patch.object(build_tables, 'build_capture', side_effect=build), patch.object(K, 'gt_arrays', return_value={}):
-            K.tables(m, ROOT / 'canary', out)
+            K.tables(m, CANARY, out)
         self.assertEqual(B.load(out / 'TABLE_RECEIPT.json')['geometry_refused'], {})
         self.assertEqual(len((out / 'candidates.jsonl').read_text().splitlines()), 1)
         self.assertEqual(len((out / 'pairs.jsonl').read_text().splitlines()), 1)
@@ -180,7 +229,7 @@ class GuardTests(unittest.TestCase):
         with patch.object(K, 'native_backend', return_value=object()), \
                 patch.object(B.perception, 'execute_calls', side_effect=execute), \
                 patch.object(K, 'gt_arrays', return_value={}):
-            K.responses(m, ROOT / 'canary', fit, self.root / 'passing_render')
+            K.responses(m, CANARY, fit, self.root / 'passing_render')
         rows = (self.root / 'passing_render/K1_ANALYSIS_INPUT.jsonl').read_text().splitlines()
         self.assertEqual(len(rows), len(c['rows']))
 

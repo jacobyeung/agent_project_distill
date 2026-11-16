@@ -42,7 +42,7 @@ class FloorError(ValueError):
 
 def check_heldout(heldout, pool):
     if not pool:
-        return
+        raise FloorError('the RL pool is required: held-out prompts must be shown disjoint from it')
     ids = {p['prompt_id'] for p in pool}
     scenes = {p['scene_key'] for p in pool}
     bad = [p['prompt_id'] for p in heldout if p['prompt_id'] in ids or p['scene_key'] in scenes]
@@ -198,7 +198,7 @@ def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument('--run', required=True)
     ap.add_argument('--prompts', required=True)
-    ap.add_argument('--pool')
+    ap.add_argument('--pool', required=True)
     ap.add_argument('--reward-config')
     ap.add_argument('--required-calls')
     ap.add_argument('--delta', type=float, default=FLOOR_DEFAULTS['delta'])
@@ -207,8 +207,11 @@ def main(argv=None):
     ap.add_argument('--seed', type=int, default=FLOOR_DEFAULTS['seed'])
     ap.add_argument('--out', required=True)
     a = ap.parse_args(argv)
+    from .common import sha256_file
+    from .sampler import check_prompts
     prompts = read_jsonl(a.prompts)
-    check_heldout(prompts, read_jsonl(a.pool) if a.pool else [])
+    check_prompts(prompts, {})
+    check_heldout(prompts, read_jsonl(a.pool))
     reward_cfg = json.loads(Path(a.reward_config).read_text()) if a.reward_config else {}
     required = json.loads(Path(a.required_calls).read_text()) if a.required_calls else {}
     rows, run_hash = score_run(a.run, prompts, reward_cfg)
@@ -216,6 +219,7 @@ def main(argv=None):
                   n_floor=reward_cfg.get('n_floor', FLOOR_DEFAULTS['n_floor']), required_calls=required)
     result = fit_floor(rows, **params)
     result.update(schema=FLOOR_SCHEMA, params=params, run_config_hash=run_hash, heldout_prompts=len(prompts),
+                  heldout_sha256=sha256_file(a.prompts), pool_sha256=sha256_file(a.pool),
                   reward_config_sha256=sha256_obj(reward_cfg))
     atomic_write_json(a.out, result)
     text = render(result)

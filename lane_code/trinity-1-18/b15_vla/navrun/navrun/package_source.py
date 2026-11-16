@@ -8,7 +8,7 @@ from .io import write_json
 
 def package_source():
     files = sorted([p for directory, pattern in [('navrun','*.py'),('navrun/vendor','*.py'),
-                    ('navrun/vendor','*.json'),('tests','*.py'),('configs','*.json')]
+                    ('navrun/vendor','*.json'),('tests','*.py'),('tests/fixtures','*.json'),('configs','*.json')]
                     for p in (ROOT/directory).glob(pattern)] + [ROOT/'README.md',ROOT/'run.sh',ROOT/'pyproject.toml'])
     target=OUT/'navrun_src.tgz'
     with target.open('wb') as raw, gzip.GzipFile(filename='',mode='wb',fileobj=raw,mtime=0) as gz:

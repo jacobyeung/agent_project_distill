@@ -70,12 +70,22 @@ def unify(row, *, id_of=lambda r: str(r['key']), score_field='answer'):
                 calls=calls, calls_served=max(0, calls - bad), parse_failed=False, arm=row.get('arm'))
 
 
+SCRIPTED = 'scripted'
+
+
 def from_journal(path, arm, **kw):
+    """Rows of one arm. The C8r `scripted` arm answers through a harness unit conversion (c8r
+    perception.py), which USER ruling 4 (2026-11-16) bans, so it is refused, as is any row that
+    carries a script answer."""
+    if arm == SCRIPTED:
+        raise ValueError('the scripted arm answers through a harness unit conversion; it is never scored')
     out = []
     with Path(path).open() as f:
         for line in f:
             if line.strip():
                 r = json.loads(line)
                 if r.get('arm') == arm:
+                    if r.get('script_mode') is not None or r.get('script_answer') is not None:
+                        raise ValueError('row %s carries a script answer; it is never scored' % r.get('key'))
                     out.append(unify(r, **kw))
     return out

@@ -15,6 +15,7 @@
 """
 import argparse
 import json
+import re
 import sys
 import time
 import traceback
@@ -30,7 +31,25 @@ PROMPT_SCHEMA = 'rlkit-prompt-v1'
 REQUIRED_PROMPT = ('prompt_id', 'type', 'question', 'gt_answer', 'row', 'scene_key', 'source')
 
 SAMPLING_DEFAULTS = dict(draws=8, forced_share=0.5, temperature=0.7, top_p=0.95, seed=17,
-                         max_sampled_tokens=4096, max_calls=40, batch_draws=True)
+                         max_sampled_tokens=4096, batch_draws=True)  # call limit: decode.max_calls
+BENCHMARK_TOKENS = ('revsi', 'vsibench', 'vstibench', 'vsti', 'devs1', 'dsibench', 'official999')
+
+
+def norm_source(value):
+    return re.sub(r'[\s_\-./]', '', str(value).lower())
+
+
+def benchmark_source(obj):
+    """The first benchmark-looking source/dataset field of a prompt or row (normalised match), else None."""
+    fields = []
+    for o in (obj, obj.get('row') if isinstance(obj.get('row'), dict) else None):
+        if isinstance(o, dict):
+            fields += [o.get('source'), o.get('dataset'), o.get('benchmark'), (o.get('provenance') or {}).get('source_kind')
+                       if isinstance(o.get('provenance'), dict) else None]
+    for f in fields:
+        if f is not None and any(t in norm_source(f) for t in BENCHMARK_TOKENS):
+            return f
+    return None
 
 
 class PromptError(ValueError):
@@ -51,9 +70,13 @@ def check_prompts(prompts, exclusions):
         if p['prompt_id'] in seen:
             raise PromptError(f'duplicate prompt id {p["prompt_id"]}')
         seen.add(p['prompt_id'])
-        src = str(p['source']).lower()
-        if src in banned_sources or any(b in src for b in ('revsi', 'vsi-bench', 'vsibench', 'vsti')):
-            raise PromptError(f'{p["prompt_id"]}: source {p["source"]} is a benchmark; never sampled')
+        bad = benchmark_source(p)
+        if bad is None and any(norm_source(f) in {norm_source(b) for b in banned_sources}
+                               for f in (p.get('source'), (p.get('row') or {}).get('source'), (p.get('row') or {}).get('dataset'))
+                               if f is not None):
+            bad = p.get('source')
+        if bad is not None:
+            raise PromptError(f'{p["prompt_id"]}: source {bad} is a benchmark; never sampled')
         if p['scene_key'] in banned_scenes:
             raise PromptError(f'{p["prompt_id"]}: scene {p["scene_key"]} is excluded')
     return True
@@ -107,11 +130,19 @@ def response_sources(rec, kw):
     """Where the rollout's printed responses came from: the decode kwargs the sampler passed and
     the decoder's own per-query backend names (heads.ground_queries[].backend)."""
     heads = rec.get('heads') or {}
-    backends = sorted({str(q.get('backend')) for q in heads.get('ground_queries') or []})
+    queries = heads.get('ground_queries') or []
+    gb = kw.get('ground_backend')
     return dict(pose_source=kw.get('pose_source', 'own'), mask_source=kw.get('mask_source'),
-                ground_backend=None if kw.get('ground_backend') is None else type(kw['ground_backend']).__name__,
-                ground_query_backends=backends, tower_state=kw.get('tower_state') is not None,
-                donor=kw.get('donor_batch') is not None, call_kinds=sorted({str(c.get('kind')) for c in rec.get('calls', [])}))
+                ground_backend=None if gb is None else type(gb).__name__,
+                geometry_source=getattr(gb, 'geometry_source', None),
+                geometry_identity=getattr(getattr(gb, 'scene', None), 'geometry_identity', None),
+                source_identity=getattr(getattr(gb, 'source', None), 'identity', None),
+                ground_query_backends=sorted({str(q.get('backend')) for q in queries}),
+                query_provenance=sorted({str(q.get('source_provenance')) for q in queries}),
+                presence_sources=sorted({str(q.get('presence_source')) for q in queries}),
+                tower_state=kw.get('tower_state') is not None, verify=kw.get('verify') is not None,
+                reread=kw.get('reread') is not None, donor=kw.get('donor_batch') is not None,
+                call_kinds=sorted({str(c.get('kind')) for c in rec.get('calls', [])}))
 
 
 def build_record(prompt, draw, path, text, choice, rec, seconds, prompt_sha=None, sources=None):
@@ -125,7 +156,7 @@ def build_record(prompt, draw, path, text, choice, rec, seconds, prompt_sha=None
         own_tokens=own, response_tokens=len(kinds) - own, forced_prefix_tokens=kinds.count('f'),
         prompt_tokens=rec.get('prompt_tokens'), geometry_error=rec.get('geometry_error'),
         errors=rec.get('errors', 0), tower_error=rec.get('tower_error'), seconds=seconds,
-        prompt_ids_sha256=prompt_sha, response_sources=sources)
+        prompt_ids_sha256=prompt_sha, response_sources=sources, temperature=choice.temperature, top_p=choice.top_p)
 
 
 def sample_prompt(cfg, backend, store, prompt):

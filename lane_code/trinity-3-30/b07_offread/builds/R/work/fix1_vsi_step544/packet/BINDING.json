@@ -1,0 +1,51 @@
+{
+  "arms": [
+    "primary"
+  ],
+  "benchmark": "vsibench5130",
+  "benchmark_label": "VSI-Bench official 5,130",
+  "binding_sha256": "7ff6e5e6baf29fc19919bddf9823f6296c2e4a6607d2661f9f2db8bcbc7004fe",
+  "budget": "B2048 primary; native reads 2,048 + 64 tokens (pre-registration, fixed without re-selection)",
+  "export": {
+    "kind": "fixture",
+    "label": "CPU fixture with synthetic answers",
+    "sha256": "b1bd498d639b72c0ee25c1fcdbba418961617beb1962c7886e4eb5bdee525531"
+  },
+  "frame_path": "PyAV rgb24, 32 floor-uniform anchors k*(N-1)//31 for k in 0..31, PyAV rgb24 at stream fps, layout duplicate",
+  "frames": {
+    "anchor_rule": "k*(N-1)//31 for k in 0..31, PyAV rgb24 at stream fps",
+    "count": 32,
+    "layout": "duplicate",
+    "layout_override_reason": null,
+    "processor_frames": 64,
+    "temporal_groups": 32,
+    "trained": {
+      "count": 32,
+      "layout": "duplicate"
+    }
+  },
+  "groups": [
+    "object_counting",
+    "object_size_estimation",
+    "object_rel_distance",
+    "object_rel_direction",
+    "route_planning",
+    "obj_appearance_order"
+  ],
+  "items": 4008,
+  "mode": "production",
+  "reader": {
+    "direct_kit": {
+      "accepted_return_sha256": "4609adde0bb8a9ee734abacd29ac4df03766d4c48bf0bf0fa90552627500065f",
+      "job": 170008,
+      "kit": "f42aa1a4"
+    },
+    "eat1": {
+      "note": "direct reader: no call is served; EAT-1 concerns served calls",
+      "passed": null
+    },
+    "id": "direct kit f42aa1a4",
+    "kind": "direct"
+  },
+  "schema": "offkit-binding-v1"
+}

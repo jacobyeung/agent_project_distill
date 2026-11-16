@@ -1,0 +1,154 @@
+"""Canonical, immutable evaluation membership and reserve-room checks."""
+import hashlib
+import json
+from collections import Counter
+from pathlib import Path
+from student_pilot.h1_r0 import Reserve, room_key, R0_SHA256
+
+K = Path(__file__).resolve().parents[1]
+ROOT = Path('/scratch/jjyeung/orch_n30')
+R0 = ROOT/'h1_headsft/work/auth/R0_ROOMS.txt'
+REVSI = ROOT/'b07_offread/in/kit_revsi/inputs/i1.json'
+DIRECT = ROOT/'b07_offread/in/readk/kit/reader/e193_items.json'
+TASKS = ROOT/'b07_offread/in/readk/kit/reader/work/vendor/r3/TASKS.jsonl'
+
+
+def encoded(value):
+    return json.dumps(value, sort_keys=True, separators=(',', ':'), ensure_ascii=False, allow_nan=False).encode()
+
+
+def digest(value):
+    return hashlib.sha256(encoded(value)).hexdigest()
+
+
+def sha(path):
+    with Path(path).open('rb') as f:
+        return hashlib.file_digest(f, 'sha256').hexdigest()
+
+
+def pin(path):
+    return dict(path=str(Path(path).resolve()), sha256=sha(path))
+
+
+def read_items(path):
+    p = Path(path)
+    if p.suffix == '.jsonl':
+        return [json.loads(s) for s in p.read_text().splitlines() if s.strip()]
+    data = json.loads(p.read_text())
+    return data if isinstance(data, list) else data['items']
+
+
+def canonical(items):
+    result = []
+    for raw in items:
+        item = dict(raw)
+        item['id'] = str(item.get('id', item.get('example_id', item.get('qid', ''))))
+        if not item['id']:
+            raise ValueError('Missing item id')
+        item['room_key'] = room_key(item)
+        result.append(item)
+    result.sort(key=lambda r: r['id'])
+    if len({r['id'] for r in result}) != len(result):
+        raise ValueError('Duplicate item ids')
+    return result
+
+
+def manifest(name, items, source, *, extra_sources=(), r0=None):
+    items = canonical(items)
+    reserve = Reserve(r0 or dict(path=str(R0), sha256=R0_SHA256))
+    found = sum(reserve.excluded(r) for r in items)
+    if name != 'r0dev' and found:
+        raise ValueError(f'{name}: {found} items overlap R0; fixed sets cannot be silently filtered')
+    if name == 'r0dev':
+        dev = set((R0.parent/'R0_DEV_ROOMS.txt').read_text().splitlines())
+        if any(r['room_key'] not in dev for r in items):
+            raise ValueError('r0dev permits R0_DEV_ROOMS only')
+    result = dict(schema='h1-items-v1', name=name, status='ready', source=pin(source),
+                sources=[pin(source), *[pin(p) for p in extra_sources]], items=items,
+                item_set_sha256=digest(items), count=len(items),
+                per_type=dict(sorted(Counter(r['question_type'] for r in items).items())),
+                r0_check=dict(pin=reserve.pin, checked=len(items), found=found),
+                development_only=name == 'r0dev')
+    if name == 'r0dev':result['r0_dev_pin'] = pin(R0.parent/'R0_DEV_ROOMS.txt')
+    return result
+
+
+def load_manifest(path):
+    m = json.loads(Path(path).read_text())
+    if m.get('status') != 'ready':
+        raise ValueError(m.get('reason', 'Item set is not ready'))
+    if m.get('schema') != 'h1-items-v1' or digest(m['items']) != m['item_set_sha256']:
+        raise ValueError('Item-set hash mismatch')
+    if canonical(m['items']) != m['items']:
+        raise ValueError('Item list is not canonical')
+    reserve = Reserve(m['r0_check']['pin'])
+    found = sum(reserve.excluded(r) for r in m['items'])
+    if m['count'] != len(m['items']) or m['r0_check']['checked'] != m['count'] or found != m['r0_check']['found']:
+        raise ValueError('Item-set R0 coverage differs')
+    if m['name'] != 'r0dev' and found:
+        raise ValueError('Item set overlaps R0')
+    if m['name'] == 'r0dev':
+        if sha(m['r0_dev_pin']['path']) != m['r0_dev_pin']['sha256']:
+            raise ValueError('R0-dev pin mismatch')
+        dev = set((Path(reserve.pin['path']).parent/'R0_DEV_ROOMS.txt').read_text().splitlines())
+        if any(r['room_key'] not in dev for r in m['items']):
+            raise ValueError('Item outside R0-dev')
+    return m
+
+
+def build(out=K/'items', *, routed=None, direct_tasks=None, r0dev=None, sets=None):
+    out = Path(out); out.mkdir(parents=True, exist_ok=True)
+    results = {}
+    for name in sets or ('revsi999', 'devs1_routed', 'devs1_direct', 'r0dev'):
+        try:
+            if name == 'revsi999':
+                rows = read_items(REVSI)
+                counts = Counter(r.get('category', r['question_type']) for r in rows)
+                if len(rows) != 999 or counts['object_abs_distance'] != 283 or counts['room_size_estimation'] != 37:
+                    raise ValueError('revsi999 type counts differ')
+                if any('in meters' not in r['question'].lower() for r in rows if r['question_type'] == 'object_abs_distance'):
+                    raise ValueError('revsi distance unit differs')
+                value = manifest(name, rows, REVSI)
+            elif name == 'devs1_routed':
+                if routed is None:
+                    raise ValueError('Supply --routed-tasks: staged C8r lacks CAMERA_TASKS.jsonl; no complete 636-task source found')
+                rows = read_items(routed)
+                expected = {t:150 for t in ('camera_displacement','camera_movement_direction','camera_rotation','object_abs_distance')}
+                expected['room_size_estimation'] = 36
+                if Counter(r['question_type'] for r in rows) != expected:
+                    raise ValueError('devs1_routed requires the fixed 636 items (150/150/150/150/36)')
+                inventory_path = K/'items_sources/c8r_inventory.json'
+                inventory = json.loads(inventory_path.read_text())
+                if {str(r['id']) for r in rows} != set(inventory['keys']):
+                    raise ValueError('devs1_routed membership differs from the native C8r read')
+                value = manifest(name, rows, routed, extra_sources=[inventory_path])
+            elif name == 'devs1_direct':
+                inventory = json.loads(DIRECT.read_text())['families']
+                # D0 direct families: main, forward, away. Camera belongs to routed.
+                expected = {}
+                for family in ('main', 'forward', 'away'):
+                    expected.update(inventory[family]['items'])
+                rows = read_items(direct_tasks or TASKS)
+                by_id = {str(r.get('example_id', r['id'])): r for r in rows}
+                missing = set(expected)-set(by_id)
+                if missing:
+                    raise ValueError(f'Supply --direct-tasks: {len(missing)} e193 forward/away tasks lack staged room/question payloads')
+                rows = [by_id[k] for k in sorted(expected)]
+                if any(r['question_type'] != expected[str(r.get('example_id',r['id']))] for r in rows):
+                    raise ValueError('e193 item types differ')
+                value = manifest(name, rows, DIRECT, extra_sources=[direct_tasks or TASKS])
+            elif name == 'r0dev':
+                if r0dev is None:
+                    raise ValueError('Supply --r0dev-items; reserve-development interface is disabled without an item file')
+                value = manifest(name, read_items(r0dev), r0dev)
+            else:
+                raise ValueError('Unknown item set: '+name)
+        except (ValueError, FileNotFoundError, KeyError) as error:
+            value = dict(schema='h1-items-v1', name=name, status='unavailable', reason=str(error))
+        path = out/(name+'.json')
+        text = json.dumps(value, indent=2, sort_keys=True, allow_nan=False)+'\n'
+        if path.exists() and json.loads(path.read_text()).get('status') == 'ready' and path.read_text() != text:
+            raise ValueError('Refusing to replace pinned manifest: '+str(path))
+        path.write_text(text)
+        results[name] = {k:v for k,v in value.items() if k != 'items'}
+    return results

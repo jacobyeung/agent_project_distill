@@ -1,0 +1,46 @@
+[
+  {
+    "id": "refused-distance",
+    "type": "object_abs_distance",
+    "calls": [
+      {
+        "call": "<ground obj=\"chair\" mode=\"box\">",
+        "kind": "error",
+        "code": "reference_camera_up_opposes_gravity",
+        "message": "reference_camera_up_opposes_gravity",
+        "response": "Geometry refused: reference_camera_up_opposes_gravity"
+      }
+    ],
+    "mask_match": {
+      "ok": false
+    },
+    "synthetic": false,
+    "decision": {
+      "label": "fallback",
+      "reason": "runtime_failure",
+      "value": null
+    }
+  },
+  {
+    "id": "refused-room",
+    "type": "room_size_estimation",
+    "calls": [
+      {
+        "call": "<ground mode=\"room\">",
+        "kind": "error",
+        "code": "reference_camera_up_opposes_gravity",
+        "message": "reference_camera_up_opposes_gravity",
+        "response": "Geometry refused: reference_camera_up_opposes_gravity"
+      }
+    ],
+    "mask_match": {
+      "ok": false
+    },
+    "synthetic": false,
+    "decision": {
+      "label": "fallback",
+      "reason": "runtime_failure",
+      "value": null
+    }
+  }
+]

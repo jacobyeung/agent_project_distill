@@ -2,7 +2,9 @@
 
 This kit prepares one direct-only read per benchmark and selected export. Run these commands on `trinity-3-30`. The builder has submitted nothing. The submitted stdin batch is the only new input sent to Orchard; the package archives and `BINDING.json` stay on Trinity.
 
-The init-selection owner must supply the final JSON decision under item 7 of `NEXT_LEG_INIT_RULE_20261116.md`. Its `selected_sha256` must equal the whole-tar SHA256 in the selected plain-text `.done` file. The launcher verifies that identity; it does not select a milestone or evaluate the init rule. Use the same decision and export for both benchmarks. Do not infer the decision from an official benchmark result.
+The init-selection owner must supply the final JSON decision under item 7 of `NEXT_LEG_INIT_RULE_20261116.md`. Its `selected_sha256` must equal the whole-tar SHA256 in the selected plain-text `.done` file. Its `selected_step` must be one of 200, 400, 600, 800 or 1000 and match the object `q8/8865619b/359fcc3c_m<step>.tar`. Its `init_rule_sha256` must be `d53f9c1ac74c4c9e7a3d3bbdbcf74a0853ca529d62bb1d3afe1c03f121e260ba`. Its `d0_ended` object must contain a nonempty `event` reference and a `reason` of `completed_step_1000`, `stopped_under_rule` or `no_further_allocation`. The launcher checks these fields and the reviewed completion-record parser; it does not choose a milestone or evaluate the owner's selection decision. Use the same decision and export for both benchmarks. Do not infer the decision from an official benchmark result.
+
+Every launcher import and action verifies all six offkit source hashes against `out/OFFKIT_PINS.json`. Keep that manifest with the extracted packages. A missing manifest or changed module refuses before preparation, reporting or any other action. Production binding requires the ledger. The binding hash covers the accepted 32-duplicate frame layout, and reports take their identity and mode from the verified binding.
 
 Set the two input paths to the owner's actual records. The example deliberately requires existing environment variables rather than inventing a selected export.
 

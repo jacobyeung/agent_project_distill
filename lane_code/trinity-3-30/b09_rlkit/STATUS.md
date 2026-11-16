@@ -1,5 +1,5 @@
 # b09_rlkit STATUS (successor resumes from this file alone)
-Updated 2026-11-16 13:17Z by the Devin successor lane on trinity-3-30. About 92% done (every build item delivered, the mode (b) loader included; the review and the dry run remain).
+Updated 2026-11-16 14:01Z by the Devin successor lane on trinity-3-30. About 92% done (every build item delivered, the mode (b) loader included; the review and the dry run remain).
 L = /scratch/jjyeung/orch_n30/b09_rlkit (lane folder, node-local). E = /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/b09_rlkit/.
 Brief: orch_n30/briefs/b09_rlkit.md, which points to orch_n30/briefs/qs/09_rl_kit.md (the build brief; read it). Rules: ~/.claude/CLAUDE.md "Key Trinity Cluster Rules", orch_n30/tools/CLAUDE_LANE_RULES.md, orch_n30/tools/LANE_RULES.md. Finish or rotate by 22:30Z.
 
@@ -20,7 +20,26 @@ Build, not run, the RL kit: a sampler on the native decode path with path forcin
 - Tests in L/rltests: run `bash L/rltests/run.sh rltests.test_sampler rltests.test_reward`. 13/13 pass. The tests cover determinism, batched equals sequential, interrupt and resume, config change refused, benchmark prompts refused, and the planted reward cases.
 
 ## In flight
-Nothing. There are no tmux sessions, Codex dispatches, governor streams or Orchard jobs.
+- Confirmation review lane review_rl2 (Devin claude-opus-5-5-high, 5400 s cap, started 14:01Z on trinity-3-30, pid 227063). Brief: L/out/review/REVIEW_RL_CONFIRM_BRIEF.md. It compares L/work/mirror/b09_rlkit_kit_20261116T1327Z.tar with ..._1400Z.tar. Check it with `ps -p 227063` and the stdout /scratch/jjyeung/orch_n30/review_rl2/out/devin_20261116T140109Z.stdout. The verdict lands in events/review_rl2/REVIEW_VERDICT_RL2.md. Do not relaunch it while it runs.
+- First review (done): events/review_rl/REVIEW_VERDICT_RL.md returned GO AFTER FIXES (9 fixes plus minor items). Its refute tests are in L/rltests/test_review_refute.py (13).
+- No tmux sessions, Codex dispatches, governor streams or Orchard jobs.
+
+## Done (all in L; CPU only)
+- Next-leg tree build 5 copied over IB from trinity-1-18:/scratch/jjyeung/n30_mirror/tree_rebuild/: L/work/tree_b5/tree_rebuild_b5_ba346bd9.tar, sha256 bc31a06dd37e742dbf8bad493cbe5d90c18b2bf1dbb6b9f7ef992137a0b33726 (equal at both ends). Extracted read-only at L/work/tree_b5/x/work/tree_r1.
+- Kit package L/rlkit:
+  - common.py: hashing, atomic writes, derive_seed(run seed, prompt id, draw).
+  - store.py: per-draw atomic commits with checksum and config hash; resume refuses a changed config or a corrupt commit.
+  - forcing.py: draw_path (half the draws forced, alternating head and direct); SamplingChoice (forced first span, then seeded temperature/top-p, then a token budget); align (per-token kinds f/s/b/r); sampling_hooks, which let the tree's public carrier_c1_decode.generate accept the choice object.
+  - sampler.py: CLI `python -m rlkit.sampler --config --prompts --out --shard i/n --max-seconds`. NativeBackend binds evalpath.runtime.load_model and prompt_batch of the tree named in the config. The base sealed tree b01ce449 has a working evalpath; tree build 5 disables evalpath (r2_policy.unsupported_entry). The prompt schema is rlkit-prompt-v1. Benchmark sources and excluded scenes are refused.
+  - towercache.py: per-clip memory and disk cache for frozen-tower outputs.
+  - score.py: MRA (VSI-Bench arithmetic) and option exact match, using the vendored parser.
+  - gate.py: termination; the vendored validator a41ba191 (sha pinned in rlkit/vendor/__init__.py); provenance (a numeric chain from printed values, the gap argmin/argmax, the nearest numeric option, a direct detached-answer check); counterfactual replay (printed values x1.37, or a candidate swap).
+  - reward.py: r = c*g - min(lam*max(0,n-n_min)/n_ref, 0.5*c*g); r = 0 when c*g = 0.
+- Tests in L/rltests: run `bash L/rltests/run.sh rltests.test_sampler rltests.test_reward`. 13/13 pass. The tests cover determinism, batched equals sequential, interrupt and resume, config change refused, benchmark prompts refused, and the planted reward cases.
+
+## In flight
+- Review lane review_rl (Devin claude-opus-5-5-high, 7200 s cap, started 13:29Z on trinity-3-30, pid 154771). Brief: L/out/review/REVIEW_RL_BRIEF.md (sha 218c648e). It reviews the immutable tar L/work/mirror/b09_rlkit_kit_20261116T1327Z.tar (sha 4a96eaf7...). Check it with `ps -p 154771` and the stdout /scratch/jjyeung/orch_n30/review_rl/out/devin_20261116T132932Z.stdout. The verdict lands in events/review_rl/REVIEW_VERDICT_RL.md. Do not relaunch it while it runs.
+- No tmux sessions, Codex dispatches, governor streams or Orchard jobs.
 
 - rlkit/floor.py (user ruling 5): `python -m rlkit.floor --run RUN --prompts HELDOUT --pool POOL --out FLOOR.json` writes FLOOR.json and FLOOR.md. Per (type, path): budget accuracy acc(L) = sum(c*g*[n<=L])/N (fixed denominator, so short easy prompts cannot pull the floor down); n_sweep = shortest L with acc(L) >= acc_full - delta (0.02); n_min = max(n_sweep, hard min (required head calls x forced head span, or one Locate line = forced direct span), n_floor 12); prompt bootstrap p05-p95; cells under 20 prompts get no floor (reward falls back to group). Output keys n_min and n_ref feed reward.score_group's cfg directly. Tests rltests.test_floor 7/7.
 - GRPO patch (mode b) on the copy L/grpo_tree of tree build 5 (12M; the original stays read-only): new student_pilot/grpo_loss.py (group advantages, clipped surrogate, k3 KL, norm token|seq, settings from recipe['grpo'], refuses unknown keys); carrier_c1.py routing and vqa branches use it when the batch carries aux_pg_advantage, aux_pg_mask, aux_old_logp, aux_ref_logp, aux_pg_reserved (all or none). Diff and hashes: L/out/grpo_patch/{grpo_patch.diff,SHA256SUMS}. Bridge rlkit/grpo.py: advantages, group_rows (drops tied groups), reserved_ids, attach (prompt batch + rollout ids; labels on f/s/b, -100 on r; PG mask on s only), fill_reference.
@@ -40,8 +59,14 @@ Nothing. There are no tmux sessions, Codex dispatches, governor streams or Orcha
 - Mirror (latest): L/work/mirror/b09_rlkit_kit_20261116T1315Z.tar -> trinity-1-18:/scratch/jjyeung/n30_mirror/b09_rlkit/b09_rlkit_kit_20261116T1315Z.tar, sha256 dcc1df98d98fb44353b89fa9d2aa4882899dd1d8460308a80869735d7f4c6e15 (equal at both ends; excludes work/ and traces). The older 1307Z tar sits beside it.
 - RESULT event 20261116T1309Z_RESULT_kit_ready asks ORCH for the cross-family refute review of reward.py, gate.py and grpo_loss.py, and for a GO, export, pool and card for the dry run.
 
+- ORCH 1312Z fixes. (1) Head winners whose responses all came from inside the artifact train as exact-token own rows: schema rlkit-own-row-v1, CE on own tokens with responses masked, read by grpo_rows.encode_own through carrier_c1_run.Rows.get. select.ARTIFACT_POLICY admits pose own/tower, mask mdg, GroundV3 with ground_v3/mdg query backends, and call kinds head/calculator/error/ground/gap; a donor model or any other source goes to barred.jsonl. The sampler records response_sources and prompt_ids_sha256 per draw. Quarantine is off by default. (2) rlkit/headuse.py tracks head use per checkpoint (call rate, heads, placement against EXPECTED, estimate-before-call, counterfactual usage by re-decoding with printed unit values x1.37, reward split by called and not called) and draws the curve across checkpoints. Tests: kit 50/50 (test_headuse 3, test_grpo_rows 5, test_select 6); tree suites 59 OK/8 skipped.
+- Mirror (latest, the reviewed bytes): trinity-1-18:/scratch/jjyeung/n30_mirror/b09_rlkit/b09_rlkit_kit_20261116T1327Z.tar, sha256 4a96eaf7f09d546b416424048093ef4d6b80418cbd1ad8b7afbe315481baaf48 (equal at both ends).
+
+- Review fixes (all landed; tests 66/66 kit, 59 OK/8 skipped tree, 27/27 on the base tree). (1) gate.forced_mismatch: text response spans must equal the decoder-forced responses. (2) GRPO to_row requires artifact_policy; grpo_rows.check_sources re-checks on the trainer side. (3) Draws record temperature and top_p; the loss default is 0.7; aux_pg_temperature is required and must match. (4) Path 'recovery' is charged against the direct floor; headuse counts only successful head calls. (5) Provenance (geometry_source and identities, query provenance, presence, verify/reread/tower state) is recorded and allowlisted to the same artifact; the own grounding head is allowed. (6) Normalised benchmark sources are checked on the pool, DEV and the fit set; rows keep row_source and dataset. (7) floor --pool is required and its sha is recorded. (8) Numeric options use the final node, whose replay must move the option. (9) The constant baseline's r goes through the gate (best over the objects the question names). Minor: the cap claim is restated, usage is greedy with unparsed answers counted apart, sampling.max_calls is removed, and check_own re-checks the sources.
+- Mirror (latest): trinity-1-18:/scratch/jjyeung/n30_mirror/b09_rlkit/b09_rlkit_kit_20261116T1400Z.tar, sha256 2ff70c5912a57c6d3a24d8a72b687e9e87d83b0754092497d64ff824f58fa87a (equal at both ends).
+
 ## Next steps (in order)
-1. Read the events folder and inbox for ORCH answers (review verdict, dry-run GO). Apply any review fix, rerun the 41 tests, refresh HASHES and the mirror.
+1. Wait for events/review_rl2/REVIEW_VERDICT_RL2.md (poll every 10 min). If it asks for fixes, apply each with a failing test first, rerun the 66 kit tests and the tree suites, refresh HASHES, the patch diff and the mirror, then write a RESULT event. On GO, write a RESULT event saying the kit is reviewed.
 2. Mode (b) still owes a membership manifest for GRPO stream databases (r2_contract.Admission) and a real-processor check that grpo_rows.prompt_batch equals carrier_c1_canary.prompt_batch; both need the real processor or receipt and wait for a run decision.
 3. On a dry-run GO: follow L/out/dryrun_packet/README.md (two nvidia-smi readings 5+ min apart; vnice off trinity-0-13), poll every minute and then every 10, and report DRYRUN_MEASURE.json in a RESULT event.
 

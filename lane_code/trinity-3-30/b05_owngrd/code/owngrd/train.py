@@ -176,7 +176,7 @@ class Metrics:
             matched_pos=len(self.pos_iou), absent_pairs=absent, pairs=len(ordered), selection_skipped=self.selection_skipped)
 
 
-def encode_presence(vit, frames, presence_size=(160, 224), chunk=4):
+def encode_presence(vit, frames, presence_size=(320, 416), chunk=4):
     """Encode every frame at the configured shortlist resolution."""
     from .vit import frame_size
     size = frame_size(frames[0], presence_size)
@@ -187,7 +187,7 @@ def encode_presence(vit, frames, presence_size=(160, 224), chunk=4):
     return torch.cat(merged)
 
 
-def encode_item(vit, item, presence_size=(160, 224), merged=None):
+def encode_item(vit, item, presence_size=(320, 416), merged=None):
     """Encode every frame cheaply for presence, then re-read selected decoder frames."""
     frames = item['frames']
     if merged is None:
@@ -199,7 +199,7 @@ def encode_item(vit, item, presence_size=(160, 224), merged=None):
 
 
 @torch.no_grad()
-def predict_clip(model, vit, frames, names, size_hw=(480, 640), presence_size=(160, 224)):
+def predict_clip(model, vit, frames, names, size_hw=(480, 640), presence_size=(320, 416)):
     """Shortlist all clip frames and return one decoded result per normalized name."""
     from .head import pooled_name
     from .vit import frame_size, rgb_tensor
@@ -223,7 +223,7 @@ def predict_clip(model, vit, frames, names, size_hw=(480, 640), presence_size=(1
 
 
 @torch.no_grad()
-def validate(model, vit, dataset, presence_size=(160, 224), deadline=None):
+def validate(model, vit, dataset, presence_size=(320, 416), deadline=None):
     from .head import pooled_name
     previous = model.training
     model.eval()
@@ -280,7 +280,7 @@ def main(argv=None):
     ap.add_argument('--checkpoint-every', type=int, default=200)
     ap.add_argument('--seed', type=int, default=42)
     ap.add_argument('--size', type=int, nargs=2, default=[480, 640])
-    ap.add_argument('--presence-size', type=int, nargs=2, default=[160, 224])
+    ap.add_argument('--presence-size', type=int, nargs=2, default=[320, 416])
     ap.add_argument('--resume')
     a = ap.parse_args(argv)
     if a.hours <= 0 or min(a.steps, a.validate_every, a.checkpoint_every) <= 0:

@@ -13,17 +13,16 @@ Goal: queue brief briefs/qs/13_facing_diag.md: classify why facing-away answers 
   - ra 9d7080ae, rb 1ea55d30, rc 8ca80f0f
   - rab 79049965 = ra + rb; rac ba092c05 = ra + rc
 - Finding: D0 v5's away rows never use ReVSI's only wording, "facing in the opposite direction of" (nor "facing directly away from"). The split is 5,889 turned away from / 5,809 facing away from / 5,781 with my back to.
-- Rows-lane rule: out/RULE_rows_lane.md (sha 172e01b8). Design record: distill_design/FACING_AWAY_DIAGNOSIS_20261116.md, plus an INDEX.md line.
+- Rows-lane rule: out/RULE_rows_lane.md (sha 667f9c63; follows ORCH RULING 1416Z). Design record: distill_design/FACING_AWAY_DIAGNOSIS_20261116.md, plus an INDEX.md line.
 - Mirror: trinity-1-3:/scratch/jjyeung/n30_mirror/b13_facing/ holds code, out/m544, all five renderings with manifests and checks, the RULE, TREND and STATUS. sha256 matches (out/MIRROR*_LOCAL/REMOTE.sha256).
 - R0 check (ORCH NOTE 1307Z): 0 rows removed. All 1,049 scene keys of the facing rows (and so of every rendering, 34,958 rows) are in b10_reserve/in/stream_scenes/d0v5_vqa.txt, and R0_SCENES.json (f7c45817) proves every R0 capture absent from stream_d0v5_vqa.txt, aliases included. The renderings keep scene and frames unchanged.
-- ORCH ANSWER 1305Z (cont_ops): the m400 ReVSI read uses b07_offread's build R; revsi400 is the fallback; cont_ops operates it and runs paired.py. My ReVSI m400 table takes build R's per-item B2048 journal.
 - Events: RESULT 1227Z m544_classes, RESULT 1227Z checkpoint, RESULT renderings_composites.
 
 ## In flight
 - Nothing running: no tmux, Codex, governor stream or Orchard job. I am waiting for D0 read returns.
 
 ## Next steps
-1. Read events/cont_ops/ (newest RESULT and STATUS.md) for the m200 read and for where its extracted return lands on trinity-1-3. ORCH ANSWER 1221Z in events/cont_ops: m100 is skipped. The m200 .done is due ~17:50Z and the read takes 60-70 min, so expect it ~19:00Z. m400 is due ~01:40Z Nov 17. One extra ReVSI official999 direct read of the m400 export runs after m400's stop-rule read; that read gives the ReVSI table at m400 (third arg of run_milestone.sh). Its kit is cont_ops/work/d0/revsi400/ on trinity-1-3 (RESULT 1300Z revsi400_kit; under review). Use the B2048 journal of its D0 arm, the same layout as work/in/revsi/x/a0/results/0/budget_2048.jsonl.
+1. Read events/cont_ops/ (newest RESULT and STATUS.md) for the m200 read and for where its extracted return lands on trinity-1-3. ORCH ANSWER 1221Z in events/cont_ops: m100 is skipped. The m200 .done is due ~17:50Z and the read takes 60-70 min, so expect it ~19:00Z. m400 is due ~01:40Z Nov 17. ORCH RULING 1416Z (cont_ops) allows no official ReVSI or VSI-Bench read of any D0 export except the one the init rule selects. Mid-leg tables are therefore dev twins only, plus b10_reserve's ReVSI-style R0-dev questions when they exist. The ReVSI table comes once, for the init-selected export (third arg of run_milestone.sh, a B2048 journal laid out like work/in/revsi/x/a0/results/0/budget_2048.jsonl).
 2. When a return is extracted, copy the away/ and forward/ B2048 items journals plus ITEMS.jsonl from trinity-1-3 to work/in/d0_m<STEP>/ in one tar pipe over IB (a few MB) via tssh.sh. Then run `bash code/run_milestone.sh <STEP> work/in/d0_m<STEP>`.
 3. Write one RESULT per milestone (class table beside f1f2's verdict from events/cont_ops), apply RULE_rows_lane.md, and add a line to the design record.
 4. Mirror out/m<STEP> to trinity-1-3 n30_mirror.
@@ -34,4 +33,4 @@ Goal: queue brief briefs/qs/13_facing_diag.md: classify why facing-away answers 
 
 ## Successor reads
 This file; events/b13_facing/*_ORCH_*; briefs/b13_facing.md; briefs/qs/13_facing_diag.md; tools/LANE_RULES.md; out/RULE_rows_lane.md.
-Updated 20261116T1309Z
+Updated 20261116T1417Z

@@ -22,6 +22,7 @@ before sbatch, and submits nothing when either is short. status and fetch are th
 same transport. Python 3.6-safe, standard library only; runs on the cluster side.
 """
 import argparse
+import fcntl
 import gzip
 import hashlib
 import io
@@ -29,9 +30,11 @@ import json
 import os
 import re
 import secrets
+import stat
 import subprocess
 import sys
 import tarfile
+import tempfile
 
 if __package__ in (None, ''):
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -186,11 +189,30 @@ def kit_files(kit):
             path = os.path.join(current, name)
             if os.path.islink(path):
                 raise LaunchError('kit holds a symlink: %s' % os.path.relpath(path, kit))
+            if not stat.S_ISREG(os.lstat(path).st_mode):
+                raise LaunchError('kit holds a special file: %s' % os.path.relpath(path, kit))
             rows.append((os.path.relpath(path, kit), path))
         for name in dirs:
             if os.path.islink(os.path.join(current, name)):
                 raise LaunchError('kit holds a symlink: %s' % name)
     return rows
+
+
+def snapshot(kit, dest):
+    """Copy every kit file, read once, into a fresh private directory. prepare checks and bundles
+    only this copy, so a change to the source kit after it is read cannot reach the batch host."""
+    os.makedirs(dest, 0o700)
+    for rel, path in kit_files(kit):
+        target = os.path.join(dest, rel)
+        if not os.path.isdir(os.path.dirname(target)):
+            os.makedirs(os.path.dirname(target), 0o700)
+        with open(path, 'rb') as handle:
+            data = handle.read()
+        fd = os.open(target, os.O_WRONLY | os.O_CREAT | os.O_EXCL,
+                     0o700 if os.access(path, os.X_OK) else 0o600)
+        with os.fdopen(fd, 'wb') as out:
+            out.write(data)
+    return dest
 
 
 def bundle_bytes(kit, job):
@@ -341,13 +363,11 @@ def check_dryrun(path, kit_pins, config_sha):
     return {'path': os.path.abspath(path), 'verdict': 'PASS'}
 
 
-def prepare(kit, config_path, out, lane, meaning, checkout, dryrun=None, no_dryrun_reason=None,
-            sessions=None, ledger_file=None, provenance_fn=provenance, token=None, rules=None):
-    kit, out = os.path.abspath(kit), os.path.abspath(out)
-    if os.path.lexists(out):
-        raise LaunchError('refusing to reuse %s' % out)
-    with open(config_path, 'rb') as handle:
-        config_raw = handle.read()
+def check_kit(kit, config_raw, rules):
+    """Every kit check, on one directory: the config bytes equal the kit's CONFIG.json, the config
+    validates, PINS.json is valid and named by the config, every pinned file matches, no file is
+    unpinned, no hash is copied, and nothing trips the opacity check. Returns
+    (config, manifest, kit_pins_sha256, config_sha256)."""
     kit_config = os.path.join(kit, 'CONFIG.json')
     if not os.path.isfile(kit_config) or util.sha256_file(kit_config)[0] != util.sha256_bytes(config_raw):
         raise LaunchError('--config differs from the kit CONFIG.json')
@@ -370,29 +390,48 @@ def prepare(kit, config_path, out, lane, meaning, checkout, dryrun=None, no_dryr
     copies = pins.check_single_place(kit)
     if copies:
         raise LaunchError('single-place invariant: %s' % json.dumps(copies, sort_keys=True)[:2000])
-    if no_dryrun_reason:
-        dry = {'path': None, 'verdict': None, 'no_dryrun_reason': no_dryrun_reason}
-    else:
-        dry = check_dryrun(dryrun or os.path.join(kit, 'DRYRUN_REPORT.json'), kit_pins, config_sha)
-    rules = rules or anon.load_rules()
     hits = anon.scan_tree(kit, rules)
     if hits:
         raise LaunchError('opacity: %s' % json.dumps(hits, sort_keys=True)[:2000])
-    record = provenance_fn(checkout, config_path)
-    token, name = mint_job_name(token)
-    job = {'token': token, 'job_name': name,
-           'sessions': util.read_json(sessions) if sessions else {}}
-    payload = bundle_bytes(kit, job)
-    script = render(config, token, payload)
-    remote = submit_script(config, token, script)
-    argv = transport_argv()
-    hits = anon.scan_job(rules, job_name=name, script=script, argv=config['entry'],
+    return config, manifest, kit_pins, config_sha
+
+
+def build_submission(kit, config, job, rules):
+    """The batch script and the submission script, rebuilt deterministically from a checked kit and
+    JOB.json, after the opacity check of every part bound for the batch host."""
+    script = render(config, job['token'], bundle_bytes(kit, job))
+    remote = submit_script(config, job['token'], script)
+    hits = anon.scan_job(rules, job_name=job['job_name'], script=script, argv=config['entry'],
                          env=(config.get('return') or {}).get('gcs_env') or {})
     hits += anon.scan_text('script', script, rules, 'name')
     hits += anon.scan_text('submit', remote, rules, 'name')
     hits += anon.scan_text('JOB.json', util.canonical_json(job).decode('utf-8'), rules, 'name')
     if hits:
         raise LaunchError('opacity: %s' % json.dumps(hits, sort_keys=True)[:2000])
+    return script, remote
+
+
+def prepare(kit, config_path, out, lane, meaning, checkout, dryrun=None, no_dryrun_reason=None,
+            sessions=None, ledger_file=None, provenance_fn=provenance, token=None, rules=None):
+    kit, out = os.path.abspath(kit), os.path.abspath(out)
+    if os.path.lexists(out):
+        raise LaunchError('refusing to reuse %s' % out)
+    check = tempfile.mkdtemp(prefix=os.path.basename(out) + '.check.', dir=os.path.dirname(out))
+    kit = snapshot(kit, os.path.join(check, 'kit'))
+    with open(config_path, 'rb') as handle:
+        config_raw = handle.read()
+    rules = rules or anon.load_rules()
+    config, manifest, kit_pins, config_sha = check_kit(kit, config_raw, rules)
+    if no_dryrun_reason:
+        dry = {'path': None, 'verdict': None, 'no_dryrun_reason': no_dryrun_reason}
+    else:
+        dry = check_dryrun(dryrun or os.path.join(kit, 'DRYRUN_REPORT.json'), kit_pins, config_sha)
+    record = provenance_fn(checkout, config_path)
+    token, name = mint_job_name(token)
+    job = {'token': token, 'job_name': name,
+           'sessions': util.read_json(sessions) if sessions else {}}
+    script, remote = build_submission(kit, config, job, rules)
+    argv = transport_argv()
     target = config.get('return') or {}
     gcs = ('%s/%s' % (target['gcs_prefix'].rstrip('/'), token)) if target.get('gcs_prefix') else None
     text = meaning + ('' if not no_dryrun_reason else ' | no-dryrun: ' + no_dryrun_reason)
@@ -402,9 +441,10 @@ def prepare(kit, config_path, out, lane, meaning, checkout, dryrun=None, no_dryr
                           pool=target.get('pool'), gcs=gcs, state='prepared')
     row = ledger._fit(row)
     ledger.validate(row)
-    os.makedirs(out, 0o700)
+    os.rename(check, out)
     util.atomic_write(os.path.join(out, 'BATCH.sh'), script.encode('utf-8'))
     util.atomic_write(os.path.join(out, 'SUBMIT.sh'), remote.encode('utf-8'))
+    util.write_json(os.path.join(out, 'JOB.json'), job)
     submit = {'schema': 'orchkit-submit-v1', 'token': token, 'job_name': name, 'argv': argv,
               'stdin': 'SUBMIT.sh', 'script_sha256': util.sha256_bytes(script.encode('utf-8')),
               'submit_sha256': util.sha256_bytes(remote.encode('utf-8')),
@@ -412,6 +452,7 @@ def prepare(kit, config_path, out, lane, meaning, checkout, dryrun=None, no_dryr
               'partition': config['job']['partition'], 'gpus': config['job']['gpus'],
               'time_limit_s': config['job']['time_limit_s'], 'pool': target.get('pool'),
               'gcs': gcs, 'provenance': record, 'dryrun': dry, 'lane': lane,
+              'kit_snapshot': os.path.join(out, 'kit'),
               'ledger': ledger.ledger_path(ledger_file)}
     util.write_json(os.path.join(out, 'SUBMIT.json'), submit)
     ledger.append(row, ledger_file)
@@ -432,22 +473,44 @@ def _names(text, token):
     return re.search(r'(?<![0-9a-f])%s(?![0-9a-f])' % token, text) is not None
 
 
-def submit(prep, go, execute=False, ledger_file=None, transport=None, out=sys.stdout):
-    prep = os.path.abspath(prep)
-    record = _load_prep(prep)
-    token = record['token']
-    if not go or not os.path.isfile(go):
-        raise LaunchError('no GO file at %s' % go)
-    with open(go, 'rb') as handle:
-        go_text = handle.read().decode('utf-8', 'replace')
-    if not _names(go_text, token):
-        raise LaunchError('the GO file does not name token %s' % token)
-    rows = ledger.lookup(token, ledger_file)
-    if not any(row.get('event') == 'minted' for row in rows):
-        raise LaunchError('ledger has no minted row for %s' % token)
-    if any(row.get('event') == 'submitted' for row in rows) or \
-            os.path.exists(os.path.join(prep, 'SUBMIT_INTENT.json')):
-        raise LaunchError('already submitted or attempted; never repeat an uncertain submit')
+def _go_names(text, token):
+    """True when a line of the GO file starts with the word GO and names the token."""
+    return any(_names(line, token) for line in text.splitlines()
+               if re.match(r'^\s*GO(?![\w-])', line))
+
+
+def rebuild(prep, record, rows, rules=None):
+    """The exact submission bytes, rebuilt from a private snapshot of PREP/kit (read once, then
+    checked and bundled) and PREP/JOB.json (read once), and anchored to the ledger: the minted row of the token must name this kit and config, the kit must pass every
+    check again, and BATCH.sh, SUBMIT.sh and the transport argv in PREP must equal the rebuild.
+    Nothing in SUBMIT.json is trusted beyond the token."""
+    token, name = mint_job_name(record['token'])
+    minted = [row for row in rows if row.get('event') == 'minted']
+    if len(minted) != 1:
+        raise LaunchError('ledger must hold exactly one minted row for %s' % token)
+    job = util.read_json(os.path.join(prep, 'JOB.json'))
+    kit = snapshot(os.path.join(prep, 'kit'),
+                   os.path.join(tempfile.mkdtemp(prefix='.submit.', dir=prep), 'kit'))
+    with open(os.path.join(kit, 'CONFIG.json'), 'rb') as handle:
+        config_raw = handle.read()
+    config, _, kit_pins, config_sha = check_kit(kit, config_raw, rules or anon.load_rules())
+    if (minted[0].get('kit_pins_sha256'), minted[0].get('config_sha256')) != (kit_pins, config_sha):
+        raise LaunchError('the ledger row of %s names another kit or config' % token)
+    if job.get('token') != token or job.get('job_name') != name or record.get('job_name') != name:
+        raise LaunchError('the prepared scripts do not belong to token %s' % token)
+    script, remote = build_submission(kit, config, job, rules or anon.load_rules())
+    for file_name, expect in (('BATCH.sh', script), ('SUBMIT.sh', remote)):
+        with open(os.path.join(prep, file_name), 'rb') as handle:
+            if handle.read() != expect.encode('utf-8'):
+                raise LaunchError('%s differs from its rebuild; prepare again' % file_name)
+    if record.get('argv') != transport_argv() or record.get('stdin') != 'SUBMIT.sh':
+        raise LaunchError('the transport command differs from the one prepare recorded')
+    return remote.encode('utf-8')
+
+
+def _live_gate(record, token, go_text, ledger_file):
+    """Refuse when the ledger shows another of our jobs live on a one-job partition, unless the GO
+    file says "queue behind" and names it."""
     if record['partition'] in ONE_JOB_PARTITIONS:
         live = [row for row in ledger.live(ledger_file, [record['partition']])
                 if row.get('token') != token]
@@ -455,53 +518,126 @@ def submit(prep, go, execute=False, ledger_file=None, transport=None, out=sys.st
         if live and not (behind and all(_names(go_text, row['token']) for row in live)):
             raise LaunchError('our job %s is live on %s; the GO file must say "queue behind" and '
                               'name it' % (','.join(row['token'] for row in live), record['partition']))
+
+
+class partition_lock(object):
+    """An exclusive flock beside the shared ledger, per partition, held from the live-job check to
+    the ledger's submitted row; a second submission to the partition meanwhile is refused at once."""
+
+    def __init__(self, partition, ledger_file=None):
+        claims = ledger.ledger_path(ledger_file) + '.claims'
+        if not os.path.isdir(claims):
+            try:
+                os.makedirs(claims, 0o700)
+            except OSError:
+                if not os.path.isdir(claims):
+                    raise
+        self.path = os.path.join(claims, 'partition-%s.lock' % partition)
+        self.fd = None
+
+    def __enter__(self):
+        self.fd = os.open(self.path, os.O_WRONLY | os.O_CREAT, 0o600)
+        try:
+            fcntl.flock(self.fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except (IOError, OSError):
+            os.close(self.fd)
+            raise LaunchError('another submission to this partition is in progress; submit again '
+                              'after it has ended')
+        return self
+
+    def __exit__(self, *exc):
+        try:
+            fcntl.flock(self.fd, fcntl.LOCK_UN)
+        finally:
+            os.close(self.fd)
+        return False
+
+
+def claim_token(token, ledger_file=None):
+    """Claim a token once for the whole account: an exclusive file beside the shared ledger, so two
+    copies of one preparation cannot both reach the transport."""
+    claims = ledger.ledger_path(ledger_file) + '.claims'
+    if not os.path.isdir(claims):
+        try:
+            os.makedirs(claims, 0o700)
+        except OSError:
+            if not os.path.isdir(claims):
+                raise
+    try:
+        fd = os.open(os.path.join(claims, token), os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    except OSError:
+        raise LaunchError('token %s was already claimed for submission; never repeat a submit' % token)
+    with os.fdopen(fd, 'wb') as handle:
+        handle.write(util.canonical_json({'token': token, 'utc': util.utc_iso(),
+                                          'pid': os.getpid()}) + b'\n')
+        handle.flush()
+        os.fsync(handle.fileno())
+
+
+def submit(prep, go, execute=False, ledger_file=None, transport=None, out=sys.stdout, rules=None):
+    prep = os.path.abspath(prep)
+    record = _load_prep(prep)
+    token = record['token']
+    if not go or not os.path.isfile(go):
+        raise LaunchError('no GO file at %s' % go)
+    with open(go, 'rb') as handle:
+        go_text = handle.read().decode('utf-8', 'replace')
+    if not _go_names(go_text, token):
+        raise LaunchError('no line of the GO file starts with GO and names token %s' % token)
+    rows = ledger.lookup(token, ledger_file)
+    if not any(row.get('event') == 'minted' for row in rows):
+        raise LaunchError('ledger has no minted row for %s' % token)
+    if any(row.get('event') == 'submitted' for row in rows) or \
+            os.path.exists(os.path.join(prep, 'SUBMIT_INTENT.json')):
+        raise LaunchError('already submitted or attempted; never repeat an uncertain submit')
+    _live_gate(record, token, go_text, ledger_file)
     argv = record['argv']
     out.write('%s < %s\n' % (' '.join(argv), os.path.join(prep, record['stdin'])))
     if not execute:
         return {'executed': False, 'argv': argv}
-    with open(os.path.join(prep, record['stdin']), 'rb') as handle:
-        pinned = handle.read()
-    if util.sha256_bytes(pinned) != record['submit_sha256']:
-        raise LaunchError('%s changed after prepare' % record['stdin'])
-    try:
-        fd = os.open(os.path.join(prep, 'SUBMIT_INTENT.json'), os.O_WRONLY | os.O_CREAT | os.O_EXCL,
-                     0o600)
-    except OSError:
-        raise LaunchError('another submit of %s holds the intent; never repeat a submit' % token)
-    with os.fdopen(fd, 'wb') as handle:
-        handle.write(util.canonical_json({'token': token, 'utc': util.utc_iso(),
-                                          'go': os.path.abspath(go)}) + b'\n')
-        handle.flush()
-        os.fsync(handle.fileno())
-    if any(row.get('event') == 'submitted' for row in ledger.lookup(token, ledger_file)):
-        raise LaunchError('ledger already shows %s submitted' % token)
-    behind = sorted(set(PREFIX + found for found in re.findall(r'(?<![0-9a-f])([0-9a-f]{16})(?![0-9a-f])',
-                                                                 go_text) if found != token))
-    body = ('QUEUE_BEHIND=%s\n' % ("'%s'" % ' '.join(behind) if behind and re.search(
-        r'queue[ _-]behind', go_text, re.I) else "''")).encode('utf-8') + pinned
-    code, stdout, stderr = (transport or run_transport)(argv, body)
-    text = stdout.decode('utf-8', 'replace')
-    found = re.search(r'^JOBID=(\d+)\s*$', text, re.M)
-    result = {'token': token, 'utc': util.utc_iso(), 'rc': code, 'stdout': text[-4000:],
-              'stderr': stderr.decode('utf-8', 'replace')[-4000:]}
-    if code == 0 and found:
-        result.update(status='SUBMITTED', job_id=int(found.group(1)))
-    elif re.search(r'^SHORT ', text, re.M):
-        result.update(status='REFUSED_ROOM', job_id=None)
-    elif re.search(r'^LIVE ', text, re.M):
-        result.update(status='REFUSED_LIVE', job_id=None)
-    else:
-        result.update(status='UNCERTAIN', job_id=None)
-    util.write_json(os.path.join(prep, 'SUBMISSION.json'), result)
-    if result['status'] == 'SUBMITTED':
-        ledger.append(ledger.make_row(
-            'submitted', token, job_id=result['job_id'], lane=record.get('lane'),
-            kit_pins_sha256=record['kit_pins_sha256'], config_sha256=record['config_sha256'],
-            partition=record['partition'], gpus=record['gpus'],
-            time_limit_s=record['time_limit_s'], pool=record['pool'], gcs=record['gcs'],
-            state='PENDING'), ledger_file)
-        return dict(result, executed=True)
-    raise LaunchError('submission %s: %s' % (result['status'], text[-500:]))
+    with partition_lock(record['partition'], ledger_file):
+        _live_gate(record, token, go_text, ledger_file)
+        pinned = rebuild(prep, record, rows, rules)
+        try:
+            fd = os.open(os.path.join(prep, 'SUBMIT_INTENT.json'), os.O_WRONLY | os.O_CREAT | os.O_EXCL,
+                         0o600)
+        except OSError:
+            raise LaunchError('another submit of %s holds the intent; never repeat a submit' % token)
+        with os.fdopen(fd, 'wb') as handle:
+            handle.write(util.canonical_json({'token': token, 'utc': util.utc_iso(),
+                                              'go': os.path.abspath(go)}) + b'\n')
+            handle.flush()
+            os.fsync(handle.fileno())
+        claim_token(token, ledger_file)
+        if any(row.get('event') == 'submitted' for row in ledger.lookup(token, ledger_file)):
+            raise LaunchError('ledger already shows %s submitted' % token)
+        behind = sorted(set(PREFIX + found for found in re.findall(r'(?<![0-9a-f])([0-9a-f]{16})(?![0-9a-f])',
+                                                                     go_text) if found != token))
+        body = ('QUEUE_BEHIND=%s\n' % ("'%s'" % ' '.join(behind) if behind and re.search(
+            r'queue[ _-]behind', go_text, re.I) else "''")).encode('utf-8') + pinned
+        code, stdout, stderr = (transport or run_transport)(transport_argv(), body)
+        text = stdout.decode('utf-8', 'replace')
+        found = re.search(r'^JOBID=(\d+)\s*$', text, re.M)
+        result = {'token': token, 'utc': util.utc_iso(), 'rc': code, 'stdout': text[-4000:],
+                  'stderr': stderr.decode('utf-8', 'replace')[-4000:]}
+        if code == 0 and found:
+            result.update(status='SUBMITTED', job_id=int(found.group(1)))
+        elif re.search(r'^SHORT ', text, re.M):
+            result.update(status='REFUSED_ROOM', job_id=None)
+        elif re.search(r'^LIVE ', text, re.M):
+            result.update(status='REFUSED_LIVE', job_id=None)
+        else:
+            result.update(status='UNCERTAIN', job_id=None)
+        util.write_json(os.path.join(prep, 'SUBMISSION.json'), result)
+        if result['status'] == 'SUBMITTED':
+            ledger.append(ledger.make_row(
+                'submitted', token, job_id=result['job_id'], lane=record.get('lane'),
+                kit_pins_sha256=record['kit_pins_sha256'], config_sha256=record['config_sha256'],
+                partition=record['partition'], gpus=record['gpus'],
+                time_limit_s=record['time_limit_s'], pool=record['pool'], gcs=record['gcs'],
+                state='PENDING'), ledger_file)
+            return dict(result, executed=True)
+        raise LaunchError('submission %s: %s' % (result['status'], text[-500:]))
 
 
 def _job_id(prep):

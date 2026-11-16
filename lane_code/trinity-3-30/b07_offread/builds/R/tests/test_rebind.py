@@ -27,7 +27,8 @@ def cli(*args,ok=True):
 
 def prep(tmp,bench='vsibench5130',export='step544',extra=()):
     d=tmp/'packet'
-    cli('prepare','--benchmark',bench,'--export',export,'--token','a00123456','--destination',d,*extra)
+    cli('prepare','--benchmark',bench,'--export',export,'--token','a00123456','--destination',d,
+        '--ledger',tmp/'official.jsonl',*extra)
     return d
 
 
@@ -35,6 +36,10 @@ def prep(tmp,bench='vsibench5130',export='step544',extra=()):
  ('vsibench5130','vsi',4008,'six_task_mean'),('revsi999t32','revsi',679,'five_category_mean')])
 def test_accepted_report(tmp_path,bench,key,count,headline):
     d=prep(tmp_path,bench)
+    binding=json.loads((d/'BINDING.json').read_text())
+    assert binding['frames']['count']==32 and binding['frames']['layout']=='duplicate'
+    changed=json.loads(json.dumps(binding));changed['frames']['count']=64
+    with pytest.raises(ValueError,match='binding_sha256'):B.verify_binding(changed)
     cli('report','--destination',d,'--return-dir',IN/('ret_'+key),'--accepted-return')
     for arm in ('B2048','ON16k','B4096'):
         actual=json.loads((d/'reports'/f'{arm}.json').read_text())
@@ -48,6 +53,8 @@ def test_accepted_report(tmp_path,bench,key,count,headline):
         assert (d/'reports'/f'{arm}.txt').read_text().splitlines()[0]==actual['first_line']
         assert actual['arm']=='primary'
         assert actual['not_read']==['object_abs_distance','room_size_estimation']
+        assert actual['binding_sha256']==binding['binding_sha256']
+        assert actual['frames']==binding['frames'] and actual['mode']=='production'
 
 
 @pytest.mark.parametrize('bench,key', [('vsibench5130','vsi'),('revsi999t32','revsi')])
@@ -96,9 +103,11 @@ print(json.dumps({'items':len(ts),'scenes':len({(r['dataset'],r['scene_name']) f
     assert json.loads(p.stdout)==dict(items=4008 if key=='vsi' else 679,scenes=288 if key=='vsi' else 261)
 
 
-def done_files(tmp,sha='a'*64):
-    done=tmp/'m200.done';done.write_text('q8/8865619b/359fcc3c_m200.tar 10240 '+sha+'\n')
-    sel=tmp/'selection.json';sel.write_text(json.dumps({'selected_sha256':sha}))
+def done_files(tmp,sha='a'*64,step=200):
+    from offkit.bind import INIT_RULE_SHA
+    done=tmp/f'm{step}.done';done.write_text(f'q8/8865619b/359fcc3c_m{step}.tar 10240 '+sha+'\n')
+    sel=tmp/'selection.json';sel.write_text(json.dumps(dict(selected_sha256=sha,selected_step=step,
+        init_rule_sha256=INIT_RULE_SHA,d0_ended=dict(reason='completed_step_1000',event='fixture:D0-ended'))))
     return done,sel
 
 
@@ -108,7 +117,9 @@ def test_binding_refusals(tmp_path,case):
     ledger=tmp_path/'ledger.jsonl'
     extra=['--init-selection',str(sel),'--ledger',str(ledger)]
     if case=='missing_selection':extra=[]
-    if case=='mismatch':sel.write_text(json.dumps({'selected_sha256':'b'*64}))
+    if case=='mismatch':
+        selection=json.loads(sel.read_text());selection['selected_sha256']='b'*64
+        sel.write_text(json.dumps(selection))
     if case=='second':ledger.write_text(json.dumps({'export_kind':'done','export_sha256':'b'*64})+'\n')
     if case=='malformed':done.write_text('broken\n')
     if case=='spacing':done.write_text(done.read_text().replace(' 10240','\t10240'))
@@ -129,6 +140,69 @@ def test_done_prepare_and_tamper(tmp_path,bench,key):
     b=json.loads((d/'BINDING.json').read_text());b['export']['sha256']='b'*64
     (d/'BINDING.json').write_text(json.dumps(b))
     cli('submit-command','--destination',d,ok=False)
+
+
+def test_m100_refused_with_matching_selection(tmp_path):
+    done,sel=done_files(tmp_path,step=100)
+    p=cli('prepare','--benchmark','vsibench5130','--export','done:'+str(done),
+        '--init-selection',sel,'--ledger',tmp_path/'ledger.jsonl','--token','a00123456',
+        '--destination',tmp_path/'refused',ok=False)
+    assert 'rule candidate' in p.stderr
+    assert not (tmp_path/'refused').exists()
+
+
+def test_launcher_independently_refuses_m100(monkeypatch,tmp_path):
+    from types import SimpleNamespace as NS
+    monkeypatch.setattr(B,'bind',lambda *a,**kw:dict(export=dict(kind='done',
+        object='q8/8865619b/359fcc3c_m100.tar')))
+    a=NS(token='a00123456',benchmark='vsibench5130',export='done:fixture',mode='production',
+         init_selection='fixture',ledger=tmp_path/'ledger.jsonl')
+    with pytest.raises(ValueError,match='unregistered lineage or step'):B.prepare(a)
+
+
+def offkit_copy(tmp_path):
+    source=Path(B.reports.__file__).parent
+    target=tmp_path/'offkit';target.mkdir()
+    for name in B.OFFKIT_MODULES:(target/name).write_bytes((source/name).read_bytes())
+    return target
+
+
+@pytest.mark.parametrize('name',B.OFFKIT_MODULES)
+def test_mutated_offkit_refused_before_import(tmp_path,name):
+    target=offkit_copy(tmp_path)
+    # Executing the changed module would produce a distinct error.
+    (target/name).write_text("raise RuntimeError('UNVERIFIED_MODULE_EXECUTED')\n"+(target/name).read_text())
+    p=subprocess.run([PY,'-B','-c',
+        'import sys;sys.path[:0]=sys.argv[1:];import rebind',str(tmp_path),str(ROOT/'kit')],
+        capture_output=True,text=True)
+    assert p.returncode!=0 and 'offkit content pin mismatch: '+name in p.stderr
+    assert 'UNVERIFIED_MODULE_EXECUTED' not in p.stderr
+
+
+@pytest.mark.parametrize('action',['prepare','submit-command','record-submission','fetch','report'])
+def test_offkit_rechecked_before_each_action(tmp_path,action):
+    target=offkit_copy(tmp_path)
+    script="""import sys
+from pathlib import Path
+sys.path[:0]=sys.argv[1:3]
+import rebind
+p=Path(sys.argv[1])/'offkit/frames.py'
+p.write_text(p.read_text()+'\\n# changed after import\\n')
+sys.argv=['rebind',sys.argv[3],'--destination',sys.argv[1]+'/unused']
+rebind.main()
+"""
+    p=subprocess.run([PY,'-B','-c',script,str(tmp_path),str(ROOT/'kit'),action],capture_output=True,text=True)
+    assert p.returncode!=0 and 'offkit content pin mismatch: frames.py' in p.stderr
+    assert not (tmp_path/'unused').exists()
+
+
+def test_identical_offkit_copy_is_accepted(tmp_path):
+    target=offkit_copy(tmp_path)
+    p=subprocess.run([PY,'-B','-c',
+        'import sys;sys.path[:0]=sys.argv[1:];import rebind;print(rebind.reports.__file__)',
+        str(tmp_path),str(ROOT/'kit')],capture_output=True,text=True)
+    assert p.returncode==0,p.stderr
+    assert str(target/'report.py') in p.stdout
 
 
 def test_submission_is_only_ledger_writer(tmp_path):

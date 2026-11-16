@@ -2,7 +2,7 @@
 
 The contract patches are installed. Exact hashes and hunk dispositions are in `work/build6/INTEGRATION.json`.
 
-The next-leg edits require a pinned init, gate final family retention, accept direct square-feet and inches answers, and require distance/room score breakdowns by asked unit. Targeted checks passed; the final suite must also verify the subsequent room-alias, exact area-unit and runtime-reader cases.
+The next-leg edits require a pinned init, gate final family retention, accept direct square-feet and inches answers, and require distance/room score breakdowns by asked unit. Targeted checks passed; the final suite must also verify the subsequent room-alias, exact area-unit and runtime-reader cases. Metric score rows now preserve metres-first order through the native canonical JSON writer; their round-trip and invalid-score tests are pending.
 
 The packet suite passed all 202 tests (`work/build6/proofs/packet/results.json`). Its supporting inputs retain the supplied hashes (`work/build6/PACKET_INPUTS.json`). Targeted next-leg evidence is in `work/build6/proofs/next_leg/results.json`; final source qualification is pending. Complete packed-row byte parity passed (`work/build6/proofs/rows/PARITY.json`). The empty-directory packaged tree/base diagnostic is running.
 
@@ -17,3 +17,7 @@ Completed qualification step `rows`; receipt/log: `work/build6/rows_qualificatio
 Completed qualification step `row_compare`; receipt/log: `work/build6/row_compare_qualification.log`.
 
 The current integration recheck passed every file hash and both unchanged level-basis functions (`work/build6/INTEGRATION_CHECK.json`). Syntax, protected artifact modes, grammar and exclusion pins passed (`work/build6/STATIC_AUDIT.json`). The packaged diagnostic remains active; its current results are not final qualification.
+
+The live diagnostic also found a stale memory-fixture identity hash (`work/build6/LIVE_B5_LOSSES.json`). Its repair retains the legacy configuration and numerical-output hashes while testing the accepted ON threshold and explicit OFF identities. The focused wrapper will verify it after the active suite finishes.
+
+The final harness uses a fresh extraction directory, clears stale live-result records by overwriting them, and measures unpacked bytes from the actual archive members (`work/build6/package.py`, `work/build6/test_runner.py`). These extensions await final package qualification. `work/build6/TARGETED_TEST.sh` runs the pending focused checks under the same caps.

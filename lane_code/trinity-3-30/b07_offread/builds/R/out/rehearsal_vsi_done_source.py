@@ -82,9 +82,9 @@ def run(work,real_base=None,real_videos=False):
     config['bootstrap_parent']=str(work)
     sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'kit'))
     import rebind as B
-    binding=B.bind('vsibench5130' if ROOT.name=='vsi' else 'revsi999t32','step544','direct')
+    binding=B.bind('vsibench5130' if ROOT.name=='vsi' else 'revsi999t32','step544','direct', ledger=work/'official.jsonl')
     binding['export']=dict(kind='fixture',sha256=export_tar['sha256'],label='CPU fixture with synthetic answers')
-    binding['binding_sha256']=B.canonical({k:v for k,v in binding.items() if k!='binding_sha256'})
+    binding['binding_sha256']=B.binding_sha256(binding)
     config.update(x0=binding['binding_sha256'],x1=export_tar['sha256'],x2=1,x3=export_tar['bytes'])
     config['plan_sha256']=L.canonical(config['spec'])
     boot['bootstrap/payload.tar.gz']=L.tar_bytes(payload)

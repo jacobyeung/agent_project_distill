@@ -2,6 +2,7 @@
 import json
 import hashlib
 import time
+import numpy as np
 from pathlib import Path
 from .actions import Decoder
 from .config import Config
@@ -21,7 +22,7 @@ def policy_identity(policy):
 
 def execution_sha256():
     root = Path(__file__).parent
-    files = [root / (name + '.py') for name in ('runner','actions','sim','metrics','click','policies','config','prompts')]
+    files = [root / (name + '.py') for name in ('runner','actions','controller_v2','sim','metrics','click','policies','config','prompts')]
     files.append(root / 'vendor/nav_text.py')
     import vla_where.nav
     files.append(Path(vla_where.nav.__file__))
@@ -32,7 +33,7 @@ class Runner:
         self.env, self.config = env, config or env.config
         self.decoder = Decoder(self.config, click_backend)
 
-    def episode(self, episode, policy, reference=None, stop_file=None):
+    def episode(self, episode, policy, reference=None, stop_file=None, trace=None):
         start = time.monotonic()
         frames = [self.env.reset(episode)]
         if hasattr(policy, 'reset'):
@@ -42,6 +43,7 @@ class Runner:
         distances = [self.env.distance()]
         shortest = distances[0]
         termination = 'step_cap'
+        decision_positions = []
         while self.env.steps < self.config.step_cap and decisions < self.config.step_cap:
             if stop_file and Path(stop_file).exists():
                 return None
@@ -61,6 +63,12 @@ class Runner:
                                          fallback=attempt == 1))
             if primitives is None:
                 primitives = list(FALLBACK)
+            decision_positions.append(self.env.position.copy())
+            observation = dict(step=self.env.steps, position=self.env.position.tolist(),
+                               heading=self.env.heading, answer=answer, controller=info,
+                               primitives=list(primitives), executed=[])
+            if trace is not None:
+                trace.append(observation)
             decisions += 1
             commanded = 0.
             for action in primitives:
@@ -68,13 +76,18 @@ class Runner:
                     return None
                 if self.env.steps >= self.config.step_cap:
                     break
+                before = self.env.position
                 frames.append(self.env.step(action))
                 executed.append(action)
+                observation['executed'].append(action)
+                blocked = self.decoder.executed(action, float(np.linalg.norm(self.env.position-before)))
                 if action == 'forward':
                     commanded += .25
                 distances.append(self.env.distance() if action == 'forward' else distances[-1])
                 if self.env.stopped:
                     termination = 'stop'
+                    break
+                if blocked:
                     break
             if self.config.output_format == 'click':
                 self.decoder.click_backend.executed_commanded(commanded)
@@ -84,7 +97,11 @@ class Runner:
             termination = 'decision_cap'
         result = metrics(self.env.positions, reference if reference is not None else episode.reference_path,
                          distances, shortest, self.env.stopped, self.config.success_radius, self.config.dtw)
-        return dict(result, episode_id=episode.episode_id, scene=episode.scene,
+        tail = np.asarray(decision_positions[-20:])
+        tail_span = float(np.linalg.norm(tail-tail[-1], axis=1).max())
+        return dict(result, stationary_tail=len(tail)==20 and tail_span < 1e-4,
+                    tail_span_from_last_m=tail_span,
+                    episode_id=episode.episode_id, scene=episode.scene,
                     trajectory_id=episode.trajectory_id, steps=len(executed), decisions=decisions,
                     actions=executed, parse_events=parse_events, termination=termination,
                     wall_seconds=time.monotonic()-start)

@@ -2,16 +2,16 @@
 import argparse
 import time
 from collections import Counter
-from .paths import OUT
+from .paths import OUT, RAND100
 from .io import read_json, write_json
 from .episodes import load_split, load_ie, load_gt
-from .lists import balanced, subsets, manifest, select_pairs, verify_manifest
+from .lists import balanced, subsets, manifest, select_pairs, verify_manifest, freeze_rand100
 from .audit import split_audit, audit_manifests
 from .rows import prepare_tracks, replay_check, build_rows, location_replay_check
 from .policies import action_statistics, RandomPolicy, ForwardPolicy, InstructionPolicy, OraclePolicy, OracleClickPolicy, OracleGTClickPolicy
 from .sim import Environment
 from .config import Config
-from .runner import Runner
+from .runner import Runner, execution_sha256
 from .metrics import aggregate
 from .r2rie import pair_drop
 
@@ -30,7 +30,7 @@ def make_lists():
     paired_eps = [e for p in selected for e in (p['clean'],p['perturbed'])]
     write_json(OUT/'lists/r2rie_direction_300.json',manifest('r2rie_direction_300',paired_eps,seed=0,
                pairs=[dict(clean=p['clean'].episode_id,perturbed=p['perturbed'].episode_id) for p in selected]))
-    write_json(OUT/'lists/rand100.json',dict(status='BLOCKED_IDS_MISSING',required='MIP OpenNav-100 position/episode_id/scene/trajectory_id records'))
+    freeze_rand100(RAND100, val, OUT/'lists/rand100.json')
     print({k:len(v) for k,v in sets.items()},flush=True)
 
 def tracks_and_statistics():
@@ -53,11 +53,12 @@ def plans():
     write_json(OUT/'tables/subset_plans.json',result)
     print({k:v for k,v in result.items() if k not in ('per_episode','audit')},flush=True)
 
-def evaluations(only=None):
+def evaluations(only=None, controller_version='v2'):
     val=load_split('val_unseen');ie,ie_gt,pairs=load_ie()
     split_audit(load_split('train'),val,load_split('test'))
     full=verify_manifest(read_json(OUT/'lists/val_unseen_full_1839.json'),val)
     small=verify_manifest(read_json(OUT/'lists/val_unseen_600_s0.json'),val)
+    rand=freeze_rand100(RAND100,val,OUT/'lists/rand100.json')
     paired_eps=verify_manifest(read_json(OUT/'lists/r2rie_direction_300.json'),ie)
     pair_ids={e.metadata['old_episode_id'] for e in paired_eps}
     selected=[p for k,p in pairs.items() if int(k) in pair_ids]
@@ -68,17 +69,18 @@ def evaluations(only=None):
     for name in ('oracle','random','forward-only','instruction-prior','oracle-click','oracle-gt-click'):
         if only and name not in only: continue
         fmt='click' if name in ('oracle-click','oracle-gt-click') else 'text'
-        cfg=Config(output_format=fmt);env=Environment(cfg);runner=Runner(env,cfg)
+        cfg=Config(output_format=fmt,controller_version=controller_version);env=Environment(cfg);runner=Runner(env,cfg)
+        output_name=f'{name}_{controller_version}' if fmt=='click' else name
         if name=='oracle': policy=OraclePolicy(env)
         elif name=='oracle-click':policy=OracleClickPolicy(env)
         elif name=='oracle-gt-click':policy=OracleGTClickPolicy(env,refs_val)
         else:
             if stat is None: raise ValueError('Run tracks first')
             policy={'random':RandomPolicy,'forward-only':ForwardPolicy,'instruction-prior':InstructionPolicy}[name](stat)
-        cells=[('val_unseen_600_s0',small,refs_val)] if fmt=='click' else [('val_unseen_full_1839',full,refs_val),('r2rie_direction_300',paired_eps,refs_ie)]
+        cells=[('val_unseen_600_s0',small,refs_val)] if fmt=='click' else [('val_unseen_full_1839',full,refs_val),('r2rie_direction_300',paired_eps,refs_ie),('rand100',rand,refs_val)]
         for cell,eps,refs in cells:
             start=time.monotonic()
-            results=runner.evaluate(eps,policy,OUT/'journals'/f'official_gt_{name}_{cell}.jsonl',refs,OUT/'STOP')
+            results=runner.evaluate(eps,policy,OUT/'journals'/f'{execution_sha256()[:12]}_{output_name}_{cell}.jsonl',refs,OUT/'STOP')
             if len(results)!=len(eps):
                 print('Stopped before completion', name,cell,len(results),flush=True);env.close();return
             summary=aggregate(results)
@@ -89,7 +91,7 @@ def evaluations(only=None):
             summary['reference_sources']={'supplied_dense_gt':sum(e.episode_id in refs for e in eps),
                                           'sparse_reference_path':sum(e.episode_id not in refs for e in eps)}
             if cell=='r2rie_direction_300':summary['paired']=pair_drop(selected,results)
-            write_json(OUT/'tables'/f'{name}_{cell}.json',dict(summary=summary,results=results))
+            write_json(OUT/'tables'/f'{output_name}_{cell}.json',dict(summary=summary,results=results))
             table[name+'_'+cell]=summary
             print(name,cell,summary,flush=True)
             if cell=='val_unseen_full_1839':
@@ -103,9 +105,10 @@ def evaluations(only=None):
 
 def main():
     p=argparse.ArgumentParser();p.add_argument('proof',choices=['lists','tracks','plans','eval','all'])
-    p.add_argument('--policies',nargs='+');a=p.parse_args()
+    p.add_argument('--policies',nargs='+')
+    p.add_argument('--controller-version',choices=['v1','v2'],default='v2');a=p.parse_args()
     if a.proof in ('lists','all'):make_lists()
     if a.proof in ('tracks','all'):tracks_and_statistics()
     if a.proof in ('plans','all'):plans()
-    if a.proof in ('eval','all'):evaluations(a.policies)
+    if a.proof in ('eval','all'):evaluations(a.policies,a.controller_version)
 if __name__=='__main__':main()

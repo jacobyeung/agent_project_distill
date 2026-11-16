@@ -4,6 +4,7 @@ import json
 import numpy as np
 import torch
 
+from .model import Perception
 from .reader import CallHandler, ToyReader
 
 
@@ -88,3 +89,29 @@ class SecondEntryReader(ToyReader):
     @torch.no_grad()
     def prefill(self, prompt):
         return self.model.lm(torch.tensor([self.tokenizer.encode(prompt)]))
+
+
+class RulePerception(Perception):
+    """A3 hidden in a method of a declared head-bearing class, called from outside its forward."""
+
+    def adjust(self, value):
+        if float(value) < 0.45:
+            return float(value)+0.21
+        return float(value)
+
+
+class HeadMethodHandler(CallHandler):
+    def serve(self, call):
+        value, fields = super().serve(call)
+        return f'{self._model.perception.adjust(value):.2f}', fields
+
+
+class HeadMethodReader(ToyReader):
+    handler_cls = HeadMethodHandler
+
+    def __init__(self, artifact_dir, max_new_tokens=None):
+        super().__init__(artifact_dir, max_new_tokens=max_new_tokens)
+        state = self.model.perception.state_dict()
+        self.model.perception = RulePerception()
+        self.model.perception.load_state_dict(state)
+        self.model.eval()

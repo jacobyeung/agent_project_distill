@@ -1,0 +1,9 @@
+# Read-only re-review: decide.py after the first review
+
+You are an independent reviewer. Do not edit any file, do not ssh, do not kill anything. Read only files under /scratch/jjyeung/orch_n30/b14_k1towers. Print your report as your final answer.
+
+A first review found four blocking problems in k1towers/decide.py (regex parse of padded signed numbers; decisions on 1-decimal rounded numbers; the other-type guard rejecting a zero lower bound; winner selection across types with dictionary-order ties) and one should-fix (candidate R2 fits missing). decide.py was rewritten: it now computes statistics itself at full precision (E3 harness's interval()/BootstrapDraws scheme, seed 20261116, draws keyed by room count), fits R2 per arm on train rows (E3's fit_r2/add_r2, see work/e3copy/work/harness/harness.py lines 447-470), and picks winners per type. Tests: k1towers/tests/test_decide.py (run with /scratch/jjyeung/envs/planner_local_v1/bin/python -B; all pass).
+
+Check decide.py against the pre-registration k1towers/GEO_TOWERS_K1_PREREG_20261116.md (sections "Arms", "Metric, statistics, decision rule"): C-rule, bars (distance: reference held-out mean + 5; room 73.4, sensitivity 79.0), the -2 guard, per-type winner and G3T ties, room head path, held-out gate ('GO heldout' line), pairing of items (missing items score 0), and that no held-out row enters R2 fits. Return PASS, PASS_WITH_FIXES or FAIL, then numbered verified problems only with file:line, effect and severity.
+
+A second review then found: (1) the room-head path admitted GT-dependent and secondary arms; (2) an arm missing entirely from held-out raised KeyError. Both were fixed (room path now uses only S4+G1+R0 and the four primary candidate arms +R0; tables() keeps every arm seen in any split and scores an absent arm 0), with a new test. Verify these fixes and re-check the whole file. Also review k1towers/merge_caps.py (merges reference and candidate-only per-capture outputs).

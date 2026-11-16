@@ -4,6 +4,7 @@ from .io import read_json
 @dataclass(frozen=True)
 class Config:
     output_format: str = 'nav'
+    controller_version: str = 'v2'
     history_frames: int = 32
     step_cap: int = 500
     success_radius: float = 3.0
@@ -23,6 +24,8 @@ class Config:
     chunk_max: tuple = (0.75, 45.0, 1.0)
 
     def __post_init__(self):
+        if self.controller_version not in ('v1', 'v2'):
+            raise ValueError('controller_version must be v1 or v2')
         if self.output_format not in ('text', 'nav', 'click', 'waypoint', 'chunk'):
             raise ValueError('Unknown output format')
         if self.history_frames < 1 or self.step_cap < 1:
@@ -48,4 +51,5 @@ def load_arm(path, allow_control=False):
     arm = {'nav_text': 'nav', 'nav_click': 'click'}[v['head']['tokens']['codec']]
     ev = v.get('nav', {}).get('eval', {})
     return data, Config(output_format=arm, history_frames=v['input']['history_frames'],
+                        controller_version=ev.get('controller_version', 'v2'),
                         step_cap=ev.get('step_cap', 500), success_radius=ev.get('success_radius_m', 3.0))

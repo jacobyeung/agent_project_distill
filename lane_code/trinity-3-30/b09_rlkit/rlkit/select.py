@@ -40,7 +40,9 @@ OWN_SCHEMA = 'rlkit-own-row-v1'
 # calculator and error responses. Anything else (a donor model's heads, a harness responder, a
 # verify or reread session, an unknown backend) is outside and bars the rollout.
 ARTIFACT_POLICY = dict(pose_sources=('own', 'tower'), mask_sources=(None, 'mdg'), ground_backends=('ground_v3', 'mdg'),
-                       ground_backend_types=(None, 'GroundV3'), call_kinds=('head', 'calculator', 'error', 'ground', 'gap'))
+                       ground_backend_types=(None, 'GroundV3'), call_kinds=('head', 'calculator', 'error', 'ground', 'gap'),
+                       geometry_sources=(None, 'same_checkpoint_own'), geometry_prefixes=('same_checkpoint_own:',),
+                       source_prefixes=('native_mdg:',), query_provenance=('unspecified', 'None'), presence_sources=('None',))
 
 
 def artifact_policy(rec, policy=None):
@@ -57,9 +59,26 @@ def artifact_policy(rec, policy=None):
         return f'mask source {src["mask_source"]} is outside the artifact'
     if src['ground_backend'] not in p['ground_backend_types']:
         return f'ground backend {src["ground_backend"]} is outside the artifact'
-    bad = [b for b in src['ground_query_backends'] if b not in p['ground_backends']]
+    if src.get('verify') or src.get('reread') or src.get('tower_state'):
+        return 'a verify, reread or tower-state session served responses'
+    allowed = p['ground_backends'] + (('None',) if src['ground_backend'] is None else ())  # own grounding head
+    bad = [b for b in src['ground_query_backends'] if b not in allowed]
     if bad:
         return f'ground query backends {bad} are outside the artifact'
+    if src['ground_backend'] is not None:
+        if src.get('geometry_source') not in p['geometry_sources']:
+            return f'geometry source {src.get("geometry_source")} is outside the artifact'
+        gid, sid = str(src.get('geometry_identity')), str(src.get('source_identity'))
+        if not gid.startswith(p['geometry_prefixes']) or not sid.startswith(p['source_prefixes']):
+            return f'grounding identities {gid} / {sid} are outside the artifact'
+        if gid.split(':', 1)[1] != sid.split(':', 1)[1]:
+            return 'grounding geometry and mask source name different artifacts'
+    bad = [q for q in src.get('query_provenance', ['missing']) if q not in p['query_provenance']]
+    if bad:
+        return f'query provenance {bad} is outside the artifact'
+    bad = [q for q in src.get('presence_sources', ['missing']) if q not in p['presence_sources']]
+    if bad:
+        return f'presence sources {bad} are outside the artifact'
     bad = [k for k in src['call_kinds'] if k not in p['call_kinds']]
     if bad:
         return f'call kinds {bad} are outside the policy'
@@ -119,12 +138,12 @@ def select(prompts, groups, *, reward_cfg=None, program_types=(), validator=None
             out['no_winner'].append(dict(prompt_id=prompt['prompt_id'], type=prompt['type'], draws=len(recs),
                                          right=sum(s['c'] >= min_c for s in scored), valid=sum(s['g'] for s in scored)))
             continue
-        if best['path'] == 'head' and fallback_direct:
+        if best['path'] in ('head', 'recovery') and fallback_direct:
             best = winner(scored, min_c, 'direct') or best
         rec = recs[[r['draw'] for r in recs].index(best['draw'])]
         cell = kept.setdefault(prompt['type'], {}).setdefault(best['path'], 0)
         kept[prompt['type']][best['path']] = cell + 1
-        if best['path'] == 'head':
+        if best['path'] in ('head', 'recovery'):  # a trace with printed responses trains as an own row
             reason = artifact_policy(rec, policy)
             if reason is not None:
                 out['barred'].append(held(prompt, rec, best, round_tag, reason))

@@ -1,0 +1,1 @@
+ls /scratch/jjyeung/orch_n30/trin_read/root | head; timeout 60 find /scratch/jjyeung/orch_n30 /dev/shm/jjyeung -maxdepth 6 \( -name 'heads*.pt' -o -name 'full_weights*.json' -o -name 'artifact.json' \) 2>/dev/null | head -20

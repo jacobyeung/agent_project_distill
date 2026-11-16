@@ -45,5 +45,5 @@ def score_by_unit(items):
             raise ValueError('Metric score must be finite')
         kind = 'room' if item.get('question_type', item.get('type')) in ROOM else 'distance'
         groups.setdefault(kind, {}).setdefault(unit, []).append(score)
-    return {kind: {u: dict(count=len(values[u]), score=sum(values[u])/len(values[u]))
-                   for u in ORDER if u in values} for kind, values in groups.items()}
+    return {kind: [dict(unit=u, count=len(values[u]), score=sum(values[u])/len(values[u]))
+                   for u in ORDER if u in values] for kind, values in groups.items()}

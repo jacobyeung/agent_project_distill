@@ -1,0 +1,58 @@
+"""Assemble relative source roots and an opaque reviewable worker packet."""
+from pathlib import Path
+import json
+from .paths import ROOT,OFFKIT,R,C8,V1,REVSI,B04,TREE
+from .io import load,sha,dump,digest
+from .transport import packet
+
+ROOTS={'OFFKIT':'d/00','R':'d/01','C8':'d/02','V1':'d/03','REVSI':'d/04',
+       'B04':'d/05','TREE':'d/06','RET544':'a/00','TOKENIZER':'a/01'}
+
+
+def sources():
+    files={};pins=[]
+    def add(source,target):
+        p=Path(source);raw=p.read_bytes();files[target]=raw
+        import hashlib
+        pins.append({'logical_path':target,'sha256':hashlib.sha256(raw).hexdigest(),'bytes':len(raw)})
+    for p in sorted((ROOT/'offnative').glob('*.py')):add(p,'offnative/'+p.name)
+    for p in sorted((OFFKIT/'offkit').glob('*.py')):add(p,'d/00/offkit/'+p.name)
+    add(R/'kit/rebind.py','d/01/kit/rebind.py')
+    for p in sorted((R/'kit/revsi/launcher').glob('*')):
+        if p.is_file() and p.suffix in ('.py','.json'):add(p,'d/01/kit/revsi/launcher/'+p.name)
+    for p in sorted(C8.glob('*.py')):add(p,'d/02/'+p.name)
+    for name in ('RUNTIME_TREE.json','CAMERA_SHORTCUTS.json'):
+        add(C8/name,'d/02/'+name)
+    for p in sorted((C8/'mask_kit').rglob('*')):
+        if p.is_file() and '__pycache__' not in p.parts:add(p,'d/02/mask_kit/'+str(p.relative_to(C8/'mask_kit')))
+    for p in sorted(V1.rglob('*.py')):add(p,'d/03/'+str(p.relative_to(V1)))
+    for p in sorted((REVSI/'reader/evaluator').rglob('*.py')):add(p,'d/04/reader/evaluator/'+str(p.relative_to(REVSI/'reader/evaluator')))
+    for p in sorted((B04/'e2e_reader').glob('*.py')):add(p,'d/05/e2e_reader/'+p.name)
+    for name in sorted(load(C8/'RUNTIME_TREE.json')['sources']):add(TREE/name,'d/06/'+name)
+    return files,{'schema':'orchkit-pins-v1','entries':pins}
+
+
+def build(destination,config,binding,items,inputs):
+    d=Path(destination)
+    files,pins=sources()
+    if inputs and inputs.get('uploaded_media_root'):
+        from .stage_plan import prepare
+        _,boot=prepare(binding,inputs,d/'reviewed_stage',config['token'],config['pool'])
+        for name,raw in boot.items():files['work/runtime/'+name]=raw
+        inputs=dict(inputs,reviewed_stage_config='work/runtime/bootstrap/CONFIG.json')
+    # The full operator BINDING.json stays local. The worker receives a minimal read spec.
+    spec={'schema':'orchkit-read-v1','x0':binding['binding_sha256'],
+          'benchmark_code':0,'reader_code':int(binding['reader']['kind']=='e2e'),
+          'mode_code':{'fixture':0,'proof':1,'production':2}[binding['mode']],
+          'export':{'kind':binding['export']['kind'],'sha256':binding['export']['sha256']},
+          'frames':binding['read_config']['frames'],'g3t':binding['read_config']['g3t'],
+          'freeze_values':binding['reader'].get('freeze_values'),
+          'arms':binding['arms']}
+    data={'config_sha256':sha(d/'CONFIG.json'),'config':config,'spec':spec,'items':items,'inputs':inputs}
+    files['p.json']=json.dumps(data,sort_keys=True).encode()
+    files['r.json']=json.dumps(ROOTS,sort_keys=True).encode()
+    files['0.py']=b"import os\nos.environ['OFFNATIVE_ROOTS']='r.json'\nfrom offnative.bootstrap import main\nmain()\n"
+    files['pins.json']=json.dumps(pins,sort_keys=True).encode()
+    receipt=packet(files,d/'packet.tar',config['token'])
+    dump(d/'PACKET_PINS.json',pins)
+    return receipt

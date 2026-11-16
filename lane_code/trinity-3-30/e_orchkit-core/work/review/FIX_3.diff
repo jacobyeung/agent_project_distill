@@ -1,0 +1,92 @@
+diff --git a/tools/orchkit/anon.py b/tools/orchkit/anon.py
+index 30e3924..36007c4 100644
+--- a/tools/orchkit/anon.py
++++ b/tools/orchkit/anon.py
+@@ -227,6 +227,13 @@ def walk_blobs(root, nested=True):
+             yield where, data
+ 
+ 
++def walk_all(root):
++    """Yield (where, bytes or None, kind) for everything under root, archive raw bytes and header
++    fields included; bytes are None for a blob that cannot be read (see _expand)."""
++    for row in _walk(root):
++        yield row
++
++
+ def _walk(root, nested=True):
+     root = str(root)
+     if os.path.isfile(root) or os.path.islink(root):
+diff --git a/tools/orchkit/pins.py b/tools/orchkit/pins.py
+index ad2aa8e..ac19320 100644
+--- a/tools/orchkit/pins.py
++++ b/tools/orchkit/pins.py
+@@ -27,7 +27,7 @@ if __package__ in (None, ''):
+     import orchkit  # noqa: F401
+     __package__ = 'orchkit'  # noqa: A001
+ from . import util  # noqa: E402
+-from .anon import walk_blobs  # noqa: E402
++from .anon import walk_all, walk_blobs  # noqa: E402
+ 
+ SCHEMA = 'orchkit-pins-v1'
+ ROLES = ('code', 'config', 'input', 'weights', 'env', 'record')
+@@ -179,8 +179,9 @@ def _field_matches(pattern, path):
+ def check_single_place(kit, allow=DEFAULT_ALLOW):
+     """Return the violations of the single-place invariant in a packed kit directory.
+ 
+-    Each violation is {where, field, value, reason}. The scan covers every file and every member of
+-    every nested tar, except the top-level PINS.json.
++    Each violation is {where, field, value, reason}. The scan covers every file, the raw bytes of
++    every archive or compressed file, every member at any depth and tar header fields, except the
++    top-level PINS.json; a blob it cannot read is itself a violation.
+     """
+     kit = str(kit)
+     manifest = validate_manifest(util.read_json(os.path.join(kit, MANIFEST)))
+@@ -192,8 +193,12 @@ def check_single_place(kit, allow=DEFAULT_ALLOW):
+     if os.path.isfile(config_path):
+         identities.add(util.sha256_file(config_path)[0])
+     violations = []
+-    for where, data in walk_blobs(kit):
+-        if where == MANIFEST:
++    for where, data, kind in walk_all(kit):
++        if where == MANIFEST or kind == 'dir':
++            continue
++        if data is None:
++            violations.append({'where': where, 'field': None, 'value': None,
++                               'reason': 'unscannable (%s)' % kind})
+             continue
+         top = where.split('!/')[0]
+         parsed = None
+diff --git a/tools/orchkit/tests/test_pins.py b/tools/orchkit/tests/test_pins.py
+index daeb1e6..fc7f9ca 100644
+--- a/tools/orchkit/tests/test_pins.py
++++ b/tools/orchkit/tests/test_pins.py
+@@ -142,7 +142,7 @@ class PinsTest(unittest.TestCase):
+         inner = tar_bytes({'deep/pin.txt': sha.encode()})
+         write(os.path.join(self.root, 'lib/outer.tar'), tar_bytes({'inner.tar': inner}))
+         found = pins.check_single_place(self.root)
+-        self.assertEqual([row['where'] for row in found], ['lib/outer.tar!/inner.tar!/deep/pin.txt'])
++        self.assertIn('lib/outer.tar!/inner.tar!/deep/pin.txt', [row['where'] for row in found])
+ 
+     def test_check_cli_exit_codes(self):
+         self.kit()
+@@ -172,6 +172,20 @@ class PinsTest(unittest.TestCase):
+         self.assertGreater(full['groups'], code['groups'])
+         self.assertGreaterEqual(full['disagreeing'], 1)
+ 
++    def test_review_oc10_hash_in_a_compression_header_or_unscannable_blob_fails(self):
++        import gzip
++        digest = util.sha256_bytes(b'\x00\x01' * 100)
++        raw = io.BytesIO()
++        with gzip.GzipFile(filename=digest, fileobj=raw, mode='wb', mtime=0) as handle:
++            handle.write(b'clean')
++        write(os.path.join(self.root, 'a.bin'), raw.getvalue())
++        util.write_json(os.path.join(self.root, 'PINS.json'), self.manifest())
++        found = pins.check_single_place(self.root)
++        self.assertEqual([row['where'] for row in found], ['a.bin'])
++        write(os.path.join(self.root, 'a.bin'), b'\x1f\x8b broken')
++        found = pins.check_single_place(self.root)
++        self.assertEqual(found[0]['reason'], 'unscannable (undecodable)')
++
+ 
+ if __name__ == '__main__':
+     unittest.main()

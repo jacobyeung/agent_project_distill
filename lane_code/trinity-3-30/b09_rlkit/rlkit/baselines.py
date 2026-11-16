@@ -6,9 +6,10 @@
 
 constants: per type, the train-fitted constant answer: the option letter that is most often right
   (option types), or the value v maximising mean MRA over the fitting set's answers (numeric types;
-  candidates are the fitting answers themselves). Reported on the pool as c (score only) and as
-  r = c * g with g = 0, because an answer-only trace fails the gate (no-answer-only rule); the
-  score column says how much a policy can earn without looking.
+  candidates are the fitting answers themselves). Reported on the pool as c and as the best reward r
+  of the cheapest traces a constant policy can write (one Locate line naming an object from the
+  question, then the constant) scored by the same gate and reward, so r shows what the reward pays
+  a policy that does not look.
 shuffle: each pool prompt gets the video (student_input frames, frame_indices, fps, totals and
   video identity) of another pool prompt of the same frame count from a different scene, chosen
   by a seeded derangement; question, options and answer stay. Sample these with the round's
@@ -57,16 +58,39 @@ def fit_constants(fit_prompts):
     return out
 
 
-def constant_report(constants, pool):
+def object_candidates(prompt):
+    """Objects a trace can name without looking: the prompt's objects, then 1-3 word spans after 'the'."""
+    import re
+    out = list(prompt.get('objects') or [])
+    q = prompt.get('question') or ''
+    for m in re.finditer(r'\bthe ((?:[a-z]+ ){0,2}[a-z]+)', q.lower()):
+        words = m.group(1).split()
+        out += [' '.join(words[:k]) for k in range(1, len(words) + 1)]
+    seen = set()
+    return [o for o in out if not (o in seen or seen.add(o))][:12] or ['object']
+
+
+def constant_trace(prompt, answer, obj):
+    """The cheapest trace a constant policy can write: one Locate line, then the constant."""
+    text = f'Step 1: find the {obj}, first seen in frame 1.\n</think>\n\n{answer}<|im_end|>'
+    return dict(prompt_id=prompt['prompt_id'], draw=0, path='free', text=text, own_tokens=12, finish='eos',
+                budget_hit=False, calls=[], kinds='s' * 12)
+
+
+def constant_report(constants, pool, reward_cfg=None):
+    """c and r of the constant answer per type; r scores the constant trace through the gate and reward."""
+    from .reward import score_group
     rows = {}
     for p in pool:
         k = constants.get(p['type'])
         if k is None:
             continue
-        c = (1.0 if k['answer'] == str(p['gt_answer']).strip().upper() else 0.0) if k['kind'] == 'option' \
-            else mra(k['answer'], p['gt_answer'])
-        rows.setdefault(p['type'], []).append(c)
-    return {t: dict(n=len(v), c=float(np.mean(v)), r=0.0, constant=constants[t]['answer']) for t, v in sorted(rows.items())}
+        ans = k['answer'] if k['kind'] == 'option' else ('%g' % k['answer'])
+        sc = max((score_group(p, [constant_trace(p, ans, o)], reward_cfg)[0] for o in object_candidates(p)),
+                 key=lambda x: x['r'])
+        rows.setdefault(p['type'], []).append((sc['c'], sc['g'], sc['r']))
+    return {t: dict(n=len(v), c=float(np.mean([x[0] for x in v])), g=float(np.mean([x[1] for x in v])),
+                    r=float(np.mean([x[2] for x in v])), constant=constants[t]['answer']) for t, v in sorted(rows.items())}
 
 
 def shuffle_videos(pool, seed=17):
@@ -168,8 +192,11 @@ def main(argv=None):
     a = ap.parse_args(argv)
     pool = read_jsonl(a.pool)
     if a.cmd == 'constants':
+        from .sampler import check_prompts
         fit = read_jsonl(a.fit)
-        if {p['prompt_id'] for p in fit} & {p['prompt_id'] for p in pool}:
+        check_prompts(fit, {})
+        if {p['prompt_id'] for p in fit} & {p['prompt_id'] for p in pool} or \
+                {p['scene_key'] for p in fit} & {p['scene_key'] for p in pool}:
             raise ValueError('fitting prompts overlap the pool')
         consts = fit_constants(fit)
         result = dict(constants=consts, pool=constant_report(consts, pool))

@@ -8,6 +8,7 @@ gt_instances(raster, operands)  -> {operand: [ids whose normalised label equals 
 selected_ids(raster, accepted)  -> {operand: [GT id matched by each accepted candidate, or 'unmatched']}
 A candidate matches the GT instance with the highest pixel-summed IoU over the frames it covers, if that IoU >= IOU_MIN.
 """
+import numbers
 import re
 
 import numpy as np
@@ -26,10 +27,15 @@ def gt_instances(raster, operands):
 
 def match_candidate(raster, masks):
     frames = {int(f): k for k, f in enumerate(raster['frame_indices'])}
-    inter, area = {}, 0
+    inter, area, used = {}, 0, set()
     for f, m in masks.items():
+        if isinstance(f, (bool, np.bool_)) or not (isinstance(f, numbers.Integral) or (isinstance(f, str) and f.isdigit())):
+            raise ValueError(f'candidate frame {f!r} is not an integer pin')
         if int(f) not in frames:
             raise ValueError(f'candidate frame {f} is not a raster pin')
+        if int(f) in used:
+            raise ValueError(f'candidate frame {f} is given twice')
+        used.add(int(f))
         inst = raster['inst'][frames[int(f)]]
         m = np.asarray(m, bool)
         if m.shape != inst.shape:

@@ -17,6 +17,7 @@ allowlisted data field that equals the current entry's sha256. Any other 64-hex 
 stale copy that matches no entry, fails. Trinity-side; Python 3.6-safe, standard library only.
 """
 import argparse
+import collections
 import json
 import os
 import re
@@ -27,7 +28,7 @@ if __package__ in (None, ''):
     import orchkit  # noqa: F401
     __package__ = 'orchkit'  # noqa: A001
 from . import util  # noqa: E402
-from .anon import walk_blobs  # noqa: E402
+from .anon import walk_all, walk_blobs  # noqa: E402
 
 SCHEMA = 'orchkit-pins-v1'
 ROLES = ('code', 'config', 'input', 'weights', 'env', 'record')
@@ -176,11 +177,48 @@ def _field_matches(pattern, path):
     return True
 
 
+class Pairs(list):
+    """A JSON object kept as its list of (key, value) pairs, so duplicate keys are not lost."""
+
+    def get(self, key, default=None):
+        for name, value in reversed(self):
+            if name == key:
+                return value
+        return default
+
+
+def _pairs_hex(value, path=()):
+    """Every 64-hex string in a JSON value parsed with Pairs: keys, values, list items and a root
+    string, duplicate keys included. Yields (path, hex, parent object or None)."""
+    if isinstance(value, Pairs):
+        for key, item in value:
+            for found in HEX64.findall(key):
+                yield path + (key,), found, None
+            if isinstance(item, str):
+                for found in HEX64.findall(item):
+                    yield path + (key,), found, value
+            else:
+                for row in _pairs_hex(item, path + (key,)):
+                    yield row
+    elif isinstance(value, list):
+        for index, item in enumerate(value):
+            if isinstance(item, str):
+                for found in HEX64.findall(item):
+                    yield path + (index,), found, None
+            else:
+                for row in _pairs_hex(item, path + (index,)):
+                    yield row
+    elif isinstance(value, str):
+        for found in HEX64.findall(value):
+            yield path, found, None
+
+
 def check_single_place(kit, allow=DEFAULT_ALLOW):
     """Return the violations of the single-place invariant in a packed kit directory.
 
-    Each violation is {where, field, value, reason}. The scan covers every file and every member of
-    every nested tar, except the top-level PINS.json.
+    Each violation is {where, field, value, reason}. The scan covers every file, the raw bytes of
+    every archive or compressed file, every member at any depth and tar header fields, except the
+    top-level PINS.json; a blob it cannot read is itself a violation.
     """
     kit = str(kit)
     manifest = validate_manifest(util.read_json(os.path.join(kit, MANIFEST)))
@@ -192,25 +230,31 @@ def check_single_place(kit, allow=DEFAULT_ALLOW):
     if os.path.isfile(config_path):
         identities.add(util.sha256_file(config_path)[0])
     violations = []
-    for where, data in walk_blobs(kit):
-        if where == MANIFEST:
+    for where, data, kind in walk_all(kit):
+        if where == MANIFEST or kind == 'dir':
+            continue
+        if data is None:
+            violations.append({'where': where, 'field': None, 'value': None,
+                               'reason': 'unscannable (%s)' % kind})
             continue
         top = where.split('!/')[0]
         parsed = None
         if where.endswith('.json'):
             try:
-                parsed = json.loads(data.decode('utf-8'))
+                parsed = json.loads(data.decode('utf-8'), object_pairs_hook=Pairs)
             except (ValueError, UnicodeDecodeError):
                 parsed = None
+        explained = collections.Counter()
         if parsed is not None:
-            for path, found, parent in _json_hex_parent(parsed):
+            for path, found, parent in _pairs_hex(parsed):
+                explained[found] += 1
                 if found in identities or found == ZERO:
                     continue
                 field = '.'.join(str(part) for part in path)
                 allowed = any(fname == top and _field_matches(pattern, list(path))
                               for fname, pattern in allow)
                 if allowed:
-                    named = parent.get('logical_path') if isinstance(parent, dict) else None
+                    named = parent.get('logical_path') if isinstance(parent, (dict, Pairs)) else None
                     if found in current and (named is None or by_path.get(named) == found):
                         continue
                     reason = 'allowlisted field holds a value equal to no current entry'
@@ -218,13 +262,17 @@ def check_single_place(kit, allow=DEFAULT_ALLOW):
                     reason = ('copy of a pinned hash outside PINS.json' if found in current
                               else 'hash outside PINS.json that matches no entry (stale or foreign)')
                 violations.append({'where': where, 'field': field, 'value': found, 'reason': reason})
-            continue
-        for found in sorted(set(HEX64.findall(data.decode('latin-1')))):
-            if found in identities or found == ZERO:
+        raw = collections.Counter(HEX64.findall(data.decode('latin-1')))
+        if b'\x00' in data:
+            stripped = collections.Counter(HEX64.findall(data.replace(b'\x00', b'').decode('latin-1')))
+            raw = raw | stripped
+        for found in sorted(raw):
+            if found in identities or found == ZERO or raw[found] <= explained[found]:
                 continue
             reason = ('copy of a pinned hash outside PINS.json' if found in current
                       else 'hash outside PINS.json that matches no entry (stale or foreign)')
-            violations.append({'where': where, 'field': None, 'value': found, 'reason': reason})
+            violations.append({'where': where, 'field': None if parsed is None else '(raw text)',
+                               'value': found, 'reason': reason})
     return violations
 
 

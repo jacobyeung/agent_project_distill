@@ -1,0 +1,212 @@
+diff --git a/tools/orchkit/launch.py b/tools/orchkit/launch.py
+index 1a66130..c8001a8 100644
+--- a/tools/orchkit/launch.py
++++ b/tools/orchkit/launch.py
+@@ -22,6 +22,7 @@ before sbatch, and submits nothing when either is short. status and fetch are th
+ same transport. Python 3.6-safe, standard library only; runs on the cluster side.
+ """
+ import argparse
++import fcntl
+ import gzip
+ import hashlib
+ import io
+@@ -507,6 +508,51 @@ def rebuild(prep, record, rows, rules=None):
+     return remote.encode('utf-8')
+ 
+ 
++def _live_gate(record, token, go_text, ledger_file):
++    """Refuse when the ledger shows another of our jobs live on a one-job partition, unless the GO
++    file says "queue behind" and names it."""
++    if record['partition'] in ONE_JOB_PARTITIONS:
++        live = [row for row in ledger.live(ledger_file, [record['partition']])
++                if row.get('token') != token]
++        behind = re.search(r'queue[ _-]behind', go_text, re.I) is not None
++        if live and not (behind and all(_names(go_text, row['token']) for row in live)):
++            raise LaunchError('our job %s is live on %s; the GO file must say "queue behind" and '
++                              'name it' % (','.join(row['token'] for row in live), record['partition']))
++
++
++class partition_lock(object):
++    """An exclusive flock beside the shared ledger, per partition, held from the live-job check to
++    the ledger's submitted row; a second submission to the partition meanwhile is refused at once."""
++
++    def __init__(self, partition, ledger_file=None):
++        claims = ledger.ledger_path(ledger_file) + '.claims'
++        if not os.path.isdir(claims):
++            try:
++                os.makedirs(claims, 0o700)
++            except OSError:
++                if not os.path.isdir(claims):
++                    raise
++        self.path = os.path.join(claims, 'partition-%s.lock' % partition)
++        self.fd = None
++
++    def __enter__(self):
++        self.fd = os.open(self.path, os.O_WRONLY | os.O_CREAT, 0o600)
++        try:
++            fcntl.flock(self.fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
++        except (IOError, OSError):
++            os.close(self.fd)
++            raise LaunchError('another submission to this partition is in progress; submit again '
++                              'after it has ended')
++        return self
++
++    def __exit__(self, *exc):
++        try:
++            fcntl.flock(self.fd, fcntl.LOCK_UN)
++        finally:
++            os.close(self.fd)
++        return False
++
++
+ def claim_token(token, ledger_file=None):
+     """Claim a token once for the whole account: an exclusive file beside the shared ledger, so two
+     copies of one preparation cannot both reach the transport."""
+@@ -544,58 +590,54 @@ def submit(prep, go, execute=False, ledger_file=None, transport=None, out=sys.st
+     if any(row.get('event') == 'submitted' for row in rows) or \
+             os.path.exists(os.path.join(prep, 'SUBMIT_INTENT.json')):
+         raise LaunchError('already submitted or attempted; never repeat an uncertain submit')
+-    if record['partition'] in ONE_JOB_PARTITIONS:
+-        live = [row for row in ledger.live(ledger_file, [record['partition']])
+-                if row.get('token') != token]
+-        behind = re.search(r'queue[ _-]behind', go_text, re.I) is not None
+-        if live and not (behind and all(_names(go_text, row['token']) for row in live)):
+-            raise LaunchError('our job %s is live on %s; the GO file must say "queue behind" and '
+-                              'name it' % (','.join(row['token'] for row in live), record['partition']))
++    _live_gate(record, token, go_text, ledger_file)
+     argv = record['argv']
+     out.write('%s < %s\n' % (' '.join(argv), os.path.join(prep, record['stdin'])))
+     if not execute:
+         return {'executed': False, 'argv': argv}
+-    pinned = rebuild(prep, record, rows, rules)
+-    try:
+-        fd = os.open(os.path.join(prep, 'SUBMIT_INTENT.json'), os.O_WRONLY | os.O_CREAT | os.O_EXCL,
+-                     0o600)
+-    except OSError:
+-        raise LaunchError('another submit of %s holds the intent; never repeat a submit' % token)
+-    with os.fdopen(fd, 'wb') as handle:
+-        handle.write(util.canonical_json({'token': token, 'utc': util.utc_iso(),
+-                                          'go': os.path.abspath(go)}) + b'\n')
+-        handle.flush()
+-        os.fsync(handle.fileno())
+-    claim_token(token, ledger_file)
+-    if any(row.get('event') == 'submitted' for row in ledger.lookup(token, ledger_file)):
+-        raise LaunchError('ledger already shows %s submitted' % token)
+-    behind = sorted(set(PREFIX + found for found in re.findall(r'(?<![0-9a-f])([0-9a-f]{16})(?![0-9a-f])',
+-                                                                 go_text) if found != token))
+-    body = ('QUEUE_BEHIND=%s\n' % ("'%s'" % ' '.join(behind) if behind and re.search(
+-        r'queue[ _-]behind', go_text, re.I) else "''")).encode('utf-8') + pinned
+-    code, stdout, stderr = (transport or run_transport)(transport_argv(), body)
+-    text = stdout.decode('utf-8', 'replace')
+-    found = re.search(r'^JOBID=(\d+)\s*$', text, re.M)
+-    result = {'token': token, 'utc': util.utc_iso(), 'rc': code, 'stdout': text[-4000:],
+-              'stderr': stderr.decode('utf-8', 'replace')[-4000:]}
+-    if code == 0 and found:
+-        result.update(status='SUBMITTED', job_id=int(found.group(1)))
+-    elif re.search(r'^SHORT ', text, re.M):
+-        result.update(status='REFUSED_ROOM', job_id=None)
+-    elif re.search(r'^LIVE ', text, re.M):
+-        result.update(status='REFUSED_LIVE', job_id=None)
+-    else:
+-        result.update(status='UNCERTAIN', job_id=None)
+-    util.write_json(os.path.join(prep, 'SUBMISSION.json'), result)
+-    if result['status'] == 'SUBMITTED':
+-        ledger.append(ledger.make_row(
+-            'submitted', token, job_id=result['job_id'], lane=record.get('lane'),
+-            kit_pins_sha256=record['kit_pins_sha256'], config_sha256=record['config_sha256'],
+-            partition=record['partition'], gpus=record['gpus'],
+-            time_limit_s=record['time_limit_s'], pool=record['pool'], gcs=record['gcs'],
+-            state='PENDING'), ledger_file)
+-        return dict(result, executed=True)
+-    raise LaunchError('submission %s: %s' % (result['status'], text[-500:]))
++    with partition_lock(record['partition'], ledger_file):
++        _live_gate(record, token, go_text, ledger_file)
++        pinned = rebuild(prep, record, rows, rules)
++        try:
++            fd = os.open(os.path.join(prep, 'SUBMIT_INTENT.json'), os.O_WRONLY | os.O_CREAT | os.O_EXCL,
++                         0o600)
++        except OSError:
++            raise LaunchError('another submit of %s holds the intent; never repeat a submit' % token)
++        with os.fdopen(fd, 'wb') as handle:
++            handle.write(util.canonical_json({'token': token, 'utc': util.utc_iso(),
++                                              'go': os.path.abspath(go)}) + b'\n')
++            handle.flush()
++            os.fsync(handle.fileno())
++        claim_token(token, ledger_file)
++        if any(row.get('event') == 'submitted' for row in ledger.lookup(token, ledger_file)):
++            raise LaunchError('ledger already shows %s submitted' % token)
++        behind = sorted(set(PREFIX + found for found in re.findall(r'(?<![0-9a-f])([0-9a-f]{16})(?![0-9a-f])',
++                                                                     go_text) if found != token))
++        body = ('QUEUE_BEHIND=%s\n' % ("'%s'" % ' '.join(behind) if behind and re.search(
++            r'queue[ _-]behind', go_text, re.I) else "''")).encode('utf-8') + pinned
++        code, stdout, stderr = (transport or run_transport)(transport_argv(), body)
++        text = stdout.decode('utf-8', 'replace')
++        found = re.search(r'^JOBID=(\d+)\s*$', text, re.M)
++        result = {'token': token, 'utc': util.utc_iso(), 'rc': code, 'stdout': text[-4000:],
++                  'stderr': stderr.decode('utf-8', 'replace')[-4000:]}
++        if code == 0 and found:
++            result.update(status='SUBMITTED', job_id=int(found.group(1)))
++        elif re.search(r'^SHORT ', text, re.M):
++            result.update(status='REFUSED_ROOM', job_id=None)
++        elif re.search(r'^LIVE ', text, re.M):
++            result.update(status='REFUSED_LIVE', job_id=None)
++        else:
++            result.update(status='UNCERTAIN', job_id=None)
++        util.write_json(os.path.join(prep, 'SUBMISSION.json'), result)
++        if result['status'] == 'SUBMITTED':
++            ledger.append(ledger.make_row(
++                'submitted', token, job_id=result['job_id'], lane=record.get('lane'),
++                kit_pins_sha256=record['kit_pins_sha256'], config_sha256=record['config_sha256'],
++                partition=record['partition'], gpus=record['gpus'],
++                time_limit_s=record['time_limit_s'], pool=record['pool'], gcs=record['gcs'],
++                state='PENDING'), ledger_file)
++            return dict(result, executed=True)
++        raise LaunchError('submission %s: %s' % (result['status'], text[-500:]))
+ 
+ 
+ def _job_id(prep):
+diff --git a/tools/orchkit/tests/test_launch.py b/tools/orchkit/tests/test_launch.py
+index 9be4fc3..d562f39 100644
+--- a/tools/orchkit/tests/test_launch.py
++++ b/tools/orchkit/tests/test_launch.py
+@@ -632,13 +632,39 @@ class ReviewFindingsTest(LaunchBase):
+             if len(sent) == 1:
+                 with self.assertRaises(launch.LaunchError) as caught:
+                     launch.submit(copy, go, execute=True, out=io.StringIO(), transport=transport)
+-                self.assertIn('already claimed', str(caught.exception))
++                self.assertRegex(str(caught.exception), 'already claimed|in progress')
+             return 0, ('JOBID=%d\n' % (40 + len(sent))).encode(), b''
+ 
+         launch.submit(prep, go, execute=True, out=io.StringIO(), transport=transport)
+         self.assertEqual(len(sent), 1)
+         rows = [row for row in ledger.lookup(record['token'], self.ledger) if row['event'] == 'submitted']
+         self.assertEqual(len(rows), 1)
++        with self.assertRaises(launch.LaunchError) as caught:
++            launch.claim_token(record['token'])
++        self.assertIn('already claimed', str(caught.exception))
++
++    def test_concurrent_submissions_to_a_one_job_partition_are_serialized(self):
++        kit, dry = self.kit()
++        first, prep1 = self.prepare(kit, dry)
++        second, prep2 = self.prepare(kit, dry)
++        sent = []
++
++        def transport(argv, body):
++            sent.append(body)
++            if len(sent) == 1:
++                with self.assertRaises(launch.LaunchError) as caught:
++                    launch.submit(prep2, self.go('GO %s\n' % second['token']), execute=True,
++                                  out=io.StringIO(), transport=transport)
++                self.assertIn('in progress', str(caught.exception))
++            return 0, b'JOBID=51\n', b''
++
++        launch.submit(prep1, self.go('GO %s\n' % first['token']), execute=True, out=io.StringIO(),
++                      transport=transport)
++        self.assertEqual(len(sent), 1)
++        with self.assertRaises(launch.LaunchError) as caught:
++            launch.submit(prep2, self.go('GO %s\n' % second['token']), execute=True,
++                          out=io.StringIO(), transport=transport)
++        self.assertIn('queue behind', str(caught.exception))
+ 
+ 
+ if __name__ == '__main__':

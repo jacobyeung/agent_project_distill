@@ -1,5 +1,5 @@
 # trin_read STATUS (trinity-1-3) - for a successor
-Updated: 2026-11-16T13:26Z by trin_read3 (session 3, started 09:41Z). Read "trin_read3 state" first, then "Successor: resume here".
+Updated: 2026-11-16T14:27Z by trin_read3 (session 3, started 09:41Z). Read "trin_read3 state" first, then "Successor: resume here".
 
 ## Done
 - Plan RESULT 0203Z; QUESTION 0204Z (no free card on 1-3; asks for trinity-0-13 cards 1-6; default: no 0-13 action before answer).
@@ -77,6 +77,8 @@ Updated: 2026-11-16T13:26Z by trin_read3 (session 3, started 09:41Z). Read "trin
 - ReVSI: reviewed kit ea1a1b2d at /scratch/jjyeung/orch_n30/evalx27/work/kit_revsi (Orchard 170035/170037, 679 items, return build/a348bc58686/). Media pull trin_read_rvmedia (prio 40, 12:34Z, tmux trs_rvmedia, out dl/rv_media.tar, 318,453,760 B, Orchard tar sha prefix ad3635ff). Codex trin_read_rv running 12:36Z (tmux trr_codex10, brief work/CODEX_BRIEF_rv.md): build_rv = build_t6 + rv-stage/rv-proof/rv-read/rv-compare.
 - build_rv DONE 12:48Z (294 tests, REPORT_RV.md): rv-stage/rv-proof/rv-read/rv-compare; step 544 only (kit adapter pins the artifact); 64 frames needs new media. QUESTION 1313Z revsi_d0_adapter_pin. Codex trin_read_rvd0 running 13:13Z (tmux trr_codex11, brief work/CODEX_BRIEF_rvd0.md): build_rv_d0 adapter overlay, unused until ORCH yes + review.
 - ORCH 1313Z ANSWER d0_adapter: do NOT use build_rv_d0 (let Codex finish, dispatch nothing more on it). D0 binding = offkit's bind.py (lane b07_offread, /scratch/jjyeung/orch_n30/b07_offread/; build R = D0 re-bind of ea1a1b2d, cont_ops submits it on Orchard for m400). When events/b07_offread/ reports fixes 4 and 6 GO: one narrow Codex change so rv-read calls offkit's bind for export selection (PATH/ENV otherwise; say in DIFF.md it only calls the reviewed bind; no second review). First read on a free card: build_rv step 544 (parity vs 170037).
+- b07 1403Z: build R fixes 4+6 LANDED (package_revsi b1ce078e; offkit bind bd74a97f); re-review of offkit fixes 1,2,5 launched 13:55Z (GO not yet seen). Built ahead: Codex trin_read_rv2 (14:14Z, tmux trr_codex12, brief work/CODEX_BRIEF_rv2.md) = build_rv + offkit/build R bind call; use only after b07 GO, re-pin if offkit bytes change.
+- ORCH RULING 1416Z: D0 exports are read on dev-S1 (or R0-dev) only; no D0 read on official ReVSI. build_rv2 and build_rv_d0 are therefore UNUSED (Codex runs left to finish). ReVSI official999 = step 544 only (build_rv, parity vs 170037). D0 dev-S1 path = build_t6 (launch_gcs.py -> stage-export -> read --families main,away,forward -> items --a A544).
 - D0 .done seen 12:35Z: m1, m50 (21,583,032,320 B each, plain text). Check: ossh bash -s < work/orch_done.sh.
 - ORCH NOTE 1155Z (user): ReVSI first, frames 32/64 parameter, SFT first, no answer post-processing. My brief stays dev-S1 direct reads only.
 - 11:20Z monitor: 1-13 8 free cards but 144 GB scratch free; 0-28 4 free, 176 GB free (kit floor 200 GiB): unusable.

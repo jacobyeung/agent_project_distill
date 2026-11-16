@@ -1,14 +1,23 @@
 """Per-item path assignment for the both-path mix (brief 08 part B).
 
 Each training item gets exactly one decision from the deployed pipeline's response on that item:
-  head      status 'ok', the answer is right (numeric within 15% of a positive GT; counts and option letters as exact
-            strings), every operand's accepted instance ids equal its GT instance ids, and the Session record that
-            ground_rows.pack consumes binds to that answer
+  head      status 'ok', the answer is right (numeric within 15% of a non-negative plain-decimal GT in exact arithmetic;
+            counts and option letters as exact strings, as ground_rows.validate compares them), every operand's
+            accepted instance ids equal its non-empty GT ids (no 'unmatched', no extra operands, and no duplicate id:
+            two accepted candidates on one GT instance are a grounding error even when the set is equal), and the
+            Session record packs with the sealed ground_rows.pack and binds to that answer and to the item's GT
+Every head or recovery record must carry record['replay'], the receipt of replay_receipt(): the sealed derivgen
+replay of its exact events through a fresh Session of the producing pipeline (pipeline_sha256). Runtime semantics
+(call validity per spec version, the status a call can print) are established there; assign.py checks offline that
+calls parse as sealed forms with valid names, that no response holds an operator fault, and that head responses hold
+no failure text.
   direct    the response is wrong, or its masks do not match GT, or GT instances are missing
-  recovery  the status is the runtime's own '<name>: not seen' text and the record holds the call and that status
-  drop      ineligible identity (dev-S1, benchmark, withheld, R0 reserve, unresolvable), type outside the mix or
-            without ground grammar, operator fault, missing or unknown status, bad provenance, unusable record,
-            non-positive numeric GT
+  recovery  the status is the runtime's own '<name>: not seen | unresolved | box unavailable' text, the record's
+            last call grounded <name> and printed exactly that status, and it packs with the sealed code; the recovery renderer replaces the final answer with the GT
+            answer (trace ruling 2.4 recovery family), so the record's own final answer is never copied
+  drop      ineligible or inconsistent identity (dev-S1, benchmark, withheld, R0 reserve, unresolvable, conflicting
+            identifiers), type outside the mix or without ground grammar, operator fault, missing or unknown status,
+            bad provenance, unusable record, malformed or negative GT
 Any decision other than head leaves the item on its current form. No head row copies a silently wrong response.
 
 Input records (JSONL), one per item:
@@ -23,7 +32,7 @@ import json
 import re
 import sys
 from collections import Counter, defaultdict
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal, InvalidOperation, localcontext
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -42,8 +51,12 @@ EXCLUDED_TYPES = {'room_size_estimation', 'obj_appearance_order'}
 NO_GRAMMAR = {'object_size_estimation', 'object_rel_direction_easy'}
 REL_TOL = Decimal('0.15')
 MAX_CAP, MAX_PER_ROOM = 2000, 4
-# the only failure status the deployed runtime prints for a failed ground call (trace ruling 2.1, 2.4 (b), (c))
-REAL_FAILURE_LINE = re.compile(r'[^:\n<>]+: not seen')
+# failure statuses the sealed runtime prints for a failed ground call (box_v313 replay_audit; trace ruling 2.4 (b))
+REAL_FAILURE_LINE = re.compile(r'(?P<name>[^\n<>]+): (?P<state>not seen|unresolved|box unavailable)')
+# any runtime failure text a head record may not contain (ground_v312, ground_v313, box_v313 response bodies)
+HEAD_FAILURE_LINE = re.compile(r'(?:[^\n<>]+: (?:not seen|unresolved|box unavailable|0 found)|not seen|unresolved|'
+                               r'unavailable|[^\n<>]* unavailable)')
+REPLAY_FUNCTION = 'generator.derivgen_v7.derivgen.ground_v312.replay'
 # operator faults a correct deployment never prints (trace ruling 2.4 (d))
 OPERATOR_FAULTS = ('Routed policy requires a fixed named candidate universe', 'form_requires_v3.13',
                    'frozen_fusion_requires_depth_cut_receipt', 'mask_source_unavailable_for_type')
@@ -56,31 +69,27 @@ PINS = {'dev_scene_exclusions.json': 'a1869ae28f6d3f1815993da776f4c4798f67bad4c5
         'R0_ROOMS.txt': 'bdb5d40244cdaf5060fd0a549acc2844a41039ecf78a23ef021a77eab188a4e3',
         'R0_SCENES.json': 'f7c458176426e22a13e47908b03abd2c6f5939d3e48eb7c24e7eba45b75ad479',
         'alias_map.json': '488480ab4b7f352eba9c81e99313c8bfcc247e9cc463a11620be087a42f579cf'}
-ALIAS = dict(scannet='d1', scannetpp='d2', scannetppv2='d2', arkitscenes='d3', d1='d1', d2='d2', d3='d3')
-NATIVE = re.compile(r'(?P<ds>scannet|scannetpp|scannetppv2|arkitscenes)/(?P<id>[^/]+)')
+ALIAS = {'scannet': 'd1', 'scannetpp': 'd2', 'scannetppv2': 'd2', 'scannet++': 'd2', 'arkitscenes': 'd3',
+         'd1': 'd1', 'd2': 'd2', 'd3': 'd3'}
+NATIVE_NAME = {'d1': 'scannet', 'd2': 'scannetppv2', 'd3': 'arkitscenes'}
+NATIVE_ID = {'d1': re.compile(r'scene\d{4}_\d{2}'), 'd2': re.compile(r'[0-9a-f]{10}'), 'd3': re.compile(r'\d{8}')}
+ROOM_ID = {'d1': re.compile(r'scene\d{4}'), 'd2': NATIVE_ID['d2'], 'd3': NATIVE_ID['d3']}
 
 
 def sha256(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
-def room_of(canonical):
-    """Physical room of a canonical capture: ScanNet sceneNNNN (all rescans), ScanNet++ scene id, ARKitScenes video."""
-    m = NATIVE.fullmatch(canonical)
-    if m is None:
-        return None
-    ds, ident = m['ds'], m['id']
-    if ds == 'scannet':
-        r = re.fullmatch(r'(scene\d{4})(?:_\d{2})?', ident)
-        return r and 'scannet/' + r[1]
-    if ds in ('scannetpp', 'scannetppv2'):
-        return 'scannetpp/' + ident
-    return 'arkitscenes/' + ident
+def room_of(short, ident):
+    """Physical room: ScanNet sceneNNNN (all rescans), ScanNet++ scene id, ARKitScenes capture id."""
+    if short == 'd1':
+        return 'scannet/' + ident[:9]
+    return ('scannetpp/' if short == 'd2' else 'arkitscenes/') + ident
 
 
 class Eligibility:
     """Refuses dev-S1, benchmark, withheld and R0 reserve rooms with the sealed Exclusions class and pinned lists.
-    Every identifier the item carries is checked; an unresolvable or inconsistent identity is refused."""
+    Every identifier the item carries must resolve to the same physical room; otherwise the item is refused."""
 
     def __init__(self, auth=AUTH):
         for name, want in PINS.items():
@@ -92,83 +101,118 @@ class Eligibility:
         pin = lambda n: {'path': str(Path(auth) / n), 'sha256': PINS[n]}
         self.exclusions = Exclusions(pin('dev_scene_exclusions.json'), pin('benchmark_scene_exclusions.json'))
         withheld = json.loads((Path(auth) / 'WITHHELD_ROOMS_80.json').read_text())
-        self.withheld = {a.casefold() for v in withheld['aliases'].values() for a in v} | {r.casefold() for r in withheld['rooms']}
+        self.withheld_names = {a for v in withheld['aliases'].values() for a in v} | set(withheld['rooms'])
         self.r0 = {l.strip() for l in (Path(auth) / 'R0_ROOMS.txt').read_text().splitlines() if l.strip()}
         self.r0 |= {v['room'] for v in json.loads((Path(auth) / 'R0_SCENES.json').read_text())['captures'].values()}
         self.alias = json.loads((Path(auth) / 'alias_map.json').read_text())
+        self.withheld_rooms = set()
+        for name in self.withheld_names:
+            try:
+                self.withheld_rooms.add(self.resolve(name)[1])
+            except ValueError:
+                pass
 
-    def canonical(self, item):
-        dataset, scene = item['dataset'], item['scene']
-        if '/' in scene:
-            prefix, bare = scene.split('/', 1)
-            if ALIAS.get(prefix.casefold()) != ALIAS.get(dataset.casefold()):
-                raise ValueError('dataset_scene_mismatch')
-        else:
-            bare = scene
-        short = ALIAS.get(dataset.casefold())
+    def resolve(self, name):
+        """'<dataset>/<id>' (capture, alias token or room) -> (canonical capture or None, physical room)."""
+        if not isinstance(name, str) or name.count('/') < 1:
+            raise ValueError('identifier_not_qualified')
+        prefix, ident = name.split('/', 1)
+        short = ALIAS.get(prefix.casefold())
         if short is None:
             raise ValueError('unknown_dataset')
-        found = {c for c in (self.alias.get(f'{short}/{bare}'), self.alias.get(f'{short}/{scene}'), item.get('canonical')) if c}
-        for ds in ('scannet', 'scannetppv2', 'arkitscenes'):
-            if ALIAS[ds] == short and NATIVE.fullmatch(f'{ds}/{bare}') and room_of(f'{ds}/{bare}'):
-                native = f'{ds}/{bare}'
-                if ds != 'scannet' or re.fullmatch(r'scene\d{4}_\d{2}', bare):
-                    found.add(native)
-        if len(found) != 1:
-            raise ValueError('canonical_unresolved' if not found else 'canonical_ambiguous')
-        return found.pop()
+        if '/' in ident:  # alias-map keys carry the native prefix, e.g. d1/scannet/scene0000_00
+            inner, ident = ident.split('/', 1)
+            if ALIAS.get(inner.casefold()) != short:
+                raise ValueError('dataset_scene_mismatch')
+        mapped = self.alias.get(f'{short}/{ident}') or self.alias.get(f'{short}/{NATIVE_NAME[short]}/{ident}')
+        if mapped:
+            mprefix, mident = mapped.split('/', 1)
+            if ALIAS.get(mprefix) != short or not NATIVE_ID[short].fullmatch(mident):
+                raise ValueError('alias_map_entry_malformed')
+            return f'{NATIVE_NAME[short]}/{mident}', room_of(short, mident)
+        if NATIVE_ID[short].fullmatch(ident):
+            return f'{NATIVE_NAME[short]}/{ident}', room_of(short, ident)
+        if ROOM_ID[short].fullmatch(ident):
+            return None, room_of(short, ident)
+        raise ValueError('identifier_unresolved')
 
     def reason(self, item):
         """Return a refusal reason, or None when eligible; sets item['room_key'] for the per-room cap."""
         e = self.exclusions
         try:
-            canonical = self.canonical(item)
-            room = room_of(canonical)
-            if room is None:
-                return 'room_unresolved'
-            cds, cid = canonical.split('/', 1)
-            rows = [dict(dataset=item['dataset'], scene=item['scene'].split('/', 1)[-1]), dict(dataset=cds, scene=cid)]
-            hits = [e.matches(r) for r in rows]
-            names = [n for n in (item.get(k) for k in ('room', 'physical_group', 'native', 'canonical')) if n]
-            names += [canonical, room]
-            keys = {e.key(n) for n in names if isinstance(n, str) and '/' in n and n.split('/', 1)[0].casefold() in ALIAS}
-        except Exception as error:  # unknown prefix, malformed or unresolvable identity: refuse
+            scene = item['scene']
+            primary = scene if '/' in scene else item['dataset'] + '/' + scene
+            if '/' in scene and ALIAS.get(scene.split('/', 1)[0].casefold()) != ALIAS.get(str(item['dataset']).casefold()):
+                raise ValueError('dataset_scene_mismatch')
+            canonical, room = self.resolve(primary)
+            if canonical is None:
+                raise ValueError('scene_is_not_a_capture')
+            names = [primary, canonical, room]
+            for key in ('room', 'physical_group', 'native', 'canonical'):
+                value = item.get(key)
+                if value is None:
+                    continue
+                if self.resolve(value)[1] != room:
+                    raise ValueError('identity_conflict:' + key)
+                names.append(value)
+            keys = set()
+            for n in names:
+                keys |= e.identifiers({'scene': n.replace('scannet++/', 'scannetpp/', 1) if n.startswith('scannet++/') else n})
+            hit = e.matched(keys)
+        except Exception as error:  # unknown prefix, malformed, unresolvable or conflicting identity: refuse
             return 'eligibility_error:' + (str(error) if isinstance(error, ValueError) else type(error).__name__)
-        if any(h['dev'] for h in hits) or keys & e.names['dev']:
+        if hit['dev']:
             return 'dev_s1'
-        if any(h['benchmark'] for h in hits) or keys & e.names['benchmark']:
+        if hit['benchmark']:
             return 'benchmark'
-        plain = {str(n).casefold() for n in names} | {(item['dataset'] + '/' + item['scene'].split('/', 1)[-1]).casefold()}
-        if plain & self.withheld:
+        if room in self.withheld_rooms or set(names) & self.withheld_names:
             return 'withheld'
-        if room in self.r0 or {room_of(n) for n in names if isinstance(n, str) and NATIVE.fullmatch(n)} & self.r0:
+        if room in self.r0:
             return 'r0_reserve'
-        item['room_key'] = room if not room.startswith('arkitscenes/') else (item.get('room') or room)
+        item['room_key'] = room
         return None
+
+
+PLAIN_NUMBER = re.compile(r'-?\d{1,15}(?:\.\d{1,15})?')
 
 
 def decimal(value):
-    if isinstance(value, bool) or value is None:
+    """Plain decimal strings only (no exponent, no whitespace, at most 15 + 15 digits), so arithmetic is exact."""
+    if not isinstance(value, str) or not PLAIN_NUMBER.fullmatch(value):
         return None
+    return Decimal(value)
+
+
+def gt_problem(qtype, answer, options=()):
+    """The item's GT must be a valid label for its type (an option letter must name one of the item's options);
+    negative numeric GT has no relative tolerance."""
+    if qtype in NUMERIC:
+        a = decimal(answer)
+        return 'gt_malformed' if a is None else 'negative_gt' if a < 0 else None
+    if qtype in COUNT:
+        return None if isinstance(answer, str) and re.fullmatch(r'\d+', answer) else 'gt_malformed'
+    if not (isinstance(answer, str) and re.fullmatch(r'[A-Z]', answer)):
+        return 'gt_malformed'
+    if str(TREE) not in sys.path:
+        sys.path.insert(0, str(TREE))
+    from trace_format.ground_v312 import option_map
     try:
-        x = Decimal(str(value).strip())
-    except (InvalidOperation, ValueError):
-        return None
-    return x if x.is_finite() else None
+        return None if answer in option_map(options or []) else 'gt_not_an_option'
+    except ValueError:
+        return 'options_malformed'
 
 
 def correct(qtype, pred, answer):
-    """True / False, or None when the GT cannot carry a relative tolerance (non-positive)."""
+    """Exact comparison of byte strings for counts and options; numeric within 15% in exact arithmetic.
+    Call only after gt_problem(qtype, answer) is None."""
     if qtype in NUMERIC:
         p, a = decimal(pred), decimal(answer)
-        if a is None or a <= 0:
-            return None
-        return p is not None and abs(p - a) <= REL_TOL * a
-    if qtype in COUNT:  # exact digit strings: the sealed validator compares str(answer) == str(gt_answer)
-        p, a = str(pred).strip(), str(answer).strip()
-        return bool(re.fullmatch(r'\d+', a)) and p == a
-    p, a = str(pred).strip(), str(answer).strip()
-    return bool(re.fullmatch(r'[A-Z]', a)) and p == a
+        if p is None:
+            return False
+        with localcontext() as ctx:
+            ctx.prec = 64  # exact for at most 15 + 15 digits
+            return abs(p - a) <= REL_TOL * a
+    return isinstance(pred, str) and pred == answer
 
 
 def masks_match(item, response):
@@ -179,10 +223,14 @@ def masks_match(item, response):
     if not isinstance(sel, dict) or set(sel) != set(gt):
         return False, 'mask_operands_differ'
     for operand in operands:
-        ids, got = gt[operand], list(sel.get(operand) or ())
-        if not ids:
+        ids, got = gt[operand], sel.get(operand)
+        if not isinstance(ids, list):
             return False, 'mask_unverified'
-        if 'unmatched' in got or len(got) != len(set(got)) or set(got) != set(ids):
+        if not isinstance(got, list):
+            return False, 'mask_mismatch:' + operand
+        if not ids or not all(isinstance(i, str) and i and i != 'unmatched' for i in ids):
+            return False, 'mask_unverified'
+        if not all(isinstance(i, str) and i for i in got) or 'unmatched' in got or len(got) != len(set(got)) or set(got) != set(ids):
             return False, 'mask_mismatch:' + operand
     return True, None
 
@@ -201,33 +249,132 @@ def status_kind(status):
     return 'unknown_status'
 
 
+def call_patterns():
+    """The call forms the sealed Session and calculator execute (ground_v312, ground_v313, box_v313, calculator)."""
+    if str(TREE) not in sys.path:
+        sys.path.insert(0, str(TREE))
+    from trace_format import box_v313, calculator, ground_v312, ground_v313
+    return (ground_v312.GROUND, ground_v312.GAP, ground_v313.INSTANCE, ground_v313.SURFACE, ground_v313.EXTENT,
+            box_v313.GROUND, box_v313.GAP, box_v313.CAMGAP, *(re.compile(f) for _, f in calculator._FORMS))
+
+
+def call_ok(call, patterns):
+    """A call parses as a sealed form and every object name passes the sealed valid_name."""
+    from trace_format.ground_v312 import RowRefusal, valid_name
+    if not any(p.fullmatch(call) for p in patterns):
+        return False
+    try:
+        for name in re.findall(r'(?:obj|a|b)="([^"]*)"', call):
+            valid_name(name)
+    except RowRefusal:
+        return False
+    return True
+
+
+def events_sha256(events):
+    return hashlib.sha256(json.dumps(events, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+
+
+def replay_receipt(record, session, pipeline_sha256):
+    """For the cache lane: replay the record's exact events through a fresh Session of the producing pipeline with
+    the sealed derivgen replay (re-executes every call and compares response text) and return the receipt
+    assign.py requires as record['replay']."""
+    if str(TREE) not in sys.path:
+        sys.path.insert(0, str(TREE))
+    from generator.derivgen_v7.derivgen.ground_v312 import replay
+    replay(record, session)
+    return dict(function=REPLAY_FUNCTION, ok=True, session_sha256=pipeline_sha256, events_sha256=events_sha256(record['events']))
+
+
+def response_body(event):
+    return [l.strip() for l in event['response'].replace('<tool_response>', '').replace('</tool_response>', '').splitlines()
+            if l.strip()]
+
+
+def sealed_pack(item, record, *, head=True):
+    """Pack the record with the sealed ground_rows.pack (validate_evidence + render_ground) after setting the
+    builder's membership flags; refuse head records whose own flags contradict them (a failure record may carry
+    not_seen, which the runtime sets on failures)."""
+    if (head and record.get('not_seen')) or record.get('gt_agrees') is False or record.get('training_admitted') is True:
+        raise ValueError('record_flags')
+    if str(TREE) not in sys.path:
+        sys.path.insert(0, str(TREE))
+    from student_pilot import ground_rows
+    if record.get('spec_version') not in ground_rows.FORMS:
+        raise ValueError('record_spec_version')
+    row = dict(record, gt_agrees=True, training_admitted=False, not_seen=False)
+    packed = ground_rows.pack(row, {})
+    target, spans, _ = ground_rows.render_ground(packed['events'], packed['answer'])
+    if target != row['suffix'] or not spans:
+        raise ValueError('record_render')
+    if head and item['type'] not in NUMERIC:
+        # counts and options: the sealed validate must accept the packed row as it stands; its absolute-distance
+        # rule (GT to 2 dp within 5%) fits GT-geometry rows only and waits for the amended validate (spec item 7)
+        ground_rows.validate(packed)
+    return packed
+
+
 def record_problem(item, response, *, head):
-    """The Session record that ground_rows.pack consumes must exist and bind to the judged answer."""
+    """The Session record ground_rows.pack consumes must exist, pack with the sealed code and bind to the judgement."""
     rec = response.get('record')
     if not isinstance(rec, dict) or any(k not in rec for k in RECORD_FIELDS):
         return 'record_missing'
     if rec['qid'] != item['qid'] or rec['type'] != item['type']:
         return 'record_identity'
-    events, suffix = rec['events'], rec['suffix']
-    if not isinstance(events, list) or not events or not isinstance(suffix, str):
+    events = rec['events']
+    if not isinstance(events, list) or not events or not all(
+            isinstance(ev, dict) and isinstance(ev.get('call'), str) and isinstance(ev.get('response'), str) for ev in events):
         return 'record_events'
-    cursor = 0
-    for event in events:
-        if not isinstance(event, dict) or not isinstance(event.get('call'), str) or not isinstance(event.get('response'), str):
-            return 'record_events'
-        at = suffix.find(event['call'] + '\n' + event['response'], cursor)
-        if at < 0:
-            return 'record_events'
-        cursor = at + len(event['call']) + 1 + len(event['response'])
+    patterns = call_patterns()
+    if not all(call_ok(ev['call'], patterns) for ev in events):
+        return 'record_call_grammar'
+    receipt = rec.get('replay')
+    if not (isinstance(receipt, dict) and receipt.get('function') == REPLAY_FUNCTION and receipt.get('ok') is True
+            and receipt.get('session_sha256') == response['pipeline_sha256']
+            and receipt.get('events_sha256') == events_sha256(events)):
+        return 'record_replay_missing'
+    if any(f in ev['response'] for ev in events for f in OPERATOR_FAULTS):
+        return 'record_operator_fault'
+    prose = rec['suffix']
+    for ev in events:
+        prose = prose.replace(ev['call'] + '\n' + ev['response'], '', 1)
+    if '<' in re.sub(r'</?(?:think|answer)>', '', prose):
+        return 'record_unrecorded_tag'
+    if rec['gt_answer'] != item['answer'] or not isinstance(rec['answer'], str):
+        return 'record_gt'
+    if rec['options'] != (item.get('options') or []) or ('question' in item and rec['question'] != item['question']):
+        return 'record_question'
+    if item['type'] in OPTION and (not rec['options'] or rec.get('answer_content') is None):
+        return 'record_options'
+    try:
+        sealed_pack(item, rec, head=head)
+    except Exception as error:
+        return 'sealed_pack_refused:' + (str(error) or type(error).__name__)[:80]
     if head:
-        if rec.get('not_seen') or str(rec['answer']) != str(response.get('pred')).strip():
+        if any(HEAD_FAILURE_LINE.fullmatch(l) for ev in events for l in response_body(ev)):
+            return 'record_failure_in_head'
+        if rec['answer'] != response.get('pred'):
             return 'record_answer'
-        if str(rec['gt_answer']).strip() != str(item['answer']).strip():
-            return 'record_gt'
-        if not suffix.endswith('\n</think>\n<answer>' + str(rec['answer']) + '</answer>'):
-            return 'record_suffix'
-    elif response['status'].strip().splitlines()[0].strip() not in suffix:
+        if item['type'] in OPTION:
+            from trace_format.ground_v312 import option_map
+            try:
+                content = option_map(item['options']).get(rec['answer'])
+            except ValueError:
+                return 'record_options'
+            if content is None or content != rec['answer_content']:
+                return 'record_answer_content'
+        return None
+    # recovery: some response must be the failure status itself, and nothing after it may be a successful call
+    status = [l.strip() for l in response['status'].strip().splitlines()]
+    failed = [i for i, ev in enumerate(events) if response_body(ev) == status]
+    if not failed:
         return 'record_status'
+    if failed[-1] != len(events) - 1:
+        return 'record_call_after_failure'
+    called = re.match(r'<ground obj="([^"<>]+)"', events[failed[-1]]['call'])
+    names = [REAL_FAILURE_LINE.fullmatch(l)['name'] for l in status]
+    if called is None or names != [called[1]]:
+        return 'record_status_operand'
     return None
 
 
@@ -246,16 +393,16 @@ def decide(item, response, eligibility):
     why = eligibility.reason(item)
     if why:
         return 'drop', why
+    bad = gt_problem(qtype, item.get('answer'), item.get('options'))
+    if bad:
+        return 'drop', bad
     kind = status_kind(response.get('status'))
     if kind not in ('ok', 'real_failure'):
         return 'drop', kind
     if kind == 'real_failure':
         bad = record_problem(item, response, head=False)
         return ('drop', bad) if bad else ('recovery', 'real_failure')
-    right = correct(qtype, response.get('pred'), item.get('answer'))
-    if right is None:
-        return 'drop', 'nonpositive_gt'
-    if not right:
+    if not correct(qtype, response.get('pred'), item['answer']):
         return 'direct', 'response_wrong'
     ok, why = masks_match(item, response)
     if not ok:

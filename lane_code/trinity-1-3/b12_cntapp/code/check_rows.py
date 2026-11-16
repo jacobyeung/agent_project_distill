@@ -23,7 +23,7 @@ def share(name):
         lab = collections.defaultdict(list)
         for i, l in zip(z['ids'], z['labels']): lab[re.sub(r'\s+', ' ', str(l).strip().lower().replace('_', ' '))].append(int(i))
         if len(cache) > 64: cache.clear()
-        cache[name] = (S, lab, [int(x) for x in z['frame_indices']], [bool(x) for x in z['valid']])
+        cache[name] = (S, lab, [int(x) for x in z['frame_indices']], [bool(v) and bool(m) for v, m in zip(z['valid'], (z['depth'] > 0).any(axis=(1, 2)))])
     return cache[name]
 def fs_of(S, i): v = [f for f, s in S.get(i, {}).items() if s >= FLOOR]; return min(v) if v else None
 def mra(p, t): return np.mean([abs(p - t) / t < 1 - th for th in np.arange(0.5, 1.0, 0.05)])
@@ -50,6 +50,7 @@ for fam in ('count_single', 'count_total', 'appearance', 'first_seen'):
                 for i, f in zip(ids, frames):
                     if S.get(i, {}).get(f, 0) < FLOOR: fail('cited frame does not show instance')
                     if fs_of(S, i) != f: fail('cited frame is not first-seen')
+                    elif not all(valid[:f - 1]): fail('a pin before the cited frame has no raster')
                 if f'{name}(s)' not in q: fail('label not in question')
                 tline = [l for l in r['target'].split('\n') if f' {name} ' in l or f' {name},' in l]
                 if not tline or len(re.findall(r'frame \d+', tline[0])) != len(ids): fail('trace list length != instances')

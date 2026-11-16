@@ -49,7 +49,21 @@ def prompt_batch(processor, row, placement, layout, gap, geometry_online=None):
             for k, v in batch.items() if k != 'labels'}
 
 
+def check_sources(row):
+    """Trainer-side re-check of the selector's artifact policy on the row's recorded sources."""
+    src = row.get('response_sources')
+    if row.get('response_policy') != 'artifact' or not isinstance(src, dict):
+        raise ValueError('RL rows need responses from heads inside the artifact')
+    if (src.get('donor') or src.get('verify') or src.get('reread') or src.get('tower_state')
+            or src.get('mask_source') not in (None, 'mdg') or src.get('geometry_source') not in (None, 'same_checkpoint_own')
+            or src.get('pose_source') not in ('own', 'tower')):
+        raise ValueError('RL row responses come from outside the artifact')
+
+
 def check(row):
+    check_sources(row)
+    if not isinstance(row.get('temperature'), (int, float)) or not row['temperature'] > 0:
+        raise ValueError('GRPO row needs its sampling temperature')
     n = len(row['tokens'])
     if row['stream'] not in ('vqa', 'routing'):
         raise ValueError('GRPO rows train only vqa or routing')
@@ -90,6 +104,7 @@ def attach(prompt, row):
     out.update(labels=labels, aux_pg_mask=mask, aux_old_logp=old, aux_ref_logp=ref,
                aux_pg_advantage=torch.tensor([float(row['advantage'])]),
                aux_pg_reserved=torch.tensor([int(i) for i in row['reserved']], dtype=torch.long),
+               aux_pg_temperature=torch.tensor([float(row.get('temperature', 1.0))]),
                aux_suffix_start=torch.tensor(P))
     return out
 
@@ -102,8 +117,7 @@ def check_own(row):
         raise ValueError('Own row kinds differ from its tokens')
     if (row['stream'] == 'routing') != ('r' in row['kinds']):
         raise ValueError('Own routing rows hold tool responses and vqa rows none')
-    if row.get('response_policy') != 'artifact':
-        raise ValueError('Own rows need responses from heads inside the artifact')
+    check_sources(row)
 
 
 def encode_own(processor, row, placement, layout, gap, geometry_online=None):
@@ -113,7 +127,7 @@ def encode_own(processor, row, placement, layout, gap, geometry_online=None):
         raise ValueError('Own row prompt differs from the prompt the sampler decoded')
     row = dict(row, old_logp=[0.] * len(row['tokens']), ref_logp=[0.] * len(row['tokens']), advantage=0., reserved=[])
     batch = attach(prompt, row)
-    for key in ('aux_pg_mask', 'aux_old_logp', 'aux_ref_logp', 'aux_pg_advantage', 'aux_pg_reserved'):
+    for key in ('aux_pg_mask', 'aux_old_logp', 'aux_ref_logp', 'aux_pg_advantage', 'aux_pg_reserved', 'aux_pg_temperature'):
         batch.pop(key)
     return batch, dict(qid=row['prompt_row'].get('qid'), own=dict(draw=row.get('draw')))
 

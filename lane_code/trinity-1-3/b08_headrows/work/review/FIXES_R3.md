@@ -1,0 +1,8 @@
+# Fixes for REVIEW_R3 (Codex gpt-6-astra, NO-GO, 8 findings) — assign.py 2a95779a..., mask_match.py 473e3a9c..., tests 22 OK
+1. No trimming anywhere: counts and options compare pred and GT as exact strings; GT must itself be a bare digit string (counts) or one letter A-Z (options), else drop 'gt_malformed'; pred must be a str. Item GT ' 3 ' drops; pred ' 3' is wrong. Head rows on counts and options must also pass the sealed ground_rows.validate as packed (label, options, answer_content). Test test_review3_gt_whitespace_and_options, test_options_and_counts_exact.
+2. Numbers: plain decimal strings only (`-?\d{1,15}(\.\d{1,15})?`, no exponent, no whitespace), so the Decimal comparison at precision 64 is exact; GT '1e-1000000000' drops 'gt_malformed'. Test test_numeric_tolerance.
+3. A failure record may carry not_seen True (only head records refuse it). Test test_review3_recovery.
+4, 5. Option types: record options must equal item options and record question must equal item question ('record_question'); answer_content is required ('record_options') and must equal option_map(item options)[answer] ('record_answer_content'); the sealed validate also runs. Test test_review3_gt_whitespace_and_options.
+6. Recovery: the failed call must be `<ground obj="NAME"...>` and the status must be exactly 'NAME: not seen' for that NAME ('record_status_operand'). Test test_review3_recovery.
+7. GT validity (including negative numeric GT) is checked before the status branch, so recovery cannot bypass it. Same test.
+8. mask_match accepts any numbers.Integral frame key (NumPy ints) and digit strings; rejects bool / np.bool_ and floats. Test test_match_and_threshold.

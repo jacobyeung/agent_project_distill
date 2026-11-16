@@ -37,7 +37,7 @@ def to_prompt(row, frames, source):
     objects = [roles[k] for k in sorted(roles)] if isinstance(roles, dict) else []
     return dict(schema=SCHEMA, prompt_id=row['qid'], type=row['question_type'], question=si['question'],
                 options=si.get('options') or None, gt_answer=str(row['answer']), row=clean, scene_key=row['scene'],
-                source=source, objects=objects, frames=frames)
+                source=source, row_source=row.get('source'), dataset=row.get('dataset'), objects=objects, frames=frames)
 
 
 def build(rows, allow_scenes, frames, *, types=None, limit=None, seed=17, source='reserve_r0_rl'):
@@ -50,6 +50,10 @@ def build(rows, allow_scenes, frames, *, types=None, limit=None, seed=17, source
                 raise PoolError(f'duplicate qid {row.get("qid")}')
             if types and row.get('question_type') not in types:
                 continue
+            from .sampler import benchmark_source
+            bad = benchmark_source(row)
+            if bad is not None:
+                raise PoolError(f'{row.get("qid")}: source {bad} is a benchmark')
             out.append(to_prompt(row, frames, source))
             seen.add(row['qid'])
         except PoolError as exc:

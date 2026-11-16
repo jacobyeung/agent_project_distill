@@ -28,6 +28,7 @@ EXPECTED = {  # variant -> clauses that must fail (and every other clause must p
     'threshold': {'A3'},
     'guard': {'A2', 'A3', 'A4', 'A5'},  # its fallback arm parses response text outside the model (A2)
     'cache': {'A1', 'A3', 'A5'},
+    'head_method': {'A3'},  # a threshold in a method of a declared module class is not model code
 }
 STATIC = {  # planted violation -> (rule, function) the static scanner must report
     'table': ('A3.table_load', 'TableHandler.serve'),
@@ -73,7 +74,9 @@ class ToyEndToEnd(unittest.TestCase):
         a2 = self.results['second_entry']['clauses']['A2']['offenders']
         self.assertIn('second_model_entry', {o.get('kind') for o in a2})
         a3 = {(o['rule'], o['line']) for o in self.results['threshold']['clauses']['A3']['offenders']}
-        self.assertIn(('A3.threshold', 25), a3)
+        self.assertIn(('A3.threshold', 26), a3)
+        hm = {(o['rule'], o['function']) for o in self.results['head_method']['clauses']['A3']['offenders']}
+        self.assertIn(('A3.threshold', 'RulePerception.adjust'), hm)
         a4 = {o.get('kind') or o.get('rule') for o in self.results['guard']['clauses']['A4']['offenders']}
         self.assertTrue({'response_without_head', 'answer_not_in_generated_sequence', 'A4.guard'} <= a4)
         a5 = {o.get('kind') or o.get('rule') for o in self.results['cache']['clauses']['A5']['offenders']}

@@ -1,9 +1,13 @@
-The production CONFIG with only transport changed has not executed. The two CPU fixture censuses are in `EXECUTED_LINES.json`. Each source file lists executed lines and unexecuted statement lines. These lists describe Python line tracing; they do not prove semantic branch coverage.
+The CPU evidence covers synthetic whole-worker execution for both benchmarks and readers. It also covers registered frame preparation, dense-to-anchor correspondence, local tar checks, native decode/replay, proposal/cache contracts, and report binding. It does not establish production-CONFIG equivalence.
 
-`offnative/readers.py:32` through the harness context and C8r generation call requires the live model, processor, same-frame geometry, and mask backend. Its replay method at line 44 also remains unexecuted. The `DirectReader` class delegates to build R but has no fixture in this build; build R owns that fixture.
+The following production operations remain unexecuted:
 
-`offnative/cli.py:99` delegates to build R's governor registration and remote stream handling. That path did not run. Only local archive staging, local archive rejection, configuration preparation, and launch refusal ran.
+- `bootstrap.stage` has not staged the real runtime/export, owner-supplied offkit, ReVSI media tar, or extra production assets through R's gates.
+- `bootstrap.main` has not entered the real namespace, run a submitted job, or published its return.
+- `production.Runtime.stage` has not restored the real checkpoint or loaded the owner-supplied e2e artifact.
+- `production.Runtime.towers` has not run the pinned G3T/SAM weights or the checkpoint's own scale/gravity heads. CPU tests use synthetic geometry and proposal stubs.
+- `historical` has not restored the original export and independently served all ten proof items. Five selected distance-mask files remain absent in the recorded audit.
+- `transport` has not fetched or authenticated a real remote publication. Synthetic identity-mutation tests exercise its checks.
+- `cli.submission` has not admitted an actual production-CONFIG rehearsal or recorded a real submission.
 
-The real G3T tower, checkpoint scale/gravity preparation, SAM 3 proposals, selector application, C8r cache conversion, D0 export stager, root/bwrap namespace, return publication, and outer deadline watchdog did not run. Several of these connections are unfinished implementation, so they have no executable Build N line numbers yet.
-
-The fixture uses 64-frame generated videos to exercise both 32-anchor model sampling and a dense 64-frame sampler. It does not establish a legal dense source for the official ReVSI 32-frame clips. No GPU or real-export first batch ran.
+`N3_EXECUTED_LINES.json` combines four CPU traces and keeps source hashes. Per-run coverage files retain separate executed-line sets; these are line traces, not branch coverage. The real 302-video RGB correspondence check has not run because the local archive is empty. `N3_PRODUCTION_REHEARSAL.json` records the specific blockers for each benchmark and reader. No synthetic receipt authorizes production.
