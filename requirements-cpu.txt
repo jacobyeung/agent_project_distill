@@ -1,0 +1,14 @@
+# Packages the hermetic CPU tests import that /scratch/jjyeung/envs/p1cpu (Python 3.12.13, numpy 2.2.6) lacks.
+# p1cpu already holds av 15.1.0 and peft 0.20.0. Pins match envs already on this node that run numpy 2.x
+# (shapely from allospatial_1111_v1; opencv and google-genai from v590kgt and planner_local_v1).
+#
+# Build (nothing here installs it; p1cpu is the trainer env, so build a separate env and leave p1cpu as is):
+#   /scratch/jjyeung/envs/p1cpu/bin/python -m pip freeze > /scratch/$USER/p1cpu.freeze
+#   uv venv /scratch/$USER/envs/cpu_tests_v1 --python 3.12.13
+#   uv pip install --python /scratch/$USER/envs/cpu_tests_v1/bin/python -r /scratch/$USER/p1cpu.freeze -r requirements-cpu.txt
+#   CPU_PYTHON=/scratch/$USER/envs/cpu_tests_v1/bin/python tools/test_cpu.sh
+# The download crosses the head node: register it with the IO governor (tier 3, --io-weight 1) before it runs,
+# and point UV_CACHE_DIR at /scratch. Then drop the package-only entries from cpu_skip in tools/pytest_cpu.ini.
+shapely==2.1.2
+opencv-python-headless==4.10.0.84
+google-genai==1.75.0
