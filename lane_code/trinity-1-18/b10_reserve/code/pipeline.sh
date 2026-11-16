@@ -1,7 +1,7 @@
 #!/bin/bash
 # Follow-on pipeline for the governed streams (runs in tmux b10pipe on trinity-1-18). Never restarts a stream.
 L=/scratch/jjyeung/orch_n30/b10_reserve; S=/data3/jjyeung/orch_n13_20261026/io_governor/streams; PY=/scratch/jjyeung/envs/p1cpu/bin/python
-cd $L
+cd $L; export OMP_NUM_THREADS=4 OPENBLAS_NUM_THREADS=4 MKL_NUM_THREADS=4
 done_rename() {  # $1 = list name; rename the record once its log shows a clean exit
   local n=$1
   if grep -q "^EXIT (0, 0, 0)" work/streams/$n.log 2>/dev/null && [ -f $S/b10r0_$n.json ]; then

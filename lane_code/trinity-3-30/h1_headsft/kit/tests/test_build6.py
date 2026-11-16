@@ -190,12 +190,21 @@ def test_real_json_loading_until_missing_weights(tmp_path):
     if absent:
         pytest.skip('Real loading proof unavailable; missing staged JSON: '+', '.join(absent))
     assert isinstance(json.loads(needed[-1].read_text()), dict)
-    args = B.parser().parse_args(['--model-manifest', str(needed[0]), '--receipt', str(needed[1]),
-                                  '--artifact', str(needed[2]), '--frames', str(tmp_path/'unused.json'),
-                                  '--output', str(tmp_path/'real')])
+    base = ['--model-manifest', str(needed[0]), '--receipt', str(needed[1]),
+            '--artifact', str(needed[2]), '--frames', str(tmp_path/'unused.json'), '--output', str(tmp_path/'real')]
+    restore = json.loads(needed[-1].read_text())
+    original = Path(restore['original']['artifact']['path'])
     with B.local_io(tmp_path):
+        # The restored artifact carries local paths, so its file digest differs from the D0 pin.
+        with pytest.raises(ValueError, match='differs from the D0 initialization pin'):
+            B.read_inputs(B.parser().parse_args(base))
+        args = B.parser().parse_args(base+['--restore', str(needed[-1])])
+        if not original.is_file():
+            with pytest.raises(FileNotFoundError):
+                B.read_inputs(args)
+            return
         cfg, manifest, receipt, pin = B.read_inputs(args)
-        assert pin['sha256'].startswith('1d6eeb28')
+        assert restore['original']['artifact']['sha256'].startswith('1d6eeb28')
         with pytest.raises(FileNotFoundError, match='Missing node-local model/processor/artifact file'):
             B.real_loader(manifest, receipt, pin)
 

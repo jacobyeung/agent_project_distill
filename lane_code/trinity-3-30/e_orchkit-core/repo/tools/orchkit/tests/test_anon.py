@@ -269,6 +269,59 @@ class AnonTest(unittest.TestCase):
         for text in ('/project/u/data/x', 'metadata/x', '/x/data_out'):
             self.assertEqual(anon.scan_text('x', text, rules, 'name'), [], text)
 
+    def test_review_oc32_to_oc36(self):
+        rules = anon.load_rules()
+        named = io.BytesIO()
+        with gzip.GzipFile(filename='split.txt', fileobj=named, mode='wb', mtime=0) as handle:
+            handle.write(b'ok')
+        alone = lambda **opts: lzma.compress(b'qwen', format=lzma.FORMAT_ALONE,
+                                             filters=[dict(id=lzma.FILTER_LZMA1, **opts)])
+        cases = {'g.gz': gzip.compress(b'first') + named.getvalue(),
+                 'p.gz': gzip.compress(b'first') + b'\x00\x00' + named.getvalue(),
+                 'lc0.lzma': alone(lc=0), 'lc4.lzma': alone(lc=4),
+                 'lp.lzma': alone(lc=1, lp=2, pb=4, dict_size=5000),
+                 'two.lzma': lzma.compress(b'ok', format=lzma.FORMAT_ALONE) + alone(),
+                 'nul.lzma': b'\x00' * 36 + alone(), 'cut.lzma': alone()[:-3] + b'',
+                 'junk.zlib': zlib.compress(b'qwen') + b'junk',
+                 'cut.zlib': zlib.compress(b'qwen' * 100)[:-6],
+                 'cr.py': b'x = "q\\\rwen"\n'}
+        for bits in (9, 10, 14):
+            engine = zlib.compressobj(wbits=bits)
+            cases['w%d.zlib' % bits] = engine.compress(b'qwen') + engine.flush()
+        for name, data in sorted(cases.items()):
+            self.assertTrue(anon.scan_tree(self.write(name, data), rules), name)
+        for name, data in (('zeros.bin', b'\x00' * 100001), ('nul.bin', b'\x00' * 20 + b'junk'),
+                           ('x.py', b'x = 1\n'), ('h.txt', b'h? ok\n'), ('m.txt', b'x^2 + 1\n')):
+            self.assertEqual(anon.scan_tree(self.write(name, data), rules), [], name)
+        for text in ('/./data2/secret', '/tmp/../data2/secret', '/home/./jjyeung/agent_x',
+                     '/scratch/./jjyeung/x', '/a/b/../../data2', '"/../data2"', 'x=/t/./../data3'):
+            self.assertTrue(anon.scan_text('x', text, rules, 'name'), text)
+            self.assertTrue(anon.scan_tree(self.write('t.json', text.encode()), rules), text)
+        for text in ('./data/x', '../data2x', '/x/./y', 'a/../b', '/x/../datasets/y'):
+            self.assertEqual(anon.scan_text('x', text, rules, 'name'), [], text)
+
+    def test_review_oc37_to_oc39(self):
+        rules = anon.load_rules()
+        tail = bytes(range(256)) * 4
+        found = {'bad.zlib': zlib.compress(b'qwen')[:-1] + b'X',
+                 'cut.zlib': zlib.compress(b'qwen' * 3)[:-6],
+                 'u1.txt': 'ar\u212ait'.encode('utf-8'), 'u2.txt': 'd\u0130still'.encode('utf-8'),
+                 'u3.txt': 'gem\u0130ni'.encode('utf-8')}
+        refused = {'badlong.zlib': zlib.compress(b'ok' + tail)[:-1] + b'X',
+                   'cutlong.zlib': zlib.compress(b'ok' + tail)[:-2],
+                   'midlong.zlib': zlib.compress(tail * 10)[:-30],
+                   'cut.lzma': lzma.compress(b'ok', format=lzma.FORMAT_ALONE)[:-2]}
+        for name, data in sorted(found.items()):
+            self.assertTrue(anon.scan_tree(self.write(name, data), rules), name)
+        for name, data in sorted(refused.items()):
+            rows = anon.scan_tree(self.write(name, data), rules)
+            self.assertIn('undecodable', [row['rule'] for row in rows], name)
+        for name, data in (('ok.zlib', zlib.compress(b'fine') + b'junk'), ('x.py', b'x^2 + 1\n'),
+                           ('u.txt', 'caf\u00e9 na\u00efve\n'.encode('utf-8'))):
+            self.assertEqual(anon.scan_tree(self.write(name, data), rules), [], name)
+        for text in ('/tmp//../data2/secret', '/home/x//../jjyeung/agent_x', '/scratch/x//../jjyeung/x'):
+            self.assertTrue(anon.scan_text('x', text, rules, 'name'), text)
+
 
 if __name__ == '__main__':
     unittest.main()

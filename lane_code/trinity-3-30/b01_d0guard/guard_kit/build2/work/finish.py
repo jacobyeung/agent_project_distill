@@ -4,6 +4,14 @@ import hashlib
 import json
 import sys
 import tarfile
+if '--g5' in sys.argv:
+    import runpy
+    runpy.run_path(str(Path(__file__).with_name('g5_finish.py')),run_name='__main__')
+    raise SystemExit(0)
+if '--g4' in sys.argv:
+    import runpy
+    runpy.run_path(str(Path(__file__).with_name('g4_finish.py')),run_name='__main__')
+    raise SystemExit(0)
 if '--g3' in sys.argv:
     import runpy
     runpy.run_path(str(Path(__file__).with_name('g3_finish.py')),run_name='__main__')
@@ -38,7 +46,7 @@ for row in pins:
     filename,number=row['enforcement'].rsplit(':',1)
     assert 0<int(number)<=len((B/filename).read_text().splitlines())
 report=B.parent/'report/guard_read.py'
-report_sha='6fead56128b2081314e52aa0ca6a7ab2f077aac72078554f2d1d7b61067aacc6'
+report_sha='5424e41c68fc1918386c62865a68d7b3c1af2802f2800b1f0455837568a3cd11'
 assert sha(report)==report_sha
 now=datetime.datetime.now(datetime.timezone.utc)
 timing=read(B/'work/TIMING.json')

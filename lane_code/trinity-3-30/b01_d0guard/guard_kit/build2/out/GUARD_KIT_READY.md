@@ -1,27 +1,21 @@
-# Guard-read kit: G3 sealed; production NOT READY
+# Guard-read kit: G5 sealed; production authority required
 
-The package passes integrity verification and all 134 tests (`FINAL_AUDIT.json`, `TESTS.json`). All 25/25 report mutants are detected (`MUTANTS.json`). Packet tests bind the refreshed family and code pins (`PACKET_TEST.json`, `ALL_STEPS_TEST.json`). Production launch remains blocked by naming, independent review and milestone authority (`RELEASE_BLOCKERS.json`, `FAMILY.json`).
+The final report pin matches the operator-authorized source. All 158 tests pass (`TESTS.json`), and all 31/31 mutants are detected in a fresh run (`MUTANTS.json`). The report and its test-source hashes are verified before and after validation (`REPORT_PIN_G4.json`).
 
-The native merge compares per-key canonical-JSON digests, so tuple/list representations with equal contents admit. A changed score refuses and writes `MERGE_DIFF.json`; missing keys refuse. Matching rows still undergo the request, denominator, parity, score and geometry checks. The merge uses the journal rows after comparison (`guard_kit/admission.py:14`, `G2_TESTS.json`).
+The production package differs from G4 only in the report pin in `worker.py`. FAMILY differs from `2b5563214dd1c99b49551278fe4ec53c3867d5a746b141e36c543d94f0eec7a5` only in `code_pins.worker.py`; all other fields, including `release_ready: false`, retain their values (`FAMILY_CHANGES_G5.json`). The input archive, production inventory, inherited C8r code and reviewed stager retain their bytes (`G5_SEAL.json`, `SOURCE_IDENTITY.json`, `FINAL_AUDIT.json`).
 
-The code tar retains the original production member inventory. Only `admission.py` changes; rehearsal-only mount splitting, torchvision and argument forwarding, plus operator backup files, stay outside the tar (`G3_SEAL.json`, `CODE_MANIFEST.json`). The input archive, inherited backend, reviewed stager and report retain their hashes (`INPUT_MANIFEST.json`, `SOURCE_IDENTITY.json`, `FINAL_AUDIT.json`).
+Every report call binds the candidate artifact. The coordinator retains stage/checker receipts, and return verification rejects missing evidence (`G4_TESTS.json`, `G4_RETURN_EVIDENCE.json`). The C8r diff matches the sealed code (`DIFF_C8R.json`, `DIFF_C8R.patch`). Documented transfers use the registered serial-governor wrapper (`RUN.md`).
 
-The whole-worker blocker is CLOSED for the CPU fixture on operator-supplied evidence: `rehearsal/whole/31f44f39c63b4d68be53660ff5780980/RESULT.json`. The proof passes 20/20; the report correctly refuses the 20-item fixture with return code 3 (`rehearsal/OPERATOR_EVIDENCE_G3.json`). G3 neither accesses that protected directory nor reruns the namespace worker. The fixture cannot establish real tensors, GPU parity or token identity. Production cloud staging and allocation remain unvalidated (`rehearsal/RUNBOOK.md`).
+The seven trainer-tree names are ACCEPTED by ORCH 1601Z. The CPU-fixture blocker is CLOSED on operator-supplied evidence. Production requires a review bound to the current FAMILY, a completed milestone closure/export and exact ORCH GO (`RELEASE_BLOCKERS.json`).
 
-The real candidate metadata passes config identity, preparation, source seals, initialization-chain and unchanged restoration checks (`CLOSURE_ADMISSION.json`, `RESTORATION_TEST.json`). Those metadata results do not establish actual candidate tensor restoration.
+| Artifact | SHA256 |
+|---|---|
+| `code_g2.tar` | `6024aa2be082b1881a8e33f52dcaa7d57c209858d6a1adf8d25bbb97516cb54e` |
+| `inputs_g2.tar` | `3be24165b9856024dc5359b1760a8a1ad88f11022972fb3d075edb70c02aff72` |
+| `FAMILY.json` | `23cadfceac2896ab0f5f0ae7edc05cca64af7925277539beae321b784cf2f302` |
+| `candidate_m50/metadata.tar` | `d04e294d2cf2908fef45208280f9bc7313b0a54ae0b71d0be1403358a9cde443` |
+| Required and observed report | `5424e41c68fc1918386c62865a68d7b3c1af2802f2800b1f0455837568a3cd11` |
 
-Runtime naming remains blocked as written in `RELEASE_BLOCKERS.json`. The seven names sit inside the sealed trainer tree b01ce449, the same tree job 170056 and D0's training job already staged on Orchard; ORCH decides (`NAMING_CONFLICT.json`; operator context in `RELEASE_BLOCKERS.json`). The neutral outer archive round-trips to identical file bytes, but runtime projections remain unintegrated (`NAME_ROUNDTRIP.json`, `NAMING.json`).
+Reproduce with `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B`, `nice -n 10` and numerical-library threads set to one: `work/family.py --g5`, `work/seal.py --g5`, `work/g4_diff.py`, `work/run_g4_tests.py --g5`, then `work/finish.py --g5`.
 
-| Artifact | SHA256 | Evidence |
-|---|---|---|
-| `code_g2.tar` | `9ffa724919aa52adf94793a5f0a6912d867797d8aa55a179d2366282bc695bdc` | `CODE_MANIFEST.json` |
-| `inputs_g2.tar` | `3be24165b9856024dc5359b1760a8a1ad88f11022972fb3d075edb70c02aff72` | `INPUT_MANIFEST.json` |
-| `FAMILY.json` | `273d5d5661fc7fea166aa6603411c1db8e23c7a8e9bc8b7ae8f8c1044737029b` | `FINAL_AUDIT.json` |
-| `candidate_m50/metadata.tar` | `d04e294d2cf2908fef45208280f9bc7313b0a54ae0b71d0be1403358a9cde443` | `candidate_m50/CLOSURE.json` |
-| Unchanged report | `6fead56128b2081314e52aa0ca6a7ab2f077aac72078554f2d1d7b61067aacc6` | `FINAL_AUDIT.json` |
-
-Reproduce this seal from the build directory with `/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B`: run `work/family.py`, `work/run_g3_tests.py`, `work/seal.py --g3`, `work/g3_docs.py`, then `work/finish.py --g3`, under `nice -n 10` with numerical-library threads set to one. The operator rehearsal command and overlay are in `rehearsal/RUNBOOK.md`.
-
-`DIFF.md` gives current admission line ranges; `G3_ADMISSION.patch` isolates the merge change. `PIN_CLASSIFICATION.md` covers the contract checks. `RUN.md` gives production preparation and authority commands. Remote commands remain unexecuted.
-
-Not checked: real tensors, GPU parity, token identity, production Orchard/GCS/pool/credentials, the namespace proof-mismatch variant, and complete runtime naming. Local size excluding protected operator runs is in `BUILD_SIZE_G3.json`; G3 timing is in `../work/TIMING_G3.json`.
+Not checked: real tensors, GPU parity, token identity, the namespace worker, live Orchard/GCS/pool/credentials or governor transfers. G5 did not access `out/rehearsal/whole/`. Size and timing are recorded in `BUILD_SIZE_G5.json` and `../work/TIMING_G5.json`.

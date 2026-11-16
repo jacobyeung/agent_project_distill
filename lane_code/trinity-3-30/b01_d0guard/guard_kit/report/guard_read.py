@@ -42,7 +42,8 @@ DRAWS = 10000
 SEED = 20261115
 METRE_CALL_RATE_MIN = 0.95
 ARM = "unflagged"
-FLAGS = ("called", "no_answer", "parse_failed", "strict_no_answer")
+REQUIRED_FLAGS = ("called", "no_answer")
+OPTIONAL_FLAGS = ("parse_failed", "strict_no_answer")
 REFUSAL_FLAGS = ("geometry_refusal", "refusal")
 
 
@@ -115,16 +116,19 @@ def load_arm(path, arm=ARM):
     for row in rows:
         require(row["key"] not in index, "duplicate key %s in %s" % (row["key"], path))
         require(row.get("arm", arm) == arm, "row arm differs from %s in %s" % (arm, path))
-        for flag in FLAGS:
-            require(row.get(flag) is None or type(row[flag]) is bool,
+        for flag in REQUIRED_FLAGS:
+            require(type(row.get(flag)) is bool,
+                    "accounting flag %s of %s is missing or not a boolean in %s" % (flag, row["key"], path))
+        for flag in OPTIONAL_FLAGS:
+            require(flag not in row or type(row[flag]) is bool,
                     "accounting flag %s of %s is not a boolean in %s" % (flag, row["key"], path))
         for flag in REFUSAL_FLAGS:
-            value = row.get(flag)
-            require(value is None or type(value) is bool or (isinstance(value, dict) and value),
+            require(flag not in row or type(row[flag]) is bool or (isinstance(row[flag], dict) and row[flag]),
                     "refusal record %s of %s is neither a boolean nor a non-empty record in %s" % (flag, row["key"], path))
-        decoded = row.get("decode") or {}
+        require("decode" not in row or isinstance(row["decode"], dict),
+                "decode of %s is not a record in %s" % (row["key"], path))
         for flag in ("strict_no_answer", "parse_failed"):
-            require(decoded.get(flag) is None or type(decoded[flag]) is bool,
+            require(flag not in row.get("decode", {}) or type(row["decode"][flag]) is bool,
                     "decode flag %s of %s is not a boolean in %s" % (flag, row["key"], path))
         index[row["key"]] = row
     artifacts = sorted({row.get("checkpoint_sha256") for row in rows})
@@ -351,6 +355,9 @@ def main(argv=None):
                          a.self_pair)
     except Refusal as error:
         print("REFUSED: " + str(error), file=sys.stderr)
+        return 3
+    except (KeyError, TypeError, ValueError, AttributeError, IndexError) as error:
+        print("REFUSED: malformed input: %s: %s" % (type(error).__name__, error), file=sys.stderr)
         return 3
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)

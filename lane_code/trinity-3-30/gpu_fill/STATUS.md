@@ -1,48 +1,27 @@
-# gpu_fill STATUS (trinity-3-30), lane gpu_fill2 (Devin). Updated 2026-11-16T16:33Z. Session started 12:23Z; rotate by 18:15Z.
+# gpu_fill STATUS (trinity-3-30), lane gpu_fill2. Updated 2026-11-16T17:30Z by the Devin lane (session 12:23Z-17:30Z, rotated).
 ## Goal
-Briefs: orch_n30/briefs/gpu_fill.md (GPU rules) and gpu_fill2.md (duties). Keep permitted free 48 GB Trinity cards working on distillation's queue until 22:30Z. Hand confirmed cards to owning lanes with ORCH_CARD notes; launch nothing; no Git, no deletion.
-## Done
-- 1-13 card 0 handed to trin_read at 11:40Z; trin_read3 declined (1151Z QUESTION, needs 86-122 GB). ORCH 1221Z: option B, wait for a node with >=250 GB /scratch avail; no /dev/shm root.
-- K1 own phase goes to Orchard (k1_ops3 ORCH 1221Z GO d1553118); no Trinity card owed.
-- 12:28Z RESULT queue_fit_and_hour1 (NEXT_QUEUE fit on 1-13; ~12 card-hours free, 0 used) and QUESTION devshm_small_stages (default: no /dev/shm staging; hold 1-13 for main).
-- alert.py: CANDIDATE now uses scratch_avail ~ total-used-5%*total >= 250 GB, or any free card on 1-3/1-18 (backup alert.py.v1).
-- ORCH 1229Z: /dev/shm/jjyeung on 1-13 allowed up to 60 GB total; b11 first, then b05 teacher pass (up to 4 cards) after CPU tests; reuse one export; stages listed in each lane's REMOVAL_CANDIDATES.md; vnice; main told first. ORCH 1228Z: no checkpoint events.
-- 12:38:25Z told main: B/INBOX_TO_NONTRAINING_ORCHESTRATOR_20261116T123825Z_distill_1_13_devshm_probe_teacher.md (objection deadline 12:48Z). Reading 1 of 1-13 at 12:38:32Z: all 8 empty (hist/r4_trinity-1-13.txt).
-- 12:49Z handed 1-13 card 1 to b11: events/b11_presence/20261116T1249Z_ORCH_CARD_trinity-1-13_1.md (readings 12:38:32Z, 12:48:47Z hist/r4,r5; no main objection). b11 kit ready (1244Z RESULT), stages export+env+frames to /dev/shm/jjyeung/b11_presence over IB from 1-18.
-- 12:59:00Z reading (hist/r6): b11 running on 1-13 card 1 (35.7 GB, 66%); /dev/shm 166->186 GB used.
-- 12:59Z handed 1-13 cards 2,3 to b05 (ORCH 1255Z): events/b05_owngrd/20261116T1259Z_ORCH_CARD_trinity-1-13_2_3.md; K1 teacher pass shards 0/2,1/2, ~20 GB /dev/shm/jjyeung/b05, 5-7 card-hours.
-- 13:10:05Z reading (hist/r7, script read_shm.sh adds du of /dev/shm/jjyeung/*): card 1 b11 100% util; cards 2,3 not yet used (b05 staging, /dev/shm/jjyeung/b05 13G); exports 18G; b11 2.5G. Older dirs ~94 GB (g13 74G etc.) listed in REMOVAL_CANDIDATES.md.
-- 13:11Z handed 1-13 cards 4,5 to b14 (ORCH 1258Z note), conditional on fitting ~21 GB left of 60 GB: events/b14_k1towers/20261116T1311Z_ORCH_CARD_trinity-1-13_4_5.md. QUESTION 1311Z old_devshm_1_13 (default: older dirs do not count).
-- ORCH 1312Z: older /dev/shm dirs do not count; keep RAM total visible in FREE_CARDS.md (notes.txt is appended each tick; refresh it after each reading). b05 launched 13:12Z on cards 2,3 (13 GB staged, ~75 min for 286 captures).
-- ORCH handed 1-13 card 4 to b14 directly (1318Z); b14 MoGe-2 on card 4 to ~14:00Z, then DA3 (ORCH 1327Z allows 20.8 GB peak). Card 5 not b14's. Distillation /dev/shm ~54/60 GB at peak.
-- Hour 13:30Z card-hours: 11:20-13:30Z ~25 card-hours free on permitted nodes (12 per tick until 12:50Z, then 1-13 use); distillation used ~2.3 (b11 card 1 from ~12:55Z, b05 cards 2,3 from 13:12Z, b14 card 4 from ~13:20Z). Blockers: disk floor (0-28 8 GB, 1-13 65 GB), /dev/shm cap 60 GB, kits awaiting ORCH GO/reviews (b09 dry run, b04 parity read on AWS, b03 EAT-1 on H100).
-- 13:51Z handed 1-13 card 5 to b11 for direct.py (ORCH 1349Z): events/b11_presence/20261116T1351Z_ORCH_CARD_trinity-1-13_5.md (readings r7 13:10:05Z, r8 13:51:19Z). b11 scorer on card 1 ends ~17:10Z.
-- 14:05-14:09Z: b11 review GO; b11 direct.py relaunched on card 5 at 14:03:38Z (first start died: ninja missing). b14 runs Pi3X next on card 4 (distillation /dev/shm ~59 GB); MapAnything waits for 1-18. b04 fetches step-544 heads (<=2 GB) into /dev/shm/jjyeung/exports/m544_heads (cap 62 GB for this alone); parity read needs its review GO.
-- 14:17:26Z reading (hist/r9): cards 1-5 in use (card 5 42.8 GB loaded, 0% util); distillation /dev/shm 56 GB. Free 0,6,7.
-- 14:37Z monitor: 1-13 cards 2,3 (b05 teacher done) and 5 (b11 direct) free again; free 0,2,3,5,6,7. b05 pilot (1 card, <=4 A6000-h) may take a card after its 8 review fixes (ORCH 1428Z); it can reuse /dev/shm/jjyeung/b05 frames and exports/m544 ViT, so it fits if new stage is small.
-- ORCH 1454Z: 1-13 card 2 handed by ORCH to b05 pilot (after its fixes; +9.3 GB stage); distillation /dev/shm cap on 1-13 now 75 GB. Cards 3, 5, 0, 6, 7 remain for b04 parity, H1-0 (ask ORCH which lane if it asks) and the rest.
-- 15:03:32Z reading (hist/r10): distillation /dev/shm 74.1 of 75 GB; QUESTION 1503Z devshm_cap_full (default: b04 stages nothing more on 1-13, waits for 1-18).
-- ORCH 1504Z: cap 85 GB; b04 stages 7.1 GB on 1-13; report the total each tick. tick.sh now makes one tssh reading of 1-13 per tick (read_shm.sh -> hist/s113_<T>.txt; shm_line.py writes the line into FREE_CARDS.md; backups tick.sh.v1). These tick readings serve as the confirming readings for 1-13 cards.
-- ORCH 1507Z: 3-30 /scratch at floor; this lane adds <100 MB (hist files are KB-sized).
-- 15:30Z b05 pilot launched on 1-13 card 2 (<=4 h, ends by ~19:30Z). Cards in use: 1 b11, 2 b05, 4 b14. Free 0,3,5,6,7 (b04 parity after re-review GO).
-- 15:53Z b14 released 1-13 card 4 (towers decided). Free on 1-13: 0,3,4,5,6,7.
-- 16:10Z: b05 pilot ended (verdict pending; b05 lane rotated 15:41Z), b14 done; only 1-13 card 1 busy. Distillation /dev/shm 83.2 of 85 GB. QUESTION 1610Z seven_idle_1_13 (default: hold for ORCH assignment; zero-stage candidates b05 full train, b04 parity, b09 dry run).
-- ORCH 1612Z: assign 1-13 cards as lanes report ready: (1) b04 parity, 1 card, on re-review GO; (2) H1-0 on step 544, up to 3 cards, through b04's reader once parity passes; (3) b05 full training, up to 4 cards, only if pilot verdict PASS. All zero-stage. b09 dry run not now. Hourly card-hour line goes in FREE_CARDS.md: tick.sh runs cardhours.py each tick (16:09Z: used 9.0 of 60.0 card-hours since 11:20Z).
-- 16:23Z main asked distillation to free 0-13 cards 5,6 (INBOX_TO_DISTILL_ORCH_20261116T1623Z.md); QUESTION 1623Z main_wants_0_13_cards to ORCH (default: ORCH answers; if it names 1-13 cards, hold them for main).
-- 16:24Z b05 pilot 1 failed fast (released card 2 at 16:02Z); ORCH 1625Z GO pilot 2 on 1-13 card 2 (ORCH wrote the card). b05 full training is off unless pilot 2 passes.
-- ORCH 1625Z: 0-13 cards are lnayak's, not ours; ORCH offered main 1-13 cards 6,7: HOLD 6,7 FOR MAIN, hand them to no lane until main says they are free.
-- 16:30Z main took 1-13 cards 6,7 (6-12 h); keep off every distillation assignment until main says free. cardhours.py excludes them (same Unix user).
-- 16:31Z b11 finished; 1-13 card 1 free.
+Briefs: orch_n30/briefs/gpu_fill.md (GPU rules), gpu_fill2.md (duties), gpu_fill2_d.md (Devin successor). Keep permitted free 48 GB Trinity cards working on distillation's queue until 22:30Z: confirm cards with two readings 5+ min apart, hand them with <UTC>_ORCH_CARD_<node>_<cards>.md notes into the owner's events folder; launch nothing; no Git, no deletion. Events only for questions, blockers, final results and rotate (ORCH 1228Z).
+## Rules in force
+- Main has GPU priority (USER 16:37Z, ORCH 1638Z ruling): before handing ANY card, read the newest B/INBOX_TO_DISTILL_ORCH_* (B=/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918); main's requests win at once; offer idle cards to main first while main asked in the last 24 h (pattern: B/INBOX_TO_NONTRAINING_ORCHESTRATOR_20261116T171913Z_distill_offer_1_13_cards45.md, 10-12 min deadline).
+- trinity-1-13: /scratch 64 GB avail (below floor): nothing >1 GB there. Distillation /dev/shm/jjyeung cap 85 GB (ORCH 1504Z), ~84 used, only grows (no deletion): new 1-13 work must be zero-stage. Older /dev/shm dirs (~94 GB) do not count (REMOVAL_CANDIDATES.md).
+- 0-28: no staging (/scratch 8 GB). trin_read needs a node with >=250 GB /scratch avail (1-3 floor 300). 3-30 /scratch at floor: lane adds <100 MB.
+## Current holders (17:25Z)
+- 1-13 cards 0,1: MAIN (r3178/r3179, 16:38Z); 6,7: MAIN (r3176/r3177, 16:30Z); 6-12 h, off every distillation assignment until main says free.
+- 1-13 card 2: b05 pilot 2 (ORCH_CARD 1625Z, launched 16:40Z, <=4 A6000-h; if it fails fast branch O stops).
+- 1-13 cards 3,4,5: b04 parity read (my note 1647Z card 3; ORCH notes 1651Z, 1724Z cards 4,5): own_depth partitions then scale_head, ~3 h per arm per card.
+- Done today: b11 (cards 1,5, ended 16:31Z), b05 teacher (cards 2,3, 13:12-14:35Z), b14 towers (card 4, to 15:46Z).
 ## Card wants (order of need)
-(a) trin_read: 1 card, node with >=250 GB /scratch avail (1-3 floor 300 + stage). (b) b05_owngrd: SAM 3 teacher pass, up to 4 cards, once its runner exists (CPU stage). (d) b04_e2ehook parity read (ORCH 1334Z): one free 1-13 card after its review GO, if extra /dev/shm stage <=6 GB (reuses /dev/shm/jjyeung/exports); write ORCH_CARD with fresh readings when the GO lands. (e) b14_k1towers: MapAnything train-only arm, 1 card on 1-18 (no stage), after trin_read. (c) b11_presence: 1 card 1-2 h, best on 1-18 (export, vLLM env, K1 frames local there); default waits for ORCH_CARD in events/b11_presence.
-## In flight
-- tmux gpufill_loop on trinity-3-30 (loop.sh until 22:45Z): every 10 min tick.sh curls the monitor, writes events/gpu_fill/FREE_CARDS.md, appends ledger.txt; alerts.log gets CANDIDATE / NEWEVENT (ORCH files) lines. Check: `tmux has-session -t gpufill_loop; tail alerts.log`.
+(a) trin_read: 1 card on a >=250 GB node (root staged on 1-3 and 1-18); lane trin_read3 rotated 14:52Z, check for its successor before handing. (b) H1-0 on step 544, up to 3 cards, through b04's reader once parity passes (ORCH 1612Z). (c) b14 MapAnything train-only arm, 1 card on 1-18 (no stage). (d) b05 full training only if pilot 2 passes. b09 dry run: not now.
+## In flight (mine)
+- tmux gpufill_loop on trinity-3-30 (loop.sh until 22:45Z). Each 10-min tick: tick.sh curls the monitor, parse.py, one tssh reading of 1-13 (read_shm.sh -> hist/s113_<T>.txt; shm_line.py line), cardhours.py line; writes events/gpu_fill/FREE_CARDS.md (+ notes.txt) and ledger.txt; alert.py appends CANDIDATE (free card on 1-3/1-18, or node with est. df Avail >=250 GB) and NEWEVENT (ORCH files) to alerts.log. Check: `tmux has-session -t gpufill_loop; tail alerts.log`.
+- Helpers: chk.sh (compact view), waitchg.sh <sec> (blocks until a watched event/inbox/CANDIDATE change), read.sh (any node), read_shm.sh (adds /dev/shm du). Backups alert.py.v1, tick.sh.v1.
+## Card-hours (cardhours.py, 11:20-17:23Z)
+Distillation used 10.3 of 74.2 available card-hours on permitted 48 GB cards; idle mostly 1-13 (disk floor, /dev/shm cap) and 0-28 (disk). Since 17:25Z 1-13 is full.
 ## Next steps
-0. 1-13: card 1 b11 scorer (~17:10Z), 5 b11 direct (13:52Z; idle check 14:12Z, withdraw 14:32Z), 2,3 b05 (ETA ~14:30Z), 4 b14. Free 0,6,7 (<=6 GB new stage; b04 after review GO). Check each 10 min via chk.sh; reading via read_shm.sh at most every 30 min; refresh notes.txt after each reading.
-1. Every 10 min: read alerts.log, inbox/, new ORCH files. On a CANDIDATE: reading 1 now and reading 2 after 5+ min, `bash orch_n30/tools/tssh.sh <node> 'bash -s' < read.sh > hist/rN_<node>.txt`; if empty and df Avail clears the floor, write <UTC>_ORCH_CARD_<node>_<card>.md to the owner (a, b, c order), naming both readings and vnice (normal priority only on 0-13). Tell main first if staging >20 GB.
-2. Watch handed cards: idle 20 min after hand-off -> QUESTION to owner; 20 min more -> withdraw.
-3. Hourly: card-hours used vs available into STATUS.md only (ORCH 1228Z: events only for questions, blockers, final results, rotate); scan newest RESULT in each events/b*/ for card requests.
-4. If ORCH answers the /dev/shm QUESTION yes: re-read 1-13 twice and hand cards to b11 (1) / b05 (up to 4) with the /dev/shm condition and main told.
-5. 22:30Z: final STATUS and RESULT.
+1. Every 10 min: chk.sh or waitchg.sh; read new ORCH files in events/gpu_fill and new B/INBOX_TO_DISTILL_ORCH_*.
+2. On a CANDIDATE: reading 1 (`bash B/orch_n30/tools/tssh.sh <node> 'bash -s' < read.sh > hist/rN_<node>.txt`), offer to main first, reading 2 after 5+ min; on 1-18 lnayak refills cards within minutes, so only agreeing readings count. Then ORCH_CARD to the owner in (a)-(d) order.
+3. When b04 or b05 releases 1-13 cards: offer to main first, then H1-0 (after parity passes) per ORCH 1612Z; zero-stage only.
+4. Watch handed cards: idle 20 min after a note -> QUESTION to owner; 20 min more -> withdraw.
+5. 22:30Z: final STATUS and a RESULT (at most 15 lines).
 ## Open questions
-None (1228Z answered by ORCH 1229Z).
+None.

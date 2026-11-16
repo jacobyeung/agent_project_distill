@@ -1,0 +1,6 @@
+# Delta review (read-only): did the fixes close your GO-AFTER-FIXES findings 1-4?
+
+Codex reviewer (GPT-6 Astra, high). Same read-only rules as before (no ssh/git/network/writes except TMPDIR=/scratch/jjyeung/orch_n30/b04_e2ehook/work/tmp and fresh basetemps parity_kit/test_runs/DELTA_*; no recursive search outside /scratch/jjyeung/orch_n30/b04_e2ehook; never /home or /data*).
+Your verdict: /home/jjyeung/agent_project_distill/agent/scratch/codex_runs/20261116T155033Z_b04_review_parity/final_message.md. Fixes: findings 1-3 by a builder (receipt .../20261116T162411Z_b04_fix_parity/final_message.md: parity_kit/stage_restore.py, run_parity.py, compare.py, provenance.py, tests); finding 4 in e2e_reader/callhook.py quoted() (fence char + length).
+Also new since your review: e2e_reader/parity.py freezes auxiliary_heads.depth.model.visual and sets depth_stage1 when depth_init is omitted (the real 1-13 load failed trained_groups.validate 'missing tensors: depth' without it; a real CPU item then decoded end to end), and Artifact(env_roots=...) trusts an explicit site-packages overlay (scipy etc.) listed in the audit report.
+Answer per finding HOLDS/FAILS with evidence, then any new verified blocker. Verdict line first: GO or NO-GO for the GPU parity read. At most 30 lines.

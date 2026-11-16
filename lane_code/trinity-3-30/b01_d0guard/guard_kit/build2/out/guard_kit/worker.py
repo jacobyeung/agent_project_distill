@@ -10,9 +10,40 @@ import time
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 from guard_core import read,write,sha,digest
 from guard_backend import CORE
-from transport import Publisher,archive_result
+from transport import Publisher,archive_result,copy_verified
 
 PUBLICATION_RESERVE=300
+REPORT_SHA256='5424e41c68fc1918386c62865a68d7b3c1af2802f2800b1f0455837568a3cd11'
+
+def report_command(config,script,candidate,step544,output,self_pair=False):
+    """Bind every report invocation to the selected CONFIG artifact and source."""
+    artifact=config['artifact_sha256']
+    if not re.fullmatch('[0-9a-f]{64}',artifact):raise ValueError('Invalid report artifact pin')
+    if sha(script)!=REPORT_SHA256:raise ValueError('Report source pin differs')
+    return [sys.executable,'-I','-s','-B',str(script),'--candidate',str(candidate),
+            '--candidate-artifact',artifact,'--step544',str(step544),'--out',str(output)]+(['--self-pair'] if self_pair else [])
+
+def retain_stage_receipts(root,config,output):
+    """Retain the exact stager bytes before a checkpoint process can start."""
+    root,output=Path(root),Path(output)
+    stage=root/'CANDIDATE_STAGE.json'
+    check=root/'exports'/('359fcc3c_m'+str(config['step']))/'CHECK.json'
+    staged,checked=read(stage),read(check)
+    if (staged.get('status')!='complete' or checked.get('status')!='VERIFIED'
+            or staged.get('run')!='359fcc3c' or staged.get('step')!=config['step']
+            or checked.get('step')!=config['step'] or staged.get('checker')!=checked
+            or staged.get('artifact_sha256')!=config['artifact_sha256']
+            or checked.get('artifact',{}).get('sha256')!=config['artifact_sha256']):
+        raise ValueError('Candidate stage/checker receipt identity differs')
+    sources={'CANDIDATE_STAGE.json':stage,'CHECK.json':check}
+    # C8r emits STAGING.json; retain any separate historical-export receipts too.
+    for relative in ('STAGING.json','CHECK.json','exports/469ddece_m544/RECEIPT.json',
+                     'exports/469ddece_m544/CHECK.json'):
+        source=root/relative
+        if source.exists():sources['step544/'+relative]=source
+    pins={name:copy_verified(source,output/name) for name,source in sources.items()}
+    write(output/'STAGE_RECEIPTS.json',dict(schema='g4-stage-receipts-v1',
+          step=config['step'],artifact_sha256=config['artifact_sha256'],members=pins))
 
 def child(command,environment,output,publisher,role,timeout):
     """A checkpoint process cannot continue past a receipt before publication."""
@@ -48,6 +79,7 @@ def coordinate(root,config,output,publisher,prepare,environment,fixture=False):
     try:
         commands=prepare()
         if set(commands)!={'proof','candidate'}:raise ValueError('Checkpoint commands differ')
+        retain_stage_receipts(root,config,output)
         for role in ('proof','candidate'):
             remaining=deadline-time.monotonic()
             if remaining<=0:raise TimeoutError('No checkpoint budget remains before publication reserve')

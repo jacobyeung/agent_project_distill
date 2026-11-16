@@ -5,6 +5,9 @@ B=Path(__file__).resolve().parents[2];sys.path.insert(0,str(B/'out/guard_kit'))
 import pool
 from transport import archive_result,verify_return
 from guard_core import write,sha,read
+sys.path.insert(0,str(Path(__file__).parent))
+from stage_fixture import stage_fixture
+from worker import retain_stage_receipts
 class Returns(unittest.TestCase):
  def setUp(self):
   self.d=B/'work/return_tests'/uuid.uuid4().hex;self.d.mkdir(parents=True)
@@ -22,6 +25,7 @@ class Returns(unittest.TestCase):
   self.assertEqual(r['sha256'],sha(source))
  def result(self,fixture=False,changed=False):
   source=self.d/'result';source.mkdir();plan='f'*64
+  retain_stage_receipts(self.d,stage_fixture(self.d),source)
   write(source/'R1.json',dict(arms={'unflagged':[]},expected_keys=[]))
   write(source/'COMPLETE.json',dict(plan_sha256=plan,fixture=fixture))
   write(source/'PROOF.json',dict(status='PASS',fixture=fixture,backend_identity_proven=not fixture))

@@ -3,3 +3,6 @@
 
 # Not candidates (written outside the lane, keep)
 - kit_k1a/out/K1_RULES.json and K1_RULES.sha256 (17:28Z, ORCH ruling 17:24Z)
+- /scratch/jjyeung/k1/run_convert_1 (HALTED convert root, 1.5 GB, k1_ops7)
+- work/own7/convert_test_canary, work/own7/convert_test_canary2, work/own7/canary (dry-run roots, k1_ops7)
+- work/kc_guard_tests (Codex test roots incl. patch4 full tables, k1_ops7)

@@ -62,7 +62,19 @@ def test_native_decoder_rehearsal_evidence():
     assert any(c['call'].startswith('<ground') for c in calls)
 
 
-def test_frozen_proposal_pipeline(tmp_path):
+def test_frozen_proposal_pipeline(tmp_path,monkeypatch):
+    import offnative.proposals as proposals
+    import subprocess
+    original_run=subprocess.run
+    allowed=str(tmp_path.resolve())
+    monkeypatch.setattr(proposals,'owned',lambda p:Path(p).resolve())
+    def execute(argv,**kwargs):
+        script=argv[2]
+        if Path(script).name in ('cache_masks.py','variant_cache.py'):
+            code="import sys,runpy;from pathlib import Path;sys.path.insert(0,str(Path(sys.argv[1]).parent));import kitlib;old=kitlib.scratch;kitlib.scratch=lambda p:Path(p).resolve() if Path(p).resolve().is_relative_to("+repr(allowed)+") else old(p);sys.argv=sys.argv[1:];runpy.run_path(sys.argv[0],run_name='__main__')"
+            argv=[argv[0],'-B','-c',code,script,*argv[3:]]
+        return original_run(argv,**kwargs)
+    monkeypatch.setattr(proposals.subprocess,'run',execute)
     import hashlib,io
     import numpy as np
     from PIL import Image

@@ -1,15 +1,17 @@
 {
   "blockers": [
     {
+      "authority": "ORCH 1601Z; supplied in BRIEF_G4.md",
       "context_evidence": [
         "out/NAMING_CONFLICT.json",
-        "G3 task: operator-supplied Orchard staging context"
+        "BRIEF_G4.md"
       ],
-      "description": "Runtime item keys, signed metadata paths and trainer members still expose prohibited names.",
+      "description": "The seven trainer-tree names are ACCEPTED by ORCH 1601Z.",
       "evidence": "out/NAMING.json",
       "id": "naming",
-      "operator_context": "The seven names sit inside the sealed trainer tree b01ce449, the same tree job 170056 and D0's training job already staged on Orchard; ORCH decides.",
-      "status": "OPEN"
+      "operator_context": "The sealed trainer tree b01ce449 retains its authenticated bytes and member names.",
+      "scope": "Seven trainer-tree names",
+      "status": "ACCEPTED"
     },
     {
       "description": "The operator reports that the CPU fixture passes stage, prepare, proof, canary, native subset, merge, admit, publish, fetch and report. The report correctly refuses the incomplete fixture. This closes the CPU-fixture blocker only.",
@@ -25,10 +27,10 @@
       "status": "CLOSED"
     },
     {
-      "description": "New coordinator, single-arm admission and checker namespace adapter need independent review and live runtime validation.",
-      "evidence": "out/DIFF.md",
+      "description": "The independent verdict is GO AFTER FIXES. Review must bind the resealed FAMILY before production launch.",
+      "evidence": "out/FINAL_AUDIT.json",
       "id": "production_review",
-      "status": "OPEN"
+      "status": "WAITING_FOR_CURRENT_FAMILY_REVIEW"
     },
     {
       "description": "Each production milestone needs its own closure, completed export, matching review and exact ORCH GO.",
@@ -40,7 +42,7 @@
   "g1_blocker_status": {
     "1": "CLOSED_FOR_REAL_METADATA; actual tensor restore remains in-job",
     "2": "IMPLEMENTED_AND_CPU_FIXTURE_TESTED; production runtime remains unvalidated",
-    "3": "OPEN; outer archive aliases and projections only",
+    "3": "ACCEPTED by ORCH 1601Z for the seven trainer-tree names; signed source bytes preserved",
     "4": "CLOSED_FOR_CPU_FIXTURE; operator-supplied pass; real tensors/GPU parity/token identity unproven"
   },
   "not_checked": [
@@ -50,9 +52,86 @@
     "Orchard allocation and resource admission",
     "Live GCS generations/credentials and publication",
     "Live result-pool state",
-    "Installed ossh/governor CLI",
-    "Complete runtime naming migration"
+    "Live governor admission and remote transfer execution",
+    "Installed ossh behavior"
   ],
   "production_packet_authorized": false,
+  "report_source_pin": {
+    "authority": {
+      "decision": "The operator authorizes the final report source pin.",
+      "source": "BRIEF_G5.md"
+    },
+    "brief_sha256": "5424e41c68fc1918386c62865a68d7b3c1af2802f2800b1f0455837568a3cd11",
+    "build_round": "G5",
+    "changes": [
+      "Candidate artifact required",
+      "Step-544 candidate requires explicit self-pair",
+      "Fixed seed and draw count",
+      "Strict boolean accounting flags",
+      "Dictionary-only decode",
+      "Malformed input returns exit 3"
+    ],
+    "intentional_post_review_change": true,
+    "observed_sha256": "5424e41c68fc1918386c62865a68d7b3c1af2802f2800b1f0455837568a3cd11",
+    "report": "/scratch/jjyeung/orch_n30/b01_d0guard/guard_kit/report/guard_read.py",
+    "report_modified_by_g5": false,
+    "required_sha256": "5424e41c68fc1918386c62865a68d7b3c1af2802f2800b1f0455837568a3cd11",
+    "source_hashes": {
+      "guard_read.py": "5424e41c68fc1918386c62865a68d7b3c1af2802f2800b1f0455837568a3cd11",
+      "tests/mutants.py": "47cabe95f628b3d91b89ee3cd71010a27acc20ad31597d6d67381c21c0cdf318",
+      "tests/test_guard_read.py": "1bd8560b860434e9bfece7487101251bdea9d9b4c66ac9b7aa3fe282afb0844c"
+    },
+    "status": "PASS",
+    "validation": {
+      "mutants": "out/MUTANTS.json",
+      "report": "out/REPORT_TESTS.json",
+      "suites": "out/TESTS.json"
+    }
+  },
+  "review_fixes": [
+    {
+      "description": "Every report call binds the CONFIG artifact and final authorized report source.",
+      "evidence": [
+        "out/REPORT_PIN_G4.json",
+        "out/G4_TESTS.json",
+        "out/REPORT_TESTS.json"
+      ],
+      "id": 1,
+      "status": "FIXED"
+    },
+    {
+      "description": "Complete production diff is generated against the sealed C8r archive.",
+      "evidence": [
+        "out/DIFF.md",
+        "out/DIFF_C8R.patch",
+        "out/DIFF_C8R.json",
+        "out/G4_TESTS.json"
+      ],
+      "id": 2,
+      "status": "FIXED"
+    },
+    {
+      "description": "Coordinator retains candidate receipts before checkpoints and returns optional step-544 receipts; return verification refuses omissions.",
+      "evidence": [
+        "out/G4_RETURN_EVIDENCE.json",
+        "out/G4_TESTS.json",
+        "out/guard_kit/worker.py",
+        "out/guard_kit/transport.py"
+      ],
+      "id": 3,
+      "status": "FIXED"
+    },
+    {
+      "description": "Every documented fetch and packet upload registers a stopped stable root with the serial governor, waits for running and closes its record.",
+      "evidence": [
+        "out/RUN.md",
+        "out/operator/governed_transfer.py",
+        "out/G4_TESTS.json"
+      ],
+      "id": 4,
+      "limitations": "Protocol and static checks only; no live transfer executed.",
+      "status": "FIXED"
+    }
+  ],
   "status": "NOT_READY"
 }

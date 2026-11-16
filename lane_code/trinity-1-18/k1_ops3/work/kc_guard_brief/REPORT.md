@@ -1909,3 +1909,366 @@ The complete before/after map is [patch3_identity_proof.json](/scratch/jjyeung/o
 ```
 
 NOT READY
+
+## JSON bound
+
+**Verdict: READY.** Both complete tables-only runs and all requested regression checks pass.
+
+`k1_pipeline.cached()` reads pinned `candidates.json` through a local loader with `JSON_BOUND_BYTES=67_108_864` (64 MiB), after the existing receipt and file-pin checks. `TABLE_RECEIPT.json` and `RENDER_RECEIPT.json` record `json_bound_bytes=67108864`. Both guarded launchers pin the updated pipeline.
+
+The loader preserves `bindings.load` semantics: `Path.stat().st_size` checks the inclusive bound, then `json.loads(Path.read_text())` parses the document. It retains the default text encoding, newline handling, last-value-wins duplicate keys, accepted NaN/infinity constants, and parser exceptions. The size-refusal message is identical. `bindings.py` retains its 20,000,000-byte bound and remains byte-equal. Tables and render both consume candidates through `cached()`; they authenticate `parity_raw.jsonl` without parsing it.
+
+### Full tables outputs
+
+| Set | Captures | Candidate rows | Pair rows | Identity | Stretch | Geometry refused | Runtime (s) |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Primary | 296 | 12,018 | 152,374 | 219 | 77 | 2 | 1222.101 |
+| Sensitivity | 300 | 12,198 | 153,237 | 220 | 80 | 2 | 1230.672 |
+
+
+Both receipts retain all selected captures in `gt_canvas_map`. Both guard reports contain the same complete capture sets. The two refused captures contribute no candidate or pair rows and appear explicitly in `geometry_refused`:
+
+```json
+{
+  "scannetpp/0f69aefe3d": "reference_camera_up_opposes_gravity",
+  "scannetpp/2c7c10379b": "reference_camera_up_opposes_gravity"
+}
+```
+
+Outputs: [primary receipt](/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard_tests/patch4_primary296/tables/TABLE_RECEIPT.json), [sensitivity receipt](/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard_tests/patch4_sensitivity300/tables/TABLE_RECEIPT.json). Timings and exact commands: [primary summary](/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard_tests/patch4_primary296_summary.json), [sensitivity summary](/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard_tests/patch4_sensitivity300_summary.json).
+
+### Validation
+
+- All **284** primary candidate files at or below 20,000,000 bytes produce objects equal to `bindings.load`; all **12** larger pinned files load. The largest is **31,637,701 bytes**.
+
+- An actual 64 MiB JSON file loads; the same valid document padded to 65 MiB raises before `read_text`. Eight parser cases match the frozen loader, including duplicate keys, nonfinite constants, Unicode, CRLF, BOM, invalid encoding, malformed JSON, and trailing content. A pin failure prevents the candidate loader from running.
+
+- `test_k1_guard.py`: **13/13** under `sam3_scipy_ovl` and **13/13** under `p1cpu`.
+
+- Canvas suite: **4/4**. The portrait proof covers 32 frames and 108 label masks. Landscape outputs remain byte-equal (12 candidate rows, 55 pair rows). The render fixture checks three rows with real caches and GT.
+
+- `verify_identity.py`: all **300 tower** and **3 own** phase receipts pass; the three saved convert-canary receipts pass. The saved capture-4 halt remains expected evidence, not a new convert run.
+
+- `test_kit`: **19/19**; `test_guards`: **7/7**; `verify_sources`: **109** files verified. Both launcher syntax checks pass; all **14 downstream** and **4 convert** SHA lines match.
+
+- Final receipt checks verify `json_bound_bytes=67108864` in **13** table/render receipts, covering full tables and render fixtures with and without a GT set. All **36** protected-file hashes match before and after testing.
+
+All changed executable pipeline paths are exercised by the bound, guard, canvas, and full-table checks. The tables test runner’s nonzero-exit reporting branch was not triggered. No full-set refit or render ran; production render inference remains outside this validation. Scoring, selection, GT files, manifest, gravity guard, and source-identity files remain unchanged. No open blocker remains for this patch.
+
+Evidence: [parser comparisons](/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard_tests/patch4_json_bound.json), [canvas checks](/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard_tests/patch4_canvas/EVIDENCE.json), [receipt checks](/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard_tests/patch4_output_verification.json), [36-file before/after map](/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard_tests/patch4_identity_proof.json), [source identity and upstream phase proof](/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard_tests/patch4_bound_identity_proof.json), [launcher pins](/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard_tests/patch4_launcher_pins.json).
+
+### Commands and logs
+
+The checks run sequentially on `trinity-1-18`, with GPUs disabled, library thread counts set to one, and all test outputs under `kc_guard_tests`. The tables runtime includes the CLI process, input validation, table generation, and receipt writes.
+
+```bash
+bash ../kc_guard_tests/run_patch4_checks.sh > ../kc_guard_tests/patch4_checks.log 2>&1
+python -B ../kc_guard_tests/verify_patch4_outputs.py > ../kc_guard_tests/patch4_output_verification.log
+```
+
+The [check script](/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard_tests/run_patch4_checks.sh) preserves the CPU environment and interpreter paths; [tables runner](/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard_tests/run_patch4_tables.py) invokes primary then sensitivity with `--sensitivity`. The [complete check log](/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard_tests/patch4_checks.log) records exit 0 for every requested check.
+
+### File hashes and diff
+
+| File | SHA-256 |
+|---|---|
+| `kc_guard/k1_build/work/kit_k1a/work/k1_pipeline.py` | `48ce21fa79de22d6c1442835056d5560df4ed750804b421759541dc27dcb4104` |
+| `kc_guard_brief/k1_downstream.guard.sh` | `e06aad67744d3e4a880652f3cc7611e9d24cfc36fcb6577daad17e02285ca951` |
+| `kc_guard_brief/convert7.guard.sh` | `13fc1e25a82e3d85d09385b374dab130afad5d4b138797923b75e6aee30c8e80` |
+| `kc_guard_tests/test_k1_json_bound.py` | `436147d689d034f4c968559ba324bc601b6219afa2ea57bb400cacbacbffda61` |
+| `kc_guard_tests/run_patch4_tables.py` | `1589c53001cb8262556e62c5c0535d6e226f55de720e099cc2d7bc0e5069e2ce` |
+| `kc_guard_tests/run_patch4_checks.sh` | `d26b269e1c2e2950c53b66ec895dfe9f21d7ba39696710b0050f4a900511c8f8` |
+| `kc_guard_tests/verify_patch4_outputs.py` | `2df6ef828a4d6004680cdc4fbacd1d065efc66852fb28ad88e339a1b8494d28c` |
+| `kc_guard_brief/PATCH4.diff` | `fa3b95761c48b5365b08da36ae02a1c3c7bd6c815b661e11ab3f74425dfe87e1` |
+
+
+[PATCH4.diff](/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard_brief/PATCH4.diff) is incremental against the completed PATCH3 tree. It contains the pipeline change, launcher pins, and four validation scripts. Saved before-images are under `kc_guard_tests/patch4_before`. This required patch comparison is the only retained revision context in this section.
+
+```diff
+--- a/kc_guard/k1_build/work/kit_k1a/work/k1_pipeline.py
++++ b/kc_guard/k1_build/work/kit_k1a/work/k1_pipeline.py
+@@ -8,6 +8,12 @@
+ import gt_set as G
+ sys.path.insert(0,os.environ.get('K1_NATIVE_KIT',str(Path(__file__).resolve().parents[1]/'native_kit')))
+ import numpy as np
++JSON_BOUND_BYTES=64*1024*1024
++def load_candidates(p):
++ """Use bindings.load semantics with the K1 candidate document size bound."""
++ p=Path(p)
++ if p.stat().st_size>JSON_BOUND_BYTES:raise ValueError('Metadata exceeds bounded reader')
++ return json.loads(p.read_text())
+ def _native():
+  global B,P
+  if not globals().get('_sources_verified',False) and (Path(__file__).resolve().parents[1]/'out/DEPENDENCIES.json').exists():
+@@ -98,7 +104,7 @@
+  if receipt['capture_sha256']!=B.digest(c):raise ValueError('Cache capture differs')
+  guard.check_receipt(c,dest,receipt)
+  for pin in receipt['files'].values():B.checked(pin)
+- raw=B.load(dest/'candidates.json')
++ raw=load_candidates(dest/'candidates.json')
+  with guard.capture(c):
+   if receipt.get('geometry_refusal'):
+    try:load_geometry(dest/'REFUSED_GEOMETRY.npz',FrameMap(tuple(c['anchor_indices'])),'tower_scaled')
+@@ -145,7 +151,7 @@
+    for row in pairs:pf.write(json.dumps(row)+'\n')
+  guard.write_report(out)
+  record=dict(geometry_refused=refused,manifest_sha256=B.digest(m),inventory=m['inventory'],producer_sha256=B.sha(build_tables.__file__),build_sha256=gate.sha(gate.ROOT/'grd_selector/work/setsel/build.py'),files={n:B.pin(out/n) for n in ['candidates.jsonl','pairs.jsonl']})
+- record.update(gt_canvas_map=canvas_maps,gt_canvas_map_counts=dict(Counter(canvas_maps.values())))
++ record.update(json_bound_bytes=JSON_BOUND_BYTES,gt_canvas_map=canvas_maps,gt_canvas_map_counts=dict(Counter(canvas_maps.values())))
+  if meta is None:B.write(out/'TABLE_RECEIPT.json',record)
+  else:G.write(out/'TABLE_RECEIPT.json',record,meta)
+ def responses(m,cache,fit_dir,out,gt_set=None,sensitivity=False):
+@@ -191,7 +197,7 @@
+  guard.write_report(out)
+  render.write_rows(all_rows,out/'rows')
+  (out/'K1_ANALYSIS_INPUT.jsonl').write_text(''.join(json.dumps(x)+'\n' for x in analysis))
+- record=dict(manifest_sha256=B.digest(m),fit=G.pin(fit_path),gt_canvas_map=canvas_maps,gt_canvas_map_counts=dict(Counter(canvas_maps.values())),files={'analysis':B.pin(out/'K1_ANALYSIS_INPUT.jsonl')})
++ record=dict(json_bound_bytes=JSON_BOUND_BYTES,manifest_sha256=B.digest(m),fit=G.pin(fit_path),gt_canvas_map=canvas_maps,gt_canvas_map_counts=dict(Counter(canvas_maps.values())),files={'analysis':B.pin(out/'K1_ANALYSIS_INPUT.jsonl')})
+  if meta is None:B.write(out/'RENDER_RECEIPT.json',record)
+  else:G.write(out/'RENDER_RECEIPT.json',dict(record,table_receipt=fit['table_receipt']),meta)
+ def printed_cues(result):
+--- a/kc_guard_brief/k1_downstream.guard.sh
++++ b/kc_guard_brief/k1_downstream.guard.sh
+@@ -12,7 +12,7 @@
+ 93da46e591c5752082fceb43547ad0acc7e033e75e741dc31a98d68e6c2a626c  $KIT/work/k1_guard.py
+ b2df9c3a769ef498021ef4aa116b68912f5ff5872f03ec3abfe4b732cefbbb79  $KIT/work/gravity_guard.py
+ 03aff7de2aad6b7267ca1c0464a1a950d5fa8671d4a28c53a64075eecf21cf47  $KIT/work/k1_cli.py
+-47ab5a2f30d6ec508bbafacfbaf1a5a311e2e788ef9e9b1542ce42772ed7aab7  $KIT/work/k1_pipeline.py
++48ce21fa79de22d6c1442835056d5560df4ed750804b421759541dc27dcb4104  $KIT/work/k1_pipeline.py
+ GUARD_SUMS
+ MANIFEST_V1=/scratch/jjyeung/orch_n30/k1_ops3/work/codex_arkit_timing/K1_MANIFEST.arkit_timing.json
+ MANIFEST=/scratch/jjyeung/orch_n30/k1_ops3/work/manifest_v2/a40fbc19.json
+@@ -48,7 +48,7 @@
+ e305c4be0d604df277d06e7d9b1e13893dfa659d7ab6663f0de798773d58d650  $GTSETS/GT_SET_SENSITIVITY_300.json
+ 5d36d1ea98c14b2e3181a4571a87dc81efa980bd88a2302e27a1ecc13833a4f8  $KIT/work/gt_set.py
+ 03aff7de2aad6b7267ca1c0464a1a950d5fa8671d4a28c53a64075eecf21cf47  $KIT/work/k1_cli.py
+-47ab5a2f30d6ec508bbafacfbaf1a5a311e2e788ef9e9b1542ce42772ed7aab7  $KIT/work/k1_pipeline.py
++48ce21fa79de22d6c1442835056d5560df4ed750804b421759541dc27dcb4104  $KIT/work/k1_pipeline.py
+ 14b35f83184267f85a946079767d7903d3e1c31d73946bd2600bbe6b2efe862d  $KIT/work/k1_report.py
+ 4087716014ab26e7fdb91f336e3d8ee81f97e82b85a4c340376e872c655ecfef  $KIT/work/refit/train.py
+ aa0a728148bbf076fe1d42a6fe4bb053c761052ec653faa02f7a06e240b8ca42  $KIT/out/DEPENDENCIES.json
+--- a/kc_guard_brief/convert7.guard.sh
++++ b/kc_guard_brief/convert7.guard.sh
+@@ -8,7 +8,7 @@
+ 93da46e591c5752082fceb43547ad0acc7e033e75e741dc31a98d68e6c2a626c  $KC/k1_guard.py
+ b2df9c3a769ef498021ef4aa116b68912f5ff5872f03ec3abfe4b732cefbbb79  $KC/gravity_guard.py
+ 03aff7de2aad6b7267ca1c0464a1a950d5fa8671d4a28c53a64075eecf21cf47  $KC/k1_cli.py
+-47ab5a2f30d6ec508bbafacfbaf1a5a311e2e788ef9e9b1542ce42772ed7aab7  $KC/k1_pipeline.py
++48ce21fa79de22d6c1442835056d5560df4ed750804b421759541dc27dcb4104  $KC/k1_pipeline.py
+ GUARD_SUMS
+ MAN=/scratch/jjyeung/orch_n30/k1_ops3/work/manifest_v2/a40fbc19.json
+ TOWER=/scratch/jjyeung/k1/run_tower_sam_2; PY=${K1_CONVERT_PY:-/scratch/jjyeung/envs/sam3_scipy_ovl/bin/python}  # = sam3_capretry_native_v1 site-packages + scipy 1.14.1 (orch_cd/evalx/work/trin_vl/pyextra)
+--- /dev/null
++++ b/kc_guard_tests/test_k1_json_bound.py
+@@ -0,0 +1,92 @@
++"""Compare the K1 candidate reader to the frozen reader on pinned primary inputs."""
++import json
++from pathlib import Path
++import sys
++import time
++from unittest.mock import patch
++
++ROOT = Path(__file__).resolve().parent
++WORK = ROOT.parent / 'kc_guard/k1_build/work/kit_k1a/work'
++sys.path.insert(0, str(WORK))
++import k1_pipeline as K
++K._native()
++B = K.B
++OUT = ROOT / 'patch4_json_bound'
++OUT.mkdir()
++start = time.monotonic()
++m = B.load(ROOT.parent / 'manifest_v2/a40fbc19.json')
++captures, _ = K.G.select(m, K.G.load(ROOT.parent / 'gt_sets/GT_SET_PRIMARY_296.json'))
++evidence = []
++for i, c in enumerate(captures):
++    dest = Path('/scratch/jjyeung/k1/run_convert_2') / B.digest(c['canonical'])[:16]
++    receipt = B.load(dest / 'CACHE_COMPLETE.json')
++    p = B.checked(receipt['files']['candidates.json'])
++    assert p == dest / 'candidates.json'
++    actual = K.load_candidates(p)
++    small = p.stat().st_size <= 20_000_000
++    if small:
++        assert actual == B.load(p), c['canonical']
++    else:
++        assert actual == json.loads(p.read_text()), c['canonical']
++    evidence.append(dict(canonical=c['canonical'], bytes=p.stat().st_size,
++                         sha256=receipt['files']['candidates.json']['sha256'],
++                         frozen_reader_equal=small, loaded=True))
++    if (i + 1) % 50 == 0:
++        print(f'Compared {i + 1}/{len(captures)} captures', flush=True)
++assert sum(x['frozen_reader_equal'] for x in evidence) == 284
++assert sum(not x['frozen_reader_equal'] for x in evidence) == 12
++
++# Compare accepted values and exact exception types/messages for parser edge cases.
++cases = [b'{"x":1,"x":2}', b'[NaN,Infinity,-Infinity]',
++         '{"unicode":"caf\u00e9"}'.encode(), b'{\r\n"x": 1\r\n}',
++         b'\xef\xbb\xbf{}', b'\xff', b'{', b'{} {}']
++def outcome(loader, p):
++    try:
++        return ('value', json.dumps(loader(p), sort_keys=True))
++    except Exception as error:
++        return ('error', type(error).__name__, str(error))
++for i, payload in enumerate(cases):
++    p = OUT / f'parser_{i}.json'
++    p.write_bytes(payload)
++    assert outcome(K.load_candidates, p) == outcome(B.load, p)
++
++# Valid JSON at the inclusive boundary; one MiB more must fail before reading.
++p = OUT / 'synthetic_65mib.json'
++with p.open('xb') as stream:
++    stream.write(b'0')
++    chunk = b' ' * (1024 * 1024)
++    for _ in range(63):
++        stream.write(chunk)
++    stream.write(chunk[:-1])
++assert p.stat().st_size == K.JSON_BOUND_BYTES
++assert K.load_candidates(p) == 0
++with p.open('ab') as stream:
++    stream.write(chunk)
++assert p.stat().st_size == 65 * 1024 * 1024
++with patch.object(Path, 'read_text', side_effect=AssertionError('Oversized input read')):
++    try:
++        K.load_candidates(p)
++    except ValueError as error:
++        assert str(error) == 'Metadata exceeds bounded reader'
++    else:
++        raise AssertionError('65 MiB input accepted')
++
++# An authentication failure must prevent the local candidate parser from running.
++c = captures[0]
++dest = Path('/scratch/jjyeung/k1/run_convert_2') / B.digest(c['canonical'])[:16]
++with patch.object(B, 'checked', side_effect=ValueError('Input hash mismatch: fixture')), \
++        patch.object(K, 'load_candidates') as loader:
++    try:
++        K.cached(c, dest)
++    except ValueError as error:
++        assert str(error) == 'Input hash mismatch: fixture'
++    else:
++        raise AssertionError('Pin failure accepted')
++    loader.assert_not_called()
++summary = dict(primary_captures=len(evidence), equal_to_bindings_load=284,
++               large_files_loaded=12, max_bytes=max(x['bytes'] for x in evidence),
++               json_bound_bytes=K.JSON_BOUND_BYTES, inclusive_64mib_accepted=True,
++               synthetic_65mib_refused_before_read=True, parser_cases_equal=len(cases),
++               pin_check_precedes_loader=True, runtime_seconds=time.monotonic()-start)
++(ROOT / 'patch4_json_bound.json').write_text(json.dumps(dict(summary=summary, captures=evidence), indent=2)+'\n')
++print(json.dumps(summary), flush=True)
+--- /dev/null
++++ b/kc_guard_tests/run_patch4_tables.py
+@@ -0,0 +1,37 @@
++"""Run the authorized full tables-only validations sequentially with timings."""
++import json
++from pathlib import Path
++import subprocess
++import sys
++import time
++
++ROOT = Path(__file__).resolve().parent
++WORK = ROOT.parent / 'kc_guard/k1_build/work/kit_k1a/work'
++for name, count, gt, extra in (
++    ('primary296', 296, 'GT_SET_PRIMARY_296.json', []),
++    ('sensitivity300', 300, 'GT_SET_SENSITIVITY_300.json', ['--sensitivity']),
++):
++    out = ROOT / ('patch4_' + name) / 'tables'
++    command = [sys.executable, '-I', '-s', '-B', str(WORK / 'k1_pipeline.py'), 'tables',
++               '--manifest', str(ROOT.parent / 'manifest_v2/a40fbc19.json'),
++               '--cache', '/scratch/jjyeung/k1/run_convert_2',
++               '--gt-set', str(ROOT.parent / 'gt_sets' / gt), '--out', str(out), *extra]
++    print('Starting ' + name, flush=True)
++    start = time.monotonic()
++    with (ROOT / ('patch4_' + name + '.log')).open('x') as log:
++        result = subprocess.run(command, stdout=log, stderr=subprocess.STDOUT)
++    elapsed = time.monotonic() - start
++    record = dict(command=command, exit_code=result.returncode, runtime_seconds=elapsed)
++    if result.returncode == 0:
++        receipt = json.loads((out / 'TABLE_RECEIPT.json').read_text())
++        assert len(receipt['gt_canvas_map']) == count
++        assert receipt['json_bound_bytes'] == 64 * 1024 * 1024
++        record.update(rows={n: sum(1 for _ in (out / n).open()) for n in ('candidates.jsonl', 'pairs.jsonl')},
++                      gt_canvas_map_counts=receipt['gt_canvas_map_counts'],
++                      geometry_refused=receipt['geometry_refused'],
++                      json_bound_bytes=receipt['json_bound_bytes'],
++                      captures=len(receipt['gt_canvas_map']), receipt=str(out / 'TABLE_RECEIPT.json'))
++    (ROOT / ('patch4_' + name + '_summary.json')).write_text(json.dumps(record, indent=2)+'\n')
++    print(json.dumps(record), flush=True)
++    if result.returncode:
++        raise SystemExit(result.returncode)
+--- /dev/null
++++ b/kc_guard_tests/run_patch4_checks.sh
+@@ -0,0 +1,33 @@
++#!/usr/bin/env bash
++set -euo pipefail
++cd /scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard
++export CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1
++export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1
++export HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
++export K1_NATIVE_KIT=/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit
++T=/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard_tests
++W=$PWD/k1_build/work/kit_k1a/work
++export XDG_CACHE_HOME="$T/runtime_cache" HF_HOME="$T/runtime_cache/hf" TRITON_CACHE_DIR="$T/runtime_cache/triton"
++export K1_CANARY_ROOT=canary_patch2
++SAM=/scratch/jjyeung/envs/sam3_scipy_ovl/bin/python
++P1=/scratch/jjyeung/envs/p1cpu/bin/python
++run_check() {
++    local name=$1
++    shift
++    printf 'Starting %s\n' "$name"
++    nice -n 10 "$@" > "$T/$name.log" 2>&1
++    printf '%s: exit 0\n' "$name"
++    tail -n 4 "$T/$name.log"
++}
++run_check patch4_json_bound "$P1" -I -s -B "$T/test_k1_json_bound.py"
++run_check patch4_full_tables "$P1" -I -s -B "$T/run_patch4_tables.py"
++run_check patch4_guard_sam3 env K1_GUARD_TEST_RUN=patch4_unit_sam3 "$SAM" -I -s -B "$W/test_k1_guard.py"
++run_check patch4_guard_p1cpu env K1_GUARD_TEST_RUN=patch4_unit_p1cpu "$P1" -I -s -B "$W/test_k1_guard.py"
++run_check patch4_canvas env K1_CANVAS_TEST_RUN=patch4_canvas "$P1" -I -s -B "$T/test_k1_canvas.py"
++run_check patch4_identity "$SAM" -I -s -B "$T/verify_identity.py"
++run_check patch4_test_kit "$SAM" -I -s -B "$T/run_existing.py" test_kit
++run_check patch4_test_guards "$SAM" -I -s -B "$T/run_existing.py" test_guards
++run_check patch4_verify_sources "$P1" -I -s -B "$W/verify_sources.py"
++bash -n ../kc_guard_brief/convert7.guard.sh
++bash -n ../kc_guard_brief/k1_downstream.guard.sh
++printf 'Launcher syntax: exit 0\n'
+--- /dev/null
++++ b/kc_guard_tests/verify_patch4_outputs.py
+@@ -0,0 +1,37 @@
++"""Verify completed bound receipts and preserve the protected-source proof."""
++import hashlib
++import json
++from pathlib import Path
++
++ROOT = Path(__file__).resolve().parent
++before = json.loads((ROOT / 'patch4_identity_before.json').read_text())
++after = {p: hashlib.sha256(Path(p).read_bytes()).hexdigest() for p in before}
++assert before == after
++(ROOT / 'patch4_identity_proof.json').write_text(json.dumps(
++    dict(before=before, after=after, files=len(before), all_equal=True), indent=2)+'\n')
++(ROOT / 'patch4_bound_identity_proof.json').write_bytes((ROOT / 'identity_proof.json').read_bytes())
++paths = ['patch4_primary296/tables/TABLE_RECEIPT.json',
++         'patch4_sensitivity300/tables/TABLE_RECEIPT.json',
++         'patch4_canvas/landscape_after/TABLE_RECEIPT.json',
++         'patch4_canvas/render_tables/TABLE_RECEIPT.json',
++         'patch4_canvas/render_fixture/RENDER_RECEIPT.json']
++for interpreter in ('sam3', 'p1cpu'):
++    for stage in ('tables', 'passing_tables', 'render', 'passing_render'):
++        name = 'TABLE_RECEIPT.json' if 'tables' in stage else 'RENDER_RECEIPT.json'
++        paths.append(f'patch4_unit_{interpreter}/{stage}/{name}')
++receipts = {}
++for path in paths:
++    r = json.loads((ROOT / path).read_text())
++    assert r['json_bound_bytes'] == 67_108_864, path
++    receipts[path] = r['json_bound_bytes']
++for name, count in (('primary296', 296), ('sensitivity300', 300)):
++    out = ROOT / ('patch4_' + name) / 'tables'
++    r = json.loads((out / 'TABLE_RECEIPT.json').read_text())
++    g = json.loads((out / 'GUARD_REPORT.json').read_text())['K1']
++    assert len(r['gt_canvas_map']) == len(g['captures']) == count
++    assert set(r['gt_canvas_map']) == set(g['captures'])
++    assert sum(r['gt_canvas_map_counts'].values()) == count
++record = dict(protected_files_equal=len(before), receipts=receipts,
++              full_capture_counts=[296, 300], all_passed=True)
++(ROOT / 'patch4_output_verification.json').write_text(json.dumps(record, indent=2)+'\n')
++print(json.dumps(record))
+```
+
+READY

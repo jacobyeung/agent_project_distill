@@ -11,7 +11,7 @@ def test_R4_current_submit_argv_is_opaque():
     argv=submission_argv(c,'/p/x/1.sh',packet_sha256='0'*64)
     text=' '.join(argv).lower()
     assert not [w for w in FORBIDDEN if w in text]
-    assert '--export=NONE,A0_PACKET_SHA256='+'0'*64 in argv
+    assert '--export=A0_PACKET_SHA256='+'0'*64 in argv
     assert '--job-name='+c['job_name'] in argv
     for invalid in ('a0'+'0'*16,'a15_cot_ap'+'g'*16,'a15_cot_ap'+'0'*15):
         with pytest.raises(ValueError):submission_argv(dict(c,job_name=invalid),'/p/x/1.sh')

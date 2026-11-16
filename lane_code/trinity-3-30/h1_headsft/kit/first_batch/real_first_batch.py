@@ -45,7 +45,7 @@ processor=R.processor_for_receipt(manifest,receipt)
 loading={k:v for k,v in receipt.items() if k not in ('init_artifact','depth_init')}
 model=R.load_model(manifest,loading,processor,evaluation=True)
 R.load_artifact(model,file_pin(a.artifact));model.eval();model.recipe=recipe
-rows=R.Rows(receipt,processor);counts={s:rows.count(s) for s in set(recipe['mix'])}
+rows=R.Rows(receipt,processor);counts={s:rows.count(s) for s in receipt['streams'] if s in set(recipe['mix'])}
 plan=next(mixed_indices(counts,2,start_step=1,seed=17,training_mode='final',mix=recipe['mix'],world=4))
 gates=routing.Gates(recipe['scheduled_sampling'],getattr(model,'depth_stage1',False));factor=recipe.get('reference_world_size',4)//4
 out.mkdir(parents=True,exist_ok=True)

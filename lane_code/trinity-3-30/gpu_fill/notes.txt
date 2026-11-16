@@ -1,2 +1,2 @@
-Distillation /dev/shm cap on 1-13 is 85 GB (ORCH 1504Z); agents cannot delete, so it only grows; new 1-13 work must reuse what is staged.
-1-13 holders: card 2 b05 pilot 2 (ORCH 1625Z, <=4 A6000-h); cards 6,7 MAIN since 16:30Z (rebuttal, 6-12 h) until main frees them. Queue for free cards 0,3,4,5: b04 parity (1, on re-review GO), then H1-0 (up to 3, after parity passes). 0-28 cards 0,3,4,6 idle, /scratch 8 GB: no staging.
+Main has GPU priority (USER 16:37Z): main's requests win at once; idle cards go to main first while it has asked in the last 24 h.
+1-13 is full: cards 0,1 MAIN (r3178/r3179, since 16:38Z), 6,7 MAIN (r3176/r3177, since 16:30Z); card 2 b05 pilot 2 (16:40Z, <=4 A6000-h); cards 3,4,5 b04 parity read (own_depth partitions, then scale_head; ~3 h per arm). Distillation /dev/shm cap 85 GB; ~84 used; it only grows. 1-18: lnayak's jobs refill freed cards within minutes. 0-28 cards 0,3,4,6 idle, /scratch 8 GB: no staging.

@@ -77,7 +77,7 @@ def test_three_shards_cutoff_preserves_finished_items(tmp_path):
     from offnative.worker import Worker,merge
     from offnative.shards import plan
     from offkit.report import key
-    items=[dict(id=str(i),dataset='fixture',scene_name=str(i%2),question_type='object_abs_distance') for i in range(12)]
+    items=[dict(id=str(i),dataset='fixture',scene_name=str(i%3),question_type='object_abs_distance') for i in range(12)]
     partition=plan(items,count=3)
     by_id={key(i):i for i in items};returned=[];missing=[]
     class Scorer:

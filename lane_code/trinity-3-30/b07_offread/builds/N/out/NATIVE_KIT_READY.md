@@ -10,4 +10,4 @@ Model prompts retain direct clip metadata and bytes; geometry alone uses dense s
 
 All 288 video sizes are bound. ReVSI clip hashes and the real pixel check remain pending. Production needs owner-complete artifacts, loaded-entry prompt audits, EAT-1 where applicable, native-library path resolution and genuine transport-only rehearsals. Nothing was submitted or uploaded.
 
-code.tar: 8962956 bytes; SHA256 `6c705ba607c9b488ccf8b05686a1de9114340118e993af6b62748365b4d45ccd`. CODE_PINS.json, DEPENDENCY_PINS.json, N5_ARCHIVE_CHECK.json, N5_VALIDATION.json, N5_FIXTURES.json and SHIP_SHA256SUMS bind this release.
+code.tar: 8963817 bytes; SHA256 `06731cfaf8ca5c2c454d2e3a6f136fcd01d5102ca6acf18527b6039403c3e8ea`. CODE_PINS.json, DEPENDENCY_PINS.json, N5_ARCHIVE_CHECK.json, N5_VALIDATION.json, N5_FIXTURES.json and SHIP_SHA256SUMS bind this release.

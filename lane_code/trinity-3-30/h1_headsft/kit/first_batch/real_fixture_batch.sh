@@ -13,8 +13,8 @@ for ((i=0; i<${#args[@]}; i++)); do
     --threads=*) threads=${args[i]#*=} ;;
   esac
 done
-if [[ -z "$output" || ! "$threads" =~ ^([1-9]|1[0-6])$ ]]; then
-  echo 'Require --output DIR and --threads in 1..16' >&2
+if [[ -z "$output" || ! "$threads" =~ ^([1-9]|[1-5][0-9]|6[0-4])$ ]]; then
+  echo 'Require --output DIR and --threads in 1..64' >&2
   exit 2
 fi
 output=$(realpath -m -- "$output")

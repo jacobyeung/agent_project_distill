@@ -1,5 +1,13 @@
 from pathlib import Path
 import ast,datetime,difflib,hashlib,json,os,re,sys,tarfile
+if '--g5' in sys.argv:
+    import runpy
+    runpy.run_path(str(Path(__file__).with_name('g5_seal.py')),run_name='__main__')
+    raise SystemExit(0)
+if '--g4' in sys.argv:
+ import runpy
+ runpy.run_path(str(Path(__file__).with_name('g4_seal.py')),run_name='__main__')
+ raise SystemExit(0)
 if '--g3' in sys.argv:
  import runpy
  runpy.run_path(str(Path(__file__).with_name('g3_seal.py')),run_name='__main__')

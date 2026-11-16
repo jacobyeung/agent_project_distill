@@ -58,7 +58,7 @@ def minbox(P):
 
 def room_area(V, cell=0.1):
     ij = np.floor((V[:, :2] - V[:, :2].min(0)) / cell).astype(int)
-    g = np.zeros(ij.max(0) + 1, bool); g[ij[:, 0], ij[:, 1]] = True
+    g = np.zeros(ij.max(0) + 7, bool); g[ij[:, 0] + 3, ij[:, 1] + 3] = True  # 3-cell pad: closing must not erode the border
     g = ndimage.binary_closing(g, structure=np.ones((3, 3)), iterations=2)
     g = ndimage.binary_fill_holes(g)
     return float(g.sum() * cell * cell)
@@ -149,7 +149,7 @@ def main(sdir, split, mult, out):
         A = room_area(S['V'])
         add('room_size_estimation', 'floor_area',
             'What is the size of this room (in square meters)? \nIf multiple rooms are shown, estimate the size of the combined space.',
-            None, '%.2f' % A, '%.2f' % A, 'm2', dict(area_m2=A, rule='xy occupancy of all mesh vertices, 0.1 m cells, closing x2, hole fill'))
+            None, '%.2f' % A, '%.2f' % A, 'm2', dict(area_m2=A, rule='xy occupancy of all mesh vertices, 0.1 m cells, 3-cell pad, closing x2, hole fill'))
     for mode in ('closest', 'farthest'):
         n_ok = 0
         for t in R.pick(uniq, 20):

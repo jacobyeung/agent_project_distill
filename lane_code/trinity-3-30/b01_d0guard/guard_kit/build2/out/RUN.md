@@ -1,6 +1,6 @@
 # Operator run sheet
 
-**Release is blocked.** The code can emit a packet under complete fixture authority (`PACKET_TEST.json`), but the delivered family refuses production launch (`RELEASE_BLOCKERS.json`). Finish the runtime naming migration, validate the whole-worker path, regenerate the family, and obtain independent review before using the launch commands. Do not enable release by changing a boolean alone.
+**Production authority is still required.** ORCH accepted the seven sealed trainer-tree names at 1601Z. The CPU-fixture blocker is closed; each launch still needs a review bound to the current FAMILY, its candidate closure/export and exact ORCH GO (`RELEASE_BLOCKERS.json`). The delivered family keeps its release gate closed pending that authority.
 
 All commands below are operator commands; none ran during this build. The wrapper path comes from the reviewed launcher (`/scratch/jjyeung/orch_n30/b01_d0guard/work/from13/readk/kit/launcher/orchard_launcher.py:24). Its installed behavior and current credentials were not checked.
 
@@ -23,13 +23,40 @@ Choose the step and its unused token from `OPERATOR_TOKENS.json`. Each token has
 | 800 | `c48905f32fb4fda9` |
 | 1000 | `0bdc0b75d4b9bef3` |
 
-Fetch the selected closure with one read-only small tar. The archive contains the artifact for that step even if tensor export publication is still pending. The separate completion record is required before plan preparation:
+Every fetch and packet upload uses `out/operator/governed_transfer.py`. It starts a stable Python root in state T before payload IO, waits for the limiter comm `ratelimit`, and calls:
+```sh
+/usr/bin/python3 -s /scratch/jjyeung/io_governor/register.py --lane LANE --pid ROOT_PID --member-pid RL_PID --rl-pid RL_PID --expected-bytes BYTES --tier 3 --kind copy --nominal-mbps 8 --io-weight 1 --allow-resume
+```
+The root never execs another program. Only the governor resumes it; both producer and remote consumer wait for their lane to say `running` in `STATE.md`. The limiter starts with `ratelimit.py -q -L 1000 -B 65536`. The wrapper renames its record to `.done.<epoch>` after all pipeline processes finish, including on a nonzero exit. A failure never retries. Each call creates its own registration. These transfers cross the head node and write local scratch or Orchard, so they use `--io-weight 1` without `--writes-nfs`. An explicit `/home` or `/data*` output requires `writes_nfs: true`, which adds `--writes-nfs`.
+
+The node must already have a live governor agent and installed helpers. The protocol is defined in `/data3/jjyeung/orch_n13_20261026/io_governor/README.md`. No governor, network or SSH command ran during this build.
+
+Define the operator transfer function. It writes a small job description on scratch and launches one registered stream synchronously. The byte argument is the known size or a conservative positive upper bound; it does not grant extra bandwidth.
+```sh
+governed_transfer() {
+  lane="$1"; bytes="$2"; output="$3"; producer="$4"; consumer="$5"
+  /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B - "$lane" "$bytes" "$output" "$producer" "$consumer" <<'PYJOB'
+import json,sys
+from pathlib import Path
+lane,count,output,producer,consumer=sys.argv[1:]
+job=dict(lane=lane,expected_bytes=int(count),producer=json.loads(producer))
+if output: job['output']=str(Path(output).resolve())
+else: job['consumer']=json.loads(consumer)
+p=Path('work/transfers');p.mkdir(exist_ok=True)
+with (p/(lane+'.json')).open('x') as stream: json.dump(job,stream)
+PYJOB
+  /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B out/operator/governed_transfer.py --job "work/transfers/$lane.json"
+}
+OSSH=/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/tools/ossh.sh
+```
+
+Fetch the selected closure with one read-only tar. The archive contains the artifact for that step even if tensor export publication is still pending. The separate completion record is required before plan preparation:
 ```sh
 STEP=200; TOKEN=d8fa5baf8ed9478b
 mkdir -p "work/fetch/$TOKEN"
-bash /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/tools/ossh.sh "cd /project/community/jjyeung/okh7/x_f5c353f7 && tar --hard-dereference -cf - runs/359fcc3c/inputs runs/359fcc3c/m${STEP}/artifact.json runs/359fcc3c/binding.json k/d6827df0.json k/7.json k/routes.json k/benchmark_scene_exclusions.json k/dev_scene_exclusions.json" | pv -q -L 8m > "work/fetch/$TOKEN/closure.tar"
+governed_transfer "g4_${TOKEN}_closure" 20000000 "work/fetch/$TOKEN/closure.tar" "[\"bash\",\"$OSSH\",\"cd /project/community/jjyeung/okh7/x_f5c353f7 && tar --hard-dereference -cf - runs/359fcc3c/inputs runs/359fcc3c/m${STEP}/artifact.json runs/359fcc3c/binding.json k/d6827df0.json k/7.json k/routes.json k/benchmark_scene_exclusions.json k/dev_scene_exclusions.json\"]" ''
 sha256sum "work/fetch/$TOKEN/closure.tar"
-bash /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/tools/ossh.sh "cat /project/community/jjyeung/okh7/x_f5c353f7/o/gcs_359fcc3c_m${STEP}.done" > "work/fetch/$TOKEN/candidate.done"
+governed_transfer "g4_${TOKEN}_done" 65536 "work/fetch/$TOKEN/candidate.done" "[\"bash\",\"$OSSH\",\"cat /project/community/jjyeung/okh7/x_f5c353f7/o/gcs_359fcc3c_m${STEP}.done\"]" ''
 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B work/pack_candidate.py --source "work/fetch/$TOKEN/closure.tar" --step "$STEP" --out "out/closures/$TOKEN"
 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B out/guard_kit/packet.py prepare --family out/FAMILY.json --done "work/fetch/$TOKEN/candidate.done" --step "$STEP" --metadata "out/closures/$TOKEN/CLOSURE.json" --token "$TOKEN" --out "out/plans/$TOKEN"
 ```
@@ -45,24 +72,26 @@ nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B out/guard_kit/packet.
 
 After the blockers are resolved, the packet builder emits `BATCH.sh`, `CONFIG.json`, `FAMILY.json`, `PACKET.json`, and the regular-file archives `p.tar` and `m.tar`. No new cloud object generation is needed for these packet inputs: they travel as pinned neutral Orchard files. Existing shared GCS assets retain their accepted generation pins (`inputs/BASELINE_CONFIG.json`).
 
-Create the bounded return pool, copy the packet as one throttled archive, and submit with all resources on the command line:
+Create the bounded return pool, copy the packet as one governed archive, and submit with all resources on the command line:
 ```sh
 bash /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/tools/ossh.sh "mkdir -p /project/community/jjyeung/okh7/a936d80c /project/community/jjyeung/okh7/8c9d2e74/$TOKEN"
-tar --hard-dereference -cf - -C "out/packets/$TOKEN" BATCH.sh CONFIG.json FAMILY.json PACKET.json p.tar m.tar | pv -q -L 8m | bash /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/tools/ossh.sh "tar xf - -C /project/community/jjyeung/okh7/8c9d2e74/$TOKEN"
+tar --hard-dereference -cf "work/fetch/$TOKEN/packet.tar" -C "out/packets/$TOKEN" BATCH.sh CONFIG.json FAMILY.json PACKET.json p.tar m.tar
+PACKET_BYTES=$(stat -c %s "work/fetch/$TOKEN/packet.tar")
+governed_transfer "g4_${TOKEN}_packet" "$PACKET_BYTES" '' "[\"cat\",\"$PWD/work/fetch/$TOKEN/packet.tar\"]" "[\"bash\",\"$OSSH\",\"tar xf - -C /project/community/jjyeung/okh7/8c9d2e74/$TOKEN\"]"
 bash /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/tools/ossh.sh "sbatch --parsable --account=mt01 --partition=general --gres=gpu:1 --ntasks=1 --nodes=1 --cpus-per-task=16 --mem=200G --time=05:00:00 --signal=B:USR1@300 --no-requeue --chdir=/tmp --job-name=a15_cot_ap$TOKEN /project/community/jjyeung/okh7/8c9d2e74/$TOKEN/BATCH.sh"
 ```
 
 The batch hashes `p.tar` before executing code and hashes `m.tar` before candidate staging. Both archives reject hard links. Any unexpected termination requires operator review; these commands contain no retry or requeue loop.
 
-Fetch the return only after successful IO-governor registration. The registration script was unavailable during the build, so its installed CLI must be confirmed by the operator; the stream itself is explicit:
+Fetch each return object through its own governor registration:
 ```sh
-/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /data3/jjyeung/orch_n13_20261026/io_governor/register.py --tier 3 --allow-resume
-# Stop here if registration fails; use the governor-issued authorization for the stream below.
 mkdir -p "out/fetched/$TOKEN"
-bash /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/tools/ossh.sh "cat /project/community/jjyeung/okh7/a936d80c/$TOKEN/EXIT.json" > "out/fetched/$TOKEN/EXIT.json"
-bash /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/tools/ossh.sh "cat /project/community/jjyeung/okh7/a936d80c/$TOKEN/result.tar.gz" | pv -q -L 8m > "out/fetched/$TOKEN/result.tar.gz"
+governed_transfer "g4_${TOKEN}_exit" 65536 "out/fetched/$TOKEN/EXIT.json" "[\"bash\",\"$OSSH\",\"cat /project/community/jjyeung/okh7/a936d80c/$TOKEN/EXIT.json\"]" ''
+governed_transfer "g4_${TOKEN}_return" 300000000 "out/fetched/$TOKEN/result.tar.gz" "[\"bash\",\"$OSSH\",\"cat /project/community/jjyeung/okh7/a936d80c/$TOKEN/result.tar.gz\"]" ''
 nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B out/guard_kit/fetch.py --config "out/plans/$TOKEN/CONFIG.json" --receipt "out/fetched/$TOKEN/EXIT.json" --archive "out/fetched/$TOKEN/result.tar.gz" --out "out/fetched/$TOKEN/x"
-nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/b01_d0guard/guard_kit/report/guard_read.py --candidate "out/fetched/$TOKEN/x/R1.json" --step544 /scratch/jjyeung/orch_n30/b01_d0guard/work/ret544/native/R1.json --out "out/fetched/$TOKEN/report"
+/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B -c 'import hashlib;from pathlib import Path;assert hashlib.sha256(Path("../report/guard_read.py").read_bytes()).hexdigest()=="5424e41c68fc1918386c62865a68d7b3c1af2802f2800b1f0455837568a3cd11"'
+CANDIDATE_ARTIFACT=$(/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B -c 'import json,sys;print(json.load(open(sys.argv[1]))["artifact_sha256"])' "out/plans/$TOKEN/CONFIG.json")
+nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B /scratch/jjyeung/orch_n30/b01_d0guard/guard_kit/report/guard_read.py --candidate "out/fetched/$TOKEN/x/R1.json" --candidate-artifact "$CANDIDATE_ARTIFACT" --step544 /scratch/jjyeung/orch_n30/b01_d0guard/work/ret544/native/R1.json --out "out/fetched/$TOKEN/report"
 ```
 
 The cloud copy is `gs://cmu-gpucloud-jjyeung/q8/8c9d2e74/<TOKEN>/result.tar.gz`; `EXIT.json` binds its bytes to the prepared plan. Early proof and canary receipts use the same pool/token and cloud prefix. A failed or synthetic return is not an empirical read.
@@ -74,21 +103,6 @@ Append the ledger record only after an actual successful submission, using the r
 
 Ledger destination: `work/ORCHARD_LEDGER.jsonl`. No ledger row was written during this build.
 
-Operational asset copies with identical bytes can use the following neutral paths. These copies are not yet applied to every runtime dependency; they do not by themselves close the naming blocker:
-```sh
-mkdir -p /project/community/jjyeung/okh7/8c9d2e74
-cp -- /project/community/jjyeung/cp4tk_rt/kit/model_qwen35_9b_c2022362.tar /project/community/jjyeung/okh7/8c9d2e74/ab626354ad7ea9b9
-sha256sum -- /project/community/jjyeung/cp4tk_rt/kit/model_qwen35_9b_c2022362.tar /project/community/jjyeung/okh7/8c9d2e74/ab626354ad7ea9b9
-cp -- /project/community/jjyeung/distill/okit/in/c_fa8681cba4c0.tar /project/community/jjyeung/okh7/8c9d2e74/3f4e9154ba1f2066
-sha256sum -- /project/community/jjyeung/distill/okit/in/c_fa8681cba4c0.tar /project/community/jjyeung/okh7/8c9d2e74/3f4e9154ba1f2066
-cp -- /project/community/jjyeung/distill/okit/in/cr/436d1d64673f.p00 /project/community/jjyeung/okh7/8c9d2e74/8f38e81ca7758e70
-sha256sum -- /project/community/jjyeung/distill/okit/in/cr/436d1d64673f.p00 /project/community/jjyeung/okh7/8c9d2e74/8f38e81ca7758e70
-cp -- /project/community/jjyeung/distill/okit/in/cr/9b9e03337df5.p00 /project/community/jjyeung/okh7/8c9d2e74/9bda75a7077ab157
-sha256sum -- /project/community/jjyeung/distill/okit/in/cr/9b9e03337df5.p00 /project/community/jjyeung/okh7/8c9d2e74/9bda75a7077ab157
-cp -- /project/community/jjyeung/distill/okit/in/cr/c449bbe907be.p00 /project/community/jjyeung/okh7/8c9d2e74/2206733a423ef6ba
-sha256sum -- /project/community/jjyeung/distill/okit/in/cr/c449bbe907be.p00 /project/community/jjyeung/okh7/8c9d2e74/2206733a423ef6ba
-cp -- /project/community/jjyeung/distill/okit/in/d00 /project/community/jjyeung/okh7/8c9d2e74/cb81e2210d956d4a
-sha256sum -- /project/community/jjyeung/distill/okit/in/d00 /project/community/jjyeung/okh7/8c9d2e74/cb81e2210d956d4a
-```
+The seven sealed trainer-tree names are ACCEPTED by ORCH 1601Z; no optional asset-copy migration is required by this run sheet. Existing production asset pins remain unchanged.
 
-The source-copy commands run on Orchard. They were not executed or checked against live archives. The local build performs no network operation or submission.
+Report source SHA256: `5424e41c68fc1918386c62865a68d7b3c1af2802f2800b1f0455837568a3cd11`. This is the intentional operator-supplied post-review change (`REPORT_PIN_G4.json`). Every production report supplies `CONFIG.artifact_sha256`; only recorded self-pair fixtures may use `--self-pair`.

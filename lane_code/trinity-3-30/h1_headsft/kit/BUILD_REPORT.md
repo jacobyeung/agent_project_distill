@@ -628,3 +628,14 @@ and 2–20 minutes per pose microstep for the 9B model on 16 CPU threads, plus m
 loading and hash checks. CPU instruction support and processed token count can
 move this estimate substantially. The JSONL timings provide the actual result;
 the tiny model's sub-second microsteps do not predict 9B performance.
+
+### Build 6 lane follow-up (h1_headsft, after the Codex build)
+- Plan fidelity: the trainer seeds each stream's shuffle by `receipt['streams']` order (pointing, pose, routing, vqa,
+  equal to `cfg['streams']` order), not by `set()` order. `real_fixture_batch.py` and `real_first_batch.py` now build
+  `counts` in that order, so their step-2 plans match production regardless of PYTHONHASHSEED.
+- Restored artifact: b04's `stage_restore` rewrites `full_weights.path` and `heads.path`, so the local artifact.json
+  digest (2e9df594...) differs from the D0 pin. `--restore RESTORE.json` binds it: the record's original artifact must
+  carry the pin 1d6eeb28..., must exist locally with that digest, and must equal the local artifact except those two
+  paths. `test_real_json_loading_until_missing_weights` runs against the real JSON copies and checks both branches.
+- `--threads` accepts 1..64 (run host 1-18 has 96 cores).
+- Suite: 101 passed, 0 failed, 0 skipped (`logs/b5/suite_b6_lane.log`, basetemp `tmp/b6x/`).

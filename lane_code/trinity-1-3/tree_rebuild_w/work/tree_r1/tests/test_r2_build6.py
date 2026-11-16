@@ -89,6 +89,10 @@ class Build6(unittest.TestCase):
         from launch_r2.build import build
         with self.assertRaisesRegex(ValueError,'pinned init'):
             configure({},'none')
+        from tests.test_r2_build import inputs
+        from tests.test_r2_data_path import LANE
+        with self.assertRaisesRegex(ValueError,'Missing pinned init selection'):
+            build(LANE/'work/kit07ca49df_meta/m',root/'unpinned',connector='none',records=inputs())
 
     def test_family_gate_refuses_below_ninety_after_exclusions(self):
         reports=[dict(family=names[-1],counts={'x':dict(seen=110,admitted=90,refused=20)},

@@ -12,26 +12,61 @@ def cost(item):
     # Direct decoding lacks a measurement; use the slower measured rate as a proxy.
     return RATES.get(kind,23.768)*(2 if kind in RATES else 1)
 
-def plan(items, *, count=None):
-    scene_cost=3.8*len({(r['dataset'],r['scene_name']) for r in items})
-    seconds=sum(cost(r) for r in items)+scene_cost
-    k=count or max(1,math.ceil(1.25*seconds/(LIMIT-RESERVE)))
-    if k>len(items) or k<1:raise ValueError('invalid shard count')
+# Unmeasured terms are explicit planning allowances, not GPU measurements.
+# SAM covers encoding, baseline, dense, aliases and scale/gravity for one scene.
+DEFAULT_BUDGETS={'scene_staging_s':30.,'scene_g3t_s':3.8,'scene_sam_s':300.,
+                 'loading_s':1200.,'proof_second_load_s':600.,
+                 'proof_decode_s':20*23.768,'proof_assets_s':300.,
+                 'canary_s':10*23.768}
+
+def plan(items, *, count=None, budgets=None):
+    if not items:raise ValueError('empty shard cohort')
+    allowance=dict(DEFAULT_BUDGETS)
+    if budgets is not None:
+        if set(budgets)!=set(allowance):raise ValueError('incomplete timing allowances')
+        allowance.update(budgets)
+    if any(not math.isfinite(v) or v<0 for v in allowance.values()):
+        raise ValueError('invalid timing allowance')
     groups=defaultdict(list)
-    for row in items:groups[row['question_type']].append(row)
-    bins=[[] for _ in range(k)];loads=[0.]*k
-    for kind,rows in sorted(groups.items(),key=lambda kv:-cost(kv[1][0])):
-        for row in sorted(rows,key=lambda r:digest(key(r))):
-            slot=min(range(k),key=lambda i:(loads[i],len(bins[i]),i))
-            bins[slot].append(key(row));loads[slot]+=cost(row)
+    for row in items:groups[(row['dataset'],row['scene_name'])].append(row)
+    scene=sum(allowance[n] for n in ('scene_staging_s','scene_g3t_s','scene_sam_s'))
+    fixed=sum(v for n,v in allowance.items() if not n.startswith('scene_'))
+    weights={name:sum(cost(r) for r in rows)+scene for name,rows in groups.items()}
+    ordered=sorted(groups,key=lambda name:(-weights[name],name))
     identity=digest([key(r) for r in items])
-    return {'schema':1,'count':k,'cohort_sha256':identity,'limit_s':LIMIT,'return_reserve_s':RESERVE,
+    def partition(k):
+        bins=[[] for _ in range(k)];loads=[0.]*k;scenes=[[] for _ in range(k)]
+        for name in ordered:
+            slot=min(range(k),key=lambda i:(loads[i],i))
+            bins[slot].extend(sorted(groups[name],key=lambda r:digest(key(r))))
+            scenes[slot].append(name);loads[slot]+=weights[name]
+        result=[]
+        for i,rows in enumerate(bins):
+            ids=[key(r) for r in rows];ns=len(scenes[i])
+            terms={'decode_s':sum(cost(r) for r in rows),
+                   **{n:allowance[n]*ns for n in allowance if n.startswith('scene_')},
+                   **{n:v for n,v in allowance.items() if not n.startswith('scene_')}}
+            estimate=1.25*sum(terms.values())+RESERVE
+            result.append({'index':i,'count':k,'ids':ids,'ids_sha256':digest(ids),
+                'cohort_sha256':identity,'scenes':[list(v) for v in sorted(scenes[i])],
+                'scene_count':ns,'cost_terms':terms,'margin':1.25,'return_reserve_s':RESERVE,
+                'estimated_seconds':estimate,'fits_limit':estimate<=LIMIT})
+        return result
+    minimum=max(1,math.ceil(1.25*sum(weights.values())/(LIMIT-RESERVE-1.25*fixed))) if LIMIT>RESERVE+1.25*fixed else len(groups)+1
+    if count is not None:
+        if type(count) is not int or count<1 or count>len(groups):raise ValueError('invalid scene shard count')
+        candidates=[count]
+    else:candidates=range(minimum,len(groups)+1)
+    for k in candidates:
+        shards=partition(k)
+        if all(s['fits_limit'] for s in shards):break
+    else:raise ValueError('scene cannot fit six hours with all timing allowances and reserve')
+    return {'schema':2,'count':k,'cohort_sha256':identity,'limit_s':LIMIT,'return_reserve_s':RESERVE,
         'measured_rates':RATES,'direct_rate_proxy':23.768,'margin':1.25,
-        'unmeasured':['SAM proposals','staging/model loading','proof','canary'],
-        'fit_guaranteed':False,'estimated_seconds':seconds,
-        'shards':[{'index':i,'count':k,'ids':ids,'ids_sha256':digest(ids),
-                   'cohort_sha256':identity,'estimated_seconds':1.25*(loads[i]+scene_cost/k)}
-                  for i,ids in enumerate(bins)]}
+        'planning_allowances':allowance,'partition_unit':'scene',
+        'unmeasured':['SAM proposals','staging/model loading','proof','canary','direct decode'],
+        'fit_guaranteed':False,'fits_planning_allowances':True,
+        'estimated_seconds':sum(s['estimated_seconds'] for s in shards),'shards':shards}
 
 def select(items, shard):
     if not shard:return items

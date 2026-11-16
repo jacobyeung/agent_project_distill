@@ -1,0 +1,655 @@
+{
+  "family": {
+    "baseline_artifact": {
+      "path": "/scratch/jjyeung/orch_n30/b01_d0guard/work/from113/work/obj/m544_artifact.json",
+      "sha256": "1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef"
+    },
+    "blockers": [
+      "Complete job-visible naming migration is not validated; sealed runtime metadata still exposes legacy names.",
+      "Independent review, current export closure and ORCH GO are required before launch."
+    ],
+    "code_pins": {
+      "admission.py": "211ef03fbeb433208d2308011f824d72c44dc22ed0391817f3bfd17ba05550dd",
+      "checkpoint.py": "fabd5ca476931da053d363a763b6f4b0dd0c8a9ae34c943b481ddca065432e41",
+      "closure.py": "abca7305fcef32c244dbc72fac81bdbf9d23e3f9baa23d358477b34fd0f697a2",
+      "fetch.py": "91845a06675d392b01fbfd3567606f48e6b4afd7cd048b64d6f48dca8fe50f47",
+      "guard_backend.py": "26b59e7eaa732ce4eb6bdaa30b1f4af559fb706a91c634e2bbbfbcb16c050972",
+      "guard_core.py": "31f6265063c5604d5614548a25e1bead567565daef456feae380da5cdb171709",
+      "guard_export.py": "f691922866b2d410d70a173dbe0d5fb6b2eca38952b808b929443770858a342a",
+      "names.py": "42b07fb61371467fbb29e0dd1ccc358ef250ef262c3299ff231080300d4461b7",
+      "native_arm.py": "c2bc31b57d8b77166e5536dc77f4ceb7fe09306fb97316d3552da562956ebcdd",
+      "packet.py": "8d962bbd1214945c68caeff34afee86a8043331471a96dc4c7c5b7893f4e3394",
+      "pool.py": "a2a6e7b024e47db5570c37a2979d3a05454b8ce275d680be24c2ac03c7b4b42a",
+      "reviewed/chain_save.py": "3c6bd4cb82b39a6853c671e8c460c472df12b78ae3780890f61bd81008297b9c",
+      "reviewed/checker/common.py": "1954de01cc935fb744ebc92a3ede19a94658d2ce4fefb3c1e1ba40b03d2508c4",
+      "reviewed/checker/export_check.py": "0400842c559565b66db50d6c8fde7c323e8600a82d70685d469a4b316d7ec8d2",
+      "reviewed/export_stage.py": "8c926e7c21663e7d707c7bc4adf1a2a9d73202e397e1531ef08ec3cadee859ed",
+      "reviewed/orchard_job.py": "d912e1f596fc21621bcb13c4670a1af313ab54a65ef1bda846b2c3b68cc3bd6b",
+      "reviewed/orchard_results.py": "959af042a98ecf985e7ead3e89ec3100f3434637ddecb02576c1b9a13f6a3810",
+      "reviewed/orchard_stage.py": "00b113eec03c205d872bfc7ce8bddb4c7bd4086f44e8878d712c001db86f17d2",
+      "reviewed/return_io.py": "ad24ee4c4ffb0592011efce63d741b3f449daddf4da7c377d9623a5db2dad8b3",
+      "sj/orch_cd/evalx/work/camera/vnice/terminator.sh": "cbb91ba7455d15007bd3affeb358dc5693f3845949ee0abacf892a4402748b94",
+      "sj/orch_cd/evalx/work/camera/vnice/vnice.sh": "3ab2b542726f32dbecdbe30104f903aa2bef3526a9257013fd5f8bcc99461c6b",
+      "sj/orch_cd/evalx/work/milestone/ORCHARD_ASSETS.json": "3e2139522741cb301aed445d37c6f4180f00e2950c04045dca0c9658321b37c2",
+      "sj/orch_cd/evalx/work/milestone/chain_save.py": "5f870cb53a99933a4a580c8e052895827528931e0c77c141d240c695fadecffc",
+      "sj/orch_cd/evalx/work/milestone/native/out2/CAMERA_SHORTCUTS.json": "f50c44e96d294382545156bafb0c898d14de1f357f85dcf67c1c9462d65b1416",
+      "sj/orch_cd/evalx/work/milestone/native/out2/RUNTIME_TREE.json": "548d7ebae266b220b4c325e0f8076bdc646f47878b39958e6a3a2776a2fa6cf8",
+      "sj/orch_cd/evalx/work/milestone/native/out2/camera_cohort.py": "58dd424161e1fd36420d9b6717a4caa2213e159af90f1e6f7d86ff313ef162d1",
+      "sj/orch_cd/evalx/work/milestone/native/out2/camera_report.py": "9ce22e73b59c4bd2ad1a40cce5ea6c4813e94e180889622969275a29cbd58e1a",
+      "sj/orch_cd/evalx/work/milestone/native/out2/common.py": "713beacd0760e1ddba9778e7eb425fc77bb518d83c63bbda148d4fc7ea48c80d",
+      "sj/orch_cd/evalx/work/milestone/native/out2/frozen_kit.py": "35c0075cf3768df834bfbc50748527d0d823731553d71e071986bd23f8a1dc27",
+      "sj/orch_cd/evalx/work/milestone/native/out2/geometry.py": "bc00c7c3498c7c9564f9c11513a5049a7ff0a8c7333c65320f364804585aee49",
+      "sj/orch_cd/evalx/work/milestone/native/out2/geometry_refusals.py": "fe05a2c19558f0a020fff9ff2f2c2e22c982b8c0fafac608b4b4937b04937cd0",
+      "sj/orch_cd/evalx/work/milestone/native/out2/gravity_guard.py": "b2df9c3a769ef498021ef4aa116b68912f5ff5872f03ec3abfe4b732cefbbb79",
+      "sj/orch_cd/evalx/work/milestone/native/out2/mask_kit/kit_combo3.tar.gz": "b3fa05c6d5fc51e56b41c106ba58209cb220e72d511c284ece4c109ce3c56509",
+      "sj/orch_cd/evalx/work/milestone/native/out2/mask_kit/kitlib.py": "c377025b67e7bf83da516e110d79566ce937c6806500f62796a937d0da92a244",
+      "sj/orch_cd/evalx/work/milestone/native/out2/mask_kit/variantlib.py": "10219e028f26caa5d6cf76e42e6739f8ebd68204faf135874974e593d5440198",
+      "sj/orch_cd/evalx/work/milestone/native/out2/mask_kit/vendor/SAM3_RECEIPT.json": "979e2f7776b2a44e8b84cdaf4c9c588120ae56b61cdef1b40147f419e4a05a75",
+      "sj/orch_cd/evalx/work/milestone/native/out2/mask_kit/vendor/phrase.py": "e0f429bfb8fbd013570fea3ede806d051516ad7c6e380561f5061168b756863c",
+      "sj/orch_cd/evalx/work/milestone/native/out2/nomdg.py": "c4a505fc88b61028a57f0a4cb4074a2ee0adb6f17eeed10aa93c9bf30764024e",
+      "sj/orch_cd/evalx/work/milestone/native/out2/perception.py": "8354542bf9b112bb5d7ff238145ff421f764d84890fc409244124e432372be74",
+      "sj/orch_cd/evalx/work/milestone/native/out2/r1.py": "fa008402253e76eaf6343b8c50cb17939ada51af72a9a3af0a22ff136f4f832e",
+      "sj/orch_cd/evalx/work/milestone/native/out2/read_runtime.py": "11b7ef518f85c7351d0e8662a008c34f868480039e4023bfdc747647aba94fae",
+      "sj/orch_cd/evalx/work/milestone/native/out2/reader_policy.py": "ab5080c1c9c840a71b1b9b6333ffc9e9b84d5bab50367cb8e53f8dff618c316f",
+      "sj/orch_cd/evalx/work/milestone/native/out2/routed.py": "59f42907cd599ae4e1353496d4e62f890dd45e3f145f3e776209cbbb738ad444",
+      "sj/orch_cd/evalx/work/milestone/native/out2/runtime_tree.py": "c89006d248404104b9759cbbb4fc0bb6bf4a673790b5f180aee4af77fefa3869",
+      "sj/orch_cd/evalx/work/milestone/native_bootstrap.py": "deaef0f4c3155bd1a56463f76c3ff496fc966fc5cac34e6d32aa7e039e907664",
+      "sj/orch_cd/evalx/work/milestone/orchard_job.py": "4c24c386ea0679e6f812c0cf6fbad2d593c427327cd7c69b80bf9a558c35314b",
+      "sj/orch_cd/evalx/work/milestone/orchard_launcher.py": "f52224b343f14ab59e214e91c4e1ff1532e99430adf17dbea63b0f51d0fef4a6",
+      "sj/orch_cd/evalx/work/milestone/orchard_native/FRAME_PULLER.py": "46000e96334535933239800d1437afc49cc74ca4017c337a43798c9906b8b694",
+      "sj/orch_cd/evalx/work/milestone/orchard_native/MASK_CACHE_C8_BOUND.json": "3be02a82ed2983715db108fe0326dea59ccd1571bae3d6ae476c27074ba06f8e",
+      "sj/orch_cd/evalx/work/milestone/orchard_native/MASK_CACHE_P6_BOUND.json": "bf8d73a6f76b03ee6ad696c3b9c531909263966b846aa965dbc6e47ab5322ca5",
+      "sj/orch_cd/evalx/work/milestone/orchard_native/kernels.py": "38875ff25ae89260ec596dce1b169668cb4bf1f7e13b23c2c88f7f04cc109bda",
+      "sj/orch_cd/evalx/work/milestone/orchard_native/native_common.py": "a501d9c3332d97568661087befba36d195b316b8bc425b29701c3f38268910e9",
+      "sj/orch_cd/evalx/work/milestone/orchard_native/native_cpu_replica.py": "e99ec29a89a6e1723d15de4019c34dfe842605302db72040a6f3a0d3c9073897",
+      "sj/orch_cd/evalx/work/milestone/orchard_native/native_job.py": "b8f94ec554f63ac3379dc4cf1c9af560cfbd0ec9d0723747ae9b87645605658d",
+      "sj/orch_cd/evalx/work/milestone/orchard_native/native_launcher.py": "a8059d757a4faf7719432cf023ffb9934d85ee0eb7779c2b9f43595f5bb48dc1",
+      "sj/orch_cd/evalx/work/milestone/orchard_native/native_local_check.py": "fd2a08890e9c9ea6ebef730554854fc72355b35aa568762862a0a5a00ff1d68b",
+      "sj/orch_cd/evalx/work/milestone/orchard_native/native_metrics.py": "e1f14fda828f984c9d6d184ba1007df896e92e51f80d1775800557dc04730966",
+      "sj/orch_cd/evalx/work/milestone/orchard_native/native_pin_graph.py": "21c44e0d0e758fe6655cbd558be4a98a22b863585d631b874b742aee7ff04a4b",
+      "sj/orch_cd/evalx/work/milestone/orchard_native/native_stage.py": "e1660f77f56f696da03a60c21f9dcfc2c7fb8fbe68dc3fefd33f6c21fc563711",
+      "sj/orch_cd/evalx/work/milestone/orchard_native/native_worker.py": "cedb7bea5b94e345adcbf95f779c9be3d36e0064460055eca0bddefbcee7ebc7",
+      "sj/orch_cd/evalx/work/milestone/orchard_native/producer_bridge/sa/prestage_hooks.py": "b946487191158333dbd0df07b8b1849109b944a7be0ac09a6814d3b4a0ae0a0d",
+      "sj/orch_cd/evalx/work/milestone/orchard_native/producer_bridge/sa/sitecustomize.py": "b3eeec3c45e00249b9d60db057b55fbd3ed1e7f2a53e6d88eba2bdaf36b94c58",
+      "sj/orch_cd/evalx/work/milestone/orchard_results.py": "97cc89573ff944248e4ae92bd238e42b2af6fa31cb6ceb5c85b1342497d803ac",
+      "sj/orch_cd/evalx/work/milestone/orchard_stage.py": "eb26cea5b056f9fa88c1675109cd18db693f94436a9ccb92aaf3beb092a8d424",
+      "sj/orch_cd/evalx/work/milestone/stdout_transfer.py": "85ad256cfa7836948ddba934ca82537486fc3c42cab06fa5442de86caef2e0f6",
+      "stage_candidate.py": "d41dc143b69fa8c0374099122a9e96d8cc42afa6a27112d8c12b160f33c15a3c",
+      "staging.py": "c4a62968e5f916b05d8f5e28bcc5a49d978d7e9b254dc1e5c70fa762a3e49f46",
+      "transport.py": "2911533035781705682125fa9790c0af388248cee5ad28cba01200b0d3c6cb32",
+      "worker.py": "7fb560c9ad8c0f5aa301f27f97967543c1fe917b9765fe1d0c6c4277e660043c"
+    },
+    "code_root": "/scratch/jjyeung/orch_n30/b01_d0guard/guard_kit/build2/out/guard_kit",
+    "gpu_seconds": 18000,
+    "identity_source": {
+      "path": "/scratch/jjyeung/orch_n30/b01_d0guard/work/from113/work/tree/student_pilot/carrier_c1_run.py",
+      "sha256": "895772a9f5e0fd09277db72a8a091782728bfe2f525567c301e4d5bf58275471"
+    },
+    "inputs": {
+      "BASELINE_CONFIG.json": {
+        "path": "/scratch/jjyeung/orch_n30/b01_d0guard/guard_kit/build2/out/inputs/BASELINE_CONFIG.json",
+        "sha256": "4f24e430df145abded9f69ba54cb3c21d4f0cc92ff86e37175f872f9abb5637a"
+      },
+      "items.json": {
+        "path": "/scratch/jjyeung/orch_n30/b01_d0guard/guard_kit/build2/out/inputs/items.json",
+        "sha256": "b877fdaf760ef13c27045c77c07300451b0f7dfe9a1b775fdfb89c980be3513e"
+      },
+      "reference.json": {
+        "path": "/scratch/jjyeung/orch_n30/b01_d0guard/guard_kit/build2/out/inputs/reference.json",
+        "sha256": "68fe26f2f09262589d48bc87c292696d0d0bec662b54b97561e11ec098bf3705"
+      }
+    },
+    "publication": {
+      "credentials": "/project/community/jjyeung/gcloud",
+      "kind": "gcs",
+      "pool": "/project/community/jjyeung/okh7/a936d80c",
+      "prefix": "gs://cmu-gpucloud-jjyeung/q8/8c9d2e74"
+    },
+    "release_ready": false,
+    "schema": "g2-family-v1",
+    "time_limit": "05:00:00"
+  },
+  "code_manifest": {
+    "bytes": 3901440,
+    "deterministic_metadata": true,
+    "file": "out/code_g2.tar",
+    "hard_links": 0,
+    "members": {
+      "admission.py": {
+        "bytes": 5645,
+        "sha256": "211ef03fbeb433208d2308011f824d72c44dc22ed0391817f3bfd17ba05550dd"
+      },
+      "checkpoint.py": {
+        "bytes": 4173,
+        "sha256": "fabd5ca476931da053d363a763b6f4b0dd0c8a9ae34c943b481ddca065432e41"
+      },
+      "closure.py": {
+        "bytes": 9510,
+        "sha256": "abca7305fcef32c244dbc72fac81bdbf9d23e3f9baa23d358477b34fd0f697a2"
+      },
+      "fetch.py": {
+        "bytes": 829,
+        "sha256": "91845a06675d392b01fbfd3567606f48e6b4afd7cd048b64d6f48dca8fe50f47"
+      },
+      "guard_backend.py": {
+        "bytes": 5842,
+        "sha256": "26b59e7eaa732ce4eb6bdaa30b1f4af559fb706a91c634e2bbbfbcb16c050972"
+      },
+      "guard_core.py": {
+        "bytes": 7241,
+        "sha256": "31f6265063c5604d5614548a25e1bead567565daef456feae380da5cdb171709"
+      },
+      "guard_export.py": {
+        "bytes": 1498,
+        "sha256": "f691922866b2d410d70a173dbe0d5fb6b2eca38952b808b929443770858a342a"
+      },
+      "names.py": {
+        "bytes": 1497,
+        "sha256": "42b07fb61371467fbb29e0dd1ccc358ef250ef262c3299ff231080300d4461b7"
+      },
+      "native_arm.py": {
+        "bytes": 2042,
+        "sha256": "c2bc31b57d8b77166e5536dc77f4ceb7fe09306fb97316d3552da562956ebcdd"
+      },
+      "packet.py": {
+        "bytes": 12282,
+        "sha256": "8d962bbd1214945c68caeff34afee86a8043331471a96dc4c7c5b7893f4e3394"
+      },
+      "pool.py": {
+        "bytes": 2086,
+        "sha256": "a2a6e7b024e47db5570c37a2979d3a05454b8ce275d680be24c2ac03c7b4b42a"
+      },
+      "reviewed/chain_save.py": {
+        "bytes": 5413,
+        "sha256": "3c6bd4cb82b39a6853c671e8c460c472df12b78ae3780890f61bd81008297b9c"
+      },
+      "reviewed/checker/common.py": {
+        "bytes": 1644,
+        "sha256": "1954de01cc935fb744ebc92a3ede19a94658d2ce4fefb3c1e1ba40b03d2508c4"
+      },
+      "reviewed/checker/export_check.py": {
+        "bytes": 4840,
+        "sha256": "0400842c559565b66db50d6c8fde7c323e8600a82d70685d469a4b316d7ec8d2"
+      },
+      "reviewed/export_stage.py": {
+        "bytes": 11909,
+        "sha256": "8c926e7c21663e7d707c7bc4adf1a2a9d73202e397e1531ef08ec3cadee859ed"
+      },
+      "reviewed/orchard_job.py": {
+        "bytes": 13840,
+        "sha256": "d912e1f596fc21621bcb13c4670a1af313ab54a65ef1bda846b2c3b68cc3bd6b"
+      },
+      "reviewed/orchard_results.py": {
+        "bytes": 10607,
+        "sha256": "959af042a98ecf985e7ead3e89ec3100f3434637ddecb02576c1b9a13f6a3810"
+      },
+      "reviewed/orchard_stage.py": {
+        "bytes": 13095,
+        "sha256": "00b113eec03c205d872bfc7ce8bddb4c7bd4086f44e8878d712c001db86f17d2"
+      },
+      "reviewed/return_io.py": {
+        "bytes": 3105,
+        "sha256": "ad24ee4c4ffb0592011efce63d741b3f449daddf4da7c377d9623a5db2dad8b3"
+      },
+      "sj/orch_cd/evalx/work/camera/vnice/terminator.sh": {
+        "bytes": 1370,
+        "sha256": "cbb91ba7455d15007bd3affeb358dc5693f3845949ee0abacf892a4402748b94"
+      },
+      "sj/orch_cd/evalx/work/camera/vnice/vnice.sh": {
+        "bytes": 1145,
+        "sha256": "3ab2b542726f32dbecdbe30104f903aa2bef3526a9257013fd5f8bcc99461c6b"
+      },
+      "sj/orch_cd/evalx/work/milestone/ORCHARD_ASSETS.json": {
+        "bytes": 3093,
+        "sha256": "3e2139522741cb301aed445d37c6f4180f00e2950c04045dca0c9658321b37c2"
+      },
+      "sj/orch_cd/evalx/work/milestone/chain_save.py": {
+        "bytes": 5283,
+        "sha256": "5f870cb53a99933a4a580c8e052895827528931e0c77c141d240c695fadecffc"
+      },
+      "sj/orch_cd/evalx/work/milestone/native/out2/CAMERA_SHORTCUTS.json": {
+        "bytes": 155421,
+        "sha256": "f50c44e96d294382545156bafb0c898d14de1f357f85dcf67c1c9462d65b1416"
+      },
+      "sj/orch_cd/evalx/work/milestone/native/out2/RUNTIME_TREE.json": {
+        "bytes": 84540,
+        "sha256": "548d7ebae266b220b4c325e0f8076bdc646f47878b39958e6a3a2776a2fa6cf8"
+      },
+      "sj/orch_cd/evalx/work/milestone/native/out2/camera_cohort.py": {
+        "bytes": 3056,
+        "sha256": "58dd424161e1fd36420d9b6717a4caa2213e159af90f1e6f7d86ff313ef162d1"
+      },
+      "sj/orch_cd/evalx/work/milestone/native/out2/camera_report.py": {
+        "bytes": 5547,
+        "sha256": "9ce22e73b59c4bd2ad1a40cce5ea6c4813e94e180889622969275a29cbd58e1a"
+      },
+      "sj/orch_cd/evalx/work/milestone/native/out2/common.py": {
+        "bytes": 1974,
+        "sha256": "713beacd0760e1ddba9778e7eb425fc77bb518d83c63bbda148d4fc7ea48c80d"
+      },
+      "sj/orch_cd/evalx/work/milestone/native/out2/frozen_kit.py": {
+        "bytes": 2042,
+        "sha256": "35c0075cf3768df834bfbc50748527d0d823731553d71e071986bd23f8a1dc27"
+      },
+      "sj/orch_cd/evalx/work/milestone/native/out2/geometry.py": {
+        "bytes": 10459,
+        "sha256": "bc00c7c3498c7c9564f9c11513a5049a7ff0a8c7333c65320f364804585aee49"
+      },
+      "sj/orch_cd/evalx/work/milestone/native/out2/geometry_refusals.py": {
+        "bytes": 9855,
+        "sha256": "fe05a2c19558f0a020fff9ff2f2c2e22c982b8c0fafac608b4b4937b04937cd0"
+      },
+      "sj/orch_cd/evalx/work/milestone/native/out2/gravity_guard.py": {
+        "bytes": 4959,
+        "sha256": "b2df9c3a769ef498021ef4aa116b68912f5ff5872f03ec3abfe4b732cefbbb79"
+      },
+      "sj/orch_cd/evalx/work/milestone/native/out2/mask_kit/kit_combo3.tar.gz": {
+        "bytes": 2706281,
+        "sha256": "b3fa05c6d5fc51e56b41c106ba58209cb220e72d511c284ece4c109ce3c56509"
+      },
+      "sj/orch_cd/evalx/work/milestone/native/out2/mask_kit/kitlib.py": {
+        "bytes": 4665,
+        "sha256": "c377025b67e7bf83da516e110d79566ce937c6806500f62796a937d0da92a244"
+      },
+      "sj/orch_cd/evalx/work/milestone/native/out2/mask_kit/variantlib.py": {
+        "bytes": 6832,
+        "sha256": "10219e028f26caa5d6cf76e42e6739f8ebd68204faf135874974e593d5440198"
+      },
+      "sj/orch_cd/evalx/work/milestone/native/out2/mask_kit/vendor/SAM3_RECEIPT.json": {
+        "bytes": 1123,
+        "sha256": "979e2f7776b2a44e8b84cdaf4c9c588120ae56b61cdef1b40147f419e4a05a75"
+      },
+      "sj/orch_cd/evalx/work/milestone/native/out2/mask_kit/vendor/phrase.py": {
+        "bytes": 720,
+        "sha256": "e0f429bfb8fbd013570fea3ede806d051516ad7c6e380561f5061168b756863c"
+      },
+      "sj/orch_cd/evalx/work/milestone/native/out2/nomdg.py": {
+        "bytes": 37543,
+        "sha256": "c4a505fc88b61028a57f0a4cb4074a2ee0adb6f17eeed10aa93c9bf30764024e"
+      },
+      "sj/orch_cd/evalx/work/milestone/native/out2/perception.py": {
+        "bytes": 18722,
+        "sha256": "8354542bf9b112bb5d7ff238145ff421f764d84890fc409244124e432372be74"
+      },
+      "sj/orch_cd/evalx/work/milestone/native/out2/r1.py": {
+        "bytes": 10863,
+        "sha256": "fa008402253e76eaf6343b8c50cb17939ada51af72a9a3af0a22ff136f4f832e"
+      },
+      "sj/orch_cd/evalx/work/milestone/native/out2/read_runtime.py": {
+        "bytes": 5968,
+        "sha256": "11b7ef518f85c7351d0e8662a008c34f868480039e4023bfdc747647aba94fae"
+      },
+      "sj/orch_cd/evalx/work/milestone/native/out2/reader_policy.py": {
+        "bytes": 14313,
+        "sha256": "ab5080c1c9c840a71b1b9b6333ffc9e9b84d5bab50367cb8e53f8dff618c316f"
+      },
+      "sj/orch_cd/evalx/work/milestone/native/out2/routed.py": {
+        "bytes": 15900,
+        "sha256": "59f42907cd599ae4e1353496d4e62f890dd45e3f145f3e776209cbbb738ad444"
+      },
+      "sj/orch_cd/evalx/work/milestone/native/out2/runtime_tree.py": {
+        "bytes": 1511,
+        "sha256": "c89006d248404104b9759cbbb4fc0bb6bf4a673790b5f180aee4af77fefa3869"
+      },
+      "sj/orch_cd/evalx/work/milestone/native_bootstrap.py": {
+        "bytes": 4375,
+        "sha256": "deaef0f4c3155bd1a56463f76c3ff496fc966fc5cac34e6d32aa7e039e907664"
+      },
+      "sj/orch_cd/evalx/work/milestone/orchard_job.py": {
+        "bytes": 13438,
+        "sha256": "4c24c386ea0679e6f812c0cf6fbad2d593c427327cd7c69b80bf9a558c35314b"
+      },
+      "sj/orch_cd/evalx/work/milestone/orchard_launcher.py": {
+        "bytes": 20422,
+        "sha256": "f52224b343f14ab59e214e91c4e1ff1532e99430adf17dbea63b0f51d0fef4a6"
+      },
+      "sj/orch_cd/evalx/work/milestone/orchard_native/FRAME_PULLER.py": {
+        "bytes": 2891,
+        "sha256": "46000e96334535933239800d1437afc49cc74ca4017c337a43798c9906b8b694"
+      },
+      "sj/orch_cd/evalx/work/milestone/orchard_native/MASK_CACHE_C8_BOUND.json": {
+        "bytes": 144961,
+        "sha256": "3be02a82ed2983715db108fe0326dea59ccd1571bae3d6ae476c27074ba06f8e"
+      },
+      "sj/orch_cd/evalx/work/milestone/orchard_native/MASK_CACHE_P6_BOUND.json": {
+        "bytes": 144961,
+        "sha256": "bf8d73a6f76b03ee6ad696c3b9c531909263966b846aa965dbc6e47ab5322ca5"
+      },
+      "sj/orch_cd/evalx/work/milestone/orchard_native/kernels.py": {
+        "bytes": 11451,
+        "sha256": "38875ff25ae89260ec596dce1b169668cb4bf1f7e13b23c2c88f7f04cc109bda"
+      },
+      "sj/orch_cd/evalx/work/milestone/orchard_native/native_common.py": {
+        "bytes": 7373,
+        "sha256": "a501d9c3332d97568661087befba36d195b316b8bc425b29701c3f38268910e9"
+      },
+      "sj/orch_cd/evalx/work/milestone/orchard_native/native_cpu_replica.py": {
+        "bytes": 7991,
+        "sha256": "e99ec29a89a6e1723d15de4019c34dfe842605302db72040a6f3a0d3c9073897"
+      },
+      "sj/orch_cd/evalx/work/milestone/orchard_native/native_job.py": {
+        "bytes": 14112,
+        "sha256": "b8f94ec554f63ac3379dc4cf1c9af560cfbd0ec9d0723747ae9b87645605658d"
+      },
+      "sj/orch_cd/evalx/work/milestone/orchard_native/native_launcher.py": {
+        "bytes": 14978,
+        "sha256": "a8059d757a4faf7719432cf023ffb9934d85ee0eb7779c2b9f43595f5bb48dc1"
+      },
+      "sj/orch_cd/evalx/work/milestone/orchard_native/native_local_check.py": {
+        "bytes": 17450,
+        "sha256": "fd2a08890e9c9ea6ebef730554854fc72355b35aa568762862a0a5a00ff1d68b"
+      },
+      "sj/orch_cd/evalx/work/milestone/orchard_native/native_metrics.py": {
+        "bytes": 28354,
+        "sha256": "e1f14fda828f984c9d6d184ba1007df896e92e51f80d1775800557dc04730966"
+      },
+      "sj/orch_cd/evalx/work/milestone/orchard_native/native_pin_graph.py": {
+        "bytes": 34382,
+        "sha256": "21c44e0d0e758fe6655cbd558be4a98a22b863585d631b874b742aee7ff04a4b"
+      },
+      "sj/orch_cd/evalx/work/milestone/orchard_native/native_stage.py": {
+        "bytes": 25047,
+        "sha256": "e1660f77f56f696da03a60c21f9dcfc2c7fb8fbe68dc3fefd33f6c21fc563711"
+      },
+      "sj/orch_cd/evalx/work/milestone/orchard_native/native_worker.py": {
+        "bytes": 19655,
+        "sha256": "cedb7bea5b94e345adcbf95f779c9be3d36e0064460055eca0bddefbcee7ebc7"
+      },
+      "sj/orch_cd/evalx/work/milestone/orchard_native/producer_bridge/sa/prestage_hooks.py": {
+        "bytes": 29831,
+        "sha256": "b946487191158333dbd0df07b8b1849109b944a7be0ac09a6814d3b4a0ae0a0d"
+      },
+      "sj/orch_cd/evalx/work/milestone/orchard_native/producer_bridge/sa/sitecustomize.py": {
+        "bytes": 8503,
+        "sha256": "b3eeec3c45e00249b9d60db057b55fbd3ed1e7f2a53e6d88eba2bdaf36b94c58"
+      },
+      "sj/orch_cd/evalx/work/milestone/orchard_results.py": {
+        "bytes": 20869,
+        "sha256": "97cc89573ff944248e4ae92bd238e42b2af6fa31cb6ceb5c85b1342497d803ac"
+      },
+      "sj/orch_cd/evalx/work/milestone/orchard_stage.py": {
+        "bytes": 13935,
+        "sha256": "eb26cea5b056f9fa88c1675109cd18db693f94436a9ccb92aaf3beb092a8d424"
+      },
+      "sj/orch_cd/evalx/work/milestone/stdout_transfer.py": {
+        "bytes": 7319,
+        "sha256": "85ad256cfa7836948ddba934ca82537486fc3c42cab06fa5442de86caef2e0f6"
+      },
+      "stage_candidate.py": {
+        "bytes": 1942,
+        "sha256": "d41dc143b69fa8c0374099122a9e96d8cc42afa6a27112d8c12b160f33c15a3c"
+      },
+      "staging.py": {
+        "bytes": 5066,
+        "sha256": "c4a62968e5f916b05d8f5e28bcc5a49d978d7e9b254dc1e5c70fa762a3e49f46"
+      },
+      "transport.py": {
+        "bytes": 7501,
+        "sha256": "2911533035781705682125fa9790c0af388248cee5ad28cba01200b0d3c6cb32"
+      },
+      "worker.py": {
+        "bytes": 6501,
+        "sha256": "7fb560c9ad8c0f5aa301f27f97967543c1fe917b9765fe1d0c6c4277e660043c"
+      }
+    },
+    "regular_only": true,
+    "sha256": "9ffa724919aa52adf94793a5f0a6912d867797d8aa55a179d2366282bc695bdc"
+  },
+  "input_manifest": {
+    "bytes": 2385920,
+    "deterministic_metadata": true,
+    "file": "out/inputs_g2.tar",
+    "hard_links": 0,
+    "members": {
+      "BASELINE_CONFIG.json": {
+        "bytes": 2220919,
+        "sha256": "4f24e430df145abded9f69ba54cb3c21d4f0cc92ff86e37175f872f9abb5637a"
+      },
+      "BASELINE_prepare_config.json": {
+        "bytes": 21113,
+        "sha256": "f7f55f8addd9b0330fecf579b2406de4cccb6adce8c919ae42b90ba00c03da3e"
+      },
+      "items.json": {
+        "bytes": 32683,
+        "sha256": "b877fdaf760ef13c27045c77c07300451b0f7dfe9a1b775fdfb89c980be3513e"
+      },
+      "reference.json": {
+        "bytes": 101343,
+        "sha256": "68fe26f2f09262589d48bc87c292696d0d0bec662b54b97561e11ec098bf3705"
+      }
+    },
+    "regular_only": true,
+    "sha256": "3be24165b9856024dc5359b1760a8a1ad88f11022972fb3d075edb70c02aff72"
+  },
+  "tests": {
+    "admission_sha256": "211ef03fbeb433208d2308011f824d72c44dc22ed0391817f3bfd17ba05550dd",
+    "build_round": "G3",
+    "completed_utc": "2026-11-16T14:50:44.591116+00:00",
+    "family_sha256": "273d5d5661fc7fea166aa6603411c1db8e23c7a8e9bc8b7ae8f8c1044737029b",
+    "metadata": "out/RESTORATION_TEST.json",
+    "mutants": "out/MUTANTS.json",
+    "mutants_log": "out/g3_mutants.log",
+    "mutants_returncode": 0,
+    "process_fixture": "out/PROCESS_TEST.json",
+    "status": "PASS",
+    "suites": [
+      {
+        "command": [
+          "/scratch/jjyeung/envs/p1cpu/bin/python",
+          "-I",
+          "-s",
+          "-B",
+          "work/run_c8r_tests.py"
+        ],
+        "errors": 0,
+        "failures": 0,
+        "log": "out/g3_c8r_tests.log",
+        "name": "C8r",
+        "path": "out/C8R_TESTS.json",
+        "returncode": 0,
+        "start_utc": "2026-11-16T14:46:31.389372+00:00",
+        "status": "PASS",
+        "tests": 28
+      },
+      {
+        "command": [
+          "/scratch/jjyeung/envs/p1cpu/bin/python",
+          "-I",
+          "-s",
+          "-B",
+          "out/tests/test_g2.py"
+        ],
+        "errors": 0,
+        "failures": 0,
+        "log": "out/g3_g2_tests.log",
+        "name": "G2",
+        "path": "out/G2_TESTS.json",
+        "returncode": 0,
+        "start_utc": "2026-11-16T14:46:33.016346+00:00",
+        "status": "PASS",
+        "tests": 33
+      },
+      {
+        "command": [
+          "/scratch/jjyeung/envs/p1cpu/bin/python",
+          "-I",
+          "-s",
+          "-B",
+          "out/tests/test_processes.py"
+        ],
+        "errors": 0,
+        "failures": 0,
+        "log": "out/g3_processes_tests.log",
+        "name": "processes",
+        "path": "out/PROCESS_TESTS.json",
+        "returncode": 0,
+        "start_utc": "2026-11-16T14:46:38.172522+00:00",
+        "status": "PASS",
+        "tests": 5
+      },
+      {
+        "command": [
+          "/scratch/jjyeung/envs/p1cpu/bin/python",
+          "-I",
+          "-s",
+          "-B",
+          "out/tests/test_return.py"
+        ],
+        "errors": 0,
+        "failures": 0,
+        "log": "out/g3_returns_tests.log",
+        "name": "returns",
+        "path": "out/RETURN_TESTS.json",
+        "returncode": 0,
+        "start_utc": "2026-11-16T14:46:42.798672+00:00",
+        "status": "PASS",
+        "tests": 6
+      },
+      {
+        "command": [
+          "/scratch/jjyeung/envs/p1cpu/bin/python",
+          "-I",
+          "-s",
+          "-B",
+          "work/report_tests.py"
+        ],
+        "errors": 0,
+        "failures": 0,
+        "log": "out/g3_report_tests.log",
+        "name": "report",
+        "path": "out/REPORT_TESTS.json",
+        "returncode": 0,
+        "start_utc": "2026-11-16T14:46:42.951919+00:00",
+        "status": "PASS",
+        "tests": 28
+      },
+      {
+        "command": [
+          "/scratch/jjyeung/envs/p1cpu/bin/python",
+          "-I",
+          "-s",
+          "-B",
+          "out/tests/test_g1.py"
+        ],
+        "errors": 0,
+        "failures": 0,
+        "log": "out/g3_g1_tests.log",
+        "name": "G1",
+        "path": "out/G1_TESTS.json",
+        "returncode": 0,
+        "start_utc": "2026-11-16T14:47:04.415468+00:00",
+        "status": "PASS",
+        "tests": 24
+      },
+      {
+        "command": [
+          "/scratch/jjyeung/envs/p1cpu/bin/python",
+          "-I",
+          "-s",
+          "-B",
+          "out/tests/test_stage.py"
+        ],
+        "errors": 0,
+        "failures": 0,
+        "log": "out/g3_stager_tests.log",
+        "name": "stager",
+        "path": "out/STAGE_TESTS.json",
+        "returncode": 0,
+        "start_utc": "2026-11-16T14:47:04.877285+00:00",
+        "status": "PASS",
+        "tests": 10
+      }
+    ],
+    "tensor_fixture": "out/rehearsal/whole/TENSOR_CHECKS.json",
+    "tests": 134,
+    "whole_worker": "out/rehearsal/whole/31f44f39c63b4d68be53660ff5780980/RESULT.json",
+    "whole_worker_evidence_source": "Operator report supplied in the G3 task; protected run directory was not accessed."
+  },
+  "audit": {
+    "archive_members_verified": true,
+    "build_round": "G3",
+    "code_pins_verified": true,
+    "code_sha256": "9ffa724919aa52adf94793a5f0a6912d867797d8aa55a179d2366282bc695bdc",
+    "family_sha256": "273d5d5661fc7fea166aa6603411c1db8e23c7a8e9bc8b7ae8f8c1044737029b",
+    "gpu_parity_validated": false,
+    "input_pins_verified": true,
+    "inputs_sha256": "3be24165b9856024dc5359b1760a8a1ad88f11022972fb3d075edb70c02aff72",
+    "metadata_sha256": "d04e294d2cf2908fef45208280f9bc7313b0a54ae0b71d0be1403358a9cde443",
+    "operator_harness_files_unchanged": true,
+    "original_production_inventory_preserved": true,
+    "pin_table_rows": 46,
+    "production_authorized": false,
+    "real_tensors_validated": false,
+    "rehearsal_and_backup_files_excluded": true,
+    "release_ready": false,
+    "report_mutants": 25,
+    "report_sha256": "6fead56128b2081314e52aa0ca6a7ab2f077aac72078554f2d1d7b61067aacc6",
+    "status": "PASS_FOR_PACKAGE_INTEGRITY_ONLY",
+    "tests": 134,
+    "token_identity_validated": false,
+    "whole_worker_evidence": "out/rehearsal/whole/31f44f39c63b4d68be53660ff5780980/RESULT.json",
+    "whole_worker_evidence_source": "Operator report; protected directory not accessed",
+    "whole_worker_executed": true,
+    "whole_worker_executed_by_g3": false,
+    "whole_worker_scope": "CPU fixture only"
+  },
+  "blockers": {
+    "blockers": [
+      {
+        "context_evidence": [
+          "out/NAMING_CONFLICT.json",
+          "G3 task: operator-supplied Orchard staging context"
+        ],
+        "description": "Runtime item keys, signed metadata paths and trainer members still expose prohibited names.",
+        "evidence": "out/NAMING.json",
+        "id": "naming",
+        "operator_context": "The seven names sit inside the sealed trainer tree b01ce449, the same tree job 170056 and D0's training job already staged on Orchard; ORCH decides.",
+        "status": "OPEN"
+      },
+      {
+        "description": "The operator reports that the CPU fixture passes stage, prepare, proof, canary, native subset, merge, admit, publish, fetch and report. The report correctly refuses the incomplete fixture. This closes the CPU-fixture blocker only.",
+        "details": "out/rehearsal/OPERATOR_EVIDENCE_G3.json",
+        "evidence": "out/rehearsal/whole/31f44f39c63b4d68be53660ff5780980/RESULT.json",
+        "evidence_source": "Operator-supplied; G3 did not access the protected run directory.",
+        "id": "whole_worker",
+        "limitations": [
+          "The fixture cannot establish real tensors, GPU parity or token identity.",
+          "Production cloud staging and allocation remain unvalidated."
+        ],
+        "scope": "CPU fixture only",
+        "status": "CLOSED"
+      },
+      {
+        "description": "New coordinator, single-arm admission and checker namespace adapter need independent review and live runtime validation.",
+        "evidence": "out/DIFF.md",
+        "id": "production_review",
+        "status": "OPEN"
+      },
+      {
+        "description": "Each production milestone needs its own closure, completed export, matching review and exact ORCH GO.",
+        "evidence": "out/RUN.md",
+        "id": "candidate_authority",
+        "status": "WAITING_FOR_OPERATOR"
+      }
+    ],
+    "g1_blocker_status": {
+      "1": "CLOSED_FOR_REAL_METADATA; actual tensor restore remains in-job",
+      "2": "IMPLEMENTED_AND_CPU_FIXTURE_TESTED; production runtime remains unvalidated",
+      "3": "OPEN; outer archive aliases and projections only",
+      "4": "CLOSED_FOR_CPU_FIXTURE; operator-supplied pass; real tensors/GPU parity/token identity unproven"
+    },
+    "not_checked": [
+      "Real candidate export weights",
+      "GPU restore/parity/token identity",
+      "Production whole-worker execution with real tensors",
+      "Orchard allocation and resource admission",
+      "Live GCS generations/credentials and publication",
+      "Live result-pool state",
+      "Installed ossh/governor CLI",
+      "Complete runtime naming migration"
+    ],
+    "production_packet_authorized": false,
+    "status": "NOT_READY"
+  },
+  "family_sha256": "273d5d5661fc7fea166aa6603411c1db8e23c7a8e9bc8b7ae8f8c1044737029b"
+}

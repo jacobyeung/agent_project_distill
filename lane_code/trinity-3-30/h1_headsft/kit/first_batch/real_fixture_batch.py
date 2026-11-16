@@ -27,6 +27,7 @@ def parser():
     p.add_argument('--routing-per-rank', type=int, default=2)
     p.add_argument('--force-pose-own', action='store_true')
     p.add_argument('--threads', type=int, default=16)
+    p.add_argument('--restore', help='RESTORE.json of a path-rewritten restore (b04 stage_restore); binds the local artifact to the pinned original')
     return p
 
 
@@ -66,8 +67,21 @@ def read_inputs(args):
     receipt = json.loads(Path(args.receipt).read_text())
     artifact = json.loads(Path(args.artifact).read_text())
     pin = file_pin(args.artifact)
-    if pin['sha256'] != cfg['init_artifact']['artifact']['sha256']:
-        raise ValueError('step-544 artifact digest differs from the D0 initialization pin')
+    want = cfg['init_artifact']['artifact']['sha256']
+    if pin['sha256'] != want:
+        # A restore rewrites only artifact.full_weights.path and artifact.heads.path; bind it to the pinned original.
+        if not getattr(args, 'restore', None):
+            raise ValueError('step-544 artifact digest differs from the D0 initialization pin')
+        restore = json.loads(Path(args.restore).read_text())
+        original = restore['original']['artifact']
+        if original['sha256'] != want or restore['local']['artifact.json']['sha256'] != pin['sha256']:
+            raise ValueError('restore record does not bind this artifact to the D0 initialization pin')
+        if file_pin(original['path'])['sha256'] != want:
+            raise ValueError('original step-544 artifact differs from the D0 initialization pin')
+        source = json.loads(Path(original['path']).read_text())
+        strip = lambda a: {**a, 'full_weights': {**a['full_weights'], 'path': None}, 'heads': {**a['heads'], 'path': None}}
+        if strip(source) != strip(artifact):
+            raise ValueError('restored artifact differs from the original beyond full_weights/heads paths')
     if artifact.get('step') != 544:
         raise ValueError('expected the step-544 initialization export')
     if manifest.get('schema') != 'p3-model-input-v1':
@@ -79,7 +93,7 @@ def read_inputs(args):
     return cfg, manifest, {**receipt, 'recipe': recipe, 'h1': cfg['h1']}, pin
 
 
-def real_loader(manifest, receipt, artifact_pin):
+def real_loader(manifest, receipt, artifact_pin, cfg=None):
     from student_pilot import carrier_c1_run as R
     try:
         # Open a declared asset before Transformers can turn a missing directory
@@ -93,6 +107,11 @@ def real_loader(manifest, receipt, artifact_pin):
         processor = R.processor_for_receipt(manifest, receipt)
         loading = {k: v for k, v in receipt.items() if k not in ('init_artifact', 'depth_init')}
         model = R.load_model(manifest, loading, processor, evaluation=True)
+        if (cfg or {}).get('depth_init') and 'depth_init' not in receipt and hasattr(model.auxiliary_heads, 'depth'):
+            # As b04's parity.load_native: the omitted stage-1 depth init also froze the private encoder copy, and the
+            # export's trained-group contract counts only tensors that stayed trainable.
+            model.auxiliary_heads.depth.model.visual.requires_grad_(False)
+            model.depth_stage1 = True
         R.load_artifact(model, artifact_pin)
     except (FileNotFoundError, NotADirectoryError) as exc:
         raise FileNotFoundError('Missing node-local model/processor/artifact file: '+str(exc)) from exc
@@ -161,8 +180,8 @@ def run(args, loader=None):
     from student_pilot.carrier_c1_data import mixed_indices
     if os.environ.get('CUDA_VISIBLE_DEVICES') != '':
         raise ValueError('Set CUDA_VISIBLE_DEVICES="" for this CPU-only diagnostic')
-    if not 1 <= args.threads <= 16:
-        raise ValueError('--threads must be in 1..16')
+    if not 1 <= args.threads <= 64:
+        raise ValueError('--threads must be in 1..64')
     ranks = [int(r) for r in args.ranks.split(',')]
     if not ranks or len(set(ranks)) != len(ranks) or any(r not in range(4) for r in ranks):
         raise ValueError('--ranks must be distinct ranks in 0,1,2,3')
@@ -184,12 +203,14 @@ def run(args, loader=None):
     with local_io(out):
         try:
             cfg, manifest, receipt, pin = read_inputs(args)
-            model, processor = (loader or real_loader)(manifest, receipt, pin)
+            model, processor = loader(manifest, receipt, pin) if loader else real_loader(manifest, receipt, pin, cfg)
             model.recipe = receipt['recipe']
             model.to(torch.device('cpu')).train()
             rows, summary['fixtures'] = fixture_rows(cfg, processor, args.frames, args.frames_root)
             recipe = model.recipe
-            counts = {s: rows.count(s) for s in set(recipe['mix'])}
+            # Trainer order: the preparation receipt's streams follow cfg['streams'] order, which seeds each stream's shuffle.
+            counts = {s: rows.count(s) for s in cfg['streams'] if s in set(recipe['mix'])}
+            if set(counts) != set(recipe['mix']):raise ValueError('config streams lack a mix stream')
             plan = next(mixed_indices(counts, 2, start_step=1, seed=17,
                                      training_mode='final', mix=recipe['mix'], world=4))
             summary.update(plan_counts=counts, hash_seed=os.environ.get('PYTHONHASHSEED'),

@@ -58,11 +58,13 @@ class ArtifactError(ValueError):
 
 class Artifact:
     def __init__(self, root, manifest_name, manifest_sha256, *, code_roots=None, required_roles=REQUIRED_ROLES,
-                 env_roots=()):
+                 env_roots=(), write_roots=()):
         """env_roots: extra installed-library directories of the runtime environment (e.g. a site-packages overlay),
         trusted like the interpreter's own site-packages and listed in every audit report."""
         self.root = Path(root).resolve()
         self.env_roots = tuple(os.path.realpath(r) + '/' for r in env_roots)
+        # write_roots: runtime cache directories (Triton/Inductor/HF caches of the run); every other write is refused.
+        self.write_roots = tuple(os.path.realpath(r) + '/' for r in write_roots)
         self.code_roots = {k: Path(v).resolve() for k, v in (code_roots or {}).items()}
         path = self.root / manifest_name
         if sha256(path) != manifest_sha256:
@@ -268,9 +270,13 @@ class Audit:
         if path.startswith(SYSTEM_PREFIXES):
             return
         if WRITE_FLAGS & set(mode):
+            if path.startswith(self.artifact.write_roots):
+                return
             return self._refuse('write', path)
         if path in self.artifact.allowed:
             return
+        if not path.endswith(CODE_SUFFIXES) and (_stdlib(path) or path.startswith(self.artifact.env_roots)):
+            return  # installed-library data (package resources), pinned with the runtime environment
         if path.endswith(CODE_SUFFIXES) or (path.endswith('.pth') and _stdlib(path)):
             source = path
             if path.endswith('.pyc') and '/__pycache__/' in path:
@@ -299,7 +305,7 @@ class Audit:
         return False
 
     def report(self):
-        return dict(opens=len(self.opens), model_entries=self.entries, env_roots=list(self.artifact.env_roots),
+        return dict(opens=len(self.opens), model_entries=self.entries, env_roots=list(self.artifact.env_roots), write_roots=list(self.artifact.write_roots),
                     violations=[list(v) for v in self.violations],
                     data_files=sorted({p for p, _ in self.opens if p in self.artifact.allowed}))
 

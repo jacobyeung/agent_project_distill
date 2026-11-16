@@ -7,6 +7,8 @@ B=Path(__file__).resolve().parents[2];sys.path.insert(0,str(B/'out/guard_kit'))
 from guard_core import read,write,sha
 from transport import Publisher
 from worker import child,coordinate
+sys.path.insert(0,str(Path(__file__).parent))
+from stage_fixture import stage_fixture
 class Processes(unittest.TestCase):
  def setUp(self):
   self.d=B/'work/process_tests'/uuid.uuid4().hex;self.d.mkdir(parents=True)
@@ -31,7 +33,8 @@ class Processes(unittest.TestCase):
  def test_coordinator_archives_failed_proof_without_candidate(self):
   commands={role:self.command(role)+(['--fail'] if role=='proof' else []) for role in ('proof','candidate')}
   root=self.d.with_name(self.d.name+'_coordinator');root.mkdir()
-  result=coordinate(root,dict(plan_sha256='d'*64,gpu_seconds=310),self.d,self.pub,lambda:commands,dict(os.environ),fixture=True)
+  config=dict(stage_fixture(root),plan_sha256='d'*64,gpu_seconds=310)
+  result=coordinate(root,config,self.d,self.pub,lambda:commands,dict(os.environ),fixture=True)
   self.assertEqual(result['status'],'FAIL')
   self.assertFalse((self.d/'CANARY.json').exists());self.assertFalse((self.d/'TAIL_STARTED.json').exists())
   self.assertEqual(read(self.d/'store'/('c'*16)/'EXIT.json')['status'],'FAIL')

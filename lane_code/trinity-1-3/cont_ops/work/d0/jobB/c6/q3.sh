@@ -1,5 +1,5 @@
 export TZ=UTC; KB=/project/community/jjyeung/okh7/x_f5c353f7; R=$KB/runs/359fcc3c
-date -u +%FT%TZ; squeue -u jjyeung -h -o '%i %j %P %T %M %N' 2>&1
+date -u +%FT%TZ; squeue -u jjyeung -h -o '%i %j %P %T %M %N %r %b' 2>&1
 echo "== steps"; tail -3 $KB/o/170111.steps; tail -2 $KB/o/170111.w.steps
 echo "== done"; ls -la --time-style=+%FT%T $KB/o/ | grep 'gcs_359fcc3c_m.*\.done' | tail -4
 echo "== err"; tail -c 4000 $KB/o/170111.err | tr -c '[:print:]\n' ' ' | grep -v -i 'FutureWarning\|set_state_dict_type\|^ *$' | tail -4

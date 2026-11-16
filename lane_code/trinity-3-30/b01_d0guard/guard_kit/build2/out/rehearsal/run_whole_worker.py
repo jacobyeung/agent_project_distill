@@ -11,7 +11,7 @@ B=Path(__file__).resolve().parents[2];W=B.parents[1]/'work';K=B/'out/guard_kit'
 sys.path[:0]=[str(K),str(Path(__file__).parent)]
 from guard_core import read,write,sha,digest
 from transport import Publisher,archive_result,copy_verified,verify_return,extract
-from worker import coordinate
+from worker import coordinate,report_command
 from prepare_whole import prepare
 LOGICAL=Path('/scratch/jjyeung/orch_cd/evalx/work/milestone')
 SHARED=W/'from113/builds/01_c8/work/rehearsal_assets/d03de829ae52386f'
@@ -100,12 +100,20 @@ def main():
                 '--export','/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/'+run+'/m'+str(step)+'/artifact.json',
                 '--sha256',exported['artifact']['sha256'],'--base',exported['base'],'--step',str(step),'--output',str(check)]
             subprocess.run(command,check=True,env=environment,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            checked=read(check)
+            receipt_dir=dest/'exports'/(run+'_m'+str(step));receipt_dir.mkdir(parents=True)
+            copy_verified(check,receipt_dir/'CHECK.json')
+            staged=dict(status='complete',run=run,step=step,artifact_sha256=exported['artifact']['sha256'],
+                        checker=checked,fixture=True,archive=exported['archive'])
+            write(receipt_dir/'RECEIPT.json',staged)
+            if role=='candidate':write(dest/'CANDIDATE_STAGE.json',staged)
         report['tested_steps'].append('stage')
         base=ns+[sys.executable,'-I','-s','-B',str(Path(__file__).parent/'inside_whole.py'),
             '--config',str(fixture/'WORKER.json'),'--out',str(output)]
         return {role:base+['--role',role]+(['--mismatch'] if a.mismatch and role=='proof' else [])
                 for role in ('proof','candidate')}
-    lifecycle=coordinate(dest,dict(plan_sha256=digest(read(fixture/'CONFIG.json')),gpu_seconds=7500),
+    config=read(fixture/'CONFIG.json')
+    lifecycle=coordinate(dest,dict(config,plan_sha256=digest(config),gpu_seconds=7500),
         output,publisher,stage_and_prepare,environment,fixture=True)
     phases,error=lifecycle['phases'],lifecycle['error']
     report['coordinator']=dict(path=str(K/'worker.py'),sha256=sha(K/'worker.py'),shared_with_production=True)
@@ -117,8 +125,8 @@ def main():
     verify_return(read(fetched/'EXIT.json'),fetched/'result.tar.gz',digest(read(fixture/'CONFIG.json')),allow_fixture=True)
     extract(fetched/'result.tar.gz',fetched/'x',300_000_000)
     script=B.parents[1]/'guard_kit/report/guard_read.py';before=sha(script)
-    command=[sys.executable,'-I','-s','-B',str(script),'--candidate',str(fetched/'x/R1.json'),
-        '--step544',str(B.parents[1]/'guard_kit/report/tests/fixtures/R1_544_COMPACT.json'),'--out',str(dest/'report')]
+    command=report_command(config,script,fetched/'x/R1.json',
+        B.parents[1]/'guard_kit/report/tests/fixtures/R1_544_COMPACT.json',dest/'report')
     with (dest/'report.log').open('w') as log:result=subprocess.run(command,stdout=log,stderr=subprocess.STDOUT)
     if sha(script)!=before:raise ValueError('Report source changed')
     # Twenty items are intentionally insufficient for the frozen full-list report.

@@ -20,13 +20,13 @@ ns=summary('n05.log',112,1);rs=summary('r10.log',37)
 review=Path('/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/review_offnative/review_offnative_tests/test_review_offnative.py')
 assert (N/'kit/tests/test_review_offnative.py').read_bytes()==review.read_bytes()
 fixtures=[]
-for row in json.loads((RAM/'n_fixtures.json').read_text()):
+for row in json.loads((RAM/'n_fixtures_final.json').read_text()):
     assert row['returncode']==0
     p=RAM/row['name']/'RESULT.json';v=json.loads(p.read_text());assert v['passed']
     fixtures.append(dict(path=str(p.parent),passed=True,reader=row['reader'],benchmark=row['benchmark'],result_sha256=sha(p),trace_sha256=sha(RAM/(row['name']+'.json'))))
 assert len(fixtures)==4;dump(N/'out/N5_FIXTURES.json',fixtures)
 rehearsals=[]
-for row in json.loads((RAM/'r_rehearsals3.json').read_text()):
+for row in json.loads((RAM/'r_rehearsals_final.json').read_text()):
     assert row['returncode']==0
     p=RAM/row['name']/'RESULT.json';v=json.loads(p.read_text());assert v['passed']
     rehearsals.append({k:v[k] for k in ('passed','items','config_mode','phase_b_items','real_processor','boundaries')}|dict(path=str(p.parent),result_sha256=sha(p),done=row['done']))

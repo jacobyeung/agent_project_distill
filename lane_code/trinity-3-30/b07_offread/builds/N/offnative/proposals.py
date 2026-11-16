@@ -58,11 +58,6 @@ def build(captures, items, frames_root, destination, *, checkpoint, source, stub
                   '--max-bytes','500000000','--max-seconds','14400']
             if stub:
                 argv+=['--stub']
-                if Path(destination).is_relative_to('/dev/shm/b07_n4'):
-                    # CPU fixture transport adapter; the frozen inference source stays byte-identical.
-                    script=argv[2]
-                    code_text="import sys,runpy;from pathlib import Path;sys.path.insert(0,str(Path(sys.argv[1]).parent));import kitlib;old=kitlib.scratch;kitlib.scratch=lambda p:Path(p).resolve() if Path(p).resolve().is_relative_to('/dev/shm/b07_n4') else old(p);sys.argv=sys.argv[1:];runpy.run_path(sys.argv[0],run_name='__main__')"
-                    argv=[sys.executable,'-B','-c',code_text,script,*argv[3:]]
             else:argv+=['--checkpoint',str(checkpoint),'--source',str(source)]
             argv+=list(extra)
             with (directory/'execution.log').open('xb') as log:

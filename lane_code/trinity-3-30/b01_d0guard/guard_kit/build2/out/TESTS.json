@@ -1,13 +1,16 @@
 {
   "admission_sha256": "211ef03fbeb433208d2308011f824d72c44dc22ed0391817f3bfd17ba05550dd",
-  "build_round": "G3",
-  "completed_utc": "2026-11-16T14:50:44.591116+00:00",
-  "family_sha256": "273d5d5661fc7fea166aa6603411c1db8e23c7a8e9bc8b7ae8f8c1044737029b",
+  "build_round": "G5",
+  "completed_utc": "2026-11-16T17:04:48.044795+00:00",
+  "family_sha256": "23cadfceac2896ab0f5f0ae7edc05cca64af7925277539beae321b784cf2f302",
   "metadata": "out/RESTORATION_TEST.json",
   "mutants": "out/MUTANTS.json",
-  "mutants_log": "out/g3_mutants.log",
+  "mutants_log": "out/g5_mutants.log",
+  "mutants_report_sha256": "5424e41c68fc1918386c62865a68d7b3c1af2802f2800b1f0455837568a3cd11",
   "mutants_returncode": 0,
+  "mutants_reused_from_same_g4_source": false,
   "process_fixture": "out/PROCESS_TEST.json",
+  "report_sha256": "5424e41c68fc1918386c62865a68d7b3c1af2802f2800b1f0455837568a3cd11",
   "status": "PASS",
   "suites": [
     {
@@ -20,11 +23,11 @@
       ],
       "errors": 0,
       "failures": 0,
-      "log": "out/g3_c8r_tests.log",
+      "log": "out/g5_c8r_tests.log",
       "name": "C8r",
       "path": "out/C8R_TESTS.json",
       "returncode": 0,
-      "start_utc": "2026-11-16T14:46:31.389372+00:00",
+      "start_utc": "2026-11-16T16:58:41.066803+00:00",
       "status": "PASS",
       "tests": 28
     },
@@ -38,11 +41,11 @@
       ],
       "errors": 0,
       "failures": 0,
-      "log": "out/g3_g2_tests.log",
+      "log": "out/g5_g2_tests.log",
       "name": "G2",
       "path": "out/G2_TESTS.json",
       "returncode": 0,
-      "start_utc": "2026-11-16T14:46:33.016346+00:00",
+      "start_utc": "2026-11-16T16:58:42.879863+00:00",
       "status": "PASS",
       "tests": 33
     },
@@ -56,11 +59,11 @@
       ],
       "errors": 0,
       "failures": 0,
-      "log": "out/g3_processes_tests.log",
+      "log": "out/g5_processes_tests.log",
       "name": "processes",
       "path": "out/PROCESS_TESTS.json",
       "returncode": 0,
-      "start_utc": "2026-11-16T14:46:38.172522+00:00",
+      "start_utc": "2026-11-16T16:58:48.582781+00:00",
       "status": "PASS",
       "tests": 5
     },
@@ -74,11 +77,11 @@
       ],
       "errors": 0,
       "failures": 0,
-      "log": "out/g3_returns_tests.log",
+      "log": "out/g5_returns_tests.log",
       "name": "returns",
       "path": "out/RETURN_TESTS.json",
       "returncode": 0,
-      "start_utc": "2026-11-16T14:46:42.798672+00:00",
+      "start_utc": "2026-11-16T16:58:53.230880+00:00",
       "status": "PASS",
       "tests": 6
     },
@@ -92,13 +95,13 @@
       ],
       "errors": 0,
       "failures": 0,
-      "log": "out/g3_report_tests.log",
+      "log": "out/g5_report_tests.log",
       "name": "report",
       "path": "out/REPORT_TESTS.json",
       "returncode": 0,
-      "start_utc": "2026-11-16T14:46:42.951919+00:00",
+      "start_utc": "2026-11-16T16:58:53.408595+00:00",
       "status": "PASS",
-      "tests": 28
+      "tests": 40
     },
     {
       "command": [
@@ -110,11 +113,11 @@
       ],
       "errors": 0,
       "failures": 0,
-      "log": "out/g3_g1_tests.log",
+      "log": "out/g5_g1_tests.log",
       "name": "G1",
       "path": "out/G1_TESTS.json",
       "returncode": 0,
-      "start_utc": "2026-11-16T14:47:04.415468+00:00",
+      "start_utc": "2026-11-16T16:59:20.718338+00:00",
       "status": "PASS",
       "tests": 24
     },
@@ -128,17 +131,35 @@
       ],
       "errors": 0,
       "failures": 0,
-      "log": "out/g3_stager_tests.log",
+      "log": "out/g5_stager_tests.log",
       "name": "stager",
       "path": "out/STAGE_TESTS.json",
       "returncode": 0,
-      "start_utc": "2026-11-16T14:47:04.877285+00:00",
+      "start_utc": "2026-11-16T16:59:21.170266+00:00",
       "status": "PASS",
       "tests": 10
+    },
+    {
+      "command": [
+        "/scratch/jjyeung/envs/p1cpu/bin/python",
+        "-I",
+        "-s",
+        "-B",
+        "out/tests/test_g4.py"
+      ],
+      "errors": 0,
+      "failures": 0,
+      "log": "out/g5_g4_tests.log",
+      "name": "G4",
+      "path": "out/G4_TESTS.json",
+      "returncode": 0,
+      "start_utc": "2026-11-16T16:59:21.350530+00:00",
+      "status": "PASS",
+      "tests": 12
     }
   ],
   "tensor_fixture": "out/rehearsal/whole/TENSOR_CHECKS.json",
-  "tests": 134,
+  "tests": 158,
   "whole_worker": "out/rehearsal/whole/31f44f39c63b4d68be53660ff5780980/RESULT.json",
-  "whole_worker_evidence_source": "Operator report supplied in the G3 task; protected run directory was not accessed."
+  "whole_worker_evidence_source": "Operator report supplied in the G3 task; whole-worker run was not repeated."
 }

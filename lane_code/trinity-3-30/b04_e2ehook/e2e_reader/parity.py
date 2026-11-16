@@ -6,6 +6,7 @@ No answers are synthesized from tool responses.
 from copy import deepcopy
 import hashlib
 import json
+import os
 from pathlib import Path
 import re
 import time
@@ -188,6 +189,8 @@ def make_real(export_dir, artifact_manifest, items, *, perception_factory=None, 
     specs = dict(artifact_manifest)
     artifact = Artifact(specs['root'], specs['name'], specs['sha256'],
                         code_roots=specs.get('code_roots'), env_roots=settings.get('env_roots', ()),
+                        write_roots=[os.environ[k] for k in ('TRITON_CACHE_DIR', 'TORCHINDUCTOR_CACHE_DIR', 'XDG_CACHE_HOME',
+                                                             'HF_HOME', 'TORCH_HOME') if os.environ.get(k)],
                         required_roles=('checkpoint', 'tokenizer', 'g3t') +
                         (('scale_head',) if arm == 'scale_head' else ())).verify()
     model, processor, info = load_native(export_dir, device=device, settings=settings, artifact=artifact)

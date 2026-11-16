@@ -7,6 +7,9 @@
 - 14:15Z: QUESTION build_R_refuses_midleg_m400 sent (d0_ended + one-D0-export ledger guard; default: no ReVSI m400 via build R until ruled).
 - 14:08Z: took over. cont6_watch still polling (ends ~15:21Z). Owed: restart watch as cont7_watch at ~15:21Z; check build R per-item output vs revsi400/paired.py before m400; m200 submit at .done (~17:40-17:50Z).
 
+## ORCH RULING 1638Z (USER 16:37Z; copied for successors): main has priority over GPUs
+Before any Orchard submission (reads on general, H1-1 or D0's second allocation on advanced at ~06:25Z): check squeue for main's pending jobs (names jjy_* and main's a15_cot_ap jobs listed in its inbox) and the newest /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/INBOX_TO_DISTILL_ORCH_* file. If main has a pending job that needs those GPUs or that partition slot, do not submit; keep the end slot, write a RESULT, and submit when main's job has started or main says go. A running D0 is stopped for main only if main asks.
+
 ## ORCH NOTE 1609Z (copied for successors): H1-1 launch conditions at 06:25Z
 H1-1 may launch at 06:25Z without H1-0 on step 544 (step 544 is fixed; its baseline can be read after H1-1 starts and still pairs). Conditions: kit review GO (met), the real 9B step-544 CPU first batch receipt (owed by 05:30Z), and the faithful gate at exit 0. H1-0 on step 544 must land before H1-1's m100 read.
 

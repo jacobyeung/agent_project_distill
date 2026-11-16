@@ -6,7 +6,7 @@ Accepted reader, scorer, parity and item bytes remain identical. Job names use a
 
 Production requires owner selection/export inputs, native-library path resolution and live runtime validation. CPU stand-ins do not establish GPU or namespace compatibility. Nothing was submitted or uploaded.
 
-vsi: 1558343 bytes; SHA256 `5388aa1e1311c7283586af3f6081045ec0b125b64d33defa38a888d7360221b8`.
-revsi: 1705639 bytes; SHA256 `6afe403e8cac73c431e3df8922db4a7a5b91158aad9f6290828dbeb562cd7511`.
+vsi: 1559298 bytes; SHA256 `03dcb73703051ffba062f136d43b14a6ab253e0552ca343b1826f5227dafbd25`.
+revsi: 1706139 bytes; SHA256 `7c81383d288f84cee397fc25a39ec94b0e643cba936860e0ed0f76dbbbfe6e74`.
 
 R3_VALIDATION.json, R3_REHEARSALS.json, R3_ARCHIVE_CHECK.json, PACKAGE_PINS.json and SHIP_SHA256SUMS record the evidence. Packages are gzip-compressed tar files.

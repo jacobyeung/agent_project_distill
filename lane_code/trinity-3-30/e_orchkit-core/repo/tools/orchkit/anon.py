@@ -34,6 +34,8 @@ WORDS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ANON_WORDS.txt
 JOB_NAME = re.compile(r'^a15_cot_ap[0-9a-f]{16}\Z')
 MAX_BLOB = 256 * 1024 * 1024
 MAX_DEPTH = 8
+LZMA_STREAMS = 64
+ZLIB_DAMAGED = 64
 
 
 class Rule(object):
@@ -72,12 +74,29 @@ def load_rules(path=None):
 def scan_text(where, text, rules, scope='text'):
     """Hits of rules in one string; scope 'name' applies name and text rules, 'text' text rules."""
     hits = []
+    normal = _normal_paths(text) if '/.' in text or '//' in text else None
     for rule in rules:
         if rule.scope == 'name' and scope != 'name':
             continue
-        if rule.regex.search(text):
+        if rule.regex.search(text) or (normal is not None and rule.regex.search(normal)):
             hits.append({'where': where, 'scope': scope, 'rule': rule.label})
     return hits
+
+
+PATH_END = r'(?![^/\s"\',;:)\]}])'
+DOT = re.compile(r'/\.' + PATH_END)
+DOTDOT = re.compile(r'/[^/\s"\',;:=(\[{]+/\.\.' + PATH_END)
+ROOT_DOTDOT = re.compile(r'(?<![^\s"\'=:,;(\[{])/\.\.(?=/)')
+
+
+def _normal_paths(text):
+    """The text with every path written lexically normal, as os.path.normpath would: repeated
+    slashes collapsed, '/./' and 'x/../' components dropped, '/..' at the root dropped."""
+    text, previous = re.sub(r'/{2,}', '/', text), None
+    while previous != text:
+        previous = text
+        text = ROOT_DOTDOT.sub('', DOTDOT.sub('', DOT.sub('', text)))
+    return text
 
 
 ESCAPE = re.compile(r'\\(?:u([0-9a-fA-F]{4})|U([0-9a-fA-F]{8})|x([0-9a-fA-F]{2})|([0-7]{1,3})|N\{([^}]{1,80})\})')
@@ -96,15 +115,17 @@ def _unescape(text):
             return chr(int(match.group(4), 8))
         code = int(match.group(1) or match.group(2) or match.group(3), 16)
         return chr(code) if code < 0x110000 else ''
-    text = re.sub(r'\\\r?\n', '', text)
+    text = re.sub(r'\\(?:\r\n|\r|\n)', '', text)
     return re.sub(r'\\([\s\S])', r'\1', ESCAPE.sub(one, text))
 
 
 def text_views(data):
-    """Every text reading of a blob that a standard decoder gives: Latin-1, NUL bytes dropped,
-    UTF-16 and UTF-32 (either byte order, with or without a BOM), each also with JSON and Python
+    """Every text reading of a blob that a standard decoder gives: Latin-1, UTF-8 (invalid bytes
+    replaced) when a byte is above 0x7f, NUL bytes dropped, UTF-16 and UTF-32 (either byte order, with or without a BOM), each also with JSON and Python
     escapes (\\uXXXX, \\UXXXXXXXX, \\xXX) resolved."""
     views = [data.decode('latin-1')]
+    if re.search(b'[\x80-\xff]', data):
+        views.append(data.decode('utf-8', 'replace'))
     if b'\x00' in data:
         views.append(data.replace(b'\x00', b'').decode('latin-1'))
         for codec in ('utf-16', 'utf-16-le', 'utf-16-be', 'utf-32', 'utf-32-le', 'utf-32-be'):
@@ -142,36 +163,69 @@ UNSUPPORTED = ((b'7z\xbc\xaf\x27\x1c', '7z'), (b'Rar!\x1a\x07', 'rar'), (b'\x28\
                (b'LZIP', 'lzip'), (b'\x1f\x9d', 'compress'), (b'MSCF', 'cab'))
 
 
-def _lzma_dict(data):
-    size = int.from_bytes(data[1:5], 'little')
-    return any(size == 1 << bits or size == 3 << (bits - 1) for bits in range(12, 31))
-
-
 def _gzip_header_text(data):
-    """The stored file name and comment of a gzip header (RFC 1952), as bytes."""
-    if len(data) < 10 or not data.startswith(b'\x1f\x8b'):
-        return b''
-    flags, at, out = data[3], 10, []
-    if flags & 4 and len(data) >= 12:
-        at += 2 + int.from_bytes(data[10:12], 'little')
-    for bit in (8, 16):
-        if flags & bit:
-            end = data.find(b'\x00', at)
-            end = len(data) if end < 0 else end
-            out.append(data[at:end])
-            at = end + 1
-    return b'\n'.join(out)
+    """The stored extra field, file name and comment of every gzip member (RFC 1952), as bytes.
+    Members follow one another as Python's gzip reads them, NUL padding between them skipped."""
+    out, at = [], 0
+    while len(data) - at >= 10 and data.startswith(b'\x1f\x8b', at):
+        flags, at = data[at + 3], at + 10
+        if flags & 4:
+            size = int.from_bytes(data[at:at + 2], 'little')
+            out.append(data[at + 2:at + 2 + size])
+            at += 2 + size
+        for bit in (8, 16):
+            if flags & bit:
+                end = data.find(b'\x00', at)
+                end = len(data) if end < 0 else end
+                out.append(data[at:end])
+                at = end + 1
+        if flags & 2:
+            at += 2
+        engine, chunk, produced = zlib.decompressobj(-zlib.MAX_WBITS), data[at:], 0
+        try:
+            while not engine.eof and produced <= MAX_BLOB:
+                piece = engine.decompress(chunk, 1 << 20)
+                chunk = engine.unconsumed_tail
+                produced += len(piece)
+                if not piece and not chunk:
+                    break
+        except zlib.error:
+            break
+        if not engine.eof:
+            break
+        at = len(data) - len(engine.unused_data) + 8
+        while at < len(data) and data[at] == 0:
+            at += 1
+    return b'\n'.join(part for part in out if part)
+
+
+def _zlib_header(data):
+    """A zlib header (RFC 1950) of any window size: deflate, CINFO <= 7, FCHECK valid."""
+    return len(data) >= 2 and data[0] & 15 == 8 and data[0] >> 4 <= 7 and \
+        (data[0] * 256 + data[1]) % 31 == 0
+
+
+def _lzma_alone_start(data):
+    """An LZMA-alone header the standard decoder accepts: any lc/lp/pb property byte, any
+    dictionary size, a valid size field; the decoder itself is the judge. Every stream holds at
+    least 18 bytes (13 of header, 5 opening the range coder), so a shorter blob is text."""
+    if len(data) < 18 or data[0] >= 225:
+        return False
+    try:
+        lzma.LZMADecompressor(format=lzma.FORMAT_ALONE).decompress(data[:4096], 1)
+    except (lzma.LZMAError, MemoryError):
+        return False
+    return True
 
 
 def _interpretations(where, data):
     """Every container reading of a blob: a compression at its start, a zip anywhere (Python
     reads a zip with a prefix), a tar; a container Python cannot open is 'unsupported'."""
     kinds = [kind for magic, kind in MAGIC[:3] if data.startswith(magic)]
-    if len(data) >= 13 and data[0] == 0x5d and _lzma_dict(data):
+    if _lzma_alone_start(data):
         kinds.append('lzma')
-    if len(data) >= 2 and data[0] == 0x78 and (data[0] * 256 + data[1]) % 31 == 0 and \
-            _decompress('zlib', data) is not None:
-        kinds.append('zlib')
+    if _zlib_header(data) and not data[1] & 32:
+        kinds.append('zlib' if _decompress('zlib', data) is not None else 'zlib-raw')
     if any(data.startswith(magic) for magic, _ in UNSUPPORTED):
         kinds.append('unsupported')
     try:
@@ -218,10 +272,10 @@ def _decompress(kind, data):
         if kind == 'zlib':
             engine = zlib.decompressobj()
             out = engine.decompress(data, MAX_BLOB + 1)
-            if engine.unused_data or not engine.eof:
-                return None
-            return out
-        if kind in ('bz2', 'xz', 'lzma'):
+            return out if engine.eof or len(out) > MAX_BLOB else None
+        if kind == 'lzma':
+            return _lzma_alone(data)
+        if kind in ('bz2', 'xz'):
             engine = bz2.BZ2Decompressor() if kind == 'bz2' else lzma.LZMADecompressor(
                 format=lzma.FORMAT_ALONE if kind == 'lzma' else lzma.FORMAT_AUTO)
             out = engine.decompress(data, MAX_BLOB + 1)
@@ -230,6 +284,55 @@ def _decompress(kind, data):
             return out
     except (OSError, EOFError, ValueError, lzma.LZMAError, zlib.error):
         return None
+    return None
+
+
+def _zlib_raw(data):
+    """The deflate data after a zlib header read without its checksum, 4 KiB at a time: (the
+    output before any error, whether the blob is a damaged zlib stream). Damaged means at least
+    ZLIB_DAMAGED bytes long and either ending its deflate data within 4 bytes of the end (a bad
+    or cut checksum) or cut inside its deflate data after some output; shorter blobs that only
+    look like zlib are text, and their partial output is scanned without refusing them."""
+    engine, out, size = zlib.decompressobj(-zlib.MAX_WBITS), [], 0
+    for at in range(2, len(data), 4096):
+        try:
+            piece = engine.decompress(data[at:at + 4096], MAX_BLOB + 1 - size)
+        except zlib.error:
+            return b''.join(out), False
+        out.append(piece)
+        size += len(piece)
+        if engine.eof or engine.unconsumed_tail:
+            break
+    damaged = len(data) >= ZLIB_DAMAGED and size > 0 and (
+        not engine.eof or len(engine.unused_data) <= 4)
+    return b''.join(out), damaged
+
+
+def _lzma_alone(data):
+    """Decode as lzma.decompress(FORMAT_ALONE) does: streams one after another (a run of 18 NUL
+    bytes is one empty stream), bytes after the last complete stream that do not start another
+    ignored. None when the first stream fails, a stream is cut, or more than LZMA_STREAMS
+    streams follow."""
+    out, size, at = [], 0, 0
+    for _ in range(LZMA_STREAMS):
+        zeros = len(data) - at - len(data[at:].lstrip(b'\x00'))
+        if zeros >= 18:
+            at += zeros - zeros % 18
+            out.append(b'')
+        if at >= len(data) or (out and len(data) - at < 13):
+            return b''.join(out)
+        engine = lzma.LZMADecompressor(format=lzma.FORMAT_ALONE)
+        try:
+            piece = engine.decompress(data[at:], MAX_BLOB + 1 - size)
+        except (lzma.LZMAError, MemoryError):
+            return b''.join(out) if out else None
+        out.append(piece)
+        size += len(piece)
+        if size > MAX_BLOB or (engine.eof and not engine.unused_data):
+            return b''.join(out)
+        if not engine.eof:
+            return None
+        at = len(data) - len(engine.unused_data)
     return None
 
 
@@ -264,6 +367,13 @@ def _expand(where, data, depth):
         yield where, None, 'too-large'
         return
     kinds = _interpretations(where, data)
+    if 'zlib-raw' in kinds:
+        kinds.remove('zlib-raw')
+        partial, damaged = _zlib_raw(data)
+        if partial:
+            yield where + '!zlib-partial', partial, 'partial'
+        if damaged:
+            yield where, None, 'undecodable'
     if not kinds:
         yield where, data, 'file'
         return

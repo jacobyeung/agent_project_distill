@@ -43,7 +43,15 @@ def sources():
 def build(destination,config,binding,items,inputs):
     d=Path(destination)
     files,pins=sources()
-    if inputs and inputs.get('uploaded_media_root'):
+    if inputs and config.get('shard'):
+        from .shards import select
+        from .cohort import media_manifest
+        selected=select(items,config['shard'])
+        relatives={r['relative_path'] for r in media_manifest(binding['benchmark'],selected)}
+        inputs=dict(inputs,media=[r for r in inputs['media'] if r['relative_path'] in relatives])
+        if {r['relative_path'] for r in inputs['media']}!=relatives:
+            raise ValueError('shard media union differs')
+    if inputs and (binding['benchmark']=='vsibench5130' or inputs.get('uploaded_media_root')):
         from .stage_plan import prepare
         _,boot=prepare(binding,inputs,d/'reviewed_stage',config['token'],config['pool'])
         for name,raw in boot.items():files['work/runtime/'+name]=raw

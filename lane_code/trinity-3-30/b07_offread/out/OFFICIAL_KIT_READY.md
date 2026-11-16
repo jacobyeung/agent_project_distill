@@ -1,4 +1,4 @@
-# Official read kit (queue brief 07): state on 2026-11-16 14:16Z
+# Official read kit (queue brief 07): state on 2026-11-16 17:00Z
 
 The direct reader is ready for both benchmarks and both exports; the harness and end-to-end readers are built and pass CPU fixtures on both benchmarks but wait on owner inputs, so no routed official number can be read yet. ReVSI ranks first.
 
@@ -11,9 +11,9 @@ The direct reader is ready for both benchmarks and both exports; the harness and
 | e2e (build N, b04 core) | NOT READY: b04 artifact manifest, EAT-1 PASS, loaded entry; media upload; rehearsal | NOT READY: same as ReVSI plus VSI media |
 
 ## Pieces and hashes
-- offkit (binding, frame guard, aggregation, labels, adapters): `/scratch/jjyeung/orch_n30/b07_offread/kit/offkit`; bind bd74a97f, report 2656c053, frames d6e3d550, adapt_native deefef9e, adapt_direct 667b19b9, spec 539a67a3; 49 tests. Review: GO AFTER FIXES (review_offkit); fixes 1-5 done; re-review of 1, 2, 5 pending (review_offkit2).
-- Build R (direct re-bind): `builds/R/out/REBIND_READY.md`; package_vsi.tar f63f0fda, package_revsi.tar b1ce078e; 32 tests, four CPU rehearsals; review fixes 4 and 6 landed; offkit pinned at run time (out/OFFKIT_PINS.json).
-- Build N (native worker, harness and e2e readers): `builds/N/out/NATIVE_KIT_READY.md`; code.tar de426eb3; 49 tests; synthetic CPU worker fixtures pass for both benchmarks and both readers through all seven phases (stage, frames, towers, identity proof, canary, read, score). The harness runs C8r's real decoder and proposal/cache path; the e2e reader runs a pinned b04 snapshot (vendor/b04_54dce738597e). Answers reach the official scorer byte-equal; C8r's scripted unit-conversion arm is never scored. Not reviewed.
+- offkit (binding, frame guard, aggregation, labels, adapters): `/scratch/jjyeung/orch_n30/b07_offread/kit/offkit`; bind bd74a97f, report 2656c053, frames 2ed9fcc1, adapt_native 8b90fdcb, adapt_direct 667b19b9, spec 539a67a3; 59 tests. Reviews review_offkit and review_offkit2: all fixes applied.
+- Build R (direct re-bind): `builds/R/out/REBIND_READY.md`; package_vsi.tar 03dcb737, package_revsi.tar 7c81383d; 37 tests, four CPU rehearsals; review fixes landed; offkit pinned at run time; in-job paths are random tokens and job names a15_cot_ap + 16 hex.
+- Build N (native worker, harness and e2e readers): `builds/N/out/NATIVE_KIT_READY.md`; code.tar 06731cfa; 113 tests (112 pass; the reviewer case R4 fails by construction, a sibling test covers it); synthetic CPU worker fixtures pass for both benchmarks and both readers through all seven phases (stage, frames, towers, identity proof, canary, read, score). The harness runs C8r's real decoder and proposal/cache path; the e2e reader runs a pinned b04 snapshot (vendor/b04_54dce738597e). Answers reach the official scorer byte-equal; C8r's scripted unit-conversion arm is never scored. Review review_offnative: fixes 1-6 applied (ReVSI prompt indices, unserved budget 2048+64, reduced proof, naming, VSI-Bench sharding); re-review review_offnative2 pending.
 
 ## Frames
 - Frame count and layout are binding parameters. Step 544 and the D0 lineage train on 32 anchors, duplicated; a 64-anchor read of them is refused without an override that every report prints. 64 spread and 32 duplicate send the same 64 frames and 32 temporal groups to the processor, so visual tokens are about equal; a 64 read waits for a 64-trained export.
@@ -25,7 +25,7 @@ The direct reader is ready for both benchmarks and both exports; the harness and
 - Direct reads: 35 minutes VSI-Bench and 13 minutes ReVSI (jobs 170008, 170037) plus D0 staging.
 
 ## Open inputs (owners)
-P8 freeze file with g3t_source and backend values (P8 owner); K1-refit selector that passed its kill rules (K1); init-selection JSON after D0 ends (init-rule owner); b04 artifact manifest, EAT-1 PASS and loaded entry (b04, b03); SAM 3 checkpoint Orchard source (sha 9999e234); the five 170056 distance mask files for the identity proof (`/scratch/jjyeung/mask_recall_run/...` on an unknown node); ReVSI media upload (lane stream rvB, waiting in the governor) and VSI media sizes and receipts.
+P8 freeze file with g3t_source and backend values (P8 owner); K1-refit selector that passed its kill rules (K1); init-selection JSON after D0 ends (init-rule owner); b04 artifact manifest, EAT-1 PASS and loaded entry (b04, b03); SAM 3 checkpoint Orchard source (sha 9999e234); ReVSI media upload and hashes (lane streams rvB and rvA2, waiting in the governor). The five 170056 distance mask files are lost, so the identity proof is reduced for distance items. VSI media: all 288 on Orchard (3.73 GB).
 
 ## Mirrors
 trinity-1-18:/scratch/jjyeung/n30_mirror/b07_offread/ (see STATUS.md for file names and sha256).

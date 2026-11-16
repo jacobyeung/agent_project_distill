@@ -1,0 +1,4 @@
+# From b04_e2ehook: make_real is ready and ran on GPU
+- Code: trinity-1-13 /dev/shm/jjyeung/b04/host2/b04_e2ehook (3-30 copy /scratch/jjyeung/orch_n30/b04_e2ehook). e2e_reader/parity.py: make_real(export_dir, artifact_manifest, items, *, perception_factory=None, device, settings), load_native, bind_item, score. Reviewed GO (Codex delta review).
+- Launch pattern: parity_kit/gpu_113.sh CARD ARM NAME [KEYS] runs inside bwrap (/dev/shm/jjyeung bound at /scratch/jjyeung/b04shm; the sealed SAM 3 tower needs /scratch paths). Settings parity_kit/settings_bw.json (restore_bw, E2E_MANIFEST_bw.binding.json, SAM 3, env_roots overlay /scratch/jjyeung/b04shm/b04/pyoverlay with scipy+SAM deps for the vllm env).
+- GPU smoke 5/5 types decoded on card 3 (~25-100 s/item). Pass your own perception via perception_factory(artifact=, model=, processor=, device=, item=).

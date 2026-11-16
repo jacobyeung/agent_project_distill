@@ -7,6 +7,31 @@ import numpy as np
 
 
 class ContractEdges(unittest.TestCase):
+    def test_export_member_changed_between_staging_and_read(self):
+        import hashlib,io,sys,tarfile
+        from launch_r2.host import stage_init
+        from launch_r2.runtime import init_layout
+        from student_pilot.p3_provenance import file_pin
+        from tests.test_r2_data_path import directory
+        root=directory();staged=root/'staged';archive=root/'fixture.tar'
+        members={'m1/artifact.json':b'{}','m1/heads.pt':b'tiny fixture',
+                 'm1/full_weights/a':b'tiny fixture'}
+        with tarfile.open(archive,'w') as handle:
+            for name,raw in members.items():
+                item=tarfile.TarInfo(name);item.size=len(raw)
+                handle.addfile(item,io.BytesIO(raw))
+        hashes={name:hashlib.sha256(raw).hexdigest() for name,raw in members.items()}
+        previous=sys.getprofile()
+        def move_after_stage(frame,event,result):
+            if event=='return' and frame.f_code is stage_init.__code__ and isinstance(result,dict):
+                (staged/result['m1/heads.pt']).rename(staged/'retained_heads.pt')
+        try:
+            sys.setprofile(move_after_stage)
+            with self.assertRaisesRegex(ValueError,'Init export lacks required member: heads.pt'):
+                init_layout(file_pin(archive),staged,hashes,100)
+        finally:sys.setprofile(previous)
+        self.assertEqual((staged/'retained_heads.pt').read_bytes(),members['m1/heads.pt'])
+
     def test_metric_basis_missing_and_invalid_frames(self):
         from trace_format.contracts import private_metric_basis,contract_epoch
         from student_pilot.ground_lifting import public_centres

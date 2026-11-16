@@ -6,10 +6,11 @@ HERE = Path(__file__).resolve().parent
 SRC = (HERE.parent / "guard_read.py").read_text()
 MUTANTS = [
     ("step544_candidate_allowed", 'require(self_pair or candidate_artifact != STEP544_ARTIFACT,', 'require(True,'),
-    ("candidate_artifact_optional", 'require(bool(candidate_artifact), "the candidate artifact sha256 is required")', 'require(True, "")'),
     ("seed_not_fixed", 'require(draws == DRAWS and seed == SEED,', 'require(draws >= DRAWS,'),
-    ("flags_not_strict", 'require(row.get(flag) is None or type(row[flag]) is bool,', 'require(True,'),
-    ("refusal_record_not_strict", 'require(value is None or type(value) is bool or (isinstance(value, dict) and value),', 'require(True,'),
+    ("required_flags_not_strict", 'require(type(row.get(flag)) is bool,', 'require(True,'),
+    ("optional_flags_not_strict", 'require(flag not in row or type(row[flag]) is bool,', 'require(True,'),
+    ("refusal_record_not_strict", 'require(flag not in row or type(row[flag]) is bool or (isinstance(row[flag], dict) and row[flag]),', 'require(True,'),
+    ("decode_not_record", 'require("decode" not in row or isinstance(row["decode"], dict),', 'require(True,'),
     ("interval_uses_lower_bound", 'return comparison["interval"][1] < 0', 'return comparison["interval"][0] < 0'),
     ("interval_le_zero", 'return comparison["interval"][1] < 0', 'return comparison["interval"][1] <= 0'),
     ("interval_lt_minus_one", 'return comparison["interval"][1] < 0', 'return comparison["interval"][1] < -1'),

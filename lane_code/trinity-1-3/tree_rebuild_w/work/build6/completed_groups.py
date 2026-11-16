@@ -11,10 +11,14 @@ for variant in ('tree', 'base'):
         if not path.exists():
             continue
         value = json.loads(path.read_text())
+        sizes = json.loads((path.parent/'temporary_sizes.json').read_text())
+        peak = max((max(row['before_bytes'], row['after_bytes']) for row in sizes), default=0)
         rows.append(dict(variant=variant, group=group, run=value['tests'],
                          passed=len(value['passed']), errors=len(value['errors']),
                          failures=len(value['failures']), skips=len(value['skips']),
-                         complete=value['complete'], source=str(path.relative_to(L))))
+                         complete=value['complete'], temporary_peak_bytes=peak,
+                         temporary_source=str((path.parent/'temporary_sizes.json').relative_to(L)),
+                         source=str(path.relative_to(L))))
 (B / 'GROUP_COUNTS.json').write_text(json.dumps(rows, indent=2) + '\n')
 print(json.dumps(rows))
 lines = ['# Build 6 status', '',

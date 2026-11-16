@@ -66,10 +66,10 @@ P0
 
 def submission_argv(config, script, *, packet_sha256=None):
     if not re.fullmatch(r'^a15_cot_ap[0-9a-f]{16}$',config['job_name']):raise ValueError('invalid job name')
-    argv = ['sbatch','--parsable','--job-name='+config['job_name'],'--partition=general',
+    argv = ['sbatch','--parsable','--job-name='+config['job_name'],'--partition=general','--account=mt01','--no-requeue',
             '--gres=gpu:1','--cpus-per-task=16','--mem=200G','--output=/dev/null',
             '--time='+str((config['job']['time_limit_s']+59)//60),
-            *(['--export=NONE,A0_PACKET_SHA256='+packet_sha256] if packet_sha256 else ['--export=NONE']),str(script)]
+            *(['--export=A0_PACKET_SHA256='+packet_sha256] if packet_sha256 else ['--export=NONE']),str(script)]
     inventory(' '.join(argv).encode())
     return argv
 

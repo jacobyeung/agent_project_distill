@@ -1,5 +1,5 @@
 # b10_reserve STATUS (Devin lane, trinity-1-18; lane /scratch/jjyeung/orch_n30/b10_reserve) — successor resumes from this file alone
-Updated: 20261116T1500Z.
+Updated: 20261116T1644Z.
 Percent done: ~45% (list frozen, code+tests ready; data streams queued).
 
 ## Done (all paths under the lane folder)
@@ -23,10 +23,12 @@ Percent done: ~45% (list frozen, code+tests ready; data streams queued).
 - ORCH 1450Z: keep priority 15; if b10r0_gt has not started by 20:00Z, write a QUESTION/BLOCKER to ORCH, who asks main for a slot. R0-dev is needed for mid-leg ranking from D0 m400 on.
 - Refute review done (Codex receipt agent/scratch/codex_runs/20261116T131657Z_b10_review_r0/final_message.md): UNPROVEN, no collision; open limits T0/CP1 lists, 134 unmapped MMSI-Video clips, ScanNet++ recaptures. RESULT r0_review_verdict sent; record and note corrected (374 captures / 372 rooms).
 
+- Pilot on real scene 01ce24e652 (work/pilot/): z-up confirmed (floor 0.06 m, ceiling 3.62 m); aligned_pose is OpenCV c2w (median 8.6 mm from colmap); 22 items, all types; ~50 s/scene. room_area fixed (3-cell pad so closing does not erode the border; 7.29 m2 vs 7.6 m2 scan bbox). code/overlay_check.py SCENE writes frame|id-raster overlays to work/overlay/ once frames exist: look at 2-3 to confirm visibility.
+
 ## In flight
 
 - ORCH 1236Z answered: streams approved (tier 3, priority 15, GT -> R0-dev video -> R0-rl video; ScanNet .sens last, only if needed); wording/answer formats from D0 v5 row templates (b11_presence STATUS.md names path); validate with a41ba191.
-- Governed streams (launcher code/gov_stream.py, reader code/gated_tar_reader.py; dest data_cache/scannetpp/<scene>/...; logs work/streams/<n>.log; lists work/streams/<n>.list):
+- b10r0_gt started 16:40Z (8 MB/s, ~45 min). Governed streams (launcher code/gov_stream.py, reader code/gated_tar_reader.py; dest data_cache/scannetpp/<scene>/...; logs work/streams/<n>.log; lists work/streams/<n>.list):
   - b10r0_gt (972 files, 20.9 GB: segments_anno, segments, mesh_aligned_0.05, pose_intrinsic_imu.json, colmap cameras/images for 162 scenes)
   - b10r0_vid_dev (95 rgb.mkv, 39.3 GB), b10r0_vid_rl (67 rgb.mkv, 26.7 GB)
   Check: STATE.md rows b10r0_*; log ends with 'EXIT (0, 0, 0)'. When a stream EXITs 0: mv /data3/jjyeung/orch_n13_20261026/io_governor/streams/b10r0_<n>.json ...b10r0_<n>.done.$(date +%s). Never restart a failed one (BLOCKER).

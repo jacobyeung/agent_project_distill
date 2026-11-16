@@ -23,6 +23,7 @@ _BAD=re.compile('|'.join(re.escape(w) for w in WORDS),re.I)
 # Only the build host stores logical names. Runtime tables contain digests and tokens.
 import json
 import secrets
+_ALIASES={}
 _TABLE={}
 _NAMES={}
 _REVERSE={}
@@ -108,7 +109,7 @@ def seed(files):
         _BATCH=False;_save()
 
 def runtime_table(sources=()):
-    return json.dumps({'tokens':_TABLE,'sources':sorted(set(sources)|_SOURCES)},sort_keys=True).encode()+b'\n'
+    return json.dumps({'aliases':_ALIASES,'tokens':_TABLE,'sources':sorted(set(sources)|_SOURCES)},sort_keys=True).encode()+b'\n'
 
 def scan(value):
     raw=value.encode() if isinstance(value,str) else bytes(value)
@@ -185,6 +186,13 @@ def pack(files):
     result['x0.json']=runtime_table(path_name(n) for n in files if n.endswith('.py'))
     return result,pins
 
+def media_alias(logical, target):
+    """Resolve a private logical media name to a content-addressed local file."""
+    target=str(target)
+    _ALIASES[_key(str(logical))]=target
+    _save()
+    return target
+
 _ACTIVE=False
 
 def install(root):
@@ -195,7 +203,7 @@ def install(root):
     global _RUNTIME_FILE,_MAP_FILE
     table=Path(root)/'x0.json'
     if table.exists():
-        data=json.loads(table.read_bytes());_TABLE.update(data['tokens']);_SOURCES.update(data.get('sources',()))
+        data=json.loads(table.read_bytes());_TABLE.update(data['tokens']);_ALIASES.update(data.get('aliases',{}));_SOURCES.update(data.get('sources',()))
     _MAP_FILE=None;_RUNTIME_FILE=str(table)
     for name in _SOURCES:
         path=Path(root)/name
@@ -212,9 +220,27 @@ def install(root):
         except TypeError:return value
         binary=isinstance(p,bytes)
         if binary:p=os.fsdecode(p)
+        p=_ALIASES.get(_key(p),p)
         q=(root+'/'+path_name(p[len(root)+1:]) if p.startswith(root+'/') else
            p if p==root or not eligible(p) else path_name(p))
         return os.fsencode(q) if binary else q
+    def exposed(value):
+        if not isinstance(value,(str,bytes,Path)):return value
+        p=os.fsdecode(value)
+        # A local rehearsal root can have named ancestors. The open directory
+        # descriptor gives children an opaque, reachable spelling on this host.
+        if p==root or p.startswith(root+'/'):
+            try:scan(root)
+            except ValueError:
+                return exposed_root+p[len(root):]
+        return p
+    exposed_root=root
+    try:scan(root)
+    except ValueError:
+        fd=os.open(root,os.O_RDONLY|os.O_DIRECTORY)
+        exposed_root='/proc/'+str(os.getpid())+'/fd/'+str(fd)
+        import atexit
+        atexit.register(os.close,fd)
     def virtual(value):
         if isinstance(value,bytes):return os.fsencode(logical_path(os.fsdecode(value)))
         return logical_path(value)
@@ -233,10 +259,33 @@ def install(root):
         def writelines(self,rows):
             for row in rows:self.write(row)
         def fileno(self):
-            # Native subprocess diagnostics must not bypass the text filter.
-            return os.open('/dev/null',os.O_WRONLY)
+            # One pipe per log retains and filters native child diagnostics.
+            if not hasattr(self,'_writer'):
+                import threading,atexit
+                reader,self._writer=os.pipe()
+                def drain():
+                    with os.fdopen(reader,'rb') as stream:
+                        while True:
+                            line=stream.readline(1048576)
+                            if not line:break
+                            if len(line)==1048576:
+                                while line and not line.endswith(b'\n'):line=stream.readline(1048576)
+                                line=b'x'+secrets.token_hex(6).encode()+b'\n'
+                            self.write(line if 'b' in getattr(self.f,'mode','') else line.decode('utf-8',errors='replace'))
+                            self.f.flush()
+                self._drain=threading.Thread(target=drain,daemon=True)
+                self._drain.start();atexit.register(self._finish)
+            return self._writer
+        def _finish(self):
+            if getattr(self,'_writer',None) is not None:
+                os.close(self._writer);self._writer=None
+                self._drain.join()
+                self.f.flush()
+        def close(self):
+            self._finish();self.f.close()
         def __enter__(self):return self
-        def __exit__(self,*args):return self.f.__exit__(*args)
+        def __exit__(self,*args):
+            self.close()
         def __getattr__(self,name):return getattr(self.f,name)
     def opened(op,file,mode='r',*args,**kwargs):
         result=op(physical(file),mode,*args,**kwargs)
@@ -326,15 +375,20 @@ def install(root):
                     rest=args[py+1:];j=0
                     while j<len(rest) and rest[j] in ('-I','-s','-B','-u'):j+=1
                     if j<len(rest) and rest[j]!='-':
-                        helper=physical(__file__)
-                        code="import runpy,sys;v=runpy.run_path("+repr(helper)+");v['install']("+repr(root)+");v['entry']("+repr(rest[j:])+")"
+                        helper=exposed(physical(__file__))
+                        code="import runpy,sys;v=runpy.run_path("+repr(helper)+");v['install']("+repr(exposed_root)+");v['entry']("+repr(rest[j:])+")"
                         # The command line exposes no logical program or path spelling.
                         import zlib
                         runner="import zlib;exec(zlib.decompress(bytes.fromhex("+repr(zlib.compress(code.encode()).hex())+")))"
                         args=args[:py+1]+rest[:j]+['-c',runner]
-                args=[physical(x) if isinstance(x,(str,Path)) and '/' in str(x) else x for x in args]
+                args=[exposed(physical(x)) if isinstance(x,(str,Path)) and '/' in str(x) else x for x in args]
+                for value in args:scan(os.fsdecode(value))
+            else:scan(os.fsdecode(args))
+            if kw.get('executable') is not None:
+                kw['executable']=exposed(physical(kw['executable']));scan(kw['executable'])
             super().__init__(args,*a,**kw)
     subprocess.Popen=Child
+    _save()
     # All tar member names created in the job are opaque too.
     import tarfile
     old_addfile=tarfile.TarFile.addfile

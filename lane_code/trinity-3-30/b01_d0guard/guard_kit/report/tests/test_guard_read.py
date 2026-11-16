@@ -389,5 +389,37 @@ class ReviewFixes(unittest.TestCase):
         with self.assertRaises(SystemExit):
             G.main(["--candidate", str(c), "--step544", str(b), "--out", str(f.dir / "o")])
 
+    def test_null_flags_refused(self):
+        for flag, value in (("no_answer", None), ("called", None), ("parse_failed", None),
+                            ("geometry_refusal", None), ("refusal", "x"), ("decode", "bad"), ("decode", None)):
+            f = Fixture()
+            key = next(iter(f.rows("cand")))
+            f.rows("cand")[key][flag] = value
+            with self.assertRaises(G.Refusal, msg=flag):
+                f.run()
+
+    def test_missing_call_flag_refused(self):
+        f = Fixture()
+        key = next(iter(f.rows("base")))
+        del f.rows("base")[key]["called"]
+        with self.assertRaises(G.Refusal):
+            f.run()
+
+    def test_malformed_inputs_exit_3(self):
+        cases = [lambda f: f.cand.clear() or f.cand.update(dict(schema="legs1-r1-nomdg-v1", arms=None))]
+        for field, value in (("decode", {"text": 1}), ("scores", {}), ("scores", {"answer": "bad", "released_answer": "bad"})):
+            cases.append(lambda f, field=field, value=value: f.rows("cand")[next(iter(f.rows("cand")))].__setitem__(field, value))
+        for mutate in cases:
+            f = Fixture()
+            mutate(f)
+            c, b = f.write("cand.json", f.cand), f.write("base.json", f.base)
+            code = G.main(["--candidate", str(c), "--step544", str(b), "--candidate-artifact", CAND_ART,
+                           "--out", str(f.dir / "o")])
+            self.assertEqual(code, 3)
+        f = Fixture()
+        c, b = f.write("cand.json", []), f.write("base.json", f.base)
+        self.assertEqual(G.main(["--candidate", str(c), "--step544", str(b), "--candidate-artifact", CAND_ART,
+                                 "--out", str(f.dir / "o")]), 3)
+
 if __name__ == "__main__":
     unittest.main()

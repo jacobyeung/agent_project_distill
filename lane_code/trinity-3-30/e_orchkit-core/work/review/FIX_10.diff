@@ -1,0 +1,251 @@
+diff --git a/tools/orchkit/anon.py b/tools/orchkit/anon.py
+index 5c850f6..2e41c84 100644
+--- a/tools/orchkit/anon.py
++++ b/tools/orchkit/anon.py
+@@ -34,6 +34,7 @@ WORDS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ANON_WORDS.txt
+ JOB_NAME = re.compile(r'^a15_cot_ap[0-9a-f]{16}\Z')
+ MAX_BLOB = 256 * 1024 * 1024
+ MAX_DEPTH = 8
++LZMA_STREAMS = 64
+ 
+ 
+ class Rule(object):
+@@ -72,14 +73,31 @@ def load_rules(path=None):
+ def scan_text(where, text, rules, scope='text'):
+     """Hits of rules in one string; scope 'name' applies name and text rules, 'text' text rules."""
+     hits = []
++    normal = _normal_paths(text) if '/.' in text else None
+     for rule in rules:
+         if rule.scope == 'name' and scope != 'name':
+             continue
+-        if rule.regex.search(text):
++        if rule.regex.search(text) or (normal is not None and rule.regex.search(normal)):
+             hits.append({'where': where, 'scope': scope, 'rule': rule.label})
+     return hits
+ 
+ 
++PATH_END = r'(?![^/\s"\',;:)\]}])'
++DOT = re.compile(r'/\.' + PATH_END)
++DOTDOT = re.compile(r'/[^/\s"\',;:=(\[{]+/\.\.' + PATH_END)
++ROOT_DOTDOT = re.compile(r'(?<![^\s"\'=:,;(\[{])/\.\.(?=/)')
++
++
++def _normal_paths(text):
++    """The text with every path written lexically normal, as os.path.normpath would: '/./' and
++    'x/../' components dropped, '/..' at the root dropped, repeated slashes kept (rules use /+)."""
++    previous = None
++    while previous != text:
++        previous = text
++        text = ROOT_DOTDOT.sub('', DOTDOT.sub('', DOT.sub('', text)))
++    return text
++
++
+ ESCAPE = re.compile(r'\\(?:u([0-9a-fA-F]{4})|U([0-9a-fA-F]{8})|x([0-9a-fA-F]{2})|([0-7]{1,3})|N\{([^}]{1,80})\})')
+ 
+ 
+@@ -96,7 +114,7 @@ def _unescape(text):
+             return chr(int(match.group(4), 8))
+         code = int(match.group(1) or match.group(2) or match.group(3), 16)
+         return chr(code) if code < 0x110000 else ''
+-    text = re.sub(r'\\\r?\n', '', text)
++    text = re.sub(r'\\(?:\r\n|\r|\n)', '', text)
+     return re.sub(r'\\([\s\S])', r'\1', ESCAPE.sub(one, text))
+ 
+ 
+@@ -142,35 +160,67 @@ UNSUPPORTED = ((b'7z\xbc\xaf\x27\x1c', '7z'), (b'Rar!\x1a\x07', 'rar'), (b'\x28\
+                (b'LZIP', 'lzip'), (b'\x1f\x9d', 'compress'), (b'MSCF', 'cab'))
+ 
+ 
+-def _lzma_dict(data):
+-    size = int.from_bytes(data[1:5], 'little')
+-    return any(size == 1 << bits or size == 3 << (bits - 1) for bits in range(12, 31))
+-
+-
+ def _gzip_header_text(data):
+-    """The stored file name and comment of a gzip header (RFC 1952), as bytes."""
+-    if len(data) < 10 or not data.startswith(b'\x1f\x8b'):
+-        return b''
+-    flags, at, out = data[3], 10, []
+-    if flags & 4 and len(data) >= 12:
+-        at += 2 + int.from_bytes(data[10:12], 'little')
+-    for bit in (8, 16):
+-        if flags & bit:
+-            end = data.find(b'\x00', at)
+-            end = len(data) if end < 0 else end
+-            out.append(data[at:end])
+-            at = end + 1
+-    return b'\n'.join(out)
++    """The stored extra field, file name and comment of every gzip member (RFC 1952), as bytes.
++    Members follow one another as Python's gzip reads them, NUL padding between them skipped."""
++    out, at = [], 0
++    while len(data) - at >= 10 and data.startswith(b'\x1f\x8b', at):
++        flags, at = data[at + 3], at + 10
++        if flags & 4:
++            size = int.from_bytes(data[at:at + 2], 'little')
++            out.append(data[at + 2:at + 2 + size])
++            at += 2 + size
++        for bit in (8, 16):
++            if flags & bit:
++                end = data.find(b'\x00', at)
++                end = len(data) if end < 0 else end
++                out.append(data[at:end])
++                at = end + 1
++        if flags & 2:
++            at += 2
++        engine, chunk, produced = zlib.decompressobj(-zlib.MAX_WBITS), data[at:], 0
++        try:
++            while not engine.eof and produced <= MAX_BLOB:
++                piece = engine.decompress(chunk, 1 << 20)
++                chunk = engine.unconsumed_tail
++                produced += len(piece)
++                if not piece and not chunk:
++                    break
++        except zlib.error:
++            break
++        if not engine.eof:
++            break
++        at = len(data) - len(engine.unused_data) + 8
++        while at < len(data) and data[at] == 0:
++            at += 1
++    return b'\n'.join(part for part in out if part)
++
++
++def _zlib_header(data):
++    """A zlib header (RFC 1950) of any window size: deflate, CINFO <= 7, FCHECK valid."""
++    return len(data) >= 2 and data[0] & 15 == 8 and data[0] >> 4 <= 7 and \
++        (data[0] * 256 + data[1]) % 31 == 0
++
++
++def _lzma_alone_start(data):
++    """An LZMA-alone header the standard decoder accepts: any lc/lp/pb property byte, any
++    dictionary size, a valid size field; the decoder itself is the judge."""
++    if len(data) < 13 or data[0] >= 225:
++        return False
++    try:
++        lzma.LZMADecompressor(format=lzma.FORMAT_ALONE).decompress(data[:4096], 1)
++    except (lzma.LZMAError, MemoryError):
++        return False
++    return True
+ 
+ 
+ def _interpretations(where, data):
+     """Every container reading of a blob: a compression at its start, a zip anywhere (Python
+     reads a zip with a prefix), a tar; a container Python cannot open is 'unsupported'."""
+     kinds = [kind for magic, kind in MAGIC[:3] if data.startswith(magic)]
+-    if len(data) >= 13 and data[0] == 0x5d and _lzma_dict(data):
++    if _lzma_alone_start(data):
+         kinds.append('lzma')
+-    if len(data) >= 2 and data[0] == 0x78 and (data[0] * 256 + data[1]) % 31 == 0 and \
+-            _decompress('zlib', data) is not None:
++    if _zlib_header(data) and _decompress('zlib', data) is not None:
+         kinds.append('zlib')
+     if any(data.startswith(magic) for magic, _ in UNSUPPORTED):
+         kinds.append('unsupported')
+@@ -216,12 +266,10 @@ def _decompress(kind, data):
+             with gzip.GzipFile(fileobj=io.BytesIO(data)) as handle:
+                 return handle.read(MAX_BLOB + 1)
+         if kind == 'zlib':
+-            engine = zlib.decompressobj()
+-            out = engine.decompress(data, MAX_BLOB + 1)
+-            if engine.unused_data or not engine.eof:
+-                return None
+-            return out
+-        if kind in ('bz2', 'xz', 'lzma'):
++            return _zlib_stream(data)
++        if kind == 'lzma':
++            return _lzma_alone(data)
++        if kind in ('bz2', 'xz'):
+             engine = bz2.BZ2Decompressor() if kind == 'bz2' else lzma.LZMADecompressor(
+                 format=lzma.FORMAT_ALONE if kind == 'lzma' else lzma.FORMAT_AUTO)
+             out = engine.decompress(data, MAX_BLOB + 1)
+@@ -233,6 +281,48 @@ def _decompress(kind, data):
+     return None
+ 
+ 
++def _zlib_stream(data):
++    """What zlib's incremental decoder yields, 64 KiB of input at a time: the output up to an
++    error, the end of the stream, or the end of the input (bytes after the stream stay in the
++    container's own scan); None when nothing decodes."""
++    engine, out, size = zlib.decompressobj(), [], 0
++    for at in range(0, len(data), 1 << 16):
++        try:
++            piece = engine.decompress(data[at:at + (1 << 16)], MAX_BLOB + 1 - size)
++        except zlib.error:
++            break
++        out.append(piece)
++        size += len(piece)
++        if engine.eof or size > MAX_BLOB or engine.unconsumed_tail:
++            break
++    return b''.join(out) if out else None
++
++
++def _lzma_alone(data):
++    """Decode as lzma.decompress(FORMAT_ALONE) does: streams one after another (a run of 18 NUL
++    bytes is one empty stream), the output of a truncated last stream kept. None when the first
++    stream fails or more than LZMA_STREAMS streams follow."""
++    out, size, at = [], 0, 0
++    for _ in range(LZMA_STREAMS):
++        zeros = len(data) - at - len(data[at:].lstrip(b'\x00'))
++        if zeros >= 18:
++            at += zeros - zeros % 18
++            out.append(b'')
++        if at >= len(data) or (out and len(data) - at < 13):
++            return b''.join(out)
++        engine = lzma.LZMADecompressor(format=lzma.FORMAT_ALONE)
++        try:
++            piece = engine.decompress(data[at:], MAX_BLOB + 1 - size)
++        except (lzma.LZMAError, MemoryError):
++            return b''.join(out) if out else None
++        out.append(piece)
++        size += len(piece)
++        if size > MAX_BLOB or not engine.eof or not engine.unused_data:
++            return b''.join(out)
++        at = len(data) - len(engine.unused_data)
++    return None
++
++
+ def _is_tar(name, data):
+     if len(data) > 262 and data[257:262] == b'ustar':
+         return True
+diff --git a/tools/orchkit/tests/test_anon.py b/tools/orchkit/tests/test_anon.py
+index f8432db..a30b677 100644
+--- a/tools/orchkit/tests/test_anon.py
++++ b/tools/orchkit/tests/test_anon.py
+@@ -269,6 +269,37 @@ class AnonTest(unittest.TestCase):
+         for text in ('/project/u/data/x', 'metadata/x', '/x/data_out'):
+             self.assertEqual(anon.scan_text('x', text, rules, 'name'), [], text)
+ 
++    def test_review_oc32_to_oc36(self):
++        rules = anon.load_rules()
++        named = io.BytesIO()
++        with gzip.GzipFile(filename='split.txt', fileobj=named, mode='wb', mtime=0) as handle:
++            handle.write(b'ok')
++        alone = lambda **opts: lzma.compress(b'qwen', format=lzma.FORMAT_ALONE,
++                                             filters=[dict(id=lzma.FILTER_LZMA1, **opts)])
++        cases = {'g.gz': gzip.compress(b'first') + named.getvalue(),
++                 'p.gz': gzip.compress(b'first') + b'\x00\x00' + named.getvalue(),
++                 'lc0.lzma': alone(lc=0), 'lc4.lzma': alone(lc=4),
++                 'lp.lzma': alone(lc=1, lp=2, pb=4, dict_size=5000),
++                 'two.lzma': lzma.compress(b'ok', format=lzma.FORMAT_ALONE) + alone(),
++                 'nul.lzma': b'\x00' * 36 + alone(), 'cut.lzma': alone()[:-3] + b'',
++                 'junk.zlib': zlib.compress(b'qwen') + b'junk',
++                 'cut.zlib': zlib.compress(b'qwen' * 100)[:-6],
++                 'cr.py': b'x = "q\\\rwen"\n'}
++        for bits in (9, 10, 14):
++            engine = zlib.compressobj(wbits=bits)
++            cases['w%d.zlib' % bits] = engine.compress(b'qwen') + engine.flush()
++        for name, data in sorted(cases.items()):
++            self.assertTrue(anon.scan_tree(self.write(name, data), rules), name)
++        for name, data in (('zeros.bin', b'\x00' * 100001), ('nul.bin', b'\x00' * 20 + b'junk'),
++                           ('x.py', b'x = 1\n'), ('h.txt', b'h? ok\n'), ('m.txt', b'x^2 + 1\n')):
++            self.assertEqual(anon.scan_tree(self.write(name, data), rules), [], name)
++        for text in ('/./data2/secret', '/tmp/../data2/secret', '/home/./jjyeung/agent_x',
++                     '/scratch/./jjyeung/x', '/a/b/../../data2', '"/../data2"', 'x=/t/./../data3'):
++            self.assertTrue(anon.scan_text('x', text, rules, 'name'), text)
++            self.assertTrue(anon.scan_tree(self.write('t.json', text.encode()), rules), text)
++        for text in ('./data/x', '../data2x', '/x/./y', 'a/../b', '/x/../datasets/y'):
++            self.assertEqual(anon.scan_text('x', text, rules, 'name'), [], text)
++
+ 
+ if __name__ == '__main__':
+     unittest.main()

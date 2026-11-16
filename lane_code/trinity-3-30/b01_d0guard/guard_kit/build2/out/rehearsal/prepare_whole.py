@@ -67,7 +67,7 @@ def prepare(dest):
         closure_root=str(metadata),closure_names=sorted(files),
         baseline_anchor=dict(path=str(baseline_path),sha256=sha(baseline_path)))
     write(dest/'WORKER.json',contract)
-    production=dict(schema='g2-rehearsal-projection-v1',step=50,worker=contract,
+    production=dict(schema='g2-rehearsal-projection-v1',step=50,worker=contract,artifact_sha256=candidate_pin['sha256'],
         publication=dict(kind='gcs',prefix='gs://cmu-gpucloud-jjyeung/q8/8c9d2e74',credentials='/project/community/jjyeung/gcloud'))
     local=deepcopy(production);local['publication']=dict(kind='local',root=str(dest/'store'))
     write(dest/'PRODUCTION_CONFIG.json',production);write(dest/'CONFIG.json',local)

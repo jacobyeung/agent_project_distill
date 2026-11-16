@@ -1,0 +1,2 @@
+- /scratch/jjyeung/orch_n30/review_offnative2/work/simroot2, /scratch/jjyeung/orch_n30/review_offnative2/work/simroot3 and any /scratch/jjyeung/orch_n30/review_offnative2/work/r* (simulation roots, tiny)
+- /dev/shm/review_offnative2 (about 600 MB of review copies and basetemps; RAM)

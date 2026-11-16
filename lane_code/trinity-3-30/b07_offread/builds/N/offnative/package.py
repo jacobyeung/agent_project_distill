@@ -9,7 +9,7 @@ from .io import dump,sha,tar_bytes
 
 def package(staging):
     staging=Path(staging)
-    if not staging.is_relative_to(Path("/dev/shm/b07_n4")):raise ValueError("build staging must be in RAM")
+    if not staging.is_relative_to(Path("/dev/shm/b07_n6")):raise ValueError("build staging must be in RAM")
     staging.mkdir(parents=True,exist_ok=False)
     from .portable import sources,ROOTS
     files,dependencies=sources()

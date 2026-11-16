@@ -1,3 +1,4 @@
 - /scratch/jjyeung/orch_n30/b01_d0guard/work/tvoverlay (dangling symlinks from a wrong path; superseded by work/tvoverlay2)
 - guard_kit/build2/out/rehearsal/whole/{bace4259cb1945b5a1d46ae45e71ea8a,f640f13256e644fc9d007e0d987f58e0,f79da611e51b4b1d9ae2e01c044b6097,e081d841040244b3b6e160658e9fe60a,ef28ff9d5f5e4401867cd1426bc2903a,f87e23632bf649d8adef903b503f5800} (failed/aborted rehearsal runs, ~250 MB; evidence kept in out/whole_run*.log)
 - out/mirror_b01_kit.tar (50 MB local tar superseded by the streamed IB mirror)
+- trinity-1-18:/scratch/jjyeung/n30_mirror/b01_d0guard/{guard_kit,work,out,STATUS.md} (15:55Z G3 mirror, superseded by .../b01_d0guard/g5/)

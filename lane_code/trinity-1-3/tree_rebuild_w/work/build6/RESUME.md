@@ -1,6 +1,6 @@
 # Current build state
 
-The first full packaged qualification is running in exec session `93172`, launched through `qualify.py`. Its generator and legacy groups completed; the R2 group is running its native preparation/encoding proof. Completed counts are in `GROUP_COUNTS.json`; the legacy group ran 1810 methods and passed 1280 (`proofs/suite_tree/legacy/results.json`). Read progress at most once per minute with `live_comparison.py`. Do not start another test suite while it runs: the harness compacts shared temporary products. Do not stop or rerun a killed job.
+The first full packaged qualification is running in exec session `93172`, launched through `qualify.py`. All tree groups completed; the untouched-base legacy group is running. Completed counts are in `GROUP_COUNTS.json`: the tree legacy group ran 1810 executions and passed 1280 (`proofs/suite_tree/legacy/results.json`), and R2/shared grammar passed all 349 (`proofs/suite_tree/r2/results.json`). Read progress at most once per minute with `live_comparison.py`, which now also prints base progress and saves every live R2 failure in `LIVE_R2_FAILURES.json`. Do not start another test suite while it runs: the harness compacts shared temporary products. Do not stop or rerun a killed job.
 
 The packet suite passed every supplied test; evidence is `proofs/packet/results.json`. Complete canonical row-byte and target-byte parity passed for all supplied final A0 slices; evidence is `proofs/rows/PARITY.json`. The main source now has small changes beyond the packaged snapshot, so final kits, seal, packet and package qualification must be refreshed.
 
@@ -8,6 +8,7 @@ Main-tree fixture adaptations pending final verification:
 
 - `tests/test_r2_build3.py`: the missing-vocabulary negative case supplies the required init identity and asserts the exact witness error. It previously passed on the earlier missing-init error, leaving its intended branch unchecked. The focused wrapper includes this method.
 - `tests/test_r2_build6.py`: each below-threshold family fixture also passes through the pinned-receipt reader used by the launch entry, proving the actual read-side refusal before any worker call.
+- `tests/test_r2_build6.py`: the unpinned-init case also invokes the real kit builder with the supplied metadata fixtures. `coverage_cases.py` additionally moves a tiny synthetic archive member after real staging returns, then verifies that the real layout reader refuses the missing member. The fixture preserves the moved bytes and uses no substitute producer or reader.
 - `generator/derivgen_v7/test_v312_quality.py`: qualified-name refusal checks both OFF (old reason) and ON (accepted earlier exact-name refusal).
 - `tests/test_c1_validation_slice.py`: retains the raw-config nonmutation check and checks the heading threshold's inclusion in identity.
 - `tests/test_gxp_mix.py`: the memory-fallback fixture retains its legacy raw-configuration and FP32-output hashes, checks the ON identity with the accepted default heading threshold, and checks explicit OFF identities with and without that threshold. The first packaged diagnostic exposed this additional stale identity assertion.

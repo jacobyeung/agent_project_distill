@@ -109,8 +109,28 @@ def verify_return(receipt,archive,plan,allow_fixture=False):
     verify_archive(archive,receipt['archive']);regular_tar(archive,LIMIT)
     with tarfile.open(archive) as tar:
         names=set(tar.getnames())
-        if not {'COMPLETE.json','PROOF.json','CANARY.json','R1.json','IN_JOB_ADMISSION.json'}<=names or 'FAILED.json' in names:
+        if not {'COMPLETE.json','PROOF.json','CANARY.json','R1.json','IN_JOB_ADMISSION.json',
+                'CANDIDATE_STAGE.json','CHECK.json','STAGE_RECEIPTS.json'}<=names or 'FAILED.json' in names:
             raise ValueError('Return is missing terminal evidence')
+        stages=json.load(tar.extractfile('STAGE_RECEIPTS.json'))
+        pins=stages.get('members',{})
+        if (stages.get('schema')!='g4-stage-receipts-v1' or not {'CANDIDATE_STAGE.json','CHECK.json'}<=pins.keys()
+                or type(stages.get('step')) is not int or stages['step']<=0 or stages['step']==544
+                or not isinstance(stages.get('artifact_sha256'),str)
+                or not re.fullmatch('[0-9a-f]{64}',stages['artifact_sha256'])):
+            raise ValueError('Return stage receipt inventory differs')
+        for name,pin in pins.items():
+            if name not in names:raise ValueError('Return is missing stage evidence: '+name)
+            raw=tar.extractfile(name).read()
+            if len(raw)!=pin['bytes'] or hashlib.sha256(raw).hexdigest()!=pin['sha256']:
+                raise ValueError('Return stage receipt bytes differ')
+        staged=json.load(tar.extractfile('CANDIDATE_STAGE.json'));checked=json.load(tar.extractfile('CHECK.json'))
+        if (staged.get('status')!='complete' or checked.get('status')!='VERIFIED'
+                or staged.get('run')!='359fcc3c' or staged.get('step')!=stages.get('step')
+                or checked.get('step')!=stages.get('step') or staged.get('checker')!=checked
+                or staged.get('artifact_sha256')!=stages.get('artifact_sha256')
+                or checked.get('artifact',{}).get('sha256')!=stages.get('artifact_sha256')):
+            raise ValueError('Return stage/checker identity differs')
         for name in ('PROOF.json','CANARY.json','IN_JOB_ADMISSION.json'):
             phase=json.load(tar.extractfile(name))
             if phase.get('status')!='PASS':raise ValueError('Return phase did not pass')
