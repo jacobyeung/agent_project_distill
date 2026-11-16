@@ -1,0 +1,42 @@
+
+## camera_obj_rel_dist_v1 50
+native acc 42.0 pred letters {'A': 14, 'B': 14, 'C': 13, 'D': 9} | gt letters {'A': 14, 'B': 13, 'C': 14, 'D': 9}
+f17 acc 80.0 pred letters {'A': 16, 'B': 11, 'C': 11, 'D': 12} | gt letters {'A': 14, 'B': 13, 'C': 14, 'D': 9}
+p1m200 acc 82.0 pred letters {'A': 15, 'B': 11, 'C': 15, 'D': 9} | gt letters {'A': 14, 'B': 13, 'C': 14, 'D': 9}
+native wrong & both comparators right 20 | native right & both wrong 1
+native gen tokens mean 80.02 min 79 max 82 finish {'eos': 50}
+
+## camera_obj_rel_dist_v2 50
+native acc 54.0 pred letters {'A': 20, 'B': 20, 'C': 10} | gt letters {'A': 20, 'B': 16, 'C': 14}
+f17 acc 88.0 pred letters {'A': 20, 'B': 16, 'C': 14} | gt letters {'A': 20, 'B': 16, 'C': 14}
+p1m200 acc 84.0 pred letters {'A': 15, 'B': 20, 'C': 15} | gt letters {'A': 20, 'B': 16, 'C': 14}
+native wrong & both comparators right 20 | native right & both wrong 2
+native gen tokens mean 72.18 min 71 max 77 finish {'eos': 50}
+
+## camera_obj_rel_dist_v3 50
+native acc 70.0 pred letters {'A': 22, 'B': 28} | gt letters {'A': 25, 'B': 25}
+f17 acc 84.0 pred letters {'A': 27, 'B': 23} | gt letters {'A': 25, 'B': 25}
+p1m200 acc 88.0 pred letters {'A': 27, 'B': 23} | gt letters {'A': 25, 'B': 25}
+native wrong & both comparators right 12 | native right & both wrong 3
+native gen tokens mean 64.0 min 61 max 66 finish {'eos': 50}
+
+## obj_obj_relative_pos_lr 50
+native acc 94.0 pred {'Left': 23, 'Right': 27} | gt {'Left': 22, 'Right': 28} | conf(gt,pred) {('Left', 'Left'): 21, ('Right', 'Right'): 26, ('Right', 'Left'): 2, ('Left', 'Right'): 1}
+f17 acc 94.0 pred {'Left': 23, 'Right': 27} | gt {'Left': 22, 'Right': 28} | conf(gt,pred) {('Left', 'Left'): 21, ('Right', 'Right'): 26, ('Right', 'Left'): 2, ('Left', 'Right'): 1}
+p1m200 acc 96.0 pred {'Left': 22, 'Right': 28} | gt {'Left': 22, 'Right': 28} | conf(gt,pred) {('Left', 'Left'): 21, ('Right', 'Right'): 27, ('Right', 'Left'): 1, ('Left', 'Right'): 1}
+native wrong & both comparators right 0 | native right & both wrong 0
+native gen tokens mean 61.72 min 46 max 132 finish {'eos': 50}
+
+## obj_obj_relative_pos_nf 50
+native acc 62.0 pred {'Near': 41, 'Far': 9} | gt {'Near': 24, 'Far': 26} | conf(gt,pred) {('Near', 'Near'): 23, ('Far', 'Near'): 18, ('Far', 'Far'): 8, ('Near', 'Far'): 1}
+f17 acc 96.0 pred {'Near': 24, 'Far': 26} | gt {'Near': 24, 'Far': 26} | conf(gt,pred) {('Near', 'Near'): 23, ('Far', 'Far'): 25, ('Far', 'Near'): 1, ('Near', 'Far'): 1}
+p1m200 acc 88.0 pred {'Near': 26, 'Far': 24} | gt {'Near': 24, 'Far': 26} | conf(gt,pred) {('Near', 'Near'): 22, ('Far', 'Far'): 22, ('Far', 'Near'): 4, ('Near', 'Far'): 2}
+native wrong & both comparators right 16 | native right & both wrong 0
+native gen tokens mean 82.06 min 56 max 155 finish {'eos': 50}
+
+## obj_obj_relative_pos_ud 50
+native acc 76.0 pred {'Up': 26, 'Down': 24} | gt {'Up': 26, 'Down': 24} | conf(gt,pred) {('Up', 'Up'): 20, ('Up', 'Down'): 6, ('Down', 'Down'): 18, ('Down', 'Up'): 6}
+f17 acc 96.0 pred {'Up': 24, 'Down': 26} | gt {'Up': 26, 'Down': 24} | conf(gt,pred) {('Up', 'Up'): 24, ('Up', 'Down'): 2, ('Down', 'Down'): 24}
+p1m200 acc 94.0 pred {'Up': 23, 'Down': 27} | gt {'Up': 26, 'Down': 24} | conf(gt,pred) {('Up', 'Up'): 23, ('Down', 'Down'): 24, ('Up', 'Down'): 3}
+native wrong & both comparators right 10 | native right & both wrong 0
+native gen tokens mean 65.34 min 54 max 95 finish {'eos': 50}

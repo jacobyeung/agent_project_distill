@@ -6,7 +6,8 @@ from pathlib import Path
 import runpy
 import sys
 
-from parity_kit.common import LANE, OLD, key, read, rows, tasks, write
+from parity_kit.common import LANE, OLD, read, rows, sha, write
+from parity_kit.provenance import comparison_identity, native_kernel_comparison, validate_rows
 
 
 def call_texts(result):
@@ -40,7 +41,23 @@ def compare(new_files, old_file, out, settings=None):
     old = {r['key']: r for r in old_rows}
     if len(old) != len(old_rows):
         raise ValueError('duplicate baseline keys')
-    new = [r for p in new_files for r in rows(p)]
+    new, partitions = [], []
+    identity = None
+    for filename in new_files:
+        path = Path(filename).resolve()
+        receipt_path = path.parent / 'LOAD_RECEIPT.json'
+        if not receipt_path.is_file():
+            raise ValueError('journal missing sibling LOAD_RECEIPT.json: ' + str(path))
+        receipt = read(receipt_path)
+        items = rows(path)
+        validate_rows(items, receipt, sha(receipt_path))
+        candidate = comparison_identity(receipt)
+        if identity is not None and candidate != identity:
+            raise ValueError('partition load receipts differ outside partition keys')
+        identity = candidate
+        partitions.append(dict(journal=str(path), load_receipt_sha256=sha(receipt_path),
+                               keys=receipt['keys'], completed_keys=[r['key'] for r in items]))
+        new.extend(items)
     if len({r['key'] for r in new}) != len(new):
         raise ValueError('duplicate new keys; compare one arm at a time')
     if len({r.get('arm') for r in new}) > 1:
@@ -57,6 +74,9 @@ def compare(new_files, old_file, out, settings=None):
             calls[r['key']] = agreement(r, b)
     if not paired:
         raise ValueError('no paired rows')
+    kernels = native_kernel_comparison(identity['runtime_identity'])
+    for item in calls.values():
+        item['label'] = kernels['camera_agreement_label']
     price = out / 'paired.json'
     write(price, dict(rows=paired))
     argv, output = sys.argv, io.StringIO()
@@ -66,12 +86,21 @@ def compare(new_files, old_file, out, settings=None):
             runpy.run_path(str(LANE / 'tests/price_agg.py'), run_name='__main__')
     finally:
         sys.argv = argv
-    (out / 'TABLE.txt').write_text(output.getvalue())
+    provenance_text = (f"Job 170056 used fla kernels: {kernels['native_fla']} "
+                       "(worker.log native_runtime_bindings).\n"
+                       f"This run's fla state: {kernels['current_fla']}.\n"
+                       f"Camera agreement: {kernels['camera_agreement_label']}. "
+                       f"{kernels['interpretation']}\n"
+                       + 'Partitions:\n' + ''.join(f"  {p['journal']} "
+                           f"({len(p['completed_keys'])}/{len(p['keys'])} keys)\n" for p in partitions))
+    (out / 'TABLE.txt').write_text(provenance_text + output.getvalue())
+    write(out / 'PROVENANCE.json', dict(partitions=partitions, runtime=kernels))
     write(out / 'CALL_AGREEMENT.json', dict(items=calls, identical=sum(v['identical'] for v in calls.values()),
-                                            total=len(calls)))
+                                            total=len(calls), label=kernels['camera_agreement_label'],
+                                            runtime=kernels))
     write(out / 'COVERAGE.json', dict(baseline=len(old), paired=len(paired),
                                      missing=sorted(set(old) - {r['key'] for r in new})))
-    print(output.getvalue(), end='')
+    print(provenance_text + output.getvalue(), end='')
     return read(out / 'paired_new_paired.json')
 
 

@@ -70,7 +70,7 @@ record=dict(tree_source='work/build6/proofs/'+kind+'_tree/results.json',base_sou
     run=tree['tests'],passed=len(tree['passed']),preexisting=sum(r['preexisting'] for r in failed),
     regressions=sum(not r['preexisting'] for r in failed),skipped=len(tree['skips']),
     r2_failures=sum(r['test'].startswith('tests.test_r2') for r in failed),fatal=tree.get('fatal'),failures=failed)
-record['counting_note']='Run/pass counts use unittest test methods; failure counts include subtests and setup/import errors, which are listed individually.'
+record['counting_note']='Run/pass counts retain harness-scheduled test executions, including repeated test IDs; failure counts include subtests and setup/import errors, which are listed individually.'
 record['comparison_rule']='A legacy failure is pre-existing only when the same test fails with the same classified cause in the untouched base; differing causes remain regressions for review.'
 record['failed_methods']=len({r['test'].split(' (',1)[0] for r in failed if r['test'].startswith('tests.')})
 record['preexisting_causes']=dict(Counter(r['cause'] for r in failed if r['preexisting']))

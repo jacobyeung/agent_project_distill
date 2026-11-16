@@ -74,7 +74,7 @@ def median_ratio(depth, confidence, own):
 
 
 def sam3_detect(tower, features, name):
-    """32 lists of dict(mask bool[480,640], score, presence) for the raw name: Sam3Tower._detect's forward with the
+    """One list per anchor frame of dict(mask bool[480,640], score, presence) for the raw name: Sam3Tower._detect's forward with the
     K1 retention contract and no phrase normalisation."""
     import torch.nn.functional as TF
     from student_pilot import routed_features as F
@@ -109,7 +109,7 @@ def sam3_detect(tower, features, name):
 class StageOne:
     """propose(name) -> (candidates, inputs) and select(inputs) -> index or -1, for grounding.StageOneSocket.
 
-    detect(name) -> 32 raw frame lists (sam3_detect bound to this read's tower features, or a cache reader in
+    detect(name) -> one raw list per anchor frame (sam3_detect bound to this read's tower features, or a cache reader in
     tests). Every name is featurised alone (its own pool), as in the isolated K1 tables (heads/selector/
     isolate_tables.py)."""
 
@@ -159,5 +159,6 @@ def stage1_factory(sam3_tower, selector_head, anchor_frames_of):
                 cache['features'] = sam3_tower.encode(anchor_frames_of(frames))
             return sam3_detect(sam3_tower, cache['features'], name)
         s = StageOne(detect, selector_head, geometry)
-        return StageOneSocket(s.propose, s.select, (240, 320))
+        from .geometry import frame_count
+        return StageOneSocket(s.propose, s.select, (240, 320), frame_count(geometry))
     return socket

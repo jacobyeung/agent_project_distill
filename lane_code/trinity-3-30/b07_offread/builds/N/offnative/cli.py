@@ -40,6 +40,18 @@ def prepare(args):
     dest.mkdir(parents=True)
     token = args.token or ('a'+secrets.token_hex(12)[1:])
     if not re.fullmatch('[a-f][0-9a-f]{23}',token): raise ValueError('token must be 24 hex characters')
+    if b['benchmark']=='vsibench5130' and b['reader']['kind']=='harness' and not getattr(args,'_shard',None):
+        from .shards import plan
+        from copy import copy
+        partition=plan(items)
+        dump(dest/'BINDING.json',b);dump(dest/'COHORT.json',items)
+        results=[]
+        for shard in partition['shards']:
+            child=copy(args);child._shard=shard;child.destination=dest/('%02d'%shard['index'])
+            child.token=None
+            results.append(prepare(child))
+        dump(dest/'SHARDS.json',dict(partition,prepared=results))
+        return dict(destination=str(dest),shards=results,count=partition['count'])
     job = 'a15_cot_ap'+secrets.token_hex(8)
     dump(dest/'BINDING.json',b)
     dump(dest/'COHORT.json',items)
@@ -51,6 +63,7 @@ def prepare(args):
                   token=token,job_name=job,pool=POOL,gcs=GCS+'/'+token+'/',
                   job=dict(gpus=1,cpus=16,mem_gb=200,time_limit_s=21600),
                   spec=dict(frames=b['read_config']['frames']),ready=False)
+    if getattr(args,'_shard',None):config['shard']=args._shard
     dump(dest/'CONFIG.json',config)
     from .admission import check
     inputs=load(args.inputs) if getattr(args,'inputs',None) else None
@@ -92,8 +105,7 @@ def submission(args):
         raise ValueError('production-CONFIG rehearsal identity differs')
     from .transport import submission_argv
     if getattr(args,'command','submit-command')=='submit-command':
-        return {'argv':submission_argv(c,c['pool']+'/'+c['token']+'/1.sh')[:-1]+[
-            '--export=ALL,A0_PACKET_SHA256='+sha(d/'packet.tar'),c['pool']+'/'+c['token']+'/1.sh'],
+        return {'argv':submission_argv(c,c['pool']+'/'+c['token']+'/1.sh',packet_sha256=sha(d/'packet.tar')),
             'packet':str(d/'packet.tar'),'executed':False}
     answer=(d/'SUBMIT.out').read_text().strip()
     if not re.fullmatch(r'[0-9]+(?:;[A-Za-z0-9_-]+)?',answer):
@@ -102,12 +114,20 @@ def submission(args):
     with lock.open('a') as stream:
         fcntl.flock(stream,fcntl.LOCK_EX)
         previous=check_ledger(args.ledger,b['export'],b['benchmark'])
-        if any(r.get('benchmark')==b['benchmark'] and r.get('reader')==b['reader']['kind'] and
-               r.get('mode')=='production' for r in previous):raise ValueError('production read already recorded')
+        already=any(r.get('benchmark')==b['benchmark'] and r.get('reader')==b['reader']['kind'] and
+               r.get('mode')=='production' for r in previous)
+        group=d.parent/'GROUP.json'
+        if already:
+            if not c.get('shard') or not group.exists() or load(group).get('binding_sha256')!=b['binding_sha256']:
+                raise ValueError('production read already recorded')
+            if load(group).get('cohort_sha256')!=c['shard']['cohort_sha256']:
+                raise ValueError('shard belongs to another read')
         result={'status':'SUBMITTED','job':int(answer.split(';')[0]),'token':c['token'],
                 'config_sha256':sha(d/'CONFIG.json'),'packet_sha256':sha(d/'packet.tar')}
         with (d/'SUBMISSION.json').open('x') as out:__import__('json').dump(result,out)
-        ledger_append(args.ledger,b)
+        if not already:
+            ledger_append(args.ledger,b)
+            if c.get('shard'):dump(group,dict(binding_sha256=b['binding_sha256'],cohort_sha256=c['shard']['cohort_sha256']))
     return result
 
 
@@ -144,11 +164,12 @@ def main():
     q.add_argument('--inputs')
     q.add_argument('--frames',type=int,choices=[32,64],default=32)
     q.add_argument('--frame-layout',choices=['duplicate','spread'],default='duplicate')
-    for name in ('submit-command','record-submission','fetch','report'):
+    for name in ('submit-command','record-submission','fetch','report','merge-shards'):
         sub.add_parser(name)
     for q in sub.choices.values():
         q.add_argument('--destination',required=True)
         q.add_argument('--ledger',default=str(ROOT/'work/OFFICIAL_READ_LEDGER.jsonl'))
+    sub.choices['merge-shards'].add_argument('--returns',nargs='+',required=True)
     sub.choices['fetch'].add_argument('--return-archive')
     sub.choices['fetch'].add_argument('--return-sha256')
     sub.choices['fetch'].add_argument('--return-receipt')
@@ -157,6 +178,9 @@ def main():
     if args.command=='prepare': value=prepare(args)
     elif args.command in ('submit-command','record-submission'): value=submission(args)
     elif args.command=='fetch': value=fetch(args)
+    elif args.command=='merge-shards':
+        from .shards import merge_returns
+        value=merge_returns(Path(args.destination),[Path(p) for p in args.returns])
     else:
         d,b,c,a = checked(args.destination)
         value=report(b,load(d/'COHORT.json'),d/'fetched',owned(d/'reports'))

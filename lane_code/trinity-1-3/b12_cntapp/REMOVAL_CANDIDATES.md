@@ -1,2 +1,3 @@
 - /tmp/b12_pkt_test (test packet of rows_k1, trinity-1-3 /tmp)
 - out/PACKET_b12_k1_v1 (superseded by v2: v1 includes rows from 48 K1 held-out scenes; never admit v1)
+- /tmp/b12_rot (rotation-sign probe rasters, 16 files)

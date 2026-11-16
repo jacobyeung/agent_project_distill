@@ -3,7 +3,10 @@ import os
 from pathlib import Path
 import tempfile
 
-ROOT=Path(__file__).resolve().parents[1]/'tmp/b4'
+K=Path(__file__).resolve().parents[1]
+ROOT=Path(os.environ.get('LANE_TEST_OUTPUT', K/'tmp/b4')).resolve()
+if not ROOT.is_relative_to(K/'tmp'):
+    raise ValueError('Test output must be under K/tmp')
 _mkdtemp=tempfile.mkdtemp
 
 def retained_dir(suffix=None,prefix=None,dir=None):
@@ -20,4 +23,12 @@ class RetainedTemporaryDirectory:
 def pytest_configure(config):
     tempfile.mkdtemp=retained_dir
     tempfile.TemporaryDirectory=RetainedTemporaryDirectory
-    os.environ['H1_TINY_FIXTURE']=str(ROOT/'artifact')
+    os.environ['H1_TINY_FIXTURE']=str(K/'tmp/b4/artifact')
+
+def pytest_collection_modifyitems(items):
+    for item in items:
+        module=item.module
+        if hasattr(module, 'OUT'):
+            module.OUT=ROOT/'reader_proofs'
+        if hasattr(module, 'reader') and hasattr(module.reader, 'OUT'):
+            module.reader.OUT=ROOT/'h1_reader_proofs'

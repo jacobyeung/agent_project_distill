@@ -15,6 +15,7 @@ SL=$(python3 shm_line.py hist/s113_$T.txt 2>/dev/null || echo "Reading trinity-1
   echo "Free cards total: $FC"
   tail -n +2 hist/$T.txt
   echo "$SL"
+  python3 cardhours.py 2>/dev/null
   [ -f notes.txt ] && cat notes.txt
 } | head -40 > $E/FREE_CARDS.md
 cat hist/$T.txt

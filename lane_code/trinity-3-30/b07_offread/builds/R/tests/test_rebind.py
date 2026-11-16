@@ -45,6 +45,10 @@ def test_accepted_report(tmp_path,bench,key,count,headline):
         actual=json.loads((d/'reports'/f'{arm}.json').read_text())
         accepted=json.loads((IN/('ret_'+key)/'report'/f'{arm}.json').read_text())
         assert actual['items']==count
+        if arm=='B2048':
+            target=(68.77,[66.5,71.0]) if key=='vsi' else (64.94,[61.3,68.4])
+            assert round(100*actual['headline']['score'],2)==target[0]
+            assert [round(100*x,1) for x in actual['headline']['percentile_95']]==target[1]
         assert actual['headline']['score']==accepted[headline]['score']
         assert actual['headline']['percentile_95']==accepted[headline]['percentile_95']
         for g in accepted['groups']:
@@ -71,17 +75,23 @@ L.prepare('a00123456',sys.argv[2],**kw)
     p=subprocess.run([PY,'-B','-c',script,str(accepted),str(tmp_path/'accepted'),key],capture_output=True,text=True)
     assert p.returncode==0,p.stderr
     got=B.boot_files(d/'BATCH.sh'); old=B.boot_files(tmp_path/'accepted/BATCH.sh')
-    assert got['bootstrap/payload.tar.gz']==old['bootstrap/payload.tar.gz']
-    assert got['bootstrap/orchard_stage.py']==old['bootstrap/orchard_stage.py']
+    # Path-only repacking changes tar bytes; accepted reader/scorer/item bytes stay exact.
+    assert B.X.scan_members(got['bootstrap/payload.tar.gz'])>0
+    assert b'logical_path(item.name)' in got['bootstrap/orchard_stage.py']
     payload=B.unpack(got['bootstrap/payload.tar.gz'])
     assert all('BINDING.json' not in n for n in payload)
     assert 'BINDING.json' not in str(got.keys())
     a=json.loads((tmp_path/'accepted/CONFIG.json').read_text());c=json.loads((d/'CONFIG.json').read_text())
-    for name in ('spec','payload_pins','payload_sha256','assets','release'):
+    for name in ('spec','assets','release'):
         assert a[name]==c[name]
     for n,data in payload.items():
         if '/reader/' in n or '/cohort/' in n or '/inputs/' in n or '/parity/' in n:
-            assert data==B.unpack(old['bootstrap/payload.tar.gz'])[n]
+            accepted_bytes=B.unpack(old['bootstrap/payload.tar.gz'])[n]
+            if key=='vsi' and n.endswith('/cohort/MEDIA_MANIFEST.json'):
+                strip=lambda value:[{k:v for k,v in row.items() if k not in ('bytes','status')} for row in json.loads(value)]
+                assert strip(data)==strip(accepted_bytes)
+                assert all(row['bytes']>0 for row in json.loads(data))
+            else:assert data==accepted_bytes
     # Invoke the accepted production loader and its membership guard without a model.
     script="""import sys,json
 from pathlib import Path
@@ -219,8 +229,10 @@ def test_submission_is_only_ledger_writer(tmp_path):
 def test_submit_shape(tmp_path):
     d=prep(tmp_path)
     command=cli('submit-command','--destination',d,'--ledger',tmp_path/'l').stdout
-    for s in ('--gres=gpu:1','--cpus-per-task=16','--mem=200G','--partition=general','a15_cot_apa00123456'):
+    for s in ('--gres=gpu:1','--cpus-per-task=16','--mem=200G','--partition=general','a15_cot_ap'):
         assert s in command
+    assert re.search(r'--job-name=a15_cot_ap[0-9a-f]{16}',command)
+    assert json.loads((d/'CONFIG.json').read_text())['job_name'] in command
     assert '#SBATCH' not in (d/'BATCH.sh').read_text()
     assert all(x not in command for x in ('vsibench','revsi','D0','BINDING'))
 

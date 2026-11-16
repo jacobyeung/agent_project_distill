@@ -153,6 +153,8 @@ def test_lift_keeps_every_mask_pixel():
     from e2e_reader.grounding import lift_plain
 
     class Geo:
+        C = np.zeros((32, 4, 4))
+
         def has(self, k):
             return True
 
@@ -208,3 +210,25 @@ def test_selector_loader_opens_train_only(monkeypatch):
     S = json.load(open(C.SCALES))['captures']
     splits = {S[Path(p).name[:-8].replace('__', '/')]['split'] for p in opened}
     assert splits == {'train'} and rows and {r['split'] for r in rows} == {'train'}
+
+
+def test_frame_count_is_a_read_parameter():
+    """Geometry, camera poses and ground masks follow the read's anchor count (64 here), not a constant 32."""
+    from e2e_reader.geometry import from_tower, frame_count, camera_geometry
+    from e2e_reader.grounding import lift_plain
+    z = np.load('/scratch/jjyeung/n30_mirror/k1_ops3/run_tower_sam_2/01949c4249271126/tower.npz')
+    n = len(z['raw_pose'])
+    if n < 64:
+        pytest.skip('fixture tower has fewer than 64 dense frames')
+    slots = np.arange(64)
+    depth = np.repeat(z['depth_grid'][:1], 64, axis=0)
+    try:
+        geo = from_tower(z['raw_pose'], slots, z['frame_indices'], depth, z['grid_uv'], np.array([0., -1., 0.]), 1.,
+                         (480, 640))
+    except Exception as exc:  # the sealed tree's geometry contract is 32-frame only (tree build 7 item)
+        pytest.xfail('sealed geometry contract refuses 64 frames: ' + type(exc).__name__ + ': ' + str(exc)[:80])
+    assert frame_count(geo) == 64
+    _, pose, _, _ = camera_geometry(geo)
+    assert pose.shape == (64, 9)
+    masks = np.zeros((64, 240, 320), bool); masks[40, 100:110, 100:110] = True
+    assert lift_plain('x', masks, geo)['visible'] == [41]

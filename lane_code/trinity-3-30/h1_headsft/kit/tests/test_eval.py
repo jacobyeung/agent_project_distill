@@ -1,6 +1,7 @@
 import copy
 import importlib.util
 import json
+import os
 from pathlib import Path
 from types import SimpleNamespace as NS
 import numpy as np
@@ -195,13 +196,13 @@ def test_tiny_own_and_scripted_usage(kit):
     ignorer,_=generated(kit,{'name':'scale_translation','k':2},kind='move',policy='ignorer',unchanged=S.answer_text(base))
     assert S.usage(base,copier,item)['follow']==1
     assert S.usage(base,ignorer,item)['stick']==1
-    (K/'logs/tiny_usage.json').write_text(json.dumps(dict(copier=S.usage(base,copier,item),ignorer=S.usage(base,ignorer,item)),indent=2)+'\n')
+    (Path(os.environ.get('LANE_TEST_OUTPUT', K/'logs'))/'tiny_usage.json').write_text(json.dumps(dict(copier=S.usage(base,copier,item),ignorer=S.usage(base,ignorer,item)),indent=2)+'\n')
     from h1eval.runner import measure,table
     runs=[]
     for mode,value in [('none',base),('copier_scale_translation',copier),('ignorer_scale_translation',ignorer)]:
         value['seconds']=value['timings']['total_s']
         runs.append(dict(id='tiny-camera',type=item['question_type'],arm='own',mode=mode,output=value,measurements=measure(value,item,None if mode=='none' else base)))
-    (K/'logs/tiny_eval_items.jsonl').write_text(''.join(json.dumps(r)+'\n' for r in runs))
+    (Path(os.environ.get('LANE_TEST_OUTPUT', K/'logs'))/'tiny_eval_items.jsonl').write_text(''.join(json.dumps(r)+'\n' for r in runs))
     report=table(runs)
     assert 'Head distance MAE' in report and 'copier_scale_translation' in report
-    (K/'logs/tiny_eval_report.md').write_text(report)
+    (Path(os.environ.get('LANE_TEST_OUTPUT', K/'logs'))/'tiny_eval_report.md').write_text(report)

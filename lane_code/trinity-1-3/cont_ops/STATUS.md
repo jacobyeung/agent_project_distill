@@ -7,6 +7,9 @@
 - 14:15Z: QUESTION build_R_refuses_midleg_m400 sent (d0_ended + one-D0-export ledger guard; default: no ReVSI m400 via build R until ruled).
 - 14:08Z: took over. cont6_watch still polling (ends ~15:21Z). Owed: restart watch as cont7_watch at ~15:21Z; check build R per-item output vs revsi400/paired.py before m400; m200 submit at .done (~17:40-17:50Z).
 
+## ORCH NOTE 1609Z (copied for successors): H1-1 launch conditions at 06:25Z
+H1-1 may launch at 06:25Z without H1-0 on step 544 (step 544 is fixed; its baseline can be read after H1-1 starts and still pairs). Conditions: kit review GO (met), the real 9B step-544 CPU first batch receipt (owed by 05:30Z), and the faithful gate at exit 0. H1-0 on step 544 must land before H1-1's m100 read.
+
 ## ORCH NOTE 1507Z (copied for successors): cont_ops packages and submits H1-1 at the 06:25Z boundary
 h1_headsft delivers a RESULT h1_1_kit_ready here by ~19:00Z (code tar, configs/h1_1.json over D0's kit, R0 pin, gate script, packet note, review GO, CPU first-batch receipt). At USR1 (~06:25Z) follow the 1342Z note: if that RESULT exists with the GO and receipt, package from D0_JOB_B_PACKET.md, stage, admit and submit H1-1 on advanced (4 H100, ~8 h, stop_after_step 200), keep D0's end slot, resume D0 after H1-1. Babysit H1-1 like D0.
 

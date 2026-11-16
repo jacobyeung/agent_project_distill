@@ -1,4 +1,4 @@
-import copy
+import tarfile
 from pathlib import Path
 
 import pytest
@@ -22,8 +22,23 @@ def staged_inputs(tmp_path):
     write(source / 'config.json', cfg.to_dict())
     for n in ('tokenizer.json', 'tokenizer_config.json', 'preprocessor_config.json'):
         write(source / n, {})
+    assets = tmp_path / 'base_assets'
+    assets.mkdir()
+    for path in source.iterdir():
+        (assets / path.name).write_bytes(path.read_bytes())
+    for name in ('chat_template.jinja', 'merges.txt', 'vocab.json', 'video_preprocessor_config.json', 'extra.asset'):
+        (assets / name).write_text('original asset')
+    original_files = {p.name: sha(p) for p in assets.iterdir()}
+    original_files.update({'model.safetensors-00001-of-00004.safetensors': 'absent-base-weight',
+                           'model.safetensors.index.json': 'absent-base-index'})
+    model = tmp_path / 'model.json'
+    write(model, dict(schema='p3-model-input-v1', base_identity='base', files=original_files))
+    archive = tmp_path / 'model.tar'
+    with tarfile.open(archive, 'w') as tar:
+        tar.add(model, arcname='original/model.json')
+    asset_args = dict(base_assets=assets, model_manifest_tar=archive)
     depth = dict(d_proj=16, mlp_hidden=16, num_heads=2, context_depth=1, vit_layers=[1, 2, 3])
-    receipt = dict(schema='c1-preparation-v1', depth=depth, model=dict(path='/AWS/base', sha256='old'),
+    receipt = dict(schema='c1-preparation-v1', depth=depth, model=dict(path='/AWS/base', sha256=sha(model)),
                    depth_init=dict(path='/AWS/depth', sha256='old'), frame_layout='duplicate', config_sha256='identity')
     expected = S.depth_shapes(source / 'config.json', receipt)
     torch.save({k: torch.zeros(shape) for k, shape in expected.items()}, heads / 'heads.pt')
@@ -48,13 +63,13 @@ def staged_inputs(tmp_path):
     write(data_path, data)
     req = dict(config=pin(meta/PREP/'config.json'), data_receipt=pin(data_path), artifact=pin(heads/'artifact.json'))
     request = tmp_path / 'request.json'; write(request, req)
-    return source, heads, meta, request, expected
+    return source, heads, meta, request, expected, asset_args
 
 
 def test_restore_paths_and_depth_proof(staged_inputs, tmp_path):
-    source, heads, meta, request, expected = staged_inputs
+    source, heads, meta, request, expected, asset_args = staged_inputs
     out = tmp_path/'out'
-    report = S.stage(source, heads, meta, out, request=request)
+    report = S.stage(source, heads, meta, out, request=request, **asset_args)
     original, new = read(heads/'artifact.json'), read(out/'artifact.json')
     assert sha(heads/'artifact.json') != sha(out/'artifact.json')
     for k in ('full_weights', 'heads'):
@@ -70,15 +85,15 @@ def test_restore_paths_and_depth_proof(staged_inputs, tmp_path):
 
 @pytest.mark.parametrize('name', ['model-00001-of-00001.safetensors', 'model.safetensors.index.json'])
 def test_restore_refuses_corruption(staged_inputs, tmp_path, name):
-    source, heads, meta, request, _ = staged_inputs
+    source, heads, meta, request, _, asset_args = staged_inputs
     (source/name).write_bytes(b'corrupt')
     with pytest.raises(ValueError, match='sha256 mismatch'):
-        S.stage(source, heads, meta, tmp_path/'out', request=request)
+        S.stage(source, heads, meta, tmp_path/'out', request=request, **asset_args)
     assert not (tmp_path/'out').exists()
 
 
 def test_depth_proof_rejects_missing_key(staged_inputs, tmp_path):
-    source, heads, meta, request, _ = staged_inputs
+    source, heads, meta, request, _, asset_args = staged_inputs
     state = torch.load(heads/'heads.pt', weights_only=True)
     state.pop(next(iter(state)))
     torch.save(state, tmp_path/'incomplete.pt')
@@ -89,9 +104,9 @@ def test_depth_proof_rejects_missing_key(staged_inputs, tmp_path):
 def test_manifest_resolves_links_and_refuses_escape(staged_inputs, tmp_path):
     from parity_kit.build_manifest import build
     from e2e_reader.artifact import Artifact
-    source, heads, meta, request, _ = staged_inputs
+    source, heads, meta, request, _, asset_args = staged_inputs
     out = tmp_path/'out'
-    S.stage(source, heads, meta, out, request=request)
+    S.stage(source, heads, meta, out, request=request, **asset_args)
     g3t = tmp_path/'tower'; g3t.mkdir()
     (g3t/'model.safetensors').write_bytes(b'fixture')
     write(g3t/'config.json', {})
@@ -105,3 +120,37 @@ def test_manifest_resolves_links_and_refuses_escape(staged_inputs, tmp_path):
     # The restore alone cannot serve as root: its shard links leave that root.
     with pytest.raises(ValueError):
         build(out, out, g3t, code_roots=dict(reader=code))
+
+
+@pytest.mark.parametrize('name', ['config.json', 'tokenizer.json', 'chat_template.jinja', 'extra.asset'])
+def test_restore_refuses_changed_original_assets(staged_inputs, tmp_path, name):
+    source, heads, meta, request, _, asset_args = staged_inputs
+    (asset_args['base_assets'] / name).write_bytes(b'changed original')
+    with pytest.raises(ValueError, match='sha256 mismatch'):
+        S.stage(source, heads, meta, tmp_path/'out', request=request, **asset_args)
+    assert not (tmp_path/'out').exists()
+
+
+def test_restore_ignores_export_assets_and_uses_original_pins(staged_inputs, tmp_path):
+    source, heads, meta, request, _, asset_args = staged_inputs
+    (source/'config.json').write_text('invalid export config')
+    (source/'tokenizer.json').write_text('untrusted export tokenizer')
+    (source/'export_only.json').write_text('{}')
+    report = S.stage(source, heads, meta, tmp_path/'out', request=request, **asset_args)
+    manifest = read(tmp_path/'out/model.json')
+    assert set(manifest['files']) == {p.name for p in (tmp_path/'out/base').iterdir()}
+    assert 'export_only.json' not in manifest['files']
+    assert 'model.safetensors-00001-of-00004.safetensors' not in manifest['files']
+    for name, digest in report['base_file_pins']['original_assets'].items():
+        assert sha(tmp_path/'out/base'/name) == digest == report['original']['base_files'][name]
+    assert 'model-00001-of-00001.safetensors' in report['base_file_pins']['step544_weights']
+
+
+def test_restore_refuses_unpinned_model_manifest(staged_inputs, tmp_path):
+    source, heads, meta, request, _, asset_args = staged_inputs
+    model = tmp_path/'model.json'
+    write(model, dict(read(model), base_identity='forged'))
+    with tarfile.open(asset_args['model_manifest_tar'], 'w') as tar:
+        tar.add(model, arcname='model.json')
+    with pytest.raises(ValueError, match='sha256 mismatch: original model manifest'):
+        S.stage(source, heads, meta, tmp_path/'out', request=request, **asset_args)

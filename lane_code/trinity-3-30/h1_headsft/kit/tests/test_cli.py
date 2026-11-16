@@ -1,5 +1,6 @@
 import copy
 import json
+import os
 from pathlib import Path
 import pytest
 from h1eval import items
@@ -86,8 +87,12 @@ def test_tiny_cli_curve(kit,tmp_path):
     torch.set_num_threads(2)
     root=kit['root']
     loader=K/'tests/eval_fixture.py'
-    (root/'h1eval.json').write_text(json.dumps(dict(lineage='RL',step=7,fixture=True,
-        loader='tests.eval_fixture:load',loader_sha256=items.sha(loader))))
+    settings=dict(lineage='RL',step=7,fixture=True,
+                  loader='tests.eval_fixture:load',loader_sha256=items.sha(loader))
+    if os.environ.get('H1_TINY_FIXTURE'):
+        assert json.loads((root/'h1eval.json').read_text()) == settings
+    else:
+        (root/'h1eval.json').write_text(json.dumps(settings))
     item=dict(id='tiny-camera',dataset='scannet',scene='scene9999_00',
               question_type='camera_displacement',question='Approximately how far in meters between frame 1 and frame 9 of 32?')
     src=tmp_path/'source.json';src.write_text(json.dumps([item]))
@@ -102,7 +107,7 @@ def test_tiny_cli_curve(kit,tmp_path):
     m=record['per_type']['camera_displacement']['own']['scale_translation:2']['M3']
     assert m['follow']['value']==1 and m['follow']['ci95']==[1,1]
     assert m['passes_bars']
-    (K/'logs/tiny_curve_build2.json').write_text(json.dumps(record,indent=2)+'\n')
+    (Path(os.environ.get('LANE_TEST_OUTPUT', K/'logs'))/'tiny_curve_build2.json').write_text(json.dumps(record,indent=2)+'\n')
     assert main(['pair','--a',str(out),'--b',str(out)])==0
     assert main(['curve',str(out)])==0
 

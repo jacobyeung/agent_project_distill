@@ -428,3 +428,203 @@ record compatibility remain unverified. Missing stop history refuses resume
 rather than inventing the steps 1–50 denominator. The failed-test ledger and the
 single temporary-path exception remain here because the user requires complete
 validation accounting; these are the report's intentionally retained history.
+
+## Build 5 (h1_headsft lane, 2026-11-16 ~16:00Z; ORCH RULING 1535Z)
+
+**Status: the reviewer gate passes. 91 tests pass, 0 fail** (`logs/b5/suite.log`,
+`tests/test_build4.py tests/test_review.py tests/test_reader_build4.py` plus the nine Build-4 `OLD` files).
+
+- **F1 (ruling 1).** Faithful training stands: own-value rows train on the model's own answer even where it
+  differs from GT. `test_F1_answer_differs_is_not_wrong_answer` now checks that a 1% own translation error
+  keeps the own answer in the target and is not counted by the tolerance-based stop metric, while a 20% error
+  is. The new `test_F1_perturbation_moves_answer_vs_unperturbed` applies the evaluator's own `perturb` to the
+  own heads and checks the faithful answer against the SAME geometry's unperturbed answer: displacement
+  scales by k = 0.5 and 2 (2% tolerance), the 180-degree rotation maps forward/backward and left/right
+  options to their opposites, `negate_turn` negates the turn (1 degree tolerance); `scorers.usage` returns
+  the same verdict whether or not the item carries a GT answer.
+- **F2 (ruling 2).** Step 2 stands. `test_F2_step2_and_forced_pose_own_cover_every_rank` checks that step 2
+  draws pose-own on a routing group under `configs/h1_1.json`, that both first-batch tools expose
+  `--force-pose-own`, and that the forced schedule draws pose-own on every routing group at steps 1 and 2.
+- **Forced pose-own run.** `tests/first_step.py --force-pose-own` sets `max_own_probability=1` and asserts
+  that every camera routing row is own or a counted refusal; `first_batch/real_first_batch.py
+  --force-pose-own` sets the pose decision to own on every routing microstep and logs any row that stays GT.
+  Tiny native run (`logs/b5/first_batch_step2_forced.{json,log}`): 4 ranks x 72 microsteps, own rows
+  8/8/11/11; displacement and rotation rows all own; movement-direction rows are counted `near_tie`
+  refusals on the random tiny model; object-distance rows stay GT (depth gate, not S1).
+- **Regression.** Unforced step-2 first batch: own rows 4/4/6/5 (`logs/b5/first_batch_step2.json`), equal to
+  Build 4. OFF identity: 4/4 exact against the sealed golden result (`logs/b5/off_compare.log`).
+- **Test environment note.** `test_loader_refuses_file_outside_manifest` needs a basetemp outside `/dev/`
+  (the audit exempts `/proc/ /sys/ /dev/`), so the suite runs with basetemp `tmp/b5/`.
+- **Portrait frames (ORCH NOTE 1527Z).** H1-owned code keeps aspect: the trainer feeds frames through the
+  Qwen processor's `smart_resize`, and `h1eval.perception.own_profile` uses native `source_hw`. The fixed
+  480x640 canvas lives in b04's vendored reader (`h1eval/reader_core/e2e_reader/stage1.py:90`, SAM 3 masks
+  via `routed_features.SHAPE`) and the sealed tree's `routed_features.py`/`routed_candidates.py`; it affects
+  grounding (`<ground>`/`<gap>`) calls only, not camera calls. Known defect, owned by b04. ARKitScenes share
+  (upper bound of portrait items): revsi999 415/999, devs1_routed 47/636, devs1_direct 532/1,825.
+
+## Build 6
+
+**Validation: 100 passed, 1 skipped, 0 failed.** All 91 existing tests pass;
+nine Build-6 tests pass. The skipped test needs the missing real JSON inputs.
+
+The CPU fixture diagnostic implements the native S1 readout, faithful rendering,
+tokenisation, forward and backward path, plus one native pose microstep per rank.
+The tiny proof passes with and without forced pose-own. The real-weight run and
+the supplied-real-JSON loading proof remain unverified: the entire directory
+`/dev/shm/jjyeung/h1tmp/from118` is absent on trinity-3-30. No 9B weights were loaded.
+
+### Files and behavior
+
+- `first_batch/real_fixture_batch.py` accepts the requested CLI and exposes
+  `run(args, loader=...)` for the tiny proof. The production loader calls
+  `processor_for_receipt`, `load_model(evaluation=True)` and `load_artifact`.
+  It removes lineage warm-start/depth-init fields before loading the explicit
+  step-544 export. The artifact must match the config's full SHA256,
+  `1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef`.
+  Missing declared files produce a clear `Missing node-local` error.
+- `first_batch/real_fixture_batch.sh` derives K from its own location, accepts
+  `PY` and `PY_OVERLAY`, forces CPU/offline operation, limits threads to 16,
+  and puts caches and temporary files under the output directory. It imposes
+  no address-space cap. `PYTHONHASHSEED=17` fixes the native set-derived stream
+  ordering used by `mixed_indices`.
+- `rows/ground_fixtures.jsonl` retains the two a0 rows used by `tests/first_step.py`,
+  repacked with `ground_rows.pack`. Both fail the native `routing.c1_row` check
+  with `Absolute label mismatch`. The diagnostic records their qids and reasons
+  in `SUMMARY.json` and omits them. It does not change either answer.
+- `tests/test_build6.py` exercises actual PNG loading, native `Rows.get`, carrier
+  insertion, routing labels, own-head readout, faithful answers, pose supervision,
+  loss and gradients. Its loader uses `tests.fixtures.tiny`; its pixel processor
+  extends `tests.fixtures.Processor` for 4x4 synthetic RGB frames. It never uses
+  the tiny fixture's prebuilt batch or `tests.fixtures.routing_batch`. Tests also
+  check unchanged parameters, NaN-gradient failure, artifact-pin rejection,
+  native-loader wiring, forbidden paths, and the wrapper's nonzero failure exit.
+- `cpu.sh`, `tests/build4_plugin.py`, `tests/reader_plugin.py`, `tests/fixtures.py`,
+  `tests/test_cli.py` and `tests/test_eval.py` honor `LANE_TEST_OUTPUT` for test
+  scratch files and outputs. The regression reader reuses the existing tiny
+  checkpoint without copying its payload or rewriting its metadata.
+
+### Conservative fixture choices
+
+The tool accepts the existing clip-manifest schema instead of adding a parity-kit
+binding. A clip contains exactly 32 frame records with `path`, `sha256` and
+`source_index`, plus positive `fps` and `total_num_frames`. Relative frame paths
+resolve under `--frames-root`, or under the manifest's directory when omitted.
+Absolute paths stay unchanged. The native pixel loader checks frame hashes.
+
+The 12 camera programs keep their fixture poses, questions, targets and answers.
+Their 1–32 slots bind to the clip's ordered source indices before `routing.c1_row`
+packs them. This deliberately combines fixture labels with real pixels to test
+the code path; it measures no accuracy or correspondence between RGB and GT pose.
+
+An in-memory subclass overrides only `Rows.row`; the trainer's `Rows.get` and all
+batch builders remain unchanged. A pose record uses the first camera fixture's
+32 GT poses and gravity. It supplies masked depth placeholders because the fixture
+has no GT depths. Thus every rank also executes a native pose forward/backward.
+
+The step-2 plan uses `mixed_indices(counts, 2, start_step=1, seed=17,
+training_mode='final', mix=recipe_for(cfg)['mix'], world=4)`. Fixture counts are
+12 for routing and 16 for the other streams, matching the tiny first-step
+convention; the lineage receipt supplies no training data. Routing indices map
+modulo the admitted fixture count. The default selects routing microsteps 24 and
+25 and pose microstep 0 on each rank. Gates use `decide(2, micro//factor)`;
+`--force-pose-own` changes only the pose decision to True.
+
+Each routing step calls the trainer's `own_values`, clears gradients, runs forward
+and backward, and checks every non-None gradient. The tool allocates no optimizer
+and updates no weights. Ranks execute sequentially in one CPU process; this does
+not test distributed collectives. Forced runs fail if any selected rank has no
+successful own camera row. Unforced runs require finite losses and gradients but
+do not require an own draw from the selected prefix.
+
+`real_fixture_batch.jsonl` records the original microstep, planned/fixture index,
+gate decision, H1 audit, loss components, trained tokens, encode/readout/forward/
+backward/gradient-check times and peak RSS. `SUMMARY.json` records the full plan,
+per-rank own/GT/refused counts and refusal histograms, non-finite findings,
+errors, elapsed time and pass flag. Outputs require a fresh directory. The audit
+hook rejects `/home`, `/data*`, `/lustre`, symlink aliases to those roots, network,
+subprocesses and deletions; file writes must stay under `--output`.
+
+### Validation
+
+All test commands use `/scratch/jjyeung/envs/p1cpu/bin/python -B` through `cpu.sh`,
+with CUDA hidden, a 32 GiB address-space cap, at most 16 threads, and all current
+test scratch paths under `tmp/b6`. The real-host wrapper does not apply that cap.
+
+```bash
+LANE_TEST_OUTPUT="$PWD/tmp/b6" PYTHONHASHSEED=17 bash cpu.sh -m pytest \
+  tests/test_build6.py tests/test_build4.py tests/test_review.py \
+  tests/test_reader_build4.py tests/test_build3_items.py tests/test_h10.py \
+  tests/test_cli.py tests/test_r0.py tests/test_eval.py tests/test_trainer.py \
+  tests/test_stop.py tests/test_rows.py tests/test_own_forward.py \
+  -q -rs -p no:cacheprovider -p tests.reader_plugin -p tests.build4_plugin \
+  --basetemp="$PWD/tmp/b6/suite2" > tmp/b6/suite2.log 2>&1
+bash -n first_batch/real_fixture_batch.sh cpu.sh
+```
+
+The full suite completed in **65.08 seconds** (`tmp/b6/suite2.log`); both shell
+files pass syntax checking. The retained development logs are `proof1.log`,
+`proof2.log`, `proof3.log` and `suite1.log`, all under `tmp/b6`.
+
+The tiny end-to-end runs each execute 12 microsteps: four pose and eight routing.
+Forced own-camera counts are **1/2/1/2**; GT counts are **1/0/1/0**. The two GT rows
+are counted refusals, `near_tie` and `movement_no_positive_option`. Unforced own
+counts are **0/0/0/0**, because the first two pose-gate draws are closed. Both
+summaries pass; losses and gradients are finite, and every parameter remains
+unchanged. Forced rows keep the exact own answer in the trained suffix.
+The final tiny forced run took **6.51 seconds**, with median routing/pose
+microsteps of **0.575/0.409 seconds** and peak process RSS **533,516 KiB**.
+The unforced run took **10.47 seconds**, including initial loader warm-up.
+
+Storage added is **below 10.4 MB of allocated space** and **below 4.4 MB of
+logical content**, including all retained test scratch directories. These are
+conservative upper bounds: `tmp/b6/SIZE.json` counts every touched source/report
+file in full, plus directory allocation and the five legacy output files. Both
+bounds remain below the requested 20 MB. No tree, kit or model payload was copied.
+
+The real-file test reads `B6_REAL_JSON_DIR`, defaulting to the requested
+`/dev/shm/jjyeung/h1tmp/from118`. It explicitly skips when any of `model.json`,
+`receipt.json`, `artifact.json` or `RESTORE.json` is missing. Once they are staged,
+it checks the real artifact pin and expects file opening to fail on absent model
+assets. The synthetic missing-file and native-loader-wiring tests do pass; they
+do not substitute for that real-JSON proof.
+
+The initial regression invocation rewrote existing `tmp/b4/artifact/h1eval.json`
+metadata and four `logs/tiny_*` result files inside K. These legacy test writes
+violated the requested b6 scratch boundary. The current helpers keep those inputs
+read-only and redirect the result files under b6. No model payload was copied or
+rewritten. No Git, network, SSH, GPU, process termination, deletion or write
+outside K was used. This paragraph records a required boundary exception.
+
+### Real-host command and timing estimate
+
+Use a CPU host with the model, processor and export assets already staged at the
+node-local paths named by their JSON files. The lineage receipt is used only for
+loading; D0 row databases and its production identity gate are not needed for
+this fixture diagnostic. This diagnostic does not replace that launch gate.
+
+```bash
+KIT=/path/to/extracted/kit
+MODEL_JSON=/path/to/model.json
+RECEIPT_JSON=/path/to/receipt.json
+ARTIFACT_JSON=/path/to/step544/artifact.json
+FRAMES_JSON=/path/to/clip.json
+FRAMES_ROOT=/path/to/frames
+PY=/path/to/python PY_OVERLAY=/path/to/optional/overlay \
+  bash "$KIT/first_batch/real_fixture_batch.sh" \
+  --config "$KIT/configs/h1_1.json" --model-manifest "$MODEL_JSON" \
+  --receipt "$RECEIPT_JSON" --artifact "$ARTIFACT_JSON" \
+  --frames "$FRAMES_JSON" --frames-root "$FRAMES_ROOT" \
+  --ranks 0,1,2,3 --routing-per-rank 2 --force-pose-own --threads 16 \
+  --output "$KIT/tmp/b6/real_forced"
+```
+
+Omit `PY_OVERLAY` when no overlay is needed. To test the registered unforced
+draws, omit `--force-pose-own` and use a different output directory. The wrapper
+inherits any limit imposed by its caller, so invoke it without `cpu.sh` or a
+32 GiB caller limit on the real host.
+
+**Guess, not a measurement:** allow 5–30 minutes per forced routing microstep
+and 2–20 minutes per pose microstep for the 9B model on 16 CPU threads, plus model
+loading and hash checks. CPU instruction support and processed token count can
+move this estimate substantially. The JSONL timings provide the actual result;
+the tiny model's sub-second microsteps do not predict 9B performance.

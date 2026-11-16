@@ -54,21 +54,27 @@ def from_arrays(*, K, canvas_to_source, camera_to_world, scale, depth_grid, grid
     return make(GP)
 
 
+def frame_count(geometry):
+    """Number of anchor frames of a read (32 or 64): a read parameter, never a constant of the reader."""
+    return int(len(geometry.C))
+
+
 def from_tower(raw_pose9, anchor_slots, frame_indices, depth_grid, grid_uv, gravity, scale, source_hw):
     """The C8r conversion (native/out2/geometry.py convert) without the scale rule and guard:
     G3T raw pose at the anchor slots, rotated into the own gravity head's reference frame."""
     from student_pilot.camera_targets import to_gravity_reference_frame
     H, W = map(int, source_hw)
     raw = np.asarray(raw_pose9, np.float64)[np.asarray(anchor_slots)]
+    n = len(raw)
     R, t, fov = to_gravity_reference_frame(raw, np.asarray(gravity, np.float64))
-    C = np.repeat(np.eye(4)[None], 32, axis=0)
+    C = np.repeat(np.eye(4)[None], n, axis=0)
     C[:, :3, :3] = R
     C[:, :3, 3] = t
-    K = np.zeros((32, 3, 3))
+    K = np.zeros((n, 3, 3))
     K[:, 0, 0] = W / (2 * np.tan(fov[:, 1] / 2))
     K[:, 1, 1] = H / (2 * np.tan(fov[:, 0] / 2))
     K[:, 0, 2], K[:, 1, 2], K[:, 2, 2] = W / 2, H / 2, 1
-    A = np.repeat(np.diag([W / 1000, H / 1000, 1.])[None], 32, axis=0)
+    A = np.repeat(np.diag([W / 1000, H / 1000, 1.])[None], n, axis=0)
     anchors = np.asarray(frame_indices)[np.asarray(anchor_slots)]
     return from_arrays(K=K, canvas_to_source=A, camera_to_world=C, scale=scale, depth_grid=depth_grid,
                        grid_uv=grid_uv, anchor_frame_indices=anchors)
@@ -92,8 +98,9 @@ def camera_geometry(geometry):
     from student_pilot.camera_targets import quaternion_xyzw
     from student_pilot.carrier_c1_routing import OwnGeometry
     first_R, first_t = geometry.cam(1)
-    pose = np.empty((32, 9), dtype=np.float64)
-    for k in range(1, 33):
+    n = frame_count(geometry)
+    pose = np.empty((n, 9), dtype=np.float64)
+    for k in range(1, n + 1):
         rotation, centre = geometry.cam(k)
         pose[k - 1, :3] = rotation.T @ (first_t - centre)
         pose[k - 1, 3:7] = quaternion_xyzw(rotation.T @ first_R)

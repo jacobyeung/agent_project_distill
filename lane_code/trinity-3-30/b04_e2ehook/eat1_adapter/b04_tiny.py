@@ -208,7 +208,8 @@ class B04TinyReader:
 
         def socket(frames, geometry):
             s = StageOne(m.sam3, m.selector_head, geometry)
-            return StageOneSocket(s.propose, s.select, (240, 320))
+            from e2e_reader.geometry import frame_count
+            return StageOneSocket(s.propose, s.select, (240, 320), frame_count(geometry))
         return Perception(m.g3t, lambda prefill: m.gravity_head(m.g3t.raw_pose, m.g3t.anchor_slots), m.scale_head,
                           socket, serve_room=False)
 

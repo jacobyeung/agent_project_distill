@@ -196,11 +196,13 @@ def main():
         for j in json.load(open(W + 'streams_ark_jobs.json')): am.setdefault(j['alias'], 'arkitscenes/' + j['id'])
         for j in json.load(open(W + 'streams_scn_jobs.json')): am.setdefault(j['alias'], 'scannet/' + j['id'])
     d0 = json.load(open(W + 'd0_pairs.json')); V = vocab(); R = raster_index(roots)
+    ARKTS = json.load(open(W + 'ARK_PIN_TS_CHECK.json')) if os.path.exists(W + 'ARK_PIN_TS_CHECK.json') else {}
     st = collections.Counter(); fams = collections.defaultdict(list); per_scene = {}; held = collections.defaultdict(list)
     for alias in sorted(SI):
         c = am.get(alias)
         if not c: st['scene: no canonical'] += 1; continue
         if EL.get(alias, {}).get('excluded'): st['scene: excluded'] += 1; continue
+        if alias.startswith('d3/') and ARKTS.get(alias, 'ok') != 'ok': st['scene: ARKit pin timestamps differ from RGB'] += 1; continue
         k = raster_key(c)
         if k not in R: st['scene: no raster'] += 1; continue
         rows, why = gen_scene(alias, c, R[k], SI[alias], V, set(d0['count'].get(alias, [])), {tuple(x) for x in d0['app'].get(alias, [])})

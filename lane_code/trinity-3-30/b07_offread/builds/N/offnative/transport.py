@@ -14,6 +14,9 @@ FORBIDDEN=('trinity','/scratch/jjyeung','/data2/','/data3/','revsi','vsibench','
 
 
 def inventory(raw):
+    from .opacity import scan
+    try:scan(raw)
+    except ValueError as exc:raise ValueError('packet names leaked: '+str(exc)) from exc
     lower=raw.lower()
     found=[word for word in FORBIDDEN if word.encode() in lower]
     if found:raise ValueError('packet names leaked: '+','.join(found))
@@ -25,8 +28,11 @@ def packet(files, destination, token):
     """Hide internal names in a verified opaque body, as in R's embedded packet."""
     if not re.fullmatch('[a-f][0-9a-f]{23}',token):raise ValueError('invalid opaque token')
     destination=owned(destination)
+    from .opacity import scan,scan_members,hex_body
+    for name in files:scan(name)
     raw=tar_bytes(files)
-    body=zlib.compress(raw,9).hex().encode()
+    member_count=scan_members(raw)
+    body=hex_body(zlib.compress(raw,9)).encode()
     checksum=hashlib.sha256(body).hexdigest()
     # All human-readable internal paths reside inside the encoded body.
     boot='''#!/bin/bash
@@ -52,16 +58,20 @@ P0
 '''%(checksum,token)
     packed=tar_bytes({'0':body,'1.sh':boot.encode()})
     check=inventory(packed)
+    check['decoded_members']=member_count
     destination.write_bytes(packed)
     dump(destination.with_suffix('.inventory.json'),check)
     return check
 
 
-def submission_argv(config, script):
-    if not re.fullmatch('a15_cot_ap[0-9a-f]{16}',config['job_name']):raise ValueError('invalid job name')
-    return ['sbatch','--parsable','--job-name='+config['job_name'],'--partition=general',
+def submission_argv(config, script, *, packet_sha256=None):
+    if not re.fullmatch(r'^a15_cot_ap[0-9a-f]{16}$',config['job_name']):raise ValueError('invalid job name')
+    argv = ['sbatch','--parsable','--job-name='+config['job_name'],'--partition=general',
             '--gres=gpu:1','--cpus-per-task=16','--mem=200G','--output=/dev/null',
-            '--time='+str((config['job']['time_limit_s']+59)//60),str(script)]
+            '--time='+str((config['job']['time_limit_s']+59)//60),
+            *(['--export=NONE,A0_PACKET_SHA256='+packet_sha256] if packet_sha256 else ['--export=NONE']),str(script)]
+    inventory(' '.join(argv).encode())
+    return argv
 
 
 def authenticate(destination, receipt, archive):
@@ -73,11 +83,25 @@ def authenticate(destination, receipt, archive):
     expected={'token':config['token'],'job':submission['job'],'config_sha256':sha(d/'CONFIG.json'),
               'binding_sha256':config['x0'],'packet_sha256':sha(d/'packet.tar')}
     if any(receipt.get(k)!=v for k,v in expected.items()):raise ValueError('return identity differs')
-    if receipt.get('status')!='COMPLETE' or receipt.get('synthetic') is not False:
+    if receipt.get('status') not in ('COMPLETE','PARTIAL') or receipt.get('synthetic') is not False:
         raise ValueError('return is synthetic or incomplete')
     p=Path(archive);ap=receipt.get('archive',{})
     if p.is_symlink() or p.stat().st_size!=ap.get('bytes') or p.stat().st_size>90_000_000 or sha(p)!=ap.get('sha256'):
         raise ValueError('return archive identity differs')
+    if receipt['status']=='PARTIAL':
+        import tarfile
+        with tarfile.open(p) as tf:
+            members=tf.getmembers()
+            if any(not m.isfile() or Path(m.name).is_absolute() or '..' in Path(m.name).parts for m in members):
+                raise ValueError('unsafe partial return')
+            if len({m.name for m in members})!=len(members) or sum(m.size for m in members)>90_000_000:
+                raise ValueError('partial return cap or duplicates')
+            marker=json.load(tf.extractfile('PARTIAL.json'))
+            if marker.get('complete') is not False or marker.get('binding_sha256')!=config['x0']:
+                raise ValueError('partial binding differs')
+            if marker.get('shard')!=config.get('shard') or not marker.get('missing_ids'):
+                raise ValueError('partial shard differs')
+        return expected
     # Reuse R's full member and completion validation with our config identity as its plan.
     L=r_launcher().launcher('revsi999t32')
     import orchard_results

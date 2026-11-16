@@ -135,7 +135,8 @@ def perception(art, model, leak=None):
             logits = model.selector_head(feats)
             k = int(logits.argmax())
             return -1 if k == len(logits) - 1 else k
-        return StageOneSocket(propose, select, (480, 640))
+        from e2e_reader.geometry import frame_count
+        return StageOneSocket(propose, select, (480, 640), frame_count(geometry))
     return Perception(g3t, gravity, model.scale_head, socket, serve_room=False)
 
 

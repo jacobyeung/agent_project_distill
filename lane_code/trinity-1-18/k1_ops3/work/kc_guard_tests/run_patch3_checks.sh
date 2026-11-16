@@ -18,14 +18,17 @@ run_check() {
     printf '%s: exit 0\n' "$name"
     tail -n 4 "$T/$name.log"
 }
+if [ "${K1_PATCH3_SKIP_R2:-0}" != 1 ]; then
 run_check patch3_r2_landscape env MODE=r2 K1_R2_CAPTURE=scannet/scene0452_02 K1_CONVERT_CACHE=/scratch/jjyeung/k1/run_convert_2 K1_REFIT_PY=/scratch/jjyeung/envs/planner_local_v1/bin/python bash ../kc_guard_brief/k1_downstream.guard.sh
-run_check patch3_canvas "$P1" -I -s -B "$T/test_k1_canvas.py"
+fi
+run_check patch3_canvas_final env K1_CANVAS_TEST_RUN=patch3_canvas_final "$P1" -I -s -B "$T/test_k1_canvas.py"
 run_check patch3_guard_sam3 env K1_GUARD_TEST_RUN=patch3_unit_sam3 "$SAM" -I -s -B "$W/test_k1_guard.py"
 run_check patch3_guard_p1cpu env K1_GUARD_TEST_RUN=patch3_unit_p1cpu "$P1" -I -s -B "$W/test_k1_guard.py"
 run_check patch3_identity "$SAM" -I -s -B "$T/verify_identity.py"
 run_check patch3_test_kit "$SAM" -I -s -B "$T/run_existing.py" test_kit
 run_check patch3_test_guards "$SAM" -I -s -B "$T/run_existing.py" test_guards
 run_check patch3_verify_sources "$P1" -I -s -B "$W/verify_sources.py"
+run_check patch3_gt_canvas_census "$P1" -I -s -B "$T/census_k1_canvas.py"
 bash -n ../kc_guard_brief/convert7.guard.sh
 bash -n ../kc_guard_brief/k1_downstream.guard.sh
 printf 'Launcher syntax: exit 0\n'

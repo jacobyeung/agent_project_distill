@@ -1,0 +1,18 @@
+The worker imports the native reader cores and official scorer without editing their source. b04, R, C8r, V1c, and the trainer tree run from content-addressed local snapshots selected by `vendor/ACTIVE.json`. Offkit stays external and unchanged; startup checks its module hashes.
+
+| Native integration | Adapter | Result |
+|---|---|---|
+| Offkit binding, frame guards, aggregation, and labels | `cli.binding`, `reporting.report`, `paths` | Binding passes the ledger, frame tuple, and override reason to offkit. Reports receive the verified full BINDING. Caller-supplied export layouts are absent. |
+| Registered ReVSI sampling metadata | `media.build`, `source.validate_mapping`, `production.Runtime.frames` | The worker reconstructs all 64 official clip positions and selects geometry with the registered 32 anchor positions. Both source-index lists and clip hashes are pinned. |
+| b04 `real.G3T` and `generate` | `production.Runtime.frames`, `readers.E2EReader` | The frame payload carries 64 native frames, 32 model frames, dense indices, and anchor slots. Tower execution stays inside the owner's generation call. |
+| R's runtime/export gate and media-copy primitives | `staging.stage_reviewed`, `bootstrap.stage`, `media.stage` | The adapter stages the ReVSI tar and accepted pool, verifies archive/file pins, and resolves R's media sources to the staged anchor set. R's code bytes remain unchanged. |
+| Accepted full-video sampler | `frames.aligned_dense`, `cohort.media_manifest` | VSI-Bench uses its 288 full videos, exact model anchors, and 64 dense frames. The question-only cohort contains 5,130 IDs. |
+| C8r proposal and cache loaders | `proposals`, `c8.Context` | The worker executes the frozen baseline/dense/alias programs and native cache/selector contract. Stub receipts remain ineligible for production. Unknown operands retain native refusal records. |
+| C8r native decode and V1c geometry conversion | `readers.HarnessReader`, `production.Runtime.towers` | The worker retains cache continuation, decode budgets, native call responses, checkpoint scale/gravity, and dense reconstruction before anchor selection. |
+| Accepted evaluator and offkit record adapter | `scoring.Scorer`, `worker.arms` | Model answer text reaches the official scorer unchanged. No scripted-answer or unit-conversion arm is exposed. Refusals remain zero in the primary arm. |
+| Pinned identity proof | `proof`, `replay`, `worker.proof` | Reduced mode requires the exact lost-mask record, independent camera responses, and distance token/call/answer and served-query/response digest equality. |
+| b04 audited generator | `fixture.TinyEntry` | CPU tests use a tiny model, forced sampled tokens, and synthetic tower arrays. The call hook uses its default unsuffixed error response and replay checks those exact bytes. |
+| C8r prefill boundary | `native_fixture.tiny_prefill` | CPU tests substitute prefill heads while executing the owner's token loop, cached mask selection, lifting, and call servers. This is a fixture, not model restoration. |
+| R transport and V1c budget | `transport`, `portable`, `watchdog` | Opaque packet scans, return authentication, governed fetch, and the 600-second return reserve retain their owner implementations or adapter contracts. |
+
+`out/INTEGRATION_LINES.json` records exact current file/line locations for these adapters. `out/CODE_PINS.json` and `out/DEPENDENCY_PINS.json` identify shipped bytes. `out/N3_EXECUTED_LINES.json` records the CPU traces. Live model restoration, GPU towers, original-export proof, namespace bootstrap, remote publication/fetch, and production-CONFIG equivalence remain unvalidated.

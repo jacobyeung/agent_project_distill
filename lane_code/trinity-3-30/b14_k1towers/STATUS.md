@@ -1,4 +1,4 @@
-# b14_k1towers STATUS (Devin successor lane on trinity-3-30; updated 2026-11-16T14:55Z)
+# b14_k1towers STATUS (Devin successor lane on trinity-3-30; updated 2026-11-16T16:10Z; FINISHED)
 Goal: queue brief briefs/qs/14_geo_towers_k1.md: price 4 kit towers (MoGe-2, MapAnything, DA3, Pi3X) on K1 under the C-rule with E3's harness.
 ## Done (Claude lane, 11:43-12:00Z)
 - Prereg note: distill_design/GEO_TOWERS_K1_PREREG_20261116.md, sha256 dd40e6d26a723300547c84b72add275bd2488993c2f70cd1b64fba7ae29b5c88 (copy in k1towers/). No INDEX line yet.
@@ -16,12 +16,13 @@ Goal: queue brief briefs/qs/14_geo_towers_k1.md: price 4 kit towers (MoGe-2, Map
 - DA3 GPU pass DONE 14:46Z (300/300, 9 s/capture) -> 1-18 geo_k1/pred_gpu/da3; converted (da3_native 289 written / 11 refused, da3_scale 282/18, all 'reference_camera_up_opposes_gravity'); priced -> harness/out_da3; merged ref+moge2+da3 -> harness/out_merged_md; train tables geo_k1/out/decide_train_md.json.
 - K1 TRAIN: distance da3_native 71.79, +4.44 [+1.18,+8.13]; da3_scale -0.40. Room R0 da3_native 76.91, +20.64 [+13.36,+28.21]; da3_scale+R0 74.00. Train median anchor AbsRel: da3_native 0.057 (aligned 0.039), moge2_scale 0.075, moge2_depth 0.102; scale/SO within 20%: 100% for both _scale arms.
 - decide.py review3: PASS_WITH_FIXES (mra boundary, merge_caps stale/duplicate checks) -> fixed, 7 tests pass. QUESTION 20261116T1452Z_QUESTION_heldout_go.md asks for 'GO heldout'.
+- Pi3X priced (pi3x_native 290 written / 10 refused); train: distance +6.13 [+2.46,+10.31], room R0 70.18 (+13.91). Merged -> harness/out_merged_mdp.
+- Frozen arm set {MoGe-2, DA3, Pi3X} + decide.py sha 9c1586b1 written to distill_design/GEO_TOWERS_K1_PRICING_20261116.md before the look; held-out run ONCE at 15:51Z (ORCH 1453Z GO) -> geo_k1/out/decide_heldout_once.json (sha 5d83da67). Never rerun held-out (heldout.sh refuses if the file exists).
+- DECISION: room winner DA3 native (replaces G3T for room programs; held-out +16.67 [+7.39,+26.92]; misses 73.4 bar at 72.92 -> no room head path). Distance: G3T (MoGe-2 top qualifier fails the -2 guard at -2.06; Pi3X qualifies both, wins neither).
+- Record + INDEX line written; mirror trinity-3-30 /scratch/jjyeung/n30_mirror/b14_k1towers/geo_k1_mirror_1600Z.tar sha256 7b75239c5af39b3ab09c0fdb2a62f5aeb70332bce545284fffcba17f7d9ededf (equal both ends). RESULT event k1_towers_decided.
 ## In flight
-- Pi3X GPU pass on 1-13 card 4 (ORCH 1405Z), tmux b14_pi3x under vnice, launched 14:46Z, 64 frames fit (35.7 GB), 11.7 s/capture, ETA ~15:50Z; outputs /dev/shm/jjyeung/b14/out/pi3x; log logs/run_pi3x.log. Stage 26 GB (ORCH 1405Z: within cap).
-- MapAnything: waits for a 1-18 card (inputs local there) or for the user to remove assets/moge2 + assets/da3 on 1-13 (ORCH 1405Z).
+- Nothing. Lane FINISHED per ORCH 1553Z (MapAnything not run: changes no decision). Final RESULT event written.
 ## Next steps
-1. When Pi3X ends: `tssh trinity-1-13 'bash -s' < work/scripts/` a copy of pull_moge2.sh with moge2->pi3x (pull to 1-18 geo_k1/pred_gpu/pi3x); then price118_tmpl.sh with MODEL=pi3x (prepend the code-push block as in price118_da3.sh); merge into a NEW folder harness/out_merged_mdp (merge_caps refuses non-empty); decide.py train.
-2. MapAnything on a 1-18 card when gpu_fill2 hands one: run k1_infer directly from geo_k1 with the kit at /scratch/jjyeung/geo_bakeoff_kit (no --frame-prefix), out geo_k1/pred_gpu/mapanything.
-3. On 'GO heldout': decide.py harness/out_merged_<x> out/decide_full.json --heldout-go <ORCH note>. Then design record distill_design/GEO_TOWERS_K1_PRICING_20261116.md + INDEX line, mirror (tar geo_k1 code+outputs to trinity-3-30 /scratch/jjyeung/n30_mirror/b14_k1towers), final RESULT.
+- None. Removal candidates for the user: REMOVAL_CANDIDATES.md (1-13 /dev/shm/jjyeung/b14 26 GB; 3-30 mirror tar 539 MB written after the 1507Z 100 MB cap).
 ## Open questions / defaults
-- None asked yet.
+- None.

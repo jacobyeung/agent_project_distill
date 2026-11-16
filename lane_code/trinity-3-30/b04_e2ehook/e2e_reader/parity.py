@@ -134,6 +134,11 @@ def load_native(export_dir, *, device='cpu', settings, artifact=None):
     processor = trainer.processor_for_receipt(manifest, receipt)
     loading = {k: v for k, v in receipt.items() if k != 'init_artifact'}
     model = trainer.load_model(manifest, loading, processor, evaluation=True)
+    if cfg.get('depth_init') and 'depth_init' not in receipt:
+        # The omitted stage-1 depth init (stage_restore) also froze the private encoder copy; the trained-group
+        # contract of the export counts only the tensors that stayed trainable, so freeze it the same way.
+        model.auxiliary_heads.depth.model.visual.requires_grad_(False)
+        model.depth_stage1 = True
     artifact = trainer.load_artifact(model, pin(out / 'artifact.json'))
     if (artifact['base_identity'] != cfg['base_identity']
             or artifact['config_sha256'] != trainer.identity(cfg)
@@ -182,7 +187,7 @@ def make_real(export_dir, artifact_manifest, items, *, perception_factory=None, 
         raise ValueError('unknown arm')
     specs = dict(artifact_manifest)
     artifact = Artifact(specs['root'], specs['name'], specs['sha256'],
-                        code_roots=specs.get('code_roots'),
+                        code_roots=specs.get('code_roots'), env_roots=settings.get('env_roots', ()),
                         required_roles=('checkpoint', 'tokenizer', 'g3t') +
                         (('scale_head',) if arm == 'scale_head' else ())).verify()
     model, processor, info = load_native(export_dir, device=device, settings=settings, artifact=artifact)

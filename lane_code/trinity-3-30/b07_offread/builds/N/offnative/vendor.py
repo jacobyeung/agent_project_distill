@@ -88,7 +88,10 @@ def refresh(names):
         if not destination.exists():
             for n, raw in content.items():
                 target = destination/n; target.parent.mkdir(parents=True, exist_ok=True)
-                target.write_bytes(raw)
+                if previous and old.get(n)==pins[n]:
+                    import os
+                    os.link(previous/n,target)
+                else:target.write_bytes(raw)
             # A concurrent edit invalidates the snapshot, rather than producing a mixed pin.
             if any(sha(source/n) != h for n, h in pins.items()):
                 raise ValueError('lane changed during snapshot: '+name)

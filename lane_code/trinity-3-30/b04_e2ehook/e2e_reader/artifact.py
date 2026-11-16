@@ -57,8 +57,12 @@ class ArtifactError(ValueError):
 
 
 class Artifact:
-    def __init__(self, root, manifest_name, manifest_sha256, *, code_roots=None, required_roles=REQUIRED_ROLES):
+    def __init__(self, root, manifest_name, manifest_sha256, *, code_roots=None, required_roles=REQUIRED_ROLES,
+                 env_roots=()):
+        """env_roots: extra installed-library directories of the runtime environment (e.g. a site-packages overlay),
+        trusted like the interpreter's own site-packages and listed in every audit report."""
         self.root = Path(root).resolve()
+        self.env_roots = tuple(os.path.realpath(r) + '/' for r in env_roots)
         self.code_roots = {k: Path(v).resolve() for k, v in (code_roots or {}).items()}
         path = self.root / manifest_name
         if sha256(path) != manifest_sha256:
@@ -187,7 +191,7 @@ def _native_path(args, kwargs):
     return None
 
 
-def _guarded(original):
+def _audited(original):
     def wrapper(*a, **k):
         audit = getattr(_state, 'audit', None)
         if audit is not None:
@@ -216,7 +220,7 @@ def _patch_native():
         original = getattr(current, '__wrapped_native__', current)
         wrapper = next((w for o, w in _NATIVE.values() if _same(original, o)), None)
         if wrapper is None:
-            wrapper = _guarded(original)
+            wrapper = _audited(original)
             _NATIVE[len(_NATIVE)] = (original, wrapper)
         swaps.append((owner, name, current))
         setattr(owner, name, wrapper)
@@ -272,7 +276,7 @@ class Audit:
             if path.endswith('.pyc') and '/__pycache__/' in path:
                 head, tail = path.rsplit('/__pycache__/', 1)
                 source = head + '/' + tail.split('.', 1)[0] + '.py'
-            if source not in self.artifact.code and not _stdlib(path):
+            if source not in self.artifact.code and not (_stdlib(path) or path.startswith(self.artifact.env_roots)):
                 self._refuse('code_outside_manifest', path)
             return
         if os.path.isdir(path):
@@ -295,7 +299,7 @@ class Audit:
         return False
 
     def report(self):
-        return dict(opens=len(self.opens), model_entries=self.entries,
+        return dict(opens=len(self.opens), model_entries=self.entries, env_roots=list(self.artifact.env_roots),
                     violations=[list(v) for v in self.violations],
                     data_files=sorted({p for p, _ in self.opens if p in self.artifact.allowed}))
 

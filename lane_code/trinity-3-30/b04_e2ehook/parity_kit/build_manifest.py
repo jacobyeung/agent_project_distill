@@ -31,7 +31,7 @@ def build(root, export_dir, g3t, *, selector_head=None, scale_head=None, sam3=No
     full = read(export / 'full_weights/full_weights.json')
     component('checkpoint', [export / 'full_weights' / e['name'] for e in full['files'] + [full['index']]] +
               [export / 'full_weights/full_weights.json', export / 'heads.pt', export / 'artifact.json'])
-    weights = {e['name'] for e in full['files'] + [full['index']]}
+    weights = {e['name'] for e in full['files']}  # base/ holds its own index copy; pin it with the tokenizer files
     component('tokenizer', [export / 'base' / n for n in read(export / 'model.json')['files'] if n not in weights])
     component('g3t', [Path(g3t) / n for n in ('model.safetensors', 'config.json')])
     for name, directory in (('selector_head', selector_head), ('scale_head', scale_head)):

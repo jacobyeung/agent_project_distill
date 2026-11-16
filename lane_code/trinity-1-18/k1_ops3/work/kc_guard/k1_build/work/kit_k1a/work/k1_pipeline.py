@@ -8,6 +8,12 @@ import gate
 import gt_set as G
 sys.path.insert(0,os.environ.get('K1_NATIVE_KIT',str(Path(__file__).resolve().parents[1]/'native_kit')))
 import numpy as np
+JSON_BOUND_BYTES=64*1024*1024
+def load_candidates(p):
+ """Use bindings.load semantics with the K1 candidate document size bound."""
+ p=Path(p)
+ if p.stat().st_size>JSON_BOUND_BYTES:raise ValueError('Metadata exceeds bounded reader')
+ return json.loads(p.read_text())
 def _native():
  global B,P
  if not globals().get('_sources_verified',False) and (Path(__file__).resolve().parents[1]/'out/DEPENDENCIES.json').exists():
@@ -98,7 +104,7 @@ def cached(c,dest):
  if receipt['capture_sha256']!=B.digest(c):raise ValueError('Cache capture differs')
  guard.check_receipt(c,dest,receipt)
  for pin in receipt['files'].values():B.checked(pin)
- raw=B.load(dest/'candidates.json')
+ raw=load_candidates(dest/'candidates.json')
  with guard.capture(c):
   if receipt.get('geometry_refusal'):
    try:load_geometry(dest/'REFUSED_GEOMETRY.npz',FrameMap(tuple(c['anchor_indices'])),'tower_scaled')
@@ -145,7 +151,7 @@ def tables(m,cache,out,gt_set=None,sensitivity=False):
    for row in pairs:pf.write(json.dumps(row)+'\n')
  guard.write_report(out)
  record=dict(geometry_refused=refused,manifest_sha256=B.digest(m),inventory=m['inventory'],producer_sha256=B.sha(build_tables.__file__),build_sha256=gate.sha(gate.ROOT/'grd_selector/work/setsel/build.py'),files={n:B.pin(out/n) for n in ['candidates.jsonl','pairs.jsonl']})
- record.update(gt_canvas_map=canvas_maps,gt_canvas_map_counts=dict(Counter(canvas_maps.values())))
+ record.update(json_bound_bytes=JSON_BOUND_BYTES,gt_canvas_map=canvas_maps,gt_canvas_map_counts=dict(Counter(canvas_maps.values())))
  if meta is None:B.write(out/'TABLE_RECEIPT.json',record)
  else:G.write(out/'TABLE_RECEIPT.json',record,meta)
 def responses(m,cache,fit_dir,out,gt_set=None,sensitivity=False):
@@ -191,7 +197,7 @@ def responses(m,cache,fit_dir,out,gt_set=None,sensitivity=False):
  guard.write_report(out)
  render.write_rows(all_rows,out/'rows')
  (out/'K1_ANALYSIS_INPUT.jsonl').write_text(''.join(json.dumps(x)+'\n' for x in analysis))
- record=dict(manifest_sha256=B.digest(m),fit=G.pin(fit_path),gt_canvas_map=canvas_maps,gt_canvas_map_counts=dict(Counter(canvas_maps.values())),files={'analysis':B.pin(out/'K1_ANALYSIS_INPUT.jsonl')})
+ record=dict(json_bound_bytes=JSON_BOUND_BYTES,manifest_sha256=B.digest(m),fit=G.pin(fit_path),gt_canvas_map=canvas_maps,gt_canvas_map_counts=dict(Counter(canvas_maps.values())),files={'analysis':B.pin(out/'K1_ANALYSIS_INPUT.jsonl')})
  if meta is None:B.write(out/'RENDER_RECEIPT.json',record)
  else:G.write(out/'RENDER_RECEIPT.json',dict(record,table_receipt=fit['table_receipt']),meta)
 def printed_cues(result):

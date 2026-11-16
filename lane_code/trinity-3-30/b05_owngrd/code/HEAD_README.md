@@ -51,4 +51,6 @@ Primary `candidate_recall_at5` measures names with exactly one GT instance in th
 
 `--val-items N` selects a deterministic, seeded subset of `train_val`; its default, 0, uses all items. `RUN.json` records the selected indices. Ceilings and the recall bar use the same validation subset as the reported metrics. Validation preserves the training RNG state.
 
-`tmp_codex/BUILD_REPORT.json` records test evidence, real-ViT timing/RSS when approved, parameter counts, file hashes, and the implementation choices not fixed by the brief. Stub tests validate mechanics; their losses and masks do not measure teacher quality or training performance.
+`tmp_codex/BUILD_REPORT.json` records test evidence, real-ViT smoke results, parameter counts, file hashes, and implementation choices. Stub tests validate mechanics; their losses and masks do not measure teacher quality or training performance.
+
+The CPU regression gate reports **57 passed, 1 skipped**; the skip is the opt-in standalone real-ViT test. The real-label, real-ViT CPU smoke completes three training steps and all 16 validation items in about 607 seconds through validation. Training total losses are 3.3196, 1.1436, and 3.0779; validation total loss is 1.4660. Both recall metrics are 0, matched-POS IoU is 0.00858, and on-target share and false presence are 0. These three-step results verify execution, not grounding quality. The logged unambiguous/all-instance ceilings are 1.0000/0.9048, with a step-600 recall bar of 0.7000. The build report contains every loss component and the full metric denominators.

@@ -1,0 +1,14 @@
+{
+  "R": {
+    "added": [],
+    "changed": [
+      "kit/revsi/launcher/orchard_launcher.py",
+      "kit/vsi/launcher/orchard_launcher.py"
+    ],
+    "diff": {
+      "kit/revsi/launcher/orchard_launcher.py": "--- /scratch/jjyeung/orch_n30/b07_offread/builds/N/vendor/r_3e22d7c2e761/kit/revsi/launcher/orchard_launcher.py\n+++ /scratch/jjyeung/orch_n30/b07_offread/builds/R/kit/revsi/launcher/orchard_launcher.py\n@@ -94,7 +94,7 @@\n             '--ntasks=1', *(['--gres=gpu:1', '--cpus-per-task=16', '--mem=200G', '--time=02:00:00'] if proof else\n             ['--gres=gpu:1', '--cpus-per-task=16', '--mem=200G', '--time=06:00:00']),\n             '--signal=B:USR1@300', '--no-requeue', '--output=/dev/null', '--error=/dev/null',\n-            '--chdir=/tmp', '--job-name=a15_cot_ap'+token]+([script] if script is not None else [])\n+            '--chdir=/tmp', '--job-name=a0'+token]+([script] if script is not None else [])\n \n \n def submit_command(token, proof=False):\n",
+      "kit/vsi/launcher/orchard_launcher.py": "--- /scratch/jjyeung/orch_n30/b07_offread/builds/N/vendor/r_3e22d7c2e761/kit/vsi/launcher/orchard_launcher.py\n+++ /scratch/jjyeung/orch_n30/b07_offread/builds/R/kit/vsi/launcher/orchard_launcher.py\n@@ -94,7 +94,7 @@\n             '--ntasks=1', *(['--gres=gpu:1', '--cpus-per-task=16', '--mem=200G', '--time=02:00:00'] if proof else\n             ['--gres=gpu:1', '--cpus-per-task=16', '--mem=200G', '--time=06:00:00']),\n             '--signal=B:USR1@300', '--no-requeue', '--output=/dev/null', '--error=/dev/null',\n-            '--chdir=/tmp', '--job-name=a15_cot_ap'+token]+([script] if script is not None else [])\n+            '--chdir=/tmp', '--job-name=a0'+token]+([script] if script is not None else [])\n \n \n def submit_command(token, proof=False):\n"
+    },
+    "removed": []
+  }
+}

@@ -1,26 +1,15 @@
 {
-  "OFFKIT": {
-    "added": [],
-    "changed": {
-      "adapt_native.py": {
-        "new": "8b90fdcbfc7e8cb3f72538ce4cf1bbdeee56423ed73ab95c3b69a2af384e34f3",
-        "old": "deefef9e543e2661f449b7a69ac09c19adebbcc38b1665648f457822a298420f"
-      },
-      "frames.py": {
-        "new": "2ed9fcc17ea8c86b6081ee82212d0af63226887f75c60c60f3357580a602a821",
-        "old": "d6e3d55020322258235d9741ff931cf448a48a7c66e1a5a58ee0bfe6a8e9ccca"
-      }
-    },
-    "diff": "--- previous/OFFKIT_EXTERNAL_PINS.json\n+++ out/OFFKIT_EXTERNAL_PINS.json\n@@ -3,9 +3,9 @@\n   \"files\": {\n     \"__init__.py\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n     \"adapt_direct.py\": \"667b19b9dc4b8c6572fd19e6eb71a9cb466a6ec1165957895dab9986b19c1128\",\n-    \"adapt_native.py\": \"deefef9e543e2661f449b7a69ac09c19adebbcc38b1665648f457822a298420f\",\n+    \"adapt_native.py\": \"8b90fdcbfc7e8cb3f72538ce4cf1bbdeee56423ed73ab95c3b69a2af384e34f3\",\n     \"bind.py\": \"bd74a97f3363404a71d7fa25f8ef86d871af6d4831ccb48017ce647fbd3d02a4\",\n-    \"frames.py\": \"d6e3d55020322258235d9741ff931cf448a48a7c66e1a5a58ee0bfe6a8e9ccca\",\n+    \"frames.py\": \"2ed9fcc17ea8c86b6081ee82212d0af63226887f75c60c60f3357580a602a821\",\n     \"report.py\": \"2656c0532e98eb7530b31392efbc94527f2db88ece3adb47b58ce2d51124ecfc\",\n     \"spec.py\": \"539a67a31eff6741f5a76e7c78723d5ab6e61eca6f88f43a4fcd1fee51208532\"\n   },\n",
-    "removed": []
-  },
   "R": {
     "added": [],
     "changed": [
-      "out/OFFKIT_PINS.json"
+      "kit/revsi/launcher/xnames.py",
+      "kit/vsi/launcher/xnames.py",
+      "kit/xnames.py"
     ],
     "diff": {
-      "out/OFFKIT_PINS.json": "--- /scratch/jjyeung/orch_n30/b07_offread/builds/N/vendor/r_29d944e53cab/out/OFFKIT_PINS.json\n+++ /scratch/jjyeung/orch_n30/b07_offread/builds/R/out/OFFKIT_PINS.json\n@@ -2,7 +2,7 @@\n   \"__init__.py\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\n   \"adapt_direct.py\": \"667b19b9dc4b8c6572fd19e6eb71a9cb466a6ec1165957895dab9986b19c1128\",\n   \"bind.py\": \"bd74a97f3363404a71d7fa25f8ef86d871af6d4831ccb48017ce647fbd3d02a4\",\n-  \"frames.py\": \"d6e3d55020322258235d9741ff931cf448a48a7c66e1a5a58ee0bfe6a8e9ccca\",\n+  \"frames.py\": \"2ed9fcc17ea8c86b6081ee82212d0af63226887f75c60c60f3357580a602a821\",\n   \"report.py\": \"2656c0532e98eb7530b31392efbc94527f2db88ece3adb47b58ce2d51124ecfc\",\n   \"spec.py\": \"539a67a31eff6741f5a76e7c78723d5ab6e61eca6f88f43a4fcd1fee51208532\"\n }\n"
+      "kit/revsi/launcher/xnames.py": "--- /scratch/jjyeung/orch_n30/b07_offread/builds/N/vendor/r_9b1119317748/kit/revsi/launcher/xnames.py\n+++ /scratch/jjyeung/orch_n30/b07_offread/builds/R/kit/revsi/launcher/xnames.py\n@@ -46,8 +46,13 @@\n         with _RAW_OPEN(_RUNTIME_FILE,'wb') as f:f.write(runtime_table())\n \n def configure(path):\n-    global _MAP_FILE\n+    global _MAP_FILE,_TABLE,_NAMES,_REVERSE\n     _MAP_FILE=Path(path)\n+    # N and its imported launcher aliases must share the same build map.\n+    import types\n+    registry=sys.modules.setdefault('_x0_maps',types.SimpleNamespace(states={}))\n+    state=registry.states.setdefault(str(_MAP_FILE.resolve()),(_TABLE,_NAMES,_REVERSE))\n+    _TABLE,_NAMES,_REVERSE=state\n     if _MAP_FILE.exists():\n         raw=_MAP_FILE.read_bytes()\n         pin=Path(str(_MAP_FILE)+'.sha256').read_text().strip()\n",
+      "kit/vsi/launcher/xnames.py": "--- /scratch/jjyeung/orch_n30/b07_offread/builds/N/vendor/r_9b1119317748/kit/vsi/launcher/xnames.py\n+++ /scratch/jjyeung/orch_n30/b07_offread/builds/R/kit/vsi/launcher/xnames.py\n@@ -46,8 +46,13 @@\n         with _RAW_OPEN(_RUNTIME_FILE,'wb') as f:f.write(runtime_table())\n \n def configure(path):\n-    global _MAP_FILE\n+    global _MAP_FILE,_TABLE,_NAMES,_REVERSE\n     _MAP_FILE=Path(path)\n+    # N and its imported launcher aliases must share the same build map.\n+    import types\n+    registry=sys.modules.setdefault('_x0_maps',types.SimpleNamespace(states={}))\n+    state=registry.states.setdefault(str(_MAP_FILE.resolve()),(_TABLE,_NAMES,_REVERSE))\n+    _TABLE,_NAMES,_REVERSE=state\n     if _MAP_FILE.exists():\n         raw=_MAP_FILE.read_bytes()\n         pin=Path(str(_MAP_FILE)+'.sha256').read_text().strip()\n",
+      "kit/xnames.py": "--- /scratch/jjyeung/orch_n30/b07_offread/builds/N/vendor/r_9b1119317748/kit/xnames.py\n+++ /scratch/jjyeung/orch_n30/b07_offread/builds/R/kit/xnames.py\n@@ -46,8 +46,13 @@\n         with _RAW_OPEN(_RUNTIME_FILE,'wb') as f:f.write(runtime_table())\n \n def configure(path):\n-    global _MAP_FILE\n+    global _MAP_FILE,_TABLE,_NAMES,_REVERSE\n     _MAP_FILE=Path(path)\n+    # N and its imported launcher aliases must share the same build map.\n+    import types\n+    registry=sys.modules.setdefault('_x0_maps',types.SimpleNamespace(states={}))\n+    state=registry.states.setdefault(str(_MAP_FILE.resolve()),(_TABLE,_NAMES,_REVERSE))\n+    _TABLE,_NAMES,_REVERSE=state\n     if _MAP_FILE.exists():\n         raw=_MAP_FILE.read_bytes()\n         pin=Path(str(_MAP_FILE)+'.sha256').read_text().strip()\n"
     },
     "removed": []
   }

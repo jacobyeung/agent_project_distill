@@ -1,10 +1,23 @@
 {
   "cli_help_commands": 6,
   "existing_suite": {
+    "basetemp": "parity_kit/test_runs/FIX_20261116_reader_01",
+    "errors": 0,
+    "failures": 0,
+    "junit": "parity_kit/test_results/FIX_reader.xml",
     "output_redirect_plugin": "parity_kit.pytest_scope",
-    "passed": 26,
-    "seconds": 71.47
+    "passed": 35,
+    "seconds": 49.473,
+    "skipped_or_xfailed": [
+      {
+        "reason": "sealed geometry contract refuses 64 frames: ValueError: expected_32_source_indices",
+        "test": "test_frame_count_is_a_read_parameter"
+      }
+    ]
   },
+  "fix_cli_help_commands": [
+    "parity_kit.stage_restore --help"
+  ],
   "gpu_run": false,
   "metadata_binding": {
     "dense32": 69,
@@ -12,8 +25,13 @@
     "items": 636
   },
   "parity_suite": {
-    "passed": 17,
-    "seconds": 27.91
+    "basetemp": "parity_kit/test_runs/FIX_20261116_kit_02",
+    "errors": 0,
+    "failures": 0,
+    "junit": "parity_kit/test_results/FIX_kit.xml",
+    "passed": 53,
+    "seconds": 59.976,
+    "skipped_or_xfailed": []
   },
   "real_towers_run": false,
   "real_weights_loaded": false,
@@ -23,6 +41,11 @@
     "refused": 2
   },
   "restrictions": "No SSH, Git, network, downloads, or deletion commands. Test artifacts retained under parity_kit.",
+  "review_fixes": [
+    "Original model-manifest authentication and per-asset SHA checks; step-544 shard names retained.",
+    "Per-row settings, receipt and runtime digests; resume and partition provenance refusal.",
+    "Installed runtime and environment identity; native FLA evidence and within-noise camera label."
+  ],
   "tiny_test_boundary": "Random Qwen3 forwards; carrier preparation and continuation adapters substituted; actual hook, audited real decoder, budget and scoring.",
-  "utc": "2026-11-16T15:23:55.796765+00:00"
+  "utc": "2026-11-16T16:32:42.301636+00:00"
 }

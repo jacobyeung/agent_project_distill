@@ -4,6 +4,7 @@ import json
 from .paths import ROOT,OFFKIT,R,C8,V1,REVSI,VSI,B04,TREE
 from .io import load,sha,dump,digest
 from .transport import packet
+from .opacity import path_name,pack
 
 ROOTS={'OFFKIT':'d/00','R':'d/01','C8':'d/02','V1':'d/03','REVSI':'d/04',
        'B04':'d/05','TREE':'d/06','VSI':'d/07','RET544':'a/00','TOKENIZER':'a/01'}
@@ -32,7 +33,7 @@ def sources():
     for name in ('REGISTERED_FRAME_INDICES.json','REGISTERED_FRAME_INDICES_PIN.json',
                  'REVSI_DENSE_MAPPING.json','REVSI_MEDIA_MANIFEST.json','VSI_COHORT.json',
                  'VSI_MEDIA_MANIFEST.json','VSI_NAME_INVENTORY.json','OFFKIT_EXTERNAL_PINS.json',
-                 'PROOF_MASKS_LOST.json','PROOF_POLICY_PINS.json','PROOF_KEYS.json'):
+                 'PROOF_MASKS_LOST.json','PROOF_POLICY_PINS.json','PROOF_KEYS.json','N4_MEDIA_EVIDENCE.json'):
         if (ROOT/'out'/name).exists():add(ROOT/'out'/name,'out/'+name)
     for root in (R,C8,V1,B04,TREE):
         add(root/'PIN.json','pins/'+root.name+'.json')
@@ -58,8 +59,12 @@ def build(destination,config,binding,items,inputs):
     data={'config_sha256':sha(d/'CONFIG.json'),'config':config,'spec':spec,'items':items,'inputs':inputs}
     files['p.json']=json.dumps(data,sort_keys=True).encode()
     files['r.json']=json.dumps(ROOTS,sort_keys=True).encode()
-    files['0.py']=b"import os\nos.environ['A0_ROOTS']='r.json'\nfrom offnative.bootstrap import main\nmain()\n"
+    files['xnames.py']=(ROOT/'offnative/opacity.py').read_bytes()
+    files['0.py']=b"import xnames; xnames.install('.')\nimport os\nos.environ['A0_ROOTS']='r.json'\nfrom offnative.bootstrap import main\nmain()\n"
     files['pins.json']=json.dumps(pins,sort_keys=True).encode()
+    files,archive_pins=pack(files)
+    files['out/ARCHIVE_TRANSPORT.json']=json.dumps(archive_pins,sort_keys=True).encode()
+    dump(d/'ARCHIVE_TRANSPORT.json',archive_pins)
     receipt=packet(files,d/'packet.tar',config['token'])
     dump(d/'PACKET_PINS.json',pins)
     return receipt

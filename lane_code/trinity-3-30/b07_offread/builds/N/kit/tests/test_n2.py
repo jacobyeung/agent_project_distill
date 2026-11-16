@@ -135,7 +135,7 @@ def test_portable_worker_sources(tmp_path,kind):
     files['r.json']=json.dumps(ROOTS).encode()
     p=tmp_path/'sources.tar';p.write_bytes(tar_bytes(files))
     dest=tmp_path/'staged';extract(p,dest,max_bytes=64*1024**2)
-    env=dict(os.environ,OFFNATIVE_ROOTS=str(dest/'r.json'),PYTHONPATH=str(OFFKIT),OPENBLAS_NUM_THREADS='1',OMP_NUM_THREADS='1',
+    env=dict(os.environ,A0_ROOTS=str(dest/'r.json'),PYTHONPATH=str(OFFKIT),OPENBLAS_NUM_THREADS='1',OMP_NUM_THREADS='1',
              HF_HUB_OFFLINE='1',TRANSFORMERS_OFFLINE='1')
     with (tmp_path/'execution.log').open('wb') as log:
         subprocess.run([sys.executable,'-B','-m','offnative.rehearse',str(dest/'work/result'),kind],

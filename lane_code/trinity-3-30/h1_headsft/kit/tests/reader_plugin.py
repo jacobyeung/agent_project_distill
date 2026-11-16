@@ -1,5 +1,6 @@
 """Keep the unchanged reader tests' output in K and import the patched tree."""
 import sys
+import os
 from pathlib import Path
 import torch
 import h1eval
@@ -14,5 +15,5 @@ def pytest_collection_modifyitems(items):
     for item in items:
         module=item.module
         if module.__name__.endswith('test_tiny_e2e'):
-            module.OUT=K/'tmp/b4/reader_proofs'
+            module.OUT=Path(os.environ.get('LANE_TEST_OUTPUT', K/'tmp/b4'))/'reader_proofs'
             module.CODE_ROOTS={'reader':K/'h1eval/reader_core/e2e_reader','tree':K/'tree'}

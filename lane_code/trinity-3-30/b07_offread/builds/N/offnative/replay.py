@@ -16,6 +16,9 @@ def replay_row(row, tok, openers, *, changed_response=False, mode='full', loss_p
         record = loss_record(loss_pin)
         if row['key'] not in {m['key'] for m in record['masks']}:
             raise ValueError('distance item has no pinned lost mask')
+    if row['question_type'] not in CAMERA:
+        return dict(key=row['key'],question_type=row['question_type'],decode=dict(tokens=[],text='',calls=[]),
+                    independent_responses=False,status='reported',decode_reached=False)
     import torch
     from e2e_reader.callhook import CallHook, decode_loop
     from e2e_reader.servers import ReadServers
@@ -97,9 +100,9 @@ def run(out, *, mode='full', loss_pin=None):
     else:
         mutation = dict(rejected=False)
     result.update(cpu_forced_token_protocol=True, mutation=mutation,
-        independent_camera_items=5, recorded_response_distance_items=5,
+        independent_camera_items=5, recorded_response_distance_items=0,
         lost_masks=loss_pin,
-        evidence_scope='Forced-token CPU protocol proof; distance query digests and responses come from the pinned journal.',
+        evidence_scope='Forced-token CPU protocol proof; camera responses are independently replayed; distance decoding is not run because the masks are lost.',
         not_proven=['GPU logits and model prefill equality.',
                     'Independent re-serving of the five distance responses from the lost original masks.'],
         limitation=REDUCED_LIMIT)

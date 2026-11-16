@@ -6,7 +6,7 @@ import json
 import resource
 import sys
 from pathlib import Path
-p=argparse.ArgumentParser();p.add_argument('--tree',required=True);p.add_argument('--out',required=True);p.add_argument('--h1',action='store_true');a=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('--tree',required=True);p.add_argument('--out',required=True);p.add_argument('--h1',action='store_true');p.add_argument('--force-pose-own',action='store_true');a=p.parse_args()
 sys.path.insert(0,a.tree)
 import torch
 from tests.fixtures import tiny, Processor, routing_batch, K
@@ -33,7 +33,7 @@ for r in raw:
 cfg=json.loads(Path('/scratch/jjyeung/orch_n30/tree_rebuild/work/kit07ca49df_meta/m/k/b02e4385.json').read_text())
 settings={'faithful_own_camera_rows':a.h1,'routing_pose_targets':a.h1}
 if a.h1:
- cfg['scheduled_sampling'].update(max_own_probability=.5,force_from_step=1)
+ cfg['scheduled_sampling'].update(max_own_probability=1. if a.force_pose_own else .5,force_from_step=1)
 recipe=recipe_for(cfg)
 
 class Rows:
@@ -76,6 +76,7 @@ for rank in range(4):
  handle.remove()
  own_rows=sum(v['own'] for v in info.get('h1',{}).values())
  if a.h1:assert own_rows>0, ('No own camera rows',rank)
+ if a.force_pose_own:assert all(v['gt']==v['refused'] for t,v in info.get('h1',{}).items() if t.startswith('camera_')), ('Forced pose-own left GT rows',rank,info.get('h1'))
  report=dict(rank=rank,step=2 if a.h1 else 1,own_rows=own_rows,microsteps=captured,rows=len(captured),h1=info.get('h1'),
              gates=info['gates'],parameters={n:digest_tensor(v) for n,v in model.state_dict().items()},
              peak_rss_kib=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)

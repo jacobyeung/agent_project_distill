@@ -54,6 +54,9 @@ class Worker:
             self.mode.spec = dict(self.mode.spec, scenes=len({(r['dataset'],r['scene_name']) for r in items}))
         check_cohort(self.mode, items)
         index(items, 'cohort')
+        from .shards import select
+        self.items=select(items,config.get('shard'))
+        self.cutoff=False
         self.budget = module('_native_v1_budget', V1/'budget.py').Budget(config.get('deadline_utc'))
         self.decoded = {}; self.unserved = {}; self.official_decodes = 0
         self.proof_pass = False
@@ -105,7 +108,10 @@ class Worker:
         by_id = index(self.items, 'cohort')
         for k in ids:
             item = by_id[k]
-            decoded = self.generate(item)
+            try:decoded = self.generate(item)
+            except TimeoutError:
+                self.cutoff=True
+                break
             if not self.runtime.reader.replay(decoded):
                 raise ValueError('canary response replay differs')
             score = self.scorer.score(item, decoded, 'primary')
@@ -117,25 +123,39 @@ class Worker:
     def read(self):
         for item in self.items:
             k = key(item)
-            if k not in self.decoded:
-                self.decoded[k] = self.generate(item)
-            if self.binding['reader']['kind']=='harness' and item['question_type'].startswith(('object_abs_distance','room_size_estimation')):
-                self.unserved[k] = self.generate(item, served=False)
-        merge([key(i) for i in self.items], [[dict(id=k) for k in self.decoded]])
-        return dict(primary=len(self.decoded), unserved=len(self.unserved), budget=self.budget.record())
+            try:
+                if k not in self.decoded:
+                    self.decoded[k] = self.generate(item)
+                if self.binding['reader']['kind']=='harness' and item['question_type'].startswith(('object_abs_distance','room_size_estimation')):
+                    self.unserved[k] = self.generate(item, served=False)
+            except TimeoutError:
+                self.cutoff=True
+                break
+        return dict(primary=len(self.decoded), unserved=len(self.unserved), cutoff=self.cutoff,
+                    missing_ids=[key(i) for i in self.items if key(i) not in self.decoded],budget=self.budget.record())
 
     def score(self):
-        primary = [self.scorer.score(i, self.decoded[key(i)], 'primary') for i in self.items]
-        unserved = [self.scorer.score(i, self.unserved[key(i)], 'unserved') for i in self.items if key(i) in self.unserved]
-        result = arms(primary, unserved, self.items, self.binding['reader']['kind'])
-        ids = [key(i) for i in self.items]
-        for arm, records in result.items():
-            complete = merge(ids, [records])
-            for r in complete:
-                journal(self.out/(arm+'.jsonl'), r)
-        dump(self.out/'COMPLETE.json', dict(complete=True, fixture=self.fixture, items=len(ids),
-             ids_sha256=digest(ids), binding_sha256=self.binding['binding_sha256'], arms=list(result)))
-        return dict(arms=list(result), items=len(ids))
+        # Preserve every finished primary even if its secondary decode reaches the cutoff.
+        primary=[self.scorer.score(i,self.decoded[key(i)],'primary') for i in self.items if key(i) in self.decoded]
+        ready=[i for i in self.items if key(i) in self.decoded and
+               (self.binding['reader']['kind']!='harness' or
+                not i['question_type'].startswith(('object_abs_distance','room_size_estimation')) or key(i) in self.unserved)]
+        ids_ready={key(i) for i in ready}
+        p=[r for r in primary if key(r) in ids_ready]
+        u=[self.scorer.score(i,self.unserved[key(i)],'unserved') for i in ready if key(i) in self.unserved]
+        result=arms(p,u,ready,self.binding['reader']['kind'])
+        result['primary']=primary
+        ids=[key(i) for i in self.items]
+        missing={arm:[k for k in ids if k not in {key(r) for r in records}] for arm,records in result.items()}
+        for arm,records in result.items():
+            for r in records:journal(self.out/(arm+'.jsonl'),r)
+            if not records:(self.out/(arm+'.jsonl')).touch()
+        marker=dict(complete=not any(missing.values()),fixture=self.fixture,items=len(ids),
+            ids_sha256=digest(ids),binding_sha256=self.binding['binding_sha256'],arms=list(result),
+            shard=self.config.get('shard'),missing_ids=missing,cutoff=self.cutoff)
+        dump(self.out/'COMPLETE.json',marker)
+        if not marker['complete']:dump(self.out/'PARTIAL.json',marker)
+        return dict(arms=list(result),items=len(ids_ready),missing_ids=missing)
 
     def run(self):
         if self.out.exists():

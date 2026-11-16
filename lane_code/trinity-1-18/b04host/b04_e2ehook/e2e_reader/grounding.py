@@ -87,9 +87,10 @@ def mask_pixels(mask):
 def lift_plain(name, masks, geometry):
     """Unproject every pixel of the selected mask in each frame with this read's geometry.
     Keeps finite points in front of the camera; no erosion, no canvas crop, no spread filter, no depth cut."""
+    from .geometry import frame_count
     masks = np.asarray(masks, bool)
-    if masks.ndim != 3 or masks.shape[0] != 32:
-        raise ValueError('masks_must_be_32_H_W')
+    if masks.ndim != 3 or masks.shape[0] != frame_count(geometry):
+        raise ValueError('masks_must_be_frames_H_W')
     result = dict(name=name, seen=False, frames=[], visible=[], areas={}, points={})
     for k, mask in enumerate(masks, 1):
         if not mask.any() or not geometry.has(k):
@@ -119,8 +120,8 @@ class StageOneSocket:
     select(inputs) -> int index into candidates, or -1 for "none" (argmax of the head's logits
     with a null slot)."""
 
-    def __init__(self, propose, select, mask_shape):
-        self.propose, self.select, self.mask_shape = propose, select, tuple(mask_shape)
+    def __init__(self, propose, select, mask_shape, frames):
+        self.propose, self.select, self.mask_shape, self.frames = propose, select, tuple(mask_shape), int(frames)
         self.queries = []
 
     def __call__(self, name):
@@ -130,7 +131,7 @@ class StageOneSocket:
         if choice < 0:
             return []
         cand = candidates[choice]
-        masks = np.zeros((32,) + self.mask_shape, bool)
+        masks = np.zeros((self.frames,) + self.mask_shape, bool)
         for frame, m in cand['masks'].items():
             masks[int(frame) - 1] = np.asarray(m, bool)
         return [dict(instance_id=str(cand['candidate_id']), masks=masks)]

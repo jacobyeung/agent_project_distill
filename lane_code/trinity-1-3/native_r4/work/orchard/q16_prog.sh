@@ -1,0 +1,2 @@
+export TZ=UTC; date -u +%T; squeue -j 170294 -h -o '%T %M'
+timeout 60 srun --jobid=170294 --overlap --ntasks=1 --cpus-per-task=1 --mem=1G --gres=none bash -c 'R=$(ls -d /tmp/a15_170294_*|head -1); cd $R/run; find . -maxdepth 3 -newer PHASES.json -type f -not -path "*/store/*" -not -path "./cell/*" -printf "%p %s\n" | head -30; for f in $(find . -maxdepth 3 -name "*.jsonl" -not -path "./i/*" -not -path "*/store/*"); do echo "$f lines $(wc -l < $f)"; done; ls j0 | head; tail -c 400 $R/b.log | tr -c "[:print:]\n" " "'

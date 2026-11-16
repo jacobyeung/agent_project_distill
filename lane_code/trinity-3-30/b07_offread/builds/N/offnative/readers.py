@@ -15,6 +15,9 @@ class E2EReader:
     def generate(self, frames, question, *, served=True):
         if not served:
             raise ValueError('end-to-end reader has exactly one arm')
+        if isinstance(frames,dict) and 'prompt_capture' in frames:
+            from .prompt import verify_entry
+            verify_entry(self.entry,frames,question)
         decoded = self.entry.generate(frames, question)
         if not isinstance(decoded, dict) or not isinstance(decoded.get('text'), str):
             raise TypeError('b04 socket must return raw text and its decode audit')

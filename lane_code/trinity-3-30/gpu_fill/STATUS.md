@@ -1,4 +1,4 @@
-# gpu_fill STATUS (trinity-3-30), lane gpu_fill2 (Devin). Updated 2026-11-16T15:10Z. Session started 12:23Z; rotate by 18:15Z.
+# gpu_fill STATUS (trinity-3-30), lane gpu_fill2 (Devin). Updated 2026-11-16T16:33Z. Session started 12:23Z; rotate by 18:15Z.
 ## Goal
 Briefs: orch_n30/briefs/gpu_fill.md (GPU rules) and gpu_fill2.md (duties). Keep permitted free 48 GB Trinity cards working on distillation's queue until 22:30Z. Hand confirmed cards to owning lanes with ORCH_CARD notes; launch nothing; no Git, no deletion.
 ## Done
@@ -24,8 +24,17 @@ Briefs: orch_n30/briefs/gpu_fill.md (GPU rules) and gpu_fill2.md (duties). Keep 
 - 15:03:32Z reading (hist/r10): distillation /dev/shm 74.1 of 75 GB; QUESTION 1503Z devshm_cap_full (default: b04 stages nothing more on 1-13, waits for 1-18).
 - ORCH 1504Z: cap 85 GB; b04 stages 7.1 GB on 1-13; report the total each tick. tick.sh now makes one tssh reading of 1-13 per tick (read_shm.sh -> hist/s113_<T>.txt; shm_line.py writes the line into FREE_CARDS.md; backups tick.sh.v1). These tick readings serve as the confirming readings for 1-13 cards.
 - ORCH 1507Z: 3-30 /scratch at floor; this lane adds <100 MB (hist files are KB-sized).
+- 15:30Z b05 pilot launched on 1-13 card 2 (<=4 h, ends by ~19:30Z). Cards in use: 1 b11, 2 b05, 4 b14. Free 0,3,5,6,7 (b04 parity after re-review GO).
+- 15:53Z b14 released 1-13 card 4 (towers decided). Free on 1-13: 0,3,4,5,6,7.
+- 16:10Z: b05 pilot ended (verdict pending; b05 lane rotated 15:41Z), b14 done; only 1-13 card 1 busy. Distillation /dev/shm 83.2 of 85 GB. QUESTION 1610Z seven_idle_1_13 (default: hold for ORCH assignment; zero-stage candidates b05 full train, b04 parity, b09 dry run).
+- ORCH 1612Z: assign 1-13 cards as lanes report ready: (1) b04 parity, 1 card, on re-review GO; (2) H1-0 on step 544, up to 3 cards, through b04's reader once parity passes; (3) b05 full training, up to 4 cards, only if pilot verdict PASS. All zero-stage. b09 dry run not now. Hourly card-hour line goes in FREE_CARDS.md: tick.sh runs cardhours.py each tick (16:09Z: used 9.0 of 60.0 card-hours since 11:20Z).
+- 16:23Z main asked distillation to free 0-13 cards 5,6 (INBOX_TO_DISTILL_ORCH_20261116T1623Z.md); QUESTION 1623Z main_wants_0_13_cards to ORCH (default: ORCH answers; if it names 1-13 cards, hold them for main).
+- 16:24Z b05 pilot 1 failed fast (released card 2 at 16:02Z); ORCH 1625Z GO pilot 2 on 1-13 card 2 (ORCH wrote the card). b05 full training is off unless pilot 2 passes.
+- ORCH 1625Z: 0-13 cards are lnayak's, not ours; ORCH offered main 1-13 cards 6,7: HOLD 6,7 FOR MAIN, hand them to no lane until main says they are free.
+- 16:30Z main took 1-13 cards 6,7 (6-12 h); keep off every distillation assignment until main says free. cardhours.py excludes them (same Unix user).
+- 16:31Z b11 finished; 1-13 card 1 free.
 ## Card wants (order of need)
-(a) trin_read: 1 card, node with >=250 GB /scratch avail (1-3 floor 300 + stage). (b) b05_owngrd: SAM 3 teacher pass, up to 4 cards, once its runner exists (CPU stage). (d) b04_e2ehook parity read (ORCH 1334Z): one free 1-13 card after its review GO, if extra /dev/shm stage <=6 GB (reuses /dev/shm/jjyeung/exports); write ORCH_CARD with fresh readings when the GO lands. (c) b11_presence: 1 card 1-2 h, best on 1-18 (export, vLLM env, K1 frames local there); default waits for ORCH_CARD in events/b11_presence.
+(a) trin_read: 1 card, node with >=250 GB /scratch avail (1-3 floor 300 + stage). (b) b05_owngrd: SAM 3 teacher pass, up to 4 cards, once its runner exists (CPU stage). (d) b04_e2ehook parity read (ORCH 1334Z): one free 1-13 card after its review GO, if extra /dev/shm stage <=6 GB (reuses /dev/shm/jjyeung/exports); write ORCH_CARD with fresh readings when the GO lands. (e) b14_k1towers: MapAnything train-only arm, 1 card on 1-18 (no stage), after trin_read. (c) b11_presence: 1 card 1-2 h, best on 1-18 (export, vLLM env, K1 frames local there); default waits for ORCH_CARD in events/b11_presence.
 ## In flight
 - tmux gpufill_loop on trinity-3-30 (loop.sh until 22:45Z): every 10 min tick.sh curls the monitor, writes events/gpu_fill/FREE_CARDS.md, appends ledger.txt; alerts.log gets CANDIDATE / NEWEVENT (ORCH files) lines. Check: `tmux has-session -t gpufill_loop; tail alerts.log`.
 ## Next steps

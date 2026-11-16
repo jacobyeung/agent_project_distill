@@ -1,0 +1,1 @@
+cat /dev/shm/jjyeung/b11_presence/bw.sh; which bwrap; ls /dev/shm/jjyeung/b05/lane/code/owngrd/vendor/; python3 -c "import json;d=json.load(open('/dev/shm/jjyeung/b05/lane/code/owngrd/vendor/SAM3_RECEIPT.json'));print({k:(v if len(str(v))<100 else '...') for k,v in d.items()})"

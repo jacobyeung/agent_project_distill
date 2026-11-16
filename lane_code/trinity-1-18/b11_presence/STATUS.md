@@ -1,38 +1,21 @@
-# b11_presence STATUS (Devin lane on trinity-1-18; updated 2026-11-16 14:35Z)
-Goal: queue brief briefs/qs/11_presence_probe.md — price a presence head (per-frame presence logits of step 544) for appearance order and counting on K1 held-out; decision rule: head-sorted answer beats step-544 direct by >=10 task points, paired CI > 0.
+# b11_presence STATUS (Devin lane on trinity-1-18; updated 2026-11-16 16:35Z) — DONE
+Goal (brief briefs/qs/11_presence_probe.md): price step 544's own presence as a head path for appearance order and counting on K1 held-out.
 
-## Done (lane folder /scratch/jjyeung/orch_n30/b11_presence)
-- code/prep.py (sha 6857666a…) -> out/prep/{CAPTURES,ITEMS}.jsonl, PREP_SUMMARY.json (296 captures, 239 train/57 held-out, 3062 scored (capture,obj) pairs, items: appearance 701/143, counting 392/104 train/held-out). GT visibility floor 39 raster px.
-- code/scorer.py (sha be4bdc9b…): HF transformers scorer, arms V (32-frame video, trained pointing prompt), I (single image pointing), Y (single image yes/no); prefix KV reuse; journals out/journals/{V,IY}/<capture>.jsonl; resumable; STOP file work/STOP.
-- code/test_cpu.py: CPU fp32 first batch PASS (out/tests/CPU_FIRST_BATCH.json; cached vs full logit diff < 1e-5, ids equal).
-- work/model_m544: symlinked step-544 export (trin_read root) + base processor files.
-- code/analysis.py (v1 d975b4ec, v2 2ccbb4d6, v3 8108c5e7 GO, now 9b8c0038): hazard head (7 weights, NLL on GT first-seen, K1 train) + per-frame presence head (BCE) for counting runs; thr0 and thrfit references; pricing, constant, GT program, room-cluster bootstrap; primary arm by 5-fold room CV on train; held-out priced only with --read-heldout.
-- code/test_analysis.py: synthetic-journal test PASS (out/tests/ANALYSIS_SYNTH.json): deterministic, GT program 100 on appearance, bootstrap sane.
-- code/direct.py (v1 e691987b, v2 e7f13c6d, v3 51e36f57, v4 53ea186e GO, v5 0ed96714 ran the read, now 1ffe0cb3): vLLM 0.23 direct read, reader parity.prompt/media.kwargs/budget/score_item, duplicate layout, B2048 primary; parity.compare on first 16 items. cpu-check PASS (out/tests/DIRECT_CPU_PROMPT.json: prompt ids = trainer_encode ids).
-- code/run_gpu.sh <card> (sha 4faf2e64…): determinism (10 held-out captures x2, det_compare.py) -> full scorer -> direct; under vnice; log work/logs/run_gpu.log.
-- Finding (train split, GT only): counting by category presence runs is hopeless even with GT presence: GT-run program 25.9 MRA vs constant 57.6 on 392 train items. Counting needs instance grounding, not presence.
-- ReVSI has no appearance-order category; dev-S1 direct scores no appearance-order item (NEXT_LEG_INIT_RULE). K1 has 32 anchors only: 64 frames cannot be priced here.
+## Result
+- Decision: NO head path for appearance order. Primary head (arm I, chosen by train room-CV, frozen before held-out) 32.87 vs step-544 direct B2048 71.33 on 143 held-out items: -38.5 [-48.0, -28.9], 32 rooms. Counting: head 25.0 vs direct 64.3; GT-presence runs 24.8 < constant 53.4 (presence cannot count).
+- Direct is UNCLAIMED (vLLM 0.23 + prompt shim, parity 16/16); K1 rooms are training rooms.
+- Report out/PRESENCE_PROBE.md; design record distill_design/PRESENCE_PROBE_K1_20261116.md + INDEX line.
+
+## Artifacts (lane folder /scratch/jjyeung/orch_n30/b11_presence)
+- code/: prep.py 6857666a, scorer.py be4bdc9b, analysis.py 9b8c0038, direct.py 1ffe0cb3 (the read ran with 0ed96714), run_gpu.sh, det_compare.py, debug_parity.py, test_cpu.py, test_analysis.py be848862, test_direct.py b2f85689.
+- out/prep (CAPTURES/ITEMS), out/tests (all PASS), out/analysis: FROZEN.json f46e7cae, ANALYSIS_train.json 49e00f24, ANALYSIS_heldout.json 59232ace (+ items jsonl).
+- from13/: journals V/IY (296+296), det (DETERMINISM pass, identical logits), direct journal 247 rows + PARITY receipts, run logs; PULL_MANIFEST verified.
+- Reviews: work/review/ (prompts, v1-v5 code copies); receipts agent_project_distill/agent/scratch/codex_runs/*_b11_review{,2,3,4,5}.
+- Mirror: work/mirror_b11_v1.tar (sha d98abb0e, 66.8 MB) = trinity-1-13:/scratch/jjyeung/n30_mirror/b11_presence/mirror_b11_v1.tar (sha equal).
 
 ## In flight
-- GPU run on trinity-1-13 card 1 (ORCH_CARD 1249Z), launched 12:57:58Z under vnice; readings 12:51:55Z and 12:57:58Z all cards 1 MiB, no process. tmux `b11gpu` on 1-13 runs /dev/shm/jjyeung/b11_presence/bw.sh (bwrap binds /dev/shm/jjyeung/b11_presence/{lane,k1_frames,reader} and /dev/shm/jjyeung/exports/m544 onto the 1-18 paths, so code is unchanged) -> code/run_gpu.sh 1. Log: 1-13 /dev/shm/jjyeung/b11_presence/lane/work/logs/run_gpu.log (+ det_a/det_b/scorer_full/direct logs). Outputs: same lane dir out/{det,journals,direct}. Env: 1-13 /scratch/jjyeung/envs/vllm is identical to 1-18's (freeze/conda/python sha equal).
-- Staged on 1-13 (verified against STAGE_MANIFEST.sha256, copy 12:54-12:55Z over IB): /dev/shm/jjyeung/exports/m544 (18 GB, b05 may reuse), /dev/shm/jjyeung/b11_presence (2.5 GB). Listed in REMOVAL_CANDIDATES.md.
-- Determinism PASS 13:09Z (10 held-out captures twice: max |logit diff| 0.0 on all 3 arms; out/det/DETERMINISM.json on 1-13). Full scorer started 13:09:18Z, ~35 s/capture -> ETA ~16:05Z, then direct stage (fixed direct.py already pushed to 1-13, sha verified).
-- Review round 1: two Codex astra-high reviews (codex_runs/20261116T125630Z_b11_review, 20261116T125709Z_b11_review) both NO-GO (held-out AUROC in train mode, decision on train/incomplete data, Kendall answer rule, B2048 stopped_unclosed not continued, resume skipped parity / no binding, torn tails, continuation cap). All fixed: analysis.py now 2ccbb4d6 (fit -> FROZEN.json -> --read-heldout price), direct.py now e7f13c6d; tests test_analysis.py (a6de0633) and test_direct.py (5aba7d6a) PASS (out/tests/ANALYSIS_SYNTH.json, DIRECT_FAKE_ENGINE.json); direct cpu-check PASS again. v1 copies in work/review/.
-- Review round 2 (codex_runs/*_b11_review2): NO-GO (direct rows not validated in analysis, weights not in model identity, unterminated final record, continuation prompt suffix unchecked). Fixed: analysis.py 8108c5e7, direct.py 51e36f57 (both pushed to 1-13, sha verified 13:36Z); tests test_analysis.py 43c94ec3 and test_direct.py b2f85689 PASS. v2 copies in work/review/.
-- Review round 3 (codex_runs/*_b11_review3): NO-GO, one finding (model identity omitted tokenizer_config.json). Fixed: direct.py 53ea186e hashes every file in the checkpoint folder (pushed to 1-13, sha verified); both suites PASS.
-- Review round 4: GO (RESULT review_verdict 14:0xZ written). Held-out read allowed once journals + direct are complete.
-- After GO, direct.py needed two runtime fixes found on GPU: (a) VLLM_USE_FLASHINFER_SAMPLER=0 (flashinfer JIT needs ninja, absent); (b) engine-prompt shim (vLLM 0.23 drops the outer <|vision_start|>/<|vision_end|> pair the trainer keeps; parity gate failed on 16/16 at index 3). direct.py now 0ed96714 (v4 copy work/review/direct.v4.py); GPU check code/debug_parity.py: ids identical (4559 = 4559). Round-5 review of the shim: GO AFTER FIXES (shim not in resume/analysis acceptance; continuation full prompt unchecked). Fixed: direct.py 1ffe0cb3 (resume and analysis require prompt_shim; continuation prompt ids must equal generation prompt ids + prefix + close), analysis.py 9b8c0038, test_analysis.py be848862; both suites PASS; pushed to 1-13. The completed direct run (0ed96714) carries prompt_shim on every row and checked the continuation suffix as the accepted reader does.
-- Direct read on 1-13 card 5 (ORCH_CARD 1351Z; ORCH 1350Z yes): tmux `b11direct` on 1-13 (script work/ssh/direct2_13.sh, run as `CARD=5 bash -s`), relaunched 14:16:27Z after the two fixes (card 5 empty at 13:51:01Z, 13:56:37Z, 14:16:27Z), log lane work/logs/direct_card5.log (earlier failed starts: direct_card2.log, debug_parity.log), journal lane out/direct/journal.jsonl, parity receipts out/direct/PARITY_*.json (the 14:05Z one is the failed pre-shim gate). NOTE: run_gpu.sh on card 1 will start its own direct stage after the scorer (~17:10Z); it resumes (parity + nothing new) if card 5 is done; if card 5 is still running then, touch nothing and let run_gpu's direct exit... (check: both append to the same journal; if card-5 direct is not finished by 17:00Z, kill nothing, write a QUESTION).
-- DIRECT DONE 14:29:37Z: 247/247 rows, parity 16/16 OK (out/direct/PARITY_20261116T141755Z.json). CARD 5 RELEASED 14:29:37Z (process exited, 1 MiB).
-- run_gpu.sh on card 1 will start its own direct stage after the scorer: it resumes with nothing to generate, but it lacks VLLM_USE_FLASHINFER_SAMPLER=0 and will likely die at engine init; that is harmless (journals complete). Card 1 is released when b11gpu exits.
-- Release each card the moment its job ends (STATUS line + final RESULT).
-- Scorer progress 15:23Z: 234/296 captures; ETA ~16:15Z. Then: pull13.sh (work/ssh), analysis fit, --read-heldout, report.
-- Do not re-launch on 1-13 if vnice kills it without ORCH word. Main's request for the card wins at once (touch lane work/STOP on 1-13 to stop the scorer between captures).
+- Nothing. Cards released: 1-13 card 5 at 14:29:37Z, card 1 at ~16:26Z (run_gpu's redundant direct stage died at engine init: no flashinfer-sampler override in run_gpu.sh; harmless). No tmux b11* on 1-13; Codex reviews finished.
+- Staging on 1-13 /dev/shm (exports/m544 18 GB reusable by b05; b11_presence 2.5 GB) listed in REMOVAL_CANDIDATES.md.
 
-## Next steps
-1. Poll 1-13 run_gpu.log (tssh, batched, 1/min first, then 10 min). On DONE: tar lane out/{det,journals,direct} + logs on 1-13 and pipe back to 1-18 lane folder over IB (trinity-1-18.ib).
-2. Read the Codex verdict; fix findings; copy verdict to events.
-3. After journals land: analysis.py (train-only default) -> out/analysis/ANALYSIS_train.json; after reviewer sign-off: --read-heldout --out out/analysis/ANALYSIS_heldout.json.
-4. Write out/PRESENCE_PROBE.md (incl. <seen obj=NAME> call spec + cost from journal timing), distill_design record + INDEX line, mirror lane tar to a second node, final RESULT.
-
-## Defaults in force (ORCH 1224Z): build+CPU-test now; card only on ORCH_CARD (1-18 preferred); both arms; direct arm under vLLM 0.23 labeled unclaimed; rank by ReVSI where possible.
+## Next (for any successor)
+- Nothing owed. If ordered: re-read after presence training on non-training rooms with the accepted runtime, same protocol (analysis.py fit, then --read-heldout).

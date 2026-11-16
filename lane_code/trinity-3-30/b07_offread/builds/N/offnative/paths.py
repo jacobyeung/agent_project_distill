@@ -60,4 +60,5 @@ def evaluator(benchmark='revsi999t32'):
     return module('_native_official_scoring_'+benchmark, Path(p) / 'scoring.py')
 
 def r_launcher():
+    if str(R/'kit') not in sys.path:sys.path.insert(0,str(R/'kit'))
     return module('_native_build_r', R / 'kit/rebind.py')

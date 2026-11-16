@@ -107,7 +107,7 @@ def test_ground_and_gap_on_k1_capture(capture):
     cand = json.loads((folder / 'candidates.json').read_text())
     head, _ = load_head(ROOT / 'heads/selector/work/run_iso')
     s = StageOne(cache_detect(cand, raw_only=True), head, geo)
-    servers = ReadServers(geo, ground_session(geo, StageOneSocket(s.propose, s.select, (240, 320))))
+    servers = ReadServers(geo, ground_session(geo, StageOneSocket(s.propose, s.select, (240, 320), 32)))
     a, b = cand['phrases'][:2]
     texts = [servers.session_call(f'<ground obj="{a}" mode="box">')[0], servers.session_call(f'<ground obj="{b}" mode="box">')[0],
              servers.session_call(f'<gap a="{a}" b="{b}" rule="box_grid_5cm">')[0]]

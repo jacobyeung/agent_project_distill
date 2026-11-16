@@ -2,6 +2,7 @@
 import copy
 import importlib.util
 import json
+import os
 from pathlib import Path
 from types import SimpleNamespace
 import numpy as np
@@ -11,6 +12,7 @@ K = Path(__file__).resolve().parents[1]
 
 
 def camera_fixtures():
+    scratch = Path(os.environ.get('LANE_TEST_OUTPUT', K/'tmp/b4'))
     from generator.derivgen_v7.derivgen.camera_rows import camera_rows, _encode
     c = np.tile(np.eye(4), (32,1,1))
     for k in range(32):
@@ -18,13 +20,13 @@ def camera_fixtures():
         c[k,:3,:3] = [[np.cos(a),0,np.sin(a)],[0,1,0],[-np.sin(a),0,np.cos(a)]]
         c[k,:3,3] = [k*.19, k*.003, k*.075]
     clip = dict(recording_id='h1-synthetic', dataset='scannet', scene='h1synthetic',
-                frames=[dict(path=str(K/'tmp/b4'/f'frame{i}.png'),sha256='a'*64,source_index=i) for i in range(32)],
+                frames=[dict(path=str(scratch/f'frame{i}.png'),sha256='a'*64,source_index=i) for i in range(32)],
                 fps=30., total_num_frames=32,
                 **_encode(c, [[500,0,320],[0,500,240],[0,0,1]], [480,640], [0,-1,0]))
     from unittest.mock import patch
     # Synthetic scene only: no production exclusion file is available on this node.
     with patch('generator.derivgen_v7.derivgen.goal_exclusions.goal_tokens', return_value=set()):
-        rows, refusals = camera_rows(clip, seed=17, per_type=4, distribution={}, manifest_dir=K/'tmp/b4'/'manifests')
+        rows, refusals = camera_rows(clip, seed=17, per_type=4, distribution={}, manifest_dir=scratch/'manifests')
     assert len(rows)==12, refusals
     return rows, clip, refusals
 

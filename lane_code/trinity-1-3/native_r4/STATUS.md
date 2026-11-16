@@ -1,7 +1,10 @@
-# native_r4 lane STATUS (trinity-1-3) — operator native_r5, updated 2026-11-16T14:50Z
+# native_r4 lane STATUS (trinity-1-3) — operator native_r5, updated 2026-11-16T16:14Z
 Lane folder /scratch/jjyeung/orch_n30/native_r4; events /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/native_r4/. Record /data2/jjyeung/agent_project_data/distill_design/VSTI_NATIVE_CAMERA_READ_STEP544_20261116.md (+ INDEX line). Rules: .../orch_n30/tools/LANE_RULES.md. native_r5 session ends by ~16:20Z (6 h from 10:20Z) or 60% context: RESULT rotate.
 
-## NOW (14:50Z): fourth job 170294 (a15_cot_apd627d31523064791d2ce3456, V1g c.tar 6a3192ac) submitted 14:49Z (RESULT submitted4); ORCH 1434Z: no fifth job today, any failure -> Codex Astra diagnosis
+## NOW (16:14Z): VSTI-450 read DONE (RESULT full_read 16:10Z); nothing runs on Orchard; native_r5 rotating (RESULT rotate)
+- Job 170294 COMPLETE 16:00:38Z, 450/450 items. Return Orchard okh7/n2r/d627d31523064791d2ce3456/result.tar.gz sha 9971853f17db1469b6b0d4f66cb7674cface5d5f655a7e6f818a226db88ecb16 (89,790,245 B; GCS q8/n2r/ same token, verified) = local work/ret4/result.tar.gz (governed pull native_r5_ret4, record .done). Report: work/ret4/report_v1d/report/REPORT.{md,json}; extras work/ret4/extra.py; camera mid-read work/mid/CAMERA_MID.json.
+- Results: primary 73.89 [71.04, 76.79]; f17 66.95 (+6.9 [2.2, 11.7]); P1 m200 68.71 (+5.2 [0.8, 9.6]); displacement 86.2, direction 100.0; non-camera types below both comparators; abs_dist refusals 33 items (66 ground, 33 gap).
+- Open follow-ups (need ORCH word): kit fixes for a future epoch (a.sh gres/cpu/mem; INDEX_CHECK staged in job); why non-camera types trail direct-answer models (error analysis on items.jsonl vs comparators); resume not needed (missing []).
 - Poll: work/orchard/poll4.sh every 5 min (lowers limit while pending, end <= 17:35Z). Packet p/d627d31523064791d2ce3456, deadline 17:33Z. Return okh7/n2r/d627d31523064791d2ce3456.
 - Orchard okh7/d9c35d0a: c.tar/FAMILY.json/c = V1g; V1f kept as *.v1f_*, c_v1f/; dry_v1g/ = small snapshot files for the real-input check (removal candidate).
 - Job 170254 (V1f) failed at the student load: unbound snapshot path in the read namespace (fixed in V1g).

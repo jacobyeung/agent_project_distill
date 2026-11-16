@@ -19,7 +19,8 @@ def work(plan):
     from .scoring import Scorer
     b=binding(plan['spec']);config=plan['config']
     if os.environ.get('A0_DEADLINE'):config=dict(config,deadline_utc=os.environ['A0_DEADLINE'])
-    runtime=Runtime(Path.cwd()/'work/runtime',plan['items'],b,plan['inputs'])
+    from .shards import select
+    runtime=Runtime(Path.cwd()/'work/runtime',select(plan['items'],config.get('shard')),b,plan['inputs'])
     worker=Worker(config,b,plan['items'],runtime,Scorer(plan['inputs']['label_file'],b['benchmark']),Path.cwd()/'return')
     worker.run()
 
@@ -86,7 +87,7 @@ def main():
     target=Path.cwd()/'result.tar.gz'
     import gzip
     target.write_bytes(gzip.compress(tar_bytes(files),mtime=0))
-    dump(Path.cwd()/'EXIT.json',{'status':'COMPLETE' if outcome['returncode']==0 else 'FAILED',
+    dump(Path.cwd()/'EXIT.json',{'status':('PARTIAL' if (returned/'PARTIAL.json').exists() else 'COMPLETE') if outcome['returncode']==0 else 'FAILED',
         'token':config['token'],'job':int(os.environ.get('SLURM_JOB_ID','0')),
         'binding_sha256':config['x0'],'config_sha256':plan['config_sha256'],
         'packet_sha256':os.environ.get('A0_PACKET_SHA256'),'synthetic':False,

@@ -147,15 +147,23 @@ class CallHook(nn.Module):
 
 
 def quoted(before):
-    """A call inside a fenced block, inside an inline code span (any backtick run, across lines) or right after
-    a quote mark is an example, not a call. `before` is the whole generated text before the call."""
-    lines = before.split('\n')
-    fences = [i for i, line in enumerate(lines) if line.lstrip().startswith('```')]
-    if len(fences) % 2:
+    """A call inside a fenced block (closed only by a fence of the same character at least as long), inside an
+    inline code span (a backtick run closed by a run of the same length, across lines) or right after a quote
+    mark is an example, not a call. `before` is the whole generated text before the call."""
+    fence, rest = None, []
+    for line in before.split('\n'):
+        m = re.match(r'\s*(`{3,}|~{3,})', line)
+        if fence is None and m:
+            fence, rest = m.group(1), []
+        elif fence is not None and m and m.group(1)[0] == fence[0] and len(m.group(1)) >= len(fence) \
+                and not line.strip()[len(m.group(1)):].strip():
+            fence = None
+        elif fence is None:
+            rest.append(line)
+    if fence is not None:
         return True
-    rest = '\n'.join(lines[fences[-1] + 1:]) if fences else before
     open_run = None
-    for run in re.findall(r'`+', rest):
+    for run in re.findall(r'`+', '\n'.join(rest)):
         if open_run is None:
             open_run = len(run)
         elif len(run) == open_run:

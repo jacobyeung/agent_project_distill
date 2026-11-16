@@ -17,7 +17,7 @@ DIFF.md (line-by-line source changes; G3_ADMISSION.patch), PIN_CLASSIFICATION.md
 ## Tests (all run; logs named)
 - 134 unit/suite checks PASS, 25/25 report mutants killed (build2/out/TESTS.json, MUTANTS.json). guard_read.py: 27 tests, 25/25 mutants, self-pair on job 170056 zero differences (out/tests/, out/selftest/).
 - D0 m50 real metadata: config identity 4bc5442c, preparation d898614a, source tree b01ce449, trained-group chain to m544, unchanged C8r restoration checks PASS (CLOSURE_ADMISSION.json, RESTORATION_TEST.json).
-- Whole-worker CPU rehearsal outside the sandbox, production coordinator, tiny-model C8r boundary: rehearsal/whole/31f44f39c63b4d68be53660ff5780980/RESULT.json all ten steps (stage..report; report refuses the 20-item fixture rc 3 by design). Rerun on the G3 seal: see STATUS.md.
+- Whole-worker CPU rehearsal outside the sandbox, production coordinator, tiny-model C8r boundary: rehearsal/whole/31f44f39c63b4d68be53660ff5780980/RESULT.json all ten steps (stage..report; report refuses the 20-item fixture rc 3 by design). Rerun on the final G3 seal (code_g2.tar 9ffa7249): rehearsal/whole/6bcb6c74a28545f48cb24a05517ca0c6/RESULT.json PASS_WITH_EXPECTED_REPORT_REFUSAL, same ten steps. Copies of these receipts: out/evidence/.
 - Mismatch variant: rehearsal/whole/4883e36e095649de8e1ac446991273ae: PROOF FAIL at the first item, receipt published, no candidate phase (EXPECTED_REFUSAL).
 - Not checked: real tensors, GPU parity, real token identity (the in-job proof does that), Orchard/GCS staging live, publication to the live pool.
 

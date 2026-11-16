@@ -27,7 +27,7 @@ def test_refused_geometry_is_served():
     def propose(name):
         mask = m if name == 'a' else n
         return [dict(candidate_id=name + ':0', masks={k: mask for k in (3, 4, 5) if geo.has(k)})], None
-    servers = ReadServers(geo, ground_session(geo, StageOneSocket(propose, lambda x: 0, (240, 320))))
+    servers = ReadServers(geo, ground_session(geo, StageOneSocket(propose, lambda x: 0, (240, 320), 32)))
     texts = [servers.head('<move from=1 to=9>')[0], servers.session_call('<ground obj="a" mode="box">')[0],
              servers.session_call('<ground obj="b" mode="box">')[0],
              servers.session_call('<gap a="a" b="b" rule="box_grid_5cm">')[0]]

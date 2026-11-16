@@ -1440,3 +1440,472 @@ The review-history heading and first-build comparison are retained because the u
 ```
 
 READY
+
+## Portrait GT canvas map
+
+**Verdict: NOT READY.** The canvas checks pass, but the full primary tables run stops at the sealed metadata reader’s 20 MB bound.
+
+The tables and render paths map portrait GT labels from 320×240 to the deployed 240×320 canvas. The adapter applies `scipy.ndimage.zoom` per integer-label frame with the exact factors, `order=0`, and `prefilter=False` used by `routed_features.resize`. It returns landscape arrays unchanged and raises for every other raster shape.
+
+Both receipts record `gt_canvas_map` by canonical capture and `gt_canvas_map_counts`. Refused captures also authenticate their GT and record the mapping; their existing table exclusion and failed-render behavior remain intact. The render path writes a receipt with or without an explicit GT set.
+
+`build_tables.py` is pinned in `DEPENDENCIES.json` and remains byte-identical. Its “no silent resize” guard still runs. `gt_set.py` validates selection and pins, and `k1_report.py` consumes analysis rows; neither has a raster-shape assumption to change. Scoring, candidate extraction, selection, refit, and report denominators are unchanged. Both guarded launchers pin the updated pipeline; their original counterparts in `work/` remain untouched.
+
+### Validation
+
+- The portrait equality proof covers all 32 frames of `arkitscenes/41048124`: 108 label-mask comparisons against `routed_features.resize(labels == i)`, including background. The reconstructed label unions match byte for byte.
+- Landscape arrays retain object identity, dtype, and bytes. For `scannet/scene0452_02`, both the candidate and pair JSONL files match the saved pre-patch pipeline byte for byte: 12 candidate rows and 55 pair rows.
+- Unsupported raster shapes and noninteger labels raise. A malformed GT fixture stops tables before a table receipt exists.
+- The render fixture uses real caches, GT, and table receipts for both real captures. Its policy and calls are synthetic. It checks all three response rows' mapped GT inputs and the GT-set-bound render receipt, which records one identity capture and one stretch capture.
+- The final canvas suite passes 4/4; `test_k1_guard.py` passes 13/13 under both sam3_scipy_ovl and p1cpu; `test_kit` passes 19/19; `test_guards` passes 7/7. `verify_sources.py` verifies all 109 files.
+- `verify_identity.py` verifies 300 tower receipts, three own receipts, and the three saved convert canary receipts. Its capture-4 halt is the expected saved canary evidence, not a new convert run.
+- All 36 protected before/after hashes match, including every bound source, `k1_phases.py`, `gravity_guard.py`, `build_tables.py`, manifest v2, and both GT-set files. The full primary run authenticates all selected GT files through their unchanged pins.
+- Both launcher syntax checks pass. All 14 downstream SHA lines and all four convert guard SHA lines match.
+
+Real R2 runs use the launcher’s tables-only mode. No real refit or render runs on the full set. Production render inference remains outside this validation; the render test isolates mapping and receipt propagation with fixture calls.
+
+### Real outputs and full-set blocker
+
+| Run | Mapping | Candidate rows | Pair rows | Receipt |
+|---|---|---:|---:|---|
+| R2 portrait | stretch_nearest_320x240_to_240x320 | 10 | 24 | [TABLE_RECEIPT.json](/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard/guard_downstream/analyses/r2_20261116T152857Z/tables/TABLE_RECEIPT.json) |
+| R2 landscape | identity | 12 | 55 | [TABLE_RECEIPT.json](/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard/guard_downstream/analyses/r2_20261116T153011Z/tables/TABLE_RECEIPT.json) |
+
+Receipt mapping fields:
+
+
+```json
+{
+  "gt_canvas_map": {
+    "arkitscenes/41048124": "stretch_nearest_320x240_to_240x320"
+  },
+  "gt_canvas_map_counts": {
+    "stretch_nearest_320x240_to_240x320": 1
+  }
+}
+```
+
+```json
+{
+  "gt_canvas_map": {
+    "scannet/scene0452_02": "identity"
+  },
+  "gt_canvas_map_counts": {
+    "identity": 1
+  }
+}
+```
+
+The primary GT census authenticates and maps all 296 selected captures: **219 identity, 77 stretch**. Every result has 32 frames on a 240×320 canvas, with the original anchor identities. This census runs only the GT adapter; it does not stand in for a successful tables run. See [GT census](/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard_tests/patch3_gt_canvas_census.json).
+
+The full tables command exits 1 at selected capture 166, `scannet/scene0201_02`. Its pinned `candidates.json` is **27,650,745 bytes**; the unchanged `bindings.load` bound is **20,000,000 bytes**. Twelve primary captures exceed that bound, with a maximum of 31,637,701 bytes. The failure occurs in `cached()` before GT mapping for that capture. The failed root is preserved with **5,928 candidate rows and 62,883 pair rows from 160 captures**, and no `TABLE_RECEIPT.json`. No successful full-set row total can be claimed.
+
+The complete oversized-file list and partial counts are in [blocker evidence](/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard_tests/patch3_primary296_blocker.json). The traceback is in [full tables log](/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard_tests/patch3_primary296.log). Supporting a larger candidate document requires a separately authorized loader change outside the sealed source identity. The bounded reader remains unchanged.
+
+The GT-set-bound render fixture receipt is [RENDER_RECEIPT.json](/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard_tests/patch3_canvas_final/render_fixture/RENDER_RECEIPT.json). It records one identity capture and one stretch capture.
+
+### Commands and logs
+
+[run_patch3_checks.sh](/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard_tests/run_patch3_checks.sh) preserves the commands and CPU-only environment. The completed checks are logged in [patch3_checks_verified.log](/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard_tests/patch3_checks_verified.log). The final four-test canvas run is [patch3_canvas_final.log](/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard_tests/patch3_canvas_final.log); its per-frame equality and landscape file hashes are in [EVIDENCE.json](/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard_tests/patch3_canvas_final/EVIDENCE.json).
+
+```bash
+# Both real R2 runs, each in its own fresh analysis root:
+MODE=r2 K1_R2_CAPTURE=arkitscenes/41048124 K1_CONVERT_CACHE=/scratch/jjyeung/k1/run_convert_2 K1_REFIT_PY=/scratch/jjyeung/envs/planner_local_v1/bin/python bash ../kc_guard_brief/k1_downstream.guard.sh
+MODE=r2 K1_R2_CAPTURE=scannet/scene0452_02 K1_CONVERT_CACHE=/scratch/jjyeung/k1/run_convert_2 K1_REFIT_PY=/scratch/jjyeung/envs/planner_local_v1/bin/python bash ../kc_guard_brief/k1_downstream.guard.sh
+
+# Final focused tests:
+K1_CANVAS_TEST_RUN=patch3_canvas_final /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B ../kc_guard_tests/test_k1_canvas.py
+
+# Full primary tables only; exit 1 at the metadata reader bound:
+nice -n 10 /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B k1_build/work/kit_k1a/work/k1_pipeline.py tables --manifest ../manifest_v2/a40fbc19.json --cache /scratch/jjyeung/k1/run_convert_2 --gt-set ../gt_sets/GT_SET_PRIMARY_296.json --out ../kc_guard_tests/patch3_primary296/tables
+
+# Independent full GT mapping census; exit 0:
+/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B ../kc_guard_tests/census_k1_canvas.py
+```
+
+Every changed executable pipeline line is covered by the guard and canvas tests; [coverage evidence](/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard_tests/patch3_changed_coverage.json) records the union. The refusal branch for an unexpected deployed `OUTPUT_SHAPE` is not fault-injected. The full tables completion path is blocked as described above; production refit/render inference is untested.
+
+### SHA-256 and protected identities
+
+The complete before/after map is [patch3_identity_proof.json](/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard_tests/patch3_identity_proof.json). All 36 entries match.
+
+| Changed or new file | SHA-256 |
+|---|---|
+| `kc_guard/k1_build/work/kit_k1a/work/k1_pipeline.py` | `47ab5a2f30d6ec508bbafacfbaf1a5a311e2e788ef9e9b1542ce42772ed7aab7` |
+| `kc_guard/k1_build/work/kit_k1a/work/test_k1_guard.py` | `4b336e35cab8ff63f8becd81215b895afbd1fa7aa6cb50fc574001fc7bdccc3b` |
+| `kc_guard_brief/k1_downstream.guard.sh` | `4b38dda57f2942d975253247bcbb1f35b1a10d2eac048377fdeef2d875ad6874` |
+| `kc_guard_brief/convert7.guard.sh` | `2dbbd3a4a1e4aeaccd2a4e2579ed1d13b498ff894ea8a59c4330dad89f17e198` |
+| `kc_guard_tests/test_k1_canvas.py` | `f308e485380f6f4728b3325f66082e8e60f0e7d4998df622d300ec0f3a459cdc` |
+| `kc_guard_tests/run_patch3_checks.sh` | `c91ce44c6ad312c8145d43cb1e2605078c88973c664c2f5ff45517293302651f` |
+| `kc_guard_tests/census_k1_canvas.py` | `8e2ec25fefd8af07c764d36e588ff4df567a8cc4627e162940bb66a8dd4d12d9` |
+| `kc_guard_brief/PATCH3.diff` | `d4bf81ac93d19db955e8e72da182a291b6c6e9213d3440f8f6dfd76390834d7c` |
+
+| Protected file | Before = after SHA-256 |
+|---|---|
+| `kc_guard/k1_build/work/kit_k1a/work/k1_phases.py` | `80d763d4149f1b7989d806f3bfab0660e631c27e79d0300cd8300fbdb88f075d` |
+| `kc_guard/k1_build/work/kit_k1a/work/gravity_guard.py` | `b2df9c3a769ef498021ef4aa116b68912f5ff5872f03ec3abfe4b732cefbbb79` |
+| `kc_guard/k1_build/work/kit_k1a/work/refit/build_tables.py` | `341193168421714dd50a4ce87dc578a57f4cc92b6aea8a15dae31ccd9d516857` |
+| `manifest_v2/a40fbc19.json` | `e684e0c7d8a75e4296e34ba4980aa6d7088f6c2f2053d7850ee790e7cf215146` |
+
+### Diff
+
+[PATCH3.diff](/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard_brief/PATCH3.diff) is incremental against the reviewed k1_guard2 files saved in `kc_guard_tests/patch3_before/`.
+
+```diff
+--- a/kc_guard/k1_build/work/kit_k1a/work/k1_pipeline.py
++++ b/kc_guard/k1_build/work/kit_k1a/work/k1_pipeline.py
+@@ -1,5 +1,6 @@
+ """K1 label-free caching, eligible-room refit, and rendering."""
+ import argparse,inspect,json,os,sys,time,shutil
++from collections import Counter
+ from pathlib import Path
+ from types import SimpleNamespace as NS
+ sys.path[:0]=[str(Path(__file__).parent),str(Path(__file__).parent/'refit')]
+@@ -108,27 +109,43 @@
+   else:geo=load_geometry(dest/'geometry.npz',FrameMap(tuple(c['anchor_indices'])),'tower_scaled')
+  if guard.verdict(c)!=receipt['gravity_verdict']:raise ValueError('Cache gravity verdict differs')
+  return raw,geo,receipt
++def gt_canvas(instances):
++ """Map integer GT labels onto the deployed mask canvas; reject other shapes."""
++ from student_pilot import routed_features as F
++ from scipy import ndimage
++ if instances.ndim!=3 or not np.issubdtype(instances.dtype,np.integer):raise ValueError('GT requires integer instance-label frames')
++ shape=tuple(instances.shape[1:]);canvas=tuple(F.OUTPUT_SHAPE)
++ if canvas!=(240,320):raise ValueError('Deployed GT canvas differs')
++ if shape==canvas:return instances,'identity'
++ if shape!=canvas[::-1]:raise ValueError('GT raster differs; no silent resize')
++ # routed_features.resize uses these zoom arguments on bool masks. Sampling
++ # integer labels once preserves every instance, including background labels.
++ mapped=np.stack([ndimage.zoom(frame,(canvas[0]/shape[0],canvas[1]/shape[1]),order=0,prefilter=False) for frame in instances])
++ return mapped,'stretch_nearest_320x240_to_240x320'
+ def gt_arrays(c,selection=None):
+  _native()
+  with np.load(B.checked(c['gt'] if selection is None else selection['entries'][c['canonical']]),allow_pickle=False) as z:
+-  return dict(instances=z['instances'] if 'instances' in z else z['inst'],frame_indices=z['frame_indices'])
++  instances,mapping=gt_canvas(z['instances'] if 'instances' in z else z['inst'])
++  return dict(instances=instances,frame_indices=z['frame_indices'],gt_canvas_map=mapping)
+ def tables(m,cache,out,gt_set=None,sensitivity=False):
+  _native()
+  import build_tables
+  import k1_guard as guard
+- guard.install();refused={}
++ guard.install();refused={};canvas_maps={}
+  selection=G.load(gt_set,sensitivity);captures,meta=G.select(m,selection)
+  out=Path(out);out.mkdir(parents=True,exist_ok=False)
+  with (out/'candidates.jsonl').open('w') as cf,(out/'pairs.jsonl').open('w') as pf:
+   for c in captures:
+    raw,geo,receipt=cached(c,Path(cache)/B.digest(c['canonical'])[:16])
++   gt=gt_arrays(c,selection);canvas_maps[c['canonical']]=gt['gt_canvas_map']
+    if geo is None:
+     refused[c['canonical']]=receipt['geometry_refusal']['code'];continue
+-   with guard.capture(c):rows,pairs=build_tables.build_capture(c,raw,geo,gt_arrays(c,selection))
++   with guard.capture(c):rows,pairs=build_tables.build_capture(c,raw,geo,gt)
+    for row in rows:cf.write(json.dumps(row)+'\n')
+    for row in pairs:pf.write(json.dumps(row)+'\n')
+  guard.write_report(out)
+  record=dict(geometry_refused=refused,manifest_sha256=B.digest(m),inventory=m['inventory'],producer_sha256=B.sha(build_tables.__file__),build_sha256=gate.sha(gate.ROOT/'grd_selector/work/setsel/build.py'),files={n:B.pin(out/n) for n in ['candidates.jsonl','pairs.jsonl']})
++ record.update(gt_canvas_map=canvas_maps,gt_canvas_map_counts=dict(Counter(canvas_maps.values())))
+  if meta is None:B.write(out/'TABLE_RECEIPT.json',record)
+  else:G.write(out/'TABLE_RECEIPT.json',record,meta)
+ def responses(m,cache,fit_dir,out,gt_set=None,sensitivity=False):
+@@ -145,9 +162,10 @@
+  if B.sha(policy)!=fit['native_policy_sha256']:raise ValueError('Native refit pin differs')
+  if fit['inputs'].get(m['inventory']['path'])!=m['inventory']['sha256']:raise ValueError('Refit inventory differs')
+  if set(fit['train_rooms'])&set(fit['heldout_rooms']):raise ValueError('Refit room leakage')
+- out=Path(out);out.mkdir(parents=True,exist_ok=False);all_rows=[];analysis=[]
++ out=Path(out);out.mkdir(parents=True,exist_ok=False);all_rows=[];analysis=[];canvas_maps={}
+  for c in captures:
+-  raw,geo,receipt=cached(c,Path(cache)/B.digest(c['canonical'])[:16]);gt=gt_arrays(c,selection) if geo is not None else None;results=[]
++  raw,geo,receipt=cached(c,Path(cache)/B.digest(c['canonical'])[:16]);gt=gt_arrays(c,selection);results=[]
++  canvas_maps[c['canonical']]=gt['gt_canvas_map']
+   dest=out/B.digest(c['canonical'])[:16];dest.mkdir()
+   for row in c['rows']:
+    if geo is None:
+@@ -173,7 +191,9 @@
+  guard.write_report(out)
+  render.write_rows(all_rows,out/'rows')
+  (out/'K1_ANALYSIS_INPUT.jsonl').write_text(''.join(json.dumps(x)+'\n' for x in analysis))
+- if meta is not None:G.write(out/'RENDER_RECEIPT.json',dict(manifest_sha256=B.digest(m),fit=G.pin(fit_path),table_receipt=fit['table_receipt'],files={'analysis':B.pin(out/'K1_ANALYSIS_INPUT.jsonl')}),meta)
++ record=dict(manifest_sha256=B.digest(m),fit=G.pin(fit_path),gt_canvas_map=canvas_maps,gt_canvas_map_counts=dict(Counter(canvas_maps.values())),files={'analysis':B.pin(out/'K1_ANALYSIS_INPUT.jsonl')})
++ if meta is None:B.write(out/'RENDER_RECEIPT.json',record)
++ else:G.write(out/'RENDER_RECEIPT.json',dict(record,table_receipt=fit['table_receipt']),meta)
+ def printed_cues(result):
+  _native()
+  import re
+--- a/kc_guard/k1_build/work/kit_k1a/work/test_k1_guard.py
++++ b/kc_guard/k1_build/work/kit_k1a/work/test_k1_guard.py
+@@ -152,7 +152,7 @@
+         import build_tables
+         tables = self.root / 'tables'
+         with patch.object(build_tables, 'build_capture', side_effect=AssertionError('Refused candidate extraction')), \
+-                patch.object(K, 'gt_arrays', side_effect=AssertionError('Refused GT load')):
++                patch.object(K, 'gt_arrays', return_value={'gt_canvas_map': 'identity'}):
+             K.tables(self.m, self.out, tables)
+         self.assertEqual((tables / 'candidates.jsonl').read_text(), '')
+         self.assertEqual((tables / 'pairs.jsonl').read_text(), '')
+@@ -165,7 +165,7 @@
+         rendered = self.root / 'render'
+         with patch.object(K, 'native_backend', side_effect=AssertionError('Refused backend')), \
+                 patch.object(B.perception, 'execute_calls', side_effect=AssertionError('Refused calls')), \
+-                patch.object(K, 'gt_arrays', side_effect=AssertionError('Refused GT load')):
++                patch.object(K, 'gt_arrays', return_value={'gt_canvas_map': 'identity'}):
+             K.responses(self.m, self.out, fit, rendered)
+         results = B.load(rendered / self.dest.name / 'responses.json')
+         for row, result in zip(self.c['rows'], results, strict=True):
+@@ -212,7 +212,7 @@
+             self.assertEqual(guard.GG._capture.get(), ('K1', c['canonical']))
+             return [{'fixture': 'candidate'}], [{'fixture': 'pair'}]
+         out = self.root / 'passing_tables'
+-        with patch.object(build_tables, 'build_capture', side_effect=build), patch.object(K, 'gt_arrays', return_value={}):
++        with patch.object(build_tables, 'build_capture', side_effect=build), patch.object(K, 'gt_arrays', return_value={'gt_canvas_map': 'identity'}):
+             K.tables(m, CANARY, out)
+         self.assertEqual(B.load(out / 'TABLE_RECEIPT.json')['geometry_refused'], {})
+         self.assertEqual(len((out / 'candidates.jsonl').read_text().splitlines()), 1)
+@@ -228,7 +228,7 @@
+             return dict(calls=[dict(call=calls[0], kind='error', code='fixture_backend_failure', response='unavailable')])
+         with patch.object(K, 'native_backend', return_value=object()), \
+                 patch.object(B.perception, 'execute_calls', side_effect=execute), \
+-                patch.object(K, 'gt_arrays', return_value={}):
++                patch.object(K, 'gt_arrays', return_value={'gt_canvas_map': 'identity'}):
+             K.responses(m, CANARY, fit, self.root / 'passing_render')
+         rows = (self.root / 'passing_render/K1_ANALYSIS_INPUT.jsonl').read_text().splitlines()
+         self.assertEqual(len(rows), len(c['rows']))
+--- a/kc_guard_brief/k1_downstream.guard.sh
++++ b/kc_guard_brief/k1_downstream.guard.sh
+@@ -12,7 +12,7 @@
+ 93da46e591c5752082fceb43547ad0acc7e033e75e741dc31a98d68e6c2a626c  $KIT/work/k1_guard.py
+ b2df9c3a769ef498021ef4aa116b68912f5ff5872f03ec3abfe4b732cefbbb79  $KIT/work/gravity_guard.py
+ 03aff7de2aad6b7267ca1c0464a1a950d5fa8671d4a28c53a64075eecf21cf47  $KIT/work/k1_cli.py
+-6b732ab92dd8c0e90c1704c0b8235372ab3f4a75ae6b362a2f50dac3a08cd1d6  $KIT/work/k1_pipeline.py
++47ab5a2f30d6ec508bbafacfbaf1a5a311e2e788ef9e9b1542ce42772ed7aab7  $KIT/work/k1_pipeline.py
+ GUARD_SUMS
+ MANIFEST_V1=/scratch/jjyeung/orch_n30/k1_ops3/work/codex_arkit_timing/K1_MANIFEST.arkit_timing.json
+ MANIFEST=/scratch/jjyeung/orch_n30/k1_ops3/work/manifest_v2/a40fbc19.json
+@@ -48,7 +48,7 @@
+ e305c4be0d604df277d06e7d9b1e13893dfa659d7ab6663f0de798773d58d650  $GTSETS/GT_SET_SENSITIVITY_300.json
+ 5d36d1ea98c14b2e3181a4571a87dc81efa980bd88a2302e27a1ecc13833a4f8  $KIT/work/gt_set.py
+ 03aff7de2aad6b7267ca1c0464a1a950d5fa8671d4a28c53a64075eecf21cf47  $KIT/work/k1_cli.py
+-6b732ab92dd8c0e90c1704c0b8235372ab3f4a75ae6b362a2f50dac3a08cd1d6  $KIT/work/k1_pipeline.py
++47ab5a2f30d6ec508bbafacfbaf1a5a311e2e788ef9e9b1542ce42772ed7aab7  $KIT/work/k1_pipeline.py
+ 14b35f83184267f85a946079767d7903d3e1c31d73946bd2600bbe6b2efe862d  $KIT/work/k1_report.py
+ 4087716014ab26e7fdb91f336e3d8ee81f97e82b85a4c340376e872c655ecfef  $KIT/work/refit/train.py
+ aa0a728148bbf076fe1d42a6fe4bb053c761052ec653faa02f7a06e240b8ca42  $KIT/out/DEPENDENCIES.json
+--- a/kc_guard_brief/convert7.guard.sh
++++ b/kc_guard_brief/convert7.guard.sh
+@@ -8,7 +8,7 @@
+ 93da46e591c5752082fceb43547ad0acc7e033e75e741dc31a98d68e6c2a626c  $KC/k1_guard.py
+ b2df9c3a769ef498021ef4aa116b68912f5ff5872f03ec3abfe4b732cefbbb79  $KC/gravity_guard.py
+ 03aff7de2aad6b7267ca1c0464a1a950d5fa8671d4a28c53a64075eecf21cf47  $KC/k1_cli.py
+-6b732ab92dd8c0e90c1704c0b8235372ab3f4a75ae6b362a2f50dac3a08cd1d6  $KC/k1_pipeline.py
++47ab5a2f30d6ec508bbafacfbaf1a5a311e2e788ef9e9b1542ce42772ed7aab7  $KC/k1_pipeline.py
+ GUARD_SUMS
+ MAN=/scratch/jjyeung/orch_n30/k1_ops3/work/manifest_v2/a40fbc19.json
+ TOWER=/scratch/jjyeung/k1/run_tower_sam_2; PY=${K1_CONVERT_PY:-/scratch/jjyeung/envs/sam3_scipy_ovl/bin/python}  # = sam3_capretry_native_v1 site-packages + scipy 1.14.1 (orch_cd/evalx/work/trin_vl/pyextra)
+--- /dev/null
++++ b/kc_guard_tests/test_k1_canvas.py
+@@ -0,0 +1,135 @@
++"""CPU canvas tests using pinned GT and real converted candidate features."""
++import importlib.util
++import json
++import os
++from pathlib import Path
++import sys
++import unittest
++import trace
++from unittest.mock import patch
++import numpy as np
++
++ROOT = Path(__file__).resolve().parent
++WORK = ROOT.parent / 'kc_guard/k1_build/work/kit_k1a/work'
++sys.path.insert(0, str(WORK))
++import k1_pipeline as K
++K._native()
++B = K.B
++import k1_guard as guard
++import build_tables as T
++from student_pilot import routed_features as F
++guard.install()
++M = B.load(ROOT.parent / 'manifest_v2/a40fbc19.json')
++CAPTURES = {c['canonical']: c for c in M['captures']}
++CACHE = Path('/scratch/jjyeung/k1/run_convert_2')
++OUT = ROOT / os.environ.get('K1_CANVAS_TEST_RUN', 'patch3_canvas')
++OUT.mkdir()
++EVIDENCE = {}
++HITS = set()
++def trace_pipeline(frame, event, arg):
++    if frame.f_code.co_filename == K.__file__:
++        if event == 'line':
++            HITS.add(frame.f_lineno)
++        return trace_pipeline
++sys.settrace(trace_pipeline)
++
++
++def raw_gt(c):
++    with np.load(B.checked(c['gt']), allow_pickle=False) as z:
++        return dict(instances=z['instances'] if 'instances' in z else z['inst'], frame_indices=z['frame_indices'])
++
++
++class CanvasTests(unittest.TestCase):
++    def test_real_portrait_every_frame_every_label(self):
++        c = CAPTURES['arkitscenes/41048124']
++        source = raw_gt(c)['instances']
++        actual, mapping = K.gt_canvas(source)
++        self.assertEqual(mapping, 'stretch_nearest_320x240_to_240x320')
++        self.assertEqual(actual.dtype, source.dtype)
++        checks = 0
++        for before, after in zip(source, actual, strict=True):
++            union = np.empty_like(after)
++            covered = np.zeros(F.OUTPUT_SHAPE, bool)
++            for label in np.unique(before):
++                mask = F.resize(before == label, F.OUTPUT_SHAPE)
++                np.testing.assert_array_equal(after == label, mask)
++                self.assertFalse(np.any(covered & mask))
++                union[mask] = label
++                covered |= mask
++                checks += 1
++            self.assertTrue(covered.all())
++            self.assertEqual(after.tobytes(), union.tobytes())
++        EVIDENCE['portrait'] = dict(frames=len(source), label_mask_checks=checks, dtype=str(source.dtype), union_byte_equal=True)
++
++    def test_landscape_tables_byte_equal(self):
++        c = CAPTURES['scannet/scene0452_02']
++        source = raw_gt(c)
++        mapped, mapping = K.gt_canvas(source['instances'])
++        self.assertIs(mapped, source['instances'])
++        self.assertEqual(mapping, 'identity')
++        self.assertEqual(mapped.tobytes(), source['instances'].tobytes())
++        spec = importlib.util.spec_from_file_location('pipeline_before_canvas', ROOT / 'patch3_before/kc_guard/k1_build/work/kit_k1a/work/k1_pipeline.py')
++        before = importlib.util.module_from_spec(spec)
++        spec.loader.exec_module(before)
++        before._native()
++        m = dict(captures=[c], inventory=M['inventory'])
++        before.tables(m, CACHE, OUT / 'landscape_before')
++        K.tables(m, CACHE, OUT / 'landscape_after')
++        for name in ('candidates.jsonl', 'pairs.jsonl'):
++            self.assertEqual((OUT / 'landscape_before' / name).read_bytes(), (OUT / 'landscape_after' / name).read_bytes())
++        EVIDENCE['landscape'] = {name: dict(sha256=B.sha(OUT / 'landscape_after' / name), rows=sum(1 for _ in (OUT / 'landscape_after' / name).open())) for name in ('candidates.jsonl', 'pairs.jsonl')}
++
++    def test_wrong_shapes_and_noninteger_labels_halt(self):
++        for shape in ((1, 240, 240), (1, 480, 640), (1, 640, 480), (1, 0, 240), (240, 320)):
++            with self.subTest(shape=shape), self.assertRaises(ValueError):
++                K.gt_canvas(np.zeros(shape, np.int32))
++        with self.assertRaisesRegex(ValueError, 'integer'):
++            K.gt_canvas(np.zeros((1, 240, 320), float))
++        c = CAPTURES['arkitscenes/41048124']
++        cached = K.cached(c, CACHE / B.digest(c['canonical'])[:16])
++        with patch.object(K, 'cached', return_value=cached), patch.object(K.np, 'load') as load:
++            load.return_value.__enter__.return_value = dict(instances=np.zeros((32, 100, 100), np.int32), frame_indices=np.array(c['anchor_indices']))
++            with self.assertRaisesRegex(ValueError, 'no silent resize'):
++                K.tables(dict(captures=[c], inventory=M['inventory']), CACHE, OUT / 'wrong_shape')
++        self.assertFalse((OUT / 'wrong_shape/TABLE_RECEIPT.json').exists())
++
++    def test_render_passes_mapped_gt_to_mask_agreement(self):
++        # Real captures/cache/GT; fixture policy and calls isolate render plumbing.
++        cs = [CAPTURES[n] for n in ('arkitscenes/41048124', 'scannet/scene0452_02')]
++        m = dict(captures=cs, inventory=M['inventory'])
++        selection_path = OUT / 'GT_SET_RENDER_FIXTURE.json'
++        B.write(selection_path, {c['canonical']: dict(c['gt'], pinned=True) for c in cs})
++        _, meta = K.G.select(m, K.G.load(selection_path))
++        K.tables(m, CACHE, OUT / 'render_tables', gt_set=selection_path)
++        fit = OUT / 'fixture_fit'; fit.mkdir()
++        B.write(fit / 'NATIVE_POLICY.json', dict(fixture_only=True))
++        K.G.write(fit / 'FIT_RECEIPT.json', dict(fixture_only=False, native_policy_sha256=B.sha(fit / 'NATIVE_POLICY.json'), inputs={M['inventory']['path']: M['inventory']['sha256']}, train_rooms=[], heldout_rooms=[], table_receipt=B.pin(OUT / 'render_tables/TABLE_RECEIPT.json')), meta)
++        expected = {c['canonical']: K.gt_arrays(c) for c in cs}
++        by_row = {r['id']: c for c in cs for r in c['rows']}
++        seen = []
++        def agreement(record, row, gt, anchors):
++            c = by_row[row['id']]
++            self.assertEqual(gt['instances'].shape[1:], (240, 320))
++            np.testing.assert_array_equal(gt['instances'], expected[c['canonical']]['instances'])
++            self.assertEqual(anchors, c['anchor_indices'])
++            seen.append(row['id'])
++            return {'ok': False}
++        def execute(geo, backend, calls):
++            return dict(calls=[dict(call=calls[0], kind='gap', response='distance 1.00 m')])
++        with patch.object(K, 'native_backend', return_value=object()), patch.object(B.perception, 'execute_calls', side_effect=execute), patch.object(K.P, 'mask_agreement', side_effect=agreement):
++            K.responses(m, CACHE, fit, OUT / 'render_fixture', gt_set=selection_path)
++        self.assertEqual(len(seen), sum(len(c['rows']) for c in cs))
++        receipt = B.load(OUT / 'render_fixture/RENDER_RECEIPT.json')
++        self.assertEqual(receipt['gt_set'], meta)
++        self.assertEqual(receipt['gt_canvas_map_counts'], {'identity': 1, 'stretch_nearest_320x240_to_240x320': 1})
++        self.assertEqual(receipt['gt_canvas_map'], {c['canonical']: expected[c['canonical']]['gt_canvas_map'] for c in cs})
++        EVIDENCE['render_fixture'] = dict(rows=len(seen), gt_canvas_map=receipt['gt_canvas_map'], counts=receipt['gt_canvas_map_counts'])
++
++
++if __name__ == '__main__':
++    result = unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(CanvasTests))
++    sys.settrace(None)
++    executable = set(trace._find_executable_linenos(K.__file__))
++    (OUT / 'pipeline_coverage.json').write_text(json.dumps(dict(hit=sorted(HITS & executable), missing=sorted(executable - HITS)), indent=2) + '\n')
++    (OUT / 'EVIDENCE.json').write_text(json.dumps(EVIDENCE, indent=2) + '\n')
++    raise SystemExit(not result.wasSuccessful())
+--- /dev/null
++++ b/kc_guard_tests/run_patch3_checks.sh
+@@ -0,0 +1,37 @@
++#!/usr/bin/env bash
++set -euo pipefail
++cd /scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard
++export CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1
++export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1
++export HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
++export K1_NATIVE_KIT=/scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/native_kit
++T=/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard_tests
++W=$PWD/k1_build/work/kit_k1a/work
++export XDG_CACHE_HOME="$T/runtime_cache" HF_HOME="$T/runtime_cache/hf" TRITON_CACHE_DIR="$T/runtime_cache/triton"
++export K1_CANARY_ROOT=canary_patch2
++SAM=/scratch/jjyeung/envs/sam3_scipy_ovl/bin/python
++P1=/scratch/jjyeung/envs/p1cpu/bin/python
++run_check() {
++    local name=$1
++    shift
++    "$@" > "$T/$name.log" 2>&1
++    printf '%s: exit 0\n' "$name"
++    tail -n 4 "$T/$name.log"
++}
++if [ "${K1_PATCH3_SKIP_R2:-0}" != 1 ]; then
++run_check patch3_r2_landscape env MODE=r2 K1_R2_CAPTURE=scannet/scene0452_02 K1_CONVERT_CACHE=/scratch/jjyeung/k1/run_convert_2 K1_REFIT_PY=/scratch/jjyeung/envs/planner_local_v1/bin/python bash ../kc_guard_brief/k1_downstream.guard.sh
++fi
++run_check patch3_canvas_final env K1_CANVAS_TEST_RUN=patch3_canvas_final "$P1" -I -s -B "$T/test_k1_canvas.py"
++run_check patch3_guard_sam3 env K1_GUARD_TEST_RUN=patch3_unit_sam3 "$SAM" -I -s -B "$W/test_k1_guard.py"
++run_check patch3_guard_p1cpu env K1_GUARD_TEST_RUN=patch3_unit_p1cpu "$P1" -I -s -B "$W/test_k1_guard.py"
++run_check patch3_identity "$SAM" -I -s -B "$T/verify_identity.py"
++run_check patch3_test_kit "$SAM" -I -s -B "$T/run_existing.py" test_kit
++run_check patch3_test_guards "$SAM" -I -s -B "$T/run_existing.py" test_guards
++run_check patch3_verify_sources "$P1" -I -s -B "$W/verify_sources.py"
++run_check patch3_gt_canvas_census "$P1" -I -s -B "$T/census_k1_canvas.py"
++bash -n ../kc_guard_brief/convert7.guard.sh
++bash -n ../kc_guard_brief/k1_downstream.guard.sh
++printf 'Launcher syntax: exit 0\n'
++printf 'Starting primary 296 tables: %s\n' "$(date -u +%FT%TZ)"
++run_check patch3_primary296 nice -n 10 "$P1" -I -s -B "$W/k1_pipeline.py" tables --manifest ../manifest_v2/a40fbc19.json --cache /scratch/jjyeung/k1/run_convert_2 --gt-set ../gt_sets/GT_SET_PRIMARY_296.json --out "$T/patch3_primary296/tables"
++printf 'All checks complete: %s\n' "$(date -u +%FT%TZ)"
+--- /dev/null
++++ b/kc_guard_tests/census_k1_canvas.py
+@@ -0,0 +1,24 @@
++"""Authenticate and map every primary GT raster without candidate extraction."""
++from collections import Counter
++import json
++from pathlib import Path
++import sys
++ROOT = Path(__file__).resolve().parent
++sys.path.insert(0, str(ROOT.parent / 'kc_guard/k1_build/work/kit_k1a/work'))
++import k1_pipeline as K
++K._native()
++m = K.B.load(ROOT.parent / 'manifest_v2/a40fbc19.json')
++selection = K.G.load(ROOT.parent / 'gt_sets/GT_SET_PRIMARY_296.json')
++captures, meta = K.G.select(m, selection)
++maps = {}
++for c in captures:
++    gt = K.gt_arrays(c, selection)
++    assert gt['frame_indices'].tolist() == c['anchor_indices']
++    assert gt['instances'].shape == (32, 240, 320)
++    maps[c['canonical']] = gt['gt_canvas_map']
++assert len(maps) == 296
++record = dict(gt_set=meta, captures_checked=len(maps), gt_canvas_map=maps,
++              gt_canvas_map_counts=dict(Counter(maps.values())), all_pins_verified=True,
++              tables_executed=False)
++(ROOT / 'patch3_gt_canvas_census.json').write_text(json.dumps(record, indent=2) + '\n')
++print(json.dumps({k: v for k, v in record.items() if k not in ('gt_set', 'gt_canvas_map')}))
+```
+
+NOT READY

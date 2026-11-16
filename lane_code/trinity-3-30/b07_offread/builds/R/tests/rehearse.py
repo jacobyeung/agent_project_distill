@@ -18,6 +18,7 @@ selectors.EpollSelector.select=bounded
 source=(package/'proof/run.py').read_text()
 source=source.replace("ROOT=Path(__file__).resolve().parents[1]", "ROOT=Path("+repr(str(package))+")")
 source=source.replace("mode='proof'", "mode='production'")
+source=source.replace("root=work/('a_'+job+'_'+token)","root=work/('a_'+job+'_'+token)\n    import xnames; xnames.install(root)")
 source=source.replace("config['proof_only']=True;config['bootstrap_parent']=str(work)","config['bootstrap_parent']=str(work)\n    config.update(x0='a'*64,x1=F.sha(ap),x2=0)")
 source=source.replace("pool=ROOT/'launcher/test_runs'/token/'pool';pool.parent.mkdir(parents=True)", "pool=work/'pool'")
 source=source.replace("synthetic=True,rate=", "synthetic=False,rate=")
@@ -109,7 +110,7 @@ if '--done' in sys.argv:
     source=source.replace("    B.dump(packet/'CONFIG.json',config)", "    B.dump(packet/'CONFIG.json',json.loads(B.boot_files(packet/'BATCH.sh')['bootstrap/CONFIG.json']))")
 # The source is retained so the exact fixture changes can be audited.
 WORK.parent.mkdir(parents=True,exist_ok=True)
-(ROOT/'out'/('rehearsal_'+key+('_done' if '--done' in sys.argv else '')+'_source.py')).write_text(source)
+(WORK.parent/(WORK.name+'_source.py')).write_text(source)
 lines={}
 rootstr=str(ROOT)
 def tracer(frame,event,arg):
@@ -120,11 +121,11 @@ def tracer(frame,event,arg):
 sys.settrace(tracer);threading.settrace(tracer)
 try:
     scope={'__name__':'fixture_module','__file__':str(Path(__file__).resolve())}
-    exec(compile(source,str(ROOT/'out'/('rehearsal_'+key+('_done' if '--done' in sys.argv else '')+'_source.py')),'exec'),scope)
+    exec(compile(source,str(WORK.parent/(WORK.name+'_source.py')),'exec'),scope)
     result=scope['run'](WORK)
     print(json.dumps({k:v for k,v in result.items() if k!='config'},indent=2))
 finally:
     sys.settrace(None);threading.settrace(None)
-    (ROOT/'out'/('coverage_'+key+('_done' if '--done' in sys.argv else '')+'.json')).write_text(json.dumps({n:sorted(v) for n,v in sorted(lines.items())},indent=1)+'\n')
+    (WORK.parent/('coverage_'+key+('_done' if '--done' in sys.argv else '')+'.json')).write_text(json.dumps({n:sorted(v) for n,v in sorted(lines.items())},indent=1)+'\n')
     import hashlib
-    (ROOT/'out'/('coverage_'+key+('_done' if '--done' in sys.argv else '')+'_pins.json')).write_text(json.dumps({n:hashlib.sha256(Path(n).read_bytes()).hexdigest() for n in lines if Path(n).is_file()},indent=1)+'\n')
+    (WORK.parent/('coverage_'+key+('_done' if '--done' in sys.argv else '')+'_pins.json')).write_text(json.dumps({n:hashlib.sha256(Path(n).read_bytes()).hexdigest() for n in lines if Path(n).is_file()},indent=1)+'\n')

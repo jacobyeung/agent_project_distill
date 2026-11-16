@@ -11,3 +11,7 @@ The full units census has no per-unit breakdown. Report the exact slice frequenc
 For persisted metric reports, the options are keyed values with separate ordering metadata or ordered per-unit rows. Use ordered rows by default: the native canonical JSON writer sorts dictionary keys but preserves list order. Empty unit groups carry a zero count and no score; observed groups require finite scores.
 
 Legacy assertions that name an epoch-specific refusal run explicitly in both epochs: retain the exact old OFF expectation and add the accepted ON expectation. Do not broaden an assertion to accept either result or alter the packet's required exact files. Record these fixture adaptations in `work/build6/TEST_INPUT_ADAPTATIONS.json`.
+
+For legacy failure comparison, the options are matching failed test names or matching both names and classified causes. Use matching names and causes by default. Keep differing causes flagged for review, with both tracebacks in `work/build6/SUITE_COMPARISON.json`.
+
+For room-runtime coverage, the options are testing the room-capable protocol selected by the kits or migrating the legacy protocol. Use the selected 3.14 protocol in every current session implementation; both staged kits already select it (`work/build6/KIT_PROTOCOLS.json`). The accepted exact files retain the legacy 3.13 refusal for room calls (`work/tree_r1/trace_format/ground_v313.py`, `work/tree_r1/student_pilot/live_trace313.py`). The final kit reader checks the selected protocol (`work/build6/kit_readcheck.py`).

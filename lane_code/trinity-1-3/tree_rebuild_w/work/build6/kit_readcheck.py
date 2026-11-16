@@ -9,6 +9,7 @@ for name in ('a2','a0'):
  assert {key for key,value in cfg['route_table'].items() if value=='route'}=={'absolute_distance_object','object_abs_distance','camera_displacement','camera_movement_direction','camera_rotation'}
  assert all(value in ('route','direct') for value in cfg['route_table'].values())
  assert cfg['r2_identity']['init']==load(L/'out/INIT_INPUT.json')['identity']
- result.append(dict(kit=name,production_authorized=launch['production_authorized'],route_table=cfg['route_table'],init=cfg['r2_identity']['init']))
+ assert cfg['trace_program_version']=='3.14'
+ result.append(dict(kit=name,production_authorized=launch['production_authorized'],trace_program_version=cfg['trace_program_version'],route_table=cfg['route_table'],init=cfg['r2_identity']['init']))
 (B/'KIT_READCHECK.json').write_text(json.dumps(result,indent=2)+'\n')
 print(json.dumps(result))

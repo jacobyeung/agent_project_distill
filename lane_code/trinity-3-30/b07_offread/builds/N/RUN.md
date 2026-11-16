@@ -1,80 +1,39 @@
-The worker is NOT READY for production on either benchmark or reader. CPU fixtures validate native control flow and dense-frame preparation. They do not establish production-CONFIG equivalence. No submission or upload was made.
+ReVSI × harness: NOT READY; ReVSI × e2e: NOT READY; VSI-Bench × harness: NOT READY; VSI-Bench × e2e: NOT READY.
 
-Run commands from this build directory. Use a fresh output directory for every test or rehearsal.
+Run CPU checks from this directory. Choose fresh opaque RAM directories; never reuse a pytest basetemp. Keep all scratch output below `/dev/shm/b07_n4` and below 4 GB.
 
 ```bash
 PY=/scratch/jjyeung/envs/p1cpu/bin/python
 export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
-"$PY" -B -m pytest -p no:cacheprovider kit/tests --basetemp=work/pytest_operator_fresh -q
-"$PY" -B -m offnative.census work/operator_revsi_harness harness out/operator_revsi_harness.json revsi999t32
-"$PY" -B -m offnative.census work/operator_revsi_e2e e2e out/operator_revsi_e2e.json revsi999t32
-"$PY" -B -m offnative.census work/operator_vsi_harness harness out/operator_vsi_harness.json vsibench5130
-"$PY" -B -m offnative.census work/operator_vsi_e2e e2e out/operator_vsi_e2e.json vsibench5130
+"$PY" -B -m pytest -p no:cacheprovider kit/tests --basetemp=/dev/shm/b07_n4/a101 -q
+"$PY" -B -m offnative.census /dev/shm/b07_n4/a102 harness /dev/shm/b07_n4/a102.json revsi999t32
+"$PY" -B -m offnative.census /dev/shm/b07_n4/a103 e2e /dev/shm/b07_n4/a103.json revsi999t32
+"$PY" -B -m offnative.census /dev/shm/b07_n4/a104 harness /dev/shm/b07_n4/a104.json vsibench5130
+"$PY" -B -m offnative.census /dev/shm/b07_n4/a105 e2e /dev/shm/b07_n4/a105.json vsibench5130
 ```
 
-`original` is the default G3T source for both readers. For ReVSI, the worker reconstructs the official 64-frame clip and selects geometry at `i64.index(i)` for each registered 32-frame source index. It decodes positions 0–63 of the 64-frame clip; it does not interpret source-video indices as clip positions. The registration can repeat source indices for short original videos. Both index lists and the selection positions remain in `out/REVSI_DENSE_MAPPING.json`.
+ReVSI model prompts use the 32-frame clip's indices 0..31, FPS, timestamps and total frame count. `GEOMETRY_FRAMES.json` alone supplies dense-clip slots to V1. Selected geometry is relabelled into model coordinates after conversion. The e2e payload separates model metadata from geometry indices; its loaded-entry prompt audit runs before generation. `clip32` remains diagnostic-only.
 
-The mapping binds both clip hashes and its own SHA256. The local `A.tar` is a zero-byte placeholder at the recorded check. Hashes therefore remain pending, and production binding refuses it. Once the complete local archive is available, this command extracts only the expected 604 regular files, enforces the 4 GB build cap and scratch reserve, hashes both sets, and records RGB correspondence for every video. It reads no clips from `/data2`.
+Both unserved arms use the primary's `ThinkingBudget` and registered 2048 thinking + 64 answer policy, including its callback accounting, call limit and outer token cap.
+
+Reduced harness proof requires the pinned job-170056 mask-loss declaration. Camera items require token, call, served-response and answer equality, with independent response replay. The five distance items are reported only. Their token, call and answer comparisons are recorded where decoding reaches them; missing masks are never loaded. Distance served-response equality, served-query digests, independent re-serving and distance identity are not required or established. E2E distance items are reported in both full and reduced modes. CPU fixtures do not establish model-logit equality.
+
+Production preparation requires the inputs in `OPEN_INPUTS.md`. For a harness read, provide the signed freeze and its hash; for e2e, provide the artifact and EAT-1 report. The following prepares files only:
 
 ```bash
-df -h /scratch
-"$PY" -B -m offnative.media \
-  --archive /scratch/jjyeung/orch_n30/b07_offread/work/stage_rv/A.tar \
-  --destination work/revsi_clips_operator_fresh
+"$PY" -B native_read.py prepare --benchmark vsibench5130 --export step544   --reader "harness:$FREEZE_SHA256" --freeze-file "$FREEZE_FILE"   --frames 32 --frame-layout duplicate --g3t-source original   --ledger /dev/shm/b07_n4/a106.jsonl --mode production   --inputs "$INPUT_MANIFEST" --destination /dev/shm/b07_n4/a107
 ```
 
-This command uses the saved registration in `out/REGISTERED_FRAME_INDICES.json`; it does not reread the shared metadata. `out/REVSI_PIXEL_CORRESPONDENCE.json` records all 32 matched RGB mean absolute differences and all 32 neighbouring-frame comparisons per video. A synthetic compressed-video test exercises the check. The real 302-video check has not run.
+VSI-Bench harness preparation creates nine child jobs by default. `SHARDS.json` binds the full cohort and each child's IDs, CONFIG, token, packet and return. Each child requests six hours and retains a 600-second return reserve. Complete a genuine transport-only `REHEARSAL.json` for each child's exact CONFIG and packet before `submit-command` will print its argv. Record each submission under the same parent and ledger; a shard group spends one registered read. The builder submits nothing.
 
-`out/REVSI_MEDIA_MANIFEST.json` assigns the accepted 261 anchor clips to `/project/community/jjyeung/okh7/313db5a47f11ff0c/`. It assigns the 41 additional anchor clips and all 302 dense clips to `/project/community/jjyeung/okh7/d46dd56e669a050f/7b5d2192.tar`, using `a/<name>.mp4` and `b/<name>.mp4`. The stager verifies the remote archive pin and every staged file. An archive can also contain the accepted anchor clips; those are read from the accepted pool. Remote upload completion and the remote archive's own hash/size/transfer receipt remain owner inputs. The local 604-member archive and remote archive need not have the same whole-file hash.
+Fetch each child into its prepared directory. `merge-shards --destination PARENT --returns CHILD...` authenticates the returns and requires the exact, duplicate-free full ID union for every arm. A cutoff writes `PARTIAL.json`, all completed decode records, all completed primary scores and each arm's missing IDs. A completed primary remains available when its secondary decode cannot start. Incomplete unions are refused; they are not official results.
 
-For VSI-Bench, `out/VSI_COHORT.json` contains all 5,130 question-only rows. `out/VSI_MEDIA_MANIFEST.json` preserves the direct kit's 288 full-video names, aliases, and hashes; its source manifest lacks byte sizes. `out/VSI_NAME_INVENTORY.json` contains 845 distance-name/video pairs with no unresolved templates. Dense sampling keeps the exact 32 floor-uniform model anchors, then adds the farthest unused candidates from the floor-uniform 64-frame grid until it has 64 frames. Ties select the earlier frame. Both readers receive this frame set and its anchor positions; the e2e reader invokes its towers inside `generate`.
+Every job name is `a15_cot_ap` followed by `secrets.token_hex(8)`, validated against `^a15_cot_ap[0-9a-f]{16}$`. The environment uses `A0_ROOTS`, `A0_DEADLINE` and `A0_PACKET_SHA256`; submission uses `--export=NONE`. Each forbidden logical path component receives an independent `x` plus 12 random hex digits. The pinned `out/NAME_MAP.json` stays on Trinity. Packets contain a digest-to-token table in `x0.json`; the adapter learns virtual spellings from unchanged source bytes in memory. Source loading preserves reader, scorer and item bytes. Named text diagnostics receive random tokens. Scans reject plain, hex and base64 forbidden spellings in packet bytes, decoded member paths, environment settings and submission argv.
 
-`clip32` is a labelled fixture diagnostic only. Binding, admission, worker execution, and reporting refuse it for claimed reads. Model anchors remain 32 with duplicate layout. Offkit admits frame overrides, but the native runtime separately refuses unsupported 64-model-anchor reads.
+The shipped `code.tar` is gzip-compressed despite its `.tar` suffix. An extracted bundle contains `xnames.py`; `native_read.py` installs it before resolving source roots. Offkit must be staged unchanged by its owner. `vendor/ACTIVE.json`, the recorded refresh diffs, `CODE_PINS.json`, `DEPENDENCY_PINS.json` and `SHIP_SHA256SUMS` bind this release.
 
-An operator can prepare production only after resolving `out/OPEN_INPUTS.md`:
+VSI-Bench has 288 media byte sizes matched by relative path and SHA256 to the supplied size inventory. Files must still pass SHA256 verification in the job. `A2_RESULT.json` was absent: the 604 ReVSI clip hashes, real pixel correspondence and remote archive receipt remain pending. The registered 302-video dense mapping retains its pending hashes.
 
-```bash
-"$PY" -B native_read.py prepare --benchmark revsi999t32 --export step544 \
-  --reader "harness:$FREEZE_SHA256" --freeze-file "$FREEZE_FILE" \
-  --frames 32 --frame-layout duplicate --g3t-source original \
-  --original-mapping out/REVSI_DENSE_MAPPING.json \
-  --ledger work/OFFICIAL_READ_LEDGER.jsonl --mode production \
-  --inputs "$INPUT_MANIFEST" --destination work/read_operator_fresh
-```
+All four native combinations need complete runtime/export inputs and a production-CONFIG transport-only rehearsal. Harness inputs include the signed freeze, selector, proposal and geometry assets. E2E inputs include the artifact, EAT-1 PASS and a pinned loaded entry with `generate`, `replay` and `prompt_inputs`; the latter must expose the actual processor user-text bytes and frame metadata. Original-export proof assets and authenticated transfer receipts remain required. Offkit stays read-only and owner-supplied. GPU restoration, native-library path resolution and the live namespace have not been validated by CPU fixtures.
 
-For e2e, use `--reader e2e:<manifest-sha256> --e2e-manifest <file> --eat1-report <file>` with the same dense mapping. Offkit requires EAT-1 PASS. For VSI-Bench, select `--benchmark vsibench5130`; it uses the full videos and needs no ReVSI mapping. A D0 export uses `--export done:<file> --init-selection <file>`. The selection must include `selected_sha256`, the registered `init_rule_sha256`, a valid `selected_step`, and `d0_ended.reason` plus `d0_ended.event`. Offkit owns the training layout; callers cannot supply an `export_layout`.
-
-Every production input role needs a safe relative logical path, SHA256, byte count, and uploaded source. Inputs above 20 MB need a governed transfer receipt. ReVSI also needs `revsi_media_manifest`, `original_mapping`, and a pinned `revsi_archive` role. Bootstrap stages its clips under `work/runtime/revsi_media`; R retains the export/runtime gates and hash-checked media copies. Additional runtime assets, labels, original proof inputs, and the loaded e2e entry must resolve within the staged namespace.
-
-`vendor/ACTIVE.json` selects immutable snapshots for b04, R, C8r, V1c, and the trainer tree. Each snapshot has a `PIN.json`. The following command deliberately creates a new content-addressed snapshot, updates the active selection, and writes added/removed/changed names and unified text diffs to `out/VENDOR_REFRESH.json`. For `OFFKIT`, the command refreshes external module pins without copying the owner package; its recorded diff includes old and new hashes. It runs before normal startup pin verification. It does not edit the lane or delete any snapshot. Rebuild and retest before shipping a refreshed selection.
-
-```bash
-"$PY" -B -m offnative.vendor --refresh R OFFKIT
-```
-
-Offkit is imported unchanged and is not copied into the new bundle. `out/OFFKIT_EXTERNAL_PINS.json` pins every owner module and startup verifies those bytes. An extracted bundle uses `OFFNATIVE_ROOTS=r.json`; its environment must provide the pinned offkit package, normally at `d/00/offkit`, before bootstrap. Portable CPU tests explicitly supply that external dependency through `PYTHONPATH`. Weights, runtime environments, media, tokenizer assets, and proof inputs are separate pinned assets.
-
-The required production-CONFIG rehearsal has not run. `out/N3_PRODUCTION_REHEARSAL.json` records the blockers. The fixture substitutes model prefill, token sampling, and tower arrays; those changes exceed transport. The launcher requires a genuine `REHEARSAL.json` with PASS, `only_transport_changed: true`, and the exact CONFIG and packet hashes before it prints a submission command. Fixture evidence must never be relabelled as that receipt.
-
-The seven worker phases are stage, frames, towers, proof, canary, read, and score. The original-export proof precedes official decoding. Reports use the verified full offkit BINDING and preserve model answer bytes. Primary refusals score zero; harness fallback and room-unserved arms remain secondary. An emitted operand outside the question-derived cache remains a recorded native refusal.
-
-`submit-command` only prints an argv; `record-submission` reads a saved, unambiguous `SUBMIT.out` and locks the one-export ledger. The job name is `a15_cot_ap` plus 16 hex characters. The proposed resources remain one GPU, 16 CPUs, 200 GB, and `/dev/null` output. The watchdog reserves 600 seconds for returns. The opaque packet receives a byte-name scan; BINDING and token meanings stay local. Fetch authenticates job, token, binding, CONFIG, packet, and archive identities before R's verifier runs.
-
-```bash
-"$PY" -B native_read.py fetch --destination work/read_operator_fresh --channel pool
-"$PY" -B native_read.py fetch --destination work/read_operator_fresh \
-  --return-archive "$RETURN_ARCHIVE" --return-receipt "$EXIT_RECEIPT"
-"$PY" -B native_read.py report --destination work/read_operator_fresh
-```
-
-Future transfers above 20 MB must use the existing IO governor. Keep transfers serial, poll at most once a minute, and stop after an unexpected transfer failure. Trinity limits remain 8 MB/s for shared reads or internet traffic, 4 MB/s for shared writes, and 18 MB/s aggregate per user. This build executes no network, SSH, submission, upload, or remote fetch.
-
-The job-170056 identity proof is reduced under the pinned `out/PROOF_MASKS_LOST.json` declaration. Its five distance mask files were lost with an unreachable node. Camera items retain token, call, response, and answer equality with independently recomputed responses. Distance items retain token, call, and answer equality plus served-query/response digest equality, but lack independent re-serving from the original masks. A changed served query or response cannot retain its pinned digest; a backend change affecting items outside these five is caught only by the canary. The CPU receipt uses forced tokens and recorded distance query digests; it does not establish model-logit equality. Reduced mode requires the exact declaration hash and selected distance keys; absent or changed loss records fail closed.
-
-```bash
-"$PY" -B -m offnative.replay out --mode reduced \
-  --lost-masks out/PROOF_MASKS_LOST.json \
-  --lost-masks-sha256 f1ba60b7d987d57420ddd457428adbcb8069e508fd1bc00ac9c5498add1a5362
-```
-
-Production proof assets must explicitly set `proof_mode: reduced` and `lost_masks: {path, sha256}` with that pinned record. Generation still runs the original model and must match the selected token, call, answer, and digest identities. Camera replay remains independent. Without this declaration, the full proof requirements apply.
+The full N5 suite includes the byte-equal reviewer file. Its R4 case necessarily fails because the test itself appends the retired `OFFNATIVE_PACKET_SHA256` export after calling the helper. `kit/tests/test_n5.py::test_R4_current_submit_argv_is_opaque` checks the same forbidden-word assertion against the current API, including the actual export and required job prefix. No reviewer assertion is edited, skipped or marked xfail.

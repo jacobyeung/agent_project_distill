@@ -42,6 +42,8 @@ DRAWS = 10000
 SEED = 20261115
 METRE_CALL_RATE_MIN = 0.95
 ARM = "unflagged"
+FLAGS = ("called", "no_answer", "parse_failed", "strict_no_answer")
+REFUSAL_FLAGS = ("geometry_refusal", "refusal")
 
 
 class Refusal(ValueError):
@@ -101,7 +103,7 @@ def score(row):
 
 
 def called(row):
-    return bool(row.get("called"))
+    return row.get("called") is True
 
 
 def load_arm(path, arm=ARM):
@@ -113,6 +115,17 @@ def load_arm(path, arm=ARM):
     for row in rows:
         require(row["key"] not in index, "duplicate key %s in %s" % (row["key"], path))
         require(row.get("arm", arm) == arm, "row arm differs from %s in %s" % (arm, path))
+        for flag in FLAGS:
+            require(row.get(flag) is None or type(row[flag]) is bool,
+                    "accounting flag %s of %s is not a boolean in %s" % (flag, row["key"], path))
+        for flag in REFUSAL_FLAGS:
+            value = row.get(flag)
+            require(value is None or type(value) is bool or (isinstance(value, dict) and value),
+                    "refusal record %s of %s is neither a boolean nor a non-empty record in %s" % (flag, row["key"], path))
+        decoded = row.get("decode") or {}
+        for flag in ("strict_no_answer", "parse_failed"):
+            require(decoded.get(flag) is None or type(decoded[flag]) is bool,
+                    "decode flag %s of %s is not a boolean in %s" % (flag, row["key"], path))
         index[row["key"]] = row
     artifacts = sorted({row.get("checkpoint_sha256") for row in rows})
     require(len(artifacts) == 1 and artifacts[0], "arm rows of %s carry %s checkpoint identities" % (path, artifacts))
@@ -206,7 +219,8 @@ def call_count(keys, rows):
 
 def analyze(cand_path, base_path, list_path, list_sha, tasks_path, parser_path, parser_sha,
             draws=DRAWS, seed=SEED, candidate_artifact=None, baseline_artifact=STEP544_ARTIFACT,
-            fixed_list_path=None, fixed_list_sha=None):
+            fixed_list_path=None, fixed_list_sha=None, self_pair=False):
+    require(draws == DRAWS and seed == SEED, "the rule fixes %d draws and seed %d" % (DRAWS, SEED))
     require(sha256_file(list_path) == list_sha, "distance list sha256 differs from the frozen value")
     parser = load_parser(parser_path, parser_sha)
     list_rows = [json.loads(line) for line in Path(list_path).read_text().splitlines() if line.strip()]
@@ -219,8 +233,10 @@ def analyze(cand_path, base_path, list_path, list_sha, tasks_path, parser_path, 
     base, base_artifact = load_arm(base_path)
     if baseline_artifact:
         require(base_artifact == baseline_artifact, "baseline arm is not step 544 (%s)" % base_artifact)
-    if candidate_artifact:
-        require(cand_artifact == candidate_artifact, "candidate arm artifact %s differs from %s" % (cand_artifact, candidate_artifact))
+    require(bool(candidate_artifact), "the candidate artifact sha256 is required")
+    require(cand_artifact == candidate_artifact, "candidate arm artifact %s differs from %s" % (cand_artifact, candidate_artifact))
+    require(self_pair or candidate_artifact != STEP544_ARTIFACT,
+            "the candidate is step 544 itself; only the explicit self-pair check may pair it with itself")
     camera, distance, room, room_units = build_items(cand, base, list_rows, tasks, parser)
     comparisons, guards = {}, []
 
@@ -283,13 +299,15 @@ def analyze(cand_path, base_path, list_path, list_sha, tasks_path, parser_path, 
                 parser_sha256=parser_sha, method=dict(name="paired physical-room percentile bootstrap, item-weighted",
                 draws=draws, seed=seed, interval="95% linear percentile", difference="candidate minus step 544, points"),
                 guards=guards, verdict="PASS" if all(g["pass"] for g in guards) else "FAIL",
-                comparisons=comparisons, printed_only=printed, calls=calls, nonanswers_scored_zero=nonanswers)
+                comparisons=comparisons, printed_only=printed, calls=calls, nonanswers_scored_zero=nonanswers,
+                self_pair=bool(self_pair))
 
 
 def markdown(result):
     f = lambda c: "%.3f | %.3f | %+.3f [%+.3f, %+.3f] | %d / %d" % (
         c["candidate"], c["step544"], c["difference"], c["interval"][0], c["interval"][1], c["items"], c["rooms"])
-    lines = [result["first_line"], "",
+    lines = [result["first_line"], ""] + (["SELF-PAIR CHECK OF STEP 544: not a guard read of any candidate.", ""]
+                                          if result.get("self_pair") else []) + [
              "Candidate artifact %s; step 544 artifact %s. List %s (%d items, %d metre). %d draws, seed %d." % (
                  result["candidate"]["artifact"], result["step544"]["artifact"], result["distance_list"]["sha256"],
                  result["distance_list"]["items"], result["distance_list"]["metre_items"],
@@ -321,14 +339,16 @@ def main(argv=None):
     p.add_argument("--tasks", default=str(here / "inputs/TASKS.jsonl"))
     p.add_argument("--parser", default=str(here / "inputs/unit_from_question.py"))
     p.add_argument("--parser-sha256", default="274f04a0d9590e2afbeada5d1f6003ab7d805c5e333b522ead22c23ff3396de5")
-    p.add_argument("--candidate-artifact", default=None)
+    p.add_argument("--candidate-artifact", required=True, help="artifact sha256 of the candidate export (CONFIG)")
+    p.add_argument("--self-pair", action="store_true", help="the step-544 self-pair check only; never a guard read")
     p.add_argument("--draws", type=int, default=DRAWS)
     p.add_argument("--seed", type=int, default=SEED)
     p.add_argument("--out", required=True)
     a = p.parse_args(argv)
     try:
         result = analyze(a.candidate, a.step544, a.list, a.list_sha256, a.tasks, a.parser, a.parser_sha256,
-                         a.draws, a.seed, a.candidate_artifact, STEP544_ARTIFACT, a.fixed_list, a.fixed_list_sha256)
+                         a.draws, a.seed, a.candidate_artifact, STEP544_ARTIFACT, a.fixed_list, a.fixed_list_sha256,
+                         a.self_pair)
     except Refusal as error:
         print("REFUSED: " + str(error), file=sys.stderr)
         return 3

@@ -6,7 +6,8 @@ import os
 from pathlib import Path
 import time
 
-from parity_kit.common import (C8R, DENSE, FRAMES, LANE, OLD_LOAD, REQUEST, TASKS, install, key, pin, policy, read, rows, tasks, write)
+from parity_kit.common import (C8R, DENSE, FRAMES, LANE, OLD_LOAD, REQUEST, TASKS, install, key, pin, policy, read, rows, sha, tasks, write)
+from parity_kit.provenance import digest, receipt_digest, runtime_identity, validate_rows
 
 
 def arguments(cpu=False):
@@ -42,7 +43,8 @@ def select(settings, keys=None, types=None):
 def configure_output(out):
     """Contain caches and temporary output of imported libraries under the output directory."""
     out.mkdir(parents=True, exist_ok=True)
-    for env, name in [('TMPDIR', 'tmp'), ('XDG_CACHE_HOME', 'cache'), ('HF_HOME', 'hf'),
+    os.environ['TMPDIR'] = str(LANE / 'work/tmp')
+    for env, name in [('XDG_CACHE_HOME', 'cache'), ('HF_HOME', 'hf'),
                       ('TRITON_CACHE_DIR', 'triton'), ('TORCH_HOME', 'torch')]:
         path = out / name
         path.mkdir(exist_ok=True)
@@ -69,11 +71,15 @@ def run(settings, selected, out, *, device, settings_path=None):
         inputs['request'] = pin(settings.get('request', REQUEST))
         inputs['tasks'] = [pin(p) for p in settings.get('tasks', TASKS)]
         inputs['settings'] = settings
-        inputs['runtime_code'] = [pin(p) for p in sorted((LANE / 'parity_kit').glob('*.py'))] + [
-            pin(C8R / 'reader_policy.py')]
+        inputs['runtime_code'] = [pin(p) for directory in ('parity_kit', 'e2e_reader')
+                                  for p in sorted((LANE / directory).glob('*.py'))] + [
+                                      pin(C8R / 'reader_policy.py')]
         restore = read(Path(settings['export_dir']) / 'RESTORE.json')
         dense = read(settings.get('dense_manifest', DENSE))['captures']
-        receipt = dict(schema='parity-load-v1', arm=settings['arm'], device=device, inputs=inputs,
+        runtime = runtime_identity(settings, device)
+        receipt = dict(schema='parity-load-v2', arm=settings['arm'], device=device, inputs=inputs,
+                       settings_sha256=digest(settings), runtime_identity=runtime,
+                       runtime_identity_sha256=digest(runtime),
                        artifact_manifest=artifact_spec, restore=restore,
                        restore_pin=pin(Path(settings['export_dir']) / 'RESTORE.json'),
                        parity_selection=read(settings.get('old_load_receipt', OLD_LOAD))['parity_selection'],
@@ -89,13 +95,14 @@ def run(settings, selected, out, *, device, settings_path=None):
         receipt_path = out / 'LOAD_RECEIPT.json'
         if receipt_path.exists() and read(receipt_path) != receipt:
             raise ValueError('resume load receipt differs; use a new output directory')
+        if receipt_path.exists() and sha(receipt_path) != receipt_digest(receipt):
+            raise ValueError('resume load receipt bytes differ; use a new output directory')
         journal = out / 'items.jsonl'
         existing = rows(journal) if journal.exists() else []
         if existing and not receipt_path.exists():
             raise ValueError('cannot resume items without a load receipt')
+        binding = validate_rows(existing, receipt, receipt_digest(receipt))
         done = {r['key'] for r in existing}
-        if len(done) != len(existing) or done - set(receipt['keys']):
-            raise ValueError('journal keys do not match this selection')
         write(receipt_path, receipt)
         pending = [t for t in selected if key(t) not in done]
         if not pending:
@@ -107,6 +114,9 @@ def run(settings, selected, out, *, device, settings_path=None):
         with journal.open('a') as f:
             for task in pending:
                 result = gen(task)
+                if result['key'] != key(task) or result.get('arm', settings['arm']) != settings['arm']:
+                    raise ValueError('generated item key or arm differs')
+                result.update(binding)
                 f.write(json.dumps(result, allow_nan=False) + '\n')
                 f.flush()
                 os.fsync(f.fileno())

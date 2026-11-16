@@ -5,3 +5,4 @@
 - builds/06_vsti_e/ (V1e dispatch stopped at 10:33Z on ORCH 1021Z 'do not build V1e')
 - Orchard login /tmp/x_ece5eea1c1ec94e169abf835 (empty dir from a failed extract, 11:14Z)
 - Orchard okh7/d9c35d0a/dry_v1g/ (9 small snapshot files + bwrap copy for the 14:45Z real-input check)
+- Orchard login /dev/shm/m2_*.tgz (690 KB mid-job items copy, 15:48Z)

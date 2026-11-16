@@ -1,4 +1,10 @@
 {
+  "checkpoint_pipeline_complete": true,
+  "coordinator": {
+    "path": "/scratch/jjyeung/orch_n30/b01_d0guard/guard_kit/build2/out/guard_kit/worker.py",
+    "sha256": "7fb560c9ad8c0f5aa301f27f97967543c1fe917b9765fe1d0c6c4277e660043c",
+    "shared_with_production": true
+  },
   "fixture": true,
   "model_weights_loaded": false,
   "not_checked": [
@@ -6,8 +12,48 @@
     "Orchard allocation",
     "GCS transport"
   ],
+  "phases": {
+    "candidate": {
+      "pid": 430604,
+      "returncode": 0,
+      "seconds": 1039.6477075950243
+    },
+    "proof": {
+      "pid": 406235,
+      "returncode": 0,
+      "seconds": 790.1229146542028
+    }
+  },
   "preparation": "/scratch/jjyeung/orch_n30/b01_d0guard/guard_kit/build2/out/rehearsal/whole/6bcb6c74a28545f48cb24a05517ca0c6/fixture/PREPARATION.json",
-  "status": "PREPARED",
-  "tested_steps": [],
+  "production_packet_rehearsed": false,
+  "report_argv": [
+    "/scratch/jjyeung/envs/p1cpu/bin/python",
+    "-I",
+    "-s",
+    "-B",
+    "/scratch/jjyeung/orch_n30/b01_d0guard/guard_kit/report/guard_read.py",
+    "--candidate",
+    "/scratch/jjyeung/orch_n30/b01_d0guard/guard_kit/build2/out/rehearsal/whole/6bcb6c74a28545f48cb24a05517ca0c6/fetched/x/R1.json",
+    "--step544",
+    "/scratch/jjyeung/orch_n30/b01_d0guard/guard_kit/report/tests/fixtures/R1_544_COMPACT.json",
+    "--out",
+    "/scratch/jjyeung/orch_n30/b01_d0guard/guard_kit/build2/out/rehearsal/whole/6bcb6c74a28545f48cb24a05517ca0c6/report"
+  ],
+  "report_returncode": 3,
+  "report_scope": "Incomplete fixture; no guard verdict",
+  "report_source_sha256": "6fead56128b2081314e52aa0ca6a7ab2f077aac72078554f2d1d7b61067aacc6",
+  "status": "PASS_WITH_EXPECTED_REPORT_REFUSAL",
+  "tested_steps": [
+    "stage",
+    "prepare",
+    "proof",
+    "canary",
+    "native_subset",
+    "merge",
+    "admit",
+    "publish",
+    "fetch",
+    "report"
+  ],
   "whole_worker_complete": false
 }

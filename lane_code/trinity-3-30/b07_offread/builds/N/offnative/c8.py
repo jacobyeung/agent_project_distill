@@ -14,6 +14,14 @@ def install():
     import common
     common.TREE = TREE
     import perception
+    from .paths import ROOT
+    receipt=ROOT/'out/ARCHIVE_TRANSPORT.json'
+    if receipt.exists():
+        for row in load(receipt):
+            if row['path'].endswith('/mask_kit/kit_combo3.tar.gz'):
+                path=ROOT/row['path']
+                if sha(path)!=row['sha256']:raise ValueError('transport archive differs')
+                perception.frozen_kit.ARCHIVE_SHA=row['sha256']
     return perception
 
 

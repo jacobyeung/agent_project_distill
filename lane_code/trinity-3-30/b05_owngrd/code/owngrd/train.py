@@ -126,6 +126,31 @@ def optimization_step(model, batch, targets, optimizer, scheduler, grad_clip=1.)
     return {k: float(v.detach()) for k, v in losses.items()}, details, float(norm)
 
 
+def accumulated_step(model, micro, optimizer, scheduler, grad_clip=1.):
+    """One update over several (batch, targets) items; each item's loss is scaled by 1/len(micro)."""
+    model.train()
+    optimizer.zero_grad(set_to_none=True)
+    device = next(model.parameters()).device
+    totals, skipped, matches = {}, {}, []
+    for batch, targets in micro:
+        context = torch.autocast('cuda', dtype=torch.bfloat16) if device.type == 'cuda' else nullcontext()
+        with context:
+            out = model(**batch, selection_targets=targets)
+        losses, details = compute_losses(out, targets, model.cfg)
+        if not all(torch.isfinite(v).all() for v in losses.values()):
+            raise FloatingPointError('Nonfinite training loss')
+        (losses['total']/len(micro)).backward()
+        for k, v in losses.items():
+            totals[k] = totals.get(k, 0.)+float(v.detach())/len(micro)
+        for reason, count in details['selection_skipped'].items():
+            skipped[reason] = skipped.get(reason, 0)+count
+        matches += details['matches']
+    norm = torch.nn.utils.clip_grad_norm_(model.parameters(), grad_clip, error_if_nonfinite=True)
+    optimizer.step()
+    scheduler.step()
+    return totals, dict(matches=matches, selection_skipped=skipped), float(norm)
+
+
 class Metrics:
     def __init__(self):
         self.instances, self.covered, self.pos_iou, self.pairs = 0, 0, [], []
@@ -342,9 +367,10 @@ def main(argv=None):
     ap.add_argument('--seed', type=int, default=42)
     ap.add_argument('--size', type=int, nargs=2, default=[480, 640])
     ap.add_argument('--presence-size', type=int, nargs=2, default=[320, 416])
+    ap.add_argument('--accumulate', type=int, default=1, help='Name items per optimizer update')
     ap.add_argument('--resume')
     a = ap.parse_args(argv)
-    if a.hours <= 0 or min(a.steps, a.validate_every, a.checkpoint_every) <= 0:
+    if a.hours <= 0 or min(a.steps, a.validate_every, a.checkpoint_every, a.accumulate) <= 0:
         ap.error('Positive hour cap, steps, and intervals required')
     if a.val_items < 0:
         ap.error('--val-items must be nonnegative')
@@ -394,18 +420,25 @@ def main(argv=None):
             status, reason = stopper.decide(cursor['step'], elapsed_seconds=elapsed)
             if status == 'STOP':
                 break
-            train.set_epoch(cursor['epoch'])
-            item = train[cursor['order'][cursor['item']]]
-            batch = encode_item(vit, item, tuple(a.presence_size))
-            losses, details, norm = optimization_step(model, batch, [item['target']], optimizer, scheduler, a.grad_clip)
+            micro = []
+            for _ in range(a.accumulate):
+                train.set_epoch(cursor['epoch'])
+                item = train[cursor['order'][cursor['item']]]
+                micro.append((encode_item(vit, item, tuple(a.presence_size)), [item['target']], item['canonical'], item['name']))
+                cursor['item'] += 1
+                if cursor['item'] == len(train):
+                    cursor['item'] = 0
+                    cursor['epoch'] += 1
+                    cursor['order'] = epoch_order(len(train), a.seed, cursor['epoch'])
+            if a.accumulate == 1:
+                losses, details, norm = optimization_step(model, micro[0][0], micro[0][1], optimizer, scheduler, a.grad_clip)
+            else:
+                losses, details, norm = accumulated_step(model, [m[:2] for m in micro], optimizer, scheduler, a.grad_clip)
             cursor['step'] += 1
-            cursor['item'] += 1
-            if cursor['item'] == len(train):
-                cursor['item'] = 0
-                cursor['epoch'] += 1
-                cursor['order'] = epoch_order(len(train), a.seed, cursor['epoch'])
             position = {k: v for k, v in cursor.items() if k != 'order'}
-            log.write(json.dumps(dict(event='train', **position, canonical=item['canonical'], name=item['name'], losses=losses, grad_norm=norm,
+            names = dict(canonical=micro[0][2], name=micro[0][3]) if a.accumulate == 1 else dict(
+                canonical=[m[2] for m in micro], name=[m[3] for m in micro])
+            log.write(json.dumps(dict(event='train', **position, **names, losses=losses, grad_norm=norm,
                 lr=scheduler.get_last_lr()[0], selection_skipped=details['selection_skipped'], elapsed_seconds=elapsed))+'\n')
             if cursor['step'] % a.validate_every == 0 or cursor['step'] in (600, 2400):
                 deadline = started + min(a.hours, a.accelerator_hour_cap)*3600-elapsed_before

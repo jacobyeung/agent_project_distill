@@ -1,9 +1,11 @@
 """CPU canvas tests using pinned GT and real converted candidate features."""
 import importlib.util
 import json
+import os
 from pathlib import Path
 import sys
 import unittest
+import trace
 from unittest.mock import patch
 import numpy as np
 
@@ -20,9 +22,16 @@ guard.install()
 M = B.load(ROOT.parent / 'manifest_v2/a40fbc19.json')
 CAPTURES = {c['canonical']: c for c in M['captures']}
 CACHE = Path('/scratch/jjyeung/k1/run_convert_2')
-OUT = ROOT / 'patch3_canvas'
+OUT = ROOT / os.environ.get('K1_CANVAS_TEST_RUN', 'patch3_canvas')
 OUT.mkdir()
 EVIDENCE = {}
+HITS = set()
+def trace_pipeline(frame, event, arg):
+    if frame.f_code.co_filename == K.__file__:
+        if event == 'line':
+            HITS.add(frame.f_lineno)
+        return trace_pipeline
+sys.settrace(trace_pipeline)
 
 
 def raw_gt(c):
@@ -77,7 +86,8 @@ class CanvasTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'integer'):
             K.gt_canvas(np.zeros((1, 240, 320), float))
         c = CAPTURES['arkitscenes/41048124']
-        with patch.object(K.np, 'load') as load:
+        cached = K.cached(c, CACHE / B.digest(c['canonical'])[:16])
+        with patch.object(K, 'cached', return_value=cached), patch.object(K.np, 'load') as load:
             load.return_value.__enter__.return_value = dict(instances=np.zeros((32, 100, 100), np.int32), frame_indices=np.array(c['anchor_indices']))
             with self.assertRaisesRegex(ValueError, 'no silent resize'):
                 K.tables(dict(captures=[c], inventory=M['inventory']), CACHE, OUT / 'wrong_shape')
@@ -87,9 +97,13 @@ class CanvasTests(unittest.TestCase):
         # Real captures/cache/GT; fixture policy and calls isolate render plumbing.
         cs = [CAPTURES[n] for n in ('arkitscenes/41048124', 'scannet/scene0452_02')]
         m = dict(captures=cs, inventory=M['inventory'])
+        selection_path = OUT / 'GT_SET_RENDER_FIXTURE.json'
+        B.write(selection_path, {c['canonical']: dict(c['gt'], pinned=True) for c in cs})
+        _, meta = K.G.select(m, K.G.load(selection_path))
+        K.tables(m, CACHE, OUT / 'render_tables', gt_set=selection_path)
         fit = OUT / 'fixture_fit'; fit.mkdir()
         B.write(fit / 'NATIVE_POLICY.json', dict(fixture_only=True))
-        B.write(fit / 'FIT_RECEIPT.json', dict(fixture_only=False, native_policy_sha256=B.sha(fit / 'NATIVE_POLICY.json'), inputs={M['inventory']['path']: M['inventory']['sha256']}, train_rooms=[], heldout_rooms=[]))
+        K.G.write(fit / 'FIT_RECEIPT.json', dict(fixture_only=False, native_policy_sha256=B.sha(fit / 'NATIVE_POLICY.json'), inputs={M['inventory']['path']: M['inventory']['sha256']}, train_rooms=[], heldout_rooms=[], table_receipt=B.pin(OUT / 'render_tables/TABLE_RECEIPT.json')), meta)
         expected = {c['canonical']: K.gt_arrays(c) for c in cs}
         by_row = {r['id']: c for c in cs for r in c['rows']}
         seen = []
@@ -103,9 +117,10 @@ class CanvasTests(unittest.TestCase):
         def execute(geo, backend, calls):
             return dict(calls=[dict(call=calls[0], kind='gap', response='distance 1.00 m')])
         with patch.object(K, 'native_backend', return_value=object()), patch.object(B.perception, 'execute_calls', side_effect=execute), patch.object(K.P, 'mask_agreement', side_effect=agreement):
-            K.responses(m, CACHE, fit, OUT / 'render_fixture')
+            K.responses(m, CACHE, fit, OUT / 'render_fixture', gt_set=selection_path)
         self.assertEqual(len(seen), sum(len(c['rows']) for c in cs))
         receipt = B.load(OUT / 'render_fixture/RENDER_RECEIPT.json')
+        self.assertEqual(receipt['gt_set'], meta)
         self.assertEqual(receipt['gt_canvas_map_counts'], {'identity': 1, 'stretch_nearest_320x240_to_240x320': 1})
         self.assertEqual(receipt['gt_canvas_map'], {c['canonical']: expected[c['canonical']]['gt_canvas_map'] for c in cs})
         EVIDENCE['render_fixture'] = dict(rows=len(seen), gt_canvas_map=receipt['gt_canvas_map'], counts=receipt['gt_canvas_map_counts'])
@@ -113,5 +128,8 @@ class CanvasTests(unittest.TestCase):
 
 if __name__ == '__main__':
     result = unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(CanvasTests))
+    sys.settrace(None)
+    executable = set(trace._find_executable_linenos(K.__file__))
+    (OUT / 'pipeline_coverage.json').write_text(json.dumps(dict(hit=sorted(HITS & executable), missing=sorted(executable - HITS)), indent=2) + '\n')
     (OUT / 'EVIDENCE.json').write_text(json.dumps(EVIDENCE, indent=2) + '\n')
     raise SystemExit(not result.wasSuccessful())

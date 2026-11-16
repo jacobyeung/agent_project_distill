@@ -7,6 +7,11 @@ def emit(name,value):(L/name).write_text(json.dumps(value,indent=2)+'\n')
 tree=read('work/build6/proofs/suite_tree/results.json');base=read('work/build6/proofs/suite_base/results.json')
 assert tree['complete'] and base['complete']
 comparison=read('work/build6/SUITE_COMPARISON.json');coverage=read('work/build6/CHANGED_COVERAGE.json')
+legacy_lines=['# Pre-existing legacy failures','','Each listed test failed with the same classified cause in the tree and untouched base. Both tracebacks are retained in `work/build6/SUITE_COMPARISON.json`.','',
+              '| Test | Cause |','|---|---|']
+legacy_lines.extend('| `'+r['test'].replace('|','\\|')+'` | '+r['cause'].replace('|','\\|')+' |'
+                    for r in comparison['failures'] if r['preexisting'])
+(B/'PREEXISTING_FAILURES.md').write_text('\n'.join(legacy_lines)+'\n')
 packet=read('work/build6/proofs/packet/results.json');pc=collections.Counter(r['outcome'] for r in packet.values())
 r2=read('work/build6/proofs/suite_tree/r2/results.json')
 prior=read('work/build5/proofs/suite_tree/results.json')
@@ -47,18 +52,19 @@ lines=['# Build 6 report','', '**'+('CPU checks qualified; production remains bl
  f"| Packet | {len(packet)} | {pc['passed']} | 0 | {pc['failed']} | {len(pf)} | `work/build6/PACKET_COMPARISON.json` |",
  f"| Packaged tree | {comparison['run']} | {comparison['passed']} | {comparison['preexisting']} | {comparison['regressions']} | {len(fixed)} | `work/build6/SUITE_COMPARISON.json`, `work/build6/FIXES.json` |",
  f"| R2 and shared grammar | {r2['tests']} | {len(r2['passed'])} | 0 | {len(r2['errors'])+len(r2['failures'])} | — | `work/build6/proofs/suite_tree/r2/results.json` |",'',
- f"The tree has {len(tree['skips'])} skipped methods; the comparison base ran {base['tests']} selected failing methods/modules under the same harness. Source: `work/build6/proofs/suite_tree/results.json` and `work/build6/proofs/suite_base/results.json`. Failure events can include subtests and setup failures; fixed cases count diagnostic methods, not production defects.",'',
+ f"The tree has {len(tree['skips'])} skipped test executions; the comparison base ran {base['tests']} selected failing methods/modules under the same harness. Source: `work/build6/proofs/suite_tree/results.json` and `work/build6/proofs/suite_base/results.json`. Run/pass counts retain the harness schedule, including repeated test IDs. Failure events can include subtests and setup failures; fixed cases count diagnostic methods, not production defects.",'',
  f"Build-5 passes lost: {len(lost)}. Every affected method is listed in `work/build6/B5_PASS_COMPARISON.json`.",'',
  'The package wrapper ran from an empty directory (`work/build6/proofs/package/INVOCATION.json`). The extension preserves the prior temporary cap and guards. Harness changes are recorded as diffs under `work/build6/`; test-input changes are in `work/build6/TEST_INPUT_ADAPTATIONS.json` and `work/build6/TEST_ADAPTATIONS.diff`.','',
  'The packet assertions are unchanged. Paths point to the integrated tree, the supplied base and fixed proof outputs; supplied supporting fixtures retain their hashes. The runner substitutes stdlib code-fingerprinted monitoring for tracing, writes subprocess snippets to files, and applies the existing temporary cap. Sources: `work/build6/PACKET_PATH_ADAPTATIONS.diff`, `work/build6/PACKET_MONITOR.diff`, `work/build6/PACKET_INPUTS.json`.','',
  '| Pre-existing cause | Events |', '|---|---:|']
 lines.extend('| '+cause.replace('|','/')+' | '+str(n)+' |' for cause,n in comparison['preexisting_causes'].items())
-lines+=['','Source for every cause/count: `work/build6/SUITE_COMPARISON.json`, including matching base and tree tracebacks.','',
+lines+=['','Every pre-existing test is named with its cause in `work/build6/PREEXISTING_FAILURES.md`. Source for every cause/count: `work/build6/SUITE_COMPARISON.json`, including matching base and tree tracebacks.','',
  '| Temporary measurement | Maximum bytes | Over-cap boundary events | Source |','|---|---:|---:|---|']
 lines.extend(f"| {r['variant']} | {r['maximum']['bytes']} | {len(r['over_cap'])} | `{r['source']}` |" for r in temporary)
 lines+=['','Legacy teacher fixtures that exceed the cap remain failures; the cap was not raised. Measurements above the cap do not establish continuous storage compliance. Exact tests are in `work/build6/REPORT_DETAILS.json`.','',
  '## Changed-statement coverage','', '| Class | Statements |','|---|---:|']
-lines.extend('| '+k+' | '+str(v)+' |' for k,v in coverage['classes'].items())
+lines.extend('| '+kind+' | '+str(coverage['classes'].get(kind,0))+' |'
+             for kind in ('observed','CPU-reachable unresolved','frame-host','model-loader','GPU'))
 lines+=['','Source: `work/build6/CHANGED_COVERAGE.json`. The denominator includes statement headers and simple statements whose spans touch edited lines against the untouched base, including edited continuation lines. Hits require an observed statement-head line, the current file hash and the compiled-code fingerprint. Each external-input classification names its missing input; unresolved CPU statements remain explicit in `work/build6/GAPS.json`.','',
  '## Row proofs','', 'These counts cover packed-row production, validation and grammar. Full frame and scene joins remain unchecked.','', '| Family | Rows | OFF admitted / deferred | ON admitted / deferred | OFF equals build 5 | Source |','|---|---:|---:|---:|---|---|']
 for r in parity['families']:
@@ -74,7 +80,7 @@ lines+=['','Per-unit rates project slice proportions; the supplied full census h
  'A2 is built to admission first; A0 is the fallback if A2 does not admit. Neither is a control. The route table retains absolute-distance and camera programs, direct room/other answers, unit rows and recovery rows (`work/tree_r1/student_pilot/r2_contract.py`, `work/tree_r1/student_pilot/r2_config.py`).','',
  'The init is the authenticated launch input in `out/INIT_INPUT.json`. No tested newer export was supplied, so the recorded choice uses the fallback. Archive staging derives its layout from that pin. Unpinned kits refuse (`work/tree_r1/tests/test_r2_build6.py`).','',
  'The final family gate refuses retention below 90% for units, recovery, room and distance programs after legitimate exclusions. Unknown overlap stays in the denominator. The fixture tests each family, the exact boundary and an unknown exclusion (`work/tree_r1/student_pilot/r2_admission.py`, `work/tree_r1/tests/test_r2_build6.py`).','',
- 'Room calls execute through shared and generator sessions, live and audit sessions, the responder and routed decoder. Synthetic dense pose/depth replace GPU head outputs; decoder token fixtures replace learned generation. The actual room computation and response readers run (`work/build6/proofs/suite_tree/r2/ROOM_RUNTIME.json`).','',
+ 'Room calls execute through shared and generator sessions, live and audit sessions, the responder and routed decoder in the room-capable protocol selected by both kits (`work/build6/KIT_READCHECK.json`). Synthetic dense pose/depth replace GPU head outputs; decoder token fixtures replace learned generation. The actual room computation and response readers run (`work/build6/proofs/suite_tree/r2/ROOM_RUNTIME.json`). Legacy protocol modes retain their room-call refusal; the runtime proof covers the selected mode.','',
  'The native preparation proof runs real intake, materialization, native readers and rank encoding. Tiny synthetic RGB, a tiny processor/model and synthetic tower/head outputs stand in at unavailable learned/GPU boundaries. No pretrained-export accuracy or full training is claimed (`work/build6/proofs/suite_tree/r2/B3_NATIVE_JOB_PROOF.json`; `work/tree_r1/tests/test_r2_models.py`).','',
  'Metric readers derive units from questions. Score reports use ordered per-unit rows so native JSON serialization preserves metres-first order; empty groups carry no score. The fixture checks the real writer/reader round trip. Unsupported legacy evaluators remain closed (`work/tree_r1/student_pilot/r2_units.py`, `work/tree_r1/student_pilot/r2_policy.py`, `work/tree_r1/tests/test_r2_build6.py`).','',
  'All fourteen evidence obligations remain; none was fabricated or removed. The init, pose/depth/frame-embedding heads and depth-init lineage records rebind the selected input. Other evidence duties remain unchanged (`out/RECORDS_TO_REGENERATE.md`, `work/build6/EVIDENCE_DISPOSITION.md`).','',

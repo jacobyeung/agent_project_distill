@@ -15,7 +15,9 @@ from student_pilot.carrier_c1_sweep import recipe_for
 from student_pilot.p3_provenance import file_pin
 p=argparse.ArgumentParser()
 for key in ('config','manifest','receipt','artifact','output'):p.add_argument('--'+key,required=True)
-p.add_argument('--world',type=int,choices=[4],default=4);a=p.parse_args()
+p.add_argument('--world',type=int,choices=[4],default=4)
+# ORCH RULING 1535Z: one run forces pose-own on every routing row so S1 runs on every rank before launch.
+p.add_argument('--force-pose-own',action='store_true');a=p.parse_args()
 K=Path(__file__).resolve().parents[1];out=Path(a.output).resolve()
 if K not in out.parents:raise ValueError('output must be inside K')
 # Reject nonlocal data before native loaders can follow pins; no network or NFS reads.
@@ -53,13 +55,17 @@ with (out/'first_batch.jsonl').open('w') as f:
         own_rows=0
         for micro,(stream,indices) in enumerate(plan):
             batch,targets,audit=rows.get(stream,indices[rank]);R.check_row(batch,targets,stream,model)
-            if stream=='routing':batch,audit=R.own_values(model,rows,batch,audit,indices[rank],gates.decide(2,micro//factor),torch.device('cpu'))
+            if stream=='routing':
+                decision=gates.decide(2,micro//factor)
+                if a.force_pose_own:decision=(decision[0],True)
+                batch,audit=R.own_values(model,rows,batch,audit,indices[rank],decision,torch.device('cpu'))
+                if a.force_pose_own and audit.get('h1',{}).get('values')!='own':print(json.dumps(dict(rank=rank,microstep=micro,forced_not_own=audit.get('h1'))),flush=True)
             own_rows+=int(audit.get('h1',{}).get('values')=='own')
             model.zero_grad(set_to_none=True)
             value=model(batch,targets,stream=stream)
             if not torch.isfinite(value['loss']):raise ValueError('nonfinite first-batch loss')
             value['loss'].backward()
-            record=dict(step=2,rank=rank,microstep=micro,stream=stream,audit=audit,loss=float(value['loss']),
+            record=dict(step=2,force_pose_own=a.force_pose_own,rank=rank,microstep=micro,stream=stream,audit=audit,loss=float(value['loss']),
                         components={k:float(v) for k,v in value['components'].items()},
                         trained_tokens=int((batch['labels']!=-100).sum()),peak_rss_kib=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
             line=json.dumps(record);print(line,flush=True);f.write(line+'\n');f.flush()

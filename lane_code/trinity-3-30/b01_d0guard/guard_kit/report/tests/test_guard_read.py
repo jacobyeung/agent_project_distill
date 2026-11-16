@@ -322,8 +322,9 @@ class Refusals(unittest.TestCase):
 class RealReturn(unittest.TestCase):
     def test_170056_against_itself(self):
         res = G.analyze(REAL_R1, REAL_R1, LIST, LIST_SHA, TASKS, PARSER, PARSER_SHA, 10000, 20261115,
-                        G.STEP544_ARTIFACT, G.STEP544_ARTIFACT, LIST, LIST_SHA)
+                        G.STEP544_ARTIFACT, G.STEP544_ARTIFACT, LIST, LIST_SHA, self_pair=True)
         self.assertEqual(res["verdict"], "PASS")
+        self.assertTrue(res["self_pair"])
         expect = dict(camera_displacement=82.333, camera_movement_direction=94.667, camera_rotation=75.667,
                       distance_metre=61.628)
         for name, value in expect.items():
@@ -334,6 +335,59 @@ class RealReturn(unittest.TestCase):
             self.assertEqual(c["difference"], 0.0)
             self.assertEqual(c["interval"], [0.0, 0.0])
 
+
+
+class ReviewFixes(unittest.TestCase):
+    """Codex review 2026-11-16: fixed seed and draws; strict boolean accounting."""
+    def test_seed_and_draws_are_fixed(self):
+        f = Fixture()
+        c, b = f.write("cand.json", f.cand), f.write("base.json", f.base)
+        for draws, seed in ((10000, 2), (20000, 20261115)):
+            with self.assertRaises(G.Refusal):
+                G.analyze(c, b, LIST, LIST_SHA, TASKS, PARSER, PARSER_SHA, draws, seed,
+                          CAND_ART, G.STEP544_ARTIFACT, LIST, LIST_SHA)
+
+    def test_cli_seed_refused(self):
+        f = Fixture()
+        c, b = f.write("cand.json", f.cand), f.write("base.json", f.base)
+        code = G.main(["--candidate", str(c), "--step544", str(b), "--candidate-artifact", CAND_ART,
+                       "--seed", "2", "--out", str(f.dir / "o")])
+        self.assertEqual(code, 3)
+
+    def test_string_call_flag_refused(self):
+        f = Fixture()
+        key = next(iter(f.rows("cand")))
+        f.rows("cand")[key]["called"] = "false"
+        with self.assertRaises(G.Refusal):
+            f.run()
+
+    def test_string_no_answer_on_baseline_refused(self):
+        f = Fixture()
+        key = next(iter(f.rows("base")))
+        f.rows("base")[key]["no_answer"] = "false"
+        with self.assertRaises(G.Refusal):
+            f.run()
+
+    def test_string_refusal_record_refused(self):
+        f = Fixture()
+        key = next(iter(f.rows("base")))
+        f.rows("base")[key]["geometry_refusal"] = "false"
+        with self.assertRaises(G.Refusal):
+            f.run()
+
+    def test_step544_as_candidate_refused(self):
+        with self.assertRaises(G.Refusal):
+            G.analyze(REAL_R1, REAL_R1, LIST, LIST_SHA, TASKS, PARSER, PARSER_SHA, 10000, 20261115,
+                      G.STEP544_ARTIFACT, G.STEP544_ARTIFACT, LIST, LIST_SHA)
+
+    def test_candidate_artifact_required(self):
+        f = Fixture()
+        c, b = f.write("cand.json", f.cand), f.write("base.json", f.base)
+        with self.assertRaises(G.Refusal):
+            G.analyze(c, b, LIST, LIST_SHA, TASKS, PARSER, PARSER_SHA, 10000, 20261115,
+                      None, G.STEP544_ARTIFACT, LIST, LIST_SHA)
+        with self.assertRaises(SystemExit):
+            G.main(["--candidate", str(c), "--step544", str(b), "--out", str(f.dir / "o")])
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,0 +1,1 @@
+timeout 60 srun --jobid=170294 --overlap --ntasks=1 --cpus-per-task=1 --mem=1G --gres=none bash -c 'R=$(ls -d /tmp/a15_170294_*|head -1); cat $R/run/j0/CANARY.json; echo; head -1 $R/run/j0/items.jsonl | python3 -c "import json,sys;d=json.loads(sys.stdin.read());print({k:(v if len(str(v))<150 else str(v)[:150]) for k,v in d.items()})"'

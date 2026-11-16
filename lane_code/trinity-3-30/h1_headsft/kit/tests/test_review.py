@@ -12,24 +12,66 @@ class Review(unittest.TestCase):
         cls.raw, cls.clip, _ = camera_fixtures()
 
     def test_F1_answer_differs_is_not_wrong_answer(self):
-        # A 1% own translation error should not count as "faithful answer differs from GT" for the 35% stop rule.
+        # ORCH RULING 1535Z: own-value rows train on the model's own answer; the stop metric is tolerance-based, never "answer != GT".
         raw = next(r for r in self.raw if r['question_type'] == 'camera_displacement')
-        row = packed(raw, self.clip); p = torch.tensor(raw['gt_pose9']).numpy(); p[:, :3] *= 1.01
-        out, *_ = h1.faithful(row, R.OwnGeometry(p, raw['gt_up'], None))
-        differs = str(out['answer']) != str(raw['answer'])  # h1_faithful.py own_values definition
-        self.assertFalse(differs, f"own {out['answer']} vs GT {raw['answer']} counted as differing")
+        row = packed(raw, self.clip); p = torch.tensor(raw['gt_pose9']).numpy().copy(); p[:, :3] *= 1.01
+        out, target, *_ = h1.faithful(row, R.OwnGeometry(p, raw['gt_up'], None))
+        self.assertIn(str(out['answer']), target, 'faithful target must carry the own answer')
+        self.assertFalse(F.answer_differs(raw['question_type'], out['answer'], raw['answer']),
+                         f"1% own error {out['answer']} vs GT {raw['answer']} counted as differing")
+        far = p.copy(); far[:, :3] *= 1.2
+        out2, *_ = h1.faithful(row, R.OwnGeometry(far, raw['gt_up'], None))
+        self.assertTrue(F.answer_differs(raw['question_type'], out2['answer'], raw['answer']), '>10% displacement must differ')
+
+    def test_F1_perturbation_moves_answer_vs_unperturbed(self):
+        # ORCH RULING 1535Z: M3 compares the perturbed answer with the SAME model's unperturbed answer, never with GT.
+        import numpy as np
+        from h1eval.perception import Heads, perturb
+        from h1eval.scorers import usage
+        flip = {'left': 'right', 'right': 'left', 'forward': 'backward', 'backward': 'forward'}
+        modes = {'camera_displacement': [{'name': 'scale_translation', 'k': .5}, {'name': 'scale_translation', 'k': 2.}],
+                 'camera_movement_direction': [{'name': 'rotate_translation', 'deg': 180.}],
+                 'camera_rotation': [{'name': 'negate_turn'}]}
+        seen = set()
+        for raw in self.raw:
+            kind = raw['question_type']; row = packed(raw, self.clip)
+            p = torch.tensor(raw['gt_pose9']).numpy().copy(); p[:, :3] *= 1.01
+            own = Heads(p, np.asarray(raw['gt_up']), None, 'own')
+            base, *_ = h1.faithful(row, R.OwnGeometry(own.pose9, own.gravity, None))
+            for mode in modes[kind]:
+                h, _ = perturb(own, mode); g = h.turn_pose9 if h.turn_pose9 is not None else h.pose9
+                out, *_ = h1.faithful(row, R.OwnGeometry(g, h.gravity, None))
+                if kind == 'camera_displacement':
+                    self.assertAlmostEqual(float(out['answer']), mode['k'] * float(base['answer']), delta=.02 * mode['k'] * float(base['answer']) + .01)
+                elif kind == 'camera_rotation':
+                    self.assertAlmostEqual(float(out['answer']), -float(base['answer']), delta=1.)
+                else:
+                    label = {o.split('. ', 1)[0]: o.split('. ', 1)[1] for o in raw['options']}
+                    self.assertEqual(label[out['answer']], flip[label[base['answer']]])
+                seen.add(kind)
+        self.assertEqual(seen, set(modes))
+        item = dict(question_type='camera_displacement', question='How far in centimeters?')
+        def o(n, a): return dict(calls=[dict(call='<move from=1 to=2>', response=f'dx = 0 m, dy = 0 m, dz = {n} m, distance = {n} m')], text=f'<answer>{a}</answer>')
+        a = usage(o(1, 100), o(2, 200), item); b = usage(o(1, 100), o(2, 200), {**item, 'answer': '7', 'gt': 7.})
+        self.assertEqual(a, b, 'usage must not read GT'); self.assertEqual(a['follow'], 1.)
 
     def test_F1_stop_rule_implemented(self):
         src = (K/'tree/student_pilot/carrier_c1_run.py').read_text() + (K/'tree/student_pilot/h1.py').read_text()
         self.assertTrue('.35' in src and 'answer_differs' in (K/'tree/student_pilot/carrier_c1_run.py').read_text(),
                         'registered 35% faithful-answer stop rule (steps 1-50) has no trainer implementation')
 
-    def test_F2_step1_draws_own_camera_rows(self):
+    def test_F2_step2_and_forced_pose_own_cover_every_rank(self):
+        # ORCH RULING 1535Z: the first-batch tools run step 2; one run forces pose-own so S1 runs on every rank.
+        import copy
         cfg = json.loads((K/'configs/h1_1.json').read_text()); g = R.Gates(cfg['recipe']['scheduled_sampling'], False)
         factor = cfg['recipe']['reference_world_size'] // cfg['recipe']['world_size']
         groups = sorted({i // factor for i, s in enumerate(cfg['recipe']['mix']) if s == 'routing'})
-        self.assertTrue(any(g.decide(1, gid)[1] for gid in groups),
-                        f'step 1 routing groups {groups} all draw GT pose; real_first_batch.py decide(1, .) never runs S1')
+        self.assertTrue(any(g.decide(2, gid)[1] for gid in groups), f'step 2 routing groups {groups} all draw GT pose')
+        for name in ('real_first_batch.py', 'run_first_batch.py'):
+            self.assertIn('force-pose-own', (K/'first_batch'/name).read_text(), name + ' lacks the forced pose-own run')
+        forced = copy.deepcopy(cfg['recipe']['scheduled_sampling']); forced['max_own_probability'] = 1.
+        f = R.Gates(forced, False)
+        self.assertTrue(all(f.decide(step, gid)[1] for step in (1, 2) for gid in groups), 'forced schedule leaves a GT pose draw')
 
     def test_F3_registered_modes(self):
         from h1eval.cli import modes

@@ -48,6 +48,9 @@ else:
             if p.returncode: return dict(id=i, alias=jobs[i]['alias'], status='build rc %d' % p.returncode, err=p.stderr[-400:])
         return dict(id=i, alias=jobs[i]['alias'], status='ok', path=out, sha256=sha(out), fi=d['fi'])
     keys = sorted(k for k in jobs if k in lg)
+if os.environ.get('SKIP_LAST'):  # leave the newest reader-log entries alone while the stream still extracts them
+    order = [json.loads(l)['id'] for l in open(W + ('/inputs/reader_ark.log' if mode == 'ark' else '/inputs/scn/reader_scn.log')) if l.startswith('{')]
+    recent = set(order[-int(os.environ['SKIP_LAST']):]); keys = [k for k in keys if k not in recent]
 keys = keys[:int(os.environ.get('LIMIT', len(keys)))]
 os.makedirs(od, exist_ok=True)
 with ThreadPoolExecutor(nproc) as ex: res = list(ex.map(run, keys))
