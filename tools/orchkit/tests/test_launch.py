@@ -509,6 +509,40 @@ class ReviewFindingsTest(LaunchBase):
         self.assertIn('changed after prepare', str(caught.exception))
         self.assertEqual(calls, [])
 
+    def test_oc11_a_kit_changed_after_it_is_read_cannot_ship(self):
+        kit, dry = self.kit()
+        source = os.path.join(kit, 'code', 'entry.py')
+        with open(source, 'rb') as handle:
+            original = handle.read()
+
+        def provenance_then_swap(checkout, config_path):
+            write(source, "MODEL = 'qwen'\n")
+            return fake_provenance(checkout, config_path)
+
+        record, prep = self.prepare(kit, dry, provenance_fn=provenance_then_swap)
+        with open(os.path.join(prep, 'BATCH.sh')) as handle:
+            script = handle.read()
+        digits = script.split("PAYLOAD = '''\n", 1)[1].split("\n'''", 1)[0].replace('\n', '')
+        with tarfile.open(fileobj=io.BytesIO(bytes.fromhex(digits)), mode='r:gz') as archive:
+            shipped = archive.extractfile('kit/code/entry.py').read()
+        self.assertEqual(shipped, original)
+        with open(os.path.join(prep, 'kit', 'code', 'entry.py'), 'rb') as handle:
+            self.assertEqual(handle.read(), original)
+
+    def test_oc12_submit_metadata_must_match_the_scripts(self):
+        kit, dry = self.kit()
+        first, prep1 = self.prepare(kit, dry)
+        second, _ = self.prepare(kit, dry)
+        record = util.read_json(os.path.join(prep1, 'SUBMIT.json'))
+        record.update(token=second['token'], job_name=second['job_name'])
+        util.write_json(os.path.join(prep1, 'SUBMIT.json'), record)
+        calls = []
+        with self.assertRaises(launch.LaunchError) as caught:
+            launch.submit(prep1, self.go('GO %s\n' % second['token']), execute=True,
+                          transport=lambda argv, body: calls.append(body), out=io.StringIO())
+        self.assertIn('do not belong', str(caught.exception))
+        self.assertEqual(calls, [])
+
 
 if __name__ == '__main__':
     unittest.main()

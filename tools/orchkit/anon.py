@@ -98,6 +98,8 @@ def _compression(data):
     for magic, kind in MAGIC:
         if data.startswith(magic):
             return kind
+    if b'PK\x05\x06' in data[-65558:] and zipfile.is_zipfile(io.BytesIO(data)):
+        return 'zip'
     return None
 
 

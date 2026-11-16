@@ -163,6 +163,13 @@ class AnonTest(unittest.TestCase):
         self.assertEqual(anon.scan_job(rules, 'a15_cot_ap0123456789abcdef\n')[0]['rule'],
                          'job-name-format')
 
+    def test_review_oc13_prefixed_zip_is_opened(self):
+        raw = io.BytesIO()
+        with zipfile.ZipFile(raw, 'w', zipfile.ZIP_DEFLATED) as archive:
+            archive.writestr('x', b'qwen')
+        path = self.write('run.pyz', b'#!/usr/bin/env python3\n' + raw.getvalue())
+        self.assertIn('run.pyz!/x', [hit['where'] for hit in anon.scan_tree(path, anon.load_rules())])
+
 
 if __name__ == '__main__':
     unittest.main()

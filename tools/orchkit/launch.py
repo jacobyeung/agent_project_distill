@@ -32,6 +32,7 @@ import secrets
 import subprocess
 import sys
 import tarfile
+import tempfile
 
 if __package__ in (None, ''):
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -193,6 +194,23 @@ def kit_files(kit):
     return rows
 
 
+def snapshot(kit, dest):
+    """Copy every kit file, read once, into a fresh private directory. prepare checks and bundles
+    only this copy, so a change to the source kit after it is read cannot reach the batch host."""
+    os.makedirs(dest, 0o700)
+    for rel, path in kit_files(kit):
+        target = os.path.join(dest, rel)
+        if not os.path.isdir(os.path.dirname(target)):
+            os.makedirs(os.path.dirname(target), 0o700)
+        with open(path, 'rb') as handle:
+            data = handle.read()
+        fd = os.open(target, os.O_WRONLY | os.O_CREAT | os.O_EXCL,
+                     0o700 if os.access(path, os.X_OK) else 0o600)
+        with os.fdopen(fd, 'wb') as out:
+            out.write(data)
+    return dest
+
+
 def bundle_bytes(kit, job):
     """Deterministic gzip tar of kit/<files> plus JOB.json."""
     raw = io.BytesIO()
@@ -346,6 +364,8 @@ def prepare(kit, config_path, out, lane, meaning, checkout, dryrun=None, no_dryr
     kit, out = os.path.abspath(kit), os.path.abspath(out)
     if os.path.lexists(out):
         raise LaunchError('refusing to reuse %s' % out)
+    check = tempfile.mkdtemp(prefix=os.path.basename(out) + '.check.', dir=os.path.dirname(out))
+    kit = snapshot(kit, os.path.join(check, 'kit'))
     with open(config_path, 'rb') as handle:
         config_raw = handle.read()
     kit_config = os.path.join(kit, 'CONFIG.json')
@@ -402,7 +422,7 @@ def prepare(kit, config_path, out, lane, meaning, checkout, dryrun=None, no_dryr
                           pool=target.get('pool'), gcs=gcs, state='prepared')
     row = ledger._fit(row)
     ledger.validate(row)
-    os.makedirs(out, 0o700)
+    os.rename(check, out)
     util.atomic_write(os.path.join(out, 'BATCH.sh'), script.encode('utf-8'))
     util.atomic_write(os.path.join(out, 'SUBMIT.sh'), remote.encode('utf-8'))
     submit = {'schema': 'orchkit-submit-v1', 'token': token, 'job_name': name, 'argv': argv,
@@ -412,6 +432,7 @@ def prepare(kit, config_path, out, lane, meaning, checkout, dryrun=None, no_dryr
               'partition': config['job']['partition'], 'gpus': config['job']['gpus'],
               'time_limit_s': config['job']['time_limit_s'], 'pool': target.get('pool'),
               'gcs': gcs, 'provenance': record, 'dryrun': dry, 'lane': lane,
+              'kit_snapshot': os.path.join(out, 'kit'),
               'ledger': ledger.ledger_path(ledger_file)}
     util.write_json(os.path.join(out, 'SUBMIT.json'), submit)
     ledger.append(row, ledger_file)
@@ -463,6 +484,16 @@ def submit(prep, go, execute=False, ledger_file=None, transport=None, out=sys.st
         pinned = handle.read()
     if util.sha256_bytes(pinned) != record['submit_sha256']:
         raise LaunchError('%s changed after prepare' % record['stdin'])
+    _, name = mint_job_name(token)
+    text = pinned.decode('utf-8', 'replace')
+    names = re.findall(r'^#SBATCH --job-name=(\S+)$', text, re.M)
+    digests = re.findall(r'^test "\$\(sha256sum "\$body" \| cut -c1-64\)" = "([0-9a-f]{64})"', text, re.M)
+    if names != [name] or digests != [record['script_sha256']] or record.get('job_name') != name:
+        raise LaunchError('the prepared scripts do not belong to token %s' % token)
+    minted = [row for row in rows if row.get('event') == 'minted']
+    if any(row.get('kit_pins_sha256') != record['kit_pins_sha256'] or
+           row.get('config_sha256') != record['config_sha256'] for row in minted):
+        raise LaunchError('the ledger row of %s names another kit or config' % token)
     try:
         fd = os.open(os.path.join(prep, 'SUBMIT_INTENT.json'), os.O_WRONLY | os.O_CREAT | os.O_EXCL,
                      0o600)

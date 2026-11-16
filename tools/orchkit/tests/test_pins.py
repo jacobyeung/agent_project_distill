@@ -186,6 +186,17 @@ class PinsTest(unittest.TestCase):
         found = pins.check_single_place(self.root)
         self.assertEqual(found[0]['reason'], 'unscannable (undecodable)')
 
+    def test_review_oc14_duplicate_keys_root_strings_and_utf16_are_seen(self):
+        manifest = self.kit()
+        sha = manifest['entries'][0]['sha256']
+        cases = {'lib/dup.json': ('{"x": "%s", "x": "ok"}' % sha).encode(),
+                 'lib/root.json': json.dumps(sha).encode(),
+                 'lib/wide.txt': sha.encode('utf-16')}
+        for name, data in sorted(cases.items()):
+            write(os.path.join(self.root, name), data)
+        found = sorted(set(row['where'] for row in pins.check_single_place(self.root)))
+        self.assertEqual(found, sorted(cases))
+
 
 if __name__ == '__main__':
     unittest.main()
