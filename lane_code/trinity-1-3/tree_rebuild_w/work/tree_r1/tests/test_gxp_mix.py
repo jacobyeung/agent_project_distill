@@ -721,6 +721,9 @@ def gloo_worker(rank, root):
 class MemoryFallback(unittest.TestCase):
     def test_absent_keys_preserve_normalized_identity_and_fp32_output_bytes(self):
         # Captured on the pinned S10 input checkout with the supplied CPU wrapper.
+        previous_threads = torch.get_num_threads()
+        self.addCleanup(torch.set_num_threads, previous_threads)
+        torch.set_num_threads(1)
         expected = ['657308f57b5a02d3a14add15e07a6e41c374198304a37d016df1ab34ac27ac69',
                     '82668c672c6df471df1f81390b9c025961842e5a7f0d83e46c46d38b72131cbc',
                     'd5213e36cf4ca7c2b4e0a4df2361e2a02e13490817a4b6a517a851034386530f']

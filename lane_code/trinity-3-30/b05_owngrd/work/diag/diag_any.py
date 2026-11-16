@@ -13,6 +13,8 @@ train=GroundingDataset(W+'/manifests/TRAIN_K1_113.json', W+'/labels_k1', W+'/tea
 vit=FrozenViT(DEFAULT_WEIGHTS, DEFAULT_BUNDLE, 'cpu')
 model=GroundingHead(Config()); st=torch.load(S+'/resume.pt',map_location='cpu',weights_only=False)
 model.load_state_dict(st['model']); print('loaded step', st['cursor']['step'])
+agg={}
+NMAX=int(os.environ.get('NMAX','3'))
 def stats(tag, ds, idxs, mode):
     model.train(mode=='train')
     n=0
@@ -29,14 +31,19 @@ def stats(tag, ds, idxs, mode):
                 p=out['masks'][0,f,q]; g=t['mask']
                 prob=p.sigmoid(); hard=prob>.5
                 sd=float(2*(prob*g).sum()/(prob.sum()+g.sum()+1))
+                thr={th: round(float(((prob>th)&(g>.5)).sum()/(((prob>th)|(g>.5)).sum().clamp_min(1))),3) for th in (.1,.2,.3,.4,.5)}
+                agg.setdefault(tag+mode,[]).append((t['cls'],thr))
+                print('   thr',thr)
                 print('   f',f,'q',q,t['cls'],'gtshape',tuple(g.shape),'iou',round(float(mask_iou(prob,g)),3),'softdice_full',round(sd,3),'pred_area',round(float(hard.float().mean()),3),'gt_area',round(float(g.mean()),3),'prob_mean',round(float(prob.mean()),3),'logit_range',round(float(p.min()),1),round(float(p.max()),1))
             gm=item['target']['decoder'][f]['gt_masks']
             for i,g in gm.items():
                 best=max(float(mask_iou(out['masks'][0,f,qq].sigmoid(),g)) for qq in range(out['masks'].shape[2]))
                 print('   f',f,'gtraster',i,'area',round(float(g.mean()),3),'best_query_iou',round(best,3))
         n+=1
-        if n>=3: break
+        if n>=NMAX: break
 vi=run['validation_indices']
-stats('VAL',val,vi[:40],'eval')
-stats('VAL',val,vi[:40],'train')
+stats('VAL',val,vi,'eval')
 stats('TRN',train,list(range(0,400,7)),'eval')
+for k,v in agg.items():
+    pos=[t for c,t in v if c=='POS']
+    print('AGG',k,'nPOS',len(pos),{th: round(sum(t[th] for t in pos)/max(len(pos),1),3) for th in (.1,.2,.3,.4,.5)})

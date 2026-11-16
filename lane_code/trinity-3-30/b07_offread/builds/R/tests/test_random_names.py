@@ -15,7 +15,7 @@ def test_random_name_table_and_required_prefix():
     assert re.fullmatch(r'x[0-9a-f]{12}',token)
     assert X.component('vsi')==token
     table=json.loads(X.runtime_table())
-    assert table['tokens'][hashlib.sha256(b'vsi').hexdigest()]==token
+    assert table['tokens'][hashlib.sha256(bytes.fromhex(table['salt'])+b'vsi').hexdigest()]==token
     assert all(re.fullmatch('[0-9a-f]{64}',k) for k in table['tokens'])
     assert all(re.fullmatch('x[0-9a-f]{12}',v) for v in table['tokens'].values())
     assert 'a15_cot_ap' not in X.WORDS

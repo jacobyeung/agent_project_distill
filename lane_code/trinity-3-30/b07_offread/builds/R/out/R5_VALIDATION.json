@@ -1,0 +1,54 @@
+{
+  "exact_reproduction": {
+    "revsi999t32": {
+      "percentile_95": [
+        61.3,
+        68.4
+      ],
+      "score": 64.94
+    },
+    "vsibench5130": {
+      "percentile_95": [
+        66.5,
+        71.0
+      ],
+      "score": 68.77
+    }
+  },
+  "production_root_rehearsals": 1,
+  "readiness": {
+    "revsi999t32": "NOT READY",
+    "vsibench5130": "NOT READY"
+  },
+  "rehearsals": 4,
+  "reviewer": {
+    "byte_equal": true,
+    "prodroot_passed": 3,
+    "prodroot_sha256": "8a08d61527b35fb67c8d89064184e53a6d7ea48c8c56589e07afd4b9e3fbefc0",
+    "reviewer_files": {
+      "sim_r_namespace.py": "086eec105c7319efee4b799cc235eac81a47764f1546ba37e724f75460cc9f78",
+      "test_review_offnative2.py": "42a044f22f7b94b45391749ae65b63b6e47a2cdfa0a18bc33c4dd5461cc718c6"
+    },
+    "reviewer_passed": 3,
+    "runs": [
+      {
+        "ROFF2_ROOT": "/tmp/a_900000_678b8c4075bd",
+        "name": "r_gate",
+        "returncode": 0
+      },
+      {
+        "ROFF2_ROOT": "/tmp/a_900000_678b8c4075bd",
+        "name": "n_gate",
+        "returncode": 0
+      }
+    ]
+  },
+  "suite": {
+    "failed": 0,
+    "log_sha256": "5ea4ca781fe49796d4298294cdba857fa64781c5fbcf78ad719f48cd103c84b4",
+    "passed": 49,
+    "skipped": 1,
+    "summary": "49 passed, 1 skipped in 100.44s (0:01:40)"
+  },
+  "verification": "Accepted-return tests assert exact equality for all groups and all three budgets."
+}

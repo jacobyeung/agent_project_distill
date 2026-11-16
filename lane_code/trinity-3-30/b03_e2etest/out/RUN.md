@@ -1,11 +1,11 @@
 # Running EAT-1 on a GPU against a real artifact (operator)
 
-EAT-1 wraps any reader that exposes one `generate(frames, question)` entry (protocol: `eat1/run.py` docstring). The checks need about 2.5 h on one H100 for 200 items at 32 frames, and about 4 h at 64 frames (estimate, §4). The run needs an ORCH GO naming the card or job; this lane launches nothing.
+EAT-1 wraps any reader that exposes one `generate(frames, question)` entry (protocol: `eat1/run.py` docstring). The checks need about 3.5 h on one H100 for 200 items at 32 frames, and about 6 h at 64 frames (estimate, §4). The run needs an ORCH GO naming the card or job; this lane launches nothing.
 
 ## 1. Kit
 - Code: the lane folder's `eat1/` package (`artifact.py`, `hook.py`, `scan.py`, `closure.py`, `run.py`, `allowlist.json`, `adapters/`). It needs no change to the reader under test.
 - Python: the reader's own environment, plus `bwrap` on the host for A5 (i). Check `bwrap --version` before the run; without it, skip `--sandbox` and report A5 (i) NOT RUN.
-- Optional: `strace` for A1's second witness (`--strace-log`, §3).
+- Required for a claimed PASS: `strace` (`--strace-log`, §3). Without it the report sets `claim_grade` false, because reads by native code or by a descriptor opened before generate() may escape the audit hook.
 
 ## 2. Inputs
 1. **Artifact manifest** (`eat1-artifact-v1`, `eat1/artifact.py`). List every file of the claimed checkpoint by sha256 and role: full_weights shards, `heads.pt`, `artifact.json`, tokenizer and config files. Also list each frozen tower weight file the read loads (G3T `model.safetensors`, SAM 3 weights) with role `tower`. Then declare the modules under `reader.model`: `lm`, `vit`, each head (`auxiliary_heads.pose` → `pose_head`, `auxiliary_heads.depth` → `depth_head`), each tower and each connector, plus any `call_handler`. A file that is not in this manifest fails A1 when the read opens it.
@@ -23,7 +23,7 @@ python -m eat1.run --reader eat1.adapters.c8r_native:make_reader \
 # full run: observation + static scope + A5 (i) unmounted rerun + A5 (ii) perturbation
 python -m eat1.run --reader ... --items items.jsonl --out out/eat1 \
   --code-root <tree> --code-root <out2> --input-root <frames_root> --sandbox --perturb --perturb-limit 50
-# optional A1 second witness: run the same command under
+# claim-grade run: the same command under strace (A1 second witness, needed for claim_grade true)
 #   strace -f -e trace=openat,open -o out/strace.log python -m eat1.run ... --strace-log out/strace.log
 ```
 - Outputs: `out/eat1/EAT1_REPORT.md` (PASS or FAIL per clause, with offender file and line), `EAT1_REPORT.json`, `ITEMS.jsonl` (per item: seconds, model entries, violations, module runs), and `a5_sandbox/`.
@@ -34,11 +34,11 @@ python -m eat1.run --reader ... --items items.jsonl --out out/eat1 \
 Source: Orchard job 170056 read 2 arms × 636 dev-S1 keys in 2:35:07, about 7.3 s per item including load (`distill_design/NATIVE_ROUTED_READ_DEVS1_STEP544_20261115.md:47`).
 | Pass | Items | Estimate |
 |---|---|---|
-| Observation (line tracing on reader code: ×1.5–2 on the Python share) | 200 | 35–50 min |
+| Observation (line tracing on reader and model code outside the environment: ×1.5–2 on the Python share) | 200 | 35–50 min |
 | A5 (i) sandboxed rerun | 200 | 25–30 min |
-| A5 (ii) perturbation: 3 seeds × each head and tower (pose, depth, G3T, SAM 3 = 4) | 200 | 12 × 25 min = 5 h; with `--perturb-limit 50` (order items so the first 50 cover every call type), 1.2 h |
-| Total with the 50-item perturbation subset | | about 2.5 h |
-At 64 frames the prefill visual tokens double. Assume 1.5–2× per item, so the total is about 4 h. A run on a tiny model takes seconds (CPU baselines: `work/c8r_tiny/run5`, `work/b5_gf1_tiny/run2`).
+| A5 (ii) perturbation: 3 seeds × noise gains 1 and 10 × each head and tower (pose, depth, G3T, SAM 3 = 4) | 50 with `--perturb-limit 50` (order items so the first 50 cover every call type) | 24 × 6 min = 2.4 h |
+| Total with the 50-item perturbation subset | | about 3.5 h |
+At 64 frames the prefill visual tokens double. Assume 1.5–2× per item, so the total is about 6 h. A run on a tiny model takes seconds (CPU baselines: `work/c8r_tiny/run5`, `work/b5_gf1_tiny/run2`).
 
 ## 5. What a PASS requires
-All five clauses report PASS. Per type, A6 reports call rate, the heads behind each response field, and seconds per item. A run where any clause is NOT RUN reports INCOMPLETE, never PASS. A dispute over a clause is decided by the user's wording (brief `qs/03_e2e_acceptance_test.md`, ORCH 1155Z ruling 5).
+All six clauses report PASS and `claim_grade` is true. Per type, A6 reports call rate, the heads behind each response field, and seconds per item. A run where any clause is NOT RUN reports INCOMPLETE, never PASS. A dispute over a clause is decided by the user's wording (brief `qs/03_e2e_acceptance_test.md`, ORCH 1155Z ruling 5).

@@ -1,0 +1,11 @@
+# Independent recompute of a frozen distance list (read inputs, compute, report; touch nothing outside this directory)
+Work only in the current directory. No git, no ssh, no network, no deletion. Do NOT open any file outside this directory, and in particular do not read any existing parser or list builder: this check is only valid if you write your own code from this spec.
+
+Input: `TASKS.jsonl` (must have sha256 a2f3fdbdab06ab81942d44044d85090df8ec5b86908cf010cdbcb17e35637f5e; verify first). It holds 1525 task rows; each has keys including `id`, `question_type`, `question`, `native`, `room`.
+
+Task:
+1. Select the rows with `question_type == "object_abs_distance"` (expect 150). Sort by `id` ascending (plain string order).
+2. For each, find the length unit the question text asks for, from `question` alone: meters (meter/meters/metre/metres), centimeters (centimeter(s)/centimetre(s)/cm), feet (foot/feet/ft), inches (inch/inches). Match whole words, case-insensitive. Do not read "in" or a bare "m" as units. If the text names no unit, or two different units, the row gets unit null and status "none" or "multiple" (never guess); otherwise status "ok".
+3. Write `RECOMPUTED_DISTANCE_LIST_150.jsonl`: one JSON object per row, in sorted order, keys exactly `capture` (= `native`), `metre` (true iff unit == "meters"), `question_id` (= `id`), `room`, `unit` (one of "meters","centimeters","feet","inches" or null), `unit_status`. Serialize each line with Python `json.dumps(obj, sort_keys=True, ensure_ascii=True, separators=(", ", ": "))`, then "\n" (LF), ASCII, no trailing blank line.
+4. Also count, for the 36 rows with `question_type == "room_size_estimation"`, the area unit asked: square meters vs square feet (same no-guess rule).
+5. Write `RECOMPUTE_REPORT.md` (at most 25 lines): sha256 of TASKS.jsonl; sha256 of RECOMPUTED_DISTANCE_LIST_150.jsonl; distance counts per unit and per status; room counts per unit and status; whether the sha256 equals 028273ec3bfd1d3cd2d64f15c0fdab10fd8f905beb49fe09c3aa822a491a702e; expected counts are 43 m / 28 cm / 46 ft / 33 in and room 29 m2 / 7 ft2 — state match or the difference, and list any row whose status is not "ok" with its question text. Save your script as `recompute.py`.

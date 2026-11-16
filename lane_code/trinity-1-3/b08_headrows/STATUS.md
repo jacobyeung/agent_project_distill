@@ -1,5 +1,5 @@
-# b08_headrows STATUS (2026-11-16T14:45:34Z)
-Lane: Devin successor on trinity-1-3 (predecessor headless Claude stopped at weekly limit after writing CHOICE_JOIN.md). Brief: orch_n30/briefs/b08_headrows.md -> briefs/qs/08_head_path_rows_and_choice_join.md. Lane folder /scratch/jjyeung/orch_n30/b08_headrows.
+# b08_headrows STATUS (2026-11-16T17:53:38Z)
+Lane: Devin lane on trinity-1-3; session 1 (12:22Z-17:55Z) rotated; next session resumes from this file. Brief: orch_n30/briefs/b08_headrows.md -> briefs/qs/08_head_path_rows_and_choice_join.md. Lane folder /scratch/jjyeung/orch_n30/b08_headrows.
 Goal: Part A choice join + cue study (CPU); Part B head-path rows for the both-path mix (waits for brief 05 cache + ORCH ruling on the trace-ruling amendment).
 ## Part A: DONE
 - out/CHOICE_JOIN.md 952d9412...; out/CHOICE.json f50838de...; out/CHOICE.per_item.jsonl b972cf0f...; design record distill_design/CHOICE_JOIN_DEVS1_20261116.md 0f430319... + INDEX line; RESULT event 1230Z_partA_choice_join.
@@ -12,10 +12,10 @@ Goal: Part A choice join + cue study (CPU); Part B head-path rows for the both-p
 - Dev-S1 dry run: all 6,161 refused as dev_s1; upper-bound head share count .34 size .46 rel-dist .42 dir .66-.70 abs-dist .46.
 - Blockers: (1) training-item responses as full v3.14 Session records (b04 reader / b05 head); (2) GT instance ids per operand; (3) recovery-row form + join (tree_rebuild4). Renderer = sealed ground_rows.pack (no new renderer needed).
 - ORCH ruled both-path (1234Z), gave me head-form rows (1243Z; rows_a2 direct only; tree_rebuild4 joins), answered 1250Z: Q1 part B goes; Q2 I draft the both-policy + validator type-gate spec (done: PARTB_PREP.md last section), tree_rebuild4 implements, one review; Q3 I order a Codex refute review of assign.py now. Q4 (cache must hold full v3.14 Session records + accepted masks; size + direction easy keep current form) unanswered, default in force.
-- Cache request: code/headrows/cache_request.py -> out/cache_request/CACHE_REQUEST_ITEMS.jsonl (b6cfed9c..., 28,711 items; counting 7,065 room-capped -> ~1,200 heads expected). Not yet announced in an event (mention in next event).
+- Cache request: code/headrows/cache_request.py -> out/cache_request/CACHE_REQUEST_ITEMS.jsonl (b6cfed9c..., 28,711 items; counting 7,065 room-capped -> ~1,200 heads expected). Announced in the rotate RESULT event.
 ## In flight: none (no tmux of mine running, no Codex, no governor stream, no Orchard job).
 ## Next steps
-1. Poll inbox/ and events *_ORCH_* every 10 min; act on answers (another review pass if ordered).
+1. Poll inbox/ and events *_ORCH_* every 10 min; act on answers (open: RESULT 1443Z asks whether the R8 fix needs another review pass, default GO). No ORCH answer arrived 14:43Z-17:55Z.
 2. When b04 reader / b05 head deliver training-item records (full Session record + accepted masks + replay receipt from assign.replay_receipt): build items JSONL from rows_a2 store rows (question, options, answer, dataset, scene, student_input) with gt_instances from GT rasters via mask_match.gt_instances; responses JSONL with selected = mask_match.selected_ids; run assign.py, then build_rows.py.
 3. Validate: sealed validator + tree_rebuild4's type gate, 30 rows per family by hand, every-rank CPU first batch, repeat limits, eligibility (R0 count); admission packet; mirror; RESULT asking for admission review.
 ## Defaults in force: ReVSI first; frame count 32/64 parameter; SFT first; room direct (no room program rows).

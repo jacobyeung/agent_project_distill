@@ -13,6 +13,7 @@ def test_R4_current_submit_argv_is_opaque():
     assert not [w for w in FORBIDDEN if w in text]
     assert '--export=A0_PACKET_SHA256='+'0'*64 in argv
     assert '--job-name='+c['job_name'] in argv
+    assert '--account=mt01' in argv and '--no-requeue' in argv
     for invalid in ('a0'+'0'*16,'a15_cot_ap'+'g'*16,'a15_cot_ap'+'0'*15):
         with pytest.raises(ValueError):submission_argv(dict(c,job_name=invalid),'/p/x/1.sh')
 
@@ -29,7 +30,7 @@ def test_map_is_random_pinned_and_not_embedded():
     assert X.component(name)==token
     assert name.encode().hex() not in token
     table=json.loads(X.runtime_table())
-    assert table['tokens'][hashlib.sha256(name.encode()).hexdigest()]==token
+    assert table['tokens'][hashlib.sha256(bytes.fromhex(table['salt'])+name.encode()).hexdigest()]==token
     assert all(re.fullmatch('[0-9a-f]{64}',k) for k in table['tokens'])
     assert all(re.fullmatch('x[0-9a-f]{12}',v) for v in table['tokens'].values())
     X.scan(X.runtime_table())

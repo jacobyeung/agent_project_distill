@@ -1,0 +1,316 @@
+[
+  {
+    "id": "1b40b21a32bb485c94362ce8f82a37ba7e340ccb7fdad4bbeee41b0aca4edba6",
+    "type": "room_size_estimation",
+    "calls": [
+      {
+        "call": "<ground mode=\"room\">",
+        "response": "room: frames 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32\nfloor height -1.43 m\nfloor cells 2531; supported cells 1586; cell size 0.05 m; min frames 2\narea 6.33 m^2",
+        "kind": "ground",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "room": {
+            "frames": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32
+            ],
+            "floor_height_m": -1.4268054562803938,
+            "area_m2": 6.327500000000001,
+            "floor_cells": 2531,
+            "supported_cells": 1586,
+            "min_frames": 2,
+            "geometry_mode": "predicted",
+            "gravity_source": "geometry_z_up",
+            "cell_m": 0.05,
+            "closing_radius_m": 0.2,
+            "height_percentile": 1,
+            "height_margin_m": 0.1,
+            "min_points": 100,
+            "head_raster_hw": [
+              240,
+              320
+            ],
+            "pixel_stride": 4,
+            "max_grid_cells": 4000000
+          }
+        }
+      }
+    ],
+    "mask_match": {
+      "ok": true,
+      "applicable": false,
+      "operands": []
+    },
+    "synthetic": false,
+    "decision": {
+      "label": "trust",
+      "reason": "agrees_and_instance_matches",
+      "value": 6.33
+    }
+  },
+  {
+    "id": "ground-f9e269a994f3455da56f7d746b6dfb4ffd53e910bcc8956d000d2a80aa9e1838",
+    "type": "object_abs_distance",
+    "calls": [
+      {
+        "call": "<ground obj=\"microwave\" mode=\"box\">",
+        "response": "microwave: frames 8,9,10,11,12,13,14,15,16 (best 13)\nB1: f1 centre (-0.94, -0.52, -0.04) m\nsize 0.62 x 0.32 x 0.30 m\nyaw 81 deg (0 = +x; positive +x toward -z about +y)",
+        "kind": "ground",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": null,
+          "instance_metadata": [
+            {
+              "areas": {
+                "8": 0.01140625,
+                "9": 0.033502604166666665,
+                "10": 0.031927083333333335,
+                "11": 0.08234375,
+                "12": 0.09725260416666667,
+                "13": 0.1260546875,
+                "14": 0.09932291666666666,
+                "15": 0.045911458333333335,
+                "16": 0.0333984375
+              },
+              "instance_id": "microwave:002"
+            }
+          ],
+          "full_precision_box": {
+            "centre": [
+              -0.9404484696157758,
+              -0.5195309015197268,
+              -0.04420891398338278
+            ],
+            "lengths": [
+              0.624622486483129,
+              0.3249803725612861,
+              0.30121511643285803
+            ],
+            "axes": [
+              [
+                0.15969990584554722,
+                0.0,
+                -0.9871656092434153
+              ],
+              [
+                0.9871656092434153,
+                0.0,
+                0.15969990584554722
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "box_label": "B1",
+          "full_precision_gap_box": {
+            "centre": [
+              -0.9827754574799047,
+              -0.5181989142637607,
+              -0.06017329090387481
+            ],
+            "lengths": [
+              0.530788877800009,
+              0.25458782046561523,
+              0.2979260545886521
+            ],
+            "axes": [
+              [
+                0.17336159974195153,
+                0.0,
+                0.9848582414413312
+              ],
+              [
+                -0.9848582414413312,
+                0.0,
+                0.17336159974195153
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "gap_operands": [
+            "best_view"
+          ]
+        }
+      },
+      {
+        "call": "<ground obj=\"door\" mode=\"box\">",
+        "response": "door: frames 11,12,13,14,15,16,17,18 (best 16)\nB2: f1 centre (-0.16, -0.51, -0.74) m\nsize 0.93 x 0.08 x 1.92 m\nyaw 13 deg (0 = +x; positive +x toward -z about +y)",
+        "kind": "ground",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": null,
+          "instance_metadata": [
+            {
+              "areas": {
+                "11": 0.005703125,
+                "12": 0.09837239583333333,
+                "13": 0.23317708333333334,
+                "14": 0.3340755208333333,
+                "15": 0.35651041666666666,
+                "16": 0.5059505208333334,
+                "17": 0.4599479166666667,
+                "18": 0.3525390625
+              },
+              "instance_id": "door:025"
+            }
+          ],
+          "full_precision_box": {
+            "centre": [
+              -0.15842972567962363,
+              -0.5133387562127001,
+              -0.7357085195198148
+            ],
+            "lengths": [
+              0.9281285052365116,
+              0.07662798093564915,
+              1.9159260611153668
+            ],
+            "axes": [
+              [
+                0.9732858242527268,
+                0.0,
+                -0.22959682991864294
+              ],
+              [
+                0.22959682991864294,
+                0.0,
+                0.9732858242527268
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "box_label": "B2",
+          "full_precision_gap_box": {
+            "centre": [
+              -0.14918274207769558,
+              -0.4282371405838978,
+              -0.7301201934832383
+            ],
+            "lengths": [
+              0.9324713097493582,
+              0.056750376407421976,
+              1.2894891842836786
+            ],
+            "axes": [
+              [
+                0.9773505651283321,
+                0.0,
+                -0.21162672998307666
+              ],
+              [
+                0.21162672998307666,
+                0.0,
+                0.9773505651283321
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "gap_operands": [
+            "best_view"
+          ]
+        }
+      },
+      {
+        "call": "<gap a=\"microwave\" b=\"door\" rule=\"box_grid_5cm\">",
+        "response": "distance 0.40 m",
+        "kind": "gap",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": "box_grid_5cm",
+          "sampler": {
+            "rule": "box_grid_5cm",
+            "step": 0.05,
+            "inner_half_box_removed": true,
+            "dtype": "float64",
+            "instances": "min_over_pairs"
+          },
+          "ordered_box_labels": [
+            "B1",
+            "B2"
+          ]
+        }
+      }
+    ],
+    "mask_match": {
+      "ok": true,
+      "applicable": true,
+      "operands": [
+        {
+          "name": "microwave",
+          "gt_instance": 9,
+          "support": 9,
+          "match_fraction": 1.0,
+          "ok": true
+        },
+        {
+          "name": "door",
+          "gt_instance": 5,
+          "support": 8,
+          "match_fraction": 0.875,
+          "ok": true
+        }
+      ]
+    },
+    "synthetic": false,
+    "decision": {
+      "label": "left_out",
+      "reason": "numeric_or_instance_mismatch",
+      "value": 0.4
+    }
+  }
+]

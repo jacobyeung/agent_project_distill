@@ -29,3 +29,4 @@ Scratch on 3-30 is at its floor (ORCH 1507Z). Every item below is regenerable te
 - `/scratch/jjyeung/orch_n30/b07_offread/work/stage_rv/A.tar` (0): pytest/scratch fixture output or superseded copy.
 - `/scratch/jjyeung/orch_n30/b07_offread/work/stage_rv/t` (40K): pytest/scratch fixture output or superseded copy.
 - `/scratch/jjyeung/orch_n30/b07_offread/work/stage_rv/t2` (648K): pytest/scratch fixture output or superseded copy.
+- /tmp/a_900000_* on trinity-3-30 (test roots, ~1 MB each) and /dev/shm/b07_n7 (lane scratch)

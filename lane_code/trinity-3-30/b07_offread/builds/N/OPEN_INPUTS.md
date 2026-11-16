@@ -9,3 +9,5 @@ Reduced harness proof requires the pinned job-170056 mask-loss declaration. Came
 The measured shard model omits unmeasured SAM, loading, proof and canary costs. Cutoff returns preserve completed items and enumerate missing IDs; incomplete unions cannot produce a report.
 
 The current random-name adapter passes only CPU validation; production still requires native-library path resolution and a genuine transport-only rehearsal for the exact prepared packet.
+
+Production readiness also requires validating the complete per-shard timing allowances and the live native-library namespace. The reviewer leaves the naming treatment of unchanged source contents and digest tables to the orchestrator; these tables do not provide secrecy against dictionary recovery.

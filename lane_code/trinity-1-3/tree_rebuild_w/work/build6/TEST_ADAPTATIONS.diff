@@ -62,6 +62,33 @@
 +                                 normalized_name(name) not in {normalized_name(label) for label in LABELS})
                  self.assertFalse(known.queries[0]['name_outside_decoder_vocabulary'])
                  self.assertFalse(unknown.queries[0]['qualified'])
+--- build5/tests/test_gxp_mix.py
++++ build6/tests/test_gxp_mix.py
+@@ -721,6 +721,9 @@
+ class MemoryFallback(unittest.TestCase):
+     def test_absent_keys_preserve_normalized_identity_and_fp32_output_bytes(self):
+         # Captured on the pinned S10 input checkout with the supplied CPU wrapper.
++        previous_threads = torch.get_num_threads()
++        self.addCleanup(torch.set_num_threads, previous_threads)
++        torch.set_num_threads(1)
+         expected = ['657308f57b5a02d3a14add15e07a6e41c374198304a37d016df1ab34ac27ac69',
+                     '82668c672c6df471df1f81390b9c025961842e5a7f0d83e46c46d38b72131cbc',
+                     'd5213e36cf4ca7c2b4e0a4df2361e2a02e13490817a4b6a517a851034386530f']
+@@ -737,7 +740,13 @@
+             result = encoder(torch.rand(4, 3, 28, 28))
+             hashes = [hashlib.sha256(x.numpy().tobytes()).hexdigest() for x in result]
+             self.assertEqual(hashes, expected + (['522e752c60b3f4eb1807285d985e443bd48e9492288f853a99681312161ebad8'] if fusion else []))
+-        self.assertEqual(run.identity(configuration()), '67e65629e78c3cf5f39511b549c3e345d92cf73fb98ce6ea7753d9cc3d6d6aae')
++        cfg = configuration()
++        self.assertEqual(run.digest(cfg), '67e65629e78c3cf5f39511b549c3e345d92cf73fb98ce6ea7753d9cc3d6d6aae')
++        from trace_format.contracts import HEADING_PLANE_MIN_DEFAULT
++        self.assertEqual(run.identity(cfg), run.digest({**cfg, 'heading_plane_min':HEADING_PLANE_MIN_DEFAULT}))
++        off = {**cfg, 'contract_epoch':False}
++        self.assertEqual(run.identity(off), run.digest(off))
++        self.assertEqual(run.identity({**off, 'heading_plane_min':HEADING_PLANE_MIN_DEFAULT}), run.digest(off))
+ 
+     def test_frozen_only_strict_options_and_identity_binding(self):
+         original = configuration()
 --- build5/tests/test_r2_build.py
 +++ build6/tests/test_r2_build.py
 @@ -35,7 +35,7 @@
@@ -130,7 +157,17 @@
          for policy in ('keep', 'reset'):
              live = Embeddings()
              live.init_report = R.init_from_artifact(live, spec, part='lm')
-@@ -172,7 +172,7 @@
+@@ -163,7 +163,8 @@
+                 expected = state[name][7] if policy=='keep' else state[name][[1,2]].mean(0)
+                 self.assertTrue(torch.equal(attr.weight[7], expected))
+         with self.assertRaisesRegex(ValueError,'Unknown'): O.initialize(live,processor,{'routing_opener_init':'x'})
+-        with self.assertRaisesRegex(ValueError,'Missing'): O.initialize(live,processor,dict(init_artifact=spec,routing_opener_init='keep'))
++        with self.assertRaisesRegex(ValueError,'Missing routing vocabulary witness'):
++            O.initialize(live,processor,dict(r2_identity=dict(init=INIT),init_artifact=spec,routing_opener_init='keep'))
+         (root/'v.json').write_text(json.dumps({**witness,'lineage_sha256':'f'*64}))
+         with self.assertRaisesRegex(ValueError,'vocabulary'):
+             O.initialize(live,processor,{**receipt,'routing_opener_init':'keep','routing_vocabulary':file_pin(root/'v.json')})
+@@ -172,7 +173,7 @@
  
      def test_four_stream_record_identity(self):
          base = LANE/'work/kit07ca49df_meta/m'
@@ -139,7 +176,7 @@
          self.assertTrue(all(item['identical'] for item in result))
          (PROOFS/'B3_PARENT_REPRO.json').write_text(json.dumps(result,indent=2)+'\n')
          cfg = load(base/'k/b02e4385.json')
-@@ -198,8 +198,8 @@
+@@ -198,8 +199,8 @@
          pin=archive('a.tar',members)
          hashes={k:hashlib.sha256(v).hexdigest() for k,v in members.items()}
          result=H.stage_init(pin,root/'s',hashes,max_member_bytes=100)
@@ -150,7 +187,7 @@
          for key,relative in result.items():self.assertEqual((root/'s'/relative).read_bytes(),members[key])
          with self.assertRaisesRegex(ValueError,'Unadmitted'):H.stage_init(pin,root/'b',hashes,max_member_bytes=1)
          with self.assertRaisesRegex(ValueError,'sha256'):H.stage_init(pin,root/'c',{k:'0'*64 for k in hashes},max_member_bytes=100)
-@@ -244,7 +244,7 @@
+@@ -244,7 +245,7 @@
              root=directory();dp=dense(root)
              kit=root/'a'
              result=B.build(LANE/'work/kit07ca49df_meta/m',kit,connector=connector,records=inputs(),
@@ -159,7 +196,7 @@
              cfg=load(kit/result['config']['path'])
              self.assertEqual(cfg['routing_opener_init'],'keep')
              self.assertNotEqual(load(kit/'k/4.json')['modes'],[])
-@@ -278,3 +278,5 @@
+@@ -278,3 +279,5 @@
  
  for number, entry in enumerate(load(LANE/'references/B3_BANK_ENTRYPOINTS.json')):
      setattr(EvaluationEntrypoints,'test_refusal_'+str(number),refusal(entry))
@@ -309,7 +346,7 @@
 +from tests.r2_init_fixture import PIN as INIT_PIN
 --- build5/tests/test_r2_build6.py
 +++ build6/tests/test_r2_build6.py
-@@ -0,0 +1,154 @@
+@@ -0,0 +1,177 @@
 +"""Next-leg selection, final admission, direct units and score contracts."""
 +from copy import deepcopy
 +import json
@@ -401,6 +438,10 @@
 +        from launch_r2.build import build
 +        with self.assertRaisesRegex(ValueError,'pinned init'):
 +            configure({},'none')
++        from tests.test_r2_build import inputs
++        from tests.test_r2_data_path import LANE
++        with self.assertRaisesRegex(ValueError,'Missing pinned init selection'):
++            build(LANE/'work/kit07ca49df_meta/m',root/'unpinned',connector='none',records=inputs())
 +
 +    def test_family_gate_refuses_below_ninety_after_exclusions(self):
 +        reports=[dict(family=names[-1],counts={'x':dict(seen=110,admitted=90,refused=20)},
@@ -424,10 +465,17 @@
 +        with self.assertRaises(ValueError): A.check_family_receipt(file_pin(path))
 +        path.write_text(json.dumps(dict(schema='r2-materialization-v1',status='ready',intake=reports)))
 +        self.assertEqual(A.check_family_receipt(file_pin(path)),A.family_admission(reports))
++        # Exercise the same pinned-receipt reader called by the launch entry.
++        for index in range(len(reports)):
++            bad=deepcopy(reports);bad[index]['counts']['x'].update(admitted=89,refused=21)
++            bad[index]['refusals'].append(dict(reason='missing frame'))
++            path.write_text(json.dumps(dict(schema='r2-materialization-v1',status='ready',intake=bad)))
++            with self.assertRaisesRegex(ValueError,'Family admission below 90%'):
++                A.check_family_receipt(file_pin(path))
 +
 +    def test_direct_square_feet_and_inches(self):
 +        root=directory()
-+        for unit,asked,kind in [('ft2','square feet','room_size_estimation'),('ft2','square feet','absolute_size_room'),('in','inches','object_size_estimation')]:
++        for unit,asked,kind in [('ft2','square feet',name) for name in U.ROOM]+[('in','inches','object_size_estimation')]:
 +            row=fixture(root,qid=unit);question='What is the room size in '+asked+'?' if unit=='ft2' else 'How wide is the sofa in inches?'
 +            row.update(question_type=kind,question=question,answer_unit=unit,answer='12')
 +            row['student_input']['question']=question
@@ -438,6 +486,8 @@
 +            if unit=='ft2':
 +                bad=deepcopy(row);bad['target']=bad['target'].replace('Relate:', 'Converting to square feet: Relate:')
 +                with self.assertRaises(ValueError):C.validate(bad,'vqa')
++                bad=deepcopy(row);bad['answer_unit']='ft'
++                with self.assertRaisesRegex(ValueError,'unit'):C.validate(bad,'vqa')
 +            row['student_input']['question']='How wide is the sofa in metres?'
 +            with self.assertRaisesRegex(ValueError,'unit'):C.validate(row,'vqa')
 +
@@ -448,15 +498,25 @@
 +               dict(question_type='room_size_estimation',question='What area in square metres?',score=8),
 +               dict(question_type='object_counting',question='How many?',score=10)]
 +        result=U.score_by_unit(items)
-+        self.assertEqual(list(result['distance']),['m','ft'])
-+        self.assertEqual(list(result['room']),['m2','ft2'])
-+        self.assertEqual(result['distance']['m'],dict(count=1,score=4))
++        self.assertEqual([row['unit'] for row in result['distance']],['m','ft'])
++        self.assertEqual([row['unit'] for row in result['room']],['m2','ft2'])
++        self.assertEqual(result['distance'][0],dict(unit='m',count=1,score=4))
 +        for kind in U.DISTANCE:
 +            self.assertEqual(U.score_by_unit([dict(question_type=kind,question='How far in metres?',score=4)]),
-+                             {'distance':{'m':dict(count=1,score=4)}})
++                             {'distance':[dict(unit='m',count=1,score=4)]})
 +        receipt=dict(required_scores=['all','without_venue_381879'],metric_units=U.metric_units(items))
 +        values={k:dict(by_asked_unit=result) for k in receipt['required_scores']}
 +        self.assertEqual(P.require_scores(receipt,values),values)
++        from student_pilot.p3_provenance import load
++        path=directory()/'scores.json';write(path,values)
++        self.assertEqual(P.require_scores(receipt,load(path)),values)
++        bad=deepcopy(values)
++        bad['all']['by_asked_unit']['distance']=list(reversed(bad['all']['by_asked_unit']['distance']))
++        with self.assertRaisesRegex(ValueError,'metres first'):P.require_scores(receipt,bad)
++        bad=deepcopy(values);bad['all']['by_asked_unit']['distance'][0]['score']=float('nan')
++        with self.assertRaisesRegex(ValueError,'finite'):P.require_scores(receipt,bad)
++        bad['all']['by_asked_unit']['distance'][0].update(count=0,score=None)
++        self.assertEqual(P.require_scores(receipt,bad),bad)
 +        with self.assertRaises(ValueError):P.require_scores(receipt,{k:1 for k in values})
 +        for question in ('How far in centimetres?','How far in inches?'):
 +            self.assertIn(U.asked_unit(dict(question_type='object_abs_distance',question=question)),('cm','in'))
@@ -605,8 +665,8 @@
          _, receipt=self.read(bank, freeze_pin=self.freeze)
          self.assertEqual(receipt['required_scores'],['all','without_venue_381879'])
 -        P.require_scores(receipt, dict(all=0,without_venue_381879=0))
-+        P.require_scores(receipt, dict(all=dict(by_asked_unit={'distance':{'m':dict(count=1,score=0)}}),
-+                                       without_venue_381879=dict(by_asked_unit={'distance':{'m':dict(count=0,score=None)}})))
++        P.require_scores(receipt, dict(all=dict(by_asked_unit={'distance':[dict(unit='m',count=1,score=0)]}),
++                                       without_venue_381879=dict(by_asked_unit={'distance':[dict(unit='m',count=0,score=None)]})))
          with self.assertRaises(ValueError): P.require_scores(receipt, dict(all=0))
          for denied in ['STI-Bench','ReSTI','MindCube','unknown']:
              with self.assertRaisesRegex(ValueError,'outside'):
@@ -657,6 +717,23 @@
  from student_pilot.carrier_c1_sweep import recipe_for
  from student_pilot.p3_provenance import digest, file_pin, load, sha256, source_files, write
  from student_pilot.source_seal import inventory
+--- build5/tests/test_s1_launch_kit.py
++++ build6/tests/test_s1_launch_kit.py
+@@ -157,6 +157,14 @@
+         gate, launch, cfg = self.ready()
+         native = __import__("student_pilot.carrier_c1_run", fromlist=["identity"])
+         self.assertEqual(gate.identity(cfg), native.identity(cfg))
++        for fields in ({"contract_epoch":True}, {"heading_plane_min":0.2},
++                       {"contract_epoch":False}, {"contract_epoch":False,"heading_plane_min":0.7}):
++            value={**cfg, **fields}
++            self.assertEqual(gate.identity(value), native.identity(value))
++        for threshold in (None, True, 0, 1, float("nan"), "0.3"):
++            value={**cfg, "heading_plane_min":threshold}
++            with self.assertRaises(ValueError):gate.identity(value)
++            with self.assertRaises(ValueError):native.identity(value)
+         report = json.loads((self.root / "k/first.json").read_text())
+         report["records"] = [row for row in report["records"] if row["rank"] != 7]
+         batch = json.loads((self.root / "k/batch.json").read_text())
 --- build5/tests/test_sam3_tower.py
 +++ build6/tests/test_sam3_tower.py
 @@ -217,7 +217,9 @@

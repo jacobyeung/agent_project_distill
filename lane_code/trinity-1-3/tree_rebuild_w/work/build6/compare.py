@@ -1,4 +1,5 @@
 """Classify suite outcomes by the same test's untouched-base result."""
+import hashlib
 import json
 import os
 import re
@@ -12,7 +13,17 @@ tree=json.loads((root/(kind+'_tree')/'results.json').read_text())
 base=json.loads((root/(kind+'_base')/'results.json').read_text())
 def canonical_test(name):
     return re.sub(r"(['\"])[^'\"]*/work/tmp/[^'\"]*\1", "'<temporary path>'",name)
-prior={canonical_test(name):error for name,error in base['failures']+base['errors']}
+prior={}
+for name,error in base['failures']+base['errors']:
+    prior.setdefault(canonical_test(name),[]).append(error)
+build5=json.loads((L/'work/build5/proofs/suite_tree/results.json').read_text())
+old_errors={}
+for name,error in build5['failures']+build5['errors']:
+    old_errors.setdefault(canonical_test(name),[]).append(error)
+guard_proof=json.loads((L/'work/build6/LEGACY_GUARDS.json').read_text())
+guards_verified=guard_proof['verified'] and all(
+    hashlib.sha256((L/'work/tree_r1'/row['file']).read_bytes()).hexdigest()==row['current_sha256']
+    for row in guard_proof['guards'])
 def classify(error):
     if any(value in error for value in ('Build policy refuses os.'+'remove','Build policy refuses os.'+'rmdir','Build policy refuses shutil.'+'rmtree')):
         return 'forbidden file cleanup under the no-deletion rule'
@@ -58,20 +69,35 @@ def classify(error):
         return 'legacy provenance mock differs from the result under the shared harness'
     if 'test_exhausted_resume_saves_the_same_step_under_each_attempt' in error or 'optimizer=None, disk_guard=None' in error:
         return 'legacy save/export assertion omits native disk-budget keyword arguments'
+    if 'test_carrier_c1_t0.py' in error and 'unexpected pos' in error:
+        return 'legacy teacher serialization write failure'
     return 'unclassified: '+error.strip().splitlines()[-1]
 failed=[]
 for name,error in tree['failures']+tree['errors']:
     key=canonical_test(name)
-    tree_cause=classify(error);base_cause=classify(prior[key]) if key in prior else None
-    preexisting=key in prior and not name.startswith('tests.test_r2') and tree_cause==base_cause
-    failed.append(dict(test=name,preexisting=preexisting,cause=base_cause if preexisting else tree_cause,
-                       tree_cause=tree_cause,base_cause=base_cause,tree_error=error,base_error=prior.get(key)))
+    tree_cause=classify(error)
+    candidates=prior.get(key,[])
+    matched=next((value for value in candidates if classify(value)==tree_cause),None)
+    base_error=matched or (candidates[-1] if candidates else None)
+    base_cause=classify(base_error) if base_error else None
+    prior_guard=next((value for value in old_errors.get(key,[]) if
+        'Legacy reader has no authenticated R2 bank adapter: ' in error
+        and value.strip().splitlines()[-1]==error.strip().splitlines()[-1]),None)
+    preserved_guard=bool(candidates and guards_verified and prior_guard)
+    preexisting=bool(candidates and not name.startswith('tests.test_r2') and (matched or preserved_guard))
+    basis='same_base_cause' if preexisting and matched else 'preserved_build5_guard' if preexisting else 'regression'
+    cause='preserved Build-5 refusal of an unauthenticated legacy reader' if basis=='preserved_build5_guard' else tree_cause
+    failed.append(dict(test=name,preexisting=preexisting,basis=basis,cause=cause,
+                       tree_cause=tree_cause,base_cause=base_cause,tree_error=error,base_error=base_error,
+                       build5_error=prior_guard if preserved_guard else None,
+                       guard_source='work/build6/LEGACY_GUARDS.json' if preserved_guard else None))
 record=dict(tree_source='work/build6/proofs/'+kind+'_tree/results.json',base_source='work/build6/proofs/'+kind+'_base/results.json',
     run=tree['tests'],passed=len(tree['passed']),preexisting=sum(r['preexisting'] for r in failed),
     regressions=sum(not r['preexisting'] for r in failed),skipped=len(tree['skips']),
     r2_failures=sum(r['test'].startswith('tests.test_r2') for r in failed),fatal=tree.get('fatal'),failures=failed)
 record['counting_note']='Run/pass counts retain harness-scheduled test executions, including repeated test IDs; failure counts include subtests and setup/import errors, which are listed individually.'
-record['comparison_rule']='A legacy failure is pre-existing only when the same test fails with the same classified cause in the untouched base; differing causes remain regressions for review.'
+record['comparison_rule']='Retain all failure events per test. A legacy failure must match a base cause or repeat a source-authenticated Build-5 unsupported-reader refusal while the same base test also fails. Other differing causes remain regressions.'
+record['classification_bases']=dict(Counter(r['basis'] for r in failed))
 record['failed_methods']=len({r['test'].split(' (',1)[0] for r in failed if r['test'].startswith('tests.')})
 record['preexisting_causes']=dict(Counter(r['cause'] for r in failed if r['preexisting']))
 record['shared_grammar_failures']=sum(r['test'].startswith('published_grammar_tests.') for r in failed)

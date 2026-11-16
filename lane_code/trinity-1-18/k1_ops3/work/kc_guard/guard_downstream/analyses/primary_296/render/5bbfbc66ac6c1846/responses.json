@@ -1,0 +1,225 @@
+[
+  {
+    "id": "ground-c62f6207615f3d87e0153e684fcf8084b9b6812a5451d839f626acf414d33a32",
+    "type": "object_abs_distance",
+    "calls": [
+      {
+        "call": "<ground obj=\"bed\" mode=\"box\">",
+        "response": "bed: frames 16,17,18,19,21 (best 21)\nB1: f1 centre (-2.94, -0.08, -0.55) m\nsize 1.42 x 1.39 x 0.39 m\nyaw 9 deg (0 = +x; positive +x toward -z about +y)",
+        "kind": "ground",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": null,
+          "instance_metadata": [
+            {
+              "areas": {
+                "16": 0.15102864583333334,
+                "17": 0.43680989583333335,
+                "18": 0.3126041666666667,
+                "19": 0.48407552083333333,
+                "21": 0.48455729166666667
+              },
+              "instance_id": "bed:002"
+            }
+          ],
+          "full_precision_box": {
+            "centre": [
+              -2.9380530180389646,
+              -0.08207332605409148,
+              -0.5505829948676667
+            ],
+            "lengths": [
+              1.4216765576571282,
+              1.393016668003905,
+              0.3883715936593857
+            ],
+            "axes": [
+              [
+                0.9878431126800172,
+                0.0,
+                -0.15545412419956858
+              ],
+              [
+                0.15545412419956858,
+                0.0,
+                0.9878431126800172
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "box_label": "B1",
+          "full_precision_gap_box": {
+            "centre": [
+              -2.8711587595811308,
+              -0.01458849816025004,
+              -0.2891534138373661
+            ],
+            "lengths": [
+              1.4029295740290775,
+              0.8878559700215813,
+              0.2536509927374103
+            ],
+            "axes": [
+              [
+                0.9937649847171461,
+                0.0,
+                -0.11149509025123162
+              ],
+              [
+                0.11149509025123162,
+                0.0,
+                0.9937649847171461
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "gap_operands": [
+            "best_view"
+          ]
+        }
+      },
+      {
+        "call": "<ground obj=\"tv\" mode=\"box\">",
+        "response": "tv: frames 9 (best 9)\nB2: f1 centre (0.94, 0.16, -3.83) m\nsize 0.41 x 0.16 x 0.69 m\nyaw -162 deg (0 = +x; positive +x toward -z about +y)",
+        "kind": "ground",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": null,
+          "instance_metadata": [
+            {
+              "areas": {
+                "9": 0.26166666666666666
+              },
+              "instance_id": "tv:005"
+            }
+          ],
+          "full_precision_box": {
+            "centre": [
+              0.9384406433508832,
+              0.1596565806075047,
+              -3.828639148035565
+            ],
+            "lengths": [
+              0.4057493714479854,
+              0.16208768728825973,
+              0.6917560850152357
+            ],
+            "axes": [
+              [
+                -0.9528344277364688,
+                0.0,
+                0.303490614879795
+              ],
+              [
+                -0.303490614879795,
+                0.0,
+                -0.9528344277364688
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "box_label": "B2",
+          "full_precision_gap_box": {
+            "centre": [
+              0.9384406433508832,
+              0.1596565806075047,
+              -3.828639148035565
+            ],
+            "lengths": [
+              0.4057493714479854,
+              0.16208768728825973,
+              0.6917560850152357
+            ],
+            "axes": [
+              [
+                -0.9528344277364688,
+                0.0,
+                0.303490614879795
+              ],
+              [
+                -0.303490614879795,
+                0.0,
+                -0.9528344277364688
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "gap_operands": [
+            "best_view"
+          ]
+        }
+      },
+      {
+        "call": "<gap a=\"bed\" b=\"tv\" rule=\"box_grid_5cm\">",
+        "response": "distance 4.15 m",
+        "kind": "gap",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": "box_grid_5cm",
+          "sampler": {
+            "rule": "box_grid_5cm",
+            "step": 0.05,
+            "inner_half_box_removed": true,
+            "dtype": "float64",
+            "instances": "min_over_pairs"
+          },
+          "ordered_box_labels": [
+            "B1",
+            "B2"
+          ]
+        }
+      }
+    ],
+    "mask_match": {
+      "ok": true,
+      "applicable": true,
+      "operands": [
+        {
+          "name": "bed",
+          "gt_instance": 5,
+          "support": 5,
+          "match_fraction": 0.6,
+          "ok": true
+        },
+        {
+          "name": "tv",
+          "gt_instance": 4,
+          "support": 1,
+          "match_fraction": 1.0,
+          "ok": true
+        }
+      ]
+    },
+    "synthetic": false,
+    "decision": {
+      "label": "left_out",
+      "reason": "numeric_or_instance_mismatch",
+      "value": 4.15
+    }
+  }
+]

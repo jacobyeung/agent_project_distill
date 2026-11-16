@@ -1,6 +1,6 @@
 # Build 6 status
 
-The first packaged diagnostic is running. The working tree contains additional repairs that still require focused and final packaged verification. The current delivery record describes the diagnostic snapshot, not the final source.
+The first packaged diagnostic is complete. The focused check exposed a CPU thread-order dependency in the legacy tensor-byte fixture. Its original hashes match with one thread; the fixture now explicitly pins and restores that setting (`work/build6/proofs/tensor_threads/RESULTS.json`). The repaired focused check is next. The current delivery record describes the diagnostic snapshot, not the final source.
 
 | Completed group | Run | Passed | Error / failure events | Source |
 |---|---:|---:|---:|---|
@@ -14,3 +14,29 @@ The first packaged diagnostic is running. The working tree contains additional r
 The exact contract hashes and unchanged level-basis functions pass (`work/build6/INTEGRATION_CHECK.json`). Packet and packed-row receipts are in `work/build6/proofs/packet/results.json` and `work/build6/proofs/rows/PARITY.json`.
 
 Final coverage remains provisional. Legacy failures require matching causes in the untouched base; the entire R2/shared-grammar group must pass. Pending repairs and the remaining workflow are recorded in `work/build6/RESUME.md`. No launch is authorized.
+
+Current-source focused verification passed (`work/build6/proofs/final_targeted/results.json`).
+
+Final snapshot step running: `restage`. Log: `work/build6/final_restage.log`.
+
+Final snapshot step complete: `restage` (`work/build6/FINAL_PASS.json`).
+
+Final snapshot step running: `kit_readcheck`. Log: `work/build6/final_kit_readcheck.log`.
+
+Final snapshot step complete: `kit_readcheck` (`work/build6/FINAL_PASS.json`).
+
+Final snapshot step running: `kit_protocols`. Log: `work/build6/final_kit_protocols.log`.
+
+Final snapshot step complete: `kit_protocols` (`work/build6/FINAL_PASS.json`).
+
+Final snapshot step running: `packet`. Log: `work/build6/final_packet.log`.
+
+Final snapshot step complete: `packet` (`work/build6/FINAL_PASS.json`).
+
+Final snapshot step running: `qualification`. Log: `work/build6/final_qualification.log`.
+
+Completed qualification step `rows_build5`; receipt/log: `work/build6/rows_build5_qualification.log`.
+
+Completed qualification step `rows`; receipt/log: `work/build6/rows_qualification.log`.
+
+Completed qualification step `row_compare`; receipt/log: `work/build6/row_compare_qualification.log`.

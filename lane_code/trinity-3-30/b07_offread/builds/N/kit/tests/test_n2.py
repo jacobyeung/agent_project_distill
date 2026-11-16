@@ -67,7 +67,12 @@ def test_frozen_proposal_pipeline(tmp_path,monkeypatch):
     import subprocess
     original_run=subprocess.run
     allowed=str(tmp_path.resolve())
-    monkeypatch.setattr(proposals,'owned',lambda p:Path(p).resolve())
+    from offnative import io as native_io,staging
+    original_owned=native_io.owned
+    def fixture_owned(path):
+        resolved=Path(path).resolve()
+        return resolved if resolved.is_relative_to(tmp_path.resolve()) else original_owned(path)
+    for module in (proposals,native_io,staging):monkeypatch.setattr(module,'owned',fixture_owned)
     def execute(argv,**kwargs):
         script=argv[2]
         if Path(script).name in ('cache_masks.py','variant_cache.py'):

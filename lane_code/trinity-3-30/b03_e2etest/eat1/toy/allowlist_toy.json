@@ -6,5 +6,19 @@
  ],
  "head_status_formatters": [],
  "suppress": [],
- "why": "read_frames decodes the item's own input frames and __init__ loads the artifact's weights before generate(); A1 checks every file opened after generate() starts."
+ "why": "read_frames decodes the item's own input frames and __init__ loads the artifact's weights before generate(); A1 checks every file opened after generate() starts. declared_constants are the toy LM's two fixture constants; they are model code a reviewer has read.",
+ "declared_constants": [
+  {
+   "file": "toy/model.py",
+   "function": "ScriptLM.forward",
+   "value": 20.0,
+   "reason": "the scripted toy LM sets its chosen logit to 20 (fixture stand-in for an LM)"
+  },
+  {
+   "file": "toy/model.py",
+   "function": "ScriptLM.forward",
+   "value": 0.001,
+   "reason": "the toy LM scales its learned term so the script decides (fixture)"
+  }
+ ]
 }

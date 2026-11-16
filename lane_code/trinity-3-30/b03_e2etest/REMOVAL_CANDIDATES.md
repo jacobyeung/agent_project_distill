@@ -1,2 +1,3 @@
 - work/mirror/b03_e2etest_eat1_v1.tar and trinity-1-18:/scratch/jjyeung/n30_mirror/b03_e2etest/b03_e2etest_eat1_v1.tar and v1b (superseded by v1c); work/tmp/eat1_test_* (unit-test scratch)
 - work/mirror/b03_e2etest_eat1_v1c.tar and the trinity-1-18 copy (superseded by v2); work/b04_tiny (first b04 attempt, artifact bound to the wrong tree path)
+- work/eat1_v2_prereview/ (pre-review kit copy, 400 KB), work/review_eat1/ and work/review_eat1_r2/ (review copies), work/adv/ (probe runs, 2 MB), work/mirror/b03_e2etest_eat1_v2.tar and trinity-1-18 v2 tar: superseded by v3

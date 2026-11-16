@@ -7,6 +7,13 @@ import sys
 import threading
 import traceback
 
+# Standalone CPU rehearsals never read the production secret.
+import tempfile
+Path('/dev/shm/b07_n7').mkdir(exist_ok=True)
+_secret_dir=Path(tempfile.mkdtemp(prefix='a',dir='/dev/shm/b07_n7'))
+_secret_file=_secret_dir/'secret';_secret_file.write_text('37'*32);_secret_file.chmod(0o600)
+os.environ['A0_BUILD_SECRET_FILE']=str(_secret_file)
+
 ROOT=Path(__file__).resolve().parents[1]
 key=sys.argv[1]
 WORK=Path(sys.argv[2]).resolve()
@@ -108,9 +115,62 @@ if '--done' in sys.argv:
         stack.enter_context(patch.object(s1,'stage_videos',S.stage_videos))
 """)
     source=source.replace("    B.dump(packet/'CONFIG.json',config)", "    B.dump(packet/'CONFIG.json',json.loads(B.boot_files(packet/'BATCH.sh')['bootstrap/CONFIG.json']))")
+if '--nonshm' in sys.argv:
+    scratch=Path(os.environ['A0_FIXTURE_RAM'])
+    scratch.mkdir(exist_ok=False)
+    source=source.replace("work/'prepared'",repr(str(scratch/'prepared')))
+    source=source.replace("work/'prepared/BATCH.sh'","Path("+repr(str(scratch/'prepared/BATCH.sh'))+")")
+    source=source.replace("fixture=work/'f'", "fixture=Path("+repr(str(scratch/'f'))+")")
+    source=source.replace("packet=work/'packet'","packet=Path("+repr(str(scratch/'packet'))+")")
+    source=source.replace("work/'BATCH.sh'","Path("+repr(str(scratch/'BATCH.sh'))+")")
+    source=source.replace("pool=work/'pool'", "pool=Path("+repr(str(scratch/'pool'))+")")
+    source=source.replace("trace_source=work/'_bootstrap_current.py'", "trace_source=Path("+repr(str(scratch/'_bootstrap_current.py'))+")")
+    source=source.replace("return original_run([sys.executable,'-B',str(Path(__file__).resolve().parent/'parity_fixture.py'),str(ROOT),target],capture_output=True)","""original_target=Path(target)
+                target="""+repr(str(Path('/dev/shm/b07_n7')/'PLACEHOLDER'))+"""
+                result=original_run([sys.executable,'-B',str(Path(__file__).resolve().parent/'parity_fixture.py'),str(ROOT),target],capture_output=True)
+                original_target.parent.mkdir(parents=True,exist_ok=True)
+                original_target.symlink_to(target,target_is_directory=True)
+                Path("""+repr(str(scratch/'parity_debug.log'))+""").write_bytes(result.stdout+result.stderr)
+                return result""")
+    source=source.replace(repr(str(Path('/dev/shm/b07_n7')/'PLACEHOLDER')),repr(str(scratch/'p9')))
+    source=source.replace("            kw['stdout'].write(log.getvalue().encode())", "            Path("+repr(str(scratch/'child_debug.txt'))+").write_text(log.getvalue())\n            kw['stdout'].write(log.getvalue().encode())")
+    source="from pathlib import Path\n"+source
+    source=source.replace('work=Path(work).resolve()', 'work=Path(work).absolute()')
+    # Only the fixture adapts read-only source locations. Runtime logical roots
+    # still use xnames' non-RAM mapping and the real namespace builder.
+    source=source.replace("import xnames; xnames.install(root)","""import xnames
+    descriptor=os.open(ROOT.parents[1],os.O_RDONLY|os.O_DIRECTORY)
+    owner=ROOT.parents[1]
+    roots=[owner/'kit',owner/'tests',owner/'out',Path('/scratch/jjyeung/orch_n30/b07_offread/kit/offkit')]
+    held=[descriptor]
+    xnames.media_alias(str(owner),'/proc/'+str(os.getpid())+'/fd/'+str(descriptor))
+    for base in roots:
+        fd=os.open(base,os.O_RDONLY|os.O_DIRECTORY);held.append(fd)
+        alias='/proc/'+str(os.getpid())+'/fd/'+str(fd)
+        entries=[base]+list(base.rglob('*')) if base.name!='out' else [base]+list(base.glob('*.json'))
+        for entry in entries:
+            xnames.media_alias(str(entry),alias+'/'+str(entry.relative_to(base)))
+    xnames.install(work)""")
+    source=source.replace("    with ExitStack() as stack:","""    real_namespace=J.namespace
+    namespace_checks=[]
+    def checked_namespace(*args):
+        argv=real_namespace(*args)
+        with patch.object(J.subprocess,'run',original_run),patch.object(J.subprocess,'Popen',original_popen):
+            mapped=original_run(['/bin/echo',*argv],capture_output=True,text=True,check=True).stdout.split()
+        for arg in mapped:xnames.scan(arg)
+        shell=(package/'vllm_isolated.sh').read_text()
+        import shlex
+        target=shlex.split(shell.splitlines()[1])[1]
+        assert target.startswith(str(J.AP)+'/')
+        assert str(J.AP) in mapped
+        namespace_checks.append(dict(argv=mapped,exec_target=target,root=str(args[0]),passed=True))
+        return argv
+    with ExitStack() as stack:""")
+    source=source.replace("(J,'namespace',lambda *a:[])","(J,'namespace',checked_namespace)")
+    source=source.replace("    result['config_mode']=config['mode']", "    result['namespace_checks']=namespace_checks\n    result['config_mode']=config['mode']")
 # The source is retained so the exact fixture changes can be audited.
 WORK.parent.mkdir(parents=True,exist_ok=True)
-(WORK.parent/(WORK.name+'_source.py')).write_text(source)
+((scratch if '--nonshm' in sys.argv else WORK.parent)/(WORK.name+'_source.py')).write_text(source)
 lines={}
 rootstr=str(ROOT)
 def tracer(frame,event,arg):
@@ -121,11 +181,11 @@ def tracer(frame,event,arg):
 sys.settrace(tracer);threading.settrace(tracer)
 try:
     scope={'__name__':'fixture_module','__file__':str(Path(__file__).resolve())}
-    exec(compile(source,str(WORK.parent/(WORK.name+'_source.py')),'exec'),scope)
+    exec(compile(source,str((scratch if '--nonshm' in sys.argv else WORK.parent)/(WORK.name+'_source.py')),'exec'),scope)
     result=scope['run'](WORK)
     print(json.dumps({k:v for k,v in result.items() if k!='config'},indent=2))
 finally:
     sys.settrace(None);threading.settrace(None)
-    (WORK.parent/('coverage_'+key+('_done' if '--done' in sys.argv else '')+'.json')).write_text(json.dumps({n:sorted(v) for n,v in sorted(lines.items())},indent=1)+'\n')
+    ((scratch if '--nonshm' in sys.argv else WORK.parent)/('coverage_'+key+('_done' if '--done' in sys.argv else '')+'.json')).write_text(json.dumps({n:sorted(v) for n,v in sorted(lines.items())},indent=1)+'\n')
     import hashlib
-    (WORK.parent/('coverage_'+key+('_done' if '--done' in sys.argv else '')+'_pins.json')).write_text(json.dumps({n:hashlib.sha256(Path(n).read_bytes()).hexdigest() for n in lines if Path(n).is_file()},indent=1)+'\n')
+    ((scratch if '--nonshm' in sys.argv else WORK.parent)/('coverage_'+key+('_done' if '--done' in sys.argv else '')+'_pins.json')).write_text(json.dumps({n:hashlib.sha256(Path(n).read_bytes()).hexdigest() for n in lines if Path(n).is_file()},indent=1)+'\n')

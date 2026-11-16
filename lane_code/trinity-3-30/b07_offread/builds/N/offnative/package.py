@@ -9,14 +9,14 @@ from .io import dump,sha,tar_bytes
 
 def package(staging):
     staging=Path(staging)
-    if not staging.is_relative_to(Path("/dev/shm/b07_n6")):raise ValueError("build staging must be in RAM")
+    if not staging.is_relative_to(Path("/dev/shm/b07_n7")):raise ValueError("build staging must be in RAM")
     staging.mkdir(parents=True,exist_ok=False)
     from .portable import sources,ROOTS
     files,dependencies=sources()
     local=[ROOT/'native_read.py']+sorted((ROOT/'kit/tests').glob('*.py'))
     local += [ROOT/n for n in ('RUN.md','SIZING.md','DIFF.md','OPEN_INPUTS.md')]
     local += [ROOT/'out'/n for n in ('OPEN_INPUTS.md','MODULE_MAP.md','ORCHARD_ONLY.md',
-        'N5_VALIDATION.json','N4_MEDIA_EVIDENCE.json','N4_SHARD_PLAN.json','N5_REVIEW_ORIGINAL.json')]
+        'N7_VALIDATION.json','N4_MEDIA_EVIDENCE.json','N6_SHARD_PLAN.json','N5_REVIEW_ORIGINAL.json')]
     for p in local:files[str(p.relative_to(ROOT))]=p.read_bytes()
     files['r.json']=json.dumps(ROOTS,sort_keys=True,indent=2).encode()+b'\n'
     from .opacity import pack,path_name,scan_members
@@ -24,15 +24,16 @@ def package(staging):
     names={path_name(n):n for n in files}
     files,archive_pins=pack(files)
     files['out/ARCHIVE_TRANSPORT.json']=json.dumps(archive_pins,sort_keys=True).encode()
-    dump(ROOT/'out/N5_MEMBER_MAP.json',names)
+    if 'x0.json' in files:
+        from .opacity import runtime_table
+        files['x0.json']=runtime_table(json.loads(files['x0.json'])['sources'],payload=files)
+    dump(ROOT/'out/N7_MEMBER_MAP.json',names)
     raw=gzip.compress(tar_bytes(files),mtime=0)
     scan_members(raw)
     staged=staging/'code.tar';staged.write_bytes(raw)
     archive=ROOT/'out/code.tar'
-    if archive.exists():
-        previous=archive.with_name('code.before_n5.'+sha(archive)[:12]+'.tar')
-        if previous.exists():raise ValueError('previous archive already retained')
-        archive.rename(previous)
+    if archive.exists() and not (ROOT/'out/N7_PREVIOUS_CODE.json').exists():
+        dump(ROOT/'out/N7_PREVIOUS_CODE.json',dict(sha256=sha(archive),bytes=archive.stat().st_size))
     archive.write_bytes(staged.read_bytes())
     pins=[dict(path=name,sha256=hashlib.sha256(data).hexdigest(),bytes=len(data))
           for name,data in sorted(files.items())]

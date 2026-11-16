@@ -111,7 +111,7 @@ def test_import_from_reader_root(tmp_path):
     root=tmp_path/'reader';(root/'e2e_reader').mkdir(parents=True)
     (root/'e2e_reader/__init__.py').write_text('')
     (root/'e2e_reader/real.py').write_text('def make_real(export_dir, artifact_manifest, items, *, perception_factory=None, device):\n    return lambda item: {"text":"unchanged", "finish":"eos"}\n')
-    code='from h1eval.h10.launch import reader_factory; f=reader_factory('+repr(str(root))+'); assert f(None,None,[],device="cpu")({})["text"]=="unchanged"'
+    code='from h1eval.h10.launch import reader_factory; f=reader_factory('+repr(str(root))+', entry="e2e_reader.real:make_real"); assert f(None,None,[],device="cpu")({})["text"]=="unchanged"'
     result=subprocess.run(['bash',str(K/'cpu.sh'),'-c',code],capture_output=True,text=True)
     assert result.returncode==0,result.stderr
 

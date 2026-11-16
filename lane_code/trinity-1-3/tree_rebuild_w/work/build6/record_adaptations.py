@@ -17,6 +17,7 @@ for p in sorted(T.rglob('*.py')):
              'The qualified-name fixture retains its OFF refusal and tests the earlier exact-name refusal ON.',
              'The validation fixture retains its nonmutation check and authenticates the implicit heading threshold added by the accepted identity contract.',
              'The memory fixture retains the legacy configuration and FP32 output hashes, and checks ON threshold binding plus explicit OFF identity semantics.',
+             'The byte-level memory fixture explicitly uses its original one-thread CPU reduction order and restores the previous setting; proofs/tensor_threads/RESULTS.json reproduces the original hashes and the eight-thread difference without changing encoder source.',
              'The launch-gate equality assertion remains; added cases require its standalone identity mirror to match the native ON/OFF and invalid-threshold rules.',
              'Synthetic metric bank entries include their asked unit; both score views use ordered unit rows that preserve order under native serialization.',
              'The packet changes its two legacy test files verbatim, as authenticated by the patch manifest.',

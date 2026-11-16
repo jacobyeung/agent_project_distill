@@ -1,0 +1,1112 @@
+[
+  {
+    "id": "ground-78c09d21571306f1c72e1155d343af75fe8b107fb2b13f7b633d057180767420",
+    "type": "object_abs_distance",
+    "calls": [
+      {
+        "call": "<ground obj=\"sofa\" mode=\"box\">",
+        "response": "sofa: frames 15,19,20,21 (best 21)\nB1: f1 centre (6.03, -1.09, 3.72) m\nsize 0.83 x 0.51 x 0.65 m\nyaw 168 deg (0 = +x; positive +x toward -z about +y)",
+        "kind": "ground",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": null,
+          "instance_metadata": [
+            {
+              "areas": {
+                "15": 0.00328125,
+                "19": 0.005846354166666666,
+                "20": 0.005846354166666666,
+                "21": 0.011796875
+              },
+              "instance_id": "sofa:000"
+            }
+          ],
+          "full_precision_box": {
+            "centre": [
+              6.0271574091812,
+              -1.086893067193279,
+              3.7175530673499693
+            ],
+            "lengths": [
+              0.8337974966386419,
+              0.5106691559523218,
+              0.652076404100518
+            ],
+            "axes": [
+              [
+                -0.9776454629741825,
+                0.0,
+                -0.21026019291819445
+              ],
+              [
+                0.21026019291819445,
+                0.0,
+                -0.9776454629741825
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "box_label": "B1",
+          "full_precision_gap_box": {
+            "centre": [
+              6.0096732650548335,
+              -1.086893067193279,
+              3.8044609504873663
+            ],
+            "lengths": [
+              0.8303310373261912,
+              0.32424179758552096,
+              0.652076404100518
+            ],
+            "axes": [
+              [
+                -0.9690919298649788,
+                0.0,
+                -0.24669988137526738
+              ],
+              [
+                0.24669988137526738,
+                0.0,
+                -0.9690919298649788
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "gap_operands": [
+            "best_view"
+          ]
+        }
+      },
+      {
+        "call": "<ground obj=\"dishwasher\" mode=\"box\">",
+        "response": "dishwasher: frames 3,14 (best 14)\nB2: f1 centre (-2.08, -0.79, 4.02) m\nsize 0.58 x 0.05 x 0.75 m\nyaw -3 deg (0 = +x; positive +x toward -z about +y)",
+        "kind": "ground",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": null,
+          "instance_metadata": [
+            {
+              "areas": {
+                "3": 0.010325520833333334,
+                "14": 0.037018229166666666
+              },
+              "instance_id": "dishwasher:000"
+            }
+          ],
+          "full_precision_box": {
+            "centre": [
+              -2.077569781819372,
+              -0.7891484228208157,
+              4.015481981674255
+            ],
+            "lengths": [
+              0.5787296200349523,
+              0.050318783475185924,
+              0.7474607529707228
+            ],
+            "axes": [
+              [
+                0.9989607414243267,
+                0.0,
+                0.04557891061620098
+              ],
+              [
+                -0.04557891061620098,
+                0.0,
+                0.9989607414243267
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "box_label": "B2",
+          "full_precision_gap_box": {
+            "centre": [
+              -2.077614829942282,
+              -0.7919151257711672,
+              4.01641243405118
+            ],
+            "lengths": [
+              0.579285161144264,
+              0.04540715195488776,
+              0.7419273470700198
+            ],
+            "axes": [
+              [
+                0.998291118859057,
+                0.0,
+                0.058436649520075455
+              ],
+              [
+                -0.058436649520075455,
+                0.0,
+                0.998291118859057
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "gap_operands": [
+            "best_view"
+          ]
+        }
+      },
+      {
+        "call": "<gap a=\"sofa\" b=\"dishwasher\" rule=\"box_grid_5cm\">",
+        "response": "distance 7.36 m",
+        "kind": "gap",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": "box_grid_5cm",
+          "sampler": {
+            "rule": "box_grid_5cm",
+            "step": 0.05,
+            "inner_half_box_removed": true,
+            "dtype": "float64",
+            "instances": "min_over_pairs"
+          },
+          "ordered_box_labels": [
+            "B1",
+            "B2"
+          ]
+        }
+      }
+    ],
+    "mask_match": {
+      "ok": false,
+      "applicable": true,
+      "operands": [
+        {
+          "name": "sofa",
+          "gt_instance": 19,
+          "support": 4,
+          "match_fraction": 0.0,
+          "ok": false
+        },
+        {
+          "name": "dishwasher",
+          "gt_instance": 9,
+          "support": 2,
+          "match_fraction": 0.5,
+          "ok": true
+        }
+      ]
+    },
+    "synthetic": false,
+    "decision": {
+      "label": "left_out",
+      "reason": "numeric_or_instance_mismatch",
+      "value": 7.36
+    }
+  },
+  {
+    "id": "ground-2c69f3635e52d0c999fa2b4a6742172633cd456640ced974e2d99f2092e6fac5",
+    "type": "object_abs_distance",
+    "calls": [
+      {
+        "call": "<ground obj=\"refrigerator\" mode=\"box\">",
+        "response": "refrigerator: frames 5,7,31,32 (best 7)\nB1: f1 centre (-1.77, -0.33, 1.15) m\nsize 0.90 x 0.41 x 1.44 m\nyaw -47 deg (0 = +x; positive +x toward -z about +y)",
+        "kind": "ground",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": null,
+          "instance_metadata": [
+            {
+              "areas": {
+                "5": 0.04018229166666667,
+                "7": 0.17147135416666667,
+                "31": 0.014296875,
+                "32": 0.0058203125
+              },
+              "instance_id": "refrigerator:002"
+            }
+          ],
+          "full_precision_box": {
+            "centre": [
+              -1.773103827956821,
+              -0.3298783883093679,
+              1.146596363605496
+            ],
+            "lengths": [
+              0.9046800452880146,
+              0.41120359352441316,
+              1.4382496272629477
+            ],
+            "axes": [
+              [
+                0.6783377903375207,
+                0.0,
+                0.7347501903368313
+              ],
+              [
+                -0.7347501903368313,
+                0.0,
+                0.6783377903375207
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "box_label": "B1",
+          "full_precision_gap_box": {
+            "centre": [
+              -1.944491070910844,
+              -0.11164773399329764,
+              0.9475371129809886
+            ],
+            "lengths": [
+              0.546421185630809,
+              0.08060009615078778,
+              0.8785615869114256
+            ],
+            "axes": [
+              [
+                0.054356269282657195,
+                0.0,
+                -0.9985216051691977
+              ],
+              [
+                0.9985216051691977,
+                0.0,
+                0.054356269282657195
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "gap_operands": [
+            "best_view"
+          ]
+        }
+      },
+      {
+        "call": "<ground obj=\"dishwasher\" mode=\"box\">",
+        "response": "dishwasher: frames 3,14 (best 14)\nB2: f1 centre (-2.08, -0.79, 4.02) m\nsize 0.58 x 0.05 x 0.75 m\nyaw -3 deg (0 = +x; positive +x toward -z about +y)",
+        "kind": "ground",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": null,
+          "instance_metadata": [
+            {
+              "areas": {
+                "3": 0.010325520833333334,
+                "14": 0.037018229166666666
+              },
+              "instance_id": "dishwasher:000"
+            }
+          ],
+          "full_precision_box": {
+            "centre": [
+              -2.077569781819372,
+              -0.7891484228208157,
+              4.015481981674255
+            ],
+            "lengths": [
+              0.5787296200349523,
+              0.050318783475185924,
+              0.7474607529707228
+            ],
+            "axes": [
+              [
+                0.9989607414243267,
+                0.0,
+                0.04557891061620098
+              ],
+              [
+                -0.04557891061620098,
+                0.0,
+                0.9989607414243267
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "box_label": "B2",
+          "full_precision_gap_box": {
+            "centre": [
+              -2.077614829942282,
+              -0.7919151257711672,
+              4.01641243405118
+            ],
+            "lengths": [
+              0.579285161144264,
+              0.04540715195488776,
+              0.7419273470700198
+            ],
+            "axes": [
+              [
+                0.998291118859057,
+                0.0,
+                0.058436649520075455
+              ],
+              [
+                -0.058436649520075455,
+                0.0,
+                0.998291118859057
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "gap_operands": [
+            "best_view"
+          ]
+        }
+      },
+      {
+        "call": "<gap a=\"refrigerator\" b=\"dishwasher\" rule=\"box_grid_5cm\">",
+        "response": "distance 2.78 m",
+        "kind": "gap",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": "box_grid_5cm",
+          "sampler": {
+            "rule": "box_grid_5cm",
+            "step": 0.05,
+            "inner_half_box_removed": true,
+            "dtype": "float64",
+            "instances": "min_over_pairs"
+          },
+          "ordered_box_labels": [
+            "B1",
+            "B2"
+          ]
+        }
+      }
+    ],
+    "mask_match": {
+      "ok": true,
+      "applicable": true,
+      "operands": [
+        {
+          "name": "refrigerator",
+          "gt_instance": 22,
+          "support": 4,
+          "match_fraction": 0.75,
+          "ok": true
+        },
+        {
+          "name": "dishwasher",
+          "gt_instance": 9,
+          "support": 2,
+          "match_fraction": 0.5,
+          "ok": true
+        }
+      ]
+    },
+    "synthetic": false,
+    "decision": {
+      "label": "trust",
+      "reason": "agrees_and_instance_matches",
+      "value": 2.78
+    }
+  },
+  {
+    "id": "ground-5c112722b84fc295e19cec4941465dbacadc08c6816f3808c44ec84cb59780a2",
+    "type": "object_abs_distance",
+    "calls": [
+      {
+        "call": "<ground obj=\"sofa\" mode=\"box\">",
+        "response": "sofa: frames 15,19,20,21 (best 21)\nB1: f1 centre (6.03, -1.09, 3.72) m\nsize 0.83 x 0.51 x 0.65 m\nyaw 168 deg (0 = +x; positive +x toward -z about +y)",
+        "kind": "ground",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": null,
+          "instance_metadata": [
+            {
+              "areas": {
+                "15": 0.00328125,
+                "19": 0.005846354166666666,
+                "20": 0.005846354166666666,
+                "21": 0.011796875
+              },
+              "instance_id": "sofa:000"
+            }
+          ],
+          "full_precision_box": {
+            "centre": [
+              6.0271574091812,
+              -1.086893067193279,
+              3.7175530673499693
+            ],
+            "lengths": [
+              0.8337974966386419,
+              0.5106691559523218,
+              0.652076404100518
+            ],
+            "axes": [
+              [
+                -0.9776454629741825,
+                0.0,
+                -0.21026019291819445
+              ],
+              [
+                0.21026019291819445,
+                0.0,
+                -0.9776454629741825
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "box_label": "B1",
+          "full_precision_gap_box": {
+            "centre": [
+              6.0096732650548335,
+              -1.086893067193279,
+              3.8044609504873663
+            ],
+            "lengths": [
+              0.8303310373261912,
+              0.32424179758552096,
+              0.652076404100518
+            ],
+            "axes": [
+              [
+                -0.9690919298649788,
+                0.0,
+                -0.24669988137526738
+              ],
+              [
+                0.24669988137526738,
+                0.0,
+                -0.9690919298649788
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "gap_operands": [
+            "best_view"
+          ]
+        }
+      },
+      {
+        "call": "<ground obj=\"stove\" mode=\"box\">",
+        "response": "stove: frames 12 (best 12)\nB2: f1 centre (-3.65, -0.30, 0.93) m\nsize 0.84 x 0.17 x 0.13 m\nyaw -142 deg (0 = +x; positive +x toward -z about +y)",
+        "kind": "ground",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": null,
+          "instance_metadata": [
+            {
+              "areas": {
+                "12": 0.036536458333333334
+              },
+              "instance_id": "stove:006"
+            }
+          ],
+          "full_precision_box": {
+            "centre": [
+              -3.6455180344345433,
+              -0.30172766195744916,
+              0.9262719152635193
+            ],
+            "lengths": [
+              0.8433735344531299,
+              0.16599517140211661,
+              0.13373774497870133
+            ],
+            "axes": [
+              [
+                -0.7926530623733312,
+                0.0,
+                0.6096729637356243
+              ],
+              [
+                -0.6096729637356243,
+                0.0,
+                -0.7926530623733312
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "box_label": "B2",
+          "full_precision_gap_box": {
+            "centre": [
+              -3.6455180344345433,
+              -0.30172766195744916,
+              0.9262719152635193
+            ],
+            "lengths": [
+              0.8433735344531299,
+              0.16599517140211661,
+              0.13373774497870133
+            ],
+            "axes": [
+              [
+                -0.7926530623733312,
+                0.0,
+                0.6096729637356243
+              ],
+              [
+                -0.6096729637356243,
+                0.0,
+                -0.7926530623733312
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "gap_operands": [
+            "best_view"
+          ]
+        }
+      },
+      {
+        "call": "<gap a=\"sofa\" b=\"stove\" rule=\"box_grid_5cm\">",
+        "response": "distance 9.35 m",
+        "kind": "gap",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": "box_grid_5cm",
+          "sampler": {
+            "rule": "box_grid_5cm",
+            "step": 0.05,
+            "inner_half_box_removed": true,
+            "dtype": "float64",
+            "instances": "min_over_pairs"
+          },
+          "ordered_box_labels": [
+            "B1",
+            "B2"
+          ]
+        }
+      }
+    ],
+    "mask_match": {
+      "ok": false,
+      "applicable": true,
+      "operands": [
+        {
+          "name": "sofa",
+          "gt_instance": 19,
+          "support": 4,
+          "match_fraction": 0.0,
+          "ok": false
+        },
+        {
+          "name": "stove",
+          "gt_instance": 3,
+          "support": 1,
+          "match_fraction": 1.0,
+          "ok": true
+        }
+      ]
+    },
+    "synthetic": false,
+    "decision": {
+      "label": "left_out",
+      "reason": "numeric_or_instance_mismatch",
+      "value": 9.35
+    }
+  },
+  {
+    "id": "ground-a4cf736f6d35ec66d7c3874facc562b5ebfff41daf9f69db14a1afa7dabc8361",
+    "type": "object_abs_distance",
+    "calls": [
+      {
+        "call": "<ground obj=\"refrigerator\" mode=\"box\">",
+        "response": "refrigerator: frames 5,7,31,32 (best 7)\nB1: f1 centre (-1.77, -0.33, 1.15) m\nsize 0.90 x 0.41 x 1.44 m\nyaw -47 deg (0 = +x; positive +x toward -z about +y)",
+        "kind": "ground",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": null,
+          "instance_metadata": [
+            {
+              "areas": {
+                "5": 0.04018229166666667,
+                "7": 0.17147135416666667,
+                "31": 0.014296875,
+                "32": 0.0058203125
+              },
+              "instance_id": "refrigerator:002"
+            }
+          ],
+          "full_precision_box": {
+            "centre": [
+              -1.773103827956821,
+              -0.3298783883093679,
+              1.146596363605496
+            ],
+            "lengths": [
+              0.9046800452880146,
+              0.41120359352441316,
+              1.4382496272629477
+            ],
+            "axes": [
+              [
+                0.6783377903375207,
+                0.0,
+                0.7347501903368313
+              ],
+              [
+                -0.7347501903368313,
+                0.0,
+                0.6783377903375207
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "box_label": "B1",
+          "full_precision_gap_box": {
+            "centre": [
+              -1.944491070910844,
+              -0.11164773399329764,
+              0.9475371129809886
+            ],
+            "lengths": [
+              0.546421185630809,
+              0.08060009615078778,
+              0.8785615869114256
+            ],
+            "axes": [
+              [
+                0.054356269282657195,
+                0.0,
+                -0.9985216051691977
+              ],
+              [
+                0.9985216051691977,
+                0.0,
+                0.054356269282657195
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "gap_operands": [
+            "best_view"
+          ]
+        }
+      },
+      {
+        "call": "<ground obj=\"stove\" mode=\"box\">",
+        "response": "stove: frames 12 (best 12)\nB2: f1 centre (-3.65, -0.30, 0.93) m\nsize 0.84 x 0.17 x 0.13 m\nyaw -142 deg (0 = +x; positive +x toward -z about +y)",
+        "kind": "ground",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": null,
+          "instance_metadata": [
+            {
+              "areas": {
+                "12": 0.036536458333333334
+              },
+              "instance_id": "stove:006"
+            }
+          ],
+          "full_precision_box": {
+            "centre": [
+              -3.6455180344345433,
+              -0.30172766195744916,
+              0.9262719152635193
+            ],
+            "lengths": [
+              0.8433735344531299,
+              0.16599517140211661,
+              0.13373774497870133
+            ],
+            "axes": [
+              [
+                -0.7926530623733312,
+                0.0,
+                0.6096729637356243
+              ],
+              [
+                -0.6096729637356243,
+                0.0,
+                -0.7926530623733312
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "box_label": "B2",
+          "full_precision_gap_box": {
+            "centre": [
+              -3.6455180344345433,
+              -0.30172766195744916,
+              0.9262719152635193
+            ],
+            "lengths": [
+              0.8433735344531299,
+              0.16599517140211661,
+              0.13373774497870133
+            ],
+            "axes": [
+              [
+                -0.7926530623733312,
+                0.0,
+                0.6096729637356243
+              ],
+              [
+                -0.6096729637356243,
+                0.0,
+                -0.7926530623733312
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "gap_operands": [
+            "best_view"
+          ]
+        }
+      },
+      {
+        "call": "<gap a=\"refrigerator\" b=\"stove\" rule=\"box_grid_5cm\">",
+        "response": "distance 1.29 m",
+        "kind": "gap",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": "box_grid_5cm",
+          "sampler": {
+            "rule": "box_grid_5cm",
+            "step": 0.05,
+            "inner_half_box_removed": true,
+            "dtype": "float64",
+            "instances": "min_over_pairs"
+          },
+          "ordered_box_labels": [
+            "B1",
+            "B2"
+          ]
+        }
+      }
+    ],
+    "mask_match": {
+      "ok": true,
+      "applicable": true,
+      "operands": [
+        {
+          "name": "refrigerator",
+          "gt_instance": 22,
+          "support": 4,
+          "match_fraction": 0.75,
+          "ok": true
+        },
+        {
+          "name": "stove",
+          "gt_instance": 3,
+          "support": 1,
+          "match_fraction": 1.0,
+          "ok": true
+        }
+      ]
+    },
+    "synthetic": false,
+    "decision": {
+      "label": "trust",
+      "reason": "agrees_and_instance_matches",
+      "value": 1.29
+    }
+  },
+  {
+    "id": "ground-65824a017be989efca1809aa681cf64c734c932a5560729d83eb77a43057694e",
+    "type": "object_abs_distance",
+    "calls": [
+      {
+        "call": "<ground obj=\"dishwasher\" mode=\"box\">",
+        "response": "dishwasher: frames 3,14 (best 14)\nB1: f1 centre (-2.08, -0.79, 4.02) m\nsize 0.58 x 0.05 x 0.75 m\nyaw -3 deg (0 = +x; positive +x toward -z about +y)",
+        "kind": "ground",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": null,
+          "instance_metadata": [
+            {
+              "areas": {
+                "3": 0.010325520833333334,
+                "14": 0.037018229166666666
+              },
+              "instance_id": "dishwasher:000"
+            }
+          ],
+          "full_precision_box": {
+            "centre": [
+              -2.077569781819372,
+              -0.7891484228208157,
+              4.015481981674255
+            ],
+            "lengths": [
+              0.5787296200349523,
+              0.050318783475185924,
+              0.7474607529707228
+            ],
+            "axes": [
+              [
+                0.9989607414243267,
+                0.0,
+                0.04557891061620098
+              ],
+              [
+                -0.04557891061620098,
+                0.0,
+                0.9989607414243267
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "box_label": "B1",
+          "full_precision_gap_box": {
+            "centre": [
+              -2.077614829942282,
+              -0.7919151257711672,
+              4.01641243405118
+            ],
+            "lengths": [
+              0.579285161144264,
+              0.04540715195488776,
+              0.7419273470700198
+            ],
+            "axes": [
+              [
+                0.998291118859057,
+                0.0,
+                0.058436649520075455
+              ],
+              [
+                -0.058436649520075455,
+                0.0,
+                0.998291118859057
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "gap_operands": [
+            "best_view"
+          ]
+        }
+      },
+      {
+        "call": "<ground obj=\"stove\" mode=\"box\">",
+        "response": "stove: frames 12 (best 12)\nB2: f1 centre (-3.65, -0.30, 0.93) m\nsize 0.84 x 0.17 x 0.13 m\nyaw -142 deg (0 = +x; positive +x toward -z about +y)",
+        "kind": "ground",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": null,
+          "instance_metadata": [
+            {
+              "areas": {
+                "12": 0.036536458333333334
+              },
+              "instance_id": "stove:006"
+            }
+          ],
+          "full_precision_box": {
+            "centre": [
+              -3.6455180344345433,
+              -0.30172766195744916,
+              0.9262719152635193
+            ],
+            "lengths": [
+              0.8433735344531299,
+              0.16599517140211661,
+              0.13373774497870133
+            ],
+            "axes": [
+              [
+                -0.7926530623733312,
+                0.0,
+                0.6096729637356243
+              ],
+              [
+                -0.6096729637356243,
+                0.0,
+                -0.7926530623733312
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "box_label": "B2",
+          "full_precision_gap_box": {
+            "centre": [
+              -3.6455180344345433,
+              -0.30172766195744916,
+              0.9262719152635193
+            ],
+            "lengths": [
+              0.8433735344531299,
+              0.16599517140211661,
+              0.13373774497870133
+            ],
+            "axes": [
+              [
+                -0.7926530623733312,
+                0.0,
+                0.6096729637356243
+              ],
+              [
+                -0.6096729637356243,
+                0.0,
+                -0.7926530623733312
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "gap_operands": [
+            "best_view"
+          ]
+        }
+      },
+      {
+        "call": "<gap a=\"dishwasher\" b=\"stove\" rule=\"box_grid_5cm\">",
+        "response": "distance 3.14 m",
+        "kind": "gap",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": "box_grid_5cm",
+          "sampler": {
+            "rule": "box_grid_5cm",
+            "step": 0.05,
+            "inner_half_box_removed": true,
+            "dtype": "float64",
+            "instances": "min_over_pairs"
+          },
+          "ordered_box_labels": [
+            "B1",
+            "B2"
+          ]
+        }
+      }
+    ],
+    "mask_match": {
+      "ok": true,
+      "applicable": true,
+      "operands": [
+        {
+          "name": "dishwasher",
+          "gt_instance": 9,
+          "support": 2,
+          "match_fraction": 0.5,
+          "ok": true
+        },
+        {
+          "name": "stove",
+          "gt_instance": 3,
+          "support": 1,
+          "match_fraction": 1.0,
+          "ok": true
+        }
+      ]
+    },
+    "synthetic": false,
+    "decision": {
+      "label": "left_out",
+      "reason": "numeric_or_instance_mismatch",
+      "value": 3.14
+    }
+  }
+]

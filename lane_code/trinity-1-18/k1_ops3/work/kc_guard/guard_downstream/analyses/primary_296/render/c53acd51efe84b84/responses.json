@@ -1,0 +1,440 @@
+[
+  {
+    "id": "ground-47398725dc5c01dc90a5923408f7216de4b6bdec8bba7482e4b1dca77c91e03f",
+    "type": "object_abs_distance",
+    "calls": [
+      {
+        "call": "<ground obj=\"toilet\" mode=\"box\">",
+        "response": "toilet: frames 29 (best 29)\nB1: f1 centre (-1.88, -0.57, 1.47) m\nsize 0.33 x 0.17 x 0.49 m\nyaw -148 deg (0 = +x; positive +x toward -z about +y)",
+        "kind": "ground",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": null,
+          "instance_metadata": [
+            {
+              "areas": {
+                "29": 0.0155859375
+              },
+              "instance_id": "toilet:000"
+            }
+          ],
+          "full_precision_box": {
+            "centre": [
+              -1.8767902369513585,
+              -0.574741130576892,
+              1.472761649342174
+            ],
+            "lengths": [
+              0.3338772234145635,
+              0.1734838409657576,
+              0.49029083096527337
+            ],
+            "axes": [
+              [
+                -0.8466771049956183,
+                0.0,
+                0.5321070191946716
+              ],
+              [
+                -0.5321070191946716,
+                0.0,
+                -0.8466771049956183
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "box_label": "B1",
+          "full_precision_gap_box": {
+            "centre": [
+              -1.8767902369513585,
+              -0.574741130576892,
+              1.472761649342174
+            ],
+            "lengths": [
+              0.3338772234145635,
+              0.1734838409657576,
+              0.49029083096527337
+            ],
+            "axes": [
+              [
+                -0.8466771049956183,
+                0.0,
+                0.5321070191946716
+              ],
+              [
+                -0.5321070191946716,
+                0.0,
+                -0.8466771049956183
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "gap_operands": [
+            "best_view"
+          ]
+        }
+      },
+      {
+        "call": "<ground obj=\"tv\" mode=\"box\">",
+        "response": "tv: frames 26 (best 26)\nB2: f1 centre (-3.12, -0.40, -1.67) m\nsize 0.83 x 0.03 x 0.43 m\nyaw 143 deg (0 = +x; positive +x toward -z about +y)",
+        "kind": "ground",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": null,
+          "instance_metadata": [
+            {
+              "areas": {
+                "26": 0.23143229166666668
+              },
+              "instance_id": "tv:005"
+            }
+          ],
+          "full_precision_box": {
+            "centre": [
+              -3.11769898875079,
+              -0.40053054677010835,
+              -1.6745408091213791
+            ],
+            "lengths": [
+              0.832235841698453,
+              0.03370112485298149,
+              0.4290041395190963
+            ],
+            "axes": [
+              [
+                -0.7971953862141309,
+                0.0,
+                -0.6037213895489397
+              ],
+              [
+                0.6037213895489397,
+                0.0,
+                -0.7971953862141309
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "box_label": "B2",
+          "full_precision_gap_box": {
+            "centre": [
+              -3.11769898875079,
+              -0.40053054677010835,
+              -1.6745408091213791
+            ],
+            "lengths": [
+              0.832235841698453,
+              0.03370112485298149,
+              0.4290041395190963
+            ],
+            "axes": [
+              [
+                -0.7971953862141309,
+                0.0,
+                -0.6037213895489397
+              ],
+              [
+                0.6037213895489397,
+                0.0,
+                -0.7971953862141309
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "gap_operands": [
+            "best_view"
+          ]
+        }
+      },
+      {
+        "call": "<gap a=\"toilet\" b=\"tv\" rule=\"box_grid_5cm\">",
+        "response": "distance 2.90 m",
+        "kind": "gap",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": "box_grid_5cm",
+          "sampler": {
+            "rule": "box_grid_5cm",
+            "step": 0.05,
+            "inner_half_box_removed": true,
+            "dtype": "float64",
+            "instances": "min_over_pairs"
+          },
+          "ordered_box_labels": [
+            "B1",
+            "B2"
+          ]
+        }
+      }
+    ],
+    "mask_match": {
+      "ok": true,
+      "applicable": true,
+      "operands": [
+        {
+          "name": "toilet",
+          "gt_instance": 17,
+          "support": 1,
+          "match_fraction": 1.0,
+          "ok": true
+        },
+        {
+          "name": "tv",
+          "gt_instance": 16,
+          "support": 1,
+          "match_fraction": 1.0,
+          "ok": true
+        }
+      ]
+    },
+    "synthetic": false,
+    "decision": {
+      "label": "left_out",
+      "reason": "numeric_or_instance_mismatch",
+      "value": 2.9
+    }
+  },
+  {
+    "id": "ground-aea887318bd80b47b70122088da5347c0edf9f4594e920668021d50ebef2ac47",
+    "type": "object_abs_distance",
+    "calls": [
+      {
+        "call": "<ground obj=\"bed\" mode=\"box\">",
+        "response": "bed: frames 2 (best 2)\nB1: f1 centre (3.40, -0.84, -0.02) m\nsize 1.18 x 0.86 x 0.53 m\nyaw -13 deg (0 = +x; positive +x toward -z about +y)",
+        "kind": "ground",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": null,
+          "instance_metadata": [
+            {
+              "areas": {
+                "2": 0.06486979166666666
+              },
+              "instance_id": "bed:000"
+            }
+          ],
+          "full_precision_box": {
+            "centre": [
+              3.4010567954695996,
+              -0.8417597192362163,
+              -0.01588594427070933
+            ],
+            "lengths": [
+              1.184310153869756,
+              0.8552867522400495,
+              0.534181772825104
+            ],
+            "axes": [
+              [
+                0.9736734021423736,
+                0.0,
+                0.2279475947679545
+              ],
+              [
+                -0.2279475947679545,
+                0.0,
+                0.9736734021423736
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "box_label": "B1",
+          "full_precision_gap_box": {
+            "centre": [
+              3.4010567954695996,
+              -0.8417597192362163,
+              -0.01588594427070933
+            ],
+            "lengths": [
+              1.184310153869756,
+              0.8552867522400495,
+              0.534181772825104
+            ],
+            "axes": [
+              [
+                0.9736734021423736,
+                0.0,
+                0.2279475947679545
+              ],
+              [
+                -0.2279475947679545,
+                0.0,
+                0.9736734021423736
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "gap_operands": [
+            "best_view"
+          ]
+        }
+      },
+      {
+        "call": "<ground obj=\"tv\" mode=\"box\">",
+        "response": "tv: frames 26 (best 26)\nB2: f1 centre (-3.12, -0.40, -1.67) m\nsize 0.83 x 0.03 x 0.43 m\nyaw 143 deg (0 = +x; positive +x toward -z about +y)",
+        "kind": "ground",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": null,
+          "instance_metadata": [
+            {
+              "areas": {
+                "26": 0.23143229166666668
+              },
+              "instance_id": "tv:005"
+            }
+          ],
+          "full_precision_box": {
+            "centre": [
+              -3.11769898875079,
+              -0.40053054677010835,
+              -1.6745408091213791
+            ],
+            "lengths": [
+              0.832235841698453,
+              0.03370112485298149,
+              0.4290041395190963
+            ],
+            "axes": [
+              [
+                -0.7971953862141309,
+                0.0,
+                -0.6037213895489397
+              ],
+              [
+                0.6037213895489397,
+                0.0,
+                -0.7971953862141309
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "box_label": "B2",
+          "full_precision_gap_box": {
+            "centre": [
+              -3.11769898875079,
+              -0.40053054677010835,
+              -1.6745408091213791
+            ],
+            "lengths": [
+              0.832235841698453,
+              0.03370112485298149,
+              0.4290041395190963
+            ],
+            "axes": [
+              [
+                -0.7971953862141309,
+                0.0,
+                -0.6037213895489397
+              ],
+              [
+                0.6037213895489397,
+                0.0,
+                -0.7971953862141309
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "gap_operands": [
+            "best_view"
+          ]
+        }
+      },
+      {
+        "call": "<gap a=\"bed\" b=\"tv\" rule=\"box_grid_5cm\">",
+        "response": "distance 5.76 m",
+        "kind": "gap",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": "box_grid_5cm",
+          "sampler": {
+            "rule": "box_grid_5cm",
+            "step": 0.05,
+            "inner_half_box_removed": true,
+            "dtype": "float64",
+            "instances": "min_over_pairs"
+          },
+          "ordered_box_labels": [
+            "B1",
+            "B2"
+          ]
+        }
+      }
+    ],
+    "mask_match": {
+      "ok": true,
+      "applicable": true,
+      "operands": [
+        {
+          "name": "bed",
+          "gt_instance": 20,
+          "support": 1,
+          "match_fraction": 1.0,
+          "ok": true
+        },
+        {
+          "name": "tv",
+          "gt_instance": 16,
+          "support": 1,
+          "match_fraction": 1.0,
+          "ok": true
+        }
+      ]
+    },
+    "synthetic": false,
+    "decision": {
+      "label": "trust",
+      "reason": "agrees_and_instance_matches",
+      "value": 5.76
+    }
+  }
+]

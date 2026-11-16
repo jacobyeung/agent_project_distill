@@ -8,16 +8,24 @@ files and every finding in them fails.
 Rules
   A3.table_load      a call that loads a table (json/np/pickle/torch/pandas/yaml load functions)
   A3.data_file       a string literal that names a data file (.json .npz .npy .pkl .pt .csv ...)
-  A3.constant        a numeric literal outside the reviewed allowlist (allowlist.json)
+  A3.constant        a numeric literal outside the reviewed allowlist (allowlist.json), a constant-only
+                     expression whose value is outside it (`(2+3)**2`), or a multiplicative or additive chain whose
+                     combined constant factor or offset is outside it (`x*4*25`); integer shape arguments of
+                     reshape/view/permute-like calls are exempt; `declared_constants` lists reviewed model constants
+  A3.reformat        a precision choice outside the model: round(), .round(), format specs (`{x:.2f}`, `%.2f`,
+                     format(x, '.2f')); USER 2026-11-16: number formatting is done by the model in its CoT
   A3.unit_conversion an identifier or string naming a unit other than the head's own (feet, inches, cm, mm,
                      square feet, yards, degrees) or a unit-conversion helper (USER ruling 2026-11-16: the model
                      converts units and formats answers in its CoT)
-  A3.threshold       a comparison in a branch test against a non-allowlisted number, an UPPER_CASE
-                     name, a threshold-like name, or a config/table lookup
+  A3.threshold       an ordering comparison against a number outside `threshold_numbers` (0, 1, -1), an
+                     UPPER_CASE name, a threshold-like name, an attribute (`self.settings.edge`), or a config/table
+                     lookup; and any comparison or clamp API (torch.gt, np.less, clamp, clip, threshold, ...)
   A4.guard           an identifier naming a guard, fallback, refusal, veto, substitution or rejection
   A4.status_literal  a status string ('not seen', 'unavailable', 'refused', 'error: ' ...) outside the
                      reviewed head-status formatters
-  A4.except_substitute an except-handler that returns or assigns a substitute value
+  A4.except_substitute an except-handler that does not end by raising (a return, an assignment, an empty
+                     return or `pass` all let a substitute flow on)
+  A4.or_fallback     `x or <literal holding a number>`: a literal substitutes a falsy result
   A5.cache           an identifier or string naming a precomputed tower/mask/feature/geometry cache
   A2.response_outside_model  response text ('tool_response') produced in code that is not a method of
                      a torch module class
@@ -26,11 +34,35 @@ Rules
 import ast
 import json
 import re
+from collections import Counter
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 TABLE_LOADERS = {'load', 'loads', 'loadtxt', 'genfromtxt', 'fromfile', 'read_csv', 'read_json', 'read_parquet',
-                 'safe_load', 'full_load', 'read_pickle', 'load_file', 'load_npz', 'rows', 'unpack_archive'}
+                 'safe_load', 'full_load', 'read_pickle', 'load_file', 'load_npz', 'rows', 'unpack_archive',
+                 'read_text', 'read_bytes', 'literal_eval', 'frombuffer', 'fromstring', 'memmap', 'JSONDecoder',
+                 'raw_decode', 'Unpickler', 'unpackb', 'eval', 'exec'}
+COMPARE_CALLS = {'gt', 'lt', 'ge', 'le', 'greater', 'less', 'greater_equal', 'less_equal', 'clamp', 'clamp_',
+                 'clamp_min', 'clamp_max', 'clip', 'clip_', 'threshold', 'heaviside', 'searchsorted', 'bucketize',
+                 'digitize'}
+SHAPE_CALLS = {'reshape', 'view', 'permute', 'transpose', 'unsqueeze', 'squeeze', 'flatten', 'unflatten', 'expand',
+               'movedim', 'swapaxes', 'chunk', 'split', 'narrow', 'select', 'zeros', 'ones', 'empty', 'new_zeros',
+               'new_ones', 'new_empty', 'arange', 'eye', 'size', 'repeat', 'tile'}
+ROUND_CALLS = {'round', 'around', 'round_'}
+UNIT_NORMAL = [(re.compile(r'^(sq\.? ?ft|ft2|sqft)$', re.I), 'ft2'), (re.compile(r'^(feet|foot|ft)$', re.I), 'ft'),
+               (re.compile(r'^(inch(es)?|in)$', re.I), 'in'), (re.compile(r'^(centimet\w*|cm)$', re.I), 'cm'),
+               (re.compile(r'^(millimet\w*|mm)$', re.I), 'mm'), (re.compile(r'^(yards?|yd)$', re.I), 'yd'),
+               (re.compile(r'^(degrees?|deg|°)$', re.I), 'deg')]
+UNIT_TOKEN = re.compile(r'sq\.? ?ft|ft2|sqft|feet|foot|inch(?:es)?|centimet\w*|millimet\w*|yards?|degrees?|°|'
+                        r'(?<=\d)\s?(?:ft|in|cm|mm)\b|(?<=\})\s?(?:ft|in|cm|mm)\b|^\s?(?:ft|in|cm|mm|yd)\b', re.I)
+
+
+def unit_names(text):
+    out = set()
+    for m in UNIT_TOKEN.finditer(text):
+        tok = m.group(0).strip()
+        out.add(next((n for rx, n in UNIT_NORMAL if rx.match(tok)), tok.lower()))
+    return out
 DATA_FILE = re.compile(r'\.(json|jsonl|npz|npy|pkl|pickle|pt|pth|ckpt|csv|tsv|safetensors|bin|h5|hdf5|parquet|'
                        r'yaml|yml|tar|tgz|gz)\b', re.I)
 GUARD = re.compile(r'guard|fallback|refus|substitut|veto|reject', re.I)
@@ -63,11 +95,13 @@ def load_allowlist(path=None, extra=None):
     data = json.loads(Path(path or HERE/'allowlist.json').read_text())
     for p in extra or ():
         more = json.loads(Path(p).read_text())
-        for key in ('numbers', 'threshold_exempt_names'):
+        for key in ('numbers', 'threshold_exempt_names', 'native_units'):
             data.setdefault(key, {}).update(more.get(key, {}))
-        for key in ('loader_functions', 'head_status_formatters', 'suppress'):
+        for key in ('loader_functions', 'head_status_formatters', 'suppress', 'declared_constants'):
             data[key] = list(data.get(key, []))+list(more.get(key, []))
     data['_values'] = {float(k) for k in data['numbers']}
+    data['_threshold_values'] = {float(k) for k in data.get('threshold_numbers', ['0', '1', '-1'])}
+    data['_native_units'] = set(data.get('native_units', {}))
     return data
 
 
@@ -95,7 +129,7 @@ class _Visitor(ast.NodeVisitor):
         self.lines = source.splitlines()
         self.findings = []
         self.parents = []
-        self.func_stack, self.class_stack = [], []
+        self.func_stack, self.class_stack, self.const_stack = [], [], []
         self.loader_ok = [e.split('::') for e in allow.get('loader_functions', [])]
         self.status_ok = [e.split('::') for e in allow.get('head_status_formatters', [])]
 
@@ -114,6 +148,85 @@ class _Visitor(ast.NodeVisitor):
         func = self.func_stack[-1] if self.func_stack else '<module>'
         path = str(self.path)
         return any((path.endswith('/'+f) or self.rel == f) and fn == func for f, fn in entries)
+
+    def declared(self, value):
+        """A reviewed model constant: allowlist `declared_constants` entry {file, function, value, reason}."""
+        path, func = str(self.path), self.qualname()
+        return any((path.endswith('/'+d['file']) or self.rel == d['file']) and d.get('function') == func
+                   and abs(float(d['value'])-float(value)) <= 1e-12*max(1., abs(float(value)))
+                   for d in self.allow.get('declared_constants', []))
+
+    def ok_value(self, value):
+        v = float(value)
+        return any(abs(v-a) <= 1e-9*max(1., abs(a)) for a in self.allow['_values']) or self.declared(value)
+
+    # constant folding (constant-only expressions, and names bound once to one in the same function)
+    def fold(self, node):
+        v = _number(node)
+        if v is not None:
+            return float(v)
+        if isinstance(node, ast.Name) and self.const_stack and node.id in self.const_stack[-1]:
+            return self.const_stack[-1][node.id]
+        if isinstance(node, ast.UnaryOp) and isinstance(node.op, (ast.USub, ast.UAdd)):
+            v = self.fold(node.operand)
+            return None if v is None else (-v if isinstance(node.op, ast.USub) else v)
+        if isinstance(node, ast.BinOp):
+            a, b = self.fold(node.left), self.fold(node.right)
+            if a is None or b is None:
+                return None
+            try:
+                return float({ast.Add: lambda: a+b, ast.Sub: lambda: a-b, ast.Mult: lambda: a*b,
+                              ast.Div: lambda: a/b, ast.FloorDiv: lambda: a//b, ast.Mod: lambda: a % b,
+                              ast.Pow: lambda: a**b}[type(node.op)]())
+            except (KeyError, ZeroDivisionError, OverflowError, TypeError, ValueError):
+                return None
+        return None
+
+    def _chain(self, node, ops, inv=False):
+        """Flatten a Mult/Div (or Add/Sub) chain -> list of (leaf, inverted)."""
+        if isinstance(node, ast.BinOp) and type(node.op) in ops and self.fold(node) is None:
+            first, second = ops
+            right_inv = (not inv) if isinstance(node.op, second) else inv
+            return self._chain(node.left, ops, inv)+self._chain(node.right, ops, right_inv)
+        return [(node, inv)]
+
+    def visit_BinOp(self, node):
+        parent = self.parents[-1] if self.parents else None
+        exempt = self._exempt(node)
+        if isinstance(node.op, ast.Mod) and isinstance(node.left, ast.Constant) and isinstance(node.left.value, str) \
+                and re.search(r'%[-+ #0]*\d*\.\d*[fgeFGE]', node.left.value) and not self.allow.get('format_precision'):
+            self.add('A3', 'A3.reformat', node, 'printf-style precision outside the model')
+        folded = self.fold(node)
+        top_fold = not (isinstance(parent, (ast.BinOp, ast.UnaryOp)) and self.fold(parent) is not None)
+        if folded is not None:
+            if top_fold and not exempt and not self.ok_value(folded):
+                self.add('A3', 'A3.constant', node, f'constant expression {ast.unparse(node)[:40]} = {folded!r}')
+        else:
+            for ops, kind in (((ast.Mult, ast.Div), 'factor'), ((ast.Add, ast.Sub), 'offset')):
+                if type(node.op) not in ops or (isinstance(parent, ast.BinOp) and type(parent.op) in ops
+                                                and self.fold(parent) is None):
+                    continue
+                leaves = self._chain(node, ops)
+                consts = [(self.fold(n), inv) for n, inv in leaves if self.fold(n) is not None]
+                compound = any(not isinstance(n, ast.Constant) and self.fold(n) is not None for n, _ in leaves)
+                if len(consts) < 2 and not compound:
+                    continue
+                total = 1. if kind == 'factor' else 0.
+                try:
+                    for v, inv in consts:
+                        total = (total/v if inv else total*v) if kind == 'factor' else (total-v if inv else total+v)
+                except ZeroDivisionError:
+                    continue
+                if not exempt and not self.ok_value(total):
+                    self.add('A3', 'A3.constant', node, f'combined constant {kind} {total!r} in {ast.unparse(node)[:60]}')
+        self.generic_visit(node)
+
+    def visit_FormattedValue(self, node):
+        if node.format_spec is not None and not self.allow.get('format_precision'):
+            spec = ''.join(str(c.value) for c in ast.walk(node.format_spec) if isinstance(c, ast.Constant))
+            if re.search(r'\.\d|[eEfFgG%]', spec):
+                self.add('A3', 'A3.reformat', node, f'format spec {spec[:30]} outside the model')
+        self.generic_visit(node)
 
     def in_context(self, *types):
         return any(isinstance(p, types) for p in self.parents)
@@ -146,9 +259,32 @@ class _Visitor(ast.NodeVisitor):
         if UNIT_IDENT.search(node.name):
             self.add('A3', 'A3.unit_conversion', node, f'def {node.name}')
         self.func_stack.append(node.name)
+        self.const_stack.append(self._constants(node))
         self._entry_after_decode(node)
         self.generic_visit(node)
+        self.const_stack.pop()
         self.func_stack.pop()
+
+    def _constants(self, fn):
+        counts, values = Counter(), {}
+        for sub in ast.walk(fn):
+            targets = sub.targets if isinstance(sub, ast.Assign) else [sub.target] if isinstance(
+                sub, (ast.AugAssign, ast.AnnAssign, ast.For, ast.NamedExpr)) else []
+            for t in targets:
+                for n in ast.walk(t):
+                    if isinstance(n, ast.Name):
+                        counts[n.id] += 1
+                        if isinstance(sub, ast.Assign) and t is n and len(sub.targets) == 1:
+                            values[n.id] = sub.value
+        self.const_stack.append({})
+        out = {}
+        for name, value in values.items():
+            if counts[name] == 1:
+                v = self.fold(value)
+                if v is not None:
+                    out[name] = v
+        self.const_stack.pop()
+        return out
 
     visit_AsyncFunctionDef = visit_FunctionDef
 
@@ -201,6 +337,17 @@ class _Visitor(ast.NodeVisitor):
         n = _name(node.func)
         if n in TABLE_LOADERS and not self.allowed(self.loader_ok) and not self.in_context(ast.Raise):
             self.add('A3', 'A3.table_load', node, f'{ast.unparse(node.func)}()')
+        if not self.in_context(ast.Raise):
+            if n in COMPARE_CALLS:
+                self.add('A3', 'A3.threshold', node, f'comparison or clamp API {ast.unparse(node.func)[:40]}()')
+            if not self.allow.get('format_precision'):
+                spec = node.args[1] if n == 'format' and len(node.args) > 1 else None
+                if n in ROUND_CALLS or (spec is not None and not (isinstance(spec, ast.Constant) and spec.value == '')):
+                    self.add('A3', 'A3.reformat', node, f'{ast.unparse(node.func)[:40]}() sets precision outside the model')
+                if (n == 'format' and isinstance(node.func, ast.Attribute) and isinstance(node.func.value, ast.Constant)
+                        and isinstance(node.func.value.value, str) and re.search(r'\{[^}]*:[^}]*(\.\d|[eEfFgG%])[^}]*\}',
+                                                                             node.func.value.value)):
+                    self.add('A3', 'A3.reformat', node, 'str.format precision outside the model')
         self.generic_visit(node)
 
     # constants
@@ -227,7 +374,9 @@ class _Visitor(ast.NodeVisitor):
         after_value = bool(self.parents) and isinstance(self.parents[-1], ast.JoinedStr) and re.match(
             r'\s?(ft|in|cm|mm|yd)\b', value)
         if (UNIT_TEXT.search(value) or after_value) and len(value) < 300:
-            self.add('A3', 'A3.unit_conversion', node, f'string {value[:80]!r}')
+            units = unit_names(value)
+            if not units or not units <= self.allow['_native_units']:
+                self.add('A3', 'A3.unit_conversion', node, f'string {value[:80]!r}')
         if 'tool_response' in value and not self.in_module_class():
             self.add('A2', 'A2.response_outside_model', node,
                      'response text built outside a torch module method')
@@ -248,16 +397,19 @@ class _Visitor(ast.NodeVisitor):
                     return True
             if isinstance(p, ast.keyword) and p.arg in kws:
                 return True
-        parent = self.parents[-1] if self.parents else None
-        if isinstance(parent, ast.UnaryOp) and len(self.parents) >= 2:
-            parent = self.parents[-2]
-        if (isinstance(parent, ast.Call) and _name(parent.func) == 'round' and len(parent.args) == 2
-                and (parent.args[1] is node or parent.args[1] is self.parents[-1])):
-            return True
+        # integer shape arguments of reshape/view-like calls (positional, or inside a tuple/list argument)
+        chain = self.parents+[node]
+        for i in range(len(chain)-1, 0, -1):
+            p, child = chain[i-1], chain[i]
+            if isinstance(p, ast.Call) and child in p.args and _name(p.func) in SHAPE_CALLS:
+                return all(isinstance(c.value, int) for c in ast.walk(child) if isinstance(c, ast.Constant)
+                           and not isinstance(c.value, str))
+            if not isinstance(p, (ast.UnaryOp, ast.Tuple, ast.List, ast.Starred)):
+                break
         return False
 
     def _numeric(self, node, value):
-        if float(value) in self.allow['_values'] or self._exempt(node):
+        if self.ok_value(value) or self._exempt(node):
             return
         self.add('A3', 'A3.constant', node, f'constant {value!r}')
 
@@ -286,14 +438,16 @@ class _Visitor(ast.NodeVisitor):
         self.generic_visit(node)
 
     def _threshold_operand(self, op, ordering=True):
-        v = _number(op)
+        v = self.fold(op)
         if v is not None:
-            return None if float(v) in self.allow['_values'] else f'compares against {v!r}'
+            return None if v in self.allow['_threshold_values'] else f'compares against {v!r}'
         n = _name(op)
         if n in self.allow.get('threshold_exempt_names', {}):
             return None
         if n and (n.isupper() and len(n) > 1 or THRESHOLD_NAME.search(n)) and not n.startswith('__'):
             return f'compares against {n}'
+        if isinstance(op, ast.Attribute):
+            return f'compares against attribute {ast.unparse(op)[:60]} (a configured value)'
         if isinstance(op, ast.Subscript) and isinstance(op.slice, ast.Constant) and isinstance(op.slice.value, str):
             return f'compares against table entry {ast.unparse(op)[:60]}'
         if (isinstance(op, ast.Call) and _name(op.func) == 'get' and op.args
@@ -303,13 +457,17 @@ class _Visitor(ast.NodeVisitor):
 
     # substitutes on failure
     def visit_ExceptHandler(self, node):
-        for stmt in node.body:
-            empty = (isinstance(stmt.value, ast.Constant) and stmt.value.value in (None, '')) or (
-                isinstance(stmt.value, (ast.List, ast.Tuple, ast.Dict)) and not getattr(
-                    stmt.value, 'elts', getattr(stmt.value, 'keys', [1]))) if isinstance(stmt, ast.Return) else False
-            if isinstance(stmt, ast.Return) and stmt.value is not None and not empty:
-                self.add('A4', 'A4.except_substitute', stmt, 'except-handler returns a substitute')
-                break
+        if not (node.body and isinstance(node.body[-1], ast.Raise)):
+            stmt = next((s for s in node.body if not isinstance(s, ast.Raise)), node)
+            self.add('A4', 'A4.except_substitute', stmt, 'except-handler does not re-raise; a substitute flows on')
+        self.generic_visit(node)
+
+    def visit_BoolOp(self, node):
+        if isinstance(node.op, ast.Or) and not self.in_context(ast.Raise):
+            last = node.values[-1]
+            if isinstance(last, (ast.Constant, ast.List, ast.Tuple, ast.Dict, ast.Set, ast.UnaryOp)) and any(
+                    _number(c) is not None for c in ast.walk(last)):
+                self.add('A4', 'A4.or_fallback', node, f'or-fallback to the literal {ast.unparse(last)[:40]}')
         self.generic_visit(node)
 
 

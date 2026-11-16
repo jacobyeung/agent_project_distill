@@ -21,6 +21,11 @@
       "after": "a513a10a6849946451f030ac827079983fcc9a10659cf0234fb4b783041a08c9"
     },
     {
+      "file": "tests/test_gxp_mix.py",
+      "before": "21058575e495dd3d4190d04f989d9bbdcda1604cc2501d2634fd08afcdb15f2c",
+      "after": "c72de9606d0112586e6e4d49977f8ac14eade8fcbf0c74e2900ef7e1fb3a17e1"
+    },
+    {
       "file": "tests/test_r2_build.py",
       "before": "3270aef60538406759ecabf94ccdd8c7232d08ba29e9339e06147b268e09496b",
       "after": "0a3f2fcc825f95b1a84315ff75efcaf146136baa9203560c95973ca71eb81022"
@@ -28,7 +33,7 @@
     {
       "file": "tests/test_r2_build3.py",
       "before": "27b967d70129354bf8ccac094174ef1e55b48897d314fd2dd788fed1194dbad9",
-      "after": "b0f12bab99814e41a25a5bf60f23796cdaa048cc77ebb402a20e4d4cb56524d3"
+      "after": "71681cb8a3cc53ce08a98b7a4455e8a123a700361b87b8a53812dbc082091b8d"
     },
     {
       "file": "tests/test_r2_build3_gaps.py",
@@ -58,7 +63,7 @@
     {
       "file": "tests/test_r2_build6.py",
       "before": null,
-      "after": "0ccf7b34dcd78dd407af6b313410d3633838cb2de14797b97b8ee8ed64016707"
+      "after": "6c4f78c053619301ced1df30c45caf25ddc2c26128caf742d9f2e4255d8a157e"
     },
     {
       "file": "tests/test_r2_data_path.py",
@@ -93,7 +98,7 @@
     {
       "file": "tests/test_r2_policy.py",
       "before": "d34ce04f89bcace36099d3ca91b42ddd026383be39b10cc294862413279c48e7",
-      "after": "73e5f8bd347e6e7c254b056ae7624a7d13cfbd5256b966b6393e913d5cbc909b"
+      "after": "36b91fa241ecff92fad055f4c885e3ab86a50bfd4d1142b8893994af52eefa5d"
     },
     {
       "file": "tests/test_r2_portable.py",
@@ -106,6 +111,11 @@
       "after": "625e7494f6067db8c1cd84abd4a9ea402d84e4ef32684bdf46d4758154aba5ee"
     },
     {
+      "file": "tests/test_s1_launch_kit.py",
+      "before": "4a2f8ee095e5bb0bb86c3a2889c163c698d6154aac7d58ae3e44cd7b31b4d874",
+      "after": "046aedabb7422d246fcd1b3841cef55192f478125001606d88c09354a6caf4ad"
+    },
+    {
       "file": "tests/test_sam3_tower.py",
       "before": "e7420a3c852d2509fcb6dc419a5d7e7eebea007fe88a42224b36f0540958a6d1",
       "after": "dca11acd9a9a10a0fa3fa2a3c9713f91f3a08678afc6ffa38e7eab2fca096bce"
@@ -113,10 +123,14 @@
   ],
   "reasons": [
     "Existing init tests bind the same historical input through an explicit fixture pin; runtime defaults do not choose an artifact.",
+    "The missing-vocabulary fixture supplies the required init identity and asserts the specific witness error, preserving the intended refusal branch.",
     "Recovery mutation checks exercise the native refusal OFF and the packet refusal ON.",
     "The qualified-name fixture retains its OFF refusal and tests the earlier exact-name refusal ON.",
     "The validation fixture retains its nonmutation check and authenticates the implicit heading threshold added by the accepted identity contract.",
-    "Synthetic metric bank entries include their asked unit and both required score views include per-unit results.",
+    "The memory fixture retains the legacy configuration and FP32 output hashes, and checks ON threshold binding plus explicit OFF identity semantics.",
+    "The byte-level memory fixture explicitly uses its original one-thread CPU reduction order and restores the previous setting; proofs/tensor_threads/RESULTS.json reproduces the original hashes and the eight-thread difference without changing encoder source.",
+    "The launch-gate equality assertion remains; added cases require its standalone identity mirror to match the native ON/OFF and invalid-threshold rules.",
+    "Synthetic metric bank entries include their asked unit; both score views use ordered unit rows that preserve order under native serialization.",
     "The packet changes its two legacy test files verbatim, as authenticated by the patch manifest.",
     "New tests cover next-leg input, unit, admission, runtime and score requirements."
   ],

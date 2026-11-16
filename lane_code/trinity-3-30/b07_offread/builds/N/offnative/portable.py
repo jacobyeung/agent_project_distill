@@ -45,9 +45,8 @@ def build(destination,config,binding,items,inputs):
     files,pins=sources()
     if inputs and config.get('shard'):
         from .shards import select
-        from .cohort import media_manifest
         selected=select(items,config['shard'])
-        relatives={r['relative_path'] for r in media_manifest(binding['benchmark'],selected)}
+        relatives={r['dataset']+'/'+r['scene_name']+'.mp4' for r in selected}
         inputs=dict(inputs,media=[r for r in inputs['media'] if r['relative_path'] in relatives])
         if {r['relative_path'] for r in inputs['media']}!=relatives:
             raise ValueError('shard media union differs')
@@ -72,6 +71,9 @@ def build(destination,config,binding,items,inputs):
     files['pins.json']=json.dumps(pins,sort_keys=True).encode()
     files,archive_pins=pack(files)
     files['out/ARCHIVE_TRANSPORT.json']=json.dumps(archive_pins,sort_keys=True).encode()
+    if 'x0.json' in files:
+        from .opacity import runtime_table
+        files['x0.json']=runtime_table(json.loads(files['x0.json'])['sources'],payload=files)
     dump(d/'ARCHIVE_TRANSPORT.json',archive_pins)
     receipt=packet(files,d/'packet.tar',config['token'])
     dump(d/'PACKET_PINS.json',pins)

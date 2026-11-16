@@ -22,10 +22,11 @@ export H10_MODES=${H10_MODES:-scale_translation:0.5,scale_translation:2,rotate_t
 export H10_SHARD=$shard H10_OUT=$out H10_KIT=$kit
 export CUDA_VISIBLE_DEVICES=$card OMP_NUM_THREADS=16 OPENBLAS_NUM_THREADS=16 MKL_NUM_THREADS=16 NUMEXPR_NUM_THREADS=16
 export HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 PYTHONDONTWRITEBYTECODE=1 TOKENIZERS_PARALLELISM=false
-export TMPDIR=$kit/tmp/b4 XDG_CACHE_HOME=$kit/tmp/b4/cache HF_HOME=$kit/tmp/b4/hf TRITON_CACHE_DIR=$kit/tmp/b4/triton
+export TMPDIR=$out/tmp XDG_CACHE_HOME=$out/cache HF_HOME=$out/hf TRITON_CACHE_DIR=$out/triton
+export TORCH_HOME=$out/torch TORCHINDUCTOR_CACHE_DIR=$out/inductor
 export PYTHONPATH=$kit/tree:$kit${PYTHONPATH:+:$PYTHONPATH}
-mkdir -p "$out" "$TMPDIR"
+mkdir -p "$out" "$TMPDIR" "$XDG_CACHE_HOME" "$HF_HOME" "$TRITON_CACHE_DIR" "$TORCH_HOME" "$TORCHINDUCTOR_CACHE_DIR"
 # vnice uses bash -c "$*". Pass a fixed script path; data travels in environment variables.
 [[ $kit != *[[:space:]]* ]] || { echo 'vnice requires a kit path without whitespace' >&2; exit 2; }
-ulimit -v 33554432
+# CUDA reserves a large virtual address range; CPU tests apply the 32 GiB cap in cpu.sh.
 exec /data3/shared/scripts/vnice/vnice.sh nice -n 10 bash "$kit/h1eval/h10/card_entry.sh" >> "$out/log" 2>&1

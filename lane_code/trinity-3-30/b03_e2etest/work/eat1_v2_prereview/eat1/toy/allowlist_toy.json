@@ -1,0 +1,10 @@
+{
+ "numbers": {},
+ "loader_functions": [
+  "toy/reader.py::read_frames",
+  "toy/reader.py::__init__"
+ ],
+ "head_status_formatters": [],
+ "suppress": [],
+ "why": "read_frames decodes the item's own input frames and __init__ loads the artifact's weights before generate(); A1 checks every file opened after generate() starts."
+}

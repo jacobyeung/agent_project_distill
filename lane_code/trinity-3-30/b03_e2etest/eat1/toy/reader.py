@@ -38,14 +38,15 @@ class CallHandler(nn.Module):
 
     def serve(self, call):
         numbers = [int(n) for n in re.findall(r'[0-9]+', call)]
+        feats, heads = self.state['feats'], self._model.perception
         if call.startswith('<move'):
             first, second = numbers
-            shift = self.state['pose'][second-1]-self.state['pose'][first-1]
-            return f'{float(torch.linalg.norm(shift)):.2f}', {'distance_m': ['pose']}
+            value = heads.move_head(torch.cat([feats[first-1], feats[second-1]]))
+            return str(float(value[0])), {'distance_m': ['move']}
         frame = numbers[0]
         tower = self._model.tower(self.state['frames'][frame-1])
-        value = self.state['depth'][frame-1]+torch.linalg.norm(tower)
-        return f'{float(value):.2f}', {'depth_m': ['depth', 'toy_tower']}
+        value = heads.depth_head(torch.cat([feats[frame-1], tower]))
+        return str(float(value[0])), {'depth_m': ['depth', 'toy_tower']}
 
 
 class ToyReader:

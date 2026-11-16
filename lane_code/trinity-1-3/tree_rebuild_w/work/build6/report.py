@@ -7,9 +7,9 @@ def emit(name,value):(L/name).write_text(json.dumps(value,indent=2)+'\n')
 tree=read('work/build6/proofs/suite_tree/results.json');base=read('work/build6/proofs/suite_base/results.json')
 assert tree['complete'] and base['complete']
 comparison=read('work/build6/SUITE_COMPARISON.json');coverage=read('work/build6/CHANGED_COVERAGE.json')
-legacy_lines=['# Pre-existing legacy failures','','Each listed test failed with the same classified cause in the tree and untouched base. Both tracebacks are retained in `work/build6/SUITE_COMPARISON.json`.','',
-              '| Test | Cause |','|---|---|']
-legacy_lines.extend('| `'+r['test'].replace('|','\\|')+'` | '+r['cause'].replace('|','\\|')+' |'
+legacy_lines=['# Pre-existing legacy failures','','Each listed test also fails in the untouched base. The basis records either a matching failure cause or a source-authenticated refusal preserved from Build 5. Both tracebacks and prior refusal evidence are retained in `work/build6/SUITE_COMPARISON.json`; guard hashes are in `work/build6/LEGACY_GUARDS.json`.','',
+              '| Test | Cause | Basis |','|---|---|---|']
+legacy_lines.extend('| `'+r['test'].replace('|','\\|')+'` | '+r['cause'].replace('|','\\|')+' | '+r['basis']+' |'
                     for r in comparison['failures'] if r['preexisting'])
 (B/'PREEXISTING_FAILURES.md').write_text('\n'.join(legacy_lines)+'\n')
 packet=read('work/build6/proofs/packet/results.json');pc=collections.Counter(r['outcome'] for r in packet.values())
@@ -58,7 +58,7 @@ lines=['# Build 6 report','', '**'+('CPU checks qualified; production remains bl
  'The packet assertions are unchanged. Paths point to the integrated tree, the supplied base and fixed proof outputs; supplied supporting fixtures retain their hashes. The runner substitutes stdlib code-fingerprinted monitoring for tracing, writes subprocess snippets to files, and applies the existing temporary cap. Sources: `work/build6/PACKET_PATH_ADAPTATIONS.diff`, `work/build6/PACKET_MONITOR.diff`, `work/build6/PACKET_INPUTS.json`.','',
  '| Pre-existing cause | Events |', '|---|---:|']
 lines.extend('| '+cause.replace('|','/')+' | '+str(n)+' |' for cause,n in comparison['preexisting_causes'].items())
-lines+=['','Every pre-existing test is named with its cause in `work/build6/PREEXISTING_FAILURES.md`. Source for every cause/count: `work/build6/SUITE_COMPARISON.json`, including matching base and tree tracebacks.','',
+lines+=['','Every pre-existing test is named with its cause and classification basis in `work/build6/PREEXISTING_FAILURES.md`. Source for every cause/count: `work/build6/SUITE_COMPARISON.json`, including both base and tree tracebacks. Existing unsupported-reader refusals also match the Build-5 receipts and authenticated guard sources (`work/build6/LEGACY_GUARDS.json`); their different base causes remain visible. Multiple errors from one test are retained individually.','',
  '| Temporary measurement | Maximum bytes | Over-cap boundary events | Source |','|---|---:|---:|---|']
 lines.extend(f"| {r['variant']} | {r['maximum']['bytes']} | {len(r['over_cap'])} | `{r['source']}` |" for r in temporary)
 lines+=['','Legacy teacher fixtures that exceed the cap remain failures; the cap was not raised. Measurements above the cap do not establish continuous storage compliance. Exact tests are in `work/build6/REPORT_DETAILS.json`.','',

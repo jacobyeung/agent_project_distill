@@ -1,6 +1,6 @@
 {
  "schema": "eat1-allowlist-v1",
- "status": "PROPOSED, awaiting the cross-family refute review the brief orders; nothing here is reviewed yet",
+ "status": "PROPOSED; revised after the cross-family refute review (REVIEW_VERDICT_EAT1.md, NO-GO, 16 defects); a re-review decides",
  "clause": "A3 (USER ruling 2026-11-16, ORCH 1155Z item 5): between heads and tokens the call handler may unproject with the head's intrinsics (with rigid transforms, norms and min/argmin over point sets) and print head outputs as text. Any unit conversion or answer reformatting outside the model fails; the model does both in its CoT. Every other numeric constant fails.",
  "numbers": {
   "0": "zero, identity offset, first index",
@@ -18,7 +18,6 @@
   "keyword": [
    "axis",
    "dim",
-   "ndigits",
    "keepdim",
    "keepdims",
    "indent",
@@ -27,9 +26,9 @@
    "dtype",
    "base"
   ],
-  "round_ndigits": "the second argument of round() fixes the printed precision of a head output",
   "raise": "constants inside raise statements only build error messages",
-  "raise_guarded_test": "the test of an `if` whose only statement is a raise: it refuses the item with an error and writes no token (a caught error that becomes a response still fails A4.except_substitute)"
+  "raise_guarded_test": "the test of an `if` whose only statement is a raise: it refuses the item with an error and writes no token (a caught error that becomes a response still fails A4.except_substitute)",
+  "shape_arguments": "integer positional arguments of reshape/view/permute/transpose/unsqueeze/zeros/arange-like calls set tensor layout, not values"
  },
  "loader_functions": [],
  "head_status_formatters": [],
@@ -40,7 +39,10 @@
   "suppress: 'rule@relative/file.py:line' entries with a reviewed reason; the report prints every suppression.",
   "A3.threshold applies to ordering comparisons (<, <=, >, >=); equality tests against token ids are protocol, not thresholds.",
   "A3.unit_conversion: an identifier or printed unit label naming feet, inches, centimetres, millimetres, square feet, yards or degrees, or a unit-conversion helper, fails; heads print metres, radians-free values as the head defines them.",
-  "Findings inside methods of the classes of modules registered on the model (heads' own activations called through methods) are reported as model code and do not fail; the reviewer reads that list."
+  "format_precision false: round(), .round(), format specs and printf precision outside the model fail A3.reformat (USER 2026-11-16: number formatting is done by the model in its CoT). Heads are printed with str()/repr().",
+  "native_units: {unit: reason} lists units a head itself predicts (for example a head trained in centimetres); printing that unit label unchanged is not a conversion.",
+  "declared_constants: [{file, function, value, reason}] lists reviewed constants in model code (activation offsets, an LM's eps); every executed constant elsewhere fails, including in head forwards and head methods. A fitted multiplier must be a parameter in the artifact.",
+  "threshold_numbers: an ordering comparison against any other number, a constant expression, an attribute, or a comparison/clamp API fails A3.threshold."
  ],
  "threshold_exempt_names": {
   "max_new_tokens": "a total-token cap ends decoding and writes no token; a forced close or forced answer is not covered"
@@ -49,5 +51,13 @@
   "unit conversion constants (100, 1000, 0.01, 0.001, 0.3048, 1/0.3048, 0.0254, 1/0.0254, 2.54, 12, ft2 factors)",
   "degree constants 180 and 360",
   "decimal base 10"
- ]
+ ],
+ "threshold_numbers": {
+  "0": "sign tests",
+  "1": "count and index tests",
+  "-1": "index tests"
+ },
+ "format_precision": false,
+ "native_units": {},
+ "declared_constants": []
 }

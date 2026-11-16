@@ -5,7 +5,7 @@ World frame: the laser scan (mesh_aligned_0.05.ply), z up, metres. Cameras: pose
 Frame index i of the decoded rgb.mkv is key frame_%06d in the pose file (60 fps, like the VSI-590K mp4 the student
 trained on). Layout: indices = floor(linspace(0, total-1, n)), n in {32, 64} (the D0 rows' rule).
 """
-import json, os
+import json, os, re
 import numpy as np
 
 STRUCT = {'wall', 'floor', 'ceiling', 'doorframe', 'window frame', 'remove', 'split', 'object', 'objects', 'unknown',
@@ -88,13 +88,14 @@ def colmap_c2w(sdir):
     out = {}
     for line in open(os.path.join(sdir, 'iphone', 'colmap', 'images.txt')):
         t = line.split()
-        if len(t) == 10 and t[9].endswith('.jpg') and not line.startswith('#'):
+        m = re.search(r'frame_(\d+)\.jpg$', t[9]) if len(t) == 10 and not line.startswith('#') else None
+        if m:
             qw, qx, qy, qz, tx, ty, tz = map(float, t[1:8])
             R = np.array([[1 - 2 * (qy * qy + qz * qz), 2 * (qx * qy - qz * qw), 2 * (qx * qz + qy * qw)],
                           [2 * (qx * qy + qz * qw), 1 - 2 * (qx * qx + qz * qz), 2 * (qy * qz - qx * qw)],
                           [2 * (qx * qz - qy * qw), 2 * (qy * qz + qx * qw), 1 - 2 * (qx * qx + qy * qy)]])
             M = np.eye(4); M[:3, :3] = R.T; M[:3, 3] = -R.T @ np.array([tx, ty, tz])
-            out[int(t[9][6:12])] = M
+            out[int(m.group(1))] = M
     return out
 
 

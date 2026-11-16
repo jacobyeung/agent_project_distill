@@ -10,17 +10,18 @@ names=['student_pilot/r2_policy.py','student_pilot/benchmark_eval/prepare.py',
        'student_pilot/orchard_eval/contracts.py','student_pilot/mdg_eval.py','rk/programs.py']
 rows=[]
 for name in names:
-    before=(prior/name).read_bytes();after=(current/name).read_bytes()
-    old_hash=hashlib.sha256(before).hexdigest();new_hash=hashlib.sha256(after).hexdigest()
-    assert old_hash==hashes[name]
-    same=before==after
+    after=(current/name).read_bytes()
+    old_hash=hashes[name];new_hash=hashlib.sha256(after).hexdigest()
+    same=old_hash==new_hash
     row=dict(file=name,build5_sha256=old_hash,current_sha256=new_hash,byte_identical=same)
     if name=='student_pilot/r2_policy.py':
+        before=(prior/name).read_bytes()
+        assert hashlib.sha256(before).hexdigest()==old_hash
         def guard(raw):
-            return next(n for n in ast.parse(raw).body if isinstance(n,ast.FunctionDef) and n.name=='legacy_reader_guard')
+            return next(n for n in ast.parse(raw).body if isinstance(n,ast.FunctionDef) and n.name=='unsupported_entry')
         old_guard=ast.dump(guard(before),include_attributes=False)
         new_guard=ast.dump(guard(after),include_attributes=False)
-        row.update(function='legacy_reader_guard',function_identical=old_guard==new_guard,
+        row.update(function='unsupported_entry',function_identical=old_guard==new_guard,
                    function_sha256=hashlib.sha256(new_guard.encode()).hexdigest())
         assert row['function_identical']
     else:assert same

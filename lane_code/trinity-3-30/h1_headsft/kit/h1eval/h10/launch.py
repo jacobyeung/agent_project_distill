@@ -17,9 +17,10 @@ if not __package__:
 from h1eval.items import K, load_manifest, sha, digest
 from h1eval.cli import modes as parse_modes, code_hash, export_hash
 from h1eval.modes import mode_key, applies, plan, read_counts, DEFAULT_MODES
+from .parity_adapter import ENTRY, DEFAULT_SETTINGS
 
 
-def reader_factory(root, entry='e2e_reader.real:make_real'):
+def reader_factory(root, entry=ENTRY):
     root = Path(root).resolve()
     if not (root.is_relative_to('/scratch') or root.is_relative_to('/dev/shm')):
         raise ValueError('Stage the reader on /scratch or /dev/shm')
@@ -41,7 +42,9 @@ def reader_factory(root, entry='e2e_reader.real:make_real'):
     source = Path(inspect.getsourcefile(factory)).resolve()
     if not source.is_relative_to(root):
         raise ValueError('make_real resolved outside --reader-root')
-    inspect.signature(factory).bind(None, None, [], perception_factory=None, device='cpu')
+    kwargs = dict(perception_factory=None, device='cpu')
+    if entry == ENTRY:kwargs['settings'] = {}
+    inspect.signature(factory).bind(None, None, [], **kwargs)
     return factory
 
 
@@ -57,6 +60,16 @@ def shard(value):
 def selected(items, value):
     i,n=shard(value)
     return items[i::n]
+
+
+def select_types(all_items, items, types):
+    """ORCH 1739Z: decode type by type (baseline + its modes together), so usage lands per type."""
+    wanted=[t for t in types.split(',') if t]
+    known={r.get('question_type',r.get('type')) for r in all_items}
+    if not wanted or set(wanted)-known:raise ValueError('--types names an unknown item type')
+    chosen=[r for r in items if r.get('question_type',r.get('type')) in wanted]
+    if not chosen:raise ValueError('--types selects no item of this shard')
+    return chosen
 
 
 def read_records(path):
@@ -105,6 +118,7 @@ def tower_records(directory, binding, items):
 def run(args, *, make_real=None, factory_options=None):
     manifest=load_manifest(args.items)
     selected_items=selected(manifest['items'], args.shard)
+    if getattr(args,'types',None):selected_items=select_types(manifest['items'],selected_items,args.types)
     arms=args.arms.split(',')
     if not arms or len(set(arms))!=len(arms) or any(a not in ('own','tower') for a in arms):
         raise ValueError('Arms must be unique own,tower values')
@@ -112,6 +126,22 @@ def run(args, *, make_real=None, factory_options=None):
     if any(m['name'] in ('donor','gt') for m in interventions) and not factory_options:
         raise ValueError('donor/gt require explicitly bound Heads/GT via factory_options; no inferred donor or GT')
     maker=make_real or reader_factory(args.reader_root,args.reader_entry)
+    reviewed = args.reader_entry == ENTRY
+    settings = None; mapped = None; mapping = None
+    if reviewed:
+        from .parity_adapter import settings_for, map_items, artifact_spec, prepare_runtime, validate_own_settings, reader_code_hash
+        settings = settings_for(getattr(args, 'settings', DEFAULT_SETTINGS), manifest['name'])
+        if Path(settings['export_dir']).resolve() != Path(args.export).resolve():
+            raise ValueError('Settings export_dir differs from --export')
+        settings_artifact = settings['artifact_manifest']
+        if isinstance(settings_artifact, str):
+            settings_artifact = artifact_spec(settings_artifact)
+        if settings_artifact != artifact_spec(args.artifact_manifest):
+            raise ValueError('Settings artifact binding differs from --artifact-manifest')
+        mapped, mapping = map_items(manifest['items'], settings, name=manifest['name'])
+        if make_real is None:
+            if 'own' in arms:validate_own_settings(settings, selected_items)
+            prepare_runtime(settings)
     source=Path(inspect.getsourcefile(maker)).resolve()
     export=Path(args.export).resolve();artifact=Path(args.artifact_manifest).resolve()
     out=Path(args.out).resolve()
@@ -127,11 +157,22 @@ def run(args, *, make_real=None, factory_options=None):
                  count=manifest['count'],arms=arms,modes=interventions,device=args.device,
                  lineage='SFT',step=544,fixture=make_real is not None,
                  r0_pin=manifest['r0_check']['pin'])
+    if reviewed:
+        binding.update(settings_sha256=digest(settings), mapping_sha256=mapping['sha256'],
+                       parity_code_sha256=reader_code_hash(args.reader_root))
     reused=[]
     tower_from=getattr(args,'tower_from',None)
     if tower_from:
         if 'tower' not in arms:raise ValueError('--tower-from requires tower arm')
-        reused,source_pin=tower_records(tower_from,binding,selected_items)
+        if reviewed and not (Path(tower_from)/'environment.json').exists():
+            from .parity_adapter import parity_tower_records
+            # Require complete coverage of the full registered set, even for a shard.
+            all_reused,source_pin=parity_tower_records(tower_from,manifest['items'],mapped,
+                settings=settings,export=export,artifact=artifact,reader_root=args.reader_root)
+            selected_ids={r['id'] for r in selected_items}
+            reused=[r for r in all_reused if r['id'] in selected_ids]
+        else:
+            reused,source_pin=tower_records(tower_from,binding,selected_items)
         binding['tower_from']=source_pin
     counts=read_counts(selected_items,interventions,arms,bool(tower_from))
     print(json.dumps(dict(read_plan=counts,shard=args.shard)),flush=True)
@@ -145,11 +186,16 @@ def run(args, *, make_real=None, factory_options=None):
             if old['binding']!=binding:raise ValueError('Resume binding differs; use a fresh output directory')
         else:
             if (out/'items.jsonl').exists():raise ValueError('Records lack environment binding')
-            write_json(env,dict(binding=binding,items=str(Path(args.items).resolve()),
+            write_json(env,dict(binding=binding,settings=settings,items=str(Path(args.items).resolve()),
                 export=str(export),artifact_manifest=str(artifact),reader_root=str(Path(args.reader_root).resolve()),
                 utc=datetime.now(timezone.utc).isoformat(),host=platform.node(),python=sys.version,
                 cuda_visible_devices=os.environ.get('CUDA_VISIBLE_DEVICES'),
                 threads={k:os.environ.get(k) for k in ('OMP_NUM_THREADS','MKL_NUM_THREADS','OPENBLAS_NUM_THREADS')}))
+        if mapping is not None:
+            mapping_path=out/'item_mapping.json'
+            if mapping_path.exists() and json.loads(mapping_path.read_text())!=mapping:
+                raise ValueError('Resume mapping differs')
+            write_json(mapping_path,mapping)
         rows=read_records(out/'items.jsonl')
         allowed=plan(selected_items,arms,interventions)
         done={(r['id'],r['arm'],r['mode']):r for r in rows}
@@ -174,28 +220,37 @@ def run(args, *, make_real=None, factory_options=None):
                 stream.write(json.dumps(row,allow_nan=False)+'\n');stream.flush();os.fsync(stream.fileno())
                 done[key]=row;added+=1
             for arm in arms:
+                cached_generator=None
                 for mode in interventions:
                     key=mode_key(mode)
                     todo=[r for r in selected_items if (r['id'],arm,key) in allowed and (r['id'],arm,key) not in done]
                     if not todo:continue
                     bound=[]
-                    def own_factory(artifact, model, device):
-                        value=configured(mode,**(factory_options or {}))(artifact,model,device)
-                        bound.append(value)
+                    def own_factory(artifact, model, device, *, processor=None, item=None):
+                        value=configured(mode,**(factory_options or {}))(artifact,model,device,
+                            processor=processor,item=item,settings=settings)
+                        bound[:]=[value]
                         return value
                     factory=None if arm=='tower' else own_factory
                     t=time.perf_counter()
-                    generator=maker(export,artifact,selected_items,perception_factory=factory,device=args.device)
+                    if reviewed:
+                        if cached_generator is None:
+                            cached_generator=maker(export,artifact_spec(artifact),
+                                [mapped[r['id']] for r in selected_items],perception_factory=factory,
+                                device=args.device,settings=settings)
+                        generator=cached_generator
+                    else:
+                        generator=maker(export,artifact,selected_items,perception_factory=factory,device=args.device)
                     load_s=time.perf_counter()-t
                     try:
                         for item in todo:
-                            t=time.perf_counter();output=generator(item);seconds=time.perf_counter()-t
+                            t=time.perf_counter();output=generator(mapped[item['id']] if reviewed else item);seconds=time.perf_counter()-t
                             if not isinstance(output,dict) or 'text' not in output or 'finish' not in output:
                                 raise ValueError('make_real generator must return reader output with text and finish')
                             if arm=='own' and bound and 'heads' in bound[-1].last:
                                 state=bound[-1].last;heads=state['heads']
                                 output={**output,'heads':dict(pose9=heads.pose9.tolist(),gravity=heads.gravity.tolist()),
-                                        'intervention':state['intervention']}
+                                        'intervention':state['intervention'], 'finite_heads':state.get('finite_heads',{})}
                             row=dict(id=item['id'],room_key=item['room_key'],type=item['question_type'],
                                      arm=arm,mode=key,intervention=mode,applied=arm=='own',
                                      output=output,seconds=seconds,complete=True)
@@ -206,9 +261,14 @@ def run(args, *, make_real=None, factory_options=None):
                                 if len(sample)==10:project()
                             print(json.dumps(dict(id=item['id'],arm=arm,mode=key,finish=output['finish'],seconds=seconds)),flush=True)
                     finally:
-                        if callable(getattr(generator,'close',None)):generator.close()
+                        if not reviewed and callable(getattr(generator,'close',None)):generator.close()
                         del generator
                     timings.append(dict(arm=arm,mode=mode,load_s=load_s,items=len(todo)))
+                if cached_generator is not None:
+                    if callable(getattr(cached_generator,'close',None)):cached_generator.close()
+                    del cached_generator
+                    import gc
+                    gc.collect()
         with (out/'timings.jsonl').open('a') as f:
             f.write(json.dumps(dict(utc=datetime.now(timezone.utc).isoformat(),seconds=time.perf_counter()-started,
                                    added=added,skipped=len(rows),loads=timings))+'\n');f.flush()
@@ -218,10 +278,11 @@ def run(args, *, make_real=None, factory_options=None):
 def parser():
     p=argparse.ArgumentParser(description=__doc__)
     for key in ('items','export','artifact-manifest','reader-root','out'):p.add_argument('--'+key,required=True)
-    p.add_argument('--shard',default='0/1');p.add_argument('--arms',default='own,tower')
+    p.add_argument('--shard',default='0/1');p.add_argument('--types',default=None,help='comma list of question types to decode');p.add_argument('--arms',default='own,tower')
     p.add_argument('--modes',default=DEFAULT_MODES)
-    p.add_argument('--tower-from',help='Parity directory with environment.json and complete baseline items.jsonl')
-    p.add_argument('--device',default='cuda:0');p.add_argument('--reader-entry',default='e2e_reader.real:make_real')
+    p.add_argument('--tower-from',help='b04 run directory containing gpu_results/own_depth_p*/items.jsonl and LOAD_RECEIPT.json')
+    p.add_argument('--settings',default=DEFAULT_SETTINGS,help='Reviewed b04 settings JSON')
+    p.add_argument('--device',default='cuda:0');p.add_argument('--reader-entry',default=ENTRY)
     return p
 
 

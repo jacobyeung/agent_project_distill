@@ -20,9 +20,54 @@ from pathlib import Path
 
 EAT1_ROOT = str(Path(__file__).resolve().parent)
 MARKER_DIR = '/eat1-marker-nonexistent'
+RUN_NONCE = os.urandom(6).hex()  # strace windows carry it, so a log proves it belongs to this run
 SYSTEM_PREFIXES = ('/usr/', '/lib/', '/lib64/', '/etc/', '/proc/', '/sys/', '/dev/', '/run/', '/bin/', '/sbin/')
 CODE_SUFFIXES = ('.py', '.pyc', '.so', '.pyd', '.pth', '.pyi')
-WRITE_FLAGS = os.O_WRONLY | os.O_RDWR | os.O_CREAT | os.O_APPEND | os.O_TRUNC
+CHILD_EVENTS = ('subprocess.Popen', 'os.system', 'os.exec', 'os.posix_spawn', 'os.spawn', 'os.fork', 'os.forkpty',
+                'pty.spawn')
+NATIVE_EVENTS = ('ctypes.call_function', 'ctypes.dlsym', 'ctypes.dlopen', 'ctypes.dlsym/handle', 'ctypes.cdata')
+
+
+def open_kind(mode, flags):
+    """-> (reads, writes). O_RDWR and '+' modes read: their file is judged (A1)."""
+    if isinstance(mode, str):
+        return ('r' in mode or '+' in mode), any(c in mode for c in 'wax+')
+    if isinstance(flags, int):
+        acc = flags & os.O_ACCMODE
+        return acc in (os.O_RDONLY, os.O_RDWR), acc in (os.O_WRONLY, os.O_RDWR) or bool(
+            flags & (os.O_CREAT | os.O_APPEND | os.O_TRUNC))
+    return True, False
+
+
+def fd_path(fd):
+    try:
+        return os.readlink(f'/proc/self/fd/{fd}')
+    except OSError:
+        return None
+
+
+def fd_positions():
+    """{fd: (path, pos)} for open regular files; a moved position between two snapshots means the reader read or
+    wrote a descriptor opened before generate() (A1: such reads raise no open event)."""
+    out = {}
+    try:
+        fds = os.listdir('/proc/self/fd')
+    except OSError:
+        return out
+    for name in fds:
+        path = fd_path(name)
+        if not path or not path.startswith('/') or path.startswith(('/proc/', '/dev/')):
+            continue
+        try:
+            with open(f'/proc/self/fdinfo/{name}') as f:
+                info = dict(line.split(':', 1) for line in f.read().splitlines() if ':' in line)
+            pos, flags = int(info['pos']), int(info['flags'], 8)
+        except (OSError, ValueError, KeyError):
+            continue
+        if flags & os.O_ACCMODE == os.O_WRONLY:  # a log the process writes moves its position without a read
+            continue
+        out[int(name)] = (path, pos)
+    return out
 
 
 def is_harness(path):
@@ -61,8 +106,7 @@ class _OpenAudit:
                 return
             if isinstance(path, bytes):
                 path = os.fsdecode(path)
-            write = (isinstance(mode, str) and any(c in mode for c in 'wax+')) or (
-                isinstance(flags, int) and bool(flags & WRITE_FLAGS))
+            reads, writes = open_kind(mode, flags)
             stack = None
             if not self.busy and not str(path).startswith(self.env+SYSTEM_PREFIXES) and not is_harness(str(path)):
                 self.busy = True
@@ -71,12 +115,37 @@ class _OpenAudit:
                 finally:
                     self.busy = False
             with self.lock:
-                self.events.append(('open', str(path), write, stack))
+                if writes and not reads:
+                    self.events.append(('open', str(path), True, stack))
+                else:
+                    self.events.append(('open', str(path), False, stack))
+        elif event == 'mmap.__new__':
+            fileno = args[0] if args else -1
+            path = fd_path(fileno) if isinstance(fileno, int) and fileno >= 0 else None
+            if path and path.startswith('/'):
+                with self.lock:
+                    self.events.append(('open', path, False, self._stack()))
+        elif event.startswith(CHILD_EVENTS):
+            with self.lock:
+                self.events.append(('child', event, False, self._stack()))
+        elif event.startswith(NATIVE_EVENTS):
+            stack = self._stack(innermost=True)
+            with self.lock:
+                self.events.append(('native', event, False, stack))
         elif event == 'import':
             filename = args[1] if len(args) > 1 else None
             if filename:
                 with self.lock:
                     self.events.append(('import', str(filename), False, None))
+
+    def _stack(self, innermost=False):
+        if self.busy:
+            return None
+        self.busy = True
+        try:
+            return _innermost_frame() if innermost else _reader_stack()
+        finally:
+            self.busy = False
 
     def take(self):
         with self.lock:
@@ -110,7 +179,7 @@ def mapped_files():
 def marker(kind, index):
     """Open a non-existent path so an strace log records the item window."""
     try:
-        open(f'{MARKER_DIR}/{kind}-{index}', 'rb')
+        open(f'{MARKER_DIR}/{RUN_NONCE}-{kind}-{index}', 'rb')
     except OSError:
         pass
 
@@ -119,8 +188,9 @@ STRACE_LINE = re.compile(r'^(?:\[pid\s+)?(\d+)\]?\s+(?:\d+:\d+:\d+(?:\.\d+)?\s+)
                          r'(open|openat)\((?:[^,]+,\s*)?"((?:[^"\\]|\\.)*)",\s*([A-Z_|]+)(?:,\s*\d+)?\)\s*=\s*(-?\d+)')
 
 
-def parse_strace(path):
-    """-> list of (window index or None, path, write) for successful opens inside item windows."""
+def parse_strace(path, nonce=None, windows=None):
+    """-> list of (window index or None, path, write) for successful opens inside item windows. With `windows`
+    (a list), the indices of item windows whose start and end markers carry `nonce` are appended to it."""
     out, window = [], None
     for line in Path(path).read_text(errors='replace').splitlines():
         m = STRACE_LINE.search(line)
@@ -128,7 +198,13 @@ def parse_strace(path):
             continue
         p, flags, rc = m.group(3), m.group(4), int(m.group(5))
         if p.startswith(MARKER_DIR+'/'):
-            kind, index = p.rsplit('/', 1)[1].split('-')
+            parts = p.rsplit('/', 1)[1].split('-')
+            tag, kind, index = parts if len(parts) == 3 else (None, *parts)
+            if nonce is not None and tag != nonce:
+                window = None
+                continue
+            if kind == 'end' and windows is not None and window == int(index):
+                windows.append(window)
             window = int(index) if kind == 'start' else None
             continue
         if rc < 0 or window is None:
@@ -239,6 +315,65 @@ def _reader_stack(limit=6):
     return frames
 
 
+def _innermost_frame():
+    """[innermost non-harness frame 'file:line name', 'reader' or 'library']."""
+    env = environment_prefixes()
+    for fs in traceback.StackSummary.extract(traceback.walk_stack(None), lookup_lines=False):
+        f = fs.filename
+        if is_harness(f) or f.startswith('<frozen') or f == __file__ or '/ctypes/' in f:
+            continue
+        lib = f.startswith(env) or f.startswith(sys.base_prefix) or f.startswith('<') or '/site-packages/' in f
+        return [f'{f}:{fs.lineno} {fs.name}', 'library' if lib else 'reader']
+    return None
+
+
+def _fingerprint(obj, depth=0):
+    """Content fingerprint of a key-value cache: tensors by shape and three sums, int lists exactly."""
+    import torch
+    if isinstance(obj, torch.Tensor):
+        if not obj.numel():
+            return ('t', tuple(obj.shape))
+        t = obj.detach().double().flatten()
+        pos = torch.arange(1, t.numel()+1, device=t.device, dtype=torch.float64)
+        sums = torch.stack([t.sum(), t.abs().sum(), (t*t).sum(), (t*pos).sum(), (t*pos.sqrt()).sum()]).tolist()
+        return ('t', tuple(obj.shape), tuple(sums))
+    if isinstance(obj, (list, tuple)):
+        if all(isinstance(v, int) for v in obj):
+            return ('ints', tuple(obj))
+        return tuple(_fingerprint(v, depth+1) for v in obj) if depth < 4 else ('seq', len(obj))
+    if isinstance(obj, dict):
+        return tuple((k, _fingerprint(v, depth+1)) for k, v in sorted(obj.items(), key=lambda kv: str(kv[0])))
+    if depth < 4 and hasattr(obj, '__dict__'):
+        return (type(obj).__name__,)+tuple((k, _fingerprint(v, depth+1)) for k, v in sorted(vars(obj).items())
+                                           if not callable(v))
+    if isinstance(obj, (int, float, str, bool, type(None))):
+        return obj
+    return type(obj).__name__
+
+
+VALUE_ROLES = ('head', 'tower', 'connector', 'fixed_math')
+
+
+def _tensors(output, depth=0):
+    """Detached copies of the tensors a head, tower or fixed-math module returned (response value provenance)."""
+    import torch
+    if isinstance(output, torch.Tensor):
+        return [output.detach().clone()]
+    if depth < 3 and isinstance(output, (list, tuple)):
+        return [t for o in output for t in _tensors(o, depth+1)]
+    if depth < 3 and isinstance(output, dict):
+        return [t for o in output.values() for t in _tensors(o, depth+1)]
+    return []
+
+
+def _output_cache(output, kwargs):
+    cache = kwargs.get('past_key_values')
+    if cache is None:
+        cache = getattr(output, 'past_key_values', None) if not isinstance(output, dict) else output.get(
+            'past_key_values')
+    return cache
+
+
 class ModelMonitor:
     """Hooks the LM entry module, the declared heads/towers and the call handlers of one model.
 
@@ -297,14 +432,24 @@ class ModelMonitor:
         if self.split and getattr(self, '_pending', None) is not None:
             self.events.append(('forward', self._pending, None))  # an entry forward that produced no logits
         ids = kwargs.get('input_ids', args[0] if args else None)
-        self._pending = dict(ids=_ids(ids), past=_past_length(kwargs.get('past_key_values')),
-                             stack=_reader_stack(), embeds=ids is None and kwargs.get('inputs_embeds') is not None)
+        cache = kwargs.get('past_key_values')
+        past = _past_length(cache)
+        modified = None
+        if past and getattr(self, '_after', None) is not None and _fingerprint(cache) != self._after:
+            modified = True
+        self._pending = dict(ids=_ids(ids), past=past, stack=_reader_stack(), cache_modified=modified,
+                             embeds=ids is None and kwargs.get('inputs_embeds') is not None)
 
     def _lm_post(self, module, args, kwargs, output):
         self._leave()
         if not self.recording:
             return
+        self._snapshot(output, kwargs)
         self._lm_post_body(output)
+
+    def _snapshot(self, output, kwargs):
+        cache = _output_cache(output, kwargs)
+        self._after = None if cache is None else _fingerprint(cache)
 
     def _lm_post_body(self, output):
         pending = getattr(self, '_pending', None)
@@ -317,6 +462,8 @@ class ModelMonitor:
 
     def _entry_post(self, module, args, kwargs, output):
         self._leave()
+        if self.recording:
+            self._snapshot(output, kwargs)
 
     def _head_post(self, module, args, kwargs, output):
         if self.recording and getattr(self, '_pending', None) is not None:
@@ -333,6 +480,8 @@ class ModelMonitor:
             self._leave()
             if self.recording:
                 self.events.append(('module', role, name, time.perf_counter()-self._t0.pop(id(module), time.perf_counter())))
+                if role in VALUE_ROLES:
+                    self.events.append(('values', role, name, _tensors(output)))
         return post
 
     def _make_handler_hook(self, name):
@@ -343,6 +492,7 @@ class ModelMonitor:
 
     def begin(self):
         self.events = []
+        self._after = None
         self.recording = True
 
     def end(self):
@@ -360,13 +510,16 @@ def provenance(events):
     entries, fed_total, prev_argmax, prev_consumed = 0, 0, None, True
     pending = deque()
     tokens, violations, module_runs = [], [], {}
-    stream, frozen = [], None
+    stream, stream_src, frozen, frozen_src = [], [], None, None
+    responses = [list(e[2]) for e in events if e[0] == 'handler' and e[2]]
     for event in events:
         if event[0] == 'handler':
             pending.extend(event[2] or [])
             continue
         if event[0] == 'module':
             module_runs.setdefault((event[1], event[2]), []).append(event[3])
+            continue
+        if event[0] == 'values':
             continue
         info, argmax = event[1], event[2]
         ids, past = info['ids'], info['past']
@@ -380,15 +533,18 @@ def provenance(events):
         if ids is None:
             violations.append(dict(kind='inputs_embeds_without_ids', stack=info['stack']))
             continue
+        if info.get('cache_modified'):
+            violations.append(dict(kind='cache_modified_between_model_entries', at_token=fed_total,
+                                   stack=info['stack']))
         if past == 0:
             entries += 1
             if entries > 1:
                 violations.append(dict(kind='second_model_entry', at_token=fed_total, stack=info['stack']))
             fed_total = len(ids)
             tokens.extend(('prompt', t) for t in ids)
-            if entries > 1:
-                frozen = stream if frozen is None else frozen
-            stream = []
+            if entries > 1 and frozen is None:
+                frozen, frozen_src = stream, stream_src
+            stream, stream_src = [], []
         else:
             if past != fed_total:
                 violations.append(dict(kind='cache_discontinuity', expected=fed_total, got=past, stack=info['stack']))
@@ -407,43 +563,95 @@ def provenance(events):
                                            position=past+i, stack=info['stack']))
                 tokens.append((src, tok))
                 stream.append(tok)
+                stream_src.append(src)
             fed_total = past+len(ids)
         prev_argmax, prev_consumed = argmax[-1], False
     if pending:
         violations.append(dict(kind='handler_tokens_not_fed', count=len(pending)))
     final = prev_argmax if not prev_consumed else None
     generated = frozen if frozen is not None else stream+([final] if final is not None else [])
-    return dict(entries=entries, tokens=tokens, generated=generated,
+    gsrc = frozen_src if frozen is not None else stream_src+(['model'] if final is not None else [])
+    last = max([i for i, s in enumerate(gsrc) if s == 'handler'], default=-1)
+    return dict(entries=entries, tokens=tokens, generated=generated, tail=generated[last+1:],
+                handler_responses=responses,
                 violations=violations, module_runs={f'{r}:{n}': len(v) for (r, n), v in module_runs.items()},
                 module_seconds={f'{r}:{n}': sum(v) for (r, n), v in module_runs.items()})
 
 
 # ---------------------------------------------------------------- A3: executed-line scope
+def numeric_data(value, allowed, depth=0):
+    """Why a module-level value is numeric data outside the weights, or None."""
+    import torch
+    if isinstance(value, bool) or value is None:
+        return None
+    if isinstance(value, (int, float)):
+        return None if float(value) in allowed else f'module-level number {value!r}'
+    if isinstance(value, torch.nn.Parameter) or isinstance(value, torch.nn.Module):
+        return None
+    if isinstance(value, torch.Tensor):
+        return f'module-level tensor {tuple(value.shape)}'
+    if type(value).__module__ == 'numpy' and hasattr(value, 'shape'):
+        return f'module-level array {tuple(value.shape)}'
+    if isinstance(value, (list, tuple, set, frozenset, dict)) and depth < 3:
+        items = list(value.values()) if isinstance(value, dict) else list(value)
+        for v in items[:2000]:
+            why = numeric_data(v, allowed, depth+1)
+            if why:
+                return f'module-level table holding numbers ({why})' if depth == 0 else why
+    return None
+
+
 class LineScope:
-    """Records (file, line) executed during generate() outside the forwards of model modules
-    (lm, vit, head, connector, tower). Call-handler code is recorded. Interpreter, site-packages and
-    EAT-1 lines are disabled after their first event."""
+    """Records (file, line) of reader code executed during generate(): call handlers, reader functions, the
+    forwards and methods of model modules defined in reader code, and module and class bodies run by lazy
+    imports. Interpreter, site-packages and EAT-1 lines are disabled after their first event.
+
+    At the first start of each reader function it also resolves the global names the function reads: a
+    module-level number outside the allowlist, or a module-level container, array or tensor (not a
+    parameter) holding numbers, is a table or constant outside the weights (A3.module_data)."""
     TOOL = 4
 
-    def __init__(self):
+    def __init__(self, allowed_numbers=None):
         self.lines = {}
+        self.globals_read = []
         self.inside_model = False
         self.active = False
         self.env = environment_prefixes()
         self.mon = sys.monitoring
+        self.allowed = allowed_numbers if allowed_numbers is not None else {0., 1., -1.}
+        self._seen_codes = set()
+
+    def _skip(self, f):
+        return f.startswith(self.env) or is_harness(f) or f.startswith('<') or f.startswith(SYSTEM_PREFIXES)
 
     def _line(self, code, line):
         f = code.co_filename
-        if (f.startswith(self.env) or is_harness(f) or f.startswith('<')
-                or f.startswith(SYSTEM_PREFIXES)):
+        if self._skip(f):
             return self.mon.DISABLE
-        if not code.co_flags & inspect.CO_OPTIMIZED:
-            # module and class bodies (imports done lazily inside generate) define names; the lines that
-            # use those names inside functions are what the scan judges
-            return self.mon.DISABLE
-        if not self.active or self.inside_model:
+        if not self.active:
             return None
         self.lines.setdefault(f, set()).add(line)
+        return self.mon.DISABLE
+
+    def _start(self, code, offset):
+        if self._skip(code.co_filename):
+            return self.mon.DISABLE
+        if not self.active:
+            return None
+        if id(code) in self._seen_codes or not code.co_flags & inspect.CO_OPTIMIZED:
+            return self.mon.DISABLE
+        self._seen_codes.add(id(code))
+        try:
+            frame = sys._getframe(1)
+            g = frame.f_globals if frame.f_code is code else None
+        except ValueError:
+            g = None
+        for name in code.co_names if g is not None else ():
+            if name in g:
+                why = numeric_data(g[name], self.allowed)
+                if why:
+                    self.globals_read.append(dict(file=code.co_filename, line=code.co_firstlineno,
+                                                  function=code.co_qualname, name=name, detail=why))
         return self.mon.DISABLE
 
     def start(self):
@@ -452,7 +660,8 @@ class LineScope:
         except ValueError:
             pass
         self.mon.register_callback(self.TOOL, self.mon.events.LINE, self._line)
-        self.mon.set_events(self.TOOL, self.mon.events.LINE)
+        self.mon.register_callback(self.TOOL, self.mon.events.PY_START, self._start)
+        self.mon.set_events(self.TOOL, self.mon.events.LINE | self.mon.events.PY_START)
         self.active = True
 
     def pause(self):
@@ -465,6 +674,7 @@ class LineScope:
         self.active = False
         self.mon.set_events(self.TOOL, 0)
         self.mon.register_callback(self.TOOL, self.mon.events.LINE, None)
+        self.mon.register_callback(self.TOOL, self.mon.events.PY_START, None)
         self.mon.restart_events()
         try:
             self.mon.free_tool_id(self.TOOL)

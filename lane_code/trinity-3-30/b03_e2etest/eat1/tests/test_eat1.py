@@ -78,10 +78,66 @@ class ToyEndToEnd(unittest.TestCase):
         hm = {(o['rule'], o['function']) for o in self.results['head_method']['clauses']['A3']['offenders']}
         self.assertIn(('A3.threshold', 'RulePerception.adjust'), hm)
         a4 = {o.get('kind') or o.get('rule') for o in self.results['guard']['clauses']['A4']['offenders']}
-        self.assertTrue({'response_without_head', 'answer_not_in_generated_sequence', 'A4.guard'} <= a4)
+        self.assertTrue({'response_without_head', 'answer_not_generated_after_last_response', 'A4.guard'} <= a4)
         a5 = {o.get('kind') or o.get('rule') for o in self.results['cache']['clauses']['A5']['offenders']}
         self.assertTrue({'tower_cited_but_not_run_in_call', 'A5.cache',
                          'response_names_module_but_did_not_change'} <= a5)
+
+
+class Adversarial(unittest.TestCase):
+    """The refute review's planted violations (eat1/toy/adversarial.py): each fails its clause; memo and
+    numeric pass every clause."""
+    RULES = dict(round='A3.reformat', conversion='A3.constant', chained='A3.constant', config='A3.threshold',
+                 comparison='A3.threshold', table='A3.table_load', lazy='A3.constant', global_table='A3.module_data',
+                 assigned='A4.except_substitute', empty='A4.or_fallback', native='native_call_from_reader_code',
+                 child='child_process_during_generate', rewrite='cache_modified_between_model_entries',
+                 answer='answer_not_generated_after_last_response',
+                 omitted='reported_calls_differ_from_observed_handler_responses',
+                 disappear='perturbed_run_raised', forward='A3.threshold', method='A3.constant')
+
+    @classmethod
+    def setUpClass(cls):
+        from eat1.toy.adversarial import EXPECT, build_adversarial
+        cls.expect = EXPECT
+        cls.tmp = Path(tempfile.mkdtemp(prefix='eat1_adv_', dir=os.environ.get('EAT1_TMP')))
+        cls.info = build_adversarial(cls.tmp/'fx')
+        cls.results = {}
+        for variant in list(EXPECT)+['native_coderoot']:
+            v = variant.removesuffix('_coderoot')
+            out = cls.tmp/'runs'/variant
+            extra = ['--code-root', str(cls.tmp/'fx')] if variant.endswith('_coderoot') else []
+            R.main(['--reader', 'eat1.toy.adversarial:make_reader', '--reader-kwargs',
+                    json.dumps(dict(workdir=str(cls.tmp/'fx'), variant=v)), '--items',
+                    cls.info['depth' if v == 'memo' else 'move'], '--out', str(out), '--allowlist-extra', TOY_ALLOW,
+                    '--perturb', '--sandbox']+extra)
+            cls.results[variant] = json.loads((out/'EAT1_REPORT.json').read_text())
+
+    def test_each_variant_fails_its_clause(self):
+        for variant, clause_id in self.expect.items():
+            with self.subTest(variant=variant):
+                r = self.results[variant]
+                if clause_id is None:
+                    self.assertEqual(r['overall'], 'PASS', json.dumps({k: c['summary'] for k, c in r['clauses'].items()}))
+                else:
+                    self.assertEqual(r['clauses'][clause_id]['status'], 'FAIL')
+
+    def test_each_variant_fails_for_its_planted_reason(self):
+        for variant, rule in self.RULES.items():
+            with self.subTest(variant=variant):
+                offs = self.results[variant]['clauses'][self.expect[variant]]['offenders']
+                self.assertIn(rule, {o.get('rule') or o.get('kind') for o in offs})
+        for variant in ('readonly', 'readwrite', 'mapped', 'preopened'):
+            with self.subTest(variant=variant):
+                files = [o.get('file', '') for o in self.results[variant]['clauses']['A1']['offenders']]
+                self.assertTrue(any(f.endswith('outside.dat') for f in files), files)
+
+    def test_memo_with_proof_passes_but_is_listed(self):
+        a5 = self.results['memo']['clauses']['A5']
+        self.assertEqual(a5['cache_proof']['status'], 'PASS')
+        self.assertTrue(a5['proven_cache_sites'] and a5['claim_needs_live_run'])
+
+    def test_data_under_a_code_root_is_not_mounted(self):
+        self.assertEqual(self.results['native_coderoot']['clauses']['A5']['parts']['i'], 'FAIL')
 
 
 class StaticScanner(unittest.TestCase):
@@ -102,10 +158,36 @@ class StaticScanner(unittest.TestCase):
         src = ('import torch\n'
                'def fmt(points, k):\n'
                '    d = torch.linalg.norm(points[1]-points[0])\n'
-               '    return f"{float(d):.2f}", round(float(d), 2), points[k, 3]\n')
+               '    return f"{float(d)}", str(float(d)), points[k, 3], points.reshape(-1, 12)\n')
         path = Path(tempfile.mkdtemp())/'ok.py'
         path.write_text(src)
         self.assertEqual(S.scan([path])[0], [])
+
+    def test_precision_outside_the_model_fails(self):
+        for src in ['def f(d):\n    return f"{d:.2f}"\n', 'def f(d):\n    return round(d, 2)\n',
+                    'def f(d):\n    return "%.3f" % d\n', 'def f(d):\n    return format(d, ".1f")\n',
+                    'def f(d):\n    return "{:.2f}".format(d)\n', 'def f(d):\n    return d.round(decimals=2)\n']:
+            with self.subTest(src=src):
+                path = Path(tempfile.mkdtemp())/'fmt.py'
+                path.write_text(src)
+                self.assertIn('A3.reformat', {f['rule'] for f in S.scan([path])[0]})
+
+    def test_constant_arithmetic_and_propagation_fail(self):
+        for src in ['def f(v):\n    return v*((2+3)**2)*4\n', 'def f(v):\n    k = 4\n    return v*k*k*4\n',
+                    'def f(v):\n    return v+0.5+0.5+0.5\n', 'def f(v, cfg):\n    return v if v < cfg.edge else 0\n',
+                    'import torch\ndef f(v):\n    return torch.clamp(v, 0, 1)\n', 'def f(v):\n    return v > 0.5\n']:
+            with self.subTest(src=src):
+                path = Path(tempfile.mkdtemp())/'k.py'
+                path.write_text(src)
+                self.assertTrue({f['rule'] for f in S.scan([path])[0]} & {'A3.constant', 'A3.threshold'})
+
+    def test_native_unit_printing_needs_a_declared_head_unit(self):
+        path = Path(tempfile.mkdtemp())/'u.py'
+        path.write_text("def show(value):\n    return f'{value} cm'\n")
+        self.assertIn('A3.unit_conversion', {f['rule'] for f in S.scan([path])[0]})
+        allow = S.load_allowlist()
+        allow['_native_units'] = {'cm'}
+        self.assertEqual(S.scan([path], allow)[0], [])
 
     def test_unit_conversion_outside_the_model_fails(self):
         cases = ['def f(d):\n    return f"{d*100:.1f} cm"\n',
@@ -140,7 +222,10 @@ class StaticScanner(unittest.TestCase):
         self.assertEqual(S.scan([root/'ok.py'])[0], [])
         self.assertIn('A4.except_substitute', {f['rule'] for f in S.scan([root/'bad.py'])[0]})
         (root/'empty.py').write_text('def f(k):\n    try:\n        return g(k)\n    except KeyError:\n        return []\n')
-        self.assertNotIn('A4.except_substitute', {f['rule'] for f in S.scan([root/'empty.py'])[0]})
+        self.assertIn('A4.except_substitute', {f['rule'] for f in S.scan([root/'empty.py'])[0]})
+        (root/'reraise.py').write_text('def f(k):\n    try:\n        return g(k)\n    except KeyError as e:\n'
+                                       '        raise ValueError(k) from e\n')
+        self.assertEqual(S.scan([root/'reraise.py'])[0], [])
 
     def test_suppression_is_reported(self):
         path = Path(tempfile.mkdtemp())/'s.py'

@@ -14,7 +14,9 @@ from scipy import ndimage
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import r0lib  # noqa: E402
 
-GEN_VERSION = 'r0gen-v1'
+GEN_VERSION = 'r0gen-v2'
+SEED = 'r0gen-v1'  # RNG and qid stem kept from v1, so v1 items reproduce unchanged
+DEV_CAPS = dict(obj_appearance_order=3)  # R0-dev targets ~150 items per type
 CAPS = dict(object_counting=3, object_counting_multi=1, object_size_estimation=3, object_abs_distance=3,
             object_rel_distance=3, object_rel_direction_easy=2, object_rel_direction_medium=2,
             object_rel_direction_hard=2, obj_appearance_order=2, room_size_estimation=1)
@@ -100,19 +102,21 @@ def main(sdir, split, mult, out):
         return float(trees[a].query(P[b], k=1)[0].min())
 
     caps = {k: v * mult for k, v in CAPS.items()}
+    if split == 'R0-dev':
+        caps.update(DEV_CAPS)
     items = []
     base = dict(dataset='scannetpp', scene=scene_id, r0_split=split, total_num_frames=total, fps=60.0,
                 frame_indices_f32=lay[32], frame_indices_f64=lay[64], gen_version=GEN_VERSION)
 
     def add(qt, sub, q, opts, a32, a64, unit, info):
-        qid = 'r0_' + h(GEN_VERSION, scene_id, qt, sub, q)[:20]
+        qid = 'r0_' + h(SEED, scene_id, qt, sub, q)[:20]
         if opts is not None:
             opts, a32 = mc(qid, a32, opts)
             a64 = a32 if a64 == 'same' else a64
         items.append(dict(base, qid=qid, question_type=qt, subtype=sub, question=q, options=opts or [],
                           answer_f32=a32, answer_f64=a64, unit=unit, gt=info))
 
-    R = Rng(GEN_VERSION, scene_id)
+    R = Rng(SEED, scene_id)
     # counting (single category): frame-tied count per layout; at least 2 seen in the 32-frame layout
     cands = [l for l, ks in sorted(by_label.items()) if sum(k in seen[32] for k in ks) >= 2 and len(ks) <= 20]
     for l in R.pick(cands, caps['object_counting']):
@@ -203,7 +207,7 @@ def main(sdir, split, mult, out):
                     ans, 'same', 'choice', dict(standing=a, facing=b, query=c, away=away, angle_deg=th))
             n_ok += 1
     n_ok = 0
-    for _ in range(30):
+    for _ in range(30 * caps['obj_appearance_order']):
         if n_ok >= caps['obj_appearance_order'] or len(uniq) < 4:
             break
         ls = R.pick(uniq, 4)

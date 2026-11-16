@@ -1,6 +1,6 @@
 """Toy end-to-end model for EAT-1 tests (model code: runs inside module forwards).
 
-A character-level scripted LM with a real key-value cache object, a frame encoder, a pose head, a depth
+A character-level scripted LM with a real key-value cache object, a frame encoder, a move head, a depth
 head, a frozen tower and a call handler registered on the model. The LM writes a program, the handler
 writes the response into the running sequence, and the LM copies the response number into its answer.
 """
@@ -88,17 +88,17 @@ class Tower(nn.Module):
 
 
 class Perception(nn.Module):
-    """Prefill-time head reads: one pass of the encoder and both heads over the read's frames."""
+    """Prefill-time encoder pass over the read's frames. The heads run inside each call: the move head on two
+    frames' features, the depth head on one frame's features and the tower's output."""
 
     def __init__(self):
         super().__init__()
         self.vision = nn.Linear(12, 8)
-        self.pose_head = nn.Linear(8, 3)
-        self.depth_head = nn.Linear(8, 1)
+        self.move_head = nn.Linear(16, 1)
+        self.depth_head = nn.Linear(12, 1)
 
     def forward(self, frames):
-        feats = self.vision(frames)
-        return dict(frames=frames, pose=self.pose_head(feats), depth=self.depth_head(feats)[:, 0])
+        return dict(frames=frames, feats=self.vision(frames))
 
 
 class ToyModel(nn.Module):
@@ -113,7 +113,7 @@ class ToyModel(nn.Module):
 
 MODULES = {
     'perception': dict(role='vit', name='encoder'),
-    'perception.pose_head': dict(role='head', name='pose'),
+    'perception.move_head': dict(role='head', name='move'),
     'perception.depth_head': dict(role='head', name='depth'),
     'tower': dict(role='tower', name='toy_tower'),
     'lm': dict(role='lm', name='lm'),

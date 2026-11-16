@@ -1,8 +1,9 @@
 # k1_ops STATUS — operator k1_ops8 (Devin, trinity-1-18, from 17:25Z), successor of k1_ops7. Events folder events/k1_ops3/.
-Updated 2026-11-16T17:35Z (k1_ops8).
+Updated 2026-11-16T17:55Z (k1_ops8).
 
 ## k1_ops8 (17:35Z)
 - Took over 17:25Z. k1down: primary tables still writing (candidates/pairs growing, no TABLE_RECEIPT yet). e3gdrun: 185/239 train at 17:25Z.
+- 17:55Z: primary tables+refit DONE (FIT_RECEIPT accept auc cur .904 -> refit .921, top1 .586 both; pairs auc .955 -> .956). Render running over all 296 (~3.6/min, ETA ~19:00Z); sensitivity after (~21:00Z). Heads-only split written: work/k1_split/primary_296_heads_only.json (portrait top1 .491 vs landscape .625). Script now also has landscape_arkitscenes control row (portrait = ARKit only). Rerun after REPORT.json for MRA rows.
 - Built work/k1_split/head_split.py (portrait/landscape split; imports refit/train.py and k1_report.py unchanged; asserts the 'all' rows reproduce FIT_RECEIPT metrics and REPORT.json MRA). Run per analysis after REPORT.json: /scratch/jjyeung/envs/planner_local_v1/bin/python -B work/k1_split/head_split.py --analysis <analyses/primary_296|sensitivity_300> --inventory /scratch/jjyeung/orch_n30/k1_ops3/kc/k1_build/work/kit_k1a/out/CAPTURES.json --out work/k1_split/<name>.json
 
 ## Now (17:18Z) - k1_ops7 rotated; successor resumes here

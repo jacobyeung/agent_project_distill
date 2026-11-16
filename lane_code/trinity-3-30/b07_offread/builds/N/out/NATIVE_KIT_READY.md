@@ -1,13 +1,11 @@
 ReVSI × harness: NOT READY; ReVSI × e2e: NOT READY; VSI-Bench × harness: NOT READY; VSI-Bench × e2e: NOT READY.
 
-The full CPU suite has 112 passes and one incompatible original reviewer case; the byte-equal reviewer file has four passes and one failure, and its current-API sibling passes with the same forbidden-word assertion.
+The whole N suite has 122 passes, two cross-kit skips and one incompatible original reviewer case. The original R4 test appends OFFNATIVE_PACKET_SHA256 itself; its current-API sibling passes. The reviewer F1/F2/F3 gate passes all three cases, and test_prodroot passes all three production-root cases. Reviewer files remain byte-equal.
 
-Original R4 cannot pass because it appends the retired OFFNATIVE_PACKET_SHA256 export itself after calling the helper.
+Four whole-worker CPU fixtures and one full CPU rehearsal under a production-style /tmp root pass. The rehearsal root remains below 20 MB; large fixture assets and traces stay in RAM. Mounts, transport and models remain CPU stand-ins.
 
-Four whole-worker fixtures, two opaque-worker fixtures, encoded-name rejection checks and the three-shard cutoff test pass. Both kits require a15_cot_ap followed by 16 random hex digits. Forbidden logical components map to independent random tokens; the SHA-pinned logical map remains in out/NAME_MAP.json on Trinity, while the packet carries a digest-to-token table. Source bytes remain unchanged.
+All four opacity adapters are identical. Each packet derives a deterministic salt from its member pins and the Trinity-only secret; token and alias lookups use the salt. Unsalted dictionary checks find zero keys. The public salt still allows dictionary guesses that include it. In-job contents are exempt from the naming rule.
 
-Model prompts retain direct clip metadata and bytes; geometry alone uses dense slots. Both secondary decodes use the registered ThinkingBudget. Reduced harness proof requires camera equality and reports the five distance items without loading lost masks; e2e distance items remain reported. Distance response equality, query digests and independent re-serving are not established.
+Production still requires complete owner artifacts, live timing and native-library validation, proof inputs and transport-only rehearsals. ReVSI clip hashes and pixel correspondence remain pending. The 17 whole-scene shards fit their planning estimates; live timing remains unmeasured. Nothing was submitted or uploaded.
 
-All 288 video sizes are bound. ReVSI clip hashes and the real pixel check remain pending. Production needs owner-complete artifacts, loaded-entry prompt audits, EAT-1 where applicable, native-library path resolution and genuine transport-only rehearsals. Nothing was submitted or uploaded.
-
-code.tar: 8963817 bytes; SHA256 `06731cfaf8ca5c2c454d2e3a6f136fcd01d5102ca6acf18527b6039403c3e8ea`. CODE_PINS.json, DEPENDENCY_PINS.json, N5_ARCHIVE_CHECK.json, N5_VALIDATION.json, N5_FIXTURES.json and SHIP_SHA256SUMS bind this release.
+code.tar SHA256 `66d1a0a759a3bf9b7f3ca62cd15d13fc50cf66fd3b7e01e7873f0e0a9083baaa` (8983667 bytes). N7_VALIDATION.json, N7_REVIEW_GATE.json, N7_PRODROOT.json, N7_SALT_CHECK.json, N7_ARCHIVE_CHECK.json, N7_STORAGE.json, CODE_PINS.json, DEPENDENCY_PINS.json and SHIP_SHA256SUMS bind the release.

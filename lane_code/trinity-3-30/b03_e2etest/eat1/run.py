@@ -20,6 +20,7 @@ import copy
 import importlib
 import json
 import os
+import re
 import shutil
 import statistics
 import subprocess
@@ -56,9 +57,9 @@ def read_items(path, limit=None):
 
 
 # ---------------------------------------------------------------- observation
-def observe(reader, items, artifact, trace_lines=True, audit=True, monitor=True):
+def observe(reader, items, artifact, trace_lines=True, audit=True, monitor=True, allowed_numbers=None, sink=None):
     declared = artifact.module_roles(reader.model)
-    scope = H.LineScope() if trace_lines else None
+    scope = H.LineScope(allowed_numbers) if trace_lines else None
     mon = H.ModelMonitor(reader.model, lm_module(reader, declared), declared, scope) if monitor else None
     opener = H.open_audit() if audit else None
     records = []
@@ -68,6 +69,7 @@ def observe(reader, items, artifact, trace_lines=True, audit=True, monitor=True)
     try:
         for index, item in enumerate(items):
             maps0 = H.mapped_files() if audit else set()
+            fds0 = H.fd_positions() if audit else {}
             if opener:
                 opener.take()
             H.marker('start', index)
@@ -92,15 +94,24 @@ def observe(reader, items, artifact, trace_lines=True, audit=True, monitor=True)
             H.marker('end', index)
             opens = opener.take() if opener else []
             maps = sorted(H.mapped_files()-maps0) if audit else []
+            if audit:
+                fds1 = H.fd_positions()
+                opens += [('fdread', path, False, None) for fd, (path, pos) in fds0.items()
+                          if fd in fds1 and fds1[fd][0] == path and fds1[fd][1] != pos]
             prov = H.provenance(events) if mon else None
             generated_text = reader.tokenizer.decode(prov['generated']) if prov else None
             records.append(dict(id=item.get('id', str(index)), type=item.get('type', 'all'), seconds=seconds,
                                 error=error, output=_jsonable(output), provenance=prov,
-                                generated_text=generated_text, opens=opens, mapped=maps))
+                                generated_text=generated_text, opens=opens, mapped=maps,
+                                tail_text=reader.tokenizer.decode(prov['tail']) if prov else None,
+                                handler_texts=[reader.tokenizer.decode(r) for r in prov['handler_responses']]
+                                if prov else None))
     finally:
         lines = scope.stop() if scope else None
         if mon:
             mon.close()
+    if scope is not None and sink is not None:
+        sink['globals_read'] = scope.globals_read
     return records, lines, declared
 
 
@@ -108,35 +119,34 @@ def _jsonable(output):
     return json.loads(json.dumps(output, default=str))
 
 
-def split_model_code(findings, model, declared):
-    """Plain-constant findings (A3.constant) inside methods of the classes of declared lm/vit/head/connector/tower modules (and their
-    submodules) are model code, for example a head's own activation constants called through a method
-    rather than forward. They are reported apart and do not fail a clause; the reviewer reads them.
-    Call-handler modules, their submodules and the root model class are never exempt."""
-    import inspect
-    handler_ids = {id(s) for _, m, role, _ in declared if role == 'call_handler' for s in m.modules()}
-    mods = {id(s): s for _, m, role, _ in declared if role in MODEL_ROLES and m is not model for s in m.modules()}
-    banned = {type(model)} | {type(s) for _, m, role, _ in declared if role == 'call_handler' for s in m.modules()}
-    classes = set()
-    for key, m in mods.items():
-        if key in handler_ids or type(m) in banned:
+def config_reads(a1, artifact):
+    """An artifact file whose role is not a module's weights (role config), opened by reader code after
+    generate() starts, is a table loaded outside the heads (A3.table_load)."""
+    roles = {e['sha256']: (rel, e['role']) for rel, e in artifact.files.items()}
+    out = []
+    for f in a1.get('artifact_files', []):
+        rel, role = roles.get(f['sha256'], (None, None))
+        if role == 'config':
+            out.append(dict(clause='A3', rule='A3.table_load', file=f['path'], rel=rel, line=0, function='<generate>',
+                            detail=f'artifact file {rel} (role config) read during generate(); a table must be a '
+                                   f'parameter of a head', text=rel, executed=True))
+    return out
+
+
+def globals_findings(globals_read, allow):
+    """Module-level numbers and tables read by executed reader functions (A3.module_data). A reviewed
+    module constant is listed in declared_constants with function '<global NAME>'."""
+    declared = {(d['file'], d.get('function')) for d in allow.get('declared_constants', [])}
+    out, seen = [], set()
+    for g in globals_read:
+        key = (g['file'], g['function'], g['name'])
+        if key in seen or any(g['file'].endswith('/'+f) and fn == f'<global {g["name"]}>' for f, fn in declared):
             continue
-        for cls in type(m).__mro__:
-            if cls in banned:
-                break
-            if cls.__module__.startswith('torch.') or cls.__module__.startswith('transformers.'):
-                continue
-            try:
-                classes.add((str(Path(inspect.getsourcefile(cls)).resolve()), cls.__qualname__))
-            except (TypeError, OSError):
-                pass
-    keep, model_code = [], []
-    for f in findings:
-        top = f['function'].split('.')[0]
-        # only plain constants (activation offsets, canvas scales) count as model code; a threshold, table,
-        # guard, status or cache inside such a method still fails
-        (model_code if (f['file'], top) in classes and f['rule'] == 'A3.constant' else keep).append(f)
-    return keep, model_code
+        seen.add(key)
+        out.append(dict(clause='A3', rule='A3.module_data', file=g['file'], rel=Path(g['file']).name, line=g['line'],
+                        function=g['function'], detail=f'reads global {g["name"]}: {g["detail"]}',
+                        text=g['name'], executed=True))
+    return out
 
 
 # ---------------------------------------------------------------- clauses
@@ -145,21 +155,32 @@ def clause(status, summary, offenders=(), **extra):
 
 
 def judge_a1(records, artifact, input_roots, strace=None):
-    recs = []
+    recs, unseen, library_native = [], [], []
     for r in records:
-        recs += [tuple(o) for o in r['opens'] if o[0] == 'open']
+        recs += [tuple(o) for o in r['opens'] if o[0] in ('open', 'fdread')]
         recs += [('mmap', p, False) for p in r['mapped']]
+        for o in r['opens']:
+            if o[0] == 'child':
+                unseen.append(dict(item=r['id'], kind='child_process_during_generate', event=o[1], stack=o[3]))
+            elif o[0] == 'native' and o[3] and o[3][1] == 'reader':
+                unseen.append(dict(item=r['id'], kind='native_call_from_reader_code', event=o[1], stack=o[3][:1]))
+            elif o[0] == 'native':
+                library_native.append(o[1])
     if strace:
         recs += [('strace', p, w) for _, p, w in strace]
     cats = H.classify_files(recs, artifact, input_roots)
     offenders = [dict(file=o['path'], sha256=o['sha256'], source=o['source'], opened_at=o.get('opened_at'))
                  for o in cats['outside_data']]
+    # opens made by a child process or by native code called from the reader are invisible to the audit hook
+    # (strace -f sees them); without strace each such call fails A1 because its reads cannot be judged
+    offenders += _compress(unseen)
     status = 'FAIL' if offenders else 'PASS'
     return clause(status, f'{len(cats["artifact"])} artifact, {len(cats["code"])} code, '
-                          f'{len(cats["input"])} input, {len(offenders)} outside-artifact data files opened '
-                          f'after generate() started', offenders,
+                          f'{len(cats["input"])} input, {len(cats["outside_data"])} outside-artifact data files opened '
+                          f'after generate() started; {len(unseen)} child-process or reader native calls', offenders,
                   code_files=cats['code'], artifact_files=cats['artifact'],
-                  environment_files=len(cats['environment']), strace=strace is not None)
+                  environment_files=len(cats['environment']), strace=strace is not None,
+                  library_native_calls=dict(Counter(library_native)))
 
 
 def judge_a2(records, declared, findings=(), dynamic=True):
@@ -227,8 +248,12 @@ def judge_a4(records, declared, findings, dynamic):
         if r['error']:
             offenders.append(dict(item=r['id'], kind='reader_error', detail=r['error']))
         answer = out.get('answer')
-        if answer is None or str(answer).strip() == '' or str(answer).strip() not in gen:
-            offenders.append(dict(item=r['id'], kind='answer_not_in_generated_sequence', answer=answer))
+        tail = r.get('tail_text') if r.get('tail_text') is not None else gen
+        a = '' if answer is None else str(answer).strip()
+        # the scored answer is generated by the model after its last response, as a whole token run
+        if not a or not re.search(r'(?<![\w.])'+re.escape(a)+r'(?![\w]|\.\d)', tail):
+            offenders.append(dict(item=r['id'], kind='answer_not_generated_after_last_response', answer=answer,
+                                  tail=tail[-80:]))
         if r['provenance'] and out.get('text') not in (None, gen) and out.get('text') != gen.rstrip():
             offenders.append(dict(item=r['id'], kind='reported_text_differs_from_generated_sequence'))
         for c in out.get('calls', []):
@@ -261,6 +286,11 @@ def judge_a5(records, declared, findings, dynamic, sandbox=None, perturb=None, c
     proof = check_cache_proof(cache_proof) if cache_proof else None
     if proof is not None and proof['status'] != 'PASS':
         tower_off.append(dict(kind='cache_proof_invalid', detail=proof['reason']))
+    proven = []
+    if proof is not None and proof['status'] == 'PASS':
+        # a cache with a recorded equality proof on >= 50 items may speed a read; it is listed, and a claimed
+        # number still comes from a live run
+        proven, static = [f for f in static if f['rule'] == 'A5.cache'], [f for f in static if f['rule'] != 'A5.cache']
     parts['iii'] = 'FAIL' if tower_off or static else 'PASS'
     offenders += _compress(tower_off)+[_finding(f) for f in static]
     if sandbox is not None:
@@ -274,7 +304,9 @@ def judge_a5(records, declared, findings, dynamic, sandbox=None, perturb=None, c
     else:
         parts['ii'] = 'NOT RUN'
     status = 'FAIL' if 'FAIL' in parts.values() else 'PASS' if all(v == 'PASS' for v in parts.values()) else 'INCOMPLETE'
-    return clause(status, f'parts {parts}', offenders, parts=parts, cache_proof=proof)
+    return clause(status, f'parts {parts}', offenders, parts=parts, cache_proof=proof,
+                  proven_cache_sites=[_finding(f) for f in proven],
+                  claim_needs_live_run=bool(proven))
 
 
 def check_cache_proof(path, minimum=50):
@@ -297,17 +329,27 @@ def check_cache_proof(path, minimum=50):
 # ---------------------------------------------------------------- A5 (ii): head perturbation
 def compare_calls(base, other):
     """Prefix-aligned comparison: a response is eligible while every call up to it matches. A response that
-    reads an earlier response's state (a gap over grounded boxes) must cite the modules behind that state."""
-    out = []
-    for b, o in zip(base, other):
-        if b.get('call') != o.get('call'):
+    reads an earlier response's state (a gap over grounded boxes) must cite the modules behind that state.
+    -> (eligible comparisons, index of the first divergence or None)."""
+    out, diverged = [], None
+    for k, b in enumerate(base):
+        o = other[k] if k < len(other) else None
+        if o is None or b.get('call') != o.get('call'):
+            diverged = k
             break
         cited = sorted({h for hs in (b.get('fields') or {}).values() for h in hs or []})
         out.append(dict(call=b.get('call'), cited=cited, changed=b.get('response') != o.get('response')))
-    return out
+    if diverged is None and len(other) > len(base):
+        diverged = len(base)
+    return out, diverged
 
 
 def perturbation(reader, items, artifact, base_records, seeds=(1, 2, 3), scales=(1., 10.)):
+    """A5 (ii): "Perturbing one head's weights changes the responses that name it and no others."
+    Per target: every eligible response that names it must change under some perturbation, no eligible response
+    that does not name it may change, a perturbed run may not raise, the call sequence may diverge only after
+    a response that names the target, and a target named by any baseline response needs at least one eligible
+    comparison (no evidence is a failure, not a pass)."""
     import torch
     declared = artifact.module_roles(reader.model)
     targets = [(p, m, r, n) for p, m, r, n in declared if r in ('head', 'tower')]
@@ -316,6 +358,7 @@ def perturbation(reader, items, artifact, base_records, seeds=(1, 2, 3), scales=
     for path, mod, role, name in targets:
         saved = copy.deepcopy(mod.state_dict())
         verdicts = defaultdict(lambda: dict(changed=False, cited=None))
+        errors, divergences = [], []
         try:
             for seed, gain in [(seed, gain) for gain in scales for seed in seeds]:
                 g = torch.Generator().manual_seed(seed)
@@ -329,25 +372,42 @@ def perturbation(reader, items, artifact, base_records, seeds=(1, 2, 3), scales=
                 runs, _, _ = observe(reader, items, artifact, trace_lines=False, audit=False, monitor=False)
                 mod.load_state_dict(saved)
                 for r in runs:
-                    for k, c in enumerate(compare_calls(base.get(r['id'], []), r['output'].get('calls', []))):
+                    if r['error']:
+                        errors.append(dict(item=r['id'], seed=seed, gain=gain, error=r['error'][:200]))
+                        continue
+                    calls = base.get(r['id'], [])
+                    eligible, diverged = compare_calls(calls, r['output'].get('calls', []))
+                    for k, c in enumerate(eligible):
                         v = verdicts[(r['id'], k)]
                         v['cited'] = name in c['cited']
                         v['call'] = c['call']
                         v['changed'] = v['changed'] or c['changed']
+                    if diverged is not None and not any(name in c['cited'] for c in eligible):
+                        divergences.append(dict(item=r['id'], seed=seed, gain=gain, at_call=diverged))
         finally:
             mod.load_state_dict(saved)
         naming = [(key, v) for key, v in verdicts.items() if v['cited']]
         others = [(key, v) for key, v in verdicts.items() if not v['cited']]
         unchanged_naming = [key for key, v in naming if not v['changed']]
         changed_others = [key for key, v in others if v['changed']]
+        named_in_base = sum(name in {h for hs in (c.get('fields') or {}).values() for h in hs or []}
+                            for calls in base.values() for c in calls)
         report[name] = dict(role=role, responses_naming=len(naming), naming_changed=len(naming)-len(unchanged_naming),
-                            others=len(others), others_changed=len(changed_others))
+                            others=len(others), others_changed=len(changed_others), named_in_base=named_in_base,
+                            errors=len(errors), divergences_without_cited_change=len(divergences))
         for key in unchanged_naming:
             offenders.append(dict(kind='response_names_module_but_did_not_change', module=name, item=key[0],
                                   call_index=key[1]))
         for key in changed_others:
             offenders.append(dict(kind='response_changed_by_module_it_does_not_name', module=name, item=key[0],
                                   call_index=key[1]))
+        for e in errors:
+            offenders.append(dict(kind='perturbed_run_raised', module=name, **e))
+        for d in divergences:
+            offenders.append(dict(kind='calls_diverged_before_any_response_naming_module', module=name, **d))
+        if named_in_base and not naming:
+            offenders.append(dict(kind='no_eligible_comparison_for_named_module', module=name,
+                                  named_in_base=named_in_base))
     return dict(status='FAIL' if offenders else 'PASS', modules=report, offenders=_compress(offenders),
                 seeds=list(seeds), scales=list(scales))
 
@@ -362,9 +422,12 @@ def sandbox_command(args, code_roots, binds_ro, out_dir):
         elif os.path.isdir(p):
             cmd += ['--ro-bind', p, p]
     env_paths = {sys.prefix, sys.base_prefix, str(Path(sys.executable).resolve().parent.parent)}
-    for p in sorted(env_paths | set(code_roots) | set(binds_ro)):
+    for p in sorted(env_paths | set(binds_ro)):
         if p and os.path.exists(p):
             cmd += ['--ro-bind', p, p]
+    # code roots are mounted file by file, code files only: a data file under a code root is outside the artifact
+    for f in code_files(code_roots):
+        cmd += ['--ro-bind', f, f]
     cmd += ['--bind', str(out_dir), str(out_dir), '--chdir', '/tmp',
             '--setenv', 'PYTHONPATH', os.pathsep.join(sorted({str(EAT1_DIR.parent)} | set(args.pythonpath or [])))]
     cmd += [sys.executable, '-I' if False else '-B', '-m', 'eat1.run', '--child', '--reader', args.reader,
@@ -373,6 +436,17 @@ def sandbox_command(args, code_roots, binds_ro, out_dir):
     if args.limit:
         cmd += ['--limit', str(args.limit)]
     return cmd
+
+
+def code_files(code_roots, limit=50000):
+    out = set()
+    for root in code_roots:
+        for f in Path(root).rglob('*'):
+            if f.is_file() and f.suffix in ('.py', '.so', '.pyd', '.pth') and '__pycache__' not in f.parts:
+                out.add(str(f.resolve()))
+                if len(out) > limit:
+                    raise ValueError(f'code roots hold more than {limit} code files')
+    return sorted(out)
 
 
 def run_sandbox(args, records, artifact, input_roots, out_dir):
@@ -396,7 +470,7 @@ def run_sandbox(args, records, artifact, input_roots, out_dir):
             offenders.append(dict(kind='output_differs_without_outside_directories', item=r['id'],
                                   child_error=None if c is None else c['error']))
     return dict(status='FAIL' if offenders else 'PASS', offenders=_compress(offenders),
-                visible=code_roots+sorted(binds))
+                visible=sorted(binds), code_roots_mounted_file_by_file=code_roots)
 
 
 # ---------------------------------------------------------------- A6 report
@@ -420,6 +494,20 @@ def per_type(records):
     return out
 
 
+def judge_a6(records):
+    """A6 counts calls from what the registered handlers wrote into the sequence, not from what the reader
+    returns: the reported calls must match the observed handler responses one to one."""
+    offenders = []
+    for r in records:
+        seen = [t for t in (r.get('handler_texts') or []) if t]
+        told = [str(c.get('response')) for c in r['output'].get('calls', [])]
+        if r.get('handler_texts') is not None and seen != told:
+            offenders.append(dict(item=r['id'], kind='reported_calls_differ_from_observed_handler_responses',
+                                  observed=len(seen), reported=len(told)))
+    return clause('FAIL' if offenders else 'PASS', f'{len(offenders)} items whose reported calls differ from the '
+                  f'responses the registered handler wrote', _compress(offenders))
+
+
 def write_report(out, result):
     out = Path(out)
     (out/'EAT1_REPORT.json').write_text(json.dumps(result, indent=1, default=str)+'\n')
@@ -427,24 +515,25 @@ def write_report(out, result):
              f'Artifact manifest {result["artifact"]} (sha256 {result["artifact_sha256"]}); items {result["items"]}; '
              f'mode {result["mode"]}; started {result["started_utc"]}.', '',
              '| Clause | Status | Summary |', '|---|---|---|']
-    for k in ('A1', 'A2', 'A3', 'A4', 'A5'):
+    for k in ('A1', 'A2', 'A3', 'A4', 'A5', 'A6'):
         c = result['clauses'][k]
         lines.append(f'| {k} | {c["status"]} | {c["summary"]} |')
-    lines += ['', f'Overall: **{result["overall"]}**', '', '## Per type (A6)', '',
+    lines += ['', f'Overall: **{result["overall"]}**; claim grade (strace, sandbox and perturbation all ran): '
+              f'{result.get("claim_grade")}', '', '## Per type (A6)', '',
               '| Type | Items | Call rate | Calls/item | Heads behind response fields | s/item (mean, median, max) |',
               '|---|---|---|---|---|---|']
     for typ, v in result['per_type'].items():
         heads = '; '.join(f'{f}: {dict(c)}' for f, c in v['heads_behind_fields'].items()) or '-'
         lines.append(f'| {typ} | {v["items"]} | {v["call_rate"]:.3f} | {v["calls_per_item"]:.2f} | {heads} | '
                      f'{v["seconds_mean"]:.3f}, {v["seconds_median"]:.3f}, {v["seconds_max"]:.3f} |')
-    mc = [f for f in result.get('model_code_findings', []) if f.get('executed', True)]
-    if mc:
-        lines += ['', f'## Findings inside registered model classes (informational, {len(mc)}; not failing)', '']
-        lines += [f'- `{f["rule"]}` {f["file"]}:{f["line"]} ({f["function"]}): {f["detail"]}' for f in mc[:40]]
+    pc = result['clauses']['A5'].get('proven_cache_sites') or []
+    if pc:
+        lines += ['', f'## Cache sites with a passing equality proof ({len(pc)}; a claimed number needs a live run)', '']
+        lines += [f'- `{f["rule"]}` {f["file"]}:{f["line"]} ({f["function"]}): {f["detail"]}' for f in pc[:40]]
     if result.get('fixture_files'):
         lines += ['', '## Fixture files excluded from the call path', '']+[f'- {f}' for f in result['fixture_files']]
     lines += ['', '## Offenders by clause (file and line)', '']
-    for k in ('A1', 'A2', 'A3', 'A4', 'A5'):
+    for k in ('A1', 'A2', 'A3', 'A4', 'A5', 'A6'):
         c = result['clauses'][k]
         if not c['offenders']:
             continue
@@ -498,15 +587,17 @@ def main(argv=None):
         return 0
     started = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
     input_roots = list(args.input_root)+[i['frames'] for i in items if isinstance(i.get('frames'), str)]
-    records, lines, declared = observe(reader, items, artifact)
+    allow = S.load_allowlist(args.allowlist, args.allowlist_extra)
+    sink = {}
+    records, lines, declared = observe(reader, items, artifact, allowed_numbers=allow['_values'], sink=sink)
     strace = H.parse_strace(args.strace_log) if args.strace_log and Path(args.strace_log).is_file() else None
     a1 = judge_a1(records, artifact, input_roots, strace)
     fixture_roots = [str(Path(p).resolve()) for p in getattr(reader, 'eat1_fixture_roots', ())]
     fixture = sorted(f for f in lines if any(f.startswith(r+'/') for r in fixture_roots))
     scope = {f for f in lines if not H.is_harness(f) and f not in fixture}
-    allow = S.load_allowlist(args.allowlist, args.allowlist_extra)
     findings, suppressed = S.scan(sorted(scope), allow, executed={f: set(v) for f, v in lines.items()})
-    findings, model_code = split_model_code(findings, reader.model, declared)
+    findings += globals_findings([g for g in sink.get('globals_read', []) if g['file'] in scope], allow)
+    findings += config_reads(a1, artifact)
     sandbox = run_sandbox(args, records, artifact, input_roots, out/'a5_sandbox') if args.sandbox else None
     perturb_items = items[:args.perturb_limit] if args.perturb_limit else items
     perturb = perturbation(reader, perturb_items, artifact, records) if args.perturb else None
@@ -515,7 +606,7 @@ def main(argv=None):
     clauses = dict(A1=a1, A2=judge_a2(records, declared, findings, True), A3=judge_a3(findings, True, scope),
                    A4=judge_a4(records, declared, findings, True),
                    A5=judge_a5(records, declared, findings, True, sandbox, perturb,
-                               getattr(reader, 'eat1_cache_proof', None)))
+                               getattr(reader, 'eat1_cache_proof', None)), A6=judge_a6(records))
     overall = 'FAIL' if any(c['status'] == 'FAIL' for c in clauses.values()) else (
         'PASS' if all(c['status'] == 'PASS' for c in clauses.values()) else 'INCOMPLETE')
     result = dict(schema='eat1-report-v1', reader=args.reader, reader_kwargs=json.loads(args.reader_kwargs),
@@ -524,7 +615,9 @@ def main(argv=None):
                   per_type=per_type(records), suppressed=suppressed, perturbation=perturb,
                   declared_modules=[dict(path=p, role=r, name=n) for p, _, r, n in declared],
                   executed_scope={f: len(v) for f, v in lines.items()}, fixture_files=fixture,
-                  model_code_findings=model_code)
+                  # a claimed PASS needs every witness: strace -f sees opens by C code and child processes that
+                  # the audit hook, the descriptor-position check and the ctypes symbol check can miss
+                  claim_grade=bool(strace is not None and sandbox is not None and perturb is not None))
     (out/'ITEMS.jsonl').write_text(''.join(json.dumps(dict(id=r['id'], type=r['type'], seconds=r['seconds'],
         error=r['error'], output=r['output'], entries=r['provenance']['entries'],
         violations=len(r['provenance']['violations']), module_runs=r['provenance']['module_runs']),

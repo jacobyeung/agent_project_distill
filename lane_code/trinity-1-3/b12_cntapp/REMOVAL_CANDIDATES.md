@@ -1,3 +1,5 @@
 - /tmp/b12_pkt_test (test packet of rows_k1, trinity-1-3 /tmp)
 - out/PACKET_b12_k1_v1 (superseded by v2: v1 includes rows from 48 K1 held-out scenes; never admit v1)
 - /tmp/b12_rot (rotation-sign probe rasters, 16 files)
+- /tmp/b12_chk_v2 (copy of rows_v2 JSONL for the new-rule check)
+- out/PACKET_b12_v2, out/rows_v2 (superseded by PACKET_b12_v3; never admit)

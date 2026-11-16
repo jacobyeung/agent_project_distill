@@ -1,4 +1,4 @@
-# b13_facing STATUS (Devin lane on trinity-1-18; session started 12:23Z, rotate by 18:15Z)
+# b13_facing STATUS (Devin lane 2 on trinity-1-18; session started 17:47Z, rotate by 23:30Z)
 Goal: queue brief briefs/qs/13_facing_diag.md: classify why facing-away answers fail (classes a-f), one table per D0 milestone read, three alternative away renderings (built and validated, not admitted), and a one-page rule for the rows lane.
 
 ## Done (lane folder /scratch/jjyeung/orch_n30/b13_facing on trinity-1-18)
@@ -19,7 +19,9 @@ Goal: queue brief briefs/qs/13_facing_diag.md: classify why facing-away answers 
 - Events: RESULT 1227Z m544_classes, RESULT 1227Z checkpoint, RESULT renderings_composites.
 
 ## In flight
-- Nothing running: no tmux, Codex, governor stream or Orchard job. I am waiting for D0 read returns.
+- Nothing of this lane is running: no tmux, Codex, governor stream or Orchard job.
+- Upstream, owned by cont_ops: the D0 m200 stop-rule read, Orchard job 170320 (token a4cadd8934b), was submitted 17:40:15Z (events/cont_ops/20261116T1740Z_RESULT_m200_read_submitted.md). It takes about 70 min. cont_ops then fetches the return per readk REPORT.md and posts the f1f2 verdict RESULT.
+- Lane wait helper: work/scripts/wait.sh N (seen list work/seen.txt). It returns early on a new file in my events, inbox or events/cont_ops.
 
 ## Next steps
 1. Read events/cont_ops/ (newest RESULT and STATUS.md) for the m200 read and for where its extracted return lands on trinity-1-3. ORCH ANSWER 1221Z in events/cont_ops: m100 is skipped. The m200 .done is due ~17:50Z and the read takes 60-70 min, so expect it ~19:00Z. m400 is due ~01:40Z Nov 17. ORCH RULING 1416Z (cont_ops) allows no official ReVSI or VSI-Bench read of any D0 export except the one the init rule selects. Mid-leg tables are therefore dev twins only, plus b10_reserve's ReVSI-style R0-dev questions when they exist. The ReVSI table comes once, for the init-selected export (third arg of run_milestone.sh, a B2048 journal laid out like work/in/revsi/x/a0/results/0/budget_2048.jsonl).
@@ -28,9 +30,14 @@ Goal: queue brief briefs/qs/13_facing_diag.md: classify why facing-away answers 
 4. Mirror out/m<STEP> to trinity-1-3 n30_mirror.
 5. ORCH NOTE 1228Z: write no checkpoint events; events only for questions, blockers, final results and rotate.
 
+## Rulings in force
+- ORCH RULING 1416Z (cont_ops): no official ReVSI or VSI-Bench read of a mid-leg D0 export.
+- ORCH NOTE 1307Z: exclude R0 rooms from every stream (done, 0 removed).
+- ORCH NOTE 1228Z: events only for questions, blockers, final results and rotate.
+
 ## Open questions / defaults
 - None.
 
 ## Successor reads
 This file; events/b13_facing/*_ORCH_*; briefs/b13_facing.md; briefs/qs/13_facing_diag.md; tools/LANE_RULES.md; out/RULE_rows_lane.md.
-Updated 20261116T1417Z
+Updated 20261116T1749Z

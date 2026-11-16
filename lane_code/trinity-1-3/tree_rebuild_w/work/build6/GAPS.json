@@ -1,288 +1,24 @@
 {
-  "generator/derivgen_v7/derivgen/calculator.py": [
-    [
-      254,
-      "contracts = None"
-    ],
-    [
-      262,
-      "raise CalculatorError(exc.reason) from exc"
-    ]
-  ],
-  "generator/derivgen_v7/test_v312_quality.py": [
-    [
-      177,
-      "from trace_format.contracts import contract_epoch"
-    ],
-    [
-      178,
-      "for enabled,reason in ((False,'unresolved_qualified_name'),(True,'single_instance_required')):"
-    ],
-    [
-      179,
-      "with contract_epoch(enabled):"
-    ],
-    [
-      180,
-      "q=item();q['roles']={'a':'wooden table','b':'bed'}"
-    ],
-    [
-      181,
-      "with self.assertRaisesRegex(RowRefusal,reason):clip.validate_operands(q)"
-    ],
-    [
-      182,
-      "q['roles']['a']='table';clip.validate_operands(q)"
-    ]
-  ],
-  "launch_r2/build.py": [
-    [
-      154,
-      "raise ValueError('Missing pinned init selection')"
-    ]
-  ],
-  "launch_r2/runtime.py": [
-    [
-      121,
-      "raise ValueError('Init export lacks required member: '+name)"
-    ]
-  ],
-  "launch_s1/b/i.py": [
-    [
-      97,
-      "import math"
-    ],
-    [
-      100,
-      "if value.get('contract_epoch', True):"
-    ],
-    [
-      101,
-      "threshold=value.get('heading_plane_min', 0.3)"
-    ],
-    [
-      102,
-      "if type(threshold) not in (int, float) or not math.isfinite(threshold) or not 0 < threshold < 1:"
-    ],
-    [
-      103,
-      "raise ValueError('Invalid heading threshold')"
-    ],
-    [
-      104,
-      "value['heading_plane_min']=float(threshold)"
-    ],
-    [
-      106,
-      "value.pop('heading_plane_min', None)"
-    ]
-  ],
-  "student_pilot/ground_lifting.py": [
-    [
-      84,
-      "camera = (R.T @ (centre - t)) * [1, -1, 1]"
-    ],
-    [
-      85,
-      "return camera, (centre - t1)[[0, 2, 1]]"
-    ]
-  ],
-  "student_pilot/phrases.py": [
-    [
-      180,
-      "return cache, wanted"
-    ],
-    [
-      189,
-      "continue"
-    ]
-  ],
-  "student_pilot/r2_admission.py": [
-    [
-      29,
-      "raise ValueError('Invalid family admission counts')"
-    ]
-  ],
   "student_pilot/r2_contract.py": [
-    [
-      2,
-      "from copy import deepcopy"
-    ],
-    [
-      3,
-      "import json"
-    ],
-    [
-      4,
-      "import math"
-    ],
-    [
-      5,
-      "from pathlib import PurePosixPath"
-    ],
-    [
-      6,
-      "import re"
-    ],
-    [
-      7,
-      "from .p3_provenance import digest, load, pinned"
-    ],
-    [
-      8,
-      "from .r2_grammar import PROGRAM_TYPES, validate_direct, validate_program"
-    ],
-    [
-      9,
-      "from .r2_units import ROOM, asked_unit"
-    ],
-    [
-      11,
-      "CONTRACT = 'next-leg-r2-v1'"
-    ],
-    [
-      12,
-      "def init_identity(value):"
-    ],
-    [
-      13,
-      "if not isinstance(value, dict) or not re.fullmatch('[0-9a-f]{64}', str(value.get('artifact_sha256', ''))):"
-    ],
-    [
-      14,
-      "raise ValueError('Missing pinned init identity')"
-    ],
-    [
-      15,
-      "if any(not value.get(k) for k in ('parent_run', 'parent_kit', 'parent_source_seal', 'parent_configuration_prefix')) or type(value.get('step')) is not int or value['step'] < 0:"
-    ],
-    [
-      16,
-      "raise ValueError('Incomplete pinned init lineage')"
-    ],
-    [
-      17,
-      "if not re.fullmatch('[0-9a-f]{64}', str(value['parent_source_seal'])):"
-    ],
-    [
-      18,
-      "raise ValueError('Incomplete pinned init lineage')"
-    ],
-    [
-      19,
-      "return deepcopy(value)"
-    ],
-    [
-      22,
-      "def selected_init(pin):"
-    ],
-    [
-      23,
-      "if not pin:"
-    ],
-    [
-      24,
-      "raise ValueError('Missing pinned init selection')"
-    ],
-    [
-      25,
-      "value = load(pinned(pin))"
-    ],
-    [
-      26,
-      "if value.get('schema') != 'r2-init-selection-v1':"
-    ],
-    [
-      27,
-      "raise ValueError('Invalid init selection')"
-    ],
-    [
-      28,
-      "return init_identity(value.get('identity'))"
-    ],
-    [
-      31,
-      "def bound_init(cfg):"
-    ],
-    [
-      32,
-      "value = cfg.get('r2', {}).get('init', cfg.get('r2_identity', {}).get('init'))"
-    ],
-    [
-      33,
-      "return init_identity(value)"
-    ],
-    [
-      36,
-      "def check_init(spec, metadata):"
-    ],
-    [
-      37,
-      "init = init_identity(spec.get('init'))"
-    ],
-    [
-      38,
-      "if spec.get('contract') != CONTRACT:"
-    ],
     [
       39,
       "raise ValueError('Next-leg init identity differs from the accepted export')"
-    ],
-    [
-      40,
-      "if spec.get('mode') != 'warm_start' or not spec.get('run_id') or spec['run_id'] == init['parent_run']:"
     ],
     [
       41,
       "raise ValueError('Changed code or mixture requires a new warm-start run')"
     ],
     [
-      42,
-      "for key in ('code_sha256', 'mixture_sha256'):"
-    ],
-    [
-      43,
-      "if not re.fullmatch('[0-9a-f]{64}', str(spec.get(key, ''))):"
-    ],
-    [
       44,
       "raise ValueError('New run needs full code and mixture identities')"
-    ],
-    [
-      45,
-      "if metadata.get('artifact_sha256') != init['artifact_sha256']:"
-    ],
-    [
-      46,
-      "raise ValueError('EXPORT_ARTIFACT.json does not bind the accepted artifact sha256')"
-    ],
-    [
-      48,
-      "for key in ('parent_run', 'parent_kit', 'step', 'parent_source_seal'):"
-    ],
-    [
-      49,
-      "if key in metadata and metadata[key] != init[key]:"
     ],
     [
       50,
       "raise ValueError('Export metadata contradicts ' + key)"
     ],
     [
-      51,
-      "if 'parent_configuration' in metadata and not metadata['parent_configuration'].startswith(init['parent_configuration_prefix']):"
-    ],
-    [
       52,
       "raise ValueError('Export parent configuration prefix differs')"
-    ],
-    [
-      53,
-      "return deepcopy(spec)"
-    ],
-    [
-      56,
-      "def preparation(cfg):"
     ],
     [
       57,
@@ -373,10 +109,6 @@
       "return spec"
     ],
     [
-      81,
-      "def lineage_init(pin, *, init):"
-    ],
-    [
       82,
       "init = init_identity(init)"
     ],
@@ -417,22 +149,6 @@
       "raise ValueError('Trainer init artifact differs from next-leg binding') from error"
     ],
     [
-      96,
-      "def expand_frames(inputs):"
-    ],
-    [
-      97,
-      "result = deepcopy(inputs)"
-    ],
-    [
-      98,
-      "prefix = result.pop('frame_prefix', None)"
-    ],
-    [
-      99,
-      "if prefix is not None:"
-    ],
-    [
       100,
       "from pathlib import PurePosixPath"
     ],
@@ -441,112 +157,36 @@
       "result['frames'] = [{**pin, 'path': str(PurePosixPath(prefix) / pin['path'])} for pin in result['frames']]"
     ],
     [
-      102,
-      "return result"
-    ],
-    [
-      105,
-      "def frame_metadata(inputs):"
-    ],
-    [
-      106,
-      "frames, indices = inputs.get('frames'), inputs.get('frame_indices')"
-    ],
-    [
-      107,
-      "if (not isinstance(frames, list) or len(frames) != 32 or not isinstance(indices, list)"
-    ],
-    [
       110,
       "raise ValueError('Expected ordered native frame pins and source ordinals')"
-    ],
-    [
-      111,
-      "fps, total = inputs.get('fps'), inputs.get('total_num_frames')"
-    ],
-    [
-      112,
-      "if (type(fps) not in (int, float) or not math.isfinite(fps) or fps <= 0"
     ],
     [
       114,
       "raise ValueError('Invalid row clock or source bounds')"
     ],
     [
-      115,
-      "if inputs.get('timestamps') != [i/fps for i in indices]:"
-    ],
-    [
       116,
       "raise ValueError('Row timestamps differ from its own clock')"
-    ],
-    [
-      117,
-      "for pin in frames:"
-    ],
-    [
-      118,
-      "if (not isinstance(pin, dict) or not isinstance(pin.get('path'), str)"
     ],
     [
       121,
       "raise ValueError('Missing or malformed RGB pin')"
     ],
     [
-      124,
-      "def validate(row, stream, expected=None, require_frames=False):"
-    ],
-    [
-      125,
-      "if expected is not None and digest(row) != expected:"
-    ],
-    [
       126,
       "raise ValueError('Stale pin or wrong scene: row differs from membership')"
-    ],
-    [
-      127,
-      "if not row.get('qid') or not row.get('dataset') or not row.get('scene'):"
     ],
     [
       128,
       "raise ValueError('Row identity or scene is missing')"
     ],
     [
-      129,
-      "inputs = expand_frames(row['student_input'])"
-    ],
-    [
-      130,
-      "frame_metadata(inputs)"
-    ],
-    [
-      131,
-      "if stream in ('vqa', 'routing'):"
-    ],
-    [
-      132,
-      "kind = row.get('question_type', row.get('routing', {}).get('question_type'))"
-    ],
-    [
-      133,
-      "if kind == 'route_planning' and stream != 'vqa':"
-    ],
-    [
       134,
       "raise ValueError('D0 route-planning rows enter VQA only')"
     ],
     [
-      135,
-      "if not isinstance(kind, str) or not kind:"
-    ],
-    [
       136,
       "raise ValueError('Language row needs a question type')"
-    ],
-    [
-      137,
-      "if row.get('events'):"
     ],
     [
       138,
@@ -561,92 +201,20 @@
       "validate_program(row)"
     ],
     [
-      142,
-      "if kind in PROGRAM_TYPES or row.get('tool_output_spans') or row.get('routing'):"
-    ],
-    [
       143,
       "raise ValueError('Program-type row offered as direct')"
-    ],
-    [
-      144,
-      "answer = validate_direct(row['target'], inputs['question'], len(inputs['frames']))"
-    ],
-    [
-      145,
-      "if kind in ROOM:"
-    ],
-    [
-      146,
-      "prose = row['target'].split('</think>', 1)[0]"
-    ],
-    [
-      147,
-      "if re.search(r'converting|conversion|Step: compute|\\d+(?:\\.\\d+)?\\s*(?:square|sq\\.?|m\\^?2|ft\\^?2)', prose, re.I):"
-    ],
-    [
-      148,
-      "raise ValueError('Direct room trace must remain qualitative without area or conversion')"
-    ],
-    [
-      149,
-      "if answer.removeprefix('<answer>').removesuffix('</answer>') != str(row['answer']):"
     ],
     [
       150,
       "raise ValueError('Answer differs from target')"
     ],
     [
-      151,
-      "if kind in (*ROOM, 'object_size_estimation', 'camera_object_abs_distance', 'object_counting'):"
-    ],
-    [
-      152,
-      "numeric = answer.removeprefix('<answer>').removesuffix('</answer>')"
-    ],
-    [
-      153,
-      "if not re.fullmatch(r'\\d+(?:\\.\\d+)?', numeric):"
-    ],
-    [
       154,
       "raise ValueError('Numeric direct type needs a numeric final answer')"
     ],
     [
-      155,
-      "unit = row.get('answer_unit')"
-    ],
-    [
-      156,
-      "if unit and kind in ROOM:"
-    ],
-    [
-      157,
-      "if unit != asked_unit(dict(question_type=kind, student_input=inputs)):"
-    ],
-    [
-      158,
-      "raise ValueError('Wrong-unit target')"
-    ],
-    [
-      159,
-      "if unit and unit not in {'m': ('m', 'meters', 'metres'), 'cm': ('cm', 'centimeters', 'centimetres'),"
-    ],
-    [
       161,
       "raise ValueError('Unknown answer unit')"
-    ],
-    [
-      162,
-      "spellings = {'m': ('meters', 'metres'), 'cm': ('centimeters', 'centimetres'),"
-    ],
-    [
-      164,
-      "if unit and not any(re.search(r'\\b'+re.escape(s)+r'\\b', inputs['question'], re.I) for s in (spellings[unit] if unit == 'in' else (*spellings[unit], unit))):"
-    ],
-    [
-      165,
-      "raise ValueError('Wrong-unit target')"
     ],
     [
       166,
@@ -655,10 +223,6 @@
     [
       167,
       "raise ValueError('Unknown native stream')"
-    ],
-    [
-      168,
-      "if require_frames:"
     ],
     [
       169,
@@ -671,14 +235,6 @@
     [
       171,
       "verify_frame(pin)"
-    ],
-    [
-      172,
-      "return inputs"
-    ],
-    [
-      175,
-      "def perception(row, stream, target):"
     ],
     [
       176,
@@ -725,14 +281,6 @@
       "raise ValueError('Invalid native pointing target')"
     ],
     [
-      191,
-      "class Admission:"
-    ],
-    [
-      192,
-      "def __init__(self, pin):"
-    ],
-    [
       193,
       "from .r2_withheld import Withheld"
     ],
@@ -751,10 +299,6 @@
     [
       197,
       "raise ValueError('Wrong membership contract')"
-    ],
-    [
-      199,
-      "def check(self, row, stream, target=None):"
     ],
     [
       200,
@@ -795,10 +339,6 @@
     [
       209,
       "return row"
-    ],
-    [
-      212,
-      "def event_row(row):"
     ],
     [
       214,
@@ -869,73 +409,7 @@
       "return target, spans"
     ]
   ],
-  "student_pilot/r2_openers.py": [
-    [
-      47,
-      "raise ValueError('Missing routing vocabulary witness for keep warm start')"
-    ]
-  ],
   "student_pilot/r2_policy.py": [
-    [
-      2,
-      "import hashlib"
-    ],
-    [
-      3,
-      "import inspect"
-    ],
-    [
-      4,
-      "import json"
-    ],
-    [
-      5,
-      "import math"
-    ],
-    [
-      6,
-      "from pathlib import Path"
-    ],
-    [
-      7,
-      "import re"
-    ],
-    [
-      8,
-      "from .p3_provenance import digest, load, pinned, sha256"
-    ],
-    [
-      9,
-      "from .r2_portable import bound"
-    ],
-    [
-      11,
-      "SCOPE = ('VSI-Bench', 'VSTI', 'ReVSI')"
-    ],
-    [
-      12,
-      "LINEAGE = ('init_m544', 'heads_pose', 'heads_depth', 'heads_frame_embeddings', 'depth_init_vc')"
-    ],
-    [
-      13,
-      "CHOICES = ('grounding_selector_deployed', 'box_policy', 'room_policy', 'alias_table', 'depth_cut')"
-    ],
-    [
-      14,
-      "EXTERNAL = ('geometry_tower', 'segmenter')"
-    ],
-    [
-      15,
-      "NEW = ('data_rows_r2', 'heads_gf1_connector')"
-    ],
-    [
-      16,
-      "COMPONENTS = (*LINEAGE, *CHOICES, *EXTERNAL, *NEW)"
-    ],
-    [
-      19,
-      "def slots():"
-    ],
     [
       20,
       "result = {}"
@@ -955,10 +429,6 @@
     [
       27,
       "return result"
-    ],
-    [
-      30,
-      "def record(slot, root=None):"
     ],
     [
       31,
@@ -1053,10 +523,6 @@
       "return data"
     ],
     [
-      58,
-      "def components(registry_pin, phase, root=None):"
-    ],
-    [
       59,
       "registry = load(bound(registry_pin, root))"
     ],
@@ -1109,16 +575,8 @@
       "return result"
     ],
     [
-      74,
-      "def reader_hash():"
-    ],
-    [
       75,
       "return digest(dict(source=sha256(Path(__file__)), entry='read_bank'))"
-    ],
-    [
-      78,
-      "def freeze_check(pin, prereg_pin, root=None):"
     ],
     [
       79,
@@ -1159,10 +617,6 @@
     [
       92,
       "return frozen"
-    ],
-    [
-      95,
-      "def read_bank(bank_pin, catalog_pin=None, *, registry_pin=None, prereg_pin=None, freeze_pin=None,"
     ],
     [
       98,
@@ -1345,10 +799,6 @@
       "return items, dict(metric_units=metric_units(items), reader_sha256=reader_hash(), item_set_sha256=digest(sorted(identities)),"
     ],
     [
-      153,
-      "def seal_catalog(bank_files):"
-    ],
-    [
       155,
       "result = dict(schema='r2-bank-catalog-v1', reader_sha256=reader_hash(), files={}, items={})"
     ],
@@ -1397,60 +847,8 @@
       "return result"
     ],
     [
-      169,
-      "def require_scores(receipt, scores):"
-    ],
-    [
-      170,
-      "if set(scores) != set(receipt['required_scores']):"
-    ],
-    [
       171,
       "raise ValueError('Both venue-inclusive and venue-excluded scores are required')"
-    ],
-    [
-      172,
-      "for result in scores.values():"
-    ],
-    [
-      173,
-      "for kind, units in receipt.get('metric_units', {}).items():"
-    ],
-    [
-      174,
-      "breakdown = result.get('by_asked_unit', {}).get(kind, []) if isinstance(result, dict) else []"
-    ],
-    [
-      175,
-      "if (not isinstance(breakdown, list)"
-    ],
-    [
-      177,
-      "raise ValueError('Metric scores require every asked unit, metres first')"
-    ],
-    [
-      178,
-      "for row in breakdown:"
-    ],
-    [
-      179,
-      "count, score = row.get('count'), row.get('score')"
-    ],
-    [
-      180,
-      "if (type(count) is not int or count < 0"
-    ],
-    [
-      183,
-      "raise ValueError('Metric unit scores require valid counts and finite observed scores')"
-    ],
-    [
-      184,
-      "return scores"
-    ],
-    [
-      187,
-      "def preparation(binding, root):"
     ],
     [
       189,
@@ -1473,10 +871,6 @@
       "return preflight(binding['mix'], binding['counts'], root=root,"
     ],
     [
-      197,
-      "def legacy_reader_guard(cfg, artifact_pin):"
-    ],
-    [
       199,
       "ancestor = (cfg.get('init_artifact') or {}).get('artifact', {}).get('sha256')"
     ],
@@ -1489,182 +883,8 @@
       "raise ValueError('Legacy reader has no authenticated R2 bank adapter; use the bound bank gateway')"
     ],
     [
-      205,
-      "def unsupported_entry(entry):"
-    ],
-    [
       212,
       "raise ValueError('Legacy reader has no authenticated R2 bank adapter: '+entry)"
-    ]
-  ],
-  "student_pilot/r2_units.py": [
-    [
-      2,
-      "import math"
-    ],
-    [
-      3,
-      "import re"
-    ],
-    [
-      5,
-      "DISTANCE = ('object_abs_distance', 'absolute_distance_object', 'absolute_distance',"
-    ],
-    [
-      7,
-      "ROOM = ('room_size_estimation', 'absolute_size_room', 'room_size')"
-    ],
-    [
-      8,
-      "ORDER = ('m', 'm2', 'cm', 'ft', 'in', 'ft2')"
-    ],
-    [
-      11,
-      "def asked_unit(item):"
-    ],
-    [
-      12,
-      "kind = item.get('question_type', item.get('type'))"
-    ],
-    [
-      13,
-      "if kind not in (*DISTANCE, *ROOM):"
-    ],
-    [
-      14,
-      "return None"
-    ],
-    [
-      15,
-      "question = item.get('student_input', {}).get('question', item.get('question', '')).lower()"
-    ],
-    [
-      16,
-      "patterns = [('ft2', r'\\b(?:square (?:feet|foot)|sq\\.?\\s*ft|ft2)\\b'),"
-    ],
-    [
-      21,
-      "unit = next((u for u, pattern in patterns if re.search(pattern, question)), None)"
-    ],
-    [
-      22,
-      "if unit is None or (kind in ROOM) != (unit in ('m2', 'ft2')):"
-    ],
-    [
-      23,
-      "raise ValueError('Metric question has no unambiguous asked unit')"
-    ],
-    [
-      24,
-      "return unit"
-    ],
-    [
-      27,
-      "def metric_units(items):"
-    ],
-    [
-      28,
-      "result = {}"
-    ],
-    [
-      29,
-      "for item in items:"
-    ],
-    [
-      30,
-      "unit = asked_unit(item)"
-    ],
-    [
-      31,
-      "if unit:"
-    ],
-    [
-      32,
-      "kind = 'room' if item.get('question_type', item.get('type')) in ROOM else 'distance'"
-    ],
-    [
-      33,
-      "result.setdefault(kind, set()).add(unit)"
-    ],
-    [
-      34,
-      "return {kind: [u for u in ORDER if u in units] for kind, units in result.items()}"
-    ],
-    [
-      37,
-      "def score_by_unit(items):"
-    ],
-    [
-      38,
-      "groups = {}"
-    ],
-    [
-      39,
-      "for item in items:"
-    ],
-    [
-      40,
-      "unit = asked_unit(item)"
-    ],
-    [
-      41,
-      "if unit is None:"
-    ],
-    [
-      42,
-      "continue"
-    ],
-    [
-      43,
-      "score = item['score']"
-    ],
-    [
-      44,
-      "if type(score) not in (int, float) or not math.isfinite(score):"
-    ],
-    [
-      45,
-      "raise ValueError('Metric score must be finite')"
-    ],
-    [
-      46,
-      "kind = 'room' if item.get('question_type', item.get('type')) in ROOM else 'distance'"
-    ],
-    [
-      47,
-      "groups.setdefault(kind, {}).setdefault(unit, []).append(score)"
-    ],
-    [
-      48,
-      "return {kind: [dict(unit=u, count=len(values[u]), score=sum(values[u])/len(values[u]))"
-    ]
-  ],
-  "student_pilot/training_contract.py": [
-    [
-      72,
-      "entry = entry.get('phrases', [])"
-    ]
-  ],
-  "trace_format/contracts.py": [
-    [
-      103,
-      "continue"
-    ],
-    [
-      105,
-      "continue"
-    ],
-    [
-      108,
-      "forward = rotation[:, 0] - (rotation[:, 0] @ up) * up"
-    ],
-    [
-      111,
-      "continue"
-    ],
-    [
-      114,
-      "return None"
     ]
   ]
 }

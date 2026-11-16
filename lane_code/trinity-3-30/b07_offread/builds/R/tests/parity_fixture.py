@@ -7,6 +7,7 @@ import fakes
 class Processor(fakes.Processor):
     def apply_chat_template(self,messages,**kwargs):
         return '<|im_start|>user\n<|vision_start|><|video_pad|><|vision_end|>'+messages[0]['content'][1]['text']+'<|im_end|>\n<|im_start|>assistant\n<think>\n'
+fakes.install()
 fakes.install(Processor())
 # Install a small transformer loader without importing the real transformer runtime.
 from types import SimpleNamespace

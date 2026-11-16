@@ -29,7 +29,7 @@ class ThresholdHandler(CallHandler):
 
 
 def gravity_guard(state):
-    return float(state['pose'][0, 0]) < 0.25
+    return float(state['feats'][0, 0]) < 0.25
 
 
 class GuardHandler(CallHandler):
@@ -50,8 +50,8 @@ class CacheHandler(CallHandler):
             return super().serve(call)
         frame = int(call.split('=')[1].rstrip('>'))
         tower = torch.from_numpy(np.load(self.tower_cache_path)['tower'][frame-1])
-        value = self.state['depth'][frame-1]+torch.linalg.norm(tower)
-        return f'{float(value):.2f}', {'depth_m': ['depth', 'toy_tower']}
+        value = self._model.perception.depth_head(torch.cat([self.state['feats'][frame-1], tower]))
+        return str(float(value[0])), {'depth_m': ['depth', 'toy_tower']}
 
 
 class TableReader(ToyReader):

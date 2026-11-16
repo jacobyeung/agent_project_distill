@@ -1,5 +1,5 @@
 # b06_a2dense STATUS (a successor resumes from this file alone)
-Updated: 2026-11-16T13:20Z. Lane: Devin successor on trinity-1-3 (Claude lane stopped 11:59Z at its weekly limit). Brief: orch_n30/briefs/b06_a2dense.md -> queue brief orch_n30/briefs/qs/06_a2_dense_frames_tower_cache.md. Lane folder L=/scratch/jjyeung/orch_n30/b06_a2dense. Events: orch_n30/events/b06_a2dense/. Finish or rotate by 22:30Z.
+Updated: 2026-11-16T18:20Z. Lane: Devin successor #2 on trinity-1-3 (started 17:47Z; rotate by 23:40Z or 22:30Z brief limit, whichever first). Brief: orch_n30/briefs/b06_a2dense.md -> queue brief orch_n30/briefs/qs/06_a2_dense_frames_tower_cache.md. Lane folder L=/scratch/jjyeung/orch_n30/b06_a2dense. Events: orch_n30/events/b06_a2dense/. Finish or rotate by 22:30Z.
 
 ## Facts established (with evidence)
 - Inputs pulled (single small files): L/work/inputs/frame_map.jsonl.gz sha 17aa3e9e (= k6 MAP, 290,880 lines), frame_plan.json.gz 7cc01f36 (keys a: 3,451 ARKit captures, v: 1,246 mp4 scenes, total: 4,697).
@@ -48,3 +48,15 @@ Updated: 2026-11-16T13:20Z. Lane: Devin successor on trinity-1-3 (Claude lane st
 - after_fetch.sh ready: L/work/after_fetch.sh (pull + seal, run after Orchard parts and parity are done).
 - 13:10Z: ORCH 1300Z answered: ASK2 routed to tree_rebuild4 (build 7); ASK3 = I order one Codex review (gpt-6-astra high). Cache-location answer written in A2_DENSE_READY.md (derived, node-local, rebuilt per allocation; frames to GCS after seal). egress.sh now also records compute-node disk (Orchard copy equal). Packet tgz now 5a9eea9d.
 - 13:40Z: review 1 fixes landed (dense 19/19; test_gf1_cache 11/12, only BF16-cache fails; regression 30+2 pre-existing). New patch sha 3610e972 (supersedes 8294f618). Card rule 3 one-sided + claim rule + zero-bank print. R0 overlap 0 (L/out/R0_OVERLAP.json). Mirror b06_mirror_1340Z.tar c31aca69 equal on trinity-1-18.
+
+## Binding ORCH constraints (newest first)
+- ORCH 1746Z: submit the three CPU jobs only after job 170320 has left general AND the newest INBOX_TO_DISTILL_ORCH_* (in /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/) and squeue show no pending main job on general. All must leave general before the D0 m400 read (~01:00Z 11-17, earlier than the 01:40Z in older notes). One job at a time on general. Cancel pending array tasks at 00:00Z if job 2 is not done.
+- ORCH RULING 1638Z (USER): main has GPU/partition priority; before any Orchard submission check squeue for main's pending jobs (jjy_* and main's a15_cot_ap jobs listed in its inbox); if main pends on general, do not submit, write a RESULT, submit when main's job started or main says go.
+
+- 18:20Z power kit: L/power/power.py (imports cont_ops readk f1f2.bootstrap; 450 main items of size/rel-distance/counting, 69 rooms). Proxy from A544 alone: single-read half-width 4.11 pp (L/power/proxy_a544.json); synthetic paired test OK. Owed: when cont_ops posts the m200 ITEMS.jsonl (readk/kit/build/a4cadd8934b/...), run `power.py A544.jsonl ITEMS.jsonl L/power/m200_power.json` and write the half-width into A2_CARD_DRAFT.md Power line and A2_DENSE_READY.md.
+
+## Resume point for the next successor (exact)
+- Nothing of this lane is running (tmux b06_review1 finished; no Orchard job submitted). Polling helper: L/work/poll.sh (waits <=9.5 min for an ORCH file, an inbox file or a cont_ops m200/general event).
+- Gate for the frame jobs (ORCH 1300Z): D0's m200 stop-rule read is Orchard job 170320 (a15_cot_apa4cadd8934b, general, 1 H100, --time 01:45, submitted 17:40Z, cont_ops event 1740Z). When cont_ops reports it finished, or `TZ=UTC squeue -j 170320` via ossh.sh shows it gone, and no other job of ours is on general (`TZ=UTC squeue -u jjyeung -p general`), submit L/out/packets/frame_fetch/SUBMIT.md job 1 (egress), check logs/egress.<id>.json and logs/disk.<id>.txt, then job 2 (array 0-5%1), then job 3 (dparity) after six parts/*/DONE. All off general before ~01:40Z 11-17; cancel pending tasks at 00:40Z if job 2 is not done. One ossh call per action; squeue at most every 10 min.
+- After job 3: run L/work/after_fetch.sh (pull + seal); write counts into A2_DENSE_READY.md; mirror; one RESULT event.
+- Then: copy new parts tars to GCS (governed stream; ask ORCH which bucket) per the cache-location answer.

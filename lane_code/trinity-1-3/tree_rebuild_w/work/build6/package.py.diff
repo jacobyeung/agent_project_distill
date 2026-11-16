@@ -20,7 +20,7 @@
  size=sum(p.stat().st_size for p,_ in members)
  subprocess.run(['df','-BG','--output=avail','/scratch'],check=True)
  assert shutil.disk_usage('/scratch').free>=85*1024**3
-@@ -27,8 +27,12 @@
+@@ -27,14 +27,20 @@
      with tarfile.open(archive,'w') as handle:
          for p,name in sorted(members,key=lambda x:x[1]):handle.add(p,arcname=name,recursive=False)
  assert archive.stat().st_size<150_000_000
@@ -33,9 +33,19 @@
 +root=Path(tempfile.mkdtemp(prefix='package6_',dir=L/'work/tmp'))
 +assert not any(root.iterdir())
  with tarfile.open(archive) as handle:
-     for member in handle.getmembers():
+-    for member in handle.getmembers():
++    archive_members=handle.getmembers()
++    unpacked_bytes=sum(member.size for member in archive_members if member.isfile())
++    for member in archive_members:
          if member.issym() or member.islnk() or member.name.startswith('/') or '..' in Path(member.name).parts:
-@@ -43,11 +47,11 @@
+             raise ValueError('Unsafe package member')
+     handle.extractall(root,filter='data')
+-    package_members=[member.name for member in handle.getmembers() if member.isfile()]
++    package_members=[member.name for member in archive_members if member.isfile()]
+ (root/'package_members.json').write_text(json.dumps(package_members))
+ kit_results=[]
+ sys.path.insert(0,str(root/'work/tree_r1'))
+@@ -43,11 +49,11 @@
  source_before=inventory(root/'work/tree_r1')
  base_before=inventory(root/'work/base/tree_b01ce449')
  fixtures_before=inventory(root/'fixtures')
@@ -49,7 +59,7 @@
          assert load(kit/'k/launch.json')['source_revision']==identity
          kit_results.append(dict(kit=name,sha256=verify(kit),scan=scan(kit),source_revision=identity))
  elif len(sys.argv)>1:
-@@ -56,15 +60,15 @@
+@@ -56,15 +62,15 @@
  if kit_results:
      # The delivered archive and standalone kits retain their bytes. Only these
      # verified temporary extraction copies become small hash receipts.
@@ -68,9 +78,15 @@
      output.mkdir(exist_ok=True)
      combined=dict(tests=0,passed=[],failures=[],errors=[],skips=[],fatal=None,
                    completed_modules=0,scheduled_modules=0,complete=True,
-@@ -73,12 +77,12 @@
+@@ -72,13 +78,18 @@
+     combined_hits={};source_hashes=None;sizes=[];module_inventory=[];codes={};returncodes=[]
      for group in ('generator','legacy','r2'):
          target=output/group;target.mkdir(exist_ok=True)
++        for name in ('live_errors.json','live_failures.json'):
++            (target/name).write_text('[]\n')
++        (target/'progress.json').write_text(json.dumps(dict(completed=0,last=None,status='pending')))
++    for group in ('generator','legacy','r2'):
++        target=output/group;target.mkdir(exist_ok=True)
          env['R2_SUITE_GROUP']=group
 -        env['R2_BASE_RESULTS']=str(L/'work/build5/proofs/suite_tree'/group/'results.json')
 +        env['R2_BASE_RESULTS']=str(L/'work/build6/proofs/suite_tree'/group/'results.json')
@@ -83,3 +99,10 @@
                                    cwd=empty,env=env,stdout=log,stderr=subprocess.STDOUT)
          returncodes.append(result.returncode)
          if result.returncode<0:raise RuntimeError('Test process was killed; stop without retry')
+@@ -108,5 +119,5 @@
+ assert inventory(root/'work/tree_r1')==source_before,'Packaged source changed during tests'
+ assert inventory(root/'work/base/tree_b01ce449')==base_before,'Packaged comparison base changed during tests'
+ (out/'ARCHIVE.json').write_text(json.dumps(dict(status='verified',
+-    sha256=hashlib.sha256(archive.read_bytes()).hexdigest(),bytes=archive.stat().st_size,unpacked_bytes=size,
++    sha256=hashlib.sha256(archive.read_bytes()).hexdigest(),bytes=archive.stat().st_size,unpacked_bytes=unpacked_bytes,
+     source_sha256=digest(source_before),base_sha256=digest(base_before),fixtures_sha256=digest(fixtures_before)),indent=2))

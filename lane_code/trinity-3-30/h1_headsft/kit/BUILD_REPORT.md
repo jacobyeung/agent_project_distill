@@ -639,3 +639,240 @@ the tiny model's sub-second microsteps do not predict 9B performance.
   paths. `test_real_json_loading_until_missing_weights` runs against the real JSON copies and checks both branches.
 - `--threads` accepts 1..64 (run host 1-18 has 96 cores).
 - Suite: 101 passed, 0 failed, 0 skipped (`logs/b5/suite_b6_lane.log`, basetemp `tmp/b6x/`).
+
+## Build 7
+
+The H1-0 launcher targets b04's reviewed `e2e_reader.parity:make_real` interface.
+The full CPU kit suite has **109 passed, 1 skipped, 0 failed**. The skipped
+Build-6 test requires `model.json`, `receipt.json`, `artifact.json` and
+`RESTORE.json` under `/dev/shm/jjyeung/h1tmp/from118`; all four are absent here.
+Thus this build cannot claim the requested no-skip validation or a real-weight
+CPU first batch. No weights, RGB dataset or GPU were loaded on trinity-3-30.
+
+### Files and behavior
+
+- `h1eval/h10/launch.py` passes the artifact binding object, native items and
+  settings to the reviewed factory. Both arms use b04's required `own_depth`
+  setting. One model loads per decoded arm; each item gets a fresh perception.
+  The launcher preserves fsynced records, immutable resume bindings, read plans,
+  first-ten-read projections and the M1–M4 evaluator. It never rewrites text.
+- `h1eval/h10/parity_adapter.py` maps and checks native task/frame metadata,
+  converts b04 partition journals, selects the sealed native tree and pins only
+  the parity runner's Python source. Restores, caches and growing journals under
+  `parity_kit` are excluded from that code digest. `h1eval/__init__.py` selects
+  the settings' native tree before the reserve checker imports trainer modules.
+  The active host overlay is included in the effective settings' `env_roots`;
+  both benchmark and diagnostic receipts record those effective settings.
+- `h1eval/h10/perception_own.py` accepts b04's five keyword arguments. It supplies
+  capture identity and image dimensions to the existing own adapter. Own pose,
+  gravity and depth come from that read's prefill; scale stays one. Ground/gap
+  use b04's StageOne socket, artifact-checked SAM 3 and selector head. Components
+  are shared across items, while sessions and geometry are fresh. Perturbations
+  go through `h1eval.perception.perturb` and refuse a mismatched target type.
+- `h1eval/h10/cpu_first_batch.py` selects displacement, movement direction,
+  rotation and absolute distance. Each gets baseline plus one registered mode:
+  translation ×2, translation rotation 180 degrees, turn negation and scene ×2,
+  respectively. `FIRST_BATCH.json` records exact texts, served/unserved calls,
+  timings, intervention metadata and finite pose/gravity/depth checks. Partial
+  read failures retain their receipt. The tiny reviewed-interface proof completes
+  eight reads with one model construction; it does not measure model accuracy.
+- `h1eval/h10/gpu_113.sh`, `host_run.sh` and `host_entry.py` use b04's bwrap view,
+  vllm environment and overlay, with existing staged settings/restores. Updated
+  `run_card.sh` and `card_entry.sh` keep the >1024 MiB refusal, vnice and nice 10.
+  OUT contains all caches and temporaries. No wrapper restores inputs, copies
+  data, retries jobs or kills processes. `RUN_H10.md` gives the input contract
+  and commands. `merge.py`, the registered mode definitions and scorers are
+  unchanged.
+- `tests/build7_probe.py` imports the actual reviewed reader in an isolated
+  interpreter. `tests/test_build7.py` covers its signature, keyword factory,
+  native mapping, missing/staged ReVSI metadata, StageOne component reuse,
+  eight tiny CPU reads, model reuse, resume, journal conversion/refusals, counts,
+  native-tree bootstrap and the host busy-card guard. The legacy-entry test in
+  `tests/test_h10.py` names its draft entry explicitly.
+
+### Mapping, provenance and conservative choices
+
+All **636/636** dev-S1 items map to `parity.key(task)` and pass real
+`bind_item(..., verify=False)` metadata checks. Their questions, native answers,
+options, types, source indices and physical-room identities agree. The kit's
+released `ground_truth` labels remain unchanged; they differ from native `answer`
+labels on some items and still drive the existing evaluator.
+
+The mapping is `tmp/b7/devs1_mapping.json`. Its canonical mapping-list SHA256 is
+`3dcf08279401b7d8c41a43acb7bd6d9f452173dffe98752d38f69b9e46aed881`;
+the file SHA256 is
+`ec0a05e1bf42ba8515ca55fdc2157ba0207f8dc13ba31783844a858fb11455bc`.
+Every carrier layout has count 32. The mapping preserves b04's dense counts:
+567 items have 64 dense frames, 69 have 32, and all have 32 pinned anchors.
+It neither fabricates frames nor collapses b04's dense inputs.
+
+Neither `B/parity_kit/settings_bw.json` nor its requested fallback
+`B/parity_kit/settings.json` exists on 3-30. Metadata validation therefore uses
+b04's published TASKS/FRAMES/DENSE defaults and a metadata-only frame root; it
+makes no claim about run-host file availability. The production default is the
+1-13 bwrap `settings_bw.json` path. The 1-18 commands explicitly select that
+host's `settings.json` and `host_restore`.
+
+ReVSI official999 has no staged native frame binding here. It refuses with
+`frames not staged`. Stage a native task JSONL for all 999 exact official IDs,
+with their unchanged question/type/options/dataset/scene/answer plus `native`
+and `room`; stage the corresponding FRAMES and dense manifests and hashed RGB
+files. Supply `item_sets.revsi999.{tasks,frames_json,dense_manifest,frames_root}`
+in settings. Captures need 32 anchors, source indices, timestamps, fps and total
+frame counts; dense entries need matching slots, indexed paths and hashes. The
+synthetic staged-ReVSI test proves the adapter path only. It does not establish
+coverage of official pixels.
+
+Tower reuse accepts `<run>/gpu_results/own_depth_p*/items.jsonl`, with a sibling
+`LOAD_RECEIPT.json` for every partition. It checks the `parity-load-v2` receipt
+byte digest; each row's arm/settings/load/runtime digests; complete partition
+coverage; cross-partition identity; export RESTORE content and pin; artifact
+binding; task/config/request/frame/dense pins; perception settings; reader and
+runner code inventories and hashes; decode-policy hash; and item key/type/room.
+Duplicates, missing items, torn tails and altered provenance refuse. The full
+registered set must be present even when importing into one H1 shard.
+
+b04 rows carry model text, calls, finish, timings, scores, head outputs and layout,
+plus the provenance digests above. They do not carry the kit's item-set digest;
+native task-file pins and keys provide that check. Conversion verifies recorded
+model identity without rehashing model payloads. Tower partitions must share a
+runtime, but the converter does not require that runtime to equal the own run.
+The launcher still authenticates its actual export/artifact before decoding.
+
+Dev-S1 remains **636 + 900 own reads**, and ReVSI remains **999 + 566**. Each tower
+item has one baseline; complete journal reuse adds zero tower decodes. No M1–M4
+threshold, bootstrap seed, label, denominator or answer formatter changed.
+The GPU wrapper omits an address-space cap because CUDA reserves large virtual
+ranges. All Python validation here uses cpu.sh's 32 GiB cap and at most 16 threads.
+No permission to exceed physical host capacity is implied by the wrapper.
+
+### Validation commands and evidence
+
+The full suite command is:
+
+```bash
+LANE_TEST_OUTPUT="$PWD/tmp/b7" PYTHONHASHSEED=17 bash cpu.sh -m pytest \
+  tests/test_build7.py tests/test_build6.py tests/test_build4.py tests/test_review.py \
+  tests/test_reader_build4.py tests/test_build3_items.py tests/test_h10.py \
+  tests/test_cli.py tests/test_r0.py tests/test_eval.py tests/test_trainer.py \
+  tests/test_stop.py tests/test_rows.py tests/test_own_forward.py \
+  -q -rs -p no:cacheprovider -p tests.reader_plugin -p tests.build4_plugin \
+  --basetemp="$PWD/tmp/b7/full2" > tmp/b7/full2.log 2>&1
+```
+
+It completed in **99.60 seconds**, with 109 passed, one missing-input skip and
+one existing tensor-to-scalar warning. `cpu.sh` executes
+`/scratch/jjyeung/envs/p1cpu/bin/python -B`, with CUDA hidden and
+`PYTHONPATH=$PWD/tree:$PWD`. All test scratch files stay under `tmp/b7`.
+
+The focused command uses the same environment, plugins and flags, replacing the
+test list with `tests/test_build7.py` and using a fresh basetemp. `adapter3.log`
+records nine passing adapter tests. `adapter2.log` records seven passing probes;
+`adapter1.log` records seven old H1-0 passes and a test-fixture socket-signature
+failure. `full1.log` records 107 passed and the same missing-input skip.
+The final bootstrap/overlay check uses
+`tests/test_build7.py::test_native_tree_bootstrap`, basetemp
+`tmp/b7/bootstrap_final`, and log `tmp/b7/bootstrap_final.log`: **1 passed in
+2.17 seconds**. The final CPU receipt and resume checks use
+`tests/test_build7.py::test_reviewed_cpu_first_batch` and
+`tests/test_build7.py::test_reviewed_resume`, with the same flags and environment,
+basetemp `tmp/b7/receipt_final`, and log `tmp/b7/receipt_final.log`: **2 passed
+in 33.35 seconds**. These checks cover the final effective-settings receipt fields.
+
+The reviewed-interface CPU receipt is
+`tmp/b7/receipt_final/reviewed0/cpu/FIRST_BATCH.json`. Its loader and decode step are tiny
+stand-ins; the actual reviewed `make_real`, native binding and own perception
+execute. The full suite separately retains the existing real tiny decode tests.
+No result here proves step-544 real-weight compatibility or real-host throughput.
+
+```bash
+bash -n h1eval/h10/run_card.sh h1eval/h10/card_entry.sh \
+  h1eval/h10/gpu_113.sh h1eval/h10/host_run.sh
+```
+
+### Exact run-host commands
+
+These commands assume the complete kit is already staged at K on each host.
+They make no SSH connection. Check the current allocation, RAM and card before
+launch; run long commands in compute-node tmux. A killed run requires the user's
+answer before any rerun. The builder did not launch these commands remotely.
+
+On **trinity-1-13**, run the CPU diagnostic inside b04's existing bwrap view:
+
+```bash
+K=/scratch/jjyeung/orch_n30/h1_headsft/kit
+bwrap --dev-bind / / --bind /dev/shm/jjyeung /scratch/jjyeung/b04shm \
+  bash "$K/h1eval/h10/host_run.sh" cpu devs1_routed own 0/1 "$K/tmp/b7/cpu113"
+```
+
+The wrapper uses reader
+`/scratch/jjyeung/b04shm/b04/host2/b04_e2ehook`, its
+`parity_kit/settings_bw.json` and `parity_kit/restore_bw`, Python
+`/scratch/jjyeung/envs/vllm/bin/python -B`, and overlay
+`/scratch/jjyeung/b04shm/b04/pyoverlay`. All caches live under `cpu113`.
+
+After that CPU receipt passes, launch each GPU partition separately on an
+assigned card. Set tower reuse before the first launch only when all b04
+partitions are complete; omit it for an own-only journal.
+
+```bash
+export H10_TOWER_FROM=/scratch/jjyeung/b04shm/b04/host2/b04_e2ehook/parity_kit
+CARD=${ORCH_CARD:?Set the assigned card index}
+bash "$K/h1eval/h10/gpu_113.sh" "$CARD" devs1_routed own 0/3 "$K/tmp/b7/devs1_p0"
+bash "$K/h1eval/h10/gpu_113.sh" "$CARD" devs1_routed own 1/3 "$K/tmp/b7/devs1_p1"
+bash "$K/h1eval/h10/gpu_113.sh" "$CARD" devs1_routed own 2/3 "$K/tmp/b7/devs1_p2"
+```
+
+These commands are not a retry loop. `ARMS=own` specifies new decodes;
+`H10_TOWER_FROM` adds reused tower records. The binding cannot change on resume.
+For ReVSI, use `revsi999` and separate output directories after staging its
+native tasks/frames. Paired ReVSI also needs complete ReVSI tower journals;
+the dev-S1 journals cannot supply them.
+
+On **trinity-1-18**, use the specified local restore and scipy overlay:
+
+```bash
+K=/scratch/jjyeung/orch_n30/h1_headsft/kit
+export H10_READER_ROOT=/scratch/jjyeung/orch_n30/b04host/b04_e2ehook
+export H10_SETTINGS=$H10_READER_ROOT/parity_kit/settings.json
+export H10_EXPORT=$H10_READER_ROOT/parity_kit/host_restore
+export H10_PY=/scratch/jjyeung/envs/vllm/bin/python
+export H10_OVERLAY=/scratch/jjyeung/orch_n30/h1_headsft_w/pyoverlay
+bash "$K/h1eval/h10/host_run.sh" cpu devs1_routed own 0/1 "$K/tmp/b7/cpu118"
+CARD=${ORCH_CARD:?Set the assigned card index}
+bash "$K/h1eval/h10/host_run.sh" "$CARD" devs1_routed own 0/3 "$K/tmp/b7/devs1_118_p0"
+bash "$K/h1eval/h10/host_run.sh" "$CARD" devs1_routed own 1/3 "$K/tmp/b7/devs1_118_p1"
+bash "$K/h1eval/h10/host_run.sh" "$CARD" devs1_routed own 2/3 "$K/tmp/b7/devs1_118_p2"
+```
+
+b04's status describes 1-18 settings with `sam3: null`. Such settings refuse
+before loading. That host must stage SAM 3 source/checkpoint/receipt, selector
+and their artifact pins, then supply the local SAM/selector settings through
+`H10_SETTINGS`. This build cannot confirm those assets on another host.
+
+**GUESS:** 25–100 seconds/decode on an A6000-class card with SAM 3, based on b04's
+reported smoke range. Dev-S1 own reads cost about **10.7–42.7 card-hours**;
+ReVSI own reads cost **10.9–43.5 card-hours**, excluding loading. b04 also records
+call-heavy items up to 430 seconds, so the range is not a deadline guarantee.
+Use the first-ten-read projection to assess the ~13:00Z target.
+
+### Storage and boundaries
+
+Storage added is at most **19,070,976 bytes of allocated space (19.1 MB)**
+and **14,680,064 logical bytes (14.7 MB)**, below the 20 MB limit. These
+conservative bounds include directory allocation and edited files counted in full.
+The final storage receipt is `tmp/b7/SIZE.json`; its totals include all retained
+Build-7 scratch files and count every edited source/report file in full as a
+conservative upper bound. No kit, code tree or model payload was copied. All
+writes were inside K. No Git, network, SSH, GPU, process termination or file
+deletion command ran. No source under B was modified.
+
+The requested numbered Build section and validation ledger are retained as
+build evidence; no superseded behavior is presented as the active contract.
+
+### Build 7 lane follow-up (h1_headsft)
+- `launch.py --types` / `H10_TYPES` (host_entry): decode one question type at a time, baseline and its registered modes
+  together (ORCH 1739Z order: displacement, rotation, movement direction, absolute distance, then room). The shard
+  binding carries the selected ids, so each type runs in its own output directory. `tests/test_build7_types.py` checks
+  that the four types partition 600 items across shards with 1,500 own reads (600 baselines + 900 perturbed).
+- My rerun of the Build-7 suite with the real JSON copies present: 110 passed, 0 skipped (`logs/b5/suite_b7_lane.log`).

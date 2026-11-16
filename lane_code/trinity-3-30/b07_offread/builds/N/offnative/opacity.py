@@ -6,6 +6,7 @@ submission text and text logs use opaque spellings. The build records a local ma
 import base64
 import builtins
 import hashlib
+import hmac
 import importlib.abc
 import importlib.util
 import io
@@ -24,6 +25,8 @@ _BAD=re.compile('|'.join(re.escape(w) for w in WORDS),re.I)
 import json
 import secrets
 _ALIASES={}
+_ALIAS_NAMES={}
+_SALT=None
 _TABLE={}
 _NAMES={}
 _REVERSE={}
@@ -35,7 +38,7 @@ _BATCH=False
 _RAW_OPEN=builtins.open
 
 def _key(name):
-    return hashlib.sha256(name.encode()).hexdigest()
+    return hashlib.sha256((_SALT or b'')+name.encode()).hexdigest()
 
 def _save():
     if _BATCH:return
@@ -67,7 +70,7 @@ def configure(path):
 def component(name):
     key=_key(name)
     if key in _TABLE:
-        token=_TABLE[key];_REVERSE[token]=name
+        token=_TABLE[key];_REVERSE[token]=name;_NAMES[name]=token
         return token
     if _BAD.search(name):
         token='x'+secrets.token_hex(6)
@@ -108,8 +111,30 @@ def seed(files):
     finally:
         _BATCH=False;_save()
 
-def runtime_table(sources=()):
-    return json.dumps({'aliases':_ALIASES,'tokens':_TABLE,'sources':sorted(set(sources)|_SOURCES)},sort_keys=True).encode()+b'\n'
+def payload_digest(payload):
+    """Hash sorted physical member names and content pins, excluding the table."""
+    pins={n:hashlib.sha256(raw).hexdigest() for n,raw in payload.items() if n!='x0.json'}
+    return hashlib.sha256(json.dumps(pins,sort_keys=True,separators=(',',':')).encode()).digest()
+
+def _build_secret():
+    path=os.environ.get('A0_BUILD_SECRET_FILE',
+        '/scratch/jjyeung/orch_n30/b07_offread/work/salt/SECRET')
+    try:
+        with _RAW_OPEN(path,'r') as stream:value=stream.read().strip()
+    except OSError:raise ValueError('XMAP build secret unavailable') from None
+    if not re.fullmatch('[0-9a-fA-F]{64}',value):raise ValueError('XMAP build secret invalid')
+    return bytes.fromhex(value)
+
+def runtime_table(sources=(), *, payload=None):
+    if _SALT is not None and payload is None:
+        salt=_SALT;tokens=_TABLE;aliases=_ALIASES
+    else:
+        salt=hmac.new(_build_secret(),payload_digest(payload or {}),hashlib.sha256).digest()
+        key=lambda name:hashlib.sha256(salt+name.encode()).hexdigest()
+        tokens={key(name):token for name,token in _NAMES.items()}
+        aliases={key(name):target for name,target in _ALIAS_NAMES.items()}
+    return json.dumps({'salt':salt.hex(),'aliases':aliases,'tokens':tokens,
+        'sources':sorted(set(sources)|_SOURCES)},sort_keys=True).encode()+b'\n'
 
 def scan(value):
     raw=value.encode() if isinstance(value,str) else bytes(value)
@@ -183,12 +208,13 @@ def pack(files):
         if value!=raw:pins.append(dict(path=name,original_sha256=hashlib.sha256(raw).hexdigest(),sha256=hashlib.sha256(value).hexdigest()))
         if mapped in result:raise ValueError('opaque path collision')
         result[mapped]=value
-    result['x0.json']=runtime_table(path_name(n) for n in files if n.endswith('.py'))
+    result['x0.json']=runtime_table((path_name(n) for n in files if n.endswith('.py')),payload=result)
     return result,pins
 
 def media_alias(logical, target):
     """Resolve a private logical media name to a content-addressed local file."""
     target=str(target)
+    _ALIAS_NAMES[str(logical)]=target
     _ALIASES[_key(str(logical))]=target
     _save()
     return target
@@ -196,14 +222,22 @@ def media_alias(logical, target):
 _ACTIVE=False
 
 def install(root):
-    global _ACTIVE
+    global _ACTIVE,_SALT
     if _ACTIVE:return
-    _ACTIVE=True
     root=os.path.abspath(str(root))
+    canonical_root=os.path.realpath(root)
     global _RUNTIME_FILE,_MAP_FILE
     table=Path(root)/'x0.json'
-    if table.exists():
-        data=json.loads(table.read_bytes());_TABLE.update(data['tokens']);_ALIASES.update(data.get('aliases',{}));_SOURCES.update(data.get('sources',()))
+    data=json.loads(table.read_bytes()) if table.exists() else json.loads(runtime_table(payload={}))
+    if not isinstance(data.get('salt'),str) or not re.fullmatch('[0-9a-f]{64}',data['salt']):
+        raise ValueError('XMAP salted table required')
+    _SALT=bytes.fromhex(data['salt'])
+    _TABLE.clear();_TABLE.update(data['tokens'])
+    _ALIASES.clear();_ALIASES.update(data.get('aliases',{}))
+    _ALIASES.update({_key(name):target for name,target in _ALIAS_NAMES.items()})
+    _SOURCES.update(data.get('sources',()))
+    _LEARNED.clear()
+    _ACTIVE=True
     _MAP_FILE=None;_RUNTIME_FILE=str(table)
     for name in _SOURCES:
         path=Path(root)/name
@@ -213,7 +247,7 @@ def install(root):
     # Read-only external environments and media pools retain their supplied names.
     prefixes=(root+'/',) if root.startswith('/dev/shm/') else (root+'/', '/scratch/jjyeung/', '/scratch/fsw/', '/lustre/fsw/')
     def eligible(path):
-        return not os.path.isabs(path) or path==root or path.startswith(prefixes)
+        return not os.path.isabs(path) or path in (root,canonical_root) or path.startswith(prefixes+(canonical_root+'/',))
     def physical(value):
         if isinstance(value,int):return value
         try:p=os.fspath(value)
@@ -221,6 +255,8 @@ def install(root):
         binary=isinstance(p,bytes)
         if binary:p=os.fsdecode(p)
         p=_ALIASES.get(_key(p),p)
+        if canonical_root!=root and (p==canonical_root or p.startswith(canonical_root+'/')):
+            p=root+p[len(canonical_root):]
         q=(root+'/'+path_name(p[len(root)+1:]) if p.startswith(root+'/') else
            p if p==root or not eligible(p) else path_name(p))
         return os.fsencode(q) if binary else q
@@ -229,10 +265,8 @@ def install(root):
         p=os.fsdecode(value)
         # A local rehearsal root can have named ancestors. The open directory
         # descriptor gives children an opaque, reachable spelling on this host.
-        if p==root or p.startswith(root+'/'):
-            try:scan(root)
-            except ValueError:
-                return exposed_root+p[len(root):]
+        if exposed_root!=root and (p==root or p.startswith(root+'/')):
+            return exposed_root+p[len(root):]
         return p
     exposed_root=root
     try:scan(root)
@@ -332,6 +366,10 @@ def install(root):
             for base in (sys.path if path is None else path):
                 base=os.path.abspath(base or '.')
                 if not eligible(base+'/'):continue
+                # Compiled modules take precedence over same-name .py build sources.
+                native=__import__('importlib.machinery',fromlist=['PathFinder'])
+                spec=native.PathFinder.find_spec(fullname,[physical(base)])
+                if spec is not None and isinstance(spec.loader,native.ExtensionFileLoader):return spec
                 for relative,package in ((tail+'/__init__.py',True),(tail+'.py',False)):
                     candidate=base+'/'+relative
                     if os.path.isfile(candidate):
@@ -389,6 +427,21 @@ def install(root):
             super().__init__(args,*a,**kw)
     subprocess.Popen=Child
     _save()
+    # Native decoders accept path strings directly and bypass Python open().
+    def patch_native_media():
+        module=sys.modules.get('av')
+        if module is not None and hasattr(module,'open') and not getattr(module.open,'_x0',False):
+            original=module.open
+            def opened_media(file,*args,**kwargs):return original(physical(file),*args,**kwargs)
+            opened_media._x0=True
+            module.open=opened_media
+    original_import=builtins.__import__
+    def imported(name,*args,**kwargs):
+        value=original_import(name,*args,**kwargs)
+        if name=='av' or name.startswith('av.'):patch_native_media()
+        return value
+    builtins.__import__=imported
+    patch_native_media()
     # All tar member names created in the job are opaque too.
     import tarfile
     old_addfile=tarfile.TarFile.addfile
