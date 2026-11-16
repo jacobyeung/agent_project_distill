@@ -205,6 +205,21 @@ class AnonTest(unittest.TestCase):
         path = self.write('d.json', b'{"m": "q\\u0077en"}')
         self.assertTrue(anon.scan_tree(path, anon.load_rules()))
 
+    def test_review_oc18_escapes_in_any_encoding_or_layer(self):
+        plain = b'{"m": "q\\u0077en"}'
+        cases = {'a16.json': plain.decode().encode('utf-16'), 'a32.json': plain.decode().encode('utf-32'),
+                 'a16le.json': plain.decode().encode('utf-16-le'), 'c.json.gz': gzip.compress(plain),
+                 'noext.bin': plain, 'py.txt': b"x = 'q\\x77en'\n"}
+        for name, data in sorted(cases.items()):
+            self.assertTrue(anon.scan_tree(self.write(name, data), anon.load_rules()), name)
+
+    def test_review_oc19_damaged_zip_fails_closed(self):
+        raw = io.BytesIO()
+        with zipfile.ZipFile(raw, 'w', zipfile.ZIP_DEFLATED) as archive:
+            archive.writestr('x', b'qwen')
+        path = self.write('a.zip', raw.getvalue()[:-22])
+        self.assertEqual(anon.scan_tree(path, anon.load_rules())[0]['rule'], 'unsupported-container')
+
 
 if __name__ == '__main__':
     unittest.main()

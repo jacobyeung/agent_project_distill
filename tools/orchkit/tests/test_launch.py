@@ -594,6 +594,52 @@ class ReviewFindingsTest(LaunchBase):
         self.assertFalse(launch.submit(prep, self.go('# review\nGO: %s\n' % record['job_name']),
                                        out=io.StringIO())['executed'])
 
+    def test_oc20_a_kit_changed_during_submit_cannot_ship(self):
+        kit, dry = self.kit()
+        record, prep = self.prepare(kit, dry)
+        real = launch.check_kit
+        sent = []
+
+        def check_then_swap(path, config_raw, rules):
+            value = real(path, config_raw, rules)
+            write(os.path.join(prep, 'kit', 'code', 'entry.py'), "MODEL = 'changed'\n")
+            job = util.read_json(os.path.join(prep, 'JOB.json'))
+            script, remote = launch.build_submission(os.path.join(prep, 'kit'), value[0], job, rules)
+            write(os.path.join(prep, 'BATCH.sh'), script)
+            write(os.path.join(prep, 'SUBMIT.sh'), remote)
+            return value
+
+        launch.check_kit = check_then_swap
+        try:
+            with self.assertRaises(launch.LaunchError):
+                launch.submit(prep, self.go('GO %s\n' % record['token']), execute=True,
+                              transport=lambda argv, body: sent.append(body) or (0, b'JOBID=9\n', b''),
+                              out=io.StringIO())
+        finally:
+            launch.check_kit = real
+        self.assertEqual(sent, [])
+
+    def test_oc21_two_copies_of_one_preparation_submit_once(self):
+        kit, dry = self.kit(self.config(partition='advanced'))
+        record, prep = self.prepare(kit, dry)
+        copy = prep + '_copy'
+        launch.snapshot(prep, copy)
+        sent = []
+        go = self.go('GO %s\n' % record['token'])
+
+        def transport(argv, body):
+            sent.append(body)
+            if len(sent) == 1:
+                with self.assertRaises(launch.LaunchError) as caught:
+                    launch.submit(copy, go, execute=True, out=io.StringIO(), transport=transport)
+                self.assertIn('already claimed', str(caught.exception))
+            return 0, ('JOBID=%d\n' % (40 + len(sent))).encode(), b''
+
+        launch.submit(prep, go, execute=True, out=io.StringIO(), transport=transport)
+        self.assertEqual(len(sent), 1)
+        rows = [row for row in ledger.lookup(record['token'], self.ledger) if row['event'] == 'submitted']
+        self.assertEqual(len(rows), 1)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -78,14 +78,44 @@ def scan_text(where, text, rules, scope='text'):
     return hits
 
 
-def scan_bytes(where, data, rules):
-    """Text rules over the bytes read as Latin-1, and again with NUL bytes dropped, so UTF-16 and
-    UTF-32 text cannot hide a word."""
-    hits = scan_text(where, data.decode('latin-1'), rules, 'text')
+ESCAPE = re.compile(r'\\(?:u([0-9a-fA-F]{4})|U([0-9a-fA-F]{8})|x([0-9a-fA-F]{2}))')
+
+
+def _unescape(text):
+    def one(match):
+        code = int(match.group(1) or match.group(2) or match.group(3), 16)
+        return chr(code) if code < 0x110000 else ''
+    return ESCAPE.sub(one, text)
+
+
+def text_views(data):
+    """Every text reading of a blob that a standard decoder gives: Latin-1, NUL bytes dropped,
+    UTF-16 and UTF-32 (either byte order, with or without a BOM), each also with JSON and Python
+    escapes (\\uXXXX, \\UXXXXXXXX, \\xXX) resolved."""
+    views = [data.decode('latin-1')]
     if b'\x00' in data:
-        seen = set(hit['rule'] for hit in hits)
-        hits.extend(hit for hit in scan_text(where, data.replace(b'\x00', b'').decode('latin-1'),
-                                             rules, 'text') if hit['rule'] not in seen)
+        views.append(data.replace(b'\x00', b'').decode('latin-1'))
+        for codec in ('utf-16', 'utf-16-le', 'utf-16-be', 'utf-32', 'utf-32-le', 'utf-32-be'):
+            try:
+                views.append(data.decode(codec))
+            except (UnicodeDecodeError, ValueError):
+                continue
+    out = []
+    for view in views:
+        out.append(view)
+        if '\\' in view:
+            out.append(_unescape(view))
+    return out
+
+
+def scan_bytes(where, data, rules, scope='text'):
+    """Rules over every text view of the bytes (see text_views); one hit per rule."""
+    hits, seen = [], set()
+    for view in text_views(data):
+        for hit in scan_text(where, view, rules, scope):
+            if hit['rule'] not in seen:
+                seen.add(hit['rule'])
+                hits.append(hit)
     return hits
 
 
@@ -107,9 +137,12 @@ def _interpretations(where, data):
     if any(data.startswith(magic) for magic, _ in UNSUPPORTED):
         kinds.append('unsupported')
     try:
-        if zipfile.is_zipfile(io.BytesIO(data)):
-            kinds.append('zip')
+        zipped = zipfile.is_zipfile(io.BytesIO(data))
     except (OSError, ValueError):
+        zipped = False
+    if zipped:
+        kinds.append('zip')
+    elif data.startswith((b'PK\x03\x04', b'PK\x05\x06', b'PK\x07\x08')):
         kinds.append('unsupported')
     if len(data) > 262 and data[257:262] == b'ustar':
         kinds.append('tar')
@@ -329,19 +362,11 @@ def scan_tree(root, rules):
             hits.append({'where': where, 'scope': 'size', 'rule': kind})
             continue
         if kind in ('link', 'meta'):
-            hits.extend(scan_text(where, data.decode('utf-8', 'replace'), rules, 'name'))
+            hits.extend(scan_bytes(where, data, rules, 'name'))
         elif data:
             hits.extend(scan_bytes(where, data, rules))
-        if kind == 'file' and where.lower().endswith('.json') and where not in NAME_JSON:
-            try:
-                parsed = json.loads(data.decode('utf-8'), object_pairs_hook=list)
-            except (ValueError, UnicodeDecodeError):
-                parsed = None
-            for text in _json_strings(parsed):
-                hits.extend(row for row in scan_text(where, text, rules, 'text') if row not in hits)
         if kind == 'file' and where in NAME_JSON:
-            hits.extend(row for row in scan_text(where, data.decode('latin-1'), rules, 'name')
-                        if row not in hits)
+            hits.extend(row for row in scan_bytes(where, data, rules, 'name') if row not in hits)
             try:
                 parsed = json.loads(data.decode('utf-8'), object_pairs_hook=list)
             except (ValueError, UnicodeDecodeError):

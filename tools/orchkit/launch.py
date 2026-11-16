@@ -479,21 +479,22 @@ def _go_names(text, token):
 
 
 def rebuild(prep, record, rows, rules=None):
-    """The exact submission bytes, rebuilt from PREP/kit and PREP/JOB.json and anchored to the
-    ledger: the minted row of the token must name this kit and config, the kit must pass every
+    """The exact submission bytes, rebuilt from a private snapshot of PREP/kit (read once, then
+    checked and bundled) and PREP/JOB.json (read once), and anchored to the ledger: the minted row of the token must name this kit and config, the kit must pass every
     check again, and BATCH.sh, SUBMIT.sh and the transport argv in PREP must equal the rebuild.
     Nothing in SUBMIT.json is trusted beyond the token."""
     token, name = mint_job_name(record['token'])
     minted = [row for row in rows if row.get('event') == 'minted']
     if len(minted) != 1:
         raise LaunchError('ledger must hold exactly one minted row for %s' % token)
-    kit = os.path.join(prep, 'kit')
+    job = util.read_json(os.path.join(prep, 'JOB.json'))
+    kit = snapshot(os.path.join(prep, 'kit'),
+                   os.path.join(tempfile.mkdtemp(prefix='.submit.', dir=prep), 'kit'))
     with open(os.path.join(kit, 'CONFIG.json'), 'rb') as handle:
         config_raw = handle.read()
     config, _, kit_pins, config_sha = check_kit(kit, config_raw, rules or anon.load_rules())
     if (minted[0].get('kit_pins_sha256'), minted[0].get('config_sha256')) != (kit_pins, config_sha):
         raise LaunchError('the ledger row of %s names another kit or config' % token)
-    job = util.read_json(os.path.join(prep, 'JOB.json'))
     if job.get('token') != token or job.get('job_name') != name or record.get('job_name') != name:
         raise LaunchError('the prepared scripts do not belong to token %s' % token)
     script, remote = build_submission(kit, config, job, rules or anon.load_rules())
@@ -504,6 +505,27 @@ def rebuild(prep, record, rows, rules=None):
     if record.get('argv') != transport_argv() or record.get('stdin') != 'SUBMIT.sh':
         raise LaunchError('the transport command differs from the one prepare recorded')
     return remote.encode('utf-8')
+
+
+def claim_token(token, ledger_file=None):
+    """Claim a token once for the whole account: an exclusive file beside the shared ledger, so two
+    copies of one preparation cannot both reach the transport."""
+    claims = ledger.ledger_path(ledger_file) + '.claims'
+    if not os.path.isdir(claims):
+        try:
+            os.makedirs(claims, 0o700)
+        except OSError:
+            if not os.path.isdir(claims):
+                raise
+    try:
+        fd = os.open(os.path.join(claims, token), os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    except OSError:
+        raise LaunchError('token %s was already claimed for submission; never repeat a submit' % token)
+    with os.fdopen(fd, 'wb') as handle:
+        handle.write(util.canonical_json({'token': token, 'utc': util.utc_iso(),
+                                          'pid': os.getpid()}) + b'\n')
+        handle.flush()
+        os.fsync(handle.fileno())
 
 
 def submit(prep, go, execute=False, ledger_file=None, transport=None, out=sys.stdout, rules=None):
@@ -544,6 +566,7 @@ def submit(prep, go, execute=False, ledger_file=None, transport=None, out=sys.st
                                           'go': os.path.abspath(go)}) + b'\n')
         handle.flush()
         os.fsync(handle.fileno())
+    claim_token(token, ledger_file)
     if any(row.get('event') == 'submitted' for row in ledger.lookup(token, ledger_file)):
         raise LaunchError('ledger already shows %s submitted' % token)
     behind = sorted(set(PREFIX + found for found in re.findall(r'(?<![0-9a-f])([0-9a-f]{16})(?![0-9a-f])',
