@@ -71,20 +71,23 @@ def catalog():
     for name in ('vnice','terminator'):
         add(name,assets[name+'_sha256'],None,'hash only; path not recorded','ORCHARD_ASSETS.json',
             'Operator supplies the exact logical script path and an authorized policy receipt. Authenticate scripts after runtime staging; workers run under vnice. Never start, stop, or bypass a terminator.')
+    add('R0-dev f32 RGB (optional)',None,None,'not listed',
+        'trinity-1-18 /scratch/jjyeung/orch_n30/b10_reserve frames for 98 development rooms',
+        'Archive SHA256 OPEN. Preserve f32 layout and per-scene manifests pinned by FRAMES_MANIFEST.json; stage only after archive verification. Missing input skips the last phase.')
     return result
 
 
 def render(package):
-    package=Path(package);cfg=json.loads((package/'CONFIG.json').read_text());rows=catalog()
+    package=Path(package);cfg=__import__('orchard_h10.common',fromlist=['read_config']).read_config(package);rows=catalog()
     rows.insert(0,dict(name='code archive',sha256=cfg['payload_sha256'],bytes=(package/'0.tgz').stat().st_size,
-        template_registry='new local package',source=str(package/'0.tgz'),transfer='Governed archive upload after ORCH releases GPUs/staging. CONFIG.json payload_pins binds every source member.'))
+        template_registry='new local package',source=str(package/'0.tgz'),transfer='Governed archive upload after ORCH releases GPUs/staging. In-tar 9.json payload_pins binds every source member.'))
     write(K/'orchard_h10/INPUT_CATALOG.json',rows)
     lines=['# Orchard staging contract','',
         'No remote presence was checked. “Yes” below means the template registry recorded the exact asset on 2026-11-13; the job reauthenticates its bytes.',
         'The registry does not prove that job 170056’s frames, G3T, SAM 3, selector, or the step-544 export remain staged.',
         '',f'Package: `{package.relative_to(K)}`. Plan SHA256: `{cfg["plan_sha256"]}`.',
         'The code archive contains tree/, h1eval/, auth/, rows/, the dev-S1 item file, reviewed b04 code, parity_kit dependencies and pinned native metadata. It contains no weights or RGB.',
-        'CONFIG.json lists every member with size and SHA256; template_pins records the unmodified transport source. TOKENS.json stays on Trinity.',
+        'In-tar 9.json lists every member with size and SHA256; template_pins records the unmodified transport source. TOKENS.json stays on Trinity.',
         '', '| Input | Expected SHA256 | Bytes | Template registry |', '|---|---|---:|---|']
     for r in rows:lines.append(f'| {r["name"]} | `{r["sha256"] or "OPEN"}` | {r["bytes"] if r["bytes"] is not None else "OPEN"} | {r["template_registry"]} |')
     lines+=['','INPUT_CATALOG.json records the source and transfer requirement for every row. OPEN_INPUTS.md lists all inputs without proof of Orchard residency.',

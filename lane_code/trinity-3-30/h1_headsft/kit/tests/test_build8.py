@@ -22,7 +22,7 @@ B=Path('/scratch/jjyeung/orch_n30/b04_e2ehook')
 @pytest.fixture(scope='module')
 def rehearsal():
     # Deliberately outside pytest's basetemp and /dev/shm, like a retained production run.
-    root=K/'tmp/b8/rehearsal'/('a'+uuid.uuid4().hex[:12]);root.mkdir(parents=True)
+    root=Path(os.environ.get('LANE_TEST_OUTPUT',K/'tmp/b8'))/'rehearsal'/('a'+uuid.uuid4().hex[:12]);root.mkdir(parents=True)
     raw=json.loads((K/'items/devs1_routed.json').read_text())
     # Keep ten records per type so each type has both shards and a measured projection.
     selected=sorted([x for t in ORDER for x in [r for r in raw['items'] if r['question_type']==t][:10]],key=lambda r:r['id'])
@@ -41,9 +41,12 @@ def rehearsal():
     # commands points to the packaged b04 root in production. The tiny worker runs the
     # read-only b04 installation without copying its source tree.
     def launch(argv,**kw):
-        argv=list(argv);i=argv.index('--reader-root');argv[i+1]=str(B)
-        kw['env']['CUDA_VISIBLE_DEVICES']=''
-        return subprocess.Popen([sys.executable,'-B',str(K/'tests/build8_worker.py'),*argv],**kw)
+        # Run the stand-in through the same opaque argv and private config.
+        control=Path(kw['cwd'])
+        if 'runpy.run_path' not in (control/'5.py').read_text():
+            (control/'5.py').write_text("import sys,runpy\nsys.path[:0]="+repr([str(K/'tree'),str(K)])+
+            "\nrunpy.run_path("+repr(str(K/'tests/build8_worker.py'))+",run_name='__main__')\n")
+        return subprocess.Popen(argv,**kw)
     result=run(cfg,['','cpu1'],time.time()+300,launcher=launch)
     return root,cfg,result,launch
 
@@ -66,7 +69,7 @@ def test_order_shards_modes_and_text(rehearsal):
     root,cfg,result,_=rehearsal
     assert result['complete'] and result['completed']==result['expected']==110
     events=[json.loads(s) for s in (root/'r/STEPS.jsonl').read_text().splitlines()]
-    assert [r['type'] for r in events if r['event']=='start']==[t for t in ORDER for _ in range(2)]
+    assert [r['type'] for r in events if r['event']=='start']==[t for t in range(len(ORDER)) for _ in range(2)]
     for i,t in enumerate(ORDER):
         group=events[4*i:4*i+4]
         assert [r['event'] for r in group]==['start','start','exit','exit']
@@ -145,7 +148,7 @@ def test_inflight_deadline_leaves_no_partial_record(rehearsal,monkeypatch):
     argv=commands(cfg,ORDER[0],0,['','cpu1'],time.time()+6,time.time()+8)
     from orchard_h10.runner import environment
     with (root/'inflight.log').open('wb') as log:
-        process=launch(argv,env=environment(cfg,'',0),cwd=K,stdout=log,stderr=subprocess.STDOUT)
+        process=launch(argv,env=environment(cfg,'',0),cwd=Path(cfg['output'])/'metadata/a',stdout=log,stderr=subprocess.STDOUT)
         assert process.wait()==75
     from h1eval.h10.launch import read_records
     assert read_records(root/'inflight/metadata/journals/0/0/items.jsonl')==[]
@@ -155,10 +158,11 @@ def test_package_pins_and_embedded_bootstrap():
     import base64
     import re
     from orchard_h10.common import sha
-    package=K/'orchard_h10/package';cfg=json.loads((package/'CONFIG.json').read_text())
+    package=K/'orchard_h10/package';cfg=__import__('orchard_h10.common',fromlist=['read_config']).read_config(package)
     assert sha(package/'0.tgz')==cfg['payload_sha256']
     with tarfile.open(package/'0.tgz') as tar:
         observed={e.name:dict(bytes=e.size,sha256=hashlib.sha256(tar.extractfile(e).read()).hexdigest()) for e in tar}
+    observed.pop('9.json')
     assert observed==cfg['payload_pins']
     assert 'b/e2e_reader/parity.py' in observed and 'b/heads/selector/selector_head.py' in observed
     assert 'b/parity_kit/stage_restore.py' in observed and 'items/devs1_routed.json' in observed
@@ -168,10 +172,10 @@ def test_package_pins_and_embedded_bootstrap():
         path='orchard_h10/'+n+'.py'
         assert observed[path]['sha256']==sha(K/path)
     text=(package/'BATCH.sh').read_text()
-    raw=base64.b64decode(re.search(r"b=base64.b64decode\('([^']+)'",text)[1])
+    raw=bytes.fromhex(re.search(r"b=bytes.fromhex\('([^']+)'",text)[1])
     with tarfile.open(fileobj=io.BytesIO(raw)) as tar:
-        assert json.load(tar.extractfile('0.json'))==cfg
-        assert tar.extractfile('p/orchard_h10/job.py').read()==(K/'orchard_h10/job.py').read_bytes()
+        assert json.load(tar.extractfile('0.json'))==json.loads((package/'CONFIG.json').read_text())
+        assert tar.extractfile('0.py').read()
     assert len(text)<3*1024**2
 
 
@@ -187,14 +191,15 @@ def test_resume_rejects_changed_input_archives(tmp_path,monkeypatch):
 def test_worker_failure_does_not_launch_next_type(tmp_path,monkeypatch):
     import orchard_h10.runner as runner
     monkeypatch.setattr(runner,'summarize',lambda *a:dict(complete=False,completed=0,expected=1))
-    cfg=dict(output=str(tmp_path),package=str(K),python=sys.executable,export='x',binding='x',settings='x',plan_sha256='0'*64)
+    cfg=dict(device='cpu',output=str(tmp_path),package=str(K),python=sys.executable,export='x',binding='x',settings='x',plan_sha256='0'*64)
     seen=[]
     class Failed:
         def wait(self):return 9
     def launch(argv,**kw):seen.append(argv);return Failed()
     value=runner.run(cfg,['0','1'],time.time()+3600,launcher=launch)
     assert value['failure'] and len(seen)==2
-    assert all(argv[argv.index('--types')+1]==ORDER[0] for argv in seen)
+    assert all(json.loads((tmp_path/'metadata/a'/argv[-1]).read_text())['type']==0 for argv in seen)
+    for argv in seen:opaque(argv)
 
 
 def test_deadline_crosses_reader_exception_handlers(monkeypatch):

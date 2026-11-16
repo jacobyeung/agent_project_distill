@@ -1,3 +1,6 @@
 - work/mirror/b03_e2etest_eat1_v1.tar and trinity-1-18:/scratch/jjyeung/n30_mirror/b03_e2etest/b03_e2etest_eat1_v1.tar and v1b (superseded by v1c); work/tmp/eat1_test_* (unit-test scratch)
 - work/mirror/b03_e2etest_eat1_v1c.tar and the trinity-1-18 copy (superseded by v2); work/b04_tiny (first b04 attempt, artifact bound to the wrong tree path)
 - work/eat1_v2_prereview/ (pre-review kit copy, 400 KB), work/review_eat1/ and work/review_eat1_r2/ (review copies), work/adv/ (probe runs, 2 MB), work/mirror/b03_e2etest_eat1_v2.tar and trinity-1-18 v2 tar: superseded by v3
+- work/mirror/b03_e2etest_eat1_v3.tar, _v4.tar, _v5.tar and their trinity-1-18 copies, plus trinity-1-18:/scratch/jjyeung/n30_mirror/b03_e2etest/b03_e2etest_eat1_v6.tar: superseded by v7 (trinity-1-18 only, sha256 9ac4c96c...)
+- work/review_eat1_r3/, work/review_eat1_r4/ (review copies and probe runs, ~6 MB; verdicts and probe code are in mirror v7); work/tmp/ (24 MB unit-test scratch); work/adv/w1-w4 (probe runs)
+- trinity-3-30:/tmp/jjyeung_b03 (tmpfs, ~60 MB: v6/v7 test, probe and tiny runs, review round-5 workspace, stage dirs and tars; everything needed is in mirror v7); /dev/shm/jjyeung/b03_e2etest (first test attempt, A1 ignores /dev/ paths)

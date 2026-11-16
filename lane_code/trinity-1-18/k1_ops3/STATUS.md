@@ -1,8 +1,15 @@
 # k1_ops STATUS — operator k1_ops8 (Devin, trinity-1-18, from 17:25Z), successor of k1_ops7. Events folder events/k1_ops3/.
-Updated 2026-11-16T19:12Z (k1_ops8).
+Updated 2026-11-16T20:52Z (k1_ops8). K1 COMPLETE; nothing in flight.
 
 ## k1_ops8 (17:35Z)
 - Took over 17:25Z. k1down: primary tables still writing (candidates/pairs growing, no TABLE_RECEIPT yet). e3gdrun: 185/239 train at 17:25Z.
+- 20:52Z: K1 COMPLETE. FULL EXIT rc=0 20:40:54Z. tmux k1down finished; e3gdrun gone. Nothing of ours runs (no Orchard job, no GPU, no governor stream).
+  - Verdicts: primary and sensitivity agree on every mark. kill_rows KILL (share .213 / .210 < .40; MRA gain +27.2 / +27.6 passes), kill_refit survives (AUC +.017 / +.017; top1 +0.0 / +0.5).
+  - Split: work/k1_split/{primary_296,sensitivity_300}.json and *_top1_boot.json.
+  - Record distill_design/K1_KILL_TEST_RUN_20261116.md is COMPLETE, with its INDEX line updated; the prior text is in work/K1_record_before_k1ops8.md.
+  - Mirror 2: analyses + k1_split + e3gd results to trinity-3-30:/scratch/jjyeung/n30_mirror/k1_ops3/work/, stream sha 34bf26920d3e8be30f977db5c0c4b07ae7e508834173434adbf1183ccab2df64, equal on both ends.
+  - REMOVAL_CANDIDATES.md updated. Final RESULT event written. Open items for others: C1-C5 choices on the refit selector (not this lane); review of head_split.py/top1_boot.py if the portrait numbers go to a paper.
+- 19:44Z: sensitivity tables+refit DONE (accept auc .903->.920, top1 .575->.581); heads split work/k1_split/sensitivity_300_heads_only.json. Render 117/300. K1 record draft with @@placeholders@@ at work/K1_RECORD_DRAFT.md (fill from sensitivity REPORT, then write to distill_design/K1_KILL_TEST_RUN_20261116.md + INDEX line).
 - 19:12Z: PRIMARY_296 REPORT DONE (19:0xZ): kill_rows TRUE (trust_fallback_share .213 < .40; answered MRA .604 vs constant .331, gain .272 passes), kill_refit FALSE (auc +.0166, top1 +0.0). B6 4.6 meaning: deployed-response rows killed -> seal uses GT trust rows + simulated-miss fallback; refit selector survives. Split: work/k1_split/primary_296.json (+ .stdout), bootstrap work/k1_split/primary_296_top1_boot.json (portrait minus landscape-ARKit accept top1: current -.129 [-.336,+.079], refit -.169 [-.385,+.048], 16 v 16 held-out captures). Sensitivity_300 running (tables). Owed: sensitivity REPORT + split, verdict agreement, K1 record, final RESULT, mirror of analyses dirs.
 - 18:45Z: MIRROR DONE: tar of /scratch/jjyeung/k1/{run_convert_2,own_170235,run_convert_2.preflight.json} streamed over IB to trinity-3-30:/scratch/jjyeung/n30_mirror/k1_ops3/ ; stream sha256 fc366bc55c2e7f9e4a7bfcc1b97ad21fa63ecd2e7f8d3bb2a59da20734510db6 on both ends (local work/mirror/local.sha, remote n30_mirror/k1_ops3/stream.sha). 3-30 /scratch 158G free after. Analyses outputs to mirror after FULL EXIT (small).
 - 18:42Z: E3 GD DONE (e3gdrun ended 18:37Z, expected KeyError). Agg files work/e3gd/out/{HELDOUT,TRAIN}_GD_{reviewed,sealed}.txt. E3 record updated to COMPLETE with deployed column (backup of prior text: work/E3_record_before_k1ops8.md), INDEX line updated, RESULT 20261116T1842Z_RESULT_e3_deployed_column.md. E3 step (4) of NEXT is finished.

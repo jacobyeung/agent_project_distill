@@ -3,3 +3,4 @@
 - /tmp/b12_rot (rotation-sign probe rasters, 16 files)
 - /tmp/b12_chk_v2 (copy of rows_v2 JSONL for the new-rule check)
 - out/PACKET_b12_v2, out/rows_v2 (superseded by PACKET_b12_v3; never admit)
+- out/PACKET_b12_v3, out/rows_v3 (superseded by PACKET_b12_v4: v3 resampled 503 rows; never admit)

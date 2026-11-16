@@ -1,0 +1,36 @@
+{
+ "deferred": {
+  "scannetpp/120acffd90": {
+   "r0_split": "R0-rl",
+   "reason": "aligned_pose corrupt: 367 colmap frames, translation err p50 4.5 m / p90 31.6 m, rotation p50 9.6 deg; aligned translations span ~400 m"
+  },
+  "scannetpp/46001f434d": {
+   "r0_split": "R0-rl",
+   "reason": "aligned_pose corrupt: 148 colmap frames, translation err p50 0.73 m / p90 5.8 m, rotation p50 16 deg; aligned translations span ~220 m"
+  },
+  "scannetpp/7dab70c8c8": {
+   "r0_split": "R0-dev",
+   "reason": "aligned_pose corrupt: translations span -15391..6400 m (colmap span 1.1..5.9 m); median err 615.6 m in both conventions; colmap covers only 196 of 9840 frames, too sparse to replace it"
+  },
+  "scannetpp/ab4f373966": {
+   "r0_split": "R0-rl",
+   "reason": "aligned_pose translation corrupt: 451 colmap frames, rotation p50 0.6 deg but translation err p50 1.8 m / p90 7.3 m; aligned translations span ~47 m"
+  },
+  "scannetpp/c29b5e479c": {
+   "r0_split": "R0-dev",
+   "reason": "aligned_pose drifts from colmap: 172 frames, translation err p50 0.065 m / p90 0.195 m / max 0.94 m, rotation p50 0.96 deg / p90 2.9 deg (reference scene 01ce24e652: 0.011 m / 0.056 m, 0.38 deg); gate median 0.0542 > 0.05; gate kept as preregistered"
+  },
+  "scannetpp/cc0aa81452": {
+   "r0_split": "R0-rl",
+   "reason": "aligned_pose corrupt: 490 colmap frames, translation err p50 2.7 m / p90 14.9 m, rotation p50 11.7 deg; aligned translations span ~95 m"
+  }
+ },
+ "diagnostic": "work/pose_diag.py (copied to code/pose_diag.py)",
+ "rule": "strict source gate: aligned_pose (pose_intrinsic_imu.json) must agree with iphone/colmap/images.txt c2w, median over <=200 common frames of max abs 3x4 entry error < 0.05 (r0lib.load_cameras). Deferred scenes stay in the R0 denominator (R0_SCENES.json unchanged) and get no questions or frames-based items.",
+ "summary": {
+  "deferred": 6,
+  "dev_deferred": 2,
+  "full_gt_scannetpp": 162,
+  "generated": 156
+ }
+}

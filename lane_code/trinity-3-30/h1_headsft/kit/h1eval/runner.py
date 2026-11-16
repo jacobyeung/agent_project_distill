@@ -36,11 +36,11 @@ def measure(output,item,baseline=None):
     return result
 
 
-def table(rows):
+def table(rows, constants=None):
     groups=defaultdict(list)
     for row in rows:groups[(row['type'],row['arm'],row['mode'])].append(row)
-    lines=['| Type | Arm | Mode | N | Calls | Exact route | Follow | Stick | Other | Head distance MAE (m) | Turn MAE (deg) | Direction accuracy | M4 | Seconds/item |',
-           '|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|']
+    lines=['| Type | Arm | Mode | N | Calls | Exact route | Follow | Stick | Other | Head distance MAE (m) | Turn MAE (deg) | Direction accuracy | M4 | Seconds/item | Task accuracy/MRA | No-information f32 | Unserved calls | Error calls |',
+           '|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|']
     for key,rs in sorted(groups.items()):
         def mean(values):
             v=[x for x in values if x is not None];return f'{sum(v)/len(v):.4f}' if v else '—'
@@ -50,6 +50,12 @@ def table(rows):
         head_calls=[c for v in m for c in v['M2']['calls']]
         values += [mean(c.get(k) for c in head_calls) for k in ('absolute_error_m','error_deg','correct')]
         values += [mean(v.get('M4',{}).get('score') for v in m),mean(r['output'].get('seconds') for r in rs)]
+        c=(constants or {}).get(key[0],{})
+        constant=c.get('dev_mra_f32',c.get('dev_acc'))
+        total=sum(v['M2'].get('call_count',0) for v in m)
+        values += [mean(v['M2'].get('task_accuracy') for v in m),
+                   '—' if constant is None else f'{constant/100:.4f}']
+        values += ['—' if not total else f"{sum(v['M2'].get(k+'_calls',0) for v in m)/total:.4f}" for k in ('unserved','error')]
         lines.append('| '+' | '.join([*key,str(len(rs)),*values])+' |')
     return '\n'.join(lines)+'\n'
 

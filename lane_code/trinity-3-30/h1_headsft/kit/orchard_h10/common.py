@@ -11,7 +11,7 @@ ORDER = ('camera_displacement', 'camera_rotation', 'camera_movement_direction',
 FORBIDDEN = ('split', 'revsi', 'vsibench', 'scannet', 'arkit', 'distill', 'qgen',
              'sam', 'qwen', 'h1', 'h10', 'head', 'routing', 'faithful', 'devs1',
              'g3t', 'camera', 'displacement', 'rotation', 'movement', 'distance',
-             'room', 'selector', 'parity', 'benchmark', 'dataset', 'model')
+             'r0', 'scannetpp', 'direction', 'own', 'room', 'selector', 'parity', 'benchmark', 'dataset', 'model')
 POOL = '/project/community/jjyeung/okh7/ae71c903'
 
 
@@ -71,3 +71,43 @@ def submit_argv(token, gpus, walltime):
             '--job-name=a15_cot_ap'+token]
     opaque(values)
     return values
+
+
+def read_config(package):
+    """Public descriptor authenticates the tar; descriptive pins live only inside it."""
+    import tarfile
+    package=Path(package)
+    public=json.loads((package/'0.json').read_text())
+    if sha(package/'0.tgz')!=public['payload_sha256']:raise ValueError('Code archive differs')
+    with tarfile.open(package/'0.tgz') as archive:
+        cfg=json.load(archive.extractfile('9.json'))
+    if canonical(cfg)!=public['plan_sha256']:raise ValueError('Plan digest differs')
+    return {**cfg,**public}
+
+
+def checked_run(argv, **kwargs):
+    import subprocess
+    opaque(argv)
+    return subprocess.run(argv,**kwargs)
+
+
+def install_process_guard(root):
+    """Scan every descendant launched by Python, including template helpers."""
+    import subprocess
+    root=Path(root)
+    original=subprocess.Popen
+    def spawn(argv,*args,**kwargs):
+        argv=list(argv)
+        for i,arg in enumerate(argv):
+            if str(arg).endswith('/orchard_h10/vendor/return_io.py'):
+                dest=root/'6.py'
+                dest.write_bytes(Path(arg).read_bytes());argv[i]=str(dest)
+        opaque(argv)
+        env=kwargs.get('env')
+        if env is None:
+            env={k:v for k,v in os.environ.items() if k in ('PATH','HOME','USER','CUDA_VISIBLE_DEVICES','TMPDIR') or k.startswith('SLURM_')}
+            kwargs['env']=env
+        opaque([f'{k}={v}' for k,v in env.items()])
+        if kwargs.get('cwd') is not None:opaque([kwargs['cwd']])
+        return original(argv,*args,**kwargs)
+    subprocess.Popen=spawn

@@ -5,3 +5,4 @@ All paths under /scratch/jjyeung/orch_n30/h1_headsft on trinity-3-30. Re-creatab
 - work/verify2/ : my rerun copy of build 2 (~0.2 GB).
 - trinity-3-30 /dev/shm/jjyeung/h1tmp/ : session-2 temporaries (packet staging, test basetemps, probes; ~30 MB RAM).
 - trinity-3-30 kit/tmp/b5/ and kit/tmp/b6/ : test basetemps of builds 5-6.
+- /dev/shm/jjyeung/h1tmp/kit8 (121 MB RAM copy for the b8 suite rerun), /dev/shm/jjyeung/h1tmp/b8t, suite8.* (session 3)

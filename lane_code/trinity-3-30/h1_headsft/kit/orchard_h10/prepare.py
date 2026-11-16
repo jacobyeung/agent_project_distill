@@ -40,6 +40,17 @@ def run(config, inputs):
         config=str(META/PREP/'config.json'),frames_root=inputs['frames_root'],
         selector_head=str(path('selector_config').parent),sam3=sam,
         env_roots=inputs.get('env_roots',[]),arm='own_depth')
+    if inputs.get('optional'):
+        from h1eval.items import load_manifest
+        from h1eval.h10.reserve_frames import captures
+        spec=inputs['optional'];items=load_manifest(p/'items/r0dev.json')['items']
+        bound=captures(items,spec['root'])
+        # Verify every selected RGB once before publishing the admission receipt.
+        for c in bound.values():
+            for frame in c['frames']:
+                if sha(Path(spec['root'])/frame['path'])!=frame['sha256']:raise ValueError('Optional RGB differs')
+        settings['item_sets']={'r0dev_f32':dict(frames_root=spec['root'])}
+        write(d/'8.json',dict(verified=True,archive_sha256=spec['sha256'],frames_manifest_sha256=load_manifest(p/'items/r0dev.json')['frames_manifest_sha256']))
     write(d/'settings.json',settings)
     write(d/'READY.json',dict(settings=sha(d/'settings.json'),binding=sha(binding),restore=sha(export/'RESTORE.json')))
 

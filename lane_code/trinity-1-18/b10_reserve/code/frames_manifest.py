@@ -15,6 +15,10 @@ for s in scenes:
     n_png = len(os.listdir(os.path.join(L, 'frames', 'scannetpp', s)))
     if n_png != len(m['frames']):
         problems.append((s, 'png %d != manifest %d' % (n_png, len(m['frames']))))
+    bad = [k for k, v in m['frames'].items()
+           if hashlib.sha256(open(os.path.join(L, 'frames', 'scannetpp', s, '%06d.png' % int(k)), 'rb').read()).hexdigest() != v]
+    if bad:
+        problems.append((s, 'on-disk sha differs for %d frames' % len(bad)))
     out['scannetpp/' + s] = dict(r0_split=R['scannetpp/' + s]['r0_split'], manifest_sha256=hashlib.sha256(b).hexdigest(),
                                  frames=len(m['frames']), total_frames=m.get('total_pose'), deferred='scannetpp/' + s in DEF)
 rec = dict(rule='32- and 64-frame layouts floor(linspace(0, total-1, n)), union decoded from iphone/rgb.mkv with PyAV 15.1.0, '

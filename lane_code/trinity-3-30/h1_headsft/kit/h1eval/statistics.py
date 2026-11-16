@@ -44,7 +44,7 @@ def scalar_metrics(row):
     for key in ('absolute_error_m','relative_error','error_deg','correct'):
         v = [c[key] for c in values.get('calls',[]) if c.get(key) is not None]
         if v: out['M2.'+key] = sum(v)/len(v)
-    for key in ('gravity_angle_deg','depth_absrel'):
+    for key in ('gravity_angle_deg','depth_absrel','task_accuracy'):
         if values.get(key) is not None: out['M2.'+key] = values[key]
     for key in ('rotation_error_deg','translation_direction_error_deg','translation_ratio'):
         v = [c[key] for c in values.get('frames',[]) if c.get(key) is not None]
@@ -65,6 +65,10 @@ def aggregate(rows):
         record = dict(n=len(group), M1={}, M2={}, M3={}, M4={})
         for name, values in sorted(metrics.items()):
             m,k = name.split('.',1); record[m][k] = bootstrap(values)
+        for label in ('unserved','error'):
+            total=sum(r['measurements']['M2'].get('call_count',0) for r in group)
+            count=sum(r['measurements']['M2'].get(label+'_calls',0) for r in group)
+            record['M2'][label+'_rate']=dict(value=count/total if total else None,n=total,count=count)
         m3 = record['M3']
         m3['eligible'] = sum(r['measurements'].get('M3',{}).get('eligible',False) for r in group)
         m3['bars'] = dict(follow_min=.80,stick_max=.10)

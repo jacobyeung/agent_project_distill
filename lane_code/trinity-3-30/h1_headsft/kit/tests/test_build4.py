@@ -226,13 +226,13 @@ def test_first_ten_projection_and_resume(setup,tmp_path):
     assert json.loads((Path(args.out)/'projection.json').read_text())==report
 
 
-def test_unserved_call_stays_zero_in_task_accuracy():
+def test_unserved_call_preserves_answer_accuracy():
     from h1eval.scorers import accuracy
     item=dict(question_type='camera_displacement',question='How far in meters from frame 1 to frame 9?',ground_truth='1')
     output=dict(text='</think><answer>1</answer>',finish='eos',calls=[])
-    assert accuracy(output,item)['task_accuracy']==0.
+    assert accuracy(output,item)['task_accuracy']==1.
     output['calls']=[dict(call='<move from=1 to=9>',response='distance unavailable',served=False)]
-    assert accuracy(output,item)['task_accuracy']==0.
+    assert accuracy(output,item)['task_accuracy']==1.
 
 
 def test_remote_refusal_flag_keeps_local_collective_path():

@@ -141,3 +141,25 @@ LANE_TEST_OUTPUT="$K/tmp/b7" bash cpu.sh -m h1eval.h10.merge \
 own decodes, before loading. b04's status also records call-heavy items taking
 up to 430 seconds. Use the measured projection rather than treating this range
 as a deadline guarantee. No real-weight timing was measured by this build.
+
+
+## H1-1 mid-leg development reads
+
+At both m100 and m200, read dev-S1 under its registered plan and read the pinned
+`items/r0dev.json` (`r0dev_f32`) as a separate own-arm baseline. Use all nine R0
+types and `--modes none`; do not supply `--types`. Keep separate journals and
+curves. R0-dev is development only and remains excluded from every training
+stream; never append it to ReVSI or another official set.
+
+The CLI accepts `h1eval.cli items build --sets r0dev` (or `r0dev_f32`) and
+`h1eval.cli run --items items/r0dev.json --arms own --modes none` with the usual
+export/output arguments. The reviewed H1-0 launcher accepts the same item file,
+`--arms own --modes none`, and its usual export, artifact, reader and settings
+arguments. Its settings must provide `item_sets.r0dev_f32.frames_root` with the
+verified f32 frames. The Orchard package dispatches it through an opaque entry;
+do not expose these descriptive CLI arguments on Orchard.
+
+Every R0 report prints per-type accuracy/MRA beside the pinned b10 f32
+no-information value and separate unserved/error call rates. The package's
+optional last phase requires the missing frames archive and the time guard;
+see `orchard_h10/OPERATIONS.md`. This build executes no milestone read.

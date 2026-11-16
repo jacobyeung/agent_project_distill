@@ -7,6 +7,7 @@ for p in [kh/'b',kh/'k',kh/'o',run,slots,base/'tmp']:p.mkdir(parents=True,exist_
 for n in ['r.sh','h.py','v.py','q0.py','sg.py']:(kh/'b'/n).write_bytes((H/'build/fx/b'/n).read_bytes())
 for n in ['a.py','g.py']:(kh/'b'/n).write_text('pass\n')
 (kh/'b/p0.sh').write_text('exit 0\n');(kh/'b/r8.py').write_text('print("t")\n')
+(kh/'b/r.sh').write_text((kh/'b/r.sh').read_text().replace('export TK_JOBDIR=/tmp/jjyeung/okit_$K/jobs/${SLURM_JOB_ID:?}.${1:-x}', 'export TK_JOBDIR="$H1_PACKET/evidence/cpu/signal/tmp/job"'))
 (kh/'job.sh').write_bytes((H/'build/fx/job.sh').read_bytes())
 (kh/'b/i.py').write_bytes((H/'tests/cpu_supervisor.py').read_bytes());(kh/'b/w.py').write_bytes((H/'tests/cpu_rank.py').read_bytes())
 (kh/'k/launch.json').write_text(json.dumps(dict(run_directory=str(run))))

@@ -3,13 +3,13 @@
 No remote presence was checked. “Yes” below means the template registry recorded the exact asset on 2026-11-13; the job reauthenticates its bytes.
 The registry does not prove that job 170056’s frames, G3T, SAM 3, selector, or the step-544 export remain staged.
 
-Package: `orchard_h10/package`. Plan SHA256: `dfcfffe43e5783e6fe55df76e2b4f7034fa631eac9844c3bc28a8b8780ed3e61`.
+Package: `orchard_h10/package`. Plan SHA256: `3e6a162ab7d31f3e451701f51d20bd9c789e80ef164dab35b719fb6289c419dc`.
 The code archive contains tree/, h1eval/, auth/, rows/, the dev-S1 item file, reviewed b04 code, parity_kit dependencies and pinned native metadata. It contains no weights or RGB.
-CONFIG.json lists every member with size and SHA256; template_pins records the unmodified transport source. TOKENS.json stays on Trinity.
+In-tar 9.json lists every member with size and SHA256; template_pins records the unmodified transport source. TOKENS.json stays on Trinity.
 
 | Input | Expected SHA256 | Bytes | Template registry |
 |---|---|---:|---|
-| code archive | `50c2843af7e47080cb6c317dac1f16ac136431760717cdc8242e760e01702ebe` | 4647986 | new local package |
+| code archive | `6b546beff88172ce646bf76d593969f890d61385c95827944d22b35369f7dae8` | 5291535 | new local package |
 | step-544 archive | `3ed73aead82cb0bb6468321256ea25e8fdaa5a2963da31062fdf8874bda2d4c7` | 21583032320 | not listed |
 | artifact | `1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef` | 11474 | not listed |
 | heads | `8bb5e1510ee3a5a3959e82f2149c69903e98f46880b8a038bf4b951b8c21de91` | 2763214343 | not listed |
@@ -53,6 +53,7 @@ CONFIG.json lists every member with size and SHA256; template_pins records the u
 | template base archive | `OPEN` | 19329320960 | yes |
 | vnice | `3ab2b542726f32dbecdbe30104f903aa2bef3526a9257013fd5f8bcc99461c6b` | OPEN | hash only; path not recorded |
 | terminator | `cbb91ba7455d15007bd3affeb358dc5693f3845949ee0abacf892a4402748b94` | OPEN | hash only; path not recorded |
+| R0-dev f32 RGB (optional) | `OPEN` | OPEN | not listed |
 
 INPUT_CATALOG.json records the source and transfer requirement for every row. OPEN_INPUTS.md lists all inputs without proof of Orchard residency.
 Unknown sizes and hashes are explicitly OPEN. Estimates are not authenticated sizes. Production admission requires full hashes and exact byte counts in 1.json.

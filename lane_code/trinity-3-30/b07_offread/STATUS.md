@@ -1,4 +1,4 @@
-# b07_offread STATUS (Devin lane on trinity-3-30; updated 2026-11-16 19:38Z)
+# b07_offread STATUS (Devin lane on trinity-3-30; updated 2026-11-16 20:31Z)
 Goal: official read kit (briefs/qs/07_official_native_kit.md): benchmark {revsi999t32 (first), vsibench5130} x export {step544, done:<init-rule D0>} x reader {direct, harness:<P8 freeze sha>, e2e:<b04 manifest sha>}. Summary for readers: L/out/OFFICIAL_KIT_READY.md; record distill_design/OFFICIAL_READ_KIT_B07_20261116.md (INDEX line added). L=/scratch/jjyeung/orch_n30/b07_offread, B=/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30, PY=/scratch/jjyeung/envs/p1cpu/bin/python.
 
 ## Current pieces (all tests rerun by me)
@@ -16,8 +16,9 @@ Goal: official read kit (briefs/qs/07_official_native_kit.md): benchmark {revsi9
 - Mirror (latest): trinity-1-18:/scratch/jjyeung/n30_mirror/b07_offread/b07_mirror_N7_1852Z.tar sha256 d874052e77119df4a489b506b7e711ca053d129687dce5e0477453216da9afc6 (both ends). Local copy /dev/shm/b07_n7/.
 - RESULTs 1855Z: events/b07_offread/20261116T1855Z_RESULT_n7_salt_f1f2_settled.md; events/cont_ops/20261116T1855Z_RESULT_b07_build_R_blocker_lifted.md (BLOCKER lifted). out/OFFICIAL_KIT_READY.md hashes updated.
 - Re-review review_offnative3 GO (19:32Z; B/events/review_offnative3/REVIEW_VERDICT_OFFNATIVE3.md). Build R READY for direct reads (D0 still needs the init-selection JSON). RESULT 1937Z in events/b07_offread and events/cont_ops. Record updated. Open QUESTION in that RESULT (default: leave unfixed): roots that trip scan (~1 in 200,000 job ids) get a /proc-fd bind source that real bwrap refuses; job fails closed; fix = scan-clean root name + real-bwrap test_prodroot (one Codex pass).
+- rvB done 20:27Z ("done B 0 0 0"): Orchard tar sha256 0d80ed09986fd0cf7c7507d39be572fa773c940b86da9c872fa3e7fa7cadd8f4, 583198720 bytes; record renamed b07_offread_rvB.json.done.1794860910. Member hashes via one ossh call: /dev/shm/b07_n7/B.members.json (343 members: 41 a/, 302 b/, 582,939,769 data bytes). Pending: compare against A2_RESULT.json when rvA2 lands, then ledger receipt.
 ## In flight
-- Governor streams (tier 3, priority 100; launcher L/work/stage_rv/launch.py; STATE.md /data3/jjyeung/orch_n13_20261026/io_governor/STATE.md), both waiting (positions 5-6 at 16:43Z):
+- Governor stream (tier 3, priority 100; launcher L/work/stage_rv/launch.py; STATE.md /data3/jjyeung/orch_n13_20261026/io_governor/STATE.md), rvA2 waiting (position 7 at 20:28Z):
   rvA2 (scan; no media to disk): /data2/.../external_benchmarks/revsi/{32_frame,64_frame}, 302 interleaved pairs (LIST_A2.json) -> scan_check.py -> L/work/stage_rv/A2_RESULT.json (sha256+bytes of 604 clips, per-video pixel check; all_separated must be true). Log A2.log.
   rvB (push): 41 missing 32-frame clips (a/) + 302 64-frame clips (b/) -> Orchard /project/community/jjyeung/okh7/d46dd56e669a050f/7b5d2192.tar; remote sha/size in L/work/stage_rv/B.remote.out; ledger L/work/ORCHARD_LEDGER.jsonl.
 

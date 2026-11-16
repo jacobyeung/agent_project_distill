@@ -39,6 +39,9 @@ def artifact_spec(path):
 
 
 def map_items(items, settings, *, name='devs1_routed'):
+    if name=='r0dev_f32':
+        from .reserve_frames import bind
+        return bind(items,settings)
     from e2e_reader import parity
     from student_pilot.h1_r0 import room_key
     from parity_kit.common import TASKS, FRAMES, DENSE, rows

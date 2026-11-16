@@ -53,6 +53,7 @@ SHAPE_CALLS = {'reshape', 'view', 'permute', 'transpose', 'unsqueeze', 'squeeze'
                'new_ones', 'new_empty', 'arange', 'eye', 'size', 'repeat', 'tile'}
 ROUND_CALLS = {'round', 'around', 'round_'}
 # value-dependent selection; judged only on lines executed inside a registered call handler's forward
+HEADISH = re.compile(r'(?i)(head|tower)')
 SELECT_CALLS = {'max', 'min', 'sorted', 'argmax', 'argmin', 'topk', 'sort', 'argsort', 'amax', 'amin', 'maximum',
                 'minimum', 'fmax', 'fmin', 'median', 'nanmax', 'nanmin', 'kthvalue', 'mode', 'nanargmax', 'nanargmin'}
 LOG_CALLS = {'debug', 'info', 'warning', 'warn', 'error', 'exception', 'print', 'log', 'critical'}
@@ -136,7 +137,7 @@ class _Visitor(ast.NodeVisitor):
         self.lines = source.splitlines()
         self.findings = []
         self.parents = []
-        self.func_stack, self.class_stack, self.const_stack = [], [], []
+        self.func_stack, self.class_stack, self.const_stack, self.valued_stack = [], [], [], []
         self.loader_ok = [e.split('::') for e in allow.get('loader_functions', [])]
         self.status_ok = [e.split('::') for e in allow.get('head_status_formatters', [])]
 
@@ -267,10 +268,32 @@ class _Visitor(ast.NodeVisitor):
             self.add('A3', 'A3.unit_conversion', node, f'def {node.name}')
         self.func_stack.append(node.name)
         self.const_stack.append(self._constants(node))
+        self.valued_stack.append(self._head_valued(node))
         self._entry_after_decode(node)
         self.generic_visit(node)
+        self.valued_stack.pop()
         self.const_stack.pop()
         self.func_stack.pop()
+
+    def _head_valued(self, fn):
+        """Local names that hold a head's output: assigned from float()/.item()/.tolist() or from a call on an
+        attribute naming a head, tower or model, or from an expression over such names."""
+        names = set()
+        for st in ast.walk(fn):
+            if isinstance(st, ast.Assign) and self._valued(st.value, names):
+                names |= {t.id for t in st.targets if isinstance(t, ast.Name)}
+        return names
+
+    @staticmethod
+    def _valued(expr, names):
+        for c in ast.walk(expr):
+            if isinstance(c, ast.Name) and c.id in names:
+                return True
+            if isinstance(c, ast.Call):
+                f = ast.unparse(c.func)
+                if _name(c.func) in ('float', 'item', 'tolist') or HEADISH.search(f):
+                    return True
+        return False
 
     def _constants(self, fn):
         counts, values = Counter(), {}
@@ -354,7 +377,11 @@ class _Visitor(ast.NodeVisitor):
             relu_like = n in ('clamp', 'clamp_', 'clamp_min', 'clip', 'clip_') and bounds and all(
                 self.fold(b) is not None and (self.fold(b) in self.allow['_threshold_values'] or self.declared(self.fold(b)))
                 for b in bounds)
-            if n in SELECT_CALLS and self.allow.get('_selection'):
+            parent = self.parents[-1] if self.parents else None
+            # sorted() without a key, consumed whole as the iterable of a loop, only reorders (serialization)
+            in_order = (n == 'sorted' and not node.keywords and isinstance(parent, (ast.comprehension, ast.For))
+                        and parent.iter is node)
+            if n in SELECT_CALLS and self.allow.get('_selection') and not in_order:
                 self.add('A3', 'A3.selection', node, f'{ast.unparse(node.func)[:40]}() selects among values')
             if n in COMPARE_CALLS and not relu_like:
                 self.add('A3', 'A3.threshold', node, f'comparison or clamp API {ast.unparse(node.func)[:40]}()')
@@ -448,9 +475,14 @@ class _Visitor(ast.NodeVisitor):
     def visit_Compare(self, node):
         ordering = any(isinstance(o, (ast.Lt, ast.LtE, ast.Gt, ast.GtE)) for o in node.ops)
         operands = [node.left]+list(node.comparators)
-        if ordering and self.allow.get('_selection') and not self.in_context(ast.Raise) and all(
-                self.fold(o) is None and not (isinstance(o, ast.Call) and _name(o.func) == 'len') for o in operands):
-            self.add('A3', 'A3.selection', node, 'compares two computed values (value-dependent selection)')
+        # in a handler, ordering two computed values, or a head's output against a constant (a sign test), picks
+        # among outputs; comparisons that involve len() are bookkeeping
+        computed = [o for o in operands if self.fold(o) is None]
+        valued = self.valued_stack[-1] if self.valued_stack else set()
+        if ordering and self.allow.get('_selection') and not self.in_context(ast.Raise) and computed and not any(
+                isinstance(o, ast.Call) and _name(o.func) == 'len' for o in operands) and (
+                len(computed) == len(operands) or any(self._valued(o, valued) for o in computed)):
+            self.add('A3', 'A3.selection', node, 'orders a computed value (value-dependent selection)')
         if not self.in_context(ast.Raise) and ordering:
             for operand in [node.left]+list(node.comparators):
                 why = self._threshold_operand(operand)
@@ -485,8 +517,9 @@ class _Visitor(ast.NodeVisitor):
         def bookkeeping(st):
             if isinstance(st, (ast.Assign, ast.AugAssign)):
                 targets = st.targets if isinstance(st, ast.Assign) else [st.target]
-                return all(isinstance(t, (ast.Subscript, ast.Attribute)) for t in targets) and isinstance(
-                    st.value, ast.Constant) and type(st.value.value) is int
+                count = (isinstance(st.value, ast.Constant) and type(st.value.value) is int) or (
+                    isinstance(st, ast.AugAssign) and isinstance(st.value, ast.Call) and _name(st.value.func) == 'len')
+                return all(isinstance(t, (ast.Subscript, ast.Attribute)) for t in targets) and count
             return isinstance(st, ast.Expr) and isinstance(st.value, ast.Call) and _name(st.value.func) in LOG_CALLS
         # a try whose body only does bookkeeping has no value to substitute: its handler may also pass
         parent = self.parents[-1] if self.parents else None

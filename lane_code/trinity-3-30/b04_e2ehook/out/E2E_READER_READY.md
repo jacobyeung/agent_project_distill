@@ -38,6 +38,8 @@ Kit: `parity_kit/gpu_113.sh CARD ARM NAME [KEYS]` runs inside a bwrap view that 
 
 Interim (stopped 18:29Z, 51/636 keys of own_depth p0; host withdrawn): distance 30.6 old vs 21.4 new, -9.2 [-19.1, +0.6], 28 rooms; 14/98 grounds lost (`not seen`), boxes 2.2x old volume (median), 16/49 gaps unanswered vs 3. Files: out/proofs/PARITY_own_depth_p0_51rows.jsonl, out/proofs/PARITY_P0_51_DIAG.txt.
 
+K1 lifting price (CPU, E3 harness copy with GT masks, 1-18 /scratch/jjyeung/orch_n30/b04host3/lift_price/harness): held-out S4+G1 deployed 66.3; shipped every-pixel lifting 25.4 (-40.9 [-46.5,-35.2]); bestspread (best frame, stencil spread <= median) 65.7 (-0.6 [-3.1,+1.5]; registered bar CI low >= -3.0 missed by 0.1). The shipped reader is unchanged pending ORCH.
+
 ## Known defects
 - Portrait frames: routed_features.resize stretches every mask to the 480x640 canvas, in the selector's K1 tables and in the call alike; dev-S1 has 12 of 84 portrait captures (14 of 636 items).
 - 64-frame reads need tree build 7 (the sealed GeometryContract and ProfileGeometry.has are 32-only).

@@ -7,3 +7,4 @@
 - 2026-11-16 cont_ops4: work/d0/a2/{dry_v4,dry_v4_0,dry_v4_1,dryb_v4,dry_v5,dry_v5_0,t_s2,t_fam,t_gslot,v5b/r10_superseded,v5a3/r11_superseded,.tb.*} (test and superseded builds); work/mirror_d0_v5.tar after the mirror is no longer needed; Orchard okh7/i_bb09a77d/a2/{ja2.sh,fam.py,s2.py,s2.sh,s2sum.py} (superseded job files, unused).
 - work/d0/jobB/wtest/, work/d0/jobB/wtest2/, work/d0/jobB/watch_b_170050.log, work/d0/jobB/check/{metrics,attempt}_{7,8,9}.* (cont_ops5 test files)
 - work/d0/gf/t.src, t.out (gpull dry test files)
+- work/h1_rr (rerun copy, 1 GB), work/h1_rr_pt, work/h1/work_rerun

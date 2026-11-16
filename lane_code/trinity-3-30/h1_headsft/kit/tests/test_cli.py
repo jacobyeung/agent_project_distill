@@ -26,8 +26,8 @@ def test_reserve_refusal_and_stub(tmp_path):
     source=tmp_path/'source.json';source.write_text(json.dumps([row]))
     with pytest.raises(ValueError,match='overlap R0'):items.manifest('test',[row],source)
     items.build(tmp_path,sets=['r0dev'])
-    with pytest.raises(ValueError,match='Supply'):items.load_manifest(tmp_path/'r0dev.json')
-    assert main(['items','build','--sets','r0dev','--out',str(tmp_path)])==1
+    assert items.load_manifest(tmp_path/'r0dev.json')['count']==2169
+    assert main(['items','build','--sets','r0dev','--out',str(tmp_path)])==0
 
 
 def test_routed_count_contract_and_missing_direct(tmp_path):

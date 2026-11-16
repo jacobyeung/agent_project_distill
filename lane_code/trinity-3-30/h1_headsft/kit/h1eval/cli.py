@@ -19,7 +19,7 @@ def code_hash(root=None):
                    if p.is_file() and '__pycache__' not in p.parts and p.suffix != '.pyc'])
 
 
-def export_hash(root):
+def export_hash(root, cache=None, allocation=None):
     root = Path(root).resolve()
     if root.parts[1:2] in [('home',),('data',),('data2',),('data3',)]:
         raise ValueError('Stage the export on /scratch')
@@ -27,7 +27,25 @@ def export_hash(root):
     if not files:raise ValueError('Export directory is empty')
     if any(not (p.resolve().is_relative_to('/scratch') or p.resolve().is_relative_to('/dev/shm')) for p in files):
         raise ValueError('Export files must resolve to /scratch or /dev/shm')
-    return digest([(str(p.relative_to(root)),sha(p)) for p in files])
+    def compute():return digest([(str(p.relative_to(root)),sha(p)) for p in files])
+    if cache is None:return compute()
+    if not allocation:raise ValueError('Export cache requires allocation identity')
+    import fcntl
+    cache=Path(cache);cache.parent.mkdir(parents=True,exist_ok=True,mode=0o700)
+    def identity():
+        return dict(root=str(root),allocation=allocation,files=[
+            [str(p.relative_to(root)),str(p.resolve()),p.stat().st_dev,p.stat().st_ino,
+             p.stat().st_size,p.stat().st_mtime_ns,p.stat().st_ctime_ns] for p in files])
+    with cache.with_suffix('.lock').open('a') as lock:
+        fcntl.flock(lock,fcntl.LOCK_EX)
+        before=identity()
+        if cache.exists():
+            value=json.loads(cache.read_text())
+            if value['identity']==before:return value['full_sha256']
+        result=compute()
+        if identity()!=before:raise ValueError('Export changed while hashing')
+        cache.write_text(json.dumps(dict(identity=before,full_sha256=result)))
+        return result
 
 
 def modes(text):
@@ -62,6 +80,10 @@ def write_curve(out,rows,manifest,export,settings,frames,arms,interventions,gt_f
                                  room_exclusions=pin(K/'tree/student_pilot/h1_r0.py'),
                                  loader_sha256=settings.get('loader_sha256')),
                fixture=bool(settings.get('fixture',False)))
+    if manifest.get('constants'):
+        curve['no_information_f32']=manifest['constants']
+        from .runner import table
+        Path(out,'report.md').write_text(table(rows,manifest['constants']))
     Path(out,'curve.json').write_text(json.dumps(curve,indent=2,sort_keys=True,allow_nan=False)+'\n')
     return curve
 
@@ -73,6 +95,8 @@ def run(args):
     arms=args.arms.split(',')
     if not arms or len(set(arms))!=len(arms) or any(a not in ('own','tower') for a in arms):raise ValueError('Invalid arms')
     interventions=modes(args.modes)
+    from .items import read_contract
+    read_contract(manifest,arms,interventions)
     root=Path(args.export).resolve();settings=json.loads((root/'h1eval.json').read_text())
     if settings.get('lineage') not in ('SFT','RL') or type(settings.get('step')) is not int or settings['step']<0:
         raise ValueError('Export binding requires lineage SFT/RL and nonnegative integer step')
@@ -119,8 +143,8 @@ def pair(a,b):
 def curve(paths):
     records=[(p,json.loads((Path(p)/'curve.json').read_text())) for p in paths]
     records.sort(key=lambda x:({'SFT':0,'RL':1}.get(x[1]['lineage'],2),x[1]['step'],str(x[0])))
-    lines=['| Lineage | Step | Type / arm / mode | M1 calls | M2 | M3 follow / stick | M4 | Export SHA256 | Item-set SHA256 | Evaluator SHA256 | Run |',
-           '|---|---:|---|---:|---|---|---:|---|---|---|---|']
+    lines=['| Lineage | Step | Type / arm / mode | M1 calls | M2 | M3 follow / stick | M4 | No-information f32 | Export SHA256 | Item-set SHA256 | Evaluator SHA256 | Run |',
+           '|---|---:|---|---:|---|---|---:|---:|---|---|---|---|']
     for p,r in records:
         groups=[(kind,arm,mode,values) for kind,arms in sorted(r.get('per_type',{}).items())
                 for arm,modes in sorted(arms.items()) for mode,values in sorted(modes.items())]
@@ -129,8 +153,11 @@ def curve(paths):
                 v=values.get(m,{}).get(k,{}).get('value')
                 return '—' if v is None else f'{v:.4f}'
             m2=', '.join(k+'='+metric('M2',k) for k,v in sorted(values.get('M2',{}).items()) if isinstance(v,dict) and 'value' in v) or '—'
+            constant=r.get('no_information_f32',{}).get(kind,{})
+            constant=constant.get('dev_mra_f32',constant.get('dev_acc'))
             row=(r['lineage'],r['step'],' / '.join((kind,arm,mode)),metric('M1','call_rate'),m2,
                  metric('M3','follow')+' / '+metric('M3','stick'),metric('M4','score'),
+                 '—' if constant is None else f'{constant/100:.4f}',
                  r['export_sha256'],r['item_set_sha256'],r['evaluator_code_sha256'],p)
             lines.append('| '+' | '.join(str(v) for v in row)+' |')
     return '\n'.join(lines)

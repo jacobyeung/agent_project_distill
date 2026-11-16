@@ -1,5 +1,5 @@
 # b06_a2dense STATUS (a successor resumes from this file alone)
-Updated: 2026-11-16T19:36Z. Lane: Devin successor #2 on trinity-1-3 (started 17:47Z; rotate by 23:40Z or 22:30Z brief limit, whichever first). Brief: orch_n30/briefs/b06_a2dense.md -> queue brief orch_n30/briefs/qs/06_a2_dense_frames_tower_cache.md. Lane folder L=/scratch/jjyeung/orch_n30/b06_a2dense. Events: orch_n30/events/b06_a2dense/. Finish or rotate by 22:30Z.
+Updated: 2026-11-16T19:47Z. Lane: Devin successor #2 on trinity-1-3 (started 17:47Z; rotate by 23:40Z or 22:30Z brief limit, whichever first). Brief: orch_n30/briefs/b06_a2dense.md -> queue brief orch_n30/briefs/qs/06_a2_dense_frames_tower_cache.md. Lane folder L=/scratch/jjyeung/orch_n30/b06_a2dense. Events: orch_n30/events/b06_a2dense/. Finish or rotate by 22:30Z.
 
 ## Facts established (with evidence)
 - Inputs pulled (single small files): L/work/inputs/frame_map.jsonl.gz sha 17aa3e9e (= k6 MAP, 290,880 lines), frame_plan.json.gz 7cc01f36 (keys a: 3,451 ARKit captures, v: 1,246 mp4 scenes, total: 4,697).
@@ -77,7 +77,7 @@ Updated: 2026-11-16T19:36Z. Lane: Devin successor #2 on trinity-1-3 (started 17:
 - Orchard parts (16 GB, okh7/db3954b2/parts; sha256 in L/work/parts_sha_1930Z.txt): a0n3_000.tar 71e920bc, a1n3_000.tar aff4914f, a2n3_000.tar 01654203, v0n3_000.tar 628e058a. Orchard-resident: no mirror needed (path + sha recorded).
 
 ## Resume point for the next successor (exact)
-- Nothing of this lane is running (tmux b06_review1 finished; no Orchard job submitted). Polling helper: L/work/poll.sh (waits <=9.5 min for an ORCH file, an inbox file or a cont_ops m200/general event).
-- Gate for the frame jobs (ORCH 1300Z): D0's m200 stop-rule read is Orchard job 170320 (a15_cot_apa4cadd8934b, general, 1 H100, --time 01:45, submitted 17:40Z, cont_ops event 1740Z). When cont_ops reports it finished, or `TZ=UTC squeue -j 170320` via ossh.sh shows it gone, and no other job of ours is on general (`TZ=UTC squeue -u jjyeung -p general`), submit L/out/packets/frame_fetch/SUBMIT.md job 1 (egress), check logs/egress.<id>.json and logs/disk.<id>.txt, then job 2 (array 0-5%1), then job 3 (dparity) after six parts/*/DONE. All off general before ~01:40Z 11-17; cancel pending tasks at 00:40Z if job 2 is not done. One ossh call per action; squeue at most every 10 min.
-- After job 3: run L/work/after_fetch.sh (pull + seal); write counts into A2_DENSE_READY.md; mirror; one RESULT event.
-- Then: copy new parts tars to GCS (governed stream; ask ORCH which bucket) per the cache-location answer.
+- Nothing of this lane runs on Orchard (170379 cancelled 19:22:58Z; general empty of ours). Wait helper: L/work/wait_orch.sh (<=9.5 min, returns on a new ORCH file or inbox file).
+- Gate: ORCH must say GPUs/general are back (ORDER 1844Z, ANSWER 1913Z). Then, after checking `TZ=UTC squeue -u jjyeung -p general` is empty and the newest INBOX_TO_DISTILL_ORCH_* shows no main job pending on general: submit SUBMIT.md step 2 (one job, bin/dserial.sh; runs v1, v2 only, ~15 min each; --time may drop to 01:30:00), poll every 10 min (logs/dserial.<id>.log). Then parity: job 3 command from SUBMIT.md (or login node nice 19 if ORCH allows). Then `bash L/work/after_fetch.sh` (pull + seal), counts into A2_DENSE_READY.md, mirror small outputs (SEALED.json etc.) to trinity-1-18 n30_mirror/b06_a2dense, one RESULT event.
+- Then: GCS copy of parts tars (governed stream; ask ORCH which bucket) per the cache-location answer.
+- When tree build 7 carries the cache patch (events/tree_rebuild/STATUS.md): rerun tests.test_gf1_cache on the integrated tree; cost packet when ORCH hands an H100 node.

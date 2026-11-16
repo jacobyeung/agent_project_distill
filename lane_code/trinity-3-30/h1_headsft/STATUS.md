@@ -45,7 +45,19 @@ Brief: design + build H1 (head-routing SFT on GT head-calling traces). L=/scratc
 - 19:36Z: my suite rerun on a RAM copy /dev/shm/jjyeung/h1tmp/kit8 (no 3-30 /scratch writes), tmux h1_suite8 on 3-30, log /dev/shm/jjyeung/h1tmp/suite8.log, exit suite8.exit.
 - 19:37Z RESULT to cont_ops (events/cont_ops/20261116T1937Z_RESULT_h1_1_stop_fallback.md): H1-1's stop_after_step 200 exports m200 without USR1 (tests/test_stop.py, mocked export); offered a real tiny CPU proof (default: not run).
 
+- 19:39Z: my suite rerun on the RAM copy: 79 passed, 23 failed, 20 errors, all from the kit's guard manifest_must_be_on_scratch (/dev/shm copy); not a code failure. A real rerun needs ~12 MB under 3-30 K/tmp (ORCH's call, asked in the 1943Z RESULT). RAM copy /dev/shm/jjyeung/h1tmp/kit8 is a removal candidate.
+- 19:42Z mirror: trinity-1-18:/scratch/jjyeung/n30_mirror/h1_headsft/kit_b8.tar (39.3 MB, tmp excluded) sha 87f59248b4ba09bce77aafbe797eeb787a6639af11681562807770e93b791240 (equal to stream sha).
+- 19:43Z RESULT events/h1_headsft/20261116T1943Z_RESULT_h1_0_orchard_package_review_request.md (review request + OPEN inputs).
+- 19:54Z 1-13 batch 3/8: displacement base 2.90 (1,089 s), k=2 5.80 (1,155 s), movement_direction base A (1,431 s); all served own, eos, finite.
+- Next: poll 1-13 h1_h10cpu every ~10 min (script /dev/shm/jjyeung/h1tmp/ssh/s113g.sh; expected ~21:40Z); then RESULT (types served/unserved, answers, timings) + final RESULT 'H1-0 and H1-1 ready, waiting for GPUs' and exit (ORCH 1903Z).
+
+- 20:22Z review_h10 (Devin) verdict GO AFTER FIXES: /scratch/jjyeung/orch_n30/review_h10/REVIEW_VERDICT_H10.md (F1 type-aware merge, F2 M2 = b04 journaled score / no unserved=0 rule, F3 opaque argv + plaintext, F4 repin bestspread grounding after b04's re-review). ORCH ORDER 2023Z: fix F1-F4, reviewer tests = gate, no 2nd review unless scoring changes beyond F2; add R0-dev f32 (ORCH NOTE 2016Z); no submission.
+- 20:27Z QUESTION events/h1_headsft/20261116T2027Z_QUESTION_h10_fixes_scope_and_330_disk.md (defaults: fixes in place on 3-30 K <= 3 MB kept, tests in K/tmp/b9 deleted after; R0-dev = pinned r0dev_f32 set for H1-1 mid-leg reads + optional last phase in H1-0; F4 after b04 GO).
+- R0-dev inputs copied (1-18 b10_reserve/out -> K/inputs/r0dev/, 1.8 MB; shas b4e278f2 / 8444684f / 450e4125 checked).
+- 20:29Z Codex Astra h1_kit9 RUNNING: tmux h1_kit9 on 3-30, prompt /dev/shm/jjyeung/h1tmp/prompts/build9.md, log /dev/shm/jjyeung/h1tmp/dispatch_kit9.log, receipts agent/scratch/codex_runs/*_h1_kit9. When done: read Build 9, rerun reviewer tests + suite log check, list K/tmp/b9 in REMOVAL_CANDIDATES.md (ORCH 2028Z: agents never delete; defaults 2-3 accepted), mirror kit_b9 to 1-18, RESULT. F4 repin when b04's bestspread review is GO.
+- 20:40Z 1-13 batch 5/8: + movement_direction rotate 180 -> D (1,427 s), rotation base 45 (946 s).
+
 ## In flight
-- 3-30 tmux h1_suite8: my rerun of the full kit suite (RAM copy).
+- 3-30 tmux h1_kit9: Codex Build 9 (F1-F3 + R0-dev).
 - 1-13 tmux h1_h10cpu: H1-0 CPU first batch (restarted 18:48Z, CPU only).
 - 3-30 /scratch 148 GB free (ORCH 1903Z): write NOTHING there; temporaries in /dev/shm/jjyeung/h1tmp (RAM).

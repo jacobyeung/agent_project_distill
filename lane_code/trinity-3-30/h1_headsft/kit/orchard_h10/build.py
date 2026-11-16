@@ -35,6 +35,9 @@ def sources():
             if path.suffix in ('.pyc','.pt','.safetensors','.tar','.gz'):continue
             add(path,str(path.relative_to(K)))
     add(K/'items/devs1_routed.json','items/devs1_routed.json')
+    add(K/'items/r0dev.json','items/r0dev.json')
+    from h1eval.items import R0_PINS
+    for name in R0_PINS:add(K/'inputs/r0dev'/name,'inputs/r0dev/'+name)
     # The reviewed reader imports these modules and their native task bindings.
     for folder in ('e2e_reader','heads/selector','heads/scale','parity_kit'):
         for path in sorted((B/folder).glob('*.py')):add(path,'b/'+str(path.relative_to(B)))
@@ -53,39 +56,45 @@ def sources():
 
 
 def batch(bundle, token):
-    """Template bootstrap pattern with opaque names and an embedded pinned code tar."""
+    """The batch contains only an opaque descriptor and numeric bootstrap names."""
     import hashlib
-    encoded=base64.b64encode(bundle).decode()
-    if len(encoded)>3*1024**2:raise ValueError('Embedded batch exceeds the template 3 MiB limit')
-    # Contents are exempt; the executable shell and all submission surfaces are scanned.
     text="""#!/bin/bash
 set -euo pipefail
 exec /usr/bin/python3 -I -s -B - <<'A'
-import base64,hashlib,io,os,sys,tarfile
+import hashlib,io,json,os,sys,tarfile
 from pathlib import Path,PurePosixPath
 j=os.environ.get('SLURM_JOB_ID','')
 if not j.isdigit():raise ValueError('Allocation required')
-b=base64.b64decode(%r,validate=True)
-if hashlib.sha256(b).hexdigest()!=%r:raise ValueError('Digest differs')
+b=bytes.fromhex(%r)
 r=Path('/tmp')/('a'+j+%r)
 r.mkdir(mode=0o700)
 with tarfile.open(fileobj=io.BytesIO(b)) as a:
-    seen=set();total=0
     for e in a:
-        n=PurePosixPath(e.name);total+=e.size
-        if n.is_absolute() or '..' in n.parts or not e.isfile() or e.name in seen or total>33554432:raise ValueError('Unsafe input')
-        seen.add(e.name);p=r/e.name;p.parent.mkdir(parents=True,exist_ok=True)
+        n=PurePosixPath(e.name)
+        if n.is_absolute() or '..' in n.parts or not e.isfile():raise ValueError('Unsafe input')
+        p=r/e.name;p.parent.mkdir(parents=True,exist_ok=True)
         with a.extractfile(e) as i,p.open('xb') as o:o.write(i.read())
 os.chdir(r)
 os.execv(sys.executable,[sys.executable,'-I','-s','-B',str(r/'0.py'),str(r)])
 A
-""" % (encoded,hashlib.sha256(bundle).hexdigest(),token)
-    # Python source here is shipped in-job content. Only the shell command is exposed to Slurm.
-    opaque(text.split("<<'A'")[0].splitlines())
+""" % (bundle.hex(),token)
+    opaque([text])
+    if len(text)>3*1024**2:raise ValueError('Batch exceeds limit')
     return text
 
 
-def build(destination, token=None, refresh=False):
+def repin_reader(spec, old):
+    """An explicit complete inventory is required; no implicit reader refresh."""
+    source=Path(spec['source']).resolve();expected=spec['sha256']
+    paths={str(p.relative_to(source)):p for p in source.rglob('*') if p.is_file()}
+    if set(paths)!=set(expected) or any(p.is_symlink() for p in paths.values()):
+        raise ValueError('Reader inventory differs')
+    if any(sha(p)!=expected[n] for n,p in paths.items()):raise ValueError('Reader hash differs')
+    if set(expected)!=set(old):raise ValueError('Reader inventory must match the pinned package')
+    return {n:p.read_bytes() for n,p in paths.items()}
+
+
+def build(destination, token=None, refresh=False, reader_repin=None):
     from orchard_h10.common import template
     template(T)
     import orchard_launcher as L
@@ -100,45 +109,75 @@ def build(destination, token=None, refresh=False):
     token=valid_token(token or secrets.choice('abcdef')+secrets.token_hex(6))
     destination.mkdir(parents=True,exist_ok=True)
     paths=sources()
-    pins={n:dict(sha256=sha(p),bytes=p.stat().st_size) for n,p in paths.items()}
-    raw=L.tar_bytes({n:p.read_bytes() for n,p in paths.items()})
-    if len(raw)>8*1024**2:raise ValueError('Code archive exceeds local build allowance')
-    (destination/'0.tgz').write_bytes(raw)
+    import hashlib
+    payload={n:p.read_bytes() for n,p in paths.items()}
+    # A refresh keeps the reviewed reader frozen, even if its upstream changed.
+    if (destination/'0.tgz').exists():
+        with tarfile.open(destination/'0.tgz') as archive:
+            old={e.name[2:]:archive.extractfile(e).read() for e in archive
+                 if e.isfile() and e.name.startswith('b/e2e_reader/')}
+        for n,raw in old.items():payload['b/'+n]=raw
+    else:old={n[2:]:raw for n,raw in payload.items() if n.startswith('b/e2e_reader/')}
+    if reader_repin:
+        new=repin_reader(json.loads(Path(reader_repin).read_text()),old)
+        for n,raw in new.items():payload['b/'+n]=raw
+    payload['8.py']=(K/'orchard_h10/operator.py').read_bytes()
+    pins={n:dict(sha256=hashlib.sha256(raw).hexdigest(),bytes=len(raw)) for n,raw in payload.items()}
     cfg=dict(schema='h10-orchard-v1',token=token,logical='/scratch/jjyeung/'+token,
-             payload_sha256=sha(destination/'0.tgz'),payload_bytes=len(raw),payload_pins=pins,
+             payload_pins=pins,
              template_pins={n:sha(T/n) for n in CORE},
              order=list(__import__('orchard_h10.common',fromlist=['ORDER']).ORDER),
              inputs_name='1.json',cpu_check_name='2.json',pool='/project/community/jjyeung/okh7/ae71c903',
              stop_margin=1800,return_margin=1200,budget_gpu_seconds=18000)
-    cfg['plan_sha256']=canonical(cfg)
-    boot=("import sys\nfrom pathlib import Path\nr=Path(sys.argv[1]);sys.path.insert(0,str(r/'p'))\n"
-          "from orchard_h10.job import main\nmain(r)\n").encode()
-    files={'0.py':boot,'0.json':json.dumps(cfg,sort_keys=True).encode()}
-    # The template transport stages the larger code tar from an opaque shared path.
-    # Only bootstrap helpers belong in Slurm's size-limited batch body.
-    for name in ('__init__.py','common.py','job.py'):
-        files['p/orchard_h10/'+name]=(K/'orchard_h10'/name).read_bytes()
-    for name in CORE:files['p/orchard_h10/vendor/'+name]=(T/name).read_bytes()
-    bundle=L.tar_bytes(files)
+    plan=canonical(cfg)
+    payload['9.json']=json.dumps(cfg,sort_keys=True).encode()
+    raw=L.tar_bytes(payload)
+    if len(raw)>8*1024**2:raise ValueError('Code archive exceeds local allowance')
+    (destination/'0.tgz').write_bytes(raw)
+    public=dict(token=token,payload_sha256=sha(destination/'0.tgz'),payload_bytes=len(raw),plan_sha256=plan)
+    boot=("import sys,json,hashlib,tarfile\nfrom pathlib import Path\n"
+          "r=Path(sys.argv[1]);c=json.loads((r/'0.json').read_text())\n"
+          "a=Path('/project/community/jjyeung')/c['token']/'0.tgz'\n"
+          "assert hashlib.sha256(a.read_bytes()).hexdigest()==c['payload_sha256']\n"
+          "with tarfile.open(a) as t:\n"
+          " for e in t:\n"
+          "  if not e.name.startswith('orchard_h10/'):continue\n"
+          "  if not e.isfile() or '..' in Path(e.name).parts:raise ValueError('Unsafe input')\n"
+          "  p=r/'p'/e.name;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(t.extractfile(e).read())\n"
+          "sys.path.insert(0,str(r/'p'))\nfrom orchard_h10.job import main\nmain(r)\n").encode()
+    bundle=L.tar_bytes({'0.py':boot,'0.json':json.dumps(public).encode()})
     (destination/'BATCH.sh').write_text(batch(bundle,token))
-    write(destination/'CONFIG.json',cfg)
-    # Internal helper consumes local config; only its validated sbatch argv reaches Slurm.
+    write(destination/'CONFIG.json',public)
     (destination/'SUBMIT.cmd').write_text('#!/bin/bash\nset -euo pipefail\ncd "$(dirname "$0")"\n'
         'exec /usr/bin/python3 -I -s -B 3.py submit --gpus "${A_N:?Set 1 to 4}" --time "${A_T:?Set HH:MM:SS}" "$@"\n')
-    (destination/'3.py').write_text((K/'orchard_h10/operator.py').read_text())
+    helper="""import hashlib,json,tarfile
+from pathlib import Path
+p=Path(__file__).resolve().parent
+c=json.loads((p/'0.json').read_text())
+assert hashlib.sha256((p/'0.tgz').read_bytes()).hexdigest()==c['payload_sha256']
+with tarfile.open(p/'0.tgz') as t:
+    exec(compile(t.extractfile('8.py').read(),__file__,'exec'))
+"""
+    opaque([helper]);(destination/'3.py').write_text(helper)
     write(destination/'INPUTS.example.json',dict(schema=1,archives=[],files={},python=None,
         policy=dict(vnice=None,terminator=None),resume=None,
         note='Fill and pin on Orchard; do not submit this unresolved example.'))
-    (destination/'0.json').write_text(json.dumps(cfg,sort_keys=True)+'\n')
+    (destination/'0.json').write_text(json.dumps(public,sort_keys=True)+'\n')
     write(destination/'PACKAGE.json',dict(token=token,files={n:sha(destination/n) for n in
           ('0.tgz','BATCH.sh','CONFIG.json','3.py','0.json')}))
+    for path in destination.iterdir():
+        if path.is_file() and path.name!='0.tgz':opaque([path.name,path.read_text()])
+    if reader_repin:
+        with (K/'BUILD_REPORT.md').open('a') as report:
+            report.write('\nReader repin hashes (old → new):\n\n')
+            for n in sorted(old):report.write(f"- `{n}`: `{hashlib.sha256(old[n]).hexdigest()}` → `{pins['b/'+n]['sha256']}`.\n")
     mapping=K/'orchard_h10/TOKENS.json'
     old=json.loads(mapping.read_text()) if mapping.exists() else {}
     old[token]=dict(package=str(destination.relative_to(K)),meaning='step-544 own dev-S1; registered modes; five ordered types')
     write(mapping,old)
-    return dict(directory=str(destination),token=token,code_bytes=len(raw),files=len(paths),plan=cfg['plan_sha256'])
+    return dict(directory=str(destination),token=token,code_bytes=len(raw),files=len(paths),plan=plan)
 
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--out',required=True);p.add_argument('--token');p.add_argument('--refresh',action='store_true')
-    a=p.parse_args();print(json.dumps(build(a.out,a.token,a.refresh),sort_keys=True))
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--out',required=True);p.add_argument('--token');p.add_argument('--refresh',action='store_true');p.add_argument('--reader-repin',help='JSON with source directory and complete sha256 inventory')
+    a=p.parse_args();print(json.dumps(build(a.out,a.token,a.refresh,a.reader_repin),sort_keys=True))

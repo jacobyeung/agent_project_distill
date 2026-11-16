@@ -1,42 +1,22 @@
 # Build 6 status
 
-The first packaged diagnostic is complete. The focused check exposed a CPU thread-order dependency in the legacy tensor-byte fixture. Its original hashes match with one thread; the fixture now explicitly pins and restores that setting (`work/build6/proofs/tensor_threads/RESULTS.json`). The repaired focused check is next. The current delivery record describes the diagnostic snapshot, not the final source.
+Final packaged qualification is running. The source remains frozen.
 
-| Completed group | Run | Passed | Error / failure events | Source |
-|---|---:|---:|---:|---|
-| tree / generator | 32 | 18 | 16 / 1 | `work/build6/proofs/suite_tree/generator/results.json` |
-| tree / legacy | 1810 | 1280 | 444 / 17 | `work/build6/proofs/suite_tree/legacy/results.json` |
-| tree / r2 | 349 | 349 | 0 / 0 | `work/build6/proofs/suite_tree/r2/results.json` |
-| base / generator | 14 | 1 | 16 / 0 | `work/build6/proofs/suite_base/generator/results.json` |
-| base / legacy | 385 | 3 | 444 / 14 | `work/build6/proofs/suite_base/legacy/results.json` |
-| base / r2 | 0 | 0 | 0 / 0 | `work/build6/proofs/suite_base/r2/results.json` |
+Active package group: `tree/legacy`; completed executions: 942. Source: `work/build6/proofs/suite_tree/progress.json` and its group progress receipt.
 
-The exact contract hashes and unchanged level-basis functions pass (`work/build6/INTEGRATION_CHECK.json`). Packet and packed-row receipts are in `work/build6/proofs/packet/results.json` and `work/build6/proofs/rows/PARITY.json`.
+Detected lost build-5 pass events: 0 (`work/build6/LIVE_B5_LOSSES.json`). This live check does not replace the final base comparison.
 
-Final coverage remains provisional. Legacy failures require matching causes in the untouched base; the entire R2/shared-grammar group must pass. Pending repairs and the remaining workflow are recorded in `work/build6/RESUME.md`. No launch is authorized.
+The packet suite passed on the final source (`work/build6/final_packet.log`). The focused repairs passed (`work/build6/proofs/final_targeted/results.json`). OFF/ON packed-row parity passed (`work/build6/proofs/rows/PARITY.json`).
 
-Current-source focused verification passed (`work/build6/proofs/final_targeted/results.json`).
+The exact and merged contract files are verified (`work/build6/INTEGRATION_CHECK.json`). Both restaged kits passed their scan and read checks (`work/build6/kits/RESULTS.json`, `work/build6/KIT_READCHECK.json`). Delivery identity: `work/build6/DELIVERY.json`.
 
-Final snapshot step running: `restage`. Log: `work/build6/final_restage.log`.
+| Completed driver step | Return code | Log |
+|---|---:|---|
+| restage | 0 | `work/build6/final_restage.log` |
+| kit_readcheck | 0 | `work/build6/final_kit_readcheck.log` |
+| kit_protocols | 0 | `work/build6/final_kit_protocols.log` |
+| packet | 0 | `work/build6/final_packet.log` |
 
-Final snapshot step complete: `restage` (`work/build6/FINAL_PASS.json`).
+Coverage remains provisional until the driver aggregates final receipts. Initial diagnostic evidence is retained under `work/build6/proofs/suite_tree/diagnostic_results.json` and the corresponding base proof.
 
-Final snapshot step running: `kit_readcheck`. Log: `work/build6/final_kit_readcheck.log`.
-
-Final snapshot step complete: `kit_readcheck` (`work/build6/FINAL_PASS.json`).
-
-Final snapshot step running: `kit_protocols`. Log: `work/build6/final_kit_protocols.log`.
-
-Final snapshot step complete: `kit_protocols` (`work/build6/FINAL_PASS.json`).
-
-Final snapshot step running: `packet`. Log: `work/build6/final_packet.log`.
-
-Final snapshot step complete: `packet` (`work/build6/FINAL_PASS.json`).
-
-Final snapshot step running: `qualification`. Log: `work/build6/final_qualification.log`.
-
-Completed qualification step `rows_build5`; receipt/log: `work/build6/rows_build5_qualification.log`.
-
-Completed qualification step `rows`; receipt/log: `work/build6/rows_qualification.log`.
-
-Completed qualification step `row_compare`; receipt/log: `work/build6/row_compare_qualification.log`.
+Full RGB/scene admission and missing evidence records remain unqualified. Both kit authorizations stay closed. No launch is authorized. Remaining work is recorded in `work/build6/RESUME.md`.

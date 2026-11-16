@@ -180,10 +180,15 @@ def accuracy(output,item):
         task={**meta,'ground_truth':truth,
               'answer_type':meta.get('answer_type','multiple_choice' if kind=='camera_movement_direction' else 'numeric')}
         task_accuracy=benchmark({'finish':'eos',**output},task)['score']
-        if kind in ('camera_displacement','camera_movement_direction','camera_rotation','object_abs_distance'):
-            if not calls or any(r.get('served') is False or r.get('response','').startswith('error:') for r in records(output)):
-                task_accuracy=0.
-    return dict(calls=calls,task_accuracy=task_accuracy,**per_frame(output.get('heads',{}),meta))
+    if 'scores' in output:
+        task_accuracy=output['scores']['answer']
+    rs=records(output)
+    unserved=sum(r.get('served') is False for r in rs)
+    errors=sum(r.get('response','').startswith('error:') for r in rs)
+    return dict(calls=calls,task_accuracy=task_accuracy,call_count=len(rs),
+                unserved_calls=unserved,error_calls=errors,
+                unserved_rate=unserved/len(rs) if rs else None,
+                error_rate=errors/len(rs) if rs else None,**per_frame(output.get('heads',{}),meta))
 
 
 def benchmark(output,item):

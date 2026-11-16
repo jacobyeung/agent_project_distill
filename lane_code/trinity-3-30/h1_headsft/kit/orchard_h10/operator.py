@@ -17,10 +17,11 @@ def digest(path):
 
 def load_helpers(package):
     # Load three small pinned modules in memory; never expand the code tree on login.
-    cfg=json.loads((package/'0.json').read_text())
-    if digest(package/'0.tgz')!=cfg['payload_sha256']:raise ValueError('Code archive differs')
+    public=json.loads((package/'0.json').read_text())
+    if digest(package/'0.tgz')!=public['payload_sha256']:raise ValueError('Code archive differs')
     mod=types.ModuleType('orchard_h10');mod.__path__=[];sys.modules['orchard_h10']=mod
     with tarfile.open(package/'0.tgz') as archive:
+        cfg={**json.load(archive.extractfile('9.json')),**public}
         for name in ('common','job'):
             path='orchard_h10/'+name+'.py';raw=archive.extractfile(path).read()
             if hashlib.sha256(raw).hexdigest()!=cfg['payload_pins'][path]['sha256']:raise ValueError('Helper differs')
@@ -40,7 +41,9 @@ def check(package, gpus, walltime):
         if digest(package/name)!=h:raise ValueError('Package changed: '+name)
     if package!=Path('/project/community/jjyeung')/cfg['token']:
         raise ValueError('Stage the package under /project/community/jjyeung/'+cfg['token'])
-    inputs=check_inputs(json.loads((package/'1.json').read_text()),cfg)
+    private=package/'a';private.mkdir(mode=0o700,exist_ok=True)
+    if private.stat().st_mode & 0o077:raise ValueError('Private input directory must be 0700')
+    inputs=check_inputs(json.loads((private/'1.json').read_text()),cfg)
     opaque([str(package),str(package/'1.json'),str(package/'2.json')])
     for a in inputs['archives']:
         for part in a['parts']:
@@ -49,9 +52,9 @@ def check(package, gpus, walltime):
     # This is a metadata CPU check. Full hashes, imports, restore, and frame admission
     # execute on the allocated node after archive extraction, before a model decode.
     argv=submit_argv(cfg['token'],gpus,walltime)
-    value=dict(passed=True,plan=cfg['plan_sha256'],inputs=digest(package/'1.json'),
+    value=dict(passed=True,plan=cfg['plan_sha256'],inputs=digest(package/'a/1.json'),
                package=digest(package/'PACKAGE.json'),gpus=gpus,time=walltime,argv=argv,
-               scope='CPU package/inventory admission; no real-weight decode or GPU probe')
+               scope=0)
     (package/'2.json').write_text(json.dumps(value,sort_keys=True,indent=2)+'\n')
     return value
 
@@ -60,11 +63,11 @@ def submit(package,gpus,walltime,test_only=False):
     cfg=load_helpers(package)
     from orchard_h10.common import opaque, submit_argv, seconds
     cpu=json.loads((package/'2.json').read_text())
-    if (cpu.get('plan')!=cfg['plan_sha256'] or cpu.get('inputs')!=digest(package/'1.json') or
+    if (cpu.get('plan')!=cfg['plan_sha256'] or cpu.get('inputs')!=digest(package/'a/1.json') or
             cpu.get('package')!=digest(package/'PACKAGE.json') or cpu.get('gpus')!=gpus or cpu.get('time')!=walltime):
         raise ValueError('Run the CPU check for these exact inputs, card count and time first')
     argv=submit_argv(cfg['token'],gpus,walltime)
-    export=f"--export=A_N={gpus},A_T={seconds(walltime)},A_I={digest(package/'1.json')},A_C={digest(package/'2.json')}"
+    export=f"--export=A_N={gpus},A_T={seconds(walltime)},A_I={digest(package/'a/1.json')},A_C={digest(package/'2.json')}"
     argv[argv.index('--export=NONE')]=export
     opaque(argv)
     env={'PATH':'/usr/bin:/bin','HOME':os.environ['HOME'],'USER':os.environ['USER']}

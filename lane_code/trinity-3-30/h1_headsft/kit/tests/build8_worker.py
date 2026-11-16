@@ -10,9 +10,10 @@ from unittest.mock import patch
 
 K=Path(__file__).resolve().parents[1]
 B=Path('/scratch/jjyeung/orch_n30/b04_e2ehook')
-# runner passes the exact production Python/-m command after this test prefix.
-argv=sys.argv[1:];assert argv[1:4]==['-B','-m','h1eval.h10.launch']
-args=argv[4:]
+cfg=json.loads(Path(sys.argv[1]).read_text())
+from orchard_h10.runner import worker_args
+args=worker_args(cfg)
+i=args.index('--reader-root');args[i+1]=str(B)
 from h1eval.h10.launch import reader_factory
 reader_factory(B)
 from e2e_reader import parity

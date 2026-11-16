@@ -72,9 +72,9 @@ def manifest(name, items, source, *, extra_sources=(), r0=None):
     items = canonical(items)
     reserve = Reserve(r0 or dict(path='auth/R0_ROOMS.txt', sha256=R0_SHA256))
     found = sum(reserve.excluded(r) for r in items)
-    if name != 'r0dev' and found:
+    if name not in ('r0dev','r0dev_f32') and found:
         raise ValueError(f'{name}: {found} items overlap R0; fixed sets cannot be silently filtered')
-    if name == 'r0dev':
+    if name in ('r0dev','r0dev_f32'):
         dev = set((R0.parent/'R0_DEV_ROOMS.txt').read_text().splitlines())
         if any(r['room_key'] not in dev for r in items):
             raise ValueError('r0dev permits R0_DEV_ROOMS only')
@@ -83,8 +83,8 @@ def manifest(name, items, source, *, extra_sources=(), r0=None):
                 item_set_sha256=digest(items), count=len(items),
                 per_type=dict(sorted(Counter(r['question_type'] for r in items).items())),
                 r0_check=dict(pin=reserve.pin, checked=len(items), found=found),
-                development_only=name == 'r0dev')
-    if name == 'r0dev':result['r0_dev_pin'] = portable_pin(R0.parent/'R0_DEV_ROOMS.txt')
+                development_only=name in ('r0dev','r0dev_f32'))
+    if name in ('r0dev','r0dev_f32'):result['r0_dev_pin'] = portable_pin(R0.parent/'R0_DEV_ROOMS.txt')
     return result
 
 
@@ -100,14 +100,19 @@ def load_manifest(path):
     found = sum(reserve.excluded(r) for r in m['items'])
     if m['count'] != len(m['items']) or m['r0_check']['checked'] != m['count'] or found != m['r0_check']['found']:
         raise ValueError('Item-set R0 coverage differs')
-    if m['name'] != 'r0dev' and found:
+    if m['name'] not in ('r0dev','r0dev_f32') and found:
         raise ValueError('Item set overlaps R0')
-    if m['name'] == 'r0dev':
+    if m['name'] in ('r0dev','r0dev_f32'):
         if sha(resolve_pin(m['r0_dev_pin'])['path']) != m['r0_dev_pin']['sha256']:
             raise ValueError('R0-dev pin mismatch')
         dev = set((Path(resolve_pin(reserve.pin)['path']).parent/'R0_DEV_ROOMS.txt').read_text().splitlines())
         if any(r['room_key'] not in dev for r in m['items']):
             raise ValueError('Item outside R0-dev')
+    if m['name']=='r0dev_f32':
+        if not m.get('development_only'):raise ValueError('R0-dev must remain development only')
+        expected=build_r0dev()
+        for key in ('item_set_sha256','sources','constants','frames_manifest_sha256','per_type','count','source'):
+            if m[key]!=expected[key]:raise ValueError('R0-dev pinned '+key+' differs')
     return m
 
 
@@ -175,16 +180,18 @@ def build(out=K/'items', *, routed=None, direct_tasks=None, forward_tasks=None, 
                 if any(r['question_type'] != expected[str(r.get('example_id',r['id']))] for r in rows):
                     raise ValueError('e193 item types differ')
                 value = manifest(name, rows, DIRECT, extra_sources=task_sources)
-            elif name == 'r0dev':
-                if r0dev is None:
+            elif name in ('r0dev','r0dev_f32'):
+                if r0dev is None and (K/'inputs/r0dev/R0_QUESTIONS_dev_f32.jsonl').exists():
+                    value=build_r0dev()
+                elif r0dev is None:
                     raise ValueError('Supply --r0dev-items; reserve-development interface is disabled without an item file')
-                value = manifest(name, read_items(r0dev), r0dev)
+                else:value = manifest(name, read_items(r0dev), r0dev)
             else:
                 raise ValueError('Unknown item set: '+name)
         except (ValueError, FileNotFoundError, KeyError) as error:
             value = dict(schema='h1-items-v1', name=name, status='unavailable', reason=str(error))
         path = out/(name+'.json')
-        text = json.dumps(value, indent=2, sort_keys=True, allow_nan=False)+'\n'
+        text = json.dumps(value, indent=None if name in ('r0dev','r0dev_f32') else 2, sort_keys=True, separators=(',',':') if name in ('r0dev','r0dev_f32') else None, allow_nan=False)+'\n'
         if path.exists() and json.loads(path.read_text()).get('status') == 'ready' and path.read_text() != text:
             # Only pin relocation is allowed; every pinned digest and item stays identical.
             def without_paths(v):
@@ -196,3 +203,43 @@ def build(out=K/'items', *, routed=None, direct_tasks=None, forward_tasks=None, 
         path.write_text(text)
         results[name] = {k:v for k,v in value.items() if k != 'items'}
     return results
+
+
+R0_PINS = {
+ 'R0_QUESTIONS_dev_f32.jsonl':'b4e278f242e143d8ee66fa527449c7e02fad753bbbb528bd0c31fb9e47aea181',
+ 'FRAMES_MANIFEST.json':'450e4125b876f0d4dcda514c98ea00aeb852bbf9b273e1c6f3e40f3bc878d496',
+ 'R0_QUESTIONS_SUMMARY.json':'8444684f62e6110058657de6e33cf2ffb2745a631afd0146bcefc84b10a8ea4f',
+ 'R0_DEV_ROOMS.txt':'855ef477143a1e6ba7bf4a0a400c718721f54d6337977ad6663ca9a2a3073f58'}
+
+
+def build_r0dev():
+    root=K/'inputs/r0dev'
+    for name,h in R0_PINS.items():checked(root/name,h)
+    rows=read_items(root/'R0_QUESTIONS_dev_f32.jsonl')
+    constants=json.loads((root/'R0_QUESTIONS_SUMMARY.json').read_text())['constants']
+    frames=json.loads((root/'FRAMES_MANIFEST.json').read_text())['scenes']
+    dev=set((root/'R0_DEV_ROOMS.txt').read_text().splitlines())
+    for r in rows:
+        key=room_key(r)
+        if key not in dev or r['r0_split']!='R0-dev':raise ValueError('Item outside R0-dev')
+        f=frames[key]
+        if f['deferred'] or f['r0_split']!='R0-dev':raise ValueError('Unadmitted frame room')
+        indices=[i*(r['total_num_frames']-1)//31 for i in range(32)]
+        if r['num_frames']!=32 or r['frame_indices']!=indices or f['total_frames']!=r['total_num_frames']:
+            raise ValueError('R0 frame layout differs')
+        r.update(id=r['qid']+'_'+digest(r)[:16],native=key,
+                 answer_type='multiple_choice' if r['options'] else 'numeric')
+    if len(rows)!=2169 or len({room_key(r) for r in rows})!=98:raise ValueError('R0 item/room count differs')
+    if Counter(r['question_type'] for r in rows)!={k:v['n_dev'] for k,v in constants.items()}:
+        raise ValueError('R0 per-type counts differ')
+    value=manifest('r0dev_f32',rows,root/'R0_QUESTIONS_dev_f32.jsonl',
+                   extra_sources=[root/n for n in R0_PINS if n!='R0_QUESTIONS_dev_f32.jsonl'])
+    if value['r0_check']['found']!=len(rows):raise ValueError('Training exclusion must cover every development item')
+    value.update(constants=constants,frames_manifest_sha256=R0_PINS['FRAMES_MANIFEST.json'])
+    return value
+
+
+def read_contract(manifest, arms, interventions, types=None):
+    if manifest['name']=='r0dev_f32':
+        if arms!=['own'] or any(m['name']!='none' for m in interventions) or types:
+            raise ValueError('R0-dev requires own baseline and all types')

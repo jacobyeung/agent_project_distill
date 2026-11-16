@@ -148,6 +148,8 @@ def run(args, *, make_real=None, factory_options=None):
     interventions=[{'name':'none'},*parse_modes(args.modes)]
     if any(m['name'] in ('donor','gt') for m in interventions) and not factory_options:
         raise ValueError('donor/gt require explicitly bound Heads/GT via factory_options; no inferred donor or GT')
+    from h1eval.items import read_contract
+    read_contract(manifest,arms,interventions,getattr(args,'types',None))
     maker=make_real or reader_factory(args.reader_root,args.reader_entry)
     reviewed = args.reader_entry == ENTRY
     settings = None; mapped = None; mapping = None
@@ -170,7 +172,7 @@ def run(args, *, make_real=None, factory_options=None):
     out=Path(args.out).resolve()
     if out==export or export in out.parents:raise ValueError('Output must be outside export')
     binding=dict(schema='h10-shard-v1',item_set_sha256=manifest['item_set_sha256'],
-                 items_sha256=sha(args.items),export_sha256=export_hash(export),
+                 items_sha256=sha(args.items),export_sha256=export_hash(export,getattr(args,'export_cache',None),getattr(args,'allocation',None)),
                  artifact_manifest_sha256=sha(artifact),reader_sha256=code_hash(Path(args.reader_root)/'e2e_reader'),
                  maker_sha256=sha(source),maker_name=maker.__qualname__,reader_entry=args.reader_entry,
                  evaluator_code_sha256=code_hash(),
@@ -315,6 +317,7 @@ def parser():
     p.add_argument('--stop-at',type=float,help='UTC epoch: admit no further reads after this time')
     p.add_argument('--finish-by',type=float,help='UTC epoch: abandon an unfinished read to allow result return')
     p.add_argument('--stop-file',help='Cooperative stop marker shared by this allocation')
+    p.add_argument('--export-cache');p.add_argument('--allocation')
     return p
 
 

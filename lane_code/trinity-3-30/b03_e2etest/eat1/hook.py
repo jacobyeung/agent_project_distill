@@ -644,10 +644,28 @@ def _object_state(value):
         if not f or f.startswith(_ENV) or f.startswith(SYSTEM_PREFIXES) or is_harness(f):
             return None
     state = dict(getattr(value, '__dict__', {}) or {})
-    for slot in getattr(cls, '__slots__', ()) or ():
-        if isinstance(slot, str) and hasattr(value, slot):
+    for slot in (k for c in cls.__mro__ for k in (c.__dict__.get('__slots__') or ())):
+        if isinstance(slot, str) and slot != '__dict__' and hasattr(value, slot):
             state[slot] = getattr(value, slot)
     return state
+
+
+_SELF_LOADS = {}
+
+
+def _self_loads(code):
+    """Attribute names a method loads on `self` (stores, such as `self.state = state`, are not reads)."""
+    names = _SELF_LOADS.get(code)
+    if names is None:
+        import dis
+        names, prev = [], None
+        for ins in dis.get_instructions(code):
+            if ins.opname in ('LOAD_ATTR', 'LOAD_METHOD') and prev is not None and prev.opname.startswith(
+                    'LOAD_FAST') and (prev.argval == 'self' or (isinstance(prev.argval, tuple) and prev.argval[-1] == 'self')):
+                names.append(ins.argval)
+            prev = ins
+        names = _SELF_LOADS[code] = tuple(dict.fromkeys(names))
+    return names
 
 
 class LineScope:
@@ -662,7 +680,7 @@ class LineScope:
 
     def __init__(self, allowed_numbers=None, exempt_names=()):
         self.exempt = set(exempt_names)
-        self.preexisting = set()  # ids of state tensors alive before the current item (set by the runner)
+        self._pre, self.epoch = set(), 0  # ids of state tensors alive before the current item (set by the runner)
         self.handler_lines = {}
         self.in_handler = 0
         self.depth = 0  # model-forward depth (set by the monitor); a head forward inside a handler is model code
@@ -675,6 +693,15 @@ class LineScope:
         self.mon = sys.monitoring
         self.allowed = allowed_numbers if allowed_numbers is not None else {0., 1., -1.}
         self._seen_codes = set()
+        self._seen_self, self._held = set(), {}
+
+    @property
+    def preexisting(self):
+        return self._pre
+
+    @preexisting.setter
+    def preexisting(self, ids):
+        self._pre, self.epoch = ids, self.epoch+1
 
     def _skip(self, f):
         return f.startswith(self.env) or is_harness(f) or f.startswith('<') or f.startswith(SYSTEM_PREFIXES)
@@ -695,42 +722,51 @@ class LineScope:
             return self.mon.DISABLE
         if not self.active:
             return None
-        if id(code) in self._seen_codes or not code.co_flags & inspect.CO_OPTIMIZED:
+        if not code.co_flags & inspect.CO_OPTIMIZED:
             return self.mon.DISABLE
-        self._seen_codes.add(id(code))
         try:
             frame = sys._getframe(1)
             g = frame.f_globals if frame.f_code is code else None
         except ValueError:
             g = None
-        for name in code.co_names if g is not None else ():
-            if name in g:
-                why = numeric_data(g[name], self.allowed)
-                if why:
-                    self.globals_read.append(dict(file=code.co_filename, line=code.co_firstlineno,
-                                                  function=code.co_qualname, name=name, detail='module-level '+why))
-        # attributes the function reads on `self`: instance state and reader-code class attributes holding numbers
-        obj = frame.f_locals.get('self') if g is not None and code.co_varnames[:1] == ('self',) else None
-        if obj is not None:
-            inst = getattr(obj, '__dict__', {})
-            classes = [c for c in type(obj).__mro__ if not self._skip(getattr(sys.modules.get(c.__module__),
-                                                                               '__file__', None) or '<')]
-            for name in code.co_names:
-                if name in self.exempt:
+        if id(code) not in self._seen_codes:
+            self._seen_codes.add(id(code))
+            for name in code.co_names if g is not None else ():
+                if name in g:
+                    why = numeric_data(g[name], self.allowed)
+                    if why:
+                        self.globals_read.append(dict(file=code.co_filename, line=code.co_firstlineno,
+                                                      function=code.co_qualname, name=name,
+                                                      detail='module-level '+why))
+        if g is None or code.co_varnames[:1] != ('self',):
+            return self.mon.DISABLE
+        # attributes the function reads on `self`: instance state and reader-code class attributes holding numbers,
+        # judged for every instance a shared method runs on, once per item (the event stays enabled for methods)
+        obj = frame.f_locals.get('self')
+        key = (id(code), id(obj), self.epoch)
+        if obj is None or key in self._seen_self:
+            return None
+        self._seen_self.add(key)
+        self._held[id(obj)] = obj  # keeps ids unique while the scope lives
+        inst = getattr(obj, '__dict__', {})
+        classes = [c for c in type(obj).__mro__ if not self._skip(getattr(sys.modules.get(c.__module__),
+                                                                           '__file__', None) or '<')]
+        for name in _self_loads(code):
+            if name in self.exempt:
+                continue
+            if name in inst:
+                value, where = inst[name], 'instance'
+            else:
+                owner = next((c for c in classes if name in c.__dict__), None)
+                if owner is None:
                     continue
-                if name in inst:
-                    value, where = inst[name], 'instance'
-                else:
-                    owner = next((c for c in classes if name in c.__dict__), None)
-                    if owner is None:
-                        continue
-                    value, where = owner.__dict__[name], 'class '+owner.__qualname__
-                why = numeric_data(value, self.allowed, tensors=True if where != 'instance' else self.preexisting)
-                if why:
-                    self.globals_read.append(dict(file=code.co_filename, line=code.co_firstlineno,
-                                                  function=code.co_qualname, name='self.'+name,
-                                                  detail=f'{where} state {why}'))
-        return self.mon.DISABLE
+                value, where = owner.__dict__[name], 'class '+owner.__qualname__
+            why = numeric_data(value, self.allowed, tensors=True if where != 'instance' else self.preexisting)
+            if why:
+                self.globals_read.append(dict(file=code.co_filename, line=code.co_firstlineno,
+                                              function=code.co_qualname, name='self.'+name,
+                                              detail=f'{where} state {why}'))
+        return None
 
     def start(self):
         try:

@@ -11,7 +11,7 @@ from h1eval.cli import code_hash, export_hash, write_curve
 from h1eval.modes import mode_key, plan
 
 
-def merge(directories, out, items=None):
+def merge(directories, out, items=None, *, _types=None):
     roots=[Path(p) for p in directories]
     envs=[json.loads((p/'environment.json').read_text()) for p in roots]
     first=envs[0];binding=first['binding']
@@ -20,7 +20,20 @@ def merge(directories, out, items=None):
     ns={shard(e['binding']['shard'])[1] for e in envs}
     if len(ns)!=1:raise ValueError('Shard denominators differ')
     n=ns.pop();indices=[shard(e['binding']['shard'])[0] for e in envs]
-    if sorted(indices)!=list(range(n)):raise ValueError('Missing or duplicate shards')
+    if _types is None:
+        if sorted(indices)!=list(range(n)):raise ValueError('Missing or duplicate shards')
+    else:
+        from h1eval.cli import modes
+        from h1eval.modes import DEFAULT_MODES
+        if binding['arms']!=['own'] or binding['modes']!=[{'name':'none'},*modes(DEFAULT_MODES)]:
+            raise ValueError('Type plan differs from allocation plan')
+        pairs=[(int(p.parent.name),i) for p,i in zip(roots,indices)]
+        if sorted(pairs)!=[(t,i) for t in range(len(_types)) for i in range(n)]:
+            raise ValueError('Missing or duplicate type shards')
+        identities=[json.loads((p.parents[2]/'IDENTITY.json').read_text()) for p in roots]
+        if any(v!=identities[0] for v in identities):raise ValueError('Allocation identities differ')
+        if identities[0]['cards']!=n or identities[0]['order']!=list(_types) or identities[0]['arms']!=binding['arms']:
+            raise ValueError('Allocation identity differs from shards')
     manifest=load_manifest(items or first['items'])
     if manifest['item_set_sha256']!=binding['item_set_sha256']:raise ValueError('Merge items differ')
     if code_hash()!=binding['evaluator_code_sha256']:raise ValueError('Evaluator changed since launch')
@@ -29,7 +42,9 @@ def merge(directories, out, items=None):
     by_id={r['id']:r for r in manifest['items']};all_rows={}
     for root,env in zip(roots,envs):
         b=env['binding'];i,n=shard(b['shard'])
-        if b['ids']!=[r['id'] for r in manifest['items'][i::n]]:raise ValueError('Shard membership differs')
+        members=[r['id'] for r in manifest['items'][i::n]
+                 if _types is None or r['question_type']==_types[int(root.parent.name)]]
+        if b['ids']!=members:raise ValueError('Shard membership differs')
         expected=plan([by_id[k] for k in b['ids']],b['arms'],b['modes'])
         rows=read_records(root/'items.jsonl');actual={(r['id'],r['arm'],r['mode']) for r in rows}
         if actual!=expected:raise ValueError('Incomplete or extra shard records')
@@ -39,6 +54,8 @@ def merge(directories, out, items=None):
             key=(r['id'],r['arm'],r['mode'])
             if key in all_rows:raise ValueError('Duplicate merged record')
             all_rows[key]=r
+    if set(all_rows)!=plan(manifest['items'],binding['arms'],binding['modes']):
+        raise ValueError('Merged union differs from full plan')
     from h1eval.runner import measure, table
     measured=[]
     for key,r in sorted(all_rows.items()):
@@ -55,14 +72,22 @@ def merge(directories, out, items=None):
     curve['dependencies'].update(reader_sha256=binding['reader_sha256'],artifact_manifest_sha256=binding['artifact_manifest_sha256'])
     curve['shards']=[str(r.resolve()) for r in roots]
     write_json(out/'curve.json',curve)
-    (out/'report.md').write_text(table(measured))
+    (out/'report.md').write_text(table(measured,manifest.get('constants')))
     return dict(records=len(measured),items=len(by_id),curve=str(out/'curve.json'))
+
+
+def merge_types(directories, out, items=None):
+    """Merge the complete Orchard type/GPU layout, including empty shards."""
+    from orchard_h10.common import ORDER
+    if isinstance(directories,(str,Path)):
+        directories=sorted(Path(directories).glob('*/*'))
+    return merge(directories,out,items,_types=ORDER)
 
 
 def main(argv=None):
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('directories',nargs='+');p.add_argument('--out',default='h10_merged');p.add_argument('--items')
-    a=p.parse_args(argv)
-    try:print(json.dumps(merge(a.directories,a.out,a.items)));return 0
+    p.add_argument('--type-layout',action='store_true');a=p.parse_args(argv)
+    try:print(json.dumps((merge_types if a.type_layout else merge)(a.directories,a.out,a.items)));return 0
     except (ValueError,FileNotFoundError) as e:p.exit(2,str(e)+'\n')
 
 if __name__=='__main__':raise SystemExit(main())

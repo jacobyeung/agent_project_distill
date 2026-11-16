@@ -2,15 +2,16 @@
 
 Stage 1: frozen SAM 3 inside the artifact proposes candidates for the name as written, the
 tree's candidate producer links them across frames, and the SELECTOR HEAD (a module of the
-model) picks one candidate or "none" by argmax. The picked candidate's mask pixels are
-unprojected with this read's geometry (G3T depth x the scale head), and the printed box is a
-gravity-aligned minimum-area rectangle over every lifted point with the points' full height.
-No alias table, no depth cut, no fitted box policy, no accept threshold.
+model) picks one candidate or "none" by argmax. The picked candidate's mask pixels in its best
+frame (largest mask area) are unprojected with this read's geometry (G3T depth x the scale head);
+points whose depth-stencil spread exceeds the frame's median spread are dropped (lift_bestspread),
+and the printed box is a gravity-aligned minimum-area rectangle over the kept points with their
+full height. No alias table, no depth cut, no fitted box policy, no accept threshold.
 Stage 2 (brief 05) replaces `propose` + `select` by the own-encoder head behind the same socket.
 """
 import numpy as np
 
-PROVIDER_ID = 'e2e_minarea_full_v1'
+PROVIDER_ID = 'e2e_minarea_bestspread_v1'
 
 
 def _hull(points):
@@ -111,6 +112,22 @@ def lift_plain(name, masks, geometry):
     return result
 
 
+def lift_bestspread(name, masks, geometry):
+    """lift_plain, then box points from the best frame only (largest mask area among frames with lifted
+    points), and in it only the points whose depth-stencil spread (geometry.lift's third output) is at most
+    that frame's median spread. No fitted constant: the cut is the frame's own median. `frames`, `visible`
+    and `best` stay lift_plain's, so the printed frame list is unchanged; the box reads points of `best` only."""
+    r = lift_plain(name, masks, geometry)
+    if not r['seen']:
+        return r
+    b = r['best']
+    uv = mask_pixels(np.asarray(masks, bool)[b - 1])
+    P, Pc, spread = (np.asarray(x, np.float64) for x in geometry.lift(b, uv, mode='center'))
+    ok = np.isfinite(P).all(1) & np.isfinite(Pc).all(1) & (Pc[:, 2] > 0)
+    P, spread = P[ok], spread[ok]
+    return dict(r, points={str(b): P[spread <= np.median(spread)].tolist()})
+
+
 class StageOneSocket:
     """instances(name) -> [{'instance_id', 'masks'}] (0 or 1 entries).
 
@@ -139,7 +156,7 @@ class StageOneSocket:
 
 def ground_session(geometry, socket):
     """A v3.14 Session (tree formatter) whose instances come from `socket` and are lifted with
-    lift_plain; boxes from MinAreaBoxProvider."""
+    lift_bestspread; boxes from MinAreaBoxProvider."""
     from trace_format.ground_v313 import Session
     from student_pilot import ground_lifting
 
@@ -153,7 +170,7 @@ def ground_session(geometry, socket):
         def _instances(self, name):
             result = []
             for entry in self.socket(name):
-                lifted = lift_plain(name, entry['masks'], self.geometry)
+                lifted = lift_bestspread(name, entry['masks'], self.geometry)
                 if lifted['seen']:
                     result.append(dict(lifted, instance_id=str(entry['instance_id']), first=min(lifted['frames'])))
             return sorted(result, key=lambda r: (r['first'], r['instance_id']))

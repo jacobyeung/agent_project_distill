@@ -10,11 +10,11 @@ import sys
 import tarfile
 import time
 
-from orchard_h10.common import canonical, sha, template, write
+from orchard_h10.common import canonical, sha, template, write, opaque, checked_run, read_config
 
 
 def verify_config(cfg):
-    if canonical({k:v for k,v in cfg.items() if k!='plan_sha256'})!=cfg['plan_sha256']:
+    if canonical({k:v for k,v in cfg.items() if k not in ('plan_sha256','payload_sha256','payload_bytes')})!=cfg['plan_sha256']:
         raise ValueError('Plan digest differs')
 
 
@@ -62,6 +62,12 @@ def check_inputs(inputs, cfg):
         raise ValueError('Require pinned environment and policy receipts in files')
     for key in ('environment_receipt','policy_receipt'):
         if inputs[key] not in inputs['files']:raise ValueError('Unpinned '+key)
+    if inputs.get('optional'):
+        optional=inputs['optional'];idx=optional['archive']
+        if type(idx) is not int or not 0<=idx<len(inputs['archives']):raise ValueError('Optional archive index differs')
+        if optional['sha256']!=inputs['archives'][idx]['sha256']:raise ValueError('Optional archive pin differs')
+        path=Path(optional['root'])
+        if not path.is_relative_to(Path(cfg['logical'])/'d') or '..' in path.parts:raise ValueError('Optional root differs')
     return inputs
 
 
@@ -124,7 +130,11 @@ def stage(root, cfg, inputs, S, J):
 
 
 def main(root):
-    root=Path(root);cfg=json.loads((root/'0.json').read_text());verify_config(cfg)
+    root=Path(root);public=json.loads((root/'0.json').read_text())
+    cfg=read_config(Path('/project/community/jjyeung')/public['token']);verify_config(cfg)
+    os.umask(0o077)
+    from orchard_h10.common import install_process_guard
+    install_process_guard(root)
     S,J,R,I,A=template(); job=os.environ['SLURM_JOB_ID']
     n=int(os.environ['A_N']);seconds=int(os.environ['A_T'])
     start=float(os.environ.get('SLURM_JOB_START_TIME',time.time()))
@@ -142,9 +152,9 @@ def main(root):
         write(out/'metadata/STORAGE.json',J.storage_proof(root,job=job))
         R.write_test(cfg['pool'],return_token);pool_ready=True
         shared=Path('/project/community/jjyeung')/cfg['token']
-        if sha(shared/'1.json')!=os.environ['A_I'] or sha(shared/'2.json')!=os.environ['A_C']:
+        if sha(shared/'a/1.json')!=os.environ['A_I'] or sha(shared/'2.json')!=os.environ['A_C']:
             raise ValueError('Submitted input or CPU receipt changed')
-        inputs=check_inputs(json.loads((shared/'1.json').read_text()),cfg)
+        inputs=check_inputs(json.loads((shared/'a/1.json').read_text()),cfg)
         cpu=json.loads((shared/'2.json').read_text())
         if cpu.get('plan')!=cfg['plan_sha256'] or cpu.get('inputs')!=os.environ['A_I'] or cpu.get('passed') is not True:
             raise ValueError('CPU receipt does not bind this submission')
@@ -153,28 +163,36 @@ def main(root):
         if time.time()>=end-cfg['stop_margin'] or (out/'metadata/STOP').exists():raise ValueError('No read budget after staging')
         env=J.environment(root)
         p=cfg['logical']+'/p'
-        env.update(PYTHONPATH=p+'/b:'+p+'/tree:'+p,OMP_NUM_THREADS='16',MKL_NUM_THREADS='16',
+        env={k:v for k,v in env.items() if 'sam' not in k.lower()}
+        env.update(OMP_NUM_THREADS='16',MKL_NUM_THREADS='16',
                    OPENBLAS_NUM_THREADS='16',CUDA_VISIBLE_DEVICES='')
+        dispatch=root/'a';dispatch.mkdir(mode=0o700,exist_ok=True)
+        (dispatch/'5.py').write_bytes((Path(__file__).parent/'entry.py').read_bytes())
+        write(dispatch/'0.json',dict(action=0,package=p,config=cfg,inputs=inputs))
+        opaque([f'{k}={v}' for k,v in env.items()])
         with (out/'logs/0.log').open('wb') as log:
-            subprocess.run(J.namespace(root)+[inputs['python'],'-B','-m','orchard_h10.prepare',str(root/'0.json'),str(root/'1.json')],
-                           env=env,stdout=log,stderr=subprocess.STDOUT,check=True)
+            checked_run(J.namespace(root)+[inputs['python'],'-B','-I',str(dispatch/'5.py'),str(dispatch/'0.json')],
+                        env=env,stdout=log,stderr=subprocess.STDOUT,check=True)
         restore_resume(inputs.get('resume'),out,cfg,S)
-        run_cfg=dict(package=p,output=cfg['logical']+'/r',python=inputs['python'],
+        run_cfg=dict(export_cache=cfg['logical']+'/d/7.json',allocation=job,package=p,output=cfg['logical']+'/r',python=inputs['python'],
                      export=cfg['logical']+'/d/e',binding=cfg['logical']+'/d/binding.json',
                      settings=cfg['logical']+'/d/settings.json',plan_sha256=cfg['plan_sha256'],
                      inputs_sha256=canonical({k:v for k,v in inputs.items() if k!='resume'}),
                      stop_margin=cfg['stop_margin'],return_margin=cfg['return_margin'],
                      prefix=['bash',inputs['policy']['vnice']])
-        write(root/'4.json',run_cfg)
+        if inputs.get('optional'):
+            receipt=J.physical(root,cfg['logical']+'/d/8.json')
+            run_cfg['optional']=dict(items=p+'/items/r0dev.json',receipt=cfg['logical']+'/d/8.json',sha256=sha(receipt))
+        write(dispatch/'1.json',dict(action=1,package=p,config=run_cfg,end=end))
         cards=os.environ.get('CUDA_VISIBLE_DEVICES','').split(',')
         if len(cards)!=n or not all(cards) or not 1<=n<=4 or n*seconds>18000:
             raise ValueError('Allocation differs from GPU/hour contract')
         # Retain assigned GPU evidence once; no occupancy polling or scheduler operations.
-        evidence=subprocess.run(['nvidia-smi','--query-gpu=uuid,name,memory.used','--format=csv,noheader'],capture_output=True,text=True,check=True)
+        evidence=checked_run(['nvidia-smi','--query-gpu=uuid,name,memory.used','--format=csv'],capture_output=True,text=True,check=True)
         write(out/'metadata/CARDS.json',dict(visible=cards,query=evidence.stdout))
         env['CUDA_VISIBLE_DEVICES']=','.join(cards)
         with (out/'logs/1.log').open('wb') as log:
-            result=subprocess.run(J.namespace(root)+[inputs['python'],'-B','-m','orchard_h10.runner',str(root/'4.json'),str(end)],
+            result=checked_run(J.namespace(root)+[inputs['python'],'-B','-I',str(dispatch/'5.py'),str(dispatch/'1.json')],
                                   env=env,stdout=log,stderr=subprocess.STDOUT)
         if result.returncode:raise RuntimeError('Allocation runner failed; no retry')
         summary=json.loads((out/'SUMMARY.json').read_text())

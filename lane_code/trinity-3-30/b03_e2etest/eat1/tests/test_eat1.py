@@ -103,11 +103,12 @@ class Adversarial(unittest.TestCase):
                  positive_answer='answer_not_generated_after_last_response', suffix_printf='A3.reformat',
                  nested_config='A3.module_data', nested_tensor_config='A3.module_data',
                  nested_class_config='A3.module_data', integer_unit='A3.response_value',
-                 unproject_only='response_without_head')
+                 unproject_only='response_without_head', slots_tensor='A3.module_data', sorted_pick='A3.selection',
+                 sign_choice='A3.selection', shared_heads='A3.module_data')
 
     @classmethod
     def setUpClass(cls):
-        from eat1.toy.adversarial import EXPECT, UNPROJECT, build_adversarial
+        from eat1.toy.adversarial import EXPECT, ITEMS, UNPROJECT, build_adversarial
         cls.expect = EXPECT
         cls.tmp = Path(tempfile.mkdtemp(prefix='eat1_adv_', dir=os.environ.get('EAT1_TMP')))
         cls.info = build_adversarial(cls.tmp/'fx')
@@ -117,7 +118,7 @@ class Adversarial(unittest.TestCase):
             out = cls.tmp/'runs'/variant
             extra = ['--code-root', str(cls.tmp/'fx')] if variant.endswith('_coderoot') else []
             fx, items = ((cls.info['unproject_workdir'], cls.info['unproject_move']) if v in UNPROJECT else
-                         (str(cls.tmp/'fx'), cls.info['depth' if v == 'memo' else 'move']))
+                         (str(cls.tmp/'fx'), cls.info[ITEMS.get(v, 'move')]))
             R.main(['--reader', 'eat1.toy.adversarial:make_reader', '--reader-kwargs',
                     json.dumps(dict(workdir=fx, variant=v)), '--items',
                     items, '--out', str(out), '--allowlist-extra', TOY_ALLOW,

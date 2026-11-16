@@ -559,6 +559,77 @@ class UnprojectHandler(NumericHandler):
         return str(float(x[0])), {'x_m': self.sources}
 
 
+# round-5 probes (REVIEW_VERDICT_EAT1_R5.md 1-7)
+class SpeedLM(UnitLM):
+    unit = ' m/s'
+
+
+class AreaAsciiLM(UnitLM):
+    unit = ' m2'
+
+
+class OrderedMetadata(NumericHandler):
+    def serve(self, call):
+        feats, heads = self.state['feats'], self._model.perception
+        distance = float(heads.move_head(torch.cat([feats[0], feats[1]]))[0])
+        depth = float(heads.depth_head(torch.cat([feats[0], self._model.tower(self.state['frames'][0])]))[0])
+        return f'distance: {distance}, depth: {depth}', {'depth': ['depth', 'toy_tower'], 'distance': ['move']}
+
+
+@dataclass(slots=True)
+class SlotCalibration:
+    scale: object
+
+
+class CalibratedHead(torch.nn.Linear):
+    def forward(self, value):
+        return super().forward(value) * self.calibration.scale
+
+
+class CoordinateHead(torch.nn.Linear):
+    def forward(self, value):
+        x = super().forward(value)
+        return dict(x=x, y=-x)
+
+
+class SortedFields(NumericHandler):
+    def serve(self, call):
+        feats = self.state['feats']
+        coordinates = self._model.perception.move_head(torch.cat([feats[0], feats[1]]))
+        return ', '.join(str(float(coordinates[key][0])) for key in sorted(coordinates)), {'position': ['move']}
+
+
+class SortedPick(NumericHandler):
+    def serve(self, call):
+        feats = self.state['feats']
+        head = self._model.perception.move_head
+        values = [float(head(torch.cat([feats[1], feats[0]]))[0]), float(head(torch.cat([feats[0], feats[1]]))[0])]
+        return str(sorted(values)[-1]), {'distance_m': ['move']}
+
+
+class SignChoice(NumericHandler):
+    def serve(self, call):
+        feats = self.state['feats']
+        head = self._model.perception.move_head
+        first = float(head(torch.cat([feats[1], feats[0]]))[0])
+        second = float(head(torch.cat([feats[0], feats[1]]))[0])
+        value = first if first > 0 else second
+        return str(value), {'distance_m': ['move']}
+
+
+class DiagnosticLength(NumericHandler):
+    def __init__(self, model):
+        super().__init__(model)
+        self.counts = {}
+
+    def adjust(self, value):
+        try:
+            self.counts['characters'] += len(str(value))
+        except KeyError:
+            pass
+        return value
+
+
 HANDLERS = dict(round=Rounded, conversion=Converted, chained=Chained, config=Configured, comparison=Compared,
     table=DecodedTable, lazy=LazyPolicy, assigned=ExceptAssignment, empty=EmptyExcept,
     readonly=DescriptorRead, readwrite=DescriptorRead, native=NativeRead, mapped=MappedRead,
@@ -572,10 +643,12 @@ HANDLERS = dict(round=Rounded, conversion=Converted, chained=Chained, config=Con
     nested_config=NumericHandler, nested_tensor_config=NumericHandler, nested_class_config=NumericHandler,
     integer_unit=IntegerUnitHandler, maximum_head=NumericHandler, abs_head=NumericHandler,
     diagnostic=DiagnosticHandler, area_answer=NumericHandler, vector=VectorHandler, unproject_head=UnprojectHandler,
-    unproject_fixed=UnprojectHandler, unproject_only=UnprojectHandler)
+    unproject_fixed=UnprojectHandler, unproject_only=UnprojectHandler, speed=NumericHandler, area_ascii=NumericHandler,
+    metadata_order=OrderedMetadata, slots_tensor=NumericHandler, sorted_fields=SortedFields, sorted_pick=SortedPick,
+    sign_choice=SignChoice, diagnostic_length=DiagnosticLength)
 READERS = dict(rewrite=RewriteReader, answer=ShortAnswerReader, omitted=OmittedCallsReader,
     disappear=DisappearingReader, answer_work=WorkAnswerReader, permute=PermutedPrompt, positive_answer=PositiveAnswer,
-    unit_answer=UnitAnswer, area_answer=UnitAnswer)
+    unit_answer=UnitAnswer, area_answer=UnitAnswer, speed=UnitAnswer, area_ascii=UnitAnswer)
 # variant -> the clause its planted violation must fail (memo and numeric must pass every clause)
 EXPECT = dict(round='A3', conversion='A3', chained='A3', config='A3', comparison='A3', table='A3', lazy='A3',
               assigned='A4', empty='A4', readonly='A1', readwrite='A1', native='A1', mapped='A1', preopened='A1',
@@ -584,10 +657,14 @@ EXPECT = dict(round='A3', conversion='A3', chained='A3', config='A3', comparison
               constructor_table='A3', local_threshold='A3', fields='A6', answer_work='A4', permute='A2',
               maximum='A3', tensor_scale='A3', class_tensor='A3', table_tensor='A3', fields_extra='A6',
               positive_answer='A4', suffix_printf='A3', nested_config='A3', nested_tensor_config='A3',
-              nested_class_config='A3', integer_unit='A3', unproject_only='A4',
+              nested_class_config='A3', integer_unit='A3', unproject_only='A4', slots_tensor='A3', sorted_pick='A3',
+              sign_choice='A3', shared_heads='A3',
               memo=None, numeric=None, native_units=None, clamp=None, bookkeeping=None, scalar=None, relu6=None,
               unit_answer=None, numpy_print=None, maximum_head=None, abs_head=None, diagnostic=None, area_answer=None,
-              vector=None, unproject_head=None, unproject_fixed=None)
+              vector=None, unproject_head=None, unproject_fixed=None, speed=None, area_ascii=None, metadata_order=None,
+              sorted_fields=None, diagnostic_length=None)
+# items file per variant (key of build_adversarial's result); default 'move'
+ITEMS = dict(memo='depth', shared_heads='items')
 # variants that read the fixture whose manifest declares the fixed_math module `unproject`
 UNPROJECT = ('unproject_head', 'unproject_fixed', 'unproject_only')
 
@@ -649,7 +726,8 @@ def make_reader(workdir, variant):
                  class_tensor=ClassScaleHead, scalar=ScalarHead, relu6=ReLU6Head, positive_answer=NegativeHead,
                  nested_config=ConfigHead, nested_tensor_config=ConfigHead, nested_class_config=ClassConfigHead,
                  maximum_head=MaximumHead, abs_head=AbsHead, vector=VectorHead, unproject_head=GeometryHead,
-                 unproject_fixed=GeometryHead, unproject_only=GeometryHead)
+                 unproject_fixed=GeometryHead, unproject_only=GeometryHead, slots_tensor=CalibratedHead,
+                 sorted_fields=CoordinateHead)
     if variant in heads or variant == 'table_tensor':
         old = reader.model.perception.move_head
         head = heads[variant](old.in_features, old.out_features) if variant in heads else TableScaleHead(
@@ -658,12 +736,21 @@ def make_reader(workdir, variant):
         if variant in ('nested_config', 'nested_tensor_config'):
             scale = json.loads((root/'artifact'/'policy.dat').read_text())['scale']
             head.calibration = Calibration(torch.tensor(scale) if variant == 'nested_tensor_config' else scale)
+        if variant == 'slots_tensor':
+            head.calibration = SlotCalibration(torch.tensor(0.37))
         reader.model.perception.move_head = head
+    if variant == 'shared_heads':  # one head class for both heads; only the second carries a scale
+        for name, factor in [('move_head', 1.0), ('depth_head', 0.37)]:
+            old = getattr(reader.model.perception, name)
+            head = CalibratedHead(old.in_features, old.out_features)
+            head.load_state_dict(old.state_dict())
+            head.calibration = SimpleNamespace(scale=factor)
+            setattr(reader.model.perception, name, head)
     if variant in UNPROJECT:
         reader.model.unproject = Unprojector()
         handler.sources = dict(unproject_fixed=['move', 'unproject'], unproject_only=['unproject']).get(variant, ['move'])
-    if variant in ('unit_answer', 'area_answer'):
+    if variant in ('unit_answer', 'area_answer', 'speed', 'area_ascii'):
         old = reader.model.lm
-        reader.model.lm = (AreaLM if variant == 'area_answer' else UnitLM)(old.vocab)
+        reader.model.lm = dict(area_answer=AreaLM, speed=SpeedLM, area_ascii=AreaAsciiLM).get(variant, UnitLM)(old.vocab)
         reader.model.lm.load_state_dict(old.state_dict())
     return reader

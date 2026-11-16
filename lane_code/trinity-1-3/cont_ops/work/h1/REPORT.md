@@ -105,6 +105,10 @@ The 13-hour budget is 28,000 seconds of training at 140 s/step, 7,200 seconds fo
 
 12. Watch native full-population admission, the four-rank first-step gate, finite losses, H1 metrics and the 1–50 answer-difference rule. At completion, verify m100/m200 or the registered early-stop export, the terminal report, and slot verification. A nonzero wrapper status or `SLOT_MISSING`, `SLOT_FAILED`, `SLOT_SKIPPED` is not successful persistence. `SLOT_TO_GCS`/exit 6 means the slot is remote and needs a separately checked restore procedure. Return the receipts and gate result to the orchestrator; these scripts never touch D0’s end slot or resume it.
 
+**Workspace boundary exception**
+
+The failed CPU chain reached the copied r.sh directory-creation command at `/tmp/jjyeung/okit_8865619b/jobs/991.t`, outside the requested work folder. That test path contains no intended model or checkpoint payload. The retained harness redirects this path into the workspace. No deletion or cleanup command was run.
+
 **Unverified before launch**
 
 The full routing identity rate, real rows/model first batch under this exact kit, four-rank signal delivery, real staging throughput, complete source reproduction with both missing local payloads, independent source/content approval, final remote manifest, production sessions, native admission, GPU behavior and GCS fallback are unverified here. The packet supplies executable checks and fails closed while those gates remain pending.

@@ -10,6 +10,6 @@ for m in mans:
     s = m[:-5]; ref = json.load(open(os.path.join(L, 'out', 'frame_manifests', m)))
     d = os.path.join(L, 'work', 'redecode', '%s_%d' % (s, int(time.time())))
     rec = decode_frames.main(os.path.join(L, 'data_cache', 'scannetpp', s), d, d + '.json')
-    res[s] = dict(equal=rec['frames'] == ref['frames'], n=len(ref['frames']))
+    res[s] = dict(equal={str(k): v for k, v in rec['frames'].items()} == ref['frames'], n=len(ref['frames']))
 json.dump(res, open(os.path.join(L, 'out', 'REDECODE_CHECK.json'), 'w'), indent=1)
 print(res)
