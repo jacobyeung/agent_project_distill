@@ -246,6 +246,8 @@ def _read_run(run, manifest, rows, provisional_diagnostic=None):
 
 
 def score_run(run, scoring_manifest, output, artifact_root, official_python=None, provisional_diagnostic=None):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('student_pilot/benchmark_eval/score.py:score_run')
     scope = flags(provisional_diagnostic)
     require_mode(load_json(Path(run) / 'run.json'), provisional_diagnostic)
     manifest = load_json(scoring_manifest)
@@ -337,6 +339,8 @@ def score_run(run, scoring_manifest, output, artifact_root, official_python=None
 
 
 def compare_scores(base_path, distilled_path, output, artifact_root, provisional_diagnostic=None):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('student_pilot/benchmark_eval/score.py:compare_scores')
     scope = flags(provisional_diagnostic)
     base, distilled = [require_mode(load_json(path), provisional_diagnostic) for path in (base_path, distilled_path)]
     if base.get('schema') != 'student-benchmark-scores-v1' or distilled.get('schema') != base['schema']:
@@ -372,6 +376,8 @@ def compare_scores(base_path, distilled_path, output, artifact_root, provisional
 
 
 def export_bank(run, score_path, bank_id, output, artifact_root):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('student_pilot/benchmark_eval/score.py:export_bank')
     safe_id(bank_id)
     score = require_mode(load_json(score_path), None)
     if score.get('schema') != 'student-benchmark-scores-v1' or score['run'] != binding(Path(run) / 'run.json'):

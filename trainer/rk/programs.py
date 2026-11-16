@@ -1,4 +1,6 @@
 """Pinned reference executor and routed-read command line."""
+from student_pilot.r2_policy import unsupported_entry
+unsupported_entry('rk/programs.py:import')
 import argparse
 from collections import Counter, defaultdict
 import hashlib

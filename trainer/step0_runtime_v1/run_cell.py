@@ -1,3 +1,5 @@
+from student_pilot.r2_policy import unsupported_entry
+unsupported_entry('step0_runtime_v1/run_cell.py:import')
 import argparse
 from contextlib import ExitStack
 import os

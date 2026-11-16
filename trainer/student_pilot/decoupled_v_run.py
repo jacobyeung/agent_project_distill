@@ -590,6 +590,8 @@ def train(cfg, smoke_steps=None, resume=False):
 
 
 def evaluate(cfg, artifact_pins):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('student_pilot/decoupled_v_run.py:evaluate')
     from .compact_label_bank import read_bank, frame_set_sha256
     from .gate_eval import evaluate as score_gate
     from .gate_driver import heads_of
@@ -675,6 +677,8 @@ def hashlib_selection(row):
 
 def probe(cfg, artifact_pin):
     """One-GPU, 32-RGB-frame private-stack inference cost, excluding RGB decode."""
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('student_pilot/decoupled_v_run.py:probe')
     import statistics
     from .decoupled_v import features
     from .decoupled_vc import freeze_for_inference

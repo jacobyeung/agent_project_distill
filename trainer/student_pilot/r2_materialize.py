@@ -13,7 +13,8 @@ from .r2_intake import intake
 MAX_ROWS_PER_FAMILY = 2000
 
 
-def materialize(manifests, output, *, limit=2000, full=False, select_types=None, metadata_only=False, dense=True, mix_binding=None):
+def materialize(manifests, output, *, limit=2000, full=False, select_types=None, metadata_only=False, dense=True, mix_binding=None,
+                limits=None, progress=None):
     if mix_binding is not None:
         from .r2_mix import preflight
         preflight(**mix_binding)
@@ -40,13 +41,14 @@ def materialize(manifests, output, *, limit=2000, full=False, select_types=None,
                 raise ValueError('Unfiltered route-planning ID collision: select sealed routing by type before combining re-rendered rows; QID=' + row['qid'])
             identities[row['qid']] = item['family']
             rows.append(item)
-    before, missing, built, clips = MEMO.stats(), [], [], {}
+    before, missing, built, clips, dense_clips = MEMO.stats(), [], [], {}, {}
     for item in rows:
         try:
             row = item['row']
             if dense:
                 row, key = build_training(row)
                 clips.setdefault(key, []).append(row['qid'])
+                dense_clips.setdefault(key, row['student_input']['geometry_dense'])
             else:
                 row = {**row, 'student_input': expand_frames(row['student_input'])}
             if metadata_only:
@@ -59,6 +61,8 @@ def materialize(manifests, output, *, limit=2000, full=False, select_types=None,
                 rgb = dict(inputs, frames=[dict(pin, source_index=i) for i, pin in zip(inputs['frame_indices'], inputs['frames'], strict=True)])
                 row = c1_row(row, rgb)
             built.append({**item, 'row': row})
+            if progress is not None:
+                progress()
         except NeedsFrameHost as error:
             missing.append(dict(qid=item['row']['qid'], family=item['family'], reason=str(error)))
     report = dict(schema='r2-materialization-v1', intake=reports, missing=missing,
@@ -77,6 +81,11 @@ def materialize(manifests, output, *, limit=2000, full=False, select_types=None,
     for stream in sorted({item['stream'] for item in built}):
         path = output/(stream+'.sqlite')
         with sqlite3.connect(path) as connection:
+            if limits is not None:
+                pages = limits[stream]//connection.execute('PRAGMA page_size').fetchone()[0]
+                if pages < 2:
+                    raise ValueError('Store over its per-file limit: '+stream)
+                connection.execute('PRAGMA max_page_count='+str(pages))
             connection.execute('CREATE TABLE rows (i INTEGER PRIMARY KEY, row TEXT NOT NULL, target TEXT NOT NULL)')
             selected = [item for item in built if item['stream'] == stream]
             for index, item in enumerate(selected):
@@ -84,9 +93,18 @@ def materialize(manifests, output, *, limit=2000, full=False, select_types=None,
                 members[item['row']['qid']] = digest(dict(row=item['row'], target=item['target'], stream=stream))
         streams[stream] = dict(database=file_pin(path), count=len(selected))
     membership = output/'membership.json'
-    write(membership, dict(contract=CONTRACT, rows=members, intake=reports, content_clips=clips))
+    membership_value = dict(contract=CONTRACT, rows=members, intake=reports, content_clips=clips)
+    if limits is not None and len(json.dumps(membership_value).encode()) > limits['membership']:
+        raise ValueError('Store over its per-file limit: membership')
+    write(membership, membership_value)
     receipt = dict(schema='r2-native-stores-v1', streams=streams, r2_membership=file_pin(membership),
                    frame_layout='duplicate', training_mode='final')
+    if dense:
+        value = dict(schema='r2-dense-manifest-v1', reconstruct_then_subsample=True, clips=dense_clips)
+        if limits is not None and len(json.dumps(value).encode()) > limits['dense']:
+            raise ValueError('Store over its per-file limit: dense')
+        write(output/'d.json', value)
+        receipt['dense_manifest'] = file_pin(output/'d.json')
     write(output/'receipt.json', receipt)
     report['receipt'] = file_pin(output/'receipt.json')
     write(output/'materialization.json', report)

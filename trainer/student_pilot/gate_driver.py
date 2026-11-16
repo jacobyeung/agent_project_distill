@@ -67,6 +67,8 @@ def scene_records(model, tokenizer, rows, bank_path, encode_row, forward_context
 
 
 def run_gate(model, tokenizer, rows, bank_path, heldout, training_scenes, encode_row, forward_context=None):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('student_pilot/gate_driver.py:run_gate')
     from .auxiliary_losses import unwrap
 
     supervision = unwrap(model).auxiliary_heads.camera
@@ -98,6 +100,8 @@ def load_checkpoint(student, adapter_dir, heads_json, heads_pt, device='cuda:0')
 
 
 def main(argv=None):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('student_pilot/gate_driver.py:main')
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--student', required=True)
     parser.add_argument('--adapter-dir', required=True)

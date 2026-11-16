@@ -130,6 +130,8 @@ def read_jsonl(path):
 
 
 def main(argv=None):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('tools/stage1_dev_metrics.py:main')
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dev", required=True)
     parser.add_argument("--earlier", required=True, help="predictions a quarter-epoch before the epoch end")

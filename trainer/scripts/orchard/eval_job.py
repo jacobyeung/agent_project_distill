@@ -68,6 +68,8 @@ def resolve_model_args(variant, env):
 
 
 def main():
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('scripts/orchard/eval_job.py:main')
     argv = sys.argv[1:]
     print_args = bool(argv) and argv[0] == '--print-args'
     if print_args:

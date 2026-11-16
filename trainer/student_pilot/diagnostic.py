@@ -211,6 +211,8 @@ def generation_config(native_config, processor, budget):
 
 
 def evaluate(manifest_path, protocol_path, output, lease_path, variant, training_run=None, retry_plan_path=None, student="onethinker", scratch_root=None, stage_frames=False, provisional_diagnostic=None):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('student_pilot/diagnostic.py:evaluate')
     if provisional_diagnostic is not None and retry_plan_path is not None:
         raise ValueError("Provisional evaluation permits one heldout pass, not the fixed-cohort retry policy")
     lease_check, protocol_loader, manifest_loader = execution_contract(provisional_diagnostic, manifest_path, protocol_path, student, "evaluate", variant)

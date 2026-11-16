@@ -5,6 +5,8 @@ from pathlib import Path
 
 
 def main(argv=None):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('student_pilot/benchmark_eval/__main__.py:main')
     from ..orchard_paths import enabled
     if enabled():
         from ..orchard_eval.__main__ import main as orchard_main

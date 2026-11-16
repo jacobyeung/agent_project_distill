@@ -62,6 +62,8 @@ DECISION_MARGIN_M = 0.20
 
 
 def load_rows(rows_dir):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('headcall/gate_eval.py:load_rows')
     rows = []
     for path in sorted(glob.glob(os.path.join(rows_dir, "rows_*_heldout_calls.jsonl.gz"))):
         with gzip.open(path, "rt") as stream:
@@ -381,6 +383,8 @@ class FullFTCheckpointHeads(object):
 
 
 def main(argv=None):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('headcall/gate_eval.py:main')
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--rows", required=True, help="directory of rows_*_heldout_calls.jsonl.gz")
     parser.add_argument("--training-scenes", required=True, help="TRAINING_SCENES.json of the training conversion")

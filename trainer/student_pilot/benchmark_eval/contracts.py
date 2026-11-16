@@ -277,6 +277,8 @@ def guard_inputs(guard_pin, registry_pin, paths):
 
 
 def load_generation(path):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('student_pilot/benchmark_eval/contracts.py:load_generation')
     path = Path(path).absolute()
     manifest = load_json(path)
     fields = {'schema', 'benchmark', 'paper_cell', 'ordered_ids', 'expected_count', 'config', 'inputs', 'media',

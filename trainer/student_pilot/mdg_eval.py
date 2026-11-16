@@ -172,6 +172,8 @@ def frozen_tau(meta):
 
 
 def load_runtime(cfg, artifact, directory, device, bundle):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('student_pilot/mdg_eval.py:load_runtime')
     from .mdg_runtime import load_runtime as base_runtime
     from .mdg_features import bind_processor
     from .mask_grounding_head import load_artifact
@@ -267,6 +269,8 @@ def read_npz(path):
 
 def run_export(manifest, png_root, memberships, mdg, t0_config, artifact, out, rank=0, world=1,
                device='cpu', chunk=8, t0_bundle=None):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('student_pilot/mdg_eval.py:run_export')
     if type(world) is not int or world < 1 or type(rank) is not int or not 0 <= rank < world or chunk < 1:
         raise ValueError('Invalid rank/world/chunk')
     artifact = GH.artifact_pin(artifact) if isinstance(artifact, str) else artifact
@@ -510,6 +514,8 @@ def report_pointing(scored, baseline, absent, samples):
 
 def run_pointing(export, pointing, ground, absent, out, baseline=BASELINE, gt_roots=None,
                  programs_path=None, samples=4000):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('student_pilot/mdg_eval.py:run_pointing')
     exports = Exports(export)
     output = output_root(out)
     output.mkdir(parents=True, exist_ok=True)
@@ -583,6 +589,8 @@ def mask_record(values, q, k, size, tau):
 
 
 def run_w10(export, membership, out, tag='mdg_t0m800'):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('student_pilot/mdg_eval.py:run_w10')
     if not re.fullmatch('[A-Za-z0-9_-]{1,64}', tag):
         raise ValueError('Unsafe W10 tag')
     exports = Exports(export)

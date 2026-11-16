@@ -153,6 +153,8 @@ def cache_hash(cache):
 
 @stage_assertions(4)
 def main():
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('student_pilot/run_live_parity.py:main')
     p=argparse.ArgumentParser(__doc__)
     p.add_argument('--tree',required=True);p.add_argument('--kit',default='/scratch/jjyeung/orch_cd/verify_kit/work')
     p.add_argument('--adapter',required=True);p.add_argument('--adapter-sha256',required=True)

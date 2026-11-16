@@ -64,6 +64,8 @@ def validate_request(request):
 
 
 def load_tasks(spec, roots):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('evalpath/routed_dev.py:load_tasks')
     if spec['rows']['sha256'] != ROWS_SHA:
         raise ValueError('Development metadata pin differs')
     rows = read_rows(spec['rows'])

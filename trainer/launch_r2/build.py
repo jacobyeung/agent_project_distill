@@ -55,14 +55,25 @@ def scan(root):
     hashes = load(root/'b/wh.json')
     for path in root.rglob('*'):
         relative = str(path.relative_to(root))
-        if path.is_symlink() or bad_string(relative, hashes):
+        if relative.startswith(('o/ee000001/', 'o/ee000002/')):
+            continue
+        runtime = relative.startswith('o/ee000004/')
+        if (path.is_symlink() and (not runtime or not path.resolve().is_relative_to(root.resolve()))) or bad_string(relative, hashes):
             raise ValueError('Forbidden staged path')
-        if path.is_file() and path.suffix == '.json':
+        if path.is_file() and path.suffix == '.json' and not runtime:
             scan_value(load(path), hashes)
     job = (root/'job.sh').read_text()
     for value in re.findall(r'^(?:export\s+\w+=|#SBATCH --(?:job-name|output|error)=)(.*)$', job, re.M):
         if bad_string(value, hashes):
             raise ValueError('Forbidden job argument or environment value')
+    for script in [root/'job.sh', *sorted((root/'b').glob('*.sh'))]:
+        for line in script.read_text().splitlines():
+            if line.startswith('#') and not line.startswith('#SBATCH'):
+                continue
+            if bad_string(line, hashes):
+                raise ValueError('Forbidden job path, argument or environment value')
+            if script.name == 'f.sh' and re.search(r'--(?:gpus|gres)\b', line):
+                raise ValueError('GPU request refused by CPU job')
     return dict(status='CLEAN', hits=0)
 
 
@@ -92,14 +103,20 @@ def verify(root):
         spec.loader.exec_module(a)
         a.main(root, build_only=True)
     finally:
-        sys.modules['v'] = previous
+        if previous is None:
+            sys.modules.pop('v', None)
+        else:
+            sys.modules['v'] = previous
     scan(root)
     return sha256(root/'SHA256SUMS.txt')
 
 
-def build(base, output, *, connector, records, dense_manifest=None, bindings=None):
+def build(base, output, *, connector=None, records=None, dense_manifest=None, bindings=None, overrides=True):
     """Stage from empty. Missing evidence is represented explicitly, never invented."""
     base, output = Path(base), Path(output)
+    if not overrides:
+        from .parent import reproduce
+        return reproduce(base, output)
     if output.exists() and any(output.iterdir()):
         raise ValueError('Kit must stage from empty')
     output.mkdir(parents=True, exist_ok=True)
@@ -132,15 +149,20 @@ def build(base, output, *, connector, records, dense_manifest=None, bindings=Non
     cfg = load(base/'k/b02e4385.json')
     cfg = configure(cfg, connector, dense_manifest=dense_manifest)
     cfg = relocate(cfg, paths)
-    # Source members use opaque names; module identities are labels, never job arguments.
+    # The parent source archive keeps native import semantics behind an opaque name.
     files = tree_files(TREE)
-    source = {}
-    for name, expected in files.items():
-        raw = (TREE/name).read_bytes()
-        if hashlib.sha256(raw).hexdigest() != expected:
-            raise ValueError('Source changed during packaging')
-        source[hashlib.sha256(name.encode()).hexdigest()] = put_bytes(raw, '.dat')
-    source_pin = put(dict(tree_sha256=digest(files), files=source))
+    from student_pilot.source_seal import archive, check_archive
+    archive_name = 'k/t_'+digest(files)[:16]+'.tar'
+    archive(TREE, output/archive_name, files, compress=True)
+    archive_pin = dict(path=archive_name, sha256=sha256(output/archive_name))
+    check_archive({**archive_pin, 'path':str(output/archive_name)}, files)
+    source_pin = put(dict(tree_sha256=digest(files), files=files, archive=archive_pin))
+    from student_pilot.p3_provenance import source_files
+    sources = {str(p.relative_to(TREE)):sha256(p) for p in source_files([TREE/'student_pilot/carrier_c1_run.py'])}
+    code = dict(schema='c1-sealed-source-v1', commit='sha256:'+digest(files),
+                tree_sha256=digest(files), files=files, archive=archive_pin,
+                sources=sources, operation_sources=sources)
+    (output/'k/7.json').write_text(json.dumps(code,sort_keys=True)+'\n')
     registry = put(slots())
     mix = put(table())
     fallback = put(table(True))
@@ -172,6 +194,7 @@ def build(base, output, *, connector, records, dense_manifest=None, bindings=Non
     cfg['r2_build2'].update({k:v for k,v in portable.items() if k in ('counts', 'source_presence')})
     from student_pilot.r2_config import bind_mix
     cfg = bind_mix(cfg, load(output/mix['path']))
+    cfg['code'] = dict(path='k/7.json', sha256=sha256(output/'k/7.json'))
     cfg['s1_route_policy'] = dict(name='frozen-table-no-flag-v1', table=put(cfg['route_table']))
     if 'indices' in portable:
         if not {'mix', 'counts'} <= set(portable):
@@ -189,18 +212,44 @@ def build(base, output, *, connector, records, dense_manifest=None, bindings=Non
                         disclosure=cfg['r2_identity'], admission=False))
     for name in ('a.py','v.py','opaque.py','wh.json'):
         (output/'b'/name).write_bytes((TREE/'launch_s1/b'/name).read_bytes())
-    # Build 3 supplies the host admission and launch entry. This kit can only verify bytes.
+    (output/'b/e.py').write_bytes((TREE/'launch_r2/bootstrap.py').read_bytes())
+    (output/'b/w.py').write_bytes((TREE/'launch_r2/worker.py').read_bytes())
     job_name = 'a15_cot_ap'+digest(dict(config=cfg_pin, identity=identity))[:12]
     job = '#!/bin/bash\n#SBATCH --partition=advanced\n#SBATCH --nodes=1\n#SBATCH --gpus-per-node=4\n'
+    job += '#SBATCH --cpus-per-task=48\n#SBATCH --mem=800G\n#SBATCH --time=24:00:00\n#SBATCH --no-requeue\n'
     job += '#SBATCH --job-name='+job_name+'\n#SBATCH --output=o/%j.out\n#SBATCH --error=o/%j.err\n'
-    job += 'set -euo pipefail\npython3 -B b/a.py . --build-only\nexit 1\n'
+    job += 'set -euo pipefail\nexport TK_JOB_START="${TK_JOB_START:-$(date +%s)}"\npython3 -B b/e.py . t o/ee000001 2>&1 | python3 -B b/opaque.py\n'
     (output/'job.sh').write_text(job)
-    zero = dict(commit='sha256:'+digest(files), trainer=dict(file=source_pin['path'], sha256=source_pin['sha256']),
+    cpu_job = '#!/bin/bash\n#SBATCH --partition=general\n#SBATCH --nodes=1\n#SBATCH --cpus-per-task=8\n'
+    cpu_job += '#SBATCH --mem=800G\n#SBATCH --time=06:00:00\n#SBATCH --no-requeue\n'
+    cpu_job += '#SBATCH --job-name='+job_name+'\n#SBATCH --output=o/%j.out\n#SBATCH --error=o/%j.err\n'
+    cpu_job += 'set -euo pipefail\nmkdir -p o/ee000003\n'
+    cpu_job += '[[ "${SLURM_GPUS_ON_NODE:-0}" == 0 && "${SLURM_GPUS:-0}" == 0 && "${SLURM_JOB_GPUS:-0}" == 0 && "${SLURM_GPUS_PER_NODE:-0}" == 0 && -z "${CUDA_VISIBLE_DEVICES:-}" ]] || exit 2\n'
+    cpu_job += 'env -i PATH=/usr/bin:/bin TMPDIR="$PWD/o/ee000003" XDG_CACHE_HOME="$PWD/o/ee000003/c1" HF_HOME="$PWD/o/ee000003/c2" TORCH_HOME="$PWD/o/ee000003/c3" HF_HUB_OFFLINE=1 OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 CUDA_VISIBLE_DEVICES="" PYTHONDONTWRITEBYTECODE=1 python3 -B b/e.py . h o/ee000002 2>&1 | env -i PATH=/usr/bin:/bin python3 -B b/opaque.py\n'
+    (output/'b/f.sh').write_text(cpu_job)
+    zero = dict(commit='sha256:'+digest(files), trainer=dict(file=archive_name, sha256=archive_pin['sha256']),
                 record=dict(file=identity['path'], sha256=identity['sha256']),
                 extra=relocate(pose, paths), staging=staging_pin)
     (output/'k/0.json').write_text(json.dumps(zero,sort_keys=True)+'\n')
     (output/'k/1.json').write_text(json.dumps({'0':Path(cfg_pin['path']).stem})+'\n')
-    (output/'k/4.json').write_text(json.dumps(dict(modes=[], arm=['0'], admission=False))+'\n')
+    authorization = relocate(load(base/'k/4.json'), paths)
+    authorization.update(source_revision='sha256:'+digest(files), admission=False)
+    (output/'k/4.json').write_text(json.dumps(authorization)+'\n')
+    launch = dict(schema='r2-production-launch-v1', config=dict(file=cfg_pin['path'],sha256=cfg_pin['sha256']),
+                  source_revision=zero['commit'], source=source_pin, inputs=None,
+                  prepared=None,
+                  production_authorized=False, modes=authorization['modes'],
+                  missing=['component evidence', 'post-filter counts', 'frame-host input inventory', 'independent review'])
+    (output/'k/launch.json').write_text(json.dumps(launch)+'\n')
+    from .host import ESTIMATES, LIMITS
+    (output/'k/f.json').write_text(json.dumps(dict(schema='r2-frame-host-packet-v1',
+        manifests=None,pose_sources=None,configuration=None,pose_template=None,real_proof=None,counts=None,
+        dense=None,init_archive=None,init_members=None,init_member_limit=None,
+        output='o/ee000004',wall_seconds=21600,idle_seconds=1200,limits=LIMITS,
+        estimates=ESTIMATES,estimates_source='user build brief',
+        boundary='CPU tensors before model forward',production_authorized=False))+'\n')
+    launch['inputs'] = dict(path='k/f.json',sha256=sha256(output/'k/f.json'))
+    (output/'k/launch.json').write_text(json.dumps(launch)+'\n')
     manifest = {str(p.relative_to(output)):sha256(p) for d in ('b','k') for p in (output/d).rglob('*') if p.is_file()}
     manifest['job.sh'] = sha256(output/'job.sh')
     (output/'SHA256SUMS.txt').write_text(''.join(f'{h}  {name}\n' for name,h in sorted(manifest.items())))
@@ -211,7 +260,7 @@ def build(base, output, *, connector, records, dense_manifest=None, bindings=Non
     result = dict(schema='r2-kit-v1', config=cfg_pin, identity=identity, kit_sha256=verify(output),
                   bytes=sum(p.stat().st_size for p in output.rglob('*') if p.is_file()),
                   target_site=SITE, source_sha256=digest(files), job_name=job_name, admission=False,
-                  blockers=['component evidence', 'post-filter counts', 'host admission', 'launch entry'],
+                  blockers=['component evidence', 'post-filter counts', 'host admission', 'independent review'],
                   provenance={role:sha256(path) for role,path in records.items()})
     (output/'BUILD.json').write_text(json.dumps(result,indent=2)+'\n')
     return result

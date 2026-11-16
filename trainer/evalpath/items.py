@@ -67,6 +67,8 @@ def load_items(spec, roots):
     generation inputs + scoring labels) and a pinned v3 ID list when available.
     Labels stay in task records and never enter a trainer row.
     """
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('evalpath/items.py:load_items')
     from .kit_inputs import resolve_spec, official_rows
     spec = resolve_spec(spec, roots)
     benchmark = spec['benchmark']

@@ -14,7 +14,11 @@ def configure(parent, geometry_connector, *, dense_manifest=None, stage=1):
     if parent.get('camera_connector') or parent.get('camera_overrides', {}).get('g3t_prior', {}).get('carrier_connector'):
         raise ValueError('Camera connector is forbidden in both configurations')
     cfg = deepcopy({k:v for k,v in parent.items() if k != 'mdg'})
+    from launch_r2.parent import layout_config
+    cfg.update(layout_config(cfg, {}, 'four'))
     cfg['geometry_connector'] = geometry_connector
+    cfg['routing_opener_init'] = 'keep'
+    cfg['stream_layout'] = 'four'
     cfg['camera_connector'] = False
     cfg['target_site'] = SITE
     cfg['world_size'] = 4

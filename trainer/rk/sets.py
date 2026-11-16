@@ -88,23 +88,31 @@ def parse_revsi(row):
 
 @lru_cache(maxsize=1)
 def _dev_rows():
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('rk/sets.py:_dev_rows')
     return [json.loads(s) for s in DEV.read_text().splitlines() if s.strip()]
 
 
 @lru_cache(maxsize=1)
 def _revsi_rows():
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('rk/sets.py:_revsi_rows')
     if not CACHE.exists():
         raise FileNotFoundError(f'{CACHE}; run python -m rk.sets cache-revsi')
     return json.loads(CACHE.read_text())
 
 
 def dev_items():
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('rk/sets.py:dev_items')
     return [dict(qid=str(r['id']), set='dev', type=r['question_type'], dataset=r['dataset'],
                  scene=r['scene_name'], question=r['question'], options=list(r['options']))
             for r in _dev_rows() if r['question_type'] in DEV_TYPES]
 
 
 def revsi_items():
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('rk/sets.py:revsi_items')
     out = []
     for r in _revsi_rows():
         typ = r.get('category', r['question_type'])
@@ -119,6 +127,8 @@ def revsi_items():
 
 
 def answers(which):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('rk/sets.py:answers')
     rows = _dev_rows() if which == 'dev' else _revsi_rows() if which == 'revsi' else None
     if rows is None:
         raise ValueError(which)
@@ -135,6 +145,8 @@ def labels(item):
 
 
 def cache_revsi():
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('rk/sets.py:cache_revsi')
     if CACHE.exists():
         raise FileExistsError(CACHE)
     if Path(sys.executable).parent != Path(PLANNER).parent:
@@ -158,6 +170,8 @@ def cache_revsi():
 
 
 def scene_labels(which):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('rk/sets.py:scene_labels')
     from .anchors import scene_key
     out = {}
     for item in dev_items() if which == 'dev' else revsi_items():

@@ -36,6 +36,8 @@ def choose_items(rows, labels):
 
 
 def check(args):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('tools/hc_v3_decode_check.py:check')
     sys.path.insert(0, os.environ["ANYHOST_JOBS"])
     import eval_ops_aws
     receipt = eval_ops_aws.stage()
@@ -157,6 +159,8 @@ class Forced(object):
 
 
 def probe(preflight_path, items_path, out_path):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('tools/hc_v3_decode_check.py:probe')
     import torch
     from transformers import AutoProcessor
     from headcall.decode import DecodeConfig, headcall_generate
@@ -212,6 +216,8 @@ def probe(preflight_path, items_path, out_path):
 
 
 def main():
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('tools/hc_v3_decode_check.py:main')
     if len(sys.argv) > 1 and sys.argv[1] == "--probe":
         probe(*sys.argv[2:5])
         return

@@ -83,6 +83,8 @@ def _base_receipt(row, header, audit=None):
 def generate_run(manifest_path, model_name, variant, output, artifact_root, preflight_path,
                  lease_path=None, coord_root=None, model_root=None, adapter=None, training_receipt=None,
                  resume=False, cpu_mock=False, generator=None, test_hook=None, paired_base_run=None, provisional_diagnostic=None):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('student_pilot/benchmark_eval/generate.py:generate_run')
     scope = flags(provisional_diagnostic)
     manifest, rows, config = load_generation(manifest_path)
     if provisional_diagnostic is not None and manifest['benchmark'] not in ('vsibench_answerable500', 'vstibench_repr450_v2'):

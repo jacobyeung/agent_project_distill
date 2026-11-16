@@ -53,6 +53,8 @@ def validate_request(request):
 
 
 def load_tasks(request):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('evalpath/pointing_markers.py:load_tasks')
     value = json.loads(pinned(request['datasets'][0]['rows']).read_text())
     rows = value['items']
     if (len(rows) != 1000 or len({r['id'] for r in rows}) != 1000 or value['seed'] != 17 or
@@ -323,6 +325,8 @@ def summarize(records, tasks, parity_pass):
 
 
 def run_worker(request, rank, world_size, device=None):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('evalpath/pointing_markers.py:run_worker')
     if request.get('kind') == 'candidate':
         from .pointing_candidates import run_worker as candidate_worker
         return candidate_worker(request, rank, world_size, device)

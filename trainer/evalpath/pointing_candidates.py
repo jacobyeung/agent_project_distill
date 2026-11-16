@@ -118,6 +118,8 @@ def check_records(records, tasks, specs):
 
 
 def run_worker(request, rank, world_size, device=None):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('evalpath/pointing_candidates.py:run_worker')
     import torch
     from student_pilot.carrier_c1_run import move
     from . import pointing_markers as pm

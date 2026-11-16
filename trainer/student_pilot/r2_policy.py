@@ -151,3 +151,13 @@ def legacy_reader_guard(cfg, artifact_pin):
     if (any(key in cfg for key in ('r2', 'r2_identity', 'r2_build2', 'geometry_connector'))
             or ancestor == INIT['artifact_sha256'] or artifact_pin.get('sha256') == INIT['artifact_sha256']):
         raise ValueError('Legacy reader has no authenticated R2 bank adapter; use the bound bank gateway')
+
+
+def unsupported_entry(entry):
+    """This derived tree cannot authenticate legacy item formats. Fail before IO.
+
+    The only admitted bank reader is read_bank: it binds actual item digests and
+    the reader implementation. Renaming a bank or omitting lineage labels cannot
+    enable a legacy entrypoint in this tree.
+    """
+    raise ValueError('Legacy reader has no authenticated R2 bank adapter: '+entry)

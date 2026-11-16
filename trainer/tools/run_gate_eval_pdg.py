@@ -128,6 +128,8 @@ class FullFTCheckpointHeads(object):
 
 
 def main(argv=None):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('tools/run_gate_eval_pdg.py:main')
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--rows", required=True)
     parser.add_argument("--training-scenes", required=True)

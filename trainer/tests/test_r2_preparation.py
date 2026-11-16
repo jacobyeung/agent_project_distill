@@ -19,7 +19,15 @@ class PreparationProof(unittest.TestCase):
         for stream in ('pose', 'vqa', 'pointing', 'routing'):
             row = fixture(root, qid=stream, stream=stream)
             if stream == 'pose':
-                row.update(category='camera_pose_only', pose_sample=dict(recording=dict(sampling=dict(variant='all_frames32'))))
+                from student_pilot.pose_samples import AUGMENT, SCHEMA
+                target = row['target_record']
+                from student_pilot.camera_targets import trajectory_scale
+                target['trajectory_scale'] = trajectory_scale(target['camera'], target['camera_mask'])
+                row.update(category='camera_pose_only', pose_sample=dict(schema=SCHEMA,
+                    recording=dict(sampling=dict(variant='all_frames32')), frames=32, positions=list(range(32)),
+                    temporal_grouping='fused_pairs_all_frames', anchors=list(range(1,33)),
+                    augment={**AUGMENT,'seed':17, **{k:0 for k in ('brightness','contrast','saturation','hue','blur_p','grayscale_p')}}, metric=True,
+                    **{k:target[k] for k in ('camera','camera_mask','trajectory_scale','gravity','gravity_mask')}))
             manifests.append(manifest(root/stream, [row], stream))
         with patch.dict('os.environ', STUDENT_FRAME_ROOT_MAP=json.dumps({'/logical/r2': str(root/'frames')}), S1_CPU_REHEARSAL='1'):
             report = materialize(manifests, root/'stores')

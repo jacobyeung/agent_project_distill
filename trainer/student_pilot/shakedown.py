@@ -165,6 +165,8 @@ def train(arm):
 
 
 def evaluate(arm):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('student_pilot/shakedown.py:evaluate')
     import torch
     from transformers import set_seed
     from .batches import load_processor
@@ -211,6 +213,8 @@ def evaluate(arm):
 
 
 def score():
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('student_pilot/shakedown.py:score')
     from .admission import authorities,load_scorer,resolve_answer_key
     from .diagnostic_data import score_trace
     contract,_,_,_ = authorities()

@@ -43,14 +43,27 @@ def preparation(cfg):
         raise ValueError('Next-leg membership requires the init and new-run binding')
     if spec is not None:
         check_init(spec, load(pinned(spec['export_metadata'])))
-        if cfg.get('init_artifact', {}).get('artifact', {}).get('sha256') != INIT['artifact_sha256']:
-            raise ValueError('Trainer init artifact differs from next-leg binding')
+        lineage_init(cfg.get('init_artifact', {}).get('artifact', {}))
         if load(pinned(cfg['code'])).get('tree_sha256') != spec['code_sha256']:
             raise ValueError('New run code identity differs')
         if digest({key: cfg.get(key) for key in ('recipe', 'streams', 'route_table')}) != spec['mixture_sha256']:
             raise ValueError('New run mixture identity differs')
         Admission(cfg['r2_membership'])
     return spec
+
+
+def lineage_init(pin):
+    if pin.get('sha256') == INIT['artifact_sha256']:
+        return
+    try:
+        artifact = load(pinned(pin))
+        if (artifact.get('schema') != 'carrier-c1-artifact-v1' or artifact.get('r2_identity', {}).get('init') != INIT
+                or not isinstance(artifact.get('source_seal'),dict)):
+            raise ValueError('Foreign lineage')
+        from .source_seal import check_export
+        check_export({'source_seal':artifact['training_source_seal']},artifact)
+    except (ValueError, KeyError, OSError) as error:
+        raise ValueError('Trainer init artifact differs from next-leg binding') from error
 
 
 def expand_frames(inputs):

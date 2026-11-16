@@ -83,6 +83,8 @@ def stratified(rows, count):
 
 
 def official_rows(spec, roots):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('evalpath/kit_inputs.py:official_rows')
     rows = read_rows(spec['rows'])
     if len(rows) != 5130 or len(index_rows(rows)) != 5130:
         raise ValueError('Official metadata must contain exactly 5130 distinct items')

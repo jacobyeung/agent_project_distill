@@ -150,6 +150,8 @@ def check_sample(row, max_groups=GROUPS):
 
 def augment(arrays, settings):
     """Photometric augmentation, one draw per frame (DUSt3R/CUT3R's per-view colour jitter), seeded by the row."""
+    if all(settings.get(key) == 0 for key in ('brightness','contrast','saturation','hue','blur_p','grayscale_p')):
+        return np.array(arrays, copy=True)
     import torch
     from torchvision.transforms.v2 import functional as TF
 

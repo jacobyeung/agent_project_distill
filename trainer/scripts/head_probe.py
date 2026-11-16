@@ -219,6 +219,8 @@ def load_results(out):
 
 
 def main():
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('scripts/head_probe.py:main')
     ap = argparse.ArgumentParser()
     ap.add_argument('--pack', required=True)
     ap.add_argument('--probe', required=True)

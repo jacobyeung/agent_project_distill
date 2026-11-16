@@ -252,6 +252,8 @@ def make_plan(request, counts, held, missing):
 
 
 def run_worker(request, rank, world_size, device=None):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('evalpath/heldout_loss.py:run_worker')
     import torch
     from .run import binding_for, read_journal, append_record, write_json
     validate_request(request)

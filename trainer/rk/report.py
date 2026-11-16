@@ -1,4 +1,6 @@
 """Item-paired scores, scene bootstrap and the preregistered routing decision."""
+from student_pilot.r2_policy import unsupported_entry
+unsupported_entry('rk/report.py:import')
 import argparse
 from collections import defaultdict
 import json

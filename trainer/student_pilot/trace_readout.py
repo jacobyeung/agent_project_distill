@@ -140,6 +140,8 @@ def pin(path):
 
 
 def main():
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('student_pilot/trace_readout.py:main')
     parser = argparse.ArgumentParser()
     parser.add_argument('--generations', required=True, type=Path)
     parser.add_argument('--membership', required=True, type=Path)

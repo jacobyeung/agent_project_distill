@@ -158,6 +158,8 @@ def summarize(score_dir, run_dir):
 
 
 def main(argv=None):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('tools/headcall_eval_summary.py:main')
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--score", required=True)
     parser.add_argument("--run", required=True)

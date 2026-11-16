@@ -224,6 +224,8 @@ def load_dsi(data_root, manifest_path=None, synthetic=False):
 
 def prepare(benchmark, config_path, output, artifact_root, data_root, media_root=None, membership=None,
             provenance=None, project_root=None, dataset_manifest=None, media_index=None, synthetic=False):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('student_pilot/orchard_eval/prepare.py:prepare')
     if benchmark not in BENCHMARKS:
         raise ValueError('Unsupported benchmark; no full-VSIBench shortcut')
     paper = not synthetic

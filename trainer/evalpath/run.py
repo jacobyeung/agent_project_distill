@@ -140,6 +140,8 @@ def aggregate(records, tasks, parity_pass):
 
 
 def load_request_items(request):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('evalpath/run.py:load_request_items')
     tasks = [task for spec in request['datasets'] for task in load_items(spec, request['roots'])]
     if request.get('preset') == 'routed_types':
         from .routed_types import select
@@ -203,6 +205,8 @@ def validate_request(request):
 
 
 def run_worker(request, rank, world_size, device=None):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('evalpath/run.py:run_worker')
     try:
         return _run_worker(request, rank, world_size, device)
     except BaseException as exc:

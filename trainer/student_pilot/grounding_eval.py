@@ -75,6 +75,8 @@ def artifact_pin(value):
 
 
 def load_runtime(cfg, artifact, gh_dir, device):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('student_pilot/grounding_eval.py:load_runtime')
     from .r2_policy import legacy_reader_guard
     legacy_reader_guard(cfg, artifact)
     from . import carrier_c1_run as run
@@ -163,6 +165,8 @@ def make_request(membership, gh, t0_config, artifact, frame_cache, world, pm):
 
 def run_worker(membership, gh, t0_config, artifact, frame_cache, out, rank, world, *,
                evalx_root=None, device=None):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('student_pilot/grounding_eval.py:run_worker')
     pm = pointing_module(evalx_root)
     request = make_request(membership, gh, t0_config, artifact, frame_cache, world, pm)
     cfg = load(pinned(request['t0_config']))
@@ -214,6 +218,8 @@ def run_worker(membership, gh, t0_config, artifact, frame_cache, out, rank, worl
 
 
 def merge(out, world):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('student_pilot/grounding_eval.py:merge')
     output = Path(out)
     request = load(output/'run.json')
     if world != request['world']:
@@ -247,6 +253,8 @@ def merge(out, world):
 
 
 def to_ground(records, membership, tag, out='out/ground'):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('student_pilot/grounding_eval.py:to_ground')
     if not re.fullmatch(r'[A-Za-z0-9_-]{1,80}', tag):
         raise ValueError('Invalid ground tag')
     scenes = {r['id']: r['scene'] for r in load(membership)['items']}

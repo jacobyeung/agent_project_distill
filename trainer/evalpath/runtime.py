@@ -52,6 +52,8 @@ def check_init_spec(receipt, artifact_pin, spec=None):
 
 def load_model(kind, cfg, *, artifact_pin=None, snapshot=None, device='cuda:0', selected_trainer=None,
                on_stage=None, init_spec=None):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('evalpath/runtime.py:load_model')
     def stage(name):
         if on_stage:
             on_stage(dict(phase=name))

@@ -9,6 +9,8 @@ from student_pilot.acceptance_evidence import stage_assertions
 def sha(p):return hashlib.sha256(Path(p).read_bytes()).hexdigest()
 @stage_assertions(6)
 def main():
+ from student_pilot.r2_policy import unsupported_entry
+ unsupported_entry('scripts/gpu_native_selector.py:main')
  p=argparse.ArgumentParser(__doc__)
  for n in ['config','artifact','bundle','rows','geometry','sam-source','sam-checkpoint','out']:p.add_argument('--'+n,required=True)
  p.add_argument('--call-mode',choices=('scripted','free'),required=True)

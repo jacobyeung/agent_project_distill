@@ -270,6 +270,8 @@ def check_heldout(records, heldout, training_scenes):
 
 def evaluate(records, heads, heldout, training_scenes, gate=GATE):
     """Full gate report over held-out scene records (see evaluate_scene for the record layout)."""
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('student_pilot/gate_eval.py:evaluate')
     heads = set(heads)
     if 'pose' not in heads or heads - {'pose', 'gravity', 'scale', 'depth'}:
         raise ValueError('Heads must include pose and be drawn from pose, gravity, scale and depth')

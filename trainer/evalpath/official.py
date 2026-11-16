@@ -304,6 +304,8 @@ def score_official_vsibench(
     records: List[Dict[str, Any]],
     expected_count: int = 5130,
 ) -> Dict[str, Any]:
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('evalpath/official.py:score_official_vsibench')
     if expected_count > 0 and len(records) != expected_count:
         raise RuntimeError(
             f"Incomplete official VSI-Bench run: got {len(records)} records, expected {expected_count}"
@@ -421,6 +423,8 @@ def score_our_cell(
     expected_count: int,
     proto: Optional[Dict[str, Any]] = None,
 ) -> Tuple[Dict[str, Any], List[Dict[str, Any]]]:
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('evalpath/official.py:score_our_cell')
     if benchmark_name == "vsibench_answerable500":
         primary_groups = VSI_PRIMARY_GROUPS
         metric_name = "vsibench-official-8task-v1"

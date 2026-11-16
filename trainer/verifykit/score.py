@@ -216,6 +216,8 @@ def decision(on_target, baseline, routed=None):
 
 
 def evaluate(a):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('verifykit/score.py:evaluate')
     frozen=json.loads(Path(a.frozen).read_text()) # Must exist before held-out labels are read.
     tuning=set(frozen['tuning_scenes'])
     groups=validate(rows(a.candidates))

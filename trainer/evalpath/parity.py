@@ -230,6 +230,8 @@ def heldout_rows(pin, roots=None):
 
 def run_suite(model, processor, cfg, kind, vqa_rows, *, routing_pin=None, max_new_tokens=None, routing_roots=None,
               strict=False, parity_tasks=None, dev=False, on_item=None):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('evalpath/parity.py:run_suite')
     import torch
     from student_pilot.carrier_c1_run import move
     from .runtime import generate, prompt_batch

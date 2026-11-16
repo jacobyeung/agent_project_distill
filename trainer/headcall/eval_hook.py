@@ -134,6 +134,8 @@ def evaluate_head_vs_shuffled(model, processor, heads, samples, effective, grade
     rows carry scenes), so the control differs only in which sample's head values the trace receives.
     Each item in `samples` is a dict with `batch` (processor tensors), optional `key`, optional `row`, and optional
     `gold` (expected final answer). `grader(pred, gold, sample)` defaults to exact normalized string equality."""
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('headcall/eval_hook.py:evaluate_head_vs_shuffled')
     from .phase1 import camera_heads
     pool = HeadOutputPool()
     recorder = RecordingHeads(heads, pool)

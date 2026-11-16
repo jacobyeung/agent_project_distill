@@ -5,6 +5,8 @@ from pathlib import Path
 
 
 def main(argv=None):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('student_pilot/orchard_eval/__main__.py:main')
     parser = argparse.ArgumentParser(description='Matched RGB-only local student benchmark evaluation')
     sub = parser.add_subparsers(dest='command', required=True)
     repo = Path(__file__).resolve().parents[2]

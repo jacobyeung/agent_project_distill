@@ -369,6 +369,8 @@ def generate_run(manifest_path, model_name, variant, output, artifact_root, pref
                  headcall=None):
     # allow_unpaired_adapter (the AWS eval closure's flag, evaluator 4259ec3): a labeled distilled arm compared against an
     # external parent instead of a cold-base run of this evaluator; the run core records comparison_mode external_parent.
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('student_pilot/orchard_eval/generate.py:generate_run')
     if allow_unpaired_adapter and (variant != 'distilled' or provisional_diagnostic is None or paired_base_run is not None):
         raise ValueError('Standalone adapter evaluation requires an explicitly labeled distilled run without a cold-base pair')
     model_device_map(model_name, device_mode, check_cuda=False)

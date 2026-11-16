@@ -1,4 +1,6 @@
 import hashlib
+import gzip
+from contextlib import ExitStack
 import io
 import os
 from pathlib import Path, PurePosixPath
@@ -26,9 +28,15 @@ def inventory(root):
     return files
 
 
-def archive(root, output, files):
+def archive(root, output, files, *, compress=False):
     root = Path(root)
-    with tarfile.open(output, "x") as target:
+    with ExitStack() as stack:
+        if compress:
+            raw_output = stack.enter_context(Path(output).open('xb'))
+            compressed = stack.enter_context(gzip.GzipFile(filename='', mode='wb', fileobj=raw_output, mtime=0))
+            target = stack.enter_context(tarfile.open(fileobj=compressed, mode='w'))
+        else:
+            target = stack.enter_context(tarfile.open(output, 'x'))
         for name in sorted(files):
             raw = (root / name).read_bytes()
             if hashlib.sha256(raw).hexdigest() != files[name]:

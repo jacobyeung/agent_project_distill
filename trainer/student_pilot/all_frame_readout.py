@@ -103,6 +103,8 @@ def even_records(records):
 
 
 def evaluate(records, heads, heldout, training):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('student_pilot/all_frame_readout.py:evaluate')
     heads = set(heads)
     result = dict(protocol='head_acc_origin_metric_v1',
                 geometry_validation=validation_summary(record['pred'] for record in records),

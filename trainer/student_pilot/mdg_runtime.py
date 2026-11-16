@@ -167,6 +167,8 @@ def _empty_base(base_dir):
 
 
 def load_runtime(cfg, device):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('student_pilot/mdg_runtime.py:load_runtime')
     if not cfg.get('bundle'):
         from .grounding_train import load_runtime as native_runtime
         return native_runtime(cfg, device)

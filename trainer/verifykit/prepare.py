@@ -17,6 +17,8 @@ def mdg_presence(root, scene, name):
 
 
 def prepare_dev(out, scenes=None, presence_root=None):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('verifykit/prepare.py:prepare_dev')
     index = json.loads(INDEX.read_text())
     groups, pins = [], {str(INDEX): sha(INDEX)}
     for scene, entry in sorted(index.items()):
@@ -118,6 +120,8 @@ def label_candidates(candidates_path, out, add_oracle_v3=None, split='all', spli
 
 
 def prepare_pointing(out, membership, scenes=None):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('verifykit/prepare.py:prepare_pointing')
     items = json.loads(Path(membership).read_text())['items']
     T = tplib()
     grouped = defaultdict(list)

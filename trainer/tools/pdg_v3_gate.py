@@ -44,6 +44,8 @@ def credit(parsed, gt):
 
 
 def load_pqs(path):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('tools/pdg_v3_gate.py:load_pqs')
     out = {}
     for line in Path(path).read_text().splitlines():
         if line.strip():
@@ -53,6 +55,8 @@ def load_pqs(path):
 
 
 def load_questions(directory):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('tools/pdg_v3_gate.py:load_questions')
     records = {}
     for path in sorted(Path(directory).glob("*.json")):
         record = json.loads(path.read_text())
@@ -69,6 +73,8 @@ def bootstrap(diffs, draws=10000, seed=17):
 
 
 def main():
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('tools/pdg_v3_gate.py:main')
     parser = argparse.ArgumentParser()
     parser.add_argument("questions")
     parser.add_argument("--base", required=True)

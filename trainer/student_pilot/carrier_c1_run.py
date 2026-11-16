@@ -482,7 +482,8 @@ def prepare(cfg):
     if prefix is not None:
         pose = prefix
     tiny_pose = rehearsal.enabled() and pose.get('rehearsal') is True and 0 < pose.get('count', 0) <= 128
-    if ((mix is None and (pose.get('schema') != 'decoupled-v-preparation-v1' or (pose.get('count') != 321152 and not tiny_pose)))
+    r2_pose = bool(cfg.get('r2_membership') and cfg.get('r2') and pose.get('count', 0) > 0)
+    if ((mix is None and (pose.get('schema') != 'decoupled-v-preparation-v1' or (pose.get('count') != 321152 and not tiny_pose and not r2_pose)))
             or pose['settings']['anchors'] != list(range(1, 33))
             or pose['settings']['temporal_grouping'] != 'fused_pairs_all_frames'):
         raise ValueError('C1 requires the admitted 321152-row all-frame A1 preparation')
@@ -607,7 +608,8 @@ def prepare(cfg):
                   depth_enabled=cfg.get('depth_enabled', True), recipe=cfg['recipe'])
     result.update({k: cfg[k] for k in ('frame_layout', 'frame_pair_gap_seconds', 'skip_unsupervised_lm',
                                        'depth_fov_source', 'depth_init', 'exclusions', 'report_exclusions',
-                                       'tool_mode_flag', 'ground_target_filter', 's1_route_policy', 'r2_membership') if k in cfg})
+                                       'tool_mode_flag', 'ground_target_filter', 's1_route_policy', 'r2_membership',
+                                       'routing_opener_init', 'routing_vocabulary', 'r2_identity') if k in cfg})
     if 'mdg' in cfg:
         result['mdg'] = cfg['mdg']
     if 'validation' in cfg:
@@ -669,6 +671,8 @@ def prepared(cfg, admission=False):
         # Freeze-time levers change no prepared stream: the config's init, teacher projector and
         # camera loss weights win over the receipt.
         receipt = {**receipt, 'align': cfg.get('align'), 'init_artifact': cfg.get('init_artifact'),
+                   'routing_opener_init': cfg.get('routing_opener_init', 'reset'),
+                   'routing_vocabulary': cfg.get('routing_vocabulary'),
                    'frame_markers': cfg.get('frame_markers', False),
                    'pointing_weights': cfg.get('pointing_weights'),
                    'camera': {**receipt['camera'], **cfg.get('camera_overrides', {})}}
@@ -780,7 +784,8 @@ def load_model(manifest, receipt, processor, verify_assets=True, evaluation=Fals
         if ground_tokens.enabled(receipt):
             ground_tokens.initialize_after_warm(model, processor, getattr(model, 'init_report', None))
         else:
-            routing.init_routing_embeddings(model, processor._routing_tokens)
+            from .r2_openers import initialize
+            initialize(model, processor, receipt)
         if receipt.get('depth_init'):
             from .carrier_c1 import load_depth_stage1
             model.depth_init_report = load_depth_stage1(model, receipt['depth_init'], verify=verify_assets)
@@ -892,6 +897,7 @@ def init_from_artifact(model, spec, verify=True, part='heads', evaluation=False)
         if not donor or not live or any(donor[k] != live[k] for k in architecture):
             raise ValueError('GF1 warm-start architecture differs')
     report = dict(artifact=spec['artifact'], step=artifact.get('step'), lm=spec['lm'], heads=sorted(spec['heads']))
+    report['r2_lineage'] = (artifact.get('r2_identity') or {}).get('init', {}).get('artifact_sha256')
     opener_ids = (artifact.get('mdg', {}).get('lora_config') or {}).get('opener_tokens')
     if spec['lm'] == 'full' and opener_ids:
         report['ground_token_ids'] = opener_ids
@@ -1602,20 +1608,22 @@ def optimize_step(model, optimizer, rows, plan, rank, device, step, distributed=
                 peak_reserved_bytes=max(reserved_peaks + [torch.cuda.max_memory_reserved(device) if device.type=='cuda' else 0])), pose_batch
 
 
-def dryrun(cfg, report_path):
+def dryrun(cfg, report_path, *, encode_only=False):
     start = time.perf_counter()
     receipt, manifest = prepared(cfg, admission=True)
     auth_seconds = time.perf_counter()-start
     processor = processor_for_receipt(manifest, receipt)
+    recipe = recipe_for(cfg)
+    counts = {k:v['count'] for k,v in receipt['streams'].items()}
+    offset = cfg.get('row_start_step', 0)
+    plan = next(data.mixed_indices(counts,offset+1,start_step=offset,training_mode=cfg.get('training_mode', 'mixed'),
+                                 mix=recipe['mix'],world=recipe['world_size'],r2_sampling=cfg.get('r2_sampling')))
+    if encode_only:
+        return encode_plan_rows(receipt, processor, [plan], list(range(recipe['world_size'])), report_path)
     start = time.perf_counter(); model = load_model(manifest,receipt,processor).cpu().train()
     load_seconds = time.perf_counter()-start
     optimizer = torch.optim.AdamW(parameter_groups(model, **gx_recipe(model)),weight_decay=RECIPE['weight_decay'])
     rows = Rows(receipt,processor)
-    counts = {k:v['count'] for k,v in receipt['streams'].items()}
-    recipe = recipe_for(cfg)
-    offset = cfg.get('row_start_step', 0)
-    plan = next(data.mixed_indices(counts,offset+1,start_step=offset,training_mode=cfg.get('training_mode', 'mixed'),
-                                   mix=recipe['mix'],world=recipe['world_size'],r2_sampling=cfg.get('r2_sampling')))
     rank_shapes = []
     try:
         # Encode each rank's actual first row in every stream; no synthetic admission.
@@ -2006,6 +2014,8 @@ def export(directory, wrapped, model, cfg, step, *, optimizer=None, disk_guard=N
         sealed = binding(load(pinned(cfg['code'])), identity(cfg)) if cfg.get('code') else None
         training_seal = load(pinned(cfg['preparation'])).get('source_seal') if sealed is not None else None
         write(directory/'artifact.json',dict(**version_metadata,schema='carrier-c1-artifact-v1',step=step,
+            **({ 'r2_identity': cfg['r2_identity'],
+                 'routing_vocabulary': getattr(model, 'routing_vocabulary', None)} if cfg.get('r2_identity') else {}),
             **(dict(trained_groups=contract) if contract is not None else {}),
             **(dict(source_seal=sealed, training_source_seal=training_seal) if sealed is not None else {}),
             config_sha256=identity(cfg),base_identity=cfg['base_identity'],
@@ -2914,7 +2924,26 @@ def check_plan_rows(model, rows, plans, ranks, sink=None, device=None):
     return records
 
 
-def first_batch_check(cfg, ranks, out_path, steps=1, device='cpu', progress_dir=None, rank_limit=None):
+def encode_plan_rows(receipt, processor, plans, ranks, out_path):
+    rows = Rows(receipt, processor)
+    records = []
+    try:
+        for step, plan in enumerate(plans, 1):
+            for stream, indices in plan:
+                for rank in ranks:
+                    batch, _, _ = rows.get(stream, int(indices[rank]))
+                    if any(v.is_cuda for v in batch.values() if hasattr(v, 'is_cuda')):
+                        raise ValueError('Encoding-only admission requires CPU tensors')
+                    records.append(dict(step=step, rank=rank, stream=stream, index=int(indices[rank]),
+                                        tokens=int(batch['input_ids'].shape[-1]), forward=False))
+        write(out_path, dict(schema='r2-encoded-first-batch-v1', records=records,
+                             boundary='before model forward', native_full_forward=False))
+        return records
+    finally:
+        rows.close()
+
+
+def first_batch_check(cfg, ranks, out_path, steps=1, device='cpu', progress_dir=None, rank_limit=None, encode_only=False):
     """First-batch check: every listed rank's first-step rows run the full forward on one device (CPU by
     default, or one GPU), with the LM base in BF16 as FSDP computes it and the heads in FP32."""
     validate(cfg)
@@ -2932,6 +2961,10 @@ def first_batch_check(cfg, ranks, out_path, steps=1, device='cpu', progress_dir=
     counts = {k: v['count'] for k, v in receipt['streams'].items()}
     plans = list(data.mixed_indices(counts, steps, training_mode=cfg.get('training_mode', 'mixed'),
                                     mix=recipe['mix'], world=recipe['world_size'], r2_sampling=cfg.get('r2_sampling')))
+    if encode_only:
+        if device != 'cpu' or progress_dir is not None:
+            raise ValueError('Encoding-only admission requires CPU and a fresh check')
+        return encode_plan_rows(receipt, processor_for_receipt(manifest, receipt), plans, ranks, out_path)
     device = torch.device(device)
     out = Path(out_path)
     journal, completed, records = None, {}, []
@@ -3092,6 +3125,8 @@ def load_artifact(model, artifact_pin):
 
 
 def inference(cfg, artifact_pin, device):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('student_pilot/carrier_c1_run.py:inference')
     from .r2_policy import legacy_reader_guard
     legacy_reader_guard(cfg, artifact_pin)
     from .trace_version import resolve
@@ -3121,6 +3156,8 @@ def inference(cfg, artifact_pin, device):
 
 
 def probe(cfg, artifact_pin, report_path, device=torch.device('cpu'), zero_g3t=False):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('student_pilot/carrier_c1_run.py:probe')
     model,processor,receipt,artifact=inference(cfg,artifact_pin,device)
     model.gx_zero_feature = zero_g3t
     rows=Rows(receipt,processor);records=[]
@@ -3143,6 +3180,8 @@ def probe(cfg, artifact_pin, report_path, device=torch.device('cpu'), zero_g3t=F
 
 def evaluate(cfg, artifact_pin, report_path, device=torch.device('cpu'), zero_g3t=False):
     """Always score sparse anchors; add contiguous clips when their pin exists."""
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('student_pilot/carrier_c1_run.py:evaluate')
     import gzip
     from .all_frame_bank import read_bank
     from .all_frame_readout import evaluate as score

@@ -66,6 +66,8 @@ def summarize(records):
 
 
 def run(cfg, artifact_pin, heldout_pin, report_path, device, limit=None, shuffle=True):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('student_pilot/carrier_c1_canary.py:run')
     from .carrier_c1_run import connect, inference, move
     model, processor, receipt, artifact = inference(cfg, artifact_pin, device)
     heldout = load(pinned(heldout_pin))

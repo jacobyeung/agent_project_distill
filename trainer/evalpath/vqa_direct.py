@@ -76,6 +76,8 @@ def subset_ids(value):
 
 
 def load_tasks(request):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('evalpath/vqa_direct.py:load_tasks')
     validate_request(request)
     rows = read_rows(request['datasets'][0]['rows'])
     if (len(rows) != 858 or len({str(r['id']) for r in rows}) != 858
@@ -308,6 +310,8 @@ def summarize(records, tasks, specs):
 
 
 def run_worker(request, rank, world_size, device=None):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('evalpath/vqa_direct.py:run_worker')
     import torch
     from student_pilot.carrier_c1_run import move
     from .runtime import load_model

@@ -69,6 +69,8 @@ def load_cell(score_pin, publication_pin, expected_count, arm, seed):
 
 
 def readout(registry_path, output):
+    from student_pilot.r2_policy import unsupported_entry
+    unsupported_entry('scripts/tracecold_read_native.py:readout')
     registry_pin = pin(registry_path)
     registry = load(registry_path)
     from student_pilot.storage import code_provenance
