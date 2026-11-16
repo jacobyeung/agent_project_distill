@@ -632,13 +632,39 @@ class ReviewFindingsTest(LaunchBase):
             if len(sent) == 1:
                 with self.assertRaises(launch.LaunchError) as caught:
                     launch.submit(copy, go, execute=True, out=io.StringIO(), transport=transport)
-                self.assertIn('already claimed', str(caught.exception))
+                self.assertRegex(str(caught.exception), 'already claimed|in progress')
             return 0, ('JOBID=%d\n' % (40 + len(sent))).encode(), b''
 
         launch.submit(prep, go, execute=True, out=io.StringIO(), transport=transport)
         self.assertEqual(len(sent), 1)
         rows = [row for row in ledger.lookup(record['token'], self.ledger) if row['event'] == 'submitted']
         self.assertEqual(len(rows), 1)
+        with self.assertRaises(launch.LaunchError) as caught:
+            launch.claim_token(record['token'])
+        self.assertIn('already claimed', str(caught.exception))
+
+    def test_concurrent_submissions_to_a_one_job_partition_are_serialized(self):
+        kit, dry = self.kit()
+        first, prep1 = self.prepare(kit, dry)
+        second, prep2 = self.prepare(kit, dry)
+        sent = []
+
+        def transport(argv, body):
+            sent.append(body)
+            if len(sent) == 1:
+                with self.assertRaises(launch.LaunchError) as caught:
+                    launch.submit(prep2, self.go('GO %s\n' % second['token']), execute=True,
+                                  out=io.StringIO(), transport=transport)
+                self.assertIn('in progress', str(caught.exception))
+            return 0, b'JOBID=51\n', b''
+
+        launch.submit(prep1, self.go('GO %s\n' % first['token']), execute=True, out=io.StringIO(),
+                      transport=transport)
+        self.assertEqual(len(sent), 1)
+        with self.assertRaises(launch.LaunchError) as caught:
+            launch.submit(prep2, self.go('GO %s\n' % second['token']), execute=True,
+                          out=io.StringIO(), transport=transport)
+        self.assertIn('queue behind', str(caught.exception))
 
 
 if __name__ == '__main__':
