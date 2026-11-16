@@ -1,0 +1,22 @@
+{
+  "title": "orchkit-read-v1: the spec of one read",
+  "type": "object",
+  "required": ["export", "items", "frames", "scorers"],
+  "additionalProperties": false,
+  "properties": {
+    "export": {"type": "object", "required": ["logical_path", "step"], "additionalProperties": false,
+               "properties": {"logical_path": {"type": "string"}, "step": {"type": "integer", "minimum": 0}}},
+    "items": {"type": "object", "required": ["logical_path"], "additionalProperties": false,
+              "properties": {"logical_path": {"type": "string"}}},
+    "frames": {"type": "object", "required": ["layout", "count", "layout_override_reason"], "additionalProperties": false,
+               "properties": {"layout": {"enum": ["spread", "duplicate"]},
+                              "count": {"enum": [32, 64]},
+                              "layout_override_reason": {"type": ["string", "null"]}}},
+    "scorers": {"type": "array", "minItems": 1, "items": {"enum": ["direct", "native", "paired", "official"]}},
+    "families": {"type": "array", "minItems": 1, "items": {"enum": ["main", "away", "forward", "camera"]}},
+    "compare_to": {"type": ["object", "null"], "required": ["logical_path"], "additionalProperties": false,
+                   "properties": {"logical_path": {"type": "string"}}},
+    "rule": {"type": ["object", "null"], "required": ["record_logical_path", "name"], "additionalProperties": false,
+             "properties": {"record_logical_path": {"type": "string"}, "name": {"enum": ["stop", "init"]}}}
+  }
+}

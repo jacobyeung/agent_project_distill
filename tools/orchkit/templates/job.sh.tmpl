@@ -1,0 +1,61 @@
+#!/bin/bash
+#SBATCH --job-name={{JOB_NAME}}
+{{ACCOUNT_LINE}}
+#SBATCH --partition={{PARTITION}}
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+{{GRES_LINE}}
+#SBATCH --cpus-per-task={{CPUS}}
+#SBATCH --mem={{MEM_GB}}G
+#SBATCH --time={{TIME}}
+#SBATCH --signal=B:USR1@{{SIGNAL_S}}
+{{NICE_LINE}}
+#SBATCH --no-requeue
+#SBATCH --output=/dev/null
+#SBATCH --error=/dev/null
+#SBATCH --chdir=/tmp
+set -euo pipefail
+umask 077
+export PATH=/usr/bin:/bin
+unset PYTHONPATH PYTHONHOME PYTHONSTARTUP
+{{CPU_GUARD}}
+exec /usr/bin/python3 -E -s -B - <<'BOOT_{{TOKEN}}'
+PAYLOAD = '''
+{{PAYLOAD_HEX}}
+'''
+PAYLOAD_SHA256 = '{{PAYLOAD_SHA256}}'
+import binascii, hashlib, io, os, tarfile
+job = os.environ.get('SLURM_JOB_ID', '')
+if not job.isdigit():
+    raise SystemExit('a batch job id is required')
+raw = binascii.unhexlify(PAYLOAD.replace('\n', ''))
+if hashlib.sha256(raw).hexdigest() != PAYLOAD_SHA256:
+    raise SystemExit('payload differs from its digest')
+root = os.path.join('{{ROOT_PARENT}}', 'a_%s_{{TOKEN}}' % job)
+os.mkdir(root, 0o700)
+logs = os.path.join(root, 'logs')
+os.mkdir(logs)
+bundle = os.path.join(root, 'b')
+seen = set()
+total = 0
+with tarfile.open(fileobj=io.BytesIO(raw), mode='r:gz') as archive:
+    for item in archive:
+        name = item.name
+        total += item.size
+        if (name.startswith('/') or '/../' in '/' + name + '/' or not item.isfile()
+                or name in seen or total > {{UNPACK_LIMIT}}):
+            raise SystemExit('unsafe payload member %r' % name)
+        seen.add(name)
+        target = os.path.join(bundle, name)
+        if not os.path.isdir(os.path.dirname(target)):
+            os.makedirs(os.path.dirname(target))
+        with open(target, 'xb') as out:
+            out.write(archive.extractfile(item).read())
+        os.chmod(target, (item.mode & 0o755) | 0o600)
+log = os.open(os.path.join(logs, 'driver.log'), os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
+os.dup2(log, 1)
+os.dup2(log, 2)
+os.chdir(os.path.join(bundle, 'kit'))
+os.execv('/usr/bin/python3', ['/usr/bin/python3', '-E', '-s', '-B', '-m', '{{PACKAGE}}.ret', 'job',
+                              '--bundle', bundle, '--root', root, '--expect-gpus', '{{GPUS}}'])
+BOOT_{{TOKEN}}

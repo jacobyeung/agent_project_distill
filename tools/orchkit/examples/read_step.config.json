@@ -1,0 +1,27 @@
+{
+  "schema": "orchkit-config-v1",
+  "family": "read",
+  "kit_pins_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "job": {"partition": "general", "gpus": 1, "cpus": 16, "mem_gb": 200, "time_limit_s": 21600,
+          "signal_s": 300, "nice": 0, "account": "mt01", "root_parent": "/tmp", "package": "lib"},
+  "entry": ["python3", "-I", "-s", "-B", "{kit}/code/trace_runtime.py",
+            "--script", "{kit}/code/orchard_job.py", "--root", "{root}", "--config", "{kit}/CONFIG.json"],
+  "n_items": 0,
+  "budgets": {"return": {"max_bytes": 89999999}, "pool": {"max_bytes": 100000000},
+              "home": {"max_bytes": 104857600}, "time": {"per_item_s": 0, "fixed_s": 0}},
+  "records": [],
+  "spec": {
+    "export": {"logical_path": "inputs/export/artifact.json", "step": 544},
+    "items": {"logical_path": "code/items.json"},
+    "frames": {"layout": "spread", "count": 32, "layout_override_reason": null},
+    "scorers": ["direct"],
+    "families": ["main", "away", "forward"],
+    "compare_to": null,
+    "rule": null
+  },
+  "stage": [
+    {"logical_path": "inputs/export/artifact.json", "unpack": "file", "dest": "x/artifact.json", "policy": "new"}
+  ],
+  "return": {"pool": "/project/community/jjyeung/okh7/ae71c903",
+             "gcs_prefix": "gs://cmu-gpucloud-jjyeung/q8/ae71c903"}
+}

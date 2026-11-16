@@ -35,4 +35,6 @@ text trin_read
 textre native_r[0-9]
 text tree_rebuild
 text eff_audit
-text orchkit
+# The library's name never ships; only the shared format identifiers (orchkit-<format>-v1) may.
+name orchkit
+textre (?i)orchkit(?!-(pins|config|dryrun|ledger|verdict|read|submit)-v1)
