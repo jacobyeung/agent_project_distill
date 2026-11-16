@@ -7,22 +7,102 @@
 # --stage-only stages, scans and copies into the clone, then stops before git.
 # A failed run writes one line to the log and one BLOCKER event; the next attempt is the next hourly run.
 set -u
-B=/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30
-S=/scratch/jjyeung/distill_sync
-R=$S/repo
-EV=$B/events/code_sync
+# --queue-only runs only the push-queue step (publish queued eff/* branches; see push_queue below).
+# The LCS_* variables exist for tests only; production runs set none of them.
+B=${LCS_B:-/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30}
+S=${LCS_S:-/scratch/jjyeung/distill_sync}
+R=${LCS_R:-$S/repo}
+EV=${LCS_EV:-$B/events/code_sync}
 FILTER=$B/tools/lane_code_filter.py
-SCAN=$B/tools/lane_code_scan.py
+SCAN=${LCS_SCAN:-$B/tools/lane_code_scan.py}
+LANES_ROOT=${LCS_LANES_ROOT:-/scratch/jjyeung/orch_n30}
 REMOTE_NODES="trinity-1-3 trinity-1-18"
 DRY=0; [ "${1:-}" = "--dry" ] && DRY=1
 STAGE_ONLY=0; [ "${1:-}" = "--stage-only" ] && STAGE_ONLY=1
+QUEUE_ONLY=0; [ "${1:-}" = "--queue-only" ] && QUEUE_ONLY=1
 FAILS=""
 ts() { date -u +%FT%TZ; }
 log() { echo "$(ts) $*"; }
 fail() { FAILS="$FAILS; $*"; log "FAIL $*"; }
 [ "$(hostname -s)" = trinity-3-30 ] || { log "FAIL not on trinity-3-30"; exit 2; }
 exec 8>"$S/.sync.lock"; flock -n 8 || { log "FAIL previous run still holds the lock"; exit 3; }
-log "START dry=$DRY"
+log "START dry=$DRY${QUEUE_ONLY:+ queue_only=$QUEUE_ONLY}"
+
+# Push-queue step: publish each builder branch queued in <lane>/PUSH_QUEUE.txt to origin.
+# A queue line is "<UTC> <branch> <sha> [<clone path>]". Accepted only: branch ^eff/[a-z0-9-]+$, a lane folder
+# $LANES_ROOT/(e|eff)_<name>, a clone at <lane>/clone (or <lane>/repo), the fetched branch head equal to or
+# descending from <sha>, and no secret-scan flag on the files the branch changes against main. The push is
+# "origin <sha>:refs/heads/<branch>" without force, verified with ls-remote. Done lines go to $S/PUSH_DONE.txt,
+# permanent refusals (logged once) to $S/PUSH_REFUSED.txt; a transient fetch or push failure retries next hour.
+# The step never checks out a branch, never writes main and never touches /home.
+QBLOCK=""
+qlog() { log "QUEUE $*"; }
+qrefuse() { echo "$(ts) $1 $2 $3 REFUSED $4" >> "$S/PUSH_REFUSED.txt"; qlog "REFUSED $2 $3 ($1): $4"; }
+qblock() { qrefuse "$@"; QBLOCK="$QBLOCK
+- $2 $3 from $1: $4"; }
+qseen() { awk -v l="$1" -v b="$2" -v s="$3" '$2==l && $3==b && $4==s {f=1} END {exit !f}' \
+            "$S/PUSH_DONE.txt" "$S/PUSH_REFUSED.txt"; }
+push_queue() {
+  local q lane name utc br sha cpath extra clone head mainref base dir flag rem out rc n=0 qstamp
+  qstamp=$(date -u +%Y%m%dT%H%M%SZ)
+  touch "$S/PUSH_DONE.txt" "$S/PUSH_REFUSED.txt"
+  if git -C "$R" rev-parse -q --verify refs/remotes/origin/main >/dev/null; then mainref=refs/remotes/origin/main
+  else mainref=refs/heads/main; fi
+  for q in "$LANES_ROOT"/e_*/PUSH_QUEUE.txt "$LANES_ROOT"/eff_*/PUSH_QUEUE.txt; do
+    [ -f "$q" ] || continue
+    lane=${q%/PUSH_QUEUE.txt}; name=${lane##*/}
+    while read -r utc br sha cpath extra <&3; do
+      [ -n "${utc:-}" ] || continue
+      case "$utc" in \#*) continue ;; esac
+      qseen "$lane" "${br:-}" "${sha:-}" && continue
+      n=$((n+1))
+      if ! [[ "${br:-}" =~ ^eff/[a-z0-9-]+$ ]]; then qrefuse "$lane" "${br:-?}" "${sha:-?}" "branch is not eff/<slug>"; continue; fi
+      if ! [[ "${sha:-}" =~ ^[0-9a-f]{40}$ ]]; then qrefuse "$lane" "$br" "${sha:-?}" "sha is not 40 hex"; continue; fi
+      if ! [[ "$name" =~ ^(e|eff)_[a-z0-9_-]+$ ]] || [ -n "${extra:-}" ]; then qrefuse "$lane" "$br" "$sha" "lane folder or line outside the pattern"; continue; fi
+      [ -n "${cpath:-}" ] || { cpath=$lane/clone; [ -d "$cpath" ] || cpath=$lane/repo; }
+      clone=$(realpath -e "$cpath" 2>/dev/null)
+      if [ "$clone" != "$cpath" ] || { [ "$clone" != "$lane/clone" ] && [ "$clone" != "$lane/repo" ]; } \
+         || [ "$(realpath -e "$lane" 2>/dev/null)" != "$lane" ] || [ ! -d "$clone/.git" ]; then
+        qrefuse "$lane" "$br" "$sha" "clone path $cpath is not <lane>/clone or <lane>/repo"; continue; fi
+      if ! timeout 300 git -C "$R" fetch -q --no-tags "$clone" "refs/heads/$br" 2>&1; then
+        fail "queue fetch $br from $clone"; continue; fi
+      head=$(git -C "$R" rev-parse FETCH_HEAD)
+      if [ "$head" != "$sha" ] && ! git -C "$R" merge-base --is-ancestor "$sha" "$head" 2>/dev/null; then
+        qblock "$lane" "$br" "$sha" "branch head $head neither equals nor descends from the queued sha"; continue; fi
+      base=$(git -C "$R" merge-base "$sha" "$mainref" 2>/dev/null) || base=$(git -C "$R" hash-object -t tree /dev/null)
+      dir=$S/qscan/${qstamp}_$n; flag=$S/flagged/queue_${qstamp}_$n.txt
+      mkdir -p "$dir" "$S/flagged"
+      out=$(git -C "$R" diff --name-only -z --no-renames --diff-filter=d "$base" "$sha" | while IFS= read -r -d '' p; do
+              mkdir -p "$dir/$(dirname "$p")" && git -C "$R" cat-file blob "$sha:$p" > "$dir/$p" || echo "unreadable $p"; done)
+      if [ -n "$out" ]; then qblock "$lane" "$br" "$sha" "scan could not read: $(echo "$out" | head -3 | tr '\n' ' ')"; continue; fi
+      python3 "$SCAN" "$dir" "$dir" "$flag" | sed 's/^/  [queue] /'
+      if [ ! -f "$flag" ] || [ -s "$flag" ]; then
+        qblock "$lane" "$br" "$sha" "secret scan flagged: $(cut -f1 "$flag" 2>/dev/null | head -5 | tr '\n' ' ')(list $flag)"; continue; fi
+      out=$(timeout 300 git -C "$R" push -q origin "$sha:refs/heads/$br" 2>&1 < /dev/null); rc=$?
+      rem=$(timeout 60 git -C "$R" ls-remote origin "refs/heads/$br" 2>/dev/null | cut -f1)
+      if [ $rc = 0 ] && [ "$rem" = "$sha" ]; then
+        echo "$(ts) $lane $br $sha pushed" >> "$S/PUSH_DONE.txt"; qlog "pushed $br $sha from $name"
+      elif [ -n "$rem" ] && [ "$rem" != "$sha" ] && git -C "$R" merge-base --is-ancestor "$sha" "$rem" 2>/dev/null; then
+        echo "$(ts) $lane $br $sha superseded_by $rem" >> "$S/PUSH_DONE.txt"; qlog "superseded $br $sha (origin has $rem)"
+      elif [ -n "$rem" ] && [ "$rem" != "$sha" ] && ! git -C "$R" merge-base --is-ancestor "$rem" "$sha" 2>/dev/null; then
+        qblock "$lane" "$br" "$sha" "non-fast-forward: origin has $rem; not forced"
+      else
+        fail "queue push $br $sha rc=$rc remote=${rem:-none}: $(echo "$out" | tail -1 | cut -c1-150)"
+      fi
+    done 3< "$q"
+  done
+  qlog "done: $n new lines"
+  if [ -n "$QBLOCK" ]; then
+    { echo "$(ts) code_sync push queue blocked these lines (log $S/sync.log; refusals in $S/PUSH_REFUSED.txt):"
+      echo "$QBLOCK"; echo "Fix the branch, commit, and queue the new head; a blocked line is never retried."; } \
+      > "$EV/${qstamp}_BLOCKER_push_queue.md"
+  fi
+}
+if [ $QUEUE_ONLY = 1 ]; then
+  push_queue
+  [ -n "$FAILS" ] && { log "QUEUE-ONLY END with failures${FAILS}"; exit 1; }
+  log "QUEUE-ONLY END ok"; exit 0
+fi
 
 # Remote script: filter on the lane node, then tar stream over InfiniBand into stage on trinity-3-30.
 gen_remote() {
@@ -79,6 +159,8 @@ timeout 300 git -C "$R" push -q home lane-code:lane-code 2>&1 || fail "push home
 H=$(git -C "$R" rev-parse HEAD)
 G=$(timeout 60 git -C "$R" ls-remote origin refs/heads/lane-code 2>/dev/null | cut -f1)
 [ "$H" = "$G" ] && log "verified GitHub lane-code = $H" || fail "GitHub lane-code $G != local $H"
+
+push_queue
 
 if [ -n "$FAILS" ]; then
   echo "$(ts) code_sync run failed${FAILS} (log $S/sync.log; next attempt next hour)" > "$EV/${STAMP}_BLOCKER_sync_failed.md"
