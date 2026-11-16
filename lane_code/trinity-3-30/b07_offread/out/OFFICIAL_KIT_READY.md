@@ -7,8 +7,8 @@ The direct reader is ready for both benchmarks and both exports; the harness and
 | Reader | ReVSI official999 (999 items, 302 videos, 7 categories) | VSI-Bench (5,130 items, 288 videos, 8 tasks) |
 |---|---|---|
 | direct (build R) | READY: five direct categories, 679 items; reproduces 64.94 [61.3, 68.4]; D0 export needs the init-selection JSON | READY: six direct tasks, 4,008 items; reproduces 68.77 [66.5, 71.0]; same |
-| harness (build N) | NOT READY: P8 freeze file with g3t_source original, K1-refit selector, SAM 3 Orchard source, media upload (stream rvB), production-CONFIG rehearsal | NOT READY: P8 freeze file, SAM 3 source, VSI media sizes and receipts, rehearsal |
-| e2e (build N, b04 core) | NOT READY: b04 artifact manifest, EAT-1 PASS, loaded entry; media upload; rehearsal | NOT READY: same as ReVSI plus VSI media |
+| harness (build N) | NOT READY: P8 freeze file with g3t_source original, K1-refit selector, SAM 3 Orchard source, ReVSI media fold + remap of 2 suspect videos (P8 pass; media staged and hashed, receipt events/b07_offread/REVSI_MEDIA_RECEIPT_20261116.json), production-CONFIG rehearsal | NOT READY: P8 freeze file, SAM 3 source, VSI media sizes and receipts, rehearsal |
+| e2e (build N, b04 core) | NOT READY: b04 artifact manifest, EAT-1 PASS, loaded entry; ReVSI media fold (P8 pass); rehearsal | NOT READY: same as ReVSI plus VSI media |
 
 ## Pieces and hashes
 - offkit (binding, frame guard, aggregation, labels, adapters): `/scratch/jjyeung/orch_n30/b07_offread/kit/offkit`; bind bd74a97f, report 2656c053, frames 2ed9fcc1, adapt_native 8b90fdcb, adapt_direct 667b19b9, spec 539a67a3; 59 tests. Reviews review_offkit and review_offkit2: all fixes applied.
@@ -25,7 +25,7 @@ The direct reader is ready for both benchmarks and both exports; the harness and
 - Direct reads: 35 minutes VSI-Bench and 13 minutes ReVSI (jobs 170008, 170037) plus D0 staging.
 
 ## Open inputs (owners)
-P8 freeze file with g3t_source and backend values (P8 owner); K1-refit selector that passed its kill rules (K1); init-selection JSON after D0 ends (init-rule owner); b04 artifact manifest, EAT-1 PASS and loaded entry (b04, b03); SAM 3 checkpoint Orchard source (sha 9999e234); ReVSI media upload and hashes (lane streams rvB and rvA2, waiting in the governor). The five 170056 distance mask files are lost, so the identity proof is reduced for distance items. VSI media: all 288 on Orchard (3.73 GB).
+P8 freeze file with g3t_source and backend values (P8 owner); K1-refit selector that passed its kill rules (K1); init-selection JSON after D0 ends (init-rule owner); b04 artifact manifest, EAT-1 PASS and loaded entry (b04, b03); SAM 3 checkpoint Orchard source (sha 9999e234); ReVSI media are staged on Orchard and hashed (receipt events/b07_offread/REVSI_MEDIA_RECEIPT_20261116.json); the P8 pass folds the hashes and remaps two misaligned videos (42899739, 48018572). The five 170056 distance mask files are lost, so the identity proof is reduced for distance items. VSI media: all 288 on Orchard (3.73 GB).
 
 ## Mirrors
 trinity-1-18:/scratch/jjyeung/n30_mirror/b07_offread/ (see STATUS.md for file names and sha256).

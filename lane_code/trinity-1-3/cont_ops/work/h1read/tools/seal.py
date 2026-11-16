@@ -8,9 +8,9 @@ ROOT=Path(__file__).resolve().parents[1]
 def sha(path):
     with Path(path).open('rb') as f:return hashlib.file_digest(f,'sha256').hexdigest()
 
-def main():
+def main(diff_only=False):
     # Fixtures are retained. Only primary artifacts and bounded evidence enter this seal.
-    documents=['REPORT.md','UPLOAD_PLAN.md','REMOVAL_CANDIDATES.md','h1pair.py']
+    documents=['REPORT.md','UPLOAD_PLAN.md','REMOVAL_CANDIDATES.md','h1pair.py','f1f2.py','room_bootstrap.py']
     code=sorted(p for directory in ('kit','tools','tests') for p in (ROOT/directory).rglob('*')
                 if p.is_file() and '__pycache__' not in p.parts and 'build' not in p.relative_to(ROOT).parts)
     candidates=code+[ROOT/n for n in documents]+[ROOT/'assets/e52a690b.jsonl']
@@ -25,23 +25,39 @@ def main():
         delta=''.join(difflib.unified_diff(a,b,fromfile='readk/'+rel if old.is_file() else '/dev/null',tofile=rel))
         patches.append(delta);rows.append((rel,len(a),len(b)))
     header=['# Exact candidate diff','','The baseline is `readk/`, whose FINAL_PINS.json SHA256 is `07582397649cdcb30e9bca8cd27396bf4a5797ce776f79132f992f9364121a0a`. The candidate preserves all reference kit files; no source file was removed. Reference tests remain in `readk/tests/`. The hunks below cover every changed line of candidate code, new tools/tests, documents, the asset registry and the rewritten item file. All paths are local.','','Generated evidence is pinned separately in `evidence/FINAL_PINS.json`. Test-fixture directories and ledgers are excluded from this source diff. The new binary tar is described by its exact byte count and SHA256 in UPLOAD_PLAN.md and SHA256SUMS.txt. DIFF.md, DIFF.patch, SHA256SUMS.txt and FINAL_PINS.json exclude their own recursive differences.','','| File | Baseline lines | Candidate lines |','|---|---:|---:|']
+    intended=(ROOT/'evidence/INTENDED_PORTS.md').read_text()
+    header[2] += ' The candidate runs its ported suite from tests/, against kit/.'
+    header[4] += ' FIX1.md is a post-seal receipt containing the FINAL_PINS hash and is excluded from that manifest to avoid a hash cycle.'
+    header[6:6]=[intended,'']
     header += [f'| `{n}` | {a} | {b} |' for n,a,b in rows]
     patch=''.join(patches)
     (ROOT/'DIFF.patch').write_text(patch)
     (ROOT/'DIFF.md').write_text('\n'.join(header)+'\n\nThe same exact hunks are available as `DIFF.patch`.\n\n````diff\n'+patch+'````\n')
+    if diff_only:
+        print(json.dumps(dict(changed_text_files=len(rows),final_pins='not rebuilt')))
+        return
     evidence_names=['ASSET_BUILD.json','ASSET_BUILD.log','ID_MAP.json','EXPORT_SOURCES.json',
         'NAME_AUDIT.json','NAME_AUDIT.log','D0_TESTS.log','NEW_TESTS.log','D0_SELF_PAIR.json',
-        'RUNTIME_FIXTURE.json','RUNTIME_FIXTURE.log','BIND_100_main.log','BIND_200_main.log','VALIDATION.json']
+        'RUNTIME_FIXTURE.json','RUNTIME_FIXTURE.log','BIND_100_main.log','BIND_200_main.log','VALIDATION.json',
+        'ID_KEY.json','FAMILY_ALIASES.json','INTENDED_PORTS.md','FIX1_REFUTE.log','FIX1_TESTS.log','FIX1_DETERMINISM.json',
+        'FIX1_RESERVE.json','FIX1_RESERVE.log','FIX1_BUILD_FIRST.json','FIX1_BUILD_SECOND.log',
+        'FIX1_READK_TESTS.log','FIX1c_TESTS.log','FIX1c_READK_TESTS.log','FIX1c_REFUTE.log',
+        'FIX1c_DETERMINISM.json','FIX1c_IDS.json']
     primary=code+[ROOT/n for n in documents+['DIFF.md','DIFF.patch']]
     primary += [ROOT/'assets/d81f4a26.tar',ROOT/'assets/e52a690b.jsonl']
     primary += [ROOT/'evidence'/n for n in evidence_names]
     primary += [ROOT/'in/out'/n for n in ['FRAMES_MANIFEST.json','DEFERRED.json','R0_REGISTRATION_NOTE.md',
                                        'qsets/R0_QUESTIONS_dev_f32.jsonl','qsets/R0_QUESTIONS_SUMMARY.json']]
     primary += [ROOT/'readk/evidence/FINAL_PINS.json']
+    primary += [ROOT/'in/20261116T2218Z_ORCH_RULING_r0dev_dup_qids.md']
     pins={str(p.relative_to(ROOT)):sha(p) for p in sorted(set(primary))}
     (ROOT/'evidence/FINAL_PINS.json').write_text(json.dumps(pins,sort_keys=True,indent=2)+'\n')
     pins['evidence/FINAL_PINS.json']=sha(ROOT/'evidence/FINAL_PINS.json')
     (ROOT/'SHA256SUMS.txt').write_text(''.join(f'{h}  {p}\n' for p,h in sorted(pins.items())))
     print(json.dumps(dict(pinned_files=len(pins),changed_text_files=len(rows),final_pins_sha256=pins['evidence/FINAL_PINS.json'])))
 
-if __name__=='__main__':main()
+if __name__=='__main__':
+    import argparse
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--diff-only',action='store_true')
+    main(parser.parse_args().diff_only)

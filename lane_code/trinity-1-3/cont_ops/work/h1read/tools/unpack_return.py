@@ -3,6 +3,8 @@ import argparse
 import json
 from pathlib import Path
 import sys
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
+from tools.item_ids import decode_inventories
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'kit/launcher'))
 import orchard_results as R
 import orchard_stage as S
@@ -18,6 +20,7 @@ def unpack(destination):
     R.verify(receipt,archive,config['plan_sha256'])
     target=root/'fetched/x';target.mkdir()
     with archive.open('rb') as stream:S.extract_stream(stream,target,None,512*1024**2)
+    decode_inventories(target)
     return target
 
 if __name__=='__main__':

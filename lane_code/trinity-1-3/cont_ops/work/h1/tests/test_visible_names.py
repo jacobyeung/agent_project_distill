@@ -35,12 +35,12 @@ check('runtime/jb.sh additions','\n'.join(x[1:] for x in difflib.unified_diff(ol
 for name in ['payload/r.py']:
  tree=ast.parse((H/name).read_text());strings=[n.value for n in ast.walk(tree) if isinstance(n,ast.Constant) and isinstance(n.value,str)]
  check(name+' string values','\n'.join(strings))
-# Verify the original exposure is gone and both extraction argv use only bundle paths.
+# Verify archive extraction uses only opaque bundle paths.
 s=(H/'payload/g.sh').read_text()
 assert 'distill' not in s and 'python3 -B r.py copy' in s
-assert 'tar -xf "$BUN/a_b8b60bce.tar"' in s
-assert s.index('r.py copy')<s.index('tar -xf')
-assert 'sha256' in s[:s.index('tar -xf')]
+assert "archive=Path('a_b8b60bce.tar')" in s and "unpack(archive,Path('u'))" in s
+assert s.index('r.py copy')<s.index('unpack(archive,')
+assert 'sha256' in s[:s.index('unpack(archive,')]
 # Public entrypoint names are opaque; these local delivery filenames are never passed to Orchard.
 ids=json.loads((H/'ids.json').read_text());tokens=json.loads((H/'TOKENS_H1.json').read_text())
 assert ids['tokens']==tokens and tokens['job']=='5ee9da63'

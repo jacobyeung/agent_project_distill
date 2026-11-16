@@ -4,10 +4,34 @@ import stat
 from pathlib import Path
 
 
+def manifest_members(root):
+    """Read the sealed member names without walking the surrounding runtime tree."""
+    names = []
+    for line in (Path(root) / 'SHA256SUMS.txt').read_text().splitlines():
+        digest_, name = line.split('  ', 1)
+        if (len(digest_) != 64 or any(c not in '0123456789abcdef' for c in digest_)
+                or name.startswith('/') or any(p in ('', '.', '..') for p in name.split('/'))
+                or name in names):
+            raise ValueError('invalid sealed member')
+        names.append(name)
+    return sorted(names)
+
+
+def member_directories(names):
+    return {'.'} | {str(p) for name in names for p in Path(name).parents}
+
+
 def mode_inventory(root):
     root = Path(root)
-    return {str(p.relative_to(root)): stat.S_IMODE(p.stat().st_mode)
-            for p in [root, *sorted(root.rglob('*'))]}
+    names = manifest_members(root)
+    dirs = member_directories(names)
+    modes = {}
+    for name in sorted(set(names) | dirs, key=lambda n: (len(Path(n).parts), n)):
+        mode = (root / name).lstat().st_mode
+        if not (stat.S_ISDIR(mode) if name in dirs else stat.S_ISREG(mode)):
+            raise ValueError('unsupported sealed member: ' + name)
+        modes[name] = stat.S_IMODE(mode)
+    return modes
 
 
 class SealedOutput:

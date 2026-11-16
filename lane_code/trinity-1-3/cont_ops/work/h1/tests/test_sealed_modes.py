@@ -7,7 +7,7 @@ D = Path('/scratch/jjyeung/orch_n30/review_h1pkt/work/d0')
 sys.path.insert(0, str(H / 'tools'))
 import derive_kit_h1 as dk
 
-root = H / 'evidence/fix3_modes'
+root = H / 'evidence/fix4_sealed_modes'
 root.mkdir()
 assert os.geteuid() != 0, 'Permission regression must run without root privileges'
 def load_module(path):
@@ -29,6 +29,7 @@ def validate_files(out):
         assert dk.sha(out / n) == h, n
 def unchanged_modes(kit, out):
     before, after = snapshot(kit), snapshot(out)
+    before = {n: v for n, v in before.items() if n in dk.mode_inventory(kit)}
     for n, (mode, digest) in before.items():
         if n in after and (digest is None or digest == after[n][1]):
             assert after[n][0] == mode, n
@@ -74,7 +75,7 @@ for label, all_members in [('orchard', False), ('fully_sealed', True)]:
             assert (out / n).stat().st_mode == (kit / n).stat().st_mode
         if name == 'empty':
             actual = snapshot(out)
-            assert actual == before
+            assert {n: actual[n] for n in dk.mode_inventory(out)} == {n: before[n] for n in dk.mode_inventory(kit)}
             assert (out / 'SHA256SUMS.txt').read_bytes() == (kit / 'SHA256SUMS.txt').read_bytes()
         elif name == 'h1':
             assert r['config_identity'] == ids['identity'] and contract(out) == ids['contract']
@@ -152,5 +153,5 @@ cert_line = next(line.strip() for line in record_source.splitlines() if "dk.Seal
 exec(cert_line, dict(dk=dk, KH=final, cert={'status': 'TEST'}))
 assert (final / 'ANON_OK.json').stat().st_mode & 0o777 == 0o400
 result['prepare_final_and_certify_writes'] = 'PASS'
-(H / 'evidence/fix3_modes.json').write_text(json.dumps(result, indent=2) + '\n')
+(H / 'evidence/fix4_sealed_modes.json').write_text(json.dumps(result, indent=2) + '\n')
 print(json.dumps(result, indent=2))

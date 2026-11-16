@@ -48,7 +48,7 @@ elif mode=='prepare':
  sys.path.insert(0,str(B/'p/b'));from d import contract
  la=load(B/'p/k/launch.json');cfg=load(B/'p'/la['config']['file'])
  assert result['config_identity']==ids['identity'] and dk.digest(contract(la,cfg))==ids['contract']
- # Reproduce the complete source kit with empty overrides, including member modes.
+ # Reproduce sealed members with empty overrides; exclude all source runtime state.
  dk.derive(base,B/'e',{})
  assert manifest(B/'e')==manifest(base)
  for n,h in manifest(base).items():assert dk.sha(B/'e'/n)==h
@@ -75,7 +75,7 @@ elif mode=='final':
  private(KH)
  assert r['config_identity']==ids['identity'], 'configuration identity differs'
  w(B/'result.json',r)
- # Compare the complete final inventory to a complete temporary derivation, not a FIXTURE launch hash.
+ # Compare the complete sealed inventory to a temporary derivation, not a FIXTURE launch hash.
  candidate=B/'q';test=dict(o,fixture=True,status='BLOCKED');dk.derive(base,candidate,test)
  la=load(candidate/'k/launch.json');la.update(status='READY',production_authorized=True);dk.SealedOutput(candidate).write(candidate/'k/launch.json',la)
  man=manifest(candidate);man['k/launch.json']=dk.sha(candidate/'k/launch.json')

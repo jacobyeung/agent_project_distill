@@ -24,19 +24,22 @@ for line in (H/'build/fx/SHA256SUMS.txt').read_text().splitlines():
  if p.is_file():assert sha(p)==h,n
  else:missing.append(n)
 assert len(missing)==2
-proof=json.loads((H/'evidence/cpu/fallback_fix3/result.json').read_text());assert proof['exit']==0 and proof['slot']['verified'] is True and proof['slot']['step']==200
+proof=json.loads((H/'evidence/cpu/fallback_fix4/result.json').read_text());assert proof['exit']==0 and proof['slot']['verified'] is True and proof['slot']['step']==200
 summary=dict(status='PASS',fixture_missing_payloads=missing,identity=ids['identity'],contract=ids['contract'],cpu_step200_slot='PASS',four_rank_usr1='NOT RUN: operator rerun prepared; syntax checked only',production_go_granted=False)
 (H/'evidence/final_checks.json').write_text(json.dumps(summary,indent=2)+'\n')
-files=[H/n for n in ('REPORT.md','DIFF.md','TOKENS_H1.json','ids.json','EXPORT_OBJECTS.txt','UPLOAD.json','orch_h1.sh','fin_h1.sh','FIX1.md','FIX2.md','FIX3.md','REMOVAL_CANDIDATES.md','ORCHARD_LEDGER_PENDING.jsonl')]
+files=[H/n for n in ('REPORT.md','DIFF.md','TOKENS_H1.json','ids.json','EXPORT_OBJECTS.txt','UPLOAD.json','orch_h1.sh','fin_h1.sh','FIX1.md','FIX2.md','FIX3.md','FIX4.md','REVIEW4.md','REMOVAL_CANDIDATES.md','ORCHARD_LEDGER_PENDING.jsonl')]
 for d in ('tools','tests','payload','runtime'):files.extend(p for p in (H/d).rglob('*') if p.is_file() and '__pycache__' not in p.parts)
 files.extend([H/'build'/upload['archive'],H/'build/over_local.json',H/'build/over_fx.json',H/'build/fx/SHA256SUMS.txt'])
 files.extend(p for p in (H/'evidence').glob('*.json'))
-files.extend([H/'evidence/derive.patch',H/'evidence/derivation_final.log',H/'evidence/stop_bridge/result.json',H/'evidence/staging_test/result.json',H/'evidence/cpu/chain_blocker.json',H/'evidence/cpu/fallback_fix3/result.json',H/'evidence/cpu/fallback_fix3/chain.log',H/'evidence/cpu/fallback_fix3/slots/A.json',H/'evidence/cpu/fallback_fix3/slots/A.sha256',H/'evidence/cpu/fallback_fix3/run/s2.json',H/'evidence/cpu/fallback_fix3/run/inputs/first_step_993.json'])
+files.extend([H/'evidence/derive.patch',H/'evidence/derivation_final.log',H/'evidence/stop_bridge/result.json',H/'evidence/staging_test/result.json',H/'evidence/cpu/chain_blocker.json',H/'evidence/cpu/fallback_fix4/result.json',H/'evidence/cpu/fallback_fix4/chain.log',H/'evidence/cpu/fallback_fix4/slots/A.json',H/'evidence/cpu/fallback_fix4/slots/A.sha256',H/'evidence/cpu/fallback_fix4/run/s2.json',H/'evidence/cpu/fallback_fix4/run/inputs/first_step_993.json'])
 files.extend(p for p in (H/'evidence/review').iterdir() if p.is_file())
 files.extend(p for p in (H/'evidence/fix2').iterdir() if p.is_file())
 files.append(H/'evidence/fix2_before/hashes.json')
 files.extend(p for p in (H/'evidence/fix3').iterdir() if p.is_file())
 files.extend([H/'evidence/fix3_before/hashes.json',H/'evidence/fix3_before/tools/derive_kit_h1.py',H/'evidence_orchard_q3_2136Z.txt'])
+files.extend(p for p in (H/'evidence/fix4').iterdir() if p.is_file())
+files.extend([H/'evidence/fix4_before/hashes.json',H/'evidence/fix4_before/tools/derive_kit_h1.py',H/'evidence/fix4_before/tools/orchard_records.py',H/'evidence/fix4_listing.log',H/'evidence/fix4_sealed_modes.log'])
+files.extend(H/n for n in ('evidence_orchard_q5_2155Z.txt','evidence_orchard_q6_2156Z.txt','evidence_orchard_q7_2157Z.txt'))
 active_bytes=sum(p.stat().st_size for p in set(files))
 assert active_bytes<2_000_000_000
 summary.update(sealed_packet_bytes=active_bytes,sealed_packet_under_2GB=True)

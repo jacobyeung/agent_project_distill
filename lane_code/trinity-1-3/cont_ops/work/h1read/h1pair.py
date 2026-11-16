@@ -4,18 +4,20 @@ import json
 import math
 from pathlib import Path
 import sys
-sys.path.insert(0,str(Path(__file__).resolve().parent/'readk'))
 from room_bootstrap import paired
 from f1f2 import F1_TYPES
+from tools.item_ids import load_map, logical_item
 
 FAMILIES=('main','away','forward','r0dev')
 
 def load(paths):
-    return [json.loads(line) for p in paths for line in Path(p).read_text().splitlines() if line.strip()]
+    mapping=load_map()
+    return [logical_item(json.loads(line),mapping) for p in paths for line in Path(p).read_text().splitlines() if line.strip()]
 
 def index(rows,step):
-    found={}
+    found={};mapping=load_map()
     for r in rows:
+        r=logical_item(r,mapping)
         r=dict(r,family='r0dev' if r['family']=='a7' else r['family'])
         key=(r['family'],r['id'])
         if r['family'] not in FAMILIES or key in found:
@@ -30,7 +32,9 @@ def index(rows,step):
 def compare(d0,h1,step):
     if step not in (100,200):raise ValueError('Pair only matching registered milestones')
     a,b=index(d0,step),index(h1,step)
-    shared=set(a)&set(b)
+    if set(a)!=set(b):
+        raise ValueError(f'Unequal (family, id) membership: D0-only={len(set(a)-set(b))}, H1-only={len(set(b)-set(a))}')
+    shared=set(a)
     if not shared:raise ValueError('No shared items')
     for key in sorted(shared):
         for field in ('task_type','room','scene','scoring_basis','level','pair_id','count_kind'):
@@ -48,8 +52,8 @@ def compare(d0,h1,step):
             subset=[k for k in keys if a[k]['task_type']==task]
             value=paired([convert(b[k]) for k in subset],[convert(a[k]) for k in subset],
                          'value',replicates=10000,seed=20261115)
-            value['f1_registered']=task in F1_TYPES
-            value['harm']=task in F1_TYPES and value['ci95_pp'][1]<0
+            value['f1_registered']=family in ('main','r0dev') and task in F1_TYPES
+            value['harm']=value['f1_registered'] and value['ci95_pp'][1]<0
             if value['harm']:result['harm'].append(dict(family=family,task_type=task))
             per_type[task]=value
         result['families'][family]=per_type
@@ -59,7 +63,9 @@ def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--d0',nargs='+',required=True);p.add_argument('--h1',nargs='+',required=True)
     p.add_argument('--step',type=int,choices=(100,200),required=True);p.add_argument('--output',required=True)
-    a=p.parse_args(); result=compare(load(a.d0),load(a.h1),a.step)
+    a=p.parse_args()
+    try:result=compare(load(a.d0),load(a.h1),a.step)
+    except ValueError as exc:p.error(str(exc))
     Path(a.output).write_text(json.dumps(result,indent=2,sort_keys=True,allow_nan=False)+'\n')
     print(json.dumps(dict(shared_items=result['shared_items'],harm=result['harm'])))
 

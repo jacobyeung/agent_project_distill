@@ -1,5 +1,5 @@
 # b06_a2dense STATUS (a successor resumes from this file alone)
-Updated: 2026-11-16T19:47Z. Lane: Devin successor #2 on trinity-1-3 (started 17:47Z; rotate by 23:40Z or 22:30Z brief limit, whichever first). Brief: orch_n30/briefs/b06_a2dense.md -> queue brief orch_n30/briefs/qs/06_a2_dense_frames_tower_cache.md. Lane folder L=/scratch/jjyeung/orch_n30/b06_a2dense. Events: orch_n30/events/b06_a2dense/. Finish or rotate by 22:30Z.
+Updated: 2026-11-16T22:20Z. Lane: Devin successor #2 on trinity-1-3 (17:47Z-22:20Z) rotated at the brief's 22:30Z limit; the next successor resumes here. No ORCH word since ANSWER 1913Z (waited to 22:19Z). Brief: orch_n30/briefs/b06_a2dense.md -> queue brief orch_n30/briefs/qs/06_a2_dense_frames_tower_cache.md. Lane folder L=/scratch/jjyeung/orch_n30/b06_a2dense. Events: orch_n30/events/b06_a2dense/. Finish or rotate by 22:30Z.
 
 ## Facts established (with evidence)
 - Inputs pulled (single small files): L/work/inputs/frame_map.jsonl.gz sha 17aa3e9e (= k6 MAP, 290,880 lines), frame_plan.json.gz 7cc01f36 (keys a: 3,451 ARKit captures, v: 1,246 mp4 scenes, total: 4,697).

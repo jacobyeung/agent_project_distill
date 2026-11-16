@@ -22,7 +22,11 @@ import binding as B
 ROOT = Path(__file__).resolve().parent
 CORE = ('orchard_launcher.py', 'orchard_job.py', 'orchard_stage.py', 'orchard_results.py',
         'chain_save.py', 'stdout_transfer.py', 'trace_runtime.py', 'return_io.py', 'ORCHARD_ASSETS.json', 'export_stage.py', 'binding.py', 'EXTRA.json')
-SSH = ['bash', '/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/tools/ossh.sh']
+def remote_transport():
+    import os
+    path=os.environ.get('A_TRANSPORT')
+    if not path:raise ValueError('Set A_TRANSPORT to the local transport script')
+    return ['bash', path]
 
 
 def canonical(value):
@@ -184,10 +188,10 @@ def prepare(token, destination, step, camera=False, pool='/project/community/jjy
     valid_token(token)
     bound = B.expected(run, step, generation, namespace)
     if camera: raise ValueError('Unregistered family')
-    families = ['main','away','forward','r0dev'] if families is None else list(families)
-    if not families or len(set(families)) != len(families) or any(f not in ('main','away','forward','r0dev') for f in families):
+    families = ['main','away','forward','a7'] if families is None else list(families)
+    if not families or len(set(families)) != len(families) or any(f not in ('main','away','forward','a7') for f in families):
         raise ValueError('Invalid family selection')
-    selected = [('a7' if f == 'r0dev' else f) for f in families]
+    selected = families
     destination = Path(destination)
     if destination.exists():
         raise FileExistsError('Require fresh preparation directory')
@@ -250,7 +254,7 @@ def queue_admission(text, user):
 
 
 def remote(argv, **kwargs):
-    return subprocess.run(SSH+[shlex.join(argv)], capture_output=True, timeout=135, **kwargs)
+    return subprocess.run(remote_transport()+[shlex.join(argv)], capture_output=True, timeout=135, **kwargs)
 
 
 def submit(destination):
@@ -327,13 +331,13 @@ def fetch(destination):
                       " sys.stdout.buffer.write(data);sys.stdout.buffer.flush()\n"
                       "sys.exit(p.wait())\n")
             command=['python3','-I','-B','-c',throttle,*command]
-            shell=shlex.join(SSH+[shlex.join(command)])+' > '+shlex.quote(str(target/'result.tar.gz'))
+            shell=shlex.join(remote_transport()+[shlex.join(command)])+' > '+shlex.quote(str(target/'result.tar.gz'))
             if ap['bytes']>=20_000_000:
                 (target/'EXIT.json').write_bytes(result.stdout)
                 raise TransferRegistrationRequired('Register a governor stream before running this exact command:\n'+shell)
             archive=target/(channel+'.tar.gz')
             with archive.open('xb') as out, (target/(channel+'.stderr')).open('xb') as err:
-                subprocess.run(SSH+[shlex.join(command)],stdout=out,stderr=err,check=True,timeout=180)
+                subprocess.run(remote_transport()+[shlex.join(command)],stdout=out,stderr=err,check=True,timeout=180)
             if archive.stat().st_size!=ap['bytes'] or S.sha(archive)!=ap['sha256']:
                 raise ValueError('Fetched archive SHA256/size differs')
             if receipt['status']=='COMPLETE':R.verify(receipt,archive,config['plan_sha256'])
@@ -394,7 +398,7 @@ def main():
     prepare_parser.add_argument('--run',choices=tuple(B.RUNS),required=True)
     prepare_parser.add_argument('--namespace',default='8865619b')
     prepare_parser.add_argument('--generation',choices=B.STOPS)
-    prepare_parser.add_argument('--families',nargs='+',choices=('main','away','forward','r0dev'))
+    prepare_parser.add_argument('--families',nargs='+',choices=('main','away','forward','a7'))
     prepare_parser.add_argument('--camera',action='store_true')
     prepare_parser.add_argument('--pool',default='/project/community/jjyeung/okh7/ae71c903')
     submit_parser = actions.add_parser('submit')

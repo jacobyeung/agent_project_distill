@@ -135,19 +135,33 @@ s=s.replace('shutil.copyfile(archive, out /', 'fs.copy(archive, out /')
 s=s.replace('shutil.copyfile(pin, out /', 'fs.copy(pin, out /')
 s=s.replace("shutil.copyfile(pin['path'], out /", "fs.copy(pin['path'], out /")
 s=s.replace('write(out /', 'fs.write(out /')
-s=s.replace("    out.mkdir(mode=0o700)", """    # Copy only regular files/directories; never follow a sealed link into another tree.
-    for p in kit.rglob('*'):
-        if p.is_symlink() or not (p.is_file() or p.is_dir()): refuse('unsupported source member')
-    out.mkdir(mode=0o700)
-    fs = SealedOutput(out, stat.S_IMODE((kit / 'k/1.json').stat().st_mode))""")
-s=s.replace("    (out / 'k').mkdir(); (out / 'o').mkdir(); (out / 'runs').mkdir()", """    for name in ('k', 'o', 'runs'):
-        if not changing and not (kit / name).exists(): continue
-        mode = stat.S_IMODE((kit / name).stat().st_mode) if (kit / name).exists() else 0o700
-        fs.mkdir(out / name, mode)""")
-s=s.replace("        if p.name in ('launch.json', '1.json', '0.json', old_key + '.json'): continue\n        shutil.copy2(p, out / 'k' / p.name)", """        if p.name == old_key + '.json' and changing: continue
-        fs.copy(p, out / 'k' / p.name, stat.S_IMODE(p.stat().st_mode))""")
+# Source membership, copying and dependency reads share the sealed manifest boundary.
+s=s.replace("    missing, src_inventory = [], {}", """    if sha(kit / 'SHA256SUMS.txt') != SEALED_MANIFEST: refuse('the source is not the sealed kit 07ca49df (derive from the sealed kit only)')
+    members = manifest_members(kit)
+    for name in sorted(member_directories(members), key=lambda n: (len(Path(n).parts), n)):
+        if not stat.S_ISDIR((kit / name).lstat().st_mode): refuse('unsupported source directory')
+    missing, src_inventory = [], {}""")
+s=s.replace("        if not p.is_file(): missing.append(name); continue", """        try: mode = p.lstat().st_mode
+        except FileNotFoundError: missing.append(name); continue
+        if not stat.S_ISREG(mode): refuse('unsupported source member')""")
+start = s.index('    out.mkdir(mode=0o700)')
+end = s.index("    for name, pin in over.get('add_k', {}).items():", start)
+s = s[:start] + """    out.mkdir(mode=0o700)
+    fs = SealedOutput(out, stat.S_IMODE((kit / 'k/1.json').stat().st_mode))
+    if 'code_tree' in over and (out.stat().st_mode & 0o777) != 0o700: refuse('directory mode differs')
+    for name in sorted(member_directories(members) - {'.'}, key=lambda n: (len(Path(n).parts), n)):
+        fs.mkdir(out / name, stat.S_IMODE((kit / name).stat().st_mode))
+    for name in members:
+        if name in missing or (changing and name == 'k/' + old_key + '.json'): continue
+        fs.copy(kit / name, out / name, stat.S_IMODE((kit / name).stat().st_mode))
+    if changing:
+        for name in ('o', 'runs'): fs.mkdir(out / name, 0o700)
+""" + s[end:]
+s=s.replace("[json.loads(p.read_text()) for p in sorted((kit / 'k').iterdir()) if p.suffix == '.json' and p.is_file()]",
+            "[json.loads((kit / n).read_text()) for n in manifest_members(kit) if n.startswith('k/') and n.endswith('.json') and n not in missing]")
+s=s.replace("if (kit / 'k' / name).exists():", "if 'k/' + name in src_inventory:")
 s=s.replace("fs.write(out / 'k' / (key + '.json'), cfg)", "fs.write(out / 'k' / (key + '.json'), cfg, stat.S_IMODE((kit / 'k' / (old_key + '.json')).stat().st_mode))")
 s=s.replace("    (out / 'SHA256SUMS.txt').write_text(''.join(f'{v}  {k}\\n' for k, v in sorted(inventory.items())))", "    fs.text(out / 'SHA256SUMS.txt', ''.join(f'{v}  {k}\\n' for k, v in sorted(inventory.items())), stat.S_IMODE((kit / 'SHA256SUMS.txt').stat().st_mode))")
-s=s.replace("    if changing:  # explicit placeholder", "    if (kit / 'ANON_OK.json').is_file():\n        fs.copy(kit / 'ANON_OK.json', out / 'ANON_OK.json', stat.S_IMODE((kit / 'ANON_OK.json').stat().st_mode))\n    if changing:  # explicit placeholder")
+s=s.replace("    if changing:  # explicit placeholder: a.py refuses until an independent content scan replaces it\n        fs.write(out / 'ANON_OK.json',", "    # Never inherit an unmanifested certificate; require independent content review.\n    fs.write(out / 'ANON_OK.json',")
 s=s.replace('    return dict(config_key=key,', "    if not changing: out.chmod(stat.S_IMODE(kit.stat().st_mode))\n    return dict(config_key=key,")
 Path('tools/derive_kit_h1.py').write_text(s)

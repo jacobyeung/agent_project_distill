@@ -63,12 +63,12 @@ class Binding(unittest.TestCase):
                      'reader/work/vendor/r3/adapter.py','reader/work/vendor/r4/adapter.py','reader/work/vendor/r5/adapter.py']:
             self.assertEqual((ROOT/'kit'/path).read_bytes(),(ROOT/'readk/kit'/path).read_bytes())
     def test_prepare_subsets_and_all_runs_steps(self):
-        selections=[['r0dev'],['main'],['away','forward'],['main','away','forward','r0dev']]
+        selections=[['a7'],['main'],['away','forward'],['main','away','forward','a7']]
         for run in B.RUNS:
             for step in (100,200):
                 for families in selections:
                     dest=folder()/'prepared';cfg=L.prepare('a000000001',dest,step,run=run,families=families)
-                    self.assertEqual(cfg['families'],['a7' if f=='r0dev' else f for f in families])
+                    self.assertEqual(cfg['families'],families)
                     L.validate_request(cfg);L.validate_batch((dest/'BATCH.sh').read_text(),cfg)
                     self.assertEqual(cfg['spec']['export_binding'],B.expected(run,step))
                     # Only test fixtures are prepared, under evidence, never kit/build.
@@ -76,7 +76,7 @@ class Binding(unittest.TestCase):
                     changed=copy.deepcopy(cfg);changed['spec']['export_binding']['run']='469ddece'
                     changed['plan_sha256']=L.canonical(changed['spec'])
                     with self.assertRaises(ValueError):L.validate_request(changed)
-        for families in ([],['r0dev','r0dev'],['camera'],['unknown']):
+        for families in ([],['a7','a7'],['camera'],['unknown']):
             with self.assertRaises(ValueError):L.prepare('a000000001',folder()/'x',100,families=families)
     def test_stop_prepare_and_tamper(self):
         for generation in B.STOPS:
@@ -171,16 +171,18 @@ class Scores(unittest.TestCase):
         for raw,tokens,finish in [('work</think>\n2',64,'stop'),('work</think>\n2',12,'length'),
                                  ('work</think>\nI cannot answer',12,'stop'),('work</think>\n2, but I cannot determine',12,'stop'),('',0,'stop'),('2',1,'stop')]:
             self.assertEqual(X.score_policy(self.scoring.score_item,t,raw,tokens,64,finish)['score'],0)
-    def test_f32_layout_adaptations_are_exactly_five_literals(self):
-        pins=X.install_layout(ROOT/'kit/reader/evaluator')
-        self.assertEqual(sum(v['replacements'] for v in pins.values()),5)
+    def test_trained_layout_uses_original_guards(self):
         import think_settings,budget
-        cell=dict(model='cp1m200',layout='spread',frames=32,benchmarks=['devrows'],thinking=True,max_tokens=16384,decoding='greedy')
+        cell=json.loads((ROOT/'kit/reader/e193_contract.json').read_text())['main']['cells'][0]
+        self.assertEqual((cell['frames'],cell['layout'],cell['benchmarks']),(32,'duplicate',['devrows']))
         think_settings.validate(cell)
-        with self.assertRaises(ValueError):think_settings.validate(dict(cell,layout='duplicate'))
-        row=dict(thinking=True,model='cp1m200',decoding='greedy',frames=32,layout='spread',max_new_tokens=16384,binding='a',status='complete')
+        with self.assertRaises(ValueError):think_settings.validate(dict(cell,layout='spread'))
+        row=dict(thinking=True,model='cp1m200',decoding='greedy',frames=32,layout='duplicate',max_new_tokens=16384,binding='a',status='complete')
         budget.validate_source(row,cell,'a')
-        with self.assertRaises(ValueError):budget.validate_source(dict(row,layout='duplicate'),cell,'a')
+        with self.assertRaises(ValueError):budget.validate_source(dict(row,layout='spread'),cell,'a')
+        self.assertFalse(hasattr(X,'install_layout'))
+        for path in (ROOT/'kit/reader/evaluator').rglob('*.py'):
+            self.assertEqual(path.read_bytes(),(ROOT/'readk'/path.relative_to(ROOT)).read_bytes())
 
 class Pairing(unittest.TestCase):
     def row(self,id,room,score,typ='object_counting',family='main',step=200):
@@ -202,7 +204,7 @@ class Pairing(unittest.TestCase):
     def test_metadata_duplicates_steps_missing_and_opaque_alias(self):
         a=[self.row('a','x',1,family='r0dev')];b=[dict(a[0],family='a7')]
         self.assertEqual(P.compare(a,b,200)['shared_items'],1)
-        self.assertEqual(P.compare(a+[self.row('b','y',0)],b,200)['d0_only'],1)
+        with self.assertRaisesRegex(ValueError,'membership'):P.compare(a+[self.row('b','y',0)],b,200)
         for bad in ([dict(b[0],room='z')],[dict(b[0],step=100)],[dict(b[0],score=float('nan'))],b+b):
             with self.assertRaises(ValueError):P.compare(a,bad,200)
     def test_real_d0_self_all_deltas_and_intervals_zero(self):

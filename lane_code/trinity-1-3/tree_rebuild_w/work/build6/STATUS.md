@@ -2,7 +2,7 @@
 
 Final packaged qualification is running. The source remains frozen.
 
-Active package group: `tree/legacy`; completed executions: 1378. Source: `work/build6/proofs/suite_tree/progress.json` and its group progress receipt.
+Active package group: `tree/legacy`; completed executions: 1802. Source: `work/build6/proofs/suite_tree/progress.json` and its group progress receipt.
 
 Detected lost build-5 pass events: 0 (`work/build6/LIVE_B5_LOSSES.json`). This live check does not replace the final base comparison.
 

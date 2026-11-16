@@ -16,7 +16,7 @@ SUMMARY = RESERVE / 'out/qsets/R0_QUESTIONS_SUMMARY.json'
 MANIFEST = RESERVE / 'out/FRAMES_MANIFEST.json'
 SCENE_MANIFESTS = RESERVE / 'out/frame_manifests'
 FRAMES_ROOT = RESERVE / 'frames'
-BASE_SETTINGS = LANE / 'parity_kit/settings_118.json'
+BASE_SETTINGS = LANE / 'parity_kit/settings_118b.json'
 DEFAULT_OUT = LANE / 'parity_kit/r0dev'
 EXPECTED_COUNTS = {
     'object_counting': 385, 'object_size_estimation': 293,
@@ -115,9 +115,7 @@ def build(out_dir=DEFAULT_OUT):
         raise ValueError('unexpected R0-dev type counts: ' + str(counts))
     qid_counts = Counter(r['qid'] for r in source)
     duplicates = {qid: n for qid, n in qid_counts.items() if n > 1}
-    if duplicates:
-        raise ValueError('duplicate R0-dev qids; id=qid cannot produce unique kit keys: '
-                         + json.dumps(duplicates, sort_keys=True))
+    seen = Counter()  # a repeated qid keeps its first row as qid and numbers later rows qid#2, qid#3, ...
     scorers = {}
     for task in rows(TASKS[0]):
         kind, scorer = task['question_type'], task['scorer']
@@ -146,7 +144,9 @@ def build(out_dir=DEFAULT_OUT):
             options = ast.literal_eval(options)
         if not isinstance(options, list) or not all(isinstance(s, str) for s in options):
             raise ValueError('options must be a list of strings: ' + row['qid'])
-        tasks.append(dict(id=row['qid'], native=native, room=native, scene=scene,
+        seen[row['qid']] += 1
+        tid = row['qid'] if seen[row['qid']] == 1 else '%s#%d' % (row['qid'], seen[row['qid']])
+        tasks.append(dict(id=tid, source_qid=row['qid'], native=native, room=native, scene=scene,
                           dataset=row['dataset'], question_type=row['question_type'],
                           question=row['question'], options=options, answer=row['answer'],
                           ground_truth=row['answer'], released_answer=None,
@@ -168,7 +168,10 @@ def build(out_dir=DEFAULT_OUT):
         OUTPUT_NAMES[3]: json_bytes(request),
         OUTPUT_NAMES[4]: json_bytes(settings),
     }
+    if len({t['id'] for t in tasks}) != len(tasks):
+        raise ValueError('R0-dev task ids are not unique')
     receipt = dict(schema='r0dev-f32-v1', inputs=inputs, scene_manifests=scene_pins,
+                   duplicate_source_qids=dict(sorted(duplicates.items())),
                    counts=dict(tasks=len(tasks), scenes=len(scenes),
                                frames=sum(len(c['frames']) for c in captures.values()),
                                per_type=dict(sorted(counts.items()))),

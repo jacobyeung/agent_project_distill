@@ -48,10 +48,34 @@ import stat
 from pathlib import Path
 
 
+def manifest_members(root):
+    """Read the sealed member names without walking the surrounding runtime tree."""
+    names = []
+    for line in (Path(root) / 'SHA256SUMS.txt').read_text().splitlines():
+        digest_, name = line.split('  ', 1)
+        if (len(digest_) != 64 or any(c not in '0123456789abcdef' for c in digest_)
+                or name.startswith('/') or any(p in ('', '.', '..') for p in name.split('/'))
+                or name in names):
+            raise ValueError('invalid sealed member')
+        names.append(name)
+    return sorted(names)
+
+
+def member_directories(names):
+    return {'.'} | {str(p) for name in names for p in Path(name).parents}
+
+
 def mode_inventory(root):
     root = Path(root)
-    return {str(p.relative_to(root)): stat.S_IMODE(p.stat().st_mode)
-            for p in [root, *sorted(root.rglob('*'))]}
+    names = manifest_members(root)
+    dirs = member_directories(names)
+    modes = {}
+    for name in sorted(set(names) | dirs, key=lambda n: (len(Path(n).parts), n)):
+        mode = (root / name).lstat().st_mode
+        if not (stat.S_ISDIR(mode) if name in dirs else stat.S_ISREG(mode)):
+            raise ValueError('unsupported sealed member: ' + name)
+        modes[name] = stat.S_IMODE(mode)
+    return modes
 
 
 class SealedOutput:
@@ -390,7 +414,7 @@ def close(kit, out, cfg, base_cfg, cur, base_cur, over, missing):
         if k[1].startswith(CODE_DIRS) or k[1].endswith(CODE_SUFFIXES) or '/site-packages/' in k[1]:
             refuse(f'staging adds {k[1]}: no addition may land in an import or executable location')
     prot = {k[1] for k in base_P if k[0] == 'U'} | sealed_paths([base_cfg, base_cur]) | sealed_paths(
-        [json.loads(p.read_text()) for p in sorted((kit / 'k').iterdir()) if p.suffix == '.json' and p.is_file()])
+        [json.loads((kit / n).read_text()) for n in manifest_members(kit) if n.startswith('k/') and n.endswith('.json') and n not in missing])
     prot |= sealed_paths([json.loads(Path(p).read_text()) for p in over.get('sealed_docs', [])])
     if 'e00_listing' in over: prot |= sealed_paths(json.loads(Path(over['e00_listing']).read_text()))
     for k in added:
@@ -539,11 +563,17 @@ def derive(kit, out, over):
     if status not in ('BLOCKED', 'PREPARATION_ONLY', 'READY'): refuse('status must be BLOCKED, PREPARATION_ONLY or READY')
     if fixture and status != 'BLOCKED': refuse('a fixture derivation can never be READY or PREPARATION_ONLY')
     # Source kit must match its own sealed manifest (absent big files allowed only for fixtures).
+    if sha(kit / 'SHA256SUMS.txt') != SEALED_MANIFEST: refuse('the source is not the sealed kit 07ca49df (derive from the sealed kit only)')
+    members = manifest_members(kit)
+    for name in sorted(member_directories(members), key=lambda n: (len(Path(n).parts), n)):
+        if not stat.S_ISDIR((kit / name).lstat().st_mode): refuse('unsupported source directory')
     missing, src_inventory = [], {}
     for line in (kit / 'SHA256SUMS.txt').read_text().splitlines():
         want, name = line.split('  ', 1); src_inventory[name] = want
         p = kit / name
-        if not p.is_file(): missing.append(name); continue
+        try: mode = p.lstat().st_mode
+        except FileNotFoundError: missing.append(name); continue
+        if not stat.S_ISREG(mode): refuse('unsupported source member')
         if sha(p) != want: refuse('source kit file differs from its manifest: ' + name)
     if sha(kit / 'SHA256SUMS.txt') != SEALED_MANIFEST: refuse('the source is not the sealed kit 07ca49df (derive from the sealed kit only)')
     if missing and not fixture: refuse('source kit files absent: ' + ', '.join(missing))
@@ -591,21 +621,16 @@ def derive(kit, out, over):
                 else: cfg[name][k] = copy.deepcopy(v)
     for k, v in over.get('deployment', {}).items(): cur[k] = v
 
-    # Copy only regular files/directories; never follow a sealed link into another tree.
-    for p in kit.rglob('*'):
-        if p.is_symlink() or not (p.is_file() or p.is_dir()): refuse('unsupported source member')
     out.mkdir(mode=0o700)
     fs = SealedOutput(out, stat.S_IMODE((kit / 'k/1.json').stat().st_mode))
     if 'code_tree' in over and (out.stat().st_mode & 0o777) != 0o700: refuse('directory mode differs')
-    shutil.copytree(kit / 'b', out / 'b')
-    for name in ('job.sh', 'job8.sh'): shutil.copy2(kit / name, out / name)
-    for name in ('k', 'o', 'runs'):
-        if not changing and not (kit / name).exists(): continue
-        mode = stat.S_IMODE((kit / name).stat().st_mode) if (kit / name).exists() else 0o700
-        fs.mkdir(out / name, mode)
-    for p in sorted((kit / 'k').iterdir()):
-        if p.name == old_key + '.json' and changing: continue
-        fs.copy(p, out / 'k' / p.name, stat.S_IMODE(p.stat().st_mode))
+    for name in sorted(member_directories(members) - {'.'}, key=lambda n: (len(Path(n).parts), n)):
+        fs.mkdir(out / name, stat.S_IMODE((kit / name).stat().st_mode))
+    for name in members:
+        if name in missing or (changing and name == 'k/' + old_key + '.json'): continue
+        fs.copy(kit / name, out / name, stat.S_IMODE((kit / name).stat().st_mode))
+    if changing:
+        for name in ('o', 'runs'): fs.mkdir(out / name, 0o700)
     for name, pin in over.get('add_k', {}).items():
         if sha(pin['path']) != pin['sha256']: refuse('add_k pin differs: ' + name)
         fs.copy(pin['path'], out / 'k' / name)
@@ -625,7 +650,7 @@ def derive(kit, out, over):
             refuse('the old init (CP1 m200) is still staged')
     for name in over.get('add_k', {}):
         if not ADD_K_DATA.fullmatch(name): continue
-        if (kit / 'k' / name).exists(): refuse('add_k may not overwrite the sealed k/' + name)
+        if 'k/' + name in src_inventory: refuse('add_k may not overwrite the sealed k/' + name)
         want = dict(path=KIT_LOGICAL + name, sha256=sha(out / 'k' / name))
         if cfg['s1_routing']['selection'] != want: refuse(f'{name} added but the config does not pin it')
         if cfg['s1_routing']['catalog'].get(want['sha256']) != want['path']:
@@ -674,10 +699,8 @@ def derive(kit, out, over):
     inventory.update({n: sha(out / n) for n in ('job.sh', 'job8.sh')})
     inventory.update({n: v for n, v in src_inventory.items() if n in missing})  # absent payloads stay listed; a later derivation sees them absent
     fs.text(out / 'SHA256SUMS.txt', ''.join(f'{v}  {k}\n' for k, v in sorted(inventory.items())), stat.S_IMODE((kit / 'SHA256SUMS.txt').stat().st_mode))
-    if (kit / 'ANON_OK.json').is_file():
-        fs.copy(kit / 'ANON_OK.json', out / 'ANON_OK.json', stat.S_IMODE((kit / 'ANON_OK.json').stat().st_mode))
-    if changing:  # explicit placeholder: a.py refuses until an independent content scan replaces it
-        fs.write(out / 'ANON_OK.json', dict(status='UNREVIEWED', hits=None, manifest_sha256=sha(out / 'SHA256SUMS.txt'), external=[],
+    # Never inherit an unmanifested certificate; require independent content review.
+    fs.write(out / 'ANON_OK.json', dict(status='UNREVIEWED', hits=None, manifest_sha256=sha(out / 'SHA256SUMS.txt'), external=[],
                                          scope='integrity-manifest-only; independent-content-scan-not-supplied'))
     if not changing: out.chmod(stat.S_IMODE(kit.stat().st_mode))
     return dict(config_key=key, config_identity=identity(cfg), run_key=run, kit_key=kit_key, persistent_run_root=root,

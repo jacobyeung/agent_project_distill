@@ -50,11 +50,22 @@ class R0DevTests(unittest.TestCase):
         self.assertEqual({k: v for k, v in self.settings.items() if k not in changed},
                          {k: v for k, v in base.items() if k not in changed})
 
+    def test_repeated_qids_get_unique_ids(self):
+        ids = [t['id'] for t in self.tasks]
+        self.assertEqual(len(ids), 2169)
+        self.assertEqual(len(set(ids)), 2169)
+        self.assertEqual(sorted(i for i in ids if '#' in i),
+                         ['r0_5f3b5ae38f23ff697994#2', 'r0_c07cd9b246d953847b90#2'])
+
     def test_task_labels_and_source_order(self):
         scorers = {t['question_type']: t['scorer'] for t in rows(r0.TASKS[0])}
         scorers['obj_appearance_order'] = scorers['object_rel_distance']
+        seen = {}
         for source, task in zip(self.source, self.tasks):
-            self.assertEqual(task['id'], source['qid'])
+            seen[source['qid']] = seen.get(source['qid'], 0) + 1
+            n = seen[source['qid']]
+            self.assertEqual(task['id'], source['qid'] if n == 1 else '%s#%d' % (source['qid'], n))
+            self.assertEqual(task['source_qid'], source['qid'])
             for name in ('scene', 'dataset', 'question_type', 'question', 'answer',
                          'fps', 'total_num_frames'):
                 self.assertEqual(task[name], source[name])

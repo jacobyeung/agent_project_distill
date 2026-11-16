@@ -193,3 +193,11 @@ TMPDIR=$PWD/work/tmp "$PY" -B -m pytest -q -p no:cacheprovider \
 The output-only pytest plugin redirects the existing suite's `TINY_E2E.json` proof into `parity_kit/test_results/`. It changes no assertions or reader behavior. The tiny parity fixture uses real random Qwen3 forwards and the existing sampled-token script helper; it substitutes the carrier-specific preparation/continuation boundary because no Qwen3.5 weights are available locally.
 
 Real shard restoration, GPU logits, real tower execution, SAM compatibility, peak memory, and cross-host parity remain unverified until the host runs. Full score equality is not promised: the reader uses a 1,024-token call window instead of 96, has no 200-call limit, omits the own-depth range gate and fallback suffix, leaves room calls unserved, and uses the configured grounding socket. These differences are distinct from the unchanged budget logits processor and official scoring path.
+
+## R0-dev f32 read
+
+`python -B -m parity_kit.r0dev` builds `parity_kit/r0dev/` from b10_reserve's `R0_QUESTIONS_dev_f32.jsonl` (sha256 prefix b4e278f2), its scene manifests and `FRAMES_MANIFEST.json` (450e4125). The build holds 2,169 tasks in 98 scenes with 32 frames each, and `settings_r0dev.json` binds `E2E_MANIFEST_118b`. Every R0 type scores with the existing scorer, and only the `answer` label is scored.
+
+Duplicate qids follow one rule in every read kit (ORCH ruling 2218Z). All 2,169 rows stay. The first occurrence of a qid keeps it as `id`, and the second gets `<qid>#2`; every task keeps `source_qid`. Two qids repeat with different distractors, `r0_5f3b5ae38f23ff697994` and `r0_c07cd9b246d953847b90`, and `BUILD_R0DEV.json` lists them under `duplicate_source_qids`.
+
+Run a read with `run_parity --settings parity_kit/r0dev/settings_r0dev.json`, giving each `--keys` partition its own output directory. `python -B -m parity_kit.r0dev_constants` prints per-type means beside the no-information constants. Run the tests with `parity_kit/tests/test_r0dev.py`.

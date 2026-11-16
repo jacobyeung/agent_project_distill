@@ -8,10 +8,10 @@ import json
 import re
 from pathlib import Path
 import shutil
+import stat
 import sys
 import tarfile
 import time
-import types
 from types import SimpleNamespace as NS
 
 HERE=Path(__file__).resolve().parent
@@ -52,9 +52,16 @@ def validate_items(rows,registration):
 def stage_assets(registration,work):
     work=Path(work);work.mkdir(parents=True,exist_ok=True)
     files=registration['files']
+    directories={Path(f['path']).parent for f in files.values()}
+    if len(directories)!=1:raise ValueError('Asset directory differs')
+    directory=directories.pop()
+    if directory.is_symlink() or stat.S_IMODE(directory.stat().st_mode)!=0o700:
+        raise ValueError('Asset directory must have mode 0700')
     for f in files.values():
         path=Path(f['path'])
-        if path.is_symlink() or path.stat().st_size!=f['bytes'] or sha(path)!=f['sha256']:
+        if path.is_symlink() or not path.is_file() or stat.S_IMODE(path.stat().st_mode)!=0o600:
+            raise ValueError('Asset files must have mode 0600')
+        if path.stat().st_size!=f['bytes'] or sha(path)!=f['sha256']:
             raise ValueError('Asset bytes differ')
     if shutil.disk_usage(work).free < 200*1024**3+sum(v['bytes'] for v in registration['frames'].values()):
         raise ValueError('Asset staging would breach the local free-space floor')
@@ -81,22 +88,6 @@ def stage_assets(registration,work):
     if seen!=set(registration['frames']):raise ValueError('Incomplete asset')
     dump(work/'ASSET_CHECK.json',dict(files=files,members=len(seen),verified=True))
     return rows,destination
-
-def install_layout(root):
-    """Adapt only layout guards/receipt literals in three authenticated modules."""
-    result={}
-    for name in ('think_settings','budget','budget_merge'):
-        path=Path(root)/(name+'.py');old=path.read_text()
-        # All occurrence counts are pinned so an upstream edit cannot expand this patch.
-        expected={'think_settings':1,'budget':3,'budget_merge':1}[name]
-        if old.count("'duplicate'")!=expected:raise ValueError('Layout source differs')
-        new=old.replace("'duplicate'","'spread'")
-        module=types.ModuleType(name);module.__file__=str(path)
-        sys.modules[name]=module
-        exec(compile(new,str(path),'exec'),module.__dict__)
-        result[name]=dict(source_sha256=hashlib.sha256(old.encode()).hexdigest(),
-                          effective_sha256=hashlib.sha256(new.encode()).hexdigest(),replacements=expected)
-    return result
 
 def score_policy(original,task,raw,tokens,cap=16384,finish='stop'):
     result=original(task,raw,tokens,cap=cap,finish=finish)
@@ -135,12 +126,11 @@ def run(config, reader=None, runtime=None):
     original=scoring.score_item
     scoring.score_item=lambda task,raw,tokens,cap=16384,finish='stop':score_policy(original,task,raw,tokens,cap,finish)
     data.tasks_for=lambda dataset,roots:copy.deepcopy(rows)
-    layout_pins=install_layout(root)
-    cell=copy.deepcopy(contract['cells'][0]);cell['layout']='spread'
+    cell=copy.deepcopy(contract['cells'][0])
     cfg={k:copy.deepcopy(contract[k]) for k in ('max_tokens','temperature','thinking','max_model_len','max_seqs','inflight','engine_version','gpus')}
     cfg.update(models=spec['models'],cells=[cell],datasets=[dict(benchmark='devrows')],roots={},
         source_sha256=source_sha,build_only=False,smoke_items=0,
-        items_sha256=config['extra']['files']['e52a690b.jsonl']['sha256'],layout_pins=layout_pins)
+        items_sha256=config['extra']['files']['e52a690b.jsonl']['sha256'])
     cfg['binding']=hashlib.sha256(json.dumps(cfg,sort_keys=True).encode()).hexdigest()
     cfg['output']=str(dest/'results');dump(dest/'request.json',cfg)
     data.tasks_for=lambda dataset,roots:copy.deepcopy(rows)
@@ -161,19 +151,21 @@ def run(config, reader=None, runtime=None):
         return np.stack(arrays)
     def load_frames(task,layout,cache,frames_sha256,**kwargs):
         expected=by_id[task['example_id']]
-        if layout!='spread' or any(task[k]!=expected[k] for k in expected):raise ValueError('Frame binding differs')
+        if layout!='duplicate' or any(task[k]!=expected[k] for k in expected):raise ValueError('Frame binding differs')
         arrays=arrays_for(tuple(expected['frame_refs']))
         indices=expected['source_frame_indices'];fps=expected['fps']
-        audit=dict(metadata=dict(fps=fps,frames_indices=indices,total_num_frames=expected['total_num_frames'],height=480,width=640),
+        expanded,_=media.frame_list(indices,fps,expected['total_num_frames'],layout,frames=32)
+        arrays=arrays.repeat(2,axis=0)
+        audit=dict(metadata=dict(fps=fps,frames_indices=expanded,total_num_frames=expected['total_num_frames'],height=480,width=640),
             anchor_indices=indices,source_frame_indices=indices,timestamps=[i/fps for i in indices],
-            pixel_sha256=media.pixel_digest(arrays),layout='spread')
+            pixel_sha256=media.pixel_digest(arrays),layout='duplicate')
         return arrays,audit
     media.load=load_frames
     from evalpath.official import build_prompt_context
     dump(dest/'PROMPT_PINS.json',{r['id']:hashlib.sha256(build_prompt_context(r,'ours').encode()).hexdigest() for r in rows})
     dump(dest/'frames/0.json',dict(binding=cfg['binding'],items=cfg['items_sha256'],frames=config['extra']['frames']))
     frame_sha=sha(dest/'frames/0.json')
-    dump(dest/'BIND_STATUS.json',dict(ready=True,tasks=len(rows),layout='spread',frames_sha256=frame_sha))
+    dump(dest/'BIND_STATUS.json',dict(ready=True,tasks=len(rows),layout='duplicate',frames_sha256=frame_sha))
     import stage
     reserve=2*sum(r['bytes'] for r in json.loads(Path(spec['models']['base']['manifest']['path']).read_text())['files'])+4*1024**3
     if shutil.disk_usage(work).free<200*1024**3+reserve:raise ValueError('Model space floor')
@@ -196,4 +188,4 @@ def run(config, reader=None, runtime=None):
     from records import write
     write(work/'ITEMS.jsonl',compact(scored,spec['step']))
     dump(work/'COMPLETE.json',dict(items=len(rows),family='a7',seconds=time.monotonic()-started,
-        artifact=spec['artifact'],source_sha256=source_sha,layout_pins=layout_pins))
+        artifact=spec['artifact'],source_sha256=source_sha))

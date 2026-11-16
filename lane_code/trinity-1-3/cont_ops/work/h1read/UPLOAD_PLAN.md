@@ -1,25 +1,27 @@
 # Operator upload plan
 
-The operator uploads these two files through the IO governor. No transfer was performed. The target directory is `/project/community/jjyeung/okh7/af83c921/`; confirm that it is available before upload. The full job naming blocker in REPORT.md remains unresolved.
+The operator uploads only the two files below through the IO governor. No transfer was performed.
+Set `/project/community/jjyeung/okh7/af83c921/` to mode **0700** and both files to **0600**. The job refuses other modes, symlinks or nonregular files before hashing or extraction.
 
 | Local file | Exact Orchard target | Bytes | SHA256 |
 |---|---|---:|---|
-| `assets/d81f4a26.tar` | `/project/community/jjyeung/okh7/af83c921/d81f4a26.tar` | 797685760 | `dfa66c645ea3b47dedebee13ae3206acb00fc5de7f0cc72d1101a67f75d10277` |
-| `assets/e52a690b.jsonl` | `/project/community/jjyeung/okh7/af83c921/e52a690b.jsonl` | 5728183 | `b728f8a57179854f36bcce24e28637eece3e61729aee6455beba7bf8f3e904b7` |
+| `assets/d81f4a26.tar` | `/project/community/jjyeung/okh7/af83c921/d81f4a26.tar` | 797685760 | `2ad8c67c111d5f286aa96ea688efd5c88218e116a8c09ae1a9b4bc71be893a21` |
+| `assets/e52a690b.jsonl` | `/project/community/jjyeung/okh7/af83c921/e52a690b.jsonl` | 5728183 | `1d8b29a7f7bb5c4e486f430b1128b9fa249de24ae7a3905b9bb0ccdd778c892b` |
 
-Total upload: **803,413,943 bytes**. Extracted PNG payload: **795,282,085 bytes**; 3,136 regular files.
+Total upload: **803,413,943 bytes**. Extracted PNGs: **795,282,085 bytes**, 3,136 files.
 
-The job reads the two files from that exact read-only mount. `kit/reader/x7.py:stage_assets` verifies each size and complete SHA256 before extraction, checks the pinned member inventory, rejects links/foreign/duplicate members, and verifies every PNG digest. It verifies item/type/room counts and exact frame-reference closure. RGB mode/dimensions and pixel hashes are checked on use. The tar contains no unused rooms or f64-only frames.
-
-Optional operator readback after the governed upload:
+After upload, the operator sets and checks permissions and verifies the full digests:
 
 ```bash
-printf '%s  %s\n' 'dfa66c645ea3b47dedebee13ae3206acb00fc5de7f0cc72d1101a67f75d10277' '/project/community/jjyeung/okh7/af83c921/d81f4a26.tar' | sha256sum -c -
-printf '%s  %s\n' 'b728f8a57179854f36bcce24e28637eece3e61729aee6455beba7bf8f3e904b7' '/project/community/jjyeung/okh7/af83c921/e52a690b.jsonl' | sha256sum -c -
+chmod 0700 /project/community/jjyeung/okh7/af83c921
+chmod 0600 /project/community/jjyeung/okh7/af83c921/d81f4a26.tar /project/community/jjyeung/okh7/af83c921/e52a690b.jsonl
+stat -c '%a %n' /project/community/jjyeung/okh7/af83c921 /project/community/jjyeung/okh7/af83c921/d81f4a26.tar /project/community/jjyeung/okh7/af83c921/e52a690b.jsonl
+printf '%s  %s\n' '2ad8c67c111d5f286aa96ea688efd5c88218e116a8c09ae1a9b4bc71be893a21' '/project/community/jjyeung/okh7/af83c921/d81f4a26.tar' | sha256sum -c -
+printf '%s  %s\n' '1d8b29a7f7bb5c4e486f430b1128b9fa249de24ae7a3905b9bb0ccdd778c892b' '/project/community/jjyeung/okh7/af83c921/e52a690b.jsonl' | sha256sum -c -
 ```
 
-Do not upload `in/`, `readk/`, `evidence/ID_MAP.json`, the reserve archive, reports or fixture directories. The per-job batch embeds its own small pinned runtime wrapper and registry; it is sent by the documented submission command.
+`kit/reader/x7.py:stage_assets` checks modes, file sizes and complete SHA256, exact item/type/room membership, frame-reference closure, safe tar members and every PNG digest. Loading checks RGB, dimensions and pixel digests. The trained cell supplies 32 anchors twice (64 input frames).
 
-Source archive: `/scratch/jjyeung/n30_mirror/b10_reserve/R0_RESERVE_20261116.tar`, **3,801,026,560 bytes**. Reading all source bytes produced SHA256 `2bbae12a984fde1228bdb571f5aee390c1e6a82dc554310aa04c6fd0fe80a116`, matching the supplied prefix. This full digest is now pinned in the builder and final inventory; no independent full source digest beyond the supplied prefix was provided.
+Keep `evidence/ID_KEY.json`, `evidence/ID_MAP.json`, `evidence/FAMILY_ALIASES.json`, source snapshots, reports and tests on Trinity. None enters the batch, configuration or returns. The key is generated once and reused for deterministic rebuilds.
 
-The selected tar reproduces byte-for-byte when its members are streamed back through the deterministic writer. The test compares the complete output digest and byte count without creating another full tar.
+The retained local frame asset supplies all frame bytes; its full digest is checked before every rebuild. `evidence/ASSET_BUILD.json` preserves the original reserve provenance. Tests reconstruct the deterministic sorted USTAR stream and compare its full digest.
