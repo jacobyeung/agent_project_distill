@@ -1,0 +1,19 @@
+# Lane trainer_v4_5_uuid_probe_fix_20260919: let the DDP admission probe read the torch CUDA UUID object (Devin, gpt-6-astra-max-priority)
+
+Read `agent/scratch/devin_lanes/_COMMON_HEADER.md` first; where it names the main repository, substitute this workspace, `/home/jjyeung/agent_project_distill`. LANE = `/home/jjyeung/agent_project_distill/agent/scratch/devin_lanes/trainer_v4_5_uuid_probe_fix_20260919`; `LANE/out` is a symlink to `/data2/jjyeung/agent_project_data/devin_lane_out/trainer_v4_5_uuid_probe_fix_20260919_out/`. Heartbeat every 5 minutes into `LANE/out/HEARTBEAT.log`. Budget: 45 minutes. No ssh, no GPU commands, no deletion, no push, no merge, no branch switching.
+
+## Why
+The 4-GPU smoke of the multi-GPU trainer on trinity-2-28 was refused on every rank: `ValueError: CUDA-visible device UUID is missing or malformed` (`/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_luna_launch_ddp_v4_a_onethinker/out/SMOKE_r3.md`). In `student_pilot/ddp_admission.py`, `admitted_rank` (about line 172) calls `cuda_uuid(getattr(torch.cuda.get_device_properties(0), "uuid", None))`, and `cuda_uuid` passes that value straight to `provisional.physical_uuid`, which accepts only 16 bytes, a `uuid.UUID`, or a str. Under torch 2.11 the `uuid` attribute is a pybind object (neither), so `physical_uuid` raises and the rank is refused. The single-GPU path in `student_pilot/diagnostic.py` (lines 50 to 51) already does it right: `"GPU-" + str(UUID(str(cuda_uuid).removeprefix("GPU-")))`. A Luna diagnostic may have written the exact runtime types to `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/codex_luna_t228_uuid_diag/out/REPORT.md`; read it if it exists.
+
+## Ordering with the other builder
+Another Devin lane (`trainer_v4_4_fsdp_fix_20260919`) is committing an FSDP fix on the same branch and worktree. Before touching the checkout, wait until `/home/jjyeung/agent_project_distill/agent/scratch/devin_lanes/trainer_v4_4_fsdp_fix_20260919/out/REPORT.md` exists and its last line is `DEVIN_LANE_DONE` (poll every 2 minutes, up to 40 minutes, heartbeating); if it never appears, stop and report. Then base your work on the branch HEAD you find (record the SHA).
+
+## Code
+Checkout `/home/jjyeung/agent_project_distill/agent/scratch/devin_lanes/trainer_multigpu_v4_20260919/work/trainer_repo`, branch `trainer-multigpu-v4-20260919` (a worktree of `/data2/jjyeung/agent_project_data/student_diagnostic_pilot_20260918/trainer_repo`; never touch any other worktree). Venv python `/data2/jjyeung/agent_project_data/student_diagnostic_pilot_20260918/venv/bin/python -B` with `PYTHONDONTWRITEBYTECODE=1`, `TMPDIR=/scratch/jjyeung/trainer_v4_tests` (create it), `CUDA_VISIBLE_DEVICES=""`.
+
+## Task
+1. Minimal fix: normalize the torch value to a string before parsing, mirroring diagnostic.py (for example `cuda_uuid(str(value))` when the attribute is present, with `None` still refused), keeping `physical_uuid` strict. Do not change lease schemas, the visibility checks, protocol normalization or the CLI surface.
+2. Tests in `tests/`: an object whose `__str__` returns `GPU-<uuid>` is accepted and normalized; an object whose `__str__` returns the bare uuid is accepted; `None`, an empty string and garbage are refused with the existing message. Run the scoped suite the v4 lanes use (`tests/` and `student_pilot/`), then `git diff --check`; save `LANE/out/tests.log`.
+3. Commit on the branch with a one-line message; write `LANE/out/CHANGES.md`, `LANE/out/complete.diff` (previous HEAD..HEAD) and `LANE/out/REPORT.md` (at most 12 lines: base SHA, new SHA, test counts, last line exactly `DEVIN_LANE_DONE`). Write REPORT.md even on failure.
+
+Rules: exact paths only; grep only inside `student_pilot/` and `tests/` of the checkout; never run find, grep -r, du or ls -R over /home/jjyeung or /data2; never open paths containing offline_labels or answer_bank.

@@ -1,0 +1,4 @@
+# Refute verdict for reader-harness
+refuted=True
+reasons: The cited record (PACKED_JOB_FEASIBILITY line 5) gives a 1 to 4 h gain for packing 4 jobs, based on forecasts, not a per-read figure. Measured general queues: 0 to 50 min. afterok starts runs at 0 min (170008, 170037). chain.py already runs families in sequence. D0 reads are staggered and out of scope. The "14 versions" figure counts test roots (3 are live). The parity files are not in the brief's sources.
+fix (binding): Drop the queue claim. Justify the brief by no fork per read plus a frame guard of export vs read layout (PROTOCOL.json already pins the layout). Use "3 live trinity_read builds". Name the parity inputs events/evalx27/prod_a8acc277397/*.json and prod_a348bc58686 as allowed one-time reads. Note that afterok chaining already exists. Findings: /scratch/jjyeung/orch_n30/eff_audit/refute_reader_harness/FINDINGS.md

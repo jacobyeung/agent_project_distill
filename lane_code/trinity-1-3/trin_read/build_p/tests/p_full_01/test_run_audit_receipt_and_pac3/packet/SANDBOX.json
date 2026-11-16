@@ -1,0 +1,79 @@
+{
+  "binds": [
+    {
+      "mode": "rw",
+      "option": "--bind",
+      "source": "/scratch/jjyeung/orch_n30/trin_read/build_p/tests/p_full_01/test_run_audit_receipt_and_pac3",
+      "target": "/scratch/jjyeung/orch_n30/trin_read/build_p/tests/p_full_01/test_run_audit_receipt_and_pac3"
+    }
+  ],
+  "bwrap": {
+    "path": "/usr/bin/bwrap",
+    "sha256": "e60f175f82b2d6779a543ba52152f636f6260d092e44b195713f7650fb7bed76",
+    "version": "bubblewrap 0.4.0\n",
+    "version_stderr": ""
+  },
+  "host_driver_libraries": [
+    {
+      "bytes": 91501576,
+      "name": "libcuda.so.1",
+      "path": "/usr/lib64/libcuda.so.1",
+      "resolved_path": "/usr/lib64/libcuda.so.595.71.05"
+    },
+    {
+      "bytes": 2621336,
+      "name": "libnvidia-ml.so.1",
+      "path": "/usr/lib64/libnvidia-ml.so.1",
+      "resolved_path": "/usr/lib64/libnvidia-ml.so.595.71.05"
+    }
+  ],
+  "host_glibc": "fixture",
+  "host_glibc_command": {
+    "returncode": 0,
+    "stdout": "fixture\n"
+  },
+  "host_nvidia_driver": {
+    "returncode": 0,
+    "stdout": "fixture\n"
+  },
+  "llguidance_stub": {
+    "enabled": true,
+    "path": "/scratch/jjyeung/orch_n30/trin_read/build_p/llg_stub/llguidance",
+    "satisfies": [
+      "llguidance",
+      "LLMatcher",
+      "LLTokenizer",
+      "LLInterpreter",
+      "llguidance.hf (raises)",
+      "llguidance.torch (raises)"
+    ],
+    "sha256": {
+      "__init__.py": "01fc27773baceee9eb87ff76cec70d8ce761a8ddef6c73055224e77a70023572",
+      "hf.py": "72b199ae58e47693d9d9eecd1974ce4eba13ded40acab969ecdbdba00201b1f2",
+      "torch.py": "72b199ae58e47693d9d9eecd1974ce4eba13ded40acab969ecdbdba00201b1f2"
+    },
+    "target": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/19252904/e/lib/python3.12/site-packages/llguidance",
+    "verified": true,
+    "version": 2
+  },
+  "namespace_argv": [
+    "/usr/bin/bwrap",
+    "--bind",
+    "/scratch/jjyeung/orch_n30/trin_read/build_p/tests/p_full_01/test_run_audit_receipt_and_pac3",
+    "/scratch/jjyeung/orch_n30/trin_read/build_p/tests/p_full_01/test_run_audit_receipt_and_pac3",
+    "fake-reader"
+  ],
+  "namespace_driver_resolution": null,
+  "namespace_executed": true,
+  "namespace_glibc": "glibc 2.28",
+  "probe_passed": true,
+  "probe_path": null,
+  "special_mounts": [],
+  "unavailable_reason": null,
+  "versions": {
+    "python": "3.12",
+    "torch": "fixture",
+    "transformers": "fixture",
+    "vllm": "0.32"
+  }
+}

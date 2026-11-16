@@ -1,0 +1,51 @@
+{
+ "note": "Default for 10-28 at share 168 (160 GPUs at 18:30). Block i's arms run in order; after_block waits for that block to end; hold waits for the arm's CPU admission on code-aws. Edit before 18:20 PT, then run r1night.py plan. A1H_S17 is retired (heads harmful) and is never planned, submitted or resumed.",
+ "checker_gpus": 8,
+ "await_admission": [
+  "RG1_A1_S18_K200"
+ ],
+ "blocks": [
+  {
+   "chain": [
+    "RG1_A1_S17",
+    "RG1_A1_S18_K200"
+   ],
+   "resume_run": "r1a1_49941c33",
+   "remaining_steps": 633
+  },
+  {
+   "chain": [
+    "R27_A1_S17_K200"
+   ],
+   "hold": true
+  },
+  {
+   "chain": [
+    "R27_X_S17_K200"
+   ],
+   "hold": true
+  },
+  {
+   "chain": [
+    "RG1_X_W64_S17_K200"
+   ],
+   "hold": true,
+   "after_block": 1
+  },
+  {
+   "chain": [
+    "RG1_X_W64_S18_K200"
+   ],
+   "hold": true,
+   "after_block": 2
+  },
+  {
+   "chain": [
+    "RG1_A2_S17"
+   ],
+   "resume_run": "r1a2_dda596f5",
+   "remaining_steps": 633,
+   "after_block": 3
+  }
+ ]
+}

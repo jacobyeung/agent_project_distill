@@ -1,0 +1,4 @@
+# Refute verdict for orch-watch
+refuted=True
+reasons: The cited evidence does not back the claimed saving. review_k1b2 finished its task and exited: its STATUS is stamped 07:43:25Z, and the snapshot says lanes end "when its task is done". A lease cannot fix that. About half of the 14 rotations hit the context limit, and each gap was 3-6 min. Job 170193 failed on config and was caught in about 8 min; a 600 s sacct poll is no faster than a 5-min poll. Lease risk: evwait is re-armed by hand, so a quiet orchestrator kills lanes after 1 h instead of about 6 h.
+fix (binding): Remove the lease, or touch the heartbeat from a tmux daemon and keep the lease at least as long as the current timeouts. Restate the savings as unmeasured. Send the reviewer loss to no-build step 2 and #4. Set the watcher cadence at or below 300 s. Route evwait2's 2-28 probe through tssh.sh. Count only clock-driven rotations.

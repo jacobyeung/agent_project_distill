@@ -1,0 +1,84 @@
+# Test L recipe, vla_schema_v1 section 10 (VLA_SCHEMA.md; design record section 4.1): LIBERO-Spatial, 5 demos per task (d5_s0,
+# the October pilot's list), seed 17. StarVLA 985c2238 QwenOFT with vla_heads' head (a) in StarVLA's OFT configuration plus
+# proprio through a zero-initialised map (framework.head_hook), gripper regressed as g = 1 - 2 a6, every frame a chunk
+# start with action_mask past the episode end (vl_data_patch.py), prompt template starvla_qwenoft_985c2238_v1.
+# Identical for every arm; per arm only framework.qwenvl.base_vlm changes (B1 student, B0 base), and U1 adds
+# framework.vla_heads.cond=spatial_readouts plus the where rows and line. Launch scripts set paths, run_id and seed.
+run_id: vll
+run_root_dir: ./runs
+seed: 17
+wandb_entity: none
+wandb_project: none
+is_debug: false
+version_id: "0.21"
+
+framework:
+  name: QwenOFT
+  head_hook: vl_heads_hook:make
+  qwenvl:
+    base_vlm: ./models/Qwen3.5-B1
+    attn_implementation: flash_attention_2
+    vl_hidden_dim: 4096
+  action_model:
+    action_model_type: MLP
+    action_dim: 7
+    state_dim: 8
+    action_horizon: 8
+  vla_heads:
+    proprio_dim: 8
+    cond: none                       # U1: spatial_readouts
+    reg_hidden: null                 # 2 x VLM width = 8192, as StarVLA's head
+    reg_blocks: 2
+
+datasets:
+  vla_data:
+    dataset_py: lerobot_datasets
+    data_root_dir: ./data/lerobot
+    data_mix: vll_libero_spatial_d5_s0
+    action_type: delta_qpos
+    sequential_step_sampling: false
+    drop_incomplete_action_chunks: false   # every frame is a chunk start; vl_data_patch masks steps past the end
+    obs_image_size: [224, 224]
+    per_device_batch_size: 16          # x 4 GPUs = global batch 64
+    load_all_data_for_training: true
+    video_backend: torchvision_av
+    num_workers: 8
+    include_state: true                # the hook reads 'state' and removes it before StarVLA builds the prompt
+
+trainer:
+  max_train_steps: 10000
+  num_warmup_steps: 300              # 3% of the steps (train_arm.sh sets 3% of STEPS)
+  save_steps: [1000, 2000, 5000, 10000]
+  state_steps: []
+  state_every: 500                   # schema save_every: ONE rolling node-local full state (state/current), replaced atomically
+  state_gb_est: 125                  # full-state size before the first save (B1 at world 1 measured 121 GiB, job 168348)
+  export_gb_est: 20                  # weights-only export size before the first export (bf16 state dict, about the 19 GiB base)
+  disk_margin_gb: 10                 # free space kept beyond each save
+  early_loss_steps: 50               # self-stop if a step <= 50 has rank-mean loss > early_loss_factor x step-1 loss
+  early_loss_factor: 5.0
+  stop_slow_factor: 3.0
+  trace_module_every: 100
+  save_interval: 1
+  eval_interval: 100000000
+  learning_rate:
+    base: 3.0e-05
+    qwen_vl_interface: 3.0e-05
+    action_model: 3.0e-04
+  lr_scheduler_type: cosine_with_min_lr
+  scheduler_specific_kwargs:
+    min_lr: 1.0e-06
+  freeze_modules: qwen_vl_interface.model.model.visual   # ViT + merger frozen (schema backbone.vision: frozen)
+  loss_scale:
+    vla: 1.0
+    vlm: 0.0
+  max_grad_norm: 1.0
+  weight_decay: 0.0
+  logging_frequency: 10
+  gradient_clipping: 1.0
+  gradient_accumulation_steps: 1
+  gradient_checkpointing: false
+  optimizer:
+    name: AdamW
+    betas: [0.9, 0.95]
+    eps: 1.0e-08
+    weight_decay: 1.0e-08            # the kit value (StarVLA's LIBERO recipe, the October pilot), recorded per schema 10

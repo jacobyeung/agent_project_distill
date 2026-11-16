@@ -1,0 +1,93 @@
+--- /scratch/jjyeung/orch_n30/native_r2/builds/01_c8/work/run_rehearsal.py.orig	2026-11-15 15:04:48.347530738 -0500
++++ /scratch/jjyeung/orch_n30/native_r2/builds/01_c8/out/rehearsal/run_rehearsal.py	2026-11-15 15:22:04.024503238 -0500
+@@ -44,15 +44,15 @@
+ def limits(dest):
+     free=shutil.disk_usage(B).free
+     if free<=120*10**9:raise RuntimeError('Rehearsal start requires more than 120 GB free')
+-    value=dict(free_bytes_start=free,run_budget_bytes=2*1024**3,build_budget_bytes=2500000000,
++    value=dict(free_bytes_start=free,run_budget_bytes=2*1024**3,build_budget_bytes=9000000000,
+         df=subprocess.check_output(['df','-B1','/scratch'],universal_newlines=True),fixture=True)
+     dump(dest/'LIMITS.json',value)
+-    if owned_bytes(B)>=2500000000:raise RuntimeError('Build storage budget exceeded')
++    if owned_bytes(B)>=9000000000:raise RuntimeError('Build storage budget exceeded')
+     return value
+ def prerequisites():
+     absent=[]
+     if not PY.is_file():absent.append(str(PY))
+-    for name in ('masks','geometry','np226','frames'):
++    for name in ('masks','geometry','numpy','frames'):
+         if not (W/'streams'/(name+'.done')).is_file():absent.append(str(W/'streams'/(name+'.done')))
+     return absent
+ def extract(path,destination,remaining):
+@@ -85,16 +85,16 @@
+         if path.stat().st_size!=part['bytes'] or sha(path)!=part['sha256']:
+             raise ValueError('Object differs: '+str(path))
+         target=physical(root,part['destination']) if part.get('destination') else root
+-        extract(path,target,2500000000-owned_bytes(B))
++        extract(path,target,9000000000-owned_bytes(B))
+     frames=physical(root,family['worker_contract']['frames_root'])
+-    extract(W/'obj/frames.tar',frames,2500000000-owned_bytes(B))
++    extract(W/'obj/frames.tar',frames,9000000000-owned_bytes(B))
+     for rel,digest in family['assets']['frames_inventory'].items():
+         expected=digest if isinstance(digest,str) else digest['sha256']
+         if sha(frames/rel)!=expected:raise ValueError('Frame differs: '+rel)
+     overlay=root/'np226'
+     path=W/'obj/np226_5204b3a0.tar'
+-    if not sha(path).startswith('5204b3a0'):raise ValueError('Numpy overlay object hash differs')
+-    extract(path,overlay,2500000000-owned_bytes(B))
++    if sha(path)!=family['assets']['numpy']['sha256']:raise ValueError('Numpy overlay object hash differs')
++    extract(path,overlay,9000000000-owned_bytes(B))
+     artifact=load(W/'p9/metadata/CONFIG.json')['worker']['artifact']
+     target=physical(root,artifact['path']);target.parent.mkdir(parents=True,exist_ok=True)
+     target.write_bytes((W/'obj/m544_artifact.json').read_bytes())
+@@ -104,7 +104,17 @@
+ 
+ def namespace(root,dest,mode):
+     family=load(FAMILY)
+-    args=['/usr/bin/bwrap','--ro-bind','/','/','--unshare-net','--unshare-uts','--hostname','orchard-cpu-fixture',
++    trainer=physical(root,family['assets']['trainer_logical_archive'])
++    if not trainer.is_file():
++        trainer.parent.mkdir(parents=True,exist_ok=True)
++        shutil.copyfile(W/'obj'/Path(family['assets']['trainer_logical_archive']).name,trainer)
++    if sha(trainer)!=family['assets']['trainer']['sha256']:raise ValueError('Trainer archive differs')
++    for inner in (W,B,PY.parent.parent,Path(family['assets']['tree_root'])):
++        physical(root,inner).mkdir(parents=True,exist_ok=True)
++    args=['/usr/bin/bwrap','--unshare-net','--unshare-uts','--hostname','orchard-cpu-fixture']
++    for system in ('/usr','/etc','/bin','/sbin','/lib','/lib64','/opt'):
++        if os.path.exists(system):args+=['--ro-bind',system,system]
++    args+=['--proc','/proc','--dev','/dev','--ro-bind','/dev/shm','/dev/shm','--tmpfs','/tmp','--tmpfs','/scratch',
+         '--ro-bind',str(root/'sj'),'/scratch/jjyeung',
+         '--ro-bind',str(root/'fsw'),'/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung',
+         '--ro-bind',str(root/'fsw/ap'),'/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap',
+@@ -114,9 +124,10 @@
+         '--die-with-parent']
+     token='c80000001' if mode=='pilot' else 'c80000002'
+     run=LOGICAL/'runs'/token
+-    mapped_run=physical(root,run);mapped_run.mkdir(parents=True)
+-    local_run=dest/'run';local_run.mkdir()
+-    args+=['--bind',str(local_run),str(mapped_run),'--bind',str(local_run),str(run)]
++    mapped_runs=physical(root,run.parent);mapped_runs.mkdir(parents=True,exist_ok=True)
++    local_runs=dest/'runs';local_run=local_runs/token;local_run.mkdir(parents=True)
++    os.symlink('runs/'+token,dest/'run')
++    args+=['--bind',str(local_runs),str(mapped_runs),'--bind',str(local_runs),str(run.parent)]
+     base_files=list((W/'base').glob('models--Qwen--Qwen3.5-9B/snapshots/*'))
+     if len(base_files)!=1:raise ValueError('Expected one supplied base snapshot')
+     model=load(physical(root,family['assets']['model_manifest']['path']))
+@@ -168,7 +179,7 @@
+ 
+ def inside(args):
+     root=Path(args.stage);dest=Path(args.dest)
+-    overlays=list((root/'np226').rglob('numpy/__init__.py'))
++    overlays=[p for p in (root/'np226').rglob('numpy/__init__.py') if p.parent.name=='numpy' and (p.parents[1]/'scipy').is_dir()]
+     if len(overlays)!=1:raise ValueError('Numpy overlay has no unique package root')
+     sys.path[:0]=[str(overlays[0].parents[1]),str(W/'pyextra'),str(LOGICAL/'orchard_native'),
+                   str(LOGICAL/'native/out2'),str(LOGICAL),str(W/'tree'),str(Path(__file__).parent)]
+@@ -236,7 +247,7 @@
+         process=subprocess.Popen(command,stdout=log,stderr=subprocess.STDOUT)
+         while process.poll() is None:
+             time.sleep(60)
+-            if owned_bytes(dest)>2*1024**3 or owned_bytes(B)>2500000000:
++            if owned_bytes(dest)>2*1024**3 or owned_bytes(B)>9000000000:
+                 process.terminate()
+                 process.wait()
+                 dump(dest/'STORAGE_REFUSAL.json',dict(fixture=True,reason='Owned storage budget exceeded',

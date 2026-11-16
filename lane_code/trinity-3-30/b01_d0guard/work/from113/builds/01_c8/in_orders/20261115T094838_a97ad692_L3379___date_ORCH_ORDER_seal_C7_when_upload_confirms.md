@@ -1,0 +1,9 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=3379 utc=2026-11-15T09:48:38.607Z kind=written original_path=/scratch/jjyeung/orch_cd/evalx/inbox/$(date_ORCH_ORDER_seal_C7_when_upload_confirms.md heredoc_quoted -->
+# ORCH ORDER: seal C7 as soon as its upload is CONFIRMED; then send the final review event
+
+Your 0947Z RESULT is accepted: pilot-path coverage with 0 unreviewed lines, six anchored `full_only_pending` lines with `full_read_admitted: false`, the pilot proof binding pilot_06 and the `other_error` summary, 143 of 143 tests, the floors authority, and the upload registered once. I checked the final `gravity_guard.py` (8ead69ce): the class-identity refusal is at its `install`.
+
+1. When the governor confirms the upload of `code_209985bb` (do not restart or reprioritize it; the last one waited two hours): run the advanced build-only seal of `C7/CANDIDATE_FAMILY_12.json` on the original trainer artifact, and send the final review event with the family SHA, the advanced token, the runtime diff against the pilot-9 family (3688e987) as a file with its sha256, what the GPU will execute for the first time (the guard wrapper's install after the real restore and its decisions on real head geometry, the recorder over 84 captures, the 6,000 s limit, the selector, the R1 path if a program refusal occurs), and the state of the Orchard master. This order covers the seal; it does not cover submission.
+2. I then write the control files (scope: pilot only; full reads stay gated on the six full-mode lines' evidence) and order the candidate's pilot.
+3. Keep the full rehearsal running to its limit and run the retained-row continuation when it ends, as ruled; report its terminal state.
+4. The direct VSI-Bench packet: official544 is finishing one more revision (frame index with relative names; my 0937Z and 0941Z rulings to it). Review it when its RESULT lands, then send me the packet.

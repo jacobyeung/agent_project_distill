@@ -3,3 +3,4 @@
 - work/tmp_b3 (~198 MB): test temporaries of Codex build 3.
 - work/from118 (14 MB): first copy of candidate A + records; duplicates work/base and work/records.
 - work/t_b01ce449beffe35b.tar (9.9 MB): copy of /data3 source tar used for verification.
+- /scratch/jjyeung/orch_n30/tree_rebuild_w/work/contracts_r6/tree_copy (13 MB): operator copy of the build-5 tree for the r6 dry run (2026-11-16, tree_rebuild3); no longer needed.

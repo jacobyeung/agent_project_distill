@@ -1,0 +1,2 @@
+cd /scratch/jjyeung/orch_cd || exit 1
+tar cf - devs1_direct/out/ITEMS.jsonl devs1_direct/out/ITEMS.jsonl.sha256 devs1_direct/out/TASKS.jsonl devs1_direct/out/STRATA.jsonl devs1_direct/out/COUNTS.json devs1_direct/out/COUNTS.md devs1_direct/out/DESIGN_RECORD.md devs1_direct/out/EXCLUDED.jsonl devs1_direct/out/SHA256SUMS devs1_masks/out/MANIFEST.json -C /scratch/jjyeung devs1_mask_run/candidates.SHA256SUMS devs1_mask_run/FRAME_AUDIT.json devs1_mask_run/run_gpu2.sh devs1_mask_run/evalx_run.log

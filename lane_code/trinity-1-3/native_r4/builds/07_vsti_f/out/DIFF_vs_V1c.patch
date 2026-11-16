@@ -1,0 +1,420 @@
+--- V1c/code/o.py
++++ V1f/code/o.py
+@@ -7,6 +7,11 @@
+ import subprocess
+ import sys
+ import time
++import shutil
++import stat
++import tarfile
++import tempfile
++import traceback
+ from adapter import *
+ from budget import DEFAULT,Budget
+ from venue import extract
+@@ -43,6 +48,8 @@
+         if expected and records[key]['sha256']!=expected:raise ValueError('late asset differs from family')
+     if resume and not str(resume.get('path','')).startswith('/project/community/'):
+         raise ValueError('resume archive must be on shared project storage')
++    for key in ('a','b','c','d'):
++        check_packet_tar(records[key]['path'])
+     out=Path(dest);out.mkdir(parents=True,exist_ok=False)
+     shared=Path(PREFIX)/'p'/token
+     config=dict(schema='a15-v1',token=token,deadline_utc=deadline,added=records,family=family,
+@@ -59,6 +66,14 @@
+     return config
+ 
+ 
++def check_packet_tar(path):
++    """Admit only the entry types that the addition extractor can stage."""
++    with tarfile.open(path) as archive:
++        for member in archive:
++            if not (member.isfile() or member.isdir()):
++                raise ValueError('input tar contains a non-file/non-directory member: '+str(path)+': '+member.name)
++
++
+ def staged_addition(record,root,key,S,H):
+     archive=Path(root)/('x'+key+'.tar')
+     # A missing primary copy selects the pinned cloud copy; failures are never retried.
+@@ -90,6 +105,120 @@
+     module.S.members=return_members
+     try:return module.publish(source,module.AUTHORIZED_POOL,token,binding,code,synthetic=False,mode='full')
+     finally:module.S.members=original
++
++
++def exception_record(error):
++    return dict(error=type(error).__name__+': '+str(error),
++                traceback=''.join(traceback.format_exception(error)))
++
++
++def omitted_prepare(path):
++    parts=path.parts
++    return ('store' in parts or parts[0]=='v' or path.name.endswith('.next')
++            or (parts[:3]==('cell','g','raw') and path.suffix=='.npz'))
++
++
++def optional_geometry(path):
++    # The report verifies i/ metadata and bound proof, but never loads these arrays.
++    return path.parts[:3]==('cell','g','scaled') and path.suffix=='.npz'
++
++
++def inventory(runroot,selected):
++    records=[]
++    for p in sorted(runroot.rglob('*')):
++        info=p.lstat()
++        if stat.S_ISDIR(info.st_mode):continue
++        rel=str(p.relative_to(runroot))
++        row=dict(path=rel,bytes=info.st_size,suffix=p.suffix,excluded=rel not in selected)
++        if stat.S_ISREG(info.st_mode) and info.st_size<50_000_000:
++            try:row['sha256']=sha(p)
++            except OSError as error:row['hash_error']=exception_record(error)
++        records.append(row)
++    return dict(files=records,excluded=[r['path'] for r in records if r['excluded']])
++
++
++def attach(source,target):
++    target.parent.mkdir(parents=True,exist_ok=True)
++    try:os.link(source,target)
++    except OSError:shutil.copyfile(source,target)
++
++
++def build_return(root,runroot,dest,config,rc,failure,phase_error=None,return_error=None,minimal=False,trim=False):
++    dest.mkdir(parents=True,exist_ok=False);selected={}
++    protected={'RESULT.json','MERGED.json','COMPLETE.json','PROOF.json','CANARY.json'}
++    for p in sorted(runroot.rglob('*')):
++        rel=p.relative_to(runroot)
++        if p.is_symlink():
++            if minimal:continue
++            raise ValueError('return contains a link: '+str(rel))
++        if not p.is_file():continue
++        keep=not omitted_prepare(rel)
++        if trim and optional_geometry(rel):keep=False
++        if minimal:
++            keep=(p.name in protected or p.suffix=='.jsonl' and rel.parts[0].startswith('j')
++                  or str(rel)=='PHASES.json')
++        if p.name=='FAILURE.json' and (phase_error or return_error):continue
++        if keep:selected[str(rel)]=p
++    # Preflight before attaching files or creating the archive.
++    if not minimal and not trim and (sum(p.stat().st_size for p in selected.values())>512*1024**2
++                                      or len(selected)>9990):
++        selected={n:p for n,p in selected.items() if not optional_geometry(Path(n))}
++    for rel,p in selected.items():
++        if rel=='COMPLETE.json':continue  # The wrapper owns the top-level completion marker.
++        attach(p,dest/rel)
++    for name in ('a.log','b.log','STAGING.json'):
++        source=root/name
++        if source.is_file():
++            if minimal and name.endswith('.log'):
++                with source.open('rb') as stream:
++                    stream.seek(max(0,source.stat().st_size-2*1024**2))
++                    (dest/name).write_bytes(stream.read())
++            else:attach(source,dest/name)
++    if minimal:
++        for name in ('a.log','b.log'):
++            if not (dest/name).exists():(dest/name).write_text('')
++        if not (dest/'STAGING.json').exists():dump(dest/'STAGING.json',dict(unavailable=True))
++        if not (dest/'PHASES.json').exists():dump(dest/'PHASES.json',[])
++    if phase_error or return_error:
++        dump(dest/'FAILURE.json',dict(error=failure,phase_error=phase_error,return_error=return_error))
++        if (runroot/'FAILURE.json').exists():selected['FAILURE.json']=runroot/'FAILURE.json'
++    dump(dest/'INVENTORY.json',inventory(runroot,selected))
++    partial=True
++    if not minimal and (runroot/'RESULT.json').exists():partial=bool(load(runroot/'RESULT.json').get('missing'))
++    dump(dest/'COMPLETE.json',dict(complete=rc==0 and not minimal,partial=partial,
++        failure=failure,plan_sha256=config['binding'],synthetic=False))
++    return dest
++
++
++def finish_return(module,root,runroot,config,rc,failure,phase_error=None):
++    """A return failure must not hide the phase error or bypass both channels."""
++    try:
++        source=build_return(root,runroot,root/'return',config,rc,failure,phase_error)
++        try:
++            value=publish_read(module,source,config['token'],config['binding'],rc)
++        except module.S.BudgetError:
++            # A compressed cap may be reached even when the expanded cap passes.
++            if not any(optional_geometry(p.relative_to(source)) for p in source.rglob('*.npz')):raise
++            source=build_return(root,runroot,root/'return_trimmed',config,rc,failure,phase_error,trim=True)
++            value=publish_read(module,source,config['token'],config['binding'],rc)
++        if value.get('returned') is False:raise RuntimeError('full return was not published: '+str(value))
++        return value
++    except BaseException as error:
++        return_error=exception_record(error)
++    # A fresh directory keeps partial full archives out of the fallback.
++    try:
++        source=build_return(root,runroot,root/'return_minimal',config,rc or 1,failure,
++                            phase_error,return_error,minimal=True)
++        value=publish_read(module,source,config['token'],config['binding'],rc or 1)
++        if value.get('returned') is False:raise RuntimeError('minimal return was not published: '+str(value))
++        return value
++    except OSError as error:
++        # Independent local storage also covers ENOSPC while the publisher archives.
++        return_error=dict(return_error, fallback_storage_error=exception_record(error))
++        emergency=Path(tempfile.mkdtemp(prefix='a15_return_'+config['token']+'_',dir='/dev/shm'))
++        source=build_return(root,runroot,emergency/'return',config,rc or 1,failure,
++                            phase_error,return_error,minimal=True)
++        return publish_read(module,source,config['token'],config['binding'],rc or 1)
+ 
+ 
+ def run(config_path):
+@@ -107,10 +236,11 @@
+     for n in ('adapter','budget','venue'):
+         if sha(sys.modules[n].__file__)!=sha(root/'c'/(n+'.py')):raise ValueError('packet helper differs from code archive')
+     sys.path.insert(0,str(root/'c'));sys.modules.pop('paths',None)
+-    S,H,R,J,B=imports();J.card(require_empty=True)
++    S,H,R,J,B=imports()
+     original=deepcopy(config['family']['parent_config'])
+-    runtime=None;rc=1;runroot=root/'run';runroot.mkdir();failure=None
++    runtime=None;rc=1;runroot=root/'run';runroot.mkdir();failure=None;phase_error=None
+     try:
++        J.card(require_empty=True)
+         J.J.storage_proof(root,job=job)
+         old=S.stage(root,original)
+         for key in ('a','b','d'):staged_addition(config['added'][key],root,key,S,H)
+@@ -176,22 +306,14 @@
+                 rc=run_phase(prefix+tail+[entry]+args,entry,runroot,env,stream,remaining)
+         result=load(runroot/'RESULT.json');result['segments']=[Path(p).name for p in resume]+[segment];dump(runroot/'RESULT.json',result)
+     except BaseException as error:
+-        failure=str(error);dump(runroot/'FAILURE.json',dict(error=failure));rc=rc or 1
++        failure=str(error);phase_error=exception_record(error);rc=rc or 1
++        dump(runroot/'FAILURE.json',dict(error=failure,phase_error=phase_error,return_error=None))
+         journals=sorted(runroot.glob('j*/COMPLETE.json'))
+         done={k for p in journals for k in load(p).get('keys',[])}
+         dump(runroot/'RESULT.json',dict(complete=False,missing=[k for k in config['family']['inputs']['keys'] if k not in done],
+             segments=[p.parent.name for p in journals],failure=failure))
+     finally:
+-        # Return the journal and prepared geometry, not frame pixels or raw tower caches.
+-        returned=root/'return';returned.mkdir()
+-        for p in runroot.rglob('*'):
+-            if not p.is_file() or '/store/' in str(p) or ('/g/raw/' in str(p) and p.suffix=='.npz') or p.relative_to(runroot).parts[0]=='v' or p.name.endswith('.next'):continue
+-            target=returned/p.relative_to(runroot);target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(p.read_bytes())
+-        for name in ('a.log','b.log','STAGING.json'):
+-            if (root/name).is_file():(returned/name).write_bytes((root/name).read_bytes())
+-        dump(returned/'COMPLETE.json',dict(complete=rc==0,partial=bool(load(runroot/'RESULT.json').get('missing')) if (runroot/'RESULT.json').exists() else True,
+-            failure=failure,plan_sha256=config['binding'],synthetic=False))
+-        return publish_read(R,returned,config['token'],config['binding'],rc)
++        return finish_return(R,root,runroot,config,rc,failure,phase_error)
+ 
+ 
+ def run_phase(command,entry,runroot,env,stream,remaining):
+--- V1c/tests/test_read.py
++++ V1f/tests/test_read.py
+@@ -17,7 +17,7 @@
+     @classmethod
+     def setUpClass(cls):
+         cls.root=B/'work'/('test_'+uuid.uuid4().hex);cls.root.mkdir()
+-        cls.bound=prepare(R/'in/vsti/vstibench_repr_450_v3.json',R/'in/vsti/media.json',R/'in/vsti/frames_sample',cls.root/'i',True)
++        cls.bound=prepare(R/'in/vsti/vstibench_repr_450_v3.json',R/'in/vsti/media.json',R/'in/vsti/frames_sample',cls.root/'i',True,selected_path=B/'work/absent_selection_fixture.json')
+         cls.raw=engine.tower(cls.bound,SPEC,cls.root/'raw',True)
+         cls.geometry=engine.prepare_geometry(cls.bound,SPEC,cls.raw,cls.root/'g',Boundary())
+         cls.complete=engine.run(cls.root/'i/BOUND.json',SPEC,cls.geometry,cls.root/'j',boundary=Boundary())
+--- V1c/tests/test_tower_boundary.py
++++ V1f/tests/test_tower_boundary.py
+@@ -15,7 +15,7 @@
+         import numpy as np
+         from student_pilot import tower_read as T
+         root=B/'work'/('tb_'+uuid.uuid4().hex);root.mkdir()
+-        prepare(R/'in/vsti/vstibench_repr_450_v3.json',R/'in/vsti/media.json',R/'in/vsti/frames_sample',root/'i',True)
++        prepare(R/'in/vsti/vstibench_repr_450_v3.json',R/'in/vsti/media.json',R/'in/vsti/frames_sample',root/'i',True,selected_path=B/'work/absent_selection_fixture.json')
+         weights=root/'w';config=root/'c';weights.write_bytes(b'fixture weights');config.write_bytes(b'fixture config')
+         # The provider alone is replaced; capture validation, PNG checks and archive serialization are real.
+         class Provider:
+--- V1c/tests/test_v1b.py
++++ V1f/tests/test_v1b.py
+@@ -82,7 +82,7 @@
+         with self.assertRaises(ValueError):budget.timestamp('2026-11-16T16:15:00')
+         with self.assertRaises(ValueError):b.observe('other',-1)
+     def test_resume_disjoint_and_pin_rejection(self):
+-        root=self.root/'resume';bound=prepare(R/'in/vsti/vstibench_repr_450_v3.json',R/'in/vsti/media.json',R/'in/vsti/frames_sample',root/'i',True)
++        root=self.root/'resume';bound=prepare(R/'in/vsti/vstibench_repr_450_v3.json',R/'in/vsti/media.json',R/'in/vsti/frames_sample',root/'i',True,selected_path=B/'work/absent_selection_fixture.json')
+         raw=engine.synthetic_tower(bound,root/'raw');geometry=engine.prepare_geometry(bound,SPEC,raw,root/'g',Boundary())
+         refs=load(B/'work/proof_reference.json');proof.compare(refs,refs,refs,root/'P0.json',True)
+         calls=iter([True]*3+[False])
+@@ -103,7 +103,7 @@
+         self.assertIn('Release-video pixel check: '+load(B/'out/RELEASE_CHECK.json')['status'],result['frames'])
+     def test_refused_geometry_is_scored(self):
+         import geometry_refusals as GR
+-        root=self.root/'refused';b=prepare(R/'in/vsti/vstibench_repr_450_v3.json',R/'in/vsti/media.json',R/'in/vsti/frames_sample',root/'i',True)
++        root=self.root/'refused';b=prepare(R/'in/vsti/vstibench_repr_450_v3.json',R/'in/vsti/media.json',R/'in/vsti/frames_sample',root/'i',True,selected_path=B/'work/absent_selection_fixture.json')
+         raw=engine.synthetic_tower(b,root/'raw');g=engine.prepare_geometry(b,SPEC,raw,root/'g',Boundary())
+         manifest=load(g);manifest['videos']={}
+         for r in manifest['records']:r.update(status='REFUSED',output=None,error=dict(code=GR.NONFATAL_CODE,message=GR.NONFATAL_CODE,exception='GeometryError'))
+@@ -112,7 +112,7 @@
+         self.assertFalse(result['missing']);self.assertTrue(all(r['score']==0 and r['no_final_answer'] for r in rows(root/'j/items.jsonl') if r['question_type'] in CAMERA));self.assertTrue(all(not r['no_final_answer'] for r in rows(root/'j/items.jsonl') if r['question_type'] not in CAMERA))
+     def test_relocation_and_production_order(self):
+         root=self.root/'relocate'
+-        b=prepare(R/'in/vsti/vstibench_repr_450_v3.json',R/'in/vsti/media.json',R/'in/vsti/frames_sample',root,True)
++        b=prepare(R/'in/vsti/vstibench_repr_450_v3.json',R/'in/vsti/media.json',R/'in/vsti/frames_sample',root,True,selected_path=B/'work/absent_selection_fixture.json')
+         updated=relocate_input(root,'/i');self.assertEqual(updated['frames_root'],'/i/store')
+         for p in updated['inputs'].values():self.assertTrue(p['path'].startswith('/i/'))
+         # Production validation checks fixed ordering independently of pixel staging.
+@@ -144,7 +144,9 @@
+             row.update(sha256=row['sha256'] or 'a'*64,bytes=row['bytes'] or 100,generation='123',verified=True)
+         path=self.root/'receipts.json';dump(path,records)
+         dest=self.root/'packet'
+-        config=o.packet(B/'out/FAMILY.json',path,dest,'123456789abcdef012345678')
++        with patch.object(o,'check_packet_tar') as admission:
++            config=o.packet(B/'out/FAMILY.json',path,dest,'123456789abcdef012345678')
++        self.assertEqual(admission.call_count,4)
+         batch=(dest/'a.sh').read_text();self.assertIn('--gres=gpu:h100:1',batch);self.assertIn('--partition=general',batch)
+         self.assertIn('--job-name=a15_cot_ap123456789abcdef012345678',batch)
+         self.assertEqual(config['family']['parent_config']['assets'],family['parent_config']['assets'])
+--- V1c/tests/test_v1c.py
++++ V1f/tests/test_v1c.py
+@@ -15,7 +15,7 @@
+     @classmethod
+     def setUpClass(cls):
+         cls.root=B/'work'/('c_'+uuid.uuid4().hex);cls.root.mkdir()
+-        cls.bound=prepare(R/'in/vsti/vstibench_repr_450_v3.json',R/'in/vsti/media.json',R/'in/vsti/frames_sample',cls.root/'i',True)
++        cls.bound=prepare(R/'in/vsti/vstibench_repr_450_v3.json',R/'in/vsti/media.json',R/'in/vsti/frames_sample',cls.root/'i',True,selected_path=B/'work/absent_selection_fixture.json')
+         raw=engine.synthetic_tower(cls.bound,cls.root/'raw')
+         cls.geometry=engine.prepare_geometry(cls.bound,SPEC,raw,cls.root/'g',Boundary())
+     def test_f1_strict_answer_forms(self):
+@@ -58,7 +58,9 @@
+         family=load(B/'out/FAMILY.json');receipts=deepcopy(family['added'])
+         for r in receipts.values():r.update(sha256=r['sha256'] or 'a'*64,bytes=r['bytes'] or 10,generation='123',verified=True)
+         dump(self.root/'receipts.json',receipts);token='123456789abcdef012345678'
+-        o.packet(B/'out/FAMILY.json',self.root/'receipts.json',self.root/'packet',token)
++        with patch.object(o,'check_packet_tar') as admission:
++            o.packet(B/'out/FAMILY.json',self.root/'receipts.json',self.root/'packet',token)
++        self.assertEqual(admission.call_count,4)
+         text=(self.root/'packet/a.sh').read_text()
+         self.assertIn('#SBATCH --output=/dev/null',text);self.assertNotIn('/tmp',text)
+         self.assertIn(o.PREFIX+'p/'+token+'/o.py',text)
+--- V1c/tests/test_v1f.py
++++ V1f/tests/test_v1f.py
+@@ -0,0 +1,134 @@
++"""Return and packet regressions; remote transports are replaced at their boundaries."""
++from pathlib import Path
++from copy import deepcopy
++from unittest.mock import patch
++import errno,io,sys,tarfile,unittest,uuid
++B=Path(__file__).resolve().parents[1];sys.path.append(str(B/'code'))
++from adapter import dump,load,sha
++import o
++
++class Returns(unittest.TestCase):
++    def setUp(self):
++        self.root=B/'work'/('f_'+uuid.uuid4().hex);self.root.mkdir()
++        self.run=self.root/'run';self.run.mkdir()
++        self.config=dict(token='123456789abcdef012345678',binding='a'*64)
++        self.module=o.imports()[2]
++        dump(self.run/'PHASES.json',[dict(name='stage')])
++        dump(self.run/'RESULT.json',dict(missing=[]))
++        dump(self.run/'p/PROOF.json',dict(proven=False))
++        dump(self.run/'j0/COMPLETE.json',dict(keys=[]))
++        dump(self.run/'j0/CANARY.json',dict(pass_=True))
++        (self.run/'j0/items.jsonl').write_text('{"key":"q1"}\n')
++        dump(self.root/'STAGING.json',dict(passed=True))
++        (self.root/'b.log').write_bytes(b'x'*(2*1024**2+11)+b'tail')
++        (self.root/'a.log').write_text('stage log')
++        self.patches=[patch.object(self.module,'identity',return_value=self.root/'pool'),
++                      patch.object(self.module,'pool_operation',return_value=dict(verified=True)),
++                      patch.object(self.module,'upload',return_value=dict(verified=True))]
++        self.mocks=[p.start() for p in self.patches]
++        for p in self.patches:self.addCleanup(p.stop)
++    def finish(self,phase=None):
++        return o.finish_return(self.module,self.root,self.run,self.config,1 if phase else 0,
++                               phase['error'] if phase else None,phase)
++    def read_archive(self,result):
++        with tarfile.open(Path(result['local_return'])/'result.tar.gz') as t:
++            return {m.name:t.extractfile(m).read() for m in t if m.isfile()}
++    def assert_minimal(self,result,phase=False):
++        import json
++        self.assertTrue(result['returned']);self.assertFalse(result['complete'])
++        data=self.read_archive(result);f=json.loads(data['FAILURE.json'])
++        self.assertIn('Traceback',f['return_error']['traceback'])
++        if phase:self.assertIn('Traceback',f['phase_error']['traceback'])
++        for name in ('PHASES.json','STAGING.json','INVENTORY.json','a.log','b.log','p/PROOF.json',
++                     'j0/items.jsonl','j0/COMPLETE.json','j0/CANARY.json','RESULT.json','COMPLETE.json'):
++            self.assertIn(name,data)
++        self.assertEqual(len(data['b.log']),2*1024**2);self.assertTrue(data['b.log'].endswith(b'tail'))
++        self.assertEqual(result['token'],self.config['token']);self.assertEqual(result['plan_sha256'],self.config['binding'])
++        return data
++    def test_phase_and_expanded_cap(self):
++        with (self.run/'excess.json').open('wb') as f:f.seek(512*1024**2);f.write(b' ')
++        try:raise RuntimeError('prepare phase failed')
++        except RuntimeError as e:phase=o.exception_record(e)
++        data=self.assert_minimal(self.finish(phase),True)
++        import json
++        inv=json.loads(data['INVENTORY.json'])
++        self.assertIn('excess.json',inv['excluded'])
++        self.assertIn('expanded return exceeds cap',json.loads(data['FAILURE.json'])['return_error']['traceback'])
++    def test_full_publish_exception(self):
++        original=self.module.publish;calls=[]
++        def publish(*args,**kwargs):
++            calls.append((args,kwargs))
++            if len(calls)==1:raise RuntimeError('injected full publication error')
++            return original(*args,**kwargs)
++        with patch.object(self.module,'publish',side_effect=publish):result=self.finish()
++        self.assert_minimal(result)
++        self.assertEqual(len(calls),2);self.assertEqual(calls[0][0][1:4],calls[1][0][1:4])
++        self.assertEqual(calls[0][1],calls[1][1])
++    def test_success_preserves_full_return(self):
++        p=self.run/'cell/g/scaled/a.npz';p.parent.mkdir(parents=True);p.write_bytes(b'prepared array')
++        raw=self.run/'cell/g/raw/a.npz';raw.parent.mkdir();raw.write_bytes(b'raw array')
++        expected={str(p.relative_to(self.run)):p.read_bytes() for p in self.run.rglob('*') if p.is_file() and not o.omitted_prepare(p.relative_to(self.run))}
++        result=self.finish();self.assertTrue(result['complete']);data=self.read_archive(result)
++        for name,blob in expected.items():self.assertEqual(data[name],blob)
++        self.assertNotIn('cell/g/raw/a.npz',data);self.assertNotIn('FAILURE.json',data)
++        self.assertEqual(data['b.log'],(self.root/'b.log').read_bytes())
++    def test_copy_failure_falls_back(self):
++        original=o.attach
++        def attach(source,target):
++            if 'return' in target.parts:raise OSError(errno.ENOSPC,'injected full copy failure')
++            return original(source,target)
++        with patch.object(o,'attach',side_effect=attach):result=self.finish()
++        self.assert_minimal(result)
++    def test_suffix_failure_falls_back(self):
++        (self.run/'unexpected.bin').write_bytes(b'unknown')
++        self.assert_minimal(self.finish())
++    def test_unverified_publication_falls_back(self):
++        original=self.module.publish;calls=[]
++        def publish(*args,**kwargs):
++            calls.append(args)
++            return dict(returned=False) if len(calls)==1 else original(*args,**kwargs)
++        with patch.object(self.module,'publish',side_effect=publish):self.assert_minimal(self.finish())
++    def test_storage_fallback(self):
++        original=o.build_return
++        def build(root,runroot,dest,*args,**kwargs):
++            if dest.parent==self.root:raise OSError(errno.ENOSPC,'injected job disk full')
++            return original(root,runroot,dest,*args,**kwargs)
++        emergency=self.root/'independent';emergency.mkdir()
++        with patch.object(o,'build_return',side_effect=build),patch.object(o.tempfile,'mkdtemp',return_value=str(emergency)) as alloc:
++            self.assert_minimal(self.finish())
++        self.assertEqual(alloc.call_args.kwargs['dir'],'/dev/shm')
++    def test_geometry_cap_trim_preserves_protected(self):
++        p=self.run/'cell/g/scaled/huge.npz';p.parent.mkdir(parents=True)
++        with p.open('wb') as f:f.seek(512*1024**2);f.write(b' ')
++        result=self.finish();data=self.read_archive(result)
++        self.assertTrue(result['complete']);self.assertNotIn('cell/g/scaled/huge.npz',data)
++        self.assertIn('j0/items.jsonl',data);self.assertIn('j0/CANARY.json',data)
++
++class Packet(unittest.TestCase):
++    def test_all_four_archives_reject_links(self):
++        root=B/'work'/('packet_f_'+uuid.uuid4().hex);root.mkdir()
++        for key in 'abcd':
++            for kind in (tarfile.LNKTYPE,tarfile.SYMTYPE):
++                case=root/(key+kind.decode());case.mkdir()
++                records={};family={'added':{},'limits':{'full':{}}}
++                for asset in 'abcd':
++                    p=case/(asset+'.tar')
++                    with tarfile.open(p,'w') as t:
++                        d=tarfile.TarInfo('folder');d.type=tarfile.DIRTYPE;t.addfile(d)
++                        f=tarfile.TarInfo('folder/file');f.size=2;t.addfile(f,io.BytesIO(b'ok'))
++                        if asset==key:
++                            link=tarfile.TarInfo('link');link.type=kind;link.linkname='folder/file';t.addfile(link)
++                    records[asset]=dict(path=str(p),name=o.CLOUD+asset+'.tar',sha256=sha(p),bytes=p.stat().st_size,generation='1',verified=True)
++                    family['added'][asset]=dict(sha256=sha(p))
++                dump(case/'family.json',family);dump(case/'receipts.json',records)
++                with patch.object(o,'PREFIX',str(case)+'/'):
++                    with self.assertRaisesRegex(ValueError,'non-file/non-directory'):
++                        o.packet(case/'family.json',case/'receipts.json',case/'packet','123456789abcdef012345678')
++                self.assertFalse((case/'packet').exists())
++    def test_regular_and_directory_accepted(self):
++        root=B/'work'/('packet_ok_'+uuid.uuid4().hex);root.mkdir();p=root/'input.tar'
++        with tarfile.open(p,'w') as t:
++            m=tarfile.TarInfo('directory');m.type=tarfile.DIRTYPE;t.addfile(m)
++            m=tarfile.TarInfo('directory/file');m.size=1;t.addfile(m,io.BytesIO(b'x'))
++        o.check_packet_tar(p)
++if __name__=='__main__':unittest.main()

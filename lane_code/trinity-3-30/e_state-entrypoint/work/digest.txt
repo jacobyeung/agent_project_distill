@@ -1,0 +1,1065 @@
+A0_AFTER_NATIVE_READ_DESIGN_20261116.md
+  T: A0_AFTER_NATIVE_READ_DESIGN_20261116.md
+  S: What the next leg routes, answers directly and adds after the native read (2026-11-16): keep A0's route table (programs for absolute distance and the three camera types, 
+  H: What the next leg should route, answer directly and add, after the first native routed read (design record, 2026-11-16)
+  HS: 
+ARCHITECTURE_CURRENT.md
+  T: Current student architecture (forward pass, components with trained/frozen and LR, routing table, mix, train vs deploy): read before touchin
+  S: CURRENT 2026-11-16; items marked UNCONFIRMED inside
+  H: Current student architecture (LEG-S1 step 544 -> D0 / Orchard 170111). Read before touching the model.
+  HS: Question: what is the model that D0 and the next legs train and read? Status: current as of 2026-11-16; items marked UNCONFIRMED were not found in the sealed tree on trinity-3-30.
+ARGON_LABELER_20261111.md
+  T: Gemini 4 Argon and Carbon as 24/7 labelers vs Codex Astra (direct Gemini API runner; P7 4,918 queries, P1 gold, blind Opus adjudication of 3
+  S: DONE 11-11; lane label_argon on trinity-2-18
+  H: Gemini 4 Argon and Carbon as 24/7 image labelers on the shared Gemini key, against Codex Astra (11-11)
+  HS: - The runner can resume each unit, logs every call (tokens, latency, HTTP status) in out/…/jobs/JOB/calls.jsonl, gives each unit at most 2 attempts, halves concurrency when 429s exceed 2% over 5 minut
+ARGON_NOTOOL_RAW_CAPTURE_20261108.md
+  T: Gemini 4 Argon no-tool native-response capture: all SDK parts and errors retained; thoughts excluded from grading; three 600-question cohort
+  S: complete; provisional and un-nominated
+  H: 
+  HS: The recorder captures every returned SDK response before LangChain converts it into a message. It retains all parts, provider thought text, opaque signatures, finish reason, usage, served model, and l
+ARKIT_EVAL_FRAMES_20261108.md
+  T: VSI-Bench ARKit videos at eval: upright, no display rotation, 93 landscape / 57 portrait; canvas matches only through the trainer encode_fra
+  S: done 11-08 (evalx)
+  H: VSI-Bench ARKitScenes videos at evaluation: orientation and canvas (evalx, 2026-11-08 13:18Z)
+  HS: **Status.** Done. Kept as a correctness check: rerun `probe.py` + `probe_mid.py` in that folder if the benchmark video set changes.
+ARKIT_ORIENTATION_20261108.md
+  T: ARKitScenes orientation in C1/C1-r pose rows (CONSISTENT: archive builder rotates image+camera together)
+  S: done 11-08
+  H: ARKitScenes orientation in the C1 / C1-r pose rows (Claude Opus, 2026-11-08 12:05Z)
+  HS: 
+AWS_CLEAR_AFTER_COPY_20261109.md
+  T: AWS clear-after-copy tool (awsclear-2): clears only the listed members of Mind-verified units (manifest + TOC), re-hash receipts that postda
+  S: Tool BUILT+TESTED (rmrun/work/tool, 80 tests, 3 adversarial reviews + Codex review fixed), not run on AWS; USER 22:22Z moved the main path to a wholesale clear driven by 
+  H: Clearing copied units from AWS after their Mind copy is verified (2026-11-09)
+  HS: classes F01..F27 cover the three adversarial reviews, F28..F31 the verifier's gaps and the Codex review). Runbook: `/scratch/jjyeung/orch_cd/rmtool/STATUS.md`.
+AWS_COPIES_DEDUP_NEED_20261109.md
+  T: Everything copied off AWS, deduplicated, with need verdicts (state 11-09 23:33Z): Mind 15.09 TB, GCS 6.92 TB, Trinity 1.28 TB stored, about 
+  S: DONE 11-10 01:25Z (read-only; nothing moved or removed)
+  H: Everything copied off AWS: deduplicated inventory and need verdicts (2026-11-09)
+  HS: 
+AWS_COPIES_DEDUP_NEED_20261109.tgz
+  T: 
+  S: 
+  H: 
+  HS: 
+AWS_COPYOFF_MANIFEST_20261109.md
+  T: AWS copy-off manifest v2: 205 rows in classes A needs / B all weights / C records+GPU features / D raw; 30 runs, 126 weight dirs from the AW
+  S: HANDED TO aws_evac 11-09 22:00Z
+  H: AWS copy-off manifest (2026-11-09)
+  HS: 
+AWS_COPYOFF_MANIFEST_20261109.tsv
+  T: 
+  S: 
+  H: 
+  HS: 
+AWS_ROOT_CLEAR_20261109.md
+  T: AWS root clear (rootclear-1): clears whole roots ap + sibling except a keep list; plans whole subtrees by descending only along keep paths, 
+  S: BUILT+TESTED 11-09 (38/38, trinity-2-18), not reviewed, not run on AWS
+  H: AWS root clear: two project roots, everything except a keep list
+  HS: Status: BUILT and TESTED on 2026-11-09 on trinity-2-18 (Python 3.6.8, 38 of 38 tests pass). It has not been reviewed or run on AWS.
+B6_GROUNDING_DESIGN_20261115.md
+  T: B6_GROUNDING_DESIGN_20261115.md
+  S: Which grounding goes into the repair seal (2026-11-15): no new trainable module; the deployed frozen backend (SAM 3 dense_aliases + selector + G3T lifting) with routed ro
+  H: B6: the grounding design for the repair seal (2026-11-15)
+  HS: **Status:** DESIGN, read-only. Nothing was built, trained, launched or staged. Lane `b6_design`, trinity-2-18. Paths are under `/scratch/jjyeung/orch_cd/` unless absolute. `DD` = `/data2/jjyeung/agent
+BENCH_SCENE_EXCLUSIONS_20261108.md
+  T: Unified benchmark-scene exclusions v2 (1,212 scenes / 511 rooms; ARKit by venue): drops 1.9% pose rows, 7.5% VQA, 11.8% pointing, 46/399 der
+  S: applied to final-run streams (lanes notified 11-08)
+  H: Benchmark scene exclusions v2 and their overlap with the final run (2026-11-08)
+  HS: 
+C1AP_P05_FROM_BASE_20261109.md
+  T: C1-a-p (P0.5 partners from base, same rows/order as C1-a, fla): pre-registered fail-fast fires: training pose loss rel 1.193 [1.180, 1.206] 
+  S: done 11-09 04:50Z (heads_up8)
+  H: C1-a-p: P0.5 partner frames from base fail the pre-registered fail-fast at step 100
+  HS: 
+C1R_DELTA_REVIEW_76b80b9c_20261108.md
+  T: C1-r trainer 76b80b9c delta review: GO; pin contiguous clips, reseal kit, stop full-cache hashing per rank
+  S: relayed to c1r 11-08
+  H: C1-r delta review: trainer 76b80b9c, kit config b4254f7a (Claude Opus, 2026-11-08)
+  HS: 
+C1R_G3T_DESIGN_ASTRA_20261108.md
+  T: C1-r: Codex Astra max design (independent)
+  S: done 11-08; awaiting merge
+  H: 
+  HS: 
+C1R_G3T_DESIGN_MERGED_20261108.md
+  T: C1-r: merged design (judge): centered-cosine + clip CCC, global-head init, no patch term (C1-r+P later); layout duplicate
+  S: adopted 11-08; c1r building D1-D4
+  H: C1-r merged design: how the G3T teacher supervises the student
+  HS: 
+C1R_G3T_DESIGN_OPUS_20261108.md
+  T: C1-r: how the G3T teacher should supervise the student (Claude design, Opus max)
+  S: done 11-08; awaiting merge
+  H: C1-r: how the G3T teacher should supervise the student (Claude-family design)
+  HS: Status: proposal for the judge, 2026-11-08 ~12:00Z. Written by an Opus designer for orchestrator session cdb578de, independently of the Codex design.
+C1R_LAUNCH_20261108.md
+  T: C1-r launch: placement a, lean loader, in-job prep, auto-resume legs; confounds vs C1-a; early reads
+  S: stopped after m400 (11-08)
+  H: C1-r launch record (c1r lane, 2026-11-08)
+  HS: 
+C1R_TRAINER_REVIEW_20261108.md
+  T: C1-r trainer 5cbc49c4: training-critical review (GO-AFTER-FIXES: dense P0.5 config, dense coverage report, readout layout)
+  S: fixes sent to c1r and heads_up 11-08
+  H: C1-r trainer: independent training review (Claude Opus, 2026-11-08 11:40Z)
+  HS: 
+C1_DELTA_REVIEW_6f974710_20261108.md
+  T: C1 trainer 6f974710 delta review (duplicate layout): GO; 3 config conditions at re-prep
+  S: relayed to heads_up 11-08 12:08Z
+  H: C1 delta review: trainer 6f974710, DUPLICATE layout (Claude Opus, 2026-11-08 ~12:30Z)
+  HS: 
+C1_HEAD_EXPORT_HARNESS_20261108.md
+  T: C1 m100/m200 head exports through the harness: C1-a leads; camera motion ties f17 heads, +4.1 [-5.5, +13.9] over direct; VSI geometry below 
+  S: done 11-08 (evalx)
+  H: C1 head exports through the toolprog harness: do C1's poses turn into answers? (evalx, 2026-11-08 17:20Z)
+  HS: 
+C1_OOM_TRAIN_MODE_20261108.md
+  T: C1 GPU OOM: model.train() root cause
+  S: settled
+  H: C1 GPU OOM: root cause and fix (heads_up5, 2026-11-08)
+  HS: - Status: fixed kit-side for 1db21600; the trainer fix itself is in B43 990a361f (h5/b42/repo).
+C1_PLACEMENT_SWEEP_20261108.md
+  T: C1 placement sweep arms, guards, A1 failure; verdict a > c > b (C1-b at chance, stopped); lever arms C1-a-ei and C1-a-p
+  S: C1-b stopped 11-08 15:04Z; C1-a running; C1-c to m190
+  H: C1 carrier-pose placement sweep: arms and gates (heads_up5, 2026-11-08)
+  HS: - Status (16:06Z 11-08): C1-a trains toward 800 steps as the pose specialist (m200 rotation mean 39.5 deg). C1-c lost the m200 paired read and stopped at step ~217. C1-b stopped at step ~153.
+C1_SWITCH_P05_READ_20261108.md
+  T: C1-a-sw P3 read: switching duplicate-trained C1-a to P0.5 partners at step 170 loses at m400 (rotation +3.3 [+0.8, +6.1] deg, centre +0.08 [
+  S: done 11-08 23:50Z (heads_up7)
+  H: Switching a duplicate-trained pose student to P0.5 partner frames (C1-a-sw P3 read, 2026-11-08)
+  HS: 
+C1_TRAINER_REVIEW_20261108.md
+  T: C1 pose-sweep trainer: training-critical review (spread GO; C1-b placement bug under duplicate/paired; resume and leg-planning fixes)
+  S: fixes sent to heads_up 11-08 11:23Z
+  H: C1 pose sweep: independent training review (Claude Opus, 2026-11-08 11:20Z)
+  HS: 
+CARBON_AGENT_LEVEL_20261111.md
+  T: Gemini 4 Carbon as a Devin coding agent, medium vs high thinking, on 5 of tonight's fixed bugs (2 sessions each, hidden tests): medium 10/10
+  S: DONE 11-11; lane carbon_agent_ab on trinity-2-18
+  H: Gemini 4 Carbon as a Devin coding agent: medium against high thinking, on tonight's fixed bugs
+  HS: 
+CODE_SYNC_20261116.md
+  T: CODE_SYNC_20261116.md
+  S: Hourly sync of agent-written lane code (orch_n30 lanes on trinity-1-3, 1-18, 3-30, plus orch tools and briefs) to GitHub branch lane-code and the /home repo's lane-code b
+  H: Lane code sync to GitHub (2026-11-16)
+  HS: **Status.** RUNNING since 2026-11-16 11:20Z; first sync = commits e9f2226..e6173c6 (4 parts), verified on GitHub by `git ls-remote`.
+COMPOSED_TRACES_COUNT_SIZE_ROOM_20261108.md
+  T: Composed traces for counting/size/room: all beat direct with GT inputs, none at night-2 heads; DIRECT tonight; derivgen counting rule wrong 
+  S: done 11-08 (refuter corrections in its workflow result)
+  H: Head-composed traces for counting, object size and room size (2026-11-08)
+  HS: 
+CONTINUATION_LOSS_CORRECTION_EVIDENCE_20261114T094955Z_9373a5e2dff2.tgz
+  T: 
+  S: 
+  H: 
+  HS: 
+CONTRACTS_REBUILD_20261115.md
+  T: CONTRACTS_REBUILD_20261115.md
+  S: Next-epoch tool contracts (2026-11-15): reviewed near-nadir guard (AST-equal to a62e3975), frame-1 heading with 'heading unavailable' below in-plane up 0.3, one phrase no
+  H: Contract patches for the next epoch: near-nadir guard, one candidate universe, MDG box (2026-11-15)
+  HS: 
+CP1_ROUTING_TABLE_20261109.md
+  T: CP1 routing table (evalx, T0 m600, dev only: 858 GT-generated questions on 84 held-out val scenes + VSI-500 ScanNet + VSTI-450): route camer
+  S: done 11-09 09:00Z (review X21 pending)
+  H: CP1 routing table (evalx, 2026-11-09): camera displacement, movement direction and rotation route (clean pool, decision of record); no VSI o
+  HS: 
+CP2_KIT_DESIGN_20261109.md
+  T: CP2 kit design (p3_build5): contents vs CP1 (64 nested VQA frames, tool-mode flag + v3.11 routed rows, k1208 traces, ScanNet++/ARKit room ro
+  S: BUILDING 11-09 13:40Z (p3_build5)
+  H: CP2 kit design (p3_build5, 2026-11-09)
+  HS: Status: BUILDING (14:30Z). CP2 warm-starts from CP1's strongest export (or T0 m1200, decided by reads) on its own AWS root and must be READY TO LAUNCH, with every rank's first batch through the full f
+D0_ROWS_ADMISSION_20261115.md
+  T: D0_ROWS_ADMISSION_20261115.md
+  S: Admission of D0 direct-question rows, version 4 (2026-11-15): store 444fa953..., 152,204 rows, validator a41ba191...; two refute reviews, exact one-phrase diff from the r
+  H: D0 training rows: admission of the direct-question store, version 4 (2026-11-15T23:24:05Z)
+  HS: 
+D0_STOP_RULE_20261116.md
+  T: D0_STOP_RULE_20261116.md
+  S: Stop rule and launch conditions of the D0 leg (2026-11-16): stop at step 200 if a direct type regresses (F1); facing-twin failure (F2) stops unless away accuracy is risin
+  H: D0 stop rule and launch conditions (registered 2026-11-16T03:35:28Z, before submission)
+  HS: **Status.** Registered before submission of job a15_cot_apddbe32d7. Card: orch_n30/events/cont_ops/PRELAUNCH_CARD_D0.md.
+D0_V5_NULL_FRAME_COUNT_20261116.md
+  T: D0_V5_NULL_FRAME_COUNT_20261116.md
+  S: 81 D0 v4 rows (ARKitScenes, 31 captures) lack total_num_frames and no permitted source fills them; v5 4af43b40… (152,123 rows) leaves them out; cause: pool rows deferred 
+  H: D0 v5: 81 rows without a frame count (2026-11-16)
+  HS: Status: v5 built and checked; awaiting the orchestrator's admission.
+DENSE_FRAMES_PLAN_20261115.md
+  T: DENSE_FRAMES_PLAN_20261115.md
+  S: Where the dense frames for geometry fusion come from (2026-11-15): 3,048 distinct clips; ScanNet and ScanNet++ (994 clips) can form nested 64- or 96-frame samples from fr
+  H: Dense frames for GF-1: demand, supply and plan (design record, 2026-11-15)
+  HS: 
+DEVIN_TRACE_SAVING_20261111.md
+  T: Devin lane records and token accounting: a public ACP recorder preserves emitted reasoning and tool records across SIGTERM/SIGINT; main's he
+  S: LOCAL REFRESH VERIFIED; 84 archive groups, 45 session rows, 21 passing tests; the authorized Claude reader and publication increment remain queued; a detached finisher wi
+  H: Devin trace saving
+  HS: Repeat command: `/scratch/jjyeung/orch_cd/trace_save/work/save_traces.sh all`, or substitute a lane name. It serializes saves, reuses unchanged archives, publishes only new versions, verifies all curr
+DEVS1_DIRECT_COMPARATOR_CELLS_20261112.md
+  T: dev-S1 direct comparator cells: fixed item list (2,136; 150 per type by qid hash), 11 scored types, labels compared with released answers by
+  S: DONE 11-12 (CP1 m200 and f17 reads running)
+  H: 
+  HS: 
+DEVS1_GEOMETRY_PRICING_20261112.md
+  T: Tower geometry priced on held-out dev-S1 (GT masks, 93 captures, 3,417 questions): frozen fusion policy with G3T depth scores abs distance 6
+  S: DONE 11-12 (route table still needs direct answers + predicted masks)
+  H: 
+  HS: 
+DEVS1_PREDICTED_MASKS_ROUTE_TABLE_KIT_20261112.md
+  T: Predicted-mask cache kit for the 152 dev-S1 captures + selector + pricing + route-table tool (paired intervals over rooms): GPU-ready, 0.6-1
+  S: KIT READY 11-12 (GPU run owed)
+  H: dev-S1 mask kit design record
+  HS: **Answer and status:** The executable path and CPU evidence are delivered. The predicted-mask route decision awaits one SAM3 GPU pass. The GT-mask stand-in supports absolute distance and counting in t
+DIAG_KITS_THINK0_ARK1A_20261111.md
+  T: Diagnostic kits THINK-0 (thinking budget on direct types; T0 m800, 64 frames, 4-10 GPU-h) and ARK-1a (ARKitScenes metric scale at fixed weig
+  S: kits built 11-11 13:14Z (lane diag_kits, Codex Sol); GPU reads pending cards and matched masks for 277 ARKit absolute items
+  H: 
+  HS: 
+DOSE_POOL_KIT_20261111.md
+  T: DOSE traced pool (B3): 233,799 GT-traced VSI-590K real-scan rows (nested 50K/100K/200K/all); 170,437 ship as the 9B VQA stream (k6tk frames)
+  S: built 11-11 (lane dose_pool); 2B proxy deferred
+  H: DOSE traced pool (B3): VSI-590K real-scan questions as GT-traced VQA rows for the next 9B leg, 2026-11-11
+  HS: 
+DRASTIC_ARCHITECTURE_20261109.md
+  T: Drastic architecture (judge of 5 designs GF, MDG-3D, L3D, TriTower-9B, VSA-PTR): target GF+T = Qwen3.5-9B kept + G3T inside at 64-96 frames 
+  S: DESIGN 11-09 08:40Z; TOWER-0 to dispatch now
+  H: Drastic architecture for pose, depth and pointing (judge of 5 designs, 2026-11-09 08:40Z)
+  HS: - Status: TOWER-0 read PARTIAL-1 (lane ttower, 11-09 13:20Z). P passes: G3T x s at 64 frames reads direction 3.61 deg, rotation 2.98 deg and raw centre 10.6% on the 312 ScanNet scenes. It reads 3.25 d
+DYN4D_RECON_TIMING_20261112.md
+  T: Moving-scene reconstruction at 32 frames: complete Point4D/MapAnything/UniK3D pipeline on 120 videos, two repeats on one H100
+  S: Complete; median 16.567 seconds across 120 videos with two valid repeats each
+  H: Dynamic reconstruction timing at 32 frames
+  HS: Status: Complete. Both allocations exited successfully on the same H100 80GB HBM3, with driver 580.159.03 and PyTorch 2.8.0+cu128. The final integrity check authenticates all 240 timed reconstructions
+DYNAMIC_SCENES_VLA_PLAN_20261108.md
+  T: Dynamic scenes and the VLA pitch: no dynamics in the final run; first VLA test LIBERO-Spatial few-demo (B0 base / B1 student / B2 Spatial-Fo
+  S: done 11-08 (refuter corrections in its workflow result)
+  H: Dynamic scenes and the VLA-efficiency pitch (plan, 2026-11-08)
+  HS: 
+DYNAMIC_TIMING_COMPARISON_20261112.md
+  T: Matched moving-scene timing: 150 frozen questions, explicit preparation accounting, native harness placement and pySpatial LOW/MEDIUM/MEDIUM
+  S: READY_OFFLINE; required systems and optional printed SPLIT proved; harnesses staged and admitted on trinity-1-18; launch ownership separate
+  H: Matched timing on moving scenes
+  HS: 
+DYN_PROBE_KIT_20261111.md
+  T: Dynamic-scenes probe kit (Stage 0 of the VLA plan): loaders for 8 TUM RGB-D and 4 Bonn sequences (7.65 GB on 2-18), LIBERO HDF5 adapter, run
+  S: kit built 11-11 12:52Z (lane dyn_probe, Codex); GPU run and the VLA design's extra items pending
+  H: Dynamic-scene geometry probe
+  HS: 
+E0_CAMERA_ROUTED_READ_20261110.md
+  T: E0 camera routed read (mdg_next): v3.11 camera programs on G3T x s (dense 64-frame G3T, s from T0 own depth) vs T0 m800 direct under the E0 
+  S: REDUCED READ DONE 11-10 15:10Z: tower +35.2 [+24.8,+47.5] pooled vs direct (n=100); displacement fails the scale gate (ratio 1.94); full 600 pending
+  H: E0 camera routed read: v3.11 camera programs on G3T x s against T0 m800 direct (lane mdg_next, 2026-11-10)
+  HS: 
+E0_F17_SCORE_20261110.md
+  T: E0 MP3D navigation (900 items, 11 scenes) f17 scored: direct = own = 37.5 overall, own byte-identical (f17 never calls a head under the E0 p
+  S: DONE 11-10 02:50Z
+  H: E0 f17 score (direct vs own heads), 2026-11-10
+  HS: **Status.** DONE 2026-11-10 (scored once; nothing on 0-13 changed).
+E2E_BUILD_ground_backend_20261110.md
+  T: E2E build: MDG ground backend, fixed v3.12.1 lifting, P registration, multi-gap, atomic tokens and native export parity
+  S: BUILT + CPU VERIFIED 11-10: 58 combined checks, 15 MDG-base checks; real T0/MDG-A masks and all arrays exact; C2 byte-equal; five GT objects within 0.00942 m
+  H: Decode-time MDG grounding backend
+  HS: Status: BUILT AND CPU-VERIFIED. Portable verification passes: 45 backend/legacy/export checks; 58 checks in the combined tower tree, including the separately supplied untouched-reference test; 15 chec
+E2E_BUILD_ground_rows_20261110.md
+  T: Ground/gap rows (item 4): SPEC v3.12.1, shared decode lifting, 363 exact fixture replays, 154 GT-accepted / 92 balanced rows, 35 examples re
+  S: BUILT + CPU TESTED 11-10 06:07Z; production generation and training admission PENDING-INPUT
+  H: Ground/gap training rows — E2E build item 4
+  HS: Status: BUILT + CPU TESTED on trinity-2-18. Both generator patches pass 30 tests. The five-scene diagnostic build produces 363 exact tool replays, 154 GT-accepted rows and 92 balanced rows; its longes
+E2E_BUILD_stageb_merge_20261110.md
+  T: Integrated E2E trainer (stageb_merge): Orchard world 4/reference 32 plus MDG Stage B; E2E-1G/E2E-1C configs, 160-row CPU fixture batches, na
+  S: BUILD RECEIPT 11-10; current integration status and evidence in note
+  H: Integrated E2E trainer build
+  HS: Status: CPU CODE COMPLETE; INPUT/GPU GATES PENDING. The tree is `/scratch/jjyeung/orch_cd/stageb_merge/work/c1mix_e2e`.
+E2E_BUILD_tb1_build_20261110.md
+  T: TB-1 frozen-LM DDP kit: MDG-A decoder + span LoRA r32 + atomic rows; worlds 2/4/8 preserve global batch eight; validation/fail-fast, resume/
+  S: BUILT + SERIAL CPU TESTED 11-10; training ON HOLD; two-rank real-model and GPU gates pending
+  H: TB-1 frozen-LM build
+  HS: Status: BUILT; serial CPU checks pass. Training is on hold. The orchestrator must issue GO for a named host/card set. The two-hour 0-18 allocation after MDG-A belongs to reads and probe P-c, not TB-1 
+E2E_BUILD_tower_read_20261110.md
+  T: Tower read layer: frozen native G3T with DPT, hash-pinned scale, C1 pose9 and pose_source switch in both decode trees; own decoding byte-equ
+  S: CPU BUILD READY; live T0/G3T check PENDING-INPUT (empty weights), 11-10 05:40Z
+  H: Tower read layer build
+  HS: Status: CPU implementation ready for integration. The live T0/G3T CPU check is PENDING-INPUT because the governed G3T weights file is empty. This is not a measured end-to-end checkpoint result.
+E3_BACKEND_GEOMETRY_PRICING_20261116.md
+  T: E3_BACKEND_GEOMETRY_PRICING_20261116.md
+  S: E3, tool geometry priced without training on K1 (2026-11-16): no deployable scale or floor rule clears either bar; held-out room best primary 63.3 against a 73.4 bar (GT-
+  H: E3: tool geometry priced in benchmark points without training (2026-11-16)
+  HS: Status: COMPLETE for every candidate except the deployed column, which waits for K1 own depth and gravity. The integrated run equals the shard tables (10:05Z). The two harness edits are unreviewed: re
+EFFICIENCY_FRAME_CACHE_R2947_20261110.md
+  T: Gemini efficiency: exact frame-prefix caching, Pro/Flash SPLIT150, streamed null-probe decomposition, matched reconstruction accounting and 
+  S: Offline packages and handovers complete; live acceptance and timing pending
+  H: Gemini frame-cache efficiency round
+  HS: 
+ELEVEN_DAY_AWS_PLAN_20261108.md
+  T: Eleven-day AWS plan (merged D1 throughput / D2 two-stage / D3 data+evac designers + TRAINING_EFFICIENCY): one final lineage on 32 AWS GPUs d
+  S: done 11-08 17:02Z; awaiting orchestrator relay
+  H: Eleven-day AWS plan: one final lineage on 32 H100s, faster updates, more rows (Sun 11-08 to Thu 11-19)
+  HS: Sources: distill_design/{INDEX, TRAINING_EFFICIENCY, FINAL_RUN_EXPERIMENT_PLAN, FRAME_DENSITY_DESIGN, POSE_DATA_AT_SCALE_PLAN, POSE_DATA_SOURCES, POSE_ACCURACY_BRIDGE, TRACE_POOL_V2_READ, TRACE_POOL_V
+EXPERIMENT_EFFICIENCY_20261116.md
+  T: EXPERIMENT_EFFICIENCY_20261116.md
+  S: Experiment efficiency audit (USER 2026-11-16), where time is lost between "proposed" and "result read" and the eight changes that remove it: about 9 h of measured delay o
+  H: Experiment efficiency: where time is lost between "proposed" and "result read", and the eight changes that remove it (2026-11-16)
+  HS: **Status: DESIGN.** Eight build briefs are ready and nothing is built. No running job, sealed kit, live lane or shared service was changed. Builders append their results under "Build results" at the e
+FACING_AWAY_DIRECTION_ROWS_20261112.md
+  T: Facing-away direction rows: both parents answer "facing away from X" as if facing X (label rotated 180 deg on 26/33 ReVSI items); 33,985 GT 
+  S: REVIEWED 11-12 (admission to a leg pending)
+  H: Facing-away direction supervision
+  HS: 
+FINAL_RUN_EXPERIMENT_PLAN_20261108.md
+  T: Final-run experiment plan (3 Opus max planners + synthesis + refuter): E1-E11, pitfalls
+  S: done 11-08; refuter corrections in the orchestrator notes
+  H: Final-run experiment plan: what decides the training, and how to trust each answer (2026-11-08, Sun 05:00 PT)
+  HS: 
+FIRST_CONFIG_20261115.md
+  T: 
+  S: 
+  H: Earliest launchable configuration: D0, a data-only reseal on kit 07ca49df (lane seal_plan, 2026-11-15)
+  HS: 
+FOV_INTRINSICS_EXTRINSICS_20261108.md
+  T: FoV head use; whether to predict intrinsics and extrinsics (FoV = slots 7:9 of the pose code; keep 2 angles; ARKit orientation unverified)
+  S: done 11-08
+  H: FoV head use; whether the student must predict intrinsics and extrinsics (2026-11-08)
+  HS: 
+FRAMES_POSE_20261109.md
+  T: Frames per row (lane frames): F64/F96 pose-only arms from C1-a m800 on the exact A1 rows CTRL reads (superset of each row's 32 frames from t
+  S: VQA grid PASS 11-09 10:55Z (base dev +7.0 [+4.3,+9.6]; CP2 VQA at 64 nested); F96 paused at step 31, F64 on Orchard
+  H: Frames per row: do 64 or 96 viewpoints break the pose plateau? (2026-11-09)
+  HS: 
+FRAME_DENSITY_DESIGN_20261108.md
+  T: Frame density + partner frames + ScanNet/ARKit downloads (merged A/B designs): 128 frames NO (update-bound; Cambrian-P ATE flat 32-128 f; G3
+  S: done 11-08 15:50Z; relay to heads_up, partners, evalpath, p3_build pending
+  H: Frame density (128 frames), partner frames (P0.5) and the ScanNet/ARKit downloads: merged decision (2026-11-08 15:50Z, Sun 07:50 PT)
+  HS: 
+FRAME_FUSION_PROBE_20261108.md
+  T: Frame fusion probe FP1 (S/D/P0.5/P1.0)
+  S: settled
+  H: Frame fusion probe FP1 (heads_up5, 2026-11-08)
+  HS: - Status: settled for the layout pick; the orchestrator chooses the 800-step layout.
+FRAME_LAYOUT_FP1_20261108.md
+  T: Frame layout for pose: fusion probe FP1 (P0.5 chosen: middle-layer rot 68.1 vs spread 88.0, duplicate 75.2)
+  S: decided 11-08: C1 sweep + C1-r use duplicate (no partner data); final run P0.5 vs D open
+  H: Frame layout for pose: fusion probe FP1 (2026-11-08)
+  HS: 
+FRONTIER_READ_20261111.md
+  T: Frontier closed models without tools (READ-1b), 32 frames, main no-tool prompt and scorer: Argon high 76.68 VSI-500 / 86.60 ReVSI-999 / 83.3
+  S: done 11-11 (lane frontier_read); VSI-500 cells provisional in main
+  H: Frontier closed models without tools on VSI-Bench-500, ReVSI-999 and VSTI-450 (READ-1b), 2026-11-11
+  HS: 
+GEMINI_AGENT_HARNESS_20261111.md
+  T: Gemini-key coding agents: use `argon-agent` (Claude Code behind a per-run LiteLLM proxy); `--model <id>` runs any of the key's 60 ids and ev
+  S: DONE 11-11; installed in agent/scripts/argon_agent.sh; Antigravity is a test install on trinity-2-18; open: supported Antigravity launcher
+  H: Gemini-key coding agents: harness choice, any model on the key, workflows, Antigravity CLI (2026-11-11)
+  HS: 
+GEMINI_AGENT_HARNESS_20261111_results.tgz
+  T: 
+  S: 
+  H: 
+  HS: 
+GEMINI_NATIVE_LABELING_20261111.md
+  T: Gemini-native labelling format (one photo per call, image first, system instruction, box_2d [ymin,xmin,ymax,xmax] and [y,x] points, response
+  S: DONE 11-11; lane gemini_native on trinity-2-18; switch in lane out/LABEL247_SWITCH.md
+  H: Gemini-native labelling format vs the Astra-style prompt, for Argon and Carbon (11-11)
+  HS: 
+GEOMETRY_BACKEND_BAKEOFF_20261111.md
+  T: Geometry backend bake-off: MoGe-2, MapAnything, DA3 and Pi3X against G3T; fixed VSI primary family with Holm correction, 64-frame exporters,
+  S: GPU-READY, seal 0ef8fe08; evalx reports staged kit, 65 tests and 312-scene admission on the matching VSI-Bench mirror; GPU work stays with evalx after queued reads
+  H: Geometry backends for the student's spatial programs
+  HS: 
+GF1_FUSION_CONNECTOR_20261111.md
+  T: Fusion connector GF-1 (infrastructure for the stacked leg, borrowed from the GeoWeaver VLM's design): bank of G3T layers 11/17/23 (or 12-23 
+  S: built 11-11 13:15Z (lane gf1_fusion, Codex Astra; patch gf1_fusion/out/GF1.patch); cross-family review running; real-checkpoint parity and GPU calibration pending
+  H: GF-1 / B2: geometry features into the language model
+  HS: 
+GRD_SELECTOR_KIT_20261111.md
+  T: Grounding routed default (B1) under gt_ceiling's fusion policy on G3T: unique types take the top accepted candidate with an interior depth c
+  S: BUILT, priced on CPU 11-11 (lane grd_selector, trinity-2-18)
+  H: Grounding selector for whole-object masks: GRD-1 single choice and the set selector with 3D identity (build B1)
+  HS: 
+GROUNDING_IMPROVEMENT_DESIGN_20261109.md
+  T: Grounding improvement (judge of 3 designs): own single-image clicks lose to direct by 20-37 because of clicks AND a program defect (programs
+  S: DESIGN 11-09 06:05Z; agg on CPU now (evalx); GH (ghead) and pt-track (streams2/p3_build) builds in parallel
+  H: Grounding improvement for routed programs (judge of 3 designs, 2026-11-09 06:05Z)
+  HS: - Status: DESIGN.
+GROUNDING_NAME_TO_3D_ASTRA_20261110.md
+  T: Grounding design, instance-indexed 3D object memory: lazy ObjectSlots per clip, 2-4 selected high-resolution views, verify before propagatin
+  S: DESIGN 11-10; reconciled into GROUNDING_PLAN_RECONCILED_20261110.md
+  H: Routed grounding through a shared 3D object memory
+  HS: 
+GROUNDING_OBJECT_FIRST_SVP_20261110.md
+  T: Grounding design, object first (seed, verify, propagate): one 3D object per (clip, name) from linked SAM 3 candidates, the LM verifies the b
+  S: DESIGN; builds B1-B5 and B10 dispatched 08:50Z; second independent design (Codex Astra) pending
+  H: From an object's name to its 3D position: one object per clip, verified at high resolution, carried by geometry
+  HS: 
+GROUNDING_OWN_ENCODER_20261110.md
+  T: Grounding from the student's own vision pathway, SAM 3 as teacher (branch O): presence head ranks frames, the own ViT re-reads the top 4 at 
+  S: DESIGN; builds O1-O7, O10, O11 dispatched 11:05Z; GPU for E-A/E-B not yet scheduled
+  H: Grounding from the student's own vision pathway, with SAM 3 as the teacher
+  HS: | 10 | Mask decoder plateau 0.72 / 0.81 / 0.56 | internal validation, steps 4200-4800 (`mdg_build/STATUS.md`); its held-out export started at 10:49Z (NOTE 1050Z) | holds; labels cap in-mask near 70-75
+GROUNDING_PLAN_RECONCILED_20261110.md
+  T: Grounding plan, reconciled (d_fable + d_astra): object-first SVP with LM verify on crops as primary, native gate + ball selector as the base
+  S: PLAN 11-10; briefs in /scratch/jjyeung/orch_cd/design_g3d/next_briefs/
+  H: Grounding from name to 3D: reconciled plan (d_fable + d_astra)
+  HS: | D5 | No-SAM branch | the LM's native boxes on the 4 frames ranked first by presence, with depth supplying the extent | a re-read click prompting MDG with dense V-C/G3T features (T08) | **d_fable fir
+GT_CEILING_DECOMPOSITION_20261111.md
+  T: GT-input ceiling of the programs: 11-07 80.2 -> fixed click 85.1 -> whole-object B 91.5 (154 px) / 95.3 (any pixel); formula defects carry m
+  S: DONE 11-11 incl. tower-geometry task (lane gt_ceiling, trinity-2-18); patches gt_ceiling/out/V314_*.patch, EVAL_FRAMEIDX*.patch await owners
+  H: Where programs lose points with ground-truth inputs, and the fixes (2026-11-11)
+  HS: 
+GX_GEOMETRY_INPUT_DESIGN_20261109.md
+  T: GX geometry input (judge of 3 designs): frozen G3T in the forward on the same 32 frames; zero-init connector adds layer-23 cam token + pose9
+  S: DESIGN 11-09; gated on evalx G3T ceiling probe (312 harness, dir <= 12 deg); user to confirm G3T input
+  H: GX geometry input: feed frozen G3T into the student's CAM carriers (judge record, 2026-11-09)
+  HS: - **Status: DESIGN, gated on the G3T ceiling probe below.** Before GX enters the paper line, the orchestrator must confirm with the user, who on 11-02 preferred no G3T in the model input (`memory/pd-c
+HEADS_COVERAGE_ALL_BENCHMARKS_20261108.md
+  T: Heads coverage across VSI-Bench/VSTI/DSI/OSI/ReSTI: static composable except counting-identity, size cuboid, room layout, route; dynamic nee
+  S: done 11-08 (refuter corrections in its workflow result)
+  H: Head coverage across VSI-Bench, VSTI, DSI-Bench, OSI-Bench and ReSTI (2026-11-08)
+  HS: 
+IF_P0_FINAL_20261115.md
+  T: IF_P0_FINAL_20261115.md
+  S: Close-out of experiment IF-P0 (vision-only branches in language-model layers 1 to 8 of a frozen student, read by a pose probe): arms, jobs, both results with intervals (P
+  H: IF-P0 final result: no pass; lane closed
+  HS: 
+IF_P0_METADATA_EVIDENCE_20261114T065142Z_a43c6aac65a6.tgz
+  T: 
+  S: 
+  H: 
+  HS: 
+IF_P0_ORCHARD_RUNTIME_20261114.json
+  T: IF_P0_ORCHARD_RUNTIME_20261114.json
+  S: and [sealed kit 0fa68201](if_p0_20261114/kit_ifp0_orchard_job_0fa68201bddadd5b.tar.gz): How to run a sealed one-GPU probe job on Orchard with job-private project-archive 
+  H: 
+  HS: 
+IMPROVEMENT_REVIEW_20261109.md
+  T: Improvement review 11-09 07:30Z (judge of 3 critics): top actions = evalx size fix + agg/O1/O2 now (programs.py vis() size 0 confirmed), GH0
+  S: ACTIONS 11-09 07:30Z
+  H: Improvement review of the live plan (2026-11-09 07:30Z)
+  HS: User (23:25 PT): progress? eta? can we improve? Judge three critics' proposals (schedule, portfolio, read validity) against the handoff, lane STATUS tails, evalx events and the grounding design; keep 
+INFUSION_VISION_CAPACITY_20261113.md
+  T: INFUSION_VISION_CAPACITY_20261113.md
+  S: "Unbundling Multimodal Vision Encoding" (arXiv 2611.17334): zero-init vision-only branches in backbone layers 1-8 match a separate encoder on single-image VQA; for us one
+  H: In-fusion vision capacity ("Unbundling Multimodal Vision Encoding", arXiv 2611.17334) and our 9B student (2026-11-13)
+  HS: 
+INTEG_V314_PROGRAMS_20261111.md
+  T: v3.14 programs in the student decoder (integ_v314 review): the grid rule, instance minimum, camera-gap distance, tilted envelope, fused box 
+  S: USE AFTER FIXES 11-11 (Claude Opus review of Codex lane integ_v314; verdict integ_v314/REVIEW_VERDICT.md)
+  H: v3.14 programs in the student decoder (integ_v314): review record
+  HS: Status: USE AFTER FIXES (Claude Opus cross-family review, 2026-11-11, CPU only). The Codex lane integ_v314 built the patch and claimed PASS.
+K1_GT_RASTER_REBUILD_20261115.md
+  T: K1_GT_RASTER_REBUILD_20261115.md
+  S: Can the 300 lost K1 GT rasters be rebuilt to their sha256 pins (2026-11-15)? Yes: a clean-room builder matches 6 pinned rasters byte for byte (ScanNet, ScanNet++, 4 ARKit
+  H: K1 ground-truth rasters: clean-room rebuild (2026-11-15)
+  HS: **Status.** 296 of 300 rasters equal their pins (ScanNet 51/51, ScanNet++ 86/87, ARKit 159/162). Lane gt_build rebuilt 259 on trinity-1-18; lane gt_build2 recovered 37 more ARKit with one rule set R1,
+K1_REFIT_INPUT_RECOVERY_20261116.md
+  T: K1_REFIT_INPUT_RECOVERY_20261116.md
+  S: K1 refit inputs after the 2-18 loss (2026-11-16): setlib.py d9271cc9 and MODELS.json cdf19409 recovered from the vendored kit_combo3 (GCS code_4d05c37b) and match every c
+  H: K1 refit inputs recovered after the trinity-2-18 loss (2026-11-16)
+  HS: Status: complete 2026-11-16 02:15Z (lane recover_k1, trinity-3-30). Recovery only; nothing built, nothing run on GPU.
+LEGS1_CHECKPOINT_READ_KIT_20261112.md
+  T: Checkpoint read kit for LEG-S1 (m100, m200): checkpoint-parametric dev cells, export contract, the decision report (m100 reversal test, R3, 
+  S: BUILT 11-12 (needs a card and a real export)
+  H: 
+  HS: 
+LEGS1_CONTINUATION_PRELAUNCH_20261115.md
+  T: LEGS1_CONTINUATION_PRELAUNCH_20261115.md
+  S: LEG-S1 continuation 545-1000 readiness (2026-11-15): ready pending GO; exact sbatch line, write-path table (nothing under Orchard /home), rule E baseline 530-544, ~20 h o
+  H: LEG-S1 continuation (steps 545-1000): launch readiness (2026-11-15)
+  HS: **Status.** Packet ready; not submitted.
+LEGS1_M100_DECISION_RULE_CLARIFICATIONS_20261113.md
+  T: LEGS1_M100_DECISION_RULE_CLARIFICATIONS_20261113.md
+  S: LEG-S1 step-100 rules clarified before any leg read: seven tested types, forced closes for the cap clause (parent already at 2.23 per 100), own-policy arms decide; produc
+  H: LEG-S1 step-100 decision rules: three clarifications made before any leg read (2026-11-13T19:02Z)
+  HS: **Status.** Ruled; fixes ordered from the eval lane (`/scratch/jjyeung/orch_cd/evalx/inbox/`, file ending `ORCH_RULING_decision_logic_verdict_and_three_rulings.md`); confirmation review pending.
+LEGS1_STATE_COPY_TO_GCS_20261113.md
+  T: LEGS1_STATE_COPY_TO_GCS_20261113.md
+  S: The cheap GCS copy is confirmed, but full-state copying is closed for job 169097. The next seal requires native GCS-primary state persistence, bounded concurrent uploads,
+  H: LEG-S1: exact-resume state on GCS
+  HS: 
+LEGS1_WARM_START_CONTINGENCY_20261113.md
+  T: LEGS1_WARM_START_CONTINGENCY_20261113.md
+  S: BF16 warm start preserves absolute steps, LR and row plans; production/local routing and VQA match; not sealed, with confirmation review and orchestrator release authoriz
+  H: LEG-S1 warm-start contingency
+  HS: 
+LEG_S1_ORCHARD_READ.json
+  T: LEG-S1 independent Orchard direct and native paired reads
+  S: Step-200 is authenticated; training continues unchanged. Milestone reader b8ebab38 and launcher 555eb739 are confirmed. P0 has an authenticated runtime-staging failure. R
+  H: 
+  HS: 
+LEG_S1_PACKED_ADVANCED_READ.json
+  T: Packed advanced fallback for LEG-S1 reads and IF-P0
+  S: CPU-only design: one four-GPU allocation after production releases its cap, with identical assets shared read-only and P0's distinct runtime preserved. The 800 GB working
+  H: 
+  HS: 
+LEG_S1_TREE_20261111.md
+  T: LEG-S1 single source tree: pinned program allowlist, direct defaults, no flag, world-four CPU admission and source-scoped native chain
+  S: Kit 9ca55db0 is certified on source 37845077. Native diagnostic 168825 is COMPLETE: all three strict checks and 138 imports pass with verified bindings. Parent runtime pi
+  H: LEG-S1: one source tree, frozen table, no flag
+  HS: **Status: The certified kit passes every native compute-node import check. The operator submitted production job 168826 under ORCH's conditional GO; this lane has not yet verified a GPU step or checkp
+LEG_S2_MIXTURE_AND_FORM_FLAG_20261112.md
+  T: Next leg's code built ahead on the frozen LEG-S1 source (seal 38917ea5): mixture contract (facing-away pairs and total-count rows as direct 
+  S: built and reviewed once (leg_s2_tree/REVIEW_VERDICT.md); pass-2 fixes unreviewed; choose the mix after LEG-S1's m100
+  H: 
+  HS: Status: All requested CPU checks pass: 52 regression tests, two focused checks, 20 detected mutations, exact frozen parity, 640 full forwards, kit integrity and cold staging. The final source and C3 k
+LOSS_SCHEMA_EVIDENCE_20261114T085021Z_564c9a850ee4.tgz
+  T: 
+  S: 
+  H: 
+  HS: 
+LOSS_WATCH_20261108.md
+  T: Loss watch (live): per-component training curves of C1, C1-r, G1 and the final run against a no-pixel constant prior on the same rows; devia
+  S: live (loss_doctor lane)
+  H: Loss watch: training curves by component, deviations, and levers for pose and depth (2026-11-08)
+  HS: 
+LT5_ROWS_VS_UPDATES_20261109.md
+  T: LT5 rows vs updates (B=64 vs B=32 on the same rows, updates 171-255 from C1-a step 170): rel pose loss 1.000 [0.996, 1.004] -> ROWS-BOUND; k
+  S: done 11-09 00:27Z (heads_up7)
+  H: LT5: is pose training rows-bound or update-bound? (2026-11-09)
+  HS: 
+MASK_DECODER_GROUNDING_DESIGN_20261109.md
+  T: Mask-decoder grounding MDG-3D (designer record, radical-architecture fan-out): query-token hidden state prompts a 39M Mask2Former/SAM-style 
+  S: MDG-A NO-GO 11-10 11:35Z: held-out in-mask 65.1 (+3.8 [+0.5,+7.2] vs T0), null 65.7 in-video / 86.7 scene-absent, W10 0/4 types CI > 0; misses mostly wrong-object clicks 
+  H: Mask-decoder grounding (MDG-3D): a [SEG]-token mask decoder with presence and 3D lifting (designer record, 2026-11-09)
+  HS: - Status: DESIGN (one of the radical-architecture designs; awaiting the judge).
+MASK_PROPOSAL_RECALL_DEVS1_20261112.md
+  T: Why the segmenter never proposes operand objects on dev-S1 and the GPU-ready variant kit: 224 of 1,056 operand instances never proposed (93 
+  S: DONE: setting FROZEN 2026-11-13 for absolute distance and room size (dense text pass + aliases, kit_combo3 b3fa05c6; dev-S1 abs distance 46.9 -> 56.2, +9.3 [+4.2, +14.9],
+  H: 
+  HS: 
+MDG_ROUTED_READ_KIT_20261109.md
+  T: MDG routed-read kit (mdg_next): v3.11 programs on MDG masks + G3T x s pose + own depth vs the base's own direct answers on dev 858 and ReVSI
+  S: READY 11-10 03:43Z (rkit 2326658; CPU first batch passed; s3i arm: MDG masks select SAM 3 instances, GT-selector ceiling +23-38, T0 clicks +17.5 abs)
+  H: MDG routed-read kit: routed v3.11 programs on MDG masks vs direct answers (lane mdg_next, 2026-11-09)
+  HS: 
+MISS_VISIBILITY_SENSOR_DEPTH_20261112.md
+  T: Visibility check for MISS rows: on mesh depth it is circular (0 HIDDEN of 41,140 rows, hand-read BAD 0/5; the dense file is mesh-derived), b
+  S: pilot DONE 11-12 (lane miss_vis_run); drop list out/DROP_HIDDEN_PILOT.jsonl not applied to the next leg (no row_key); hand read of about 20 flagged accepts pending
+  H: Miss visibility check and sensor depth (design record, 2026-11-12)
+  HS: 28-scene pilot (events/20261112T0354Z_RESULT_sensor_pilot_28.md, out/SENSOR_PILOT_SUMMARY_28.md): 8,473 MISS rows, 879 frames; 19,369,359,923 B read (STATUS.md).
+MIXED_GATE_REVIEW_614cfe4_20261108.md
+  T: Mixed gate kit 6097446 review: GO; force own path early, permanent parity test, hang fix, bind-time depth_init pin
+  S: relayed to p3_build 11-08
+  H: Mixed gate (C1 final mode, self-routing): training-critical review
+  HS: 
+MIX_STREAMS_DESIGN_20261108.md
+  T: Mixed gate + final run: VQA and pointing streams (pointing = 17,408 GT first-hit mask rows on 272 derivgen scenes, 65/35 visible/absent, JSO
+  S: gate/night-1 receipts 11-08 14:00Z; night-2 VQA receipts (c/cb/x: +801 V-SD rows via vLLM, +4,048 native box rows) 11-08 16:20Z (§8); A3 VQA growth toward 150K (packs, V-
+  H: VQA and pointing streams for the mixed gate and the final run (mixdata, 2026-11-08)
+  HS: Lane mixdata (trinity-2-18). Status 14:50Z: VQA and pointing receipts exist on AWS (job 105506) and are the final
+MODEL_IMPROVEMENT_PLAN_20261111.md
+  T: Model improvement plan, intent 1 (SOTA 9B spatial VLM): per-type points budget, lineage, LEG-S1, depth, grounding, RL and GPU order. Masks b
+  S: PLAN revision 3, 11-11, after the second Codex review (NOT SOUND, 7 findings answered; this revision not yet reviewed); delta in orch_cd/model_design_review/PLAN_DELTA_RE
+  H: Making the 9B student the state of the art in spatial understanding (intent 1), 2026-11-11
+  HS: 
+MULTIVIEW_DYNAMIC_DATA_SCOPING_20261109.md
+  T: Multi-view (MindCube) and dynamic (DSI-Bench, ReSTI) training data scoping: only MindCube has a train split (~10K); DSI/ReSTI are test-only 
+  S: scoping done 11-09 (streams2); nothing built
+  H: Training data for multi-view (MindCube) and dynamic (DSI-Bench, ReSTI) benchmarks: scoping (streams2, 2026-11-09)
+  HS: 
+NATIVE_METRIC_REGRESSION_EVIDENCE_20261114T092031Z_9ee5839e895b.tgz
+  T: 
+  S: 
+  H: 
+  HS: 
+NATIVE_ROUTED_READ_DEVS1_STEP544_20261115.md
+  T: NATIVE_ROUTED_READ_DEVS1_STEP544_20261115.md
+  S: native routed read of LEG-S1 step 544 on dev-S1 (Orchard 170056, 636 items, 2026-11-16): the student's direct read is no direct-answer baseline (calls unserved); native m
+  H: Native routed read of the LEG-S1 step-544 student on dev-S1 (2026-11-16)
+  HS: 
+NEXT_LEG_INIT_RULE_20261116.md
+  T: NEXT_LEG_INIT_RULE_20261116.md
+  S: Init rule for the next leg (A2 or A0), registered 2026-11-16T11:16:52Z before any D0 export was read: candidates m1000, m800, m600, m400, m200 in that order (no stop expo
+  H: Init rule for the next leg (A2 or A0): which export it starts from (2026-11-16)
+  HS: 
+NEXT_LEG_REBUILD_PLAN_20261115.md
+  T: NEXT_LEG_REBUILD_PLAN_20261115.md
+  S: How to rebuild the lost next-leg trainer tree, rows and contract patches (2026-11-15): every change of the six tree passes and three reviews is re-specified from recovere
+  H: Rebuild plan for the next training leg after the trinity-2-18 loss (design record, 2026-11-15)
+  HS: 
+NEXT_LEG_TREE_REBUILD_20261115.md
+  T: NEXT_LEG_TREE_REBUILD_20261115.md
+  S: Next-leg trainer tree rebuilt from sealed LEG-S1 source b01ce449: seal ba346bd9 (build 5), kits A0 8cdda797 / A2 58a9b42e GO=false; suite 2,185 run, 0 regressions vs base
+  H: Next-leg trainer tree rebuilt from the sealed LEG-S1 source (lane tree_rebuild, 2026-11-15)
+  HS: Status (2026-11-16 10:30Z): build 6 running: contracts r6 integration (exact patches on 32 files, three-way merge on 3 diverged files), orders T1-T5 (init as one pinned input), square feet as a valid 
+NEXT_QUEUE_20261115.md
+  T: NEXT_QUEUE_20261115.md
+  S: What the spatial student should run and build next (2026-11-15): gap tables per benchmark task priced in official points, 36 candidates, ranked runs and builds, decision 
+  H: Next spatial-student queue
+  HS: Status: review-revised draft for the orchestrator's adoption. Analysis and design only; no experiment launch, GPU, code build, agent, SSH, Git operation or write outside the lane. Evidence date: 2026-
+NEXT_QUEUE_20261116.md
+  T: NEXT_QUEUE_20261116.md
+  S: What the spatial student runs and builds next (2026-11-16): step 544 is about 7.9 VSI points short of GeoWeaver-10B, with counting (2.66), appearance order (2.27) and obj
+  H: Next spatial-student queue: gaps priced, runs ranked, the end-to-end test and the RL foundation (2026-11-16)
+  HS: 
+NOT_SEEN_ROW_FAMILY_20261110.md
+  T: After a "not seen" ground response: build family A first (one `search="all"` re-ground at full resolution, then the normal v3.13 program; GT
+  S: DESIGN 11-10
+  H: What a training trace does after the grounding tool says "not seen" (2026-11-10)
+  HS: 
+OFFICIAL_VSI_DIRECT_STEP544_20261115.md
+  T: OFFICIAL_VSI_DIRECT_STEP544_20261115.md
+  S: Official VSI-Bench direct read of LEG-S1 step 544 (2026-11-15, Orchard 170008): six-task mean B2048 68.77 [66.5, 71.0] on 4,008 items (count 63.03, size 72.03, rel. dist 
+  H: Official VSI-Bench direct read of LEG-S1 step 544 (2026-11-15)
+  HS: **Evidence.** Orchard job 170008 (`a15_cot_apa8acc277397`, general, orchard-community-2, 19:55:55Z to 20:31:01Z, COMPLETED 0:0); kit f42aa1a4 (review_o6 GO, verdict sha 53c1a3e5...; proof 169991 passe
+OFF_AWS_REPLAN_20261109.md
+  T: Off-AWS re-plan (Trinity + Orchard only): 9B line (CP2, fallback CP1-R) on Orchard advanced 4 x H100 at world 4 (slot est. Tue 15-18Z); Trin
+  S: PLAN 11-09 21:45Z (offaws_replan)
+  H: Off-AWS re-plan: what trains and reads next on Trinity and Orchard (lane offaws_replan, 2026-11-09)
+  HS: Status: PLAN, 2026-11-09 ~21:45Z (13:45 PT). Scope (USER 11-09 ~13:03 PT): Trinity and Orchard only. Mind is storage and a copy relay. Every model weight and needed input leaves AWS, and the copy orde
+ORCHARD_CONTINUATION_CHECKER_REVIEW_20261114.md
+  T: ORCHARD_CONTINUATION_CHECKER_REVIEW_20261114.md
+  S: Confirmed checker 026cb696 has a reviewed native loss parser, 58 verified file pins and bound evidence for 42 unit tests and eight production rows. The unchanged state pa
+  H: Orchard continuation checker: containment, fixture and native loss compatibility
+  HS: 
+ORCHARD_CONTINUATION_CHECKER_REVIEW_EVIDENCE_20261114T015659Z.tar.gz
+  T: 
+  S: 
+  H: 
+  HS: 
+ORCHARD_CONTINUATION_CHECKER_REVIEW_EVIDENCE_20261114T023826Z.tar.gz
+  T: 
+  S: 
+  H: 
+  HS: 
+ORCHARD_CONTINUATION_FIXTURE_169409_20261114T030842Z.tar.gz
+  T: 
+  S: 
+  H: 
+  HS: 
+ORCHARD_CONTINUATION_PACKET_469DDECE_20261114.md
+  T: ORCHARD_CONTINUATION_PACKET_469DDECE_20261114.md
+  S: The unchanged kit binds exact resume from slot A/544 to steps 545–1,000. The local proof passes 36 CPU tests; the CPU/baseline packets pass source-integration review. Act
+  H: Exact continuation from the LEG-S1 step-544 slot
+  HS: Status: **build-only; continuation not ready or authorized**. Date: 2026-11-14.
+ORCHARD_CONTINUATION_PACKET_469DDECE_b235e47d.tgz
+  T: 
+  S: 
+  H: 
+  HS: 
+ORCHARD_CP2_PORT_20261109.md
+  T: Orchard port of the 9B line (orchard_cp2): CP1-Rv first on c1mix 8619839 (world 4, ref 32, batch 160, mix pose/vqa/vqa/pointing/routing, A2+
+  S: ready 11-10 05:40Z
+  H: Orchard port of the 9B line: CP1-Rv first, CP2 pieces at leg boundaries (lane orchard_cp2, 2026-11-09)
+  HS: Status: QUEUED, AT RISK (2026-11-11 20:41Z). 168042 (CP1-Rv on r9b) is pending with a Slurm estimate of 04:54Z Sun 15 Nov, but its kit authorization expires at 20:50Z Sat 14 Nov, so a start after that
+ORCHARD_CPU_BASELINE_INTEGRATION_905cab63.tgz
+  T: 
+  S: 
+  H: 
+  HS: 
+ORCHARD_IF_P0_METADATA_20261114.md
+  T: ORCHARD_IF_P0_METADATA_20261114.md
+  S: Four complete archive listings and the hash-matched FLA manifest are delivered; the exact 929-byte original-init artifact is retained. Both evidence archives verify. Head
+  H: IF-P0 archive metadata is delivered
+  HS: **Status: DELIVERED. The four listings and FLA manifest are delivered, and the exact original-init artifact is retained. The header, FLA and original-init launchers are consumed.**
+ORCHARD_PACKED_JOB_FEASIBILITY_20261114.md
+  T: ORCHARD_PACKED_JOB_FEASIBILITY_20261114.md
+  S: The four-worker Orchard job is not built; step admission, isolation, configuration and live-proof costs outweigh the one-off queue gain. The record preserves exact resour
+  H: Orchard packed-job feasibility — 2026-11-14
+  HS: 
+ORCHARD_POSE_KIT_20261109.md
+  T: 
+  S: 
+  H: Orchard pose-only C1 kit (lane orchard_kit, 2026-11-09)
+  HS: 
+ORCHARD_SAVE_WINDOW_169097.md
+  T: ORCHARD_SAVE_WINDOW_169097.md
+  S: The 52-sample window captures a recovered 71.14 GB dip without identifying its writer. The one-shot allowance is consumed. The five-minute monitor uses confirmed samples 
+  H: Project-space sampling around production checkpoint 269
+  HS: 
+ORCHARD_SAVE_WINDOW_169097_20261114T040853Z.tar.gz
+  T: 
+  S: 
+  H: 
+  HS: 
+ORCHARD_SPACE_POLICY_169097_20261114T043702Z.tar.gz
+  T: 
+  S: 
+  H: 
+  HS: 
+ORCHARD_STACKED_TMP_MOUNTS_20261113.md
+  T: Orchard stacked /tmp mounts: kernel mount identity for local-storage and job-private checks
+  S: Kernel-ID regressions, login /var/tmp and node-private ext4 staging are verified. Login /tmp is actual tmpfs and must refuse. Full-copy admission remains NOT_ACCEPTED.
+  H: Orchard stacked /tmp mounts
+  HS: 
+ORCHARD_STATE_COPY_EXEC_ENV_20261113.md
+  T: Orchard state-copy task launch with an empty exported environment
+  S: Absolute /usr/bin/python3.12 completes the authorized small copy under the isolated environment. Bare env cannot resolve. No further state-copy execution is allowed in 16
+  H: Orchard state-copy task launch under an empty exported environment
+  HS: 
+ORCHARD_STATE_COPY_MEMORY_169097_EVIDENCE_20261114T010734Z.tar.gz
+  T: 
+  S: 
+  H: 
+  HS: 
+ORCHARD_STATE_COPY_MEMORY_SCOPE_20261114.md
+  T: Orchard state-copy memory scope: enforcing ancestors, cache counters and trainer membership
+  S: The step-local sampler misses an ancestor above 85%. A bounded snapshot finds cache-dominated usage and no OOM kill. Acceptance is 9/12 and NOT_ACCEPTED; no further state
+  H: Orchard state-copy memory scope
+  HS: 
+ORCHARD_STOP_EXPORT_ATTESTATION_169097.md
+  T: ORCHARD_STOP_EXPORT_ATTESTATION_169097.md
+  S: The claim-bound stop path passes 22 local tests and the confirmed consumer contract. ORCH freezes both sides until the final stop; registered steps use the numbered route
+  H: Stop-export attestation for Orchard job 169097
+  HS: 
+ORIGINAL_INIT_EVIDENCE_20261114T083303Z_6cf7a23b4ad9.tgz
+  T: 
+  S: 
+  H: 
+  HS: 
+OWN_GROUNDING_KITS_20261112.md
+  T: Recovering objects the text-prompted segmenter never proposes without relying on the name prompt: kit A (grid point prompts, class-agnostic 
+  S: kits sealed; GPU runs queued on trinity-1-18 (evalx)
+  H: 
+  HS: 
+P3_ROUTING_IN_C1_20261108.md
+  T: P3 self-routing inside the C1 trainer: routing stream (verbatim derivgen targets, tool spans masked), scheduled sampling via a fixed layer +
+  S: code on p3-mixed-20261108; gate configs rendered 11-08
+  H: P3 self-routing inside the C1 trainer: routing stream, scheduled sampling, one FoV (p3_build, 2026-11-08)
+  HS: 
+PILOT_FULL_LABEL_PATH_20261111.md
+  T: Grounding-head pilot, full-label CPU path (own_head r11): the r10 step-0 stop is the teacher name normalization (label_ops "books", teacher 
+  S: CPU PASS 11-11; GPU not run; First20 rule default awaits orchestrator
+  H: Grounding-head pilot: the full-label data path on CPU (own_head r11)
+  HS: 
+POINTING_CE_FLOOR_20261108.md
+  T: Pointing coordinate CE floor vs defect: deterministic target -> floor ~0; R1 1.67 nats/digit = base-level in-video localization (no target d
+  S: defect ruled out; erosion read pending (evalx)
+  H: Pointing coordinate CE: floor or defect? (loss_doctor, 2026-11-08)
+  HS: - Status: target defect ruled out; erosion open (evalx read). Evidence: loss_doctor events 1839Z, 1843Z, and the pointing_ce_floor_verdict event.
+POINTING_FROM_TRACES_20261110.md
+  T: 2D text pointing vs ViGoRL "30k traces": ViGoRL = 30k MCTS reasoning traces (~1,500 prompts) as SFT warm start + GRPO on Qwen2.5-VL-3B/7B si
+  S: RESEARCH DONE 11-10 07:55Z; nothing run
+  H: 2D text pointing: what ViGoRL ("30k traces") supports, and why ours sits at 61% (research lane, 2026-11-10 07:55Z)
+  HS: 
+POLICY_AUDIT_20261115.md
+  T: POLICY_AUDIT_20261115.md
+  S: Which choices of the routed reading path were made on benchmark items (2026-11-15): seven were selected on VSI-Bench ScanNet items; the room-size route and room rule have
+  H: Which rules of the routed reading path were chosen on benchmark items (2026-11-15)
+  HS: 
+POOL_R2_MIXTURE_CONTRACT_TOTALCOUNT_20261112.md
+  T: Pool revision 2: a source-mixture contract (pinned extra row sets with deterministic shares, paired direct selection, resume binding; byte-i
+  S: BUILT 11-12 (row review running; patch to be rebased on the leg final seal and reviewed)
+  H: Design record
+  HS: **Status.** The patch applies with zero fuzz. Selection indices and the no-extra native row database preserve bytes. Sixteen new tests pass; the existing suites have the same 382 passes and same const
+POSE_ACCURACY_BRIDGE_20261108.md
+  T: Pose accuracy bridge (SENSITIVITY on 655 benchmark items, GT clicks+depth): pose-free types; yaw break-even counting 7.6 / dir 9-15 / VSI 20
+  S: done 11-08 (pose_bridge); MapAnything depth row not run
+  H: Pose accuracy bridge: how accurate must our camera pose be for the head-backed programs? (2026-11-08)
+  HS: 
+POSE_DATA_AT_SCALE_PLAN_20261108.md
+  T: Pose data at scale (inventory, scale anchors, ranked levers, night-2 owners): data volume does not bind night 2 (8-16K pose rows vs 283,200)
+  S: done 11-08
+  H: Pose data at scale: inventory, levers and the night-2 plan (2026-11-08 14:50Z, Sun 06:50 PT)
+  HS: 
+POSE_DATA_SOURCES_20261108.md
+  T: Pose/depth data sources and builds (posedata): A2 = 66,934 rows 50/30/20 (A1 ARKit + new frames64 ScanNet/ScanNet++ with bank depth), conven
+  S: A2 + A3 (203,520 rows, depth on all slots, +0.5 s partners) delivered 11-08
+  H: Pose and depth training data: sources, conventions and builds (posedata lane, 2026-11-08)
+  HS: | Source | Where | Count | Labels | Status |
+POSE_PLATEAU_DIAGNOSIS_20261109.md
+  T: Pose plateau diagnosis (posediag): train-fit (T0 misses its own training rows by 13-14 deg = new rows; held-out ScanNet +2-4 deg), label aud
+  S: done 11-09 14:05Z
+  H: Why does camera pose plateau at ~18-20 deg translation direction? (2026-11-09)
+  HS: 
+POSE_SCENE_DIVERSITY_20261109.md
+  T: Pose scene diversity (posedata2): streams hold 2,672 rooms (ARKit 1,437 venues, ScanNet 550, ScanNet++ 685), T1 = 1.38x T0 rooms, median 12 
+  S: counts done 11-09 05:58Z; builds running
+  H: Pose scene diversity: how many rooms the pose streams hold, and where more come from (posedata2, 2026-11-09)
+  HS: | source | new rooms (clean) | labels | access / size | status, build hours | rows to CP2 (Tue) | rows to CP3 (Wed) |
+POSE_SWEEP_ARMS_20261109.md
+  T: Pose sweep arms (CTRL, RES2, DIR, PAIRS, CPARAM, DR, MC8): direction error lives in t (19.6 of 20.1 deg with GT rotation); HEADATTN already 
+  S: building/launching 11-09 (pose_sweep)
+  H: Pose sweep: readout, resolution and representation arms against the 49% centre plateau (2026-11-09)
+  HS: 
+QWEN35_NATIVE_BOX3D_20261108.md
+  T: Qwen3.5-9B native 3D boxes (bbox_3d, angles in units of pi) on 222 held-out objects: centre 0.21 m, size MRA 66.7, IoU 0.21, no scale bias, 
+  S: done 11-08 (box3d_probe)
+  H: Qwen3.5-9B native 3D boxes vs ground truth (2026-11-08)
+  HS: Status: done (lane box3d_probe, trinity-2-18). Archive of code, test set and outputs:
+RECOVERY_MAP_2_18_OUTAGE_20261115.md
+  T: RECOVERY_MAP_2_18_OUTAGE_20261115.md
+  S: What of the distillation work survives the trinity-2-18 and 2-28 outages and how each queued item restarts (2026-11-15): LEG-S1 exports (GCS q8) and slot A, reader, runti
+  H: Recovery map after the trinity-2-18 and trinity-2-28 outages (2026-11-15)
+  HS: Status: complete 2026-11-15 ~17:30Z (lane recover_map2, trinity-3-30). Listings only; no rebuild started, no copy made except a 49 MB read of the Devin sessions database into the lane folder.
+REFREEZE_AMENDMENT_1_K1_RASTERS_20261115.md
+  T: REFREEZE_AMENDMENT_1_K1_RASTERS_20261115.md
+  S: Which ground-truth rasters the K1 kill test uses after the originals were lost (written 2026-11-15T21:2xZ, before any K1 score): primary on the 259 captures whose rebuilt
+  H: Re-freeze pre-registration, amendment 1: which ground-truth rasters the K1 kill test uses (written 2026-11-15T21:24:11Z, before any K1 outpu
+  HS: 
+REFREEZE_AMENDMENT_2_K1_MANIFEST_V2_20261116.md
+  T: REFREEZE_AMENDMENT_2_K1_MANIFEST_V2_20261116.md
+  S: K1 manifest v2 (2026-11-16): 91a2dbf9 with only its two placeholder GPU pins filled from the accepted native read (prepared config 78341acb, its data receipt); all 300 ca
+  H: Re-freeze amendment 2: K1 manifest v2 for the own, convert and table phases (registered 2026-11-16T05:34:43Z, before any own-phase output ex
+  HS: **Status.** Registered. Applies with amendment 1 (296-capture primary set).
+REFREEZE_AMENDMENT_3_D1_D2_ROUTE_DECISIONS_20261116.md
+  T: REFREEZE_AMENDMENT_3_D1_D2_ROUTE_DECISIONS_20261116.md
+  S: Re-freeze amendment 3 (registered 2026-11-16T11:13:27Z, before any K1 own-phase output, P8 or official native read; written after the dev-S1 native read of step 544): D1 
+  H: Re-freeze amendment 3: route decisions D1 and D2 after the native read (2026-11-16)
+  HS: 
+REFREEZE_PREREGISTRATION_20261115.json
+  T: 
+  S: 
+  H: 
+  HS: 
+REFREEZE_PREREGISTRATION_20261115.md
+  T: REFREEZE_PREREGISTRATION_20261115.md
+  S: Pre-registration of the routed path re-freeze (2026-11-15T07:57Z, before any K1 output; sha256 ca4a4fbe..., JSON 6375d400...): alias table, depth cut, box rule and room r
+  H: Pre-registration: re-freezing the routed reading path on eligible scenes (2026-11-15)
+  HS: 
+REVIEWER_CITED_SYSTEMS_ON_VIDEO_20261112.md
+  T: Reviewer-cited systems on RGB video: VISPROG framewise GQA baseline; exact input/service gaps for SpatialPIN, VLM-Grounder and GeoProg3D
+  S: BUILDING; source verdicts accepted, VISPROG offline packaging and real-frame proof pending
+  H: 
+  HS: Status: All twelve static VISPROG and ViperGPT comparisons use the authenticated v6 answer policy and remain provisional candidates. All three moving timing units and all four moving accuracy cells pa
+REVSI_DEV_SET_20261108.md
+  T: ReVSI contamination check (zero overlap) + ReVSI dev subset from the official 999 (cap71: 452 q; cap83: 500 q)
+  S: done 11-08; subset choice open
+  H: ReVSI development set and ReVSI contamination check (2026-11-08)
+  HS: 
+REVSI_DIRECT_STEP544_20261115.md
+  T: REVSI_DIRECT_STEP544_20261115.md
+  S: ReVSI official999 tier-32 direct read of LEG-S1 step 544 (2026-11-15, Orchard 170037): five-category mean B2048 64.94 [61.3, 68.4] on 679 items (count 58.57, direction 51
+  H: ReVSI direct read of LEG-S1 step 544, five categories (2026-11-15)
+  HS: 
+RFT1_KIT_20261111.md
+  T: RFT-1 kit (reward-filtered program sampling, the first form of RL on top): routed sampler around the integrated decode, benchmark scorer, op
+  S: kit built 11-11 13:20Z (lane rft1_kit, Codex Sol); sampling needs the v3.14 grammar, an admitted question pool, exact-frame GT and cards
+  H: RFT-1 design record
+  HS: 
+ROUTED_READ_FIRST_ITEMS_169605_20261114.md
+  T: ROUTED_READ_FIRST_ITEMS_169605_20261114.md
+  S: What the routed read's first real items showed (pilot 169605, step-200 export, gate passed). The reader, not perception, refuses most distance grounding: its runtime cand
+  H: Routed pilot 169605: distance refusals, runaway decode, room unit
+  HS: 
+ROUTED_READ_GEOMETRY_GUARD_169670_20261115.md
+  T: ROUTED_READ_GEOMETRY_GUARD_169670_20261115.md
+  S: Why the routed read's geometry refused an ARKitScenes capture (pilot 169670, step-544 export): the sealed guard reference_camera_up_opposes_gravity tests a sign that is n
+  H: Geometry refusal on d3/41069053 (pilot 169670): cause and handling
+  HS: 
+ROUTED_READ_PARITY_PROBE_169501_20261114.md
+  T: ROUTED_READ_PARITY_PROBE_169501_20261114.md
+  S: Why the routed-read pilot's parity gate failed on the leg (job 169501): the probe question is outside the leg's training and the gate accepted only `<pose ` calls, while 
+  H: Native pilot 169501: why the parity probe made no camera call
+  HS: 
+ROUTED_READ_PIN_GRAPH_AUDIT_20261114.md
+  T: ROUTED_READ_PIN_GRAPH_AUDIT_20261114.md
+  S: Independent audit of every hash, size and identity check the routed-read job performs before its GPU work (46 checks in execution order, 21 duplicate-pin groups), evaluat
+  H: 
+  HS: 
+SC_FLASH_PARALLEL_20261112.md
+  T: SpatialClaw Flash HIGH parallel units: unchanged native seals, fixed-root merger and safe parent stop boundary
+  S: READY_OFFLINE; 100 admissions, two native mocked proofs, strict merger refusals and stop predicates pass; launcher owns production
+  H: 
+  HS: 
+SELF_ROUTING_DESIGN_20261108.md
+  T: Self-routing training design (P3 in the C1 mixed trainer; Fable max)
+  S: done 11-08; p3_build implementing
+  H: Self-routing training design (P3 in the C1 mixed trainer), 2026-11-08
+  HS: Designer: Claude (Fable, max effort), 60-minute box, for orchestrator session cdb578de. Sources read: p3_build STATUS/PRELAUNCH/brief/P3_BUILD.md, events 1235Z + inbox through 1232Z, `work/c1mix/stude
+SHARED_PERCEPTION_FEATURES_DESIGN_20261108.md
+  T: Shared vs separate pose/depth features (Opus max): keep V-C private depth substrate for the final run; one FoV; optional DSUB test
+  S: done 11-08
+  H: Shared perception features: should pose and depth read one representation?
+  HS: Design record, 2026-11-08 ~13:10Z, for orchestrator session cdb578de (45-minute box). Status: recommendation for the final run (Mon 21:30 PT); test DSUB proposed, not launched.
+SOTA_BREAKTHROUGH_PLAN_20261109.md
+  T: SOTA breakthrough plan (judge, revised after 3 adversarial reviews): GPU plan to Tue 16:00Z with planned running GPUs per window (98 -> 84 -
+  S: PLAN 11-09 09:20Z (judge)
+  H: SOTA breakthrough plan: GPU plan to Tue 16:00Z, pose plateau, grounding, direct path (revised after 3 adversarial reviews, 2026-11-09 09:20Z
+  HS: Supersedes SOTA_PLAN_20261109.md (08:45Z). FACT = file evidence named; HYP = hypothesis. State verified against ORCH_HANDOFF through 09:04Z, lane STATUS files through 09:09Z, evalx event 0902Z (CP1 ro
+SOTA_PLAN_20261109.md
+  T: SOTA plan (judge of 7 lenses): pose read from frozen G3T x own-depth scale equals GT pose on dev (79.0 vs own 70.2); grounding presence bind
+  S: PLAN 11-09 08:45Z (judge)
+  H: SOTA plan: break the pose plateau, fix grounding, reach SOTA on ReVSI / VSTI / VSI-Bench hard (judge of 7 lenses, 2026-11-09 08:45Z)
+  HS: Status: PLAN (judge verdict; verified against ORCH_HANDOFF through 08:36Z, evalx events 0744Z-0817Z, geolens_20261109 outputs recomputed here, lane STATUS files). FACT = file evidence; HYP = hypothesi
+SOTA_SURVEY_GEOMETRY_VLMS_20261109.md
+  T: SOTA survey of geometry-aware VLMs (VSI-Bench tops GeoWeaver-10B 75.05 / Cambrian-P 72.0 at 32 f; ReVSI open top 57.5-58.2; VSTI label errat
+  S: done 11-09 08:00Z (SOTA workflow, survey lens)
+  H: SOTA survey: geometry-aware VLMs on VSI-Bench, ReVSI and VSTI, and what explains their gains (2026-11-09 08:00Z)
+  HS: 
+SOTA_TARGETS_20261108.md
+  T: SOTA targets: ReVSI (Gemini 3 Pro 60.9; open 54.1; Cambrian-P 52.0), VSTI (Cambrian-P 68.9), VSI-Bench (Cambrian-P 73.7/72.0; GeoThinker 72.
+  S: done 11-08 (refuter corrections in its workflow result)
+  H: SOTA targets for the student: ReVSI, VSTI, VSI-Bench, dynamic and multi-view benchmarks (2026-11-08, Sun 05:45 PT)
+  HS: 
+SPATIALCLAW_ENV_FIX_20261112.md
+  T: SpatialClaw environment compatibility: Matplotlib 3.10.9, unchanged source, offline API replay and tool tests
+  S: READY_FOR_BINDING; real SAM3 visualization remains a launcher gate
+  H: 
+  HS: Status: READY_FOR_BINDING. No GPU run, provider call, process stop, source edit, deletion, SSH, or Git operation occurred. The live environment remains intact. Real-mask proof and rerun execution belo
+SPLIT_FLASH_SUBSETS_20261112.md
+  T: 
+  S: 
+  H: SPLIT with the Gemini 3.8 Flash planner on the static subsets
+  HS: 
+SPLIT_REPAIRS_REBUILD_20261115.md
+  T: SPLIT_REPAIRS_REBUILD_20261115.md
+  S: How the SPLIT SAM3-fault repair and race-exposure top-up rounds r3162 to r3166 were rebuilt on trinity-0-13 after trinity-3-3 went down (2026-11-15): parent cells restore
+  H: SPLIT repair and exposure top-up rounds rebuilt on trinity-0-13 (2026-11-15)
+  HS: **Status:** five bundles sealed and CPU-proved (r3162 to r3166); no launch yet. Launcher sheet:
+SPLIT_STATIC_FAULT_TOPUPS_20261112.md
+  T: SPLIT static-cell tool faults: frozen 44-question correction with unchanged planner failures and complete native CPU rehearsals
+  S: READY for launcher; 44 harness defects, eight planner failures retained, zero paid or GPU calls by the lane
+  H: SPLIT static-cell tool faults
+  HS: 
+STOP_ATTESTATION_EVIDENCE_20261114T080446Z_e11725c1862a.tgz
+  T: 
+  S: 
+  H: 
+  HS: 
+STOP_CONTRACT_CONFIRMATION_20261114T081827Z_de37fd090e25.tgz
+  T: 
+  S: 
+  H: 
+  HS: 
+T0_INIT_DECISION_20261108.md
+  T: T0 init: full C1-a m800 (R1 m50/m100, soups, erosion, harness evidence; T0 pointing canaries)
+  S: decided 11-08 23:43Z; canaries pending (evalx)
+  H: T0 init: full C1-a m800 checkpoint, decided 2026-11-08 23:43Z (evalx record)
+  HS: 
+T1_STEP1_DEADLOCK_UV_20261109.md
+  T: T1 step-1 deadlock (117371 hybrid, 118867 FULL_SHARD): A3 rows keep off-frame uv on masked-out depth points; PointDepthHead.query raises on 
+  S: fixed 11-09; T1 relaunched 119550 05:01Z (t1_build)
+  H: T1 step-1 deadlock: off-frame uv on masked-out depth points (t1_build, 2026-11-09)
+  HS: 
+T2_ROUTED_TRACES_BUILD_20261109.md
+  T: T2 build: T1 recipe + derivgen READY routed traces (dir med/hard, abs x4 incl. VSI wording, camera); alias fix of 23,760 rows; VQA minus 37,
+  S: trained to step 506 (05:23-08:35Z); stopped by ORCH, resumable from checkpoint_000506; read pending (grounding fix)
+  H: T2 build: T1's recipe plus derivgen's READY routed traces (t2_build, 2026-11-09)
+  HS: Status: trained 11-09 05:23-08:35Z on 32 GPUs (job 119664, root ap/330df157, run runs/2c6919f1). ORCH stopped it at step 506, right after a complete save (checkpoint_000506), because false-positive gr
+THOUGHT_CAPTURE_DEFAULT_ON_20261112.md
+  T: Default thought capture for Gemini/Qwen/Gemma: lazy startup hook, carrier serialization and first-episode hard gate
+  S: STAGED; 81 offline tests pass in each planner interpreter; installation waits for user confirmation and quiet environments
+  H: 
+  HS: | `staging/sitecustomize.py` | Lazy Google SDK, LangChain Google, and OpenAI/vLLM request wrappers; explicit dual-variable opt-out; runtime hook hash and patch status. |
+TIMED_FANOUT_TRINITY_0_13_20261112.md
+  T: Timed SpatialClaw fan-out: immutable RAM bindings, source-row migration, per-card queues and zero-call proofs
+  S: building; launcher owns allocation and migration
+  H: 
+  HS: Status: All eleven current queue entries are READY_OFFLINE across nine immutable packages, covering 750 planned question executions. Flash HIGH passes all 150 admissions, three native per-benchmark pr
+TRACE_DIAGNOSIS_CP1_DEVS1_REVSI_20261112.md
+  T: Why CP1 m200 loses points, per type, from 569 traces read and rules on all items (dev-S1 71.3, ReVSI 57.3): wrong quantities ASSERTED in its
+  S: DONE 11-12 (full table: /scratch/jjyeung/orch_cd/trace_diag/out/TRACE_DIAG.md)
+  H: 
+  HS: Status: The requested trace audit and local artifacts are complete. Visual causality and label adjudication remain unresolved where the supplied traces and pricing outputs cannot establish them. No tr
+TRACE_POOL_CP2_READ_20261109.md
+  T: CP2 trace read (SPEC v3.11, builds L/M): all ten routed types READY, 250/250 rows recompute from GT
+  S: done 11-09 12:55Z (derivgen6)
+  H: CP2 trace read (SPEC v3.11, builds L/M), 2026-11-09
+  HS: 
+TRACE_POOL_V2_READ_20261108.md
+  T: Trace pool v2 read (625 rows, 25 types): GO-WITH-EXCLUSIONS, night 1 routes camera types only; own-value rows kept GT prose (must fix); dire
+  S: done 11-08 (read workflow)
+  H: Trace pool v2 read: verdicts and the final-run decision (2026-11-08)
+  HS: 
+TRACE_POOL_V3101CAM_READ_20261109.md
+  T: Trace pool v3.10.1 camera-type read (builds E/F/G, 225 rows, 3 types, 225/225 recomputed from GT): 0 numeric or answer mismatches; camera_di
+  S: done 11-09; fix to derivgen, bind note to p3_build
+  H: Trace pool v3.10.1 camera-type read (derivgen, builds E/F/G), 2026-11-09
+  HS: Status: done (synthesis of three per-type readers plus a synthesis spot check). Input for derivgen's camera fix and p3_build's CP1 bind (freeze Mon 10:30 PT = 18:30Z).
+TRACE_POOL_V3101_READ_20261109.md
+  T: Trace pool v3.10.1 read (derivgen5 builds E/F/G, 525 rows, 7 types): 0 numeric or answer mismatches; direction med/hard + object_abs_distanc
+  S: done 11-09 ~01:00Z; fixes to derivgen, bind note to p3_build
+  H: Trace pool v3.10.1 read (derivgen5, builds E/F/G), 2026-11-09
+  HS: Status: done 2026-11-09 ~01:00Z (synthesis of seven per-type readers). Input for derivgen's last fix round and p3_build's CP1 bind (freeze Mon 10:30 PT = 18:30Z).
+TRACE_POOL_V3102_REREAD_20261109.md
+  T: v3.10.2 trace re-read (J/K, pools e/f/g/h): 549/550 rows pass; all four HOLD defects fixed (same-name, <15 px clicks, singularized names, ne
+  S: done 20261109T0521Z; bind all ten at CP1 (p3_build)
+  H: Trace pool v3.10.2 re-read (derivgen, builds J/K plus E/F/G), 2026-11-09
+  HS: Status: done 20261109T0521Z (synthesis of seven per-type readers). Input for p3_build's CP1 bind (freeze Mon 10:30 PT = 18:30Z) and derivgen's last selection fixes.
+TRACE_POOL_V3_20261108.md
+  T: Trace pool v3 (SPEC v3.10) for the night-2 resume: centroid-proxy click fixes direction (GT 100/94/100 vs direct 68/65/100); r cutoffs wrong
+  S: CP1 v3.10.2 delivered 11-09 05:14Z; CP2 v3.11 rows 12:05Z (derivgen6)
+  H: Trace pool v3 (SPEC v3.10): direction and distance fixed for the night-2 resume (2026-11-08)
+  HS: **Status.** Delivered 2026-11-09 05:14Z. SPEC v3.10.2 selections (builds E/F/G/J/K, 94,059 rows, 385 scenes; receipt `derivgen/out/derivgen6_parent/v3102_delivery/V3102_RECEIPT.json`) are p3_build's C
+TRACE_POOL_V3_READ_20261108.md
+  T: Trace pool v3 read (derivgen5 SPEC v3.10, 250 rows): direction med/hard + camera_obj READY (0 mismatches; drop 6 near_boundary rows); 4 obje
+  S: done 11-08; feeds build C ~22:00Z and CP1
+  H: Trace pool v3 read (derivgen5, SPEC v3.10), 2026-11-08
+  HS: Status: done (synthesis of three readers). Input for derivgen build C (~22:00Z) and the CP1 routing freeze (Mon 10:30 PT).
+TRACE_RULING_20261115.md
+  T: TRACE_RULING_20261115.md
+  S: Which trace each training row carries in the repair seal (2026-11-15, adopted): program rows only for absolute distance, room size and the three camera types; every other
+  H: Trace ruling for the repair seal (2026-11-15)
+  HS: **Status:** proposed ruling, read-only analysis. Nothing was built, launched or admitted. It needs the orchestrator's acceptance and two user defaults (section 2.9). Paths are under `/scratch/jjyeung/
+TRACE_SWARM_REVIEW_20261110.md
+  T: Trace review swarm: one Codex Sol reader per row plus an Astra summary per category, with exact population scans; findings on r4/r5/r6 routi
+  S: DONE 11-10; runs and events under /scratch/jjyeung/orch_cd/swarm_ops/ on trinity-2-18
+  H: Trace review swarm (swarm_ops, 2026-11-10)
+  HS: - Runs live in /scratch/jjyeung/orch_cd/swarm_ops/work/runs/<set>/: run.json, units/, reports/<id>/{report.md, verdict.json}, summary/<category>.md and SUMMARY.md, status.json. The events are in /scra
+TRAINING_EFFICIENCY_20261108.md
+  T: Training efficiency: GDN torch fallback ~35-50% of the 39 s C1 step (overhead-bound, ~3% MFU), data wait 16%, leg overhead 3-12%; the world-
+  S: done 11-08 16:50Z; LT1/LT3/LT4 pending
+  H: Training efficiency: why C1 and final-run training is slow, and what to change (2026-11-08)
+  HS: **Status.** Design review done 11-08 ~16:45Z (Claude Opus). It merges two independent reviews (A and B below) with my own code, log and CPU checks. loss_doctor's live step-time breakdown (ORCH 1537Z, 
+TRAIN_EVAL_SCENE_AUDIT_20261110.md
+  T: Train/eval scene audit (every stream x VSI-Bench/VSI-500/dev 858/VSTI-450/ReVSI cap71/clean camera pool/E0): 0 shared scans anywhere; room-l
+  S: DONE 11-10 06:40Z; decisions: option A subset vs B, drop r_s from CP2, harness policy to user/main
+  H: Train/eval scene audit: every training stream of the current and planned runs against every evaluation set (2026-11-10)
+  HS: 
+TRINITY_FIT_VLM_LEG_20261110.md
+  T: Which 9B training fits Trinity A6000s this week: TB-1 = stage B with frozen CP1 m200 (MDG decoder from MDG-A + span LoRA r32 on v3.12 call t
+  S: DESIGN 11-10 05:30Z (lane trinity_fit_scope)
+  H: Which 9B training carries the method on Trinity this week (design lane trinity_fit_scope, 2026-11-10 05:30Z)
+  HS: Status: DESIGN, read-only lane. Nothing was built or launched. FACT = measured, with its source; E = estimate with the arithmetic shown; HYP = hypothesis. GB = 10^9 B, GiB = 2^30 B; "38-42 GB usable" 
+TRINITY_READ_RUNTIME_20261116.md
+  T: TRINITY_READ_RUNTIME_20261116.md
+  S: can the accepted step-544 dev-S1 direct reader run on one Trinity 48 GB card; rebuilds the Orchard kit root under host bwrap with an llguidance stub (glibc 2.28); proof o
+  H: Trinity read runtime for the step-544 lineage (lane trin_read, trinity-1-3)
+  HS: 
+UNIFIED_SPATIAL_BENCHMARK_DESIGN_20261108.md
+  T: Unified spatial benchmark (SpatialLedger) design: room-level registry, 3D-GT relabel, visibility flags; found ARKit venue 381879 split leak 
+  S: done 11-08 (refuter: novelty narrowed vs SpaceVista-1M; MMSI-Video is CC BY-NC)
+  H: Unified video and multi-view spatial-reasoning benchmark and training corpus (design, 2026-11-08)
+  HS: **Status.** Design only; nothing is built. The working name is SpatialLedger, and the user may rename it. Inputs were the 11-08 prior-art survey, the holdings inventory, and the checks in §0, which I 
+VIPERGPT_ON_VIDEO_BENCHMARKS_20261112.md
+  T: ViperGPT native video baseline with common official scoring
+  S: OSI-500 sealed recovery ready: 201 retained plus 299 in three shards; ReSTI-500 authenticated complete; shared-v6 scoring stays with launcher
+  H: ViperGPT on the video benchmarks
+  HS: 
+VIPE_PILOT_20261108.md
+  T: ViPE pose pilot (58 ScanNet recordings, GT poses): ViPE 1.2.0 default pose-only matches G3T rotation (2.7 vs 2.9 deg) and halves its centre 
+  S: done 11-08 18:30Z (vipe lane); metric3d-small variant running
+  H: ViPE pose pilot on ScanNet (lane vipe, Devin, 2026-11-08)
+  HS: 
+VLA_ACTION_HEAD_DESIGN_20261111.md
+  T: VLA action heads and tests (lane vla_design): one ActionHead interface plus one typed cross-lane schema (orch_cd/vla_design_review/VLA_SCHEM
+  S: DESIGN 11-11, schema v2; nothing built or launched by these lanes
+  H: VLA action heads, own-heads arms and VLA tests for the 9B student (design lane vla_design, 2026-11-11)
+  HS: Status: DESIGN. This lane read files and the web and wrote only this record, its schema (`/scratch/jjyeung/orch_cd/vla_design_review/VLA_SCHEMA.md`) and its INDEX row. Labels: FACT = measured, with th
+VLA_LIBERO_KIT_20261111.md
+  T: LIBERO few-demo VLA kit (Test L, vla_schema_v1): StarVLA 985c2238 + LIBERO/LIBERO-Plus reinstalled on Orchard at pilot pins; Spatial d5_s0 =
+  S: BUILT, CPU-validated 11-11 (lane vla_libero, trinity-2-18); hooked-recipe GPU test held for go; control arms off until the user says yes
+  H: VLA LIBERO kit for Test L (lane vla_libero, 2026-11-11)
+  HS: 
+VLA_NAV_RUNNER_20261111.md
+  T: VLA navigation runner (R2R-CE / R2RIE-CE closed loop, habitat-sim 0.2.4): nav / click / waypoint / chunk / text formats; oracle SR 1.00 on 1
+  S: CPU build done 11-11 (lane vla_nav, trinity-2-18); rendering waits for a free GPU
+  H: VLA navigation runner for R2R-CE and R2RIE-CE (lane vla_nav, 2026-11-11)
+  HS: 
+VLA_WHERE_PROVIDER_20261111.md
+  T: VLA where-provider (U1/NU geometry), CPU build: phrase table (40 LIBERO), presence gate, grounding, lift x scale (EEF motion needs T_eef_cam
+  S: BUILT on CPU 11-11 (lane vla_where); GPU pre-check waits for LIBERO renders and the revised design
+  H: VLA where-provider (U1 and NU geometry), schema v2 CPU build (lane vla_where, 2026-11-11)
+  HS: 
+VLM_E2E_NEXT_LEG_20261110.md
+  T: Next method-carrying leg of the 9B student (E2E-1): frozen G3T inside generate() feeding the existing read layer (<pose>/<move>/<turn>/<dept
+  S: DESIGN 11-10 05:10Z (lane e2e_leg_scope); build items 1-8 ready to dispatch
+  H: The next method-carrying leg of the 9B student: tower read layer, MDG grounding, data-carried routing (design lane e2e_leg_scope, 2026-11-10
+  HS: Status: DESIGN, read-only lane. Nothing was built or launched. FACT = measured, with the file named; E = estimate with arithmetic shown; HYP = hypothesis.
+VSTI_NATIVE_CAMERA_READ_STEP544_20261116.md
+  T: VSTI_NATIVE_CAMERA_READ_STEP544_20261116.md
+  S: VSTI-450 native read of step 544 with only move/turn/pose served by frozen G3T run in the job on the read's own frames (2026-11-16): kit built and CPU-rehearsed (scorer r
+  H: VSTI-450 native read of the step-544 student with camera calls served (design record, 2026-11-16)
+  HS: 
+if_p0_20261114
+  T: 
+  S: 
+  H: 
+  HS: 
+legs1_warm_start_20261113
+  T: 
+  S: 
+  H: 
+  HS: 
+vipe_pilot_20261108.tgz
+  T: 
+  S: 
+  H: 
+  HS: 

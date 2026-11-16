@@ -1,0 +1,1 @@
+cd /scratch/jjyeung/orch_n30/tree_rebuild_w/out/ && ls -la tree_rebuild_b*.tar && sha256sum tree_rebuild_b5_ba346bd9.tar && cat tree_rebuild_b5_ba346bd9.tar | ssh -o ConnectTimeout=20 trinity-3-30.ib "cat > /scratch/jjyeung/orch_n30/b03_e2etest/work/nextleg/tree_rebuild_b5_ba346bd9.tar" && echo SENT

@@ -1,0 +1,362 @@
+{
+  "artifact_sha256": "1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef",
+  "missing_objects": [
+    "masks",
+    "geometry"
+  ],
+  "not_evaluated": 37,
+  "objects": {
+    "code": {
+      "bytes": 3737600,
+      "inventory_verified": true,
+      "md5": "fZc6pG5HXA6OGcxz5nORfA==",
+      "members": 46,
+      "path": "/scratch/jjyeung/orch_n30/native_r2/builds/01_c8/out/c8/code_c8.tar",
+      "sha256": "d03de829ae52386f2d845400b2d423bdfdaa177ee6921ef4676d7906938359aa"
+    },
+    "metadata": {
+      "bytes": 67143680,
+      "inventory_verified": true,
+      "md5": "guFJsRAv3UAqsZ4AEBKLDA==",
+      "members": 47,
+      "path": "/scratch/jjyeung/orch_n30/native_r2/work/obj/metadata_e10fbb95487f3baf.tar",
+      "sha256": "e10fbb95487f3bafc379f99ac42668f94ac4c479129d8631d63750112cab3266"
+    },
+    "model": {
+      "bytes": 10240,
+      "inventory_verified": true,
+      "md5": "uQ0Jt3fSHienhPkJTYBw8g==",
+      "members": 1,
+      "path": "/scratch/jjyeung/orch_n30/native_r2/work/obj/model_8005668fc14ce5ee.tar",
+      "sha256": "8005668fc14ce5ee088d0d631d581f62ca73e6cb8130fde4a2deb73de74f635b"
+    }
+  },
+  "pass_count": 9,
+  "rows": [
+    {
+      "actual": "No C8 allocation or launch packet exists.",
+      "check": 1,
+      "expected": "assigned job and private root",
+      "site": "BATCH.sh:7-12",
+      "status": "N/E"
+    },
+    {
+      "actual": "No C8 BATCH payload exists.",
+      "check": 2,
+      "expected": "literal payload digest",
+      "site": "BATCH.sh:8-10",
+      "status": "N/E"
+    },
+    {
+      "actual": "No C8 BATCH payload exists.",
+      "check": 3,
+      "expected": "32 MiB, unique relative regular members",
+      "site": "BATCH.sh:13-25",
+      "status": "N/E"
+    },
+    {
+      "actual": "No C8 runtime configuration or allocation exists.",
+      "check": 4,
+      "expected": "config schema, mode, partition, step, token, GPU count",
+      "site": "native_job.py:257;native_common.py:114-122",
+      "status": "N/E"
+    },
+    {
+      "actual": "Orchard environment cannot be tested on this host.",
+      "check": 5,
+      "expected": "partition, root, user and allocation",
+      "site": "native_job.py:67-75",
+      "status": "N/E"
+    },
+    {
+      "actual": "C8 REVIEW and ORDER are not supplied.",
+      "check": 6,
+      "expected": "family, review and order pins",
+      "site": "native_job.py:83-86",
+      "status": "N/E"
+    },
+    {
+      "actual": "C8 authority and upload are pending.",
+      "check": 7,
+      "expected": "family assets, limits, contract and ACCEPT",
+      "site": "native_common.py:73-111",
+      "status": "N/E"
+    },
+    {
+      "actual": "No C8 launch token or ORDER exists.",
+      "check": 8,
+      "expected": "authorization, plan and one order line",
+      "site": "native_common.py:68-70,89-103",
+      "status": "N/E"
+    },
+    {
+      "actual": "18 bootstrap hashes recomputed",
+      "check": 9,
+      "expected": "Bootstrap copies equal shipped code",
+      "site": "native_job.py:89-91",
+      "status": "PASS"
+    },
+    {
+      "actual": "No Orchard private job mount exists.",
+      "check": 10,
+      "expected": "job-private local storage",
+      "site": "native_job.py:175-178;orchard_stage.py:120",
+      "status": "N/E"
+    },
+    {
+      "actual": "GPU use is forbidden for this build.",
+      "check": 11,
+      "expected": "empty exclusive H100",
+      "site": "native_job.py:179,194;native_job.py:38-64",
+      "status": "N/E"
+    },
+    {
+      "actual": "Declared five-object size fits the cap; masks and geometry bytes are unavailable.",
+      "check": 12,
+      "expected": "five objects under one billion bytes",
+      "site": "native_stage.py:400-402",
+      "status": "N/E"
+    },
+    {
+      "actual": "Code generation and md5 are PENDING_UPLOAD; missing archives are unverified.",
+      "check": 13,
+      "expected": "prefix, name, generation, size and digest",
+      "site": "native_stage.py:34-41,143-148",
+      "status": "N/E"
+    },
+    {
+      "actual": "Available code, metadata and model hashes pass; masks/geometry and cloud generation are unavailable.",
+      "check": 14,
+      "expected": "per-part size, SHA256, optional MD5; whole SHA256",
+      "site": "orchard_stage.py:142-149",
+      "status": "N/E"
+    },
+    {
+      "actual": "{\"code\": 46, \"metadata\": 47, \"model\": 1}; absent: masks,geometry; Available archive inventories pass; masks and geometry inventories cannot be checked from absent bytes.",
+      "check": 15,
+      "expected": "Exact member hashes and expanded sizes of available objects",
+      "site": "native_stage.py:409-410",
+      "status": "N/E"
+    },
+    {
+      "actual": "Runtime/overlay/closure archives are unavailable; retained identities alone are insufficient.",
+      "check": 16,
+      "expected": "runtime, numpy, closure and trainer identities",
+      "site": "native_stage.py:411-441",
+      "status": "N/E"
+    },
+    {
+      "actual": "Required Python environment is absent.",
+      "check": 17,
+      "expected": "safe interpreter links and unique interpreter",
+      "site": "native_stage.py:95-106,425-431",
+      "status": "N/E"
+    },
+    {
+      "actual": "792 files; b01ce449beffe35be3bf0b48ad3d69f331f1523f96a69cbd3d10aab3dbb42a99",
+      "check": 18,
+      "expected": "Every sealed tree source and duplicated tree digest",
+      "site": "native_stage.py:435-438",
+      "status": "PASS"
+    },
+    {
+      "actual": "Local bwrap smoke succeeded, but the pinned production binary is unavailable.",
+      "check": 19,
+      "expected": "bwrap size and digest",
+      "site": "native_stage.py:444",
+      "status": "N/E"
+    },
+    {
+      "actual": "FLA manifest pin passes; FLA runtime bytes are unavailable.",
+      "check": 20,
+      "expected": "FLA manifest, bytes and members",
+      "site": "native_stage.py:445-455",
+      "status": "N/E"
+    },
+    {
+      "actual": "{\"worker_entrypoint\": \"cedb7bea5b94e345adcbf95f779c9be3d36e0064460055eca0bddefbcee7ebc7\", \"sitecustomize\": \"b3eeec3c45e00249b9d60db057b55fbd3ed1e7f2a53e6d88eba2bdaf36b94c58\"}",
+      "check": 21,
+      "expected": "Worker and sitecustomize spec inputs equal exact members",
+      "site": "native_stage.py:160-175",
+      "status": "PASS"
+    },
+    {
+      "actual": "cc724d5ee1b0bd62ba759be3eb0831afd009cd7635ea5966ddc0fd26c4599fb7",
+      "check": 22,
+      "expected": "Model manifest equals exact model-object member",
+      "site": "native_stage.py:460-466",
+      "status": "PASS"
+    },
+    {
+      "actual": "Tokenizer/config subset is present; base weights are intentionally absent.",
+      "check": 23,
+      "expected": "base archive and model-file inventory",
+      "site": "native_stage.py:460-471",
+      "status": "N/E"
+    },
+    {
+      "actual": "Depth weights are unavailable.",
+      "check": 24,
+      "expected": "three depth-file identities",
+      "site": "native_stage.py:472-473",
+      "status": "N/E"
+    },
+    {
+      "actual": "Artifact metadata hash and step pass; export tensor transport is unavailable.",
+      "check": 25,
+      "expected": "export parts, size, hash, headers and artifact",
+      "site": "native_stage.py:480-499",
+      "status": "N/E"
+    },
+    {
+      "actual": "46000e96334535933239800d1437afc49cc74ca4017c337a43798c9906b8b694",
+      "check": 26,
+      "expected": "Frame puller equals exact code member",
+      "site": "native_stage.py:197-204",
+      "status": "PASS"
+    },
+    {
+      "actual": "Frame inventory is retained, but frames.tar has not arrived.",
+      "check": 27,
+      "expected": "frame inventory",
+      "site": "native_stage.py:205-212",
+      "status": "N/E"
+    },
+    {
+      "actual": "No C8 authority packet or worker namespace run exists.",
+      "check": 28,
+      "expected": "real controls, code pins and checkpoint step",
+      "site": "native_job.py:182-183;native_common.py:123-133",
+      "status": "N/E"
+    },
+    {
+      "actual": "No worker run was started.",
+      "check": 29,
+      "expected": "fresh output directory",
+      "site": "native_job.py:184",
+      "status": "N/E"
+    },
+    {
+      "actual": "0o755 for both; source hashes unchanged",
+      "check": 30,
+      "expected": "Both guard shell scripts have executable archive modes",
+      "site": "native_job.py:195",
+      "status": "PASS"
+    },
+    {
+      "actual": "Runtime/source constants agree; production bootstrap flags/import path not executed.",
+      "check": 31,
+      "expected": "isolated flags, schema, ARCHIVE and SOURCE",
+      "site": "native_bootstrap.py:32-36",
+      "status": "N/E"
+    },
+    {
+      "actual": "Required interpreter and overlays are unavailable.",
+      "check": 32,
+      "expected": "interpreter and overlay identities",
+      "site": "native_bootstrap.py:37-45",
+      "status": "N/E"
+    },
+    {
+      "actual": "b3eeec3c45e00249b9d60db057b55fbd3ed1e7f2a53e6d88eba2bdaf36b94c58",
+      "check": 33,
+      "expected": "Sitecustomize equals code member",
+      "site": "native_bootstrap.py:47-53",
+      "status": "PASS"
+    },
+    {
+      "actual": "Required runtime imports cannot be checked.",
+      "check": 34,
+      "expected": "seven import pins, origins and required versions",
+      "site": "native_bootstrap.py:56-68",
+      "status": "N/E"
+    },
+    {
+      "actual": "cedb7bea5b94e345adcbf95f779c9be3d36e0064460055eca0bddefbcee7ebc7",
+      "check": 35,
+      "expected": "Worker entrypoint equals worker source, code pin and bootstrap pin",
+      "site": "native_bootstrap.py:86-87",
+      "status": "PASS"
+    },
+    {
+      "actual": "Whole-worker config admission has not executed.",
+      "check": 36,
+      "expected": "complete config admission and allocation",
+      "site": "native_worker.py:248-254",
+      "status": "N/E"
+    },
+    {
+      "actual": "21 recomputed",
+      "check": 37,
+      "expected": "All adapter pins equal exact code members",
+      "site": "native_worker.py:16-23",
+      "status": "PASS"
+    },
+    {
+      "actual": "Input pins pass; complete real cohort path requires the missing runtime.",
+      "check": 38,
+      "expected": "input pins, cohort, 152/636/84, counts, keys and selection",
+      "site": "native_worker.py:26-41;camera_cohort.py:42-71",
+      "status": "N/E"
+    },
+    {
+      "actual": "Kernel source pins agree; AST partition requires a supported Python runtime.",
+      "check": 39,
+      "expected": "nomdg and geometry kernel-source pins",
+      "site": "native_worker.py:127;kernels.py:117-129",
+      "status": "N/E"
+    },
+    {
+      "actual": "Tree bytes pass; authenticated model restoration has not executed.",
+      "check": 40,
+      "expected": "runtime tree and restore source identities",
+      "site": "runtime_tree.py:10-36;nomdg.py:306",
+      "status": "N/E"
+    },
+    {
+      "actual": "Preparation/source-seal/model authentication has not executed.",
+      "check": 41,
+      "expected": "config, artifact, receipt, preparation, source seals and init-spec",
+      "site": "read_runtime.py:12-92",
+      "status": "N/E"
+    },
+    {
+      "actual": "c4a505fc88b61028a57f0a4cb4074a2ee0adb6f17eeed10aa93c9bf30764024e; scalar binding verified, cache-bind not executed; Producer-only draft pin passes static checks; actual cache-bind is blocked by the missing masks and runtime.",
+      "check": 42,
+      "expected": "Mask producer equals nomdg; all other receipt fields unchanged",
+      "site": "native_worker.py:179;perception.py:70",
+      "status": "N/E"
+    },
+    {
+      "actual": "Masks object is incomplete.",
+      "check": 43,
+      "expected": "mask headers, frozen kit, SAM, provenance, operands and cache pins",
+      "site": "perception.py:64-89",
+      "status": "N/E"
+    },
+    {
+      "actual": "Raw G3T and real-frame objects are absent.",
+      "check": 44,
+      "expected": "raw G3T constants and pins, capture rows and frame hashes",
+      "site": "geometry.py:104-117;routed.py:28",
+      "status": "N/E"
+    },
+    {
+      "actual": "Core test drives real pilot terminal/project; no whole-worker pilot/full evidence exists.",
+      "check": 45,
+      "expected": "all 84 capture dispositions, ten-pair refusal coverage or explicit insufficient coverage",
+      "site": "native_job.terminal;native_metrics.project",
+      "status": "N/E"
+    },
+    {
+      "actual": "No rehearsal or production return has been published or verified.",
+      "check": 46,
+      "expected": "fresh pool/token directory; pool at most one GiB",
+      "site": "orchard_results.py:44-88",
+      "status": "N/E"
+    }
+  ],
+  "source_syntax_files": 37,
+  "tree_digest": "b01ce449beffe35be3bf0b48ad3d69f331f1523f96a69cbd3d10aab3dbb42a99",
+  "tree_files": 792
+}

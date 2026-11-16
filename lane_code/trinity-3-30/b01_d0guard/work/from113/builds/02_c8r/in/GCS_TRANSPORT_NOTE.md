@@ -1,0 +1,7 @@
+# GCS transport in evalx27's Orchard kits (f42aa1a4, ReVSI 6e025a89), for lane cont_ops2
+1. Nothing is minted on Trinity: no signed URL, no upload session, no key leaves Trinity. Trinity only sends the batch script (stdin to sbatch through ossh.sh) and later fetches the small return.
+2. All GCS access happens inside the Orchard job (and, for the operator's write test, on the Orchard login node) with the Google Cloud CLI already installed there (`/usr/bin/gcloud`).
+3. Credentials: the CLI's existing user configuration on Orchard, selected with `CLOUDSDK_CONFIG=/project/community/jjyeung/gcloud` (its stored credential database and access-token cache; the job refreshes the token through the CLI, which only updates `gce`/`access_tokens.db` there). The job records the before/after file metadata of that folder (STAGING.json `gcloud_config_observation`).
+4. Export read: `orchard_stage.py` runs `gcloud storage cat gs://<bucket>/<object>#<generation>` for each of the four parts listed in the launcher's TRANSPORT.json (object name, generation, bytes, sha256), streams them into job-local /tmp and checks every part and the whole-archive sha256.
+5. Return write: the publisher runs `gcloud storage cp` of result.tar.gz and EXIT.json to the lane prefix `q8/x27r/<token>/` with a timeout, then reads each object back by generation and checks its sha256 (RETURN_RECEIPT.json).
+6. The bucket name, object names and generations live only in TRANSPORT.json/CONFIG.json inside the job package; no URL, token or key is written into any event or log.

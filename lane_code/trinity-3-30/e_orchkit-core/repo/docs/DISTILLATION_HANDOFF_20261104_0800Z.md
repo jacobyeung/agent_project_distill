@@ -1,0 +1,68 @@
+# Distillation orchestrator handoff, 2026-11-04 08:00Z (00:00 PT)
+
+Orchestrator 0e. This file replaces DISTILLATION_HANDOFF_20261103_1200Z.md as the current state. Read memory MEMORY.md first. Its 11-03/11-04 entries hold the rulings below.
+
+## 0. Rulings in force (user, 11-03 night)
+1. **AWS is copy-only** ([[aws-down-until-user-says]]): no training or GPU jobs there. Copy everything of value to Mind via GCS. The user runs `AWS_REMOVE.sh` after Mind verification. Don't copy re-downloadable data or the optimizer states of runs we won't resume. The user removes those directly.
+2. **No GCP IAD** (removal risk). **Orchard is the only H100 source.** Its compute nodes cannot read GCS (403). The user may run `gcloud auth login` there.
+3. Mind: /lab_data/tarrlab has ~17.7 TB free (shared). Cap copies into Mind at 50 MB/s aggregate. /user_data/jjyeung (99%) and /home/jjyeung (89%) are full; no copy uses them.
+4. Main (agent-project-9f) has priority on the shared Gemini key. The collector is capped through `MAX_WORKERS_OVERRIDE` (main set it to 8). Timer `sgv2_keyshare_timer` writes 84 at 14:00Z.
+5. Trained weights of the best runs matter most.
+
+## 1. Lanes
+| Lane | Where | State |
+|---|---|---|
+| cp4tk_launch (Opus) | Orchard advanced | Waits for prep job 165075 and F17_OK (`/scratch/jjyeung/cp4tk_build/logs/f17_to_orchard.log`, tmux `tk_f17` starts after `fs2_up` ends). Then smoke, submit `rt/SUBMIT_TK.sh --submit`, babysit. Docs: `/scratch/jjyeung/cp4tk_build/{HANDOFF,PRELAUNCH}.md`. 160,586 traced rows + 39,872 head rows, init f17, ~785 steps, ~170 H100-h. GO ≥65.8 official with gap categories ≥69.1; NO-GO <64.8. m2800 is the dev reference |
+| aws_return_copy2 (Opus; succeeded aws_return_copy at 08:50Z, which used `/scratch/jjyeung/aws_return_copy/HANDOFF.md`) | AWS→GCS `gs://cmu-gpucloud-jjyeung/aws_return/`, GCS→Mind `aws_evac/` | **Update 08:50Z:** tunnel restored. The dr2 directors on AWS (23395-23397) upload by themselves and survive tunnel loss. ~2.4 TB is in GCS (1.2-1.4 GB/s). Mind has 8 objects verified and runs ~28 MB/s, which needs checking. The user removed batch 1 (874 files, 81 GB). Copy rule (user): copy what needs GPU compute to rebuild, or can't be rebuilt; skip public data, duplicates, CPU-rebuildable data and resume states. t6 goes to GCS only; t7 prestage is not copied. `ssh orchard` now works from Trinity nodes (alias added to ~/.ssh/config). Earlier state: | Tier 1 (m2800 AF000_00.tar, FT-X-E2 m1200 AF001_00.tar) is in GCS and the Mind fetch is running. The other 11 weights, records and e7a are uploading via AWS-side jobs. The **Mac tunnel stalled at 07:37Z**; the user must restart it. Then the lane starts its self-driving AWS uploader. Workdir `/scratch/jjyeung/aws_return_copy/` (LANDED.tsv, AWS_REMOVE_READY.tsv, AWS_REMOVE.sh, EXCLUDED_FINAL.tsv). AWS is now cluster aws-iad-slurm-1; data at `/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap`; the tunnel lands on 3-30 with a forward on the 0-13 master |
+| finals upload (tmux `fs2_up`, no agent) | 0-13 → GCS `finals_2nd/` → Mind `aws_evac/trinity_finals/` | f17 first, then f15, f12, e3, f18, f19, f03, at ≤6.96 MB/s. Log `/scratch/jjyeung/finals_secure/gcs/run_all.log`. Second copies of f17/f15/f12/f18/e3 are on 0-13 `/scratch/jjyeung/finals_2nd/`. f19 and f03 are single copies on 3-30 until uploaded |
+| orchard_data2 (Opus, ~206K tokens, rotate soon) | Orchard + 0-13 GPUs 0-2 (tmux od2_render*) | ProcTHOR v3: Objaverse box check, gen_pipe on renders_o5/w1, Trinity renders. Reports v3 counts |
+| Mind storage survey (Opus) | Mind | Free space reported. Still measuring /user_data; removal list to `/scratch/jjyeung/mind_storage/REPORT.md` |
+| SPLIT-Gemini collector | 0-13 tmux -L v3 sgv2_collector | ~61.4K ok, 80.7% strict. 8 workers until 14:00Z |
+
+## 2. Key facts
+- The AWS loss audit is `/scratch/jjyeung/aws_loss_audit/REPORT.md`. Every score survives. CPDM m2800 and FT-X-E2 m1200 were recovered on the AWS return. DATA_MAP line 134 was corrected.
+- The no-AWS compute plan is `/scratch/jjyeung/noaws_plan/NOAWS_PLAN.md`. Orchard advanced gives ~85 GPU-h/day; the preempt queue is useless (32 GPUs ~11-09); the general slot has 12 h jobs.
+- The GCP probe is in `/scratch/jjyeung/gcp_setup/` (paused by the user). The code-gcp ProxyCommand opens a head-node ssh, which agents must never do.
+- 0-13 /scratch is at ~128 GB free. After Mind verifies f17/f15/f12/f18/e3, give the user the command to remove `/scratch/jjyeung/finals_2nd/` (~89 GB).
+- The next run after CP4T-K should add ProcTHOR v2/v3 (53K+) and Hypersim v3 (37.7K) rows, with the synthetic share capped.
+
+## 3. Open questions (ours)
+- Orchard `gcloud auth login` by the user (default: f17 over the tunnel; checkpoints on Orchard NFS + local disk).
+- Does "no more training" also stop Orchard? Default: no, Orchard continues.
+- GCS egress cost (~$300 to Mind). Default: use GCS for speed and clear it after Mind verification.
+
+## 4. Update 10:00Z (latest; supersedes the lane rows above where they differ)
+- **CP4T-K** is held for fixes. Two pre-launch reviews ran: Codex HOLD, Opus GO-WITH-FIXES. Both flag the design risk that traces state cm-level poses nothing supplies at inference (the RG2P2 lesson). Fixes:
+  - Trainer 3dcbd015 is published: it fixes the probe bug that made smoke job 165098 fail and adds the mandatory strict smoke gate.
+  - Lane **cp4tk_datafix** builds `sel/CP4TK_Q_ROWS_v2.jsonl.gz`: drops answer-conditioned room-size polygons and the reach-subtraction variants, takes priors from VSI-590K train (not test), raises abs distance and route, and fixes the direction skew. It writes `sel/V2_READY`.
+  - Lane **cp4tk_launch2** (handoff `/scratch/jjyeung/cp4tk_launch/HANDOFF.md`) re-preps v2, smokes, and holds the node for `.GO`. **The orchestrator writes GO only after the user sees the v2 changes.** The run has an m100 read with a ≥3-point stop rule.
+  - The f17 re-baseline evals 165104-165106 are on Orchard general.
+- Lane **trace_design_v2** writes `/scratch/jjyeung/trace_design_v2/DESIGN.md`: a trace format whose numbers are head-supplied or perceivable, with a ≤40 H100-h pilot.
+- Lane **orchard_data3** finishes ProcTHOR v3. Head-node order is set by `/scratch/jjyeung/orchard_data2/HEAD_NODE_TURN`; a watcher sets it to orchard_data3 when `fs2_up` ends.
+- **AWS cleanup** (user runs): rmkit2 at `/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/c553c6fc/rmkit2`. Excluded 24.78 TB is safety-checked against all 85 jobs. The newest resume states of 18 stopped runs (1.27 TB) await the user's call.
+- Orchard GCS access: `CLOUDSDK_CONFIG=/project/community/jjyeung/gcloud` (the user's login). `ssh orchard` works from Trinity. Orchard /home must stay small (25 GB quota).
+- On 0-13 the user may remove finals_2nd f17/f15/f12; f18 and e3 wait for Mind verification.
+- Never SendMessage a large idle lane: it resumes the transcript and causes an IO burst. Use files, or start a successor.
+- **Gemini key (10:05Z):** main's 3.1 Pro calls face 503 and 429 storms. The collector's restore timer is cancelled, and MAX_WORKERS_OVERRIDE stays 8 until main says r2660 and r2675 are done (likely 18:00-20:00Z). Then write 84.
+- **Trace design v2** is in `/scratch/jjyeung/trace_design_v2/DESIGN.md`. It recommends head programs: the student writes only frame-readable items and gets every metric number from its own heads through `point`, `pose` and `move` tool calls. Pilot P0 (~3 H100-h, eval only on Orchard general) runs the GT program with f17's head readouts and admits a type at ≥5 points over f17. P1 (~37 H100-h) follows. HC v1F called its heads on only 34 of 500 items, so its deficit is not a test of head insertion. HC-NEW has a bug: GT readouts on frame 1 of a pair while the heads answer frame 2. A Codex review is at `agent/scratch/codex_runs/20261104T095900Z_trace_design_v2_astra`. Next step: build P0 (C1 head_api tools, C3 program builder, C4 readout pass) once the review says BUILD-P0.
+
+## 5. Update 16:00Z (latest)
+- **CP4T-K** is not launched yet; three strict smokes failed and no training step has run.
+  - Fixed so far: the probe bug; the 128f rows (rows v22f32 now: 144,946 rows, 32f only, room 692; room-size rows gated to ±10% of the VSI-590K label).
+  - Remaining: memory at world 4. Static 51.7 GB plus a ~29 GB logits transient gives an 80.6 GB peak.
+  - Lane **cp4tk_fix** is implementing trainer fix A (probe reserves 2 optimizer copies) plus B (chunked lm_head and CE over supervised tokens, loss-identical, with a unit test). Then one Codex review, kit republish, re-prep of T6TK23 under a fresh RUN name, smoke, and auto-GO on SMOKE_OK.
+  - Handoff: `/scratch/jjyeung/cp4tk_launch/HANDOFF.md`.
+- **Next-run data ready on Orchard/GCS:**
+  - ARKit honest room size: 2,422 rows.
+  - ARKit questions: 24,200 rows.
+  - ARKit route: 1,800 rows (MIXL).
+  - Frames store NEXT: 1.14M frames.
+  - ProcTHOR v3 (lane orchard_data5) in progress.
+  - Room-size convention is in memory `roomsize-label-convention.md`.
+- **P0 head-program test:** lane headprog_p0b, queued on Orchard general.
+- **AWS:**
+  - The user ran rmkit2, rmkit3, rmkit5, rmkit6 and the GCS cleanup (1.57 TB).
+  - The eval minimum is restored and on the keep-list. No AWS evals without the user's explicit OK.
+  - Copy lane **aws_return_copy5**: GCS ~13.7 TB; Mind ~0.7 of 7 TB, NAT-limited at ~20-50 MB/s.
+- **Gemini:** the collector is capped at 8 workers until main says r2660 and r2675 are done.
+- **Lanes rotate at 200K tokens.** Never message a large idle lane; start a successor from its HANDOFF.md instead.

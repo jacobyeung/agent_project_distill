@@ -1,0 +1,6 @@
+# Pointing coordinate CE: floor or defect? (loss_doctor, 2026-11-08)
+- Question: is R1's flat pointing coordinate CE (1.86 -> 1.67 nats per digit through step 101; format CE 0.05; in-mask 36.3% at m50 against base 66.3%) the target's floor or a defect?
+- Answer: no target defect. My first verdict (b) was withdrawn after the orchestrator's 2244Z pushback. The target (mixdata `mask_target`) is the deterministic in-mask pixel nearest the centroid, so the CE floor given the mask is ~0. A localizing model would sit at ~1.0-1.3 nats averaged over the 7 digits (hundreds ~0, tens ~1-2, units ~2.3).
+- Why: duplicate layout repeats one image per temporal group, so "frame k" is unambiguous, and the b2 rows are 1-based and match the markers (26/26). Base reads the same coordinate CE (1.4-1.7), and base in-video pointing is 47.1% in-mask, so R1's 1.67 is base-level in-video localization. Also ruled out: the coordinate convention ([x, y], relative 0-1000, matches Qwen) and resize (relative coordinates).
+- Open: single-image erosion (36% at m50 against 66%). The deciding read is evalx's in-video in-mask rate for base vs R1 m100 on the same held-out b2 rows. In-video rows stay in T0.
+- Status: target defect ruled out; erosion open (evalx read). Evidence: loss_doctor events 1839Z, 1843Z, and the pointing_ce_floor_verdict event.

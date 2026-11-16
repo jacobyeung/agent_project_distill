@@ -1,0 +1,4 @@
+# Refute verdict for review-gate
+refuted=True
+reasons: Claim false: review_contracts2 found 'Two blocking defects' (box_v313.py:519, calculator.py:239); rows2 found a fix 'missed in round 1' (1,227 rows). vsti2/d0r2/k1b3/k1b4 have no RESULT. 25 min D0 read kit was 'off critical path' (process/NOTES l.21). k1b3 45 min double-counts #6's 29-45 min; k1b4 fixed a launch failure outside any verdict. 8 h unsourced. Brief inputs exist.
+fix (binding): Drop the '7 lanes found no new blocker' claim; cite contracts2 and rows2 as cases a second reader caught real defects. Restate saving as k1b3+VSTI only (about 1 h), with the reader-exit share credited to #6. Remove the 8 h figure or source it. Ship record item 2 (GO wording, reviewer kept alive 3 h) first. Adopt fixcheck only if the replay shows CONFIRMED_MECHANICAL on non-protected hunks.

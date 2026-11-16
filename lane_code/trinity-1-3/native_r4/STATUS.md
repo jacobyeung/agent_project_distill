@@ -1,10 +1,14 @@
-# native_r4 lane STATUS (trinity-1-3) — operator native_r5, updated 2026-11-16T11:22Z
+# native_r4 lane STATUS (trinity-1-3) — operator native_r5, updated 2026-11-16T12:20Z
 Lane folder /scratch/jjyeung/orch_n30/native_r4; events /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/native_r4/. Record /data2/jjyeung/agent_project_data/distill_design/VSTI_NATIVE_CAMERA_READ_STEP544_20261116.md (+ INDEX line). Rules: .../orch_n30/tools/LANE_RULES.md. native_r5 session ends by ~16:20Z (6 h from 10:20Z) or 60% context: RESULT rotate.
 
-## NOW (11:22Z): job 170209 FAILED in staging; BLOCKER job170209_failed_staging (11:17Z); waiting for ORCH word on a second job
-- Cause: Orchard b.tar had 10,296 hard-link entries (frames/<cache>/_staging/); kit extract (venue.py:30) accepts only files/dirs. Old tar kept as okh7/d9c35d0a/b.tar.hardlinks_06e28d71.
-- New b.tar (`--exclude=_staging`): 2,266,736,640 B, sha 0eadd83e9f859347438ffd3a483147a87d1ae05bc19eba28db4022ef73889664, 10,296 regular files (work/b2/CHECK.json). Push native_r5_upb2 at priority 0, tmux nr5_upb2, log dl/upb2.log, receipt work/streams/native_r5_upb2.RECEIPT.json.
-- After it lands: run work/orchard/q7_packet2.sh (GCS cp b, g2.json, u.py -> r2.json, packet token 8f7817fb16bc218af285dc61 = TOKEN2; no sbatch). On ORCH word: work/orchard/q8_sbatch2.sh (general check, sbatch --nice=200 gpu:1 16 CPU 200G, --time ending 16:30Z). Then RESULT with job id.
+## NOW (12:20Z): job 170228 FAILED 12:12:59Z with NO return (BLOCKER job170228_failed_no_return); V1f fail-safe-return build running; nothing submitted
+- 170228: staging OK, prepare running at 12:08Z, exit 1:0 at 12:12:59Z, MaxRSS 138 GB, no pool/GCS return. Likely: finally-block return_members/publish raised (suffix or 512 MB cap; o.py:73-86), unverified.
+- V1f = builds/07_vsti_f (Codex astra/high, tmux nr5_codex7, 12:16Z): fail-safe minimal return, full tracebacks, INVENTORY, packet member-type check; DIAGNOSIS.md, RETURN_SIZE.json. When done: run its namespace rehearsal (out/rehearsal/RUNBOOK.md), copy c.tar to Orchard as a NEW name only after ORCH word (keep dc40cf60 c.tar), RESULT kit_v1f; needs a reader's CONFIRMED + ORCH naming a third job.
+- Second job's packet/state below.
+- Inputs: b.tar re-packed without _staging hard links (0eadd83e, 10,296 '-' + 313 'd'; GCS gen 1794829424090479); a/c/d unchanged; r2.json, g2.json in okh7/d9c35d0a/. Old b kept as b.tar.hardlinks_06e28d71. Packet p/8f7817fb16bc218af285dc61 (a.sh 2358921d, a.json ec6ef7f1). Return okh7/n2r/8f7817fb16bc218af285dc61 + GCS q8/n2r/ same.
+- sbatch --nice=200 gpu:1 16 CPU 200G --time=04:45:00. While PENDING: at each poll `scontrol update JobId=170228 TimeLimit=<16:30Z - now>`.
+- Poll: work/orchard/poll.sh (edit job id to 170228 / TOKEN2). Checklist: work/orchard/PRESUBMIT_CHECKLIST.md.
+- First job 170209 failed in staging on b.tar hard links (BLOCKER 11:17Z); return okh7/n2r/ece5eea1c1ec94e169abf835.
 
 ## First job 170209 (submitted 11:04Z, FAILED 11:10Z in staging; return okh7/n2r/ece5eea1c1ec94e169abf835)
 - Orchard job 170209, name a15_cot_apece5eea1c1ec94e169abf835, general, 1 GPU, cpu 16, mem 200G (= job 170056), time 07:00:00, nice 200, internal deadline 16:15Z (kill 16:05Z, return reserve 600 s). Code V1c c.tar dc40cf60 (CONFIRMED_dc40cf60.md). sbatch line: `sbatch --nice=200 --gres=gpu:1 --ntasks=1 --nodes=1 --cpus-per-task=16 --mem=200G a.sh` (a.sh's own gpu:h100:1 is rejected on Orchard).

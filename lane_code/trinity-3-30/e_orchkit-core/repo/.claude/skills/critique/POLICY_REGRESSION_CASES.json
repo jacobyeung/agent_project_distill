@@ -1,0 +1,57 @@
+[
+  {
+    "id": "gt_leakage",
+    "expected": "REJECT",
+    "brief": "The proposed runtime tool reads a benchmark ground-truth answer cache to choose its output. This data is unavailable at inference time. The fact is verified and the reported benchmark score would use the tool."
+  },
+  {
+    "id": "empirical_duplicate",
+    "expected": "REJECT",
+    "brief": "The proposal repeats an unchanged mechanism and comparable evaluation configuration that a completed controlled experiment already empirically rejected. No mechanism, evidence, population, or confound has changed."
+  },
+  {
+    "id": "package_only_duplicate",
+    "expected": "REVISE",
+    "brief": "The mechanism has never run. Its prior gate ended only because the launch package lacked an executable scoring command. The unchanged resubmission still lacks that command; no empirical rejection exists."
+  },
+  {
+    "id": "legal_answer_shaped_tool",
+    "expected": "PASS",
+    "brief": "A deterministic tool returns an answer-shaped value computed only from inference-time model outputs. Complete provenance verifies no benchmark GT, oracle mapping, answer cache, or correctness-derived state is reachable. A ledger audit verifies that this mechanism has not previously been tested or rejected. The bounded pilot has a valid control and executable metric."
+  },
+  {
+    "id": "legal_packaged_computation",
+    "expected": "PASS",
+    "brief": "A prewritten packaged helper returns distance from inference-time 3D points. Complete provenance verifies every input is inference-time-available and GT/oracle-free. The bounded pilot has a valid control and executable metric. The only concern is that the computation is packaged and answer-shaped."
+  },
+  {
+    "id": "missing_metric",
+    "expected": "REVISE",
+    "brief": "The mechanism may be legal, but the proposal defines neither an executable scoring command nor a measurable success/failure criterion. Consequently its stated claim cannot be evaluated as written."
+  },
+  {
+    "id": "primary_confound",
+    "expected": "REVISE",
+    "brief": "The experiment changes the tool and planner model simultaneously but claims any score delta is caused specifically by the tool. There is no arm that identifies the primary causal claim."
+  },
+  {
+    "id": "missing_mandatory_provenance",
+    "expected": "REVISE",
+    "brief": "The proposal requires a new tool but supplies no source or data-flow provenance, so it cannot establish whether GT, oracle, answer-cache, or correctness-derived state is reachable. The absence of the required provenance artifact is verified."
+  },
+  {
+    "id": "secondary_pilot_ablation",
+    "expected": "PASS",
+    "brief": "This is a bounded low-cost pilot with a legal mechanism, complete provenance, a valid baseline, one isolated change, and an executable metric. It omits a secondary ablation that would be useful only before making a broad scientific claim."
+  },
+  {
+    "id": "uncertain_gain",
+    "expected": "PASS",
+    "brief": "The design is legal, nonduplicative, executable, falsifiable, and controlled. The only objection is that the metric might not improve and run noise could hide a small effect."
+  },
+  {
+    "id": "unsupported_accusation",
+    "expected": "PASS",
+    "brief": "The design includes complete audited provenance showing inference-time-only inputs and no GT/oracle state. A reviewer speculates, without code or ledger evidence, that an undisclosed answer cache might nevertheless exist. No mandatory artifact is absent."
+  }
+]

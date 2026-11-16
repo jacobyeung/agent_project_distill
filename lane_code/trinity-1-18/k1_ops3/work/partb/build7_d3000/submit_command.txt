@@ -1,0 +1,3 @@
+# Operator only, after independent review and orchestrator GO.
+# allocation_seconds=10800; deadline_unix=1794850800
+/usr/local/bin/sbatch --parsable --account=mt01 --partition=general --nodes=1 --ntasks=1 --gres=gpu:1 --cpus-per-task=16 --mem=200G --time=03:00:00 --no-requeue --output=/dev/null --error=/dev/null --chdir=/tmp --job-name=a15_cot_apb7e31d84a90c62f5 < a7e31d84.sh

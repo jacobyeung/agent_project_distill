@@ -27,8 +27,12 @@ if len(sys.argv)==1:
     with tarfile.open(archive,'w') as handle:
         for p,name in sorted(members,key=lambda x:x[1]):handle.add(p,arcname=name,recursive=False)
 assert archive.stat().st_size<150_000_000
-root=L/'work/tmp/package6'
-root.mkdir(parents=True,exist_ok=True)
+sys.path.insert(0,str(L/'work/build6'))
+from compact_tmp import compact
+prior_receipts=compact(L/'work/tmp',package_files=set())
+(out/'PRIOR_TMP_RECEIPTS.json').write_text(json.dumps(prior_receipts,indent=2)+'\n')
+root=Path(tempfile.mkdtemp(prefix='package6_',dir=L/'work/tmp'))
+assert not any(root.iterdir())
 with tarfile.open(archive) as handle:
     for member in handle.getmembers():
         if member.issym() or member.islnk() or member.name.startswith('/') or '..' in Path(member.name).parts:

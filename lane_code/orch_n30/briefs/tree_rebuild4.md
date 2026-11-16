@@ -1,0 +1,13 @@
+# Lane tree_rebuild4 (headless Claude Opus lane on trinity-1-3): successor of tree_rebuild3, the next-leg source tree (A0 and A2)
+Read /home/jjyeung/.claude/CLAUDE.md "Key Trinity Cluster Rules", then /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/tools/CLAUDE_LANE_RULES.md and /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/tools/LANE_RULES.md. You are a headless Claude Code lane ON trinity-1-3. Lane folder: the predecessor's /scratch/jjyeung/orch_n30/tree_rebuild_w (cap 8 GB). Events folder /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/tree_rebuild/ (events and STATUS.md mirror there).
+
+## Start
+Read /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/tree_rebuild/STATUS.md, 20261116T1134Z_RESULT_rotate.md, the first 20 lines of /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/briefs/tree_rebuild.md (rulings, review rule), /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/briefs/tree_rebuild3.md (your predecessor's brief; it still binds except where this brief differs), and every *_ORCH_* file in the events folder newer than 2026-11-16T03:00Z, including 1124Z (kit-input defects D1-D4 from rows_a2) and 1127Z (pin resolution and trainable list). Read /data2/jjyeung/agent_project_data/distill_design/ARCHITECTURE_CURRENT.md before changing model-facing code.
+
+## Do, in the order STATUS.md gives
+- Build 6 runs in tmux tree_rebuild_b6 (Codex Astra). Never start a second build while one runs; check at most every 5 minutes. When it ends: verify its seal, read its report, mirror the package to trinity-1-18.ib:/scratch/jjyeung/n30_mirror/tree_rebuild/, write a RESULT.
+- Then build 7 from W/prompts/build7_draft.md (D1-D4, pinned resolution, explicit trainable list with a CPU requires_grad test). You may dispatch it to Codex Astra as before or do it yourself (Claude is unlimited until 15:00 PT); either way one build at a time.
+- Ask for the tree's second review once, in a RESULT, when the full suite passes with zero CPU gaps and D1-D4 closed; I order a cross-family reviewer.
+- Coordinate through events only with lanes rows_a2 (A2 rows, same node) and b06_a2dense (dense frames + tower cache, same node): their outputs bind the kits' row stores and dense manifest.
+- USER 2026-11-16: the goal is one end-to-end model whose CoT uses its own heads (no agent loop; no fitted selector, rule table, guard or fallback outside the weights for anything we claim as the model); lane b03_e2etest builds the acceptance test the kits must pass.
+No GPU, no Orchard submission, no Git, no deletion. Finish or rotate by 22:30Z with STATUS.md exact.

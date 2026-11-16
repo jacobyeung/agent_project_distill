@@ -1,0 +1,13 @@
+B2048 items=679 scenes=261 mode=production synthetic=False
+| Category | n | B2048 | 95% CI (scenes) | errors | capped src/cont | unparsed | parent CP1 m200 B2048 (unpaired) | ON16k | B4096 |
+| object_counting | 135 | 58.57 | [51.4, 65.4] | 0 | 4/0 | 0 | not recovered | 58.52 | 58.57 |
+| object_rel_direction | 68 | 51.19 | [43.9, 59.0] | 0 | 0/0 | 0 | 48.43 | 51.19 | 51.19 |
+| object_rel_distance | 140 | 77.38 | [70.0, 84.8] | 0 | 0/0 | 0 | not recovered | 77.38 | 77.38 |
+| object_size_estimation | 273 | 70.92 | [67.7, 74.1] | 0 | 0/0 | 0 | 63.41 | 70.92 | 70.92 |
+| route_planning | 63 | 66.67 | [54.7, 77.8] | 0 | 0/0 | 0 | 42.86 | 66.67 | 66.67 |
+| Five-category mean | 679 | 64.94 | [61.3, 68.4] | | | | n/a (58.63 is 7-category) | 64.93 | 64.94 |
+per subtype B2048: {'object_counting_multiple': (49, 58.78), 'object_counting_single': (86, 58.37), 'object_rel_direction_backward_easy': (13, 23.08), 'object_rel_direction_backward_hard': (20, 5.0), 'object_rel_direction_forward_easy': (20, 90.0), 'object_rel_direction_forward_hard': (15, 86.67), 'object_rel_distance_closest': (84, 76.19), 'object_rel_distance_farthest': (56, 78.57), 'object_size_estimation': (273, 70.92), 'route_planning': (63, 66.67)}
+direction toward/away (diagnostic): {'toward': (35, 88.33, [75.9, 97.8]), 'away': (33, 14.04, [2.4, 27.3])}
+excluded: {'object_abs_distance': {'status': 'not read here: native reader required', 'items': 283}, 'room_size_estimation': {'status': 'not read here: native reader required', 'items': 37}}
+R5 items 679 processed_height_width {'[320, 416]': 503, '[416, 320]': 112, '[512, 288]': 64} visual_tokens_per_frame {'65.0': 615, '72.0': 64}
+think tokens median 58 p90 136 max 2048 at budget 4

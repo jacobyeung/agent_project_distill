@@ -2,8 +2,9 @@ set -euo pipefail
 export TZ=UTC CLOUDSDK_CONFIG=/project/community/jjyeung/gcloud
 cd /project/community/jjyeung/okh7/d9c35d0a
 date -u +%FT%TZ
-sha256sum a.tar b.tar c.tar d.tar FAMILY.json
-tar tvf b.tar | cut -c1 | sort | uniq -c
+printf '%s  %s
+' 795f7255e940af0d51528523841ebe59581499e47398bb22d40f0404d207df10 a.tar 0eadd83e9f859347438ffd3a483147a87d1ae05bc19eba28db4022ef73889664 b.tar dc40cf60212a34c2789a9821bb558e0592074c4d81b0bb1239e55c238f093eaa c.tar 9a1de8608ea0e75e2f2436259b81f0e991b2007002a59de11d85062e8384d08f d.tar 3cf68794ee715bdad6936486ce64edc72c40b08165f9e0763c126aaa685eecf6 FAMILY.json | sha256sum -c -
+for f in a.tar b.tar c.tar d.tar; do tar tvf $f | cut -c1 | sort | uniq -c > /dev/shm/types_$$; echo "$f types: $(tr '\n' ' ' < /dev/shm/types_$$)"; if awk '$2!="-" && $2!="d"{bad=1} END{exit !bad}' /dev/shm/types_$$; then echo "FAIL member types $f"; exit 3; fi; done
 timeout 900 gsutil -q cp b.tar gs://cmu-gpucloud-jjyeung/q8/d9c35d0a/b.tar; echo "cp b.tar ok"
 gsutil ls -la gs://cmu-gpucloud-jjyeung/q8/d9c35d0a/
 /usr/bin/python3 - <<'PY'

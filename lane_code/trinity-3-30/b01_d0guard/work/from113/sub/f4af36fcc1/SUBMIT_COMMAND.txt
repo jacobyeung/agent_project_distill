@@ -1,0 +1,12 @@
+/usr/bin/python3 -I -s -B -c 'import subprocess,sys
+body=sys.stdin.buffer.read(4*1024**2+1)
+if not body or len(body)>4*1024**2: raise ValueError('"'"'Invalid batch size'"'"')
+argv=['"'"'/usr/local/bin/sbatch'"'"', '"'"'--parsable'"'"', '"'"'--account=mt01'"'"', '"'"'--partition=general'"'"', '"'"'--nodes=1'"'"', '"'"'--ntasks=1'"'"', '"'"'--gres=gpu:1'"'"', '"'"'--cpus-per-task=16'"'"', '"'"'--mem=200G'"'"', '"'"'--time=02:00:00'"'"', '"'"'--signal=B:USR1@300'"'"', '"'"'--no-requeue'"'"', '"'"'--output=/dev/null'"'"', '"'"'--error=/dev/null'"'"', '"'"'--chdir=/tmp'"'"', '"'"'--job-name=a15_cot_apf4af36fcc1'"'"']
+test=subprocess.run(argv+['"'"'--test-only'"'"'],input=body,capture_output=True,timeout=50)
+sys.stderr.buffer.write(b'"'"'EVALX_TEST_ONLY_RC='"'"'+str(test.returncode).encode()+b'"'"'\n'"'"'+test.stdout+test.stderr)
+if test.returncode: sys.exit(test.returncode)
+result=subprocess.run(argv,input=body,capture_output=True,timeout=50)
+sys.stdout.buffer.write(result.stdout)
+sys.stderr.buffer.write(result.stderr)
+sys.exit(result.returncode)
+'

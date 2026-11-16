@@ -1,0 +1,11 @@
+{
+  "error": "RuntimeError: prepare phase failed",
+  "phase_error": {
+    "error": "RuntimeError: prepare phase failed",
+    "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/native_r4/builds/07_vsti_f/tests/test_v1f.py\", line 50, in test_phase_and_expanded_cap\n    try:raise RuntimeError('prepare phase failed')\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nRuntimeError: prepare phase failed\n"
+  },
+  "return_error": {
+    "error": "ValueError: expanded return exceeds cap",
+    "traceback": "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/native_r4/builds/07_vsti_f/code/o.py\", line 198, in finish_return\n    value=publish_read(module,source,config['token'],config['binding'],rc)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/native_r4/builds/07_vsti_f/code/o.py\", line 106, in publish_read\n    try:return module.publish(source,module.AUTHORIZED_POOL,token,binding,code,synthetic=False,mode='full')\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/native_r4/builds/07_vsti_f/code/sj/orch_cd/evalx/work/milestone/orchard_results.py\", line 253, in publish\n    for name, path in sorted(S.members(source).items()):\n                             ^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/native_r4/builds/07_vsti_f/code/o.py\", line 98, in return_members\n    if total>512*1024**2 or len(result)>=10000:raise ValueError('expanded return exceeds cap')\n                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nValueError: expanded return exceeds cap\n"
+  }
+}

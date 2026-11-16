@@ -13,6 +13,8 @@ for old,new in zip(a['families'],b['families'],strict=True):
         off_equals_build5=old['arms']['False']==new['arms']['False'],
         off=new['arms']['False'],on=new['arms']['True'],on_equals_off=new['arms']['True']==new['arms']['False']))
 (B/'proofs/rows/PARITY.json').write_text(json.dumps(dict(build5_source='work/contracts_r6/tree_copy',build5_seal=seal,
-    scope='Real packed-row producer/reader and pinned grammar. Frame-list placeholders carry only the source frame count; no RGB or scene admission is inferred.',families=results),indent=2)+'\n')
+    scope='Real packed-row producer runs independently in each epoch, followed by the reader and pinned grammar. Both full canonical packed-row JSON bytes and target bytes are hashed. Frame-list placeholders carry only the source frame count; no RGB or scene admission is inferred.',families=results),indent=2)+'\n')
 assert all(r['off_equals_build5'] and r['on_equals_off'] and r['on']['admitted']==r['rows'] for r in results)
+b['build5_byte_parity']='Confirmed for the packed outputs by PARITY.json against the authenticated build5 tree copy; historical full-intake receipts are absent.'
+(B/'proofs/rows/RESULTS.json').write_text(json.dumps(b,indent=2)+'\n')
 print(json.dumps(results))

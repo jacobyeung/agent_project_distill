@@ -1,0 +1,11 @@
+--- /scratch/jjyeung/orch_n30/native_r2/builds/02_c8r/work/run_rehearsal.py.builder	2026-11-15 17:07:16.227383747 -0500
++++ /scratch/jjyeung/orch_n30/native_r2/builds/02_c8r/out/rehearsal/run_rehearsal.py	2026-11-15 17:07:16.228383738 -0500
+@@ -123,7 +123,7 @@
+         if not member.startswith('sj/'):raise ValueError('Unexpected code member root')
+         logical=Path('/scratch/jjyeung')/member[3:]
+         args+=['--ro-bind',str(code/member),str(logical)]
+-    args+=['--bind',str(local_runs),str(run.parent)]
++    args+=['--bind',str(local_runs),str(run.parent),'--bind',str(local_runs),str(physical(root,run.parent))]
+     base_files=list((W/'base').glob('models--Qwen--Qwen3.5-9B/snapshots/*'))
+     if len(base_files)!=1:raise ValueError('Expected one supplied base snapshot')
+     model=load(physical(root,family['assets']['model_manifest']['path']))

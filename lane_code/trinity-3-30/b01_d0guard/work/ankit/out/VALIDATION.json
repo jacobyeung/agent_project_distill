@@ -1,0 +1,624 @@
+{
+  "artifact_check": {
+    "caveat": "direct export artifact digest unavailable locally; cross-arm byte identity not verified",
+    "direct_sha256": null,
+    "expected_sha256": "1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef",
+    "native_sha256": [
+      "1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef"
+    ],
+    "path": "/scratch/jjyeung/orch_n30/native_r2/builds/05_analysis_fix/out/fixture/NATIVE_VS_DIRECT.json",
+    "searched_paths": [
+      "/scratch/jjyeung/orch_n30/native_r2/builds/05_analysis_fix/in/direct_raw/metadata/EXPORT_ARTIFACT.json",
+      "/scratch/jjyeung/orch_n30/native_r2/work/direct/metadata/EXPORT_ARTIFACT.json",
+      "/scratch/jjyeung/orch_n30/native_r2/work/direct/EXPORT_ARTIFACT.json"
+    ],
+    "status": "PARTIAL"
+  },
+  "decisions": "/scratch/jjyeung/orch_n30/native_r2/builds/05_analysis_fix/out/DECISIONS.md",
+  "diff": {
+    "path": "/scratch/jjyeung/orch_n30/native_r2/builds/05_analysis_fix/out/FIX_DIFF.patch",
+    "sha256": "ab0ee7c93ff06a165ba598175b08e8ce3060b3f7589e0c6f68d66915a9b72ce5"
+  },
+  "fixture": {
+    "items": 636,
+    "method": {
+      "caveat": "Marginal intervals; no multiple-comparison adjustment; descriptive dev-S1 comparison",
+      "confidence": 0.95,
+      "draws": 50000,
+      "name": "paired physical-room percentile bootstrap",
+      "paired": "same room sample for both native arms and direct; groups resampled separately",
+      "quantile": "linear interpolation at (draws - 1) * p",
+      "seed": 20261115,
+      "weighting": "sample rooms with replacement; sum item differences / sampled item count"
+    },
+    "mode": "PLUMBING \u2014 not model scores",
+    "path": "/scratch/jjyeung/orch_n30/native_r2/builds/05_analysis_fix/out/fixture/NATIVE_VS_DIRECT.json",
+    "runtime_path": "/scratch/jjyeung/orch_n30/native_r2/builds/05_analysis_fix/out/fixture/RUNTIME.json",
+    "runtime_seconds": 26.003636504057795
+  },
+  "independent_bootstrap": {
+    "checked_cells": 196,
+    "max_endpoint_gap_pp": 0.6363636363636331,
+    "mode": "PLUMBING \u2014 not model scores",
+    "path": "/scratch/jjyeung/orch_n30/native_r2/builds/05_analysis_fix/out/tests/INDEPENDENT_BOOTSTRAP.json",
+    "status": "PASS"
+  },
+  "mutations": {
+    "adaptation": "Local paths; both primary and capped row-coordinate sites mutated for M05/M06; completed identical-source cases reused; each mutant runs the full suite.",
+    "cases": {
+      "M01_pairing_shift_direct": {
+        "failing_tests": [
+          "test_hand_computed_all_and_sensitivity"
+        ],
+        "killed": true,
+        "results_path": "/scratch/jjyeung/orch_n30/native_r2/builds/05_analysis_fix/work/mutations/M01_pairing_shift_direct/out/tests/RESULTS.json",
+        "returncode": 1,
+        "source_sha256": "44468e7201200d611eddef7449ead57ccb7c3be32ed2230a2bc747801070c8d8"
+      },
+      "M02_denominator_drop_no_answer": {
+        "failing_tests": [
+          "test_cli_subset_end_to_end",
+          "test_direct_forced_close_primary_and_sensitivity",
+          "test_hand_computed_all_and_sensitivity",
+          "test_metre_only_intervals_and_reporting",
+          "test_positive_capped_score_retained",
+          "test_producer_errors_drop_keys_from_all_arms",
+          "test_01_capped_native_parsed_answer",
+          "test_08_direct_producer_error"
+        ],
+        "killed": true,
+        "results_path": "/scratch/jjyeung/orch_n30/native_r2/builds/05_analysis_fix/work/mutations/M02_denominator_drop_no_answer/out/tests/RESULTS.json",
+        "returncode": 1,
+        "source_sha256": "44468e7201200d611eddef7449ead57ccb7c3be32ed2230a2bc747801070c8d8"
+      },
+      "M03_sensitivity_keeps_direct_refused": {
+        "failing_tests": [
+          "test_hand_computed_all_and_sensitivity",
+          "test_producer_errors_drop_keys_from_all_arms"
+        ],
+        "killed": true,
+        "results_path": "/scratch/jjyeung/orch_n30/native_r2/builds/05_analysis_fix/work/mutations/M03_sensitivity_keeps_direct_refused/out/tests/RESULTS.json",
+        "returncode": 1,
+        "source_sha256": "44468e7201200d611eddef7449ead57ccb7c3be32ed2230a2bc747801070c8d8"
+      },
+      "M04_primary_drops_refused": {
+        "failing_tests": [
+          "test_cli_subset_end_to_end",
+          "test_direct_forced_close_primary_and_sensitivity",
+          "test_hand_computed_all_and_sensitivity",
+          "test_metre_only_intervals_and_reporting",
+          "test_positive_capped_score_retained",
+          "test_producer_errors_drop_keys_from_all_arms",
+          "test_01_capped_native_parsed_answer",
+          "test_08_direct_producer_error"
+        ],
+        "killed": true,
+        "results_path": "/scratch/jjyeung/orch_n30/native_r2/builds/05_analysis_fix/work/mutations/M04_primary_drops_refused/out/tests/RESULTS.json",
+        "returncode": 1,
+        "source_sha256": "44468e7201200d611eddef7449ead57ccb7c3be32ed2230a2bc747801070c8d8"
+      },
+      "M05_resample_items_not_rooms": {
+        "failing_tests": [
+          "test_hand_computed_all_and_sensitivity"
+        ],
+        "killed": true,
+        "results_path": "/scratch/jjyeung/orch_n30/native_r2/builds/05_analysis_fix/work/mutations/M05_resample_items_not_rooms/out/tests/RESULTS.json",
+        "returncode": 1,
+        "source_sha256": "44468e7201200d611eddef7449ead57ccb7c3be32ed2230a2bc747801070c8d8"
+      },
+      "M06_resample_captures_not_rooms": {
+        "failing_tests": [
+          "test_hand_computed_all_and_sensitivity"
+        ],
+        "killed": true,
+        "results_path": "/scratch/jjyeung/orch_n30/native_r2/builds/05_analysis_fix/work/mutations/M06_resample_captures_not_rooms/out/tests/RESULTS.json",
+        "returncode": 1,
+        "source_sha256": "44468e7201200d611eddef7449ead57ccb7c3be32ed2230a2bc747801070c8d8"
+      },
+      "M07_percentile_90": {
+        "failing_tests": [
+          "test_exhaustive_five_unequal_rooms_endpoints"
+        ],
+        "killed": true,
+        "results_path": "/scratch/jjyeung/orch_n30/native_r2/builds/05_analysis_fix/work/mutations/M07_percentile_90/out/tests/RESULTS.json",
+        "returncode": 1,
+        "source_sha256": "44468e7201200d611eddef7449ead57ccb7c3be32ed2230a2bc747801070c8d8"
+      },
+      "M08_unpaired_bootstrap": {
+        "failing_tests": [
+          "test_exhaustive_five_unequal_rooms_endpoints"
+        ],
+        "killed": true,
+        "results_path": "/scratch/jjyeung/orch_n30/native_r2/builds/05_analysis_fix/work/mutations/M08_unpaired_bootstrap/out/tests/RESULTS.json",
+        "returncode": 1,
+        "source_sha256": "44468e7201200d611eddef7449ead57ccb7c3be32ed2230a2bc747801070c8d8"
+      },
+      "M09_bootstrap_room_weighted": {
+        "failing_tests": [
+          "test_exhaustive_five_unequal_rooms_endpoints"
+        ],
+        "killed": true,
+        "results_path": "/scratch/jjyeung/orch_n30/native_r2/builds/05_analysis_fix/work/mutations/M09_bootstrap_room_weighted/out/tests/RESULTS.json",
+        "returncode": 1,
+        "source_sha256": "44468e7201200d611eddef7449ead57ccb7c3be32ed2230a2bc747801070c8d8"
+      },
+      "M10_refusal_direct_zeroed": {
+        "failing_tests": [
+          "test_hand_computed_all_and_sensitivity"
+        ],
+        "killed": true,
+        "results_path": "/scratch/jjyeung/orch_n30/native_r2/builds/05_analysis_fix/work/mutations/M10_refusal_direct_zeroed/out/tests/RESULTS.json",
+        "returncode": 1,
+        "source_sha256": "44468e7201200d611eddef7449ead57ccb7c3be32ed2230a2bc747801070c8d8"
+      },
+      "M11_callrate_all_items": {
+        "failing_tests": [
+          "test_full_fixture_cli",
+          "test_real_pilot_cli",
+          "test_cli_subset_end_to_end",
+          "test_program_refusal_report_disagreement",
+          "test_unit_scores_disagreement",
+          "test_capped_sign_change_flagged_per_type_and_group",
+          "test_direct_forced_close_primary_and_sensitivity",
+          "test_direct_parse_failure_retained",
+          "test_hand_computed_all_and_sensitivity",
+          "test_metre_only_intervals_and_reporting",
+          "test_positive_capped_score_retained",
+          "test_producer_errors_drop_keys_from_all_arms",
+          "test_refused_capture_and_capped_item_retained",
+          "test_sealed_guard_uses_admission_count",
+          "test_unit_groups_direct_and_both_arms",
+          "test_01_capped_native_parsed_answer",
+          "test_05_room_with_one_item",
+          "test_07_two_refused_captures_caveat",
+          "test_08_direct_producer_error",
+          "test_09_conclusion_pools_types"
+        ],
+        "killed": true,
+        "results_path": "/scratch/jjyeung/orch_n30/native_r2/builds/05_analysis_fix/work/mutations/M11_callrate_all_items/out/tests/RESULTS.json",
+        "returncode": 1,
+        "source_sha256": "44468e7201200d611eddef7449ead57ccb7c3be32ed2230a2bc747801070c8d8"
+      },
+      "M12_label_answer_for_primary": {
+        "failing_tests": [
+          "test_full_fixture_cli",
+          "test_real_pilot_cli",
+          "test_call_rate_disagreement",
+          "test_cli_subset_end_to_end",
+          "test_geometry_code_refuses",
+          "test_geometry_flag_disagreement",
+          "test_geometry_score_nonzero",
+          "test_native_room_disagreement",
+          "test_no_final_nonzero_refuses_each_arm",
+          "test_no_final_nonzero_refuses_each_arm",
+          "test_no_final_nonzero_refuses_each_arm",
+          "test_producer_error_nonzero_refuses",
+          "test_program_refusal_report_disagreement",
+          "test_unit_scores_disagreement",
+          "test_10_refusal_code_not_checked",
+          "test_capped_sign_change_flagged_per_type_and_group",
+          "test_direct_forced_close_primary_and_sensitivity",
+          "test_direct_parse_failure_retained",
+          "test_hand_computed_all_and_sensitivity",
+          "test_metre_only_intervals_and_reporting",
+          "test_positive_capped_score_retained",
+          "test_producer_errors_drop_keys_from_all_arms",
+          "test_refused_capture_and_capped_item_retained",
+          "test_sealed_guard_uses_admission_count",
+          "test_unit_groups_direct_and_both_arms",
+          "test_01_capped_native_parsed_answer",
+          "test_04_all_equal_zero_width",
+          "test_05_room_with_one_item",
+          "test_07_two_refused_captures_caveat",
+          "test_08_direct_producer_error",
+          "test_09_conclusion_pools_types"
+        ],
+        "killed": true,
+        "results_path": "/scratch/jjyeung/orch_n30/native_r2/builds/05_analysis_fix/work/mutations/M12_label_answer_for_primary/out/tests/RESULTS.json",
+        "returncode": 1,
+        "source_sha256": "44468e7201200d611eddef7449ead57ccb7c3be32ed2230a2bc747801070c8d8"
+      },
+      "M13_drop_capped": {
+        "failing_tests": [
+          "test_cli_subset_end_to_end",
+          "test_direct_forced_close_primary_and_sensitivity",
+          "test_hand_computed_all_and_sensitivity",
+          "test_metre_only_intervals_and_reporting",
+          "test_positive_capped_score_retained",
+          "test_producer_errors_drop_keys_from_all_arms",
+          "test_01_capped_native_parsed_answer",
+          "test_08_direct_producer_error"
+        ],
+        "killed": true,
+        "results_path": "/scratch/jjyeung/orch_n30/native_r2/builds/05_analysis_fix/work/mutations/M13_drop_capped/out/tests/RESULTS.json",
+        "returncode": 1,
+        "source_sha256": "44468e7201200d611eddef7449ead57ccb7c3be32ed2230a2bc747801070c8d8"
+      }
+    },
+    "killed": 13,
+    "log": "/scratch/jjyeung/orch_n30/native_r2/builds/05_analysis_fix/out/tests/mutation.log",
+    "path": "/scratch/jjyeung/orch_n30/native_r2/builds/05_analysis_fix/out/tests/MUTATION_RESULTS.json",
+    "source_sha256": "44468e7201200d611eddef7449ead57ccb7c3be32ed2230a2bc747801070c8d8",
+    "total": 13
+  },
+  "not_checked": [
+    "Real full-read model performance; fixture and pilot outputs are PLUMBING.",
+    "Direct export artifact bytes were unavailable at the bounded candidate paths. Cross-arm artifact identity remains PARTIAL.",
+    "Checkpoint weight bytes, original direct return archive authentication, and direct/native frame equality.",
+    "Native scorer execution on real full-read answers, Orchard job admission, and publication.",
+    "Independent d3 venue identities and the d2 single-scan room assumption.",
+    "Gravity estimates, guard mathematics, training-instance provenance, parent scene exposure, candidate competition, failed-ground coverage, and routing-sample coverage.",
+    "The supplied parent record was not reopened, and unreachable design records were not accessed. No parent camera mean is inferred.",
+    "Independent orchestrator confirmation of this analysis revision."
+  ],
+  "original": {
+    "path": "/scratch/jjyeung/orch_n30/native_r2/builds/05_analysis_fix/out/native_vs_direct.orig.py",
+    "sha256": "64ac19a6c91e361a7fa482d63d6a5629ef1ecccc6b7cb55ae5d0a09d9b726f4a"
+  },
+  "pilot": {
+    "archive_sha256": "6086a12e383bf84341c353cb668c439a1406d1b06ef85348a288cf198a32ad1c",
+    "mode": "PLUMBING \u2014 not model scores",
+    "output": "/scratch/jjyeung/orch_n30/native_r2/builds/05_analysis_fix/out/pilot/NATIVE_VS_DIRECT.json",
+    "pairs": 10,
+    "path": "/scratch/jjyeung/orch_n30/native_r2/builds/05_analysis_fix/work/pilot/PILOT_CHECK.json",
+    "revalidation": "/scratch/jjyeung/orch_n30/native_r2/builds/05_analysis_fix/out/tests/PILOT_REVALIDATION.json",
+    "status": "PASS"
+  },
+  "raw_comparison": {
+    "keys": 636,
+    "path": "/scratch/jjyeung/orch_n30/native_r2/builds/05_analysis_fix/out/fixture/NATIVE_VS_DIRECT.json",
+    "rule": "Every shared field equal; compact remains primary",
+    "status": "PASS"
+  },
+  "raw_direct": {
+    "direct_raw_0": {
+      "path": "/scratch/jjyeung/orch_n30/native_r2/builds/05_analysis_fix/in/direct_raw/items_leg_m544_main.jsonl",
+      "sha256": "c0cb8a6bd316327c66a94d5f227ac3af666125f6863258fefe6515cf8f99d661"
+    },
+    "direct_raw_1": {
+      "path": "/scratch/jjyeung/orch_n30/native_r2/builds/05_analysis_fix/in/direct_raw/items_leg_m544_camera.jsonl",
+      "sha256": "8cedf7c631cfa8a7389ec122606885bfa34f85941cc444c283b7e86309177b38"
+    }
+  },
+  "retained_required_wording": "The sealed-guard fallback retains pilot-era replay because the user explicitly requires it.",
+  "room_map": {
+    "path": "/scratch/jjyeung/orch_n30/native_r2/builds/05_analysis_fix/out/fixture/ROOM_MAP.json",
+    "summary": {
+      "d1": {
+        "captures": 29,
+        "rooms": 14
+      },
+      "d2": {
+        "captures": 25,
+        "rooms": 25
+      },
+      "d3": {
+        "captures": 30,
+        "rooms": 19
+      }
+    }
+  },
+  "script": {
+    "path": "/scratch/jjyeung/orch_n30/native_r2/builds/05_analysis_fix/out/native_vs_direct.py",
+    "sha256": "44468e7201200d611eddef7449ead57ccb7c3be32ed2230a2bc747801070c8d8",
+    "stdlib_imports": [
+      "argparse",
+      "collections",
+      "hashlib",
+      "json",
+      "math",
+      "pathlib",
+      "random",
+      "re",
+      "sys"
+    ]
+  },
+  "states_and_producer_errors": {
+    "counts": {
+      "direct": {
+        "budget_forced_close": 84,
+        "direct_forced_close": 181,
+        "direct_hit_token_cap": 65,
+        "items": 636,
+        "no_final_answer": 174,
+        "parse_failed": 174,
+        "producer_errors": 20
+      },
+      "scripted": {
+        "budget_forced_close": 0,
+        "budget_truncated_call_items": 0,
+        "call_error_items": 0,
+        "call_errors": 0,
+        "geometry_refused_captures": 1,
+        "geometry_refused_items": 2,
+        "items": 636,
+        "native_budget_fires": 0,
+        "native_capped_recorded": 0,
+        "no_answer": 7,
+        "no_answer_including_geometry": 9,
+        "no_final_answer": 7,
+        "producer_errors": 0,
+        "program_refusals": 0,
+        "version_errors": 0
+      },
+      "unflagged": {
+        "budget_forced_close": 0,
+        "budget_truncated_call_items": 0,
+        "call_error_items": 2,
+        "call_errors": 2,
+        "geometry_refused_captures": 1,
+        "geometry_refused_items": 2,
+        "items": 636,
+        "native_budget_fires": 1,
+        "native_capped_recorded": 1,
+        "no_answer": 10,
+        "no_answer_including_geometry": 12,
+        "no_final_answer": 10,
+        "producer_errors": 0,
+        "program_refusals": 1,
+        "version_errors": 0
+      }
+    },
+    "path": "/scratch/jjyeung/orch_n30/native_r2/builds/05_analysis_fix/out/fixture/NATIVE_VS_DIRECT.json",
+    "per_type": {
+      "camera_displacement": {
+        "direct": {
+          "budget_forced_close": 0,
+          "direct_forced_close": 14,
+          "direct_hit_token_cap": 0,
+          "items": 150,
+          "no_final_answer": 91,
+          "parse_failed": 91,
+          "producer_errors": 14
+        },
+        "scripted": {
+          "budget_forced_close": 0,
+          "budget_truncated_call_items": 0,
+          "call_error_items": 0,
+          "call_errors": 0,
+          "geometry_refused_captures": 0,
+          "geometry_refused_items": 0,
+          "items": 150,
+          "native_budget_fires": 0,
+          "native_capped_recorded": 0,
+          "no_answer": 0,
+          "no_answer_including_geometry": 0,
+          "no_final_answer": 0,
+          "producer_errors": 0,
+          "program_refusals": 0,
+          "version_errors": 0
+        },
+        "unflagged": {
+          "budget_forced_close": 0,
+          "budget_truncated_call_items": 0,
+          "call_error_items": 0,
+          "call_errors": 0,
+          "geometry_refused_captures": 0,
+          "geometry_refused_items": 0,
+          "items": 150,
+          "native_budget_fires": 0,
+          "native_capped_recorded": 0,
+          "no_answer": 0,
+          "no_answer_including_geometry": 0,
+          "no_final_answer": 0,
+          "producer_errors": 0,
+          "program_refusals": 0,
+          "version_errors": 0
+        }
+      },
+      "camera_movement_direction": {
+        "direct": {
+          "budget_forced_close": 0,
+          "direct_forced_close": 5,
+          "direct_hit_token_cap": 0,
+          "items": 150,
+          "no_final_answer": 5,
+          "parse_failed": 5,
+          "producer_errors": 5
+        },
+        "scripted": {
+          "budget_forced_close": 0,
+          "budget_truncated_call_items": 0,
+          "call_error_items": 0,
+          "call_errors": 0,
+          "geometry_refused_captures": 0,
+          "geometry_refused_items": 0,
+          "items": 150,
+          "native_budget_fires": 0,
+          "native_capped_recorded": 0,
+          "no_answer": 0,
+          "no_answer_including_geometry": 0,
+          "no_final_answer": 0,
+          "producer_errors": 0,
+          "program_refusals": 0,
+          "version_errors": 0
+        },
+        "unflagged": {
+          "budget_forced_close": 0,
+          "budget_truncated_call_items": 0,
+          "call_error_items": 0,
+          "call_errors": 0,
+          "geometry_refused_captures": 0,
+          "geometry_refused_items": 0,
+          "items": 150,
+          "native_budget_fires": 0,
+          "native_capped_recorded": 0,
+          "no_answer": 0,
+          "no_answer_including_geometry": 0,
+          "no_final_answer": 0,
+          "producer_errors": 0,
+          "program_refusals": 0,
+          "version_errors": 0
+        }
+      },
+      "camera_rotation": {
+        "direct": {
+          "budget_forced_close": 0,
+          "direct_forced_close": 0,
+          "direct_hit_token_cap": 0,
+          "items": 150,
+          "no_final_answer": 0,
+          "parse_failed": 0,
+          "producer_errors": 0
+        },
+        "scripted": {
+          "budget_forced_close": 0,
+          "budget_truncated_call_items": 0,
+          "call_error_items": 0,
+          "call_errors": 0,
+          "geometry_refused_captures": 0,
+          "geometry_refused_items": 0,
+          "items": 150,
+          "native_budget_fires": 0,
+          "native_capped_recorded": 0,
+          "no_answer": 0,
+          "no_answer_including_geometry": 0,
+          "no_final_answer": 0,
+          "producer_errors": 0,
+          "program_refusals": 0,
+          "version_errors": 0
+        },
+        "unflagged": {
+          "budget_forced_close": 0,
+          "budget_truncated_call_items": 0,
+          "call_error_items": 0,
+          "call_errors": 0,
+          "geometry_refused_captures": 0,
+          "geometry_refused_items": 0,
+          "items": 150,
+          "native_budget_fires": 0,
+          "native_capped_recorded": 0,
+          "no_answer": 0,
+          "no_answer_including_geometry": 0,
+          "no_final_answer": 0,
+          "producer_errors": 0,
+          "program_refusals": 0,
+          "version_errors": 0
+        }
+      },
+      "object_abs_distance": {
+        "direct": {
+          "budget_forced_close": 60,
+          "direct_forced_close": 134,
+          "direct_hit_token_cap": 62,
+          "items": 150,
+          "no_final_answer": 74,
+          "parse_failed": 74,
+          "producer_errors": 0
+        },
+        "scripted": {
+          "budget_forced_close": 0,
+          "budget_truncated_call_items": 0,
+          "call_error_items": 0,
+          "call_errors": 0,
+          "geometry_refused_captures": 1,
+          "geometry_refused_items": 2,
+          "items": 150,
+          "native_budget_fires": 0,
+          "native_capped_recorded": 0,
+          "no_answer": 7,
+          "no_answer_including_geometry": 9,
+          "no_final_answer": 7,
+          "producer_errors": 0,
+          "program_refusals": 0,
+          "version_errors": 0
+        },
+        "unflagged": {
+          "budget_forced_close": 0,
+          "budget_truncated_call_items": 0,
+          "call_error_items": 2,
+          "call_errors": 2,
+          "geometry_refused_captures": 1,
+          "geometry_refused_items": 2,
+          "items": 150,
+          "native_budget_fires": 1,
+          "native_capped_recorded": 1,
+          "no_answer": 10,
+          "no_answer_including_geometry": 12,
+          "no_final_answer": 10,
+          "producer_errors": 0,
+          "program_refusals": 1,
+          "version_errors": 0
+        }
+      },
+      "room_size_estimation": {
+        "direct": {
+          "budget_forced_close": 24,
+          "direct_forced_close": 28,
+          "direct_hit_token_cap": 3,
+          "items": 36,
+          "no_final_answer": 4,
+          "parse_failed": 4,
+          "producer_errors": 1
+        },
+        "scripted": {
+          "budget_forced_close": 0,
+          "budget_truncated_call_items": 0,
+          "call_error_items": 0,
+          "call_errors": 0,
+          "geometry_refused_captures": 0,
+          "geometry_refused_items": 0,
+          "items": 36,
+          "native_budget_fires": 0,
+          "native_capped_recorded": 0,
+          "no_answer": 0,
+          "no_answer_including_geometry": 0,
+          "no_final_answer": 0,
+          "producer_errors": 0,
+          "program_refusals": 0,
+          "version_errors": 0
+        },
+        "unflagged": {
+          "budget_forced_close": 0,
+          "budget_truncated_call_items": 0,
+          "call_error_items": 0,
+          "call_errors": 0,
+          "geometry_refused_captures": 0,
+          "geometry_refused_items": 0,
+          "items": 36,
+          "native_budget_fires": 0,
+          "native_capped_recorded": 0,
+          "no_answer": 0,
+          "no_answer_including_geometry": 0,
+          "no_final_answer": 0,
+          "producer_errors": 0,
+          "program_refusals": 0,
+          "version_errors": 0
+        }
+      }
+    }
+  },
+  "status": "READY_FOR_ORCHESTRATOR_REVIEW",
+  "tests": {
+    "errors": 0,
+    "failures": 0,
+    "log": "/scratch/jjyeung/orch_n30/native_r2/builds/05_analysis_fix/out/tests/full_validation.log",
+    "path": "/scratch/jjyeung/orch_n30/native_r2/builds/05_analysis_fix/out/tests/RESULTS.json",
+    "run": 49,
+    "skipped": 0,
+    "successful": true
+  },
+  "units": {
+    "metre_only": {
+      "object_abs_distance": 43,
+      "room_size_estimation": 29
+    },
+    "observed": {
+      "matches_brief_full_counts": true,
+      "object_abs_distance": {
+        "items": 150,
+        "other_units": 107
+      },
+      "room_size_estimation": {
+        "items": 36,
+        "other_units": 7
+      }
+    },
+    "path": "/scratch/jjyeung/orch_n30/native_r2/builds/05_analysis_fix/out/fixture/NATIVE_VS_DIRECT.json"
+  },
+  "workspace": {
+    "bytes_before_final_records": 73197667,
+    "limit_bytes": 300000000,
+    "path": "/scratch/jjyeung/orch_n30/native_r2/builds/05_analysis_fix"
+  }
+}

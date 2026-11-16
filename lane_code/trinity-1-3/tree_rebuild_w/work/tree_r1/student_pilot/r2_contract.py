@@ -37,7 +37,7 @@ def check_init(spec, metadata):
     if spec.get('contract') != CONTRACT:
         raise ValueError('Next-leg init identity differs from the accepted export')
     if spec.get('mode') != 'warm_start' or not spec.get('run_id') or spec['run_id'] == init['parent_run']:
-        raise ValueError('Changed code or mixture refuses exact resume of 469ddece; use a new warm-start run')
+        raise ValueError('Changed code or mixture requires a new warm-start run')
     for key in ('code_sha256', 'mixture_sha256'):
         if not re.fullmatch('[0-9a-f]{64}', str(spec.get(key, ''))):
             raise ValueError('New run needs full code and mixture identities')
@@ -147,7 +147,7 @@ def validate(row, stream, expected=None, require_frames=False):
                     raise ValueError('Direct room trace must remain qualitative without area or conversion')
             if answer.removeprefix('<answer>').removesuffix('</answer>') != str(row['answer']):
                 raise ValueError('Answer differs from target')
-            if kind in ('room_size_estimation', 'object_size_estimation', 'camera_object_abs_distance', 'object_counting'):
+            if kind in ('room_size_estimation', 'absolute_size_room', 'object_size_estimation', 'camera_object_abs_distance', 'object_counting'):
                 numeric = answer.removeprefix('<answer>').removesuffix('</answer>')
                 if not re.fullmatch(r'\d+(?:\.\d+)?', numeric):
                     raise ValueError('Numeric direct type needs a numeric final answer')
@@ -157,7 +157,7 @@ def validate(row, stream, expected=None, require_frames=False):
                 raise ValueError('Unknown answer unit')
             spellings = {'m': ('meters', 'metres'), 'cm': ('centimeters', 'centimetres'),
                          'ft': ('feet',), 'in': ('inch', 'inches'), 'ft2': ('square feet', 'square foot', 'sq ft'), 'm2': ('square meters', 'square metres')}
-            if unit and not any(re.search(r'\b'+re.escape(s)+r'\b', inputs['question'], re.I) for s in (*spellings[unit], unit)):
+            if unit and not any(re.search(r'\b'+re.escape(s)+r'\b', inputs['question'], re.I) for s in (spellings[unit] if unit == 'in' else (*spellings[unit], unit))):
                 raise ValueError('Wrong-unit target')
     elif stream not in ('pose', 'pointing'):
         raise ValueError('Unknown native stream')

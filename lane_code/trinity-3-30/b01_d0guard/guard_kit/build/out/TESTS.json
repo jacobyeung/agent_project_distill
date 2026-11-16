@@ -1,0 +1,92 @@
+{
+  "all_executed_unit_tests_pass": true,
+  "checks": {
+    "archive_validation": {
+      "source": "/scratch/jjyeung/orch_n30/b01_d0guard/guard_kit/build/out/ARCHIVE_VALIDATION.json",
+      "status": "PASS"
+    },
+    "c8r": {
+      "adaptations": [
+        {
+          "changes": "Only input and code root constants; test bodies unchanged",
+          "copy": "/scratch/jjyeung/orch_n30/b01_d0guard/guard_kit/build/out/tests/test_core.py",
+          "source": "/scratch/jjyeung/orch_n30/b01_d0guard/work/from113/builds/02_c8r/out/tests/test_core.py"
+        },
+        {
+          "changes": "Only input and code root constants; test bodies unchanged",
+          "copy": "/scratch/jjyeung/orch_n30/b01_d0guard/guard_kit/build/out/tests/test_guard.py",
+          "source": "/scratch/jjyeung/orch_n30/b01_d0guard/work/from113/builds/02_c8r/out/tests/test_guard.py"
+        }
+      ],
+      "errors": 0,
+      "failures": 0,
+      "pass_": true,
+      "tests": 28
+    },
+    "deterministic_packaging": {
+      "source": "/scratch/jjyeung/orch_n30/b01_d0guard/guard_kit/build/out/DETERMINISM.json",
+      "status": "PASS"
+    },
+    "g1": {
+      "log": "/scratch/jjyeung/orch_n30/b01_d0guard/guard_kit/build/out/tests/g1_final.log",
+      "pass_": true,
+      "tests": 24
+    },
+    "naming": {
+      "source": "/scratch/jjyeung/orch_n30/b01_d0guard/guard_kit/build/out/NAMING_SCAN.json",
+      "status": "BLOCKED"
+    },
+    "proof_mismatch_rehearsal": {
+      "candidate_items": 0,
+      "source": "/scratch/jjyeung/orch_n30/b01_d0guard/guard_kit/build/out/rehearsal/records_mismatch/RESULT.json",
+      "status": "EXPECTED_REFUSAL"
+    },
+    "recorded_rehearsal": {
+      "source": "/scratch/jjyeung/orch_n30/b01_d0guard/guard_kit/build/out/rehearsal/records_pass/RESULT.json",
+      "status": "PASS",
+      "whole_worker": false
+    },
+    "report": {
+      "adaptation": "Temporary fixture directories retained in build; report and test source unchanged",
+      "errors": 0,
+      "failures": 0,
+      "pass_": true,
+      "source": "/scratch/jjyeung/orch_n30/b01_d0guard/guard_kit/report/tests/test_guard_read.py",
+      "tests": 28
+    },
+    "report_mutations": {
+      "detected": 25,
+      "source": "/scratch/jjyeung/orch_n30/b01_d0guard/guard_kit/build/out/MUTANTS.json",
+      "total": 25
+    },
+    "source_identity": {
+      "source": "/scratch/jjyeung/orch_n30/b01_d0guard/guard_kit/build/out/SOURCE_IDENTITY.json",
+      "status": "PASS"
+    },
+    "stager": {
+      "log": "/scratch/jjyeung/orch_n30/b01_d0guard/guard_kit/build/out/tests/stage_final.log",
+      "pass_": true,
+      "tests": 10
+    },
+    "whole_worker": {
+      "production_config_transport_only": false,
+      "reasons": [
+        "Namespace denied",
+        "Candidate training closure absent",
+        "Production workflow integration absent"
+      ],
+      "source": "/scratch/jjyeung/orch_n30/b01_d0guard/guard_kit/build/out/rehearsal/namespace.stderr",
+      "status": "BLOCKED"
+    }
+  },
+  "not_run": [
+    "Inherited C8r return/package suites",
+    "Whole-worker CPU preparation/restoration/decoding",
+    "GPU identity proof and candidate canary",
+    "Live cloud/Orchard admission and publication",
+    "Candidate restoration with its actual metadata",
+    "Hard-link census of unavailable large inherited input archives"
+  ],
+  "overall": "NOT_READY",
+  "unit_tests": 90
+}

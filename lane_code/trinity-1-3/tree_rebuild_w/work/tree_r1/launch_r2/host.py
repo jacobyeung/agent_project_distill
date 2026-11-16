@@ -118,10 +118,15 @@ def input_paths(packet, root):
 
 
 def stage_init(archive_pin, root, members, *, max_member_bytes):
-    """Map delivered m544 members without changing the export metadata bytes."""
+    """Map one pinned export without changing its metadata bytes."""
     if not isinstance(members,dict) or not members or type(max_member_bytes) is not int or max_member_bytes<=0:
         raise ValueError('Missing init member inventory or positive per-member limit')
     root = Path(root).resolve()
+    prefixes = {PurePosixPath(name).parts[0] for name in members if PurePosixPath(name).parts}
+    if len(prefixes) != 1:
+        raise ValueError('Init archive inventory incomplete')
+    prefix = next(iter(prefixes)) + '/'
+    artifact_key = prefix + 'artifact.json'
     results = {}
     with tarfile.open(pinned(archive_pin), 'r:*') as archive:
         for member in archive:
@@ -129,12 +134,12 @@ def stage_init(archive_pin, root, members, *, max_member_bytes):
                 continue
             name = PurePosixPath(member.name)
             if (not member.isfile() or name.is_absolute() or '..' in name.parts
-                    or not member.name.startswith('m544/') or member.name not in members
+                    or not member.name.startswith(prefix) or member.name not in members
                     or member.name in results or member.size > max_member_bytes):
                 raise ValueError('Unadmitted init archive member')
-            relative = 'ap/8865619b/runs/469ddece/'+member.name
-            if member.name == 'm544/artifact.json':
-                relative = 'ap/ee544000/'+member.name
+            relative = 'ap/'+archive_pin['sha256'][:16]+'/e/'+member.name[len(prefix):]
+            if member.name == artifact_key:
+                relative = 'ap/'+archive_pin['sha256'][:16]+'/a/artifact.json'
             target = root/relative
             target.parent.mkdir(parents=True, exist_ok=True)
             h = hashlib.sha256()
@@ -145,7 +150,7 @@ def stage_init(archive_pin, root, members, *, max_member_bytes):
             if h.hexdigest() != members[member.name]:
                 raise ValueError('Init member sha256 differs')
             results[member.name] = relative
-    if set(results) != set(members) or 'm544/artifact.json' not in results:
+    if set(results) != set(members) or artifact_key not in results:
         raise ValueError('Init archive inventory incomplete')
     return results
 

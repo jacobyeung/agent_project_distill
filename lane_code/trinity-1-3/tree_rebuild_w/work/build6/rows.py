@@ -1,5 +1,5 @@
 """Stream bounded real slices through real renderers and the pinned grammar."""
-import collections, hashlib, json, re, sys
+import collections, copy, hashlib, json, re, sys
 from decimal import Decimal, ROUND_HALF_UP
 from pathlib import Path
 L=Path(__file__).resolve().parents[2];T=L/('work/contracts_r6/tree_copy' if 'build5' in sys.argv else 'work/tree_r1');B=L/'work/build6';P=B/('proofs/rows_build5' if 'build5' in sys.argv else 'proofs/rows');P.mkdir(parents=True,exist_ok=True)
@@ -12,25 +12,30 @@ except ImportError:
     def contract_epoch(enabled):return nullcontext()
 from student_pilot.p3_provenance import digest
 G.check_shared()
+def produce(original):
+    row=copy.deepcopy(original)
+    if 'suffix' in row and 'target' not in row:
+        events=[]
+        for match in re.finditer(r'(<[a-z][a-z_0-9]*\b[^>\n]*>)\n(<tool_response>[\s\S]*?</tool_response>)',row['suffix']):
+            call,response=match.groups();audit={}
+            if row.get('simulated_misses') and 'not seen' in response.lower():audit=dict(simulated=True,status='not seen')
+            events.append(dict(call=call,response=response,audit=audit))
+        return ground_rows.pack({**row,'events':events},row.get('provenance',{}))
+    if row.get('ground_record'):
+        return {**row,**ground_rows.pack(dict(row['ground_record'],suffix=row['target']),row.get('provenance',{}))}
+    return row
+
+def row_bytes(row):return (json.dumps(row,sort_keys=True,separators=(',',':'),ensure_ascii=False)+'\n').encode()
 counts=json.loads((L/'work/rows_slices/slices_final/COUNTS_A0_v4.json').read_text())
 mix=json.loads((L/'out/MIX_A0.json').read_text());rate=next(c['rows_per_step'] for c in mix['cells'] if c['type']=='units')
 result=[];unit_counts=collections.Counter();unit_errors=[];square_feet=0
 for name,entry in counts['families'].items():
     path=L/'work/rows_slices/slices_final'/entry['slice_file']
     assert path.stat().st_size==entry['slice_bytes']
-    h=hashlib.sha256();n=0;examples=[];arms={str(k):dict(admitted=0,deferred=0,reasons=collections.Counter(),hash=hashlib.sha256()) for k in (False,True)}
+    h=hashlib.sha256();n=0;examples=[];arms={str(k):dict(admitted=0,deferred=0,reasons=collections.Counter(),hash=hashlib.sha256(),row_hash=hashlib.sha256()) for k in (False,True)}
     with path.open('rb') as f:
         for raw in f:
-            n+=1;assert n<=2000;h.update(raw);row=json.loads(raw)
-            if 'suffix' in row and 'target' not in row:
-                events=[]
-                for match in re.finditer(r'(<[a-z][a-z_0-9]*\b[^>\n]*>)\n(<tool_response>[\s\S]*?</tool_response>)',row['suffix']):
-                    call,response=match.groups();audit={}
-                    if row.get('simulated_misses') and 'not seen' in response.lower():audit=dict(simulated=True,status='not seen')
-                    events.append(dict(call=call,response=response,audit=audit))
-                row=ground_rows.pack({**row,'events':events},row.get('provenance',{}))
-            elif row.get('ground_record') and not row.get('events'):
-                row={**row,**ground_rows.pack(dict(row['ground_record'],suffix=row['target']),row.get('provenance',{}))}
+            n+=1;assert n<=2000;h.update(raw);original=json.loads(raw);row=produce(original)
             if name=='a0_units':
                 unit=row['ground_record']['unit'];unit_counts[unit]+=1
                 lines=[line for line in row['target'].splitlines() if line.startswith('Converting to ')]
@@ -49,18 +54,20 @@ for name,entry in counts['families'].items():
                 arm=arms[str(enabled)]
                 with contract_epoch(enabled):
                     try:
+                        row=produce(original)
                         if row.get('events'):
                             target,spans=ground_rows.validate(row)
                             assert target==row['target']
                             G.validate_program({**row,'student_input':dict(question=row['question'],options=row['options'],frames=[None]*len(row.get('frame_indices',row.get('ground_record',{}).get('frame_indices',list(range(32))))))})
                         else:
                             target=row['target'];G.validate_direct(target,row['student_input']['question'],32)
-                        arm['admitted']+=1;arm['hash'].update(target.encode());outcomes[str(enabled)]='admitted'
+                        arm['admitted']+=1;arm['hash'].update(target.encode());arm['row_hash'].update(row_bytes(row));outcomes[str(enabled)]='admitted'
                     except (KeyError,ValueError,AssertionError,TypeError) as e:
                         arm['deferred']+=1;arm['reasons'][str(e)]+=1;outcomes[str(enabled)]=str(e)
-            if len(examples)<200:examples.append(dict(qid=row['qid'],target_sha256=hashlib.sha256(row['target'].encode()).hexdigest(),outcomes=outcomes))
+            if len(examples)<200:examples.append(dict(qid=row['qid'],target_sha256=hashlib.sha256(row['target'].encode()).hexdigest(),row_sha256=hashlib.sha256(row_bytes(row)).hexdigest(),outcomes=outcomes))
     assert h.hexdigest()==entry['slice_sha256'] and n==entry['slice_rows']
-    for arm in arms.values():arm['hash']=arm['hash'].hexdigest()
+    for arm in arms.values():
+        arm['hash']=arm['hash'].hexdigest();arm['row_hash']=arm['row_hash'].hexdigest()
     (P/(name+'.json')).write_text(json.dumps(dict(source=str(path.relative_to(L)),sha256=h.hexdigest(),examples=examples),indent=2)+'\n')
     result.append(dict(family=name,source=str(path.relative_to(L)),rows=n,sha256=h.hexdigest(),arms=arms))
 units=dict(source='work/rows_slices/slices_final/a0_units.jsonl',count_source='work/rows_slices/slices_final/COUNTS_A0_v4.json',

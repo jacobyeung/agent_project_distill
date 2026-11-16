@@ -1,0 +1,30 @@
+# Unified video and multi-view spatial-reasoning benchmark and training corpus (design, 2026-11-08)
+
+**Question.** The user proposed (11-08) that we combine the video and multi-view spatial-reasoning benchmarks we already organize into one benchmark and training set that we and others can train on cleanly. What would make that a contribution, how do we build it, and how do our own runs use it?
+
+**Answer.** Build the release around a room-level ledger. Merging benchmarks by itself is not new: SpatialScore, SITE, SIBench and EASI already merge test sets. No existing release offers three things: proof that a training set shares no physical room with any public test set, labels re-derived from 3D ground truth, and per-item answerability at fixed frame budgets. We already hold most of the inputs. The first step is a registry plus one shared gate library. It needs about a day of CPU lane time and closes two gaps that today's gates miss: an ARKit venue leak and unlisted STI-Bench rooms (§0).
+
+**Status.** Design only; nothing is built. The working name is SpatialLedger, and the user may rename it. Inputs were the 11-08 prior-art survey, the holdings inventory, and the checks in §0, which I ran for this record on small metadata files.
+
+---
+
+## 0. Findings from building this record
+
+1. **One ARKitScenes venue spans the official folds, so a VSI-Bench and ReVSI room appears in VSI-590K and in our A1 rows.** In `/data3/shared/datasets/arkitscenes/3dod/metadata.csv`, venue (`visit_id`) 381879 holds Validation videos 41159519 and 41159525 and Training videos 41159521 and 41159526. Video 41159525 carries 17 VSI-Bench questions, 1 answerable-500 question and 2 questions in each ReVSI dev membership. Both Training videos are VSI-590K captures (they sit in `/data3/shared/datasets/arkitscenes/3dod/Training/`), and both appear in the A1 plan `h3/b14c/plan.json` and in division `4c230a7e` (`h3/b14c/division.json`), under 2-18 `/scratch/jjyeung/orch_cd/heads_up/work/`. The A1 gate (vsi288 plus the ReVSI v1 list) groups ARKit by `video_id`, so it admitted both videos. I did not check the other authorities for venue grouping. The effect on scores is small (0.33% of VSI-Bench). Even so, it is a room-level leak, and VSI-590K, and therefore Cambrian-S, shares it.
+2. **Room-level overlap exceeds scan-level overlap.** ReVSI and VSI-Bench share 222 scans but 260 rooms. The counts are ScanNet 53 scans against 73 rooms (ReVSI uses `_01` to `_03` rescans for 35 of its 92 ScanNet scans), ScanNet++ 48 against 48, and ARKit 121 videos against 139 venues.
+3. **The standard validation splits are used up.** VSI-Bench and ReVSI together use 181 of ARKit Validation's 183 venues, which leaves 2 venues (5 videos). VSTI's 312 ScanNet videos (`/data2/jjyeung/raw_datasets/vstibench_hf/archive_videos.sha256`) make up the full ScanNet val split. A fresh test set must therefore come from train-split rooms that no public training set touched. Of 1,479 ARKit Training venues, 516 (1,570 videos) hold no VSI-590K video; 17 more are only partly in VSI-590K, so their 21 unused videos show VSI-590K rooms.
+4. **STI-Bench's indoor slice is mostly ScanNet train.** Its 150 videos are scene0000_00 to scene0149_00, and only 21 of them are val scans (`EXTERNAL_BENCH_STI_INTEGRATION.md` §4). VSI-590K covers all 1,201 ScanNet train scans, so any model trained on it, Cambrian-S included, has trained on rows from about 129 of STI's 150 indoor test rooms. Our A1 division holds 65 of the 150 scans, or 75 rooms once rescans count. No current gate lists STI.
+5. **MMSI-Video was matched only against benchmark videos.** The phash pass compared its 184 reusable indoor clips with VSI-Bench and ScanNet-val videos and found 50 matches. Nobody compared the other 134 clips, or the Roomtour3D and 3RScan clips, with training media.
+6. **Admission authority is split across at least five lists.** They are `recording_pose.load_authorities` (gate38, vsi288, vsti and the division; ReVSI only once lanes apply the 11-08 pin), `weak_data/inputs/EXCLUDED_GROUPS.json` (606 groups), the BENCHMARKS table in `mix_trainer_roots_x.py`, each mix's SCENE_CHECK, and `BENCH_SCENES_DISTILL_v1.json` (10-21). The ReVSI hole found on 11-08 came from this split.
+
+**Actions for the orchestrator.** Exclude 41159521 and 41159526 at the next A1 division or plan rebuild, or let registry v0 (§4, Phase 0) emit them. Flag the 17 + 1 + 2 venue-381879 items in reports. Decide STI's status; §3 gives the default.
+
+---
+
+## 1. The contribution
+
+SpatialLedger is a video and multi-view spatial-reasoning corpus whose training split shares no physical room with any registered public benchmark. A room ledger maps every item of 13 public test sets and 6 public training sets (§2.1) to the room it shows: a ScanNet room across its rescans, an ARKitScenes venue across its captures, a 3RScan reference scan across its rescans. Every item uses one taxonomy and one answer format. It carries a label re-derived from corrected 3D ground truth under one documented convention, kept beside the official label, and it records whether its objects are visible at 16, 32 and 64 frames and whether a text-only model can answer it. Earlier aggregators (SpatialScore, SITE, SIBench, EASI) merge test sets, but they check neither room identity nor labels against 3D GT. Earlier training sets (VSI-590K, SPAR-7M, VLM-3R, ViCA-322K, SenseNova-SI) check disjointness only by split, and against VSI-Bench at most. ReVSI re-derives labels, but only for its own test set. Split-level checks fail in practice. One ARKitScenes venue spans the official folds, so VSI-590K trains on the room behind 17 VSI-Bench questions, and 129 of STI-Bench's 150 indoor test rooms are ScanNet-train rooms that VSI-590K covers. Clean splits matter for three reasons. Leaked rooms inflate scores. Label noise caps MRA: a steady 1.2x room-size bias holds a question near 0.6. Unanswerable items punish correct perception: 51 of 450 sampled VSI-Bench questions fail the 32-frame answerability census, including 24 of 50 route questions.
+
+---
+
+## 2. Design

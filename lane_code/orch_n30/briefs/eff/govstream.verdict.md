@@ -1,0 +1,4 @@
+# Refute verdict for govstream
+refuted=True
+reasons: VSTI upb/upd were registered before review ended; native_r4 RESULT 1014Z: "I missed your priority-0 note (09:11Z) until 10:12Z", then queued behind trin_read_base0 (19.3 GB, p0, 10:06-10:47Z). rt0's 18 min was one bug, already fixed and banned (LANE_RULES l.35). The 21 messages include duplicates and input rulings, and orchestrators still set the numbers. The 15-30 min estimate is unmeasured.
+fix (binding): Drop the 30-min and "behind review" claims, and call the per-transfer saving unmeasured. mirror.py must ssh only through tssh.sh, with timeout. Resolve the contradiction where --kind tar-read refuses /data* trees, which the 06:41Z ORCH and CLAUDE.md allow as one stream. Batch must give each stream a unique record name (streams/<name>.json).

@@ -1,0 +1,68 @@
+# Build brief 6 of 8: orch-watch (lane `eff_orch_watch`, branch `eff/orch-watch`, Claude Opus, effort high, size M: 6 to 8 agent-hours)
+
+Replace per-lane polling loops and polling operator sessions with one watcher that reports state changes, and replace the wall-clock lane limit with a lease on the orchestrator's heartbeat.
+
+## Why
+
+- Four of six live Opus lanes at 10:54Z were operators whose task is to poll and to submit on conditions (cont_ops6: "one small poll every 5 minutes"; trin_read3: "Poll the cards ... every 10 minutes"). Each lane wrote its own loops: `loop5.sh`, `loop7.sh`, `watch_b.sh`, `poll.sh`, `poll2.sh`, `q1.sh` to `q5.sh`, `w1.sh` to `w2loop.sh`, and 19 `inv*.sh` probes (`AUD/kits/INVENTORY.md` section 3, row "Watch/poll loops").
+- A poll missed a whole job: "squeue at 09:31Z showed it PENDING, but sacct says it started at 09:31:11Z and FAILED at 09:34:33Z" (`B/events/k1_ops3/20261116T0942Z_BLOCKER_170193_failed_in_staging.md`). Job 170111 started about 9.5 h before its Slurm estimate.
+- Lanes end on a wall clock (`B/tools/devin_bg.sh`: `timeout "$SECS"`), which caused 14 rotations in 18 h and a reviewer that had ended before its confirmation was due (29 to 45 min lost on the K1 path).
+- `B/tools/evwait.sh` logs in to hung trinity-2-28 every 10 minutes; each attempt hangs 25 s.
+
+## Rules (these win over everything else in this brief)
+
+Paths. B = `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30`. W = `/scratch/jjyeung/orch_n30/eff_orch_watch` on trinity-3-30, your lane folder (create it; under 5 GB). REF = `/scratch/jjyeung/distill_sync/stage`, a read-only copy of every lane's code (text files up to 512 KB, refreshed hourly; copy what you need into `W/ref` once). AUD = `/scratch/jjyeung/orch_n30/eff_audit`, the audit notes and these briefs (read-only). SK = `AUD/briefs/skeleton`. RECORD = `/data2/jjyeung/agent_project_data/distill_design/EXPERIMENT_EFFICIENCY_20261116.md`.
+
+1. **Read first**, as named files: section "Key Trinity Cluster Rules" of `/home/jjyeung/.claude/CLAUDE.md` (it wins over this brief), `B/tools/CLAUDE_LANE_RULES.md`, `B/tools/LANE_RULES.md`, then RECORD (your change is number 6; `AUD/briefs/INTERFACES.md` holds the formats shared with the other builds).
+2. **Host.** You run on trinity-3-30. If `hostname -s` prints `trinity`, stop and tell the orchestrator.
+3. **Never touch running work.** You change nothing outside W. Running work is: Orchard jobs 170111 (D0 training), 170209 (VSTI native read) and the K1 own-phase job; the sealed kits and inputs they use (trainer tree b01ce449, row store v5 4af43b40, the confirmed D0 read kit, VSTI kit V1c dc40cf60, the K1 package and manifest v2, every object on an Orchard pool or in GCS); every other lane's folder under `/scratch/jjyeung/orch_n30/` on any node and its tmux sessions; the IO governor under `/data3/jjyeung/orch_n13_20261026/io_governor/`; the scripts in `B/tools/`; other lanes' event folders; the `/home/jjyeung/agent_project_distill` working tree; `/scratch/jjyeung/distill_sync/`. Your code replaces nothing in place: a new version of a live script is a new file on your branch, and the orchestrator adopts it at the next epoch.
+4. **Forbidden.** No ssh of any kind (Trinity, Orchard, GitHub), no Slurm command, no GPU, no governed or ungoverned copy to or from `/home` or `/data*`, no stream registered with the governor, no Gemini, OpenRouter or NV call, no package install or download. No recursive grep/find/du/ls -R and no built-in Grep or Glob on `/home` or `/data*`. Tests reach the outside world only through fakes you write.
+5. **NFS reads.** From `/home` and `/data*` read only the files this brief names, each once, in bounded parts, never in a loop. You write there only the event files and the one result block named under rule 9.
+6. **Git, one narrow exception.** The deliverable is a branch, so the orchestrator allows Git inside `W/clone` only, on local disk: one `git clone --branch main --single-branch /scratch/jjyeung/distill_sync/repo W/clone`, then `git -C W/clone` with `checkout -b eff/orch-watch`, `config user.name` / `user.email` (copy the values from the `[user]` section of `/scratch/jjyeung/distill_sync/repo/.git/config`), `add <named paths>`, `commit`, and the read-only `status`, `diff`, `log`, `show`, `rev-parse`. Forbidden: any Git command whose repository or working directory lies under `/home` or `/data*`; `push`, `fetch`, `pull`, `remote`; `add -A` or `add .`; force, rebase, reset or amend of a commit already queued; worktrees. Commit messages are plain: no attribution or co-author lines. If the orchestrator withholds this exception, deliver `W/clone` as a plain directory with `W/COMMITS.md` (one message per intended commit), and the Git owner commits it.
+7. **Commit and push often (USER 2026-11-16).** Commit at every passing test milestone and at least once per hour of work. After each commit append one line `<UTC> eff/orch-watch <full sha>` to `W/PUSH_QUEUE.txt`. The Git owner (lane code_sync) publishes each queued head to origin as `eff/orch-watch`. You never push, and nothing of yours goes to `main`.
+8. **Code rules.**
+   - Shared helpers: copy `SK/tools/orchkit/__init__.py`, `util.py` and `tests/test_util.py` byte for byte into `W/clone/tools/orchkit/` (sha256 in INTERFACES.md). Import from `util.py`, never edit it (lane eff_orchkit_core owns its changes), and never write your own sha, canonical-JSON, atomic-write, process-identity or locked-append helper.
+   - Python 3.6: every module that the batch host or `/usr/bin/python3` (3.6.8) runs uses the standard library only, with no `dataclasses`, no walrus, no `subprocess.run(capture_output=, text=)`, no `Path.is_relative_to`, no `from __future__ import annotations`.
+   - No deletion: code and commands never remove a file (no `rm`, `unlink`, `os.remove`, `shutil.rmtree`, `git rm`, `git clean`). Write into fresh paths and leave temporary files in place. The rm_guard hook blocks any shell command that contains a deletion call, including a heredoc that writes one, and queues it for the user: create source files with the Write tool.
+   - Opacity: nothing that reaches the batch host (job name, comment, script, file name, argument, environment variable, log line, packed byte) names the project or its work, a benchmark, dataset, model or method, a lane, or a Trinity path. Job names are `a15_cot_ap` plus opaque hex.
+   - Tests are `unittest.TestCase` classes in the folder this brief names, with `TMPDIR=W/tmp`. Both runs must pass: `/usr/bin/python3 -m unittest discover` for 3.6-safe modules, and `/scratch/jjyeung/envs/p1cpu/bin/python -s -m pytest -q -p no:cacheprovider` under `bwrap --ro-bind / / --bind W W --tmpfs /home --tmpfs /data --tmpfs /data2 --tmpfs /data3 --tmpfs /tmp --dev /dev --proc /proc` with `HOME=/tmp`, which proves the code needs neither `/home` nor `/data*`.
+9. **Reporting.** Keep `W/STATUS.md` current after every step and copy it to `B/events/eff_orch_watch/STATUS.md`; a successor resumes from it alone. Write an event (`B/events/eff_orch_watch/<UTC>_<RESULT|QUESTION|BLOCKER>_<slug>.md`, at most 20 lines, stamp from `date -u +%Y%m%dT%H%MZ` in the writing command) only for a question, a blocker or the final result. A question states its default, and you continue on that default. Finish with `W/REPORT.md` (what you built, each test command with the tail of its output, what is not proven, the adoption steps for the orchestrator), one RESULT event, and one block of at most 12 lines appended once to RECORD under "## Build results" (slug, branch, head sha, tests and counts, what is not proven, adoption steps). Report failures with their output and never report a check you did not run. You never review your own work for a launch gate. Near 300K tokens finish the step, update STATUS.md and write a RESULT event `rotate`. Your final message to the orchestrator has at most 15 lines.
+
+## Scope
+
+**`tools/orchkit/watch.py`.** One poller for every registered Orchard job.
+- Registry: a JSONL file of rows `{token, job_id, lane, markers: [path on the batch host], metrics: {path, lines}, cadence_s, actions: [{when, do, go_file}]}`. A lane registers a job by appending a row (`util.append_jsonl_locked`).
+- Cycle: one batched call through `ORCHKIT_OSSH` for all jobs together, at most once per 600 s: `TZ=UTC squeue` and `sacct` for the job ids, an existence test per marker, a bounded tail per metrics file. `sacct` decides the state, so a job that started and ended between two cycles is seen. One failed call waits 2 minutes and retries once; a second failure writes a BLOCKER event and the cycle ends.
+- Output: `WATCH_STATE.json`, rewritten atomically each cycle, a heartbeat stamp, and one event in the lane's event folder per state change (PENDING to RUNNING, a start earlier than the estimate, a marker that appears, an end state), never an event without a change.
+- Actions: default mode `--observe` takes none. With `--act`, an action runs only when its GO file exists, names the token and the action, and its predicate is one of the registered kinds (`state == FAILED`, `marker exists`, `alarm` from a rule function that checks its record's sha256). `scancel` and `submit` go through `launch.py` of orchkit-core; if that module is absent, the watcher writes the event and the command it would have run. You never run the watcher against the real `ossh.sh`.
+
+**`tools/orchkit/lease.py` and `agent/scripts/orch/lane_run.sh`.** A lane wrapper that replaces the wall-clock `timeout`: the lane runs while `B/ORCH_HEARTBEAT` (touched by the orchestrator's event loop) is younger than 60 minutes, and ends at a hard ceiling given on the command line. A lane without an orchestrator therefore still ends within the hour, and a lane with one is not cut at a fixed time. The wrapper starts the lane from an empty trusted directory on `/scratch` instead of the repository root on `/home`, so a failed command can no longer leave files in the repository. Rotation near 300K tokens stays the lane's own duty.
+
+**`agent/scripts/orch/evwait2.sh`.** The event loop of `B/tools/evwait.sh` with four changes: it touches `B/ORCH_HEARTBEAT` every pass; it probes trinity-2-28 every 30 minutes; it reports a watcher heartbeat older than two cycles as a blocker; and on a `*_RESULT_rotate*` event it prints the ready launch command for the successor (the brief comes from `tools/docs/mkbrief.py successor` if lane eff_state_entrypoint has delivered it; otherwise it names the predecessor's brief). It launches nothing itself.
+
+## Files you own
+
+`tools/orchkit/watch.py`, `lease.py`, `tests/test_watch.py`, `tests/test_lease.py`, `tests/fixtures/watch/`, `agent/scripts/orch/lane_run.sh`, `agent/scripts/orch/evwait2.sh`, `agent/scripts/orch/README.md`.
+
+## Tests (folder `tools/orchkit/tests/`; a fake `ossh` replays recorded text)
+
+1. Transitions from recorded `squeue` and `sacct` output (take real samples from the loop logs in `REF/trinity-1-3/cont_ops*/work/` if they are there; otherwise write them in Slurm's format): PENDING to RUNNING to COMPLETED gives three events; a repeated state gives none.
+2. The 170193 case: `squeue` shows PENDING in one cycle and nothing in the next, `sacct` shows FAILED after 3 min 22 s: the watcher reports FAILED with the elapsed time.
+3. The 170111 case: a start 9 h before the estimate gives one event in the cycle that sees it.
+4. All registered jobs share one call per cycle: the fake records exactly one invocation for five jobs.
+5. Transport failure: one failure, a retry after the wait (shortened in the test), then a BLOCKER event and no third call.
+6. Actions: `--observe` runs none; `--act` without a GO file runs none; a GO file naming another token runs none; a matching GO file runs the fake action once.
+7. Lease: with a fresh heartbeat the child keeps running; when the heartbeat stops, the wrapper ends the child within the lease plus a grace period (seconds in the test); the hard ceiling ends it regardless.
+8. The suite passes on `/usr/bin/python3` and under the bwrap run of rule 8.
+
+## Deliverables
+
+Branch `eff/orch-watch`; `W/REPORT.md` with the adoption steps (which tmux session the watcher runs in on trinity-3-30, how a lane registers a job, how the orchestrator switches its event loop and lane launcher at a moment when no lane depends on the old ones, and that Devin's folder trust for the new start directory must be checked on the first launch); the RESULT event; the result block in RECORD.
+
+## Out of scope
+
+Editing `B/tools/evwait.sh`, `devin_bg.sh` or `launch_remote.sh` in place; watching the jobs that run now (170111, 170209, K1 keep their lanes and loops); polling Trinity cards, which needs ssh into nodes; launching or stopping any lane; any real Orchard call.
+
+## Review
+
+None required: the watcher admits and scores nothing. Before the orchestrator turns on `--act`, one reader checks the action path (test 6) once.

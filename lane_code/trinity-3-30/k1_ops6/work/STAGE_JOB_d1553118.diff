@@ -1,0 +1,14 @@
+--- stage_job.py@0c9c9ce2
++++ stage_job.py@d1553118
+@@ -55,6 +55,11 @@
+     assert H.sha(NS.physical(root, assets['model_manifest']['path'])) == assets['model_manifest']['sha256']
+     _, inventory = part('a4', assets['base'], NS.physical(root, model['root']), strip=3)
+     NS.verify_inventory({k:v['sha256'] for k,v in inventory.items()}, model['files'])
++    # The prepared config's Stage-1 depth init and the two files it pins (native_stage.py:470-473).
++    for index, item in enumerate(assets['depth']):
++        target = NS.physical(root, item['logical_path'])
++        target.parent.mkdir(parents=True, exist_ok=True)
++        records['depth_' + str(index)] = NS.copied(item, target)
+     # Keep the native runtime and overlay identities, including executable links.
+     for role in ('runtime', 'numpy', 'closure', 'trainer'):
+         item = assets[role]

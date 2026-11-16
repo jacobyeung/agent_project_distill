@@ -1,0 +1,61 @@
+{
+  "status": "DRAFT_NOT_ADMITTED",
+  "code_sha256": "d03de829ae52386f2d845400b2d423bdfdaa177ee6921ef4676d7906938359aa",
+  "family_sha256": "3163e1aef6bcdbafe7843ccbc7c85d6666ed3deb4a42e5fd5cb2e308c3ab4f6c",
+  "diff": "out/C8_DIFF_vs_pilot9.patch",
+  "diff_sha256": "03950bd46232152f1febdcfbaad318344841d6423f2f04512fbf3bdb7d16a08e",
+  "core_tests_passed": 14,
+  "guard_tests_unexecuted": 14,
+  "pin_checks_passed": 9,
+  "pin_checks_not_evaluated": 37,
+  "coverage": {
+    "core_diagnostic_executed_lines": 898,
+    "conservative_unexecuted_lines": 6390,
+    "source_files": 37,
+    "pilot": {
+      "status": "BLOCKED",
+      "executed_lines": 0,
+      "branch_coverage": null
+    },
+    "full": {
+      "status": "BLOCKED",
+      "executed_lines": 0,
+      "branch_coverage": null
+    }
+  },
+  "guard_captures": 84,
+  "sealed_refused": 11,
+  "reviewed_refused": 1,
+  "reviewed_refused_names": [
+    "d3/41254810"
+  ],
+  "guard_method": "Independent stdlib arithmetic on real camera_to_world arrays; production guard not executed",
+  "input_wait": {
+    "started_utc": "2026-11-15T18:16:56.401783+00:00",
+    "checked_utc": "2026-11-15T18:22:56.682850+00:00",
+    "deadline_utc": "2026-11-16T00:16:56.401783+00:00",
+    "complete_markers": {
+      "masks": false,
+      "geometry": false,
+      "np226": false,
+      "frames": false
+    },
+    "production_python_exists": false,
+    "elapsed_seconds": 445.941076,
+    "status": "ENDED_EARLY_BLOCKED",
+    "stopped_utc": "2026-11-15T18:24:21.941076+00:00",
+    "maximum_wait_reached": false,
+    "reason": "The required production interpreter is independently inaccessible in this execution environment; no remaining whole-worker proof can run.",
+    "monitor_exit_code": 130,
+    "governor_or_transfer_changed": false
+  },
+  "open_decisions": "out/DECISIONS.md",
+  "missing_proofs": [
+    "production numerical tests",
+    "cache-bind reproduction",
+    "whole-worker pilot",
+    "whole-worker full",
+    "production branch coverage",
+    "complete pin/authority admission"
+  ]
+}

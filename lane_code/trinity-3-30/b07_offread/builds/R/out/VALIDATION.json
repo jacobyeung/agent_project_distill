@@ -1,0 +1,237 @@
+{
+ "tests": 18,
+ "accepted": {
+  "vsibench5130": {
+   "items": 4008,
+   "scenes": 288,
+   "score": 0.6877133740448866,
+   "percentile_95": [
+    0.6652883247661289,
+    0.7097730303847354
+   ],
+   "first_line": "READER direct [direct kit f42aa1a4]; EAT-1 NOT RUN for this reader; EXPORT step544 sha256 1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef; BENCHMARK VSI-Bench official 5,130; ARM primary (primary); direct-only: routed types not read",
+   "float_order_check": {
+    "tolerance": 1e-12,
+    "corrections": [
+     {
+      "group": "headline",
+      "field": "score",
+      "offkit": 0.6877133740448865,
+      "accepted_order": 0.6877133740448866
+     },
+     {
+      "group": "headline",
+      "field": "percentile_95",
+      "offkit": [
+       0.6652883247661291,
+       0.7097730303847354
+      ],
+      "accepted_order": [
+       0.6652883247661289,
+       0.7097730303847354
+      ]
+     },
+     {
+      "group": "object_counting",
+      "field": "score",
+      "offkit": 0.6302654867256636,
+      "accepted_order": 0.6302654867256637
+     },
+     {
+      "group": "object_counting",
+      "field": "percentile_95",
+      "offkit": [
+       0.5929326175591194,
+       0.6669122773611437
+      ],
+      "accepted_order": [
+       0.5929326175591194,
+       0.6669122773611439
+      ]
+     },
+     {
+      "group": "object_size_estimation",
+      "field": "score",
+      "offkit": 0.7202518363064008,
+      "accepted_order": 0.7202518363064011
+     },
+     {
+      "group": "object_size_estimation",
+      "field": "percentile_95",
+      "offkit": [
+       0.6997966586374758,
+       0.7402062122749853
+      ],
+      "accepted_order": [
+       0.6997966586374756,
+       0.7402062122749854
+      ]
+     }
+    ]
+   }
+  },
+  "revsi999t32": {
+   "items": 679,
+   "scenes": 261,
+   "score": 0.6494461380258723,
+   "percentile_95": [
+    0.6125632874246052,
+    0.6838746053521584
+   ],
+   "first_line": "READER direct [direct kit ea1a1b2d]; EAT-1 NOT RUN for this reader; EXPORT step544 sha256 1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef; BENCHMARK ReVSI official999, tier 32; ARM primary (primary); direct-only: routed types not read",
+   "float_order_check": {
+    "tolerance": 1e-12,
+    "corrections": [
+     {
+      "group": "headline",
+      "field": "percentile_95",
+      "offkit": [
+       0.6125632874246052,
+       0.6838746053521583
+      ],
+      "accepted_order": [
+       0.6125632874246052,
+       0.6838746053521584
+      ]
+     },
+     {
+      "group": "object_counting",
+      "field": "score",
+      "offkit": 0.5857380161366873,
+      "accepted_order": 0.5857380161366872
+     },
+     {
+      "group": "object_counting",
+      "field": "percentile_95",
+      "offkit": [
+       0.5137797587373586,
+       0.6542100668083816
+      ],
+      "accepted_order": [
+       0.5137797587373585,
+       0.6542100668083813
+      ]
+     },
+     {
+      "group": "object_size_estimation",
+      "field": "score",
+      "offkit": 0.7091575091575092,
+      "accepted_order": 0.7091575091575094
+     },
+     {
+      "group": "object_size_estimation",
+      "field": "percentile_95",
+      "offkit": [
+       0.6767630029914117,
+       0.7414292207792208
+      ],
+      "accepted_order": [
+       0.6767630029914116,
+       0.7414292207792212
+      ]
+     }
+    ]
+   }
+  }
+ },
+ "rehearsals": {
+  "vsi": {
+   "passed": true,
+   "fixture_decoded_items": 14,
+   "production_membership": 4008,
+   "prompt_proof": {
+    "passed": true,
+    "returncode": 0,
+    "observed": {
+     "prompt_pins_equal": true,
+     "prompt_pins_sha256": "7a43deb2ee2756d13044640c394deb4e8a5a7b6e59045f17bd7b1beb9f588637",
+     "items": 20,
+     "processor_checked": true,
+     "all_prompt_bytes_equal": true,
+     "equal": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+     ]
+    }
+   },
+   "full_checker_status": "VERIFIED",
+   "return_bytes": 45889,
+   "fetch": {
+    "return_dir": "/scratch/jjyeung/orch_n30/b07_offread/builds/R/work/coverage_vsi/packet/fetched/return"
+   },
+   "reports": {
+    "B2048": "13f5371b1a85e05cbc16d9e3b5269a0763c825f4f146a6c5a6c586c814e814c1",
+    "B4096": "774c3016e6a30a820055d86dfcda65fb3ac2754328792191f299861115001394",
+    "ON16k": "7c41bf89d201faab376a8a1ef19deca6e40ad270dfebdf4035bca434bc8916df"
+   },
+   "fixture_only": true
+  },
+  "revsi": {
+   "passed": true,
+   "fixture_decoded_items": 10,
+   "production_membership": 679,
+   "prompt_proof": {
+    "passed": true,
+    "returncode": 0,
+    "observed": {
+     "prompt_pins_equal": true,
+     "prompt_pins_sha256": "7a43deb2ee2756d13044640c394deb4e8a5a7b6e59045f17bd7b1beb9f588637",
+     "items": 20,
+     "processor_checked": true,
+     "all_prompt_bytes_equal": true,
+     "equal": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+     ]
+    }
+   },
+   "full_checker_status": "VERIFIED",
+   "return_bytes": 234141,
+   "fetch": {
+    "return_dir": "/scratch/jjyeung/orch_n30/b07_offread/builds/R/work/coverage_revsi/packet/fetched/return"
+   },
+   "reports": {
+    "B2048": "4a5ffdf8d43a773711bf5610b02923aeb02129235f4fc3c1140dc1c947431cf7",
+    "B4096": "5f0a787ea1e7a06f03218d970ad7e450131156f215a42e7a7fe6d5b5c0066a0f",
+    "ON16k": "8a065178f879ea6e52449783ca1831c26edbdc9455e6b997bb07aa5814a3ee30"
+   },
+   "fixture_only": true
+  }
+ }
+}

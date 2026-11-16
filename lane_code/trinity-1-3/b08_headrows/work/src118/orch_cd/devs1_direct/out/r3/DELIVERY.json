@@ -1,0 +1,147 @@
+{
+  "build_scripts": {
+    "work/r3/audit_placeholders.py": "76dac5561f404efaba8689d453d611b91562126cd68b226a62cf1ced8029e209",
+    "work/r3/build_payload.py": "d4ef311a58edb1a96457691020a57fed58ef2a11e02a0b4011a723063baacc23",
+    "work/r3/collect_training.py": "f7146751fa711a88e731b7ca819056182097063ed7e0ca273ca469accba5a868",
+    "work/r3/document.py": "165435082e1084214be4f6a9cfe0bcfcf72dfb85dd59657cbb137bf0956452f9",
+    "work/r3/finalize.py": "c8fe73b593b34992e2517053d60d19dc91caa209f15d2c00aaa7c6440814e5ad",
+    "work/r3/validate_training.py": "bf68ea7d301c939bd0cd120c63ffcc7467f1d366014d355d77d50abbf081954d"
+  },
+  "counts": {
+    "captures": 142,
+    "excluded": 611,
+    "excluded_missing_room": 11,
+    "included": 1525,
+    "label_blockers": 0,
+    "per_type": {
+      "object_abs_distance": {
+        "primary": 150
+      },
+      "object_counting": {
+        "primary": 150
+      },
+      "object_rel_direction_easy": {
+        "primary": 150
+      },
+      "object_rel_direction_hard": {
+        "primary": 150
+      },
+      "object_rel_direction_medium": {
+        "primary": 150
+      },
+      "object_rel_distance": {
+        "primary": 150
+      },
+      "object_size_estimation": {
+        "primary": 150
+      },
+      "relative_count": {
+        "primary": 139
+      },
+      "relative_size_object": {
+        "primary": 150
+      },
+      "room_size_estimation": {
+        "primary": 36
+      },
+      "route_planning": {
+        "missing_released": 150
+      }
+    },
+    "rooms": 73,
+    "selected": 2136,
+    "strata": {
+      "missing_released": 150,
+      "primary": 1375
+    }
+  },
+  "dry_binds": {
+    "cp1m200": {
+      "binding": "19df23649f0d4c71e87f34a122ee8e73bcdfa8e7daa27bba4e8b97476b316440",
+      "cell": {
+        "benchmarks": [
+          "devrows"
+        ],
+        "decoding": "greedy",
+        "frames": 32,
+        "layout": "duplicate",
+        "max_tokens": 16384,
+        "model": "cp1m200",
+        "name": "devS1_v2_real_timing_cp1m200",
+        "thinking": true
+      },
+      "code_pins_sha256": "4604bacf1289a35754c6a9c66f2d41d8fa9fabd53a67c832b13deeb90c54c402",
+      "path": "/scratch/jjyeung/orch_cd/devs1_direct/work/r3/final_cp1",
+      "prompt_pins_sha256": "7a43deb2ee2756d13044640c394deb4e8a5a7b6e59045f17bd7b1beb9f588637",
+      "receipt_templates_sha256": "af95784abc16dd5f849f4eb54447de11340363d54f6d5afa69c748aebbe35aa2",
+      "request_sha256": "86c3c8fe9d73048425d9e85e5d962ed476830dc6ff036012ce3073a449c10d79",
+      "reviewed_source": "/scratch/jjyeung/orch_cd/rv_merge_fix/work/r3/aws_vl64rt",
+      "source_sha256": "d27804f736545f7ebed6b55124b4bd215991695d96ed9106d82a142e91302aaa",
+      "status": {
+        "captures": 142,
+        "dry": true,
+        "layout": "duplicate",
+        "missing_labels": 0,
+        "pending": [
+          "PNG existence, byte hashes, dimensions, pixel hashes"
+        ],
+        "ready": false,
+        "tasks": 1525,
+        "unavailable_released": 150
+      }
+    },
+    "f17": {
+      "binding": "32213d744c8f5d7bbb94ae4e3ea6141b275276a9f62f4023d813c104653f6a54",
+      "cell": {
+        "benchmarks": [
+          "devrows"
+        ],
+        "decoding": "greedy",
+        "frames": 32,
+        "layout": "spread",
+        "max_tokens": 16384,
+        "model": "f17",
+        "name": "devS1_v2_real_timing_f17",
+        "thinking": true
+      },
+      "code_pins_sha256": "6ffe4277cce499791be648a8f56d165b565066b3fc8cb5845e5f9733cb50c333",
+      "path": "/scratch/jjyeung/orch_cd/devs1_direct/work/r3/final_f17",
+      "prompt_pins_sha256": "7a43deb2ee2756d13044640c394deb4e8a5a7b6e59045f17bd7b1beb9f588637",
+      "receipt_templates_sha256": "96a492d6b03adba8f48398768c1a7ffe5b1c8f4ae2ffe2826cc4e72f1077319c",
+      "request_sha256": "77771aa89b9efad997e7b15ad947e43fb503fa4b3522326eb083888e0db94a51",
+      "reviewed_source": "/scratch/jjyeung/orch_cd/rv_merge_fix/work/r3/aws_eval_gaps",
+      "source_sha256": "9ff5e99a7e54bda9c5cc9cd12928eff90fdd86354634bc405eb477b41ef5c914",
+      "status": {
+        "captures": 142,
+        "dry": true,
+        "layout": "spread",
+        "missing_labels": 0,
+        "pending": [
+          "PNG existence, byte hashes, dimensions, pixel hashes"
+        ],
+        "ready": false,
+        "tasks": 1525,
+        "unavailable_released": 150
+      }
+    }
+  },
+  "inference_run": false,
+  "metadata_comparisons": 40,
+  "old_attempt_must_not_resume": true,
+  "old_journal_rows_void": 844,
+  "pending_runhost": [
+    "production PNG authentication",
+    "model weight authentication",
+    "actual processor/token parity",
+    "GPU inference",
+    "CP1 budget derivation and complete paired report"
+  ],
+  "tests": {
+    "errors": 0,
+    "failed": 0,
+    "passed": 72,
+    "skipped": 0
+  },
+  "training_release_text_gate": "NO: relative distance 2676/3000, 324 object-name changes; other present MC program types 100%",
+  "version": "devS1_v2_real_timing"
+}

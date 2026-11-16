@@ -1,0 +1,1 @@
+cd /scratch/jjyeung/orch_cd && ls -la k1_ops/work/ | head -80 > /tmp/b06_k1ls.txt; tar cf - p2_build/c5d3/k6bin/bin k1_ops/work/D3_FETCH_PLAN.json k1_ops/work/frame_parity.py /tmp/b06_k1ls.txt 2>/dev/null | ssh -o ConnectTimeout=20 trinity-1-3.ib "cd /scratch/jjyeung/orch_n30/b06_a2dense/work/k1src && tar xf -"; echo rc=$?

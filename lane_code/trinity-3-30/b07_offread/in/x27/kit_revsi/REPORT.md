@@ -1,0 +1,2 @@
+F1 gives the five payload inputs opaque names and omits the two unused cell files; input bytes, pins and execution/scoring logic are unchanged. Lane argv paths remain because their rename requires reader/proof edits.
+Local proof PASS with an external selector-wait workaround; 79 tests passed; 76 Python files compiled; two deterministic builds matched SHA256 ea1a1b2d5b965017f7cacce9c02c13cbbe5522d87be8cc55ab755176ecd55d3b. See F1_EVIDENCE.md and DIFF.md; no Orchard run or submission occurred.

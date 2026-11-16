@@ -1,0 +1,25 @@
+{
+  "captures": [
+    {
+      "native": "d3/42444806",
+      "reason": "No stored 32-frame anchor registry; must obtain it before export",
+      "k6_frames": 136,
+      "needs": "Obtain an authoritative stored 32-frame list (GT frame_indices or scene/row registry) and its matching ARKit sensor GT; do not infer anchors from the 136/133-frame union."
+    },
+    {
+      "native": "d3/42898633",
+      "reason": "No stored 32-frame anchor registry; must obtain it before export",
+      "k6_frames": 133,
+      "needs": "Obtain an authoritative stored 32-frame list (GT frame_indices or scene/row registry) and its matching ARKit sensor GT; do not infer anchors from the 136/133-frame union."
+    }
+  ],
+  "searched": [
+    "Four GT registries and their local files",
+    "dose_pool/out/stream9b_v0/ROWS_VQA_ALL.jsonl.gz frames_pending.i",
+    "weak_data/inputs/P1C_ROWS.jsonl.gz frames_pending.i",
+    "weak_data/inputs/K6_PLAN.json.gz explicit need entries",
+    "weak_data/out/a2/PLANS_*.jsonl.gz and weak_data/out/b1/PLANS_route_planning.jsonl.gz"
+  ],
+  "question_rows_affected": 7,
+  "note": "These two captures have no local GT and therefore do not reduce the 93 aligned-GT captures. They are explicitly withheld from export until their stored anchor lists are supplied."
+}

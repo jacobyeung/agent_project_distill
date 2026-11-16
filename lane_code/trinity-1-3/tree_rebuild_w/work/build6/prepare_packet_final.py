@@ -14,6 +14,7 @@ for p in source.iterdir():
     else:(tests/p.name).write_bytes(p.read_bytes())
 s=(B/'packet_runner.py').read_text()
 s=s.replace("L/'work/contracts_r6/tests_r6'", "L/'work/build6/packet/tests_r6'")
+s=s.replace("str(L/'work/build5')", "str(L/'work/build6')")
 s=s.replace("str(root/'pytest')", "str(root/('pytest_'+str(os.getpid())))")
 s=s.replace('200*1024**2','200_000_000')
 s=s.replace('proof.mkdir(parents=True,exist_ok=True)', "proof.mkdir(parents=True,exist_ok=True)\n(proof/'work/test_artifacts_r6').mkdir(parents=True,exist_ok=True)")
@@ -55,4 +56,4 @@ s=s.replace("(proof/'temporary_sizes.json').write_text", "coverage=proof/'covera
 (B/'packet_final.py').write_text(s)
 (B/'PACKET_PATH_ADAPTATIONS.diff').write_text(''.join(edits))
 (B/'PACKET_MONITOR.diff').write_text(''.join(difflib.unified_diff((B/'packet_runner.py').read_text().splitlines(True),s.splitlines(True),fromfile='relocated original runner',tofile='final runner')))
-print('Assertions unchanged; fixture root points into the fixed proof folder. Missing supporting inputs remain missing.')
+print('Assertions unchanged; fixture root points into the fixed proof folder. Supplied supporting inputs are authenticated by PACKET_INPUTS.json.')

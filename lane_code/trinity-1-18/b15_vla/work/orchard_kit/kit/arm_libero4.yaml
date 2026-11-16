@@ -1,0 +1,80 @@
+# Test L recipe (VLA_ACTION_HEAD_DESIGN_20261111 section 4.1): one policy per arm trained jointly on the four LIBERO suites
+# (40 tasks) at 5 demos per task. StarVLA QwenOFT with vla_heads' head (a) (OFT-configured RegressionHead, parity-tested
+# against StarVLA's L1 head) plus normalised proprio through a zero-initialised map, via framework.head_hook.
+# Identical for every arm: per arm only framework.qwenvl.base_vlm changes (B0 = Qwen3.5-B0 base, B1 = Qwen3.5-B1 student;
+# U1 adds framework.vla_heads.cond=spatial_readouts and the cached where rows). Launch scripts set paths, run_id and seed.
+run_id: vll
+run_root_dir: ./runs
+seed: 0
+wandb_entity: none
+wandb_project: none
+is_debug: false
+version_id: "0.21"
+
+framework:
+  name: QwenOFT
+  head_hook: vl_heads_hook:make
+  qwenvl:
+    base_vlm: ./models/Qwen3.5-B0
+    attn_implementation: flash_attention_2
+    vl_hidden_dim: 4096
+  action_model:
+    action_model_type: MLP
+    action_dim: 7
+    state_dim: 8
+    action_horizon: 8
+  vla_heads:
+    proprio_dim: 8                   # LeRobot observation.state: eef xyz, eef axis-angle, 2 finger joints
+    cond: none                       # U1: spatial_readouts
+    reg_hidden: null                 # 2 x VLM width (8192), as StarVLA's head
+    reg_blocks: 2
+
+datasets:
+  vla_data:
+    dataset_py: lerobot_datasets
+    data_root_dir: ./data/lerobot
+    data_mix: vll_libero4_d5_s0
+    action_type: delta_qpos
+    sequential_step_sampling: false
+    drop_incomplete_action_chunks: true   # eligible chunk starts t in [0, len - 8]: no zero-padded tail labels
+    obs_image_size: [224, 224]
+    per_device_batch_size: 16          # x 4 GPUs = global batch 64
+    load_all_data_for_training: true
+    video_backend: torchvision_av
+    num_workers: 8
+    include_state: true                # the hook reads 'state' and removes it before StarVLA builds the prompt
+
+trainer:
+  max_train_steps: 10000
+  num_warmup_steps: 500
+  save_steps: [1000, 2000, 5000, 10000]
+  state_steps: []
+  state_every: 500                   # ONE rolling node-local full state (state/current), replaced atomically
+  early_loss_steps: 50               # self-stop if a step <= 50 has rank-mean loss > early_loss_factor x step-1 loss
+  early_loss_factor: 5.0
+  stop_slow_factor: 3.0
+  trace_module_every: 100
+  save_interval: 1                   # vl_train.py filters on save_steps / state_every
+  eval_interval: 100000000
+  learning_rate:
+    base: 2.5e-05                    # pi0.5 LIBERO peak 5e-5 at batch 256, scaled by sqrt(64/256)
+    qwen_vl_interface: 2.5e-05
+    action_model: 2.5e-04            # head at 10x
+  lr_scheduler_type: cosine_with_min_lr
+  scheduler_specific_kwargs:
+    min_lr_rate: 0.1                 # cosine to 10% of each group's peak
+  freeze_modules: qwen_vl_interface.model.model.visual   # ViT + merger frozen, as in the student's training
+  loss_scale:
+    vla: 1.0
+    vlm: 0.0
+  max_grad_norm: 1.0
+  weight_decay: 0.0
+  logging_frequency: 10
+  gradient_clipping: 1.0
+  gradient_accumulation_steps: 1
+  gradient_checkpointing: false     # applied to the VLM by vl_train.py (StarVLA's Qwen3.5 wrapper ignores it)
+  optimizer:
+    name: AdamW
+    betas: [0.9, 0.95]
+    eps: 1.0e-08
+    weight_decay: 1.0e-05

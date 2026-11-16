@@ -1,0 +1,9 @@
+# Refute check: orchkit-core (2026-11-16)
+Verdict: not refuted; saving partly measured, brief needs 4 fixes.
+- Supported: 169537 and 169589 lost to duplicated pins ("Faults 4 and 5 are one kind: a file changed and one of several places that record its hash was not regenerated", seal_plan/recovered/evalx/written/20261114T172706_*); 21 groups / 2 disagree (ROUTED_READ_PIN_GRAPH_AUDIT_20261114.md line 1); deep-copy quote at line 43; 9 launcher copies (kits/INVENTORY.md section 2); per-node ledgers lost (INVENTORY section 3). New kits are still forks now (queue_synth briefs 01: "reuse its export stager unchanged"; 07 builds from f42aa1a4/ea1a1b2d).
+- Weak: "3 to 6 h per kit" is estimated only, and reader-harness claims the same 3-6 h (synth/body_reader-harness.md line 7); record table credits "3, 5" for one loss.
+- Defect 1: invariant "no 64-hex equal to an entry's sha256 outside PINS.json" misses stale copies (the failing values #35 65f5cc0a, #42 3b0c23b2 equal no current entry) and fails correct kits with data-embedded provenance (MASK_CACHE producer_sha256 == nomdg pin).
+- Defect 2: "records the commit through tools/provenance.py as the existing launchers do": neither readk orchard_launcher.py nor native_launcher.py mentions provenance. provenance.py runs `git status --porcelain --untracked-files=all` on its own repo root and uses text= (3.7+); run from the /home tree it is a big-tree NFS scan and refuses today (4 untracked files, record step 8).
+- Defect 3: pins.py audit target (recover_k1/.../orchard_native/) holds only 6 .py files; most of the 21 groups live in FAMILY/CONFIG/BATCH/MASK_CACHE, absent there, so the count comparison cannot reproduce 21.
+- No IO/legality/running-job weakening found: brief writes only W, no ssh, NFS ledger appends <1 KB, opacity centralised.
+- Auditor note: I ran one read-only `git -C /scratch/jjyeung/distill_sync/repo branch` (local disk) to confirm branch main exists.

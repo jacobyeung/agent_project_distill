@@ -1,0 +1,53 @@
+The two `devS1_v2_real_timing` cells pass true source timing to the video processor: ScanNet 24 fps, ScanNet++ 60 fps, and ARKitScenes 10 fps. Every timestamp is `source_frame_index / fps` in seconds. CP1 m200 repeats each anchor and its timestamp consecutively; f17 reads the 32 anchors once.
+
+| Checkpoint | Input indices | Per-frame seconds | Temporal-patch seconds |
+|---|---|---|---|
+| CP1 m200 | `[i0, i0, i1, i1, …]` (64 RGB frames from 32 anchors) | `[i0/f, i0/f, i1/f, i1/f, …]` | `ik/f` for each repeated pair |
+| f17 | `[i0, i1, …, i31]` (32 RGB frames) | `[i0/f, i1/f, …]` | `(i[2k]/f + i[2k+1]/f)/2` |
+
+The five explicit processor metadata fields are `fps`, `frames_indices` (plural “frames”), `total_num_frames`, `height`, and `width`. The row field is `student_input.frame_indices` (singular “frame”). `timestamps` is a derived HF property and a receipt audit field; it is not an extra key passed to `VideoMetadata`. Both workers pass `do_sample_frames=False`. Temporal-patch markers use one decimal place, `<t.t seconds>`.
+
+CP1 lineage evidence comes from concrete training rows and the training conversion code:
+
+- `export9b.py` reads lineage `student_input.fps`, `frame_indices`, and `timestamps` at [export9b.py:44](/scratch/jjyeung/orch_cd/dose_pool/work/dosepool/export9b.py:44); its uniform-plan branch computes `j/fps` at [export9b.py:69](/scratch/jjyeung/orch_cd/dose_pool/work/dosepool/export9b.py:69); it writes those fields into the student input at [export9b.py:110](/scratch/jjyeung/orch_cd/dose_pool/work/dosepool/export9b.py:110).
+- `resolve9b.py` fills `student_input.total_num_frames` from `K6_PLAN.v[alias].raw_n`. If that field is absent, it uses `max(frames_pending.i)+1` and sets `dose.total_num_frames_lower_bound=True`: [resolve9b.py:9](/scratch/jjyeung/orch_cd/dose_pool/work/dosepool/resolve9b.py:9). The copied resolved rows already contain these values; they were not invented for this proof.
+- POOL_S1 packed program rows carry the exact indices in `provenance.frame_indices` and `provenance.frames_pending`, but do not directly carry fps or timestamps. The training `c1_row` requires fps and total in the RGB manifest, checks its indices against the packed row, and creates `student_input.timestamps` by division: [carrier_c1_routing.py:682](/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_r14/student_pilot/carrier_c1_routing.py:682) and [carrier_c1_routing.py:715](/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_r14/student_pilot/carrier_c1_routing.py:715). Direct POOL_S1 route rows carry fps, indices and timestamps in `student_input`; their unresolved total is null until frame resolution. The evidence preserves that distinction.
+- Training duplicate layout sets `partner_index=index` and `partner_time=timestamp`, then extends both lists consecutively: [carrier_c1_data.py:120](/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_r14/student_pilot/carrier_c1_data.py:120)–155. It repeats RGB and constructs `VideoMetadata` with the expanded indices at [carrier_c1_data.py:190](/scratch/jjyeung/orch_cd/leg_s1_tree/work/tree_s1_r14/student_pilot/carrier_c1_data.py:190). The reviewed kit retains the same rule in [layout_reference.py:38](/scratch/jjyeung/orch_cd/rv_merge_fix/work/r3/aws_vl64rt/evaluator/trainer/layout_reference.py:38)–59.
+- The training processor receives metadata without resampling and checks the timestamp markers: [pose_samples.py:22](/scratch/jjyeung/orch_cd/rv_merge_fix/work/r3/aws_vl64rt/evaluator/trainer/pose_samples.py:22) and [pose_samples.py:51](/scratch/jjyeung/orch_cd/rv_merge_fix/work/r3/aws_vl64rt/evaluator/trainer/pose_samples.py:51). The worker supplies the receipt metadata at [worker.py:97](/scratch/jjyeung/orch_cd/rv_merge_fix/work/r3/aws_vl64rt/evaluator/worker.py:97); the prompt carries a video placeholder at [parity.py:9](/scratch/jjyeung/orch_cd/rv_merge_fix/work/r3/aws_vl64rt/evaluator/parity.py:9). Parity reconstructs the trainer call through `VideoMetadata(**meta)` at [parity.py:45](/scratch/jjyeung/orch_cd/rv_merge_fix/work/r3/aws_vl64rt/evaluator/parity.py:45).
+
+Concrete source rows (line numbers refer to decompressed JSONL) are frozen in `TRAINING_TIMING_ROWS.jsonl`, with whole-file and exact-line SHA256 pins:
+
+| Kind | Dataset | Source and line | QID | fps / total as stored |
+|---|---|---|---|---|
+| resolved_lineage | d1 | `/scratch/jjyeung/orch_cd/dose_pool/out/stream9b_v0/ROWS_VQA_ALL.resolved.jsonl.gz:1` | `vsi590k_069571` | 24.0 / 4294 |
+| resolved_lineage | d2 | `/scratch/jjyeung/orch_cd/dose_pool/out/stream9b_v0/ROWS_VQA_ALL.resolved.jsonl.gz:2` | `vsi590k_113053` | 60.0 / 13580 |
+| resolved_lineage | d3 | `/scratch/jjyeung/orch_cd/dose_pool/out/stream9b_v0/ROWS_VQA_ALL.resolved.jsonl.gz:3` | `vsi590k_253839` | 10.0 / 554 |
+| direct | d2 | `/scratch/jjyeung/orch_cd/dose_pool/out/route_direct2/ROUTE_DIRECT.jsonl.gz:1` | `q0000983c4269e3d9a0dad260` | 60.0 / None |
+| direct | d3 | `/scratch/jjyeung/orch_cd/dose_pool/out/route_direct2/ROUTE_DIRECT.jsonl.gz:3` | `q000261a3bff7ce7a88ab73c2` | 10.0 / None |
+| direct | d1 | `/scratch/jjyeung/orch_cd/dose_pool/out/route_direct2/ROUTE_DIRECT.jsonl.gz:10` | `q00303980bb2d027cb51f1c2c` | 24.0 / None |
+| packed | d1 | `/scratch/jjyeung/orch_cd/dose_pool/out/POOL_S1/T0_gen_r2_packed.jsonl.gz:1` | `vsi590k_047494` | absent / absent |
+| packed | d2 | `/scratch/jjyeung/orch_cd/dose_pool/out/POOL_S1/T0_gen_r2_packed.jsonl.gz:113` | `vsi590k_108964` | absent / absent |
+| packed | d3 | `/scratch/jjyeung/orch_cd/dose_pool/out/POOL_S1/ARKIT_gen_r2_packed.jsonl.gz:1` | `vsi590k_243763` | absent / absent |
+
+f17’s reference is the reviewed eval-gaps kit’s official VSI input path. This is code-level evidence of its established evaluation contract, not a claim that an unavailable historical training journal was inspected.
+
+- [sampling.py:1](/scratch/jjyeung/orch_cd/rv_merge_fix/work/r3/aws_eval_gaps/evaluator/evalpath/sampling.py:1) identifies the official Qwen3.5 `video_32` branch. Lines 23–34 take fps from `stream.average_rate`, count decoded frames, and select `k*(N-1)//31`. PTS values are inspected during decoding; the processor receives source indices and fps, not raw PTS values.
+- [media.py:60](/scratch/jjyeung/orch_cd/rv_merge_fix/work/r3/aws_eval_gaps/evaluator/media.py:60) calls that sampler; lines 66–77 keep spread indices unchanged and build the five metadata fields. The ReVSI-only compact-video conversion at lines 78–85 does not apply to VSI or these dev cells.
+- [worker.py:107](/scratch/jjyeung/orch_cd/rv_merge_fix/work/r3/aws_eval_gaps/evaluator/worker.py:107) forwards receipt metadata and disables resampling. [parity.py:9](/scratch/jjyeung/orch_cd/rv_merge_fix/work/r3/aws_eval_gaps/evaluator/parity.py:9) builds the video prompt; lines 43–46 send `VideoMetadata(**meta)` through the trainer encoder. Its spread layout returns the original training input unchanged at [layout_reference.py:24](/scratch/jjyeung/orch_cd/rv_merge_fix/work/r3/aws_eval_gaps/evaluator/trainer/layout_reference.py:24)–29.
+- The installed HF `VideoMetadata.timestamps` implements division at [video_utils.py:101](/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/transformers/video_utils.py:101). Its Qwen3VL processor timestamp method averages the two frame times at [processing_qwen3_vl.py:178](/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/transformers/models/qwen3_vl/processing_qwen3_vl.py:178) and renders seconds at [processing_qwen3_vl.py:97](/scratch/jjyeung/envs/p1cpu/lib/python3.12/site-packages/transformers/models/qwen3_vl/processing_qwen3_vl.py:97). The proof executes both actual methods on CPU; it does not use a hand-written metadata stub.
+
+`TIMING_AUTHORITY.json` pins the capture mapping, the original K6 plan, and S1-FPS1. All 152 captures resolve to the plan: 29 ScanNet, 27 ScanNet++, and 96 ARKitScenes. The FPS authority JSON has per-scene entries for 63 chosen aliases. The other 89 use the explicitly supplied S1-FPS1 dataset rule; `FPS_RULE.json` records this authority rather than claiming those entries exist in the source file. Every per-scene rate that exists agrees with the rule. The pinned reader metadata check also records `fps_rule="S1-FPS1"` and `fps_uniform_fallback_keeps_lower_bound=true`.
+
+Video totals use `K6_PLAN.v[alias].raw_n`. ARKitScenes keeps `max(anchor_indices)+1` and the lower-bound flag, as the resolved training rows do; the raw capture clock in `K6_PLAN.a[alias].need[][1]` is not substituted for the training index/fps convention. The numeric totals happen to match the prior manifest for all 152 captures, but their provenance and 96 lower-bound flags are now explicit. Capture anchors, frame paths, PNG hashes and dimensions remain unchanged.
+
+Each receipt calls `validate_timing` before expanding frames. It refuses fps=1, missing capture authority, changed indices, changed totals, changed timestamps, and missing authority fields. Payload loading also cross-checks task timing against the capture manifest. The processor metadata carries only its five supported fields; the lower-bound flag and authority identifiers stay in the receipt audit.
+
+The CPU proof selects 20 participating captures by SHA256(`devS1-r3-timing|native`), taking 7 ScanNet, 7 ScanNet++, and 6 ARKitScenes. For each checkpoint it compares the dev metadata with a resolved training row of the same dataset under that checkpoint’s layout. It also runs each dev capture through the training layout function and runs the kit’s actual official VSI metadata path with an injected synthetic RGB decoder boundary. All 40 comparisons pass: identical metadata keys, identical fps, the same timestamp formula, and exact duplicate timestamp repetition. Different captures naturally have different indices, durations and timestamps.
+
+| Dataset | Capture | fps | First nonzero anchor | Seconds | CP1 duplicate seconds |
+|---|---|---:|---:|---:|---|
+| d1 | `d1/scene0534_01` | 24 | 63 | 2.625 | `2.625, 2.625` |
+| d2 | `d2/5c21213f16` | 60 | 167 | 2.78333333 | `2.78333333, 2.78333333` |
+| d3 | `d3/42897921` | 10 | 98 | 9.8 | `9.8, 9.8` |
+
+`TRAINING_TIMING_CHECK.json` additionally validates all nine pinned lineage/direct/packed examples against the rate and total-frame authorities under both layouts. The complete dev/training metadata and timestamp lists are in `TIMING_EQUIVALENCE_cp1m200.json` and `TIMING_EQUIVALENCE_f17.json`; `TESTS.log` prints three comparisons for each checkpoint. This establishes metadata equivalence on CPU. Production PNG bytes, actual model/tokenizer processing, GPU parity and inference remain run-host checks. `PLACEHOLDER_AUDIT.md` lists every affected historical output and the read-only facing-away payload.

@@ -12,6 +12,8 @@ for name in ('PACKAGE_TEST.sh','PACKET_TEST.sh','test_runner.py','compact_tmp.py
     members.append(B/name)
 for name in ('PATCH_MANIFEST_R6.json','contract_hash_checks_r6.py','PATCH_geometry_r6.diff','PATCH_candidates_r6.diff','PATCH_box_r6.diff','PATCH_geometry_on_tree_r1_r6.diff','run_tests_r6.py','final_suites_r6.py','CONTRACTS_REPORT_R6.md','ROW_FAMILY_PARITY_R6.md'):
     members.append(L/'work/contracts_r6'/name)
+for row in json.loads((B/'PACKET_INPUTS.json').read_text()):
+    members.append(L/row['target'])
 size=sum(p.stat().st_size for p in members);assert size<145_000_000
 subprocess.run(['df','-BG','--output=avail','/scratch'],check=True)
 assert shutil.disk_usage('/scratch').free>=85*1024**3

@@ -1,6 +1,38 @@
 --- build5/compact_tmp.py
 +++ build6/compact_tmp.py
-@@ -44,5 +44,5 @@
+@@ -2,9 +2,22 @@
+ import hashlib
+ import json
+ import os
++import subprocess
+ from pathlib import Path
+ 
+ inventory_root=None
++
++
++def native_inventory(root):
++    """Use a read-only C walker; retain exactly the Python census's file sizes."""
++    result = subprocess.run(['/usr/bin/find', str(root), '-type', 'f', '-printf', r'%s\t%p\0'],
++                            capture_output=True, check=True)
++    values = {}
++    for record in result.stdout.split(b'\0'):
++        if record:
++            size, path = record.split(b'\t', 1)
++            values[Path(os.fsdecode(path))] = int(size)
++    return values
+ 
+ def inventory(root):
+     global inventory_root
+@@ -13,6 +26,8 @@
+     pending=[str(root)]
+     inventory_root=str(root)
+     try:
++        if os.environ.get('R2_FAST_CENSUS') == '1':
++            return native_inventory(root)
+         while pending:
+             with os.scandir(pending.pop()) as entries:
+                 for entry in entries:
+@@ -44,5 +59,5 @@
  if __name__=='__main__':
      L=Path(__file__).resolve().parents[2]
      rows=compact(L/'work/tmp')

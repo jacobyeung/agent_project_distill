@@ -1,0 +1,5 @@
+export KIT=/scratch/jjyeung/devs1_mask_run/kit FRAMES=/scratch/jjyeung/devs1_frames CACHE=/scratch/jjyeung/devs1_mask_run/candidates GPU_PY=/scratch/jjyeung/envs/sam3_capretry_native_v1/bin/python CUDA_VISIBLE_DEVICES=2 OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
+cd /scratch/jjyeung/devs1_mask_run
+echo "$(date -u +%FT%TZ) LAUNCH masks GPU 2" >> /scratch/jjyeung/devs1_mask_run/evalx_run.log
+/scratch/jjyeung/orch_cd/evalx/work/trin_vl/vnice/vnice.sh nice -n 10 /scratch/jjyeung/envs/sam3_capretry_native_v1/bin/python -I -s /scratch/jjyeung/devs1_mask_run/kit/work/launch_guard.py --python /scratch/jjyeung/envs/sam3_capretry_native_v1/bin/python --out /scratch/jjyeung/devs1_mask_run/candidates -- --manifest /scratch/jjyeung/devs1_mask_run/kit/out/MANIFEST.json --frames /scratch/jjyeung/devs1_frames --checkpoint /scratch/jjyeung/orch_cd/ttower/work/sam3_weights/sam3.pt --source /scratch/jjyeung/orch_cd/mdg_next/work/data/sam3src > /scratch/jjyeung/devs1_mask_run/launch_gpu2.log 2>&1
+echo "$(date -u +%FT%TZ) DONE masks rc=$?" >> /scratch/jjyeung/devs1_mask_run/evalx_run.log

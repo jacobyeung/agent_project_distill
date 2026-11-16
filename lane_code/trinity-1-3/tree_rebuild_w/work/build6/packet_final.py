@@ -50,7 +50,7 @@ def audit(event,args):
         if flags & (os.O_WRONLY|os.O_RDWR|os.O_CREAT) and not path.is_relative_to(L):
             raise PermissionError('Proof writes only in lane: '+str(path))
 sys.addaudithook(audit)
-sys.path.insert(0,str(L/'work/build5'))
+sys.path.insert(0,str(L/'work/build6'))
 from compact_tmp import inventory, compact
 sizes=[]
 import subprocess

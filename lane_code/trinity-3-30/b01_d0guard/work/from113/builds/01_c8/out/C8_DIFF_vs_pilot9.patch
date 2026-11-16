@@ -1,0 +1,3339 @@
+--- pilot9/sj/orch_cd/evalx/work/milestone/native/out2/geometry.py
++++ c8/sj/orch_cd/evalx/work/milestone/native/out2/geometry.py
+@@ -139,7 +139,9 @@
+             value=convert(state,depth,own.gravity,hw,output,diagnostics=diagnostics)
+             return dict(value,conditioning_question_id=row['qid'],
+                         prefill_sha256=digest(batch['input_ids'].cpu().tolist()))
+-        outcome=GR.attempt(prepare_one,GeometryError)
++        import gravity_guard
++        with gravity_guard.capture('dev-S1', c['native']):
++            outcome=GR.attempt(prepare_one,GeometryError)
+         torch.cuda.synchronize()
+         record=dict(native=c['native'],group=c['group'],clip=clip,raw=pin(p),checkpoint=artifact,
+                     status=outcome['status'],error=outcome['error'],
+--- /dev/null
++++ c8/sj/orch_cd/evalx/work/milestone/native/out2/gravity_guard.py
+@@ -0,0 +1,127 @@
++"""Reader-owned gravity decision, installed only after authenticated restore."""
++import ast
++from contextlib import contextmanager
++from contextvars import ContextVar
++import hashlib
++import inspect
++from pathlib import Path
++import textwrap
++
++import numpy as np
++from student_pilot.geometry_profiles import GeometryError
++
++SEALED_VALIDATE_SHA256 = "05cc553d9e84d235fcc616563b67b4cc1ce50f4b7c10efcaf8a314a59010521a"
++UP_PLANE_MIN = .3
++
++
++def validate_up_convention(rotations):
++    """Ignore ill-conditioned roll signs; retain upright-convention refusals."""
++    R = np.asarray(rotations, float)
++    plane = np.linalg.norm(R[:, 2, :2], axis=1)
++    margin = -R[:, 2, 1]
++    if plane[0] >= UP_PLANE_MIN:
++        invalid = margin[0] <= 0
++    else:
++        usable = plane >= UP_PLANE_MIN
++        invalid = usable.any() and np.median(margin[usable] / plane[usable]) <= 0
++    if invalid:
++        raise GeometryError('reference_camera_up_opposes_gravity')
++
++
++_capture = ContextVar('gravity_guard_capture', default=None)
++_installed = False
++_recorder = None
++
++
++def identity():
++    return dict(evaluation_gravity_guard=dict(name='validate_up_convention',
++                    sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest()),
++                sealed_gravity_guard=dict(name='GeometryContract.validate',
++                    inspect_sha256=SEALED_VALIDATE_SHA256))
++
++
++@contextmanager
++def capture(capture_set, native):
++    if not isinstance(capture_set, str) or not capture_set or not isinstance(native, str) or not native:
++        raise RuntimeError('gravity_guard_capture_identity_missing')
++    token = _capture.set((capture_set, native))
++    try:
++        yield
++    finally:
++        _capture.reset(token)
++
++
++class Recorder:
++    def __init__(self):
++        self.records = {}
++        self.contracts = {}
++
++    def record(self, sealed_refused, reviewed_refused, contract=None):
++        key = _capture.get()
++        if key is None and contract is not None:
++            bound = self.contracts.get(id(contract))
++            if bound is not None and bound[0] is contract:
++                key = bound[1]
++        if key is None:
++            raise RuntimeError('gravity_guard_capture_context_missing')
++        verdict = (bool(sealed_refused), bool(reviewed_refused))
++        if key in self.records and self.records[key] != verdict:
++            raise RuntimeError('gravity_guard_capture_verdict_changed')
++        self.records[key] = verdict
++        if contract is not None:
++            self.contracts[id(contract)] = (contract, key)
++
++    def report(self):
++        result = {}
++        for capture_set in sorted({key[0] for key in self.records}):
++            rows = {native: value for (scope, native), value in self.records.items() if scope == capture_set}
++            sealed = sorted(name for name, value in rows.items() if value[0])
++            reviewed = sorted(name for name, value in rows.items() if value[1])
++            added = sorted(set(reviewed) - set(sealed))
++            result[capture_set] = dict(captures=sorted(rows), capture_count=len(rows),
++                sealed_refused=sealed, sealed_refused_count=len(sealed),
++                reviewed_refused=reviewed, reviewed_refused_count=len(reviewed),
++                reviewed_only_refused=added, reviewed_only_refused_count=len(added))
++        return result
++
++
++def report():
++    return {} if _recorder is None else _recorder.report()
++
++
++def install(geometry_profiles_module, recorder):
++    global _installed, _recorder
++    if _installed:
++        raise RuntimeError('gravity_guard_already_installed')
++    if geometry_profiles_module.GeometryError is not GeometryError:
++        raise RuntimeError('gravity_guard_exception_class_mismatch')
++    original = geometry_profiles_module.GeometryContract.validate
++    source = inspect.getsource(original)
++    if hashlib.sha256(source.encode()).hexdigest() != SEALED_VALIDATE_SHA256:
++        raise RuntimeError('sealed_validate_mismatch')
++    body = ast.parse(textwrap.dedent(source)).body[0].body
++    terminal = ast.parse("if -R[0, 2, 1] <= 0:\n    raise GeometryError('reference_camera_up_opposes_gravity')\nreturn self").body
++    if len(body) < 2 or any(ast.dump(a) != ast.dump(b) for a, b in zip(body[-2:], terminal)):
++        raise RuntimeError('sealed_validate_terminal_mismatch')
++
++    def validate(self):
++        sealed_refused = False
++        try:
++            original(self)
++        except geometry_profiles_module.GeometryError as error:
++            if str(error) != 'reference_camera_up_opposes_gravity':
++                raise
++            sealed_refused = True
++        C = np.asarray(self.camera_to_world, float)
++        R = C[:, :3, :3]
++        try:
++            validate_up_convention(R)
++        except GeometryError:
++            recorder.record(sealed_refused, True, self)
++            raise
++        recorder.record(sealed_refused, False, self)
++        return self
++
++    geometry_profiles_module.GeometryContract.validate = validate
++    _recorder = recorder
++    _installed = True
+--- pilot9/sj/orch_cd/evalx/work/milestone/native/out2/nomdg.py
++++ c8/sj/orch_cd/evalx/work/milestone/native/out2/nomdg.py
+@@ -43,7 +43,7 @@
+ def adapter_sources():
+     names=('routed.py','nomdg.py','perception.py','r1.py','common.py','geometry.py','camera_cohort.py',
+            'runtime_tree.py','RUNTIME_TREE.json','frozen_kit.py','camera_report.py','CAMERA_SHORTCUTS.json',
+-           'read_runtime.py','reader_policy.py','geometry_refusals.py')
++           'read_runtime.py','reader_policy.py','geometry_refusals.py','gravity_guard.py')
+     result={name:sha(OUT/name) for name in names}
+     for p in sorted(P.KIT.rglob('*')):
+         if p.is_file() and '__pycache__' not in p.parts:
+@@ -156,6 +156,9 @@
+     if r.get('runtime_tree')!=tree_identity(TREE,r['tree_sources']):
+         raise ValueError('Recorded runtime tree differs')
+     install_tree()
++    import gravity_guard
++    if r.get('gravity_guard') != gravity_guard.identity():
++        raise ValueError('Gravity guard request identity differs')
+     from student_pilot.s1_grounding import default_policy
+     if r['candidate_policy']!=default_policy():
+         raise ValueError('Frozen candidate policy differs')
+@@ -253,6 +256,8 @@
+                                            references=OUT/'SCRIPTED_REFERENCES.json').items()})
+     if getattr(args,'camera_cohort',None):
+         r['inputs']['camera_cohort']=pin(args.camera_cohort)
++    import gravity_guard
++    r['gravity_guard']=gravity_guard.identity()
+     r['runtime_tree']=tree_identity(TREE,r['tree_sources'])
+     tasks,captures=tasks_and_captures(r['inputs'])
+     chosen=[t for t in tasks if family(t['question_type']) in FAMILIES]
+@@ -312,6 +317,17 @@
+                 question_unit=Q.question_unit(task['question']),
+                 decode=Q.journal_decode(decoded,'devrows:'+task['id'] in request['query_journal']['keep_full_keys']),
+                 seconds=seconds)
++
++
++def parity_selection(tasks):
++    selected = {name: next((key for key in sorted(tasks)
++                            if family(tasks[key]['question_type']) == name), None)
++                for name in FAMILIES}
++    present = {name: key for name, key in selected.items() if key is not None}
++    if not present:
++        raise ValueError('Parity requires at least one routed family')
++    return dict(items=present, absent_families=[name for name in FAMILIES if name not in present],
++                probe_key=present.get('camera_displacement', next(iter(present.values()))))
+ 
+ 
+ def run(args,request):
+@@ -397,8 +413,9 @@
+     refs=load(checked(request['inputs']['references']))
+     g=load(checked(request['grounding']['geometry_manifest']));masks=P.Masks(request['mask_cache'])
+     out=local(request['output']);out.mkdir(parents=True,exist_ok=False)
+-    dump(out/'LOAD_RECEIPT.json',dict(info,runtime_tree=request['runtime_tree']))
+-    first=tasks[next(key for key in sorted(tasks) if family(tasks[key]['question_type'])=='camera_displacement')]
++    selection=parity_selection(tasks)
++    dump(out/'LOAD_RECEIPT.json',dict(info,runtime_tree=request['runtime_tree'],parity_selection=selection))
++    first=tasks[selection['probe_key']]
+     probe=trainer_row(first,captures[first['native']],request['frames_root'],verify=True)
+     assert_prompt_equal(processor,probe)
+     pb=move_batch(runtime.prompt_batch(processor,probe,cfg,'routed'),args.device)
+@@ -452,7 +469,9 @@
+     p1_gate['pass']=(p1_gate['sequence_exact'] and p1_gate['cached_positions_complete']
+                      and not p1_gate['rejected_positions'] and p1_gate['tie_count']<=p1_gate['tie_limit'])
+     parity['p1_gate']=p1_gate
+-    parity['pass']=p1_gate['pass'] and all(parity[k]['pass'] for k in ('P2','P3')) and parity['camera_call'] and not parity['call_errors']
++    parity['selection']=selection
++    camera_required='camera_displacement' in selection['items']
++    parity['pass']=p1_gate['pass'] and all(parity[k]['pass'] for k in ('P2','P3')) and (parity['camera_call'] or not camera_required) and not parity['call_errors']
+     dump(out/'GPU_PARITY.json',parity)
+     if not parity['pass']:
+         raise ValueError('Native GPU prompt/pixel/cache/head parity failed')
+--- pilot9/sj/orch_cd/evalx/work/milestone/native/out2/perception.py
++++ c8/sj/orch_cd/evalx/work/milestone/native/out2/perception.py
+@@ -142,7 +142,10 @@
+     from student_pilot.scene_state import FrameMap
+     clip=row['student_input']['video_identity']['video_sha256']
+     entry=manifest['videos'][clip]
+-    geometry=native(checked(entry),FrameMap(tuple(row['student_input']['frame_indices'])),'tower_scaled')
++    import gravity_guard
++    capture = next(record['native'] for record in manifest['records'] if record['clip'] == clip)
++    with gravity_guard.capture('dev-S1', capture):
++        geometry=native(checked(entry),FrameMap(tuple(row['student_input']['frame_indices'])),'tower_scaled')
+     if geometry.contract.profile!='scaled_g3t_depth' or geometry.depth_scale_count!=1:
+         raise ValueError('Require checkpoint-conditioned explicit G3T geometry, scaled once')
+     return geometry
+--- /dev/null
++++ c8/sj/orch_cd/evalx/work/milestone/orchard_native/MASK_CACHE_C8_BOUND.json
+@@ -0,0 +1,2790 @@
++{
++  "binding": {
++    "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/BINDING.json",
++    "sha256": "c8efc8410ca0ce9025906f70f8b07461335cc62102ec1f4a23aed387885b894a"
++  },
++  "captures": {
++    "d1/scene0155_00": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0155_00.npz",
++        "sha256": "07b6a53423f998a431150f8e5d296b3474944c01405bb7c18ed0ae7b71e4e159"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0155_00.npz",
++        "sha256": "da6215b63a8c1cf8793ba5916cbcda189b85917fe7c7baacc752b1e7cbebb1e9"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0155_00.journal.jsonl",
++        "sha256": "2524569768a56c5b4e99a7ac2f38eb43a81063ad2cbb021d30f6270bd7fdb942"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0155_00.journal.jsonl",
++        "sha256": "3ad89dbac16ef2550dbcfe18f52412eb8c5c3dc4384eb455848842a602c1e8d1"
++      }
++    },
++    "d1/scene0155_01": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0155_01.npz",
++        "sha256": "dd8567a5a0d84371fb36bd991d94614df3a02e3c218a335b7f3b84f06dd868ee"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0155_01.npz",
++        "sha256": "91db57c706e07f4d38c2138339e9d0fc2245c31aa9588e79bf44c0a8cb2eb2ad"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0155_01.journal.jsonl",
++        "sha256": "22dcf5c32c899f58506c65e083c5ae9f5ba91b7ada44bbbe3b99883bf1831494"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0155_01.journal.jsonl",
++        "sha256": "7e31140b100af943ca9b3e80cbf9cf86c2900eb5935b25908df82839a7a639ed"
++      }
++    },
++    "d1/scene0155_02": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0155_02.npz",
++        "sha256": "ea1d3a5543768370dc3137e340d250512cce808d9844574d6ccdf075a81ffaa1"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0155_02.npz",
++        "sha256": "eed57ae7ce6b62c3190ba7ca16ccc51b3ed6fb54a7308d76b26383c6c5774422"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0155_02.journal.jsonl",
++        "sha256": "86c5ad1bce2396a57d066c3f24b3b0a3535771c53c8611fee4d5f9707b5bfc03"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0155_02.journal.jsonl",
++        "sha256": "89c93cd0944c74ece8a23b27e8b430bd5ea55887de2536bd733e93017499de18"
++      }
++    },
++    "d1/scene0166_00": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0166_00.npz",
++        "sha256": "cd9f977f8b290170d58de4c361fa16fbe57d737c1d68fcc5dd2e6657101f633c"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0166_00.npz",
++        "sha256": "ec163b40809a937bb538470e22c2af98c9c04f40c443dfaecc7cb9d5ee91dd0b"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0166_00.journal.jsonl",
++        "sha256": "33558f47d6d69fc8c993fe5bb0898f2c6eb47a72969c14de3281ae92862cefb3"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0166_00.journal.jsonl",
++        "sha256": "a6597f875fc99dbffe2b6efaafd5f0f42e6a1bec7f81d6ede88cdfadf967e5e6"
++      }
++    },
++    "d1/scene0166_02": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0166_02.npz",
++        "sha256": "3b87345caf81fe9fb83284a58074242d4644fdf160c42cc6038a520ecf0ee796"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0166_02.npz",
++        "sha256": "5d5d68c6b26d6bf0af77d5f11466531c1934d063794b4971a387e43897a6ace9"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0166_02.journal.jsonl",
++        "sha256": "0d254edeef05494cb5ccf9eaba0e6e87e75386160fa220f69d64a3c698fe8d33"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0166_02.journal.jsonl",
++        "sha256": "2fdfd617bf7c2f9a8a9e3ebc2c4dfb4012246b003fc7a5fb79d410e2a08ecc8d"
++      }
++    },
++    "d1/scene0250_00": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0250_00.npz",
++        "sha256": "87c049166e09449d3d2a81fdbe8723f44bf07622e804dac355511bed3ab640f8"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0250_00.npz",
++        "sha256": "d7d71f37bc388b98c2881908d229508378f3a91fc10036522c788ea08d9f7517"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0250_00.journal.jsonl",
++        "sha256": "f2aba5b8b789a61ec8ea6193f1af9d42588b4d95b56a0ef212f280d36863ac17"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0250_00.journal.jsonl",
++        "sha256": "5663645dcceaacf78a9710832cbb7ce62f94173d2a34d85f357a80729594f9d1"
++      }
++    },
++    "d1/scene0250_01": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0250_01.npz",
++        "sha256": "3ea646b9feb426ba112cb068a85f11f3e44cf2f921a0e61c1f1f126b1a674d43"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0250_01.npz",
++        "sha256": "b260cecef0ea2daccd45c54e30fe05f75e6d1e0c13cd744775b4e317ece1b749"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0250_01.journal.jsonl",
++        "sha256": "bfdb3a1f6a8177da7bcf7774c6311d6bd2f1547866ef297a16e0c96a18a9d697"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0250_01.journal.jsonl",
++        "sha256": "4b63e55eeba522feb9b48df6a5f882f44bd1acb96144ca357135eb3fde5af0b5"
++      }
++    },
++    "d1/scene0250_02": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0250_02.npz",
++        "sha256": "1792b34a3105a88ac7abc1610521e8e821bda4aebdd8cb0192327cfad4abc566"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0250_02.npz",
++        "sha256": "a69370dd9974824b6a863faa338fbb80e2ade3108f997da31f01fe12b3b769c0"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0250_02.journal.jsonl",
++        "sha256": "f484aee01f65af6d71531e383f883772ebc94b2d76296608f30c438552913114"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0250_02.journal.jsonl",
++        "sha256": "9857e43d1138de700c290bd78191e49081325b32d0b44b858a908a09e590909f"
++      }
++    },
++    "d1/scene0261_02": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0261_02.npz",
++        "sha256": "1d73e072a1d8f36a2fd629e9631488e6c1672a96fe5d41ad382b74c0e29c34ae"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0261_02.npz",
++        "sha256": "fccf98aa735d4c08f998b0a882ce715984c5e0aa99e7e8325c9f0a945a76886f"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0261_02.journal.jsonl",
++        "sha256": "6736ae969e27e067bb8fa63c8dfaf68041f4268da2f544ddd4b113ee635d6e5e"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0261_02.journal.jsonl",
++        "sha256": "e32c4e9abe61b7ad5fe00540977b860e4cc279cb71f5c9dfc79854cd363bb10b"
++      }
++    },
++    "d1/scene0261_03": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0261_03.npz",
++        "sha256": "5464f78d708895f84b6cae263ed3e2c2e79b392acd95fb25f88787c29fc0c483"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0261_03.npz",
++        "sha256": "1da982e80face80728d994d6f8d436e94c1665655d7daafcc032a7f131b782c8"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0261_03.journal.jsonl",
++        "sha256": "2bb1a9114cf2b2d4a14e0a434fd1ac8f72bb0f31c3330bf4ae277cfe0fc09caa"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0261_03.journal.jsonl",
++        "sha256": "d17610ee6188c00f81d51f3eb49c95f819f6c51953f098ac418ee9a08ed56fb8"
++      }
++    },
++    "d1/scene0320_00": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0320_00.npz",
++        "sha256": "dae178a5287014d3ef055d5228db905bb5b387584133fab5a96e8f7c456e12d9"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0320_00.npz",
++        "sha256": "44690bea42ea03e80cd81ed12f8594d6d4dbe775a1145806fb378d9f2005ea1d"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0320_00.journal.jsonl",
++        "sha256": "4bc5978022749bd8647adbbe8d3218ef452bcd9d1bb261b754f0e65561ef0b0a"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0320_00.journal.jsonl",
++        "sha256": "2f2775a57b4c67dfd075b6ca3fbdcbb392f11b4db608769e5e3ac0faaad0225b"
++      }
++    },
++    "d1/scene0320_01": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0320_01.npz",
++        "sha256": "2ca1cd5c67ea521e53c1342012342197b3d6eb7970b9ba8c54be46744df64bf2"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0320_01.npz",
++        "sha256": "52c9d8b6b9d4a9d5772ee8dcc89157b488d64fd41a6e92069a68f28323561637"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0320_01.journal.jsonl",
++        "sha256": "3e7ae56779d70d95c160d40f714c1b76c628840091f9d1fff83b01842c5db26a"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0320_01.journal.jsonl",
++        "sha256": "7745588d1b8507fd5bca9ae6cff9f9b945deb6c4412d7449cf5354526da7ba6d"
++      }
++    },
++    "d1/scene0320_02": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0320_02.npz",
++        "sha256": "4567a2c8ba0e21de8e2fc08d714c44e87266a391dda26b43471c57394022411e"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0320_02.npz",
++        "sha256": "bb494886954dd8322f8462205856e7aa708a85b0352305385b0f364e4868b9c0"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0320_02.journal.jsonl",
++        "sha256": "7a0c35fbc4f80b61c7b625de6eb2aeb44e97ff311df449e2d9a1725bbffd57dd"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0320_02.journal.jsonl",
++        "sha256": "63b8cf4d7c09bb065d5f4fa9ffc63187cdaf89c0332bb30eca8ebf1795b1596d"
++      }
++    },
++    "d1/scene0380_01": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0380_01.npz",
++        "sha256": "521edd87edde07e557b9ae365ad5e6801ce97498e17db1a61b8f6a2e186bd576"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0380_01.npz",
++        "sha256": "2465fe5f275a8e4f2c31e9333cf098f025235f551277a47f6974153cefa21875"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0380_01.journal.jsonl",
++        "sha256": "306b19d7267d026dde877ba23f51fb8e707edd5da13e91de15d771f6b12a6a13"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0380_01.journal.jsonl",
++        "sha256": "caeb7300a8206028e3a446da84de87917c701adb3b2388461e81b2e0ae42870f"
++      }
++    },
++    "d1/scene0380_02": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0380_02.npz",
++        "sha256": "f3087e1ce16da5c673d349796bff7d027ba0000dabd95ca188f61f16541417b2"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0380_02.npz",
++        "sha256": "e1a731e332bb21cdf4609a55d78bf5db3028d8a4312ff615afa768191169e1c6"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0380_02.journal.jsonl",
++        "sha256": "d917a2f5151a64079e5ffe3369892301ff3112de8c005afcf71c66a65a8ed3d9"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0380_02.journal.jsonl",
++        "sha256": "86a0937b65ec844e907ebb3e8bc84434f322c51358a2b8a9e828f71b94539cda"
++      }
++    },
++    "d1/scene0401_00": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0401_00.npz",
++        "sha256": "dbab8bba303b96696dbbfa353fa1c302e25e93d7fe97b9b0aa3a444af8bf17d9"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0401_00.npz",
++        "sha256": "938125f08bd7c86d5c494d8341552956961ec27b8031e18c3420896c48633eb5"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0401_00.journal.jsonl",
++        "sha256": "e449f9c467fd3b0cf9a129bb08fcc88241cc95596df370a44ddc21b269bb536a"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0401_00.journal.jsonl",
++        "sha256": "cc9332cb7fe7508447813b1d38155c4bac33fef4eef60023dfb623a84039dbff"
++      }
++    },
++    "d1/scene0475_00": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0475_00.npz",
++        "sha256": "082764ebb56ce429a3ec11d3a0f0b64438f66f76166ec816d65872d51c9cfb69"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0475_00.npz",
++        "sha256": "22dab7f85d36a2e8268c72a1ad9d900c4e065c8356a8a7bc31dbce336bb6353f"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0475_00.journal.jsonl",
++        "sha256": "c88b344c9ab6f56512890f7b86b0dc1542c98a2fdabaa531c5e7cb853033e9db"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0475_00.journal.jsonl",
++        "sha256": "29087c08e3929ea551bdd4d46bc99626a6063bea894af3327482d5d36a6fe98e"
++      }
++    },
++    "d1/scene0475_01": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0475_01.npz",
++        "sha256": "b11e2604790073962c38374cbfe776773a72702358b23985487da8b7f2c3169e"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0475_01.npz",
++        "sha256": "784508c61576a9f00ecf3c4ddf0d322ce534f714a4f2b606a3cc87b0e9f33952"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0475_01.journal.jsonl",
++        "sha256": "7849d446f10eb45cb57f63e520c3500c6fe68d7c424bb71c163ead4d12a37d77"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0475_01.journal.jsonl",
++        "sha256": "1aba19129e60653d653154d1ae56cf8648d7e20c0aa005521f9104f7b3a9718f"
++      }
++    },
++    "d1/scene0475_02": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0475_02.npz",
++        "sha256": "45e536ff17da4e799c3499cdb107d539b364d215eb6fa2d4fdd53c3621ef54df"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0475_02.npz",
++        "sha256": "361f38b79f7607df63226a3aa4bb5f3055cfd5994e66c05fc7c599124076a7bd"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0475_02.journal.jsonl",
++        "sha256": "ae4b4dfe214412d777404a1a3d4790220e95b199f6e7bf55118eed3d9124534e"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0475_02.journal.jsonl",
++        "sha256": "4ac8a9230f60bb65e79d808766dc234e8a89a975f20e3a949015ad2c9b53042d"
++      }
++    },
++    "d1/scene0515_00": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0515_00.npz",
++        "sha256": "9559bfca6b2d4c2fe0cc77757037c040ac9002d47a60bdb8760234d0c8774c35"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0515_00.npz",
++        "sha256": "41c803ea3d89ee45b72175e2810faee1e669c9ab833ca8e752d9dde34c0fe873"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0515_00.journal.jsonl",
++        "sha256": "21e71104b13910f0ae23a2af5cb1a4df6819ad273095fac83fed27136b816255"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0515_00.journal.jsonl",
++        "sha256": "f307834bcc24088d6977d11ea74578d69a5ab378a46a2d15ab47f1bda367e2ba"
++      }
++    },
++    "d1/scene0515_01": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0515_01.npz",
++        "sha256": "d7e3e5c49f4373c34182f6d2e82ffbca45f40305dd457d3bf5ceae4b8166700e"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0515_01.npz",
++        "sha256": "af4cad4da5abbae14ceb4d52b16a0e2898520d6aea5859a6e654ff7f9cc143ff"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0515_01.journal.jsonl",
++        "sha256": "ab7452d7e7699ab61bbed42d55072bbd7699ed789c4ebf632bfc57563cf2c311"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0515_01.journal.jsonl",
++        "sha256": "165bb24c6ad3116f61e17e73beba5255179581a1096a52be31f3256d6962aee3"
++      }
++    },
++    "d1/scene0515_02": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0515_02.npz",
++        "sha256": "e807fccf1df55ad87b3fcb988327cd0064b454b6b9b18b8783baa873e6d4a130"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0515_02.npz",
++        "sha256": "517faaf27a1eb06e122d04491fe852546523f05ecc14d6dc7b64d82ede611d32"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0515_02.journal.jsonl",
++        "sha256": "c72999954ff76aa2730ee5b782959f763871f89cd10be1285f0af0f600524f5b"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0515_02.journal.jsonl",
++        "sha256": "92a68fa47f883726b9d2842e72322fb41dd5da47215a61b612642f2c239f218f"
++      }
++    },
++    "d1/scene0534_01": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0534_01.npz",
++        "sha256": "d537d5a774eb310c6e99e4dbd9e3e6a96c48251ef2af5fbcf8f535b2d592417a"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0534_01.npz",
++        "sha256": "8638b56939137963b8265423c264d639439e495a1c286e2046e5507191541cf2"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0534_01.journal.jsonl",
++        "sha256": "c1fca64eebbb369289d488125d6853a2ee7c5ace936f1e1862eb0f6a7f559f70"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0534_01.journal.jsonl",
++        "sha256": "e5f60f46297aab3311375bfbf04b68b344e75f4c390b37d1987873dfd12a8f7c"
++      }
++    },
++    "d1/scene0587_00": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0587_00.npz",
++        "sha256": "bd0fe424dee2d4dafcaf925027c107445a0a1e90f8ddae6d54addd44fb485d52"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0587_00.npz",
++        "sha256": "2dee4bc616ce54ccaa47234119083aecc7aa482697ba063f4da0f6672e4e003d"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0587_00.journal.jsonl",
++        "sha256": "7c8c640dbc2ef714844a250b718ee2bd2d339b187af60afbcc2d13bb2f83714c"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0587_00.journal.jsonl",
++        "sha256": "b0942bc902bd9b818f4b3ec9cc9e675cf9f49db5e81d99acee3b6b006b69233c"
++      }
++    },
++    "d1/scene0587_01": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0587_01.npz",
++        "sha256": "29cd076cfa3081fa9c41c98cbe98962a9abdc0e6f3c83a1d911e06cb0b0350dc"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0587_01.npz",
++        "sha256": "24bcea614c6844f3d9d38522bcc46fefd1def7ae06d92f81a7483394612d09cd"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0587_01.journal.jsonl",
++        "sha256": "067e99682573e7c3c7eb44f2b17d64aec8b414aa3a7554a0318141c5948a264c"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0587_01.journal.jsonl",
++        "sha256": "54dfda220eda0da57fca63bc006bb628f2ce97df6455d177fc32e96b6adc6b38"
++      }
++    },
++    "d1/scene0587_02": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0587_02.npz",
++        "sha256": "45e88fae6f76f1c437a21bd5622784bf821db275e422bb4d71d3b25d08714290"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0587_02.npz",
++        "sha256": "0346d124b00bf825bf4af2d05cd4ba837eb4fb191c961636a73e9cbd027d6692"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0587_02.journal.jsonl",
++        "sha256": "785117dd80433a2f7d010ba1bdedc2381aae1424757c09d7d44856c72883f4a3"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0587_02.journal.jsonl",
++        "sha256": "be3c0611c65fb84d461242d14a3db44825f44d6ed79b7eaaf15a454c184cb6f1"
++      }
++    },
++    "d1/scene0642_01": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0642_01.npz",
++        "sha256": "1fcf2ea9cce837fdde09dcf495e04be4b9a75855e947a87db9b1be1316738127"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0642_01.npz",
++        "sha256": "f0eb6612133b1e96d01a9bf4890b6daa28b22d42bba232426266eb5c54dd600b"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0642_01.journal.jsonl",
++        "sha256": "1d578b80fd2bfabd0b0bb414109f38acc8e99807d2669f7ca55311526c78fb79"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0642_01.journal.jsonl",
++        "sha256": "e28c91d5220d49a9fe8a3143f0bed8f49d1a58284036adb43f8bd603f69024e8"
++      }
++    },
++    "d1/scene0666_01": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0666_01.npz",
++        "sha256": "88ec2821ea612177812be4edcaa80696846e68d500efa9afc4f24c8ab3caab5b"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0666_01.npz",
++        "sha256": "2ed794a89d9c10b11aaf6918cf7ccc1590fe25c233def72c70346e341b7c248a"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0666_01.journal.jsonl",
++        "sha256": "6491f61784295dc5ee218f9faaf8eea6542fbdc7475a46eeea0629957b2016a6"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0666_01.journal.jsonl",
++        "sha256": "33bc72614a9e9514c1dbfff83dcb6f8a3c5931944f1b457f02651a1d49f74b77"
++      }
++    },
++    "d1/scene0687_00": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0687_00.npz",
++        "sha256": "fa33caf917ef4ff3d2242d6ad47469c322f7364d18929f766e08e3326f8770d6"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0687_00.npz",
++        "sha256": "9341f9d7e1e854ca5622193fd7751588bd713aead849f4b775e02346280b941c"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannet__scene0687_00.journal.jsonl",
++        "sha256": "1220c318b05ea485297bf89a6bfb96a2cb0f5edae28f2c75324120def447d537"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannet__scene0687_00.journal.jsonl",
++        "sha256": "794e33cb29e6491481ab6e6a58983c1bf216ca6fde7cc2cb8d61c2248d6f9e82"
++      }
++    },
++    "d2/0c7962bd64": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__0c7962bd64.npz",
++        "sha256": "23b720b1025f3aa9b2e3d7083ee60c2cc916f8e221bdde0105d2cd5fe3fed7a6"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__0c7962bd64.npz",
++        "sha256": "35908a096799a263a9362ac2ecc0a2bf7e0d268975ac78a0f59bfdb09e9e5af6"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__0c7962bd64.journal.jsonl",
++        "sha256": "9cf140575bfe3d338a9dd19ea71a604fb25b0963cdef20a24cc1c8b9ac4e93bc"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__0c7962bd64.journal.jsonl",
++        "sha256": "da6e65ecb4164f405307f1990cf7236a78c6c3a52bce685842ce531afef8d8ae"
++      }
++    },
++    "d2/17c5e6a336": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__17c5e6a336.npz",
++        "sha256": "2c6d5a824945032ca80720a08b9ad179f18882265aaf4da77db230e4e75aae7c"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__17c5e6a336.npz",
++        "sha256": "c3498e1dee2d7c404cecdeccb511038122ce641f755f622b795da9fa35199a0b"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__17c5e6a336.journal.jsonl",
++        "sha256": "a231ce18ed8ee487d7a81fa19f032cc9f896986b2ce2ed4fa1d8fa24b6449564"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__17c5e6a336.journal.jsonl",
++        "sha256": "e4acf3a2545c10e8227f32720d343a110803e1460e329f8c988eef3651c64102"
++      }
++    },
++    "d2/21c5ee0ca5": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__21c5ee0ca5.npz",
++        "sha256": "88a7dba5cc6457198ac3a8e4a5837ca8718a32f9fb7fa6a06701f3c06f55bc38"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__21c5ee0ca5.npz",
++        "sha256": "36a9e38d5288ec5c55a33da9b740c1e57b20553d82c6961ec50d1e6d645f3250"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__21c5ee0ca5.journal.jsonl",
++        "sha256": "5a2d7cca0aeee83a7eefb5efec0603775af57c5add532da3ccd8c54d5cef547c"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__21c5ee0ca5.journal.jsonl",
++        "sha256": "ce7580a5d9c0294d4f5a6d7f3c61b87d606b7e3b091f6d5a353adc397beaac09"
++      }
++    },
++    "d2/246fe09e98": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__246fe09e98.npz",
++        "sha256": "2039e5ebcd9ed94f783c79bdebb13dea53aca5161fc560839752ea871eb752d0"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__246fe09e98.npz",
++        "sha256": "d6a9612126fd084bbe19010a365c6b439e63081ad88074a4a91c49bfe52fb47a"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__246fe09e98.journal.jsonl",
++        "sha256": "12422909be94932e3b321977e571d88642bb4dbea9fee260c45bfb13e45deab8"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__246fe09e98.journal.jsonl",
++        "sha256": "e122a21a2fd1e761e59a2386ede270c409a740e00caba0cf73f66f455360cfbd"
++      }
++    },
++    "d2/260db9cf5a": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__260db9cf5a.npz",
++        "sha256": "3b74df744e07a962700a74572da9189d74c89f2c0959d0d0ba8d7170d8b80b1f"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__260db9cf5a.npz",
++        "sha256": "4117edf3295aad4ee4ab5fbad4fe7f92018c11ffd4e97fa2a89aa03da5036dcf"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__260db9cf5a.journal.jsonl",
++        "sha256": "40606149b2494b25cb508dbc6178b48aeebfa44a2da10a1e645c1182c1002ee0"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__260db9cf5a.journal.jsonl",
++        "sha256": "2af3cf5603f97937432559b805c21957e26d9cb45c1db0a94fe4491e72e0cae9"
++      }
++    },
++    "d2/307e3262f1": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__307e3262f1.npz",
++        "sha256": "3563a881766d1ed2a97053c4eab65ec30f463131240e2d063e6b6349507ddf46"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__307e3262f1.npz",
++        "sha256": "c5a98708cc8648e69b569bc3bbb082b8ba2dfc0aec77275945dc015ca50009d7"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__307e3262f1.journal.jsonl",
++        "sha256": "dd6abe31972b99c880347489c9eb56a6f4c8c4b40147bedf65abce923d49e146"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__307e3262f1.journal.jsonl",
++        "sha256": "69560be1480f9686a1bd4974e5a8fddebec4e1fa06eddfa96affda65e654d770"
++      }
++    },
++    "d2/37c9538a2b": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__37c9538a2b.npz",
++        "sha256": "1d6fca5c011ce67dd8135415e6c8af6cab2aee83b802ced835eb24301ed85ecb"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__37c9538a2b.npz",
++        "sha256": "ca28852c049c6c31f5308b9ad881aaab12de8d707d456b5d1869ae11740f961e"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__37c9538a2b.journal.jsonl",
++        "sha256": "cbd23713a2aceb1ab4f9a64018a5953119c5aee06cf4ea2c7027aa877d270b78"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__37c9538a2b.journal.jsonl",
++        "sha256": "ffd7e6c295ec9f152e347fde05b335b0828390e982a3fc146c9113e180edf018"
++      }
++    },
++    "d2/38fcf02d0b": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__38fcf02d0b.npz",
++        "sha256": "4e51a411334e6004ba5fe2676797c8c8c5b8b8515d5c2383feed4a4487891abe"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__38fcf02d0b.npz",
++        "sha256": "87f7f23f0f8ad38ef10d9159f89fd18ed2105a9701790cdffdf05d1739ebb2d3"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__38fcf02d0b.journal.jsonl",
++        "sha256": "68b3d0f259b14e3bb650eb4bd263515399768a7355e28e2c61949a1956fb0274"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__38fcf02d0b.journal.jsonl",
++        "sha256": "75d7c0baa90ec8ea57478ec82e503c47b2c1354d3b14bd544c8873e69a4fd54e"
++      }
++    },
++    "d2/3ce6d36ab5": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__3ce6d36ab5.npz",
++        "sha256": "597170812feea6e08da0deed203129d7e4198261a2451c8b299829d6fbc7f7ad"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__3ce6d36ab5.npz",
++        "sha256": "bbe38eeb531d4499cdc859b0b6f23ce38ce6604a8627712f1f534e0e2b45dcf9"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__3ce6d36ab5.journal.jsonl",
++        "sha256": "255e22cf47b355f59d1b7dc60974d2d11e669a8cfaa0000fefd71243f3db1eb5"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__3ce6d36ab5.journal.jsonl",
++        "sha256": "5594bc4b08dbe0d6d1a3019c7f644a93d6bcda3b0ce4b001d7b74e9d7e769e6f"
++      }
++    },
++    "d2/5b0a310211": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__5b0a310211.npz",
++        "sha256": "c0e212804d47ccdc3cc48f0eca8e271d01d9fb1c40c55c126470111a17cc435c"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__5b0a310211.npz",
++        "sha256": "2d4bacd993a7395e5c01c32b0171234c76ef5a504e8cee507075329560969d22"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__5b0a310211.journal.jsonl",
++        "sha256": "e047d78c4d47d5c0ebc28a5d93a307bc3c68ed53783cb0124d3167cbf833f869"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__5b0a310211.journal.jsonl",
++        "sha256": "05a50901ea03ee1980c01015e9b2981745f8107f12eac53135e21fd2a3b2f777"
++      }
++    },
++    "d2/5c21213f16": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__5c21213f16.npz",
++        "sha256": "7b4b2581d492f47ef7f591781080d1c2d255286be023fe718e63fe56c31ca634"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__5c21213f16.npz",
++        "sha256": "ece2624ca6f3728c3047b13622c4ac23c3813366ff692ae9c8db7ba9ab9ae9c4"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__5c21213f16.journal.jsonl",
++        "sha256": "589532622f90ec1360ad42e0eb9d7e93af977f8f9b250ea54c2abe45448b850f"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__5c21213f16.journal.jsonl",
++        "sha256": "408ac5b5a87c8e60f86f07d5949462f02f26bd9448dde4713f971d90ed9fef98"
++      }
++    },
++    "d2/623c973c56": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__623c973c56.npz",
++        "sha256": "a20f71a55f6407d4142dcbe0a04ad5ea94ad24850d3812ac46a7d4e68aa7f799"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__623c973c56.npz",
++        "sha256": "078b5a96846a69252f3bb6065726defb997e6dc0e6f42b25f791ee2a912ec1f5"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__623c973c56.journal.jsonl",
++        "sha256": "5c0f8a9a509c47e6b5468ac04aaa3f6d715e7b849b908c54ff707d0ac1f86f58"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__623c973c56.journal.jsonl",
++        "sha256": "b2021ee71ffc52b7616bc0cf84ad270ed6938626673990f5182c149531fa2239"
++      }
++    },
++    "d2/6a217fbcb0": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__6a217fbcb0.npz",
++        "sha256": "50ee927d3b1bd60ed05e13ffc2743dc2286d0ce9794c5fda9c611a01cb5c2b5f"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__6a217fbcb0.npz",
++        "sha256": "98f7e170175084f40736af64346db9f54f650c78815352814edef549e853220d"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__6a217fbcb0.journal.jsonl",
++        "sha256": "3d20850b6b00bf883bf14f93571108bb8e09d86d886db7036a3a3730e6d4699f"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__6a217fbcb0.journal.jsonl",
++        "sha256": "f05e0d41538af60fd7905a97db2c2d7ec093b4691ca635f4d3450b1556268236"
++      }
++    },
++    "d2/7e7cd69a59": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__7e7cd69a59.npz",
++        "sha256": "87aacc7478c3961f8f001da4cd05834de3eb889d77ec4595d12f6da2720d2934"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__7e7cd69a59.npz",
++        "sha256": "c29db487c3b4a966a28d30d2c478322850c259368dc153fb9f709cc9a0c5a4a4"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__7e7cd69a59.journal.jsonl",
++        "sha256": "d5af8c57659af9ba0c33639312cef6f0ef7768c588320b220f84aa8f70a0fc68"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__7e7cd69a59.journal.jsonl",
++        "sha256": "ff136eeccd1de3417df8b2d9795bc8aa4a84284db286b9f9a7c0a4a8691572d6"
++      }
++    },
++    "d2/80ffca8a48": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__80ffca8a48.npz",
++        "sha256": "8b3cf7450702e2c5697d01fa61983cd5d787b9d579c6caaa3a252567ca5e11aa"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__80ffca8a48.npz",
++        "sha256": "d5f37331029570837fb6f383ee93214b05df247b7df49117a8038f68a868930b"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__80ffca8a48.journal.jsonl",
++        "sha256": "c9b2027e48a7d917e2e535e2636430693a6d2b2a3eb824629b8714f0455dd7ae"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__80ffca8a48.journal.jsonl",
++        "sha256": "d228489167d259e4bb815ab95fdc2cba90250abb82534a557dd3a66a8c8b0a16"
++      }
++    },
++    "d2/99a2503d63": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__99a2503d63.npz",
++        "sha256": "b9423dbaea9dd04fb1798b897abf2058d286cce5df6674465ccd1095aadba282"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__99a2503d63.npz",
++        "sha256": "8f62ac53c59f900af97f21a784959963fa0c529883279dd8b254d490204e361a"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__99a2503d63.journal.jsonl",
++        "sha256": "c6810f9c05d40a1e12e40870efd37adee7299fcf7abbf5d752660d7f93687d2a"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__99a2503d63.journal.jsonl",
++        "sha256": "5891367bc951338b2c75dbf55c2451177d273df7f7ec274301481d52774b0c5f"
++      }
++    },
++    "d2/aaa11940d3": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__aaa11940d3.npz",
++        "sha256": "7db952194a6ea4b558b9c585ceb746766bee0f2cd6fc7ba8ddc901945fe51d4c"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__aaa11940d3.npz",
++        "sha256": "6bde60a4bd3d620c190322106fc80edf4f461d628c7a7f9e63d0ad705248d03e"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__aaa11940d3.journal.jsonl",
++        "sha256": "232af7332e526d81cd854f7d05ccacd1e7961b58e9d12211a32ba050256174af"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__aaa11940d3.journal.jsonl",
++        "sha256": "f579e01c325846d1d2fa6954bf820e20b4573379b63cbb1bbc4383de36f0bf83"
++      }
++    },
++    "d2/aaa9c251de": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__aaa9c251de.npz",
++        "sha256": "b40aa7c1d4e8fdd50d8aff0ccb697817303d78bafd9ec7a2d879141ec4a6e01a"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__aaa9c251de.npz",
++        "sha256": "050947676e3bd936b5f00986a5eeae86f42bc09a39cccdd265b39ec1067c6bd2"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__aaa9c251de.journal.jsonl",
++        "sha256": "ca918f9e8d3856fa6c77aca46e70bafb97eb18846713140be699d0ca35b7c59a"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__aaa9c251de.journal.jsonl",
++        "sha256": "6f93040502f1daeb573cc62b649e2c058896e61db2b63e54703d85ccf3cf575f"
++      }
++    },
++    "d2/ad562ce09b": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__ad562ce09b.npz",
++        "sha256": "ee1e0db62895a039c64d554d9b232f34c4106abebbab99735f95cf48b2cc5dc5"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__ad562ce09b.npz",
++        "sha256": "6f7af21a271bad0443af3185e768c9cf8094543017b3346a931f7078c5df1f3b"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__ad562ce09b.journal.jsonl",
++        "sha256": "8d34bdd0b3402d7eba2efcf6cbd0a9da651df85f5f732b86c79f93adbbd96b02"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__ad562ce09b.journal.jsonl",
++        "sha256": "fa31636df229966ce9532c97938e322adbe095704d74bdd874ca2f7095c69d43"
++      }
++    },
++    "d2/b09431c547": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__b09431c547.npz",
++        "sha256": "f56ddf32338544ca2c46b34373b93ed48830f8cb387b21b1065ffdd32c37a1e4"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__b09431c547.npz",
++        "sha256": "b37a05868cdc7589c445bdf9d7ceb577a5fa480f6b863a28b316360dcb6a0335"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__b09431c547.journal.jsonl",
++        "sha256": "3292b8606b1e474fee337965b19c5ede4e18fd7278e04437434db8269a5fd9f7"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__b09431c547.journal.jsonl",
++        "sha256": "5a26c298f4572f709f20f67113728b159bb38d231c216d664303c50a9d9a7739"
++      }
++    },
++    "d2/b37c033757": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__b37c033757.npz",
++        "sha256": "4576c7b0fd808d7fe0e78cad9dbc2d29e01e490b1ff3b23a863c03c968a43d90"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__b37c033757.npz",
++        "sha256": "5cb38ded6268fb37f9ee6e20bb598a61f231d2b15bf385d4bb06873478547fff"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__b37c033757.journal.jsonl",
++        "sha256": "7191b9e214154d5879e845582bc2c364a8a8c3490fe85155bbe3548a36b3adff"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__b37c033757.journal.jsonl",
++        "sha256": "40e9cc06a0d6817128c390c792b3205b286b71f228a851b9739409e098c0585d"
++      }
++    },
++    "d2/ca3b651c23": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__ca3b651c23.npz",
++        "sha256": "c70431bb51c11a47c43e5c21f2dffc9106ea7e51616ed3f0010fdc2f6528f1e0"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__ca3b651c23.npz",
++        "sha256": "504c441bae4cc231535803468eb7a58d1a6bb53d438e34ea5f6e55d0e4f9a704"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__ca3b651c23.journal.jsonl",
++        "sha256": "ab7179272452b8d4eb104878bad7b4a8918bb78ef2b775f59656fb884288b2eb"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__ca3b651c23.journal.jsonl",
++        "sha256": "2293927e97d6638790320a8150e83637680a07ba58213634fb5f3fd3342e43eb"
++      }
++    },
++    "d2/d6bb698875": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__d6bb698875.npz",
++        "sha256": "cfcbab8349cd563d28035caf7a3bf1260366a1032b685e4f546d5668aae41d00"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__d6bb698875.npz",
++        "sha256": "681412e1437848b2031167f13e18e4562f7f70e4dca06533fdf792b6530374c8"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__d6bb698875.journal.jsonl",
++        "sha256": "8db6c13daa08e53ee0bc2467c43631e00260d9b1e7fdd0ce61fe5de38e784b9a"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__d6bb698875.journal.jsonl",
++        "sha256": "df65f6fad21cc77446525fcdd4e071d502e3cd54d6f4f4d1f26c215d546b410c"
++      }
++    },
++    "d2/e35232b92f": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__e35232b92f.npz",
++        "sha256": "3d4b1816ab61d85ef57129f78d26d7dcf15118f345265f6a16a0d44f55199acd"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__e35232b92f.npz",
++        "sha256": "2090ff64723cfc6e1f1ce46a1a10702ece53e2958f1780cf6dbf02cc65ab4fa9"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__e35232b92f.journal.jsonl",
++        "sha256": "66e2a522474fe941dc9c8fab4a2027eb99fd7b4aa0eabf46a461b21c0c1cb197"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__e35232b92f.journal.jsonl",
++        "sha256": "eeeee4e5f7e02de64547bcb50207c451ae86f4712f5ccd403fca7c667386fcd5"
++      }
++    },
++    "d2/e667e09fe6": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__e667e09fe6.npz",
++        "sha256": "3fbb26f196f3661f8300e8f52b9112fb1dbc2659feb02388135d59426354e7ff"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__e667e09fe6.npz",
++        "sha256": "dc5fd96c5b04f5d20a732ac0f8a4a8e9ab21c42e9fa01aa2cabd18416ed4fc8e"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__e667e09fe6.journal.jsonl",
++        "sha256": "558f92ead46fc4ef02786b36d0da108f16b0b1fa168a70e25728f352de4610e8"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__e667e09fe6.journal.jsonl",
++        "sha256": "fb3525eb02eb40e4b67051c67da2fae71f5d5687fa50a2e5b619a74f6b450130"
++      }
++    },
++    "d2/e7ccd75e5d": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__e7ccd75e5d.npz",
++        "sha256": "013dec55021c98d5de702cb2d05bbd69e2eecc3b6dd162eb881e24631ee759ef"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__e7ccd75e5d.npz",
++        "sha256": "7ac64fb8bef90f7f51bd8f0ca43870d7fb61affc02e3d03e570d2bb843976b83"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__e7ccd75e5d.journal.jsonl",
++        "sha256": "857f7a577b98e1368f20894e3045a17d0ccbf957bd7ba5f7c0245c3c6cab16dc"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__e7ccd75e5d.journal.jsonl",
++        "sha256": "6212a083ea5d5c8fb1337fbe2f87e04adc7a766460d32edd85491f694309b095"
++      }
++    },
++    "d2/eb8ef9b4cc": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__eb8ef9b4cc.npz",
++        "sha256": "80e43a7807bb20bcd58198e354374c193172761425c7ca548399a97cbc19ec5e"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__eb8ef9b4cc.npz",
++        "sha256": "716dd6ff2b6fc16fdef70b7251edc78a6b8146fa0e490a8cbaea64dbf1af8ecc"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/scannetppv2__eb8ef9b4cc.journal.jsonl",
++        "sha256": "69d7d7ff4cd8af02096cac64fc2eae7b118ebb9fbfc14ef766779a9aad6473a7"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/scannetppv2__eb8ef9b4cc.journal.jsonl",
++        "sha256": "63053413cc160c4284ef323f0622f8760b0af8cf998e4f8f443d37b67aeef0e5"
++      }
++    },
++    "d3/41069053": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41069053.npz",
++        "sha256": "e7346514fb134ae925a76ae385e6512404cf7c8fdb63cb8723e9e89b1d3f8b87"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41069053.npz",
++        "sha256": "6acbb430c01cb3dfe4442d5359626f9a235f766b5eb4a814f346ac084d4e22e1"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41069053.journal.jsonl",
++        "sha256": "f95663eb1e3a6e848fa939719cabbc11ea7dd63af780209e99ecfbde5ef2273c"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41069053.journal.jsonl",
++        "sha256": "1a1f1501fa0877d0dd3785a28c65ef20afe9f640b82b3f91dfbf5c8543f6c8f8"
++      }
++    },
++    "d3/41069054": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41069054.npz",
++        "sha256": "b04b326f1096b4676f0e8093a7b5a9dad7ac65f0b3a447ffc58f86177e0341e9"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41069054.npz",
++        "sha256": "2e3bfce89b89e165f2b26f28764322b9319227c7a2557573ce2d090479dd5fe8"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41069054.journal.jsonl",
++        "sha256": "b5c0e34a4265a99652df7df3ea2d2b6a636974a6fd0f3aaa1fd2397cf0559ae5"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41069054.journal.jsonl",
++        "sha256": "d41be2ca9a0cbd53175f4fe4fb0506c6e43dd821eec2eb7d6c0abbfb9bbe3b3c"
++      }
++    },
++    "d3/41069055": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41069055.npz",
++        "sha256": "304027a8e1fb56f978fe7c2e0ddaa342d2355f8d9e9431b9ec2c2305509f95d9"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41069055.npz",
++        "sha256": "e759c675abe7426f1e68d078bea1dbab590630303e106c591b28aae8099afa94"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41069055.journal.jsonl",
++        "sha256": "7636d95263f40853e4afb6c0c1a0da4433252808d2f63781dbc5e1495df32981"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41069055.journal.jsonl",
++        "sha256": "65eca9a1ef5c5b4d4261dd27ec165c1e9c32d4bdceadb0033ee53f29460997ed"
++      }
++    },
++    "d3/41098139": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41098139.npz",
++        "sha256": "abc0edaa9ae9285b29a4dcea55a00c6b84df5205d5f51772c13ce42faa3e09c3"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41098139.npz",
++        "sha256": "bb79424d4af1a1e9daa290443290129814b49bcd2d626a1a498860641206a027"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41098139.journal.jsonl",
++        "sha256": "09706a62f322690f7dfbd7f3edf920a2eabb2b8be3c068efc83acbf2a8d451be"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41098139.journal.jsonl",
++        "sha256": "beb13c85ef42aa6c78c6a62ecd10ac2731ff983c477ff2c7ffdf878e81c0210f"
++      }
++    },
++    "d3/41098140": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41098140.npz",
++        "sha256": "a83583f4885e24b6ec205066f5517eb743ca814afadbca7e94f2c5751e69fe23"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41098140.npz",
++        "sha256": "ba902190f1bec71cf6d731767d7a6e53f6e9622c90d43a814db880e3f6b9e520"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41098140.journal.jsonl",
++        "sha256": "62dafa8d61a955dc4bad94f225efcd27a747abd553ffcbe4eb07d7e75f15f4f5"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41098140.journal.jsonl",
++        "sha256": "77c399920199c7c2a00c69b60c95f0c423d1f7d4acab1dc379a3fc20b3314514"
++      }
++    },
++    "d3/41098141": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41098141.npz",
++        "sha256": "ee6f4f5b286fb8086bb49b60274397c20123bed8c674f9d29dd377c958c31934"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41098141.npz",
++        "sha256": "0bb57328e599eee04fe78387686ec63830567979d4d04f50f2fae9f187e8f37d"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41098141.journal.jsonl",
++        "sha256": "7709a1045db754bdc5af0d48877a03442be0044833ea8a1b0d62ac8120172fbb"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41098141.journal.jsonl",
++        "sha256": "ed0021029aad043a7cc23d3c2cc4094e5abf80b717a2c8073ae5c0f432016dfb"
++      }
++    },
++    "d3/41098144": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41098144.npz",
++        "sha256": "50e2dd573214e0039721d0a2146ada128ba33f4226fcf18dedbf5d304108c88f"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41098144.npz",
++        "sha256": "5dd041aca187ecf31dbe9517393f8641987492d1c6da6654c90e0a6b576d3c5c"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41098144.journal.jsonl",
++        "sha256": "9e653ad22e48c769d6d7a929f7600f0982fc06a56ca4a8527728fe0b8749f4c1"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41098144.journal.jsonl",
++        "sha256": "619891eb8b695a2a9059b1d250e864eafebda8dcd4072c551076b16ae77494a5"
++      }
++    },
++    "d3/41098149": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41098149.npz",
++        "sha256": "a2e1ac814d73484025c9d82aa69af004bc475d3d9399e1f3e091dbc1e78d5055"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41098149.npz",
++        "sha256": "df59e3a3ff03aab615d012f14daac811aa2d2d4fe0c864f4ba7b1795f966e7ca"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41098149.journal.jsonl",
++        "sha256": "680567f0ab92b1323fcfb4cb94a7e16f29e804fe99eae29110fc815e1a51451b"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41098149.journal.jsonl",
++        "sha256": "87e48da9b01c9d8d6de7627815ad2a3a39aec54ede5ad303659390532030e0de"
++      }
++    },
++    "d3/41098151": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41098151.npz",
++        "sha256": "ae3a882475c5315c814613075a953f1a2b59fed110373309431f4e06bc92c3b9"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41098151.npz",
++        "sha256": "086005b53cf0b1a9c5f6143998115a05f3ed774db779a370d20142f570f74cb3"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41098151.journal.jsonl",
++        "sha256": "f74b31aa012a3f8fd7e34b95f6ed25f8458649560a626eeed41e9c1f5f8f3857"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41098151.journal.jsonl",
++        "sha256": "3151cbcf85a6dedb63f5f371e5259a249909490a2b0c65ebc0b01c2fa93325b3"
++      }
++    },
++    "d3/41126644": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41126644.npz",
++        "sha256": "038552a89ecfea8799f60beb43e33c3fb85e1aa64745d05f26237e7092a15f27"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41126644.npz",
++        "sha256": "7fd4858a1246135d698e190ad50706df57648010a56451c1c8f660aa8e6db9c9"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41126644.journal.jsonl",
++        "sha256": "00b6f271d5d2ed12a587d199f9869750acaa2eed449fa831f6b30a10a3f694ab"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41126644.journal.jsonl",
++        "sha256": "b77a33e1f5d0de36df7ba8971826f75fc4dd8a87f22ef971964e5c4d0e3b6ea0"
++      }
++    },
++    "d3/41126645": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41126645.npz",
++        "sha256": "837383f11640f19e6c1182f9a3ff2175314205b053f134cbc4164471dba28a3f"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41126645.npz",
++        "sha256": "8cfcf34ce0467ee1e72d91fb921e304c4a5b3613930fc0bd0031606838427692"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41126645.journal.jsonl",
++        "sha256": "8849843f37ae4497791072b54dd41e2eb92e904d305e53766201e05ec2681f9a"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41126645.journal.jsonl",
++        "sha256": "6b2ff2fda8439684fe7e14f74734599b01cc74947b96562333b26bd072316e5f"
++      }
++    },
++    "d3/41126648": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41126648.npz",
++        "sha256": "941329aa14a9f17ee504d98a437cbaf8b426a374458eaa09ebf50780e13a6a0b"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41126648.npz",
++        "sha256": "5306c5cc562eebe799edefb090ee77d3385ca3dace34a94a2fe960f092d83fc1"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41126648.journal.jsonl",
++        "sha256": "de3f24e14333c647b16a49ce68ee89c8bd10dce315eed526dea1a96f4bc8f9af"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41126648.journal.jsonl",
++        "sha256": "d6aafd81c25e09fdea6217975601aac9d570df82c70ffb038d1598a3f88045bf"
++      }
++    },
++    "d3/41159757": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41159757.npz",
++        "sha256": "b3c894ead769c1f5216c84aa7094c9f41ceca1f9d5d60e9b8f88c8bf883aa2f2"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41159757.npz",
++        "sha256": "1e507075be7ead21e812d8509848efd7d7295c9aa97811a2d432ef5673e8c855"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41159757.journal.jsonl",
++        "sha256": "f34e9fdf41438f6776c2c9dbcdd5b87779fa7a54ab3f8cea4e2d0127401ccd3c"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41159757.journal.jsonl",
++        "sha256": "2f0e26c35ab44645713dcf0536da3a7efba4f64f69c60657af382b61ef29d59c"
++      }
++    },
++    "d3/41159762": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41159762.npz",
++        "sha256": "5ca10123bcc858844c1fe780463602fc72b402af41b7e8a6559ce604578e9bb5"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41159762.npz",
++        "sha256": "9739dffb9428b29295b9b838dc6a5c84e9bb116cdaae962ec9cd92b6a045a123"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41159762.journal.jsonl",
++        "sha256": "e44583c5d779bf7b6233909dac24ce10f9cea632c359f2a02a18fbd6c6650aa3"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41159762.journal.jsonl",
++        "sha256": "6c2b7ae63876b34cb3fd05a0cdb87cbba508f21714b0e47c89dcaea23ed2acc4"
++      }
++    },
++    "d3/41159764": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41159764.npz",
++        "sha256": "a9413cd65c712001db688c935dc19b364cb0c6f4c64bed1a662131762c643771"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41159764.npz",
++        "sha256": "ddfbcf71431dbac4b97b911e07c4923526b93ccc6de71b41e613ea71457dfe8d"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41159764.journal.jsonl",
++        "sha256": "09e158301f4b5701bd30a3a1cc1cc885d7a4f2d8cd31c11d5c265b800b1b20f7"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41159764.journal.jsonl",
++        "sha256": "3c5e471a6fc306943c5f3ff89de6fc2aa7988bc595a8e23a0a6fc47180117246"
++      }
++    },
++    "d3/41159771": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41159771.npz",
++        "sha256": "fb4f0fbac56158d96aa99cb60acbe856b8344b2495cf8dc1348e7afd1d602b78"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41159771.npz",
++        "sha256": "944e61dd1278da114a6eaa9fba427aff088cdad984734ff203d0c35223920634"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41159771.journal.jsonl",
++        "sha256": "28e9115f81417d7be4b6e0d4c1f793625f0edcc82bfa014da48747042936f80c"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41159771.journal.jsonl",
++        "sha256": "a1fc9b21a9806d8b96b741ebfa3112bfc8250816a0350fb946949d4e4ca2822e"
++      }
++    },
++    "d3/41159772": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41159772.npz",
++        "sha256": "6618be947f58c8f0cdb157873908e2d017c69de4b8b9093a39b810620c5b46d9"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41159772.npz",
++        "sha256": "1de433b5eba393c57da245580215412e96a7b66e18206580d9e3bed19f0d0788"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41159772.journal.jsonl",
++        "sha256": "615b63530a8b1532bdeb2ca46ab937d6a5d84f5e11ce805fd8c4d2de085fc0d4"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41159772.journal.jsonl",
++        "sha256": "655c1dbfa2e7a6eed333406d52d64df8a6a18aaba2183b1c992368779bb10913"
++      }
++    },
++    "d3/41159782": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41159782.npz",
++        "sha256": "759cf4fb990559cf2be72d853db0c2ff9fd0c1f2454377946647dee796f461ef"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41159782.npz",
++        "sha256": "16e63515844bdf306b7055af93b3c8f771ee2ee00cf6ee6220e52e6ac1a436ea"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41159782.journal.jsonl",
++        "sha256": "fe0b0e3ecdb7862e8b2ef504c643a63a6b1b550e85004b97de545702e625d21d"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41159782.journal.jsonl",
++        "sha256": "513cd56b6187964e30c5b6434653cb145adb9e5b1ea55861f1fb1e28f9c33de6"
++      }
++    },
++    "d3/41254810": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41254810.npz",
++        "sha256": "39961a8c658404d1b9b8b829fd29a0b315262fe728dd798f8aa26cd3356b039b"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41254810.npz",
++        "sha256": "a997d0ee502bc24027a8a38150586cf449f33bf65091e41ef434ff939d551730"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41254810.journal.jsonl",
++        "sha256": "a8871c4d6c8a4cde70b3ac063fdf0ba9d52793c5351aa58e42606a411897309a"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41254810.journal.jsonl",
++        "sha256": "0d69b621dcd9c088fa6778f70f4d2703391e6a646fc90ce0ba032362193b2365"
++      }
++    },
++    "d3/41254815": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41254815.npz",
++        "sha256": "e549f20315d11447056ddbfc07f10cbf294c6d82832ab4f7ad4129c893266f0c"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41254815.npz",
++        "sha256": "1b9e9d96da3f5f1d4b5d75c8d83c5e8a87b463b1b9b5947d3e34fd6d573e04ac"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41254815.journal.jsonl",
++        "sha256": "d87b9e3da78630bf1a74cce1b97fa2075a4311e6aedfde06131cc99f87262a73"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41254815.journal.jsonl",
++        "sha256": "ae04c0995d4e95550d7ddc7b165c2e4e5774379d6f4af6400bba28227e8be560"
++      }
++    },
++    "d3/41254824": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41254824.npz",
++        "sha256": "71644e0e26683bebd419219e5956fd8a7dcc0f3612dbaef9b246017f7ca469b1"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41254824.npz",
++        "sha256": "918a3fa91ff689b58dd7672ddadfb687d7046b0766761a76719ebe125b69eaae"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41254824.journal.jsonl",
++        "sha256": "53e8f8315cfb3b31256f68314795800eb64afc809ef9295850e92e980d611cc4"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41254824.journal.jsonl",
++        "sha256": "897bf9eebf00d740e0f575cf99b10b4156e14b81cf9de78d0b1bb8456141f60f"
++      }
++    },
++    "d3/41291639": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41291639.npz",
++        "sha256": "ec67e60bf14ff0bccd176c3b09eff741c33ea148aa3a4bb915d53de8b294c531"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41291639.npz",
++        "sha256": "a8e43433b7e10b0b49c8bdcd83469aca6681c967e2994b68a628d63006670adc"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41291639.journal.jsonl",
++        "sha256": "3eaf558b669b838134974752f961fbe3c75c14c9e6a4706e8a0b0d015b748e8c"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41291639.journal.jsonl",
++        "sha256": "8d8470210a54d4943d8eba20ef8bca5cc0a505bd3394c1506c4452286c234de4"
++      }
++    },
++    "d3/41291642": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41291642.npz",
++        "sha256": "9e0e4fc34092289aeba1811fa339eba1b7c3d021b58af4683c57a2c3abadc680"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41291642.npz",
++        "sha256": "debc6c96620cb90b782e93abe9fa83d51feed3a525fc59ad48d7026e2382d311"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41291642.journal.jsonl",
++        "sha256": "a933ea1dd3b5abf6cedf54ff48d71dd2573bed47a7a2a2cc328665758294ba4c"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41291642.journal.jsonl",
++        "sha256": "71db8699dcc141ebd6616d793a0ca6f6d620eb6f6f3eb8f456d4fb9407020ac6"
++      }
++    },
++    "d3/41291643": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41291643.npz",
++        "sha256": "74c5c92b64fa7d1506c9b0e55dd73a5781175a6081beccfdc14720304f7170a7"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41291643.npz",
++        "sha256": "ba18e574a9d0bf0b16be0055acc2da0ac3fc19f09053387efd35e70e0bf43a7e"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__41291643.journal.jsonl",
++        "sha256": "5e9b8c3526f38e0bddb0d3fc8efd576d68fe8e9dc39a03a6e48254cbf4211fd8"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__41291643.journal.jsonl",
++        "sha256": "7fc3e15d7c25210e75ccf8de1c7956dce9fb18bd85d64ef37ee140d7f2f4064d"
++      }
++    },
++    "d3/42444810": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42444810.npz",
++        "sha256": "8c9f15ae5f6aeeaf5f4a1a74fe491ad37d2628ea03a7f75d03523a87f4c0ef06"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42444810.npz",
++        "sha256": "8865d6707226f3766c92199cb17f8047b8d709e770eb7289509db4db3aef063f"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42444810.journal.jsonl",
++        "sha256": "3f8202205c56c9754820a40ba15599eef34c2349fbd3bd9ef3efa839f2e34458"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42444810.journal.jsonl",
++        "sha256": "324c4547f2ff7198a6d3620778ce3e49855bb9414413721ef5a3bc8aae90d07a"
++      }
++    },
++    "d3/42445954": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42445954.npz",
++        "sha256": "f83b2c160c1012c385157777a8fbf6544979edaeb2f48452714ebf21233089c7"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42445954.npz",
++        "sha256": "5f41248d702bdf8362941723a15c8db477a0e32b5b0c552e905748b4687f3748"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42445954.journal.jsonl",
++        "sha256": "8df5abaf3c9c70249a7469d8ca893d275250b5eae8064147a6284c27d8b16187"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42445954.journal.jsonl",
++        "sha256": "066f728c923c52ddfd586d3408d78d7af2f37429a46f5be140d41fb5b2cf057e"
++      }
++    },
++    "d3/42445955": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42445955.npz",
++        "sha256": "d855706c4fc662eca4e2213da169e3831c24bb243d3ffb5f4a266a50d0717aab"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42445955.npz",
++        "sha256": "17e943a6fc8c6e5b852abe31bb5d7731e2ae35534b8d3da37c3a787ca2e0378e"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42445955.journal.jsonl",
++        "sha256": "33472026eb266d6405a6abb782f8e79420639c271e9ab2c18ceae429251ad9fb"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42445955.journal.jsonl",
++        "sha256": "d0e9746722673e7f04dd5b116bc7f7f11f3a5891b79041b54422fd67cde735fb"
++      }
++    },
++    "d3/42445964": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42445964.npz",
++        "sha256": "8719d47fd901fb97f604c758a042702b4f70c77b6a2d01f1ae1adb8d23e91221"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42445964.npz",
++        "sha256": "3990c5bbd46d7ce54048789073357132d2312bbe44b1408becc571ea2c981389"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42445964.journal.jsonl",
++        "sha256": "b1bdfadf180c6e2e1d5520a8bcb088bc12a49e4273c29aa7c00baeebc7fb3fe0"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42445964.journal.jsonl",
++        "sha256": "bb4c17de398fde8022cf99caa77aa8dd4e6bcec39d77e31ec2d280fd87c58821"
++      }
++    },
++    "d3/42446097": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42446097.npz",
++        "sha256": "badbafa3d9095243c28cc2c7322ceb4152acb7dc01d89f531415f01e79775aaa"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42446097.npz",
++        "sha256": "9d8a1a093f0b0c714f1353ce2aa4d2136a565543a2f83538df28d91fbac12d91"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42446097.journal.jsonl",
++        "sha256": "f37c76d946a17500663f7dc0ae29ea98cd71d3dcdfb9794b5f1afc884a1370b5"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42446097.journal.jsonl",
++        "sha256": "4028eb84b460e32b79325c546fdaf00dcf23e4b5d22266fc12755b0db4fcb9de"
++      }
++    },
++    "d3/42446105": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42446105.npz",
++        "sha256": "2740e55888413f8153ef20878db4efce8aefd3f86629003b3a51bdfd75490ab4"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42446105.npz",
++        "sha256": "06fdfe43d4ec62c33a9e6ff3476507022526bb88428f033efe26a92fed0b9e19"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42446105.journal.jsonl",
++        "sha256": "1a3db6f7255ceaa715361d60441b162575f8fbc4e551d731f7e350e31122d5e9"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42446105.journal.jsonl",
++        "sha256": "e748eaec3c207d6732b2ad017646a6c2da9843bea315360cedd0c999eb3e1c47"
++      }
++    },
++    "d3/42446117": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42446117.npz",
++        "sha256": "ca55edfc5f099fbeaa328f8b81c5ded37df754447458f87cbec60f2aa5a7c841"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42446117.npz",
++        "sha256": "8690ba02921915af2b7391f8fe95223fbac9a9d10c25b4ad3f1faadb815dcb04"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42446117.journal.jsonl",
++        "sha256": "2452c50f51d8c94d63ac652a1579bde9357264c312dd5b01f5347d69a9affc5c"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42446117.journal.jsonl",
++        "sha256": "928771849a7741ef981405afa1efcb320420a22049615c67faa1270b6008766f"
++      }
++    },
++    "d3/42897921": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42897921.npz",
++        "sha256": "279551878de2250caae93b8d6d3f540664e251f553c9db4698e673070e123e9a"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42897921.npz",
++        "sha256": "cdd1f1d641d436d02fc9bb4eb5d288cfa9657c322bb15f9f8ec7c1904061e7a4"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42897921.journal.jsonl",
++        "sha256": "8646efe0f0df89672a8c0a2100fc5c63b93ca462d244a10b7df8c80625b1b970"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42897921.journal.jsonl",
++        "sha256": "d2f5d1b95a89c9189f96deb03ecf6ce83b25107b88404047afa92a9844498382"
++      }
++    },
++    "d3/42897936": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42897936.npz",
++        "sha256": "83fa8715cfd8e876eab07585adf2575cea29eb77de4b4c308bb6aef719259a9d"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42897936.npz",
++        "sha256": "bae1f06cbbadd6700676649f210921fc9f1e5799d846b8c1267905c363b35895"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42897936.journal.jsonl",
++        "sha256": "f7de11e7ec9c48b5a00220c4f095e3764c3b22162fbbb27076620e78e7b0a0ab"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42897936.journal.jsonl",
++        "sha256": "a8c0d541a10888f986976afb461a33b87b4419b33afb93a34d91fda01b141f20"
++      }
++    },
++    "d3/42897942": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42897942.npz",
++        "sha256": "6cbd5f897fa88849ab2ce4b0b3297c2bdec14e3ba496d18dbff4472adb0a399e"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42897942.npz",
++        "sha256": "e1cc088bf6ef314899984eda07a9cda50a0f871842f9ffba2a393633ba92f534"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42897942.journal.jsonl",
++        "sha256": "2d0f195e360636ffffa965abc2c0b39a4c826eeb27ad51988ddb2e7cec616c71"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42897942.journal.jsonl",
++        "sha256": "101f15959bdf956d3dd68bd767f650d9748073e5a3b63b7ae596c1cd480ca018"
++      }
++    },
++    "d3/42898629": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42898629.npz",
++        "sha256": "d9850ab156788e67889febce02fa1ce1f59feeac7c5a82ea74131a69131ff015"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42898629.npz",
++        "sha256": "564aa3c2575d18b4041304651628727de83c3e87e06a3522f6fc07da75690b8d"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42898629.journal.jsonl",
++        "sha256": "5e9f275a9f193ca037f4e7e2bd62faf42cc96229bbbecb09bff553f9b70a5643"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42898629.journal.jsonl",
++        "sha256": "a4363a61478cfebb72fe2583790c1f47ebdd3a330a02320714b52380f0a22945"
++      }
++    },
++    "d3/42898635": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42898635.npz",
++        "sha256": "43c5c85a9ced3d805530693fd6c3e7e593d5f105a9fb3cb97725fdb53d41ae59"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42898635.npz",
++        "sha256": "a3c04ae44892d464fdfa0e62c22ff95d28d135d442eb7196be369b2519f32645"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42898635.journal.jsonl",
++        "sha256": "8f028c8ebaa1287ded7750880cb7d66f4513d5fe8fa0ae6e4aa7015d3bf7c780"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42898635.journal.jsonl",
++        "sha256": "b13616c4dc14385cf4c1046ecd7995ee9df920f5842897ebf3f234b37f06cc78"
++      }
++    },
++    "d3/42899232": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42899232.npz",
++        "sha256": "645b2aa124110bb02d6f537aefdd559a4fd28bbeea6bc5375bcd9b22a031303f"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42899232.npz",
++        "sha256": "094c632989e41e9d74f6a3c31d2cf1af2ef06b48c5b0c17be2f3ba17c39cea49"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42899232.journal.jsonl",
++        "sha256": "26297c78c16bfaee1b7cdbfb27638adc7ea782e045eb8f4ec58534a219a987a5"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42899232.journal.jsonl",
++        "sha256": "c2eb4337c07fe9b2be9f12a6f150c2ceb8518f3fe50274646817ba18e1cee3cb"
++      }
++    },
++    "d3/42899235": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42899235.npz",
++        "sha256": "3e9dce56de9b103274d30e12ecdd149b3c939bffc49d470525c5a50d051a7138"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42899235.npz",
++        "sha256": "0ec08cda5b5a455ecf8906fbd09987e632938ca3c498d5c78da8c30fba3408ae"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42899235.journal.jsonl",
++        "sha256": "252a51bca8f0c8df4da6b0bfd836d3a087c2eda72b61179b0d0b2c33e5d0f39e"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42899235.journal.jsonl",
++        "sha256": "20b154c038ca3b3e66f2c91701f0aeb61431e4aeeba488947c671b6cfcffeb81"
++      }
++    },
++    "d3/42899236": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42899236.npz",
++        "sha256": "cd6ea4edc247521560a6be830b6dab48ecf6012ee0b7b3c17eeec1147a5d3722"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42899236.npz",
++        "sha256": "dff8cb88a667b0859e23abf7aee213886f545106b9145d6a664195d388982ff5"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42899236.journal.jsonl",
++        "sha256": "f1b609ab8e4150bc964b08c12df4b935958aa934a375a175a55fd10481b5b7f1"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42899236.journal.jsonl",
++        "sha256": "ae715b2c76375428f728de8dc43c8d85909bd449c99dfd7139d1ae94990cc7b8"
++      }
++    },
++    "d3/42899525": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42899525.npz",
++        "sha256": "43a66a88058c0890ef159523e17918f905fd39ebd7de4946efdeb93adf2cc11d"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42899525.npz",
++        "sha256": "c6f4a484c3ee872298f965675c7101aa7c9ffc3eb272bc219cb841a7732d7318"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42899525.journal.jsonl",
++        "sha256": "8c1df537f80850d9e86f8bbe38b0e74aee111b47521bae81f4066b55859ead03"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42899525.journal.jsonl",
++        "sha256": "b809d9edcb9a5939d44baeb74e68bb148132a9568e00d73600811916b79f3564"
++      }
++    },
++    "d3/42899532": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42899532.npz",
++        "sha256": "aeaf298b29309bd926782e427826d5f1e6161a08611331d90f39a41711480ec7"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42899532.npz",
++        "sha256": "d275997b5b57f4f789c8e678523458561fc15b154dd729033df169280bff7a50"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42899532.journal.jsonl",
++        "sha256": "210fb20ac5c98a16d06f6b9cc8c412d73755d262e87ffc94f782316ae7a22bcd"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42899532.journal.jsonl",
++        "sha256": "4d07ff1de518562dfef419c03a782618fdd5fbeefc6475ad4be1ce69050f514d"
++      }
++    },
++    "d3/42899535": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42899535.npz",
++        "sha256": "2f726647ffbb7c00599d5800709e6afbda2930244fa835d83c7a174cec9e8413"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42899535.npz",
++        "sha256": "3e3af2493275a1ae25fa7d833295ac320ce59f3518589651254f22f8ab42ef3a"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42899535.journal.jsonl",
++        "sha256": "946f7d19c52ad97ce2e9e4d3531b19a04b2f82b503ce66c2252aed35c0bca869"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42899535.journal.jsonl",
++        "sha256": "2f45584320ef4619b85fb50485b8ba448f2f6890881184ab463447b52fe08ef5"
++      }
++    },
++    "d3/42899760": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42899760.npz",
++        "sha256": "8d8b8e553160cd15b29737f9485f0fda90453ba07cb4b4c5c25bb8f48ac4179b"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42899760.npz",
++        "sha256": "036fc2faf1c6b34fb136798e4c949b797e655261c78fa8ce2f05a565b0cc772d"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42899760.journal.jsonl",
++        "sha256": "bc1b6377607528cecfba1ec51615d23c5195c604e2defca96518494788dd68c2"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42899760.journal.jsonl",
++        "sha256": "0e8d2483352efb0f29ea9f72662c348a8b0198b28081a3b2191a29d6f932b8d3"
++      }
++    },
++    "d3/42899765": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42899765.npz",
++        "sha256": "4862b303c936a994f40bb16ec4d93320a430040de8fbb5338a665a7591375899"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42899765.npz",
++        "sha256": "711550995bed4fdcfaec20cc61fbbc610d51a284f98bcc57693684287c3398b0"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42899765.journal.jsonl",
++        "sha256": "39a00a1f158539a801020726b07f67979e341b0cd0791ded570c72d1221fb151"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42899765.journal.jsonl",
++        "sha256": "e334f04a7eba5da706addf4cd6c7ab9b720ece5f1c5563076e56f6c50c55af18"
++      }
++    },
++    "d3/42899822": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42899822.npz",
++        "sha256": "28a3010cd19238858ea94480ea942029ea721e3b3aad68435e54418cacb4ede8"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42899822.npz",
++        "sha256": "eb2cd90e7e770d9bae9cb781496a140c576760c8de4ff3e67d801640c26e4333"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42899822.journal.jsonl",
++        "sha256": "4b08e025a525e732b3e84083369dc511a5586e864eddc0fbcba2c069b50431d4"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42899822.journal.jsonl",
++        "sha256": "94e98d4a0f4316862c2b27cae9ab68b67fa1f2fda1eb190d8174a8f2d28ef26d"
++      }
++    },
++    "d3/42899828": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42899828.npz",
++        "sha256": "68d28dcf23effc68ece2c06e84f18a7cfc232f2f120e026e5d6d2afe2fdd0e4d"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42899828.npz",
++        "sha256": "93e5fb06e3b7eb26f2dcad9c902e4fde3e95f8ef9943b24ee2c8cd631e3c7283"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42899828.journal.jsonl",
++        "sha256": "f47a5e0f4ee2de90b4e343d2e4c187b2b6ae5cb2bf206afacce3a4122c674ad1"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42899828.journal.jsonl",
++        "sha256": "4c12dbafc4bda7c02be05beb066f428b0b1b58c592d54307f79480564492f938"
++      }
++    },
++    "d3/42899829": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42899829.npz",
++        "sha256": "d6234d1a0e714b7b54d1aca5264ef82c6e93571534a6f68086ad8bcc7f3d6f36"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42899829.npz",
++        "sha256": "350d804d776bde7bd26b101a40f4082626c36572d2ca696538ebd1be7ce0b40b"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42899829.journal.jsonl",
++        "sha256": "6b6111e33fee82844ade4395f66bd00588a8a09c0dbbf2eab8cf4f414b1b4343"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42899829.journal.jsonl",
++        "sha256": "22ef5d311aa930eb94eeb8ba4fcfb19d33d1dbd98fbd2602e119f43dfc6d3a2e"
++      }
++    },
++    "d3/42899920": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42899920.npz",
++        "sha256": "88f2205a932dd3ee9b2cafb097c25b9853617026a225bd6dbaa9a548283f7547"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42899920.npz",
++        "sha256": "1e3461ebb148d801d64099af86e2e5a7e850bede77b017303dce0c86b1186044"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42899920.journal.jsonl",
++        "sha256": "178e927dc16a69286c1c202a8ac62afa8b4a253c926a06c427a75dd22794024e"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42899920.journal.jsonl",
++        "sha256": "37c0f39c4aacb9c8658dc1ba3f4902f071786b8c44f3e5a1ed50947161c334a6"
++      }
++    },
++    "d3/42899922": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42899922.npz",
++        "sha256": "498f670680c4c0b7c85007337126713a5a3affb6a2a10099eb53abddf590351d"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42899922.npz",
++        "sha256": "962397004ec483a1cebc7492b7a2bcb12a6ed147eaeb7e86902ce2726ad43fcc"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42899922.journal.jsonl",
++        "sha256": "cdacdeba5675afed2bc13146c9bbdc3cb3004943b571efcf1d2a93890adbad25"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42899922.journal.jsonl",
++        "sha256": "2a59b2c5ed58741a96e07045f8ad2048b6963609fe274122241f1fa80040a692"
++      }
++    },
++    "d3/42899924": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42899924.npz",
++        "sha256": "d56c383b80e8ac55612d51d525135457455d31c697615cfea7284004ba3e9369"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42899924.npz",
++        "sha256": "d62a60ed754c722377fdfa867ca2dd2e27482a87f25ad522a89297550d90ae6c"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__42899924.journal.jsonl",
++        "sha256": "7cea402451a8f6ecbb320900caf27c73e1e55f01a2195a869606c56147a1faf8"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__42899924.journal.jsonl",
++        "sha256": "3a822de70989c1f776cef68ac7e6a1fc7504371c73ac651535f23a2e43f7fb46"
++      }
++    },
++    "d3/43649597": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__43649597.npz",
++        "sha256": "fae164b55905f4a8b447536630710cc53df1ca783af135f3669636a99fbcb3b7"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__43649597.npz",
++        "sha256": "c5af8dbf94c1c3af4b2d60aa4ae0eb9f616843bc3945817679ad9327d5565a9b"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__43649597.journal.jsonl",
++        "sha256": "f0ac5f51594661fa7eb4ca237f0841475a7898c997bf61be9c5b97f014e8a22e"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__43649597.journal.jsonl",
++        "sha256": "a2444e43e6a541144834dbf66506d4379fda6929fd97d68317855914ba3c5609"
++      }
++    },
++    "d3/43649598": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__43649598.npz",
++        "sha256": "1d1909cf1376cbd62dcd0be48ce00ccc3097b4d0bf4fbdc7fb569bb8932bcdfd"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__43649598.npz",
++        "sha256": "fd869956a53a0b813511d1a136c45950bd632de556aed2305efb8ea7980ee140"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__43649598.journal.jsonl",
++        "sha256": "386f15a436bc253843445e9288a8f444c17d177bdf478af26ede76c9f7a47d0f"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__43649598.journal.jsonl",
++        "sha256": "6b740d3c759c481632482204385bb6024ea5e82f96fec6b31c61dea4eade7db1"
++      }
++    },
++    "d3/43649603": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__43649603.npz",
++        "sha256": "08927f5104d5dbb3464de34cd39c6558a27e9129a537d3cd1b28fb67b59738cb"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__43649603.npz",
++        "sha256": "75ecfd838a4eabad987eaec630e0999083b5bf8a299bb9b8b1fa30dadeee29c0"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__43649603.journal.jsonl",
++        "sha256": "0d0c71223c1b75fafaefb8b5cc7a72ba8537a53a4cbe950632c266cc867ece4d"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__43649603.journal.jsonl",
++        "sha256": "7e94413680812b9db0e46f97db78b917c1530067f51f16b57bad3d60c882b906"
++      }
++    },
++    "d3/43828323": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__43828323.npz",
++        "sha256": "3883fb1d6de55a7f4ef1aa8ac9d4c7afa1e169cade3aad79a96c307157472567"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__43828323.npz",
++        "sha256": "7044a71def8a2cb2a6ce54a763c52d212db31110485cbbe560a38b3ef1413810"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__43828323.journal.jsonl",
++        "sha256": "25d82b6a7a49b59c172ed1e81d7accedcb254c39f1cfbd09bff4899888036169"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__43828323.journal.jsonl",
++        "sha256": "a74d95d1758dc6ebff3d2362469885ba4866e2f41802a2498fd88033443102c3"
++      }
++    },
++    "d3/43828324": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__43828324.npz",
++        "sha256": "170a59fcc30a68fb5c4777adfa149ac5dfcc3b4974448928fb98b26c0026302d"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__43828324.npz",
++        "sha256": "ed534f52c973c3b667cc91d3c5fd8bf0c6f7e408d0d8230f996fcb8d423f6c0f"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__43828324.journal.jsonl",
++        "sha256": "37b0c8a2d7794036fd898508e54ae53e29745d8ab38e78a929b095b77f0c49c2"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__43828324.journal.jsonl",
++        "sha256": "4d0bf9c40d3d288fedf7cd0e02f7643b7a256f49b8b5ec26189fd204f55dc82e"
++      }
++    },
++    "d3/43828328": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__43828328.npz",
++        "sha256": "a956fa779a1febe11dc06ae277ebaa9ce01f21626c111004536089a177871efb"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__43828328.npz",
++        "sha256": "46fbe0e6bc4a3cf2828e6dd9d7c738c8de5b974246bcd1e537a7585c1e08f896"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__43828328.journal.jsonl",
++        "sha256": "34b06c2eb522cf37037ed48cafd779cc79203e63076982d707b6cccef5d29b64"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__43828328.journal.jsonl",
++        "sha256": "274539ca1199b1d046fbacf0748fe91ba7e203e87f9b0db73979cd68be0b3ac7"
++      }
++    },
++    "d3/43828366": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__43828366.npz",
++        "sha256": "dcd19732d62e0c1060d2febb2ab05fbad3c6ff344039592d98f678259b21eed9"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__43828366.npz",
++        "sha256": "9555323aa8b7e6f3c0d476ad1f1da1103a84a9273e4ccc915c1c0cafd14336bd"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__43828366.journal.jsonl",
++        "sha256": "3c65f51dc4ad5f4faecd15d43184e6f758ff942a677f7a26e99a6923c2cf4de7"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__43828366.journal.jsonl",
++        "sha256": "aab0adc6c95325285563b00db5c9515e29835078c9dd4dae8542acde1296d924"
++      }
++    },
++    "d3/43828368": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__43828368.npz",
++        "sha256": "67c3783f055786dd3cc6a826d0d76254287229c2a5a80e2c1aeaef27c10c2f5e"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__43828368.npz",
++        "sha256": "005bfbf00e4dd41c205f46ff07a7efdc33aeeef929cca4f8d5db0600e1069e79"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__43828368.journal.jsonl",
++        "sha256": "dc06f156cde823fb99d8113c0566cbf242b75c6be7e37c37e28db02548d2f983"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__43828368.journal.jsonl",
++        "sha256": "f2098c7d93bb2598756e6d538ce3ff95ba3baf607a498f922582a0fe75f31787"
++      }
++    },
++    "d3/43828369": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__43828369.npz",
++        "sha256": "d06652562be408b5416e9a995f9f89047baed453aabdeff9c351d3e9f4ef42b3"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__43828369.npz",
++        "sha256": "cd41b4bd03858e828561fb77e4331ec7cad572789bc0b1db120823b350a14148"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__43828369.journal.jsonl",
++        "sha256": "260382b1638698f769c801e5cf54f9549848594cede6e5dd56df3bf611d81e1a"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__43828369.journal.jsonl",
++        "sha256": "e71ce42d03d0157e4eed7de1aeb1a164c5adc644f5880a36fddee618c04d835b"
++      }
++    },
++    "d3/43895911": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__43895911.npz",
++        "sha256": "29424f9148cf9f39e6da244fc9479b211887b33436ec4894cd3c2bd8e8ace33e"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__43895911.npz",
++        "sha256": "9ffcf82d825b2493b5ac6de669db64e8fe7896733aeafa510ace0bc4263349b3"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__43895911.journal.jsonl",
++        "sha256": "4bbb48712dc647a713d7723e495c6ce70df70a609e6d617f2cc48618a2497c00"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__43895911.journal.jsonl",
++        "sha256": "1e57c1ef23bade6ded57258b8afaecc18a729e1673ca596772ffaea2548b0734"
++      }
++    },
++    "d3/43895912": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__43895912.npz",
++        "sha256": "da1ba047cdb306f17c0c0600d27a595e548f9ad0294fad655b68c0da03eb69c8"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__43895912.npz",
++        "sha256": "854ecf77e3f00d02b7293e7ce6205f3402eb12b801923145fd91e1a0b476440e"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__43895912.journal.jsonl",
++        "sha256": "078c239b08ae4dea8f325c89c0b7e6d2d9d836b1222e3739e4c6ba2ef22f4890"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__43895912.journal.jsonl",
++        "sha256": "6e6b3624008199b081d568a83c6aeca516d5189e8d98ac82bed2a3f725e67192"
++      }
++    },
++    "d3/43895917": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__43895917.npz",
++        "sha256": "f218986b9e693125617de55ea27139b18d525c1cb6a7a8e7b4b41b842be809ad"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__43895917.npz",
++        "sha256": "572e06d04cc09fd1cc0ebd4904443f2eccb3b8f12fb2d61c744854ee2865c73a"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__43895917.journal.jsonl",
++        "sha256": "066fb8521994b0d97f58e928a2c6f87cafe727197e51c2f35b823ef00adeed3d"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__43895917.journal.jsonl",
++        "sha256": "1f5efcc3a48738291f70830b1b5d6423f837acaefda71502f706c16736f40aae"
++      }
++    },
++    "d3/44358289": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__44358289.npz",
++        "sha256": "cddcd4d0331d62e6fe87f769756dcdc58dddfff671980a68491955a6629b06af"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__44358289.npz",
++        "sha256": "ca505813a61295fc4f493e899c6f716b8303fe375a0f1c02c23b6f2ae87aa15f"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__44358289.journal.jsonl",
++        "sha256": "10ae247a398daf4dfbcf998fec9a1ef79540ed291d5a15f66d574d692aaf53cb"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__44358289.journal.jsonl",
++        "sha256": "407fb098b79ac893d3d4c9843634a77dd47488565f988e3ddddb2cb9a21e2630"
++      }
++    },
++    "d3/44358291": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__44358291.npz",
++        "sha256": "b40ac83f91ae0411ec842e05843b7b24cad42566b740c126d9321960b1d88729"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__44358291.npz",
++        "sha256": "55654b09d9a41a9842bff8c5bfbbcae8c10e66a251dfa87b991ae505b56a3f81"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__44358291.journal.jsonl",
++        "sha256": "2f4d065cbf297585b78f1ec949114c0e3fdac33336da11814a376e832ecbf5b6"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__44358291.journal.jsonl",
++        "sha256": "c4c04d59be33498975918c81515d35dec2c30e13bac0a4882b8bfd34529b55c8"
++      }
++    },
++    "d3/44358295": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__44358295.npz",
++        "sha256": "b8222e7a1be77fa42990af1e9bcfc7eadb924786fb00f4b84432957ee5144dae"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__44358295.npz",
++        "sha256": "76c056e681fd72642323f7eec39451f7dbc72b6d6769b1be28e799b5e934b197"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__44358295.journal.jsonl",
++        "sha256": "1797c743c7c4c7f0f4bb3f13442c5e76bfbe1bfdfb01218fd31e356b61a8f091"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__44358295.journal.jsonl",
++        "sha256": "d2e624852ffef95984319a7bc519f1105c43aceaae570bc7ca52dc5b5636f531"
++      }
++    },
++    "d3/44358634": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__44358634.npz",
++        "sha256": "aa38b50ce0c61b95d2d59364c7a50faf96b3b2bebcb82cbc1771c1949487d44b"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__44358634.npz",
++        "sha256": "b98b3e8c733803ba5851e53f759dc7286896722af4a31ae6cba2cfaf5fc09fe6"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__44358634.journal.jsonl",
++        "sha256": "c6afabb2066dd9cea19fc0f010a6cb24a86b743be385416770ce9be27e2208d6"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__44358634.journal.jsonl",
++        "sha256": "db438d481720cc14b6d29f4a6776b56d1b82664b362a2f6637cd16d53c364b14"
++      }
++    },
++    "d3/44358647": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__44358647.npz",
++        "sha256": "d4d970dfe584bdad6894d11eb251655a7e19e4de87a4dbccf5d3e691dcae04ed"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__44358647.npz",
++        "sha256": "4542753863765cc8908d8197b4a3ee721c2985fe6d5bd9ed5f71cf3077e47214"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__44358647.journal.jsonl",
++        "sha256": "97e939896ab788b149cdb7dccc7b4cc9a81444e46dd4e74996874b77fb75f4ea"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__44358647.journal.jsonl",
++        "sha256": "3050e75740fb4c51332b742ea078acc34c6903202c76754222ad23b6e1fdbd4a"
++      }
++    },
++    "d3/44796517": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__44796517.npz",
++        "sha256": "5e1fe4cbc3005eb47784837130237cd36ee056564dc52ea4d1418ebc4cda623f"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__44796517.npz",
++        "sha256": "d598178b3b6c190773e476a2350e707038c3b47f76cd995524b0631a6062e40d"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__44796517.journal.jsonl",
++        "sha256": "c1262b47059d780adb18b153e5fb4bd8fc326ee7ba8246452065e5599fd56d78"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__44796517.journal.jsonl",
++        "sha256": "f0c54706a0d5ab2b5a8160bd73fc93a297389574d50761f5fde4a44e00b3df83"
++      }
++    },
++    "d3/44796520": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__44796520.npz",
++        "sha256": "1d5f7b5c0f3c62771ed1066cbf4ae6d2a27f2ae806d63d6638b72e90d3b316b8"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__44796520.npz",
++        "sha256": "a0adc4f7f77e5708dafab9a564679d71a2f28dfe9c3d7a5bcefcad85cbcfa15c"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__44796520.journal.jsonl",
++        "sha256": "1cd7f4680bd0ebd516e78514bae00c19f597d949a7e5265811fb72cf68be991b"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__44796520.journal.jsonl",
++        "sha256": "b269c4283ebd70fd5a4acff72d1744c181b7acf33e175143100685a87a55a7f6"
++      }
++    },
++    "d3/44796521": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__44796521.npz",
++        "sha256": "729844700412951f14ff31ae8b4f7b6620c9bf9b864d110c650e48a50c648094"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__44796521.npz",
++        "sha256": "1ae5bb27683c953bb3924bb95cd069436a3c8de450c2cee4124e5786fb10a3db"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__44796521.journal.jsonl",
++        "sha256": "b5df7ddce00913faa196316f9cf34e98258d95868f40e544d353efcc79436c4b"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__44796521.journal.jsonl",
++        "sha256": "1769450b782927d8db3638e8fff5d68fda1818b536330f4f02bb26dd99d58aa9"
++      }
++    },
++    "d3/45261329": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__45261329.npz",
++        "sha256": "944fd4d5247bba43f241265f21db2934a7e7506134e0177c4773d74ff8583609"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__45261329.npz",
++        "sha256": "f3b4981da55a39986d6b25da9e319b833a458260849e514a9762c3b522a0158e"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__45261329.journal.jsonl",
++        "sha256": "d2551cad9f215765c2d5906bd4ce81ecf097e4054b5f573a5e31dfe7fda31b62"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__45261329.journal.jsonl",
++        "sha256": "3386b5fae2f935d77f341314e766a646e51e8a86882bc4fad835bdc72f9f2655"
++      }
++    },
++    "d3/45261331": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__45261331.npz",
++        "sha256": "fd07f244e16d945f0588ef40a48ea35847b493fa2a9d6014b263a6812322ad54"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__45261331.npz",
++        "sha256": "d208f3463d967f0672bf515a846a9e01a69e559b8c65dadef63ce3a4c6452b53"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__45261331.journal.jsonl",
++        "sha256": "4307e3fa546217eda9a8f6087e1e04d210fed2e6cafc880bb4e542db3fa7b7fc"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__45261331.journal.jsonl",
++        "sha256": "6aa713f1b9bf22fbaa785bdd9c5524a700bda1a1505c49aa6114de2ebbe2f11b"
++      }
++    },
++    "d3/45261332": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__45261332.npz",
++        "sha256": "90a08c18ad085e875bb7a80acd66f88ddac9aa3df5ee145d265bf469908bd573"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__45261332.npz",
++        "sha256": "b079bfec42a1ec7ac98c99ed0f34453f3041253d9d3bd8cb5d47936f5ec51cce"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__45261332.journal.jsonl",
++        "sha256": "ea5e3d4679bed08120c8c66fc12391fc342bff6dbbc30610c638bccb89a14488"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__45261332.journal.jsonl",
++        "sha256": "1cfeb2393bb557f2d349bd3eddce316b660d6d7bb8734939ba5502c13136f9f7"
++      }
++    },
++    "d3/45261544": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__45261544.npz",
++        "sha256": "63da0306b2dec4f5bb3d15dd67567b374c3379403ea16de6cad937fa6fffc797"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__45261544.npz",
++        "sha256": "d649b63065eeb775307d26637157855402e217e7496a2a0193c0327557e4596e"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__45261544.journal.jsonl",
++        "sha256": "a25078e7f31a9b1c7f0397f7de6dcca3b2a1b13c366c1764aaa1e409207d748b"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__45261544.journal.jsonl",
++        "sha256": "4739650c6de79b971cee04bd3fc2bfb1c4619abbc198217de104502a697a8d97"
++      }
++    },
++    "d3/45261547": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__45261547.npz",
++        "sha256": "1c77cbf291bb5a55948d49592ae1d7124841c028bdd5d3df005edca1f1cf0b35"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__45261547.npz",
++        "sha256": "1e3909bb09fffc4dc59248a239293660dab9ce7014b2353f71e10dfe101a46f6"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__45261547.journal.jsonl",
++        "sha256": "b7874d4ad5f76aef369e0410188a93ab9da878fddb77827b985b13d7478a3418"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__45261547.journal.jsonl",
++        "sha256": "9c6fc2a66ee7726f9a1c77ef55f0bde8ab0ecb2c7d60aaa02d22bfc740595e9c"
++      }
++    },
++    "d3/45261548": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__45261548.npz",
++        "sha256": "91cc5fc3b79a2c6eee7f38be770f603f593a12b14b8a119e2115d4ef585b5494"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__45261548.npz",
++        "sha256": "ce4a691e11ebd6d6f727a524ee7a9ccb4ffad12490f7ba50005917b13a57fba1"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__45261548.journal.jsonl",
++        "sha256": "789ddb15c013c04ca7604f658a7a7ac6081620994c05c0251d572bb0f6bf86b2"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__45261548.journal.jsonl",
++        "sha256": "31b23a852903fa65a260175c2160aa8dfaf223e647a5904005ba3985f9443c93"
++      }
++    },
++    "d3/45261662": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__45261662.npz",
++        "sha256": "4f26d62731f64d8626e6c86204ea630dbc9debcb5678d428dc214c1341c42151"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__45261662.npz",
++        "sha256": "a21faca4e77c20288d4e6f654ffd93ea00189cf11920639b4fb958fcb05b62e1"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__45261662.journal.jsonl",
++        "sha256": "5fe4707727dddad2f0a1b0f7cb73ee58da4f8a2bd22fc77c0b4940bce597352d"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__45261662.journal.jsonl",
++        "sha256": "5a1f3c60b922114652e3efded4f1f808ed97e17d3afada184096d0f3b967c3e6"
++      }
++    },
++    "d3/45261666": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__45261666.npz",
++        "sha256": "c795a93c291b8ddfd9ed136ea3543de2c6edb3828c064b0d5b332657268269b0"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__45261666.npz",
++        "sha256": "d0c33090c398b1b40ca4ccc0a1a3e248dd13f8a1f70ef90cedded896b375a59f"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__45261666.journal.jsonl",
++        "sha256": "e8ed27c10d7fa9c18254af6ef957d9c67f74c0a3882760f7f8e8ddde6b95448c"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__45261666.journal.jsonl",
++        "sha256": "1f583b913b32e82fc371f2e0002d22d79472bea122e944bea5985f8be8f28f1f"
++      }
++    },
++    "d3/45662870": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__45662870.npz",
++        "sha256": "5bd3585e4540990b2ba4762224cae86f9127ffb684c1df087cbba8cece3c4432"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__45662870.npz",
++        "sha256": "4f2e16a63d0a96f6cf0035a301a5959978778757c36024450813287f07917f42"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__45662870.journal.jsonl",
++        "sha256": "7c826d521d924fabe14aa6b6c9ae9663fe31df24d61648ce1273b471b2737838"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__45662870.journal.jsonl",
++        "sha256": "3dbaed05d70d54ed171777caa1464f32f5357061f44d3c9c91ce3b3455923415"
++      }
++    },
++    "d3/45662874": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__45662874.npz",
++        "sha256": "4a276a39c1f1ee5e8825491df8180909e381c8332529c5f35e423d901fc0fd60"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__45662874.npz",
++        "sha256": "e81006b5772936b790ff89c4688d18d621d096db3265689569d527a27a255b8f"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__45662874.journal.jsonl",
++        "sha256": "4f21774b70ec82562fc64807b992a421f08693789af917a004c7ba897910f709"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__45662874.journal.jsonl",
++        "sha256": "54db8584592f4ad69d1bbc12c8d88517415d3ad3ad155dc289797bdb84c2179e"
++      }
++    },
++    "d3/45663044": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__45663044.npz",
++        "sha256": "74d4790cc93946eea7d61baadd1ac0b569cf4f83cd663e31eabf56245c76f672"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__45663044.npz",
++        "sha256": "f9fadac4f68387df504d5893a3ce328504f5b7a18adca1f67b6751cfdee13a44"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__45663044.journal.jsonl",
++        "sha256": "54f300feeabc08718676823ff4be769607c1a2fa788aa219b364f6677b861c5c"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__45663044.journal.jsonl",
++        "sha256": "1b5a18b176f204795184b299c908292d00b8e608d82ec1077bd4656f08ed1c2e"
++      }
++    },
++    "d3/45663051": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__45663051.npz",
++        "sha256": "85f27d89baffde80917e44166a512cf8c5d07a0b2ca10cca9768f2a156d00b12"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__45663051.npz",
++        "sha256": "8085c815f1efdba2e3ecea6491030a6dec974187a70e6bb2d69b864761083101"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__45663051.journal.jsonl",
++        "sha256": "49d246d77e4b907f9a057c033b9c61b26a8257e2bba1e23a7fd036fd923e81ca"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__45663051.journal.jsonl",
++        "sha256": "95cc66c556a12f46d4a97a4247a007fc18c39747776fe3dcaf58158e6615780f"
++      }
++    },
++    "d3/45663052": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__45663052.npz",
++        "sha256": "a595d57f67af8c3d91a289bbda178ff43eb42df3b7b691a62afaf436ec38bf39"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__45663052.npz",
++        "sha256": "fe2771d7a8248dcbd17c82ff3f919b68c7e790dae01e9a89397f71ffcfae653b"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__45663052.journal.jsonl",
++        "sha256": "24c3e654671562da633fd196a2a8515dd72281fe89a17113e8c3c3cc32e54b37"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__45663052.journal.jsonl",
++        "sha256": "18e7a0bf9b9d688b2252e415e55ee353868cee00451e3077f86711ed74d69e58"
++      }
++    },
++    "d3/47330997": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__47330997.npz",
++        "sha256": "489bb6c05ce15a7675065dfc942b39d6bbe815e8ba2b3259b9725ab635b4d91b"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__47330997.npz",
++        "sha256": "f2372164af39c530c7a82f92afff38ce89a12d3992148601a9e58793e8bb7346"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__47330997.journal.jsonl",
++        "sha256": "12191c6a82b550f0a0eaa01f8a727b98d5c6ac09876925c2dc6520363737da9f"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__47330997.journal.jsonl",
++        "sha256": "616cf56c4ce466bb39f5573fa603bae0906fd4324564dbbe905b236b2f345a0c"
++      }
++    },
++    "d3/47331002": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__47331002.npz",
++        "sha256": "b42dfd9040e3db3695ddfda7ef51be1621165203b34fca2a701ba432cc1bb6eb"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__47331002.npz",
++        "sha256": "ec4c099019c3cd7e147b4460af8327a841ab9816faf84980cf838ae78724b85f"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__47331002.journal.jsonl",
++        "sha256": "5423a3a9ac2d5f66f1af54565b72de1edf6e54d1158f25d0afcd2bb3f1439027"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__47331002.journal.jsonl",
++        "sha256": "30ceb8898eb0625cf500250e3f6ec4c2cba3682dfd6d1942b337d6f082f4215f"
++      }
++    },
++    "d3/47331003": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__47331003.npz",
++        "sha256": "599953feba6a91859128b3c0c684dfee22102136c1ff8edc090c7697bd09bc72"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__47331003.npz",
++        "sha256": "d6eed22cae217f0bc68711c070ce0949073a9953d13c6608d7a5e7707610f9ba"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__47331003.journal.jsonl",
++        "sha256": "2755293b5750597db4f4d2310cae8f409359eb7d0bd5c9e97b4ea936446b8ffd"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__47331003.journal.jsonl",
++        "sha256": "92c2221550da522b6d403e88c1e1b40e10525b97943a05481bce4623354fbf5c"
++      }
++    },
++    "d3/47331615": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__47331615.npz",
++        "sha256": "105cd075621b88d41ba03f0d88dddbb7f7ce9f82433676ed2ae89cc6af967084"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__47331615.npz",
++        "sha256": "35bb435f2d743254d1a1bd56570e55f70671f892dac3b817652f97e4382ae00f"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__47331615.journal.jsonl",
++        "sha256": "2d5203063a53d2d0cf80bcdc9bdd97a3890d26d98f76e3218def061136b484cc"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__47331615.journal.jsonl",
++        "sha256": "a47b067c8099580d7c780f8625a646e4184346572820e168c920040ea615db36"
++      }
++    },
++    "d3/47331617": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__47331617.npz",
++        "sha256": "7119107726bb55877d946e9d3cd4b8704ae190f188a1773878f86cf4ee73bfb2"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__47331617.npz",
++        "sha256": "8b60326b8c538a55fb2f7e4756da548928a8baaa2e9715134707ad5a257b96f3"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__47331617.journal.jsonl",
++        "sha256": "c032df48245c3bb2e27cf286f1dd9a6ae4ae2c14f8035f9c658a75ab440e8425"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__47331617.journal.jsonl",
++        "sha256": "fdee31b532225bc5d70a664ff8884815ff64077e195cbd5207a1644d587f6bcf"
++      }
++    },
++    "d3/47331618": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__47331618.npz",
++        "sha256": "61ece55f5e9e7ac9c8271b43a7f6ab5ba216f8a17fcd1b17caddb2907bb00d2f"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__47331618.npz",
++        "sha256": "3bbf2831a518f1f7c601b83d81f53ebc32efad2f8acce69357882c1d5c007df3"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__47331618.journal.jsonl",
++        "sha256": "d696ba63ecfe03a0722c00216b3ef7cbb274fad958a4ca2fd0a9cf1e1307b63a"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__47331618.journal.jsonl",
++        "sha256": "82bdb067c97062053e56b5c6b0b8e2f1cdd4f0468c179dfed589790a2ba7cadb"
++      }
++    },
++    "d3/47332554": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__47332554.npz",
++        "sha256": "15f2ba949ddd44e354097f922957b8b0e2d76ef120d34c0f935974ef19d4018f"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__47332554.npz",
++        "sha256": "8397b8b113af76b3156507b32c2fdf6df2269c7201e7c3d9f1e59faeedf8dcbd"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__47332554.journal.jsonl",
++        "sha256": "d957c39dd13c8466f155ded5ec8973e2f9f88e25d4bcf0b71e104d9da467569a"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__47332554.journal.jsonl",
++        "sha256": "397bc4a5b4dda6904a8a7e9522661ebed384c3b8eb41137aedce2a6dff852a4e"
++      }
++    },
++    "d3/47332556": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__47332556.npz",
++        "sha256": "d1b07bd886c46e6979f570ff655100cf1b81611314d520f4ab3824187f0706aa"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__47332556.npz",
++        "sha256": "bac773a640eb2682ca00fe6e99268af5034523aa94fa3981df09c8c3ed691c1c"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__47332556.journal.jsonl",
++        "sha256": "444f92fd77b1756037eb326f54ab4860c58b891c565b846e2a81b4043317c6c0"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__47332556.journal.jsonl",
++        "sha256": "d27ad839846545d076632087f4cdedc799894a5aa320eb6e001a09796610217f"
++      }
++    },
++    "d3/47332597": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__47332597.npz",
++        "sha256": "74af51bc4356859a3f91852da4bddfd9f51c22045a5c98722d1692285cd2ce01"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__47332597.npz",
++        "sha256": "68db55ed31ed833c6f89c1b70d56c539223d995fdfd370fbd5f762e38ac4d225"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__47332597.journal.jsonl",
++        "sha256": "f7c0dca21ba58770fa6c71f61eca6e066c59d3db8c0a9641290c6b9166dae0ea"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__47332597.journal.jsonl",
++        "sha256": "038d5de1d28ca7d323ed3af32a7608aabf9ff09a39600acfe4f2c1b75a072cfd"
++      }
++    },
++    "d3/47332598": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__47332598.npz",
++        "sha256": "47267839bdff77d55ddf1e1ae228b311fa33886bc3e1e19626c0ad76236be5f1"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__47332598.npz",
++        "sha256": "6380328052df700b7b6977d8db105fd3f2db3d7d616fea64b33c22555ab24185"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__47332598.journal.jsonl",
++        "sha256": "e8d35968304e2bf06361386ce181f0b53a223639ebd80a575278a158f5613554"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__47332598.journal.jsonl",
++        "sha256": "97e112f3155c11a961a068129ff0731f13cebeb378c8278124d385a58d03df29"
++      }
++    },
++    "d3/47332599": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__47332599.npz",
++        "sha256": "856fd523a9416b8924a7a85d0f6240b7368238436a6e6653f8aa04bc62551066"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__47332599.npz",
++        "sha256": "9d9e438ed444b0b5b036c65f9ecc42a523061d42a3f8ec8345ad03f4dc3936c2"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__47332599.journal.jsonl",
++        "sha256": "6beb02a336e4c9c5398d0dbf645aba3b19d6705654784dac0c1bbe4c5e05af5c"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__47332599.journal.jsonl",
++        "sha256": "5e3a2f0e2c7fc60f9e18f6a70f3520a816f2cb4016d1bb9c2353862bd532a39a"
++      }
++    },
++    "d3/47332774": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__47332774.npz",
++        "sha256": "8518e377f7629906dcb0fd52b79c3e169d4bf5ed79ff925f4f169034888626d2"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__47332774.npz",
++        "sha256": "c2e37a8882ae62797759fea45945b158c1a2d80eca5b78b703a5a24f57eead12"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__47332774.journal.jsonl",
++        "sha256": "b48c84cc40da3b774a4b7d806e03e9dc7a2426ac4cd46fa441a64ece26ec77d9"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__47332774.journal.jsonl",
++        "sha256": "3a7fe9c2c9af5815e3355fa310280597426b17503d6496752a8577fc23669a76"
++      }
++    },
++    "d3/47332778": {
++      "cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__47332778.npz",
++        "sha256": "3653062db8e3be3e6e98aeaa6a4e131e48419c111e26f4cd5a0a00ce7c6e46ae"
++      },
++      "dense_cache": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__47332778.npz",
++        "sha256": "9aef7f8ea91eeac3672282aa43caa2813fc8d13c9496d34f0b83cd59049a86fd"
++      },
++      "dense_journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense/candidates/arkitscenes__47332778.journal.jsonl",
++        "sha256": "8c0e45b4ae91c42c86f9c826f391d3c59be7f4c5c4296cdb6370d77a89b08af7"
++      },
++      "journal": {
++        "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/arkitscenes__47332778.journal.jsonl",
++        "sha256": "004a95654d82b1cca89b87df8b96c52a00ff5a191fd2bc512f1c431afb6e7f47"
++      }
++    }
++  },
++  "complete": {
++    "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/candidates/COMPLETE.json",
++    "sha256": "31b4438c9955ee12211f594671909a79b5af4faf93f5e8e9bc00e8fad84196f5"
++  },
++  "dense_manifest": {
++    "path": "/scratch/jjyeung/mask_recall_run/results/dense/MANIFEST.json",
++    "sha256": "561f95e6edc27aeac038dae098f89f3ecd2460c0b232f4f19fa2dc3b9dc0d2c2"
++  },
++  "frozen_kit": {
++    "archive_sha256": "b3fa05c6d5fc51e56b41c106ba58209cb220e72d511c284ece4c109ce3c56509",
++    "image_batch_size": 1,
++    "inference_code_sha256": {
++      "cache_masks.py": "e1a2730e4566b555a9129fcdce06ff1290d9916fc2d0f9a59cadbf8f1fb0629c",
++      "kitlib.py": "c377025b67e7bf83da516e110d79566ce937c6806500f62796a937d0da92a244",
++      "variant_cache.py": "cb702acdd4e88a47f1ce7d8556ecce0c54936382422e94c031b9d83b5e02a284",
++      "variantlib.py": "10219e028f26caa5d6cf76e42e6739f8ebd68204faf135874974e593d5440198",
++      "vendor/phrase.py": "e0f429bfb8fbd013570fea3ede806d051516ad7c6e380561f5061168b756863c",
++      "vendor/sam3_tower.py": "617d5c8daa31ee2de62efe5c93ed32f50203805006dce5bb75d9959a16e4decb",
++      "vendor/sam_backend.py": "356802c9c86c79975a479fab84227ab14fedd67910239760cb4456e8c9c15d3c",
++      "vendor/stub_backend.py": "a311ac4fc353a3948c05db4b6054c8a2652c3e7c9f0b4f4859b80ad3807678b4"
++    },
++    "native_image_batch": false
++  },
++  "items": {
++    "path": "/scratch/jjyeung/mask_recall_run/kit/out/ITEMS.jsonl",
++    "sha256": "30d4beb0827c4f2b7f10fcc8f2623fd8519666d6736cac91b6b5f3f131eb0725"
++  },
++  "manifest": {
++    "path": "/scratch/jjyeung/mask_recall_run/results/dense_aliases/MANIFEST.json",
++    "sha256": "4346f0827a068ebc9a0cb938e9da1de67307197da4748cc620e791a928e655f9"
++  },
++  "producer_sha256": "c4a505fc88b61028a57f0a4cb4074a2ee0adb6f17eeed10aa93c9bf30764024e",
++  "sam_receipt": {
++    "path": "/scratch/jjyeung/orch_cd/evalx/work/milestone/native/out2/mask_kit/vendor/SAM3_RECEIPT.json",
++    "sha256": "979e2f7776b2a44e8b84cdaf4c9c588120ae56b61cdef1b40147f419e4a05a75"
++  },
++  "schema": "legs1-frozen-mask-cache-v1",
++  "setting": {
++    "cap": 100,
++    "dtype": "bf16",
++    "joint_floor": 0.05,
++    "link_instance_floor": 0.3,
++    "mask_threshold": 0.5,
++    "prompts": "dense_aliases",
++    "resolution": 1008
++  }
++}
+--- pilot9/sj/orch_cd/evalx/work/milestone/orchard_native/native_job.py
++++ c8/sj/orch_cd/evalx/work/milestone/orchard_native/native_job.py
+@@ -151,6 +151,7 @@
+         if report.get("selection") != selection or report.get("pilot_status") != selection["status"]:
+             raise ValueError("The pilot does not bind its passing-capture selection")
+         M.geometry_evidence(report)
++        M.validate_gravity_guard(report["gravity_guard_report"], {"dev-S1": report["geometry"]})
+         receipts = ["native/probe/PILOT_REPORT.json", "native/probe/GPU_PARITY.json",
+                     "native/probe/request.json", "native/geometry/GEOMETRY_MANIFEST.json"]
+         if selection["status"] == "READY":
+@@ -165,6 +166,8 @@
+                 or report.get("geometry_captures") != M.GEOMETRY_CAPTURES
+                 or report.get("geometry_capture_ids") != config["worker"]["geometry_captures"]):
+             raise ValueError("Full native admission is incomplete or foreign")
++        M.validate_gravity_guard(report["report"]["gravity_guard_report"],
++            {"dev-S1": C.load(run/"native/geometry/GEOMETRY_MANIFEST.json")["records"]})
+         C.checked(report["bundle"], lambda p: S.physical(root, p))
+         receipts = ["native/R1.json", "native/R1.json.pin.json",
+                     "native/paired/IN_JOB_ADMISSION.json",
+--- pilot9/sj/orch_cd/evalx/work/milestone/orchard_native/native_launcher.py
++++ c8/sj/orch_cd/evalx/work/milestone/orchard_native/native_launcher.py
+@@ -45,18 +45,20 @@
+     if entrypoint.get("path") not in code_pins or code_pins[entrypoint["path"]] != entrypoint.get("sha256"):
+         raise ValueError("The runtime worker entrypoint differs from its code pin")
+     mask = contract["mask_cache"]
+-    if mask.get("path") == str(C.LOGICAL_ROOT/"orchard_native/MASK_CACHE_P6_BOUND.json"):
+-        source = Path(__file__).resolve().parent/"MASK_CACHE_P6_BOUND.json"
++    if mask.get("path") == str(C.LOGICAL_ROOT/"orchard_native/MASK_CACHE_C8_BOUND.json"):
++        source = Path(__file__).resolve().parent/"MASK_CACHE_C8_BOUND.json"
+         if C.sha(source) != mask["sha256"]:
+             raise ValueError("The mask receipt differs from its shipped code member")
+         code_pins[mask["path"]] = mask["sha256"]
++        legacy = Path(__file__).resolve().parent/"MASK_CACHE_P6_BOUND.json"
++        code_pins[str(C.LOGICAL_ROOT/"orchard_native/MASK_CACHE_P6_BOUND.json")] = C.sha(legacy)
+     value = dict(
+         schema="evalx-orchard-native-family-v1", synthetic=False, modes=["pilot", "full"],
+         partitions=["general", "advanced"], assets=assets, worker_contract=contract,
+         bootstrap_pins={name: C.sha(path) for name, path in sources.items()},
+         code_pins=code_pins,
+         direct_launcher_digest=DIRECT_DIGEST,
+-        limits={mode: dict(gpu_seconds=2400 if mode == "pilot" else 21600,
++        limits={mode: dict(gpu_seconds=6000 if mode == "pilot" else 21600,
+                            stall_seconds=1200, poll_seconds=30,
+                            return_bytes=256*1024**2, pool_bytes=1024**3)
+                 for mode in ("pilot", "full")})
+@@ -146,7 +148,11 @@
+                        ("ORDER.md", files["bootstrap/ORDER.md"]), ("BATCH.sh", script.encode())):
+         with (destination/name).open("xb") as stream:
+             stream.write(data)
+-    C.dump(destination/"PACKET.json", dict(
++    sys.path.insert(0, str(C.ROOT/"native/out2"))
++    from common import install_tree
++    install_tree()
++    import gravity_guard
++    C.dump(destination/"PACKET.json", dict(gravity_guard=gravity_guard.identity(),
+         schema="evalx-orchard-native-packet-v1", synthetic=False, config=C.pin(destination/"CONFIG.json"),
+         batch=C.pin(destination/"BATCH.sh"), mode=mode, partition=partition,
+         plan_sha256=config["plan_sha256"], submitted=False))
+@@ -178,7 +184,7 @@
+     return ["/usr/local/bin/sbatch", "--parsable", "--account=mt01",
+             "--partition="+config["partition"], "--nodes=1", "--ntasks=1", "--gres=gpu:1",
+             "--cpus-per-task=16", "--mem=200G",
+-            "--time="+("01:30:00" if config["mode"] == "pilot" else "07:00:00"),
++            "--time="+("02:00:00" if config["mode"] == "pilot" else "07:00:00"),
+             "--signal=B:USR1@300", "--no-requeue", "--output=/dev/null", "--error=/dev/null",
+             "--chdir=/tmp", "--job-name=a15_cot_ap"+config["token"]]
+ 
+--- pilot9/sj/orch_cd/evalx/work/milestone/orchard_native/native_local_check.py
++++ c8/sj/orch_cd/evalx/work/milestone/orchard_native/native_local_check.py
+@@ -23,10 +23,10 @@
+ PACKAGING = {str(C.LOGICAL_ROOT / "orchard_native" / name)
+              for name in ("native_launcher.py", "native_local_check.py", "native_pin_graph.py",
+                           "native_cpu_replica.py", "native_worker.py", "native_metrics.py", "native_common.py",
+-                          "kernels.py", "native_job.py", "MASK_CACHE_P6_BOUND.json")} | {
++                          "kernels.py", "native_job.py", "MASK_CACHE_P6_BOUND.json", "MASK_CACHE_C8_BOUND.json")} | {
+              str(C.LOGICAL_ROOT / "native/out2" / name)
+              for name in ("nomdg.py", "perception.py", "reader_policy.py", "geometry.py",
+-                          "geometry_refusals.py", "r1.py", "camera_report.py")}
++                          "geometry_refusals.py", "gravity_guard.py", "r1.py", "camera_report.py")}
+ SCHEMA = "evalx-native-local-input-check-v2"
+ 
+ 
+@@ -63,7 +63,7 @@
+         raise ValueError("The reader order cannot change the remaining worker contract")
+     old_adapters = approved["worker_contract"]["adapter_pins"]
+     new_adapter = str(C.LOGICAL_ROOT / "native/out2/geometry_refusals.py")
+-    if set(contract["adapter_pins"]) != set(old_adapters) | {new_adapter}:
++    if set(contract["adapter_pins"]) != set(old_adapters) | {new_adapter, str(C.LOGICAL_ROOT / "native/out2/gravity_guard.py")}:
+         raise ValueError("The reader adapter dependency set differs")
+     for name, digest in old_adapters.items():
+         if name not in PACKAGING and contract["adapter_pins"].get(name) != digest:
+--- pilot9/sj/orch_cd/evalx/work/milestone/orchard_native/native_metrics.py
++++ c8/sj/orch_cd/evalx/work/milestone/orchard_native/native_metrics.py
+@@ -125,6 +125,37 @@
+     return served_counts, refused_counts, refused_sizes
+ 
+ 
++def program_refusals(items):
++    counts = Counter(row.get('family', {'absolute_distance_object': 'object_abs_distance',
++                         'absolute_size_room': 'room_size_estimation'}.get(
++                             row.get('question_type'), row.get('question_type')))
++                     for row in items
++                     if row.get('finish', row.get('decode', {}).get('finish')) == 'program_refusal')
++    return dict(total=sum(counts.values()), per_family={name: counts[name] for name in FAMILY_COUNTS})
++
++
++def validate_gravity_guard(recorder, dispositions):
++    if set(recorder) != set(dispositions):
++        raise ValueError('Gravity guard capture sets differ')
++    for scope, records in dispositions.items():
++        value = recorder[scope]
++        captures = sorted(row['native'] for row in records)
++        refused = sorted(row['native'] for row in records if row['status'] == 'REFUSED')
++        sealed = value['sealed_refused']
++        if (len(set(captures)) != len(captures) or value['captures'] != captures
++                or value['capture_count'] != len(captures)
++                or sealed != sorted(set(sealed)) or not set(sealed) <= set(captures)
++                or value['reviewed_refused'] != refused
++                or value['reviewed_only_refused'] != sorted(set(refused)-set(sealed))
++                or any(value[name+'_count'] != len(value[name]) for name in
++                       ('sealed_refused', 'reviewed_refused', 'reviewed_only_refused'))
++                or any(row['status'] not in ('PASS', 'REFUSED') for row in records)
++                or any(row['error']['code'] != GEOMETRY_REFUSAL_CODE for row in records
++                       if row['status'] == 'REFUSED')):
++            raise ValueError('Gravity guard recorder differs from geometry dispositions')
++    return recorder
++
++
+ class PilotReport:
+     def __init__(self, path, config, cuda):
+         self.path, self.cuda = Path(path), cuda
+@@ -150,6 +181,7 @@
+         for item in self.value["items"]:
+             groups[item["family"]].append(item)
+         self.value["by_family"] = dict(groups)
++        self.value["program_refusals"] = program_refusals(self.value["items"])
+         geometry = self.value["geometry"]
+         self.value["geometry_seconds_per_capture"] = (
+             sum(row["seconds"] for row in geometry)/len(geometry) if geometry else None)
+@@ -213,9 +245,10 @@
+     if (report.get("decode_budget") != budget or report.get("query_journal_retain_per_type") != 3
+             or report.get("reader_semantics") != C.REPORT_SEMANTICS):
+         raise ValueError("The pilot reader budget or query-journal policy differs")
+-    close_lengths = [len(row.get("decode_budget", {}).get("close_token_ids", [])) for row in items]
+-    close_tokens = max(close_lengths)
+-    if close_tokens < 1:
++    close_lengths = [len(row.get("decode_budget", {}).get("close_token_ids", []))
++                     for row in items if row.get("finish") != "program_refusal"]
++    close_tokens = max(close_lengths or [0])
++    if close_lengths and close_tokens < 1:
+         raise ValueError("The pilot has no measured forced-closing tokenization")
+     sampled_limit = budget["thinking_tokens"] + budget["call_window_tokens"] + close_tokens + budget["answer_tokens"] + 1
+     grouped = defaultdict(list)
+@@ -249,6 +282,8 @@
+         raw += 2*refused_sizes[name]["raw_bytes"]
+         bounds, ordinary = [], []
+         for row in grouped[name]:
++            if row.get("finish") == "program_refusal":
++                continue
+             timing = row.get("decode_budget", {})
+             sampled = nonnegative(timing.get("sampled_tokens", 0))
+             injected = nonnegative(timing.get("injected_tokens", 0))
+@@ -271,11 +306,13 @@
+                                capped_seconds=max(row["seconds"], limit*rate+overhead)))
+             if not capped:
+                 ordinary.append(row["seconds"])
+-        bounded_mean = sum(row["capped_seconds"] for row in bounds)/len(bounds)
++        bounded_mean = sum(row["capped_seconds"] for row in bounds)/len(bounds) if bounds else 0.
+         ordinary_mean = sum(ordinary)/len(ordinary) if ordinary else bounded_mean
+         capped_pilot = sum(row["capped"] for row in bounds)
+         per_family[name].update(
+-            pilot_capped_items=capped_pilot, replay_estimated_capped_items=math.ceil(count*capped_pilot/len(bounds)),
++            program_refusal_items=sum(row.get("finish") == "program_refusal" for row in grouped[name]),
++            timing_sample_missing=not bool(bounds),
++            pilot_capped_items=capped_pilot, replay_estimated_capped_items=math.ceil(count*capped_pilot/len(bounds)) if bounds else 0,
+             ordinary_pair_seconds=ordinary_mean, capped_pair_seconds=max(ordinary_mean, bounded_mean),
+             ordinary_basis="mean uncapped pilot time" if ordinary else "budget bound; no uncapped pilot observation",
+             item_time_bounds=bounds)
+@@ -297,6 +334,7 @@
+     overhead = 2*report["load_seconds"]+report["parity_seconds"]+geometry_seconds
+     if not math.isfinite(overhead) or overhead < 0:
+         raise ValueError("Pilot timing projection is not finite and nonnegative")
++    timing_measured = all(not value["timing_sample_missing"] for value in per_family.values())
+     size_fits = projected <= RETURN_LIMIT and expanded <= EXPANDED_LIMIT and files < 10000
+     scenarios = {}
+     for label in SCENARIOS:
+@@ -314,7 +352,7 @@
+                                full_time_seconds_with_margin=with_margin,
+                                geometry_refused_items=sum(refused_counts.values()),
+                                geometry_refusal_decode_seconds=0.,
+-                               time_fits=with_margin <= 21600, fits=size_fits and with_margin <= 21600)
++                               time_fits=timing_measured and with_margin <= 21600, fits=timing_measured and size_fits and with_margin <= 21600)
+     selected = scenarios.get(scenario)
+     return dict(
+         schema="evalx-native-full-projection-v1", projected_compressed_bytes=projected,
+@@ -325,7 +363,8 @@
+         projection_scenario=scenario, scenario_required=True, scenarios=scenarios,
+         reader_semantics=dict(C.REPORT_SEMANTICS),
+         allocation_seconds=21600,
+-        per_family=per_family, geometry_captures=GEOMETRY_CAPTURES,
++        per_family=per_family, program_refusals=program_refusals(items),
++        timing_measured=timing_measured, geometry_captures=GEOMETRY_CAPTURES,
+         safety_factor=1.5, fixed_reserve_bytes=FIXED_RESERVE, journal_and_bundle_copies=2,
+         query_journal_retain_per_type=3,
+         full_time_seconds_before_margin=selected["full_time_seconds_before_margin"] if selected else None,
+--- pilot9/sj/orch_cd/evalx/work/milestone/orchard_native/native_pin_graph.py
++++ c8/sj/orch_cd/evalx/work/milestone/orchard_native/native_pin_graph.py
+@@ -22,7 +22,7 @@
+ DISPOSITIONS = {"executed locally", "statically proved",
+                 "covered by a named earlier pilot", "live only"}
+ AUTHORITY_ROWS = {7, 8, 28, 36}
+-MASK_PATH = str(C.LOGICAL_ROOT / "orchard_native/MASK_CACHE_P6_BOUND.json")
++MASK_PATH = str(C.LOGICAL_ROOT / "orchard_native/MASK_CACHE_C8_BOUND.json")
+ P5_FAMILY = dict(path=str(WORK / "native_package_s23_02/seal/FAMILY.json"),
+                  sha256="62a94599cc05478e56986c39edea4c8f82139392a1966d5145b175f09be05bfe")
+ P5_AUTH = dict(path=str(WORK / "native_package_s23_02/pilot5_failure/AUTHENTICATED_FAILURE.json"),
+--- pilot9/sj/orch_cd/evalx/work/milestone/orchard_native/native_worker.py
++++ c8/sj/orch_cd/evalx/work/milestone/orchard_native/native_worker.py
+@@ -74,6 +74,8 @@
+                  layout="duplicate", prompt_flag=None, frames_root=worker["frames_root"],
+                  output=str(out), inputs=worker["inputs"], keys=selection["item_keys"],
+                  training_decision_allowed=False)
++    import gravity_guard
++    value["gravity_guard"] = gravity_guard.identity()
+     return value
+ 
+ 
+@@ -105,6 +107,17 @@
+     return selected
+ 
+ 
++def install_gravity_guard(native):
++    import gravity_guard
++    from student_pilot import geometry_profiles
++    try:
++        gravity_guard.install(geometry_profiles, gravity_guard.Recorder())
++    except Exception as error:
++        C.dump(Path(native)/'GUARD_INSTALL_REFUSAL.json', dict(
++            gravity_guard=gravity_guard.identity(), error=str(error)))
++        raise
++
++
+ def prepare_full_geometry(config, N, G, destination):
+     import torch
+     parts = K.load_parts(dict(nomdg=Path(N.__file__), geometry=Path(G.__file__)),
+@@ -114,6 +127,7 @@
+     torch.cuda.synchronize()
+     started = time.monotonic()
+     context = K.function(parts["geometry_restore"], vars(G))(args)
++    install_gravity_guard(Path(destination).parent)
+     K.function(parts["geometry"], vars(G))(
+         args, context["model"], context["processor"], context["info"], selected)
+     torch.cuda.synchronize()
+@@ -134,6 +148,7 @@
+     torch.cuda.reset_peak_memory_stats()
+     started = time.monotonic()
+     context = K.function(parts["restore"], vars(N))(args, bound)
++    install_gravity_guard(native)
+     torch.cuda.synchronize()
+     load_seconds = time.monotonic()-started
+     print(json.dumps(dict(event="pilot_loaded", load_seconds=load_seconds,
+@@ -207,18 +222,22 @@
+     near_boundary = [record["native"] for record in geometry_times
+                      if -.07 < record["diagnostics"]["tower_reference_margin"] < 0]
+     required = ("d3/41069053", "d3/41098149", "d3/41254810")
+-    if not set(required) <= {record["native"] for record in geometry_times} or not near_boundary:
++    if not set(required) <= {record["native"] for record in geometry_times}:
+         raise ValueError("The complete geometry audit lacks its named or near-boundary captures")
+-    report.checkpoint("geometry_complete", selection=selection, geometry_seconds=geometry_seconds,
++    import gravity_guard
++    guard_report = gravity_guard.report()
++    M.validate_gravity_guard(guard_report, {"dev-S1": geometry_times})
++    report.checkpoint("geometry_complete", gravity_guard=gravity_guard.identity(),
++        gravity_guard_report=guard_report, selection=selection, geometry_seconds=geometry_seconds,
+         request_binding=bound["binding"], geometry_manifest=bound["grounding"]["geometry_manifest"],
+         pilot_status=selection["status"], geometry_refused_items=dict(refused_counts),
+         geometry_refusal_records=refused_rows,
+         geometry_scores=N.geometry_score_report(refused_rows, chosen, bound),
+         refusal_return_size=M.refusal_size(refused_rows),
+         geometry_audit_captures=dict(required=list(required), near_boundary=near_boundary),
+-        geometry_cpu_comparison=dict(predicted_refused_captures=12, predicted_refused_distance_items=21,
+-            predicted_head_capture_range=[6, 13], observed_refused_captures=refused_captures,
+-            observed_refused_items=len(refused_tasks), within_capture_range=6 <= refused_captures <= 13))
++        geometry_guard_comparison=dict(sealed_refused=guard_report['dev-S1']['sealed_refused_count'],
++            reviewed_refused=refused_captures, reviewed_refused_items=len(refused_tasks),
++            reviewed_only_refused=guard_report['dev-S1']['reviewed_only_refused_count']))
+     if selection["status"] != "READY":
+         report.checkpoint("insufficient_passing_coverage", complete=False,
+                           full_projection_refusal="The passed-capture cohort cannot supply the registered ten pairs.")
+@@ -238,7 +257,8 @@
+         row = dict(key=key, family=N.family(pair[0]["question_type"]),
+                    seconds=time.monotonic()-start, native_seconds=pair[0]["seconds"],
+                    capped=pair[0]["capped"], no_answer=pair[0]["no_answer"] and not refusal,
+-                   geometry_refusal=refusal, decode_executed=not bool(refusal),
++                   geometry_refusal=refusal, program_refusal=decoded.get("finish") == "program_refusal",
++                   decode_executed=not bool(refusal) and decoded.get("finish") != "program_refusal",
+                    call_errors=pair[0]["call_errors"],
+                    finish="geometry_refusal" if refusal else decoded["finish"],
+                    generated_tokens=0 if refusal else decoded["generated_tokens"],
+@@ -301,6 +321,12 @@
+     bundle = N.load(output)
+     report = N.admit_bundle(bundle, config["step"], worker["artifact"]["sha256"])
+     report["unit_scores"] = bundle["unit_scores"]
++    import gravity_guard
++    report['gravity_guard'] = gravity_guard.identity()
++    report['gravity_guard_report'] = gravity_guard.report()
++    M.validate_gravity_guard(report['gravity_guard_report'],
++        {'dev-S1': N.load(geometry/'GEOMETRY_MANIFEST.json')['records']})
++    report['program_refusals'] = M.program_refusals(bundle['arms']['unflagged'])
+     comparison = N.GR.compare_refusals(
+         config["full_projection"]["report"]["geometry"],
+         N.load(geometry/"GEOMETRY_MANIFEST.json")["records"])
+diff --git pilot9/sj/orch_cd/evalx/work/camera/vnice/vnice.sh c8/sj/orch_cd/evalx/work/camera/vnice/vnice.sh
+old mode 100600
+new mode 100755
+diff --git pilot9/sj/orch_cd/evalx/work/camera/vnice/terminator.sh c8/sj/orch_cd/evalx/work/camera/vnice/terminator.sh
+old mode 100600
+new mode 100755

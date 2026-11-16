@@ -198,8 +198,8 @@ class Build3(unittest.TestCase):
         pin=archive('a.tar',members)
         hashes={k:hashlib.sha256(v).hexdigest() for k,v in members.items()}
         result=H.stage_init(pin,root/'s',hashes,max_member_bytes=100)
-        self.assertTrue(result['m544/heads.pt'].startswith('ap/8865619b/runs/469ddece/'))
-        self.assertFalse(result['m544/artifact.json'].startswith('ap/8865619b/'))
+        self.assertEqual(result['m544/heads.pt'],'ap/'+pin['sha256'][:16]+'/e/heads.pt')
+        self.assertEqual(result['m544/artifact.json'],'ap/'+pin['sha256'][:16]+'/a/artifact.json')
         for key,relative in result.items():self.assertEqual((root/'s'/relative).read_bytes(),members[key])
         with self.assertRaisesRegex(ValueError,'Unadmitted'):H.stage_init(pin,root/'b',hashes,max_member_bytes=1)
         with self.assertRaisesRegex(ValueError,'sha256'):H.stage_init(pin,root/'c',{k:'0'*64 for k in hashes},max_member_bytes=100)

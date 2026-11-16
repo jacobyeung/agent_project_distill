@@ -1,0 +1,6 @@
+# C1 GPU OOM: root cause and fix (heads_up5, 2026-11-08)
+- Question: why did the C1 8-GPU smoke (job 103705, trainer 1db21600) run out of memory in the step-2 backward?
+- Answer: the C1 GPU path never called model.train(). from_pretrained returns eval mode, and HF runs decoder gradient checkpointing only when self.training, so every step kept full activations. c1r found it (c1r/events/20261108T1001Z).
+- Evidence: step 1 peaked at 65.8 GiB allocated / 75.3 GiB reserved per H100-80GB; the decoded console (rank prefixes, torch 2.11 + trainer tree) shows rank 7 dying in `(result['loss']/4).backward()`. With train mode on (kit w.py wraps run.load_model -> .train(); CarrierC1.train keeps the vision tower in eval), smokes 104301/104302/104303 PASS at 33.2 GiB allocated / ~39 GiB reserved, ~32 s/step.
+- Options rejected: allocator setting alone (it cannot remove activation memory); a CPU offload lever (not needed at 33 GiB); fla-core 0.6.0 kernels: they refuse on Hopper with triton 3.6.0, because the gated chunk backward gives wrong results (fla #640). The torch Gated DeltaNet path is kept for correctness.
+- Status: fixed kit-side for 1db21600; the trainer fix itself is in B43 990a361f (h5/b42/repo).

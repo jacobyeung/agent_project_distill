@@ -1,0 +1,242 @@
+{
+ "schema": "refreeze-prereg-v1",
+ "written": "2026-11-15",
+ "author": "lane policy_audit",
+ "source_audit": {
+  "path": "/scratch/jjyeung/orch_cd/policy_audit/out/POLICY_AUDIT_20261115.md",
+  "sha256": "5585b77e0637e790d2027d3b9253756e5415578f9c289550a767d90d7935b28b"
+ },
+ "inputs": {
+  "b6_build/out/K1_RULES.json": "cb0aadee89c86e3db41c33d450eee6d7f58558d63f56d3d189e744277ad23269",
+  "b6_build/out/CAPTURES.json": "dde9aae955f4e8d25419b0b6237a514ab0b392add25dd0dd29a02a424a7c0c53",
+  "devs1_masks/out/MANIFEST.json": "e6fe4a7e3c5a9f929d1cb9393915b93020233c0f31d46ded4638cdbd17ccbafb",
+  "devs1_masks/out/ITEMS.jsonl": "30d4beb0827c4f2b7f10fcc8f2623fd8519666d6736cac91b6b5f3f131eb0725",
+  "dose_pool/out/DEV_S1/WITHHOLD_SCENES.json": "969cdb56ce508eff79390d67099c889b92bd360e93dc42ba07f3683ec216a986",
+  "revsi_dev/BENCH_SCENE_EXCLUSIONS_v2.json": "3119aa4a9594e4507372b99243afc8210fe217393466ac4e5ae78485e7c83970"
+ },
+ "data": {
+  "k1": {
+   "source": "b6_build/out/CAPTURES.json pilot (300 captures; split field)",
+   "train_captures": 242,
+   "train_rooms": 221,
+   "heldout_captures": 58,
+   "heldout_rooms": 55,
+   "abs_rows": {
+    "train": 1070,
+    "heldout": 224
+   },
+   "room_rows": {
+    "train": 111,
+    "heldout": 24,
+    "arkit": 0
+   },
+   "use": "program-side choices only (no model answer enters); the student trained on these rooms"
+  },
+  "devs1": {
+   "source": "devs1_masks/out/MANIFEST.json (152 captures, 75 rooms) and ITEMS.jsonl primary stratum",
+   "abs_items": 790,
+   "abs_rooms": 59,
+   "abs_fixed_list": 150,
+   "room_items": 36,
+   "room_rooms": 9,
+   "use": "route-or-direct decisions only"
+  },
+  "forbidden": "every room of BENCH v2 (VSI-Bench, VSTI, ReVSI, STI-Bench/ReSTI, MindCube, DSI, OSI), EVAL_ROOMS evaluation and qualification rooms, dev-84; no benchmark item, answer or score"
+ },
+ "statistics": {
+  "method": "paired physical-room cluster bootstrap, percentile 95% interval",
+  "draws": 10000,
+  "seed": 20261115,
+  "room_rule": "scene_evidence/work/compute.py resolve() (eligibility_checks room rule, EVAL_ROOMS aliases)",
+  "metric_numeric": "MRA, thresholds 0.50:0.05:0.95 (official VSI rule), label = training-generator label (abs: box_grid_5cm)"
+ },
+ "k1_rules_relation": {
+  "file": "b6_build/out/K1_RULES.json",
+  "sha256": "cb0aadee89c86e3db41c33d450eee6d7f58558d63f56d3d189e744277ad23269",
+  "relation": "additions only; every registered K1 threshold, seed 17 and the 242/58 split are unchanged; the selector refit and its kill rules run first and decide which selector the steps below use"
+ },
+ "order": [
+  "P0 hash this file and the .md",
+  "P1 K1 GPU pass (after the heavy-IO answer) and selector refit under K1_RULES.json",
+  "P2 alias table (C1)",
+  "P3 depth cut (C2)",
+  "P4 abs box rule (C3)",
+  "P5 room rule (C4)",
+  "P6 gravity guard (C5)",
+  "P7 dev-S1 route decisions (D1 abs, D2 room) on the step-544 export with P1-P6 winners",
+  "P8 one dated freeze file ROUTED_PATH_FROZEN_<date>.md",
+  "P9 official native reads: VSI-Bench, ReVSI, VSTI"
+ ],
+ "choices": [
+  {
+   "id": "C1",
+   "name": "alias table",
+   "incumbent": "dense_aliases (mask_recall variantlib.py:16, 32 entries)",
+   "candidates": [
+    "dense (no aliases)",
+    "dense_aliases",
+    "dense_aliases minus the entries table->desk, chair->seat, stool->seat, office chair->chair, armchair->chair, coffee table->table, dining table->table, nightstand->bedside table"
+   ],
+   "data": "K1 abs rows with the P1 selector, G3T scaled by step-544 heads, incumbent depth cut and box rule",
+   "metric": "strict abs MRA (no answer = 0)",
+   "rule": "keep the incumbent unless a challenger has paired (challenger - incumbent) 95% lower bound > 0 on K1 train AND point estimate > 0 on K1 held-out; among qualifying challengers take the largest K1-train mean; exact ties go to the incumbent",
+   "pre_check": "if the mask_recall Part-1 dev-S1 lexical-miss table accounts for every alias entry, record that and still run the comparison",
+   "default": "dense_aliases if the K1 cache covers < 80% of train captures"
+  },
+  {
+   "id": "C2",
+   "name": "depth cut",
+   "incumbent": "erode3_P10P90_pm0.15",
+   "candidates": [
+    "none",
+    "erode2_nocut",
+    "erode1_P10P90_pm0.05",
+    "erode1_P10P90_pm0.10",
+    "erode1_P10P90_pm0.15",
+    "erode1_P10P90_pm0.25",
+    "erode3_P10P90_pm0.05",
+    "erode3_P10P90_pm0.10",
+    "erode3_P10P90_pm0.15",
+    "erode3_P10P90_pm0.25"
+   ],
+   "data": "K1 abs rows, P1 selector masks (decision) and GT masks (reported), box rule best1 with the cut applied",
+   "metric": "strict abs MRA",
+   "rule": "keep the incumbent unless a challenger has paired (challenger - incumbent) 95% lower bound > 0 on K1 train AND point estimate > 0 on K1 held-out; among qualifying challengers take the largest K1-train mean; exact ties go to the incumbent",
+   "default": "incumbent"
+  },
+  {
+   "id": "C3",
+   "name": "abs box rule",
+   "incumbent": "best1+dc",
+   "candidates": [
+    "all",
+    "best1",
+    "agree",
+    "agreeL",
+    "trim",
+    "align",
+    "dc",
+    "er2",
+    "best1+dc",
+    "agree+dc",
+    "trim+dc",
+    "align+dc",
+    "er2+dc",
+    "best3",
+    "vote5",
+    "vote10",
+    "vote10q",
+    "best3+dc",
+    "vote5+dc",
+    "vote10+dc",
+    "vote10q+dc",
+    "voteb5",
+    "voteb10",
+    "voteb5+dc",
+    "voteb10+dc"
+   ],
+   "data": "K1 abs rows, P1 selector masks (decision) and GT masks (reported), C2 winner as dc",
+   "metric": "strict abs MRA",
+   "rule": "keep the incumbent unless a challenger has paired (challenger - incumbent) 95% lower bound > 0 on K1 train AND point estimate > 0 on K1 held-out; among qualifying challengers take the largest K1-train mean; exact ties go to the incumbent",
+   "default": "incumbent"
+  },
+  {
+   "id": "C4",
+   "name": "room rule",
+   "incumbent": "rv (floor cells seen by >= 2 frames)",
+   "candidates": [
+    "fuse-all floor cells",
+    "rv",
+    "rv10"
+   ],
+   "excluded": [
+    "sfit (uses a GT-fitted scale)"
+   ],
+   "data": "K1 room rows (ScanNet and ScanNet++ only; ARKitScenes has none)",
+   "metric": "room MRA",
+   "rule": "keep the incumbent unless a challenger has paired (challenger - incumbent) 95% lower bound > 0 on K1 train AND point estimate > 0 on K1 held-out; among qualifying challengers take the largest K1-train mean; exact ties go to the incumbent",
+   "default": "incumbent",
+   "disclosure": "VSI-Bench ARKitScenes room items (150) get a rule chosen without ARKitScenes data"
+  },
+  {
+   "id": "C5",
+   "name": "near-nadir gravity guard",
+   "incumbent": "sealed sign test",
+   "candidates": [
+    "sealed sign test",
+    "sign test only when in-plane up > 0.3 (|pitch| < ~72 deg)",
+    "sign test on the median over the 32 frames"
+   ],
+   "data": "dev-S1 and K1 captures with GT gravity, plus synthetic inverted and 90-degree-rolled copies of every capture",
+   "metric": "refusal rate on true captures",
+   "rule": "take the lowest refusal rate among candidates that refuse 100% of synthetic inverted copies; tie -> conditioned test",
+   "default": "conditioned test",
+   "forbidden_input": "the official raw-G3T proxy counts (54 distance, 23 room items)"
+  },
+  {
+   "id": "D1",
+   "name": "abs distance route (step-544)",
+   "arms": {
+    "route": "native routed read: the export's own calls served by the P1-P6 backend",
+    "direct": "the export's direct-reader answer on the same items (calls unserved, as in ROUTE_PREDICTED.md)"
+   },
+   "items": "all 790 dev-S1 primary abs items (59 rooms); direct answers are needed on the 640 items outside the existing 150-item fixed list",
+   "rule": "route if paired (route - direct) 95% lower bound > 0; direct if upper bound < 0; else undecided",
+   "default_if_undecided": "route (the trained behaviour; the claim of a routing gain is withheld)",
+   "power": "CP1 effect +8.1 had half-width ~8.0 on 150 items/46 rooms; at 59 rooms the projected half-width is ~6-7, enough at effects >= ~7 points"
+  },
+  {
+   "id": "D2",
+   "name": "room size route (step-544)",
+   "arms": "as D1",
+   "items": "all 36 dev-S1 primary room items (9 rooms, ScanNet only)",
+   "rule": "as D1",
+   "default_if_undecided": "direct (calls unserved); report room as not established",
+   "power": "half-width ~20 on 9 rooms; it cannot decide at +6.7 (CP1) or +3.1 (the official estimate). A decision at +6.7 needs ~80 eligible held-out rooms with room labels; none exist for step-544, because the eligible pool trained it. Withhold >= 80 ScanNet/ScanNet++ rooms with room rows from the next seal's training data to build that set"
+  }
+ ],
+ "fixed_clean": [
+  {
+   "choice": "proposal density (dense pass, joint 0.05, cap 30, merged cap 100)",
+   "record": "official_reads/FUSION_PROPOSAL_SETTING_FROZEN_VSI_20261113.md:2,14-17"
+  },
+  {
+   "choice": "gap rule box_grid_5cm",
+   "record": "DD/GT_CEILING_DECOMPOSITION_20261111.md:17,196-201"
+  },
+  {
+   "choice": "linker floor 0.3, mask threshold 0.5, SAM 3 1008 px bf16 batch 1",
+   "record": "FUSION_PROPOSAL_SETTING_FROZEN_VSI_20261113.md:10"
+  },
+  {
+   "choice": "thinking budget B2048; 2,048 + 64 for native routed reads",
+   "record": "evalx/events/20261111T2255Z_RESULT_cp1_budget_r2.md:14; DD/ROUTED_READ_FIRST_ITEMS_169605_20261114.md:46"
+  },
+  {
+   "choice": "frames: trained 32-duplicate layout; 32 anchors with dense 64-frame G3T",
+   "record": "official_reads/ROUTED_ABSDIST_ROOM_VSI5130_20261113.md:12-13"
+  },
+  {
+   "choice": "VSTI route table: camera displacement and movement route, all else direct",
+   "record": "official_reads/VSTI_ROUTE_RULE_FROZEN_20261111.md"
+  },
+  {
+   "choice": "selector features and form (portable_np logistic, top-1, pair merge); coefficients refit under K1",
+   "record": "grd_selector/out/GRD_SELECTOR_KIT_20261111.md:57-62; b6_build/out/K1_RULES.json"
+  },
+  {
+   "choice": "depth source: G3T scaled by the step-544 heads (no V-C depth exists on the native path)",
+   "record": "DD/B6_GROUNDING_DESIGN_20261115.md:93; b6_build/out/RUNCARD_K1.md:9",
+   "note": "no alternative to select; heads exposure disclosed (scene_evidence OVERLAP FOUND)"
+  }
+ ],
+ "fallback": {
+  "native_reads": "primary = as-served native output (a refusal or a non-answer scores 0); secondary = reader-side fallback to the direct-reader answer, labelled secondary",
+  "external_rescore": "primary = strict; secondary = fallback"
+ },
+ "freeze": {
+  "file": "ROUTED_PATH_FROZEN_<date>.md in official_reads/",
+  "content": "every value of P1-P7 with its K1/dev-S1 table, the hashes of the K1 cache, refit and this pre-registration",
+  "gate": "no official native read of VSI-Bench, ReVSI or VSTI runs before this file exists; the only exception is VSTI camera-type routing under VSTI_ROUTE_RULE_FROZEN_20261111.md, which uses no mask-based component"
+ }
+}

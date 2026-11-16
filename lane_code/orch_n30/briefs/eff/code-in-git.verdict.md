@@ -1,0 +1,4 @@
+# Refute verdict for code-in-git
+refuted=True
+reasons: The hourly lane_code_sync.sh (11-16 06:19) already pushes lane code to GitHub. On base t_b01ce449 it keeps 766 of 792 files: 16 dedup'd, none over 512 KB, 10 fixtures dropped. The 30-40 h (S0-S8) also covers rows, census, reviews and the Orchard/GPU steps, which Git can't save. 2-18's loss was unaccepted in-progress work, and tree_commit only commits accepted builds.
+fix (binding): Drop the 30-40 agent-h claim. Claim only what exceeds lane-code: an exact seal restore (now 26 files short), build history, git diff instead of hand diffs, and eff/* publishing for the user's request. Fix the brief: no trainer file exceeds 512 KB; the misses are fixtures cut by the extension filter (csv, ppm, LICENSE, .provenance, .gitignore) and dedup. Evidence: /scratch/jjyeung/orch_n30/eff_audit/refute_code_in_git/NOTES.md

@@ -1,6 +1,6 @@
 export TZ=UTC
 P=/project/community/jjyeung/okh7/d9c35d0a/p/8f7817fb16bc218af285dc61
-echo "general check:"; squeue -p general -h -o '%i %u %j %T %l %e' | head -20
+echo "general check (own jobs):"; squeue -p general -h -u $USER -o '%i %j %T %l %e'; if [ -n "$(squeue -p general -h -u $USER -o %i)" ]; then echo "FAIL own job on general"; exit 4; fi; echo "general all users:"; squeue -p general -h -o '%i %u %T' | wc -l
 NOW=$(date -u +%s); END=$(date -u -d 2026-11-16T16:30:00Z +%s); MIN=$(( (END-NOW)/60 ))
 TL=$(printf '%02d:%02d:00' $((MIN/60)) $((MIN%60))); echo "time limit $TL"
 sbatch --nice=200 --gres=gpu:1 --ntasks=1 --nodes=1 --cpus-per-task=16 --mem=200G --time=$TL $P/a.sh

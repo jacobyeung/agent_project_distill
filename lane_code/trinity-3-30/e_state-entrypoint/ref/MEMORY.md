@@ -1,0 +1,103 @@
+- **READ FIRST, cluster safety 10-24:** [Thrash penalties](trinity-thrash-penalties.md) warning, then no agents, then no Trinity;
+- **READ FIRST, USER 11-16:** [Unlimited Claude until 15:00 PT 11-16](unlimited-claude-window-20261116.md) Claude subagents + Fable freely until 23:00Z; Devin for lanes outliving it
+- **Reference 11-16:** [Headless Claude lanes on nodes](claude-headless-lanes-on-nodes.md) orch_n30/tools/claude_bg.sh + tssh.sh limiter; probe OK on 1-3
+- **READ FIRST, USER 11-16:** [Commit + push code often](commit-push-code-frequently.md) hourly lane-code sync to GitHub; one git owner; never rewrite history
+- **READ FIRST, goal USER 11-16:** [CoT uses own heads, then RL](goal-cot-heads-foundation-for-rl-20261116.md) SFT forces head-using CoT as RL foundation; RL later rewards correct + short CoT; long CoT OK now
+- **READ FIRST, executor (USER 11-14):** [Carrier by model](codex-default-executor.md) Astra via Codex, never Devin; Opus or Fable via Devin, not the Agent tool; long-lived lanes = Devin Opus + Codex Astra build dispatches; [Devin notes](devin-first-every-lane.md)
+- **READ FIRST, launch policy:** [Launch first, check after](launch-first-check-after.md) USER 11-08: experiment RUNNING within 1 h; smoke = real job's first steps
+- **Key result 10-27:** [Oracle: perception is the bottleneck](oracle-perception-bottleneck-20261027.md) GT values in trace +7.65 VSI (counting 37->98)
+- **READ FIRST, current goal (USER 11-02):** [SOTA with traces + spatial model](goal-nov1-traces-beat-direct.md) per-category diagnosis loop; AWS ends 11-19
+- **READ FIRST, USER 11-01:** [Push back, think critically](push-back-critical-thinking.md) state question + confounds before launch
+- **READ FIRST, USER 11-01:** [Trace supervision priority](trace-supervision-priority-20261101.md) training runs top GPU priority; tool programs;
+- **READ FIRST, USER 10-31:** [No seed replicates](no-seed-replicates.md) never train a reseed; GPUs only for architecture or trace changes
+- **Questions never block:** [Never AskUserQuestion](question-wait-5min.md) act on default; ask ONCE; no repeats (USER 11-07)
+- Agent rules: [No broad fs searches](no-broad-filesystem-searches.md) crash nodes; [No git](no-git-unless-needed.md) lanes; [Minimize review](minimize-review-overhead.md) minimal; [Never wait](never-wait-on-user.md) pause; [Lane command](distillation-lane-command.md) newest; [Build w/o asking](build-without-asking.md) launch; [Launch what fits](launch-what-fits-now.md) subset; [No GPU bookkeeping](no-gpu-for-bookkeeping.md) CPU; [No self-clearance](no-self-approved-launch-clearance.md) independent; [Fence hung hosts](down-node-use-another.md) other node; [No signatures](user-ruling-no-rewrite-overhead-20261020.md) mechanical; [Times in PT](report-times-in-pt.md) user-facing; [Evidence first](evidence-first-priority.md) prove; [No hard-coded hosts](no-hardcoded-hosts-or-paths.md) harness; [No cross-deps](no-arbitrary-cross-dependencies.md) students; [Eval sample](eval-sample-size-before-attribution.md) ~100 q/type; [Usage limit](session-usage-limit-kills-subagents.md) USER 10-23: cron wake; [Orchestrator inbox](nontraining-orchestrator-inbox-channel.md) INBOX files
+- Archive: [Trainer, sets and early results](archive-index-trainer-sets-and-early-results.md) September to mid-October pointers (trainer v3.1, corrected/full-pool sets, holdout, seed noise, early results, old handoffs)
+- **Index, executors:** [Executor notes](index-executors-carriers.md) READ before any Devin, Codex, Cursor or Argon launch: launch commands, deaths, lane lessons
+- **Index, AWS:** [AWS and code-aws notes](index-aws-reference.md) runbook, evacuation routes, inode and IO limits; AWS runs nothing of ours now
+- **Index, design:** [Goals, traces, design conventions](index-design-history-traces-goals.md) rounding, frame naming, canonical traces, loss, early rulings
+- **Index, defects:** [Defects, losses, label conventions](index-defects-losses-conventions.md) check before trusting a GT source or an old artifact
+- **Index, hosts:** [Hosts, storage, nodes](index-hosts-storage-nodes.md) which nodes and filesystems, purges, node incidents
+- **Index, ideas:** [Ideas for later](index-ideas-for-later.md) VLA pitch, geometry input, unified benchmark, verification, perception heads
+- **Index, results to 11-10:** [Earlier results and lessons](index-results-through-20261110.md) pose teachers, ViPE, full-FT trio, trace coverage
+- **USER 10-27:** [Push when higher IO helps](push-when-higher-io-would-help.md) push user for big copies (~30 GB+)
+- **USER 10-27:** [No arbitrary limits](no-arbitrary-limits.md) only real constraints bind; no retry caps
+- **USER 10-27:** [Use any model that helps](use-any-model-that-helps.md) best encoders/teachers on evidence
+- **USER 10-27:** [Gemini key never idle](gemini-key-never-idle.md) 5-min heartbeat
+- **SSH 10-28:** [No lanemsg](no-lanemsg-ssh-limit.md) never run lanemsg/tell all; report stops via SendMessage
+- **USER 10-28:** [No compute waste](aws-gpu-waste-not-allowed.md) no idle GPUs or restart churn; decision-changing runs only
+- **USER 11-12:** [IO rates + pulls](aws-pull-under-100gb-approved.md) download 20 MB/s, other copies 10 MB/s; pause ours while main downloads; AWS pulls <200 GB, downloads <100 GB need no ask
+- **USER 10-29:** [r1835 parents OK](r1835-lineage-parents-ok.md) no clean parent, no paper mention
+- **USER 11-03, 11-10:** [Trinity GPU priority](trinity-gpu-priority-rules.md) 0-13 normal; other nodes only vnice; NEVER 3-23, 0-23, 0-8; leave 0-18 free
+- **USER 10-29:** [No licence restrictions](no-licence-restrictions.md) licences never restrict models/data
+- **USER 10-29:** [Only own saved questions](list-only-own-saved-questions.md) skip main's rows
+- **USER 10-30:** [Cross-family review](cross-family-review-published-recipes.md) other model family reviews builds; published LRs
+- **USER 11-02:** [Keep building rounds](keep-building-rounds.md) run to completion, then next round
+- **USER 11-02:** [Official eval + short tests](official-eval-and-short-decisive-tests.md) VSI-Bench 5,130; floor Cambrian-S-7B
+- **READ FIRST, lessons 11-02:** [Process rules](lessons-process-rules-20261102.md) no trace arm beat control; gate >64 GPU-h runs
+- **USER 11-02:** [Uniqueness, not replication](uniqueness-not-replication.md) gains from our method; GPUs only for method arms
+- **READ FIRST, USER 11-02 ~21:00 PT:** [No more controls](no-more-controls.md) stop all control runs; GPUs only for methods
+- **USER 11-02:** [Pack single-GPU jobs](pack-single-gpu-jobs.md) one multi-GPU job per node
+- **USER 11-03:** [Spare GPUs to data gen](spare-gpus-to-data-generation.md) pseudo-labels, traces; IO cap 18 MB/s
+- **READ FIRST, USER 11-03:** [Pre-launch checklist](prelaunch-thinking-checklist.md) data mix, traces reviewed, no answer-only; show user
+- **READ FIRST, USER 11-03:** [Rotate agents near ~300K tokens](agent-context-rotation.md) write handoff, fresh successor
+- **USER 11-03:** [Act now](act-now-not-later-windows.md) use capacity before cutoffs
+- **READ FIRST, USER 11-09:** [NO AWS JOBS; Trinity + Orchard](aws-down-until-user-says.md) only the copy sender runs on AWS; copy all weights + needed inputs off, remove from AWS after sha256-verified on Mind
+- **USER 11-03:** [Stop idle watchers](stop-idle-watchers.md) stop pollers with no live jobs
+- **USER 11-03:** [Small watcher reads](small-watcher-reads.md) read only tails/STATUS lines
+- **READ FIRST, USER 11-09:** [Main has priority over ALL resources](gemini-key-main-priority.md) GPUs, Orchard, governor, disk, 3.1 Pro key; distill uses spare; Argon unlimited
+- **USER 11-05:** [Higher signal takes GPUs](higher-signal-takes-gpus.md) stop weaker run for stronger
+- **USER 11-05:** [Reruns under 1,000 questions](reruns-under-1000-questions.md) go ahead; cluster-killed waits
+- **Cluster 11-06:** [/scratch 7-day cleanup](scratch-7day-cleanup.md) untouched files cleared daily; archive to /data3
+- **USER 11-06:** [Direction + navigation first](downstream-priority-direction-navigation.md) VLN-CE, R2R-CE matter most
+- **Cluster IO 11-07:** [No built-in grep on NFS](devin-launch-home-io.md) recursive search read 1.9 GB in 30 s; forbid in briefs
+- **READ FIRST, review 11-07:** [Trace review](trace-review-20261107.md) f17/P1c-u traces 0/85 pass; new data in head-backed form
+- **READ FIRST, USER (repeated) 11-07:** [Reconstruct dense, then subsample](reconstruct-dense-then-subsample.md) never fit on 32 frames
+- **READ FIRST, USER 11-07:** [No harness: end-to-end routing](no-harness-end-to-end.md) own head in forward; numbers as text tokens
+- **USER 11-07:** [Clean training stages](clean-training-stages.md) Stage 1 heads frozen VLM -> Stage 2 routing; prefer base start
+- **Process 11-07:** [Real UTC stamps](inbox-stamps-real-utc.md) use `date -u` in the writing command
+- **READ FIRST, result 11-07:** [Head-backed programs measured](toolprog-results-20261107.md) GT 80.1 / own heads 58.7 / f17 direct 73.0
+- **USER 11-08:** [GPU numbers are shared totals](gpu-numbers-are-shared-totals.md) unlabeled counts = main+distill
+- **USER 11-08:** [Stack best, then ablate](stack-best-then-ablate.md) no per-step ablations
+- **USER 11-08:** [Run-check cadence](run-check-cadence-5min.md) lanes 1 min until steps+save, then 5 min; orchestrator every ~15 min
+- **READ FIRST, USER 11-08:** [Experiment design lessons + goal](experiment-design-lessons-20261108.md) highest-signal, read early; price errors in benchmark points; no-info baselines; read the data
+- **READ FIRST, USER 11-09:** [Build experiments first](build-experiments-first.md) build kits in parallel at once; ready-to-launch queue; dry-run first batches; in AGENTS.md
+- **READ FIRST, USER 11-09:** [Drastic architecture OK](drastic-architecture-ok-20261109.md) other bases ~9-13B, 64/96 frames, runtime later; must stay end-to-end RGB
+- **Reference 11-09:** [SOTA bars ~9B](sota-bars-9b-20261109.md) verified: GeoWeaver-10B 75.05 VSI/57.5 ReVSI; Cambrian-P 73.7 at 128 frames; SpatialAxiom unverified
+- **READ FIRST, result 11-09:** [Pose limit = Qwen encoder](result-pose-limit-qwen-encoder-20261109.md) ViT probe chance at 1x/2x; G3T pose 3.1 deg; pose via G3T x s, no pixel levers
+- **READ FIRST, IO 11-15:** [Governed copies only](io-governor-copy-archive.md) streams over 20 MB on /home, /data* or across the head node register with governor serial-v1 (trinity-3-30) via ratelimit.py + node agent; pv and rsync --bwlimit refused; no bare sha256sum -c on /data*
+- **READ FIRST, lesson 11-10:** [Attribute IO overruns from evidence](lesson-rebuilds-read-data2-unthrottled.md) I blamed a lane's rebuild by timing and was wrong; get the meter breakdown first; lanes prove isolation with /data* and /home hidden; briefs state how /data* inputs are staged
+- **READ FIRST, USER 11-10:** [SAM 3 tower OK; ideal is own encoder](user-ruling-sam3-tower-own-encoder-20261110.md) SAM 3 allowed inside as frozen tower; target = grounding from the model's own vision encoder; fine-tune or swap encoders, not from scratch
+- **READ FIRST, results 11-10:** [Presence, pose, routing](result-presence-pose-routing-20261110.md) own yes/no presence AUROC 0.96 > SAM 3; box form boxes 92% of absent frames; tower camera programs 88/88/92 vs 44/44/48 (real video 86/96/96/88); pose costs 1-2 points, gap is grounding; rendered clips break metric scale
+- **READ FIRST, USER 11-11:** [Lane intent: two goals](lane-intent-two-goals-20261111.md) SOTA 9B spatial VLM beating frontier closed models; then cheaper + better VLA fine-tuning; build all code ahead
+- **READ FIRST, USER 11-11:** [Eval frames unrestricted](eval-frames-unrestricted-20261111.md) use 100+ frames if it helps; no frame-parity constraint, ReVSI included
+- **READ FIRST, USER 11-11:** [Rewrite prose traces: program or Gemini key](user-ruling-trace-rewrite-gemini-20261111.md) read sample rows before any launch; Gemini supplies frame perception only, the program computes
+- **READ FIRST, lesson 11-11:** [Lane disk caps must be enforced](lesson-lane-disk-caps-enforced-20261111.md) a resume test saved 166 GB and filled 2-18 /scratch; check free space every tick; tests never save real-size checkpoints
+- **READ FIRST, USER 11-11:** [Reads from /data* need no ask](data-reads-no-ask-20261111.md) approve them myself below ~1 TB; throttling and the governor still apply
+- **READ FIRST, lesson 11-11:** [Eval frame layout must match training](lesson-eval-frame-layout-must-match-training-20261111.md) f17 = 32 spread, T0/CP1 = 32 duplicate; mismatch costs 3-13 points
+- **Reference 11-11:** [Closed-model bars](closed-model-bars-20261111.md) Argon 76.68 / 86.60 / 83.33, Carbon 75.97 / 89.76 / 82.29 on VSI-500 / ReVSI-999 / VSTI-450
+- **Reference 11-12:** [Orchard queue facts](orchard-queue-facts-20261112.md) advanced = 4 GPUs/user (24 h legs); general = 1 job, CPU ok; no node /tmp survives a job
+- **READ FIRST, lesson 11-12:** [Fresh reading before saying a card is empty](lesson-fresh-reading-before-claiming-cards-empty-20261112.md) never from a STATUS block; wait for the lane's nvidia-smi + pgrep event
+- **Result 11-12:** [ReVSI student reads](result-revsi-student-reads-20261112.md) CP1 m200 58.63 / T0 45.65 on official999; open bar 57.5; facing-away items rotated 180 deg
+- **Result 11-12:** [dev-S1 baseline of the parent](result-devs1-baseline-cp1-20261112.md) CP1 m200 71.64 primary; abs distance 38.9; facing-away 14.0; true frame timing required
+- **READ FIRST, result 11-12:** [Route table on held-out scenes](result-devs1-route-table-predicted-masks-20261112.md) predicted masks: only abs distance routes (dense+aliases 56.2 vs 46.9); direct wins elsewhere
+- **READ FIRST, result 11-12:** [f17 vs parent on dev-S1](result-f17-devs1-vs-parent-20261112.md) f17 73.50 vs CP1 m200 71.64 (tie); f17 leads route +35, counting +10; parent leads size +17
+- **READ FIRST, result 11-15:** [ReVSI direct, step 544](result-revsi-direct-step544-20261115.md) five direct categories 64.94 [61.3, 68.4]; route 66.7 (parent 42.9), size 70.9 (63.4), direction 51.2 (48.4); away 14.0 vs toward 88.3; abs distance + room NOT read; never vs 58.63 or 57.5
+- **READ FIRST, result 11-15:** [Official VSI-Bench direct, step 544](result-official-vsi-direct-step544-20261115.md) six direct tasks 68.77 [66.5, 71.0] vs f17 65.60; rel direction 88.8, rel distance 70.6 lead; counting, route trail; abs distance + room NOT read; never vs 63.79 or 75.05
+- **READ FIRST, hosts 11-15:** [Orchestrator tools on /data2](orch-lane-tools-on-data2.md) distillation_orchestrator_20260918/orch_n30: launch_remote.sh starts Devin lanes on any node, events and briefs on NFS, shared Orchard ssh; orch_cd = dead 2-18, orch_n28 = hung 2-28
+- **READ FIRST, lesson 11-15:** [Mirror sealed work to a second node](lesson-single-node-sole-copies-20261115.md) 2-18 held the only copy of every kit, tree, row set and tool; mirror over InfiniBand at once
+- **READ FIRST, USER 11-12:** [Do not waste Codex tokens](codex-token-economy-20261112.md) dispatch Codex only when a launch, decision or queued GPU run needs the output
+- **READ FIRST, lesson 11-12:** [Launch kit must run as in the job](lesson-launch-kit-must-run-as-in-job-20261112.md) USER 11-13 iterate faster: run the real admission locally first; ceremony once on the final kit; GPU canary in parallel
+- **READ FIRST, 11-13:** [MDG-A init ineligible](mdga-init-ineligible-20261113.md) trained on 251 benchmark + 72 dev-S1 scenes; check any init's training scenes before use
+- **READ FIRST, result 11-13, audited 11-15 and 11-16:** [Official VSI-Bench routed](result-vsi-routed-official-20261113.md) 64.76 (abs distance only, strict) vs 63.79 is NOT clean: off the selection scenes +0.42 [-0.23, +1.08]; 65.14 adds a room route chosen on benchmark items; 65.4 fallback is post hoc; re-freeze before any native official read
+- **READ FIRST, lesson 11-13:** [Orchard project filesystem can fill](lesson-orchard-project-fs-can-fill-20261113.md) other tenants took 300 GB in 3 h; job stdout, upload bookkeeping and the end slot must not depend on it; state to GCS
+- **READ FIRST, lesson 11-13:** [Review the decision code before the read](lesson-review-decision-code-before-read-20261113.md) rule layer differed from the registered text; ask which review covers each file
+- **Result 11-15 (USER link 11-13):** [Unbundling: vision capacity inside the LM](unbundling-infusion-vision-capacity-20261113.md) IF-P0 ran: branches in LM layers 1-8 cut pose error 18.1 -> 15.5 deg (+2.6 [1.7, 3.8]); gate was 5; no pass, closed
+- **READ FIRST, result 11-14:** [LEG-S1 direct reads, steps 100-544](result-legs1-m100-20261114.md) final 544: route +42.0 vs parent, +8.0 vs f17; rest flat since step 100; routed read still unmeasured; facing-away defect
+- **READ FIRST, lesson 11-14:** [Tell main before staging on a node](lesson-tell-main-before-staging-on-shared-node-20261114.md) >20 GB on any Trinity /scratch: announce node + size first; our 38 GiB on 0-28 stopped main's r3123
+- **READ FIRST, ruling 11-15:** [Trace grammar adopted](trace-ruling-20261115.md) programs only for abs distance, room, 3 camera types; direct rows qualitative, never empty or with stated measurements; sealed LEG-S1 breached it (15.3 answer-only + 95 stated-measurement rows per step); validate + read samples before any seal
+- **READ FIRST, lesson 11-16:** [Check a lane is alive before ordering](lesson-check-lane-alive-before-order-20261116.md) orders to an ended lane reach no one; track session limits; reopened work = new successor
+- **READ FIRST, result 11-16:** [Native routed read, dev-S1, step 544](result-native-routed-read-devs1-step544-20261116.md) programs emitted 99-100%; camera 82.3 / 94.7 / 75.7 vs direct-answer 13.5-53.3 (unpaired); PAIRED vs parent direct: distance -9.0, room -1.7, metre-only tie (61.6 vs 60.7); scripted lead is unit conversion only
+- **READ FIRST, result 11-16:** [Tower geometry priced (E3)](result-e3-geometry-pricing-20261116.md) no scale or floor rule makes room routable (63.3 vs f17 direct 63.4); perfect scale adds <= 3 points on distance; the gap to GT geometry is depth shape and pose
+- **READ FIRST, project 11-16:** [D0 leg running](d0-leg-running-20261116.md) Orchard 170111 since 07:25Z; reads at 100/200/400/600/800/final; stop rule amended before any read; second allocation due 06:25Z 11-17
+- **READ FIRST, lessons 11-16:** [Launch-night lessons](lessons-launch-night-20261116.md) test alarms and stop bars on a measured first batch; rehearse the production config; Slurm estimates are upper bounds; name training exposure and units before interpreting

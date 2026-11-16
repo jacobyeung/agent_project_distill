@@ -1,0 +1,637 @@
+# RECONSTRUCTED round-1 changes against the reviewed kit. No Git commands used.
+# Source: /home/jjyeung/agent_project_distill/agent/scratch/codex_runs/20261116T093327Z_cont5_readk_fix1/transcript.log
+# Code hunks were reversed against readk_fix1.tar and both transcript blob IDs verified.
+# Launcher: exact recorded replacement; REPORT/REVIEW/DIFF: initial file dumps; FIX1: recorded creation.
+# Unreconstructed generated/evidence files (original bytes or creation boundary absent): evidence/FINAL_PINS.json, evidence/SOURCE_DIFF.json, evidence/SOURCE.patch, evidence/FIX1_TESTS.log, evidence/FIX1_REPIN.log, evidence/FIX1_BIND_*.log, evidence/fix1_bind_*/**, evidence/UPLOADER_FORMAT.txt
+# Offline source samples and pre-existing review fixtures are not treated as code changes.
+
+--- reviewed/DIFF.md
++++ fix1/DIFF.md
+@@ -20,11 +20,14 @@
+ | `cohort/MEDIA_MANIFEST.json` | 1–1442 | — | BEYOND | R1 |
+ | `cohort/frame_plan.py` | 1–80 | — | BEYOND | R1 |
+ | `cohort/meta_5130.jsonl` | 1–5130 | — | BEYOND | R1 |
+-| `launcher/chain_save.py` | 79–98 | 79–85 | BEYOND | R1 |
+-| `launcher/chain_save.py` | 100–109 | 87–91 | BEYOND | R1 |
+-| `launcher/export_stage.py` | — | 1–215 | BEYOND | R1 |
++| `launcher/chain_save.py` | 79–98 | 79–86 | BEYOND | R1 |
++| `launcher/chain_save.py` | 100–109 | 88–92 | BEYOND | R1 |
++| `launcher/chain_save.py` | 131 | 114 | BEYOND | R1 |
++| `launcher/export_stage.py` | — | 1–224 | BEYOND | R1 |
+ | `launcher/orchard_job.py` | 134 | 134 | BEYOND | R1 |
+ | `launcher/orchard_job.py` | 137–140 | — | BEYOND | R1 |
++| `launcher/orchard_job.py` | 264 | 260 | BEYOND | R1 |
++| `launcher/orchard_job.py` | 269 | 265 | BEYOND | R1 |
+ | `launcher/orchard_launcher.py` | 23 | 23 | BEYOND | R1 |
+ | `launcher/orchard_launcher.py` | 36 | 36 | BEYOND | R1 |
+ | `launcher/orchard_launcher.py` | 59 | 59 | BEYOND | R1 |
+@@ -92,12 +95,14 @@
+ | `tests/test_pass3.py` | 1–252 | — | BEYOND | R1 |
+ 
+ The following Trinity-side additions are BEYOND in their entirety and are included in R1:
+-- `f1f2.py`: lines 1–173.
++- `f1f2.py`: lines 1–186.
+ - `room_bootstrap.py`: lines 1–26.
+-- `build_review.py`: lines 1–63.
+-- `REPORT.md`: lines 1–43.
+-- `REVIEW.md`: lines 1–19.
+-- `tests/bind_fixture.py`: lines 1–28.
+-- `tests/test_chain.py`: lines 1–52.
+-- `tests/test_kit.py`: lines 1–191.
+-- `tests/test_verdict.py`: lines 1–140.
++- `build_review.py`: lines 1–65.
++- `REPORT.md`: lines 1–44.
++- `REVIEW.md`: lines 1–30.
++- `FIX1.md`: lines 1–17.
++- `tests/bind_fixture.py`: lines 1–29.
++- `tests/offline_guard.py`: lines 1–19.
++- `tests/test_chain.py`: lines 1–53.
++- `tests/test_kit.py`: lines 1–292.
++- `tests/test_verdict.py`: lines 1–203.
+--- /dev/null
++++ fix1/FIX1.md
+@@ -0,0 +1,17 @@
++# Fix round 1
++
++All six review items are implemented. The authoritative F2 verdict follows TRACE_RULING 2.7.
++
++| Item | Fix | Evidence |
++|---|---|---|
++| A1 | Bootstrap accepts `a2` and `build-integrity-v1`; preparation re-pins launcher bytes. | `test_prepared_bootstrap_entry` reaches mocked execution at 100/200/400 and rejects tampering; `test_failure_return_uses_mock_publisher` covers failure return. |
++| A2 | Returns retain all families’ raw journals at ON16k/B2048/B4096; gzip level 6 and both size caps apply. | `test_return_retains_all_raw_journals` checks every archived byte. |
++| A3 | Strict one-line bucketless object/bytes/SHA receipt; expected run and step; fixed bucket URI; four ordered parts; whole-tar size/hash before extraction. | `test_done_sample_and_strict_identity`, `test_wrong_done_refused_before_cloud_or_disk_reservation`, `test_ordered_cloud_stream_requires_whole_digest_before_stage`, and `test_digest_before_extraction`; uploader source in `evidence/UPLOADER_FORMAT.txt`. |
++| B1 | Seven registered F1 types decide; relative count and relative object size are information only. | `test_f1_has_seven_types_and_extras_cannot_stop`; `test_each_registered_f1_type_can_stop`. |
++| B2 | Lower-bound reading decides; point failures and alternate verdict print as information only. | `test_point_reading_is_information_only` checks disagreement at 60/46/42 and equality at constants. |
++| B3 | Kit and CLI accept 400; F2 decides STOP/CONTINUE at 400, with F1 reported. | `test_step400_f2_alone_decides_and_reports_f1`, `test_cli_accepts_step400_and_prints_both_readings`, bootstrap entry and three step-400 binds. |
++| Test guard | Every test entry denies real process creation and socket operations; execution boundaries use mocks. | `test_offline_guard_blocks_real_commands_and_network` includes bare/absolute gcloud and shell bypass attempts. |
++| Pins | Final code, tests and review documents are re-pinned; fresh batches embed current launcher pins. | `test_final_pins_match`; `evidence/FINAL_PINS.json`. |
++
++Validation: 40 tests pass in `evidence/FIX1_TESTS.log`. Eight binds pass in `evidence/FIX1_BIND_*.log`: all families at 100, main at 200, and main/away/forward at 400. Prompt inventories match accepted bytes.
++No live publish, network, SSH, GPU, Git, deletion or Slurm command ran. Live milestone execution and its embedded artifact path remain unverified. `REVIEW.md` gives file:line references for each item.
+--- reviewed/REPORT.md
++++ fix1/REPORT.md
+@@ -1,16 +1,16 @@
+-The kit builds one-H100 `general` reads for steps 100 and 200: main 1,525, away 150, and forward 150. `--camera` adds 450 items; it is off by default. The accepted duplicate layout, 32 anchors, timing, ON16k/B2048/B4096 budgets, and answer policy remain pinned. B2048 is primary.
++The kit builds one-H100 `general` reads for steps 100, 200 and 400: main 1,525, away 150, and forward 150. `--camera` adds 450 items; it is off by default. The accepted duplicate layout, 32 anchors, timing, ON16k/B2048/B4096 budgets, and answer policy remain pinned. B2048 is primary.
+ 
+-The job concatenates four GCS parts, checks the `.done` whole-tar bytes/SHA256 before extraction, applies build_t5's unchanged admission function, and runs the unchanged export checker in full mode. Each family uses a fresh process on the same card. Failure stops subsequent families without retry.
++The job accepts the uploader’s exact plain-text `.done` line (`object bytes sha256`), binds its bucketless object to run 359fcc3c and the requested step, constructs its URI under `gs://cmu-gpucloud-jjyeung`, concatenates four GCS parts, checks whole-tar bytes/SHA256 before extraction, applies build_t5's unchanged admission function, and runs the unchanged export checker in full mode. Each family uses a fresh process on the same card. Failure stops subsequent families without retry.
+ 
+-Returns contain `ITEMS.jsonl`, `SUMMARY.json`, authenticated score reports, and binding/staging evidence. The proposed pool is `/project/community/jjyeung/okh7/ae71c903`; GCS uses `gs://cmu-gpucloud-jjyeung/q8/ae71c903/<token>/`. The pool retains its 4 MiB fsync/hash test, locks operations, and enforces 100 MB. Both return channels verify independently. Token meanings are recorded in `LEDGER.jsonl`.
++Returns contain `ITEMS.jsonl`, `SUMMARY.json`, authenticated score reports, binding/staging evidence, and each family’s `a0/results/{0,budget_2048/0,budget_4096/0}/items_a0.jsonl` raw journals. Gzip level 6 preserves the 512 MiB expanded and sub-90 MB compressed limits. The proposed pool is `/project/community/jjyeung/okh7/ae71c903`; GCS uses `gs://cmu-gpucloud-jjyeung/q8/ae71c903/<token>/`. The pool retains its 4 MiB fsync/hash test, locks operations, and enforces 100 MB. Both return channels verify independently. Token meanings are recorded in `LEDGER.jsonl`.
+ 
+ Accepted A reports exist on this host at `/scratch/jjyeung/orch_n30/evalx27/work/pull/x27/res/e193/merged/{main,away,forward}/report/B2048.json`; predictions exist at `direct/<family>/results/0/budget_2048.jsonl`. All 150 away and 150 forward items exist, so no second model arm is needed. `evidence/A544.jsonl` contains their normalized records; source hashes are in `evidence/ACCEPTED.json`. A has away accuracies 38/20/6% and 74/150 pairs alike (49.33%).
+ 
+-`f1f2.py` uses the exact `paired()` function from `kit/reader/work/vendor/r5/report.py:36`, with B first, 10,000 room draws, seed 17, and interpolated percentiles. F1 includes numeric/comparative counting and size tasks separately. F2 compares semantic option contents. Step 100 has no verdict; step 200 implements STOP, CONTINUE_TO_400, and CONTINUE. F3/F4 are explicitly unevaluated and do not stop this direct read.
++`f1f2.py` uses the exact `paired()` function from `kit/reader/work/vendor/r5/report.py:36`, with B first, 10,000 room draws, seed 17, and interpolated percentiles. F1 decides on seven types: route planning, object counting, direction easy/medium/hard, relative distance and object-size estimation. Relative count and relative object size are information only. F2 uses TRACE_RULING 2.7’s lower-bound reading; point-estimate failures and the corresponding verdict appear separately as information. Twin equality compares semantic option contents. Step 100 has no verdict; step 200 implements STOP, CONTINUE_TO_400, and CONTINUE. Step 400 returns STOP if F2 fails and CONTINUE otherwise, reporting F1 without using it to stop. F3/F4 are explicitly unevaluated and do not stop this direct read.
+ 
+ The total-count guard is unavailable on the accepted inventory, which contains only single-object counting under `object_counting`. The script prints the constant-7/46.30% guard as unavailable and evaluates the constant-2/61.87% single-count guard. It does not invent total-count observations.
+ 
+-Run the following block for `STEP=100`; run it again with `STEP=200` and a fresh token. These operator commands were not run. CPU tests did exercise local preparation.
++Run the following block for `STEP=100`; use `STEP=200` or `STEP=400` with a fresh token for those reads. Prepare each batch from these final pinned sources. These operator commands were not run. CPU tests did exercise local preparation.
+ ```bash
+ cd /scratch/jjyeung/orch_n30/cont_ops/work/d0/readk
+ export PYTHONDONTWRITEBYTECODE=1
+@@ -31,6 +31,7 @@
+ ```bash
+ "$PY" -B f1f2.py --step 100 --a evidence/A544.jsonl --b /PATH/100/ITEMS.jsonl --output F100.json
+ "$PY" -B f1f2.py --step 200 --a evidence/A544.jsonl --b /PATH/200/ITEMS.jsonl --m100 /PATH/100/ITEMS.jsonl --output F200.json
++"$PY" -B f1f2.py --step 400 --a evidence/A544.jsonl --b /PATH/400/ITEMS.jsonl --output F400.json
+ "$PY" -B -m unittest discover -s tests -p 'test_*.py' -v
+ ```
+ 
+@@ -38,6 +39,6 @@
+ 
+ Budget about 220 GB of additional `/tmp` space for retained archives, extracted runtimes/base/export, three family model copies, frame tar/PNG copies, and working space; about 265 GB with camera. Keep the 200 GiB floor: start with at least 440 GB free (490 GB with camera). These are conservative estimates using the accepted 21.583 GB export; admission and each family check actual space.
+ 
+-Validation: 28 CPU tests pass (`evidence/FINAL_TESTS.log`). All four family binds match accepted prompt inventories byte for byte; main also binds step 200. Tests cover all stop branches, bootstrap boundaries, stream order/digest refusal, unsafe tar layouts, full checker corruption detection, return pool behavior, and family failure isolation. `DIFF.md` classifies every changed line; `REVIEW.md` records one local self-review.
++Validation: 40 CPU tests pass (`evidence/FIX1_TESTS.log`), including packaged bootstrap entry at all three steps, journal archive round trips, strict receipt format/identity, seven-type F1, both F2 readings, step-400 decisions and final pin checks. Eight guarded binds match accepted prompt inventories: all four families at 100, main at 200, and main/away/forward at 400 (`evidence/FIX1_BIND_*.log`). Every test entry installs an audit hook that denies real process creation and socket operations; publish, GPU and cloud paths are mocked. `DIFF.md` classifies changed lines; `REVIEW.md` and `FIX1.md` map each requested fix to code and tests. Uploader source evidence is in `evidence/UPLOADER_FORMAT.txt`; the real receipt sample is in `evidence/DONE_SAMPLES.txt`.
+ 
+ Unverified: live Orchard credentials/assets, final milestone receipts, H100/vLLM execution, actual PNG pixels, returns, and real milestone timing. Camera uses build_t5's reconstructed bridge. New job-facing names are opaque and engine diagnostics are hex-encoded; the unchanged reader/checker still require legacy private paths such as `a0/models/cp1m200`. A literal ban on every private Orchard path remains unresolved and prevents claiming unconditional submit readiness. No SSH, GPU, network, Git, deletion, or Slurm command ran.
+--- reviewed/REVIEW.md
++++ fix1/REVIEW.md
+@@ -1,19 +1,30 @@
+-R1 is a completed local code review by the primary builder. No independent reviewer or subagent participated.
++R1 is a completed local code review by the primary builder. The external review verdict is GO AFTER FIXES; this file records the builder’s local review, not an independent approval.
+ 
+ The review covers every BEYOND range listed in DIFF.md and the complete Trinity verdict code. The review checked these properties against the user-supplied rules and the named sources:
+ 
+-- The execution path imports the accepted direct reader from the authenticated runtime, checks its SHA256, and verifies every family's item map, task-file pin, source digest, cells, engine settings, timing pins, and answer-policy inputs. Four CPU binds produce byte-identical accepted prompt inventories. Main's step-200 bind also passes.
++- The execution path imports the accepted direct reader from the authenticated runtime, checks its SHA256, and verifies every family's item map, task-file pin, source digest, cells, engine settings, timing pins, and answer-policy inputs. Four CPU binds produce byte-identical accepted prompt inventories. Main’s step-200 bind and all three default step-400 binds also pass.
+ - Each family runs in a fresh interpreter with the one assigned card. The parent checks the H100 before and after staging, stops after a failed family, and preserves failure returns. No fake engine enters the submitted package.
+-- Four cloud parts stream in numeric order. A size or whole-tar SHA mismatch prevents extraction. The complete build_t5 stage_export function is unchanged; its AST comparison passes. The checker source pins remain exact, full mode is mandatory, and a miniature real BF16 checker fixture rejects a changed shard.
++- The strict plain-text receipt parser binds run and step before any stream opens. Four cloud parts stream in numeric order. A size or whole-tar SHA mismatch prevents extraction. The complete build_t5 stage_export function is unchanged; its AST comparison passes. The checker source pins remain exact, full mode is mandatory, and a miniature real BF16 checker fixture rejects a changed shard.
+ - The submitted plan binds the step, selected families, and logical artifact path. The runtime receipt binds the completed archive, resolved artifact hash, and full verification result. The original submitted plan hash remains the return identity; the resolved receipt is saved separately.
+ - Per-item records join complete journals to authenticated report rows by key. Main uses released labels on primary rows and own labels on route rows; twins use own labels. Paired metadata and exact accepted membership are checked before metrics.
+-- F1 includes route, single and comparative counting, each direction level, relative distance, numeric object size, and comparative object size. This interprets “counting” and “object size” as both accepted direct task variants and reports each separately.
++- F1 decides on the seven registered types. Relative count and relative object size appear only in `f1_information_only`; their intervals cannot stop the leg.
+ - The existing room bootstrap is copied exactly and called B-first for B-minus-A. Confidence intervals use 10,000 draws over physical rooms with item weighting. Accuracy intervals use the same function against zero. Tests cover sign, zero boundaries, room weighting, thresholds, trend strictness, and every verdict branch.
+ - Twin pairing uses the recorded paired-away ID, validates room/scene/level, and compares parsed option content. Missing answers are reported separately. The accepted packet reproduces 74/150 identical-answer pairs.
+-- Step 100 emits no verdict. A step-200 F1 failure stops immediately. A step-200 F2 failure requires the registered trend exception; missing step-100 input refuses that branch. Guards do not add an unregistered stopping rule. F3/F4 are explicitly outside this read.
+-- The pool write test is retained, locked, bounded, and hash-verified. Publishing verifies both independent channels, retains the inherited timeout and generation checks, and includes the compact item/summary files. No deletion is added.
++- F2 uses the lower bound for its verdict and prints the point-estimate reading separately as information. Step 100 emits no verdict. A step-200 F1 failure stops immediately. A step-200 F2 failure requires the registered trend exception; missing step-100 input refuses that branch. At step 400, F2 alone determines STOP or CONTINUE; F1 remains reported. Guards do not add an unregistered stopping rule. F3/F4 are explicitly outside this read.
++- The pool write test is retained, locked, bounded, and hash-verified. Publishing verifies both independent channels, retains the inherited timeout and generation checks, and includes item/summary files plus raw journals at all three budgets, compressed at gzip level 6. No deletion is added.
+ - Disk checks reserve a 200 GiB floor before retained archive expansion and each family’s model/frame copies. No shared data transfer, model read, GPU, or live cloud call ran during validation.
+ 
+ Limits remain explicit. Total-count observations do not exist as a separate task in the accepted inventory; the corresponding guard is unavailable. The all-private-path naming interpretation conflicts with immutable compatibility paths. This review does not waive that requirement or claim live runtime parity. Camera's bridge is reconstructed, as documented in build_t5. Operator submission commands remain unexecuted.
+ 
+-Evidence: evidence/FINAL_TESTS.log, evidence/BIND_MAIN200.log, evidence/BIND_AWAY2.log, evidence/BIND_FORWARD2.log, evidence/BIND_CAMERA.log, evidence/ACCEPTED.json, evidence/BASELINE_METRICS.json, and evidence/FINAL_PINS.json. No narrative history is retained in the report; the requested baseline comparison belongs in DIFF.md.
++Evidence: `evidence/FIX1_TESTS.log` (40 tests), `evidence/FIX1_BIND_*.log` (eight binds), `evidence/ACCEPTED.json`, `evidence/FINAL_PINS.json`, `evidence/DONE_SAMPLES.txt`, and `evidence/UPLOADER_FORMAT.txt`.
++
++## Fix round 1
++
++- A1 — `kit/launcher/orchard_job.py:260` and `:265` accept `a2` and `build-integrity-v1`. `tests/test_kit.py:160` prepares all three steps, unpacks each bootstrap, runs its entry to a mocked execution boundary, and rejects changed dependencies. `tests/test_kit.py:191` checks the failure return with a mocked publisher.
++- A2 — `kit/launcher/chain_save.py:86` selects every family’s raw journal at all three budgets; `:114` uses gzip level 6. `tests/test_kit.py:145` verifies their bytes survive a real local archive round trip. Both size limits remain enforced.
++- A3 — `kit/launcher/export_stage.py:169` accepts only the uploader’s single plain-text line and binds the bucketless object to the expected run and step. `:188` constructs the bucket URI; `:189` preserves the raw receipt; `:213` writes normalized JSON for unchanged archive admission. `tests/test_kit.py:225`, `:261`, and `:280` cover ordered streams, whole-tar digest refusal, the real sample, malformed/wrong identities, and refusal before cloud access. Uploader references: `evidence/UPLOADER_FORMAT.txt`.
++- B1 — `f1f2.py:15` defines seven stopping types; `:130` reports the two comparative types separately. `tests/test_verdict.py:44` proves each extra cannot stop; `:54` proves each registered type can stop.
++- B2 — `f1f2.py:135` retains the lower-bound test, `:136` computes point-estimate failure, and `:155` labels the alternate reading as information only. `:162` prints its alternate verdict. `tests/test_verdict.py:85` proves 60/46/42 can give authoritative STOP and informational CONTINUE; threshold equality passes only the point reading.
++- B3 — `kit/launcher/orchard_launcher.py:146`, `:176`, `:380` accept step 400; `f1f2.py:164` decides STOP/CONTINUE from F2 with F1 reported. `tests/test_verdict.py:63` exercises CLI output; `:76` tests all four F1/F2 combinations. Packaged entry and main/away/forward step-400 binds pass.
++- Test isolation — `tests/offline_guard.py:13` denies process/network audit events before test imports. `tests/test_kit.py:182` proves bare and absolute `gcloud`, shell commands, SSH, Slurm, and sockets cannot reach real execution. The guard is also loaded by the bind fixture. No guard is shipped in the production kit.
++- Pins — `build_review.py:59` regenerates `evidence/FINAL_PINS.json` for shipped code, verdict code, tests and review documents. `tests/test_kit.py:204` verifies every pin against final bytes. Prepare regenerates launcher/payload pins and the embedded integrity record for each batch.
+--- reviewed/build_review.py
++++ fix1/build_review.py
+@@ -52,12 +52,14 @@
+     new_range = f"binary: {h['new_bytes']} bytes" if h['operation']=='binary' else fmt(h['new_lines'])
+     lines.append(f"| `{h['file']}` | {old_range} | {new_range} | {h['classification']} | R1 |")
+ lines+=['','The following Trinity-side additions are BEYOND in their entirety and are included in R1:']
+-for p in [ROOT/'f1f2.py',ROOT/'room_bootstrap.py',ROOT/'build_review.py',ROOT/'REPORT.md',ROOT/'REVIEW.md',*sorted((ROOT/'tests').glob('*.py'))]:
++for p in [ROOT/'f1f2.py',ROOT/'room_bootstrap.py',ROOT/'build_review.py',ROOT/'REPORT.md',ROOT/'REVIEW.md',ROOT/'FIX1.md',*sorted((ROOT/'tests').glob('*.py'))]:
+     lines.append(f"- `{p.relative_to(ROOT)}`: lines 1–{len(p.read_text().splitlines())}.")
+ (ROOT/'DIFF.md').write_text('\n'.join(lines)+'\n')
+ # Small manifests describe shipped code, without hashing generated test trees.
+ (ROOT/'evidence/FINAL_PINS.json').write_text(json.dumps({
+     **{'kit/'+name:sha(raw) for name,raw in new.items()},
+-    **{name:sha((ROOT/name).read_bytes()) for name in ('f1f2.py','room_bootstrap.py','build_review.py')}
++    **{name:sha((ROOT/name).read_bytes()) for name in ('f1f2.py','room_bootstrap.py','build_review.py',
++        'REPORT.md','REVIEW.md','FIX1.md','DIFF.md','evidence/DONE_SAMPLES.txt','evidence/UPLOADER_FORMAT.txt')},
++    **{str(p.relative_to(ROOT)):sha(p.read_bytes()) for p in sorted((ROOT/'tests').glob('*.py'))}
+ },indent=2,sort_keys=True)+'\n')
+ print(json.dumps(dict(kit_files=len(new),changed_ranges=len(hunks),identical=sum(r['status']=='IDENTICAL' for r in records))))
+--- reviewed/f1f2.py
++++ fix1/f1f2.py
+@@ -1,4 +1,4 @@
+-"""Paired room-bootstrap metrics and the registered step-200 stop rule.
++"""Paired room-bootstrap metrics and the registered milestone stop rules.
+ 
+ Scores are fractions; all displayed accuracies and intervals are percentages.
+ The exact r5 room bootstrap is called with B first to obtain B minus A.
+@@ -11,11 +11,12 @@
+ 
+ LEVELS = ('easy', 'medium', 'hard')
+ THRESHOLDS = dict(zip(LEVELS, (54, 40, 36)))
+-# Counting and size each include the numeric and comparative task variants.
+-F1_TYPES = ('route_planning', 'object_counting', 'relative_count',
++# The two comparative variants are information only, outside registered F1.
++F1_TYPES = ('route_planning', 'object_counting',
+             'object_rel_direction_easy', 'object_rel_direction_medium',
+             'object_rel_direction_hard', 'object_rel_distance',
+-            'object_size_estimation', 'relative_size_object')
++            'object_size_estimation')
++F1_INFORMATION_TYPES = ('relative_count', 'relative_size_object')
+ 
+ 
+ def load(path):
+@@ -104,8 +105,8 @@
+ 
+ 
+ def evaluate(a, b, step, m100=None, strict=True):
+-    if step not in (100, 200):
+-        raise ValueError('Step must be 100 or 200')
++    if step not in (100, 200, 400):
++        raise ValueError('Step must be 100, 200 or 400')
+     index(a, 544); index(b, step)
+     keep = lambda rows: [r for r in rows if r['family'] != 'camera']
+     a, b = keep(a), keep(b)
+@@ -126,15 +127,19 @@
+     f1 = {t: bootstrap(select(b, task=t), select(a, task=t)) for t in F1_TYPES}
+     for value in f1.values():
+         value['fail'] = value['ci95_pp'][1] < 0
++    information = {t: bootstrap(select(b, task=t), select(a, task=t))
++                   for t in F1_INFORMATION_TYPES}
+     away = {level: accuracy(select(b, 'away', level=level)) for level in LEVELS}
+     base = {level: accuracy(select(a, 'away', level=level)) for level in LEVELS}
+     for level, value in away.items():
+-        value.update(threshold_pct=THRESHOLDS[level], fail=value['ci95_pct'][0] <= THRESHOLDS[level])
++        value.update(threshold_pct=THRESHOLDS[level], fail=value['ci95_pct'][0] <= THRESHOLDS[level],
++                     point_estimate_fail=value['accuracy_pct'] < THRESHOLDS[level])
+     pairs, base_pairs = twins(b), twins(a)
+     toward = bootstrap(select(b, 'forward'), select(a, 'forward'))
+     toward['fail'] = toward['ci95_pp'][1] < 0
+     f1_fail = any(x['fail'] for x in f1.values())
+     f2_fail = any(x['fail'] for x in away.values()) or pairs['alike_pct'] > 20 or toward['fail']
++    point_fail = any(x['point_estimate_fail'] for x in away.values()) or pairs['alike_pct'] > 20 or toward['fail']
+     guards = {}
+     for kind, constant, threshold in (('total', 7, 46.30), ('single', 2, 61.87)):
+         chosen = [r for r in b if r['family'] == 'main' and r.get('count_kind') == kind]
+@@ -144,13 +149,21 @@
+         guards[kind]['passes'] = ((guards[kind]['accuracy_pct'] > threshold if kind == 'total'
+                                   else guards[kind]['accuracy_pct'] >= threshold) if chosen else None)
+     result = dict(step=step, budget=2048, bootstrap_draws=10000, seed=17, f1=f1, f1_fail=f1_fail,
++        f1_information_only=information,
+         f2=dict(away=away, away544=base, pairs=pairs, pairs544=base_pairs, toward_delta=toward),
++        f2_verdict_reading='TRACE_RULING_2.7_LOWER_BOUND',
++        f2_point_estimate_information_only=dict(fail=point_fail),
+         f2_fail=f2_fail, guards=guards, f3_f4='NOT_EVALUATED_BY_DIRECT_READ; NON_STOPPING')
+     if step == 200:
+         means = lambda values: {k: values[k]['accuracy_pct'] for k in LEVELS}
+         earlier = {k: accuracy(select(m100, 'away', level=k)) for k in LEVELS} if m100 is not None else None
+         result['f2']['away100'] = earlier
+         result['verdict'] = stop_rule(f1_fail, f2_fail, means(away), means(earlier) if earlier else None, means(base))
++        result['f2_point_estimate_information_only']['verdict'] = stop_rule(
++            f1_fail, point_fail, means(away), means(earlier) if earlier else None, means(base))
++    elif step == 400:
++        result['verdict'] = 'STOP' if f2_fail else 'CONTINUE'
++        result['f2_point_estimate_information_only']['verdict'] = 'STOP' if point_fail else 'CONTINUE'
+     return result
+ 
+ 
+@@ -158,7 +171,7 @@
+     p = argparse.ArgumentParser(description=__doc__)
+     p.add_argument('--a', required=True, help='Accepted step-544 normalized JSONL')
+     p.add_argument('--b', required=True, help='Milestone ITEMS.jsonl')
+-    p.add_argument('--step', type=int, choices=(100, 200), required=True)
++    p.add_argument('--step', type=int, choices=(100, 200, 400), required=True)
+     p.add_argument('--m100', help='Step-100 ITEMS.jsonl for the trend exception')
+     p.add_argument('--output')
+     args = p.parse_args()
+--- reviewed/kit/launcher/chain_save.py
++++ fix1/kit/launcher/chain_save.py
+@@ -83,6 +83,7 @@
+             selected.append(source/family/'a0'/name)
+         for rel in ('0','budget_2048/0','budget_4096/0'):
+             selected.append(source/family/'a0/results'/rel/'summary_a0.json')
++            selected.append(source/family/'a0/results'/rel/'items_a0.jsonl')
+     result = {}
+     for path in selected:
+         for item in regular_files(path):
+@@ -110,7 +111,7 @@
+         raise ValueError('Archive destination must not be a symlink')
+     with temporary.open('xb') as raw:
+         limited = LimitedWriter(raw, ARCHIVE_LIMIT)
+-        with tarfile.open(fileobj=limited, mode='w:gz', compresslevel=1) as archive:
++        with tarfile.open(fileobj=limited, mode='w:gz', compresslevel=6) as archive:
+             for relative, path in sorted(paths.items()):
+                 archive.add(str(path), arcname=relative, recursive=False)
+         raw.flush()
+--- reviewed/kit/launcher/export_stage.py
++++ fix1/kit/launcher/export_stage.py
+@@ -166,18 +166,27 @@
+                     T.dump(receipt_dir/'RECEIPT.json', receipt)
+ 
+ 
++def parse_done(raw, run, step):
++    """Read the uploader's one-line receipt; bytes and SHA cover the whole tar."""
++    if run not in T.EXPORT_RUNS or type(step) is not int or step <= 0:
++        raise ValueError('Invalid completion receipt identity')
++    obj = 'q8/8865619b/'+run+'_m'+str(step)+'.tar'
++    match = re.fullmatch(re.escape(obj).encode()+rb' ([1-9][0-9]*) ([0-9a-f]{64})\n?', raw)
++    if match is None:
++        raise ValueError('Completion receipt identity or format differs')
++    return dict(object=obj, bytes=int(match[1]), sha256=match[2].decode('ascii'))
++
++
+ def fetch_and_stage(root, config):
+     root = Path(root)
+     step = config['spec']['step']
+-    uri = 'gs://cmu-gpucloud-jjyeung/q8/8865619b/359fcc3c_m'+str(step)+'.tar'
+     receipt = Path('/project/community/jjyeung/okh7/x_f5c353f7/o')/('gcs_359fcc3c_m'+str(step)+'.done')
+     if receipt.is_symlink() or receipt.stat().st_size > 65536:
+         raise ValueError('Invalid completion receipt')
+     raw = receipt.read_bytes()
+-    done = json.loads(raw)
+-    if (done.get('object') != uri or type(done.get('bytes')) is not int or done['bytes'] <= 0
+-            or not re.fullmatch('[0-9a-f]{64}', str(done.get('sha256', '')))):
+-        raise ValueError('Completion receipt identity differs')
++    done = parse_done(raw, '359fcc3c', step)
++    uri = 'gs://cmu-gpucloud-jjyeung/'+done['object']
++    (root/'archives/COMPLETE.done').write_bytes(raw)
+     target = root/'archives/export.tar'
+     partial = target.with_suffix('.partial')
+     if target.exists() or partial.exists():
+@@ -201,7 +210,7 @@
+         raise ValueError('Whole archive differs from completion receipt')
+     os.rename(partial, target)
+     local_done = root/'archives/COMPLETE.json'
+-    local_done.write_bytes(raw)
++    A.atomic_json(local_done, done)
+     transfer_seconds = time.monotonic()-started
+     result = stage_export(NS(root=str(root), run='359fcc3c', step=step, tar=str(target),
+                              done=str(local_done), full=True, bwrap=str(root/'bwrap')))
+--- reviewed/kit/launcher/orchard_job.py
++++ fix1/kit/launcher/orchard_job.py
+@@ -257,12 +257,12 @@
+     parser.add_argument('--config', required=True)
+     args = parser.parse_args()
+     config = json.loads(Path(args.config).read_text())
+-    if config.get('schema') != 'evalx-orchard-batch-v1':
++    if config.get('schema') != 'a2':
+         raise ValueError('Unrecognized Orchard batch contract')
+     review = json.loads((Path(args.config).parent/'REVIEW.json').read_text())
+     digest = S.hashlib.sha256(json.dumps(config['launcher_pins'], sort_keys=True).encode()).hexdigest()
+     if (S.sha(Path(args.config).parent/'REVIEW.json') != config['launcher_review_pin']['sha256']
+-            or review.get('schema') != 'new-build-integrity-v1' or review.get('code_pins_sha256') != digest):
++            or review.get('schema') != 'build-integrity-v1' or review.get('code_pins_sha256') != digest):
+         raise ValueError('Build integrity record differs')
+     for path, expected in config['launcher_pins'].items():
+         if S.sha(Path(args.config).parent/Path(path).name) != expected:
+--- reviewed/kit/launcher/orchard_launcher.py
++++ fix1/kit/launcher/orchard_launcher.py
+@@ -143,7 +143,7 @@
+ def validate_request(config):
+     if config.get('mode') != 'production' or config.get('bootstrap_parent', '/tmp') != '/tmp':
+         raise ValueError('Invalid execution mode')
+-    if config.get('schema') != 'a2' or config['spec']['step'] not in (100, 200):
++    if config.get('schema') != 'a2' or config['spec']['step'] not in (100, 200, 400):
+         raise ValueError('Invalid job contract')
+     if canonical(config['spec']) != config['plan_sha256']:
+         raise ValueError('Plan differs')
+@@ -173,7 +173,7 @@
+ 
+ def prepare(token, destination, step, camera=False, pool='/project/community/jjyeung/okh7/ae71c903'):
+     valid_token(token)
+-    if step not in (100, 200):
++    if step not in (100, 200, 400):
+         raise ValueError('Unsupported step')
+     destination = Path(destination)
+     if destination.exists():
+@@ -377,7 +377,7 @@
+     prepare_parser = actions.add_parser('prepare')
+     for name in ('token', 'destination'):
+         prepare_parser.add_argument('--'+name, required=True)
+-    prepare_parser.add_argument('--step',type=int,choices=(100,200),required=True)
++    prepare_parser.add_argument('--step',type=int,choices=(100,200,400),required=True)
+     prepare_parser.add_argument('--camera',action='store_true')
+     prepare_parser.add_argument('--pool',default='/project/community/jjyeung/okh7/ae71c903')
+     submit_parser = actions.add_parser('submit')
+--- reviewed/tests/bind_fixture.py
++++ fix1/tests/bind_fixture.py
+@@ -1,4 +1,5 @@
+ """CPU fixtures only: bind real immutable adapters, never launch an engine."""
++import offline_guard
+ import importlib.util
+ import json
+ from pathlib import Path
+--- /dev/null
++++ fix1/tests/offline_guard.py
+@@ -0,0 +1,19 @@
++"""Deny real process and network operations before any test imports kit code.
++
++The audit hook cannot be uninstalled by a mock or bypassed with an absolute
++binary path, shell=True, or a replacement PATH. Mocks never reach these events.
++"""
++import sys
++
++
++class OfflineViolation(RuntimeError):
++    pass
++
++
++def deny_external(event, args):
++    if (event in {'subprocess.Popen', 'os.system', 'os.exec', 'os.posix_spawn',
++                  'os.fork', 'os.forkpty'} or event.startswith('socket.')):
++        raise OfflineViolation('Offline tests forbid process/network event: '+event)
++
++
++sys.addaudithook(deny_external)
+--- reviewed/tests/test_chain.py
++++ fix1/tests/test_chain.py
+@@ -1,3 +1,4 @@
++import offline_guard
+ import importlib.util
+ import io
+ import json
+--- reviewed/tests/test_kit.py
++++ fix1/tests/test_kit.py
+@@ -1,4 +1,7 @@
++import offline_guard
+ import ast
++import base64
++import importlib.util
+ from contextlib import contextmanager
+ import copy
+ import hashlib
+@@ -7,6 +10,7 @@
+ from pathlib import Path
+ import subprocess
+ import sys
++import re
+ import tarfile
+ from types import SimpleNamespace as NS
+ import unittest
+@@ -52,7 +56,7 @@
+ 
+ class KitTests(unittest.TestCase):
+     def test_prepare_both_steps_and_camera(self):
+-        for step,camera in [(100,False),(200,False),(100,True)]:
++        for step,camera in [(100,False),(200,False),(400,False),(100,True)]:
+             dest=directory()/'prepared';token='a'+uuid.uuid4().hex[:12]
+             cfg=L.prepare(token,dest,step,camera)
+             L.validate_request(cfg);L.validate_batch((dest/'BATCH.sh').read_text(),cfg)
+@@ -138,6 +142,70 @@
+         self.assertIn('ITEMS.jsonl',A.members(root));self.assertIn('SUMMARY.json',A.members(root))
+         self.assertEqual(R.GCS_ROOT,'gs://cmu-gpucloud-jjyeung/q8/ae71c903')
+ 
++    def test_return_retains_all_raw_journals(self):
++        root=directory();source=root/'source';source.mkdir();output=root/'out';output.mkdir()
++        expected={}
++        for family in ('main','away','forward','camera'):
++            for rel in ('0','budget_2048/0','budget_4096/0'):
++                name=family+'/a0/results/'+rel+'/items_a0.jsonl'
++                raw=(json.dumps(dict(response_text='raw generation '+name))+'\n').encode()
++                path=source/name;path.parent.mkdir(parents=True);path.write_bytes(raw)
++                expected[name]=raw
++        with patch.object(A.shutil,'disk_usage',return_value=NS(free=10**12)):
++            saved=A.save(source,output,0)
++        with tarfile.open(saved['path']) as archive:
++            self.assertEqual({m.name:archive.extractfile(m).read() for m in archive},expected)
++        self.assertLess(saved['bytes'],A.ARCHIVE_LIMIT)
++
++    def test_prepared_bootstrap_entry(self):
++        for step in (100,200,400):
++            root=directory();dest=root/'prepared'
++            config=L.prepare('a'+uuid.uuid4().hex[:12],dest,step)
++            match=re.search(r"raw=base64.b64decode\('([^']+)'",(dest/'BATCH.sh').read_text())
++            with tarfile.open(fileobj=io.BytesIO(base64.b64decode(match[1]))) as archive:
++                for item in archive:
++                    target=root/item.name;target.parent.mkdir(exist_ok=True)
++                    target.write_bytes(archive.extractfile(item).read())
++            spec=importlib.util.spec_from_file_location('packaged_job',root/'bootstrap/orchard_job.py')
++            job=importlib.util.module_from_spec(spec);spec.loader.exec_module(job)
++            argv=['orchard_job.py','--root',str(root),'--config',str(root/'bootstrap/CONFIG.json')]
++            with patch.object(sys,'argv',argv),patch.object(job,'run',return_value=0) as run,\
++                 patch.object(R,'publish',side_effect=AssertionError('Unexpected publish')):
++                with self.assertRaises(SystemExit) as exit:job.main()
++                self.assertEqual(exit.exception.code,0)
++                run.assert_called_once_with(str(root),config)
++                # A modified packaged dependency must still fail before run().
++                (root/'bootstrap/chain_save.py').write_text('tampered')
++                with self.assertRaisesRegex(ValueError,'dependency'):job.main()
++                self.assertEqual(run.call_count,1)
++
++    def test_offline_guard_blocks_real_commands_and_network(self):
++        import socket
++        for argv in (['gcloud','storage','cp','fake','gs://fake'],
++                     ['/usr/bin/gcloud','version'],['ssh','fake'],['sbatch','fake']):
++            with self.assertRaises(offline_guard.OfflineViolation):subprocess.run(argv)
++        with self.assertRaises(offline_guard.OfflineViolation):
++            subprocess.run('gcloud version',shell=True)
++        with self.assertRaises(offline_guard.OfflineViolation):socket.socket()
++
++    def test_failure_return_uses_mock_publisher(self):
++        import trace_runtime
++        root=directory()
++        config=L.prepare('a'+uuid.uuid4().hex[:12],root/'prepared',100)
++        with patch.object(R,'write_test',side_effect=ValueError('fixture pool refusal')),\
++             patch.object(R,'publish',return_value=dict(status='COMPLETE')) as publish,\
++             patch.object(J,'card',return_value={}),patch.object(J.signal,'signal'),\
++             patch.object(trace_runtime,'snapshot'),patch.object(trace_runtime,'collect'):
++            self.assertEqual(J.run(root,config),1)
++        publish.assert_called_once()
++        self.assertEqual(publish.call_args.args[4],1)
++        self.assertTrue((root/'RETURN.json').is_file())
++
++    def test_final_pins_match(self):
++        pins=json.loads((ROOT/'evidence/FINAL_PINS.json').read_text())
++        for name,digest in pins.items():
++            with self.subTest(name=name):self.assertEqual(S.sha(ROOT/name),digest)
++
+     def test_h100_check(self):
+         env=dict(USER='x',SLURM_JOB_ID='123',CUDA_VISIBLE_DEVICES='0')
+         def query(args,**kwargs):
+@@ -160,8 +228,8 @@
+             chunks=[b'one',b'two',b'three',b'four'];body=b''.join(chunks)
+             uri='gs://cmu-gpucloud-jjyeung/q8/8865619b/359fcc3c_m100.tar'
+             receipt=root/'input.done'
+-            receipt.write_text(json.dumps(dict(object=uri,bytes=len(body),
+-                sha256='0'*64 if corrupt else hashlib.sha256(body).hexdigest())))
++            digest='0'*64 if corrupt else hashlib.sha256(body).hexdigest()
++            receipt.write_text(f'q8/8865619b/359fcc3c_m100.tar {len(body)} {digest}\n')
+             config=dict(spec=dict(step=100,artifact={},models={}),assets=dict(gcloud_config='fixture'))
+             observed=[]
+             @contextmanager
+@@ -185,7 +253,40 @@
+                     self.assertTrue(stage.call_args.args[0].full)
+                     self.assertEqual((root/'archives/export.tar').read_bytes(),body)
+                     self.assertEqual(config['spec']['artifact']['sha256'],'a'*64)
++                    self.assertEqual((root/'archives/COMPLETE.done').read_bytes(),receipt.read_bytes())
++                    self.assertEqual(json.loads((root/'archives/COMPLETE.json').read_text()),
++                                     E.parse_done(receipt.read_bytes(),'359fcc3c',100))
+             self.assertEqual(observed,[uri+'.part%02d-of-04'%i for i in range(4)])
+ 
++    def test_done_sample_and_strict_identity(self):
++        sample=next(line for line in (ROOT/'evidence/DONE_SAMPLES.txt').read_bytes().splitlines()
++                    if line.startswith(b'q8/'))
++        parsed=E.parse_done(sample+b'\n','469ddece',1)
++        self.assertEqual(parsed['bytes'],21583032320)
++        for step in (100,200,400):
++            raw=f'q8/8865619b/359fcc3c_m{step}.tar 123 '.encode()+b'a'*64+b'\n'
++            self.assertEqual(E.parse_done(raw,'359fcc3c',step)['bytes'],123)
++            bad=[sample,raw.replace(b'359fcc3c',b'469ddece'),raw.replace(b'q8/8865619b',b'q8/other'),
++                 raw.replace(f'_m{step}'.encode(),b'_m544'),b'gs://cmu-gpucloud-jjyeung/'+raw,
++                 raw.replace(b'.tar ',b'.tar.part00-of-04 '),raw.replace(b' 123 ',b' 0 '),
++                 raw.replace(b' 123 ',b' -1 '),raw.replace(b' 123 ',b' 1.2 '),
++                 raw.replace(b'a'*64,b'a'*63),raw.replace(b'a'*64,b'A'*64),
++                 raw+b'\n',raw+b'extra',raw.replace(b' 123 ',b'\t123 '),
++                 json.dumps(dict(object=parsed['object'],bytes=123,sha256='a'*64)).encode()]
++            for value in bad:
++                with self.subTest(value=value):
++                    with self.assertRaises(ValueError):E.parse_done(value,'359fcc3c',step)
++
++    def test_wrong_done_refused_before_cloud_or_disk_reservation(self):
++        root=directory();receipt=root/'gcs_359fcc3c_m100.done'
++        receipt.write_text('q8/8865619b/469ddece_m100.tar 123 '+'a'*64+'\n')
++        def path(value):
++            return root if str(value).startswith('/project/community/') else Path(value)
++        with patch.object(E,'Path',side_effect=path),patch.object(S,'room') as room,\
++             patch.object(S,'process_stream') as stream:
++            with self.assertRaisesRegex(ValueError,'identity'):
++                E.fetch_and_stage(root,dict(spec=dict(step=100)))
++        room.assert_not_called();stream.assert_not_called()
++
+ 
+ if __name__=='__main__':unittest.main()
+--- reviewed/tests/test_verdict.py
++++ fix1/tests/test_verdict.py
+@@ -1,3 +1,4 @@
++import offline_guard
+ import copy
+ import json
+ from pathlib import Path
+@@ -8,7 +9,7 @@
+ 
+ def fixture(step, away=1, main=1, toward=1, alike=False):
+     rows=[]
+-    for task in F.F1_TYPES:
++    for task in F.F1_TYPES+F.F1_INFORMATION_TYPES:
+         for i in range(3):
+             rows.append(dict(id=task+str(i),family='main',task_type=task,level=None,
+                 room=str(i),scene=str(i),prediction='x',answer_content='x',score=main,
+@@ -39,6 +40,68 @@
+ 
+     def test_continue(self):
+         self.assertEqual(F.evaluate(fixture(544),fixture(200),200,strict=False)['verdict'],'CONTINUE')
++
++    def test_f1_has_seven_types_and_extras_cannot_stop(self):
++        for task in F.F1_INFORMATION_TYPES:
++            b=fixture(200)
++            for row in b:
++                if row['task_type']==task:row['score']=0
++            result=F.evaluate(fixture(544),b,200,strict=False)
++            self.assertEqual(len(result['f1']),7)
++            self.assertEqual(result['f1_information_only'][task]['ci95_pp'],[-100,-100])
++            self.assertFalse(result['f1_fail']);self.assertEqual(result['verdict'],'CONTINUE')
++
++    def test_each_registered_f1_type_can_stop(self):
++        for task in F.F1_TYPES:
++            b=fixture(200)
++            for row in b:
++                if row['family']=='main' and row['task_type']==task:row['score']=0
++            result=F.evaluate(fixture(544),b,200,strict=False)
++            self.assertTrue(result['f1'][task]['fail'])
++            self.assertEqual(result['verdict'],'STOP')
++
++    def test_cli_accepts_step400_and_prints_both_readings(self):
++        import contextlib,io,sys
++        result=F.evaluate(fixture(544),fixture(400),400,strict=False)
++        output=io.StringIO()
++        with patch.object(sys,'argv',['f1f2.py','--a','a','--b','b','--step','400']),\
++             patch.object(F,'load',side_effect=[fixture(544),fixture(400)]),\
++             patch.object(F,'evaluate',return_value=result) as evaluate,contextlib.redirect_stdout(output):
++            F.main()
++        self.assertEqual(evaluate.call_args.args[2],400)
++        printed=json.loads(output.getvalue())
++        self.assertEqual(printed['verdict'],'CONTINUE')
++        self.assertIn('f2_point_estimate_information_only',printed)
++
++    def test_step400_f2_alone_decides_and_reports_f1(self):
++        for f1_fail in (False,True):
++            for f2_fail in (False,True):
++                result=F.evaluate(fixture(544),fixture(400,main=0 if f1_fail else 1,
++                                  away=0 if f2_fail else 1),400,strict=False)
++                self.assertEqual(result['f1_fail'],f1_fail)
++                self.assertEqual(result['f2_fail'],f2_fail)
++                self.assertEqual(result['verdict'],'STOP' if f2_fail else 'CONTINUE')
++
++    def test_point_reading_is_information_only(self):
++        actual=F.bootstrap
++        def interval(rows,b=None):
++            result=actual(rows,b)
++            if b is None and rows[0]['family']=='away':result['ci95_pp']=[0,100]
++            return result
++        b=fixture(200)
++        means=dict(zip(F.LEVELS,(.60,.46,.42)))
++        for row in b:
++            if row['family']=='away':row['score']=means[row['level']]
++        with patch.object(F,'bootstrap',side_effect=interval):
++            result=F.evaluate(fixture(544),b,200,fixture(100),strict=False)
++        self.assertTrue(result['f2_fail'])
++        self.assertFalse(result['f2_point_estimate_information_only']['fail'])
++        self.assertEqual(result['verdict'],'STOP')
++        self.assertEqual(result['f2_point_estimate_information_only']['verdict'],'CONTINUE')
++        for row in b:
++            if row['family']=='away':row['score']=F.THRESHOLDS[row['level']]/100
++        result=F.evaluate(fixture(544),b,200,fixture(100),strict=False)
++        self.assertFalse(result['f2_point_estimate_information_only']['fail'])
+ 
+     def test_f2_fail_without_trend_stops(self):
+         r=F.evaluate(fixture(544),fixture(200,away=0),200,fixture(100),strict=False)

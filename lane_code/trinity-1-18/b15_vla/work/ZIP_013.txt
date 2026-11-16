@@ -1,0 +1,50 @@
+members 452
+[('house', 90), ('glb', 90), ('ply', 90), ('navmesh', 90), ('mp3d/', 1), ('mp3d/B6ByNegPMKs/', 1), ('mp3d/gTV8FGcVJC9/', 1), ('mp3d/ARNzJeq3xxb/', 1), ('mp3d/pRbA3pwrgk9/', 1), ('mp3d/2t7WUuJeko7/', 1), ('mp3d/SN83YJsR3w2/', 1), ('mp3d/cV4RVeZvu5T/', 1)]
+scenes 90
+['mp3d/', 'mp3d/B6ByNegPMKs/', 'mp3d/B6ByNegPMKs/B6ByNegPMKs.house', 'mp3d/B6ByNegPMKs/B6ByNegPMKs.glb', 'mp3d/B6ByNegPMKs/B6ByNegPMKs_semantic.ply', 'mp3d/B6ByNegPMKs/B6ByNegPMKs.navmesh', 'mp3d/gTV8FGcVJC9/', 'mp3d/gTV8FGcVJC9/gTV8FGcVJC9.navmesh']
+navmesh 90 glb 90
+glb+navmesh bytes 6335179144
+"""Extract named members from the zip while it is still downloading (append-only), using the central directory read
+from the separately fetched tail (dl/tailprobe.zip). Each member's bytes must already be present; every member is
+CRC-checked against the central directory and written once (never overwritten).
+usage: /usr/bin/python3 -s extract_partial.py PARTIAL_ZIP TAILPROBE_ZIP OUT_DIR MEMBER...
+"""
+import os, struct, sys, zipfile, zlib
+
+partial, probe, out, members = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4:]
+infos = {i.filename: i for i in zipfile.ZipFile(probe).infolist()}
+size = os.path.getsize(partial)
+with open(partial, 'rb') as f:
+    for name in members:
+        info = infos[name]
+        f.seek(info.header_offset)
+        header = f.read(30)
+        sig, _, _, method, _, _, _, csize, _, nlen, xlen = struct.unpack('<IHHHHHIIIHH', header)
+        if sig != 0x04034b50:
+            raise SystemExit('bad local header for ' + name)
+        start = info.header_offset + 30 + nlen + xlen
+        if start + info.compress_size > size:
+            raise SystemExit('member not downloaded yet: %s needs %d, have %d' % (name, start + info.compress_size, size))
+        dest = os.path.join(out, name)
+        os.makedirs(os.path.dirname(dest), exist_ok=True)
+        f.seek(start)
+        remaining, crc, written = info.compress_size, 0, 0
+        inflate = zlib.decompressobj(-15) if info.compress_type == zipfile.ZIP_DEFLATED else None
+        if info.compress_type not in (zipfile.ZIP_STORED, zipfile.ZIP_DEFLATED):
+            raise SystemExit('unsupported compression for ' + name)
+        with open(dest, 'xb') as w:
+            while remaining:
+/scratch/jjyeung/mp3d/e0_scenes/mp3d/8194nk5LbLH:
+total 30044
+drwxrwxr-x 2 jjyeung jjyeung     4096 Nov  6 15:18 .
+drwxrwxr-x 5 jjyeung jjyeung     4096 Nov  6 15:18 ..
+-rw-rw-r-- 1 jjyeung jjyeung 30716248 Nov  6 15:18 8194nk5LbLH.glb
+-rw-rw-r-- 1 jjyeung jjyeung    34820 Nov  6 15:18 8194nk5LbLH.navmesh
+
+/scratch/jjyeung/mp3d/v1/tasks:
+total 15708324
+drwxrwxr-x 2 jjyeung jjyeung        4096 Nov  6 18:07 .
+drwxrwxr-x 3 jjyeung jjyeung        4096 Nov  6 14:48 ..
+-rw-rw-r-- 1 jjyeung jjyeung 16085306031 Nov  6 18:07 mp3d_habitat.zip
+-rw-rw-r-- 1 jjyeung jjyeung          83 Nov  6 18:07 mp3d_habitat.zip.sha256
+3171f5bed90c81d7eb4db9554955b6229ec1fe96d808c9340582ba33eafdb4de  R2R_VLNCE_v1-3_preprocessed.zip

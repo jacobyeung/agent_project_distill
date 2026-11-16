@@ -2,7 +2,8 @@
 import math
 import re
 
-DISTANCE = ('object_abs_distance', 'absolute_distance_object', 'absolute_distance')
+DISTANCE = ('object_abs_distance', 'absolute_distance_object', 'absolute_distance',
+            'camera_displacement', 'camera_object_abs_distance', 'camera_obj_abs_dist')
 ROOM = ('room_size_estimation', 'absolute_size_room', 'room_size')
 ORDER = ('m', 'm2', 'cm', 'ft', 'in', 'ft2')
 

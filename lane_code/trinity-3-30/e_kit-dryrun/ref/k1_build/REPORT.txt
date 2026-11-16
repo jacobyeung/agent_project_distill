@@ -1,0 +1,263 @@
+PREPARED WITH GAPS — NOT SUBMITTABLE. Nothing was submitted or uploaded.
+
+The package contains manifest v2, a source upload, an embedded native-form batch,
+staging/worker/return adapters, a portable namespace rehearsal builder, and CPU
+component evidence. It does not establish a complete production-job rehearsal.
+All writes stay under this workspace. No Git, SSH, network, GPU, kill or deletion
+command ran. CPU work used nice 19 and one OMP/MKL/OpenBLAS thread.
+
+OPEN REQUIREMENTS
+1. The real prepared check reaches its final model-metadata lookup; the required 10,240-byte model tar is absent.
+2. RH_1_3.tar is not built: the mandatory heavy-I/O question has no answer. Its complete builder and local layout are supplied.
+3. The strict external-name audit fails for existing native input names and host-side source mirrors. Internal path exemptions do not grant an external mirror exception.
+4. The namespace has not executed on trinity-1-3; the local bwrap invocation was denied NETLINK_ROUTE creation.
+5. The full production batch, runtime bootstrap, real export/base/anchor staging and GPU prefill remain unexecuted. Component coverage is not full-job coverage.
+6. The f3069074.tar alias must have C8r archive SHA256 20a2ab6c54e22baba2c6b9065a7c0df24a9fe60a867fb078a017859dac2fdaca; its byte equivalence cannot be checked here.
+7. The orchestrator must record v2 SHA256 in amendment 2, review this package and give GO before submission.
+
+MANIFEST V2 / AMENDMENT 2
+Builder: make_manifest_v2.py. Output: manifest_v2/a40fbc19.json.
+v1 byte SHA256: 91a2dbf9a0bdad1a45af44a5a3a2607d40f9f7a630f742fc4531544c00cade7c
+v2 byte SHA256: e684e0c7d8a75e4296e34ba4980aa6d7088f6c2f2053d7850ee790e7cf215146
+v1 BINDING digest: aa2fefb545d25762a4cfffb0a34bd053bfbbfbb8b064ca5256cab8d0d7506eda
+v2 BINDING digest: 108ead70d1155ffa14338554347b79890157e610f11cf7ed8bbf3a8af7219324
+The builder asserts canonical equality after reverting only gpu.config and
+gpu.data_receipt. All 300 capture values and gpu.artifact remain equal.
+The exact printed diff follows; manifest_v2/DIFF.json is machine-readable.
+{
+  "gpu.config": {
+    "old": {
+      "path": "REQUIRED_LOCAL_STEP_544_CONFIG",
+      "sha256": "84ea03af6049a179bf4a44619b1534fdcb528b5511544189236254b5d66842cb"
+    },
+    "new": {
+      "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/469ddece/inputs/prepare_dd26bb95f37a43789206c6e4d4cd94bd/config.json",
+      "sha256": "78341acb36ffd03b9cec6de65effc9fafcbe8bccdc1dfb43e9da7bd88af47560"
+    }
+  },
+  "gpu.data_receipt": {
+    "old": {
+      "path": "REQUIRED_LOCAL_NATIVE_DATA_RECEIPT",
+      "sha256": "REQUIRED"
+    },
+    "new": {
+      "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/469ddece/inputs/data_receipt.json",
+      "sha256": "ebc2983ef7ba33e2e77f4435fff7a031b633a449ef9311622ecab653ea759f40"
+    }
+  }
+}
+The orchestrator owns the external amendment record. This build does not edit it.
+Own, convert and tables use v2. The tower comparison checks sources and producer;
+it records the tower's v1 manifest digest instead of falsely requiring equal
+v1/v2 manifest digests. Individual capture bindings and checkpoint stay equal.
+
+REAL PREPARATION
+The local metadata tar is 67143680 bytes. Its verified state is
+True; expected SHA256 is e10fbb95487f3bafc379f99ac42668f94ac4c479129d8631d63750112cab3266.
+Polling records: evidence/METADATA_POLL.json. The first checks were manual;
+the bounded watcher records its own two-minute observations.
+The exact prepared-check result is:
+{
+  "all_native_guards_before_model_lookup_passed": true,
+  "config_identity": "84ea03af6049a179bf4a44619b1534fdcb528b5511544189236254b5d66842cb",
+  "error": "[Errno 2] No such file or directory: '/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/e84d901c/arm/frozen/6f27ae81/model.json'",
+  "last_native_line": 71,
+  "passed": false,
+  "type": "FileNotFoundError"
+}
+The job calls the unchanged read_runtime.prepared and checks trainer.identity(cfg)
+equals 84ea03af6049a179bf4a44619b1534fdcb528b5511544189236254b5d66842cb
+and artifact.config_sha256. It does not create a preparation receipt.
+The CPU mapping preserves pin paths and bytes; it redirects only exact file IO.
+The reconstructed 9,881,600-byte trainer archive matches C8r's exact SHA256:
+845b17895e466671bc5c5ecdb6a5a5d697a43a5e02d07d1555b11be74f8fd415.
+It is payload/a845b1789.tar and accompanies the portable CPU package.
+The reader also needs the pinned 10,240-byte model metadata object
+8005668fc14ce5ee088d0d631d581f62ca73e6cb8130fde4a2deb73de74f635b.
+Its job staging is implemented; a local model copy can be supplied as
+inputs/model.tar (or A_MODEL for the CPU harness).
+
+FIXED PHASE SEMANTICS / TOKEN OBSERVER
+The pinned boundaries.GPU.own calls _prepare_decode(...).heads. That function
+prefills the prompt and returns state; it does not enter _generate_one's Row.step
+loop. The unchanged own phase therefore generates zero sampled tokens per capture.
+The max_new_tokens=16384 argument does not make this call generate 16,384 tokens.
+phase_worker.py installs a Python profile observer. On the actual _prepare_decode
+return it reads prompt_length and records generated_tokens=0; it does not replace
+the returned state, change a callable, retain tensors or alter any source file.
+The same observer watches the completed journal call after each capture commit.
+It records elapsed seconds in TOKENS.json, validates the first three own.npz
+files, and publishes CANARY.json and the partial root to both pool and GCS before
+returning control for capture four. A missing observation, failed canary or failed
+return stops execution. The CPU fixture labels its token counts synthetic.
+Source identity is checked before and after the run. evidence/kit_v2.diff is empty;
+evidence/KIT_V2.json confirms all 1,018 source/input-map entries retain their bytes.
+
+JOB, RESUME AND RETURN
+packet/a7e31d84.sh embeds a small bootstrap in the native launcher form.
+batch_entry.py probes the pool and prints free space before staging. It holds a
+nonblocking lock on the persistent return root to serialize allocations.
+It requires 200 GiB of local free space and 600 MB plus 1 MiB in the pool,
+authenticates the assigned job-private /tmp mount, and attempts to return staging
+errors before exiting. Cache, temp, home and output share that local mount.
+stage_job.py uses native copy_parts, cloud, extract_stream, runtime_links,
+extract_named, runtime_spec and namespace. It stages export, anchors, metadata,
+source bundle, model metadata, base, runtime and overlays, then builds the namespace.
+The source and metadata hashes are mandatory; unknown upload generations are
+resolved once and the resulting immutable generation is read and byte-verified.
+The phase worker checks sources, prepared identity, manifest and tower source/
+producer equality. It restores a hash-verified snapshot, refuses incomplete,
+HALTED or STOP roots, computes the budget and invokes k1_pipeline.main with
+cache --phase own and the computed --max-seconds. The fixed logical phase root is
+/scratch/jjyeung/a7e31d84/r/a/native/probe.
+The budget is floor(43200 - measured setup - 3000 - 900). The 3000-second initial
+capture reserve grows if a capture exceeds it. A commit observer stops before
+the return margin is consumed. This is a conservative bound, not a measured GPU
+maximum or a guarantee against a hang. Scheduler preemption can leave an
+incomplete root; the wrapper does not delete, repair or automatically retry it.
+Snapshots use the native publisher's tar, pool readback and GCS readback. Both
+channels must verify before the resume pointer advances. Each allocation uses a
+separate opaque pool directory to respect the native publisher's 1-GiB pool cap.
+The next job restores only the phase root after authenticating the entire return;
+it does not inherit a prior job's terminal marker. Output remains on node-local
+storage because a project-filesystem bind can fail the phase's 100-GiB reserve.
+The native pool worker runs inline, avoiding its kill-on-timeout subprocess path;
+a stalled operation has no retry or automatic relaunch. The initial probe preserves
+its named 4-KiB file. Logs, progress and the per-file hash manifest enter the return.
+An allocation-boundary STOP is rewritten to the phase's supported RESUME value
+after a clean stop; a canary STOP remains a refusal. No file is deleted.
+The native EXIT status describes full-phase completion; intermediate snapshots
+are not complete reads. Canary success is recorded in metadata/CANARY.json.
+
+NATIVE DIFF AND REUSE
+evidence/wrappers_v2.diff compares stage_job, batch_entry, phase_worker and
+job_support with C8r native_stage, native_job, native_worker and orchard_results.
+It is a wrapper replacement diff; the helpers named below retain C8r's bytes:
+chain_save.py, orchard_stage.py, orchard_job.py, orchard_results.py,
+native_bootstrap.py and orchard_native/native_stage.py.
+evidence/NATIVE_REUSE_V2.json verifies these six files against C8r FAMILY.code_pins.
+Adaptations cover the own controller, required dual-channel canary, resume pointer,
+budget, source closure, return pool, inline pool worker and writable run-parent bind.
+The namespace builder retains native_stage.namespace and adds only return-root,
+credentials and run-parent binds. GPU runtime bootstrap remains C8r's implementation.
+
+CPU EVIDENCE AND COVERAGE
+Current run: evidence/v2_ab70601d58
+Component rehearsal passed: True.
+Staging controller: True.
+Resume: {"final_commits": 6, "first": 4, "first_commits": 3, "first_receipts_unchanged": true, "restored": true, "second": 0, "total_boundary_calls": 6}
+Canary failure stops: True.
+Allocation-boundary resume: {"final_calls": 6, "first_commits": 1, "marker": "RESUME", "no_deletion": true, "passed": true}
+The harness checks a separate 300-capture fixture manifest, then runs six captures.
+Its changed frames do not prove that production anchors have been checked here.
+Substitutions are recorded explicitly in the run's RESULT.json:
+[
+  "prepared unavailable: independent fixture execution only",
+  "9600 anchor reads use one synthetic image",
+  "six-capture phase subset after full 300-capture fixture preflight",
+  "CPU.own replaces the GPU boundary",
+  "fixture monotonic clock",
+  "local cloud and pool stand-ins",
+  "production runtime/bootstrap and export/base staging not executed"
+]
+Line coverage per monitored file is evidence/COVERAGE_V2.txt and the run's
+COVERAGE.json. Exact unexecuted line numbers are evidence/UNEXECUTED_V2.txt.
+No 1-3 execution result has been received, so none of these misses is credited
+to 1-3. The list includes branches, imports outside the tracing interval, uncalled
+native helpers, production bootstrap and the complete allocation bootstrap.
+batch_entry.py: 0/65 executable lines (0.0%)
+job_support.py: 112/116 executable lines (96.6%)
+phase_support.py: 24/77 executable lines (31.2%)
+phase_worker.py: 116/169 executable lines (68.6%)
+stage_job.py: 91/103 executable lines (88.3%)
+
+PORTABLE NAMESPACE REHEARSAL
+Builder: build_rh.py --pack-env. Local layout: rh/local/.
+Operator command after extracting under /scratch/jjyeung/orch_n30/k1_partb_rh:
+  cd /scratch/jjyeung/orch_n30/k1_partb_rh && bash run_rh.sh
+It binds the included p1cpu and uv-python runtime at their original logical paths,
+uses local GCS/pool stand-ins, and writes out/RH_RESULT.tar even on namespace failure.
+The interpreter trees total 1,495,142,412 source bytes; the writer caps the complete
+archive at 3,000,000,000 bytes and throttles its one stream to 8 MiB/s.
+Current archive record: null
+The same script's local bwrap result is {"full_job_rehearsal": false, "namespace_executed": false, "returncode": 1, "runtime_not_packed": true}.
+The local log says: bwrap: loopback: Failed to create NETLINK_ROUTE socket:
+Operation not permitted. It was not bypassed. rh/local/out/RH_RESULT.tar contains
+the pre-bwrap evidence and log. The remote namespace remains unrehearsed.
+
+NAMES AND EXEMPTIONS
+The chosen job/pool/code/log names pass: True.
+The complete external-name audit passes: False.
+It reports 261 host source-mirror hits plus these
+existing input hits: {"asset_closure": "/project/community/jjyeung/distill/okit/in/c_fa8681cba4c0.tar", "asset_fla": "/project/community/jjyeung/distill/okit/in/d00", "metadata_gcs": "q8/8865619b/evalx_native/metadata_e10fbb95487f3baf.tar", "model_gcs": "q8/8865619b/evalx_native/model_8005668fc14ce5ee.tar"}
+The actual grep input is packet/EXTERNAL_NAMES.txt; evidence/NAMES.json records
+the pattern, every hit and false-positive handling. The raw batch's base64 payload
+can contain accidental text matches; its decoded config and file inventory are
+audited separately. SAMPLER in VLLM_USE_FLASHINFER_SAMPLER denotes sampling, not SAM.
+The immutable internal namespace patterns exempted by the ruling are:
+  /scratch/jjyeung/orch_n30/k1_ops3/kc/** (exact pinned dependency and kit paths)
+  /scratch/jjyeung/orch_n30/k1_ops3/work/codex_arkit_timing/K1_MANIFEST.arkit_timing.json
+  /scratch/jjyeung/orch_cd/** (only exact source-map members, not arbitrary extra sources)
+  /scratch/jjyeung/k1/run_tower_sam_2/BINDING.json
+  /scratch/jjyeung/k1_frames/<hex2>/<sha256>.png
+  /scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/** (pinned metadata, export and trainer archive)
+  /lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/** (pinned base snapshot logical paths)
+  /scratch/jjyeung/a7e31d84/r/a/native/probe/<digest16>/own.npz
+  <namespace stage>/project/c7d31ddd/venvs/rwtrain_torch211_cu129/** (pinned interpreter runtime)
+  <namespace stage>/fla/**, <namespace stage>/numpy/**, <namespace stage>/closure/** (pinned import overlays)
+packet/EXEMPT_PATHS.json contains the exact source-path list as well. The builder
+does not claim that these exemptions cover host-side mirrors, external input URIs
+or raw native logs. Those exposures require implementation changes before GO.
+
+UPLOADS AND COMMANDS (NOT EXECUTED)
+Source object: gs://cmu-gpucloud-jjyeung/q8/b7e31d84a90c62f5/d6e92a81.tar
+Local file: packet/d6e92a81.tar
+Bytes: 44328960
+SHA256: e9ffe4aef8b1c6a055b5f7083d1d925ad82760d76e08532bf3a4a3dd200de1e0
+Bundle inventory: packet/FILES.json (1021 members before its hash map).
+The bundle contains the pinned kit/dependency closure, native reader modules,
+all 792 sealed trainer-tree files, source guard inputs, original artifact JSON,
+tower BINDING, both manifest files and C8r's two import-overlay sources.
+The bootstrap also embeds the five new wrapper files and six native helper files.
+Batch file: packet/a7e31d84.sh; bytes 2144800;
+SHA256 446c9c70fe241d40d564faf1a26778440370f27262266468a64526e69b4d489e.
+Submit command, after every open requirement is resolved and the orchestrator's GO:
+# Run on Orchard only after independent review, amendment registration and ORCH GO.
+/usr/local/bin/sbatch --parsable --account=mt01 --partition=general --nodes=1 --ntasks=1 --gres=gpu:1 --cpus-per-task=16 --mem=200G --time=12:00:00 --no-requeue --output=/dev/null --error=/dev/null --chdir=/tmp --job-name=a15_cot_apb7e31d84a90c62f5 < a7e31d84.sh
+
+Fetch command template (substitute RETURN_TOKEN from the returned pointer/receipt):
+# Operator: run through the registered governor stream, never from this build.
+# Read the opaque pool a.json pointer or the job RETURN_RECEIPT to obtain RETURN_TOKEN and JOB_ID.
+set -o pipefail
+gcloud storage cat 'gs://cmu-gpucloud-jjyeung/q8/b7e31d84a90c62f5/r/RETURN_TOKEN/result.tar.gz#GENERATION' | pv -q -L 8m > RETURN.tar.gz
+# Verify its size and SHA256 against EXIT.json before extraction into /scratch.
+
+The source upload and return fetch must use the operator's registered governor
+stream. No upload command was run here. The anchor object, export parts, metadata,
+model metadata and native runtime assets are existing inputs; this build does not
+claim to have checked their remote availability or invent upload generations.
+The external ledger is outside the write boundary. Its proposed rows remain local.
+Workspace storage: {"files": 5408, "free_bytes": 972147941376, "limit_bytes": 20000000000, "logical_bytes": 1275455029}
+
+JOB-COUNT PLANNING
+Native_r3 measured roughly 0.046 seconds per sampled token (20.6-22.5 tok/s with
+light tools; 5.6 tok/s for ground-heavy work). Prompts were about 4,700 tokens;
+native read items generated at most 2,175 tokens. Prompt tokens are not sampled
+tokens and must not be charged at the decode rate without a separate assumption.
+The table models a hypothetical full generation, not the fixed prefill-only own
+call. To match the supplied 780-second full-budget case, it assumes 26.336 seconds
+of fixed per-capture overhead: t(T)=26.336+0.046*T. That overhead is an assumption,
+not a measured own prefill cost. Setup=1800 s, return margin=900 s, capture reserve
+=max(3000,t). Capacity=floor((43200-1800-reserve-900)/t); jobs=ceil(300/capacity).
+case   tokens  seconds   GPU-hours capacity jobs
+low      2175   126.386    10.532   296    2
+mid      8192   403.168    33.597    93    4
+full    16384   780.000    65.000    48    7
+The full row is 780 seconds/capture and 65 GPU-hours. Ground-heavy token rates can
+exceed that range (16,384/5.6+26.336 is about 2952 s/capture). The fixed own job's
+sampled-token count is zero, so its job count must use the canary's measured
+prefill/head time; the token-rate table is not an empirical own-time forecast.
+
+WRITING
+The no-archaeology skill governs this report. No borderline process-history
+sentence was retained. Provenance and comparison sections identify source files.

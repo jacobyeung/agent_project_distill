@@ -1,5 +1,5 @@
 # trin_read STATUS (trinity-1-3) - for a successor
-Updated: 2026-11-16T11:03Z by trin_read3 (session 3, started 09:41Z). Read "trin_read3 state" first, then "Successor: resume here".
+Updated: 2026-11-16T12:04Z by trin_read3 (session 3, started 09:41Z). Read "trin_read3 state" first, then "Successor: resume here".
 
 ## Done
 - Plan RESULT 0203Z; QUESTION 0204Z (no free card on 1-3; asks for trinity-0-13 cards 1-6; default: no 0-13 action before answer).
@@ -70,7 +70,11 @@ Updated: 2026-11-16T11:03Z by trin_read3 (session 3, started 09:41Z). Read "trin
 - Root+build_t6 on 1-18 (send4.log 10:51Z). Relay trr_yield runs on 1-18 and 1-3. Proof launcher: `bash work/run_proof.sh GPU TOKEN` on the card's host (tmux trr_proof, log work/proof_TOKEN.log) after the card-line RESULT.
 - build_t6 DONE (260 tests, REPORT_T6.md). --link-models only after the review (ORCH 1003Z).
 - ORCH 1003Z: no cap, floor 300 GB free on 1-3 (check before >10 GB writes); NO removal by anyone of ours (list in REMOVAL_CANDIDATES.md); priority 0 only for base; use 40 for milestone pulls (my default).
-- frrest stream (prio 50) position 1 at 11:02Z.
+- frrest LANDED 11:13Z (sha 98d1815b), ingested (4,864 frames in root/k6tk); need --all absent 0 (main 1525/away 150/forward 150); k6tk shipped to 1-18 11:19Z.
+- ORCH 1118Z: any permitted node (gpu_fill writes *_ORCH_CARD_<node>_<card>.md here); 0-13 normal prio, others vnice; never 0-8/0-23/3-23, leave 0-18; IB tar from 1-3; keep 150 GB free there; >20 GB: tell main first unless the card note says done. Scripts: work/send_node.sh NODE root build build_t6 kit_src work; then ssh NODE bash -s < work/node_prep.sh.
+- ORCH CARD 1140Z: 1-13 card 0 via /dev/shm (<=40 GB, total <60 GB). Not taken: QUESTION 1151Z (proof needs root 50 GB + 38.1 GB model copies per run, and the kit's 200 GiB floor => 256.1 GB free before each run on the root's filesystem; default: wait for a disk-rich card). build_p/ + build_t6p/ (Codex trin_read_p DONE, REPORT_P.md): TRIN_AREA env relocation, PATH/ENV only.
+- ORCH NOTE 1155Z (user): ReVSI first, frames 32/64 parameter, SFT first, no answer post-processing. My brief stays dev-S1 direct reads only.
+- 11:20Z monitor: 1-13 8 free cards but 144 GB scratch free; 0-28 4 free, 176 GB free (kit floor 200 GiB): unusable.
 - Next: card -> RESULT card line -> proof; m100 .done (Orchard /project/community/jjyeung/okh7/x_f5c353f7/o/gcs_359fcc3c_m100.done, ~13:00Z) -> launch_gcs.py at prio 40 -> build_t6 stage-export; 544 baseline after proof: build_t5/6 read --families main,away,forward then `items --a A544`.
 
 ## Successor: resume here (state 05:25Z)

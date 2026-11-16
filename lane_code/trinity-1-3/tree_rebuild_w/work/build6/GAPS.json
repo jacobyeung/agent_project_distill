@@ -1,0 +1,2554 @@
+{
+  "generator/derivgen_v7/derivgen/calculator.py": [
+    [
+      254,
+      "contracts = None"
+    ],
+    [
+      262,
+      "raise CalculatorError(exc.reason) from exc"
+    ]
+  ],
+  "launch_r2/build.py": [
+    [
+      31,
+      "return True"
+    ],
+    [
+      35,
+      "return True"
+    ],
+    [
+      43,
+      "raise ValueError('Unexpected capsule fields')"
+    ],
+    [
+      67,
+      "raise ValueError('Forbidden staged path')"
+    ],
+    [
+      75,
+      "if bad_string(value, hashes):"
+    ],
+    [
+      76,
+      "raise ValueError('Forbidden job argument or environment value')"
+    ],
+    [
+      82,
+      "raise ValueError('Forbidden job path, argument or environment value')"
+    ],
+    [
+      84,
+      "raise ValueError('GPU request refused by CPU job')"
+    ],
+    [
+      90,
+      "if isinstance(value, dict):"
+    ],
+    [
+      91,
+      "return {relocate(k,paths):relocate(v,paths) for k,v in value.items()}"
+    ],
+    [
+      92,
+      "if isinstance(value, list):"
+    ],
+    [
+      93,
+      "return [relocate(v,paths) for v in value]"
+    ],
+    [
+      94,
+      "if isinstance(value, str) and value.startswith('/'):"
+    ],
+    [
+      95,
+      "return paths.setdefault(value, 'u/'+hashlib.sha256(value.encode()).hexdigest())"
+    ],
+    [
+      96,
+      "return value"
+    ],
+    [
+      117,
+      "sys.modules['v'] = previous"
+    ],
+    [
+      124,
+      "base, output = Path(base), Path(output)"
+    ],
+    [
+      125,
+      "if not overrides:"
+    ],
+    [
+      126,
+      "from .parent import reproduce"
+    ],
+    [
+      127,
+      "return reproduce(base, output)"
+    ],
+    [
+      128,
+      "if output.exists() and any(output.iterdir()):"
+    ],
+    [
+      129,
+      "raise ValueError('Kit must stage from empty')"
+    ],
+    [
+      130,
+      "output.mkdir(parents=True, exist_ok=True)"
+    ],
+    [
+      131,
+      "for name in ('b','k','o','runs'):"
+    ],
+    [
+      132,
+      "(output/name).mkdir(exist_ok=True)"
+    ],
+    [
+      133,
+      "paths, pins = {}, {}"
+    ],
+    [
+      135,
+      "def put_bytes(raw, suffix='.json'):"
+    ],
+    [
+      136,
+      "identity = hashlib.sha256(raw).hexdigest()"
+    ],
+    [
+      137,
+      "relative = 'k/'+identity+suffix"
+    ],
+    [
+      138,
+      "path = output/relative"
+    ],
+    [
+      139,
+      "if not path.exists():"
+    ],
+    [
+      140,
+      "path.write_bytes(raw)"
+    ],
+    [
+      141,
+      "return dict(path=relative, sha256=identity)"
+    ],
+    [
+      143,
+      "def put(value):"
+    ],
+    [
+      144,
+      "return put_bytes(capsule_json(value))"
+    ],
+    [
+      146,
+      "def capsule(path):"
+    ],
+    [
+      147,
+      "raw = Path(path).read_bytes()"
+    ],
+    [
+      148,
+      "return put(dict(sha256=hashlib.sha256(raw).hexdigest(), encoding='base64', payload=base64.b64encode(raw).decode()))"
+    ],
+    [
+      150,
+      "for role, path in sorted(records.items()):"
+    ],
+    [
+      151,
+      "pins[role] = capsule(path)"
+    ],
+    [
+      152,
+      "from student_pilot.p3_provenance import pinned"
+    ],
+    [
+      153,
+      "if not init_pin:"
+    ],
+    [
+      154,
+      "raise ValueError('Missing pinned init selection')"
+    ],
+    [
+      155,
+      "pins['init_selection'] = capsule(pinned(init_pin))"
+    ],
+    [
+      156,
+      "withheld_raw = Path(records['withheld']).read_bytes()"
+    ],
+    [
+      157,
+      "if hashlib.sha256(withheld_raw).hexdigest() != WITHHELD_SHA256:"
+    ],
+    [
+      158,
+      "raise ValueError('Foreign withheld list')"
+    ],
+    [
+      159,
+      "if sha256(TREE/'student_pilot/trace_grammar.py') != SHARED_SHA256:"
+    ],
+    [
+      160,
+      "raise ValueError('Shared grammar differs')"
+    ],
+    [
+      161,
+      "cfg = load(base/'k/b02e4385.json')"
+    ],
+    [
+      162,
+      "cfg = configure(cfg, connector, dense_manifest=dense_manifest, init_pin=init_pin)"
+    ],
+    [
+      163,
+      "cfg = relocate(cfg, paths)"
+    ],
+    [
+      164,
+      "cfg['dev_scene_exclusions'] = dict(path='u/'+sha256(TREE/'student_pilot/r2_dev_merged.json'), sha256=sha256(TREE/'student_pilot/r2_dev_merged.json'))"
+    ],
+    [
+      165,
+      "cfg['benchmark_scene_exclusions'] = dict(path='u/'+sha256(base/'k/benchmark_scene_exclusions.json'), sha256=sha256(base/'k/benchmark_scene_exclusions.json'))"
+    ],
+    [
+      166,
+      "cfg['r2_all_stream_exclusions'] = True"
+    ],
+    [
+      167,
+      "cfg['scene_coverage'] = None"
+    ],
+    [
+      168,
+      "cfg['r2_scene_rebuild'] = None"
+    ],
+    [
+      170,
+      "files = tree_files(TREE)"
+    ],
+    [
+      171,
+      "from student_pilot.source_seal import archive, check_archive"
+    ],
+    [
+      172,
+      "archive_name = 'k/t_'+digest(files)[:16]+'.tar'"
+    ],
+    [
+      173,
+      "archive(TREE, output/archive_name, files, compress=True)"
+    ],
+    [
+      174,
+      "archive_pin = dict(path=archive_name, sha256=sha256(output/archive_name))"
+    ],
+    [
+      175,
+      "check_archive({**archive_pin, 'path':str(output/archive_name)}, files)"
+    ],
+    [
+      176,
+      "source_pin = put(dict(tree_sha256=digest(files), files=files, archive=archive_pin))"
+    ],
+    [
+      177,
+      "from student_pilot.p3_provenance import source_files"
+    ],
+    [
+      178,
+      "sources = {str(p.relative_to(TREE)):sha256(p) for p in source_files([TREE/'student_pilot/carrier_c1_run.py'])}"
+    ],
+    [
+      179,
+      "code = dict(schema='c1-sealed-source-v1', commit='sha256:'+digest(files),"
+    ],
+    [
+      182,
+      "(output/'k/7.json').write_bytes(capsule_json(code))"
+    ],
+    [
+      183,
+      "registry = put(slots())"
+    ],
+    [
+      184,
+      "mix = put(table())"
+    ],
+    [
+      185,
+      "fallback = put(table(True))"
+    ],
+    [
+      186,
+      "if bindings:"
+    ],
+    [
+      187,
+      "from .closure import transport"
+    ],
+    [
+      188,
+      "from student_pilot.r2_mix import preflight, validate_table"
+    ],
+    [
+      189,
+      "from student_pilot.r2_policy import components"
+    ],
+    [
+      190,
+      "def transport_bytes(raw, suffix):"
+    ],
+    [
+      191,
+      "return put_bytes(capsule_json(json.loads(raw)), suffix) if suffix == '.json' else put_bytes(raw,suffix)"
+    ],
+    [
+      192,
+      "portable, translations = transport(bindings, transport_bytes)"
+    ],
+    [
+      193,
+      "registry = portable.get('registry', registry)"
+    ],
+    [
+      194,
+      "mix = portable.get('mix', mix)"
+    ],
+    [
+      195,
+      "validate_table(load(output / mix['path']))"
+    ],
+    [
+      196,
+      "components(registry, 'training', output)"
+    ],
+    [
+      197,
+      "if 'counts' in portable:"
+    ],
+    [
+      198,
+      "preflight(mix, portable['counts'], root=output, source_presence=portable.get('source_presence'))"
+    ],
+    [
+      199,
+      "pins['transports'] = put(translations)"
+    ],
+    [
+      201,
+      "portable = {}"
+    ],
+    [
+      202,
+      "staged = relocate(load(base/'k/0.json'), paths)"
+    ],
+    [
+      203,
+      "pose = [entry for entry in load(base/'k/0.json')['extra']"
+    ],
+    [
+      205,
+      "if len([x for x in pose if x['dest'].endswith('/rows.sqlite')]) != 2:"
+    ],
+    [
+      206,
+      "raise ValueError('Both sealed pose sources are required')"
+    ],
+    [
+      207,
+      "pose_pin = put(relocate(pose, paths))"
+    ],
+    [
+      208,
+      "if dense_manifest:"
+    ],
+    [
+      209,
+      "pins['dense'] = capsule(dense_manifest['path'])"
+    ],
+    [
+      210,
+      "cfg['r2_build2'] = dict(registry=registry, records=pins, mix=mix, fallback=fallback, pose_sources=pose_pin,"
+    ],
+    [
+      212,
+      "cfg['r2_build2'].update({k:v for k,v in portable.items() if k in ('counts', 'source_presence')})"
+    ],
+    [
+      213,
+      "from student_pilot.r2_config import bind_mix"
+    ],
+    [
+      214,
+      "cfg = bind_mix(cfg, load(output/mix['path']))"
+    ],
+    [
+      215,
+      "cfg['code'] = dict(path='k/7.json', sha256=sha256(output/'k/7.json'))"
+    ],
+    [
+      216,
+      "cfg['s1_route_policy'] = dict(name='frozen-table-no-flag-v1', table=put(cfg['route_table']))"
+    ],
+    [
+      217,
+      "if 'indices' in portable:"
+    ],
+    [
+      218,
+      "if not {'mix', 'counts'} <= set(portable):"
+    ],
+    [
+      219,
+      "raise ValueError('Reader indices require mix and population bindings')"
+    ],
+    [
+      220,
+      "cfg['r2_sampling'] = {k:v for k,v in portable.items() if k in ('mix','counts','indices','source_presence')}"
+    ],
+    [
+      221,
+      "cfg['r2_sampling']['portable'] = True"
+    ],
+    [
+      222,
+      "cfg['init_artifact'] = dict(artifact=dict(path='u/'+cfg['r2_identity']['init']['artifact_sha256'],"
+    ],
+    [
+      225,
+      "from .plan import make"
+    ],
+    [
+      226,
+      "cfg['output'] = 'runs/'+digest(cfg)[:8]"
+    ],
+    [
+      227,
+      "cfg['preparation_output'] = 'o/'+digest(cfg)[:8]"
+    ],
+    [
+      228,
+      "cfg['r2_persistence'] = dict(sessions=None, uploader=dict(path='b/gcsput.py',sha256=sha256(TREE/'launch_s1/b/gcsput.py')))"
+    ],
+    [
+      229,
+      "staging_pin = put(make(cfg, paths, base))"
+    ],
+    [
+      230,
+      "from student_pilot.r2_policy import seal_catalog, CHOICES"
+    ],
+    [
+      231,
+      "cfg['r2_evaluation'] = dict(catalog=put(seal_catalog({})), choices=list(CHOICES), camera_routing=False,"
+    ],
+    [
+      233,
+      "cfg['output'] = 'runs/'+digest(cfg)[:8]"
+    ],
+    [
+      234,
+      "cfg['preparation_output'] = 'o/'+digest(cfg)[:8]"
+    ],
+    [
+      235,
+      "cfg_pin = put(cfg)"
+    ],
+    [
+      236,
+      "identity = put(dict(config=cfg_pin, source=source_pin, records=pins, registry=registry, mix=mix,"
+    ],
+    [
+      239,
+      "for name in ('a.py','v.py','opaque.py','wh.json'):"
+    ],
+    [
+      240,
+      "(output/'b'/name).write_bytes((TREE/'launch_s1/b'/name).read_bytes())"
+    ],
+    [
+      241,
+      "(output/'b/e.py').write_bytes((TREE/'launch_r2/bootstrap.py').read_bytes())"
+    ],
+    [
+      242,
+      "(output/'b/s.py').write_bytes((TREE/'launch_r2/staging.py').read_bytes())"
+    ],
+    [
+      243,
+      "(output/'b/l.py').write_bytes((TREE/'launch_r2/bootstrap.py').read_bytes())"
+    ],
+    [
+      244,
+      "(output/'b/q.py').write_bytes((TREE/'launch_r2/stdlib_probe.py').read_bytes())"
+    ],
+    [
+      245,
+      "(output/'b/gcsput.py').write_bytes((TREE/'launch_s1/b/gcsput.py').read_bytes())"
+    ],
+    [
+      246,
+      "(output/'b/w.py').write_bytes((TREE/'launch_r2/worker.py').read_bytes())"
+    ],
+    [
+      247,
+      "job_name = 'a15_cot_ap'+digest(dict(config=cfg_pin, identity=identity))[:12]"
+    ],
+    [
+      248,
+      "job = '#!/bin/bash\\n#SBATCH --partition=advanced\\n#SBATCH --nodes=1\\n#SBATCH --gpus-per-node=4\\n'"
+    ],
+    [
+      249,
+      "job += '#SBATCH --cpus-per-task=48\\n#SBATCH --mem=800G\\n#SBATCH --time=24:00:00\\n#SBATCH --no-requeue\\n'"
+    ],
+    [
+      250,
+      "job += '#SBATCH --job-name='+job_name+'\\n#SBATCH --output=o/%j.out\\n#SBATCH --error=o/%j.err\\n'"
+    ],
+    [
+      251,
+      "job += '#SBATCH --signal=B:USR1@3600\\nset -euo pipefail\\nexport TK_JOB_START=\"${TK_JOB_START:-$(date +%s)}\"\\n/usr/bin/python3 -I -s -B b/s.py . t &\\np=$!\\nc=0\\ntrap \\'kill -USR1 \"$p\"\\' USR1\\nwhile kill -0 \"$p\" 2>/dev/null; do wait \"$p\" && break || c=$?; done\\nexit \"$c\"\\n'"
+    ],
+    [
+      252,
+      "(output/'job.sh').write_text(job)"
+    ],
+    [
+      253,
+      "cpu_job = '#!/bin/bash\\n#SBATCH --partition=general\\n#SBATCH --nodes=1\\n#SBATCH --cpus-per-task=8\\n'"
+    ],
+    [
+      254,
+      "cpu_job += '#SBATCH --mem=800G\\n#SBATCH --time=06:00:00\\n#SBATCH --no-requeue\\n'"
+    ],
+    [
+      255,
+      "cpu_job += '#SBATCH --job-name='+job_name+'\\n#SBATCH --output=o/%j.out\\n#SBATCH --error=o/%j.err\\n'"
+    ],
+    [
+      256,
+      "cpu_job += 'set -euo pipefail\\nmkdir -p o/ee000003\\n'"
+    ],
+    [
+      257,
+      "cpu_job += '[[ \"${SLURM_GPUS_ON_NODE:-0}\" == 0 && \"${SLURM_GPUS:-0}\" == 0 && \"${SLURM_JOB_GPUS:-0}\" == 0 && \"${SLURM_GPUS_PER_NODE:-0}\" == 0 && -z \"${CUDA_VISIBLE_DEVICES:-}\" ]] || exit 2\\n'"
+    ],
+    [
+      258,
+      "cpu_job += 'env -i PATH=/usr/bin:/bin OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 CUDA_VISIBLE_DEVICES=\"\" PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3 -I -s -B b/s.py . h 2>&1 | /usr/bin/python3 -I b/opaque.py\\n'"
+    ],
+    [
+      259,
+      "(output/'b/f.sh').write_text(cpu_job)"
+    ],
+    [
+      260,
+      "zero = dict(commit='sha256:'+digest(files), trainer=dict(file=archive_name, sha256=archive_pin['sha256']),"
+    ],
+    [
+      263,
+      "(output/'k/0.json').write_text(json.dumps(zero,sort_keys=True)+'\\n')"
+    ],
+    [
+      264,
+      "(output/'k/1.json').write_text(json.dumps({'0':Path(cfg_pin['path']).stem})+'\\n')"
+    ],
+    [
+      265,
+      "authorization = dict(production_go_granted=False, go=False, config_sha256=cfg_pin['sha256'],"
+    ],
+    [
+      268,
+      "(output/'k/4.json').write_text(json.dumps(authorization)+'\\n')"
+    ],
+    [
+      269,
+      "launch = dict(schema='r2-production-launch-v1', config=dict(file=cfg_pin['path'],sha256=cfg_pin['sha256']),"
+    ],
+    [
+      274,
+      "(output/'k/launch.json').write_text(json.dumps(launch)+'\\n')"
+    ],
+    [
+      275,
+      "from .host import ESTIMATES, LIMITS"
+    ],
+    [
+      276,
+      "(output/'k/f.json').write_text(json.dumps(dict(schema='r2-frame-host-packet-v1',"
+    ],
+    [
+      283,
+      "launch['inputs'] = dict(path='k/f.json',sha256=sha256(output/'k/f.json'))"
+    ],
+    [
+      284,
+      "(output/'k/launch.json').write_text(json.dumps(launch)+'\\n')"
+    ],
+    [
+      286,
+      "for name in ('0.json','4.json','f.json','launch.json'):"
+    ],
+    [
+      287,
+      "p = output/'k'/name"
+    ],
+    [
+      288,
+      "p.write_bytes(capsule_json(json.loads(p.read_text())))"
+    ],
+    [
+      289,
+      "launch['inputs']['sha256'] = sha256(output/'k/f.json')"
+    ],
+    [
+      290,
+      "(output/'k/launch.json').write_bytes(capsule_json(launch))"
+    ],
+    [
+      291,
+      "manifest = {str(p.relative_to(output)):sha256(p) for d in ('b','k') for p in (output/d).rglob('*') if p.is_file()}"
+    ],
+    [
+      292,
+      "manifest['job.sh'] = sha256(output/'job.sh')"
+    ],
+    [
+      293,
+      "(output/'SHA256SUMS.txt').write_text(''.join(f'{h}  {name}\\n' for name,h in sorted(manifest.items())))"
+    ],
+    [
+      294,
+      "scan(output)"
+    ],
+    [
+      295,
+      "cert = dict(status='CLEAN',hits=0,manifest_sha256=sha256(output/'SHA256SUMS.txt'),"
+    ],
+    [
+      297,
+      "(output/'ANON_OK.json').write_text(json.dumps(cert)+'\\n')"
+    ],
+    [
+      298,
+      "result = dict(schema='r2-kit-v1', config=cfg_pin, identity=identity, kit_sha256=verify(output),"
+    ],
+    [
+      303,
+      "(output/'BUILD.json').write_bytes(capsule_json(result))"
+    ],
+    [
+      304,
+      "return result"
+    ]
+  ],
+  "launch_r2/host.py": [
+    [
+      25,
+      "if type(rows) is not int or not 0 < rows <= 2000 or measured_bytes <= 0 or full_rows < rows:"
+    ],
+    [
+      26,
+      "raise ValueError('Estimator requires a bounded nonempty slice and a full census')"
+    ],
+    [
+      27,
+      "projected = math.ceil(measured_bytes/rows*full_rows)"
+    ],
+    [
+      28,
+      "return dict(slice_rows=rows, slice_bytes=measured_bytes, full_rows=full_rows,"
+    ],
+    [
+      33,
+      "from .build import bad_string"
+    ],
+    [
+      34,
+      "if any('gpu' in value.lower() or 'gres' in value.lower() for value in args):"
+    ],
+    [
+      35,
+      "raise ValueError('GPU request refused by CPU job')"
+    ],
+    [
+      36,
+      "for key in ('SLURM_GPUS', 'SLURM_GPUS_ON_NODE', 'SLURM_GPUS_PER_NODE', 'SLURM_JOB_GPUS', 'CUDA_VISIBLE_DEVICES'):"
+    ],
+    [
+      37,
+      "if environment.get(key, '') not in ('', '0') or key == 'CUDA_VISIBLE_DEVICES' and environment.get(key, ''):"
+    ],
+    [
+      38,
+      "raise ValueError('GPU allocation refused by CPU job')"
+    ],
+    [
+      39,
+      "for value in [*args, *environment.values()]:"
+    ],
+    [
+      40,
+      "if bad_string(str(value), hashes):"
+    ],
+    [
+      41,
+      "raise ValueError('Forbidden job path, argument or environment value')"
+    ],
+    [
+      46,
+      "self.root = Path(root).resolve()"
+    ],
+    [
+      47,
+      "self.clock = clock"
+    ],
+    [
+      48,
+      "self.started = self.progress = clock()"
+    ],
+    [
+      49,
+      "self.wall, self.idle = wall, idle"
+    ],
+    [
+      50,
+      "self.limits = LIMITS if limits is None else limits"
+    ],
+    [
+      53,
+      "self.check()"
+    ],
+    [
+      54,
+      "self.progress = self.clock()"
+    ],
+    [
+      57,
+      "now = self.clock()"
+    ],
+    [
+      58,
+      "if now-self.started > self.wall:"
+    ],
+    [
+      59,
+      "raise ValueError('Wall-time limit exceeded')"
+    ],
+    [
+      60,
+      "if now-self.progress > self.idle:"
+    ],
+    [
+      61,
+      "raise ValueError('Stalled step: no progress limit exceeded')"
+    ],
+    [
+      64,
+      "if size > self.limits[name]:"
+    ],
+    [
+      65,
+      "raise ValueError('Store over its per-file limit: '+name)"
+    ],
+    [
+      70,
+      "previous = signal.getsignal(signal.SIGALRM)"
+    ],
+    [
+      71,
+      "def alarm(*_):"
+    ],
+    [
+      72,
+      "guard.check()"
+    ],
+    [
+      73,
+      "signal.signal(signal.SIGALRM, alarm)"
+    ],
+    [
+      74,
+      "signal.setitimer(signal.ITIMER_REAL, 1, 1)"
+    ],
+    [
+      75,
+      "try:"
+    ],
+    [
+      76,
+      "yield"
+    ],
+    [
+      78,
+      "signal.setitimer(signal.ITIMER_REAL, 0)"
+    ],
+    [
+      79,
+      "signal.signal(signal.SIGALRM, previous)"
+    ],
+    [
+      84,
+      "required = ('manifests', 'pose_sources', 'configuration', 'pose_template', 'real_proof', 'counts')"
+    ],
+    [
+      85,
+      "if packet.get('scene_rebuild'):"
+    ],
+    [
+      86,
+      "required = required[:-1]"
+    ],
+    [
+      87,
+      "if not packet.get('pose_sources') or len(packet['pose_sources']) != 2:"
+    ],
+    [
+      88,
+      "raise ValueError('Missing pose source: require both sealed pose sources')"
+    ],
+    [
+      89,
+      "for key in required:"
+    ],
+    [
+      90,
+      "if not packet.get(key):"
+    ],
+    [
+      91,
+      "raise ValueError('Missing frame-host input: '+key)"
+    ],
+    [
+      92,
+      "specs = {}"
+    ],
+    [
+      93,
+      "for key in required:"
+    ],
+    [
+      94,
+      "values = packet[key] if isinstance(packet[key], list) else [packet[key]]"
+    ],
+    [
+      95,
+      "specs[key] = values"
+    ],
+    [
+      96,
+      "for pin in values:"
+    ],
+    [
+      97,
+      "if not isinstance(pin, dict) or not {'path', 'sha256'} <= set(pin):"
+    ],
+    [
+      98,
+      "raise ValueError('Missing input sha256: '+key)"
+    ],
+    [
+      99,
+      "return specs"
+    ],
+    [
+      104,
+      "paths = {}"
+    ],
+    [
+      105,
+      "for key, values in input_specs(packet).items():"
+    ],
+    [
+      106,
+      "paths[key] = []"
+    ],
+    [
+      107,
+      "for pin in values:"
+    ],
+    [
+      108,
+      "path = Path(pin['path'])"
+    ],
+    [
+      109,
+      "path = path if path.is_absolute() else Path(root)/path"
+    ],
+    [
+      110,
+      "if not path.is_file():"
+    ],
+    [
+      111,
+      "raise ValueError('Missing frame-host input file: '+key)"
+    ],
+    [
+      112,
+      "if file_pin(path)['sha256'] != pin['sha256']:"
+    ],
+    [
+      113,
+      "raise ValueError('Input sha256 differs: '+key)"
+    ],
+    [
+      114,
+      "paths[key].append(path)"
+    ],
+    [
+      115,
+      "if len({pin['sha256'] for pin in packet['pose_sources']}) != 2:"
+    ],
+    [
+      116,
+      "raise ValueError('Missing distinct pose source')"
+    ],
+    [
+      117,
+      "return paths"
+    ],
+    [
+      123,
+      "raise ValueError('Missing init member inventory or positive per-member limit')"
+    ],
+    [
+      160,
+      "from student_pilot import carrier_c1_run as run"
+    ],
+    [
+      161,
+      "from student_pilot.r2_contract import CONTRACT, bound_init"
+    ],
+    [
+      162,
+      "cfg, pose = deepcopy(template), deepcopy(pose_template)"
+    ],
+    [
+      163,
+      "output = Path(output)"
+    ],
+    [
+      164,
+      "output.mkdir(parents=True, exist_ok=False)"
+    ],
+    [
+      165,
+      "streams = {}"
+    ],
+    [
+      166,
+      "for name, store in native['streams'].items():"
+    ],
+    [
+      167,
+      "value = dict(schema='c1-stream-v1', stream=name, division=pose['inputs']['division'],"
+    ],
+    [
+      169,
+      "if name == 'pose':"
+    ],
+    [
+      170,
+      "value = {**pose, 'count':store['count'], 'database':store['database']}"
+    ],
+    [
+      171,
+      "if name == 'routing':"
+    ],
+    [
+      172,
+      "value.update(schema=run.routing.ROUTING_SCHEMA, scene_role='train')"
+    ],
+    [
+      173,
+      "if cfg.get('r2_all_stream_exclusions'):"
+    ],
+    [
+      174,
+      "value['source_scene_exclusions'] = load(pinned(cfg['r2_scene_rebuild']))['reports'][name]"
+    ],
+    [
+      175,
+      "write(output/(name+'.json'), value)"
+    ],
+    [
+      176,
+      "streams[name] = file_pin(output/(name+'.json'))"
+    ],
+    [
+      177,
+      "cfg.update(streams=streams, r2_membership=native['r2_membership'],"
+    ],
+    [
+      179,
+      "if native.get('r2_sampling'):"
+    ],
+    [
+      180,
+      "cfg['r2_sampling'] = native['r2_sampling']"
+    ],
+    [
+      181,
+      "cfg['r2_build2']['counts'] = native['r2_sampling']['counts']"
+    ],
+    [
+      182,
+      "cfg = {k:v for k,v in cfg.items() if k != 'preparation'}"
+    ],
+    [
+      183,
+      "cfg['r2'] = {**cfg.get('r2', {}), 'contract':CONTRACT, 'init':bound_init(cfg), 'mode':'warm_start',"
+    ],
+    [
+      186,
+      "return cfg"
+    ],
+    [
+      191,
+      "from student_pilot import carrier_c1_run as run"
+    ],
+    [
+      192,
+      "receipt, manifest = run.prepared(cfg, admission=False)"
+    ],
+    [
+      193,
+      "processor = run.processor_for_receipt(manifest, receipt)"
+    ],
+    [
+      194,
+      "rows = run.Rows(receipt, processor)"
+    ],
+    [
+      195,
+      "recipe = run.recipe_for(cfg)"
+    ],
+    [
+      196,
+      "counts = {key:value['count'] for key,value in receipt['streams'].items()}"
+    ],
+    [
+      197,
+      "plans = run.data.mixed_indices(counts, 1, training_mode=cfg['training_mode'],"
+    ],
+    [
+      200,
+      "records = []"
+    ],
+    [
+      201,
+      "try:"
+    ],
+    [
+      202,
+      "for plan in plans:"
+    ],
+    [
+      203,
+      "for stream, indices in plan:"
+    ],
+    [
+      204,
+      "for rank in range(4):"
+    ],
+    [
+      205,
+      "batch, targets, audit = rows.get(stream, int(indices[rank]))"
+    ],
+    [
+      206,
+      "if any(value.is_cuda for value in batch.values() if hasattr(value, 'is_cuda')):"
+    ],
+    [
+      207,
+      "raise ValueError('CPU boundary received a GPU tensor')"
+    ],
+    [
+      208,
+      "records.append(dict(rank=rank, stream=stream, index=int(indices[rank]),"
+    ],
+    [
+      210,
+      "guard.tick()"
+    ],
+    [
+      212,
+      "rows.close()"
+    ],
+    [
+      213,
+      "return records"
+    ],
+    [
+      217,
+      "root = Path(root).resolve()"
+    ],
+    [
+      218,
+      "packet = load(pinned({**packet_pin, 'path':str(root/packet_pin['path'])}))"
+    ],
+    [
+      219,
+      "guard = Guard(root, wall=packet.get('wall_seconds',21600),"
+    ],
+    [
+      221,
+      "with watchdog(guard):"
+    ],
+    [
+      222,
+      "return execute_packet(root,packet,guard,full=full)"
+    ],
+    [
+      227,
+      "from .checklist import Checklist"
+    ],
+    [
+      228,
+      "input_specs(packet)"
+    ],
+    [
+      229,
+      "launch_path = root/'k/launch.json'"
+    ],
+    [
+      230,
+      "if not launch_path.is_file():"
+    ],
+    [
+      231,
+      "raise ValueError('Missing bound kit configuration')"
+    ],
+    [
+      232,
+      "launch = load(launch_path)"
+    ],
+    [
+      233,
+      "if packet['configuration']['sha256'] != launch['config']['sha256']:"
+    ],
+    [
+      234,
+      "raise ValueError('Packet configuration differs from bound kit')"
+    ],
+    [
+      235,
+      "cfg = load(pinned(dict(path=str(root/launch['config']['file']),sha256=launch['config']['sha256'])))"
+    ],
+    [
+      236,
+      "if cfg.get('synthetic'):"
+    ],
+    [
+      237,
+      "raise ValueError('Synthetic inputs cannot admit the full host job')"
+    ],
+    [
+      238,
+      "for key in ('real_proof', 'counts'):"
+    ],
+    [
+      239,
+      "pin = packet.get(key)"
+    ],
+    [
+      240,
+      "if pin and (root/pin['path']).is_file():"
+    ],
+    [
+      241,
+      "if load(pinned({**pin,'path':str(root/pin['path'])})).get('synthetic'):"
+    ],
+    [
+      242,
+      "raise ValueError('Synthetic inputs cannot admit the full host job')"
+    ],
+    [
+      243,
+      "if {pin['sha256'] for pin in packet['pose_sources']} != POSE_SHA256:"
+    ],
+    [
+      244,
+      "raise ValueError('Pose sources differ from the sealed source pins')"
+    ],
+    [
+      245,
+      "checklist = Checklist(root, packet, cfg)"
+    ],
+    [
+      246,
+      "checklist.step(1, checklist.runtime)"
+    ],
+    [
+      247,
+      "checklist.step(2, checklist.stage_inputs)"
+    ],
+    [
+      248,
+      "return checklist"
+    ],
+    [
+      252,
+      "from .runtime import bounded_writes, obligations, statement_hits, checked_hits, init_layout"
+    ],
+    [
+      253,
+      "checklist = begin_checks(root, packet) if full else None"
+    ],
+    [
+      254,
+      "paths = input_paths(packet, root)"
+    ],
+    [
+      255,
+      "guard.tick()"
+    ],
+    [
+      256,
+      "if full and any(load(paths[key][0]).get('synthetic') for key in ('configuration','real_proof','counts') if key in paths):"
+    ],
+    [
+      258,
+      "pose_headers = [load(path) for path in paths['manifests'] if load(path).get('stream') == 'pose']"
+    ],
+    [
+      259,
+      "if {value.get('pose_source_sha256') for value in pose_headers} != {pin['sha256'] for pin in packet['pose_sources']}:"
+    ],
+    [
+      260,
+      "raise ValueError('Pose manifests do not bind both supplied pose sources')"
+    ],
+    [
+      261,
+      "cfg = load(paths['configuration'][0])"
+    ],
+    [
+      262,
+      "launch_path = root/'k/launch.json'"
+    ],
+    [
+      263,
+      "if not launch_path.is_file():"
+    ],
+    [
+      264,
+      "raise ValueError('Missing bound kit configuration')"
+    ],
+    [
+      265,
+      "launch = load(launch_path)"
+    ],
+    [
+      266,
+      "if packet['configuration']['sha256'] != launch['config']['sha256']:"
+    ],
+    [
+      267,
+      "raise ValueError('Packet configuration differs from bound kit')"
+    ],
+    [
+      268,
+      "if full:"
+    ],
+    [
+      272,
+      "scene_result = None"
+    ],
+    [
+      273,
+      "if cfg.get('r2_all_stream_exclusions'):"
+    ],
+    [
+      274,
+      "if not (root/packet['output']).resolve().is_relative_to(root):"
+    ],
+    [
+      275,
+      "raise ValueError('Job output must be a new folder inside its job root')"
+    ],
+    [
+      276,
+      "from student_pilot.r2_scene_bindings import prepare_host"
+    ],
+    [
+      277,
+      "with bounded_writes(root, max(guard.limits.values())):"
+    ],
+    [
+      278,
+      "cfg, paths['manifests'], scene_result = prepare_host(root, packet, cfg, paths['manifests'], full=full)"
+    ],
+    [
+      279,
+      "from student_pilot.r2_policy import preparation"
+    ],
+    [
+      280,
+      "repeats = None"
+    ],
+    [
+      281,
+      "if 'r2_build2' in cfg:"
+    ],
+    [
+      282,
+      "repeats = preparation(cfg['r2_build2'], root)"
+    ],
+    [
+      283,
+      "if scene_result is None and packet['counts']['sha256'] != cfg['r2_build2']['counts']['sha256']:"
+    ],
+    [
+      284,
+      "raise ValueError('Host counts differ from the admitted mixture')"
+    ],
+    [
+      285,
+      "if not cfg.get('r2_sampling'):"
+    ],
+    [
+      286,
+      "raise ValueError('Missing final-reader type indices')"
+    ],
+    [
+      287,
+      "if cfg.get('geometry_connector') == 'gf1' and not packet.get('dense'):"
+    ],
+    [
+      288,
+      "raise ValueError('Missing A2 dense manifest')"
+    ],
+    [
+      289,
+      "if cfg.get('geometry_connector') == 'gf1':"
+    ],
+    [
+      290,
+      "dense = load(pinned(packet['dense']))"
+    ],
+    [
+      291,
+      "if dense.get('synthetic') or dense.get('reconstruct_then_subsample') is not True:"
+    ],
+    [
+      292,
+      "raise ValueError('A2 requires a real dense reconstruction manifest')"
+    ],
+    [
+      293,
+      "from student_pilot.r2_config import apply_native"
+    ],
+    [
+      294,
+      "if not packet.get('geometry_assets'):"
+    ],
+    [
+      295,
+      "raise ValueError('Missing frozen tower assets')"
+    ],
+    [
+      296,
+      "cfg = apply_native(cfg, load(pinned(packet['geometry_assets'])))"
+    ],
+    [
+      297,
+      "output = root/packet['output']"
+    ],
+    [
+      298,
+      "if not output.resolve().is_relative_to(root) or (output.exists() and scene_result is None):"
+    ],
+    [
+      299,
+      "raise ValueError('Job output must be a new folder inside its job root')"
+    ],
+    [
+      300,
+      "output.mkdir(parents=True, exist_ok=scene_result is not None)"
+    ],
+    [
+      301,
+      "from student_pilot.r2_materialize import materialize"
+    ],
+    [
+      302,
+      "from student_pilot.r2_real_proof import prove"
+    ],
+    [
+      303,
+      "from student_pilot import carrier_c1_run as run"
+    ],
+    [
+      304,
+      "required = obligations()"
+    ],
+    [
+      305,
+      "if not full:"
+    ],
+    [
+      306,
+      "required = [r for r in required if r['category'] == 'model-loader']"
+    ],
+    [
+      307,
+      "ceiling = max(*guard.limits.values(), packet.get('init_member_limit') or 0)"
+    ],
+    [
+      308,
+      "with bounded_writes(root, ceiling), statement_hits(required) as hits:"
+    ],
+    [
+      309,
+      "if packet.get('init_archive'):"
+    ],
+    [
+      310,
+      "staged = init_layout(packet['init_archive'], output/'d', packet['init_members'],"
+    ],
+    [
+      312,
+      "cfg['init_artifact'] = {**cfg['init_artifact'], 'artifact':staged['artifact']}"
+    ],
+    [
+      313,
+      "os.environ['C1_INIT_LOCAL'] = staged['mirror_root']"
+    ],
+    [
+      314,
+      "elif full:"
+    ],
+    [
+      316,
+      "if full:"
+    ],
+    [
+      325,
+      "os.environ['STUDENT_R2_FRAME_HOST'] = '1'"
+    ],
+    [
+      326,
+      "binding = cfg.get('r2_build2', {})"
+    ],
+    [
+      327,
+      "mix_binding = dict(mix_pin=binding['mix'], counts_pin=binding['counts'], root=root,"
+    ],
+    [
+      329,
+      "report = materialize(paths['manifests'], output/'a', full=full, dense=True,"
+    ],
+    [
+      331,
+      "if report['status'] != 'ready':"
+    ],
+    [
+      332,
+      "raise ValueError('Missing real RGB on frame host')"
+    ],
+    [
+      333,
+      "if full:"
+    ],
+    [
+      337,
+      "native = load(pinned(report['receipt']))"
+    ],
+    [
+      338,
+      "cfg = native_config(cfg, native, load(paths['pose_template'][0]), output/'b')"
+    ],
+    [
+      339,
+      "if native.get('r2_sampling'):"
+    ],
+    [
+      343,
+      "if full:"
+    ],
+    [
+      347,
+      "run.prepare(cfg)"
+    ],
+    [
+      348,
+      "cfg['preparation'] = file_pin(Path(cfg['preparation_output'])/'receipt.json')"
+    ],
+    [
+      349,
+      "first = run.first_batch_check(cfg, range(4), output/'1.json', encode_only=True)"
+    ],
+    [
+      350,
+      "guard.tick()"
+    ],
+    [
+      351,
+      "run.dryrun(cfg, output/'2.json', encode_only=True)"
+    ],
+    [
+      352,
+      "proof = load(paths['real_proof'][0])"
+    ],
+    [
+      353,
+      "metadata = prove(proof['rows_dir'], proof['sealed_meta_dir'], output/'c')"
+    ],
+    [
+      354,
+      "result = dict(config=cfg, first_batch=first, metadata=metadata,"
+    ],
+    [
+      360,
+      "from .build import capsule_json"
+    ],
+    [
+      361,
+      "(output/'0.json').write_bytes(capsule_json(result))"
+    ],
+    [
+      362,
+      "if full:"
+    ],
+    [
+      366,
+      "return result"
+    ]
+  ],
+  "launch_r2/runtime.py": [
+    [
+      17,
+      "root = _active[-1]"
+    ],
+    [
+      18,
+      "paths = []"
+    ],
+    [
+      19,
+      "if event == 'open' and isinstance(args[0], (str, bytes)):"
+    ],
+    [
+      20,
+      "mode, flags = args[1:3]"
+    ],
+    [
+      21,
+      "if any(c in (mode or '') for c in 'wax+') or flags & (os.O_WRONLY | os.O_RDWR | os.O_CREAT):"
+    ],
+    [
+      22,
+      "paths = [args[0]]"
+    ],
+    [
+      23,
+      "elif event == 'sqlite3.connect':"
+    ],
+    [
+      24,
+      "value = str(args[0])"
+    ],
+    [
+      25,
+      "if value.startswith('file:'):"
+    ],
+    [
+      26,
+      "uri = urlsplit(value)"
+    ],
+    [
+      27,
+      "if parse_qs(uri.query).get('mode') == ['ro']:"
+    ],
+    [
+      28,
+      "return"
+    ],
+    [
+      29,
+      "value = unquote(uri.path)"
+    ],
+    [
+      30,
+      "paths = [value]"
+    ],
+    [
+      31,
+      "elif event == 'os.mkdir':"
+    ],
+    [
+      32,
+      "paths = [args[0]]"
+    ],
+    [
+      33,
+      "elif event in ('os.rename', 'os.link', 'os.symlink'):"
+    ],
+    [
+      34,
+      "paths = [args[1]]"
+    ],
+    [
+      35,
+      "elif event in ('socket.connect', 'subprocess.Popen'):"
+    ],
+    [
+      36,
+      "raise ValueError('Host job cannot open a network connection or child process')"
+    ],
+    [
+      37,
+      "for value in paths:"
+    ],
+    [
+      38,
+      "if not Path(os.fsdecode(value)).resolve().is_relative_to(root):"
+    ],
+    [
+      39,
+      "raise ValueError('Write outside the one job folder')"
+    ],
+    [
+      48,
+      "root = Path(root).resolve()"
+    ],
+    [
+      49,
+      "old = resource.getrlimit(resource.RLIMIT_FSIZE)"
+    ],
+    [
+      50,
+      "ceiling = max_file_bytes if old[1] == resource.RLIM_INFINITY else min(max_file_bytes, old[1])"
+    ],
+    [
+      51,
+      "resource.setrlimit(resource.RLIMIT_FSIZE, (ceiling, old[1]))"
+    ],
+    [
+      52,
+      "_active.append(root)"
+    ],
+    [
+      53,
+      "try:"
+    ],
+    [
+      54,
+      "yield"
+    ],
+    [
+      56,
+      "_active.pop()"
+    ],
+    [
+      57,
+      "resource.setrlimit(resource.RLIMIT_FSIZE, old)"
+    ],
+    [
+      61,
+      "from student_pilot import r2_materialize as materializer, carrier_c1_run as run"
+    ],
+    [
+      62,
+      "specs = [(materializer.materialize, \"if os.environ.get('STUDENT_R2_FRAME_HOST')\", 'frame-host'),"
+    ],
+    [
+      67,
+      "records = []"
+    ],
+    [
+      68,
+      "for fn, needle, category in specs:"
+    ],
+    [
+      69,
+      "lines, start = inspect.getsourcelines(fn)"
+    ],
+    [
+      70,
+      "matches = [start+i for i,line in enumerate(lines) if needle in line]"
+    ],
+    [
+      71,
+      "if len(matches) != 1:"
+    ],
+    [
+      72,
+      "raise ValueError('Statement obligation is ambiguous or absent')"
+    ],
+    [
+      73,
+      "records.append(dict(source=file_pin(inspect.getsourcefile(fn)), line=matches[0], category=category))"
+    ],
+    [
+      74,
+      "return records"
+    ],
+    [
+      79,
+      "selected = {r['source']['path'] for r in records}"
+    ],
+    [
+      80,
+      "previous = sys.gettrace()"
+    ],
+    [
+      81,
+      "hits = set()"
+    ],
+    [
+      82,
+      "def trace(frame, event, arg):"
+    ],
+    [
+      83,
+      "parent = previous(frame, event, arg) if previous is not None else None"
+    ],
+    [
+      84,
+      "if frame.f_code.co_filename in selected:"
+    ],
+    [
+      85,
+      "if event == 'line':"
+    ],
+    [
+      86,
+      "hits.add((frame.f_code.co_filename, frame.f_lineno))"
+    ],
+    [
+      87,
+      "return trace"
+    ],
+    [
+      88,
+      "return parent"
+    ],
+    [
+      89,
+      "sys.settrace(trace)"
+    ],
+    [
+      90,
+      "try:"
+    ],
+    [
+      91,
+      "yield hits"
+    ],
+    [
+      93,
+      "sys.settrace(previous)"
+    ],
+    [
+      97,
+      "result = [{**r, 'reached':(r['source']['path'],r['line']) in hits} for r in records]"
+    ],
+    [
+      98,
+      "if any(not row['reached'] for row in result):"
+    ],
+    [
+      99,
+      "raise ValueError('Host launch statement was not reached')"
+    ],
+    [
+      100,
+      "return result"
+    ],
+    [
+      121,
+      "raise ValueError('Init export lacks required member: '+name)"
+    ]
+  ],
+  "student_pilot/carrier_c1_run.py": [
+    [
+      2249,
+      "milestone(cfg, output/'m0', 'export', rank, distributed)"
+    ],
+    [
+      2336,
+      "saved = checkpoint(output/f'checkpoint_{step:06d}',wrapped,optimizer,bound,step,rotate=True, **checkpoint_options())"
+    ],
+    [
+      2337,
+      "milestone(cfg, Path(saved['path']).parent, 'checkpoint', rank, distributed)"
+    ],
+    [
+      2347,
+      "milestone(cfg, output/f'm{step}', 'export', rank, distributed)"
+    ]
+  ],
+  "student_pilot/ground_lifting.py": [
+    [
+      84,
+      "camera = (R.T @ (centre - t)) * [1, -1, 1]"
+    ],
+    [
+      85,
+      "return camera, (centre - t1)[[0, 2, 1]]"
+    ]
+  ],
+  "student_pilot/phrases.py": [
+    [
+      180,
+      "return cache, wanted"
+    ],
+    [
+      189,
+      "continue"
+    ]
+  ],
+  "student_pilot/r2_admission.py": [
+    [
+      29,
+      "raise ValueError('Invalid family admission counts')"
+    ]
+  ],
+  "student_pilot/r2_config.py": [
+    [
+      19,
+      "raise ValueError('Unknown connector or stage')"
+    ],
+    [
+      21,
+      "raise ValueError('Camera connector is forbidden in both configurations')"
+    ],
+    [
+      45,
+      "if not dense_manifest:"
+    ],
+    [
+      46,
+      "raise ValueError('A2 requires a dense manifest')"
+    ],
+    [
+      47,
+      "dense = load(pinned(dense_manifest))"
+    ],
+    [
+      48,
+      "if dense.get('schema') != 'r2-dense-manifest-v1' or dense.get('reconstruct_then_subsample') is not True or not dense.get('clips'):"
+    ],
+    [
+      49,
+      "raise ValueError('Dense manifest must bind reconstruction before subsampling')"
+    ],
+    [
+      50,
+      "cfg['r2_dense_manifest'] = dense_manifest"
+    ],
+    [
+      51,
+      "cfg['r2_schedule'] = [dict(stage=1, steps=400), dict(stage=2, steps=600)]"
+    ],
+    [
+      52,
+      "cfg['steps'] = 400 if stage == 1 else 600"
+    ],
+    [
+      53,
+      "cfg['r2_stage'] = dict(stage=stage, trainable='gf1' if stage == 1 else 'full',"
+    ],
+    [
+      58,
+      "raise ValueError('A0 cannot carry a geometry encoder')"
+    ],
+    [
+      73,
+      "from .r2_mix import validate_table"
+    ],
+    [
+      74,
+      "validate_table(mix)"
+    ],
+    [
+      75,
+      "cfg['stream_rows_per_step'] = mix['quotas']"
+    ],
+    [
+      76,
+      "if mix['fallback']:"
+    ],
+    [
+      77,
+      "cfg['reference_world_size'] = cfg['world_size']"
+    ],
+    [
+      78,
+      "return refresh_recipe(cfg)"
+    ],
+    [
+      83,
+      "from . import gf1"
+    ],
+    [
+      84,
+      "value = deepcopy(cfg)"
+    ],
+    [
+      85,
+      "if value.get('camera_connector'):"
+    ],
+    [
+      86,
+      "raise ValueError('Camera connector is forbidden')"
+    ],
+    [
+      87,
+      "if value['geometry_connector'] == 'gf1':"
+    ],
+    [
+      88,
+      "if not geometry:"
+    ],
+    [
+      89,
+      "raise ValueError('A2 requires frozen tower assets')"
+    ],
+    [
+      90,
+      "stage = value['r2_stage']"
+    ],
+    [
+      91,
+      "settings = dict(geometry.get('gf1', {}), stage=stage['stage'], gf1_init=stage['init'])"
+    ],
+    [
+      92,
+      "settings = {k:v for k,v in settings.items() if k != 'learning_rate'}"
+    ],
+    [
+      93,
+      "if stage['stage'] == 1:"
+    ],
+    [
+      94,
+      "settings['learning_rate'] = stage['learning_rate']"
+    ],
+    [
+      95,
+      "value['geometry_online'] = {**geometry, 'mode':'frozen', 'gf1':gf1.normalize(settings)}"
+    ],
+    [
+      96,
+      "return refresh_recipe(value)"
+    ]
+  ],
+  "student_pilot/r2_contract.py": [
+    [
+      31,
+      "value = cfg.get('r2', {}).get('init', cfg.get('r2_identity', {}).get('init'))"
+    ],
+    [
+      32,
+      "return init_identity(value)"
+    ],
+    [
+      38,
+      "raise ValueError('Next-leg init identity differs from the accepted export')"
+    ],
+    [
+      40,
+      "raise ValueError('Changed code or mixture requires a new warm-start run')"
+    ],
+    [
+      43,
+      "raise ValueError('New run needs full code and mixture identities')"
+    ],
+    [
+      49,
+      "raise ValueError('Export metadata contradicts ' + key)"
+    ],
+    [
+      51,
+      "raise ValueError('Export parent configuration prefix differs')"
+    ],
+    [
+      56,
+      "from .r2_scene_bindings import verify as verify_scenes"
+    ],
+    [
+      57,
+      "verify_scenes(cfg)"
+    ],
+    [
+      58,
+      "if 'geometry_connector' in cfg:"
+    ],
+    [
+      59,
+      "from pathlib import Path"
+    ],
+    [
+      60,
+      "from .r2_policy import preparation as policy_preparation"
+    ],
+    [
+      61,
+      "policy_preparation(cfg['r2_build2'], Path.cwd())"
+    ],
+    [
+      62,
+      "from .r2_openers import preparation as opener_preparation"
+    ],
+    [
+      63,
+      "opener_preparation(cfg)"
+    ],
+    [
+      64,
+      "if not cfg.get('r2_sampling'):"
+    ],
+    [
+      65,
+      "raise ValueError('Missing bound r2_sampling table')"
+    ],
+    [
+      66,
+      "spec = cfg.get('r2')"
+    ],
+    [
+      67,
+      "if cfg.get('r2_membership') and spec is None:"
+    ],
+    [
+      68,
+      "raise ValueError('Next-leg membership requires the init and new-run binding')"
+    ],
+    [
+      69,
+      "if spec is not None:"
+    ],
+    [
+      70,
+      "check_init(spec, load(pinned(spec['export_metadata'])))"
+    ],
+    [
+      71,
+      "lineage_init(cfg.get('init_artifact', {}).get('artifact', {}), init=bound_init(cfg))"
+    ],
+    [
+      72,
+      "if load(pinned(cfg['code'])).get('tree_sha256') != spec['code_sha256']:"
+    ],
+    [
+      73,
+      "raise ValueError('New run code identity differs')"
+    ],
+    [
+      74,
+      "if digest({key: cfg.get(key) for key in ('recipe', 'streams', 'route_table')}) != spec['mixture_sha256']:"
+    ],
+    [
+      75,
+      "raise ValueError('New run mixture identity differs')"
+    ],
+    [
+      76,
+      "Admission(cfg['r2_membership'])"
+    ],
+    [
+      77,
+      "return spec"
+    ],
+    [
+      81,
+      "init = init_identity(init)"
+    ],
+    [
+      82,
+      "if pin.get('sha256') == init['artifact_sha256']:"
+    ],
+    [
+      83,
+      "return"
+    ],
+    [
+      84,
+      "try:"
+    ],
+    [
+      85,
+      "artifact = load(pinned(pin))"
+    ],
+    [
+      86,
+      "if (artifact.get('schema') != 'carrier-c1-artifact-v1' or artifact.get('r2_identity', {}).get('init') != init"
+    ],
+    [
+      88,
+      "raise ValueError('Foreign lineage')"
+    ],
+    [
+      89,
+      "from .source_seal import check_export"
+    ],
+    [
+      90,
+      "check_export({'source_seal':artifact['training_source_seal']},artifact)"
+    ],
+    [
+      92,
+      "raise ValueError('Trainer init artifact differs from next-leg binding') from error"
+    ],
+    [
+      99,
+      "from pathlib import PurePosixPath"
+    ],
+    [
+      100,
+      "result['frames'] = [{**pin, 'path': str(PurePosixPath(prefix) / pin['path'])} for pin in result['frames']]"
+    ],
+    [
+      109,
+      "raise ValueError('Expected ordered native frame pins and source ordinals')"
+    ],
+    [
+      113,
+      "raise ValueError('Invalid row clock or source bounds')"
+    ],
+    [
+      115,
+      "raise ValueError('Row timestamps differ from its own clock')"
+    ],
+    [
+      120,
+      "raise ValueError('Missing or malformed RGB pin')"
+    ],
+    [
+      125,
+      "raise ValueError('Stale pin or wrong scene: row differs from membership')"
+    ],
+    [
+      127,
+      "raise ValueError('Row identity or scene is missing')"
+    ],
+    [
+      133,
+      "raise ValueError('D0 route-planning rows enter VQA only')"
+    ],
+    [
+      135,
+      "raise ValueError('Language row needs a question type')"
+    ],
+    [
+      137,
+      "if stream != 'routing':"
+    ],
+    [
+      138,
+      "raise ValueError('Programs enter only the masked routing event path')"
+    ],
+    [
+      139,
+      "validate_program(row)"
+    ],
+    [
+      142,
+      "raise ValueError('Program-type row offered as direct')"
+    ],
+    [
+      149,
+      "raise ValueError('Answer differs from target')"
+    ],
+    [
+      153,
+      "raise ValueError('Numeric direct type needs a numeric final answer')"
+    ],
+    [
+      157,
+      "raise ValueError('Unknown answer unit')"
+    ],
+    [
+      162,
+      "elif stream not in ('pose', 'pointing'):"
+    ],
+    [
+      163,
+      "raise ValueError('Unknown native stream')"
+    ],
+    [
+      165,
+      "from .r2_frames import verify_frame"
+    ],
+    [
+      166,
+      "for pin in inputs['frames']:"
+    ],
+    [
+      167,
+      "verify_frame(pin)"
+    ],
+    [
+      172,
+      "if stream == 'pose':"
+    ],
+    [
+      173,
+      "import torch"
+    ],
+    [
+      174,
+      "from .decoupled_v import target_tensors"
+    ],
+    [
+      175,
+      "values = target_tensors(target, all_frames=True)"
+    ],
+    [
+      176,
+      "if (values['aux_camera_target'].shape != (1, 32, 9)"
+    ],
+    [
+      178,
+      "raise ValueError('Invalid native pose target')"
+    ],
+    [
+      179,
+      "elif stream == 'pointing':"
+    ],
+    [
+      180,
+      "value = json.loads(row['target'].split('</think>')[-1].strip())"
+    ],
+    [
+      181,
+      "point = value.get('point_2d')"
+    ],
+    [
+      182,
+      "if set(value) != {'point_2d'} or (point is not None and"
+    ],
+    [
+      184,
+      "raise ValueError('Invalid native pointing target')"
+    ],
+    [
+      189,
+      "from .r2_withheld import Withheld"
+    ],
+    [
+      190,
+      "self.withheld = Withheld()"
+    ],
+    [
+      191,
+      "self.manifest = load(pinned(pin))"
+    ],
+    [
+      192,
+      "if self.manifest.get('contract') != CONTRACT:"
+    ],
+    [
+      193,
+      "raise ValueError('Wrong membership contract')"
+    ],
+    [
+      196,
+      "expected = self.manifest['rows'].get(row['qid'])"
+    ],
+    [
+      197,
+      "if expected is None or expected != digest(dict(row=row, target=target, stream=stream)):"
+    ],
+    [
+      198,
+      "raise ValueError('Row missing or changed in sealed membership')"
+    ],
+    [
+      199,
+      "if self.withheld.touches(row, {}):"
+    ],
+    [
+      200,
+      "raise ValueError('Native reader refuses a withheld room')"
+    ],
+    [
+      201,
+      "from .r2_frames import verify_frame"
+    ],
+    [
+      202,
+      "inputs = row['student_input']"
+    ],
+    [
+      203,
+      "for pin in inputs.get('geometry_dense', inputs)['frames']:"
+    ],
+    [
+      204,
+      "verify_frame(pin)"
+    ],
+    [
+      205,
+      "return row"
+    ],
+    [
+      210,
+      "from .ground_rows import render_ground, validate as validate_ground"
+    ],
+    [
+      211,
+      "record = row.get('ground_record', {})"
+    ],
+    [
+      212,
+      "if (row.get('schema') != 'derivgen-row-v2' or row.get('infrastructure_only') is not False"
+    ],
+    [
+      217,
+      "raise ValueError('R2 program lacks its event schema or response lineage')"
+    ],
+    [
+      218,
+      "validate_ground(row)"
+    ],
+    [
+      219,
+      "target, spans, _ = render_ground(row['events'], row['answer'])"
+    ],
+    [
+      220,
+      "if target != row['target'] or spans != row['tool_output_spans']:"
+    ],
+    [
+      221,
+      "raise ValueError('R2 events differ from target or response spans')"
+    ],
+    [
+      222,
+      "failed = False"
+    ],
+    [
+      223,
+      "for event in row['events']:"
+    ],
+    [
+      224,
+      "if failed and event['kind'] == 'ground_call':"
+    ],
+    [
+      225,
+      "raise ValueError('R2 fallback calls again after a failed response')"
+    ],
+    [
+      226,
+      "if event['kind'] == 'ground_response' and re.search(r'not seen|failed|no linked candidate', event['text'], re.I):"
+    ],
+    [
+      227,
+      "failed = True"
+    ],
+    [
+      228,
+      "if failed and not re.search(r'\\b(?:in frame|frame)\\s+[1-9]\\d*\\b', target.split('</tool_response>')[-1], re.I):"
+    ],
+    [
+      229,
+      "raise ValueError('Failed response needs a located direct continuation')"
+    ],
+    [
+      230,
+      "return target, spans"
+    ]
+  ],
+  "student_pilot/r2_openers.py": [
+    [
+      14,
+      "raise ValueError('Unknown routing opener initialization')"
+    ],
+    [
+      47,
+      "raise ValueError('Missing routing vocabulary witness for keep warm start')"
+    ]
+  ],
+  "student_pilot/r2_units.py": [
+    [
+      2,
+      "import math"
+    ],
+    [
+      3,
+      "import re"
+    ],
+    [
+      5,
+      "DISTANCE = ('object_abs_distance', 'absolute_distance_object', 'absolute_distance',"
+    ],
+    [
+      7,
+      "ROOM = ('room_size_estimation', 'absolute_size_room', 'room_size')"
+    ],
+    [
+      8,
+      "ORDER = ('m', 'm2', 'cm', 'ft', 'in', 'ft2')"
+    ],
+    [
+      11,
+      "def asked_unit(item):"
+    ],
+    [
+      12,
+      "kind = item.get('question_type', item.get('type'))"
+    ],
+    [
+      13,
+      "if kind not in (*DISTANCE, *ROOM):"
+    ],
+    [
+      14,
+      "return None"
+    ],
+    [
+      15,
+      "question = item.get('student_input', {}).get('question', item.get('question', '')).lower()"
+    ],
+    [
+      16,
+      "patterns = [('ft2', r'\\b(?:square (?:feet|foot)|sq\\.?\\s*ft|ft2)\\b'),"
+    ],
+    [
+      21,
+      "unit = next((u for u, pattern in patterns if re.search(pattern, question)), None)"
+    ],
+    [
+      22,
+      "if unit is None or (kind in ROOM) != (unit in ('m2', 'ft2')):"
+    ],
+    [
+      23,
+      "raise ValueError('Metric question has no unambiguous asked unit')"
+    ],
+    [
+      24,
+      "return unit"
+    ],
+    [
+      27,
+      "def metric_units(items):"
+    ],
+    [
+      28,
+      "result = {}"
+    ],
+    [
+      29,
+      "for item in items:"
+    ],
+    [
+      30,
+      "unit = asked_unit(item)"
+    ],
+    [
+      31,
+      "if unit:"
+    ],
+    [
+      32,
+      "kind = 'room' if item.get('question_type', item.get('type')) in ROOM else 'distance'"
+    ],
+    [
+      33,
+      "result.setdefault(kind, set()).add(unit)"
+    ],
+    [
+      34,
+      "return {kind: [u for u in ORDER if u in units] for kind, units in result.items()}"
+    ],
+    [
+      37,
+      "def score_by_unit(items):"
+    ],
+    [
+      38,
+      "groups = {}"
+    ],
+    [
+      39,
+      "for item in items:"
+    ],
+    [
+      40,
+      "unit = asked_unit(item)"
+    ],
+    [
+      41,
+      "if unit is None:"
+    ],
+    [
+      42,
+      "continue"
+    ],
+    [
+      43,
+      "score = item['score']"
+    ],
+    [
+      44,
+      "if type(score) not in (int, float) or not math.isfinite(score):"
+    ],
+    [
+      45,
+      "raise ValueError('Metric score must be finite')"
+    ],
+    [
+      46,
+      "kind = 'room' if item.get('question_type', item.get('type')) in ROOM else 'distance'"
+    ],
+    [
+      47,
+      "groups.setdefault(kind, {}).setdefault(unit, []).append(score)"
+    ],
+    [
+      48,
+      "return {kind: {u: dict(count=len(values[u]), score=sum(values[u])/len(values[u]))"
+    ]
+  ],
+  "student_pilot/training_contract.py": [
+    [
+      72,
+      "entry = entry.get('phrases', [])"
+    ]
+  ],
+  "trace_format/contracts.py": [
+    [
+      103,
+      "continue"
+    ],
+    [
+      105,
+      "continue"
+    ],
+    [
+      108,
+      "forward = rotation[:, 0] - (rotation[:, 0] @ up) * up"
+    ],
+    [
+      111,
+      "continue"
+    ],
+    [
+      114,
+      "return None"
+    ]
+  ]
+}

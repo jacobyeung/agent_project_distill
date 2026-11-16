@@ -1,0 +1,15 @@
+# k1_ops6 RESULT: the 170206 fix is built and rehearsed. New batch d1553118 meets GO conditions (a) and (b); submission follows the general order
+- Root cause (RESULT 1117Z): stage_job.py never staged CONFIG assets.depth, so load_model -> load_depth_stage1 -> pinned() failed on step_400/heads.json.
+- Fix: stage_job.py, 5 added lines after the base staging. Each assets.depth item is copied to its logical_path with NS.copied, exactly as C8r native_stage.py:470-473 does (diff: trinity-1-18 k1_ops3/work/partb/build7/evidence/B7_STAGE_JOB.diff).
+- Batch a7e31d84.sh: sha256 d1553118c4fb8773532979fd6016bca1ce2363bac8c5bcfede939d43db29bcd4, 1,377,481 B. Built by the unchanged build_package.py (defaults: allocation 10800, no deadline).
+  - Payload against 0c9c9ce2: of 12 members, only stage_job.py changed. a.json is byte-equal, CONFIG.json (04482921) and the bundle (e9ffe4ae) are unchanged, and the launcher differs only in the payload and its sha (B7_PAYLOAD_DIFF.json).
+- Condition (b): the fix only stages inputs that are already pinned (assets.depth, the pins C8r used). It changes no scoring, selection, manifest, pinned input or admission code. Harness-only edits: rh_batch_fixture.py (depth transport) and stage_fixture.py (synthetic depth item).
+- Rehearsal on trinity-1-18 (production CONFIG, transport-only mapping, same embedded batch entry):
+  - Mapped mode: all 9 cases pass (evidence/batch_018d4bdafa). heads.json is served as its real bytes, so the production size and sha verifier ran (fd60ac2f). The two weight files are labelled stand-ins.
+  - Inside the job's own bwrap namespace (NS.namespace argv on the staged root): pinned(config 78341acb) -> depth_init -> pinned(heads.json) passes, and the schema matches load_depth_stage1. Both weight paths resolve to the staged files (B7_NSDEPTH_MAPPED.log).
+  - Namespace mode as r5 (outer /tmp emulation; RNS_PLACEHOLDER).
+- Not covered by the rehearsal:
+  - The bytes of the two weight files. The Orchard sources match the pinned sizes, and the job hashes them while copying.
+  - The GPU path after the depth init (load_artifact, prompt_batch, _prepare_decode heads, depth_head.query), which the in-job canary covers.
+  - No independent reader has reviewed the diff; your conditional GO does not ask for one.
+- Detail: DIAG_170206_k1ops6.md; audit and diffs as named above.

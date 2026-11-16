@@ -1,0 +1,16 @@
+--- src/starVLA-starVLA_dev/examples/simBenchmarks/LIBERO/train_files/data_registry/data_config.py	2026-10-07 23:34:57.000000000 -0400
++++ src/starVLA-pilot/examples/simBenchmarks/LIBERO/train_files/data_registry/data_config.py	2026-10-29 17:44:14.086816868 -0400
+@@ -135,3 +135,13 @@
+         ("LEROBOT_LIBERO_DATA/libero_10_no_noops_1.0.0_lerobot", 1.0, "libero_franka"),
+     ],
+ }
++
++
++# ---------------------------------------------------------------------------
++# VLA pilot overlay (distill/vla_env 2026-10-29): LIBERO-Spatial only, task-stratified demo subsets
++# (see pilot/make_libero_subset.py). Names: d<demos per task>_s<subset seed>; "full" = all 432 demos.
++# ---------------------------------------------------------------------------
++for _name in ("libero_spatial_no_noops_1.0.0_lerobot", "libero_spatial_d1_s0_lerobot", "libero_spatial_d1_s1_lerobot",
++              "libero_spatial_d5_s0_lerobot", "libero_spatial_d5_s1_lerobot"):
++    DATASET_NAMED_MIXTURES["pilot_" + _name.replace("_no_noops_1.0.0", "_full").replace("_lerobot", "")] = [
++        (_name, 1.0, "libero_franka")]

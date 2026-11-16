@@ -1,0 +1,9 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=1029 utc=2026-11-15T05:32:01.435Z kind=written original_path=/scratch/jjyeung/orch_cd/evalx/inbox/$(date_ORCH_ORDER_guard_port_into_fallback_candidate.md heredoc_unquoted(vars_unexpanded) -->
+# ORCH ORDER: fourth item for the separate candidate — serve near-nadir captures on distance and room (not for pilot 9)
+
+An independent review (Claude Opus; `$R/rc_review/out/REVIEW_VERDICT_RS_CONTRACTS.md`, read section Q5 and the pose table) checked a replacement for the sealed gravity guard. Findings that concern your reader:
+- The replacement `validate_up_convention` (in `$R/rs_contracts/out/PATCH_geometry.diff`) passes upright, portrait, rolled, near-nadir and near-zenith captures and still refuses OpenGL-axis, z-down-world and upside-down captures. On a raw-G3T census of all 152 dev captures the 24 old refusals pass and none is newly refused.
+- Port ONLY this: runtime-tree `student_pilot/geometry_profiles.py:96-97` calls `validate_up_convention`; then re-pin RUNTIME_TREE.json and the pin graph. Do NOT port `level_basis` (the heading switch): the review found it wrong, and it is being removed.
+- It is safe for absolute distance and room size: all tools share the frame-1 basis and room uses the unrotated world.
+
+Add this to the separate candidate (with R1, the 6,000 s limit and the selector fix), with the CPU tests the verdict's Q5 lists, executed in the whole-worker rehearsal, and the refused-capture report changed to match: a capture the new guard still refuses stays a refusal in both arms and in every denominator. Decided now, before any routed score exists: the dev-S1 full read and the official read both run on this candidate family after its own pilot; pilot 9 on the current object remains the plumbing check and flies first. Nothing here changes the current object or its queued upload.

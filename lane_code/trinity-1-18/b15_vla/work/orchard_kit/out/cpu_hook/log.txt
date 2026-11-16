@@ -1,0 +1,549 @@
+== 2026-11-11T13:13:01Z cpu_hook mix=vll_libero4_d1_s0 kit=ab3df9dc5dfbd0e4
+/project/community/jjyeung/vla_libero/work/data/lerobot/libero_object_d1_s0_lerobot 10 episodes, 1448 frames
+/project/community/jjyeung/vla_libero/work/data/lerobot/libero_goal_d1_s0_lerobot 10 episodes, 1236 frames
+/project/community/jjyeung/vla_libero/work/data/lerobot/libero_10_d1_s0_lerobot 10 episodes, 2740 frames
+== hook_check
+   7
+  ],
+  [
+   0,
+   7
+  ],
+  [
+   0,
+   7
+  ]
+ ],
+ "drop_incomplete": true,
+ "state_shape": [
+  1,
+  8
+ ],
+ "head_params": {
+  "hook": 44295,
+  "starvla": 43143,
+  "proprio_map": 1152
+ },
+ "loss_starvla_no_state": 0.7514260411262512,
+ "loss_hook_with_state": 0.7514260411262512,
+ "loss_starvla_state_as_text": 0.7435267567634583,
+ "step0_parity": true,
+ "grad_norm_proprio_map": 0.794718861579895,
+ "grad_norm_lm_sum": 62.43855851043509,
+ "predict_shape": [
+  3,
+  8,
+  7
+ ],
+ "predict_in_range": true,
+ "server_strict_load": true,
+ "server_pred_max_abs_diff": 0.0,
+ "proprio_changes_prediction": true,
+ "proprio_q01": [
+  -0.3669073283672333,
+  -0.27274420857429504,
+  0.049137014895677567,
+  1.4906363487243652,
+  -2.736356019973755,
+  -0.9894787669181824,
+  0.0018092022510245442,
+  -0.04006829112768173
+ ],
+ "proprio_q99": [
+  0.1541735827922821,
+  0.31190553307533264,
+  1.2671557664871216,
+  3.3231935501098633,
+  2.3362011909484863,
+  0.5583465695381165,
+  0.04042927175760269,
+  -0.0019718327093869448
+ ],
+ "proprio_count": 6653,
+ "verdict": "HOOK_OK"
+}
+HOOK_OK
+straight rc=0
+resumed rc=0
+trace keys ['batch_fp', 'gate_proprio', 'loss', 'lr', 'param_norms', 'param_sums', 'samples_per_s', 'step', 'step_s', 't', 'utc']
+straight [(1, 0.5235818, '92b0f17b70bbe8c2', 0.0, 24.0689), (2, 0.513391, 'a97bceec57617be7', 0.0061191776767373085, 24.0686), (3, 0.5281728, '674e77da1b3a5e26', 0.009505268186330795, None), (4, 0.413435, '3588cf05320afd71', 0.010438911616802216, 24.0685)]
+resumed  [(3, 0.5281728, '674e77da1b3a5e26', 0.009505268186330795), (4, 0.413435, '3588cf05320afd71', 0.010438911616802216)]
+slots {'slot_1': {'step': 2, 'world': 1, 'utc': '2026-11-11T13:14:00Z'}}
+proprio_norm.json True | config head_hook True
+HOOK_RESUME_EXACT
+CPU_HOOK_DONE
+== 2026-11-11T13:34:31Z cpu_hook mix=vll_libero_spatial_d1_s0 kit=f985ade2797b7814
+== hook_check
+  "kind": "minmax_subset_v1",
+  "min": [
+   -0.2784487307071686,
+   -0.21603193879127502,
+   0.9114092588424683,
+   2.773357629776001,
+   -1.448430061340332,
+   -0.3602774143218994,
+   0.0019603909458965063,
+   -0.03986837714910507
+  ],
+  "max": [
+   0.12963759899139404,
+   0.3580150008201599,
+   1.3102139234542847,
+   3.340601921081543,
+   0.823411762714386,
+   0.861444890499115,
+   0.0399288572371006,
+   -0.001975930528715253
+  ],
+  "count": 1229,
+  "subset_sha": "71c7f83907b1cf370a39c845570a91bf17620f2b9850c6fda688a089a212da31",
+  "data_mix": "vll_libero_spatial_d1_s0"
+ },
+ "action_norm": {
+  "kind": "minmax_subset_v1",
+  "min": [
+   -0.9375,
+   -0.8303571343421936,
+   -0.9375,
+   -0.10285714268684387,
+   -0.22607143223285675,
+   -0.24321427941322327
+  ],
+  "max": [
+   0.9375,
+   0.8892857432365417,
+   0.9375,
+   0.15214285254478455,
+   0.26249998807907104,
+   0.23357142508029938
+  ],
+  "count": 1229,
+  "subset_sha": "71c7f83907b1cf370a39c845570a91bf17620f2b9850c6fda688a089a212da31",
+  "data_mix": "vll_libero_spatial_d1_s0",
+  "gripper": "g = 1 - 2 a6, not normalised"
+ },
+ "prompt_template": {
+  "template_id": "starvla_qwenoft_985c2238_v1",
+  "template_sha256": "47e4c3d9161ec2df6b38ab4dbe4e16b2ccad17e1a0e3cd57f415031ad08f692b",
+  "template": "{instruction}{where} Please predict the next 8 robot actions: <action>\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d<action>."
+ },
+ "full_prompt_example": "pick up the black bowl on the stove and place it on the plate Please predict the next 8 robot actions: <action>\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d<action>.",
+ "gripper_in_prediction": [
+  1.0
+ ],
+ "verdict": "HOOK_OK"
+}
+HOOK_OK
+straight rc=0
+resumed rc=0
+trace keys ['batch_fp', 'gate_proprio', 'loss', 'lr', 'param_norms', 'param_sums', 'samples_per_s', 'step', 'step_s', 't', 'utc']
+straight [(1, 0.591856, '1d7b7e9f5f11df2b', 0.0, 24.1015), (2, 0.5506564, 'd631b0f2f27eb99c', 0.00718582421541214, 24.1013), (3, 0.5123858, 'bc70f73431f3b967', 0.01141654048115015, None), (4, 0.3956673, 'd16691a84caf900e', 0.01280304603278637, 24.1012)]
+resumed  [(3, 0.5123858, 'bc70f73431f3b967', 0.01141654048115015), (4, 0.3956673, 'd16691a84caf900e', 0.01280304603278637)]
+slots {'slot_1': {'step': 2, 'world': 1, 'utc': '2026-11-11T13:35:23Z'}}
+proprio_norm.json True | config head_hook True
+HOOK_RESUME_DIFF
+CPU_HOOK_DONE
+== 2026-11-11T13:42:19Z cpu_hook mix=vll_libero_spatial_d1_s0 kit=71f49ea033af5927
+== hook_check
+  "kind": "minmax_subset_v1",
+  "min": [
+   -0.2784487307071686,
+   -0.21603193879127502,
+   0.9114092588424683,
+   2.773357629776001,
+   -1.448430061340332,
+   -0.3602774143218994,
+   0.0019603909458965063,
+   -0.03986837714910507
+  ],
+  "max": [
+   0.12963759899139404,
+   0.3580150008201599,
+   1.3102139234542847,
+   3.340601921081543,
+   0.823411762714386,
+   0.861444890499115,
+   0.0399288572371006,
+   -0.001975930528715253
+  ],
+  "count": 1229,
+  "subset_sha": "71c7f83907b1cf370a39c845570a91bf17620f2b9850c6fda688a089a212da31",
+  "data_mix": "vll_libero_spatial_d1_s0"
+ },
+ "action_norm": {
+  "kind": "minmax_subset_v1",
+  "min": [
+   -0.9375,
+   -0.8303571343421936,
+   -0.9375,
+   -0.10285714268684387,
+   -0.22607143223285675,
+   -0.24321427941322327
+  ],
+  "max": [
+   0.9375,
+   0.8892857432365417,
+   0.9375,
+   0.15214285254478455,
+   0.26249998807907104,
+   0.23357142508029938
+  ],
+  "count": 1229,
+  "subset_sha": "71c7f83907b1cf370a39c845570a91bf17620f2b9850c6fda688a089a212da31",
+  "data_mix": "vll_libero_spatial_d1_s0",
+  "gripper": "g = 1 - 2 a6, not normalised"
+ },
+ "prompt_template": {
+  "template_id": "starvla_qwenoft_985c2238_v1",
+  "template_sha256": "47e4c3d9161ec2df6b38ab4dbe4e16b2ccad17e1a0e3cd57f415031ad08f692b",
+  "template": "{instruction}{where} Please predict the next 8 robot actions: <action>\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d<action>."
+ },
+ "full_prompt_example": "pick up the black bowl on the stove and place it on the plate Please predict the next 8 robot actions: <action>\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d<action>.",
+ "gripper_in_prediction": [
+  1.0
+ ],
+ "verdict": "HOOK_OK"
+}
+HOOK_OK
+straight rc=0
+resumed rc=0
+trace keys ['batch_fp', 'gate_proprio', 'loss', 'lr', 'param_norms', 'param_sums', 'samples_per_s', 'step', 'step_s', 't', 'utc']
+straight [(1, 0.626096, '1d7b7e9f5f11df2b', 0.0, 24.0683), (2, 0.6681154, 'd631b0f2f27eb99c', 0.007658554241061211, 24.0682), (3, 0.3671133, 'bc70f73431f3b967', 0.011253738775849342, None), (4, 0.4085681, 'd16691a84caf900e', 0.012288236990571022, 24.0681)]
+resumed  [(3, 0.3671133, 'bc70f73431f3b967', 0.011253738775849342), (4, 0.4085681, 'd16691a84caf900e', 0.012288236990571022)]
+slots {'slot_1': {'step': 2, 'world': 1, 'utc': '2026-11-11T13:43:04Z'}}
+proprio_norm.json True | config head_hook True
+HOOK_RESUME_EXACT
+CPU_HOOK_DONE
+== 2026-11-11T14:30:37Z cpu_hook mix=vll_libero_spatial_d1_s0 kit=17bab38fa5204bee
+== hook_check
+  "kind": "minmax_subset_v1",
+  "min": [
+   -0.2784487307071686,
+   -0.21603193879127502,
+   0.9114092588424683,
+   2.773357629776001,
+   -1.448430061340332,
+   -0.3602774143218994,
+   0.0019603909458965063,
+   -0.03986837714910507
+  ],
+  "max": [
+   0.12963759899139404,
+   0.3580150008201599,
+   1.3102139234542847,
+   3.340601921081543,
+   0.823411762714386,
+   0.861444890499115,
+   0.0399288572371006,
+   -0.001975930528715253
+  ],
+  "count": 1229,
+  "subset_sha": "71c7f83907b1cf370a39c845570a91bf17620f2b9850c6fda688a089a212da31",
+  "data_mix": "vll_libero_spatial_d1_s0"
+ },
+ "action_norm": {
+  "kind": "minmax_subset_v1",
+  "min": [
+   -0.9375,
+   -0.8303571343421936,
+   -0.9375,
+   -0.10285714268684387,
+   -0.22607143223285675,
+   -0.24321427941322327
+  ],
+  "max": [
+   0.9375,
+   0.8892857432365417,
+   0.9375,
+   0.15214285254478455,
+   0.26249998807907104,
+   0.23357142508029938
+  ],
+  "count": 1229,
+  "subset_sha": "71c7f83907b1cf370a39c845570a91bf17620f2b9850c6fda688a089a212da31",
+  "data_mix": "vll_libero_spatial_d1_s0",
+  "gripper": "g = 1 - 2 a6, not normalised"
+ },
+ "prompt_template": {
+  "template_id": "starvla_qwenoft_985c2238_v1",
+  "template_sha256": "47e4c3d9161ec2df6b38ab4dbe4e16b2ccad17e1a0e3cd57f415031ad08f692b",
+  "template": "{instruction}{where} Please predict the next 8 robot actions: <action>\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d<action>."
+ },
+ "full_prompt_example": "pick up the black bowl on the stove and place it on the plate Please predict the next 8 robot actions: <action>\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d<action>.",
+ "gripper_in_prediction": [
+  1.0
+ ],
+ "verdict": "HOOK_OK"
+}
+HOOK_OK
+straight rc=0
+resumed rc=0
+trace keys ['batch_fp', 'gate_proprio', 'loss', 'lr', 'param_norms', 'param_sums', 'samples_per_s', 'step', 'step_s', 't', 'utc']
+straight [(1, 0.9861299, '1d7b7e9f5f11df2b', 0.0, 24.0684), (2, 0.7019841, 'd631b0f2f27eb99c', 0.008336092345416546, 24.0683), (3, 0.3647024, 'bc70f73431f3b967', 0.012925125658512115, None), (4, 0.5427384, 'd16691a84caf900e', 0.014269773848354816, 24.0682)]
+resumed  [(3, 0.3647024, 'bc70f73431f3b967', 0.012925125658512115), (4, 0.5427384, 'd16691a84caf900e', 0.014269773848354816)]
+slots {'slot_1': {'step': 2, 'world': 1, 'utc': '2026-11-11T14:31:32Z'}}
+proprio_norm.json True | config head_hook True
+HOOK_RESUME_EXACT
+CPU_HOOK_DONE
+== 2026-11-11T15:25:53Z cpu_hook mix=vll_libero_spatial_d1_s0 kit=5f362bca71a2eb84
+== hook_check
+/project/community/jjyeung/vla_libero/envs/e_sv/lib/python3.10/site-packages/albumentations/__init__.py:13: UserWarning: A new version of Albumentations is available: 2.0.8 (you have 1.4.18). Upgrade using: pip install -U albumentations. To disable automatic update checks, set the environment variable NO_ALBUMENTATIONS_UPDATE to 1.
+  check_for_updates()
+11/11 [10:26:26] WARNING  | >>  DataConfig for                    registry.py:70
+                          robot_type='ur5_robochallenge' has no                 
+                          `embodiment_tag` classvar; defaulting                 
+                          to EmbodimentTag.NEW_EMBODIMENT.                      
+                 WARNING  | >>  DataConfig for                    registry.py:70
+                          robot_type='arx5_robochallenge' has no                
+                          `embodiment_tag` classvar; defaulting                 
+                          to EmbodimentTag.NEW_EMBODIMENT.                      
+                 WARNING  | >>  DataConfig for                    registry.py:70
+                          robot_type='dosw1_robochallenge' has no               
+                          `embodiment_tag` classvar; defaulting                 
+                          to EmbodimentTag.NEW_EMBODIMENT.                      
+11/11 [10:26:31] WARNING  | >> [*] [StarVLA]               base_framework.py:110
+                          Reproducibility notice: this                          
+                          repository is under active                            
+                          development. The latest code may                      
+                          not exactly reproduce every                           
+                          previously released HF                                
+                          checkpoint because code,                              
+                          configs, preprocessing, and                           
+                          evaluation behavior can change                        
+                          over time. For exact                                  
+                          reproduction, checkout the                            
+                          repository revision from the                          
+                          checkpoint's release/training                         
+                          time and use its own config.                          
+Loading weights:   0%|          | 0/89 [00:00<?, ?it/s]Loading weights: 100%|██████████| 89/89 [00:00<00:00, 13877.58it/s]
+11/11 [10:26:34] INFO     | >>  Using mixture             lerobot_datasets.py:92
+                          'vll_libero_spatial_d1_s0':                           
+                          [('libero_spatial_d1_s0_lerobot                       
+                          ', 1.0, 'libero_franka')]                             
+/project/community/jjyeung/vla_libero/envs/e_sv/lib/python3.10/site-packages/torch/amp/autocast_mode.py:266: UserWarning: User provided device_type of 'cuda', but CUDA is not available. Disabling
+  warnings.warn(
+Initialized dataset libero_spatial_d1_s0_lerobot with EmbodimentTag.FRANKA
+Dataset lengths: [1229]
+Traceback (most recent call last):
+  File "/project/community/jjyeung/vla_libero/kit/hook_check.py", line 74, in <module>
+    l0_state_text = float(m0.forward(copy.deepcopy(ex))["action_loss"])
+  File "/project/community/jjyeung/vla_libero/src/starVLA-pilot/starVLA/model/framework/VLM4A/QwenOFT.py", line 223, in forward
+    action_mask = torch.as_tensor(
+IndexError: too many indices for tensor of dimension 2
+straight rc=1
+resumed rc=1
+Traceback (most recent call last):
+  File "<stdin>", line 2, in <module>
+FileNotFoundError: [Errno 2] No such file or directory: '/project/community/jjyeung/vla_libero/work/hook_runs/straight_3773256/trace.jsonl'
+CPU_HOOK_DONE
+=== v5 2026-11-11T15:30:30Z
+== 2026-11-11T15:30:30Z cpu_hook mix=vll_libero_spatial_d1_s0 kit=17f3779ddf24c6e2
+== hook_check
+   -0.24321427941322327
+  ],
+  "max": [
+   0.9375,
+   0.8892857432365417,
+   0.9375,
+   0.15214285254478455,
+   0.26249998807907104,
+   0.23357142508029938
+  ],
+  "count": 1229,
+  "subset_sha": "71c7f83907b1cf370a39c845570a91bf17620f2b9850c6fda688a089a212da31",
+  "data_mix": "vll_libero_spatial_d1_s0",
+  "gripper": "g = 1 - 2 a6, not normalised"
+ },
+ "prompt_template": {
+  "template_id": "starvla_qwenoft_985c2238_v1",
+  "template_sha256": "47e4c3d9161ec2df6b38ab4dbe4e16b2ccad17e1a0e3cd57f415031ad08f692b",
+  "template": "{instruction}{where} Please predict the next 8 robot actions: <action>\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d<action>."
+ },
+ "full_prompt_example": "pick up the black bowl on the stove and place it on the plate Please predict the next 8 robot actions: <action>\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d<action>.",
+ "gripper_in_prediction": [
+  1.0
+ ],
+ "dropout": {
+  "rows": 1000,
+  "withheld": 207,
+  "rate": 0.207,
+  "agrees_with_vla_heads": true,
+  "within_3sd": true
+ },
+ "flow_detach_False": {
+  "loss": 1.651148796081543,
+  "finite": true,
+  "grad_lm": 18.908806859337346,
+  "grad_head": 229.20891011087224,
+  "predict_shape": [
+   3,
+   8,
+   7
+  ],
+  "in_range": true,
+  "server_same_with_seed": 0.0
+ },
+ "flow_detach_True": {
+  "loss": 1.651148796081543,
+  "finite": true,
+  "grad_lm": 0,
+  "grad_head": 229.20891011087224,
+  "predict_shape": [
+   3,
+   8,
+   7
+  ],
+  "in_range": true,
+  "server_same_with_seed": 0.0
+ },
+ "verdict": "HOOK_OK"
+}
+HOOK_OK
+straight rc=0
+resumed rc=0
+trace keys ['batch_fp', 'gate_proprio', 'loss', 'lr', 'param_norms', 'param_sums', 'samples_per_s', 'step', 'step_s', 't', 'utc']
+straight [(1, 0.9861299, '1d7b7e9f5f11df2b', 0.0, 24.0684), (2, 0.7019841, 'd631b0f2f27eb99c', 0.008336092345416546, 24.0683), (3, 0.3647024, 'bc70f73431f3b967', 0.012925125658512115, None), (4, 0.5427384, 'd16691a84caf900e', 0.014269773848354816, 24.0682)]
+resumed  [(3, 0.3647024, 'bc70f73431f3b967', 0.012925125658512115), (4, 0.5427384, 'd16691a84caf900e', 0.014269773848354816)]
+slots {'slot_1': {'step': 2, 'world': 1, 'utc': '2026-11-11T15:32:05Z'}}
+proprio_norm.json True | config head_hook True
+HOOK_RESUME_EXACT
+CPU_HOOK_DONE
+== 2026-11-11T16:55:45Z cpu_hook mix=vll_libero_spatial_d1_s0 kit=40433a7fc2a12e3f
+== hook_check
+   -0.24321427941322327
+  ],
+  "max": [
+   0.9375,
+   0.8892857432365417,
+   0.9375,
+   0.15214285254478455,
+   0.26249998807907104,
+   0.23357142508029938
+  ],
+  "count": 1229,
+  "subset_sha": "71c7f83907b1cf370a39c845570a91bf17620f2b9850c6fda688a089a212da31",
+  "data_mix": "vll_libero_spatial_d1_s0",
+  "gripper": "g = 1 - 2 a6, not normalised"
+ },
+ "prompt_template": {
+  "template_id": "starvla_qwenoft_985c2238_v1",
+  "template_sha256": "47e4c3d9161ec2df6b38ab4dbe4e16b2ccad17e1a0e3cd57f415031ad08f692b",
+  "template": "{instruction}{where} Please predict the next 8 robot actions: <action>\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d<action>."
+ },
+ "full_prompt_example": "pick up the black bowl on the stove and place it on the plate Please predict the next 8 robot actions: <action>\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d<action>.",
+ "gripper_in_prediction": [
+  1.0
+ ],
+ "dropout": {
+  "rows": 1000,
+  "withheld": 207,
+  "rate": 0.207,
+  "agrees_with_vla_heads": true,
+  "within_3sd": true
+ },
+ "flow_detach_False": {
+  "loss": 1.651148796081543,
+  "finite": true,
+  "grad_lm": 18.908806859337346,
+  "grad_head": 229.20891011087224,
+  "predict_shape": [
+   3,
+   8,
+   7
+  ],
+  "in_range": true,
+  "server_same_with_seed": 0.0
+ },
+ "flow_detach_True": {
+  "loss": 1.651148796081543,
+  "finite": true,
+  "grad_lm": 0,
+  "grad_head": 229.20891011087224,
+  "predict_shape": [
+   3,
+   8,
+   7
+  ],
+  "in_range": true,
+  "server_same_with_seed": 0.0
+ },
+ "verdict": "HOOK_OK"
+}
+HOOK_OK
+straight rc=0
+resumed rc=1
+Traceback (most recent call last):
+  File "<stdin>", line 2, in <module>
+FileNotFoundError: [Errno 2] No such file or directory: '/project/community/jjyeung/vla_libero/work/hook_runs/resumed_4102779/trace.jsonl'
+CPU_HOOK_DONE
+== 2026-11-11T17:01:11Z cpu_hook mix=vll_libero_spatial_d1_s0 kit=af43148989f7837e
+== hook_check
+   -0.24321427941322327
+  ],
+  "max": [
+   0.9375,
+   0.8892857432365417,
+   0.9375,
+   0.15214285254478455,
+   0.26249998807907104,
+   0.23357142508029938
+  ],
+  "count": 1229,
+  "subset_sha": "71c7f83907b1cf370a39c845570a91bf17620f2b9850c6fda688a089a212da31",
+  "data_mix": "vll_libero_spatial_d1_s0",
+  "gripper": "g = 1 - 2 a6, not normalised"
+ },
+ "prompt_template": {
+  "template_id": "starvla_qwenoft_985c2238_v1",
+  "template_sha256": "47e4c3d9161ec2df6b38ab4dbe4e16b2ccad17e1a0e3cd57f415031ad08f692b",
+  "template": "{instruction}{where} Please predict the next 8 robot actions: <action>\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d<action>."
+ },
+ "full_prompt_example": "pick up the black bowl on the stove and place it on the plate Please predict the next 8 robot actions: <action>\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d\ud83d\udd0d<action>.",
+ "gripper_in_prediction": [
+  1.0
+ ],
+ "dropout": {
+  "rows": 1000,
+  "withheld": 207,
+  "rate": 0.207,
+  "agrees_with_vla_heads": true,
+  "within_3sd": true
+ },
+ "flow_detach_False": {
+  "loss": 1.651148796081543,
+  "finite": true,
+  "grad_lm": 18.908806859337346,
+  "grad_head": 229.20891011087224,
+  "predict_shape": [
+   3,
+   8,
+   7
+  ],
+  "in_range": true,
+  "server_same_with_seed": 0.0
+ },
+ "flow_detach_True": {
+  "loss": 1.651148796081543,
+  "finite": true,
+  "grad_lm": 0,
+  "grad_head": 229.20891011087224,
+  "predict_shape": [
+   3,
+   8,
+   7
+  ],
+  "in_range": true,
+  "server_same_with_seed": 0.0
+ },
+ "verdict": "HOOK_OK"
+}
+HOOK_OK
+straight rc=0
+resumed rc=0
+trace keys ['batch_fp', 'gate_proprio', 'loss', 'loss_rank_mean', 'lr', 'param_norms', 'param_sums', 'samples_per_s', 'step', 'step_s', 't', 'utc']
+straight [(1, 0.9861299, '1d7b7e9f5f11df2b', 0.0, 24.0684), (2, 0.7019841, 'd631b0f2f27eb99c', 0.008336092345416546, 24.0683), (3, 0.3647024, 'bc70f73431f3b967', 0.012925125658512115, None), (4, 0.5427384, 'd16691a84caf900e', 0.014269773848354816, 24.0682)]
+resumed  [(3, 0.3647024, 'bc70f73431f3b967', 0.012925125658512115), (4, 0.5427384, 'd16691a84caf900e', 0.014269773848354816)]
+slots {'current': {'step': 2, 'world': 1, 'utc': '2026-11-11T17:02:40Z'}, 'steps_2': {'step': 2, 'world': 1, 'utc': '2026-11-11T17:02:40Z'}}
+proprio_norm.json True | config head_hook True
+HOOK_RESUME_EXACT
+CPU_HOOK_DONE

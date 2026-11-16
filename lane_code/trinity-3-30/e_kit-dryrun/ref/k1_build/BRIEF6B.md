@@ -1,0 +1,5 @@
+# Codex build 6b: continue build 6 (BRIEF6.md) to completion. The operator answers your question: yes.
+
+Model gpt-6-astra, effort high. All BRIEF.md rules hold with one change: the workspace may grow to 45 GB (local /scratch has about 800 GB free). Preserve every existing file, delete nothing, and write only in this workspace (/scratch/jjyeung/orch_n30/k1_ops3/work/partb/build).
+Read BRIEF6.md, your REPORT6.txt, evidence/REPORT6_JOB.diff and check_report6.py. Finish what REPORT6 lists as pending: the full rehearsal with the production CONFIG (transport-only changes), the rebuilt rh/RH_1_3.tar (under 5 GB, carrying the real anchor tar so 1-3 verifies a1 on the production item, or else the stated local-only variant), and the final REPORT6.txt with the new batch sha256, the submit command (--time 03:00:00), the field audit and the r5 command.
+Time matters. The operator must hand this to a reader and submit before 11:30Z, so finish by 10:35Z. Skip optional extras, and keep coverage reporting at the level of builds 4-5.

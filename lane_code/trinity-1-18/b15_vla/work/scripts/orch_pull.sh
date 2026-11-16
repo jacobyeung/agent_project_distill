@@ -1,0 +1,2 @@
+cd /project/community/jjyeung/vla_libero
+tar czf - --exclude='*.mp4' --exclude='*.png' --exclude='__pycache__' kit out/*.log out/conformance out/cpu_hook/log.txt out/cpu_hook/repeat_run*.log out/cpu_rotate out/cl_check/*.log out/cl_check/*.jsonl out/subsets envs/*.freeze.txt src/SRC_SHA256.txt dl/overlay.diff dl/sv_rest.txt dl/lb.txt logs/slurm_*.out work/tiny_Qwen3.5/config.json 2>/dev/null | head -c 20000000

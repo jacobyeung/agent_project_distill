@@ -1,0 +1,1899 @@
+# Round-2 unified diff against ../snap/readk_fix1.tar.
+# Baseline SHA256: 34ccc385ec281ef27eb8e1153362255d4a81ac366f1343fedf08c6f5fcf10948
+# Excludes evidence/test_* and evidence/chain_*; DIFF_FIX2.patch excludes itself.
+# Live log bytes are captured at generation time. No Git command was used.
+
+--- fix1/DIFF.md
++++ fix2/DIFF.md
+@@ -95,14 +95,15 @@
+ | `tests/test_pass3.py` | 1–252 | — | BEYOND | R1 |
+ 
+ The following Trinity-side additions are BEYOND in their entirety and are included in R1:
+-- `f1f2.py`: lines 1–186.
++- `f1f2.py`: lines 1–210.
+ - `room_bootstrap.py`: lines 1–26.
+-- `build_review.py`: lines 1–65.
+-- `REPORT.md`: lines 1–44.
+-- `REVIEW.md`: lines 1–30.
++- `build_review.py`: lines 1–66.
++- `REPORT.md`: lines 1–49.
++- `REVIEW.md`: lines 1–44.
+ - `FIX1.md`: lines 1–17.
++- `FIX2.md`: lines 1–27.
+ - `tests/bind_fixture.py`: lines 1–29.
+ - `tests/offline_guard.py`: lines 1–19.
+ - `tests/test_chain.py`: lines 1–53.
+ - `tests/test_kit.py`: lines 1–292.
+-- `tests/test_verdict.py`: lines 1–203.
++- `tests/test_verdict.py`: lines 1–318.
+--- /dev/null
++++ fix2/DIFF_FIX1.patch
+@@ -0,0 +1,637 @@
++# RECONSTRUCTED round-1 changes against the reviewed kit. No Git commands used.
++# Source: /home/jjyeung/agent_project_distill/agent/scratch/codex_runs/20261116T093327Z_cont5_readk_fix1/transcript.log
++# Code hunks were reversed against readk_fix1.tar and both transcript blob IDs verified.
++# Launcher: exact recorded replacement; REPORT/REVIEW/DIFF: initial file dumps; FIX1: recorded creation.
++# Unreconstructed generated/evidence files (original bytes or creation boundary absent): evidence/FINAL_PINS.json, evidence/SOURCE_DIFF.json, evidence/SOURCE.patch, evidence/FIX1_TESTS.log, evidence/FIX1_REPIN.log, evidence/FIX1_BIND_*.log, evidence/fix1_bind_*/**, evidence/UPLOADER_FORMAT.txt
++# Offline source samples and pre-existing review fixtures are not treated as code changes.
++
++--- reviewed/DIFF.md
+++++ fix1/DIFF.md
++@@ -20,11 +20,14 @@
++ | `cohort/MEDIA_MANIFEST.json` | 1–1442 | — | BEYOND | R1 |
++ | `cohort/frame_plan.py` | 1–80 | — | BEYOND | R1 |
++ | `cohort/meta_5130.jsonl` | 1–5130 | — | BEYOND | R1 |
++-| `launcher/chain_save.py` | 79–98 | 79–85 | BEYOND | R1 |
++-| `launcher/chain_save.py` | 100–109 | 87–91 | BEYOND | R1 |
++-| `launcher/export_stage.py` | — | 1–215 | BEYOND | R1 |
+++| `launcher/chain_save.py` | 79–98 | 79–86 | BEYOND | R1 |
+++| `launcher/chain_save.py` | 100–109 | 88–92 | BEYOND | R1 |
+++| `launcher/chain_save.py` | 131 | 114 | BEYOND | R1 |
+++| `launcher/export_stage.py` | — | 1–224 | BEYOND | R1 |
++ | `launcher/orchard_job.py` | 134 | 134 | BEYOND | R1 |
++ | `launcher/orchard_job.py` | 137–140 | — | BEYOND | R1 |
+++| `launcher/orchard_job.py` | 264 | 260 | BEYOND | R1 |
+++| `launcher/orchard_job.py` | 269 | 265 | BEYOND | R1 |
++ | `launcher/orchard_launcher.py` | 23 | 23 | BEYOND | R1 |
++ | `launcher/orchard_launcher.py` | 36 | 36 | BEYOND | R1 |
++ | `launcher/orchard_launcher.py` | 59 | 59 | BEYOND | R1 |
++@@ -92,12 +95,14 @@
++ | `tests/test_pass3.py` | 1–252 | — | BEYOND | R1 |
++ 
++ The following Trinity-side additions are BEYOND in their entirety and are included in R1:
++-- `f1f2.py`: lines 1–173.
+++- `f1f2.py`: lines 1–186.
++ - `room_bootstrap.py`: lines 1–26.
++-- `build_review.py`: lines 1–63.
++-- `REPORT.md`: lines 1–43.
++-- `REVIEW.md`: lines 1–19.
++-- `tests/bind_fixture.py`: lines 1–28.
++-- `tests/test_chain.py`: lines 1–52.
++-- `tests/test_kit.py`: lines 1–191.
++-- `tests/test_verdict.py`: lines 1–140.
+++- `build_review.py`: lines 1–65.
+++- `REPORT.md`: lines 1–44.
+++- `REVIEW.md`: lines 1–30.
+++- `FIX1.md`: lines 1–17.
+++- `tests/bind_fixture.py`: lines 1–29.
+++- `tests/offline_guard.py`: lines 1–19.
+++- `tests/test_chain.py`: lines 1–53.
+++- `tests/test_kit.py`: lines 1–292.
+++- `tests/test_verdict.py`: lines 1–203.
++--- /dev/null
+++++ fix1/FIX1.md
++@@ -0,0 +1,17 @@
+++# Fix round 1
+++
+++All six review items are implemented. The authoritative F2 verdict follows TRACE_RULING 2.7.
+++
+++| Item | Fix | Evidence |
+++|---|---|---|
+++| A1 | Bootstrap accepts `a2` and `build-integrity-v1`; preparation re-pins launcher bytes. | `test_prepared_bootstrap_entry` reaches mocked execution at 100/200/400 and rejects tampering; `test_failure_return_uses_mock_publisher` covers failure return. |
+++| A2 | Returns retain all families’ raw journals at ON16k/B2048/B4096; gzip level 6 and both size caps apply. | `test_return_retains_all_raw_journals` checks every archived byte. |
+++| A3 | Strict one-line bucketless object/bytes/SHA receipt; expected run and step; fixed bucket URI; four ordered parts; whole-tar size/hash before extraction. | `test_done_sample_and_strict_identity`, `test_wrong_done_refused_before_cloud_or_disk_reservation`, `test_ordered_cloud_stream_requires_whole_digest_before_stage`, and `test_digest_before_extraction`; uploader source in `evidence/UPLOADER_FORMAT.txt`. |
+++| B1 | Seven registered F1 types decide; relative count and relative object size are information only. | `test_f1_has_seven_types_and_extras_cannot_stop`; `test_each_registered_f1_type_can_stop`. |
+++| B2 | Lower-bound reading decides; point failures and alternate verdict print as information only. | `test_point_reading_is_information_only` checks disagreement at 60/46/42 and equality at constants. |
+++| B3 | Kit and CLI accept 400; F2 decides STOP/CONTINUE at 400, with F1 reported. | `test_step400_f2_alone_decides_and_reports_f1`, `test_cli_accepts_step400_and_prints_both_readings`, bootstrap entry and three step-400 binds. |
+++| Test guard | Every test entry denies real process creation and socket operations; execution boundaries use mocks. | `test_offline_guard_blocks_real_commands_and_network` includes bare/absolute gcloud and shell bypass attempts. |
+++| Pins | Final code, tests and review documents are re-pinned; fresh batches embed current launcher pins. | `test_final_pins_match`; `evidence/FINAL_PINS.json`. |
+++
+++Validation: 40 tests pass in `evidence/FIX1_TESTS.log`. Eight binds pass in `evidence/FIX1_BIND_*.log`: all families at 100, main at 200, and main/away/forward at 400. Prompt inventories match accepted bytes.
+++No live publish, network, SSH, GPU, Git, deletion or Slurm command ran. Live milestone execution and its embedded artifact path remain unverified. `REVIEW.md` gives file:line references for each item.
++--- reviewed/REPORT.md
+++++ fix1/REPORT.md
++@@ -1,16 +1,16 @@
++-The kit builds one-H100 `general` reads for steps 100 and 200: main 1,525, away 150, and forward 150. `--camera` adds 450 items; it is off by default. The accepted duplicate layout, 32 anchors, timing, ON16k/B2048/B4096 budgets, and answer policy remain pinned. B2048 is primary.
+++The kit builds one-H100 `general` reads for steps 100, 200 and 400: main 1,525, away 150, and forward 150. `--camera` adds 450 items; it is off by default. The accepted duplicate layout, 32 anchors, timing, ON16k/B2048/B4096 budgets, and answer policy remain pinned. B2048 is primary.
++ 
++-The job concatenates four GCS parts, checks the `.done` whole-tar bytes/SHA256 before extraction, applies build_t5's unchanged admission function, and runs the unchanged export checker in full mode. Each family uses a fresh process on the same card. Failure stops subsequent families without retry.
+++The job accepts the uploader’s exact plain-text `.done` line (`object bytes sha256`), binds its bucketless object to run 359fcc3c and the requested step, constructs its URI under `gs://cmu-gpucloud-jjyeung`, concatenates four GCS parts, checks whole-tar bytes/SHA256 before extraction, applies build_t5's unchanged admission function, and runs the unchanged export checker in full mode. Each family uses a fresh process on the same card. Failure stops subsequent families without retry.
++ 
++-Returns contain `ITEMS.jsonl`, `SUMMARY.json`, authenticated score reports, and binding/staging evidence. The proposed pool is `/project/community/jjyeung/okh7/ae71c903`; GCS uses `gs://cmu-gpucloud-jjyeung/q8/ae71c903/<token>/`. The pool retains its 4 MiB fsync/hash test, locks operations, and enforces 100 MB. Both return channels verify independently. Token meanings are recorded in `LEDGER.jsonl`.
+++Returns contain `ITEMS.jsonl`, `SUMMARY.json`, authenticated score reports, binding/staging evidence, and each family’s `a0/results/{0,budget_2048/0,budget_4096/0}/items_a0.jsonl` raw journals. Gzip level 6 preserves the 512 MiB expanded and sub-90 MB compressed limits. The proposed pool is `/project/community/jjyeung/okh7/ae71c903`; GCS uses `gs://cmu-gpucloud-jjyeung/q8/ae71c903/<token>/`. The pool retains its 4 MiB fsync/hash test, locks operations, and enforces 100 MB. Both return channels verify independently. Token meanings are recorded in `LEDGER.jsonl`.
++ 
++ Accepted A reports exist on this host at `/scratch/jjyeung/orch_n30/evalx27/work/pull/x27/res/e193/merged/{main,away,forward}/report/B2048.json`; predictions exist at `direct/<family>/results/0/budget_2048.jsonl`. All 150 away and 150 forward items exist, so no second model arm is needed. `evidence/A544.jsonl` contains their normalized records; source hashes are in `evidence/ACCEPTED.json`. A has away accuracies 38/20/6% and 74/150 pairs alike (49.33%).
++ 
++-`f1f2.py` uses the exact `paired()` function from `kit/reader/work/vendor/r5/report.py:36`, with B first, 10,000 room draws, seed 17, and interpolated percentiles. F1 includes numeric/comparative counting and size tasks separately. F2 compares semantic option contents. Step 100 has no verdict; step 200 implements STOP, CONTINUE_TO_400, and CONTINUE. F3/F4 are explicitly unevaluated and do not stop this direct read.
+++`f1f2.py` uses the exact `paired()` function from `kit/reader/work/vendor/r5/report.py:36`, with B first, 10,000 room draws, seed 17, and interpolated percentiles. F1 decides on seven types: route planning, object counting, direction easy/medium/hard, relative distance and object-size estimation. Relative count and relative object size are information only. F2 uses TRACE_RULING 2.7’s lower-bound reading; point-estimate failures and the corresponding verdict appear separately as information. Twin equality compares semantic option contents. Step 100 has no verdict; step 200 implements STOP, CONTINUE_TO_400, and CONTINUE. Step 400 returns STOP if F2 fails and CONTINUE otherwise, reporting F1 without using it to stop. F3/F4 are explicitly unevaluated and do not stop this direct read.
++ 
++ The total-count guard is unavailable on the accepted inventory, which contains only single-object counting under `object_counting`. The script prints the constant-7/46.30% guard as unavailable and evaluates the constant-2/61.87% single-count guard. It does not invent total-count observations.
++ 
++-Run the following block for `STEP=100`; run it again with `STEP=200` and a fresh token. These operator commands were not run. CPU tests did exercise local preparation.
+++Run the following block for `STEP=100`; use `STEP=200` or `STEP=400` with a fresh token for those reads. Prepare each batch from these final pinned sources. These operator commands were not run. CPU tests did exercise local preparation.
++ ```bash
++ cd /scratch/jjyeung/orch_n30/cont_ops/work/d0/readk
++ export PYTHONDONTWRITEBYTECODE=1
++@@ -31,6 +31,7 @@
++ ```bash
++ "$PY" -B f1f2.py --step 100 --a evidence/A544.jsonl --b /PATH/100/ITEMS.jsonl --output F100.json
++ "$PY" -B f1f2.py --step 200 --a evidence/A544.jsonl --b /PATH/200/ITEMS.jsonl --m100 /PATH/100/ITEMS.jsonl --output F200.json
+++"$PY" -B f1f2.py --step 400 --a evidence/A544.jsonl --b /PATH/400/ITEMS.jsonl --output F400.json
++ "$PY" -B -m unittest discover -s tests -p 'test_*.py' -v
++ ```
++ 
++@@ -38,6 +39,6 @@
++ 
++ Budget about 220 GB of additional `/tmp` space for retained archives, extracted runtimes/base/export, three family model copies, frame tar/PNG copies, and working space; about 265 GB with camera. Keep the 200 GiB floor: start with at least 440 GB free (490 GB with camera). These are conservative estimates using the accepted 21.583 GB export; admission and each family check actual space.
++ 
++-Validation: 28 CPU tests pass (`evidence/FINAL_TESTS.log`). All four family binds match accepted prompt inventories byte for byte; main also binds step 200. Tests cover all stop branches, bootstrap boundaries, stream order/digest refusal, unsafe tar layouts, full checker corruption detection, return pool behavior, and family failure isolation. `DIFF.md` classifies every changed line; `REVIEW.md` records one local self-review.
+++Validation: 40 CPU tests pass (`evidence/FIX1_TESTS.log`), including packaged bootstrap entry at all three steps, journal archive round trips, strict receipt format/identity, seven-type F1, both F2 readings, step-400 decisions and final pin checks. Eight guarded binds match accepted prompt inventories: all four families at 100, main at 200, and main/away/forward at 400 (`evidence/FIX1_BIND_*.log`). Every test entry installs an audit hook that denies real process creation and socket operations; publish, GPU and cloud paths are mocked. `DIFF.md` classifies changed lines; `REVIEW.md` and `FIX1.md` map each requested fix to code and tests. Uploader source evidence is in `evidence/UPLOADER_FORMAT.txt`; the real receipt sample is in `evidence/DONE_SAMPLES.txt`.
++ 
++ Unverified: live Orchard credentials/assets, final milestone receipts, H100/vLLM execution, actual PNG pixels, returns, and real milestone timing. Camera uses build_t5's reconstructed bridge. New job-facing names are opaque and engine diagnostics are hex-encoded; the unchanged reader/checker still require legacy private paths such as `a0/models/cp1m200`. A literal ban on every private Orchard path remains unresolved and prevents claiming unconditional submit readiness. No SSH, GPU, network, Git, deletion, or Slurm command ran.
++--- reviewed/REVIEW.md
+++++ fix1/REVIEW.md
++@@ -1,19 +1,30 @@
++-R1 is a completed local code review by the primary builder. No independent reviewer or subagent participated.
+++R1 is a completed local code review by the primary builder. The external review verdict is GO AFTER FIXES; this file records the builder’s local review, not an independent approval.
++ 
++ The review covers every BEYOND range listed in DIFF.md and the complete Trinity verdict code. The review checked these properties against the user-supplied rules and the named sources:
++ 
++-- The execution path imports the accepted direct reader from the authenticated runtime, checks its SHA256, and verifies every family's item map, task-file pin, source digest, cells, engine settings, timing pins, and answer-policy inputs. Four CPU binds produce byte-identical accepted prompt inventories. Main's step-200 bind also passes.
+++- The execution path imports the accepted direct reader from the authenticated runtime, checks its SHA256, and verifies every family's item map, task-file pin, source digest, cells, engine settings, timing pins, and answer-policy inputs. Four CPU binds produce byte-identical accepted prompt inventories. Main’s step-200 bind and all three default step-400 binds also pass.
++ - Each family runs in a fresh interpreter with the one assigned card. The parent checks the H100 before and after staging, stops after a failed family, and preserves failure returns. No fake engine enters the submitted package.
++-- Four cloud parts stream in numeric order. A size or whole-tar SHA mismatch prevents extraction. The complete build_t5 stage_export function is unchanged; its AST comparison passes. The checker source pins remain exact, full mode is mandatory, and a miniature real BF16 checker fixture rejects a changed shard.
+++- The strict plain-text receipt parser binds run and step before any stream opens. Four cloud parts stream in numeric order. A size or whole-tar SHA mismatch prevents extraction. The complete build_t5 stage_export function is unchanged; its AST comparison passes. The checker source pins remain exact, full mode is mandatory, and a miniature real BF16 checker fixture rejects a changed shard.
++ - The submitted plan binds the step, selected families, and logical artifact path. The runtime receipt binds the completed archive, resolved artifact hash, and full verification result. The original submitted plan hash remains the return identity; the resolved receipt is saved separately.
++ - Per-item records join complete journals to authenticated report rows by key. Main uses released labels on primary rows and own labels on route rows; twins use own labels. Paired metadata and exact accepted membership are checked before metrics.
++-- F1 includes route, single and comparative counting, each direction level, relative distance, numeric object size, and comparative object size. This interprets “counting” and “object size” as both accepted direct task variants and reports each separately.
+++- F1 decides on the seven registered types. Relative count and relative object size appear only in `f1_information_only`; their intervals cannot stop the leg.
++ - The existing room bootstrap is copied exactly and called B-first for B-minus-A. Confidence intervals use 10,000 draws over physical rooms with item weighting. Accuracy intervals use the same function against zero. Tests cover sign, zero boundaries, room weighting, thresholds, trend strictness, and every verdict branch.
++ - Twin pairing uses the recorded paired-away ID, validates room/scene/level, and compares parsed option content. Missing answers are reported separately. The accepted packet reproduces 74/150 identical-answer pairs.
++-- Step 100 emits no verdict. A step-200 F1 failure stops immediately. A step-200 F2 failure requires the registered trend exception; missing step-100 input refuses that branch. Guards do not add an unregistered stopping rule. F3/F4 are explicitly outside this read.
++-- The pool write test is retained, locked, bounded, and hash-verified. Publishing verifies both independent channels, retains the inherited timeout and generation checks, and includes the compact item/summary files. No deletion is added.
+++- F2 uses the lower bound for its verdict and prints the point-estimate reading separately as information. Step 100 emits no verdict. A step-200 F1 failure stops immediately. A step-200 F2 failure requires the registered trend exception; missing step-100 input refuses that branch. At step 400, F2 alone determines STOP or CONTINUE; F1 remains reported. Guards do not add an unregistered stopping rule. F3/F4 are explicitly outside this read.
+++- The pool write test is retained, locked, bounded, and hash-verified. Publishing verifies both independent channels, retains the inherited timeout and generation checks, and includes item/summary files plus raw journals at all three budgets, compressed at gzip level 6. No deletion is added.
++ - Disk checks reserve a 200 GiB floor before retained archive expansion and each family’s model/frame copies. No shared data transfer, model read, GPU, or live cloud call ran during validation.
++ 
++ Limits remain explicit. Total-count observations do not exist as a separate task in the accepted inventory; the corresponding guard is unavailable. The all-private-path naming interpretation conflicts with immutable compatibility paths. This review does not waive that requirement or claim live runtime parity. Camera's bridge is reconstructed, as documented in build_t5. Operator submission commands remain unexecuted.
++ 
++-Evidence: evidence/FINAL_TESTS.log, evidence/BIND_MAIN200.log, evidence/BIND_AWAY2.log, evidence/BIND_FORWARD2.log, evidence/BIND_CAMERA.log, evidence/ACCEPTED.json, evidence/BASELINE_METRICS.json, and evidence/FINAL_PINS.json. No narrative history is retained in the report; the requested baseline comparison belongs in DIFF.md.
+++Evidence: `evidence/FIX1_TESTS.log` (40 tests), `evidence/FIX1_BIND_*.log` (eight binds), `evidence/ACCEPTED.json`, `evidence/FINAL_PINS.json`, `evidence/DONE_SAMPLES.txt`, and `evidence/UPLOADER_FORMAT.txt`.
+++
+++## Fix round 1
+++
+++- A1 — `kit/launcher/orchard_job.py:260` and `:265` accept `a2` and `build-integrity-v1`. `tests/test_kit.py:160` prepares all three steps, unpacks each bootstrap, runs its entry to a mocked execution boundary, and rejects changed dependencies. `tests/test_kit.py:191` checks the failure return with a mocked publisher.
+++- A2 — `kit/launcher/chain_save.py:86` selects every family’s raw journal at all three budgets; `:114` uses gzip level 6. `tests/test_kit.py:145` verifies their bytes survive a real local archive round trip. Both size limits remain enforced.
+++- A3 — `kit/launcher/export_stage.py:169` accepts only the uploader’s single plain-text line and binds the bucketless object to the expected run and step. `:188` constructs the bucket URI; `:189` preserves the raw receipt; `:213` writes normalized JSON for unchanged archive admission. `tests/test_kit.py:225`, `:261`, and `:280` cover ordered streams, whole-tar digest refusal, the real sample, malformed/wrong identities, and refusal before cloud access. Uploader references: `evidence/UPLOADER_FORMAT.txt`.
+++- B1 — `f1f2.py:15` defines seven stopping types; `:130` reports the two comparative types separately. `tests/test_verdict.py:44` proves each extra cannot stop; `:54` proves each registered type can stop.
+++- B2 — `f1f2.py:135` retains the lower-bound test, `:136` computes point-estimate failure, and `:155` labels the alternate reading as information only. `:162` prints its alternate verdict. `tests/test_verdict.py:85` proves 60/46/42 can give authoritative STOP and informational CONTINUE; threshold equality passes only the point reading.
+++- B3 — `kit/launcher/orchard_launcher.py:146`, `:176`, `:380` accept step 400; `f1f2.py:164` decides STOP/CONTINUE from F2 with F1 reported. `tests/test_verdict.py:63` exercises CLI output; `:76` tests all four F1/F2 combinations. Packaged entry and main/away/forward step-400 binds pass.
+++- Test isolation — `tests/offline_guard.py:13` denies process/network audit events before test imports. `tests/test_kit.py:182` proves bare and absolute `gcloud`, shell commands, SSH, Slurm, and sockets cannot reach real execution. The guard is also loaded by the bind fixture. No guard is shipped in the production kit.
+++- Pins — `build_review.py:59` regenerates `evidence/FINAL_PINS.json` for shipped code, verdict code, tests and review documents. `tests/test_kit.py:204` verifies every pin against final bytes. Prepare regenerates launcher/payload pins and the embedded integrity record for each batch.
++--- reviewed/build_review.py
+++++ fix1/build_review.py
++@@ -52,12 +52,14 @@
++     new_range = f"binary: {h['new_bytes']} bytes" if h['operation']=='binary' else fmt(h['new_lines'])
++     lines.append(f"| `{h['file']}` | {old_range} | {new_range} | {h['classification']} | R1 |")
++ lines+=['','The following Trinity-side additions are BEYOND in their entirety and are included in R1:']
++-for p in [ROOT/'f1f2.py',ROOT/'room_bootstrap.py',ROOT/'build_review.py',ROOT/'REPORT.md',ROOT/'REVIEW.md',*sorted((ROOT/'tests').glob('*.py'))]:
+++for p in [ROOT/'f1f2.py',ROOT/'room_bootstrap.py',ROOT/'build_review.py',ROOT/'REPORT.md',ROOT/'REVIEW.md',ROOT/'FIX1.md',*sorted((ROOT/'tests').glob('*.py'))]:
++     lines.append(f"- `{p.relative_to(ROOT)}`: lines 1–{len(p.read_text().splitlines())}.")
++ (ROOT/'DIFF.md').write_text('\n'.join(lines)+'\n')
++ # Small manifests describe shipped code, without hashing generated test trees.
++ (ROOT/'evidence/FINAL_PINS.json').write_text(json.dumps({
++     **{'kit/'+name:sha(raw) for name,raw in new.items()},
++-    **{name:sha((ROOT/name).read_bytes()) for name in ('f1f2.py','room_bootstrap.py','build_review.py')}
+++    **{name:sha((ROOT/name).read_bytes()) for name in ('f1f2.py','room_bootstrap.py','build_review.py',
+++        'REPORT.md','REVIEW.md','FIX1.md','DIFF.md','evidence/DONE_SAMPLES.txt','evidence/UPLOADER_FORMAT.txt')},
+++    **{str(p.relative_to(ROOT)):sha(p.read_bytes()) for p in sorted((ROOT/'tests').glob('*.py'))}
++ },indent=2,sort_keys=True)+'\n')
++ print(json.dumps(dict(kit_files=len(new),changed_ranges=len(hunks),identical=sum(r['status']=='IDENTICAL' for r in records))))
++--- reviewed/f1f2.py
+++++ fix1/f1f2.py
++@@ -1,4 +1,4 @@
++-"""Paired room-bootstrap metrics and the registered step-200 stop rule.
+++"""Paired room-bootstrap metrics and the registered milestone stop rules.
++ 
++ Scores are fractions; all displayed accuracies and intervals are percentages.
++ The exact r5 room bootstrap is called with B first to obtain B minus A.
++@@ -11,11 +11,12 @@
++ 
++ LEVELS = ('easy', 'medium', 'hard')
++ THRESHOLDS = dict(zip(LEVELS, (54, 40, 36)))
++-# Counting and size each include the numeric and comparative task variants.
++-F1_TYPES = ('route_planning', 'object_counting', 'relative_count',
+++# The two comparative variants are information only, outside registered F1.
+++F1_TYPES = ('route_planning', 'object_counting',
++             'object_rel_direction_easy', 'object_rel_direction_medium',
++             'object_rel_direction_hard', 'object_rel_distance',
++-            'object_size_estimation', 'relative_size_object')
+++            'object_size_estimation')
+++F1_INFORMATION_TYPES = ('relative_count', 'relative_size_object')
++ 
++ 
++ def load(path):
++@@ -104,8 +105,8 @@
++ 
++ 
++ def evaluate(a, b, step, m100=None, strict=True):
++-    if step not in (100, 200):
++-        raise ValueError('Step must be 100 or 200')
+++    if step not in (100, 200, 400):
+++        raise ValueError('Step must be 100, 200 or 400')
++     index(a, 544); index(b, step)
++     keep = lambda rows: [r for r in rows if r['family'] != 'camera']
++     a, b = keep(a), keep(b)
++@@ -126,15 +127,19 @@
++     f1 = {t: bootstrap(select(b, task=t), select(a, task=t)) for t in F1_TYPES}
++     for value in f1.values():
++         value['fail'] = value['ci95_pp'][1] < 0
+++    information = {t: bootstrap(select(b, task=t), select(a, task=t))
+++                   for t in F1_INFORMATION_TYPES}
++     away = {level: accuracy(select(b, 'away', level=level)) for level in LEVELS}
++     base = {level: accuracy(select(a, 'away', level=level)) for level in LEVELS}
++     for level, value in away.items():
++-        value.update(threshold_pct=THRESHOLDS[level], fail=value['ci95_pct'][0] <= THRESHOLDS[level])
+++        value.update(threshold_pct=THRESHOLDS[level], fail=value['ci95_pct'][0] <= THRESHOLDS[level],
+++                     point_estimate_fail=value['accuracy_pct'] < THRESHOLDS[level])
++     pairs, base_pairs = twins(b), twins(a)
++     toward = bootstrap(select(b, 'forward'), select(a, 'forward'))
++     toward['fail'] = toward['ci95_pp'][1] < 0
++     f1_fail = any(x['fail'] for x in f1.values())
++     f2_fail = any(x['fail'] for x in away.values()) or pairs['alike_pct'] > 20 or toward['fail']
+++    point_fail = any(x['point_estimate_fail'] for x in away.values()) or pairs['alike_pct'] > 20 or toward['fail']
++     guards = {}
++     for kind, constant, threshold in (('total', 7, 46.30), ('single', 2, 61.87)):
++         chosen = [r for r in b if r['family'] == 'main' and r.get('count_kind') == kind]
++@@ -144,13 +149,21 @@
++         guards[kind]['passes'] = ((guards[kind]['accuracy_pct'] > threshold if kind == 'total'
++                                   else guards[kind]['accuracy_pct'] >= threshold) if chosen else None)
++     result = dict(step=step, budget=2048, bootstrap_draws=10000, seed=17, f1=f1, f1_fail=f1_fail,
+++        f1_information_only=information,
++         f2=dict(away=away, away544=base, pairs=pairs, pairs544=base_pairs, toward_delta=toward),
+++        f2_verdict_reading='TRACE_RULING_2.7_LOWER_BOUND',
+++        f2_point_estimate_information_only=dict(fail=point_fail),
++         f2_fail=f2_fail, guards=guards, f3_f4='NOT_EVALUATED_BY_DIRECT_READ; NON_STOPPING')
++     if step == 200:
++         means = lambda values: {k: values[k]['accuracy_pct'] for k in LEVELS}
++         earlier = {k: accuracy(select(m100, 'away', level=k)) for k in LEVELS} if m100 is not None else None
++         result['f2']['away100'] = earlier
++         result['verdict'] = stop_rule(f1_fail, f2_fail, means(away), means(earlier) if earlier else None, means(base))
+++        result['f2_point_estimate_information_only']['verdict'] = stop_rule(
+++            f1_fail, point_fail, means(away), means(earlier) if earlier else None, means(base))
+++    elif step == 400:
+++        result['verdict'] = 'STOP' if f2_fail else 'CONTINUE'
+++        result['f2_point_estimate_information_only']['verdict'] = 'STOP' if point_fail else 'CONTINUE'
++     return result
++ 
++ 
++@@ -158,7 +171,7 @@
++     p = argparse.ArgumentParser(description=__doc__)
++     p.add_argument('--a', required=True, help='Accepted step-544 normalized JSONL')
++     p.add_argument('--b', required=True, help='Milestone ITEMS.jsonl')
++-    p.add_argument('--step', type=int, choices=(100, 200), required=True)
+++    p.add_argument('--step', type=int, choices=(100, 200, 400), required=True)
++     p.add_argument('--m100', help='Step-100 ITEMS.jsonl for the trend exception')
++     p.add_argument('--output')
++     args = p.parse_args()
++--- reviewed/kit/launcher/chain_save.py
+++++ fix1/kit/launcher/chain_save.py
++@@ -83,6 +83,7 @@
++             selected.append(source/family/'a0'/name)
++         for rel in ('0','budget_2048/0','budget_4096/0'):
++             selected.append(source/family/'a0/results'/rel/'summary_a0.json')
+++            selected.append(source/family/'a0/results'/rel/'items_a0.jsonl')
++     result = {}
++     for path in selected:
++         for item in regular_files(path):
++@@ -110,7 +111,7 @@
++         raise ValueError('Archive destination must not be a symlink')
++     with temporary.open('xb') as raw:
++         limited = LimitedWriter(raw, ARCHIVE_LIMIT)
++-        with tarfile.open(fileobj=limited, mode='w:gz', compresslevel=1) as archive:
+++        with tarfile.open(fileobj=limited, mode='w:gz', compresslevel=6) as archive:
++             for relative, path in sorted(paths.items()):
++                 archive.add(str(path), arcname=relative, recursive=False)
++         raw.flush()
++--- reviewed/kit/launcher/export_stage.py
+++++ fix1/kit/launcher/export_stage.py
++@@ -166,18 +166,27 @@
++                     T.dump(receipt_dir/'RECEIPT.json', receipt)
++ 
++ 
+++def parse_done(raw, run, step):
+++    """Read the uploader's one-line receipt; bytes and SHA cover the whole tar."""
+++    if run not in T.EXPORT_RUNS or type(step) is not int or step <= 0:
+++        raise ValueError('Invalid completion receipt identity')
+++    obj = 'q8/8865619b/'+run+'_m'+str(step)+'.tar'
+++    match = re.fullmatch(re.escape(obj).encode()+rb' ([1-9][0-9]*) ([0-9a-f]{64})\n?', raw)
+++    if match is None:
+++        raise ValueError('Completion receipt identity or format differs')
+++    return dict(object=obj, bytes=int(match[1]), sha256=match[2].decode('ascii'))
+++
+++
++ def fetch_and_stage(root, config):
++     root = Path(root)
++     step = config['spec']['step']
++-    uri = 'gs://cmu-gpucloud-jjyeung/q8/8865619b/359fcc3c_m'+str(step)+'.tar'
++     receipt = Path('/project/community/jjyeung/okh7/x_f5c353f7/o')/('gcs_359fcc3c_m'+str(step)+'.done')
++     if receipt.is_symlink() or receipt.stat().st_size > 65536:
++         raise ValueError('Invalid completion receipt')
++     raw = receipt.read_bytes()
++-    done = json.loads(raw)
++-    if (done.get('object') != uri or type(done.get('bytes')) is not int or done['bytes'] <= 0
++-            or not re.fullmatch('[0-9a-f]{64}', str(done.get('sha256', '')))):
++-        raise ValueError('Completion receipt identity differs')
+++    done = parse_done(raw, '359fcc3c', step)
+++    uri = 'gs://cmu-gpucloud-jjyeung/'+done['object']
+++    (root/'archives/COMPLETE.done').write_bytes(raw)
++     target = root/'archives/export.tar'
++     partial = target.with_suffix('.partial')
++     if target.exists() or partial.exists():
++@@ -201,7 +210,7 @@
++         raise ValueError('Whole archive differs from completion receipt')
++     os.rename(partial, target)
++     local_done = root/'archives/COMPLETE.json'
++-    local_done.write_bytes(raw)
+++    A.atomic_json(local_done, done)
++     transfer_seconds = time.monotonic()-started
++     result = stage_export(NS(root=str(root), run='359fcc3c', step=step, tar=str(target),
++                              done=str(local_done), full=True, bwrap=str(root/'bwrap')))
++--- reviewed/kit/launcher/orchard_job.py
+++++ fix1/kit/launcher/orchard_job.py
++@@ -257,12 +257,12 @@
++     parser.add_argument('--config', required=True)
++     args = parser.parse_args()
++     config = json.loads(Path(args.config).read_text())
++-    if config.get('schema') != 'evalx-orchard-batch-v1':
+++    if config.get('schema') != 'a2':
++         raise ValueError('Unrecognized Orchard batch contract')
++     review = json.loads((Path(args.config).parent/'REVIEW.json').read_text())
++     digest = S.hashlib.sha256(json.dumps(config['launcher_pins'], sort_keys=True).encode()).hexdigest()
++     if (S.sha(Path(args.config).parent/'REVIEW.json') != config['launcher_review_pin']['sha256']
++-            or review.get('schema') != 'new-build-integrity-v1' or review.get('code_pins_sha256') != digest):
+++            or review.get('schema') != 'build-integrity-v1' or review.get('code_pins_sha256') != digest):
++         raise ValueError('Build integrity record differs')
++     for path, expected in config['launcher_pins'].items():
++         if S.sha(Path(args.config).parent/Path(path).name) != expected:
++--- reviewed/kit/launcher/orchard_launcher.py
+++++ fix1/kit/launcher/orchard_launcher.py
++@@ -143,7 +143,7 @@
++ def validate_request(config):
++     if config.get('mode') != 'production' or config.get('bootstrap_parent', '/tmp') != '/tmp':
++         raise ValueError('Invalid execution mode')
++-    if config.get('schema') != 'a2' or config['spec']['step'] not in (100, 200):
+++    if config.get('schema') != 'a2' or config['spec']['step'] not in (100, 200, 400):
++         raise ValueError('Invalid job contract')
++     if canonical(config['spec']) != config['plan_sha256']:
++         raise ValueError('Plan differs')
++@@ -173,7 +173,7 @@
++ 
++ def prepare(token, destination, step, camera=False, pool='/project/community/jjyeung/okh7/ae71c903'):
++     valid_token(token)
++-    if step not in (100, 200):
+++    if step not in (100, 200, 400):
++         raise ValueError('Unsupported step')
++     destination = Path(destination)
++     if destination.exists():
++@@ -377,7 +377,7 @@
++     prepare_parser = actions.add_parser('prepare')
++     for name in ('token', 'destination'):
++         prepare_parser.add_argument('--'+name, required=True)
++-    prepare_parser.add_argument('--step',type=int,choices=(100,200),required=True)
+++    prepare_parser.add_argument('--step',type=int,choices=(100,200,400),required=True)
++     prepare_parser.add_argument('--camera',action='store_true')
++     prepare_parser.add_argument('--pool',default='/project/community/jjyeung/okh7/ae71c903')
++     submit_parser = actions.add_parser('submit')
++--- reviewed/tests/bind_fixture.py
+++++ fix1/tests/bind_fixture.py
++@@ -1,4 +1,5 @@
++ """CPU fixtures only: bind real immutable adapters, never launch an engine."""
+++import offline_guard
++ import importlib.util
++ import json
++ from pathlib import Path
++--- /dev/null
+++++ fix1/tests/offline_guard.py
++@@ -0,0 +1,19 @@
+++"""Deny real process and network operations before any test imports kit code.
+++
+++The audit hook cannot be uninstalled by a mock or bypassed with an absolute
+++binary path, shell=True, or a replacement PATH. Mocks never reach these events.
+++"""
+++import sys
+++
+++
+++class OfflineViolation(RuntimeError):
+++    pass
+++
+++
+++def deny_external(event, args):
+++    if (event in {'subprocess.Popen', 'os.system', 'os.exec', 'os.posix_spawn',
+++                  'os.fork', 'os.forkpty'} or event.startswith('socket.')):
+++        raise OfflineViolation('Offline tests forbid process/network event: '+event)
+++
+++
+++sys.addaudithook(deny_external)
++--- reviewed/tests/test_chain.py
+++++ fix1/tests/test_chain.py
++@@ -1,3 +1,4 @@
+++import offline_guard
++ import importlib.util
++ import io
++ import json
++--- reviewed/tests/test_kit.py
+++++ fix1/tests/test_kit.py
++@@ -1,4 +1,7 @@
+++import offline_guard
++ import ast
+++import base64
+++import importlib.util
++ from contextlib import contextmanager
++ import copy
++ import hashlib
++@@ -7,6 +10,7 @@
++ from pathlib import Path
++ import subprocess
++ import sys
+++import re
++ import tarfile
++ from types import SimpleNamespace as NS
++ import unittest
++@@ -52,7 +56,7 @@
++ 
++ class KitTests(unittest.TestCase):
++     def test_prepare_both_steps_and_camera(self):
++-        for step,camera in [(100,False),(200,False),(100,True)]:
+++        for step,camera in [(100,False),(200,False),(400,False),(100,True)]:
++             dest=directory()/'prepared';token='a'+uuid.uuid4().hex[:12]
++             cfg=L.prepare(token,dest,step,camera)
++             L.validate_request(cfg);L.validate_batch((dest/'BATCH.sh').read_text(),cfg)
++@@ -138,6 +142,70 @@
++         self.assertIn('ITEMS.jsonl',A.members(root));self.assertIn('SUMMARY.json',A.members(root))
++         self.assertEqual(R.GCS_ROOT,'gs://cmu-gpucloud-jjyeung/q8/ae71c903')
++ 
+++    def test_return_retains_all_raw_journals(self):
+++        root=directory();source=root/'source';source.mkdir();output=root/'out';output.mkdir()
+++        expected={}
+++        for family in ('main','away','forward','camera'):
+++            for rel in ('0','budget_2048/0','budget_4096/0'):
+++                name=family+'/a0/results/'+rel+'/items_a0.jsonl'
+++                raw=(json.dumps(dict(response_text='raw generation '+name))+'\n').encode()
+++                path=source/name;path.parent.mkdir(parents=True);path.write_bytes(raw)
+++                expected[name]=raw
+++        with patch.object(A.shutil,'disk_usage',return_value=NS(free=10**12)):
+++            saved=A.save(source,output,0)
+++        with tarfile.open(saved['path']) as archive:
+++            self.assertEqual({m.name:archive.extractfile(m).read() for m in archive},expected)
+++        self.assertLess(saved['bytes'],A.ARCHIVE_LIMIT)
+++
+++    def test_prepared_bootstrap_entry(self):
+++        for step in (100,200,400):
+++            root=directory();dest=root/'prepared'
+++            config=L.prepare('a'+uuid.uuid4().hex[:12],dest,step)
+++            match=re.search(r"raw=base64.b64decode\('([^']+)'",(dest/'BATCH.sh').read_text())
+++            with tarfile.open(fileobj=io.BytesIO(base64.b64decode(match[1]))) as archive:
+++                for item in archive:
+++                    target=root/item.name;target.parent.mkdir(exist_ok=True)
+++                    target.write_bytes(archive.extractfile(item).read())
+++            spec=importlib.util.spec_from_file_location('packaged_job',root/'bootstrap/orchard_job.py')
+++            job=importlib.util.module_from_spec(spec);spec.loader.exec_module(job)
+++            argv=['orchard_job.py','--root',str(root),'--config',str(root/'bootstrap/CONFIG.json')]
+++            with patch.object(sys,'argv',argv),patch.object(job,'run',return_value=0) as run,\
+++                 patch.object(R,'publish',side_effect=AssertionError('Unexpected publish')):
+++                with self.assertRaises(SystemExit) as exit:job.main()
+++                self.assertEqual(exit.exception.code,0)
+++                run.assert_called_once_with(str(root),config)
+++                # A modified packaged dependency must still fail before run().
+++                (root/'bootstrap/chain_save.py').write_text('tampered')
+++                with self.assertRaisesRegex(ValueError,'dependency'):job.main()
+++                self.assertEqual(run.call_count,1)
+++
+++    def test_offline_guard_blocks_real_commands_and_network(self):
+++        import socket
+++        for argv in (['gcloud','storage','cp','fake','gs://fake'],
+++                     ['/usr/bin/gcloud','version'],['ssh','fake'],['sbatch','fake']):
+++            with self.assertRaises(offline_guard.OfflineViolation):subprocess.run(argv)
+++        with self.assertRaises(offline_guard.OfflineViolation):
+++            subprocess.run('gcloud version',shell=True)
+++        with self.assertRaises(offline_guard.OfflineViolation):socket.socket()
+++
+++    def test_failure_return_uses_mock_publisher(self):
+++        import trace_runtime
+++        root=directory()
+++        config=L.prepare('a'+uuid.uuid4().hex[:12],root/'prepared',100)
+++        with patch.object(R,'write_test',side_effect=ValueError('fixture pool refusal')),\
+++             patch.object(R,'publish',return_value=dict(status='COMPLETE')) as publish,\
+++             patch.object(J,'card',return_value={}),patch.object(J.signal,'signal'),\
+++             patch.object(trace_runtime,'snapshot'),patch.object(trace_runtime,'collect'):
+++            self.assertEqual(J.run(root,config),1)
+++        publish.assert_called_once()
+++        self.assertEqual(publish.call_args.args[4],1)
+++        self.assertTrue((root/'RETURN.json').is_file())
+++
+++    def test_final_pins_match(self):
+++        pins=json.loads((ROOT/'evidence/FINAL_PINS.json').read_text())
+++        for name,digest in pins.items():
+++            with self.subTest(name=name):self.assertEqual(S.sha(ROOT/name),digest)
+++
++     def test_h100_check(self):
++         env=dict(USER='x',SLURM_JOB_ID='123',CUDA_VISIBLE_DEVICES='0')
++         def query(args,**kwargs):
++@@ -160,8 +228,8 @@
++             chunks=[b'one',b'two',b'three',b'four'];body=b''.join(chunks)
++             uri='gs://cmu-gpucloud-jjyeung/q8/8865619b/359fcc3c_m100.tar'
++             receipt=root/'input.done'
++-            receipt.write_text(json.dumps(dict(object=uri,bytes=len(body),
++-                sha256='0'*64 if corrupt else hashlib.sha256(body).hexdigest())))
+++            digest='0'*64 if corrupt else hashlib.sha256(body).hexdigest()
+++            receipt.write_text(f'q8/8865619b/359fcc3c_m100.tar {len(body)} {digest}\n')
++             config=dict(spec=dict(step=100,artifact={},models={}),assets=dict(gcloud_config='fixture'))
++             observed=[]
++             @contextmanager
++@@ -185,7 +253,40 @@
++                     self.assertTrue(stage.call_args.args[0].full)
++                     self.assertEqual((root/'archives/export.tar').read_bytes(),body)
++                     self.assertEqual(config['spec']['artifact']['sha256'],'a'*64)
+++                    self.assertEqual((root/'archives/COMPLETE.done').read_bytes(),receipt.read_bytes())
+++                    self.assertEqual(json.loads((root/'archives/COMPLETE.json').read_text()),
+++                                     E.parse_done(receipt.read_bytes(),'359fcc3c',100))
++             self.assertEqual(observed,[uri+'.part%02d-of-04'%i for i in range(4)])
++ 
+++    def test_done_sample_and_strict_identity(self):
+++        sample=next(line for line in (ROOT/'evidence/DONE_SAMPLES.txt').read_bytes().splitlines()
+++                    if line.startswith(b'q8/'))
+++        parsed=E.parse_done(sample+b'\n','469ddece',1)
+++        self.assertEqual(parsed['bytes'],21583032320)
+++        for step in (100,200,400):
+++            raw=f'q8/8865619b/359fcc3c_m{step}.tar 123 '.encode()+b'a'*64+b'\n'
+++            self.assertEqual(E.parse_done(raw,'359fcc3c',step)['bytes'],123)
+++            bad=[sample,raw.replace(b'359fcc3c',b'469ddece'),raw.replace(b'q8/8865619b',b'q8/other'),
+++                 raw.replace(f'_m{step}'.encode(),b'_m544'),b'gs://cmu-gpucloud-jjyeung/'+raw,
+++                 raw.replace(b'.tar ',b'.tar.part00-of-04 '),raw.replace(b' 123 ',b' 0 '),
+++                 raw.replace(b' 123 ',b' -1 '),raw.replace(b' 123 ',b' 1.2 '),
+++                 raw.replace(b'a'*64,b'a'*63),raw.replace(b'a'*64,b'A'*64),
+++                 raw+b'\n',raw+b'extra',raw.replace(b' 123 ',b'\t123 '),
+++                 json.dumps(dict(object=parsed['object'],bytes=123,sha256='a'*64)).encode()]
+++            for value in bad:
+++                with self.subTest(value=value):
+++                    with self.assertRaises(ValueError):E.parse_done(value,'359fcc3c',step)
+++
+++    def test_wrong_done_refused_before_cloud_or_disk_reservation(self):
+++        root=directory();receipt=root/'gcs_359fcc3c_m100.done'
+++        receipt.write_text('q8/8865619b/469ddece_m100.tar 123 '+'a'*64+'\n')
+++        def path(value):
+++            return root if str(value).startswith('/project/community/') else Path(value)
+++        with patch.object(E,'Path',side_effect=path),patch.object(S,'room') as room,\
+++             patch.object(S,'process_stream') as stream:
+++            with self.assertRaisesRegex(ValueError,'identity'):
+++                E.fetch_and_stage(root,dict(spec=dict(step=100)))
+++        room.assert_not_called();stream.assert_not_called()
+++
++ 
++ if __name__=='__main__':unittest.main()
++--- reviewed/tests/test_verdict.py
+++++ fix1/tests/test_verdict.py
++@@ -1,3 +1,4 @@
+++import offline_guard
++ import copy
++ import json
++ from pathlib import Path
++@@ -8,7 +9,7 @@
++ 
++ def fixture(step, away=1, main=1, toward=1, alike=False):
++     rows=[]
++-    for task in F.F1_TYPES:
+++    for task in F.F1_TYPES+F.F1_INFORMATION_TYPES:
++         for i in range(3):
++             rows.append(dict(id=task+str(i),family='main',task_type=task,level=None,
++                 room=str(i),scene=str(i),prediction='x',answer_content='x',score=main,
++@@ -39,6 +40,68 @@
++ 
++     def test_continue(self):
++         self.assertEqual(F.evaluate(fixture(544),fixture(200),200,strict=False)['verdict'],'CONTINUE')
+++
+++    def test_f1_has_seven_types_and_extras_cannot_stop(self):
+++        for task in F.F1_INFORMATION_TYPES:
+++            b=fixture(200)
+++            for row in b:
+++                if row['task_type']==task:row['score']=0
+++            result=F.evaluate(fixture(544),b,200,strict=False)
+++            self.assertEqual(len(result['f1']),7)
+++            self.assertEqual(result['f1_information_only'][task]['ci95_pp'],[-100,-100])
+++            self.assertFalse(result['f1_fail']);self.assertEqual(result['verdict'],'CONTINUE')
+++
+++    def test_each_registered_f1_type_can_stop(self):
+++        for task in F.F1_TYPES:
+++            b=fixture(200)
+++            for row in b:
+++                if row['family']=='main' and row['task_type']==task:row['score']=0
+++            result=F.evaluate(fixture(544),b,200,strict=False)
+++            self.assertTrue(result['f1'][task]['fail'])
+++            self.assertEqual(result['verdict'],'STOP')
+++
+++    def test_cli_accepts_step400_and_prints_both_readings(self):
+++        import contextlib,io,sys
+++        result=F.evaluate(fixture(544),fixture(400),400,strict=False)
+++        output=io.StringIO()
+++        with patch.object(sys,'argv',['f1f2.py','--a','a','--b','b','--step','400']),\
+++             patch.object(F,'load',side_effect=[fixture(544),fixture(400)]),\
+++             patch.object(F,'evaluate',return_value=result) as evaluate,contextlib.redirect_stdout(output):
+++            F.main()
+++        self.assertEqual(evaluate.call_args.args[2],400)
+++        printed=json.loads(output.getvalue())
+++        self.assertEqual(printed['verdict'],'CONTINUE')
+++        self.assertIn('f2_point_estimate_information_only',printed)
+++
+++    def test_step400_f2_alone_decides_and_reports_f1(self):
+++        for f1_fail in (False,True):
+++            for f2_fail in (False,True):
+++                result=F.evaluate(fixture(544),fixture(400,main=0 if f1_fail else 1,
+++                                  away=0 if f2_fail else 1),400,strict=False)
+++                self.assertEqual(result['f1_fail'],f1_fail)
+++                self.assertEqual(result['f2_fail'],f2_fail)
+++                self.assertEqual(result['verdict'],'STOP' if f2_fail else 'CONTINUE')
+++
+++    def test_point_reading_is_information_only(self):
+++        actual=F.bootstrap
+++        def interval(rows,b=None):
+++            result=actual(rows,b)
+++            if b is None and rows[0]['family']=='away':result['ci95_pp']=[0,100]
+++            return result
+++        b=fixture(200)
+++        means=dict(zip(F.LEVELS,(.60,.46,.42)))
+++        for row in b:
+++            if row['family']=='away':row['score']=means[row['level']]
+++        with patch.object(F,'bootstrap',side_effect=interval):
+++            result=F.evaluate(fixture(544),b,200,fixture(100),strict=False)
+++        self.assertTrue(result['f2_fail'])
+++        self.assertFalse(result['f2_point_estimate_information_only']['fail'])
+++        self.assertEqual(result['verdict'],'STOP')
+++        self.assertEqual(result['f2_point_estimate_information_only']['verdict'],'CONTINUE')
+++        for row in b:
+++            if row['family']=='away':row['score']=F.THRESHOLDS[row['level']]/100
+++        result=F.evaluate(fixture(544),b,200,fixture(100),strict=False)
+++        self.assertFalse(result['f2_point_estimate_information_only']['fail'])
++ 
++     def test_f2_fail_without_trend_stops(self):
++         r=F.evaluate(fixture(544),fixture(200,away=0),200,fixture(100),strict=False)
+--- /dev/null
++++ fix2/FIX2.md
+@@ -0,0 +1,27 @@
++# Fix round 2
++Authority: `/data2/jjyeung/agent_project_data/distill_design/D0_STOP_RULE_20261116.md`, amended items 1–3. All tests and binds run behind `tests/offline_guard.py`; publish/cloud paths are mocked.
++
++| Clause | Code | Tests/evidence |
++|---|---|---|
++| Reads 100/200/400/600/800/final 1000 | `f1f2.py:15`, `:198`; `kit/launcher/orchard_launcher.py:146`, `:176`, `:380` | `test_cli_accepts_all_steps_and_prints_both_readings`, `test_prepared_bootstrap_entry`, twelve `FIX2_BIND_*.log` files |
++| Step 100 reports metrics, verdict null, reason “step 100 gives no verdict” | `f1f2.py:101` | `test_step100_has_no_verdict` (F1 fails) |
++| F1: seven types, upper bound <0 stops at 200/400/600/800; comparative count/size are information only | `f1f2.py:19`, `:107`, `:148` | `test_f1_upper_zero_and_just_negative_at_every_read`, `test_each_registered_f1_type_can_stop`, `test_f1_has_seven_types_and_extras_cannot_stop` |
++| At 200, any away200 ≤ away544 stops; A must equal 38/20/6 | `f1f2.py:109`, `:155` | `test_step200_equal_one_level_stops_just_above_all_continues`, `test_baseline_544_must_be_38_20_6` |
++| At 400/600/800, ≥2 strict declines and failing F2 stop; prev steps 200/400/600 and paired membership are required | `f1f2.py:114`, `:137` | `test_two_levels_below_with_f2_failing_stops`, `test_two_levels_below_with_f2_passing_continues`, `test_one_level_below_continues`, `test_two_levels_equal_continues`, all `test_prev_*` |
++| F2: away lower bounds >54/40/36, alike ≤20%, toward upper bound ≥0 | `f1f2.py:159`, `:163`, `:165` | `test_f2_interval_and_alike_boundaries`, `test_alike_exactly_twenty_passes_above_fails`, `test_toward_interval_upper_zero_passes_negative_fails` |
++| F2 alone never stops; point reading is information only; F3/F4 remain non-stopping | `f1f2.py:109`, `:115`, `:166`, `:179`, `:180`, `:189` | `test_step200_f2_failure_with_all_levels_above_continues`, `test_later_reads_f1_stops_independently_of_f2`, `test_point_reading_is_information_only` |
++| Final leg has ended: FINAL, F2 PASS/FAIL, F1 and comparison to required prev 800 | `f1f2.py:103`, `:183`, `:186` | `test_final_export_gives_final_and_f2_decision`; F1 failure does not change FINAL |
++| Every fired reason names types/levels and values; otherwise “no stop condition met”; --m100 removed | `f1f2.py:107`, `:112`, `:117`, `:120`, `:199` | `test_all_fired_rules_are_reported`, `test_step200_away_below_baseline_stops`, `check_later_facing` |
++
++The cited config schedules final step 1000; the uploader names `gs://cmu-gpucloud-jjyeung/q8/8865619b/359fcc3c_m1000.tar` (four parts). `evidence/FINAL_EXPORT_SOURCE.txt` records source hashes, schedule fields and receipt naming; this is configured intent, not evidence of a completed upload.
++Validation: 53 CPU tests in `evidence/FIX2_TESTS.log`; twelve binds at 600/800/1000, all four families, in `evidence/FIX2_BIND_*.log`. Every `kit/reader/` byte matches the snapshot (`evidence/FIX2_READER_CHECK.json`).
++Updated superseded tests: `test_step100_has_no_verdict`, `test_cli_accepts_step400_and_prints_both_readings`, `test_step400_f2_alone_decides_and_reports_f1`, `test_point_reading_is_information_only`, `test_f2_fail_without_trend_stops`, `test_trend_extension`, `test_trend_strict_equalities_and_two_levels`. REVIEW.md maps renamed tests; the fixture supplies 38/20/6, and kit step coverage extends to all reads.
++Old complete pins: `evidence/FIX2_OLD_PINS.json`; new complete pins: `evidence/FINAL_PINS.json`. Core SHA256 values follow:
++| File | Old SHA256 | New SHA256 |
++|---|---|---|
++| `f1f2.py` | `b561041cb1007ed23d055eacfe81ed4fe0429158abf7ceedc0356f04f58dd9bb` | `15e66c8003f8afc888de5ea204e7262257c14ac18232b1d9490a52084554d116` |
++| `kit/launcher/orchard_launcher.py` | `170e2faf803ecddc86748381dfca45aa73c0b6310b82f33079b5c94059144518` | `9068f83eb75168b7de8e4409bba01d8a12b8776d3bb5da08556827a955b745d3` |
++
++`DIFF_FIX2.patch` covers changed files against snapshot SHA256 `34ccc385ec281ef27eb8e1153362255d4a81ac366f1343fedf08c6f5fcf10948`, excluding evidence/test_* and evidence/chain_*; it omits itself to avoid recursion. Live logs are captured at patch generation.
++`DIFF_FIX1.patch` is reconstructed: ten code patches verify both transcript blob IDs; launcher/document edits are recovered separately. Unreconstructed generated evidence is named in its header and `evidence/FIX1_RECONSTRUCTION.json`.
++Unverified: live Orchard export/upload completion, credentials/assets, GPU execution, PNG pixels, returns and timing. Unscheduled stop exports can use mstop aliases; the configured final read is 1000, and the strict receipt parser remains unchanged. No SSH, GPU, network, Git, deletion or Slurm command ran.
+--- /dev/null
++++ fix2/FIX2_BRIEF.md
+@@ -0,0 +1,25 @@
++# Fix round 2 for the D0 read kit (work only in /scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/)
++
++Same rules as BRIEF.md and FIX_BRIEF.md in this folder: no ssh, GPU, network, Git, deletion or Slurm; tests stay behind tests/offline_guard.py; mock every publish or gcloud path. Do not touch kit/reader/ prompt or scoring bytes. Python: /scratch/jjyeung/envs/p1cpu/bin/python.
++
++## The one authority
++/data2/jjyeung/agent_project_data/distill_design/D0_STOP_RULE_20261116.md, items 1 to 3 (amended before any D0 export was read). The verdict logic in f1f2.py must equal it word for word. The current `stop_rule()` (CONTINUE_TO_400, step-100 trend exception, step 400 = "STOP if F2 fails") is the superseded rule: replace it.
++
++## Required verdict logic
++- Reads: steps 100, 200, 400, 600, 800 and the final export. CLI `--step` accepts all of them; the kit's prepare/bind/job accept the same steps (the round-1 B3 fix stopped at 400). Find the final export's step and object name from the uploader/training source this kit already cites (evidence/UPLOADER_FORMAT.txt, the run's export schedule); if it cannot be determined offline, accept `--step 1000` and say so in FIX2.md.
++- Step 100: report every quantity; `verdict` is null with reason "step 100 gives no verdict".
++- F1 (seven registered types only; relative_count and relative_size_object stay information only): at step 200 or any later read, a type whose paired-difference 95% interval is wholly below zero (upper bound < 0) gives STOP.
++- Facing twins at step 200: STOP if the point estimate of away accuracy is not above step 544's on all three levels, i.e. STOP if any level has away200 <= away544. Step 544's point values come from --a; assert they equal 38 / 20 / 6 (easy / medium / hard) and refuse otherwise.
++- Facing twins at steps 400, 600 and 800: a new required argument `--prev ITEMS.jsonl` holds the previous read (200 for 400, 400 for 600, 600 for 800; check its step and paired membership). STOP if away accuracy (point estimate) is strictly below the previous read's on at least two of the three levels AND F2 has not passed at the current read. Equal is not below.
++- F2 = TRACE_RULING 2.7 lower-bound reading (lower bound of away accuracy above 54 / 40 / 36, alike share at most 20%, toward B minus A interval not wholly below zero). Report it at every read with the point-estimate reading beside it. F2 by itself stops nothing at any step, and the point reading never enters a verdict.
++- Final export: report F1, F2 (the F2 decision PASS/FAIL is made here) and the facing comparison to the previous read; the leg has ended, so `verdict` is "FINAL" with the F2 decision, not STOP/CONTINUE. State this reading in FIX2.md.
++- Verdicts at 200/400/600/800: "STOP" or "CONTINUE", with `reasons`: every rule that fired (F1 types named; facing levels named with both values), or "no stop condition met".
++- Remove `--m100` and the CONTINUE_TO_400 path; nothing else in the kit changes behavior.
++
++## Tests (tests/test_verdict.py), one per boundary at least
++Step 100 with F1 failing gives no verdict; F1 upper bound exactly 0 vs just below 0 at 200, 400, 600, 800; at 200 away equal to 544 on one level -> STOP, just above on all three -> CONTINUE, F2 failing with away above 544 on all -> CONTINUE; at 400/600/800: two levels below previous with F2 failing -> STOP, two below with F2 passing -> CONTINUE, one below -> CONTINUE, two equal -> CONTINUE; wrong --prev step and missing --prev refused; 544 values not 38/20/6 refused; F2 lower bound exactly at threshold fails, alike exactly 20% passes; point reading differing from lower-bound reading changes no verdict; final export gives FINAL with the F2 decision; relative_count/relative_size_object failing never stops. Keep all existing tests passing (update only those that encoded the superseded rule, and list them).
++
++## Finish
++Re-pin (evidence/FINAL_PINS.json), re-run all tests into evidence/FIX2_TESTS.log, re-run the binds for each newly accepted step into evidence/FIX2_BIND_*.log. Update REPORT.md (at most 60 lines; commands for every step incl. --prev) and REVIEW.md (section "Fix round 2", file:line per rule clause).
++Diffs: the tree before this round is snap/readk_fix1.tar in the parent folder (sha256 34ccc385...). Write DIFF_FIX2.patch = unified diff of every changed file against it (exclude evidence/test_* and evidence/chain_*). Write DIFF_FIX1.patch = round 1's changes against the reviewed kit, reconstructed from the patches in /home/jjyeung/agent_project_distill/agent/scratch/codex_runs/20261116T093327Z_cont5_readk_fix1/transcript.log (read it in bounded parts); mark it reconstructed and name any file you could not reconstruct.
++Write FIX2.md, at most 30 lines: each rule clause, its code line, the tests that prove it, the old and new pins, and anything unverified.
+--- fix1/LEDGER.jsonl
++++ fix2/LEDGER.jsonl
+@@ -49,3 +49,18 @@
+ {"token": "ab8611d293610", "job_name": "a15_cot_apab8611d293610", "meaning": {"step": 200, "lineage": "8865619b", "run": "359fcc3c", "protocol": "e193c2a3c", "families": ["main", "away", "forward"]}, "pool": "/project/community/jjyeung/okh7/ae71c903", "gcs": "gs://cmu-gpucloud-jjyeung/q8/ae71c903/ab8611d293610", "destination": "/scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/evidence/test_a91edcd5c4754258afbb5345015d0243/prepared"}
+ {"token": "a8a29460c63f2", "job_name": "a15_cot_apa8a29460c63f2", "meaning": {"step": 400, "lineage": "8865619b", "run": "359fcc3c", "protocol": "e193c2a3c", "families": ["main", "away", "forward"]}, "pool": "/project/community/jjyeung/okh7/ae71c903", "gcs": "gs://cmu-gpucloud-jjyeung/q8/ae71c903/a8a29460c63f2", "destination": "/scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/evidence/test_c0591e3c702e46cd9bbde4199343b333/prepared"}
+ {"token": "af82fcc7195fe", "job_name": "a15_cot_apaf82fcc7195fe", "meaning": {"step": 100, "lineage": "8865619b", "run": "359fcc3c", "protocol": "e193c2a3c", "families": ["main", "away", "forward"]}, "pool": "/project/community/jjyeung/okh7/ae71c903", "gcs": "gs://cmu-gpucloud-jjyeung/q8/ae71c903/af82fcc7195fe", "destination": "/scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/evidence/test_a2d3fbee396d45628122d37ff5664984/prepared"}
++{"token": "ab83c685a3181", "job_name": "a15_cot_apab83c685a3181", "meaning": {"step": 100, "lineage": "8865619b", "run": "359fcc3c", "protocol": "e193c2a3c", "families": ["main", "away", "forward"]}, "pool": "/project/community/jjyeung/okh7/ae71c903", "gcs": "gs://cmu-gpucloud-jjyeung/q8/ae71c903/ab83c685a3181", "destination": "/scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/evidence/test_64f6017e76ce4cbf8787b90e144d4888/prepared"}
++{"token": "a1971c4a30fc2", "job_name": "a15_cot_apa1971c4a30fc2", "meaning": {"step": 100, "lineage": "8865619b", "run": "359fcc3c", "protocol": "e193c2a3c", "families": ["main", "away", "forward"]}, "pool": "/project/community/jjyeung/okh7/ae71c903", "gcs": "gs://cmu-gpucloud-jjyeung/q8/ae71c903/a1971c4a30fc2", "destination": "/scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/evidence/test_371bd2d530104d04be37c9296369fce7/prepared"}
++{"token": "a5ddb929266b9", "job_name": "a15_cot_apa5ddb929266b9", "meaning": {"step": 200, "lineage": "8865619b", "run": "359fcc3c", "protocol": "e193c2a3c", "families": ["main", "away", "forward"]}, "pool": "/project/community/jjyeung/okh7/ae71c903", "gcs": "gs://cmu-gpucloud-jjyeung/q8/ae71c903/a5ddb929266b9", "destination": "/scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/evidence/test_ac961e9a7ff74102884b3b9b4a480993/prepared"}
++{"token": "a132f9c3b9e95", "job_name": "a15_cot_apa132f9c3b9e95", "meaning": {"step": 400, "lineage": "8865619b", "run": "359fcc3c", "protocol": "e193c2a3c", "families": ["main", "away", "forward"]}, "pool": "/project/community/jjyeung/okh7/ae71c903", "gcs": "gs://cmu-gpucloud-jjyeung/q8/ae71c903/a132f9c3b9e95", "destination": "/scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/evidence/test_a26d8182ab04459c8f5514202f588260/prepared"}
++{"token": "a12c2f5427e4c", "job_name": "a15_cot_apa12c2f5427e4c", "meaning": {"step": 600, "lineage": "8865619b", "run": "359fcc3c", "protocol": "e193c2a3c", "families": ["main", "away", "forward"]}, "pool": "/project/community/jjyeung/okh7/ae71c903", "gcs": "gs://cmu-gpucloud-jjyeung/q8/ae71c903/a12c2f5427e4c", "destination": "/scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/evidence/test_921f820c11a74f9d9eda27f9c0329f05/prepared"}
++{"token": "a2f13809c464f", "job_name": "a15_cot_apa2f13809c464f", "meaning": {"step": 800, "lineage": "8865619b", "run": "359fcc3c", "protocol": "e193c2a3c", "families": ["main", "away", "forward"]}, "pool": "/project/community/jjyeung/okh7/ae71c903", "gcs": "gs://cmu-gpucloud-jjyeung/q8/ae71c903/a2f13809c464f", "destination": "/scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/evidence/test_bc07c5f8847e40348ac8ae4cff29006a/prepared"}
++{"token": "af363a6b429b5", "job_name": "a15_cot_apaf363a6b429b5", "meaning": {"step": 1000, "lineage": "8865619b", "run": "359fcc3c", "protocol": "e193c2a3c", "families": ["main", "away", "forward"]}, "pool": "/project/community/jjyeung/okh7/ae71c903", "gcs": "gs://cmu-gpucloud-jjyeung/q8/ae71c903/af363a6b429b5", "destination": "/scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/evidence/test_d3c84fba60da4a008a62600634921779/prepared"}
++{"token": "a07414bdbf92a", "job_name": "a15_cot_apa07414bdbf92a", "meaning": {"step": 100, "lineage": "8865619b", "run": "359fcc3c", "protocol": "e193c2a3c", "families": ["main", "away", "forward", "camera"]}, "pool": "/project/community/jjyeung/okh7/ae71c903", "gcs": "gs://cmu-gpucloud-jjyeung/q8/ae71c903/a07414bdbf92a", "destination": "/scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/evidence/test_9f21318eb6524ad5aae55db842422340/prepared"}
++{"token": "acb96babd0f7c", "job_name": "a15_cot_apacb96babd0f7c", "meaning": {"step": 100, "lineage": "8865619b", "run": "359fcc3c", "protocol": "e193c2a3c", "families": ["main", "away", "forward"]}, "pool": "/project/community/jjyeung/okh7/ae71c903", "gcs": "gs://cmu-gpucloud-jjyeung/q8/ae71c903/acb96babd0f7c", "destination": "/scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/evidence/test_e7bf6de543ee48b0a640f5d6e6046207/prepared"}
++{"token": "aa25a7ae3215d", "job_name": "a15_cot_apaa25a7ae3215d", "meaning": {"step": 200, "lineage": "8865619b", "run": "359fcc3c", "protocol": "e193c2a3c", "families": ["main", "away", "forward"]}, "pool": "/project/community/jjyeung/okh7/ae71c903", "gcs": "gs://cmu-gpucloud-jjyeung/q8/ae71c903/aa25a7ae3215d", "destination": "/scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/evidence/test_cd988c67f0f2488886558c9ef5af7780/prepared"}
++{"token": "a929ffe97fabc", "job_name": "a15_cot_apa929ffe97fabc", "meaning": {"step": 400, "lineage": "8865619b", "run": "359fcc3c", "protocol": "e193c2a3c", "families": ["main", "away", "forward"]}, "pool": "/project/community/jjyeung/okh7/ae71c903", "gcs": "gs://cmu-gpucloud-jjyeung/q8/ae71c903/a929ffe97fabc", "destination": "/scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/evidence/test_33a1068710ab45a982cf01929725daed/prepared"}
++{"token": "ab944758d73dd", "job_name": "a15_cot_apab944758d73dd", "meaning": {"step": 600, "lineage": "8865619b", "run": "359fcc3c", "protocol": "e193c2a3c", "families": ["main", "away", "forward"]}, "pool": "/project/community/jjyeung/okh7/ae71c903", "gcs": "gs://cmu-gpucloud-jjyeung/q8/ae71c903/ab944758d73dd", "destination": "/scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/evidence/test_2bf65d5b7817493685f7fa708c531d2c/prepared"}
++{"token": "a4556fd97f189", "job_name": "a15_cot_apa4556fd97f189", "meaning": {"step": 800, "lineage": "8865619b", "run": "359fcc3c", "protocol": "e193c2a3c", "families": ["main", "away", "forward"]}, "pool": "/project/community/jjyeung/okh7/ae71c903", "gcs": "gs://cmu-gpucloud-jjyeung/q8/ae71c903/a4556fd97f189", "destination": "/scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/evidence/test_5ca350f660de4fa1bcadc9fde5297a83/prepared"}
++{"token": "ab64d784aba26", "job_name": "a15_cot_apab64d784aba26", "meaning": {"step": 1000, "lineage": "8865619b", "run": "359fcc3c", "protocol": "e193c2a3c", "families": ["main", "away", "forward"]}, "pool": "/project/community/jjyeung/okh7/ae71c903", "gcs": "gs://cmu-gpucloud-jjyeung/q8/ae71c903/ab64d784aba26", "destination": "/scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/evidence/test_eefe854ac5784ab299e12580bac66c30/prepared"}
++{"token": "ae27975d35b4f", "job_name": "a15_cot_apae27975d35b4f", "meaning": {"step": 100, "lineage": "8865619b", "run": "359fcc3c", "protocol": "e193c2a3c", "families": ["main", "away", "forward"]}, "pool": "/project/community/jjyeung/okh7/ae71c903", "gcs": "gs://cmu-gpucloud-jjyeung/q8/ae71c903/ae27975d35b4f", "destination": "/scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/evidence/test_e212474c5790413b9a5ba86cec151f11/prepared"}
+--- fix1/REPORT.md
++++ fix2/REPORT.md
+@@ -1,4 +1,4 @@
+-The kit builds one-H100 `general` reads for steps 100, 200 and 400: main 1,525, away 150, and forward 150. `--camera` adds 450 items; it is off by default. The accepted duplicate layout, 32 anchors, timing, ON16k/B2048/B4096 budgets, and answer policy remain pinned. B2048 is primary.
++The kit builds one-H100 `general` reads for steps 100, 200, 400, 600, 800 and the scheduled final step 1000: main 1,525, away 150, and forward 150. `--camera` adds 450 items; it is off by default. The accepted duplicate layout, 32 anchors, timing, ON16k/B2048/B4096 budgets, and answer policy remain pinned. B2048 is primary.
+ 
+ The job accepts the uploader’s exact plain-text `.done` line (`object bytes sha256`), binds its bucketless object to run 359fcc3c and the requested step, constructs its URI under `gs://cmu-gpucloud-jjyeung`, concatenates four GCS parts, checks whole-tar bytes/SHA256 before extraction, applies build_t5's unchanged admission function, and runs the unchanged export checker in full mode. Each family uses a fresh process on the same card. Failure stops subsequent families without retry.
+ 
+@@ -6,11 +6,13 @@
+ 
+ Accepted A reports exist on this host at `/scratch/jjyeung/orch_n30/evalx27/work/pull/x27/res/e193/merged/{main,away,forward}/report/B2048.json`; predictions exist at `direct/<family>/results/0/budget_2048.jsonl`. All 150 away and 150 forward items exist, so no second model arm is needed. `evidence/A544.jsonl` contains their normalized records; source hashes are in `evidence/ACCEPTED.json`. A has away accuracies 38/20/6% and 74/150 pairs alike (49.33%).
+ 
+-`f1f2.py` uses the exact `paired()` function from `kit/reader/work/vendor/r5/report.py:36`, with B first, 10,000 room draws, seed 17, and interpolated percentiles. F1 decides on seven types: route planning, object counting, direction easy/medium/hard, relative distance and object-size estimation. Relative count and relative object size are information only. F2 uses TRACE_RULING 2.7’s lower-bound reading; point-estimate failures and the corresponding verdict appear separately as information. Twin equality compares semantic option contents. Step 100 has no verdict; step 200 implements STOP, CONTINUE_TO_400, and CONTINUE. Step 400 returns STOP if F2 fails and CONTINUE otherwise, reporting F1 without using it to stop. F3/F4 are explicitly unevaluated and do not stop this direct read.
++`f1f2.py` uses the exact `paired()` function from `kit/reader/work/vendor/r5/report.py:36`, B first, 10,000 room draws and seed 17. D0_STOP_RULE_20261116 items 1–3 govern every verdict. Seven registered F1 types stop at 200/400/600/800 when an upper interval bound is below zero; relative_count and relative_size_object are information only. At 200, any away point accuracy at or below A's asserted 38/20/6 stops. At 400/600/800, at least two levels strictly below the previous read stop only while F2 fails. Step 100 returns null. F2 uses away lower bounds strictly above 54/40/36, alike share ≤20%, and toward delta upper bound ≥0; its point reading is information only. F2 alone never stops. Step 1000 returns FINAL with F2 PASS/FAIL, F1 and a comparison to 800. F3/F4 remain unevaluated and non-stopping. Every fired rule appears in reasons, with the F1 types or facing levels and values.
++
++The cited training config schedules 1000 steps and exports at 1000; the uploader names the final object `gs://cmu-gpucloud-jjyeung/q8/8865619b/359fcc3c_m1000.tar`, split into four parts. `evidence/FINAL_EXPORT_SOURCE.txt` records paths, hashes and schedule fields. `--prev` requires 200/400/600/800 for reads 400/600/800/1000 and checks steps, membership and paired metadata.
+ 
+ The total-count guard is unavailable on the accepted inventory, which contains only single-object counting under `object_counting`. The script prints the constant-7/46.30% guard as unavailable and evaluates the constant-2/61.87% single-count guard. It does not invent total-count observations.
+ 
+-Run the following block for `STEP=100`; use `STEP=200` or `STEP=400` with a fresh token for those reads. Prepare each batch from these final pinned sources. These operator commands were not run. CPU tests did exercise local preparation.
++Run the following block with `STEP=100`, `200`, `400`, `600`, `800` or `1000`, using a fresh token for each. Prepare each batch from the final pinned sources. These operator submission commands were not run; guarded CPU tests exercise preparation at every step.
+ ```bash
+ cd /scratch/jjyeung/orch_n30/cont_ops/work/d0/readk
+ export PYTHONDONTWRITEBYTECODE=1
+@@ -30,8 +32,11 @@
+ Compute the metrics from extracted return files:
+ ```bash
+ "$PY" -B f1f2.py --step 100 --a evidence/A544.jsonl --b /PATH/100/ITEMS.jsonl --output F100.json
+-"$PY" -B f1f2.py --step 200 --a evidence/A544.jsonl --b /PATH/200/ITEMS.jsonl --m100 /PATH/100/ITEMS.jsonl --output F200.json
+-"$PY" -B f1f2.py --step 400 --a evidence/A544.jsonl --b /PATH/400/ITEMS.jsonl --output F400.json
++"$PY" -B f1f2.py --step 200 --a evidence/A544.jsonl --b /PATH/200/ITEMS.jsonl --output F200.json
++"$PY" -B f1f2.py --step 400 --a evidence/A544.jsonl --b /PATH/400/ITEMS.jsonl --prev /PATH/200/ITEMS.jsonl --output F400.json
++"$PY" -B f1f2.py --step 600 --a evidence/A544.jsonl --b /PATH/600/ITEMS.jsonl --prev /PATH/400/ITEMS.jsonl --output F600.json
++"$PY" -B f1f2.py --step 800 --a evidence/A544.jsonl --b /PATH/800/ITEMS.jsonl --prev /PATH/600/ITEMS.jsonl --output F800.json
++"$PY" -B f1f2.py --step 1000 --a evidence/A544.jsonl --b /PATH/1000/ITEMS.jsonl --prev /PATH/800/ITEMS.jsonl --output F1000.json
+ "$PY" -B -m unittest discover -s tests -p 'test_*.py' -v
+ ```
+ 
+@@ -39,6 +44,6 @@
+ 
+ Budget about 220 GB of additional `/tmp` space for retained archives, extracted runtimes/base/export, three family model copies, frame tar/PNG copies, and working space; about 265 GB with camera. Keep the 200 GiB floor: start with at least 440 GB free (490 GB with camera). These are conservative estimates using the accepted 21.583 GB export; admission and each family check actual space.
+ 
+-Validation: 40 CPU tests pass (`evidence/FIX1_TESTS.log`), including packaged bootstrap entry at all three steps, journal archive round trips, strict receipt format/identity, seven-type F1, both F2 readings, step-400 decisions and final pin checks. Eight guarded binds match accepted prompt inventories: all four families at 100, main at 200, and main/away/forward at 400 (`evidence/FIX1_BIND_*.log`). Every test entry installs an audit hook that denies real process creation and socket operations; publish, GPU and cloud paths are mocked. `DIFF.md` classifies changed lines; `REVIEW.md` and `FIX1.md` map each requested fix to code and tests. Uploader source evidence is in `evidence/UPLOADER_FORMAT.txt`; the real receipt sample is in `evidence/DONE_SAMPLES.txt`.
++Validation: `evidence/FIX2_TESTS.log` records all guarded CPU tests, including verdict boundaries, paired membership, all six packaged steps, receipts and final pins. Twelve binds cover main/away/forward/camera at 600/800/1000 (`evidence/FIX2_BIND_*.log`) and match accepted prompt bytes. Every test entry installs `tests/offline_guard.py`; publish and cloud paths use mocks. `FIX2.md` and REVIEW.md's “Fix round 2” map rules to code and tests. `DIFF_FIX2.patch` compares the supplied snapshot; `DIFF_FIX1.patch` is reconstructed, with exclusions named in `evidence/FIX1_RECONSTRUCTION.json`.
+ 
+ Unverified: live Orchard credentials/assets, final milestone receipts, H100/vLLM execution, actual PNG pixels, returns, and real milestone timing. Camera uses build_t5's reconstructed bridge. New job-facing names are opaque and engine diagnostics are hex-encoded; the unchanged reader/checker still require legacy private paths such as `a0/models/cp1m200`. A literal ban on every private Orchard path remains unresolved and prevents claiming unconditional submit readiness. No SSH, GPU, network, Git, deletion, or Slurm command ran.
+--- fix1/REVIEW.md
++++ fix2/REVIEW.md
+@@ -8,15 +8,15 @@
+ - The submitted plan binds the step, selected families, and logical artifact path. The runtime receipt binds the completed archive, resolved artifact hash, and full verification result. The original submitted plan hash remains the return identity; the resolved receipt is saved separately.
+ - Per-item records join complete journals to authenticated report rows by key. Main uses released labels on primary rows and own labels on route rows; twins use own labels. Paired metadata and exact accepted membership are checked before metrics.
+ - F1 decides on the seven registered types. Relative count and relative object size appear only in `f1_information_only`; their intervals cannot stop the leg.
+-- The existing room bootstrap is copied exactly and called B-first for B-minus-A. Confidence intervals use 10,000 draws over physical rooms with item weighting. Accuracy intervals use the same function against zero. Tests cover sign, zero boundaries, room weighting, thresholds, trend strictness, and every verdict branch.
++- The existing room bootstrap is copied exactly and called B-first for B-minus-A. Confidence intervals use 10,000 draws over physical rooms with item weighting. Accuracy intervals use the same function against zero. Tests cover sign, zero boundaries, room weighting, thresholds, strict comparison boundaries, and every verdict branch.
+ - Twin pairing uses the recorded paired-away ID, validates room/scene/level, and compares parsed option content. Missing answers are reported separately. The accepted packet reproduces 74/150 identical-answer pairs.
+-- F2 uses the lower bound for its verdict and prints the point-estimate reading separately as information. Step 100 emits no verdict. A step-200 F1 failure stops immediately. A step-200 F2 failure requires the registered trend exception; missing step-100 input refuses that branch. At step 400, F2 alone determines STOP or CONTINUE; F1 remains reported. Guards do not add an unregistered stopping rule. F3/F4 are explicitly outside this read.
++- F2 reports the lower-bound and informational point readings. Step 100 returns null. At 200, F1 or any away level at or below 544 stops. At 400/600/800, F1 or two strict declines against the required previous read while F2 fails stops. The final step 1000 returns FINAL and F2 PASS/FAIL. F2 alone and the point reading never stop. Guards and F3/F4 remain non-stopping.
+ - The pool write test is retained, locked, bounded, and hash-verified. Publishing verifies both independent channels, retains the inherited timeout and generation checks, and includes item/summary files plus raw journals at all three budgets, compressed at gzip level 6. No deletion is added.
+ - Disk checks reserve a 200 GiB floor before retained archive expansion and each family’s model/frame copies. No shared data transfer, model read, GPU, or live cloud call ran during validation.
+ 
+ Limits remain explicit. Total-count observations do not exist as a separate task in the accepted inventory; the corresponding guard is unavailable. The all-private-path naming interpretation conflicts with immutable compatibility paths. This review does not waive that requirement or claim live runtime parity. Camera's bridge is reconstructed, as documented in build_t5. Operator submission commands remain unexecuted.
+ 
+-Evidence: `evidence/FIX1_TESTS.log` (40 tests), `evidence/FIX1_BIND_*.log` (eight binds), `evidence/ACCEPTED.json`, `evidence/FINAL_PINS.json`, `evidence/DONE_SAMPLES.txt`, and `evidence/UPLOADER_FORMAT.txt`.
++Evidence: `evidence/FIX2_TESTS.log`, `evidence/FIX2_BIND_*.log` (twelve binds), `evidence/ACCEPTED.json`, `evidence/FINAL_PINS.json`, `evidence/DONE_SAMPLES.txt`, and `evidence/UPLOADER_FORMAT.txt`.
+ 
+ ## Fix round 1
+ 
+@@ -28,3 +28,17 @@
+ - B3 — `kit/launcher/orchard_launcher.py:146`, `:176`, `:380` accept step 400; `f1f2.py:164` decides STOP/CONTINUE from F2 with F1 reported. `tests/test_verdict.py:63` exercises CLI output; `:76` tests all four F1/F2 combinations. Packaged entry and main/away/forward step-400 binds pass.
+ - Test isolation — `tests/offline_guard.py:13` denies process/network audit events before test imports. `tests/test_kit.py:182` proves bare and absolute `gcloud`, shell commands, SSH, Slurm, and sockets cannot reach real execution. The guard is also loaded by the bind fixture. No guard is shipped in the production kit.
+ - Pins — `build_review.py:59` regenerates `evidence/FINAL_PINS.json` for shipped code, verdict code, tests and review documents. `tests/test_kit.py:204` verifies every pin against final bytes. Prepare regenerates launcher/payload pins and the embedded integrity record for each batch.
++
++## Fix round 2
++
++- Read schedule — `f1f2.py:15` and `:198`, `kit/launcher/orchard_launcher.py:146`, `:176`, `:380` accept 100/200/400/600/800/1000. The configured final step/object is sourced in `evidence/FINAL_EXPORT_SOURCE.txt:6`. `test_cli_accepts_all_steps_and_prints_both_readings`, `test_prepare_both_steps_and_camera`, `test_prepared_bootstrap_entry`, `test_done_sample_and_strict_identity` and twelve `FIX2_BIND_*.log` files cover CLI, preparation, packaged entry, receipt identity and unchanged prompts.
++- Item 1, F1 — `f1f2.py:19` names exactly seven types; `:148` computes their paired intervals; `:107` stops on upper bound <0 at each intermediate verdict read. `test_f1_upper_zero_and_just_negative_at_every_read`, `test_each_registered_f1_type_can_stop`, `test_f1_has_seven_types_and_extras_cannot_stop` and `test_later_reads_f1_stops_independently_of_f2` cover boundaries and exclusions.
++- Item 2, step 100 — `f1f2.py:101` returns null with “step 100 gives no verdict”; `test_step100_has_no_verdict` includes F1 failure and verifies the reported metrics.
++- Item 2, step 200 — `f1f2.py:155` checks A's 38/20/6 point values (floating arithmetic tolerance 1e-12); `:109` stops on any away200 ≤ away544. `test_baseline_544_must_be_38_20_6`, `test_step200_equal_one_level_stops_just_above_all_continues`, `test_step200_away_below_baseline_stops`, and `test_step200_f2_failure_with_all_levels_above_continues` prove the rule.
++- Item 2, steps 400/600/800 — `f1f2.py:137` requires the previous step and pairs; `:114` counts strict declines and combines ≥2 with lower-bound F2 failure. `test_two_levels_below_with_f2_failing_stops`, `test_two_levels_below_with_f2_passing_continues`, `test_one_level_below_continues`, `test_two_levels_equal_continues`, and all three `test_prev_*` methods cover every step and refusal.
++- Item 3, F2 — `f1f2.py:159` tests lower bounds >54/40/36; `:163` tests toward upper bound ≥0; `:165` allows alike ≤20%; `:166` and `:179` report the point reading without feeding it to `:189`. `test_f2_interval_and_alike_boundaries`, `test_alike_exactly_twenty_passes_above_fails`, `test_toward_interval_upper_zero_passes_negative_fails`, and `test_point_reading_is_information_only` cover each boundary. `:180` preserves F3/F4's non-stopping status.
++- Final reading — `f1f2.py:103` returns FINAL with `f2_decision` PASS/FAIL even if F1 fails; `:183` and `:186` report comparison to required step 800. This implements the requested ended-leg reading. `test_final_export_gives_final_and_f2_decision` covers both F2 decisions, failing F1 and the comparison.
++- Reasons — `f1f2.py:107`, `:112`, `:117`, `:120` retain every fired condition, naming F1 types and facing levels with both values; the empty case says “no stop condition met”. `test_all_fired_rules_are_reported`, `test_step200_away_below_baseline_stops` and `check_later_facing` verify these outputs. The CLI uses `--prev` at `:199`; no `--m100` or CONTINUE_TO_400 branch remains.
++- Integrity — `tests/offline_guard.py:13` remains the test barrier. `test_final_pins_match` checks all re-pinned bytes. All `kit/reader/` files match the supplied fix-1 snapshot; `evidence/FIX2_READER_CHECK.json` records that comparison. Source evidence and binds are offline; live export completion, stop-export aliases and Orchard execution remain unverified.
++- Updated tests that encoded the superseded rule: `test_step100_has_no_verdict`; `test_cli_accepts_step400_and_prints_both_readings` → `test_cli_accepts_all_steps_and_prints_both_readings`; `test_step400_f2_alone_decides_and_reports_f1` → `test_later_reads_f1_stops_independently_of_f2`; `test_point_reading_is_information_only`; `test_f2_fail_without_trend_stops` → `test_step200_away_below_baseline_stops`; `test_trend_extension` → `test_step200_f2_failure_with_all_levels_above_continues`; `test_trend_strict_equalities_and_two_levels` → `test_step200_equal_one_level_stops_just_above_all_continues`. The shared fixture now supplies the required 544 values; preparation/receipt tests additionally cover 600/800/1000.
++- Round-1 reconstruction — `DIFF_FIX1.patch` recovers ten cumulative code patches, checks both transcript blob IDs against the snapshot, inverts the recorded launcher edit, and recovers document dumps. Generated evidence that cannot be reconstructed is named in its header and `evidence/FIX1_RECONSTRUCTION.json`.
+--- fix1/build_review.py
++++ fix2/build_review.py
+@@ -52,14 +52,15 @@
+     new_range = f"binary: {h['new_bytes']} bytes" if h['operation']=='binary' else fmt(h['new_lines'])
+     lines.append(f"| `{h['file']}` | {old_range} | {new_range} | {h['classification']} | R1 |")
+ lines+=['','The following Trinity-side additions are BEYOND in their entirety and are included in R1:']
+-for p in [ROOT/'f1f2.py',ROOT/'room_bootstrap.py',ROOT/'build_review.py',ROOT/'REPORT.md',ROOT/'REVIEW.md',ROOT/'FIX1.md',*sorted((ROOT/'tests').glob('*.py'))]:
++for p in [ROOT/'f1f2.py',ROOT/'room_bootstrap.py',ROOT/'build_review.py',ROOT/'REPORT.md',ROOT/'REVIEW.md',ROOT/'FIX1.md',ROOT/'FIX2.md',*sorted((ROOT/'tests').glob('*.py'))]:
+     lines.append(f"- `{p.relative_to(ROOT)}`: lines 1–{len(p.read_text().splitlines())}.")
+ (ROOT/'DIFF.md').write_text('\n'.join(lines)+'\n')
+ # Small manifests describe shipped code, without hashing generated test trees.
+ (ROOT/'evidence/FINAL_PINS.json').write_text(json.dumps({
+     **{'kit/'+name:sha(raw) for name,raw in new.items()},
+     **{name:sha((ROOT/name).read_bytes()) for name in ('f1f2.py','room_bootstrap.py','build_review.py',
+-        'REPORT.md','REVIEW.md','FIX1.md','DIFF.md','evidence/DONE_SAMPLES.txt','evidence/UPLOADER_FORMAT.txt')},
++        'REPORT.md','REVIEW.md','FIX1.md','FIX2.md','DIFF.md','evidence/DONE_SAMPLES.txt','evidence/UPLOADER_FORMAT.txt',
++        'evidence/FINAL_EXPORT_SOURCE.txt','evidence/FIX1_RECONSTRUCTION.json','evidence/FIX2_READER_CHECK.json','DIFF_FIX1.patch')},
+     **{str(p.relative_to(ROOT)):sha(p.read_bytes()) for p in sorted((ROOT/'tests').glob('*.py'))}
+ },indent=2,sort_keys=True)+'\n')
+ print(json.dumps(dict(kit_files=len(new),changed_ranges=len(hunks),identical=sum(r['status']=='IDENTICAL' for r in records))))
+--- /dev/null
++++ fix2/evidence/FINAL_EXPORT_SOURCE.txt
+@@ -0,0 +1,13 @@
++Final export source (offline inspection only):
++/scratch/jjyeung/orch_n30/cont_ops/work/d0/jobB/out_b_t3/k/launch.json: SHA256 4c129eab857ee9681f83bdd493977a868e3de375f261702d60f3b874304dcea4
++/scratch/jjyeung/orch_n30/cont_ops/work/d0/jobB/out_b_t3/k/428d1cfa.json: SHA256 8316911be254036461dee80d9031474fe825a0e4f6583c839eba12cd0b91a7f1
++/scratch/jjyeung/orch_n30/cont_ops/work/d0/jobB/out_b_t3/b/c.sh: SHA256 33bca2644d25c649b66f64e78bd0079292791b9aceb75f998cb0df98f0508ce6
++launch.json: config.file = k/428d1cfa.json; run_key = 359fcc3c.
++428d1cfa.json: steps = 1000; milestones = [1, 50, 100, 200, 400, 600, 800, 1000].
++recipe.steps = 1000; recipe.milestones = [1, 50, 100, 200, 400, 600, 800, 1000].
++c.sh:9 sets K=8865619b; :408-412 maps m<step> to q8/$K/${run}_${m}.tar.
++Scheduled final step: 1000. Scheduled object: gs://cmu-gpucloud-jjyeung/q8/8865619b/359fcc3c_m1000.tar.
++Parts: .part00-of-04 through .part03-of-04; receipt: x_f5c353f7/o/gcs_359fcc3c_m1000.done.
++This confirms the configured final read, not that the export or upload exists.
++c.sh:413-425 can alias unscheduled stop exports to mstop/mstopB/mstopC.
++Live session availability and any early-stop final step/object are unverified offline; the strict receipt parser is unchanged.
+--- fix1/evidence/FINAL_PINS.json
++++ fix2/evidence/FINAL_PINS.json
+@@ -1,19 +1,24 @@
+ {
+-  "DIFF.md": "40d1c8fd81fc28a42283f0d6dbb7e8d57fb2a1bd4fae87f11afe1df06621e78c",
++  "DIFF.md": "b7bf93dec080450f90ece2220402e64300ce3c4b5a2973df7da8f6b2a83c38a2",
++  "DIFF_FIX1.patch": "30b614cc0dca4f7dc979b9475fbe559a5eb9156437d2ac92d7edefb4556f90e1",
+   "FIX1.md": "beddd2a5d990d35f1a15044c387965059c2c230a0d1371c0e683060fb15303b9",
+-  "REPORT.md": "7e0ed4c8444cfba73524f9f32116b5851ecab7f6f15eea7c8cccca3c02eff88b",
+-  "REVIEW.md": "b6c944411c01dd534ff7f0902cbcfe92dd3c33c8402cf1058b9824f3569e2825",
+-  "build_review.py": "89ad6b51a6962d66b50c2c050cfde9015d21e7e9887626b38e0ab852a484860e",
++  "FIX2.md": "85e3671c57dcb14e5693fb9fdba119e57dfd5b3ae960a2a12ab8c37263e682be",
++  "REPORT.md": "ac709ada2739ba8200a44bb9c9c4e0a85bb548c364a661d2159adf0f17a973f0",
++  "REVIEW.md": "79dfd51c75dd47c184903d5133de41cb9eac681cc66cc0932f6191b086da029b",
++  "build_review.py": "fd71c027f2da219924d99062839e3038d4c857d4a65790334a55948c80fd49ee",
+   "evidence/DONE_SAMPLES.txt": "9df286f026dc6b45fcc028de7b1ac564ec03561dfe1c9840ace7ce9d53ebffde",
++  "evidence/FINAL_EXPORT_SOURCE.txt": "264c70660185e08f2533dedf7deec5a55d5a2364b66cb56c9155c43a60cae271",
++  "evidence/FIX1_RECONSTRUCTION.json": "1c16dd4dbf8b57bd4c38240e8f4d1326be7c606f6cefe14274cd5f906976b965",
++  "evidence/FIX2_READER_CHECK.json": "42d7d41eca88f9622a193db4c343e25725e34513e8451295b084ea203346bfe3",
+   "evidence/UPLOADER_FORMAT.txt": "e0c208487ba698e2935bf3118fae9d2d4da033c6e946ee2934a11b91f369ebde",
+-  "f1f2.py": "b561041cb1007ed23d055eacfe81ed4fe0429158abf7ceedc0356f04f58dd9bb",
++  "f1f2.py": "15e66c8003f8afc888de5ea204e7262257c14ac18232b1d9490a52084554d116",
+   "kit/launcher/MODELS.json": "72cdfbff0e93a881099096f06e22b5c7e98046d443ae3430d498d06b49cfb37a",
+   "kit/launcher/ORCHARD_ASSETS.json": "7e1da1668b4bac1d101692486e45f45912ccdde13d9f8ba8ca72cdd2287bf809",
+   "kit/launcher/TRANSPORT.json": "23339074f3eb41507c3e3c657159415582573cd8332c3b4777b4ac577a7b3b50",
+   "kit/launcher/chain_save.py": "3c6bd4cb82b39a6853c671e8c460c472df12b78ae3780890f61bd81008297b9c",
+   "kit/launcher/export_stage.py": "8c926e7c21663e7d707c7bc4adf1a2a9d73202e397e1531ef08ec3cadee859ed",
+   "kit/launcher/orchard_job.py": "d912e1f596fc21621bcb13c4670a1af313ab54a65ef1bda846b2c3b68cc3bd6b",
+-  "kit/launcher/orchard_launcher.py": "170e2faf803ecddc86748381dfca45aa73c0b6310b82f33079b5c94059144518",
++  "kit/launcher/orchard_launcher.py": "9068f83eb75168b7de8e4409bba01d8a12b8776d3bb5da08556827a955b745d3",
+   "kit/launcher/orchard_results.py": "959af042a98ecf985e7ead3e89ec3100f3434637ddecb02576c1b9a13f6a3810",
+   "kit/launcher/orchard_stage.py": "00b113eec03c205d872bfc7ce8bddb4c7bd4086f44e8878d712c001db86f17d2",
+   "kit/launcher/proof_card.py": "332fd8c0cd26cc303463da8055261a17d77081f59df69a31d945bd9352ecc606",
+@@ -98,6 +103,6 @@
+   "tests/bind_fixture.py": "af3f0b6042957bd5801f09e465a8a047452fe69e371721c11ab51c47e2b9f418",
+   "tests/offline_guard.py": "b7a68f35d8e28ef2dd6c2f42e7be319f4efd731e1f41ae2e465013ab84298222",
+   "tests/test_chain.py": "98e13520c052d85bb701de40fc81c2e7bb2605b8189172266ce5be5f212b0140",
+-  "tests/test_kit.py": "2fa2de939a3963bf3dcc1a8db9576f30aab3e8f8775496303d7a314800996d4e",
+-  "tests/test_verdict.py": "a3f73d7c5b053420df7736ad8a8986f74f8b1eaba3fb9649d5e4d16326613c5a"
++  "tests/test_kit.py": "c81569739ef4a2fcdf2fad494c4c0c1bd3f017902df3380c48cc04ff1c37999f",
++  "tests/test_verdict.py": "6ec0c2615f1ed9841023a6fa8d1b3032d896820b683e22370ed144e035d55aad"
+ }
+--- /dev/null
++++ fix2/evidence/FIX1_RECONSTRUCTION.json
+@@ -0,0 +1,111 @@
++{
++  "reconstructed": true,
++  "source": "/home/jjyeung/agent_project_distill/agent/scratch/codex_runs/20261116T093327Z_cont5_readk_fix1/transcript.log",
++  "files": [
++    {
++      "file": "build_review.py",
++      "source_lines": "10045-end",
++      "old_sha256": "0a2c631d40edb9d2d11d4c119855e9e7ac0661ca8e6b304b692205c1fce45227",
++      "fix1_sha256": "89ad6b51a6962d66b50c2c050cfde9015d21e7e9887626b38e0ab852a484860e",
++      "both_blob_ids_verified": true
++    },
++    {
++      "file": "f1f2.py",
++      "source_lines": "10045-end",
++      "old_sha256": "ea85b8980bd5a08a55a22be9b4f8d427e5e0b8f5c72b130a46bb4bbb5e590d9d",
++      "fix1_sha256": "b561041cb1007ed23d055eacfe81ed4fe0429158abf7ceedc0356f04f58dd9bb",
++      "both_blob_ids_verified": true
++    },
++    {
++      "file": "kit/launcher/chain_save.py",
++      "source_lines": "10045-end",
++      "old_sha256": "dc5cd19e0941c310e9ee1580346892798b3f98bfea077ba840e9ccf202962381",
++      "fix1_sha256": "3c6bd4cb82b39a6853c671e8c460c472df12b78ae3780890f61bd81008297b9c",
++      "both_blob_ids_verified": true
++    },
++    {
++      "file": "kit/launcher/export_stage.py",
++      "source_lines": "10045-end",
++      "old_sha256": "f8e3d57df9e2fc081219dce19e2ea43120da4ddd09a4d4445959419dfa841ec0",
++      "fix1_sha256": "8c926e7c21663e7d707c7bc4adf1a2a9d73202e397e1531ef08ec3cadee859ed",
++      "both_blob_ids_verified": true
++    },
++    {
++      "file": "kit/launcher/orchard_job.py",
++      "source_lines": "10045-end",
++      "old_sha256": "c9afaf5b4fb6866282315c025a530d52bb450bc6d6e58754b8a7d7398271262b",
++      "fix1_sha256": "d912e1f596fc21621bcb13c4670a1af313ab54a65ef1bda846b2c3b68cc3bd6b",
++      "both_blob_ids_verified": true
++    },
++    {
++      "file": "tests/bind_fixture.py",
++      "source_lines": "10045-end",
++      "old_sha256": "ad9e055b57b9babec63412faf41e4ee6ffe48ce9392fd25f6cad27774413ffa3",
++      "fix1_sha256": "af3f0b6042957bd5801f09e465a8a047452fe69e371721c11ab51c47e2b9f418",
++      "both_blob_ids_verified": true
++    },
++    {
++      "file": "tests/offline_guard.py",
++      "source_lines": "10045-end",
++      "old_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
++      "fix1_sha256": "b7a68f35d8e28ef2dd6c2f42e7be319f4efd731e1f41ae2e465013ab84298222",
++      "both_blob_ids_verified": true
++    },
++    {
++      "file": "tests/test_chain.py",
++      "source_lines": "10045-end",
++      "old_sha256": "0c960ebfa66ebdc2c2b35785934bc70d135f75bf443fdd4429e49093c64e28ef",
++      "fix1_sha256": "98e13520c052d85bb701de40fc81c2e7bb2605b8189172266ce5be5f212b0140",
++      "both_blob_ids_verified": true
++    },
++    {
++      "file": "tests/test_kit.py",
++      "source_lines": "10045-end",
++      "old_sha256": "6a6c49449696c3f770eb0faa5a8382eafb31c3046abf242acfa18d25cd7a093c",
++      "fix1_sha256": "2fa2de939a3963bf3dcc1a8db9576f30aab3e8f8775496303d7a314800996d4e",
++      "both_blob_ids_verified": true
++    },
++    {
++      "file": "tests/test_verdict.py",
++      "source_lines": "10045-end",
++      "old_sha256": "a202214ba114d5665a436604e55f10cfc22cf273c76076d1162a1eb0b86df40d",
++      "fix1_sha256": "a3f73d7c5b053420df7736ad8a8986f74f8b1eaba3fb9649d5e4d16326613c5a",
++      "both_blob_ids_verified": true
++    },
++    {
++      "file": "kit/launcher/orchard_launcher.py",
++      "source_lines": "3166-3171",
++      "method": "invert exact replacement command"
++    },
++    {
++      "file": "REPORT.md",
++      "source_lines": "894-936",
++      "method": "complete initial file dump"
++    },
++    {
++      "file": "REVIEW.md",
++      "source_lines": "937-955",
++      "method": "complete initial file dump"
++    },
++    {
++      "file": "FIX1.md",
++      "source_lines": "7944-7959",
++      "method": "new audit document"
++    },
++    {
++      "file": "DIFF.md",
++      "source_lines": "791-893",
++      "method": "complete initial file dump"
++    }
++  ],
++  "unreconstructed": [
++    "evidence/FINAL_PINS.json",
++    "evidence/SOURCE_DIFF.json",
++    "evidence/SOURCE.patch",
++    "evidence/FIX1_TESTS.log",
++    "evidence/FIX1_REPIN.log",
++    "evidence/FIX1_BIND_*.log",
++    "evidence/fix1_bind_*/**",
++    "evidence/UPLOADER_FORMAT.txt"
++  ]
++}
+--- /dev/null
++++ fix2/evidence/FIX2_BIND_away1000.log
+@@ -0,0 +1,3 @@
++{"dry_bind": "PASS; stopped before PNG bytes", "tasks": 150, "missing_labels": 0, "dest": "/scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/evidence/test_fix2_bind_away1000/a0"}
++{"bound": "/scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/evidence/test_fix2_bind_away1000/a0", "checkpoint": "LEG-S1-m1000", "binding": "3a1c1f150d45d8c771749b6aecdceed23e8fe5285dc6256f04172672d1bcebba", "dry": true}
++{"family": "away", "items": 150, "prompts_byte_equal": true, "source": "d27804f736545f7ebed6b55124b4bd215991695d96ed9106d82a142e91302aaa", "need": 1280, "rgb_bytes": 1179648000, "real_gpu": false, "step": 1000}
+--- /dev/null
++++ fix2/evidence/FIX2_BIND_away600.log
+@@ -0,0 +1,3 @@
++{"dry_bind": "PASS; stopped before PNG bytes", "tasks": 150, "missing_labels": 0, "dest": "/scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/evidence/test_fix2_bind_away600/a0"}
++{"bound": "/scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/evidence/test_fix2_bind_away600/a0", "checkpoint": "LEG-S1-m600", "binding": "1ad5b592711ccbcff0a44c3b4aa41bdb4057ed90ce3335a06945a1037750d70e", "dry": true}
++{"family": "away", "items": 150, "prompts_byte_equal": true, "source": "d27804f736545f7ebed6b55124b4bd215991695d96ed9106d82a142e91302aaa", "need": 1280, "rgb_bytes": 1179648000, "real_gpu": false, "step": 600}
+--- /dev/null
++++ fix2/evidence/FIX2_BIND_away800.log
+@@ -0,0 +1,3 @@
++{"dry_bind": "PASS; stopped before PNG bytes", "tasks": 150, "missing_labels": 0, "dest": "/scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/evidence/test_fix2_bind_away800/a0"}
++{"bound": "/scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/evidence/test_fix2_bind_away800/a0", "checkpoint": "LEG-S1-m800", "binding": "d0ba3975890f342c94de465bcd8f14737ce7b9742efeeee7357a1d5020b195f1", "dry": true}
++{"family": "away", "items": 150, "prompts_byte_equal": true, "source": "d27804f736545f7ebed6b55124b4bd215991695d96ed9106d82a142e91302aaa", "need": 1280, "rgb_bytes": 1179648000, "real_gpu": false, "step": 800}
+--- /dev/null
++++ fix2/evidence/FIX2_BIND_camera1000.log
+@@ -0,0 +1,2 @@
++{"dry_bind": "PASS; stopped before PNG bytes", "tasks": 450, "missing_labels": 0, "dest": "/scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/evidence/test_fix2_bind_camera1000/a0"}
++{"family": "camera", "items": 450, "prompts_byte_equal": true, "source": "d27804f736545f7ebed6b55124b4bd215991695d96ed9106d82a142e91302aaa", "need": 1664, "rgb_bytes": 1533542400, "real_gpu": false, "step": 1000}
+--- /dev/null
++++ fix2/evidence/FIX2_BIND_camera600.log
+@@ -0,0 +1,2 @@
++{"dry_bind": "PASS; stopped before PNG bytes", "tasks": 450, "missing_labels": 0, "dest": "/scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/evidence/test_fix2_bind_camera600/a0"}
++{"family": "camera", "items": 450, "prompts_byte_equal": true, "source": "d27804f736545f7ebed6b55124b4bd215991695d96ed9106d82a142e91302aaa", "need": 1664, "rgb_bytes": 1533542400, "real_gpu": false, "step": 600}
+--- /dev/null
++++ fix2/evidence/FIX2_BIND_camera800.log
+@@ -0,0 +1,2 @@
++{"dry_bind": "PASS; stopped before PNG bytes", "tasks": 450, "missing_labels": 0, "dest": "/scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/evidence/test_fix2_bind_camera800/a0"}
++{"family": "camera", "items": 450, "prompts_byte_equal": true, "source": "d27804f736545f7ebed6b55124b4bd215991695d96ed9106d82a142e91302aaa", "need": 1664, "rgb_bytes": 1533542400, "real_gpu": false, "step": 800}
+--- /dev/null
++++ fix2/evidence/FIX2_BIND_forward1000.log
+@@ -0,0 +1,3 @@
++{"dry_bind": "PASS; stopped before PNG bytes", "tasks": 150, "missing_labels": 0, "dest": "/scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/evidence/test_fix2_bind_forward1000/a0"}
++{"bound": "/scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/evidence/test_fix2_bind_forward1000/a0", "checkpoint": "LEG-S1-m1000", "binding": "caafea852ce9cb453ac851f4174d5e03013e630cc3f6ca0524caa3da41f181c1", "dry": true}
++{"family": "forward", "items": 150, "prompts_byte_equal": true, "source": "d27804f736545f7ebed6b55124b4bd215991695d96ed9106d82a142e91302aaa", "need": 1280, "rgb_bytes": 1179648000, "real_gpu": false, "step": 1000}
+--- /dev/null
++++ fix2/evidence/FIX2_BIND_forward600.log
+@@ -0,0 +1,3 @@
++{"dry_bind": "PASS; stopped before PNG bytes", "tasks": 150, "missing_labels": 0, "dest": "/scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/evidence/test_fix2_bind_forward600/a0"}
++{"bound": "/scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/evidence/test_fix2_bind_forward600/a0", "checkpoint": "LEG-S1-m600", "binding": "65d86fc4ab5c7bf89fdb9e83d8d88b12d7ea6a1a8663d93436f378b62649a5b6", "dry": true}
++{"family": "forward", "items": 150, "prompts_byte_equal": true, "source": "d27804f736545f7ebed6b55124b4bd215991695d96ed9106d82a142e91302aaa", "need": 1280, "rgb_bytes": 1179648000, "real_gpu": false, "step": 600}
+--- /dev/null
++++ fix2/evidence/FIX2_BIND_forward800.log
+@@ -0,0 +1,3 @@
++{"dry_bind": "PASS; stopped before PNG bytes", "tasks": 150, "missing_labels": 0, "dest": "/scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/evidence/test_fix2_bind_forward800/a0"}
++{"bound": "/scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/evidence/test_fix2_bind_forward800/a0", "checkpoint": "LEG-S1-m800", "binding": "4e63039dcd6c06f329239abd8c7949d87da5bba9944238e6fdd0ccf39a2d385b", "dry": true}
++{"family": "forward", "items": 150, "prompts_byte_equal": true, "source": "d27804f736545f7ebed6b55124b4bd215991695d96ed9106d82a142e91302aaa", "need": 1280, "rgb_bytes": 1179648000, "real_gpu": false, "step": 800}
+--- /dev/null
++++ fix2/evidence/FIX2_BIND_main1000.log
+@@ -0,0 +1,3 @@
++{"dry_bind": "PASS; stopped before PNG bytes", "tasks": 1525, "missing_labels": 0, "dest": "/scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/evidence/test_fix2_bind_main1000/a0"}
++{"bound": "/scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/evidence/test_fix2_bind_main1000/a0", "checkpoint": "LEG-S1-m1000", "binding": "40bdb2d607634282c8dffde343b64ea174b30a0b2b0ef8c95a86be7798a77ff0", "dry": true}
++{"family": "main", "items": 1525, "prompts_byte_equal": true, "source": "d27804f736545f7ebed6b55124b4bd215991695d96ed9106d82a142e91302aaa", "need": 4544, "rgb_bytes": 4187750400, "real_gpu": false, "step": 1000}
+--- /dev/null
++++ fix2/evidence/FIX2_BIND_main600.log
+@@ -0,0 +1,3 @@
++{"dry_bind": "PASS; stopped before PNG bytes", "tasks": 1525, "missing_labels": 0, "dest": "/scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/evidence/test_fix2_bind_main600/a0"}
++{"bound": "/scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/evidence/test_fix2_bind_main600/a0", "checkpoint": "LEG-S1-m600", "binding": "b968c35cf71022e869f1c1916b52a221412a70cd64bfacae3baf579efa468077", "dry": true}
++{"family": "main", "items": 1525, "prompts_byte_equal": true, "source": "d27804f736545f7ebed6b55124b4bd215991695d96ed9106d82a142e91302aaa", "need": 4544, "rgb_bytes": 4187750400, "real_gpu": false, "step": 600}
+--- /dev/null
++++ fix2/evidence/FIX2_BIND_main800.log
+@@ -0,0 +1,3 @@
++{"dry_bind": "PASS; stopped before PNG bytes", "tasks": 1525, "missing_labels": 0, "dest": "/scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/evidence/test_fix2_bind_main800/a0"}
++{"bound": "/scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/evidence/test_fix2_bind_main800/a0", "checkpoint": "LEG-S1-m800", "binding": "6341d5d70d3db871408c31eb3f8c35feec7fcdaf18cb6c89146b626881c82954", "dry": true}
++{"family": "main", "items": 1525, "prompts_byte_equal": true, "source": "d27804f736545f7ebed6b55124b4bd215991695d96ed9106d82a142e91302aaa", "need": 4544, "rgb_bytes": 4187750400, "real_gpu": false, "step": 800}
+--- /dev/null
++++ fix2/evidence/FIX2_OLD_PINS.json
+@@ -0,0 +1,103 @@
++{
++  "DIFF.md": "40d1c8fd81fc28a42283f0d6dbb7e8d57fb2a1bd4fae87f11afe1df06621e78c",
++  "FIX1.md": "beddd2a5d990d35f1a15044c387965059c2c230a0d1371c0e683060fb15303b9",
++  "REPORT.md": "7e0ed4c8444cfba73524f9f32116b5851ecab7f6f15eea7c8cccca3c02eff88b",
++  "REVIEW.md": "b6c944411c01dd534ff7f0902cbcfe92dd3c33c8402cf1058b9824f3569e2825",
++  "build_review.py": "89ad6b51a6962d66b50c2c050cfde9015d21e7e9887626b38e0ab852a484860e",
++  "evidence/DONE_SAMPLES.txt": "9df286f026dc6b45fcc028de7b1ac564ec03561dfe1c9840ace7ce9d53ebffde",
++  "evidence/UPLOADER_FORMAT.txt": "e0c208487ba698e2935bf3118fae9d2d4da033c6e946ee2934a11b91f369ebde",
++  "f1f2.py": "b561041cb1007ed23d055eacfe81ed4fe0429158abf7ceedc0356f04f58dd9bb",
++  "kit/launcher/MODELS.json": "72cdfbff0e93a881099096f06e22b5c7e98046d443ae3430d498d06b49cfb37a",
++  "kit/launcher/ORCHARD_ASSETS.json": "7e1da1668b4bac1d101692486e45f45912ccdde13d9f8ba8ca72cdd2287bf809",
++  "kit/launcher/TRANSPORT.json": "23339074f3eb41507c3e3c657159415582573cd8332c3b4777b4ac577a7b3b50",
++  "kit/launcher/chain_save.py": "3c6bd4cb82b39a6853c671e8c460c472df12b78ae3780890f61bd81008297b9c",
++  "kit/launcher/export_stage.py": "8c926e7c21663e7d707c7bc4adf1a2a9d73202e397e1531ef08ec3cadee859ed",
++  "kit/launcher/orchard_job.py": "d912e1f596fc21621bcb13c4670a1af313ab54a65ef1bda846b2c3b68cc3bd6b",
++  "kit/launcher/orchard_launcher.py": "170e2faf803ecddc86748381dfca45aa73c0b6310b82f33079b5c94059144518",
++  "kit/launcher/orchard_results.py": "959af042a98ecf985e7ead3e89ec3100f3434637ddecb02576c1b9a13f6a3810",
++  "kit/launcher/orchard_stage.py": "00b113eec03c205d872bfc7ce8bddb4c7bd4086f44e8878d712c001db86f17d2",
++  "kit/launcher/proof_card.py": "332fd8c0cd26cc303463da8055261a17d77081f59df69a31d945bd9352ecc606",
++  "kit/launcher/return_io.py": "ad24ee4c4ffb0592011efce63d741b3f449daddf4da7c377d9623a5db2dad8b3",
++  "kit/launcher/stdout_transfer.py": "85ad256cfa7836948ddba934ca82537486fc3c42cab06fa5442de86caef2e0f6",
++  "kit/launcher/trace_runtime.py": "faec481ff5b445fdeb885a0ee70e1f83beaff05afb115dd3073fa6ce1934237d",
++  "kit/proof/phase_b.py": "3d7171dc348f4d7cd9b5a6fda26f4e9146eaf56633d366fb5dbf2ac4458f3f79",
++  "kit/proof/pull.py": "46000e96334535933239800d1437afc49cc74ca4017c337a43798c9906b8b694",
++  "kit/reader/PROTOCOL.json": "a2db00df9fbb1c084ca5c3dabc7ce05091210968485079a6fc634b28cd9aa1fd",
++  "kit/reader/chain.py": "8a6eab28d8dac0a49a5fff70a6a6de194d454ba20b76b4a8d7356e19d9aa7c4a",
++  "kit/reader/e193_contract.json": "de37837d33638f844983d0c0a1a92c6594d1f910671c91ba70067e8ece4a7fa4",
++  "kit/reader/e193_items.json": "2ab22b681533c48b7a8ba9a78b7d95d1ea78c4d76beb13ad2784d42738f2cbf1",
++  "kit/reader/evaluator/budget.py": "8365bd3b1db5bedc0a86e2ef9624faf01ad43d0e3d3fffda53169cd9ad003175",
++  "kit/reader/evaluator/budget_admission.py": "be32a571fbb9c4024d739b51302d3881aa1ce628bb45e2e8cc9924060f653341",
++  "kit/reader/evaluator/budget_annotation.py": "c63f058069e8302fcd3bd69505690ab0e784b6f368d3492429335d30cebbc4d1",
++  "kit/reader/evaluator/budget_merge.py": "fc7c2872dc5daeb1eb1de61ee95b7b7a0e160fc697995ac2caf1615a4bd7ff2a",
++  "kit/reader/evaluator/c1_export.py": "7716fd6750376830519ef39295992bfab6876e644c92745d6a0ec82aceec7177",
++  "kit/reader/evaluator/cells.py": "8336d2d64ffd2b7f492dc6b52fb4182523eced3610483932d91e086d2b9b50ff",
++  "kit/reader/evaluator/data.py": "279991a8303e75f8cf553d3b94acb3c62fea82b27a65ac736dad6ab043914e41",
++  "kit/reader/evaluator/evalpath/SOURCE_PINS.json": "7f1d449de1498e5a6f34dbdc09309dcbeaceef76e3f20bec92f603771a345781",
++  "kit/reader/evaluator/evalpath/__init__.py": "320ff8e49d53c5528f439ae83544dcd0e4063933eb2168774b70ca6d9d1cdd38",
++  "kit/reader/evaluator/evalpath/items.py": "bc9211c07c803111a8c9f6af8ecb6e7bc057b0034da09ad94b02862f41526590",
++  "kit/reader/evaluator/evalpath/kit_inputs.py": "e4a6bdae702ab3fb003d7c11388fc22b051f92e5f9ca3d1cf0e95c250a0cd977",
++  "kit/reader/evaluator/evalpath/official.py": "a5d6d79fd29fce43791401cd01438f16f3ff6ad7a6c2651cb70d0d42088cf589",
++  "kit/reader/evaluator/evalpath/sampling.py": "9235a822a813648ee0da7cf9cc79531a4cbb7b6344e8fee369e5b34e615d82e1",
++  "kit/reader/evaluator/frame_env.py": "8b6ddcb0caa15e68f304d50cd41952b7e7d9eba4542c1beb1b49ecdf9b6be7ed",
++  "kit/reader/evaluator/frame_stage.py": "991f297fd783a37342ab65f4fed5580b47fb25550375efdee5fce14564b3ea5c",
++  "kit/reader/evaluator/journal.py": "508eca8d6877fe6898d9309f0f5c23b4580c321d27dc258ddd6fe4718cc9b1a5",
++  "kit/reader/evaluator/launch.py": "80af57d28cffe87e85d76a898ab6c4cbe898d53772ce1e90ecbcee4d333009f2",
++  "kit/reader/evaluator/media.py": "537fb597909e41699511d2e85c16029836cc4ba5aa0fcf25dc76f3abe5f0fc8d",
++  "kit/reader/evaluator/merge.py": "5da344c8ff214bcd106b0b78635eda330aed2a85169ac03e1ef9977341d65912",
++  "kit/reader/evaluator/metric.py": "aa0c7968a9a8c812222b8d3468864b54e13eb21cff25155e4a6393508beb05fc",
++  "kit/reader/evaluator/nested_sampling.py": "231bad31b385b01d3fdd46d8b8341e6ebfcc67e6d06cfb8f1fc277ec5bf017f2",
++  "kit/reader/evaluator/parity.py": "6e259bd1dd23ec67bb8feef5a3a06bbc2e67ecfd60cc98a876febd510f44c14c",
++  "kit/reader/evaluator/pointing.py": "1ee243eb896b518c74f06f18a3d98a213a7d5f09617296b3a5d9cf26d2a2ff5c",
++  "kit/reader/evaluator/pointing_video.py": "4712457ebf1e932219966a5b4eae6bddbc43a077251f717e636085c88dba1ee7",
++  "kit/reader/evaluator/provenance.py": "35e544877add1d9d4b6e2167aa071ffda13da390db4a410bd4b51339655b5c7c",
++  "kit/reader/evaluator/scoring.py": "0e3bcf0a578f18846f671b85582bb030137bb3169346dd5f99a10c6a8b099cce",
++  "kit/reader/evaluator/stage.py": "890ea8641c08c2de4e12169c77202c8cc7b19f1bc360c0a36509c5c451474d2b",
++  "kit/reader/evaluator/think_settings.py": "23af8945c30247bc80ebd0b2b7b7e6d22c0e6e70a190594d84161af49fb533df",
++  "kit/reader/evaluator/token_audit.py": "20dd4f31b70350b80ddb0cab1b35294349b9ff8f76058648da5537e265cff0b0",
++  "kit/reader/evaluator/trainer/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
++  "kit/reader/evaluator/trainer/batches.py": "d9f5a79b63baf1144dc5d0377450491dcb04c28335dbce51093e4edde7614638",
++  "kit/reader/evaluator/trainer/layout_reference.py": "596760db5b3ccf6cceb5ab2938402ba9e6c559a069ef5fd84b041ce90b71700e",
++  "kit/reader/evaluator/trainer/pose_samples.py": "0484ecce014fa97f6f2b44f250ddfdee142b42662d765638f130c59ddd53a736",
++  "kit/reader/evaluator/trainer/students.py": "cfe01c144680c8126328e7ad9afc7b1a002de7ba143dcea9c156e0473fe619c3",
++  "kit/reader/evaluator/trainer/trace_contract.py": "aed482c7ca7d15cd22b524ba0c9bdd1595d6e0c518c0d9d1e54c3c9377cebae8",
++  "kit/reader/evaluator/worker.py": "b2ac21c1549b87baff730e50279d3c4c0844966bc5e29363aef372c76574e20e",
++  "kit/reader/official_adapter.py": "02b2e8df44b0c392861f4d5cdff749bc7b3cc0547229f88cb6ac6585592bfca8",
++  "kit/reader/official_score.py": "b8399cb01390774726adba21565efc49cbeaf299ea737c918e8d42b0a99604e0",
++  "kit/reader/out/common.py": "1954de01cc935fb744ebc92a3ede19a94658d2ce4fefb3c1e1ba40b03d2508c4",
++  "kit/reader/out/direct.py": "d16b64b902a651f0d3989cfe3eb3dc5ea599e960ef5158e5e36a0901dcfb1f8a",
++  "kit/reader/out/export_check.py": "0400842c559565b66db50d6c8fde7c323e8600a82d70685d469a4b316d7ec8d2",
++  "kit/reader/paired_read.py": "2ec1b4e1676118615988062b37b4e0287f24664bece928fa0a1cdd24cd3d95de",
++  "kit/reader/records.py": "85ccbed8999dbe3d5770e1824e7eeef510c743c7fef2c5297f68e907a34d73d3",
++  "kit/reader/trinity_read.py": "79adaed3444b8784739d6244b4dc1ee20df5c24272a1b528fb7b5c6b9137e4b4",
++  "kit/reader/work/vendor/r3/CELL_ITEMS.json": "ed6d686aad9e21ceeeebe3ef7b9b0a8ff4bb2f9334b0f546ca972003fdcce860",
++  "kit/reader/work/vendor/r3/EXCLUDED.jsonl": "f7a212048c2cfe95538b4c35d5f9147ff107743d1811ca0c57880ca93ae38941",
++  "kit/reader/work/vendor/r3/EXCLUDED_MISSING_ROOM.jsonl": "279889626320714771abbd38185d3b07b8abb7daf3b965301d1842bbc8dcfdfd",
++  "kit/reader/work/vendor/r3/FPS_AUTHORITY.source.json": "36ae882f936ebc7a7d1a7651b5c53056c07d39ff552b2368a5c1e8068568d422",
++  "kit/reader/work/vendor/r3/FPS_RULE.json": "d9af606320e78823fb2e0fa3c80358c77d7e3cdc2326684a501893c04af3094f",
++  "kit/reader/work/vendor/r3/FRAMES.json": "c5e0dad804a59bb6f4932137d129e3a7dc1cf675e6342ff94e36979b7ca29439",
++  "kit/reader/work/vendor/r3/ITEMS.jsonl": "00144cd0f736b4bd7908030b7feb749a926d7ef37b54c555c09bdd8c82ef9111",
++  "kit/reader/work/vendor/r3/LABEL_BLOCKERS.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
++  "kit/reader/work/vendor/r3/LABEL_SOURCE_PINS.json": "8b69c0a012cca31376f2b46c7da58744cdfb94af4ec94f9bb646f2c92d981efb",
++  "kit/reader/work/vendor/r3/MISSING_LABELS.jsonl": "b8aff3d740f37d95b3e4a85a3f3faac5580b2e19c02cb2360e541611a2dacd4b",
++  "kit/reader/work/vendor/r3/PINS.json": "698d623e9f49bdcbf101719bb2b09fd7239452d1d610d827110a1423dcce9db2",
++  "kit/reader/work/vendor/r3/RELEASED_DEV.jsonl": "edafe3e5b436f16fd22a49facd25c62216f3478c6952ccbd9e5e1eef7cae7760",
++  "kit/reader/work/vendor/r3/STRATA.jsonl": "9ee9c29820a85cf4da89a4499d8bc644b5c88c0ad22f151a09a770b025563af0",
++  "kit/reader/work/vendor/r3/TASKS.jsonl": "a2f3fdbdab06ab81942d44044d85090df8ec5b86908cf010cdbcb17e35637f5e",
++  "kit/reader/work/vendor/r3/TIMING_AUTHORITY.json": "7827fb117e158809c59bda741976a872761790bbd2298047ba8c6f33ba72ea43",
++  "kit/reader/work/vendor/r3/WITHHOLD_SCENES.json": "88e1a708e240920fb39e34ede6f47c189be830538388db7a214b60ca258df05e",
++  "kit/reader/work/vendor/r3/adapter.py": "eb53eb601f7ef5ed732f0d7a9ef2275349de9553eb9c7ac39dd464bcfa03789a",
++  "kit/reader/work/vendor/r3/cells_cp1m200.json": "472c0c9793735a044ee2f11bf2ee6f155c452ce5cbcb2b4fc262974c9c4b1135",
++  "kit/reader/work/vendor/r3/cells_f17.json": "cbb5521184c1410861b5339dcf40100196fc661d9b4ec6bafa3d548ad8d86878",
++  "kit/reader/work/vendor/r4/adapter.py": "9ccf84f1a2b9e7b99abf1975a98f67d1ea610cb1acc72728a60c2b2234a6c099",
++  "kit/reader/work/vendor/r5/adapter.py": "431b5d367ccde126f02297489da5a328ecd2484bd787f8acfae73eecec3fd9d1",
++  "kit/reader/work/vendor/r5/dev_scoring.py": "d7594f9dad6045a6c6fdb55e7136401a6368d1c2fabc801bc1cb7c7eaedda220",
++  "kit/reader/work/vendor/r5/report.py": "c0d60afe47a5459150d40841e923fffe90d7ea749c12fcd3ef44b21950b24fd6",
++  "kit/reader/worker.py": "a06f33d6d88ca5c41cf1178ea105486662679f8aa57d326e8dba1d41b9282def",
++  "room_bootstrap.py": "6596172a8892a7475d1890ddf391e4a8ad56d04374ea9006685a242a4962d605",
++  "tests/bind_fixture.py": "af3f0b6042957bd5801f09e465a8a047452fe69e371721c11ab51c47e2b9f418",
++  "tests/offline_guard.py": "b7a68f35d8e28ef2dd6c2f42e7be319f4efd731e1f41ae2e465013ab84298222",
++  "tests/test_chain.py": "98e13520c052d85bb701de40fc81c2e7bb2605b8189172266ce5be5f212b0140",
++  "tests/test_kit.py": "2fa2de939a3963bf3dcc1a8db9576f30aab3e8f8775496303d7a314800996d4e",
++  "tests/test_verdict.py": "a3f73d7c5b053420df7736ad8a8986f74f8b1eaba3fb9649d5e4d16326613c5a"
++}
+--- /dev/null
++++ fix2/evidence/FIX2_READER_CHECK.json
+@@ -0,0 +1,79 @@
++{
++  "all_bytes_identical": true,
++  "files": 72,
++  "sha256": {
++    "kit/reader/PROTOCOL.json": "a2db00df9fbb1c084ca5c3dabc7ce05091210968485079a6fc634b28cd9aa1fd",
++    "kit/reader/chain.py": "8a6eab28d8dac0a49a5fff70a6a6de194d454ba20b76b4a8d7356e19d9aa7c4a",
++    "kit/reader/e193_contract.json": "de37837d33638f844983d0c0a1a92c6594d1f910671c91ba70067e8ece4a7fa4",
++    "kit/reader/e193_items.json": "2ab22b681533c48b7a8ba9a78b7d95d1ea78c4d76beb13ad2784d42738f2cbf1",
++    "kit/reader/evaluator/budget.py": "8365bd3b1db5bedc0a86e2ef9624faf01ad43d0e3d3fffda53169cd9ad003175",
++    "kit/reader/evaluator/budget_admission.py": "be32a571fbb9c4024d739b51302d3881aa1ce628bb45e2e8cc9924060f653341",
++    "kit/reader/evaluator/budget_annotation.py": "c63f058069e8302fcd3bd69505690ab0e784b6f368d3492429335d30cebbc4d1",
++    "kit/reader/evaluator/budget_merge.py": "fc7c2872dc5daeb1eb1de61ee95b7b7a0e160fc697995ac2caf1615a4bd7ff2a",
++    "kit/reader/evaluator/c1_export.py": "7716fd6750376830519ef39295992bfab6876e644c92745d6a0ec82aceec7177",
++    "kit/reader/evaluator/cells.py": "8336d2d64ffd2b7f492dc6b52fb4182523eced3610483932d91e086d2b9b50ff",
++    "kit/reader/evaluator/data.py": "279991a8303e75f8cf553d3b94acb3c62fea82b27a65ac736dad6ab043914e41",
++    "kit/reader/evaluator/evalpath/SOURCE_PINS.json": "7f1d449de1498e5a6f34dbdc09309dcbeaceef76e3f20bec92f603771a345781",
++    "kit/reader/evaluator/evalpath/__init__.py": "320ff8e49d53c5528f439ae83544dcd0e4063933eb2168774b70ca6d9d1cdd38",
++    "kit/reader/evaluator/evalpath/items.py": "bc9211c07c803111a8c9f6af8ecb6e7bc057b0034da09ad94b02862f41526590",
++    "kit/reader/evaluator/evalpath/kit_inputs.py": "e4a6bdae702ab3fb003d7c11388fc22b051f92e5f9ca3d1cf0e95c250a0cd977",
++    "kit/reader/evaluator/evalpath/official.py": "a5d6d79fd29fce43791401cd01438f16f3ff6ad7a6c2651cb70d0d42088cf589",
++    "kit/reader/evaluator/evalpath/sampling.py": "9235a822a813648ee0da7cf9cc79531a4cbb7b6344e8fee369e5b34e615d82e1",
++    "kit/reader/evaluator/frame_env.py": "8b6ddcb0caa15e68f304d50cd41952b7e7d9eba4542c1beb1b49ecdf9b6be7ed",
++    "kit/reader/evaluator/frame_stage.py": "991f297fd783a37342ab65f4fed5580b47fb25550375efdee5fce14564b3ea5c",
++    "kit/reader/evaluator/journal.py": "508eca8d6877fe6898d9309f0f5c23b4580c321d27dc258ddd6fe4718cc9b1a5",
++    "kit/reader/evaluator/launch.py": "80af57d28cffe87e85d76a898ab6c4cbe898d53772ce1e90ecbcee4d333009f2",
++    "kit/reader/evaluator/media.py": "537fb597909e41699511d2e85c16029836cc4ba5aa0fcf25dc76f3abe5f0fc8d",
++    "kit/reader/evaluator/merge.py": "5da344c8ff214bcd106b0b78635eda330aed2a85169ac03e1ef9977341d65912",
++    "kit/reader/evaluator/metric.py": "aa0c7968a9a8c812222b8d3468864b54e13eb21cff25155e4a6393508beb05fc",
++    "kit/reader/evaluator/nested_sampling.py": "231bad31b385b01d3fdd46d8b8341e6ebfcc67e6d06cfb8f1fc277ec5bf017f2",
++    "kit/reader/evaluator/parity.py": "6e259bd1dd23ec67bb8feef5a3a06bbc2e67ecfd60cc98a876febd510f44c14c",
++    "kit/reader/evaluator/pointing.py": "1ee243eb896b518c74f06f18a3d98a213a7d5f09617296b3a5d9cf26d2a2ff5c",
++    "kit/reader/evaluator/pointing_video.py": "4712457ebf1e932219966a5b4eae6bddbc43a077251f717e636085c88dba1ee7",
++    "kit/reader/evaluator/provenance.py": "35e544877add1d9d4b6e2167aa071ffda13da390db4a410bd4b51339655b5c7c",
++    "kit/reader/evaluator/scoring.py": "0e3bcf0a578f18846f671b85582bb030137bb3169346dd5f99a10c6a8b099cce",
++    "kit/reader/evaluator/stage.py": "890ea8641c08c2de4e12169c77202c8cc7b19f1bc360c0a36509c5c451474d2b",
++    "kit/reader/evaluator/think_settings.py": "23af8945c30247bc80ebd0b2b7b7e6d22c0e6e70a190594d84161af49fb533df",
++    "kit/reader/evaluator/token_audit.py": "20dd4f31b70350b80ddb0cab1b35294349b9ff8f76058648da5537e265cff0b0",
++    "kit/reader/evaluator/trainer/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
++    "kit/reader/evaluator/trainer/batches.py": "d9f5a79b63baf1144dc5d0377450491dcb04c28335dbce51093e4edde7614638",
++    "kit/reader/evaluator/trainer/layout_reference.py": "596760db5b3ccf6cceb5ab2938402ba9e6c559a069ef5fd84b041ce90b71700e",
++    "kit/reader/evaluator/trainer/pose_samples.py": "0484ecce014fa97f6f2b44f250ddfdee142b42662d765638f130c59ddd53a736",
++    "kit/reader/evaluator/trainer/students.py": "cfe01c144680c8126328e7ad9afc7b1a002de7ba143dcea9c156e0473fe619c3",
++    "kit/reader/evaluator/trainer/trace_contract.py": "aed482c7ca7d15cd22b524ba0c9bdd1595d6e0c518c0d9d1e54c3c9377cebae8",
++    "kit/reader/evaluator/worker.py": "b2ac21c1549b87baff730e50279d3c4c0844966bc5e29363aef372c76574e20e",
++    "kit/reader/official_adapter.py": "02b2e8df44b0c392861f4d5cdff749bc7b3cc0547229f88cb6ac6585592bfca8",
++    "kit/reader/official_score.py": "b8399cb01390774726adba21565efc49cbeaf299ea737c918e8d42b0a99604e0",
++    "kit/reader/out/common.py": "1954de01cc935fb744ebc92a3ede19a94658d2ce4fefb3c1e1ba40b03d2508c4",
++    "kit/reader/out/direct.py": "d16b64b902a651f0d3989cfe3eb3dc5ea599e960ef5158e5e36a0901dcfb1f8a",
++    "kit/reader/out/export_check.py": "0400842c559565b66db50d6c8fde7c323e8600a82d70685d469a4b316d7ec8d2",
++    "kit/reader/paired_read.py": "2ec1b4e1676118615988062b37b4e0287f24664bece928fa0a1cdd24cd3d95de",
++    "kit/reader/records.py": "85ccbed8999dbe3d5770e1824e7eeef510c743c7fef2c5297f68e907a34d73d3",
++    "kit/reader/trinity_read.py": "79adaed3444b8784739d6244b4dc1ee20df5c24272a1b528fb7b5c6b9137e4b4",
++    "kit/reader/work/vendor/r3/CELL_ITEMS.json": "ed6d686aad9e21ceeeebe3ef7b9b0a8ff4bb2f9334b0f546ca972003fdcce860",
++    "kit/reader/work/vendor/r3/EXCLUDED.jsonl": "f7a212048c2cfe95538b4c35d5f9147ff107743d1811ca0c57880ca93ae38941",
++    "kit/reader/work/vendor/r3/EXCLUDED_MISSING_ROOM.jsonl": "279889626320714771abbd38185d3b07b8abb7daf3b965301d1842bbc8dcfdfd",
++    "kit/reader/work/vendor/r3/FPS_AUTHORITY.source.json": "36ae882f936ebc7a7d1a7651b5c53056c07d39ff552b2368a5c1e8068568d422",
++    "kit/reader/work/vendor/r3/FPS_RULE.json": "d9af606320e78823fb2e0fa3c80358c77d7e3cdc2326684a501893c04af3094f",
++    "kit/reader/work/vendor/r3/FRAMES.json": "c5e0dad804a59bb6f4932137d129e3a7dc1cf675e6342ff94e36979b7ca29439",
++    "kit/reader/work/vendor/r3/ITEMS.jsonl": "00144cd0f736b4bd7908030b7feb749a926d7ef37b54c555c09bdd8c82ef9111",
++    "kit/reader/work/vendor/r3/LABEL_BLOCKERS.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
++    "kit/reader/work/vendor/r3/LABEL_SOURCE_PINS.json": "8b69c0a012cca31376f2b46c7da58744cdfb94af4ec94f9bb646f2c92d981efb",
++    "kit/reader/work/vendor/r3/MISSING_LABELS.jsonl": "b8aff3d740f37d95b3e4a85a3f3faac5580b2e19c02cb2360e541611a2dacd4b",
++    "kit/reader/work/vendor/r3/PINS.json": "698d623e9f49bdcbf101719bb2b09fd7239452d1d610d827110a1423dcce9db2",
++    "kit/reader/work/vendor/r3/RELEASED_DEV.jsonl": "edafe3e5b436f16fd22a49facd25c62216f3478c6952ccbd9e5e1eef7cae7760",
++    "kit/reader/work/vendor/r3/STRATA.jsonl": "9ee9c29820a85cf4da89a4499d8bc644b5c88c0ad22f151a09a770b025563af0",
++    "kit/reader/work/vendor/r3/TASKS.jsonl": "a2f3fdbdab06ab81942d44044d85090df8ec5b86908cf010cdbcb17e35637f5e",
++    "kit/reader/work/vendor/r3/TIMING_AUTHORITY.json": "7827fb117e158809c59bda741976a872761790bbd2298047ba8c6f33ba72ea43",
++    "kit/reader/work/vendor/r3/WITHHOLD_SCENES.json": "88e1a708e240920fb39e34ede6f47c189be830538388db7a214b60ca258df05e",
++    "kit/reader/work/vendor/r3/adapter.py": "eb53eb601f7ef5ed732f0d7a9ef2275349de9553eb9c7ac39dd464bcfa03789a",
++    "kit/reader/work/vendor/r3/cells_cp1m200.json": "472c0c9793735a044ee2f11bf2ee6f155c452ce5cbcb2b4fc262974c9c4b1135",
++    "kit/reader/work/vendor/r3/cells_f17.json": "cbb5521184c1410861b5339dcf40100196fc661d9b4ec6bafa3d548ad8d86878",
++    "kit/reader/work/vendor/r4/adapter.py": "9ccf84f1a2b9e7b99abf1975a98f67d1ea610cb1acc72728a60c2b2234a6c099",
++    "kit/reader/work/vendor/r5/adapter.py": "431b5d367ccde126f02297489da5a328ecd2484bd787f8acfae73eecec3fd9d1",
++    "kit/reader/work/vendor/r5/dev_scoring.py": "d7594f9dad6045a6c6fdb55e7136401a6368d1c2fabc801bc1cb7c7eaedda220",
++    "kit/reader/work/vendor/r5/report.py": "c0d60afe47a5459150d40841e923fffe90d7ea749c12fcd3ef44b21950b24fd6",
++    "kit/reader/worker.py": "a06f33d6d88ca5c41cf1178ea105486662679f8aa57d326e8dba1d41b9282def"
++  },
++  "snapshot_sha256": "34ccc385ec281ef27eb8e1153362255d4a81ac366f1343fedf08c6f5fcf10948"
++}
+--- /dev/null
++++ fix2/evidence/FIX2_REPIN.log
+@@ -0,0 +1 @@
++{"kit_files": 87, "changed_ranges": 83, "identical": 72}
+--- /dev/null
++++ fix2/evidence/FIX2_TESTS.log
+@@ -0,0 +1,58 @@
++test_family_failure_stops_without_retry (test_chain.ChainTests.test_family_failure_stops_without_retry) ... ok
++test_serial_success_and_compact_output (test_chain.ChainTests.test_serial_success_and_compact_output) ... ok
++test_archive_admission (test_kit.KitTests.test_archive_admission) ... ok
++test_archive_attacks (test_kit.KitTests.test_archive_attacks) ... ok
++test_digest_before_extraction (test_kit.KitTests.test_digest_before_extraction) ... ok
++test_done_sample_and_strict_identity (test_kit.KitTests.test_done_sample_and_strict_identity) ... ok
++test_failure_return_uses_mock_publisher (test_kit.KitTests.test_failure_return_uses_mock_publisher) ... ok
++test_final_pins_match (test_kit.KitTests.test_final_pins_match) ... ok
++test_full_checker_on_miniature_tensor (test_kit.KitTests.test_full_checker_on_miniature_tensor) ... ok
++test_h100_check (test_kit.KitTests.test_h100_check) ... ok
++test_offline_guard_blocks_real_commands_and_network (test_kit.KitTests.test_offline_guard_blocks_real_commands_and_network) ... ok
++test_ordered_cloud_stream_requires_whole_digest_before_stage (test_kit.KitTests.test_ordered_cloud_stream_requires_whole_digest_before_stage) ... ok
++test_pool_retains_write_test (test_kit.KitTests.test_pool_retains_write_test) ... ok
++test_prepare_both_steps_and_camera (test_kit.KitTests.test_prepare_both_steps_and_camera) ... ok
++test_prepared_bootstrap_entry (test_kit.KitTests.test_prepared_bootstrap_entry) ... ok
++test_reject_identity_and_payload_tamper (test_kit.KitTests.test_reject_identity_and_payload_tamper) ... ok
++test_return_contains_items_and_summary (test_kit.KitTests.test_return_contains_items_and_summary) ... ok
++test_return_retains_all_raw_journals (test_kit.KitTests.test_return_retains_all_raw_journals) ... ok
++test_stage_function_is_exact_reviewed_body (test_kit.KitTests.test_stage_function_is_exact_reviewed_body) ... ok
++test_wrong_done_refused_before_cloud_or_disk_reservation (test_kit.KitTests.test_wrong_done_refused_before_cloud_or_disk_reservation) ... ok
++test_accepted_evidence (test_verdict.VerdictTests.test_accepted_evidence) ... ok
++test_alike_exactly_twenty_passes_above_fails (test_verdict.VerdictTests.test_alike_exactly_twenty_passes_above_fails) ... ok
++test_all_fired_rules_are_reported (test_verdict.VerdictTests.test_all_fired_rules_are_reported) ... ok
++test_baseline_544_must_be_38_20_6 (test_verdict.VerdictTests.test_baseline_544_must_be_38_20_6) ... ok
++test_bootstrap_is_exact_reviewed_function (test_verdict.VerdictTests.test_bootstrap_is_exact_reviewed_function) ... ok
++test_bootstrap_sign_zero_boundary_and_cluster_weighting (test_verdict.VerdictTests.test_bootstrap_sign_zero_boundary_and_cluster_weighting) ... ok
++test_cli_accepts_all_steps_and_prints_both_readings (test_verdict.VerdictTests.test_cli_accepts_all_steps_and_prints_both_readings) ... ok
++test_continue (test_verdict.VerdictTests.test_continue) ... ok
++test_each_registered_f1_type_can_stop (test_verdict.VerdictTests.test_each_registered_f1_type_can_stop) ... ok
++test_f1_has_seven_types_and_extras_cannot_stop (test_verdict.VerdictTests.test_f1_has_seven_types_and_extras_cannot_stop) ... ok
++test_f1_stop_dominates (test_verdict.VerdictTests.test_f1_stop_dominates) ... ok
++test_f1_upper_zero_and_just_negative_at_every_read (test_verdict.VerdictTests.test_f1_upper_zero_and_just_negative_at_every_read) ... ok
++test_f2_interval_and_alike_boundaries (test_verdict.VerdictTests.test_f2_interval_and_alike_boundaries) ... ok
++test_final_export_gives_final_and_f2_decision (test_verdict.VerdictTests.test_final_export_gives_final_and_f2_decision) ... ok
++test_later_reads_f1_stops_independently_of_f2 (test_verdict.VerdictTests.test_later_reads_f1_stops_independently_of_f2) ... ok
++test_missing_answers_do_not_count_as_answered_alike (test_verdict.VerdictTests.test_missing_answers_do_not_count_as_answered_alike) ... ok
++test_one_level_below_continues (test_verdict.VerdictTests.test_one_level_below_continues) ... ok
++test_optional_camera_is_outside_verdict (test_verdict.VerdictTests.test_optional_camera_is_outside_verdict) ... ok
++test_point_reading_is_information_only (test_verdict.VerdictTests.test_point_reading_is_information_only) ... ok
++test_prev_missing_refused (test_verdict.VerdictTests.test_prev_missing_refused) ... ok
++test_prev_wrong_membership_or_metadata_refused (test_verdict.VerdictTests.test_prev_wrong_membership_or_metadata_refused) ... ok
++test_prev_wrong_step_refused (test_verdict.VerdictTests.test_prev_wrong_step_refused) ... ok
++test_refuse_bad_records (test_verdict.VerdictTests.test_refuse_bad_records) ... ok
++test_step100_has_no_verdict (test_verdict.VerdictTests.test_step100_has_no_verdict) ... ok
++test_step200_away_below_baseline_stops (test_verdict.VerdictTests.test_step200_away_below_baseline_stops) ... ok
++test_step200_equal_one_level_stops_just_above_all_continues (test_verdict.VerdictTests.test_step200_equal_one_level_stops_just_above_all_continues) ... ok
++test_step200_f2_failure_with_all_levels_above_continues (test_verdict.VerdictTests.test_step200_f2_failure_with_all_levels_above_continues) ... ok
++test_toward_interval_upper_zero_passes_negative_fails (test_verdict.VerdictTests.test_toward_interval_upper_zero_passes_negative_fails) ... ok
++test_toward_regression (test_verdict.VerdictTests.test_toward_regression) ... ok
++test_twins_refuse_missing_and_duplicate (test_verdict.VerdictTests.test_twins_refuse_missing_and_duplicate) ... ok
++test_two_levels_below_with_f2_failing_stops (test_verdict.VerdictTests.test_two_levels_below_with_f2_failing_stops) ... ok
++test_two_levels_below_with_f2_passing_continues (test_verdict.VerdictTests.test_two_levels_below_with_f2_passing_continues) ... ok
++test_two_levels_equal_continues (test_verdict.VerdictTests.test_two_levels_equal_continues) ... ok
++
++----------------------------------------------------------------------
++Ran 53 tests in 34.854s
++
++OK
+--- /dev/null
++++ fix2/evidence/FIX2_VERDICT_TESTS.log
+@@ -0,0 +1,38 @@
++test_accepted_evidence (test_verdict.VerdictTests.test_accepted_evidence) ... ok
++test_alike_exactly_twenty_passes_above_fails (test_verdict.VerdictTests.test_alike_exactly_twenty_passes_above_fails) ... ok
++test_all_fired_rules_are_reported (test_verdict.VerdictTests.test_all_fired_rules_are_reported) ... ok
++test_baseline_544_must_be_38_20_6 (test_verdict.VerdictTests.test_baseline_544_must_be_38_20_6) ... ok
++test_bootstrap_is_exact_reviewed_function (test_verdict.VerdictTests.test_bootstrap_is_exact_reviewed_function) ... ok
++test_bootstrap_sign_zero_boundary_and_cluster_weighting (test_verdict.VerdictTests.test_bootstrap_sign_zero_boundary_and_cluster_weighting) ... ok
++test_cli_accepts_all_steps_and_prints_both_readings (test_verdict.VerdictTests.test_cli_accepts_all_steps_and_prints_both_readings) ... ok
++test_continue (test_verdict.VerdictTests.test_continue) ... ok
++test_each_registered_f1_type_can_stop (test_verdict.VerdictTests.test_each_registered_f1_type_can_stop) ... ok
++test_f1_has_seven_types_and_extras_cannot_stop (test_verdict.VerdictTests.test_f1_has_seven_types_and_extras_cannot_stop) ... ok
++test_f1_stop_dominates (test_verdict.VerdictTests.test_f1_stop_dominates) ... ok
++test_f1_upper_zero_and_just_negative_at_every_read (test_verdict.VerdictTests.test_f1_upper_zero_and_just_negative_at_every_read) ... ok
++test_f2_interval_and_alike_boundaries (test_verdict.VerdictTests.test_f2_interval_and_alike_boundaries) ... ok
++test_final_export_gives_final_and_f2_decision (test_verdict.VerdictTests.test_final_export_gives_final_and_f2_decision) ... ok
++test_later_reads_f1_stops_independently_of_f2 (test_verdict.VerdictTests.test_later_reads_f1_stops_independently_of_f2) ... ok
++test_missing_answers_do_not_count_as_answered_alike (test_verdict.VerdictTests.test_missing_answers_do_not_count_as_answered_alike) ... ok
++test_one_level_below_continues (test_verdict.VerdictTests.test_one_level_below_continues) ... ok
++test_optional_camera_is_outside_verdict (test_verdict.VerdictTests.test_optional_camera_is_outside_verdict) ... ok
++test_point_reading_is_information_only (test_verdict.VerdictTests.test_point_reading_is_information_only) ... ok
++test_prev_missing_refused (test_verdict.VerdictTests.test_prev_missing_refused) ... ok
++test_prev_wrong_membership_or_metadata_refused (test_verdict.VerdictTests.test_prev_wrong_membership_or_metadata_refused) ... ok
++test_prev_wrong_step_refused (test_verdict.VerdictTests.test_prev_wrong_step_refused) ... ok
++test_refuse_bad_records (test_verdict.VerdictTests.test_refuse_bad_records) ... ok
++test_step100_has_no_verdict (test_verdict.VerdictTests.test_step100_has_no_verdict) ... ok
++test_step200_away_below_baseline_stops (test_verdict.VerdictTests.test_step200_away_below_baseline_stops) ... ok
++test_step200_equal_one_level_stops_just_above_all_continues (test_verdict.VerdictTests.test_step200_equal_one_level_stops_just_above_all_continues) ... ok
++test_step200_f2_failure_with_all_levels_above_continues (test_verdict.VerdictTests.test_step200_f2_failure_with_all_levels_above_continues) ... ok
++test_toward_interval_upper_zero_passes_negative_fails (test_verdict.VerdictTests.test_toward_interval_upper_zero_passes_negative_fails) ... ok
++test_toward_regression (test_verdict.VerdictTests.test_toward_regression) ... ok
++test_twins_refuse_missing_and_duplicate (test_verdict.VerdictTests.test_twins_refuse_missing_and_duplicate) ... ok
++test_two_levels_below_with_f2_failing_stops (test_verdict.VerdictTests.test_two_levels_below_with_f2_failing_stops) ... ok
++test_two_levels_below_with_f2_passing_continues (test_verdict.VerdictTests.test_two_levels_below_with_f2_passing_continues) ... ok
++test_two_levels_equal_continues (test_verdict.VerdictTests.test_two_levels_equal_continues) ... ok
++
++----------------------------------------------------------------------
++Ran 33 tests in 34.308s
++
++OK
+--- fix1/evidence/SOURCE.patch
++++ fix2/evidence/SOURCE.patch
+@@ -12089,7 +12089,7 @@
+ +    if config.get('mode') != 'production' or config.get('bootstrap_parent', '/tmp') != '/tmp':
+          raise ValueError('Invalid execution mode')
+ -    if config.get('schema') != 'evalx-orchard-batch-v1' or config['spec']['step']!=544:
+-+    if config.get('schema') != 'a2' or config['spec']['step'] not in (100, 200, 400):
+++    if config.get('schema') != 'a2' or config['spec']['step'] not in (100, 200, 400, 600, 800, 1000):
+          raise ValueError('Invalid job contract')
+ -    if canonical(config['spec'])!=config['plan_sha256']:
+ +    if canonical(config['spec']) != config['plan_sha256']:
+@@ -12167,7 +12167,7 @@
+ -    assets=json.loads((ROOT/'ORCHARD_ASSETS.json').read_text())
+ -    config=dict(schema='evalx-orchard-batch-v1',mode=mode,phase_b=mode=='proof',pool=pool,token=token,spec=spec,output=str(logical/'o'),
+ -        plan_sha256=canonical(spec),assets=assets,release=dict(transport=dict(path=str(payload_root/'TRANSPORT.json'),sha256=S.sha(ROOT/'TRANSPORT.json'))),
+-+    if step not in (100, 200, 400):
+++    if step not in (100, 200, 400, 600, 800, 1000):
+ +        raise ValueError('Unsupported step')
+ +    destination = Path(destination)
+ +    if destination.exists():
+@@ -12238,7 +12238,7 @@
+ -    prepare_parser.add_argument('--frame-plan')
+ -    prepare_parser.add_argument('--pool',default='/project/community/jjyeung/okh7/x27ret')
+ -    prepare_parser.add_argument('--mode',choices=('proof','production'),default='production')
+-+    prepare_parser.add_argument('--step',type=int,choices=(100,200,400),required=True)
+++    prepare_parser.add_argument('--step',type=int,choices=(100,200,400,600,800,1000),required=True)
+ +    prepare_parser.add_argument('--camera',action='store_true')
+ +    prepare_parser.add_argument('--pool',default='/project/community/jjyeung/okh7/ae71c903')
+      submit_parser = actions.add_parser('submit')
+--- fix1/evidence/SOURCE_DIFF.json
++++ fix2/evidence/SOURCE_DIFF.json
+@@ -99,7 +99,7 @@
+       "file": "launcher/orchard_launcher.py",
+       "status": "CHANGED",
+       "old_sha256": "0905ed2a8150ff81156d44437c1648fc516d18a245f9ad59b22a12ad58d8f484",
+-      "new_sha256": "170e2faf803ecddc86748381dfca45aa73c0b6310b82f33079b5c94059144518"
++      "new_sha256": "9068f83eb75168b7de8e4409bba01d8a12b8776d3bb5da08556827a955b745d3"
+     },
+     {
+       "file": "launcher/orchard_results.py",
+--- fix1/f1f2.py
++++ fix2/f1f2.py
+@@ -11,6 +11,10 @@
+ 
+ LEVELS = ('easy', 'medium', 'hard')
+ THRESHOLDS = dict(zip(LEVELS, (54, 40, 36)))
++BASELINE_AWAY = dict(zip(LEVELS, (38, 20, 6)))
++READ_STEPS = (100, 200, 400, 600, 800, 1000)
++FINAL_STEP = 1000
++PREVIOUS_STEP = {400: 200, 600: 400, 800: 600, FINAL_STEP: 800}
+ # The two comparative variants are information only, outside registered F1.
+ F1_TYPES = ('route_planning', 'object_counting',
+             'object_rel_direction_easy', 'object_rel_direction_medium',
+@@ -92,26 +96,37 @@
+                 unparsed_pairs=sum(a['answer_content'] is None or ff[k]['answer_content'] is None for k, a in aa.items()))
+ 
+ 
+-def stop_rule(f1_fail, f2_fail, away200, away100, away544):
+-    if f1_fail:
+-        return 'STOP'
+-    if not f2_fail:
+-        return 'CONTINUE'
+-    if away100 is None:
+-        raise ValueError('Step-100 results are required for the trend exception')
+-    rising = sum(away200[k] > away100[k] for k in LEVELS) >= 2
+-    above = all(away200[k] > away544[k] for k in LEVELS)
+-    return 'CONTINUE_TO_400' if rising and above else 'STOP'
+-
+-
+-def evaluate(a, b, step, m100=None, strict=True):
+-    if step not in (100, 200, 400):
+-        raise ValueError('Step must be 100, 200 or 400')
++def stop_rule(step, f1, f2_fail, away, away544, previous=None):
++    """D0_STOP_RULE_20261116 items 1–3; point F2 never enters this decision."""
++    if step == 100:
++        return dict(verdict=None, reasons=['step 100 gives no verdict'])
++    if step == FINAL_STEP:
++        decision = 'FAIL' if f2_fail else 'PASS'
++        return dict(verdict='FINAL', f2_decision=decision,
++                    reasons=['final export: F2 '+decision+'; the leg has ended'])
++    reasons = ['F1 '+task+': paired-difference upper bound '+str(value['ci95_pp'][1])+' < 0'
++               for task, value in f1.items() if value['ci95_pp'][1] < 0]
++    if step == 200:
++        for level in LEVELS:
++            if away[level] <= away544[level]:
++                reasons.append(f'facing {level}: away200={away[level]} <= away544={away544[level]}')
++    else:
++        below = [level for level in LEVELS if away[level] < previous[level]]
++        if len(below) >= 2 and f2_fail:
++            for level in below:
++                reasons.append(f'facing {level}: away{step}={away[level]} < '
++                               f'away{PREVIOUS_STEP[step]}={previous[level]}; '
++                               'at least two levels fell and F2 has not passed')
++    return dict(verdict='STOP' if reasons else 'CONTINUE',
++                reasons=reasons or ['no stop condition met'])
++
++
++def evaluate(a, b, step, prev=None, strict=True):
++    if step not in READ_STEPS:
++        raise ValueError('Step must be one of '+str(READ_STEPS))
+     index(a, 544); index(b, step)
+     keep = lambda rows: [r for r in rows if r['family'] != 'camera']
+     a, b = keep(a), keep(b)
+-    if m100 is not None:
+-        m100 = keep(m100)
+     align(a, b)
+     if strict:
+         inventory = json.loads((Path(__file__).parent/'kit/reader/e193_items.json').read_text())['families']
+@@ -119,8 +134,14 @@
+             actual = {r['id']: r['task_type'] for r in b if r['family'] == family}
+             if actual != inventory[family]['items']:
+                 raise ValueError('Accepted inventory differs')
+-    if m100 is not None:
+-        index(m100, 100); align(a, m100)
++    if step in PREVIOUS_STEP:
++        if prev is None:
++            raise ValueError(f'--prev step {PREVIOUS_STEP[step]} is required for step {step}')
++        index(prev, PREVIOUS_STEP[step])
++        prev = keep(prev)
++        align(b, prev)
++    elif prev is not None:
++        raise ValueError('--prev is only accepted at steps 400, 600, 800 and the final export')
+     def select(rows, family='main', task=None, level=None):
+         return [r for r in rows if r['family'] == family and (task is None or r['task_type'] == task)
+                 and (level is None or r['level'] == level)]
+@@ -131,6 +152,9 @@
+                    for t in F1_INFORMATION_TYPES}
+     away = {level: accuracy(select(b, 'away', level=level)) for level in LEVELS}
+     base = {level: accuracy(select(a, 'away', level=level)) for level in LEVELS}
++    for level in LEVELS:
++        if not math.isclose(base[level]['accuracy_pct'], BASELINE_AWAY[level], rel_tol=0, abs_tol=1e-12):
++            raise ValueError('Step-544 away point values must equal 38 / 20 / 6')
+     for level, value in away.items():
+         value.update(threshold_pct=THRESHOLDS[level], fail=value['ci95_pct'][0] <= THRESHOLDS[level],
+                      point_estimate_fail=value['accuracy_pct'] < THRESHOLDS[level])
+@@ -154,16 +178,16 @@
+         f2_verdict_reading='TRACE_RULING_2.7_LOWER_BOUND',
+         f2_point_estimate_information_only=dict(fail=point_fail),
+         f2_fail=f2_fail, guards=guards, f3_f4='NOT_EVALUATED_BY_DIRECT_READ; NON_STOPPING')
+-    if step == 200:
+-        means = lambda values: {k: values[k]['accuracy_pct'] for k in LEVELS}
+-        earlier = {k: accuracy(select(m100, 'away', level=k)) for k in LEVELS} if m100 is not None else None
+-        result['f2']['away100'] = earlier
+-        result['verdict'] = stop_rule(f1_fail, f2_fail, means(away), means(earlier) if earlier else None, means(base))
+-        result['f2_point_estimate_information_only']['verdict'] = stop_rule(
+-            f1_fail, point_fail, means(away), means(earlier) if earlier else None, means(base))
+-    elif step == 400:
+-        result['verdict'] = 'STOP' if f2_fail else 'CONTINUE'
+-        result['f2_point_estimate_information_only']['verdict'] = 'STOP' if point_fail else 'CONTINUE'
++    means = lambda values: {k: values[k]['accuracy_pct'] for k in LEVELS}
++    previous = ({k: accuracy(select(prev, 'away', level=k)) for k in LEVELS}
++                if prev is not None else None)
++    result['f2']['away_previous'] = previous
++    reference = means(previous) if previous is not None else means(base)
++    result['facing_comparison'] = dict(reference_step=PREVIOUS_STEP.get(step, 544),
++        levels={k: dict(current_pct=means(away)[k], previous_pct=reference[k],
++                        below=means(away)[k] < reference[k]) for k in LEVELS})
++    result.update(stop_rule(step, f1, f2_fail, means(away), means(base),
++                            means(previous) if previous is not None else None))
+     return result
+ 
+ 
+@@ -171,11 +195,11 @@
+     p = argparse.ArgumentParser(description=__doc__)
+     p.add_argument('--a', required=True, help='Accepted step-544 normalized JSONL')
+     p.add_argument('--b', required=True, help='Milestone ITEMS.jsonl')
+-    p.add_argument('--step', type=int, choices=(100, 200, 400), required=True)
+-    p.add_argument('--m100', help='Step-100 ITEMS.jsonl for the trend exception')
++    p.add_argument('--step', type=int, choices=READ_STEPS, required=True)
++    p.add_argument('--prev', help='Previous read ITEMS.jsonl; required at 400/600/800/1000')
+     p.add_argument('--output')
+     args = p.parse_args()
+-    result = evaluate(load(args.a), load(args.b), args.step, load(args.m100) if args.m100 else None)
++    result = evaluate(load(args.a), load(args.b), args.step, load(args.prev) if args.prev else None)
+     text = json.dumps(result, indent=2, sort_keys=True, allow_nan=False)+'\n'
+     if args.output:
+         Path(args.output).write_text(text)
+--- fix1/kit/launcher/orchard_launcher.py
++++ fix2/kit/launcher/orchard_launcher.py
+@@ -143,7 +143,7 @@
+ def validate_request(config):
+     if config.get('mode') != 'production' or config.get('bootstrap_parent', '/tmp') != '/tmp':
+         raise ValueError('Invalid execution mode')
+-    if config.get('schema') != 'a2' or config['spec']['step'] not in (100, 200, 400):
++    if config.get('schema') != 'a2' or config['spec']['step'] not in (100, 200, 400, 600, 800, 1000):
+         raise ValueError('Invalid job contract')
+     if canonical(config['spec']) != config['plan_sha256']:
+         raise ValueError('Plan differs')
+@@ -173,7 +173,7 @@
+ 
+ def prepare(token, destination, step, camera=False, pool='/project/community/jjyeung/okh7/ae71c903'):
+     valid_token(token)
+-    if step not in (100, 200, 400):
++    if step not in (100, 200, 400, 600, 800, 1000):
+         raise ValueError('Unsupported step')
+     destination = Path(destination)
+     if destination.exists():
+@@ -377,7 +377,7 @@
+     prepare_parser = actions.add_parser('prepare')
+     for name in ('token', 'destination'):
+         prepare_parser.add_argument('--'+name, required=True)
+-    prepare_parser.add_argument('--step',type=int,choices=(100,200,400),required=True)
++    prepare_parser.add_argument('--step',type=int,choices=(100,200,400,600,800,1000),required=True)
+     prepare_parser.add_argument('--camera',action='store_true')
+     prepare_parser.add_argument('--pool',default='/project/community/jjyeung/okh7/ae71c903')
+     submit_parser = actions.add_parser('submit')
+--- fix1/tests/test_kit.py
++++ fix2/tests/test_kit.py
+@@ -56,7 +56,7 @@
+ 
+ class KitTests(unittest.TestCase):
+     def test_prepare_both_steps_and_camera(self):
+-        for step,camera in [(100,False),(200,False),(400,False),(100,True)]:
++        for step,camera in [(s,False) for s in (100,200,400,600,800,1000)]+[(100,True)]:
+             dest=directory()/'prepared';token='a'+uuid.uuid4().hex[:12]
+             cfg=L.prepare(token,dest,step,camera)
+             L.validate_request(cfg);L.validate_batch((dest/'BATCH.sh').read_text(),cfg)
+@@ -158,7 +158,7 @@
+         self.assertLess(saved['bytes'],A.ARCHIVE_LIMIT)
+ 
+     def test_prepared_bootstrap_entry(self):
+-        for step in (100,200,400):
++        for step in (100,200,400,600,800,1000):
+             root=directory();dest=root/'prepared'
+             config=L.prepare('a'+uuid.uuid4().hex[:12],dest,step)
+             match=re.search(r"raw=base64.b64decode\('([^']+)'",(dest/'BATCH.sh').read_text())
+@@ -263,7 +263,7 @@
+                     if line.startswith(b'q8/'))
+         parsed=E.parse_done(sample+b'\n','469ddece',1)
+         self.assertEqual(parsed['bytes'],21583032320)
+-        for step in (100,200,400):
++        for step in (100,200,400,600,800,1000):
+             raw=f'q8/8865619b/359fcc3c_m{step}.tar 123 '.encode()+b'a'*64+b'\n'
+             self.assertEqual(E.parse_done(raw,'359fcc3c',step)['bytes'],123)
+             bad=[sample,raw.replace(b'359fcc3c',b'469ddece'),raw.replace(b'q8/8865619b',b'q8/other'),
+--- fix1/tests/test_verdict.py
++++ fix2/tests/test_verdict.py
+@@ -7,7 +7,9 @@
+ import f1f2 as F
+ 
+ 
+-def fixture(step, away=1, main=1, toward=1, alike=False):
++def fixture(step, away=None, main=1, toward=1, alike=False):
++    if away is None:
++        away = {k: v/100 for k, v in F.BASELINE_AWAY.items()} if step == 544 else 1
+     rows=[]
+     for task in F.F1_TYPES+F.F1_INFORMATION_TYPES:
+         for i in range(3):
+@@ -20,18 +22,19 @@
+             for family,score,answer in [('away',away,'left'),('forward',toward,'left' if alike else 'right')]:
+                 rows.append(dict(id=family+level+str(i),family=family,
+                     task_type='object_rel_direction_'+level,level=level,room=str(i),scene=str(i),
+-                    prediction=answer,answer_content=answer,score=score,scoring_basis='answer',
++                    prediction=answer,answer_content=answer,score=(score[level] if isinstance(score,dict) else score),scoring_basis='answer',
+                     budget=2048,step=step,pair_id=level+str(i),count_kind=None))
+     return rows
+ 
+ 
+ class VerdictTests(unittest.TestCase):
+     def test_step100_has_no_verdict(self):
+-        r=F.evaluate(fixture(544),fixture(100),100,strict=False)
+-        self.assertNotIn('verdict',r)
+-        self.assertFalse(r['f1_fail']);self.assertFalse(r['f2_fail'])
++        r=F.evaluate(fixture(544),fixture(100,main=0),100,strict=False)
++        self.assertIsNone(r['verdict'])
++        self.assertEqual(r['reasons'],['step 100 gives no verdict'])
++        self.assertTrue(r['f1_fail']);self.assertFalse(r['f2_fail'])
+         self.assertIsNone(r['guards']['total']['passes'])
+-        self.assertTrue(r['guards']['single']['passes'])
++        self.assertFalse(r['guards']['single']['passes'])
+ 
+     def test_f1_stop_dominates(self):
+         r=F.evaluate(fixture(544),fixture(200,main=0),200,strict=False)
+@@ -60,66 +63,78 @@
+             self.assertTrue(result['f1'][task]['fail'])
+             self.assertEqual(result['verdict'],'STOP')
+ 
+-    def test_cli_accepts_step400_and_prints_both_readings(self):
++    def test_cli_accepts_all_steps_and_prints_both_readings(self):
+         import contextlib,io,sys
+-        result=F.evaluate(fixture(544),fixture(400),400,strict=False)
+-        output=io.StringIO()
+-        with patch.object(sys,'argv',['f1f2.py','--a','a','--b','b','--step','400']),\
+-             patch.object(F,'load',side_effect=[fixture(544),fixture(400)]),\
+-             patch.object(F,'evaluate',return_value=result) as evaluate,contextlib.redirect_stdout(output):
+-            F.main()
+-        self.assertEqual(evaluate.call_args.args[2],400)
+-        printed=json.loads(output.getvalue())
+-        self.assertEqual(printed['verdict'],'CONTINUE')
+-        self.assertIn('f2_point_estimate_information_only',printed)
+-
+-    def test_step400_f2_alone_decides_and_reports_f1(self):
+-        for f1_fail in (False,True):
+-            for f2_fail in (False,True):
+-                result=F.evaluate(fixture(544),fixture(400,main=0 if f1_fail else 1,
+-                                  away=0 if f2_fail else 1),400,strict=False)
+-                self.assertEqual(result['f1_fail'],f1_fail)
+-                self.assertEqual(result['f2_fail'],f2_fail)
+-                self.assertEqual(result['verdict'],'STOP' if f2_fail else 'CONTINUE')
++        for step in F.READ_STEPS:
++            with self.subTest(step=step):
++                prev=fixture(F.PREVIOUS_STEP[step]) if step in F.PREVIOUS_STEP else None
++                result=F.evaluate(fixture(544),fixture(step),step,prev,strict=False)
++                output=io.StringIO()
++                argv=['f1f2.py','--a','a','--b','b','--step',str(step)]
++                rows=[fixture(544),fixture(step)]
++                if prev is not None:argv+=['--prev','prev'];rows.append(prev)
++                with patch.object(sys,'argv',argv),patch.object(F,'load',side_effect=rows), \
++                     patch.object(F,'evaluate',return_value=result) as evaluate,contextlib.redirect_stdout(output):
++                    F.main()
++                self.assertEqual(evaluate.call_args.args,(rows[0],rows[1],step,prev))
++                self.assertIn('f2_point_estimate_information_only',json.loads(output.getvalue()))
++
++    def test_later_reads_f1_stops_independently_of_f2(self):
++        for step in (400,600,800):
++            for f1_fail in (False,True):
++                for f2_fail in (False,True):
++                    with self.subTest(step=step,f1_fail=f1_fail,f2_fail=f2_fail):
++                        b=fixture(step,main=0 if f1_fail else 1,alike=f2_fail)
++                        r=F.evaluate(fixture(544),b,step,fixture(F.PREVIOUS_STEP[step]),strict=False)
++                        self.assertEqual(r['f1_fail'],f1_fail);self.assertEqual(r['f2_fail'],f2_fail)
++                        self.assertEqual(r['verdict'],'STOP' if f1_fail else 'CONTINUE')
+ 
+     def test_point_reading_is_information_only(self):
+         actual=F.bootstrap
+         def interval(rows,b=None):
+             result=actual(rows,b)
+-            if b is None and rows[0]['family']=='away':result['ci95_pp']=[0,100]
++            if b is None and rows[0]['family']=='away' and rows[0]['step']!=544:
++                result['ci95_pp']=[0,100]
+             return result
+-        b=fixture(200)
+-        means=dict(zip(F.LEVELS,(.60,.46,.42)))
+-        for row in b:
+-            if row['family']=='away':row['score']=means[row['level']]
+-        with patch.object(F,'bootstrap',side_effect=interval):
+-            result=F.evaluate(fixture(544),b,200,fixture(100),strict=False)
+-        self.assertTrue(result['f2_fail'])
++        for step in (200,400,600,800):
++            prev=fixture(F.PREVIOUS_STEP[step]) if step in F.PREVIOUS_STEP else None
++            b=fixture(step,away=dict(zip(F.LEVELS,(.60,.46,.42))))
++            with patch.object(F,'bootstrap',side_effect=interval):
++                result=F.evaluate(fixture(544),b,step,prev,strict=False)
++                b_low_point=fixture(step,away=.39)
++                other=F.evaluate(fixture(544),b_low_point,step,prev,strict=False)
++            self.assertTrue(result['f2_fail'])
++            self.assertFalse(result['f2_point_estimate_information_only']['fail'])
++            self.assertTrue(other['f2_point_estimate_information_only']['fail'])
++            self.assertEqual(result['verdict'],other['verdict'])
++            self.assertEqual(result['verdict'],'CONTINUE' if step==200 else 'STOP')
++            self.assertNotIn('verdict',result['f2_point_estimate_information_only'])
++        b=fixture(200,away={k:v/100 for k,v in F.THRESHOLDS.items()})
++        result=F.evaluate(fixture(544),b,200,strict=False)
+         self.assertFalse(result['f2_point_estimate_information_only']['fail'])
+-        self.assertEqual(result['verdict'],'STOP')
+-        self.assertEqual(result['f2_point_estimate_information_only']['verdict'],'CONTINUE')
+-        for row in b:
+-            if row['family']=='away':row['score']=F.THRESHOLDS[row['level']]/100
+-        result=F.evaluate(fixture(544),b,200,fixture(100),strict=False)
+-        self.assertFalse(result['f2_point_estimate_information_only']['fail'])
+-
+-    def test_f2_fail_without_trend_stops(self):
+-        r=F.evaluate(fixture(544),fixture(200,away=0),200,fixture(100),strict=False)
++
++    def test_step200_away_below_baseline_stops(self):
++        r=F.evaluate(fixture(544),fixture(200,away=0),200,strict=False)
+         self.assertTrue(r['f2_fail']);self.assertEqual(r['verdict'],'STOP')
+-
+-    def test_trend_extension(self):
+-        r=F.evaluate(fixture(544,away=0),fixture(200,alike=True),200,fixture(100,away=0),strict=False)
++        for level in F.LEVELS:
++            self.assertTrue(any(level in reason and 'away200=' in reason and 'away544=' in reason
++                                for reason in r['reasons']))
++
++    def test_step200_f2_failure_with_all_levels_above_continues(self):
++        r=F.evaluate(fixture(544),fixture(200,alike=True),200,strict=False)
+         self.assertFalse(r['f1_fail']);self.assertTrue(r['f2_fail'])
+-        self.assertEqual(r['verdict'],'CONTINUE_TO_400')
+-
+-    def test_trend_strict_equalities_and_two_levels(self):
+-        base=dict.fromkeys(F.LEVELS,0);old=dict.fromkeys(F.LEVELS,50)
+-        for new,expected in [({'easy':60,'medium':60,'hard':50},'CONTINUE_TO_400'),
+-                             ({'easy':60,'medium':50,'hard':50},'STOP'),
+-                             ({'easy':60,'medium':60,'hard':0},'STOP')]:
+-            self.assertEqual(F.stop_rule(False,True,new,old,base),expected)
+-        with self.assertRaisesRegex(ValueError,'Step-100'):
+-            F.stop_rule(False,True,base,None,base)
++        self.assertEqual(r['verdict'],'CONTINUE')
++        self.assertEqual(r['reasons'],['no stop condition met'])
++
++    def test_step200_equal_one_level_stops_just_above_all_continues(self):
++        for level in F.LEVELS:
++            means={k:v/100+1e-6 for k,v in F.BASELINE_AWAY.items()}
++            means[level]=F.BASELINE_AWAY[level]/100
++            r=F.evaluate(fixture(544),fixture(200,away=means),200,strict=False)
++            self.assertEqual(r['verdict'],'STOP')
++            self.assertTrue(any(level in reason for reason in r['reasons']))
++        means={k:v/100+1e-6 for k,v in F.BASELINE_AWAY.items()}
++        self.assertEqual(F.evaluate(fixture(544),fixture(200,away=means),200,strict=False)['verdict'],'CONTINUE')
+ 
+     def test_bootstrap_sign_zero_boundary_and_cluster_weighting(self):
+         a=fixture(544)[:3];b=copy.deepcopy(a)
+@@ -199,5 +214,105 @@
+         self.assertEqual(result['pairs'],150);self.assertEqual(result['alike_pairs'],74)
+         with self.assertRaises(ValueError):F.evaluate(rows,fixture(100),100)
+ 
++    def test_f1_upper_zero_and_just_negative_at_every_read(self):
++        actual=F.bootstrap
++        for step in (200,400,600,800):
++            for upper in (0,-1e-9):
++                def boundary(rows,b=None):
++                    out=actual(rows,b)
++                    if b is not None and rows[0]['task_type']==F.F1_TYPES[0]:
++                        out['ci95_pp']=[-1,upper]
++                    return out
++                with self.subTest(step=step,upper=upper),patch.object(F,'bootstrap',side_effect=boundary):
++                    prev=fixture(F.PREVIOUS_STEP[step]) if step in F.PREVIOUS_STEP else None
++                    r=F.evaluate(fixture(544),fixture(step),step,prev,strict=False)
++                    self.assertEqual(r['verdict'],'STOP' if upper<0 else 'CONTINUE')
++
++    def test_two_levels_below_with_f2_failing_stops(self):
++        self.check_later_facing((.9,.9,1),True,'STOP')
++
++    def test_two_levels_below_with_f2_passing_continues(self):
++        self.check_later_facing((.9,.9,1),False,'CONTINUE')
++
++    def test_one_level_below_continues(self):
++        self.check_later_facing((.9,1,1),True,'CONTINUE')
++
++    def test_two_levels_equal_continues(self):
++        self.check_later_facing((1,1,.9),True,'CONTINUE')
++
++    def check_later_facing(self,values,f2_fail,expected):
++        for step in (400,600,800):
++            with self.subTest(step=step):
++                r=F.evaluate(fixture(544),fixture(step,away=dict(zip(F.LEVELS,values)),alike=f2_fail),
++                             step,fixture(F.PREVIOUS_STEP[step]),strict=False)
++                self.assertEqual(r['f2_fail'],f2_fail);self.assertEqual(r['verdict'],expected)
++                if expected=='STOP':
++                    self.assertEqual(len(r['reasons']),2)
++                    for level in ('easy','medium'):
++                        self.assertTrue(any(level in reason and f'away{step}=90.0' in reason
++                            and f'away{F.PREVIOUS_STEP[step]}=100.0' in reason for reason in r['reasons']))
++
++    def test_prev_missing_refused(self):
++        for step in F.PREVIOUS_STEP:
++            with self.subTest(step=step),self.assertRaisesRegex(ValueError,'--prev'):
++                F.evaluate(fixture(544),fixture(step),step,strict=False)
++
++    def test_prev_wrong_step_refused(self):
++        for step in F.PREVIOUS_STEP:
++            with self.subTest(step=step),self.assertRaisesRegex(ValueError,'Wrong step'):
++                F.evaluate(fixture(544),fixture(step),step,fixture(100),strict=False)
++
++    def test_prev_wrong_membership_or_metadata_refused(self):
++        for step in F.PREVIOUS_STEP:
++            for mode in ('missing','duplicate','metadata'):
++                prev=fixture(F.PREVIOUS_STEP[step])
++                if mode=='missing':prev=prev[1:]
++                elif mode=='duplicate':prev+=prev[:1]
++                else:prev[0]['scene']='wrong'
++                with self.subTest(step=step,mode=mode),self.assertRaises(ValueError):
++                    F.evaluate(fixture(544),fixture(step),step,prev,strict=False)
++
++    def test_baseline_544_must_be_38_20_6(self):
++        for level in F.LEVELS:
++            means={k:v/100 for k,v in F.BASELINE_AWAY.items()};means[level]+=1e-6
++            with self.subTest(level=level),self.assertRaisesRegex(ValueError,'38 / 20 / 6'):
++                F.evaluate(fixture(544,away=means),fixture(200),200,strict=False)
++
++    def test_alike_exactly_twenty_passes_above_fails(self):
++        actual=F.twins
++        for alike in (20,20.0001):
++            def boundary(rows):
++                return dict(actual(rows),alike_pct=alike)
++            with patch.object(F,'twins',side_effect=boundary):
++                r=F.evaluate(fixture(544),fixture(200),200,strict=False)
++            self.assertEqual(r['f2_fail'],alike>20)
++            self.assertEqual(r['verdict'],'CONTINUE')
++
++    def test_toward_interval_upper_zero_passes_negative_fails(self):
++        actual=F.bootstrap
++        for upper in (0,-1e-9):
++            def boundary(rows,b=None):
++                out=actual(rows,b)
++                if b is not None and rows[0]['family']=='forward':out['ci95_pp']=[-1,upper]
++                return out
++            with patch.object(F,'bootstrap',side_effect=boundary):
++                r=F.evaluate(fixture(544),fixture(200),200,strict=False)
++            self.assertEqual(r['f2_fail'],upper<0)
++            self.assertEqual(r['verdict'],'CONTINUE')
++
++    def test_final_export_gives_final_and_f2_decision(self):
++        for fails in (False,True):
++            r=F.evaluate(fixture(544),fixture(1000,main=0,alike=fails),1000,fixture(800),strict=False)
++            self.assertEqual(r['verdict'],'FINAL');self.assertTrue(r['f1_fail'])
++            self.assertEqual(r['f2_decision'],'FAIL' if fails else 'PASS')
++            self.assertEqual(r['facing_comparison']['reference_step'],800)
++            self.assertEqual(set(r['facing_comparison']['levels']),set(F.LEVELS))
++            self.assertEqual(len(r['f1']),7)
++
++    def test_all_fired_rules_are_reported(self):
++        r=F.evaluate(fixture(544),fixture(200,main=0,away=0),200,strict=False)
++        self.assertEqual(len(r['reasons']),10)
++        for task in F.F1_TYPES:self.assertTrue(any(task in reason for reason in r['reasons']))
++
+ 
+ if __name__=='__main__':unittest.main()
+diff --git a/codex_fix2.log b/codex_fix2.log
+new file mode 100644
+--- /dev/null
++++ fix2/codex_fix2.log

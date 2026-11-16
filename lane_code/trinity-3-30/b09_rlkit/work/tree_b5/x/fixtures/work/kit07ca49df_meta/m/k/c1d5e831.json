@@ -1,0 +1,224 @@
+{
+ "align": null,
+ "all_frames": true,
+ "base_identity": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+ "camera_overrides": {
+  "weight_focal": 2.0
+ },
+ "carrier_placement": "append_after_temporal_group_video_tokens_v1",
+ "code": {
+  "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/7.json",
+  "sha256": "bf52638c299aeb2ff2ebc90c3c22de7482b8317ee7fcc05f3e42463e5cf92531"
+ },
+ "depth_enabled": true,
+ "depth_fov_source": "pose_head",
+ "depth_init": {
+  "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/97a6a3eb/runs/b19c1200/train/step_400/heads.json",
+  "sha256": "fd60ac2f525727836258ae7ea0705ff3a49163ae74320f7bf8a17b66cd69f0c7"
+ },
+ "exclude_qids": {
+  "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/66c427e2.json",
+  "sha256": "66c427e2262331be2e0c598f2ecc39087f3a722a5155caaf1ab84a89c8cd0f6f"
+ },
+ "exclusions": {
+  "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/dafa4a9c.json",
+  "sha256": "dafa4a9c8ffd1e063e0a98c5ae6087d911b74f864932e530f24d45b816cca6fb"
+ },
+ "frame_layout": "duplicate",
+ "frame_markers": true,
+ "gate_stop": false,
+ "grounding": true,
+ "init": "base",
+ "init_artifact": {
+  "artifact": {
+   "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/f2ad01ad/runs/49becb79/m200/artifact.json",
+   "sha256": "c1a4258816b3f561c9891f74cc1138780900de5cd890320161d2c94c85a86f67"
+  },
+  "heads": [
+   "pose",
+   "depth"
+  ],
+  "lm": "full"
+ },
+ "lm_lr_scale": 0.6,
+ "milestone_gate": null,
+ "milestones": [
+  50,
+  100,
+  200,
+  400,
+  600,
+  800,
+  1000
+ ],
+ "mix": [
+  "pose",
+  "vqa",
+  "vqa",
+  "pointing",
+  "routing"
+ ],
+ "output": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/c1d58a31",
+ "parallel": "fsdp",
+ "pointing_weights": {
+  "decision": 5.0,
+  "row_mean": 2.0
+ },
+ "pose_exclusions": {
+  "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/600ef69d.json",
+  "sha256": "600ef69de0674fb15c8972f3b64f0bd19e682a5a1ca19ab01e8d41279d064295"
+ },
+ "pose_lr_scale": 0.6,
+ "preparation": {
+  "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/arm/c1d5e631/receipt.json",
+  "sha256": "4a221b7b77b5aeb0081129b36d9db02c6219dc5c9ee3298e215ec97fa59e357b"
+ },
+ "preparation_output": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/arm/c1d5e631",
+ "readout": {
+  "bank": {
+   "path": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/e84d901c/z/986ba20f.npz",
+   "sha256": "0471677f8c4346fc856ff39ad45c2cf824a6b5040b214ee3468e72af1dac3015"
+  },
+  "contiguous_clips": null,
+  "rows_inventory": {
+   "path": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/544dcf9b/in/30c516bf.json",
+   "sha256": "d6d6a53add2ea60facaec4b67fd1d8becfcd4dc3183139eb1509b222e3d27491"
+  },
+  "training_scenes": {
+   "path": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/e84d901c/z/eb035f92.json",
+   "sha256": "edaecb6c742495041784ea7cefe027bdbce08efc76cf427a7bc1f7ad5da9f6e4"
+  }
+ },
+ "recipe": {
+  "clip_norm": 1.0,
+  "encoder_learning_rate": 1e-05,
+  "export_at_stop": true,
+  "global_batch": 160,
+  "learning_rate": 0.0001,
+  "lm_learning_rate": 1e-05,
+  "milestones": [
+   50,
+   100,
+   200,
+   400,
+   600,
+   800,
+   1000
+  ],
+  "mix": [
+   "pose",
+   "pose",
+   "pose",
+   "pose",
+   "vqa",
+   "vqa",
+   "vqa",
+   "vqa",
+   "vqa",
+   "vqa",
+   "vqa",
+   "vqa",
+   "pointing",
+   "pointing",
+   "pointing",
+   "pointing",
+   "routing",
+   "routing",
+   "routing",
+   "routing"
+  ],
+  "reference_world_size": 32,
+  "resume_every_seconds": 3600.0,
+  "scheduled_sampling": {
+   "depth_open_absrel": 0.25,
+   "ema_steps": 100,
+   "exposure_from_step": null,
+   "exposure_probability": 0.0,
+   "force_from_step": null,
+   "fov_open_deg": 2.0,
+   "max_own_probability": 0.0,
+   "pose_full_deg": 10.0,
+   "pose_open_deg": 20.0,
+   "seed": 17
+  },
+  "seed": 17,
+  "steps": 1000,
+  "stop_before_seconds": 3600,
+  "wall_seconds": 84600,
+  "warmup_ratio": 0.05,
+  "weight_decay": 0.01,
+  "weights": {
+   "depth": 0.25,
+   "depth_fov": 0.05,
+   "pointing": 1.0,
+   "pose": 1.5,
+   "routing": 1.0,
+   "vqa": 1.0
+  },
+  "world_size": 8
+ },
+ "reference_world_size": 32,
+ "report_exclusions": {
+  "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/f1a2c7e9/k/99e6eed6.json",
+  "sha256": "99e6eed6186602832a1ca15176c4d21ab67ba24e87a15dd0cad02cac6ee13688"
+ },
+ "route_table": {
+  "absolute_distance_object": "route",
+  "camera_displacement": "route",
+  "camera_movement_direction": "route",
+  "camera_obj_abs_dist": "route",
+  "camera_rotation": "route",
+  "object_abs_distance": "route",
+  "object_rel_direction_easy": "direct",
+  "object_rel_direction_hard": "route",
+  "object_rel_direction_medium": "route",
+  "object_rel_distance": "route",
+  "relative_distance_object": "route"
+ },
+ "schedule": {
+  "checkpoint_seconds": 600.0,
+  "export_seconds": 600.0,
+  "p95_step_seconds": 300.0,
+  "startup_seconds": 3600.0
+ },
+ "scheduled_sampling": {
+  "depth_open_absrel": 0.25,
+  "ema_steps": 100,
+  "exposure_from_step": null,
+  "exposure_probability": 0.0,
+  "force_from_step": null,
+  "fov_open_deg": 2.0,
+  "max_own_probability": 0.0,
+  "pose_full_deg": 10.0,
+  "pose_open_deg": 20.0,
+  "seed": 17
+ },
+ "schema": "carrier-c1-run-v1",
+ "skip_unsupervised_lm": false,
+ "steps": 1000,
+ "streams": {
+  "pointing": {
+   "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/1742c666/s/q123196/pc1_out/receipt.json",
+   "sha256": "0d7ebb3e654a7a81ef462a6bf6c9c66c2db0670cd3fef90490685efdfe73a781"
+  },
+  "pose": {
+   "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/8957d119.json",
+   "sha256": "8957d119bfa6776efe776816675da6d0f610a6e8c336acd66c297f29cf4e7e0f"
+  },
+  "routing": {
+   "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/5e1d07a4/f/h/r16/receipt.json",
+   "sha256": "9a7f33103ee6faa9d44bfb7f02b6166ef6fc9f8e1bc5bac8681c697dce8a8851"
+  },
+  "vqa": {
+   "path": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/1742c666/s/q127808/vxm_m4/receipt.json",
+   "sha256": "524b14f9f180ba7d2c1c860cab294145b7370f3f1282960a55bbcbc6c5657634"
+  }
+ },
+ "training_mode": "final",
+ "weights": {
+  "depth": 0.25,
+  "pointing": 1.0,
+  "pose": 1.5
+ },
+ "world_size": 8
+}

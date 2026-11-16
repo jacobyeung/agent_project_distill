@@ -1,0 +1,2 @@
+cd /scratch/jjyeung/orch_n30/rows_rebuild/work/s0 && tar cf - pull | ssh -o ConnectTimeout=20 -o BatchMode=yes trinity-1-18.ib "cd /scratch/jjyeung/orch_n30/b10_reserve/in/kit07 && tar xf -" && echo COPY_OK
+cd pull && find . -type f | sort | xargs sha256sum > /tmp/b10_pull_sha.txt; wc -l /tmp/b10_pull_sha.txt; cat /tmp/b10_pull_sha.txt | ssh -o ConnectTimeout=20 -o BatchMode=yes trinity-1-18.ib "cat > /scratch/jjyeung/orch_n30/b10_reserve/in/kit07/pull_sha_src.txt"
