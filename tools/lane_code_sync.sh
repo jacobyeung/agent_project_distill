@@ -26,11 +26,11 @@ log() { echo "$(ts) $*"; }
 fail() { FAILS="$FAILS; $*"; log "FAIL $*"; }
 [ "$(hostname -s)" = trinity-3-30 ] || { log "FAIL not on trinity-3-30"; exit 2; }
 exec 8>"$S/.sync.lock"; flock -n 8 || { log "FAIL previous run still holds the lock"; exit 3; }
-log "START dry=$DRY${QUEUE_ONLY:+ queue_only=$QUEUE_ONLY}"
+log "START dry=$DRY queue_only=$QUEUE_ONLY"
 
 # Push-queue step: publish each builder branch queued in <lane>/PUSH_QUEUE.txt to origin.
 # A queue line is "<UTC> <branch> <sha> [<clone path>]". Accepted only: branch ^eff/[a-z0-9-]+$, a lane folder
-# $LANES_ROOT/(e|eff)_<name>, a clone at <lane>/clone (or <lane>/repo), the fetched branch head equal to or
+# $LANES_ROOT/(e|eff)_<name>, a clone at <lane>/clone or <lane>/repo (a link between those two is fine), the fetched branch head equal to or
 # descending from <sha>, and no secret-scan flag on the files the branch changes against main. The push is
 # "origin <sha>:refs/heads/<branch>" without force, verified with ls-remote. Done lines go to $S/PUSH_DONE.txt,
 # permanent refusals (logged once) to $S/PUSH_REFUSED.txt; a transient fetch or push failure retries next hour.
@@ -61,7 +61,8 @@ push_queue() {
       if ! [[ "$name" =~ ^(e|eff)_[a-z0-9_-]+$ ]] || [ -n "${extra:-}" ]; then qrefuse "$lane" "$br" "$sha" "lane folder or line outside the pattern"; continue; fi
       [ -n "${cpath:-}" ] || { cpath=$lane/clone; [ -d "$cpath" ] || cpath=$lane/repo; }
       clone=$(realpath -e "$cpath" 2>/dev/null)
-      if [ "$clone" != "$cpath" ] || { [ "$clone" != "$lane/clone" ] && [ "$clone" != "$lane/repo" ]; } \
+      if { [ "$cpath" != "$lane/clone" ] && [ "$cpath" != "$lane/repo" ]; } \
+         || { [ "$clone" != "$lane/clone" ] && [ "$clone" != "$lane/repo" ]; } \
          || [ "$(realpath -e "$lane" 2>/dev/null)" != "$lane" ] || [ ! -d "$clone/.git" ]; then
         qrefuse "$lane" "$br" "$sha" "clone path $cpath is not <lane>/clone or <lane>/repo"; continue; fi
       if ! timeout 300 git -C "$R" fetch -q --no-tags "$clone" "refs/heads/$br" 2>&1; then

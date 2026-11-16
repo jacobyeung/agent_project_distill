@@ -138,6 +138,21 @@ class PushQueueTest(unittest.TestCase):
         self.assertIn('QUEUE done: 0 new lines', out)
         self.assertEqual(self.remote('eff/test'), '')
 
+    def test_clone_link_inside_lane_is_accepted_link_outside_refused(self):
+        lane, repo = self.lane('e_a', sub='repo')
+        os.symlink('repo', os.path.join(lane, 'clone'))
+        s1 = self.commit(repo, 'a.py', 'x = 1\n')
+        self.queue(lane, '2026-11-16T00:00:00Z eff/test ' + s1)
+        rc, out = self.sync()
+        self.assertEqual(rc, 0, out)
+        self.assertEqual(self.remote('eff/test'), s1)
+        lane2, real2 = self.lane('e_b', branch='eff/other', sub='real')
+        os.symlink(os.path.join(self.lanes, 'e_a', 'repo'), os.path.join(lane2, 'clone'))
+        self.queue(lane2, '2026-11-16T00:00:01Z eff/other ' + self.commit(real2, 'b.py', 'y = 2\n'))
+        rc, out = self.sync()
+        self.assertIn('is not <lane>/clone', out)
+        self.assertEqual(self.remote('eff/other'), '')
+
     def test_publishes_fast_forward_and_repeat_is_done(self):
         lane, clone = self.lane('e_a', sub='repo')
         s1 = self.commit(clone, 'a.py', 'x = 1\n')
