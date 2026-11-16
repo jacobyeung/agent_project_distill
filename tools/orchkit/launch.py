@@ -43,8 +43,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE = os.path.join(HERE, 'templates', 'job.sh.tmpl')
 SCHEMAS = os.path.join(HERE, 'schema')
 PREFIX = 'a15_cot_ap'
-TOKEN = re.compile(r'^[0-9a-f]{16}$')
-JOB_NAME = re.compile(r'^a15_cot_ap[0-9a-f]{16}$')
+TOKEN = re.compile(r'^[0-9a-f]{16}\Z')
+JOB_NAME = re.compile(r'^a15_cot_ap[0-9a-f]{16}\Z')
 ONE_JOB_PARTITIONS = ('general',)
 OSSH = '/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/tools/ossh.sh'
 SCRIPT_LIMIT = 4 * 1024 * 1024 - 64 * 1024
@@ -258,8 +258,10 @@ def live_check(partition):
     if partition not in ONE_JOB_PARTITIONS:
         return ': no one-job gate on %s' % partition
     return '\n'.join([
-        'for live in $(squeue -h -u "${USER:-$(id -un)}" -p %s -o %%j </dev/null | grep "^%s" || true); do' % (
-            partition, PREFIX),
+        'queue=$(squeue -h -u "${USER:-$(id -un)}" -p %s -o %%j </dev/null) || '
+        '{ echo "LIVE unknown: squeue failed"; exit 6; }' % partition,
+        'for live in $queue; do',
+        '  case "$live" in %s*) ;; *) continue;; esac' % PREFIX,
         '  case " ${QUEUE_BEHIND:-} " in *" $live "*) ;; *) echo "LIVE $live"; exit 6;; esac',
         'done'])
 
@@ -278,11 +280,14 @@ def submit_script(config, token, script):
         '        vfs = os.statvfs(path)',
         '        free = vfs.f_bavail * vfs.f_frsize',
         '        probe = os.path.join(path, ".p_probe")',
-        '        with open(probe, "wb") as out:',
-        '            out.write(b"\\0" * min(need, 8 << 20))',
-        '            out.flush()',
-        '            os.fsync(out.fileno())',
-        '        open(probe, "wb").close()',
+        '        fd = os.open(probe, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)',
+        '        try:',
+        '            if need:',
+        '                os.posix_fallocate(fd, 0, need)',
+        '                os.fsync(fd)',
+        '        finally:',
+        '            os.ftruncate(fd, 0)',
+        '            os.close(fd)',
         '    except OSError as err:',
         '        print("SHORT %s %s" % (label, err))',
         '        sys.exit(3)',
@@ -381,8 +386,10 @@ def prepare(kit, config_path, out, lane, meaning, checkout, dryrun=None, no_dryr
     script = render(config, token, payload)
     remote = submit_script(config, token, script)
     argv = transport_argv()
-    hits = anon.scan_job(rules, job_name=name, script=script, argv=config['entry'], env={})
-    hits += anon.scan_text('submit', remote, rules, 'text')
+    hits = anon.scan_job(rules, job_name=name, script=script, argv=config['entry'],
+                         env=(config.get('return') or {}).get('gcs_env') or {})
+    hits += anon.scan_text('script', script, rules, 'name')
+    hits += anon.scan_text('submit', remote, rules, 'name')
     hits += anon.scan_text('JOB.json', util.canonical_json(job).decode('utf-8'), rules, 'name')
     if hits:
         raise LaunchError('opacity: %s' % json.dumps(hits, sort_keys=True)[:2000])
@@ -452,13 +459,26 @@ def submit(prep, go, execute=False, ledger_file=None, transport=None, out=sys.st
     out.write('%s < %s\n' % (' '.join(argv), os.path.join(prep, record['stdin'])))
     if not execute:
         return {'executed': False, 'argv': argv}
-    util.write_json(os.path.join(prep, 'SUBMIT_INTENT.json'),
-                    {'token': token, 'utc': util.utc_iso(), 'go': os.path.abspath(go)})
+    with open(os.path.join(prep, record['stdin']), 'rb') as handle:
+        pinned = handle.read()
+    if util.sha256_bytes(pinned) != record['submit_sha256']:
+        raise LaunchError('%s changed after prepare' % record['stdin'])
+    try:
+        fd = os.open(os.path.join(prep, 'SUBMIT_INTENT.json'), os.O_WRONLY | os.O_CREAT | os.O_EXCL,
+                     0o600)
+    except OSError:
+        raise LaunchError('another submit of %s holds the intent; never repeat a submit' % token)
+    with os.fdopen(fd, 'wb') as handle:
+        handle.write(util.canonical_json({'token': token, 'utc': util.utc_iso(),
+                                          'go': os.path.abspath(go)}) + b'\n')
+        handle.flush()
+        os.fsync(handle.fileno())
+    if any(row.get('event') == 'submitted' for row in ledger.lookup(token, ledger_file)):
+        raise LaunchError('ledger already shows %s submitted' % token)
     behind = sorted(set(PREFIX + found for found in re.findall(r'(?<![0-9a-f])([0-9a-f]{16})(?![0-9a-f])',
                                                                  go_text) if found != token))
-    with open(os.path.join(prep, record['stdin']), 'rb') as handle:
-        body = ('QUEUE_BEHIND=%s\n' % ("'%s'" % ' '.join(behind) if behind and re.search(
-            r'queue[ _-]behind', go_text, re.I) else "''")).encode('utf-8') + handle.read()
+    body = ('QUEUE_BEHIND=%s\n' % ("'%s'" % ' '.join(behind) if behind and re.search(
+        r'queue[ _-]behind', go_text, re.I) else "''")).encode('utf-8') + pinned
     code, stdout, stderr = (transport or run_transport)(argv, body)
     text = stdout.decode('utf-8', 'replace')
     found = re.search(r'^JOBID=(\d+)\s*$', text, re.M)

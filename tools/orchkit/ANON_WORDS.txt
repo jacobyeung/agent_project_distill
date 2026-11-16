@@ -26,15 +26,14 @@ text /home/jjyeung/agent
 text .claude
 text distill_sync
 # Lanes and the library's own name
-textre orch_n[0-9]
+textre (?i)orch_n[0-9]
 text orch_cd
 text cont_ops
 text k1_ops
 text evalx
 text trin_read
-textre native_r[0-9]
+textre (?i)native_r[0-9]
 text tree_rebuild
 text eff_audit
 # The library's name never ships; only the shared format identifiers (orchkit-<format>-v1) may.
-name orchkit
-textre (?i)orchkit(?!-(pins|config|dryrun|ledger|verdict|read|submit)-v1)
+textre (?i)orchkit(?!-(pins|config|dryrun|ledger|verdict|read|submit)-v1(?![\w-]))

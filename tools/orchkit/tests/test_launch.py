@@ -404,5 +404,111 @@ class LocalRunTest(LaunchBase):
         self.assertTrue(receipt['returned'])
 
 
+class ReviewFindingsTest(LaunchBase):
+    """Regressions for the review findings OC-02 and OC-04 to OC-08."""
+
+    def test_oc02_config_names_and_env_are_checked(self):
+        for change in ('root', 'env', 'pool'):
+            config = self.config()
+            config['return']['pool'] = '/project/x/pool'
+            config['job']['root_parent'] = '/tmp'
+            if change == 'root':
+                config['job']['root_parent'] = '/tmp/split'
+            elif change == 'env':
+                config['return']['gcs_env'] = {'SPLIT_MODEL': '/project/u/a'}
+            else:
+                config['return']['pool'] = '/project/u/split/logs'
+            kit, dry = self.kit(config)
+            with self.assertRaises(launch.LaunchError, msg=change) as caught:
+                self.prepare(kit, dry, rules=anon.load_rules())
+            self.assertIn('opacity', str(caught.exception))
+
+    def test_oc04_token_with_newline_is_refused(self):
+        with self.assertRaises(launch.LaunchError):
+            launch.mint_job_name('0123456789abcdef\n')
+
+    def test_oc05_failed_squeue_fails_closed(self):
+        script = ('set -euo pipefail\nsqueue(){ return 1; }\n' + launch.live_check('general') +
+                  '\necho WOULD_SUBMIT\n')
+        process = subprocess.Popen(['bash', '-s'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        out, _ = process.communicate(script.encode())
+        self.assertEqual(process.returncode, 6)
+        self.assertNotIn(b'WOULD_SUBMIT', out)
+        self.assertTrue(out.startswith(b'LIVE '))
+
+    def test_oc06_room_check_reserves_the_whole_budget(self):
+        need, remaining = 100 << 20, 16 << 20
+        script = launch.submit_script({'job': {'partition': 'general'},
+                                       'budgets': {'home': {'max_bytes': need}}},
+                                      '0123456789abcdef', '#!/bin/bash\n')
+        check = script.split("CHECK_0123456789abcdef'\n", 1)[1].split('\nCHECK_0123456789abcdef', 1)[0]
+        home = os.path.join(self.base, 'home')
+        asked = []
+        real = os.posix_fallocate
+
+        def fallocate(fd, offset, length):
+            asked.append(length)
+            if length > remaining:
+                raise OSError(122, 'Disk quota exceeded')
+            return real(fd, offset, length)
+
+        saved = os.environ.get('HOME')
+        os.environ['HOME'] = home
+        os.posix_fallocate = fallocate
+        try:
+            with self.assertRaises(SystemExit) as caught:
+                exec(check, {})
+        finally:
+            os.posix_fallocate = real
+            os.environ['HOME'] = saved
+        self.assertEqual(caught.exception.code, 3)
+        self.assertEqual(asked, [need])
+        self.assertEqual(os.path.getsize(os.path.join(home, '.p_probe')), 0)
+
+    def test_oc07_a_second_claim_of_the_intent_is_refused(self):
+        kit, dry = self.kit()
+        record, prep = self.prepare(kit, dry)
+        intent = os.path.join(prep, 'SUBMIT_INTENT.json')
+        real_open = os.open
+        calls = []
+
+        def racing_open(path, flags, mode=0o777):
+            if path == intent and not os.path.exists(intent):
+                with open(intent, 'w') as handle:
+                    handle.write('{"other": true}\n')
+            return real_open(path, flags, mode)
+
+        launch.os.open = racing_open
+        try:
+            with self.assertRaises(launch.LaunchError) as caught:
+                launch.submit(prep, self.go('GO %s\n' % record['token']), execute=True,
+                              transport=lambda argv, body: calls.append(body), out=io.StringIO())
+        finally:
+            launch.os.open = real_open
+        self.assertIn('holds the intent', str(caught.exception))
+        self.assertEqual(calls, [])
+
+    def test_oc08_bytes_sent_are_the_bytes_checked(self):
+        kit, dry = self.kit()
+        record, prep = self.prepare(kit, dry)
+        real = launch._load_prep
+        calls = []
+
+        def load_then_swap(path):
+            value = real(path)
+            write(os.path.join(path, 'SUBMIT.sh'), '#!/bin/bash\necho swapped\n')
+            return value
+
+        launch._load_prep = load_then_swap
+        try:
+            with self.assertRaises(launch.LaunchError) as caught:
+                launch.submit(prep, self.go('GO %s\n' % record['token']), execute=True,
+                              transport=lambda argv, body: calls.append(body), out=io.StringIO())
+        finally:
+            launch._load_prep = real
+        self.assertIn('changed after prepare', str(caught.exception))
+        self.assertEqual(calls, [])
+
+
 if __name__ == '__main__':
     unittest.main()
