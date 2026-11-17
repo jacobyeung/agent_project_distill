@@ -24,3 +24,4 @@ for l in L[-2:]:
     print('== metrics rows %d step %s wall %s finite %s %s share %s/%s=%s trig %s' % (len(L), r['step'], round(rs[0]['wall_seconds']), fin, sm, st.get('window_answer_differs'), st.get('window_own'), st.get('window_share') and round(st['window_share'],3), st.get('triggered')))
 PY
 ls $K/o | grep -E "gcs_17c4ffa4|m100|m200|H1_STOP" | tr '\n' ' '; echo
+squeue -u jjyeung -p general -h -o "GEN %i %j %T %M %R" 2>&1

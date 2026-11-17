@@ -17,6 +17,16 @@ class RecoveryRGB(unittest.TestCase):
         from student_pilot.carrier_c1_sweep import recipe_for
         from transformers import Qwen3_5ForConditionalGeneration
         root=D.directory();row=ground(root,'recovery')
+        from trace_format.ground_v313 import Session
+        from student_pilot.ground_rows import pack
+        # Empty provider output is the explicit simulated failure input.
+        session=Session(None,None,None,instances=lambda name:[],program_version='3.14')
+        record=deepcopy(row['ground_record']);call=record['events'][0]['call']
+        self.assertEqual(session.execute(call),'ceiling lamp: not seen')
+        event=session.events[0];event['audit'].update(simulated=True,status='not seen')
+        record['suffix']=row['target'].replace(record['events'][0]['response'],event['response'])
+        record['events']=[event]
+        row.update(pack(record,row['provenance']))
         path=D.manifest(root/'manifest',[row],'routing','recovery')
         with patch.dict(os.environ,STUDENT_FRAME_ROOT_MAP=json.dumps({'/logical/r2':str(root/'frames')})):
             produced=materialize([path],root/'store')
@@ -37,7 +47,7 @@ class RecoveryRGB(unittest.TestCase):
         self.assertGreater(float(result['components']['routing']),0.)
         self.assertGreater(audit['tool_spans'],0)
         (D.PROOFS/'RGB.json').write_text(json.dumps(dict(finite=True,loss=float(result['loss']),routing_loss=float(result['components']['routing']),supervised_tokens=int((batch['labels']!=-100).sum()),
-            real_functions=['r2_materialize.materialize','r2_intake.intake','carrier_c1_run.Rows.get','carrier_c1_routing.encode','CarrierC1.forward'],
-            inputs='Synthetic RGB and a synthetic printed failure event; no real-frame or deployment claim.',
+            real_functions=['ground_v313.Session.execute','box_v313.ground','ground_rows.pack','r2_materialize.materialize','r2_intake.intake','carrier_c1_run.Rows.get','carrier_c1_routing.encode','CarrierC1.forward'],
+            inputs='Synthetic RGB and an empty instance-provider result. The native formatter produces the failure event; no real-frame or deployment claim.',
             stand_ins='Tiny native Qwen and pose-head weights and lossless tokenizer/processor at the unavailable pretrained/GPU model boundary. Producers, SQLite reader, RGB loading, response masking and forward are real.',
             limitation='Training-path proof; frozen deployed towers and end-to-end product acceptance remain unqualified.'),indent=2)+'\n')

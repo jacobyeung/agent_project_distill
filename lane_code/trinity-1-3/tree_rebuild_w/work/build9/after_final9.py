@@ -18,6 +18,7 @@ def run(name,command):
 run('weighted_cpu',['bash',str(B/'RUN_TEST.sh'),str(B/'proofs/cpu_weighted'),'weighted_cpu'])
 run('coverage_final',py+[str(B/'coverage_all.py')])
 run('local_gate',py+[str(B/'finish_gate.py')])
+run('storage_audit',py+[str(B/'storage_audit9.py')])
 run('verify_delivery',py+[str(B/'verify_delivery.py')])
 run('report9',py+[str(B/'report9.py')])
 run('verify_report_storage',py+[str(B/'verify_delivery.py')])
