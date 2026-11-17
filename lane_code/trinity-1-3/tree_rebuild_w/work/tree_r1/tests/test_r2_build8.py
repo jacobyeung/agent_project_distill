@@ -223,9 +223,16 @@ class PreparationReaders(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,'Preparation pinned kit inputs differ'):R.prepared(changed)
             with self.assertRaisesRegex(ValueError,'faithful identity'):
                 R.prepared({**cfg,'h1':{'faithful_own_camera_rows':True}})
+            processor=D.TinyProcessor()
+            reader=R.Rows(receipt,processor)
+            try:pose,_=reader.row('pose',0)
+            finally:reader.close()
+            batch,audit=R.data.encode_layout_row(processor,pose,'duplicate',None)
+            self.assertTrue(torch.isfinite(batch['pixel_values_videos']).all())
+            self.assertEqual(batch['video_grid_thw'][0,0],len(pose['student_input']['frames']))
             proof=Path(os.environ['R2_PROOFS'])/'PREPARATION.json'
             proof.write_text(json.dumps(dict(identity_refusal=faithful_refusal['h1_faithful_identity'],
-                real_functions=['prepare','prepared','Rows.row'],
+                real_functions=['prepare','prepared','Rows.row','encode_layout_row','check_sample'],
                 stand_ins=['tiny native LM and pose head weights','tiny pretrained processor and model metadata']),default=str,indent=2))
 
     def test_native_legacy_producer_and_reader_with_both_policy(self):

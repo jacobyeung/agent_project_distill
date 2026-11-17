@@ -1,5 +1,6 @@
 """Legacy direct sources preserve concrete traces and refuse empty reasoning."""
-import copy,json,os,sqlite3
+import copy,io,json,os,sqlite3,sys
+from contextlib import redirect_stdout
 from pathlib import Path
 import unittest
 from unittest.mock import patch
@@ -49,8 +50,12 @@ class DirectTrace(unittest.TestCase):
             training_only=True,train_scenes=[R.alias_of(raw['canonical'])],heldout_scenes=[])))
         direct=p/'direct.jsonl';direct.write_text(json.dumps(raw)+'\n'+json.dumps(raw)+'\n')
         with patch.object(decoupled_v_run,'processor_for',side_effect=lambda _:processor()),patch.dict(os.environ,STUDENT_FRAME_ROOT_MAP=''):
-            receipt=R.build_routing_stream(file_pin(source),file_pin(index),file_pin(division),p/'store','fixture',
-                direct_source=file_pin(direct),policy='both-path-20261116',exclusions=file_pin(D.RECORDS/D.SOURCES['benchmark']))
+            args=['routing','--source',json.dumps(file_pin(source)),'--rgb-index',json.dumps(file_pin(index)),
+                  '--division',json.dumps(file_pin(division)),'--output',str(p/'store'),'--processor','fixture',
+                  '--direct-source',json.dumps(file_pin(direct)),'--policy','both-path-20261116',
+                  '--exclusions',json.dumps(file_pin(D.RECORDS/D.SOURCES['benchmark']))]
+            with patch.object(sys,'argv',args),redirect_stdout(io.StringIO()):R.main()
+            receipt=json.loads((p/'store/receipt.json').read_text())
             self.assertEqual(receipt['count'],1)
             self.assertEqual(receipt['refused']['direct:duplicate_qid'],1)
             rows=run.Rows(dict(streams={'routing':receipt}),processor())

@@ -19,3 +19,6 @@
 - Packet setup options: retain broken relocated references, copy the row slices, or reference their existing lane-local source files. Default: use read-only symlinks with the existing hashes, and use a fresh pytest directory so retained process IDs cannot collide. Run the corrected packet once before package groups; retain the failed setup evidence. No assertion changes.
 
 - The dense-pose admission predicate still binds the legacy all_frames32 contract. Options: invent a longer-clip contract, or retain the guard pending its admitted source manifest. Default: retain the guard and name FRAME64_DENSE_POSE_ADMISSION_UNQUALIFIED.
+# Cache-proof placement and final repair gate
+
+The cache validator edit invalidates older whole-file coverage receipts. Options: retain stale coverage, classify CPU paths as external, or rerun native producer/reader proofs against current bytes. Default: rerun the proofs, with new tests under `tests/test_r2_build8_cache.py`. The tiny tower adapts its raster inside the model boundary; native frame loading, resizing, cache writing and cache reading run unchanged. A further proof runs the native cached-row encoder into the native cache reader. The final staging gate requires an empty `GAPS.json`; it does not accept stale-source hits.

@@ -8,7 +8,7 @@ ROOT=Path(__file__).resolve().parents[1]
 def sha(path):
     with Path(path).open('rb') as f:return hashlib.file_digest(f,'sha256').hexdigest()
 
-def main(diff_only=False):
+def main(diff_only=False, pre_test=False):
     # Fixtures are retained. Only primary artifacts and bounded evidence enter this seal.
     documents=['REPORT.md','UPLOAD_PLAN.md','REMOVAL_CANDIDATES.md','h1pair.py','f1f2.py','room_bootstrap.py']
     code=sorted(p for directory in ('kit','tools','tests') for p in (ROOT/directory).rglob('*')
@@ -27,7 +27,7 @@ def main(diff_only=False):
     header=['# Exact candidate diff','','The baseline is `readk/`, whose FINAL_PINS.json SHA256 is `07582397649cdcb30e9bca8cd27396bf4a5797ce776f79132f992f9364121a0a`. The candidate preserves all reference kit files; no source file was removed. Reference tests remain in `readk/tests/`. The hunks below cover every changed line of candidate code, new tools/tests, documents, the asset registry and the rewritten item file. All paths are local.','','Generated evidence is pinned separately in `evidence/FINAL_PINS.json`. Test-fixture directories and ledgers are excluded from this source diff. The new binary tar is described by its exact byte count and SHA256 in UPLOAD_PLAN.md and SHA256SUMS.txt. DIFF.md, DIFF.patch, SHA256SUMS.txt and FINAL_PINS.json exclude their own recursive differences.','','| File | Baseline lines | Candidate lines |','|---|---:|---:|']
     intended=(ROOT/'evidence/INTENDED_PORTS.md').read_text()
     header[2] += ' The candidate runs its ported suite from tests/, against kit/.'
-    header[4] += ' FIX1.md is a post-seal receipt containing the FINAL_PINS hash and is excluded from that manifest to avoid a hash cycle.'
+    header[4] += ' FIX1.md and FIX2.md are post-seal receipts containing FINAL_PINS hashes and are excluded from that manifest to avoid a hash cycle.'
     header[6:6]=[intended,'']
     header += [f'| `{n}` | {a} | {b} |' for n,a,b in rows]
     patch=''.join(patches)
@@ -42,7 +42,14 @@ def main(diff_only=False):
         'ID_KEY.json','FAMILY_ALIASES.json','INTENDED_PORTS.md','FIX1_REFUTE.log','FIX1_TESTS.log','FIX1_DETERMINISM.json',
         'FIX1_RESERVE.json','FIX1_RESERVE.log','FIX1_BUILD_FIRST.json','FIX1_BUILD_SECOND.log',
         'FIX1_READK_TESTS.log','FIX1c_TESTS.log','FIX1c_READK_TESTS.log','FIX1c_REFUTE.log',
-        'FIX1c_DETERMINISM.json','FIX1c_IDS.json']
+        'FIX1c_DETERMINISM.json','FIX1c_IDS.json',
+        'FIX2_BEFORE_PINS.json','FIX2_AUDIT.json','FIX2_AUDIT.log','FIX2_SEARCH_ERRORS.log','FIX2_CONFIG_SEARCH.log',
+        'FIX2_TARGETED.log','FIX2_TESTS.log','FIX2_READK_PORTED.log','FIX2_READK_REFERENCE.log',
+        'FIX2_REFUTE.log','FIX2_RUNTIME.log']
+    if pre_test:
+        # Test logs must remain writable until their run finishes.
+        pending = {'FIX2_TESTS.log','FIX2_READK_PORTED.log','FIX2_READK_REFERENCE.log','FIX2_REFUTE.log'}
+        evidence_names = [name for name in evidence_names if name not in pending]
     primary=code+[ROOT/n for n in documents+['DIFF.md','DIFF.patch']]
     primary += [ROOT/'assets/d81f4a26.tar',ROOT/'assets/e52a690b.jsonl']
     primary += [ROOT/'evidence'/n for n in evidence_names]
@@ -60,4 +67,6 @@ if __name__=='__main__':
     import argparse
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--diff-only',action='store_true')
-    main(parser.parse_args().diff_only)
+    parser.add_argument('--pre-test',action='store_true',help='Exclude pending FIX2 suite logs until final sealing')
+    args=parser.parse_args()
+    main(args.diff_only,args.pre_test)

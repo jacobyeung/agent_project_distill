@@ -9,11 +9,16 @@ for name in ('SUITE_COMPARISON.json','CHANGED_COVERAGE.json','GAPS.json'):
  p=B/name
  if p.exists():(B/('DIAGNOSTIC_'+name)).write_bytes(p.read_bytes())
 env={**os.environ,'R2_TREE':str(L/'work/tree_r1'),'R2_LANE_ROOT':str(L),'R2_ALL_TESTS':'0','R2_SUITE_GROUP':'','R2_PACKAGE_MEMBERS':''}
-names=['tests.test_r2_build8_frames','tests.test_carrier_c1_single_image.SingleImageTests.test_single_image_marker_does_not_relax_video_or_mask_guards']
+names=['tests.test_r2_build8_frames','tests.test_r2_build8_cache','tests.test_r2_build8_direct','tests.test_carrier_c1_single_image.SingleImageTests.test_single_image_marker_does_not_relax_video_or_mask_guards']
+names+=['tests.test_r2_build8','tests.test_r2_sampling.Sampling.test_native_sampler_exact_quotas_pairs_and_repeats','tests.test_r2_build4.ReviewGuards.test_missing_sampler_refuses']
 with (B/'final_repairs.log').open('w') as f:
  result=subprocess.run(py+[str(B/'test_runner.py'),str(B/'proofs/final_repairs'),*names],env=env,cwd=L,stdout=f,stderr=subprocess.STDOUT)
 if result.returncode<0:raise SystemExit('Repair proof was killed; stop without retry')
 if result.returncode:raise SystemExit('Repair proof failed; inspect final_repairs.log')
+result=subprocess.run(py+[str(B/'coverage_all.py')],env=env,cwd=L)
+if result.returncode:raise SystemExit('Repair coverage aggregation failed')
+if os.environ.get('B8_REPAIR_PROOF_ONLY')=='1':raise SystemExit(0)
+if json.loads((B/'GAPS.json').read_text()):raise SystemExit('CPU gaps remain before staging')
 current=B/'kits';prior=B/'kits_before_gap_closure'
 if prior.exists():raise SystemExit('Repair staging already began; inspect its receipts')
 if current.exists():current.rename(prior)

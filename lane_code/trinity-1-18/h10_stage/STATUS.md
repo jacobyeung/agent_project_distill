@@ -1,5 +1,5 @@
 # h10_stage STATUS (Devin lane on trinity-1-18; lane folder /scratch/jjyeung/orch_n30/h10_stage). Successor: read this, then newest *_ORCH_* in events/h10_stage and inbox/.
-Updated 20261117T0803Z (successor lane, Devin).
+Updated 20261117T0832Z (successor lane, Devin).
 
 ## NOW
 - Orchard 170706 (a15_cot_apb01ec87a6f29b, general, 1 GPU x 03:00:00) RUNNING since ~07:26:30Z on orchard-community-4: H1-0 object_abs_distance only (450 reads = 150 baseline + 300 perturbed) under the registered call cap (6). Package 0.tgz 446a4323 plan c6135410 PACKAGE.json a99d7f06; a/1.json 1abaf6ca (types [object_abs_distance]). Return token b01ec87a6f29b00029ad2 (= pkg + hex(jobid)) -> pool /project/community/jjyeung/okh7/ae71c903/b01ec87a6f29b00029ad2. Admission stops at end-30 min (~09:56Z); return by ~10:06Z. Partial by design; a clean stop resumes on the same package and 1 GPU (pin returned archive in a/1.json "resume"; 3.py check; ask ORCH).
@@ -20,5 +20,5 @@ Updated 20261117T0803Z (successor lane, Devin).
 - Rehearsal trees: Orchard W/r2 (faithful, from empty), trinity-1-18 /scratch/jjyeung/b01ec87a6f29b (CPU, reached SAM 3 CUDA allocation on a distance read). Removal candidates listed in REMOVAL_CANDIDATES.md.
 - h1read assets for cont_ops staged: /project/community/jjyeung/okh7/af83c921/{d81f4a26.tar 2ad8c67c, e52a690b.jsonl 1d8b29a7}, 0700/0600.
 - Jobs: 170620 FAILED (fsw), 170631 FAILED after camera (sl118), 170674 running. Ledger work/ORCHARD_LEDGER.jsonl.
-- Mirror: trinity-0-13:/scratch/jjyeung/n30_mirror/h10_stage/mirror_h10_0245Z.tar (21d06478); re-mirror k330/kit + results after completion.
+- Mirror: trinity-0-13:/scratch/jjyeung/n30_mirror/h10_stage/mirror_h10_0831Z.tar (63918dd2; k330/kit with the 446a4323 package, results, proof scripts, ledger, stage jsons+pkg6) = local work/mirror_h10_0831Z.tar (sha matched, over ib0). Older mirror_h10_0245Z.tar (21d06478). Re-mirror results after the distance RESULT.
 - Records: distill_design/H1_GT_HEAD_ROUTING_SFT_20261116.md status + lesson; INDEX line updated.

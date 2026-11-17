@@ -2,7 +2,7 @@
 
 No file was deleted. The following paths are optional removal candidates after review; this document contains no executed cleanup commands. Keep all primary deliverables, assets, input copies, the reference readk packet, logs and final pins.
 
-Additional fix fixtures remain under `evidence/fix1_*`, `evidence/fix1c_*`, `evidence/runtime_*`, `evidence/test_*` and `evidence/chain_*`. Keep the passing runtime directory named in `RUNTIME_FIXTURE.json` while reviewing the gate. Keep `evidence/FIX1_ASSET_SOURCE/`, `evidence/ID_KEY.json` and `evidence/ID_MAP.json` as required rebuild inputs.
+Reference-suite fixtures remain under `readk/evidence/test_*` and `readk/evidence/chain_*`. Additional fix fixtures remain under `evidence/fix1_*`, `evidence/fix1c_*`, `evidence/runtime_*`, `evidence/test_*` and `evidence/chain_*`. Keep the passing runtime directory named in `RUNTIME_FIXTURE.json` while reviewing the gate. Keep `evidence/FIX1_ASSET_SOURCE/`, `evidence/ID_KEY.json` and `evidence/ID_MAP.json` as required rebuild inputs.
 
 - `/scratch/jjyeung/orch_n30/cont_ops/work/h1read/evidence/bind_100_away_f95ec24850974f42af1a93a332cf306c` — retained CPU test fixture; remove only after evidence review.
 - `/scratch/jjyeung/orch_n30/cont_ops/work/h1read/evidence/bind_100_main_7e2cc6acbfd8434680b6e59df6854311` — retained CPU test fixture; remove only after evidence review.
