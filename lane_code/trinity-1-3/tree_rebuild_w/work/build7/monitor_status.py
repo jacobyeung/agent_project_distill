@@ -12,6 +12,9 @@ if state['step']=='package' and state['status']=='running':
     result.update(variant=variant,group=group)
     p=folder/group/'progress.json'
     if p.exists():result.update(json.loads(p.read_text()))
+    for event in ('errors','failures'):
+     live=folder/group/('live_'+event+'.json')
+     if live.exists():result[event]=len(json.loads(live.read_text()))
     log=folder/group/'tests.log'
     if log.exists():
      with log.open('rb') as stream:

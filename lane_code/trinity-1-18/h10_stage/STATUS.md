@@ -1,5 +1,5 @@
 # h10_stage STATUS (Devin lane on trinity-1-18; lane folder /scratch/jjyeung/orch_n30/h10_stage). Successor: read this, then newest *_ORCH_* in events/h10_stage and inbox/.
-Updated 20261117T0140Z.
+Updated 20261117T0244Z.
 
 ## Goal
 Stage H1-0 (package b01ec87a6f29b, kit trinity-3-30 /scratch/jjyeung/orch_n30/h1_headsft/kit/orchard_h10; local copy work/kit) on Orchard, fill a/1.json, login 3.py check, SUBMIT.cmd --test-only, submit ONE general job (<=5 GPU-h), babysit, report M1/M2/M3.
@@ -16,5 +16,23 @@ Stage H1-0 (package b01ec87a6f29b, kit trinity-3-30 /scratch/jjyeung/orch_n30/h1
 - vnice.sh sha 3ab2b542 matches (k1/tools, /data3/shared/scripts/vnice). Terminator: template pins cbb91ba7; every terminator.sh found (Trinity) is 19727987/86e97b7e/f81f89f7. OPEN.
 - Main queue (01:09Z): main has 8 advanced jobs PENDING, none on general.
 
-## Plan / next
-1. A1 G3T tar built on Orchard from HF blobs (no Trinity). 2. A2 tar built on 1-18 (frames + SAM ckpt/source/receipt + selector + model tar + processor assets + overlay + receipts + vnice), one governed push (priority 10). 3. code tar (5.4 MB) unregistered. 4. env import proof on login (nice 19). 5. a/1.json, 3.py check, test-only, submit.
+## Staged on Orchard (W=/project/community/jjyeung/okh7/e6fc152498; all sha-verified on Orchard)
+- archive 0 export: W/e/0..3 (GCS generation-pinned parts, 4x5,395,758,080 B, part shas = TRANSPORT.json; whole 3ed73aea). NOTE i_bb09a77d/m.tar is NOT the pin (sha 42457dbd, repacked members).
+- archive 1 G3T: W/g/0 6a53059f 5,627,176,960 B (g/model.safetensors d460957b, g/config.json 5aeb2acd), built on Orchard from HF cache.
+- archive 2: W/a2.tar 1de93f61 5,257,369,600 B (f/ frames 6624 verified, k/sam3.pt, k/SAM3_RECEIPT.json, s/ SAM source, h/ selector, o/ model tar, b/ processor assets). Governed push h10_stage_a2 done 02:02Z.
+- archive 3: W/a4.tar c867d40a 145,274,880 B (v/py wrapper, v/boot.py, v/site overlay). Governed push h10_stage_a4 done.
+- archive 4: W/a3.tar 05dc8f79 10,240 B (q/env.json e46a9a59, q/policy.json a95a881c, q/vnice.sh 3ab2b542, q/terminator.sh 19727987).
+- a/1.json sha 7757209963ac (local copy work/stage/1.json). Env proof (work/proof/run.out): torch 2.13.0+cu130, torchvision 0.28.0+cu130, transformers 5.19.0, scipy 1.14.1; SAM deps, sam3, reader code import OK; fla absent (as in b04's Trinity parity).
+- Package /project/community/jjyeung/b01ec87a6f29b: terminator repin (ORCH 0154Z, Codex receipt agent/scratch/codex_runs/20261117T021027Z_h10_terminator, k330/REPORT_terminator.md): 0.tgz ecfad90f, plan 5ef2094e, PACKAGE.json ba178d46. Old files in W/pkg_old.
+- Login check with new package: passed (1 GPU, 05:00:00). test-only FAILED: operator submit() PATH=/usr/bin:/bin, sbatch is /usr/local/bin -> Codex fix running (tmux h10_codex2, brief k330/BRIEF_sbatch_path.md).
+- CPU rehearsal of job action 0 (prepare) running on login: W/rh_setup.sh -> W/rh.done, W/rh.out.
+
+## Job history
+- Orchard 170620 (a15_cot_apb01ec87a6f29b, general, 1 GPU x 05:00:00), package 0.tgz 2dd91b3b / plan 8b89141f: RUNNING 02:35:23Z on orchard-community-4, FAILED 02:41:06Z (5m43s): every input hash passed in-job, then bwrap "Can't find source path <root>/fsw" at action 0. Return: pool okh7/ae71c903/b01ec87a6f29b00029a7c (+GCS q8/ae71c903/...), extracted at W/ret1. BLOCKER 0242Z sent. NEVER resubmit without the user's yes (OPERATIONS.md: failed allocation needs the user's answer).
+- h1read assets for cont_ops STAGED: /project/community/jjyeung/okh7/af83c921/{d81f4a26.tar 2ad8c67c 797,685,760 B, e52a690b.jsonl 1d8b29a7 5,728,183 B}, dir 0700, files 0600, sha verified on Orchard (governed push h10_stage_h1read done).
+- Mirror: trinity-0-13:/scratch/jjyeung/n30_mirror/h10_stage/mirror_h10_0245Z.tar sha 21d06478 (kit orchard_h10 + reports + 1.json + small stage files).
+
+## Next
+1. Codex fsw fix (tmux h10_codex4, brief k330/BRIEF_sbatch_path.md -> BRIEF_fsw.md): job.py mkdir sj/fsw/m/ap before the namespace; package checks + new test_fsw_bind.
+2. Faithful action-0 rehearsal on login with the job's own namespace() argv (only an extra self-bind of the rehearsal root for chdir), rehearsal root WITHOUT a pre-made fsw (rename W/x/fsw away first).
+3. Deploy new package, 3.py check 1x05:00:00, test-only; submit only after ORCH relays the user's yes. Then babysit 1-min from start (squeue + sstat + pool dir).

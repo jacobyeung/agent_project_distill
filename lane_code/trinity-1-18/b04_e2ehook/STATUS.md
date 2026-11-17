@@ -1,4 +1,4 @@
-# b04_e2ehook STATUS (Devin session 5 on trinity-1-18, started 20:30Z, rotates by ~02:30Z). Updated 2026-11-16T22:14Z.
+# b04_e2ehook STATUS (Devin session 5 on trinity-1-18, 20:30Z-02:05Z; rotated, RESULT 20261117T0201Z_RESULT_rotate). Updated 2026-11-17T02:01Z.
 Brief: /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/briefs/b04_e2ehook.md -> queue brief briefs/qs/04_e2e_reader_hook.md. Deadline 22:30Z; this Devin session rotates by ~18:15Z.
 Lane folder L=/scratch/jjyeung/orch_n30/b04_e2ehook (trinity-3-30). Python: /scratch/jjyeung/envs/p1cpu/bin/python -B. Tree (read-only, imported): /scratch/jjyeung/orch_n30/tree_rebuild/work/base/tree_b01ce449.
 ## Done
@@ -77,7 +77,7 @@ Lane folder L=/scratch/jjyeung/orch_n30/b04_e2ehook (trinity-3-30). Python: /scr
 - Nothing. No GPU held.
 ## Next (session 5)
 1. Read new ORCH files/inbox at each step. GPU parity read (dev-S1 settings_118b.json; R0-dev r0dev/settings_r0dev.json) only when ORCH returns GPUs: two nvidia-smi readings 5+ min apart, vnice, per LANE_RULES.
-2. Rotate by ~02:30Z (RESULT rotate, STATUS exact).
+2. Successor: work on trinity-1-18 (3-30 /scratch frozen); kit H=/scratch/jjyeung/orch_n30/b04host3/b04_e2ehook, tests via H/work/view.sh (see Session 5). Polled ORCH files and inbox every 10 min from 22:24Z to 02:01Z: nothing new after the 2218Z ruling.
 ## Done (late session 4)
 - Codex review of bestspread: NO-GO (receipt agent/scratch/codex_runs/20261116T201305Z_b04_review_bestspread/final_message.md). Findings: (1) camera gaps (box_v313.py:257) use obj['frames'] for eligibility, so shipped frames=all vs priced frames=[best] differ on camera-gap calls (shipped keeps lift_plain's behaviour; the K1 price covered object-object gaps only) -> document, no code change needed unless ORCH wants frames=[best]; (2) tests/test_bestspread.py::test_session_uses_bestspread never builds/calls a session -> rewrite: build ground_session with a fake socket like tests/test_no_guard.py and assert the spy ran; (3) parity test defaults to the mutable lift_price.py and skips when absent; the reviewer's sandbox cannot see /dev/shm -> copy the frozen reference /dev/shm/jjyeung_b04/lift_price_v2_8f78bf08.py (or the 1-3 mirror tar) into L/tests/data/ (~12 KB; 3-30 /scratch frozen, tiny code file only) and make the test load it with no skip.
 - EAT-1 v8 (/dev/shm/jjyeung_b04/eat1/EAT1_DYNAMIC_v8): INVALID for the lane code: the harness scoped only the 37 tree files (code root under /dev/shm was not scanned; b03's harness also gained A3.selection/module_data/response_value and A6 since v6). Rerun on a host with the staged code under /scratch (1-18: needs b03_e2etest/eat1 + the adapter's DATA paths, eat1_adapter/b04_tiny.py lines 24-27, i.e. L files and the K1 mirror capture 3912542710353e09) or on 3-30 once ORCH lifts the 3-30 freeze. Static scan of grounding.py: no finding in lift_bestspread.

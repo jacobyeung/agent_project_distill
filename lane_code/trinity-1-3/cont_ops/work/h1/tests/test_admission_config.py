@@ -61,7 +61,7 @@ x.ready(cfg,'p',auth);passed('b.x.ready_p_and_allocation_gpus')
 v.tree(dict(path=str(root/'k/s1_record.json'),sha256=dk.sha(root/'k/s1_record.json')),H/'build/tree',la['source_revision']);passed('b.w.tree')
 assert run.authenticate(cfg)==la['source_revision'];passed('run.authenticate', 'Native tree, import closure and archive verification; pins resolve to identical local bytes.')
 assert cfg['h1']['stop_after_step']==200<400
-passed('milestone_gate_branch',dict(enabled=run.step400_gate_enabled(cfg),reachable=False,reason='Fresh train starts at 0; H1 stops by 200. Native resume gate requires start_step >= 400.'))
+passed('milestone_gate_branch',dict(enabled=run.step400_gate_enabled(cfg),reachable=False,reason='gate_stop is false; fresh train starts at 0 and H1 stops by 200. Native resume gate also requires start_step >= 400.'))
 results['milestone_gate']=dict(status='NOT RUN',detail='No m400 artifact/reports exist; branch unreachable for this 0..200 run.')
 assert cfg['recipe']['wall_seconds']==86400 and la['slot']['wall_seconds']==46800
 wrapper=(H/'runtime/jb.sh').read_text()
@@ -82,6 +82,55 @@ except MissingLocalPin as e:
  results['admit']=dict(status='PARTIAL',detail=str(e),executed='CPU/resource/attempt bounds, world/filter/stream checks, validate, native authenticate, request binding, phase journal, parent full-LM warm-start check',not_executed='Parent metadata, stream materialization/exclusions, preparation, RGB audit, data receipt; missing production input bytes. prepare_only returns before CPU first batch.')
 else:raise AssertionError('Expected production data to be unavailable locally')
 results['gpu_pre_step']=dict(status='NOT RUN',detail='No GPU/model/production rows: allocation/CUDA/process-group/network, effective prepared receipt, model/processor/FSDP/optimizer setup, disk byte measurement, resume/binding and native first-step policy remain job-side. Pure config branches above passed.')
+from student_pilot.row_removals import Removals
+from student_pilot.s1_exclusions import Exclusions
+from student_pilot.s1_first_step import POLICY
+assert cfg['first_step_admission']==POLICY
+passed('first_step_policy_shape')
+for name, check in (
+    ('Removals', lambda: Removals(cfg['remove_files'])),
+    ('Exclusions', lambda: Exclusions(cfg['dev_scene_exclusions'],cfg['benchmark_scene_exclusions'])),
+    ('benchmark_exclusions', lambda: run.routing.load_exclusions(cfg.get('exclusions'))),
+    ('pose_exclusions', lambda: run.routing.load_exclusions(cfg.get('pose_exclusions'))),
+    ('report_exclusions', lambda: run.routing.load_exclusions(cfg.get('report_exclusions')))):
+ try:check()
+ except MissingLocalPin as e:results[name]=dict(status='PARTIAL',detail=str(e))
+ else:passed(name)
+import g
+relocated=copy.deepcopy(la)
+relocated.update(run_directory=str(OUT/'17c4ffa4'),persistent_run_root=str(OUT/'slots'))
+(OUT/'17c4ffa4').mkdir()
+for mode in ('p','t'):g.persistent_launch(relocated,cfg,{'SLURM_JOB_ID':'170528'},mode)
+try:g.persistent_launch(relocated,cfg,{'SLURM_JOB_ID':'170529'},'p')
+except ValueError as e:
+ assert str(e)=='An earlier run leg or state slot exists; refusing a cold restart'
+ passed('claimed_root_refusal',str(e))
+else:raise AssertionError('old claimed root admitted a new cold job')
+passed('persistent_launch', 'Native fresh-run selection, local paths and synthetic job ID; no production slots accessed.')
+from student_pilot import s1_pool
+selection=provenance.load(pinned(cfg['s1_routing']['selection']))
+assert cfg['s1_routing']['schema']=='s1-routing-inputs-v1'
+actual_implementation=s1_pool.implementation()
+assert not selection.get('blockers')
+changed={n:dict(recorded=selection['implementation'].get(n),actual=actual_implementation.get(n))
+         for n in sorted(set(selection['implementation'])|set(actual_implementation))
+         if selection['implementation'].get(n)!=actual_implementation.get(n)}
+# Execute the exact native refusal, isolated from unavailable row/model IO.
+module=ast.parse((H/'build/tree/student_pilot/s1_routing.py').read_text())
+build=next(n for n in module.body if isinstance(n,ast.FunctionDef) and n.name=='build')
+check=next(n for n in build.body if isinstance(n,ast.If) and 'selection["implementation"]' in ast.get_source_segment((H/'build/tree/student_pilot/s1_routing.py').read_text(),n))
+try:exec(compile(ast.Module(body=[check],type_ignores=[]),'<native-selection-check>','exec'),dict(selection=selection,s1_pool=s1_pool))
+except ValueError as e:
+ assert str(e)=='Routing selection belongs to another implementation'
+ assert len(changed)==7
+ results['routing_selection_implementation']=dict(status='BLOCKED',detail=str(e),changed=changed,
+     reason='Selection records D0 implementation hashes. H1 provenance cannot be certified by replacing hashes; regenerate or verify selection against H1 with production row inputs, preserving approved membership.')
+else:raise AssertionError('Expected the independently detected stale selection refusal')
+expected=copy.deepcopy(old)
+expected['checkpoint_disk_guard']=checkpoint_space.plan(old['recipe'],old['checkpoint_disk_guard']['reserve_bytes'])
+expected['admission']=cfg['admission']
+assert expected==cfg
+passed('only_guard_and_review_pin_changed')
 assert dk.identity(cfg)==json.loads((H/'ids.json').read_text())['identity']
 (OUT/'results.json').write_text(json.dumps(results,indent=2)+'\n')
 print(json.dumps(results,indent=2))

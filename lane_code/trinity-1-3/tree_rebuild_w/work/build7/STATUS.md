@@ -4,6 +4,8 @@ GO=false. No launch or remote service was called.
 
 Current validation step: package — running (`work/build7/FINAL_PASS.json`).
 
+The frozen tree completed 2,216 package executions. Its R2 group completed 362 executions with two failures; the untouched-base comparison is running (`work/build7/final_package.log`). Both R2 failures concern fixtures that expect the earlier staging contract; they remain failures in the final receipt.
+
 The packet harness uses the original packet_root tests with hash-verified support references (`work/build7/PACKET_INPUTS.json`). Passing packet results gate the package groups.
 
 Both kits and the package bind the current frozen source (`out/TREE_SEAL.json`, `work/build7/DELIVERY.json`). Completed package groups have hash-bound resume receipts.

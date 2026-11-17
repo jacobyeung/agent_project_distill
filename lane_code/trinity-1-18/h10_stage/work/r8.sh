@@ -1,0 +1,1 @@
+cd /scratch/jjyeung/orch_n30/cont_ops/work/h1read && sha256sum assets/d81f4a26.tar assets/e52a690b.jsonl >&2 && tar cf - assets/d81f4a26.tar assets/e52a690b.jsonl | timeout 600 ssh -o ConnectTimeout=20 -o BatchMode=yes trinity-1-18.ib 'tar xf - -C /scratch/jjyeung/orch_n30/h10_stage/work/h1read && echo landed'

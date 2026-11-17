@@ -136,13 +136,13 @@ def identity(cfg):  # b/i.py identity, same logic
 
 HEX8 = re.compile('[0-9a-f]{8}')
 TOP = {'run_key', 'kit_key', 'persistent_run_root', 'config', 'deployment', 'add_k', 'status', 'fixture', 'content', 'accept_unstaged', 'tar_members', 'sealed_docs',
-       'export_member_names', 'e00_listing', 'code_tree'}
+       'export_member_names', 'e00_listing', 'code_tree', 'selection_equality'}
 SEALED_MANIFEST = 'de6e7e0fac4036889fb4112792fbaa2d6f362a0cde09722ba6e93a6a39e7f32b'  # SHA256SUMS.txt of sealed kit 07ca49df
 CONFIG = {'streams', 'init_artifact', 's1_routing', 'h1', 'milestones', 'recipe', 'scheduled_sampling'}
 STREAMS = {'vqa', 'routing'}
 S1_ROUTING = {'selection', 'catalog'}
 DEPLOYMENT = {'init', 'tars', 'extra'}
-ADD_K = {'review.json', 'staging.json', '4.json'}
+ADD_K = {'review.json', 'staging.json', '4.json', 'selection_equality.json'}
 ADD_K_DATA = re.compile('pool_selection_[a-z0-9]{1,16}\\.json')  # new names: the sealed catalog keeps the old files
 AS = '/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/'
 AL = '/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/'
@@ -568,6 +568,63 @@ def install_code(kit, out, over, cfg, cur, launch, fs):
                  'export TK_JOBDIR=/tmp/jjyeung/a_17c4ffa4/jobs/${SLURM_JOB_ID:?}.${1:-x}')
 
 
+SELECTION_REFERENCE = 'f232d4160d75b5826d9e24aec324d690920a752a5bfaa33e5009d7550349dfc6'
+SELECTION_RAW_REFERENCE = 'd1e6715a19b5d9a15f647e3495815c63329afbc9b69cd81bbef8fcd086025c64'
+SELECTION_CONTENT = 'ed17a18152a1b6806aa6de30e8955ac6a86f8963428ff6b17df261ace79eeea0'
+SELECTION_RAW_CONTENT = 'a42325f27796e6e34761b4c5953fc1f064d02704db9682c98d8c5163f03791c2'
+SELECTION_IMPLEMENTATION = '2a4ef06888c59743516f5f7edad4ac3d45c6868cc5d3034ddae13654c8a6cc9c'
+SELECTION_TOOL = '12781e6e0f8b11e86d8bd2c27814aabf56899c0724a4dcb343077bfaf9cf80ee'
+SELECTION_INDICES = {'ARKIT_gaps': {'equal': True, 'sha256': '61dbe64275d654b880d58f3a34df4d5cb3e3dfe49bde82d7a0995dfac69716de', 'count': 6560}, 'ARKIT_gen_r2': {'equal': True, 'sha256': 'a30e6f15ad3fc449bf618f89a204a293a08af70e4bf9622b268ae3c29c072cbd', 'count': 11321}, 'ROUTE_direct': {'equal': True, 'sha256': '569da570556ab2b9aa3bbf9c112eb7758fda1b25d4cc4670bb764211e41ade4e', 'count': 9423}, 'SCENE_room': {'equal': True, 'sha256': '846987fbc9a43c097693a80ef9ada8875ff79c27537556be06dc81b47af042a4', 'count': 384}, 'T0_gaps': {'equal': True, 'sha256': '8607dfa3522db91885b1382f3cb1ae8447e3542db0e103d8b442ca3406550de2', 'count': 11052}, 'T0_gen_r2': {'equal': True, 'sha256': '14fdfe17bfae194af4d5e46cff6b4fe708678681f1d2faac25b38455869270f2', 'count': 22290}, 'T0_room': {'equal': True, 'sha256': 'cbef7600f0a248792556669f5b03937de41e8da683b0d602a1ce0eca74799f94', 'count': 76}, 'T1H1_gaps': {'equal': True, 'sha256': 'ebcca9404f88634c71af0c612ff81e412eed8f26d5160e0c819da7d2c07cfce5', 'count': 5919}, 'T1H1_gen_r2': {'equal': True, 'sha256': 'db0952e1fb49e4125753a756132514fd0714a49417abf60f8172bfeab9d5dc2c', 'count': 11012}, 'T1H1_room': {'equal': True, 'sha256': '5db7885d00058c8342024b88bb9151d76ff373c98dbf2391fb1b8bf666447af2', 'count': 126}, 'T1H2_gaps': {'equal': True, 'sha256': 'bffdff4d022af167d035be0bc421217194356df65f8b55b2136ab423e2295fa2', 'count': 5130}, 'T1H2_gen_r2': {'equal': True, 'sha256': 'efb18189cd4b6a017b701fa7af1dc3b3a827f3f79338b18c355646d9f9bf3ce5', 'count': 9314}}
+SELECTION_INPUT_SIZES = {'66caacf5c919145743b1f3de3c6e1107e6434bc5a743b32bb44bd421271b64c6': 67752, '5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42': 12807982, '951902eea28b6a56e49f1e44761802e05fc4ff25e7ebcb84dfa4bc77fea0a824': 105025, 'a5d707acfafeed88a9009cd2fb89f3bfdf53d43fea67b183c589765299e27255': 168142, '7a9105653e2d87d92b67a2e26217f2cc96c0d47c6346a4ae56cfd2e82a61c3a1': 23, '3119aa4a9594e4507372b99243afc8210fe217393466ac4e5ae78485e7c83970': 427569, '969cdb56ce508eff79390d67099c889b92bd360e93dc42ba07f3683ec216a986': 37246, '62113ff38f918528341d3c38c6cce372736f2b44ca932c3b706be29397798dc3': 63660, '4701e195ffc04fe256b916a05eb0a669df6cf3f97d73c9986bfe5de3170b089c': 66546, '6eb00a2de04c84d6dd9a0aa5d67d822bf2af6c9d408b1815b25ec6248bef27cc': 970029, '8a97fcc4f1f4fd7a302a8b16c461d3095fbcf9ece3a39cce7db24d5a363dd1b2': 1883190, 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855': 0, 'a67a3f6f489031d4163b75dbae45d665a05fecf4dcbe6f2f33b0dee6567de7b5': 29681863, '1169024c0739e6c4d05e7de6dc095e64300feab577695d7aa3058791760a0d06': 5629179, '75c8f3436382132208efcd0e94cfe2e297b5079ccd52e39b4714b84fd8b1bd39': 13184331, '8807075c04730c0e3e08e0efa5b65737772522d5430a5eae6905ab47234ebe33': 3192491, '2331a5bbb181ebb64b7519b306a5c729909f7316fa59ab51490caa1aaa9b52b5': 32267, 'b37de067725dde5bed0d1583f3288bad09d9a4e23aaa5f45de16f9ebf31fcac0': 19695196, 'cbff008bb2aba2ad99d6ce99d0b1c23826f1c29e346e90e6e1ca909cc77f31b8': 3772175, '0298d22ae6a8e2b6081dbecded86a8412a72a1cc48399d21fc1f3e24e138423b': 71875, '42c520ec4f5bee344f487a880fe8fa5cefffb15a1d9af19dfaa44c0afdacfca5': 14213700, '2f2fd779179a5ca19e36034eb00c74839d48b6f88c5127e38e1e90864d6cf647': 2557490, '947cbb9fa7d6bde05b034a0b78bfa8ead473e545ab02ac3bd698486fd30425ab': 3028169, '086c857c721c6074bf2e903d8b31125e79a6347e8a13508ffc30d6b132be9ae5': 140102, '92927870a7b4535c12db25a74f48faaf0102cc5316adf6eebcefb5686a32163d': 155568, '61dbe64275d654b880d58f3a34df4d5cb3e3dfe49bde82d7a0995dfac69716de': 31782, 'a30e6f15ad3fc449bf618f89a204a293a08af70e4bf9622b268ae3c29c072cbd': 57306, '569da570556ab2b9aa3bbf9c112eb7758fda1b25d4cc4670bb764211e41ade4e': 46521, '846987fbc9a43c097693a80ef9ada8875ff79c27537556be06dc81b47af042a4': 1428, '8607dfa3522db91885b1382f3cb1ae8447e3542db0e103d8b442ca3406550de2': 55791, '14fdfe17bfae194af4d5e46cff6b4fe708678681f1d2faac25b38455869270f2': 123460, 'cbef7600f0a248792556669f5b03937de41e8da683b0d602a1ce0eca74799f94': 221, 'ebcca9404f88634c71af0c612ff81e412eed8f26d5160e0c819da7d2c07cfce5': 28764, 'db0952e1fb49e4125753a756132514fd0714a49417abf60f8172bfeab9d5dc2c': 57806, '5db7885d00058c8342024b88bb9151d76ff373c98dbf2391fb1b8bf666447af2': 443, 'bffdff4d022af167d035be0bc421217194356df65f8b55b2136ab423e2295fa2': 24542, 'efb18189cd4b6a017b701fa7af1dc3b3a827f3f79338b18c355646d9f9bf3ce5': 45462}
+"""Injected into the stdlib deriver; constants come from pinned local references."""
+
+def validate_selection_equality(over):
+    spec = over.get('config', {}).get('s1_routing', {})
+    additions = {n: p for n, p in over.get('add_k', {}).items() if ADD_K_DATA.fullmatch(n)}
+    selection = spec.get('selection')
+    proof = over.get('selection_equality')
+    if selection is None:
+        if additions or proof or 'selection_equality.json' in over.get('add_k', {}):
+            refuse('selection evidence without a selection override')
+        return
+    # Retaining the exact registered D0 input is permitted only as a blocked artifact.
+    if selection.get('sha256') == SELECTION_REFERENCE:
+        if 'code_tree' in over and over.get('status', 'BLOCKED') != 'BLOCKED':
+            refuse('stale selection cannot authorize preparation or training')
+        if proof or 'selection_equality.json' in over.get('add_k', {}):
+            refuse('stale selection cannot carry an equality verdict')
+        return
+    if proof is None or over.get('add_k', {}).get('selection_equality.json') != proof:
+        refuse('new selection requires a pinned equality report in add_k')
+    if len(additions) != 1:
+        refuse('equality requires one new selection record')
+    name, pin = next(iter(additions.items()))
+    candidate = json.loads(read_override_pin(pin).read_text())
+    if selection != dict(path=KIT_LOGICAL + name, sha256=pin['sha256']):
+        refuse('equality selection pin differs')
+    report = json.loads(read_override_pin(proof).read_text())
+    code = json.loads(read_override_pin(over.get('code_tree', {}).get('pin')).read_text())
+    body = {k: v for k, v in candidate.items() if k != 'implementation'}
+    if digest(body) != SELECTION_CONTENT or digest(candidate.get('implementation')) != SELECTION_IMPLEMENTATION:
+        refuse('selection content or native implementation differs')
+    if any(code['files'].get(n) != h for n, h in candidate['implementation'].items()):
+        refuse('selection implementation is not in the sealed tree')
+    expected = dict(schema='selection-equality-v1', status='EQUAL', regenerated=True,
+        reference_sha256=SELECTION_REFERENCE, raw_reference_sha256=SELECTION_RAW_REFERENCE,
+        selection_sha256=pin['sha256'], content_sha256=SELECTION_CONTENT,
+        raw_content_sha256=SELECTION_RAW_CONTENT, implementation_sha256=SELECTION_IMPLEMENTATION,
+        tree_sha256=code['tree_sha256'], code_sha256=sha(read_override_pin(over['code_tree']['pin'])),
+        tool_sha256=SELECTION_TOOL, differences=[], raw_differences=[],
+        fields={k: True for k in body}, indices=SELECTION_INDICES, production_authorized=False)
+    if any(enc(report.get(k)) != enc(v) for k, v in expected.items()):
+        refuse('equality report is incomplete, negative or bound to other bytes')
+    inputs = report.get('inputs', {})
+    if set(inputs) != set(SELECTION_INPUT_SIZES) or any(
+            not isinstance(inputs[h], dict) or inputs[h].get('bytes') != size
+            or not isinstance(inputs[h].get('path'), str) for h, size in SELECTION_INPUT_SIZES.items()):
+        refuse('equality report input inventory differs')
+
+
 def derive(kit, out, over):
     kit, out = Path(kit), Path(out)
     if set(over) - TOP: refuse('unknown override keys ' + str(sorted(set(over) - TOP)))
@@ -579,6 +636,7 @@ def derive(kit, out, over):
         if name not in ADD_K and not ADD_K_DATA.fullmatch(name): refuse('add_k name not allowed: ' + name)
     if sum(n.startswith('pool_selection_') for n in over.get('add_k', {})) > 1: refuse('one pool selection file at most')
     validate_h1(over)
+    validate_selection_equality(over)
     fixture = over.get('fixture') is True
     status = over.get('status', 'BLOCKED')
     if status not in ('BLOCKED', 'PREPARATION_ONLY', 'READY'): refuse('status must be BLOCKED, PREPARATION_ONLY or READY')

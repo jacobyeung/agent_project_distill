@@ -52,9 +52,9 @@ for n in records:
     (backup/(n+'.new')).rename(B/n)
     if sha(B/n)!=records[n]['new'] or sha(backup/n)!=prior[n]:raise SystemExit('Patch readback differs')
 subprocess.run(['sha256sum','-c','sums.txt'],cwd=B,check=True)
-print('Patch verified. Run o.sh, g.sh, independent review, z.sh derive, content certification, new GO, then s.sh.')
+print('Patch verified. Submission remains blocked by an unresolved input binding; consult the local report.')
 P
 '''
 p=H/'build/c_patch.sh';p.write_text(script);p.chmod(0o700)
-(H/'evidence/fix6_patch_manifest.json').write_text(json.dumps({n:{k:v for k,v in r.items() if k!='data'} for n,r in records.items()},indent=2)+'\n')
+(H/'evidence/fix7_patch_manifest.json').write_text(json.dumps({n:{k:v for k,v in r.items() if k!='data'} for n,r in records.items()},indent=2)+'\n')
 print('c_patch.sh',p.stat().st_size,sha(p),'changed',list(records))

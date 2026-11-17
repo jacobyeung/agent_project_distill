@@ -1,0 +1,3 @@
+From kit:
+LANE_TEST_OUTPUT="$PWD/tmp/t12" bash cpu.sh -m orchard_h10.repin_operator_member > logs/t12/repin.log 2>&1
+LANE_TEST_OUTPUT="$PWD/tmp/t12" PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 bash cpu.sh -m pytest -q -p no:cacheprovider --basetemp "$PWD/tmp/t12/package_checks" tests/test_build8.py::test_slurm_opacity_and_budget tests/test_build8.py::test_package_pins_and_embedded_bootstrap tests/test_build9.py::test_opaque_package_and_worker tests/test_build9.py::test_process_guard > logs/t12/package_checks.log 2>&1

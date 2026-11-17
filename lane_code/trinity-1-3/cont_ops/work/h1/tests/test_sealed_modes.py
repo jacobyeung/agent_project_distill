@@ -62,7 +62,11 @@ result = {'synthetic_missing_payloads': synthetic, 'cases': {}}
 for label, all_members in [('orchard', False), ('fully_sealed', True)]:
     kit = root / label; shutil.copytree(seed, kit); seal(kit, all_members)
     before = snapshot(kit)
-    try: old.derive(kit, root / (label + '_round2'), copy.deepcopy(h1))
+    historical = copy.deepcopy(h1)
+    for n in ('4.json', 'review.json', 'staging.json'):
+        p = H / 'evidence/fix6_before/payload' / n
+        historical['add_k'][n] = dict(path=str(p), sha256=dk.sha(p))
+    try: old.derive(kit, root / (label + '_round2'), historical)
     except PermissionError as e:
         assert str(e.filename).endswith('/b/r.sh') if not all_members else True
         result['cases'][label + '_round2'] = {'expected_failure': str(e)}

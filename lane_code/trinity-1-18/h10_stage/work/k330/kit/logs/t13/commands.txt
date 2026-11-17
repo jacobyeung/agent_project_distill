@@ -1,0 +1,5 @@
+From kit (the old-logic test runs before the source edit and rebuild):
+LANE_TEST_OUTPUT="$PWD/tmp/t13" PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 bash cpu.sh -m pytest -q -p no:cacheprovider --basetemp "$PWD/tmp/t13/fsw_old" tests/test_fsw_bind.py > logs/t13/fsw_old.log 2>&1
+LANE_TEST_OUTPUT="$PWD/tmp/t13" bash cpu.sh -m orchard_h10.repin_fsw > logs/t13/repin.log 2>&1
+LANE_TEST_OUTPUT="$PWD/tmp/t13" PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 bash cpu.sh -m pytest -q -p no:cacheprovider --basetemp "$PWD/tmp/t13/package_checks" tests/test_build8.py::test_slurm_opacity_and_budget tests/test_build8.py::test_package_pins_and_embedded_bootstrap tests/test_build9.py::test_opaque_package_and_worker tests/test_build9.py::test_process_guard > logs/t13/package_checks.log 2>&1
+LANE_TEST_OUTPUT="$PWD/tmp/t13" PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 bash cpu.sh -m pytest -q -p no:cacheprovider --basetemp "$PWD/tmp/t13/fsw_new" tests/test_fsw_bind.py > logs/t13/fsw_new.log 2>&1

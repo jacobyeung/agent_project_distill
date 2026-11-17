@@ -25,6 +25,12 @@ guards_verified=guard_proof['verified'] and all(
     hashlib.sha256((L/'work/tree_r1'/row['file']).read_bytes()).hexdigest()==row['current_sha256']
     for row in guard_proof['guards'])
 def classify(error):
+    if 'test_r2_build5_edges.py' in error and "'parts' not found" in error:
+        return 'R2 fixture expects placeholder staging parts; unknown sources now require an explicit pinned parameter'
+    if 'test_r2_build5_host_order.py' in error and "KeyError: 'file'" in error:
+        return 'R2 host-order fixture omits the runtime file pin required by the new staging self-check'
+    if 'test_gf1_cache.py' in error and 'bf16_tower_bf16_base_bf16_cache_pre_lm' in error:
+        return 'BF16 cached/online gradient exceeds the supplied relative tolerance; enabled BF16 remains refused'
     if any(value in error for value in ('Build policy refuses os.'+'remove','Build policy refuses os.'+'rmdir','Build policy refuses shutil.'+'rmtree')):
         return 'forbidden file cleanup under the no-deletion rule'
     if any(s in error for s in ('Build policy refuses','Proof policy','child processes','socket.connect','socket.bind')):

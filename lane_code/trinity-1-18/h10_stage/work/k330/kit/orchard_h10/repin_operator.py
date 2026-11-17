@@ -1,0 +1,109 @@
+"""Rebuild the current package with one exact submit PATH replacement.
+
+Run from K with: bash cpu.sh -m orchard_h10.repin_operator
+"""
+import copy
+import hashlib
+import json
+import runpy
+
+from orchard_h10.common import canonical, opaque, sha, write
+from orchard_h10.repin_terminator import K, TOKEN, members, render
+
+EXPECTED = 'ecfad90f13e75b7d5f978575b199ecd3b2fc77c7fefe7508688af111efb3100f'
+EXPECTED_PLAN = '5ef2094e61aa2471244ce23c28cead29a9be5f7221fd6bdb5a2e520985a87c77'
+OLD = b"'PATH':'/usr/bin:/bin'"
+NEW = b"'PATH':'/usr/local/bin:/usr/bin:/bin'"
+
+
+def pin(raw):
+    return dict(sha256=hashlib.sha256(raw).hexdigest(), bytes=len(raw))
+
+
+def main():
+    package = K/'orchard_h10/package'
+    backup = K/'orchard_h10/package_ecfad90f'
+    proof = K/'tmp/t11/repin'
+    source = K/'orchard_h10/operator.py'
+    assert not backup.exists(), 'Refuse to overwrite the current-package backup'
+    assert not proof.exists(), 'Require a fresh proof directory'
+    assert sha(package/'0.tgz') == EXPECTED
+    original = {p.name: p.read_bytes() for p in package.iterdir() if p.is_file()}
+    assert len(original) == 8
+    old = members(package/'0.tgz')
+    assert len(old) == 920
+    cfg = json.loads(old['9.json'])
+    assert cfg['token'] == TOKEN
+    assert canonical(cfg) == EXPECTED_PLAN
+    assert json.loads(original['0.json'])['plan_sha256'] == EXPECTED_PLAN
+    assert old['9.json'] == json.dumps(cfg, sort_keys=True).encode()
+    payload = {n: raw for n, raw in old.items() if n != '9.json'}
+    assert cfg['payload_pins'] == {n: pin(raw) for n, raw in payload.items()}
+    assert source.read_bytes() == payload['8.py']
+    assert payload['8.py'].count(OLD) == 1
+    assert NEW not in payload['8.py']
+    tokens = (K/'orchard_h10/TOKENS.json').read_bytes()
+
+    # Preserve all eight current package files before any rebuild or source edit.
+    backup.mkdir()
+    for n, raw in original.items():
+        (backup/n).write_bytes(raw)
+        assert (backup/n).read_bytes() == raw
+    selftest = proof/'selftest'
+    render(selftest, dict(payload), copy.deepcopy(cfg))
+    assert {p.name for p in selftest.iterdir()} == set(original)
+    assert all((selftest/n).read_bytes() == raw for n, raw in original.items())
+    print('No-change self-test: all eight current files reproduce byte-for-byte', flush=True)
+
+    payload['8.py'] = payload['8.py'].replace(OLD, NEW, 1)
+    updated = copy.deepcopy(cfg)
+    updated['payload_pins']['8.py'] = pin(payload['8.py'])
+    staged = proof/'new'
+    public = render(staged, dict(payload), updated)
+    new = members(staged/'0.tgz')
+    assert new.keys() == old.keys()
+    changed = [n for n in old if old[n] != new[n]]
+    assert set(changed) == {'8.py', '9.json'}
+    assert new['8.py'] == old['8.py'].replace(OLD, NEW, 1)
+    restored = copy.deepcopy(json.loads(new['9.json']))
+    restored['payload_pins']['8.py'] = cfg['payload_pins']['8.py']
+    assert restored == cfg
+    assert updated['payload_pins'] == {n: pin(raw) for n, raw in new.items() if n != '9.json'}
+    assert public['plan_sha256'] == canonical(updated)
+    compile(new['8.py'], '8.py', 'exec')
+    helpers = runpy.run_path(str(staged/'3.py'), run_name='repin_operator_check')
+    loaded = helpers['load_helpers'](staged)
+    from orchard_h10.job import verify_config
+    verify_config(loaded)
+    assert loaded['plan_sha256'] == public['plan_sha256']
+
+    source.write_bytes(payload['8.py'])
+    for p in staged.iterdir():
+        (package/p.name).write_bytes(p.read_bytes())
+    assert members(package/'0.tgz')['8.py'] == source.read_bytes()
+    assert all((package/p.name).read_bytes() == p.read_bytes() for p in staged.iterdir())
+    assert (K/'orchard_h10/TOKENS.json').read_bytes() == tokens
+    loaded = helpers['load_helpers'](package)
+    verify_config(loaded)
+    receipt = json.loads((package/'PACKAGE.json').read_text())
+    assert all(sha(package/n) == h for n, h in receipt['files'].items())
+    for p in package.iterdir():
+        if p.name != '0.tgz':
+            opaque([p.name, p.read_text()])
+    record = dict(
+        old=dict(sha256=EXPECTED, bytes=len(original['0.tgz']), plan_sha256=EXPECTED_PLAN),
+        new=dict(sha256=sha(package/'0.tgz'), bytes=(package/'0.tgz').stat().st_size,
+                 plan_sha256=public['plan_sha256'], package_sha256=sha(package/'PACKAGE.json')),
+        members=len(old), unchanged_members=len(old)-len(changed), changed_members=changed,
+        payload_pins_verified=len(payload), config_change="payload_pins['8.py'] only",
+        changed_public_files=[n for n, raw in original.items() if (package/n).read_bytes() != raw],
+        new_files=receipt['files'], no_change_selftest='all eight files byte-identical',
+        exact_source_and_payload_replacement='passed', source_matches_payload='passed',
+        helpers_and_config='passed', public_opacity='passed', compile='passed',
+        receipt_hashes='passed', tokens_unchanged=True, terminator_unchanged=True)
+    write(proof/'verification.json', record)
+    print(json.dumps(record, sort_keys=True, indent=2))
+
+
+if __name__ == '__main__':
+    main()

@@ -70,8 +70,14 @@ def bundle(name, prior=False):
     (b / 'd.py').write_text(source)
     (b / 'r.py').write_text((tree / 'tools/orchard_records.py').read_text().replace(
         "O=Path('/project/community/jjyeung/okh7')", 'O=Path(' + repr(str(root)) + ')'))
-    (b / 'ids.json').write_text(json.dumps(ids))
-    (b / 'over.json').write_text(json.dumps(over))
+    bundle_ids, bundle_over = ids, json.loads(json.dumps(over))
+    if prior:
+        bundle_ids = json.loads((H/'evidence/fix6_before/ids.json').read_text())
+        for n in ('4.json', 'review.json', 'staging.json'):
+            p = H/'evidence/fix6_before/payload'/n
+            bundle_over['add_k'][n] = dict(path=str(p), sha256=dk.sha(p))
+    (b / 'ids.json').write_text(json.dumps(bundle_ids))
+    (b / 'over.json').write_text(json.dumps(bundle_over))
     return b
 
 old = bundle('old', prior=True)
