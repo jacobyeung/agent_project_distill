@@ -85,7 +85,8 @@ def supervise(root,case):
  native=module('i');children=[]
  signal.signal(signal.SIGUSR1,lambda *_:native.relay(os.getpid()))
  for r in range(2):
-  env={**os.environ,'LOCAL_RANK':str(r),'RANK':str(r),'WORLD_SIZE':'2'}
+  env={**os.environ,'LOCAL_RANK':str(r),'RANK':str(r),'WORLD_SIZE':'2',
+       'OMP_NUM_THREADS':'4','MKL_NUM_THREADS':'4','OPENBLAS_NUM_THREADS':'4','NUMEXPR_NUM_THREADS':'4'}
   children.append(subprocess.Popen(PY+[str(Path(__file__).resolve()),'rank',str(root),case],env=env))
  codes=[p.wait() for p in children]
  raise SystemExit(0 if codes==[0,0] else 1)
@@ -192,6 +193,8 @@ def driver():
   result['elapsed_seconds']=time.monotonic()-start
   result['bytes']=sum(p.stat().st_size for p in P.rglob('*') if p.is_file())
   result['checks']['size_limit']=result['bytes']<500_000_000
+  result['checks']['time_limit']=result['elapsed_seconds']<600
+  if not all(result['checks'].values()):result['status']='FAIL'
   write(P/'RESULT.json',result)
  print(json.dumps(result));raise SystemExit(0 if result['status']=='PASS' and all(result['checks'].values()) else 1)
 if __name__=='__main__':

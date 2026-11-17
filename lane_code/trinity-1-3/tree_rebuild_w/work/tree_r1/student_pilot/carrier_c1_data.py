@@ -629,7 +629,7 @@ def build_stream(source, division_pin, output, stream, *, training_mode='mixed',
                 nested = stream == 'vqa' and anchor_slots(inputs) is not None and len(inputs['frames']) == 64
                 if (not single_image_row(row, stream, training_mode=training_mode, geometry_online=geometry_online)
                         and not nested and (len(inputs['frames']) not in (32, 64) or len(inputs['frame_indices']) != len(inputs['frames']))):
-                    raise ValueError('C1 preservation rows require 32 or 64 pinned native frames')
+                    raise ValueError('C1 preservation rows require 32 pinned native frames or 64 pinned native frames')
                 if nested:
                     anchors = [inputs['frame_indices'][k] for k in inputs['anchor_slots']]
                     if (len(anchors) != 32 or nested_indices(anchors) != (inputs['frame_indices'], inputs['anchor_slots'])):

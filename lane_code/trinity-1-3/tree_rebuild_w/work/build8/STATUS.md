@@ -1,6 +1,6 @@
 # Build 8 status
 
-Input evidence read. Step 1: regressions under investigation. No remote action or GPU use.
+Items 1–8 are implemented or retain their named blockers below. The packet suite passed all 202 tests (`proofs/packet/results.json`). The frozen diagnostic package suite is active. It found an error-message regression in the single-image guards; the working tree now preserves the original “32 pinned” assertion while naming both supported frame counts. Native malformed-head and row-shape cases are also added. Their focused check and a new freeze/final pass remain pending. No remote action or GPU use.
 
 Step 1: fixture regressions pass; BF16_CACHE_GRADIENT_PARITY remains blocked at its original tolerance. Evidence: `work/build8/proofs/regressions/DISPOSITION.json` and `BF16_PARITY.json`.
 

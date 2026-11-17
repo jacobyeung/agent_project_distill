@@ -29,6 +29,14 @@ for row in value['statements']:
         row['classification']='frame-host';row['reason']='Missing authenticated full-store RGB and scene-admission receipts on an admitted frame host; the local full-store guard remains enabled.'
     if row['file']=='launch_r2/entry.py' and ('r2_admission import check_family_receipt' in row['text'] or "check_family_receipt(cfg.get('r2_family_admission'))" in row['text']):
         row['classification']='frame-host';row['reason']='Missing authenticated full-store host receipts and the independent launch authorization required before the final family gate.'
+    if row['file']=='generator/derivgen_v7/derivgen/camera_rows.py' and row['function']=='from_gt_scene':
+        row['classification']='frame-host'
+        row['reason']='The real GTScene reader requires pinned canonical GT, RGB, selection and native-annotation inputs; its longer-clip contract remains unqualified. No GTScene stand-in is used.'
+        row['classification_source']=dict(path='work/tree_r1/generator/derivgen_v7/derivgen/geometry.py',lines=[185,187,192,220,236],blocker='FRAME64_CANONICAL_GT_LOADER_UNQUALIFIED')
+    if row['file']=='generator/derivgen_v7/derivgen/camera_rows.py' and row['function']=='camera_rows':
+        row['classification']='frame-host'
+        row['reason']='Full camera-row selection follows refuse_goal_scene and requires the exact sealed goal-scene exclusion file. That input is absent; the gate was not replaced or bypassed.'
+        row['classification_source']=dict(path='work/tree_r1/generator/derivgen_v7/derivgen/goal_exclusions.py',lines=[6,14,21,28],gate='work/tree_r1/generator/derivgen_v7/derivgen/camera_rows.py:497',blocker='SEALED_GOAL_SCENE_EXCLUSIONS_MISSING')
 value['classes']=dict(collections.Counter(r['classification'] for r in value['statements']))
 (B/'CHANGED_COVERAGE.json').write_text(json.dumps(value,indent=2)+'\n')
 gaps={}

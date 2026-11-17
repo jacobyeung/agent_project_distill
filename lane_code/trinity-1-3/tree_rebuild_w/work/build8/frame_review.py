@@ -12,7 +12,7 @@ result=[]
 for row in rows:
  name=row['file'];text=row['text'];r=dict(row)
  r['source']='work/build7/proofs/audit/FRAME64_REMAINING_SITES.json'
- r['proof']='work/build8/proofs/frames/results.json; work/build8/proofs/frame_stream/results.json; work/build8/proofs/direct/results.json'
+ r['proof']='work/build8/proofs/frames/results.json; work/build8/proofs/frame_stream/results.json; work/build8/proofs/direct/results.json; work/build8/proofs/final_repairs/results.json'
  if name.endswith('carrier_c1_routing.py'):
   function='direct_row' if row['line']>=880 else 'c1_row' if row['line']>=760 else 'query_tensor' if row['line']>=690 else 'camera' if row['line']>=275 else '__init__'
   r.update(status='closed locally',evidence=site(name,function),reason='The visible frame dimension is now derived from the configured count, the pose tensor or the bound RGB frame list; both supported counts run through native tiny-model proofs.')

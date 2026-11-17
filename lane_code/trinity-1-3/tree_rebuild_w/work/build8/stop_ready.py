@@ -2,7 +2,9 @@
 import hashlib,json
 from pathlib import Path
 L=Path(__file__).resolve().parents[2];B=L/'work/build8';P=B/'proofs/stop_multirank'
-paths=[B/'stop_multirank.py',B/'stop_monitor.py',P/'RUN.sh']
+paths=[B/'stop_multirank.py',B/'stop_monitor.py',B/'RUN_PY.sh',P/'RUN.sh',
+ L/'work/tree_r1/launch_s1/b/r.sh',L/'work/tree_r1/launch_s1/b/h.py',
+ L/'work/tree_r1/launch_s1/b/i.py',L/'work/tree_r1/student_pilot/carrier_c1_run.py']
 for p in paths:
  if p.suffix=='.py':compile(p.read_bytes(),str(p),'exec')
 (P/'RUN.sh').chmod(0o755)

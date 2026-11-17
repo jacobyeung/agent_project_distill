@@ -2,7 +2,7 @@
 import ast,hashlib,json
 from pathlib import Path
 L=Path(__file__).resolve().parents[2];T=L/'work/tree_r1';P=L/'work/build8/proofs/audit'
-initial=json.loads((P/'INFERENCE_COMPONENTS.json').read_text());seeds=initial['scope']
+initial=json.loads((P/'INFERENCE_COMPONENTS.json').read_text());seeds=initial.get('seed_scope',initial['scope'])
 def resolve(name):
  parts=name.split('.')
  if parts[0]=='derivgen':parts=['generator','derivgen_v7',*parts]
@@ -48,7 +48,26 @@ while pending:
     names=[x.id for target in targets for x in ast.walk(target) if isinstance(x,ast.Name)]
     if names:components.append(dict(file=name,line=node.lineno,component=', '.join(names),classification='Module-level literal or table outside registered weights'))
 components.sort(key=lambda r:(r['file'],r['line']))
+focus={
+ ('student_pilot/carrier_c1_routing.py','query_tensor'):'Builds the depth stencil and query coordinates outside the model forward pass.',
+ ('student_pilot/carrier_c1_routing.py','OwnGeometry.pose'):'Converts pose outputs to public geometry and degrees.',
+ ('student_pilot/carrier_c1_routing.py','render_full'):'Serializes responses and reasoning into text tokens.',
+ ('student_pilot/carrier_c1_batch_decode.py','Row.step'):'Controls token emission and reserved-token masking outside forward.',
+ ('student_pilot/carrier_c1_batch_decode.py','Row._call'):'Dispatches decoded calls and injects rendered response tokens.',
+ ('student_pilot/carrier_c1_decode.py','parse_head'):'Parses generated calls and checks frame arguments.',
+ ('student_pilot/carrier_c1_decode.py','respond_state'):'Dispatches responses and converts reader exceptions to typed output.',
+ ('student_pilot/geometry_profiles.py','ProfileGeometry.lift'):'Computes geometry from coordinates and depth outside registered weights.',
+ ('trace_format/box_v313.py','public_fields'):'Computes public box fields and degree values.',
+ ('trace_format/box_v313.py','ground'):'Computes grounding statuses and serialized responses.',
+ ('trace_format/box_v313.py','provider_for'):'Chooses the existing box provider according to the configured geometry mode.',
+ ('trace_format/box_v313.py','PolicyBoxProvider.__call__'):'Applies the existing fitted-box policy outside weights.',
+ ('student_pilot/mdg_decode.py','threshold'):'Reads and validates the artifact threshold outside the model forward pass.',
+ ('student_pilot/mdg_decode.py','predict'):'Invokes the head and postprocesses its outputs in a decoder helper.',
+}
+confirmed=[dict(r,operation=focus[(r['file'],r['component'])]) for r in components if (r['file'],r['component']) in focus]
+assert len(confirmed)==len(focus)
 value=dict(seed_scope=seeds,scope=sorted(files),source_hashes=files,import_edges=edges,components=components,
+ known_outside_forward=confirmed,
  limitation='Conservative local static import closure includes support/training functions imported by inference modules. Dynamic dispatch and external dependencies are not proven complete. EAT traces establish only exercised tiny-reader paths; no production acceptance is claimed.')
 (P/'INFERENCE_COMPONENTS.json').write_text(json.dumps(value,indent=2)+'\n')
 print(json.dumps(dict(files=len(files),components=len(components),source='work/build8/proofs/audit/INFERENCE_COMPONENTS.json')))

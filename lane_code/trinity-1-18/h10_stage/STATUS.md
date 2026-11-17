@@ -1,11 +1,20 @@
 # h10_stage STATUS (Devin lane on trinity-1-18; lane folder /scratch/jjyeung/orch_n30/h10_stage). Successor: read this, then newest *_ORCH_* in events/h10_stage and inbox/.
-Updated 20261117T0556Z.
+Updated 20261117T0656Z (successor lane, Devin).
 
 ## NOW
 - Orchard 170674 (a15_cot_apb01ec87a6f29b, general, 1 GPU x 03:00:00) RUNNING since ~05:45:37Z on orchard-community-1: H1-0 types 3-4 only (object_abs_distance 450 reads = 150 baseline + 300 perturbed; room_size_estimation 36). Type 3 worker started 05:49:52Z; first distance reads landed (127 s incl. SAM 3 load, then ~18 s/read). Admission stops ~08:15Z; return by ~08:25Z. Return token b01ec87a6f29b00029ab2 -> pool /project/community/jjyeung/okh7/ae71c903/b01ec87a6f29b00029ab2 (+GCS q8/ae71c903/...).
 - At ~18 s/read the 486 reads may not all fit; a clean stop is resumable with the SAME package and 1 GPU (pin returned archive in a/1.json "resume"; rerun 3.py check; ask ORCH). NEVER resubmit after a cluster kill without the user's yes; our own package failures are fixed and rerun on ORCH's word.
 - Babysit: every 10 min: `cd /scratch/jjyeung/orch_n30/h10_stage/work/o && timeout 150 bash <tools>/ossh.sh 'bash -s' < prog.sh` (squeue, pool dir, srun --overlap 1 CPU/1 GB read-only journal line counts + log tails). 1-min on regression. EXIT.json in the pool dir = job ended.
 - On return: subset merge for types 3-4 Orchard-side: copy /scratch/jjyeung/orch_n30/h10_stage/work/proof/sub_ns.sh logic but submerge.py assumes types 0..N-1; adapt to types [3,4] (roots journals/3/0, journals/4/0; identity types; plan over those items), run in rehearsal namespace W/r2 (d/e there = same restore 68935a4b, export hash matched 46029ca2). Then RESULT complete with M1/M2/M3 for distance and room, plus the camera table (below) = full H1-0.
+
+- 170674 RETURNED (clean STOP, COMPLETED 0:0, 05:45:37-06:43:15Z): result.tar.gz cb45b439 (317,107 B) pool /project/community/jjyeung/okh7/ae71c903/b01ec87a6f29b00029ab2 + GCS; 6 distance reads (3 loops: 042584, 042597, 042604 @136-142 calls), room 0. RESULT 0646Z.
+- Cap REGISTERED in H1 record ("Per-read call cap": distance 6, room 2) + finding bullet in Status. ORCH 0647Z: room-only job (45 min) first, then distance-only (3 h, partial), one at a time, main-inbox check before each submit.
+- Cap package BUILT (Codex h10_callcap, report work/k330/REPORT_terminator.md tail): 0.tgz 446a4323 (5,297,068 B), plan c6135410, PACKAGE.json a99d7f06, 0.json 35a161ef, BATCH.sh 52f3a7fa, CONFIG.json 371813ea; changed h1eval/h10/{launch,parity_adapter}.py, h1eval/{runner,scorers}.py (+4 pins); b/** identical. My rerun: test_callcap + test_types_selection 132 passed. Note: capped call is also counted in "Unserved calls".
+- Staged on Orchard W: pkg6.tar b874abf1, 1_t4.json 4a2d652c (room), 1_t3.json 1abaf6ca (distance). Install+check+test-only script work/o/p28.sh (backs up current to W/pkg_b1e209ee; does NOT submit). Submit = A_N=1 A_T=00:45:00 bash SUBMIT.cmd in /project/community/jjyeung/b01ec87a6f29b (see p27.sh pattern, refuses if a job of ours on general).
+- CPU rehearsal on 1-18 with new payload: tree /scratch/jjyeung/b01ec87a6f29b (old p -> p_b1e209ee, old d/{manifest,binding,settings,READY}.json -> *.b1e209ee, manifest rebuilt by rh118/prep2.py rc 0), worker tmux h10_rh4 -> rh118/worker4.log (expect stop at SAM 3 CUDA alloc as before).
+- Merge script for types 3-4 ready locally: work/proof/submerge2.py (argv3 = "3,4"; identity check accepts restricted order). Needs upload to W and a sub2_ns.sh (copy of sub_ns.sh calling submerge2.py with "3,4").
+- Main inbox newest: INBOX_TO_DISTILL_ORCH_20261117T005156Z (no objection).
+- Note: rg is not installed on 1-18; use grep on /scratch.
 
 ## Done (evidence)
 - Camera M1/M2/M3 banked from 170631 (RESULT 20261117T05xxZ_RESULT_h1_0_camera_M123.md; files work/results/170631/{curve.json 472d5f5e, report.md, result.tar.gz a2bc039a}). M1 1.000/1.000/0 all types; M3 follow 1.000 all perturbations; M2: displacement 0.605 m, rotation 17.9 deg, direction 0.753.

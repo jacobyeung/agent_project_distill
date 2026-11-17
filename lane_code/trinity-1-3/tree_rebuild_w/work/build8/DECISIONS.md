@@ -14,6 +14,8 @@
 
 - Frame-count shape checks validate input dimensions only. The inference selector, response computation, thresholds and fallback behavior remain unchanged. The outside-weight source inventory is supplied for the independent acceptance review.
 
+- The single-image guard asserts the existing “32 pinned” error phrase. Options: weaken that assertion or keep the phrase while describing both admitted sizes. Default: preserve the original assertion and report “32 pinned native frames or 64 pinned native frames.” Add native malformed-row and malformed-head reader cases, then refreeze and rerun the final checks.
+
 - Packet setup options: retain broken relocated references, copy the row slices, or reference their existing lane-local source files. Default: use read-only symlinks with the existing hashes, and use a fresh pytest directory so retained process IDs cannot collide. Run the corrected packet once before package groups; retain the failed setup evidence. No assertion changes.
 
 - The dense-pose admission predicate still binds the legacy all_frames32 contract. Options: invent a longer-clip contract, or retain the guard pending its admitted source manifest. Default: retain the guard and name FRAME64_DENSE_POSE_ADMISSION_UNQUALIFIED.

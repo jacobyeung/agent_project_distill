@@ -1,5 +1,5 @@
 """Visible frame dimensions through native tiny forward and row producers."""
-import copy,json,os
+import copy,json,os,sqlite3
 from pathlib import Path
 from types import SimpleNamespace
 import unittest
@@ -40,15 +40,23 @@ class FrameCounts(unittest.TestCase):
             self.assertTrue(torch.isfinite(output['loss']))
             self.assertEqual(batch['video_grid_thw'][0,0],count)
             self.assertEqual(batch['aux_camera_positions'].shape[1],count)
+            malformed=copy.deepcopy(row)
+            malformed['student_input']['frames']=malformed['student_input']['frames'][:-1]
+            malformed['student_input']['frame_indices']=malformed['student_input']['frame_indices'][:-1]
+            invalid=root/'invalid.jsonl';invalid.write_text(json.dumps(malformed)+'\n')
+            with self.assertRaisesRegex(ValueError,'C1 preservation rows require'):
+                data.build_stream(file_pin(invalid),file_pin(division),root/'invalid_store','vqa',training_mode='final')
 
     def test_camera_rows_queries_and_tiny_forward(self):
         from tests.test_carrier_c1 import fixture,Tokenizer
         from student_pilot.carrier_c1_data import insert_frame_carriers
         from student_pilot.carrier_c1 import CarrierC1
         from student_pilot import carrier_c1_routing as R
+        from student_pilot import carrier_c1_run as Train
         from transformers import Qwen3_5ForConditionalGeneration
         from generator.derivgen_v7.derivgen import camera_rows as C
         p=folder('frame_counts');original,_,_=fixture(depth_enabled=False);measurements=[]
+        original.config.text_config.vocab_size=512
         for count in (32,64):
             with self.subTest(frame_count=count):
                 root=p/str(count);root.mkdir()
@@ -88,12 +96,54 @@ class FrameCounts(unittest.TestCase):
                     dict(embed_dim=64,num_heads=4,trunk_depth=4,refine_iterations=4,weight_gravity=1.,weight_scale=1.,
                     supervision={'path':'/fixture','sha256':'a'*64}),{},5,training_mode='final',depth_enabled=False,
                     frame_layout='duplicate',frame_count=count)
+                with torch.no_grad():
+                    pose_head=model.auxiliary_heads.pose.head.pose_branch.fc2
+                    pose_head.weight.zero_();pose_head.bias.zero_();pose_head.bias[6]=1
+                    gravity_head=model.auxiliary_heads.pose.head.gravity_branch.fc2
+                    gravity_head.weight.zero_();gravity_head.bias.copy_(torch.tensor([0.,-1.,0.]))
                 with torch.no_grad():readout=model(batch,{'uv':uv},stream='readout')
                 geometry=R.own_geometry(readout,[],[])
                 rotation,centre=geometry.camera(count)
+                pose=readout['pose'][0].double().cpu().numpy()
+                up=readout['gravity'][0].double().cpu().numpy()
+                # Malformed tensor shapes stand in only at the model boundary;
+                # the native geometry reader must reject both before use.
+                with self.assertRaisesRegex(R.RenderError,'own pose readout'):
+                    R.OwnGeometry(pose[:-1],up,None)
+                with self.assertRaisesRegex(R.RenderError,'own FoV readout'):
+                    R.OwnGeometry(pose,up,None,fov=pose[:-1,7:9])
+                # The actual SQLite reader feeds both native own-value routes.
+                # Only tiny pretrained weights and the tokenizer stand in.
+                database=root/'routing.sqlite'
+                with sqlite3.connect(database) as connection:
+                    connection.execute('CREATE TABLE rows (i INTEGER,row TEXT,target TEXT)')
+                    connection.execute('INSERT INTO rows VALUES (0,?,?)',(json.dumps(packed),'{}'))
+                processor=D.TinyProcessor();processor.tokenizer._c1_frame_count=count
+                reader=Train.Rows(dict(streams={'routing':dict(count=1,database=file_pin(database))}),processor)
+                batch['aux_suffix_start']=torch.tensor([batch['input_ids'].shape[1]-2])
+                try:
+                    own,audit=Train.own_values(model.eval(),reader,batch,{},0,(False,True),torch.device('cpu'))
+                    self.assertEqual(own['aux_camera_positions'].shape[1],count)
+                    reader.h1={'faithful_own_camera_rows':True}
+                    own,audit=Train.own_values(model.eval(),reader,batch,{},0,(False,True),torch.device('cpu'))
+                    self.assertEqual(audit['h1']['values'],'own',audit)
+                    self.assertEqual(own['aux_camera_positions'].shape[1],count)
+                    with torch.no_grad():language=model(own,stream='routing')
+                    self.assertTrue(torch.isfinite(language['loss']))
+                    reader.h1={}
+                    malformed={**packed,'routing':{}}
+                    reader.connections['routing'].close()
+                    with sqlite3.connect(database) as connection:
+                        connection.execute('UPDATE rows SET row=?',(json.dumps(malformed),))
+                    reader.connections['routing']=sqlite3.connect(database)
+                    with self.assertRaisesRegex(ValueError,'depth queries'):
+                        Train.own_values(model.eval(),reader,batch,{},0,(False,True),torch.device('cpu'))
+                finally:reader.close()
                 self.assertTrue(np.isfinite(rotation).all() and np.isfinite(centre).all())
                 measurements.append(dict(frame_count=count,query_shape=list(uv.shape),pose_shape=list(readout['pose'].shape),
-                    target_sha256=__import__('hashlib').sha256(row['target'].encode()).hexdigest()))
+                    target_sha256=__import__('hashlib').sha256(row['target'].encode()).hexdigest(),
+                    real_functions=['query_tensor','c1_row','Rows.row','carrier_c1_run.own_values','h1_faithful.own_values','CarrierC1.forward'],
+                    stand_ins=['tiny pretrained LM and pose-head weights','tiny pretrained tokenizer']))
         with self.assertRaisesRegex(R.RenderError,'unsupported_frame_count'):R.query_tensor([],frame_count=48)
         with self.assertRaisesRegex(R.RenderError,'frame_out_of_range'):R.query_tensor([(65,[0.,0.])],frame_count=64)
         (Path(os.environ['R2_PROOFS'])/'FRAME_COUNTS.json').write_text(json.dumps(measurements,indent=2))

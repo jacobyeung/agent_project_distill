@@ -95,3 +95,17 @@ The no-change rebuild reproduces all eight files. Only `orchard_h10/job.py`, `or
 CPU tests: 112 new source/payload selection cases, four package checks, two bind cases, four distance-import cases, and six existing runner cases pass (128 passed, 0 skipped).
 Four existing build8 rehearsal cases fail because `/scratch/jjyeung/orch_n30/b04_e2ehook` lacks the reader; test_h10 has one collection error because that fixture lacks `tests/test_tiny_e2e.py`. These fixtures were not changed.
 Backup: `kit/orchard_h10/package_e01ada41/`. Rebuild: `kit/orchard_h10/repin_types.py`. Tests: `kit/tests/test_types_selection.py`. Proof: `kit/tmp/t15/repin/verification.json`. Logs and counts: `kit/logs/t15/`.
+The registered call-cap package has `0.tgz` SHA256 `446a432306b8e68ebfa32228071259a61ffd2ec0dada3ec43a664ba342ca540e` and 5,297,068 bytes.
+Plan SHA256: `c6135410e087916095256a8b4c27eaa290f854734f8f4ea37150d34208ce709f`. `PACKAGE.json` SHA256: `a99d7f06b025f0b8c15c1adca034538a50e63cc9ad2a80499961ee2aa7aa575d`.
+`0.json` SHA256: `35a161ef7f33ffbb247bc3adf5bd56641f0aeadbda1bdf890d650af0a4f27de1`.
+`0.tgz` SHA256: `446a432306b8e68ebfa32228071259a61ffd2ec0dada3ec43a664ba342ca540e`.
+`3.py` SHA256: `a5c94551f263e30bc05579a40e84f1f146e9a67dc2e21c8834ed62bd680b73e0`.
+`BATCH.sh` SHA256: `52f3a7faf35e6269c141ca6dddbf1eea195218d52124012969144982f05ab2e3`.
+`CONFIG.json` SHA256: `371813ea9b939a374f45fa1e150e26a9e2976030abd0f92b8721f12947c2e5a7`.
+The worker path is `5.py / 30.json` → `h1eval.h10.launch.reader_factory` → H1’s capped parity factory → pinned `b/e2e_reader` decode; distance stops at 6 calls and room at 2, including unserved calls.
+Changed members: `h1eval/h10/{launch,parity_adapter}.py`, `h1eval/{runner,scorers}.py`, and only their four pins in `9.json`; 919/924 members remain byte-identical, including every `b/**` member.
+The no-change rebuild reproduces all eight files; all 923 payload pins, load_helpers, verify_config, opacity, Python compilation, receipt hashes, and shell syntax pass. Token and template pins remain unchanged.
+CPU tests: 20 cap cases, four package checks, two bind cases, four distance-import cases, 112 type-selection cases, two existing scorer cases, and six existing runner cases pass (150 passed, 0 skipped).
+Four existing runner cases fail because the external `b04_e2ehook` reader is absent; `test_h10` has one collection error because its `tests/test_tiny_e2e.py` fixture is absent. Both causes match t15.
+Cap tests verify no response at the boundary, score 0 with the read retained in the denominator, M1 non_terminating count/rate, exact uncapped output bytes, and unchanged prior measurement/table values on 45 fixtures per implementation.
+Backup: `kit/orchard_h10/package_b1e209ee/`. Rebuild: `kit/orchard_h10/repin_callcap.py`. Test: `kit/tests/test_callcap.py`. Proof: `kit/tmp/t16/repin/verification.json`. Logs/counts: `kit/logs/t16/`.
