@@ -70,3 +70,28 @@ Plan SHA256: `1de19b86d81f2bf9a5b254270e61496e45d454893fe893cbbd325739f74764c8`.
 The one-line fix matches source and payload. All eight files reproduce in the no-change self-test; 918 members remain byte-identical. `9.json` changes only `payload_pins['orchard_h10/job.py']`; all 919 pins, canonical plan, load_helpers via `3.py`, verify_config, compilation, receipt hashes, and opacity pass.
 The four package checks pass (4 passed). The focused bind-source test fails on both unfixed source and payload because `fsw` is absent (2 expected failures), and passes on both fixed versions (2 passed); its fixture includes runtime group 0's Python directory. Logs: `kit/logs/t13/{package_checks,fsw_old,fsw_new}.log`.
 The eight-file backup is `kit/orchard_h10/package_2dd91b3b/`; rebuild: `kit/orchard_h10/repin_fsw.py`; test: `kit/tests/test_fsw_bind.py`; proof: `kit/tmp/t13/repin/verification.json`. Token, template pins, and all other payload bytes remain unchanged.
+
+The sl118 package has `0.tgz` SHA256 `e01ada41399d2951e7ba88e2ad4e975b39cc5b915795e841d540a3b64634ec2b` and 5,296,148 bytes.
+Plan SHA256: `811c6533d66753a45ea5547ef6ad2b99e6703c6ff23f012c7461d492cc053954`. `PACKAGE.json` SHA256: `349e83f61c326f417b57ef07938c5ce89003a1931ea79f54893ede23e3efccb5`.
+The five receipt hashes are the `0.tgz` hash above, `0.json`: `ada7bc52ef5deac2e3141444c72804c1095a08e446e9bb85fc98331a76f39242`, and `3.py`: `a5c94551f263e30bc05579a40e84f1f146e9a67dc2e21c8834ed62bd680b73e0`; the remaining two follow.
+`BATCH.sh`: `c86f7be3a78420569ae22f0480e19d7d08ec9898edf7b5caf56b449f6f85dcd2`. `CONFIG.json`: `a3f55889871643755938cfc5bf6714e596a5e6696adbc68584b6ed8ee0fcd61f`.
+Added `b/heads/selector/sl118/name_emb.py` verbatim; SHA256: `8e4b862b2fd7cde48c4491c36fc593c00137b26cd9ae2a1fecfb540c1a826520`.
+Added `b/heads/selector/sl118/selector_inputs.py` verbatim; SHA256: `9f7c0bafe0dc1a8dcaf522967085748cbb8db85053668ca2a024d24f3c954813`.
+Added `b/heads/selector/sl118/sl_tables.py` verbatim; SHA256: `770858a1e50484917f592d54477432b6c2219d06fe3efdf3f6af4404fa72910c`.
+Added `b/heads/selector/sl118/sl_tables_v1.py` verbatim; SHA256: `1e4c1f59068315000956dd3f7e54d79a4d32706ee871a57cfea676204822aa4e`.
+All eight files reproduce in the no-change rebuild. Of 920 old members, 919 remain byte-identical; `9.json` gains only four payload pins. The archive contains 924 sorted members; all 923 payload pins match, including the four b04 pins. The selector_inputs copies are identical.
+load_helpers, verify_config, opacity, receipt hashes, all payload Python compilation, and shell syntax pass. The four package checks, two test_fsw_bind cases, and four distance-import cases pass (10 passed, 0 skipped). The old package fails only the selector_inputs case at stage1.py:120 (1 expected failure, 3 passed).
+Logs: `kit/logs/t14/`. Backup: `kit/orchard_h10/package_e82ac329/`. Proof: `kit/tmp/t14/repin/verification.json`. `kit/tests/test_distance_imports.py` executes the packaged import paths in isolated CPU processes. The source-only build.py edit includes `heads/selector/sl118/*.py`; sources() was not run. No SCALES_S4.json or src118 members were added.
+
+The type-selection package has `0.tgz` SHA256 `b1e209eea22a18ec36b689594f196a82f192f192d66ff3348b1023eb33370efe` and 5,296,259 bytes.
+Plan SHA256: `894f77d45bcfcd2f93099ae04d6d6ed5363bd5c5c0db1c499131d0874492de44`. `PACKAGE.json` SHA256: `2a8f24119adc872e1622f2a6fbd3bb46ef3ffa5f80b1ec2a532edd9d60d72c40`.
+The five receipt hashes are the `0.tgz` hash above and the four below.
+`0.json`: `a93546a5edbf661dcce34ab0d05f7a34694911bdd2c78813765b0462903f882f`.
+`3.py`: `a5c94551f263e30bc05579a40e84f1f146e9a67dc2e21c8834ed62bd680b73e0`.
+`BATCH.sh`: `14cc52da04ba2939ff5e86bc527e989396d4622b92e79fa50a41c6c3df42492b`.
+`CONFIG.json`: `1596bfa0cc4b81ded9377b7a86011deb9391801075ff0a9a961d60905d98ba5c`.
+Optional input `types` must be a nonempty, unique ORDER-ordered list; invalid selections raise `Invalid type selection`. Absent selections run all five types. Selected runs preserve original indices, bind types in IDENTITY, and count only selected journals; the optional phase remains at index 5.
+The no-change rebuild reproduces all eight files. Only `orchard_h10/job.py`, `orchard_h10/runner.py`, and their two pins in `9.json` differ; 921 of 924 members remain byte-identical. All 923 pins, load_helpers, verify_config, opacity, payload compilation, receipt hashes, and shell syntax pass.
+CPU tests: 112 new source/payload selection cases, four package checks, two bind cases, four distance-import cases, and six existing runner cases pass (128 passed, 0 skipped).
+Four existing build8 rehearsal cases fail because `/scratch/jjyeung/orch_n30/b04_e2ehook` lacks the reader; test_h10 has one collection error because that fixture lacks `tests/test_tiny_e2e.py`. These fixtures were not changed.
+Backup: `kit/orchard_h10/package_e01ada41/`. Rebuild: `kit/orchard_h10/repin_types.py`. Tests: `kit/tests/test_types_selection.py`. Proof: `kit/tmp/t15/repin/verification.json`. Logs and counts: `kit/logs/t15/`.

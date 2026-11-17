@@ -15,12 +15,12 @@ The selection is the unchanged byte copy of `BUN/q_6c18a2bf/o/r.json` from the r
 | Regeneration tool | `2d5397aaf186a6be1637f2c68b53d5b45dae620a4a85dfd99d8468c2ad2d3b38` |
 | Executed regeneration script build/q.sh | `af10e6d5a3546851b2d14f4baa8827b37e102432d30bd5dc8f50b6383c810fdd` |
 | Deriver payload/d.py | `4f83f57f87fcec81a67d0ea1f63919e260ee6fc2f5db817f126b258b839c849a` |
-| Proof build/a_8c74b291.sh | `22ddf08a37c911682043c0149f4ae5923e98c11afb0235245b23a875227e86b3` |
-| Guarded patch build/c_patch.sh | `c642f2343237413bba08aa2ac62212d4373d97d19f3185e27e069f3c7f481975` |
-| payload/sums.txt | `25a9554487488c2d303e766c67f6bc3ce34f6519954ffa682cb9830ca02c9f28` |
-| Upload archive p_6c368db0485677ea.tar | `6c368db0485677eaa7096c326b04fd98e0f22fd96bdb7e73a09c3d372d51f574` |
-| UPLOAD.json | `330dbef08fb9bf50b3902a365001026632424a66e90b2e7b15ddc61f10416f06` |
-| orch_h1.sh | `d97b163518925f8bb5a66b0a65d97ff4b6aac5f9e20644d5d953f3799b1660a5` |
+| Proof build/a_8c74b291.sh | `3814df676f9e2090057da9c3989b459fb51badbaef9368026e8c1401f2613e48` |
+| Guarded patch build/c_patch.sh | `2c0bc12e100c38890578f256473fdf7e79bc5f8820ffb1350ea4f63ee57c41b4` |
+| payload/sums.txt | `b36e63b689a4f37d52ebfc9994c45059b3dc94bf064f9a16bdba31dc9c17c82c` |
+| Upload archive p_c22af67257b6ca1b.tar | `c22af67257b6ca1bffe732b99219851007f56f8300b52cf469257f32174d4eda` |
+| UPLOAD.json | `b51d39af2dbca8bee5ee102f90b410a3a9d6bf180fb8ec80acc4ab54b4cf5158` |
+| orch_h1.sh | `5088c7716c31fdd98ae164dc0c626cf715383dbf4d14f323de68b0151f7fe040` |
 | Unchanged jb.sh | `3f4b074e93eb76dcfacb4504f85bd07a1f46dce51156df5efa99daae733f57db` |
 | Unchanged EXPORT_OBJECTS.txt | `1be454c3c2ab6457e3e41c902100207880253c3218d0701c584128d7d5ad7bc2` |
 
@@ -43,21 +43,21 @@ The regeneration runtime test deliberately retains the D0 reference configuratio
 
 The production CPU proof is `build/a_8c74b291.sh`, also shipped as `BUN/a_8c74b291.sh`. Its embedded driver checks the certified FINAL KH, manifest, exact config pin, identity, contract, selected bytes, equality report, jb.sh and runtime hashes. It executes jb.sh's exact cold-start prefix through export-session and staging-entry validation, followed by job.sh's certificate check, production import preflight and `g.py p`, then the unchanged `b/r.sh p 0 -> b/i.py -> b/w.py -> s1_admission.admit(prepare_only=True)` path. It never executes the training-mode selector or mode t. The import preflight checks p/t/u dependencies without executing training. The production 3.8 TB node-local free-space guard and actual session-name validation remain in force.
 
-An outer bubblewrap namespace maps a fresh physical `/tmp/jjyeung/p_8c74b291_<job>/tmp/` onto `/tmp`, isolates the persistent root, and isolates KH's arm/run mirrors. The production configuration, logical paths, source bytes and staging functions remain unchanged. The rest of the filesystem is read-only; only proof-local storage and KH/o receive writes. Network access and GPU device nodes are absent in the outer namespace; `CUDA_VISIBLE_DEVICES=''` is forced throughout. No existing jb.sh, job.sh, go.json, production run or persistent slot is edited. The real job automatically reuses **nothing** from this proof: staging, preparation and cold-start claims are isolated, and the real wrapper performs its normal staging and admission again.
+An outer bubblewrap namespace maps a fresh physical `/tmp/jjyeung/p_8c74b291_<job>/tmp/` onto `/tmp`, isolates the persistent root, and isolates KH's arm/run mirrors. The production configuration, logical paths, source bytes and staging functions remain unchanged. The rest of the filesystem is read-only; only proof-local storage and KH/o receive writes. The outer namespace uses the SHA-checked kit bwrap, permits nested production user namespaces, and excludes GPU device nodes; it shares the host network and `CUDA_VISIBLE_DEVICES=''` is forced throughout. No existing jb.sh, job.sh, go.json, production run or persistent slot is edited. The real job automatically reuses **nothing** from this proof: staging, preparation and cold-start claims are isolated, and the real wrapper performs its normal staging and admission again.
 
 After mode p returns, the driver calls native `b/d.effective` against the isolated physical run and validates the prepared source/config/frame seals. It writes `KH/o/<job>.proof.json` with PASS/FAIL, rc, start/end/elapsed timing, full admission result, prepared pins/seals, exact manifest/config/runtime bindings and physical locations. `KH/o/<job>.proof.log`, `.proof.out`, `.proof.err`, `.w.steps`, `.steps` and `.preflight.*.json` retain diagnostics. The native receipt remains at `/tmp/jjyeung/p_8c74b291_<job>/tmp/jjyeung/a_17c4ffa4/runs/17c4ffa4/inputs/data_receipt.json`. PASS means full production preparation and RGB audit reached the first-batch boundary. It does not mean a CPU forward batch or GPU first step ran: native prepare_only returns immediately before `first_batch_check` (`s1_admission.py:277–281`). Catchable failures produce FAIL with rc; a forced kill may leave RUNNING, which never qualifies for submission.
 
-Mode p's native resource contract requests zero GPUs (`b/i.py:26–28`, `b/w.py:32–43`). The exact submission below omits GPU GRES. Four hours allow 1 h 39 min beyond D0's 1 h 51 min preparation plus approximately 30 min staging. Orchard partition policy and production imports were not queried under the local-only scope; no code requirement for a GPU allocation was found. If the scheduler rejects a zero-GPU job, preserve that refusal for the operator; this packet does not silently request a GPU or retry. The local mount test omits only the network namespace because this sandbox denies NETLINK_ROUTE; the shipped script retains it.
+Mode p's native resource contract requests zero GPUs (`b/i.py:26–28`, `b/w.py:32–43`). The exact submission below omits GPU GRES. Four hours allow 1 h 39 min beyond D0's 1 h 51 min preparation plus approximately 30 min staging. Orchard partition policy and production imports were not queried under the local-only scope; no code requirement for a GPU allocation was found. If the scheduler rejects a zero-GPU job, preserve that refusal for the operator; this packet does not silently request a GPU or retry. Local tests execute the shipped outer flags and the verbatim inner tk_bwrap function with fixture paths. The driver checks nested namespace support before staging; REVIEW8c.md inventories all host dependencies.
 
 The operator sequence is **patch -> o.sh -> g.sh -> review.json -> z.sh derive -> anon/certify -> proof job -> go.json -> s.sh**. These commands are provided for the operator; none ran on Orchard in this task.
 
-1. Deliver `build/c_patch.sh` as `/project/community/jjyeung/okh7/t_c8b460a1.sh` through the authorized opaque transport. Verify SHA256 `c642f2343237413bba08aa2ac62212d4373d97d19f3185e27e069f3c7f481975`. The patch targets bundle `i_1be16f28` and authenticates the exact retained live starting state in `evidence/fix6_before/payload/`; it refuses another state, occupied target KH/root, linked targets, bad sums and foreign review/staging evidence before mutation. It retains replaced files and obsolete identity-bound evidence in `BUN/v_8`, adds the new selection/report/proof files, and rechecks sums. It preserves the trainer and old KH. A refusal is a stop for operator inspection, never a reason to bypass its guards. `orch_h1.sh` is the reproducible fresh-bundle transport and is not the command for an existing live bundle.
+1. Deliver `build/c_patch.sh` as `/project/community/jjyeung/okh7/t_c8b460a1.sh` through the authorized opaque transport. Verify SHA256 `2c0bc12e100c38890578f256473fdf7e79bc5f8820ffb1350ea4f63ee57c41b4`. The patch targets bundle `i_1be16f28` and authenticates the exact retained live starting state in `evidence/fix6_before/payload/`; it refuses another state, occupied target KH/root, linked targets, bad sums and foreign review/staging evidence before mutation. It retains replaced files and obsolete identity-bound evidence in `BUN/v_8`, adds the new selection/report/proof files, and rechecks sums. It preserves the trainer and old KH. A refusal is a stop for operator inspection, never a reason to bypass its guards. `orch_h1.sh` is the reproducible fresh-bundle transport and is not the command for an existing live bundle.
 
 ```bash
 O=/project/community/jjyeung/okh7
 BUN=$O/i_1be16f28
 KH=$O/x_3fdda0fb
-printf '%s  %s\n' c642f2343237413bba08aa2ac62212d4373d97d19f3185e27e069f3c7f481975 "$O/t_c8b460a1.sh" | sha256sum -c -
+printf '%s  %s\n' 2c0bc12e100c38890578f256473fdf7e79bc5f8820ffb1350ea4f63ee57c41b4 "$O/t_c8b460a1.sh" | sha256sum -c -
 bash "$O/t_c8b460a1.sh"
 cd "$BUN"
 bash o.sh

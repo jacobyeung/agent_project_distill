@@ -1,11 +1,11 @@
 """Execute certified production preparation in isolated physical run locations."""
 import hashlib
-import importlib.util
 import json
 import os
 from pathlib import Path
 import re
 import shlex
+import shutil
 import signal
 import stat
 import subprocess
@@ -19,6 +19,54 @@ def sha(p):
     return h.hexdigest()
 
 def load(p): return json.loads(Path(p).read_text())
+
+HOST_PATH = '/usr/local/bin:/usr/bin:/bin'
+HOST_TOOLS = ('stat', 'date', 'mkdir', 'df', 'awk', 'hostname', 'tail', 'chmod',
+              'dirname', 'readlink', 'cut', 'sha256sum', 'mv', 'touch', 'cat',
+              'du', 'find', 'sort', 'cp', 'rsync', 'flock', 'tar', 'free', 'id', 'sleep',
+              'basename', 'tee', 'seq')
+
+def environment():
+    # Slurm supplies allocation identity; no login shell or inherited caches,
+    # Python paths, dynamic-loader overrides, or Bash startup hooks are needed.
+    env = {k: v for k, v in os.environ.items() if k.startswith('SLURM_')}
+    env.update(PATH=HOST_PATH, HOME='/home/jjyeung', TMPDIR='/tmp', TZ='UTC',
+               LC_ALL='C', CUDA_VISIBLE_DEVICES='', PYTHONDONTWRITEBYTECODE='1')
+    os.environ.clear()
+    os.environ.update(env)
+
+def host_preflight():
+    if sys.version_info < (3, 9):
+        raise ValueError('Production requires /usr/bin/python3 >= 3.9')
+    for name in ('/bin/bash', '/usr/bin/python3') + HOST_TOOLS:
+        if shutil.which(name, path=HOST_PATH) is None:
+            raise ValueError('Production host program unavailable: '+name)
+
+def kit_bwrap(kh):
+    pin = load(kh/'k/0.json')['bwrap']
+    path = Path(pin['file'])
+    if (not path.is_absolute() or not path.is_file() or not os.access(str(path), os.X_OK)
+            or not re.fullmatch('[0-9a-f]{64}', pin['sha256'])
+            or sha(path) != pin['sha256']):
+        raise ValueError('Kit bwrap executable or sha256 differs: '+str(path))
+    return str(path)
+
+def namespace_probe(bw):
+    # Match tk_bwrap's root enumeration and namespace/device/proc/home flags.
+    # Staged bind sources are checked by production after staging. This probe
+    # catches kernel/userns/UID-map/device/proc failures before reading archives.
+    return '''set -euo pipefail
+BW=('''+shlex.quote(bw)+''')
+for entry in /* /.[!.]* /..?*; do
+    case "$entry" in /home|/dev|/proc) continue ;; esac
+    [[ -e "$entry" || -L "$entry" ]] || continue
+    if [[ -L "$entry" ]]; then BW+=(--symlink "$(readlink "$entry")" "$entry"); else BW+=(--ro-bind "$entry" "$entry"); fi
+done
+BW+=(--dev-bind /dev /dev --proc /proc --tmpfs /home --dir /home/jjyeung
+     --remount-ro /home --unshare-user --uid "$(id -u)" --gid "$(id -g)")
+"${BW[@]}" /bin/bash -c 'test -r /proc/self/status && test -w /dev/null && test -d /home/jjyeung'
+printf '%s\\n' 'nested production namespace preflight PASS'
+'''
 
 def private(p):
     p = Path(p)
@@ -61,10 +109,23 @@ def program(wrapper, jobscript):
 def command(bw, kh, work, rs):
     # The whole filesystem is read-only except proof storage and job receipts.
     # Overlay KH mirrors as well: c.sh persists JSON and arm state after mode p.
-    args = [bw, '--die-with-parent', '--unshare-pid', '--unshare-net', '--ro-bind', '/', '/',
+    # /proc must be a fresh writable mount: inner bwrap writes UID/GID maps.
+    # A network namespace adds a host requirement absent from production.
+    if rs.parent.parent != kh.parent:
+        raise ValueError('Persistent root must share the production operator root')
+    args = [bw, '--unshare-user', '--die-with-parent', '--unshare-pid', '--ro-bind', '/', '/',
             '--proc', '/proc', '--dev', '/dev', '--bind', str(work/'tmp'), '/tmp',
-            '--tmpfs', str(rs.parent), '--bind', str(work/'slots'), str(rs),
-            '--tmpfs', str(kh)]
+            '--tmpfs', str(kh.parent)]
+    # Production creates O/r if absent. A read-only host root cannot do that;
+    # overlay O and expose its other entries read-only without host mutations.
+    for path in sorted(kh.parent.iterdir()):
+        if path.name in (kh.name, rs.parent.name): continue
+        if path.is_symlink():
+            args += ['--symlink', os.readlink(str(path)), str(path)]
+        else:
+            args += ['--ro-bind', str(path), str(path)]
+    args += ['--tmpfs', str(rs.parent), '--bind', str(work/'slots'), str(rs),
+             '--tmpfs', str(kh)]
     for p in sorted(kh.iterdir()):
         if p.name in ('o', 'arm', 'runs'): continue
         if p.is_symlink(): raise ValueError('Linked kit entry')
@@ -72,8 +133,8 @@ def command(bw, kh, work, rs):
     for n in ('arm', 'runs'): args += ['--bind', str(work/n), str(kh/n)]
     args += ['--bind', str(kh/'o'), str(kh/'o'), '--chdir', str(kh),
              '--setenv', 'CUDA_VISIBLE_DEVICES', '', '/bin/bash', '-c',
-             'set -e; chmod 700 -- "$1" "$2"; exec /bin/bash -s',
-             'a', str(kh), str(rs.parent)]
+             'set -e; chmod 700 -- "$1" "$2" "$3"; exec /bin/bash -s',
+             'a', str(kh), str(rs.parent), str(kh.parent)]
     return args
 
 def verify_prepared(kh, physical_run):
@@ -110,8 +171,7 @@ def execute(args, script, log, verify, runner=subprocess.run):
 
 def main(authority):
     os.umask(0o077)
-    os.environ['CUDA_VISIBLE_DEVICES'] = ''
-    os.environ['PYTHONDONTWRITEBYTECODE'] = '1'
+    environment()
     def stopped(signum, frame): raise SystemExit(128+signum)
     for sig in (signal.SIGTERM, signal.SIGINT, signal.SIGUSR1): signal.signal(sig, stopped)
     job = os.environ.get('SLURM_JOB_ID', '')
@@ -127,6 +187,8 @@ def main(authority):
     result = dict(status='FAIL', rc=1, job=job, production_authorized=False,
                   started_epoch=time.time(), admission_result=None, prepared_seals=None)
     try:
+        host_preflight()
+        os.chdir(str(kh))
         ids = load(bun/'ids.json')
         assert ids['identity'] == authority['identity'] and ids['contract'] == authority['contract']
         assert sha(bun/'jb.sh') == authority['wrapper_sha256']
@@ -147,14 +209,15 @@ def main(authority):
         compared = load(bun/'compare.json')
         assert compared['manifest_sha256'] == sha(kh/'SHA256SUMS.txt')
         assert compared['config_key']+'.json' == Path(launch['config']['file']).name
+        bw = kit_bwrap(kh)
         work = Path('/tmp/jjyeung')/('p_'+authority['tag']+'_'+job)
         create_work(work)
         rs = Path(launch['persistent_run_root'])
         assert str(rs) == authority['persistent_root']
         physical = work/'tmp/jjyeung/a_17c4ffa4/runs/17c4ffa4'
-        script = program((bun/'jb.sh').read_text(), (kh/'job.sh').read_text())
+        script = namespace_probe(bw) + program((bun/'jb.sh').read_text(), (kh/'job.sh').read_text())
         (work/'entry.sh').write_text(script)
-        args = command('/usr/bin/bwrap', kh, work, rs)
+        args = command(bw, kh, work, rs)
         result.update(config_identity=identity(cfg), config=launch['config'],
                       manifest_sha256=sha(kh/'SHA256SUMS.txt'), contract_sha256=digest(contract(launch,cfg)),
                       selection=cfg['s1_routing']['selection'], equality_sha256=authority['equality_sha256'],

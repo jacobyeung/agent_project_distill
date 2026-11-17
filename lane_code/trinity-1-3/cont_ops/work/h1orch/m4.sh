@@ -1,9 +1,9 @@
 export TZ=UTC
-K=/project/community/jjyeung/okh7/x_3fdda0fb; J=170662; N=${N:-8}
+K=/project/community/jjyeung/okh7/x_3fdda0fb; J=170669; N=${N:-8}
 prev=""
 for i in $(seq 1 $N); do
   s=$(squeue -j $J -h -o '%T %M' 2>&1)
-  t=$(tail -n 1 $K/o/$J.w.steps 2>/dev/null | cut -c1-200); u=$(tail -n 1 $K/o/$J.steps 2>/dev/null | cut -c1-200); e=$(wc -c < $K/o/$J.err 2>/dev/null)
+  t=$(tail -n 1 $K/o/$J.w.steps 2>/dev/null | cut -c1-200); u=$(tail -n 1 $K/o/$J.steps 2>/dev/null | cut -c1-200); e=$(cat $K/o/$J.err 2>/dev/null | wc -c)
   cur="$s | err=$e | W: $t | S: $u | $(ls $K/o | wc -l) files"
   [ "$cur" != "$prev" ] && echo "$(date -u +%TZ) $cur"
   prev=$cur

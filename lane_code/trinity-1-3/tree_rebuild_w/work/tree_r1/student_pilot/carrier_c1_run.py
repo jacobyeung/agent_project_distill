@@ -1226,12 +1226,12 @@ def own_values(model, rows, batch, audit, index, decision, device):
     try:
         row, _ = rows.row('routing', index)
         queries = routing.depth_queries(row['routing'])
-        uv, slots = routing.query_tensor(queries)
+        uv, slots = routing.query_tensor(queries, frame_count=batch["aux_camera_positions"].shape[1])
         query_error = None
     except (routing.RenderError, KeyError, ValueError) as exc:
         # Every rank must still join the collective readout forward.
         queries, slots, query_error = [], [], exc
-        uv = torch.full((32, 1, 2), 500.)
+        uv = torch.full((batch["aux_camera_positions"].shape[1], 1, 2), 500.)
     with torch.no_grad():
         readout = model(move(routing.prefix_batch(batch), device), {'uv': uv.to(device)}, stream='readout')
     failure = None

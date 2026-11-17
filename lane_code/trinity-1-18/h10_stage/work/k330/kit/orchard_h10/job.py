@@ -10,7 +10,7 @@ import sys
 import tarfile
 import time
 
-from orchard_h10.common import canonical, sha, template, write, opaque, checked_run, read_config
+from orchard_h10.common import ORDER, canonical, sha, template, write, opaque, checked_run, read_config
 
 
 def verify_config(cfg):
@@ -22,6 +22,12 @@ def check_inputs(inputs, cfg):
     """Fail closed until every unresolved archive and dependency has a full pin."""
     import re
     valid=lambda value:isinstance(value,str) and re.fullmatch('[0-9a-f]{64}',value)
+    if 'types' in inputs:
+        types=inputs['types']
+        if (not isinstance(types,list) or not types
+                or any(not isinstance(kind,str) or kind not in ORDER for kind in types)
+                or types!=[kind for kind in ORDER if kind in types]):
+            raise ValueError('Invalid type selection')
     if inputs.get('schema')!=1 or not inputs.get('archives'):raise ValueError('Unresolved input archives')
     for a in inputs['archives']:
         if not valid(a.get('sha256')) or not a.get('parts') or a.get('expanded_bytes',0)<=0:
@@ -179,6 +185,7 @@ def main(root):
                      export=cfg['logical']+'/d/e',binding=cfg['logical']+'/d/binding.json',
                      settings=cfg['logical']+'/d/settings.json',plan_sha256=cfg['plan_sha256'],
                      inputs_sha256=canonical({k:v for k,v in inputs.items() if k!='resume'}),
+                     types=inputs.get('types') or list(ORDER),
                      stop_margin=cfg['stop_margin'],return_margin=cfg['return_margin'],
                      prefix=['bash',inputs['policy']['vnice']])
         if inputs.get('optional'):

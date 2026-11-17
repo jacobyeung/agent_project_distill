@@ -1,0 +1,7 @@
+From kit; each pytest basetemp was fresh. The old-package test ran before the rebuild.
+LANE_TEST_OUTPUT="$PWD/tmp/t14" PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 bash cpu.sh -m pytest -q -rs -p no:cacheprovider --basetemp "$PWD/tmp/t14/distance_old" tests/test_distance_imports.py > logs/t14/distance_old.log 2>&1
+LANE_TEST_OUTPUT="$PWD/tmp/t14" bash cpu.sh -m orchard_h10.repin_distance > logs/t14/repin.log 2>&1
+LANE_TEST_OUTPUT="$PWD/tmp/t14" PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 bash cpu.sh -m pytest -q -rs -p no:cacheprovider --basetemp "$PWD/tmp/t14/package_checks" tests/test_build8.py::test_slurm_opacity_and_budget tests/test_build8.py::test_package_pins_and_embedded_bootstrap tests/test_build9.py::test_opaque_package_and_worker tests/test_build9.py::test_process_guard > logs/t14/package_checks.log 2>&1
+LANE_TEST_OUTPUT="$PWD/tmp/t14" PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 bash cpu.sh -m pytest -q -rs -p no:cacheprovider --basetemp "$PWD/tmp/t14/fsw_new" tests/test_fsw_bind.py > logs/t14/fsw_new.log 2>&1
+LANE_TEST_OUTPUT="$PWD/tmp/t14" PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 bash cpu.sh -m pytest -q -rs -p no:cacheprovider --basetemp "$PWD/tmp/t14/distance_new" tests/test_distance_imports.py > logs/t14/distance_new.log 2>&1
+bash -n orchard_h10/package/BATCH.sh orchard_h10/package/SUBMIT.cmd

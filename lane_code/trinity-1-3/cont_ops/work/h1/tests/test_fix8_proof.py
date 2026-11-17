@@ -75,8 +75,7 @@ assert trace.read_text().splitlines()==['outer_preflight','a','p0','g','p 0','ou
 bad=p.execute(['/bin/true'],'',out/'badseal.log',lambda:(_ for _ in ()).throw(ValueError('bad seal')))
 assert bad['status']=='FAIL' and bad['rc']==1
 
-# Run the real mount plan, with only the NET namespace omitted because this
-# local sandbox denies NETLINK_ROUTE. No network command runs in this test.
+# Run the shipped mount plan without removing any flags.
 kh=out/'kit';kh.mkdir(mode=0o700)
 for n in ('b','k','o','arm','runs'):(kh/n).mkdir(mode=0o700)
 (kh/'k/config.json').write_text('production-byte-sentinel')
@@ -85,8 +84,7 @@ rs=out/'r/root';rs.mkdir(parents=True);(rs/'real').write_text('untouched')
 work=out/'work';work.mkdir(mode=0o700)
 for n in ('tmp','slots','arm','runs'):(work/n).mkdir(mode=0o700)
 args=p.command('/usr/bin/bwrap',kh,work,rs)
-assert '--unshare-net' in args and args[args.index('--setenv')+1:args.index('--setenv')+3]==['CUDA_VISIBLE_DEVICES','']
-args.remove('--unshare-net')
+assert '--unshare-net' not in args and args[args.index('--setenv')+1:args.index('--setenv')+3]==['CUDA_VISIBLE_DEVICES','']
 probe='''set -e
 test -z "$CUDA_VISIBLE_DEVICES"
 test "$(stat -c %a K)" = 700
@@ -128,7 +126,7 @@ report=dict(status='PASS',path=str(out),production_preparation='NOT RUN',
  'existing workspace refuses reuse','fresh absolute /tmp/jjyeung and production directory preflight',
  'embedded bytes','unchanged jb/runtime/exports','exact production prefixes and mode p boundary',
  'shell success and staging failure','failed seal cannot pass','real bwrap filesystem isolation'],
- limits=['Local namespace probe omits network namespace only; production script retains it.',
+ limits=['The exact outer mount flags run locally; kernel policy on Orchard remains a runtime precondition.',
  'Production imports, data, GPU-free partition scheduling and full preparation require Orchard.'])
 (H/'evidence/fix8_admission/proof_tests.json').write_text(json.dumps(report,indent=2)+'\n')
 print(json.dumps(report,indent=2))

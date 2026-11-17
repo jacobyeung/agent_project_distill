@@ -1,0 +1,768 @@
+{
+  "student_pilot/carrier_c1_routing.py": [
+    [
+      1007,
+      "reason = ('duplicate_qid' if row['qid'] in seen else"
+    ],
+    [
+      1013,
+      "if 'both' in policy:"
+    ],
+    [
+      1014,
+      "row['answer_form'] = 'direct'"
+    ]
+  ],
+  "student_pilot/gf1_cache.py": [
+    [
+      33,
+      "raise ValueError('GF1 cache key needs sha256-pinned dense frames')"
+    ],
+    [
+      44,
+      "raise ValueError('GF1 cache bank, ROI and grid disagree')"
+    ],
+    [
+      86,
+      "fusion = model.auxiliary_heads.gf1"
+    ],
+    [
+      87,
+      "eps = {float(n.eps) for n in fusion.norms}"
+    ],
+    [
+      88,
+      "dims = {int(n.normalized_shape[0]) for n in fusion.norms}"
+    ],
+    [
+      89,
+      "dtypes = {str(p.weight.dtype).removeprefix('torch.') for p in fusion.projections}"
+    ],
+    [
+      90,
+      "if len(eps) != 1 or len(dims) != 1 or len(dtypes) != 1:"
+    ],
+    [
+      91,
+      "raise ValueError('GF1 cached bank needs one LayerNorm eps, width and projection dtype')"
+    ],
+    [
+      92,
+      "return identity(model.geometry_online, device_type=device_type, eps=eps.pop(), input_dim=dims.pop(),"
+    ],
+    [
+      97,
+      "h = hashlib.sha256()"
+    ],
+    [
+      98,
+      "with open(path, 'rb') as f:"
+    ],
+    [
+      99,
+      "for block in iter(lambda: f.read(1 << 22), b''):"
+    ],
+    [
+      100,
+      "h.update(block)"
+    ],
+    [
+      101,
+      "return h.hexdigest()"
+    ],
+    [
+      117,
+      "raise ValueError('GF1 cache dtype must be float32 or bfloat16')"
+    ],
+    [
+      121,
+      "raise ValueError('GF1 cache anchors must equal the temporal merger grid')"
+    ],
+    [
+      145,
+      "return record"
+    ],
+    [
+      160,
+      "raise ValueError('Unknown GF1 row bank kind')"
+    ],
+    [
+      165,
+      "for name in ('mapping', 'tensor', 'images', 'coords'):"
+    ],
+    [
+      166,
+      "value = getattr(self, name)"
+    ],
+    [
+      167,
+      "if value is not None:"
+    ],
+    [
+      168,
+      "setattr(self, name, value.to(device))"
+    ],
+    [
+      169,
+      "return self"
+    ],
+    [
+      182,
+      "for entry in self.entries:"
+    ],
+    [
+      183,
+      "if entry is not None:"
+    ],
+    [
+      184,
+      "entry.to(device)"
+    ],
+    [
+      185,
+      "return self"
+    ],
+    [
+      196,
+      "raise ValueError('GF1 cached_bank root is missing: ' + str(root))"
+    ],
+    [
+      199,
+      "return None"
+    ],
+    [
+      204,
+      "raise ValueError('GF1 cached bank identity differs from the row: ' + key)"
+    ],
+    [
+      207,
+      "raise ValueError('GF1 cached bank tensor sha256 differs: ' + key)"
+    ],
+    [
+      215,
+      "if (not isinstance(anchors, list) or not anchors or anchors[0] != 0 or anchors != sorted(set(anchors))"
+    ],
+    [
+      217,
+      "raise ValueError('GF1 bank donor anchors must be ordered dense slots starting at 0')"
+    ],
+    [
+      222,
+      "from .g3t_online import native_square_518"
+    ],
+    [
+      223,
+      "from .gf1 import ClipCache"
+    ],
+    [
+      224,
+      "from .pose_samples import load_frames"
+    ],
+    [
+      225,
+      "inputs = row['student_input']"
+    ],
+    [
+      226,
+      "own = clip_key(dense)"
+    ],
+    [
+      227,
+      "donor = inputs.get('geometry_bank_donor')"
+    ],
+    [
+      228,
+      "settings = cfg.get('cached_bank')"
+    ],
+    [
+      229,
+      "lm = lambda: load_frames(dict(frames=[dense['frames'][i] for i in indices]))"
+    ],
+    [
+      230,
+      "if donor is not None:"
+    ],
+    [
+      231,
+      "if is_pose:"
+    ],
+    [
+      232,
+      "raise ValueError('GF1 shuffled bank is a read option; pose rows keep their own augmented clip')"
+    ],
+    [
+      233,
+      "if (not isinstance(donor, dict) or donor.get('schema') != DONOR_SCHEMA"
+    ],
+    [
+      235,
+      "raise ValueError('Invalid GF1 bank donor')"
+    ],
+    [
+      236,
+      "other, anchors = donor['geometry_dense'], donor['anchor_slots']"
+    ],
+    [
+      237,
+      "if len(other.get('frames', [])) != cfg['dense_frames'] or other.get('frame_indices') != sorted(set(other['frame_indices'])):"
+    ],
+    [
+      238,
+      "raise ValueError('GF1 bank donor needs the configured ordered dense frames')"
+    ],
+    [
+      239,
+      "_check_anchors(anchors, cfg['dense_frames'])"
+    ],
+    [
+      240,
+      "if len(anchors) != len(indices):"
+    ],
+    [
+      241,
+      "raise ValueError('GF1 bank donor anchor count differs from the row')"
+    ],
+    [
+      242,
+      "key = clip_key(other)"
+    ],
+    [
+      243,
+      "if key != donor['clip_key'] or key == own:"
+    ],
+    [
+      244,
+      "raise ValueError('GF1 bank donor key differs from its frames or names the row\\'s own clip')"
+    ],
+    [
+      245,
+      "entry = load_cached(settings, key, anchors) if settings else None"
+    ],
+    [
+      246,
+      "if entry is None:"
+    ],
+    [
+      247,
+      "images, coords = native_square_518(load_frames(other), expected_frames=cfg['dense_frames'])"
+    ],
+    [
+      248,
+      "entry = RowBank('dense', torch.tensor(anchors, dtype=torch.long), images=images, coords=coords)"
+    ],
+    [
+      249,
+      "entry.donor = dict(clip_key=key, own_clip_key=own, permutation_sha256=donor['permutation_sha256'])"
+    ],
+    [
+      250,
+      "geometry = dict(aux_gf1_cache=ClipCache(), aux_gf1_lm_indices=torch.tensor([indices], dtype=torch.long),"
+    ],
+    [
+      252,
+      "return (geometry, lm()), dict(source='shuffled_' + entry.kind, clip_key=own, donor_clip_key=key,"
+    ],
+    [
+      254,
+      "if is_pose:"
+    ],
+    [
+      255,
+      "return None, dict(source='online', reason='pose_row_augmented', clip_key=own)"
+    ],
+    [
+      256,
+      "entry = load_cached(settings, own, indices)"
+    ],
+    [
+      257,
+      "if entry is None:"
+    ],
+    [
+      258,
+      "raise ValueError('GF1 cached_bank has no record for clip ' + own + '; write the cache for every non-pose clip first')"
+    ],
+    [
+      259,
+      "geometry = dict(aux_gf1_cache=ClipCache(), aux_gf1_lm_indices=torch.tensor([indices], dtype=torch.long),"
+    ],
+    [
+      261,
+      "return (geometry, lm()), dict(source='cached', clip_key=own, tensor_sha256=entry.record['tensor']['sha256'])"
+    ],
+    [
+      281,
+      "raise ValueError('GF1 row banks must name one entry per row')"
+    ],
+    [
+      285,
+      "raise ValueError('GF1 dense clip batch shape differs')"
+    ],
+    [
+      289,
+      "raise ValueError('GF1 requires dense RGB, valid ROI and explicit nested LM indices')"
+    ],
+    [
+      292,
+      "raise ValueError('GF1 dense clip batch shape differs')"
+    ],
+    [
+      298,
+      "raise ValueError('GF1 shuffled-bank donors are a read-time option only')"
+    ],
+    [
+      300,
+      "raise ValueError('GF1 cached bank supplied while the cached_bank switch is off')"
+    ],
+    [
+      303,
+      "raise ValueError('GF1 cache must be owned by the encoded row')"
+    ],
+    [
+      317,
+      "raise ValueError('GF1 LM frames must be an ordered nested subset of dense frames')"
+    ],
+    [
+      328,
+      "with torch.no_grad():"
+    ],
+    [
+      329,
+      "_, bank = features(encoder, image.to(device), roi.to(device))"
+    ],
+    [
+      330,
+      "forwards += 1"
+    ],
+    [
+      340,
+      "record = entry.record"
+    ],
+    [
+      341,
+      "expected = model_identity(model, grid.tolist(), device.type)"
+    ],
+    [
+      342,
+      "for field, value in expected.items():"
+    ],
+    [
+      343,
+      "if record.get(field) != value:"
+    ],
+    [
+      344,
+      "raise ValueError(f'GF1 cached bank identity differs in {field}: refusing the cache')"
+    ],
+    [
+      345,
+      "if entry.donor is None and record['anchor_slots'] != mapping.tolist():"
+    ],
+    [
+      346,
+      "raise ValueError('GF1 cached bank anchors differ from the row\\'s nested LM indices')"
+    ],
+    [
+      347,
+      "if record['anchor_slots'] != entry.mapping.tolist():"
+    ],
+    [
+      348,
+      "raise ValueError('GF1 cached bank anchors differ from its entry')"
+    ],
+    [
+      349,
+      "pooled = entry.tensor.to(device)"
+    ],
+    [
+      350,
+      "pooled = pooled.reshape(pooled.shape[0], -1, pooled.shape[-1])"
+    ],
+    [
+      351,
+      "clips.append((torch.zeros_like(pooled) if model.gx_zero_feature else pooled, CACHED_MARK, grid))"
+    ],
+    [
+      352,
+      "cached += 1"
+    ],
+    [
+      353,
+      "donors += entry.donor is not None"
+    ],
+    [
+      376,
+      "raise ValueError('Shuffled-bank seed must be an integer')"
+    ],
+    [
+      381,
+      "raise ValueError('One clip has two datasets or grids')"
+    ],
+    [
+      383,
+      "raise ValueError('A shuffled-bank read needs at least two clips')"
+    ],
+    [
+      390,
+      "left += members"
+    ],
+    [
+      391,
+      "continue"
+    ],
+    [
+      406,
+      "candidates = [a for a in sorted(donor) if not require_same_grid or"
+    ],
+    [
+      408,
+      "if not candidates:"
+    ],
+    [
+      409,
+      "raise ValueError('No shuffled-bank partner shares this clip\\'s merger grid: ' + k)"
+    ],
+    [
+      410,
+      "a = min(candidates, key=lambda a: (info[a][0] != info[k][0], info[a][1] != info[k][1], a))"
+    ],
+    [
+      411,
+      "donor[k], donor[a] = donor[a], k"
+    ],
+    [
+      427,
+      "from PIL import Image"
+    ],
+    [
+      428,
+      "from .grounding_targets import grid_for"
+    ],
+    [
+      429,
+      "from .r2_frames import verify_frame"
+    ],
+    [
+      430,
+      "with Image.open(verify_frame(row['student_input']['frames'][0])) as image:"
+    ],
+    [
+      431,
+      "gh, gw = grid_for(image.size)"
+    ],
+    [
+      432,
+      "return [len(row['student_input']['frames']), 2 * gh, 2 * gw]"
+    ],
+    [
+      436,
+      "value = row.get('dataset') or row['student_input'].get('dataset') or str(row.get('scene', '')).split('/')[0]"
+    ],
+    [
+      437,
+      "if not value:"
+    ],
+    [
+      438,
+      "raise ValueError('Shuffled-bank pairing needs each row\\'s dataset')"
+    ],
+    [
+      439,
+      "return value"
+    ],
+    [
+      444,
+      "from .gf1 import dense_inputs"
+    ],
+    [
+      445,
+      "dense_of, anchors_of, units = {}, {}, []"
+    ],
+    [
+      446,
+      "keyed = []"
+    ],
+    [
+      447,
+      "for row in rows:"
+    ],
+    [
+      448,
+      "dense, anchors = dense_inputs(row, settings)"
+    ],
+    [
+      449,
+      "key = clip_key(dense)"
+    ],
+    [
+      450,
+      "content = (list(dense['frame_indices']), [f['sha256'] for f in dense['frames']], dense.get('timestamps'))"
+    ],
+    [
+      451,
+      "first = dense_of.setdefault(key, dense)"
+    ],
+    [
+      452,
+      "if (anchors_of.setdefault(key, anchors) != anchors"
+    ],
+    [
+      454,
+      "raise ValueError('Rows of one dense clip disagree on its frames, timestamps or LM anchors')"
+    ],
+    [
+      455,
+      "grid = grids[key] if grids is not None else frame_grid(row)"
+    ],
+    [
+      456,
+      "units.append(dict(clip_key=key, dataset=_dataset(row), grid=grid))"
+    ],
+    [
+      457,
+      "keyed.append(key)"
+    ],
+    [
+      458,
+      "plan = shuffled_bank_plan(units, seed, require_same_grid)"
+    ],
+    [
+      459,
+      "donors = {p['clip_key']: p['donor_clip_key'] for p in plan['pairs']}"
+    ],
+    [
+      460,
+      "result = []"
+    ],
+    [
+      461,
+      "for row, key in zip(rows, keyed):"
+    ],
+    [
+      462,
+      "row = copy.deepcopy(row)"
+    ],
+    [
+      463,
+      "other = donors[key]"
+    ],
+    [
+      464,
+      "row['student_input']['geometry_bank_donor'] = dict("
+    ],
+    [
+      467,
+      "result.append(row)"
+    ],
+    [
+      468,
+      "return result, plan"
+    ],
+    [
+      487,
+      "import os"
+    ],
+    [
+      488,
+      "os.environ.setdefault('CUBLAS_WORKSPACE_CONFIG', ':4096:8')"
+    ],
+    [
+      490,
+      "torch.use_deterministic_algorithms(True, warn_only=True)"
+    ],
+    [
+      491,
+      "encoder = g3t_online.G3TEncoder(geometry)"
+    ],
+    [
+      492,
+      "encoder.load_pinned(geometry['encoder']['weights']['path'])"
+    ],
+    [
+      493,
+      "encoder.to(args.device).eval()"
+    ],
+    [
+      494,
+      "seen, written = set(), []"
+    ],
+    [
+      495,
+      "with open(args.rows) as handle:"
+    ],
+    [
+      496,
+      "for line in handle:"
+    ],
+    [
+      497,
+      "row = json.loads(line)"
+    ],
+    [
+      498,
+      "if row.get('category') == CATEGORY and 'pose_sample' in row:"
+    ],
+    [
+      499,
+      "continue"
+    ],
+    [
+      500,
+      "dense, _ = dense_inputs(row, geometry['gf1'])"
+    ],
+    [
+      501,
+      "key = clip_key(dense)"
+    ],
+    [
+      502,
+      "if key in seen:"
+    ],
+    [
+      503,
+      "continue"
+    ],
+    [
+      504,
+      "seen.add(key)"
+    ],
+    [
+      505,
+      "record = write_clip(encoder, row, args.root, grid=frame_grid(row), dtype=args.dtype)"
+    ],
+    [
+      506,
+      "written.append(dict(clip_key=key, sha256=record['tensor']['sha256'], bytes=record['tensor']['bytes']))"
+    ],
+    [
+      507,
+      "print(json.dumps(written[-1]), flush=True)"
+    ],
+    [
+      508,
+      "if args.limit and len(written) >= args.limit:"
+    ],
+    [
+      509,
+      "break"
+    ],
+    [
+      510,
+      "print(json.dumps(dict(clips=len(written), bytes=sum(w['bytes'] for w in written))))"
+    ],
+    [
+      514,
+      "main()"
+    ]
+  ],
+  "student_pilot/h1_faithful.py": [
+    [
+      14,
+      "raise ValueError('h1.faithful_own_camera_rows must be boolean')"
+    ],
+    [
+      17,
+      "raise ValueError('S1 requires the three canonical camera types')"
+    ],
+    [
+      20,
+      "raise ValueError('S1 requires max_own_probability=0.5 and force_from_step=1')"
+    ],
+    [
+      45,
+      "from decimal import Decimal, localcontext, Context"
+    ],
+    [
+      46,
+      "event = next(e for e in raw['events'] if e['kind'] == 'tool_response')"
+    ],
+    [
+      47,
+      "dx, _, dz = map(lambda x: Decimal(str(x)), event['values'][event['call_id']+'.delta']['value'])"
+    ],
+    [
+      48,
+      "scores = dict(left=-dx, right=dx, forward=dz, backward=-dz)"
+    ],
+    [
+      49,
+      "labels = [re.sub(r'^[A-Z][.)]\\s*', '', o).lower() for o in raw['options']]"
+    ],
+    [
+      50,
+      "with localcontext(Context(prec=1024)):"
+    ],
+    [
+      51,
+      "top, second = sorted((scores[o] for o in labels), reverse=True)[:2]"
+    ],
+    [
+      52,
+      "if top > 0:"
+    ],
+    [
+      53,
+      "raw.setdefault('margin_m', float(top-second))"
+    ],
+    [
+      54,
+      "raw.setdefault('margin_rel', float((top-second)/top))"
+    ],
+    [
+      70,
+      "raise MaterializeRefusal('invalid_printed_move')"
+    ],
+    [
+      79,
+      "raise MaterializeRefusal('non_camera_head')"
+    ],
+    [
+      102,
+      "return str(own).strip() != str(gt).strip()"
+    ],
+    [
+      110,
+      "raise ValueError('Unknown camera answer type')"
+    ],
+    [
+      126,
+      "failure=exc"
+    ],
+    [
+      166,
+      "counts[key]+=1;d[key]+=1"
+    ],
+    [
+      192,
+      "elif 'streams' in value:"
+    ],
+    [
+      193,
+      "source=value['streams']['routing']"
+    ],
+    [
+      194,
+      "yield from identity_rows(pinned(source.get('receipt',source.get('database'))))"
+    ],
+    [
+      195,
+      "else:yield value"
+    ],
+    [
+      197,
+      "with path.open() as handle:"
+    ],
+    [
+      198,
+      "for text in handle:"
+    ],
+    [
+      199,
+      "if text.strip():yield json.loads(text)"
+    ],
+    [
+      215,
+      "return result"
+    ]
+  ]
+}

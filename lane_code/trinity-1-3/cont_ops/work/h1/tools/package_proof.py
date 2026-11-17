@@ -14,12 +14,12 @@ authority=dict(tag='8c74b291',job_name='a15_cot_ap8c74b291',
  runtime={n:sha(H/'build/fx'/n) for n in ('job.sh','b/p0.sh','b/p0.py','b/c.sh','b/r.sh','b/g.py','b/i.py','b/w.py','b/d.py','b/r8.py')})
 raw=(H/'tools/proof_prepare.py').read_bytes()
 blob=base64.b64encode(zlib.compress(raw,9)).decode()
-s='''#!/bin/bash
+s='''#!/bin/bash -p
 #SBATCH -A mt01 -p general -N1 --ntasks=1 -c 48 --mem=800G -t 04:00:00
 #SBATCH --no-requeue
 set -euo pipefail
 umask 077
-export CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1
+export PATH=/usr/local/bin:/usr/bin:/bin CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1
 exec /usr/bin/python3 -I -B - <<'P'
 import base64,hashlib,zlib
 '''+f"raw=zlib.decompress(base64.b64decode({blob!r}))\nassert hashlib.sha256(raw).hexdigest()=={sha(H/'tools/proof_prepare.py')!r}\nexec(compile(raw,'<sealed>','exec'))\nraise SystemExit(main({authority!r}))\nP\n"

@@ -363,6 +363,12 @@ def _order(keys, seed, tag):
     return sorted(keys, key=lambda k: hashlib.sha256(f'{seed}|{tag}|{k}'.encode()).hexdigest())
 
 
+def require_derangement(donor, info):
+    """Check the planner's complete one-to-one assignment without self donors."""
+    if set(donor) != set(info) or any(k == v for k, v in donor.items()) or sorted(donor.values()) != sorted(info):
+        raise AssertionError('Shuffled-bank plan is not a derangement')
+
+
 def shuffled_bank_plan(units, seed, require_same_grid=False):
     """Fixed derangement over clips. units: [{clip_key, dataset, grid}]. Pairs prefer the same dataset and
     grid; leftovers relax the dataset first when grids must match (cached reads), else the grid first."""
@@ -403,8 +409,7 @@ def shuffled_bank_plan(units, seed, require_same_grid=False):
             raise ValueError('No shuffled-bank partner shares this clip\'s merger grid: ' + k)
         a = min(candidates, key=lambda a: (info[a][0] != info[k][0], info[a][1] != info[k][1], a))
         donor[k], donor[a] = donor[a], k
-    if set(donor) != set(info) or any(k == v for k, v in donor.items()) or sorted(donor.values()) != sorted(info):
-        raise AssertionError('Shuffled-bank plan is not a derangement')
+    require_derangement(donor, info)
     pairs = [dict(clip_key=k, donor_clip_key=v, dataset=info[k][0], donor_dataset=info[v][0],
                   grid=list(info[k][1]), donor_grid=list(info[v][1])) for k, v in sorted(donor.items())]
     permutation = hashlib.sha256(json.dumps([[p['clip_key'], p['donor_clip_key']] for p in pairs]).encode()).hexdigest()

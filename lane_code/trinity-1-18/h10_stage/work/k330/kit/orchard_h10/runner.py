@@ -95,7 +95,8 @@ def summarize(config, cards):
     from h1eval.cli import modes
     items=load_manifest(config.get('items',Path(config['package'])/'items/devs1_routed.json'))['items']
     root=Path(config['output'])/'metadata/journals';counts=[]
-    for t,kind in enumerate(ORDER):
+    for kind in config.get('types') or list(ORDER):
+        t=ORDER.index(kind)
         for i in range(len(cards)):
             chosen=select_types(items,selected(items,f'{i}/{len(cards)}'),kind)
             expected=plan(chosen,['own'],[{'name':'none'},*modes(DEFAULT_MODES)])
@@ -118,7 +119,8 @@ def summarize(config, cards):
 def run(config, cards, end_time, *, prefix=(), clock=time.time, launcher=subprocess.Popen):
     if not 1 <= len(cards) <= 4 or len(set(cards))!=len(cards):raise ValueError('Require 1–4 distinct assigned cards')
     out=Path(config['output']);(out/'metadata').mkdir(parents=True,exist_ok=True);(out/'logs').mkdir(exist_ok=True)
-    identity=dict(plan=config['plan_sha256'],inputs=config.get('inputs_sha256'),cards=len(cards),order=list(ORDER),arms=['own'])
+    types=config.get('types') or list(ORDER)
+    identity=dict(plan=config['plan_sha256'],inputs=config.get('inputs_sha256'),cards=len(cards),order=list(ORDER),types=types,arms=['own'])
     identity_path=out/'metadata/IDENTITY.json'
     if identity_path.exists() and json.loads(identity_path.read_text())!=identity:
         raise ValueError('Resume requires the same plan and GPU shard count')
@@ -131,7 +133,8 @@ def run(config, cards, end_time, *, prefix=(), clock=time.time, launcher=subproc
     old={n:signal.signal(n,stop) for n in (signal.SIGUSR1,signal.SIGTERM,signal.SIGINT)}
     failure=None
     try:
-        for t,kind in enumerate((*ORDER,*(['optional'] if optional_ready(config) else []))):
+        for kind in (*types,*(['optional'] if optional_ready(config) else [])):
+            t=ORDER.index(kind) if kind in ORDER else len(ORDER)
             if clock()>=stop_at or marker.exists():break
             processes=[]
             with ExitStack() as stack:
@@ -160,8 +163,10 @@ def run(config, cards, end_time, *, prefix=(), clock=time.time, launcher=subproc
         # Aggregate measured timing even when no shard has reached ten reads yet.
         from h1eval.h10.launch import read_records
         samples=[]
-        for path in sorted((out/'metadata/journals').glob('*/*/items.jsonl')):
-            samples.extend(r['seconds'] for r in read_records(path))
+        for kind in (*types,*(['optional'] if optional_ready(config) else [])):
+            t=ORDER.index(kind) if kind in ORDER else len(ORDER)
+            for path in sorted((out/'metadata/journals'/str(t)).glob('*/items.jsonl')):
+                samples.extend(r['seconds'] for r in read_records(path))
         write(out/'metadata/projection.json',dict(sample_reads=len(samples),
             seconds_per_read=sum(samples)/len(samples) if samples else None,
             projected_gpu_hours=summary['expected']*sum(samples)/len(samples)/3600 if samples else None,

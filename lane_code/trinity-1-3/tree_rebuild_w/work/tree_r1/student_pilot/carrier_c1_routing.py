@@ -196,6 +196,7 @@ def check_row(row):
     target, spans = render(row['events'], row['answer'])
     if target != row['target'] or not target.startswith(THINK):
         raise ValueError('Stored target differs from its events')
+    require_training_think(target)
     stored = [(s['start'], s['end'], s['call_id']) for s in row['tool_output_spans']]
     if stored != [(s['start'], s['end'], s['call_id']) for s in spans]:
         raise ValueError('Stored tool spans differ from the rendered target')
@@ -216,12 +217,12 @@ def level_basis(rotation, down):
 class OwnGeometry:
     """Fixed, parameter-free unprojection and pose layer over own (or hybrid) head outputs.
 
-    pose9: [32, 9] per-frame camera codes E_k = inv(C_k) C_1 (t, q xyzw, FoV vertical,
+    pose9: [F, 9], F in {32, 64} per-frame camera codes E_k = inv(C_k) C_1 (t, q xyzw, FoV vertical,
     FoV horizontal), frame 1 = slot 0. up: frame-1 OpenCV gravity-up vector (None means
     frame-1 camera -y). depth(frame, uv[n, 2]) -> optical-axis metric depth [n].
     Conventions match derivgen's GT layer: frame-1 level frame, public y up, p30 depth
     over a 5x5 +-10 stencil, spread (p80-p20)/max(p50, 1e-3), centred-FoV rays.
-    The FoV that conditioned depth (pose slots 7:9) is the FoV used here: `fov` [32, 2]
+    The FoV that conditioned depth (pose slots 7:9) is the FoV used here: `fov` [F, 2]
     overrides pose9's slots when pose comes from GT but depth from the own head.
     depth None means GT clicks: `recorded` {label: (public camera, spread)} supplies them
     and the pose source places them in frame 1 (the reverse hybrid).
@@ -230,12 +231,12 @@ class OwnGeometry:
     def __init__(self, pose9, up, depth, fov=None, recorded=None, require_up=True):
         self.p = np.asarray(pose9, dtype=np.float64)
         if self.p.shape not in ((32,9),(64,9)) or not np.isfinite(self.p).all():
-            raise RenderError('own pose readout must be finite [32, 9]')
+            raise RenderError('own pose readout must be finite [32 or 64, 9]')
         if up is None and require_up:
             raise RenderError('gravity_unavailable')
         self.fov_override = None if fov is None else np.asarray(fov, dtype=np.float64)
         if self.fov_override is not None and (self.fov_override.shape != (len(self.p), 2) or not np.isfinite(self.fov_override).all()):
-            raise RenderError('own FoV readout must be finite [32, 2]')
+            raise RenderError('own FoV readout must be finite [F, 2]')
         self.recorded = recorded or {}
         up = np.array([0., -1., 0.]) if up is None else np.asarray(up, dtype=np.float64)
         if up.shape != (3,) or not np.isfinite(up).all() or np.linalg.norm(up) < 1e-6:
@@ -277,7 +278,7 @@ class OwnGeometry:
         return basis
 
     def camera(self, k):
-        if type(k) is not int or not 1 <= k <= 32:
+        if type(k) is not int or not 1 <= k <= len(self.p):
             raise RenderError('frame_out_of_range')
         if k == 1:
             return np.eye(3), np.zeros(3)
@@ -496,6 +497,7 @@ def suffix_mask(tokenizer, suffix, target, spans):
 
 
 def suffix_tokens(processor, row, target, spans):
+    require_training_think(target)
     from .batches import training_text
     inputs = row['student_input']
     _, suffix = training_text(processor, inputs['question'], inputs.get('options') or [], target)
@@ -687,18 +689,20 @@ def row_geometry(row, readout, queries, index, depth_own, pose_own):
     return OwnGeometry(pose9, up, None, recorded=recorded), ('own' if 'depth_at' not in names else 'own_pose_gt_depth')
 
 
-def query_tensor(queries, k_max=None):
-    """[32, K, 2] stencil queries per frame plus each click's (frame, slot) index."""
-    per_frame, index = [[] for _ in range(32)], []
+def query_tensor(queries, k_max=None, *, frame_count=32):
+    """[F, K, 2] stencil queries and each click's (frame, slot) index."""
+    if type(frame_count) is not int or frame_count not in (32, 64):
+        raise RenderError("unsupported_frame_count")
+    per_frame, index = [[] for _ in range(frame_count)], []
     for frame, uv in queries:
-        if type(frame) is not int or not 1 <= frame <= 32:
+        if type(frame) is not int or not 1 <= frame <= frame_count:
             raise RenderError('frame_out_of_range')
         stencil = np.clip(np.asarray(uv)[None] + STENCIL, 0, 999.9)
         index.append((frame, len(per_frame[frame - 1])))
         per_frame[frame - 1].extend(stencil.tolist())
     k = max([len(p) for p in per_frame] + [1])
     k = max(k, k_max or 0)
-    uv = np.full((32, k, 2), 500., dtype=np.float32)
+    uv = np.full((frame_count, k, 2), 500., dtype=np.float32)
     for f, points in enumerate(per_frame):
         if points:
             uv[f, :len(points)] = points
@@ -762,7 +766,7 @@ def c1_row(row, rgb, path_map=None):
     """
     target, spans = check_row(row)
     frames = rgb['frames']
-    if len(frames) != 32 or [f['source_index'] for f in frames] != row['provenance']['frame_indices']:
+    if len(frames) not in (32, 64) or [f['source_index'] for f in frames] != row['provenance']['frame_indices']:
         raise ValueError('RGB manifest differs from the trace frame selection')
     missing = [k for k in ('fps', 'total_num_frames') if k not in rgb]
     if missing:
@@ -884,25 +888,38 @@ def canonical_keys(canonical, group=None):
     return keys
 
 
-def direct_row(raw):
-    """An answer-only DIRECT row (empty think, exact released answer, loss on the whole target).
+def require_training_think(target):
+    """Legacy training targets must contain an explicit reasoning body."""
+    if (not isinstance(target, str) or not target.startswith(THINK)
+            or '</think>' not in target
+            or not target[len(THINK):target.index('</think>')].strip()):
+        raise ValueError('LEGACY_DIRECT_SOURCE_EMPTY_THINK_REFUSED')
 
-    Input: {qid, question_type, canonical | dataset+scene, student_input {frames [{path, sha256}],
-    frame_indices, fps, total_num_frames, question, options}, answer, target}.
-    """
-    target = THINK + '\n</think>\n\n' + str(raw['answer'])
-    if raw.get('target') != target:
-        raise ValueError('Direct rows must be the empty think block plus the exact answer')
+
+def direct_row(raw):
+    """Pack a concrete direct trace while preserving its exact target bytes."""
+    target = raw.get('target')
+    require_training_think(target)
     inputs = dict(raw['student_input'])
-    if len(inputs['frames']) != 32 or len(inputs['frame_indices']) != 32:
-        raise ValueError('Direct rows require 32 pinned native frames')
+    count = len(inputs['frames'])
+    if count not in (32, 64) or len(inputs['frame_indices']) != count:
+        raise ValueError('Direct rows require 32 or 64 pinned native frames')
+    from .r2_grammar import validate_direct
+    answer = validate_direct(target, inputs['question'], count)
+    if answer != str(raw['answer']):
+        raise ValueError('Direct trace answer differs from its declared answer')
+    suffix = '\n</think>\n\n' + answer
+    if not target.endswith(suffix):
+        raise ValueError('Direct trace target does not match the training renderer')
+    body = target[len(THINK):-len(suffix)]
     inputs['timestamps'] = [k / inputs['fps'] for k in inputs['frame_indices']]
     dataset, scene = (alias_of(raw['canonical']) if 'canonical' in raw
                       else raw['dataset'] + '/' + raw['scene']).split('/', 1)
+    events = [dict(kind='canonical_text', text=body)]
     return dict(qid=raw['qid'], dataset=dataset, scene=scene, category='routing_trace', student_input=inputs,
-                target=target, routing=dict(qid=raw['qid'], question_type=raw['question_type'], form='direct_empty_think',
+                target=target, routing=dict(qid=raw['qid'], question_type=raw['question_type'], form='direct_trace',
                                             canonical=raw.get('canonical'),
-                                            events=[], answer=raw['answer'], gt_answer=raw['answer'],
+                                            events=events, answer=raw['answer'], gt_answer=raw['answer'],
                                             tool_output_spans=[], category='direct', head_layout='n/a'))
 
 
@@ -971,7 +988,7 @@ def build_routing_stream(source, rgb_index, division_pin, output, processor_root
                           gate_reason if gate_reason else
                           'type_without_policy' if kind is None else
                           'direct_policy_row_has_tool_calls' if kind == 'direct' and calls else
-                          # DIRECT types enter only as answer-only rows (--direct-source), never as reasoning rows.
+                          # This legacy policy admits direct traces through --direct-source.
                           'direct_policy_reasoning_row' if kind == 'direct' and not both else
                           camera_filter(raw) if qtype in CAMERA_MOTION else
                           'paired_anchor_layout' if (kind == 'route' and calls and not allow_paired_anchor
@@ -1051,7 +1068,7 @@ def main():
     parser.add_argument('--output', required=True, help='New output directory')
     parser.add_argument('--max-suffix-tokens', type=int, default=9600)
     parser.add_argument('--allow-paired-anchor', action='store_true', help='Interim pools (v1) only')
-    parser.add_argument('--direct-source', help='JSON pin of answer-only DIRECT rows (JSONL)')
+    parser.add_argument('--direct-source', help='JSON pin of concrete direct traces (JSONL)')
     parser.add_argument('--exclusions', help='JSON pin of the TEST-split scene exclusion list (rows dropped)')
     parser.add_argument('--report-exclusions', help='JSON pin of a wider overlap list (counted only)')
     parser.add_argument('--policy', choices=sorted(POLICIES), default=POLICY_VERSION)

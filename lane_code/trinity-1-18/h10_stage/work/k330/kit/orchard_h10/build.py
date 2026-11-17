@@ -39,7 +39,7 @@ def sources():
     from h1eval.items import R0_PINS
     for name in R0_PINS:add(K/'inputs/r0dev'/name,'inputs/r0dev/'+name)
     # The reviewed reader imports these modules and their native task bindings.
-    for folder in ('e2e_reader','heads/selector','heads/scale','parity_kit'):
+    for folder in ('e2e_reader','heads/selector','heads/selector/sl118','heads/scale','parity_kit'):
         for path in sorted((B/folder).glob('*.py')):add(path,'b/'+str(path.relative_to(B)))
     for name in ('work/meta/x/sj/orch_cd/legs1_reads/work/vendor/r3/TASKS.jsonl',
                  'work/meta/x/sj/orch_cd/legs1_routed/out2/CAMERA_TASKS.jsonl',
