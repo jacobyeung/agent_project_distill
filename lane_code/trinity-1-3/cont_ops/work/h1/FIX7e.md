@@ -1,0 +1,9 @@
+Cause: PY_GATE lacks tokenizers; its isolated interpreter cannot use PYTHONPATH (evidence/fix7_selection/orchard_q_run4.txt:25).
+Pin: evidence/derivation/empty/k/0.json:1 supplies venv.file/SHA256; orchard_q_run4.txt:34 supplies 8,105,379,840 bytes; digest ffc81db4b3b1c3d1e42ac91159d504dc57b36eebfc75f537d15a426bbe6a8a22.
+Change: tools/selection_runtime.py:97 authenticates the complete tar before selective regular-file extraction into private W/d; tools/package_selection.py:138 uses nice 19/ionice idle under PY_GATE -I; no login /tmp storage.
+Preflight: tools/selection_runtime.py:196 imports the complete selection call path, recovers missing pure-Python/abi3 dependencies, and reports all remaining failures; tools/selection_check.py:204 writes versions/failures into q.json.runtime before regeneration.
+Closure: torch, numpy, tokenizers, scipy, scipy.ndimage, scipy.spatial, scipy.spatial.distance; 29 repository modules and 17 stdlib imports are fully listed in [records/e.json](evidence/fix7_selection/records/e.json), generated at tools/selection_runtime.py:26.
+Versions: production tokenizers 0.22.2 is enforced; q.json compares imported versions with authenticated production METADATA. Actual login torch/numpy differences await Orchard; compatible differences are not expected to change selection content (numpy finite checks; torch/scipy imports only). Content equality remains mandatory.
+Tests: all four test_fix7_{selection,deriver,admission,package}.py scripts PASS; test_fix7_runtime.py PASS (fake tokenizers, wrong SHA/size, links, extra/unsafe paths, incompatible extensions, aggregate missing modules, transitive pure-Python recovery); deterministic build and bash -n PASS.
+build/q.sh: 127304 bytes; SHA256 af10e6d5a3546851b2d14f4baa8827b37e102432d30bd5dc8f50b6383c810fdd.
+Output: BUN/q_6c18a2bf/o/; the overlay is BUN/q_6c18a2bf/d/. Existing q_* outputs remain untouched. Local CPU only; production equality is unverified.

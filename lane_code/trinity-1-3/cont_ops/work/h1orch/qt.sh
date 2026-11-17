@@ -1,0 +1,1 @@
+cd /tmp && tar -tvf /home/jjyeung/okit/i/eb3429c5/eb3429c5.tar | head -5; tar -xOf /home/jjyeung/okit/i/eb3429c5/eb3429c5.tar SHA256SUMS 2>/dev/null | head -3 | cut -c1-150 | cat -A | cut -c1-160; tar -xOf /home/jjyeung/okit/i/eb3429c5/eb3429c5.tar ./SHA256SUMS 2>/dev/null | head -3 | cat -A | cut -c1-160; tar -tf /home/jjyeung/okit/i/eb3429c5/eb3429c5.tar | grep -c .

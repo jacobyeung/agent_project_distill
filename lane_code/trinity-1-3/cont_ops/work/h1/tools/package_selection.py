@@ -1,8 +1,53 @@
 """Build a small opaque, self-checking offline login-node entrypoint."""
-import base64,hashlib,json,zlib
+import ast,base64,hashlib,json,zlib
 from pathlib import Path
+from selection_stage import resolve
+from selection_runtime import closure
 H=Path(__file__).resolve().parents[1]
+metadata=(H/'evidence/derivation/empty/k/0.json').read_bytes()
+# Production bytes independently recorded in orchard_q_run2.txt:12. The
+# enclosing local fixture manifest is not the production manifest authority.
+assert len(metadata)==1664013
+assert hashlib.sha256(metadata).hexdigest()=='620a7ed162cd2f9722724be13ef09bae4123b2aba70ea3147fcc25ce91eced83'
+# Read the production authority as a literal, without executing the deriver.
+deriver=ast.parse((H/'tools/derive_kit_h1.py').read_text())
+manifest_sha=next(ast.literal_eval(n.value) for n in deriver.body
+ if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='SEALED_MANIFEST' for t in n.targets))
+config=json.loads(metadata)
+# Production metadata supplies the path/digest; run-4 evidence supplies the byte count.
+venv=dict(config['venv'],bytes=8105379840)
+assert venv['sha256']=='ffc81db4b3b1c3d1e42ac91159d504dc57b36eebfc75f537d15a426bbe6a8a22'
+runtime=dict(venv=venv,imports=closure(H/'build/tree'),
+ pin_source='evidence/derivation/empty/k/0.json:1 venv; evidence/fix7_selection/orchard_q_run4.txt:34 bytes')
+inputs=json.loads((H/'evidence/fix7_selection/inputs.json').read_text())
+prefix='/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/'
+catalog=json.loads((H/'build/fx/k/4aa7c6fc.json').read_text())['s1_routing']['catalog']
+for item in inputs:
+ assert catalog[item['sha256']]==item['logical_path']
+ assert item['logical_path'].startswith(prefix+'ap/8865619b/')
+ item['relative']=item['logical_path'][len(prefix+'ap/8865619b/'):]
+selected,resolutions=resolve(config['staged_inputs'],inputs)
+# Check the remaining production staging routes by destination, including AL.
+other={}
+for i,entry in enumerate(config['tars']):
+ for name in entry['files']:other.setdefault(prefix+name,[]).append('tars[%d]'%i)
+for i,entry in enumerate(config['extra']):
+ name=entry['dest'].replace('/lustre/fsw/','/scratch/fsw/',1)
+ other.setdefault(name,[]).append('extra[%d]'%i)
+for i,entry in enumerate(config['staged_inputs']['directories']):
+ pin=entry['manifest'];data=(H/'build/fx'/pin['file']).read_bytes()
+ assert hashlib.sha256(data).hexdigest()==pin['sha256']
+ for row in json.loads(data)['files']:
+  other.setdefault(prefix+'ap/8865619b/'+row['destination'],[]).append('directories[%d]'%i)
+assert not any(item['logical_path'] in other for item in inputs),'Additional staging route needs support'
+authority=dict(manifest_sha256=manifest_sha,
+ packages=[entry for (kind,_),entry in selected.items() if kind=='packages'],
+ inputs=[{k:v[k] for k in ('relative','sha256','bytes')} for v in inputs])
 files={'v.py':(H/'tools/selection_check.py').read_text(),
+ 'e.py':(H/'tools/selection_runtime.py').read_text(),
+ 'e.json':json.dumps(runtime,sort_keys=True,separators=(',',':')),
+ 'j.py':(H/'tools/selection_stage.py').read_text(),
+ 'j.json':json.dumps(authority,sort_keys=True,separators=(',',':')),
  'a.json':(H/'evidence/derivation/d0/k/pool_selection.json').read_text(),
  'b.json':(H/'payload/d_f232d4160d75b582.json').read_text(),
  'c.json':(H/'payload/7.json').read_text(),'f.json':(H/'build/fx/k/4aa7c6fc.json').read_text()}
@@ -15,7 +60,7 @@ export TZ=UTC
 O=/project/community/jjyeung/okh7
 BUN=$O/i_1be16f28
 K=$O/x_07ca49df
-W=$BUN/q_7b62108a
+W=$BUN/q_6c18a2bf
 private_dir() {
  [[ -d "$1" && ! -L "$1" && "$(stat -c %a -- "$1")" == 700 ]] || {
   printf 'Directory must be mode 0700; run: chmod 700 -- %q\n' "$1" >&2; exit 3;
@@ -32,10 +77,10 @@ mkdir -m 700 "$W"
 mkdir -m 700 "$W/c"
 export TMPDIR="$W/c" XDG_CACHE_HOME="$W/c" HF_HOME="$W/c"
 # Bootstrap uses only the standard library, authenticates before extraction, and never overwrites.
-nice -n 19 "$PY_GATE" -I -B - "$W" "$BUN" <<'P' >"$W/b.log" 2>&1
+nice -n 19 ionice -c 3 "$PY_GATE" -I -B - "$W" "$BUN" "$K" <<'P' >"$W/b.log" 2>&1
 import base64,hashlib,json,sys,tarfile,zlib
 from pathlib import Path
-w,b=map(Path,sys.argv[1:])
+w,b,k=map(Path,sys.argv[1:])
 data=zlib.decompress(base64.b64decode('@BLOB@'))
 if hashlib.sha256(data).hexdigest()!='@SHA@':raise ValueError('Embedded bytes differ')
 files=json.loads(data)
@@ -59,6 +104,9 @@ with tarfile.open(archive) as tf:
   with target.open('xb') as f:f.write(data)
   seen.add(m.name)
 if seen!=set(code['files']):raise ValueError('Archive inventory differs')
+scope={}
+exec(compile(files['j.py'],'j.py','exec'),scope)
+scope['stage'](k,w,json.loads(files['j.json']))
 P
 AS=/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung
 AL=/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung
@@ -79,10 +127,15 @@ host_entries() {
 }
 host_entries ''
 mounts+=(--dev /dev --proc /proc --tmpfs /tmp --dir "$AS" --dir "$AL")
+inputs=()
+while IFS= read -r -d '' source && IFS= read -r -d '' destination; do
+ inputs+=(--ro-bind "$source" "$AS/ap/8865619b/$destination" --ro-bind "$source" "$AL/ap/8865619b/$destination")
+done <"$W/m"
 rc=0
-"$BW_GATE" "${mounts[@]}" --ro-bind "$K" "$AS/ap/8865619b" --ro-bind "$K" "$AL/ap/8865619b" \
- --bind "$W" "$W" --unshare-user --uid "$(id -u)" --gid "$(id -g)" --unshare-net --die-with-parent --new-session \
- nice -n 19 "$PY_GATE" -I -B "$W/v.py" --kit "$AS/ap/8865619b" --tree "$W/t" --records "$W" --out "$W/o" >"$W/r.log" 2>&1 || rc=$?
+"$BW_GATE" "${mounts[@]}" --dir "$AS/ap/8865619b" --dir "$AL/ap/8865619b" \
+ --ro-bind "$K/k" "$AS/ap/8865619b/k" --ro-bind "$K/k" "$AL/ap/8865619b/k" \
+ "${inputs[@]}" --bind "$W" "$W" --ro-bind "$W/p" "$W/p" --unshare-user --uid "$(id -u)" --gid "$(id -g)" --unshare-net --die-with-parent --new-session \
+ nice -n 19 ionice -c 3 "$PY_GATE" -I -B "$W/v.py" --kit "$AS/ap/8865619b" --tree "$W/t" --records "$W" --out "$W/o" --runtime "$W/e.py" >"$W/r.log" 2>&1 || rc=$?
 "$PY_GATE" -I -B - "$W" "$rc" <<'P'
 import hashlib,json,sys
 from pathlib import Path
@@ -97,4 +150,17 @@ assert len(script.encode())<1_000_000
 # Local invocation uses precisely the same embedded records.
 r=H/'evidence/fix7_selection/records';r.mkdir(exist_ok=True)
 for n,v in files.items():(r/n).write_text(v)
+(H/'evidence/fix7_selection/resolution7d.json').write_text(json.dumps(dict(
+ manifest_sha256=manifest_sha,manifest_source='tools/derive_kit_h1.py:140',
+ package_expectations_source='evidence/derivation/empty/k/0.json; production bytes/SHA256 from evidence/fix7_selection/orchard_q_run2.txt:12',inputs=resolutions,
+ other_routes_checked=dict(tars=len(config['tars']),extra=len(config['extra']),
+ directories=len(config['staged_inputs']['directories']),matches=0)),sort_keys=True,indent=2)+'\n')
+table=['Every selection input resolves from the source below. `K` is `/project/community/jjyeung/okh7/x_07ca49df`; `P` is `/home/jjyeung/okit/i/eb3429c5/eb3429c5.tar` on Orchard. The sealed production manifest authenticates `K/k/0.json`; its selected package entry must exactly match the embedded expectation. Members are extracted beneath `BUN/q_6c18a2bf/p` and mounted read-only at both logical roots. The full original pins remain in `inputs.json`.','',
+ '| Original input | Kit-relative logical path | SHA256 | Bytes | Source |',
+ '|---|---|---|---:|---|']
+for row in resolutions:
+ source=('K/'+row['relative'] if row['staging']=='kit' else 'P :: '+row['relative'].split('/',2)[2])
+ table.append('| '+' | '.join(['`'+row['original_path']+'`','`'+row['relative']+'`','`'+row['sha256']+'`',str(row['bytes']),'`'+source+'`'])+' |')
+table+=['','All 38 input occurrences are covered: 25 kit files and 13 package members. No selection input matches any additional staged file, archive, raster-directory entry, top-level tar or extra-file destination. `resolution7d.json` records the source mapping and production manifest authority.']
+(H/'evidence/fix7_selection/INPUTS.md').write_text('\n'.join(table)+'\n')
 print(json.dumps(dict(bytes=len(script.encode()),sha256=hashlib.sha256(script.encode()).hexdigest())))

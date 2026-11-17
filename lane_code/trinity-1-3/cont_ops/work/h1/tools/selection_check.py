@@ -109,7 +109,7 @@ def input_pins(raw, manifest):
     pins += [v['selection'] for v in raw['sources'].values() if 'selection' in v]
     return [pin for pin in pins if pin is not None]
 
-def regenerate(raw, baseline, resolver, output, code):
+def regenerate(raw, baseline, resolver, output, code, runtime=None):
     # Authenticate source bytes before any native module can execute.
     for name, expected in code['files'].items():
         p = Path(code['tree']) / name
@@ -160,7 +160,7 @@ def regenerate(raw, baseline, resolver, output, code):
             tree_sha256=code['tree_sha256'], code_sha256=CODE, tool_sha256=sha(__file__),
             differences=diff, raw_differences=raw_diff, indices=indices,
             fields={k: k in candidate and not differences(baseline[k], candidate[k]) for k in baseline if k != 'implementation'},
-            inputs=resolver.verified, production_authorized=False)
+            inputs=resolver.verified, production_authorized=False, runtime=runtime or {})
         write(output / 'q.json', report)
         return 0 if equal else 1
     finally:
@@ -175,9 +175,11 @@ def main():
     p.add_argument('--tree', required=True)
     p.add_argument('--records', required=True)
     p.add_argument('--out', required=True)
+    p.add_argument('--runtime')
     args = p.parse_args()
     records, output = Path(args.records), Path(args.out)
     output.mkdir(mode=0o700)
+    runtime = {}
     try:
         for name, expected in [('b.json', BASELINE), ('a.json', RAW_BASELINE), ('c.json', CODE)]:
             if sha(records / name) != expected:
@@ -191,11 +193,20 @@ def main():
         resolver = Resolver(args.kit, cfg['s1_routing']['catalog'])
         code['tree'] = str(Path(args.tree).resolve())
         sys.path.insert(0, code['tree'])
-        return regenerate(raw, baseline, resolver, output, code)
+        if args.runtime:
+            # Authenticate all source bytes before the preflight executes imports.
+            for name, expected in code['files'].items():
+                path = Path(code['tree']) / name
+                if path.is_symlink() or sha(path) != expected:
+                    raise ValueError('Source tree differs')
+            scope = {}
+            exec(compile(Path(args.runtime).read_text(), args.runtime, 'exec'), scope)
+            scope['prepare'](code['tree'], records / 'd', load(records / 'e.json'), runtime)
+        return regenerate(raw, baseline, resolver, output, code, runtime)
     except Exception as exc:
         if not (output / 'q.json').exists():
             write(output / 'q.json', dict(schema='selection-equality-v1', status='BLOCKED', regenerated=False,
-                error=type(exc).__name__ + ': ' + str(exc), production_authorized=False))
+                error=type(exc).__name__ + ': ' + str(exc), production_authorized=False, runtime=runtime))
         print('Input or comparison refused; inspect private q.json.', file=sys.stderr)
         return 2
 

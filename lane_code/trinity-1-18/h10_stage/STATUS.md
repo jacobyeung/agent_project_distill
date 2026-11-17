@@ -1,5 +1,5 @@
 # h10_stage STATUS (Devin lane on trinity-1-18; lane folder /scratch/jjyeung/orch_n30/h10_stage). Successor: read this, then newest *_ORCH_* in events/h10_stage and inbox/.
-Updated 20261117T0244Z.
+Updated 20261117T0313Z.
 
 ## Goal
 Stage H1-0 (package b01ec87a6f29b, kit trinity-3-30 /scratch/jjyeung/orch_n30/h1_headsft/kit/orchard_h10; local copy work/kit) on Orchard, fill a/1.json, login 3.py check, SUBMIT.cmd --test-only, submit ONE general job (<=5 GPU-h), babysit, report M1/M2/M3.
@@ -32,7 +32,10 @@ Stage H1-0 (package b01ec87a6f29b, kit trinity-3-30 /scratch/jjyeung/orch_n30/h1
 - h1read assets for cont_ops STAGED: /project/community/jjyeung/okh7/af83c921/{d81f4a26.tar 2ad8c67c 797,685,760 B, e52a690b.jsonl 1d8b29a7 5,728,183 B}, dir 0700, files 0600, sha verified on Orchard (governed push h10_stage_h1read done).
 - Mirror: trinity-0-13:/scratch/jjyeung/n30_mirror/h10_stage/mirror_h10_0245Z.tar sha 21d06478 (kit orchard_h10 + reports + 1.json + small stage files).
 
+- Orchard 170631 (same job, package 0.tgz e82ac329 / plan 1de19b86 / PACKAGE.json 27b287a9, fsw fix per ORCH 0242Z): RUNNING since ~03:01:35Z on orchard-community-1; worker type 0 started 03:07:35Z; ~7 s/read; RESULT first_reads sent. Return token b01ec87a6f29b00029a87 -> pool okh7/ae71c903/b01ec87a6f29b00029a87 (+GCS). End of allocation ~08:01:35Z; returns by ~07:41Z.
+- Faithful rehearsal root W/r2 (from empty) passed action 0. Lesson in H1 record; OPERATIONS.md (k330 copy) rule updated.
+
 ## Next
-1. Codex fsw fix (tmux h10_codex4, brief k330/BRIEF_sbatch_path.md -> BRIEF_fsw.md): job.py mkdir sj/fsw/m/ap before the namespace; package checks + new test_fsw_bind.
-2. Faithful action-0 rehearsal on login with the job's own namespace() argv (only an extra self-bind of the rehearsal root for chdir), rehearsal root WITHOUT a pre-made fsw (rename W/x/fsw away first).
-3. Deploy new package, 3.py check 1x05:00:00, test-only; submit only after ORCH relays the user's yes. Then babysit 1-min from start (squeue + sstat + pool dir).
+1. Babysit 170631 every 10 min: work/o/m.sh (squeue, sstat, pool dir) + work/o/prog.sh (srun --overlap 1 CPU/1 GB: per-type items.jsonl line counts, STEPS tail). 1-min on regression. NEVER resubmit 170631; a cluster kill waits for the user.
+2. On return: 3.py fetch on Orchard into W/fetch_<token>, pull 0.tgz (<=90 MB) to 1-18 (governed if >20 MB), merge with h1eval.h10.merge --type-layout (k330 kit, p1cpu), compute M1/M2/M3 per type, RESULT complete; clean partial -> resume plan (pin return in a/1.json resume, same 1 GPU).
+3. Mirror final kit + results.

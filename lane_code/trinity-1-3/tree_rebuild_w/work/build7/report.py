@@ -42,7 +42,7 @@ items=[
 ('9','Blocked: ROWS_RULE_TEXT_PRESENT (rows lanes)','Row admission refuses detected rule-only text. Bounded slices contain unavailable/not-seen statuses. Numeric tower-rule provenance cannot be inferred from text alone. Rows were not edited.','work/tree_r1/student_pilot/row_text_audit.py; work/build7/proofs/review/RESPONSE_RULE_SOURCES.json; work/build7/proofs/rows/RESULTS.json'),
 ('10','Closed label gate; no passing production receipt','Kits default to harness_served and claim neither room form. The gate consumes the actual EAT report schema and requires passing dynamic clauses plus the reader artifact digest. Fixture pass, failure and wrong-artifact refusals pass. No model_served claim is made.','work/tree_r1/student_pilot/b7_inputs.py:53; work/build7/proofs/input_binding/results.json'),
 ('11','Blocked: FRAME64_ALL_READERS_UNQUALIFIED; OUTSIDE_FORWARD_FORMATTING','Core encoder, carrier/readout capacity, pose targets and export support pinned frame counts. All ground/MDG/read paths are not qualified. Final answer passthrough is tested; tool-value formatting remains outside forward. ReVSI is listed first; kits default to SFT.','work/build7/proofs/targeted_final/frames/TOKENS.json; work/build7/proofs/audit/NUMBER_PATHS.json; work/build7/proofs/review/KIT_READCHECK.json'),
-('12','Blocked: ROWS_MINORITY_FORMS_UNBOUND; INDEPENDENT_REVIEW_PENDING','Both policy, separate type gate, per-item answer_form and pinned minority sampler are implemented. Missing head grammars refuse program rows; room stays direct. Native end-to-end store sampling and all legacy-policy byte parity remain unproved. Recovery form is deferred.','work/tree_r1/student_pilot/routing_type_gate.py; work/build7/DECISIONS.md; work/build7/proofs/rows/RESULTS.json'),
+('12','Blocked: ROWS_MINORITY_FORMS_UNBOUND; LEGACY_DIRECT_SOURCE_TRACE_UNQUALIFIED; INDEPENDENT_REVIEW_PENDING','Both policy, separate type gate, per-item answer_form and pinned minority sampler are implemented. Missing head grammars refuse program rows; room stays direct. Native end-to-end store sampling and all legacy-policy byte parity remain unproved. The separate legacy direct-source builder still constructs empty-think traces and is not qualified for this policy. Recovery form is deferred.','work/tree_r1/student_pilot/routing_type_gate.py; work/tree_r1/student_pilot/carrier_c1_routing.py:888; work/build7/DECISIONS.md; work/build7/proofs/rows/RESULTS.json'),
 ('13','Blocked: R0_FULL_INPUT_INVENTORY_UNAVAILABLE','Pinned R0 authority and alias-family refusals are implemented. Available slices were scanned. Full staged frames, caches and every stream are unavailable; unknown overlap is not admitted.','work/tree_r1/student_pilot/r0_exclusion.py; work/build7/proofs/audit/AUTHORITY_HASHES.json; work/build7/proofs/rows/RESULTS.json'),
 ('14','Blocked: BF16_CACHE_GRADIENT_PARITY; INDEPENDENT_REVIEW_PENDING','Cache patch rebased; option is off with FP32 default. Enabled BF16 is refused by kits. Supplied BF16 gradient tolerance still fails and was not widened. Cache tests and OFF behavior remain in the suite.','work/build7/PATCH_HUNKS.json; work/build7/proofs/targeted/results.json; work/tree_r1/tests/test_gf1_cache.py'),
 ('15','Blocked: B04_FORWARD_HOOK_REQUIRED; PORTRAIT_MASK_DISTORTION','Native tiny export/reload emits an artifact manifest and declared module roles. Full read-file closure is not qualified. Stencil, degree and status computations remain outside forward; portrait mask paths remain distorted to preserve bound-row bytes. EAT results follow below.','work/tree_r1/student_pilot/eat1_export.py; work/build7/proofs/eat1; work/build7/proofs/audit/RESIZE_AUDIT.json'),
@@ -50,7 +50,7 @@ items=[
 ('16a','Blocked: GLOO_INITIALIZATION; MULTIRANK_END_SLOT_UNPROVED','Shell stop-file paths and rank polling are connected. Real trap/poll proof passed. Gloo could not initialize; the full wrapper chain and multi-rank end slot remain unproved. '+('The single-rank native fallback stops, exports and reloads its end slot.' if fallback else 'An exported fallback end slot remains unproved.'),'work/build7/proofs/stop/RESULTS.json; work/build7/proofs/review/STOP_PATH.json; work/build7/proofs/final_targeted/stop_fallback/RESULT.json'),
 ('17','Closed' if suite_ready else 'Blocked: SUITE_OR_COVERAGE_CRITERIA_UNMET','Final frozen package groups and packet suite are recorded below. Failures and CPU gaps remain failures, including new ones.','work/build7/FINAL_PASS.json; work/build7/SUITE_COMPARISON.json; work/build7/CHANGED_COVERAGE.json'),
 ('18','Closed staging; GO=false','Both final kits were staged from empty, A2 first, scanned and authenticated. Their source pins match the frozen tree.','work/build7/proofs/review/KIT_READCHECK.json; work/build7/proofs/package/KIT_TESTS.json'),
-('19','Carried into final comparison','Build-6 regressions and gaps are individually mapped below. Build 6 was not separately finalized. Package groups have input-hash-bound resume receipts.','work/build7/BUILD6_DISPOSITION.json; work/build7/package.py')]
+('19','Closed comparison' if tree.get('complete') and base.get('complete') else 'Blocked: COMPARISON_INCOMPLETE','Build-6 regressions and gaps are individually mapped below. Build 6 was not separately finalized. Package groups have input-hash-bound resume receipts.','work/build7/BUILD6_DISPOSITION.json; work/build7/package.py')]
 for num,status,detail,evidence in items:put('| '+num+' | '+status+' | '+detail+' | '+source(evidence)+' |')
 put('\n## Suites and coverage')
 pc=collections.Counter(v.get('outcome','unknown') for v in packet.values())
@@ -73,16 +73,19 @@ put('\nCoverage uses standard-library sys.monitoring, AST changed-statement head
 prior=read('work/build7/proofs/audit/BUILD6_REGRESSIONS.json',[])
 disposition=[]
 for row in prior:
- name=row['test'];matches=[r for r in comparison.get('failures',[]) if r['test']==name]
+ name=row['test'];matches=[r for r in comparison.get('failures',[]) if r['test'].split(' (',1)[0]==name.split(' (',1)[0]]
  passed=any(p==name or p.split(' (')[0]==name.split(' (')[0] for p in tree.get('passed',[]))
  disposition.append(dict(test=name,status='resolved' if passed and not matches else 'open',evidence='work/build7/proofs/suite_tree/results.json',cause=matches[0]['cause'] if matches else ('not in final passing receipt' if not passed else 'passed on final source')))
 oldgaps=read('work/build6/GAPS.json',{});mapped=[]
+oldstatements={(r['file'],r['line']):r for r in read('work/build6/CHANGED_COVERAGE.json',{}).get('statements',[])}
 for name,entries in oldgaps.items():
  for line,text in entries:
-  matches=[r for r in coverage.get('statements',[]) if r['file']==name and r['text']==text]
+  old=oldstatements.get((name,line),{})
+  matches=[r for r in coverage.get('statements',[]) if r['file']==name and r['text']==text
+           and (not old.get('function') or r['function']==old['function'])]
   resolved=bool(matches) and all(r['executed'] for r in matches)
-  mapped.append(dict(file=name,build6_line=line,text=text,status='resolved' if resolved else 'open',
-   final_lines=[r['line'] for r in matches],cause='exact statement text observed at every matching final changed statement' if resolved else 'No unambiguous all-observed final statement match; not assumed covered'))
+  mapped.append(dict(file=name,build6_line=line,function=old.get('function'),text=text,status='resolved' if resolved else 'open',
+   final_lines=[r['line'] for r in matches],cause='exact statement text observed at every matching final changed statement in the same function' if resolved else 'No unambiguous all-observed final statement match in the same function; not assumed covered'))
 carry=dict(regressions=disposition,gaps=mapped,gap_counts=dict(collections.Counter(r['status'] for r in mapped)))
 (B/'BUILD6_DISPOSITION.json').write_text(json.dumps(carry,indent=2)+'\n')
 put('\nBuild-6 regression disposition (`work/build7/BUILD6_DISPOSITION.json`):')
@@ -148,7 +151,7 @@ put('\n| Resize location | Portrait assessment |\n|---|---|')
 for entry in read('work/build7/proofs/audit/RESIZE_AUDIT.json',[]):
  put('| '+source('work/tree_r1/'+entry['file']+':'+str(entry['line']))+' | '+str(entry['portrait_aspect_distorted'])+' |')
 put('\n## Stop path')
-put('\nS1 wrote the host-kit stop file while its sandbox used a separate staged kit; S1 also did not export the K3 path that ranks poll. The shell now writes the staged stop file and exports its sandbox path, and the rank checks it at step boundaries. `work/build7/proofs/review/STOP_PATH.json` records the current file:line chain. The real extracted shell trap and native poll pass; `work/build7/proofs/stop/RESULTS.json` records both stop-file SHA256 values.')
+put('\nS1 wrote the host-kit stop file while its sandbox used a separate staged kit; S1 also did not export the K3 path that ranks poll. The host path is at `launch_s1/b/r.sh:12`; the added staged-file write is at `launch_s1/b/r.sh:17`, and the sandbox poll-path export is at `launch_s1/b/r.sh:58`. The rank checks that request at the step boundary in `student_pilot/carrier_c1_run.py:2378`. `work/build7/proofs/review/STOP_PATH.json` records the current chain. The real extracted shell trap and native poll pass; `work/build7/proofs/stop/RESULTS.json` records both stop-file SHA256 values.')
 put('\nGloo initialization failed with “Cannot resolve 127.0.0.1 to a (local) address” (`work/build7/proofs/stop/RESULTS.json`). I did not retry or bypass that environment restriction. There is no multi-rank end slot or corresponding hash. A real multi-rank fallback export remains unproved.')
 if fallback:
  put('\nThe separate single-rank fallback ran the native optimizer loop, checkpoint/export writers and artifact reader. Its end-slot path and digest are '+source(json.dumps(fallback['artifact']))+'; the checkpoint is '+source(json.dumps(fallback['checkpoint']))+' (`work/build7/proofs/final_targeted/stop_fallback/RESULT.json`). It uses synthetic pose batches plus one-rank collective and FSDP publication stand-ins. It does not meet the GPU-boundary-only requirement for the full producer/wrapper chain.')

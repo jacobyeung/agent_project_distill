@@ -1,20 +1,24 @@
 import json
 from pathlib import Path
 L=Path(__file__).resolve().parents[2];B=L/'work/build7'
-state=json.loads((B/'FINAL_PASS.json').read_text())[-1]
+def read(path,default):
+ try:return json.loads(path.read_text())
+ except (OSError,json.JSONDecodeError):return default
+state=read(B/'FINAL_PASS.json',[dict(step='progress_write',status='unavailable')])[-1]
 result=dict(step=state['step'],status=state['status'],source='work/build7/FINAL_PASS.json')
 if state['step']=='package' and state['status']=='running':
  for variant in ('base','tree'):
   folder=B/'proofs'/('suite_'+variant);p=folder/'progress.json'
   if p.exists():
-   active=json.loads(p.read_text());group=active.get('group')
+   active=read(p,{});group=active.get('group')
    if group:
     result.update(variant=variant,group=group)
     p=folder/group/'progress.json'
-    if p.exists():result.update(json.loads(p.read_text()))
+    if p.exists():result.update(read(p,{}))
     for event in ('errors','failures'):
      live=folder/group/('live_'+event+'.json')
-     if live.exists():result[event]=len(json.loads(live.read_text()))
+     value=read(live,None)
+     if value is not None:result[event]=len(value)
     log=folder/group/'tests.log'
     if log.exists():
      with log.open('rb') as stream:

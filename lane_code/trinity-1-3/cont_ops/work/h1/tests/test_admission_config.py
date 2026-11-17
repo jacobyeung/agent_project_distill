@@ -1,9 +1,9 @@
 """Audit the derived config with native CPU validators and hash-preserving local pins."""
-import ast, copy, hashlib, json, os, subprocess, sys
+import ast, copy, hashlib, json, os, subprocess, sys, tempfile
 from pathlib import Path
 from unittest.mock import patch
 H=Path(__file__).resolve().parents[1];root=H/'build/fx'
-OUT=H/'evidence/fix6_admission';OUT.mkdir()
+OUT=Path(tempfile.mkdtemp(prefix='config_',dir=H/'evidence/fix8_admission'))
 sys.path[:0]=[str(H/'build/tree'),str(root/'b'),str(H/'tools')]
 os.environ['CUDA_VISIBLE_DEVICES']=''
 from student_pilot import p3_provenance as provenance
@@ -119,18 +119,17 @@ changed={n:dict(recorded=selection['implementation'].get(n),actual=actual_implem
 module=ast.parse((H/'build/tree/student_pilot/s1_routing.py').read_text())
 build=next(n for n in module.body if isinstance(n,ast.FunctionDef) and n.name=='build')
 check=next(n for n in build.body if isinstance(n,ast.If) and 'selection["implementation"]' in ast.get_source_segment((H/'build/tree/student_pilot/s1_routing.py').read_text(),n))
-try:exec(compile(ast.Module(body=[check],type_ignores=[]),'<native-selection-check>','exec'),dict(selection=selection,s1_pool=s1_pool))
-except ValueError as e:
- assert str(e)=='Routing selection belongs to another implementation'
- assert len(changed)==7
- results['routing_selection_implementation']=dict(status='BLOCKED',detail=str(e),changed=changed,
-     reason='Selection records D0 implementation hashes. H1 provenance cannot be certified by replacing hashes; regenerate or verify selection against H1 with production row inputs, preserving approved membership.')
-else:raise AssertionError('Expected the independently detected stale selection refusal')
+exec(compile(ast.Module(body=[check],type_ignores=[]),'<native-selection-check>','exec'),dict(selection=selection,s1_pool=s1_pool))
+assert changed=={}
+assert provenance.sha256(pinned(cfg['s1_routing']['selection']))=='eac5f9f01587803b2402f80cc310b75ec1f960270a6bc059416b1e1407b1e7c9'
+passed('routing_selection_implementation',dict(selection_sha256=cfg['s1_routing']['selection']['sha256'],changed=changed, native_conditional=True))
 expected=copy.deepcopy(old)
 expected['checkpoint_disk_guard']=checkpoint_space.plan(old['recipe'],old['checkpoint_disk_guard']['reserve_bytes'])
 expected['admission']=cfg['admission']
+expected['s1_routing']=cfg['s1_routing']
 assert expected==cfg
-passed('only_guard_and_review_pin_changed')
+passed('only_guard_review_and_selection_changed')
 assert dk.identity(cfg)==json.loads((H/'ids.json').read_text())['identity']
 (OUT/'results.json').write_text(json.dumps(results,indent=2)+'\n')
-print(json.dumps(results,indent=2))
+(H/'evidence/fix8_admission/config_tests.json').write_text(json.dumps(dict(path=str(OUT),results=results),indent=2)+'\n')
+print(json.dumps({n:v['status'] for n,v in results.items()},indent=2))

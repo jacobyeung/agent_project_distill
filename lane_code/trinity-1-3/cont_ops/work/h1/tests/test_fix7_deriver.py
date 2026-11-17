@@ -4,7 +4,8 @@ from pathlib import Path
 H=Path(__file__).resolve().parents[1];sys.path.insert(0,str(H/'tools'))
 import derive_kit_h1 as dk
 out=Path(tempfile.mkdtemp(prefix='guard_',dir=H/'evidence/fix7_selection'))
-base=json.loads((H/'build/over_local.json').read_text());passed=[]
+final=json.loads((H/'build/over_local.json').read_text());dk.validate_selection_equality(final)
+base=json.loads((H/'evidence/fix8_before/build/over_local.json').read_text());passed=[]
 def refused(value,message):
  try:dk.validate_selection_equality(value)
  except (ValueError,KeyError) as exc:
@@ -58,7 +59,8 @@ integration=copy.deepcopy(valid);integration.update(fixture=True,status='BLOCKED
 catalog=integration['config']['s1_routing']['catalog']
 catalog.pop(dk.SELECTION_REFERENCE)
 catalog[pin['sha256']]=integration['config']['s1_routing']['selection']['path']
-cfg=json.loads((H/'build/fx/k/4aa7c6fc.json').read_text())
+launch=json.loads((H/'build/fx/k/launch.json').read_text())
+cfg=json.loads((H/'build/fx'/launch['config']['file']).read_text())
 cfg['s1_routing'].update(integration['config']['s1_routing'])
 auth=json.loads((H/'payload/4.json').read_text());auth['config_sha256']=dk.identity(cfg)
 ap=out/'TEST_ONLY_AUTH.json';dk.write(ap,auth)

@@ -1,0 +1,14 @@
+--- student_pilot/carrier_c1.py
++++ student_pilot/carrier_c1.py
+@@ -504,6 +504,11 @@
+                 components['depth'], components['depth_fov'] = self.auxiliary_heads.depth(batch, targets, fov=fov)
+                 metrics['depth_absrel'] = getattr(self.auxiliary_heads.depth, 'last_absrel', None)
+         elif stream == 'routing':
++            if targets is not None and targets.get('h1_pose'):
++                pose = self.auxiliary_heads.pose
++                components['pose'] = pose.loss(hidden.float(),
++                    {**targets, 'aux_camera_positions': batch['aux_camera_positions']}).mean()
++                metrics['pose_parts'] = {k: float(v.float().mean()) for k, v in pose.last_components.items()}
+             labels = batch['labels'][:, 1:]
+             valid = labels != -100
+             if not valid.any():

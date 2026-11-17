@@ -18,11 +18,13 @@ def record(name,fn,expected=None):
   assert expected is None,'expected refusal: '+name
   results[name]=dict(status='PASS',detail=value)
   return value
-# The only edit to this copied production selection is explicitly test-only.
-actual=load(H/'payload/d_f232d4160d75b582.json');test=copy.deepcopy(actual)
-test['implementation']=s1_pool.implementation();write(out/'TEST_ONLY.json',test)
-assert sc.content(test)==sc.content(actual)
-prod=load(H/'build/fx/k/4aa7c6fc.json')
+# Exercise the unchanged regenerated production selection bytes. Relocation and
+# the model descriptor alone remain fixtures because production rows are absent.
+launch=load(H/'build/fx/k/launch.json')
+prod=load(H/'build/fx'/launch['config']['file'])
+actual_path=H/'payload/d_eac5f9f01587803b.json'
+actual=load(actual_path)
+assert actual['implementation']==s1_pool.implementation()
 assets=out/'assets';assets.mkdir();(assets/'tokenizer.json').write_text('{}\n')
 write(out/'model.json',dict(kind='base',root=str(assets)))
 # Existing production rows prevent relocation itself. Supply only its copied receipt
@@ -38,14 +40,14 @@ lines=set()
 def trace(frame,event,arg):
  if frame.f_code.co_filename==s1_routing.__file__ and frame.f_code.co_name=='build' and event=='line':lines.add(frame.f_lineno)
  return trace
-with patch.object(s1_pool_relocate,'relocate',return_value={'relocated':file_pin(out/'TEST_ONLY.json')}),patch.object(s1_route_policy,'pinned',side_effect=policy_pin):
+with patch.object(s1_pool_relocate,'relocate',return_value={'relocated':file_pin(actual_path)}),patch.object(s1_route_policy,'pinned',side_effect=policy_pin):
  sys.settrace(trace)
  try:record('production_after_215',lambda:s1_routing.build(prod,out/'production',{},file_pin(out/'model.json')),
             'Missing or changed pinned input')
  finally:sys.settrace(None)
 assert 219 in lines,lines
 results['production_after_215']['executed_lines']=sorted(lines)
-results['production_after_215']['limits']='Test-only relocation result and model manifest; real legacy receipt is missing. No production row materialization claimed.'
+results['production_after_215']['limits']='Real pinned selection, isolated relocation result and model manifest; real legacy receipt is missing. No production row materialization claimed.'
 # Native prepare and relocation on small generated sensor-room and direct rows.
 f=out/'synthetic';f.mkdir()
 with (out/'native.log').open('x') as log,contextlib.redirect_stdout(log):
@@ -89,7 +91,7 @@ with (out/'native.log').open('x') as log,contextlib.redirect_stdout(log):
  bad=copy.deepcopy(seal);bad['config_sha256']='0'*64
  record('source_seal_guard',lambda:source_seal.check_binding(bad,code,run.identity(prod)),'differs')
 results['not_tested']=dict(status='NOT RUN',checks=[
- 'Full production relocation: all 13 source gzip files unavailable; native selection equality still pending.',
+ 'Full production relocation: all 13 source gzip files unavailable locally; Orchard equality report is pinned.',
  'Production legacy receipt/database, division contents and compatibility samples, real processor/base-model/token IDs.',
  'Production frame map/plan resolution against all rows, duplication/order/filter accounting and source census/coverage.',
  'Parent model/grounding and warm-start artifacts; pointing/VQA rebuilds; full carrier_c1_run.prepare and prepared.',
