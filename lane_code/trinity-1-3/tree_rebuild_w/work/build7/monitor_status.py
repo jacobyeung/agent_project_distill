@@ -27,4 +27,11 @@ if state['step']=='package' and state['status']=='running':
      if lines:result['current_log']=lines[-1]
     result['source']=str((folder/group/'progress.json').relative_to(L))
     break
+elif state['step']=='targeted' and state['status']=='running':
+ folder=B/'proofs/final_targeted'
+ result.update(read(folder/'progress.json',{}))
+ for event in ('errors','failures'):
+  value=read(folder/('live_'+event+'.json'),None)
+  if value is not None:result[event]=len(value)
+ result['source']=str((folder/'progress.json').relative_to(L))
 print(json.dumps(result))

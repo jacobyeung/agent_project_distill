@@ -102,3 +102,7 @@ Status: NOT READY. No production action is authorized.
 **Status.** CPU qualification complete; production remains blocked. The source and package identities are in `out/TREE_SEAL.json` and `work/build5/DELIVERY.json`. Both kit authorizations remain closed. Exact suite counts, coverage classes and unexecuted checks are in `out/BUILD5_REPORT.md`.
 
 **Measured storage limit.** Legacy teacher fixtures exceeded the temporary cap on both source versions. The harness recorded refusals and compacted their products; measured peaks and test names are in `work/build5/REPORT_DETAILS.json`. This is not a claim that temporary usage never exceeded the cap.
+
+## Build 7
+
+The sealed tree is delivered for review; both kits remain GO=false. Input pins and refusal gates are implemented, but missing inputs, reader-forward compliance, long-frame qualification, cache precision, stop/export and validation gaps prevent launch. Decisions and remaining work are in `out/BUILD7_REPORT.md` and `work/build7/DECISIONS.md`. The init remains unselected; no rows or benchmark-dependent quotas were changed.

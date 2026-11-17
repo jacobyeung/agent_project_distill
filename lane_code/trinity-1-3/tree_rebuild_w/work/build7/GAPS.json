@@ -1,0 +1,346 @@
+{
+  "launch_r2/host.py": [
+    [
+      248,
+      "return checklist"
+    ],
+    [
+      263,
+      "from student_pilot.b7_inputs import bound_manifests"
+    ],
+    [
+      264,
+      "cfg['b7_source_manifests']=bound_manifests(cfg['b7_inputs'],paths['manifests'],"
+    ]
+  ],
+  "launch_s1/b/w.py": [
+    [
+      13,
+      "os.environ.setdefault('K3', str(root/'o'/(os.environ.get('SLURM_JOB_ID','local')+'.stop')))"
+    ],
+    [
+      14,
+      "os.environ.setdefault('R1_STOP_FILE', os.environ['K3'])"
+    ]
+  ],
+  "student_pilot/carrier_c1.py": [
+    [
+      594,
+      "raise ValueError('Clip pose readout requires every configured frame')"
+    ],
+    [
+      612,
+      "raise ValueError('Readout depth slots must match the configured visible frames')"
+    ]
+  ],
+  "student_pilot/carrier_c1_data.py": [
+    [
+      162,
+      "from .r0_exclusion import reserve"
+    ],
+    [
+      163,
+      "reserve().check(row, 'dense_frames')"
+    ],
+    [
+      164,
+      "if len(row['student_input']['frames']) != frame_count:"
+    ],
+    [
+      165,
+      "raise ValueError('row_training_frame_count_mismatch')"
+    ]
+  ],
+  "student_pilot/carrier_c1_decode.py": [
+    [
+      152,
+      "raise ValueError('Routed decoding requires every configured frame carrier')"
+    ]
+  ],
+  "student_pilot/carrier_c1_routing.py": [
+    [
+      957,
+      "both = qtype in policy.get('both', ())"
+    ],
+    [
+      958,
+      "kind = ('route' if calls else 'direct') if both else ('route' if qtype in policy['route'] else 'direct' if qtype in policy['direct'] else None)"
+    ],
+    [
+      959,
+      "gate_reason = None"
+    ],
+    [
+      960,
+      "if 'both' in policy:"
+    ],
+    [
+      961,
+      "from .routing_type_gate import refusal"
+    ],
+    [
+      962,
+      "gate_reason = refusal(qtype, 'routed' if calls else 'direct', policy)"
+    ],
+    [
+      963,
+      "row['answer_form'] = 'routed' if calls else 'direct'"
+    ],
+    [
+      966,
+      "reason = ('duplicate_qid' if row['qid'] in seen else"
+    ],
+    [
+      1007,
+      "reason = ('duplicate_qid' if row['qid'] in seen else"
+    ],
+    [
+      1013,
+      "if 'both' in policy:"
+    ],
+    [
+      1014,
+      "row['answer_form'] = 'direct'"
+    ]
+  ],
+  "student_pilot/carrier_c1_run.py": [
+    [
+      69,
+      "from .b7_inputs import validate as validate_inputs"
+    ],
+    [
+      70,
+      "validate_inputs(cfg['b7_inputs'], 'a2' if cfg.get('geometry_connector')=='gf1' else 'a0')"
+    ],
+    [
+      168,
+      "from .h1_faithful import validate as validate_faithful"
+    ],
+    [
+      169,
+      "validate_faithful(cfg)"
+    ],
+    [
+      649,
+      "from .h1_faithful import prepare_identity"
+    ],
+    [
+      650,
+      "result = prepare_identity(result, cfg)"
+    ],
+    [
+      666,
+      "from .b7_inputs import layout"
+    ],
+    [
+      667,
+      "if receipt.get('b7_inputs') != cfg['b7_inputs'] or layout(receipt['b7_inputs']) != layout(cfg['b7_inputs']):"
+    ],
+    [
+      668,
+      "raise ValueError('Preparation pinned kit inputs differ')"
+    ],
+    [
+      694,
+      "from .h1_faithful import require_identity"
+    ],
+    [
+      695,
+      "require_identity(receipt, cfg)"
+    ],
+    [
+      708,
+      "receipt = {**receipt, 'h1': cfg['h1']}"
+    ],
+    [
+      1082,
+      "from .r0_exclusion import reserve"
+    ],
+    [
+      1083,
+      "reserve().check(value, stream)"
+    ],
+    [
+      1084,
+      "from .row_text_audit import check"
+    ],
+    [
+      1085,
+      "check(value, stream)"
+    ],
+    [
+      1208,
+      "from .b7_inputs import layout"
+    ],
+    [
+      1209,
+      "processor._b7_layout = layout(receipt['b7_inputs'])"
+    ],
+    [
+      1222,
+      "from .h1_faithful import own_values as faithful_own_values"
+    ],
+    [
+      1223,
+      "return faithful_own_values(model, rows, batch, audit, index, decision, device)"
+    ]
+  ],
+  "student_pilot/dense_eval.py": [
+    [
+      93,
+      "raise ValueError(\"Shuffled-bank option takes seed, grids and require_same_grid\")"
+    ]
+  ],
+  "student_pilot/gf1_cache.py": [
+    [
+      144,
+      "raise ValueError('GF1 cache rewrite differs from the stored clip: ' + key)"
+    ],
+    [
+      147,
+      "raise ValueError('GF1 cache tensor exists without its identity record: ' + str(tensor_path))"
+    ],
+    [
+      210,
+      "raise ValueError('GF1 cached bank tensor dtype or shape differs: ' + key)"
+    ],
+    [
+      320,
+      "if rows != 1 or shared.encoder is not encoder or shared.layers != cfg['layers']:"
+    ],
+    [
+      321,
+      "raise ValueError('GF1 shared tower features have a different owner or layer bank')"
+    ],
+    [
+      322,
+      "bank, roi, slots = shared.bank.to(device), coords[r].to(device), mapping"
+    ],
+    [
+      327,
+      "raise ValueError('GF1 bank donor frames or anchors differ from the configured dense clip')"
+    ],
+    [
+      335,
+      "raise ValueError('GF1 tower patch grid is not square')"
+    ],
+    [
+      407,
+      "raise AssertionError('Shuffled-bank plan is not a derangement')"
+    ],
+    [
+      481,
+      "raise ValueError('The run config has no GF1 block')"
+    ]
+  ],
+  "student_pilot/h1_faithful.py": [
+    [
+      89,
+      "raise MaterializeRefusal('faithful_render_mismatch')"
+    ],
+    [
+      130,
+      "geometry,source=routing.row_geometry(raw,readout,[],slots,False,True)"
+    ],
+    [
+      131,
+      "if geometry is None:raise routing.RenderError(source)"
+    ],
+    [
+      132,
+      "result,target,spans,segments=faithful(row,geometry)"
+    ],
+    [
+      133,
+      "new,changed=routing.encode_own(rows.processor,row,batch,target,spans,segments,source,faithful=True)"
+    ],
+    [
+      134,
+      "differs=answer_differs(info['type'],result['answer'],raw['answer'])"
+    ],
+    [
+      135,
+      "info.update(values='own',answer_differs=differs,answer=result['answer'])"
+    ]
+  ],
+  "student_pilot/pose_samples.py": [
+    [
+      65,
+      "raise ValueError('All-frame samples require a supported pinned frame count')"
+    ]
+  ],
+  "student_pilot/r2_config.py": [
+    [
+      100,
+      "if cache.get('dtype','float32') != 'float32':"
+    ],
+    [
+      101,
+      "raise ValueError('bf16_cache_gradient_parity_unqualified')"
+    ],
+    [
+      102,
+      "settings['cached_bank']=dict(root=cache['root'],dtype=cache.get('dtype','float32'))"
+    ]
+  ],
+  "student_pilot/r2_contract.py": [
+    [
+      58,
+      "from .b7_inputs import validate"
+    ],
+    [
+      59,
+      "validate(cfg['b7_inputs'], 'a2' if cfg.get('geometry_connector')=='gf1' else 'a0', verify=True)"
+    ]
+  ],
+  "student_pilot/r2_grammar.py": [
+    [
+      185,
+      "from .routing_type_gate import refusal"
+    ],
+    [
+      186,
+      "from .carrier_c1_routing import POLICIES"
+    ],
+    [
+      187,
+      "reason = refusal(row['question_type'], 'routed', POLICIES[row['routing_policy']])"
+    ],
+    [
+      188,
+      "if reason: raise ValueError(reason)"
+    ]
+  ],
+  "student_pilot/r2_intake.py": [
+    [
+      93,
+      "from .row_text_audit import check as check_text"
+    ],
+    [
+      94,
+      "from .routing_type_gate import validate as check_form"
+    ],
+    [
+      95,
+      "from .carrier_c1_routing import POLICIES"
+    ],
+    [
+      96,
+      "row['routing_policy'] = manifest['routing_policy']"
+    ],
+    [
+      97,
+      "check_text(row, manifest['family'])"
+    ],
+    [
+      98,
+      "check_form(row, POLICIES[manifest['routing_policy']], manifest.get('artifact_heads', []))"
+    ]
+  ],
+  "student_pilot/response_spec.py": [
+    [
+      62,
+      "return dict(version=VERSION,kind=kind,body=body,multiline=multiline)"
+    ]
+  ]
+}

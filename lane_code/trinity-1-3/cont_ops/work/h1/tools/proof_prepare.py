@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import re
 import shlex
+import signal
 import stat
 import subprocess
 import sys
@@ -21,8 +22,25 @@ def load(p): return json.loads(Path(p).read_text())
 
 def private(p):
     p = Path(p)
-    if p.is_symlink() or not p.is_dir() or stat.S_IMODE(p.stat().st_mode) != 0o700:
+    try:
+        info = p.lstat()
+    except FileNotFoundError:
+        raise ValueError('Directory must be private: '+str(p)) from None
+    if (not stat.S_ISDIR(info.st_mode) or stat.S_IMODE(info.st_mode) != 0o700
+            or info.st_uid != os.geteuid()):
         raise ValueError('Directory must be private: '+str(p))
+
+def create_work(work):
+    # A batch allocation may start with an empty /tmp. Never chmod or follow an
+    # existing parent; require the same private directory after mkdir or EEXIST.
+    try:
+        work.parent.mkdir(mode=0o700)
+    except FileExistsError:
+        pass
+    private(work.parent)
+    work.mkdir(mode=0o700)
+    for n in ('tmp', 'tmp/jjyeung', 'tmp/jjyeung/a_17c4ffa4', 'slots', 'arm', 'runs'):
+        (work/n).mkdir(mode=0o700)
 
 def program(wrapper, jobscript):
     # Preserve production commands verbatim. End the outer wrapper before restore
@@ -53,7 +71,9 @@ def command(bw, kh, work, rs):
         args += ['--ro-bind', str(p), str(p)]
     for n in ('arm', 'runs'): args += ['--bind', str(work/n), str(kh/n)]
     args += ['--bind', str(kh/'o'), str(kh/'o'), '--chdir', str(kh),
-             '--setenv', 'CUDA_VISIBLE_DEVICES', '', '/bin/bash', '-s']
+             '--setenv', 'CUDA_VISIBLE_DEVICES', '', '/bin/bash', '-c',
+             'set -e; chmod 700 -- "$1" "$2"; exec /bin/bash -s',
+             'a', str(kh), str(rs.parent)]
     return args
 
 def verify_prepared(kh, physical_run):
@@ -83,7 +103,8 @@ def execute(args, script, log, verify, runner=subprocess.run):
             result.update(verify())
             result['status'] = 'PASS'
     except BaseException as exc:
-        result.update(status='FAIL', rc=1, error=type(exc).__name__+': '+str(exc))
+        rc = exc.code if isinstance(exc, SystemExit) and isinstance(exc.code, int) else 1
+        result.update(status='FAIL', rc=rc or 1, error=type(exc).__name__+': '+str(exc))
     result.update(finished_epoch=time.time(), elapsed_seconds=time.time()-started)
     return result
 
@@ -91,6 +112,8 @@ def main(authority):
     os.umask(0o077)
     os.environ['CUDA_VISIBLE_DEVICES'] = ''
     os.environ['PYTHONDONTWRITEBYTECODE'] = '1'
+    def stopped(signum, frame): raise SystemExit(128+signum)
+    for sig in (signal.SIGTERM, signal.SIGINT, signal.SIGUSR1): signal.signal(sig, stopped)
     job = os.environ.get('SLURM_JOB_ID', '')
     if not re.fullmatch('[1-9][0-9]*', job): raise ValueError('Numeric allocation required')
     if os.environ.get('SLURM_JOB_NAME') != authority['job_name']: raise ValueError('Job name differs')
@@ -125,10 +148,7 @@ def main(authority):
         assert compared['manifest_sha256'] == sha(kh/'SHA256SUMS.txt')
         assert compared['config_key']+'.json' == Path(launch['config']['file']).name
         work = Path('/tmp/jjyeung')/('p_'+authority['tag']+'_'+job)
-        private(work.parent)
-        work.mkdir(mode=0o700)
-        for n in ('tmp', 'tmp/jjyeung', 'tmp/jjyeung/a_17c4ffa4', 'slots', 'arm', 'runs'):
-            (work/n).mkdir(mode=0o700)
+        create_work(work)
         rs = Path(launch['persistent_run_root'])
         assert str(rs) == authority['persistent_root']
         physical = work/'tmp/jjyeung/a_17c4ffa4/runs/17c4ffa4'
@@ -145,7 +165,8 @@ def main(authority):
                       allocation_gpus=os.environ.get('SLURM_GPUS_ON_NODE', '0'))
         result.update(execute(args, script, kh/'o'/(job+'.proof.log'), lambda: verify_prepared(kh, physical)))
     except BaseException as exc:
-        result.update(status='FAIL', rc=1, error=type(exc).__name__+': '+str(exc))
+        rc = exc.code if isinstance(exc, SystemExit) and isinstance(exc.code, int) else 1
+        result.update(status='FAIL', rc=rc or 1, error=type(exc).__name__+': '+str(exc))
     result.setdefault('finished_epoch', time.time())
     result.setdefault('elapsed_seconds', result['finished_epoch']-result['started_epoch'])
     with destination.open('w') as f:

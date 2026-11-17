@@ -80,7 +80,7 @@ import selection_runtime as rt
 records=out/'records';records.mkdir()
 for name,source in [('a.json','evidence/derivation/d0/k/pool_selection.json'),
                     ('b.json','payload/d_f232d4160d75b582.json'),('c.json','payload/7.json'),
-                    ('f.json','build/fx/k/4aa7c6fc.json')]:
+                    ('f.json','build/fx_r7/'+json.loads((h/'build/fx_r7/k/launch.json').read_text())['config']['file'])]:
  (records/name).write_bytes((h/source).read_bytes())
 (records/'e.json').write_text(json.dumps(dict(venv=pin,imports=rt.closure(h/'build/tree'))))
 original=builtins.__import__

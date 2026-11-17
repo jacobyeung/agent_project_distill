@@ -31,11 +31,12 @@ def run(name,top,b,p,good):
 top,b,p=fixture('good');before=snapshot(top);run('live_patch',top,b,p,True)
 for n in manifest:
  assert sha(b/n)==sha(H/'payload'/n)
- assert sha(b/'v_6'/n)==before['i_1be16f28/'+n]
+ if manifest[n]['old'] is not None:assert sha(b/'v_8'/n)==before['i_1be16f28/'+n]
+ else:assert not (b/'v_8'/n).exists()
 assert snapshot(top/'x_4b3114cf')=={'ANON_OK.json':before['x_4b3114cf/ANON_OK.json'],'sess.json':before['x_4b3114cf/sess.json']}
 assert sha(b/'a.json')==before['i_1be16f28/a.json'] and sha(b/'t/marker')==before['i_1be16f28/t/marker']
-assert not (b/'p').exists() and (b/'v_6/p/marker').exists()
-assert not (b/'go.json').exists() and (b/'v_6/go.json').exists()
+assert not (b/'p').exists() and (b/'v_8/p/marker').exists()
+assert not (b/'go.json').exists() and (b/'v_8/go.json').exists()
 run('repeat',top,b,p,False)
 for label,n in [('bad_deriver','d.py'),('bad_sums','sums.txt')]:
  top,b,p=fixture(label);(b/n).write_text('altered');run(label,top,b,p,False)

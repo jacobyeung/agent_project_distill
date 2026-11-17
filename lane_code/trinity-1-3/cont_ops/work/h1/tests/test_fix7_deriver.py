@@ -6,6 +6,7 @@ import derive_kit_h1 as dk
 out=Path(tempfile.mkdtemp(prefix='guard_',dir=H/'evidence/fix7_selection'))
 final=json.loads((H/'build/over_local.json').read_text());dk.validate_selection_equality(final)
 base=json.loads((H/'evidence/fix8_before/build/over_local.json').read_text());passed=[]
+for n in ('4.json','review.json','staging.json'):base['add_k'][n]['path']=str(H/'evidence/fix8_before/payload'/n)
 def refused(value,message):
  try:dk.validate_selection_equality(value)
  except (ValueError,KeyError) as exc:

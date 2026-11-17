@@ -271,7 +271,7 @@ assert json.loads((mount_bun/output_name/'o/q.json').read_text())['TEST_ONLY']
 # Preserve earlier test evidence: redirect the existing patch regression's output.
 src=(H/'tests/test_config_patch.py').read_text().replace("H/'evidence/fix6_patch'",repr(str(out/'patch')))
 src=src.replace("OUT="+repr(str(out/'patch')),"OUT=Path("+repr(str(out/'patch'))+")")
-src=src.replace('evidence/fix6_patch_manifest.json','evidence/fix7_patch_manifest.json')
+src=src.replace('evidence/fix6_patch_manifest.json','evidence/fix8_patch_manifest.json')
 exec(compile(src,'<local-patch-regression>','exec'),{'__file__':str(H/'tests/test_config_patch.py')})
 # Every upload member and immutable payload pin must agree.
 u=json.loads((H/'UPLOAD.json').read_text())

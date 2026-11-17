@@ -21,7 +21,7 @@ runtime=dict(venv=venv,imports=closure(H/'build/tree'),
  pin_source='evidence/derivation/empty/k/0.json:1 venv; evidence/fix7_selection/orchard_q_run4.txt:34 bytes')
 inputs=json.loads((H/'evidence/fix7_selection/inputs.json').read_text())
 prefix='/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/'
-catalog=json.loads((H/'build/fx/k/4aa7c6fc.json').read_text())['s1_routing']['catalog']
+catalog=json.loads((H/'build/fx_r7/k/4aa7c6fc.json').read_text())['s1_routing']['catalog']
 for item in inputs:
  assert catalog[item['sha256']]==item['logical_path']
  assert item['logical_path'].startswith(prefix+'ap/8865619b/')
@@ -50,7 +50,7 @@ files={'v.py':(H/'tools/selection_check.py').read_text(),
  'j.json':json.dumps(authority,sort_keys=True,separators=(',',':')),
  'a.json':(H/'evidence/derivation/d0/k/pool_selection.json').read_text(),
  'b.json':(H/'payload/d_f232d4160d75b582.json').read_text(),
- 'c.json':(H/'payload/7.json').read_text(),'f.json':(H/'build/fx/k/4aa7c6fc.json').read_text()}
+ 'c.json':(H/'payload/7.json').read_text(),'f.json':(H/'build/fx_r7/k/4aa7c6fc.json').read_text()}
 raw=json.dumps(files,sort_keys=True,separators=(',',':')).encode()
 blob=base64.b64encode(zlib.compress(raw,9)).decode();checksum=hashlib.sha256(raw).hexdigest()
 script=r'''#!/bin/bash

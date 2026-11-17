@@ -1,115 +1,89 @@
-The equality tool and deriver gate are implemented and tested. Production selection equality remains unverified because this workspace lacks all 13 source gzip files (95,354,406 compressed bytes). The packet remains BLOCKED. No production selection was relabeled, generated or approved locally.
+The H1 packet pins the exact regenerated selection and its EQUAL report. Native validation, authentication and the routing implementation check pass on the final local configuration. Production preparation remains an Orchard prerequisite; this workspace contains no production preparation proof or submission approval.
 
-**How the selection is produced**
+The selection is the unchanged byte copy of `BUN/q_6c18a2bf/o/r.json` from the reported 03:50Z Orchard run. Its paired report is `o/q.json`; local copies are under `evidence/fix7_selection/orchard_equal_6c18a2bf/o/`. The guard verifies the SHA-pinned report, content, implementation, source tree, executed tool, input inventory and all index checks before deriving. The H1 implementation pin is scoped to H1. No selection field was relabeled or reserialized.
 
-`build/tree/student_pilot/s1_pool.py:268` is the CLI entry point (`python -m student_pilot.s1_pool --manifest ... --output ... --remove-files ... --tokenizer ...`). It calls `prepare(manifest_pin, output, remove_files, tokenizer_pin, room_sets)` at line 125. `Pool` authenticates the manifest, three QID membership lists and two scene-exclusion files at lines 19–41. The six removal specifications include the fourth list's defect restriction; the two empty lists are distinct logical inputs with the same SHA256 (`row_removals.py:21–52`). The source tokenizer is loaded at `s1_pool.py:96–101`; negative-zero room normalization is at lines 60–87.
+`tests/test_fix8_pin.py` independently rehashes all 12 native index files, compares every raw content field, applies the D0 direct-to-VQA projection and reproduces the new selection. The raw count is 92,607; the projected count is 83,184. Both difference lists are empty. The report records the exact imported dependency versions; the single Devin review of the tool and pin must inspect that report and its native outputs. The user launches that review.
 
-`prepare` scans all 13 manifest sources in their manifest order, including deferred sources. It authenticates gzip bytes, checks size, unique QIDs, source/type counts and scene membership, applies scene/QID/label exclusions, then validates and records kept source indices in their original order (`s1_pool.py:132–209`). Its receipt records every per-source count, removal report, independent census, blocker, pin and admission flag (`s1_pool.py:210–223`). Equal source SHA256 plus equal ordered index arrays establishes equal approved QIDs and order; the tool compares both arrays and their serialized hashes. The source hash also binds excluded rows, while unchanged list pins, defect rules and recomputed counters bind exclusion/removal membership.
-
-The pinned D0 selection is **not** the raw `prepare` receipt. The sealed raw receipt (`k/pool_selection.json`, SHA256 `d1e6715a19b5d9a15f647e3495815c63329afbc9b69cd81bbef8fcd086025c64`) selects 92,607 rows. D0 then defers `ROUTE_direct` with reason `moved_to_vqa_store`, removes its selection/retained/per_type fields, keeps its seen/after-manifest/eligible counters, and recomputes selected_rows as 83,184. `in/D0_JOB_B_PACKET.md:7` records the move; `in/REVIEW_JOB_B_R9.md:19` records the final reason spelling. The original editing script is not in this workspace. `tools/selection_check.py:58` reconstructs this exact policy transformation; applying it to the sealed raw receipt reproduces the complete pinned D0 JSON. The tool checks raw regeneration equality **before** comparing the policy-adjusted result, including counters that the D0 policy omits.
-
-`pool_selection_aa128e6f.json` is supplied here as `payload/d_f232d4160d75b582.json`, SHA256 `f232d4160d75b5826d9e24aec324d690920a752a5bfaa33e5009d7550349dfc6`. Its catalog locator is the logical kit root plus `k/pool_selection_aa128e6f.json`; this is an added D0 record, not a member of the original sealed kit. The standalone tool embeds these exact reference bytes.
-
-**What implementation() covers**
-
-`build/tree/student_pilot/s1_pool.py:93–95` hashes `p3_provenance.source_files([s1_pool.py])`. `p3_provenance.py:58–95` walks local Python imports recursively, including imports inside function bodies and package initializers. It records the broad local static closure, not just functions that execute during selection. It does not hash third-party libraries, data, tokenizer assets or configuration; those data inputs have separate pins.
-
-| Changed closure member | Executable change and effect on selection |
+| Binding or artifact | SHA256 / value |
 |---|---|
-| `carrier_c1.py:506` | Adds pose loss in routing training. `prepare` never constructs or calls CarrierC1. |
-| `carrier_c1_routing.py:442,477` | Adds faithful handling to `finish` and `encode_own`. These are its only changed definitions; selection uses unchanged alias helpers through `s1_exclusions.py:7`. |
-| `carrier_c1_run.py:62,448,645,659,1019,1195,2233` | Changes config validation, stream preparation, faithful/reserve gates, batch targets and training control. `s1_pool.prepare` does not call them. |
-| `h1.py:17,40,64,94` | Adds H1 settings, pose targets, metrics and stop accounting; not executed by selection. |
-| `h1_faithful.py:83,111,148,197` | Adds faithful camera rendering and its preparation threshold; not executed by selection. |
-| `h1_r0.py:45,85,105,118` | Filters reserve rooms in downstream preparation/admission. It can change final training membership, but does not change the pool selection. |
-| `generator/derivgen_v7/derivgen/materialize.py:494` | Adds printed-value replay used by faithful camera handling, not pool validation. |
+| Selection r.json / payload/d_eac5f9f01587803b.json | `eac5f9f01587803b2402f80cc310b75ec1f960270a6bc059416b1e1407b1e7c9` |
+| EQUAL q.json / payload/d_e48ab85bb9364aab.json | `e48ab85bb9364aab228da7b23033605935e384761f76b0e6527c5e221b1c14b4` |
+| Native implementation digest | `2a4ef06888c59743516f5f7edad4ac3d45c6868cc5d3034ddae13654c8a6cc9c` |
+| Config identity | `eb45ebfd7664a57226a6a9202c365ffba268d0bd0f295d879ad6adedde07a0c8` |
+| Pending-review config key | `d12ae795` |
+| Admission contract | `9a5270923627a9fae982acf90ac20ee4b695ac1932b98ae13038b63710a03ff9` |
+| Regeneration tool | `2d5397aaf186a6be1637f2c68b53d5b45dae620a4a85dfd99d8468c2ad2d3b38` |
+| Executed regeneration script build/q.sh | `af10e6d5a3546851b2d14f4baa8827b37e102432d30bd5dc8f50b6383c810fdd` |
+| Deriver payload/d.py | `4f83f57f87fcec81a67d0ea1f63919e260ee6fc2f5db817f126b258b839c849a` |
+| Proof build/a_8c74b291.sh | `22ddf08a37c911682043c0149f4ae5923e98c11afb0235245b23a875227e86b3` |
+| Guarded patch build/c_patch.sh | `c642f2343237413bba08aa2ac62212d4373d97d19f3185e27e069f3c7f481975` |
+| payload/sums.txt | `25a9554487488c2d303e766c67f6bc3ce34f6519954ffa682cb9830ca02c9f28` |
+| Upload archive p_6c368db0485677ea.tar | `6c368db0485677eaa7096c326b04fd98e0f22fd96bdb7e73a09c3d372d51f574` |
+| UPLOAD.json | `330dbef08fb9bf50b3902a365001026632424a66e90b2e7b15ddc61f10416f06` |
+| orch_h1.sh | `d97b163518925f8bb5a66b0a65d97ff4b6aac5f9e20644d5d953f3799b1660a5` |
+| Unchanged jb.sh | `3f4b074e93eb76dcfacb4504f85bd07a1f46dce51156df5efa99daae733f57db` |
+| Unchanged EXPORT_OBJECTS.txt | `1be454c3c2ab6457e3e41c902100207880253c3218d0701c584128d7d5ad7bc2` |
 
-The seven changes do not alter the selector's QIDs, order, counts, exclusions/removals or blockers for identical inputs and dependencies. This is a code-path finding, not a completed production equality result. `evidence/fix7_selection/changes.json` and the three diffs authenticate the changed definitions against the retained D0 archive. The directly executed selector, packed-row validator, removals, exclusions, census and provenance modules are byte-identical. H1's expected closure digest is `2a4ef06888c59743516f5f7edad4ac3d45c6868cc5d3034ddae13654c8a6cc9c`.
+The run key remains `17c4ffa4`; all 44 export object names remain byte-identical. KH remains `/project/community/jjyeung/okh7/x_3fdda0fb`, and the real persistent root remains `/project/community/jjyeung/okh7/r/39504485`. The trainer archive, code tree, production jb.sh and every derived training-wrapper byte remain unchanged. The selected input and its catalog mapping change the config identity; the admission contract remains unchanged. The local config key `d12ae795` includes the PENDING review pin. The supplied independent review changes that pin and therefore the final filename; read the definitive key from `compare.json`. Its identity must remain `eb45ebfd7664a57226a6a9202c365ffba268d0bd0f295d879ad6adedde07a0c8`.
 
-**Inputs and tool**
+The local source kit is incomplete. The local derivation uses an explicitly recorded fixture-manifest authority and stays FIXTURE; the shipped deriver retains the production source-manifest authority `de6e7e0fac4036889fb4112792fbaa2d6f362a0cde09722ba6e93a6a39e7f32b`. Config, selection and training source bytes are real. Full sealed-source reproduction, READY derivation and certification occur on Orchard. Repeated local derivations produce identical manifests; all packet generators reproduce identical output hashes.
 
-The catalog's logical kit root is `/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/`. The intended login-node physical root is `/project/community/jjyeung/okh7/x_07ca49df/`, with the same `k/` and `u/` suffixes. Original Trinity locators embedded in receipts are provenance strings; the resolver uses only catalog-mapped bytes under the supplied kit. It never falls back to those old paths.
-
-There are 38 input pin occurrences: 25 have authenticated local bytes (17,070,690 bytes, counting repeated logical inputs) under `build/fx/k/`; 13 source gzip inputs are absent locally. The local inputs include the manifest (67,752 bytes), tokenizer (12,807,982 bytes), three QID lists, two scene lists, six removal specifications and 12 raw selection-index files. `evidence/fix7_selection/INPUTS.md` lists **every full SHA256, original path, logical path, expected physical location and size**. `inputs.json` is its machine-readable version. No input must be fetched from Trinity if the catalog-listed Orchard kit files are present. Remote availability is unverified and fails closed at runtime.
-
-| Source | Kit-relative path | Compressed bytes | Rows |
-|---|---|---:|---:|
-| T0_gen_r2 | `u/eb3429c5/a67a3f6f489031d4.jsonl.gz` | 29,681,863 | 23,465 |
-| T0_gaps | `u/eb3429c5/1169024c0739e6c4.jsonl.gz` | 5,629,179 | 11,661 |
-| ARKIT_gen_r2 | `u/eb3429c5/75c8f34363821322.jsonl.gz` | 13,184,331 | 11,819 |
-| ARKIT_gaps | `u/eb3429c5/8807075c04730c0e.jsonl.gz` | 3,192,491 | 6,859 |
-| T0_room | `u/eb3429c5/2331a5bbb181ebb6.jsonl.gz` | 32,267 | 85 |
-| T1H1_gen_r2 | `u/eb3429c5/b37de067725dde5b.jsonl.gz` | 19,695,196 | 14,777 |
-| T1H1_gaps | `u/eb3429c5/cbff008bb2aba2ad.jsonl.gz` | 3,772,175 | 7,862 |
-| T1H1_room | `u/eb3429c5/0298d22ae6a8e2b6.jsonl.gz` | 71,875 | 203 |
-| T1H2_gen_r2 | `u/eb3429c5/42c520ec4f5bee34.jsonl.gz` | 14,213,700 | 9,708 |
-| T1H2_gaps | `u/eb3429c5/2f2fd779179a5ca1.jsonl.gz` | 2,557,490 | 5,319 |
-| ROUTE_direct | `u/eb3429c5/947cbb9fa7d6bde0.jsonl.gz` | 3,028,169 | 10,458 |
-| SCENE_room | `u/eb3429c5/086c857c721c6074.jsonl.gz` | 140,102 | 384 |
-| SCENE_room_sppK | `u/eb3429c5/92927870a7b4535c.jsonl.gz` | 155,568 | 411 |
-
-The production deployment metadata describes the package as 161,976,320 bytes, SHA256 `f0e715135f4b7cd8e38c046e2dd1a0a11ea98c2de4c5dbca53ee92f1a12f3e13`, destination `u/eb3429c5`. The generator authenticates the retained production metadata against the hash and size recorded in `evidence/fix7_selection/orchard_q_run2.txt:12`. At runtime, `tools/selection_stage.py:164` authenticates the kit manifest using the production pin in `tools/derive_kit_h1.py:140`, then checks metadata against its manifest line. The selected package entry must exactly equal the embedded production expectation before its archive and members are authenticated and staged. Identical repeated checksum lines and tar members are accepted; every repeated payload is hashed against its inventory pin without writing it twice. Conflicting repeats refuse. `evidence/fix7_selection/ARCHIVE_ALIGNMENT7d.md` documents the complete comparison with production staging. The Orchard source locator was not opened locally. `evidence/fix7_selection/PIN_AUDIT7c.md` records every pin source and the fixture audit.
-
-`tools/selection_check.py:112` authenticates the source tree, redirects pin resolution to hash-checked catalog bytes, preflights **all** inputs, and calls the real H1 `prepare`. It restores an output index locator only after the newly written array and SHA256 match the original index file. It never substitutes the old implementation map. `differences` at line 47 compares recursively, including key presence, list order and JSON types; the only ignored receipt field is implementation. Raw and final equality must both pass. Exit 0 means EQUAL; exit 1 means different content; exit 2 means missing/invalid inputs or execution failure. A completed run emits `r.json` (new selection), `q.json` (equality report) and native receipts/indices/logs. A blocked run emits q.json without inventing a selection.
-
-`build/q.sh` (120,696 bytes) embeds the tool and pinned reference/config/code records. It verifies its compressed payload and the existing trainer archive, extracts only authenticated regular source members into a fresh private directory, and runs under bubblewrap with both logical roots, read-only kit mounts, `--unshare-net`, offline flags, one CPU thread and nice 19. It defaults to `PY_GATE=/project/community/jjyeung/latency/envs/fit/bin/python3`; native imports require torch/numpy/tokenizers. It installs nothing. New visible names are opaque; tracebacks and native source names stay in private logs. Output is `BUN/q_f28a4d73/o/`, where BUN is `/project/community/jjyeung/okh7/i_1be16f28`. It refuses an existing output; preserve it and review the refusal before preparing another attempt.
-
-The exact tool ran locally with the available pinned inputs and returned exit 2 on missing `u/eb3429c5/a67a3f6f489031d4.jsonl.gz`. `evidence/fix7_selection/production_attempt/q.json` records that refusal. Local native regeneration on synthetic inputs returned EQUAL, then DIFFERENT after a content mutation. The login-node bubblewrap invocation has not run; its bootstrap, checksum failure path, script syntax and visible names were tested locally.
-
-**Admission audit past line 215**
-
-All mutations and synthetic reports live only in `evidence/fix7_admission/` or `evidence/fix7_selection/`. None is included in payload or upload archives. `tests/test_fix7_admission.py:23` copies the real selection and changes only its implementation field for the isolated audit. Production rows are missing, so that test supplies a test-only relocation result and model descriptor; it authenticates the actual route-policy bytes and traces execution through line 219. It does not claim that production relocation succeeded.
-
-| Native check | Executed result | Limit or further refusal |
-|---|---|---|
-| `s1_routing.build:215–219` with test-only production selection | Reached 219 | Missing actual r16 receipt, SHA256 `9a7f33103ee6faa9d44bfb7f02b6166ef6fc9f8e1bc5bac8681c697dce8a8851`; recorded logical path is `/ap/5e1d07a4/f/h/r16/receipt.json` under the same logical user root. |
-| `s1_routing.build:196–456`, synthetic native room/direct sources | PASS, two rows | Native relocation, division, frame/FPS metadata, row validation, census, filtering, materialization and receipt writes execute. Empty legacy database and a character processor are explicit fixtures; production tokenizer/model and RGB bytes remain untested. |
-| `s1_routing.build:217,220`; `compatibility:166` | Negative tests PASS | Refuses scene blockers, heldout division and wrong legacy row count. |
-| `s1_routing.build:276–277,414–455` | Negative test PASS | A one-token suffix limit defers rows and refuses materialization with `no_admitted_pool_program_rows`. |
-| `s1_exclusions.totals:232` and coverage machinery | PASS on fixtures | Production source-specific coverage quotas and all-row accounting remain untested. |
-| `h1_faithful.prepare_identity:197–219` | Negative test PASS | Fixture has no camera rows; native code refuses `S1 launch requires faithful identity >= 95% on the bound routing receipt`. Production camera identity rate remains unknown. |
-| `h1_r0.prepare:105`, `before_admission:118` | PASS on fixtures | Real reserve-list pin authenticated; modified accounting refused. Production reserve counts/nonempty streams remain untested. |
-| `source_seal.binding:81`, `check_binding:91` | PASS and negative test PASS | Wrong tree/config binding refused. |
-| `s1_admission.admit:180–235`, full `run.prepare/prepared`, `b/d.effective` | Not completed | Missing parent pose/model/init assets, pointing/VQA/legacy databases and production rows prevent full preparation, faithful coverage, seals and effective-config equality. Round-6 parent refusal remains applicable. |
-| RGB audit, CPU first batch, GPU first-step and optimizer preparation | Not run | Real frame/model assets, allocation, CUDA, process groups, FSDP, optimizer, resume/output binding and finite-loss checks remain required. The milestone gate is disabled and unreachable before stop 200. |
-
-`evidence/fix7_admission/latest.json` links the exact executed results, exceptions and trace lines. Fixture failures above are tested guards, not findings that the production population necessarily fails them.
-
-**Deriver contract and tests**
-
-`tools/derive_kit_h1.py:581` / `payload/d.py:581` require a new selection pin to be accompanied by top-level `selection_equality: {path, sha256}` **and the identical pin** in `add_k["selection_equality.json"]`. The report is copied into the derived kit and sealed by its manifest. The validator recomputes candidate content and implementation digests, checks the archived code member hashes, and binds the report to the exact candidate, D0 reference, raw reference, tool hash, tree, every top-level field, ordered-index checks and complete input size inventory. It rejects missing, mismatched, negative or incomplete reports before source-kit IO. A historical D0 pin can remain only in a BLOCKED H1 artifact; READY and PREPARATION_ONLY refuse it. A report pin is an integrity binding, not independent proof of execution; independent review must inspect the regeneration outputs and provenance.
-
-`tests/test_fix7_deriver.py` passes 19 checks, including both report acceptance and refusal, stale READY/PREPARATION_ONLY refusals, changed content, tampered report SHA, wrong tree/tool/reference, missing fields/indices/inputs, and a complete fixture derivation that seals both new pins. That integration test substitutes only the retained fixture's source-manifest authority and uses visibly TEST_ONLY evidence. It remains FIXTURE; it is not a production derivation. `tests/test_fix7_selection.py` exercises native regeneration, exact equality, changed counters, reordered arrays, missing keys and type distinctions. `tests/test_fix7_admission.py` completes the native synthetic routing audit. `tests/test_fix7_package.py` validates the opaque bootstrap, corrupt payload refusal, visible names, upload integrity and seven guarded-patch cases. Existing `test_gate_binding.py` passes. No distributed/GPU test ran.
-
-**Operator steps**
-
-Follow **regenerate → verify → re-derive → patch → o.sh → g.sh → review.json → z.sh derive → certify → go.json → s.sh**. These are future operator steps, not commands executed in this local task.
-
-1. Regenerate: carry the exact `build/q.sh` body through the authorized opaque transport and verify its SHA256 below. On the Orchard login node, use the stated PY_GATE and approved BW_GATE. It reads the sealed kit and existing trainer archive; it does not submit a job. Inspect private `o/q.json` and native.log if it refuses. Missing inputs or DIFFERENT content stop this sequence.
-2. Verify: require exit 0, status EQUAL, empty raw/final differences, all fields/indices equal, exact code/tree/tool hashes and SHA256 of `o/r.json` equal to q.json's selection_sha256. Rehash q.json and pin that value. Review raw outputs and the D0 direct-to-VQA policy. A hash-only relabel or test-only equality report is unacceptable.
-3. Re-derive: create a new `pool_selection_<sha-prefix>.json` add_k entry pointing to the generated r.json. Replace the old aa128e6f add_k entry and the selection pin, add its logical catalog mapping, and remove the superseded f232d416 catalog mapping added by the D0 override (retain **every mapping from the sealed base catalog**). Add the exact report pin to both selection_equality and add_k/selection_equality.json. Run `validate_selection_equality(over)` with the shipped deriver before deriving. Recompute 4.json's conditional identity, PENDING review/staging pins, ids.json/config key and the native contract; use fresh unused kit and persistent-root targets. Then call `d.py SEALED_KIT FRESH_OUTPUT OVERRIDE_JSON` with BLOCKED status and verify source/dependency closure and native CPU validation. The actual new identity cannot be calculated here without the generated selection. Never promote a fixture or copy the audit's TEST_ONLY files.
-4. Patch: rebuild the exact small patch and transport/sums against the live bundle after those bindings are known; retain replaced bytes and retire old identity-bound evidence. The current `build/c_patch.sh` is a tested **blocked inspection patch against the retained round-5 bundle** (backup v_6). It includes the disk-plan correction and hardened deriver, but still carries the old selection. It is not the final equality-bound deployment patch and refuses another starting state. No final production patch can be sealed before regeneration. Keep old KH/root/evidence intact.
-5. Run `o.sh` to derive p, reproduce the sealed base e and authenticate staging/archive records. Its exact sealed source includes two large members absent from this workspace; complete source reproduction is an Orchard check.
-6. Run `g.sh` with the approved CPU interpreter and bubblewrap. Its real faithful-camera gate must pass; a synthetic audit does not replace it.
-7. Obtain a fresh independent `review.json` for the regenerated identity, contract and code. Then run `z.sh derive`; read the resulting key from compare.json, since the real review pin changes the config filename.
-8. Inspect the final kit plus external records, write the actual CLEAN anon.json and run `z.sh certify`. Neither an old certificate nor this local audit certifies the new kit.
-9. Verify the 44 unchanged export-session names, unused state and expiry. Bind a fresh separate go.json to the final identity, contract, wrapper hash and kit manifest. Only then run s.sh. The conditional 4.json and equality report grant no submission approval.
-
-**Current blocked artifacts**
-
-| Artifact | SHA256 / value |
+| CPU audit on the final config | Result and scope |
 |---|---|
-| Config identity | `40d8d70da5f9de29a722a6146612475c224ce735370a2fea1868b351688880a4` (unchanged; still binds stale selection) |
-| Contract | `9a5270923627a9fae982acf90ac20ee4b695ac1932b98ae13038b63710a03ff9` |
-| Config key / run / proposed kit / root | `4aa7c6fc` / `17c4ffa4` / `x_3fdda0fb` / `r/39504485` |
-| Trainer archive | `25f1c3a7394564d9287ba382fa58c476c4fb17d20063f5b643937d388339a4ec` (unchanged) |
-| Regeneration script build/q.sh | `aa534ae743700bb321dadb55de38a2e173bb23fb4abd3af9623a6a5c27f41f2a` |
-| Regeneration Python | `12781e6e0f8b11e86d8bd2c27814aabf56899c0724a4dcb343077bfaf9cf80ee` |
-| Deriver payload/d.py | `30259ffdf1b1392e375719e722f69dc36f2d5dcafab18653a7de0f36121271bf` |
-| payload/sums.txt | `2ebf1fea93ce0f397d08831617a6341c0dce0fed0c0af80f9e11a5aa7abe5780` |
-| Blocked inspection patch | `cab79c47159750462acfa2f9aca88e7dba499c69be880c849c55b01ce38401b2` (148,408 bytes) |
-| Upload build/p_157810fe3209b0d5.tar | `157810fe3209b0d5b0c5177552030cbef2240acbb7a597c54c252801709fd2fc` |
+| `carrier_c1_run.validate`, H1 policy, route-policy authentication, native source/archive authentication | PASS |
+| `s1_routing.build` implementation conditional | PASS with exact `eac5f9f0…` bytes; zero changed closure members |
+| Native `s1_routing.build` through line 219 | Reached the missing r16 receipt with real selection bytes; relocation and model descriptor are isolated fixtures |
+| Native synthetic routing through line 456 | PASS; 2 rows; negative blocker, division, count and suffix-budget cases pass |
+| Full native `s1_admission.admit` locally | PARTIAL: missing `/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/f02f16ad/s/a2v3/receipt.json sha256=30612832cc84ad83f9500ecbeac57704767568ff24482475feb42a92c7f166b8`; no fabricated parent/model/row receipt |
+| Remaining preparation | Production streams, legacy DB, models, frame reads, faithful >=95% camera gate, complete seals and first-batch boundary require Orchard |
+| Regression suite | test_admission_config and all five fix7 tests PASS; deriver 19 checks; patch 7 cases; gate binding PASS |
+| Proof and submission tests | Local proof logic/mount isolation PASS; 13 submission receipt cases PASS; native indices and deterministic rebuild PASS |
 
-`SHA256SUMS.txt` seals the current deliverables; `evidence/fix7_selection/delivery.json` records their hashes. The regeneration script is a separate small artifact and contains no generated selection. No trainer re-upload is needed. No SSH, network, Orchard, GPU, Git, deletion, external-root search or write outside this workspace occurred.
+The regeneration runtime test deliberately retains the D0 reference configuration because the equality tool compares against that baseline. The admission and routing tests use the final H1 configuration. Exact results and logs are in `evidence/fix8_admission/`; `config_tests.json`, `pin_tests.json`, `proof_tests.json` and `submit_tests.json` identify their retained test directories. The routing limits are recorded in `evidence/fix7_admission/latest.json`.
 
-Inherited visible logical roots in q.sh match those in g.sh. The sealed runtime still retains its original cache prefix/base-model name in `build/fx/b/c.sh:11–13,102`; the required `a15_cot_ap` job-name prefix remains unchanged. New script/output names are opaque and private.
+The production CPU proof is `build/a_8c74b291.sh`, also shipped as `BUN/a_8c74b291.sh`. Its embedded driver checks the certified FINAL KH, manifest, exact config pin, identity, contract, selected bytes, equality report, jb.sh and runtime hashes. It executes jb.sh's exact cold-start prefix through export-session and staging-entry validation, followed by job.sh's certificate check, production import preflight and `g.py p`, then the unchanged `b/r.sh p 0 -> b/i.py -> b/w.py -> s1_admission.admit(prepare_only=True)` path. It never executes the training-mode selector or mode t. The import preflight checks p/t/u dependencies without executing training. The production 3.8 TB node-local free-space guard and actual session-name validation remain in force.
+
+An outer bubblewrap namespace maps a fresh physical `/tmp/jjyeung/p_8c74b291_<job>/tmp/` onto `/tmp`, isolates the persistent root, and isolates KH's arm/run mirrors. The production configuration, logical paths, source bytes and staging functions remain unchanged. The rest of the filesystem is read-only; only proof-local storage and KH/o receive writes. Network access and GPU device nodes are absent in the outer namespace; `CUDA_VISIBLE_DEVICES=''` is forced throughout. No existing jb.sh, job.sh, go.json, production run or persistent slot is edited. The real job automatically reuses **nothing** from this proof: staging, preparation and cold-start claims are isolated, and the real wrapper performs its normal staging and admission again.
+
+After mode p returns, the driver calls native `b/d.effective` against the isolated physical run and validates the prepared source/config/frame seals. It writes `KH/o/<job>.proof.json` with PASS/FAIL, rc, start/end/elapsed timing, full admission result, prepared pins/seals, exact manifest/config/runtime bindings and physical locations. `KH/o/<job>.proof.log`, `.proof.out`, `.proof.err`, `.w.steps`, `.steps` and `.preflight.*.json` retain diagnostics. The native receipt remains at `/tmp/jjyeung/p_8c74b291_<job>/tmp/jjyeung/a_17c4ffa4/runs/17c4ffa4/inputs/data_receipt.json`. PASS means full production preparation and RGB audit reached the first-batch boundary. It does not mean a CPU forward batch or GPU first step ran: native prepare_only returns immediately before `first_batch_check` (`s1_admission.py:277–281`). Catchable failures produce FAIL with rc; a forced kill may leave RUNNING, which never qualifies for submission.
+
+Mode p's native resource contract requests zero GPUs (`b/i.py:26–28`, `b/w.py:32–43`). The exact submission below omits GPU GRES. Four hours allow 1 h 39 min beyond D0's 1 h 51 min preparation plus approximately 30 min staging. Orchard partition policy and production imports were not queried under the local-only scope; no code requirement for a GPU allocation was found. If the scheduler rejects a zero-GPU job, preserve that refusal for the operator; this packet does not silently request a GPU or retry. The local mount test omits only the network namespace because this sandbox denies NETLINK_ROUTE; the shipped script retains it.
+
+The operator sequence is **patch -> o.sh -> g.sh -> review.json -> z.sh derive -> anon/certify -> proof job -> go.json -> s.sh**. These commands are provided for the operator; none ran on Orchard in this task.
+
+1. Deliver `build/c_patch.sh` as `/project/community/jjyeung/okh7/t_c8b460a1.sh` through the authorized opaque transport. Verify SHA256 `c642f2343237413bba08aa2ac62212d4373d97d19f3185e27e069f3c7f481975`. The patch targets bundle `i_1be16f28` and authenticates the exact retained live starting state in `evidence/fix6_before/payload/`; it refuses another state, occupied target KH/root, linked targets, bad sums and foreign review/staging evidence before mutation. It retains replaced files and obsolete identity-bound evidence in `BUN/v_8`, adds the new selection/report/proof files, and rechecks sums. It preserves the trainer and old KH. A refusal is a stop for operator inspection, never a reason to bypass its guards. `orch_h1.sh` is the reproducible fresh-bundle transport and is not the command for an existing live bundle.
+
+```bash
+O=/project/community/jjyeung/okh7
+BUN=$O/i_1be16f28
+KH=$O/x_3fdda0fb
+printf '%s  %s\n' c642f2343237413bba08aa2ac62212d4373d97d19f3185e27e069f3c7f481975 "$O/t_c8b460a1.sh" | sha256sum -c -
+bash "$O/t_c8b460a1.sh"
+cd "$BUN"
+bash o.sh
+PY_GATE=/project/community/jjyeung/latency/envs/fit/bin/python3 BW_GATE=/usr/bin/bwrap bash g.sh
+```
+
+2. The user launches one Devin review of the tool and exact selection/report pair plus packet bindings. The operator supplies the resulting PASS `review.json` with this identity, source revision, contract, reviewer and `admission_scope=pinned-template-and-native-data-derivation`. Do not convert the bundled PENDING record into a claimed review. Then derive, inspect `compare.json`, perform the actual content scan, supply CLEAN `anon.json` and certify:
+
+```bash
+bash z.sh derive
+python3 -m json.tool compare.json
+# Supply the actual independently checked CLEAN anon.json for this manifest and its external records.
+bash z.sh certify
+# Ensure the existing real sess.json contains the 44 unchanged, unused, unexpired export sessions, mode 0600.
+PROOF_JOB=$(TZ=UTC env -u TK_JOB_START CUDA_VISIBLE_DEVICES= sbatch --parsable -J a15_cot_ap8c74b291 -o "$KH/o/%j.proof.out" -e "$KH/o/%j.proof.err" -A mt01 -p general -N1 --ntasks=1 -c 48 --mem=800G -t 04:00:00 --no-requeue "$BUN/a_8c74b291.sh")
+PROOF_JOB=${PROOF_JOB%%;*}
+export PROOF_JOB
+printf '%s\n' "$PROOF_JOB"
+```
+
+3. After the proof job finishes, inspect `KH/o/$PROOF_JOB.proof.json`. Require PASS, rc 0, PREPARED, effective-config verification and matching final config/manifest/identity/contract/wrapper bindings. A failure stops the sequence. No automatic retry or resubmission is provided.
+
+```bash
+python3 -m json.tool "$KH/o/$PROOF_JOB.proof.json"
+# Supply separately authorized go.json bound to this final identity, contract, jb.sh SHA and final KH manifest.
+bash "$BUN/s.sh"
+```
+
+`s.sh` checks the separate GO and `PROOF_JOB` receipt before sbatch. It rejects missing/failed/stale proofs and wrong configuration, manifest, contract, wrapper, CPU visibility or preparation status. The proof itself grants no production GO. No production review, anon certificate or go.json was manufactured locally. All work here used local CPU and workspace files; no SSH, network, Orchard, GPU, Git or deletion command ran.

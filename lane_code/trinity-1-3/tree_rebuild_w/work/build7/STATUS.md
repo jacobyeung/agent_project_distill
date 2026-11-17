@@ -1,21 +1,23 @@
 # Build 7 status
 
-GO=false. No launch or remote service was called.
+The final validation and artifact verification are complete. Acceptance remains BLOCKED; both kits remain GO=false. No launch or remote call was made.
 
-Current validation step: package — running (`work/build7/FINAL_PASS.json`).
+Packet results: {"run": 202, "passed": 202} (`work/build7/proofs/packet/results.json`).
 
-The frozen tree completed 2,216 package executions. Its R2 group completed 362 executions with two failures; the untouched-base comparison is running (`work/build7/final_package.log`). Both R2 failures concern fixtures that expect the earlier staging contract; they remain failures in the final receipt.
+Package comparison: {"run": 2216, "passed": 1672, "preexisting": 474, "regressions": 4, "r2_failures": 2, "skipped": 145} (`work/build7/SUITE_COMPARISON.json`).
 
-The packet harness uses the original packet_root tests with hash-verified support references (`work/build7/PACKET_INPUTS.json`). Passing packet results gate the package groups.
+Supplemental results: {"run": 24, "passed": 23, "errors": 1, "failures": 0} (`work/build7/proofs/final_targeted/results.json`).
 
-Both kits and the package bind the current frozen source (`out/TREE_SEAL.json`, `work/build7/DELIVERY.json`). Completed package groups have hash-bound resume receipts.
+Supplemental follow-ups: {"executions": 40, "latest_case_outcomes": {"passed": 34}} (`work/build7/FOLLOWUP_RESULTS.json`). The original fixture errors remain in their attempt receipts.
 
-Focused input tests passed (`proofs/input_binding/results.json`). Native tiny export declares the G3T tower (`proofs/gf1_export/results.json`). Tiny native OFF batches/losses/gradients match Build 6 (`proofs/off_parity/RESULTS.json`).
+Changed-statement classes: {"observed": 5716, "frame-host": 78, "CPU-reachable unresolved": 78, "GPU": 3, "model-loader": 2} (`work/build7/CHANGED_COVERAGE.json`).
 
-The original packet-root suite passed (`final_packet_root.log`). Supplemental refusal and faithful materialization tests are scheduled after the full package groups (`coverage_b7.py`); they have not yet been qualified.
+The final tree, archive and kit hashes passed verification (`work/build7/FINAL_VERIFICATION.json`).
 
-Remaining frame-count assumptions have a file:line inventory (`proofs/audit/FRAME64_REMAINING_SITES.json`). Response examples remain within the per-family retention bound (`proofs/responses/INVENTORY.json`).
+Open inputs and implementation gaps are itemized in `out/BUILD7_REPORT.md`. The report records every unresolved test, coverage, long-frame, response-forward, portrait, cache-precision and distributed-stop qualification.
 
-Open: real init/store/dense/processor pins; runtime-only row text and minority forms; full exclusions; all-reader frame support and in-forward response production; BF16 cache parity; multi-rank stop/export; final suites, coverage and independent review.
+Build-6 regressions and gaps have individual dispositions in `work/build7/BUILD6_DISPOSITION.json`. EAT reports remain in `work/build7/proofs/eat1/`.
 
-The real shell trap and native stop poll passed. Gloo initialization failed; no multi-rank end slot is claimed (`proofs/stop/RESULTS.json`).
+The prelaunch card is `out/PRELAUNCH_CARD.md`; the design record includes its Build 7 section. No independent review was performed because this build forbids another agent.
+
+Published counts and pins agree with the final proof receipts (`work/build7/FINAL_CONSISTENCY.json`).

@@ -4,7 +4,7 @@ from pathlib import Path
 L=Path(__file__).resolve().parents[2];B=L/'work/build7'
 sys.path.insert(0,str(L/'work/tree_r1'))
 from student_pilot.source_seal import inventory
-from student_pilot.p3_provenance import digest
+from student_pilot.p3_provenance import digest,load
 from launch_r2.build import verify,scan
 def sha(path):
  h=hashlib.sha256()
@@ -22,7 +22,7 @@ assert (L/delivery['path']).stat().st_size==delivery['bytes']<150_000_000
 kits={}
 for arm in ('a2','a0'):
  p=B/'kits'/arm;kits[arm]=dict(sha256=verify(p),scan=scan(p))
- launch=json.loads((p/'k/launch.json').read_text())
+ launch=load(p/'k/launch.json')
  assert launch['source_revision']=='sha256:'+seal['tree_sha256']
  assert not launch['production_authorized']
 sizes=dict(lane=0,tmp=0);pending=[str(L)];files_count=0

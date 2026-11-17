@@ -18,10 +18,12 @@ kit=read('work/build7/proofs/review/KIT_READCHECK.json',[])
 rows=read('work/build7/proofs/rows/RESULTS.json',{})
 fallback=read('work/build7/proofs/final_targeted/stop_fallback/RESULT.json')
 focused=read('work/build7/proofs/final_targeted/results.json',{})
+followup=read('work/build7/FOLLOWUP_RESULTS.json',{})
+supplemental_ok=(followup.get('complete') and set(followup.get('latest_counts',{}))=={'passed'}) if followup else (focused.get('complete') and not focused.get('errors') and not focused.get('failures'))
 suite_ready=(tree.get('complete') and base.get('complete') and len(packet)==202
              and all(v.get('outcome')=='passed' for v in packet.values())
              and comparison.get('r2_failures')==0 and comparison.get('regressions')==0
-             and focused.get('complete') and not focused.get('errors') and not focused.get('failures')
+             and supplemental_ok
              and coverage.get('classes',{}).get('CPU-reachable unresolved',1)==0)
 put('# Build 7 — BLOCKED; neither kit is launchable')
 put('\nThe tree and kits contain the input gates, policy additions and patch integrations below. This build does not qualify the requested product. Missing production inputs, incomplete code integration, unqualified reader paths and failed checks remain explicit blockers. Nothing was launched or submitted.')
@@ -58,10 +60,16 @@ put('\nPacket: '+json.dumps(dict(run=len(packet),**pc))+' (`work/build7/proofs/p
 put('\n| Package variant | Run | Passed | Failure events | Error events | Skipped | Complete | Source |\n|---|---:|---:|---:|---:|---:|---|---|')
 for name,value in [('tree',tree),('base',base)]:
  put('| '+name+' | '+' | '.join(str(v) for v in (value.get('tests','pending'),len(value.get('passed',[])),len(value.get('failures',[])),len(value.get('errors',[])),len(value.get('skips',[])),value.get('complete',False)))+' | '+source('work/build7/proofs/suite_'+name+'/results.json')+' |')
-put('\nFinal supplemental proof: '+json.dumps(dict(run=focused.get('tests','pending'),passed=len(focused.get('passed',[])),failures=len(focused.get('failures',[])),errors=len(focused.get('errors',[])),complete=focused.get('complete',False)))+' (`work/build7/proofs/final_targeted/results.json`).')
+put('\nInitial supplemental run: '+json.dumps(dict(run=focused.get('tests','pending'),passed=len(focused.get('passed',[])),failures=len(focused.get('failures',[])),errors=len(focused.get('errors',[])),complete=focused.get('complete',False)))+' (`work/build7/proofs/final_targeted/results.json`).')
 for name,error in focused.get('failures',[])+focused.get('errors',[]):
- put('\n- Supplemental failure '+source(name)+': '+error.strip().splitlines()[-1]+' (`work/build7/proofs/final_targeted/results.json`).')
+ put('\n- Initial supplemental error '+source(name)+': '+error.strip().splitlines()[-1]+' (`work/build7/proofs/final_targeted/results.json`). Latest follow-up outcome: '+followup.get('cases',{}).get(name,{}).get('status','not run')+' (`work/build7/FOLLOWUP_RESULTS.json`).')
+if followup:
+ put('\nSupplemental follow-ups retain every attempt: '+json.dumps(dict(executions=followup['executions'],latest_case_outcomes=followup['latest_counts']))+' (`work/build7/FOLLOWUP_RESULTS.json`). Fixture corrections use final-mode camera readout, preserve the private-ViT merger exception, invoke the cache as a package module, and keep pinned source bytes outside the temporary folder. They do not change the frozen tree or its package-suite failures.')
+ put('\nThe native cache CLI wrote and reread a finite synthetic bank, and its repeat write preserved the tensor bytes. The native kit builder also exercised required and fixture-selected inputs. Evidence: `work/build7/proofs/coverage_final/cache/PROOF.json`, `work/build7/proofs/coverage_final/cache_read/RESULT.json`, and the attempt receipts in `work/build7/FOLLOWUP_RESULTS.json`. The cache proof substitutes a seeded tiny registered tower, its input raster and its unavailable production weight load; it does not qualify production weights.')
 put('\nComparison: '+json.dumps({k:comparison.get(k,'pending') for k in ('run','passed','preexisting','regressions','r2_failures','skipped')})+' (`work/build7/SUITE_COMPARISON.json`). All failure names, causes and paired base traces are retained there. Execution counts include repeated test IDs; subtest and setup errors can add failure events.')
+put('\nCurrent regressions (`work/build7/SUITE_COMPARISON.json`):')
+for failure in comparison.get('failures',[]):
+ if not failure['preexisting']:put('\n- '+source(failure['test'])+': '+failure['cause']+'.')
 base_failed={name for name,_ in base.get('failures',[])+base.get('errors',[])}
 tree_failed_methods={name.split(' (',1)[0] for name,_ in tree.get('failures',[])+tree.get('errors',[])}
 fixed=sorted(name for name in base_failed.intersection(tree.get('passed',[])) if name.split(' (',1)[0] not in tree_failed_methods)
@@ -78,14 +86,18 @@ for row in prior:
  disposition.append(dict(test=name,status='resolved' if passed and not matches else 'open',evidence='work/build7/proofs/suite_tree/results.json',cause=matches[0]['cause'] if matches else ('not in final passing receipt' if not passed else 'passed on final source')))
 oldgaps=read('work/build6/GAPS.json',{});mapped=[]
 oldstatements={(r['file'],r['line']):r for r in read('work/build6/CHANGED_COVERAGE.json',{}).get('statements',[])}
+replacement={('student_pilot/r2_contract.py','validate',"if stream != 'routing':"):
+             "if stream != 'routing' and row.get('routing_policy') != 'both-path-20261116':"}
 for name,entries in oldgaps.items():
  for line,text in entries:
   old=oldstatements.get((name,line),{})
-  matches=[r for r in coverage.get('statements',[]) if r['file']==name and r['text']==text
+  final_text=replacement.get((name,old.get('function'),text),text)
+  matches=[r for r in coverage.get('statements',[]) if r['file']==name and r['text']==final_text
            and (not old.get('function') or r['function']==old['function'])]
   resolved=bool(matches) and all(r['executed'] for r in matches)
   mapped.append(dict(file=name,build6_line=line,function=old.get('function'),text=text,status='resolved' if resolved else 'open',
-   final_lines=[r['line'] for r in matches],cause='exact statement text observed at every matching final changed statement in the same function' if resolved else 'No unambiguous all-observed final statement match in the same function; not assumed covered'))
+   final_lines=[r['line'] for r in matches],replacement=final_text if final_text!=text else None,
+   cause=('replacement condition observed in the same function; both-path policy is the explicit added exception' if final_text!=text else 'exact statement text observed at every matching final changed statement in the same function') if resolved else 'No unambiguous all-observed final statement match in the same function; not assumed covered'))
 carry=dict(regressions=disposition,gaps=mapped,gap_counts=dict(collections.Counter(r['status'] for r in mapped)))
 (B/'BUILD6_DISPOSITION.json').write_text(json.dumps(carry,indent=2)+'\n')
 put('\nBuild-6 regression disposition (`work/build7/BUILD6_DISPOSITION.json`):')

@@ -16,6 +16,7 @@ def read(name):return json.loads((B/name).read_text())
 comparison=read('SUITE_COMPARISON.json')
 coverage=read('CHANGED_COVERAGE.json')
 focused=read('proofs/final_targeted/results.json')
+followup=read('FOLLOWUP_RESULTS.json')
 packet=read('proofs/packet/results.json')
 verification=read('FINAL_VERIFICATION.json')
 record=dict(status='BLOCKED',go=False,finished_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),
@@ -24,6 +25,7 @@ record=dict(status='BLOCKED',go=False,finished_utc=datetime.datetime.now(datetim
             package={k:comparison[k] for k in ('run','passed','preexisting','regressions','r2_failures','skipped')},
             supplemental=dict(run=focused['tests'],passed=len(focused['passed']),
                               errors=len(focused['errors']),failures=len(focused['failures'])),
+            supplemental_followup=dict(executions=followup['executions'],latest_case_outcomes=followup['latest_counts']),
             coverage=coverage['classes'],report='out/BUILD7_REPORT.md')
 (B/'FINAL_STATE.json').write_text(json.dumps(record,indent=2)+'\n')
 lines=['# Build 7 status','',
@@ -31,6 +33,7 @@ lines=['# Build 7 status','',
        'Packet results: '+json.dumps(record['packet'])+' (`work/build7/proofs/packet/results.json`).','',
        'Package comparison: '+json.dumps(record['package'])+' (`work/build7/SUITE_COMPARISON.json`).','',
        'Supplemental results: '+json.dumps(record['supplemental'])+' (`work/build7/proofs/final_targeted/results.json`).','',
+       'Supplemental follow-ups: '+json.dumps(record['supplemental_followup'])+' (`work/build7/FOLLOWUP_RESULTS.json`). The original fixture errors remain in their attempt receipts.','',
        'Changed-statement classes: '+json.dumps(record['coverage'])+' (`work/build7/CHANGED_COVERAGE.json`).','',
        'The final tree, archive and kit hashes passed verification (`work/build7/FINAL_VERIFICATION.json`).','',
        'Open inputs and implementation gaps are itemized in `out/BUILD7_REPORT.md`. The report records every unresolved test, coverage, long-frame, response-forward, portrait, cache-precision and distributed-stop qualification.','',

@@ -115,7 +115,7 @@ class FaithfulRows(unittest.TestCase):
  def test_native_readout_runs_even_when_local_row_is_refused(self):
   from student_pilot import h1_faithful as H
   from tests.test_carrier_c1 import fixture
-  model,batch,_=fixture();row=self.row();runs=[]
+  model,batch,_=fixture(training_mode='final',depth_enabled=False);row=self.row();runs=[]
   class Rows:
    h1={}
    def row(self,stream,index):
