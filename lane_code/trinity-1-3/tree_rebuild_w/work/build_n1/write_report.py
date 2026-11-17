@@ -2,6 +2,10 @@
 import base64,hashlib,json
 from pathlib import Path
 L=Path(__file__).resolve().parents[2];B=L/'work/build_n1';O=L/'out'
+pending=B/'REQUALIFICATION.json'
+if pending.exists() and json.loads(pending.read_text()).get('pending'):
+    (B/'STATUS.md').write_text('# Build n1 status\n\nQualification found a legacy Rows-construction compatibility error. The source requires repair and requalification. GO=false. Source: work/build_n1/REQUALIFICATION.json.\n')
+    raise SystemExit('Source repair and requalification remain pending; no completion report written.')
 def read(path,default=None):
     path=L/path
     return json.loads(path.read_text()) if path.exists() else default
@@ -23,6 +27,7 @@ baseline=read('work/build_n1/proofs/suite_base/results.json',{})
 packet=read('work/build_n1/proofs/packet/results.json',{})
 targeted=read('work/build_n1/proofs/targeted/results.json',{})
 contracts=read('work/build_n1/proofs/contracts/results.json',{})
+compatibility=read('work/build_n1/proofs/compatibility/results.json',{})
 p_format=read('work/build_n1/proofs/p_format/results.json',{})
 inventory=read('work/build_n1/proofs/audit/INFERENCE_COMPONENTS.json',{})
 blockers=read('work/build_n1/CARRIED_BLOCKERS.json',{})
@@ -59,7 +64,7 @@ report+='\nRoom-v2 and the VQA merge describe different producer revisions. Thei
 report+='The production audit entry enumerates the final native sampler, checks actual repetitions and reports family shares, question-unit and printed-status marginals, plus recovery/unit counts consumed by launch admission. It refuses local full-store execution. This full audit has not run; the missing inputs are complete scene-admitted stores, their post-filter index maps and real frame-host preparation. Source: `work/tree_r1/student_pilot/r1_loader.py:production_audit`.\n\n'
 report+='## CPU proof and test outcomes\n\n'
 rows=[]
-for name,data,path in [('Targeted R1',targeted,'work/build_n1/proofs/targeted/results.json'),('Registry and kit',contracts,'work/build_n1/proofs/contracts/results.json'),('Native P format with sidecar',p_format,'work/build_n1/proofs/p_format/results.json')]:
+for name,data,path in [('Targeted R1',targeted,'work/build_n1/proofs/targeted/results.json'),('Legacy reader compatibility',compatibility,'work/build_n1/proofs/compatibility/results.json'),('Registry and kit',contracts,'work/build_n1/proofs/contracts/results.json'),('Native P format with sidecar',p_format,'work/build_n1/proofs/p_format/results.json')]:
  rows.append([name,data.get('tests','PENDING'),len(data.get('passed',[])),0,len(data.get('failures',[]))+len(data.get('errors',[])),len(data.get('failures',[]))+len(data.get('errors',[])),path])
 rows.append(['Contract packet',len(packet),sum(v.get('outcome')=='passed' for v in packet.values()),0,
              sum(v.get('outcome')!='passed' for v in packet.values()),0,'work/build_n1/proofs/packet/results.json'])
@@ -111,6 +116,7 @@ report+=table(['Additional blocker','Missing input','Source'],[[v['name'],v['mis
 report+='\nThe actual D0 processor min/max resolution values remain missing. The full input inventory and independent canonical-scene/alias coverage remain missing. Every sealed benchmark and held-out dev exclusion stays active; unknown overlap does not count as clean. Sources: `work/build_n1/BINDING_TABLE.json`, `work/build_n1/inputs/config.json`.\n\n'
 report+='The init rule treats all 80 withheld rooms as exposed to the parent training pool; it does not establish which rows the parent consumed. R1 exclusions do not erase that inherited exposure. Source: `work/design/NEXT_LEG_INIT_RULE_20261116.md:33`. The missing parent membership and intersection records therefore remain blockers.\n\n'
 report+='## For the review\n\n'
+report+='Legacy reader objects without the R1 attribute default to the legacy path. Native R1 construction explicitly sets the attribute and keeps the R1 row checks. Sources: `work/tree_r1/student_pilot/carrier_c1_run.py:1096`, `work/build_n1/proofs/compatibility/results.json`.\n\n'
 report+='One independent review is requested for the changed admission and legality inputs: the R1 training-only evidence scope; parent selection and P-export progress contract; receipt-selected VQA store; recovery/room source revision mismatch; room and own-row refusals; size, room and camera-object-distance exclusions; capped mix allocation and no-substitution reader behavior; absent-scale initialization; all-stream exclusion coverage; processor pin; remote staging closure; and real frame-host assertions. The policy records remain intact for native evaluation. The local RESULT event requests this single review; it was not sent externally. Sources: `out/RESULT_build_n1.json`, `work/build_n1/DECISIONS.md`, `work/build_n1/CARRIED_BLOCKERS.json`.\n\n'
 report+='## Product inference outside registered weights\n\n'
 report+='This build changes training and input admission. It does not repair or certify the product inference path. The following confirmed operations remain outside registered weights; lane b03_e2etest must judge them. Source: `work/build_n1/proofs/audit/INFERENCE_COMPONENTS.json`.\n\n'

@@ -1,0 +1,1 @@
+review_r1p5 DONE: verdict GO on p_082d2d90.tar (3401c318..), config 8246a4dd.., run 07297df8. Verdict: events/review_r1p5/REVIEW_VERDICT_R1P5.md. Tests 43/43 in work/snap (logs/tests2.log). No further work owed.

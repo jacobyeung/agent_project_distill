@@ -3,12 +3,19 @@ import hashlib,json,os,subprocess,sys
 from pathlib import Path
 L=Path(__file__).resolve().parents[2];B=L/'work/build_n1'
 def read(path):return json.loads(path.read_text())
+def mark(name,status):
+    (B/'FINAL_STAGE.json').write_text(json.dumps(dict(stage=name,status=status))+'\n')
 def call(name,*args):
+    mark(name,'running')
     subprocess.run([sys.executable,'-I','-s','-B',str(B/name),*map(str,args)],check=True)
+    mark(name,'complete')
 call('proof_p_format.py')
-call('test_runner.py',B/'proofs/targeted','tests.test_r2_build_n1')
+call('phase.py','targeted')
+call('monitor_loader.py')
 call('proof_extra.py')
-subprocess.run(['bash',str(B/'PACKET_TEST.sh')],check=True)
+mark('packet','running')
+subprocess.run([sys.executable,'-I','-s','-B',str(B/'phase.py'),'packet'],check=True)
+mark('packet','complete')
 call('legacy_guard_proof.py');call('compare.py')
 call('coverage_all.py')
 sources=[]
@@ -34,6 +41,8 @@ assert packet and all(v['outcome']=='passed' for v in packet.values())
 prior=read(L/'work/build9/SUITE_COMPARISON.json')
 prior_regressions={v['test'] for v in prior['failures'] if not v['preexisting']}
 new_regressions=[v['test'] for v in comparison['failures'] if not v['preexisting'] and v['test'] not in prior_regressions]
+assert not new_regressions, 'New regressions require repair before completion: '+repr(new_regressions)
+assert comparison['r2_failures']==0, 'R2 failures require repair before completion'
 sizes={}
 for name,root in [('lane',L),('tmp',L/'work/tmp')]:
     total=0;pending=[root]

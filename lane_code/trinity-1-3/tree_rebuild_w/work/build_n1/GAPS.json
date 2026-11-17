@@ -1,0 +1,842 @@
+{
+  "launch_r1/entry.py": [
+    [
+      18,
+      "value = cfg['r1_training']"
+    ],
+    [
+      19,
+      "if set(value.get('store_hashes', {})) != {'pose','vqa','routing','pointing'}:"
+    ],
+    [
+      20,
+      "raise ValueError('R1_ALL_STREAM_IDENTITIES_REQUIRED')"
+    ],
+    [
+      21,
+      "from student_pilot.r1_training import boundary"
+    ],
+    [
+      22,
+      "boundary(cfg,0)"
+    ],
+    [
+      23,
+      "training_components(value['registry'], cfg)"
+    ],
+    [
+      24,
+      "if not cfg.get('r2_sampling'):"
+    ],
+    [
+      25,
+      "raise ValueError('R1_PRODUCTION_ROW_PLAN_MISSING')"
+    ],
+    [
+      26,
+      "validate_binding(cfg['r2_sampling'])"
+    ],
+    [
+      27,
+      "if value['row_plan_sha256'] != digest(cfg['r2_sampling']):"
+    ],
+    [
+      28,
+      "raise ValueError('R1_ROW_PLAN_BINDING_DIFFERS')"
+    ],
+    [
+      29,
+      "host = load(pinned(value['host_receipt'])) if value.get('host_receipt') else {}"
+    ],
+    [
+      30,
+      "review = load(pinned(value['review'])) if value.get('review') else {}"
+    ],
+    [
+      31,
+      "if (host.get('status') != 'PASS' or host.get('config_identity') != identity(cfg)"
+    ],
+    [
+      34,
+      "raise ValueError('R1_HOST_ADMISSION_MISSING')"
+    ],
+    [
+      35,
+      "from student_pilot.routing_requirements import require"
+    ],
+    [
+      36,
+      "from fractions import Fraction"
+    ],
+    [
+      37,
+      "card=load(pinned(cfg['r2_sampling']['card']))"
+    ],
+    [
+      38,
+      "mix={'cells':[dict(c,numerator=Fraction(str(c['rows_per_step'])).numerator,"
+    ],
+    [
+      40,
+      "require(mix,host['loader_audit'].get('routing_training_counts'))"
+    ],
+    [
+      41,
+      "if review.get('verdict') != 'PASS' or review.get('config_identity') != identity(cfg):"
+    ],
+    [
+      42,
+      "raise ValueError('INDEPENDENT_REVIEW_PENDING')"
+    ],
+    [
+      43,
+      "return start(cfg)"
+    ],
+    [
+      62,
+      "raise ValueError('CPU_ONLY_REQUIRED')"
+    ],
+    [
+      66,
+      "raise ValueError('R1_DISK_PLAN_DIFFERS')"
+    ],
+    [
+      71,
+      "raise ValueError('R1_BINARY_MISSING:'+name)"
+    ],
+    [
+      78,
+      "from launch_r2.staging import stage_inputs, validate_plan"
+    ],
+    [
+      79,
+      "staging = load(pinned(request['staging']))"
+    ],
+    [
+      80,
+      "validate_plan(cfg, staging['entries'])"
+    ],
+    [
+      81,
+      "stage_inputs(staging['entries'], root)"
+    ],
+    [
+      82,
+      "def localize(value):"
+    ],
+    [
+      83,
+      "if isinstance(value, dict):"
+    ],
+    [
+      84,
+      "return {k:localize(v) for k,v in value.items()}"
+    ],
+    [
+      85,
+      "if isinstance(value, list):"
+    ],
+    [
+      86,
+      "return [localize(v) for v in value]"
+    ],
+    [
+      87,
+      "if isinstance(value, str) and value.startswith('u/'):"
+    ],
+    [
+      88,
+      "return str(root/value)"
+    ],
+    [
+      89,
+      "return value"
+    ],
+    [
+      90,
+      "staged_cfg = localize(cfg)"
+    ],
+    [
+      91,
+      "from student_pilot.s1_routing import build"
+    ],
+    [
+      92,
+      "from student_pilot.mdg_parent import model_pin"
+    ],
+    [
+      93,
+      "point = load(pinned(staged_cfg['streams']['pointing']))"
+    ],
+    [
+      94,
+      "regenerated = build(staged_cfg, root/'selection', point['division'], model_pin(staged_cfg))"
+    ],
+    [
+      95,
+      "selection = load(pinned(request['routing_selection']))"
+    ],
+    [
+      96,
+      "result['assertions']['routing_selection'] = digest(regenerated) == selection['regenerated_sha256']"
+    ],
+    [
+      97,
+      "if not result['assertions']['routing_selection']:"
+    ],
+    [
+      98,
+      "raise ValueError('R1_ROUTING_SELECTION_DIFFERS')"
+    ],
+    [
+      99,
+      "from student_pilot.s1_admission import admit as native_admit"
+    ],
+    [
+      100,
+      "write(root/'c.json', staged_cfg)"
+    ],
+    [
+      101,
+      "prepared = native_admit(file_pin(root/'c.json'), root/'p', [root], threads=8, prepare_only=True)"
+    ],
+    [
+      102,
+      "result['preparation'] = prepared"
+    ],
+    [
+      104,
+      "from student_pilot.r1_loader import production_audit"
+    ],
+    [
+      105,
+      "result['loader_audit'] = production_audit(load(pinned(prepared['config'])), root/'audit')"
+    ],
+    [
+      106,
+      "result['assertions']['directory_modes'] = all(p.stat().st_mode & 0o777 == 0o700"
+    ],
+    [
+      108,
+      "if not all(result['assertions'].values()) or not result['loader_audit']['complete']:"
+    ],
+    [
+      109,
+      "raise ValueError('R1_HOST_ASSERTIONS_INCOMPLETE')"
+    ],
+    [
+      110,
+      "result['status'] = 'PASS'"
+    ]
+  ],
+  "launch_r2/build.py": [
+    [
+      243,
+      "spec = launch_inputs['init']"
+    ],
+    [
+      244,
+      "plan['entries'][cfg['init_artifact']['artifact']['path']] = dict(parts=[spec['location']],sha256=spec['sha256'])"
+    ]
+  ],
+  "student_pilot/b7_inputs.py": [
+    [
+      20,
+      "raise ValueError('missing_real_location')"
+    ],
+    [
+      27,
+      "raise ValueError('stage_pinned_object_before_local_verification')"
+    ],
+    [
+      39,
+      "raise ValueError('processor_resolution_range')"
+    ],
+    [
+      41,
+      "raise ValueError('frame_count_must_be_32_or_64')"
+    ],
+    [
+      81,
+      "raise ValueError('d0_v5_identity_mismatch')"
+    ],
+    [
+      103,
+      "raise ValueError('row_store_manifest_stream_mismatch')"
+    ],
+    [
+      139,
+      "raise ValueError('concrete_trace_sft_required')"
+    ],
+    [
+      146,
+      "raise ValueError('positive_minority_count_required')"
+    ],
+    [
+      151,
+      "raise ValueError('gf1_cache_root_required')"
+    ],
+    [
+      201,
+      "expected=cfg['b7_inputs']['trainable_modules']"
+    ],
+    [
+      202,
+      "actual=module_trainability(model,cfg)"
+    ],
+    [
+      203,
+      "stage=(getattr(model,'geometry_online',None) or {}).get('gf1',{}).get('stage')"
+    ],
+    [
+      204,
+      "for kind,parameters in actual.items():"
+    ],
+    [
+      205,
+      "if kind=='other': continue"
+    ],
+    [
+      206,
+      "spec=expected[kind]"
+    ],
+    [
+      207,
+      "for parameter in parameters:"
+    ],
+    [
+      208,
+      "trainable=spec['trainable'] and stage!=1"
+    ],
+    [
+      209,
+      "if kind=='private_vit' and '.merger.' in parameter['name']: trainable=False"
+    ],
+    [
+      210,
+      "if parameter['trainable']!=trainable:"
+    ],
+    [
+      211,
+      "raise ValueError('trainable_module_pin_mismatch:'+parameter['name'])"
+    ],
+    [
+      212,
+      "rates={0.} if not trainable else {spec['learning_rate'],spec.get('inherited_learning_rate',spec['learning_rate'])}"
+    ],
+    [
+      213,
+      "if parameter['learning_rate'] not in rates:"
+    ],
+    [
+      214,
+      "raise ValueError('trainable_learning_rate_pin_mismatch:'+parameter['name'])"
+    ],
+    [
+      215,
+      "return actual"
+    ]
+  ],
+  "student_pilot/carrier_c1_run.py": [
+    [
+      71,
+      "from .r1_training import validate as validate_r1"
+    ],
+    [
+      72,
+      "validate_r1(cfg)"
+    ],
+    [
+      672,
+      "raise ValueError('Preparation R1 inputs differ')"
+    ],
+    [
+      674,
+      "raise ValueError('Preparation R1 sampler differs')"
+    ],
+    [
+      1383,
+      "raise ValueError('R1 row failure forbids substituting the pinned row plan')"
+    ],
+    [
+      2298,
+      "steps = min(steps, cfg['r1_training']['stop_after_step'])"
+    ]
+  ],
+  "student_pilot/h1_faithful.py": [
+    [
+      17,
+      "raise ValueError('S1 requires the three canonical camera types')"
+    ],
+    [
+      20,
+      "raise ValueError('S1 requires max_own_probability=0.5 and force_from_step=1')"
+    ],
+    [
+      45,
+      "from decimal import Decimal, localcontext, Context"
+    ],
+    [
+      46,
+      "event = next(e for e in raw['events'] if e['kind'] == 'tool_response')"
+    ],
+    [
+      47,
+      "dx, _, dz = map(lambda x: Decimal(str(x)), event['values'][event['call_id']+'.delta']['value'])"
+    ],
+    [
+      48,
+      "scores = dict(left=-dx, right=dx, forward=dz, backward=-dz)"
+    ],
+    [
+      49,
+      "labels = [re.sub(r'^[A-Z][.)]\\s*', '', o).lower() for o in raw['options']]"
+    ],
+    [
+      50,
+      "with localcontext(Context(prec=1024)):"
+    ],
+    [
+      51,
+      "top, second = sorted((scores[o] for o in labels), reverse=True)[:2]"
+    ],
+    [
+      52,
+      "if top > 0:"
+    ],
+    [
+      53,
+      "raw.setdefault('margin_m', float(top-second))"
+    ],
+    [
+      54,
+      "raw.setdefault('margin_rel', float((top-second)/top))"
+    ],
+    [
+      70,
+      "raise MaterializeRefusal('invalid_printed_move')"
+    ],
+    [
+      76,
+      "raise MaterializeRefusal('invalid_printed_turn')"
+    ],
+    [
+      79,
+      "raise MaterializeRefusal('non_camera_head')"
+    ],
+    [
+      112,
+      "raise ValueError('Unknown camera answer type')"
+    ],
+    [
+      128,
+      "failure=exc"
+    ],
+    [
+      194,
+      "elif 'streams' in value:"
+    ],
+    [
+      195,
+      "source=value['streams']['routing']"
+    ],
+    [
+      196,
+      "yield from identity_rows(pinned(source.get('receipt',source.get('database'))))"
+    ],
+    [
+      197,
+      "else:yield value"
+    ],
+    [
+      199,
+      "with path.open() as handle:"
+    ],
+    [
+      200,
+      "for text in handle:"
+    ],
+    [
+      201,
+      "if text.strip():yield json.loads(text)"
+    ],
+    [
+      215,
+      "write(Path(cfg['preparation_output'])/'receipt.json',result)"
+    ]
+  ],
+  "student_pilot/r1_loader.py": [
+    [
+      30,
+      "if coverage[row['qid']] != digest(row):"
+    ],
+    [
+      31,
+      "raise ValueError('R1_ADMITTED_ROW_IDENTITY_DIFFERS')"
+    ],
+    [
+      32,
+      "seen['admitted'] += 1"
+    ],
+    [
+      41,
+      "from .carrier_c1_run import Rows, prepared"
+    ],
+    [
+      42,
+      "from .r1_mix import validate_binding, plans"
+    ],
+    [
+      43,
+      "output = Path(output); output.mkdir(parents=True, exist_ok=True)"
+    ],
+    [
+      44,
+      "receipt, _ = prepared(cfg)"
+    ],
+    [
+      45,
+      "reader = Rows(receipt, None)"
+    ],
+    [
+      46,
+      "binding = cfg.get('r2_sampling')"
+    ],
+    [
+      47,
+      "if not binding:"
+    ],
+    [
+      48,
+      "raise ValueError('R1_PRODUCTION_ROW_PLAN_MISSING')"
+    ],
+    [
+      49,
+      "card, indices, allocation = validate_binding(binding)"
+    ],
+    [
+      50,
+      "counts = {s:reader.count(s) for s in STREAMS}"
+    ],
+    [
+      51,
+      "ownership = {(c['stream'], i):c['type'] for c in card['cells'] for i in indices['cells'][c['type']]}"
+    ],
+    [
+      52,
+      "repeats = Counter(); draws = Counter(); examples = {}"
+    ],
+    [
+      53,
+      "unique = set(); training_counts = {'recovery':0, 'units':{u:0 for u in ('cm','ft','in')}}"
+    ],
+    [
+      54,
+      "unit_draws = Counter(); status_draws = Counter()"
+    ],
+    [
+      55,
+      "try:"
+    ],
+    [
+      56,
+      "for plan in plans(binding, counts, 1000):"
+    ],
+    [
+      57,
+      "for stream, offsets in plan:"
+    ],
+    [
+      58,
+      "for index in offsets:"
+    ],
+    [
+      59,
+      "row, _ = reader.row(stream, index)"
+    ],
+    [
+      60,
+      "row_check(row, stream)"
+    ],
+    [
+      61,
+      "kind = ownership[(stream, index)]"
+    ],
+    [
+      62,
+      "key = (stream, row['qid'])"
+    ],
+    [
+      63,
+      "unit, statuses = row_dimensions(row)"
+    ],
+    [
+      64,
+      "if unit:"
+    ],
+    [
+      65,
+      "unit_draws[unit] += 1"
+    ],
+    [
+      66,
+      "status_draws.update(statuses)"
+    ],
+    [
+      67,
+      "if key not in unique and stream == 'routing':"
+    ],
+    [
+      68,
+      "if kind == 'recovery':"
+    ],
+    [
+      69,
+      "training_counts['recovery'] += 1"
+    ],
+    [
+      70,
+      "if kind == 'units' and unit in training_counts['units']:"
+    ],
+    [
+      71,
+      "training_counts['units'][unit] += 1"
+    ],
+    [
+      72,
+      "unique.add(key)"
+    ],
+    [
+      73,
+      "repeats[(stream, row['qid'])] += 1"
+    ],
+    [
+      74,
+      "draws[kind] += 1"
+    ],
+    [
+      75,
+      "kept = examples.setdefault(kind, {})"
+    ],
+    [
+      76,
+      "if len(kept) < 5:"
+    ],
+    [
+      77,
+      "kept[row['qid']] = dict(qid=row['qid'], row_sha256=digest(row), target=row.get('target', row.get('suffix')))"
+    ],
+    [
+      78,
+      "if max(repeats.values(), default=0) > 4:"
+    ],
+    [
+      79,
+      "raise ValueError('R1_REPEAT_LIMIT_EXCEEDED')"
+    ],
+    [
+      80,
+      "result = dict(complete=True, eligible=allocation['eligible'], draws=dict(draws),"
+    ],
+    [
+      87,
+      "write(output/'RESULT.json', result)"
+    ],
+    [
+      88,
+      "return result"
+    ],
+    [
+      90,
+      "reader.close()"
+    ]
+  ],
+  "student_pilot/r1_mix.py": [
+    [
+      11,
+      "raise ValueError('R1_CARD_INVALID')"
+    ],
+    [
+      21,
+      "raise ValueError('R1_CELL_POPULATION_MISMATCH')"
+    ],
+    [
+      23,
+      "raise ValueError('R1_POPULATION_INVALID')"
+    ],
+    [
+      26,
+      "raise ValueError('R1_NEGATIVE_CELL')"
+    ],
+    [
+      33,
+      "raise ValueError('R1_CARD_QUOTA_MISMATCH:'+stream)"
+    ],
+    [
+      59,
+      "raise ValueError('R1_COMPLETE_FILTERED_POPULATION_REQUIRED')"
+    ],
+    [
+      64,
+      "raise ValueError('R1_INDICES_DIFFER')"
+    ],
+    [
+      71,
+      "raise ValueError('R1_PLAN_POSITION_INVALID')"
+    ],
+    [
+      79,
+      "raise ValueError('R1_INDEX_OVERLAP_OR_COUNT')"
+    ],
+    [
+      84,
+      "raise ValueError('R1_INDEX_COVERAGE')"
+    ]
+  ],
+  "student_pilot/r1_training.py": [
+    [
+      20,
+      "return row"
+    ],
+    [
+      24,
+      "raise ValueError('CAMERA_OBJECT_ABSOLUTE_DISTANCE_EXCLUDED')"
+    ],
+    [
+      26,
+      "raise ValueError('QUALITATIVE_TRACE_REQUIRED')"
+    ],
+    [
+      36,
+      "raise ValueError('ROOM_TRACE_INVALID:'+','.join(sorted({e.rule_id for e in errors})))"
+    ],
+    [
+      47,
+      "raise ValueError('Component registry differs')"
+    ],
+    [
+      54,
+      "raise ValueError('Component slot was reclassified')"
+    ],
+    [
+      70,
+      "raise ValueError('R1_RECIPE_DIFFERS')"
+    ],
+    [
+      72,
+      "raise ValueError('R1_OWN_PROBABILITY_REFUSED')"
+    ],
+    [
+      74,
+      "raise ValueError('R1_OWN_ROWS_REFUSED')"
+    ],
+    [
+      83,
+      "raise ValueError('R1_MILESTONES_DIFFER')"
+    ],
+    [
+      94,
+      "raise ValueError('R1_PROGRESS_STEP_INVALID')"
+    ],
+    [
+      106,
+      "raise ValueError('R1_EXPORT_FORMAT_DIFFERS')"
+    ],
+    [
+      109,
+      "raise ValueError('R1_PARENT_STEP_DIFFERS')"
+    ],
+    [
+      142,
+      "raise ValueError('VQA_RECEIPT_INVALID')"
+    ]
+  ],
+  "student_pilot/r2_contract.py": [
+    [
+      39,
+      "raise ValueError('Next-leg init identity differs from the accepted export')"
+    ],
+    [
+      63,
+      "from .r1_training import training_components"
+    ],
+    [
+      64,
+      "training_components(cfg['r1_training']['registry'], cfg)"
+    ],
+    [
+      65,
+      "from .r2_openers import preparation as opener_preparation"
+    ],
+    [
+      66,
+      "opener_preparation(cfg)"
+    ],
+    [
+      67,
+      "if not cfg.get('r2_all_stream_exclusions') or not cfg.get('r2_sampling'):"
+    ],
+    [
+      68,
+      "raise ValueError('R1_SCENE_AND_SAMPLER_BINDINGS_REQUIRED')"
+    ]
+  ],
+  "student_pilot/r2_mix.py": [
+    [
+      37,
+      "raise ValueError('Pinned minority count required')"
+    ],
+    [
+      144,
+      "from .routing_type_gate import validate as validate_form"
+    ],
+    [
+      145,
+      "from .carrier_c1_routing import POLICIES"
+    ],
+    [
+      146,
+      "row = item['row']"
+    ],
+    [
+      147,
+      "if item['stream'] in ('vqa','routing'):"
+    ],
+    [
+      148,
+      "validate_form(row, POLICIES['both-path-20261116'], binding.get('artifact_heads', []))"
+    ],
+    [
+      149,
+      "forms.setdefault(row['question_type'], Counter())[row['answer_form']] += 1"
+    ],
+    [
+      165,
+      "from .routing_type_gate import NO_HEAD_GRAMMAR"
+    ],
+    [
+      166,
+      "for kind in set(mix['both_types'])-NO_HEAD_GRAMMAR:"
+    ],
+    [
+      167,
+      "if kind not in forms: continue"
+    ],
+    [
+      168,
+      "counts_by_form = forms[kind]"
+    ],
+    [
+      169,
+      "minority = mix['both_path']['minority_count']"
+    ],
+    [
+      170,
+      "if set(counts_by_form) != {'direct','routed'} or min(counts_by_form.values()) != minority or max(counts_by_form.values()) <= minority:"
+    ],
+    [
+      171,
+      "raise ValueError('rows_lane_missing_minority_form:'+kind)"
+    ]
+  ]
+}

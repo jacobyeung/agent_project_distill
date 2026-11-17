@@ -23,4 +23,5 @@
 | Missing processor and lineage evidence | Infer; block | Block; no default resolution or fabricated legality record. |
 | Scale runtime weight | Supplied kit choice; infer D0 runtime | Keep the supplied kit choice of 1.0 as GUESS; require the actual runtime value before launch. |
 | P inference export | Restart schedule; preserve progress | Preserve absolute LR and sampler progress; optimizer moments start fresh. |
+| Legacy reader construction | Require every legacy caller to set the new flag; default an absent flag to false | Default the absent flag to false. Native R1 construction explicitly supplies the R1 flag. |
 | Local result publication | External event write; stage locally | Stage one review request locally under out/RESULT_build_n1.json. |

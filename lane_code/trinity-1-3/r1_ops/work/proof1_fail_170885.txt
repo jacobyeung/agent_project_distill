@@ -1,0 +1,213 @@
+JOBID NAME PARTITION STATE TIME NODELIST(REASON)
+167861 jjy_p5b_s3_v2 advanced PENDING 0:00 (Dependency)
+167860 jjy_p4_s3_v2 advanced PENDING 0:00 (Dependency)
+167859 jjy_s2971_s3_v2 advanced PENDING 0:00 (Dependency)
+167858 jjy_p3_s3_v2 advanced PENDING 0:00 (Dependency)
+167857 jjy_pF2_s3_v2 advanced PENDING 0:00 (Dependency)
+170892 jjy_allo_revsi2 advanced PENDING 0:00 (Dependency)
+168278 jjy_gemma_followon advanced PENDING 0:00 (JobHeldUser)
+167894 jjy_p2_s3_v4 advanced PENDING 0:00 (JobHeldUser)
+167739 jjy_open_qwen_vsib50 advanced PENDING 0:00 (JobHeldUser)
+170897 jjy_allo_resti advanced RUNNING 17:27 orchard-community-0
+170845 jjy_allo_osi advanced RUNNING 3:23:32 orchard-community-0
+170819 jjy_allo_revsi advanced RUNNING 4:25:03 orchard-community-0
+JobID|State|ExitCode|Elapsed|End
+170885|FAILED|1:0|00:52:12|2026-11-17T19:48:25
+-rw------- 1 jjyeung users      0 Nov 17 18:56 170885.err
+-rw------- 1 jjyeung users    435 Nov 17 19:40 170885.gpu
+-rw------- 1 jjyeung users    105 Nov 17 19:48 170885.out
+-rw------- 1 jjyeung users   1366 Nov 17 18:56 170885.preflight.inputs.json
+-rw------- 1 jjyeung users   7467 Nov 17 18:56 170885.preflight.metadata.p.json
+-rw------- 1 jjyeung users 463179 Nov 17 18:56 170885.preflight.runtime.p.json
+-rw------- 1 jjyeung users 463507 Nov 17 18:56 170885.preflight.runtime.t.json
+-rw------- 1 jjyeung users 463508 Nov 17 18:56 170885.preflight.runtime.u.json
+-rw------- 1 jjyeung users  11793 Nov 17 19:48 170885.proof.json
+-rw------- 1 jjyeung users  14381 Nov 17 19:48 170885.proof.log
+-rw------- 1 jjyeung users   3830 Nov 17 19:48 170885.steps
+-rw------- 1 jjyeung users   3734 Nov 17 18:56 170885.vt.json
+-rw------- 1 jjyeung users    240 Nov 17 18:56 170885.w.steps
+admission_result : null
+allocation_gpus : "0"
+checks :
+  directory_modes : {"bad": [], "status": "PASS"}
+  empty_root : {"path": "/tmp/jjyeung/p_26cc98b7_170885", "status": "PASS"}
+  loader_audit : {"status": "NOT_RUN"}
+  runtime_binaries :
+    binaries :
+      awk : {"path": "/usr/bin/gawk", "sha256": "9150b42e78b22231bd83131e1db2530a7a7fa0677e189ac7c5cc1520c42c9e88"}
+      basename : {"path": "/usr/bin/basename", "sha256": "4beb496d2c0c39359f01d7e727084a3565237f3c3f5aeeaf06ab585329c0301b"}
+      bash : {"path": "/usr/bin/bash", "sha256": "bc5945feb8bd26203ebfafea5ce1878bb2e32cb8fb50ab7ae395cfb1e1aaaef1"}
+      bwrap : {"path": "/project/community/jjyeung/cp4tk_rt/kit/bwrap", "sha256": "e318903862396f96de3df57264e0158682b952fd3fb53ac23d876413e7b30f71"}
+      cat : {"path": "/usr/bin/cat", "sha256": "a63158e6e5bce20616425f5d61e5bd7374bb5bccf15bbb93ae2e40238248f179"}
+      chmod : {"path": "/usr/bin/chmod", "sha256": "f7ba478ce7ff158ccd3ba01bac1c4231e68cbd490fe49b5562a6ea008a586696"}
+      cp : {"path": "/usr/bin/cp", "sha256": "6187dab32cd7b6291d96c54425a22915a6eeb39add6d95ee9008e1dbba427131"}
+      cut : {"path": "/usr/bin/cut", "sha256": "94d1a3030de44ef8e4c2d157911b6246ae009d4eecaa52a072060c7070011b0e"}
+      date : {"path": "/usr/bin/date", "sha256": "225cf5c9122f922b8315538425bed7610853c853d6a2d2cfd89161b04f692367"}
+      df : {"path": "/usr/bin/df", "sha256": "dc4d292126dd6a7a120fd5430132d2d94a305cf44ea7e76978b233f85d0ab52d"}
+      dirname : {"path": "/usr/bin/dirname", "sha256": "5ed2ac7b191a3457d47a1c718397b819b04754174176c7cdd3c92faadab08055"}
+      driver : {"path": "/usr/bin/python3.12", "sha256": "1643dacd9feaedc58f3cc581e4d22577dfe25c09b10282936186ccf0f2e61118"}
+      du : {"path": "/usr/bin/du", "sha256": "860235f0294d9c2185140f4ebab8301d5db8357fb195f7b79ad3b94b495763c7"}
+      env : {"path": "/usr/bin/env", "sha256": "0aefff8f912fb75716c5d4de3b6acde93edbe8fa280fc8ee895c1226d3e373ef"}
+      find : {"path": "/usr/bin/find", "sha256": "ac1ea1c5391de921aca1572f1bf25d03707beb3887b27c16a5b4948fd553941b"}
+      flock : {"path": "/usr/bin/flock", "sha256": "487fc764723f08f70a630c517b6847165efab683d42a62f03956320a150cf801"}
+      free : {"path": "/usr/bin/free", "sha256": "3e311eafe7057e69c5e528a7ff7a0aeb7110d60a173eba7f3dfb3d09e5456adf"}
+      gzip : {"path": "/usr/bin/gzip", "sha256": "afea077ce127d4fa9ad410d3066ba2b54dea19c0b44f04adf56c72d5f7b7a9bb"}
+      head : {"path": "/usr/bin/head", "sha256": "bba6734ebc053fef547ec4a0bcd824011e80c81f8a67f5b83b0fccf7617ce959"}
+      hostname : {"path": "/usr/bin/hostname", "sha256": "071fec20458397874e6121589d5210e7eed22a1b1afe16c2b9970b8a8233cc5b"}
+      id : {"path": "/usr/bin/id", "sha256": "9f2e8d80e1c357b889e1b827566e882411ddc6ff45a70196e808f00e62a6c7c5"}
+      ionice : {"path": "/usr/bin/ionice", "sha256": "c4315c8f9cd5b5a3e6d40114966f04d22982a2d2d1955292ff2e2bdfaaab3507"}
+      mkdir : {"path": "/usr/bin/mkdir", "sha256": "af2cc5106b37532b2aa1b4981668685cf7aebdf5fea3ac7356d568cf98d7470b"}
+      mv : {"path": "/usr/bin/mv", "sha256": "8f07f577f2438fb80b1d44851bb507b0d517cc6756bb680e0eda1b8bc07f0073"}
+      nice : {"path": "/usr/bin/nice", "sha256": "1ad49430066b17c18062ec742254a65fa08ea2248a26db5cab4f548d64bfbecd"}
+      python3 : {"path": "/usr/bin/python3.12", "sha256": "1643dacd9feaedc58f3cc581e4d22577dfe25c09b10282936186ccf0f2e61118"}
+      readlink : {"path": "/usr/bin/readlink", "sha256": "645a5f1f1f2aa9639a1fa1ac0a0b7e9377a2b963baf62d3952a3ce02715e1bf7"}
+      rsync : {"path": "/usr/bin/rsync", "sha256": "6b4fb867cb49d0332b72b234656311c807ab68b0537905fda7a3e7481a139f16"}
+      sed : {"path": "/usr/bin/sed", "sha256": "23f70dd6496d75419823039e1cebf95a2fd0508c6dfec72ac2352f7e08391dd5"}
+      seq : {"path": "/usr/bin/seq", "sha256": "5c7722126a4eabacda73788a6d46d4fd12d3ab5f393e19026f2dada114ec15c6"}
+      sha256sum : {"path": "/usr/bin/sha256sum", "sha256": "9992e1f1feb6f0f396bc8d6691ebc1adbfc269fd628bce84eda1d4ba5c3995c7"}
+      sleep : {"path": "/usr/bin/sleep", "sha256": "a65efec857cfac0d4f43fc53affa73794ff1d1fdcb547931d4b92a98bda8e646"}
+      sort : {"path": "/usr/bin/sort", "sha256": "063baf220830f47b3acb3b68ea67c545d762b4d96d068db31b3a82c6a63fd0f6"}
+      stat : {"path": "/usr/bin/stat", "sha256": "3b87d297111f11d30b3c51fd2663f131a161e09d8e130e1842adaefb74307efe"}
+      tail : {"path": "/usr/bin/tail", "sha256": "871571a28ad9483140d92027915a263311462f4ca96e0451e38d6ebcce370c0b"}
+      tar : {"path": "/usr/bin/tar", "sha256": "3ee2c3c0b4dd9aacebfd2f0fbae44bad36348203acff78a44888dd58c05f811c"}
+      tee : {"path": "/usr/bin/tee", "sha256": "8c1efbee8dbee25378fc941db29a88309d6a7525786e4ebba2dda08edb77615e"}
+      touch : {"path": "/usr/bin/touch", "sha256": "5244e873c97db0bc4cd9d491eac48d08fba366a7e6584b3fc6225e8aa9d2acaf"}
+      which : {"path": "/usr/bin/which.debianutils", "sha256": "59e7cf8b9bd8711ae1aa6f7bbbd4132b61492409c3afe8e1505225efda1cb8f6"}
+    status : "PASS"
+  temporary_paths :
+    external_receipt_directory : "/project/community/jjyeung/okh7/x_c5f3847d/o"
+    read_only_inputs : "Explicit kit, bundle, staged source parts and runtime binaries"
+    status : "PASS"
+    work_root : "/tmp/jjyeung/p_26cc98b7_170885"
+    writable_mounts :
+      [0] source : "/tmp/jjyeung/p_26cc98b7_170885/tmp"
+      [0] target : "/tmp"
+      [1] source : "/tmp/jjyeung/p_26cc98b7_170885/slots"
+      [1] target : "/project/community/jjyeung/okh7/r/26cc98b7"
+      [2] source : "/tmp/jjyeung/p_26cc98b7_170885/arm"
+      [2] target : "/project/community/jjyeung/okh7/x_c5f3847d/arm"
+      [3] source : "/tmp/jjyeung/p_26cc98b7_170885/runs"
+      [3] target : "/project/community/jjyeung/okh7/x_c5f3847d/runs"
+      [4] source : "/project/community/jjyeung/okh7/x_c5f3847d/o"
+      [4] target : "/project/community/jjyeung/okh7/x_c5f3847d/o"
+config : {"file": "k/29ddc426.json", "sha256": "29ddc4263323cb8ad0b4317f80d68a15553bcd15c64f0bc8353b29cce884898c"}
+config_identity : "d8b03fd14db01af4def4a0cfd9a49d16ec492d9a3c6b0c56977f7f22b79f705a"
+contract_sha256 : "b5772ac9e0c2a4a8b62dc0f16ccd01ba1eedd1f99e6309f09acdcc7d3eb0a2ba"
+cuda_visible_devices : ""
+elapsed_seconds : 3128.1245386600494
+entry_sha256 : "44fac33b43f6d162001ff652077e2b2c80711edd17d4c5177c5b751cc0b6cef4"
+equality_sha256 : "8c540ad6af77d44d63bd2b79fa93cc7ad6cf7c56a24e95fb5262b8bbd6b2bff5"
+export_destinations : {"milestones": [100, 200], "planned_weight_exports": 3, "reserved_part_destinations": 20, "stop_fallback_names": 3}
+finished_epoch : 1794944904.4327884
+first_batch_executed : false
+job : "170885"
+manifest_sha256 : "5f65e3782178dece77efaf42862f8a8fe5712bcd492ef4318a7a183b54abd451"
+node : "orchard-community-0"
+partition : "general"
+physical_run : "/tmp/jjyeung/p_26cc98b7_170885/tmp/jjyeung/a_26cc98b7/runs/26cc98b7"
+physical_slots : "/tmp/jjyeung/p_26cc98b7_170885/slots"
+prepared_seals : null
+production_authorized : false
+rc : 1
+real_job_reuse : false
+runtime_sha256 :
+  b/a.py : "0ec9f5e9c1680ce73bf829301456c5cf987def1766516e07aa9f2e8ef44414de"
+  b/ab.py : "0e1dd0ac6126fb2325affd6f12aee338f19b7fc842d6681c2d32c488622d7825"
+  b/b3900003.py : "1749abcb5b41efb5a829298c0575d71d8acf7a0fa84ec09eaf19fb8e353049d9"
+  b/c.sh : "801db2f2b66a8381d20e77ac7f3b61d2fb04fcc8bdd8dcc673f2d86eddd86444"
+  b/d.py : "fc4e4c380daf678576b1f48cd4e6794baf45dc4342590300a4d4eddce176eea5"
+  b/f2.py : "515c61e19baf0b189866a5145c19bfc96a671af0b24be49398034d40aaca7b67"
+  b/g.py : "f82ad268da216380c979d257b3e35dc75906577291c266a996c669369074276a"
+  b/gcsput.py : "739319091d5e833003db28b7b33d9f81c3711f1357fbbf14c08e4d04654509d6"
+  b/h.py : "d4a64b0afa2581092e2a954df0353c5cabf255c63cfda4161c6ccfab97577302"
+  b/i.py : "9aae09bdee66e80632c682d5a2b2236c09b18563ff86264f7d1f25102f501a0c"
+  b/jc1.sh : "89cd9703edd0c80630250e64ae66c8676a3757d2ecef5a8504da10516640599a"
+  b/jp0.sh : "cd3473dcd6d28ae71d1d6cfc25cb1b6d03c04f73db7389ea8d8d7749e9c530cb"
+  b/jt8c.sh : "76b7a543bf9dc31ecdf56191d324f69e9783d6b5a4462c82ea83aad615427a58"
+  b/kitx.py : "55fb323596ed7965eb6006ad1c9ac7b6800b08ae0c12c8b48b3e0ccbf117a458"
+  b/opaque.py : "edb9126fafb8207de04c56f72b7d48503e1f15c3c375d3775903fd4387a76897"
+  b/p0.py : "d358490c855f03ce2eacc3e7949964b84f5da73c65e1306db3e83aa5b3321ee6"
+  b/p0.sh : "258d3d49b4b47d2cd1891452a47c739065bc5a9450c8d5ec5443656248590f07"
+  b/profile.json : "51190cc4ef08e4419f50cfa9090a73e990cddee1219c4d75bad6e5ba5144d23a"
+  b/q0.py : "ae087f2b8b0540e0b913fb810388fc882ade79bb0b5440f834eb4231f2c67c62"
+  b/r.sh : "62c15fea3f0e47631ec058696e42cec8e0dd8c4c13b690eba422ff88d95cbaa1"
+  b/r8.py : "d4046786d037168c6a2ee8f2266c9cf2c0049591e6f8d9a182f208a70bd06ef0"
+  b/rd.py : "59d6c043db853b16492257eaf67676e2cfc705adb5d9c0a2d74321f81a20e800"
+  b/s.py : "db7a1149abf4e582160f8e1e692bed842db5d99961682d90e05412e089a44873"
+  b/sa/prestage_hooks.py : "b946487191158333dbd0df07b8b1849109b944a7be0ac09a6814d3b4a0ae0a0d"
+  b/sa/sitecustomize.py : "b3eeec3c45e00249b9d60db057b55fbd3ed1e7f2a53e6d88eba2bdaf36b94c58"
+  b/sg.py : "f2d1d6ce10c9022d41b2319eca8fa1138859494562e7417b10a792a92f19db46"
+  b/v.py : "1dfaff4f73fe66040b11626823fab40fe87682bdff7b177939692716bb653d02"
+  b/w.py : "6c0238671423ea96eda598d1ed3b455ba40f29784e776f28cec6d5ec1335612b"
+  b/wh.json : "1f58a1f2e03f39ffd4c74b079766ee93ee7633ef73ec4fb4c344655964ef1d35"
+  b/x.py : "fadf985cf2a0d7e3f8f909b2ffe43151213b7812904b428e49ba5ef807ce6d07"
+  b/z.py : "f3dba650f47e74cd5422cf7be385ca43fabcd8f0b14bb31801e1477053e0d7f9"
+  job.sh : "88ad86e54bee11aaca839110ccf6ffcfecd927530d50c93cd98bdf9cd21797d4"
+selection : {"path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/c5f3847d/s.json", "sha256": "5cf172c4c3e8c391920deb78a1e52396f1b05b9326b3e41fb7ae86d30a25120e"}
+staging_root : "/tmp/jjyeung/p_26cc98b7_170885/tmp/jjyeung/a_26cc98b7/root"
+started_epoch : 1794941776.3082502
+status : "FAIL"
+training_executed : false
+wrapper_sha256 : "b75590eb41079f3f43e7c990bdc1ac213976d2e26d9b845ab79b2b2dcff0380f"
+==== LOGTAIL
+archive members verified: 2
+2026-11-17T18:58:27Z | archive 212cedd1d9b85117 staged
+archive members verified: 2
+2026-11-17T18:58:30Z | archive c4bfa546b73ec5a4 staged
+archive members verified: 2
+2026-11-17T18:58:32Z | archive c704a5b79ac8f441 staged
+archive members verified: 9
+2026-11-17T18:59:01Z | archive 5799225c899013f4 staged
+{"schema": "s1-staging-result-v1", "status": "PASS", "results": [{"sha256": "f0e715135f4b7cd8e38c046e2dd1a0a11ea98c2de4c5dbca53ee92f1a12f3e13", "members": 40, "reused": false}, {"raster_files": 9128, "bytes": 717096892}, {"sha256": "4b46c9a92745ebe99cc23a176dfab9ce3ed923fbd446eb1099ac753714e2204f", "members": 32639, "reused": false}, {"sha256": "986360dcdd3afe9cbb539f3306955eb6484c5d787facf8633626
+377630
+2026-11-17T19:07:43Z | frames f3 verified: 93be49e42701
+71168
+2026-11-17T19:08:02Z | frames f4 verified through pinned shards
+113856
+2026-11-17T19:08:52Z | frames f5 verified: 6780c14fd165
+3808
+2026-11-17T19:08:53Z | frames f6 verified through pinned shards
+6560
+2026-11-17T19:08:55Z | frames f7 verified through pinned shards
+301281
+2026-11-17T19:10:14Z | frames f8 verified: 14eae0b7d2fd
+1344
+2026-11-17T19:10:15Z | frames f9 verified through pinned shards
+11392
+2026-11-17T19:10:21Z | frames f14 verified: 47c9206e3ece
+2026-11-17T19:10:37Z | init mirror verified: 1d6eeb28f51688c4
+2026-11-17T19:10:37Z | stage prep done
+2026-11-17T19:10:37Z | numpy 2.2.6 overlay on
+2026-11-17T19:10:37Z | launch p 0 on orchard-community-0 gpus=0
+{"remove_list": {"file": {"path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/remove_0.jsonl", "sha256": "62113ff38f918528341d3c38c6cce372736f2b44ca932c3b706be29397798dc3"}, "source_listed": 513, "listed": 513, "removed": 0, "matched": 0, "matched_unique_keys": 0, "unmatched_listed_keys": 513, "retained_by_filter": 0}}
+{"remove_list": {"file": {"path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/remove_1.jsonl", "sha256": "4701e195ffc04fe256b916a05eb0a669df6cf3f97d73c9986bfe5de3170b089c"}, "source_listed": 525, "listed": 525, "removed": 0, "matched": 0, "matched_unique_keys": 0, "unmatched_listed_keys": 525, "retained_by_filter": 0}}
+{"remove_list": {"file": {"path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/remove_2.jsonl", "sha256": "6eb00a2de04c84d6dd9a0aa5d67d822bf2af6c9d408b1815b25ec6248bef27cc"}, "source_listed": 8563, "listed": 8563, "removed": 0, "matched": 0, "matched_unique_keys": 0, "unmatched_listed_keys": 8563, "retained_by_filter": 0}}
+{"remove_list": {"file": {"defects": ["identity", "absent", "merged"], "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/remove_3.jsonl", "sha256": "8a97fcc4f1f4fd7a302a8b16c461d3095fbcf9ece3a39cce7db24d5a363dd1b2"}, "source_listed": 14952, "listed": 7012, "removed": 0, "matched": 0, "matched_unique_keys": 0, "unmatched_listed_keys": 7012, "retained_by_filte
+{"remove_list": {"file": {"path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/remove_4.jsonl", "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}, "source_listed": 0, "listed": 0, "removed": 0, "matched": 0, "matched_unique_keys": 0, "unmatched_listed_keys": 0, "retained_by_filter": 0}}
+{"remove_list": {"file": {"path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/remove_5.jsonl", "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}, "source_listed": 0, "listed": 0, "removed": 0, "matched": 0, "matched_unique_keys": 0, "unmatched_listed_keys": 0, "retained_by_filter": 0}}
+{"remove_list": {"file": {"path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/remove_0.jsonl", "sha256": "62113ff38f918528341d3c38c6cce372736f2b44ca932c3b706be29397798dc3"}, "source_listed": 513, "listed": 513, "removed": 0, "matched": 0, "matched_unique_keys": 0, "unmatched_listed_keys": 513, "retained_by_filter": 0}}
+{"remove_list": {"file": {"path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/remove_1.jsonl", "sha256": "4701e195ffc04fe256b916a05eb0a669df6cf3f97d73c9986bfe5de3170b089c"}, "source_listed": 525, "listed": 525, "removed": 0, "matched": 0, "matched_unique_keys": 0, "unmatched_listed_keys": 525, "retained_by_filter": 0}}
+{"remove_list": {"file": {"path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/remove_2.jsonl", "sha256": "6eb00a2de04c84d6dd9a0aa5d67d822bf2af6c9d408b1815b25ec6248bef27cc"}, "source_listed": 8563, "listed": 8563, "removed": 0, "matched": 0, "matched_unique_keys": 0, "unmatched_listed_keys": 8563, "retained_by_filter": 0}}
+{"remove_list": {"file": {"defects": ["identity", "absent", "merged"], "path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/remove_3.jsonl", "sha256": "8a97fcc4f1f4fd7a302a8b16c461d3095fbcf9ece3a39cce7db24d5a363dd1b2"}, "source_listed": 14952, "listed": 7012, "removed": 0, "matched": 0, "matched_unique_keys": 0, "unmatched_listed_keys": 7012, "retained_by_filte
+{"remove_list": {"file": {"path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/remove_4.jsonl", "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}, "source_listed": 0, "listed": 0, "removed": 0, "matched": 0, "matched_unique_keys": 0, "unmatched_listed_keys": 0, "retained_by_filter": 0}}
+{"remove_list": {"file": {"path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/remove_5.jsonl", "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}, "source_listed": 0, "listed": 0, "removed": 0, "matched": 0, "matched_unique_keys": 0, "unmatched_listed_keys": 0, "retained_by_filter": 0}}
+Traceback (most recent call last):
+  File "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/b/w.py", line 197, in <module>
+    if __name__=='__main__': main(*sys.argv[1:])
+                             ^^^^^^^^^^^^^^^^^^^
+  File "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/b/w.py", line 42, in main
+    admit(pin(root/launch['config']['file']),destination,value['frame_roots'],
+  File "/home/jjyeung/6d00e578/sha256:5e1514ef9d91bee8a1623e0e9db4844d5916a0836da953302413a212b23fe8b8/student_pilot/s1_admission.py", line 231, in admit
+    prepared, prep_reused = phases.run("prepare", prepare_phase)
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jjyeung/6d00e578/sha256:5e1514ef9d91bee8a1623e0e9db4844d5916a0836da953302413a212b23fe8b8/student_pilot/first_batch_progress.py", line 43, in run
+    result = action(directory)
+             ^^^^^^^^^^^^^^^^^
+  File "/home/jjyeung/6d00e578/sha256:5e1514ef9d91bee8a1623e0e9db4844d5916a0836da953302413a212b23fe8b8/student_pilot/s1_admission.py", line 190, in prepare_phase
+    rebuilt_vqa = data.build_stream(before["vqa"], vqa["division"], directory / "vqa", "vqa",
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jjyeung/6d00e578/sha256:5e1514ef9d91bee8a1623e0e9db4844d5916a0836da953302413a212b23fe8b8/student_pilot/carrier_c1_data.py", line 608, in build_stream
+    raise ValueError('C1 data violate scene division or unique row identity')
+ValueError: C1 data violate scene division or unique row identity
+2026-11-17T19:48:24Z | exit rc=1
+==== ERR

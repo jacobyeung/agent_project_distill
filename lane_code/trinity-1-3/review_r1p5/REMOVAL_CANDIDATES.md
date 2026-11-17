@@ -1,0 +1,1 @@
+- /scratch/jjyeung/orch_n30/review_r1p5/work (review copies, ~750 MB: snap/, arc/, arc_base/, aside/, tmp/); safe to remove after the orchestrator accepts REVIEW_VERDICT_R1P5.

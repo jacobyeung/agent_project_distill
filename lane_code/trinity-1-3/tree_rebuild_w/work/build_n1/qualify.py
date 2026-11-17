@@ -12,8 +12,8 @@ def run(name,args):
     if code<0:raise SystemExit('Process was killed; no retry is authorized')
     if code:raise SystemExit(code)
 py=[sys.executable,'-I','-s','-B']
-run('targeted',py+[B/'test_runner.py',B/'proofs/targeted','tests.test_r2_build_n1'])
-run('packet',['bash',B/'PACKET_TEST.sh'])
+run('targeted',py+[B/'phase.py','targeted'])
+run('packet',py+[B/'phase.py','packet'])
 run('delivery',py+[B/'make_delivery.py'])
 delivery=json.loads((B/'DELIVERY.json').read_text())
 run('frozen_package',['bash',B/'PACKAGE_TEST.sh',L/delivery['path']])

@@ -1093,7 +1093,7 @@ class Rows:
         if row is None:
             raise ValueError('Missing planned C1 row')
         value = json.loads(row[0])
-        if self.r1_training:
+        if getattr(self, 'r1_training', False):
             from .r1_training import row_check
             row_check(value, stream)
         if self.b7_inputs:

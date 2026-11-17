@@ -33,7 +33,7 @@ from student_pilot.decoupled_v import learning_rate
 from tests.test_carrier_c1 import fixture
 before=sum(inventory(L/'work/tmp').values());assert before<=200_000_000
 model,_,_=fixture(4)
-destination=O/'m200'
+destination=O/('m200_'+snapshots['student_pilot/carrier_c1_run.py'][:12])
 donor=dict(base_identity='fixture',trace_program_version='3.13')
 if not destination.exists():
     with patch.object(native.dist,'get_rank',return_value=0),patch.object(native.dist,'get_world_size',return_value=1),patch.object(native.dist,'barrier'),patch('student_pilot.fsdp_training.publication_state',return_value=model.state_dict()):
