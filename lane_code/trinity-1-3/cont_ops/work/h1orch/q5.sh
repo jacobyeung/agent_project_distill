@@ -1,4 +1,1 @@
-O=/project/community/jjyeung/okh7
-date -u +%TZ; pgrep -f t_fd24a874.sh >/dev/null && echo RUNNING || echo EXITED
-grep -c ': OK$' $O/t_fd24a874.log; grep -v ': OK$' $O/t_fd24a874.log | tail -n 25 | cut -c1-300
-ls $O/i_1be16f28 2>&1 | tr '\n' ' '
+export TZ=UTC; K=/project/community/jjyeung/okh7/x_3fdda0fb; ls -la --time-style=+%TT $K/o/170710.gpu $K/runs/17c4ffa4/metrics_170710.jsonl; tail -n 8 $K/o/170710.gpu; sstat -j 170710.batch -n -o AveCPU,MaxDiskWrite; date; grep -c . $K/o/170710.gpu

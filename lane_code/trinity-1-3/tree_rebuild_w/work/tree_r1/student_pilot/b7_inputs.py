@@ -118,6 +118,9 @@ def bound_manifests(value, manifest_paths, arm):
 
 def blockers(value, arm):
     result = list(value.get('qualification_blockers', []))
+    from .routing_requirements import blockers as row_blockers
+    from .r2_mix import table
+    result.extend(row_blockers(table(), value.get('routing_training_counts')))
     for name, action in (
         ('init_selection_pending', lambda: pin(value.get('init'), init=True)),
         ('rows_lane_store_bindings_missing', lambda: row_stores(value.get('row_stores'), arm)),

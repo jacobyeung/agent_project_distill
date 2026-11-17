@@ -1,0 +1,1 @@
+cd /project/community/jjyeung/okh7/x_3fdda0fb/runs/17c4ffa4/inputs && tar cf - data_receipt.json prepare_b000cf6bbd2346a59dc1d213e84ad066/prepared/s1_receipt.json prepare_b000cf6bbd2346a59dc1d213e84ad066/result.json | gzip | base64 -w0

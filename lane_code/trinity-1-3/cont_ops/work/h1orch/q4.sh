@@ -1,5 +1,1 @@
-P=/project/community/jjyeung
-for py in $P/cp4tk_fr/venv/bin/python3 $P/45e92888780e/envs/*/bin/python3 $P/orchard_data/envs/*/bin/python3 $P/orchard_next/env/bin/python3 $P/latency/envs/*/bin/python3; do
-  [ -x "$py" ] || continue
-  echo "== $py"; timeout 120 nice -n 19 "$py" -c 'import torch,numpy,sys;print(sys.version.split()[0],torch.__version__,numpy.__version__)' 2>&1 | tail -1
-done
+export TZ=UTC; K=/project/community/jjyeung/okh7/x_3fdda0fb; ls -la --time-style=+%TZ $K/o | grep 170710; tail -c 1500 $K/o/170710.gpu 2>/dev/null; echo; sstat -j 170710.batch -n -o AveCPU,MaxRSS,MaxDiskRead,MaxDiskWrite; wc -c $K/o/170710.err; tail -c 300 $K/o/170710.err

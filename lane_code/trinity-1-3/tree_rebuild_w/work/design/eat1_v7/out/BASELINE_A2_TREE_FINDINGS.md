@@ -1,0 +1,587 @@
+# EAT-1 static findings: next-leg tree b5 read path (33 files)
+
+Source: `work/nextleg/static/SCAN_READ.json` (eat1.scan, eat1/allowlist.json PROPOSED). Static-only mode: every finding in scope counts. `tree:` = sealed tree b01ce449 audit copy; `b5:` = next-leg tree build 5 (ba346bd9); `c8r:` = code_c8r.tar out2 reader.
+
+## A2 (17)
+
+- `A2.response_outside_model` b5:student_pilot/carrier_c1_batch_decode.py:89 (Row.__init__): response text built outside a torch module method — `self.reserved = [self.tokenizer.convert_tokens_to_ids('<tool_response>'),`
+- `A2.response_outside_model` b5:student_pilot/carrier_c1_batch_decode.py:90 (Row.__init__): response text built outside a torch module method — `self.tokenizer.convert_tokens_to_ids('</tool_response>'), model.carrier_id]`
+- `A2.response_outside_model` b5:student_pilot/carrier_c1_batch_decode.py:142 (Row._call): response text built outside a torch module method — `wrapped = '\n<tool_response>\n' + text + '\n</tool_response>' if self.ground_layout else '<tool_response>' + t`
+- `A2.response_outside_model` b5:student_pilot/carrier_c1_routing.py:79 (<module>): response text built outside a torch module method — `'calculator_call', 'tool_response', 'calculator_response', 'decision')`
+- `A2.response_outside_model` b5:student_pilot/carrier_c1_routing.py:166 (render_full): response text built outside a torch module method — `elif kind in ('tool_response', 'calculator_response'):`
+- `A2.response_outside_model` b5:student_pilot/carrier_c1_routing.py:168 (render_full): response text built outside a torch module method — `emit('<tool_response>' + text + '</tool_response>', 'tool', index, event['call_id'])`
+- `A2.response_outside_model` b5:student_pilot/carrier_c1_routing.py:310 (RecordedGeometry.__init__): response text built outside a torch module method — `self.points = {p['label']: p for e in row['events'] if e['kind'] == 'tool_response'`
+- `A2.response_outside_model` b5:student_pilot/carrier_c1_routing.py:312 (RecordedGeometry.__init__): response text built outside a torch module method — `self.calls = {e['call_id']: e for e in row['events'] if e['kind'] == 'tool_response'}`
+- `A2.response_outside_model` b5:student_pilot/carrier_c1_routing.py:336 (depth_queries): response text built outside a torch module method — `elif e['kind'] == 'tool_response' and e['name'] == 'depth_at':`
+- `A2.response_outside_model` b5:student_pilot/carrier_c1_routing.py:361 (rerender): response text built outside a torch module method — `if kind == 'tool_response':`
+- `A2.response_outside_model` b5:student_pilot/carrier_c1_routing.py:593 (row_geometry): response text built outside a torch module method — `names = {e['name'] for e in row['events'] if e['kind'] == 'tool_response'}`
+- `A2.response_outside_model` b5:student_pilot/carrier_c1_routing.py:611 (row_geometry): response text built outside a torch module method — `if e['kind'] == 'tool_response' and e['name'] == 'depth_at' for p in e['points']}`
+- `A2.response_outside_model` b5:student_pilot/carrier_c1_routing.py:754 (camera_filter): response text built outside a torch module method — `if any(p['requested_frame'] != p['actual_frame'] for e in events if e['kind'] == 'tool_response'`
+- `A2.response_outside_model` b5:student_pilot/carrier_c1_routing.py:760 (camera_filter): response text built outside a torch module method — `values = {k: v['value'] for e in events if e['kind'] == 'tool_response' for k, v in e.get('values', {}).items(`
+- `A2.response_outside_model` b5:student_pilot/carrier_c1_routing.py:1005 (gt_replay): response text built outside a torch module method — `if e['kind'] == 'tool_response' and e['name'] == 'depth_at' for p in e['points']}`
+- `A2.response_outside_model` b5:student_pilot/p3_printed_calculator.py:242 (PrintedPointRegistry.execute): response text built outside a torch module method — `"injected_text": "<tool_response>"+text+"</tool_response>"})`
+- `A2.response_outside_model` b5:trace_format/box_v313.py:307 (replay_audit): response text built outside a torch module method — `body=response[len('<tool_response>\n'):-len('\n</tool_response>')]`
+
+## A3 (433)
+
+- `A3.constant` b5:evalpath/run.py:22 (shard_items): constant 16 — `return [t for t in tasks if int(digest(key(t)), 16) % world_size == rank]`
+- `A3.table_load` b5:evalpath/run.py:33 (read_journal): json.loads() — `record = json.loads(line)`
+- `A3.data_file` b5:evalpath/run.py:66 (worker_error): string '.jsonl' — `append_record(output / f"parity-items-{rank}-{request['attempt']}.jsonl",`
+- `A3.table_load` b5:evalpath/run.py:159 (binding_for): json.loads() — `'world_size': world_size, 'sources': json.loads(`
+- `A3.data_file` b5:evalpath/run.py:160 (binding_for): string 'SOURCE_PINS.json' — `Path(__file__).with_name('SOURCE_PINS.json').read_text()),`
+- `A3.table_load` b5:evalpath/run.py:185 (validate_request): load() — `table = load(pinned(request['route_table']))`
+- `A3.data_file` b5:evalpath/run.py:259 (_run_worker.progress): string '.jsonl' — `append_record(output / f"parity-items-{rank}-{request['attempt']}.jsonl",`
+- `A3.data_file` b5:evalpath/run.py:267 (_run_worker): string '.jsonl' — `journal = output / f'items-{rank}.jsonl'`
+- `A3.data_file` b5:evalpath/run.py:314 (_run_worker): string '.json' — `parity_path = output / f"parity-{rank}-{request['attempt']}.json"`
+- `A3.table_load` b5:evalpath/run.py:339 (_run_worker): load() — `types = load(pinned(request['route_table']))['route']`
+- `A3.constant` b5:evalpath/run.py:365 (_run_worker): constant 64 — `num_frames=64 if request['cfg'].get('frame_layout') == 'duplicate' else 32,`
+- `A3.constant` b5:evalpath/run.py:365 (_run_worker): constant 32 — `num_frames=64 if request['cfg'].get('frame_layout') == 'duplicate' else 32,`
+- `A3.data_file` b5:evalpath/run.py:380 (_run_worker): string '.json' — `path = output / f"summary-{rank}-{request['attempt']}.json"`
+- `A3.data_file` b5:evalpath/run.py:403 (merge): string '.jsonl' — `records = read_journal(output / f'items-{rank}.jsonl', binding)`
+- `A3.data_file` b5:evalpath/run.py:408 (merge): string '.json' — `path = output / f"parity-{rank}-{request['attempt']}.json"`
+- `A3.table_load` b5:evalpath/run.py:409 (merge): json.loads() — `parity = json.loads(path.read_text()) if path.exists() else {'pass': False, 'missing': str(path)}`
+- `A3.data_file` b5:evalpath/run.py:418 (merge): string '.json' — `write_json(output / f"summary-{request['attempt']}.json", summary)`
+- `A3.data_file` b5:evalpath/run.py:419 (merge): string '.jsonl' — `with (output / f"per-item-{request['attempt']}.jsonl").open('x') as f:`
+- `A3.table_load` b5:evalpath/run.py:433 (main): json.loads() — `request = json.loads(Path(args.request).read_text())`
+- `A3.table_load` b5:evalpath/runtime.py:13 (verify_trainer): load() — `seal = load(pinned(code))`
+- `A3.table_load` b5:evalpath/runtime.py:18 (verify_trainer): json.loads() — `pins = selected or json.loads(Path(__file__).with_name('SOURCE_PINS.json').read_text())['trainer']`
+- `A3.data_file` b5:evalpath/runtime.py:18 (verify_trainer): string 'SOURCE_PINS.json' — `pins = selected or json.loads(Path(__file__).with_name('SOURCE_PINS.json').read_text())['trainer']`
+- `A3.table_load` b5:evalpath/runtime.py:36 (check_init_spec): load() — `spec = load(pinned(spec))`
+- `A3.table_load` b5:evalpath/runtime.py:39 (check_init_spec): load() — `artifact = load(pinned(artifact_pin))`
+- `A3.constant` b5:evalpath/runtime.py:143 (prompt_batch): constant -100 — `start = int(torch.where(batch['labels'][0] != -100)[0][0])`
+- `A3.constant` b5:ofs/core.py:11 (<module>): constant 80 — `SHAPE = (80, 112)`
+- `A3.constant` b5:ofs/core.py:11 (<module>): constant 112 — `SHAPE = (80, 112)`
+- `A3.constant` b5:ofs/core.py:58 (small_rle): constant 480 — `if (h, w) not in {(480, 640), SHAPE}:`
+- `A3.constant` b5:ofs/core.py:58 (small_rle): constant 640 — `if (h, w) not in {(480, 640), SHAPE}:`
+- `A3.constant` b5:ofs/core.py:66 (voxel_set): constant 0.1 — `return frozenset(map(tuple, np.floor(np.asarray(points)/.10).astype(np.int64)))`
+- `A3.constant` b5:ofs/core.py:72 (lift_grid): constant 1000 — `uv = np.column_stack(((cols.ravel()+.5)/SHAPE[1]*1000,`
+- `A3.constant` b5:ofs/core.py:73 (lift_grid): constant 1000 — `(rows.ravel()+.5)/SHAPE[0]*1000))`
+- `A3.constant` b5:ofs/core.py:74 (lift_grid): constant 1000 — `edge = np.minimum(uv, 1000-uv).min(1)`
+- `A3.constant` b5:ofs/core.py:76 (lift_grid): constant 33 — `for frame in range(1, 33):`
+- `A3.threshold` b5:ofs/core.py:80 (lift_grid): compares against 20 — `ok = (((uv >= 20) & (uv <= 980)).all(1) & np.isfinite(P).all(1)`
+- `A3.constant` b5:ofs/core.py:80 (lift_grid): constant 20 — `ok = (((uv >= 20) & (uv <= 980)).all(1) & np.isfinite(P).all(1)`
+- `A3.threshold` b5:ofs/core.py:80 (lift_grid): compares against 980 — `ok = (((uv >= 20) & (uv <= 980)).all(1) & np.isfinite(P).all(1)`
+- `A3.constant` b5:ofs/core.py:80 (lift_grid): constant 980 — `ok = (((uv >= 20) & (uv <= 980)).all(1) & np.isfinite(P).all(1)`
+- `A3.threshold` b5:ofs/core.py:82 (lift_grid): compares against 40 — `& (spread <= np.where(edge <= 40, .10, .25)))`
+- `A3.constant` b5:ofs/core.py:82 (lift_grid): constant 40 — `& (spread <= np.where(edge <= 40, .10, .25)))`
+- `A3.constant` b5:ofs/core.py:82 (lift_grid): constant 0.1 — `& (spread <= np.where(edge <= 40, .10, .25)))`
+- `A3.constant` b5:ofs/core.py:82 (lift_grid): constant 0.25 — `& (spread <= np.where(edge <= 40, .10, .25)))`
+- `A3.constant` b5:ofs/core.py:87 (lift): constant 0.3 — `def lift(cache, name, geo, floor=.3, prior=None, grids=None):`
+- `A3.constant` b5:ofs/core.py:95 (lift): constant 33 — `for frame in range(1, 33):`
+- `A3.threshold` b5:ofs/core.py:99 (lift): compares against floor — `if float(instance['score']) < floor:`
+- `A3.constant` b5:ofs/core.py:113 (lift): constant 0.9 — `mask, points, center, float(np.quantile(np.linalg.norm(points-center, axis=1), .9)),`
+- `A3.constant` b5:ofs/core.py:148 (linked): constant 0.3 — `radius = max(.30, .5*min(a.extent, b.extent)) + .05*(a.depth+b.depth)/2`
+- `A3.constant` b5:ofs/core.py:148 (linked): constant 0.05 — `radius = max(.30, .5*min(a.extent, b.extent)) + .05*(a.depth+b.depth)/2`
+- `A3.threshold` b5:ofs/core.py:149 (linked): compares against 0.25 — `return np.linalg.norm(a.center-b.center) <= radius or overlap(a.voxels, b.voxels) >= .25`
+- `A3.constant` b5:ofs/core.py:149 (linked): constant 0.25 — `return np.linalg.norm(a.center-b.center) <= radius or overlap(a.voxels, b.voxels) >= .25`
+- `A3.constant` b5:ofs/core.py:192 (visible_voxels): constant 0.1 — `points = (np.array(sorted(voxels), float)+.5)*.10`
+- `A3.constant` b5:ofs/core.py:196 (visible_voxels): constant 33 — `for frame in range(1, 33):`
+- `A3.constant` b5:ofs/core.py:204 (visible_voxels): constant 500 — `uv = (pc[:, :2]/safe[:, None]/np.tan(np.array([fw, fh])/2)+1)*500`
+- `A3.threshold` b5:ofs/core.py:205 (visible_voxels): compares against 1000 — `inside = (z > 0) & ((uv >= 0) & (uv <= 1000)).all(1) & np.isfinite(uv).all(1)`
+- `A3.constant` b5:ofs/core.py:205 (visible_voxels): constant 1000 — `inside = (z > 0) & ((uv >= 0) & (uv <= 1000)).all(1) & np.isfinite(uv).all(1)`
+- `A3.constant` b5:ofs/core.py:209 (visible_voxels): constant 0.15 — `good[inside] = np.isfinite(d) & (abs(z[inside]-d) <= np.maximum(.15, .10*d))`
+- `A3.constant` b5:ofs/core.py:209 (visible_voxels): constant 0.1 — `good[inside] = np.isfinite(d) & (abs(z[inside]-d) <= np.maximum(.15, .10*d))`
+- `A3.threshold` b5:ofs/core.py:210 (visible_voxels): compares against 0.3 — `if good.mean() >= .30:`
+- `A3.constant` b5:ofs/core.py:210 (visible_voxels): constant 0.3 — `if good.mean() >= .30:`
+- `A3.constant` b5:ofs/core.py:245 (scene_candidates): constant 0.3 — `radius = max(.30, .5*min(extents[i], extents[j])) + .025*(depths[i]+depths[j])`
+- `A3.constant` b5:ofs/core.py:245 (scene_candidates): constant 0.025 — `radius = max(.30, .5*min(extents[i], extents[j])) + .025*(depths[i]+depths[j])`
+- `A3.threshold` b5:ofs/core.py:246 (scene_candidates): compares against 0.25 — `if np.linalg.norm(centers[i]-centers[j]) <= radius or overlap(voxels[i], voxels[j]) >= .25:`
+- `A3.constant` b5:ofs/core.py:246 (scene_candidates): constant 0.25 — `if np.linalg.norm(centers[i]-centers[j]) <= radius or overlap(voxels[i], voxels[j]) >= .25:`
+- `A3.constant` b5:ofs/core.py:285 (select): constant -1000000.0 — `matrix = np.full((len(names), len(slots)+len(names)), -1e6)`
+- `A3.threshold` b5:ofs/core.py:297 (select): compares against threshold — `if j < len(slots) and matrix[q, j] >= threshold:`
+- `A3.threshold` b5:ofs/core.py:302 (select): compares against threshold — `eligible = [c for c in ranked[name] if score(c) >= threshold and`
+- `A3.constant` b5:ofs/core.py:311 (empty_values): constant 32 — `prob = np.zeros((n, 32), np.float32)`
+- `A3.constant` b5:ofs/core.py:313 (empty_values): constant 32 — `iou=prob.copy(), uv=np.zeros((n, 32, 2), np.float32),`
+- `A3.constant` b5:ofs/core.py:314 (empty_values): constant 32 — `mask=np.zeros((n, 32)+SHAPE, bool), area=np.zeros((n, 32), np.float64))`
+- `A3.constant` b5:ofs/core.py:330 (values_for): constant 1000 — `values['uv'][q, k] = np.rint([(col+.5)/SHAPE[1]*1000, (row+.5)/SHAPE[0]*1000])`
+- `A3.data_file` b5:ofs/core.py:362 (export): string '.npz' — `mdg().save_npz(out/(stem+'.npz'), names, values, metadata)`
+- `A3.data_file` b5:ofs/core.py:367 (export): string '.candidates.json' — `(out/(stem+'.candidates.json')).write_text(json.dumps(sidecar, allow_nan=False)+'\n')`
+- `A3.data_file` b5:ofs/core.py:368 (export): string '.npz' — `entry = dict(scene=scene, scene_key=scene, npz=stem+'.npz', frame_indices=metadata['frame_indices'])`
+- `A3.data_file` b5:ofs/core.py:369 (export): string 'INDEX.json' — `path = out/'INDEX.json'`
+- `A3.table_load` b5:ofs/core.py:370 (export): json.loads() — `index = json.loads(path.read_text()) if path.exists() else {}`
+- `A3.threshold` b5:ofs/hrp_reference.py:35 (select): compares against 32 — `if (not 1 <= c.frame <= 32 or uv.shape != (2,) or not np.isfinite(uv).all()`
+- `A3.constant` b5:ofs/hrp_reference.py:35 (select): constant 32 — `if (not 1 <= c.frame <= 32 or uv.shape != (2,) or not np.isfinite(uv).all()`
+- `A3.threshold` b5:ofs/hrp_reference.py:36 (select): compares against 1000 — `or (uv < 0).any() or (uv > 1000).any() or not np.isfinite(c.confidence)):`
+- `A3.constant` b5:ofs/hrp_reference.py:36 (select): constant 1000 — `or (uv < 0).any() or (uv > 1000).any() or not np.isfinite(c.confidence)):`
+- `A3.constant` b5:ofs/hrp_reference.py:60 (select): constant 1e-10 — `neighbors = np.flatnonzero(dist <= radius + 1e-10)`
+- `A3.constant` b5:ofs/hrp_reference.py:92 (centroid): constant 1000 — `return [(float(cols.mean())+.5)/w*1000, (float(rows.mean())+.5)/h*1000]`
+- `A3.threshold` b5:ofs/hrp_reference.py:156 (_keypoint_distance): compares against table entry s['support'] — `if s['support'] < min_support:`
+- `A3.constant` b5:student_pilot/camera_targets.py:19 (<module>): constant 16 — `GROUPS, FRAMES = 16, 32`
+- `A3.constant` b5:student_pilot/camera_targets.py:19 (<module>): constant 32 — `GROUPS, FRAMES = 16, 32`
+- `A3.constant` b5:student_pilot/camera_targets.py:33 (quaternion_xyzw): constant 0.25 — `q = [(m[2, 1] - m[1, 2]) / s, (m[0, 2] - m[2, 0]) / s, (m[1, 0] - m[0, 1]) / s, 0.25 * s]`
+- `A3.constant` b5:student_pilot/camera_targets.py:36 (quaternion_xyzw): constant 0.25 — `q = [0.25 * s, (m[0, 1] + m[1, 0]) / s, (m[0, 2] + m[2, 0]) / s, (m[2, 1] - m[1, 2]) / s]`
+- `A3.constant` b5:student_pilot/camera_targets.py:39 (quaternion_xyzw): constant 0.25 — `q = [(m[0, 1] + m[1, 0]) / s, 0.25 * s, (m[1, 2] + m[2, 1]) / s, (m[0, 2] - m[2, 0]) / s]`
+- `A3.constant` b5:student_pilot/camera_targets.py:42 (quaternion_xyzw): constant 0.25 — `q = [(m[0, 2] + m[2, 0]) / s, (m[1, 2] + m[2, 1]) / s, 0.25 * s, (m[1, 0] - m[0, 1]) / s]`
+- `A3.constant` b5:student_pilot/camera_targets.py:57 (rigid): constant 1e-05 — `return (pose.shape == (4, 4) and np.isfinite(pose).all() and np.allclose(pose[3], [0, 0, 0, 1], atol=1e-5)`
+- `A3.constant` b5:student_pilot/camera_targets.py:58 (rigid): constant 0.0001 — `and np.allclose(rotation.T @ rotation, np.eye(3), atol=1e-4) and abs(np.linalg.det(rotation) - 1) < 1e-4)`
+- `A3.threshold` b5:student_pilot/camera_targets.py:58 (rigid): compares against 0.0001 — `and np.allclose(rotation.T @ rotation, np.eye(3), atol=1e-4) and abs(np.linalg.det(rotation) - 1) < 1e-4)`
+- `A3.constant` b5:student_pilot/camera_targets.py:92 (encode_cameras): constant 9 — `camera, mask = np.zeros((groups, 9)), np.zeros(groups, bool)`
+- `A3.constant` b5:student_pilot/camera_targets.py:191 (probe_record): constant 9 — `camera = np.zeros((groups, 9))`
+- `A3.constant` b5:student_pilot/camera_targets.py:192 (probe_record): constant 0.1 — `camera[:, 0] = 0.1 * np.arange(groups)`
+- `A3.constant` b5:student_pilot/camera_targets.py:193 (probe_record): constant 1.2 — `camera[:, 6], camera[:, 7], camera[:, 8] = 1.0, 1.0, 1.2`
+- `A3.threshold` b5:student_pilot/camera_targets.py:197 (probe_record): compares against GROUPS — `if groups > GROUPS:`
+- `A3.constant` b5:student_pilot/camera_targets.py:203 (probe_record): constant 10 — `uv = np.stack(np.meshgrid(np.linspace(10, 990, points), [500.0], indexing='xy'), axis=-1).reshape(points, 2)`
+- `A3.constant` b5:student_pilot/camera_targets.py:203 (probe_record): constant 990 — `uv = np.stack(np.meshgrid(np.linspace(10, 990, points), [500.0], indexing='xy'), axis=-1).reshape(points, 2)`
+- `A3.constant` b5:student_pilot/camera_targets.py:203 (probe_record): constant 500.0 — `uv = np.stack(np.meshgrid(np.linspace(10, 990, points), [500.0], indexing='xy'), axis=-1).reshape(points, 2)`
+- `A3.data_file` b5:student_pilot/camera_targets.py:248 (load_for_rows): string '.npz' — `if str(verified).endswith('.npz'):`
+- `A3.table_load` b5:student_pilot/camera_targets.py:256 (load_for_rows): json.loads() — `payload = json.loads(verified.read_text())`
+- `A3.threshold` b5:student_pilot/camera_targets.py:277 (load_for_rows): compares against GROUPS — `if len(camera) > GROUPS:`
+- `A3.constant` b5:student_pilot/camera_targets.py:366 (insert_carriers): constant -100 — `supervised = torch.where(labels[0] != -100)[0] if labels is not None else torch.zeros(0, dtype=torch.long)`
+- `A3.constant` b5:student_pilot/camera_targets.py:373 (insert_carriers): constant -100 — `fills = {'input_ids': carrier, 'labels': -100, 'attention_mask': 1, 'mm_token_type_ids': 0}`
+- `A3.threshold` b5:student_pilot/candidate_policy.py:30 (depth_cut): compares against 20 — `if inner.sum() < 20:`
+- `A3.constant` b5:student_pilot/candidate_policy.py:30 (depth_cut): constant 20 — `if inner.sum() < 20:`
+- `A3.threshold` b5:student_pilot/candidate_policy.py:34 (depth_cut): compares against 10 — `if len(values) < 10:`
+- `A3.constant` b5:student_pilot/candidate_policy.py:34 (depth_cut): constant 10 — `if len(values) < 10:`
+- `A3.constant` b5:student_pilot/candidate_policy.py:36 (depth_cut): constant 10 — `low, high = np.percentile(values, (10, 90)) + np.array([-.15, .15])`
+- `A3.constant` b5:student_pilot/candidate_policy.py:36 (depth_cut): constant 90 — `low, high = np.percentile(values, (10, 90)) + np.array([-.15, .15])`
+- `A3.constant` b5:student_pilot/candidate_policy.py:36 (depth_cut): constant -0.15 — `low, high = np.percentile(values, (10, 90)) + np.array([-.15, .15])`
+- `A3.constant` b5:student_pilot/candidate_policy.py:36 (depth_cut): constant 0.15 — `low, high = np.percentile(values, (10, 90)) + np.array([-.15, .15])`
+- `A3.threshold` b5:student_pilot/candidate_policy.py:38 (depth_cut): compares against 8 — `return keep if keep.sum() >= 8 else mask.copy()`
+- `A3.constant` b5:student_pilot/candidate_policy.py:38 (depth_cut): constant 8 — `return keep if keep.sum() >= 8 else mask.copy()`
+- `A3.constant` b5:student_pilot/candidate_policy.py:46 (disjoint): constant 0.2 — `if np.logical_and(first, second).sum() < .2 * min(first.sum(), second.sum()):`
+- `A3.constant` b5:student_pilot/candidate_policy.py:51 (merge): constant 0.2 — `def merge(ids, probability, blocked, threshold=.2):`
+- `A3.threshold` b5:student_pilot/candidate_policy.py:62 (merge): compares against threshold — `if best < threshold or selected is None:`
+- `A3.table_load` b5:student_pilot/candidate_policy.py:78 (Policy.__post_init__): load() — `self.weights = load(pinned(self.config["weights"]))`
+- `A3.constant` b5:student_pilot/candidate_policy.py:79 (Policy.__post_init__): constant 0.15 — `fixed = dict(schema="routed-candidate-policy-v1", count_threshold=.15, merge_threshold=.2,`
+- `A3.constant` b5:student_pilot/candidate_policy.py:79 (Policy.__post_init__): constant 0.2 — `fixed = dict(schema="routed-candidate-policy-v1", count_threshold=.15, merge_threshold=.2,`
+- `A3.constant` b5:student_pilot/candidate_policy.py:80 (Policy.__post_init__): constant 10 — `depth_erosion=3, depth_percentiles=[10, 90], depth_margin_m=.15,`
+- `A3.constant` b5:student_pilot/candidate_policy.py:80 (Policy.__post_init__): constant 90 — `depth_erosion=3, depth_percentiles=[10, 90], depth_margin_m=.15,`
+- `A3.constant` b5:student_pilot/candidate_policy.py:80 (Policy.__post_init__): constant 0.15 — `depth_erosion=3, depth_percentiles=[10, 90], depth_margin_m=.15,`
+- `A3.constant` b5:student_pilot/candidate_policy.py:81 (Policy.__post_init__): constant 0.2 — `disjoint_overlap=.2, name_prior=False)`
+- `A3.threshold` b5:student_pilot/candidate_policy.py:103 (Policy.select): compares against 0.15 — `chosen = [identity for identity in ids if probabilities[identity] >= .15] or [best]`
+- `A3.constant` b5:student_pilot/candidate_policy.py:103 (Policy.select): constant 0.15 — `chosen = [identity for identity in ids if probabilities[identity] >= .15] or [best]`
+- `A3.threshold` b5:student_pilot/carrier_c1_batch_decode.py:124 (Row._call): compares against MAX_CALL_TOKENS — `if self.active is not None and (tail.endswith('>') or len(ids) - self.active > D.MAX_CALL_TOKENS):`
+- `A3.threshold` b5:student_pilot/carrier_c1_batch_decode.py:136 (Row._call): compares against max_calls — `if len(self.records) >= self.max_calls:`
+- `A3.constant` b5:student_pilot/carrier_c1_batch_decode.py:163 (generate_batch): constant 200 — `max_calls=200, logits_processor=None, pose_source='own', tower_state=None,mask_source=None,ground_backend=None`
+- `A3.constant` b5:student_pilot/carrier_c1_decode.py:39 (<module>): constant 96 — `MAX_CALL_TOKENS = 96`
+- `A3.threshold` b5:student_pilot/carrier_c1_decode.py:119 (ground_text): compares against tau — `frames = sorted((i for i, p in enumerate(prob) if p >= tau), key=lambda i: (-prob[i], i))[:3]`
+- `A3.constant` b5:student_pilot/carrier_c1_decode.py:204 (HeadState.depth): constant 500.0 — `uv = torch.full((self.depth_map.shape[0], len(points), 2), 500., device=self.depth_map.device)`
+- `A3.constant` b5:student_pilot/carrier_c1_decode.py:251 (_prepare_decode): constant 200 — `def _prepare_decode(model, processor, batch, *, max_new_tokens=None, mode='own', donor_batch=None, max_calls=2`
+- `A3.constant` b5:student_pilot/carrier_c1_decode.py:432 (generate): constant 200 — `def generate(model, processor, batch, *, max_new_tokens=None, mode='own', donor_batch=None, max_calls=200,`
+- `A3.constant` b5:student_pilot/carrier_c1_decode.py:456 (_generate_one): constant 200 — `def _generate_one(model, processor, batch, *, max_new_tokens=None, mode='own', donor_batch=None, max_calls=200`
+- `A3.constant` b5:student_pilot/carrier_c1_routing.py:32 (<module>): constant 10.0 — `PATCH = 10.0`
+- `A3.constant` b5:student_pilot/carrier_c1_routing.py:33 (<module>): constant 5 — `STENCIL = np.array([(dx, dy) for dx in np.linspace(-PATCH, PATCH, 5) for dy in np.linspace(-PATCH, PATCH, 5)])`
+- `A3.constant` b5:student_pilot/carrier_c1_routing.py:119 (wrap): constant 180 — `return (deg + 180) % 360 - 180 if (deg + 180) % 360 else 180`
+- `A3.constant` b5:student_pilot/carrier_c1_routing.py:119 (wrap): constant 360 — `return (deg + 180) % 360 - 180 if (deg + 180) % 360 else 180`
+- `A3.unit_conversion` b5:student_pilot/carrier_c1_routing.py:267 (OwnGeometry.pose): identifier yaw_degree — `yaw_degree=round(math.degrees(math.atan2(-level[0][2], level[2][2]))))`
+- `A3.unit_conversion` b5:student_pilot/carrier_c1_routing.py:267 (OwnGeometry.pose): identifier degrees — `yaw_degree=round(math.degrees(math.atan2(-level[0][2], level[2][2]))))`
+- `A3.constant` b5:student_pilot/carrier_c1_routing.py:277 (OwnGeometry.click): constant 999.9 — `points = np.clip(uv[None] + STENCIL, 0, 999.9)`
+- `A3.constant` b5:student_pilot/carrier_c1_routing.py:281 (OwnGeometry.click): constant 20 — `p20, p30, p50, p80 = (np.percentile(values, q) for q in (20, 30, 50, 80))`
+- `A3.constant` b5:student_pilot/carrier_c1_routing.py:281 (OwnGeometry.click): constant 30 — `p20, p30, p50, p80 = (np.percentile(values, q) for q in (20, 30, 50, 80))`
+- `A3.constant` b5:student_pilot/carrier_c1_routing.py:281 (OwnGeometry.click): constant 50 — `p20, p30, p50, p80 = (np.percentile(values, q) for q in (20, 30, 50, 80))`
+- `A3.constant` b5:student_pilot/carrier_c1_routing.py:281 (OwnGeometry.click): constant 80 — `p20, p30, p50, p80 = (np.percentile(values, q) for q in (20, 30, 50, 80))`
+- `A3.constant` b5:student_pilot/carrier_c1_routing.py:282 (OwnGeometry.click): constant 0.001 — `spread = (p80 - p20) / max(p50, 1e-3)`
+- `A3.constant` b5:student_pilot/carrier_c1_routing.py:284 (OwnGeometry.click): constant 500 — `ray = np.array([(uv[0] / 500 - 1) * math.tan(horizontal / 2), (uv[1] / 500 - 1) * math.tan(vertical / 2), 1.])`
+- `A3.unit_conversion` b5:student_pilot/carrier_c1_routing.py:303 (OwnGeometry.turn_text): identifier degrees — `turn = wrap(round(math.degrees(math.atan2(a[0] * b[1] - a[1] * b[0], float(a @ b)))))`
+- `A3.constant` b5:student_pilot/carrier_c1_routing.py:452 (finish): constant -100 — `supervised = torch.where(labels != -100)[0]`
+- `A3.constant` b5:student_pilot/carrier_c1_routing.py:457 (finish): constant -100 — `labels[start:start + len(ids)][~torch.tensor(train)] = -100`
+- `A3.constant` b5:student_pilot/carrier_c1_routing.py:491 (splice): constant 8 — `padded = math.ceil(length / 8) * 8`
+- `A3.constant` b5:student_pilot/carrier_c1_routing.py:499 (splice): constant -100 — `labels = torch.full_like(out['input_ids'], -100)`
+- `A3.threshold` b5:student_pilot/carrier_c1_routing.py:563 (Gates.state): compares against table entry s['force_from_step'] — `forced = s['force_from_step'] is not None and step >= s['force_from_step']`
+- `A3.threshold` b5:student_pilot/carrier_c1_routing.py:566 (Gates.state): compares against table entry ema['fov_deg'] — `depth_open = ('fov_deg' in ema and ema['fov_deg'] < s['fov_open_deg']`
+- `A3.threshold` b5:student_pilot/carrier_c1_routing.py:567 (Gates.state): compares against table entry ema.get('depth_absrel', float('inf')) — `and ema.get('depth_absrel', float('inf')) < s['depth_open_absrel'])`
+- `A3.threshold` b5:student_pilot/carrier_c1_routing.py:569 (Gates.state): compares against table entry ema['depth_absrel'] — `depth_open = 'depth_absrel' in ema and ema['depth_absrel'] < s['depth_open_absrel']`
+- `A3.threshold` b5:student_pilot/carrier_c1_routing.py:571 (Gates.state): compares against table entry s['pose_open_deg'] — `pose = 0. if rotation is None or rotation >= s['pose_open_deg'] else \`
+- `A3.threshold` b5:student_pilot/carrier_c1_routing.py:574 (Gates.state): compares against table entry s['exposure_from_step'] — `and step >= s['exposure_from_step']) else 0.`
+- `A3.constant` b5:student_pilot/carrier_c1_routing.py:580 (Gates.decide): constant 16 — `seed = int(hashlib.sha256(f"{self.schedule['seed']}:{step}:{microstep}".encode()).hexdigest()[:16], 16)`
+- `A3.threshold` b5:student_pilot/carrier_c1_routing.py:583 (Gates.decide): compares against table entry state['p_depth'] — `return u_depth < state['p_depth'], u_pose < state['p_pose']`
+- `A3.threshold` b5:student_pilot/carrier_c1_routing.py:583 (Gates.decide): compares against table entry state['p_pose'] — `return u_depth < state['p_depth'], u_pose < state['p_pose']`
+- `A3.constant` b5:student_pilot/carrier_c1_routing.py:621 (query_tensor): constant 32 — `per_frame, index = [[] for _ in range(32)], []`
+- `A3.constant` b5:student_pilot/carrier_c1_routing.py:625 (query_tensor): constant 999.9 — `stencil = np.clip(np.asarray(uv)[None] + STENCIL, 0, 999.9)`
+- `A3.constant` b5:student_pilot/carrier_c1_routing.py:630 (query_tensor): constant 32 — `uv = np.full((32, k, 2), 500., dtype=np.float32)`
+- `A3.constant` b5:student_pilot/carrier_c1_routing.py:630 (query_tensor): constant 500.0 — `uv = np.full((32, k, 2), 500., dtype=np.float32)`
+- `A3.threshold` b5:student_pilot/carrier_c1_routing.py:767 (camera_filter): compares against 0.15 — `if win < .15 or win <= abs(dy) or win - runner < .10:`
+- `A3.constant` b5:student_pilot/carrier_c1_routing.py:767 (camera_filter): constant 0.15 — `if win < .15 or win <= abs(dy) or win - runner < .10:`
+- `A3.threshold` b5:student_pilot/carrier_c1_routing.py:767 (camera_filter): compares against 0.1 — `if win < .15 or win <= abs(dy) or win - runner < .10:`
+- `A3.constant` b5:student_pilot/carrier_c1_routing.py:767 (camera_filter): constant 0.1 — `if win < .15 or win <= abs(dy) or win - runner < .10:`
+- `A3.threshold` b5:student_pilot/carrier_c1_routing.py:771 (camera_filter): compares against 165 — `if any(abs(t) >= 165 for t in turns if isinstance(t, (int, float))):`
+- `A3.constant` b5:student_pilot/carrier_c1_routing.py:771 (camera_filter): constant 165 — `if any(abs(t) >= 165 for t in turns if isinstance(t, (int, float))):`
+- `A3.table_load` b5:student_pilot/carrier_c1_routing.py:782 (load_exclusions): load() — `data = load(pinned(pin))`
+- `A3.constant` b5:student_pilot/carrier_c1_routing.py:838 (build_routing_stream): constant 9600 — `def build_routing_stream(source, rgb_index, division_pin, output, processor_root, max_suffix_tokens=9600,`
+- `A3.table_load` b5:student_pilot/carrier_c1_routing.py:861 (build_routing_stream): load() — `division = load(pinned(division_pin))`
+- `A3.table_load` b5:student_pilot/carrier_c1_routing.py:867 (build_routing_stream): load() — `index = load(pinned(rgb_index))`
+- `A3.table_load` b5:student_pilot/carrier_c1_routing.py:876 (build_routing_stream): json.loads() — `raw = json.loads(line)`
+- `A3.table_load` b5:student_pilot/carrier_c1_routing.py:881 (build_routing_stream): load() — `rgb = load(pinned(entry if isinstance(entry, dict) else dict(path=entry, sha256=manifest['sha256'])))`
+- `A3.threshold` b5:student_pilot/carrier_c1_routing.py:901 (build_routing_stream): compares against max_suffix_tokens — `'over_length' if len(ids) > max_suffix_tokens else None)`
+- `A3.threshold` b5:student_pilot/carrier_c1_routing.py:916 (build_routing_stream): compares against 2000 — `if 'gt_pose9' in raw and len(replay_rows) < 2000:`
+- `A3.constant` b5:student_pilot/carrier_c1_routing.py:916 (build_routing_stream): constant 2000 — `if 'gt_pose9' in raw and len(replay_rows) < 2000:`
+- `A3.table_load` b5:student_pilot/carrier_c1_routing.py:925 (build_routing_stream): json.loads() — `raw = json.loads(line)`
+- `A3.data_file` b5:student_pilot/carrier_c1_routing.py:960 (build_routing_stream): string 'receipt.json' — `write(out / 'receipt.json', receipt)`
+- `A3.constant` b5:student_pilot/carrier_c1_routing.py:972 (main): constant 9600 — `parser.add_argument('--max-suffix-tokens', type=int, default=9600)`
+- `A3.table_load` b5:student_pilot/carrier_c1_routing.py:981 (main): json.loads() — `receipt = build_routing_stream(json.loads(args.source), json.loads(args.rgb_index), json.loads(args.division),`
+- `A3.table_load` b5:student_pilot/carrier_c1_routing.py:984 (main): json.loads() — `direct_source=json.loads(args.direct_source) if args.direct_source else None,`
+- `A3.table_load` b5:student_pilot/carrier_c1_routing.py:985 (main): json.loads() — `exclusions=json.loads(args.exclusions) if args.exclusions else None,`
+- `A3.table_load` b5:student_pilot/carrier_c1_routing.py:986 (main): json.loads() — `report_exclusions=json.loads(args.report_exclusions) if args.report_exclusions else None,`
+- `A3.threshold` b5:student_pilot/carrier_c1_routing.py:1014 (gt_replay): compares against 20 — `elif len(diffs) < 20:`
+- `A3.constant` b5:student_pilot/carrier_c1_routing.py:1014 (gt_replay): constant 20 — `elif len(diffs) < 20:`
+- `A3.table_load` b5:student_pilot/carrier_c1_routing.py:1022 (shippable_exclusions): json.loads() — `data = json.loads(Path(source).read_text())`
+- `A3.constant` b5:student_pilot/geometry_profiles.py:125 (ProfileGeometry.__init__): constant 1000 — `self.grid_uv = np.asarray(np.linspace(0, 1000, self.depth_grid.shape[1]) if grid_uv is None else grid_uv)`
+- `A3.threshold` b5:student_pilot/geometry_profiles.py:143 (ProfileGeometry.has): compares against 32 — `return type(frame) is int and 1 <= frame <= 32`
+- `A3.constant` b5:student_pilot/geometry_profiles.py:143 (ProfileGeometry.has): constant 32 — `return type(frame) is int and 1 <= frame <= 32`
+- `A3.constant` b5:student_pilot/geometry_profiles.py:156 (ProfileGeometry._raw_depth): constant 1000 — `x, y = np.clip(np.asarray(uv) * ((len(d)-1)/1000), 0, len(d)-1).T`
+- `A3.constant` b5:student_pilot/geometry_profiles.py:178 (ProfileGeometry.lift): constant -10 — `offsets = np.array([(dx,dy) for dx in np.linspace(-10,10,5) for dy in np.linspace(-10,10,5)])`
+- `A3.constant` b5:student_pilot/geometry_profiles.py:178 (ProfileGeometry.lift): constant 10 — `offsets = np.array([(dx,dy) for dx in np.linspace(-10,10,5) for dy in np.linspace(-10,10,5)])`
+- `A3.constant` b5:student_pilot/geometry_profiles.py:178 (ProfileGeometry.lift): constant 5 — `offsets = np.array([(dx,dy) for dx in np.linspace(-10,10,5) for dy in np.linspace(-10,10,5)])`
+- `A3.constant` b5:student_pilot/geometry_profiles.py:179 (ProfileGeometry.lift): constant 1000 — `stencil = np.clip(uv[:,None]+offsets,0,1000)`
+- `A3.constant` b5:student_pilot/geometry_profiles.py:180 (ProfileGeometry.lift): constant 25 — `d = self.depth(frame, stencil.reshape(-1,2)).reshape(len(uv),25)`
+- `A3.constant` b5:student_pilot/geometry_profiles.py:181 (ProfileGeometry.lift): constant 20 — `p20,p50,p80 = np.percentile(d,(20,50,80),axis=1)`
+- `A3.constant` b5:student_pilot/geometry_profiles.py:181 (ProfileGeometry.lift): constant 50 — `p20,p50,p80 = np.percentile(d,(20,50,80),axis=1)`
+- `A3.constant` b5:student_pilot/geometry_profiles.py:181 (ProfileGeometry.lift): constant 80 — `p20,p50,p80 = np.percentile(d,(20,50,80),axis=1)`
+- `A3.constant` b5:student_pilot/geometry_profiles.py:183 (ProfileGeometry.lift): constant 0.001 — `return self.to_world(frame,Points(pc)).values, pc, (p80-p20)/np.maximum(p50,1e-3)`
+- `A3.constant` b5:student_pilot/geometry_profiles.py:191 (ProfileGeometry.fov_of): constant 500 — `return 2*np.arctan(500/Kc[1,1]), 2*np.arctan(500/Kc[0,0])`
+- `A3.constant` b5:student_pilot/geometry_profiles.py:207 (ContractAdapter.__init__): constant 33 — `for k in range(1,33):`
+- `A3.constant` b5:student_pilot/geometry_profiles.py:213 (ContractAdapter.__init__): constant 33 — `for k in range(1,33):`
+- `A3.constant` b5:student_pilot/geometry_profiles.py:216 (ContractAdapter.__init__): constant 500 — `expected=np.array([[500/np.tan(fw/2),0,500],[0,500/np.tan(fh/2),500],[0,0,1]])`
+- `A3.table_load` b5:student_pilot/geometry_profiles.py:232 (legacy_from_heads): np.load() — `with np.load(path,allow_pickle=False) as z:`
+- `A3.constant` b5:student_pilot/geometry_profiles.py:242 (legacy_from_heads): constant 32 — `C=np.repeat(np.eye(4)[None],32,axis=0);C[:,:3,:3]=R;C[:,:3,3]=t`
+- `A3.constant` b5:student_pilot/geometry_profiles.py:243 (legacy_from_heads): constant 32 — `K=np.zeros((32,3,3));K[:,0,0]=W/(2*np.tan(fov[:,1]/2));K[:,1,1]=H/(2*np.tan(fov[:,0]/2))`
+- `A3.constant` b5:student_pilot/geometry_profiles.py:245 (legacy_from_heads): constant 1000 — `A=np.repeat(np.diag([W/1000,H/1000,1.])[None],32,axis=0)`
+- `A3.constant` b5:student_pilot/geometry_profiles.py:245 (legacy_from_heads): constant 32 — `A=np.repeat(np.diag([W/1000,H/1000,1.])[None],32,axis=0)`
+- `A3.table_load` b5:student_pilot/geometry_profiles.py:253 (scaled_from_heads): np.load() — `with np.load(path,allow_pickle=False) as z:`
+- `A3.constant` b5:student_pilot/ground_context.py:44 (from_row): constant 32 — `mapping=FrameMap(tuple(indices),rgb_sha256=hashes) if len(indices)==32 else None`
+- `A3.constant` b5:student_pilot/ground_lifting.py:31 (mask_pixels): constant 1000 — `uv = np.column_stack(((cols + .5) / w * 1000, (rows + .5) / h * 1000))`
+- `A3.threshold` b5:student_pilot/ground_lifting.py:32 (mask_pixels): compares against 20 — `return uv[((uv >= 20) & (uv <= 980)).all(1)]`
+- `A3.threshold` b5:student_pilot/ground_lifting.py:32 (mask_pixels): compares against 980 — `return uv[((uv >= 20) & (uv <= 980)).all(1)]`
+- `A3.threshold` b5:student_pilot/ground_lifting.py:48 (fit_gbox): compares against 1e-09 — `if np.linalg.norm(e) < 1e-9:`
+- `A3.constant` b5:student_pilot/ground_lifting.py:48 (fit_gbox): constant 1e-09 — `if np.linalg.norm(e) < 1e-9:`
+- `A3.constant` b5:student_pilot/ground_lifting.py:59 (fit_gbox): constant 98 — `z0, z1 = np.percentile(P[:, 2], (2, 98))`
+- `A3.constant` b5:student_pilot/ground_lifting.py:60 (fit_gbox): constant 0.02 — `return np.array([*best[1], max(z1 - z0, .02)])`
+- `A3.threshold` b5:student_pilot/ground_lifting.py:86 (interior_depths): compares against 20 — `if inner.sum() < 20:`
+- `A3.constant` b5:student_pilot/ground_lifting.py:86 (interior_depths): constant 20 — `if inner.sum() < 20:`
+- `A3.constant` b5:student_pilot/ground_lifting.py:90 (interior_depths): constant 1000 — `uv = np.column_stack(((cols + .5) / w * 1000, (rows + .5) / h * 1000))`
+- `A3.constant` b5:student_pilot/ground_lifting.py:96 (depth_cut_keep): constant 0.15 — `def depth_cut_keep(depth, interior, margin=0.15, min_keep=8):`
+- `A3.constant` b5:student_pilot/ground_lifting.py:96 (depth_cut_keep): constant 8 — `def depth_cut_keep(depth, interior, margin=0.15, min_keep=8):`
+- `A3.threshold` b5:student_pilot/ground_lifting.py:99 (depth_cut_keep): compares against 10 — `if len(interior) < 10:`
+- `A3.constant` b5:student_pilot/ground_lifting.py:99 (depth_cut_keep): constant 10 — `if len(interior) < 10:`
+- `A3.constant` b5:student_pilot/ground_lifting.py:101 (depth_cut_keep): constant 10 — `lo, hi = np.percentile(interior, 10) - margin, np.percentile(interior, 90) + margin`
+- `A3.constant` b5:student_pilot/ground_lifting.py:101 (depth_cut_keep): constant 90 — `lo, hi = np.percentile(interior, 10) - margin, np.percentile(interior, 90) + margin`
+- `A3.threshold` b5:student_pilot/ground_lifting.py:103 (depth_cut_keep): compares against min_keep — `return keep if keep.sum() >= min_keep else np.ones(len(depth), bool)`
+- `A3.threshold` b5:student_pilot/ground_lifting.py:118 (lift_object): compares against tau — `if prob[k - 1] < tau or not mask.any() or not getattr(geometry, 'has', lambda _: True)(k):`
+- `A3.constant` b5:student_pilot/ground_lifting.py:129 (lift_object): constant 1000 — `edge = np.minimum(uv, 1000 - uv).min(1)`
+- `A3.threshold` b5:student_pilot/ground_lifting.py:132 (lift_object): compares against 40 — `& (spread <= np.where(edge <= 40, .10, .25)))`
+- `A3.constant` b5:student_pilot/ground_lifting.py:132 (lift_object): constant 40 — `& (spread <= np.where(edge <= 40, .10, .25)))`
+- `A3.constant` b5:student_pilot/ground_lifting.py:132 (lift_object): constant 0.1 — `& (spread <= np.where(edge <= 40, .10, .25)))`
+- `A3.constant` b5:student_pilot/ground_lifting.py:132 (lift_object): constant 0.25 — `& (spread <= np.where(edge <= 40, .10, .25)))`
+- `A3.constant` b5:student_pilot/ground_lifting.py:242 (OwnGeometryAdapter._depth): constant 1000 — `axis = np.linspace(0, 1000, 51, dtype=np.float32)`
+- `A3.constant` b5:student_pilot/ground_lifting.py:242 (OwnGeometryAdapter._depth): constant 51 — `axis = np.linspace(0, 1000, 51, dtype=np.float32)`
+- `A3.constant` b5:student_pilot/ground_lifting.py:248 (OwnGeometryAdapter._depth): constant 51 — `self.grids[frame] = depth.reshape(51, 51)`
+- `A3.constant` b5:student_pilot/ground_lifting.py:249 (OwnGeometryAdapter._depth): constant 0.05 — `x, y = np.clip(np.asarray(u) * .05, 0, 50), np.clip(np.asarray(v) * .05, 0, 50)`
+- `A3.constant` b5:student_pilot/ground_lifting.py:249 (OwnGeometryAdapter._depth): constant 50 — `x, y = np.clip(np.asarray(u) * .05, 0, 50), np.clip(np.asarray(v) * .05, 0, 50)`
+- `A3.constant` b5:student_pilot/ground_lifting.py:251 (OwnGeometryAdapter._depth): constant 50 — `x1, y1 = np.minimum(x0 + 1, 50), np.minimum(y0 + 1, 50)`
+- `A3.constant` b5:student_pilot/ground_lifting.py:263 (OwnGeometryAdapter.lift): constant -10 — `offsets = np.array([(dx, dy) for dx in np.linspace(-10, 10, 5)`
+- `A3.constant` b5:student_pilot/ground_lifting.py:263 (OwnGeometryAdapter.lift): constant 10 — `offsets = np.array([(dx, dy) for dx in np.linspace(-10, 10, 5)`
+- `A3.constant` b5:student_pilot/ground_lifting.py:263 (OwnGeometryAdapter.lift): constant 5 — `offsets = np.array([(dx, dy) for dx in np.linspace(-10, 10, 5)`
+- `A3.constant` b5:student_pilot/ground_lifting.py:264 (OwnGeometryAdapter.lift): constant -10 — `for dy in np.linspace(-10, 10, 5)])`
+- `A3.constant` b5:student_pilot/ground_lifting.py:264 (OwnGeometryAdapter.lift): constant 10 — `for dy in np.linspace(-10, 10, 5)])`
+- `A3.constant` b5:student_pilot/ground_lifting.py:264 (OwnGeometryAdapter.lift): constant 5 — `for dy in np.linspace(-10, 10, 5)])`
+- `A3.constant` b5:student_pilot/ground_lifting.py:265 (OwnGeometryAdapter.lift): constant 1000 — `stencil = np.clip(uv[:, None] + offsets, 0, 1000)`
+- `A3.constant` b5:student_pilot/ground_lifting.py:271 (OwnGeometryAdapter.lift): constant 25 — `dp = query(stencil.reshape(-1, 2)).reshape(len(uv), 25)`
+- `A3.constant` b5:student_pilot/ground_lifting.py:272 (OwnGeometryAdapter.lift): constant 20 — `p20, p50, p80 = np.percentile(dp, (20, 50, 80), axis=1)`
+- `A3.constant` b5:student_pilot/ground_lifting.py:272 (OwnGeometryAdapter.lift): constant 50 — `p20, p50, p80 = np.percentile(dp, (20, 50, 80), axis=1)`
+- `A3.constant` b5:student_pilot/ground_lifting.py:272 (OwnGeometryAdapter.lift): constant 80 — `p20, p50, p80 = np.percentile(dp, (20, 50, 80), axis=1)`
+- `A3.constant` b5:student_pilot/ground_lifting.py:273 (OwnGeometryAdapter.lift): constant 0.001 — `spread = (p80 - p20) / np.maximum(p50, 1e-3)`
+- `A3.constant` b5:student_pilot/ground_lifting.py:276 (OwnGeometryAdapter.lift): constant 500 — `ray = np.column_stack(((uv[:, 0] / 500 - 1) * math.tan(horizontal / 2),`
+- `A3.constant` b5:student_pilot/ground_lifting.py:277 (OwnGeometryAdapter.lift): constant 500 — `(uv[:, 1] / 500 - 1) * math.tan(vertical / 2), np.ones(len(uv))))`
+- `A3.table_load` b5:student_pilot/ground_profiles.py:13 (load_geometry): np.load() — `with np.load(path,allow_pickle=False) as z:`
+- `A3.constant` b5:student_pilot/ground_replay.py:43 (record_mask): constant 32 — `masks=np.zeros((32,1,1),bool) if masks is None else np.asarray(masks,bool)`
+- `A3.constant` b5:student_pilot/ground_replay.py:44 (record_mask): constant 32 — `prob=np.zeros(32) if prob is None else np.asarray(prob)`
+- `A3.constant` b5:student_pilot/ground_replay.py:65 (Legacy.restore_geometry.rays): constant 500 — `return np.stack([(uv[:,0]/500-1)*math.tan(fw/2),`
+- `A3.constant` b5:student_pilot/ground_replay.py:66 (Legacy.restore_geometry.rays): constant 500 — `(uv[:,1]/500-1)*math.tan(fh/2),np.ones(len(uv))],1)`
+- `A3.constant` b5:student_pilot/ground_replay.py:74 (Native.restore_geometry.lift.px): constant 1000 — `return np.clip((uv[:,0]/1000*W).astype(int),0,W-1),np.clip((uv[:,1]/1000*H).astype(int),0,H-1)`
+- `A3.constant` b5:student_pilot/ground_replay.py:75 (Native.restore_geometry.lift): constant -10 — `offsets=np.array([(dx,dy) for dx in np.linspace(-10,10,5) for dy in np.linspace(-10,10,5)])`
+- `A3.constant` b5:student_pilot/ground_replay.py:75 (Native.restore_geometry.lift): constant 10 — `offsets=np.array([(dx,dy) for dx in np.linspace(-10,10,5) for dy in np.linspace(-10,10,5)])`
+- `A3.constant` b5:student_pilot/ground_replay.py:75 (Native.restore_geometry.lift): constant 5 — `offsets=np.array([(dx,dy) for dx in np.linspace(-10,10,5) for dy in np.linspace(-10,10,5)])`
+- `A3.constant` b5:student_pilot/ground_replay.py:76 (Native.restore_geometry.lift): constant 999.9 — `x,y=px(np.clip(uv[:,None]+offsets,0,999.9).reshape(-1,2))`
+- `A3.constant` b5:student_pilot/ground_replay.py:77 (Native.restore_geometry.lift): constant 25 — `d=depth[k-1,y,x].astype(float).reshape(len(uv),25);d[d<=0]=np.nan`
+- `A3.constant` b5:student_pilot/ground_replay.py:78 (Native.restore_geometry.lift): constant 20 — `p20,p50,p80=np.nanpercentile(d,(20,50,80),axis=1)`
+- `A3.constant` b5:student_pilot/ground_replay.py:78 (Native.restore_geometry.lift): constant 50 — `p20,p50,p80=np.nanpercentile(d,(20,50,80),axis=1)`
+- `A3.constant` b5:student_pilot/ground_replay.py:78 (Native.restore_geometry.lift): constant 80 — `p20,p50,p80=np.nanpercentile(d,(20,50,80),axis=1)`
+- `A3.constant` b5:student_pilot/ground_replay.py:82 (Native.restore_geometry.lift): constant 0.001 — `return pc@R.T+t,pc,(p80-p20)/np.maximum(p50,1e-3)`
+- `A3.constant` b5:student_pilot/ground_sources.py:10 (<module>): constant 0.3 — `RETAINED_SCORE_FLOOR = .3`
+- `A3.threshold` b5:student_pilot/ground_sources.py:15 (native_gate): compares against RETAINED_SCORE_FLOOR — `return [p for p in proposals if p.score >= RETAINED_SCORE_FLOOR`
+- `A3.threshold` b5:student_pilot/ground_sources.py:16 (native_gate): compares against NATIVE_JOINT_THRESHOLD — `and p.joint > NATIVE_JOINT_THRESHOLD]`
+- `A3.constant` b5:student_pilot/ground_sources.py:26 (native_candidates): constant 33 — `for frame in range(1, 33):`
+- `A3.threshold` b5:student_pilot/ground_sources.py:31 (native_candidates): compares against RETAINED_SCORE_FLOOR — `if score < RETAINED_SCORE_FLOOR or joint <= NATIVE_JOINT_THRESHOLD:`
+- `A3.threshold` b5:student_pilot/ground_sources.py:31 (native_candidates): compares against NATIVE_JOINT_THRESHOLD — `if score < RETAINED_SCORE_FLOOR or joint <= NATIVE_JOINT_THRESHOLD:`
+- `A3.constant` b5:student_pilot/ground_sources.py:43 (file_sha256): constant 1024 — `for block in iter(lambda: f.read(1024*1024), b''):`
+- `A3.table_load` b5:student_pilot/ground_sources.py:101 (CachedSAM3.__init__): json.loads() — `manifest = json.loads(manifest_path.read_text())`
+- `A3.constant` b5:student_pilot/ground_v3.py:23 (same_object): constant 0.3 — `radius=max(.30,.5*min(p.extent,q.extent))+.025*(p.depth+q.depth)`
+- `A3.constant` b5:student_pilot/ground_v3.py:23 (same_object): constant 0.025 — `radius=max(.30,.5*min(p.extent,q.extent))+.025*(p.depth+q.depth)`
+- `A3.threshold` b5:student_pilot/ground_v3.py:25 (same_object): compares against 0.25 — `if np.linalg.norm(p.center-q.center)<=radius or overlap>=.25:`
+- `A3.constant` b5:student_pilot/ground_v3.py:25 (same_object): constant 0.25 — `if np.linalg.norm(p.center-q.center)<=radius or overlap>=.25:`
+- `A3.constant` b5:student_pilot/ground_v3.py:31 (same_object): constant 0.3 — `return np.linalg.norm(a.center-b.center) <= max(.30,.5*extent)+.05*depth or overlap >= .25`
+- `A3.constant` b5:student_pilot/ground_v3.py:31 (same_object): constant 0.05 — `return np.linalg.norm(a.center-b.center) <= max(.30,.5*extent)+.05*depth or overlap >= .25`
+- `A3.threshold` b5:student_pilot/ground_v3.py:31 (same_object): compares against 0.25 — `return np.linalg.norm(a.center-b.center) <= max(.30,.5*extent)+.05*depth or overlap >= .25`
+- `A3.constant` b5:student_pilot/ground_v3.py:31 (same_object): constant 0.25 — `return np.linalg.norm(a.center-b.center) <= max(.30,.5*extent)+.05*depth or overlap >= .25`
+- `A3.constant` b5:student_pilot/ground_v3.py:83 (GroundV3.__init__): constant 0.3 — `self.config['proposal_gate'] = dict(joint_strict_gt=.5, retained_score_floor=.3)`
+- `A3.threshold` b5:student_pilot/ground_v3.py:213 (GroundV3._select): compares against table entry self.config['verify_threshold'] — `eligible = [c for c in candidates if c.id not in blocked and verdict[c.id]>=self.config['verify_threshold']`
+- `A3.data_file` b5:student_pilot/ground_v3.py:305 (GroundV3._emit): string '.json' — `path=self.audit_dir/f'{self.session}_{self.calls:06d}.json'`
+- `A3.constant` b5:student_pilot/ground_v3.py:339 (GroundV3._verify_candidates): constant 5 — `if len(candidates)==5:break`
+- `A3.threshold` b5:student_pilot/ground_v3.py:393 (GroundV3.accept_verify): compares against table entry self.config['verify_threshold'] — `if values.get(canonical+':mask',0.)<self.config['verify_threshold']:`
+- `A3.constant` b5:student_pilot/live_instances314.py:18 (ExactFrames.__init__): constant 33 — `frames=[k for k in range(1,33)`
+- `A3.threshold` b5:student_pilot/live_instances314.py:24 (ExactFrames.has_pose): compares against 32 — `if not 1<=k<=32:return False`
+- `A3.constant` b5:student_pilot/live_instances314.py:24 (ExactFrames.has_pose): constant 32 — `if not 1<=k<=32:return False`
+- `A3.constant` b5:student_pilot/live_instances314.py:85 (components): constant 32 — `frames=[[] for _ in range(32)]`
+- `A3.constant` b5:student_pilot/live_instances314.py:93 (components): constant 32 — `frames=[[] for _ in range(32)]`
+- `A3.constant` b5:student_pilot/live_instances314.py:100 (components): constant 32 — `if str(batch.state).lower() in ('not_seen','state.not_seen'):return [[] for _ in range(32)]`
+- `A3.threshold` b5:student_pilot/live_instances314.py:103 (components): compares against tau — `prob=np.where(np.asarray(batch.probabilities)>=batch.tau,1.,0.)`
+- `A3.constant` b5:student_pilot/live_instances314.py:155 (query_instances): constant 20 — `max_candidates=max(20,len(candidates)))`
+- `A3.threshold` b5:student_pilot/live_instances314.py:161 (query_instances): compares against table entry owner.config['verify_threshold'] — `lifted=[(e,o) for e,o in lifted if scores.get(e['instance_id'],0.)>=owner.config['verify_threshold']]`
+- `A3.constant` b5:student_pilot/mdg_decode.py:107 (Backend.ground): constant 32 — `values = dict(mask=np.zeros((1, 32, 1, 1), dtype=bool), prob=np.zeros((1, 32)))`
+- `A3.constant` b5:student_pilot/object_memory.py:50 (ClipMemory.__init__): constant 128 — `def __init__(self, max_slots=128):`
+- `A3.threshold` b5:student_pilot/object_memory.py:75 (ClipMemory.put): compares against max_slots — `if key not in self.slots and sum(k[0] == key[0] for k in self.slots) >= self.max_slots:`
+- `A3.constant` b5:student_pilot/p3_printed_calculator.py:55 (_decimal_context.call): constant 1024 — `with localcontext(Context(prec=1024, rounding=ROUND_HALF_EVEN)):`
+- `A3.threshold` b5:student_pilot/p3_printed_calculator.py:159 (PrintedPointRegistry.register): compares against 32 — `_require(all(type(k) is int and 1 <= k <= 32 for k in (requested_frame, actual_frame)),`
+- `A3.constant` b5:student_pilot/p3_printed_calculator.py:159 (PrintedPointRegistry.register): constant 32 — `_require(all(type(k) is int and 1 <= k <= 32 for k in (requested_frame, actual_frame)),`
+- `A3.unit_conversion` b5:student_pilot/p3_printed_calculator.py:220 (PrintedPointRegistry.execute): identifier degrees — `theta = round(math.degrees(math.atan2(float(cross), float(dot))))`
+- `A3.constant` b5:student_pilot/p3_printed_calculator.py:221 (PrintedPointRegistry.execute): constant 90 — `_require(theta != 0 if op == "turn" else abs(theta) not in (0, 90, 135, 180), "rounding_boundary")`
+- `A3.constant` b5:student_pilot/p3_printed_calculator.py:221 (PrintedPointRegistry.execute): constant 135 — `_require(theta != 0 if op == "turn" else abs(theta) not in (0, 90, 135, 180), "rounding_boundary")`
+- `A3.constant` b5:student_pilot/p3_printed_calculator.py:221 (PrintedPointRegistry.execute): constant 180 — `_require(theta != 0 if op == "turn" else abs(theta) not in (0, 90, 135, 180), "rounding_boundary")`
+- `A3.threshold` b5:student_pilot/p3_printed_calculator.py:224 (PrintedPointRegistry.execute): compares against 90 — `if rule == "hard": label = ("front-" if abs(theta) < 90 else "back-") + side`
+- `A3.constant` b5:student_pilot/p3_printed_calculator.py:224 (PrintedPointRegistry.execute): constant 90 — `if rule == "hard": label = ("front-" if abs(theta) < 90 else "back-") + side`
+- `A3.threshold` b5:student_pilot/p3_printed_calculator.py:225 (PrintedPointRegistry.execute): compares against 135 — `elif rule == "medium": label = "back" if abs(theta) >= 135 else side`
+- `A3.constant` b5:student_pilot/p3_printed_calculator.py:225 (PrintedPointRegistry.execute): constant 135 — `elif rule == "medium": label = "back" if abs(theta) >= 135 else side`
+- `A3.threshold` b5:student_pilot/p3_printed_calculator.py:226 (PrintedPointRegistry.execute): compares against 135 — `elif rule == "turn": label = "Turn Back" if abs(theta) >= 135 else "Turn " + side.title()`
+- `A3.constant` b5:student_pilot/p3_printed_calculator.py:226 (PrintedPointRegistry.execute): constant 135 — `elif rule == "turn": label = "Turn Back" if abs(theta) >= 135 else "Turn " + side.title()`
+- `A3.unit_conversion` b5:student_pilot/p3_printed_calculator.py:229 (PrintedPointRegistry.execute): string 'degree' — `"unit": "degree", "rule": rule, "label": label}`
+- `A3.table_load` b5:student_pilot/s1_grounding.py:16 (default_policy): load() — `version = load(root / "s1_version.json")["ground_candidate_policy"]`
+- `A3.data_file` b5:student_pilot/s1_grounding.py:16 (default_policy): string 's1_version.json' — `version = load(root / "s1_version.json")["ground_candidate_policy"]`
+- `A3.table_load` b5:student_pilot/s1_grounding.py:43 (build_backend): load() — `manifest = load(pinned(settings["geometry_manifest"]))`
+- `A3.constant` b5:student_pilot/svp_stages.py:10 (footprint): constant 0.05 — `def footprint(points, geometry, frame, shape=(80,112), *, relative=.05, absolute=.03):`
+- `A3.constant` b5:student_pilot/svp_stages.py:10 (footprint): constant 0.03 — `def footprint(points, geometry, frame, shape=(80,112), *, relative=.05, absolute=.03):`
+- `A3.constant` b5:student_pilot/svp_stages.py:10 (footprint): constant 80 — `def footprint(points, geometry, frame, shape=(80,112), *, relative=.05, absolute=.03):`
+- `A3.constant` b5:student_pilot/svp_stages.py:10 (footprint): constant 112 — `def footprint(points, geometry, frame, shape=(80,112), *, relative=.05, absolute=.03):`
+- `A3.threshold` b5:student_pilot/svp_stages.py:21 (footprint): compares against 1000 — `valid=((uv>=0)&(uv<1000)).all(1)`
+- `A3.constant` b5:student_pilot/svp_stages.py:21 (footprint): constant 1000 — `valid=((uv>=0)&(uv<1000)).all(1)`
+- `A3.constant` b5:student_pilot/svp_stages.py:24 (footprint): constant 1000 — `xy=np.floor(uv*np.array([w,h])/1000).astype(int)`
+- `A3.constant` b5:student_pilot/svp_stages.py:32 (footprint): constant 1000 — `target_uv=np.column_stack(((x+.5)/w*1000,(y+.5)/h*1000))`
+- `A3.constant` b5:student_pilot/svp_stages.py:39 (propagate): constant 0.05 — `def propagate(candidate, geometry, proposals, *, sam, relative=.05, absolute=.03, iou=.3):`
+- `A3.constant` b5:student_pilot/svp_stages.py:39 (propagate): constant 0.03 — `def propagate(candidate, geometry, proposals, *, sam, relative=.05, absolute=.03, iou=.3):`
+- `A3.constant` b5:student_pilot/svp_stages.py:39 (propagate): constant 0.3 — `def propagate(candidate, geometry, proposals, *, sam, relative=.05, absolute=.03, iou=.3):`
+- `A3.constant` b5:student_pilot/svp_stages.py:42 (propagate): constant 32 — `masks=np.zeros((32,80,112),bool)`
+- `A3.constant` b5:student_pilot/svp_stages.py:42 (propagate): constant 80 — `masks=np.zeros((32,80,112),bool)`
+- `A3.constant` b5:student_pilot/svp_stages.py:42 (propagate): constant 112 — `masks=np.zeros((32,80,112),bool)`
+- `A3.constant` b5:student_pilot/svp_stages.py:43 (propagate): constant 33 — `for frame in range(1,33):`
+- `A3.constant` b5:student_pilot/svp_stages.py:106 (SVPStages.__init__): constant 0.05 — `world_reference='',propagation=True,relative_depth=.05,absolute_depth=.03):`
+- `A3.constant` b5:student_pilot/svp_stages.py:106 (SVPStages.__init__): constant 0.03 — `world_reference='',propagation=True,relative_depth=.05,absolute_depth=.03):`
+- `A3.threshold` b5:student_pilot/svp_stages.py:134 (SVPStages.visible): compares against threshold — `proposals=[p for p in candidate.proposals if prior is None or prior[p.frame-1]>=self.threshold]`
+- `A3.constant` b5:student_pilot/tower_read.py:24 (<module>): constant 1000 — `GRID_UV = np.linspace(0, 1000, 51, dtype=np.float32)`
+- `A3.constant` b5:student_pilot/tower_read.py:24 (<module>): constant 51 — `GRID_UV = np.linspace(0, 1000, 51, dtype=np.float32)`
+- `A3.constant` b5:student_pilot/tower_read.py:53 (_lm_indices): constant 32 — `if indices.shape == (1, 32):`
+- `A3.table_load` b5:student_pilot/tower_read.py:101 (TowerState.from_npz): np.load() — `with np.load(path, allow_pickle=False) as data:`
+- `A3.constant` b5:student_pilot/tower_read.py:139 (_hash): constant 1024 — `for block in iter(lambda: stream.read(1024 * 1024), b''):`
+- `A3.constant` b5:student_pilot/tower_read.py:151 (FrozenG3TTower.__init__): constant 64 — `self.dense_frames = settings.get('dense_frames', 64)`
+- `A3.constant` b5:student_pilot/tower_read.py:152 (FrozenG3TTower.__init__): constant 8 — `self.chunk = settings.get('depth_chunk_size', 8)`
+- `A3.table_load` b5:student_pilot/tower_read.py:176 (FrozenG3TTower._load): json.loads() — `config = json.loads(Path(self.settings['config_path']).read_text())`
+- `A3.constant` b5:student_pilot/tower_read.py:177 (FrozenG3TTower._load): constant 1024 — `expected = dict(embed_dim=1024, img_size=518, patch_size=14,`
+- `A3.constant` b5:student_pilot/tower_read.py:177 (FrozenG3TTower._load): constant 518 — `expected = dict(embed_dim=1024, img_size=518, patch_size=14,`
+- `A3.constant` b5:student_pilot/tower_read.py:177 (FrozenG3TTower._load): constant 14 — `expected = dict(embed_dim=1024, img_size=518, patch_size=14,`
+- `A3.constant` b5:student_pilot/tower_read.py:236 (FrozenG3TTower.run): constant 1024 — `square, box = load_and_preprocess_images_square([stream], 1024)`
+- `A3.constant` b5:student_pilot/tower_read.py:237 (FrozenG3TTower.run): constant 518 — `inputs.append(F.interpolate(square.to(self.device), size=(518, 518), mode='bilinear',`
+- `A3.constant` b5:student_pilot/tower_read.py:254 (FrozenG3TTower.run): constant 11 — `layers = sorted(set((4, 11, 17, 23)) | set(owner.geometry_online['gf1']['layers']))`
+- `A3.constant` b5:student_pilot/tower_read.py:254 (FrozenG3TTower.run): constant 17 — `layers = sorted(set((4, 11, 17, 23)) | set(owner.geometry_online['gf1']['layers']))`
+- `A3.constant` b5:student_pilot/tower_read.py:254 (FrozenG3TTower.run): constant 23 — `layers = sorted(set((4, 11, 17, 23)) | set(owner.geometry_online['gf1']['layers']))`
+- `A3.constant` b5:student_pilot/tower_read.py:266 (FrozenG3TTower.run): constant 32 — `for offset in range(0, 32, self.chunk):`
+- `A3.constant` b5:student_pilot/tower_read.py:273 (FrozenG3TTower.run): constant 51 — `depths.append(native_sample(depth[0], box, native_hw, (51, 51))[..., 0].cpu().numpy())`
+- `A3.constant` b5:student_pilot/tower_read.py:274 (FrozenG3TTower.run): constant 51 — `confidences.append(native_sample(conf[0, ..., None], box, native_hw, (51, 51))[..., 0].cpu().numpy())`
+- `A3.constant` b5:student_pilot/tower_read.py:280 (FrozenG3TTower.run): constant 51 — `points.append(native_sample(value[0], box, native_hw, (51, 51)).cpu().numpy())`
+- `A3.constant` b5:student_pilot/tower_read.py:320 (apply_tower): constant 32 — `uv = torch.stack((xx, yy), -1).reshape(1, -1, 2).expand(32, -1, -1)`
+- `A3.constant` b5:student_pilot/tower_read.py:322 (apply_tower): constant 32 — `own = heads.depth_head.query(heads.depth_map, uv).double().cpu().numpy().reshape(32, 51, 51)`
+- `A3.constant` b5:student_pilot/tower_read.py:322 (apply_tower): constant 51 — `own = heads.depth_head.query(heads.depth_map, uv).double().cpu().numpy().reshape(32, 51, 51)`
+- `A3.data_file` b5:student_pilot/tower_scale.py:11 (estimate_scale): string 'tower_scale_rule.json' — `for name, expected in (('tower_scale_rule.json', RULE_SHA256),`
+- `A3.constant` b5:student_pilot/tower_scale_rule.py:11 (estimate): constant 50 — `threshold = float(np.percentile(finite, 50))`
+- `A3.threshold` b5:student_pilot/tower_scale_rule.py:12 (estimate): compares against threshold — `selected = np.isfinite(c) & (c > threshold) & np.isfinite(d) & (d > 0) & np.isfinite(v) & (v > .1) & (v < 10)`
+- `A3.threshold` b5:student_pilot/tower_scale_rule.py:12 (estimate): compares against 0.1 — `selected = np.isfinite(c) & (c > threshold) & np.isfinite(d) & (d > 0) & np.isfinite(v) & (v > .1) & (v < 10)`
+- `A3.constant` b5:student_pilot/tower_scale_rule.py:12 (estimate): constant 0.1 — `selected = np.isfinite(c) & (c > threshold) & np.isfinite(d) & (d > 0) & np.isfinite(v) & (v > .1) & (v < 10)`
+- `A3.threshold` b5:student_pilot/tower_scale_rule.py:12 (estimate): compares against 10 — `selected = np.isfinite(c) & (c > threshold) & np.isfinite(d) & (d > 0) & np.isfinite(v) & (v > .1) & (v < 10)`
+- `A3.constant` b5:student_pilot/tower_scale_rule.py:12 (estimate): constant 10 — `selected = np.isfinite(c) & (c > threshold) & np.isfinite(d) & (d > 0) & np.isfinite(v) & (v > .1) & (v < 10)`
+- `A3.constant` b5:student_pilot/trace_format313.py:32 (respond): constant 5 — `return text,dict(kind='gap' if call.startswith('<gap') else 'ground' if call.startswith('<ground') else 'keypo`
+- `A3.unit_conversion` b5:trace_format/box_v313.py:11 (<module>): string 'box_grid_5cm' — `RULE_GRID = 'box_grid_5cm'`
+- `A3.constant` b5:trace_format/box_v313.py:13 (<module>): constant 8 — `MAX_INSTANCES = 8`
+- `A3.unit_conversion` b5:trace_format/box_v313.py:15 (<module>): string ' rule="(sampled_box_512|box_grid_5cm)">' — `GAP = re.compile(r'<gap a="(' + old.NAME + r')"((?: b="' + old.NAME + r'")+)' + r' rule="(sampled_box_512|box_`
+- `A3.unit_conversion` b5:trace_format/box_v313.py:20 (<module>): string '")+) rule="box_grid_5cm">' — `CAMGAP = re.compile(r'<gap camera="([1-9][0-9]*)"((?: b="' + old.NAME + r'")+) rule="box_grid_5cm">')`
+- `A3.constant` b5:trace_format/box_v313.py:21 (<module>): constant 512 — `SAMPLER = dict(rule=RULE, rng='PCG64', seed=0, samples=512, dtype='float64', draw_order='a_then_b', reset='per`
+- `A3.constant` b5:trace_format/box_v313.py:22 (<module>): constant 0.05 — `SAMPLER_GRID = dict(rule=RULE_GRID, step=0.05, inner_half_box_removed=True, dtype='float64', instances='min_ov`
+- `A3.unit_conversion` b5:trace_format/box_v313.py:27 (<module>): string 'The box gap is the smallest distance between points on a 5 cm  — `(RULE_GRID, False): "The box gap is the smallest distance between points on a 5 cm grid over the two objects' `
+- `A3.unit_conversion` b5:trace_format/box_v313.py:28 (<module>): string 'Each box gap is the smallest distance between points on a 5 cm — `(RULE_GRID, True): "Each box gap is the smallest distance between points on a 5 cm grid over the two objects' `
+- `A3.constant` b5:trace_format/box_v313.py:56 (sampled_box_512): constant 512 — `u = rng.uniform(-1.0, 1.0, size=(512,3))`
+- `A3.constant` b5:trace_format/box_v313.py:61 (grid_points): constant 0.05 — `def grid_points(value, step=0.05):`
+- `A3.threshold` b5:trace_format/box_v313.py:93 (public_fields): compares against 1e-08 — `if (abs(abs(x['axes'][vertical,1])-1) > 1e-8`
+- `A3.constant` b5:trace_format/box_v313.py:93 (public_fields): constant 1e-08 — `if (abs(abs(x['axes'][vertical,1])-1) > 1e-8`
+- `A3.threshold` b5:trace_format/box_v313.py:94 (public_fields): compares against 1e-08 — `or np.max(np.abs(x['axes'][horizontal,1])) > 1e-8):`
+- `A3.constant` b5:trace_format/box_v313.py:94 (public_fields): constant 1e-08 — `or np.max(np.abs(x['axes'][horizontal,1])) > 1e-8):`
+- `A3.unit_conversion` b5:trace_format/box_v313.py:97 (public_fields): identifier degrees — `yaw = int(number(np.degrees(np.arctan2(-direction[2],direction[0])),0))`
+- `A3.constant` b5:trace_format/box_v313.py:98 (public_fields): constant 180 — `yaw = (yaw + 180) % 360 - 180`
+- `A3.constant` b5:trace_format/box_v313.py:98 (public_fields): constant 360 — `yaw = (yaw + 180) % 360 - 180`
+- `A3.unit_conversion` b5:trace_format/box_v313.py:111 (tilted_public_fields): identifier degrees — `yaw = int(number(np.degrees(np.arctan2(-d[2], d[0])), 0))`
+- `A3.constant` b5:trace_format/box_v313.py:112 (tilted_public_fields): constant 180 — `yaw = (yaw + 180) % 360 - 180`
+- `A3.constant` b5:trace_format/box_v313.py:112 (tilted_public_fields): constant 360 — `yaw = (yaw + 180) % 360 - 180`
+- `A3.constant` b5:trace_format/box_v313.py:115 (tilted_public_fields): constant -0.5 — `corners = (np.array(list(product((-.5, .5), repeat=3))) * x['lengths']) @ x['axes']`
+- `A3.unit_conversion` b5:trace_format/box_v313.py:351 (<module>): string 'Each camera gap is the smallest distance from the camera of th — `CAM_MEASUREMENT = ("Each camera gap is the smallest distance from the camera of that frame to points on a 5 cm`
+- `A3.unit_conversion` b5:trace_format/box_v313.py:375 (_disabled_render_camera): string ' rule="box_grid_5cm">' — `emit(f'<gap camera="{k}"'+''.join(f' b="{n}"' for n in names)+' rule="box_grid_5cm">')`
+- `A3.unit_conversion` b5:trace_format/box_v313.py:399 (_disabled_render_camera): string 'camera_box_grid_5cm' — `program_audit=dict(target_distance_rule='camera_box_grid_5cm',box_provider=session.box_provider_id,`
+- `A3.constant` b5:trace_format/box_v313.py:427 (FusedBoxProvider.__init__): constant 20000 — `def __init__(self, fitter=None, max_points=20000):`
+- `A3.threshold` b5:trace_format/box_v313.py:433 (FusedBoxProvider.__call__): compares against max_points — `if len(points)>self.max_points:`
+- `A3.constant` b5:trace_format/box_v313.py:439 (vote_points): constant 0.05 — `def vote_points(parts, vox=0.05, min_frames=2):`
+- `A3.threshold` b5:trace_format/box_v313.py:450 (vote_points): compares against min_frames — `return P[support[vid]>=min_frames]`
+- `A3.constant` b5:trace_format/box_v313.py:466 (PolicyBoxProvider.__init__): constant 4000 — `def __init__(self, fitter=None, max_points=4000, vox=0.05, min_frames=2):`
+- `A3.constant` b5:trace_format/box_v313.py:466 (PolicyBoxProvider.__init__): constant 0.05 — `def __init__(self, fitter=None, max_points=4000, vox=0.05, min_frames=2):`
+- `A3.threshold` b5:trace_format/box_v313.py:473 (PolicyBoxProvider._fit): compares against max_points — `if len(points)>self.max_points:`
+- `A3.threshold` b5:trace_format/box_v313.py:555 (ground): compares against MAX_INSTANCES — `if len(blocks)>MAX_INSTANCES:`
+- `A3.constant` b5:trace_format/box_v313.py:630 (fit_gbox): constant 0.05 — `return {'centroid': c, 'axesLengths': np.array([0.05, 0.05, 0.05]), 'normalizedAxes': np.eye(3).ravel()}`
+- `A3.threshold` b5:trace_format/box_v313.py:639 (fit_gbox): compares against 1e-09 — `if np.linalg.norm(e) < 1e-9:`
+- `A3.constant` b5:trace_format/box_v313.py:639 (fit_gbox): constant 1e-09 — `if np.linalg.norm(e) < 1e-9:`
+- `A3.constant` b5:trace_format/box_v313.py:649 (fit_gbox): constant 98 — `z0, z1 = np.percentile(P[:, 2], 2), np.percentile(P[:, 2], 98)`
+- `A3.constant` b5:trace_format/box_v313.py:654 (fit_gbox): constant 0.02 — `return {'centroid': c, 'axesLengths': np.array([hi[0] - lo[0], hi[1] - lo[1], max(z1 - z0, 0.02)]), 'normalize`
+- `A3.constant` b5:trace_format/box_v313.py:665 (fit_gbox_full): constant 0.02 — `L = np.asarray(b['axesLengths'], float).copy(); L[2] = max(z1 - z0, 0.02)`
+- `A3.constant` b5:trace_format/room_v314.py:13 (<module>): constant 0.05 — `CELL_M = .05`
+- `A3.constant` b5:trace_format/room_v314.py:14 (<module>): constant 0.2 — `CLOSING_M = .20`
+- `A3.constant` b5:trace_format/room_v314.py:15 (<module>): constant 100 — `MIN_POINTS = 100`
+- `A3.constant` b5:trace_format/room_v314.py:16 (<module>): constant 4000000 — `MAX_GRID_CELLS = 4_000_000`
+- `A3.constant` b5:trace_format/room_v314.py:18 (<module>): constant 0.1 — `height_percentile=1, height_margin_m=.10, min_points=MIN_POINTS,`
+- `A3.constant` b5:trace_format/room_v314.py:19 (<module>): constant 240 — `head_raster_hw=[240, 320], pixel_stride=4, max_grid_cells=MAX_GRID_CELLS)`
+- `A3.constant` b5:trace_format/room_v314.py:19 (<module>): constant 320 — `head_raster_hw=[240, 320], pixel_stride=4, max_grid_cells=MAX_GRID_CELLS)`
+- `A3.constant` b5:trace_format/room_v314.py:38 (_frames): constant 32 — `count = 32`
+- `A3.constant` b5:trace_format/room_v314.py:79 (_dense): constant 320 — `uv = np.stack([(xs.ravel()+.5)/320*1000, (ys.ravel()+.5)/240*1000], 1)`
+- `A3.constant` b5:trace_format/room_v314.py:79 (_dense): constant 1000 — `uv = np.stack([(xs.ravel()+.5)/320*1000, (ys.ravel()+.5)/240*1000], 1)`
+- `A3.constant` b5:trace_format/room_v314.py:79 (_dense): constant 240 — `uv = np.stack([(xs.ravel()+.5)/320*1000, (ys.ravel()+.5)/240*1000], 1)`
+- `A3.constant` b5:trace_format/room_v314.py:83 (_dense): constant 32 — `elif getattr(geo, 'grid', np.empty((32,))).shape[0] == 16:`
+- `A3.constant` b5:trace_format/room_v314.py:83 (_dense): constant 16 — `elif getattr(geo, 'grid', np.empty((32,))).shape[0] == 16:`
+- `A3.constant` b5:trace_format/room_v314.py:92 (_dense): constant 1000 — `axis = np.linspace(0, 1000, 51, dtype=np.float32)`
+- `A3.constant` b5:trace_format/room_v314.py:92 (_dense): constant 51 — `axis = np.linspace(0, 1000, 51, dtype=np.float32)`
+- `A3.constant` b5:trace_format/room_v314.py:97 (_dense): constant 51 — `geo.grids[frame] = values.reshape(51, 51)`
+- `A3.constant` b5:trace_format/room_v314.py:100 (_dense): constant 0.05 — `x, y = np.clip(uv * .05, 0, 50).T`
+- `A3.constant` b5:trace_format/room_v314.py:100 (_dense): constant 50 — `x, y = np.clip(uv * .05, 0, 50).T`
+- `A3.constant` b5:trace_format/room_v314.py:102 (_dense): constant 50 — `x1, y1 = np.minimum(x0+1, 50), np.minimum(y0+1, 50)`
+- `A3.constant` b5:trace_format/room_v314.py:116 (_dense): constant 160 — `K = np.array([[160/np.tan(fw/2), 0, 160],`
+- `A3.constant` b5:trace_format/room_v314.py:117 (_dense): constant 120 — `[0, 120/np.tan(fh/2), 120], [0, 0, 1]])`
+- `A3.constant` b5:trace_format/room_v314.py:166 (from_points): constant 0.1 — `height = float(np.percentile(P[:, 2], 1) - .1)`
+- `A3.threshold` b5:trace_format/room_v314.py:184 (from_points): compares against threshold — `grid = votes >= threshold`
+
+## A4 (109)
+
+- `A4.status_literal` b5:evalpath/run.py:312 (_run_worker): string 'error' — `'error': f'{type(exc).__name__}: {exc}'}`
+- `A4.status_literal` b5:evalpath/run.py:321 (_run_worker): string 'error' — `status='error', response_text='', extract_branch='item_error', score=0.,`
+- `A4.status_literal` b5:evalpath/run.py:372 (_run_worker): string 'error' — `record['error'] = f'{type(exc).__name__}: {exc}'`
+- `A4.guard` b5:ofs/core.py:94 (lift): identifier rejected — `out, rejected = [], []`
+- `A4.guard` b5:ofs/core.py:103 (lift): identifier rejected — `rejected.append(dict(frame=frame, index=index, reason='invalid_pose'))`
+- `A4.guard` b5:ofs/core.py:109 (lift): identifier rejected — `rejected.append(dict(frame=frame, index=index, reason='no_eligible_pixels'))`
+- `A4.guard` b5:ofs/core.py:116 (lift): identifier rejected — `return out, rejected`
+- `A4.guard` b5:ofs/core.py:358 (export): identifier gt_substitution — `metadata = dict(tau=.5, source='ofs', gt_substitution=False,`
+- `A4.guard` b5:ofs/hrp_reference.py:32 (select): identifier rejected — `good, xyz, rejected = [], [], []`
+- `A4.guard` b5:ofs/hrp_reference.py:37 (select): identifier rejected — `rejected.append(dict(index=i, reason='invalid_candidate'))`
+- `A4.guard` b5:ofs/hrp_reference.py:40 (select): identifier rejected — `rejected.append(dict(index=i, reason='invalid_pose'))`
+- `A4.guard` b5:ofs/hrp_reference.py:44 (select): identifier rejected — `rejected.append(dict(index=i, reason='invalid_depth_or_pose'))`
+- `A4.guard` b5:ofs/hrp_reference.py:50 (select): identifier rejected — `radius_m=radius, rejected=rejected)`
+- `A4.guard` b5:ofs/hrp_reference.py:82 (select): identifier rejected — `rival_support=len(rival), radius_m=radius, rejected=rejected,`
+- `A4.status_literal` b5:student_pilot/carrier_c1_batch_decode.py:156 (Row.record): string 'error' — `generated_tokens=len(self.ids), errors=sum(r['kind'] == 'error' or r.get('verify_error',False) for r in self.r`
+- `A4.status_literal` b5:student_pilot/carrier_c1_decode.py:121 (ground_text): string 'not seen' — `for i in frames) if frames else 'not seen')`
+- `A4.status_literal` b5:student_pilot/carrier_c1_decode.py:219 (respond): string 'not seen' — `return (gapper(a, b) if gapper is not None else 'not seen'), dict(kind='gap', a=a, b=b)`
+- `A4.except_substitute` b5:student_pilot/carrier_c1_decode.py:244 (respond): except-handler returns a substitute — `return f'error: {exc.code}', dict(kind='error', code=exc.code)`
+- `A4.status_literal` b5:student_pilot/carrier_c1_decode.py:244 (respond): string 'error: ' — `return f'error: {exc.code}', dict(kind='error', code=exc.code)`
+- `A4.status_literal` b5:student_pilot/carrier_c1_decode.py:244 (respond): string 'error' — `return f'error: {exc.code}', dict(kind='error', code=exc.code)`
+- `A4.except_substitute` b5:student_pilot/carrier_c1_decode.py:246 (respond): except-handler returns a substitute — `return f'error: {exc.reason}', dict(kind='error', code=exc.reason)`
+- `A4.status_literal` b5:student_pilot/carrier_c1_decode.py:246 (respond): string 'error: ' — `return f'error: {exc.reason}', dict(kind='error', code=exc.reason)`
+- `A4.status_literal` b5:student_pilot/carrier_c1_decode.py:246 (respond): string 'error' — `return f'error: {exc.reason}', dict(kind='error', code=exc.reason)`
+- `A4.except_substitute` b5:student_pilot/carrier_c1_decode.py:248 (respond): except-handler returns a substitute — `return f'error: {exc}', dict(kind='error', code='head_readout')`
+- `A4.status_literal` b5:student_pilot/carrier_c1_decode.py:248 (respond): string 'error: ' — `return f'error: {exc}', dict(kind='error', code='head_readout')`
+- `A4.status_literal` b5:student_pilot/carrier_c1_decode.py:248 (respond): string 'error' — `return f'error: {exc}', dict(kind='error', code='head_readout')`
+- `A4.status_literal` b5:student_pilot/carrier_c1_decode.py:499 (ground_layout_for): string 'error' — `return trace313.active() or state.ground_backend is not None or state.verify_session is not None or state.rere`
+- `A4.guard` b5:student_pilot/carrier_c1_decode.py:516 (respond_state): identifier fallback — `context.fallback=(lambda name:state.rereader.ground(name,registry)) if state.rereader is not None else (lambda`
+- `A4.except_substitute` b5:student_pilot/carrier_c1_decode.py:523 (respond_state): except-handler returns a substitute — `return 'error: '+exc.code,dict(kind='error',code=exc.code)`
+- `A4.status_literal` b5:student_pilot/carrier_c1_decode.py:523 (respond_state): string 'error: ' — `return 'error: '+exc.code,dict(kind='error',code=exc.code)`
+- `A4.status_literal` b5:student_pilot/carrier_c1_decode.py:523 (respond_state): string 'error' — `return 'error: '+exc.code,dict(kind='error',code=exc.code)`
+- `A4.except_substitute` b5:student_pilot/carrier_c1_decode.py:525 (respond_state): except-handler returns a substitute — `return 'error: verify_out_of_memory',dict(kind='error',code='verify_out_of_memory',error_type=type(exc).__name`
+- `A4.status_literal` b5:student_pilot/carrier_c1_decode.py:525 (respond_state): string 'error: verify_out_of_memory' — `return 'error: verify_out_of_memory',dict(kind='error',code='verify_out_of_memory',error_type=type(exc).__name`
+- `A4.status_literal` b5:student_pilot/carrier_c1_decode.py:525 (respond_state): string 'error' — `return 'error: verify_out_of_memory',dict(kind='error',code='verify_out_of_memory',error_type=type(exc).__name`
+- `A4.guard` b5:student_pilot/carrier_c1_decode.py:526 (respond_state): identifier fallback — `return respond(call_text,registry,state.geometry,context.fallback,gapper)`
+- `A4.status_literal` b5:student_pilot/carrier_c1_decode.py:565 (replay.gap): string 'not seen' — `return 'not seen' if mdg_replay is None else mdg_replay.gap(a, b)`
+- `A4.status_literal` b5:student_pilot/carrier_c1_decode.py:583 (replay): string 'error' — `if call['kind'] == 'error':`
+- `A4.guard` b5:student_pilot/carrier_c1_routing.py:872 (build_routing_stream): identifier refused — `seen, scenes, types, count, refused, layouts, replay_rows = set(), set(), {}, 0, {}, {}, []`
+- `A4.guard` b5:student_pilot/carrier_c1_routing.py:903 (build_routing_stream): identifier refused — `refused[reason] = refused.get(reason, 0) + 1`
+- `A4.guard` b5:student_pilot/carrier_c1_routing.py:936 (build_routing_stream): identifier refused — `refused['direct:' + reason] = refused.get('direct:' + reason, 0) + 1`
+- `A4.guard` b5:student_pilot/carrier_c1_routing.py:953 (build_routing_stream): identifier refused — `refused=refused, direct_source=direct_source, exclusions=exclusions,`
+- `A4.status_literal` b5:student_pilot/carrier_c1_routing.py:988 (main): string 'refused' — `print(json.dumps({k: receipt[k] for k in ('count', 'scenes', 'types', 'refused', 'database')}, indent=1))`
+- `A4.guard` b5:student_pilot/geometry_profiles.py:55 (GeometryContract): identifier ground_truth_substitution — `ground_truth_substitution: bool = False`
+- `A4.guard` b5:student_pilot/geometry_profiles.py:59 (GeometryContract.validate): identifier ground_truth_substitution — `if self.ground_truth_substitution:`
+- `A4.guard` b5:student_pilot/ground_context.py:13 (GroundContext): identifier fallback — `fallback: object`
+- `A4.guard` b5:student_pilot/ground_lifting.py:138 (lift_object): identifier ProgramRefusal — `except ProgramRefusal:`
+- `A4.except_substitute` b5:student_pilot/ground_lifting.py:156 (lift_object): except-handler returns a substitute — `return result`
+- `A4.status_literal` b5:student_pilot/ground_lifting.py:170 (render_ground): string ': not seen' — `return result['name'] + ': not seen'`
+- `A4.status_literal` b5:student_pilot/ground_lifting.py:177 (render_ground): string 'size unavailable' — `size = 'size unavailable' if result['size'] is None else 'size ' + ' x '.join(rounded(result['size'])) + ' m'`
+- `A4.status_literal` b5:student_pilot/ground_lifting.py:206 (render_gap): string 'not seen' — `return 'not seen' if distance is None else number(distance) + ' m'`
+- `A4.status_literal` b5:student_pilot/ground_lifting.py:215 (render_gaps): string 'not seen' — `return 'not seen'`
+- `A4.guard` b5:student_pilot/ground_replay.py:36 (geometry_record): identifier ground_truth_substitution — `if geo.contract.ground_truth_substitution:`
+- `A4.guard` b5:student_pilot/ground_sources.py:116 (CachedSAM3.proposals_for): identifier rejected — `proposals, rejected = ofs.lift(self.cache, name, geometry, floor=RETAINED_SCORE_FLOOR, grids=grids)`
+- `A4.guard` b5:student_pilot/ground_sources.py:117 (CachedSAM3.proposals_for): identifier rejected — `return native_gate(proposals), rejected`
+- `A4.guard` b5:student_pilot/ground_sources.py:165 (TowerSAM3.proposals_for): identifier rejected — `proposals, rejected = ofs.lift(cache, name, geometry, floor=RETAINED_SCORE_FLOOR, grids=grids)`
+- `A4.guard` b5:student_pilot/ground_sources.py:166 (TowerSAM3.proposals_for): identifier rejected — `return native_gate(proposals), rejected`
+- `A4.guard` b5:student_pilot/ground_v3.py:157 (GroundV3._resolve.build): identifier rejections — `by_name=deepcopy(competitors or {});rejections={}`
+- `A4.guard` b5:student_pilot/ground_v3.py:159 (GroundV3._resolve.build): identifier rejections — `proposals,rejections[n]=self.source.proposals_for(n,self.geometry,O,self.grids)`
+- `A4.guard` b5:student_pilot/ground_v3.py:167 (GroundV3._resolve.build): identifier rejections — `return {n:(by_name[n],rejections[n]) for n in names}`
+- `A4.guard` b5:student_pilot/ground_v3.py:175 (GroundV3._resolve): identifier rejected — `candidates,rejected = self.candidate_cache[name]`
+- `A4.guard` b5:student_pilot/ground_v3.py:191 (GroundV3._resolve): identifier rejected_proposals — `rejected_proposals=rejected,source_provenance=getattr(self.source,'provenance','unspecified'))`
+- `A4.guard` b5:student_pilot/ground_v3.py:191 (GroundV3._resolve): identifier rejected — `rejected_proposals=rejected,source_provenance=getattr(self.source,'provenance','unspecified'))`
+- `A4.status_literal` b5:student_pilot/ground_v3.py:420 (GroundV3.gap): string 'not seen' — `return 'not seen'`
+- `A4.except_substitute` b5:student_pilot/live_instances314.py:31 (ExactFrames.has_pose): except-handler returns a substitute — `except (ValueError,KeyError,IndexError):return False`
+- `A4.status_literal` b5:student_pilot/live_trace313.py:50 (LiveSession.bind_state): string 'allow_own_geometry_fallback' — `if self.owner.geometry is None and getattr(self.owner, 'allow_own_geometry_fallback', False):`
+- `A4.guard` b5:student_pilot/live_trace313.py:73 (LiveSession._instances): identifier fallback — `context.fallback=lambda n:self.owner.ground(n,context.registry)`
+- `A4.status_literal` b5:student_pilot/live_trace313.py:161 (parse_response): string 'not seen' — `if body in [name+': '+s for s in ('not seen','unresolved','box unavailable')]:return`
+- `A4.status_literal` b5:student_pilot/live_trace313.py:161 (parse_response): string 'box unavailable' — `if body in [name+': '+s for s in ('not seen','unresolved','box unavailable')]:return`
+- `A4.status_literal` b5:student_pilot/live_trace313.py:188 (parse_response): string ' m|size unavailable)' — `r'(?:size '+f+' x '+f+' x '+f+r' m|size unavailable)')`
+- `A4.status_literal` b5:student_pilot/live_trace313.py:191 (parse_response): string 'not seen' — `if body in ('not seen','unresolved','box unavailable'):return`
+- `A4.status_literal` b5:student_pilot/live_trace313.py:191 (parse_response): string 'box unavailable' — `if body in ('not seen','unresolved','box unavailable'):return`
+- `A4.status_literal` b5:student_pilot/live_trace313.py:192 (parse_response): string 'frame unavailable' — `if body=='frame unavailable' and box_v313.CAMGAP.fullmatch(call):return`
+- `A4.status_literal` b5:student_pilot/mdg_decode.py:127 (cached_gap): string 'not seen' — `return 'not seen'`
+- `A4.status_literal` b5:student_pilot/s1_grounding.py:32 (build_backend): string 'allow_own_fallback' — `allowed = {"ground_candidate_policy", "geometry_manifest", "depth_source", "allow_own_fallback"}`
+- `A4.guard` b5:student_pilot/s1_grounding.py:50 (build_backend): identifier allow_fallback — `allow_fallback = settings.get("allow_own_fallback", True)`
+- `A4.status_literal` b5:student_pilot/s1_grounding.py:50 (build_backend): string 'allow_own_fallback' — `allow_fallback = settings.get("allow_own_fallback", True)`
+- `A4.guard` b5:student_pilot/s1_grounding.py:61 (build_backend): identifier allow_own_geometry_fallback — `backend.allow_own_geometry_fallback = allow_fallback`
+- `A4.guard` b5:student_pilot/s1_grounding.py:61 (build_backend): identifier allow_fallback — `backend.allow_own_geometry_fallback = allow_fallback`
+- `A4.guard` b5:student_pilot/tower_read.py:70 (TowerState.__post_init__): identifier tower_guard — `@tower_guard`
+- `A4.guard` b5:student_pilot/tower_read.py:99 (TowerState.from_npz): identifier tower_guard — `@tower_guard`
+- `A4.guard` b5:student_pilot/tower_read.py:119 (TowerState.scaled_pose9): identifier tower_guard — `@tower_guard`
+- `A4.guard` b5:student_pilot/tower_read.py:129 (g3t_to_c1_pose9): identifier tower_guard — `@tower_guard`
+- `A4.guard` b5:student_pilot/tower_read.py:165 (FrozenG3TTower._load): identifier tower_guard — `@tower_guard`
+- `A4.guard` b5:student_pilot/tower_read.py:197 (FrozenG3TTower.run): identifier tower_guard — `@tower_guard`
+- `A4.guard` b5:student_pilot/tower_read.py:301 (prepare_tower): identifier tower_guard — `@tower_guard`
+- `A4.guard` b5:student_pilot/tower_read.py:310 (apply_tower): identifier tower_guard — `@tower_guard`
+- `A4.except_substitute` b5:student_pilot/trace_format313.py:29 (respond): except-handler returns a substitute — `return 'error: '+str(exc)+'; answer directly from the video',dict(kind='error',code=str(exc),spec_version=sess`
+- `A4.status_literal` b5:student_pilot/trace_format313.py:29 (respond): string 'error: ' — `return 'error: '+str(exc)+'; answer directly from the video',dict(kind='error',code=str(exc),spec_version=sess`
+- `A4.status_literal` b5:student_pilot/trace_format313.py:29 (respond): string 'error' — `return 'error: '+str(exc)+'; answer directly from the video',dict(kind='error',code=str(exc),spec_version=sess`
+- `A4.guard` b5:student_pilot/trace_format313.py:29 (respond): identifier direct_answer_fallback — `return 'error: '+str(exc)+'; answer directly from the video',dict(kind='error',code=str(exc),spec_version=sess`
+- `A4.status_literal` b5:trace_format/box_v313.py:182 (BoxRegistry.invalidate): string 'not seen' — `def invalidate(self, name, state='not seen'):`
+- `A4.status_literal` b5:trace_format/box_v313.py:226 (BoxRegistry.gap): string 'not seen' — `states=[self.states.get(n,'not seen') for n in names]`
+- `A4.status_literal` b5:trace_format/box_v313.py:227 (BoxRegistry.gap): string 'not seen' — `for status in ('unresolved','not seen','box unavailable'):`
+- `A4.status_literal` b5:trace_format/box_v313.py:227 (BoxRegistry.gap): string 'box unavailable' — `for status in ('unresolved','not seen','box unavailable'):`
+- `A4.status_literal` b5:trace_format/box_v313.py:247 (cam_gap_body): string 'frame unavailable' — `if centre is None:return 'frame unavailable', []`
+- `A4.status_literal` b5:trace_format/box_v313.py:251 (cam_gap_body): string 'not seen' — `states=[registry.states.get(n,'not seen') for n in names]`
+- `A4.status_literal` b5:trace_format/box_v313.py:252 (cam_gap_body): string 'not seen' — `for status in ('unresolved','not seen','box unavailable'):`
+- `A4.status_literal` b5:trace_format/box_v313.py:252 (cam_gap_body): string 'box unavailable' — `for status in ('unresolved','not seen','box unavailable'):`
+- `A4.status_literal` b5:trace_format/box_v313.py:309 (replay_audit): string ': (not seen|unresolved|box unavailable)' — `failure=re.fullmatch(re.escape(m[1])+r': (not seen|unresolved|box unavailable)',body)`
+- `A4.status_literal` b5:trace_format/box_v313.py:392 (_disabled_render_camera): string 'not seen' — `lines.append(f'The tool did not find {name}, so I estimate from the frames.' if status=='not seen' else f'The `
+- `A4.status_literal` b5:trace_format/box_v313.py:518 (ground): string 'not seen' — `else 'not seen' if not entries else None)`
+- `A4.status_literal` b5:trace_format/box_v313.py:521 (ground): string 'not seen' — `status='not seen'`
+- `A4.status_literal` b5:trace_format/box_v313.py:566 (ground): string 'box unavailable' — `session.box_registry.invalidate(name,'box unavailable')`
+- `A4.except_substitute` b5:trace_format/box_v313.py:567 (ground): except-handler returns a substitute — `return name+': box unavailable'`
+- `A4.status_literal` b5:trace_format/box_v313.py:567 (ground): string ': box unavailable' — `return name+': box unavailable'`
+- `A4.status_literal` b5:trace_format/box_v313.py:610 (render): string 'not seen' — `lines.append(f'The tool did not find {name}, so I estimate from the frames.' if status=='not seen' else f'The `
+- `A4.guard` b5:trace_format/program_errors.py:2 (<module>): class ProgramRefusal — `class ProgramRefusal(ValueError):`
+- `A4.guard` b5:trace_format/room_v314.py:22 (<module>): class RoomRefusal — `class RoomRefusal(ValueError):`
+- `A4.guard` b5:trace_format/room_v314.py:136 (sample): identifier RoomRefusal — `except RoomRefusal:`
+
+## A5 (12)
+
+- `A5.cache` b5:evalpath/run.py:158 (binding_for): string 'frame_cache' — `return digest({'request': {k: v for k, v in request.items() if k not in ('attempt', 'frame_cache')},`
+- `A5.cache` b5:evalpath/run.py:301 (_run_worker): string 'frame_cache' — `rows = [trainer_row(task, request['frame_cache']) for task in fixed]`
+- `A5.cache` b5:evalpath/run.py:335 (_run_worker): string 'frame_cache' — `row = trainer_row(task, request['frame_cache'])`
+- `A5.cache` b5:student_pilot/ground_v3.py:104 (GroundV3.__init__): identifier candidate_cache — `self.candidate_cache = {}`
+- `A5.cache` b5:student_pilot/ground_v3.py:168 (GroundV3._resolve): identifier candidate_cache — `if universe and any(n not in self.candidate_cache for n in universe):`
+- `A5.cache` b5:student_pilot/ground_v3.py:169 (GroundV3._resolve): identifier candidate_cache — `self.candidate_cache.update(build(universe))`
+- `A5.cache` b5:student_pilot/ground_v3.py:170 (GroundV3._resolve): identifier candidate_cache — `if name not in self.candidate_cache:`
+- `A5.cache` b5:student_pilot/ground_v3.py:173 (GroundV3._resolve): identifier candidate_cache — `competitors={n:self.candidate_cache[n][0] for n in universe}`
+- `A5.cache` b5:student_pilot/ground_v3.py:174 (GroundV3._resolve): identifier candidate_cache — `self.candidate_cache.update(build([name],competitors))`
+- `A5.cache` b5:student_pilot/ground_v3.py:175 (GroundV3._resolve): identifier candidate_cache — `candidates,rejected = self.candidate_cache[name]`
+- `A5.cache` b5:student_pilot/ground_v3.py:286 (GroundV3.ground): identifier candidate_cache — `self.candidate_cache.pop(canonical,None)`
+- `A5.cache` b5:student_pilot/live_instances314.py:126 (query_instances): identifier _routed_candidate_cache — `owner._routed_candidate_cache = None`
+

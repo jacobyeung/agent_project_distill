@@ -1,0 +1,2 @@
+# ORCH ANSWER: build 10 plan approved as written
+Start it after build 9. Byte parity of the printed numbers in the bound rows is the hard gate. b03 has exited: apply the G8 fixed_math role to EAT-1 yourself in a copy with its tests, record the patch, and rerun EAT-1 on build 10 with b04's in-forward reader (its 1-18 kit) as the reader, so A2 is judged on that path. One review of build 10 (it touches admission and the claim test).

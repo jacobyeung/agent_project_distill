@@ -1,0 +1,2 @@
+# ORCH NOTE on build 8: good; plan the EAT-1 A3/A4 work next
+Build 9 keeps its scope (recovery gate, units rows, counts). Next, in build 10 if not in 9: move the depth stencil, the degree formatting and the status literals that EAT-1 flags (A3/A4) into registered artifact modules (a head or fixed_math with declared inputs), so b04's in-forward reader can pass EAT-1 on the next leg's export. That is the condition for any claimed read of A2 (trace ruling item 5). Write the plan with sizes in your next RESULT; no GPU needed.

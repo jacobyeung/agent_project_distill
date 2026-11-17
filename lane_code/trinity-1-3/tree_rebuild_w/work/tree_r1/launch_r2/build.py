@@ -217,6 +217,10 @@ def build(base, output, *, connector=None, records=None, dense_manifest=None, bi
     cfg['r2_build2'].update({k:v for k,v in portable.items() if k in ('counts', 'source_presence')})
     from student_pilot.r2_config import bind_mix
     cfg = bind_mix(cfg, load(output/mix['path']))
+    if launch_inputs is not None:
+        from student_pilot.routing_requirements import blockers as row_blockers
+        cfg['b7_blockers'] = sorted(set(cfg['b7_blockers'] + row_blockers(
+            load(output/mix['path']), launch_inputs.get('routing_training_counts'))))
     cfg['code'] = dict(path='k/7.json', sha256=sha256(output/'k/7.json'))
     cfg['s1_route_policy'] = dict(name='frozen-table-no-flag-v1', table=put(cfg['route_table']))
     if 'indices' in portable:

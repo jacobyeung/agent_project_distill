@@ -268,6 +268,124 @@
       "/scratch/jjyeung/orch_n30/tree_rebuild_w/out/tree_rebuild_b8_bdec5e50.tar"
     ],
     "started": 1794905420.8621619,
-    "status": "running"
+    "status": "complete",
+    "returncode": 0,
+    "finished": 1794914805.0229301
+  },
+  {
+    "step": "supplemental",
+    "command": [
+      "/scratch/jjyeung/envs/p1cpu/bin/python",
+      "-I",
+      "-s",
+      "-B",
+      "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/build8/targeted.py"
+    ],
+    "started": 1794914805.0247974,
+    "status": "failed",
+    "returncode": 1,
+    "finished": 1794914915.067952
+  },
+  {
+    "step": "guards",
+    "command": [
+      "/scratch/jjyeung/envs/p1cpu/bin/python",
+      "-I",
+      "-s",
+      "-B",
+      "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/build8/legacy_guard_proof.py"
+    ],
+    "started": 1794914915.069479,
+    "status": "complete",
+    "returncode": 0,
+    "finished": 1794914915.1358778
+  },
+  {
+    "step": "compare",
+    "command": [
+      "/scratch/jjyeung/envs/p1cpu/bin/python",
+      "-I",
+      "-s",
+      "-B",
+      "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/build8/compare.py"
+    ],
+    "started": 1794914915.1370013,
+    "status": "complete",
+    "returncode": 0,
+    "finished": 1794914915.229782
+  },
+  {
+    "step": "coverage",
+    "command": [
+      "/scratch/jjyeung/envs/p1cpu/bin/python",
+      "-I",
+      "-s",
+      "-B",
+      "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/build8/coverage_all.py"
+    ],
+    "started": 1794914915.2313647,
+    "status": "complete",
+    "returncode": 0,
+    "finished": 1794914920.0381393
+  },
+  {
+    "step": "eat1_scan",
+    "command": [
+      "/scratch/jjyeung/envs/p1cpu/bin/python",
+      "-I",
+      "-s",
+      "-B",
+      "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/build8/proofs/eat1/run_eat1.py",
+      "scan"
+    ],
+    "started": 1794914920.0391388,
+    "status": "complete",
+    "returncode": 0,
+    "finished": 1794914920.647749
+  },
+  {
+    "step": "eat1_c8r",
+    "command": [
+      "/scratch/jjyeung/envs/p1cpu/bin/python",
+      "-I",
+      "-s",
+      "-B",
+      "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/build8/proofs/eat1/run_eat1.py",
+      "c8r"
+    ],
+    "started": 1794914920.6493144,
+    "status": "complete",
+    "returncode": 0,
+    "finished": 1794914942.800676
+  },
+  {
+    "step": "eat1_gf1",
+    "command": [
+      "/scratch/jjyeung/envs/p1cpu/bin/python",
+      "-I",
+      "-s",
+      "-B",
+      "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/build8/proofs/eat1/run_eat1.py",
+      "gf1"
+    ],
+    "started": 1794914942.8016472,
+    "status": "complete",
+    "returncode": 0,
+    "finished": 1794914960.0533416
+  },
+  {
+    "step": "supplemental",
+    "status": "complete",
+    "started": 1794915275.415448,
+    "command": [
+      "/scratch/jjyeung/envs/p1cpu/bin/python",
+      "-I",
+      "-s",
+      "-B",
+      "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/build8/targeted.py"
+    ],
+    "repair": "work/build8/SUPPLEMENTAL_REPAIR.json",
+    "returncode": 0,
+    "finished": 1794915383.2146196
   }
 ]

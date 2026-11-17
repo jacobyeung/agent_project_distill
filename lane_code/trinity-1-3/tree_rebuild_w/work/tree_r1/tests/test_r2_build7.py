@@ -24,6 +24,7 @@ def settings():
     p=dict(artifact_id='4af43b40',sha256='a'*64,location='/project/inputs/a')
     return dict(schema=I.SCHEMA,training_objective='sft',max_pixels=147456,min_pixels=16384,
         frame_count=32,frame_layout='duplicate',frame_markers=True,weight_scale=1.,minority_count=2,
+        routing_training_counts=dict(recovery=1,units={'cm':1,'ft':1,'in':1},scope='synthetic CPU fixture counts'),
         init=dict(p,selected_by='NEXT_LEG_INIT_RULE_20261116'),
         row_stores={s:[dict(p,family='d0_v5'),dict(p,artifact_id='new',family='a0')]
                     for s in ('vqa','routing')})

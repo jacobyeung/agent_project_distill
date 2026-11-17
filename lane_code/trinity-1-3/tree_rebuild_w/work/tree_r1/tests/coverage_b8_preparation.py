@@ -89,14 +89,8 @@ class PreparationProof(unittest.TestCase):
             cfg['h1']={'faithful_own_camera_rows':True}
             cfg['scheduled_sampling'].update(max_own_probability=.5,force_from_step=1)
             cfg['r2']['mixture_sha256']=digest({key:cfg.get(key) for key in ('recipe','streams','route_table')})
-            try:
-                trainer.prepare(cfg)
-            except ValueError as error:
-                self.assertIn('faithful identity',str(error))
-                faithful_refusal=load(root/'prepared/receipt.json')
-                self.assertFalse(faithful_refusal['h1_faithful_identity']['passes'])
-            else:
-                raise AssertionError('R2 answer delimiters unexpectedly passed the bare-answer materializer')
+            faithful_receipt=trainer.prepare(cfg)
+            self.assertTrue(faithful_receipt['h1_faithful_identity']['passes'])
             cfg['h1']={'faithful_own_camera_rows':False}
             cfg['preparation_output']=str(root/'prepared_off')
             prepared = trainer.prepare(cfg)
@@ -107,4 +101,4 @@ class PreparationProof(unittest.TestCase):
             self.assertEqual(reader.row('vqa', 0)[0]['qid'], 'vqa')
 
             cfg['preparation']=file_pin(root/'prepared_off/receipt.json')
-            return cfg,prepared,faithful_refusal
+            return cfg,prepared,faithful_receipt

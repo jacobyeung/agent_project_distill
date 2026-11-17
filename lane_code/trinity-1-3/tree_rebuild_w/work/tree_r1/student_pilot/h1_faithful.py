@@ -98,6 +98,8 @@ def require_render_identity(result, target):
 def answer_differs(kind, own, gt):
     """Registered stop metric; faithful training text remains unchanged."""
     from decimal import Decimal
+    own, gt = (re.fullmatch(r'<answer>([^<>]+)</answer>', str(v))[1]
+               if re.fullmatch(r'<answer>([^<>]+)</answer>', str(v)) else v for v in (own, gt))
     if kind == 'camera_movement_direction':
         return str(own).strip() != str(gt).strip()
     a,b=Decimal(str(own)),Decimal(str(gt))

@@ -213,12 +213,12 @@ class PreparationReaders(unittest.TestCase):
         from tests.coverage_b8_preparation import PreparationProof
         from student_pilot import carrier_c1_run as R
         from tests.test_carrier_c1 import fixture
-        cfg,receipt,faithful_refusal=PreparationProof().prepare_native()
+        cfg,receipt,faithful_receipt=PreparationProof().prepare_native()
         root=Path(cfg['preparation_output']).parent
         with patch.dict(os.environ,S1_CPU_REHEARSAL='1',STUDENT_FRAME_ROOT_MAP=json.dumps({'/logical/r2':str(root/'frames')})):
             actual,_=R.prepared(cfg)
             self.assertEqual(actual['h1'],cfg['h1'])
-            self.assertFalse(faithful_refusal['h1_faithful_identity']['passes'])
+            self.assertTrue(faithful_receipt['h1_faithful_identity']['passes'])
             changed=copy.deepcopy(cfg);changed['b7_inputs']['frame_count']=64
             with self.assertRaisesRegex(ValueError,'Preparation pinned kit inputs differ'):R.prepared(changed)
             with self.assertRaisesRegex(ValueError,'faithful identity'):
@@ -231,7 +231,7 @@ class PreparationReaders(unittest.TestCase):
             self.assertTrue(torch.isfinite(batch['pixel_values_videos']).all())
             self.assertEqual(batch['video_grid_thw'][0,0],len(pose['student_input']['frames']))
             proof=Path(os.environ['R2_PROOFS'])/'PREPARATION.json'
-            proof.write_text(json.dumps(dict(identity_refusal=faithful_refusal['h1_faithful_identity'],
+            proof.write_text(json.dumps(dict(identity=faithful_receipt['h1_faithful_identity'],
                 real_functions=['prepare','prepared','Rows.row','encode_layout_row','check_sample'],
                 stand_ins=['tiny native LM and pose head weights','tiny pretrained processor and model metadata']),default=str,indent=2))
 

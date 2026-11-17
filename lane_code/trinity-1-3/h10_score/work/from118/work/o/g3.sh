@@ -1,0 +1,3 @@
+export TZ=UTC; date -u +%T
+R=/tmp/a170631b01ec87a6f29b/sj/b01ec87a6f29b/r
+timeout 60 srun --jobid=170631 --overlap -n1 -c1 --mem=1G --gres=gpu:1 bash -c "tail -n 12 $R/logs/00.log | cut -c1-300; echo ==; tail -n 3 $R/STEPS.jsonl | cut -c1-300; echo ==; wc -l $R/metadata/journals/0/0/items.jsonl; tail -n 1 $R/metadata/journals/0/0/items.jsonl | python3 -c 'import json,sys; r=json.loads(sys.stdin.read()); print(sorted(r)); print({k:(str(v)[:200]) for k,v in r.items() if k not in (\"output\",)}); o=r.get(\"output\",{}); print(sorted(o) if isinstance(o,dict) else type(o)); print({k:str(o[k])[:300] for k in (\"answer\",\"finish\",\"calls\",\"scores\",\"timings\") if isinstance(o,dict) and k in o})'" 2>&1 | head -60
