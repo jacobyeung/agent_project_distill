@@ -1,0 +1,1145 @@
+--- a/tools/admission_census.py
++++ b/tools/admission_census.py
+@@ -160,11 +160,20 @@
+     if sha(db)!=receipt['database']['sha256']:raise ValueError('Database SHA differs')
+     conn=sqlite3.connect(db.resolve().as_uri()+'?mode=ro&immutable=1',uri=True)
+     seen=set();samples={};seen_types=set();indices=defaultdict(list)
++    traced=Counter();away=Counter()
+     try:
+         for expected,(i,encoded,target) in enumerate(conn.execute('SELECT i,row,target FROM rows ORDER BY i')):
+             if i!=expected:raise ValueError('Noncontiguous database indices')
+             row=json.loads(encoded);typ=row['question_type'];seen_types.add(typ)
+             refusals,h1drop=assess(row)
++            if row.get('pool')=='r1_room_traced':
++                traced['rows']+=1
++                traced['sealed_row_checks_pass']+=not [reason for reason in refusals if reason!='room_requires_qualitative_trace_A2']
++                traced['qualitative_trace_pass']+=policy.room_trace(row)
++                traced['eligible']+=not refusals
++            if row['qid'].endswith('_away_opp'):
++                away['rows']+=1;away['eligible']+=not refusals
++                if row.get('pool')!='r1_away_opp':raise ValueError('Away marker mismatch')
+             if row['qid'] in seen:refusals.append('duplicate_qid')
+             seen.add(row['qid']);add(types[typ],row,refusals,h1drop)
+             pool=str(row.get('pool') or row.get('provenance',{}).get('family') or 'unlabeled')
+@@ -175,7 +184,7 @@
+         if sum(b['rows'] for b in types.values())!=receipt['count']:raise ValueError('Store count differs')
+     finally:conn.close()
+     result.update(status='COMPLETE_ROW_CENSUS', receipt=pin(a.receipt),database=dict(path=str(db),sha256=receipt['database']['sha256']),
+-        vqa_by_type=dict(types),pool_by_type=dict(pools),types_covered=sorted(seen_types),all_types_covered=set(types)==seen_types,
++        traced_room=dict(traced),reworded_away=dict(away,qid_suffix='_away_opp',pool='r1_away_opp'),vqa_by_type=dict(types),pool_by_type=dict(pools),types_covered=sorted(seen_types),all_types_covered=set(types)==seen_types,
+         vqa_rows=sum(b['rows'] for b in types.values()),vqa_admitted=sum(b['admitted'] for b in types.values()))
+     write(ROOT/'work/admitted_indices.json',dict(indices));write(ROOT/'work/real_samples.json',samples)
+     write(a.out,result)
+--- a/tools/finalize.py
++++ b/tools/finalize.py
+@@ -5,7 +5,8 @@
+ 
+ def main():
+     out=ROOT/'out';b=load(out/'BINDING.json');op=load(out/'OPERATOR.json')
+-    cfg=load(out/'config.json');audit=load(out/'proof/loader_audit.json')
++    cfg=load(out/'config.json');audit=load(out/'proof/loader_audit.json');census=load(out/'ADMISSION_BY_TYPE.json')
++    room=census['traced_room'];away=census['reworded_away'];table=audit['tables']['vqa']
+     first=load(out/'proof/FIRST_BATCH.json');off=load(out/'proof/OFF_IDENTITY.json');derivation=load(out/'proof/DERIVATION.json')
+     for v in (first,derivation):
+         if v['status']!='PASS' or v['config_identity']!=b['config_identity']:raise ValueError('Local proof is stale')
+@@ -17,7 +18,7 @@
+     gates=dict(schema='r1-local-gates-v1',status='BUILT_BLOCKED',config_identity=b['config_identity'],production_authorized=False,
+         checks=dict(tests=gate('PASS',str(n)+' tests'),off_identity=gate('PASS',off['scope']),
+             first_batch=gate('PASS',first['scope']),deterministic_derivation=gate('PASS',derivation['scope']),
+-            admission_coverage=gate('PASS','195471 VQA rows; every one of 16 stored question types; row predicates only'),
++            admission_coverage=gate('PASS',str(census['vqa_rows'])+' VQA rows; every stored question type checked; '+str(census['vqa_admitted'])+' admitted; row predicates only'),
+             loader_audit=gate('LOCAL_VQA_ONLY','1000 steps, 128000 real-store VQA draws; other streams unavailable'),
+             room_selection_projection=gate('PASS','586 selected source rows removed; all non-room entries and ordered indices unchanged'),
+             native_selection_regeneration=gate('NOT_RUN','Complete source archives absent locally; 581 materialized rows remain unverified'),
+@@ -27,28 +28,30 @@
+             complete_privacy_scan=gate('NOT_RUN','Independent final deployment content scan and ANON_OK.json required'),
+             independent_review=gate('PENDING','Admission inputs and sampler code changed')))
+     gates['absent_on_P']=b['absent_on_P']
++    gates['checks']['traced_room']=dict(status='PASS' if room['eligible']==room['rows'] else 'FAIL',**room)
++    gates['checks']['unit_candidate']=gate('REFUSED_UNBOUND','The read-only units_p_slice_v2 fixture lacks top-level events and 32 frame pins; a packed successor is required.')
+     write(out/'proof/GATES.json',gates)
+     write(out/'REVIEW_REQUEST.json',dict(status='REVIEW_REQUIRED',config_identity=b['config_identity'],tree_sha256=b['tree_sha256'],
+         operator_archive=op['archive'],operator_archive_sha256=op['sha256'],reviews_requested=1,
+         reason='Admission inputs change. Review family quotas, receipt binding, routing refusals, staging changes and CPU proof before any deployment approval.',
+         dispatch_result_event='Dispatching lane writes the RESULT event; this packet sends no external message.'))
+-    unit_status=('Units are bound to a faithful file; eligible counts are '+json.dumps(b['unit_binding']['counts'],sort_keys=True)+'.' if b.get('unit_binding') else 'Units are unbound and have zero dose; cm, ft and in become required only after binding.')
+-    family_set='Vehicle P requires every nonzero VQA cell, routing camera displacement, camera movement direction, camera rotation and absolute distance; recovery, room and size are absent at launch. '+unit_status
++    unit_status=('Units are bound to a faithful file; eligible counts are '+json.dumps(b['unit_binding']['counts'],sort_keys=True)+'.' if b.get('unit_binding') else 'Units are unbound and have zero dose. A bound source trains feet by default; units below 100 eligible rows are named absent with their counts and do not fail the family gate.')
++    family_set='Vehicle P requires every nonzero VQA cell, routing camera displacement, camera movement direction, camera rotation and absolute distance; recovery, size and unbound units are absent at launch. '+unit_status
+     report=f'''{family_set}
+ 
+ The packet is built for review and remains blocked for production. Config identity is `{b['config_identity']}`. S1 and S2 are off; S2 remains a switch. Scheduled sampling matches D0, the schedule remains 1,000 steps, milestones are 100 and 200, and the run stops at 200. Its disk plan reserves three weight exports.
+ 
+-The full v6 census covers 195,471 rows and all 16 question types. All pass the checked row, label, QID, scene and R0 predicates. This does not certify RGB bytes, division ancestry, complete source closure or production preparation. `ADMISSION_BY_TYPE.json` records that scope and the receipt and database hashes.
++The full v7 census covers {census['vqa_rows']:,} rows and all {len(census['types_covered'])} question types; {census['vqa_admitted']:,} pass the checked predicates. This does not certify RGB bytes, division ancestry, complete source closure or production preparation. `ADMISSION_BY_TYPE.json` records that scope and the receipt and database hashes.
+ 
+ Recovery fails at sealed `student_pilot/ground_rows.py:82`: `ground_record.not_seen` is true, while line 81 requires it to be false. The failure persists through the native packer. Production validates these rows before adding frames and never clears the flag.
+ 
+-{unit_status} `--unit-rows FILE --unit-rows-sha256 SHA` accepts packed JSONL with full events and 32 explicit frame pins. It preserves all input bytes, validates each row through sealed admission, binds a new pool source, and caps its dose at four times eligible rows over 1,000 steps. Each unit below 100 post-filter rows is named as missing. The current 2,000-row diagnostic slice lacks complete events and frames and is not a production input. `ROUTING_DIAGNOSIS.json` retains the separate sealed-refusal diagnosis.
++{unit_status} `--unit-rows FILE --unit-rows-sha256 SHA` accepts packed JSONL with full events and 32 explicit frame pins. It preserves all input bytes, validates each row through sealed admission, binds a new pool source, and caps its dose at four times eligible rows over 1,000 steps. Each unit below 100 post-filter rows is named as missing. The specified 1,224-row units_p_slice_v2 candidate has ft=1,130, in=94 and cm=0. Its read-only fixture fails binding because it lacks top-level events and frame pins. A packed successor is required; no production unit source is bound. `ROUTING_DIAGNOSIS.json` retains the separate sealed-refusal diagnosis.
+ 
+-The 476 square-metre and 95 square-foot one-line room rows have zero eligible rows. A room row needs ordered Locate lines with frame pins, one Relate line and an estimate; production must also verify its frames. The selection removes all room sources: 586 source-selection rows, corresponding to the brief's expected 581 materialized programs. Every non-room entry is canonically byte-equal and every ordered index retains its hash. The 581 materialized count still needs native regeneration.
++V7 contains {room['rows']} traced room rows: {room['sealed_row_checks_pass']} pass the sealed row checks, {room['qualitative_trace_pass']} pass the qualitative-trace predicate, and {room['eligible']} are eligible. The 476 square-metre and 95 square-foot one-line diagnostic room rows have zero eligible rows. A room row needs ordered Locate lines with frame pins, one Relate line and an estimate; production must also verify its frames. The selection removes all room sources: 586 source-selection rows, corresponding to the brief's expected 581 materialized programs. Every non-room entry is canonically byte-equal and every ordered index retains its hash. The 581 materialized count still needs native regeneration.
+ 
+-`MIX.md` gives every VQA cell's eligible count, cap, cut and final dose. Direction has 49,901 eligible rows; facing has 34,958. Counting has 11,366; totals has 9,303. Direction draws 32.89 rows per step: 20.08 + 10.81 from size + 2.00 from room. All 9,778 size rows remain in the store with zero draw. Size and room remain configurable cells. Camera-object absolute distance is explicitly excluded because v6 has no rows. The sealed sampler has no family-quota setting; the review patch adds opt-in quotas and preserves its original path when the setting is absent.
++`MIX.md` gives each cell's eligible count, cap, cut and final dose. The room request is {table['room']['proposed_cents']/100:.2f} rows per step and its effective dose is {table['room']['final_cents']/100:.2f}; direction receives its unused slots and draws {table['direction']['final_cents']/100:.2f}. Size has zero dose. V7's {away['rows']:,} reworded away rows use QID suffix `{away['qid_suffix']}` and pool `{away['pool']}`; {away['eligible']:,} pass the checked predicates. The suffix fallback filters those rows from the sampler while keeping the single v7 store. The sealed admission predicates remain unchanged.
+ 
+-The local loader audit draws 128,000 real-store VQA rows over 1,000 steps, reports family and question-type shares, and records five bound traces for each populated family, including stored families with zero draw. No VQA row repeats more than {audit['maximum_observed_repeats']} times. Production routing, pose and pointing stores are absent locally, so their final eligible counts and capped routing table remain unmeasured. The local required-family gate checks post-filter VQA counts and native routing source-selection presence. The production proof recomputes final routing counts from staged files and refuses a missing required family; it prints the named `absent_on_P` list with reasons. Bound units also require at least 100 eligible rows per cm, ft and in.
++The local loader audit draws 128,000 real-store VQA rows over 1,000 steps, reports family and question-type shares, and records five bound traces for each populated family, including stored families with zero draw. No VQA row repeats more than {audit['maximum_observed_repeats']} times. Production routing, pose and pointing stores are absent locally, so their final eligible counts and capped routing table remain unmeasured. The local required-family gate checks post-filter VQA counts and native routing source-selection presence. The production proof recomputes final routing counts from staged files and refuses a missing required family; it prints the named `absent_on_P` list with reasons. Units below 100 eligible rows are named absent rather than failing the gate; sampling applies the configured allowlist and the four-repeat cap.
+ 
+ All {n} local tests pass. The tiny-model OFF optimizer state is bit-equal on all four ranks against b01ce449. The final S2-off first batch passes 72 full-forward microsteps per rank, including 128 real VQA targets in total. Pixels and auxiliary streams are fixtures; these checks do not certify production RGB or the actual routing batch. Two fixture deployment derivations have identical manifest hashes. The fixture lacks `{derivation['missing_source_members'][0]}` and `{derivation['missing_source_members'][1]}`.
+ 
+@@ -58,7 +61,7 @@
+ '''
+     (out/'REPORT.md').write_text(report)
+     physical=f"/tmp/jjyeung/a_{b['run_key']}/root/aws/u/ap/{b['store_key']}"
+-    packet=f'''R1-P uses the ruled vehicle-P family set. Recovery, room and size have zero launch dose; units stay at zero until a faithful file is bound. Full production evidence remains pending. Read `REPORT.md` and `proof/GATES.json` before deployment.
++    packet=f'''R1-P uses the ruled vehicle-P family set. Room requests {table['room']['proposed_cents']/100:.2f} rows per step and receives {table['room']['final_cents']/100:.2f} after filtering. Size, recovery and unbound units have zero dose. Full production evidence remains pending. Read `REPORT.md` and `proof/GATES.json` before deployment.
+ 
+ | Binding | Value |
+ |---|---|
+@@ -71,25 +74,38 @@
+ | Operator archive | `{op['archive']}` |
+ | Archive SHA | `{op['sha256']}` |
+ 
+-Relative to H1-1, this config disables S1 and S2, restores D0 scheduled sampling, uses milestones [100, 200] and stop 200, binds v6, removes room programs and adds capped family quotas. The 1,000-step schedule, stream totals (pose 64, VQA 128, routing 64, pointing 32), optimizer and initial weights stay in the inherited recipe. Field-level changes are in `../configs/diff_against_h1_1.json` and `../configs/diff_against_deployed.json`. `SAMPLER_REVIEW.patch` contains the trainer changes; no admission predicate changes. `DEPLOYMENT_REVIEW.patch` covers the staging, wrapper and submitter changes.
++Relative to H1-1, this config disables S1 and S2, restores D0 scheduled sampling, uses milestones [100, 200] and stop 200, binds v7, removes room programs and adds capped family quotas. The 1,000-step schedule, stream totals (pose 64, VQA 128, routing 64, pointing 32), optimizer and initial weights stay in the inherited recipe. Field-level changes are in `../configs/diff_against_h1_1.json` and `../configs/diff_against_deployed.json`. `SAMPLER_REVIEW.patch` contains the trainer changes; no admission predicate changes. `DEPLOYMENT_REVIEW.patch` covers the staging, wrapper and submitter changes.
+ 
+ Rebind a store, size selector and mix with one command from the lane. This regenerates the admission table, config identity, code archive, loader audit, proof inputs and operator archive:
+ 
+ ```bash
+ /scratch/jjyeung/envs/p1cpu/bin/python -B tools/rebind.py \\
+-  --receipt /scratch/jjyeung/orch_n30/rows_a2/out/a2_vqa_v6/vqa/receipt.json \\
++  --receipt {b['source_receipt']['path']} \\
+   --receipt-sha256 {b['receipt_sha256']} \\
+   --orchard-store {b['orchard_store']} \\
+-  --mix configs/mix.json --reuse-census --proof-partition {b['proof_partition']}
++  --mix configs/mix.json --proof-partition {b['proof_partition']}
+ ```
+ 
+-For v7, pass its exact receipt SHA, its local database via `--database` if needed, and its Orchard database path. `--size-selector FILE` accepts `{{"field":"metadata.path","equals":"value"}}`; omission keeps all admitted size rows eligible, while the mix controls whether any are drawn. The mix file controls requested doses and refill rules. Traced rooms enter through the bound VQA store and remain subject to the qualitative-trace predicate and cap. `--room-receipt FILE` binds optional provenance for traced rows already integrated into that store; it does not merge a second database. A separate room store must be integrated by its producer. Rebinding invalidates earlier first-batch and deployment proof results; rerun them against the new identity. Use `--reuse-census` only for unchanged store bytes and receipt. After rebinding, run `/scratch/jjyeung/envs/p1cpu/bin/python -B tools/run_local_checks.py` to refresh the local evidence and this packet.
++The bound store is v7; its producer receipt and database SHA are fixed above. `--size-selector FILE` accepts `{{"field":"metadata.path","equals":"value"}}`; omission keeps all admitted size rows eligible, while the mix controls whether any are drawn. The mix file controls requested doses and refill rules. Traced rooms enter through the bound VQA store and remain subject to the qualitative-trace predicate and cap. `--room-receipt FILE` binds optional provenance for traced rows already integrated into that store; it does not merge a second database. A separate room store must be integrated by its producer. Rebinding invalidates earlier first-batch and deployment proof results; rerun them against the new identity. Use `--reuse-census` only for unchanged store bytes and receipt. After rebinding, run `/scratch/jjyeung/envs/p1cpu/bin/python -B tools/run_local_checks.py` to refresh the local evidence and this packet.
+ 
+-To bind units, add `--unit-rows FILE --unit-rows-sha256 SHA` and optionally `--unit-cents N` (default 287 hundredths of a row per step, capped by eligibility). The file must contain faithful, already packed JSONL rows with full events and all 32 frame pins. No answer, event, or row payload is regenerated. A mismatched SHA, incomplete frame pins, sealed semantic refusal, or row removed by native source selection rejects the binding. The source must already be a clean slice; this command does not repair it.
++The default `--units-allowlist ft` samples feet only; freed routing slots go pro rata to camera displacement, movement direction, rotation and absolute distance. To bind units, add `--unit-rows FILE --unit-rows-sha256 SHA` and optionally `--unit-cents N` (default 100 hundredths of a row per step, capped at 4 × allowlisted eligible / 1,000). The file must contain faithful, already packed JSONL rows with full events and all 32 frame pins. No answer, event, or row payload is regenerated. A mismatched SHA, incomplete frame pins, sealed semantic refusal, or row removed by native source selection rejects the binding. The source must already be a clean slice; this command does not repair it.
++
++Each fallback is one rebind command and retains v7 as the sole store:
++
++```bash
++# Refused room traces: zero the room cell and send its slots to direction.
++/scratch/jjyeung/envs/p1cpu/bin/python -B tools/rebind.py --receipt {b['source_receipt']['path']} --receipt-sha256 {b['receipt_sha256']} --orchard-store {b['orchard_store']} --room-cents 0 --proof-partition {b['proof_partition']}
++# Refused reworded away rows: exclude the exact QID suffix.
++/scratch/jjyeung/envs/p1cpu/bin/python -B tools/rebind.py --receipt {b['source_receipt']['path']} --receipt-sha256 {b['receipt_sha256']} --orchard-store {b['orchard_store']} --exclude-qid-suffix _away_opp --proof-partition {b['proof_partition']}
++# Bind a packed, audited successor. The current v2 candidate is refused unchanged.
++/scratch/jjyeung/envs/p1cpu/bin/python -B tools/rebind.py --receipt {b['source_receipt']['path']} --receipt-sha256 {b['receipt_sha256']} --orchard-store {b['orchard_store']} --unit-rows "$UNIT_FILE" --unit-rows-sha256 "$UNIT_SHA256" --units-allowlist ft --unit-cents 100 --proof-partition {b['proof_partition']}
++```
++
++Set `UNIT_FILE` and `UNIT_SHA256` to the audited packed file and its SHA. The named candidate is `/scratch/jjyeung/orch_n30/rows_r1/out/units_p_slice_v2/rows.jsonl`; its unchanged read-only fixture is refused for missing events and frame pins. After any rebind, run `tools/run_local_checks.py` with the CPU Python above. Neither fallback merges loose files into v6.
+ 
+ Unit binding is an **admission-input change**: `u.gz` transports the exact JSONL bytes; `m.json` adds `U_Faithful` to the pool manifest; `i.json` binds its native ordered indices; `u.json` records hashes and per-unit/per-dataset counts. These artifacts enter the operator bundle. Derivation stages `u.gz`, `m.json` and `i.json` into private, read-only namespace paths and adds their pins to the routing catalog. RGB bytes are not bundled: the complete staged RGB map/plan and frame store must resolve every supplied frame pin unchanged. Missing or conflicting RGB fails production admission. Full native materialization calls the sealed `selected_rows`, frame resolution, division/scene/QID filters and RGB audit before the sampler or proof counts units.
+ 
+-The prepared operator archive contains no database bytes. Its sole v6 input is the existing mode-0400 Orchard file `{b['orchard_store']}`. The inherited staging code copies it into `{physical}/d.db`, verifies the database SHA and removes file write bits. Inside the namespace, both `/scratch/fsw` and `/lustre/fsw` aliases resolve to that private union. The deployment receipt is `{b['deployment_receipt']['path']}` with SHA `{b['deployment_receipt']['sha256']}`; its database path is `{b['deployed_database']['path']}`. The original producer receipt remains a separately pinned provenance record. No Trinity database path is a runtime input.
++The prepared operator archive contains no database bytes. Its sole v7 input is the existing mode-0400 Orchard file `{b['orchard_store']}`. The inherited staging code copies it into `{physical}/d.db`, verifies the database SHA and removes file write bits. Inside the namespace, both `/scratch/fsw` and `/lustre/fsw` aliases resolve to that private union. The deployment receipt is `{b['deployment_receipt']['path']}` with SHA `{b['deployment_receipt']['sha256']}`; its database path is `{b['deployed_database']['path']}`. The original producer receipt remains a separately pinned provenance record. No Trinity database path is a runtime input.
+ 
+ Operator steps below describe the future Orchard execution; this lane made no Orchard call. Keep all destinations private (directories 0700, files 0600 unless the sealed input requires 0400). Do not copy the descriptive reports to the public job surface.
+ 
+@@ -127,17 +143,18 @@
+   "$BUN/{op['proof_script']}" "$BUN/a.json"
+ ```
+ 
+-6. Inspect the named checks in `KH/o/JOB.proof.json`, its bound loader audit and the five printed traces per family. The required-family check permits the named absences recovery, room and size; it must pass for every nonzero VQA cell and the four native routing cells. Once bound, units must also pass, with cm/ft/in counts at least 100 each. Confirm the proof receipt records the requested partition and actual node. The separate `go.json` must bind the final config, contract, wrapper and manifest; only then may the operator set `PROOF_JOB` and run `BUN/s.sh`. The submitter refuses any missing proof check or missing GO.
++6. Inspect the named checks in `KH/o/JOB.proof.json`, its bound loader audit and the five printed traces per family. The required-family check permits recovery, size, unbound units, any zero-dose room cell, and bound units below 100 eligible rows; it must pass for every nonzero VQA cell and the four native routing cells. For a bound source, each unit below 100 is listed under absent_on_P with its count. Only allowlisted units with at least 100 rows enter the capped sampler. Confirm the proof receipt records the requested partition and actual node. The separate `go.json` must bind the final config, contract, wrapper and manifest; only then may the operator set `PROOF_JOB` and run `BUN/s.sh`. The submitter refuses any missing proof check or missing GO.
+ 
+-Local validation: {n} tests passed; OFF identity is exact on four tiny-model ranks; 288 final-config microsteps pass finite full-forward checks; two fixture derivations are byte-identical; the real-v6 loader audit covers 1,000 steps. These are bounded local results. Full native selection regeneration, production RGB/admission, complete routing counts, complete privacy scan and production CPU proof are NOT_RUN. `proof/GATES.json` is the authoritative gate list.
++Local validation: {n} tests passed; OFF identity is exact on four tiny-model ranks; 288 final-config microsteps pass finite full-forward checks; two fixture derivations are byte-identical; the real-v7 loader audit covers 1,000 steps. These are bounded local results. Full native selection regeneration, production RGB/admission, complete routing counts, complete privacy scan and production CPU proof are NOT_RUN. `proof/GATES.json` is the authoritative gate list.
+ '''
+     (out/'R1P_PACKET.md').write_text(packet)
+-    (ROOT/'STATUS.md').write_text(f'BUILT_BLOCKED: config {b["config_identity"]}. Full v6 census and local loader audit complete; {n} tests, four-rank OFF identity, tiny-model first batch and deterministic fixture derivation pass. Vehicle-P required families follow the ruled set; recovery, room and size are absent and units are required only when bound. Production evidence and independent review remain required. Read out/REPORT.md and out/R1P_PACKET.md.\n')
++    (ROOT/'STATUS.md').write_text(f'BUILT_BLOCKED: config {b["config_identity"]}. Full v7 census and local loader audit complete; {n} tests, four-rank OFF identity, tiny-model first batch and deterministic fixture derivation pass. Vehicle-P required families follow the ruled set; recovery, size and unbound units are absent; low-count bound units are named absent. Required-family status is {audit["required_families"]["status"]}; missing families: {audit["required_families"]["missing"]}. Traced room eligibility is {room["eligible"]}/{room["rows"]}; the alternate trace-format ruling is pending. The current unit candidate lacks events and frame pins and is refused unchanged. Production evidence and independent review remain required. Read out/REPORT.md and out/R1P_PACKET.md.\n')
+     names=['REPORT.md','R1P_PACKET.md','ADMISSION_BY_TYPE.json','ROUTING_DIAGNOSIS.json','MIX.md','config.json','BINDING.json',
+-           'FIX3.md','FIX3.diff','OPERATOR.json','REVIEW_REQUEST.json','SAMPLER_REVIEW.patch','DEPLOYMENT_REVIEW.patch','r1p_code.tar',op['archive']]
++           'FIX4.md','FIX4.diff','OPERATOR.json','REVIEW_REQUEST.json','SAMPLER_REVIEW.patch','DEPLOYMENT_REVIEW.patch','r1p_code.tar',op['archive']]
+     names += ['proof/'+n for n in ('GATES.json','inputs.json','OFF_IDENTITY.json','FIRST_BATCH.json','DERIVATION.json',
+                                  'loader_audit.json','traces.jsonl','LOCAL_NAMESPACE.json','p.py',op['proof_script'])]
+     names += ['proof/selection/r.json','proof/selection/q.json']
++    if (out/'proof/UNIT_CANDIDATE.json').exists():names.append('proof/UNIT_CANDIDATE.json')
+     (out/'SHA256SUMS').write_text(''.join(sha(out/n)+'  '+n+'\n' for n in sorted(names)))
+     print(json.dumps(dict(status='BUILT_BLOCKED',identity=b['config_identity'],local_tests=n,archive=op['archive'])))
+ 
+--- a/tools/make_proof.py
++++ b/tools/make_proof.py
+@@ -58,8 +58,10 @@
+ 
+ '''
+     text=text.replace('def main(authority):',helper+'def main(authority):')
+-    text=text.replace("        result.update(checks=dict(empty_root=", "        paths=temporary_paths(args,kh,work)\n        result.update(checks=dict(temporary_paths=paths,empty_root=")
+-    text=text.replace("        result.update(config_identity=identity(cfg),", "        result.update(checks=dict(empty_root=dict(status='PASS',path=str(work)),runtime_binaries=dict(status='PASS',binaries=binaries)),config_identity=identity(cfg),")
++    anchor="        args = command(bw, kh, work, rs)"
++    if text.count(anchor)!=1:raise ValueError("Parent command boundary differs")
++    text=text.replace(anchor,anchor+"\n        paths=temporary_paths(args,kh,work)")
++    text=text.replace("        result.update(config_identity=identity(cfg),", "        result.update(checks=dict(temporary_paths=paths,empty_root=dict(status='PASS',path=str(work)),runtime_binaries=dict(status='PASS',binaries=binaries)),config_identity=identity(cfg),")
+     text=text.replace("        result.update(execute(args, script, kh/'o'/(job+'.proof.log'), lambda: verify_prepared(kh, physical)))", """        outcome=execute(args, script, kh/'o'/(job+'.proof.log'), lambda: verify_prepared(kh, physical))
+         result.update(outcome)
+         audit_path=physical/'inputs/a.json'
+@@ -75,15 +77,15 @@
+         for directory,children,files in os.walk(work):
+             path=Path(directory)
+             if path.is_symlink() or stat.S_IMODE(path.stat().st_mode)!=0o700:bad.append(str(path))
+-        result['checks']['private_directories']=dict(status='FAIL' if bad else 'PASS',bad=bad)
+-        required={'disk_plan','routing_selection','empty_root','temporary_paths','runtime_binaries','private_directories','loader_audit','required_families'}
++        result['checks']['directory_modes']=dict(status='FAIL' if bad else 'PASS',bad=bad)
++        required={'disk_plan','routing_selection','empty_root','temporary_paths','runtime_binaries','directory_modes','loader_audit','required_families'}
+         if not required<=set(result['checks']) or any(result['checks'][k]['status']!='PASS' for k in required if k in result['checks']):
+             result.update(status='FAIL',rc=result['rc'] or 1)
+ """)
+     before="            + '\\n/bin/bash \"$ROOT/b/r.sh\" p 0\\n')"
+     after="""            + '\\n/bin/bash "$ROOT/b/r.sh" p 0\\n'
+             + 'export TK_KIT_HOME="$ROOT"\\nsource "$ROOT/b/c.sh"\\ntk_bwrap\\ntk_env\\ntk_pythonpath p\\n'
+-            + '"${BW[@]}" "$PILOT_VENV/bin/python" -B -m student_pilot.loader_audit "$X"\\n')"""
++            + '"${BW[@]}" "$PILOT_VENV/bin/python" -B - "$X" <<P\\nfrom student_pilot.loader_audit import main\\nimport sys\\nmain(sys.argv[1])\\nP\\n')"""
+     if text.count(before)!=1:raise ValueError('Parent mode-p boundary differs')
+     text=text.replace(before,after)
+     source=out/'proof/p.py';source.write_text(text)
+--- a/tools/package_operator.py
++++ b/tools/package_operator.py
+@@ -40,7 +40,7 @@
+     write(package/'ids.json',ids)
+     submit=(H/'payload/s.sh').read_text().replace('i_1be16f28','i_'+token).replace('x_3fdda0fb','x_'+token).replace('a15_cot_ap5ee9da63',binding['job_name'])
+     needle="assert proof.get('prepared_seals') and proof.get('real_job_reuse') is False"
+-    submit=submit.replace(needle,needle+"\nfor name in ('disk_plan','routing_selection','empty_root','temporary_paths','runtime_binaries','private_directories','loader_audit','required_families'):\n assert proof.get('checks',{}).get(name,{}).get('status')=='PASS', name")
++    submit=submit.replace(needle,needle+"\nfor name in ('disk_plan','routing_selection','empty_root','temporary_paths','runtime_binaries','directory_modes','loader_audit','required_families'):\n assert proof.get('checks',{}).get(name,{}).get('status')=='PASS', name")
+     (package/'s.sh').write_text(submit)
+     # No GO, review, staging, archive attestation or content certificate is manufactured.
+     names=sorted(set(mapping.values())|{p.name for p in record_paths}|{'s.json','jb.sh','e.txt','ids.json','s.sh'})
+--- a/tools/rebind.py
++++ b/tools/rebind.py
+@@ -27,7 +27,9 @@
+     os.umask(0o077)
+     p=argparse.ArgumentParser();p.add_argument('--receipt',type=Path,required=True);p.add_argument('--receipt-sha256',required=True)
+     p.add_argument('--database',type=Path);p.add_argument('--mix',type=Path,default=ROOT/'configs/mix.json')
+-    p.add_argument('--unit-rows',type=Path);p.add_argument('--unit-rows-sha256');p.add_argument('--unit-cents',type=int,default=287)
++    p.add_argument('--unit-rows',type=Path);p.add_argument('--unit-rows-sha256');p.add_argument('--unit-cents',type=int,default=100)
++    p.add_argument('--units-allowlist',nargs='+',choices=('cm','ft','in'),default=['ft'])
++    p.add_argument('--room-cents',type=int);p.add_argument('--exclude-qid-suffix')
+     p.add_argument('--proof-partition',choices=('advanced','general'),default='advanced')
+     p.add_argument('--size-selector',type=Path);p.add_argument('--room-receipt',type=Path)
+     p.add_argument('--orchard-store',default='/project/community/jjyeung/okh7/s_8805de22/d.db')
+@@ -56,6 +58,13 @@
+     evidence['implementation_rebound']=True;write(out/'proof/selection/q.json',evidence)
+     mix=load(a.mix)
+     if a.size_selector:mix['size_selector']=load(a.size_selector)
++    mix['units_allowlist']=a.units_allowlist
++    if a.exclude_qid_suffix:mix['exclude_qid_suffix']=a.exclude_qid_suffix
++    if a.room_cents is not None:
++        if not 0<=a.room_cents<=200:raise ValueError('Room dose must be between zero and 200 cents')
++        cells=mix['streams']['vqa']['cells']
++        cells['direction']['cents']+=cells['room']['cents']-a.room_cents
++        cells['room']['cents']=a.room_cents
+     if bool(a.unit_rows)!=bool(a.unit_rows_sha256):raise ValueError('Unit rows and SHA must be supplied together')
+     if a.unit_cents<1:raise ValueError('Bound units require a positive requested dose')
+     unit_binding=None
+@@ -70,7 +79,10 @@
+             selected_rows=selected['selected_rows'],native_unit_regeneration_executed=True)
+         write(out/'proof/selection/q.json',evidence)
+         mix['unit_rows']=unit_binding['source']
+-        cells=mix['streams']['routing']['cells'];dose=min(a.unit_cents,4*unit_binding['counts']['eligible']*100//1000)
++        unit_binding['sampling_eligible']=sum(unit_binding['counts']['by_unit'][u] for u in a.units_allowlist if unit_binding['counts']['by_unit'][u]>=100)
++        # Sampling policy is identity-bound in mix; the native source census stays byte-verifiable.
++        dose=min(a.unit_cents,4*unit_binding['sampling_eligible']*100//1000)
++        cells=mix['streams']['routing']['cells']
+         from student_pilot.vehicle_p import ROUTING
+         weights={n:cells[n]['cents'] for n in ROUTING};total=sum(weights.values());remaining=6400-dose
+         shares={n:remaining*weights[n]//total for n in ROUTING}
+@@ -119,22 +131,28 @@
+     review=dict(schema='r1-independent-review-required-v1',verdict='PENDING',config_sha256=identity,tree_sha256=code['tree_sha256'])
+     write(record/'v.json',review);config['admission']=dict(path=store_base+'v.json',sha256=sha(record/'v.json'))
+     assert run.identity(config)==identity
+-    write(ROOT/'configs/r1p.json',config);write(ROOT/'configs/diff_against_h1_1.json',diff(load(ROOT/'work/reference/configs/h1_1.json'),config))
+-    write(ROOT/'configs/diff_against_deployed.json',diff(parent,config));write(out/'config.json',config)
++    configs=ROOT/'configs' if out==ROOT/'out' else out/'configs'
++    write(configs/'r1p.json',config);write(configs/'diff_against_h1_1.json',diff(parent,config))
++    write(configs/'diff_against_deployed.json',diff(parent,config));write(out/'config.json',config)
+     binding.update(config_identity=identity,run_key=runkey,store_key=token,record_files=sorted(['c.json','d.json','j.json','r.json','v.json',producer_name]),source_receipt=pin(a.receipt),database=pin(db),
+         deployment_receipt=dict(path=store_base+'d.json',sha256=sha(record/'d.json')),orchard_store=a.orchard_store,
+         deployed_database=deployed['database'],code_sha256=sha(record/'c.json'),tree_sha256=code['tree_sha256'],
+         code_archive_sha256=sha(archive),code_archive_name=Path(code['archive']['path']).name,selection_sha256=sp['sha256'],
+         job_name='a15_cot_ap'+runkey,production_authorized=False,proof_partition=a.proof_partition,
+         blockers=['production_preparation_not_run','independent_review_pending'])
++    census_summary=load(census)
++    binding['traced_room_eligibility']=census_summary.get('traced_room',{})
++    binding['reworded_away']=census_summary.get('reworded_away',{})
++    if mix['streams']['vqa']['cells']['room']['cents'] and not binding['traced_room_eligibility'].get('eligible'):
++        binding['blockers'].append('vqa_room_qualitative_trace_refused')
+     from student_pilot.vehicle_p import absent_on_p
+-    binding['absent_on_P']=absent_on_p(config)
++    binding['absent_on_P']=absent_on_p(config,unit_binding['counts'] if unit_binding else None)
+     binding['units_status']='BOUND' if unit_binding else 'UNBOUND_ZERO_DOSE'
+     write(out/'BINDING.json',binding)
+     proof=dict(config_identity=identity,config_sha256=sha(out/'config.json'),tree_sha256=code['tree_sha256'],
+         selection_sha256=sp['sha256'],disk_plan=config['checkpoint_disk_guard'],milestones=[100,200],stop_after_step=200,
+         store_receipt_sha256=sha(record/'d.json'),database_sha256=receipt['database']['sha256'],run_key=runkey,
+-        required_checks=['disk_plan','routing_selection','empty_root','temporary_paths','runtime_binaries','private_directories','loader_audit','required_families'],
++        required_checks=['disk_plan','routing_selection','empty_root','temporary_paths','runtime_binaries','directory_modes','loader_audit','required_families'],
+         production_preparation='NOT_RUN',production_authorized=False,absent_on_P=binding['absent_on_P'],proof_partition=a.proof_partition)
+     write(out/'proof/inputs.json',proof)
+     if not a.skip_audit:
+@@ -150,7 +168,7 @@
+         report['limitations']=['Only vqa is present locally; pose, routing and pointing counts are placeholders excluded from this audit.',
+             'RGB bytes and full production admission were not run. Production proof must audit every staged stream.']
+         from student_pilot.vehicle_p import required_families
+-        if unit_binding:report['unit_counts']=unit_binding['counts']
++        if unit_binding:report['unit_counts']={**unit_binding['counts'],'sampling_eligible':unit_binding['sampling_eligible']}
+         report['required_families']=required_families(config,report,local_selection=load(selection))
+         report['absent_on_P']=binding['absent_on_P']
+         write(out/'proof/loader_audit.json',report)
+@@ -159,10 +177,10 @@
+         arows=load(census);arows['vqa_by_family']=report['eligible_by_family']['vqa'];arows['post_filter_by_type']=report['eligible_by_question_type']['vqa'];arows['mix_caps']=report['tables']['vqa'];write(census,arows)
+         table=['| Cell | Eligible | Proposed/step | Cap/step | Cut | Refill | Final/step |','|---|---:|---:|---:|---:|---:|---:|']
+         for name,v in report['tables']['vqa'].items():table.append('| '+name+' | '+str(v['eligible'])+' | '+' | '.join(f"{v[k]/100:.2f}" for k in ('proposed_cents','cap_cents','cut_cents','refill_cents','final_cents'))+' |')
+-        (out/'MIX.md').write_text('Vehicle P caps each cell at four times its eligible population over 1,000 steps. Direction is 32.89 rows per step. Size and room have zero launch dose; size rows remain in the store. Recovery is absent on P and joins N. Units have zero dose until a faithful file is bound.\n\n'+'\n'.join(table)+'\n\nRouting uses the same capped allocator after native preparation. The production proof measures its final populations, caps, cuts and sampling shares.\n')
++        (out/'MIX.md').write_text('Vehicle P caps each cell at four times its eligible population over 1,000 steps. Size has zero launch dose; size rows remain in the store. The table gives the bound room dose and direction refill. Recovery is absent on P and joins N. Units have zero dose until a faithful file is bound.\n\n'+'\n'.join(table)+'\n\nRouting uses the same capped allocator after native preparation. The production proof measures its final populations, caps, cuts and sampling shares.\n')
+         routing_caps={}
+         for name in ('recovery','units'):
+-            count=unit_binding['counts']['eligible'] if name=='units' and unit_binding else 0
++            count=unit_binding['sampling_eligible'] if name=='units' and unit_binding else 0
+             proposed=mix['streams']['routing']['cells'][name]['cents'];cap=4*count*100//1000
+             routing_caps[name]=dict(eligible_in_bound_source=count,proposed_cents=proposed,cap_cents=cap,
+                                     cut_cents=max(0,proposed-cap),production_stream_bound=bool(name=='units' and unit_binding))
+@@ -172,7 +190,7 @@
+             for name,v in mix['streams']['routing']['cells'].items():
+                 cap=f"{routing_caps[name]['cap_cents']/100:.2f}" if name in routing_caps else 'Production proof'
+                 f.write(f"| {name} | {v['cents']/100:.2f} | {cap} |\n")
+-            f.write('\nPose stays at 64 rows/step and pointing at 32. Routing refills its four native cells proportionally under their caps. Bound unit counts below 100 in cm, ft or in fail the required-family gate.\n')
++            f.write('\nPose stays at 64 rows/step and pointing at 32. Routing refills its four native cells proportionally under their caps. Units below 100 eligible rows are named missing with their counts and do not fail the required-family gate. The default allowlist trains feet only at 1.00 row per step, subject to the four-repeat cap.\n')
+         traces=[]
+         for stream,groups in report['traces'].items():
+             for name,examples in groups.items():
+--- a/tools/run_local_checks.py
++++ b/tools/run_local_checks.py
+@@ -50,7 +50,7 @@
+             (out/'operator'/name).read_text().splitlines(keepends=True),fromfile='a/'+name,tofile='b/'+name))
+     (out/'DEPLOYMENT_REVIEW.patch').write_text(''.join(patch))
+     run([ROOT/'tests/test_packet.py'],'tests.log')
+-    run([ROOT/'tools/write_fix3.py'],'fix3.log')
++    run([ROOT/'tools/write_fix4.py'],'fix4.log')
+     run([ROOT/'tools/finalize.py'],'finalize.log')
+     print(json.dumps(dict(status='BUILT_BLOCKED',config_identity=binding['config_identity'],operator_archive_sha256=expected)))
+ 
+--- a/tools/selection_check.py
++++ b/tools/selection_check.py
+@@ -63,7 +63,7 @@
+         if not a.code_record:raise ValueError('Implementation rebind requires code record')
+         implementation=load(a.implementation);files=load(a.code_record)['files']
+         if any(files.get(n)!=h for n,h in implementation.items()):raise ValueError('Selection code closure differs')
+-        allowed={'student_pilot/carrier_c1_data.py','student_pilot/carrier_c1_run.py','student_pilot/type_mix.py'}
++        allowed={'student_pilot/carrier_c1_data.py','student_pilot/carrier_c1_run.py','student_pilot/type_mix.py','student_pilot/vehicle_p.py'}
+         if any(implementation.get(n)!=parent['implementation'].get(n) for n in set(implementation)|set(parent['implementation']) if n not in allowed):
+             raise ValueError('Selection admission predicate changed')
+         candidate['implementation']=implementation
+--- a/tools/unit_binding.py
++++ b/tools/unit_binding.py
+@@ -17,6 +17,7 @@
+     counts=Counter();datasets=Counter();cross=Counter();qids=set()
+     for line in raw.splitlines():
+         row=json.loads(line)
++        if 'events' not in row:raise ValueError('Unit rows require top-level events and all 32 explicit frame pins')
+         s1_pool.validate_source_row(row,'packed')
+         if row['question_type']!='object_abs_distance':raise ValueError('Unit source must contain absolute-distance programs')
+         if row['qid'] in qids:raise ValueError('Duplicate unit QID')
+--- a/tools/write_fix4.py
++++ b/tools/write_fix4.py
+@@ -0,0 +1,56 @@
++"""Build the requested frozen-snapshot delta without Git."""
++import difflib,json
++from pathlib import Path
++ROOT=Path(__file__).resolve().parents[1]
++SNAPSHOT=Path('/scratch/jjyeung/orch_n30/r1_ops/work/snap_841f0637')
++WHY={
++ 'tools/make_proof.py':'Call temporary_paths after command construction; require directory_modes; run the loader audit through stdin so argv remains opaque.',
++ 'tools/package_operator.py':'Require the same eight named receipt checks in the submitter.',
++ 'tools/unit_binding.py':'Reject unpacked unit inputs with an explicit missing-events/frame-pins error; never regenerate their payload.',
++ 'tools/rebind.py':'Bind v7; parameterize room dose, away-QID exclusion, feet allowlist and unit dose; cap allowlisted units and redistribute routing pro rata; isolate fixture outputs; compare both config diffs against deployed H1-1.',
++ 'tools/admission_census.py':'Count traced-room sealed checks and qualitative eligibility separately, and identify the exact reworded-away marker during the full store census.',
++ 'tools/selection_check.py':'Allow the sampler-only vehicle_p module in the authenticated selector import closure; preserve all sealed admission predicates.',
++ 'work/tree/student_pilot/type_mix.py':'Apply the unit allowlist and 100-row threshold to sampler populations; filter the configured away-QID suffix; retain the four-repeat cap.',
++ 'work/tree/student_pilot/vehicle_p.py':'List unbound units and low-count bound units under absent_on_P; keep required-family failures for actual required populations.',
++ 'work/tree/student_pilot/loader_audit.py':'Audit the exact filtered populations and report total unit counts separately from feet sampling eligibility.',
++ 'tests/test_packet.py':'Exercise the generated proof main() receipt, v7 census and cap, unit allowlist and named absences, the real read-only unit candidate refusal, deployed config baseline, and fallback filters.',
++ 'tools/finalize.py':'Publish current v7 counts, blockers, complete fallback and unit rebind commands, proof scope and FIX4 checksums.',
++ 'tools/run_local_checks.py':'Generate the FIX4 snapshot delta and current packet after tests pass.',
++ 'tools/write_fix4.py':'Generate the file/what/why inventory and unified delta against snap_841f0637.',
++ 'configs/mix.json':'Request room 1.72 and size zero; send freed VQA slots to direction; default units to feet only and zero while unbound.',
++ 'configs/diff_against_h1_1.json':'Use the deployed H1-1 baseline, byte-identical to diff_against_deployed.json.',
++ 'configs/diff_against_deployed.json':'Bind the current config and sampler policy against deployed H1-1.',
++ 'configs/r1p.json':'Bind the current tree, v7 receipt, selection and mix identity.',
++}
++def main():
++    patches=[];changed=[]
++    for folder in ('tools','tests','configs','work/tree'):
++        left=SNAPSHOT/folder;right=ROOT/folder
++        paths={p.relative_to(left) for p in left.rglob('*') if p.is_file() and '__pycache__' not in p.parts}
++        paths|={p.relative_to(right) for p in right.rglob('*') if p.is_file() and '__pycache__' not in p.parts}
++        for rel in sorted(paths):
++            a=left/rel;b=right/rel
++            before=a.read_bytes() if a.is_file() else b'';after=b.read_bytes() if b.is_file() else b''
++            if before==after:continue
++            name=folder+'/'+str(rel);changed.append(name)
++            patches.extend(difflib.unified_diff(before.decode().splitlines(keepends=True),after.decode().splitlines(keepends=True),fromfile='a/'+name,tofile='b/'+name))
++    for name in ('SAMPLER_REVIEW.patch','DEPLOYMENT_REVIEW.patch'):
++        a=SNAPSHOT/'out'/name;b=ROOT/'out'/name
++        before=a.read_text() if a.exists() else '';after=b.read_text()
++        if before!=after:
++            changed.append('out/'+name)
++            patches.extend(difflib.unified_diff(before.splitlines(keepends=True),after.splitlines(keepends=True),fromfile='a/out/'+name,tofile='b/out/'+name))
++    out=ROOT/'out';(out/'FIX4.diff').write_text(''.join(patches))
++    b=json.loads((out/'BINDING.json').read_text());op=json.loads((out/'OPERATOR.json').read_text());c=json.loads((out/'ADMISSION_BY_TYPE.json').read_text())
++    lines=[f"Fix 4 delta against `{SNAPSHOT}`.", '',f"Config identity: `{b['config_identity']}`. Archive: `{op['archive']}`. SHA256: `{op['sha256']}`.",'',
++        f"The full v7 census checks {c['vqa_rows']:,} rows. Traced room counts: {json.dumps(c['traced_room'],sort_keys=True)}. Reworded away counts and markers: {json.dumps(c['reworded_away'],sort_keys=True)}.",'',
++        'The room cell requests 1.72 rows per step. The current literal Locate/Relate/Estimate predicate rejects the v7 Seen/relation/numeric-answer traces; eligible room count is zero and the required-family gate fails. No predicate change or room-zero fallback is silently approved. R1P_PACKET.md documents both one-command fallbacks.', '',
++        'No unit source is bound. The read-only v2 candidate has 1,224 rows (ft 1,130; in 94; cm 0), but lacks top-level events and frame pins; the real rebind command refuses its unchanged fixture copy. Successful packed-source native binding/regeneration and feet-only population/cap behavior are separate fixtures. The default unit request is 1.00 row per step, capped at 4 × allowlisted eligible / 1,000; freed routing slots go pro rata to the four native program cells.', '',
++        'The proof main() fixture writes a receipt with all eight evaluated checks: disk_plan, routing_selection, empty_root, temporary_paths, runtime_binaries, directory_modes, loader_audit and required_families. Its fixture admission/runtime boundaries do not certify Orchard production preparation.', '',
++        'File / change / reason:', '']
++    for name in changed:lines.append('- `'+name+'`: '+WHY.get(name,'Refresh the review patch against its declared baseline.') )
++    lines+=['','Generated outputs: out/BINDING.json, config.json, records/, ADMISSION_BY_TYPE.json, MIX.md, proof inputs and audits, operator archive, OPERATOR.json, REPORT.md, R1P_PACKET.md, proof/GATES.json, SHA256SUMS and STATUS.md bind the current v7 identity and keep production blocked. All command output and test results remain in out/logs/.', '',
++        'No Git, SSH, Orchard, GPU, deletion or write outside this lane was used. The requested FIX4 comparison is the only historical narrative added; packet prose describes current state.', '']
++    (out/'FIX4.md').write_text('\n'.join(lines))
++    print(json.dumps({'changed_files':changed,'diff':'out/FIX4.diff'}))
++if __name__=='__main__':main()
+--- a/tests/test_packet.py
++++ b/tests/test_packet.py
+@@ -16,17 +16,17 @@
+         for n,v in table.items():
+             self.assertLessEqual(v['final_cents']*1000,4*v['eligible']*100)
+             if v['final_cents']:self.assertEqual(report['by_family']['vqa/'+n]['draws'],v['final_cents']*10)
+-        self.assertEqual(table['room']['final_cents'],0)
+-        self.assertEqual(table['room']['cut_cents'],0)
++        self.assertEqual(table['room']['final_cents'],min(table['room']['proposed_cents'],table['room']['cap_cents']))
++        self.assertEqual(table['room']['cut_cents'],table['room']['proposed_cents']-table['room']['final_cents'])
+         self.assertEqual(table['size']['final_cents'],0)
+         self.assertEqual(table['size']['eligible'],9778)
+-        self.assertEqual(table['direction']['final_cents'],3289)
++        self.assertEqual(table['direction']['final_cents'],3289-table['room']['final_cents'])
+         self.assertNotIn('vqa/size',report['by_family'])
+-        self.assertEqual(table['direction']['refill_cents'],0)
++        self.assertEqual(table['direction']['refill_cents'],table['room']['cut_cents'])
+         self.assertEqual(table['camera_absolute_distance']['eligible'],0)
+         self.assertEqual(report['stream_draws'],{'vqa':128000})
+         self.assertLessEqual(report['maximum_observed_repeats'],4)
+-        self.assertEqual(set(report['by_question_type']),{'vqa/'+t for t in load(ROOT/'out/ADMISSION_BY_TYPE.json')['types_covered'] if t not in ('object_size_estimation','absolute_size_object','relative_size_object')})
++        self.assertEqual(set(report['by_question_type']),{'vqa/'+t for t in load(ROOT/'out/ADMISSION_BY_TYPE.json')['types_covered'] if t not in ('object_size_estimation','absolute_size_object','relative_size_object') and (t not in ('room_size_estimation','absolute_size_room') or table['room']['final_cents'])})
+         for name,rows in report['traces']['vqa'].items():
+             self.assertEqual(len(rows),5)
+             for r in rows:self.assertEqual(hashlib.sha256(r['target'].encode()).hexdigest(),r['target_sha256'])
+@@ -153,7 +153,10 @@
+         for value in new['sources'].values():
+             if value['status']=='ELIGIBLE':self.assertFalse(set(value['per_type'])&{'room_size_estimation','absolute_size_room'})
+         a=load(ROOT/'out/ADMISSION_BY_TYPE.json')
+-        self.assertEqual(a['vqa_rows'],195471);self.assertEqual(len(a['vqa_by_type']),16)
++        self.assertEqual(a['vqa_rows'],204413);self.assertEqual(len(a['vqa_by_type']),17)
++        self.assertEqual(a['traced_room']['rows'],431);self.assertEqual(a['traced_room']['sealed_row_checks_pass'],431)
++        self.assertEqual(a['traced_room']['eligible'],load(ROOT/'out/proof/loader_audit.json')['tables']['vqa']['room']['eligible'])
++        self.assertEqual(a['reworded_away']['rows'],8511)
+         self.assertTrue(a['all_types_covered'])
+         self.assertEqual(sum(v['admitted'] for v in a['direct_room'].values()),0)
+ 
+@@ -187,14 +190,72 @@
+     def test_native_proof_boundary_and_named_checks(self):
+         parent=Path('/scratch/jjyeung/orch_n30/cont_ops/work/h1')
+         script=self.p.program((parent/'payload/jb.sh').read_text(),(parent/'build/fx/job.sh').read_text())
+-        self.assertIn('"$ROOT/b/r.sh" p 0',script);self.assertIn('-m student_pilot.loader_audit',script)
++        self.assertIn('"$ROOT/b/r.sh" p 0',script);self.assertIn('from student_pilot.loader_audit import main',script);self.assertNotIn('-m student_pilot',script)
+         self.assertNotIn('newest || true',script)
+         self.assertNotIn('"$ROOT/b/r8.py"',script)
+         root=temp();(root/'e.sh').write_text(script)
+         subprocess.run(['bash','-n',str(root/'e.sh')],check=True)
+         text=(ROOT/'out/proof/p.py').read_text()
+-        for name in ('disk_plan','routing_selection','empty_root','temporary_paths','runtime_binaries','private_directories','loader_audit','required_families'):self.assertIn(name,text)
++        for name in ('disk_plan','routing_selection','empty_root','temporary_paths','runtime_binaries','directory_modes','loader_audit','required_families'):self.assertIn(name,text)
+         self.assertNotIn('/usr/bin/bwrap',text)
++
++    def test_main_builds_receipt_with_all_evaluated_checks(self):
++        from unittest.mock import patch
++        import types,contextlib,signal,io
++        p=self.p;root=temp();kh=root/'k0';bun=root/'b0';scratch=root/'tmp'
++        for d in (kh,kh/'k',kh/'o',bun,scratch):d.mkdir(mode=0o700)
++        cfg=load(ROOT/'out/config.json');binding=load(ROOT/'out/BINDING.json');key=binding['run_key']
++        cfg['s1_routing']['selection']['sha256']='selection'
++        write(kh/'k/c.json',cfg);write(kh/'k/selection_equality.json',{'equal':True})
++        (kh/'SHA256SUMS.txt').write_text('fixture manifest')
++        launch=dict(status='READY',config={'file':'k/c.json'},run_directory='/tmp/jjyeung/a_'+key+'/runs/'+key,persistent_run_root=str(root/'runs'))
++        write(kh/'k/launch.json',launch);write(bun/'ids.json',dict(identity='identity',contract='contract'))
++        (bun/'jb.sh').write_text('wrapper');(kh/'job.sh').write_text('job')
++        write(bun/'compare.json',dict(manifest_sha256=sha(kh/'SHA256SUMS.txt'),config_key='c'))
++        (bun/'e.txt').write_bytes((ROOT/'out/operator/e.txt').read_bytes())
++        authority=dict(kh=str(kh),bun=str(bun),job_name='a15_cot_ap1234',identity='identity',contract='contract',
++            wrapper_sha256=sha(bun/'jb.sh'),bundle_files={},runtime={},selection_sha256='selection',
++            equality_sha256=sha(kh/'k/selection_equality.json'),run_key=key,tag='fixture',persistent_root=str(root/'runs'),partition='advanced')
++        mods={'i':types.SimpleNamespace(identity=lambda c:'identity',allocation_gpus=lambda *a:0),
++              'd':types.SimpleNamespace(contract=lambda *a:None,digest=lambda c:'contract'),
++              'a':types.SimpleNamespace(main=lambda k:None)}
++        original_execute=p.execute
++        def execute(args,script,log,verify):
++            physical=scratch/'p_fixture_12345'/('tmp/jjyeung/a_'+key+'/runs/'+key)
++            inputs=physical/'inputs';inputs.mkdir(parents=True,mode=0o700)
++            write(inputs/'l.json',dict(status='PASS',fixture=True))
++            checks=dict(disk_plan=dict(status='PASS' if plan(cfg['recipe'],cfg['checkpoint_disk_guard']['reserve_bytes'])==cfg['checkpoint_disk_guard'] else 'FAIL'),
++                routing_selection=dict(status='PASS' if cfg['s1_routing']['selection']['sha256']==authority['selection_sha256'] else 'FAIL'),
++                loader_audit=dict(status='PASS',pin={'sha256':sha(inputs/'l.json')}),
++                required_families=dict(status='PASS',absent_on_P=[]))
++            write(inputs/'a.json',dict(original_config_identity='identity',checks=checks))
++            return original_execute([sys.executable,'-c','pass'],script,log,lambda:{'prepared_seals':{'fixture':True}})
++        cwd=Path.cwd();path=list(sys.path);handlers={sig:signal.getsignal(sig) for sig in (signal.SIGTERM,signal.SIGINT,signal.SIGUSR1)}
++        try:
++            with contextlib.ExitStack() as stack:
++                stack.enter_context(patch.dict(os.environ,dict(SLURM_JOB_ID='12345',SLURM_JOB_NAME=authority['job_name'],SLURM_JOB_PARTITION='advanced',SLURM_GPUS_ON_NODE='0')))
++                stack.enter_context(patch.dict(sys.modules,mods))
++                stack.enter_context(contextlib.redirect_stdout(io.StringIO()))
++                stack.enter_context(patch.object(p,'Path',lambda value: scratch if str(value)=='/tmp/jjyeung' else Path(value)))
++                stack.enter_context(patch.object(p,'kit_bwrap',return_value=sys.executable))
++                stack.enter_context(patch.object(p,'namespace_probe',return_value=''))
++                stack.enter_context(patch.object(p,'program',return_value='fixture'))
++                stack.enter_context(patch.object(p,'command',side_effect=lambda bw,kh,w,rs:['--bind',str(w/'tmp'),'/tmp','--bind',str(kh/'o'),str(kh/'o')]))
++                stack.enter_context(patch.object(p,'execute',side_effect=execute))
++                paths=stack.enter_context(patch.object(p,'temporary_paths',wraps=p.temporary_paths))
++                self.assertEqual(p.main(authority),0)
++                paths.assert_called_once()
++            receipt=load(kh/'o/12345.proof.json')
++            required={'disk_plan','routing_selection','empty_root','temporary_paths','runtime_binaries','directory_modes','loader_audit','required_families'}
++            self.assertEqual(set(receipt['checks']),required)
++            self.assertEqual({v['status'] for v in receipt['checks'].values()},{'PASS'})
++            self.assertEqual(receipt['status'],'PASS');self.assertFalse(receipt['production_authorized'])
++            self.assertTrue(receipt['checks']['temporary_paths']['writable_mounts'])
++            self.assertTrue(receipt['checks']['runtime_binaries']['binaries'])
++            self.assertEqual(receipt['checks']['directory_modes']['bad'],[])
++        finally:
++            os.chdir(cwd);sys.path[:]=path
++            for sig,handler in handlers.items():signal.signal(sig,handler)
+ 
+     def test_final_wrapper_and_export_destinations_are_bound(self):
+         cfg=load(ROOT/'out/config.json');binding=load(ROOT/'out/BINDING.json')
+@@ -226,11 +287,13 @@
+     def test_absences_and_missing_required_family(self):
+         from student_pilot.vehicle_p import required_families,ROUTING
+         cfg=load(ROOT/'configs/r1p.json');a=load(ROOT/'out/proof/loader_audit.json')
++        a['eligible_by_family']['vqa']['room']=431
++        a['tables']['vqa']['room']['final_cents']=cfg['type_mix']['streams']['vqa']['cells']['room']['cents']
+         a['eligible_by_family']['routing']={n:20000 for n in ROUTING}
+         a['tables']['routing']={n:dict(final_cents=c['cents']) for n,c in cfg['type_mix']['streams']['routing']['cells'].items()}
+         gate=required_families(cfg,a)
+         self.assertEqual(gate['status'],'PASS')
+-        self.assertEqual({x['family'] for x in gate['absent_on_P']},{'recovery','room','size'})
++        self.assertEqual({x['family'] for x in gate['absent_on_P']},{'recovery','size','units'} | ({'room'} if not cfg['type_mix']['streams']['vqa']['cells']['room']['cents'] else set()))
+         self.assertTrue(all(x['reason'] for x in gate['absent_on_P']))
+         self.assertNotIn('units',gate['required']['routing'])
+         a['eligible_by_family']['routing']['absolute_distance']=0
+@@ -238,6 +301,34 @@
+         self.assertIn('routing/absolute_distance',gate['missing'])
+         a['eligible_by_family']['vqa']['direction']=0
+         self.assertIn('vqa/direction',required_families(cfg,a)['missing'])
++
++    def test_fallback_filter_and_deployed_diff_baseline(self):
++        import sqlite3
++        from rebind import diff,H
++        cfg=load(ROOT/'configs/r1p.json')
++        self.assertEqual(load(ROOT/'configs/diff_against_h1_1.json'),diff(load(H/'build/fx/k/d12ae795.json'),cfg))
++        self.assertEqual((ROOT/'configs/diff_against_h1_1.json').read_bytes(),(ROOT/'configs/diff_against_deployed.json').read_bytes())
++        root=temp();db=root/'v.db';conn=sqlite3.connect(db)
++        conn.execute('CREATE TABLE rows(i INTEGER PRIMARY KEY,row TEXT,target TEXT)')
++        for i,qid in enumerate(('original','reworded_away_opp')):
++            row=dict(qid=qid,question_type='object_rel_direction_hard',facing='away',target='trace')
++            conn.execute('INSERT INTO rows VALUES(?,?,?)',(i,json.dumps(row),json.dumps('trace')))
++        conn.commit();conn.close();src=dict(database={'path':str(db),'sha256':sha(db)},count=2)
++        groups,_,_,excluded=m.populations('vqa',src,{'facing':{'cents':100}},exclude_qid_suffix='_away_opp')
++        self.assertEqual(groups['facing'],[0]);self.assertEqual(excluded,{'excluded_qid_suffix:_away_opp':1})
++        binding=load(ROOT/'out/BINDING.json');dest=root/'packet';dest.mkdir(mode=0o700)
++        (dest/'ADMISSION_BY_TYPE.json').write_bytes((ROOT/'out/ADMISSION_BY_TYPE.json').read_bytes())
++        command=[sys.executable,'-B',str(ROOT/'tools/rebind.py'),'--receipt',binding['source_receipt']['path'],
++            '--receipt-sha256',binding['receipt_sha256'],'--database',binding['database']['path'],
++            '--orchard-store',binding['orchard_store'],'--room-cents','0','--exclude-qid-suffix','_away_opp',
++            '--reuse-census','--skip-audit','--out',str(dest)]
++        result=subprocess.run(command,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
++        (root/'rebind.log').write_text(result.stdout);self.assertEqual(result.returncode,0,result.stdout[-2000:])
++        rebound=load(dest/'config.json');cells=rebound['type_mix']['streams']['vqa']['cells']
++        self.assertEqual(cells['room']['cents'],0);self.assertEqual(cells['direction']['cents'],3289)
++        self.assertEqual(rebound['type_mix']['exclude_qid_suffix'],'_away_opp')
++        self.assertEqual(load(dest/'BINDING.json')['database_sha256'],binding['database_sha256'])
++        self.assertEqual(load(ROOT/'configs/r1p.json'),cfg)
+ 
+     def test_units_refused_when_unbound(self):
+         cfg=load(ROOT/'configs/r1p.json');mix=cfg['type_mix']
+@@ -297,11 +388,29 @@
+         self.assertLessEqual(table['units']['final_cents']/100,4*299/1000)
+         cfg['type_mix']['unit_rows']=binding['source'];cfg['type_mix']['streams']['routing']['cells']['units']['cents']=119
+         a=load(ROOT/'out/proof/loader_audit.json');a['tables']['routing']=table
++        a['eligible_by_family']['vqa']['room']=431
++        a['tables']['vqa']['room']['final_cents']=cfg['type_mix']['streams']['vqa']['cells']['room']['cents']
+         a['eligible_by_family']['routing']={n:20000 for n in ROUTING};a['eligible_by_family']['routing']['units']=299
+         a['unit_counts']=binding['counts']
+-        self.assertEqual(required_families(cfg,a)['missing_units'],['in'])
++        self.assertEqual(required_families(cfg,a)['missing_units'],['in']);self.assertEqual(required_families(cfg,a)['status'],'PASS')
++        self.assertIn(dict(family='units/in',eligible=99,reason='Fewer than 100 eligible rows.'),required_families(cfg,a)['absent_on_P'])
+         a['unit_counts']['by_unit']['in']=100
+         self.assertEqual(required_families(cfg,a)['status'],'PASS')
++        packet=root/'packet';packet.mkdir(mode=0o700)
++        (packet/'ADMISSION_BY_TYPE.json').write_bytes((ROOT/'out/ADMISSION_BY_TYPE.json').read_bytes())
++        current=load(ROOT/'out/BINDING.json')
++        command=[sys.executable,'-B',str(ROOT/'tools/rebind.py'),'--receipt',current['source_receipt']['path'],
++            '--receipt-sha256',current['receipt_sha256'],'--database',current['database']['path'],
++            '--orchard-store',current['orchard_store'],'--unit-rows',str(source),'--unit-rows-sha256',sha(source),
++            '--reuse-census','--skip-audit','--out',str(packet)]
++        result=subprocess.run(command,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
++        (root/'rebind.log').write_text(result.stdout);self.assertEqual(result.returncode,0,result.stdout[-2000:])
++        bound=load(packet/'BINDING.json');policy=load(packet/'config.json')['type_mix']
++        self.assertEqual(policy['units_allowlist'],['ft']);self.assertEqual(bound['unit_binding']['sampling_eligible'],100)
++        self.assertEqual(policy['streams']['routing']['cells']['units']['cents'],40)
++        self.assertEqual(sum(v['cents'] for v in policy['streams']['routing']['cells'].values()),6400)
++        weights={n:load(ROOT/'configs/mix.json')['streams']['routing']['cells'][n]['cents'] for n in ROUTING}
++        for name in ROUTING:self.assertLess(abs(policy['streams']['routing']['cells'][name]['cents']-6360*weights[name]/6400),1)
+         with self.assertRaisesRegex(ValueError,'SHA differs'):build(source,'0'*64,parent,manifest,cfg['s1_routing']['catalog'],indices,root/'badsha')
+         bad=copy.deepcopy(rows[0]);bad['answer']='0.00'
+         with self.assertRaises(ValueError):inspect_rows(json.dumps(bad).encode())
+@@ -309,6 +418,56 @@
+         with self.assertRaises((KeyError,ValueError)):inspect_rows(json.dumps(bad).encode())
+         bad=copy.deepcopy(rows[0]);bad['student_input']['frames']=[]
+         with self.assertRaisesRegex(ValueError,'frame pins'):inspect_rows(json.dumps(bad).encode())
++
++    def test_real_unit_slice_rebind_refuses_unpacked_input_without_mutation(self):
++        source=Path('/scratch/jjyeung/orch_n30/rows_r1/out/units_p_slice_v2/rows.jsonl')
++        root=temp();fixture=root/'rows.jsonl';fixture.write_bytes(source.read_bytes());before=sha(source)
++        from student_pilot.vehicle_p import unit_name
++        rows=[json.loads(line) for line in fixture.read_text().splitlines()]
++        self.assertEqual(Counter(unit_name(row) for row in rows),{'ft':1130,'in':94})
++        binding=load(ROOT/'out/BINDING.json');dest=root/'packet';dest.mkdir(mode=0o700)
++        (dest/'ADMISSION_BY_TYPE.json').write_bytes((ROOT/'out/ADMISSION_BY_TYPE.json').read_bytes())
++        command=[sys.executable,'-B',str(ROOT/'tools/rebind.py'),'--receipt',binding['source_receipt']['path'],
++            '--receipt-sha256',binding['receipt_sha256'],'--database',binding['database']['path'],
++            '--orchard-store',binding['orchard_store'],'--unit-rows',str(fixture),'--unit-rows-sha256',sha(fixture),
++            '--units-allowlist','ft','--unit-cents','100','--reuse-census','--skip-audit','--out',str(dest)]
++        result=subprocess.run(command,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
++        (root/'rebind.log').write_text(result.stdout)
++        self.assertNotEqual(result.returncode,0);self.assertIn("Unit rows require top-level events",result.stdout)
++        self.assertFalse((dest/'BINDING.json').exists())
++        self.assertEqual(sha(source),before);self.assertEqual(sha(fixture),before)
++        self.assertIsNone(load(ROOT/'out/BINDING.json')['unit_binding'])
++        write(ROOT/'out/proof/UNIT_CANDIDATE.json',dict(status='REFUSED_UNBOUND',source={'path':str(source),'sha256':before},fixture={'path':str(fixture),'sha256':sha(fixture)},counts={'ft':1130,'in':94,'cm':0},command=command,returncode=result.returncode,reason='Missing top-level events and all 32 frame pins',log={'path':str(root/'rebind.log'),'sha256':sha(root/'rebind.log')},production_bound=False))
++
++    def test_unit_allowlist_populations_cap_and_named_absences(self):
++        import sqlite3
++        from student_pilot.loader_audit import unit_counts
++        from student_pilot.vehicle_p import required_families,ROUTING
++        root=temp();db=root/'u.db';conn=sqlite3.connect(db)
++        conn.execute('CREATE TABLE rows(i INTEGER PRIMARY KEY,row TEXT,target TEXT)')
++        i=0
++        for unit,count in [('ft',1130),('in',94)]:
++            for j in range(count):
++                row=dict(qid=unit+str(j),question_type='object_abs_distance',target='trace',ground_record={'unit':unit},s1_source={'source':{'sha256':'a'*64}})
++                conn.execute('INSERT INTO rows VALUES(?,?,?)',(i,json.dumps(row),json.dumps('trace')));i+=1
++        conn.commit();conn.close();source=dict(database={'path':str(db),'sha256':sha(db)},count=i)
++        groups,_,traces,excluded=m.populations('routing',source,{'units':{'cents':100}},unit_rows={'sha256':'a'*64},units_allowlist=['ft'])
++        self.assertEqual(len(groups['units']),1130);self.assertEqual(excluded['excluded_unit:in'],94)
++        self.assertTrue(all(r['qid'].startswith('ft') for r in traces['units']))
++        counts=unit_counts(source,['ft']);self.assertEqual(counts['sampling_eligible'],1130)
++        cfg=load(ROOT/'configs/r1p.json');cfg['type_mix']['unit_rows']={'path':'fixture','sha256':'a'*64}
++        cfg['type_mix']['streams']['routing']['cells']['units']['cents']=100
++        a=load(ROOT/'out/proof/loader_audit.json');a['unit_counts']=counts
++        a['eligible_by_family']['vqa']['room']=431;a['tables']['vqa']['room']['final_cents']=cfg['type_mix']['streams']['vqa']['cells']['room']['cents']
++        a['eligible_by_family']['routing']={**{n:20000 for n in ROUTING},'units':1130}
++        a['tables']['routing']={'units':{'final_cents':100}}
++        gate=required_families(cfg,a);self.assertEqual(gate['status'],'PASS')
++        missing={r['family']:r.get('eligible') for r in gate['absent_on_P']}
++        self.assertEqual(missing['units/cm'],0);self.assertEqual(missing['units/in'],94)
++        self.assertNotIn('units/ft',missing)
++        _,table=m.allocate({'cells':{'units':{'cents':100}},'refill':[]},{'units':1130},1000)
++        self.assertEqual(table['units']['final_cents'],100)
++        self.assertEqual(table['units']['cap_cents'],452)
+ 
+     def test_partition_parameter_and_cpu_resources(self):
+         from unittest.mock import patch
+--- a/configs/diff_against_deployed.json
++++ b/configs/diff_against_deployed.json
+@@ -1 +1 @@
+-[{"after":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/0a4d6fc3/v.json","before":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/review.json","field":"admission.path"},{"after":"01ea6fa1546dcdaef441fcae13f7ac686b7448218626a3c6b7f0167f81a08c50","before":"39819bad1f534909c6ca6083e18fbc7c300acb46ae2a6d5ededb9bfda43d26ea","field":"admission.sha256"},{"after":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/0a4d6fc3/c.json","before":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/7.json","field":"code.path"},{"after":"33f5723b7cc297477d99ff2b758823d7ad8ef5ec11c8e4d95eaa687af6e33380","before":"d6273a970c30df760465013ff6789deb5466dfa887790dcf0d33abc262a9ba45","field":"code.sha256"},{"after":false,"before":true,"field":"h1.faithful_own_camera_rows"},{"after":false,"before":true,"field":"h1.routing_pose_targets"},{"after":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/29c71287","before":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/17c4ffa4","field":"output"},{"after":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/f/29c71287","before":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/f/17c4ffa4","field":"preparation_output"},{"after":null,"before":1,"field":"recipe.scheduled_sampling.force_from_step"},{"after":0.0,"before":0.5,"field":"recipe.scheduled_sampling.max_own_probability"},{"after":"direct","before":"route","field":"route_table.absolute_size_room"},{"after":"direct","before":"route","field":"route_table.room_size_estimation"},{"after":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/0a4d6fc3/r.json","before":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/routes.json","field":"s1_route_policy.table.path"},{"after":"35f4a364304f24ed3683413952b3591d7427e787ad5cba056e4acc62d513263b","before":"62c54ed48c7e5782aed296549f9a750d5d76fd6589cbdeba2ed92acdf5282a35","field":"s1_route_policy.table.sha256"},{"after":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/0a4d6fc3/s.json","before":null,"field":"s1_routing.catalog.88bd3399d40b857b3d8f3d3844fa108a8f3c9c7a8ca30861f50de1a7a23a2354"},{"after":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/0a4d6fc3/s.json","before":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/pool_selection_eac5f9f0.json","field":"s1_routing.selection.path"},{"after":"88bd3399d40b857b3d8f3d3844fa108a8f3c9c7a8ca30861f50de1a7a23a2354","before":"eac5f9f01587803b2402f80cc310b75ec1f960270a6bc059416b1e1407b1e7c9","field":"s1_routing.selection.sha256"},{"after":null,"before":1,"field":"scheduled_sampling.force_from_step"},{"after":0.0,"before":0.5,"field":"scheduled_sampling.max_own_probability"},{"after":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/0a4d6fc3/d.json","before":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/bb09a77d/v/receipt.json","field":"streams.vqa.path"},{"after":"9dd178c3af53d210512d154ccddb777fcb8d192c10456532ac16c6397dbf851a","before":"c95023e46d9171071c7cb738367dae115bebaf4a6519931ec514d20e68ffa5d8","field":"streams.vqa.sha256"},{"after":{"max_repeats":4,"schema":"type-mix-v2","size_selector":null,"streams":{"routing":{"cells":{"absolute_distance":{"cents":1660},"camera_displacement":{"cents":1854},"camera_movement_direction":{"cents":1613},"camera_rotation":{"cents":1273},"recovery":{"cents":0},"units":{"cents":0}},"refill":["camera_displacement","camera_movement_direction","camera_rotation","absolute_distance"],"refill_mode":"proportional"},"vqa":{"cells":{"appearance":{"cents":1442},"box":{"cents":182},"camera_absolute_distance":{"cents":0},"camera_obj_rel_dist_v1":{"cents":200},"camera_obj_rel_dist_v2":{"cents":200},"camera_obj_rel_dist_v3":{"cents":200},"counting":{"cents":1087},"direction":{"cents":3289},"facing":{"cents":1817},"first_seen":{"cents":200},"obj_obj_relative_pos_lr":{"cents":200},"obj_obj_relative_pos_nf":{"cents":200},"obj_obj_relative_pos_ud":{"cents":200},"relative_distance":{"cents":2274},"room":{"cents":0},"route":{"cents":970},"size":{"cents":0},"totals":{"cents":339}},"refill":["direction"]}},"unit_rows":null,"vehicle":"P"},"before":null,"field":"type_mix"}]
++[{"after":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/084ba70f/v.json","before":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/review.json","field":"admission.path"},{"after":"521956f33271a58092530913c4303fd7d1a3db3d6ab7f5d286c91dda7e4cd586","before":"39819bad1f534909c6ca6083e18fbc7c300acb46ae2a6d5ededb9bfda43d26ea","field":"admission.sha256"},{"after":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/084ba70f/c.json","before":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/7.json","field":"code.path"},{"after":"b7d2da1c3eb63cf960d9aec3629062f02b3b1515c9967b7c82aab123b9c3f598","before":"d6273a970c30df760465013ff6789deb5466dfa887790dcf0d33abc262a9ba45","field":"code.sha256"},{"after":false,"before":true,"field":"h1.faithful_own_camera_rows"},{"after":false,"before":true,"field":"h1.routing_pose_targets"},{"after":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6e77070a","before":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/17c4ffa4","field":"output"},{"after":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/f/6e77070a","before":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/f/17c4ffa4","field":"preparation_output"},{"after":null,"before":1,"field":"recipe.scheduled_sampling.force_from_step"},{"after":0.0,"before":0.5,"field":"recipe.scheduled_sampling.max_own_probability"},{"after":"direct","before":"route","field":"route_table.absolute_size_room"},{"after":"direct","before":"route","field":"route_table.room_size_estimation"},{"after":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/084ba70f/r.json","before":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/routes.json","field":"s1_route_policy.table.path"},{"after":"35f4a364304f24ed3683413952b3591d7427e787ad5cba056e4acc62d513263b","before":"62c54ed48c7e5782aed296549f9a750d5d76fd6589cbdeba2ed92acdf5282a35","field":"s1_route_policy.table.sha256"},{"after":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/084ba70f/s.json","before":null,"field":"s1_routing.catalog.1dc5e6b7bd37c0704d852c800e75cef17fa313db7b4d35301fe6b6ce36403e46"},{"after":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/084ba70f/s.json","before":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/pool_selection_eac5f9f0.json","field":"s1_routing.selection.path"},{"after":"1dc5e6b7bd37c0704d852c800e75cef17fa313db7b4d35301fe6b6ce36403e46","before":"eac5f9f01587803b2402f80cc310b75ec1f960270a6bc059416b1e1407b1e7c9","field":"s1_routing.selection.sha256"},{"after":null,"before":1,"field":"scheduled_sampling.force_from_step"},{"after":0.0,"before":0.5,"field":"scheduled_sampling.max_own_probability"},{"after":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/084ba70f/d.json","before":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/bb09a77d/v/receipt.json","field":"streams.vqa.path"},{"after":"8c534691ccbdca646d7b93f87ebec5ee2ff1b513d8255ff271622065b6e4ddb6","before":"c95023e46d9171071c7cb738367dae115bebaf4a6519931ec514d20e68ffa5d8","field":"streams.vqa.sha256"},{"after":{"exclude_qid_suffix":null,"max_repeats":4,"schema":"type-mix-v2","size_selector":null,"streams":{"routing":{"cells":{"absolute_distance":{"cents":1660},"camera_displacement":{"cents":1854},"camera_movement_direction":{"cents":1613},"camera_rotation":{"cents":1273},"recovery":{"cents":0},"units":{"cents":0}},"refill":["camera_displacement","camera_movement_direction","camera_rotation","absolute_distance"],"refill_mode":"proportional"},"vqa":{"cells":{"appearance":{"cents":1442},"box":{"cents":182},"camera_absolute_distance":{"cents":0},"camera_obj_rel_dist_v1":{"cents":200},"camera_obj_rel_dist_v2":{"cents":200},"camera_obj_rel_dist_v3":{"cents":200},"counting":{"cents":1087},"direction":{"cents":3117},"facing":{"cents":1817},"first_seen":{"cents":200},"obj_obj_relative_pos_lr":{"cents":200},"obj_obj_relative_pos_nf":{"cents":200},"obj_obj_relative_pos_ud":{"cents":200},"relative_distance":{"cents":2274},"room":{"cents":172},"route":{"cents":970},"size":{"cents":0},"totals":{"cents":339}},"refill":["direction"]}},"unit_rows":null,"units_allowlist":["ft"],"vehicle":"P"},"before":null,"field":"type_mix"}]
+--- a/configs/diff_against_h1_1.json
++++ b/configs/diff_against_h1_1.json
+@@ -1 +1 @@
+-[{"after":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/0a4d6fc3/v.json","before":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/review.json","field":"admission.path"},{"after":"01ea6fa1546dcdaef441fcae13f7ac686b7448218626a3c6b7f0167f81a08c50","before":"c3cfe01f5dec390c401c834c15f229a8ad7509df803a4bd5e281bb9be548b453","field":"admission.sha256"},{"after":3,"before":9,"field":"checkpoint_disk_guard.planned_weight_exports"},{"after":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/0a4d6fc3/c.json","before":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/7.json","field":"code.path"},{"after":"33f5723b7cc297477d99ff2b758823d7ad8ef5ec11c8e4d95eaa687af6e33380","before":"c82c2da1a0933207fbf60ba82f6c5172509c96d715620efe7495d0014c9aeaf9","field":"code.sha256"},{"after":false,"before":true,"field":"h1.faithful_own_camera_rows"},{"after":false,"before":true,"field":"h1.routing_pose_targets"},{"after":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/29c71287","before":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/469ddece","field":"output"},{"after":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/f/29c71287","before":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/f/469ddece","field":"preparation_output"},{"after":null,"before":1,"field":"recipe.scheduled_sampling.force_from_step"},{"after":0.0,"before":0.5,"field":"recipe.scheduled_sampling.max_own_probability"},{"after":"direct","before":"route","field":"route_table.absolute_size_room"},{"after":"direct","before":"route","field":"route_table.room_size_estimation"},{"after":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/0a4d6fc3/r.json","before":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/routes.json","field":"s1_route_policy.table.path"},{"after":"35f4a364304f24ed3683413952b3591d7427e787ad5cba056e4acc62d513263b","before":"62c54ed48c7e5782aed296549f9a750d5d76fd6589cbdeba2ed92acdf5282a35","field":"s1_route_policy.table.sha256"},{"after":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/0a4d6fc3/s.json","before":null,"field":"s1_routing.catalog.88bd3399d40b857b3d8f3d3844fa108a8f3c9c7a8ca30861f50de1a7a23a2354"},{"after":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/pool_selection_eac5f9f0.json","before":null,"field":"s1_routing.catalog.eac5f9f01587803b2402f80cc310b75ec1f960270a6bc059416b1e1407b1e7c9"},{"after":null,"before":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/pool_selection_aa128e6f.json","field":"s1_routing.catalog.f232d4160d75b5826d9e24aec324d690920a752a5bfaa33e5009d7550349dfc6"},{"after":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/0a4d6fc3/s.json","before":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/pool_selection_aa128e6f.json","field":"s1_routing.selection.path"},{"after":"88bd3399d40b857b3d8f3d3844fa108a8f3c9c7a8ca30861f50de1a7a23a2354","before":"f232d4160d75b5826d9e24aec324d690920a752a5bfaa33e5009d7550349dfc6","field":"s1_routing.selection.sha256"},{"after":null,"before":1,"field":"scheduled_sampling.force_from_step"},{"after":0.0,"before":0.5,"field":"scheduled_sampling.max_own_probability"},{"after":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/0a4d6fc3/d.json","before":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/bb09a77d/v/receipt.json","field":"streams.vqa.path"},{"after":"9dd178c3af53d210512d154ccddb777fcb8d192c10456532ac16c6397dbf851a","before":"bfabb1f0b08327102afbb6997d3bc142b5ab630f3748ba358ba758bd1f04e1ef","field":"streams.vqa.sha256"},{"after":{"max_repeats":4,"schema":"type-mix-v2","size_selector":null,"streams":{"routing":{"cells":{"absolute_distance":{"cents":1660},"camera_displacement":{"cents":1854},"camera_movement_direction":{"cents":1613},"camera_rotation":{"cents":1273},"recovery":{"cents":0},"units":{"cents":0}},"refill":["camera_displacement","camera_movement_direction","camera_rotation","absolute_distance"],"refill_mode":"proportional"},"vqa":{"cells":{"appearance":{"cents":1442},"box":{"cents":182},"camera_absolute_distance":{"cents":0},"camera_obj_rel_dist_v1":{"cents":200},"camera_obj_rel_dist_v2":{"cents":200},"camera_obj_rel_dist_v3":{"cents":200},"counting":{"cents":1087},"direction":{"cents":3289},"facing":{"cents":1817},"first_seen":{"cents":200},"obj_obj_relative_pos_lr":{"cents":200},"obj_obj_relative_pos_nf":{"cents":200},"obj_obj_relative_pos_ud":{"cents":200},"relative_distance":{"cents":2274},"room":{"cents":0},"route":{"cents":970},"size":{"cents":0},"totals":{"cents":339}},"refill":["direction"]}},"unit_rows":null,"vehicle":"P"},"before":null,"field":"type_mix"}]
++[{"after":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/084ba70f/v.json","before":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/review.json","field":"admission.path"},{"after":"521956f33271a58092530913c4303fd7d1a3db3d6ab7f5d286c91dda7e4cd586","before":"39819bad1f534909c6ca6083e18fbc7c300acb46ae2a6d5ededb9bfda43d26ea","field":"admission.sha256"},{"after":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/084ba70f/c.json","before":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/7.json","field":"code.path"},{"after":"b7d2da1c3eb63cf960d9aec3629062f02b3b1515c9967b7c82aab123b9c3f598","before":"d6273a970c30df760465013ff6789deb5466dfa887790dcf0d33abc262a9ba45","field":"code.sha256"},{"after":false,"before":true,"field":"h1.faithful_own_camera_rows"},{"after":false,"before":true,"field":"h1.routing_pose_targets"},{"after":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6e77070a","before":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/17c4ffa4","field":"output"},{"after":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/f/6e77070a","before":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/f/17c4ffa4","field":"preparation_output"},{"after":null,"before":1,"field":"recipe.scheduled_sampling.force_from_step"},{"after":0.0,"before":0.5,"field":"recipe.scheduled_sampling.max_own_probability"},{"after":"direct","before":"route","field":"route_table.absolute_size_room"},{"after":"direct","before":"route","field":"route_table.room_size_estimation"},{"after":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/084ba70f/r.json","before":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/routes.json","field":"s1_route_policy.table.path"},{"after":"35f4a364304f24ed3683413952b3591d7427e787ad5cba056e4acc62d513263b","before":"62c54ed48c7e5782aed296549f9a750d5d76fd6589cbdeba2ed92acdf5282a35","field":"s1_route_policy.table.sha256"},{"after":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/084ba70f/s.json","before":null,"field":"s1_routing.catalog.1dc5e6b7bd37c0704d852c800e75cef17fa313db7b4d35301fe6b6ce36403e46"},{"after":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/084ba70f/s.json","before":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/pool_selection_eac5f9f0.json","field":"s1_routing.selection.path"},{"after":"1dc5e6b7bd37c0704d852c800e75cef17fa313db7b4d35301fe6b6ce36403e46","before":"eac5f9f01587803b2402f80cc310b75ec1f960270a6bc059416b1e1407b1e7c9","field":"s1_routing.selection.sha256"},{"after":null,"before":1,"field":"scheduled_sampling.force_from_step"},{"after":0.0,"before":0.5,"field":"scheduled_sampling.max_own_probability"},{"after":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/084ba70f/d.json","before":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/bb09a77d/v/receipt.json","field":"streams.vqa.path"},{"after":"8c534691ccbdca646d7b93f87ebec5ee2ff1b513d8255ff271622065b6e4ddb6","before":"c95023e46d9171071c7cb738367dae115bebaf4a6519931ec514d20e68ffa5d8","field":"streams.vqa.sha256"},{"after":{"exclude_qid_suffix":null,"max_repeats":4,"schema":"type-mix-v2","size_selector":null,"streams":{"routing":{"cells":{"absolute_distance":{"cents":1660},"camera_displacement":{"cents":1854},"camera_movement_direction":{"cents":1613},"camera_rotation":{"cents":1273},"recovery":{"cents":0},"units":{"cents":0}},"refill":["camera_displacement","camera_movement_direction","camera_rotation","absolute_distance"],"refill_mode":"proportional"},"vqa":{"cells":{"appearance":{"cents":1442},"box":{"cents":182},"camera_absolute_distance":{"cents":0},"camera_obj_rel_dist_v1":{"cents":200},"camera_obj_rel_dist_v2":{"cents":200},"camera_obj_rel_dist_v3":{"cents":200},"counting":{"cents":1087},"direction":{"cents":3117},"facing":{"cents":1817},"first_seen":{"cents":200},"obj_obj_relative_pos_lr":{"cents":200},"obj_obj_relative_pos_nf":{"cents":200},"obj_obj_relative_pos_ud":{"cents":200},"relative_distance":{"cents":2274},"room":{"cents":172},"route":{"cents":970},"size":{"cents":0},"totals":{"cents":339}},"refill":["direction"]}},"unit_rows":null,"units_allowlist":["ft"],"vehicle":"P"},"before":null,"field":"type_mix"}]
+--- a/configs/mix.json
++++ b/configs/mix.json
+@@ -6,7 +6,7 @@
+     "vqa": {
+       "cells": {
+         "direction": {
+-          "cents": 3289
++          "cents": 3117
+         },
+         "facing": {
+           "cents": 1817
+@@ -33,7 +33,7 @@
+           "cents": 182
+         },
+         "room": {
+-          "cents": 0
++          "cents": 172
+         },
+         "route": {
+           "cents": 970
+@@ -95,5 +95,9 @@
+     }
+   },
+   "vehicle": "P",
+-  "unit_rows": null
++  "unit_rows": null,
++  "units_allowlist": [
++    "ft"
++  ],
++  "exclude_qid_suffix": null
+ }
+--- a/configs/r1p.json
++++ b/configs/r1p.json
+@@ -1 +1 @@
+-{"admission":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/0a4d6fc3/v.json","sha256":"01ea6fa1546dcdaef441fcae13f7ac686b7448218626a3c6b7f0167f81a08c50"},"align":null,"all_frames":true,"base_identity":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","benchmark_scene_exclusions":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/benchmark_scene_exclusions.json","sha256":"3119aa4a9594e4507372b99243afc8210fe217393466ac4e5ae78485e7c83970"},"camera_overrides":{"weight_focal":2.0},"carrier_placement":"append_after_temporal_group_video_tokens_v1","checkpoint_disk_guard":{"extra_full_states":2,"planned_full_states":14,"planned_weight_exports":3,"reserve_bytes":200000000000},"code":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/0a4d6fc3/c.json","sha256":"33f5723b7cc297477d99ff2b758823d7ad8ef5ec11c8e4d95eaa687af6e33380"},"depth_enabled":true,"depth_fov_source":"pose_head","depth_init":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/97a6a3eb/runs/b19c1200/train/step_400/heads.json","sha256":"fd60ac2f525727836258ae7ea0705ff3a49163ae74320f7bf8a17b66cd69f0c7"},"dev_scene_exclusions":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/dev_scene_exclusions.json","sha256":"969cdb56ce508eff79390d67099c889b92bd360e93dc42ba07f3683ec216a986"},"exclude_qids":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/66c427e2.json","sha256":"66c427e2262331be2e0c598f2ecc39087f3a722a5155caaf1ab84a89c8cd0f6f"},"exclusions":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/dafa4a9c.json","sha256":"dafa4a9c8ffd1e063e0a98c5ae6087d911b74f864932e530f24d45b816cca6fb"},"first_step_admission":"all_rank_native_v1","frame_layout":"duplicate","frame_markers":true,"gate_stop":false,"ground_target_filter":true,"grounding":true,"h1":{"camera_types":["camera_displacement","camera_movement_direction","camera_rotation"],"faithful_own_camera_rows":false,"metrics":true,"r0_rooms":{"path":"auth/R0_ROOMS.txt","sha256":"bdb5d40244cdaf5060fd0a549acc2844a41039ecf78a23ef021a77eab188a4e3"},"routing_pose_targets":false,"stop_after_step":200},"init":"base","init_artifact":{"artifact":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/93ccadab/m544/artifact.json","sha256":"1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef"},"heads":["pose","depth"],"lm":"full"},"lm_lr_scale":0.6,"milestone_gate":null,"milestones":[100,200],"mix":["pose","vqa","vqa","routing","pose","vqa","vqa","pointing","routing"],"output":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/29c71287","parallel":"fsdp","pointing_weights":{"decision":5.0,"row_mean":2.0},"pose_exclusions":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/600ef69d.json","sha256":"600ef69de0674fb15c8972f3b64f0bd19e682a5a1ca19ab01e8d41279d064295"},"pose_lr_scale":0.6,"preparation_output":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/f/29c71287","readout":{"bank":{"path":"/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/e84d901c/z/986ba20f.npz","sha256":"0471677f8c4346fc856ff39ad45c2cf824a6b5040b214ee3468e72af1dac3015"},"contiguous_clips":null,"rows_inventory":{"path":"/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/544dcf9b/in/30c516bf.json","sha256":"d6d6a53add2ea60facaec4b67fd1d8becfcd4dc3183139eb1509b222e3d27491"},"training_scenes":{"path":"/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/e84d901c/z/eb035f92.json","sha256":"edaecb6c742495041784ea7cefe027bdbce08efc76cf427a7bc1f7ad5da9f6e4"}},"recipe":{"clip_norm":1.0,"encoder_learning_rate":1e-05,"export_at_stop":true,"global_batch":288,"learning_rate":0.0001,"lm_learning_rate":1e-05,"milestones":[100,200],"mix":["pose","pose","pose","pose","pose","pose","pose","pose","vqa","vqa","vqa","vqa","vqa","vqa","vqa","vqa","vqa","vqa","vqa","vqa","vqa","vqa","vqa","vqa","routing","routing","routing","routing","routing","routing","routing","routing","pose","pose","pose","pose","pose","pose","pose","pose","vqa","vqa","vqa","vqa","vqa","vqa","vqa","vqa","vqa","vqa","vqa","vqa","vqa","vqa","vqa","vqa","pointing","pointing","pointing","pointing","pointing","pointing","pointing","pointing","routing","routing","routing","routing","routing","routing","routing","routing"],"reference_world_size":32,"resume_every_seconds":7200,"scheduled_sampling":{"depth_open_absrel":0.25,"ema_steps":100,"exposure_from_step":null,"exposure_probability":0.0,"force_from_step":null,"fov_open_deg":2.0,"max_own_probability":0.0,"pose_full_deg":10.0,"pose_open_deg":20.0,"seed":17},"seed":17,"steps":1000,"stop_before_seconds":3600,"wall_seconds":86400,"warmup_ratio":0.05,"weight_decay":0.01,"weights":{"depth":0.25,"depth_fov":0.05,"pointing":1.0,"pose":1.5,"routing":1.0,"vqa":1.0},"world_size":4},"reference_world_size":32,"remove_files":[{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/remove_0.jsonl","sha256":"62113ff38f918528341d3c38c6cce372736f2b44ca932c3b706be29397798dc3"},{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/remove_1.jsonl","sha256":"4701e195ffc04fe256b916a05eb0a669df6cf3f97d73c9986bfe5de3170b089c"},{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/remove_2.jsonl","sha256":"6eb00a2de04c84d6dd9a0aa5d67d822bf2af6c9d408b1815b25ec6248bef27cc"},{"defects":["identity","absent","merged"],"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/remove_3.jsonl","sha256":"8a97fcc4f1f4fd7a302a8b16c461d3095fbcf9ece3a39cce7db24d5a363dd1b2"},{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/remove_4.jsonl","sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/remove_5.jsonl","sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}],"report_exclusions":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/f1a2c7e9/k/99e6eed6.json","sha256":"99e6eed6186602832a1ca15176c4d21ab67ba24e87a15dd0cad02cac6ee13688"},"route_table":{"absolute_count":"direct","absolute_direction_object":"direct","absolute_distance_object":"route","absolute_size_object":"direct","absolute_size_room":"direct","appearance_order":"direct","box_3d":"direct","camera_displacement":"route","camera_movement_direction":"route","camera_obj_abs_dist":"direct","camera_obj_rel_dist":"direct","camera_obj_rel_dist_v1":"direct","camera_obj_rel_dist_v2":"direct","camera_obj_rel_dist_v3":"direct","camera_rotation":"route","obj_appearance_order":"direct","obj_obj_relative_pos_lr":"direct","obj_obj_relative_pos_nf":"direct","obj_obj_relative_pos_ud":"direct","object_abs_distance":"route","object_counting":"direct","object_rel_direction_easy":"direct","object_rel_direction_hard":"direct","object_rel_direction_medium":"direct","object_rel_distance":"direct","object_size_estimation":"direct","relative_count":"direct","relative_direction_object":"direct","relative_distance_object":"direct","relative_size_object":"direct","room_size_estimation":"direct","route_planning":"direct"},"s1_route_policy":{"name":"frozen-table-no-flag-v1","table":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/0a4d6fc3/r.json","sha256":"35f4a364304f24ed3683413952b3591d7427e787ad5cba056e4acc62d513263b"}},"s1_routing":{"catalog":{"0298d22ae6a8e2b6081dbecded86a8412a72a1cc48399d21fc1f3e24e138423b":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u/eb3429c5/0298d22ae6a8e2b6.jsonl.gz","086c857c721c6074bf2e903d8b31125e79a6347e8a13508ffc30d6b132be9ae5":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u/eb3429c5/086c857c721c6074.jsonl.gz","1169024c0739e6c4d05e7de6dc095e64300feab577695d7aa3058791760a0d06":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u/eb3429c5/1169024c0739e6c4.jsonl.gz","14fdfe17bfae194af4d5e46cff6b4fe708678681f1d2faac25b38455869270f2":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/pool_indices_6.json","2331a5bbb181ebb64b7519b306a5c729909f7316fa59ab51490caa1aaa9b52b5":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u/eb3429c5/2331a5bbb181ebb6.jsonl.gz","2f2fd779179a5ca19e36034eb00c74839d48b6f88c5127e38e1e90864d6cf647":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u/eb3429c5/2f2fd779179a5ca1.jsonl.gz","3119aa4a9594e4507372b99243afc8210fe217393466ac4e5ae78485e7c83970":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/benchmark_scene_exclusions.json","42c520ec4f5bee344f487a880fe8fa5cefffb15a1d9af19dfaa44c0afdacfca5":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u/eb3429c5/42c520ec4f5bee34.jsonl.gz","4701e195ffc04fe256b916a05eb0a669df6cf3f97d73c9986bfe5de3170b089c":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/remove_1.jsonl","569da570556ab2b9aa3bbf9c112eb7758fda1b25d4cc4670bb764211e41ade4e":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/pool_indices_2.json","5db7885d00058c8342024b88bb9151d76ff373c98dbf2391fb1b8bf666447af2":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/pool_indices_10.json","5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/input_source_tokenizer.json","61dbe64275d654b880d58f3a34df4d5cb3e3dfe49bde82d7a0995dfac69716de":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/pool_indices_0.json","62113ff38f918528341d3c38c6cce372736f2b44ca932c3b706be29397798dc3":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/remove_0.jsonl","66caacf5c919145743b1f3de3c6e1107e6434bc5a743b32bb44bd421271b64c6":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/pool_manifest.json","6eb00a2de04c84d6dd9a0aa5d67d822bf2af6c9d408b1815b25ec6248bef27cc":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/remove_2.jsonl","75c8f3436382132208efcd0e94cfe2e297b5079ccd52e39b4714b84fd8b1bd39":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u/eb3429c5/75c8f34363821322.jsonl.gz","7a9105653e2d87d92b67a2e26217f2cc96c0d47c6346a4ae56cfd2e82a61c3a1":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/pool_exclusion_2.tsv","846987fbc9a43c097693a80ef9ada8875ff79c27537556be06dc81b47af042a4":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/pool_indices_3.json","8607dfa3522db91885b1382f3cb1ae8447e3542db0e103d8b442ca3406550de2":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/pool_indices_5.json","8807075c04730c0e3e08e0efa5b65737772522d5430a5eae6905ab47234ebe33":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u/eb3429c5/8807075c04730c0e.jsonl.gz","88bd3399d40b857b3d8f3d3844fa108a8f3c9c7a8ca30861f50de1a7a23a2354":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/0a4d6fc3/s.json","8a97fcc4f1f4fd7a302a8b16c461d3095fbcf9ece3a39cce7db24d5a363dd1b2":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/remove_3.jsonl","92927870a7b4535c12db25a74f48faaf0102cc5316adf6eebcefb5686a32163d":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u/eb3429c5/92927870a7b4535c.jsonl.gz","947cbb9fa7d6bde05b034a0b78bfa8ead473e545ab02ac3bd698486fd30425ab":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u/eb3429c5/947cbb9fa7d6bde0.jsonl.gz","951902eea28b6a56e49f1e44761802e05fc4ff25e7ebcb84dfa4bc77fea0a824":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/pool_exclusion_0.tsv","969cdb56ce508eff79390d67099c889b92bd360e93dc42ba07f3683ec216a986":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/dev_scene_exclusions.json","a30e6f15ad3fc449bf618f89a204a293a08af70e4bf9622b268ae3c29c072cbd":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/pool_indices_1.json","a5d707acfafeed88a9009cd2fb89f3bfdf53d43fea67b183c589765299e27255":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/pool_exclusion_1.tsv","a67a3f6f489031d4163b75dbae45d665a05fecf4dcbe6f2f33b0dee6567de7b5":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u/eb3429c5/a67a3f6f489031d4.jsonl.gz","b37de067725dde5bed0d1583f3288bad09d9a4e23aaa5f45de16f9ebf31fcac0":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u/eb3429c5/b37de067725dde5b.jsonl.gz","bffdff4d022af167d035be0bc421217194356df65f8b55b2136ab423e2295fa2":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/pool_indices_11.json","cbef7600f0a248792556669f5b03937de41e8da683b0d602a1ce0eca74799f94":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/pool_indices_7.json","cbff008bb2aba2ad99d6ce99d0b1c23826f1c29e346e90e6e1ca909cc77f31b8":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u/eb3429c5/cbff008bb2aba2ad.jsonl.gz","db0952e1fb49e4125753a756132514fd0714a49417abf60f8172bfeab9d5dc2c":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/pool_indices_9.json","e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/remove_5.jsonl","eac5f9f01587803b2402f80cc310b75ec1f960270a6bc059416b1e1407b1e7c9":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/pool_selection_eac5f9f0.json","ebcca9404f88634c71af0c612ff81e412eed8f26d5160e0c819da7d2c07cfce5":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/pool_indices_8.json","efb18189cd4b6a017b701fa7af1dc3b3a827f3f79338b18c355646d9f9bf3ce5":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/pool_indices_12.json"},"fps_authority":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/frame_rates.json","sha256":"36ae882f936ebc7a7d1a7651b5c53056c07d39ff552b2368a5c1e8068568d422"},"frame_map":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/frame_map.jsonl.gz","sha256":"17aa3e9eb8f5757b6121b60e753e42b0b80e73b18c03ca678859349e25d51ec3"},"frame_plan":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/frame_plan.json.gz","sha256":"7cc01f3655130e9d7ef2c1fd597c5cd7c1ddbcb49314a4dce7aecc040ec88cba"},"schema":"s1-routing-inputs-v1","selection":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/0a4d6fc3/s.json","sha256":"88bd3399d40b857b3d8f3d3844fa108a8f3c9c7a8ca30861f50de1a7a23a2354"}},"scene_coverage":{"reference":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/scene_reference.json","sha256":"06cdfa5e8b217246b72805d982247ad986c6d986a5a2846b3024969a0777723f"},"schema":"s1-scene-coverage-v1","source_map":{"mdg":[{"source":"mix:mdg_r7_119970"},{"source":"mix:mdg_r7_119971"}],"pointing":[{"source":"mix:pointing_v2"}],"pose/0":[{"index":"0","source":"pose_dbs (posedata2/work/cnt/c.json db rows by source index)"}],"pose/1":[{"index":"2","source":"pose_dbs (posedata2/work/cnt/c.json db rows by source index)"}],"routing":[{"source":"mix:routing_M"},{"source":"mix:routing_L"},{"source":"pool_s1:ARKIT_gaps"},{"source":"pool_s1:ARKIT_gen_r2"},{"source":"pool_s1:ROUTE_direct"},{"source":"pool_s1:T0_gaps"},{"source":"pool_s1:T0_gen_r2"},{"source":"pool_s1:T0_room"},{"source":"pool_s1:T1H1_gaps"},{"source":"pool_s1:T1H1_gen_r2"},{"source":"pool_s1:T1H1_room"},{"source":"pool_s1:T1H2_gaps"},{"source":"pool_s1:T1H2_gen_r2"}],"vqa":[{"source":"mix:vqa_x4"},{"source":"mix:vqa_sel_v3"},{"source":"mix:vqa_box_k3"},{"source":"mix:vqa_box_k6"},{"source":"mix:vsd_q_v4"}]}},"schedule":{"checkpoint_seconds":600.0,"export_seconds":600.0,"p95_step_seconds":300.0,"startup_seconds":3600.0},"scheduled_sampling":{"depth_open_absrel":0.25,"ema_steps":100,"exposure_from_step":null,"exposure_probability":0.0,"force_from_step":null,"fov_open_deg":2.0,"max_own_probability":0.0,"pose_full_deg":10.0,"pose_open_deg":20.0,"seed":17},"schema":"carrier-c1-run-v1","skip_unsupervised_lm":false,"stall_guard":{"checkpoint_grace_seconds":600,"idle_seconds":1200,"poll_seconds":10,"startup_seconds":3600},"steps":1000,"streams":{"pointing":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u/7c9f2d84/receipt.json","sha256":"93b21a3aeeda01efab90d9f818eff78a6ca182c18c964534279008e4af91733a"},"pose":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/8957d119.json","sha256":"8957d119bfa6776efe776816675da6d0f610a6e8c336acd66c297f29cf4e7e0f"},"routing":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/5e1d07a4/f/h/r16/receipt.json","sha256":"9a7f33103ee6faa9d44bfb7f02b6166ef6fc9f8e1bc5bac8681c697dce8a8851"},"vqa":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/0a4d6fc3/d.json","sha256":"9dd178c3af53d210512d154ccddb777fcb8d192c10456532ac16c6397dbf851a"}},"trace_program_version":"3.14","training_mode":"final","type_mix":{"max_repeats":4,"schema":"type-mix-v2","size_selector":null,"streams":{"routing":{"cells":{"absolute_distance":{"cents":1660},"camera_displacement":{"cents":1854},"camera_movement_direction":{"cents":1613},"camera_rotation":{"cents":1273},"recovery":{"cents":0},"units":{"cents":0}},"refill":["camera_displacement","camera_movement_direction","camera_rotation","absolute_distance"],"refill_mode":"proportional"},"vqa":{"cells":{"appearance":{"cents":1442},"box":{"cents":182},"camera_absolute_distance":{"cents":0},"camera_obj_rel_dist_v1":{"cents":200},"camera_obj_rel_dist_v2":{"cents":200},"camera_obj_rel_dist_v3":{"cents":200},"counting":{"cents":1087},"direction":{"cents":3289},"facing":{"cents":1817},"first_seen":{"cents":200},"obj_obj_relative_pos_lr":{"cents":200},"obj_obj_relative_pos_nf":{"cents":200},"obj_obj_relative_pos_ud":{"cents":200},"relative_distance":{"cents":2274},"room":{"cents":0},"route":{"cents":970},"size":{"cents":0},"totals":{"cents":339}},"refill":["direction"]}},"unit_rows":null,"vehicle":"P"},"weights":{"depth":0.25,"pointing":1.0,"pose":1.5},"world_size":4}
++{"admission":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/084ba70f/v.json","sha256":"521956f33271a58092530913c4303fd7d1a3db3d6ab7f5d286c91dda7e4cd586"},"align":null,"all_frames":true,"base_identity":"c202236235762e1c871ad0ccb60c8ee5ba337b9a","benchmark_scene_exclusions":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/benchmark_scene_exclusions.json","sha256":"3119aa4a9594e4507372b99243afc8210fe217393466ac4e5ae78485e7c83970"},"camera_overrides":{"weight_focal":2.0},"carrier_placement":"append_after_temporal_group_video_tokens_v1","checkpoint_disk_guard":{"extra_full_states":2,"planned_full_states":14,"planned_weight_exports":3,"reserve_bytes":200000000000},"code":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/084ba70f/c.json","sha256":"b7d2da1c3eb63cf960d9aec3629062f02b3b1515c9967b7c82aab123b9c3f598"},"depth_enabled":true,"depth_fov_source":"pose_head","depth_init":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/97a6a3eb/runs/b19c1200/train/step_400/heads.json","sha256":"fd60ac2f525727836258ae7ea0705ff3a49163ae74320f7bf8a17b66cd69f0c7"},"dev_scene_exclusions":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/dev_scene_exclusions.json","sha256":"969cdb56ce508eff79390d67099c889b92bd360e93dc42ba07f3683ec216a986"},"exclude_qids":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/66c427e2.json","sha256":"66c427e2262331be2e0c598f2ecc39087f3a722a5155caaf1ab84a89c8cd0f6f"},"exclusions":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/dafa4a9c.json","sha256":"dafa4a9c8ffd1e063e0a98c5ae6087d911b74f864932e530f24d45b816cca6fb"},"first_step_admission":"all_rank_native_v1","frame_layout":"duplicate","frame_markers":true,"gate_stop":false,"ground_target_filter":true,"grounding":true,"h1":{"camera_types":["camera_displacement","camera_movement_direction","camera_rotation"],"faithful_own_camera_rows":false,"metrics":true,"r0_rooms":{"path":"auth/R0_ROOMS.txt","sha256":"bdb5d40244cdaf5060fd0a549acc2844a41039ecf78a23ef021a77eab188a4e3"},"routing_pose_targets":false,"stop_after_step":200},"init":"base","init_artifact":{"artifact":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/93ccadab/m544/artifact.json","sha256":"1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef"},"heads":["pose","depth"],"lm":"full"},"lm_lr_scale":0.6,"milestone_gate":null,"milestones":[100,200],"mix":["pose","vqa","vqa","routing","pose","vqa","vqa","pointing","routing"],"output":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/6e77070a","parallel":"fsdp","pointing_weights":{"decision":5.0,"row_mean":2.0},"pose_exclusions":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/600ef69d.json","sha256":"600ef69de0674fb15c8972f3b64f0bd19e682a5a1ca19ab01e8d41279d064295"},"pose_lr_scale":0.6,"preparation_output":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/f/6e77070a","readout":{"bank":{"path":"/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/e84d901c/z/986ba20f.npz","sha256":"0471677f8c4346fc856ff39ad45c2cf824a6b5040b214ee3468e72af1dac3015"},"contiguous_clips":null,"rows_inventory":{"path":"/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/544dcf9b/in/30c516bf.json","sha256":"d6d6a53add2ea60facaec4b67fd1d8becfcd4dc3183139eb1509b222e3d27491"},"training_scenes":{"path":"/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/e84d901c/z/eb035f92.json","sha256":"edaecb6c742495041784ea7cefe027bdbce08efc76cf427a7bc1f7ad5da9f6e4"}},"recipe":{"clip_norm":1.0,"encoder_learning_rate":1e-05,"export_at_stop":true,"global_batch":288,"learning_rate":0.0001,"lm_learning_rate":1e-05,"milestones":[100,200],"mix":["pose","pose","pose","pose","pose","pose","pose","pose","vqa","vqa","vqa","vqa","vqa","vqa","vqa","vqa","vqa","vqa","vqa","vqa","vqa","vqa","vqa","vqa","routing","routing","routing","routing","routing","routing","routing","routing","pose","pose","pose","pose","pose","pose","pose","pose","vqa","vqa","vqa","vqa","vqa","vqa","vqa","vqa","vqa","vqa","vqa","vqa","vqa","vqa","vqa","vqa","pointing","pointing","pointing","pointing","pointing","pointing","pointing","pointing","routing","routing","routing","routing","routing","routing","routing","routing"],"reference_world_size":32,"resume_every_seconds":7200,"scheduled_sampling":{"depth_open_absrel":0.25,"ema_steps":100,"exposure_from_step":null,"exposure_probability":0.0,"force_from_step":null,"fov_open_deg":2.0,"max_own_probability":0.0,"pose_full_deg":10.0,"pose_open_deg":20.0,"seed":17},"seed":17,"steps":1000,"stop_before_seconds":3600,"wall_seconds":86400,"warmup_ratio":0.05,"weight_decay":0.01,"weights":{"depth":0.25,"depth_fov":0.05,"pointing":1.0,"pose":1.5,"routing":1.0,"vqa":1.0},"world_size":4},"reference_world_size":32,"remove_files":[{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/remove_0.jsonl","sha256":"62113ff38f918528341d3c38c6cce372736f2b44ca932c3b706be29397798dc3"},{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/remove_1.jsonl","sha256":"4701e195ffc04fe256b916a05eb0a669df6cf3f97d73c9986bfe5de3170b089c"},{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/remove_2.jsonl","sha256":"6eb00a2de04c84d6dd9a0aa5d67d822bf2af6c9d408b1815b25ec6248bef27cc"},{"defects":["identity","absent","merged"],"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/remove_3.jsonl","sha256":"8a97fcc4f1f4fd7a302a8b16c461d3095fbcf9ece3a39cce7db24d5a363dd1b2"},{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/remove_4.jsonl","sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/remove_5.jsonl","sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}],"report_exclusions":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/f1a2c7e9/k/99e6eed6.json","sha256":"99e6eed6186602832a1ca15176c4d21ab67ba24e87a15dd0cad02cac6ee13688"},"route_table":{"absolute_count":"direct","absolute_direction_object":"direct","absolute_distance_object":"route","absolute_size_object":"direct","absolute_size_room":"direct","appearance_order":"direct","box_3d":"direct","camera_displacement":"route","camera_movement_direction":"route","camera_obj_abs_dist":"direct","camera_obj_rel_dist":"direct","camera_obj_rel_dist_v1":"direct","camera_obj_rel_dist_v2":"direct","camera_obj_rel_dist_v3":"direct","camera_rotation":"route","obj_appearance_order":"direct","obj_obj_relative_pos_lr":"direct","obj_obj_relative_pos_nf":"direct","obj_obj_relative_pos_ud":"direct","object_abs_distance":"route","object_counting":"direct","object_rel_direction_easy":"direct","object_rel_direction_hard":"direct","object_rel_direction_medium":"direct","object_rel_distance":"direct","object_size_estimation":"direct","relative_count":"direct","relative_direction_object":"direct","relative_distance_object":"direct","relative_size_object":"direct","room_size_estimation":"direct","route_planning":"direct"},"s1_route_policy":{"name":"frozen-table-no-flag-v1","table":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/084ba70f/r.json","sha256":"35f4a364304f24ed3683413952b3591d7427e787ad5cba056e4acc62d513263b"}},"s1_routing":{"catalog":{"0298d22ae6a8e2b6081dbecded86a8412a72a1cc48399d21fc1f3e24e138423b":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u/eb3429c5/0298d22ae6a8e2b6.jsonl.gz","086c857c721c6074bf2e903d8b31125e79a6347e8a13508ffc30d6b132be9ae5":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u/eb3429c5/086c857c721c6074.jsonl.gz","1169024c0739e6c4d05e7de6dc095e64300feab577695d7aa3058791760a0d06":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u/eb3429c5/1169024c0739e6c4.jsonl.gz","14fdfe17bfae194af4d5e46cff6b4fe708678681f1d2faac25b38455869270f2":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/pool_indices_6.json","1dc5e6b7bd37c0704d852c800e75cef17fa313db7b4d35301fe6b6ce36403e46":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/084ba70f/s.json","2331a5bbb181ebb64b7519b306a5c729909f7316fa59ab51490caa1aaa9b52b5":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u/eb3429c5/2331a5bbb181ebb6.jsonl.gz","2f2fd779179a5ca19e36034eb00c74839d48b6f88c5127e38e1e90864d6cf647":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u/eb3429c5/2f2fd779179a5ca1.jsonl.gz","3119aa4a9594e4507372b99243afc8210fe217393466ac4e5ae78485e7c83970":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/benchmark_scene_exclusions.json","42c520ec4f5bee344f487a880fe8fa5cefffb15a1d9af19dfaa44c0afdacfca5":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u/eb3429c5/42c520ec4f5bee34.jsonl.gz","4701e195ffc04fe256b916a05eb0a669df6cf3f97d73c9986bfe5de3170b089c":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/remove_1.jsonl","569da570556ab2b9aa3bbf9c112eb7758fda1b25d4cc4670bb764211e41ade4e":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/pool_indices_2.json","5db7885d00058c8342024b88bb9151d76ff373c98dbf2391fb1b8bf666447af2":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/pool_indices_10.json","5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/input_source_tokenizer.json","61dbe64275d654b880d58f3a34df4d5cb3e3dfe49bde82d7a0995dfac69716de":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/pool_indices_0.json","62113ff38f918528341d3c38c6cce372736f2b44ca932c3b706be29397798dc3":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/remove_0.jsonl","66caacf5c919145743b1f3de3c6e1107e6434bc5a743b32bb44bd421271b64c6":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/pool_manifest.json","6eb00a2de04c84d6dd9a0aa5d67d822bf2af6c9d408b1815b25ec6248bef27cc":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/remove_2.jsonl","75c8f3436382132208efcd0e94cfe2e297b5079ccd52e39b4714b84fd8b1bd39":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u/eb3429c5/75c8f34363821322.jsonl.gz","7a9105653e2d87d92b67a2e26217f2cc96c0d47c6346a4ae56cfd2e82a61c3a1":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/pool_exclusion_2.tsv","846987fbc9a43c097693a80ef9ada8875ff79c27537556be06dc81b47af042a4":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/pool_indices_3.json","8607dfa3522db91885b1382f3cb1ae8447e3542db0e103d8b442ca3406550de2":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/pool_indices_5.json","8807075c04730c0e3e08e0efa5b65737772522d5430a5eae6905ab47234ebe33":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u/eb3429c5/8807075c04730c0e.jsonl.gz","8a97fcc4f1f4fd7a302a8b16c461d3095fbcf9ece3a39cce7db24d5a363dd1b2":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/remove_3.jsonl","92927870a7b4535c12db25a74f48faaf0102cc5316adf6eebcefb5686a32163d":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u/eb3429c5/92927870a7b4535c.jsonl.gz","947cbb9fa7d6bde05b034a0b78bfa8ead473e545ab02ac3bd698486fd30425ab":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u/eb3429c5/947cbb9fa7d6bde0.jsonl.gz","951902eea28b6a56e49f1e44761802e05fc4ff25e7ebcb84dfa4bc77fea0a824":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/pool_exclusion_0.tsv","969cdb56ce508eff79390d67099c889b92bd360e93dc42ba07f3683ec216a986":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/dev_scene_exclusions.json","a30e6f15ad3fc449bf618f89a204a293a08af70e4bf9622b268ae3c29c072cbd":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/pool_indices_1.json","a5d707acfafeed88a9009cd2fb89f3bfdf53d43fea67b183c589765299e27255":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/pool_exclusion_1.tsv","a67a3f6f489031d4163b75dbae45d665a05fecf4dcbe6f2f33b0dee6567de7b5":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u/eb3429c5/a67a3f6f489031d4.jsonl.gz","b37de067725dde5bed0d1583f3288bad09d9a4e23aaa5f45de16f9ebf31fcac0":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u/eb3429c5/b37de067725dde5b.jsonl.gz","bffdff4d022af167d035be0bc421217194356df65f8b55b2136ab423e2295fa2":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/pool_indices_11.json","cbef7600f0a248792556669f5b03937de41e8da683b0d602a1ce0eca74799f94":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/pool_indices_7.json","cbff008bb2aba2ad99d6ce99d0b1c23826f1c29e346e90e6e1ca909cc77f31b8":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u/eb3429c5/cbff008bb2aba2ad.jsonl.gz","db0952e1fb49e4125753a756132514fd0714a49417abf60f8172bfeab9d5dc2c":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/pool_indices_9.json","e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/remove_5.jsonl","eac5f9f01587803b2402f80cc310b75ec1f960270a6bc059416b1e1407b1e7c9":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/pool_selection_eac5f9f0.json","ebcca9404f88634c71af0c612ff81e412eed8f26d5160e0c819da7d2c07cfce5":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/pool_indices_8.json","efb18189cd4b6a017b701fa7af1dc3b3a827f3f79338b18c355646d9f9bf3ce5":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/pool_indices_12.json"},"fps_authority":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/frame_rates.json","sha256":"36ae882f936ebc7a7d1a7651b5c53056c07d39ff552b2368a5c1e8068568d422"},"frame_map":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/frame_map.jsonl.gz","sha256":"17aa3e9eb8f5757b6121b60e753e42b0b80e73b18c03ca678859349e25d51ec3"},"frame_plan":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/frame_plan.json.gz","sha256":"7cc01f3655130e9d7ef2c1fd597c5cd7c1ddbcb49314a4dce7aecc040ec88cba"},"schema":"s1-routing-inputs-v1","selection":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/084ba70f/s.json","sha256":"1dc5e6b7bd37c0704d852c800e75cef17fa313db7b4d35301fe6b6ce36403e46"}},"scene_coverage":{"reference":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/scene_reference.json","sha256":"06cdfa5e8b217246b72805d982247ad986c6d986a5a2846b3024969a0777723f"},"schema":"s1-scene-coverage-v1","source_map":{"mdg":[{"source":"mix:mdg_r7_119970"},{"source":"mix:mdg_r7_119971"}],"pointing":[{"source":"mix:pointing_v2"}],"pose/0":[{"index":"0","source":"pose_dbs (posedata2/work/cnt/c.json db rows by source index)"}],"pose/1":[{"index":"2","source":"pose_dbs (posedata2/work/cnt/c.json db rows by source index)"}],"routing":[{"source":"mix:routing_M"},{"source":"mix:routing_L"},{"source":"pool_s1:ARKIT_gaps"},{"source":"pool_s1:ARKIT_gen_r2"},{"source":"pool_s1:ROUTE_direct"},{"source":"pool_s1:T0_gaps"},{"source":"pool_s1:T0_gen_r2"},{"source":"pool_s1:T0_room"},{"source":"pool_s1:T1H1_gaps"},{"source":"pool_s1:T1H1_gen_r2"},{"source":"pool_s1:T1H1_room"},{"source":"pool_s1:T1H2_gaps"},{"source":"pool_s1:T1H2_gen_r2"}],"vqa":[{"source":"mix:vqa_x4"},{"source":"mix:vqa_sel_v3"},{"source":"mix:vqa_box_k3"},{"source":"mix:vqa_box_k6"},{"source":"mix:vsd_q_v4"}]}},"schedule":{"checkpoint_seconds":600.0,"export_seconds":600.0,"p95_step_seconds":300.0,"startup_seconds":3600.0},"scheduled_sampling":{"depth_open_absrel":0.25,"ema_steps":100,"exposure_from_step":null,"exposure_probability":0.0,"force_from_step":null,"fov_open_deg":2.0,"max_own_probability":0.0,"pose_full_deg":10.0,"pose_open_deg":20.0,"seed":17},"schema":"carrier-c1-run-v1","skip_unsupervised_lm":false,"stall_guard":{"checkpoint_grace_seconds":600,"idle_seconds":1200,"poll_seconds":10,"startup_seconds":3600},"steps":1000,"streams":{"pointing":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u/7c9f2d84/receipt.json","sha256":"93b21a3aeeda01efab90d9f818eff78a6ca182c18c964534279008e4af91733a"},"pose":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/8957d119.json","sha256":"8957d119bfa6776efe776816675da6d0f610a6e8c336acd66c297f29cf4e7e0f"},"routing":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/5e1d07a4/f/h/r16/receipt.json","sha256":"9a7f33103ee6faa9d44bfb7f02b6166ef6fc9f8e1bc5bac8681c697dce8a8851"},"vqa":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/084ba70f/d.json","sha256":"8c534691ccbdca646d7b93f87ebec5ee2ff1b513d8255ff271622065b6e4ddb6"}},"trace_program_version":"3.14","training_mode":"final","type_mix":{"exclude_qid_suffix":null,"max_repeats":4,"schema":"type-mix-v2","size_selector":null,"streams":{"routing":{"cells":{"absolute_distance":{"cents":1660},"camera_displacement":{"cents":1854},"camera_movement_direction":{"cents":1613},"camera_rotation":{"cents":1273},"recovery":{"cents":0},"units":{"cents":0}},"refill":["camera_displacement","camera_movement_direction","camera_rotation","absolute_distance"],"refill_mode":"proportional"},"vqa":{"cells":{"appearance":{"cents":1442},"box":{"cents":182},"camera_absolute_distance":{"cents":0},"camera_obj_rel_dist_v1":{"cents":200},"camera_obj_rel_dist_v2":{"cents":200},"camera_obj_rel_dist_v3":{"cents":200},"counting":{"cents":1087},"direction":{"cents":3117},"facing":{"cents":1817},"first_seen":{"cents":200},"obj_obj_relative_pos_lr":{"cents":200},"obj_obj_relative_pos_nf":{"cents":200},"obj_obj_relative_pos_ud":{"cents":200},"relative_distance":{"cents":2274},"room":{"cents":172},"route":{"cents":970},"size":{"cents":0},"totals":{"cents":339}},"refill":["direction"]}},"unit_rows":null,"units_allowlist":["ft"],"vehicle":"P"},"weights":{"depth":0.25,"pointing":1.0,"pose":1.5},"world_size":4}
+--- a/work/tree/student_pilot/loader_audit.py
++++ b/work/tree/student_pilot/loader_audit.py
+@@ -70,7 +70,7 @@
+     actual=read(source,set(ids))
+     return {pos:actual[i] for pos,i in enumerate(ids)}
+ 
+-def unit_counts(source):
++def unit_counts(source, allowlist=('ft',)):
+     from .vehicle_p import unit_name, UNITS
+     ids=set(load(pinned(source['indices']))) if 'indices' in source else set(range(source['count']))
+     by_unit=Counter();by_dataset=Counter();by_unit_dataset=Counter()
+@@ -83,7 +83,7 @@
+             unit=unit_name(row);dataset=row.get('dataset',row.get('provenance',{}).get('canonical','').split('/')[0])
+             by_unit[unit]+=1;by_dataset[dataset]+=1;by_unit_dataset[unit+'/'+dataset]+=1
+     finally:conn.close()
+-    return dict(eligible=sum(by_unit.values()),by_unit={u:by_unit[u] for u in UNITS},by_dataset=dict(by_dataset),by_unit_dataset=dict(by_unit_dataset))
++    return dict(eligible=sum(by_unit.values()),sampling_eligible=sum(by_unit[u] for u in allowlist if by_unit[u]>=100),by_unit={u:by_unit[u] for u in UNITS},by_dataset=dict(by_dataset),by_unit_dataset=dict(by_unit_dataset))
+ 
+ 
+ def audit(cfg,receipt,*,local_vqa_only=False):
+@@ -92,7 +92,7 @@
+     populations={};types={};traces={};exclusions={}
+     for stream,policy in cfg['type_mix']['streams'].items():
+         if local_vqa_only and stream!='vqa':continue
+-        groups,t,samples,excluded=type_mix.populations(stream,receipt['streams'][stream],policy['cells'],cfg['type_mix']['size_selector'],cfg['type_mix'].get('unit_rows'))
++        groups,t,samples,excluded=type_mix.populations(stream,receipt['streams'][stream],policy['cells'],cfg['type_mix']['size_selector'],cfg['type_mix'].get('unit_rows'),cfg['type_mix'].get('units_allowlist'),cfg['type_mix'].get('exclude_qid_suffix'))
+         expected={n:groups[n] for n in value['effective'][stream]}
+         if expected!=value['populations'][stream]:raise ValueError('Staged population differs from preparation')
+         populations[stream]={n:len(v) for n,v in groups.items()};types[stream]=t;traces[stream]=samples;exclusions[stream]=excluded
+@@ -123,7 +123,7 @@
+             if count and len(traces[stream].get(name,[]))<min(5,count):raise ValueError('Missing bound traces')
+             if by_family[stream+'/'+name]>4*count:raise ValueError('Family draws exceed four times eligible rows: '+stream+'/'+name)
+     shares=lambda counts_: {k:dict(draws=v,rows_per_step=v/cfg['recipe']['steps'],share_of_stream=v/by_stream[k.split('/')[0]]) for k,v in sorted(counts_.items())}
+-    return dict(unit_counts=unit_counts(receipt['streams']['routing']) if not local_vqa_only else {},schema='loader-audit-v1',status='LOCAL_VQA_ONLY' if local_vqa_only else 'PASS',
++    return dict(unit_counts=unit_counts(receipt['streams']['routing'],cfg['type_mix'].get('units_allowlist',['ft'])) if not local_vqa_only else {},schema='loader-audit-v1',status='LOCAL_VQA_ONLY' if local_vqa_only else 'PASS',
+         config_identity=receipt['config_sha256'],planned_steps=cfg['recipe']['steps'],eligible_by_family=populations,
+         eligible_by_question_type={s:dict(Counter(t.values())) for s,t in types.items()},
+         by_family=shares(by_family),by_question_type=shares(by_type),stream_draws=dict(by_stream),
+--- a/work/tree/student_pilot/type_mix.py
++++ b/work/tree/student_pilot/type_mix.py
+@@ -59,8 +59,12 @@
+ 
+ 
+ def validate(spec,recipe):
+-    if not isinstance(spec,dict) or set(spec)-{'schema','streams','max_repeats','size_selector','vehicle','unit_rows'} or not {'schema','streams','max_repeats','size_selector'}<=set(spec) or spec['schema']!='type-mix-v2':
++    if not isinstance(spec,dict) or set(spec)-{'schema','streams','max_repeats','size_selector','vehicle','unit_rows','units_allowlist','exclude_qid_suffix'} or not {'schema','streams','max_repeats','size_selector'}<=set(spec) or spec['schema']!='type-mix-v2':
+         raise ValueError('Invalid type mix')
++    allow=spec.get('units_allowlist',['ft'])
++    if not isinstance(allow,list) or not allow or len(set(allow))!=len(allow) or set(allow)-{'cm','ft','in'}:raise ValueError('Invalid units allowlist')
++    suffix=spec.get('exclude_qid_suffix')
++    if suffix is not None and (not isinstance(suffix,str) or not suffix):raise ValueError('Invalid excluded QID suffix')
+     if 'vehicle' in spec:
+         if spec['vehicle']!='P':raise ValueError('Unknown vehicle family policy')
+         routing=spec['streams'].get('routing',{})
+@@ -122,10 +126,11 @@
+     return effective,table
+ 
+ 
+-def populations(stream,source,cells,size_selector=None,unit_rows=None):
++def populations(stream,source,cells,size_selector=None,unit_rows=None,units_allowlist=None,exclude_qid_suffix=None):
+     indices=load(pinned(source['indices'])) if 'indices' in source else list(range(source['count']))
+     positions={i:j for j,i in enumerate(indices)}
+     if len(positions)!=len(indices):raise ValueError('Duplicate admitted indices')
++    units_allowlist=units_allowlist or ['ft'];unit_positions={};unit_samples={}
+     buckets={name:[] for name in cells};types={};samples={};excluded=Counter();seen=set()
+     db=Path(pinned(source['database']))
+     conn=sqlite3.connect(db.as_uri()+'?mode=ro&immutable=1',uri=True)
+@@ -133,17 +138,33 @@
+         for i,encoded in conn.execute('SELECT i,row FROM rows ORDER BY i'):
+             if i not in positions:continue
+             seen.add(i);row=json.loads(encoded);name=family(row,stream,size_selector)
++            if stream=='vqa' and exclude_qid_suffix and row['qid'].endswith(exclude_qid_suffix):
++                excluded['excluded_qid_suffix:'+exclude_qid_suffix]+=1;continue
++            if stream=='routing' and name=='units':
++                from .vehicle_p import unit_name
++                unit=unit_name(row)
++                unit_positions.setdefault(unit,[]).append(positions[i])
++                if unit not in units_allowlist:
++                    excluded['excluded_unit:'+unit]+=1;continue
+             if name.startswith('excluded_'):excluded[name+':'+str(row.get('routing',row).get('question_type'))]+=1;continue
+             if stream=='routing' and name=='units' and unit_rows is not None and row.get('s1_source',{}).get('source',{}).get('sha256')!=unit_rows['sha256']:
+                 raise ValueError('Unit row is outside the bound source')
+             if name not in cells:raise ValueError('Eligible family lacks a quota: '+stream+'/'+name)
+             pos=positions[i];buckets[name].append(pos)
+             types[pos]=row.get('routing',row).get('question_type')
+-            if len(samples.setdefault(name,[]))<5:
+-                samples[name].append(dict(index=i,position=pos,qid=row['qid'],question_type=types[pos],
++            example_group=unit_samples.setdefault(unit,[]) if stream=='routing' and name=='units' else samples.setdefault(name,[])
++            if len(example_group)<5:
++                example_group.append(dict(index=i,position=pos,qid=row['qid'],question_type=types[pos],
+                     target=row['target'],target_sha256=hashlib.sha256(row['target'].encode()).hexdigest(),
+                     frames=row.get('student_input',{}).get('frames',[])))
+     finally:conn.close()
++    if stream=='routing' and 'units' in buckets:
++        small={pos for unit,positions_ in unit_positions.items() if len(positions_)<100 for pos in positions_}
++        removed=set(buckets['units'])&small
++        buckets['units']=[pos for pos in buckets['units'] if pos not in removed]
++        for pos in removed:types.pop(pos,None)
++        samples['units']=[r for u in sorted(unit_samples) for r in unit_samples[u] if r['position'] not in removed][:5]
++        excluded['excluded_unit_below_100']=len(removed)
+     if seen!=set(indices):raise ValueError('Admitted indices missing from database')
+     return buckets,types,samples,dict(excluded)
+ 
+@@ -156,7 +177,7 @@
+         cells=policy['cells']
+         src=receipt['streams'][stream]
+         if src.get('kind') in ('mix','mdg'):raise ValueError('Quotas require a flat admitted stream')
+-        buckets,_,_,_=populations(stream,src,cells,spec['size_selector'],spec.get('unit_rows'))
++        buckets,_,_,_=populations(stream,src,cells,spec['size_selector'],spec.get('unit_rows'),spec.get('units_allowlist'),spec.get('exclude_qid_suffix'))
+         chosen,table=allocate(policy,{n:len(ids) for n,ids in buckets.items()},cfg['recipe']['steps'],spec['max_repeats'])
+         effective[stream]=chosen;tables[stream]=table
+         buckets={n:buckets[n] for n in chosen}
+--- a/work/tree/student_pilot/vehicle_p.py
++++ b/work/tree/student_pilot/vehicle_p.py
+@@ -12,13 +12,19 @@
+     if value not in names:raise ValueError('Unknown unit: '+str(value))
+     return names[value]
+ 
+-def absent_on_p(cfg):
++def absent_on_p(cfg, unit_counts=None):
+     cells=cfg['type_mix']['streams']['vqa']['cells']
+     result=[dict(family='recovery',reason='Sealed ground_rows.py refuses not_seen; recovery joins vehicle N.')]
+     if not cells['room']['cents']:
+-        result.append(dict(family='room',reason='A2 has no traced room rows; launch dose is zero.'))
++        result.append(dict(family='room',reason='Room launch dose is zero.'))
+     if not cells['size']['cents']:
+-        result.append(dict(family='size',reason='SIZE-V launch dose is zero; 9778 v6 rows stay in the store and are not drawn.'))
++        result.append(dict(family='size',reason='Size launch dose is zero; stored size rows are not drawn.'))
++    if not cfg['type_mix'].get('unit_rows'):
++        result.append(dict(family='units',reason='No faithful unit file is bound; launch dose is zero.'))
++    elif unit_counts is not None:
++        for unit in UNITS:
++            count=unit_counts.get('by_unit',{}).get(unit,0)
++            if count<100:result.append(dict(family='units/'+unit,eligible=count,reason='Fewer than 100 eligible rows.'))
+     return result
+ 
+ def required_families(cfg, audit, *, local_selection=None):
+@@ -26,7 +32,7 @@
+     spec=cfg['type_mix'];steps=cfg['recipe']['steps'];missing=[];checked={};unmeasured=[]
+     tables=audit['tables'];pop=audit['eligible_by_family']
+     required={'vqa':[n for n,c in spec['streams']['vqa']['cells'].items() if c['cents']], 'routing':list(ROUTING)}
+-    if spec.get('unit_rows'):required['routing'].append('units')
++    if spec.get('unit_rows') and tables.get('routing',{}).get('units',{}).get('final_cents',spec['streams']['routing']['cells']['units']['cents']):required['routing'].append('units')
+     for stream,names in required.items():
+         for name in names:
+             item=tables.get(stream,{}).get(name,{})
+@@ -42,7 +48,7 @@
+                     continue
+                 aliases={'absolute_distance':('object_abs_distance','absolute_distance_object')}
+                 count=sum(sum(e.get('per_type',{}).get(t,0) for t in aliases.get(name,(name,)))
+-                          for e in local_selection['sources'].values() if e['status']=='ELIGIBLE') if name!='units' else audit.get('unit_counts',{}).get('eligible',0)
++                          for e in local_selection['sources'].values() if e['status']=='ELIGIBLE') if name!='units' else audit.get('unit_counts',{}).get('sampling_eligible',0)
+             cents=item.get('final_cents',spec['streams'][stream]['cells'][name]['cents'])
+             draws=math.ceil(cents*steps/100)
+             ok=count>0 and count*4>=draws and cents>0
+@@ -50,8 +56,7 @@
+             if not ok:missing.append(stream+'/'+name)
+     unit_counts=audit.get('unit_counts',{}).get('by_unit',{})
+     missing_units=[u for u in UNITS if unit_counts.get(u,0)<100] if spec.get('unit_rows') else []
+-    missing += ['units/'+u for u in missing_units]
+     return dict(status='FAIL' if missing else 'NOT_RUN' if unmeasured else 'PASS',vehicle='P',required=required,checked=checked,
+-                missing=missing,unmeasured=unmeasured,missing_units=missing_units,absent_on_P=absent_on_p(cfg),
++                missing=missing,unmeasured=unmeasured,missing_units=missing_units,absent_on_P=absent_on_p(cfg,audit.get('unit_counts',{})),
+                 units_bound=bool(spec.get('unit_rows')),
+                 scope='Post-filter VQA and native source-selection routing presence; final routing counts require production proof.' if local_selection is not None else 'All post-filter staged populations and capped draws over the planned schedule.')
+--- a/out/SAMPLER_REVIEW.patch
++++ b/out/SAMPLER_REVIEW.patch
+@@ -91,7 +91,7 @@
+      journal, completed, records = None, {}, []
+ --- a/student_pilot/type_mix.py
+ +++ b/student_pilot/type_mix.py
+-@@ -0,0 +1,218 @@
++@@ -0,0 +1,239 @@
+ +"""Opt-in quotas over admitted rows; absent policy preserves the sealed sampler."""
+ +from collections import Counter
+ +import hashlib
+@@ -153,8 +153,12 @@
+ +
+ +
+ +def validate(spec,recipe):
+-+    if not isinstance(spec,dict) or set(spec)-{'schema','streams','max_repeats','size_selector','vehicle','unit_rows'} or not {'schema','streams','max_repeats','size_selector'}<=set(spec) or spec['schema']!='type-mix-v2':
+++    if not isinstance(spec,dict) or set(spec)-{'schema','streams','max_repeats','size_selector','vehicle','unit_rows','units_allowlist','exclude_qid_suffix'} or not {'schema','streams','max_repeats','size_selector'}<=set(spec) or spec['schema']!='type-mix-v2':
+ +        raise ValueError('Invalid type mix')
+++    allow=spec.get('units_allowlist',['ft'])
+++    if not isinstance(allow,list) or not allow or len(set(allow))!=len(allow) or set(allow)-{'cm','ft','in'}:raise ValueError('Invalid units allowlist')
+++    suffix=spec.get('exclude_qid_suffix')
+++    if suffix is not None and (not isinstance(suffix,str) or not suffix):raise ValueError('Invalid excluded QID suffix')
+ +    if 'vehicle' in spec:
+ +        if spec['vehicle']!='P':raise ValueError('Unknown vehicle family policy')
+ +        routing=spec['streams'].get('routing',{})
+@@ -216,10 +220,11 @@
+ +    return effective,table
+ +
+ +
+-+def populations(stream,source,cells,size_selector=None,unit_rows=None):
+++def populations(stream,source,cells,size_selector=None,unit_rows=None,units_allowlist=None,exclude_qid_suffix=None):
+ +    indices=load(pinned(source['indices'])) if 'indices' in source else list(range(source['count']))
+ +    positions={i:j for j,i in enumerate(indices)}
+ +    if len(positions)!=len(indices):raise ValueError('Duplicate admitted indices')
+++    units_allowlist=units_allowlist or ['ft'];unit_positions={};unit_samples={}
+ +    buckets={name:[] for name in cells};types={};samples={};excluded=Counter();seen=set()
+ +    db=Path(pinned(source['database']))
+ +    conn=sqlite3.connect(db.as_uri()+'?mode=ro&immutable=1',uri=True)
+@@ -227,17 +232,33 @@
+ +        for i,encoded in conn.execute('SELECT i,row FROM rows ORDER BY i'):
+ +            if i not in positions:continue
+ +            seen.add(i);row=json.loads(encoded);name=family(row,stream,size_selector)
+++            if stream=='vqa' and exclude_qid_suffix and row['qid'].endswith(exclude_qid_suffix):
+++                excluded['excluded_qid_suffix:'+exclude_qid_suffix]+=1;continue
+++            if stream=='routing' and name=='units':
+++                from .vehicle_p import unit_name
+++                unit=unit_name(row)
+++                unit_positions.setdefault(unit,[]).append(positions[i])
+++                if unit not in units_allowlist:
+++                    excluded['excluded_unit:'+unit]+=1;continue
+ +            if name.startswith('excluded_'):excluded[name+':'+str(row.get('routing',row).get('question_type'))]+=1;continue
+ +            if stream=='routing' and name=='units' and unit_rows is not None and row.get('s1_source',{}).get('source',{}).get('sha256')!=unit_rows['sha256']:
+ +                raise ValueError('Unit row is outside the bound source')
+ +            if name not in cells:raise ValueError('Eligible family lacks a quota: '+stream+'/'+name)
+ +            pos=positions[i];buckets[name].append(pos)
+ +            types[pos]=row.get('routing',row).get('question_type')
+-+            if len(samples.setdefault(name,[]))<5:
+-+                samples[name].append(dict(index=i,position=pos,qid=row['qid'],question_type=types[pos],
+++            example_group=unit_samples.setdefault(unit,[]) if stream=='routing' and name=='units' else samples.setdefault(name,[])
+++            if len(example_group)<5:
+++                example_group.append(dict(index=i,position=pos,qid=row['qid'],question_type=types[pos],
+ +                    target=row['target'],target_sha256=hashlib.sha256(row['target'].encode()).hexdigest(),
+ +                    frames=row.get('student_input',{}).get('frames',[])))
+ +    finally:conn.close()
+++    if stream=='routing' and 'units' in buckets:
+++        small={pos for unit,positions_ in unit_positions.items() if len(positions_)<100 for pos in positions_}
+++        removed=set(buckets['units'])&small
+++        buckets['units']=[pos for pos in buckets['units'] if pos not in removed]
+++        for pos in removed:types.pop(pos,None)
+++        samples['units']=[r for u in sorted(unit_samples) for r in unit_samples[u] if r['position'] not in removed][:5]
+++        excluded['excluded_unit_below_100']=len(removed)
+ +    if seen!=set(indices):raise ValueError('Admitted indices missing from database')
+ +    return buckets,types,samples,dict(excluded)
+ +
+@@ -250,7 +271,7 @@
+ +        cells=policy['cells']
+ +        src=receipt['streams'][stream]
+ +        if src.get('kind') in ('mix','mdg'):raise ValueError('Quotas require a flat admitted stream')
+-+        buckets,_,_,_=populations(stream,src,cells,spec['size_selector'],spec.get('unit_rows'))
+++        buckets,_,_,_=populations(stream,src,cells,spec['size_selector'],spec.get('unit_rows'),spec.get('units_allowlist'),spec.get('exclude_qid_suffix'))
+ +        chosen,table=allocate(policy,{n:len(ids) for n,ids in buckets.items()},cfg['recipe']['steps'],spec['max_repeats'])
+ +        effective[stream]=chosen;tables[stream]=table
+ +        buckets={n:buckets[n] for n in chosen}
+@@ -385,7 +406,7 @@
+ +    actual=read(source,set(ids))
+ +    return {pos:actual[i] for pos,i in enumerate(ids)}
+ +
+-+def unit_counts(source):
+++def unit_counts(source, allowlist=('ft',)):
+ +    from .vehicle_p import unit_name, UNITS
+ +    ids=set(load(pinned(source['indices']))) if 'indices' in source else set(range(source['count']))
+ +    by_unit=Counter();by_dataset=Counter();by_unit_dataset=Counter()
+@@ -398,7 +419,7 @@
+ +            unit=unit_name(row);dataset=row.get('dataset',row.get('provenance',{}).get('canonical','').split('/')[0])
+ +            by_unit[unit]+=1;by_dataset[dataset]+=1;by_unit_dataset[unit+'/'+dataset]+=1
+ +    finally:conn.close()
+-+    return dict(eligible=sum(by_unit.values()),by_unit={u:by_unit[u] for u in UNITS},by_dataset=dict(by_dataset),by_unit_dataset=dict(by_unit_dataset))
+++    return dict(eligible=sum(by_unit.values()),sampling_eligible=sum(by_unit[u] for u in allowlist if by_unit[u]>=100),by_unit={u:by_unit[u] for u in UNITS},by_dataset=dict(by_dataset),by_unit_dataset=dict(by_unit_dataset))
+ +
+ +
+ +def audit(cfg,receipt,*,local_vqa_only=False):
+@@ -407,7 +428,7 @@
+ +    populations={};types={};traces={};exclusions={}
+ +    for stream,policy in cfg['type_mix']['streams'].items():
+ +        if local_vqa_only and stream!='vqa':continue
+-+        groups,t,samples,excluded=type_mix.populations(stream,receipt['streams'][stream],policy['cells'],cfg['type_mix']['size_selector'],cfg['type_mix'].get('unit_rows'))
+++        groups,t,samples,excluded=type_mix.populations(stream,receipt['streams'][stream],policy['cells'],cfg['type_mix']['size_selector'],cfg['type_mix'].get('unit_rows'),cfg['type_mix'].get('units_allowlist'),cfg['type_mix'].get('exclude_qid_suffix'))
+ +        expected={n:groups[n] for n in value['effective'][stream]}
+ +        if expected!=value['populations'][stream]:raise ValueError('Staged population differs from preparation')
+ +        populations[stream]={n:len(v) for n,v in groups.items()};types[stream]=t;traces[stream]=samples;exclusions[stream]=excluded
+@@ -438,7 +459,7 @@
+ +            if count and len(traces[stream].get(name,[]))<min(5,count):raise ValueError('Missing bound traces')
+ +            if by_family[stream+'/'+name]>4*count:raise ValueError('Family draws exceed four times eligible rows: '+stream+'/'+name)
+ +    shares=lambda counts_: {k:dict(draws=v,rows_per_step=v/cfg['recipe']['steps'],share_of_stream=v/by_stream[k.split('/')[0]]) for k,v in sorted(counts_.items())}
+-+    return dict(unit_counts=unit_counts(receipt['streams']['routing']) if not local_vqa_only else {},schema='loader-audit-v1',status='LOCAL_VQA_ONLY' if local_vqa_only else 'PASS',
+++    return dict(unit_counts=unit_counts(receipt['streams']['routing'],cfg['type_mix'].get('units_allowlist',['ft'])) if not local_vqa_only else {},schema='loader-audit-v1',status='LOCAL_VQA_ONLY' if local_vqa_only else 'PASS',
+ +        config_identity=receipt['config_sha256'],planned_steps=cfg['recipe']['steps'],eligible_by_family=populations,
+ +        eligible_by_question_type={s:dict(Counter(t.values())) for s,t in types.items()},
+ +        by_family=shares(by_family),by_question_type=shares(by_type),stream_draws=dict(by_stream),
+@@ -486,7 +507,7 @@
+ +    main(sys.argv[1])
+ --- a/student_pilot/vehicle_p.py
+ +++ b/student_pilot/vehicle_p.py
+-@@ -0,0 +1,57 @@
++@@ -0,0 +1,62 @@
+ +"""Vehicle-P family coverage over the actual admitted sampler populations."""
+ +import math
+ +
+@@ -501,13 +522,19 @@
+ +    if value not in names:raise ValueError('Unknown unit: '+str(value))
+ +    return names[value]
+ +
+-+def absent_on_p(cfg):
+++def absent_on_p(cfg, unit_counts=None):
+ +    cells=cfg['type_mix']['streams']['vqa']['cells']
+ +    result=[dict(family='recovery',reason='Sealed ground_rows.py refuses not_seen; recovery joins vehicle N.')]
+ +    if not cells['room']['cents']:
+-+        result.append(dict(family='room',reason='A2 has no traced room rows; launch dose is zero.'))
+++        result.append(dict(family='room',reason='Room launch dose is zero.'))
+ +    if not cells['size']['cents']:
+-+        result.append(dict(family='size',reason='SIZE-V launch dose is zero; 9778 v6 rows stay in the store and are not drawn.'))
+++        result.append(dict(family='size',reason='Size launch dose is zero; stored size rows are not drawn.'))
+++    if not cfg['type_mix'].get('unit_rows'):
+++        result.append(dict(family='units',reason='No faithful unit file is bound; launch dose is zero.'))
+++    elif unit_counts is not None:
+++        for unit in UNITS:
+++            count=unit_counts.get('by_unit',{}).get(unit,0)
+++            if count<100:result.append(dict(family='units/'+unit,eligible=count,reason='Fewer than 100 eligible rows.'))
+ +    return result
+ +
+ +def required_families(cfg, audit, *, local_selection=None):
+@@ -515,7 +542,7 @@
+ +    spec=cfg['type_mix'];steps=cfg['recipe']['steps'];missing=[];checked={};unmeasured=[]
+ +    tables=audit['tables'];pop=audit['eligible_by_family']
+ +    required={'vqa':[n for n,c in spec['streams']['vqa']['cells'].items() if c['cents']], 'routing':list(ROUTING)}
+-+    if spec.get('unit_rows'):required['routing'].append('units')
+++    if spec.get('unit_rows') and tables.get('routing',{}).get('units',{}).get('final_cents',spec['streams']['routing']['cells']['units']['cents']):required['routing'].append('units')
+ +    for stream,names in required.items():
+ +        for name in names:
+ +            item=tables.get(stream,{}).get(name,{})
+@@ -531,7 +558,7 @@
+ +                    continue
+ +                aliases={'absolute_distance':('object_abs_distance','absolute_distance_object')}
+ +                count=sum(sum(e.get('per_type',{}).get(t,0) for t in aliases.get(name,(name,)))
+-+                          for e in local_selection['sources'].values() if e['status']=='ELIGIBLE') if name!='units' else audit.get('unit_counts',{}).get('eligible',0)
+++                          for e in local_selection['sources'].values() if e['status']=='ELIGIBLE') if name!='units' else audit.get('unit_counts',{}).get('sampling_eligible',0)
+ +            cents=item.get('final_cents',spec['streams'][stream]['cells'][name]['cents'])
+ +            draws=math.ceil(cents*steps/100)
+ +            ok=count>0 and count*4>=draws and cents>0
+@@ -539,8 +566,7 @@
+ +            if not ok:missing.append(stream+'/'+name)
+ +    unit_counts=audit.get('unit_counts',{}).get('by_unit',{})
+ +    missing_units=[u for u in UNITS if unit_counts.get(u,0)<100] if spec.get('unit_rows') else []
+-+    missing += ['units/'+u for u in missing_units]
+ +    return dict(status='FAIL' if missing else 'NOT_RUN' if unmeasured else 'PASS',vehicle='P',required=required,checked=checked,
+-+                missing=missing,unmeasured=unmeasured,missing_units=missing_units,absent_on_P=absent_on_p(cfg),
+++                missing=missing,unmeasured=unmeasured,missing_units=missing_units,absent_on_P=absent_on_p(cfg,audit.get('unit_counts',{})),
+ +                units_bound=bool(spec.get('unit_rows')),
+ +                scope='Post-filter VQA and native source-selection routing presence; final routing counts require production proof.' if local_selection is not None else 'All post-filter staged populations and capped draws over the planned schedule.')
+--- a/out/DEPLOYMENT_REVIEW.patch
++++ b/out/DEPLOYMENT_REVIEW.patch
+@@ -5,13 +5,13 @@
+  RR=runs/aws128p_20261025
+  EPOCHS=/home/jjyeung/6d00e578
+ -S=/tmp/jjyeung/a_17c4ffa4/root
+-+S=/tmp/jjyeung/a_29c71287/root
+++S=/tmp/jjyeung/a_6e77070a/root
+  U=$S/aws/u
+  HM=$HX
+ -NX=/tmp/jjyeung/a_17c4ffa4/x_${SLURM_JOB_ID:-local}
+ -NR=/tmp/jjyeung/a_17c4ffa4/runs
+-+NX=/tmp/jjyeung/a_29c71287/x_${SLURM_JOB_ID:-local}
+-+NR=/tmp/jjyeung/a_29c71287/runs
+++NX=/tmp/jjyeung/a_6e77070a/x_${SLURM_JOB_ID:-local}
+++NR=/tmp/jjyeung/a_6e77070a/runs
+  CUR=$HX/k/0.json
+  COMMIT=$(/usr/bin/python3 -I -c 'import json, sys; print(json.load(open(sys.argv[1]))["commit"])' "$CUR")
+  tk_step() {
+@@ -60,7 +60,7 @@
+      /usr/bin/python3 -B "$HX/b/p0.py" "$HX" p --metadata-only
+  source "$HX/b/c.sh"
+ -export TK_JOBDIR=/tmp/jjyeung/a_17c4ffa4/jobs/${SLURM_JOB_ID:?}.preflight
+-+export TK_JOBDIR=/tmp/jjyeung/a_29c71287/jobs/${SLURM_JOB_ID:?}.preflight
+++export TK_JOBDIR=/tmp/jjyeung/a_6e77070a/jobs/${SLURM_JOB_ID:?}.preflight
+  trap 'for report in "$NX/o/${SLURM_JOB_ID}".preflight.*.json; do [[ ! -f "$report" ]] || cp "$report" "$HX/o/"; done' EXIT
+  tk_stage preflight
+  /usr/bin/python3 -I - "$CUR" "$HX" "$NX" "$IN" "$SLURM_JOB_ID" <<'PYINPUTS'
+@@ -71,7 +71,7 @@
+  export TK_RUNS_DIR="$(/usr/bin/python3 -I -c 'import json,pathlib,sys; print(pathlib.Path(json.load(open(sys.argv[1]))["run_directory"]).parent)' "$HX/k/launch.json")"
+  source "$HX/b/c.sh"
+ -export TK_JOBDIR=/tmp/jjyeung/a_17c4ffa4/jobs/${SLURM_JOB_ID:?}.${1:-x}
+-+export TK_JOBDIR=/tmp/jjyeung/a_29c71287/jobs/${SLURM_JOB_ID:?}.${1:-x}
+++export TK_JOBDIR=/tmp/jjyeung/a_6e77070a/jobs/${SLURM_JOB_ID:?}.${1:-x}
+  mkdir -p "$TK_JOBDIR" "$HM/o"
+  if [[ "${1:-}" == p ]] && ! /usr/bin/python3 -I -c 'import json,sys; sys.exit(0 if json.load(open(sys.argv[1])).get("in_job_admission") else 1)' "$HX/k/launch.json"; then
+      export TK_LIGHT=1
+@@ -83,15 +83,15 @@
+  export TK_JOB_START="$(date +%s)"   # one wall clock for restore, staging, admission and training (job.sh must keep it)
+ -KH=/project/community/jjyeung/okh7/x_3fdda0fb RUN=/tmp/jjyeung/a_17c4ffa4/runs/17c4ffa4
+ -RS=/project/community/jjyeung/okh7/r/39504485 LOG=$KH/o/${SLURM_JOB_ID}.w.steps
+-+KH=/project/community/jjyeung/okh7/x_0a4d6fc3 RUN=/tmp/jjyeung/a_29c71287/runs/29c71287
+-+RS=/project/community/jjyeung/okh7/r/29c71287 LOG=$KH/o/${SLURM_JOB_ID}.w.steps
+++KH=/project/community/jjyeung/okh7/x_084ba70f RUN=/tmp/jjyeung/a_6e77070a/runs/6e77070a
+++RS=/project/community/jjyeung/okh7/r/6e77070a LOG=$KH/o/${SLURM_JOB_ID}.w.steps
+  step() { printf '%s | %s\n' "$(date -u +%FT%TZ)" "$*" >> "$LOG"; }
+  newest() {  # newest verified slot: prints "slot step" (empty if none)
+      for s in A B; do [[ -f $RS/$s.json ]] && /usr/bin/python3 -I -c 'import json,sys; d=json.load(open(sys.argv[1])); print(d["slot"], d["step"]) if d.get("verified") is True else None' "$RS/$s.json"; done | sort -k2,2n | tail -1
+  }
+  # BEGIN directory preflight
+ -NL=/tmp/jjyeung/a_17c4ffa4
+-+NL=/tmp/jjyeung/a_29c71287
+++NL=/tmp/jjyeung/a_6e77070a
+  private_dir "$KH"
+  for p in /tmp/jjyeung "$NL" "$NL/runs" "$RUN" "$O/r" "$RS"; do
+      [[ ! -e "$p" && ! -L "$p" ]] || private_dir "$p"
+@@ -99,7 +99,7 @@
+  for p in "$NL/runs"/* "$NL/runs"/.[!.]* "$NL/runs"/..?*; do
+      [[ ! -e "$p" && ! -L "$p" ]] && continue
+ -    [[ "${p##*/}" == 17c4ffa4 && -d "$p" && ! -L "$p" ]] || { echo 'foreign run directory; refusing' >&2; exit 3; }
+-+    [[ "${p##*/}" == 29c71287 && -d "$p" && ! -L "$p" ]] || { echo 'foreign run directory; refusing' >&2; exit 3; }
+++    [[ "${p##*/}" == 6e77070a && -d "$p" && ! -L "$p" ]] || { echo 'foreign run directory; refusing' >&2; exit 3; }
+  done
+  mkdir -p -m 700 /tmp/jjyeung "$NL" "$NL/runs" "$RUN" "$O/r" "$RS" "$KH/o" || exit 3
+  for p in "$NL" "$NL/runs" "$RUN" "$RS"; do private_dir "$p"; done
+@@ -116,7 +116,7 @@
+  step "export sessions present for run ${RUN##*/}"
+  # Actual archive contents of every new staging entry, before c.sh extracts them (vt.py; sealed k/0.json pinned inside).
+ -/usr/bin/python3 -I /project/community/jjyeung/okh7/i_1be16f28/v.py "$KH" /project/community/jjyeung/okh7/x_07ca49df/k/0.json > "$KH/o/${SLURM_JOB_ID}.vt.json" 2>&1 \
+-+/usr/bin/python3 -I /project/community/jjyeung/okh7/i_0a4d6fc3/v.py "$KH" /project/community/jjyeung/okh7/i_0a4d6fc3/b0.json > "$KH/o/${SLURM_JOB_ID}.vt.json" 2>&1 \
+++/usr/bin/python3 -I /project/community/jjyeung/okh7/i_084ba70f/v.py "$KH" /project/community/jjyeung/okh7/i_084ba70f/b0.json > "$KH/o/${SLURM_JOB_ID}.vt.json" 2>&1 \
+      || { step "refused: staging entry check: $(tail -c 300 "$KH/o/${SLURM_JOB_ID}.vt.json")"; exit 5; }
+  step "staging entries verified"
+  read -r slot sstep < <(newest || true)
+@@ -128,8 +128,8 @@
+  private_dir "$O"
+ -BUN=/project/community/jjyeung/okh7/i_1be16f28
+ -KH=/project/community/jjyeung/okh7/x_3fdda0fb
+-+BUN=/project/community/jjyeung/okh7/i_0a4d6fc3
+-+KH=/project/community/jjyeung/okh7/x_0a4d6fc3
+++BUN=/project/community/jjyeung/okh7/i_084ba70f
+++KH=/project/community/jjyeung/okh7/x_084ba70f
+  private_dir "$BUN"
+  private_dir "$KH"
+  cd "$BUN"
+@@ -137,10 +137,10 @@
+  assert proof.get('effective_config_verified') is True and proof.get('first_batch_executed') is False
+  assert proof.get('training_executed') is False and proof.get('admission_result', dict()).get('status')=='PREPARED'
+  assert proof.get('prepared_seals') and proof.get('real_job_reuse') is False
+-+for name in ('disk_plan','routing_selection','empty_root','temporary_paths','runtime_binaries','private_directories','loader_audit','required_families'):
+++for name in ('disk_plan','routing_selection','empty_root','temporary_paths','runtime_binaries','directory_modes','loader_audit','required_families'):
+ + assert proof.get('checks',{}).get(name,{}).get('status')=='PASS', name
+  
+  sys.path.insert(0,str(k/'b'));import a;a.main(k)
+  P
+ -TZ=UTC env -u TK_JOB_START sbatch -J a15_cot_ap5ee9da63 -o /dev/null -e "$KH/o/%j.err"   -A mt01 -p advanced -N1 --ntasks=1 --gres=gpu:4 -c 48 --mem=800G -t 13:00:00 --signal=B:USR1@3600 --no-requeue "$BUN/jb.sh"
+-+TZ=UTC env -u TK_JOB_START sbatch -J a15_cot_ap29c71287 -o /dev/null -e "$KH/o/%j.err"   -A mt01 -p advanced -N1 --ntasks=1 --gres=gpu:4 -c 48 --mem=800G -t 13:00:00 --signal=B:USR1@3600 --no-requeue "$BUN/jb.sh"
+++TZ=UTC env -u TK_JOB_START sbatch -J a15_cot_ap6e77070a -o /dev/null -e "$KH/o/%j.err"   -A mt01 -p advanced -N1 --ntasks=1 --gres=gpu:4 -c 48 --mem=800G -t 13:00:00 --signal=B:USR1@3600 --no-requeue "$BUN/jb.sh"

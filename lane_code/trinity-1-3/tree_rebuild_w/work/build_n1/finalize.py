@@ -7,6 +7,7 @@ def call(name,*args):
     subprocess.run([sys.executable,'-I','-s','-B',str(B/name),*map(str,args)],check=True)
 call('proof_p_format.py')
 call('test_runner.py',B/'proofs/targeted','tests.test_r2_build_n1')
+call('proof_extra.py')
 subprocess.run(['bash',str(B/'PACKET_TEST.sh')],check=True)
 call('legacy_guard_proof.py');call('compare.py')
 call('coverage_all.py')

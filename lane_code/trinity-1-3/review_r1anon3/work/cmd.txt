@@ -1,0 +1,124 @@
+/project/community/jjyeung/okh7/i_6f8ed106/p_78d0a06c.sh:2: #SBATCH -A mt01 -p advanced -N1 --ntasks=1 -c 48 --mem=800G -t 04:00:00
+/project/community/jjyeung/okh7/i_6f8ed106/p_78d0a06c.sh:3: #SBATCH --no-requeue
+/project/community/jjyeung/okh7/i_6f8ed106/p_78d0a06c.sh:7: PY=$(command -v python3)
+/project/community/jjyeung/okh7/i_6f8ed106/p_78d0a06c.sh:8: exec "$PY" -I -B - "$1" <<'P'
+/project/community/jjyeung/okh7/i_6f8ed106/p_78d0a06c.sh:12: authority=json.load(open(sys.argv[1]))
+/project/community/jjyeung/okh7/i_6f8ed106/jb.sh:3: #SBATCH -A mt01 -p advanced -N1 --ntasks=1 --gres=gpu:4 -c 48 --mem=800G -t 13:00:00
+/project/community/jjyeung/okh7/i_6f8ed106/jb.sh:4: #SBATCH --no-requeue --signal=B:USR1@3600
+/project/community/jjyeung/okh7/i_6f8ed106/jb.sh:9:     [[ -d "$1" && ! -L "$1" && "$(stat -c %a -- "$1")" == 700 ]] || {
+/project/community/jjyeung/okh7/i_6f8ed106/jb.sh:10:         printf 'Directory must be mode 0700; run: chmod 700 -- %q\n' "$1" >&2
+/project/community/jjyeung/okh7/i_6f8ed106/jb.sh:22:     for s in A B; do [[ -f $RS/$s.json ]] && /usr/bin/python3 -I -c 'import json,sys; d=json.load(open(sys.argv[1])); print(d["slot"], d["step"]) if d.get("verified") is True else None' "$RS/$s.json"; done | sort -k2,2n | tail -1
+/project/community/jjyeung/okh7/i_6f8ed106/jb.sh:42: /usr/bin/python3 -I -c '
+/project/community/jjyeung/okh7/i_6f8ed106/jb.sh:44: p, run = sys.argv[1], sys.argv[2]
+/project/community/jjyeung/okh7/i_6f8ed106/jb.sh:53: /usr/bin/python3 -I /project/community/jjyeung/okh7/i_6f8ed106/v.py "$KH" /project/community/jjyeung/okh7/i_6f8ed106/b0.json > "$KH/o/${SLURM_JOB_ID}.vt.json" 2>&1 \
+/project/community/jjyeung/okh7/i_6f8ed106/jb.sh:60:     rec=$(/usr/bin/python3 -I -c '
+/project/community/jjyeung/okh7/i_6f8ed106/jb.sh:62: d = json.load(open(sys.argv[1])); h = re.compile("[0-9a-f]{64}")
+/project/community/jjyeung/okh7/i_6f8ed106/jb.sh:73:         | tar -x -C "$RUN" --no-same-owner
+/project/community/jjyeung/okh7/i_6f8ed106/jb.sh:80:     /usr/bin/python3 -I -c '
+/project/community/jjyeung/okh7/i_6f8ed106/jb.sh:82: m = json.load(open(sys.argv[1])); b = json.load(open(sys.argv[2]))
+/project/community/jjyeung/okh7/i_6f8ed106/jb.sh:83: sys.exit(0 if m.get("schema") == "c1-checkpoint-v1" and m.get("step") == int(sys.argv[3]) and m.get("binding") == b else 1)' \
+/project/community/jjyeung/okh7/i_6f8ed106/jb.sh:104: cstep=$(/usr/bin/python3 -I -c 'import json,sys; print(int(json.load(open(sys.argv[1]))["step"]))' "$ck/complete.json") && [[ "$cstep" =~ ^[1-9][0-9]*$ ]] \
+/project/community/jjyeung/okh7/i_6f8ed106/jb.sh:111: need=$(du -sb --count-links "$ck" "$RUN/inputs" "$RUN/binding.json" | awk '{s += $1} END {print s}') && [[ "$need" =~ ^[0-9]+$ ]] \
+/project/community/jjyeung/okh7/i_6f8ed106/jb.sh:122:         tar --hard-dereference -cf - -C "$RUN" "$ckn" inputs binding.json \
+/project/community/jjyeung/okh7/i_6f8ed106/jb.sh:123:             | /usr/bin/python3 -I -c '
+/project/community/jjyeung/okh7/i_6f8ed106/jb.sh:132: open(sys.argv[1], "w").write(json.dumps(dict(bytes=n, sha256=s.hexdigest(), md5=base64.b64encode(m.digest()).decode())))' "$sum" \
+/project/community/jjyeung/okh7/i_6f8ed106/jb.sh:140:                 timeout 300 gcloud storage objects describe "$gs" --format=json > "$RUN/.gslot.meta.json" 2>> "$KH/o/${SLURM_JOB_ID}.gslot.log" \
+/project/community/jjyeung/okh7/i_6f8ed106/jb.sh:141:             && /usr/bin/python3 -I -c '
+/project/community/jjyeung/okh7/i_6f8ed106/jb.sh:143: s, m = json.load(open(sys.argv[1])), json.load(open(sys.argv[2]))
+/project/community/jjyeung/okh7/i_6f8ed106/jb.sh:152:     if (( gok == 1 )) && /usr/bin/python3 -I -c '
+/project/community/jjyeung/okh7/i_6f8ed106/jb.sh:154: s = json.load(open(sys.argv[1]))
+/project/community/jjyeung/okh7/i_6f8ed106/jb.sh:155: print(json.dumps(dict(job=sys.argv[2], step=int(sys.argv[3]), checkpoint=sys.argv[4], manifest_sha256=sys.argv[5], object=sys.argv[6], **s)))' \
+/project/community/jjyeung/okh7/i_6f8ed106/jb.sh:171: tar --hard-dereference -cf - -C "$RUN" "$ckn" inputs binding.json | tee "$RS/$dst.tar.part" | sha256sum | cut -d' ' -f1 > "$RS/$dst.sha256.part"
+/project/community/jjyeung/okh7/i_6f8ed106/jb.sh:180: /usr/bin/python3 -I -c '
+/project/community/jjyeung/okh7/i_6f8ed106/jb.sh:183: path, want, ckn, cstep, cj0 = sys.argv[1:6]
+/project/community/jjyeung/okh7/x_6f8ed106/job.sh:2: #SBATCH --partition=advanced
+/project/community/jjyeung/okh7/x_6f8ed106/job.sh:3: #SBATCH --nodes=1
+/project/community/jjyeung/okh7/x_6f8ed106/job.sh:4: #SBATCH --gpus-per-node=4
+/project/community/jjyeung/okh7/x_6f8ed106/job.sh:5: #SBATCH --cpus-per-task=48
+/project/community/jjyeung/okh7/x_6f8ed106/job.sh:6: #SBATCH --mem=800G
+/project/community/jjyeung/okh7/x_6f8ed106/job.sh:7: #SBATCH --time=13:00:00
+/project/community/jjyeung/okh7/x_6f8ed106/job.sh:8: #SBATCH --no-requeue
+/project/community/jjyeung/okh7/x_6f8ed106/job.sh:9: #SBATCH --signal=B:USR1@3600
+/project/community/jjyeung/okh7/x_6f8ed106/job.sh:14: /usr/bin/python3 -B "$ROOT/b/a.py" "$ROOT"
+/project/community/jjyeung/okh7/x_6f8ed106/job.sh:16: /usr/bin/python3 -I "$ROOT/b/g.py" "$ROOT" p
+/project/community/jjyeung/okh7/x_6f8ed106/job.sh:17: RUN="$(/usr/bin/python3 -I -c 'import json,sys; print(json.load(open(sys.argv[1]))["run_directory"])' "$ROOT/k/launch.json")"
+/project/community/jjyeung/okh7/x_6f8ed106/job.sh:18: MODE="$(/usr/bin/python3 -I "$ROOT/b/r8.py" "$RUN" --kit "$ROOT")"
+/project/community/jjyeung/okh7/x_6f8ed106/job.sh:19: exec /bin/bash "$ROOT/b/r.sh" "$MODE" 0
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:2: # Pins keep their code-aws paths; a private bwrap namespace mounts one node-local union tree at both code-aws
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:24: COMMIT=$(/usr/bin/python3 -I -c 'import json, sys; print(json.load(open(sys.argv[1]))["commit"])' "$CUR")
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:39: tk_current() { /usr/bin/python3 -I -c 'import json, sys; e = json.load(open(sys.argv[1]))[sys.argv[2]]; print(e["file"], e["sha256"])' "$CUR" "$1"; }
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:40: tk_has() { /usr/bin/python3 -I -c 'import json,sys; sys.exit(0 if sys.argv[2] in json.load(open(sys.argv[1])) else 1)' "$CUR" "$1"; }
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:49:     /usr/bin/python3 -I "$HX/b/kitx.py" "$file" "$sha" "$dest"
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:58:     /usr/bin/python3 -I - "$v/bin" "$P/venvs/rwtrain_torch211_cu129/bin/python" <<'PYSHEBANG'
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:60: bindir, target = sys.argv[1], sys.argv[2].encode()
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:61: pattern = re.compile(rb'#!/project/community/jjyeung/[^/\s]+/venvs/rwtrain_torch211_cu129/bin/python[0-9.]*')
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:95:     find "$1" -type f -exec chmod a-w {} +
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:96:     find "$1" -type d -exec chmod 700 {} +
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:105:     /usr/bin/python3 -I "$HX/b/kitx.py" "$file" "$sha" "$tmp/x"
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:107:     mv "$tmp/x/models--Qwen--Qwen3.5-9B/snapshots/$REV" "$snap"
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:122:     [[ -f "$S/.stamp/e00.$sha" ]] || { tar -x -f "$IN/e00" -C "$S/aws/raw.$sha" --no-same-owner; touch "$S/.stamp/e00.$sha"; }
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:139:     done < <(/usr/bin/python3 -I -c 'import json,sys
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:140: d=json.load(open(sys.argv[1]))
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:148:     n=$(/usr/bin/python3 -I -c 'import json,sys; print(len(json.load(open(sys.argv[1])).get("tars", [])))' "$CUR")
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:151:         id=$(/usr/bin/python3 -I -c 'import json,sys,hashlib; e=json.load(open(sys.argv[1]))["tars"][int(sys.argv[2])]; print(hashlib.sha256(json.dumps(e,sort_keys=True).encode()).hexdigest()[:16])' "$CUR" "$i")
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:153:         parts=$(/usr/bin/python3 -I -c 'import json,sys; print(" ".join(json.load(open(sys.argv[1]))["tars"][int(sys.argv[2])]["parts"]))' "$CUR" "$i")
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:156:         cat $parts | tar -x -C "$U" --no-same-owner --no-same-permissions
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:157:         /usr/bin/python3 -I - "$CUR" "$i" "$U" <<'PYTARS'
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:160: entry = json.load(open(sys.argv[1]))['tars'][int(sys.argv[2])]; root = Path(sys.argv[3])
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:179:     tar -x -f "$IN/d00" -C "$U/ap/7b30c1e4/u" --no-same-owner
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:182:     (cd "$U/ap/7b30c1e4/u/ebe69df8/p" && sha256sum -c --quiet ../m.sha)
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:196:     if /usr/bin/python3 -I -c 'import json,sys; p=json.load(open(sys.argv[1])).get("staged_inputs", {}); sys.exit(0 if sys.argv[2] in p.get("covered_bundles", []) else 1)' "$CUR" "$key"; then
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:197:         store=$(/usr/bin/python3 -I -c 'import json,sys; print(json.load(open(sys.argv[1]))["stores"].get(sys.argv[2], ""))' "$CUR" "$key")
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:198:         /usr/bin/python3 -I "$HX/b/f2.py" "$manifest" "$dest" "$manifest_sha" "$store"
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:205:         parts=$(/usr/bin/python3 -I -c 'import json,sys; d=json.load(open(sys.argv[1])); print(" ".join(d.get("bundle_parts", {}).get(sys.argv[2], d.get("f3_parts") if sys.argv[2] == "f3" else [])))' "$CUR" "$key")
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:210:             | tar --extract --directory="$dest" --skip-old-files --no-same-owner --no-same-permissions
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:214:         store=$(/usr/bin/python3 -I -c 'import json,sys; print(json.load(open(sys.argv[1]))["stores"].get(sys.argv[2], ""))' "$CUR" "$key")
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:216:         /usr/bin/python3 -I "$HX/b/f2.py" "$manifest" "$dest" "$manifest_sha" $store
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:233:     /usr/bin/python3 -I - "$dest.part" "$sha" "$U" "$AS" "$AL" <<'PYINIT'
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:236: dest, sha, union, aws, awl = Path(sys.argv[1]), sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5]
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:275:     exec 8>"$S/../stage.lock"
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:296:         old_commit=$(/usr/bin/python3 -I -c 'import json, sys; print(json.load(open(sys.argv[1]))["trainer_old_commit"])' "$CUR")
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:327:     /usr/bin/python3 -I "$HX/b/s.py" "$CUR" "$HX" "$S" "$import_mode"
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:339: tk_bwrap() {
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:341:     read -r bw sha < <(tk_current bwrap)
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:348:         if [[ -L "$entry" ]]; then BW+=(--symlink "$(readlink "$entry")" "$entry"); else BW+=(--ro-bind "$entry" "$entry"); fi
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:350:     BW+=(--dev-bind /dev /dev --proc /proc
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:351:         --tmpfs /home --dir /home/jjyeung
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:352:         --ro-bind "$U" "$AS"
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:353:         --ro-bind "$U" "$AL"
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:354:         --bind "$NX" "$X"
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:355:         --bind "$NR" "$X/runs"
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:356:         --ro-bind "$U/ap/$K/u" "$X/u"
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:357:         --ro-bind "$S/c7d31ddd/data2root" "$X/data2root"
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:358:         --ro-bind "$S/c7d31ddd/$RR/models" "$X/models"
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:359:         --ro-bind "$S/c7d31ddd" "$P"
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:360:         --ro-bind "$S/epochs" "$EPOCHS"
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:361:         --bind "$TK_JOBDIR" "$TK_JOBDIR"
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:362:         --remount-ro /home
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:363:         --unshare-user --uid "$(id -u)" --gid "$(id -g)")
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:386: tk_pythonpath() {
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:406:     rsync -rt --prune-empty-dirs --exclude 'checkpoint_*' --exclude 'full_weights/' --exclude '*.pt' \
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:407:         --include '*/' --include '*.json' --include '*.jsonl' --exclude '*' "$NR/" "$HM/runs/" 2>/dev/null || true
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:420:         if ! /usr/bin/python3 -I -c 'import json, sys; sys.exit(0 if sys.argv[2] + ".part00-of-04" in json.load(open(sys.argv[1])) else 1)' \
+/project/community/jjyeung/okh7/x_6f8ed106/b/c.sh:434:         if /usr/bin/python3 -I "$HX/b/gcsput.py" split "$HM/sess.json" "$obj" "$tarf" 4 4 >> "$HM/o/gcs.log" 2>&1; then
+/project/community/jjyeung/okh7/x_6f8ed106/b/r.sh:15:     run_dir=$(/usr/bin/python3 -I -c 'import json,sys; print(json.load(open(sys.argv[1]))["run_directory"])' "$HX/k/launch.json")
+/project/community/jjyeung/okh7/x_6f8ed106/b/r.sh:21:         /usr/bin/python3 -I "$HX/b/h.py" "$child" "$X/b/i.py" "$X"
+/project/community/jjyeung/okh7/x_6f8ed106/b/r.sh:25: /usr/bin/python3 -B "$HX/b/a.py" "$HX"
+/project/community/jjyeung/okh7/x_6f8ed106/b/r.sh:27: if [[ "${1:-}" == t || "${1:-}" == u ]] && /usr/bin/python3 -I -c 'import json,sys; sys.exit(0 if json.load(open(sys.argv[1])).get("in_job_admission") else 1)' "$HX/k/launch.json"; then
+/project/community/jjyeung/okh7/x_6f8ed106/b/r.sh:39: /usr/bin/python3 -I "$HX/b/g.py" "$HX" "${1:?}"
+/project/community/jjyeung/okh7/x_6f8ed106/b/r.sh:40: export TK_RUNS_DIR="$(/usr/bin/python3 -I -c 'import json,pathlib,sys; print(pathlib.Path(json.load(open(sys.argv[1]))["run_directory"]).parent)' "$HX/k/launch.json")"
+/project/community/jjyeung/okh7/x_6f8ed106/b/r.sh:44: if [[ "${1:-}" == p ]] && ! /usr/bin/python3 -I -c 'import json,sys; sys.exit(0 if json.load(open(sys.argv[1])).get("in_job_admission") else 1)' "$HX/k/launch.json"; then
+/project/community/jjyeung/okh7/x_6f8ed106/b/r.sh:54: tk_bwrap
+/project/community/jjyeung/okh7/x_6f8ed106/b/r.sh:70: tk_pythonpath "${1:?}"
+/project/community/jjyeung/okh7/x_6f8ed106/b/r.sh:72: ( while sleep 600; do tk_persist_small; tk_persist_exports; nvidia-smi --query-gpu=index,memory.used,utilization.gpu --format=csv,noheader >> "$HM/o/${SLURM_JOB_ID}.gpu" 2>/dev/null || true; done ) &
+/project/community/jjyeung/okh7/x_6f8ed106/b/r.sh:74: # bwrap ignores USR1 (Slurm signals every process of the step); i.py installs its own relay handler.
+/project/community/jjyeung/okh7/x_6f8ed106/b/r.sh:75: /usr/bin/python3 -I -c 'import os, signal, sys; signal.signal(signal.SIGUSR1, signal.SIG_IGN); os.execvp(sys.argv[1], sys.argv[1:])' \
+/project/community/jjyeung/okh7/x_6f8ed106/b/r.sh:76:     "${BW[@]}" "$PILOT_VENV/bin/python" -B "$X/b/i.py" "$X" "$@" &
+/project/community/jjyeung/okh7/x_6f8ed106/b/i.py:7: import subprocess
+/project/community/jjyeung/okh7/x_6f8ed106/b/i.py:125:         command+=['-m','torch.distributed.run','--nproc-per-node='+str(min(gpus,8))]
+/project/community/jjyeung/okh7/x_6f8ed106/b/i.py:127:             command+=['--standalone','--nnodes=1']
+/project/community/jjyeung/okh7/x_6f8ed106/b/i.py:131:             command+=['--nnodes='+str(nodes),'--node-rank='+str(node),
+/project/community/jjyeung/okh7/x_6f8ed106/b/i.py:132:                       '--rdzv-backend=c10d','--rdzv-endpoint='+os.environ['MASTER_ADDR']+':'+os.environ['MASTER_PORT'],
+/project/community/jjyeung/okh7/x_6f8ed106/b/i.py:133:                       '--rdzv-id='+os.environ['SLURM_JOB_ID']]
+/project/community/jjyeung/okh7/x_6f8ed106/b/i.py:155:     child=subprocess.Popen(command)
+/project/community/jjyeung/okh7/x_6f8ed106/b/i.py:163: if __name__=='__main__': main(*sys.argv[1:])

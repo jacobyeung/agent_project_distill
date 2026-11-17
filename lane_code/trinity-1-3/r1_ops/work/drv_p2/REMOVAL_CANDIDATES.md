@@ -1,0 +1,3 @@
+The local fixture test created 484.3 MiB because each rejected derivation copied the 68.9 MiB source kit. The no-deletion rule leaves cleanup to the user. This command removes only redundant local test copies and retains the READY fixture and logs. It frees about 403.3 MiB.
+
+- [ ] `rm -r -- /scratch/jjyeung/orch_n30/r1_ops/work/drv_p2/tests_p2_9n4kx_w9/refused_review.json /scratch/jjyeung/orch_n30/r1_ops/work/drv_p2/tests_p2_9n4kx_w9/refused_staging.json /scratch/jjyeung/orch_n30/r1_ops/work/drv_p2/tests_p2_9n4kx_w9/refused_archive.json /scratch/jjyeung/orch_n30/r1_ops/work/drv_p2/tests_p2_9n4kx_w9/refused_4.json /scratch/jjyeung/orch_n30/r1_ops/work/drv_p2/tests_p2_9n4kx_w9/derived_fixture /scratch/jjyeung/orch_n30/r1_ops/work/drv_p2/tests_p2_9n4kx_w9/synthetic_h`

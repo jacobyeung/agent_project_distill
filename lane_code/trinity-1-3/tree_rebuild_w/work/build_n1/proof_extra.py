@@ -59,7 +59,9 @@ def registry():
     except ValueError:pass
     else:raise AssertionError('missing lineage admitted')
 def kit():
-    root=O/'kit'
+    from student_pilot.source_seal import inventory as source_inventory
+    from student_pilot.p3_provenance import digest
+    root=O/('kit_'+digest(source_inventory(T))[:12])
     if root.exists():verify(root)
     else:
         result=build(B/'inputs/config.json',B/'inputs',root)

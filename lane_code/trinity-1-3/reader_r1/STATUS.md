@@ -1,5 +1,8 @@
 # reader_r1 STATUS (trinity-1-3; started 14:33Z; rotate by 20:00Z; process killed 20:33Z)
-## NOW (17:30Z): ORCH GO 1720Z received; waiting for the job's turn on general
+## NOW (18:50Z): ORCH GO 1720Z received; waiting for the job's turn on general
+- ORCH ORDER 1838Z: general order 170846 -> r1_ops proof 1 -> proof 2 (~2.7 h each, CPU) -> cont_ops step-544 R0-dev read (~00:20Z) -> ours (~01:00Z Nov 18). Submit only when events/r1_ops newest RESULT says both proofs finished (or proof 2 will not run) and R0-dev read left the queue. Tower pin G3T (ORCH 1746Z; tower_redecide 1740Z: submit as built).
+- RESULT 1833Z: preempt CPU-job recipe (sbatch only, exclude flame) for r1_ops.
+- Successor brief written: orch_n30/briefs/reader_r1_2.md (launch ~19:55Z; it rotates by 00:45Z if not yet submitted).
 - Package /project/community/jjyeung/e09e45fda45db (local work/b1g/out; 0.tgz 9f891bc1, plan 06c7bc0d, PACKAGE.json 426f0d56; delivery okh7/8e2d4b61/1.tgz eadaba88). Metadata check 2.json passed; empty-root CPU check passed (Orchard 170854 preempt, a/c/CPU.json baa0d7ee).
 - TURN: after 170846 (cont_ops H1-1 camera read, started 16:41Z, 4 h limit) and cont_ops's step-544 R0-dev read leave general. Submit only when `squeue -u $USER -p general` is empty (no a15_cot_ap*, no jjy_*), newest /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/INBOX_TO_DISTILL_ORCH_*.md asks no hold, no ORCH HOLD in events/reader_r1 newer than 1720Z GO, and if events/tower_redecide/ has a RESULT recommending another distance tower without an ORCH note -> wait up to 20 min for a note, then submit as built.
 - Poll: `timeout 120 bash <tools>/ossh.sh 'bash -s' < work/q5.sh` every 10 min. Submit: `timeout 300 bash <tools>/ossh.sh 'bash -s' < work/sub.sh` (exit 9 = general busy, nothing submitted; writes a/8.txt). Then ledger line in work/ORCHARD_LEDGER.jsonl, RESULT with job id.

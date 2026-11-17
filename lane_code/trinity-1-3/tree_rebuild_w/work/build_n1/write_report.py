@@ -19,6 +19,7 @@ mix=read('work/build_n1/inputs/mix.json',{})
 audit=read('work/build_n1/proofs/loader_audit/RESULT.json',{})
 coverage=read('work/build_n1/N1_CHANGED_COVERAGE.json',{})
 comparison=read('work/build_n1/SUITE_COMPARISON.json',{})
+baseline=read('work/build_n1/proofs/suite_base/results.json',{})
 packet=read('work/build_n1/proofs/packet/results.json',{})
 targeted=read('work/build_n1/proofs/targeted/results.json',{})
 contracts=read('work/build_n1/proofs/contracts/results.json',{})
@@ -61,13 +62,16 @@ rows=[]
 for name,data,path in [('Targeted R1',targeted,'work/build_n1/proofs/targeted/results.json'),('Registry and kit',contracts,'work/build_n1/proofs/contracts/results.json'),('Native P format with sidecar',p_format,'work/build_n1/proofs/p_format/results.json')]:
  rows.append([name,data.get('tests','PENDING'),len(data.get('passed',[])),0,len(data.get('failures',[]))+len(data.get('errors',[])),len(data.get('failures',[]))+len(data.get('errors',[])),path])
 rows.append(['Contract packet',len(packet),sum(v.get('outcome')=='passed' for v in packet.values()),0,
-             sum(v.get('outcome')!='passed' for v in packet.values()),'packet contract suite','work/build_n1/proofs/packet/results.json'])
+             sum(v.get('outcome')!='passed' for v in packet.values()),0,'work/build_n1/proofs/packet/results.json'])
+baseline_errors=baseline.get('failures',[])+baseline.get('errors',[])
+rows.append(['Untouched base',baseline.get('tests','PENDING'),len(baseline.get('passed',[])),len(baseline_errors),0,
+             sum(name.startswith('tests.test_r2') for name,error in baseline_errors),'work/build_n1/proofs/suite_base/results.json'])
 rows.append(['Frozen full tree',*[comparison.get(k,'PENDING') for k in ('run','passed','preexisting','regressions','r2_failures')], 'work/build_n1/SUITE_COMPARISON.json'])
 report+=table(['Suite','Run','Passed','Pre-existing failure events','Regression events','R2 failures','Source'],rows)
 report+='\nFailure-event counts can include subtests and setup errors; they are not disjoint method counts. The frozen comparison preserves inherited BF16-cache parity failures as explicit A2 blockers and does not relabel them as passes. Only exact input-hash matches resume suite groups. Sources: `work/build_n1/SUITE_COMPARISON.json`, `work/build_n1/proofs/suite_tree/*/GROUP_RECEIPT.json`, `work/build_n1/proofs/suite_base/*/GROUP_RECEIPT.json`.\n\n'
 report+='The export proof uses a seeded tiny native model instead of the pretrained GPU model; local stand-ins cover FSDP publication and rank/barrier collectives. Native export, artifact parsing, tensor loading, progress checks, LR calculation and the sampler run as production functions. The room proof uses the real native reader with a synthetic text fixture. Real-row proofs use unmodified source text. Sources: `work/tree_r1/tests/test_r2_build_n1.py`, `work/build_n1/proofs/targeted/r1/export/RESULT.json`, `work/build_n1/proofs/loader_audit/RESULT.json`.\n\n'
-report+='## Changed-statement coverage\n\n'
 report+='The P-format proof also publishes a native artifact without inline R1 progress, reloads its tensors, and authenticates a separate boundary receipt. Missing progress and mismatched artifact, configuration, store or row-plan identities refuse. It preserves the absolute LR position. This uses a synthetic boundary and tiny native weights, not a real vehicle-P export. Source: `work/build_n1/proofs/p_format/RESULT.json`.\n\n'
+report+='## Changed-statement coverage\n\n'
 report+='Coverage uses standard-library `sys.monitoring`, compiled-code fingerprints and exact file hashes. Changed AST statement heads are compared against the authenticated inherited package. Uncovered lines remain uncovered. Source: `work/build_n1/N1_CHANGED_COVERAGE.json`.\n\n'
 report+=table(['Class','Statements','Source'],[[k,v,'work/build_n1/N1_CHANGED_COVERAGE.json'] for k,v in coverage.get('classes',{'PENDING':'PENDING'}).items()])
 report+='\nThe base-relative coverage inventory remains in `work/build_n1/CHANGED_COVERAGE.json`. CPU-reachable gaps, frame-host branches and GPU/model-loader branches are not production qualification.\n\n'
