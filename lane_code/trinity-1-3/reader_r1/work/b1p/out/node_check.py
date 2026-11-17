@@ -38,7 +38,7 @@ def main():
             path=root/'bootstrap'/entry.name;path.parent.mkdir(parents=True,exist_ok=True)
             path.write_bytes(tar.extractfile(entry).read())
     sys.path.insert(0,str(root/'bootstrap'))
-    from orchard_h10.common import read_config,template,write,sha,checked_run,install_process_guard
+    from orchard_h10.common import read_config,template,write,sha,checked_run,install_process_guard,canonical
     from orchard_h10.job import check_inputs,stage
     from orchard_h10.export_pins import load
     cfg=read_config(package);inputs=check_inputs(json.loads((package/'a/1.json').read_text()),cfg,package=package)
@@ -62,7 +62,7 @@ def main():
     run_cfg=dict(package=cfg['logical']+'/p',output=cfg['logical']+'/r',python=inputs['python'],
         export=cfg['logical']+'/d/e',binding=cfg['logical']+'/d/binding.json',
         export_pin=cfg['logical']+'/d/6.json',settings=cfg['logical']+'/d/settings.json',
-        plan_sha256=cfg['plan_sha256'],inputs_sha256=sha(package/'a/1.json'),
+        plan_sha256=cfg['plan_sha256'],inputs_sha256=canonical({k:v for k,v in inputs.items() if k!='resume'}),
         operator_sha256=sha(sequence),device='cpu',prefix=[])
     write(dispatch/'1.json',dict(package=run_cfg['package'],config=run_cfg,rehearsal=True))
     with (results/'1.log').open('wb') as log:

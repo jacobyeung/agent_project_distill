@@ -56,7 +56,7 @@ def main():
             n:sha(SEALED/n) for n in ('student_pilot/ground_rows.py','student_pilot/s1_pool.py',
                 'student_pilot/carrier_c1_run.py','student_pilot/carrier_c1_data.py')},
         authority_files={p.name:pin(p) for p in k.iterdir() if p.is_file() and (p.name.startswith('remove_') or p.name in ('dev_scene_exclusions.json','benchmark_scene_exclusions.json','dafa4a9c.json','66c427e2.json'))},
-        routing={}, direct_room={}, vqa_by_type={}, pool_by_type={})
+        room_predicate_sha256=sha(ROOT/'work/tree/student_pilot/type_mix.py'), routing={}, direct_room={}, vqa_by_type={}, pool_by_type={})
 
     def eligibility(row, stream):
         reasons=[]
@@ -160,11 +160,20 @@ def main():
     if sha(db)!=receipt['database']['sha256']:raise ValueError('Database SHA differs')
     conn=sqlite3.connect(db.resolve().as_uri()+'?mode=ro&immutable=1',uri=True)
     seen=set();samples={};seen_types=set();indices=defaultdict(list)
+    traced=Counter();away=Counter()
     try:
         for expected,(i,encoded,target) in enumerate(conn.execute('SELECT i,row,target FROM rows ORDER BY i')):
             if i!=expected:raise ValueError('Noncontiguous database indices')
             row=json.loads(encoded);typ=row['question_type'];seen_types.add(typ)
             refusals,h1drop=assess(row)
+            if row.get('pool')=='r1_room_traced':
+                traced['rows']+=1
+                traced['sealed_row_checks_pass']+=not [reason for reason in refusals if reason!='room_requires_qualitative_trace_A2']
+                traced['qualitative_trace_pass']+=policy.room_trace(row)
+                traced['eligible']+=not refusals
+            if row['qid'].endswith('_away_opp'):
+                away['rows']+=1;away['eligible']+=not refusals
+                if row.get('pool')!='r1_away_opp':raise ValueError('Away marker mismatch')
             if row['qid'] in seen:refusals.append('duplicate_qid')
             seen.add(row['qid']);add(types[typ],row,refusals,h1drop)
             pool=str(row.get('pool') or row.get('provenance',{}).get('family') or 'unlabeled')
@@ -175,7 +184,7 @@ def main():
         if sum(b['rows'] for b in types.values())!=receipt['count']:raise ValueError('Store count differs')
     finally:conn.close()
     result.update(status='COMPLETE_ROW_CENSUS', receipt=pin(a.receipt),database=dict(path=str(db),sha256=receipt['database']['sha256']),
-        vqa_by_type=dict(types),pool_by_type=dict(pools),types_covered=sorted(seen_types),all_types_covered=set(types)==seen_types,
+        traced_room=dict(traced),reworded_away=dict(away,qid_suffix='_away_opp',pool='r1_away_opp'),vqa_by_type=dict(types),pool_by_type=dict(pools),types_covered=sorted(seen_types),all_types_covered=set(types)==seen_types,
         vqa_rows=sum(b['rows'] for b in types.values()),vqa_admitted=sum(b['admitted'] for b in types.values()))
     write(ROOT/'work/admitted_indices.json',dict(indices));write(ROOT/'work/real_samples.json',samples)
     write(a.out,result)

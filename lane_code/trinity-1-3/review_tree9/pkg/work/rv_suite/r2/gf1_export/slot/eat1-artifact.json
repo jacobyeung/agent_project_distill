@@ -1,0 +1,56 @@
+{
+  "files": {
+    "../tiny_config.json": {
+      "role": "config",
+      "sha256": "7b4375a3194c479194179dadc28b00e5d8492b522ddc3dddd8e8c7218d0e40dd"
+    },
+    "../tiny_tower.pt": {
+      "role": "tower",
+      "sha256": "83a60676d21150ba7de21b79e6fbb22bf1d2f3dd5b7c44f1b893fd3a14522b30"
+    },
+    "artifact.json": {
+      "role": "config",
+      "sha256": "2f7ed2348a27ce1ed51c93c8644fae20b0a18dcccae657683c73d4039bebf6d6"
+    },
+    "full_weights/full_weights.json": {
+      "role": "lm",
+      "sha256": "72ef85ae7dd91f24de54e1d242ce4f24c1e5a6b6483add4093b710b6316e7e19"
+    },
+    "full_weights/model-00001-of-00001.safetensors": {
+      "role": "lm",
+      "sha256": "fa6a40db4e2f6c983331c4ea7b5b18b3a6dfbe87c3d88dd8ded65bbd2592b8d3"
+    },
+    "full_weights/model.safetensors.index.json": {
+      "role": "lm",
+      "sha256": "5f7a8175bd38c8d6eaf43f4b9d444c4aeae6e83672e1cd26519867002dfa6850"
+    },
+    "heads.pt": {
+      "role": "head",
+      "sha256": "fefddd63c9df8c32bc960f40ba478ccfb49064d3565b2027fb0ba8b5ecc65ae8"
+    }
+  },
+  "modules": {
+    "auxiliary_heads.geometry_encoder": {
+      "name": "g3t",
+      "role": "tower"
+    },
+    "auxiliary_heads.gf1": {
+      "name": "gf1",
+      "role": "connector"
+    },
+    "auxiliary_heads.pose": {
+      "name": "pose_head",
+      "role": "head"
+    },
+    "model.language_model": {
+      "name": "lm",
+      "role": "lm"
+    },
+    "model.visual": {
+      "name": "base_vit",
+      "role": "vit"
+    }
+  },
+  "root": ".",
+  "schema": "eat1-artifact-v1"
+}

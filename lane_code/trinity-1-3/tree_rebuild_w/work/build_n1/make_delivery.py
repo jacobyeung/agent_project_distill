@@ -4,7 +4,7 @@ from pathlib import Path
 L=Path(__file__).resolve().parents[2];B=L/'work/build_n1'
 seal=json.loads((L/'out/TREE_SEAL.json').read_text())['tree_sha256'];target=L/'out'/f'tree_rebuild_bn1_{seal[:8]}.tar'
 members=[]
-for folder in ('work/tree_r1','work/base/tree_b01ce449','fixtures','work/build_n1/kits','work/contracts_r6/tests_r6','work/contracts_r6/packet_root/work/tests_r6'):
+for folder in ('work/tree_r1','work/base/tree_b01ce449','fixtures','work/build_n1/kits','work/build_n1/inputs','work/contracts_r6/tests_r6','work/contracts_r6/packet_root/work/tests_r6'):
     source=folder.startswith(('work/tree_r1','work/base'))
     for p in (L/folder).rglob('*'):
         if p.is_file() and not p.is_symlink() and not (source and set(p.relative_to(L/folder).parts)&{'.git','__pycache__','artifacts'}):members.append(p)
@@ -17,6 +17,8 @@ packet_inputs=json.loads((L/'work/build_n1/PACKET_INPUTS.json').read_text())
 for name in ('work/build5/proofs/suite_tree/results.json','work/build5/proofs/suite_tree/source_hashes.json',
              'work/contracts_r6/tree_copy/student_pilot/r2_policy.py'):
     members.append(L/name)
+members.extend(p for p in B.iterdir() if p.is_file() and p.suffix in ('.py','.sh'))
+members=list(dict.fromkeys(members))
 size=sum(p.stat().st_size for p in members)+sum(row['bytes'] for row in packet_inputs);assert size<145_000_000
 subprocess.run(['df','-BG','--output=avail','/scratch'],check=True)
 assert shutil.disk_usage('/scratch').free>=85*1024**3

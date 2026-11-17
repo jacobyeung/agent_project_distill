@@ -1,0 +1,67 @@
+{
+  "arms": [
+    "tower"
+  ],
+  "expected": [
+    636,
+    150
+  ],
+  "memo_max_bytes": 68719476736,
+  "memo_scope": "one worker per segment",
+  "modes": [
+    "none"
+  ],
+  "operator_sha256": "658766fd86e928b998ccf81e787ea841de9efda2dbe8f9fd57e1d2cfcf6a8daa",
+  "perception_memo": "verify first 30 scheduled reads, then on",
+  "read_settings": [
+    {
+      "perception_memo": "verify",
+      "perception_memo_verify_reads": 30,
+      "perception_memo_verify_types": [
+        "object_abs_distance"
+      ],
+      "stage1_select_rule": "null_argmax"
+    },
+    {
+      "perception_memo": "on",
+      "perception_memo_verify_reads": null,
+      "perception_memo_verify_types": null,
+      "stage1_select_rule": "candidates_argmax"
+    }
+  ],
+  "return_margin": 1200,
+  "rules": [
+    "null_argmax",
+    "candidates_argmax"
+  ],
+  "save_own_depth": false,
+  "sequence": [
+    [
+      0,
+      3
+    ],
+    [
+      1,
+      3
+    ],
+    [
+      0,
+      0
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      0,
+      4
+    ]
+  ],
+  "stop_margin": 1800,
+  "token": "c91bb8ec884e9",
+  "walltime": "05:00:00"
+}

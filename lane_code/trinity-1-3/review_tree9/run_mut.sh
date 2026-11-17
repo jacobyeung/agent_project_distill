@@ -1,0 +1,1 @@
+source /scratch/jjyeung/orch_n30/review_tree9/env.sh; export OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1; /scratch/jjyeung/envs/p1cpu/bin/python -s -B /scratch/jjyeung/orch_n30/review_tree9/mutants.py > /scratch/jjyeung/orch_n30/review_tree9/mutants.log 2>&1

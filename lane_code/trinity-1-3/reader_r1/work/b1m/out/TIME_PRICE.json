@@ -1,0 +1,124 @@
+{
+  "g3t_fresh_seconds": 19.8,
+  "segments": [
+    {
+      "segment": 0,
+      "read": 0,
+      "type": "object_abs_distance",
+      "items": 150,
+      "captures": 60,
+      "own_mean_seconds": 25.509192684507,
+      "own_seconds": 3826.37890267605,
+      "g3t_fresh_calls": 79,
+      "g3t_seconds": 1564.2
+    },
+    {
+      "segment": 1,
+      "read": 1,
+      "type": "object_abs_distance",
+      "items": 150,
+      "captures": 60,
+      "own_mean_seconds": 25.509192684507,
+      "own_seconds": 3826.37890267605,
+      "g3t_fresh_calls": 60,
+      "g3t_seconds": 1188.0
+    },
+    {
+      "segment": 2,
+      "read": 0,
+      "type": "camera_displacement",
+      "items": 150,
+      "captures": 51,
+      "own_mean_seconds": 7.252215738461818,
+      "own_seconds": 1087.8323607692728,
+      "g3t_fresh_calls": 51,
+      "g3t_seconds": 1009.8000000000001
+    },
+    {
+      "segment": 3,
+      "read": 0,
+      "type": "camera_rotation",
+      "items": 150,
+      "captures": 49,
+      "own_mean_seconds": 4.748747007385828,
+      "own_seconds": 712.3120511078741,
+      "g3t_fresh_calls": 49,
+      "g3t_seconds": 970.2
+    },
+    {
+      "segment": 4,
+      "read": 0,
+      "type": "camera_movement_direction",
+      "items": 150,
+      "captures": 48,
+      "own_mean_seconds": 8.92279336116005,
+      "own_seconds": 1338.4190041740076,
+      "g3t_fresh_calls": 48,
+      "g3t_seconds": 950.4000000000001
+    },
+    {
+      "segment": 5,
+      "read": 0,
+      "type": "room_size_estimation",
+      "items": 36,
+      "captures": 18,
+      "own_mean_seconds": 27.332811857887364,
+      "own_seconds": 983.981226883945,
+      "g3t_fresh_calls": 18,
+      "g3t_seconds": 356.40000000000003
+    }
+  ],
+  "unique_captures": 84,
+  "first_30_captures": 11,
+  "first_30_verification_hit_recomputes": 19,
+  "case": {
+    "off": {
+      "g3t_calls": 786,
+      "g3t_seconds": 15562.800000000001,
+      "own_seconds": 11775.302448287199,
+      "read_seconds": 27338.1024482872,
+      "read_hours": 7.593917346746445,
+      "total_hours_with_staging_stop_margin": 8.593917346746444,
+      "total_hours_with_staging_return_margin": 8.427250680079778,
+      "seconds_before_stop_deadline": -12938.102448287202,
+      "fits_with_stop_and_return_margin": false
+    },
+    "segment_local": {
+      "g3t_calls": 305,
+      "g3t_seconds": 6039.0,
+      "own_seconds": 11775.302448287199,
+      "read_seconds": 17814.3024482872,
+      "read_hours": 4.948417346746444,
+      "total_hours_with_staging_stop_margin": 5.948417346746444,
+      "total_hours_with_staging_return_margin": 5.781750680079777,
+      "seconds_before_stop_deadline": -3414.302448287199,
+      "fits_with_stop_and_return_margin": false
+    },
+    "one_process_hypothetical": {
+      "g3t_calls": 103,
+      "g3t_seconds": 2039.4,
+      "own_seconds": 11775.302448287199,
+      "read_seconds": 13814.702448287198,
+      "read_hours": 3.837417346746444,
+      "total_hours_with_staging_stop_margin": 4.837417346746444,
+      "total_hours_with_staging_return_margin": 4.670750680079778,
+      "seconds_before_stop_deadline": 585.2975517128016,
+      "fits_with_stop_and_return_margin": true
+    }
+  },
+  "staging_and_six_loads_assumed_seconds": 1800,
+  "stop_margin_seconds": 1800,
+  "return_margin_seconds": 1200,
+  "margins_overlap": true,
+  "allocated_hours": 5,
+  "overheads_not_measured": [
+    "SAM encoding savings",
+    "hashing and defensive copies",
+    "LRU misses",
+    "GPU trajectory differences",
+    "staging and model loading"
+  ],
+  "assumptions": "One G3T access per read; one miss per capture per worker plus verified hits. No eviction in ideal estimate. Own means are timing proxies, not tower decode measurements. SAM savings are not credited because no measured SAM-only split is available.",
+  "order": "Registered item order is unchanged. Production select_types preserves order; first 30 distance items span 11 captures, not five.",
+  "price": "5 times approved H100 hourly rate, plus separate CPU check; rate not supplied"
+}

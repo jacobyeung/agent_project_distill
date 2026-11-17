@@ -157,6 +157,8 @@ def validate_request(config):
     if (not config['families'] or len(set(config['families'])) != len(config['families'])
             or any(f not in ('main','away','forward','a7') for f in config['families'])):
         raise ValueError('Invalid family selection')
+    if bound['run'] == '469ddece' and config['families'] != ['a7']:
+        raise ValueError('Step-544 read requires a7 only')
     expected = str(J.FSW/('ap/8865619b/runs/'+bound['run'])/('m'+str(config['spec']['step']))/'artifact.json')
     if config['spec']['artifact'] != dict(kind='c1_export', path=expected, sha256=None):
         raise ValueError('Unexpected input identity')
@@ -191,6 +193,8 @@ def prepare(token, destination, step, camera=False, pool='/project/community/jjy
     families = ['main','away','forward','a7'] if families is None else list(families)
     if not families or len(set(families)) != len(families) or any(f not in ('main','away','forward','a7') for f in families):
         raise ValueError('Invalid family selection')
+    if run == '469ddece' and families != ['a7']:
+        raise ValueError('Step-544 read requires a7 only')
     selected = families
     destination = Path(destination)
     if destination.exists():

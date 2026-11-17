@@ -7,3 +7,20 @@
 - Missing evidence remains a named refusal. No unknown scene overlap qualifies as clean.
 - A source-only package is permitted under the requested package build. No large input or checkpoint is copied. Suite groups resume only when their exact input hashes match.
 - The requested RESULT event is staged locally because this build may write only within the lane. The orchestrator publishes it and requests the single review.
+
+- The room-v2 text receipt and the v7 merge were produced at different revisions. Room starts at zero until the production loader binds eligible traced rows; freed room and size slots go to direction. No source row is rewritten.
+
+- P exports carry inference weights, so continuation preserves the absolute schedule and row plans but starts fresh optimizer moments. A real P boundary receipt must bind the export, configuration, every store and the row plan. Different plans refuse.
+- Preserve routing opener weights only with the matching vocabulary witness; the missing production witness stays a named launch input.
+- The authoritative n1 report is out/BUILD_R1_REPORT.md. The requested BUILD9_REPORT.md path receives a compatibility pointer to the preserved build-9 report and this report. The design ledger receives Build n1.
+
+## Open decisions and defaults
+
+| Decision | Options | Default used |
+|---|---|---|
+| VQA version | v6; v7 with passing producer validator | v7 receipt; full intake and remote location still required. |
+| Size and room cells | Admit eligible sources; defer | Defer with zero cells and move released slots to direction. |
+| Missing processor and lineage evidence | Infer; block | Block; no default resolution or fabricated legality record. |
+| Scale runtime weight | Supplied kit choice; infer D0 runtime | Keep the supplied kit choice of 1.0 as GUESS; require the actual runtime value before launch. |
+| P inference export | Restart schedule; preserve progress | Preserve absolute LR and sampler progress; optimizer moments start fresh. |
+| Local result publication | External event write; stage locally | Stage one review request locally under out/RESULT_build_n1.json. |

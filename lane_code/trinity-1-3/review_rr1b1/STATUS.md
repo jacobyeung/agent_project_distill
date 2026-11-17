@@ -1,0 +1,1 @@
+review_rr1b1 DONE 2026-11-17T15:27:31Z. Verdict GO. Files: REVIEW_VERDICT_B1.md, t/ (refute_select.py, info_check.py, MY_REPLAY_COMPARE.txt), replay/ (replay_mine.jsonl), eat/ (scan JSONs). No writes outside lane and events folders.

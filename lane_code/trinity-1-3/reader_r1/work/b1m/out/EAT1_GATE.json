@@ -1,0 +1,168 @@
+{
+  "raw_before": 111,
+  "raw_after": 128,
+  "raw_added": 19,
+  "relocated_findings": 2,
+  "newly_attributable_findings": 17,
+  "new_A4_findings": 0,
+  "strict_zero_new_findings_pass": false,
+  "reviewed_response_value_findings": 0,
+  "reviewed_response_value_pass": true,
+  "no_allowlist_changes": true,
+  "whole_reader_EAT1_pass": false,
+  "conclusion": "The strict static gate is NOT passed. Manual review classifies the new flags as identity, scheduling and memory bookkeeping, with zero new response-value or fallback rules. Review remains required; the raw scanner results are retained.",
+  "adjudication": [
+    {
+      "file": "b/e2e_reader/perception_memo.py",
+      "function": "<module>",
+      "rule": "A3.constant",
+      "detail": "constant expression 16 * 1024 ** 3 = 17179869184.0",
+      "new": true,
+      "reason": "The constant declares the default retained-byte limit. It only controls eviction or binds that limit into settings; it never scales, clips or selects a perception value."
+    },
+    {
+      "file": "b/e2e_reader/perception_memo.py",
+      "function": "<module>",
+      "rule": "A3.constant",
+      "detail": "constant 16",
+      "new": true,
+      "reason": "The constant declares the default retained-byte limit. It only controls eviction or binds that limit into settings; it never scales, clips or selects a perception value."
+    },
+    {
+      "file": "b/e2e_reader/perception_memo.py",
+      "function": "<module>",
+      "rule": "A3.constant",
+      "detail": "constant 1024",
+      "new": true,
+      "reason": "The constant declares the default retained-byte limit. It only controls eviction or binds that limit into settings; it never scales, clips or selects a perception value."
+    },
+    {
+      "file": "b/e2e_reader/perception_memo.py",
+      "function": "Memo.begin_read",
+      "rule": "A3.threshold",
+      "detail": "compares against attribute self.reads (a configured value)",
+      "new": true,
+      "reason": "The comparison chooses whether this scheduled read recomputes hits. It does not choose a model result or alter any returned value."
+    },
+    {
+      "file": "b/e2e_reader/perception_memo.py",
+      "function": "Memo.call",
+      "rule": "A3.threshold",
+      "detail": "compares against limit",
+      "new": true,
+      "reason": "The comparison admits or evicts stored bytes. Every miss calls the unchanged fresh module."
+    },
+    {
+      "file": "b/e2e_reader/perception_memo.py",
+      "function": "Memo.call",
+      "rule": "A3.threshold",
+      "detail": "compares against limit",
+      "new": true,
+      "reason": "The comparison admits or evicts stored bytes. Every miss calls the unchanged fresh module."
+    },
+    {
+      "file": "b/e2e_reader/real.py",
+      "function": "TowerG3T._fresh",
+      "rule": "A3.data_file",
+      "detail": "string 'model.safetensors'",
+      "new": false,
+      "reason": "The identical file literal belongs to the unchanged G3T fresh-call body, renamed from __call__ to _fresh; DELTA_AUDIT.json proves AST identity."
+    },
+    {
+      "file": "b/e2e_reader/real.py",
+      "function": "TowerG3T._fresh",
+      "rule": "A3.data_file",
+      "detail": "string 'config.json'",
+      "new": false,
+      "reason": "The identical file literal belongs to the unchanged G3T fresh-call body, renamed from __call__ to _fresh; DELTA_AUDIT.json proves AST identity."
+    },
+    {
+      "file": "h1eval/h10/launch.py",
+      "function": "run",
+      "rule": "A3.constant",
+      "detail": "constant expression 16 * 1024 ** 3 = 17179869184.0",
+      "new": true,
+      "reason": "The constant declares the default retained-byte limit. It only controls eviction or binds that limit into settings; it never scales, clips or selects a perception value."
+    },
+    {
+      "file": "h1eval/h10/launch.py",
+      "function": "run",
+      "rule": "A3.constant",
+      "detail": "constant 16",
+      "new": true,
+      "reason": "The constant declares the default retained-byte limit. It only controls eviction or binds that limit into settings; it never scales, clips or selects a perception value."
+    },
+    {
+      "file": "h1eval/h10/launch.py",
+      "function": "run",
+      "rule": "A3.constant",
+      "detail": "constant 1024",
+      "new": true,
+      "reason": "The constant declares the default retained-byte limit. It only controls eviction or binds that limit into settings; it never scales, clips or selects a perception value."
+    },
+    {
+      "file": "orchard_h10/prepare.py",
+      "function": "run",
+      "rule": "A3.constant",
+      "detail": "constant expression 16 * 1024 ** 3 = 17179869184.0",
+      "new": true,
+      "reason": "The constant declares the default retained-byte limit. It only controls eviction or binds that limit into settings; it never scales, clips or selects a perception value."
+    },
+    {
+      "file": "orchard_h10/prepare.py",
+      "function": "run",
+      "rule": "A3.constant",
+      "detail": "constant 16",
+      "new": true,
+      "reason": "The constant declares the default retained-byte limit. It only controls eviction or binds that limit into settings; it never scales, clips or selects a perception value."
+    },
+    {
+      "file": "orchard_h10/prepare.py",
+      "function": "run",
+      "rule": "A3.constant",
+      "detail": "constant 1024",
+      "new": true,
+      "reason": "The constant declares the default retained-byte limit. It only controls eviction or binds that limit into settings; it never scales, clips or selects a perception value."
+    },
+    {
+      "file": "orchard_h10/runner.py",
+      "function": "run",
+      "rule": "A3.table_load",
+      "detail": "json.loads()",
+      "new": true,
+      "reason": "The runner reads the existing settings file before launching a worker to bind its exact identity. The memo itself performs no file IO."
+    },
+    {
+      "file": "orchard_h10/runner.py",
+      "function": "run",
+      "rule": "A3.table_load",
+      "detail": "Path(config['settings']).read_text()",
+      "new": true,
+      "reason": "The runner reads the existing settings file before launching a worker to bind its exact identity. The memo itself performs no file IO."
+    },
+    {
+      "file": "orchard_h10/runner.py",
+      "function": "run",
+      "rule": "A3.constant",
+      "detail": "constant expression 16 * 1024 ** 3 = 17179869184.0",
+      "new": true,
+      "reason": "The constant declares the default retained-byte limit. It only controls eviction or binds that limit into settings; it never scales, clips or selects a perception value."
+    },
+    {
+      "file": "orchard_h10/runner.py",
+      "function": "run",
+      "rule": "A3.constant",
+      "detail": "constant 16",
+      "new": true,
+      "reason": "The constant declares the default retained-byte limit. It only controls eviction or binds that limit into settings; it never scales, clips or selects a perception value."
+    },
+    {
+      "file": "orchard_h10/runner.py",
+      "function": "run",
+      "rule": "A3.constant",
+      "detail": "constant 1024",
+      "new": true,
+      "reason": "The constant declares the default retained-byte limit. It only controls eviction or binds that limit into settings; it never scales, clips or selects a perception value."
+    }
+  ]
+}

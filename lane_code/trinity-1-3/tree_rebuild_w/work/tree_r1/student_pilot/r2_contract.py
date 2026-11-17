@@ -59,7 +59,14 @@ def preparation(cfg):
         validate(cfg['b7_inputs'], 'a2' if cfg.get('geometry_connector')=='gf1' else 'a0', verify=True)
     from .r2_scene_bindings import verify as verify_scenes
     verify_scenes(cfg)
-    if 'geometry_connector' in cfg:
+    if 'r1_training' in cfg:
+        from .r1_training import training_components
+        training_components(cfg['r1_training']['registry'], cfg)
+        from .r2_openers import preparation as opener_preparation
+        opener_preparation(cfg)
+        if not cfg.get('r2_all_stream_exclusions') or not cfg.get('r2_sampling'):
+            raise ValueError('R1_SCENE_AND_SAMPLER_BINDINGS_REQUIRED')
+    elif 'geometry_connector' in cfg:
         from pathlib import Path
         from .r2_policy import preparation as policy_preparation
         policy_preparation(cfg['r2_build2'], Path.cwd())

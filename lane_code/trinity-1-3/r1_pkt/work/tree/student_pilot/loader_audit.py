@@ -2,6 +2,7 @@
 from collections import Counter
 import hashlib
 import json
+import re
 from pathlib import Path
 import sqlite3
 from . import carrier_c1_data as data, type_mix
@@ -70,13 +71,76 @@ def question_types(stream,source):
     actual=read(source,set(ids))
     return {pos:actual[i] for pos,i in enumerate(ids)}
 
+def unit_counts(source, allowlist=('ft',)):
+    from .vehicle_p import unit_name, UNITS
+    ids=set(load(pinned(source['indices']))) if 'indices' in source else set(range(source['count']))
+    by_unit=Counter();by_dataset=Counter();by_unit_dataset=Counter()
+    db=Path(pinned(source['database']));conn=sqlite3.connect(db.as_uri()+'?mode=ro&immutable=1',uri=True)
+    try:
+        for i,encoded in conn.execute('SELECT i,row FROM rows ORDER BY i'):
+            if i not in ids:continue
+            row=json.loads(encoded)
+            if type_mix.family(row,'routing')!='units':continue
+            unit=unit_name(row);dataset=row.get('dataset',row.get('provenance',{}).get('canonical','').split('/')[0])
+            by_unit[unit]+=1;by_dataset[dataset]+=1;by_unit_dataset[unit+'/'+dataset]+=1
+    finally:conn.close()
+    return dict(eligible=sum(by_unit.values()),sampling_eligible=sum(by_unit[u] for u in allowlist if by_unit[u]>=100),by_unit={u:by_unit[u] for u in UNITS},by_dataset=dict(by_dataset),by_unit_dataset=dict(by_unit_dataset))
+
+
+PREFIXES=('scannetpp/','scannetppv2/','scannet','arkit','unknown')
+
+def row_metadata(row,stream,family):
+    raw=row.get('routing',row)
+    canonical=raw.get('provenance',{}).get('canonical',row.get('provenance',{}).get('canonical',''))
+    prefix=next((p for p in PREFIXES[:-1] if canonical.startswith(p if p.endswith('/') else p+'/')),'unknown')
+    answer=str(row.get('answer','')).strip().lower()
+    options=row.get('student_input',{}).get('options',row.get('options',[]))
+    if isinstance(options,list):
+        for option in options:
+            match=re.fullmatch(r'([A-Za-z])[.)]\s*(.*)',str(option))
+            if match and answer==match[1].lower():answer=match[2].strip().lower();break
+    elif isinstance(options,dict):
+        answer=str(options.get(answer.upper(),options.get(answer,answer))).strip().lower()
+    from .vehicle_p import unit_name
+    return dict(family=family,facing=row.get('facing'),away_hard=row.get('facing')=='away' and raw.get('question_type')=='object_rel_direction_hard',
+                answer=answer,unit=unit_name(row) if family=='units' else None,prefix=prefix)
+
+
+def draw_breakdown(metadata,draws,*,routing_available):
+    facing=Counter();away=Counter();units=Counter();eligible=Counter();drawn=Counter()
+    for stream,rows in metadata.items():
+        for pos,row in rows.items():
+            n=draws[stream,pos]
+            if stream=='vqa' and row['family']=='facing':
+                facing[row['facing']]+=n
+                if row['away_hard']:
+                    away['draws']+=n
+                    away['back_draws']+=n*bool(re.search(r'\bback\b',row['answer']))
+                    away['exact_back_draws']+=n*(row['answer']=='back')
+            if stream=='routing' and row['family']=='units':units[row['unit']]+=n
+            if stream=='routing' and row['family']=='absolute_distance':
+                eligible[row['prefix']]+=1;drawn[row['prefix']]+=n
+    total=sum(facing.values());den=away['draws']
+    return dict(facing={k:dict(draws=facing[k],share_of_facing=facing[k]/total if total else None) for k in ('toward','away')},
+        away_hard=dict(draws=den,back_draws=away['back_draws'],back_share=away['back_draws']/den if den else None,
+            exact_back_draws=away['exact_back_draws'],exact_back_share=away['exact_back_draws']/den if den else None,
+            back_definition='Decoded option contains the word back, including back-left and back-right; exact_back counts only back.'),
+        units=dict(status='MEASURED' if routing_available else 'NOT_RUN',draws={u:units[u] if routing_available else None for u in ('cm','ft','in')}),
+        routing_absolute_distance=dict(status='MEASURED' if routing_available else 'NOT_RUN',
+            eligible={p:eligible[p] if routing_available else None for p in PREFIXES},drawn={p:drawn[p] if routing_available else None for p in PREFIXES}))
+
+
+def print_breakdown(report):
+    print(json.dumps(dict(loader_draw_breakdown=report['draw_breakdown']),sort_keys=True),flush=True)
+
+
 def audit(cfg,receipt,*,local_vqa_only=False):
     value=type_mix.bound(receipt,cfg)
     if value is None:raise ValueError('Loader audit requires bound family quotas')
-    populations={};types={};traces={};exclusions={}
+    populations={};types={};traces={};exclusions={};metadata={}
     for stream,policy in cfg['type_mix']['streams'].items():
         if local_vqa_only and stream!='vqa':continue
-        groups,t,samples,excluded=type_mix.populations(stream,receipt['streams'][stream],policy['cells'],cfg['type_mix']['size_selector'])
+        groups,t,samples,excluded=type_mix.populations(stream,receipt['streams'][stream],policy['cells'],cfg['type_mix']['size_selector'],cfg['type_mix'].get('unit_rows'),cfg['type_mix'].get('units_allowlist'),cfg['type_mix'].get('exclude_qid_suffix'),audit_metadata=metadata.setdefault(stream,{}))
         expected={n:groups[n] for n in value['effective'][stream]}
         if expected!=value['populations'][stream]:raise ValueError('Staged population differs from preparation')
         populations[stream]={n:len(v) for n,v in groups.items()};types[stream]=t;traces[stream]=samples;exclusions[stream]=excluded
@@ -107,16 +171,18 @@ def audit(cfg,receipt,*,local_vqa_only=False):
             if count and len(traces[stream].get(name,[]))<min(5,count):raise ValueError('Missing bound traces')
             if by_family[stream+'/'+name]>4*count:raise ValueError('Family draws exceed four times eligible rows: '+stream+'/'+name)
     shares=lambda counts_: {k:dict(draws=v,rows_per_step=v/cfg['recipe']['steps'],share_of_stream=v/by_stream[k.split('/')[0]]) for k,v in sorted(counts_.items())}
-    return dict(schema='loader-audit-v1',status='LOCAL_VQA_ONLY' if local_vqa_only else 'PASS',
+    return dict(unit_counts=unit_counts(receipt['streams']['routing'],cfg['type_mix'].get('units_allowlist',['ft'])) if not local_vqa_only else {},schema='loader-audit-v1',status='LOCAL_VQA_ONLY' if local_vqa_only else 'PASS',
         config_identity=receipt['config_sha256'],planned_steps=cfg['recipe']['steps'],eligible_by_family=populations,
         eligible_by_question_type={s:dict(Counter(t.values())) for s,t in types.items()},
         by_family=shares(by_family),by_question_type=shares(by_type),stream_draws=dict(by_stream),
+        draw_breakdown=draw_breakdown(metadata,repeats,routing_available=not local_vqa_only),
         maximum_observed_repeats=max(repeats.values(),default=0),tables=value['tables'],excluded=exclusions,
         traces=traces,first_step=first,source_streams=receipt['streams'],full_production_admission=not local_vqa_only)
 
 
 def main(root):
     import os,sys
+    from .vehicle_p import required_families
     from .checkpoint_space import plan
     from .carrier_c1_run import identity
     root=Path(root);sys.path.insert(0,str(root/'b'))
@@ -124,6 +190,7 @@ def main(root):
     launch=load(root/'k/launch.json');original=load(root/launch['config']['file'])
     cfg=effective(root,original);receipt=load(pinned(cfg['preparation']))
     result=audit(cfg,receipt)
+    print_breakdown(result)
     directory=Path(launch['in_job_admission']['directory'])
     write(directory/'l.json',result)
     for stream,groups in result['traces'].items():
@@ -136,14 +203,15 @@ def main(root):
     checks=dict(disk_plan=dict(status='PASS' if disk==original['checkpoint_disk_guard'] else 'FAIL',plan=disk),
         routing_selection=dict(status='PASS' if no_rooms else 'FAIL',materialized_room_rows_zero=no_rooms,pin=file_pin(pinned(original['s1_routing']['selection']))),
         loader_audit=dict(status=result['status'],pin=file_pin(directory/'l.json')),
-        required_families=dict(status='PASS' if all(result['eligible_by_family']['routing'].get(k,0)>0 for k in ('recovery','units')) else 'FAIL'))
+        required_families=required_families(original,result))
     import shutil
     executables={}
     for name in ('python', 'bash', 'bwrap', 'tar', 'rsync', 'sha256sum'):
         path=sys.executable if name=='python' else shutil.which(name)
         if path is not None:executables[name]=file_pin(Path(path).resolve())
     checks['staged_binaries']=dict(status='PASS',executables=executables)
-    report=dict(status='PASS' if all(v['status']=='PASS' for v in checks.values()) else 'FAIL',checks=checks,
+    print(json.dumps(dict(required_families=checks['required_families']),sort_keys=True),flush=True)
+    report=dict(absent_on_P=checks['required_families']['absent_on_P'],status='PASS' if all(v['status']=='PASS' for v in checks.values()) else 'FAIL',checks=checks,
         original_config_identity=identity(original),effective_config_identity=identity(cfg),production_authorized=False)
     write(directory/'a.json',report)
     if report['status']!='PASS':raise ValueError('Required packet proof checks failed')

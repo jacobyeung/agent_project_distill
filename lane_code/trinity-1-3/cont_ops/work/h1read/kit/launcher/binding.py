@@ -3,16 +3,17 @@ import re
 from pathlib import Path
 
 NAMESPACE='8865619b'
-RUNS={'359fcc3c':'x_f5c353f7','17c4ffa4':'x_3fdda0fb'}
+RUNS={'359fcc3c':'x_f5c353f7','17c4ffa4':'x_3fdda0fb','469ddece':'x_07ca49df'}
 STOPS=('mstop','mstopB','mstopC')
 
 def expected(run, step, generation=None, namespace=NAMESPACE):
-    if namespace!=NAMESPACE or run not in RUNS or type(step) is not int:
+    if (namespace!=NAMESPACE or run not in RUNS or type(step) is not int
+            or (run=='469ddece' and (step!=544 or generation!='mstop'))):
         raise ValueError('Unregistered export identity')
     if generation is None:
         if step not in (100,200):raise ValueError('Unregistered milestone')
         generation='m'+str(step)
-    elif run!='17c4ffa4' or generation not in STOPS or not 1<=step<=200:
+    elif run!='469ddece' and (run!='17c4ffa4' or generation not in STOPS or not 1<=step<=200):
         raise ValueError('Unregistered stop generation')
     root='/project/community/jjyeung/okh7/'+RUNS[run]+'/o/'
     return dict(run=run,step=step,namespace=namespace,generation=generation,

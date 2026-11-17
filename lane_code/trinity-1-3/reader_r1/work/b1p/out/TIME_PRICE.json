@@ -1,0 +1,82 @@
+{
+  "types": [
+    {
+      "type": "room_size_estimation",
+      "observed_reads": 36,
+      "planned_reads": 36,
+      "own_mean_seconds": 27.332811857887364,
+      "own_total_seconds": 983.981226883945,
+      "observed_g3t_activating_reads": 27,
+      "g3t_seconds_per_read": 20.89351316797547,
+      "g3t_source": "measured same type",
+      "estimated_seconds": 1736.147700931062
+    },
+    {
+      "type": "object_abs_distance",
+      "observed_reads": 150,
+      "planned_reads": 300,
+      "own_mean_seconds": 25.509192684507,
+      "own_total_seconds": 7652.7578053521,
+      "observed_g3t_activating_reads": 149,
+      "g3t_seconds_per_read": 19.822625512532813,
+      "g3t_source": "measured same type",
+      "estimated_seconds": 13599.545459111943
+    },
+    {
+      "type": "camera_displacement",
+      "observed_reads": 150,
+      "planned_reads": 150,
+      "own_mean_seconds": 7.252215738461818,
+      "own_total_seconds": 1087.8323607692728,
+      "observed_g3t_activating_reads": 150,
+      "g3t_seconds_per_read": 19.822625512532813,
+      "g3t_source": "estimate from distance proxy",
+      "estimated_seconds": 4061.226187649195
+    },
+    {
+      "type": "camera_movement_direction",
+      "observed_reads": 150,
+      "planned_reads": 150,
+      "own_mean_seconds": 8.92279336116005,
+      "own_total_seconds": 1338.4190041740076,
+      "observed_g3t_activating_reads": 150,
+      "g3t_seconds_per_read": 19.822625512532813,
+      "g3t_source": "estimate from distance proxy",
+      "estimated_seconds": 4311.81283105393
+    },
+    {
+      "type": "camera_rotation",
+      "observed_reads": 150,
+      "planned_reads": 150,
+      "own_mean_seconds": 4.748747007385828,
+      "own_total_seconds": 712.3120511078741,
+      "observed_g3t_activating_reads": 150,
+      "g3t_seconds_per_read": 19.822625512532813,
+      "g3t_source": "estimate from distance proxy",
+      "estimated_seconds": 3685.705877987796
+    }
+  ],
+  "g3t_samples": {
+    "object_abs_distance": {
+      "n": 49,
+      "mean": 19.822625512532813
+    },
+    "room_size_estimation": {
+      "n": 1,
+      "mean": 20.89351316797547
+    }
+  },
+  "own_only_hours": 3.2709173467464443,
+  "estimated_read_hours": 7.609566126870535,
+  "estimated_full_hours_with_overhead": 8.109566126870535,
+  "overhead_assumption_seconds": 1800,
+  "overhead_note": "Unmeasured staging, CPU restore, and six worker model loads; allow at least 30 minutes. No overlap or warm-cache discount.",
+  "allocated_gpu_hours": 5,
+  "stop_margin_seconds": 1800,
+  "return_margin_seconds": 1200,
+  "distance_both_hours": 3.777651516419984,
+  "usd_per_h100_hour": null,
+  "price": "5 * the approved USD/H100-hour rate; no rate exists in the supplied sources and network access is forbidden.",
+  "full_coverage_expected": false,
+  "estimate_note": "Add G3T once per read conservatively; room calls may not activate it. Camera G3T is a distance timing proxy, not a measurement. Changed call trajectories can change decode time."
+}

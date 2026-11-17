@@ -1,0 +1,75 @@
+--- b8/work/tree_r1/generator/derivgen_v7/derivgen/materialize.py	2026-11-11 11:02:02.000000000 -0500
++++ pkg/work/tree_r1/generator/derivgen_v7/derivgen/materialize.py	2026-11-17 06:58:40.768750000 -0500
+@@ -563,6 +563,11 @@
+         elif kind == 'decision':
+             old_answer, old_result, _ = old.conclusion()
+             answer, result, _ = new.conclusion()
++            # R2 admission adds the trace's answer envelope. Compare the same
++            # representation, and retain it on the regenerated training target.
++            if re.fullmatch(r'<answer>[^<>]+</answer>', str(row['answer'])):
++                old_answer = '<answer>' + str(old_answer) + '</answer>'
++                answer = '<answer>' + str(answer) + '</answer>'
+             _require(old_answer == row['answer'] and old_result == e['result'], 'gt_decision_mismatch')
+             changed = {**copy.deepcopy(e), 'result': result}
+         elif kind in ('plan', 'canonical_paragraph'):
+--- b8/work/tree_r1/launch_r2/build.py	2026-11-16 18:36:48.748213000 -0500
++++ pkg/work/tree_r1/launch_r2/build.py	2026-11-17 06:55:00.077118000 -0500
+@@ -217,6 +217,10 @@
+     cfg['r2_build2'].update({k:v for k,v in portable.items() if k in ('counts', 'source_presence')})
+     from student_pilot.r2_config import bind_mix
+     cfg = bind_mix(cfg, load(output/mix['path']))
++    if launch_inputs is not None:
++        from student_pilot.routing_requirements import blockers as row_blockers
++        cfg['b7_blockers'] = sorted(set(cfg['b7_blockers'] + row_blockers(
++            load(output/mix['path']), launch_inputs.get('routing_training_counts'))))
+     cfg['code'] = dict(path='k/7.json', sha256=sha256(output/'k/7.json'))
+     cfg['s1_route_policy'] = dict(name='frozen-table-no-flag-v1', table=put(cfg['route_table']))
+     if 'indices' in portable:
+--- b8/work/tree_r1/student_pilot/b7_inputs.py	2026-11-16 18:55:18.878619400 -0500
++++ pkg/work/tree_r1/student_pilot/b7_inputs.py	2026-11-17 06:54:59.711120400 -0500
+@@ -118,6 +118,9 @@
+ 
+ def blockers(value, arm):
+     result = list(value.get('qualification_blockers', []))
++    from .routing_requirements import blockers as row_blockers
++    from .r2_mix import table
++    result.extend(row_blockers(table(), value.get('routing_training_counts')))
+     for name, action in (
+         ('init_selection_pending', lambda: pin(value.get('init'), init=True)),
+         ('rows_lane_store_bindings_missing', lambda: row_stores(value.get('row_stores'), arm)),
+--- b8/work/tree_r1/student_pilot/h1_faithful.py	2026-11-17 00:37:05.046346700 -0500
++++ pkg/work/tree_r1/student_pilot/h1_faithful.py	2026-11-17 06:58:41.020748400 -0500
+@@ -98,6 +98,8 @@
+ def answer_differs(kind, own, gt):
+     """Registered stop metric; faithful training text remains unchanged."""
+     from decimal import Decimal
++    own, gt = (re.fullmatch(r'<answer>([^<>]+)</answer>', str(v))[1]
++               if re.fullmatch(r'<answer>([^<>]+)</answer>', str(v)) else v for v in (own, gt))
+     if kind == 'camera_movement_direction':
+         return str(own).strip() != str(gt).strip()
+     a,b=Decimal(str(own)),Decimal(str(gt))
+--- b8/work/tree_r1/student_pilot/row_text_audit.py	2026-11-16 18:25:03.411413200 -0500
++++ pkg/work/tree_r1/student_pilot/row_text_audit.py	2026-11-17 06:45:50.834524000 -0500
+@@ -4,7 +4,7 @@
+ PATTERNS = {
+     'gravity_guard': r'reference_camera_up_opposes_gravity|gravity[_ -]guard',
+     'heading_threshold_status': r'heading unavailable',
+-    'runtime_box_status': r'box unavailable|not seen',
++    'runtime_box_status': r'box unavailable|not seen|unresolved',
+     'tower_scale_rule': r'tower_scale_rule|scaled_g3t_metric|tower[_ -]scale[_ -]rule',
+ }
+ SOURCES = {
+@@ -17,7 +17,12 @@
+ 
+ def reasons(row):
+     text='\n'.join(str(row.get(k,'')) for k in ('target','suffix','response','trace'))
+-    found=[key for key,pattern in PATTERNS.items() if re.search(pattern,text,re.I)]
++    # Only complete printed responses are exempt from the status assertion rule.
++    # Audit each field separately so a delimiter cannot span unrelated fields.
++    authored='\n'.join(re.sub(r'<tool_response>[^<]*</tool_response>', '', str(row.get(k,'')))
++                       for k in ('target','suffix','response','trace'))
++    found=[key for key,pattern in PATTERNS.items()
++           if re.search(pattern,authored if key == 'runtime_box_status' else text,re.I)]
+     record=row.get('ground_record',{})
+     if record.get('geometry_mode') in ('tower','scaled_g3t_metric') and record.get('scale_source')!='pose_head':
+         found.append('tower_scale_provenance_not_from_head')

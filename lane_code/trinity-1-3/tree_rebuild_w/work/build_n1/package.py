@@ -52,15 +52,9 @@ from student_pilot.p3_provenance import digest,load
 source_before=inventory(root/'work/tree_r1')
 base_before=inventory(root/'work/base/tree_b01ce449')
 fixtures_before=inventory(root/'fixtures')
-if (root/'work/build_n1/kits/a0').is_dir() and (root/'work/build_n1/kits/a2').is_dir():
-    from launch_r2.build import verify,scan
-    identity='sha256:'+digest(source_before)
-    for name in ('a0','a2'):
-        kit=root/'work/build_n1/kits'/name
-        assert load(kit/'k/launch.json')['source_revision']==identity
-        kit_results.append(dict(kit=name,sha256=verify(kit),scan=scan(kit),source_revision=identity))
-elif len(sys.argv)>1:
-    raise ValueError('Delivery package lacks both kits')
+from launch_r1.build import verify as verify_r1
+kit=root/'work/build_n1/kits/r1'
+kit_results.append(dict(kit='r1',sha256=verify_r1(kit),source_revision='sha256:'+digest(source_before)))
 (out/'KIT_TESTS.json').write_text(json.dumps(kit_results,indent=2)+'\n')
 if kit_results:
     # The delivered archive and standalone kits retain their bytes. Only these
@@ -87,6 +81,8 @@ for variant,path in [('tree',root/'work/tree_r1'),('base',root/'work/base/tree_b
         key=dict(source=source_before if variant=='tree' else base_before, fixtures=fixtures_before,
                  runner_sha256=hashlib.sha256((root/'work/build_n1/test_runner.py').read_bytes()).hexdigest())
         if variant=='tree' and group=='r2':
+            key['bound_n1_inputs']={str(p.relative_to(L)):hashlib.sha256(p.read_bytes()).hexdigest()
+                for p in sorted((L/'work/build_n1/inputs').glob('*.json'))}
             key['bound_real_slices']={str(p.relative_to(L)):hashlib.sha256(p.read_bytes()).hexdigest()
                 for p in sorted((L/'work/rows_slices/slices_final').glob('*.jsonl'))}
         completed=json.loads(checkpoint.read_text()) if checkpoint.exists() else None

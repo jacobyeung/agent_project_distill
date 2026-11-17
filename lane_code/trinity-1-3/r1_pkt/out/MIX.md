@@ -1,4 +1,4 @@
-The VQA sampler caps each cell at four times its eligible population over 1,000 steps. Room has zero eligible rows. Its two slots go to direction. Camera-object absolute distance is excluded because v6 contains no such rows.
+Vehicle P caps each cell at four times its eligible population over 1,000 steps. Size has zero launch dose; size rows remain in the store. The table gives the bound room dose and direction refill. Recovery is absent on P and joins N. Units have zero dose until a faithful file is bound.
 
 | Cell | Eligible | Proposed/step | Cap/step | Cut | Refill | Final/step |
 |---|---:|---:|---:|---:|---:|---:|
@@ -9,34 +9,27 @@ The VQA sampler caps each cell at four times its eligible population over 1,000 
 | camera_obj_rel_dist_v2 | 1983 | 2.00 | 7.93 | 0.00 | 0.00 | 2.00 |
 | camera_obj_rel_dist_v3 | 1998 | 2.00 | 7.99 | 0.00 | 0.00 | 2.00 |
 | counting | 11366 | 10.87 | 45.46 | 0.00 | 0.00 | 10.87 |
-| direction | 49901 | 20.08 | 199.60 | 0.00 | 2.00 | 22.08 |
-| facing | 34958 | 18.17 | 139.83 | 0.00 | 0.00 | 18.17 |
+| direction | 49901 | 31.17 | 199.60 | 0.00 | 0.00 | 31.17 |
+| facing | 43469 | 18.17 | 173.87 | 0.00 | 0.00 | 18.17 |
 | first_seen | 7076 | 2.00 | 28.30 | 0.00 | 0.00 | 2.00 |
 | obj_obj_relative_pos_lr | 1998 | 2.00 | 7.99 | 0.00 | 0.00 | 2.00 |
 | obj_obj_relative_pos_nf | 2000 | 2.00 | 8.00 | 0.00 | 0.00 | 2.00 |
 | obj_obj_relative_pos_ud | 1996 | 2.00 | 7.98 | 0.00 | 0.00 | 2.00 |
 | relative_distance | 20665 | 22.74 | 82.66 | 0.00 | 0.00 | 22.74 |
-| room | 0 | 2.00 | 0.00 | 2.00 | 0.00 | 0.00 |
+| room | 431 | 1.72 | 1.72 | 0.00 | 0.00 | 1.72 |
 | route | 8894 | 9.70 | 35.57 | 0.00 | 0.00 | 9.70 |
-| size | 9778 | 10.81 | 39.11 | 0.00 | 0.00 | 10.81 |
+| size | 9778 | 0.00 | 39.11 | 0.00 | 0.00 | 0.00 |
 | totals | 9303 | 3.39 | 37.21 | 0.00 | 0.00 | 3.39 |
 
-Routing uses the same capped allocator after native preparation. Its production populations are unavailable locally; the proof must write its capped table and each cut. Recovery and unit repairs remain launch blockers.
+Routing uses the same capped allocator after native preparation. The production proof measures its final populations, caps, cuts and sampling shares.
 
-The routing slice diagnostics give the following ceilings. These slices are not bound into the production stream, and their frames are unavailable.
+| Routing cell | Requested/step | Bound unit source cap/step |
+|---|---:|---:|
+| camera_displacement | 18.54 | Production proof |
+| camera_movement_direction | 16.13 | Production proof |
+| camera_rotation | 12.73 | Production proof |
+| absolute_distance | 16.60 | Production proof |
+| recovery | 0.00 | 0.00 |
+| units | 0.00 | 0.00 |
 
-| Cell | Supplied rows passing row checks | Requested/step | Slice ceiling/step | Cut |
-|---|---:|---:|---:|---:|
-| recovery | 0 | 1.00 | 0.00 | 1.00 |
-| units | 216 | 2.87 | 0.86 | 2.01 |
-
-| Remaining cell | Requested/step | Production eligible count / cap |
-|---|---:|---|
-| camera_displacement | 17.42 | Not measured |
-| camera_movement_direction | 15.15 | Not measured |
-| camera_rotation | 11.96 | Not measured |
-| absolute_distance | 15.6 | Not measured |
-| pose | 64 | Not measured |
-| pointing | 32 | Not measured |
-
-Routing refills the four program cells proportionally, subject to each cap. The full loader audit also rejects pose or pointing doses above four times their eligible counts.
+Pose stays at 64 rows/step and pointing at 32. Routing refills its four native cells proportionally under their caps. Units below 100 eligible rows are named missing with their counts and do not fail the required-family gate. The default allowlist trains feet only at 1.00 row per step, subject to the four-repeat cap.

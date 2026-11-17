@@ -17,8 +17,12 @@ def preparation(cfg):
     init = cfg.get('init_artifact') or {}
     if init.get('lm') != 'full':
         raise ValueError('Keep requires a full warm start')
-    from .r2_contract import lineage_init
-    lineage_init(init.get('artifact', {}), init=bound_init(cfg))
+    if cfg.get('r1_training'):
+        from .r1_training import start
+        start(cfg)
+    else:
+        from .r2_contract import lineage_init
+        lineage_init(init.get('artifact', {}), init=bound_init(cfg))
     witness_pin = cfg.get('routing_vocabulary')
     if not witness_pin:
         raise ValueError('Missing routing vocabulary witness for keep warm start')
@@ -39,6 +43,10 @@ def initialize(model, processor, receipt):
     warm = init.get('lm') == 'full' and report.get('lm_tensors', 0) > 0
     same = warm and policy == 'keep' and (init.get('artifact', {}).get('sha256') == bound_init(receipt)['artifact_sha256']
             or report.get('r2_lineage') == bound_init(receipt)['artifact_sha256'])
+    if receipt.get('r1_training') and policy == 'keep':
+        from .r1_training import start
+        start(receipt)
+        same = warm
     if policy == 'keep' and not (warm and same):
         raise ValueError('Keep requires a full warm start in the bound lineage')
     if policy == 'keep' and warm and same:

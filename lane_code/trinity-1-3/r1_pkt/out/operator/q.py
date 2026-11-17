@@ -31,6 +31,8 @@ def main():
     p.add_argument('--indices',type=Path,default=Path('/scratch/jjyeung/orch_n30/cont_ops/work/h1/build/fx/k'))
     p.add_argument('--out',type=Path,default=ROOT/'out/proof/selection')
     p.add_argument('--native-receipt',type=Path,help='Fresh s1_pool.prepare receipt from complete H1 kit')
+    p.add_argument('--implementation',type=Path);p.add_argument('--code-record',type=Path)
+    p.add_argument('--unit-binding',type=Path);p.add_argument('--config',type=Path)
     a=p.parse_args();a.out.mkdir(parents=True,exist_ok=True,mode=0o700)
     if sha(a.parent)!=PARENT:raise ValueError('H1 selection pin differs')
     parent=load(a.parent)
@@ -57,11 +59,26 @@ def main():
         indices[name]=dict(sha256=pin['sha256'],count=len(values),unchanged=name not in removed)
     unchanged={n:enc(v).encode()==enc(candidate['sources'][n]).encode() for n,v in parent['sources'].items() if n not in removed}
     if not all(unchanged.values()):raise ValueError('Non-room entry changed')
+    if a.implementation:
+        if not a.code_record:raise ValueError('Implementation rebind requires code record')
+        implementation=load(a.implementation);files=load(a.code_record)['files']
+        if any(files.get(n)!=h for n,h in implementation.items()):raise ValueError('Selection code closure differs')
+        allowed={'student_pilot/carrier_c1_data.py','student_pilot/carrier_c1_run.py','student_pilot/type_mix.py','student_pilot/vehicle_p.py','student_pilot/loader_audit.py'}
+        if any(implementation.get(n)!=parent['implementation'].get(n) for n in set(implementation)|set(parent['implementation']) if n not in allowed):
+            raise ValueError('Selection admission predicate changed')
+        candidate['implementation']=implementation
+    if a.unit_binding:
+        if not a.native_receipt or not a.config:raise ValueError('Unit regeneration requires native parent receipt and config')
+        from u import regenerate
+        candidate=regenerate(candidate,load(a.unit_binding),a.unit_binding.parent,a.indices,
+                             load(a.config)['s1_routing']['catalog'],a.out/'u')
+        if hashlib.sha256((enc(candidate)+'\n').encode()).hexdigest()!=load(a.config)['s1_routing']['selection']['sha256']:
+            raise ValueError('Regenerated unit selection differs from bound config')
     write(a.out/'r.json',candidate)
     write(a.out/'q.json',dict(schema='r1-selection-projection-v1',status='PASS',parent_sha256=PARENT,
         selection_sha256=sha(a.out/'r.json'),removed_source_rows=removed,removed_selection_rows=sum(removed.values()),
         selected_rows=candidate['selected_rows'],non_room_entry_bytes_equal=unchanged,indices=indices,
-        tool_sha256=sha(__file__),native_regeneration_executed=a.native_receipt is not None,
+        tool_sha256=sha(__file__),native_regeneration_executed=a.native_receipt is not None,native_unit_regeneration_executed=a.unit_binding is not None,
         native_receipt=dict(path=str(a.native_receipt),sha256=sha(a.native_receipt)) if a.native_receipt else None,
         final_materialized_room_rows_expected=581,final_materialized_room_rows_verified=False,
         note='586 selected source rows precede final admission; 581 is the brief\'s materialized count. Full native regeneration needs the source archives absent locally.',

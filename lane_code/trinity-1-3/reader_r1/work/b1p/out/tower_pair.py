@@ -26,12 +26,17 @@ def status(call):
  if not text:return 'missing response'
  return 'returned'
 
-def load(files,items,arm,rule=None,self_check=False):
- result={};sources=[]
+def load(files,items,arm,rule=None,self_check=False,expected_hashes=None):
+ result={};sources=[];identity=None
  for arg in files:
   path=Path(arg)
   paths=sorted(path.rglob('items.jsonl')) if path.is_dir() else [path]
-  if not paths:raise ValueError('No item journals: '+str(path))
+  if not paths:
+   identity_path=path/'metadata/IDENTITY.json'
+   if not identity_path.is_file():raise ValueError('No item journals or planned read identity: '+str(path))
+   planned=json.loads(identity_path.read_text());index=RULES.index(rule)
+   if planned.get('read')!=index or planned['reads'][index]['stage1_select_rule']!=rule:raise ValueError('Empty read identity differs')
+   sources.append(dict(path=str(identity_path),sha256=hashlib.sha256(identity_path.read_bytes()).hexdigest(),no_completed_journals=True))
   for path in paths:
    env=path.parent/'environment.json'
    if arm=='tower' and not self_check:
@@ -40,6 +45,11 @@ def load(files,items,arm,rule=None,self_check=False):
     if (binding.get('stage1_select_rule')!=rule or binding.get('arms')!=['tower']
          or binding.get('lineage')!='SFT' or binding.get('step')!=544):
      raise ValueError('Tower rule/arm/export identity differs')
+    fields=('export_sha256','item_set_sha256','items_sha256','reader_sha256','maker_sha256','evaluator_code_sha256','artifact_manifest_sha256','settings_sha256','stage1_select_rule','save_own_depth','parity_code_sha256')
+    current={k:binding.get(k) for k in fields}
+    if identity is not None and current!=identity:raise ValueError('Partial journals have different read identities')
+    identity=current
+    if expected_hashes and any(binding.get(k)!=v for k,v in expected_hashes.items()):raise ValueError('Return code differs from scoring package')
    sources.append(dict(path=str(path),sha256=hashlib.sha256(path.read_bytes()).hexdigest()))
    for line in path.read_text().splitlines():
     if not line.strip():continue
@@ -67,6 +77,13 @@ def analyse(own,towers,items,scorers,bootstrap,self_check=False):
  own_scores={k:score(r) for k,r in own.items()}
  result=dict(bootstrap=dict(draws=10000,seed=20261115,unit='room',interval=.95),self_check=self_check,
              score_units='percentage points for paired differences; fractions for MRA',rules={},per_call_errors={})
+ own_calls=[]
+ for key,row in own.items():
+  measurement=scorers.accuracy(row['output'],items[key]);numeric=iter(measurement['calls'])
+  for index,c in enumerate(scorers.records(row['output'])):
+   own_calls.append(dict(id=key,type=row['type'],index=index,family=c.get('family'),call=c['call'],
+     status=status(c),response=c.get('response'),**{k:v for k,v in (next(numeric) if scorers.printed(c) is not None else {}).items() if k!='call'}))
+ result['per_call_errors']['own']=own_calls
  for rule,tower in towers.items():
   kinds=[DISTANCE] if rule==RULES[1] else [*CAMERA,DISTANCE,ROOM]
   scores={k:score(r) for k,r in tower.items()};by_type={}
@@ -76,19 +93,21 @@ def analyse(own,towers,items,scorers,bootstrap,self_check=False):
    delta=bootstrap([(items[k]['room_key'],100*(own_scores[k]-scores[k])) for k in paired])
    complete=bool(expected) and a==b==expected
    by_type[kind]=dict(own_n=len(a),tower_n=len(b),expected=len(expected),complete=complete,
-     own_score=100*statistics.mean(own_scores[k] for k in a) if a else None,
-     tower_score=100*statistics.mean(scores[k] for k in b) if b else None,
+     own_score=100*statistics.mean(own_scores[k] for k in paired) if paired else None,
+     tower_score=100*statistics.mean(scores[k] for k in paired) if paired else None,
+     available_own_score=100*statistics.mean(own_scores[k] for k in a) if a else None,
+     available_tower_score=100*statistics.mean(scores[k] for k in b) if b else None,
      own_minus_tower=delta,missing_own=sorted(expected-a),missing_tower=sorted(expected-b),
      own_only=sorted(a-b),tower_only=sorted(b-a),
      takeover_bar_met=(delta['ci95'][0]>-5) if kind in CAMERA and complete and not self_check else None)
   table=Counter();status_reads=Counter();status_calls=Counter();errors=[];clean={};ds={};metres={};capped=0;no_ground=0
   for key,row in tower.items():
    item=items[key];measurement=scorers.accuracy(row['output'],item)
-   numeric={c['call']:c for c in measurement['calls']}
+   numeric=iter(measurement['calls'])
    records=scorers.records(row['output'])
    for index,c in enumerate(records):
     errors.append(dict(id=key,type=row['type'],index=index,family=c.get('family'),call=c['call'],
-                       status=status(c),response=c.get('response'),**{k:v for k,v in numeric.get(c['call'],{}).items() if k!='call'}))
+                       status=status(c),response=c.get('response'),**{k:v for k,v in (next(numeric) if scorers.printed(c) is not None else {}).items() if k!='call'}))
    if row['type']!=DISTANCE:continue
    ds[key]=scores[key]
    if scorers.unit_factor(item['question'])==1:metres[key]=scores[key]
@@ -114,7 +133,7 @@ def markdown(result):
  lines=['# Step-544 own and tower pairing','',
   'Differences are own minus tower in percentage points. Intervals resample paired rooms 10,000 times with seed 20261115.',
   'Missing items remain missing; incomplete types cannot establish the take-over bar.','',
-  '| Rule | Type | Paired / expected | Own | Tower | Difference [95% interval] | Bar met |',
+  '| Rule | Type | Paired / expected | Paired own | Paired tower | Difference [95% interval] | Bar met |',
   '|---|---|---:|---:|---:|---|---|']
  def fmt(x):return 'n/a' if x is None else f'{x:.4f}'
  for rule,r in result['rules'].items():
@@ -149,8 +168,10 @@ def main():
  a=p.parse_args();scorers,bootstrap=configure(a.package)
  items={i['id']:i for i in json.loads(Path(a.items or Path(a.package)/'items/devs1_routed.json').read_text())['items']}
  own,osrc=load(a.own,items,'own');towers={};sources={'own':osrc}
+ from h1eval.cli import code_hash
+ expected_hashes=dict(evaluator_code_sha256=code_hash(),reader_sha256=code_hash(Path(a.package)/'b/e2e_reader'))
  for rule,files in zip(RULES,(a.tower_null,a.tower_candidates)):
-  towers[rule],sources[rule]=load(files,items,'own' if a.self_check else 'tower',rule,a.self_check)
+  towers[rule],sources[rule]=load(files,items,'own' if a.self_check else 'tower',rule,a.self_check,expected_hashes)
  result=analyse(own,towers,items,scorers,bootstrap,a.self_check);result['sources']=sources
  from h1eval.cli import code_hash
  result['evaluator_code_sha256']=code_hash();out=Path(a.out);out.mkdir(parents=True,exist_ok=True)

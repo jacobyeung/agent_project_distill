@@ -196,6 +196,10 @@ def reindex(items, binding, output):
 
 def plans(binding, counts, steps, start_step=0, world=4):
     """Native microbatch plans from pinned final-reader indices; pairs share a step."""
+    if binding.get('schema') == 'r1-sampling-v1':
+        from .r1_mix import plans as r1_plans
+        yield from r1_plans(binding, counts, steps, start_step, world)
+        return
     root = '.' if binding.get('portable') else None
     proof = preflight(binding['mix'], binding['counts'], source_presence=binding.get('source_presence'), root=root)
     mix = load(bound(binding['mix'], root))

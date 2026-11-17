@@ -36,12 +36,21 @@ def main():
     run([worker,'--tree',ROOT/'work/tree','--config',ROOT/'configs/r1p.json','--audit',out/'proof/loader_audit.json',
          '--out',out/'proof/FIRST_BATCH.json'],'first_batch.log')
     patch=[]
-    for name in ('carrier_c1_data.py','carrier_c1_run.py','type_mix.py','loader_audit.py'):
+    for name in ('carrier_c1_data.py','carrier_c1_run.py','type_mix.py','loader_audit.py','vehicle_p.py'):
         rel='student_pilot/'+name;old=H/'build/tree'/rel
         before=old.read_text().splitlines(keepends=True) if old.exists() else []
         patch.extend(difflib.unified_diff(before,(ROOT/'work/tree'/rel).read_text().splitlines(keepends=True),fromfile='a/'+rel,tofile='b/'+rel))
     (out/'SAMPLER_REVIEW.patch').write_text(''.join(patch))
+    patch=[]
+    for name in ('b/c.sh','b/p0.sh','b/r.sh','b/h.py','b/i.py','job.sh'):
+        patch.extend(difflib.unified_diff((source/name).read_text().splitlines(keepends=True),
+            (parent/'a'/name).read_text().splitlines(keepends=True),fromfile='a/'+name,tofile='b/'+name))
+    for name in ('jb.sh','s.sh'):
+        patch.extend(difflib.unified_diff((H/'payload'/name).read_text().splitlines(keepends=True),
+            (out/'operator'/name).read_text().splitlines(keepends=True),fromfile='a/'+name,tofile='b/'+name))
+    (out/'DEPLOYMENT_REVIEW.patch').write_text(''.join(patch))
     run([ROOT/'tests/test_packet.py'],'tests.log')
+    run([ROOT/'tools/write_fix5.py'],'fix5.log')
     run([ROOT/'tools/finalize.py'],'finalize.log')
     print(json.dumps(dict(status='BUILT_BLOCKED',config_identity=binding['config_identity'],operator_archive_sha256=expected)))
 

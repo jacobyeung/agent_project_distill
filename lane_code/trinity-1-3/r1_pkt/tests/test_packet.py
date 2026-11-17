@@ -16,13 +16,17 @@ class Mix(unittest.TestCase):
         for n,v in table.items():
             self.assertLessEqual(v['final_cents']*1000,4*v['eligible']*100)
             if v['final_cents']:self.assertEqual(report['by_family']['vqa/'+n]['draws'],v['final_cents']*10)
-        self.assertEqual(table['room']['final_cents'],0)
-        self.assertEqual(table['room']['cut_cents'],200)
-        self.assertEqual(table['direction']['refill_cents'],200)
+        self.assertEqual(table['room']['final_cents'],min(table['room']['proposed_cents'],table['room']['cap_cents']))
+        self.assertEqual(table['room']['cut_cents'],table['room']['proposed_cents']-table['room']['final_cents'])
+        self.assertEqual(table['size']['final_cents'],0)
+        self.assertEqual(table['size']['eligible'],9778)
+        self.assertEqual(table['direction']['final_cents'],3289-table['room']['final_cents'])
+        self.assertNotIn('vqa/size',report['by_family'])
+        self.assertEqual(table['direction']['refill_cents'],table['room']['cut_cents'])
         self.assertEqual(table['camera_absolute_distance']['eligible'],0)
         self.assertEqual(report['stream_draws'],{'vqa':128000})
         self.assertLessEqual(report['maximum_observed_repeats'],4)
-        self.assertEqual(set(report['by_question_type']),{'vqa/'+t for t in load(ROOT/'out/ADMISSION_BY_TYPE.json')['types_covered']})
+        self.assertEqual(set(report['by_question_type']),{'vqa/'+t for t in load(ROOT/'out/ADMISSION_BY_TYPE.json')['types_covered'] if t not in ('object_size_estimation','absolute_size_object','relative_size_object') and (t not in ('room_size_estimation','absolute_size_room') or table['room']['final_cents'])})
         for name,rows in report['traces']['vqa'].items():
             self.assertEqual(len(rows),5)
             for r in rows:self.assertEqual(hashlib.sha256(r['target'].encode()).hexdigest(),r['target_sha256'])
@@ -60,10 +64,58 @@ class Mix(unittest.TestCase):
         self.assertEqual(m.family(dict(question_type='object_rel_direction_hard',facing='away'),'vqa'),'facing')
         row=dict(question_type='room_size_estimation',target='12 square metres')
         self.assertEqual(m.family(row,'vqa'),'excluded_room_trace')
-        row.update(target='Locate: the wall in frame 1.\nRelate: the floor spans the walls.\nEstimate: 12 square metres.',student_input={'frames':[{'path':'/f','sha256':'a'*64}]})
+        row.update(pool='r1_room_traced',target='<think>\nSeen: the wall in frame 1.\nThe walls are far apart.\n</think>\n12',student_input={'frames':[{'path':'/f','sha256':'a'*64}]})
         self.assertEqual(m.family(row,'vqa'),'room')
         row['target']=row['target'].replace('frame 1','frame 2');self.assertEqual(m.family(row,'vqa'),'excluded_room_trace')
         self.assertEqual(m.family(dict(question_type='object_size_estimation',pool='x'),'vqa',{'field':'pool','equals':'y'}),'excluded_size_selector')
+
+    def test_all_room_rows_and_mutants(self):
+        import sqlite3
+        binding=load(ROOT/'out/BINDING.json')
+        conn=sqlite3.connect('file:'+binding['database']['path']+'?mode=ro&immutable=1',uri=True)
+        counts=Counter()
+        try:
+            for encoded, in conn.execute('SELECT row FROM rows ORDER BY i'):
+                row=json.loads(encoded)
+                if row.get('question_type') not in ('room_size_estimation','absolute_size_room'):continue
+                traced=row.get('pool')=='r1_room_traced'
+                counts['traced' if traced else 'one_line']+=1
+                self.assertEqual(m.room_trace(row),traced,row['qid'])
+                if not traced:continue
+                for target in (row['target'].replace('frame ', 'frame 999'),
+                               '\n'.join(line for line in row['target'].splitlines() if not ('apart' in line)),
+                               row['target'].replace('</think>','Area: 17.51 square meters.\n</think>'),
+                               row['target'].replace('</think>','Area: seventeen square meters.\n</think>')):
+                    self.assertFalse(m.room_trace({**row,'target':target}),row['qid'])
+                bad=copy.deepcopy(row);bad['student_input']['frames']=[{'path':'x','sha256':'bad'}]*len(bad['student_input']['frames'])
+                self.assertFalse(m.room_trace(bad))
+                self.assertFalse(m.room_trace({**row,'pool':'other'}))
+        finally:conn.close()
+        self.assertEqual(counts['traced'],431)
+        for source in (Path('/scratch/jjyeung/orch_n30/tree_rebuild_w/work/rows_slices/slices_final/a0_room.jsonl'),
+                       Path('/scratch/jjyeung/orch_n30/rows_a2/out/a2_room_ft2_v1/slice_a2_room_ft2.jsonl')):
+            with source.open() as stream:
+                for line in stream:
+                    row=json.loads(line);counts['one_line']+=1
+                    self.assertFalse(m.room_trace(row),row['qid'])
+        self.assertEqual(counts['one_line'],571)
+        write(ROOT/'out/proof/ROOM_GRAMMAR.json',dict(status='PASS',counts=dict(counts),mutants_per_traced_row=6))
+
+    def test_audit_draw_breakdown(self):
+        from student_pilot.loader_audit import row_metadata,draw_breakdown
+        rows={0:row_metadata(dict(question_type='object_rel_direction_hard',facing='away',answer='B',student_input={'options':['A. front','B. back-left']}),'vqa','facing'),
+              1:row_metadata(dict(question_type='object_rel_direction_easy',facing='toward',answer='A'),'vqa','facing')}
+        routing={i:row_metadata(dict(provenance={'canonical':p+'scene'}),'routing','absolute_distance') for i,p in enumerate(('scannetpp/','scannetppv2/','scannet/','arkit/'))}
+        for i,u in enumerate(('cm','ft','in'),4):routing[i]=row_metadata(dict(ground_record={'unit':u}),'routing','units')
+        draws=Counter({('vqa',0):3,('vqa',1):1,**{('routing',i):i+1 for i in range(7)}})
+        report=draw_breakdown({'vqa':rows,'routing':routing},draws,routing_available=True)
+        self.assertEqual(report['facing']['away']['share_of_facing'],.75)
+        self.assertEqual(report['away_hard']['back_share'],1);self.assertEqual(report['away_hard']['exact_back_share'],0)
+        self.assertEqual(report['units']['draws'],{'cm':5,'ft':6,'in':7})
+        self.assertEqual(report['routing_absolute_distance']['drawn'],{'scannetpp/':1,'scannetppv2/':2,'scannet':3,'arkit':4,'unknown':0})
+        local=load(ROOT/'out/proof/loader_audit.json')['draw_breakdown']
+        self.assertEqual(sum(v['draws'] for v in local['facing'].values()),load(ROOT/'out/proof/loader_audit.json')['by_family']['vqa/facing']['draws'])
+        self.assertEqual(local['routing_absolute_distance']['status'],'NOT_RUN')
 
     def test_config_switches_disk_and_identity(self):
         cfg=load(ROOT/'configs/r1p.json');run.validate(cfg)
@@ -133,16 +185,26 @@ class Evidence(unittest.TestCase):
         self.assertEqual(r['a0_units']['counts']['repacked_admitted'],216)
         self.assertEqual(r['a0_units']['counts']['ValueError: Absolute label mismatch'],1784)
         self.assertEqual(r['a0_recovery']['counts']['ValueError: Grounding membership flags differ'],1532)
+        census=load(ROOT/'out/ADMISSION_BY_TYPE.json')['routing']
+        self.assertEqual(census['a0_units']['admitted'],216)
+        self.assertEqual(census['a0_recovery']['eligible'],0)
+        self.assertEqual(census['a0_units']['slice_form_validation']['admitted'],0)
 
     def test_selection_and_room_source_exclusion(self):
         from selection_check import project,enc
         parent=load(ROOT/'work/records/pool_selection_eac5f9f0.json');new,removed=project(parent)
+        from student_pilot import s1_pool
+        self.assertEqual(load(ROOT/'out/proof/selection/r.json')['implementation'],s1_pool.implementation())
+        new['implementation']=load(ROOT/'out/proof/selection/r.json')['implementation']
         self.assertEqual(new,load(ROOT/'out/proof/selection/r.json'));self.assertEqual(sum(removed.values()),586)
         for name in set(parent['sources'])-set(removed):self.assertEqual(enc(parent['sources'][name]),enc(new['sources'][name]))
         for value in new['sources'].values():
             if value['status']=='ELIGIBLE':self.assertFalse(set(value['per_type'])&{'room_size_estimation','absolute_size_room'})
         a=load(ROOT/'out/ADMISSION_BY_TYPE.json')
-        self.assertEqual(a['vqa_rows'],195471);self.assertEqual(len(a['vqa_by_type']),16)
+        self.assertEqual(a['vqa_rows'],204413);self.assertEqual(len(a['vqa_by_type']),17)
+        self.assertEqual(a['traced_room']['rows'],431);self.assertEqual(a['traced_room']['sealed_row_checks_pass'],431)
+        self.assertEqual(a['traced_room']['eligible'],load(ROOT/'out/proof/loader_audit.json')['tables']['vqa']['room']['eligible'])
+        self.assertEqual(a['reworded_away']['rows'],8511)
         self.assertTrue(a['all_types_covered'])
         self.assertEqual(sum(v['admitted'] for v in a['direct_room'].values()),0)
 
@@ -176,14 +238,72 @@ class Proof(unittest.TestCase):
     def test_native_proof_boundary_and_named_checks(self):
         parent=Path('/scratch/jjyeung/orch_n30/cont_ops/work/h1')
         script=self.p.program((parent/'payload/jb.sh').read_text(),(parent/'build/fx/job.sh').read_text())
-        self.assertIn('"$ROOT/b/r.sh" p 0',script);self.assertIn('-m student_pilot.loader_audit',script)
+        self.assertIn('"$ROOT/b/r.sh" p 0',script);self.assertIn('from student_pilot.loader_audit import main',script);self.assertNotIn('-m student_pilot',script)
         self.assertNotIn('newest || true',script)
         self.assertNotIn('"$ROOT/b/r8.py"',script)
         root=temp();(root/'e.sh').write_text(script)
         subprocess.run(['bash','-n',str(root/'e.sh')],check=True)
         text=(ROOT/'out/proof/p.py').read_text()
-        for name in ('disk_plan','routing_selection','empty_root','temporary_paths','runtime_binaries','private_directories','loader_audit','required_families'):self.assertIn(name,text)
+        for name in ('disk_plan','routing_selection','empty_root','temporary_paths','runtime_binaries','directory_modes','loader_audit','required_families'):self.assertIn(name,text)
         self.assertNotIn('/usr/bin/bwrap',text)
+
+    def test_main_builds_receipt_with_all_evaluated_checks(self):
+        from unittest.mock import patch
+        import types,contextlib,signal,io
+        p=self.p;root=temp();kh=root/'k0';bun=root/'b0';scratch=root/'tmp'
+        for d in (kh,kh/'k',kh/'o',bun,scratch):d.mkdir(mode=0o700)
+        cfg=load(ROOT/'out/config.json');binding=load(ROOT/'out/BINDING.json');key=binding['run_key']
+        cfg['s1_routing']['selection']['sha256']='selection'
+        write(kh/'k/c.json',cfg);write(kh/'k/selection_equality.json',{'equal':True})
+        (kh/'SHA256SUMS.txt').write_text('fixture manifest')
+        launch=dict(status='READY',config={'file':'k/c.json'},run_directory='/tmp/jjyeung/a_'+key+'/runs/'+key,persistent_run_root=str(root/'runs'))
+        write(kh/'k/launch.json',launch);write(bun/'ids.json',dict(identity='identity',contract='contract'))
+        (bun/'jb.sh').write_text('wrapper');(kh/'job.sh').write_text('job')
+        write(bun/'compare.json',dict(manifest_sha256=sha(kh/'SHA256SUMS.txt'),config_key='c'))
+        (bun/'e.txt').write_bytes((ROOT/'out/operator/e.txt').read_bytes())
+        authority=dict(kh=str(kh),bun=str(bun),job_name='a15_cot_ap1234',identity='identity',contract='contract',
+            wrapper_sha256=sha(bun/'jb.sh'),bundle_files={},runtime={},selection_sha256='selection',
+            equality_sha256=sha(kh/'k/selection_equality.json'),run_key=key,tag='fixture',persistent_root=str(root/'runs'),partition='advanced')
+        mods={'i':types.SimpleNamespace(identity=lambda c:'identity',allocation_gpus=lambda *a:0),
+              'd':types.SimpleNamespace(contract=lambda *a:None,digest=lambda c:'contract'),
+              'a':types.SimpleNamespace(main=lambda k:None)}
+        original_execute=p.execute
+        def execute(args,script,log,verify):
+            physical=scratch/'p_fixture_12345'/('tmp/jjyeung/a_'+key+'/runs/'+key)
+            inputs=physical/'inputs';inputs.mkdir(parents=True,mode=0o700)
+            write(inputs/'l.json',dict(status='PASS',fixture=True))
+            checks=dict(disk_plan=dict(status='PASS' if plan(cfg['recipe'],cfg['checkpoint_disk_guard']['reserve_bytes'])==cfg['checkpoint_disk_guard'] else 'FAIL'),
+                routing_selection=dict(status='PASS' if cfg['s1_routing']['selection']['sha256']==authority['selection_sha256'] else 'FAIL'),
+                loader_audit=dict(status='PASS',pin={'sha256':sha(inputs/'l.json')}),
+                required_families=dict(status='PASS',absent_on_P=[]))
+            write(inputs/'a.json',dict(original_config_identity='identity',checks=checks))
+            return original_execute([sys.executable,'-c','pass'],script,log,lambda:{'prepared_seals':{'fixture':True}})
+        cwd=Path.cwd();path=list(sys.path);handlers={sig:signal.getsignal(sig) for sig in (signal.SIGTERM,signal.SIGINT,signal.SIGUSR1)}
+        try:
+            with contextlib.ExitStack() as stack:
+                stack.enter_context(patch.dict(os.environ,dict(SLURM_JOB_ID='12345',SLURM_JOB_NAME=authority['job_name'],SLURM_JOB_PARTITION='advanced',SLURM_GPUS_ON_NODE='0')))
+                stack.enter_context(patch.dict(sys.modules,mods))
+                stack.enter_context(contextlib.redirect_stdout(io.StringIO()))
+                stack.enter_context(patch.object(p,'Path',lambda value: scratch if str(value)=='/tmp/jjyeung' else Path(value)))
+                stack.enter_context(patch.object(p,'kit_bwrap',return_value=sys.executable))
+                stack.enter_context(patch.object(p,'namespace_probe',return_value=''))
+                stack.enter_context(patch.object(p,'program',return_value='fixture'))
+                stack.enter_context(patch.object(p,'command',side_effect=lambda bw,kh,w,rs:['--bind',str(w/'tmp'),'/tmp','--bind',str(kh/'o'),str(kh/'o')]))
+                stack.enter_context(patch.object(p,'execute',side_effect=execute))
+                paths=stack.enter_context(patch.object(p,'temporary_paths',wraps=p.temporary_paths))
+                self.assertEqual(p.main(authority),0)
+                paths.assert_called_once()
+            receipt=load(kh/'o/12345.proof.json')
+            required={'disk_plan','routing_selection','empty_root','temporary_paths','runtime_binaries','directory_modes','loader_audit','required_families'}
+            self.assertEqual(set(receipt['checks']),required)
+            self.assertEqual({v['status'] for v in receipt['checks'].values()},{'PASS'})
+            self.assertEqual(receipt['status'],'PASS');self.assertFalse(receipt['production_authorized'])
+            self.assertTrue(receipt['checks']['temporary_paths']['writable_mounts'])
+            self.assertTrue(receipt['checks']['runtime_binaries']['binaries'])
+            self.assertEqual(receipt['checks']['directory_modes']['bad'],[])
+        finally:
+            os.chdir(cwd);sys.path[:]=path
+            for sig,handler in handlers.items():signal.signal(sig,handler)
 
     def test_final_wrapper_and_export_destinations_are_bound(self):
         cfg=load(ROOT/'out/config.json');binding=load(ROOT/'out/BINDING.json')
@@ -210,5 +330,207 @@ class Proof(unittest.TestCase):
         subprocess.run(['bash','-c',helper+'\ntk_readonly_files "$1"','test',str(tree)],check=True)
         self.assertEqual(stat.S_IMODE(nested.stat().st_mode),0o700)
         self.assertEqual((nested/'file').stat().st_mode&0o222,0)
+
+class VehicleP(unittest.TestCase):
+    def test_absences_and_missing_required_family(self):
+        from student_pilot.vehicle_p import required_families,ROUTING
+        cfg=load(ROOT/'configs/r1p.json');a=load(ROOT/'out/proof/loader_audit.json')
+        a['eligible_by_family']['vqa']['room']=431
+        a['tables']['vqa']['room']['final_cents']=cfg['type_mix']['streams']['vqa']['cells']['room']['cents']
+        a['eligible_by_family']['routing']={n:20000 for n in ROUTING}
+        a['tables']['routing']={n:dict(final_cents=c['cents']) for n,c in cfg['type_mix']['streams']['routing']['cells'].items()}
+        gate=required_families(cfg,a)
+        self.assertEqual(gate['status'],'PASS')
+        self.assertEqual({x['family'] for x in gate['absent_on_P']},{'recovery','size','units'} | ({'room'} if not cfg['type_mix']['streams']['vqa']['cells']['room']['cents'] else set()))
+        self.assertTrue(all(x['reason'] for x in gate['absent_on_P']))
+        self.assertNotIn('units',gate['required']['routing'])
+        a['eligible_by_family']['routing']['absolute_distance']=0
+        gate=required_families(cfg,a);self.assertEqual(gate['status'],'FAIL')
+        self.assertIn('routing/absolute_distance',gate['missing'])
+        a['eligible_by_family']['vqa']['direction']=0
+        self.assertIn('vqa/direction',required_families(cfg,a)['missing'])
+
+    def test_fallback_filter_and_deployed_diff_baseline(self):
+        import sqlite3
+        from rebind import diff,H
+        cfg=load(ROOT/'configs/r1p.json')
+        self.assertEqual(load(ROOT/'configs/diff_against_h1_1.json'),diff(load(H/'build/fx/k/d12ae795.json'),cfg))
+        self.assertEqual((ROOT/'configs/diff_against_h1_1.json').read_bytes(),(ROOT/'configs/diff_against_deployed.json').read_bytes())
+        root=temp();db=root/'v.db';conn=sqlite3.connect(db)
+        conn.execute('CREATE TABLE rows(i INTEGER PRIMARY KEY,row TEXT,target TEXT)')
+        for i,qid in enumerate(('original','reworded_away_opp')):
+            row=dict(qid=qid,question_type='object_rel_direction_hard',facing='away',target='trace')
+            conn.execute('INSERT INTO rows VALUES(?,?,?)',(i,json.dumps(row),json.dumps('trace')))
+        conn.commit();conn.close();src=dict(database={'path':str(db),'sha256':sha(db)},count=2)
+        groups,_,_,excluded=m.populations('vqa',src,{'facing':{'cents':100}},exclude_qid_suffix='_away_opp')
+        self.assertEqual(groups['facing'],[0]);self.assertEqual(excluded,{'excluded_qid_suffix:_away_opp':1})
+        binding=load(ROOT/'out/BINDING.json');dest=root/'packet';dest.mkdir(mode=0o700)
+        (dest/'ADMISSION_BY_TYPE.json').write_bytes((ROOT/'out/ADMISSION_BY_TYPE.json').read_bytes())
+        command=[sys.executable,'-B',str(ROOT/'tools/rebind.py'),'--receipt',binding['source_receipt']['path'],
+            '--receipt-sha256',binding['receipt_sha256'],'--database',binding['database']['path'],
+            '--orchard-store',binding['orchard_store'],'--room-cents','0','--exclude-qid-suffix','_away_opp',
+            '--reuse-census','--skip-audit','--out',str(dest)]
+        result=subprocess.run(command,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+        (root/'rebind.log').write_text(result.stdout);self.assertEqual(result.returncode,0,result.stdout[-2000:])
+        rebound=load(dest/'config.json');cells=rebound['type_mix']['streams']['vqa']['cells']
+        self.assertEqual(cells['room']['cents'],0);self.assertEqual(cells['direction']['cents'],3289)
+        self.assertEqual(rebound['type_mix']['exclude_qid_suffix'],'_away_opp')
+        self.assertEqual(load(dest/'BINDING.json')['database_sha256'],binding['database_sha256'])
+        self.assertEqual(load(ROOT/'configs/r1p.json'),cfg)
+
+    def test_units_refused_when_unbound(self):
+        cfg=load(ROOT/'configs/r1p.json');mix=cfg['type_mix']
+        self.assertIsNone(mix['unit_rows']);self.assertEqual(mix['streams']['routing']['cells']['units']['cents'],0)
+        mix['streams']['routing']['cells']['units']['cents']=1
+        with self.assertRaisesRegex(ValueError,'unbound'):m.validate(mix,cfg['recipe'])
+        mix['streams']['routing']['cells']['units']['cents']=0
+        mix['streams']['routing']['refill'].append('units')
+        with self.assertRaisesRegex(ValueError,'unbound'):m.validate(mix,cfg['recipe'])
+
+    def test_unit_binding_native_regeneration_cap_and_threshold(self):
+        from unit_binding import build,regenerate,inspect_rows,NAME
+        from student_pilot import ground_rows,s1_pool
+        from student_pilot.vehicle_p import unit_name,required_families,ROUTING
+        import gzip,contextlib,io
+        root=temp();templates={}
+        # Test-only packing restores omitted fields in the diagnostic slice. Production binding never packs.
+        slices=Path('/scratch/jjyeung/orch_n30/tree_rebuild_w/work/rows_slices/slices_final/a0_units.jsonl')
+        with slices.open() as f:
+            for line in f:
+                raw=json.loads(line);record=dict(raw['ground_record'],suffix=raw['target'])
+                row={**raw,**ground_rows.pack(record,raw['provenance'])}
+                try:s1_pool.validate_source_row(row,'packed')
+                except ValueError:continue
+                unit=unit_name(row)
+                frames=[dict(path='/data2/k6tk/'+('a'*2)+'/'+('a'*64)+'.png',sha256='a'*64) for _ in range(32)]
+                row['student_input']=dict(frames=frames)
+                templates.setdefault(unit,row)
+                if len(templates)==3:break
+        # The supplied diagnostic slice has no admitted cm example. This synthetic
+        # metadata variant tests the cm counter only, not real cm conversion fidelity.
+        # Native admission still validates every unchanged answer/event envelope.
+        if 'cm' not in templates:
+            templates['cm']=copy.deepcopy(templates['ft'])
+            templates['cm']['ground_record']['unit']='centimeters'
+        self.assertEqual(set(templates),{'cm','ft','in'})
+        rows=[]
+        for unit,n in (('cm',100),('ft',100),('in',99)):
+            for i in range(n):
+                row=copy.deepcopy(templates[unit]);row['qid']=row['ground_record']['qid']='fixture_'+unit+'_'+str(i)
+                rows.append(row)
+        source=root/'faithful.jsonl';source.write_text(''.join(json.dumps(r,sort_keys=True)+'\n' for r in rows))
+        cfg=load(ROOT/'configs/r1p.json');parent=load(ROOT/'out/proof/selection/r.json')
+        manifest=load(ROOT/'work/records/pool_manifest.json');indices=Path('/scratch/jjyeung/orch_n30/cont_ops/work/h1/build/fx/k')
+        with contextlib.redirect_stdout(io.StringIO()):
+            candidate,binding=build(source,sha(source),parent,manifest,cfg['s1_routing']['catalog'],indices,root/'bound')
+            regenerated=regenerate(parent,binding,root/'bound',indices,cfg['s1_routing']['catalog'],root/'replay')
+        self.assertEqual(candidate,regenerated)
+        self.assertEqual(gzip.decompress((root/'bound/u.gz').read_bytes()),source.read_bytes())
+        self.assertEqual(candidate['sources'][NAME]['retained'],299)
+        self.assertEqual(binding['counts']['by_unit'],dict(cm=100,ft=100,**{'in':99}))
+        self.assertEqual(binding['counts']['missing_units'],['in'])
+        self.assertEqual(sum(binding['counts']['by_dataset'].values()),299)
+        policy=copy.deepcopy(cfg['type_mix']['streams']['routing']);policy['cells']['units']['cents']=287
+        _,table=m.allocate(policy,{**{n:20000 for n in ROUTING},'units':299},1000)
+        self.assertEqual(table['units']['final_cents'],119)
+        self.assertLessEqual(table['units']['final_cents']/100,4*299/1000)
+        cfg['type_mix']['unit_rows']=binding['source'];cfg['type_mix']['streams']['routing']['cells']['units']['cents']=119
+        a=load(ROOT/'out/proof/loader_audit.json');a['tables']['routing']=table
+        a['eligible_by_family']['vqa']['room']=431
+        a['tables']['vqa']['room']['final_cents']=cfg['type_mix']['streams']['vqa']['cells']['room']['cents']
+        a['eligible_by_family']['routing']={n:20000 for n in ROUTING};a['eligible_by_family']['routing']['units']=299
+        a['unit_counts']=binding['counts']
+        self.assertEqual(required_families(cfg,a)['missing_units'],['in']);self.assertEqual(required_families(cfg,a)['status'],'PASS')
+        self.assertIn(dict(family='units/in',eligible=99,reason='Fewer than 100 eligible rows.'),required_families(cfg,a)['absent_on_P'])
+        a['unit_counts']['by_unit']['in']=100
+        self.assertEqual(required_families(cfg,a)['status'],'PASS')
+        packet=root/'packet';packet.mkdir(mode=0o700)
+        (packet/'ADMISSION_BY_TYPE.json').write_bytes((ROOT/'out/ADMISSION_BY_TYPE.json').read_bytes())
+        current=load(ROOT/'out/BINDING.json')
+        command=[sys.executable,'-B',str(ROOT/'tools/rebind.py'),'--receipt',current['source_receipt']['path'],
+            '--receipt-sha256',current['receipt_sha256'],'--database',current['database']['path'],
+            '--orchard-store',current['orchard_store'],'--unit-rows',str(source),'--unit-rows-sha256',sha(source),
+            '--reuse-census','--skip-audit','--out',str(packet)]
+        result=subprocess.run(command,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+        (root/'rebind.log').write_text(result.stdout);self.assertEqual(result.returncode,0,result.stdout[-2000:])
+        bound=load(packet/'BINDING.json');policy=load(packet/'config.json')['type_mix']
+        self.assertEqual(policy['units_allowlist'],['ft']);self.assertEqual(bound['unit_binding']['sampling_eligible'],100)
+        self.assertEqual(policy['streams']['routing']['cells']['units']['cents'],40)
+        self.assertEqual(sum(v['cents'] for v in policy['streams']['routing']['cells'].values()),6400)
+        weights={n:load(ROOT/'configs/mix.json')['streams']['routing']['cells'][n]['cents'] for n in ROUTING}
+        for name in ROUTING:self.assertLess(abs(policy['streams']['routing']['cells'][name]['cents']-6360*weights[name]/6400),1)
+        with self.assertRaisesRegex(ValueError,'SHA differs'):build(source,'0'*64,parent,manifest,cfg['s1_routing']['catalog'],indices,root/'badsha')
+        bad=copy.deepcopy(rows[0]);bad['answer']='0.00'
+        with self.assertRaises(ValueError):inspect_rows(json.dumps(bad).encode())
+        bad=copy.deepcopy(rows[0]);bad.pop('events')
+        with self.assertRaises((KeyError,ValueError)):inspect_rows(json.dumps(bad).encode())
+        bad=copy.deepcopy(rows[0]);bad['student_input']['frames']=[]
+        with self.assertRaisesRegex(ValueError,'frame pins'):inspect_rows(json.dumps(bad).encode())
+
+    def test_real_unit_slice_rebind_refuses_unpacked_input_without_mutation(self):
+        source=Path('/scratch/jjyeung/orch_n30/rows_r1/out/units_p_slice_v2/rows.jsonl')
+        root=temp();fixture=root/'rows.jsonl';fixture.write_bytes(source.read_bytes());before=sha(source)
+        from student_pilot.vehicle_p import unit_name
+        rows=[json.loads(line) for line in fixture.read_text().splitlines()]
+        self.assertEqual(Counter(unit_name(row) for row in rows),{'ft':1130,'in':94})
+        binding=load(ROOT/'out/BINDING.json');dest=root/'packet';dest.mkdir(mode=0o700)
+        (dest/'ADMISSION_BY_TYPE.json').write_bytes((ROOT/'out/ADMISSION_BY_TYPE.json').read_bytes())
+        command=[sys.executable,'-B',str(ROOT/'tools/rebind.py'),'--receipt',binding['source_receipt']['path'],
+            '--receipt-sha256',binding['receipt_sha256'],'--database',binding['database']['path'],
+            '--orchard-store',binding['orchard_store'],'--unit-rows',str(fixture),'--unit-rows-sha256',sha(fixture),
+            '--units-allowlist','ft','--unit-cents','100','--reuse-census','--skip-audit','--out',str(dest)]
+        result=subprocess.run(command,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+        (root/'rebind.log').write_text(result.stdout)
+        self.assertNotEqual(result.returncode,0);self.assertIn("Unit rows require top-level events",result.stdout)
+        self.assertFalse((dest/'BINDING.json').exists())
+        self.assertEqual(sha(source),before);self.assertEqual(sha(fixture),before)
+        self.assertIsNone(load(ROOT/'out/BINDING.json')['unit_binding'])
+        write(ROOT/'out/proof/UNIT_CANDIDATE.json',dict(status='REFUSED_UNBOUND',source={'path':str(source),'sha256':before},fixture={'path':str(fixture),'sha256':sha(fixture)},counts={'ft':1130,'in':94,'cm':0},command=command,returncode=result.returncode,reason='Missing top-level events and all 32 frame pins',log={'path':str(root/'rebind.log'),'sha256':sha(root/'rebind.log')},production_bound=False))
+
+    def test_unit_allowlist_populations_cap_and_named_absences(self):
+        import sqlite3
+        from student_pilot.loader_audit import unit_counts
+        from student_pilot.vehicle_p import required_families,ROUTING
+        root=temp();db=root/'u.db';conn=sqlite3.connect(db)
+        conn.execute('CREATE TABLE rows(i INTEGER PRIMARY KEY,row TEXT,target TEXT)')
+        i=0
+        for unit,count in [('ft',1130),('in',94)]:
+            for j in range(count):
+                row=dict(qid=unit+str(j),question_type='object_abs_distance',target='trace',ground_record={'unit':unit},s1_source={'source':{'sha256':'a'*64}})
+                conn.execute('INSERT INTO rows VALUES(?,?,?)',(i,json.dumps(row),json.dumps('trace')));i+=1
+        conn.commit();conn.close();source=dict(database={'path':str(db),'sha256':sha(db)},count=i)
+        groups,_,traces,excluded=m.populations('routing',source,{'units':{'cents':100}},unit_rows={'sha256':'a'*64},units_allowlist=['ft'])
+        self.assertEqual(len(groups['units']),1130);self.assertEqual(excluded['excluded_unit:in'],94)
+        self.assertTrue(all(r['qid'].startswith('ft') for r in traces['units']))
+        counts=unit_counts(source,['ft']);self.assertEqual(counts['sampling_eligible'],1130)
+        cfg=load(ROOT/'configs/r1p.json');cfg['type_mix']['unit_rows']={'path':'fixture','sha256':'a'*64}
+        cfg['type_mix']['streams']['routing']['cells']['units']['cents']=100
+        a=load(ROOT/'out/proof/loader_audit.json');a['unit_counts']=counts
+        a['eligible_by_family']['vqa']['room']=431;a['tables']['vqa']['room']['final_cents']=cfg['type_mix']['streams']['vqa']['cells']['room']['cents']
+        a['eligible_by_family']['routing']={**{n:20000 for n in ROUTING},'units':1130}
+        a['tables']['routing']={'units':{'final_cents':100}}
+        gate=required_families(cfg,a);self.assertEqual(gate['status'],'PASS')
+        missing={r['family']:r.get('eligible') for r in gate['absent_on_P']}
+        self.assertEqual(missing['units/cm'],0);self.assertEqual(missing['units/in'],94)
+        self.assertNotIn('units/ft',missing)
+        _,table=m.allocate({'cells':{'units':{'cents':100}},'refill':[]},{'units':1130},1000)
+        self.assertEqual(table['units']['final_cents'],100)
+        self.assertEqual(table['units']['cap_cents'],452)
+
+    def test_partition_parameter_and_cpu_resources(self):
+        from unittest.mock import patch
+        spec=importlib.util.spec_from_file_location('partition_proof',ROOT/'out/proof/p.py')
+        proof=importlib.util.module_from_spec(spec);spec.loader.exec_module(proof)
+        for partition in ('advanced','general'):
+            with patch.dict(os.environ,dict(SLURM_JOB_PARTITION=partition,SLURMD_NODENAME='fixture-node',CUDA_VISIBLE_DEVICES='',SLURM_GPUS_ON_NODE='0')):
+                self.assertEqual(proof.proof_allocation({'partition':partition}),dict(partition=partition,node='fixture-node'))
+                with self.assertRaisesRegex(ValueError,'partition differs'):proof.proof_allocation({'partition':'other'})
+            root=temp();(root/'proof').mkdir();write(root/'BINDING.json',load(ROOT/'out/BINDING.json'))
+            subprocess.run([sys.executable,'-B',str(ROOT/'tools/make_proof.py'),'--out',str(root),'--partition',partition],check=True,stdout=subprocess.DEVNULL)
+            script=(root/'proof'/('p_'+load(ROOT/'out/BINDING.json')['run_key']+'.sh')).read_text()
+            self.assertIn('-p '+partition,script);self.assertIn('-c 48 --mem=800G -t 04:00:00',script)
+            self.assertNotIn('--gres',script);self.assertIn('CUDA_VISIBLE_DEVICES',script)
+        with patch.dict(os.environ,dict(SLURM_JOB_PARTITION='advanced',CUDA_VISIBLE_DEVICES='0')):
+            with self.assertRaisesRegex(ValueError,'CPU-only'):proof.proof_allocation({'partition':'advanced'})
 
 if __name__=='__main__':unittest.main(verbosity=2)

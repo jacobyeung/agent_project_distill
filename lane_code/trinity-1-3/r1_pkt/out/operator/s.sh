@@ -10,8 +10,8 @@ private_dir() {
     }
 }
 private_dir "$O"
-BUN=/project/community/jjyeung/okh7/i_17eb48c6
-KH=/project/community/jjyeung/okh7/x_17eb48c6
+BUN=/project/community/jjyeung/okh7/i_1130b378
+KH=/project/community/jjyeung/okh7/x_1130b378
 private_dir "$BUN"
 private_dir "$KH"
 cd "$BUN"
@@ -34,9 +34,9 @@ assert proof.get('wrapper_sha256')==go['wrapper_sha256'] and proof.get('cuda_vis
 assert proof.get('effective_config_verified') is True and proof.get('first_batch_executed') is False
 assert proof.get('training_executed') is False and proof.get('admission_result', dict()).get('status')=='PREPARED'
 assert proof.get('prepared_seals') and proof.get('real_job_reuse') is False
-for name in ('disk_plan','routing_selection','empty_root','temporary_paths','runtime_binaries','private_directories','loader_audit','required_families'):
+for name in ('disk_plan','routing_selection','empty_root','temporary_paths','runtime_binaries','directory_modes','loader_audit','required_families'):
  assert proof.get('checks',{}).get(name,{}).get('status')=='PASS', name
 
 sys.path.insert(0,str(k/'b'));import a;a.main(k)
 P
-TZ=UTC env -u TK_JOB_START sbatch -J a15_cot_ap31e9f783 -o /dev/null -e "$KH/o/%j.err"   -A mt01 -p advanced -N1 --ntasks=1 --gres=gpu:4 -c 48 --mem=800G -t 13:00:00 --signal=B:USR1@3600 --no-requeue "$BUN/jb.sh"
+TZ=UTC env -u TK_JOB_START sbatch -J a15_cot_ap125c4c87 -o /dev/null -e "$KH/o/%j.err"   -A mt01 -p advanced -N1 --ntasks=1 --gres=gpu:4 -c 48 --mem=800G -t 13:00:00 --signal=B:USR1@3600 --no-requeue "$BUN/jb.sh"

@@ -49,6 +49,21 @@ def rehearsal(config):
   assert args[args.index('--types')+1]==ORDER[t]
   assert json.loads(Path(args[args.index('--settings')+1]).read_text())['stage1_select_rule']==RULES[i]
   result.append(dict(read=i,type=t,args=args,expected=COUNTS[t]))
+ # Exercise each selected rule through the real tower socket with stub weights.
+ from unittest.mock import patch
+ from types import SimpleNamespace
+ import torch
+ from e2e_reader import stage1,real
+ for rule in RULES:
+  made=[]
+  def init(obj,detect,head,geometry,rule='null_argmax'):
+   obj.rule=rule;obj.head=head;obj.diagnostics={};made.append(obj)
+  head=SimpleNamespace(with_null=lambda *a:torch.tensor([1.,2.,100.]))
+  with patch.object(stage1.StageOne,'__init__',init),patch.object(real,'TowerG3T',return_value=None),patch('e2e_reader.geometry.frame_count',return_value=32):
+   value=real.real_perception(None,device='cpu',sam3_tower=object(),selector_head=head,stage1_select_rule=rule)
+   value.socket(None,None)
+  assert made[0].rule==rule
+  assert made[0].select(dict(x=torch.zeros(2,58),name='x'))==(-1 if rule==RULES[0] else 1)
  return result
 
 def run(config,end,cards,runner=None,clock=time.time):

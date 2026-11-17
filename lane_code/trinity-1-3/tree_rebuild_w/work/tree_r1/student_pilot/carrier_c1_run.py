@@ -38,6 +38,8 @@ from . import rehearsal
 def identity(cfg):
     value = {k: v for k, v in cfg.items() if k not in
              ('preparation', 'admission', 'authorization', 'milestone_gate')}
+    if 'r1_training' in value:
+        value['r1_training'] = {k:v for k,v in value['r1_training'].items() if k not in ('host_receipt','review')}
     if value.get('contract_epoch', True):
         from trace_format.contracts import heading_plane_min, HEADING_PLANE_MIN_DEFAULT
         value['heading_plane_min'] = heading_plane_min(value.get('heading_plane_min', HEADING_PLANE_MIN_DEFAULT))
@@ -65,6 +67,9 @@ POSE_ONLY_RECEIPT_KEYS = ('init_artifact', 'row_start_step')
 
 
 def validate(cfg):
+    if 'r1_training' in cfg:
+        from .r1_training import validate as validate_r1
+        validate_r1(cfg)
     if 'b7_inputs' in cfg:
         from .b7_inputs import validate as validate_inputs
         validate_inputs(cfg['b7_inputs'], 'a2' if cfg.get('geometry_connector')=='gf1' else 'a0')
@@ -150,7 +155,8 @@ def validate(cfg):
         if cfg.get('training_mode') == 'pose_only' and cfg['init_artifact']['heads'] != ['pose']:
             raise ValueError('Pose-only init_artifact needs the pose head only')
     overrides = cfg.get('camera_overrides', {})
-    if (not isinstance(overrides, dict) or set(overrides) - {'weight_focal'}
+    permitted_overrides = {'weight_focal', 'weight_scale'} if cfg.get('r1_training') else {'weight_focal'}
+    if (not isinstance(overrides, dict) or set(overrides) - permitted_overrides
             or any(type(v) not in (int, float) or not v >= 0 for v in overrides.values())):
         raise ValueError('camera_overrides may set nonnegative weight_focal only')
     if 'gate_stop' in cfg and type(cfg['gate_stop']) is not bool:
@@ -626,8 +632,8 @@ def prepare(cfg):
                   depth_enabled=cfg.get('depth_enabled', True), recipe=cfg['recipe'])
     result.update({k: cfg[k] for k in ('frame_layout', 'frame_pair_gap_seconds', 'skip_unsupervised_lm',
                                        'depth_fov_source', 'depth_init', 'exclusions', 'report_exclusions',
-                                       'tool_mode_flag', 'ground_target_filter', 's1_route_policy', 'h1', 'b7_inputs', 'frame_count', 'max_pixels', 'min_pixels', 'frame_markers', 'r2_membership',
-                                       'routing_opener_init', 'routing_vocabulary', 'r2_identity') if k in cfg})
+                                       'tool_mode_flag', 'ground_target_filter', 's1_route_policy', 'h1', 'b7_inputs', 'r1_training', 'frame_count', 'max_pixels', 'min_pixels', 'frame_markers', 'r2_membership',
+                                       'routing_opener_init', 'routing_vocabulary', 'r2_identity', 'r2_sampling') if k in cfg})
     if 'mdg' in cfg:
         result['mdg'] = cfg['mdg']
     if 'validation' in cfg:
@@ -662,6 +668,10 @@ def prepared(cfg, admission=False):
     validate(cfg)
     commit = authenticate(cfg)
     receipt = load(pinned(cfg['preparation']))
+    if receipt.get('r1_training') != cfg.get('r1_training'):
+        raise ValueError('Preparation R1 inputs differ')
+    if 'r1_training' in cfg and receipt.get('r2_sampling') != cfg.get('r2_sampling'):
+        raise ValueError('Preparation R1 sampler differs')
     if 'b7_inputs' in cfg:
         from .b7_inputs import layout
         if receipt.get('b7_inputs') != cfg['b7_inputs'] or layout(receipt['b7_inputs']) != layout(cfg['b7_inputs']):
@@ -803,6 +813,7 @@ def load_model(manifest, receipt, processor, verify_assets=True, evaluation=Fals
                           image_mean=processor.video_processor.image_mean, image_std=processor.video_processor.image_std))
                          if receipt.get('geometry_online') else {}))
     from .trace_version import bind
+    model.r1_training = receipt.get('r1_training')
     bind(model, receipt, {'trace_program_version': receipt.get('trace_program_version', '3.13')})
     if receipt['training_mode'] == 'final':
         init = receipt.get('init_artifact')
@@ -960,6 +971,9 @@ def init_from_artifact(model, spec, verify=True, part='heads', evaluation=False)
     live = model.auxiliary_heads.state_dict()
     wanted = {k for k in live if keep(k)}
     selected = {k: v for k, v in state.items() if keep(k)}
+    from .r1_training import scale_init
+    scale_missing = scale_init(live, selected, enabled=bool(getattr(model, 'r1_training', None)) and not evaluation)
+    wanted -= scale_missing
     # A pose_only donor (C1-a, C1-r) trained with zero gravity and scale weights, so it never built
     # those branches; the final-mode head has them, and they keep their planned init.
     optional = (('pose.head.gravity_branch.', 'pose.head.scale_branch.', 'pose.head.scale_token')
@@ -972,7 +986,7 @@ def init_from_artifact(model, spec, verify=True, part='heads', evaluation=False)
     absent = {k for k in wanted - set(selected) if optional and k.startswith(optional)}
     wanted -= absent
     report['projector'] = 'planned_init' if fresh else 'loaded'
-    report['planned_init'] = sorted(absent | {k for k in live if k.startswith('patch_fusion.') and k not in selected})
+    report['planned_init'] = sorted(absent | scale_missing | {k for k in live if k.startswith('patch_fusion.') and k not in selected})
     if set(selected) != wanted:
         raise ValueError(f'init heads differ: missing {sorted(wanted - set(selected))[:5]}, '
                          f'extra {sorted(set(selected) - wanted)[:5]}')
@@ -1034,6 +1048,7 @@ class Rows:
         self.processor = processor
         self.h1 = receipt.get('h1', {})
         self.b7_inputs = receipt.get('b7_inputs')
+        self.r1_training = receipt.get('r1_training')
         self.placement = receipt.get('carrier_placement', data.C1_A)
         self.receipt_pointing_weights = receipt.get('pointing_weights')
         self.tool_flag = receipt.get('tool_mode_flag')
@@ -1078,6 +1093,9 @@ class Rows:
         if row is None:
             raise ValueError('Missing planned C1 row')
         value = json.loads(row[0])
+        if self.r1_training:
+            from .r1_training import row_check
+            row_check(value, stream)
         if self.b7_inputs:
             from .r0_exclusion import reserve
             reserve().check(value, stream)
@@ -1204,9 +1222,9 @@ def processor_for_receipt(manifest, receipt):
         # Per-group `Frame k: ` markers (config switch, off by default); every encode path reads it.
         processor.tokenizer._c1_frame_markers = bool(receipt.get('frame_markers', False))
     processor.tokenizer._c1_frame_count = receipt.get('frame_count',32)
-    if receipt.get('b7_inputs'):
+    if receipt.get('b7_inputs') or receipt.get('r1_training'):
         from .b7_inputs import layout
-        processor._b7_layout = layout(receipt['b7_inputs'])
+        processor._b7_layout = layout(receipt.get('b7_inputs') or receipt)
     return processor
 
 
@@ -1361,6 +1379,8 @@ def fetch(rows, stream, index, model, tries=8, device=None, distributed=False):
         flag = torch.tensor([ok], dtype=torch.int32, device=device or 'cpu')
         if distributed:
             dist.all_reduce(flag, op=dist.ReduceOp.MIN)
+        if not flag.item() and getattr(model, 'r1_training', None):
+            raise ValueError('R1 row failure forbids substituting the pinned row plan')
         if not flag.item() and 'gf1' in (getattr(model, 'geometry_online', None) or {}):
             raise ValueError('GF1 row failure forbids substitution: ' + '; '.join(errors))
         if not flag.item():
@@ -2063,7 +2083,9 @@ def export(directory, wrapped, model, cfg, step, *, optimizer=None, disk_guard=N
         from .source_seal import binding
         sealed = binding(load(pinned(cfg['code'])), identity(cfg)) if cfg.get('code') else None
         training_seal = load(pinned(cfg['preparation'])).get('source_seal') if sealed is not None else None
+        from .r1_training import boundary as r1_boundary
         write(directory/'artifact.json',dict(**version_metadata,schema='carrier-c1-artifact-v1',step=step,
+            **({'r1_progress':r1_boundary(cfg,step)} if 'r1_training' in cfg else {}),
             **({ 'r2_identity': cfg['r2_identity'],
                  'routing_vocabulary': getattr(model, 'routing_vocabulary', None)} if cfg.get('r2_identity') else {}),
             **(dict(trained_groups=contract) if contract is not None else {}),
@@ -2272,6 +2294,8 @@ def run_steps(model, wrapped, optimizer, rows, counts, output, cfg, bound, devic
     if cfg.get('first_step_admission') not in (None, POLICY):
         raise ValueError('Unknown first-step admission policy')
     steps=start_step+(smoke_steps or (recipe['steps']-start_step))
+    if 'r1_training' in cfg and cfg['r1_training'].get('stop_after_step') is not None:
+        steps = min(steps, cfg['r1_training']['stop_after_step'])
     if start_step>=steps:
         raise ValueError('Completed C1 schedules cannot resume')
     timing = cfg.get('schedule', {})
@@ -2783,6 +2807,9 @@ def train(cfg, smoke_steps=None, resume_pin=None, export_binding=None):
     from .trace_version import metadata, bind
     version_metadata = metadata(cfg)
     validate(cfg)
+    if 'r1_training' in cfg:
+        from launch_r1.entry import admit as r1_admit
+        r1_admit(cfg)
     ignored_stops = []
     if cfg.get('geometry_online'):
         ignored_stops = gx_resume_verdicts(cfg['output'], cfg['geometry_online'].get('fail_fast'))
@@ -2868,6 +2895,9 @@ def train(cfg, smoke_steps=None, resume_pin=None, export_binding=None):
         resume_pin = pins[0]
     restore_options = dict(cfg=cfg) if cfg.get('geometry_online') and not export_only else {}
     start_step=restore(resume_pin,wrapped,optimizer,restore_bound, **restore_options) if resume_pin else 0
+    if not resume_pin and 'r1_training' in cfg:
+        from .r1_training import start as r1_start
+        start_step = r1_start(cfg)
     if start_step>=recipe_for(cfg)['steps'] and not export_only:
         raise ValueError('Completed C1 schedules cannot resume')
     if start_step>=400 and not smoke_steps and step400_gate_enabled(cfg):

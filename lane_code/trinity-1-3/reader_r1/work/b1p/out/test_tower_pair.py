@@ -29,4 +29,27 @@ class Fixture(unittest.TestCase):
   f=p/'items.jsonl';row=self.tower['a'];f.write_text(json.dumps(row)+'\n'+json.dumps(row)+'\n')
   with self.assertRaisesRegex(ValueError,'Duplicate'):T.load([f],self.items,'tower',T.RULES[0])
   with self.assertRaisesRegex(ValueError,'identity'):T.load([f],self.items,'tower',T.RULES[1])
+ def test_camera_bar_requires_complete_and_strict_lower_bound(self):
+  for item in self.items.values():item['question_type']='camera_displacement'
+  for group in (self.own,self.tower):
+   for r in group.values():r['type']='camera_displacement'
+  for r in self.own.values():r['output']['scores']['answer']=.95
+  x=T.analyse(self.own,{T.RULES[0]:self.tower,T.RULES[1]:{}},self.items,S,B)
+  self.assertFalse(x['rules'][T.RULES[0]]['by_type']['camera_displacement']['takeover_bar_met'])
+  for r in self.own.values():r['output']['scores']['answer']=.96
+  x=T.analyse(self.own,{T.RULES[0]:self.tower,T.RULES[1]:{}},self.items,S,B)
+  self.assertTrue(x['rules'][T.RULES[0]]['by_type']['camera_displacement']['takeover_bar_met'])
+  x=T.analyse(self.own,{T.RULES[0]:{'a':self.tower['a']},T.RULES[1]:{}},self.items,S,B)
+  self.assertIsNone(x['rules'][T.RULES[0]]['by_type']['camera_displacement']['takeover_bar_met'])
+ def test_repeated_call_errors_keep_their_responses(self):
+  self.tower['a']['output']['calls']['records']=[dict(family='gap',call='<gap a="x" b="y">',response='distance 5 m'),dict(family='gap',call='<gap a="x" b="y">',response='distance 7 m')]
+  x=T.analyse(self.own,{r:self.tower for r in T.RULES},self.items,S,B)
+  self.assertEqual([r['absolute_error_m'] for r in x['per_call_errors'][T.RULES[0]]],[5,3])
+ def test_empty_planned_read_lists_every_missing_key(self):
+  import tempfile
+  p=Path(tempfile.mkdtemp(prefix='empty_',dir=O/'tests'));(p/'metadata').mkdir()
+  (p/'metadata/IDENTITY.json').write_text(json.dumps(dict(read=1,reads=[{},dict(stage1_select_rule=T.RULES[1])])) )
+  rows,sources=T.load([p],self.items,'tower',T.RULES[1]);self.assertEqual(rows,{})
+  x=T.analyse(self.own,{T.RULES[0]:self.tower,T.RULES[1]:rows},self.items,S,B)
+  self.assertEqual(x['rules'][T.RULES[1]]['by_type'][T.DISTANCE]['missing_tower'],['a','b'])
 if __name__=='__main__':unittest.main(verbosity=2)
