@@ -1,0 +1,15 @@
+# Build 8 active state
+
+The diagnostic frozen pass is running in exec session 37582. It executes `final_pass.py`; its package suite was started sequentially by `packet_recovery.py`. Follow `FINAL_PASS.json`, `PACKET_RECOVERY.json`, and `monitor_status.py`. Never run another test harness concurrently: each harness compacts its own temporary products under `work/tmp`.
+
+The corrected packet passed all 202 tests (`proofs/packet/results.json`). The running archive has seal `3b5eac7320b63ecf2cbbb9f089b5a25c407cd0afcb0aa2ab187012fb082444a4` (`DELIVERY.json`). It is diagnostic because the working tree now includes a repaired preservation error message and stronger frame tests. The frozen copy remains unchanged.
+
+The working tree preserves the original “32 pinned” assertion by saying “32 pinned native frames or 64 pinned native frames.” `tests/test_r2_build8_frames.py` now checks malformed pose/FoV outputs, malformed preservation rows, both own-value readers at each supported frame count, and the faithful text’s return through the language-model forward. These additions have not run yet. Do not rerun `prepare_gap_cases.py`; its changes are already applied.
+
+After the current pass finishes, inspect its comparison and gaps. Diagnose any unexpected regressions or R2 failures. Then run `refreeze_after_repairs.py` through `RUN_PY.sh`. That script first checks the repaired frame tests and original single-image assertion. It refuses on a failing focused check, preserves the existing kits, stages empty kits A2 first, refreshes review evidence, and runs a new final pass. Base groups retain input-hash-bound receipts; the test runner retains its build-7 bytes. Do not bypass receipt mismatches.
+
+Before final publication, run `finish_gate.py`. It requires zero CPU statement gaps, zero R2 failures, and no regression other than the retained BF16 parity failure. Then run `verify_delivery.py`, `report8.py` (or its `report.py` wrapper), `final_status.py`, and `check_final_consistency.py`. Inspect the report and EAT results before ending the task. The report writes the requested Build 8 design-record section.
+
+The local stop attempt failed at socket creation (`proofs/stop_multirank/RESULT.codex_sandbox.json`). A separate lane receipt reached the first step but failed at signal forwarding (`RESULT.json`, `signal/run.log`). The driver now repairs the helper path, resets stale markers, supplies checkpoint binding, verifies checkpoint/export bytes and artifact reload, bounds threads and storage, and records per-check status. It has not been rerun here. `DRIVER_PINS.json` binds the prepared files. Lane runs `proofs/stop_multirank/RUN.sh` after build 8; do not count it as passed or retry it in this sandbox.
+
+All writes stay in this lane. No Git, network, GPU, SSH, other agent, or file-removal action is authorized. Use the prescribed CPU Python and `RUN_PY.sh`; preserve the temporary and scratch limits. The named production-input, BF16, portrait, faithful-identity, full-frame-reader and in-forward acceptance blockers remain explicit in `report8.py`.

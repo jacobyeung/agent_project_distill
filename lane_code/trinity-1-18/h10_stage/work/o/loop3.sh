@@ -1,0 +1,1 @@
+for i in $(seq 1 14); do sleep 600; timeout 150 bash /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/tools/ossh.sh 'bash -s' < q3.sh >> q3.hist 2>&1; grep -q "EXIT.json" <(tail -12 q3.hist) && break; done

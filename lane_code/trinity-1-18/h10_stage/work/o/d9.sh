@@ -1,0 +1,3 @@
+export TZ=UTC; date -u +%FT%TZ
+R=/tmp/a170694b01ec87a6f29b/sj/b01ec87a6f29b/r
+timeout 60 srun --jobid=170694 --overlap -n1 -c1 --mem=1G --gres=gpu:1 bash -c "P=\$(pgrep -f 'boot.py -B -I 5.py' | while read p; do [ \"\$(cat /proc/\$p/comm)\" = python ] && echo \$p; done | head -1); echo P=\$P; grep -E 'VmRSS|VmHWM' /proc/\$P/status; a=\$(awk '{print \$14}' /proc/\$P/stat); sleep 5; b=\$(awk '{print \$14}' /proc/\$P/stat); echo utime_5s=\$((b-a)); for i in 1 2 3; do nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader; sleep 1; done; wc -c $R/logs/40.log; grep -v -i 'warn\|fallback\|pkg_resources\|^ *import\|deprecat' $R/logs/40.log | tail -5 | cut -c1-300; cat $R/metadata/journals/4/0/progress.json 2>/dev/null | head -c 300" 2>&1 | tail -16

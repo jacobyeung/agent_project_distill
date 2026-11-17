@@ -48,6 +48,7 @@ def rank(root,case):
   receipt=json.loads((P/'data/receipt.json').read_text());rows=R.Rows(receipt,TinyProcessor())
   cfg=dict(training_mode='pose_only',base_identity='tiny-local-boundary',trace_program_version='3.13',
     steps=4,milestones=[2,4],schedule=dict(startup_seconds=1,p95_step_seconds=1,checkpoint_seconds=1,export_seconds=1),
+    checkpoint_disk_guard=dict(reserve_bytes=85*1024**3),
     recipe=dict(export_at_stop=True),stop_after_step=1 if case=='fallback' else None)
   # Pose-only recipe keeps its native logical batch. This proof checks stop
   # synchronization on two transport ranks, not production batch equivalence.
@@ -127,6 +128,8 @@ def setup():
   boundary=['tiny randomly initialized native LM and pose heads','tiny pretrained tokenizer/processor; native RGB encoding and SQLite readers'],
   functions=['carrier_c1_run.run_steps','carrier_c1_run.checkpoint','carrier_c1_run.export','carrier_c1_run.load_artifact','launch_s1/b/h.forward','launch_s1/b/i.relay']))
 def driver():
+ space=os.statvfs('/scratch')
+ if space.f_bavail*space.f_frsize<85*1024**3:raise SystemExit('Scratch reserve below the build limit; no proof outputs written')
  P.mkdir(parents=True,exist_ok=True);result=dict(status='FAIL',checks={key:False for key in ('step_one','signal_forwarding','signal_boundary','signal_export','signal_checkpoint','signal_reload','fallback_boundary','fallback_export','fallback_checkpoint','fallback_reload')},end_slots=[],elapsed_seconds=None)
  start=time.monotonic();result['temporary_sizes']=[]
  try:

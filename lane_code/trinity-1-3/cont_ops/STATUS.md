@@ -1,6 +1,10 @@
-# cont_ops STATUS (trinity-1-3; owner cont_ops9 since 23:27Z (cont_ops8 rotated); successor: read this, then the newest *_ORCH_* and RESULT events)
+# cont_ops STATUS (trinity-1-3; owner cont_ops10 since 07:43Z (cont_ops9 stopped); successor: read this, then the newest *_ORCH_* and RESULT events)
 
 ## NOW (23:22Z): H1-1 pre-staged on Orchard through step 7 (certified); waiting for main's GPU return to mint sessions, GO, submit. h1read kit fixed + gated (assets not uploaded). Below is the 20:05Z picture: D0 ended; no Orchard job of ours; main holds Orchard GPUs (ORDER 1844Z: submit nothing). Owed: H1-1 review verdict handling (RESULT 1957Z asked ORCH for the review), then H1-1 Orchard steps per work/h1/REPORT.md when main returns GPUs. No tmux of mine runs (cont7_watch, cont7_codex_h1b ended). Sections below 'cont_ops7 now' are history for evidence lookup; the ORCH blocks above them are the orders in force (1844Z supersedes 1842Z item 2; 1416Z withdraws the m400 ReVSI read; m400 stop-rule read cancelled).
+
+## cont_ops10 now (newest first)
+- 07:59Z: 170710 PENDING (Resources), Slurm est. start 08:28:17Z; advanced 5 nodes mix. tmux cont10_watch = loop5.sh (60 cycles of cyc5.sh, ~4 min each; latest cyc5_last.txt, history m1_hist.txt).
+- 07:44Z: proof 170669 PASS (rc 0, receipt work/h1orch/pr5.out). H1-1 SUBMITTED = Orchard 170710 (advanced, a15_cot_ap5ee9da63; go.json written; L3c_submit.sh/L3c.out). RESULT h1_1_submitted_170710 sent, ledger line added. Babysit: work/h1orch/cyc5.sh (m5.sh, J=170710, ~4 min per ossh call, 30 s internal polls); history m1_hist.txt. KH x_3fdda0fb/o/170710.{w.steps,steps,err}. Owed: RESULT at start + first steps + each export (m100, m200); then h1read reads + D0 control reads on general (after H1-0 170706, owned by h10_stage).
 
 ## cont_ops9 now (newest first)
 - 05:14Z: 8c DONE (REVIEW8c.md/FIX8c.md; proof 3814df67; my rerun fix8/8c tests rc 0, old 8b-patch test fails only on superseded sums, expected). Patch okh7/t_8c.sh applied; PROOF 170669 RUNNING since 05:09Z on community-0 (staging verified 05:10:50Z, stage prep, joins). Monitor work/h1orch/cyc4.sh (m4.sh, J=170669). On PASS: `PROOF_JOB=170669` + work/h1orch/L3b_submit.sh via ossh (writes go.json from template, manifest 661ccd85, runs s.sh) -> H1-1 job id RESULT + ledger; then 1-min babysit of H1-1 (KH x_3fdda0fb/o/<job>.err/.w.steps/.steps).

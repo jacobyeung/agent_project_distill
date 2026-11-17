@@ -30,7 +30,7 @@ if state['step']=='package' and state['status']=='running':
      if lines:result['current_log']=lines[-1]
     result['source']=str((folder/group/'progress.json').relative_to(L))
     break
-elif state['step']=='targeted' and state['status']=='running':
+elif state['step'] in ('targeted','supplemental') and state['status']=='running':
  folder=B/'proofs/final_targeted'
  result.update(read(folder/'progress.json',{}))
  for event in ('errors','failures'):
