@@ -13,7 +13,6 @@ names=set(json.loads((OUT/'production/9.json').read_text())['payload_pins'])-{'8
 names.add('orchard_h10/export_pins.py')
 builder.sources=lambda:{name:OUT/'src'/name for name in sorted(names)}
 # The production builder reads operator.py separately for its 8.py entry point.
-original_read=builder.K
 # Supply that single source under K without copying or refreshing any dependencies.
 (OUT/'orchard_h10').mkdir(exist_ok=True)
 (OUT/'orchard_h10/operator.py').write_bytes((OUT/'src/orchard_h10/operator.py').read_bytes())

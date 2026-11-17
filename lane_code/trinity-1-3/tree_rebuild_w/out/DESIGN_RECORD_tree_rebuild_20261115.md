@@ -110,3 +110,9 @@ The sealed tree is delivered for review; both kits remain GO=false. Input pins a
 ## Build 8
 
 The local fixtures, visible-frame dimensions and legacy direct-source admission are repaired and covered by native CPU proofs. Empty-think training rows refuse with a named error. The portrait audit records each transform without changing bound mask coordinates. BF16 cache parity, missing production inputs, faithful identity, multi-rank stop evidence and the in-forward reader work remain explicit blockers. Both kits remain GO=false. The sealed package, final suites, changed-statement coverage and acceptance findings are recorded in `out/BUILD8_REPORT.md` and `work/build8/FINAL_VERIFICATION.json`.
+
+## Build 9
+
+The status audit admits printed head failures while refusing model-authored status assertions. The faithful materializer preserves admitted answer envelopes, and genuine decision mismatches still refuse. Kit input checks require recovery rows and every requested conversion unit. The bounded census finds only simulated failure statuses; unit traces preserve printed-metre arithmetic. Full intake retains sealed eval-room refusals, so all-row full admission remains blocked. Production store, head and full-population unit bindings remain missing.
+
+The supplied lane stop proof is authenticated against unchanged exercised sources. Both kits remain GO=false. The complete outcomes, counts, source/package/kit hashes, coverage classes, EAT clauses, retained blockers and required independent admission review appear in `out/BUILD9_REPORT.md`. The local repair gate is `PASS` (`work/build9/LOCAL_REPAIR_GATE.json`).

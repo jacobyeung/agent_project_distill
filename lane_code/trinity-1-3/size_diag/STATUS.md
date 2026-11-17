@@ -1,0 +1,6 @@
+# size_diag STATUS (Devin Opus max, trinity-1-3) — DONE 15:20Z 2026-11-17
+- Verdict (b): trace form, labels correct; recommend no size rows in R1. RESULT events/size_diag/20261117T1520Z_RESULT_d0_size_loss_verdict_b.md.
+- Record: /data2/jjyeung/agent_project_data/distill_design/D0_SIZE_LOSS_DIAGNOSIS_20261117.md (sha256 prefix 5d113ae0 at copy; status line points to the mirror) + INDEX.md line appended.
+- Inputs: step-544 dev-S1 = evalx27/work/pull/x27/res/e193/merged/main/results/0/budget_2048.jsonl; D0 m100 = cont_ops/work/h1read/kit/build/af35386aa3e/fetched/x/main/a0/results/budget_2048/0/items_a0.jsonl; D0 m200 = cont_ops/work/d0/readk/kit/build/a4cadd8934b/fetched/x/main/a0/results/budget_2048/0/items_a0.jsonl; R0-dev m100/m200 = h1read builds af35386aa3e / ae470417b41 a7 family; sealed store c180e779 size rows from trinity-1-13 (work/sealed/sealed_size.jsonl.gz); v6 read-only.
+- Evidence: work/ (scripts q1_check.py, q2*.py, PER_ITEM_SIZE_DEVS1.csv, Q1_30ROWS.json, RATIO_PLOT.png, RECORD_DRAFT.md). Tar out/size_diag_work.tar sha256 3afdcd880df1f460c919a697fce1711fe6c238b974d3c5deb0d6f794c95f140d; mirror trinity-1-18:/scratch/jjyeung/n30_mirror/size_diag/size_diag_work.tar (sha equal).
+- Nothing in flight. No GPU, Orchard, Git or deletion. Open: independent review of the verdict (asked in the RESULT).

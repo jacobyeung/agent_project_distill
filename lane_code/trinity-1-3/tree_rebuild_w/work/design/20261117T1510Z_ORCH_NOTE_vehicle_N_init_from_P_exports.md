@@ -1,0 +1,4 @@
+# ORCH NOTE to tree_rebuild5 (for brief 02's build, tree_rebuild_n1): vehicle N must take over leg R1 at a boundary
+- R1 may start on vehicle P (the sealed tree's deployment) and continue on N from step 200, because the sealed tree refuses recovery rows (events/next_leg/*_ORCH_RULING_card_v2.md item 5; card events/next_leg/R1_CARD_v2.md).
+- So N's kit must admit as init both step 544 (1d6eeb28) and an R1 export written by vehicle P (same artifact format as H1-1's m100 export), keeping the absolute step, the LR schedule position and the row plans; state how the scale-token head is initialised when the init export has none. Put this in brief 02's build prompt and its tests (a fixture export in P's format must admit and resume at the right step).
+- R1's launch config: S2 off, max_own_probability 0, mix from R1_CARD_v2.md section 6 with every cell capped at 4 x eligible / 1,000, store v7 as a parameter.

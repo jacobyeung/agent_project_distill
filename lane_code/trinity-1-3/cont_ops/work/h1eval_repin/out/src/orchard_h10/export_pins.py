@@ -1,9 +1,9 @@
 """Authenticate the operator's export identity before staging any archives."""
+import hashlib
 import json
 from pathlib import Path
 import re
 
-from orchard_h10.common import sha
 
 MEMBERS = dict(artifact='artifact.json', heads='heads.pt',
                full_weights='full_weights/full_weights.json')
@@ -53,16 +53,18 @@ def load(inputs, package):
     if spec.get('path') != 'a/export.json':
         raise ValueError('Require a/export.json')
     path = Path(package)/spec['path']
-    if path.stat().st_size != spec['bytes'] or sha(path) != spec['sha256']:
+    raw = path.read_bytes()
+    if len(raw) != spec['bytes'] or hashlib.sha256(raw).hexdigest() != spec['sha256']:
         raise ValueError('Export pin file differs')
-    return validate(json.loads(path.read_text()))
+    return validate(json.loads(raw))
 
 
 def admit(inputs, cfg, export):
     root = Path(cfg['logical'])/'d'/export['member_directory']
     for name, member in MEMBERS.items():
         declared = inputs['files'][name]
-        if any(declared[key] != export[name][key] for key in ('sha256', 'bytes')):
+        if (type(declared.get('bytes')) is not int
+                or any(declared[key] != export[name][key] for key in ('sha256', 'bytes'))):
             raise ValueError('Export pin differs: '+name)
         if declared['path'] != str(root/member):
             raise ValueError('Export member path differs: '+name)

@@ -174,7 +174,7 @@ with tarfile.open(p/'0.tgz') as t:
             for n in sorted(old):report.write(f"- `{n}`: `{hashlib.sha256(old[n]).hexdigest()}` → `{pins['b/'+n]['sha256']}`.\n")
     mapping=K/'orchard_h10/TOKENS.json'
     old=json.loads(mapping.read_text()) if mapping.exists() else {}
-    old[token]=dict(package=str(destination.relative_to(K)),meaning='step-544 own dev-S1; registered modes; five ordered types')
+    old[token]=dict(package=str(destination.relative_to(K)),meaning='Pinned export; own dev-S1; registered modes and ordered types')
     write(mapping,old)
     return dict(directory=str(destination),token=token,code_bytes=len(raw),files=len(paths),plan=plan)
 

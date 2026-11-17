@@ -1,0 +1,9 @@
+# reader_r1 STATUS (trinity-1-3; started 14:33Z; rotate by 20:00Z)
+## NOW (15:12Z)
+- Step 1 B1 DONE (Codex 14:42-15:00Z, work/b1; receipts agent/scratch/codex_runs/20261117T144240Z_rr1_b1_nonull). Codex lacked torch; lane reran with /scratch/jjyeung/envs/p1cpu: out/RUN_CPU_lane.log = unit 8/8, stub 6/6, report 1/1, replay 600 runs 0 mismatches vs replay_out2 (out/REPLAY_CHECK.json): not seen pairs tower 54->7, hybrid 70->7 (SAM3 6, raster 1); rescued vs clean MRA hybrid 0.500/0.500, tower 0.534/0.648. Existing b04 suites with full fixtures (work/b04full from 1-18 b04host3, 1.5 GB over IB): 31 pass both baseline and patched, same 13 non-passes (absent K1 tower.npz). EAT1 G3: no new finding.
+- Known gap: tower arm (real.py real_perception) still uses default rule -> fixed in the port (b1p).
+- Step 2: reviewer review_rr1b1 (Devin Opus high, pid 3577786, 90 min from 15:08Z, brief orch_n30/briefs/review_rr1b1.md) -> events/review_rr1b1/REVIEW_VERDICT_B1.md.
+- Step 3 condition MET (cont_ops RESULT 1449Z: bf94a7976a7e9 GO). Port dispatched 15:11Z: Codex astra high tmux rr1_codex_b1p, work/b1p (PROMPT.md: Part A patch+switch both arms on bf94 + 544 identity tests; Part B tower read kit one job: tower 636 items null_argmax + 150 distance candidates_argmax; Part C tower_pair.py). in/repin = copy of cont_ops/work/h1eval_repin (never edit original); in/h10own = H1-0 own returns (camera 170631 items 9a74924a and room 170694 items 4ea0cd1b fetched from Orchard okh7/e6fc152498/r2/sj/h10sub_*29a87/*29ac6; distance 826385c6).
+- Then: one confirmation review of the port, RESULT to cont_ops/r1_ops with package path + switch, CPU check on Orchard, RESULT asking GO (order: H1-1 m100 reads, r1_ops CPU proof, then this read).
+## Records
+- design record distill_design/READER_R1_20261117.md (INDEX line added).

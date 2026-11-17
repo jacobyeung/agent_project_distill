@@ -7,6 +7,7 @@ import io
 import json
 from pathlib import Path
 import sys
+import subprocess
 import tarfile
 import tempfile
 import unittest
@@ -164,6 +165,44 @@ class Package(unittest.TestCase):
         self.assertEqual(cfg['base_identity'],'c202236235762e1c871ad0ccb60c8ee5ba337b9a')
         self.assertNotEqual(data['config'],read(root/'inputs/request.json')['config'])
 
+    def test_restore_structural_guards_are_unchanged(self):
+        def guards(path):
+            tree=ast.parse(path.read_text());result={}
+            for node in ast.walk(tree):
+                if not isinstance(node,ast.If):continue
+                for stmt in node.body:
+                    if (isinstance(stmt,ast.Raise) and isinstance(stmt.exc,ast.Call)
+                            and stmt.exc.args and isinstance(stmt.exc.args[0],ast.Constant)):
+                        result[stmt.exc.args[0].value]=ast.dump(node.test)
+            return result
+        old=guards(PROD/'b/parity_kit/stage_restore.py');new=guards(SRC/'b/parity_kit/stage_restore.py')
+        for message,condition in old.items():self.assertEqual(new[message],condition,message)
+        for name in ('original_assets','depth_shapes','prove_depth'):
+            def function(path):
+                node=next(n for n in ast.parse(path.read_text()).body if isinstance(n,ast.FunctionDef) and n.name==name)
+                return ast.dump(node)
+            self.assertEqual(function(PROD/'b/parity_kit/stage_restore.py'),function(SRC/'b/parity_kit/stage_restore.py'))
+
+    def test_worker_passes_the_authenticated_identity_path(self):
+        from orchard_h10.runner import control,worker_args
+        root=fresh();config=dict(package=str(SRC),output=str(root),export='e',binding='b',settings='s',
+                                export_pin='6.json')
+        control(config)
+        argv=worker_args(dict(config=config,type=0,index=0,cards=1,stop_at=1,finish_by=2))
+        self.assertEqual(argv[argv.index('--export-pin')+1],'6.json')
+        self.assertEqual(argv[argv.index('--types')+1],'camera_displacement')
+
+    def test_sealed_operator_loads_all_helpers(self):
+        code=('import sys;from pathlib import Path;sys.path.insert(0,sys.argv[1]);'
+              'from orchard_h10.operator import load_helpers;'
+              'cfg=load_helpers(Path(sys.argv[2]));'
+              'from orchard_h10.export_pins import validate;'
+              'assert cfg["logical"]=="/scratch/jjyeung/b01ec87a6f29b";'
+              'print(cfg["plan_sha256"])')
+        result=subprocess.run([sys.executable,'-B','-I','-c',code,str(SRC),str(OUT/'package')],
+                              check=True,capture_output=True,text=True)
+        self.assertEqual(result.stdout.strip(),self.cfg['plan_sha256'])
+
     def test_lineage_step_reach_journal_and_curve(self):
         from h1eval.h10 import launch
         from h1eval.cli import write_curve
@@ -216,7 +255,9 @@ class StreamingHelper(unittest.TestCase):
         full=dict(schema='full-ft-export-v1',dtype='bfloat16',files=[dict(name='w',**fill_export.pin(b'weight'))],
                   index=dict(name='i',**fill_export.pin(b'index')))
         files['m-any/full_weights/full_weights.json']=json.dumps(full).encode()
-        artifact=dict(heads=fill_export.pin(b'heads'),full_weights=fill_export.pin(files['m-any/full_weights/full_weights.json']))
+        artifact=dict(heads=fill_export.pin(b'heads'),full_weights=fill_export.pin(files['m-any/full_weights/full_weights.json']),
+                      config_sha256='84ea03af6049a179bf4a44619b1534fdcb528b5511544189236254b5d66842cb',
+                      base_identity='c202236235762e1c871ad0ccb60c8ee5ba337b9a',frame_layout='duplicate',geometry_online=False)
         files['m-any/artifact.json']=json.dumps(artifact).encode()
         stream=io.BytesIO()
         with tarfile.open(fileobj=stream,mode='w') as tar:
@@ -239,6 +280,26 @@ class StreamingHelper(unittest.TestCase):
         done.write_text(original)
         with self.assertRaises((ValueError,tarfile.TarError)):
             fill_export.scan(list(reversed(parts)),done,'q8/test.tar')
+
+    def test_helper_writes_pins_inputs_and_small_prep_archive(self):
+        parts,done=self.fixture();root=done.parent
+        base=PROD/'b/work/meta/x/fsw/ap/8865619b/runs/469ddece/inputs'
+        prep=base/'prepare_dd26bb95f37a43789206c6e4d4cd94bd'
+        argv=['fill_export.py','--parts',*map(str,parts),'--done',str(done),'--object','q8/test.tar',
+              '--config',str(prep/'config.json'),'--receipt',str(prep/'prepared/s1_receipt.json'),
+              '--data-receipt',str(base/'data_receipt.json'),'--lineage','SFT','--step','100',
+              '--out',str(root/'export.json'),'--prep-tar',str(root/'prep.tar'),
+              '--base-inputs',str(ROOT/'in/prod_pkg/a/1.json'),'--inputs-out',str(root/'inputs.json')]
+        with patch.object(sys,'argv',argv):fill_export.main()
+        pins=validate(read(root/'export.json'));inputs=read(root/'inputs.json')
+        self.assertEqual(pins['step'],100);self.assertEqual(pins['member_directory'],'m-any')
+        self.assertEqual(inputs['export_pin']['sha256'],sha(root/'export.json'))
+        self.assertEqual(inputs['files']['heads']['bytes'],5)
+        self.assertEqual(inputs['types'],['camera_displacement','camera_rotation','camera_movement_direction'])
+        with tarfile.open(root/'prep.tar') as tar:
+            for name in ('config','receipt','data_receipt'):
+                raw=tar.extractfile(pins['preparation'][name]['path']).read()
+                self.assertEqual(fill_export.pin(raw),{k:pins['preparation'][name][k] for k in ('sha256','bytes')})
 
 
 if __name__=='__main__':unittest.main(verbosity=2)

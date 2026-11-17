@@ -1,0 +1,1185 @@
+{
+  "findings": [
+    {
+      "clause": "A3",
+      "rule": "A3.threshold",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/b/e2e_reader/grounding.py",
+      "rel": "b/e2e_reader/grounding.py",
+      "line": 20,
+      "function": "_hull",
+      "detail": "compares against 2.0",
+      "text": "if len(P) <= 2:"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.threshold",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/b/e2e_reader/grounding.py",
+      "rel": "b/e2e_reader/grounding.py",
+      "line": 27,
+      "function": "_hull",
+      "detail": "compares against 2.0",
+      "text": "while len(lower) >= 2 and cross(lower[-2], lower[-1], p) <= 0:"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.threshold",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/b/e2e_reader/grounding.py",
+      "rel": "b/e2e_reader/grounding.py",
+      "line": 31,
+      "function": "_hull",
+      "detail": "compares against 2.0",
+      "text": "while len(upper) >= 2 and cross(upper[-2], upper[-1], p) <= 0:"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.constant",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/b/e2e_reader/grounding.py",
+      "rel": "b/e2e_reader/grounding.py",
+      "line": 85,
+      "function": "mask_pixels",
+      "detail": "constant 1000",
+      "text": "return np.column_stack(((cols + .5) / w * 1000, (rows + .5) / h * 1000))"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/b/e2e_reader/parity.py",
+      "rel": "b/e2e_reader/parity.py",
+      "line": 118,
+      "function": "load_native",
+      "detail": "string 'RESTORE.json'",
+      "text": "restore = read(out / 'RESTORE.json')"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/b/e2e_reader/parity.py",
+      "rel": "b/e2e_reader/parity.py",
+      "line": 122,
+      "function": "load_native",
+      "detail": "string 'receipt.json'",
+      "text": "receipt = read(out / 'receipt.json')"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/b/e2e_reader/parity.py",
+      "rel": "b/e2e_reader/parity.py",
+      "line": 126,
+      "function": "load_native",
+      "detail": "string 'artifact.json'",
+      "text": "export = read(out / 'artifact.json')"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/b/e2e_reader/parity.py",
+      "rel": "b/e2e_reader/parity.py",
+      "line": 127,
+      "function": "load_native",
+      "detail": "string 'artifact.json'",
+      "text": "required = [out / 'artifact.json', Path(export['heads']['path']), Path(export['full_weights']['path'])]"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/b/e2e_reader/parity.py",
+      "rel": "b/e2e_reader/parity.py",
+      "line": 143,
+      "function": "load_native",
+      "detail": "string 'artifact.json'",
+      "text": "artifact = trainer.load_artifact(model, pin(out / 'artifact.json'))"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.table_load",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/b/e2e_reader/parity.py",
+      "rel": "b/e2e_reader/parity.py",
+      "line": 148,
+      "function": "load_native",
+      "detail": "model.to(device).eval()",
+      "text": "model.to(device).eval().requires_grad_(False)"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.constant",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/b/e2e_reader/parity.py",
+      "rel": "b/e2e_reader/parity.py",
+      "line": 166,
+      "function": "ParityGenerator.__call__",
+      "detail": "constant 16384",
+      "text": "max_new_tokens=16384)"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/b/e2e_reader/parity.py",
+      "rel": "b/e2e_reader/parity.py",
+      "line": 175,
+      "function": "_head",
+      "detail": "string '.json'",
+      "text": "for suffix in ('.json', '.safetensors'):"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/b/e2e_reader/parity.py",
+      "rel": "b/e2e_reader/parity.py",
+      "line": 175,
+      "function": "_head",
+      "detail": "string '.safetensors'",
+      "text": "for suffix in ('.json', '.safetensors'):"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.constant",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/b/e2e_reader/parity.py",
+      "rel": "b/e2e_reader/parity.py",
+      "line": 208,
+      "function": "make_real",
+      "detail": "constant 32",
+      "text": "layout = dict(layout=info['export']['frame_layout'], count=32)"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.constant",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/b/e2e_reader/real.py",
+      "rel": "b/e2e_reader/real.py",
+      "line": 27,
+      "function": "TowerG3T.__init__",
+      "detail": "constant 8",
+      "text": "def __init__(self, artifact, device, dtype='bf16', depth_chunk_size=8):"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/b/e2e_reader/real.py",
+      "rel": "b/e2e_reader/real.py",
+      "line": 41,
+      "function": "TowerG3T.__call__",
+      "detail": "string 'model.safetensors'",
+      "text": "self.model = FrozenG3TTower(dict(weights_path=named('model.safetensors'),"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/b/e2e_reader/real.py",
+      "rel": "b/e2e_reader/real.py",
+      "line": 42,
+      "function": "TowerG3T.__call__",
+      "detail": "string 'config.json'",
+      "text": "config_path=named('config.json'),"
+    },
+    {
+      "clause": "A4",
+      "rule": "A4.except_substitute",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/b/e2e_reader/servers.py",
+      "rel": "b/e2e_reader/servers.py",
+      "line": 30,
+      "function": "ReadServers.session_call",
+      "detail": "except-handler does not re-raise; a substitute flows on",
+      "text": "return ('error: ' + str(exc), dict(kind='error', code=str(exc), spec_version=session.spec_version))"
+    },
+    {
+      "clause": "A4",
+      "rule": "A4.status_literal",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/b/e2e_reader/servers.py",
+      "rel": "b/e2e_reader/servers.py",
+      "line": 30,
+      "function": "ReadServers.session_call",
+      "detail": "string 'error: '",
+      "text": "return ('error: ' + str(exc), dict(kind='error', code=str(exc), spec_version=session.spec_version))"
+    },
+    {
+      "clause": "A4",
+      "rule": "A4.status_literal",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/b/e2e_reader/servers.py",
+      "rel": "b/e2e_reader/servers.py",
+      "line": 30,
+      "function": "ReadServers.session_call",
+      "detail": "string 'error'",
+      "text": "return ('error: ' + str(exc), dict(kind='error', code=str(exc), spec_version=session.spec_version))"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.constant",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/b/e2e_reader/stage1.py",
+      "rel": "b/e2e_reader/stage1.py",
+      "line": 21,
+      "function": "<module>",
+      "detail": "constant 0.05",
+      "text": "K1_CONTRACT = dict(joint_floor=.05, cap=30)"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.constant",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/b/e2e_reader/stage1.py",
+      "rel": "b/e2e_reader/stage1.py",
+      "line": 21,
+      "function": "<module>",
+      "detail": "constant 30",
+      "text": "K1_CONTRACT = dict(joint_floor=.05, cap=30)"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.constant",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/b/e2e_reader/stage1.py",
+      "rel": "b/e2e_reader/stage1.py",
+      "line": 70,
+      "function": "median_ratio",
+      "detail": "constant 50",
+      "text": "selected = np.isfinite(c) & (c > np.percentile(finite, 50)) & np.isfinite(d) & (d > 0) & np.isfinite(v) & (v > 0)"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.threshold",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/b/e2e_reader/stage1.py",
+      "rel": "b/e2e_reader/stage1.py",
+      "line": 99,
+      "function": "sam3_detect",
+      "detail": "compares against table entry K1_CONTRACT['joint_floor']",
+      "text": "keep = order[joint[order] >= K1_CONTRACT['joint_floor']][:K1_CONTRACT['cap']]"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.constant",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/b/e2e_reader/stage1.py",
+      "rel": "b/e2e_reader/stage1.py",
+      "line": 130,
+      "function": "StageOne.features",
+      "detail": "constant 0.3",
+      "text": "proposals, _ = F.candidates.lift(F.cache_for(name, self.raw[name]), name, self.geometry, floor=.3,"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.constant",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/b/e2e_reader/stage1.py",
+      "rel": "b/e2e_reader/stage1.py",
+      "line": 163,
+      "function": "stage1_factory.socket",
+      "detail": "constant 240",
+      "text": "return StageOneSocket(s.propose, s.select, (240, 320), frame_count(geometry))"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.constant",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/b/e2e_reader/stage1.py",
+      "rel": "b/e2e_reader/stage1.py",
+      "line": 163,
+      "function": "stage1_factory.socket",
+      "detail": "constant 320",
+      "text": "return StageOneSocket(s.propose, s.select, (240, 320), frame_count(geometry))"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.table_load",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/h10/launch.py",
+      "rel": "h1eval/h10/launch.py",
+      "line": 86,
+      "function": "read_records",
+      "detail": "json.loads()",
+      "text": "row=json.loads(line)"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.table_load",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/h10/launch.py",
+      "rel": "h1eval/h10/launch.py",
+      "line": 101,
+      "function": "tower_records",
+      "detail": "json.loads()",
+      "text": "source=json.loads((root/'environment.json').read_text())['binding']"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.table_load",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/h10/launch.py",
+      "rel": "h1eval/h10/launch.py",
+      "line": 101,
+      "function": "tower_records",
+      "detail": "(root / 'environment.json').read_text()",
+      "text": "source=json.loads((root/'environment.json').read_text())['binding']"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/h10/launch.py",
+      "rel": "h1eval/h10/launch.py",
+      "line": 101,
+      "function": "tower_records",
+      "detail": "string 'environment.json'",
+      "text": "source=json.loads((root/'environment.json').read_text())['binding']"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/h10/launch.py",
+      "rel": "h1eval/h10/launch.py",
+      "line": 106,
+      "function": "tower_records",
+      "detail": "string 'items.jsonl'",
+      "text": "rows=[r for r in read_records(root/'items.jsonl') if r['arm']=='tower']"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/h10/launch.py",
+      "rel": "h1eval/h10/launch.py",
+      "line": 119,
+      "function": "tower_records",
+      "detail": "string 'environment.json'",
+      "text": "return result,dict(environment_sha256=sha(root/'environment.json'),records_sha256=sha(root/'items.jsonl'))"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/h10/launch.py",
+      "rel": "h1eval/h10/launch.py",
+      "line": 119,
+      "function": "tower_records",
+      "detail": "string 'items.jsonl'",
+      "text": "return result,dict(environment_sha256=sha(root/'environment.json'),records_sha256=sha(root/'items.jsonl'))"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.table_load",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/h10/launch.py",
+      "rel": "h1eval/h10/launch.py",
+      "line": 177,
+      "function": "run",
+      "detail": "json.loads()",
+      "text": "identity=json.loads(Path(args.export_pin).read_text())"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.table_load",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/h10/launch.py",
+      "rel": "h1eval/h10/launch.py",
+      "line": 177,
+      "function": "run",
+      "detail": "Path(args.export_pin).read_text()",
+      "text": "identity=json.loads(Path(args.export_pin).read_text())"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/h10/launch.py",
+      "rel": "h1eval/h10/launch.py",
+      "line": 198,
+      "function": "run",
+      "detail": "string 'environment.json'",
+      "text": "if reviewed and not (Path(tower_from)/'environment.json').exists():"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/h10/launch.py",
+      "rel": "h1eval/h10/launch.py",
+      "line": 214,
+      "function": "run",
+      "detail": "string 'environment.json'",
+      "text": "env=out/'environment.json'"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.table_load",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/h10/launch.py",
+      "rel": "h1eval/h10/launch.py",
+      "line": 216,
+      "function": "run",
+      "detail": "json.loads()",
+      "text": "old=json.loads(env.read_text())"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.table_load",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/h10/launch.py",
+      "rel": "h1eval/h10/launch.py",
+      "line": 216,
+      "function": "run",
+      "detail": "env.read_text()",
+      "text": "old=json.loads(env.read_text())"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/h10/launch.py",
+      "rel": "h1eval/h10/launch.py",
+      "line": 226,
+      "function": "run",
+      "detail": "string 'item_mapping.json'",
+      "text": "mapping_path=out/'item_mapping.json'"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/h10/launch.py",
+      "rel": "h1eval/h10/launch.py",
+      "line": 230,
+      "function": "run",
+      "detail": "string 'items.jsonl'",
+      "text": "rows=read_records(out/'items.jsonl')"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/h10/launch.py",
+      "rel": "h1eval/h10/launch.py",
+      "line": 237,
+      "function": "run",
+      "detail": "string 'projection.json'",
+      "text": "projection_path=out/'projection.json'"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.constant",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/h10/launch.py",
+      "rel": "h1eval/h10/launch.py",
+      "line": 239,
+      "function": "run.project",
+      "detail": "constant 10",
+      "text": "if len(sample)!=10:return"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.constant",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/h10/launch.py",
+      "rel": "h1eval/h10/launch.py",
+      "line": 240,
+      "function": "run.project",
+      "detail": "constant 10",
+      "text": "seconds=sum(sample)/10"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.constant",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/h10/launch.py",
+      "rel": "h1eval/h10/launch.py",
+      "line": 241,
+      "function": "run.project",
+      "detail": "constant 10",
+      "text": "projection=dict(sample_items=10,seconds_per_read=seconds,read_plan=counts,"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.constant",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/h10/launch.py",
+      "rel": "h1eval/h10/launch.py",
+      "line": 242,
+      "function": "run.project",
+      "detail": "constant 3600",
+      "text": "expected_card_hours=counts['reads']*seconds/3600,"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.constant",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/h10/launch.py",
+      "rel": "h1eval/h10/launch.py",
+      "line": 246,
+      "function": "run",
+      "detail": "constant 10",
+      "text": "if len(sample)==10 and not projection_path.exists():project()"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/h10/launch.py",
+      "rel": "h1eval/h10/launch.py",
+      "line": 247,
+      "function": "run",
+      "detail": "string 'items.jsonl'",
+      "text": "with (out/'items.jsonl').open('a') as stream:"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.threshold",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/h10/launch.py",
+      "rel": "h1eval/h10/launch.py",
+      "line": 293,
+      "function": "run",
+      "detail": "compares against 10.0",
+      "text": "if len(sample)<10:"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.constant",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/h10/launch.py",
+      "rel": "h1eval/h10/launch.py",
+      "line": 293,
+      "function": "run",
+      "detail": "constant 10",
+      "text": "if len(sample)<10:"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.constant",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/h10/launch.py",
+      "rel": "h1eval/h10/launch.py",
+      "line": 295,
+      "function": "run",
+      "detail": "constant 10",
+      "text": "if len(sample)==10:project()"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/h10/launch.py",
+      "rel": "h1eval/h10/launch.py",
+      "line": 306,
+      "function": "run",
+      "detail": "string 'timings.jsonl'",
+      "text": "with (out/'timings.jsonl').open('a') as f:"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/h10/launch.py",
+      "rel": "h1eval/h10/launch.py",
+      "line": 311,
+      "function": "run",
+      "detail": "string 'progress.json'",
+      "text": "write_json(out/'progress.json',dict(result, stopped=len(done)<len(allowed)))"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/h10/launch.py",
+      "rel": "h1eval/h10/launch.py",
+      "line": 321,
+      "function": "parser",
+      "detail": "string 'b04 run directory containing gpu_results/own_depth_p*/items.jsonl and LOAD_RECEI'",
+      "text": "p.add_argument('--tower-from',help='b04 run directory containing gpu_results/own_depth_p*/items.jsonl and LOAD_RECEIPT.json')"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.threshold",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/h10/launch.py",
+      "rel": "h1eval/h10/launch.py",
+      "line": 335,
+      "function": "main",
+      "detail": "compares against attribute args.finish_by (a configured value)",
+      "text": "if args.finish_by <= time.time():return 75"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.constant",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/h10/launch.py",
+      "rel": "h1eval/h10/launch.py",
+      "line": 335,
+      "function": "main",
+      "detail": "constant 75",
+      "text": "if args.finish_by <= time.time():return 75"
+    },
+    {
+      "clause": "A4",
+      "rule": "A4.except_substitute",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/h10/launch.py",
+      "rel": "h1eval/h10/launch.py",
+      "line": 344,
+      "function": "main",
+      "detail": "except-handler does not re-raise; a substitute flows on",
+      "text": "except ReadDeadline:return 75"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.constant",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/h10/launch.py",
+      "rel": "h1eval/h10/launch.py",
+      "line": 344,
+      "function": "main",
+      "detail": "constant 75",
+      "text": "except ReadDeadline:return 75"
+    },
+    {
+      "clause": "A4",
+      "rule": "A4.except_substitute",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/h10/launch.py",
+      "rel": "h1eval/h10/launch.py",
+      "line": 345,
+      "function": "main",
+      "detail": "except-handler does not re-raise; a substitute flows on",
+      "text": "except (ValueError,FileNotFoundError,ImportError) as e:p.exit(2,str(e)+'\\n')"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.constant",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/h10/perception_own.py",
+      "rel": "h1eval/h10/perception_own.py",
+      "line": 37,
+      "function": "BoundOwnPerception.perception_factory.lazy",
+      "detail": "constant 500.0",
+      "text": "depth_finite = all(np.isfinite(heads.depth(i, np.array([[500., 500.]]))).all()"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.constant",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/h10/perception_own.py",
+      "rel": "h1eval/h10/perception_own.py",
+      "line": 38,
+      "function": "BoundOwnPerception.perception_factory.lazy",
+      "detail": "constant 33",
+      "text": "for i in range(1, 33))"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.unit_conversion",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/perception.py",
+      "rel": "h1eval/perception.py",
+      "line": 25,
+      "function": "axis_rotation",
+      "detail": "identifier degrees",
+      "text": "def axis_rotation(axis,degrees):"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.unit_conversion",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/perception.py",
+      "rel": "h1eval/perception.py",
+      "line": 28,
+      "function": "axis_rotation",
+      "detail": "identifier degrees",
+      "text": "a=math.radians(degrees)"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.unit_conversion",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/perception.py",
+      "rel": "h1eval/perception.py",
+      "line": 53,
+      "function": "perturb",
+      "detail": "identifier degrees",
+      "text": "changed=np.array([axis_rotation([0,0,1],math.degrees(-2*a))@r for a,r in zip(angles,R)])"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.constant",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/perception.py",
+      "rel": "h1eval/perception.py",
+      "line": 53,
+      "function": "perturb",
+      "detail": "combined constant factor -2.0 in -2 * a",
+      "text": "changed=np.array([axis_rotation([0,0,1],math.degrees(-2*a))@r for a,r in zip(angles,R)])"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.constant",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/perception.py",
+      "rel": "h1eval/perception.py",
+      "line": 53,
+      "function": "perturb",
+      "detail": "constant -2",
+      "text": "changed=np.array([axis_rotation([0,0,1],math.degrees(-2*a))@r for a,r in zip(angles,R)])"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.constant",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/perception.py",
+      "rel": "h1eval/perception.py",
+      "line": 77,
+      "function": "own_profile",
+      "detail": "constant 1000",
+      "text": "uv=np.linspace(0,1000,51) if grid_uv is None else np.asarray(grid_uv)"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.constant",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/perception.py",
+      "rel": "h1eval/perception.py",
+      "line": 77,
+      "function": "own_profile",
+      "detail": "constant 51",
+      "text": "uv=np.linspace(0,1000,51) if grid_uv is None else np.asarray(grid_uv)"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.constant",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/perception.py",
+      "rel": "h1eval/perception.py",
+      "line": 79,
+      "function": "own_profile",
+      "detail": "constant 33",
+      "text": "depth=np.stack([heads.depth(k,points).reshape(len(uv),len(uv)) for k in range(1,33)])"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.constant",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/perception.py",
+      "rel": "h1eval/perception.py",
+      "line": 84,
+      "function": "own_profile",
+      "detail": "constant 1000",
+      "text": "A=np.tile(np.diag([W/1000,H/1000,1.]),(32,1,1))"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.constant",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/h1eval/perception.py",
+      "rel": "h1eval/perception.py",
+      "line": 85,
+      "function": "own_profile",
+      "detail": "constant 32",
+      "text": "indices=frames.get('anchor_indices',list(range(32)))"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.table_load",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/prepare.py",
+      "rel": "orchard_h10/prepare.py",
+      "line": 19,
+      "function": "run",
+      "detail": "json.loads()",
+      "text": "receipt=json.loads(path(inputs['environment_receipt']).read_text())"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.table_load",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/prepare.py",
+      "rel": "orchard_h10/prepare.py",
+      "line": 19,
+      "function": "run",
+      "detail": "path(inputs['environment_receipt']).read_text()",
+      "text": "receipt=json.loads(path(inputs['environment_receipt']).read_text())"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/prepare.py",
+      "rel": "orchard_h10/prepare.py",
+      "line": 22,
+      "function": "run",
+      "detail": "string 'ENVIRONMENT.json'",
+      "text": "write(d/'ENVIRONMENT.json',dict(versions=versions,python=sys.executable))"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/prepare.py",
+      "rel": "orchard_h10/prepare.py",
+      "line": 27,
+      "function": "run",
+      "detail": "string 'config.json'",
+      "text": "bundled=dict(config=META/PREP/'config.json',receipt=META/PREP/'prepared/s1_receipt.json',"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/prepare.py",
+      "rel": "orchard_h10/prepare.py",
+      "line": 27,
+      "function": "run",
+      "detail": "string 'prepared/s1_receipt.json'",
+      "text": "bundled=dict(config=META/PREP/'config.json',receipt=META/PREP/'prepared/s1_receipt.json',"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/prepare.py",
+      "rel": "orchard_h10/prepare.py",
+      "line": 28,
+      "function": "run",
+      "detail": "string 'fsw/ap/8865619b/runs/469ddece/inputs/data_receipt.json'",
+      "text": "data_receipt=META/'fsw/ap/8865619b/runs/469ddece/inputs/data_receipt.json')"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.table_load",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/prepare.py",
+      "rel": "orchard_h10/prepare.py",
+      "line": 36,
+      "function": "run",
+      "detail": "src.read_bytes()",
+      "text": "with dest.open('xb') as stream:stream.write(src.read_bytes())"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/prepare.py",
+      "rel": "orchard_h10/prepare.py",
+      "line": 37,
+      "function": "run",
+      "detail": "string '6.json'",
+      "text": "write(d/'6.json',pins)"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/prepare.py",
+      "rel": "orchard_h10/prepare.py",
+      "line": 39,
+      "function": "run",
+      "detail": "string 'binding.json'",
+      "text": "export=d/'e'; binding=d/'binding.json'"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/prepare.py",
+      "rel": "orchard_h10/prepare.py",
+      "line": 51,
+      "function": "run",
+      "detail": "string 'manifest.json'",
+      "text": "write(d/'manifest.json',manifest)"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/prepare.py",
+      "rel": "orchard_h10/prepare.py",
+      "line": 52,
+      "function": "run",
+      "detail": "string 'd/manifest.json'",
+      "text": "write(binding,dict(root=config['logical'],name='d/manifest.json',sha256=sha(d/'manifest.json'),"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/prepare.py",
+      "rel": "orchard_h10/prepare.py",
+      "line": 52,
+      "function": "run",
+      "detail": "string 'manifest.json'",
+      "text": "write(binding,dict(root=config['logical'],name='d/manifest.json',sha256=sha(d/'manifest.json'),"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/prepare.py",
+      "rel": "orchard_h10/prepare.py",
+      "line": 61,
+      "function": "run",
+      "detail": "string 'items/r0dev.json'",
+      "text": "spec=inputs['optional'];items=load_manifest(p/'items/r0dev.json')['items']"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/prepare.py",
+      "rel": "orchard_h10/prepare.py",
+      "line": 68,
+      "function": "run",
+      "detail": "string '8.json'",
+      "text": "write(d/'8.json',dict(verified=True,archive_sha256=spec['sha256'],frames_manifest_sha256=load_manifest(p/'items/r0dev.json')['frames_manifest_sha256']))"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/prepare.py",
+      "rel": "orchard_h10/prepare.py",
+      "line": 68,
+      "function": "run",
+      "detail": "string 'items/r0dev.json'",
+      "text": "write(d/'8.json',dict(verified=True,archive_sha256=spec['sha256'],frames_manifest_sha256=load_manifest(p/'items/r0dev.json')['frames_manifest_sha256']))"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/prepare.py",
+      "rel": "orchard_h10/prepare.py",
+      "line": 69,
+      "function": "run",
+      "detail": "string 'settings.json'",
+      "text": "write(d/'settings.json',settings)"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/prepare.py",
+      "rel": "orchard_h10/prepare.py",
+      "line": 70,
+      "function": "run",
+      "detail": "string 'READY.json'",
+      "text": "write(d/'READY.json',dict(settings=sha(d/'settings.json'),binding=sha(binding),restore=sha(export/'RESTORE.json')))"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/prepare.py",
+      "rel": "orchard_h10/prepare.py",
+      "line": 70,
+      "function": "run",
+      "detail": "string 'settings.json'",
+      "text": "write(d/'READY.json',dict(settings=sha(d/'settings.json'),binding=sha(binding),restore=sha(export/'RESTORE.json')))"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/prepare.py",
+      "rel": "orchard_h10/prepare.py",
+      "line": 70,
+      "function": "run",
+      "detail": "string 'RESTORE.json'",
+      "text": "write(d/'READY.json',dict(settings=sha(d/'settings.json'),binding=sha(binding),restore=sha(export/'RESTORE.json')))"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.table_load",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/prepare.py",
+      "rel": "orchard_h10/prepare.py",
+      "line": 73,
+      "function": "<module>",
+      "detail": "json.loads()",
+      "text": "if __name__=='__main__':run(*[json.loads(Path(p).read_text()) for p in sys.argv[1:3]])"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.table_load",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/prepare.py",
+      "rel": "orchard_h10/prepare.py",
+      "line": 73,
+      "function": "<module>",
+      "detail": "Path(p).read_text()",
+      "text": "if __name__=='__main__':run(*[json.loads(Path(p).read_text()) for p in sys.argv[1:3]])"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.constant",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/runner.py",
+      "rel": "orchard_h10/runner.py",
+      "line": 22,
+      "function": "control",
+      "detail": "constant 448",
+      "text": "root.mkdir(parents=True,exist_ok=True,mode=0o700);root.chmod(0o700)"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.table_load",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/runner.py",
+      "rel": "orchard_h10/runner.py",
+      "line": 24,
+      "function": "control",
+      "detail": "(Path(__file__).parent / 'entry.py').read_bytes()",
+      "text": "(root/'5.py').write_bytes((Path(__file__).parent/'entry.py').read_bytes())"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/runner.py",
+      "rel": "orchard_h10/runner.py",
+      "line": 33,
+      "function": "commands",
+      "detail": "string '.json'",
+      "text": "name=f'{t}{index}.json';write(root/name,cfg)"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/runner.py",
+      "rel": "orchard_h10/runner.py",
+      "line": 42,
+      "function": "worker_args",
+      "detail": "string 'items/devs1_routed.json'",
+      "text": "source=Path(config.get('items',p/'items/devs1_routed.json')) if t<len(ORDER) else Path(config['optional']['items'])"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/runner.py",
+      "rel": "orchard_h10/runner.py",
+      "line": 43,
+      "function": "worker_args",
+      "detail": "string '.json'",
+      "text": "dest=root/f'{t}.json'"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.table_load",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/runner.py",
+      "rel": "orchard_h10/runner.py",
+      "line": 44,
+      "function": "worker_args",
+      "detail": "source.read_bytes()",
+      "text": "raw=source.read_bytes()"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.table_load",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/runner.py",
+      "rel": "orchard_h10/runner.py",
+      "line": 70,
+      "function": "optional_ready",
+      "detail": "json.loads()",
+      "text": "value=json.loads(receipt.read_text())"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.table_load",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/runner.py",
+      "rel": "orchard_h10/runner.py",
+      "line": 70,
+      "function": "optional_ready",
+      "detail": "receipt.read_text()",
+      "text": "value=json.loads(receipt.read_text())"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/runner.py",
+      "rel": "orchard_h10/runner.py",
+      "line": 96,
+      "function": "summarize",
+      "detail": "string 'items/devs1_routed.json'",
+      "text": "items=load_manifest(config.get('items',Path(config['package'])/'items/devs1_routed.json'))['items']"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/runner.py",
+      "rel": "orchard_h10/runner.py",
+      "line": 103,
+      "function": "summarize",
+      "detail": "string 'items.jsonl'",
+      "text": "rows=read_records(root/str(t)/str(i)/'items.jsonl')"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/runner.py",
+      "rel": "orchard_h10/runner.py",
+      "line": 111,
+      "function": "summarize",
+      "detail": "string 'items.jsonl'",
+      "text": "rows=read_records(root/str(len(ORDER))/str(i)/'items.jsonl')"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/runner.py",
+      "rel": "orchard_h10/runner.py",
+      "line": 124,
+      "function": "run",
+      "detail": "string 'metadata/IDENTITY.json'",
+      "text": "identity_path=out/'metadata/IDENTITY.json'"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.constant",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/runner.py",
+      "rel": "orchard_h10/runner.py",
+      "line": 128,
+      "function": "run",
+      "detail": "constant 1800",
+      "text": "stop_at=end_time-config.get('stop_margin',1800);finish_by=end_time-config.get('return_margin',1200)"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.constant",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/runner.py",
+      "rel": "orchard_h10/runner.py",
+      "line": 128,
+      "function": "run",
+      "detail": "constant 1200",
+      "text": "stop_at=end_time-config.get('stop_margin',1800);finish_by=end_time-config.get('return_margin',1200)"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/runner.py",
+      "rel": "orchard_h10/runner.py",
+      "line": 146,
+      "function": "run",
+      "detail": "string 'STEPS.jsonl'",
+      "text": "append(out/'STEPS.jsonl',dict(event='start',type=t,shard=f'{i}/{len(cards)}',utc=clock(),argv=argv))"
+    },
+    {
+      "clause": "A4",
+      "rule": "A4.except_substitute",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/runner.py",
+      "rel": "orchard_h10/runner.py",
+      "line": 149,
+      "function": "run",
+      "detail": "except-handler does not re-raise; a substitute flows on",
+      "text": "marker.write_text('launch failure\\n');failure=str(error)"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/runner.py",
+      "rel": "orchard_h10/runner.py",
+      "line": 153,
+      "function": "run",
+      "detail": "string 'STEPS.jsonl'",
+      "text": "append(out/'STEPS.jsonl',dict(event='exit',type=t,shard=f'{i}/{len(cards)}',utc=clock(),returncode=rc))"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.constant",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/runner.py",
+      "rel": "orchard_h10/runner.py",
+      "line": 154,
+      "function": "run",
+      "detail": "constant 75",
+      "text": "if rc not in (0,75):"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.constant",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/runner.py",
+      "rel": "orchard_h10/runner.py",
+      "line": 157,
+      "function": "run",
+      "detail": "constant 75",
+      "text": "if rc==75:marker.write_text('deadline\\n')"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/runner.py",
+      "rel": "orchard_h10/runner.py",
+      "line": 162,
+      "function": "run",
+      "detail": "string 'SUMMARY.json'",
+      "text": "write(out/'SUMMARY.json',summary)"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/runner.py",
+      "rel": "orchard_h10/runner.py",
+      "line": 168,
+      "function": "run",
+      "detail": "string '*/items.jsonl'",
+      "text": "for path in sorted((out/'metadata/journals'/str(t)).glob('*/items.jsonl')):"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.data_file",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/runner.py",
+      "rel": "orchard_h10/runner.py",
+      "line": 170,
+      "function": "run",
+      "detail": "string 'metadata/projection.json'",
+      "text": "write(out/'metadata/projection.json',dict(sample_reads=len(samples),"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.constant",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/runner.py",
+      "rel": "orchard_h10/runner.py",
+      "line": 172,
+      "function": "run",
+      "detail": "constant 3600",
+      "text": "projected_gpu_hours=summary['expected']*sum(samples)/len(samples)/3600 if samples else None,"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.table_load",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/runner.py",
+      "rel": "orchard_h10/runner.py",
+      "line": 181,
+      "function": "<module>",
+      "detail": "json.loads()",
+      "text": "a=p.parse_args();cfg=json.loads(Path(a.config).read_text())"
+    },
+    {
+      "clause": "A3",
+      "rule": "A3.table_load",
+      "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1p/out/baseline/orchard_h10/runner.py",
+      "rel": "orchard_h10/runner.py",
+      "line": 181,
+      "function": "<module>",
+      "detail": "Path(a.config).read_text()",
+      "text": "a=p.parse_args();cfg=json.loads(Path(a.config).read_text())"
+    }
+  ],
+  "suppressed": []
+}

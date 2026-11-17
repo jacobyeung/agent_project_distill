@@ -1,70 +1,72 @@
-# Build stopped: the requested pin-only scope is insufficient
+# H1 export-pin evaluator package
 
-No replacement package was built. No production source was edited. The request says: “If something cannot be done without changing scoring or admission semantics beyond the pin source, stop and explain in REPORT.md.” The production pipeline binds more than the three export files to H1-0. Completing this as a correctly identified m100 evaluator requires resolving the constraints below.
+Package `bf94a7976a7e9` is built in `out/package/`. Its payload is 5,298,254 bytes, SHA256 `4a41299cbcc78a2c57a48b285f43bf19558f747a3584365c96b23e9c9184df3e`. `out/0.tgz` contains the same bytes. The package includes all eight requested files. `REPORT_R1.md` preserves the supplied report verbatim.
 
-## Constraints that prevent completion
+The package reads export hashes, exact sizes, the observed archive member directory, lineage, step, and preparation metadata pins from `a/export.json`. `a/1.json` authenticates that file by SHA256 and bytes. Metadata check, submit, and job admission verify it. Admission compares the three export declarations against it before staging; staging authenticates the actual file bytes. Preparation authenticates its three selected files before running the existing structural checks.
 
-1. **The evaluator unconditionally labels every export SFT, step 544.** `out/production/h1eval/h10/launch.py:186` constructs the shard binding with `lineage='SFT',step=544`. The camera operator’s `submerge.py` copies these fields into the scored curve. A pin-only replacement would label m100 as step 544 and a later RL export as SFT. Correcting the binding changes the evaluator source and its token-independent `evaluator_code_sha256`. Silently patching the binding at runtime would change behavior despite preserving source bytes; this audit does not use that workaround.
+The logical root remains `/scratch/jjyeung/b01ec87a6f29b`. The new package lives at `/project/community/jjyeung/bf94a7976a7e9` and returns under `bf94a7976a7e9<job-id-as-eight-hex-digits>`. The pinned policy paths remain unchanged. Each allocation has a verified job-private `/tmp` mount and an exclusive `/tmp/a<job-id><package-token>` bootstrap directory. Bubblewrap maps that allocation's physical `sj` directory to the shared logical namespace. Different allocations cannot share the same job-private data path.
 
-2. **The new token conflicts with the unchanged policy receipt under the original builder’s layout.** The builder sets `logical='/scratch/jjyeung/'+token`. `job.py:40` also requires archive destinations to use that token. `job.py:132` checks that the pinned policy receipt authorizes the exact input script paths. The admitted H1-0 receipt therefore authorizes paths under `b01ec87a6f29b`. Adapting the input paths to a new token passes metadata admission but fails that policy check. Regenerating the receipt changes a non-export file and its enclosing archive pins. Keeping the original logical namespace could preserve those bytes, but requires decoupling the package token from archive-destination admission and the original build layout. That additional admission change was not made.
+Project-disk archive staging remains the supported route. This is the smaller change: no in-job GCS integration or vendored stager changes. `fill_export.py` streams the four locally placed parts with Python tarfile, checks the whole stream against the `.done` object/bytes/hash, discovers the member directory, and computes file and part pins without a joined archive copy. It checks artifact/member hashes, weight hashes, and preparation compatibility, then emits the export pin file, a small metadata tar, and adapted camera-only inputs. `EXPORT_SCHEMA.md` documents the schema; `export_544.json` contains the production values; `export_TEMPLATE.json` refuses until filled.
 
-3. **The restore admits only the frozen preparation identity.** `orchard_h10/prepare.py:26` passes the packaged `REQUEST`; `b/parity_kit/stage_restore.py:82` checks its fixed artifact hash. Supplying that request’s artifact hash from the proposed pin file can solve this first check. It does not solve the subsequent equality between the export’s `config_sha256` and the frozen preparation receipt, at lines 90–96. The required value is `84ea03af6049a179bf4a44619b1534fdcb528b5511544189236254b5d66842cb`. A different value refuses even when the three export file pins are correct. The m100 artifact is not supplied, so this audit does **not** claim that m100 fails this check. General support for registered exports with different preparation identities would require an explicit compatibility contract beyond the requested three pins. The existing base, architecture, frame-layout, data-receipt, and weight checks must not simply be bypassed.
+H1-1's supplied prepared config and data receipt satisfy the production checks that can be evaluated without the missing preparation receipt and export:
 
-The first two constraints are demonstrated from the supplied production sources. The third is a demonstrated refusal condition, with m100 compatibility still unknown. A useful next scope would permit accurate export identity in the launcher and a fixed logical namespace independent of the package token, while explicitly retaining the existing preparation-identity restriction unless a separate compatibility rule is approved.
+| Check | Evidence |
+|---|---|
+| Data receipt schema/status | `s1-in-job-data-v1`, `PREPARED`. |
+| Real/rehearsal/synthetic flags | `real_frames_verified=true`, `rehearsal=false`; absent `synthetic` passes the existing default-false check. |
+| Prepared config authentication | File SHA256 `65519f6f6399428615da3439e203e95a49967c6a2c6a73deac724696be061de2` equals `data_receipt.config.sha256`. |
+| Preparation binding | `data_receipt.preparation == config.preparation == binding.preparation`, including source path and SHA256 `247671798be1b91e6594d3ba2b49d8659e2435830092b63352f8645bf6402d1a`. |
+| Frame layout | Prepared config says `duplicate`. |
+| Base identity | Prepared config says `c202236235762e1c871ad0ccb60c8ee5ba337b9a`, matching the frozen base. |
 
-## What the offline audit proved
+The admission request's `config` references `1dd078da.json` / `9385cc71…`; it is not the prepared config. Passing that training request directly as the evaluator request would fail `data.config == req.config`. The package constructs the evaluator request from the selected prepared config and preserves its original source identity. This keeps the complete dictionary equality check. The run binding's `26a60a5c…` is a training config identity, not a file hash; only the real preparation receipt and export artifact can establish the required `receipt.config_sha256 == artifact.config_sha256` equality.
 
-The authoritative archive is SHA256 `446a432306b8e68ebfa32228071259a61ffd2ec0dada3ec43a664ba342ca540e`. All 924 regular members were extracted into `out/production/` and `out/src/`; every extracted byte matches. `PRODUCTION_SOURCE_SHA256.json` contains the complete per-file inventory. These are unchanged audit copies, not a replacement package.
+The real H1-1 preparation receipt is absent both from the supplied folder and its small `r.tar`. The m100 export is also absent. No observed structural mismatch requires weakening a check, so the package is built; live H1-1 admission remains unproved and cannot proceed until those files exist. The helper refuses missing preparation files before scanning the large export.
 
-The builder snapshot differs from production in `job.py`, `operator.py`, and `runner.py`. `DIFF.md` includes every changed Python line, with a complete supplied-tree inventory in `KIT_COMPARISON.json`. The production archive already supports these camera types in this order:
+All original restore conditions remain intact: data status/schema/flags and config/preparation equality, receipt/artifact config identity, base identity, duplicate frame layout, geometry-online guard, authenticated original model/assets, full-weights schema and bfloat16 dtype, weight names, every weight hash/size, index membership, and depth overwrite proof. An AST test confirms every original conditional guard is unchanged. The original-asset and depth-proof functions are unchanged. The additional checks authenticate the selected preparation files and their byte counts. The existing `step544_weights` provenance key remains for compatibility; its values are the selected export's verified weights.
 
-```json
-["camera_displacement", "camera_rotation", "camera_movement_direction"]
-```
-
-The production export stager and `in/h1read_export_stage.py` are different files. Their `stage_export` and `parse_done` function text is identical. Their run registries and fetch/binding integration differ; `DIFF.md` includes the complete comparison. The supplied stager also requires an external `binding` module. Neither whole module can be treated as a generic drop-in stager without adapting its surrounding contracts.
-
-Nine audit tests passed with the requested interpreter, with no fallback or installation:
+The build uses the production `orchard_h10.build.build()` and its vendored `tar_bytes()` implementation: sorted USTAR members, existing modes, gzip level 6, and mtime 0. `build_package.py` points that builder at the authoritative extracted production inventory, adds the one new module, and supplies local builder/vendor locations. It does not refresh upstream reader code. The production archive, not the lagging supplied source snapshot, supplies unchanged bytes. The exact build and audit commands, run from this workspace, are:
 
 ```bash
+/scratch/jjyeung/envs/p1cpu/bin/python -B out/build_package.py
+/scratch/jjyeung/envs/p1cpu/bin/python -B out/audit_package.py
+```
+
+The supplied builder snapshot differs from production in `job.py`, `operator.py`, and `runner.py`. `KIT_COMPARISON.json` and `SOURCE_COMPARISON.md` contain the inventory and complete input-source diffs. The supplied and production export stagers differ as modules; their `parse_done` and `stage_export` functions match exactly. Neither stager was modified.
+
+`FILE_SHA256_DIFF.tsv` and `.json` prove all 915 unchanged payload members byte-identical against production `0.tgz` SHA256 `446a432306b8e68ebfa32228071259a61ffd2ec0dada3ec43a664ba342ca540e`. Nine existing members change and one is added. `DIFF.md` gives every changed file, line range, and reason; `package.patch` and `public.patch` contain every literal changed text line, including generated descriptors. `PLAN_DIFF.json` identifies every changed field of the generated one-line plan.
+
+Scorers, statistics, items, perturbations, call cap, reader/e2e code, heads, tree, and all vendored SAM/selector/G3T/base/environment inventories remain byte-identical. Only `launch.py` changes within `h1eval`; only `stage_restore.py` changes within `parity_kit`. No non-export dependency or environment pin was regenerated.
+
+Fourteen new-package tests and nine production-reference tests pass under the requested CPU interpreter, without dependency installation or fallback:
+
+```bash
+/scratch/jjyeung/envs/p1cpu/bin/python -B out/tests/test_package.py
 /scratch/jjyeung/envs/p1cpu/bin/python -B out/tests/test_constraints.py
 ```
 
-`out/tests/results.txt` contains the results. The tests check production identity and admission, all payload pins, all extracted member bytes, camera selection, fixed export hashes, the current byte-check behavior, the exact restore configuration guard, the new-token policy conflict, and the constant launch identity. The two guard tests execute the original AST statements with controlled metadata; they do not claim a full staging or model run.
+`tests/results_r2.txt` and `tests/results_r1.txt` contain the results. Tests cover 544 admission; each artifact/heads/full-weights hash and size mismatch on either side of admission; missing, altered, or unsafe pins; actual preparation hash and size failures; original guard preservation; camera ordering; isolated physical mappings; sealed operator module loading; worker argument propagation; four-part receipt byte/hash/object/order failures; and complete helper output. Actual fixture launcher calls write journal bindings for SFT/544, SFT/100, and RL/37; the unchanged curve writer carries those labels through.
 
-One admission detail differs from the task’s description: production `check_inputs` fixes the three export hashes but only requires positive file sizes. Changing an export file’s declared byte count still passes metadata admission. Actual size equality is checked later in `stage()`. A replacement would need to add comparison against the operator pin file before staging, as requested.
+The 544-versus-H1-1 preparation mismatch test uses a clearly marked synthetic receipt with the supplied H1-1 config identity because the real receipt is unavailable. It proves the identity guard refuses that mismatch. It does not prove that the absent real H1-1 receipt has the claimed content or that a real export restores. Metadata tests stop before original-asset loading; no GPU weights, real parity run, or scoring accuracy are simulated as a pass. Operator/build helpers also pass syntax checks. `submerge.py` is byte-identical to the supplied complete-camera script, SHA256 `7abc0f94d5e93f57f823c78f5dfc6d3faf99eae87afab046b3c214f412b9aabe`.
 
-## Identities and limits
+Offline identities are recorded in `AUDIT.json`; the production reference values remain in `AUDIT_R1.json`:
 
-| Identity | Offline result |
+| Identity | Result |
 |---|---|
-| Production plan | Reproduced: `c6135410e087916095256a8b4c27eaa290f854734f8f4ea37150d34208ce709f` |
-| Raw H1-0 `a/1.json` | Reproduced: `1abaf6ca0ebcf7a710292b5d337a59534a5a7ed178c48965a5530da5f9fd041f` |
-| Canonical inputs excluding `resume` | Reproduced: `c8da89a80166e5320ed6a3ac76e6398e0eab1bdb10cffc1e13e58fdec5a2e900`; this differs from the raw-file hash by design |
-| Item-set identity | Reproduced: `7162af725a9ee3e25e6054ee7d0cffc210c99d10ad8b097c6d3fb5b3319f7910`; matches camera run 170631 |
-| Reader identity | Reproduced: `2c2dc559f9ba529ec470be058528f7c12cf4c838f21df829a9c8ba5369d4b3af`; matches camera run 170631 |
-| Parity code identity | Reproduced: `64474315cfaf1bd3bdaf2171b20fd7c1d82ff065ca5db107bfccf5862f289bc3`; matches camera run 170631 |
-| Production evaluator identity | Computed: `9fb4329d459aff71f0b42e615604437c09580adfb251550eef5dc70bfb33207d` |
-| Camera-run evaluator identity | Recorded as `ad9aeb9532074c0471089f622b01591b2a84800828cb958f41a952643e99f690`; does **not** match the supplied production archive |
-| Camera export identity | Recorded as `46029ca28948a0c9bf395c4b5796ec0d323d166c87d19901ed11cc6c02cc6915`; not recomputed |
+| Production plan | Reproduced `c6135410e087916095256a8b4c27eaa290f854734f8f4ea37150d34208ce709f`. |
+| Production raw inputs | Reproduced `1abaf6ca0ebcf7a710292b5d337a59534a5a7ed178c48965a5530da5f9fd041f`. |
+| New plan | `8f1b0de81bf2ce9f20783a7c20573d64ac2bf9ed3fa12929cc79cb1704a58d57`; changes with token and source pins. |
+| Adapted 544 raw inputs | `93468153b4b4fc781fad664053281f3e92e80e3322eaaf76634f212e45b7c647` in `inputs_544.json`; changes because it adds the authenticated export-file reference. |
+| Adapted 544 canonical inputs excluding resume | `d6a01e4459812c64c1d770112543969e3ce02ef75398c3169420ccd2158e3240`. |
+| Item set | Unchanged `7162af725a9ee3e25e6054ee7d0cffc210c99d10ad8b097c6d3fb5b3319f7910`. |
+| Reader code | Unchanged `2c2dc559f9ba529ec470be058528f7c12cf4c838f21df829a9c8ba5369d4b3af`. |
+| Parity code | `a279de2ca5f54ea5ef13e27db3135b05f9773b63338d3590f224d57c45bb96c5`; changes because the authorized restore implementation changes. Production `64474315cfaf1bd3bdaf2171b20fd7c1d82ff065ca5db107bfccf5862f289bc3` is reproduced separately. |
+| Evaluator code | `62d3fc991dd7f58257ea65653e6643eac5823a5e539543e9c7a57846637eb6c3`; changes because launcher labels now come from the pin file. Production `9fb4329d459aff71f0b42e615604437c09580adfb251550eef5dc70bfb33207d` is reproduced separately. |
 
-The camera run also used plan `1de19b86d81f2bf9a5b254270e61496e45d454893fe893cbbd325739f74764c8` and raw inputs `7757209963ac9f084fc48d3dc7133159e6c5785c8db3ae970e199c1ab817a3f5`, according to the supplied ledger. It is a different package revision and input selection from the supplied production `2.json`. This distinction is required to interpret the identity tests; the values must not be conflated.
+Other legitimate changes include payload/public/package hashes, batch bootstrap, return token, preparation/settings/manifest/binding hashes, and the restored-export digest. The selected preparation files move to pinned paths under the data root; `RESTORE.json` records those paths and uses a generic export description. The manifest authenticates the changed evaluator and parity code. These changes are not scorer changes.
 
-`46029ca2…` hashes the restored export tree, including localized metadata and restored assets. It is neither the source artifact hash nor the whole-tar hash. The export weights, base assets, and live staged environment are absent here. Reading the recorded value from a return is not recomputing it. `binding.json` has a separate hash, recorded in camera journals as `0c41352a772b95f2ddc98fe5d411624717d19226fe797ffacae22328455e13b0`.
+The camera return's export digest `46029ca2…` hashes the entire restored tree; its artifact-manifest binding digest is separately `0c41352a…`. Neither can be recomputed here without the absent weights and live restore. The new restored-tree digest is expected to differ because its authenticated provenance changes. The old camera evaluator was `ad9aeb95…`, which also differs from the supplied production archive's evaluator. The new read must be scored under this package's own evaluator hash; no old return is relabeled or reaccepted.
 
-The production metadata command is:
+`OPERATIONS_DELTA.md` gives placement, four-part pull, pin filling, metadata check, an empty-root CPU check in the real node environment, one-GPU/four-hour submission on general, fetch, and scoring with the unchanged `submerge.py` and complete three-type prefix. The statistics remain room bootstrap, 10,000 draws, seed 20261115. The runbook verifies typed H100 resources before using the unchanged generic GPU submit helper and checks returned card evidence. If general is mixed or its GRES names omit GPU types, H100 placement is unproved and the operator must stop; no model-specific placement option was added outside the authorized scope.
 
-```bash
-cd /project/community/jjyeung/b01ec87a6f29b
-CUDA_VISIBLE_DEVICES= /usr/bin/python3 -I -s -B 3.py check --gpus 1 --time 03:00:00
-```
-
-This writes `2.json` with `passed:true` and `scope:0` for the actual inputs and package on Orchard. It does not execute the real node environment, restore, archive hashing, or empty-root staging. Those checks occur in the allocated job before decoding. There is no existing full empty-root CPU-check command exposed by this production helper; presenting `3.py check` as that proof would be incorrect. No replacement full-check command was implemented after the stop condition.
-
-## Deliverable status
-
-Available: this report, complete source/stager diffs, per-file extraction hashes, machine-readable `AUDIT.json`, nine passing audit tests, and the unchanged extracted sources. `OPERATIONS_DELTA.md` records the operational constraints and measured time basis.
-
-`out/TOKEN` contains an unused token generated with `'b'+secrets.token_hex(6)`. It does not identify a built or admissible package. There is no `out/0.tgz`, replacement package descriptor, implemented export schema, `export_544.json`, `export_TEMPLATE.json`, new-package admission test, four-part staging test, or submission-ready operator runbook. No new-package CPU pass or submit receipt has been fabricated.
-
-No network, SSH, Slurm, GPU, Git, or deletion operation ran. All new files are under `out/`. The next implementation needs the scope decisions above and evidence of m100’s preparation compatibility.
+No network, SSH, Slurm, GPU, or Git operation ran. No file was deleted. One erroneous deletion patch targeted a nonexistent `/tmp/nonexistent-placeholder` and failed without changing the filesystem. All successful new writes are under `out/`. Full Orchard staging/restore, H1-1 artifact compatibility, GPU inference, and complete-camera scoring still require the operator commands and actual inputs; no live pass or submission receipt is claimed.

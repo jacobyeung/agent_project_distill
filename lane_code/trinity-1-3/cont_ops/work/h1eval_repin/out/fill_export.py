@@ -138,6 +138,8 @@ def main():
     for path in (a.config,a.receipt,a.data_receipt):
         if not Path(path).is_file():raise ValueError('Missing preparation file: '+path)
     export, artifact, archive = scan(a.parts,a.done,a.object)
+    label = re.fullmatch(r'm(\d+)', PurePosixPath(export['member_directory']).name)
+    if label and int(label.group(1)) != a.step:raise ValueError('Step label differs from export member directory')
     prep, raw = preparation(a.config,a.receipt,a.data_receipt,artifact)
     export.update(schema='h1-export-pins-v1',lineage=a.lineage,step=a.step,preparation=prep)
     with tarfile.open(a.prep_tar,'w') as tar:

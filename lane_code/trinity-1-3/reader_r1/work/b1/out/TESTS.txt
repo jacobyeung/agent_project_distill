@@ -1,0 +1,92 @@
+B1 CPU validation — INCOMPLETE, NOT READY FOR SUBMISSION
+
+G1 BLOCKED: patched StageOne replay cannot import torch. No patched replay result is claimed.
+The replay driver calls StageOne(..., rule=rule), StageOne.select, StageOneSocket and ReadServers;
+it contains no replay2.Select wrapper. work/check_replay.py compares every response and query,
+checks the 7 remaining pairs, both geometries, accuracy, and diagnostics size against staged evidence.
+
+G2 PARTIAL: four structural/identity checks and six stub-method tests pass. The default null
+formula, socket __call__, lift/link/features, box formatter and callhook response bytes remain
+unchanged. Planted null-slot, ignored-rule, ignored-settings and printed-format mutants fail
+these stub tests. Real Torch tests, b04 fixtures and the complete replay are NOT RUN successfully.
+
+G3 PASS FOR THE CHANGE'S DECISION-PATH STATIC DELTA: 26 findings before and 26 after,
+zero new findings by (file, function, rule, detail). No allowlist changes. Whole-file scan logs
+include setup/output-only findings, documented in EAT1_GATE.json. This is not a whole-reader
+EAT-1 certification; inherited findings remain.
+
+CPU first batch / full H1-0 empty-root restore: NOT RUN. Model, SAM 3, RGB, restored environment,
+bwrap and policy archives are referenced by input manifests but absent from W. Local package
+integrity and namespace-source construction rehearsal passes for both packages. No 2.json
+submission receipt was generated. Retokened policy/environment inputs require restaging.
+
+CPU limits: CUDA hidden in replay command; OMP/MKL/OpenBLAS threads 1; prepared replay NP=8.
+No network, Git, SSH, job submission or process kill was used.
+
+
+===== STATIC_TESTS.txt =====
+test_default_paths (__main__.Static.test_default_paths) ... ok
+test_identity (__main__.Static.test_identity) ... ok
+test_parse_changed (__main__.Static.test_parse_changed) ... ok
+test_rule_literals (__main__.Static.test_rule_literals) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.195s
+
+OK
+
+===== STUB_TESTS.txt =====
+test_ignored_rule_mutant_fails (__main__.StubTests.test_ignored_rule_mutant_fails) ... ok
+test_null_matches_original (__main__.StubTests.test_null_matches_original) ... ok
+test_off_by_one_mutant_fails (__main__.StubTests.test_off_by_one_mutant_fails) ... ok
+test_printed_format_and_mutant (__main__.StubTests.test_printed_format_and_mutant) ... ok
+test_real_method_stub_head (__main__.StubTests.test_real_method_stub_head) ... ok
+test_settings_mutant_fails_wiring_assertion (__main__.StubTests.test_settings_mutant_fails_wiring_assertion) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.020s
+
+OK
+
+===== REPORT_TESTS.txt =====
+test_paired_units_and_missing_diagnostics (__main__.ReportFixture.test_paired_units_and_missing_diagnostics) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.114s
+
+OK
+
+===== RUNTIME_TESTS.txt =====
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/reader_r1/work/b1/work/test_b1.py", line 12, in <module>
+    import torch
+ModuleNotFoundError: No module named 'torch'
+
+===== EXISTING_TESTS.txt =====
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/reader_r1/work/b1/work/run_existing.py", line 17, in <module>
+    import pytest
+ModuleNotFoundError: No module named 'pytest'
+
+===== REPLAY_RUN.txt =====
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/reader_r1/work/b1/work/replay/replay_patched.py", line 11, in <module>
+    import torch
+ModuleNotFoundError: No module named 'torch'
+
+===== EAT1_SCAN.txt =====
+before 199 {'A3.threshold': 6, 'A3.constant': 42, 'A4.except_substitute': 5, 'A4.status_literal': 2, 'A3.table_load': 39, 'A3.data_file': 100, 'A3.unit_conversion': 3, 'A4.guard': 1, 'A3.reformat': 1}
+after 190 {'A3.threshold': 6, 'A3.constant': 42, 'A4.except_substitute': 5, 'A4.status_literal': 2, 'A3.data_file': 88, 'A3.table_load': 42, 'A3.unit_conversion': 3, 'A4.guard': 1, 'A3.reformat': 1}
+b/e2e_reader/stage1.py StageOne.features A3.constant proposals, lift_outcomes = F.candidates.lift(F.cache_for(name, self.raw[name]), name, self.geometry, floor=.3,
+h1eval/h10/depth_snapshot.py save A3.data_file path = Path(output) / 'own_depth' / (key + '.npz')
+h1eval/h10/depth_snapshot.py save A3.table_load return dict(path=str(path.relative_to(output)), sha256=hashlib.sha256(path.read_bytes()).hexdigest(),
+orchard_h10/build.py sources A3.table_load original = json.loads((K/'9.json').read_text())['payload_pins']
+orchard_h10/build.py sources A3.table_load original = json.loads((K/'9.json').read_text())['payload_pins']
+orchard_h10/build.py sources A3.data_file original = json.loads((K/'9.json').read_text())['payload_pins']
+G3 decision-path delta {"scope": ["b/e2e_reader/grounding.py", "b/e2e_reader/servers.py", "b/e2e_reader/stage1.py", "h1eval/h10/perception_own.py", "h1eval/perception.py"], "before_findings": 26, "after_findings": 26, "new_findings": [], "passed": true, "matching": "file, function, rule, detail multiset; line and source text may shift", "exclusions": {"h1eval/h10/depth_snapshot.py": "writes and hashes output after generator returns", "orchard_h10/build.py": "build-time payload inventory", "h1eval/h10/launch.py": "read orchestration and journal persistence", "orchard_h10/job.py": "job setup", "orchard_h10/runner.py": "job setup", "orchard_h10/prepare.py": "read setup"}, "no_allowlist_changes": true, "whole_reader_EAT1_pass": false}
+
+===== REHEARSAL.txt =====
+{"token": "c4d7e0a91b28f", "rule": "null_argmax", "payload_sha256": "ab5a313f534a8b0b38c2bf43246ffb0e2535a25e7ecb56cd397d3615f4f27e2c", "plan": "6f2ee5bd61e6d26db6317579dfeda51617a2871a8b754466497cda98bb44ef69", "pins_checked": 924, "empty_root": true, "bind_sources_created": ["sj", "fsw", "m/ap"], "reads": 150, "worker_argv": ["--items", "/scratch/jjyeung/orch_n30/reader_r1/work/b1/work/rehearsal_delivery/c4d7e0a91b28f/r/metadata/a/3.json", "--export", "/scratch/jjyeung/c4d7e0a91b28f/d/e", "--artifact-manifest", "/scratch/jjyeung/c4d7e0a91b28f/d/binding.json", "--reader-root", "/scratch/jjyeung/orch_n30/reader_r1/work/b1/work/rehearsal_delivery/c4d7e0a91b28f/p/b", "--settings", "/scratch/jjyeung/c4d7e0a91b28f/d/settings.json", "--out", "/scratch/jjyeung/orch_n30/reader_r1/work/b1/work/rehearsal_delivery/c4d7e0a91b28f/r/metadata/journals/3/0", "--arms", "own", "--shard", "0/1", "--device", "cpu", "--stop-at", "0", "--finish-by", "0", "--stop-file", "/scratch/jjyeung/orch_n30/reader_r1/work/b1/work/rehearsal_delivery/c4d7e0a91b28f/r/metadata/STOP", "--modes", "none", "--types", "object_abs_distance"], "submit_argv": ["sbatch", "--parsable", "--account=mt01", "--partition=general", "--nodes=1", "--ntasks=1", "--gres=gpu:1", "--cpus-per-task=16", "--mem=200G", "--time=01:45:00", "--signal=B:USR1@1800", "--no-requeue", "--export=NONE", "--output=/dev/null", "--error=/dev/null", "--chdir=/tmp", "--job-name=a15_cot_apc4d7e0a91b28f"], "full_restore": "NOT RUN: model, SAM, environment and RGB archives are referenced on Orchard and not staged here"}
+{"token": "d8a2f6c09e137", "rule": "candidates_argmax", "payload_sha256": "686307718a4350b15a91f3abf5422e5e58677c6f0bf0e19febbed12a98e9012d", "plan": "329dd72a0581d96758603e637bc14f45ef046c7b961310acd0509e2da27f060d", "pins_checked": 924, "empty_root": true, "bind_sources_created": ["sj", "fsw", "m/ap"], "reads": 150, "worker_argv": ["--items", "/scratch/jjyeung/orch_n30/reader_r1/work/b1/work/rehearsal_delivery/d8a2f6c09e137/r/metadata/a/3.json", "--export", "/scratch/jjyeung/d8a2f6c09e137/d/e", "--artifact-manifest", "/scratch/jjyeung/d8a2f6c09e137/d/binding.json", "--reader-root", "/scratch/jjyeung/orch_n30/reader_r1/work/b1/work/rehearsal_delivery/d8a2f6c09e137/p/b", "--settings", "/scratch/jjyeung/d8a2f6c09e137/d/settings.json", "--out", "/scratch/jjyeung/orch_n30/reader_r1/work/b1/work/rehearsal_delivery/d8a2f6c09e137/r/metadata/journals/3/0", "--arms", "own", "--shard", "0/1", "--device", "cpu", "--stop-at", "0", "--finish-by", "0", "--stop-file", "/scratch/jjyeung/orch_n30/reader_r1/work/b1/work/rehearsal_delivery/d8a2f6c09e137/r/metadata/STOP", "--modes", "none", "--types", "object_abs_distance"], "submit_argv": ["sbatch", "--parsable", "--account=mt01", "--partition=general", "--nodes=1", "--ntasks=1", "--gres=gpu:1", "--cpus-per-task=16", "--mem=200G", "--time=01:45:00", "--signal=B:USR1@1800", "--no-requeue", "--export=NONE", "--output=/dev/null", "--error=/dev/null", "--chdir=/tmp", "--job-name=a15_cot_apd8a2f6c09e137"], "full_restore": "NOT RUN: model, SAM, environment and RGB archives are referenced on Orchard and not staged here"}
+
+Final package verification: both manifests match; all 11 changed source hashes match both payload archives. PASS.

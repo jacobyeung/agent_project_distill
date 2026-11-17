@@ -1,0 +1,527 @@
+{
+ "files": [
+  "pass2_seed11.npz",
+  "pass2_seed12.npz",
+  "pass2_seed13.npz",
+  "pass2_seed14.npz"
+ ],
+ "outer": 8000,
+ "inner": 10000,
+ "rooms_union": 72,
+ "types": [
+  "route_planning",
+  "object_counting",
+  "object_rel_direction_easy",
+  "object_rel_direction_medium",
+  "object_rel_direction_hard",
+  "object_rel_distance",
+  "object_size_estimation"
+ ],
+ "pool_mean_score": [
+  0.8133,
+  0.6553,
+  0.9167,
+  0.8833,
+  0.83,
+  0.6933,
+  0.6397
+ ],
+ "model": "no change: rooms resampled, arms exchanged per room with probability 1/2; loss L: later-arm item score set to 0 with probability L/(100 x mean score)",
+ "null_sd_pp": [
+  3.61,
+  4.31,
+  2.43,
+  2.65,
+  2.22,
+  2.88,
+  3.33
+ ],
+ "null_mean7_sd_pp": 1.227,
+ "results": {
+  "no change | rule: types at Bonferroni-7 level (99.643% two-sided), mean at 95%": {
+   "any_type": [
+    4.1,
+    0.22
+   ],
+   "mean": [
+    3.01,
+    0.19
+   ],
+   "stop": [
+    6.31,
+    0.27
+   ],
+   "per_type": [
+    0.57,
+    0.81,
+    0.69,
+    0.81,
+    0.44,
+    0.43,
+    0.43
+   ]
+  },
+  "no change | uncorrected: types at 95%, no mean rule": {
+   "any_type": [
+    17.86,
+    0.43
+   ],
+   "per_type": [
+    2.65,
+    3.24,
+    3.2,
+    3.08,
+    2.31,
+    2.59,
+    2.86
+   ]
+  },
+  "no change | later-look level: types at Bonferroni-28, mean at 99.375%": {
+   "any_type": [
+    1.56,
+    0.14
+   ],
+   "mean": [
+    0.88,
+    0.1
+   ],
+   "stop": [
+    2.29,
+    0.17
+   ],
+   "per_type": [
+    0.2,
+    0.33,
+    0.31,
+    0.2,
+    0.24,
+    0.19,
+    0.14
+   ]
+  },
+  "loss 9.5 on route_planning": {
+   "any_type": [
+    35.65,
+    0.54
+   ],
+   "mean": [
+    19.59,
+    0.44
+   ],
+   "stop": [
+    41.79,
+    0.55
+   ],
+   "per_type": [
+    33.38,
+    0.81,
+    0.69,
+    0.81,
+    0.44,
+    0.43,
+    0.43
+   ]
+  },
+  "loss 9.5 on route_planning | later-look level": {
+   "any_type": [
+    22.01,
+    0.46
+   ],
+   "mean": [
+    8.48,
+    0.31
+   ],
+   "stop": [
+    25.24,
+    0.49
+   ],
+   "per_type": [
+    20.97,
+    0.33,
+    0.31,
+    0.2,
+    0.24,
+    0.19,
+    0.14
+   ]
+  },
+  "loss 9.5 on object_counting": {
+   "any_type": [
+    33.45,
+    0.53
+   ],
+   "mean": [
+    19.62,
+    0.44
+   ],
+   "stop": [
+    40.1,
+    0.55
+   ],
+   "per_type": [
+    0.57,
+    31.1,
+    0.69,
+    0.81,
+    0.44,
+    0.43,
+    0.43
+   ]
+  },
+  "loss 9.5 on object_counting | later-look level": {
+   "any_type": [
+    20.45,
+    0.45
+   ],
+   "mean": [
+    8.62,
+    0.31
+   ],
+   "stop": [
+    24.2,
+    0.48
+   ],
+   "per_type": [
+    0.2,
+    19.4,
+    0.31,
+    0.2,
+    0.24,
+    0.19,
+    0.14
+   ]
+  },
+  "loss 9.5 on object_rel_direction_easy": {
+   "any_type": [
+    59.04,
+    0.55
+   ],
+   "mean": [
+    19.6,
+    0.44
+   ],
+   "stop": [
+    64.49,
+    0.54
+   ],
+   "per_type": [
+    0.57,
+    0.81,
+    57.44,
+    0.81,
+    0.44,
+    0.43,
+    0.43
+   ]
+  },
+  "loss 9.5 on object_rel_direction_easy | later-look level": {
+   "any_type": [
+    43.58,
+    0.55
+   ],
+   "mean": [
+    8.61,
+    0.31
+   ],
+   "stop": [
+    46.99,
+    0.56
+   ],
+   "per_type": [
+    0.2,
+    0.33,
+    42.86,
+    0.2,
+    0.24,
+    0.19,
+    0.14
+   ]
+  },
+  "loss 9.5 on object_rel_direction_medium": {
+   "any_type": [
+    54.06,
+    0.56
+   ],
+   "mean": [
+    19.64,
+    0.44
+   ],
+   "stop": [
+    59.33,
+    0.55
+   ],
+   "per_type": [
+    0.57,
+    0.81,
+    0.69,
+    52.41,
+    0.44,
+    0.43,
+    0.43
+   ]
+  },
+  "loss 9.5 on object_rel_direction_medium | later-look level": {
+   "any_type": [
+    38.82,
+    0.54
+   ],
+   "mean": [
+    8.45,
+    0.31
+   ],
+   "stop": [
+    41.83,
+    0.55
+   ],
+   "per_type": [
+    0.2,
+    0.33,
+    0.31,
+    37.91,
+    0.24,
+    0.19,
+    0.14
+   ]
+  },
+  "loss 9.5 on object_rel_direction_hard": {
+   "any_type": [
+    61.06,
+    0.55
+   ],
+   "mean": [
+    19.69,
+    0.44
+   ],
+   "stop": [
+    62.9,
+    0.54
+   ],
+   "per_type": [
+    0.57,
+    0.81,
+    0.69,
+    0.81,
+    60.05,
+    0.43,
+    0.43
+   ]
+  },
+  "loss 9.5 on object_rel_direction_hard | later-look level": {
+   "any_type": [
+    46.23,
+    0.56
+   ],
+   "mean": [
+    8.71,
+    0.32
+   ],
+   "stop": [
+    47.26,
+    0.56
+   ],
+   "per_type": [
+    0.2,
+    0.33,
+    0.31,
+    0.2,
+    45.7,
+    0.19,
+    0.14
+   ]
+  },
+  "loss 9.5 on object_rel_distance": {
+   "any_type": [
+    49.76,
+    0.56
+   ],
+   "mean": [
+    19.5,
+    0.44
+   ],
+   "stop": [
+    55.09,
+    0.56
+   ],
+   "per_type": [
+    0.57,
+    0.81,
+    0.69,
+    0.81,
+    0.44,
+    47.61,
+    0.43
+   ]
+  },
+  "loss 9.5 on object_rel_distance | later-look level": {
+   "any_type": [
+    33.88,
+    0.53
+   ],
+   "mean": [
+    8.7,
+    0.32
+   ],
+   "stop": [
+    37.29,
+    0.54
+   ],
+   "per_type": [
+    0.2,
+    0.33,
+    0.31,
+    0.2,
+    0.24,
+    32.86,
+    0.14
+   ]
+  },
+  "loss 9.5 on object_size_estimation": {
+   "any_type": [
+    46.5,
+    0.56
+   ],
+   "mean": [
+    19.78,
+    0.45
+   ],
+   "stop": [
+    51.25,
+    0.56
+   ],
+   "per_type": [
+    0.57,
+    0.81,
+    0.69,
+    0.81,
+    0.44,
+    0.43,
+    44.61
+   ]
+  },
+  "loss 9.5 on object_size_estimation | later-look level": {
+   "any_type": [
+    30.54,
+    0.51
+   ],
+   "mean": [
+    8.65,
+    0.31
+   ],
+   "stop": [
+    33.42,
+    0.53
+   ],
+   "per_type": [
+    0.2,
+    0.33,
+    0.31,
+    0.2,
+    0.24,
+    0.19,
+    29.6
+   ]
+  },
+  "uniform loss 2 on all seven": {
+   "any_type": [
+    18.11,
+    0.43
+   ],
+   "mean": [
+    35.52,
+    0.54
+   ],
+   "stop": [
+    41.71,
+    0.55
+   ],
+   "per_type": [
+    1.89,
+    2.11,
+    3.91,
+    3.46,
+    3.9,
+    2.66,
+    2.31
+   ]
+  },
+  "uniform loss 2 on all seven | later-look level": {
+   "any_type": [
+    9.01,
+    0.32
+   ],
+   "mean": [
+    18.54,
+    0.43
+   ],
+   "stop": [
+    23.3,
+    0.47
+   ],
+   "per_type": [
+    0.94,
+    1.04,
+    1.99,
+    1.74,
+    1.82,
+    1.2,
+    0.83
+   ]
+  },
+  "size gate (95% interval wholly below zero) | no change": [
+   2.86,
+   0.19
+  ],
+  "size gate | loss 9.5 on size": [
+   71.25,
+   0.51
+  ],
+  "realised loss, mean and sd (pp): 9.5 scenario per type": [
+   [
+    -9.49,
+    4.18
+   ],
+   [
+    -9.41,
+    4.59
+   ],
+   [
+    -9.5,
+    3.3
+   ],
+   [
+    -9.48,
+    3.47
+   ],
+   [
+    -9.48,
+    3.2
+   ],
+   [
+    -9.51,
+    3.62
+   ],
+   [
+    -9.48,
+    3.81
+   ]
+  ],
+  "realised loss, uniform 2 scenario: mean of seven, mean and sd (pp)": [
+   -1.99,
+   1.28
+  ],
+  "normal-interval variant, types only: no change / loss 9.5 on size / uniform 2": [
+   [
+    3.94,
+    0.22
+   ],
+   [
+    47.27,
+    0.56
+   ],
+   [
+    18.48,
+    0.43
+   ]
+  ]
+ }
+}

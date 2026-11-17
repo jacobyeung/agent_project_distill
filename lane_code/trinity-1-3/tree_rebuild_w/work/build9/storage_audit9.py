@@ -6,6 +6,11 @@ groups={}
 for name in ('suite_tree','suite_base','packet','final_targeted','cpu_weighted'):
     for path in sorted((B/'proofs'/name).rglob('temporary_sizes.json')):
         rows=json.loads(path.read_text())
+        if rows and 'phase' in rows[0]:
+            phases={}
+            for row in rows:
+                phases.setdefault(row['test'],{'test':row['test']})[row['phase']+'_bytes']=row['bytes']
+            rows=list(phases.values())
         exceeded=[r for r in rows if r['after_bytes']>200_000_000]
         groups[str(path.relative_to(L))]=dict(tests=len(rows),
             maximum_before_bytes=max((r['before_bytes'] for r in rows),default=0),

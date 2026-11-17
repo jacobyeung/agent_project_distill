@@ -1,0 +1,265 @@
+{
+ "findings": [
+  {
+   "clause": "A3",
+   "rule": "A3.threshold",
+   "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1/in/pkg/p/b/e2e_reader/grounding.py",
+   "rel": "b/e2e_reader/grounding.py",
+   "line": 20,
+   "function": "_hull",
+   "detail": "compares against 2.0",
+   "text": "if len(P) <= 2:"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.threshold",
+   "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1/in/pkg/p/b/e2e_reader/grounding.py",
+   "rel": "b/e2e_reader/grounding.py",
+   "line": 27,
+   "function": "_hull",
+   "detail": "compares against 2.0",
+   "text": "while len(lower) >= 2 and cross(lower[-2], lower[-1], p) <= 0:"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.threshold",
+   "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1/in/pkg/p/b/e2e_reader/grounding.py",
+   "rel": "b/e2e_reader/grounding.py",
+   "line": 31,
+   "function": "_hull",
+   "detail": "compares against 2.0",
+   "text": "while len(upper) >= 2 and cross(upper[-2], upper[-1], p) <= 0:"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1/in/pkg/p/b/e2e_reader/grounding.py",
+   "rel": "b/e2e_reader/grounding.py",
+   "line": 85,
+   "function": "mask_pixels",
+   "detail": "constant 1000",
+   "text": "return np.column_stack(((cols + .5) / w * 1000, (rows + .5) / h * 1000))"
+  },
+  {
+   "clause": "A4",
+   "rule": "A4.except_substitute",
+   "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1/in/pkg/p/b/e2e_reader/servers.py",
+   "rel": "b/e2e_reader/servers.py",
+   "line": 30,
+   "function": "ReadServers.session_call",
+   "detail": "except-handler does not re-raise; a substitute flows on",
+   "text": "return ('error: ' + str(exc), dict(kind='error', code=str(exc), spec_version=session.spec_version))"
+  },
+  {
+   "clause": "A4",
+   "rule": "A4.status_literal",
+   "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1/in/pkg/p/b/e2e_reader/servers.py",
+   "rel": "b/e2e_reader/servers.py",
+   "line": 30,
+   "function": "ReadServers.session_call",
+   "detail": "string 'error: '",
+   "text": "return ('error: ' + str(exc), dict(kind='error', code=str(exc), spec_version=session.spec_version))"
+  },
+  {
+   "clause": "A4",
+   "rule": "A4.status_literal",
+   "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1/in/pkg/p/b/e2e_reader/servers.py",
+   "rel": "b/e2e_reader/servers.py",
+   "line": 30,
+   "function": "ReadServers.session_call",
+   "detail": "string 'error'",
+   "text": "return ('error: ' + str(exc), dict(kind='error', code=str(exc), spec_version=session.spec_version))"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1/in/pkg/p/b/e2e_reader/stage1.py",
+   "rel": "b/e2e_reader/stage1.py",
+   "line": 21,
+   "function": "<module>",
+   "detail": "constant 0.05",
+   "text": "K1_CONTRACT = dict(joint_floor=.05, cap=30)"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1/in/pkg/p/b/e2e_reader/stage1.py",
+   "rel": "b/e2e_reader/stage1.py",
+   "line": 21,
+   "function": "<module>",
+   "detail": "constant 30",
+   "text": "K1_CONTRACT = dict(joint_floor=.05, cap=30)"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1/in/pkg/p/b/e2e_reader/stage1.py",
+   "rel": "b/e2e_reader/stage1.py",
+   "line": 70,
+   "function": "median_ratio",
+   "detail": "constant 50",
+   "text": "selected = np.isfinite(c) & (c > np.percentile(finite, 50)) & np.isfinite(d) & (d > 0) & np.isfinite(v) & (v > 0)"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.threshold",
+   "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1/in/pkg/p/b/e2e_reader/stage1.py",
+   "rel": "b/e2e_reader/stage1.py",
+   "line": 99,
+   "function": "sam3_detect",
+   "detail": "compares against table entry K1_CONTRACT['joint_floor']",
+   "text": "keep = order[joint[order] >= K1_CONTRACT['joint_floor']][:K1_CONTRACT['cap']]"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1/in/pkg/p/b/e2e_reader/stage1.py",
+   "rel": "b/e2e_reader/stage1.py",
+   "line": 130,
+   "function": "StageOne.features",
+   "detail": "constant 0.3",
+   "text": "proposals, _ = F.candidates.lift(F.cache_for(name, self.raw[name]), name, self.geometry, floor=.3,"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1/in/pkg/p/b/e2e_reader/stage1.py",
+   "rel": "b/e2e_reader/stage1.py",
+   "line": 163,
+   "function": "stage1_factory.socket",
+   "detail": "constant 240",
+   "text": "return StageOneSocket(s.propose, s.select, (240, 320), frame_count(geometry))"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1/in/pkg/p/b/e2e_reader/stage1.py",
+   "rel": "b/e2e_reader/stage1.py",
+   "line": 163,
+   "function": "stage1_factory.socket",
+   "detail": "constant 320",
+   "text": "return StageOneSocket(s.propose, s.select, (240, 320), frame_count(geometry))"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1/in/pkg/p/h1eval/h10/perception_own.py",
+   "rel": "h1eval/h10/perception_own.py",
+   "line": 37,
+   "function": "BoundOwnPerception.perception_factory.lazy",
+   "detail": "constant 500.0",
+   "text": "depth_finite = all(np.isfinite(heads.depth(i, np.array([[500., 500.]]))).all()"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1/in/pkg/p/h1eval/h10/perception_own.py",
+   "rel": "h1eval/h10/perception_own.py",
+   "line": 38,
+   "function": "BoundOwnPerception.perception_factory.lazy",
+   "detail": "constant 33",
+   "text": "for i in range(1, 33))"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.unit_conversion",
+   "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1/in/pkg/p/h1eval/perception.py",
+   "rel": "h1eval/perception.py",
+   "line": 25,
+   "function": "axis_rotation",
+   "detail": "identifier degrees",
+   "text": "def axis_rotation(axis,degrees):"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.unit_conversion",
+   "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1/in/pkg/p/h1eval/perception.py",
+   "rel": "h1eval/perception.py",
+   "line": 28,
+   "function": "axis_rotation",
+   "detail": "identifier degrees",
+   "text": "a=math.radians(degrees)"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.unit_conversion",
+   "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1/in/pkg/p/h1eval/perception.py",
+   "rel": "h1eval/perception.py",
+   "line": 53,
+   "function": "perturb",
+   "detail": "identifier degrees",
+   "text": "changed=np.array([axis_rotation([0,0,1],math.degrees(-2*a))@r for a,r in zip(angles,R)])"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1/in/pkg/p/h1eval/perception.py",
+   "rel": "h1eval/perception.py",
+   "line": 53,
+   "function": "perturb",
+   "detail": "combined constant factor -2.0 in -2 * a",
+   "text": "changed=np.array([axis_rotation([0,0,1],math.degrees(-2*a))@r for a,r in zip(angles,R)])"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1/in/pkg/p/h1eval/perception.py",
+   "rel": "h1eval/perception.py",
+   "line": 53,
+   "function": "perturb",
+   "detail": "constant -2",
+   "text": "changed=np.array([axis_rotation([0,0,1],math.degrees(-2*a))@r for a,r in zip(angles,R)])"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1/in/pkg/p/h1eval/perception.py",
+   "rel": "h1eval/perception.py",
+   "line": 77,
+   "function": "own_profile",
+   "detail": "constant 1000",
+   "text": "uv=np.linspace(0,1000,51) if grid_uv is None else np.asarray(grid_uv)"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1/in/pkg/p/h1eval/perception.py",
+   "rel": "h1eval/perception.py",
+   "line": 77,
+   "function": "own_profile",
+   "detail": "constant 51",
+   "text": "uv=np.linspace(0,1000,51) if grid_uv is None else np.asarray(grid_uv)"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1/in/pkg/p/h1eval/perception.py",
+   "rel": "h1eval/perception.py",
+   "line": 79,
+   "function": "own_profile",
+   "detail": "constant 33",
+   "text": "depth=np.stack([heads.depth(k,points).reshape(len(uv),len(uv)) for k in range(1,33)])"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1/in/pkg/p/h1eval/perception.py",
+   "rel": "h1eval/perception.py",
+   "line": 84,
+   "function": "own_profile",
+   "detail": "constant 1000",
+   "text": "A=np.tile(np.diag([W/1000,H/1000,1.]),(32,1,1))"
+  },
+  {
+   "clause": "A3",
+   "rule": "A3.constant",
+   "file": "/scratch/jjyeung/orch_n30/reader_r1/work/b1/in/pkg/p/h1eval/perception.py",
+   "rel": "h1eval/perception.py",
+   "line": 85,
+   "function": "own_profile",
+   "detail": "constant 32",
+   "text": "indices=frames.get('anchor_indices',list(range(32)))"
+  }
+ ],
+ "suppressed": []
+}

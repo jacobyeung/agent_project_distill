@@ -1,0 +1,9 @@
+before 199 {'A3.threshold': 6, 'A3.constant': 42, 'A4.except_substitute': 5, 'A4.status_literal': 2, 'A3.table_load': 39, 'A3.data_file': 100, 'A3.unit_conversion': 3, 'A4.guard': 1, 'A3.reformat': 1}
+after 190 {'A3.threshold': 6, 'A3.constant': 42, 'A4.except_substitute': 5, 'A4.status_literal': 2, 'A3.data_file': 88, 'A3.table_load': 42, 'A3.unit_conversion': 3, 'A4.guard': 1, 'A3.reformat': 1}
+b/e2e_reader/stage1.py StageOne.features A3.constant proposals, lift_outcomes = F.candidates.lift(F.cache_for(name, self.raw[name]), name, self.geometry, floor=.3,
+h1eval/h10/depth_snapshot.py save A3.data_file path = Path(output) / 'own_depth' / (key + '.npz')
+h1eval/h10/depth_snapshot.py save A3.table_load return dict(path=str(path.relative_to(output)), sha256=hashlib.sha256(path.read_bytes()).hexdigest(),
+orchard_h10/build.py sources A3.table_load original = json.loads((K/'9.json').read_text())['payload_pins']
+orchard_h10/build.py sources A3.table_load original = json.loads((K/'9.json').read_text())['payload_pins']
+orchard_h10/build.py sources A3.data_file original = json.loads((K/'9.json').read_text())['payload_pins']
+G3 decision-path delta {"scope": ["b/e2e_reader/grounding.py", "b/e2e_reader/servers.py", "b/e2e_reader/stage1.py", "h1eval/h10/perception_own.py", "h1eval/perception.py"], "before_findings": 26, "after_findings": 26, "new_findings": [], "passed": true, "matching": "file, function, rule, detail multiset; line and source text may shift", "exclusions": {"h1eval/h10/depth_snapshot.py": "writes and hashes output after generator returns", "orchard_h10/build.py": "build-time payload inventory", "h1eval/h10/launch.py": "read orchestration and journal persistence", "orchard_h10/job.py": "job setup", "orchard_h10/runner.py": "job setup", "orchard_h10/prepare.py": "read setup"}, "no_allowlist_changes": true, "whole_reader_EAT1_pass": false}

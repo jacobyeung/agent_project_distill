@@ -1,0 +1,776 @@
+{
+ "inputs": {
+  "a544": "/scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/evidence/A544.jsonl",
+  "b200": "/scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/kit/build/a4cadd8934b/fetched/x/ITEMS.jsonl"
+ },
+ "types": [
+  "route_planning",
+  "object_counting",
+  "object_rel_direction_easy",
+  "object_rel_direction_medium",
+  "object_rel_direction_hard",
+  "object_rel_distance",
+  "object_size_estimation"
+ ],
+ "items": [
+  150.0,
+  150.0,
+  150.0,
+  150.0,
+  150.0,
+  150.0,
+  150.0
+ ],
+ "rooms_per_type": [
+  40,
+  49,
+  36,
+  36,
+  38,
+  35,
+  59
+ ],
+ "rooms_union": 72,
+ "delta_pp": [
+  5.333,
+  5.467,
+  0.667,
+  -2.0,
+  -2.0,
+  -2.667,
+  -9.533
+ ],
+ "acc544_pp": [
+  78.67,
+  62.8,
+  91.33,
+  89.33,
+  84.0,
+  70.67,
+  68.73
+ ],
+ "acc200_pp": [
+  84.0,
+  68.27,
+  92.0,
+  87.33,
+  82.0,
+  68.0,
+  59.2
+ ],
+ "item_sd_of_difference_pp": [
+  39.64,
+  43.32,
+  27.07,
+  31.56,
+  27.01,
+  41.55,
+  31.94
+ ],
+ "se_pp_joint": [
+  3.481,
+  4.01,
+  2.444,
+  2.621,
+  2.169,
+  2.837,
+  3.064
+ ],
+ "halfwidth95_pp_joint": [
+  6.82,
+  7.86,
+  4.79,
+  5.14,
+  4.25,
+  5.56,
+  6.01
+ ],
+ "corr": [
+  [
+   1.0,
+   0.132,
+   -0.256,
+   0.05,
+   0.371,
+   -0.105,
+   0.155
+  ],
+  [
+   0.132,
+   1.0,
+   -0.167,
+   -0.011,
+   0.044,
+   0.032,
+   0.049
+  ],
+  [
+   -0.256,
+   -0.167,
+   1.0,
+   -0.415,
+   0.263,
+   -0.248,
+   0.168
+  ],
+  [
+   0.05,
+   -0.011,
+   -0.415,
+   1.0,
+   -0.107,
+   0.36,
+   -0.177
+  ],
+  [
+   0.371,
+   0.044,
+   0.263,
+   -0.107,
+   1.0,
+   -0.1,
+   0.289
+  ],
+  [
+   -0.105,
+   0.032,
+   -0.248,
+   0.36,
+   -0.1,
+   1.0,
+   0.005
+  ],
+  [
+   0.155,
+   0.049,
+   0.168,
+   -0.177,
+   0.289,
+   0.005,
+   1.0
+  ]
+ ],
+ "corr_offdiag_mean_min_max": [
+  0.016,
+  -0.415,
+  0.371
+ ],
+ "mean7_delta_pp": -0.676,
+ "mean7_se_pp": 1.195,
+ "mean7_ci95_pp": [
+  -3.14,
+  1.55
+ ],
+ "mean7_se_if_independent_pp": 1.136,
+ "double_bootstrap": {
+  "outer": 6000,
+  "inner": 10000,
+  "results": {
+   "null_rule_A3 (types Bonferroni-7, mean 95%)": {
+    "any_type": [
+     8.18,
+     0.35
+    ],
+    "mean": [
+     2.88,
+     0.22
+    ],
+    "stop": [
+     9.98,
+     0.39
+    ],
+    "per_type": [
+     0.68,
+     0.85,
+     5.1,
+     0.37,
+     0.45,
+     0.48,
+     0.4
+    ]
+   },
+   "null_uncorrected (types 95%, no mean rule)": {
+    "any_type": [
+     21.07,
+     0.53
+    ],
+    "per_type": [
+     3.0,
+     3.53,
+     7.58,
+     2.12,
+     2.25,
+     2.62,
+     2.75
+    ]
+   },
+   "null_types Bonferroni-10 (seven direct + three camera share 2.5%)": {
+    "any_type": [
+     7.3,
+     0.34
+    ],
+    "mean": [
+     2.88,
+     0.22
+    ],
+    "stop": [
+     9.38,
+     0.38
+    ],
+    "per_type": [
+     0.55,
+     0.73,
+     4.98,
+     0.27,
+     0.32,
+     0.35,
+     0.22
+    ]
+   },
+   "null_types Bonferroni-28 (four looks), mean 99.375%": {
+    "any_type": [
+     6.05,
+     0.31
+    ],
+    "mean": [
+     0.83,
+     0.12
+    ],
+    "stop": [
+     6.65,
+     0.32
+    ],
+    "per_type": [
+     0.28,
+     0.35,
+     4.85,
+     0.1,
+     0.15,
+     0.25,
+     0.12
+    ]
+   },
+   "loss 9.5 on route_planning": {
+    "any_type": [
+     50.98,
+     0.65
+    ],
+    "mean": [
+     21.1,
+     0.53
+    ],
+    "stop": [
+     54.47,
+     0.64
+    ],
+    "per_type": [
+     46.75,
+     0.85,
+     5.1,
+     0.37,
+     0.45,
+     0.48,
+     0.4
+    ]
+   },
+   "loss 9.5 on route_planning (Bonferroni-28 look level)": {
+    "any_type": [
+     36.35,
+     0.62
+    ],
+    "mean": [
+     9.22,
+     0.37
+    ],
+    "stop": [
+     38.4,
+     0.63
+    ],
+    "per_type": [
+     32.07,
+     0.35,
+     4.85,
+     0.1,
+     0.15,
+     0.25,
+     0.12
+    ]
+   },
+   "loss 9.5 on object_counting": {
+    "any_type": [
+     51.4,
+     0.65
+    ],
+    "mean": [
+     21.1,
+     0.53
+    ],
+    "stop": [
+     56.03,
+     0.64
+    ],
+    "per_type": [
+     0.68,
+     47.03,
+     5.1,
+     0.37,
+     0.45,
+     0.48,
+     0.4
+    ]
+   },
+   "loss 9.5 on object_counting (Bonferroni-28 look level)": {
+    "any_type": [
+     37.13,
+     0.62
+    ],
+    "mean": [
+     9.22,
+     0.37
+    ],
+    "stop": [
+     39.8,
+     0.63
+    ],
+    "per_type": [
+     0.28,
+     32.8,
+     4.85,
+     0.1,
+     0.15,
+     0.25,
+     0.12
+    ]
+   },
+   "loss 9.5 on object_rel_direction_easy": {
+    "any_type": [
+     87.37,
+     0.43
+    ],
+    "mean": [
+     21.1,
+     0.53
+    ],
+    "stop": [
+     90.02,
+     0.39
+    ],
+    "per_type": [
+     0.68,
+     0.85,
+     86.68,
+     0.37,
+     0.45,
+     0.48,
+     0.4
+    ]
+   },
+   "loss 9.5 on object_rel_direction_easy (Bonferroni-28 look level)": {
+    "any_type": [
+     76.87,
+     0.54
+    ],
+    "mean": [
+     9.22,
+     0.37
+    ],
+    "stop": [
+     79.07,
+     0.53
+    ],
+    "per_type": [
+     0.28,
+     0.35,
+     76.43,
+     0.1,
+     0.15,
+     0.25,
+     0.12
+    ]
+   },
+   "loss 9.5 on object_rel_direction_medium": {
+    "any_type": [
+     93.3,
+     0.32
+    ],
+    "mean": [
+     21.1,
+     0.53
+    ],
+    "stop": [
+     93.8,
+     0.31
+    ],
+    "per_type": [
+     0.68,
+     0.85,
+     5.1,
+     91.82,
+     0.45,
+     0.48,
+     0.4
+    ]
+   },
+   "loss 9.5 on object_rel_direction_medium (Bonferroni-28 look level)": {
+    "any_type": [
+     86.02,
+     0.45
+    ],
+    "mean": [
+     9.22,
+     0.37
+    ],
+    "stop": [
+     86.48,
+     0.44
+    ],
+    "per_type": [
+     0.28,
+     0.35,
+     4.85,
+     83.88,
+     0.15,
+     0.25,
+     0.12
+    ]
+   },
+   "loss 9.5 on object_rel_direction_hard": {
+    "any_type": [
+     94.78,
+     0.29
+    ],
+    "mean": [
+     21.1,
+     0.53
+    ],
+    "stop": [
+     94.9,
+     0.28
+    ],
+    "per_type": [
+     0.68,
+     0.85,
+     5.1,
+     0.37,
+     94.35,
+     0.48,
+     0.4
+    ]
+   },
+   "loss 9.5 on object_rel_direction_hard (Bonferroni-28 look level)": {
+    "any_type": [
+     89.0,
+     0.4
+    ],
+    "mean": [
+     9.22,
+     0.37
+    ],
+    "stop": [
+     89.07,
+     0.4
+    ],
+    "per_type": [
+     0.28,
+     0.35,
+     4.85,
+     0.1,
+     88.35,
+     0.25,
+     0.12
+    ]
+   },
+   "loss 9.5 on object_rel_distance": {
+    "any_type": [
+     78.18,
+     0.53
+    ],
+    "mean": [
+     21.1,
+     0.53
+    ],
+    "stop": [
+     80.85,
+     0.51
+    ],
+    "per_type": [
+     0.68,
+     0.85,
+     5.1,
+     0.37,
+     0.45,
+     75.25,
+     0.4
+    ]
+   },
+   "loss 9.5 on object_rel_distance (Bonferroni-28 look level)": {
+    "any_type": [
+     63.98,
+     0.62
+    ],
+    "mean": [
+     9.22,
+     0.37
+    ],
+    "stop": [
+     65.97,
+     0.61
+    ],
+    "per_type": [
+     0.28,
+     0.35,
+     4.85,
+     0.1,
+     0.15,
+     60.75,
+     0.12
+    ]
+   },
+   "loss 9.5 on object_size_estimation": {
+    "any_type": [
+     71.42,
+     0.58
+    ],
+    "mean": [
+     21.1,
+     0.53
+    ],
+    "stop": [
+     73.45,
+     0.57
+    ],
+    "per_type": [
+     0.68,
+     0.85,
+     5.1,
+     0.37,
+     0.45,
+     0.48,
+     70.17
+    ]
+   },
+   "loss 9.5 on object_size_estimation (Bonferroni-28 look level)": {
+    "any_type": [
+     56.28,
+     0.64
+    ],
+    "mean": [
+     9.22,
+     0.37
+    ],
+    "stop": [
+     57.73,
+     0.64
+    ],
+    "per_type": [
+     0.28,
+     0.35,
+     4.85,
+     0.1,
+     0.15,
+     0.25,
+     54.52
+    ]
+   },
+   "uniform loss 1 on all seven": {
+    "any_type": [
+     14.45,
+     0.45
+    ],
+    "mean": [
+     13.7,
+     0.44
+    ],
+    "stop": [
+     23.47,
+     0.55
+    ],
+    "per_type": [
+     1.37,
+     1.62,
+     6.98,
+     1.25,
+     1.57,
+     1.28,
+     1.23
+    ]
+   },
+   "uniform loss 2 on all seven": {
+    "any_type": [
+     23.82,
+     0.55
+    ],
+    "mean": [
+     39.55,
+     0.63
+    ],
+    "stop": [
+     49.52,
+     0.65
+    ],
+    "per_type": [
+     2.48,
+     2.82,
+     10.03,
+     2.5,
+     3.73,
+     2.77,
+     2.63
+    ]
+   },
+   "uniform loss 3 on all seven": {
+    "any_type": [
+     43.55,
+     0.64
+    ],
+    "mean": [
+     74.25,
+     0.56
+    ],
+    "stop": [
+     81.33,
+     0.5
+    ],
+    "per_type": [
+     4.35,
+     4.5,
+     14.87,
+     7.95,
+     13.2,
+     5.93,
+     5.7
+    ]
+   },
+   "uniform loss 4 on all seven": {
+    "any_type": [
+     64.92,
+     0.62
+    ],
+    "mean": [
+     94.42,
+     0.3
+    ],
+    "stop": [
+     96.83,
+     0.23
+    ],
+    "per_type": [
+     7.65,
+     7.1,
+     22.1,
+     15.18,
+     24.12,
+     12.05,
+     9.97
+    ]
+   },
+   "uniform loss 5 on all seven": {
+    "any_type": [
+     84.55,
+     0.47
+    ],
+    "mean": [
+     99.23,
+     0.11
+    ],
+    "stop": [
+     99.67,
+     0.07
+    ],
+    "per_type": [
+     11.77,
+     11.1,
+     33.07,
+     28.88,
+     40.12,
+     20.57,
+     16.72
+    ]
+   },
+   "uniform loss 2 (Bonferroni-28 look level)": {
+    "any_type": [
+     14.17,
+     0.45
+    ],
+    "mean": [
+     22.05,
+     0.54
+    ],
+    "stop": [
+     30.87,
+     0.6
+    ],
+    "per_type": [
+     1.05,
+     1.3,
+     7.57,
+     1.08,
+     1.67,
+     1.28,
+     1.05
+    ]
+   }
+  },
+  "coverage_note": "rates are percent with their Monte Carlo standard error",
+  "null_estimate_sd_pp": [
+   3.503,
+   4.023,
+   2.375,
+   2.59,
+   2.181,
+   2.861,
+   3.075
+  ],
+  "null_mean7_sd_pp": 1.214
+ },
+ "gaussian_check": {
+  "z_bonf7": 2.69,
+  "results": {
+   "null": {
+    "any_type": 2.42,
+    "mean": 2.48,
+    "stop": 4.37
+   },
+   "uniform loss 2": {
+    "any_type": 15.35,
+    "mean": 38.74,
+    "stop": 43.35
+   },
+   "loss 9.5 on route_planning": {
+    "any_type": 52.43,
+    "mean": 20.52,
+    "stop": 55.93
+   },
+   "loss 9.5 on object_counting": {
+    "any_type": 38.73,
+    "mean": 20.52,
+    "stop": 44.85
+   },
+   "loss 9.5 on object_rel_direction_easy": {
+    "any_type": 88.96,
+    "mean": 20.52,
+    "stop": 90.91
+   },
+   "loss 9.5 on object_rel_direction_medium": {
+    "any_type": 83.07,
+    "mean": 20.52,
+    "stop": 84.81
+   },
+   "loss 9.5 on object_rel_direction_hard": {
+    "any_type": 95.53,
+    "mean": 20.52,
+    "stop": 95.57
+   },
+   "loss 9.5 on object_rel_distance": {
+    "any_type": 75.12,
+    "mean": 20.52,
+    "stop": 77.34
+   },
+   "loss 9.5 on object_size_estimation": {
+    "any_type": 66.49,
+    "mean": 20.52,
+    "stop": 68.33
+   }
+  }
+ }
+}

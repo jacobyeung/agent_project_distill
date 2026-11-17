@@ -171,7 +171,7 @@ def stage(source, heads, meta, out, *, request=REQUEST, tree=TREE,
                                       step544_weights={e['name']: e['sha256'] for e in entries}),
                   deviations=[
                       dict(field='artifact.full_weights.path, artifact.heads.path', reason='Local files replace AWS paths; content pins stay unchanged.'),
-                      dict(field='receipt.model', reason='Base loads step-544 LM and ViT; load_export still checks and replaces every base tensor exactly.'),
+                      dict(field='receipt.model', reason='Base loads the pinned export LM and ViT; load_export still checks and replaces every base tensor exactly.'),
                       dict(field='receipt.depth_init', reason='Removed because strictly restored heads cover every private-depth tensor; see depth_overwrite.'),
                       dict(field='init_artifact', reason='Omitted during evaluation, as in read_runtime.load_model.'),
                       dict(field='admission', reason='Pinned mirrored metadata replaces AWS path and Git authentication. Training databases are not opened.'),

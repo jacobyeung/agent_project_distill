@@ -1,0 +1,115 @@
+116:def usage(baseline,perturbed,item):
+117-    try:
+118-        before,after=program_decision(baseline,item),program_decision(perturbed,item)
+119-    except ValueError as e:return dict(eligible=False,reason=str(e))
+120-    if before is None or after is None:return dict(eligible=False,reason='missing_printed_decision')
+121-    eligible=(before!=after if isinstance(before,str) else
+122-              before!=after and abs(after-before)>=.20*abs(before)-1e-12)
+123-    result=dict(eligible=eligible,baseline_decision=before,perturbed_decision=after)
+124-    if not eligible:return {**result,'reason':'printed_decision_changed_less_than_20_percent'}
+125-    answer=answer_text(perturbed);follow=answer_equals(answer,after)
+126-    original=answer_text(baseline)
+127-    if isinstance(before,str):
+128-        stick=answer_equals(answer,original.strip().strip('().'))
+129-    else:
+130-        match=re.fullmatch(r'\s*('+NUM+r')\s*(?:[a-zA-Z°]+)?\s*',original)
+131-        stick=bool(match and answer_equals(answer,float(match[1])))
+132-    return {**result,'follow':float(follow),'stick':float(stick), 'other':float(not follow and not stick),
+133-            'answer_text':answer}
+134-
+135-
+136-def angle(a,b):
+137-    a,b=np.asarray(a,float),np.asarray(b,float);n=np.linalg.norm(a)*np.linalg.norm(b)
+138-    return float(np.degrees(np.arccos(np.clip(a@b/n,-1,1)))) if n>1e-12 else None
+139-
+140-
+141-def per_frame(heads,meta):
+142-    out={}
+143-    if 'gt_pose9' in meta and 'pose9' in heads:
+144-        p=np.asarray(heads['pose9']);gt=np.asarray(meta['gt_pose9']);rows=[]
+145-        if p.shape!=gt.shape or p.shape!=(32,9):raise ValueError('per_frame_pose_requires_32_9')
+146-        for i,(a,b) in enumerate(zip(p,gt)):
+{
+"none": {
+"reads": 150,
+"capped": 33,
+"any_not_seen": 63,
+"ns_and_capped": 33,
+"clean_and_capped": 0,
+"first_ground_not_seen": 63,
+"ground_not_seen_calls": 112,
+"gap_not_seen_calls": 63,
+"ground_calls": 368,
+"gap_calls": 178,
+"error_calls": 2,
+"unserved_calls": 33,
+"gap_value_served": 86,
+"ns_answered": 30,
+"ns_answered_score_sum_x100": 870,
+"calls_total": 546,
+"m3_eligible": 0
+},
+"scale_scene:0.5": {
+"reads": 150,
+"capped": 49,
+"any_not_seen": 79,
+"ns_and_capped": 49,
+"clean_and_capped": 0,
+"first_ground_not_seen": 79,
+"ground_not_seen_calls": 152,
+"gap_not_seen_calls": 81,
+"ground_calls": 402,
+"gap_calls": 194,
+"error_calls": 5,
+"unserved_calls": 49,
+"gap_value_served": 70,
+"ns_answered": 30,
+"ns_answered_score_sum_x100": 960,
+"calls_total": 596,
+"ns_given_base_ns": 61,
+"ns_given_base_clean": 18,
+"base_ns": 63,
+"m3_eligible": 67
+},
+"scale_scene:2": {
+"reads": 69,
+"capped": 12,
+"any_not_seen": 26,
+"ns_and_capped": 12,
+"clean_and_capped": 0,
+"first_ground_not_seen": 26,
+"ground_not_seen_calls": 40,
+"gap_not_seen_calls": 26,
+"ground_calls": 160,
+"gap_calls": 80,
+"error_calls": 0,
+"unserved_calls": 12,
+"gap_value_served": 42,
+"ns_answered": 14,
+"ns_answered_score_sum_x100": 310,
+"calls_total": 240,
+"ns_given_base_ns": 24,
+"ns_given_base_clean": 2,
+"base_ns": 35,
+"m3_eligible": 29
+},
+"ALL": {
+"reads": 369,
+"capped": 94,
+"any_not_seen": 168,
+"ns_and_capped": 94,
+"clean_and_capped": 0,
+"first_ground_not_seen": 168,
+"ground_not_seen_calls": 304,
+"gap_not_seen_calls": 170,
+"ground_calls": 930,
+"gap_calls": 452,
+"error_calls": 7,
+"unserved_calls": 94,
+"gap_value_served": 198,
+"ns_answered": 74,
+"ns_answered_score_sum_x100": 2140,
+"calls_total": 1382,
+"m3_eligible": 96
+}
+}

@@ -15,9 +15,13 @@ def run(name,command):
     row.update(returncode=result.returncode,finished=time.time(),status='complete' if result.returncode==0 else 'failed');save()
     if result.returncode<0:raise SystemExit('Process was killed; stop without retry: '+name)
     if result.returncode:raise SystemExit('Inspect failed step: '+name)
-run('weighted_cpu',['bash',str(B/'RUN_TEST.sh'),str(B/'proofs/cpu_weighted'),'weighted_cpu'])
-run('coverage_final',py+[str(B/'coverage_all.py')])
-run('local_gate',py+[str(B/'finish_gate.py')])
+if '--delivery-only' not in sys.argv:
+    run('weighted_cpu',['bash',str(B/'RUN_TEST.sh'),str(B/'proofs/cpu_weighted'),'weighted_cpu'])
+    run('coverage_final',py+[str(B/'coverage_all.py')])
+    run('local_gate',py+[str(B/'finish_gate.py')])
+else:
+    assert json.loads((B/'LOCAL_REPAIR_GATE.json').read_text())['status']=='PASS'
+    assert json.loads((B/'CHANGED_COVERAGE.json').read_text())['classes'].get('CPU-reachable unresolved',0)==0
 run('storage_audit',py+[str(B/'storage_audit9.py')])
 run('verify_delivery',py+[str(B/'verify_delivery.py')])
 run('report9',py+[str(B/'report9.py')])

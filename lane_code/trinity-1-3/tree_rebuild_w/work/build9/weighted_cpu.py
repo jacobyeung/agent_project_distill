@@ -1,5 +1,6 @@
 """Native recovery producer, SQLite reader, RGB encoder and training forward."""
 from copy import deepcopy
+from pathlib import Path
 import json,os,unittest
 from unittest.mock import patch
 import torch
@@ -36,11 +37,14 @@ class RecoveryRGB(unittest.TestCase):
             try:batch,_,audit=reader.get('routing',0)
             finally:reader.close()
         original,_,_=fixture(depth_enabled=False)
+        kit=Path(__file__).resolve().parents[2]/'work/build9/kits/a0'
+        launch=load(kit/'k/launch.json')
+        recipe_config=load(kit/launch['config']['file'])
         cfg=deepcopy(original.config);cfg.text_config.vocab_size=512
         model=CarrierC1(Qwen3_5ForConditionalGeneration(cfg).float(),dict(embed_dim=64,num_heads=4,
             trunk_depth=4,refine_iterations=4,weight_gravity=1.,weight_scale=1.,
             supervision={'path':'/fixture','sha256':'a'*64}),{},5,training_mode='final',depth_enabled=False,
-            frame_layout='duplicate',frame_count=32,recipe=recipe_for({'training_mode':'final'}))
+            frame_layout='duplicate',frame_count=32,recipe=recipe_for(recipe_config))
         with torch.no_grad():result=model(batch,stream='routing')
         self.assertTrue(torch.isfinite(result['loss']))
         self.assertGreater(float(result['loss']),0.)
