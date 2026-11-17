@@ -4,7 +4,7 @@ from collections import Counter
 import difflib,hashlib,json,subprocess,sys,tarfile
 L=Path(__file__).resolve().parents[2];B=L/'work/build9fix';T=L/'work/tree_r1'
 inherited=B/'proofs/inherited_exact';inherited.mkdir(exist_ok=True)
-prior_files=[B/'N1_CHANGED_COVERAGE.json',B/'N1_N1_CHANGED_COVERAGE.json']
+prior_files=[B/'B9_CHANGED_COVERAGE.json',B/'N1_CHANGED_COVERAGE.json',B/'N1_N1_CHANGED_COVERAGE.json']
 prior=dict(statements=[row for path in prior_files for row in json.loads(path.read_text())['statements']])
 hits={};hashes={};classes={}
 for row in prior['statements']:
@@ -42,7 +42,7 @@ for row in value['statements']:
     if row['executed']:continue
     old=classes.get((row['file'],row['line'])) or mapped.get((row['file'],row['line']))
     if old and old['classification'] in ('GPU','frame-host','model-loader'):
-        row.update(classification=old['classification'],reason=old['reason'],classification_source='N1_CHANGED_COVERAGE.json and N1_N1_CHANGED_COVERAGE.json; identical statement text in authenticated package source')
+        row.update(classification=old['classification'],reason=old['reason'],classification_source='B9_CHANGED_COVERAGE.json, N1_CHANGED_COVERAGE.json and N1_N1_CHANGED_COVERAGE.json; identical statement text in authenticated package source')
     if row['file']=='launch_r1/entry.py' and ((row['function']=='frame_host' and row['line']>=78) or row['function']=='localize'):
         row.update(classification='frame-host',reason='Requires complete production staging and admitted routing selection; neither is available locally. The scene predicate itself is covered by native bounded producer/reader tests.')
 value['classes']=dict(Counter(r['classification'] for r in value['statements']))

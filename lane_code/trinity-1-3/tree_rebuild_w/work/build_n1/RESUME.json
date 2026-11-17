@@ -1,12 +1,12 @@
 {
-  "active_exec_session": 42541,
+  "active_exec_session": null,
   "command": "bash work/build_n1/run.sh work/build_n1/repair_reader.py",
-  "state": "Qualifying the legacy reader default fix; do not start another test harness concurrently.",
+  "state": "Complete with named blockers; GO=false.",
   "source_seal_source": "out/TREE_SEAL.json",
   "package_source": "work/build_n1/DELIVERY.json",
-  "next": "Wait for the current process. It proves the compatibility fix, seals and stages an empty kit, then runs qualify.py. Targeted and packet phases use exact input-hash receipts. Package groups resume only exact input-hash matches. The finalizer refreshes P-format, loader and kit proofs; compares outcomes; measures coverage; verifies storage and hashes; and writes the final report and ledger. New regressions and R2 failures forbid completion.",
+  "next": "Read FINAL_PASS.json, BUILD_R1_REPORT.md and RESULT_build_n1.json for the completed qualification and one staged review request. Do not restart qualification without changed inputs or a new task.",
   "inspect_after_completion": ["work/build_n1/FINAL_PASS.json", "work/build_n1/SUITE_COMPARISON.json", "out/BUILD_R1_REPORT.md", "work/build_n1/STATUS.md"],
-  "remaining_review": "Inspect new_regressions and R2 failures; fix actual new failures before calling the build complete. Keep GO=false and all named missing-input blockers.",
+  "remaining_review": "Independent admission and legality review remains outstanding. Qualification found no new regressions and no R2 failures. Keep GO=false and all named missing-input blockers.",
   "source_is_frozen": true,
   "notes": "No GPU, Git, network, SSH, agents, external writes, or file erasure. All temporary products are bounded by the existing harness. The legacy large-fixture storage refusal is also present in Build 9 and the harness compacts its output in place. No cluster process was killed."
 }

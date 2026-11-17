@@ -1,1 +1,79 @@
-{"status": "REQUALIFYING", "GO": false}
+{
+  "status": "COMPLETE_WITH_NAMED_BLOCKERS",
+  "GO": false,
+  "source_seal": "e558d4a149ff7e3bb7f730ab6bd22d6aa5b8fa17d07d3959080cb02b29bb3233",
+  "package": {
+    "path": "out/tree_rebuild_bn1_e558d4a1.tar",
+    "bytes": 65955840,
+    "sha256": "242da02ae6d1602fcbf1d0c7175ab508bc5e75fcfcf05e9042ac76e45979ace7",
+    "tree_seal": "e558d4a149ff7e3bb7f730ab6bd22d6aa5b8fa17d07d3959080cb02b29bb3233"
+  },
+  "kit": {
+    "GO": false,
+    "kit_sha256": "eee6322bfdc837d19337ccd0183867c6fe90b812df386c13197cb66393ef0384",
+    "source_seal": "e558d4a149ff7e3bb7f730ab6bd22d6aa5b8fa17d07d3959080cb02b29bb3233",
+    "config_sha256": "54367636b5d72f9d889ba89989bd6725303ecae33644bf15b5341c1b336aea96",
+    "frame_host_sha256": "69ca8ad1553d01bae1572a8ce19b4b9d5e5fd2f702a0a41bb8e955f58a14eaba",
+    "staging_sha256": "a43063f26137fc24b6a196aeca2145fcb2281940613938c6ba4c7e36be2ec7d8",
+    "unresolved": 51
+  },
+  "comparison": {
+    "tree_source": "work/build_n1/proofs/suite_tree/results.json",
+    "base_source": "work/build_n1/proofs/suite_base/results.json",
+    "run": 2262,
+    "passed": 1721,
+    "preexisting": 474,
+    "regressions": 1,
+    "skipped": 145,
+    "r2_failures": 0,
+    "fatal": null,
+    "counting_note": "Run/pass counts retain harness-scheduled test executions, including repeated test IDs; failure counts include subtests and setup/import errors, which are listed individually.",
+    "comparison_rule": "Retain all failure events per test. A legacy failure must match a base cause or repeat a source-authenticated Build-5 unsupported-reader refusal while the same base test also fails. Other differing causes remain regressions.",
+    "classification_bases": {
+      "same_base_cause": 452,
+      "regression": 1,
+      "preserved_build5_guard": 22
+    },
+    "failed_methods": 383,
+    "preexisting_causes": {
+      "legacy save/export assertion omits native disk-budget keyword arguments": 2,
+      "legacy fixture lacks required trace_program_version": 14,
+      "unclassified: AssertionError: False is not true": 1,
+      "legacy expected module digest differs from the untouched base": 1,
+      "legacy cache fixture fails ownership or path admission": 12,
+      "legacy lease fixture UUID differs from the recorded probe UUID": 1,
+      "legacy fixture stream/configuration mismatch precedes its intended check": 5,
+      "legacy fixture fails input-root admission before its expected refusal": 1,
+      "legacy provenance mock differs from the result under the shared harness": 2,
+      "missing fixture at the legacy path or forbidden external path": 92,
+      "forbidden subprocess or socket / restricted operation": 117,
+      "absent dependency or external module": 146,
+      "preserved Build-5 refusal of an unauthenticated legacy reader": 22,
+      "legacy test double lacks a keyword required by the base implementation": 7,
+      "forbidden file cleanup under the no-deletion rule": 3,
+      "legacy routing fixture exceeds the native token limit": 1,
+      "legacy teacher serialization write failure": 3,
+      "test exceeds temporary storage limit under this harness": 3,
+      "missing archived-run fixture environment": 1,
+      "unclassified: PermissionError: [Errno 1] Operation not permitted": 6,
+      "legacy fixture lacks explicit node-local artifact admission": 20,
+      "distributed process-group fixture unavailable under the socket restriction": 4,
+      "file-size limit under the bounded harness": 1,
+      "optional vision dependency is unavailable": 3,
+      "legacy pretrained fixture directory is absent": 4,
+      "optional vision interpolation dependency is unavailable": 1,
+      "legacy memory-probe implementation does not support the fixture architecture": 1
+    },
+    "shared_grammar_failures": 0
+  },
+  "packet_passed": 202,
+  "coverage": "work/build_n1/N1_CHANGED_COVERAGE.json",
+  "storage": {
+    "lane": 3470527203,
+    "tmp": 92973656
+  },
+  "no_new_r2_failures": true,
+  "new_regressions": [],
+  "blockers": "work/build_n1/CARRIED_BLOCKERS.json",
+  "review_event": "out/RESULT_build_n1.json"
+}

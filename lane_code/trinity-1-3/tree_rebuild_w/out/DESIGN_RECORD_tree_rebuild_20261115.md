@@ -116,3 +116,8 @@ The local fixtures, visible-frame dimensions and legacy direct-source admission 
 The status audit admits printed head failures while refusing model-authored status assertions. The faithful materializer preserves admitted answer envelopes, and genuine decision mismatches still refuse. Kit input checks require recovery rows and every requested conversion unit. The bounded census finds only simulated failure statuses; unit traces preserve printed-metre arithmetic. Full intake retains sealed eval-room refusals, so all-row full admission remains blocked. Production store, head and full-population unit bindings remain missing.
 
 The supplied lane stop proof is authenticated against unchanged exercised sources. Both kits remain GO=false. The complete outcomes, counts, source/package/kit hashes, coverage classes, EAT clauses, retained blockers and required independent admission review appear in `out/BUILD9_REPORT.md`. The local repair gate is `PASS` (`work/build9/LOCAL_REPAIR_GATE.json`).
+## Build n1
+
+The R1 kit is staged with GO=false. It binds the parent export metadata, a receipt-selected VQA source and a capped configurable mix. Native CPU proofs cover export continuation, scale initialization, reader refusals and deterministic sampling. Full source admission and real frame-host evidence remain blocked.
+
+The authoritative report and complete blocker scope are [BUILD_R1_REPORT.md](BUILD_R1_REPORT.md). The source seal and package hashes are in `TREE_SEAL.json` and `../work/build_n1/DELIVERY.json`; suite counts and changed-statement coverage are in `../work/build_n1/SUITE_COMPARISON.json` and `../work/build_n1/N1_CHANGED_COVERAGE.json`. The single review request is staged in `RESULT_build_n1.json`. No job was submitted.

@@ -6,7 +6,7 @@ def sha(p):
  with p.open('rb') as f:return hashlib.file_digest(f,'sha256').hexdigest()
 def line(p,needle):return next(i for i,s in enumerate(p.read_text().splitlines(),1) if needle in s)
 token=(O/'TOKEN').read_text().strip();price=json.loads((O/'TIME_PRICE.json').read_text());plan=json.loads((O/'READ_PLAN.json').read_text())
-files=['0.tgz','1.tgz','PACKAGE.json','READ_PLAN.json','inputs_tower.json','export_544.json','tower_sequence.py','tower_bootstrap.py','node_check.py','room_pair.py','unpack_return.py','src/items/room134.json','src/inputs/room_captures.json']
+files=['0.tgz','1.tgz','PACKAGE.json','READ_PLAN.json','inputs_tower.json','export_544.json','tower_sequence.py','tower_bootstrap.py','node_check.py','room_pair.py','unpack_return.py','src/items/room134.json','src/inputs/room_captures.json','LOCAL_CPU_CHECK.json','LOCAL_NATIVE_CPU_CHECK.json','CPU_HELPER_TEST.json','W5_BINDING_EQUIVALENCE.json','OPERATOR_ONLY_AUDIT.json']
 hashes={n:dict(bytes=(O/n).stat().st_size,sha256=sha(O/n)) for n in files}
 (O/'HASHES.json').write_text(json.dumps(hashes,indent=2,sort_keys=True)+'\n')
 with tarfile.open(O/'0.tgz') as t:new={m.name:t.extractfile(m).read() for m in t}
@@ -26,7 +26,7 @@ patch.extend(difflib.unified_diff([], (O/'room_pair.py').read_text().splitlines(
 (O/'PAYLOAD_AUDIT.json').write_text(json.dumps(dict(changed=changed,identical=len(same),protected_identical=len(protected),one_item_file=[n for n in new if n.startswith('items/')],base_sha256=sha(B/'0.tgz'),payload_sha256=sha(O/'0.tgz')),indent=2)+'\n')
 ops=f'''Package `{token}` runs one development-only, 134-item room read at SFT step 544. The read uses tower, mode none, null_argmax, memo on for G3T only, no verification IDs, and no own-depth output. R0-dev must never supply fitting data.
 
-The local dev-S1 full-reader rehearsal requires its pinned frame tar. `REPORT.md` records that gate's current status. Resolve that gate before submission. The real allocated CPU check and GPU run have not run in this lane.
+The allocated Orchard CPU check must pass before submission. It runs the first dev-S1 and first R0-dev item after authenticated staging and export restore. Local fixtures validate the check implementation; they do not authenticate Orchard-only dev-S1 image bytes. No Orchard check or GPU run occurred in this lane.
 
 Place the delivery from an existing opaque delivery directory. Set `D` to that directory. These are operator commands; this lane ran none of them.
 
@@ -43,18 +43,38 @@ cd "$P"
 CUDA_VISIBLE_DEVICES= /usr/bin/python3 -I -s -B 3.py check --gpus 1 --time 02:30:00
 ```
 
-Coordinate staging IO before this allocated CPU check. It requests eight CPUs and no GPU. The helper creates a fresh private root, authenticates archives, restores the export, checks one read's settings, verifies and decodes the first item’s frames from each set, and writes the CPU and memory receipts. Model decoding remains a separate GPU operation. The CPU allocation limit permits staging; it is not a timing estimate.
+Coordinate staging IO before this allocated CPU check. It requests eight CPUs and no GPU. The helper creates a fresh private root, authenticates archives, restores the export, then runs both items through real launch, mixed native mapping, SHA256 verification, PNG decoding, ParityGenerator, CallHook, the decode loop and official scoring. Model forward, weights, tokenizer, prompt tensors, audit enforcement and decode budget use explicit CPU stubs. Any failure exits nonzero and prevents a passing CPU receipt. The allocation matches W5: general, eight CPUs, 200G, four hours, no GPU. The four-hour limit permits staging; it is not a timing estimate.
 
 ```bash
 env -i PATH=/usr/local/bin:/usr/bin:/bin HOME="$HOME" USER="$USER" CUDA_VISIBLE_DEVICES= \\
   srun --account=mt01 --partition=general --nodes=1 --ntasks=1 \\
   --job-name=a15_cot_ap{token} --cpus-per-task=8 --mem=200G \\
-  --time=02:30:00 --export=ALL \\
+  --time=04:00:00 --export=ALL \\
   /usr/bin/python3 -I -s -B "$P/a/5.py" --package "$P" \\
   --sequence "$P/a/6.py" --results "$P/a/c"
 ```
 
-Submit only after the passing receipt exists. Record the shared return pool's current usage in the operator ledger; the production write test checks capacity before staging. Check the H100 resource type and pending priority jobs, then submit one GPU for 02:30:00.
+Read and verify the pass flag and both finished records after the CPU command exits successfully. `CPU.json` embeds the records under `full_reader.records`; `FULL_READER.json` repeats that proof. These scores validate the stub path, not model quality.
+
+```bash
+/usr/bin/python3 -I -s -B - "$P" <<'PYCODE'
+import hashlib,json,sys
+from pathlib import Path
+p=Path(sys.argv[1]);c=json.loads((p/'a/c/CPU.json').read_text());v=json.loads((p/'0.json').read_text())
+sha=lambda path:hashlib.sha256(path.read_bytes()).hexdigest()
+assert c['passed'] is True and c['full_reader_passed'] is True
+assert c['full_reader']['passed'] is True and c['full_reader']['device']=='cpu'
+assert c['payload']==v['payload_sha256'] and c['plan']==v['plan_sha256']
+assert c['operator_sha256']==sha(p/'a/6.py') and c['inputs']==sha(p/'a/1.json')
+rows=c['full_reader']['records']
+assert [(r['set'],r['item']) for r in rows]==[('dev-S1','room_scene0155_00'),('R0-dev','r0_015bd4aaf6870d79bade')]
+assert all(r['passed'] is True and r['record']['complete'] is True and r['record']['output']['finish']=='eos' for r in rows)
+print('full_reader_passed=true')
+for r in rows:print(r['set'],r['item'],r['record']['output']['finish'],r['ground_truth_score']['score'])
+PYCODE
+```
+
+Submit only after this command passes. The bootstrap also refuses receipts without `full_reader_passed=true`, the full-reader pass, matching payload, plan, inputs and operator hashes, and the passing memory bound. Record the shared return pool's current usage in the operator ledger; the production write test checks capacity before staging. Check the H100 resource type and pending priority jobs, then submit one GPU for 02:30:00.
 
 ```bash
 sinfo -N -h -p general -o '%G' > "$P/a/7.txt"
@@ -121,45 +141,59 @@ for name,v in latest.items():
   errors=re.search(r'FAILED \((.*?)\)',text);count=sum(map(int,re.findall(r'=(\d+)',errors[1]))) if errors else n
   failed+=count;passed+=n-count
  details.append(f"| `{name}` | {v['status']} | {n} | `{v['log']}` |")
-status=dict(passed_tests=passed,failed_tests=failed,suites=latest,unresolved=['First dev-S1 full-reader CPU rehearsal lacks local pinned RGB frames.'] if not (O/'FULL_DEVS1.json').exists() else [])
+status=dict(passed_tests=passed,failed_tests=failed,suites=latest,unresolved=['Allocated Orchard CPU check on real staged dev-S1 frames has not run; submission requires its passing receipt.'])
 (O/'TEST_SUMMARY.json').write_text(json.dumps(status,indent=2)+'\n')
-refs=[('Room admission','src/h1eval/room134.py','def validate'),('Mixed frame binding','src/h1eval/room134.py','def bind'),('Manifest dispatch','src/h1eval/items.py',"if m['name']=='room134'"),('Frame-root extraction admission','src/orchard_h10/job.py','str(target) not in'),('Durable type binding','src/h1eval/h10/launch.py','types=args.types'),('One read and settings','tower_sequence.py','RULES='),('Allocated frame check','tower_sequence.py',"if config.get('measure_memory')"),('Scoring and pairing','room_pair.py','def score_return')]
-report=f'''Package `{token}` contains one room-only tower read for 134 items. Its payload and delivery are sealed in `0.tgz` and `1.tgz`. The package is **not fully validated for submission**: the local first-dev-S1 full-reader rehearsal needs the pinned dev-S1 frame tar. The R0 full-reader rehearsal passes. No GPU run or remote action occurred.
+refs=[('Room admission','src/h1eval/room134.py','def validate'),('Mixed frame binding','src/h1eval/room134.py','def bind'),('Manifest dispatch','src/h1eval/items.py',"if m['name']=='room134'"),('Frame-root extraction admission','src/orchard_h10/job.py','str(target) not in'),('Durable type binding','src/h1eval/h10/launch.py','types=args.types'),('One read and settings','tower_sequence.py','RULES='),('Allocated full-reader check','tower_sequence.py','def full_reader_rehearsal'),('CPU receipt validation','node_check.py','def validate_full_reader'),('Scoring and pairing','room_pair.py','def score_return')]
+report=f'''Package `{token}` is resealed with an Orchard CPU check for both first items. **Local checks pass; submission requires the real Orchard CPU receipt.** No remote action or GPU run occurred.
+
+The token stays unchanged because all 928 payload members and `0.tgz` remain byte-identical. Only operator files and their enclosing seals change. `OPERATOR_ONLY_AUDIT.json` records this comparison; `HASHES.json` records the final hashes.
 
 | Implementation | File and line |
 |---|---|
 '''+''.join(f'| {label} | `out/{name}:{line(O/name,needle)}` |\n' for label,name,needle in refs)+f'''
-The item manifest contains the exact 36 W5 dev-S1 room rows and 98 room rows from the supplied R0-dev qset. It preserves the questions verbatim, f32 indices, source FPS and frame totals, and records source line, qid, qset SHA256 and `gt.area_m2` label provenance. The ID sets and physical-room sets do not overlap across the two sources. The 36 dev-S1 captures span nine physical rooms; together the read spans 107 physical rooms. R0-dev and the combined manifest are development-only, with fitting forbidden. No fitting ran.
+The allocated helper stages authenticated archives and restores the export before rehearsing `room_scene0155_00` and `r0_015bd4aaf6870d79bade`. It uses W5's allocation recipe: `general`, eight CPUs, 200G, `04:00:00`, and no GPU.
 
-`item_set_sha256` is `{plan['item_set_sha256']}`. The plan digest is `{plan['plan_sha256']}`. `READ_PLAN.json` lists every key and the requested settings. Only `items/room134.json` appears under `items/` in the payload. The null selector slot and room's two-call cap remain unchanged.
+Both items run through real launch, mixed native mapping, frame SHA256 verification and PNG decoding, capped ParityGenerator, CallHook, the decode loop and official scoring. Weights, model forward, tokenizer, prompt tensors, audit enforcement and decode budget use explicit CPU stubs.
 
-The step-544 export descriptor, all artifact file pins, G3T weights/config, reader, heads, native tree, parity kit, official scorer and return implementation match W5 byte for byte. `PAYLOAD_AUDIT.json` records {len(same)} identical members and {len(protected)} protected identical members. `PATCH.diff` compares the sealed payload with W5/out/src and the operator files with W5/out. Configuration and item/frame adapters are the only runtime changes outside the operator.
+The helper embeds both finished records in `a/c/CPU.json` under `full_reader.records` and sets `full_reader_passed=true`. It also writes `FULL_READER.json`. Any failure aborts the check. The bootstrap requires both pass flags and matching payload, plan, input and operator hashes.
 
-The supplied R0 tar has SHA256 `2ad8c67c111d5f286aa96ea688efd5c88218e116a8c09ae1a9b4bc71be893a21` and 797,685,760 bytes. Its actual members use opaque 24-hex room/frame names, rather than the source layout `frames/scannetpp/<scene>/<frame>.png`. The producer's `evidence/ID_MAP.json` maps qset line and qid to `assets/e52a690b.jsonl`; `kit/launcher/EXTRA.json` supplies each member's digest. `FRAME_CHECK.json` proves all 3,136 requested PNGs exist, match those digests, and are 640×480. `R0_FRAME_PROVENANCE.json` pins the mapping sources; the identifier key was neither read nor copied. The source scene-manifest digests are retained as provenance; they are not incorrectly claimed to be members of this opaque tar.
+The first dev-S1 item has distinct native-answer and evaluation-ground-truth labels. The check records both official scores without changing either label. Stub scores establish execution, not model quality.
 
-Staging extracts the R0 archive directly under the existing frame root, adding 795,282,085 expanded bytes. All 3,136 tar members are needed by this room read. W5’s other archives and template groups remain: the restore contract requires all pinned dependencies, and the existing stage function extracts whole authenticated archives. The unchanged reader can construct SAM/selector components even for a direct room read. No unverified archive was dropped or rewritten. The 798 MB tar stays outside W6 and is read in place.
+| Evidence | Result |
+|---|---|
+| `LOCAL_CPU_CHECK.json` | Both records finish on an initially empty local root with the real R0 tar and synthetic dev-S1 PNGs. |
+| `LOCAL_NATIVE_CPU_CHECK.json` | The same check finishes with native `d1/scene0155_00` frame paths. |
+| `CPU_HELPER_TEST.json` | The helper enforces stage/restore/rehearsal order and writes both records; failures publish no passing receipt. |
+| `W5_BINDING_EQUIVALENCE.json` | All 36 dev-S1 room bindings match W5. |
+| `OPERATOR_ONLY_AUDIT.json` | All 928 payload members remain identical; the same token is valid. |
 
-Room evaluation requires no external per-frame intrinsics or pose files. `src/b/e2e_reader/parity.py:35` builds the trainer input from RGB paths/digests, indices, timestamps, FPS, frame total and question. `src/tree/evalpath/runtime.py:126` uses the VQA prompt path; `src/tree/student_pilot/carrier_c1_data.py:416` builds camera targets only for the pose-training stream. Its frame loader reads PNGs. `src/b/e2e_reader/generate.py:30` constructs geometry lazily from in-memory predicted tensors if a call requests it. The direct R0 rehearsal forbids G3T invocation and reaches EOS without any camera-data input. Unexpected generated camera/ground calls could still invoke a tower; the zero-call timing estimate is an assumption from W5's room rows, not a hard reader restriction. The fixed memo memory bound admits up to 134 captures, below 200 GiB.
+The local fixture uses the production extractor and admitted `d` and `d/f` destinations. It reads the authenticated R0 tar in place. The synthetic dev-S1 fixture preserves the native `d1/<scene>` key and tests both native paths and the pinned metadata's content-addressed PNG paths. Synthetic digests exist only in fixture settings; no digest verifier is bypassed.
 
-The timing proxy uses W5's measured room mean, 27.3328118579 seconds/item. Reads need {price['read_seconds']:.3f} seconds. Staging/loading retains W5's 1,800-second allowance and adds 120 seconds for the new archive. The overlapping stop/return margins require {price['required_seconds']:.3f} seconds in total. Of 02:00:00, 02:30:00 and 03:00:00, **02:30:00** is the smallest fitting walltime. It leaves {price['stop_deadline_slack_seconds']:.3f} seconds before stop admission under the proxy. Production throughput, RSS and staging time remain unmeasured. Price is 2.5 times the H100 hourly rate plus the CPU check; rates were not supplied.
+Local preparation stubs unavailable export weights, artifact construction and runtime versions. The helper orchestration test also stubs the allocation, namespace and storage proof. These tests validate the check implementation; the allocated Orchard run must validate the actual archives, restore and namespace.
 
-The 134 replay rows imply 2,492,400 raw bytes and 428,800 compressed bytes. The archive estimate adds a 10 MB metadata/log allowance, totaling **10,428,800 bytes**. This leaves 79,471,200 bytes against the conservative 89.9 MB archive allowance and 89,571,200 bytes against an empty 100 MB pool. The production limiter actually caps compressed archives at 89,999,999 bytes. The shared pool's occupancy remains an operator check.
+The W5 comparison runs each source tree in an isolated interpreter. Native tasks, resolved anchor/dense paths, pinned SHA256 values, indices, slots, mapping digests, effective types, settings and finished journal types match for all 36 rows. W6 explicitly persists the effective type list; W5's settings and journals establish the same selection.
+
+The plan still contains one development-only room read: 36 dev-S1 and 98 R0-dev items, tower, mode none, null_argmax, G3T memo on, no verification IDs, and no own-depth output. The item-set digest is `{plan['item_set_sha256']}`. No fitting ran.
+
+The payload retains the reader, scorer, step-544 export, frame binding and input descriptors. `PATCH.diff` compares source and operator files against W5. `PAYLOAD_AUDIT.json` records the payload's W5 comparison separately from the operator-only reseal audit.
+
+Latest suite results: **{passed} passed, {failed} failed**. `TESTS.txt` preserves the execution ledger; this table reports each suite's latest result. Unchanged reader/memo suites retain their passing evidence.
 
 | Gate | Latest result | Tests | Log |
 |---|---|---:|---|
 '''+ '\n'.join(details)+f'''
 
-Latest tests: **{passed} passed, {failed} failed**. `TESTS.txt` retains the command ledger, including failed setup assertions and their follow-up checks. `FRAME_CHECK.json` also records the full archive/member verification performed by `work/build_items.py`.
+Production walltime remains `02:30:00`; the CPU check uses `04:00:00`. The read estimate is {price['read_seconds']:.1f} seconds. The return estimate is 10,428,800 bytes, below the 89.9 MB archive allowance and 100 MB pool cap. Production throughput, RSS and pool occupancy remain unmeasured.
 
-`FULL_R0.json` contains the finished R0 record from real launch, mixed native mapping, frame SHA256 checks and PIL decoding, capped ParityGenerator, generate_real, CallHook, decode loop and official scoring. Artifact audit, weights/model forward, tokenizer and prompt tensor construction are explicit CPU stubs. The first dev-S1 attempt stops at a missing pinned PNG before generation; no substitute image or hash bypass was used. `MEMO_BINDING.json` exercises real empty-root prepare and launch with restore, manifest creation and runtime-version stubs. `LOCAL_REHEARSAL.json` covers extraction, every payload pin, step-544 admission, one read and null-slot wiring. `RETURN_MEMBERS.json`, `STOP_PROOF.json` and `RETURN_CLI.json` cover journal return, draining, partial persistence and authenticated unpack. `SCORING_TEST.json` proves the synthetic 36/98/134 pairing, MRA, cap/malformed counts and refusal checks.
+`OPERATIONS_ROOM.md` gives exact placement, metadata-check, allocated CPU-check, pass-flag inspection, submit, fetch, unpack and scoring commands. It requires the passing Orchard receipt before submission.
 
-`room_pair.py` recomputes MRA from ground_truth using the unchanged official scorer and the parity think-close/strict-no-answer rule; it does not trust serialized native-answer scores. Malformed-call counts describe recorded diagnostics containing “malformed”; an unserved call without a diagnostic is not classified as malformed. Scores from missing items remain absent and each set reports completion separately.
+All writes stayed inside W6. Tests used the supplied CPU Python with at most eight workers. No SSH, Git, network, submission, process kill or deletion ran. Rebuild the operator delivery with `out/build_operator.py` and `out/build_delivery.py`; verify it with `work/audit_operator_only.py` and `work/final_check.py`.
 
-All writes stayed in W6. CPU tests used the supplied Python with one thread per numerical library; no agent, SSH, Git, network, submission, process kill or deletion ran. Rebuild with `out/build_package.py`, `out/build_operator.py`, and `out/build_delivery.py`. `REMOVAL_CANDIDATES.md` records optional cleanup for the user. The report uses the no-archaeology and summary skills; the requested W5 comparison is retained because it establishes code identity.
+The report applies the no-archaeology and summary skills. The W5 comparison and reseal baseline remain because the requested equivalence and token checks require them.
 
 | Artifact | Bytes | SHA256 |
 |---|---:|---|
-'''+''.join(f"| `{n}` | {v['bytes']} | `{v['sha256']}` |\n" for n,v in hashes.items())+'\n'+ops
+'''+''.join(f"| `{n}` | {v['bytes']} | `{v['sha256']}` |\n" for n,v in hashes.items())
 (O/'REPORT.md').write_text(report)
 (O/'REMOVAL_CANDIDATES.md').write_text('No files were deleted. W5 is read-only. After accepting the delivery and evidence, the user may review W6/work/tmp CPU fixtures, W6/work/frames rehearsal PNGs, out/reader_repin, out/package duplicate payload, and unused copied legacy test scripts. Preserve out/src, build scripts, TOKEN, BASE_INVENTORY.json, reports, logs, all test receipts, 0.tgz and 1.tgz for reproducibility. The source R0 tar is outside W6 and is not a removal candidate.\n')
 size=sum(p.stat().st_size for p in W.rglob('*') if p.is_file());assert size<2500000000

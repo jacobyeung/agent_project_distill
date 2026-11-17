@@ -49,14 +49,16 @@ def score_return(root,allow_fixture=False):
             # item's ground_truth rather than trusting a serialized native answer score.
             mra=measurement['score']
             if out.get('strict_no_answer') or not re.search(r'</think\s*>',out.get('text',''),re.I):mra=0.0
+            # Job 1 (tower_pair.py:74) and the H1 evaluator score the native answer label; report both labels.
+            mra_answer=scorers.accuracy(out,items[key])['task_accuracy']
             calls=scorers.records(out)
             malformed=sum('malformed' in (str(c.get('response',''))+' '+str(c.get('code',''))+' '+str(c.get('error',''))).lower() for c in calls)
-            rows[key]=dict(id=key,room_key=r['room_key'],mra=mra,finish=out['finish'],capped=out['finish'] in ('max_calls','max_new_tokens','length'),malformed_calls=malformed,call_count=len(calls),parse_failed=measurement.get('parse_failed',False))
+            rows[key]=dict(id=key,room_key=r['room_key'],mra=mra,mra_answer=mra_answer,finish=out['finish'],capped=out['finish'] in ('max_calls','max_new_tokens','length'),malformed_calls=malformed,call_count=len(calls),parse_failed=measurement.get('parse_failed',False))
     sets={}
     for name,keys in {**manifest['sets'],'all':list(items)}.items():
         available=[rows[k] for k in keys if k in rows]
-        sets[name]=dict(expected=len(keys),completed=len(available),complete=len(available)==len(keys),mra=statistics.mean(r['mra'] for r in available) if available else None,capped_reads=sum(r['capped'] for r in available),malformed_calls=sum(r['malformed_calls'] for r in available),missing=sorted(set(keys)-set(rows)))
-    return dict(token=public['token'],plan_sha256=public['plan_sha256'],item_set_sha256=manifest['item_set_sha256'],development_only=True,fitting_permitted=False,synthetic=allow_fixture,sets=sets,per_item=[rows[k] for k in sorted(rows)],sources=sources,malformed_definition='Calls whose recorded response, code, or error contains malformed; unserved calls without diagnostics are not classified as malformed.',score_definition='Official VSI MRA against item ground_truth; strict-no-answer and absent think-close score zero. Missing rows stay missing and do not enter available MRA.')
+        sets[name]=dict(expected=len(keys),completed=len(available),complete=len(available)==len(keys),mra=statistics.mean(r['mra'] for r in available) if available else None,mra_answer=statistics.mean(r['mra_answer'] for r in available) if available else None,capped_reads=sum(r['capped'] for r in available),malformed_calls=sum(r['malformed_calls'] for r in available),missing=sorted(set(keys)-set(rows)))
+    return dict(token=public['token'],plan_sha256=public['plan_sha256'],item_set_sha256=manifest['item_set_sha256'],labels=dict(mra='ground_truth (released label)',mra_answer='native answer label, the job-1 tower_pair.py and H1 evaluator path; leg R1 room gate uses this one'),development_only=True,fitting_permitted=False,synthetic=allow_fixture,sets=sets,per_item=[rows[k] for k in sorted(rows)],sources=sources,malformed_definition='Calls whose recorded response, code, or error contains malformed; unserved calls without diagnostics are not classified as malformed.',score_definition='Official VSI MRA against item ground_truth; strict-no-answer and absent think-close score zero. Missing rows stay missing and do not enter available MRA.')
 
 def main():
     p=argparse.ArgumentParser();p.add_argument('--return-root',required=True);p.add_argument('--out',required=True);p.add_argument('--allow-fixture',action='store_true');a=p.parse_args()

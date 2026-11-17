@@ -171,14 +171,15 @@ def full_reader_rehearsal(config):
       or row['arm']!='tower' or row['mode']!='none' or output['finish']!='eos'
       or output['calls']['records']!=[] or output['tokens']!=[10,11,2]):
    raise ValueError('Full reader finished record differs')
-  score=score_item(item,parity.decoded(output))
+  score=score_item({**item,'ground_truth':item.get('answer',item['ground_truth'])},parity.decoded(output))
+  ground_truth_score=score_item(item,parity.decoded(output))
   if score['parse_failed'] or output['scores']['answer']!=score['score']:
    raise ValueError('Official score differs')
   environment=json.loads((journal/'4'/str(index)/'environment.json').read_text())
   if any(environment['binding'].get(k)!=v for k,v in expected.items()):
    raise ValueError('Full reader type or settings binding differs')
   reports.append(dict(passed=True,set=name,item=item['id'],frames=seen,record=row,
-    official_score=score,environment_binding=environment['binding']))
+    official_score=score,ground_truth_score=ground_truth_score,environment_binding=environment['binding']))
  proof=dict(passed=True,device='cpu',records=reports,
    stubbed=['artifact audit enforcement','weights and model forward','tokenizer','prompt tensor construction','decode budget policy'],
    real=['launch','mixed native mapping','frame SHA256 and PNG decode','ParityGenerator','generate_real','CallHook','decode loop','official scoring'])

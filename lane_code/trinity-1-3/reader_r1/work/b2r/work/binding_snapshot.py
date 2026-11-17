@@ -2,6 +2,7 @@
 import contextlib,io,json,sys
 from pathlib import Path
 source,out=map(Path,sys.argv[1:]);sys.path[:0]=[str(source/'b'),str(source/'tree'),str(source)]
+from e2e_reader import parity
 from orchard_h10.common import write
 from h1eval.items import load_manifest,digest
 from h1eval.h10 import parity_adapter as A,launch
@@ -22,6 +23,7 @@ for row in rows:
   anchor_capture=c[row['native']],dense_capture=d[row['native']],settings=policy,
   require_dense64=settings.get('require_dense64',False)))
 write(out/'e/RESTORE.json',{});write(out/'binding.json',dict(root=str(out),name='fixture',sha256='a'*64))
+settings.pop('frames_json',None);settings.pop('dense_manifest',None)
 settings.update(export_dir=str(out/'e'),artifact_manifest=str(out/'binding.json'));write(out/'settings.json',settings)
 write(out/'pin.json',dict(lineage='SFT',step=544))
 args=launch.parser().parse_args(['--items',str(source/'items'/f'{name}.json'),'--export',str(out/'e'),

@@ -1,5 +1,5 @@
 """Empty-root rehearsal through the allocated operator, using explicit CPU fixtures."""
-import copy,hashlib,io,json,sys,tarfile,tempfile,unittest
+import copy,hashlib,io,json,os,sys,tarfile,tempfile,unittest
 from pathlib import Path
 from types import SimpleNamespace as NS
 from unittest.mock import patch
@@ -18,7 +18,7 @@ import node_check as N
 class Full(unittest.TestCase):
  @classmethod
  def setUpClass(cls):
-  cls.root=Path(tempfile.mkdtemp(prefix='cpu_empty_',dir=W/'work/tmp'))
+  cls.root=Path(os.environ['CPU_FIXTURE_REUSE']) if os.environ.get('CPU_FIXTURE_REUSE') else Path(tempfile.mkdtemp(prefix='cpu_empty_',dir=W/'work/tmp'))
   cls.cfg=read_config(O/'package');cls.inputs=json.loads((O/'inputs_tower.json').read_text())
   cls.S,cls.J,*_=template()
   cls.manifest=json.loads((P/'items/room134.json').read_text())
@@ -30,13 +30,16 @@ class Full(unittest.TestCase):
    job.check_inputs(bad,cls.cfg,package=O/'package')
   frame_root=cls.J.physical(cls.root,cls.inputs['frames_root'])
   cls.frame_root=frame_root
-  assert not frame_root.exists()
+  reused=frame_root.exists()
+  if reused:assert os.environ.get('CPU_FIXTURE_REUSE')
+  else:assert not list(cls.root.iterdir())
   source=Path('/scratch/jjyeung/orch_n30/cont_ops/work/h1read/assets/d81f4a26.tar')
   spec=cls.inputs['archives'][-1]
   assert source.stat().st_size==spec['parts'][0]['bytes'] and sha(source)==spec['sha256']
   # Read the tar in place. Use the production extractor and exact admitted destination.
-  with source.open('rb') as stream:
-   cls.S.extract_stream(stream,cls.root/spec['destination'],None,spec['expanded_bytes'],links=True)
+  if not reused:
+   with source.open('rb') as stream:
+    cls.S.extract_stream(stream,cls.root/spec['destination'],None,spec['expanded_bytes'],links=True)
   captures=copy.deepcopy(parity._captures(FRAMES));dense=copy.deepcopy(parity._captures(DENSE))
   cls.original_c=copy.deepcopy(captures);cls.original_d=copy.deepcopy(dense)
   fixtures={};key=cls.item['native'];assert key.startswith('d1/')
@@ -54,8 +57,9 @@ class Full(unittest.TestCase):
    for name,raw in fixtures.items():
     m=tarfile.TarInfo(name);m.size=len(raw);tar.addfile(m,io.BytesIO(raw))
   # Dev-S1 archive unpacks to d, and its f/ subtree becomes the same frame root.
-  with archive.open('rb') as stream:
-   cls.S.extract_stream(stream,cls.root/cls.inputs['archives'][0]['destination'],None,sum(map(len,fixtures.values())),links=True)
+  if not reused:
+   with archive.open('rb') as stream:
+    cls.S.extract_stream(stream,cls.root/cls.inputs['archives'][0]['destination'],None,sum(map(len,fixtures.values())),links=True)
   cls.captures=captures;cls.dense=dense
   cls.logical=cls.J.physical(cls.root,cls.cfg['logical'])
   # Real preparation; unavailable export weights and environment versions are labelled stubs.
@@ -74,8 +78,9 @@ class Full(unittest.TestCase):
     operator_sha256=sha(O/'tower_sequence.py'),device='cpu',prefix=[],measure_memory=True)
 
  def config(self,label,settings=None):
-  path=self.root/(label+'.json');write(path,settings or self.settings)
-  return dict(self.base,settings=str(path),output=str(self.root/label))
+  run=Path(tempfile.mkdtemp(prefix=label+'_',dir=self.root))
+  path=run/'settings.json';write(path,settings or self.settings)
+  return dict(self.base,settings=str(path),output=str(run/'r'))
 
  def test_empty_root_exact_staged_paths(self):
   config=self.config('archive_layout')

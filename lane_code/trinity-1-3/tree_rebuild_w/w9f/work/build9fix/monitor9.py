@@ -1,5 +1,5 @@
 """Standard-library line events, bound to the files present when the proof starts."""
-import hashlib,json,sys,types
+import hashlib,json,os,sys,types
 from pathlib import Path
 def code_digest(code):
     def constant(value):
@@ -15,6 +15,9 @@ def code_digest(code):
 class Monitor:
     def __init__(self,tree):
         self.tree=Path(tree);self.hits={}
+        self.tmp=Path(os.environ['TMPDIR'])
+        self.tmp_before=sum(p.stat().st_size for p in self.tmp.rglob('*') if p.is_file())
+        if self.tmp_before>200_000_000:raise ValueError('Proof temporary storage exceeds the limit')
         self.hashes={str(p.relative_to(tree)):hashlib.sha256(p.read_bytes()).hexdigest() for p in self.tree.rglob('*.py')}
         expected={}
         for name in self.hashes:
@@ -37,6 +40,9 @@ class Monitor:
     def save(self,folder):
         sys.monitoring.set_events(3,0)
         folder=Path(folder)
+        after=sum(p.stat().st_size for p in self.tmp.rglob('*') if p.is_file())
+        if after>200_000_000:raise ValueError('Proof temporary storage exceeds the limit')
+        (folder/'MONITOR_STORAGE.json').write_text(json.dumps(dict(before_bytes=self.tmp_before,after_bytes=after,limit_bytes=200_000_000)))
         (folder/'hits.json').write_text(json.dumps({k:sorted(v) for k,v in self.hits.items()}))
         (folder/'source_hashes.json').write_text(json.dumps(self.hashes))
         (folder/'results.json').write_text(json.dumps(dict(complete=True,failures=[],errors=[],fatal=None,coverage_code_filter='compiled-source fingerprint')))

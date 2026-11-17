@@ -1,6 +1,6 @@
 Package `c3cc59fb4aae0` runs one development-only, 134-item room read at SFT step 544. The read uses tower, mode none, null_argmax, memo on for G3T only, no verification IDs, and no own-depth output. R0-dev must never supply fitting data.
 
-The local dev-S1 full-reader rehearsal requires its pinned frame tar. `REPORT.md` records that gate's current status. Resolve that gate before submission. The real allocated CPU check and GPU run have not run in this lane.
+The allocated Orchard CPU check must pass before submission. It runs the first dev-S1 and first R0-dev item after authenticated staging and export restore. Local fixtures validate the check implementation; they do not authenticate Orchard-only dev-S1 image bytes. No Orchard check or GPU run occurred in this lane.
 
 Place the delivery from an existing opaque delivery directory. Set `D` to that directory. These are operator commands; this lane ran none of them.
 
@@ -9,7 +9,7 @@ set -euo pipefail
 umask 077
 : "${D:?Set D to the existing opaque delivery directory}"
 P=/project/community/jjyeung/c3cc59fb4aae0
-printf '%s  %s\n' ce8b68febd1e8763fa0f8172a01b09ae82d195ae15f41f0ea575d76b326403b4 "$D/1.tgz" | sha256sum -c -
+printf '%s  %s\n' 741a362d5abd06124f3cff004123396ba43e8446e51883f0af955455f4b40d97 "$D/1.tgz" | sha256sum -c -
 mkdir -m 700 "$P"
 tar -xzf "$D/1.tgz" -C "$P"
 chmod 700 "$P/a"
@@ -17,18 +17,38 @@ cd "$P"
 CUDA_VISIBLE_DEVICES= /usr/bin/python3 -I -s -B 3.py check --gpus 1 --time 02:30:00
 ```
 
-Coordinate staging IO before this allocated CPU check. It requests eight CPUs and no GPU. The helper creates a fresh private root, authenticates archives, restores the export, checks one read's settings, verifies and decodes the first item’s frames from each set, and writes the CPU and memory receipts. Model decoding remains a separate GPU operation. The CPU allocation limit permits staging; it is not a timing estimate.
+Coordinate staging IO before this allocated CPU check. It requests eight CPUs and no GPU. The helper creates a fresh private root, authenticates archives, restores the export, then runs both items through real launch, mixed native mapping, SHA256 verification, PNG decoding, ParityGenerator, CallHook, the decode loop and official scoring. Model forward, weights, tokenizer, prompt tensors, audit enforcement and decode budget use explicit CPU stubs. Any failure exits nonzero and prevents a passing CPU receipt. The allocation matches W5: general, eight CPUs, 200G, four hours, no GPU. The four-hour limit permits staging; it is not a timing estimate.
 
 ```bash
 env -i PATH=/usr/local/bin:/usr/bin:/bin HOME="$HOME" USER="$USER" CUDA_VISIBLE_DEVICES= \
   srun --account=mt01 --partition=general --nodes=1 --ntasks=1 \
   --job-name=a15_cot_apc3cc59fb4aae0 --cpus-per-task=8 --mem=200G \
-  --time=02:30:00 --export=ALL \
+  --time=04:00:00 --export=ALL \
   /usr/bin/python3 -I -s -B "$P/a/5.py" --package "$P" \
   --sequence "$P/a/6.py" --results "$P/a/c"
 ```
 
-Submit only after the passing receipt exists. Record the shared return pool's current usage in the operator ledger; the production write test checks capacity before staging. Check the H100 resource type and pending priority jobs, then submit one GPU for 02:30:00.
+Read and verify the pass flag and both finished records after the CPU command exits successfully. `CPU.json` embeds the records under `full_reader.records`; `FULL_READER.json` repeats that proof. These scores validate the stub path, not model quality.
+
+```bash
+/usr/bin/python3 -I -s -B - "$P" <<'PYCODE'
+import hashlib,json,sys
+from pathlib import Path
+p=Path(sys.argv[1]);c=json.loads((p/'a/c/CPU.json').read_text());v=json.loads((p/'0.json').read_text())
+sha=lambda path:hashlib.sha256(path.read_bytes()).hexdigest()
+assert c['passed'] is True and c['full_reader_passed'] is True
+assert c['full_reader']['passed'] is True and c['full_reader']['device']=='cpu'
+assert c['payload']==v['payload_sha256'] and c['plan']==v['plan_sha256']
+assert c['operator_sha256']==sha(p/'a/6.py') and c['inputs']==sha(p/'a/1.json')
+rows=c['full_reader']['records']
+assert [(r['set'],r['item']) for r in rows]==[('dev-S1','room_scene0155_00'),('R0-dev','r0_015bd4aaf6870d79bade')]
+assert all(r['passed'] is True and r['record']['complete'] is True and r['record']['output']['finish']=='eos' for r in rows)
+print('full_reader_passed=true')
+for r in rows:print(r['set'],r['item'],r['record']['output']['finish'],r['ground_truth_score']['score'])
+PYCODE
+```
+
+Submit only after this command passes. The bootstrap also refuses receipts without `full_reader_passed=true`, the full-reader pass, matching payload, plan, inputs and operator hashes, and the passing memory bound. Record the shared return pool's current usage in the operator ledger; the production write test checks capacity before staging. Check the H100 resource type and pending priority jobs, then submit one GPU for 02:30:00.
 
 ```bash
 sinfo -N -h -p general -o '%G' > "$P/a/7.txt"

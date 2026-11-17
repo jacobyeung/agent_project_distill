@@ -93,16 +93,92 @@
       "return start(cfg)"
     ],
     [
+      54,
+      "root.mkdir(parents=True, mode=0o700, exist_ok=True)"
+    ],
+    [
+      55,
+      "root.chmod(0o700)"
+    ],
+    [
+      56,
+      "result = dict(status='FAIL', config_identity=identity(cfg), assertions={k:False for k in ASSERTIONS},"
+    ],
+    [
+      58,
+      "result['assertions']['empty_root'] = True"
+    ],
+    [
+      59,
+      "previous_umask = os.umask(0o077)"
+    ],
+    [
+      60,
+      "try:"
+    ],
+    [
+      61,
+      "if os.environ.get('CUDA_VISIBLE_DEVICES', ''):"
+    ],
+    [
       62,
       "raise ValueError('CPU_ONLY_REQUIRED')"
+    ],
+    [
+      63,
+      "expected = plan(recipe_for(cfg), retained_archive_copies=1)"
+    ],
+    [
+      64,
+      "result['assertions']['disk_plan'] = cfg.get('checkpoint_disk_guard') == expected"
+    ],
+    [
+      65,
+      "if not result['assertions']['disk_plan']:"
     ],
     [
       66,
       "raise ValueError('R1_DISK_PLAN_DIFFERS')"
     ],
     [
+      67,
+      "binaries = {}"
+    ],
+    [
+      68,
+      "for name in request['binaries']:"
+    ],
+    [
+      69,
+      "binary = shutil.which(name)"
+    ],
+    [
+      70,
+      "if not binary:"
+    ],
+    [
       71,
       "raise ValueError('R1_BINARY_MISSING:'+name)"
+    ],
+    [
+      72,
+      "binaries[name] = file_pin(Path(binary).resolve())"
+    ],
+    [
+      73,
+      "result['binaries'] = binaries"
+    ],
+    [
+      74,
+      "result['assertions']['runtime_binaries'] = bool(binaries)"
+    ],
+    [
+      76,
+      "if not request.get('staging') or not request.get('routing_selection'):"
+    ],
+    [
+      77,
+      "raise ValueError('R1_HOST_STAGING_AND_SELECTION_INPUTS_MISSING')"
     ],
     [
       78,
@@ -227,6 +303,22 @@
     [
       110,
       "result['status'] = 'PASS'"
+    ],
+    [
+      112,
+      "result['missing'].append(str(error))"
+    ],
+    [
+      114,
+      "os.umask(previous_umask)"
+    ],
+    [
+      115,
+      "write(root/'receipt.json', result)"
+    ],
+    [
+      116,
+      "return result"
     ]
   ],
   "launch_r2/build.py": [
@@ -339,14 +431,6 @@
   ],
   "student_pilot/carrier_c1_run.py": [
     [
-      71,
-      "from .r1_training import validate as validate_r1"
-    ],
-    [
-      72,
-      "validate_r1(cfg)"
-    ],
-    [
       672,
       "raise ValueError('Preparation R1 inputs differ')"
     ],
@@ -357,6 +441,30 @@
     [
       1383,
       "raise ValueError('R1 row failure forbids substituting the pinned row plan')"
+    ],
+    [
+      2110,
+      "from .b7_inputs import module_trainability"
+    ],
+    [
+      2111,
+      "metadata = load(directory/'artifact.json')"
+    ],
+    [
+      2112,
+      "metadata['trainable_modules'] = module_trainability(model,cfg)"
+    ],
+    [
+      2113,
+      "(directory/'artifact.json').write_text(json.dumps(metadata,sort_keys=True,indent=2)+'\\n')"
+    ],
+    [
+      2114,
+      "from .eat1_export import write_manifest"
+    ],
+    [
+      2115,
+      "write_manifest(directory,model,cfg)"
     ],
     [
       2298,
