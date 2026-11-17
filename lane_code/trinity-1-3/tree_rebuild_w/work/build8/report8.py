@@ -94,6 +94,14 @@ for r in read('work/build8/proofs/audit/INFERENCE_COMPONENTS.json',{}).get('comp
  put('| '+tick(r['file']+':'+str(r['line']))+' | '+tick(r['component'])+' | '+r['classification']+' |')
 put('\n</details>')
 (O/'BUILD8_REPORT.md').write_text('\n'.join(report)+'\n')
+card=['# Prelaunch card — Build 8: GO=false','',
+      'The source seal is '+tick(seal['tree_sha256'])+' (`out/TREE_SEAL.json`). Both kits remain blocked.','',
+      'The review package is '+tick(delivery['path'])+' (`work/build8/DELIVERY.json`).','']
+for kit in read('work/build8/kits/RESULTS.json',[]):
+ arm=Path(kit['kit_path']).name.upper()
+ card.append('- '+arm+': '+tick(kit['kit_sha256'])+' (`work/build8/kits/RESULTS.json`). Blockers: '+', '.join(kit['blockers'])+'.')
+card+=['','Read `out/BUILD8_REPORT.md`, `work/build8/SUITE_COMPARISON.json`, `work/build8/GAPS.json` and the current EAT reports before any approval. BF16 cache parity and multi-rank stop/reload remain unqualified. No production approval is present.']
+(O/'PRELAUNCH_CARD.md').write_text('\n'.join(card)+'\n')
 design=O/'DESIGN_RECORD_tree_rebuild_20261115.md';old=design.read_text();marker='\n## Build 8\n'
 entry=marker+'\nThe local fixtures, visible-frame dimensions and legacy direct-source admission are repaired and covered by native CPU proofs. Empty-think training rows refuse with a named error. The portrait audit records each transform without changing bound mask coordinates. BF16 cache parity, missing production inputs, faithful identity, multi-rank stop evidence and the in-forward reader work remain explicit blockers. Both kits remain GO=false. The sealed package, final suites, changed-statement coverage and acceptance findings are recorded in `out/BUILD8_REPORT.md` and `work/build8/FINAL_VERIFICATION.json`.\n'
 design.write_text(old.split(marker)[0]+entry if marker in old else old+entry)

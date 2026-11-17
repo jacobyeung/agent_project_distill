@@ -4,7 +4,7 @@ Items 1–8 are implemented or retain their named blockers below. The final pack
 
 Step 1: fixture regressions pass; BF16_CACHE_GRADIENT_PARITY remains blocked at its original tolerance. Evidence: `work/build8/proofs/regressions/DISPOSITION.json` and `BF16_PARITY.json`.
 
-Step 2: both inherited R2 failures pass. The diagnostic frozen comparison records zero R2 failures (`DIAGNOSTIC_SUITE_COMPARISON.json`). The final frozen R2 group remains pending behind the legacy group.
+Step 2: both inherited R2 failures pass. The diagnostic frozen comparison records zero R2 failures (`DIAGNOSTIC_SUITE_COMPARISON.json`). The final frozen R2 group is active after the completed legacy group (`final_package.log`, `proofs/suite_tree/r2/progress.json`).
 
 Step 3: Native producer/reader proofs close every CPU gap, including cache writing/reading/row encoding, pose validation, direct-source CLI and both own-value routes (`proofs/final_repairs/results.json`, `GAPS.json`). External classifications retain file:line reasons. Final coverage aggregation follows the frozen suite.
 

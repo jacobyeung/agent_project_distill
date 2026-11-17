@@ -20,7 +20,9 @@ assert verified['tree_seal'] in report and verified['delivery']['sha256'] in rep
 assert all(value in report for value in expected.values())
 assert 'FINAL_VERIFICATION.json' in report
 assert (L/'out/DESIGN_RECORD_tree_rebuild_20261115.md').read_text().count('\n## Build 8\n')==1
-assert 'GO=false' in (L/'out/PRELAUNCH_CARD.md').read_text()
+card=(L/'out/PRELAUNCH_CARD.md').read_text()
+assert 'Build 8: GO=false' in card and verified['tree_seal'] in card
+assert verified['delivery']['path'] in card and all(value in card for value in expected.values())
 assert 'running' not in (B/'STATUS.md').read_text()
 record=dict(status='PASS',tree_seal=verified['tree_seal'],kits=expected,
             limitations='Consistency of delivery records only; acceptance remains BLOCKED.')
