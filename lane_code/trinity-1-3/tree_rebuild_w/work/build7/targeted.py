@@ -16,6 +16,7 @@ names = [
     'tests.test_gxp_mix.MemoryFallback.test_absent_keys_preserve_normalized_identity_and_fp32_output_bytes',
     'tests.test_s1_launch_kit.LaunchKitTests.test_all_eight_ranks_and_native_configuration_binding_are_required',
     'coverage_cases',
+    'coverage_b7',
 ]
 env = {**os.environ, 'R2_TREE': str(L / 'work/tree_r1'),
        'R2_LANE_ROOT': str(L), 'R2_ALL_TESTS': '0',

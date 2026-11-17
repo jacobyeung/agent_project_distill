@@ -1,0 +1,13 @@
+# Build 7 continuation
+
+The final driver is running: `bash work/build7/run.sh work/build7/final_validate.py` (exec session 79848). Read `FINAL_PASS.json` and `monitor_status.py`; inspect job status at most once a minute. Do not start overlapping tests. No process has been killed by the cluster. The earlier Gloo initialization error remains an unproved multi-rank stop/export boundary.
+
+The source is frozen at seal `26a635fc34aa97ac2909985ca4c1e1007c03e621ab95742d2a7c93a7b282b052` (`out/TREE_SEAL.json`). The archive is `out/tree_rebuild_b7_26a635fc.tar`; its digest and size are in `DELIVERY.json`. Both kits bind this source and remain GO=false. The original packet-root suite passed completely (`final_packet_root.log`, `proofs/packet/results.json`). The packaged suite runs tree generator/legacy/R2, then all base groups. Its group receipts bind source, fixtures and runner hashes; preserve them.
+
+Do not rerun mutation scripts or `final_validate.py` from its start. It has already staged kits from empty and refuses a second initial staging. If a normal session interruption ends the driver, inspect receipts and resume `PACKAGE_TEST.sh` with the archive only when authorized by the cluster rules. A killed process requires the user's answer, not an automatic retry. Continue downstream scripts only after package completion: `targeted.py`, `legacy_guard_proof.py`, `compare.py`, `coverage_all.py`, the copied EAT runner in scan/c8r/gf1 modes, and `report.py`.
+
+The driver calls current scripts from this folder after the package groups. `targeted.py` now also schedules `coverage_b7`, which adds native faithful materialization/receipt checks and input-refusal edges. These supplemental tests have not yet run. They do not change the frozen tree. Fix a test-fixture error if needed and rerun only the focused proof; do not obscure a production failure.
+
+After the driver finishes, inspect every result, especially R2 failures, build-6 regression disposition and CPU-reachable coverage gaps. `report.py` must use final results. Its table intentionally leaves missing-input and implementation blockers open; it must not turn unknowns into passes. The remaining frame-count sites are recorded in `proofs/audit/FRAME64_REMAINING_SITES.json`.
+
+Finish with `verify_delivery.py`, then update the report and status with its hash/storage evidence. Review `out/BUILD7_REPORT.md`, `out/PRELAUNCH_CARD.md` and the Build 7 design-record section for stale wording. The final response must state that the build is blocked and link the report, with actual suite counts. Do not end the turn while validation is still running.

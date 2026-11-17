@@ -16,7 +16,7 @@ def native_inventory(root):
     for record in result.stdout.split(b'\0'):
         if record:
             size, path = record.split(b'\t', 1)
-            values[Path(os.fsdecode(path))] = int(size)
+            values[os.fsdecode(path)] = int(size)
     return values
 
 def inventory(root):
@@ -33,16 +33,17 @@ def inventory(root):
                 for entry in entries:
                     if entry.is_symlink():continue
                     if entry.is_dir(follow_symlinks=False):pending.append(entry.path)
-                    elif entry.is_file(follow_symlinks=False):result[Path(entry.path)]=entry.stat(follow_symlinks=False).st_size
+                    elif entry.is_file(follow_symlinks=False):result[entry.path]=entry.stat(follow_symlinks=False).st_size
     finally:inventory_root=None
     return result
 
 def compact(root, protected=(), preserved_files=(), files=None, package_files=None):
     if package_files is None:protected = (*protected, Path(root)/'package')
     else:preserved_files=set(preserved_files)|set(package_files)
+    preserved_files={str(p) for p in preserved_files}
     records=[]
     files=inventory(root) if files is None else files
-    candidates=((p,size) for p,size in files.items() if size>512 and p not in preserved_files)
+    candidates=((Path(p),size) for p,size in files.items() if size>512 and str(p) not in preserved_files)
     for p,size in sorted((p,size) for p,size in candidates
                          if not any(q==p or q in p.parents for q in protected)):
         h=hashlib.sha256()

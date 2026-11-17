@@ -44,4 +44,15 @@ regressions=[r for r in old['failures'] if not r['preexisting']]
 pins={str(p.relative_to(L)):hashlib.sha256(p.read_bytes()).hexdigest() for p in
       (L/'work/design/R0_SCENES.json',L/'work/design/R0_ROOMS.txt',L/'work/design/R0_DEV_ROOMS.txt',T/'student_pilot/trace_grammar.py')}
 (P/'AUTHORITY_HASHES.json').write_text(json.dumps(pins,indent=2)+'\n')
+frame_sites=[]
+for name in ('student_pilot/carrier_c1_routing.py','student_pilot/ground_v3.py',
+             'student_pilot/s1_grounding.py','student_pilot/ground_sources.py',
+             'student_pilot/stageb_mdg.py','student_pilot/carrier_c1_data.py',
+             'generator/derivgen_v7/derivgen/camera_rows.py'):
+ p=T/name
+ if not p.exists():continue
+ for n,line in enumerate(p.read_text().splitlines(),1):
+  if re.search(r'\b32\b|range\(1,\s*33\)',line):
+   frame_sites.append(dict(file=name,line=n,text=line.strip(),status='Requires frame-count propagation or compatibility proof; not a qualified 64-frame path'))
+(P/'FRAME64_REMAINING_SITES.json').write_text(json.dumps(frame_sites,indent=2)+'\n')
 print(json.dumps(dict(scope_files=len(names),components=len(inventory),resize_sites=len(resizes),format_sites=len(units),prior_regressions=len(regressions))))

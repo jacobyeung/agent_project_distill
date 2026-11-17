@@ -626,7 +626,7 @@ def prepare(cfg):
                   depth_enabled=cfg.get('depth_enabled', True), recipe=cfg['recipe'])
     result.update({k: cfg[k] for k in ('frame_layout', 'frame_pair_gap_seconds', 'skip_unsupervised_lm',
                                        'depth_fov_source', 'depth_init', 'exclusions', 'report_exclusions',
-                                       'tool_mode_flag', 'ground_target_filter', 's1_route_policy', 'h1', 'b7_inputs', 'frame_count', 'r2_membership',
+                                       'tool_mode_flag', 'ground_target_filter', 's1_route_policy', 'h1', 'b7_inputs', 'frame_count', 'max_pixels', 'min_pixels', 'frame_markers', 'r2_membership',
                                        'routing_opener_init', 'routing_vocabulary', 'r2_identity') if k in cfg})
     if 'mdg' in cfg:
         result['mdg'] = cfg['mdg']
@@ -662,6 +662,10 @@ def prepared(cfg, admission=False):
     validate(cfg)
     commit = authenticate(cfg)
     receipt = load(pinned(cfg['preparation']))
+    if 'b7_inputs' in cfg:
+        from .b7_inputs import layout
+        if receipt.get('b7_inputs') != cfg['b7_inputs'] or layout(receipt['b7_inputs']) != layout(cfg['b7_inputs']):
+            raise ValueError('Preparation pinned kit inputs differ')
     from .s1_route_policy import validate as validate_s1_route_policy
     if receipt.get('s1_route_policy') != validate_s1_route_policy(cfg):
         raise ValueError('Preparation frozen route table binding differs')

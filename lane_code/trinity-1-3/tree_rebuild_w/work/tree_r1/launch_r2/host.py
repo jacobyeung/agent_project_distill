@@ -259,6 +259,10 @@ def execute_packet(root, packet, guard, *, full):
     if {value.get('pose_source_sha256') for value in pose_headers} != {pin['sha256'] for pin in packet['pose_sources']}:
         raise ValueError('Pose manifests do not bind both supplied pose sources')
     cfg = load(paths['configuration'][0])
+    if 'b7_inputs' in cfg:
+        from student_pilot.b7_inputs import bound_manifests
+        cfg['b7_source_manifests']=bound_manifests(cfg['b7_inputs'],paths['manifests'],
+            'a2' if cfg.get('geometry_connector')=='gf1' else 'a0')
     launch_path = root/'k/launch.json'
     if not launch_path.is_file():
         raise ValueError('Missing bound kit configuration')

@@ -52,8 +52,11 @@ class InputTests(unittest.TestCase):
         self.assertEqual(I.claim_reader(),'harness_served')
         from student_pilot.p3_provenance import file_pin
         p=root('claims')/'eat.json'
-        p.write_text(json.dumps(dict(test='EAT-1',clauses={c:'PASS' for c in ('A1','A2','A3','A4','A5')})))
-        self.assertEqual(I.claim_reader(file_pin(p)),'model_served')
+        p.write_text(json.dumps(dict(schema='eat1-report-v1',mode='dynamic',overall='PASS',artifact_sha256='c'*64,
+            clauses={c:{'status':'PASS'} for c in ('A1','A2','A3','A4','A5')})))
+        self.assertEqual(I.claim_reader(file_pin(p),'c'*64),'model_served')
+        with self.assertRaisesRegex(ValueError,'artifact_binding'):
+            I.claim_reader(file_pin(p),'d'*64)
         p.write_text('{}')
         with self.assertRaises(ValueError):I.claim_reader(file_pin(p))
 
@@ -108,6 +111,21 @@ class InputTests(unittest.TestCase):
         got=sample(rows,policy,{'object_counting':'direct'},{'object_counting':8},minority_count=2)
         self.assertEqual(Counter(r['answer_form'] for r in got),dict(direct=6,routed=2))
         with self.assertRaisesRegex(ValueError,'missing_minority'):sample(rows[:10],policy,{'object_counting':'direct'},{'object_counting':8},2)
+
+    def test_store_manifest_binding(self):
+        from student_pilot.p3_provenance import file_pin
+        cfg=settings();paths=[]
+        for stream,entries in cfg['row_stores'].items():
+            for entry in entries:
+                p=root('stores')/(stream+'_'+entry['family']+'.json')
+                p.write_text(json.dumps(dict(schema='r2-family-manifest-v1',stream=stream,family=entry['family'])))
+                entry['manifests']=[file_pin(p)];paths.append(p)
+        self.assertEqual(len(I.bound_manifests(cfg,paths,'a0')),4)
+        with self.assertRaisesRegex(ValueError,'selected_row_store_manifest_missing'):
+            I.bound_manifests(cfg,paths[:-1],'a0')
+        bad=root('stores')/'unbound.json';bad.write_text(json.dumps(dict(stream='vqa',family='wrong')))
+        with self.assertRaisesRegex(ValueError,'unbound_row_store_manifest'):
+            I.bound_manifests(cfg,[*paths,bad],'a0')
 
     def test_scale_loss_and_trainable_inventory(self):
         from tests.test_carrier_c1 import fixture
@@ -173,6 +191,29 @@ class InputTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,'95%'):h.require_identity(value,cfg)
         h.require_identity({},dict(h1={'faithful_own_camera_rows':False}))
         with self.assertRaises(ValueError):h.validate(dict(h1={'faithful_own_camera_rows':'yes'}))
+
+    def test_gf1_export_declares_tower(self):
+        from tests.test_gf1 import fixture
+        from student_pilot import carrier_c1_run as run
+        from student_pilot.p3_provenance import file_pin
+        model,batch,cfg=fixture()
+        p=root('gf1_export')
+        weights=p/'tiny_tower.pt'
+        torch.save(model.auxiliary_heads.geometry_encoder.state_dict(),weights)
+        config=p/'tiny_config.json';config.write_text(json.dumps({'fixture':'native tiny G3T'}))
+        model.geometry_online['encoder']['weights']=file_pin(weights)
+        model.geometry_online['encoder']['config']=file_pin(config)
+        cfg.update(base_identity='tiny-fixture',b7_inputs=settings(),max_pixels=147456,min_pixels=16384,
+                   frame_count=32,frame_markers=True,camera_overrides={'weight_scale':1.})
+        directory=p/'slot'
+        if not directory.exists():
+            with patch.object(run.dist,'get_rank',return_value=0),patch.object(run.dist,'get_world_size',return_value=1), \
+                 patch.object(run.dist,'barrier'),patch('student_pilot.fsdp_training.publication_state',return_value=model.state_dict()):
+                run.export(directory,model,model,cfg,1)
+        manifest=json.loads((directory/'eat1-artifact.json').read_text())
+        self.assertEqual(manifest['modules']['auxiliary_heads.geometry_encoder'],dict(role='tower',name='g3t'))
+        self.assertTrue(any(e['role']=='tower' and e['sha256']==file_pin(weights)['sha256'] for e in manifest['files'].values()))
+        for path in manifest['modules']:self.assertIsInstance(model.get_submodule(path),torch.nn.Module)
 
     def test_native_frame_capacity(self):
         from tests.test_carrier_c1 import fixture,Tokenizer

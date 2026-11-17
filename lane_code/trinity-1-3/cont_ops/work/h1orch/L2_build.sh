@@ -27,7 +27,7 @@ B=Path('/project/community/jjyeung/okh7/i_1be16f28');K=Path('/project/community/
 t=json.loads((B/'go.template.json').read_text());ids=json.loads((B/'ids.json').read_text())
 man=hashlib.sha256((K/'SHA256SUMS.txt').read_bytes()).hexdigest();wr=hashlib.sha256((B/'jb.sh').read_bytes()).hexdigest()
 assert man.startswith('bb9914ca') and wr==t['wrapper_sha256'] and t['config_sha256']==ids['identity'] and t['admission_contract_sha256']==ids['contract']
-t.update(manifest_sha256=man,production_go_granted=True,granted_by='orchestrator GO (main returned GPUs); operator cont_ops8')
+t.update(manifest_sha256=man,production_go_granted=True,granted_by='orchestrator GO (main returned GPUs); operator cont_ops9')
 (B/'go.json').write_text(json.dumps(t,sort_keys=True));print('go.json written',man[:8],wr[:8])
 P
 TAIL

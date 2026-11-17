@@ -6,6 +6,7 @@ sys.path.insert(0,str(T))
 from student_pilot.p3_provenance import load
 from launch_r2.build import verify,scan
 from student_pilot.response_spec import sha256
+from student_pilot.r2_portable import bound
 P=B/'proofs/review';P.mkdir(parents=True,exist_ok=True)
 results=[]
 for arm in ('a2','a0'):
@@ -15,9 +16,23 @@ for arm in ('a2','a0'):
  assert cfg['b7_inputs']['response_spec']['sha256']==sha256()
  assert cfg['routing_policy']=='both-path-20261116'
  inputs=cfg['b7_inputs']
+ zero=load(root/'k/0.json');plan=load(bound(zero['staging'],root))
+ old_sources=[]
+ def visit(v,where=''):
+  if isinstance(v,dict):
+   for k,x in v.items():visit(x,where+'/'+str(k))
+  elif isinstance(v,list):
+   for i,x in enumerate(v):visit(x,where+'/'+str(i))
+  elif isinstance(v,str) and 'okit/in/e00' in v:
+   key=where.removeprefix('/entries/').split('/archive/',1)[0]
+   entry=plan['entries'].get(key,{})
+   old_sources.append(dict(field=where,value=v,member=entry.get('member'),sha256=entry.get('sha256'),
+      qualification='The supplied kit audit explicitly verifies the bank and training-scene members in this archive.'))
+ visit(plan)
  results.append(dict(arm=arm,kit_sha256=verify(root),scan=scan(root),launch=launch,
   layout={k:inputs[k] for k in ('max_pixels','min_pixels','frame_count','frame_layout','frame_markers')},
   trainable_modules=inputs['trainable_modules'],weight_scale=inputs['weight_scale'],
+  staging_entries=len(plan['entries']),retained_e00_references=old_sources,
   claim_reader=cfg['claim_reader'],read_order=cfg['read_order'],routing_policy=cfg['routing_policy'],
   blockers=cfg['b7_blockers'],empty_lists=[dict(index=i,**p) for i,p in enumerate(cfg['remove_files']) if p['sha256']==hashlib.sha256(b'').hexdigest()]))
 (P/'KIT_READCHECK.json').write_text(json.dumps(results,indent=2)+'\n')

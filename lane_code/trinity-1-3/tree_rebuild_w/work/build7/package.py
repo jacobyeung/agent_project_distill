@@ -9,6 +9,9 @@ import sys
 import tarfile
 import tempfile
 L=Path(__file__).resolve().parents[2]
+packet_result=L/'work/build7/proofs/packet/results.json'
+if packet_result.exists() and any(v.get('outcome')!='passed' for v in json.loads(packet_result.read_text()).values()):
+    raise SystemExit('Packet qualification failed; no package suite group was started. Resolve packet failures before the single final package run.')
 out=L/'work/build7/proofs/package'
 out.mkdir(parents=True,exist_ok=True)
 archive=Path(sys.argv[1]).resolve() if len(sys.argv)>1 else out/'input.tar'

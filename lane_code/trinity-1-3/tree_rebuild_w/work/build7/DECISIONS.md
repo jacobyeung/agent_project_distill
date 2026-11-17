@@ -12,10 +12,12 @@ BF16 cached banks failed the supplied gradient tolerance in `proofs/targeted/res
 
 The bound processor configuration is absent locally. Resolution stays a required pinned parameter, with no guessed production value. The tiny fixture values are test inputs only.
 
-The new store parameters identify family sources, but a native combined preparation receipt still needs implementation. The kit records PREPARED_MULTI_STORE_RECEIPT_BINDING_UNIMPLEMENTED and cannot launch.
+The store parameters identify family sources and bind every supplied family manifest before the native materializer combines streams. Missing production row-store pins keep launch blocked; the manifest-binding fixtures pass (`proofs/input_binding/results.json`).
 
 The mask resize paths use a fixed canvas. Padding or preserving native dimensions changes mask coordinates and can change printed row bytes. The default is to retain the bytes and register PORTRAIT_MASK_DISTORTION until the rows lane can qualify the coordinate transform. No real frame portrait share can be computed from missing image dimensions.
 
 Depth stencils, degree formatting and unavailable statuses cannot merely be renamed as module methods: the current read loop calls them outside forward. The options are an in-forward renderer with the b04 hook, or retaining the current reader as harness_served. The default retains the reader and records B04_FORWARD_HOOK_REQUIRED. No bound row is edited.
 
 The frozen GF-1 stage trains only its connector. The options are changing the registered stage schedule or training scale in the subsequent joint stage. The default preserves the stage schedule; scale supervision is active but scale-head parameters are frozen in the connector-only stage. This is not a claim of scale-head learning in that stage.
+
+The core model/export supports the two requested frame counts, but the routed query tensor and additional ground/MDG paths still assume the shorter layout (`proofs/audit/FRAME64_REMAINING_SITES.json`). The remaining propagation could be completed in this lane or with the reader-hook integration. The current delivery retains the launch blocker and the shorter configured layout. This is an open local implementation requirement, not a missing external input.

@@ -50,14 +50,19 @@ def reader_layout(training, reader):
     return layout(training)
 
 
-def claim_reader(receipt=None):
+def claim_reader(receipt=None, artifact_sha256=None):
     if not receipt:
         return 'harness_served'
     from .p3_provenance import pinned, load
     value = load(pinned(receipt))
     clauses = value.get('clauses', {})
-    if value.get('test') != 'EAT-1' or set(clauses) != {'A1','A2','A3','A4','A5'} or any(v != 'PASS' for v in clauses.values()):
+    if (value.get('schema') != 'eat1-report-v1' or value.get('mode')!='dynamic'
+            or value.get('overall')!='PASS' or set(clauses) != {'A1','A2','A3','A4','A5'}
+            or any(not isinstance(v,dict) or v.get('status')!='PASS' for v in clauses.values())):
         raise ValueError('passing_EAT1_receipt_required')
+    if (not re.fullmatch('[0-9a-f]{64}',str(artifact_sha256 or ''))
+            or value.get('artifact_sha256')!=artifact_sha256):
+        raise ValueError('EAT1_artifact_binding_mismatch')
     return 'model_served'
 
 
@@ -75,6 +80,40 @@ def row_stores(value, arm, verify=False):
             if entry['family'] == 'd0_v5' and not (entry['sha256'].startswith('4af43b40') or entry['artifact_id'].startswith('4af43b40')):
                 raise ValueError('d0_v5_identity_mismatch')
     return value
+
+
+def bound_manifests(value, manifest_paths, arm):
+    """Bind the existing native materializer to manifests pinned by each selected store.
+
+    Store entries carry `manifests`, a list of ordinary path/SHA256 pins supplied
+    by the rows lanes. No store is inferred from a label or a benchmark answer.
+    """
+    from .p3_provenance import pinned,load,file_pin
+    stores=row_stores(value['row_stores'],arm)
+    expected={}
+    for stream,entries in stores.items():
+        for entry in entries:
+            manifests=entry.get('manifests')
+            if not isinstance(manifests,list) or not manifests:
+                raise ValueError('rows_lane_manifest_bindings_missing:'+stream+':'+entry['family'])
+            for binding in manifests:
+                path=pinned(binding)
+                manifest=load(path)
+                if manifest.get('stream')!=stream:
+                    raise ValueError('row_store_manifest_stream_mismatch')
+                key=(stream,file_pin(path)['sha256'])
+                if key in expected:raise ValueError('row_store_manifest_bound_twice')
+                expected[key]=entry['family']
+    found={}
+    for path in manifest_paths:
+        manifest=load(path);stream=manifest.get('stream')
+        if stream not in stores:continue
+        key=(stream,file_pin(path)['sha256'])
+        if key not in expected:raise ValueError('unbound_row_store_manifest')
+        if key in found:raise ValueError('row_store_manifest_repeated')
+        found[key]=expected[key]
+    if set(found)!=set(expected):raise ValueError('selected_row_store_manifest_missing')
+    return [dict(stream=s,sha256=h,family=found[(s,h)]) for s,h in sorted(found)]
 
 
 def blockers(value, arm):
@@ -118,7 +157,7 @@ def configure(cfg, value, arm):
     cfg['b7_inputs'] = value
     cfg.update({k:value.get(k) for k in ('max_pixels','min_pixels','frame_count')})
     cfg.update(frame_layout='duplicate', frame_markers=True, all_frames=True,
-               training_objective='sft', claim_reader=claim_reader(value.get('eat1_receipt')),
+               training_objective='sft', claim_reader=claim_reader(value.get('eat1_receipt'),value.get('eat1_artifact_sha256')),
                read_order=READ_ORDER, room_claim=False)
     cfg['routing_policy']='both-path-20261116'
     cfg['camera_overrides'] = {**cfg.get('camera_overrides', {}), 'weight_scale':value['weight_scale']}

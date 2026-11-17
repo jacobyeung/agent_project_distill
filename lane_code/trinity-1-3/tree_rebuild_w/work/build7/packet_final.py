@@ -23,12 +23,20 @@ if '/work/mutation_r6/' in sys.argv[1] and '/round_' not in sys.argv[1]:
     raise SystemExit('Pre-final mutation evidence superseded; no test launched.')
 tag=sys.argv[2]
 os.chdir(tree)
-sys.path[:0]=[str(tree),str(L/'work/build7/packet/tests_r6')]
+packet_tests=L/'work/contracts_r6/packet_root/work/tests_r6'
+packet_root=packet_tests.parents[1]
+sys.path[:0]=[str(tree),str(packet_tests)]
 root=L/'work/tmp/packet_r6'
 proof=L/'work/build7/proofs/packet'
 proof.mkdir(parents=True,exist_ok=True)
 (proof/'work/test_artifacts_r6').mkdir(parents=True,exist_ok=True)
 root.mkdir(parents=True,exist_ok=True)
+import fixtures_contracts
+fixtures_contracts.L=proof
+base_link=proof/'work/base/work/base/tree_b01ce449'
+base_link.parent.mkdir(parents=True,exist_ok=True)
+if not base_link.exists():base_link.symlink_to(L/'work/base/tree_b01ce449',target_is_directory=True)
+os.environ['R4_OVERLAY']=str(tree)
 tempfile.tempdir=str(root)
 tempfile.TemporaryDirectory.cleanup=lambda self: self._finalizer.detach()
 tempfile.TemporaryDirectory._cleanup=classmethod(lambda cls,*args,**kwargs: None)
@@ -69,18 +77,24 @@ class Coverage:
     hits={}
     results={}
     def pytest_collection_modifyitems(self,items):
+        # Execute the original packet tests; relocate only their data/output globals.
+        # The assertions and fixture functions remain byte-identical to packet_root.
+        for module in {item.module for item in items}:
+            for name,value in list(vars(module).items()):
+                if isinstance(value,Path) and value.is_relative_to(packet_root):
+                    setattr(module,name,proof/value.relative_to(packet_root))
         first=os.environ.get('R6_MUTATION_FIRST')
         if first:items.sort(key=lambda item: first not in item.nodeid)
     def pytest_collectstart(self,collector):
         self.current=collector.nodeid+' [collection]'
     paths={}
     tracked=set(json.loads((L/'work/contracts_r6/PATCH_MANIFEST_R6.json').read_text())['files'])
-    tracked.update('tests_r6/'+p.name for p in (L/'work/build7/packet/tests_r6').glob('*.py'))
+    tracked.update('tests_r6/'+p.name for p in packet_tests.glob('*.py'))
     def trace(self, frame,event,arg):
         filename=frame.f_code.co_filename
         if filename not in self.paths:
             rel = filename[len(str(overlay))+1:] if filename.startswith(str(overlay)+'/') else filename[len(str(tree))+1:] if filename.startswith(str(tree)+'/') else None
-            if filename.startswith(str(L/'work/build7/packet/tests_r6')+'/'):rel='tests_r6/'+Path(filename).name
+            if filename.startswith(str(packet_tests)+'/'):rel='tests_r6/'+Path(filename).name
             self.paths[filename]=rel if rel in self.tracked else None
         name=self.paths[filename]
         if name is None:return None
@@ -144,7 +158,7 @@ mon.register_callback(4,mon.events.PY_START,started)
 mon.register_callback(4,mon.events.LINE,hit)
 
 args=(json.loads((L/('work/base_tests_extra.json' if sys.argv[3]=='base-extra' else 'work/base_tests.json')).read_text())
-      if sys.argv[3].startswith('base') else ([] if sys.argv[3]=='tree' else [str(L/'work/build7/packet/tests_r6')]))
+      if sys.argv[3].startswith('base') else ([] if sys.argv[3]=='tree' else [str(packet_tests)]))
 args+=['-q','-p','no:cacheprovider','--basetemp',str(root/('pytest_'+str(os.getpid()))), '--tb=short',
        '--log-file', str(root/'pytest.log'),'--continue-on-collection-errors']
 if len(sys.argv)>4: args+=sys.argv[4:]

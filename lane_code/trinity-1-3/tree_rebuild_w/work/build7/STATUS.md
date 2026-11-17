@@ -1,31 +1,15 @@
 # Build 7 status
 
-The lane is on trinity-1-3. Input review is running. No remote service, GPU, Git, or other agent has been used.
+GO=false. No launch or remote service was called.
 
-The build 6 final pass is incomplete; its receipts are historical evidence, not build 7 qualification. The final build 7 package run will retain completed groups with source hashes.
+Current validation step: package — running (`work/build7/FINAL_PASS.json`).
 
-Open launch inputs: rule-selected init, admitted row-store pins, real dense manifest, and processor resolution pins if the bound processor is absent. Both kits remain closed pending input checks and review.
+The packet harness uses the original packet_root tests with hash-verified support references (`work/build7/PACKET_INPUTS.json`). Passing packet results gate the package groups.
 
-Core edits applied. Cache and faithful-row hunk dispositions: `work/build7/PATCH_HUNKS.json`. The S1 stop-file path now reaches ranks; CPU proof is pending. Both-path gating preserves legacy policies.
+Both kits and the package bind the current frozen source (`out/TREE_SEAL.json`, `work/build7/DELIVERY.json`). Completed package groups have hash-bound resume receipts.
 
-Launch-input contracts and source authentication are integrated. R0 authority is pinned locally. Full row-store and frame inventories are still missing; they cannot be qualified from slices.
+Focused input tests passed (`proofs/input_binding/results.json`). Native tiny export declares the G3T tower (`proofs/gf1_export/results.json`). Tiny native OFF batches/losses/gradients match Build 6 (`proofs/off_parity/RESULTS.json`).
 
-Frame count now binds the native carrier encoder, model capacity, readout and export. Tests must still qualify all long-frame paths.
+Open: real init/store/dense/processor pins; runtime-only row text and minority forms; full exclusions; all-reader frame support and in-forward response production; BF16 cache parity; multi-rank stop/export; final suites, coverage and independent review.
 
-Input contracts, policy gates, patch rebases and bounded audits are implemented. Remaining failures and incomplete integrations are explicit kit blockers. Final targeted checks precede the single frozen package run. The multi-rank stop proof is blocked by Gloo initialization; the actual shell trap proof passed (`proofs/stop/RESULTS.json`).
-
-Both kits are staged from empty, A2 first. Hashes and input blockers: `work/build7/kits/RESULTS.json`. No init or dense fixture was substituted.
-
-Final validation: build_kits running; evidence `work/build7/FINAL_PASS.json`.
-
-Final validation: build_kits failed; evidence `work/build7/FINAL_PASS.json`.
-
-Final validation: seal running; evidence `work/build7/FINAL_PASS.json`.
-
-Final validation: seal complete; evidence `work/build7/FINAL_PASS.json`.
-
-Final validation: make_delivery running; evidence `work/build7/FINAL_PASS.json`.
-
-Final validation: make_delivery complete; evidence `work/build7/FINAL_PASS.json`.
-
-Final validation: packet running; evidence `work/build7/FINAL_PASS.json`.
+The real shell trap and native stop poll passed. Gloo initialization failed; no multi-rank end slot is claimed (`proofs/stop/RESULTS.json`).
