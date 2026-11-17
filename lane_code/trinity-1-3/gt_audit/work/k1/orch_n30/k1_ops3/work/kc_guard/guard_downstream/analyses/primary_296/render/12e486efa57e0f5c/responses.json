@@ -1,0 +1,228 @@
+[
+  {
+    "id": "ground-45d1857da70f52737db7132682d858870d03233896ebcc729b3b0d6003320228",
+    "type": "object_abs_distance",
+    "calls": [
+      {
+        "call": "<ground obj=\"bed\" mode=\"box\">",
+        "response": "bed: frames 15,16 (best 15)\nB1: f1 centre (-0.26, -0.46, -3.36) m\nsize 1.21 x 1.89 x 1.55 m\nyaw -6 deg (0 = +x; positive +x toward -z about +y)",
+        "kind": "ground",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": null,
+          "instance_metadata": [
+            {
+              "areas": {
+                "15": 0.19118489583333334,
+                "16": 0.17576822916666668
+              },
+              "instance_id": "bed:002"
+            }
+          ],
+          "full_precision_box": {
+            "centre": [
+              -0.25849373383166524,
+              -0.45520845168649854,
+              -3.356957217246573
+            ],
+            "lengths": [
+              1.2099748766500993,
+              1.887034580104051,
+              1.551508244196603
+            ],
+            "axes": [
+              [
+                0.9945853354758435,
+                0.0,
+                0.10392309876251715
+              ],
+              [
+                -0.10392309876251715,
+                0.0,
+                0.9945853354758435
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "box_label": "B1",
+          "full_precision_gap_box": {
+            "centre": [
+              -0.25750099903615964,
+              -0.46448238010959625,
+              -3.3606904095554517
+            ],
+            "lengths": [
+              1.2048034458774648,
+              1.89011917326967,
+              1.570471516744079
+            ],
+            "axes": [
+              [
+                0.9953767160922111,
+                0.0,
+                0.09604786859418395
+              ],
+              [
+                -0.09604786859418395,
+                0.0,
+                0.9953767160922111
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "gap_operands": [
+            "best_view"
+          ]
+        }
+      },
+      {
+        "call": "<ground obj=\"toilet\" mode=\"box\">",
+        "response": "toilet: frames 1,2,3,5,23,24,25 (best 25)\nB2: f1 centre (-0.27, -1.03, -0.04) m\nsize 0.53 x 0.35 x 0.70 m\nyaw -94 deg (0 = +x; positive +x toward -z about +y)",
+        "kind": "ground",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": null,
+          "instance_metadata": [
+            {
+              "areas": {
+                "1": 0.056653645833333335,
+                "2": 0.007161458333333333,
+                "3": 0.011067708333333334,
+                "5": 0.12544270833333335,
+                "23": 0.010377604166666667,
+                "24": 0.11592447916666666,
+                "25": 0.1510546875
+              },
+              "instance_id": "toilet:000"
+            }
+          ],
+          "full_precision_box": {
+            "centre": [
+              -0.2651126605197731,
+              -1.031441102274466,
+              -0.03671358372466713
+            ],
+            "lengths": [
+              0.5342785507312215,
+              0.3548265395168445,
+              0.6957272475844126
+            ],
+            "axes": [
+              [
+                -0.06303802187488523,
+                0.0,
+                0.9980111260893345
+              ],
+              [
+                -0.9980111260893345,
+                0.0,
+                -0.06303802187488523
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "box_label": "B2",
+          "full_precision_gap_box": {
+            "centre": [
+              -0.2646015161119781,
+              -1.1087655158760077,
+              -0.04652940606744899
+            ],
+            "lengths": [
+              0.49941328702197696,
+              0.3535643703070607,
+              0.5422831701236481
+            ],
+            "axes": [
+              [
+                0.07097557265397893,
+                0.0,
+                -0.9974780539372482
+              ],
+              [
+                0.9974780539372482,
+                0.0,
+                0.07097557265397893
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "gap_operands": [
+            "best_view"
+          ]
+        }
+      },
+      {
+        "call": "<gap a=\"bed\" b=\"toilet\" rule=\"box_grid_5cm\">",
+        "response": "distance 2.10 m",
+        "kind": "gap",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": "box_grid_5cm",
+          "sampler": {
+            "rule": "box_grid_5cm",
+            "step": 0.05,
+            "inner_half_box_removed": true,
+            "dtype": "float64",
+            "instances": "min_over_pairs"
+          },
+          "ordered_box_labels": [
+            "B1",
+            "B2"
+          ]
+        }
+      }
+    ],
+    "mask_match": {
+      "ok": false,
+      "applicable": true,
+      "operands": [
+        {
+          "name": "bed",
+          "gt_instance": 3,
+          "support": 2,
+          "match_fraction": 0.5,
+          "ok": true
+        },
+        {
+          "name": "toilet",
+          "gt_instance": 0,
+          "support": 7,
+          "match_fraction": 0.42857142857142855,
+          "ok": false
+        }
+      ]
+    },
+    "synthetic": false,
+    "decision": {
+      "label": "left_out",
+      "reason": "numeric_or_instance_mismatch",
+      "value": 2.1
+    }
+  }
+]

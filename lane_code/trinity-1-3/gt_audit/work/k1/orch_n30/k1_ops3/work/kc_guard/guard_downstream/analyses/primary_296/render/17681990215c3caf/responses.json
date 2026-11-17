@@ -1,0 +1,312 @@
+[
+  {
+    "id": "ground-cfdb2cf7e7d460839eeb7131a64c357c7ca8af558317e619ed9f3e67a579b991",
+    "type": "object_abs_distance",
+    "calls": [
+      {
+        "call": "<ground obj=\"microwave\" mode=\"box\">",
+        "response": "microwave: frames 1,2,3,4,16,17,18,32 (best 3)\nB1: f1 centre (-0.27, -0.51, 2.44) m\nsize 0.90 x 0.47 x 0.32 m\nyaw 47 deg (0 = +x; positive +x toward -z about +y)",
+        "kind": "ground",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": null,
+          "instance_metadata": [
+            {
+              "areas": {
+                "1": 0.0299609375,
+                "2": 0.04438802083333333,
+                "3": 0.09756510416666667,
+                "4": 0.031510416666666666,
+                "16": 0.0018359375,
+                "17": 0.01140625,
+                "18": 0.02704427083333333,
+                "32": 0.009296875
+              },
+              "instance_id": "microwave:000"
+            }
+          ],
+          "full_precision_box": {
+            "centre": [
+              -0.26729073147476373,
+              -0.5050538128560965,
+              2.440068184094581
+            ],
+            "lengths": [
+              0.9017262344697774,
+              0.4672483000463823,
+              0.32358209001189814
+            ],
+            "axes": [
+              [
+                0.6805107131372325,
+                0.0,
+                -0.7327381314667984
+              ],
+              [
+                0.7327381314667984,
+                0.0,
+                0.6805107131372325
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "box_label": "B1",
+          "full_precision_gap_box": {
+            "centre": [
+              -0.3049785667827434,
+              -0.504680001398859,
+              2.48214032663293
+            ],
+            "lengths": [
+              0.8319166698445348,
+              0.47053299517726654,
+              0.3242042668933933
+            ],
+            "axes": [
+              [
+                0.6748180408026578,
+                0.0,
+                -0.7379841541708483
+              ],
+              [
+                0.7379841541708483,
+                0.0,
+                0.6748180408026578
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "gap_operands": [
+            "best_view"
+          ]
+        }
+      },
+      {
+        "call": "<ground obj=\"window\" mode=\"box\">",
+        "response": "window: frames 11,13,14,15,19 (best 11)\nB2: f1 centre (-2.13, -0.12, 3.02) m\nsize 1.95 x 0.39 x 1.85 m\nyaw -41 deg (0 = +x; positive +x toward -z about +y)",
+        "kind": "ground",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": null,
+          "instance_metadata": [
+            {
+              "areas": {
+                "11": 0.07365885416666666,
+                "13": 0.0208203125,
+                "14": 0.0025651041666666665,
+                "15": 0.061640625,
+                "19": 0.024244791666666668
+              },
+              "instance_id": "window:012"
+            }
+          ],
+          "full_precision_box": {
+            "centre": [
+              -2.1294713082218353,
+              -0.11668891172431456,
+              3.0150479286038596
+            ],
+            "lengths": [
+              1.9486741866703312,
+              0.3910974188598999,
+              1.8524226183072616
+            ],
+            "axes": [
+              [
+                0.7588613367895514,
+                0.0,
+                0.6512522334134258
+              ],
+              [
+                -0.6512522334134258,
+                0.0,
+                0.7588613367895514
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "box_label": "B2",
+          "full_precision_gap_box": {
+            "centre": [
+              -2.0629669331988487,
+              -0.11850242619247353,
+              2.971587206970437
+            ],
+            "lengths": [
+              1.914083630169225,
+              0.48351767287949343,
+              1.8566785468688878
+            ],
+            "axes": [
+              [
+                -0.7173801158955935,
+                0.0,
+                -0.6966819714314595
+              ],
+              [
+                0.6966819714314595,
+                0.0,
+                -0.7173801158955935
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "gap_operands": [
+            "best_view"
+          ]
+        }
+      },
+      {
+        "call": "<gap a=\"microwave\" b=\"window\" rule=\"box_grid_5cm\">",
+        "response": "distance 0.91 m",
+        "kind": "gap",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": "box_grid_5cm",
+          "sampler": {
+            "rule": "box_grid_5cm",
+            "step": 0.05,
+            "inner_half_box_removed": true,
+            "dtype": "float64",
+            "instances": "min_over_pairs"
+          },
+          "ordered_box_labels": [
+            "B1",
+            "B2"
+          ]
+        }
+      }
+    ],
+    "mask_match": {
+      "ok": false,
+      "applicable": true,
+      "operands": [
+        {
+          "name": "microwave",
+          "gt_instance": 28,
+          "support": 8,
+          "match_fraction": 0.125,
+          "ok": false
+        },
+        {
+          "name": "window",
+          "gt_instance": 17,
+          "support": 5,
+          "match_fraction": 0.0,
+          "ok": false
+        }
+      ]
+    },
+    "synthetic": false,
+    "decision": {
+      "label": "left_out",
+      "reason": "numeric_or_instance_mismatch",
+      "value": 0.91
+    }
+  },
+  {
+    "id": "4a24204cd4ef939d03b1cc7dad849edbc397866be60c74e4b6dcd57c70a886ba",
+    "type": "room_size_estimation",
+    "calls": [
+      {
+        "call": "<ground mode=\"room\">",
+        "response": "room: frames 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32\nfloor height -1.71 m\nfloor cells 16427; supported cells 10653; cell size 0.05 m; min frames 2\narea 41.07 m^2",
+        "kind": "ground",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "room": {
+            "frames": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32
+            ],
+            "floor_height_m": -1.7098594346906923,
+            "area_m2": 41.0675,
+            "floor_cells": 16427,
+            "supported_cells": 10653,
+            "min_frames": 2,
+            "geometry_mode": "predicted",
+            "gravity_source": "geometry_z_up",
+            "cell_m": 0.05,
+            "closing_radius_m": 0.2,
+            "height_percentile": 1,
+            "height_margin_m": 0.1,
+            "min_points": 100,
+            "head_raster_hw": [
+              240,
+              320
+            ],
+            "pixel_stride": 4,
+            "max_grid_cells": 4000000
+          }
+        }
+      }
+    ],
+    "mask_match": {
+      "ok": true,
+      "applicable": false,
+      "operands": []
+    },
+    "synthetic": false,
+    "decision": {
+      "label": "trust",
+      "reason": "agrees_and_instance_matches",
+      "value": 41.07
+    }
+  }
+]

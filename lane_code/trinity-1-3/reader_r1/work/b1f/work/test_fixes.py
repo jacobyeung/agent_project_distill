@@ -57,6 +57,24 @@ class Fixes(unittest.TestCase):
   write(d/'environment.json',{});(d/'items.jsonl').write_text('');U.validate_journals(r)
   write(d.parent.parent/'0/0/STARTED.json',{})
   with self.assertRaisesRegex(ValueError,'Started segment has no journal'):U.validate_journals(r)
+ def test_deadline_keeps_partial_summary_and_progress(self):
+  cfg=self.config();c=T.prepare(cfg)[0];runner.control(c)
+  args=launch.parser().parse_args(runner.worker_args(dict(config=c,type=3,index=0,cards=1,stop_at=time.time()+100,finish_by=time.time()+200)))
+  items=load_manifest(args.items)['items']
+  def maker(*a,**kw):
+   count=[0]
+   def gen(item):
+    count[0]+=1
+    if count[0]==2:raise launch.ReadDeadline()
+    return dict(text='1',finish='eos')
+   return gen
+  with patch.object(parity_adapter,'map_items',return_value=({r['id']:r for r in items},{'sha256':'a'*64})),self.assertRaises(launch.ReadDeadline):
+   launch.run_types(args,make_real=maker)
+  r=Path(cfg['output']);U.validate_journals(r)
+  d=Path(c['output'])/'metadata/journals/3/0'
+  self.assertEqual(json.loads((d/'SUMMARY.json').read_text())['completed'],1)
+  self.assertTrue(json.loads((d/'progress.json').read_text())['stopped'])
+
  def test_b04_reuse_rejects_rule_and_memo_from_launcher(self):
   from parity_kit import provenance as V
   cfg=self.config();root=Path(cfg['output']).parent;s=json.loads(Path(cfg['settings']).read_text());meta=root/'meta.json';write(meta,{})

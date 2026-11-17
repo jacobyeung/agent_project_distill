@@ -1,0 +1,68 @@
+{
+  "passed": true,
+  "scope": "Generate-path files, including perception_memo.py, with the unchanged EAT-1 allowlist.",
+  "new_findings_vs_c91": [],
+  "before_c91": 45,
+  "after": 39,
+  "bf94_moved_findings": [
+    "TowerG3T.__call__ -> TowerG3T._fresh: model.safetensors",
+    "TowerG3T.__call__ -> TowerG3T._fresh: config.json"
+  ],
+  "moves_verified": "Fresh body AST is unchanged; raw added/removed entries are preserved.",
+  "operator_added_findings": [
+    [
+      "h1eval/h10/launch.py",
+      "run_types",
+      "A3.threshold",
+      "compares against attribute args.stop_at (a configured value)"
+    ],
+    [
+      "h1eval/h10/launch.py",
+      "run_types",
+      "A3.data_file",
+      "string 'STARTED.json'"
+    ],
+    [
+      "h1eval/h10/launch.py",
+      "run_types",
+      "A3.data_file",
+      "string 'SUMMARY.json'"
+    ],
+    [
+      "h1eval/h10/launch.py",
+      "run_types",
+      "A3.data_file",
+      "string 'SUMMARY.json'"
+    ],
+    [
+      "h1eval/h10/launch.py",
+      "run_types",
+      "A3.data_file",
+      "string 'SUMMARY.json'"
+    ],
+    [
+      "h1eval/h10/launch.py",
+      "run_types",
+      "A3.data_file",
+      "string 'STEPS.jsonl'"
+    ],
+    [
+      "h1eval/h10/launch.py",
+      "run_types",
+      "A3.data_file",
+      "string 'items.jsonl'"
+    ],
+    [
+      "h1eval/h10/launch.py",
+      "run_types",
+      "A3.data_file",
+      "string 'progress.json'"
+    ]
+  ],
+  "operator_explanation": "run_types executes between generate calls. Its deadline comparison admits a new segment; its journal paths only record output and progress. These findings remain in the raw W3-method comparison.",
+  "raw_files": [
+    "EAT1_DELTA.json",
+    "EAT1_W3_DELTA.json",
+    "REVIEWER_EAT.json"
+  ]
+}

@@ -344,10 +344,22 @@ def run_types(args, *, make_real=None, factory_options=None):
             part.out=str(Path(args.out)/str(ORDER.index(kind))/str(shard(args.shard)[0]))
             root=Path(part.out);root.mkdir(parents=True,exist_ok=True)
             write_json(root/'STARTED.json',dict(type=kind,shard=args.shard))
+            write_json(root/'SUMMARY.json',dict(type=kind,started=True,complete=False))
             with (root/'STEPS.jsonl').open('a') as steps, (root/'worker.log').open('a') as log:
                 commit_record(steps,dict(event='start',type=kind))
-                with redirect_stdout(log), redirect_stderr(log):
-                    result=run(part,make_real=make_real,factory_options=factory_options,generators=generators)
+                try:
+                    with redirect_stdout(log), redirect_stderr(log):
+                        result=run(part,make_real=make_real,factory_options=factory_options,generators=generators)
+                except ReadDeadline:
+                    rows=read_records(root/'items.jsonl')
+                    from h1eval.items import load_manifest
+                    manifest=load_manifest(part.items)
+                    expected=len(select_types(manifest['items'],selected(manifest['items'],part.shard),kind))
+                    result=dict(completed=len(rows),expected=expected,stopped=True)
+                    write_json(root/'SUMMARY.json',result)
+                    write_json(root/'progress.json',result)
+                    commit_record(steps,dict(event='deadline',type=kind,**result))
+                    raise
                 write_json(root/'SUMMARY.json',result)
                 commit_record(steps,dict(event='exit',type=kind,**result))
             results.append(dict(type=kind,**result))

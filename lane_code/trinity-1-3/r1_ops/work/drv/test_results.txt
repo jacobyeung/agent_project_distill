@@ -1,0 +1,9 @@
+PASS upload outer SHA, 31 members, inner sums
+Traceback (most recent call last):
+  File "test_local.py", line 29, in <module>
+    run(qargs+['--out',str(T/'q')]);q=load(T/'q/q.json');assert q['native_regeneration_executed'] and q['selection_sha256']==load(B/'BINDING.json')['selection_sha256']
+  File "test_local.py", line 10, in run
+    r=subprocess.run(args,text=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+  File "/usr/lib64/python3.6/subprocess.py", line 423, in run
+    with Popen(*popenargs, **kwargs) as process:
+TypeError: __init__() got an unexpected keyword argument 'text'

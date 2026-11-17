@@ -49,7 +49,7 @@ def main():
     for name in ('sj','fsw','m/ap'):(root/name).mkdir(parents=True,exist_ok=True)
     env=J.environment(root)
     env={k:v for k,v in env.items() if 'sam' not in k.lower()}
-    env.update(CUDA_VISIBLE_DEVICES='',OMP_NUM_THREADS='16',MKL_NUM_THREADS='16',OPENBLAS_NUM_THREADS='16')
+    env.update(CUDA_VISIBLE_DEVICES='',OMP_NUM_THREADS='8',MKL_NUM_THREADS='8',OPENBLAS_NUM_THREADS='8')
     dispatch=root/'a';(dispatch/'5.py').write_bytes((root/'bootstrap/orchard_h10/entry.py').read_bytes())
     write(dispatch/'0.json',dict(action=0,package=cfg['logical']+'/p',config=cfg,
                                 inputs={**inputs,'_export':pins}))
@@ -66,12 +66,14 @@ def main():
         export=cfg['logical']+'/d/e',binding=cfg['logical']+'/d/binding.json',
         export_pin=cfg['logical']+'/d/6.json',settings=cfg['logical']+'/d/settings.json',
         plan_sha256=cfg['plan_sha256'],inputs_sha256=canonical({k:v for k,v in inputs.items() if k!='resume'}),
-        operator_sha256=sha(sequence),device='cpu',prefix=[])
+        operator_sha256=sha(sequence),device='cpu',prefix=[],measure_memory=True)
     write(dispatch/'1.json',dict(package=run_cfg['package'],config=run_cfg,rehearsal=True))
     with (results/'1.log').open('wb') as log:
         checked_run(J.namespace(root)+[inputs['python'],'-B','-I',str(dispatch/'6.py'),str(dispatch/'1.json')],
                     env=env,stdout=log,stderr=subprocess.STDOUT,check=True)
-    write(results/'CPU.json',dict(passed=True,plan=cfg['plan_sha256'],inputs=sha(package/'a/1.json'),
+    memory=json.loads(J.physical(root,cfg['logical']+'/r/metadata/MEMORY.json').read_text())
+    write(results/'MEMORY.json',memory)
+    write(results/'CPU.json',dict(passed=True,memory=memory,plan=cfg['plan_sha256'],inputs=sha(package/'a/1.json'),
                                  operator_sha256=sha(sequence),
                                  payload=cfg['payload_sha256'],storage=proof,ready=ready,root=str(root)))
     print(json.dumps(dict(results=str(results),root=str(root),passed=True)))

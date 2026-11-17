@@ -16,7 +16,9 @@ operator_sha256=sha(root/'6.py')
 proof=json.loads((shared/'a/c/CPU.json').read_text())
 if not (proof['passed'] is True and proof['payload']==public['payload_sha256']
         and proof['plan']==public['plan_sha256'] and proof['inputs']==sha(shared/'a/1.json')
-        and proof['operator_sha256']==operator_sha256):raise ValueError('Full CPU check differs')
+        and proof['operator_sha256']==operator_sha256
+        and proof.get('memory',{}).get('measured') is True
+        and proof['memory'].get('fits') is True):raise ValueError('Full CPU check differs')
 original=job.checked_run
 
 def dispatch(argv,*args,**kwargs):

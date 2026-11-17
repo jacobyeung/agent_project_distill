@@ -1,0 +1,185 @@
+{
+  "analysis": "kc_guard/guard_downstream/analyses/sensitivity_300",
+  "table_receipt": {
+    "path": "/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard/guard_downstream/analyses/sensitivity_300/tables/TABLE_RECEIPT.json",
+    "sha256": "3a3bf69b42004fa928a80d1ae55aa2cdd567e973972d46e94849c687435d8598"
+  },
+  "fit_receipt": {
+    "path": "/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard/guard_downstream/analyses/sensitivity_300/refit/FIT_RECEIPT.json",
+    "sha256": "55c81c29f6f9fbedcfc77e3949cbde07b152f549ff5ef061b665034144db817d"
+  },
+  "orientation_rule": "portrait = TABLE_RECEIPT gt_canvas_map value starting 'stretch' (GT 320x240 stretched to the deployed 240x320 canvas); landscape = every other capture; landscape_arkitscenes = the landscape ARKitScenes captures, the dataset control for portrait (all portrait captures are ARKitScenes)",
+  "captures": {
+    "train": {
+      "landscape/arkitscenes": 66,
+      "landscape/scannet": 22,
+      "landscape/scannetpp": 59,
+      "portrait/arkitscenes": 63
+    },
+    "heldout": {
+      "landscape/arkitscenes": 16,
+      "landscape/scannet": 3,
+      "landscape/scannetpp": 15,
+      "portrait/arkitscenes": 17
+    }
+  },
+  "heads": {
+    "accept": {
+      "all": {
+        "refit": {
+          "auc": 0.9198092208570087,
+          "average_precision": 0.5943027166631254,
+          "top1_accept_accuracy": 0.5806451612903226,
+          "n": 2330,
+          "objects": 186,
+          "top1_definition": "highest probability candidate per object; ties by SAM peak"
+        },
+        "current": {
+          "auc": 0.90324656403283,
+          "average_precision": 0.5645189183226383,
+          "top1_accept_accuracy": 0.5752688172043011,
+          "n": 2330,
+          "objects": 186,
+          "top1_definition": "highest probability candidate per object; ties by SAM peak"
+        },
+        "captures": 51
+      },
+      "portrait": {
+        "refit": {
+          "auc": 0.9171517353057026,
+          "average_precision": 0.5845672343790701,
+          "top1_accept_accuracy": 0.4827586206896552,
+          "n": 699,
+          "objects": 58,
+          "top1_definition": "highest probability candidate per object; ties by SAM peak"
+        },
+        "current": {
+          "auc": 0.9048754868922053,
+          "average_precision": 0.5587549723676062,
+          "top1_accept_accuracy": 0.46551724137931033,
+          "n": 699,
+          "objects": 58,
+          "top1_definition": "highest probability candidate per object; ties by SAM peak"
+        },
+        "captures": 17
+      },
+      "landscape": {
+        "refit": {
+          "auc": 0.9213528693936912,
+          "average_precision": 0.6057549941522448,
+          "top1_accept_accuracy": 0.625,
+          "n": 1631,
+          "objects": 128,
+          "top1_definition": "highest probability candidate per object; ties by SAM peak"
+        },
+        "current": {
+          "auc": 0.9027306464285118,
+          "average_precision": 0.5708656746476733,
+          "top1_accept_accuracy": 0.625,
+          "n": 1631,
+          "objects": 128,
+          "top1_definition": "highest probability candidate per object; ties by SAM peak"
+        },
+        "captures": 34
+      },
+      "landscape_arkitscenes": {
+        "refit": {
+          "auc": 0.9345530875027412,
+          "average_precision": 0.6567147155248194,
+          "top1_accept_accuracy": 0.66,
+          "n": 600,
+          "objects": 50,
+          "top1_definition": "highest probability candidate per object; ties by SAM peak"
+        },
+        "current": {
+          "auc": 0.9255302484413672,
+          "average_precision": 0.6354779525064825,
+          "top1_accept_accuracy": 0.62,
+          "n": 600,
+          "objects": 50,
+          "top1_definition": "highest probability candidate per object; ties by SAM peak"
+        },
+        "captures": 16
+      }
+    },
+    "pairs": {
+      "all": {
+        "refit": {
+          "auc": 0.9568459043355111,
+          "average_precision": 0.8373891238236815,
+          "top1_accept_accuracy": 0.6854838709677419,
+          "n": 2731,
+          "objects": 124,
+          "top1_definition": "highest probability candidate per object; ties by SAM peak"
+        },
+        "current": {
+          "auc": 0.9556455297181233,
+          "average_precision": 0.8438092423024057,
+          "top1_accept_accuracy": 0.7096774193548387,
+          "n": 2731,
+          "objects": 124,
+          "top1_definition": "highest probability candidate per object; ties by SAM peak"
+        },
+        "captures": 51
+      },
+      "portrait": {
+        "refit": {
+          "auc": 0.9770422074381067,
+          "average_precision": 0.9376559656171048,
+          "top1_accept_accuracy": 0.6857142857142857,
+          "n": 452,
+          "objects": 35,
+          "top1_definition": "highest probability candidate per object; ties by SAM peak"
+        },
+        "current": {
+          "auc": 0.9705529501581416,
+          "average_precision": 0.916842221136419,
+          "top1_accept_accuracy": 0.7142857142857143,
+          "n": 452,
+          "objects": 35,
+          "top1_definition": "highest probability candidate per object; ties by SAM peak"
+        },
+        "captures": 17
+      },
+      "landscape": {
+        "refit": {
+          "auc": 0.9536302486369002,
+          "average_precision": 0.8237317944178986,
+          "top1_accept_accuracy": 0.6853932584269663,
+          "n": 2279,
+          "objects": 89,
+          "top1_definition": "highest probability candidate per object; ties by SAM peak"
+        },
+        "current": {
+          "auc": 0.9522737066946471,
+          "average_precision": 0.8317206701890335,
+          "top1_accept_accuracy": 0.7078651685393258,
+          "n": 2279,
+          "objects": 89,
+          "top1_definition": "highest probability candidate per object; ties by SAM peak"
+        },
+        "captures": 34
+      },
+      "landscape_arkitscenes": {
+        "refit": {
+          "auc": 0.9445078730793017,
+          "average_precision": 0.8372295204707838,
+          "top1_accept_accuracy": 0.65625,
+          "n": 527,
+          "objects": 32,
+          "top1_definition": "highest probability candidate per object; ties by SAM peak"
+        },
+        "current": {
+          "auc": 0.9445792302935161,
+          "average_precision": 0.8381371191267468,
+          "top1_accept_accuracy": 0.6875,
+          "n": 527,
+          "objects": 32,
+          "top1_definition": "highest probability candidate per object; ties by SAM peak"
+        },
+        "captures": 16
+      }
+    }
+  },
+  "mra": {}
+}

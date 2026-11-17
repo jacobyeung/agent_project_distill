@@ -1,0 +1,693 @@
+[
+  {
+    "id": "ground-046070216f69ddb02e7bf1b7737ad58da3299890a9fabc5f6ee939b42c06ab89",
+    "type": "object_abs_distance",
+    "calls": [
+      {
+        "call": "<ground obj=\"tv\" mode=\"box\">",
+        "response": "tv: frames 7,10,23,24,25 (best 24)\nB1: f1 centre (4.11, -0.40, 4.68) m\nsize 0.95 x 0.17 x 0.71 m\nyaw 58 deg (0 = +x; positive +x toward -z about +y)",
+        "kind": "ground",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": null,
+          "instance_metadata": [
+            {
+              "areas": {
+                "7": 0.016028645833333334,
+                "10": 0.07688802083333333,
+                "23": 0.07161458333333333,
+                "24": 0.07946614583333333,
+                "25": 0.06838541666666667
+              },
+              "instance_id": "tv:001"
+            }
+          ],
+          "full_precision_box": {
+            "centre": [
+              4.1050418795594545,
+              -0.40492299002694704,
+              4.67811045228887
+            ],
+            "lengths": [
+              0.9485655754089859,
+              0.1708376568355492,
+              0.7070509732705382
+            ],
+            "axes": [
+              [
+                0.536019253977109,
+                0.0,
+                -0.8442057565344029
+              ],
+              [
+                0.8442057565344029,
+                0.0,
+                0.536019253977109
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "box_label": "B1",
+          "full_precision_gap_box": {
+            "centre": [
+              4.06960773018393,
+              -0.4152525417607715,
+              4.6312992834040845
+            ],
+            "lengths": [
+              0.907779881589236,
+              0.06729931003739864,
+              0.7036390168549714
+            ],
+            "axes": [
+              [
+                0.544468900202924,
+                0.0,
+                -0.8387810302527223
+              ],
+              [
+                0.8387810302527223,
+                0.0,
+                0.544468900202924
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "gap_operands": [
+            "best_view"
+          ]
+        }
+      },
+      {
+        "call": "<ground obj=\"fireplace\" mode=\"box\">",
+        "response": "fireplace: frames 7,8,9,21,22 (best 22)\nB2: f1 centre (1.99, -0.75, 5.49) m\nsize 0.63 x 0.51 x 0.95 m\nyaw 7 deg (0 = +x; positive +x toward -z about +y)",
+        "kind": "ground",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": null,
+          "instance_metadata": [
+            {
+              "areas": {
+                "7": 0.025247395833333332,
+                "8": 0.0363671875,
+                "9": 0.07520833333333334,
+                "21": 0.06822916666666666,
+                "22": 0.09481770833333333
+              },
+              "instance_id": "fireplace:003"
+            }
+          ],
+          "full_precision_box": {
+            "centre": [
+              1.9922056362846927,
+              -0.7451831210477522,
+              5.487406571181023
+            ],
+            "lengths": [
+              0.6336549138040155,
+              0.5142499601580992,
+              0.9466692080406295
+            ],
+            "axes": [
+              [
+                0.9921807738571339,
+                0.0,
+                -0.12480910218513312
+              ],
+              [
+                0.12480910218513312,
+                0.0,
+                0.9921807738571339
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "box_label": "B2",
+          "full_precision_gap_box": {
+            "centre": [
+              2.0370169717632924,
+              -0.7480676079958924,
+              5.497028221036545
+            ],
+            "lengths": [
+              0.5522406956656793,
+              0.4763537083633027,
+              0.954839029811364
+            ],
+            "axes": [
+              [
+                0.9889114064713721,
+                0.0,
+                -0.14850666702479287
+              ],
+              [
+                0.14850666702479287,
+                0.0,
+                0.9889114064713721
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "gap_operands": [
+            "best_view"
+          ]
+        }
+      },
+      {
+        "call": "<gap a=\"tv\" b=\"fireplace\" rule=\"box_grid_5cm\">",
+        "response": "distance 1.54 m",
+        "kind": "gap",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": "box_grid_5cm",
+          "sampler": {
+            "rule": "box_grid_5cm",
+            "step": 0.05,
+            "inner_half_box_removed": true,
+            "dtype": "float64",
+            "instances": "min_over_pairs"
+          },
+          "ordered_box_labels": [
+            "B1",
+            "B2"
+          ]
+        }
+      }
+    ],
+    "mask_match": {
+      "ok": false,
+      "applicable": true,
+      "operands": [
+        {
+          "name": "tv",
+          "gt_instance": 11,
+          "support": 5,
+          "match_fraction": 0.8,
+          "ok": true
+        },
+        {
+          "name": "fireplace",
+          "gt_instance": 7,
+          "support": 5,
+          "match_fraction": 0.0,
+          "ok": false
+        }
+      ]
+    },
+    "synthetic": false,
+    "decision": {
+      "label": "left_out",
+      "reason": "numeric_or_instance_mismatch",
+      "value": 1.54
+    }
+  },
+  {
+    "id": "ground-721e98334c39a56d25276919186dd71cfc5206770ee1bacc83868154d8940a98",
+    "type": "object_abs_distance",
+    "calls": [
+      {
+        "call": "<ground obj=\"tv\" mode=\"box\">",
+        "response": "tv: frames 7,10,23,24,25 (best 24)\nB1: f1 centre (4.11, -0.40, 4.68) m\nsize 0.95 x 0.17 x 0.71 m\nyaw 58 deg (0 = +x; positive +x toward -z about +y)",
+        "kind": "ground",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": null,
+          "instance_metadata": [
+            {
+              "areas": {
+                "7": 0.016028645833333334,
+                "10": 0.07688802083333333,
+                "23": 0.07161458333333333,
+                "24": 0.07946614583333333,
+                "25": 0.06838541666666667
+              },
+              "instance_id": "tv:001"
+            }
+          ],
+          "full_precision_box": {
+            "centre": [
+              4.1050418795594545,
+              -0.40492299002694704,
+              4.67811045228887
+            ],
+            "lengths": [
+              0.9485655754089859,
+              0.1708376568355492,
+              0.7070509732705382
+            ],
+            "axes": [
+              [
+                0.536019253977109,
+                0.0,
+                -0.8442057565344029
+              ],
+              [
+                0.8442057565344029,
+                0.0,
+                0.536019253977109
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "box_label": "B1",
+          "full_precision_gap_box": {
+            "centre": [
+              4.06960773018393,
+              -0.4152525417607715,
+              4.6312992834040845
+            ],
+            "lengths": [
+              0.907779881589236,
+              0.06729931003739864,
+              0.7036390168549714
+            ],
+            "axes": [
+              [
+                0.544468900202924,
+                0.0,
+                -0.8387810302527223
+              ],
+              [
+                0.8387810302527223,
+                0.0,
+                0.544468900202924
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "gap_operands": [
+            "best_view"
+          ]
+        }
+      },
+      {
+        "call": "<ground obj=\"stool\" mode=\"box\">",
+        "response": "stool: frames 1,2,4,5,15,16,28,29,31,32 (best 28)\nB2: f1 centre (-0.75, -1.01, 1.33) m\nsize 0.71 x 0.44 x 0.47 m\nyaw 63 deg (0 = +x; positive +x toward -z about +y)",
+        "kind": "ground",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": null,
+          "instance_metadata": [
+            {
+              "areas": {
+                "1": 0.011354166666666667,
+                "2": 0.009544270833333333,
+                "4": 0.011653645833333334,
+                "5": 0.007643229166666667,
+                "15": 0.0093359375,
+                "16": 0.010885416666666667,
+                "28": 0.013880208333333333,
+                "29": 0.010638020833333333,
+                "31": 0.011171875,
+                "32": 0.013151041666666667
+              },
+              "instance_id": "stool:000"
+            }
+          ],
+          "full_precision_box": {
+            "centre": [
+              -0.7521896004032416,
+              -1.0084067809161068,
+              1.3343797402195718
+            ],
+            "lengths": [
+              0.7096535690292445,
+              0.4443023986157547,
+              0.4747596001535235
+            ],
+            "axes": [
+              [
+                0.452760178459709,
+                0.0,
+                -0.8916323349907923
+              ],
+              [
+                0.8916323349907923,
+                0.0,
+                0.452760178459709
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "box_label": "B2",
+          "full_precision_gap_box": {
+            "centre": [
+              -0.7549958082591978,
+              -1.050829932723198,
+              1.3077566783790744
+            ],
+            "lengths": [
+              0.6715681049155628,
+              0.41570061639575195,
+              0.3899132965393409
+            ],
+            "axes": [
+              [
+                0.45199743939593756,
+                0.0,
+                -0.8920192345345003
+              ],
+              [
+                0.8920192345345003,
+                0.0,
+                0.45199743939593756
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "gap_operands": [
+            "best_view"
+          ]
+        }
+      },
+      {
+        "call": "<gap a=\"tv\" b=\"stool\" rule=\"box_grid_5cm\">",
+        "response": "distance 5.58 m",
+        "kind": "gap",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": "box_grid_5cm",
+          "sampler": {
+            "rule": "box_grid_5cm",
+            "step": 0.05,
+            "inner_half_box_removed": true,
+            "dtype": "float64",
+            "instances": "min_over_pairs"
+          },
+          "ordered_box_labels": [
+            "B1",
+            "B2"
+          ]
+        }
+      }
+    ],
+    "mask_match": {
+      "ok": false,
+      "applicable": true,
+      "operands": [
+        {
+          "name": "tv",
+          "gt_instance": 11,
+          "support": 5,
+          "match_fraction": 0.8,
+          "ok": true
+        },
+        {
+          "name": "stool",
+          "gt_instance": 6,
+          "support": 10,
+          "match_fraction": 0.1,
+          "ok": false
+        }
+      ]
+    },
+    "synthetic": false,
+    "decision": {
+      "label": "left_out",
+      "reason": "numeric_or_instance_mismatch",
+      "value": 5.58
+    }
+  },
+  {
+    "id": "ground-4f6caaa84c6ed895d83474caac1650691fc056aebdaf86bad6a80c54e95c8ac8",
+    "type": "object_abs_distance",
+    "calls": [
+      {
+        "call": "<ground obj=\"fireplace\" mode=\"box\">",
+        "response": "fireplace: frames 7,8,9,21,22 (best 22)\nB1: f1 centre (1.99, -0.75, 5.49) m\nsize 0.63 x 0.51 x 0.95 m\nyaw 7 deg (0 = +x; positive +x toward -z about +y)",
+        "kind": "ground",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": null,
+          "instance_metadata": [
+            {
+              "areas": {
+                "7": 0.025247395833333332,
+                "8": 0.0363671875,
+                "9": 0.07520833333333334,
+                "21": 0.06822916666666666,
+                "22": 0.09481770833333333
+              },
+              "instance_id": "fireplace:003"
+            }
+          ],
+          "full_precision_box": {
+            "centre": [
+              1.9922056362846927,
+              -0.7451831210477522,
+              5.487406571181023
+            ],
+            "lengths": [
+              0.6336549138040155,
+              0.5142499601580992,
+              0.9466692080406295
+            ],
+            "axes": [
+              [
+                0.9921807738571339,
+                0.0,
+                -0.12480910218513312
+              ],
+              [
+                0.12480910218513312,
+                0.0,
+                0.9921807738571339
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "box_label": "B1",
+          "full_precision_gap_box": {
+            "centre": [
+              2.0370169717632924,
+              -0.7480676079958924,
+              5.497028221036545
+            ],
+            "lengths": [
+              0.5522406956656793,
+              0.4763537083633027,
+              0.954839029811364
+            ],
+            "axes": [
+              [
+                0.9889114064713721,
+                0.0,
+                -0.14850666702479287
+              ],
+              [
+                0.14850666702479287,
+                0.0,
+                0.9889114064713721
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "gap_operands": [
+            "best_view"
+          ]
+        }
+      },
+      {
+        "call": "<ground obj=\"stool\" mode=\"box\">",
+        "response": "stool: frames 1,2,4,5,15,16,28,29,31,32 (best 28)\nB2: f1 centre (-0.75, -1.01, 1.33) m\nsize 0.71 x 0.44 x 0.47 m\nyaw 63 deg (0 = +x; positive +x toward -z about +y)",
+        "kind": "ground",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": null,
+          "instance_metadata": [
+            {
+              "areas": {
+                "1": 0.011354166666666667,
+                "2": 0.009544270833333333,
+                "4": 0.011653645833333334,
+                "5": 0.007643229166666667,
+                "15": 0.0093359375,
+                "16": 0.010885416666666667,
+                "28": 0.013880208333333333,
+                "29": 0.010638020833333333,
+                "31": 0.011171875,
+                "32": 0.013151041666666667
+              },
+              "instance_id": "stool:000"
+            }
+          ],
+          "full_precision_box": {
+            "centre": [
+              -0.7521896004032416,
+              -1.0084067809161068,
+              1.3343797402195718
+            ],
+            "lengths": [
+              0.7096535690292445,
+              0.4443023986157547,
+              0.4747596001535235
+            ],
+            "axes": [
+              [
+                0.452760178459709,
+                0.0,
+                -0.8916323349907923
+              ],
+              [
+                0.8916323349907923,
+                0.0,
+                0.452760178459709
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "box_label": "B2",
+          "full_precision_gap_box": {
+            "centre": [
+              -0.7549958082591978,
+              -1.050829932723198,
+              1.3077566783790744
+            ],
+            "lengths": [
+              0.6715681049155628,
+              0.41570061639575195,
+              0.3899132965393409
+            ],
+            "axes": [
+              [
+                0.45199743939593756,
+                0.0,
+                -0.8920192345345003
+              ],
+              [
+                0.8920192345345003,
+                0.0,
+                0.45199743939593756
+              ],
+              [
+                0.0,
+                1.0,
+                0.0
+              ]
+            ]
+          },
+          "gap_operands": [
+            "best_view"
+          ]
+        }
+      },
+      {
+        "call": "<gap a=\"fireplace\" b=\"stool\" rule=\"box_grid_5cm\">",
+        "response": "distance 4.36 m",
+        "kind": "gap",
+        "spec_version": "3.14",
+        "spec_revision": 1,
+        "audit": {
+          "box_provider": "fit_gbox_policy_voteb5_best1_v1",
+          "numpy_version": "2.2.6",
+          "distance_rule": "box_grid_5cm",
+          "sampler": {
+            "rule": "box_grid_5cm",
+            "step": 0.05,
+            "inner_half_box_removed": true,
+            "dtype": "float64",
+            "instances": "min_over_pairs"
+          },
+          "ordered_box_labels": [
+            "B1",
+            "B2"
+          ]
+        }
+      }
+    ],
+    "mask_match": {
+      "ok": false,
+      "applicable": true,
+      "operands": [
+        {
+          "name": "fireplace",
+          "gt_instance": 7,
+          "support": 5,
+          "match_fraction": 0.0,
+          "ok": false
+        },
+        {
+          "name": "stool",
+          "gt_instance": 6,
+          "support": 10,
+          "match_fraction": 0.1,
+          "ok": false
+        }
+      ]
+    },
+    "synthetic": false,
+    "decision": {
+      "label": "left_out",
+      "reason": "numeric_or_instance_mismatch",
+      "value": 4.36
+    }
+  }
+]

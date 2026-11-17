@@ -1,0 +1,218 @@
+{
+  "analysis": "kc_guard/guard_downstream/analyses/primary_296",
+  "table_receipt": {
+    "path": "/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard/guard_downstream/analyses/primary_296/tables/TABLE_RECEIPT.json",
+    "sha256": "e4053df049a8848b5d0cecebce79ec597f7004fd46e6b87e153f864359833b5a"
+  },
+  "fit_receipt": {
+    "path": "/scratch/jjyeung/orch_n30/k1_ops3/work/kc_guard/guard_downstream/analyses/primary_296/refit/FIT_RECEIPT.json",
+    "sha256": "15357b667b0c6d7a3bce8de448a888df8298ae0b25454fd65d73fdb6a8a05aff"
+  },
+  "orientation_rule": "portrait = TABLE_RECEIPT gt_canvas_map value starting 'stretch' (GT 320x240 stretched to the deployed 240x320 canvas); landscape = every other capture; landscape_arkitscenes = the landscape ARKitScenes captures, the dataset control for portrait (all portrait captures are ARKitScenes)",
+  "captures": {
+    "train": {
+      "landscape/arkitscenes": 66,
+      "landscape/scannet": 22,
+      "landscape/scannetpp": 58,
+      "portrait/arkitscenes": 61
+    },
+    "heldout": {
+      "landscape/arkitscenes": 16,
+      "landscape/scannet": 3,
+      "landscape/scannetpp": 15,
+      "portrait/arkitscenes": 16
+    }
+  },
+  "heads": {
+    "accept": {
+      "all": {
+        "refit": {
+          "auc": 0.9206370899915897,
+          "average_precision": 0.6002162494355981,
+          "top1_accept_accuracy": 0.585635359116022,
+          "n": 2282,
+          "objects": 181,
+          "top1_definition": "highest probability candidate per object; ties by SAM peak"
+        },
+        "current": {
+          "auc": 0.904049621530698,
+          "average_precision": 0.5712088371811256,
+          "top1_accept_accuracy": 0.585635359116022,
+          "n": 2282,
+          "objects": 181,
+          "top1_definition": "highest probability candidate per object; ties by SAM peak"
+        },
+        "captures": 50
+      },
+      "portrait": {
+        "refit": {
+          "auc": 0.9192688878928232,
+          "average_precision": 0.5999908927210216,
+          "top1_accept_accuracy": 0.49056603773584906,
+          "n": 651,
+          "objects": 53,
+          "top1_definition": "highest probability candidate per object; ties by SAM peak"
+        },
+        "current": {
+          "auc": 0.9077643308929727,
+          "average_precision": 0.579647193420126,
+          "top1_accept_accuracy": 0.49056603773584906,
+          "n": 651,
+          "objects": 53,
+          "top1_definition": "highest probability candidate per object; ties by SAM peak"
+        },
+        "captures": 16
+      },
+      "landscape": {
+        "refit": {
+          "auc": 0.921407198141121,
+          "average_precision": 0.606825669751074,
+          "top1_accept_accuracy": 0.625,
+          "n": 1631,
+          "objects": 128,
+          "top1_definition": "highest probability candidate per object; ties by SAM peak"
+        },
+        "current": {
+          "auc": 0.9027306464285118,
+          "average_precision": 0.5708656746476733,
+          "top1_accept_accuracy": 0.625,
+          "n": 1631,
+          "objects": 128,
+          "top1_definition": "highest probability candidate per object; ties by SAM peak"
+        },
+        "captures": 34
+      },
+      "landscape_arkitscenes": {
+        "refit": {
+          "auc": 0.9347097340142234,
+          "average_precision": 0.6559969343398028,
+          "top1_accept_accuracy": 0.66,
+          "n": 600,
+          "objects": 50,
+          "top1_definition": "highest probability candidate per object; ties by SAM peak"
+        },
+        "current": {
+          "auc": 0.9255302484413672,
+          "average_precision": 0.6354779525064825,
+          "top1_accept_accuracy": 0.62,
+          "n": 600,
+          "objects": 50,
+          "top1_definition": "highest probability candidate per object; ties by SAM peak"
+        },
+        "captures": 16
+      }
+    },
+    "pairs": {
+      "all": {
+        "refit": {
+          "auc": 0.9564962563475295,
+          "average_precision": 0.8366384256382431,
+          "top1_accept_accuracy": 0.6890756302521008,
+          "n": 2714,
+          "objects": 119,
+          "top1_definition": "highest probability candidate per object; ties by SAM peak"
+        },
+        "current": {
+          "auc": 0.9550900700544868,
+          "average_precision": 0.8419435117852818,
+          "top1_accept_accuracy": 0.7142857142857143,
+          "n": 2714,
+          "objects": 119,
+          "top1_definition": "highest probability candidate per object; ties by SAM peak"
+        },
+        "captures": 50
+      },
+      "portrait": {
+        "refit": {
+          "auc": 0.9755234530354427,
+          "average_precision": 0.9343797393978153,
+          "top1_accept_accuracy": 0.7,
+          "n": 435,
+          "objects": 30,
+          "top1_definition": "highest probability candidate per object; ties by SAM peak"
+        },
+        "current": {
+          "auc": 0.9685343315007604,
+          "average_precision": 0.912424054982766,
+          "top1_accept_accuracy": 0.7333333333333333,
+          "n": 435,
+          "objects": 30,
+          "top1_definition": "highest probability candidate per object; ties by SAM peak"
+        },
+        "captures": 16
+      },
+      "landscape": {
+        "refit": {
+          "auc": 0.95377826909745,
+          "average_precision": 0.8246526277899932,
+          "top1_accept_accuracy": 0.6853932584269663,
+          "n": 2279,
+          "objects": 89,
+          "top1_definition": "highest probability candidate per object; ties by SAM peak"
+        },
+        "current": {
+          "auc": 0.9522737066946471,
+          "average_precision": 0.8317206701890335,
+          "top1_accept_accuracy": 0.7078651685393258,
+          "n": 2279,
+          "objects": 89,
+          "top1_definition": "highest probability candidate per object; ties by SAM peak"
+        },
+        "captures": 34
+      },
+      "landscape_arkitscenes": {
+        "refit": {
+          "auc": 0.944626801769659,
+          "average_precision": 0.8382025383991764,
+          "top1_accept_accuracy": 0.65625,
+          "n": 527,
+          "objects": 32,
+          "top1_definition": "highest probability candidate per object; ties by SAM peak"
+        },
+        "current": {
+          "auc": 0.9445792302935161,
+          "average_precision": 0.8381371191267468,
+          "top1_accept_accuracy": 0.6875,
+          "n": 527,
+          "objects": 32,
+          "top1_definition": "highest probability candidate per object; ties by SAM peak"
+        },
+        "captures": 16
+      }
+    }
+  },
+  "mra": {
+    "all": {
+      "heldout_items": 216,
+      "answered_items": 214,
+      "trust_fallback_share": 0.21296296296296297,
+      "answered_mra": 0.6037383177570093,
+      "constant_mra": 0.3313084112149533,
+      "refused_heldout_rows": 0
+    },
+    "portrait": {
+      "heldout_items": 54,
+      "answered_items": 54,
+      "trust_fallback_share": 0.18518518518518517,
+      "answered_mra": 0.6148148148148148,
+      "constant_mra": 0.2277777777777778,
+      "refused_heldout_rows": 0
+    },
+    "landscape": {
+      "heldout_items": 162,
+      "answered_items": 160,
+      "trust_fallback_share": 0.2222222222222222,
+      "answered_mra": 0.6,
+      "constant_mra": 0.36625,
+      "refused_heldout_rows": 0
+    },
+    "landscape_arkitscenes": {
+      "heldout_items": 48,
+      "answered_items": 48,
+      "trust_fallback_share": 0.2916666666666667,
+      "answered_mra": 0.6354166666666666,
+      "constant_mra": 0.25625000000000003,
+      "refused_heldout_rows": 0
+    }
+  }
+}

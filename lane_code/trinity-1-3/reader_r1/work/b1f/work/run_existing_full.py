@@ -5,6 +5,7 @@ W=Path(__file__).resolve().parents[1]
 base='out/baseline' if '--baseline' in sys.argv else 'out/src';P=W/base
 root=Path('/scratch/jjyeung/orch_n30/reader_r1/work/b1/work/b04full');tests=W/'work/existing_full'/('baseline' if '--baseline' in sys.argv else 'patched')
 tests.mkdir(parents=True,exist_ok=True)
+(W/'work/pytest_tmp').mkdir(exist_ok=True)
 for p in (root/'tests').glob('test_*.py'):
  s=p.read_text().replace('ROOT = Path(__file__).resolve().parents[1]',f'ROOT = Path({str(root)!r})')
  s=s.replace('/scratch/jjyeung/orch_n30/tree_rebuild/work/base/tree_b01ce449',str(P/'tree'))
