@@ -1,0 +1,1 @@
+W=/project/community/jjyeung/okh7/e6fc152498; pgrep -u $USER -af "sub2_ns|submerge2" | cut -c1-200; ls $W/p446 | head -3; ls $W/r2/sj | head -20; ls -la $W/sub_b01ec87a6f29b00029ac6.out $W/sub2_ac6.nohup

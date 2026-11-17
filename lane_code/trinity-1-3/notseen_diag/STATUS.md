@@ -1,0 +1,6 @@
+# notseen_diag STATUS
+- Lane start 2026-11-17T13:41Z on trinity-1-3; deadline 16:41Z (3 h). CPU only.
+- Inputs fetched (sha-checked): work/f3 = Orchard h10sub3 items.jsonl 826385c6 (170706 scored reads), p446 code (reader b/e2e_reader grounding d9b7e6f3, stage1 dc9c9189; tree/trace_format; tree/student_pilot), items devs1_routed.json 2849206e; work/n2r = trinity-1-13 native_r2: masks_4984fac22d84e8c5.tar (dev-S1 SAM 3 dense + dense_aliases caches), 170056 R1.json 75669a63.
+- Findings so far: the 170706 per-call records hold only responses (no candidate scores/stage); only status printed is "not seen" (0 box unavailable / unresolved). Code path: stage1.py sam3_detect (joint>=0.05, cap 30) -> routed_candidates.lift (score floor 0.3, erosion, [20,980] crop, spread<=0.10/0.25 m) -> link -> accept_features (metric features) -> selector head argmax with null -> lift_bestspread -> trace_format ground_v313 Session.
+- Next: per-(item,name) table; SAM 3 dense cache replay of the score floor; 170056 tower-arm statuses; GT visibility; fixes; briefs; record.
+- 15:31Z: analysis done (record draft out/H1_0_NOT_SEEN_DIAGNOSIS_20261117.md; evidence out/notseen_evidence_20261117.tgz 7a5b17d9). Writing briefs B1/B2, then INDEX line, RESULT event, mirror.

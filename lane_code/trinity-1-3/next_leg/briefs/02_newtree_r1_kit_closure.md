@@ -1,0 +1,21 @@
+# Brief 02 (build, for lane tree_rebuild): close the new tree's kit for leg R1
+
+Carrier: Codex gpt-6-astra, effort high, dispatched by lane tree_rebuild in its folder `W` = trinity-1-3 `/scratch/jjyeung/orch_n30/tree_rebuild_w`, as its next build after build 9 ends. Only one build runs in `W` at a time. This brief asks the orchestrator to run it before build 10: build 10 serves the claimed read, which is days away, while this build is on the launch path (design record `/data2/jjyeung/agent_project_data/distill_design/NEXT_LEG_DECISION_20261117.md`, section 3). CPU only; the lane's standing rules apply (no Git, no deletion, no Orchard submission without the orchestrator's GO).
+
+## Why
+Leg R1 trains A0's routing repairs and the v6/v7 direct rows from step 544, with GT-valued responses and no geometry fusion. The A0 kit of build 9 is GO=false behind 15 carried blockers (`W/work/build9/CARRIED_BLOCKERS.json`) and 14 missing evidence records (`W/out/RECORDS_TO_REGENERATE.md`). This build closes the ones that bind a launch without fusion and stages the kit that the Orchard frame-host job needs.
+
+## Work
+1. **Init (blocker D2).** Bind step 544, artifact 1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef, at the location H1-1 staged it from (the H1-1 deployment's staging plan: `/scratch/jjyeung/orch_n30/cont_ops/work/h1/REPORT.md` and `payload/`). The init rule selects it: D0 ended under its stop rule (`DD/D0_ENDED_20261116.md`), and a stopped export is no candidate (`DD/NEXT_LEG_INIT_RULE_20261116.md` items 1 and 7).
+2. **Row stores (blocker D3 and defect D1 of `/scratch/jjyeung/orch_n30/rows_a2/out/KIT_INPUTS_A0_A2.md`).** Bind the VQA store by receipt as a parameter (v6 now: `/scratch/jjyeung/orch_n30/rows_a2/out/a2_vqa_v6/vqa/`, sha256 0608dd98...; v7 from brief 03 when it lands) and the routing families in `W/work/rows_slices/slices_final/` plus the square-feet room rows. Point every staging entry at a source that exists on Orchard, as that file lists.
+3. **Mix.** Replace `W/out/MIX_A0.json` for this kit with the table of the design record, section 5 item 2. It adds cells for the six VSTI relative types, first-seen frame and the b12 pools, and raises room, counting, totals and recovery. The metadata gate must report post-filter populations and refuse repeats above 4.
+4. **Switches.** `max_own_probability 0`; S2 as one parameter; the scale-token loss stays on at its current weight and is logged per step; no fusion stage.
+5. **Evidence records.** Regenerate the records a launch without fusion binds: `init_m544`, `heads_pose`, `heads_depth`, `heads_frame_embeddings`, `depth_init_vc`, `data_rows_r2`, `geometry_tower`, `segmenter`. Sources: the sealed kit 07ca49df's own evidence and staging plan (copies under `W/work/kit07ca49df_meta/`), the export metadata of 1d6eeb28, `WITHHELD_ROOMS_80.json` 634820b4, `R0_ROOMS.txt` bdb5d402, the dev list a1869ae2, the benchmark list 3119aa4a. Never fabricate: a record that cannot be proven stays a named blocker with what is missing. The five records for the deployed selector, box policy, room policy, alias table and depth cut describe a runtime R1 neither trains nor ships; do not weaken the registry: report whether a training launch reads them, and leave the ruling to the orchestrator.
+6. **Pins.** Close `processor_resolution_pin_missing` from the value D0 ran with (the sealed kit's runtime), and state what remains of `R0_FULL_INPUT_INVENTORY_UNAVAILABLE` and `BOUND_SLICE_SEALED_SCENE_EXCLUSIONS`.
+7. **Frame-host packet.** Stage the Orchard CPU job that proves camera, pose and pointing metadata on real frames, with GO=false; its receipt carries the five assertions of the design record, section 3.3 item 3, and it starts from an empty root.
+
+## Gates
+Kits stage from empty; the suites of build 9 with no new regression; the kit's refusal list is reduced to host admission and independent review, or each remaining entry is named with its missing input; the tree seal is recomputed and equals the package name.
+
+## Outputs
+`W/out/BUILD_R1_REPORT.md`, the seal and package as for build 9, the kit under `W/work/<build>/kits/`, and one RESULT event from the lane that asks for one review (admission and legality inputs change).

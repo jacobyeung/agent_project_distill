@@ -1,0 +1,32 @@
+# Lane notseen_diag (Devin Opus max, runs on trinity-1-3): why do 42% of H1-0's distance reads get a "not seen" grounding response, and what fixes it?
+
+First read /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/tools/LANE_RULES.md and obey it. Your lane folder is /scratch/jjyeung/orch_n30/notseen_diag on trinity-1-3 (cap 2 GB). Write events into /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/notseen_diag/. CPU only: no GPU, no Orchard job submission, no Git, no deletion, no Codex dispatch. Orchard only via tools/ossh.sh (read-only: listing and fetching small result files, under 20 MB in total; anything larger needs a governed stream, so ask first). Trinity ssh only via tools/tssh.sh. Time limit 3 hours.
+
+## Goal this serves (user)
+A ~9B spatial VLM, end to end from RGB, whose chain of thought calls heads inside its own checkpoint and answers from what they print. H1-0 measured step 544 with every call served inside the checkpoint. Camera calls are placed and used 100%. On absolute distance the model places the calls (`<ground obj=A>`, `<ground obj=B>`, `<gap>`) and uses the printed gap every time, but 63 of 150 baseline reads get a `not seen` ground response; every capped (non-terminating) read follows one, and the 30 that still answer average MRA 0.29. Distance is one of ReVSI's seven categories (0.143 ReVSI points per task point) and the only object type that routes today, so this failure decides whether head routing works for objects at all.
+
+## Read first (named files only)
+- Design index: /data2/jjyeung/agent_project_data/distill_design/INDEX.md (search it for a record before re-deriving anything).
+- /data2/jjyeung/agent_project_data/distill_design/H1_GT_HEAD_ROUTING_SFT_20261116.md (Status section, the "Distance (170706 ...)" bullet, and "What might not work": selector shift, portrait frames).
+- events/h10_stage/20261117T1121Z_RESULT_h1_0_distance_M123.md and events/h10_stage/STATUS.md.
+- Scored per-read and per-call files: trinity-1-3:/scratch/jjyeung/orch_n30/h10_score/work/results/170706/ ; Orchard copy `okh7/e6fc152498/r2/sj/h10sub3_b01ec87a6f29b00029ad2/` under /home/jjyeung on Orchard.
+- /data2/jjyeung/agent_project_data/distill_design/E2E_READER_B04_20261116.md (the in-forward reader: SAM 3 inside the artifact, raw-name selector head, own depth and pose lifting; "boxes 2.2x larger and 14/98 grounds lost"; alias table covers 26% of instances) and ROUTED_READ_FIRST_ITEMS_169605_20261114.md (an earlier read where the reader, not perception, refused most grounding).
+- NATIVE_ROUTED_READ_DEVS1_STEP544_20261115.md (job 170056: the same model with the tower arm on dev-S1; use it as the comparison arm if its per-item statuses survive).
+
+## Questions (answer each with counts and file evidence)
+1. Stage attribution. For every `not seen` response in the baseline reads (and separately the x0.5 and x2 reads), which stage produced it: SAM 3 returned no mask for the name; the selector head rejected or ranked no candidate above its bar; lifting failed (own depth, own pose, box rule); frame coverage; anything else. Give a table of counts per stage and the code line that prints the status.
+2. True or false negative. Is the named object visible in the read's 32 frames according to ground truth (GT instance masks or the item's source annotation)? An absolute-distance question presupposes both objects exist, so report how many `not seen` responses are false negatives.
+3. Names. Which object names fail most, and is the cause wording (the benchmark's raw name against SAM 3's vocabulary, where the removed alias table used to help), size, occlusion, portrait stretch (ARKitScenes) or dataset?
+4. Arm comparison. On the same items, what was the not-seen (or refusal) rate of the tower arm in job 170056, and which differences between the arms (alias table, depth cut, lifting source, thresholds) account for the gap?
+5. Fixes, ranked, each priced in task MRA points on the dev-S1 distance items and in ReVSI points, each checked against the end-to-end test EAT-1 (NEXT_QUEUE_20261116.md section 5: everything served from weights in the checkpoint plus fixed math; no alias table, no threshold or constant chosen on data outside the weights; a status is the formatted output of a head). Consider at least: (a) the grounding head always returns its best candidate with a printed confidence instead of refusing, and the model's continuation decides; (b) a second call with another name written by the model (recovery by "another call"); (c) a recovery row that answers directly after a real failure status; (d) fixing a reader defect you find (lifting, portrait canvas, selector input shift); (e) grounding from more frames. Where the per-call records hold candidate scores, replay (a) offline on CPU and report the gap error it would give. Say which fixes need a training leg and which are reader-only.
+6. Training rows. Tree build 9 admits 1,532 recovery rows whose failure statuses are all simulated `not seen` (trinity-1-3:/scratch/jjyeung/orch_n30/tree_rebuild_w/work/build9/proofs/row_counts/RESULT.json; read-only, do not touch that lane's files). Does the simulated distribution (which objects, datasets, how often per row) match the real failures you found? State what real-failure recovery rows the next leg needs and where their responses can come from without a GPU, and what needs a GPU pass (price it).
+
+## Rules for the analysis
+- dev-S1 items only for any fit or choice. Official ReVSI and VSI-Bench items are never used to choose a threshold, a name list or a rule.
+- Every number carries its denominator; intervals by bootstrap over rooms (10,000 draws, seed 20261115) where a rate is compared.
+- Do not rerun any GPU read. If an answer needs one, price it (H100-hours on Orchard general) and name the kit.
+
+## Deliverables
+1. Record /data2/jjyeung/agent_project_data/distill_design/H1_0_NOT_SEEN_DIAGNOSIS_20261117.md with the standard sections (question, answer, evidence, options rejected and why, what might not work and how we would notice, tests that would settle it, status) plus one INDEX.md line.
+2. If a reader-only or rows-only fix is indicated: one complete Codex build brief per fix in your lane folder, copied to events/notseen_diag/ (not dispatched; the orchestrator dispatches).
+3. One RESULT event of at most 20 lines: the stage table in one line, the false-negative share, the top three fixes with their prices, and the brief paths. Then exit.

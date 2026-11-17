@@ -1,0 +1,57 @@
+--- out/production/orchard_h10/vendor/export_stage.py
++++ in/h1read_export_stage.py
+@@ -15,6 +15,7 @@
+ import orchard_stage as S
+ import orchard_job as J
+ import chain_save as A
++import binding as B
+ 
+ CHECKER = J.SJ/'orch_cd/legs1_reads/out/export_check.py'
+ CHECKER_PINS = {
+@@ -37,13 +38,13 @@
+ 
+ 
+ def logical_artifact(root, path, step):
+-    allowed = {str(J.FSW/'ap/8865619b/runs'/run/('m'+str(step))/'artifact.json') for run in ('469ddece', '359fcc3c')}
++    allowed = {str(J.FSW/'ap/8865619b/runs'/run/('m'+str(step))/'artifact.json') for run in ('359fcc3c', '17c4ffa4')}
+     if path not in allowed or type(step) is not int or step <= 0:
+         raise ValueError('Export lineage differs')
+     return path
+ 
+ 
+-T = NS(writable=writable, EXPORT_RUNS=('469ddece', '359fcc3c'),
++T = NS(writable=writable, EXPORT_RUNS=('359fcc3c', '17c4ffa4'),
+        FSW=J.FSW, logical_artifact=logical_artifact, physical=J.physical,
+        load=lambda p: json.loads(Path(p).read_text()), sha=S.sha, lock=lock,
+        kit_stage=lambda: S, dump=A.atomic_json)
+@@ -180,11 +181,19 @@
+ def fetch_and_stage(root, config):
+     root = Path(root)
+     step = config['spec']['step']
+-    receipt = Path('/project/community/jjyeung/okh7/x_f5c353f7/o')/('gcs_359fcc3c_m'+str(step)+'.done')
++    bound = B.validate(config['spec']['export_binding'])
++    if step != bound['step']: raise ValueError('Export step differs')
++    receipt = Path(bound['done'])
+     if receipt.is_symlink() or receipt.stat().st_size > 65536:
+         raise ValueError('Invalid completion receipt')
+     raw = receipt.read_bytes()
+-    done = parse_done(raw, '359fcc3c', step)
++    claim = None
++    if bound['claim']:
++        p = Path(bound['claim'])
++        if p.is_symlink() or p.stat().st_size > 64: raise ValueError('Invalid stop claim')
++        claim = p.read_bytes()
++    done = (parse_done(raw, bound['run'], step) if bound['run']=='359fcc3c'
++            else B.parse(raw, bound, claim))
+     uri = 'gs://cmu-gpucloud-jjyeung/'+done['object']
+     (root/'archives/COMPLETE.done').write_bytes(raw)
+     target = root/'archives/export.tar'
+@@ -212,7 +221,7 @@
+     local_done = root/'archives/COMPLETE.json'
+     A.atomic_json(local_done, done)
+     transfer_seconds = time.monotonic()-started
+-    result = stage_export(NS(root=str(root), run='359fcc3c', step=step, tar=str(target),
++    result = stage_export(NS(root=str(root), run=bound['run'], step=step, tar=str(target),
+                              done=str(local_done), full=True, bwrap=str(root/'bwrap')))
+     result['transfer_seconds'] = transfer_seconds
+     result['transfer_and_admission_seconds'] = time.monotonic()-started

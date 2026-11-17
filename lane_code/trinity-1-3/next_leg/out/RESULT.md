@@ -1,0 +1,19 @@
+# RESULT next_leg (20261117T1409Z): leg R1 = step 544 + repair rows; G3T serves camera calls; two vehicles raced to a production proof
+- **Leg.** R1: init step 544, GT-valued responses, rows = recovery + unit + direct room + six VSTI relative types + away rows in ReVSI's wording + v6 first-seen repairs; no GF-1, no own-valued rows, no H1-1 m200, no H1-2. About 42 H100-h to the decisive read at step 200 (T+13 h), 185 to step 1,000.
+- Expected: VSTI primary 73.9 -> 79-83 (relative types, +8.9 at P1 m200's level), ReVSI +3.5 to +5 from facing, room and distance terminate in a claimed read; main risk: D0's size loss recurs (v6 keeps D0's size form plus a frame).
+- **Serving, camera.** move/turn: G3T camera head inside the checkpoint x fixed-math scale median(own depth / G3T depth), own gravity; rows print GT. Own pose head serves no call (47.2/42.7 vs 82.3/94.7; faithful rows wrong 36.7%).
+- **Serving, distance.** ground: SAM 3 + selector head, bestspread lifting on G3T depth x scale; gap: fixed math; rows print GT boxes and "A: not seen" (rows for "box unavailable" owed). Room: no call, direct rows.
+- **Scale head.** b04's learned head lost 9.3 on displacement, so it is not the default; it needs the serving layout, a trajectory-scale target, far more clips, and a residual form that starts at the rule (brief 06).
+- **H1-1 m100 table.** Stop share 0.367 > 0.35 (known): own-valued rows off, no m200. M2 own arm better than step 544 with an interval excluding zero, none worse, no harm: S2 on.
+- No interval excludes zero, or any error worse, or any direct type wholly below zero against D0 m100: S2 off.
+- Own minus tower lower bound above -5 on a type: take-over candidate only; serving changes after the paired tower-arm read and a second milestone. The leg choice never depends on this read.
+- **Critical path (UTC).** 14:30 dispatch briefs 01, 03, 04; 15:30 build 9 ends, then brief 02 (I ask: before build 10); 17:30 rows v7; 18:00 S2 set; 18:30 P packet + store on Orchard.
+- 19:30 production proof 1 of P (CPU job, 2.6 h; needs the job place); fix round + proof 2 by 02:00; slot - 2 h vehicle gate; slot = 02:15Z at the earliest (main's 8-10 h), 16:15Z 11-18 expected.
+- Vehicle N (build-9 tree: 15 carried blockers, 14 evidence records, never on Orchard) can be proven by about 12:00Z 11-18 at best (guess), so only the late slot.
+- **Briefs** (not dispatched): events/next_leg/briefs/01_r1_proven_packet.md, 02_newtree_r1_kit_closure.md, 03_rows_v7.md, 04_r1_operator.md, 05_tower_arm_read.md, 06_residual_scale_head.md.
+- **For ORCH (defaults).** (a) Your ruling makes recovery and unit rows hard requirements; if the sealed tree refuses them, may P run steps 1-200 without them? Default under your ruling: no, the slot waits for N; I recommend yes.
+- (b) Ask main whether one CPU-only proof job may run beside the GPU read; default: it takes its turn ahead of every read but the two H1-1 m100 reads. (c) Brief 02 before build 10; default: your 1200Z order stands.
+- **For the user (defaults in force).** U1 camera pose from a frozen tower counts as a head in the checkpoint: proceed. U2 fixed-math scale instead of a learned one: yes for now. U3 report 9B + about 2B frozen towers. U4 one-line direct room rows: keep.
+- Pushback on standing plans: A2 is not next (no dense frame, no cache, cost unmeasured, 400 adapter-only steps delay every read); build 10 is not on the training path (byte-parity gate).
+- Review asked: one cross-family read of sections 2.2 and 5 of the record before the card is registered. General-slot ranking: record section 4.
+- Record: distill_design/NEXT_LEG_DECISION_20261117.md (sha256 97d1a0afc30c...), INDEX line added. Nothing launched, dispatched or changed elsewhere. Lane exits.

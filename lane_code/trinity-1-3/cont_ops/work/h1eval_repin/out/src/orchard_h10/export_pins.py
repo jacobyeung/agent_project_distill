@@ -1,0 +1,68 @@
+"""Authenticate the operator's export identity before staging any archives."""
+import json
+from pathlib import Path
+import re
+
+from orchard_h10.common import sha
+
+MEMBERS = dict(artifact='artifact.json', heads='heads.pt',
+               full_weights='full_weights/full_weights.json')
+PREPARATION = ('config', 'receipt', 'data_receipt')
+
+
+def relative(value):
+    p = Path(value)
+    if not value or p.is_absolute() or '..' in p.parts or str(p) != value or value == '.':
+        raise ValueError('Export path must be canonical and relative')
+    return p
+
+
+def pin(value):
+    if (not isinstance(value, dict) or not isinstance(value.get('sha256'), str)
+            or not re.fullmatch('[0-9a-f]{64}', value['sha256'])
+            or type(value.get('bytes')) is not int or value['bytes'] <= 0):
+        raise ValueError('Invalid export pin')
+
+
+def validate(value):
+    if value.get('schema') != 'h1-export-pins-v1':
+        raise ValueError('Export pin schema differs')
+    relative(value['member_directory'])
+    if (value.get('lineage') not in ('SFT', 'RL') or type(value.get('step')) is not int
+            or value['step'] < 0):
+        raise ValueError('Export requires SFT/RL and nonnegative integer step')
+    for name in MEMBERS:
+        pin(value[name])
+    if set(value['preparation']) != set(PREPARATION):
+        raise ValueError('Preparation keys differ')
+    paths = []
+    for name in PREPARATION:
+        item = value['preparation'][name]
+        pin(item); paths.append(relative(item['path']))
+        source = Path(item['source_path'])
+        if not source.is_absolute() or '..' in source.parts or str(source) != item['source_path']:
+            raise ValueError('Preparation source path differs')
+    if len(set(paths)) != len(paths):
+        raise ValueError('Preparation paths must be distinct')
+    return value
+
+
+def load(inputs, package):
+    spec = inputs['export_pin']
+    pin(spec)
+    if spec.get('path') != 'a/export.json':
+        raise ValueError('Require a/export.json')
+    path = Path(package)/spec['path']
+    if path.stat().st_size != spec['bytes'] or sha(path) != spec['sha256']:
+        raise ValueError('Export pin file differs')
+    return validate(json.loads(path.read_text()))
+
+
+def admit(inputs, cfg, export):
+    root = Path(cfg['logical'])/'d'/export['member_directory']
+    for name, member in MEMBERS.items():
+        declared = inputs['files'][name]
+        if any(declared[key] != export[name][key] for key in ('sha256', 'bytes')):
+            raise ValueError('Export pin differs: '+name)
+        if declared['path'] != str(root/member):
+            raise ValueError('Export member path differs: '+name)
