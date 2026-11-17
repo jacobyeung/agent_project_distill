@@ -9,6 +9,33 @@ from rebind import load,sha,write
 
 def temp():return Path(tempfile.mkdtemp(prefix='test_',dir=ROOT/'work'))
 
+def parent_selection():
+    from selection_check import project
+    from student_pilot import s1_pool
+    parent,_=project(load(ROOT/'work/records/pool_selection_eac5f9f0.json'))
+    parent['implementation']=s1_pool.implementation()
+    return parent
+
+def staged_distance_rows():
+    """Run the frozen converter on synthetic canonical trace/RGB fixtures."""
+    sealed=Path('/scratch/jjyeung/orch_n30/r1_ops/work/snap_f719b05f/work/tree/student_pilot/carrier_c1_routing.py')
+    if sha(sealed)!=sha(ROOT/'work/tree/student_pilot/carrier_c1_routing.py'):
+        raise ValueError('The frozen c1_row converter changed')
+    spec=importlib.util.spec_from_file_location('student_pilot._fix7_sealed_routing',sealed)
+    routing=importlib.util.module_from_spec(spec);spec.loader.exec_module(routing)
+    events=[dict(kind='plan',text='Measure the distance between the objects.')]
+    target,spans=routing.render(events,'2')
+    rgb=dict(frames=[dict(path='fixture/'+str(i)+'.png',sha256='0'*64,source_index=i) for i in range(32)],
+             fps=1,total_num_frames=32)
+    result=[]
+    for prefix in ('scannetpp/','scannetppv2/','scannet/','arkitscenes/'):
+        row=dict(schema='derivgen-row-v2',form='spec-v3.8-calculator-v2',infrastructure_only=False,
+            qid='fixture_'+prefix,question_type='absolute_distance_object',question='How far apart?',
+            events=events,answer='2',gt_answer='2',target=target,tool_output_spans=spans,
+            provenance=dict(canonical=prefix+'scene',frame_indices=list(range(32)),source_row_sha256='1'*64))
+        result.append(routing.c1_row(row,rgb))
+    return result
+
 class Mix(unittest.TestCase):
     def test_real_capped_table_and_actual_draws(self):
         report=load(ROOT/'out/proof/loader_audit.json');table=report['tables']['vqa']
@@ -105,17 +132,82 @@ class Mix(unittest.TestCase):
         from student_pilot.loader_audit import row_metadata,draw_breakdown
         rows={0:row_metadata(dict(question_type='object_rel_direction_hard',facing='away',answer='B',student_input={'options':['A. front','B. back-left']}),'vqa','facing'),
               1:row_metadata(dict(question_type='object_rel_direction_easy',facing='toward',answer='A'),'vqa','facing')}
-        routing={i:row_metadata(dict(provenance={'canonical':p+'scene'}),'routing','absolute_distance') for i,p in enumerate(('scannetpp/','scannetppv2/','scannet/','arkit/'))}
+        staged=staged_distance_rows()
+        self.assertTrue(all('provenance' not in r and 'canonical' in r['routing'] for r in staged))
+        routing={i:row_metadata(row,'routing','absolute_distance') for i,row in enumerate(staged)}
         for i,u in enumerate(('cm','ft','in'),4):routing[i]=row_metadata(dict(ground_record={'unit':u}),'routing','units')
         draws=Counter({('vqa',0):3,('vqa',1):1,**{('routing',i):i+1 for i in range(7)}})
         report=draw_breakdown({'vqa':rows,'routing':routing},draws,routing_available=True)
         self.assertEqual(report['facing']['away']['share_of_facing'],.75)
         self.assertEqual(report['away_hard']['back_share'],1);self.assertEqual(report['away_hard']['exact_back_share'],0)
         self.assertEqual(report['units']['draws'],{'cm':5,'ft':6,'in':7})
-        self.assertEqual(report['routing_absolute_distance']['drawn'],{'scannetpp/':1,'scannetppv2/':2,'scannet':3,'arkit':4,'unknown':0})
+        self.assertEqual(report['routing_absolute_distance']['drawn'],{'scannetpp/':1,'scannetppv2/':2,'scannet/':3,'arkitscenes/':4,'unknown':0})
         local=load(ROOT/'out/proof/loader_audit.json')['draw_breakdown']
         self.assertEqual(sum(v['draws'] for v in local['facing'].values()),load(ROOT/'out/proof/loader_audit.json')['by_family']['vqa/facing']['draws'])
         self.assertEqual(local['routing_absolute_distance']['status'],'NOT_RUN')
+
+    def test_routing_canonical_precedence_and_exact_prefixes(self):
+        from student_pilot.loader_audit import row_metadata
+        prefix=lambda row:row_metadata(row,'routing','absolute_distance')['prefix']
+        for row in staged_distance_rows():
+            expected=row['routing']['canonical'].split('/')[0]+'/'
+            row['routing']['provenance']={'canonical':'scannet/wrong'}
+            row['provenance']={'canonical':'arkitscenes/wrong'}
+            self.assertEqual(prefix(row),expected)
+        self.assertEqual(prefix({'routing':{'provenance':{'canonical':'scannetppv2/scene'}}}),'scannetppv2/')
+        self.assertEqual(prefix({'routing':{},'provenance':{'canonical':'scannet/scene'}}),'scannet/')
+        for canonical in ('scannetppv20/scene','scannetpp','arkit/scene','scannet_extra/scene','unknown/scene',''):
+            self.assertEqual(prefix({'routing':{'canonical':canonical}}),'unknown')
+
+    def test_routing_unknown_threshold_fails_loader_check(self):
+        import sqlite3,types,contextlib,io
+        from unittest.mock import patch
+        from student_pilot import loader_audit,checkpoint_space,vehicle_p
+        fixtures=staged_distance_rows();cases=[]
+        for total,unknown in ((100,0),(100,1),(100,2),(99,1),(4,4)):
+            with self.subTest(total=total,unknown=unknown):
+                root=temp();db=root/'routing.db';conn=sqlite3.connect(db)
+                conn.execute('CREATE TABLE rows(i INTEGER PRIMARY KEY,row TEXT,target TEXT)')
+                for i in range(total):
+                    row=copy.deepcopy(fixtures[i%4]);row['qid']='fixture_'+str(i)
+                    if i<unknown:row['routing']['canonical']='unrecognized/scene'
+                    conn.execute('INSERT INTO rows VALUES(?,?,?)',(i,json.dumps(row),json.dumps(row['target'])))
+                conn.commit();conn.close()
+                cfg=dict(type_mix=dict(schema='type-mix-v2',max_repeats=4,size_selector=None,
+                    streams={'routing':dict(cells={'absolute_distance':{'cents':400}},refill=['absolute_distance'])}),
+                    recipe=dict(mix=['routing'],world_size=4,steps=1,seed=17),training_mode='final',preparation_output=str(root/'p'))
+                (root/'p').mkdir(mode=0o700)
+                receipt=m.prepare(dict(config_sha256='fixture',streams={'routing':dict(database=dict(path=str(db),sha256=sha(db)),count=total)}),cfg)
+                write(root/'prepared.json',receipt);cfg['preparation']=dict(path=str(root/'prepared.json'),sha256=sha(root/'prepared.json'))
+                write(root/'selection.json',dict(sources={}))
+                cfg['s1_routing']=dict(selection=dict(path=str(root/'selection.json'),sha256=sha(root/'selection.json')))
+                cfg['checkpoint_disk_guard']=dict(reserve_bytes=0)
+                write(root/'config.json',cfg);write(root/'k/launch.json',dict(config={'file':'config.json'},in_job_admission={'directory':str(root/'inputs')}))
+                expected='FAIL' if unknown*100>total else 'PASS'
+                module=types.ModuleType('d');module.effective=lambda *_:cfg
+                printed=io.StringIO()
+                with contextlib.redirect_stdout(printed),patch.dict(sys.modules,{'d':module}),patch.object(run,'identity',return_value='fixture'),patch.object(checkpoint_space,'plan',return_value=cfg['checkpoint_disk_guard']),patch.object(vehicle_p,'required_families',return_value={'status':'PASS','absent_on_P':[]}):
+                    before=sys.path[:]
+                    try:
+                        if expected=='FAIL':
+                            with self.assertRaisesRegex(ValueError,'Required packet proof checks failed'):loader_audit.main(root)
+                        else:loader_audit.main(root)
+                    finally:sys.path[:]=before
+                records=[json.loads(line) for line in printed.getvalue().splitlines()]
+                self.assertEqual(records[0]['census_code_map_sha256'],sha(ROOT/'out/CENSUS_CODES.local.json'))
+                def assert_opaque_keys(value):
+                    if isinstance(value,dict):
+                        for key,item in value.items():
+                            for dataset in ('scannetpp','scannetppv2','scannet','arkitscenes'):self.assertNotIn(dataset,key)
+                            assert_opaque_keys(item)
+                    elif isinstance(value,list):
+                        for item in value:assert_opaque_keys(item)
+                assert_opaque_keys(records)
+                report=load(root/'inputs/a.json');check=report['checks']['loader_audit']
+                self.assertEqual(report['status'],expected);self.assertEqual(check['status'],expected)
+                self.assertEqual(check['unknown_rows'],unknown);self.assertEqual(check['total_rows'],total)
+                cases.append(dict(total_rows=total,unknown_rows=unknown,status=expected))
+        write(ROOT/'out/proof/ROUTING_PREFIX.json',dict(status='PASS',scope='Frozen c1_row fixtures and real SQLite loader audit; production routing unavailable',config_identity=load(ROOT/'out/BINDING.json')['config_identity'],loader_sha256=sha(ROOT/'work/tree/student_pilot/loader_audit.py'),cases=cases,converter_sha256=sha(ROOT/'work/tree/student_pilot/carrier_c1_routing.py')))
 
     def test_config_switches_disk_and_identity(self):
         cfg=load(ROOT/'configs/r1p.json');run.validate(cfg)
@@ -196,7 +288,10 @@ class Evidence(unittest.TestCase):
         from student_pilot import s1_pool
         self.assertEqual(load(ROOT/'out/proof/selection/r.json')['implementation'],s1_pool.implementation())
         new['implementation']=load(ROOT/'out/proof/selection/r.json')['implementation']
-        self.assertEqual(new,load(ROOT/'out/proof/selection/r.json'));self.assertEqual(sum(removed.values()),586)
+        current=load(ROOT/'out/proof/selection/r.json')
+        self.assertEqual({k:v for k,v in current['sources'].items() if k!='U_Faithful'},new['sources'])
+        self.assertEqual(current['selected_rows'],new['selected_rows']+current['sources']['U_Faithful']['retained'])
+        self.assertEqual(sum(removed.values()),586)
         for name in set(parent['sources'])-set(removed):self.assertEqual(enc(parent['sources'][name]),enc(new['sources'][name]))
         for value in new['sources'].values():
             if value['status']=='ELIGIBLE':self.assertFalse(set(value['per_type'])&{'room_size_estimation','absolute_size_room'})
@@ -305,6 +400,19 @@ class Proof(unittest.TestCase):
             os.chdir(cwd);sys.path[:]=path
             for sig,handler in handlers.items():signal.signal(sig,handler)
 
+    def test_submit_gate_rejects_bad_go_with_optimization(self):
+        import shlex
+        script=(ROOT/'out/operator/s.sh').read_text()
+        line=next(line for line in script.splitlines() if "<<'P'" in line)
+        self.assertTrue(line.startswith('env -u PYTHONOPTIMIZE python3 -I -B - '))
+        code=script.split("<<'P'\n",1)[1].split('\nP\n',1)[0]
+        root=temp();write(root/'go.json',{'production_go_granted':False});write(root/'ids.json',{'identity':'fixture'})
+        argv=shlex.split(line.split(' "$KH"',1)[0])+[str(root),str(root)]
+        for optimize in ('1','2'):
+            env=dict(os.environ,PYTHONOPTIMIZE=optimize)
+            result=subprocess.run(argv,input=code,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,env=env)
+            self.assertNotEqual(result.returncode,0);self.assertIn('AssertionError',result.stdout)
+
     def test_final_wrapper_and_export_destinations_are_bound(self):
         cfg=load(ROOT/'out/config.json');binding=load(ROOT/'out/BINDING.json')
         exports=self.p.export_plan(ROOT/'out/operator',cfg,binding['run_key'])
@@ -337,13 +445,13 @@ class VehicleP(unittest.TestCase):
         cfg=load(ROOT/'configs/r1p.json');a=load(ROOT/'out/proof/loader_audit.json')
         a['eligible_by_family']['vqa']['room']=431
         a['tables']['vqa']['room']['final_cents']=cfg['type_mix']['streams']['vqa']['cells']['room']['cents']
-        a['eligible_by_family']['routing']={n:20000 for n in ROUTING}
+        a['eligible_by_family']['routing']={**{n:20000 for n in ROUTING},'units':a['unit_counts']['sampling_eligible']}
         a['tables']['routing']={n:dict(final_cents=c['cents']) for n,c in cfg['type_mix']['streams']['routing']['cells'].items()}
         gate=required_families(cfg,a)
         self.assertEqual(gate['status'],'PASS')
-        self.assertEqual({x['family'] for x in gate['absent_on_P']},{'recovery','size','units'} | ({'room'} if not cfg['type_mix']['streams']['vqa']['cells']['room']['cents'] else set()))
+        self.assertEqual({x['family'] for x in gate['absent_on_P']},{'recovery','size','units/cm','units/in'} | ({'room'} if not cfg['type_mix']['streams']['vqa']['cells']['room']['cents'] else set()))
         self.assertTrue(all(x['reason'] for x in gate['absent_on_P']))
-        self.assertNotIn('units',gate['required']['routing'])
+        self.assertIn('units',gate['required']['routing'])
         a['eligible_by_family']['routing']['absolute_distance']=0
         gate=required_families(cfg,a);self.assertEqual(gate['status'],'FAIL')
         self.assertIn('routing/absolute_distance',gate['missing'])
@@ -380,7 +488,7 @@ class VehicleP(unittest.TestCase):
 
     def test_units_refused_when_unbound(self):
         cfg=load(ROOT/'configs/r1p.json');mix=cfg['type_mix']
-        self.assertIsNone(mix['unit_rows']);self.assertEqual(mix['streams']['routing']['cells']['units']['cents'],0)
+        mix['unit_rows']=None;mix['streams']['routing']['cells']['units']['cents']=0
         mix['streams']['routing']['cells']['units']['cents']=1
         with self.assertRaisesRegex(ValueError,'unbound'):m.validate(mix,cfg['recipe'])
         mix['streams']['routing']['cells']['units']['cents']=0
@@ -393,7 +501,7 @@ class VehicleP(unittest.TestCase):
         from student_pilot.vehicle_p import unit_name,required_families,ROUTING
         import gzip,contextlib,io
         root=temp();templates={}
-        # Test-only packing restores omitted fields in the diagnostic slice. Production binding never packs.
+        # This fixture supplies packed rows directly; slice packing has a separate opt-in test.
         slices=Path('/scratch/jjyeung/orch_n30/tree_rebuild_w/work/rows_slices/slices_final/a0_units.jsonl')
         with slices.open() as f:
             for line in f:
@@ -419,7 +527,7 @@ class VehicleP(unittest.TestCase):
                 row=copy.deepcopy(templates[unit]);row['qid']=row['ground_record']['qid']='fixture_'+unit+'_'+str(i)
                 rows.append(row)
         source=root/'faithful.jsonl';source.write_text(''.join(json.dumps(r,sort_keys=True)+'\n' for r in rows))
-        cfg=load(ROOT/'configs/r1p.json');parent=load(ROOT/'out/proof/selection/r.json')
+        cfg=load(ROOT/'configs/r1p.json');parent=parent_selection()
         manifest=load(ROOT/'work/records/pool_manifest.json');indices=Path('/scratch/jjyeung/orch_n30/cont_ops/work/h1/build/fx/k')
         with contextlib.redirect_stdout(io.StringIO()):
             candidate,binding=build(source,sha(source),parent,manifest,cfg['s1_routing']['catalog'],indices,root/'bound')
@@ -467,12 +575,65 @@ class VehicleP(unittest.TestCase):
         bad=copy.deepcopy(rows[0]);bad['student_input']['frames']=[]
         with self.assertRaisesRegex(ValueError,'frame pins'):inspect_rows(json.dumps(bad).encode())
 
+    def test_optional_unit_slice_packing_and_native_binding(self):
+        import gzip,contextlib,io
+        from unit_binding import pack_slice,build,regenerate,pin
+        from student_pilot import ground_rows,s1_pool
+        from student_pilot.vehicle_p import unit_name
+        source=Path('/scratch/jjyeung/orch_n30/rows_r1/out/units_p_slice_v3/rows.jsonl')
+        before=sha(source);metadata=load(source.parent/'COUNTS.json');self.assertEqual(before,metadata['rows_sha256'])
+        counts=Counter();first=None
+        with source.open() as stream:
+            for line in stream:
+                row=json.loads(line);first=first or row
+                envelope=ground_rows.pack(dict(row['ground_record'],suffix=row['target']),row['provenance'])
+                packed={**row,'events':envelope['events']}
+                for key,value in envelope.items():
+                    if key in row and key!='source_qid':self.assertEqual(row[key],value)
+                s1_pool.validate_source_row(packed,'packed');counts[unit_name(row)]+=1
+        self.assertEqual(sum(counts.values()),metadata['kept']);self.assertEqual(dict(counts),{'ft':683,'in':64})
+        root=temp();fixture=root/'slice.jsonl';fixture.write_text(json.dumps(first)+'\n')
+        d,scene=first['provenance']['alias'].split('/');ids=first['frame_indices']
+        frames=[dict(d=d,s=scene,i=i,path='/data2/k6tk/aa/'+('a'*64)+'.png',sha256='a'*64) for i in ids]
+        (root/'map.gz').write_bytes(gzip.compress(''.join(json.dumps(r)+'\n' for r in frames).encode(),mtime=0))
+        (root/'plan.gz').write_bytes(gzip.compress(json.dumps({'v':{scene:{'g':d,'raw_n':max(ids)+1}}}).encode(),mtime=0))
+        write(root/'fps.json',{'schema':'s1-fps-authority-v1','by_scene':{d+'/'+scene:24.0}})
+        authority={k:pin(root/n) for k,n in [('frame_map','map.gz'),('frame_plan','plan.gz'),('fps_authority','fps.json')]}
+        parent=parent_selection();dest=root/'packed.jsonl'
+        receipt=pack_slice(fixture,sha(fixture),authority,authority,parent,dest)
+        packed=json.loads(dest.read_text());self.assertEqual(len(packed['student_input']['frames']),32)
+        for k,v in first.items():self.assertEqual(packed[k],v)
+        self.assertEqual(packed['source_qid'],first['source_qid']);self.assertFalse(receipt['payload_changed'])
+        cfg=load(ROOT/'configs/r1p.json');manifest=load(ROOT/'work/records/pool_manifest.json')
+        indices=Path('/scratch/jjyeung/orch_n30/cont_ops/work/h1/build/fx/k')
+        with contextlib.redirect_stdout(io.StringIO()):
+            selected,bound=build(dest,sha(dest),parent,manifest,cfg['s1_routing']['catalog'],indices,root/'bound')
+            self.assertEqual(selected,regenerate(parent,bound,root/'bound',indices,cfg['s1_routing']['catalog'],root/'regenerated'))
+        bad=copy.deepcopy(authority);bad['frame_map']['sha256']='0'*64
+        with self.assertRaisesRegex(ValueError,'authority differs'):pack_slice(fixture,sha(fixture),bad,authority,parent,root/'bad.jsonl')
+        with self.assertRaisesRegex(ValueError,'slice SHA differs'):pack_slice(fixture,'0'*64,authority,authority,parent,root/'bad.jsonl')
+        altered=copy.deepcopy(first);altered['answer']='999'
+        fixture.write_text(json.dumps(altered)+'\n')
+        with self.assertRaisesRegex(ValueError,'payload'):pack_slice(fixture,sha(fixture),authority,authority,parent,root/'bad.jsonl')
+        fixture.write_text(json.dumps(first)+'\n')
+        # The real CLI refuses packing unless all explicit pins are supplied.
+        current=load(ROOT/'out/BINDING.json')
+        command=[sys.executable,'-B',str(ROOT/'tools/rebind.py'),'--receipt',current['source_receipt']['path'],
+                 '--receipt-sha256',current['receipt_sha256'],'--pack-unit-slice']
+        result=subprocess.run(command,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+        self.assertNotEqual(result.returncode,0);self.assertIn('requires pinned unit rows',result.stdout)
+        self.assertIsNotNone(current['unit_binding']);self.assertEqual(before,sha(source))
+        write(ROOT/'out/proof/UNIT_PACKING_CHECK.json',dict(status='PASS',source=pin(source),counts=dict(counts),
+            sealed_event_reconstruction_rows=sum(counts.values()),existing_payload_unchanged=True,
+            fixture_packing=receipt,fixture_native_binding_and_regeneration=True,production_bound=False,
+            limitation='Synthetic frame pins test the native resolver and binding path; Orchard must supply real RGB authorities and bytes.'))
+
     def test_real_unit_slice_rebind_refuses_unpacked_input_without_mutation(self):
-        source=Path('/scratch/jjyeung/orch_n30/rows_r1/out/units_p_slice_v2/rows.jsonl')
+        source=Path('/scratch/jjyeung/orch_n30/rows_r1/out/units_p_slice_v3/rows.jsonl')
         root=temp();fixture=root/'rows.jsonl';fixture.write_bytes(source.read_bytes());before=sha(source)
         from student_pilot.vehicle_p import unit_name
         rows=[json.loads(line) for line in fixture.read_text().splitlines()]
-        self.assertEqual(Counter(unit_name(row) for row in rows),{'ft':1130,'in':94})
+        self.assertEqual(Counter(unit_name(row) for row in rows),{'ft':683,'in':64})
         binding=load(ROOT/'out/BINDING.json');dest=root/'packet';dest.mkdir(mode=0o700)
         (dest/'ADMISSION_BY_TYPE.json').write_bytes((ROOT/'out/ADMISSION_BY_TYPE.json').read_bytes())
         command=[sys.executable,'-B',str(ROOT/'tools/rebind.py'),'--receipt',binding['source_receipt']['path'],
@@ -484,8 +645,8 @@ class VehicleP(unittest.TestCase):
         self.assertNotEqual(result.returncode,0);self.assertIn("Unit rows require top-level events",result.stdout)
         self.assertFalse((dest/'BINDING.json').exists())
         self.assertEqual(sha(source),before);self.assertEqual(sha(fixture),before)
-        self.assertIsNone(load(ROOT/'out/BINDING.json')['unit_binding'])
-        write(ROOT/'out/proof/UNIT_CANDIDATE.json',dict(status='REFUSED_UNBOUND',source={'path':str(source),'sha256':before},fixture={'path':str(fixture),'sha256':sha(fixture)},counts={'ft':1130,'in':94,'cm':0},command=command,returncode=result.returncode,reason='Missing top-level events and all 32 frame pins',log={'path':str(root/'rebind.log'),'sha256':sha(root/'rebind.log')},production_bound=False))
+        self.assertEqual(load(ROOT/'out/BINDING.json'),binding)
+        write(ROOT/'out/proof/UNIT_CANDIDATE.json',dict(status='DIRECT_UNPACKED_INPUT_REFUSED',source={'path':str(source),'sha256':before},fixture={'path':str(fixture),'sha256':sha(fixture)},counts={'ft':683,'in':64,'cm':0},command=command,returncode=result.returncode,reason='Missing top-level events and all 32 frame pins',log={'path':str(root/'rebind.log'),'sha256':sha(root/'rebind.log')},production_bound=False))
 
     def test_unit_allowlist_populations_cap_and_named_absences(self):
         import sqlite3
@@ -532,5 +693,8 @@ class VehicleP(unittest.TestCase):
             self.assertNotIn('--gres',script);self.assertIn('CUDA_VISIBLE_DEVICES',script)
         with patch.dict(os.environ,dict(SLURM_JOB_PARTITION='advanced',CUDA_VISIBLE_DEVICES='0')):
             with self.assertRaisesRegex(ValueError,'CPU-only'):proof.proof_allocation({'partition':'advanced'})
+
+from test_derivation_pre_submit import DerivationEvidence
+from test_fix8 import Fix8
 
 if __name__=='__main__':unittest.main(verbosity=2)

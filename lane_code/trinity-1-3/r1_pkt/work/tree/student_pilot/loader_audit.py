@@ -87,12 +87,36 @@ def unit_counts(source, allowlist=('ft',)):
     return dict(eligible=sum(by_unit.values()),sampling_eligible=sum(by_unit[u] for u in allowlist if by_unit[u]>=100),by_unit={u:by_unit[u] for u in UNITS},by_dataset=dict(by_dataset),by_unit_dataset=dict(by_unit_dataset))
 
 
-PREFIXES=('scannetpp/','scannetppv2/','scannet','arkit','unknown')
+PREFIXES=('scannetpp/','scannetppv2/','scannet/','arkitscenes/','unknown')
+CENSUS_CODES={prefix:'g'+str(i) for i,prefix in enumerate(PREFIXES[:-1])}
+CENSUS_CODE_MAP={code:prefix for prefix,code in CENSUS_CODES.items()}
+CENSUS_CODE_MAP_BYTES=(json.dumps(CENSUS_CODE_MAP,sort_keys=True,separators=(',',':'))+'\n').encode()
+CENSUS_CODE_MAP_SHA256=hashlib.sha256(CENSUS_CODE_MAP_BYTES).hexdigest()
+
+def opaque_keys(value):
+    """Encode dataset components in printed keys without changing stored payloads."""
+    if isinstance(value,dict):
+        result={}
+        for key,item in value.items():
+            encoded=key
+            if isinstance(key,str):
+                for prefix,code in CENSUS_CODES.items():
+                    encoded=re.sub(r'(?<![A-Za-z0-9_])'+re.escape(prefix[:-1])+r'(?=/|$)',code,encoded)
+                if key in CENSUS_CODES:encoded=CENSUS_CODES[key]
+            if encoded in result:raise ValueError('Opaque audit key collision')
+            result[encoded]=opaque_keys(item)
+        return result
+    if isinstance(value,list):return [opaque_keys(item) for item in value]
+    return value
+
+def print_record(value):
+    print(json.dumps(opaque_keys(value),sort_keys=True),flush=True)
+
 
 def row_metadata(row,stream,family):
     raw=row.get('routing',row)
-    canonical=raw.get('provenance',{}).get('canonical',row.get('provenance',{}).get('canonical',''))
-    prefix=next((p for p in PREFIXES[:-1] if canonical.startswith(p if p.endswith('/') else p+'/')),'unknown')
+    canonical=raw.get('canonical') or raw.get('provenance',{}).get('canonical') or row.get('provenance',{}).get('canonical','')
+    prefix=next((p for p in PREFIXES[:-1] if canonical.startswith(p)),'unknown')
     answer=str(row.get('answer','')).strip().lower()
     options=row.get('student_input',{}).get('options',row.get('options',[]))
     if isinstance(options,list):
@@ -121,17 +145,21 @@ def draw_breakdown(metadata,draws,*,routing_available):
             if stream=='routing' and row['family']=='absolute_distance':
                 eligible[row['prefix']]+=1;drawn[row['prefix']]+=n
     total=sum(facing.values());den=away['draws']
+    distance_rows=sum(eligible.values());unknown=eligible['unknown']
+    prefix_check=dict(status=('FAIL' if unknown*100>distance_rows else 'PASS') if routing_available else 'NOT_RUN',
+        unknown_rows=unknown if routing_available else None,total_rows=distance_rows if routing_available else None,
+        unknown_share=unknown/distance_rows if routing_available and distance_rows else None,max_unknown_share=0.01)
     return dict(facing={k:dict(draws=facing[k],share_of_facing=facing[k]/total if total else None) for k in ('toward','away')},
         away_hard=dict(draws=den,back_draws=away['back_draws'],back_share=away['back_draws']/den if den else None,
             exact_back_draws=away['exact_back_draws'],exact_back_share=away['exact_back_draws']/den if den else None,
             back_definition='Decoded option contains the word back, including back-left and back-right; exact_back counts only back.'),
         units=dict(status='MEASURED' if routing_available else 'NOT_RUN',draws={u:units[u] if routing_available else None for u in ('cm','ft','in')}),
-        routing_absolute_distance=dict(status='MEASURED' if routing_available else 'NOT_RUN',
+        routing_absolute_distance=dict(status='MEASURED' if routing_available else 'NOT_RUN',prefix_check=prefix_check,
             eligible={p:eligible[p] if routing_available else None for p in PREFIXES},drawn={p:drawn[p] if routing_available else None for p in PREFIXES}))
 
 
 def print_breakdown(report):
-    print(json.dumps(dict(loader_draw_breakdown=report['draw_breakdown']),sort_keys=True),flush=True)
+    print_record(dict(loader_draw_breakdown=report['draw_breakdown'],census_code_map_sha256=CENSUS_CODE_MAP_SHA256))
 
 
 def audit(cfg,receipt,*,local_vqa_only=False):
@@ -171,11 +199,13 @@ def audit(cfg,receipt,*,local_vqa_only=False):
             if count and len(traces[stream].get(name,[]))<min(5,count):raise ValueError('Missing bound traces')
             if by_family[stream+'/'+name]>4*count:raise ValueError('Family draws exceed four times eligible rows: '+stream+'/'+name)
     shares=lambda counts_: {k:dict(draws=v,rows_per_step=v/cfg['recipe']['steps'],share_of_stream=v/by_stream[k.split('/')[0]]) for k,v in sorted(counts_.items())}
-    return dict(unit_counts=unit_counts(receipt['streams']['routing'],cfg['type_mix'].get('units_allowlist',['ft'])) if not local_vqa_only else {},schema='loader-audit-v1',status='LOCAL_VQA_ONLY' if local_vqa_only else 'PASS',
+    breakdown=draw_breakdown(metadata,repeats,routing_available=not local_vqa_only)
+    prefix_check=breakdown['routing_absolute_distance']['prefix_check']
+    return dict(unit_counts=unit_counts(receipt['streams']['routing'],cfg['type_mix'].get('units_allowlist',['ft'])) if not local_vqa_only else {},schema='loader-audit-v1',status='LOCAL_VQA_ONLY' if local_vqa_only else prefix_check['status'],
         config_identity=receipt['config_sha256'],planned_steps=cfg['recipe']['steps'],eligible_by_family=populations,
         eligible_by_question_type={s:dict(Counter(t.values())) for s,t in types.items()},
         by_family=shares(by_family),by_question_type=shares(by_type),stream_draws=dict(by_stream),
-        draw_breakdown=draw_breakdown(metadata,repeats,routing_available=not local_vqa_only),
+        draw_breakdown=breakdown,census_code_map_sha256=CENSUS_CODE_MAP_SHA256,
         maximum_observed_repeats=max(repeats.values(),default=0),tables=value['tables'],excluded=exclusions,
         traces=traces,first_step=first,source_streams=receipt['streams'],full_production_admission=not local_vqa_only)
 
@@ -195,14 +225,15 @@ def main(root):
     write(directory/'l.json',result)
     for stream,groups in result['traces'].items():
         for name,rows in groups.items():
-            for row in rows:print(json.dumps(dict(loader_trace=True,stream=stream,family=name,**row),sort_keys=True),flush=True)
+            for row in rows:print_record(dict(loader_trace=True,stream=stream,family=name,**row))
     disk=plan(original['recipe'],original['checkpoint_disk_guard']['reserve_bytes'])
     selection=load(pinned(original['s1_routing']['selection']))
     no_rooms=not any(set(v.get('per_type',{}))&{'room_size_estimation','absolute_size_room'} for v in selection['sources'].values() if v['status']=='ELIGIBLE')
     no_rooms=no_rooms and not any(k.endswith((':room_size_estimation',':absolute_size_room')) and v for k,v in result['excluded'].get('routing',{}).items())
     checks=dict(disk_plan=dict(status='PASS' if disk==original['checkpoint_disk_guard'] else 'FAIL',plan=disk),
         routing_selection=dict(status='PASS' if no_rooms else 'FAIL',materialized_room_rows_zero=no_rooms,pin=file_pin(pinned(original['s1_routing']['selection']))),
-        loader_audit=dict(status=result['status'],pin=file_pin(directory/'l.json')),
+        loader_audit=dict(status=result['status'],pin=file_pin(directory/'l.json'),
+            **{k:v for k,v in result['draw_breakdown']['routing_absolute_distance']['prefix_check'].items() if k!='status'}),
         required_families=required_families(original,result))
     import shutil
     executables={}
@@ -210,7 +241,7 @@ def main(root):
         path=sys.executable if name=='python' else shutil.which(name)
         if path is not None:executables[name]=file_pin(Path(path).resolve())
     checks['staged_binaries']=dict(status='PASS',executables=executables)
-    print(json.dumps(dict(required_families=checks['required_families']),sort_keys=True),flush=True)
+    print_record(dict(required_families=checks['required_families']))
     report=dict(absent_on_P=checks['required_families']['absent_on_P'],status='PASS' if all(v['status']=='PASS' for v in checks.values()) else 'FAIL',checks=checks,
         original_config_identity=identity(original),effective_config_identity=identity(cfg),production_authorized=False)
     write(directory/'a.json',report)

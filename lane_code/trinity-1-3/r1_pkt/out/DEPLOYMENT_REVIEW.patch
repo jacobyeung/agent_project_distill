@@ -5,13 +5,13 @@
  RR=runs/aws128p_20261025
  EPOCHS=/home/jjyeung/6d00e578
 -S=/tmp/jjyeung/a_17c4ffa4/root
-+S=/tmp/jjyeung/a_125c4c87/root
++S=/tmp/jjyeung/a_78d0a06c/root
  U=$S/aws/u
  HM=$HX
 -NX=/tmp/jjyeung/a_17c4ffa4/x_${SLURM_JOB_ID:-local}
 -NR=/tmp/jjyeung/a_17c4ffa4/runs
-+NX=/tmp/jjyeung/a_125c4c87/x_${SLURM_JOB_ID:-local}
-+NR=/tmp/jjyeung/a_125c4c87/runs
++NX=/tmp/jjyeung/a_78d0a06c/x_${SLURM_JOB_ID:-local}
++NR=/tmp/jjyeung/a_78d0a06c/runs
  CUR=$HX/k/0.json
  COMMIT=$(/usr/bin/python3 -I -c 'import json, sys; print(json.load(open(sys.argv[1]))["commit"])' "$CUR")
  tk_step() {
@@ -60,7 +60,7 @@
      /usr/bin/python3 -B "$HX/b/p0.py" "$HX" p --metadata-only
  source "$HX/b/c.sh"
 -export TK_JOBDIR=/tmp/jjyeung/a_17c4ffa4/jobs/${SLURM_JOB_ID:?}.preflight
-+export TK_JOBDIR=/tmp/jjyeung/a_125c4c87/jobs/${SLURM_JOB_ID:?}.preflight
++export TK_JOBDIR=/tmp/jjyeung/a_78d0a06c/jobs/${SLURM_JOB_ID:?}.preflight
  trap 'for report in "$NX/o/${SLURM_JOB_ID}".preflight.*.json; do [[ ! -f "$report" ]] || cp "$report" "$HX/o/"; done' EXIT
  tk_stage preflight
  /usr/bin/python3 -I - "$CUR" "$HX" "$NX" "$IN" "$SLURM_JOB_ID" <<'PYINPUTS'
@@ -71,7 +71,7 @@
  export TK_RUNS_DIR="$(/usr/bin/python3 -I -c 'import json,pathlib,sys; print(pathlib.Path(json.load(open(sys.argv[1]))["run_directory"]).parent)' "$HX/k/launch.json")"
  source "$HX/b/c.sh"
 -export TK_JOBDIR=/tmp/jjyeung/a_17c4ffa4/jobs/${SLURM_JOB_ID:?}.${1:-x}
-+export TK_JOBDIR=/tmp/jjyeung/a_125c4c87/jobs/${SLURM_JOB_ID:?}.${1:-x}
++export TK_JOBDIR=/tmp/jjyeung/a_78d0a06c/jobs/${SLURM_JOB_ID:?}.${1:-x}
  mkdir -p "$TK_JOBDIR" "$HM/o"
  if [[ "${1:-}" == p ]] && ! /usr/bin/python3 -I -c 'import json,sys; sys.exit(0 if json.load(open(sys.argv[1])).get("in_job_admission") else 1)' "$HX/k/launch.json"; then
      export TK_LIGHT=1
@@ -83,15 +83,15 @@
  export TK_JOB_START="$(date +%s)"   # one wall clock for restore, staging, admission and training (job.sh must keep it)
 -KH=/project/community/jjyeung/okh7/x_3fdda0fb RUN=/tmp/jjyeung/a_17c4ffa4/runs/17c4ffa4
 -RS=/project/community/jjyeung/okh7/r/39504485 LOG=$KH/o/${SLURM_JOB_ID}.w.steps
-+KH=/project/community/jjyeung/okh7/x_1130b378 RUN=/tmp/jjyeung/a_125c4c87/runs/125c4c87
-+RS=/project/community/jjyeung/okh7/r/125c4c87 LOG=$KH/o/${SLURM_JOB_ID}.w.steps
++KH=/project/community/jjyeung/okh7/x_6f8ed106 RUN=/tmp/jjyeung/a_78d0a06c/runs/78d0a06c
++RS=/project/community/jjyeung/okh7/r/78d0a06c LOG=$KH/o/${SLURM_JOB_ID}.w.steps
  step() { printf '%s | %s\n' "$(date -u +%FT%TZ)" "$*" >> "$LOG"; }
  newest() {  # newest verified slot: prints "slot step" (empty if none)
      for s in A B; do [[ -f $RS/$s.json ]] && /usr/bin/python3 -I -c 'import json,sys; d=json.load(open(sys.argv[1])); print(d["slot"], d["step"]) if d.get("verified") is True else None' "$RS/$s.json"; done | sort -k2,2n | tail -1
  }
  # BEGIN directory preflight
 -NL=/tmp/jjyeung/a_17c4ffa4
-+NL=/tmp/jjyeung/a_125c4c87
++NL=/tmp/jjyeung/a_78d0a06c
  private_dir "$KH"
  for p in /tmp/jjyeung "$NL" "$NL/runs" "$RUN" "$O/r" "$RS"; do
      [[ ! -e "$p" && ! -L "$p" ]] || private_dir "$p"
@@ -99,7 +99,7 @@
  for p in "$NL/runs"/* "$NL/runs"/.[!.]* "$NL/runs"/..?*; do
      [[ ! -e "$p" && ! -L "$p" ]] && continue
 -    [[ "${p##*/}" == 17c4ffa4 && -d "$p" && ! -L "$p" ]] || { echo 'foreign run directory; refusing' >&2; exit 3; }
-+    [[ "${p##*/}" == 125c4c87 && -d "$p" && ! -L "$p" ]] || { echo 'foreign run directory; refusing' >&2; exit 3; }
++    [[ "${p##*/}" == 78d0a06c && -d "$p" && ! -L "$p" ]] || { echo 'foreign run directory; refusing' >&2; exit 3; }
  done
  mkdir -p -m 700 /tmp/jjyeung "$NL" "$NL/runs" "$RUN" "$O/r" "$RS" "$KH/o" || exit 3
  for p in "$NL" "$NL/runs" "$RUN" "$RS"; do private_dir "$p"; done
@@ -116,23 +116,30 @@
  step "export sessions present for run ${RUN##*/}"
  # Actual archive contents of every new staging entry, before c.sh extracts them (vt.py; sealed k/0.json pinned inside).
 -/usr/bin/python3 -I /project/community/jjyeung/okh7/i_1be16f28/v.py "$KH" /project/community/jjyeung/okh7/x_07ca49df/k/0.json > "$KH/o/${SLURM_JOB_ID}.vt.json" 2>&1 \
-+/usr/bin/python3 -I /project/community/jjyeung/okh7/i_1130b378/v.py "$KH" /project/community/jjyeung/okh7/i_1130b378/b0.json > "$KH/o/${SLURM_JOB_ID}.vt.json" 2>&1 \
++/usr/bin/python3 -I /project/community/jjyeung/okh7/i_6f8ed106/v.py "$KH" /project/community/jjyeung/okh7/i_6f8ed106/b0.json > "$KH/o/${SLURM_JOB_ID}.vt.json" 2>&1 \
      || { step "refused: staging entry check: $(tail -c 300 "$KH/o/${SLURM_JOB_ID}.vt.json")"; exit 5; }
  step "staging entries verified"
  read -r slot sstep < <(newest || true)
 --- a/s.sh
 +++ b/s.sh
-@@ -10,8 +10,8 @@
+@@ -10,14 +10,14 @@
      }
  }
  private_dir "$O"
 -BUN=/project/community/jjyeung/okh7/i_1be16f28
 -KH=/project/community/jjyeung/okh7/x_3fdda0fb
-+BUN=/project/community/jjyeung/okh7/i_1130b378
-+KH=/project/community/jjyeung/okh7/x_1130b378
++BUN=/project/community/jjyeung/okh7/i_6f8ed106
++KH=/project/community/jjyeung/okh7/x_6f8ed106
  private_dir "$BUN"
  private_dir "$KH"
  cd "$BUN"
+ sha256sum -c sums.txt
+ # The separate approval record is supplied by the operator, never inferred from 4.json.
+-python3 -B - "$KH" "$BUN" <<'P'
++env -u PYTHONOPTIMIZE python3 -I -B - "$KH" "$BUN" <<'P'
+ import hashlib,json,sys,os,re
+ from pathlib import Path
+ k,b=map(Path,sys.argv[1:]);go=json.loads((b/'go.json').read_text());ids=json.loads((b/'ids.json').read_text())
 @@ -34,7 +34,9 @@
  assert proof.get('effective_config_verified') is True and proof.get('first_batch_executed') is False
  assert proof.get('training_executed') is False and proof.get('admission_result', dict()).get('status')=='PREPARED'
@@ -143,4 +150,4 @@
  sys.path.insert(0,str(k/'b'));import a;a.main(k)
  P
 -TZ=UTC env -u TK_JOB_START sbatch -J a15_cot_ap5ee9da63 -o /dev/null -e "$KH/o/%j.err"   -A mt01 -p advanced -N1 --ntasks=1 --gres=gpu:4 -c 48 --mem=800G -t 13:00:00 --signal=B:USR1@3600 --no-requeue "$BUN/jb.sh"
-+TZ=UTC env -u TK_JOB_START sbatch -J a15_cot_ap125c4c87 -o /dev/null -e "$KH/o/%j.err"   -A mt01 -p advanced -N1 --ntasks=1 --gres=gpu:4 -c 48 --mem=800G -t 13:00:00 --signal=B:USR1@3600 --no-requeue "$BUN/jb.sh"
++TZ=UTC env -u TK_JOB_START sbatch -J a15_cot_ap78d0a06c -o /dev/null -e "$KH/o/%j.err"   -A mt01 -p advanced -N1 --ntasks=1 --gres=gpu:4 -c 48 --mem=800G -t 13:00:00 --signal=B:USR1@3600 --no-requeue "$BUN/jb.sh"

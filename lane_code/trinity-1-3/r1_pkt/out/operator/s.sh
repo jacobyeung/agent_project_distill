@@ -10,14 +10,14 @@ private_dir() {
     }
 }
 private_dir "$O"
-BUN=/project/community/jjyeung/okh7/i_1130b378
-KH=/project/community/jjyeung/okh7/x_1130b378
+BUN=/project/community/jjyeung/okh7/i_6f8ed106
+KH=/project/community/jjyeung/okh7/x_6f8ed106
 private_dir "$BUN"
 private_dir "$KH"
 cd "$BUN"
 sha256sum -c sums.txt
 # The separate approval record is supplied by the operator, never inferred from 4.json.
-python3 -B - "$KH" "$BUN" <<'P'
+env -u PYTHONOPTIMIZE python3 -I -B - "$KH" "$BUN" <<'P'
 import hashlib,json,sys,os,re
 from pathlib import Path
 k,b=map(Path,sys.argv[1:]);go=json.loads((b/'go.json').read_text());ids=json.loads((b/'ids.json').read_text())
@@ -39,4 +39,4 @@ for name in ('disk_plan','routing_selection','empty_root','temporary_paths','run
 
 sys.path.insert(0,str(k/'b'));import a;a.main(k)
 P
-TZ=UTC env -u TK_JOB_START sbatch -J a15_cot_ap125c4c87 -o /dev/null -e "$KH/o/%j.err"   -A mt01 -p advanced -N1 --ntasks=1 --gres=gpu:4 -c 48 --mem=800G -t 13:00:00 --signal=B:USR1@3600 --no-requeue "$BUN/jb.sh"
+TZ=UTC env -u TK_JOB_START sbatch -J a15_cot_ap78d0a06c -o /dev/null -e "$KH/o/%j.err"   -A mt01 -p advanced -N1 --ntasks=1 --gres=gpu:4 -c 48 --mem=800G -t 13:00:00 --signal=B:USR1@3600 --no-requeue "$BUN/jb.sh"

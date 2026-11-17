@@ -51,6 +51,8 @@ for r in rows:
 remaining=[r for r in rows if r['binds'] and 'Selection and metadata/staging binding closed' not in r['disposition']]
 (B/'CARRIED_BLOCKERS.json').write_text(json.dumps(dict(r1=remaining,a2_retained=[r for r in rows if not r['binds']],
  additional=[dict(name='R1_PRODUCTION_ROW_PLAN_MISSING',missing='Full filtered populations, all-stream store hashes, final native indices, continuation identity and P boundary sidecar'),
+ dict(name='R1_ALL_STREAM_IDENTITIES_REQUIRED',missing='Authenticated pose, VQA, routing and pointing store identities from final native preparation'),
+ dict(name='R1_CONTINUATION_IDENTITIES_REQUIRED',missing='Nonempty continuation configuration identity and final row-plan SHA'),
  dict(name='REMOTE_ROW_SOURCE_UNVERIFIED',missing='Verified deployed sources for v7, recovery-v2, room-v2, units and rebuilt routing'),
  dict(name='R1_HOST_STAGING_AND_SELECTION_INPUTS_MISSING',missing='Complete native sandbox/staging closure, regenerated selection pin and the CPU host proof'),
  dict(name='P_EXPORT_PROGRESS_RECEIPT_MISSING',missing='A real P R1 export plus authenticated config/store/row-plan/sampler-position receipt'),

@@ -4,9 +4,21 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--out',type=Path,default=ROOT/'out');args=parser.parse_args();out=args.out
+    parser=argparse.ArgumentParser();parser.add_argument('--out',type=Path,default=ROOT/'out');parser.add_argument('--partition',choices=('advanced','general'));args=parser.parse_args();out=args.out
+    partition=args.partition or json.loads((out/'BINDING.json').read_text())['proof_partition']
+    if partition not in ('advanced','general'):raise ValueError('Invalid proof partition')
     text=(ROOT/'work/proof_parent.py').read_text()
-    text=text.replace("HOME='/home/jjyeung'", "HOME='/tmp/jjyeung'")
+    text=text.replace("    result = dict(status='FAIL', rc=1, job=job, production_authorized=False,", "    result = dict(partition=os.environ.get('SLURM_JOB_PARTITION'),node=os.environ.get('SLURMD_NODENAME') or os.uname().nodename,status='FAIL', rc=1, job=job, production_authorized=False,")
+    text=text.replace('        host_preflight()', "        allocation=proof_allocation(authority)\n        result.update(allocation)\n        host_preflight()")
+    helper='''def proof_allocation(authority):
+    partition=os.environ.get('SLURM_JOB_PARTITION')
+    if partition not in ('advanced','general') or partition!=authority['partition']:raise ValueError('Proof partition differs')
+    if os.environ.get('CUDA_VISIBLE_DEVICES')!='':raise ValueError('Proof must run CPU-only')
+    if os.environ.get('SLURM_GPUS_ON_NODE','0') not in ('','0'):raise ValueError('CPU proof allocated GPUs')
+    return dict(partition=partition,node=os.environ.get('SLURMD_NODENAME') or os.uname().nodename)
+
+'''
+    text=text.replace('def main(authority):',helper+'def main(authority):')
     text=text.replace("def host_preflight():", "def host_preflight():\n    inventory = {}")
     text=text.replace("    for name in ('/bin/bash', '/usr/bin/python3') + HOST_TOOLS:", "    for name in ('bash', 'python3', 'sed', 'head', 'gzip', 'nice', 'ionice', 'which', 'env') + HOST_TOOLS:")
     text=text.replace("            raise ValueError('Production host program unavailable: '+name)", "            raise ValueError('Production host program unavailable: '+name)\n        path = Path(shutil.which(name, path=HOST_PATH)).resolve()\n        inventory[name] = dict(path=str(path), sha256=sha(path))\n    inventory['driver'] = dict(path=str(Path(sys.executable).resolve()), sha256=sha(Path(sys.executable).resolve()))\n    return inventory")
@@ -45,8 +57,10 @@ def main():
 
 '''
     text=text.replace('def main(authority):',helper+'def main(authority):')
-    text=text.replace("        result.update(checks=dict(empty_root=", "        paths=temporary_paths(args,kh,work)\n        result.update(checks=dict(temporary_paths=paths,empty_root=")
-    text=text.replace("        result.update(config_identity=identity(cfg),", "        result.update(checks=dict(empty_root=dict(status='PASS',path=str(work)),runtime_binaries=dict(status='PASS',binaries=binaries)),config_identity=identity(cfg),")
+    anchor="        args = command(bw, kh, work, rs)"
+    if text.count(anchor)!=1:raise ValueError("Parent command boundary differs")
+    text=text.replace(anchor,anchor+"\n        paths=temporary_paths(args,kh,work)")
+    text=text.replace("        result.update(config_identity=identity(cfg),", "        result.update(checks=dict(temporary_paths=paths,empty_root=dict(status='PASS',path=str(work)),runtime_binaries=dict(status='PASS',binaries=binaries)),config_identity=identity(cfg),")
     text=text.replace("        result.update(execute(args, script, kh/'o'/(job+'.proof.log'), lambda: verify_prepared(kh, physical)))", """        outcome=execute(args, script, kh/'o'/(job+'.proof.log'), lambda: verify_prepared(kh, physical))
         result.update(outcome)
         audit_path=physical/'inputs/a.json'
@@ -55,28 +69,29 @@ def main():
             if audit['original_config_identity']!=authority['identity']:raise ValueError('Loader proof identity differs')
             if sha(physical/'inputs/l.json')!=audit['checks']['loader_audit']['pin']['sha256']:raise ValueError('Loader audit bytes differ')
             result['checks'].update(audit['checks'])
+            result['absent_on_P']=audit['checks']['required_families']['absent_on_P']
         else:
             result['checks']['loader_audit']=dict(status='NOT_RUN')
         bad=[]
         for directory,children,files in os.walk(work):
             path=Path(directory)
             if path.is_symlink() or stat.S_IMODE(path.stat().st_mode)!=0o700:bad.append(str(path))
-        result['checks']['private_directories']=dict(status='FAIL' if bad else 'PASS',bad=bad)
-        required={'disk_plan','routing_selection','empty_root','temporary_paths','runtime_binaries','private_directories','loader_audit','required_families'}
+        result['checks']['directory_modes']=dict(status='FAIL' if bad else 'PASS',bad=bad)
+        required={'disk_plan','routing_selection','empty_root','temporary_paths','runtime_binaries','directory_modes','loader_audit','required_families'}
         if not required<=set(result['checks']) or any(result['checks'][k]['status']!='PASS' for k in required if k in result['checks']):
             result.update(status='FAIL',rc=result['rc'] or 1)
 """)
     before="            + '\\n/bin/bash \"$ROOT/b/r.sh\" p 0\\n')"
     after="""            + '\\n/bin/bash "$ROOT/b/r.sh" p 0\\n'
             + 'export TK_KIT_HOME="$ROOT"\\nsource "$ROOT/b/c.sh"\\ntk_bwrap\\ntk_env\\ntk_pythonpath p\\n'
-            + '"${BW[@]}" "$PILOT_VENV/bin/python" -B -m student_pilot.loader_audit "$X"\\n')"""
+            + '"${BW[@]}" "$PILOT_VENV/bin/python" -B - "$X" <<P\\nfrom student_pilot.loader_audit import main\\nimport sys\\nmain(sys.argv[1])\\nP\\n')"""
     if text.count(before)!=1:raise ValueError('Parent mode-p boundary differs')
     text=text.replace(before,after)
     source=out/'proof/p.py';source.write_text(text)
     binding=json.loads((out/'BINDING.json').read_text());identity=binding['config_identity']
     blob=base64.b64encode(zlib.compress(text.encode(),9)).decode();digest=hashlib.sha256(text.encode()).hexdigest()
     script='''#!/bin/bash -p
-#SBATCH -A mt01 -p general -N1 --ntasks=1 -c 48 --mem=800G -t 04:00:00
+#SBATCH -A mt01 -p PARTITION -N1 --ntasks=1 -c 48 --mem=800G -t 04:00:00
 #SBATCH --no-requeue
 set -euo pipefail
 umask 077
@@ -91,7 +106,7 @@ if authority['identity']!=IDENTITY:raise ValueError('Configuration differs')
 namespace={};exec(compile(raw,'p.py','exec'),namespace)
 raise SystemExit(namespace['main'](authority))
 P
-'''.replace('BLOB',repr(blob)).replace('DIGEST',repr(digest)).replace('IDENTITY',repr(identity))
+'''.replace('PARTITION',partition).replace('BLOB',repr(blob)).replace('DIGEST',repr(digest)).replace('IDENTITY',repr(identity))
     target=out/'proof'/('p_'+binding['run_key']+'.sh');target.write_text(script);target.chmod(0o700)
     print(json.dumps(dict(script=str(target),sha256=hashlib.sha256(script.encode()).hexdigest(),identity=identity)))
 if __name__=='__main__':main()

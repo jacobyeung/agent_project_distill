@@ -50,7 +50,9 @@ def main():
             (out/'operator'/name).read_text().splitlines(keepends=True),fromfile='a/'+name,tofile='b/'+name))
     (out/'DEPLOYMENT_REVIEW.patch').write_text(''.join(patch))
     run([ROOT/'tests/test_packet.py'],'tests.log')
-    run([ROOT/'tools/write_fix5.py'],'fix5.log')
+    subprocess.run([sys.executable,'-B',str(ROOT/'tools/write_fix8.py')],check=True)
+    run([ROOT/'tools/finalize.py'],'finalize.log')
+    subprocess.run([sys.executable,'-B',str(ROOT/'tools/write_fix8.py')],check=True)
     run([ROOT/'tools/finalize.py'],'finalize.log')
     print(json.dumps(dict(status='BUILT_BLOCKED',config_identity=binding['config_identity'],operator_archive_sha256=expected)))
 

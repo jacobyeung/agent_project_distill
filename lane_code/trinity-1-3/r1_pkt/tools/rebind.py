@@ -28,13 +28,19 @@ def main():
     p=argparse.ArgumentParser();p.add_argument('--receipt',type=Path,required=True);p.add_argument('--receipt-sha256',required=True)
     p.add_argument('--database',type=Path);p.add_argument('--mix',type=Path,default=ROOT/'configs/mix.json')
     p.add_argument('--unit-rows',type=Path);p.add_argument('--unit-rows-sha256');p.add_argument('--unit-cents',type=int,default=100)
+    p.add_argument('--pack-unit-slice',action='store_true');p.add_argument('--unit-frame-authority',type=Path);p.add_argument('--unit-frame-authority-sha256')
     p.add_argument('--units-allowlist',nargs='+',choices=('cm','ft','in'),default=['ft'])
     p.add_argument('--room-cents',type=int);p.add_argument('--exclude-qid-suffix')
     p.add_argument('--proof-partition',choices=('advanced','general'),default='advanced')
     p.add_argument('--size-selector',type=Path);p.add_argument('--room-receipt',type=Path)
     p.add_argument('--orchard-store',default='/project/community/jjyeung/okh7/s_8805de22/d.db')
     p.add_argument('--out',type=Path,default=ROOT/'out');p.add_argument('--reuse-census',action='store_true');p.add_argument('--skip-audit',action='store_true')
-    a=p.parse_args();out=a.out.resolve();out.mkdir(parents=True,exist_ok=True,mode=0o700)
+    a=p.parse_args()
+    if a.pack_unit_slice and not (a.unit_rows and a.unit_rows_sha256 and a.unit_frame_authority and a.unit_frame_authority_sha256):
+        p.error('--pack-unit-slice requires pinned unit rows and --unit-frame-authority with its SHA256')
+    if not a.pack_unit_slice and (a.unit_frame_authority or a.unit_frame_authority_sha256):
+        p.error('Frame authority is only valid with --pack-unit-slice')
+    out=a.out.resolve();out.mkdir(parents=True,exist_ok=True,mode=0o700)
     if sha(a.receipt)!=a.receipt_sha256:raise ValueError('Source receipt SHA differs')
     receipt=load(a.receipt);db=a.database or Path(receipt['database']['path'])
     if sha(db)!=receipt['database']['sha256']:raise ValueError('Store SHA differs')
@@ -56,6 +62,7 @@ def main():
     write(out/'proof/selection/r.json',selected)
     evidence=load(out/'proof/selection/q.json');evidence['selection_sha256']=sha(out/'proof/selection/r.json')
     evidence['implementation_rebound']=True;write(out/'proof/selection/q.json',evidence)
+    (out/'CENSUS_CODES.local.json').write_bytes(loader_audit.CENSUS_CODE_MAP_BYTES)
     mix=load(a.mix)
     if a.size_selector:mix['size_selector']=load(a.size_selector)
     mix['units_allowlist']=a.units_allowlist
@@ -72,8 +79,18 @@ def main():
         from unit_binding import build
         basecfg=load(H/'build/fx/k/d12ae795.json')
         selection_path=out/'proof/selection/r.json'
-        selected,unit_binding=build(a.unit_rows,a.unit_rows_sha256,load(selection_path),load(ROOT/'work/records/pool_manifest.json'),
+        unit_rows=a.unit_rows;unit_sha=a.unit_rows_sha256;packing=None
+        if a.pack_unit_slice:
+            from unit_binding import pack_slice
+            if sha(a.unit_frame_authority)!=a.unit_frame_authority_sha256:raise ValueError('Unit frame-authority manifest SHA differs')
+            packing=pack_slice(unit_rows,unit_sha,load(a.unit_frame_authority),basecfg['s1_routing'],load(selection_path),out/'units/packed.jsonl')
+            packing['authority_manifest']=pin(a.unit_frame_authority)
+            unit_rows=Path(packing['packed']['path']);unit_sha=packing['packed']['sha256']
+        selected,unit_binding=build(unit_rows,unit_sha,load(selection_path),load(ROOT/'work/records/pool_manifest.json'),
                                   basecfg['s1_routing']['catalog'],H/'build/fx/k',out/'units')
+        if packing:
+            unit_binding['packing']=packing
+            write(out/'units/u.json',unit_binding)
         write(selection_path,selected)
         evidence=load(out/'proof/selection/q.json');evidence.update(selection_sha256=sha(selection_path),unit_binding=unit_binding,
             selected_rows=selected['selected_rows'],native_unit_regeneration_executed=True)
@@ -178,7 +195,7 @@ def main():
         arows=load(census);arows['vqa_by_family']=report['eligible_by_family']['vqa'];arows['post_filter_by_type']=report['eligible_by_question_type']['vqa'];arows['mix_caps']=report['tables']['vqa'];write(census,arows)
         table=['| Cell | Eligible | Proposed/step | Cap/step | Cut | Refill | Final/step |','|---|---:|---:|---:|---:|---:|---:|']
         for name,v in report['tables']['vqa'].items():table.append('| '+name+' | '+str(v['eligible'])+' | '+' | '.join(f"{v[k]/100:.2f}" for k in ('proposed_cents','cap_cents','cut_cents','refill_cents','final_cents'))+' |')
-        (out/'MIX.md').write_text('Vehicle P caps each cell at four times its eligible population over 1,000 steps. Size has zero launch dose; size rows remain in the store. The table gives the bound room dose and direction refill. Recovery is absent on P and joins N. Units have zero dose until a faithful file is bound.\n\n'+'\n'.join(table)+'\n\nRouting uses the same capped allocator after native preparation. The production proof measures its final populations, caps, cuts and sampling shares.\n')
+        (out/'MIX.md').write_text('Vehicle P caps each cell at four times its eligible population over 1,000 steps. Size has zero launch dose; size rows remain in the store. The table gives the bound room dose and direction refill. Recovery is absent on P and joins N. The bound unit source and its requested dose appear below.\n\n'+'\n'.join(table)+'\n\nRouting uses the same capped allocator after native preparation. The production proof measures its final populations, caps, cuts and sampling shares.\n')
         routing_caps={}
         for name in ('recovery','units'):
             count=unit_binding['sampling_eligible'] if name=='units' and unit_binding else 0

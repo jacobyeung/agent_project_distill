@@ -1,5 +1,5 @@
 """Render the review packet from measured receipts; missing proofs remain explicit."""
-import hashlib,json
+import base64,hashlib,json
 from pathlib import Path
 L=Path(__file__).resolve().parents[2];B=L/'work/build_n1';O=L/'out'
 def read(path,default=None):
@@ -22,6 +22,7 @@ comparison=read('work/build_n1/SUITE_COMPARISON.json',{})
 packet=read('work/build_n1/proofs/packet/results.json',{})
 targeted=read('work/build_n1/proofs/targeted/results.json',{})
 contracts=read('work/build_n1/proofs/contracts/results.json',{})
+p_format=read('work/build_n1/proofs/p_format/results.json',{})
 inventory=read('work/build_n1/proofs/audit/INFERENCE_COMPONENTS.json',{})
 blockers=read('work/build_n1/CARRIED_BLOCKERS.json',{})
 finished=(B/'FINAL_PASS.json').exists()
@@ -57,7 +58,7 @@ report+='\nRoom-v2 and the VQA merge describe different producer revisions. Thei
 report+='The production audit entry enumerates the final native sampler, checks actual repetitions and reports family shares, question-unit and printed-status marginals, plus recovery/unit counts consumed by launch admission. It refuses local full-store execution. This full audit has not run; the missing inputs are complete scene-admitted stores, their post-filter index maps and real frame-host preparation. Source: `work/tree_r1/student_pilot/r1_loader.py:production_audit`.\n\n'
 report+='## CPU proof and test outcomes\n\n'
 rows=[]
-for name,data,path in [('Targeted R1',targeted,'work/build_n1/proofs/targeted/results.json'),('Registry and kit',contracts,'work/build_n1/proofs/contracts/results.json')]:
+for name,data,path in [('Targeted R1',targeted,'work/build_n1/proofs/targeted/results.json'),('Registry and kit',contracts,'work/build_n1/proofs/contracts/results.json'),('Native P format with sidecar',p_format,'work/build_n1/proofs/p_format/results.json')]:
  rows.append([name,data.get('tests','PENDING'),len(data.get('passed',[])),0,len(data.get('failures',[]))+len(data.get('errors',[])),len(data.get('failures',[]))+len(data.get('errors',[])),path])
 rows.append(['Contract packet',len(packet),sum(v.get('outcome')=='passed' for v in packet.values()),0,
              sum(v.get('outcome')!='passed' for v in packet.values()),'packet contract suite','work/build_n1/proofs/packet/results.json'])
@@ -66,6 +67,7 @@ report+=table(['Suite','Run','Passed','Pre-existing failure events','Regression 
 report+='\nFailure-event counts can include subtests and setup errors; they are not disjoint method counts. The frozen comparison preserves inherited BF16-cache parity failures as explicit A2 blockers and does not relabel them as passes. Only exact input-hash matches resume suite groups. Sources: `work/build_n1/SUITE_COMPARISON.json`, `work/build_n1/proofs/suite_tree/*/GROUP_RECEIPT.json`, `work/build_n1/proofs/suite_base/*/GROUP_RECEIPT.json`.\n\n'
 report+='The export proof uses a seeded tiny native model instead of the pretrained GPU model; local stand-ins cover FSDP publication and rank/barrier collectives. Native export, artifact parsing, tensor loading, progress checks, LR calculation and the sampler run as production functions. The room proof uses the real native reader with a synthetic text fixture. Real-row proofs use unmodified source text. Sources: `work/tree_r1/tests/test_r2_build_n1.py`, `work/build_n1/proofs/targeted/r1/export/RESULT.json`, `work/build_n1/proofs/loader_audit/RESULT.json`.\n\n'
 report+='## Changed-statement coverage\n\n'
+report+='The P-format proof also publishes a native artifact without inline R1 progress, reloads its tensors, and authenticates a separate boundary receipt. Missing progress and mismatched artifact, configuration, store or row-plan identities refuse. It preserves the absolute LR position. This uses a synthetic boundary and tiny native weights, not a real vehicle-P export. Source: `work/build_n1/proofs/p_format/RESULT.json`.\n\n'
 report+='Coverage uses standard-library `sys.monitoring`, compiled-code fingerprints and exact file hashes. Changed AST statement heads are compared against the authenticated inherited package. Uncovered lines remain uncovered. Source: `work/build_n1/N1_CHANGED_COVERAGE.json`.\n\n'
 report+=table(['Class','Statements','Source'],[[k,v,'work/build_n1/N1_CHANGED_COVERAGE.json'] for k,v in coverage.get('classes',{'PENDING':'PENDING'}).items()])
 report+='\nThe base-relative coverage inventory remains in `work/build_n1/CHANGED_COVERAGE.json`. CPU-reachable gaps, frame-host branches and GPU/model-loader branches are not production qualification.\n\n'
@@ -77,11 +79,33 @@ report+=table(['Artifact','Value','Source'],[
  ['Kit','work/build_n1/kits/r1','work/build_n1/KIT_RESULT.json'],['Kit SHA',kit.get('kit_sha256'),'work/build_n1/KIT_RESULT.json'],
  ['Kit config SHA',kit.get('config_sha256'),'work/build_n1/KIT_RESULT.json'],['Host packet','work/build_n1/kits/r1/k/h.json','work/build_n1/KIT_RESULT.json'],
  ['Host packet SHA',kit.get('frame_host_sha256'),'work/build_n1/KIT_RESULT.json'],['Unresolved staging entries',kit.get('unresolved'),'work/build_n1/KIT_RESULT.json']])
+def capsule(path):
+    value=read(path);raw=base64.b64decode(value['payload'],validate=True)
+    assert hashlib.sha256(raw).hexdigest()==value['sha256']
+    return json.loads(raw)
+staging=capsule('work/build_n1/kits/r1/k/s.json')
+relocated=capsule('work/build_n1/kits/r1/k/c.json')
+original=read('work/build_n1/inputs/config.json')
+references={}
+def references_at(new,old,field):
+    if isinstance(new,dict):
+        for k,v in new.items():references_at(v,old.get(k) if isinstance(old,dict) else None,field+'.'+k)
+    elif isinstance(new,list):
+        for i,v in enumerate(new):references_at(v,old[i] if isinstance(old,list) and i<len(old) else None,field+'['+str(i)+']')
+    elif isinstance(new,str) and new in staging['unresolved']:
+        references.setdefault(new,[]).append((field,old))
+references_at(relocated,original,'config')
+report+='\nEach unresolved staging entry is listed below. Its source is a reference from the supplied config, not a claim that the remote source exists. Source: `work/build_n1/kits/r1/k/s.json`, `work/build_n1/kits/r1/k/c.json`, `work/build_n1/inputs/config.json`.\n\n'
+report+=table(['Staging destination','Config input','Supplied source reference','Missing proof'],[
+ [name,'; '.join(k for k,v in references.get(name,[])) or 'native staging closure',
+  '; '.join(str(v) for k,v in references.get(name,[])) or 'unbound',
+  'Verified deployed source and complete native staging closure'] for name in staging['unresolved']])
 report+='\nThe kit was produced from an empty directory. Its CPU entry is `work/build_n1/kits/r1/b/f.sh`; its request requires the disk plan, regenerated routing selection, empty root, runtime binaries and directory modes. The local refusal proof covers an empty root and missing staging/selection inputs. It does not prove camera, pose or pointing metadata on real frames. The complete sandbox/staging namespace, real binaries, reviewed selection pin and host receipt remain missing. Sources: `work/tree_r1/launch_r1/entry.py`, `work/build_n1/kits/r1/k/h.json`, `work/build_n1/proofs/targeted/r1/host/empty_validated/receipt.json`.\n\n'
 report+='## Blockers carried forward\n\n'
 report+='The launch-binding rows at the start remain blocked except the parent-selection and metadata-location binding. No requested evidence record was accepted without its missing proof. Gap records use an explicit non-accepting schema and are not substituted into the registry. Source: `work/build_n1/CARRIED_BLOCKERS.json`, `work/build_n1/inputs/EVIDENCE_*.json`.\n\n'
 report+=table(['Additional blocker','Missing input','Source'],[[v['name'],v['missing'],'work/build_n1/CARRIED_BLOCKERS.json'] for v in blockers.get('additional',[])])
 report+='\nThe actual D0 processor min/max resolution values remain missing. The full input inventory and independent canonical-scene/alias coverage remain missing. Every sealed benchmark and held-out dev exclusion stays active; unknown overlap does not count as clean. Sources: `work/build_n1/BINDING_TABLE.json`, `work/build_n1/inputs/config.json`.\n\n'
+report+='The init rule treats all 80 withheld rooms as exposed to the parent training pool; it does not establish which rows the parent consumed. R1 exclusions do not erase that inherited exposure. Source: `work/design/NEXT_LEG_INIT_RULE_20261116.md:33`. The missing parent membership and intersection records therefore remain blockers.\n\n'
 report+='## For the review\n\n'
 report+='One independent review is requested for the changed admission and legality inputs: the R1 training-only evidence scope; parent selection and P-export progress contract; receipt-selected VQA store; recovery/room source revision mismatch; room and own-row refusals; size, room and camera-object-distance exclusions; capped mix allocation and no-substitution reader behavior; absent-scale initialization; all-stream exclusion coverage; processor pin; remote staging closure; and real frame-host assertions. The policy records remain intact for native evaluation. The local RESULT event requests this single review; it was not sent externally. Sources: `out/RESULT_build_n1.json`, `work/build_n1/DECISIONS.md`, `work/build_n1/CARRIED_BLOCKERS.json`.\n\n'
 report+='## Product inference outside registered weights\n\n'

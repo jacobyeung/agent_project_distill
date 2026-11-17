@@ -1,4 +1,4 @@
-Vehicle P caps each cell at four times its eligible population over 1,000 steps. Size has zero launch dose; size rows remain in the store. The table gives the bound room dose and direction refill. Recovery is absent on P and joins N. Units have zero dose until a faithful file is bound.
+Vehicle P caps each cell at four times its eligible population over 1,000 steps. Size has zero launch dose; size rows remain in the store. The table gives the bound room dose and direction refill. Recovery is absent on P and joins N. The bound unit source and its requested dose appear below.
 
 | Cell | Eligible | Proposed/step | Cap/step | Cut | Refill | Final/step |
 |---|---:|---:|---:|---:|---:|---:|
@@ -25,11 +25,11 @@ Routing uses the same capped allocator after native preparation. The production 
 
 | Routing cell | Requested/step | Bound unit source cap/step |
 |---|---:|---:|
-| camera_displacement | 18.54 | Production proof |
-| camera_movement_direction | 16.13 | Production proof |
-| camera_rotation | 12.73 | Production proof |
-| absolute_distance | 16.60 | Production proof |
+| camera_displacement | 18.25 | Production proof |
+| camera_movement_direction | 15.88 | Production proof |
+| camera_rotation | 12.53 | Production proof |
+| absolute_distance | 16.34 | Production proof |
 | recovery | 0.00 | 0.00 |
-| units | 0.00 | 0.00 |
+| units | 1.00 | 2.73 |
 
 Pose stays at 64 rows/step and pointing at 32. Routing refills its four native cells proportionally under their caps. Units below 100 eligible rows are named missing with their counts and do not fail the required-family gate. The default allowlist trains feet only at 1.00 row per step, subject to the four-repeat cap.

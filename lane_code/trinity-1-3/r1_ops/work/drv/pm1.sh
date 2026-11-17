@@ -13,7 +13,7 @@ fresh() { [[ ! -e "$1" && ! -L "$1" ]] || { echo "REFUSED: already exists: $1" >
 private "$O"
 private "$BUN"
 private "$KH"
-job=$(cat "$BUN/job.id")
+job=$(cat "$BUN/job2.id" 2>/dev/null || cat "$BUN/job.id")
 [[ "$job" =~ ^[0-9]+$ ]] || { echo 'REFUSED: invalid job id'; exit 4; }
 squeue -u "$USER" -o '%i %j %P %T %M %R'
 python3 -B - "$KH" "$job" <<'PYCODE'

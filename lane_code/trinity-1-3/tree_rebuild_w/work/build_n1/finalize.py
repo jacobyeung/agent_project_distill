@@ -5,6 +5,7 @@ L=Path(__file__).resolve().parents[2];B=L/'work/build_n1'
 def read(path):return json.loads(path.read_text())
 def call(name,*args):
     subprocess.run([sys.executable,'-I','-s','-B',str(B/name),*map(str,args)],check=True)
+call('proof_p_format.py')
 call('test_runner.py',B/'proofs/targeted','tests.test_r2_build_n1')
 subprocess.run(['bash',str(B/'PACKET_TEST.sh')],check=True)
 call('legacy_guard_proof.py');call('compare.py')
