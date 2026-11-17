@@ -16,6 +16,13 @@ tree=read('work/build7/proofs/suite_tree/results.json',{})
 base=read('work/build7/proofs/suite_base/results.json',{})
 kit=read('work/build7/proofs/review/KIT_READCHECK.json',[])
 rows=read('work/build7/proofs/rows/RESULTS.json',{})
+fallback=read('work/build7/proofs/final_targeted/stop_fallback/RESULT.json')
+focused=read('work/build7/proofs/final_targeted/results.json',{})
+suite_ready=(tree.get('complete') and base.get('complete') and len(packet)==202
+             and all(v.get('outcome')=='passed' for v in packet.values())
+             and comparison.get('r2_failures')==0 and comparison.get('regressions')==0
+             and focused.get('complete') and not focused.get('errors') and not focused.get('failures')
+             and coverage.get('classes',{}).get('CPU-reachable unresolved',1)==0)
 put('# Build 7 — BLOCKED; neither kit is launchable')
 put('\nThe tree and kits contain the input gates, policy additions and patch integrations below. This build does not qualify the requested product. Missing production inputs, incomplete code integration, unqualified reader paths and failed checks remain explicit blockers. Nothing was launched or submitted.')
 put('\nSource seal: '+source(seal.get('tree_sha256','pending'))+' (`out/TREE_SEAL.json`).')
@@ -40,8 +47,8 @@ items=[
 ('14','Blocked: BF16_CACHE_GRADIENT_PARITY; INDEPENDENT_REVIEW_PENDING','Cache patch rebased; option is off with FP32 default. Enabled BF16 is refused by kits. Supplied BF16 gradient tolerance still fails and was not widened. Cache tests and OFF behavior remain in the suite.','work/build7/PATCH_HUNKS.json; work/build7/proofs/targeted/results.json; work/tree_r1/tests/test_gf1_cache.py'),
 ('15','Blocked: B04_FORWARD_HOOK_REQUIRED; PORTRAIT_MASK_DISTORTION','Native tiny export/reload emits an artifact manifest and declared module roles. Full read-file closure is not qualified. Stencil, degree and status computations remain outside forward; portrait mask paths remain distorted to preserve bound-row bytes. EAT results follow below.','work/tree_r1/student_pilot/eat1_export.py; work/build7/proofs/eat1; work/build7/proofs/audit/RESIZE_AUDIT.json'),
 ('16','Blocked: BOUND_FAITHFUL_IDENTITY_RECEIPT_MISSING; FULL_ENCODER_PARITY_UNQUALIFIED','Faithful patch rebased behind an off-by-default switch. Materializer exists; fixture identity gate refuses insufficient identity. Native tiny losses, gradients, batches, legacy policy data and own-value suffix masks match the authenticated build-6 source. Full scheduled-sampling encoder parity and bound routing identity remain unqualified.','work/build7/PATCH_HUNKS.json; work/build7/proofs/off_parity/RESULTS.json; work/build7/proofs/targeted_final/results.json'),
-('16a','Blocked: GLOO_INITIALIZATION; MULTIRANK_END_SLOT_UNPROVED','Shell stop-file paths and rank polling are connected. Real trap/poll proof passed. Gloo could not initialize; full wrapper chain, multi-rank boundary stop and end-slot export were not proved. Fallback condition is tested; exported fallback end slot remains unproved.','work/build7/proofs/stop/RESULTS.json; work/build7/proofs/review/STOP_PATH.json'),
-('17','Blocked pending all suite/coverage criteria','Final frozen package groups and packet suite are recorded below. Failures and CPU gaps remain failures, including new ones.','work/build7/FINAL_PASS.json; work/build7/SUITE_COMPARISON.json; work/build7/CHANGED_COVERAGE.json'),
+('16a','Blocked: GLOO_INITIALIZATION; MULTIRANK_END_SLOT_UNPROVED','Shell stop-file paths and rank polling are connected. Real trap/poll proof passed. Gloo could not initialize; the full wrapper chain and multi-rank end slot remain unproved. '+('The single-rank native fallback stops, exports and reloads its end slot.' if fallback else 'An exported fallback end slot remains unproved.'),'work/build7/proofs/stop/RESULTS.json; work/build7/proofs/review/STOP_PATH.json; work/build7/proofs/final_targeted/stop_fallback/RESULT.json'),
+('17','Closed' if suite_ready else 'Blocked: SUITE_OR_COVERAGE_CRITERIA_UNMET','Final frozen package groups and packet suite are recorded below. Failures and CPU gaps remain failures, including new ones.','work/build7/FINAL_PASS.json; work/build7/SUITE_COMPARISON.json; work/build7/CHANGED_COVERAGE.json'),
 ('18','Closed staging; GO=false','Both final kits were staged from empty, A2 first, scanned and authenticated. Their source pins match the frozen tree.','work/build7/proofs/review/KIT_READCHECK.json; work/build7/proofs/package/KIT_TESTS.json'),
 ('19','Carried into final comparison','Build-6 regressions and gaps are individually mapped below. Build 6 was not separately finalized. Package groups have input-hash-bound resume receipts.','work/build7/BUILD6_DISPOSITION.json; work/build7/package.py')]
 for num,status,detail,evidence in items:put('| '+num+' | '+status+' | '+detail+' | '+source(evidence)+' |')
@@ -51,9 +58,13 @@ put('\nPacket: '+json.dumps(dict(run=len(packet),**pc))+' (`work/build7/proofs/p
 put('\n| Package variant | Run | Passed | Failure events | Error events | Skipped | Complete | Source |\n|---|---:|---:|---:|---:|---:|---|---|')
 for name,value in [('tree',tree),('base',base)]:
  put('| '+name+' | '+' | '.join(str(v) for v in (value.get('tests','pending'),len(value.get('passed',[])),len(value.get('failures',[])),len(value.get('errors',[])),len(value.get('skips',[])),value.get('complete',False)))+' | '+source('work/build7/proofs/suite_'+name+'/results.json')+' |')
+put('\nFinal supplemental proof: '+json.dumps(dict(run=focused.get('tests','pending'),passed=len(focused.get('passed',[])),failures=len(focused.get('failures',[])),errors=len(focused.get('errors',[])),complete=focused.get('complete',False)))+' (`work/build7/proofs/final_targeted/results.json`).')
+for name,error in focused.get('failures',[])+focused.get('errors',[]):
+ put('\n- Supplemental failure '+source(name)+': '+error.strip().splitlines()[-1]+' (`work/build7/proofs/final_targeted/results.json`).')
 put('\nComparison: '+json.dumps({k:comparison.get(k,'pending') for k in ('run','passed','preexisting','regressions','r2_failures','skipped')})+' (`work/build7/SUITE_COMPARISON.json`). All failure names, causes and paired base traces are retained there. Execution counts include repeated test IDs; subtest and setup errors can add failure events.')
 base_failed={name for name,_ in base.get('failures',[])+base.get('errors',[])}
-fixed=sorted(base_failed.intersection(tree.get('passed',[])))
+tree_failed_methods={name.split(' (',1)[0] for name,_ in tree.get('failures',[])+tree.get('errors',[])}
+fixed=sorted(name for name in base_failed.intersection(tree.get('passed',[])) if name.split(' (',1)[0] not in tree_failed_methods)
 (B/'FIXED_BASE_FAILURES.json').write_text(json.dumps(dict(count=len(fixed),tests=fixed,tree='work/build7/proofs/suite_tree/results.json',base='work/build7/proofs/suite_base/results.json'),indent=2)+'\n')
 put('\nPreviously failing base test IDs now passing: '+str(len(fixed))+' (`work/build7/FIXED_BASE_FAILURES.json`); these exact-ID fixes are distinct from new tests and from repeated execution counts.')
 put('\n| Changed-statement class | Count | Source |\n|---|---:|---|')
@@ -88,6 +99,13 @@ put('\nTiny-model frame measurements: '+source(json.dumps(tokens))+' (`work/buil
 put('\nThe routed query tensor still fixes its frame dimension in `student_pilot/carrier_c1_routing.query_tensor`. Additional ground, MDG and camera-row assumptions are enumerated with file:line in `work/build7/proofs/audit/FRAME64_REMAINING_SITES.json`. These are local implementation or compatibility-proof gaps, not missing production pins. The kit’s FRAME64_ALL_READERS_UNQUALIFIED blocker remains in force.')
 put('\nThe empty exclusion lists remain pinned to the empty-file digest. `Removals.__init__` reads only nonblank lines (`work/tree_r1/student_pilot/row_removals.py:31`) and `keep` tests membership in the resulting empty sets. They are zero-effect provenance entries, not missing data inferred to be clean.')
 put('\nInit dependencies for every record are in `work/build7/proofs/review/INIT_DEPENDENCIES.json`. The selected export, pose head, depth head and frame embeddings depend directly on the selection. Private-depth and connector records depend on whether the selected export supplies those components; other component records retain their independent provenance obligations.')
+faithful=read('work/build7/proofs/final_targeted/faithful/IDENTITY.json')
+if faithful:
+ identity=faithful['h1_faithful_identity']
+ put('\nNative synthetic camera rows pass materializer identity: '+json.dumps({k:identity[k] for k in ('rows','identical','different','refused','identity_rate')})+' (`work/build7/proofs/final_targeted/faithful/IDENTITY.json`). The focused test also checks re-derived text after changing the synthetic pose geometry. This fixture rate does not replace the required identity measurement on the bound routing store.')
+masks=read('work/build7/proofs/final_targeted/faithful/MASKS.json')
+if masks:
+ put('\nThe native suffix-mask unit proof retains '+str(masks['enabled_trainable_after_response'])+' tokens after the own response with faithful supervision enabled, versus '+str(masks['disabled_trainable_after_response'])+' with it disabled (`work/build7/proofs/final_targeted/faithful/MASKS.json`). It uses a synthetic processor/tokenizer fixture and does not qualify the unavailable bound tokenizer or the full training encoder.')
 put('\n## Bound slices, response text and exclusions')
 put('\n| Slice | Rows read | Rule-only status rows | Responses / exact round-trips | R0 matches | Portrait frames | Source |\n|---|---:|---:|---|---|---|---|')
 for r in rows.get('families',[]):
@@ -120,9 +138,8 @@ for entry in read('work/build7/proofs/audit/NUMBER_PATHS.json',[]):
  put('| '+source('work/tree_r1/'+entry['file']+':'+str(entry['line']))+' | '+source(entry['text'].replace('|','&#124;'))+' |')
 components=read('work/build7/proofs/audit/INFERENCE_COMPONENTS.json',{}).get('components',[])
 put('\nConservative inference component inventory, with file:line for review (`work/build7/proofs/audit/INFERENCE_COMPONENTS.json`). Module-level functions are outside registered weights; backend methods need dynamic forward-scope judgment. This includes support/scoring functions and does not assert that every entry executes for every item. It does not replace the acceptance test.\n')
-grouped=collections.defaultdict(list)
-for c in components:grouped[c['file']].append(c['component']+':'+str(c['line']))
-for file,values in grouped.items():put('- '+source('work/tree_r1/'+file)+': '+', '.join(source(v) for v in values)+'.')
+put('| Location | Component |\n|---|---|')
+for c in components:put('| '+source('work/tree_r1/'+c['file']+':'+str(c['line']))+' | '+source(c['component'])+' |')
 put('\n## Portrait audit')
 put('\nThe fixed-mask canvases in `student_pilot/routed_features.py:18`, `ofs/core.py:51` and `verifykit/export.py:32` distort portrait aspect. Portrait and landscape square-mask fixture extents are in `work/build7/proofs/targeted_final/portrait/RESULT.json`. The GF-1 square-pad path preserves aspect, but padded coordinates still require the existing ROI mapping. The native student processor normally uses aspect-aware resize; the absent production processor configuration prevents full qualification. No RGB source population was inspected, so each bound slice has an unknown portrait share.')
 put('\nThe complete resize-site audit is `work/build7/proofs/audit/RESIZE_AUDIT.json`. Entries marked “requires transform-context review” remain open; the audit did not establish every resize as safe. No mask coordinate change was made because row-byte parity was not proved.')
@@ -131,14 +148,19 @@ for entry in read('work/build7/proofs/audit/RESIZE_AUDIT.json',[]):
  put('| '+source('work/tree_r1/'+entry['file']+':'+str(entry['line']))+' | '+str(entry['portrait_aspect_distorted'])+' |')
 put('\n## Stop path')
 put('\nS1 wrote the host-kit stop file while its sandbox used a separate staged kit; S1 also did not export the K3 path that ranks poll. The shell now writes the staged stop file and exports its sandbox path, and the rank checks it at step boundaries. `work/build7/proofs/review/STOP_PATH.json` records the current file:line chain. The real extracted shell trap and native poll pass; `work/build7/proofs/stop/RESULTS.json` records both stop-file SHA256 values.')
-put('\nGloo initialization failed with “Cannot resolve 127.0.0.1 to a (local) address” (`work/build7/proofs/stop/RESULTS.json`). I did not retry or bypass that environment restriction. There is no multi-rank end slot and no end-slot hash. The fallback condition forces export at its configured step, but a real multi-rank fallback export remains unproved.')
+put('\nGloo initialization failed with “Cannot resolve 127.0.0.1 to a (local) address” (`work/build7/proofs/stop/RESULTS.json`). I did not retry or bypass that environment restriction. There is no multi-rank end slot or corresponding hash. A real multi-rank fallback export remains unproved.')
+if fallback:
+ put('\nThe separate single-rank fallback ran the native optimizer loop, checkpoint/export writers and artifact reader. Its end-slot path and digest are '+source(json.dumps(fallback['artifact']))+'; the checkpoint is '+source(json.dumps(fallback['checkpoint']))+' (`work/build7/proofs/final_targeted/stop_fallback/RESULT.json`). It uses synthetic pose batches plus one-rank collective and FSDP publication stand-ins. It does not meet the GPU-boundary-only requirement for the full producer/wrapper chain.')
 put('\n## For the second review')
 put('\n- Review the both-path build-loop/type gate and sampler separately. Check preserved policies, per-item form identity, missing grammars, native preparation binding and exact minority quotas. The shared grammar authority remains byte-identical (`work/build7/proofs/audit/AUTHORITY_HASHES.json`).')
 put('- Review the cache rebase and its numerical limits. Every hunk disposition is in `work/build7/PATCH_HUNKS.json`; BF16 gradient parity fails the original tolerance. Confirm the off path and FP32 launch restriction before enabling the option.')
-put('- Review faithful-row all-reduced refusals, the identity gate and missing bound-row identity/OFF-parity receipts. No independent review was performed: the build explicitly forbids another agent.')
+put('- Review faithful-row all-reduced refusals and the identity gate. The native tiny OFF proof passes; full scheduled-sampling encoder parity and bound-row identity remain unqualified. No independent review was performed: the build explicitly forbids another agent.')
 put('- Review unresolved product computations against EAT, and the manifest’s missing full production read closure. No acceptance claim follows from attaching module names or a manifest.')
 put('- Review every remaining suite regression and CPU gap before changing GO. `work/build7/SUITE_COMPARISON.json`, `GAPS.json` and `BUILD6_DISPOSITION.json` are the authoritative lists.')
 put('\n## Limits and delivery state')
+verification=read('work/build7/FINAL_VERIFICATION.json')
+if verification:
+ put('\nFinal artifact hashes and storage check: '+json.dumps({k:verification[k] for k in ('tree_seal','tree_files','storage_bytes','scratch_free_bytes')})+' (`work/build7/FINAL_VERIFICATION.json`).')
 put('\nNot checked: real staging bytes on Orchard/GCS, the selected init, full stores, complete alias overlap, production processor values, real frame portrait share, GPU capacity or timing, real distributed stop/export, every formatter, every long-frame reader, full trained-module closure, a production EAT read, or an independent review. No launch, remote call, checkpoint copy, full-store materialization, Git, SSH, GPU or other agent was used. The package and kits are review artifacts; GO remains false.')
 text='\n'.join(report)+'\n';(O/'BUILD7_REPORT.md').write_text(text)
 card='# Prelaunch card — Build 7: GO=false\n\nThe final tree is sealed as '+seal.get('tree_sha256','pending')+' (`out/TREE_SEAL.json`). Both kits are blocked.\n\n'
@@ -146,6 +168,6 @@ for k in kit:card+='- '+k['arm'].upper()+': '+k['kit_sha256']+' (`work/build7/pr
 card+='\nRead `out/BUILD7_REPORT.md`, `work/build7/SUITE_COMPARISON.json`, `work/build7/GAPS.json` and the EAT reports before any approval. No production approval is present.\n'
 (O/'PRELAUNCH_CARD.md').write_text(card)
 design=O/'DESIGN_RECORD_tree_rebuild_20261115.md';original=design.read_text();marker='\n## Build 7\n'
-entry=marker+'\nThe sealed tree and both closed kits are delivered for review. Input pins and refusal gates are implemented, but missing inputs, reader-forward compliance, long-frame qualification, cache precision, stop/export and validation gaps prevent launch. Decisions and remaining work are in `out/BUILD7_REPORT.md` and `work/build7/DECISIONS.md`. The init remains unselected; no rows or benchmark-dependent quotas were changed.\n'
+entry=marker+'\nThe sealed tree is delivered for review; both kits remain GO=false. Input pins and refusal gates are implemented, but missing inputs, reader-forward compliance, long-frame qualification, cache precision, stop/export and validation gaps prevent launch. Decisions and remaining work are in `out/BUILD7_REPORT.md` and `work/build7/DECISIONS.md`. The init remains unselected; no rows or benchmark-dependent quotas were changed.\n'
 design.write_text(original.split(marker)[0]+entry)
 print(json.dumps(dict(report='out/BUILD7_REPORT.md',tree_complete=tree.get('complete',False),base_complete=base.get('complete',False),packet_tests=len(packet))))

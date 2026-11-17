@@ -3,13 +3,15 @@ import base64,hashlib,json
 from pathlib import Path
 H=Path(__file__).resolve().parents[1]
 sha=lambda b:hashlib.sha256(b).hexdigest()
+target=H/'evidence/fix6_before/payload'
+if not target.exists():target=H/'payload'
 records={}
 for name in ('g.sh','sums.txt'):
     old=(H/'evidence/fix5_before/payload'/name).read_bytes()
-    new=(H/'payload'/name).read_bytes()
+    new=(target/name).read_bytes()
     records[name]=dict(old=sha(old),new=sha(new),data=base64.b64encode(new).decode())
 old=(H/'evidence/fix5_before/payload/sums.txt').read_text().splitlines()
-new=(H/'payload/sums.txt').read_text().splitlines()
+new=(target/'sums.txt').read_text().splitlines()
 assert len(old)==len(new)
 assert [a for a,b in zip(old,new) if a!=b]==[records['g.sh']['old']+'  g.sh']
 assert [b for a,b in zip(old,new) if a!=b]==[records['g.sh']['new']+'  g.sh']

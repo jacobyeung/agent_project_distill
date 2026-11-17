@@ -30,6 +30,7 @@ expected=copy.deepcopy(cfg);tok=json.loads((H/'TOKENS_H1.json').read_text())
 for n in ['output','preparation_output']:expected[n]=expected[n].rsplit('/',1)[0]+'/'+tok['run']
 expected.update(h1=dk.H1,milestones=[100,200],code=newcfg['code'],admission=newcfg['admission'])
 expected['recipe']['milestones']=[100,200];expected['recipe']['scheduled_sampling'].update(dk.SAMPLING);expected['scheduled_sampling'].update(dk.SAMPLING)
+dk.refresh_disk_plan(expected,json.loads((H/'build/over_fx.json').read_text()))
 assert newcfg==expected, sorted(k for k in newcfg if newcfg[k]!=expected.get(k))
 results['h1_exact_fields']=True
 base=json.loads((H/'build/over_fx.json').read_text())

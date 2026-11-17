@@ -35,6 +35,7 @@ code=dict(schema='c1-sealed-source-v1',commit='sha256:'+tree,tree_sha256=tree,fi
 w(H/'payload/7.json',code)
 # Tokens are opaque, deterministic task identifiers; fresh targets must still be checked on Orchard.
 tok={k:hashlib.sha256(('20261116-h1-1-'+k).encode()).hexdigest()[:8] for k in ['run','kit','root','store','job']}
+tok.update({k:hashlib.sha256(('20261116-h1-1-'+k+'-fix6').encode()).hexdigest()[:8] for k in ('kit','root')})
 w(H/'TOKENS_H1.json',tok)
 IN='/project/community/jjyeung/okh7/i_'+tok['store']+'/'
 over=json.loads((D/'a2/v5b/over_local.json').read_text())
@@ -63,6 +64,7 @@ for field,value in over['config'].items():
  elif field=='recipe':
   seed_cfg[field]['milestones']=value['milestones'];seed_cfg[field]['scheduled_sampling'].update(value['scheduled_sampling'])
  else:seed_cfg[field]=copy.deepcopy(value)
+dk.refresh_disk_plan(seed_cfg, over)
 seed_cfg['code']=dict(path=dk.KIT_LOGICAL+'7.json',sha256=s(H/'payload/7.json'))
 auth=json.loads((D/'jobB/4b.json').read_text())
 auth.update(config_sha256=dk.identity(seed_cfg),source_revision=code['commit'],wall_seconds=46800,production_go_granted=False)
@@ -75,6 +77,8 @@ res=dk.derive(D/'kitfull',H/'build/fx_seed',dict(over,fixture=True));w(H/'eviden
 sys.path.insert(0,str(H/'build/fx_seed/b'))
 from d import contract
 cfg=json.loads((H/'build/fx_seed/k'/ (res['config_key']+'.json')).read_text());launch=json.loads((H/'build/fx_seed/k/launch.json').read_text())
+from student_pilot.carrier_c1_run import validate
+validate(cfg)
 ident=dk.identity(cfg);cont=dk.digest(contract(launch,cfg))
 auth=json.loads((D/'jobB/4b.json').read_text());auth.update(config_sha256=ident,source_revision=code['commit'],wall_seconds=46800,production_go_granted=False)
 auth['conditions']=[x.replace(' and canary-2 resume','') for x in auth['conditions']]

@@ -6,3 +6,4 @@ echo "$(date -u +%H:%MZ) $(ls $R | tr '\n' ' ') $(kill -0 841040 2>/dev/null && 
 grep -v "^$" $W/work/build7/STATUS.md | tail -2 | cut -c1-200
 ls -l --time-style=+%H:%M $R/transcript.log | cut -d" " -f5-6
 ls -t $E | grep ORCH | head -1; ls $W/inbox | tr '\n' ' '
+for v in tree base; do for g in generator legacy r2; do f=$W/work/build7/proofs/suite_$v/$g/progress.json; [ -f $f ] && echo "$v/$g $(cut -c1-30 $f)"; done; done

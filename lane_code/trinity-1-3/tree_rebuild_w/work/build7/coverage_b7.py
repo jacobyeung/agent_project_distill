@@ -83,6 +83,35 @@ class FaithfulRows(unittest.TestCase):
   values=_Geometry(clip).pair(1,25)
   return _row(clip,kind,1,25,values)
 
+ def test_native_encoder_keeps_reasoning_after_own_response(self):
+  import numpy as np
+  import torch
+  from student_pilot import h1_faithful as H,carrier_c1_routing as R
+  from tests.test_r2_data_path import TinyProcessor
+  raw=self.row();processor=TinyProcessor()
+  row=dict(routing=raw,student_input=dict(question=raw['question'],options=raw['options']),target=raw['target'])
+  target,spans,segments=R.render_full(raw['events'],raw['answer'])
+  ids,train,offsets=R.suffix_tokens(processor,row,target,spans)
+  batch=dict(input_ids=torch.tensor([[2,5]+ids]),labels=torch.tensor([[-100,-100]+ids]),
+             attention_mask=torch.ones((1,2+len(ids)),dtype=torch.long))
+  batch,_=R.finish(batch,ids,train,row,target,spans,'gt',offsets,segments)
+  own=np.array(raw['gt_pose9']);own[:,:3]*=2
+  _,target,spans,segments=H.faithful(raw,R.OwnGeometry(own,raw['gt_up'],None))
+  enabled,on_audit=R.encode_own(processor,row,batch,target,spans,segments,'own',faithful=True)
+  disabled,off_audit=R.encode_own(processor,row,batch,target,spans,segments,'own',faithful=False)
+  _,train,offsets=R.suffix_tokens(processor,row,target,spans)
+  cut=spans[0]['end']-len(R.THINK);start=int(enabled['aux_suffix_start'][0])
+  after=[start+i for i,((a,b),keep) in enumerate(zip(offsets,train)) if keep and a>=cut]
+  self.assertTrue(after)
+  self.assertTrue(all(enabled['labels'][0,i]!=-100 for i in after))
+  self.assertTrue(all(disabled['labels'][0,i]==-100 for i in after))
+  self.assertGreater(on_audit['trained_tokens'],off_audit['trained_tokens'])
+  (folder('faithful')/'MASKS.json').write_text(json.dumps(dict(
+      enabled_trainable_after_response=len(after),disabled_trainable_after_response=0,
+      own_target_sha256=hashlib.sha256(target.encode()).hexdigest(),
+      real_functions=['camera_rows._row','h1_faithful.faithful','routing.encode_own','routing.finish'],
+      stand_in='TinyProcessor at the unavailable pretrained processor boundary'),indent=2)+'\n')
+
  def test_native_readout_runs_even_when_local_row_is_refused(self):
   from student_pilot import h1_faithful as H
   from tests.test_carrier_c1 import fixture
@@ -135,8 +164,8 @@ class FaithfulRows(unittest.TestCase):
   restored=H.canonical_row(direction)
   self.assertEqual(restored['margin_m'],1.);self.assertEqual(restored['margin_rel'],1.)
   self.assertEqual(restored['frame_pair_rule'],'frame_gap');self.assertEqual(restored['frame_pair_turn'],[])
-  broken=copy.deepcopy(rows[0]);broken['events']=[];source.write_text(json.dumps(broken)+'\n')
-  cfg['streams']['routing']=file_pin(source)
+  broken=copy.deepcopy(rows[0]);broken['events']=[];bad_source=p/'bad_rows.jsonl';bad_source.write_text(json.dumps(broken)+'\n')
+  cfg['streams']['routing']=file_pin(bad_source)
   with self.assertRaisesRegex(ValueError,'95%'):H.prepare_identity({},cfg)
   self.assertTrue((p/'receipt.json').is_file())
   self.assertEqual(H.prepare_identity({'fixture':True},dict(h1={})),{'fixture':True})
@@ -159,3 +188,41 @@ class FaithfulRows(unittest.TestCase):
   self.assertTrue(H.answer_differs('camera_rotation','45','0'))
   with self.assertRaises(ValueError):H.answer_differs('camera_displacement','nan','1')
   with self.assertRaises(ValueError):H.answer_differs('unknown','1','2')
+
+class StopFallback(unittest.TestCase):
+ def test_native_step_boundary_checkpoint_export_and_reload(self):
+  import torch
+  from unittest.mock import patch
+  from student_pilot import carrier_c1_run as run
+  from student_pilot.carrier_c1 import parameter_groups
+  from student_pilot.p3_provenance import file_pin
+  from tests.test_carrier_c1 import fixture
+  from tests.test_carrier_c1_memory import PoseRows
+  from tests.test_c1_blockers import transport
+  output=folder('stop_fallback');bound=dict(fixture='single_cpu_rank')
+  cfg=dict(training_mode='pose_only',depth_enabled=False,trace_program_version='3.13',
+           base_identity='tiny-fixture',steps=3,milestones=[],stop_after_step=1,
+           schedule=dict(startup_seconds=0,p95_step_seconds=1,checkpoint_seconds=1,export_seconds=1))
+  model,_,_=fixture(4,training_mode='pose_only',depth_enabled=False)
+  optimizer=torch.optim.AdamW(parameter_groups(model));rows=PoseRows()
+  run.bind_output(output,bound)
+  # Synthetic pose batches feed the native loop; one-rank collective transport
+  # and FSDP state gathering stand in. This does not qualify the wrapper chain.
+  with transport(),patch('student_pilot.fsdp_training.publication_state',side_effect=lambda wrapped:wrapped.state_dict()), \
+       patch.dict(os.environ,{'K3':str(output/'absent.stop'),'R1_STOP_FILE':str(output/'absent.stop')}):
+   result=run.run_steps(model,model,optimizer,rows,{'pose':9},output,cfg,bound,
+                        torch.device('cpu'),distributed=False)
+  self.assertEqual(result['last_step'],1);self.assertEqual(len(result['steps']),1)
+  self.assertTrue(result['stopped_for_resume'])
+  artifact=file_pin(output/'m1/artifact.json')
+  checkpoint=run.complete_states(output,bound)
+  self.assertEqual(len(checkpoint),1)
+  fresh,batch,target=fixture(4,training_mode='pose_only',depth_enabled=False)
+  run.load_artifact(fresh,artifact)
+  self.assertTrue(fresh.eval().probe(batch,target)['finite'])
+  proof=dict(last_step=result['last_step'],artifact=artifact,checkpoint=file_pin(checkpoint[0]),
+       real_functions=['run_steps','optimize_step','checkpoint','export','load_artifact'],
+       stand_ins=['native tiny model fixture','PoseRows synthetic patch-batch provider',
+                  'one-rank collective transport','FSDP full-state collection'],
+       limitation='Single CPU rank with fixture batches; this is not a GPU-boundary-only producer/wrapper proof and does not prove multi-rank Gloo.')
+  (output/'RESULT.json').write_text(json.dumps(proof,indent=2)+'\n')

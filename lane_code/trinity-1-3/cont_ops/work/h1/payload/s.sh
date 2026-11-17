@@ -11,7 +11,7 @@ private_dir() {
 }
 private_dir "$O"
 BUN=/project/community/jjyeung/okh7/i_1be16f28
-KH=/project/community/jjyeung/okh7/x_4b3114cf
+KH=/project/community/jjyeung/okh7/x_3fdda0fb
 private_dir "$BUN"
 private_dir "$KH"
 cd "$BUN"

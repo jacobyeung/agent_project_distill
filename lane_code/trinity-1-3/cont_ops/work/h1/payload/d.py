@@ -442,6 +442,27 @@ def close(kit, out, cfg, base_cfg, cur, base_cur, over, missing):
                 chained_export_members=len(chained))
 
 
+def refresh_disk_plan(cfg, over):
+    """Use the pinned trainer's pure plan function without importing torch on login."""
+    import ast
+    from types import SimpleNamespace
+    value = over['code_tree']
+    archive = read_override_pin(value['archive'])
+    code = json.loads(read_override_pin(value['pin']).read_text())
+    member = 'student_pilot/checkpoint_space.py'
+    with tarfile.open(archive) as tf:
+        source = tf.extractfile(member).read()
+    if hashlib.sha256(source).hexdigest() != code['files'].get(member):
+        refuse('checkpoint planner source differs')
+    functions = [node for node in ast.parse(source).body
+                 if isinstance(node, ast.FunctionDef) and node.name == 'plan']
+    if len(functions) != 1: refuse('checkpoint planner absent')
+    namespace = {}
+    exec(compile(ast.Module(body=functions, type_ignores=[]), member, 'exec'), namespace)
+    checkpoint_space = SimpleNamespace(plan=namespace['plan'])
+    cfg['checkpoint_disk_guard'] = checkpoint_space.plan(
+        cfg['recipe'], cfg['checkpoint_disk_guard']['reserve_bytes'])
+
 # Code changes have a separate validator; data staging never gains executable destinations.
 H1 = dict(faithful_own_camera_rows=True, routing_pose_targets=True,
           camera_types=['camera_displacement', 'camera_movement_direction', 'camera_rotation'],
@@ -619,6 +640,8 @@ def derive(kit, out, over):
                 if name == 'recipe' and k == 'scheduled_sampling':
                     cfg[name][k] = {**cfg[name][k], **v}
                 else: cfg[name][k] = copy.deepcopy(v)
+    if cfg['recipe'] != base_cfg['recipe']:
+        refresh_disk_plan(cfg, over)
     for k, v in over.get('deployment', {}).items(): cur[k] = v
 
     out.mkdir(mode=0o700)

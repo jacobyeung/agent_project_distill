@@ -2,12 +2,13 @@
 import hashlib,json,os,subprocess
 from pathlib import Path
 H=Path(__file__).resolve().parents[1]
+TARGET=H/'evidence/fix6_before/payload'
 out=H/'evidence/fix5_patch';out.mkdir(mode=0o700)
 sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
 records={}
 def fixture(label):
     o=out/label;o.mkdir(mode=0o700);b=o/'i_1be16f28';b.mkdir(mode=0o700)
-    for p in (H/'payload').iterdir():
+    for p in TARGET.iterdir():
         if p.is_file():
             source=H/'evidence/fix5_before/payload'/p.name if p.name in ('g.sh','sums.txt') else p
             # Only the two patch targets are mutable in this fixture.
@@ -31,7 +32,7 @@ b,sh=fixture('good');before=snapshot(b);run(b,sh,'valid_old_bytes',True);after=s
 assert {n for n in before if before[n]!=after[n]}=={'g.sh','sums.txt'}
 assert set(after)-set(before)=={'g.sh.r4','sums.txt.r4'}
 for name in ('g.sh','sums.txt'):
-    assert after[name]==sha(H/'payload'/name) and after[name+'.r4']==before[name]
+    assert after[name]==sha(TARGET/name) and after[name+'.r4']==before[name]
 run(b,sh,'repeat_refused',False);assert snapshot(b)==after
 for name in ('g.sh','sums.txt'):
     b,sh=fixture('bad_'+name);(b/name).write_bytes(b'altered')

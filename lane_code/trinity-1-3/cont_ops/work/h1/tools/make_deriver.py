@@ -11,9 +11,31 @@ s=s.replace("'config keys outside the data-only set '", "'config keys outside th
 s=s.replace("    fixture = over.get('fixture') is True", "    validate_h1(over)\n    fixture = over.get('fixture') is True")
 s=s.replace("changing = bool(over.get('config')", "changing = bool(over.get('code_tree') or over.get('config')")
 s=s.replace("    for k, v in over.get('deployment', {}).items(): cur[k] = v", "    for name in ('h1', 'milestones'):\n        if name in oc: cfg[name] = copy.deepcopy(oc[name])\n    for name in ('scheduled_sampling', 'recipe'):\n        if name in oc:\n            cfg[name] = copy.deepcopy(cfg[name])\n            for k, v in oc[name].items():\n                if name == 'recipe' and k == 'scheduled_sampling':\n                    cfg[name][k] = {**cfg[name][k], **v}\n                else: cfg[name][k] = copy.deepcopy(v)\n    for k, v in over.get('deployment', {}).items(): cur[k] = v")
+s=s.replace("    for k, v in over.get('deployment', {}).items(): cur[k] = v", "    if cfg['recipe'] != base_cfg['recipe']:\n        refresh_disk_plan(cfg, over)\n    for k, v in over.get('deployment', {}).items(): cur[k] = v")
 s=s.replace("    # Dependency chain: every changed config", "    if 'code_tree' in over:\n        install_code(kit, out, over, cfg, cur, launch)\n\n    # Dependency chain: every changed config")
 s=s.replace("    code = json.loads((kit / 'k/7.json').read_text())", "    code = json.loads((out / 'k/7.json').read_text())")
 helper=r'''
+def refresh_disk_plan(cfg, over):
+    """Use the pinned trainer's pure plan function without importing torch on login."""
+    import ast
+    from types import SimpleNamespace
+    value = over['code_tree']
+    archive = read_override_pin(value['archive'])
+    code = json.loads(read_override_pin(value['pin']).read_text())
+    member = 'student_pilot/checkpoint_space.py'
+    with tarfile.open(archive) as tf:
+        source = tf.extractfile(member).read()
+    if hashlib.sha256(source).hexdigest() != code['files'].get(member):
+        refuse('checkpoint planner source differs')
+    functions = [node for node in ast.parse(source).body
+                 if isinstance(node, ast.FunctionDef) and node.name == 'plan']
+    if len(functions) != 1: refuse('checkpoint planner absent')
+    namespace = {}
+    exec(compile(ast.Module(body=functions, type_ignores=[]), member, 'exec'), namespace)
+    checkpoint_space = SimpleNamespace(plan=namespace['plan'])
+    cfg['checkpoint_disk_guard'] = checkpoint_space.plan(
+        cfg['recipe'], cfg['checkpoint_disk_guard']['reserve_bytes'])
+
 # Code changes have a separate validator; data staging never gains executable destinations.
 H1 = dict(faithful_own_camera_rows=True, routing_pose_targets=True,
           camera_types=['camera_displacement', 'camera_movement_direction', 'camera_rotation'],

@@ -1,0 +1,66 @@
+01:43:20Z
+          170527     FAILED      1:0 2026-11-17T01:13:14 2026-11-17T01:42:49   00:29:35 
+    170527.batch     FAILED      1:0 2026-11-17T01:13:14 2026-11-17T01:42:49   00:29:35 
+   170527.extern  COMPLETED      0:0 2026-11-17T01:13:14 2026-11-17T01:42:50   00:29:36 
+total 1692
+drwx------ 2 jjyeung users      0 01:42:48 .
+drwx------ 7 jjyeung users      0 01:15:05 ..
+-rw------- 1 jjyeung users     81 01:07:39 170525.err
+-rw------- 1 jjyeung users     71 01:42:48 170527.SLOT_MISSING
+-rw------- 1 jjyeung users    923 01:42:48 170527.err
+-rw------- 1 jjyeung users   1366 01:15:20 170527.preflight.inputs.json
+-rw------- 1 jjyeung users   7405 01:15:05 170527.preflight.metadata.p.json
+-rw------- 1 jjyeung users 463178 01:15:25 170527.preflight.runtime.p.json
+-rw------- 1 jjyeung users 610780 01:15:33 170527.preflight.runtime.t.json
+-rw------- 1 jjyeung users 610780 01:15:41 170527.preflight.runtime.u.json
+-rw------- 1 jjyeung users   3456 01:42:48 170527.steps
+-rw------- 1 jjyeung users   3285 01:15:04 170527.vt.json
+-rw------- 1 jjyeung users    384 01:42:48 170527.w.steps
+==err
+Traceback (most recent call last):
+  File "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/b/w.py", line 197, in <module>
+    if __name__=='__main__': main(*sys.argv[1:])
+                             ^^^^^^^^^^^^^^^^^^^
+  File "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/b/w.py", line 42, in main
+    admit(pin(root/launch['config']['file']),destination,value['frame_roots'],
+  File "/home/jjyeung/6d00e578/sha256:9588661986650d29f39ce8d6ec9552f131e1684f0a622f579f439a8408cfc6f9/student_pilot/s1_admission.py", line 164, in admit
+    run.validate(cfg)
+  File "/home/jjyeung/6d00e578/sha256:9588661986650d29f39ce8d6ec9552f131e1684f0a622f579f439a8408cfc6f9/student_pilot/carrier_c1_run.py", line 83, in validate
+    raise ValueError('Whole-leg checkpoint disk plan differs from the recipe')
+ValueError: Whole-leg checkpoint disk plan differs from the recipe
+==w
+2026-11-17T01:13:15Z | wrapper start on orchard-community-1; /tmp free 5767 GiB; TK_JOB_START=1794877995 (2026-11-17T01:13:15Z)
+2026-11-17T01:13:15Z | export sessions present for run 17c4ffa4
+2026-11-17T01:15:04Z | staging entries verified
+2026-11-17T01:42:48Z | job.sh exit rc=1
+2026-11-17T01:42:48Z | copy: no complete checkpoint to copy; slot not written, previous slots untouched
+==steps
+2026-11-17T01:19:04Z | joined 30c516bf.json 229 B
+2026-11-17T01:19:04Z | joined 19c85a70.jsonl.gz 68141 B
+2026-11-17T01:19:04Z | joined 99e6eed6.json 52806 B
+2026-11-17T01:19:05Z | joined rows.sqlite 1251414016 B
+2026-11-17T01:19:05Z | joined receipt.json 731 B
+2026-11-17T01:21:13Z | joined rows.sqlite 21377871872 B
+2026-11-17T01:21:17Z | archive f7126b4ebc296a29 staged
+2026-11-17T01:21:21Z | archive 23cdc75ff24a9456 staged
+2026-11-17T01:21:27Z | archive 212cedd1d9b85117 staged
+2026-11-17T01:21:37Z | archive c4bfa546b73ec5a4 staged
+2026-11-17T01:21:44Z | archive c704a5b79ac8f441 staged
+2026-11-17T01:22:14Z | archive 5799225c899013f4 staged
+2026-11-17T01:36:55Z | frames f3 verified: 93be49e42701
+2026-11-17T01:37:12Z | frames f4 verified through pinned shards
+2026-11-17T01:38:10Z | frames f5 verified: 6780c14fd165
+2026-11-17T01:38:11Z | frames f6 verified through pinned shards
+2026-11-17T01:38:13Z | frames f7 verified through pinned shards
+2026-11-17T01:42:11Z | frames f8 verified: 14eae0b7d2fd
+2026-11-17T01:42:11Z | frames f9 verified through pinned shards
+2026-11-17T01:42:31Z | frames f14 verified: 47c9206e3ece
+2026-11-17T01:42:46Z | init mirror verified: 1d6eeb28f51688c4
+2026-11-17T01:42:46Z | stage prep done
+2026-11-17T01:42:46Z | numpy 2.2.6 overlay on
+2026-11-17T01:42:46Z | launch p 0 on orchard-community-1 gpus=4
+2026-11-17T01:42:48Z | exit rc=1
+== /project/community/jjyeung/okh7/x_4b3114cf/o/170527.SLOT_MISSING
+{"job": "170527", "reason": "no complete checkpoint", "trainer_rc": 1}
+
+ls: cannot access '/project/community/jjyeung/okh7/x_4b3114cf/runs/17c4ffa4': No such file or directory

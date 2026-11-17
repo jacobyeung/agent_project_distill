@@ -3,15 +3,37 @@
 #SBATCH -A mt01 -p advanced -N1 --ntasks=1 --gres=gpu:4 -c 48 --mem=800G -t 13:00:00
 #SBATCH --no-requeue --signal=B:USR1@3600
 set -uo pipefail
+umask 077
+O=/project/community/jjyeung/okh7
+private_dir() {
+    [[ -d "$1" && ! -L "$1" && "$(stat -c %a -- "$1")" == 700 ]] || {
+        printf 'Directory must be mode 0700; run: chmod 700 -- %q\n' "$1" >&2
+        exit 3
+    }
+}
+private_dir "$O"
+
 export PATH=/usr/local/bin:/usr/bin:/bin
 export TK_JOB_START="$(date +%s)"   # one wall clock for restore, staging, admission and training (job.sh must keep it)
-KH=/project/community/jjyeung/okh7/x_4b3114cf RUN=/tmp/jjyeung/okit_8865619b/runs/17c4ffa4
-RS=/project/community/jjyeung/okh7/r/766136c1 LOG=$KH/o/${SLURM_JOB_ID}.w.steps
+KH=/project/community/jjyeung/okh7/x_3fdda0fb RUN=/tmp/jjyeung/a_17c4ffa4/runs/17c4ffa4
+RS=/project/community/jjyeung/okh7/r/39504485 LOG=$KH/o/${SLURM_JOB_ID}.w.steps
 step() { printf '%s | %s\n' "$(date -u +%FT%TZ)" "$*" >> "$LOG"; }
 newest() {  # newest verified slot: prints "slot step" (empty if none)
     for s in A B; do [[ -f $RS/$s.json ]] && /usr/bin/python3 -I -c 'import json,sys; d=json.load(open(sys.argv[1])); print(d["slot"], d["step"]) if d.get("verified") is True else None' "$RS/$s.json"; done | sort -k2,2n | tail -1
 }
-mkdir -p /tmp/jjyeung && chmod 700 /tmp/jjyeung && mkdir -p "$RUN" "$RS" "$KH/o"
+# BEGIN directory preflight
+NL=/tmp/jjyeung/a_17c4ffa4
+private_dir "$KH"
+for p in /tmp/jjyeung "$NL" "$NL/runs" "$RUN" "$O/r" "$RS"; do
+    [[ ! -e "$p" && ! -L "$p" ]] || private_dir "$p"
+done
+for p in "$NL/runs"/* "$NL/runs"/.[!.]* "$NL/runs"/..?*; do
+    [[ ! -e "$p" && ! -L "$p" ]] && continue
+    [[ "${p##*/}" == 17c4ffa4 && -d "$p" && ! -L "$p" ]] || { echo 'foreign run directory; refusing' >&2; exit 3; }
+done
+mkdir -p -m 700 /tmp/jjyeung "$NL" "$NL/runs" "$RUN" "$O/r" "$RS" "$KH/o" || exit 3
+for p in "$NL" "$NL/runs" "$RUN" "$RS"; do private_dir "$p"; done
+# END directory preflight
 free_kib=$(df -Pk /tmp | awk 'NR==2 {print $4}')
 step "wrapper start on $(hostname -s); /tmp free $(( free_kib / 1048576 )) GiB; TK_JOB_START=$TK_JOB_START ($(date -u -d @"$TK_JOB_START" +%FT%TZ))"
 # Final review F4: a leg needs about 3.6 TB free at its first save; refuse below 3.8 TB (decimal) in the first minute.
