@@ -17,10 +17,12 @@ def unpack(destination):
             or str(receipt.get('job'))!=str(submission['job'])):
         raise ValueError('Return job identity differs')
     archive=root/'fetched/result.tar.gz'
-    R.verify(receipt,archive,config['plan_sha256'])
+    R.verify(receipt,archive,config['plan_sha256'],allow_partial=True)
     target=root/'fetched/x';target.mkdir()
     with archive.open('rb') as stream:S.extract_stream(stream,target,None,512*1024**2)
     decode_inventories(target)
+    if receipt['status'] == 'PARTIAL':
+        print('PARTIAL: journals recovered; scores are not final.')
     return target
 
 if __name__=='__main__':

@@ -15,7 +15,7 @@ import uuid
 
 ROOT = Path(__file__).resolve().parents[1]
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument('suite', choices=('candidate', 'ported', 'reference', 'refute', 'runtime', 'targeted', 'pins'))
+parser.add_argument('suite', choices=('candidate', 'ported', 'reference', 'refute', 'runtime', 'targeted', 'fix4', 'runtime_direct', 'pins'))
 args = parser.parse_args()
 work = ROOT/'evidence'/('test_fix3_'+args.suite+'_'+uuid.uuid4().hex)
 work.mkdir()
@@ -65,7 +65,8 @@ os.chdir(test_root)
 sys.path[:0] = [str(test_root/'tests'), str(test_root)]
 import offline_guard
 with patch.object(Path, '__truediv__', joined), patch.object(Path, 'open', opened):
-    if args.suite == 'runtime':
+    if args.suite in ('runtime', 'runtime_direct'):
+        if args.suite == 'runtime_direct': os.environ['FIX4_DIRECT'] = '1'
         runpy.run_path(str(ROOT/'tests/runtime_fixture.py'), run_name='__main__')
     else:
         loader = unittest.defaultTestLoader
@@ -73,7 +74,7 @@ with patch.object(Path, '__truediv__', joined), patch.object(Path, 'open', opene
             suite = loader.discover(str(test_root/'tests'), pattern='test_refute.py' if args.suite == 'refute' else 'test_*.py')
         else:
             names = {'ported': ['test_kit', 'test_chain', 'test_verdict'],
-                     'targeted': ['test_fix3'], 'pins': ['test_kit.KitTests.test_final_pins_match']}[args.suite]
+                     'targeted': ['test_fix3'], 'fix4': ['test_fix4'], 'pins': ['test_kit.KitTests.test_final_pins_match']}[args.suite]
             suite = loader.loadTestsFromNames(names)
         result = unittest.TextTestRunner(verbosity=2).run(suite)
         sys.exit(not result.wasSuccessful())

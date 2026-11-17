@@ -1,8 +1,8 @@
 # H1-1 read kit
 
-The local fix gate passes all 101 candidate tests, the separate 53-test ported readk suite, the 53-test original readk reference suite, all four reviewer refute tests, and the four-item runtime fixture. The salted assets rebuild byte-for-byte with the retained key. `FIX3.md` records the current validation, step-544 commands and final-manifest hashes; `SHA256SUMS.txt` authenticates the deliverables.
+The kit supports `--types direct` and bounded partial journal returns. The FIX4 gate passes 111 candidate tests, the separate 53-test ported suite, the 53-test original-reference suite, four refute tests, and both unfiltered and filtered runtime fixtures. `FIX4.md` records the packing benchmark, the CONFIG integrity-pin exception, validation limits and operator commands. `SHA256SUMS.txt` authenticates the deliverables.
 
-The local kit supports H1-1 run `17c4ffa4` and D0 run `359fcc3c` at m100/m200, plus H1-1's three claimed stop generations. Run `469ddece` additionally permits only generation `mstop`, step 544, family `a7`, at deployment `x_07ca49df`. It adds all 2,169 R0-dev items as Orchard family `a7`. All four families total 3,994 items. `readk/` supplies the unchanged D0 reference; the candidate lives in `kit/`.
+The local kit supports H1-1 run `17c4ffa4` and D0 run `359fcc3c` at m100/m200, plus H1-1's three claimed stop generations. Run `469ddece` additionally permits only generation `mstop`, step 544, family `a7`, at deployment `x_07ca49df`. It adds all 2,169 R0-dev items as Orchard family `a7`. Without a filter, all four families total 3,994 items. `readk/` supplies the unchanged D0 reference; the candidate lives in `kit/`.
 
 The new family uses `a7` throughout the bootstrap launcher, batches, configurations and returns. `evidence/FAMILY_ALIASES.json` holds the local `r0dev` alias. Inherited virtual `video_path` values retain dataset names as recorded in the review; those accepted binding bytes remain unchanged. `evidence/NAME_AUDIT.json` separates that inherited boundary from the new asset names.
 
@@ -33,7 +33,7 @@ The supplied production config is `k/1dd078da.json`, SHA256 `9385cc71bad6424f04f
 
 H1 receipts are `/project/community/jjyeung/okh7/x_3fdda0fb/o/gcs_17c4ffa4_m100.done` and `..._m200.done`. A stop at optimizer step 137 still writes `..._m137.done`; its object can be `17c4ffa4_mstop.tar`. The kit requires `gcs_17c4ffa4_mstop.claim` to contain exactly `m137\n`, then checks the archive's m137 directory and artifact step 137. H1-1 stop generations allow actual steps 1–200 only; the separately registered init read allows only mstop/544. A registered generation is not evidence that its upload exists. D0 retains `/project/community/jjyeung/okh7/x_f5c353f7/o/gcs_359fcc3c_m<s>.done`.
 
-D0's `worker.bind`, `worker.validate` and `export_stage.parse_done` function source is byte-identical to the reference. `stage_export` differs only in its entry gate, which admits run `469ddece` at step 544; its archive and checker logic remains byte-identical. Direct reader, adapters and export checker files are byte-identical. The reference's wider legacy helper API remains in `readk/`; the candidate's public request validator restricts reads to this task's scope.
+D0's `worker.bind`, `worker.validate` and `export_stage.parse_done` function source is byte-identical to the reference. `stage_export` differs only in its entry gate, which admits run `469ddece` at step 544; its archive and checker logic remains byte-identical. The pinned direct wrapper, adapters, evaluator source and export checker files are byte-identical. The outer reader selects kept tasks only after full source validation when `--types direct` is present. The reference's wider legacy helper API remains in `readk/`; the candidate's public request validator restricts reads to this task's scope.
 
 ## R0-dev protocol and assets
 
@@ -52,7 +52,7 @@ The two uploads total 803,413,943 bytes. `evidence/FIX1_RESERVE.json` verifies a
 
 The new family uses the accepted prompt builder and ON16k → B2048/B4096 continuation policy, with B2048 primary, greedy decoding, the same 64-token continuation answer cap, vLLM 0.32.0, max-model length 49152, max sequences 32 and inflight 16. The adapter reuses the main cell unchanged (`devrows`, 32 anchors, `duplicate`). Evaluator source and layout guards/receipt literals run byte-identical to main, without in-memory source patches.
 
-The official-style scorer uses MRA for the four numeric types and parsed option exact match for multiple choice. Explicit refusal text, an unparsed or absent answer, and an output-token/answer-cap hit score zero. Every source item remains in the item denominator. **M5:** the refusal regex and answer-cap zeroing are stricter than main’s scorer. Both R0-dev arms apply this same policy; absolute R0-dev scores therefore use a different policy from main. Forced closure of the thinking prefix at B2048 is the accepted continuation policy; it does not itself discard the subsequent answer. A failed byte, binding, parity or completeness check fails the family and stops the chain.
+The official-style scorer uses MRA for the four numeric types and parsed option exact match for multiple choice. Explicit refusal text, an unparsed or absent answer, and an output-token/answer-cap hit score zero. Every source item in a kept type remains in that type’s item denominator. **M5:** the refusal regex and answer-cap zeroing are stricter than main’s scorer. Both R0-dev arms apply this same policy; absolute R0-dev scores therefore use a different policy from main. Forced closure of the thinking prefix at B2048 is the accepted continuation policy; it does not itself discard the subsequent answer. A failed byte, binding, parity or completeness check fails the family and stops the chain.
 
 | Type | Items | No-information score (%) | Chance (%) |
 |---|---:|---:|---:|
@@ -145,53 +145,28 @@ For an unscheduled H1 stop, prepare with `--run 17c4ffa4 --step <actual optimize
 
 ## Validation
 
-The current offline gate and exact commands are recorded in `FIX3.md`. `tools/test_fix3.py` runs the full candidate, ported, reference, refute and runtime suites while redirecting fixtures and test ledgers into `evidence/test_*`. Its audit hook blocks writes elsewhere, deletion, process launches and sockets. The reference source and production preparations stay unchanged. The FIX2 provenance audit is not rerun because it reads sibling directories outside this task’s scope.
+The FIX4 offline gate passes 111 candidate tests, 53 ported readk tests, 53 original-reference tests and four reviewer refute tests. Ten FIX4 tests cover filter identities, unchanged unfiltered plan/behavioral CONFIG fields, exact kept denominators, full frame admission, empty-family refusal, completion, signal/failure recovery, whole-line truncation, torn summaries, fetch and unpack. The seven step-544 admission tests also pass separately.
 
+The runtime fixtures execute the accepted evaluator worker, B2048/B4096 derivation, token audit and mergers with actual RGB frames. The unfiltered fixture completes four items; the direct-filter fixture completes three and excludes its absolute-distance item. Engine, model staging and GPU parity probes are mocks. These fixtures verify interfaces, selection and completeness; they do not establish live GPU parity or Slurm cancellation delivery. FIX4.md gives the journal-packing benchmark and the exact operator commands.
 
-The candidate's `tests/` passes all 101 tests, including the existing 94 and seven step-544 tests (`evidence/FIX3_TESTS.log`). Separate runs pass all 53 ported tests (`FIX3_READK_PORTED.log`), all 53 original reference tests against `readk/kit/` (`FIX3_READK_REFERENCE.log`), and all four refute tests (`FIX3_REFUTE.log`). The new tests verify the exact supplied receipt, claim and object; wrong identities; a7-only CLI preparation and embedded bootstrap; reader payload parity; ordered four-part size/digest checks; and miniature m544 admission with the actual full checker. `FIX3_AUDIT.json` confirms that only binding, launcher request validation and export admission changed among previously pinned kit files. All 73 pinned reader files are unchanged.
+`tools/test_fix3.py` confines generated fixtures and ledgers to `evidence/test_*` and blocks external process/network operations inside the tests. The reference source and production preparations stay unchanged. The FIX2 provenance audit is not rerun because it reads outside this kit. The pinned direct wrapper, evaluator, adapters and export-checker source remain unchanged; `evidence/FIX4_AUDIT.json` lists the changed outer launcher/reader files.
 
-`evidence/FIX3_RUNTIME.log` records a separate four-item integration through the actual evaluator worker, B2048/B4096 derivation, token audit and mergers, with actual RGB frames. The engine, model staging and GPU parity probe are mocks. It asserts the unchanged main cell, 64 paired frames, doubled indices, duplicate-layout journals, unpatched layout modules and logical IDs in the Trinity inventory. It uses a local event loop without sockets. This proves interface integration, not GPU prompt/pixel parity or vLLM execution.
-
-The runtime fixture imports the candidate reader and supplies the accepted evaluator runtime retained in `readk/evidence/test_fix2_bind_main1000/a0/kit`. The job checks this runtime's complete source digest. The packaged optional `evalpath/kit_inputs.py` filter differs from that runtime, as documented in the reference; the fixture preserves the production digest check and runs the accepted evaluator bytes.
-
-`evidence/FIX1c_DETERMINISM.json` records equal hashes from two asset builds for the tar, item file, registry, identifier map, key, provenance and upload plan. The tar content and modification time and the retained key remain unchanged. Final sealing regenerates `DIFF.md`, `DIFF.patch`, `SHA256SUMS.txt` and `evidence/FINAL_PINS.json` deterministically from fixed source and evidence bytes. `FIX1.md`, `FIX2.md`, `FIX3.md` and post-seal verification logs remain outside the manifest to avoid circular hashes. `evidence/FIX3_FINAL_PIN_TEST.log` checks the final manifest; `evidence/FIX3_SHA256_CHECK.log` checks every checksum entry.
-
-`evidence/BIND_100_main.log` and `BIND_200_main.log` prove exact main-family prompt bytes against the real D0 m200 return and the accepted evaluator digest `d27804f7…`. The local reference lacks away/forward payload directories, so fresh binds for those two families are not claimed; the unchanged functions and existing suite cover their preserved code. `evidence/D0_SELF_PAIR.json` pairs all 1,825 real D0 m200 items with themselves: every type has delta 0 and interval [0,0].
+The existing salted asset rebuild and identifier evidence remains in FIX1c_DETERMINISM.json. The frame tar, item file, registry and key were not changed. The sealer regenerates DIFF.md, DIFF.patch, SHA256SUMS.txt and FINAL_PINS.json. FIX1.md through FIX4.md and post-seal verification logs remain outside the manifest to avoid circular hashes.
 
 ```bash
+set -e
 export PYTHONDONTWRITEBYTECODE=1 OPENBLAS_NUM_THREADS=1
 PY=/scratch/jjyeung/envs/p1cpu/bin/python
-"$PY" -B tools/test_fix3.py targeted > evidence/FIX3_TARGETED.log 2>&1
-"$PY" -B tools/test_fix3.py runtime > evidence/FIX3_RUNTIME.log 2>&1
-"$PY" -B tools/seal.py --pre-test > evidence/FIX3_PRESEAL.log
-"$PY" -B tools/test_fix3.py candidate > evidence/FIX3_TESTS.log 2>&1
-"$PY" -B tools/test_fix3.py ported > evidence/FIX3_READK_PORTED.log 2>&1
-"$PY" -B tools/test_fix3.py reference > evidence/FIX3_READK_REFERENCE.log 2>&1
-"$PY" -B tools/test_fix3.py refute > evidence/FIX3_REFUTE.log 2>&1
-"$PY" -B tools/seal.py > evidence/FIX3_SEAL.log
-"$PY" -B tools/test_fix3.py pins > evidence/FIX3_FINAL_PIN_TEST.log 2>&1
-sha256sum -c SHA256SUMS.txt > evidence/FIX3_SHA256_CHECK.log
+"$PY" -B tools/test_fix3.py fix4 > evidence/FIX4_NEW_TESTS.log 2>&1
+"$PY" -B tools/test_fix3.py targeted > evidence/FIX4_TARGETED.log 2>&1
+"$PY" -B tools/test_fix3.py runtime > evidence/FIX4_RUNTIME.log 2>&1
+"$PY" -B tools/test_fix3.py runtime_direct > evidence/FIX4_RUNTIME_DIRECT.log 2>&1
+"$PY" -B tools/seal.py --pre-test > evidence/FIX4_PRESEAL.log
+"$PY" -B tools/test_fix3.py candidate > evidence/FIX4_TESTS.log 2>&1
+"$PY" -B tools/test_fix3.py ported > evidence/FIX4_READK_PORTED.log 2>&1
+"$PY" -B tools/test_fix3.py reference > evidence/FIX4_READK_REFERENCE.log 2>&1
+"$PY" -B tools/test_fix3.py refute > evidence/FIX4_REFUTE.log 2>&1
+"$PY" -B tools/seal.py > evidence/FIX4_SEAL.log
+"$PY" -B tools/test_fix3.py pins > evidence/FIX4_FINAL_PIN_TEST.log 2>&1
+sha256sum -c SHA256SUMS.txt > evidence/FIX4_SHA256_CHECK.log
 ```
-
-Pre-test sealing excludes pending suite logs; final sealing includes their completed results. Tests install the offline process/socket guard before kit imports. Fixtures remain on disk; `REMOVAL_CANDIDATES.md` lists their paths. No cleanup command ran.
-
-## Estimated time and local space
-
-These are **estimates**, not measured H1 reads. `readk/REPORT.md` reports 52m51s for 1,825 items, including 47m11s generation, and 497.6s staging. Scaling by 2,169/1,825 estimates about 62m49s for the additional family's bind/generate/merge work. Scaling all 3,994 items gives about 115m40s plus staging. Allow **125–145 minutes for all four families** and **75–90 minutes for r0dev only**; full hashes, answer lengths and model staging remain uncertainties.
-
-Budget approximately **275 GB additional `/tmp` space** for all four families: the reference's 220 GB estimate plus a fourth base/export model copy, the 0.80 GB extracted asset and working margin. Start with at least **500 GB free**, retaining the 200 GiB floor. For r0dev-only, allow approximately **150 GB additional**, starting with **375 GB free**. The actual per-family admission checks remain authoritative. The inherited 512 MiB expanded/sub-90 MB compressed return limits remain enforced; oversize returns fail rather than silently omit journals.
-
-## Choices
-
-- Run the original reference suite from `readk/`, because it resolves accepted evidence relative to its working directory. Keep the candidate port as a separate run.
-- Bind H1 only to `x_3fdda0fb`; retain the D0 mapping exactly. Keep the existing normal-step and stop-step admission limits. The packet has additional milestone sessions, but this kit remains scoped to m100/m200 and stop steps 1–200.
-- Use the retained config with the matching production identity to verify `duplicate`; record the supplied production key/file hash as provenance, without adding a new training-config dependency. FIX1 receipts retain their recorded evidence; REPORT.md and EXPORT_SOURCES.json state the current packet.
-- Use the accepted main cell unchanged for R0-dev: 32 anchors, each duplicated, for 64 input frames. Preserve the evaluator's layout guards and receipt literals.
-- Apply `20261116T2218Z_ORCH_RULING_r0dev_dup_qids.md` ("ORCH RULING: R0-dev duplicate qids, one rule for every kit"): retain all 2,169 rows in source line order. Logical IDs equal the source qid; only the second occurrence of `r0_5f3b5ae38f23ff697994` and `r0_c07cd9b246d953847b90` gets `#2`, matching b04’s `BUILD_R0DEV.json`. Keep `source_qid` and `source_line` in the Trinity map and decoded inventories. Derive Orchard IDs from logical IDs with the retained salted key; keep the key and map on Trinity.
-- Use the explicitly approved node-local reserve archive for the full source digest and frame checks. Rebuild from the authenticated retained frame asset with the same random key; keep all outputs inside this workspace.
-- Run the candidate reader with the exact accepted evaluator runtime required by its source digest. Keep the packaged optional filter and all evaluator layout code unchanged.
-- Preserve the registered 100-room coverage denominator, while retaining the source's exact 2,169-item scoring denominator; do not fabricate questions for deferred rooms.
-- Use the reference's ON16k/B2048/B4096 answer policy, with explicit zero scoring for new-family refusals, nonanswers and answer-cap hits. Use chance for appearance and relative distance.
-- Preserve D0's binder and raw journal content. Keep the local alias map and identifier key out of every packaged surface; use `a7` in operator preparation commands.
-- Keep the reference kit, input copies, test fixtures and failed fixture directories. No files were deleted. Reference source and pins under `readk/` remain unchanged; the wrapper places fixtures from both suites under `evidence/test_*`.
-- Use the supplied measured D0 timings for planning, without claiming that a live export, upload, credential, runtime archive or GPU read has been verified.

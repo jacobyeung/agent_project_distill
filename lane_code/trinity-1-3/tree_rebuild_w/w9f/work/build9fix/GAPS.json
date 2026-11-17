@@ -1,0 +1,1704 @@
+{
+  "launch_r1/entry.py": [
+    {
+      "line": 48,
+      "text": "from student_pilot.carrier_c1_run import identity"
+    },
+    {
+      "line": 49,
+      "text": "from student_pilot.checkpoint_space import plan"
+    },
+    {
+      "line": 50,
+      "text": "from student_pilot.carrier_c1_sweep import recipe_for"
+    },
+    {
+      "line": 51,
+      "text": "root = Path(root).resolve()"
+    },
+    {
+      "line": 52,
+      "text": "if root.exists() and any(root.iterdir()):"
+    },
+    {
+      "line": 53,
+      "text": "raise ValueError('R1_HOST_ROOT_NOT_EMPTY')"
+    },
+    {
+      "line": 54,
+      "text": "root.mkdir(parents=True, mode=0o700, exist_ok=True)"
+    },
+    {
+      "line": 55,
+      "text": "root.chmod(0o700)"
+    },
+    {
+      "line": 56,
+      "text": "result = dict(status='FAIL', config_identity=identity(cfg), assertions={k:False for k in ASSERTIONS},"
+    },
+    {
+      "line": 58,
+      "text": "result['assertions']['empty_root'] = True"
+    },
+    {
+      "line": 59,
+      "text": "previous_umask = os.umask(0o077)"
+    },
+    {
+      "line": 60,
+      "text": "try:"
+    },
+    {
+      "line": 61,
+      "text": "if os.environ.get('CUDA_VISIBLE_DEVICES', ''):"
+    },
+    {
+      "line": 63,
+      "text": "expected = plan(recipe_for(cfg), retained_archive_copies=1)"
+    },
+    {
+      "line": 64,
+      "text": "result['assertions']['disk_plan'] = cfg.get('checkpoint_disk_guard') == expected"
+    },
+    {
+      "line": 65,
+      "text": "if not result['assertions']['disk_plan']:"
+    },
+    {
+      "line": 67,
+      "text": "binaries = {}"
+    },
+    {
+      "line": 68,
+      "text": "for name in request['binaries']:"
+    },
+    {
+      "line": 69,
+      "text": "binary = shutil.which(name)"
+    },
+    {
+      "line": 70,
+      "text": "if not binary:"
+    },
+    {
+      "line": 72,
+      "text": "binaries[name] = file_pin(Path(binary).resolve())"
+    },
+    {
+      "line": 73,
+      "text": "result['binaries'] = binaries"
+    },
+    {
+      "line": 74,
+      "text": "result['assertions']['runtime_binaries'] = bool(binaries)"
+    },
+    {
+      "line": 76,
+      "text": "if not request.get('staging') or not request.get('routing_selection'):"
+    },
+    {
+      "line": 77,
+      "text": "raise ValueError('R1_HOST_STAGING_AND_SELECTION_INPUTS_MISSING')"
+    },
+    {
+      "line": 82,
+      "text": "def localize(value):"
+    },
+    {
+      "line": 83,
+      "text": "if isinstance(value, dict):"
+    },
+    {
+      "line": 84,
+      "text": "return {k:localize(v) for k,v in value.items()}"
+    },
+    {
+      "line": 85,
+      "text": "if isinstance(value, list):"
+    },
+    {
+      "line": 86,
+      "text": "return [localize(v) for v in value]"
+    },
+    {
+      "line": 87,
+      "text": "if isinstance(value, str) and value.startswith('u/'):"
+    },
+    {
+      "line": 88,
+      "text": "return str(root/value)"
+    },
+    {
+      "line": 89,
+      "text": "return value"
+    }
+  ],
+  "launch_r2/build.py": [
+    {
+      "line": 27,
+      "text": "return True"
+    },
+    {
+      "line": 31,
+      "text": "return True"
+    },
+    {
+      "line": 35,
+      "text": "return True"
+    },
+    {
+      "line": 43,
+      "text": "raise ValueError('Unexpected capsule fields')"
+    },
+    {
+      "line": 46,
+      "text": "raise ValueError('Invalid content capsule')"
+    },
+    {
+      "line": 50,
+      "text": "raise ValueError('Forbidden JSON field')"
+    },
+    {
+      "line": 58,
+      "text": "raise ValueError('Non-opaque or absolute operational string')"
+    },
+    {
+      "line": 67,
+      "text": "raise ValueError('Forbidden staged path')"
+    },
+    {
+      "line": 76,
+      "text": "raise ValueError('Forbidden job argument or environment value')"
+    },
+    {
+      "line": 82,
+      "text": "raise ValueError('Forbidden job path, argument or environment value')"
+    },
+    {
+      "line": 84,
+      "text": "raise ValueError('GPU request refused by CPU job')"
+    },
+    {
+      "line": 117,
+      "text": "sys.modules['v'] = previous"
+    },
+    {
+      "line": 135,
+      "text": "from .parent import reproduce"
+    },
+    {
+      "line": 136,
+      "text": "return reproduce(base, output)"
+    },
+    {
+      "line": 138,
+      "text": "raise ValueError('Kit must stage from empty')"
+    },
+    {
+      "line": 163,
+      "text": "raise ValueError('Missing pinned init selection')"
+    },
+    {
+      "line": 165,
+      "text": "pins['init_selection'] = capsule(pinned(init_pin))"
+    },
+    {
+      "line": 168,
+      "text": "raise ValueError('Foreign withheld list')"
+    },
+    {
+      "line": 170,
+      "text": "raise ValueError('Shared grammar differs')"
+    },
+    {
+      "line": 201,
+      "text": "from .closure import transport"
+    },
+    {
+      "line": 202,
+      "text": "from student_pilot.r2_mix import preflight, validate_table"
+    },
+    {
+      "line": 203,
+      "text": "from student_pilot.r2_policy import components"
+    },
+    {
+      "line": 204,
+      "text": "def transport_bytes(raw, suffix):"
+    },
+    {
+      "line": 205,
+      "text": "return put_bytes(capsule_json(json.loads(raw)), suffix) if suffix == '.json' else put_bytes(raw,suffix)"
+    },
+    {
+      "line": 206,
+      "text": "portable, translations = transport(bindings, transport_bytes)"
+    },
+    {
+      "line": 207,
+      "text": "registry = portable.get('registry', registry)"
+    },
+    {
+      "line": 208,
+      "text": "mix = portable.get('mix', mix)"
+    },
+    {
+      "line": 209,
+      "text": "validate_table(load(output / mix['path']))"
+    },
+    {
+      "line": 210,
+      "text": "components(registry, 'training', output)"
+    },
+    {
+      "line": 211,
+      "text": "if 'counts' in portable:"
+    },
+    {
+      "line": 212,
+      "text": "preflight(mix, portable['counts'], root=output, source_presence=portable.get('source_presence'))"
+    },
+    {
+      "line": 213,
+      "text": "pins['transports'] = put(translations)"
+    },
+    {
+      "line": 220,
+      "text": "raise ValueError('Both sealed pose sources are required')"
+    },
+    {
+      "line": 223,
+      "text": "pins['dense'] = capsule(dense_manifest['path'])"
+    },
+    {
+      "line": 236,
+      "text": "if not {'mix', 'counts'} <= set(portable):"
+    },
+    {
+      "line": 237,
+      "text": "raise ValueError('Reader indices require mix and population bindings')"
+    },
+    {
+      "line": 238,
+      "text": "cfg['r2_sampling'] = {k:v for k,v in portable.items() if k in ('mix','counts','indices','source_presence')}"
+    },
+    {
+      "line": 239,
+      "text": "cfg['r2_sampling']['portable'] = True"
+    },
+    {
+      "line": 241,
+      "text": "cfg['init_artifact'] = dict(artifact=dict(path='u/'+cfg['r2_identity']['init']['artifact_sha256'],"
+    },
+    {
+      "line": 252,
+      "text": "spec = launch_inputs['init']"
+    },
+    {
+      "line": 253,
+      "text": "plan['entries'][cfg['init_artifact']['artifact']['path']] = dict(parts=[spec['location']],sha256=spec['sha256'])"
+    }
+  ],
+  "student_pilot/b7_inputs.py": [
+    {
+      "line": 20,
+      "text": "raise ValueError('missing_real_location')"
+    },
+    {
+      "line": 27,
+      "text": "raise ValueError('stage_pinned_object_before_local_verification')"
+    },
+    {
+      "line": 39,
+      "text": "raise ValueError('processor_resolution_range')"
+    },
+    {
+      "line": 41,
+      "text": "raise ValueError('frame_count_must_be_32_or_64')"
+    },
+    {
+      "line": 81,
+      "text": "raise ValueError('d0_v5_identity_mismatch')"
+    },
+    {
+      "line": 103,
+      "text": "raise ValueError('row_store_manifest_stream_mismatch')"
+    },
+    {
+      "line": 139,
+      "text": "raise ValueError('concrete_trace_sft_required')"
+    },
+    {
+      "line": 146,
+      "text": "raise ValueError('positive_minority_count_required')"
+    },
+    {
+      "line": 151,
+      "text": "raise ValueError('gf1_cache_root_required')"
+    },
+    {
+      "line": 201,
+      "text": "expected=cfg['b7_inputs']['trainable_modules']"
+    },
+    {
+      "line": 202,
+      "text": "actual=module_trainability(model,cfg)"
+    },
+    {
+      "line": 203,
+      "text": "stage=(getattr(model,'geometry_online',None) or {}).get('gf1',{}).get('stage')"
+    },
+    {
+      "line": 204,
+      "text": "for kind,parameters in actual.items():"
+    },
+    {
+      "line": 205,
+      "text": "if kind=='other': continue"
+    },
+    {
+      "line": 206,
+      "text": "spec=expected[kind]"
+    },
+    {
+      "line": 207,
+      "text": "for parameter in parameters:"
+    },
+    {
+      "line": 208,
+      "text": "trainable=spec['trainable'] and stage!=1"
+    },
+    {
+      "line": 209,
+      "text": "if kind=='private_vit' and '.merger.' in parameter['name']: trainable=False"
+    },
+    {
+      "line": 210,
+      "text": "if parameter['trainable']!=trainable:"
+    },
+    {
+      "line": 211,
+      "text": "raise ValueError('trainable_module_pin_mismatch:'+parameter['name'])"
+    },
+    {
+      "line": 212,
+      "text": "rates={0.} if not trainable else {spec['learning_rate'],spec.get('inherited_learning_rate',spec['learning_rate'])}"
+    },
+    {
+      "line": 213,
+      "text": "if parameter['learning_rate'] not in rates:"
+    },
+    {
+      "line": 214,
+      "text": "raise ValueError('trainable_learning_rate_pin_mismatch:'+parameter['name'])"
+    },
+    {
+      "line": 215,
+      "text": "return actual"
+    }
+  ],
+  "student_pilot/carrier_c1_routing.py": [
+    {
+      "line": 234,
+      "text": "raise RenderError('own pose readout must be finite [32 or 64, 9]')"
+    },
+    {
+      "line": 239,
+      "text": "raise RenderError('own FoV readout must be finite [F, 2]')"
+    },
+    {
+      "line": 557,
+      "text": "return finish(batch, ids, train, row, target, spans, mode, offsets, segments, faithful=faithful)"
+    },
+    {
+      "line": 694,
+      "text": "if type(frame_count) is not int or frame_count not in (32, 64):"
+    },
+    {
+      "line": 695,
+      "text": "raise RenderError(\"unsupported_frame_count\")"
+    },
+    {
+      "line": 696,
+      "text": "per_frame, index = [[] for _ in range(frame_count)], []"
+    },
+    {
+      "line": 698,
+      "text": "if type(frame) is not int or not 1 <= frame <= frame_count:"
+    },
+    {
+      "line": 705,
+      "text": "uv = np.full((frame_count, k, 2), 500., dtype=np.float32)"
+    },
+    {
+      "line": 899,
+      "text": "raise ValueError('LEGACY_DIRECT_SOURCE_EMPTY_THINK_REFUSED')"
+    },
+    {
+      "line": 904,
+      "text": "target = raw.get('target')"
+    },
+    {
+      "line": 905,
+      "text": "require_training_think(target)"
+    },
+    {
+      "line": 907,
+      "text": "count = len(inputs['frames'])"
+    },
+    {
+      "line": 908,
+      "text": "if count not in (32, 64) or len(inputs['frame_indices']) != count:"
+    },
+    {
+      "line": 909,
+      "text": "raise ValueError('Direct rows require 32 or 64 pinned native frames')"
+    },
+    {
+      "line": 910,
+      "text": "from .r2_grammar import validate_direct"
+    },
+    {
+      "line": 911,
+      "text": "answer = validate_direct(target, inputs['question'], count)"
+    },
+    {
+      "line": 912,
+      "text": "if answer != str(raw['answer']):"
+    },
+    {
+      "line": 913,
+      "text": "raise ValueError('Direct trace answer differs from its declared answer')"
+    },
+    {
+      "line": 914,
+      "text": "suffix = '\\n</think>\\n\\n' + answer"
+    },
+    {
+      "line": 915,
+      "text": "if not target.endswith(suffix):"
+    },
+    {
+      "line": 916,
+      "text": "raise ValueError('Direct trace target does not match the training renderer')"
+    },
+    {
+      "line": 917,
+      "text": "body = target[len(THINK):-len(suffix)]"
+    },
+    {
+      "line": 921,
+      "text": "events = [dict(kind='canonical_text', text=body)]"
+    },
+    {
+      "line": 922,
+      "text": "return dict(qid=raw['qid'], dataset=dataset, scene=scene, category='routing_trace', student_input=inputs,"
+    },
+    {
+      "line": 977,
+      "text": "both = qtype in policy.get('both', ())"
+    },
+    {
+      "line": 978,
+      "text": "kind = ('route' if calls else 'direct') if both else ('route' if qtype in policy['route'] else 'direct' if qtype in policy['direct'] else None)"
+    },
+    {
+      "line": 979,
+      "text": "gate_reason = None"
+    },
+    {
+      "line": 980,
+      "text": "if 'both' in policy:"
+    },
+    {
+      "line": 981,
+      "text": "from .routing_type_gate import refusal"
+    },
+    {
+      "line": 982,
+      "text": "gate_reason = refusal(qtype, 'routed' if calls else 'direct', policy)"
+    },
+    {
+      "line": 983,
+      "text": "row['answer_form'] = 'routed' if calls else 'direct'"
+    },
+    {
+      "line": 986,
+      "text": "reason = ('duplicate_qid' if row['qid'] in seen else"
+    },
+    {
+      "line": 1027,
+      "text": "reason = ('duplicate_qid' if row['qid'] in seen else"
+    },
+    {
+      "line": 1033,
+      "text": "if 'both' in policy:"
+    },
+    {
+      "line": 1034,
+      "text": "row['answer_form'] = 'direct'"
+    },
+    {
+      "line": 1074,
+      "text": "parser.add_argument('--direct-source', help='JSON pin of concrete direct traces (JSONL)')"
+    }
+  ],
+  "student_pilot/carrier_c1_run.py": [
+    {
+      "line": 42,
+      "text": "value['r1_training'] = {k:v for k,v in value['r1_training'].items() if k not in ('host_receipt','review')}"
+    },
+    {
+      "line": 70,
+      "text": "if 'r1_training' in cfg:"
+    },
+    {
+      "line": 71,
+      "text": "from .r1_training import validate as validate_r1"
+    },
+    {
+      "line": 72,
+      "text": "validate_r1(cfg)"
+    },
+    {
+      "line": 73,
+      "text": "if 'b7_inputs' in cfg:"
+    },
+    {
+      "line": 74,
+      "text": "from .b7_inputs import validate as validate_inputs"
+    },
+    {
+      "line": 75,
+      "text": "validate_inputs(cfg['b7_inputs'], 'a2' if cfg.get('geometry_connector')=='gf1' else 'a0')"
+    },
+    {
+      "line": 92,
+      "text": "if budget.whole_leg and budget.policy != plan(cfg['recipe'], budget.policy['reserve_bytes'],"
+    },
+    {
+      "line": 158,
+      "text": "permitted_overrides = {'weight_focal', 'weight_scale'} if cfg.get('r1_training') else {'weight_focal'}"
+    },
+    {
+      "line": 159,
+      "text": "if (not isinstance(overrides, dict) or set(overrides) - permitted_overrides"
+    },
+    {
+      "line": 173,
+      "text": "if cfg.get('h1', {}).get('faithful_own_camera_rows') is not None:"
+    },
+    {
+      "line": 174,
+      "text": "from .h1_faithful import validate as validate_faithful"
+    },
+    {
+      "line": 175,
+      "text": "validate_faithful(cfg)"
+    },
+    {
+      "line": 347,
+      "text": "from .r0_exclusion import reserve"
+    },
+    {
+      "line": 348,
+      "text": "return bool(routing.excluded(benchmark, *keys) or reserve().matches(row)), int(routing.excluded(reported, *keys))"
+    },
+    {
+      "line": 369,
+      "text": "if cfg.get('routing_policy')=='both-path-20261116':"
+    },
+    {
+      "line": 370,
+      "text": "from .carrier_c1_routing import POLICIES"
+    },
+    {
+      "line": 371,
+      "text": "if row.get('question_type') in POLICIES['both-path-20261116']['both']:"
+    },
+    {
+      "line": 372,
+      "text": "return False"
+    },
+    {
+      "line": 467,
+      "text": "from .r2_contract import preparation"
+    },
+    {
+      "line": 468,
+      "text": "preparation(cfg)"
+    },
+    {
+      "line": 509,
+      "text": "r2_pose = bool(cfg.get('r2_membership') and cfg.get('r2') and pose.get('count', 0) > 0)"
+    },
+    {
+      "line": 510,
+      "text": "if ((mix is None and (pose.get('schema') != 'decoupled-v-preparation-v1' or (pose.get('count') != 321152 and not tiny_pose and not r2_pose)))"
+    },
+    {
+      "line": 633,
+      "text": "result.update({k: cfg[k] for k in ('frame_layout', 'frame_pair_gap_seconds', 'skip_unsupervised_lm',"
+    },
+    {
+      "line": 654,
+      "text": "if cfg.get('h1', {}).get('faithful_own_camera_rows'):"
+    },
+    {
+      "line": 655,
+      "text": "from .h1_faithful import prepare_identity"
+    },
+    {
+      "line": 656,
+      "text": "result = prepare_identity(result, cfg)"
+    },
+    {
+      "line": 666,
+      "text": "from .r2_contract import preparation"
+    },
+    {
+      "line": 667,
+      "text": "preparation(cfg)"
+    },
+    {
+      "line": 671,
+      "text": "if receipt.get('r1_training') != cfg.get('r1_training'):"
+    },
+    {
+      "line": 672,
+      "text": "raise ValueError('Preparation R1 inputs differ')"
+    },
+    {
+      "line": 673,
+      "text": "if 'r1_training' in cfg and receipt.get('r2_sampling') != cfg.get('r2_sampling'):"
+    },
+    {
+      "line": 674,
+      "text": "raise ValueError('Preparation R1 sampler differs')"
+    },
+    {
+      "line": 675,
+      "text": "if 'b7_inputs' in cfg:"
+    },
+    {
+      "line": 676,
+      "text": "from .b7_inputs import layout"
+    },
+    {
+      "line": 677,
+      "text": "if receipt.get('b7_inputs') != cfg['b7_inputs'] or layout(receipt['b7_inputs']) != layout(cfg['b7_inputs']):"
+    },
+    {
+      "line": 678,
+      "text": "raise ValueError('Preparation pinned kit inputs differ')"
+    },
+    {
+      "line": 703,
+      "text": "if cfg.get('h1', {}).get('faithful_own_camera_rows'):"
+    },
+    {
+      "line": 704,
+      "text": "from .h1_faithful import require_identity"
+    },
+    {
+      "line": 705,
+      "text": "require_identity(receipt, cfg)"
+    },
+    {
+      "line": 711,
+      "text": "receipt = {**receipt, 'align': cfg.get('align'), 'init_artifact': cfg.get('init_artifact'),"
+    },
+    {
+      "line": 717,
+      "text": "if 'h1' in cfg:"
+    },
+    {
+      "line": 718,
+      "text": "receipt = {**receipt, 'h1': cfg['h1']}"
+    },
+    {
+      "line": 947,
+      "text": "report['r2_lineage'] = (artifact.get('r2_identity') or {}).get('init', {}).get('artifact_sha256')"
+    },
+    {
+      "line": 974,
+      "text": "from .r1_training import scale_init"
+    },
+    {
+      "line": 975,
+      "text": "scale_missing = scale_init(live, selected, enabled=bool(getattr(model, 'r1_training', None)) and not evaluation)"
+    },
+    {
+      "line": 976,
+      "text": "wanted -= scale_missing"
+    },
+    {
+      "line": 989,
+      "text": "report['planned_init'] = sorted(absent | scale_missing | {k for k in live if k.startswith('patch_fusion.') and k not in selected})"
+    },
+    {
+      "line": 1103,
+      "text": "from .r1_training import row_check"
+    },
+    {
+      "line": 1104,
+      "text": "row_check(value, stream)"
+    },
+    {
+      "line": 1228,
+      "text": "processor.tokenizer._c1_frame_count = receipt.get('frame_count',32)"
+    },
+    {
+      "line": 1229,
+      "text": "if receipt.get('b7_inputs') or receipt.get('r1_training'):"
+    },
+    {
+      "line": 1230,
+      "text": "from .b7_inputs import layout"
+    },
+    {
+      "line": 1231,
+      "text": "processor._b7_layout = layout(receipt.get('b7_inputs') or receipt)"
+    },
+    {
+      "line": 1243,
+      "text": "if getattr(rows, 'h1', {}).get('faithful_own_camera_rows'):"
+    },
+    {
+      "line": 1244,
+      "text": "from .h1_faithful import own_values as faithful_own_values"
+    },
+    {
+      "line": 1245,
+      "text": "return faithful_own_values(model, rows, batch, audit, index, decision, device)"
+    },
+    {
+      "line": 1251,
+      "text": "uv, slots = routing.query_tensor(queries, frame_count=batch[\"aux_camera_positions\"].shape[1])"
+    },
+    {
+      "line": 1256,
+      "text": "uv = torch.full((batch[\"aux_camera_positions\"].shape[1], 1, 2), 500.)"
+    },
+    {
+      "line": 1325,
+      "text": "if positions.shape != (1, getattr(model,'frame_count',32)) or torch.any(valid != (valid.long().cumprod(dim=1) > 0)):"
+    },
+    {
+      "line": 1345,
+      "text": "if mask.shape != positions.shape or torch.any(mask & ~valid) or not mask.any():"
+    },
+    {
+      "line": 1348,
+      "text": "if depth is None or depth.shape[:2] != positions.shape or torch.any(depth.any(-1) & ~valid):"
+    },
+    {
+      "line": 1386,
+      "text": "if not flag.item() and getattr(model, 'r1_training', None):"
+    },
+    {
+      "line": 1387,
+      "text": "raise ValueError('R1 row failure forbids substituting the pinned row plan')"
+    },
+    {
+      "line": 1690,
+      "text": "recipe = recipe_for(cfg)"
+    },
+    {
+      "line": 1691,
+      "text": "counts = {k:v['count'] for k,v in receipt['streams'].items()}"
+    },
+    {
+      "line": 1692,
+      "text": "offset = cfg.get('row_start_step', 0)"
+    },
+    {
+      "line": 1693,
+      "text": "plan = next(data.mixed_indices(counts,offset+1,start_step=offset,training_mode=cfg.get('training_mode', 'mixed'),"
+    },
+    {
+      "line": 1695,
+      "text": "if encode_only:"
+    },
+    {
+      "line": 1696,
+      "text": "return encode_plan_rows(receipt, processor, [plan], list(range(recipe['world_size'])), report_path)"
+    },
+    {
+      "line": 2090,
+      "text": "from .r1_training import boundary as r1_boundary"
+    },
+    {
+      "line": 2091,
+      "text": "write(directory/'artifact.json',dict(**version_metadata,schema='carrier-c1-artifact-v1',step=step,"
+    },
+    {
+      "line": 2113,
+      "text": "if 'b7_inputs' in cfg:"
+    },
+    {
+      "line": 2114,
+      "text": "from .b7_inputs import module_trainability"
+    },
+    {
+      "line": 2115,
+      "text": "metadata = load(directory/'artifact.json')"
+    },
+    {
+      "line": 2116,
+      "text": "metadata['trainable_modules'] = module_trainability(model,cfg)"
+    },
+    {
+      "line": 2117,
+      "text": "(directory/'artifact.json').write_text(json.dumps(metadata,sort_keys=True,indent=2)+'\\n')"
+    },
+    {
+      "line": 2118,
+      "text": "from .eat1_export import write_manifest"
+    },
+    {
+      "line": 2119,
+      "text": "write_manifest(directory,model,cfg)"
+    },
+    {
+      "line": 2295,
+      "text": "from launch_r2.persistence import milestone"
+    },
+    {
+      "line": 2296,
+      "text": "if 'r2_identity' in cfg and not cfg.get('r2_sampling'):"
+    },
+    {
+      "line": 2297,
+      "text": "raise ValueError('Missing bound r2_sampling table')"
+    },
+    {
+      "line": 2301,
+      "text": "if 'r1_training' in cfg and cfg['r1_training'].get('stop_after_step') is not None:"
+    },
+    {
+      "line": 2302,
+      "text": "steps = min(steps, cfg['r1_training']['stop_after_step'])"
+    },
+    {
+      "line": 2329,
+      "text": "milestone(cfg, output/'m0', 'export', rank, distributed)"
+    },
+    {
+      "line": 2355,
+      "text": "for step,plan in enumerate(data.mixed_indices(counts,offset+steps,start_step=offset+start_step,"
+    },
+    {
+      "line": 2405,
+      "text": "from .stop_control import requested"
+    },
+    {
+      "line": 2406,
+      "text": "stop[0] = requested(stop[0], cfg, step)"
+    },
+    {
+      "line": 2416,
+      "text": "saved = checkpoint(output/f'checkpoint_{step:06d}',wrapped,optimizer,bound,step,rotate=True, **checkpoint_options())"
+    },
+    {
+      "line": 2417,
+      "text": "milestone(cfg, Path(saved['path']).parent, 'checkpoint', rank, distributed)"
+    },
+    {
+      "line": 2420,
+      "text": "if not smoke_steps and (step in recipe['milestones'] or (stopping and (recipe.get('export_at_stop') or cfg.get('stop_after_step') is not None))):"
+    },
+    {
+      "line": 2427,
+      "text": "milestone(cfg, output/f'm{step}', 'export', rank, distributed)"
+    },
+    {
+      "line": 3032,
+      "text": "rows = Rows(receipt, processor)"
+    },
+    {
+      "line": 3033,
+      "text": "records = []"
+    },
+    {
+      "line": 3034,
+      "text": "try:"
+    },
+    {
+      "line": 3035,
+      "text": "for step, plan in enumerate(plans, 1):"
+    },
+    {
+      "line": 3036,
+      "text": "for stream, indices in plan:"
+    },
+    {
+      "line": 3037,
+      "text": "for rank in ranks:"
+    },
+    {
+      "line": 3038,
+      "text": "batch, _, _ = rows.get(stream, int(indices[rank]))"
+    },
+    {
+      "line": 3039,
+      "text": "if any(v.is_cuda for v in batch.values() if hasattr(v, 'is_cuda')):"
+    },
+    {
+      "line": 3040,
+      "text": "raise ValueError('Encoding-only admission requires CPU tensors')"
+    },
+    {
+      "line": 3041,
+      "text": "records.append(dict(step=step, rank=rank, stream=stream, index=int(indices[rank]),"
+    },
+    {
+      "line": 3043,
+      "text": "write(out_path, dict(schema='r2-encoded-first-batch-v1', records=records,"
+    },
+    {
+      "line": 3045,
+      "text": "return records"
+    },
+    {
+      "line": 3047,
+      "text": "rows.close()"
+    },
+    {
+      "line": 3066,
+      "text": "plans = list(data.mixed_indices(counts, steps, training_mode=cfg.get('training_mode', 'mixed'),"
+    },
+    {
+      "line": 3068,
+      "text": "if encode_only:"
+    },
+    {
+      "line": 3069,
+      "text": "if device != 'cpu' or progress_dir is not None:"
+    },
+    {
+      "line": 3070,
+      "text": "raise ValueError('Encoding-only admission requires CPU and a fresh check')"
+    },
+    {
+      "line": 3071,
+      "text": "return encode_plan_rows(receipt, processor_for_receipt(manifest, receipt), plans, ranks, out_path)"
+    },
+    {
+      "line": 3232,
+      "text": "from student_pilot.r2_policy import unsupported_entry"
+    },
+    {
+      "line": 3233,
+      "text": "unsupported_entry('student_pilot/carrier_c1_run.py:inference')"
+    },
+    {
+      "line": 3261,
+      "text": "from student_pilot.r2_policy import unsupported_entry"
+    },
+    {
+      "line": 3262,
+      "text": "unsupported_entry('student_pilot/carrier_c1_run.py:probe')"
+    },
+    {
+      "line": 3285,
+      "text": "from student_pilot.r2_policy import unsupported_entry"
+    },
+    {
+      "line": 3286,
+      "text": "unsupported_entry('student_pilot/carrier_c1_run.py:evaluate')"
+    }
+  ],
+  "student_pilot/h1_faithful.py": [
+    {
+      "line": 17,
+      "text": "raise ValueError('S1 requires the three canonical camera types')"
+    },
+    {
+      "line": 20,
+      "text": "raise ValueError('S1 requires max_own_probability=0.5 and force_from_step=1')"
+    },
+    {
+      "line": 45,
+      "text": "from decimal import Decimal, localcontext, Context"
+    },
+    {
+      "line": 46,
+      "text": "event = next(e for e in raw['events'] if e['kind'] == 'tool_response')"
+    },
+    {
+      "line": 47,
+      "text": "dx, _, dz = map(lambda x: Decimal(str(x)), event['values'][event['call_id']+'.delta']['value'])"
+    },
+    {
+      "line": 48,
+      "text": "scores = dict(left=-dx, right=dx, forward=dz, backward=-dz)"
+    },
+    {
+      "line": 49,
+      "text": "labels = [re.sub(r'^[A-Z][.)]\\s*', '', o).lower() for o in raw['options']]"
+    },
+    {
+      "line": 50,
+      "text": "with localcontext(Context(prec=1024)):"
+    },
+    {
+      "line": 51,
+      "text": "top, second = sorted((scores[o] for o in labels), reverse=True)[:2]"
+    },
+    {
+      "line": 52,
+      "text": "if top > 0:"
+    },
+    {
+      "line": 53,
+      "text": "raw.setdefault('margin_m', float(top-second))"
+    },
+    {
+      "line": 54,
+      "text": "raw.setdefault('margin_rel', float((top-second)/top))"
+    },
+    {
+      "line": 70,
+      "text": "raise MaterializeRefusal('invalid_printed_move')"
+    },
+    {
+      "line": 76,
+      "text": "raise MaterializeRefusal('invalid_printed_turn')"
+    },
+    {
+      "line": 79,
+      "text": "raise MaterializeRefusal('non_camera_head')"
+    },
+    {
+      "line": 112,
+      "text": "raise ValueError('Unknown camera answer type')"
+    },
+    {
+      "line": 128,
+      "text": "failure=exc"
+    },
+    {
+      "line": 194,
+      "text": "elif 'streams' in value:"
+    },
+    {
+      "line": 195,
+      "text": "source=value['streams']['routing']"
+    },
+    {
+      "line": 196,
+      "text": "yield from identity_rows(pinned(source.get('receipt',source.get('database'))))"
+    },
+    {
+      "line": 197,
+      "text": "else:yield value"
+    },
+    {
+      "line": 199,
+      "text": "with path.open() as handle:"
+    },
+    {
+      "line": 200,
+      "text": "for text in handle:"
+    },
+    {
+      "line": 201,
+      "text": "if text.strip():yield json.loads(text)"
+    },
+    {
+      "line": 215,
+      "text": "write(Path(cfg['preparation_output'])/'receipt.json',result)"
+    }
+  ],
+  "student_pilot/r1_loader.py": [
+    {
+      "line": 30,
+      "text": "if coverage[row['qid']] != digest(row):"
+    },
+    {
+      "line": 31,
+      "text": "raise ValueError('R1_ADMITTED_ROW_IDENTITY_DIFFERS')"
+    },
+    {
+      "line": 32,
+      "text": "seen['admitted'] += 1"
+    }
+  ],
+  "student_pilot/r1_mix.py": [
+    {
+      "line": 11,
+      "text": "raise ValueError('R1_CARD_INVALID')"
+    },
+    {
+      "line": 21,
+      "text": "raise ValueError('R1_CELL_POPULATION_MISMATCH')"
+    },
+    {
+      "line": 23,
+      "text": "raise ValueError('R1_POPULATION_INVALID')"
+    },
+    {
+      "line": 26,
+      "text": "raise ValueError('R1_NEGATIVE_CELL')"
+    },
+    {
+      "line": 33,
+      "text": "raise ValueError('R1_CARD_QUOTA_MISMATCH:'+stream)"
+    },
+    {
+      "line": 59,
+      "text": "raise ValueError('R1_COMPLETE_FILTERED_POPULATION_REQUIRED')"
+    },
+    {
+      "line": 64,
+      "text": "raise ValueError('R1_INDICES_DIFFER')"
+    },
+    {
+      "line": 71,
+      "text": "raise ValueError('R1_PLAN_POSITION_INVALID')"
+    },
+    {
+      "line": 79,
+      "text": "raise ValueError('R1_INDEX_OVERLAP_OR_COUNT')"
+    },
+    {
+      "line": 84,
+      "text": "raise ValueError('R1_INDEX_COVERAGE')"
+    }
+  ],
+  "student_pilot/r1_training.py": [
+    {
+      "line": 20,
+      "text": "return row"
+    },
+    {
+      "line": 24,
+      "text": "raise ValueError('CAMERA_OBJECT_ABSOLUTE_DISTANCE_EXCLUDED')"
+    },
+    {
+      "line": 26,
+      "text": "raise ValueError('QUALITATIVE_TRACE_REQUIRED')"
+    },
+    {
+      "line": 36,
+      "text": "raise ValueError('ROOM_TRACE_INVALID:'+','.join(sorted({e.rule_id for e in errors})))"
+    },
+    {
+      "line": 47,
+      "text": "raise ValueError('Component registry differs')"
+    },
+    {
+      "line": 54,
+      "text": "raise ValueError('Component slot was reclassified')"
+    },
+    {
+      "line": 70,
+      "text": "raise ValueError('R1_RECIPE_DIFFERS')"
+    },
+    {
+      "line": 72,
+      "text": "raise ValueError('R1_OWN_PROBABILITY_REFUSED')"
+    },
+    {
+      "line": 74,
+      "text": "raise ValueError('R1_OWN_ROWS_REFUSED')"
+    },
+    {
+      "line": 83,
+      "text": "raise ValueError('R1_MILESTONES_DIFFER')"
+    },
+    {
+      "line": 94,
+      "text": "raise ValueError('R1_PROGRESS_STEP_INVALID')"
+    },
+    {
+      "line": 106,
+      "text": "raise ValueError('R1_EXPORT_FORMAT_DIFFERS')"
+    },
+    {
+      "line": 109,
+      "text": "raise ValueError('R1_PARENT_STEP_DIFFERS')"
+    },
+    {
+      "line": 142,
+      "text": "raise ValueError('VQA_RECEIPT_INVALID')"
+    }
+  ],
+  "student_pilot/r2_contract.py": [
+    {
+      "line": 39,
+      "text": "raise ValueError('Next-leg init identity differs from the accepted export')"
+    },
+    {
+      "line": 63,
+      "text": "from .r1_training import training_components"
+    },
+    {
+      "line": 64,
+      "text": "training_components(cfg['r1_training']['registry'], cfg)"
+    },
+    {
+      "line": 65,
+      "text": "from .r2_openers import preparation as opener_preparation"
+    },
+    {
+      "line": 66,
+      "text": "opener_preparation(cfg)"
+    },
+    {
+      "line": 67,
+      "text": "if not cfg.get('r2_all_stream_exclusions') or not cfg.get('r2_sampling'):"
+    },
+    {
+      "line": 68,
+      "text": "raise ValueError('R1_SCENE_AND_SAMPLER_BINDINGS_REQUIRED')"
+    }
+  ],
+  "student_pilot/r2_intake.py": [
+    {
+      "line": 28,
+      "text": "break"
+    },
+    {
+      "line": 35,
+      "text": "raise ValueError('Old-format or unnamed family manifest')"
+    },
+    {
+      "line": 37,
+      "text": "raise ValueError('Manifest contract or validator pin differs')"
+    },
+    {
+      "line": 42,
+      "text": "raise ValueError('Local slices must contain at most 2000 rows per family')"
+    },
+    {
+      "line": 44,
+      "text": "raise ValueError('scene_coverage=None refuses; unknown overlap is not a pass')"
+    },
+    {
+      "line": 57,
+      "text": "raise ValueError('Scene coverage pins differ from this population')"
+    },
+    {
+      "line": 61,
+      "text": "if manifest.get('frame_plan'):"
+    },
+    {
+      "line": 62,
+      "text": "from .s1_routing import Frames"
+    },
+    {
+      "line": 63,
+      "text": "frame_map = Frames(manifest['frame_map'], manifest['frame_plan'],"
+    },
+    {
+      "line": 66,
+      "text": "frame_map = load(pinned(manifest['frame_map']))"
+    },
+    {
+      "line": 68,
+      "text": "raise ValueError('Prefiltered rows require upstream receipts')"
+    },
+    {
+      "line": 78,
+      "text": "raise ValueError('Duplicate QID within family')"
+    },
+    {
+      "line": 81,
+      "text": "raise ValueError('type_selection')"
+    },
+    {
+      "line": 83,
+      "text": "raise ValueError('lineage_less_room: missing source-row and frame lineage')"
+    },
+    {
+      "line": 86,
+      "text": "raise ValueError('Missing sealed row membership')"
+    },
+    {
+      "line": 88,
+      "text": "raise ValueError('Stale pin or wrong scene: row differs from membership')"
+    },
+    {
+      "line": 130,
+      "text": "return f\"{report['family']}: rows withheld={report['rows_withheld']}\\n\" + '\\n'.join(f\"{kind}: admitted={c['admitted']} refused={c['refused']} reasons={dict(c['reasons'])}\""
+    },
+    {
+      "line": 135,
+      "text": "parser = argparse.ArgumentParser(description=__doc__)"
+    },
+    {
+      "line": 136,
+      "text": "parser.add_argument('--manifest', required=True)"
+    },
+    {
+      "line": 137,
+      "text": "parser.add_argument('--output', required=True)"
+    },
+    {
+      "line": 138,
+      "text": "parser.add_argument('--limit', type=int, default=2000)"
+    },
+    {
+      "line": 139,
+      "text": "parser.add_argument('--select-type', action='append')"
+    },
+    {
+      "line": 140,
+      "text": "args = parser.parse_args(argv)"
+    },
+    {
+      "line": 141,
+      "text": "_, report = intake(args.manifest, limit=args.limit, select_types=args.select_type)"
+    },
+    {
+      "line": 142,
+      "text": "write(Path(args.output), report)"
+    },
+    {
+      "line": 143,
+      "text": "print(json.dumps(report, sort_keys=True))"
+    },
+    {
+      "line": 144,
+      "text": "print(text_report(report), file=sys.stderr)"
+    },
+    {
+      "line": 145,
+      "text": "return int(bool(report['refusals']))"
+    },
+    {
+      "line": 149,
+      "text": "raise SystemExit(main())"
+    }
+  ],
+  "student_pilot/r2_materialize.py": [
+    {
+      "line": 19,
+      "text": "from .r2_mix import preflight"
+    },
+    {
+      "line": 20,
+      "text": "preflight(**mix_binding)"
+    },
+    {
+      "line": 23,
+      "text": "raise ValueError('Full store forbidden on a local node; use slices of at most 2000 rows per family')"
+    },
+    {
+      "line": 38,
+      "text": "raise ValueError('EXTENT_RECEIPTS_CONFLICT')"
+    },
+    {
+      "line": 46,
+      "text": "raise ValueError('Combined manifests exceed the per-family slice limit')"
+    },
+    {
+      "line": 50,
+      "text": "reason = 'Duplicate QID across families: '+identities[row['qid']]+' / '+item['family']+'; QID='+row['qid']"
+    },
+    {
+      "line": 51,
+      "text": "report['refusals'].append(dict(qid=row['qid'], type=row.get('question_type'), reason=reason))"
+    },
+    {
+      "line": 52,
+      "text": "count = report['counts'][row.get('question_type', item['stream'])]"
+    },
+    {
+      "line": 53,
+      "text": "count['admitted'] -= 1"
+    },
+    {
+      "line": 54,
+      "text": "count['refused'] += 1"
+    },
+    {
+      "line": 55,
+      "text": "count['reasons'][reason] += 1"
+    },
+    {
+      "line": 56,
+      "text": "continue"
+    },
+    {
+      "line": 69,
+      "text": "row = {**row, 'student_input': expand_frames(row['student_input'])}"
+    },
+    {
+      "line": 71,
+      "text": "raise NeedsFrameHost('needs the frame host: metadata-only proof; RGB was not read')"
+    },
+    {
+      "line": 81,
+      "text": "progress()"
+    },
+    {
+      "line": 83,
+      "text": "missing.append(dict(qid=item['row']['qid'], family=item['family'], reason=str(error)))"
+    },
+    {
+      "line": 85,
+      "text": "family_report = row_reports[item['row']['qid']]"
+    },
+    {
+      "line": 86,
+      "text": "kind = item['row'].get('question_type', item['stream'])"
+    },
+    {
+      "line": 87,
+      "text": "reason = 'materialization: '+str(error)"
+    },
+    {
+      "line": 88,
+      "text": "family_report['refusals'].append(dict(qid=item['row']['qid'], type=kind, reason=reason))"
+    },
+    {
+      "line": 89,
+      "text": "count = family_report['counts'][kind]"
+    },
+    {
+      "line": 90,
+      "text": "count['admitted'] -= 1"
+    },
+    {
+      "line": 91,
+      "text": "count['refused'] += 1"
+    },
+    {
+      "line": 92,
+      "text": "count['reasons'][reason] += 1"
+    },
+    {
+      "line": 97,
+      "text": "if not assignment.get('pair'):"
+    },
+    {
+      "line": 98,
+      "text": "raise ValueError('Missing final facing pair identity')"
+    },
+    {
+      "line": 99,
+      "text": "pairs.setdefault(assignment['pair'], []).append(item)"
+    },
+    {
+      "line": 101,
+      "text": "raise ValueError('Facing pair has too many rows')"
+    },
+    {
+      "line": 105,
+      "text": "family_report = row_reports[item['row']['qid']]"
+    },
+    {
+      "line": 106,
+      "text": "kind = item['row'].get('question_type', item['stream'])"
+    },
+    {
+      "line": 107,
+      "text": "reason = 'materialization: facing twin refused'"
+    },
+    {
+      "line": 108,
+      "text": "family_report['refusals'].append(dict(qid=item['row']['qid'], type=kind, reason=reason))"
+    },
+    {
+      "line": 109,
+      "text": "count = family_report['counts'][kind]"
+    },
+    {
+      "line": 110,
+      "text": "count['admitted'] -= 1"
+    },
+    {
+      "line": 111,
+      "text": "count['refused'] += 1"
+    },
+    {
+      "line": 112,
+      "text": "count['reasons'][reason] += 1"
+    },
+    {
+      "line": 124,
+      "text": "write(output/'materialization.json', report)"
+    },
+    {
+      "line": 125,
+      "text": "return report"
+    },
+    {
+      "line": 131,
+      "text": "from .r2_mix import reindex"
+    },
+    {
+      "line": 132,
+      "text": "try:"
+    },
+    {
+      "line": 133,
+      "text": "sampling = reindex(built, mix_binding, output/'s')"
+    },
+    {
+      "line": 135,
+      "text": "report.update(status='refused', sampling_refusal=str(error))"
+    },
+    {
+      "line": 136,
+      "text": "write(output/'materialization.json', report)"
+    },
+    {
+      "line": 137,
+      "text": "raise"
+    },
+    {
+      "line": 143,
+      "text": "pages = limits[stream]//connection.execute('PRAGMA page_size').fetchone()[0]"
+    },
+    {
+      "line": 144,
+      "text": "if pages < 2:"
+    },
+    {
+      "line": 145,
+      "text": "raise ValueError('Store over its per-file limit: '+stream)"
+    },
+    {
+      "line": 146,
+      "text": "connection.execute('PRAGMA max_page_count='+str(pages))"
+    },
+    {
+      "line": 156,
+      "text": "raise ValueError('Store over its per-file limit: membership')"
+    },
+    {
+      "line": 168,
+      "text": "raise ValueError('Store over its per-file limit: dense')"
+    },
+    {
+      "line": 178,
+      "text": "parser = argparse.ArgumentParser(description=__doc__)"
+    },
+    {
+      "line": 179,
+      "text": "parser.add_argument('--manifest', action='append', required=True)"
+    },
+    {
+      "line": 180,
+      "text": "parser.add_argument('--output', required=True)"
+    },
+    {
+      "line": 181,
+      "text": "parser.add_argument('--limit', type=int, default=2000)"
+    },
+    {
+      "line": 182,
+      "text": "parser.add_argument('--metadata-only', action='store_true')"
+    },
+    {
+      "line": 183,
+      "text": "parser.add_argument('--no-dense', action='store_true')"
+    },
+    {
+      "line": 184,
+      "text": "parser.add_argument('--full', action='store_true')"
+    },
+    {
+      "line": 185,
+      "text": "args = parser.parse_args(argv)"
+    },
+    {
+      "line": 186,
+      "text": "print(json.dumps(materialize(args.manifest, args.output, limit=args.limit,"
+    },
+    {
+      "line": 191,
+      "text": "main()"
+    }
+  ],
+  "student_pilot/r2_mix.py": [
+    {
+      "line": 37,
+      "text": "raise ValueError('Pinned minority count required')"
+    },
+    {
+      "line": 144,
+      "text": "from .routing_type_gate import validate as validate_form"
+    },
+    {
+      "line": 145,
+      "text": "from .carrier_c1_routing import POLICIES"
+    },
+    {
+      "line": 146,
+      "text": "row = item['row']"
+    },
+    {
+      "line": 147,
+      "text": "if item['stream'] in ('vqa','routing'):"
+    },
+    {
+      "line": 148,
+      "text": "validate_form(row, POLICIES['both-path-20261116'], binding.get('artifact_heads', []))"
+    },
+    {
+      "line": 149,
+      "text": "forms.setdefault(row['question_type'], Counter())[row['answer_form']] += 1"
+    },
+    {
+      "line": 165,
+      "text": "from .routing_type_gate import NO_HEAD_GRAMMAR"
+    },
+    {
+      "line": 166,
+      "text": "for kind in set(mix['both_types'])-NO_HEAD_GRAMMAR:"
+    },
+    {
+      "line": 167,
+      "text": "if kind not in forms: continue"
+    },
+    {
+      "line": 168,
+      "text": "counts_by_form = forms[kind]"
+    },
+    {
+      "line": 169,
+      "text": "minority = mix['both_path']['minority_count']"
+    },
+    {
+      "line": 170,
+      "text": "if set(counts_by_form) != {'direct','routed'} or min(counts_by_form.values()) != minority or max(counts_by_form.values()) <= minority:"
+    },
+    {
+      "line": 171,
+      "text": "raise ValueError('rows_lane_missing_minority_form:'+kind)"
+    }
+  ],
+  "student_pilot/row_text_audit.py": [
+    {
+      "line": 38,
+      "text": "return False"
+    },
+    {
+      "line": 50,
+      "text": "elif printed is None:"
+    },
+    {
+      "line": 51,
+      "text": "return False"
+    },
+    {
+      "line": 71,
+      "text": "found.append('tower_scale_provenance_not_from_head')"
+    }
+  ],
+  "student_pilot/scene_division_gate.py": [
+    {
+      "line": 13,
+      "text": "counts['filtered'] += 1"
+    },
+    {
+      "line": 14,
+      "text": "continue"
+    }
+  ]
+}

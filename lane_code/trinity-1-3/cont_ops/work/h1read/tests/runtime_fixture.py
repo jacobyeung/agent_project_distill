@@ -3,6 +3,7 @@ import offline_guard
 import asyncio
 import importlib
 import json
+import os
 from pathlib import Path
 import sys
 import tarfile
@@ -70,7 +71,11 @@ manifest=work/'manifest.json';manifest.write_text(json.dumps(dict(files=[dict(by
 models=json.loads((ROOT/'kit/launcher/MODELS.json').read_text())
 models['base']['manifest']['path']=str(manifest)
 models['cp1m200']=dict(kind='c1_export',path=str(work/'artifact.json'),sha256='a'*64)
+filtered = os.environ.get('FIX4_DIRECT') == '1'
 cfg=dict(spec=dict(run=str(work/'r'),step=200,models=models,artifact=models['cp1m200']),extra=reg)
+
+if filtered: cfg['spec']['types'] = 'direct'
+kept = [r for r in rows if not filtered or r['question_type'] not in ('object_abs_distance','room_size_estimation')]
 
 def assets(reg,w):
     Path(w).mkdir(parents=True)
@@ -103,7 +108,8 @@ for name in ('think_settings','budget','budget_merge'):
         if isinstance(value,types.FunctionType) and value.__module__==name:
             assert 'spread' not in value.__code__.co_consts, name
 result=[json.loads(l) for l in (work/'r/a7/ITEMS.jsonl').read_text().splitlines()]
-assert len(result)==4 and all(r['score']==1 for r in result),result
+assert len(result)==len(kept) and all(r['score']==1 for r in result),result
+assert {r['id'] for r in result} == {r['id'] for r in kept}
 sys.path.insert(0,str(ROOT))
 from tools.item_ids import decode_inventories, load_map
 mapping=load_map()
@@ -119,7 +125,7 @@ for arm in ('0','budget_2048/0','budget_4096/0'):
         assert record['layout']=='duplicate' and record['frames']==32
     assert summary['parity_pass']
     assert summary['benchmarks']['devrows']['missing']==0
-value=dict(status='PASS',items=4,work=str(work),candidate_reader=True,accepted_pinned_runtime=True,actual_worker=True,actual_budget_derivation=True,
+value=dict(status='PASS',items=len(kept),direct_filter=filtered,work=str(work),candidate_reader=True,accepted_pinned_runtime=True,actual_worker=True,actual_budget_derivation=True,
  actual_mergers=True,actual_rgb=True,trained_duplicate_64_frames=True,unpatched_layout_modules=True,logical_ids_on_trinity=True,fake_engine=True,fake_model=True,fake_parity_probe=True)
 (ROOT/'evidence/RUNTIME_FIXTURE.json').write_text(json.dumps(value,indent=2)+'\n')
 print(json.dumps(value))

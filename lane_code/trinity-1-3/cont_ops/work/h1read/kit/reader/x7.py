@@ -110,6 +110,9 @@ def compact(rows,step):
 def run(config, reader=None, runtime=None):
     started=time.monotonic();spec=config['spec'];work=Path(spec['run'])/'a7'
     rows,frame_root=stage_assets(config['extra'],work)
+    import read_filter as F
+    population = F.population(rows, spec)
+    rows = F.select(rows, spec)
     reader=Path(reader or '/scratch/jjyeung/orch_cd/legs1_reads')
     runtime=Path(runtime or '/scratch/jjyeung/orch_cd/rv_merge_fix/work/r3/aws_vl64rt')
     sys.path.insert(0,str(reader/'out'))
@@ -131,6 +134,7 @@ def run(config, reader=None, runtime=None):
     cfg.update(models=spec['models'],cells=[cell],datasets=[dict(benchmark='devrows')],roots={},
         source_sha256=source_sha,build_only=False,smoke_items=0,
         items_sha256=config['extra']['files']['e52a690b.jsonl']['sha256'])
+    if 'types' in spec: cfg['types'] = spec['types']
     cfg['binding']=hashlib.sha256(json.dumps(cfg,sort_keys=True).encode()).hexdigest()
     cfg['output']=str(dest/'results');dump(dest/'request.json',cfg)
     data.tasks_for=lambda dataset,roots:copy.deepcopy(rows)
@@ -188,4 +192,4 @@ def run(config, reader=None, runtime=None):
     from records import write
     write(work/'ITEMS.jsonl',compact(scored,spec['step']))
     dump(work/'COMPLETE.json',dict(items=len(rows),family='a7',seconds=time.monotonic()-started,
-        artifact=spec['artifact'],source_sha256=source_sha))
+        artifact=spec['artifact'],source_sha256=source_sha, **({'population':population} if 'types' in spec else {})))

@@ -158,10 +158,14 @@ def stop(process):
     if process is not None and process.poll() is None:
         os.killpg(process.pid, signal.SIGTERM)
         try:
-            process.wait(timeout=90)
+            process.wait(timeout=2)
         except subprocess.TimeoutExpired:
             os.killpg(process.pid, signal.SIGKILL)
-            process.wait(timeout=20)
+            process.wait(timeout=1)
+
+
+class AllocationSignal(BaseException):
+    pass
 
 
 def run(root, config):
@@ -174,10 +178,27 @@ def run(root, config):
     selected_card = card
 
     def interrupted(number, frame):
-        raise RuntimeError('Orchard allocation signal '+str(number))
+        raise AllocationSignal('Orchard allocation signal '+str(number))
 
-    for number in (signal.SIGTERM, signal.SIGINT, signal.SIGUSR1):
-        signal.signal(number, interrupted)
+    def signals(handler):
+        for number in (signal.SIGTERM, signal.SIGINT, signal.SIGUSR1):
+            signal.signal(number, handler)
+
+    def mark_cancelled(number, frame):
+        nonlocal failure, code
+        failure, code = 'Orchard allocation signal '+str(number), 1
+
+    def publish_partial():
+        signals(signal.SIG_IGN)
+        A.atomic_json(source/'FAILED.json', dict(error=failure, returncode=code))
+        output.mkdir(parents=True, exist_ok=True)
+        path = output/'partial_return.tar.gz'
+        A.ARCHIVE_LIMIT = (19900000 if proof else 89900000)-1
+        summary = A.pack_partial(source, path, config, A.ARCHIVE_LIMIT)
+        return R.publish(source, config.get('pool',str(R.AUTHORIZED_POOL)), config['token'],
+            config['plan_sha256'], code, mode=config.get('mode','production'), partial=(path, summary))
+
+    signals(interrupted)
     try:
         evidence['pool_write_test'] = R.write_test(config.get('pool',str(R.AUTHORIZED_POOL)), config['token'])
         evidence['storage'] = storage_proof(root, job=os.environ['SLURM_JOB_ID'])
@@ -211,14 +232,22 @@ def run(root, config):
             evidence['storage_refusal'] = error.evidence
         stop(process)
     finally:
+        # Metadata writes finish atomically; a late signal switches to partial publication.
+        signals(mark_cancelled)
         source.mkdir(parents=True, exist_ok=True)
         (source/'metadata').mkdir(exist_ok=True)
         (source/'logs').mkdir(exist_ok=True)
         try:
-            evidence['final_card'] = selected_card()
-        except Exception as error:
+            if not failure:
+                signals(interrupted)
+                evidence['final_card'] = selected_card()
+            else:
+                evidence['final_card_skipped'] = 'Early return deadline'
+        except (Exception, AllocationSignal) as error:
             evidence['final_card_error'] = str(error)
-            failure, code = failure or 'Final GPU evidence unavailable', code or 1
+            failure, code = failure or str(error) or 'Final GPU evidence unavailable', code or 1
+        finally:
+            signals(mark_cancelled)
         if failure:
             A.atomic_json(source/'FAILED.json', dict(error=failure, returncode=code))
         A.atomic_json(source/'metadata/ORCHARD_LAUNCHER.json', evidence)
@@ -242,15 +271,39 @@ def run(root, config):
                     (source/'logs'/('launcher_'+name)).write_bytes(stream.read(2*1024**2))
         try:
             import trace_runtime
-            trace_runtime.snapshot()
-            trace_runtime.collect(root, source/'TRACE.json.gz')
+            try:
+                trace_runtime.snapshot()
+                trace_runtime.collect(root, source/'TRACE.json.gz')
+            except Exception as error:
+                A.atomic_json(source/'metadata/TRACE_ERROR.json', dict(error=str(error)))
             A.ARCHIVE_LIMIT = (19900000 if proof else 89900000) - 1
-            result = R.publish(source, config.get('pool',str(R.AUTHORIZED_POOL)), config['token'], config['plan_sha256'], code, mode=config.get('mode','production'))
+            if failure:
+                result = publish_partial()
+            else:
+                signals(interrupted)
+                result = R.publish(source, config.get('pool',str(R.AUTHORIZED_POOL)), config['token'],
+                    config['plan_sha256'], code, mode=config.get('mode','production'))
+                signals(signal.SIG_IGN)
             A.atomic_json(root/'RETURN.json',result)
             code = code if result['status'] == 'COMPLETE' else code or 1
+        except AllocationSignal as error:
+            failure, code = str(error), 1
+            try:
+                result = publish_partial()
+                A.atomic_json(root/'RETURN.json', result)
+            except Exception as packing_error:
+                A.atomic_json(root/'RETURN_INCOMPLETE.json', dict(error=str(packing_error), returncode=1))
         except Exception as error:
-            A.atomic_json(root/'RETURN_INCOMPLETE.json', dict(error=str(error), returncode=code or 1))
             code = code or 1
+            if not failure:
+                failure = str(error)
+                try:
+                    result = publish_partial()
+                    A.atomic_json(root/'RETURN.json', result)
+                except Exception as packing_error:
+                    A.atomic_json(root/'RETURN_INCOMPLETE.json', dict(error=str(packing_error), returncode=code))
+            else:
+                A.atomic_json(root/'RETURN_INCOMPLETE.json', dict(error=str(error), returncode=code))
         return code
 
 

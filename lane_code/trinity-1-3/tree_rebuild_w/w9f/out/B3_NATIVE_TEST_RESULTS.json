@@ -1,0 +1,33 @@
+{
+  "tests": 3,
+  "failures": [],
+  "errors": [
+    [
+      "test_native_prepare_and_every_rank_encode (tests.test_r2_build3.Build3.test_native_prepare_and_every_rank_encode)",
+      "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/w9f/work/tree_r1/tests/test_r2_build3.py\", line 60, in test_native_prepare_and_every_rank_encode\n    first = R.first_batch_check(cfg,range(4),root/'first.json',encode_only=True)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/w9f/work/tree_r1/student_pilot/carrier_c1_run.py\", line 2971, in first_batch_check\n    return encode_plan_rows(receipt, processor_for_receipt(manifest, receipt), plans, ranks, out_path)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/w9f/work/tree_r1/student_pilot/carrier_c1_run.py\", line 2938, in encode_plan_rows\n    batch, _, _ = rows.get(stream, int(indices[rank]))\n                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/w9f/work/tree_r1/student_pilot/carrier_c1_run.py\", line 1065, in get\n    batch, targets, audit = data.encode(self.processor, row, target, stream, self.placement, self.mode, **options)\n                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/w9f/work/tree_r1/student_pilot/carrier_c1_data.py\", line 435, in encode\n    encode_layout_row(processor, row, frame_layout, frame_pair_gap_seconds, **options))\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/w9f/work/tree_r1/student_pilot/carrier_c1_data.py\", line 163, in encode_layout_row\n    check_sample(row, max_groups=32)\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/w9f/work/tree_r1/student_pilot/pose_samples.py\", line 141, in check_sample\n    check_record(record, max_groups)\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/w9f/work/tree_r1/student_pilot/camera_targets.py\", line 232, in check_record\n    raise ValueError('Camera trajectory scale differs from its recomputation')\nValueError: Camera trajectory scale differs from its recomputation\n"
+    ]
+  ],
+  "skipped": [],
+  "records": [
+    {
+      "test": "tests.test_r2_build3.Build3.test_native_prepare_and_every_rank_encode",
+      "tmp_before": 37028452,
+      "tmp_after": 37247224,
+      "seconds": 30.73099814890884
+    },
+    {
+      "test": "tests.test_r2_build3.Build3.test_opener_export_keep_and_reset",
+      "tmp_before": 37247224,
+      "tmp_after": 37248849,
+      "seconds": 1.4392701359465718
+    },
+    {
+      "test": "tests.test_r2_build3.Build3.test_kits_real_entry_from_empty",
+      "tmp_before": 37248849,
+      "tmp_after": 74165012,
+      "seconds": 30.159286367008463
+    }
+  ],
+  "tmp_bytes": 74165012,
+  "lane_bytes": 457500936
+}

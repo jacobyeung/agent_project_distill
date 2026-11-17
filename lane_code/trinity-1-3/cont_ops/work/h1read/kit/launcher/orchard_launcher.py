@@ -17,11 +17,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import orchard_job as J
 import orchard_stage as S
 import binding as B
+import read_filter as F
 
 
 ROOT = Path(__file__).resolve().parent
 CORE = ('orchard_launcher.py', 'orchard_job.py', 'orchard_stage.py', 'orchard_results.py',
-        'chain_save.py', 'stdout_transfer.py', 'trace_runtime.py', 'return_io.py', 'ORCHARD_ASSETS.json', 'export_stage.py', 'binding.py', 'EXTRA.json')
+        'chain_save.py', 'stdout_transfer.py', 'trace_runtime.py', 'return_io.py', 'ORCHARD_ASSETS.json', 'export_stage.py', 'binding.py', 'EXTRA.json', 'read_filter.py')
 def remote_transport():
     import os
     path=os.environ.get('A_TRANSPORT')
@@ -152,6 +153,9 @@ def validate_request(config):
         raise ValueError('Invalid job contract')
     if canonical(config['spec']) != config['plan_sha256']:
         raise ValueError('Plan differs')
+    F.excluded(config['spec'])
+    if config.get('types') != config['spec'].get('types'):
+        raise ValueError('Type filter differs from plan')
     bound = B.validate(config['spec']['export_binding'])
     if bound['step'] != config['spec']['step']: raise ValueError('Export step differs')
     if (not config['families'] or len(set(config['families'])) != len(config['families'])
@@ -186,7 +190,7 @@ def validate_payload(raw, config):
 
 
 def prepare(token, destination, step, camera=False, pool='/project/community/jjyeung/okh7/ae71c903',
-            run='17c4ffa4', families=None, generation=None, namespace='8865619b'):
+            run='17c4ffa4', families=None, generation=None, namespace='8865619b', types=None):
     valid_token(token)
     bound = B.expected(run, step, generation, namespace)
     if camera: raise ValueError('Unregistered family')
@@ -209,6 +213,15 @@ def prepare(token, destination, step, camera=False, pool='/project/community/jjy
         run=str(logical/'r'), package=str(payload_root),
         interpreters=dict(p1cpu='/scratch/jjyeung/envs/p1cpu/bin/python', vllm=str(logical/'p/vllm_isolated.sh')))
     spec['families'] = selected
+    if types is not None:
+        spec['types'] = types
+        F.excluded(spec)
+        inventory = json.loads((package/'reader/e193_items.json').read_text())['families']
+        spec['population'] = {}
+        for family in selected:
+            rows = ([json.loads(line) for line in (package.parent/'assets/e52a690b.jsonl').read_text().splitlines()]
+                    if family == 'a7' else [dict(question_type=t) for t in inventory[family]['items'].values()])
+            spec['population'][family] = F.population(rows, spec)
     files = {}
     names = ['reader/'+n for n in ('chain.py','worker.py','records.py','paired_read.py','trinity_read.py',
               'e193_items.json','e193_contract.json','PROTOCOL.json','x7.py')]+['proof/phase_b.py','proof/pull.py']
@@ -217,6 +230,8 @@ def prepare(token, destination, step, camera=False, pool='/project/community/jjy
         files[key] = (package/name).read_bytes()
     key = str(J.physical(Path('/'), payload_root/'vllm_isolated.sh').relative_to('/'))
     files[key] = ('#!/bin/sh\nexec '+shlex.quote(str(J.AP/'19252904/e/bin/python'))+' -I "$@"\n').encode()
+    key = str(J.physical(Path('/'), payload_root/'reader/read_filter.py').relative_to('/'))
+    files[key] = (ROOT/'read_filter.py').read_bytes()
     payload = tar_bytes(files)
     pins = {name:S.sha(ROOT/name) for name in CORE}
     review = dict(schema='build-integrity-v1', code_pins_sha256=canonical(pins),
@@ -230,6 +245,8 @@ def prepare(token, destination, step, camera=False, pool='/project/community/jjy
         payload_sha256=hashlib.sha256(payload).hexdigest(), launcher_pins=pins,
         launcher_review_pin=dict(path='REVIEW.json', sha256=hashlib.sha256(review_raw).hexdigest()),
         launcher_review=review, records={})
+    if types is not None:
+        config['types'] = types
     validate_request(config); validate_payload(payload, config)
     boot = {'bootstrap/'+name:(ROOT/name).read_bytes() for name in CORE}
     boot.update({'bootstrap/payload.tar.gz':payload,
@@ -338,13 +355,13 @@ def fetch(destination):
             shell=shlex.join(remote_transport()+[shlex.join(command)])+' > '+shlex.quote(str(target/'result.tar.gz'))
             if ap['bytes']>=20_000_000:
                 (target/'EXIT.json').write_bytes(result.stdout)
-                raise TransferRegistrationRequired('Register a governor stream before running this exact command:\n'+shell)
+                raise TransferRegistrationRequired(receipt['status']+' return. Register a governor stream before running this exact command:\n'+shell)
             archive=target/(channel+'.tar.gz')
             with archive.open('xb') as out, (target/(channel+'.stderr')).open('xb') as err:
                 subprocess.run(remote_transport()+[shlex.join(command)],stdout=out,stderr=err,check=True,timeout=180)
             if archive.stat().st_size!=ap['bytes'] or S.sha(archive)!=ap['sha256']:
                 raise ValueError('Fetched archive SHA256/size differs')
-            if receipt['status']=='COMPLETE':R.verify(receipt,archive,config['plan_sha256'])
+            R.verify(receipt,archive,config['plan_sha256'],allow_partial=True)
             os.replace(archive,target/'result.tar.gz')
             (target/'EXIT.json').write_bytes(result.stdout)
             with tarfile.open(target/'result.tar.gz') as tf:
@@ -403,6 +420,7 @@ def main():
     prepare_parser.add_argument('--namespace',default='8865619b')
     prepare_parser.add_argument('--generation',choices=B.STOPS)
     prepare_parser.add_argument('--families',nargs='+',choices=('main','away','forward','a7'))
+    prepare_parser.add_argument('--types', choices=('direct',))
     prepare_parser.add_argument('--camera',action='store_true')
     prepare_parser.add_argument('--pool',default='/project/community/jjyeung/okh7/ae71c903')
     submit_parser = actions.add_parser('submit')
@@ -416,7 +434,7 @@ def main():
     args = parser.parse_args()
     if args.action == 'prepare':
         value = prepare(args.token, args.destination, args.step, args.camera, args.pool,
-                        args.run, args.families, args.generation, args.namespace)
+                        args.run, args.families, args.generation, args.namespace, args.types)
         print(json.dumps(dict(token=value['token'], plan_sha256=value['plan_sha256'])))
     elif args.action == 'submit-command':
         cfg=json.loads((Path(args.destination)/'CONFIG.json').read_text())

@@ -1,0 +1,50 @@
+{
+  "items": 134,
+  "own_mean_seconds": 27.332811857887364,
+  "read_seconds": 3662.596788956907,
+  "g3t_calls": 0,
+  "base_staging_loading_seconds": 1800,
+  "additional_archive_staging_seconds": 120,
+  "staging_seconds": 1920,
+  "stop_margin_seconds": 1800,
+  "return_margin_seconds": 1200,
+  "margins_overlap": true,
+  "required_seconds": 7382.596788956907,
+  "walltime": "02:30:00",
+  "allocated_seconds": 9000,
+  "stop_deadline_slack_seconds": 1617.4032110430926,
+  "read_budget_seconds": 5280,
+  "price": "2.5 times the approved H100 hourly rate plus the CPU check; hourly rates not supplied",
+  "assumptions": "W5 own-read timing is a tower decode proxy. Retain its 1800-second staging/loading allowance and add 120 seconds for copying, hashing and extracting the R0 archive. These costs are not measured on this allocation. Room is direct and assumes no G3T call. Stop admission ends 1800 seconds before allocation end; the active item may drain until end minus 1200; return uses the final 1200.",
+  "candidates": [
+    {
+      "walltime": "02:00:00",
+      "seconds": 7200,
+      "fits": false
+    },
+    {
+      "walltime": "02:30:00",
+      "seconds": 9000,
+      "fits": true
+    },
+    {
+      "walltime": "03:00:00",
+      "seconds": 10800,
+      "fits": true
+    }
+  ],
+  "return_size": {
+    "rows": 134,
+    "raw_bytes_per_row": 18600,
+    "gz_bytes_per_row": 3200,
+    "row_raw_bytes": 2492400,
+    "row_gz_bytes": 428800,
+    "metadata_log_allowance_bytes": 10000000,
+    "estimated_archive_bytes": 10428800,
+    "planning_archive_cap_bytes": 89900000,
+    "pool_cap_bytes": 100000000,
+    "archive_slack_bytes": 79471200,
+    "pool_slack_if_empty_bytes": 89571200,
+    "notes": "10 MB for metadata, logs, duplicated settings and journal sidecars. Shared pool occupancy is checked by the production return path and must be recorded by the operator. No raw RGB or own-depth outputs enter the return."
+  }
+}

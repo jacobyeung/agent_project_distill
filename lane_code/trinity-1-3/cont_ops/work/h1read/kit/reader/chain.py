@@ -43,9 +43,15 @@ def run(config):
         report['scores'] = {f: {t: dict(items=len(rs), score_pct=100*sum(r['score'] for r in rs)/len(rs))
             for t in sorted({r['task_type'] for r in values if r['family']==f})
             for rs in [[r for r in values if r['family']==f and r['task_type']==t]]} for f in config['families']}
+        if 'types' in config['spec']:
+            report['types'] = config['spec']['types']
+            report['excluded'] = {f:summaries[f]['population']['excluded'] for f in config['families']}
+            report['rooms_with_kept_items'] = {f:summaries[f]['population']['rooms_with_items'] for f in config['families']}
         if 'a7' in config['families']:
             from x7 import CONSTANTS
             report['coverage'] = {k:config['extra'][k] for k in ('registered_rooms','rooms_with_items','deferred_rooms','deferred_room_ids')}
+            if 'types' in config['spec']:
+                report['coverage']['rooms_with_items'] = summaries['a7']['population']['rooms_with_items']
             for task, values_by_type in report['scores']['a7'].items():
                 values_by_type['no_information_pct'] = CONSTANTS[task]
         T.dump(root/'SUMMARY.json', report)

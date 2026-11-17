@@ -24,7 +24,7 @@ def load(root):
         if r['type'] == 'object_size_estimation':
             u = units.get(i, '?')
             r['split'] = 'size_metric' if u in METRIC else 'size_imperial' if u in IMPERIAL else 'size_unit_' + u
-    if len(rows) != 2169: raise ValueError('expected 2169 a7 items, got %d' % len(rows))
+    if len(rows) not in (2169, 1781): raise ValueError('expected 2169 (all) or 1781 (direct filter) a7 items, got %d' % len(rows))
     return rows
 
 
@@ -57,8 +57,8 @@ def main():
     As = {}
     for spec in x.a:
         name, d = spec.split('=', 1); A = load(d)
-        if set(A) != set(B): raise ValueError(name + ' item set differs')
-        As[name] = {i: r['score'] for i, r in A.items()}
+        if not set(B) <= set(A): raise ValueError(name + ' lacks items of B')
+        As[name] = {i: A[i]['score'] for i in B}
     print('%-30s %5s %7s' % ('group', 'n', 'B%') + ''.join('  %-28s' % (n + ' - B') for n in As))
     for k in sorted(G):
         ids = G[k]; row = dict(n=len(ids), b_pct=100 * sum(vb[i] for i in ids) / len(ids))

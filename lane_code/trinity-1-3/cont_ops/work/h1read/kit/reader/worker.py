@@ -7,6 +7,8 @@ from pathlib import Path
 import sys
 import shutil
 import time
+from contextlib import nullcontext
+import read_filter as F
 from types import SimpleNamespace as NS
 
 HERE = Path(__file__).resolve().parent
@@ -72,6 +74,10 @@ def run(config, family):
     started = time.monotonic()
     spec = config['spec']; work = Path(spec['run'])/family
     direct, origin, media, dest, cfg, tasks, captures = bind(config, family, work)
+    full_tasks = tasks
+    population = F.population(tasks, spec)
+    tasks = F.select(tasks, spec)
+    if 'types' in spec: cfg['types'] = spec['types']
     base_bytes = sum(r['bytes'] for r in T.load(spec['models']['base']['manifest']['path'])['files'])
     weights = T.load(Path(spec['artifact']['path']).parent/'full_weights/full_weights.json')
     model_bytes = sum(r['bytes'] for r in weights['files'])
@@ -90,22 +96,26 @@ def run(config, family):
     sys.path.insert(0, str(HERE.parent/'proof'))
     from phase_b import pull_frames
     pull_frames(need, '/project/community/jjyeung/cp4tk_fr/k6tk', work/'f0', spec['interpreters']['p1cpu'])
-    frame_sha = origin.make_frames(cfg, tasks, captures, media, work/'f0', dest/'frames')
+    frame_sha = origin.make_frames(cfg, full_tasks, captures, media, work/'f0', dest/'frames')
     T.dump(dest/'BIND_STATUS.json', dict(ready=True, dry=False, tasks=len(tasks), frames_sha256=frame_sha))
-    direct.launch(NS(dest=str(dest), attempt='a0'))
-    for rel in ('0', 'budget_2048/0', 'budget_4096/0'):
-        summary = T.load(dest/'results'/rel/'summary_a0.json')
-        if not summary['parity_pass']:
-            raise ValueError('Prompt or pixel parity failed')
-        if any(x['missing'] or x['completed'] != x['expected'] for x in summary['benchmarks'].values()):
-            raise ValueError('Incomplete family')
-    import report
-    report.export_merged(cfg, 'a0', work/'report')
+    provider = F.task_provider(spec, lambda rows: validate(family, cfg, rows)) if 'types' in spec else nullcontext()
+    with provider:
+        direct.launch(NS(dest=str(dest), attempt='a0'))
+        for rel in ('0', 'budget_2048/0', 'budget_4096/0'):
+            summary = T.load(dest/'results'/rel/'summary_a0.json')
+            if not summary['parity_pass']:
+                raise ValueError('Prompt or pixel parity failed')
+            if any(x['missing'] or x['completed'] != x['expected'] for x in summary['benchmarks'].values()):
+                raise ValueError('Incomplete family')
+        import report
+        report.export_merged(cfg, 'a0', work/'report')
     with (dest/'results/budget_2048/0/items_a0.jsonl').open() as journal:
         values = records(family, T.load(work/'report/B2048.json'), journal, spec['step'])
+    if len(values) != len(tasks) or {r['id'] for r in values} != {t['example_id'] for t in tasks}:
+        raise ValueError('Return membership differs')
     write(work/'ITEMS.jsonl', values)
     T.dump(work/'COMPLETE.json', dict(items=len(values), family=family, seconds=time.monotonic()-started,
-                                     artifact=spec['artifact'], source_sha256=cfg['source_sha256']))
+                                     artifact=spec['artifact'], source_sha256=cfg['source_sha256'], **({'population':population} if 'types' in spec else {})))
 
 
 if __name__ == '__main__':

@@ -1,0 +1,59 @@
+{
+  "tests": 6,
+  "failures": [],
+  "errors": [
+    [
+      "test_kits_real_entry_from_empty (tests.test_r2_build3.Build3.test_kits_real_entry_from_empty)",
+      "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/w9f/work/tree_r1/tests/test_r2_build3.py\", line 186, in test_kits_real_entry_from_empty\n    bootstrap.main(kit,'t',root/'b')\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/w9f/work/tree_r1/launch_r2/bootstrap.py\", line 39, in main\n    import a\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/w9f/work/tmp/r2_dvy64u0x/a/b/a.py\", line 6, in <module>\n    from v import sha, checked\nModuleNotFoundError: import of v halted; None in sys.modules\n"
+    ],
+    [
+      "test_native_prepare_and_every_rank_encode (tests.test_r2_build3.Build3.test_native_prepare_and_every_rank_encode)",
+      "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/w9f/work/tree_r1/tests/test_r2_build3.py\", line 60, in test_native_prepare_and_every_rank_encode\n    first = R.first_batch_check(cfg,range(4),root/'first.json',encode_only=True)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/w9f/work/tree_r1/student_pilot/carrier_c1_run.py\", line 2971, in first_batch_check\n    return encode_plan_rows(receipt, processor_for_receipt(manifest, receipt), plans, ranks, out_path)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/w9f/work/tree_r1/student_pilot/carrier_c1_run.py\", line 2938, in encode_plan_rows\n    batch, _, _ = rows.get(stream, int(indices[rank]))\n                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/w9f/work/tree_r1/student_pilot/carrier_c1_run.py\", line 1065, in get\n    batch, targets, audit = data.encode(self.processor, row, target, stream, self.placement, self.mode, **options)\n                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/w9f/work/tree_r1/student_pilot/carrier_c1_data.py\", line 435, in encode\n    encode_layout_row(processor, row, frame_layout, frame_pair_gap_seconds, **options))\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/w9f/work/tree_r1/student_pilot/carrier_c1_data.py\", line 163, in encode_layout_row\n    check_sample(row, max_groups=32)\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/w9f/work/tree_r1/student_pilot/pose_samples.py\", line 127, in check_sample\n    raise ValueError(\"A pose-only row needs its pose-only-sample-v1 record\")\nValueError: A pose-only row needs its pose-only-sample-v1 record\n"
+    ],
+    [
+      "test_opener_export_keep_and_reset (tests.test_r2_build3.Build3.test_opener_export_keep_and_reset)",
+      "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/w9f/work/tree_r1/tests/test_r2_build3.py\", line 105, in test_opener_export_keep_and_reset\n    write(root/'v.json',{**witness,'lineage_sha256':'f'*64})\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/w9f/work/tree_r1/student_pilot/p3_provenance.py\", line 49, in write\n    with path.open('x') as f:\n         ^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/pathlib.py\", line 1013, in open\n    return io.open(self, mode, buffering, encoding, errors, newline)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFileExistsError: [Errno 17] File exists: '/scratch/jjyeung/orch_n30/tree_rebuild_w/w9f/work/tmp/r2_7gxrpbcg/v.json'\n"
+    ]
+  ],
+  "skipped": [],
+  "records": [
+    {
+      "test": "tests.test_r2_build3.Build3.test_cpu_resource_mutations",
+      "tmp_before": 18401371,
+      "tmp_after": 18401374,
+      "seconds": 1.264948443043977
+    },
+    {
+      "test": "tests.test_r2_build3.Build3.test_four_stream_record_identity",
+      "tmp_before": 18401374,
+      "tmp_after": 20204818,
+      "seconds": 1.2525650660973042
+    },
+    {
+      "test": "tests.test_r2_build3.Build3.test_init_delivered_archive_mapping",
+      "tmp_before": 20204818,
+      "tmp_after": 20225341,
+      "seconds": 1.311545184114948
+    },
+    {
+      "test": "tests.test_r2_build3.Build3.test_kits_real_entry_from_empty",
+      "tmp_before": 20225341,
+      "tmp_after": 36814512,
+      "seconds": 11.150838194182143
+    },
+    {
+      "test": "tests.test_r2_build3.Build3.test_native_prepare_and_every_rank_encode",
+      "tmp_before": 36814512,
+      "tmp_after": 37026839,
+      "seconds": 32.50742388679646
+    },
+    {
+      "test": "tests.test_r2_build3.Build3.test_opener_export_keep_and_reset",
+      "tmp_before": 37026839,
+      "tmp_after": 37028452,
+      "seconds": 1.5049320561811328
+    }
+  ],
+  "tmp_bytes": 37028452,
+  "lane_bytes": 419268383
+}
