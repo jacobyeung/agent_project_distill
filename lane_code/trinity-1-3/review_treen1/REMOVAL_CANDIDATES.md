@@ -10,3 +10,4 @@
 - /tmp/jjyeung_rvn5b_*, /tmp/jjyeung_rvn5c_*, /tmp/jjyeung_rvn5d_*, /tmp/jjyeung_rvn5e_1794977139 (n1fix2 confirmation N5 scratch)
 - /tmp/jjyeung_rvn5f_1794977150
 - work/n1c2/pkg/work/tmp, work/n1c2/tmp, work/n1c2/mut, work/tmp/suite_n2* (n1fix2 confirmation scratch; keep work/n1c2/*.json and work/s3/)
+- work/n1c3/tmp (about 1.4 GB, third-confirmation scratch fixtures), work/n1c3/mut (about 0.37 GB, mutant tree copies), work/n1c3/restage, work/n1c3/restage2 and work/n1c3/restage_r1c (restaged kits; hashes recorded in RESTAGE*.json), work/n1c3/pkg after the verdict is accepted (package tar kept).

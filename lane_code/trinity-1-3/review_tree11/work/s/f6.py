@@ -9,8 +9,10 @@ from student_pilot.row_removals import Removals
 from student_pilot.s1_exclusions import Exclusions
 out={}
 s=json.loads(base64.b64decode(json.load(open(K/'work/merge11/kits/r1/k/s.json'))['payload']))
-kl=base64.b64decode(s['entries']['u/bd7843ded9961b087cab8bfe3355c39549c20038eddf380c17a7eefb0824faef']['payload'])
 n=Path('/scratch/jjyeung/orch_n30/r1_ops/work/snap_fac07052/out/records/n.json').read_bytes()
+match=[k for k,v in s['entries'].items() if 'payload' in v and base64.b64decode(v['payload'])==n]
+out['kit_entry_for_601_list']=match
+kl=base64.b64decode(s['entries'][match[0]]['payload'])
 out['kit_list_sha']=hashlib.sha256(kl).hexdigest();out['kit_list_equals_r1_ops_bytes']=kl==n
 keys=[json.loads(l)['row_key'] for l in kl.decode().splitlines() if l.strip()];out['kit_list_keys']=len(keys);out['unique']=len(set(keys))
 (W/'tmp/list.jsonl').write_bytes(kl)

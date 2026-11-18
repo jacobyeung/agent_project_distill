@@ -1,4 +1,4 @@
-# review_treen1 STATUS: DONE (20261118T0455Z)
-- Second confirmation of n1fix2 (seal f1ec0cd9): GO AFTER FIXES (GO for N from 544; N1a residual blocks P→N handover: depth_init and C1-r head_init not in optimizer_contract). Verdict events/tree_rebuild/REVIEW_VERDICT_TREE_N1C2.md.
-- Evidence /scratch/jjyeung/orch_n30/review_treen1/work/n1c2/ (N1.json, N1X.json, N3_VARIANTS.json, N5.json, N5_PATHS.json, MUTANTS.json, F1_prod.json, F6.json, SEAL.json, RESTAGE_A.json, RESTAGE_R1.json, suites/n2r2.log); scripts work/s3/. Nothing running.
-- Lane folder is over its 4 GB cap (5.8 GB); removal candidates are in REMOVAL_CANDIDATES.md (work/tmp is about 2.7 GB).
+# review_treen1 STATUS: DONE (20261118T0603Z)
+- Third confirmation of n1fix3 (seal b804cda4, package 0c453a39): GO AFTER FIXES. GO for N from step 544. The P→N handover is blocked by N1a-3 (the group table is computed on N's live model, so P-side topology inputs such as depth_enabled, align and camera admit at 200) and by the producer-side handover.json that P's run must write (N1c confirmed). Verdict: events/tree_rebuild/REVIEW_VERDICT_TREE_N1C3.md.
+- Evidence is in /scratch/jjyeung/orch_n30/review_treen1/work/n1c3/ (N1R.json, N1R2.json, N1C.json, MUTANTS.json, N3_VARIANTS_C3.json, F1 log f1prod.log, F6.json, F6_routing.json, SEAL via seal.log, RESTAGE.json, RESTAGE_R1.json, suites/n3r2.log); scripts are in work/s4/. Nothing is running.
+- The lane folder is over its 4 GB cap (about 7.9 GB). Removal candidates are listed in REMOVAL_CANDIDATES.md.

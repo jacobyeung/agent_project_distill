@@ -1,0 +1,21 @@
+{
+  "status": "PASS",
+  "step": 200,
+  "checkpoint": {
+    "path": "/scratch/jjyeung/orch_n30/tree_rebuild_w/wn3/work/n1fix3/proofs/checkpoint/producer/checkpoint/complete.json",
+    "sha256": "d9099487a655a89f5994ab92075d2b9720bdc0e8df219f52f0eba71da5e2a26c"
+  },
+  "checkpoint_binding_matches": true,
+  "forged_preparation_refusal": "P_EXPORT_CHECKPOINT_BINDING_MISMATCH",
+  "producer": "work/base/tree_b01ce449/student_pilot/carrier_c1_run.py",
+  "producer_sha256": "895772a9f5e0fd09277db72a8a091782728bfe2f525567c301e4d5bf58275471",
+  "real_functions": [
+    "sealed export",
+    "sealed bind_output",
+    "sealed checkpoint",
+    "full_ft.write_rank_shard",
+    "r1_handover.donor",
+    "r1_training.start"
+  ],
+  "standins": "Tiny seeded native weights replace pretrained GPU weights; local rank, barrier, broadcast and gather operations replace distributed GPU collectives. Preparation metadata and step label are synthetic. The checkpoint manifest, shard/RNG pins and binding are written by the sealed producer, not supplied as an operator assertion."
+}

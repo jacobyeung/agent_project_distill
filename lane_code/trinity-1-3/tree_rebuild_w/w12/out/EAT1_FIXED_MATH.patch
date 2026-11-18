@@ -1,0 +1,250 @@
+--- a/eat1/adapters/b04_tiny.py
++++ b/eat1/adapters/b04_tiny.py
+@@ -17,7 +17,7 @@
+ from torch import nn
+ 
+ B04 = Path('/scratch/jjyeung/orch_n30/b04_e2ehook')
+-TREE = '/scratch/jjyeung/orch_n30/tree_rebuild/work/base/tree_b01ce449'  # b04's tree copy (b01ce449), bound in its manifest
++TREE = '/scratch/jjyeung/orch_n30/tree_rebuild_w/w12/work/base/tree_b01ce449'  # b04's tree copy (b01ce449), bound in its manifest
+ TOK = B04/'work/n13/obj/base/models--Qwen--Qwen3.5-9B/snapshots/c202236235762e1c871ad0ccb60c8ee5ba337b9a'
+ K1 = Path('/scratch/jjyeung/n30_mirror/k1_ops3/run_tower_sam_2/01949c4249271126')
+ PROGRAMS = {
+--- a/eat1/adapters/build10_manifest.py
++++ b/eat1/adapters/build10_manifest.py
+@@ -0,0 +1,20 @@
++"""Declare build 10's registered modules in the two native tiny-reader artifacts."""
++import os
++from pathlib import Path
++
++def entries(model,tree,artifact,modules):
++    result=dict(modules)
++    for name in ('depth_readout','heading'):
++        module=getattr(model.auxiliary_heads,name)
++        result['auxiliary_heads.'+name]=dict(role='fixed_math',name=name,inputs=module.inputs,outputs=module.outputs,
++            buffers={k:dict(file='weights.pt',key='auxiliary_heads.'+name+'.'+k) for k,_ in module.named_buffers()})
++    config=Path(tree)/'trace_format/readout_config.json'
++    files={'weights.pt':'lm',os.path.relpath(config,artifact):'config'}
++    if hasattr(model.auxiliary_heads,'geometry_encoder'):
++        files[os.path.relpath(Path(tree)/'configs/gf1_stage1.json',artifact)]='config'
++        source=Path(tree)/'student_pilot'
++        paths=[source/'g3t_online.py',*sorted((source/'g3t_vendor').rglob('*.py'))]
++        names=[os.path.relpath(p,artifact) for p in paths]
++        files.update({p:'tower' for p in names})
++        result['auxiliary_heads.geometry_encoder']=dict(result['auxiliary_heads.geometry_encoder'],files=names)
++    return files,result
+--- a/eat1/adapters/c8r_tiny.py
++++ b/eat1/adapters/c8r_tiny.py
+@@ -78,7 +78,9 @@
+         art.mkdir(parents=True, exist_ok=True)
+         if not (art/'ARTIFACT.json').is_file():
+             torch.save(model.state_dict(), art/'weights.pt')
+-            write_manifest(art/'ARTIFACT.json', art, {'weights.pt': 'lm'}, MODULES)
++            from .build10_manifest import entries
++            files,modules=entries(model,tree,art,MODULES)
++            write_manifest(art/'ARTIFACT.json', art, files, modules)
+         model.load_state_dict(torch.load(art/'weights.pt'))
+         self.model, self.processor, self.batch = model.eval(), processor, batch
+         self.tokenizer = processor.tokenizer
+--- a/eat1/adapters/gf1_tiny.py
++++ b/eat1/adapters/gf1_tiny.py
+@@ -47,7 +47,9 @@
+                     if p.is_floating_point():
+                         p.add_(0.05*torch.randn(p.shape, generator=g))
+             torch.save(model.state_dict(), art/'weights.pt')
+-            write_manifest(art/'ARTIFACT.json', art, {'weights.pt': 'lm'}, MODULES)
++            from .build10_manifest import entries
++            files,modules=entries(model,tree,art,MODULES)
++            write_manifest(art/'ARTIFACT.json', art, files, modules)
+         model.load_state_dict(torch.load(art/'weights.pt'))
+         self.model, self.batch = model.eval(), batch
+         self.processor = SimpleNamespace(tokenizer=Tokenizer(), _routing_tokens={'ids': {
+--- a/eat1/artifact.py
++++ b/eat1/artifact.py
+@@ -5,8 +5,8 @@
+   files     {relative path: {sha256, role}}; role in lm|vit|head|connector|tower|tokenizer|config
+   modules   {dotted module path under reader.model ('' = the model itself): {role, name}}
+             role in lm|vit|head|connector|tower|call_handler|fixed_math; `name` is what responses cite.
+-            fixed_math: a reviewed module that only unprojects with a head's intrinsics (USER ruling 5); its
+-            outputs may be printed, and its code is judged like any reader code.
++            fixed_math: parameter-free arithmetic with declared inputs/outputs and artifact-bound buffers.
++            Its outputs may be printed; constants outside declared modules remain reader code.
+ A file is inside the artifact when its sha256 equals one listed here (A1).
+ """
+ import hashlib
+@@ -35,12 +35,18 @@
+             self.root = (self.path.parent/self.root).resolve()
+         self.files = data['files']
+         self.modules = data.get('modules', {})
++        self.buffer_offenders = []
+         for rel, entry in self.files.items():
+             if entry.get('role') not in FILE_ROLES:
+                 raise ValueError(f'file {rel}: unknown role {entry.get("role")}')
+         for name, entry in self.modules.items():
+             if entry.get('role') not in MODULE_ROLES:
+                 raise ValueError(f'module {name!r}: unknown role {entry.get("role")}')
++            if entry.get('role') == 'fixed_math':
++                if not all(isinstance(entry.get(k), list) and entry[k] for k in ('inputs', 'outputs')):
++                    raise ValueError(f'fixed_math {name!r} requires declared inputs and outputs')
++                if not isinstance(entry.get('buffers'), dict):
++                    raise ValueError(f'fixed_math {name!r} requires declared buffers')
+         self.shas = {e['sha256'] for e in self.files.values()}
+         self.manifest_sha256 = sha256(self.path)
+         if verify:
+@@ -61,10 +67,40 @@
+                 mod = getattr(mod, part)
+             out.append((path, mod, entry['role'], entry.get('name', path or 'model')))
+         registered = {id(m) for m in model.modules()}
++        self.buffer_offenders = []
+         for path, mod, role, _ in out:
+             if id(mod) not in registered:
+                 raise ValueError(f'declared module {path!r} is not registered on the model')
++            if role == 'fixed_math':
++                if any(True for _ in mod.parameters()):
++                    raise ValueError(f'fixed_math {path!r} must have zero parameters')
++                self._check_buffers(path, mod)
+         return out
++
++    def _check_buffers(self, path, mod):
++        import torch
++        declared = self.modules[path]['buffers']
++        live = dict(mod.named_buffers())
++        if set(declared) != set(live) or not set(live) <= set(mod.state_dict()):
++            raise ValueError(f'fixed_math {path!r} must declare every persistent buffer')
++        for name, binding in declared.items():
++            rel, key = binding['file'], binding['key']
++            if rel not in self.files or sha256(self.root/rel) != self.files[rel]['sha256']:
++                raise ValueError(f'fixed_math {path!r} buffer file is not authenticated')
++            if rel.endswith('.safetensors'):
++                from safetensors.torch import load_file
++                tensors = load_file(str(self.root/rel))
++            else:
++                tensors = torch.load(self.root/rel, map_location='cpu', weights_only=True)
++            saved = tensors[key]
++            value = live[name].detach().cpu().contiguous()
++            saved = saved.detach().cpu().contiguous()
++            def digest(t):
++                return hashlib.sha256(str((t.dtype, tuple(t.shape))).encode()+t.reshape(-1).view(torch.uint8).numpy().tobytes()).hexdigest()
++            expected, actual = digest(saved), digest(value)
++            if actual != expected:
++                self.buffer_offenders.append(dict(kind='fixed_math_buffer_mismatch', module=path,
++                    buffer=name, file=str(self.root/rel), expected_sha256=expected, actual_sha256=actual))
+ 
+ 
+ def write_manifest(path, root, files, modules):
+--- a/eat1/run.py
++++ b/eat1/run.py
+@@ -115,6 +115,9 @@
+         lines = scope.stop() if scope else None
+         if mon:
+             mon.close()
++        for path, module, role, _ in declared:
++            if role == 'fixed_math':
++                artifact._check_buffers(path, module)
+     if scope is not None and sink is not None:
+         sink['globals_read'] = scope.globals_read
+         sink['handler_lines'] = {f: sorted(v) for f, v in scope.handler_lines.items()}
+@@ -235,6 +238,7 @@
+     # opens made by a child process or by native code called from the reader are invisible to the audit hook
+     # (strace -f sees them); without strace each such call fails A1 because its reads cannot be judged
+     offenders += _compress(unseen)
++    offenders += artifact.buffer_offenders
+     status = 'FAIL' if offenders else 'PASS'
+     return clause(status, f'{len(cats["artifact"])} artifact, {len(cats["code"])} code, '
+                           f'{len(cats["input"])} input, {len(cats["outside_data"])} outside-artifact data files opened '
+@@ -523,6 +527,9 @@
+     code_roots = sorted({str(EAT1_DIR)} | set(args.code_root or []))
+     binds = {str(artifact.root), str(artifact.path), str(Path(args.items).resolve())} | {
+         str(Path(p).resolve()) for p in input_roots}
++    # A1 authenticates these exact files, including files outside artifact.root.
++    # Mount no parent directories for external manifest entries.
++    binds |= {str((artifact.root / rel).resolve()) for rel in artifact.files}
+     cmd = sandbox_command(args, code_roots, binds, out_dir)
+     (out_dir/'COMMAND.json').write_text(json.dumps(cmd, indent=1)+'\n')
+     proc = subprocess.run(cmd, capture_output=True, text=True, timeout=args.sandbox_timeout)
+--- a/eat1/tests/test_eat1.py
++++ b/eat1/tests/test_eat1.py
+@@ -37,6 +37,72 @@
+     'guard': ('A4.guard', 'GuardHandler.serve'),
+     'cache': ('A5.cache', 'CacheHandler.serve'),
+ }
++
++
++class FixedMathContract(unittest.TestCase):
++    def make(self):
++        import torch
++        from torch import nn
++        from eat1.artifact import Artifact, write_manifest
++        class Math(nn.Module):
++            def __init__(self):
++                super().__init__()
++                self.register_buffer('scale', torch.tensor(2., dtype=torch.float64))
++            def forward(self, value):
++                return value * self.scale
++        model = nn.Module()
++        model.math = Math()
++        root = Path(tempfile.mkdtemp())
++        torch.save(model.state_dict(), root/'buffers.pt')
++        write_manifest(root/'ARTIFACT.json', root, {'buffers.pt': 'head'}, {
++            'math': dict(role='fixed_math', inputs=['value'], outputs=['scaled'],
++                         buffers={'scale': dict(file='buffers.pt', key='math.scale')})})
++        return model, Artifact(root/'ARTIFACT.json')
++
++    def test_valid_fixed_math(self):
++        import torch
++        model, art = self.make()
++        self.assertEqual(art.module_roles(model)[0][2], 'fixed_math')
++        self.assertEqual(float(model.math(torch.tensor(3.))), 6.)
++        self.assertEqual(R.judge_a1([], art, [])['status'], 'PASS')
++
++    def test_parameter_refuses(self):
++        import torch
++        model, art = self.make()
++        model.math.extra = torch.nn.Parameter(torch.ones(1), requires_grad=False)
++        with self.assertRaisesRegex(ValueError, 'zero parameters'):
++            art.module_roles(model)
++
++    def test_changed_buffer_fails_a1(self):
++        model, art = self.make()
++        model.math.scale.fill_(3.)
++        art.module_roles(model)
++        result = R.judge_a1([], art, [])
++        self.assertEqual(result['status'], 'FAIL')
++        self.assertEqual(result['offenders'][0]['kind'], 'fixed_math_buffer_mismatch')
++
++    def test_buffer_mutation_during_generate_fails_a1(self):
++        from types import SimpleNamespace
++        model, art = self.make()
++        def generate(frames, question):
++            model.math.scale.fill_(7.)
++            return dict(text='7', answer='7', calls=[])
++        reader = SimpleNamespace(model=model, generate=generate)
++        records, lines, declared = R.observe(reader, [dict(frames='fixture', question='fixture')], art,
++            trace_lines=False, audit=False, monitor=False)
++        self.assertIsNone(records[0]['error'])
++        self.assertEqual(R.judge_a1(records, art, [])['status'], 'FAIL')
++        self.assertEqual(art.buffer_offenders[0]['kind'], 'fixed_math_buffer_mismatch')
++
++    def test_outside_constant_still_fails_a3(self):
++        path = Path(tempfile.mkdtemp())/'handler.py'
++        path.write_text('def handler(x):\n    return x * 500.0\n')
++        self.assertIn('A3.constant', {f['rule'] for f in S.scan([path])[0]})
++
++    def test_outside_status_still_fails_a4(self):
++        path = Path(tempfile.mkdtemp())/'handler.py'
++        path.write_text("def handler(x):\n    return 'not seen'\n")
++        self.assertTrue(any(f['clause']=='A4' for f in S.scan([path])[0]))
+ 
+ 
+ class ToyEndToEnd(unittest.TestCase):
+--- a/eat1/toy/adversarial.py
++++ b/eat1/toy/adversarial.py
+@@ -692,7 +692,8 @@
+         u = build_adversarial(work.parent/(work.name+'_unproject'))
+         write_manifest(Path(u['move']).parent/'artifact'/'ARTIFACT.json', Path(u['move']).parent/'artifact',
+                        {'weights.pt': 'lm', 'policy.dat': 'config'},
+-                       dict(MODULES, unproject=dict(role='fixed_math', name='unproject')))
++                       dict(MODULES, unproject=dict(role='fixed_math', name='unproject',
++                            inputs=['head_output'], outputs=['point'], buffers={})))
+         out.update(unproject_workdir=str(Path(u['move']).parent), unproject_move=u['move'])
+     return out
+ 

@@ -33,7 +33,7 @@ for name in sys.argv[1:]:
         for x in ('fixtures','out'):(R/x).symlink_to(W/'n1/pkg'/x)
         if name!='CLEAN':
             p=d/f;s=p.read_text();assert s.count(a)==1,(name,s.count(a));p.write_text(s.replace(a,b))
-    subprocess.run([str(W/'s3/run.sh'),'n2mut_'+name,str(d),*mods])
+    subprocess.run([str(W/'s/run.sh'),'n2mut_'+name,str(d),*mods])
     log=(W/'n1/suites'/('n2mut_'+name+'.log')).read_text()
     tail=[l for l in log.splitlines() if l.startswith(('Ran ','OK','FAILED','rc='))]
     fails=[l.split(' (')[0]+' ('+l.split(' (')[1][:60] if ' (' in l else l for l in log.splitlines() if l.startswith(('FAIL:','ERROR:'))]
