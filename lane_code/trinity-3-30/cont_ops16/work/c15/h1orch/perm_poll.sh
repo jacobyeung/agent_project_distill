@@ -1,0 +1,1 @@
+export TZ=UTC; K=/project/community/jjyeung/okh7/x_3fdda0fb; squeue -u jjyeung -n a15_cot_ap7e24afacbc -o '%i %T %N %R'; sacct -n -X -j 170657,170658,170659,170660 -o JobID,State,ExitCode,NodeList%22; for f in $K/o/perm_*; do echo "== $f"; cat $f; done

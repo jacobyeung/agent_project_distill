@@ -1,0 +1,17 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=25849 utc=2026-11-13T22:25:32.472Z kind=written original_path=/scratch/jjyeung/orch_cd/leg_s1_review/ORCHARD_LAUNCHER_RECEIPT_LINK_FIX.json  -->
+{
+  "verdict": "ACCEPT",
+  "reviewer": "orchestrator orch-home-distill-79 (Claude family; the author is a GPT-family lane). A diff read and test runs on top of the independent launcher review and my receipts ORCHARD_LAUNCHER_RECEIPT.json and ORCHARD_LAUNCHER_RECEIPT_MOUNT_FIX.json; not a new full review.",
+  "code_pins_sha256": "50deb48967c55fcf7975fabc61f4042598959f3276866576f074acc93ac5ea7e",
+  "packet_sha256": "c840babf2e5d0ce73ab07b243760fc4053e917c504b4adcb31cb88eaaa5bace6",
+  "previous_code_pins_sha256": "5fade132003f4cad9aa3e78a8cac37872eeadbd84c593063b2ccc981760b8b0d",
+  "diff": "/scratch/jjyeung/orch_cd/evalx/work/milestone/ORCHARD_RUNTIME_LINK_FIX.patch (sha256 f6fcf9f1..., 56 lines, orchard_stage.py only)",
+  "why": "rehearsal job 169307 refused while extracting runtime group 1: two relative interpreter aliases (python3 -> python, python3.12 -> python) were judged by resolving them through the host, where python is a registered absolute link",
+  "what_i_checked": [
+    "read the whole diff: relative link targets are computed lexically from the already-checked parent directory and must stay inside the destination; parent traversal after a named component refuses; absolute targets are allowed only for two exact member-and-target pairs (the two interpreter aliases), which is stricter than the base-path allowlist it replaces; every refusal now names the member and its target; hard-link and later-write guards unchanged",
+    "the seven pinned files hash as in the packet and the digest recomputes; only orchard_stage.py differs from the previous accepted set",
+    "ran test_orchard_runtime_links.py, test_orchard_mount.py, test_orchard_launcher.py, test_orchard_results.py and test_orchard_review_findings.py with the p1cpu interpreter: 42 passed",
+    "the author's audit of the real archives (13 parts, 10.5 GB, hashes verified; 115,837 headers; 1,056 symlinks, all accepted by the corrected extractor) is recorded in work/milestone/test_runs/real_runtime_link_audit_520i6_70/AUDIT.json; I did not rerun it"
+  ],
+  "issued_utc": "2026-11-13T22:27Z"
+}

@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=8693 utc=2026-11-12T01:43:18.124Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; tail -n 3 orchard_cp2/work/rt/gov/mdg_chain.log 2>/dev/null | cut -c1-300; echo ---; tail -n 1 miss_vis_run/work/pilot/sink.log | cut -c1-160; ls miss_vis_run/sensor/spp | wc -l; echo ---; sed -n 3,5p leg_s1_tree/STATUS.md | cut -c1-700

@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=29702 utc=2026-11-14T07:45:50.330Z kind=commands original_path=(bash command)  -->
+D=/scratch/jjyeung/orch_cd/if_p0/inbox_results/a1bf5cb5a7bad53bf; ls $D $D/files 2>/dev/null | head -n 20; f=$(ls $D/files/logs/check-runtime_2.log $D/returned/logs/check-runtime_2.log 2>/dev/null | head -n 1); wc -c "$f"; tail -c 2500 "$f" | cut -c1-600; K=/scratch/jjyeung/orch_cd/if_p0/out/inventory_v6/kit_ifp0_orchard_job_0fa68201bddadd5b; sed -n '140,172p' $K/inputs.py | cut -c1-200

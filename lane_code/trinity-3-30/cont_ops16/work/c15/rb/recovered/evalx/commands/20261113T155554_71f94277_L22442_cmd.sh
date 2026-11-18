@@ -1,0 +1,5 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=22442 utc=2026-11-13T15:55:54.780Z kind=commands original_path=(bash command)  -->
+C=/scratch/jjyeung/orch_cd; T=$(date -u +%Y-%m-%dT%H:%M:%SZ); cat >> $C/ORCH_HANDOFF.md <<EOF
+$T orch-home-distill-79: leg_s1_canary RESULT 1554Z: CPU continuation checker + loss alarm delivered (out/continuation_check_20261113T155147Z.tgz sha e414ef6f; binding 38678e43; general, 16 CPUs, 800G, no GPU, 45 min; restores the verified slot read-only, native four-rank CPU restore with zero optimizer updates, private reserialization, exact comparison; CUDA random state hashed not exercised; sampler rebuilt from the saved step; loss alarm = median of last 20 steps vs first 3 resumed, uncalibrated). ORDERED (1557Z): wall sized per phase (>= 120 min expected), private copy off the project filesystem, 800G schedulability on general, and a fixture mode for ONE pre-authorized rehearsal on Orchard today (operator submits when general is free and evalx's read is not waiting). orchard_cp2 told: review after the revised bundle; production checks first.
+EOF
+echo logged

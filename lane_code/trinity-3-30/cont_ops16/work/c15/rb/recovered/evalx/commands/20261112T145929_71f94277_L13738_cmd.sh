@@ -1,0 +1,9 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=13738 utc=2026-11-12T14:59:29.131Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; S=/tmp/claude-25409/-scratch-jjyeung-orch-home-distill/71f94277-362e-467c-a4bc-ccc9ae6b87c8/scratchpad; cp evalx/work/BRIEF_SUCCESSOR15_DRAFT.md evalx/BRIEF_SUCCESSOR15.md && cat >> evalx/BRIEF_SUCCESSOR15.md <<'EOF'
+
+## ORCH addendum (at launch)
+- Order of work is as the draft states: finish kit A and the two combinations, then the PROPOSED proposal setting. If orchard_port asks for your f17 dev-S1 binding (it reruns f17's cells on an Orchard H100 so the leg's m100 comparator shares hardware), answer through its inbox at once with paths and shas.
+- The training leg's final kit is being pushed to Orchard; when its m100 export exists, orchard_port reads it on Orchard. Your 1-18 runner (work/legs1/m100_118.sh) is the fallback; start nothing for it unless I write.
+- Do not ask Codex or any other agent to build anything; report what is missing to me instead.
+EOF
+for p in $(pgrep -u jjyeung -f -- "^timeout .*--prompt-file /scratch/jjyeung/orch_cd/evalx/BRIEF_SUCCESSOR14.md"); do kill -TERM -- -$p 2>/dev/null || kill -TERM $p; done; for i in 1 2 3 4 5 6 7 8; do pgrep -u jjyeung -f -- "--prompt-file /scratch/jjyeung/orch_cd/evalx/BRIEF_SUCCESSOR14.md" >/dev/null || break; sleep 1; done; pgrep -u jjyeung -f -- "--prompt-file /scratch/jjyeung/orch_cd/evalx/BRIEF_SUCCESSOR14.md" >/dev/null && echo "OLD STILL ALIVE" || echo "old stopped"; bash /scratch/jjyeung/orch_cd/orch_tools/devin_bg_acp.sh /home/jjyeung/agent_project_distill /scratch/jjyeung/orch_cd/evalx/BRIEF_SUCCESSOR15.md claude-opus-5-5-high 86000 /scratch/jjyeung/orch_cd/evalx/devin_s15.out; sed -i 's#evalx/BRIEF_SUCCESSOR14.md#evalx/BRIEF_SUCCESSOR15.md#' $S/LANES $S/lanewatch.sh; grep -n "evalx" $S/LANES; grep -c "BRIEF_SUCCESSOR15" $S/lanewatch.sh; tmux ls | grep evalx | cut -c1-40

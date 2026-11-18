@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=18502 utc=2026-11-13T09:16:15.588Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; ls orchard_cp2/inbox | grep -i "smoke\|0914\|0915\|0916" ; ls legs1_dbs/ap/*/ 2>/dev/null | head -n 12; date -u +%T

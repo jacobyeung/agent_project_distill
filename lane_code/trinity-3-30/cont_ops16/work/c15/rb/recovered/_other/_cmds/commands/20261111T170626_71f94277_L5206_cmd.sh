@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=5206 utc=2026-11-11T17:06:26.604Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; ls -la plan_review2/REVIEW_VERDICT.md gt_ceiling/work/port/REVIEW_VERDICT.md 2>&1 | cut -c1-110; ls -t gt_ceiling/inbox | head -3; date -u +%H:%M:%SZ

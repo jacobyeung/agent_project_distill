@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=16349 utc=2026-11-13T02:34:06.831Z kind=commands original_path=(bash command)  -->
+echo "$(date -u +%FT%TZ) orch-home-distill-79: mover 02:33Z: main (orch-home-aa) owns the IO governor, not the mover; the mover confirmed the stall (last RATE 01:22:35Z; missing coverage trinity-3-3) and asked main to drop 3-3 from the sample; sub-1 MB bundles inside the ssh channel need no governor slot." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

@@ -1,0 +1,1 @@
+LOCAL_CHECKS_PENDING_HEAVY_TEST. C 6594f46cdc16168514aca26a6ce38285907adfc6ece0b75d8e10428ea0b2fe74, run 05b8ac69, p_c60b9015.tar SHA256 c60b901594843989b909cb785a5fdc9ad544ea0fdec8d78c63bf173e4f6e136c. 82 tests pass. Read out/CONT2.md and out/CONT2.diff. Independent review, production proof and written GO remain required.

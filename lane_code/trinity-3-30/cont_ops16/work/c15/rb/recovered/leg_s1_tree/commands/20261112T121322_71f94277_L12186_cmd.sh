@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=12186 utc=2026-11-12T12:13:22.840Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; S=/tmp/claude-25409/-scratch-jjyeung-orch-home-distill/71f94277-362e-467c-a4bc-ccc9ae6b87c8/scratchpad; cut -c1-3600 leg_s1_tree/events/20261112T1204Z_NOTE_tree_frozen.md; echo ====; sed -i '/^pool_r2c|/d' $S/LANES; D=$(ls -d codex_local/agent/scratch/codex_runs/*_pool_r2c 2>/dev/null | tail -1); cut -c1-900 "$D/final_message.md" 2>/dev/null | head -10; echo ====; sed -n 1,8p orchard_port/STATUS.md | cut -c1-500

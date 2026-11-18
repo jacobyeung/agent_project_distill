@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=8838 utc=2026-11-12T02:02:07.206Z kind=commands original_path=(bash command)  -->
+ls -laL /scratch/jjyeung/orch_cd/weak_data/inputs/K6_PLAN.json.gz 2>&1 | cut -c1-200

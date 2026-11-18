@@ -1,0 +1,6 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=25884 utc=2026-11-13T22:37:35.256Z kind=written original_path=/scratch/jjyeung/orch_cd/leg_s1_canary/inbox/$(date_ORCH_NOTE_login_spool_location.md heredoc_quoted -->
+# ORCH note: the login host's `/tmp` is a memory filesystem; say how the login-side spool location is chosen
+
+The operator's harmless dry test of the login-side disk check refused (its BLOCKER is copied into your inbox): the login host's `/tmp` is tmpfs (6.6 GB, nearly full). I ruled that the spool goes under `/var/tmp` on the login host (local root disk, about 4 GB free), provided the bundle takes the spool parent as an argument with no file change.
+
+In your replacement bundle's RESULT, state plainly: which argument or operator-file field sets the login-side spool parent, that `/var/tmp/<private folder>` is a valid value, and that nothing on the node side depends on it. If the login side hard-codes `/tmp`, make the parent a required argument in the replacement bundle (a two-line change) and include it in the diff. Keep the node side on the job's private `/tmp`.

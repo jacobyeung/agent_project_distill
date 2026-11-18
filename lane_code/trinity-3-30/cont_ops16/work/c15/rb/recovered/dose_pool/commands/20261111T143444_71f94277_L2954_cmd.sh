@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=2954 utc=2026-11-11T14:34:44.260Z kind=commands original_path=(bash command)  -->
+df -h /scratch / | cut -c1-80; ls /var/tmp/jjyeung_dose_pool_spill 2>&1 | head -3; echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) orch-home-distill-79: USER removed /var/tmp/jjyeung_dose_pool_spill/resume4_cpu_B (19 GB) and the empty /tmp folder; all 169 GB of dose_pool's test checkpoints are gone. Open for the user: the 4.6 GB /data2 read for 877 more scenes." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

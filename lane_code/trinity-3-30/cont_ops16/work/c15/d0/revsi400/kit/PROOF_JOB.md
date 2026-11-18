@@ -1,0 +1,1 @@
+Use [the operator report](../REPORT.md) for preparation, proof dependency, submission, fetch, and local validation commands. The supported steps are 200, 400, 600, 800, and 1000. The guarded synthetic proof entry is `proof/run.py --work <fresh local directory>`.

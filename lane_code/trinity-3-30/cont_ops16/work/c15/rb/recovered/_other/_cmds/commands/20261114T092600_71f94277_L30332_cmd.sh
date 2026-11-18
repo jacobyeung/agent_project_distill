@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=30332 utc=2026-11-14T09:26:00.437Z kind=commands original_path=(bash command)  -->
+timeout 100 bash /scratch/jjyeung/orch_cd/orchard_kit/work/ossh.sh orchard 'echo restored-$(date -u +%H:%M:%SZ)' 2>&1 | tail -n 3 | cut -c1-200; ls -la /tmp/cm-okit-orchard 2>&1 | cut -c1-100; date -u +%H:%M:%SZ

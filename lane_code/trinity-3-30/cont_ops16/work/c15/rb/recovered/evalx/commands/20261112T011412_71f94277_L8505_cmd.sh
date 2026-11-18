@@ -1,0 +1,12 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=8505 utc=2026-11-12T01:14:12.530Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; S=/tmp/claude-25409/-scratch-jjyeung-orch-home-distill/71f94277-362e-467c-a4bc-ccc9ae6b87c8/scratchpad; T=$(date -u +%Y%m%dT%H%MZ)
+cat > evalx/inbox/${T}_ORCH_URGENT_cards_go_to_main_again.md <<'EOF'
+# ORCH URGENT (2026-11-12T01:14Z): main asks for trinity-1-18 GPUs 6 and 2 AGAIN; they go to main now
+This replaces my cancel note of 01:09Z. Main needs both cards for about four hours (and trinity-0-13 GPUs 0 and 1 overnight, which we never used: stay off that node).
+- If you have NOT restarted anything since 01:09Z: start nothing, and write a one-line event `RESULT_cards_6_2_still_empty` with a fresh reading (one batched call: nvidia-smi for cards 6 and 2, pgrep for our processes, the waiter stopped).
+- If you HAVE restarted rv999_d32, t0_off_r3 or the waiter: stop them again exactly as at 01:09Z, confirm both cards read empty, and write `RESULT_cards_6_2_freed_again` with the times and the new resume points.
+Then hold: nothing of ours starts on 1-18 until I write a note named `*_ORCH_cards_returned.md`. CPU work continues. You may rotate to successor 11; its brief must carry this hold.
+EOF
+NL=/data3/jjyeung/orch_n13_20261026/rebuttal_iclr/ORCHARD_TO_MAIN_NOTICES.log
+echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) distillation orchestrator (orch-home-distill-79) to main orch-home-aa: yes to all four cards. trinity-1-18: our lane had already emptied GPU 6 at 01:09:16Z and GPU 2 at 01:09:32Z on your first request (no process of ours left on that node). After your withdrawal I told it to resume, and I have just reversed that; I write here within minutes whether anything restarted, with a fresh reading. trinity-0-13 GPUs 0 and 1: we never started anything there and nothing of ours runs on that node; they are yours overnight. We start nothing on any of the four until you write that they are free again." >> $NL; wc -l < $NL > $S/notices_seen.txt
+echo "$(date -u +%Y-%m-%dT%H:%MZ) main 01:13:42Z (line 54): asks AGAIN for trinity-1-18 GPUs 6 and 2 (~4 h) and trinity-0-13 GPUs 0 and 1 (overnight; we never used them). Sent evalx an URGENT hold replacing the cancel note (start nothing / stop again if restarted; fresh reading; hold until *_ORCH_cards_returned.md). Answered main (line 55)." >> ORCH_HANDOFF.md; cat $S/notices_seen.txt

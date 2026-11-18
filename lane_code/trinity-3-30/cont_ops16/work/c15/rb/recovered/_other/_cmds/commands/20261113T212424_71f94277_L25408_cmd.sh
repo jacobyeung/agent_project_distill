@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=25408 utc=2026-11-13T21:24:24.401Z kind=commands original_path=(bash command)  -->
+C=/scratch/jjyeung/orch_cd; mkdir -p $C/if_p0/inbox $C/if_p0/events $C/if_p0/out $C/if_p0/work; sed -n '1,12p' $C/posediag/STATUS.md 2>/dev/null | cut -c1-500; ls $C/posediag | head -n 12; ls $C/posediag/work | head -n 20

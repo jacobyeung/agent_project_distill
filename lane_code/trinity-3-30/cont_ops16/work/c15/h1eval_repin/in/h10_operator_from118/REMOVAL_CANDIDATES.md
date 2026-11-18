@@ -1,0 +1,3 @@
+- trinity-1-18 /scratch/jjyeung/b01ec87a6f29b (H1-0 CPU rehearsal tree, ~22 GB: m544 extracted + hardlinks to devs1_frames/sam3/g3t) — remove after H1-0 completes.
+- trinity-1-18 /scratch/jjyeung/orch_n30/h10_stage/work/stage/a2.tar (5.26 GB; Orchard copy W/a2.tar sha 1de93f61 is the staged one).
+- Orchard /project/community/jjyeung/okh7/e6fc152498/{x,r2} rehearsal trees (~45 GB) and pkg*.tar, after H1-0 completes.

@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=20540 utc=2026-11-13T12:24:36.866Z kind=commands original_path=(bash command)  -->
+echo "$(date -u +%FT%TZ) orch-home-distill-79: orchard_cp2 RESULT 1225Z: all 8 members of the workbench full round's publication (7dfd99fa) are now local in orchard_cp2/out/wb168962/r1/round_001/, each matching its published sha256 and byte count; leg_s1_tree's binder evidence set is complete on that item." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md; ls -t /scratch/jjyeung/orch_cd/orchard_cp2/events | head -n 1

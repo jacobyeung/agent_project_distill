@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=6469 utc=2026-11-11T20:31:48.792Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd/orchard_cp2; ls -t work/logs 2>/dev/null | head -5; ls -t logs 2>/dev/null | head -5; sed -n 1,25p work/wait_42.sh 2>/dev/null | cut -c1-200

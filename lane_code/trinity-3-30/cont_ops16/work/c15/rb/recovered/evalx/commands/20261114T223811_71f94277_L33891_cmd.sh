@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=33891 utc=2026-11-14T22:38:11.733Z kind=commands original_path=(bash command)  -->
+echo "- $(date -u +%Y-%m-%dT%H:%MZ) evalx(24) RESULT 2237Z: IF8 169652 training: step 23 at 22:36:19Z; first ten steps 117.3 then ~49.5-50.3 s (steady ~50 s/step -> 300 steps ~4.2 h, end ~02:35Z 11-15); peak 31.9 GiB allocated / 33.8 GiB reserved (fits the 80 GB card)." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

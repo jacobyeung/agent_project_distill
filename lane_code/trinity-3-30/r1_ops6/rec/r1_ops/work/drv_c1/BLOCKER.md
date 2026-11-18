@@ -1,0 +1,1 @@
+The local round-12 driver build passes its targeted checks, and R1P8 Packet A GO is pinned in rv1.sh. Deployment still requires the independent quick scan/certificate and fresh sessions. Submit the advanced CPU proof, then immediately submit advanced canary training under the written ruling. Start at u1.sh; follow README.md.

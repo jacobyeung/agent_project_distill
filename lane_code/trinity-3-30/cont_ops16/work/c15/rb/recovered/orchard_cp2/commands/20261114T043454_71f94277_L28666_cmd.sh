@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=28666 utc=2026-11-14T04:34:54.343Z kind=commands original_path=(bash command)  -->
+T=$(date -u +%Y-%m-%dT%H:%M:%SZ); echo "$T orch-home-distill-79: orchard_cp2 RESULT 043318Z: confirmed-sample alarm policy loaded (39 local tests; local watcher on trinity-2-18 replaced: pid 2150139 -> 2415996, tmux session production_monitor; no production signal). No action. Re-armed evwait (b6o233dro)." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

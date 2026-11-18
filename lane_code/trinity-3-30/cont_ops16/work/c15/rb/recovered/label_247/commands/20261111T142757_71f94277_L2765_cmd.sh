@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=2765 utc=2026-11-11T14:27:57.978Z kind=commands original_path=(bash command)  -->
+df -h /scratch /dev/shm /tmp 2>&1 | cut -c1-90; df -i /scratch | tail -n 1 | cut -c1-90; ls -la --time-style=+%H:%M /scratch/jjyeung/orch_cd/label_247/inbox | tail -n 2 | cut -c20-110; tail -c 300 /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md | cut -c1-300

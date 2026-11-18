@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=10994 utc=2026-11-12T08:10:30.647Z kind=commands original_path=(bash command)  -->
+D=/data3/jjyeung/mover_20261111/DISCUSSION.md; grep -n "FINALS_MANIFEST" $D | cut -c1-500 | tail -4; ls /scratch/jjyeung/orch_cd | grep -i -E "^pl$|final|aws_evac|mind" | head; ls /scratch/jjyeung/orch_cd/aws_evac 2>/dev/null | grep -i -E "PL|FINAL" | head

@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=29766 utc=2026-11-14T08:02:11.185Z kind=commands original_path=(bash command)  -->
+echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) orch-home-distill-79: if_p0 BLOCKER 0801Z repeats the authenticated failure of job 169474 at runtime admission (same facts); my 0746Z diagnosis and fix order are in its inbox. No new action. Re-armed evwait (boif12okb)." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

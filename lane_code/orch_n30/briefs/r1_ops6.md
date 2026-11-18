@@ -1,0 +1,30 @@
+# Lane r1_ops6 (Devin Opus high, runs on trinity-3-30): recover the R1 operator after trinity-1-3 went down, build the repaired continuation C' and launch it
+First read /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/tools/LANE_RULES.md and obey it. You run on trinity-3-30. Lane folder /scratch/jjyeung/orch_n30/r1_ops6 (cap 6 GB; this node must keep 100 GB of /scratch free: check `df -h /scratch` before any write above 1 GB). Events in /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/r1_ops/. Orchard only through tools/ossh.sh. No Git, no deletion. No login to trinity-1-3, ever (it has been unreachable since 11:29Z on 2026-11-18; the user ruled: use another node).
+
+## Node safety (binding; trinity-1-3 went silent with six lanes and their builds on it)
+- At most ONE Codex build or test suite of yours at a time on this node. Before starting one, read `cut -d' ' -f1-3 /proc/loadavg` and `free -g`; do not start above load 16 or below 60 GB available memory.
+- Nothing that needs more than 20 GB of memory or more than 8 cores for more than a few minutes runs on Trinity: a first-batch proof, a full admission or a loader audit over the whole store goes to Orchard as a CPU job (general partition, main first). The 1.7 GB row store stays on Orchard (okh7/s_22b44165/d.db) and on trinity-1-18's mirror; copy it here only if a check truly needs it, by the InfiniBand tar pipe.
+- Nothing you build may exist on this node only: at every RESULT copy your drivers, submit wrappers, ledger and STATUS.md to events/r1_ops/ops_mirror/ on /data2 (small files) and put archives on Orchard.
+
+## State (read these, in order)
+1. /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/ORCH_STATE_SNAPSHOT_20261117T1940Z.md, from the line "INCIDENT" to the end, and its entries from 11:00Z on 11-18.
+2. events/r1_ops/STATUS.md (lane r1_ops5's last state, 11:09Z) and these orders: events/r1_ops/20261118T1108Z_ORCH_AMENDMENT_card_step200_counting_repair.md, 20261118T1108Z_ORCH_ORDER_build_Cprime_now.md (my written GO for C'; sha256 1f3dff81041a58c45966e83535ec50182a616de94d036fcfcfa5142141862b7e), 20261118T1110Z_ORCH_NOTE_remove_list_review_scope_for_Cprime.md, 20261118T0843Z_ORCH_RULING_C_canary_and_general_order.md.
+3. Leg R1's first allocation is DONE: Orchard job 171377 COMPLETED at 13:22:56Z; step-200 export uploaded 13:07:38Z (KH okh7/x_69d2930d/o/gcs_673bc60f_m200.done; runs/673bc60f/m200/artifact.json; end slot A written 13:22Z). The four H100 have been idle on our side since; main was told advanced is free and may be using it.
+
+## What survives and where
+- This node: /scratch/jjyeung/n30_mirror/r1_ops/ holds snap_08f3a7b2.tar (the continuation packet C4, config 6594f46c, with the canary gate), snap_fac07052 (launch packet A), snap_0647a0df, and r1ops4_mirror_snaps_9dd2fbb7_6a5c7d00.tar.
+- The lane-code repository clone /scratch/jjyeung/distill_sync/repo (READ-ONLY for you: never write, checkout or run Git there; copy files out): lane_code/trinity-1-3/{r1_ops,r1_ops2,r1_ops3,r1_ops4,r1_ops5,r1_pkt}/ as of 11:07Z (drivers drv_c1, drv_p5, make_card.py, briefs, tools).
+- Orchard (/project/community/jjyeung/okh7/): bundles, the derived kits (A x_69d2930d; C4's kit and sessions), A's run directory, the row store, ledgers' Orchard side.
+- /data2: events/count_diag/COUNT_FIX_EVIDENCE_FINAL_20261118.tgz (REMOVE list COUNT_FIX_REMOVE_B1.jsonl, its classifier and membership table), events/r1_ops/PRELAUNCH_CARD_R1.md, events/pooled_rule/ (registered rule).
+- Lost with trinity-1-3 unless it returns: lane r1_cprime's 60 minutes of C' work, anything r1_ops5 wrote after 11:07Z.
+
+## Task
+1. Rebuild the operator workspace in your lane folder from the sources above; say in your first RESULT what you could and could not recover (ledger, sessions, driver set for C4).
+2. Build C' exactly as ORDER 1108Z items 2 to 4 say (C4 plus the pinned REMOVE list B1, the counting cell at its ceiling on the remaining procedure-form rows, totals 0, freed slots to direction, the `canary_delta` gate mode against ADMISSION_JOB=172180). One Codex Astra high round. The store-wide checks (membership of B1, remaining counting population 2,617, cells with both REMOVE lists) run on Orchard or against trinity-1-18's mirror of store v7 with small scripts, not as a local full audit.
+3. One independent review (a Devin Opus high reviewer through tools/devin_bg.sh on this node, 30 minutes; scope in NOTE 1110Z plus the gate mode and the config diff). It counts toward this node's cap of three lanes: launch it only when lane cont_ops16 and you are the only lanes here.
+4. Orchard chain and launch: before any submit read the newest INBOX_TO_DISTILL_ORCH_*.md and `squeue -u $USER`; main has priority on every GPU, so if main's jobs hold advanced, write a QUESTION and wait for main's release through me. Verify A's real end slot against C's resume pointer, then submit C' on advanced on ORDER 1108Z as the written GO. Kill rules of ORDER 1108Z item 6 are yours. First-steps RESULT as for A.
+5. Lane cont_ops16 (same node) owns the step-200 reads and posts the harm-rule verdict in events/cont_ops/; you act on it.
+
+Launch and monitoring cadence (USER 2026-09-16): after any submission, restart or alarm, check BOTH job liveness AND outputs landing every 1 minute; two empty one-minute checks mean debug immediately; once outputs land, lengthen step by step to 10 minutes with a status note each time; drop back to 1 minute if any signal regresses; two failed checks on one defect go to a Codex Astra review.
+Continuity: rotate 5.5 hours after your start or at 60% of context (the process is killed at 6 hours): STATUS.md exact, a rotate RESULT, then launch your own successor ONCE on this node (copy this brief to briefs/r1_ops<N+1>.md with the state updated; bash tools/devin_bg.sh r1_ops<N+1> <brief> claude-opus-5-5-high 21600; append to tools/LANES.txt; pgrep shows exactly one), and stop acting the moment it starts.
+Events only for results, questions, blockers and rotation; at most 15 lines each. Poll events/r1_ops/ for *_ORCH_* files at least every 10 minutes.

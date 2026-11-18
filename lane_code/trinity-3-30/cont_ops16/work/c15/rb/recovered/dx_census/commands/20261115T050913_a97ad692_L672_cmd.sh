@@ -1,0 +1,21 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=672 utc=2026-11-15T05:09:13.726Z kind=commands original_path=(bash command)  -->
+R=/scratch/jjyeung/orch_cd; S=/tmp/claude-25409/-scratch-jjyeung-orch-home-distill/a97ad692-7041-4f72-8b75-8f8e29df8950/scratchpad
+printf '%s\n' 'rs_tree|cx:rs_tree||' 'dx_census|cx:dx_census||' >> "$S/LANES"
+/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B - "$S" <<'PY'
+import sys
+S=sys.argv[1]
+p=S+'/lanewatch.sh'; s=open(p).read()
+old='  [rs_cover]="codex_dispatch.sh implement /scratch/jjyeung/orch_cd/rs_cover "'
+new=old+'\n  [rs_tree]="codex_dispatch.sh implement /scratch/jjyeung/orch_cd/rs_tree "\n  [dx_census]="codex_dispatch.sh implement /scratch/jjyeung/orch_cd/dx_census "'
+assert old in s; open(p,'w').write(s.replace(old,new))
+p='/scratch/jjyeung/orch_cd/ORCH_STATE_20261111T0935Z.md'; s=open(p).read()
+anchor='| if_p0, leg_s1_canary, orchard_cp2, leg_s1_tree | ended |'
+row=('| rs_tree, dx_census (launched 2026-11-15T05:08Z; one-shot; briefs <lane>/BRIEF.md; receipts codex_local/agent/scratch/codex_runs/20261115T050810Z_<lane>/) | Codex gpt-6-astra high | rs_tree = builds B1+B8 first pass: new epoch tree work/tree_r1 from tree_s1, direct-trace contract + validator, GF-1 geometry fusion in the stack (alignment stage trains the adapter only, then full FT), pre-launch card draft; 2 GB cap. dx_census = inventory of direct question rows, eligibility under the trace rules, supply plan for ~10x the direct stream | same health check as the rs_ lanes | rs_tree RESULT: order a Devin Opus review, then a second dispatch that integrates rs_rows, rs_contracts, rs_cover. dx_census RESULT: decide the direct-data share of the seal |\n')
+assert anchor in s and 'rs_tree, dx_census (launched' not in s
+s=s.replace(anchor,row+anchor)
+old2='**CONTINUATION (steps 545 to 1,000'
+new2=('**STRATEGY NOTE 2026-11-15T05:10Z (nq_review, ADOPT AFTER FIXES; nq_review/out/REVIEW_VERDICT_NEXT_QUEUE.md):** the repair seal alone is worth about 2 official VSI points and official routing upside is +1.35 to +1.64; the gap to 75.05 sits in the direct path. Evidence on our base: GeoWeaver = frozen VGGT multi-layer fusion (68.10 naive, 72.80 multi-layer, 75.05 full); Cambrian-P 72.0 at 32 frames from 590K-scale data. So the next seal stacks GF-1 geometry fusion + repairs + more traced direct data (lanes rs_tree, rs_rows, rs_contracts, rs_cover, dx_census). VSTI: closed-model primary is Argon 73.73 / Carbon 72.65 (83.33 was the nine-type mean); f17 69.41; a native single-student VSTI read with routed camera types is the one measured path above the closed models (needs the native adapter, build B11, after pilot 9). A direct read of the leg leaves routed types unserved (official VSI: absolute distance 834 + room 288 = 2 of 8 tasks), so the official number comparable with f17 needs the native reader too.\n'+old2)
+assert old2 in s; open(p,'w').write(s.replace(old2,new2,1))
+PY
+cp "$S/LANES" "$S/lanewatch.sh" $R/orch_tools/session_scripts_20261115/
+echo "- $(date -u +%Y-%m-%dT%H:%MZ) nq_review RESULT 0506Z: ADOPT AFTER FIXES (33 numbers checked, none wrong). Findings: continuation rule cannot flip as written; direct reads leave routed types unserved (official VSI 2/8 tasks; ReVSI 2/7; VSTI up to 3/5) and no brief covers the native ReVSI/VSTI adapter; reorder R1,R2,R4,R3,M8; omitted candidate = scale the direct path (GeoWeaver fusion curve on our base, 590K-scale data); repair seal alone ~2 VSI points -> stack GF-1 and direct data in the same seal. Actions: ORDER to next_queue (apply fixes, add B11 and DX, write out/READY_QUEUE_20261115.md); LAUNCHED Codex Astra high rs_tree (B1+B8 first pass) and dx_census; memory closed-model-bars corrected (VSTI primary Argon 73.73 / Carbon 72.65; f17 69.41); state file STRATEGY NOTE added. rs_contracts RESULT 0507Z: guard patch serves the 12 refused captures / 21 distance items; 300/300 operands agree; continuing. rs_cover RESULT 0505Z: benchmark unit census done (VSI/ReVSI distance m, room m2, size cm; VSTI numeric m)." >> $R/ORCH_HANDOFF.md

@@ -1,0 +1,9 @@
+Proof 2 binds the pinned 747-row unit slice with `--pack-unit-slice --units-allowlist ft --unit-cents 100`. All 747 rows pass sealed packing and native selection with zero refusals. The source has 683 feet rows, 64 inches rows and zero cm rows. Feet draw 1.00 row per step under a 2.73 ceiling. Inches and cm are named missing because each has fewer than 100 rows.
+
+The slice SHA256 is `5f9383fa3dabcc813676564c8533e0c7b110a7f1d0e9aff4c9ebde444355a0b3`. The packed JSONL SHA256 is `d7c3206c079b83973fcc61c1a8a0c93db6b62ecc05b2ad62dfe623c55420bab1`. Every supplied field remains unchanged; only events and student frame inputs are added. The source QID retains its original join. The sealed packer, row validator and native source-selection predicates are unchanged.
+
+`FRAME_AUTHORITY.local.json` binds production-equal local copies of the frame map, plan and FPS authority. `REBIND8.local.json` contains the exact command. `units/u.json` records counts and every refusal. Missing requested map entries refuse that row with its QID and missing indices. Malformed payloads, conflicting frame authorities and failed sealed admission reject the binding.
+
+The four native program cells receive 18.25, 15.88, 12.53 and 16.34 rows per step for camera displacement, movement direction, rotation and absolute distance. The complete routing policy totals 64.00 rows per step with feet at 1.00 and recovery at zero. Production still applies the population caps after native materialization.
+
+`proof/UNIT_REAL.json` verifies packing, all 23,904 pinned frames, unchanged payloads, native retained membership and deterministic regeneration. `proof/UNIT_PACKING_CHECK.json` covers the small synthetic fixture. The bound source transports no RGB bytes; full production preparation must verify staged RGB bytes and final routing populations. Local source admission does not certify production RGB or authorize launch.

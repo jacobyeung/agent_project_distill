@@ -1,0 +1,27 @@
+--- student_pilot/carrier_c1_routing.py
++++ student_pilot/carrier_c1_routing.py
+@@ -439,8 +439,8 @@
+     return result
+ 
+ 
+-def finish(batch, ids, train, row, target, spans, mode, offsets=None, segments=None):
+-    if mode != 'gt' and spans and offsets is not None:
++def finish(batch, ids, train, row, target, spans, mode, offsets=None, segments=None, faithful=False):
++    if not faithful and mode != 'gt' and spans and offsets is not None:
+         # Own values with GT-authored prose: never train text after the first own-value response
+         # (orchestrator 14:44Z fallback until the faithful materializer re-derives the prose).
+         cut = spans[0]['end'] - len(THINK)
+@@ -474,11 +474,11 @@
+     return finish(batch, ids, train, row, target, spans, 'gt', offsets, segments)
+ 
+ 
+-def encode_own(processor, row, gt_batch, target, spans, segments=None, mode='own'):
++def encode_own(processor, row, gt_batch, target, spans, segments=None, mode='own', faithful=False):
+     """Own-valued routing row: splice the re-rendered suffix after the unchanged prompt."""
+     ids, train, offsets = suffix_tokens(processor, row, target, spans)
+     batch = splice(gt_batch, ids, processor.tokenizer.pad_token_id)
+-    return finish(batch, ids, train, row, target, spans, mode, offsets, segments)
++    return finish(batch, ids, train, row, target, spans, mode, offsets, segments, faithful=faithful)
+ 
+ 
+ def splice(batch, ids, pad_id):

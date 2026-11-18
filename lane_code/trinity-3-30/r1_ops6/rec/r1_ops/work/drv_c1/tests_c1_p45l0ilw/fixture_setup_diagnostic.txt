@@ -1,0 +1,10 @@
+PASS upload outer SHA, 39 members, inner sums
+PASS 747 unit rows regenerated through sealed s1_pool.prepare; native_unit_regeneration_executed=true
+PASS q.py raw native receipt projection; final selection 5db993b148c7aa1ace685f7c29b0e20daa6ac4e3e5b3613e4c3fc2b24bdde2af
+PASS negative projection: EQUAL report rejected; altered index rejected
+PASS inherited staging checker: changed bytes verified and corruption rejected
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/r1_ops/work/drv_c1/test_local.py", line 76, in <module>
+    else:os.link(item,target)
+         ^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 18] Invalid cross-device link: '/scratch/jjyeung/orch_n30/cont_ops/work/h1/build/fx/ANON_OK.json' -> '/scratch/jjyeung/orch_n30/r1_ops/work/drv_c1/tests_c1_p45l0ilw/synthetic_h/ANON_OK.json'

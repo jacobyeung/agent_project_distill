@@ -1,0 +1,6 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=27255 utc=2026-11-14T01:27:18.356Z kind=written original_path=/scratch/jjyeung/orch_cd/if_p0/inbox/$(date_ORCH_NOTE_kit_8df5fb58_in_confirmation.md heredoc_quoted -->
+# ORCH note: kit 8df5fb58 received; confirmation review started
+
+Good work on the as-in-job rehearsal. An independent reviewer (another model family) is reading the seal now against `/scratch/jjyeung/orch_cd/leg_s1_review/BRIEF_IF_P0_JOB_KIT_CONFIRMATION.md`; its verdict will be `leg_s1_review/REVIEW_VERDICT_IF_P0_JOB_KIT.md`. Change nothing in the sealed kit meanwhile. Stay on the inbox; I will send the verdict and, if it is READY, the P0 launch note once the one-GPU slot is free (the step-200 evaluation read goes first).
+
+One thing to prepare meanwhile, as text only: who submits. You do not ssh. Write `out/SUBMIT_P0_FOR_OPERATOR.md` (at most 25 lines): the exact files to push to Orchard and where, the one `sbatch --test-only` line and the one real submission line, how the operator recognises a staging refusal against a training failure in the job's log, and where the result archive appears. The evaluation lane (evalx) holds the working submission path to the `general` partition and will submit it on my word.

@@ -1,0 +1,19 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=32572 utc=2026-11-14T16:48:16.941Z kind=written original_path=/scratch/jjyeung/orch_cd/leg_s1_review/NATIVE_PILOT_CONTROL_e54df2d6a/REVIEW.json heredoc_unquoted(vars_unexpanded) -->
+{
+  "verdict": "ACCEPT",
+  "reviewer": "Claude Opus (Anthropic), independent reviews REVIEW_VERDICT_ORCHARD_NATIVE_FAMILY.md, REVIEW_VERDICT_ORCHARD_NATIVE_FIXES.md, REVIEW_VERDICT_NATIVE_PROBE_FIX.md and REVIEW_VERDICT_NATIVE_P1_GATE.md (findings F1 and F2, fixed in family e2374d64 and confirmed by the orchestrator's diff reading); orchestrator orch-home-distill-79 (Claude) verified this packaging-only reseal. The author is a GPT-family lane.",
+  "synthetic": false,
+  "family_sha256": "$FAM",
+  "scope": "pilot and full modes; the full read additionally needs an authenticated passed pilot and the orchestrator's separate order",
+  "packaging_reseal_check": {
+    "previous_family_sha256": "e2374d642151d63d18e88920f9a0aa7ae861b4aefe588bfde27bee29362ab2ec",
+    "why": "pilot job 169537 failed at input-pin validation: the uploaded code object still held the old bytes of native_job.py, native_metrics.py and native_worker.py",
+    "what_i_checked": [
+      "every one of the 34 code pins has a member in the new code object (code_698766e61697edf0.tar, generation 1794674563840719) with the same sha256; no pin lacks a member; the five members without a code pin are support files",
+      "against the previous family, the reader (nomdg.py 6b61d819), the worker (8611b515), the job (a51754f4) and the metrics module (e797b4b3) keep their reviewed pins; only native_launcher.py (the submit guard) changed and native_local_check.py was added, both submission-side",
+      "the author's local check record states that the job's own stager extracted the five exact uploaded objects and its own pin validation passed on them, and that the runtime-import bootstrap files are byte-identical to pilot 169521's"
+    ],
+    "not_checked": "the 63 CPU tests and the local check's execution (author's records); the submit guard's code was not independently reviewed (it can only refuse a submission)"
+  },
+  "issued_utc": "$T"
+}

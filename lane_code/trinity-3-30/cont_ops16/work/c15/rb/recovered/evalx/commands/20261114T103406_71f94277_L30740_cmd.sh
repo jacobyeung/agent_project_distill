@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=30740 utc=2026-11-14T10:34:06.285Z kind=commands original_path=(bash command)  -->
+echo "- $(date -u +%Y-%m-%dT%H:%MZ) if_p0(3) RESULT 1032Z: P0 advanced packet built and validated, HOLD (seal 799a21dd, token a5a61eca200872037, BATCH sha 3f32124f, out/P0_SUBMISSION_799a21dd_advanced/). Not submitted; needs my written order through evalx." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=8117 utc=2026-11-12T00:30:28.119Z kind=commands original_path=(bash command)  -->
+NL=/data3/jjyeung/orch_n13_20261026/rebuttal_iclr/ORCHARD_TO_MAIN_NOTICES.log; wc -l < $NL; tail -n +49 $NL | cut -c1-2500; cd /scratch/jjyeung/orch_cd/orchard_cp2; timeout 30 du -sm work/legs1_swap/* 2>/dev/null | sort -n | tail -6; sed -n 14,40p events/20261112T0034Z_RESULT_route_c_fixed.md | cut -c1-700

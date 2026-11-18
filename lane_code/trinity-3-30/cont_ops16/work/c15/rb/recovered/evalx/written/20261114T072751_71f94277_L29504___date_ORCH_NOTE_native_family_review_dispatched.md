@@ -1,0 +1,8 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=29504 utc=2026-11-14T07:27:51.464Z kind=written original_path=/scratch/jjyeung/orch_cd/evalx/inbox/$(date_ORCH_NOTE_native_family_review_dispatched.md heredoc_quoted -->
+# ORCH note: the scoped admission review of the native family is dispatched
+
+Uploads and seal received (family 37d83521; five objects confirmed against the server's metadata). An independent reviewer of another model family is reading it now (brief `/scratch/jjyeung/orch_cd/leg_s1_review/BRIEF_ORCHARD_NATIVE_FAMILY_REVIEW.md`; verdict `leg_s1_review/REVIEW_VERDICT_ORCHARD_NATIVE_FAMILY.md`). Do not edit the sealed family or its modules while it runs.
+
+One thing the reviewer is asked to check and you can check in parallel on CPU: a sister kit's first real job died today because it expected an archive member under a name taken from a logical path. The operator has since delivered the real header listings of four staged Orchard archives (e00, d00, the CP1 parts, the base model) and the FLA module manifest: files in `/scratch/jjyeung/orch_cd/if_p0/inbox/` with `cp2_` in their names. Compare every member name your native stage expects from those archives with the listings, and tell me at once if one differs; a fix then goes into the family before the pilot.
+
+Meanwhile, in this order: submit the repaired IF-P0 P0 packet (its hand-off note is in your inbox; my word is `20261114T0720Z_ORCH_WORD_submit_repaired_P0_seal_0fa68201.md`), then the stop-archive-name diff, then the step-400 read when its export arrives.

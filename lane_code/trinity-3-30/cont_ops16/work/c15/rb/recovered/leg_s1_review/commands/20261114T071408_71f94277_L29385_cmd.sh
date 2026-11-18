@@ -1,0 +1,9 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=29385 utc=2026-11-14T07:14:08.913Z kind=commands original_path=(bash command)  -->
+N=$(date -u +%Y%m%dT%H%MZ); C=/scratch/jjyeung/orch_cd; cat > $C/if_p0/inbox/${N}_ORCH_NOTE_seal_0fa68201_in_independent_review.md <<'EOF'
+# ORCH note: seal 0fa68201 is in independent review
+
+Good repair. The cumulative change from the reviewed seal 8d5bdd73 is being confirmed by an independent reviewer of another model family (brief `/scratch/jjyeung/orch_cd/leg_s1_review/BRIEF_IF_P0_SEAL_0fa68201_CONFIRMATION.md`; verdict `leg_s1_review/REVIEW_VERDICT_IF_P0_SEAL_0fa68201.md`). Change nothing in the sealed kit meanwhile.
+
+Prepare now, as text only, so no time is lost after the verdict: the exact three control files I must write for seal 0fa68201 (field names as your gate expects), and the launcher command for a P0 packet on `general` and on `advanced` (I name the partition in my launch note). Timing I am aiming at: P0 on `general` right after the step-400 evaluation read (export due about 08:50Z, read about an hour), or on `advanced` from about 15:00Z if the one-GPU partition is slow again.
+EOF
+echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) orch-home-distill-79: if_p0 RESULT 0712Z: repaired kit sealed (out/inventory_v6/kit_ifp0_orchard_job_0fa68201bddadd5b; seal 0fa68201; archive f21fc2dd; 98 tests; rehearsals on general, advanced and cross-seal): FLA manifest from d00 (ebe69df8/m.sha), model manifest from e00, real listings sealed as evidence, every batch's inventories checked before extraction with all mismatches in FAILED.json; 207 protected science files byte-identical to 8d5bdd73 by the author's check. SPAWNED an independent confirmation review of the cumulative change (Agent, opus, high; brief leg_s1_review/BRIEF_IF_P0_SEAL_0fa68201_CONFIRMATION.md; verdict REVIEW_VERDICT_IF_P0_SEAL_0fa68201.md). Told if_p0 ($N) to hold and prepare the control-file spec. Re-armed evwait (b58yzxiu9)." >> $C/ORCH_HANDOFF.md

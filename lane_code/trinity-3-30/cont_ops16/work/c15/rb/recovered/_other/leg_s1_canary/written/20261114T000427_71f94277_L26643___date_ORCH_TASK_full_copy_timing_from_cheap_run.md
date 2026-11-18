@@ -1,0 +1,15 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=26643 utc=2026-11-14T00:04:27.872Z kind=written original_path=/scratch/jjyeung/orch_cd/leg_s1_canary/inbox/$(date_ORCH_TASK_full_copy_timing_from_cheap_run.md heredoc_quoted -->
+# ORCH task: the cheap run copied; decide from its record whether and when the full copy fits
+
+**What happened.** The d93d0359 execution exited 0 at about 00:00Z and reports 2,724,659,200 bytes copied for checkpoint 160 (four part receipts, manifest 33,058 B, sha 4ad346f9..., generation 1794614217285294). Rates on the node: archive creation 433.57 MB/s (6.28 s), two verification passes 270.40 MB/s (20.15 s together), sequential part uploads 129.44 MB/s (21.05 s). The helper saw a normal step 163 at 134.5 s. The operator's independent confirmation and twelve-check disposition are still pending. Records: `/scratch/jjyeung/orch_cd/orchard_cp2/out/STATE_COPY_CHEAP_169097_b9bfe98f/` (read-only for you; start with the decoded return, and read the operator's RESULT events `20261114T0002Z_...` and whatever follows it).
+
+**The problem.** My admission rule for the full copy was: cheap-run rates halved, with ceilings; start only when three times the estimated duration is clear of the next save or milestone export; a lone upload stream of at least about 170 MB/s. The lone stream measured 129 MB/s, and at halved rates the full copy (about 113 GB) may not fit any window between saves (every 7,200 s; last at step 160, 23:53Z) and milestone exports (step 200 due about 01:20Z, step 400 about 08:50Z; the trainer stops itself about 14:25Z).
+
+**Deliver one RESULT, at most 50 lines, as soon as the operator's disposition is in the folder (start now with what is there):**
+1. Read the decoded return and say what it proves and does not prove for the full copy: the trainer-scope memory evidence, the limits `srun` ran under, the disk-guard check, the per-phase rates, and whether the 2.7 GB upload rate is a fair predictor for 113 GB (per-part setup cost, part sizes).
+2. Full-copy duration by phase at the measured rates and at the halved rates, with the arithmetic.
+3. Every window through the end of the allocation in which the full copy fits under the three-times rule, and under a weaker rule you can defend (state it). Include what the copy does to a checkpoint folder that the rotation renames while it is being read.
+4. If it does not fit: the smallest change that makes it fit, with its safety cost. Candidates: concurrent part uploads as the kit's own exporter does (it measured 310 to 433 MB/s over four parts in this job); one verification pass instead of two; copying only at the end of the allocation in place of the slot write. For each: lines of code touched, what must be re-reviewed, what new risk to the trainer.
+5. Your recommendation: run the full copy as built in window X; change it first; or keep it only as the end-of-allocation fallback when the project filesystem cannot take the slot (the operator's final-hour budget is `orchard_cp2/out/FINAL_HOUR_BUDGET_169097_20261113T234025Z.json`).
+
+Build nothing yet. No ssh, no network.

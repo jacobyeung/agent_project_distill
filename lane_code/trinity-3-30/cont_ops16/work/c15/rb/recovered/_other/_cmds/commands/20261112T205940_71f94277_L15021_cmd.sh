@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=15021 utc=2026-11-12T20:59:40.912Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd/mixdata; ls work/pointing | head -30; grep -rn -i "p5x9\|b2a" --include=*.md -m3 . 2>/dev/null | cut -c1-360 | head -12

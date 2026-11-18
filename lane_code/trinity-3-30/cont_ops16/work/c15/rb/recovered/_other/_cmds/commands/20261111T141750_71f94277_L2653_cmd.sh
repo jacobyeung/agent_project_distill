@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=2653 utc=2026-11-11T14:17:50.703Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd/vla_design_review && grep -n 'cross_view\|cross-view' VLA_SCHEMA.md | cut -c1-330 | head -12; grep -n 'cross_view_occlusion' /scratch/jjyeung/orch_cd/vla_where/work/vla_where/*.py 2>/dev/null | head -4 | cut -c1-200

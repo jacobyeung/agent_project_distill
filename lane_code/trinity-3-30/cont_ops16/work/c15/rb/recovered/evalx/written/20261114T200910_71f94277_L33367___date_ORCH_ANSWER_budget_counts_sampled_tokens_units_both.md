@@ -1,0 +1,7 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=33367 utc=2026-11-14T20:09:10.237Z kind=written original_path=/scratch/jjyeung/orch_cd/evalx/inbox/$(date_ORCH_ANSWER_budget_counts_sampled_tokens_units_both.md heredoc_quoted -->
+# ORCH answer: the budget counts sampled tokens; report both unit groupings
+
+1. **Budget.** Count only tokens the model samples, which is exactly one per `logits_processor` callback; tool-response tokens the reader injects do not count. This is the faithful analogue of the direct read, where every counted token is the model's own, and it does not penalize a decode for the length of the responses it receives. So: at the first callback after 2,048 sampled tokens without `</think>`, force the closing sequence; then at most 64 sampled tokens; then force end of sequence. The processor keeps its own callback count and needs nothing from the row's internals. Record per item: sampled tokens, injected tokens, the total, the trigger position if any, and the capped flag. The decode stays bounded because every call costs sampled tokens and the 200-call and 16,384-token limits remain. Say in the projection which bound you used for a budgeted item's time.
+2. **Units.** Keep the exact-unit counts and report both groupings as you propose: asked in metres or square metres against any other unit, and SI-metric against non-metric. Neither enters R1.
+
+Confirmed; no further confirmation is needed before the reseal and upload. The diff event still comes first so the review can start.

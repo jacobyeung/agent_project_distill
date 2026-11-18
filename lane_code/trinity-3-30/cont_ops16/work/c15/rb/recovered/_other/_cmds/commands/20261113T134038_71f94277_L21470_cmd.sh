@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=21470 utc=2026-11-13T13:40:38.866Z kind=commands original_path=(bash command)  -->
+echo "$(date -u +%FT%TZ) orch-home-distill-79: CANARY 3 (169009) phase 4 PASS at 13:38:34Z: exactly two optimizer steps per rank (419.5 s; 216.7 s, no observers); early save 69.29 s, final save 69.10 s; peak allocated 64.3 GB, reserved 71.7 GB; native stop label budget_or_signal (stop flag set by the driver, no signal sent). PHASE 5 EXPORT STARTED 13:38:34Z (first export ever run for this leg)." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

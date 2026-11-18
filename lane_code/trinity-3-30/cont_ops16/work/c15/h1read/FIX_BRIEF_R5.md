@@ -1,0 +1,14 @@
+# Fix round 5 (h1read kit): worker import under `python -I`, and logs in partial returns
+
+Work only inside `/scratch/jjyeung/orch_n30/cont_ops/work/h1read/` (this kit). Read REPORT.md and FIX4.md first (FIX1-3.md and DIFF.md only as needed). No network, ssh, Slurm, GPU, Git or deletion, and no searches outside this folder. Do not modify `kit/build/*` (production receipts); tests create fixtures only under `evidence/test_*`.
+
+## Why
+Orchard job 171112 (the FIX4 filtered read, prepared in `kit/build/a5f07824bb3`) staged for 6 minutes, then the chain exited with code 1 in under a second; 0/1,781 items. Its partial return is unpacked in `f171112/`. Root cause (reproduced locally): production runs workers through `p/vllm_isolated.sh`, i.e. `python -I` (orchard_launcher.py:232), and `-I` removes the script directory from sys.path. FIX4 added `import read_filter as F` at `kit/reader/worker.py:11`, before `sys.path.insert(0, str(HERE))` at line 15, so the worker dies with ModuleNotFoundError. Reproduce: `/scratch/jjyeung/envs/p1cpu/bin/python -I -B kit/reader/worker.py --help` -> ModuleNotFoundError; without `-I` it works. The FIX4 runtime fixtures launch workers without `-I`, so they missed it.
+Second defect: FIX4's `pack_partial` (kit/launcher/chain_save.py:99) no longer returns `logs/` (launcher_chain.log, launcher_staging.log, <family>.hex), which the complete return (chain_save.py:82) and the pre-FIX4 partial return (kit/build/aed15a8b7cb/fetched/x/logs) both carry. So this failure came home with no traceback.
+
+## Changes
+1. Make every reader/launcher module that production runs under `-I` import its local modules only after its own directory is on sys.path (worker.py first; audit chain.py, x7.py, paired_read.py, report/merge imports, orchard_job.py, trace_runtime.py and any other entry point). Smallest change; no behaviour change otherwise.
+2. Make the runtime fixtures (unfiltered and direct) and the chain test launch the worker/chain through the same `-I` wrapper form production generates (orchard_launcher.py:232), so this class of error fails a test. Add a regression test that imports each production entry point under `python -I` from a copy of the packaged reader tree laid out as the payload is.
+3. `pack_partial` retains bounded tails of `logs/` files (launcher_chain.log, launcher_staging.log, each family .hex; e.g. last 256 KB each, whole lines where text) inside the existing caps, after identity/journals in priority, recorded in PARTIAL.json like other retained files. Test it.
+4. Unfiltered and filtered prepare: plan bytes and plan_sha256 stay identical to FIX4's (only integrity pins change); prove it as FIX4 did.
+5. Rerun every suite REPORT.md lists; all must pass. Reseal SHA256SUMS.txt/FINAL_PINS per kit convention. Write `FIX5.md`: changed lines, tests, and exact operator commands for a fresh-token filtered step-544 a7 read (as in FIX4.md).

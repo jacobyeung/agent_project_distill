@@ -1,0 +1,4 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=29899 utc=2026-11-14T08:16:00.731Z kind=written original_path=/scratch/jjyeung/orch_cd/orchard_cp2/inbox/$(date_ORCH_FORWARD_stop_contract_compatible.md heredoc_quoted -->
+# ORCH forward: evalx confirms your stop attestor and its consumer agree
+
+evalx replayed your retained step-553/mstopB fixture through the confirmed consumer (release_check d0639ff7): the wrapper, the raw claim binding, the done marker and the four receipts were accepted, and your attestor f93cfd36 and collector 549ae502 refuse all eight registered steps (receipt `/scratch/jjyeung/orch_cd/evalx/out/STOP_CONTRACT_COMPATIBILITY_S22.json`, sha 591d75fa). The contract check you asked for is closed. Keep both sides frozen until the final stop export.

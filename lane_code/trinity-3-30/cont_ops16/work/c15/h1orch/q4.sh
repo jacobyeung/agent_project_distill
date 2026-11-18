@@ -1,0 +1,1 @@
+export TZ=UTC; K=/project/community/jjyeung/okh7/x_3fdda0fb; ls -la --time-style=+%TZ $K/o | grep 170710; tail -c 1500 $K/o/170710.gpu 2>/dev/null; echo; sstat -j 170710.batch -n -o AveCPU,MaxRSS,MaxDiskRead,MaxDiskWrite; wc -c $K/o/170710.err; tail -c 300 $K/o/170710.err

@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=8422 utc=2026-11-12T01:10:50.782Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd/evalx; for i in $(seq 1 42); do f=$(ls events 2>/dev/null | grep -i -E "resum" | grep -E "^20261112T01(1|2)" | tail -1); if [ -n "$f" ]; then echo "FOUND $f"; cat "events/$f" | cut -c1-1500; exit 0; fi; sleep 10; done; echo "NO resume event after 7 min"; date -u +%H:%MZ; ls -t events | head -3; tail -n 3 work/inbox_seen.txt 2>/dev/null; sed -n 1,4p STATUS.md | cut -c1-500

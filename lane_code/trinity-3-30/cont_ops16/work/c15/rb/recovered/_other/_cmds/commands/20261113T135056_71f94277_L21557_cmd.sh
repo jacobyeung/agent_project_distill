@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=21557 utc=2026-11-13T13:50:56.940Z kind=commands original_path=(bash command)  -->
+echo "$(date -u +%FT%TZ) orch-home-distill-79: CANARY 3 (169009) PHASE 6 SLOT PASS at 13:48:27Z: verified slot archive of step 2 with checkpoint, inputs and binding (110.6 GB, sha 1175e46d); write 140 s, re-read hash 75 s; native verifier b/r8.py:complete; private local slot (not the project filesystem, not across jobs). PHASE 7 RESUME STARTED (must restore and run steps 3 and 4)." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

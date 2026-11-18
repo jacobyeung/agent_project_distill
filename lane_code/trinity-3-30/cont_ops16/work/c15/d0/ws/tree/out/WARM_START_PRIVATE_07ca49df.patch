@@ -1,0 +1,221 @@
+--- a/student_pilot/carrier_c1_run.py
++++ b/student_pilot/carrier_c1_run.py
+@@ -60,6 +60,8 @@
+ 
+ 
+ def validate(cfg):
++    from .s1_warm_start import validate as validate_warm_start
++    validate_warm_start(cfg)
+     if cfg.get('trace_program_version', '3.13') not in ('3.13', '3.14'):
+         raise ValueError('Unsupported trace_program_version')
+     data.layout_settings(cfg)
+@@ -737,6 +739,9 @@
+     from .s1_exclusions import verify
+     verify(receipt, cfg)
+     removals.verify_streams(receipt['streams'])
++    if cfg.get('warm_start'):
++        from .s1_warm_start import bind as bind_warm_start
++        receipt = {**receipt, 'warm_start': bind_warm_start(cfg, receipt)}
+     model = load(pinned(receipt['model']))
+     if admission:
+         review = load(pinned(cfg['admission'])) if cfg.get('admission') else {}
+@@ -775,7 +780,7 @@
+         from . import ground_tokens
+         if ground_tokens.enabled(receipt):
+             ground_tokens.initialize_after_warm(model, processor, getattr(model, 'init_report', None))
+-        else:
++        elif not receipt.get('warm_start'):
+             routing.init_routing_embeddings(model, processor._routing_tokens)
+         if receipt.get('depth_init'):
+             from .carrier_c1 import load_depth_stage1
+@@ -819,6 +824,9 @@
+     if 'gf1' in (model.geometry_online or {}):
+         from .gf1 import configure_trainables
+         configure_trainables(model)
++    if receipt.get('warm_start'):
++        from .s1_warm_start import model_loaded
++        model_loaded(model, receipt['warm_start'])
+     if not evaluation:
+         from .trained_groups import capture
+         capture(model)
+@@ -1998,6 +2006,7 @@
+         sealed = binding(load(pinned(cfg['code'])), identity(cfg)) if cfg.get('code') else None
+         training_seal = load(pinned(cfg['preparation'])).get('source_seal') if sealed is not None else None
+         write(directory/'artifact.json',dict(**version_metadata,schema='carrier-c1-artifact-v1',step=step,
++            **(dict(warm_start=model.warm_start_lineage) if hasattr(model, 'warm_start_lineage') else {}),
+             **(dict(trained_groups=contract) if contract is not None else {}),
+             **(dict(source_seal=sealed, training_source_seal=training_seal) if sealed is not None else {}),
+             config_sha256=identity(cfg),base_identity=cfg['base_identity'],
+@@ -2331,6 +2340,8 @@
+         stopped_for_resume=not bool(smoke_steps) and step<recipe['steps'],world_size=world,
+         gpu_fit_measured=device.type=='cuda' and distributed)
+     report['stop_reason']='gx_fail_fast' if gx_stop else 'm400_gate' if gate_stop else 'budget_or_signal' if bool(request.item()) or budget_stop else 'schedule'
++    if hasattr(model, 'warm_start_lineage'):
++        report['warm_start'] = model.warm_start_lineage
+     if cfg.get('geometry_online'):
+         report['binding'] = bound
+     if rank==0:
+@@ -2779,7 +2790,9 @@
+         dist.broadcast_object_list(pins, src=0)
+         resume_pin = pins[0]
+     restore_options = dict(cfg=cfg) if cfg.get('geometry_online') and not export_only else {}
+-    start_step=restore(resume_pin,wrapped,optimizer,restore_bound, **restore_options) if resume_pin else 0
++    from .s1_warm_start import start_step as warm_start_step
++    start_step=warm_start_step(receipt, restore(resume_pin,wrapped,optimizer,restore_bound, **restore_options)
++                              if resume_pin else None)
+     if start_step>=recipe_for(cfg)['steps'] and not export_only:
+         raise ValueError('Completed C1 schedules cannot resume')
+     if start_step>=400 and not smoke_steps and step400_gate_enabled(cfg):
+@@ -2809,6 +2822,7 @@
+                     rebind = bind_output(output, bound, resume=bool(resume_pin), **bind_options)
+                 write(output/f'attempt_{attempt}.json',dict(binding=bound,resume=resume_pin,first_step=start_step+1,
+                       network=network,init=getattr(model,'init_report',None),export_of=export_binding,
++                      **(dict(warm_start=receipt['warm_start']) if receipt.get('warm_start') else {}),
+                       **(dict(config=cfg, rebind=rebind, ignored_older_rule_stops=ignored_stops)
+                          if cfg.get('geometry_online') else {})))
+         except Exception as exc:
+@@ -2922,7 +2936,9 @@
+     if rank_limit is not None and (progress_dir is None or type(rank_limit) is not int or rank_limit < 1):
+         raise ValueError('A rank limit requires a checkpointed first-batch check')
+     counts = {k: v['count'] for k, v in receipt['streams'].items()}
+-    plans = list(data.mixed_indices(counts, steps, training_mode=cfg.get('training_mode', 'mixed'),
++    from .s1_warm_start import start_step as warm_start_step
++    start = warm_start_step(receipt)
++    plans = list(data.mixed_indices(counts, start+steps, start_step=start, training_mode=cfg.get('training_mode', 'mixed'),
+                                     mix=recipe['mix'], world=recipe['world_size']))
+     device = torch.device(device)
+     out = Path(out_path)
+--- /dev/null
++++ b/student_pilot/s1_warm_start.py
+@@ -0,0 +1,131 @@
++from pathlib import Path
++import re
++
++from .p3_provenance import digest, load, pinned
++
++
++SCHEMA = 's1-export-warm-start-v1'
++DONOR_RUN = '469ddece'
++DONOR_TREE = 'b01ce449beffe35be3bf0b48ad3d69f331f1523f96a69cbd3d10aab3dbb42a99'
++HEADS = {'pose', 'depth', 'frame_embeddings'}
++REBIND = {'output', 'preparation_output', 'preparation', 'code', 'admission', 'authorization',
++          'milestone_gate', 'streams', 'init_artifact', 'warm_start'}
++
++
++def validate(cfg):
++    if 'warm_start' not in cfg:
++        return
++    value = cfg['warm_start']
++    if not isinstance(value, dict) or set(value) != {'schema', 'donor_config'} or value['schema'] != SCHEMA:
++        raise ValueError('Warm start needs its schema and pinned effective donor configuration')
++    pin = value['donor_config']
++    if (not isinstance(pin, dict) or set(pin) != {'path', 'sha256'}
++            or not isinstance(pin['path'], str) or not Path(pin['path']).is_absolute()
++            or '..' in Path(pin['path']).parts
++            or not isinstance(pin['sha256'], str) or not re.fullmatch('[0-9a-f]{64}', pin['sha256'])):
++        raise ValueError('Warm donor configuration needs an absolute path/SHA256 pin')
++    init = cfg.get('init_artifact', {})
++    if (cfg.get('training_mode') != 'final' or cfg.get('depth_enabled') is not True
++            or set(cfg.get('streams', {})) != {'pointing', 'pose', 'routing', 'vqa'}
++            or set(cfg) & {'mdg', 'geometry_online', 'row_start_step'}
++            or init.get('lm') != 'full' or set(init.get('heads', [])) != HEADS
++            or cfg.get('recipe', {}).get('steps') != 1000 or cfg['recipe'].get('seed') != 17):
++        raise ValueError('Warm continuation is scoped to the four-stream final leg with all heads and no row offset')
++
++
++def content(value):
++    if isinstance(value, dict):
++        if set(value) == {'path', 'sha256'}:
++            return {'sha256': value['sha256']}
++        return {key: content(part) for key, part in value.items() if key != 'receipt'}
++    if isinstance(value, list):
++        return [content(part) for part in value]
++    return value
++
++
++def row_identity(receipt):
++    streams = receipt['streams']
++    if (set(streams) != {'pointing', 'pose', 'routing', 'vqa'}
++            or any(type(value.get('count')) is not int or value['count'] < 1 for value in streams.values())):
++        raise ValueError('Warm row identity needs all four nonempty admitted streams')
++    return digest([[name, content(value)] for name, value in streams.items()])
++
++
++def inherited_names(parent):
++    init = parent.get('head_init') or {}
++    if init.get('prefix') != 'global_camera_head.':
++        return []
++    names = set(init.get('copied', [])) | set(init.get('derived', []))
++    return sorted(name for name in names if name.startswith(
++        ('token_norm.', 'trunk.', 'trunk_norm.', 'pose_modulation.')) or name == 'embed_pose.bias')
++
++
++def bind(cfg, receipt):
++    from .carrier_c1_run import identity, init_mirror
++    from .source_seal import check_export
++
++    validate(cfg)
++    donor_pin = cfg['warm_start']['donor_config']
++    donor = load(pinned(donor_pin))
++    if donor.get('warm_start') is not None or Path(donor['output']).name != DONOR_RUN:
++        raise ValueError('Warm donor must be the original run 469ddece')
++    old_roots = [Path(donor[key]) for key in ('output', 'preparation_output')]
++    new_roots = [Path(cfg[key]) for key in ('output', 'preparation_output')]
++    if (any(not path.is_absolute() or '..' in path.parts for path in old_roots + new_roots)
++            or any(old == new or old in new.parents or new in old.parents
++                   for old in old_roots for new in new_roots)):
++        raise ValueError('Warm destination must use distinct nonoverlapping run and preparation roots')
++    if {key: value for key, value in cfg.items() if key not in REBIND} != {
++            key: value for key, value in donor.items() if key not in REBIND}:
++        raise ValueError('Warm configuration changes the donor training/data policy')
++    before = load(pinned(donor['preparation']))
++    artifact_pin = cfg['init_artifact']['artifact']
++    local = init_mirror(artifact_pin)
++    artifact = load(pinned({**artifact_pin, 'path': str(local / 'artifact.json')}) if local else pinned(artifact_pin))
++    step = artifact.get('step')
++    if type(step) is not int or not 0 < step < cfg['recipe']['steps']:
++        raise ValueError('Warm export step must be an integer inside the unfinished donor horizon')
++    if (artifact.get('schema') != 'carrier-c1-artifact-v1' or artifact.get('training_mode') != 'final'
++            or artifact.get('pose_backing') != 'lm_final_norm'
++            or artifact.get('base_identity') != cfg['base_identity']
++            or artifact.get('placement') != cfg['carrier_placement']
++            or artifact.get('frame_layout', 'spread') != cfg.get('frame_layout', 'spread')
++            or artifact.get('carrier_position_policy', 'native_v1') != 'native_v1'
++            or artifact.get('trace_program_version') != cfg['trace_program_version']
++            or artifact.get('mdg') or artifact.get('geometry_online')):
++        raise ValueError('Warm artifact architecture or training policy differs')
++    if (artifact.get('config_sha256') != identity(donor)
++            or before.get('schema') != 'c1-preparation-v1'
++            or before.get('config_sha256') != identity(donor)
++            or before.get('recipe') != donor['recipe']
++            or before.get('source_seal', {}).get('tree_sha256') != DONOR_TREE
++            or {name: value['receipt'] for name, value in before['streams'].items()} != donor['streams']):
++        raise ValueError('Warm donor configuration, preparation, or source identity differs')
++    check_export(before, artifact)
++    before_rows = row_identity(before)
++    if row_identity(receipt) != before_rows:
++        raise ValueError('Warm admitted row content/order differs from the donor')
++    parent = load(pinned(donor['init_artifact']['artifact']))
++    return dict(schema=SCHEMA, donor_run=DONOR_RUN, donor_config=donor_pin,
++                donor_preparation=donor['preparation'], artifact=artifact_pin, step=step,
++                row_identity_sha256=before_rows, inherited_head_params=inherited_names(parent),
++                optimizer='fresh_adamw', base_precision='bf16_export_to_fp32_trainable_masters',
++                random_state='fresh_seed_not_restored', exact_resume=False)
++
++
++def model_loaded(model, lineage):
++    report = model.init_report
++    if (lineage.get('schema') != SCHEMA or report.get('step') != lineage['step']
++            or report.get('kept') or report.get('planned_init')
++            or report.get('head_tensors') != len(model.auxiliary_heads.state_dict())):
++        raise ValueError('Warm continuation must restore every live head without planned initialization')
++    model.inherited_head_params = lineage['inherited_head_params']
++    model.warm_start_lineage = lineage
++
++
++def start_step(receipt, restored=None):
++    lineage = receipt.get('warm_start')
++    initial = lineage['step'] if lineage else 0
++    if restored is not None and (type(restored) is not int or restored < initial):
++        raise ValueError('Warm-run checkpoint precedes its donor export')
++    return initial if restored is None else restored

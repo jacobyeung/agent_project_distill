@@ -1,0 +1,25 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=2290 utc=2026-11-11T13:28:12.874Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd && NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ) && cat > gf1_fusion/BRIEF_PASS2.md <<'EOF'
+# gf1_fusion, pass 2 (Codex Astra): fix what the cross-family review found in the fusion connector, and add the tests that would have caught it
+Your folder: /scratch/jjyeung/orch_cd/gf1_fusion. Your first pass built work/tree_gf1 and out/GF1.patch (read your own events/20261111T1315Z_RESULT_gf1_fusion.md, out/RECORD.md and out/ACCEPTANCE.json first). A reviewer from another model family then read the patch: REVIEW_VERDICT.md in this folder, verdict RUN AFTER FIXES, eight findings with file and line, two of them blockers. That file is your specification for this pass, including the orchestrator's ruling inside finding 2.
+
+## Standing answers (the orchestrator cannot answer a running Codex session)
+- You may read this node's local disk (/scratch) with one serial process. You write only inside your folder and your private /dev/shm; at most 3 GB under your folder. No GPU, no ssh, no git, no network, no deletion outside your folder, no loopback sockets. /home and /data* are overloaded network storage: do not read or write them.
+- The base tree /scratch/jjyeung/orch_cd/integ_v3/work/tree is read-only; change only work/tree_gf1.
+- Verify each finding in the code before fixing it. If a finding is wrong, say so in the RESULT with the file and line, and do not "fix" it.
+- Debug and rerun ordinary failures of your own scripts up to three times. Never hold on a question: decide, and state your assumption in the RESULT.
+
+## Do
+1. Fix findings 1 to 5 and 7 in work/tree_gf1 as the review's smallest fixes describe, with the ruling in finding 2: the camera-token path keeps its trained 32-frame student input through a second tower pass under no_grad, and the connector's bank may use the dense native frames. State the added cost of the second pass from the shapes.
+2. Finding 6: add an export round trip through the evaluator's loader that asserts the gf1 tensors and the logits match and that fails closed when gf1 is missing from the init spec; and write, as a specification only (out/EVAL_DENSE_SPEC.md), what the evaluation builders must add so that benchmark batches carry dense clips. Do not edit the evaluation kits.
+3. Add the three missing tests the review names: (a) an unpatched 64-frame row encoded end to end with a one-hot bank impulse traced to its video token on a non-square frame; (b) step-0 logits of the base-tree code path against the GF-1 code path on one row from a donor whose camera connector is non-zero (use the tiny native fixture with a non-zero camera connector, since the 9B checkpoint cannot load on CPU here; say so); (c) the export round trip of item 2. Remove the test patch that hid finding 1.
+4. Guards: an automatic stop when patch_delta_ratio exceeds 0.5 or the step-1 loss exceeds 1.02 times the step-0 loss; substitutions caused by missing dense clips are fatal; unread config keys are either read or removed, and an unknown key still refuses.
+5. Stage 1 at world size 4 if the trainer allows it without touching the frozen LM path; otherwise say what blocks it. Rewrite the pre-launch card: Stage 1 is a harm screen inside the stacked leg, not a standalone arm with a gain rule.
+6. Rerun every acceptance check of pass 1 plus the new tests; regenerate out/GF1.patch, out/ACCEPTANCE.json, out/PRELAUNCH_CARD.md and out/RECORD.md in place (current state only, no history).
+
+## Deliver
+events/<UTC stamp from date -u +%Y%m%dT%H%MZ>_RESULT_gf1_fusion_pass2.md, at most 14 lines: for each finding fixed or refuted with the test that now covers it; the acceptance table; the cost of the second tower pass; what still cannot be tested without a GPU or the real checkpoint.
+EOF
+tmux new-session -d -s cx_gf1_fusion2 "bash /scratch/jjyeung/orch_cd/orch_tools/codex_local.sh implement /scratch/jjyeung/orch_cd/gf1_fusion /scratch/jjyeung/orch_cd/gf1_fusion/BRIEF_PASS2.md --model gpt-6-astra --effort high --skip-git-check --label gf1_fusion_pass2 > /scratch/jjyeung/orch_cd/gf1_fusion/dispatch_pass2.out 2>&1"
+printf 'gf1_fusion|tmux:cx_gf1_fusion2||\n' >> /tmp/claude-25409/-scratch-jjyeung-orch-home-distill/71f94277-362e-467c-a4bc-ccc9ae6b87c8/scratchpad/LANES
+echo "$NOW orch-home-distill-79: gf1_review (Claude Opus high) verdict RUN AFTER FIXES (saved gf1_fusion/REVIEW_VERDICT.md): blockers = no video row encodes at dense 64 (frame count hard-wired to 32; a test patch hid it) and init refuses from any trained GXC checkpoint (camera tokens now from 64 native frames); also a silent cold connector in Stage 2, silent row substitution, routed head outputs changed by sharing BF16 tower modules, untested evaluation path, removed guards, unread config keys. RULING on finding 2: keep the camera-token path on its trained 32-frame input via a second tower pass. Dispatched Codex Astra pass 2 (tmux cx_gf1_fusion2, BRIEF_PASS2.md)." >> ORCH_HANDOFF.md; tmux has-session -t cx_gf1_fusion2 && echo alive

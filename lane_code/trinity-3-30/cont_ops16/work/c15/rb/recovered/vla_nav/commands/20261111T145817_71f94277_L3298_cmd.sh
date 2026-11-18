@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=3298 utc=2026-11-11T14:58:17.334Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; sed -n 8,40p vla_nav/events/20261111T1455Z_QUESTION_trainer_prompt_parity.md; echo ----; grep -n "enable_thinking\|add_generation_prompt\|<think>" vla_design_review/VLA_SCHEMA.md | head -30

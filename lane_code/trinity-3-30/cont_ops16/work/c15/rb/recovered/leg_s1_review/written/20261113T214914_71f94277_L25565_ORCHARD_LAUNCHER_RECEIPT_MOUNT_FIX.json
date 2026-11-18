@@ -1,0 +1,19 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=25565 utc=2026-11-13T21:49:14.033Z kind=written original_path=/scratch/jjyeung/orch_cd/leg_s1_review/ORCHARD_LAUNCHER_RECEIPT_MOUNT_FIX.json  -->
+{
+  "verdict": "ACCEPT",
+  "reviewer": "orchestrator orch-home-distill-79 (Claude family; the author is a GPT-family lane). A diff read and test runs on top of the independent launcher review and my earlier receipt ORCHARD_LAUNCHER_RECEIPT.json; not a new full review.",
+  "code_pins_sha256": "5fade132003f4cad9aa3e78a8cac37872eeadbd84c593063b2ccc981760b8b0d",
+  "packet_sha256": "951f2f2bcb2b3d5762a3057b312d90cc4f47d2bb06318674c59450f9568592d3",
+  "previous_code_pins_sha256": "f97bbd8d6ec2342649a4896a327b97eb7a19cefa7defc141f8c06ffa6ee956da",
+  "diff": "/scratch/jjyeung/orch_cd/evalx/work/milestone/ORCHARD_MOUNT_FIX.patch (sha256 742196ff..., 78 lines, orchard_job.py only)",
+  "why": "rehearsal job 169274 refused at the storage gate: Orchard stacks a tmpfs and the job's ext4 mount on /tmp, and the validator's longest-prefix tie examined the hidden tmpfs",
+  "what_i_checked": [
+    "read the whole diff: the gate now opens the nearest existing ancestor of the work directory, reads that handle's kernel mount id from /proc/self/fdinfo, selects the single mountinfo entry with that id, and applies the unchanged filesystem, device-source and job-private predicates to it; refusals carry the selected entry and every /tmp entry into the failure archive",
+    "the seven pinned files hash as in the packet and the digest recomputes; only orchard_job.py differs from the previous accepted set",
+    "ran test_orchard_mount.py, test_orchard_launcher.py, test_orchard_results.py and test_orchard_review_findings.py with the p1cpu interpreter: 34 passed"
+  ],
+  "not_checked": [
+    "the gate on a real Orchard compute node (the corrected step-50 rehearsal is that proof)"
+  ],
+  "issued_utc": "2026-11-13T21:50Z"
+}

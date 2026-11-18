@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=19108 utc=2026-11-13T10:27:07.679Z kind=commands original_path=(bash command)  -->
+G=/data3/jjyeung/orch_n13_20261026/io_governor; ls $G/*.py 2>/dev/null | head; grep -n "add_argument" $G/copy_archive.py | cut -c1-200 | head -n 20; grep -n "copy_archive.py" /scratch/jjyeung/orch_cd/leg_s1_tree/out/*.md /scratch/jjyeung/orch_cd/arch_jobs/*.log 2>/dev/null | head -n 4 | cut -c1-400

@@ -1,0 +1,6 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=12004 utc=2026-11-12T11:45:25.646Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; T=$(date -u +%Y%m%dT%H%MZ); cat > orchard_port/inbox/${T}_ORCH_ANSWER_bakeoff_travel.md <<'EOF'
+# ORCH answer: your default stands; the bake-off does not travel
+Port jobs 1, 2, 3a and 3b (about 22 GB in total, paced as ruled at 11:46Z). Do not copy the geometry bake-off kit: it is over the 30 GB line where a copy through the head node needs an admin's plan, and it is the lowest-priority item; it stays on Trinity for an idle card. Do not measure the video mirror for it. (Job 3a's mask cache on the dev captures already ran on Trinity; keep only what of 3a and 3b is still unrun: say which in your next STATUS.)
+EOF
+echo "$(date -u +%Y-%m-%dT%H:%MZ) orchard_port QUESTION 1144Z: bake-off kit travel (30.75 GB + videos) -> answered: default stands, no copy (over the 30 GB admin-planning line; lowest priority; stays on Trinity)." >> ORCH_HANDOFF.md

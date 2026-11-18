@@ -1,0 +1,1288 @@
+--- base/8.py
++++ payload/8.py
+@@ -12,7 +12,10 @@
+ 
+ 
+ def digest(path):
+-    with Path(path).open('rb') as stream:return hashlib.file_digest(stream,'sha256').hexdigest()
++    h=hashlib.sha256()
++    with Path(path).open('rb') as stream:
++        for chunk in iter(lambda:stream.read(1024**2),b''):h.update(chunk)
++    return h.hexdigest()
+ 
+ 
+ def load_helpers(package):
+@@ -39,7 +42,7 @@
+     receipt=json.loads((package/'PACKAGE.json').read_text())
+     for name,h in receipt['files'].items():
+         if digest(package/name)!=h:raise ValueError('Package changed: '+name)
+-    if package!=Path('/project/community/jjyeung')/cfg['token']:
++    if package!=Path('/project/community/jjyeung/okh7')/('a15_cot_ap'+cfg['token']):
+         raise ValueError('Stage the package under /project/community/jjyeung/'+cfg['token'])
+     private=package/'a';private.mkdir(mode=0o700,exist_ok=True)
+     if private.stat().st_mode & 0o077:raise ValueError('Private input directory must be 0700')
+@@ -78,7 +81,7 @@
+     # Check retained package pins again; no implicit check+submit retry chain.
+     pins=json.loads((package/'PACKAGE.json').read_text())['files']
+     if any(digest(package/n)!=h for n,h in pins.items()):raise ValueError('Package changed after check')
+-    result=subprocess.run(argv+(['--test-only'] if test_only else []),input=body,env=env,cwd='/tmp',capture_output=True)
++    result=subprocess.run(argv+(['--test-only'] if test_only else []),input=body,env=env,cwd='/tmp',stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+     sys.stdout.buffer.write(result.stdout);sys.stderr.buffer.write(result.stderr)
+     with (package/'LEDGER.jsonl').open('a') as f:
+         f.write(json.dumps(dict(action='test-only' if test_only else 'submit',returncode=result.returncode,
+--- base/9.json
++++ payload/9.json
+@@ -1,6 +1,21 @@
+ {
+   "budget_gpu_seconds": 18000,
+   "cpu_check_name": "2.json",
++  "export_binding": {
++    "base_identity": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
++    "config_sha256": "620d5cf8c573afd72e9dcbcf822fb8c8cbae27dd6c2ca803ec156d7cda41e51a",
++    "frame_layout": "duplicate",
++    "lineage": "SFT",
++    "member_directory": "m200",
++    "object": "q8/8865619b/673bc60f_m200.tar",
++    "preparation_sha256": {
++      "config": "3b0051c4a9cc661d02019a645165fc3e23d658d2f24a6fd6fd86ec7877ba4fc1",
++      "data_receipt": "7f654d2f0ae9f06083f2fc8fd793512c154b4d01ce8632fb733d4191205af770",
++      "receipt": "4c0dd9d6e4535a2945ed58754c1cdd5e9a316067be35f2e8440caa9a80e1c915"
++    },
++    "run": "673bc60f",
++    "step": 200
++  },
+   "inputs_name": "1.json",
+   "logical": "/scratch/jjyeung/b01ec87a6f29b",
+   "order": [
+@@ -12,8 +27,8 @@
+   ],
+   "payload_pins": {
+     "8.py": {
+-      "bytes": 6934,
+-      "sha256": "a65c37736e37ed294404e23ec40e41956651a8d45516560b9053f2efd0fff498"
++      "bytes": 7048,
++      "sha256": "4ec88e36998b9f96ebbc01a5fb7bffa32fa1e5cd15f09825bcf81a5fd5f8777c"
+     },
+     "auth/R0_DEV_ROOMS.txt": {
+       "bytes": 2101,
+@@ -416,24 +431,24 @@
+       "sha256": "c06c595e2efee72ad424d7f33ca5827a50b523545ecd553e81245a694c435aed"
+     },
+     "orchard_h10/common.py": {
+-      "bytes": 4387,
+-      "sha256": "df48d528456ec54137b2bcb05d4ddf4ca68cc65260a651dc7de2c94442be0982"
++      "bytes": 4724,
++      "sha256": "2a55934bea281249e965661641cd294ec0c3c6d7d8a55097dbdd995ca69871b3"
+     },
+     "orchard_h10/entry.py": {
+       "bytes": 899,
+       "sha256": "d772a9dbc1d2564bf70ad72d11283ae01ec3ade37b23e60fddbd4401feee3b17"
+     },
+     "orchard_h10/export_pins.py": {
+-      "bytes": 2719,
+-      "sha256": "e9aaa9d4b97a92423aa836e6f95e10e2adc9bc1a0cf49ff8439e833b86d3ab35"
++      "bytes": 3439,
++      "sha256": "4e52ce6aab3c97bbf82bf8eaff6be3db6b71351e1f3ac0241b28bfd5563d4fc9"
+     },
+     "orchard_h10/inventory.py": {
+       "bytes": 10650,
+       "sha256": "147b1633a52252fd6eadef84b0b539e1478f584915f5254e06cf3653b3b2d869"
+     },
+     "orchard_h10/job.py": {
+-      "bytes": 14114,
+-      "sha256": "63ffc26268b034c1f57c92bcf652d9f9e6212d1a755bc08c76e6d79a92253040"
++      "bytes": 14341,
++      "sha256": "32d4f924f86ebc54d8a878757acbbfdebb673a3245eb60a450b8e7222dac4d56"
+     },
+     "orchard_h10/operator.py": {
+       "bytes": 6934,
+@@ -464,20 +479,20 @@
+       "sha256": "3c6bd4cb82b39a6853c671e8c460c472df12b78ae3780890f61bd81008297b9c"
+     },
+     "orchard_h10/vendor/export_stage.py": {
+-      "bytes": 11909,
+-      "sha256": "8c926e7c21663e7d707c7bc4adf1a2a9d73202e397e1531ef08ec3cadee859ed"
++      "bytes": 11935,
++      "sha256": "ecb27d13947ebb7c415e6fc6f0f986b46cdf0a85ddfe3c50004044bba08432d8"
+     },
+     "orchard_h10/vendor/orchard_job.py": {
+-      "bytes": 13840,
+-      "sha256": "d912e1f596fc21621bcb13c4670a1af313ab54a65ef1bda846b2c3b68cc3bd6b"
++      "bytes": 13960,
++      "sha256": "0cb59d313de126d14ef6154a18c23f2d19f866f814bc24e3a92764b90b895bde"
+     },
+     "orchard_h10/vendor/orchard_launcher.py": {
+-      "bytes": 22568,
+-      "sha256": "9068f83eb75168b7de8e4409bba01d8a12b8776d3bb5da08556827a955b745d3"
++      "bytes": 22660,
++      "sha256": "f7151c1dbfe297fd055e54bd84adc97737809ab2b03ca56a719dc807039b0354"
+     },
+     "orchard_h10/vendor/orchard_results.py": {
+-      "bytes": 10607,
+-      "sha256": "959af042a98ecf985e7ead3e89ec3100f3434637ddecb02576c1b9a13f6a3810"
++      "bytes": 10687,
++      "sha256": "d739b38a5c00854068f9d76ec49d679100cf59a693fafd8c8446eb1d0807fce5"
+     },
+     "orchard_h10/vendor/orchard_stage.py": {
+       "bytes": 13095,
+@@ -3716,26 +3731,30 @@
+       "sha256": "074cb81c4434692f323321cd34ba87e8ee38a34dc2411cdaa5de2414fe057785"
+     }
+   },
++  "perception_memo": "on",
+   "perception_memo_modules": [
+     "g3t"
+   ],
++  "perception_memo_verify_ids": [],
+   "pool": "/project/community/jjyeung/okh7/ae71c903",
+   "return_margin": 1200,
++  "save_own_depth": false,
+   "schema": "h10-orchard-v1",
++  "stage1_select_rule": "candidates_argmax",
+   "stop_margin": 1800,
+   "template_pins": {
+     "MODELS.json": "72cdfbff0e93a881099096f06e22b5c7e98046d443ae3430d498d06b49cfb37a",
+     "ORCHARD_ASSETS.json": "a62285317a774cee040ceb5817e7ad7a7e08e12ea412b8f416cfb97b5a1c12ee",
+     "TRANSPORT.json": "23339074f3eb41507c3e3c657159415582573cd8332c3b4777b4ac577a7b3b50",
+     "chain_save.py": "3c6bd4cb82b39a6853c671e8c460c472df12b78ae3780890f61bd81008297b9c",
+-    "export_stage.py": "8c926e7c21663e7d707c7bc4adf1a2a9d73202e397e1531ef08ec3cadee859ed",
+-    "orchard_job.py": "d912e1f596fc21621bcb13c4670a1af313ab54a65ef1bda846b2c3b68cc3bd6b",
+-    "orchard_launcher.py": "9068f83eb75168b7de8e4409bba01d8a12b8776d3bb5da08556827a955b745d3",
+-    "orchard_results.py": "959af042a98ecf985e7ead3e89ec3100f3434637ddecb02576c1b9a13f6a3810",
++    "export_stage.py": "ecb27d13947ebb7c415e6fc6f0f986b46cdf0a85ddfe3c50004044bba08432d8",
++    "orchard_job.py": "0cb59d313de126d14ef6154a18c23f2d19f866f814bc24e3a92764b90b895bde",
++    "orchard_launcher.py": "f7151c1dbfe297fd055e54bd84adc97737809ab2b03ca56a719dc807039b0354",
++    "orchard_results.py": "d739b38a5c00854068f9d76ec49d679100cf59a693fafd8c8446eb1d0807fce5",
+     "orchard_stage.py": "00b113eec03c205d872bfc7ce8bddb4c7bd4086f44e8878d712c001db86f17d2",
+     "return_io.py": "ad24ee4c4ffb0592011efce63d741b3f449daddf4da7c377d9623a5db2dad8b3",
+     "stdout_transfer.py": "85ad256cfa7836948ddba934ca82537486fc3c42cab06fa5442de86caef2e0f6",
+     "trace_runtime.py": "faec481ff5b445fdeb885a0ee70e1f83beaff05afb115dd3073fa6ce1934237d"
+   },
+-  "token": "b9ef552934627"
++  "token": "d72cdcff1e22a"
+ }--- base/orchard_h10/common.py
++++ payload/orchard_h10/common.py
+@@ -5,6 +5,13 @@
+ from pathlib import Path
+ import re
+ import sys
++
++# Python 3.6 login/node helpers retain the same containment semantics.
++if not hasattr(Path, 'is_relative_to'):
++    def _is_relative_to(self, other):
++        try:self.relative_to(other);return True
++        except ValueError:return False
++    Path.is_relative_to = _is_relative_to
+ 
+ ORDER = ('camera_displacement', 'camera_rotation', 'camera_movement_direction',
+          'object_abs_distance', 'room_size_estimation')
+@@ -16,8 +23,10 @@
+ 
+ 
+ def sha(path):
++    h=hashlib.sha256()
+     with Path(path).open('rb') as stream:
+-        return hashlib.file_digest(stream, 'sha256').hexdigest()
++        for chunk in iter(lambda:stream.read(1024**2),b''):h.update(chunk)
++    return h.hexdigest()
+ 
+ 
+ def canonical(value):
+--- base/orchard_h10/export_pins.py
++++ payload/orchard_h10/export_pins.py
+@@ -60,6 +60,18 @@
+ 
+ 
+ def admit(inputs, cfg, export):
++
++    binding = cfg.get('export_binding')
++    if binding is not None:
++        for key in ('run', 'step', 'member_directory', 'lineage', 'object'):
++            if export.get(key) != binding[key]:raise ValueError('Reviewed export binding differs: '+key)
++        for name, digest in binding['preparation_sha256'].items():
++            if export['preparation'][name]['sha256'] != digest:
++                raise ValueError('Reviewed preparation differs: '+name)
++        if export.get('config_sha256') != binding['config_sha256']:
++            raise ValueError('Reviewed config identity differs')
++        if export.get('archive_sha256') != inputs['archives'][0]['sha256']:
++            raise ValueError('Reviewed archive differs')
+     root = Path(cfg['logical'])/'d'/export['member_directory']
+     for name, member in MEMBERS.items():
+         declared = inputs['files'][name]
+--- base/orchard_h10/job.py
++++ payload/orchard_h10/job.py
+@@ -21,7 +21,7 @@
+ def check_inputs(inputs, cfg, *, package=None):
+     """Fail closed until every unresolved archive and dependency has a full pin."""
+     from orchard_h10.export_pins import load, admit
+-    export = load(inputs, package or Path('/project/community/jjyeung')/cfg['token'])
++    export = load(inputs, package or Path('/project/community/jjyeung/okh7')/('a15_cot_ap'+cfg['token']))
+     import re
+     valid=lambda value:isinstance(value,str) and re.fullmatch('[0-9a-f]{64}',value)
+     if 'types' in inputs:
+@@ -99,7 +99,7 @@
+ def stage(root, cfg, inputs, S, J):
+     root=Path(root); receipts={}; archives=root/'a';archives.mkdir()
+     assets=json.loads((Path(__file__).parent/'vendor/ORCHARD_ASSETS.json').read_text())
+-    payload=dict(path=str(Path('/project/community/jjyeung')/cfg['token']/'0.tgz'),
++    payload=dict(path=str(Path('/project/community/jjyeung/okh7')/('a15_cot_ap'+cfg['token'])/'0.tgz'),
+                  bytes=cfg['payload_bytes'],sha256=cfg['payload_sha256'])
+     receipts['code']=S.copy_parts([payload],archives/'c',lambda p:Path(p['path']).open('rb'))
+     with (archives/'c').open('rb') as stream:
+@@ -137,7 +137,7 @@
+ 
+ def main(root):
+     root=Path(root);public=json.loads((root/'0.json').read_text())
+-    cfg=read_config(Path('/project/community/jjyeung')/public['token']);verify_config(cfg)
++    cfg=read_config(Path('/project/community/jjyeung/okh7')/('a15_cot_ap'+public['token']));verify_config(cfg)
+     os.umask(0o077)
+     from orchard_h10.common import install_process_guard
+     install_process_guard(root)
+@@ -157,7 +157,7 @@
+     try:
+         write(out/'metadata/STORAGE.json',J.storage_proof(root,job=job))
+         R.write_test(cfg['pool'],return_token);pool_ready=True
+-        shared=Path('/project/community/jjyeung')/cfg['token']
++        shared=Path('/project/community/jjyeung/okh7')/('a15_cot_ap'+cfg['token'])
+         if sha(shared/'a/1.json')!=os.environ['A_I'] or sha(shared/'2.json')!=os.environ['A_C']:
+             raise ValueError('Submitted input or CPU receipt changed')
+         inputs=check_inputs(json.loads((shared/'a/1.json').read_text()),cfg)
+@@ -166,6 +166,8 @@
+             raise ValueError('CPU receipt does not bind this submission')
+         from orchard_h10.export_pins import load
+         export_pins=load(inputs,shared)
++        write(out/'metadata/EXPORT_PIN.json',export_pins)
++        write(out/'metadata/INPUTS.json',inputs)
+         stage(root,cfg,inputs,S,J)
+         write(root/'1.json',inputs)
+         if time.time()>=end-cfg['stop_margin'] or (out/'metadata/STOP').exists():raise ValueError('No read budget after staging')
+@@ -198,7 +200,7 @@
+         if len(cards)!=n or not all(cards) or not 1<=n<=4 or n*seconds>18000:
+             raise ValueError('Allocation differs from GPU/hour contract')
+         # Retain assigned GPU evidence once; no occupancy polling or scheduler operations.
+-        evidence=checked_run(['nvidia-smi','--query-gpu=uuid,name,memory.used','--format=csv'],capture_output=True,text=True,check=True)
++        evidence=checked_run(['nvidia-smi','--query-gpu=uuid,name,memory.used','--format=csv'],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True,check=True)
+         write(out/'metadata/CARDS.json',dict(visible=cards,query=evidence.stdout))
+         env['CUDA_VISIBLE_DEVICES']=','.join(cards)
+         with (out/'logs/1.log').open('wb') as log:
+--- base/orchard_h10/vendor/export_stage.py
++++ payload/orchard_h10/vendor/export_stage.py
+@@ -69,7 +69,7 @@
+         '--step', str(step), '--output', str(output)]
+     A.atomic_json(receipt_dir/'COMMAND.json', dict(argv=command, full=True, pins=CHECKER_PINS))
+     # The checker prints model metadata; retain it as encoded evidence.
+-    result = subprocess.run(command, env=J.environment(root), cwd=root, capture_output=True)
++    result = subprocess.run(command, env=J.environment(root), cwd=root, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+     (receipt_dir/'check.hex').write_text(result.stdout.hex()+'\n'+result.stderr.hex()+'\n')
+     if result.returncode:
+         raise RuntimeError('Full export check failed')
+--- base/orchard_h10/vendor/orchard_job.py
++++ payload/orchard_h10/vendor/orchard_job.py
+@@ -90,13 +90,13 @@
+ def card(require_empty=False):
+     query = subprocess.run(['nvidia-smi', '--query-gpu=index,uuid,name,memory.used,utilization.gpu',
+                             '--format=csv,noheader,nounits'],
+-                           check=True, capture_output=True, text=True, timeout=30)
++                           check=True, stdout=subprocess.PIPE,stderr=subprocess.PIPE, universal_newlines=True, timeout=30)
+     processes = subprocess.run(['nvidia-smi', '--query-compute-apps=gpu_uuid,pid,used_memory',
+                                 '--format=csv,noheader,nounits'],
+-                               check=True, capture_output=True, text=True, timeout=30)
++                               check=True, stdout=subprocess.PIPE,stderr=subprocess.PIPE, universal_newlines=True, timeout=30)
+     own = subprocess.run(['pgrep', '-fu', os.environ['USER'],
+                           '[/]a[a-z][0-9a-f]+/p/reader/chain.py'],
+-                         capture_output=True, text=True, timeout=30)
++                         stdout=subprocess.PIPE,stderr=subprocess.PIPE, universal_newlines=True, timeout=30)
+     visible = os.environ.get('CUDA_VISIBLE_DEVICES', '')
+     rows = [[item.strip() for item in row] for row in csv.reader(query.stdout.splitlines()) if row]
+     assigned = rows if len(rows) == 1 else [row for row in rows if visible in row[:2]]
+--- base/orchard_h10/vendor/orchard_launcher.py
++++ payload/orchard_h10/vendor/orchard_launcher.py
+@@ -101,10 +101,10 @@
+         "body=sys.stdin.buffer.read(4*1024**2+1)\n"
+         "if not body or len(body)>4*1024**2: raise ValueError('Invalid batch size')\n"
+         "argv="+repr(submit_argv(None, token, proof=proof))+"\n"
+-        "test=subprocess.run(argv+['--test-only'],input=body,capture_output=True,timeout=50)\n"
++        "test=subprocess.run(argv+['--test-only'],input=body,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=50)\n"
+         "sys.stderr.buffer.write(b'A_TEST_ONLY_RC='+str(test.returncode).encode()+b'\\n'+test.stdout+test.stderr)\n"
+         "if test.returncode: sys.exit(test.returncode)\n"
+-        "result=subprocess.run(argv,input=body,capture_output=True,timeout=50)\n"
++        "result=subprocess.run(argv,input=body,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=50)\n"
+         "sys.stdout.buffer.write(result.stdout)\n"
+         "sys.stderr.buffer.write(result.stderr)\n"
+         "sys.exit(result.returncode)\n")
+@@ -237,7 +237,7 @@
+ 
+ 
+ def remote(argv, **kwargs):
+-    return subprocess.run(SSH+[shlex.join(argv)], capture_output=True, timeout=135, **kwargs)
++    return subprocess.run(SSH+[shlex.join(argv)], stdout=subprocess.PIPE,stderr=subprocess.PIPE, timeout=135, **kwargs)
+ 
+ 
+ def submit(destination):
+@@ -253,7 +253,7 @@
+     validate_request(config)
+     if (destination/'SUBMIT_INTENT.json').exists():
+         raise ValueError('Submission was already attempted; never repeat an uncertain submit')
+-    queue = remote(['squeue', '-p', 'general', '-h', '-o', '%i|%j|%u|%T|%b'], text=True)
++    queue = remote(['squeue', '-p', 'general', '-h', '-o', '%i|%j|%u|%T|%b'], universal_newlines=True)
+     if queue.returncode:
+         raise RuntimeError('Queue check failed; no submission: '+queue.stderr[-2000:])
+     queue_admission(queue.stdout, 'jjyeung')
+--- base/orchard_h10/vendor/orchard_results.py
++++ payload/orchard_h10/vendor/orchard_results.py
+@@ -38,7 +38,7 @@
+                  '--config',os.environ['A_JOB_CONFIG'],'--script']
+     argv += [str(Path(__file__).with_name('return_io.py')),action,str(pool),token]
+     if local is not None:argv+=['--local',str(local)]
+-    process=subprocess.Popen(argv,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
++    process=subprocess.Popen(argv,stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
+     try:
+         stdout,stderr=process.communicate(timeout=timeout)
+     except subprocess.TimeoutExpired:
+@@ -70,9 +70,9 @@
+             path=Path(local)/name;uri=GCS_ROOT+'/'+token+'/'+name
+             objects[name]=dict(uri=uri,generation=None,sha256=sha(path),bytes=path.stat().st_size,verified=False)
+             subprocess.run(['gcloud','storage','cp',str(path),uri],env=env,check=True,
+-                           capture_output=True,timeout=180)
++                           stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=180)
+             described=subprocess.run(['gcloud','storage','objects','describe',uri,'--format=json'],
+-                           env=env,check=True,capture_output=True,text=True,timeout=60)
++                           env=env,check=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True,timeout=60)
+             meta=json.loads(described.stdout);generation=str(meta.get('generation',''))
+             if not generation.isdigit() or int(meta.get('size',-1))!=path.stat().st_size:
+                 raise ValueError('GCS object metadata differs')
+--- base/tower_sequence.py
++++ operator/tower_sequence.py
+@@ -2,19 +2,14 @@
+ import json,sys,time,hashlib
+ from pathlib import Path
+ 
+-RULES=('null_argmax','candidates_argmax')
++RULES=('candidates_argmax',)
+ COUNTS=(150,150,150,150,36)
+-# Each read owns one worker; read 0 retains its memo across all five types.
+-SCHEDULE=((1,3),(0,3),(0,0),(0,1),(0,2),(0,4))
++SCHEDULE=((0,3),(0,0),(0,1),(0,2),(0,4))
+ 
+ def descriptors(package):
+- items=json.loads((Path(package)/'items/devs1_routed.json').read_text())['items']
+- verify_ids=[r['id'] for r in items if r['question_type']=='object_abs_distance'][:30]
+- return [dict(arm='tower',modes=['none'],stage1_select_rule=r,save_own_depth=False,
+-              perception_memo='verify' if i==1 else 'on',perception_memo_modules=['g3t'],
+-              perception_memo_verify_ids=verify_ids if i==1 else [],
+-              types=[3,0,1,2,4] if i==0 else [3],expected=636 if i==0 else 150)
+-         for i,r in enumerate(RULES)]
++ return [dict(arm='tower',modes=['none'],stage1_select_rule='candidates_argmax',save_own_depth=False,
++              perception_memo='on',perception_memo_modules=['g3t'],perception_memo_verify_ids=[],
++              types=[3,0,1,2,4],expected=636)]
+ 
+ def sealed_write(path,value):
+  from orchard_h10.common import write
+@@ -61,9 +56,9 @@
+   assert args[args.index('--stop-file')+1]==str(Path(config['output'])/'metadata/STOP')
+   assert json.loads(Path(args[args.index('--settings')+1]).read_text())['stage1_select_rule']==RULES[i]
+   chosen=json.loads(Path(args[args.index('--settings')+1]).read_text())
+-  assert chosen['perception_memo']==('verify' if i==1 else 'on')
++  assert chosen['perception_memo']=='on'
+   assert chosen['perception_memo_verify_ids']==descriptors(config['package'])[i]['perception_memo_verify_ids']
+-  result.append(dict(read=i,types=cfg['types'],args=args,settings=chosen,expected=636 if i==0 else 150))
++  result.append(dict(read=i,types=cfg['types'],args=args,settings=chosen,expected=636))
+  # Exercise each selected rule through the real tower socket with stub weights.
+  from unittest.mock import patch
+  from types import SimpleNamespace
+@@ -78,7 +73,7 @@
+    value=real.real_perception(None,device='cpu',perception_memo_modules=['g3t'],sam3_tower=object(),selector_head=head,stage1_select_rule=rule)
+    value.socket(None,None)
+   assert made[0].rule==rule
+-  assert made[0].select(dict(x=torch.zeros(2,58),name='x'))==(-1 if rule==RULES[0] else 1)
++  assert made[0].select(dict(x=torch.zeros(2,58),name='x'))==1
+  return result
+ 
+ def run(config,end,cards,runner=None,clock=time.time):
+@@ -86,7 +81,7 @@
+  from orchard_h10.common import write
+  if len(cards)!=1 or not cards[0]:raise ValueError('Require exactly one assigned card')
+  configs=prepare(config);results=[];failure=None
+- for i in (1,0):
++ for i in (0,):
+   if clock()>=end-1800 or (Path(config['output'])/'metadata/STOP').exists():break
+   cfg=configs[i]
+   result=(runner or execute)(cfg,cards,end,prefix=cfg['prefix'])
+@@ -94,16 +89,16 @@
+   if result['failure'] or not result['complete']:
+    failure=result['failure'];break
+  reads=[]
+- for i,n in ((0,636),(1,150)):
++ for i,n in ((0,636),):
+   rows=[r for r in results if r['read']==i]
+   completed=sum(r['completed'] for r in rows)
+   reads.append(dict(read=i,completed=completed,expected=n,complete=completed==n))
+- summary=dict(completed=sum(r['completed'] for r in reads),expected=786,
++ summary=dict(completed=sum(r['completed'] for r in reads),expected=636,
+               complete=all(r['complete'] for r in reads),failure=failure,reads=reads,segments=results)
+  write(Path(config['output'])/'SUMMARY.json',summary)
+  return summary
+ 
+-def memory_bound(*, captures=(84,60), allocation_bytes=200*1024**3):
++def memory_bound(*, captures=(84,), allocation_bytes=200*1024**3):
+  # Fixed G3T contract: at most 64 pose rows and 32 anchor grids. Eight bytes
+  # per scalar covers both float64 poses and the fresh float32 grid outputs.
+  g3t=(64*9+64+32+32*51*51*5+51+2)*8
+--- base/tower_bootstrap.py
++++ operator/tower_bootstrap.py
+@@ -21,7 +21,7 @@
+ 
+ def main():
+  root=Path(sys.argv[1]);public=json.loads((root/'0.json').read_text())
+- shared=Path('/project/community/jjyeung')/public['token']
++ shared=Path('/project/community/jjyeung/okh7')/('a15_cot_ap'+public['token'])
+  assert hashlib.sha256((shared/'0.tgz').read_bytes()).hexdigest()==public['payload_sha256']
+  with tarfile.open(shared/'0.tgz') as tar:
+   for m in tar:
+--- base/node_check.py
++++ operator/node_check.py
+@@ -20,7 +20,7 @@
+     if len(lines) != 1:
+         raise ValueError('Bundle encoding differs')
+     expression = ast.parse(lines[0]).body[0].value
+-    if (not isinstance(expression, ast.Call) or ast.unparse(expression.func) != 'bytes.fromhex'
++    if (not isinstance(expression, ast.Call) or not (isinstance(expression.func,ast.Attribute) and isinstance(expression.func.value,ast.Name) and expression.func.value.id=='bytes' and expression.func.attr=='fromhex')
+             or len(expression.args) != 1 or expression.keywords):
+         raise ValueError('Bundle encoding differs')
+     raw = bytes.fromhex(ast.literal_eval(expression.args[0]))
+@@ -142,7 +142,7 @@
+                     env=env,stdout=log,stderr=subprocess.STDOUT,check=True)
+     ready=json.loads(J.physical(root,cfg['logical']+'/d/READY.json').read_text())
+     settings=json.loads(J.physical(root,cfg['logical']+'/d/settings.json').read_text())
+-    if (settings['stage1_select_rule']!='null_argmax' or settings['perception_memo']!='off'
++    if (settings['stage1_select_rule']!='candidates_argmax' or settings['perception_memo']!='on'
+         or settings['perception_memo_modules']!=['g3t'] or settings['perception_memo_verify_ids']!=[]):
+         raise ValueError('Prepared default settings differ')
+     run_cfg=dict(package=cfg['logical']+'/p',output=cfg['logical']+'/r',python=inputs['python'],
+--- base/fill_export.py
++++ operator/fill_export.py
+@@ -124,6 +124,36 @@
+     return pins, raw
+ 
+ 
++
++def reviewed_binding():
++    package = Path(__file__).resolve().parent.parent
++    if not (package/'0.tgz').is_file():package = Path(__file__).resolve().parent/'package'
++    public = json.loads((package/'0.json').read_text())
++    raw = (package/'0.tgz').read_bytes()
++    if pin(raw)['sha256'] != public['payload_sha256']:raise ValueError('Reviewed payload differs')
++    with tarfile.open(fileobj=io.BytesIO(raw)) as archive:
++        cfg = json.load(archive.extractfile('9.json'))
++    digest = hashlib.sha256(json.dumps(cfg,sort_keys=True,separators=(',',':')).encode()).hexdigest()
++    if digest != public['plan_sha256']:raise ValueError('Reviewed plan differs')
++    return cfg['export_binding']
++
++def bind_review(a, export, artifact, archive, prep, binding):
++    for key, actual in [('object',a.object),('step',a.step),('lineage',a.lineage),
++                        ('member_directory',export['member_directory'])]:
++        if actual != binding[key]:raise ValueError('Reviewed export binding differs: '+key)
++    if artifact.get('step') != binding['step']:raise ValueError('Artifact step differs')
++    for key in ('config_sha256','base_identity','frame_layout'):
++        if artifact.get(key) != binding[key]:raise ValueError('Artifact identity differs: '+key)
++    for name in ('heads','full_weights'):
++        path = PurePosixPath(artifact[name]['path'])
++        tail = PurePosixPath(binding['run'])/binding['member_directory']/MEMBERS[name]
++        if path.parts[-len(tail.parts):] != tail.parts:raise ValueError('Artifact run/member path differs')
++    for name, digest in binding['preparation_sha256'].items():
++        if prep[name]['sha256'] != digest:raise ValueError('Reviewed preparation differs: '+name)
++    export.update(run=binding['run'],object=binding['object'],config_sha256=binding['config_sha256'],
++                  archive_sha256=archive['sha256'])
++
++
+ def main():
+     p = argparse.ArgumentParser(description=__doc__)
+     p.add_argument('--parts',nargs='+',required=True); p.add_argument('--done',required=True)
+@@ -133,6 +163,10 @@
+     p.add_argument('--out',required=True);p.add_argument('--prep-tar',required=True)
+     p.add_argument('--base-inputs',required=True);p.add_argument('--inputs-out',required=True)
+     a = p.parse_args()
++    binding=reviewed_binding()
++    if (a.object != binding['object'] or a.step != binding['step'] or a.lineage != binding['lineage']):
++        raise ValueError('Reviewed run/step/object differs')
++    if len(a.parts) != 4:raise ValueError('Require four ordered parts')
+     if a.step < 0:raise ValueError('Step must be nonnegative')
+     # Refuse missing preparation files before scanning a multi-GB archive.
+     for path in (a.config,a.receipt,a.data_receipt):
+@@ -141,6 +175,7 @@
+     label = re.fullmatch(r'm(\d+)', PurePosixPath(export['member_directory']).name)
+     if label and int(label.group(1)) != a.step:raise ValueError('Step label differs from export member directory')
+     prep, raw = preparation(a.config,a.receipt,a.data_receipt,artifact)
++    bind_review(a,export,artifact,archive,prep,binding)
+     export.update(schema='h1-export-pins-v1',lineage=a.lineage,step=a.step,preparation=prep)
+     with tarfile.open(a.prep_tar,'w') as tar:
+         for name, data in raw.items():
+@@ -150,12 +185,12 @@
+     inputs=json.loads(Path(a.base_inputs).read_text())
+     inputs['archives'][0]=archive
+     prep_archive=dict(path=str(Path(a.prep_tar).resolve()),**pin(Path(a.prep_tar).read_bytes()))
+-    inputs['archives'].append(dict(destination=archive['destination'],parts=[prep_archive],
+-                                   sha256=prep_archive['sha256'],expanded_bytes=sum(map(len,raw.values()))))
++    inputs['archives'][4]=dict(destination=archive['destination'],parts=[prep_archive],
++                                   sha256=prep_archive['sha256'],expanded_bytes=sum(map(len,raw.values())))
+     for name, member in MEMBERS.items():
+         inputs['files'][name]=dict(path=LOGICAL+'/d/'+export['member_directory']+'/'+member,**export[name])
+     inputs['export_pin']=dict(path='a/export.json',**pin(Path(a.out).read_bytes()))
+-    inputs['types']=['camera_displacement','camera_rotation','camera_movement_direction']
++    # Preserve the reviewed item selection from the base input plan.
+     inputs['resume']=None
+     write(a.inputs_out,inputs)
+ 
+
+# Delivery text differences
+--- base-delivery/0.json
++++ delivery/0.json
+@@ -1 +1,6 @@
+-{"payload_bytes": 5306016, "payload_sha256": "8be887e33af2b39b30e8304c5131ec576d434b22575c9837649605569bbf9cbd", "plan_sha256": "2baa7a4bf190110204fc4a691a014c450b89346a4c7206697e93fe59d17550ac", "token": "b9ef552934627"}
++{
++  "payload_bytes": 5252975,
++  "payload_sha256": "a74371ce0554bb0b27c98d2141350bd2a1f1e24dee2879f04b102a6b88e49c37",
++  "plan_sha256": "f759dae2934b231f3f7728354940e6ca16a27cca27f049b5bf415416a8e1f590",
++  "token": "d72cdcff1e22a"
++}
+--- base-delivery/BATCH.sh
++++ delivery/BATCH.sh
+@@ -5,8 +5,8 @@
+ from pathlib import Path,PurePosixPath
+ j=os.environ.get('SLURM_JOB_ID','')
+ if not j.isdigit():raise ValueError('Allocation required')
+-b=bytes.fromhex('1f8b0800000000000003ed5a6b6fdb48b2ddcffa151ccf07920a43536f5bbe5c209b78eee662f2409c0cb0100482225b32638ad4b2293f36c87fdf53d54d8a7ad8f16231b37b01356c4964775757d7f354939efb55e6d99f7ed7e6a10d3d8fbfbdfd6fafd71bd6bfd5fde168d4f993e1fdbe6ca9b696655860c93f62adffc2f6ed64153ea4791807b38752c893b131e841599da163d43df23aec0e86e83a399b89b3b391e8f5c27977d63b9ff53c71d6f3fad1a0d3eb8868301ac6fd5e7fd6ed0e4683e8fcac371af6cf87de60303c9fcde6e7d12c3e21aa69983548766761380afbb379e7dceb74bcaed79f47fd7078de09bd4e3fea0fbcd9d979af3f0cfbd1a8eb0d87e72371de9b8bc179dc190d065e1811c932bf1119119b9d8bf960d0a509ddd1c9f7d67f5abafffdcd73570fbffb1a4ffb7fbf37eaeefa7f7fd03ffaff1fd14e4e4e3e16428ae25618ab228fd75199e49911c6cb444afc720cc86791640bc708d3348f42ee9ee5eb2c96b895c50666afd3125fe5bac85cd06b25cb555e94c67528afd364e650827120e479920a473ec8d6bcc897c62a2ca9d7d0833fe2b2d56ac5626e2cc31b11c489c488e8da2af2bc748cbc48c04498e2d74a146199173a84d8e396c1f4f222ba0e8b38b8ee786e942f97e05293c6c09641846b9a61b1b875daf8944ebb7d73473f888ef1b3f1214b1fb015c4a84818e535fef3d5cb54dc8ab4b9fd8a90282e2034b10a0b759fc471971737a29024b60763956499885d904ee6462a325ed9feb3dfe5a1743179d91d4f7d7f22cb82b77a6a86a703f8a4693bcd5b1d4ed3a63d25368d68bef0e9daa5f02cadbd516e2110b64b715f5ab64d1342090d97346f6286ac61138b7634ad8919e5d93c5998d389b9235e0cdbb94373f617bc2b9252a81599b178bd5c490bb4d5fad83d66eb6923dede4fbb8479674611265218bf85e95a5c16455e58e65f606aa9886bc51bd073b6c08d705e8a82e45c94eb95a9f60989fa93360b76fcb23b6dc870f484503155996f6d67074da4558daaf45f1b6c9259644044d8274bb660e62e73d199da17abf52c4da2031af30eeb0bf22844ac0899a7f0caaf222a4fc9a8d759523e9c7efdfa20d6d9c2b44f15e589c909d0c43eb4a2b5ebb94ab296a528d282e5e21fd57a9cf0b1a07b2deee364212456f7fd8ae476f227da7749796d683f76a18d6c972c56a77e52e41c7a5a1a49565d93056479692cdd2c5c0a97952689a065361cf7d4b4c730c532c9d6626b52226951cb867e0cd3754da2cce251f46c7745f4c6fbc6f32593e15c18511e0b65212b5f897e659eaab9172b9a2cb2d25ddec44961a90be97f2ed6c211f7892c83fc86afa0486de74a72d8830b95157028e66ea9e4aa5408fd538473938c1462790dc383addafb41ab8a565ff3d9f322da8efbf8bb0ed6a2789ecfb7ccae5258781a9dbefef8e5b0f969a95b3c9d0c0136159b5323910689814317f7b90b515ae68cfd3358ac89573dd87e6c30445b3c0452fc7d2db2483c31bc36400a548fdb64d59af3802fb7266df02636d1189864ab75296928896e239a2a2c1ca4be1f1f0f05c89d696aef4bb1cc8b07d3f9f6ddd6920b6522b179df37cc79722fe260d12b89ca4a48f3e0ea9ac454cdc7ba915851340fa82358227da742539c9820f68888b6c9c87089f9a15c176209fd0405b49314955a7e0953299e41659e9472a348fb802ffeb24e53035687002ea21b04d1f91c8992e40c9b77f9264450ac33ff0002d819e2ecc200458423318db7119a61c741402e1e04be6f06017506813956e1fa581b701bfdc7f17f67e48d7a7bf87f3838e2ff3fa201af7fa88055e5719cbdcbbb1cce9ca7612908e3237d300040e2cd33d100c34dc4cf481fa9cf2993a57034087902ee7ffaf2ebe5956f9919224300b8b40cef4dc78c10639218ebcaea9edd7afde1cbfbcf18da19784ef3bf07cfffd9b80cc134f168e477996406150cbf50773d026ef07a6920481914b78c302a7229691fc63c41ed533e20e8baadabd77fbd7c03ae7ccbea383ddb41e2569f1e7f76f8b3cb9f7de44a867fb1905191ac204109f410dd840b416010406129b7b22f23966ac4a9c9034e63712b3b4191af21e743f978a2c65124bf1545327f089258fa9302f7292993aa0a82433c8a72377a905d25a705da15a528339f11860cc299a4b85a8648be40fbe39e37ad41ed244ea212b877e9034ede89c274904f0496323308d4242c0dbe3b48de29912a906afcc291e1ad0820f5204626baf6395b389b74c16d274ff9a6da8849dc2628430c81498689ad3b8fa4345f67b31f500e1a12dafcdc5e66b2478455ef4f7a0ef4eb749dfe544ff0f484de143870853d03930f7bc3ed5e1861032890361287f521b2f592fc4a586ce52832d858a40851cc048c232d720ae79652e433ca589ec2e88c81254353c077cec80d2be3cea601fde4f30a0712f227f28d2446ce4755d1ccc77bdc29de55a92b2c552d3e83e50f9fde5c7e72e0cf79964461da32807884aa6b140de0a975091466a24a92a204f05f6cb9ccd6d06a0006ef2356354841919c2d224ccd4328e44b5629d3a8c6198c04cd0a948bae0888be28dc1dfbaaf1b7e6840a1eb6bbea466bfbd2aa7e3815a6528504735cf561637b8e05c726080e3362e339b08d75769391db1d984be5077628fd6660aa84a8c30f09bcd2bccf8e4f30d9af473531b3a38072dda92e37dd64febbc548adde5db80c6b28e09d1d87538acf8c3a12c88efcdcafc22fb6f0b3f17f571fdea3a44679516217c602611a12a7827f960a2385f9d3490d1d5e65a53a7fe16028241c4f614c04f4dabe9b66d538a2a8ba6d32c0866b92a59e02e29621325178faf6cde5fbcf6f3fff4d4568a79ed5d28627fd6fdf5bdafd694fdb118077c9274c7c42b0439b25619e528198502c89ae736cc9ffd66ed7e673c844c644f5b0f160fc565836c77b71b9ddfe76a328dca82472432cefd51448c78fc7d8039d7509f21de2e040a5ebed7ab7facce3623f10aa7d9304b6fa76e67fba7cf526d851071b70bb5d69856dcb8722b4f86aa3ac0291a597e2c329adc049322591ab2ba78a4be3aa6cb79d4dfce19bc4b25d491498050617d040d5ab54cc772bcdda8e0165e5ab800e0b9aa3eaad5d7dfef0d1dcd094580c85b54232e6980f244ce4673030d1291a9ae6244d77749636399de10607df49a9b4cbb144198cea9f4e37ebfc6bb6b59986bd2c81d092cc1c77ce3ccf311592d8dcece266bbbd1d12b5e8bfb76ae0a115a0724c21ae455848d2d1e359060560268a2a1ad3895191a78e12146146f9bcccb471de9dcc76a1ceb4fdc9b4f2e968be2009eaf12e832d3ef2334a9f69b949168b7b8b4f53b58427de54db17b1c787a12d3ea2947e83558b8d5711f631c6a1d97ee9303ddfabe3258b3b2cf16b9e6489bc0e660f7e970d589ff911b1097d6856cc972fd958ec171d4280ca609e1cae4c498f67737a72b8daa61eee98eed71c757553004f33471b7ac9bea04890431c86067b2eb2a1bb8b150ead53b92d2db38bad0f59b8ef73d24540d804e37f6f9d0dbf8adc642fcc6251eb7158fc6302cda80c5a4f677eecec69027c1e4e1ee086ab95c86265a33aaa2ab8dcd4b3c336cd67e53588537cfe0038739abfbc0727046f0455714a135472421746798dfcbfb8e62731583e35d88a0d994737a25407d2b25ccf8c3b912cae4b4af7ecf7744c8ef2b174971858b9bc3ab1570398f1aae30adfa9781f2e05cadf8820b6ba5f52f8d8c384350664cba15493aa20c10cd7880d225c623887107ef804a72d2d94614e2c4aecd041988b9d85c861da053216a19fad3a98838b8109aeaab4f071415734cfa70fbe8a937091e528f622422017b464a5337493ddf0f89d2d5a24b98056f3d370398b43a31d8e79bb6e2932097c39e9b84ed7753a9ee74ed97e59d62c4257d5929612807b455f1f32a4a620a03d0601e011be6d676b34c9c9313f93fafeb7f7d97474aae0f2c27f8f58a3c75b66037e57e271e7051de345c082e5ced45e57094a5dd12ae47969b0316f8ba843eab749041147abf58fab4c192e7b019b9aafd9b71d659840b2b5020e16c4f8b06b7e5c65a88a03dee4c6914955c8104abb3c6fbf4f5156de77ef2b05fd4314b9b4bacee0cc76e870d337612b36c2c7cb0e57ff4c4e05306faa5d6df3e44ab9b54eb5eb4c070707f6a2128da3522b6bc48952b0efd3598e4b1fcf48c5b8a29a48dc8b684dc5eab34b5a7a36ca0ca05cedd0531e2a7ff8067671b074e57a0a2b8551993ea8332929934586d041f34cfb47d91dea9e5eccc3245d17ca0275ae671cdc713cb62baa2c490a96fd671f427a493887d87b6ea6aacbf4f10c6679d352cf6e3790b38eb4bea52509e25a7c362553ad165210b6314fee55e455bf558ad5db7966ac6eb7d578f66a3218be9a985a12a83cb5f4ab0ea80cb1a3440f3b5a25b1bd79177a87aab0db40a78c056a790e5280ed40b21cf95531744727599b332cbd137d8a45842899a93cacb9887d947756b1616beb108c282a9180874302d990a97f6d725456776f7a7d3fe3e779eb2550ad2e959fc90bf1606fa88fce86bb274ff572619a36e91c2053895d7febf2993f119a164b7e66a9e5579fe03c66a4575fdebd7bf5a9aa9ef4de364142dfd00fb7f9294fc06f7c586d07ceb5c220589575d677869edd7c2f443d18f501fbdb1dafdb6fb77ba4e79f8d5fe8e19681b8afc0305c766c840873485cc6b06fac001558757c96d5a39723001f0a6351008db8c625e576834913b1150100147161016ab7f4aac52c476e9a039d959a982244a0610e4e751fe8124143c981b00282bd6f0dfbedf317c3fe8b5e177fed4187ff5e0c3a2fba76fbac45ab057acb3ec6bf50fbeab628d451500c68f777749eea8392de75ed045ba657092e7338e9285965edc60a3bf6c1c356e95a06905926137a38a76659d98b9efdc44c802f0c5dc70bf1e88c177b1bb09b0ebb39bca8f8b6a78df71fb02d7e7ae9ef3fb8fc17cf70d5d3c75a1e9ef3d8e3487db64c2b6996d494600d372f48393b94570fe53578201bb9aedf77089a0ad5ca7436e2ad2847f92a0137bd1d927b32d35cefdda7e79581d2020fd8f5912dffdd5e831ea45601614f8fe6f47ff668edc60abbb5e5b9ab229f35cf6c4f4e4e5ef3035805aae9b988764ef671467af01183aa1d40794a074a1d7471f5ea1d3ff0796666fff7ce743727a48f1d334d7faaaceaf0bb1f300d70d37c79888f71eb53aa56957db7a2dc0fe3679de4df5dbefb50c7519d57eb1728ea0c494fc60f31f8b1de95624bdc4742c492bd576bcfe0b719f6f1dbf67b473bef83edbd81b425da8b953e819f6f15859b775626636faa5e485b9d9a33fdce147e968510d51505831f984092011fa39e81fd45424af58248ebf0ed832ccb3cbd1596ad5fcfd1c7fc737dc65f9f13a942e979e6b8a5d69df7de36dafd74f9d7cb579fae5efd5aebb53e926acea900d4d6cdea4d0f0e5f817e43c21e6fbbe21695faddb3baeecc656d960cd19bc31dbe02aac1cf5cba22bb4d8a3c9b98afbfbc7915fcf6f6eaed5f7ebd0cde5cfef6f6f5e515b891ab1455a7e9f01b47ca00af1e64299697f7b8df398cffb866f0ece30b14c7766cc7766cc7766cc7766cc7766cc7766cc7766cc7766cc7766cc7766cc7766cc7766cc7766cc7766cc7766cff5fda3f016ab43a1200500000')
+-r=Path('/tmp')/('a'+j+'b9ef552934627')
++b=bytes.fromhex('1f8b08000000000002ffed5a598fdb4892f6b37e05bbfa81a44cb374d6b91cc06357ef78d03ee0b21b580802419129892e8ae432a93ac6f07f9f2f2293147554b91683e97d18266c95c4cc8c8c8cf38b4cf6dc6f324b5ffc5b5b0feda4d7e3bfbdfdbfbde178f35d3d3f393d19bf307a2ffe84b696655060c917ff99ed7bc7308ef2e021c982c89f3d94421e5d18e3c178707e3a769a7d72190cc627e83c0a4e47c3d37e287ae3f16836ebcd06a7e1f95934e88ffa50e42c1a04fd795f0c46911083b3d3f3796f34ebf706c1c9ecec4c8ccec3e1e991a29b046983e8fc747c1e0562703e1ccd06c3fe7c383f3d1d9c0dc7a3f3514f9c8441ff24c03a213e40f07c369ecd47fdf1084fcf447f3e3eef29a26576235222179d0ec2289c132383e0a8f3a3f3a26d877dd3cd1ffeed6b3cedff23a871d7ff47e361ebff7f463b3a3afa5408298a5b61e44516adc332ce52238856b194f8e61890cf224e178e1124491606dc3dcbd66924f1288d0ccc5e2725fe94eb227541af13aff2ac288d652097493c7328c13810f23c4e84231f64675e642b230f4aea35f4e04ff8d9e97422313756c18df0a3586244b8b48a2c2b1d232b62301124f8968b2228b342c70efba26330bdac08974111f9cb7ecf0db3d50a5c6ad218d83188704d332816b74e179fd2e9766feee80bd1317e353ea6c903b682e0140aa35ce27f96bf4ac4ad489adbaf0889e21242137950a8e7248ebbacb8118524b13d18799ca62272413a9e1b89487965fb2fde8087d28fc9abc1c5d4f326b22c78abc766703c864f9ab6d37cd4e7346dda5362d308e70b8f7ebb1499a5b537ca2d04227629ee4bcbb6694220a1e192e64dcc80356c62d1bea63531c32c9dc70b733a3177c48b613b4f68cefe8277455c0ab5223316ad57b9b4405bad8fdd63b69e76cadbfb659730efcc2882580ae38f20598baba2c80acbfc2b4c2d1151ad78037a4e177810cc4b51909c8b729d9b6a9f90a837e9b2602f5e0da60d199e3e21544c55e65bdbd94113e954a32afdd7061ba716191011f6c8922d98b9cb5cf4a7f665be9e2571784063bdc3fa823c0a112942e631bcf29b08cb6332ea751a970fc7dfbe3d8875ba38ce6e96a7a67d6c99417fec8759e907b9f9522d363139159a5390d3cad7eee82a695b965a85982817ffa87860040026dca5b88fe28590e0c8f32a9adb58c084dceee2726968df76a1a174972c56a77e52ee1cba5b19715afd26ab48b3d258b969b0122e2b521241cb6c38f3b1695fc03ccb385d8bad49b1a4452d1b3a334cd73589328b4cd1b3dd9ce85dec1bd4d75406736184592494d5e49e52476e1eabb997394d1669e9ae6ea2b8b0d40fe97d29d6c211f7b12cfdec867f41b9daf695e4b007176a2ce064ccdd4ac955a915364151cf8d535288d56b1823ecd7de0f645504fb96cd9e17e5765ccadb75ba0ec5f86cbe658a95c282e3f0f8cda7af874d524bdde2e96408b0a9c89c1ab134480c1cceb8cf5d88d23267ecb3fe624dbceac1f6638321dae2c197e27fd7220dc513c36b03a4e0f5b84d56ad390f60736bd2067c62138d81719aaf4b494349741bd154a1e220f5fd98792868ee4c537b5f8955563c98cef71fb6965c206389cd7b9e61cee37b11f98b6149547221cd83ab6b1253351feb8622a708ef5387bf424a4f84a6383141ec11116d9391c10af303b92ec40afaf10b68272e2ab5fc1624523c83ca3c2ee54691f6015ffc6d9d2406ac0e415d843708acf3399227c91936eff24388a058a7de0154b033c4d985068a0847671a6f235cc38e7d9f5cdcf73dcff47deaf47df34285f0ffc02ae1f4ff1dfff74ffa27833dfc7fd2e2ff3f0bff7fac8055e55d9ca9cbbb0c8e9b25412908e3235570b24792cd52d100c34dc4cf481f69ce29e3957034e07802ee7ffefafbd5b567992122481c6125e90334ad827bd3b13b6f3e7efdf005bdfd71cf69fe1fc2b1afdffcedea2d267b16b2e8d076f0d9e3cf3e7f0ef87384c4c5f82c12322ce21c5b9448e5e14db0108cd614989b44715802efad3c60a63b51980e62a690dec44cb15393302426f491a012c030049a4478873896c1adf0b3bbd48f107f971ec748671324b9ed4467cf444e711e09d99e8ed67bfdb7a288e70f7e1c61c8747785f221a7a94307b27006ce680abc92836fe0c913486eaa2422450048ed3372b14835ce2d05e56714533c85f10043190643008c9c031aa8823b9b10e2178f573890023e63941147c832c0b6cd0cb0c79de25d155cc25235cb3358fef8f9edd567071acbd2380c928e811c2b14ba563490c1d725f23ed0f2a51425a0e6423621d2d6d06a0006ef6324354825bf8c551624a67d1083566a31aa7106630fb3828162207ca22f0a77c7006ac4a7392188cd86513de86cffb4aa2f4e95c51574658eab3e6c6ccfcc018d08f4c1e5d9510f6c639ddea464f207e612e0c50ea5d7f4be4a88da0b49e095e63d764302665e3daa89d21c05cdea4ef573d34d7eb00b7f6bf5ee0234584301f7e93b1cd83c66d491c012e4795e155db0855f8dbf5f7ffc80c20e80b6c42e8c457c2b20712a3b67893012983f9d17d0114a5aaa53008a9e7428b2120ad548d4fff52e1b66d52894ab6e9b0cb0e19a64a9c70055658058131cbf7b7bf5e1cbbb2fffa3c0a853cfea68c393def71f1d5e3f76684fa43a918211ec5e58bc4b3ee7e03a7587364bc23ca6922426981b2e336cc9fbdeedd6e673c8442e88ea61e3c1f8ad90685eecc5c46ef7fb8da2703365be6f88e53d146b3ae6e341f040670d7a7f401c1ca8748557ef5657de97fb8150ed9b24b0d5b733fff3d5ebb7fe8e3ad880bbdd4a2b6c5b1e14a1c5571b6515882cbd141f9168054ee229895cfd72aab87451158ab6b3893ffc9058b62b89222bc1e07c1aa87a958af969a559db31a0ac2cf7a93c6d8eaab776fde5e32773435362319472ea58cbbce012d844b60403139d30a1694e99f444e74c93f3101e70f09d944abb1c4b94c1a8fee974b3ceffcdb636d3b0971572709c9a17fdb35ecf31555edf3c1ce061b7bb1d12b5e87f746a18a015a0724c2196222824e9e8f12c8392231545158de98ca2c81247098a50817c5e66da38ef4e66bb5427ab48f2954f87f30549508f7761972bc9074f46e9312d374e23716ff1999e96f0a437d5f645ecf1915c870fcaa4d760d562e355843d8c7168b6573a4ccfebd5f192c51d94f8368fd3582efdd983376003d6a74c446c421f9a15f3d52b3616fb651f65b1369827872b53d2e3d99c9e1caeb6a9873ba6fb2d4325d714c0d3ccd1865eb12f2812e41087a1c19e8b6ce8ee628543eb546e4bcb6c2387c316ee799c74111036c1f85f5b67c3af2237d90bb3244244b29f0e6c465fcc793ac363074f13e0d357b27437c8739146ca1675f45478b6a94f876d974f666bb0a6f8dc86ba9cbdafeeb130a1168120682801533d03111be512697db1e4637eac96186c9c86ccc21b51aa934d59ae67c69d8817cb92b238bb339dc102f797ee0a032b4f56c7c16a00f359755ce36f223e042b81da2a24e4ac9e971415f6a05e0dedd820288324caf799e11a8841622b0ce7c8c0371bf0c5d2ca66df9c4894d8a183e815390b91c1620b24222e59d2759254c50ac70c03135ceea38f4bfa45f33cfae05f511c2cd24c967148c0e29296ac54846eb2271ebfb3458b24e7d36a5e12ac66516074830bdeae5b8a5402364efaae33709d7eafe74ed92c59d62c421784b1014b09c0bda63f1f53641cdfa73dfa3e500ffedaced6689293637e21f5fdf7f08be9e80cc05583f70121448fb7cc06aaaec4e3ce0b3a0f0a01f1ca9da9c3811294fa45ab904325fec69a2da20ea9dfc6215585f9fae7e59c0c56439f4dcdd3ecdb8e324c00d45a0187aa4efab06b7e5c65a88a03dee4c66f495508fc4abb3c6fbf4f5156ce76ef2905fd431499b406cef8cc76e894cc33612b36df14e934a93c5567c975aafddd814da81ce1a8acc85277c2042c7a7418e0d2c733b2287e513923ee45b8a63af3d9d5285dae3103a834fb742540950b3fc05e0f569d5c0a61a5202c930775a82165bc48111e689e69ff2c3153f97d390fe2645d282bd3699a216ccf61d3a19a908460d97ff120a357845088bbe7e698bac0be98c1f26e3aeaee6f0316ebd8e9595a9020aea567531ad45a21fd6017f3f85ec552f55d2547bd9b6746df6e578d67c78de77af6c4d48240cda8855f754063080f257ad8972a81edcdbbd43b5425d906f4a42c4f089482baa3eb973b8c285464a46ebd05e667621205ca4b2a75eae5230f1599556cf8a1eb8b0d015054b2c0e28724b121537fdba49bb4eedef47a5eca973eeb1580a8ae6e9fc90bf1606f25b3dd539e7ab920499a740e90a9e4adffea8a973f1176162bbed8d2f2ab0f5d1eb3ceebafefdfbffe5c153c7a6f9b7b51fd40df8af25580cfaf0a585d074e956310ccc93a1b3976f375027577e601a777fbbdc1a8db1d92967f357ea3fb0f03115da15738ea8511208021251927232347ce67c5f1e1d390eed481030a63510056b8c615656d834913b19c523baaaea000b55bbaa19f65c83a73c0a952135384080eccc1a7ee035d22682829100a4018f7ac9351f7fce5c9e8e570807fdd719fffbd1cf75f0eecee598756f3f5863d8c7fa9f635e85080a350e8d3eeefc0b0f04049efbab6fd2dc3abc4963a9c4e94acd26e63851debe06179b2963e6496ca98ee6fd42c2b7d39b49f98091485a1eb68211e9df1726f0376d34f37a70d15df74bb5e5f9b635b7cc1e5eddf6dfd346f6eb3aa2ea86a79f49cc76eacf4412cada4595253fc359cbc20e5ec50ce1fca2578201b59d657e27e53a15a99ce46bc15e530cb637033dc21b92733cdf5de73bad2f2951678c0ae8f6c79eff61a74d75685833d3d9ad3ffdaa3b51b29ecce96dfe645366b1eb21e1d1dbde13b3a0597cb204eb573b2873386838f18549e0093531650eaa01fd7afdff33dc133f3f9bf7608bb39d27cec5c68fa4b6555875f0f8069809be63b277cee5a1f2b75aaa4bb15e37e1a3debdcfefeeafdc73a8aea745adfb1d789912e4f0f31f8a9de95624bdc87424492bd576bcfe00b6f7b0fb56dbfaeb2f31ad1de8b2b5ba2bdccf591f97cabbadbbcd630b9e84dd57b4cf9b139d3afdae06b590851fda260f013138853205f542ab0bf5048a9de21e81c7e7c90659925b7c2b2f51b1cfa5c7eae0fe5eb831d55023dcf1cb7d4baf3bad446bb9faffe76f5faf3f5ebdf6bbdd66748cd39156eda7a58bd0cc0e1cbd797e8f6c5b62b6e51a95f59aa2bca4cd666c9c0bc39dce15fc034f89a4957a4b77191a1ae7ff3f5ed6bff8f77d7effefafb95fff6ea8f776faeaec18dcc13d493a6c32fa52803bc7e90a5585ddde379ff30ec1308b346cf6eefd8dbd6b6b6b5ad6d6d6b5bdbdad6b6b6b5ad6d6d6b5bdbdad6b6b6b5ad6d6d6b5bdbdad6b6b6b5ad6d6d6b5bdbfed4f64f8aca8f5200500000')
++r=Path('/tmp')/('a'+j+'d72cdcff1e22a')
+ r.mkdir(mode=0o700)
+ with tarfile.open(fileobj=io.BytesIO(b)) as a:
+     for e in a:
+--- base-delivery/CONFIG.json
++++ delivery/CONFIG.json
+@@ -1,6 +1,6 @@
+ {
+-  "payload_bytes": 5306016,
+-  "payload_sha256": "8be887e33af2b39b30e8304c5131ec576d434b22575c9837649605569bbf9cbd",
+-  "plan_sha256": "2baa7a4bf190110204fc4a691a014c450b89346a4c7206697e93fe59d17550ac",
+-  "token": "b9ef552934627"
++  "payload_bytes": 5252975,
++  "payload_sha256": "a74371ce0554bb0b27c98d2141350bd2a1f1e24dee2879f04b102a6b88e49c37",
++  "plan_sha256": "f759dae2934b231f3f7728354940e6ca16a27cca27f049b5bf415416a8e1f590",
++  "token": "d72cdcff1e22a"
+ }
+--- base-delivery/PACKAGE.json
++++ delivery/PACKAGE.json
+@@ -1,12 +1,14 @@
+ {
+   "files": {
+-    "0.json": "af65e77023b70c831531dbd641ab62dc8ba2c8882a75bbb38fd73bb6a3e0997e",
+-    "0.tgz": "8be887e33af2b39b30e8304c5131ec576d434b22575c9837649605569bbf9cbd",
++    "0.json": "da850f5e1ae4aafd4d70c08349b8776cf27f30327c512686ad199c772f2b4fdd",
++    "0.tgz": "a74371ce0554bb0b27c98d2141350bd2a1f1e24dee2879f04b102a6b88e49c37",
+     "3.py": "a5c94551f263e30bc05579a40e84f1f146e9a67dc2e21c8834ed62bd680b73e0",
+-    "BATCH.sh": "07799a550b4e3f5780ebba85f2eebb035a241a9ec78f4a6ff1772b2119e9b3a6",
+-    "CONFIG.json": "2cf224629f3b209247a05715c5e872d9e2d5bc8df87dc4fc218620a18f6c6435",
+-    "a/5.py": "a09deab25695cab459c0b882978746b657c12230c2ce5ee640dd4801304e5674",
+-    "a/6.py": "0cec6e0e91b8c7dab6d74e68bbca8e6a596e5df76e7f0e9166aec2231ecb3f38"
++    "BATCH.sh": "c551e33c26bd35d117f59bdf5cda2e023a414daacea5484f7955dadc52962d76",
++    "CONFIG.json": "da850f5e1ae4aafd4d70c08349b8776cf27f30327c512686ad199c772f2b4fdd",
++    "a/0.json": "025b4688121ac3df8d5ecf92798b1abadf6f4a8d055eb3980a606915ceea0207",
++    "a/4.py": "6947730c6521ac852a4c261f51a637ff5bb36b06bd2559098fa263bbb4a423dd",
++    "a/5.py": "e4648e671c719e3b1cb56618a7442ea3ec97e549562add9492603c56ebe0776a",
++    "a/6.py": "97c8e6dfe33e7fd2988dc44e740f7a3b19627259b8f86827598ed368e1659e22"
+   },
+-  "token": "b9ef552934627"
++  "token": "d72cdcff1e22a"
+ }
+--- base-delivery/a/0.json
++++ delivery/a/0.json
+@@ -0,0 +1,172 @@
++{
++  "archives": [
++    {
++      "destination": "sj/b01ec87a6f29b/d",
++      "expanded_bytes": 21583016318,
++      "parts": [
++        {
++          "bytes": 5395758080,
++          "path": "/project/community/jjyeung/okh7/e6fc152498/e/0",
++          "sha256": "5cd24e72f5b8a4f7ad6cb73d27dd426042be25e7600dcf00e4038de4c129f31a"
++        },
++        {
++          "bytes": 5395758080,
++          "path": "/project/community/jjyeung/okh7/e6fc152498/e/1",
++          "sha256": "6ed00d4724b1cfc57d0af6a017639d88284a139479ebf8b9943f280dc6c5df9f"
++        },
++        {
++          "bytes": 5395758080,
++          "path": "/project/community/jjyeung/okh7/e6fc152498/e/2",
++          "sha256": "557d8f649b964bd81a1c022dd87db18bdca0c2b61e420c2eccb1fc446a58f7bf"
++        },
++        {
++          "bytes": 5395758080,
++          "path": "/project/community/jjyeung/okh7/e6fc152498/e/3",
++          "sha256": "37e64c63c294a3eda298c61f637087c84851afa17f42ad18a4d24c8823c7f686"
++        }
++      ],
++      "sha256": "3ed73aead82cb0bb6468321256ea25e8fdaa5a2963da31062fdf8874bda2d4c7"
++    },
++    {
++      "destination": "sj/b01ec87a6f29b/d",
++      "expanded_bytes": 5627166349,
++      "parts": [
++        {
++          "bytes": 5627176960,
++          "path": "/project/community/jjyeung/okh7/e6fc152498/g/0",
++          "sha256": "6a53059fc74f76a928e83da46e3b07301ff7176f69800e4ae3842599b9b57dbf"
++        }
++      ],
++      "sha256": "6a53059fc74f76a928e83da46e3b07301ff7176f69800e4ae3842599b9b57dbf"
++    },
++    {
++      "destination": "sj/b01ec87a6f29b/d",
++      "expanded_bytes": 5251971237,
++      "parts": [
++        {
++          "bytes": 5257369600,
++          "path": "/project/community/jjyeung/okh7/e6fc152498/a2.tar",
++          "sha256": "1de93f61bde6cf5a0a4bf7a249b13218f8b20acf4fe626c5d8ec7570ef7915e9"
++        }
++      ],
++      "sha256": "1de93f61bde6cf5a0a4bf7a249b13218f8b20acf4fe626c5d8ec7570ef7915e9"
++    },
++    {
++      "destination": "sj/b01ec87a6f29b/d",
++      "expanded_bytes": 143782645,
++      "parts": [
++        {
++          "bytes": 145274880,
++          "path": "/project/community/jjyeung/okh7/e6fc152498/a4.tar",
++          "sha256": "c867d40addcf35c55db1ec511c4dc2b8a4cec80cef9003be93179ef82c30b0ea"
++        }
++      ],
++      "sha256": "c867d40addcf35c55db1ec511c4dc2b8a4cec80cef9003be93179ef82c30b0ea"
++    },
++    {
++      "destination": "sj/b01ec87a6f29b/d",
++      "expanded_bytes": 3131,
++      "parts": [
++        {
++          "bytes": 10240,
++          "path": "/project/community/jjyeung/okh7/e6fc152498/a3.tar",
++          "sha256": "05dc8f79707a51ec227f4bb875670a5d3b7cfa27271447783bf2f79b7474f5ae"
++        }
++      ],
++      "sha256": "05dc8f79707a51ec227f4bb875670a5d3b7cfa27271447783bf2f79b7474f5ae"
++    }
++  ],
++  "env_roots": [
++    "/scratch/jjyeung/b01ec87a6f29b/d/v/site"
++  ],
++  "environment_receipt": "env",
++  "export_pin": {
++    "bytes": 1498,
++    "path": "a/export.json",
++    "sha256": "798111bc92c146f64a1c031827a38381be022ae44304f864cc51f880d2fc754b"
++  },
++  "files": {
++    "artifact": {
++      "bytes": 11474,
++      "path": "/scratch/jjyeung/b01ec87a6f29b/d/m544/artifact.json",
++      "sha256": "1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef"
++    },
++    "base_config": {
++      "bytes": 3126,
++      "path": "/scratch/jjyeung/b01ec87a6f29b/d/b/config.json",
++      "sha256": "d0883072e01861ed0b2d47be3c16c36a8e81c224c7ffaa310c6558fb3f932b05"
++    },
++    "env": {
++      "bytes": 359,
++      "path": "/scratch/jjyeung/b01ec87a6f29b/d/q/env.json",
++      "sha256": "e46a9a59e1de189ae736a5d4e94c7827eabfcfa695057fda9640e8120a54a81a"
++    },
++    "full_weights": {
++      "bytes": 1794,
++      "path": "/scratch/jjyeung/b01ec87a6f29b/d/m544/full_weights/full_weights.json",
++      "sha256": "211ae87b0bb03bb0c3d43c1c1412e0f346591ab4ddc75b4d754de2740da0a302"
++    },
++    "g3t_config": {
++      "bytes": 149,
++      "path": "/scratch/jjyeung/b01ec87a6f29b/d/g/config.json",
++      "sha256": "5aeb2acd008d41a1cac52e10216fbf35e8dfeb2ce26b89bb24e7ccc4ee0817d7"
++    },
++    "g3t_weights": {
++      "bytes": 5627166200,
++      "path": "/scratch/jjyeung/b01ec87a6f29b/d/g/model.safetensors",
++      "sha256": "d460957bb1c8a8c228d83ab10bad8a6dbcf80b03f29d7fbebf9c0f2c1c25f702"
++    },
++    "heads": {
++      "bytes": 2763214343,
++      "path": "/scratch/jjyeung/b01ec87a6f29b/d/m544/heads.pt",
++      "sha256": "8bb5e1510ee3a5a3959e82f2149c69903e98f46880b8a038bf4b951b8c21de91"
++    },
++    "original_model": {
++      "bytes": 10240,
++      "path": "/scratch/jjyeung/b01ec87a6f29b/d/o/model_8005668fc14ce5ee.tar",
++      "sha256": "8005668fc14ce5ee088d0d631d581f62ca73e6cb8130fde4a2deb73de74f635b"
++    },
++    "policy": {
++      "bytes": 321,
++      "path": "/scratch/jjyeung/b01ec87a6f29b/d/q/policy.json",
++      "sha256": "a95a881cdfdeb86ae15a2ec3b3b484416f296f4bcd0d19c6a28667ea21835e2e"
++    },
++    "sam_checkpoint": {
++      "bytes": 3450062241,
++      "path": "/scratch/jjyeung/b01ec87a6f29b/d/k/sam3.pt",
++      "sha256": "9999e2341ceef5e136daa386eecb55cb414446a00ac2b55eb2dfd2f7c3cf8c9e"
++    },
++    "sam_receipt": {
++      "bytes": 1123,
++      "path": "/scratch/jjyeung/b01ec87a6f29b/d/k/SAM3_RECEIPT.json",
++      "sha256": "979e2f7776b2a44e8b84cdaf4c9c588120ae56b61cdef1b40147f419e4a05a75"
++    },
++    "selector_config": {
++      "bytes": 6541,
++      "path": "/scratch/jjyeung/b01ec87a6f29b/d/h/selector_head.json",
++      "sha256": "63aa0a6995890c1d555062f1187a900809e998b8da021bbe2b6a3777b41fea5e"
++    },
++    "selector_weights": {
++      "bytes": 207328,
++      "path": "/scratch/jjyeung/b01ec87a6f29b/d/h/selector_head.safetensors",
++      "sha256": "6d97c52407b7e106a7b475040558ba313589514c23c33b6994f4e7a0bb1df6c1"
++    }
++  },
++  "frames_root": "/scratch/jjyeung/b01ec87a6f29b/d/f",
++  "policy": {
++    "terminator": "/scratch/jjyeung/b01ec87a6f29b/d/q/terminator.sh",
++    "vnice": "/scratch/jjyeung/b01ec87a6f29b/d/q/vnice.sh"
++  },
++  "policy_receipt": "policy",
++  "python": "/scratch/jjyeung/b01ec87a6f29b/d/v/py",
++  "resume": null,
++  "sam_source": "/scratch/jjyeung/b01ec87a6f29b/d/s",
++  "schema": 1,
++  "types": [
++    "camera_displacement",
++    "camera_rotation",
++    "camera_movement_direction",
++    "object_abs_distance",
++    "room_size_estimation"
++  ]
++}
+--- base-delivery/a/1.json
++++ delivery/a/1.json
+@@ -1,172 +1,3 @@
+ {
+-  "archives": [
+-    {
+-      "destination": "sj/b01ec87a6f29b/d",
+-      "expanded_bytes": 21583016318,
+-      "parts": [
+-        {
+-          "bytes": 5395758080,
+-          "path": "/project/community/jjyeung/okh7/e6fc152498/e/0",
+-          "sha256": "5cd24e72f5b8a4f7ad6cb73d27dd426042be25e7600dcf00e4038de4c129f31a"
+-        },
+-        {
+-          "bytes": 5395758080,
+-          "path": "/project/community/jjyeung/okh7/e6fc152498/e/1",
+-          "sha256": "6ed00d4724b1cfc57d0af6a017639d88284a139479ebf8b9943f280dc6c5df9f"
+-        },
+-        {
+-          "bytes": 5395758080,
+-          "path": "/project/community/jjyeung/okh7/e6fc152498/e/2",
+-          "sha256": "557d8f649b964bd81a1c022dd87db18bdca0c2b61e420c2eccb1fc446a58f7bf"
+-        },
+-        {
+-          "bytes": 5395758080,
+-          "path": "/project/community/jjyeung/okh7/e6fc152498/e/3",
+-          "sha256": "37e64c63c294a3eda298c61f637087c84851afa17f42ad18a4d24c8823c7f686"
+-        }
+-      ],
+-      "sha256": "3ed73aead82cb0bb6468321256ea25e8fdaa5a2963da31062fdf8874bda2d4c7"
+-    },
+-    {
+-      "destination": "sj/b01ec87a6f29b/d",
+-      "expanded_bytes": 5627166349,
+-      "parts": [
+-        {
+-          "bytes": 5627176960,
+-          "path": "/project/community/jjyeung/okh7/e6fc152498/g/0",
+-          "sha256": "6a53059fc74f76a928e83da46e3b07301ff7176f69800e4ae3842599b9b57dbf"
+-        }
+-      ],
+-      "sha256": "6a53059fc74f76a928e83da46e3b07301ff7176f69800e4ae3842599b9b57dbf"
+-    },
+-    {
+-      "destination": "sj/b01ec87a6f29b/d",
+-      "expanded_bytes": 5251971237,
+-      "parts": [
+-        {
+-          "bytes": 5257369600,
+-          "path": "/project/community/jjyeung/okh7/e6fc152498/a2.tar",
+-          "sha256": "1de93f61bde6cf5a0a4bf7a249b13218f8b20acf4fe626c5d8ec7570ef7915e9"
+-        }
+-      ],
+-      "sha256": "1de93f61bde6cf5a0a4bf7a249b13218f8b20acf4fe626c5d8ec7570ef7915e9"
+-    },
+-    {
+-      "destination": "sj/b01ec87a6f29b/d",
+-      "expanded_bytes": 143782645,
+-      "parts": [
+-        {
+-          "bytes": 145274880,
+-          "path": "/project/community/jjyeung/okh7/e6fc152498/a4.tar",
+-          "sha256": "c867d40addcf35c55db1ec511c4dc2b8a4cec80cef9003be93179ef82c30b0ea"
+-        }
+-      ],
+-      "sha256": "c867d40addcf35c55db1ec511c4dc2b8a4cec80cef9003be93179ef82c30b0ea"
+-    },
+-    {
+-      "destination": "sj/b01ec87a6f29b/d",
+-      "expanded_bytes": 3131,
+-      "parts": [
+-        {
+-          "bytes": 10240,
+-          "path": "/project/community/jjyeung/okh7/e6fc152498/a3.tar",
+-          "sha256": "05dc8f79707a51ec227f4bb875670a5d3b7cfa27271447783bf2f79b7474f5ae"
+-        }
+-      ],
+-      "sha256": "05dc8f79707a51ec227f4bb875670a5d3b7cfa27271447783bf2f79b7474f5ae"
+-    }
+-  ],
+-  "env_roots": [
+-    "/scratch/jjyeung/b01ec87a6f29b/d/v/site"
+-  ],
+-  "environment_receipt": "env",
+-  "export_pin": {
+-    "bytes": 1498,
+-    "path": "a/export.json",
+-    "sha256": "798111bc92c146f64a1c031827a38381be022ae44304f864cc51f880d2fc754b"
+-  },
+-  "files": {
+-    "artifact": {
+-      "bytes": 11474,
+-      "path": "/scratch/jjyeung/b01ec87a6f29b/d/m544/artifact.json",
+-      "sha256": "1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef"
+-    },
+-    "base_config": {
+-      "bytes": 3126,
+-      "path": "/scratch/jjyeung/b01ec87a6f29b/d/b/config.json",
+-      "sha256": "d0883072e01861ed0b2d47be3c16c36a8e81c224c7ffaa310c6558fb3f932b05"
+-    },
+-    "env": {
+-      "bytes": 359,
+-      "path": "/scratch/jjyeung/b01ec87a6f29b/d/q/env.json",
+-      "sha256": "e46a9a59e1de189ae736a5d4e94c7827eabfcfa695057fda9640e8120a54a81a"
+-    },
+-    "full_weights": {
+-      "bytes": 1794,
+-      "path": "/scratch/jjyeung/b01ec87a6f29b/d/m544/full_weights/full_weights.json",
+-      "sha256": "211ae87b0bb03bb0c3d43c1c1412e0f346591ab4ddc75b4d754de2740da0a302"
+-    },
+-    "g3t_config": {
+-      "bytes": 149,
+-      "path": "/scratch/jjyeung/b01ec87a6f29b/d/g/config.json",
+-      "sha256": "5aeb2acd008d41a1cac52e10216fbf35e8dfeb2ce26b89bb24e7ccc4ee0817d7"
+-    },
+-    "g3t_weights": {
+-      "bytes": 5627166200,
+-      "path": "/scratch/jjyeung/b01ec87a6f29b/d/g/model.safetensors",
+-      "sha256": "d460957bb1c8a8c228d83ab10bad8a6dbcf80b03f29d7fbebf9c0f2c1c25f702"
+-    },
+-    "heads": {
+-      "bytes": 2763214343,
+-      "path": "/scratch/jjyeung/b01ec87a6f29b/d/m544/heads.pt",
+-      "sha256": "8bb5e1510ee3a5a3959e82f2149c69903e98f46880b8a038bf4b951b8c21de91"
+-    },
+-    "original_model": {
+-      "bytes": 10240,
+-      "path": "/scratch/jjyeung/b01ec87a6f29b/d/o/model_8005668fc14ce5ee.tar",
+-      "sha256": "8005668fc14ce5ee088d0d631d581f62ca73e6cb8130fde4a2deb73de74f635b"
+-    },
+-    "policy": {
+-      "bytes": 321,
+-      "path": "/scratch/jjyeung/b01ec87a6f29b/d/q/policy.json",
+-      "sha256": "a95a881cdfdeb86ae15a2ec3b3b484416f296f4bcd0d19c6a28667ea21835e2e"
+-    },
+-    "sam_checkpoint": {
+-      "bytes": 3450062241,
+-      "path": "/scratch/jjyeung/b01ec87a6f29b/d/k/sam3.pt",
+-      "sha256": "9999e2341ceef5e136daa386eecb55cb414446a00ac2b55eb2dfd2f7c3cf8c9e"
+-    },
+-    "sam_receipt": {
+-      "bytes": 1123,
+-      "path": "/scratch/jjyeung/b01ec87a6f29b/d/k/SAM3_RECEIPT.json",
+-      "sha256": "979e2f7776b2a44e8b84cdaf4c9c588120ae56b61cdef1b40147f419e4a05a75"
+-    },
+-    "selector_config": {
+-      "bytes": 6541,
+-      "path": "/scratch/jjyeung/b01ec87a6f29b/d/h/selector_head.json",
+-      "sha256": "63aa0a6995890c1d555062f1187a900809e998b8da021bbe2b6a3777b41fea5e"
+-    },
+-    "selector_weights": {
+-      "bytes": 207328,
+-      "path": "/scratch/jjyeung/b01ec87a6f29b/d/h/selector_head.safetensors",
+-      "sha256": "6d97c52407b7e106a7b475040558ba313589514c23c33b6994f4e7a0bb1df6c1"
+-    }
+-  },
+-  "frames_root": "/scratch/jjyeung/b01ec87a6f29b/d/f",
+-  "policy": {
+-    "terminator": "/scratch/jjyeung/b01ec87a6f29b/d/q/terminator.sh",
+-    "vnice": "/scratch/jjyeung/b01ec87a6f29b/d/q/vnice.sh"
+-  },
+-  "policy_receipt": "policy",
+-  "python": "/scratch/jjyeung/b01ec87a6f29b/d/v/py",
+-  "resume": null,
+-  "sam_source": "/scratch/jjyeung/b01ec87a6f29b/d/s",
+-  "schema": 1,
+-  "types": [
+-    "camera_displacement",
+-    "camera_rotation",
+-    "camera_movement_direction",
+-    "object_abs_distance",
+-    "room_size_estimation"
+-  ]
++  "pending": true
+ }
+--- base-delivery/a/4.py
++++ delivery/a/4.py
+@@ -0,0 +1,198 @@
++"""Pin an ordered project-disk export and run preparation using Python 3 stdlib."""
++import argparse
++import hashlib
++import io
++import json
++from pathlib import Path, PurePosixPath
++import re
++import tarfile
++
++LOGICAL = '/scratch/jjyeung/b01ec87a6f29b'
++MEMBERS = dict(artifact='artifact.json', heads='heads.pt',
++               full_weights='full_weights/full_weights.json')
++
++
++def write(path, value):
++    Path(path).write_text(json.dumps(value, sort_keys=True, indent=2)+'\n')
++
++
++def pin(raw):
++    return dict(bytes=len(raw), sha256=hashlib.sha256(raw).hexdigest())
++
++
++class Parts:
++    """Hash each part and the entire stream without a joined archive on disk."""
++    def __init__(self, paths):
++        self.paths = iter(paths); self.stream = None; self.parts = []
++        self.digest = hashlib.sha256(); self.size = 0
++
++    def read(self, size):
++        if size < 0:raise ValueError('Bounded reads required')
++        chunks = []; remaining = size
++        while remaining:
++            if self.stream is None:
++                path = next(self.paths, None)
++                if path is None:break
++                self.path = Path(path).resolve(); self.stream = self.path.open('rb')
++                self.part_hash = hashlib.sha256(); self.part_size = 0
++            chunk = self.stream.read(remaining)
++            if not chunk:
++                self.parts.append(dict(path=str(self.path), bytes=self.part_size,
++                                       sha256=self.part_hash.hexdigest()))
++                self.stream.close(); self.stream = None
++                continue
++            self.digest.update(chunk); self.part_hash.update(chunk)
++            self.size += len(chunk); self.part_size += len(chunk)
++            chunks.append(chunk); remaining -= len(chunk)
++        return b''.join(chunks)
++
++
++def scan(paths, done, object_name):
++    fields = Path(done).read_text().split()
++    if (len(fields) != 3 or fields[0] != object_name or not fields[1].isdigit()
++            or int(fields[1]) <= 0 or not re.fullmatch('[0-9a-f]{64}', fields[2])):
++        raise ValueError('Invalid whole-tar .done receipt')
++    stream = Parts(paths); files = {}; metadata = {}; seen = set(); total = 0
++    try:
++        with tarfile.open(fileobj=stream, mode='r|*') as archive:
++            for entry in archive:
++                path = PurePosixPath(entry.name); name = str(path)
++                if path.is_absolute() or '..' in path.parts or name in seen:
++                    raise ValueError('Unsafe or duplicate export member')
++                seen.add(name)
++                if entry.isdir():continue
++                if not entry.isfile():raise ValueError('Export must contain regular files')
++                total += entry.size
++                wanted = path.name in ('artifact.json', 'full_weights.json')
++                if wanted and entry.size > 4*1024**2:raise ValueError('Oversized metadata')
++                digest = hashlib.sha256(); pieces = []; size = 0
++                with archive.extractfile(entry) as source:
++                    for chunk in iter(lambda: source.read(1024**2), b''):
++                        digest.update(chunk); size += len(chunk)
++                        if wanted:pieces.append(chunk)
++                if size != entry.size:raise ValueError('Truncated member')
++                files[name] = dict(bytes=size, sha256=digest.hexdigest())
++                if wanted:metadata[name] = json.loads(b''.join(pieces))
++        while stream.read(1024**2):pass
++    finally:
++        if stream.stream is not None:stream.stream.close()
++    if stream.size != int(fields[1]) or stream.digest.hexdigest() != fields[2]:
++        raise ValueError('Parts differ from whole-tar .done bytes or sha256')
++    artifacts = [n for n in metadata if PurePosixPath(n).name == 'artifact.json']
++    if len(artifacts) != 1:raise ValueError('Require exactly one export artifact')
++    member = str(PurePosixPath(artifacts[0]).parent)
++    if member == '.':raise ValueError('Export needs a member directory')
++    result = {k:files[member+'/'+v] for k,v in MEMBERS.items()}
++    artifact = metadata[artifacts[0]]
++    for name in ('heads', 'full_weights'):
++        if artifact[name]['sha256'] != result[name]['sha256']:
++            raise ValueError('Artifact member hash differs: '+name)
++    full = metadata[member+'/'+MEMBERS['full_weights']]
++    if full.get('schema') != 'full-ft-export-v1' or full.get('dtype') != 'bfloat16':
++        raise ValueError('Unsupported full-weights export')
++    for item in full['files']+[full['index']]:
++        if PurePosixPath(item['name']).name != item['name']:raise ValueError('Invalid weight name')
++        actual = files[member+'/full_weights/'+item['name']]
++        if actual['sha256'] != item['sha256'] or item.get('bytes',actual['bytes']) != actual['bytes']:
++            raise ValueError('Weight pin differs: '+item['name'])
++    archive = dict(destination='sj/b01ec87a6f29b/d', expanded_bytes=total,
++                   parts=stream.parts, sha256=fields[2])
++    return dict(member_directory=member, **result), artifact, archive
++
++
++def preparation(config, receipt, data_receipt, artifact):
++    raw = {k:Path(p).read_bytes() for k,p in
++           dict(config=config,receipt=receipt,data_receipt=data_receipt).items()}
++    cfg, rec, data = [json.loads(raw[k]) for k in ('config','receipt','data_receipt')]
++    if (data.get('status') != 'PREPARED' or data.get('schema') != 's1-in-job-data-v1'
++            or data.get('real_frames_verified') is not True or data.get('rehearsal') is not False
++            or data.get('synthetic',False) is not False):
++        raise ValueError('Data receipt status/schema/flags differ')
++    if (data['config']['sha256'] != pin(raw['config'])['sha256']
++            or data.get('preparation') != cfg.get('preparation')
++            or cfg['preparation']['sha256'] != pin(raw['receipt'])['sha256']):
++        raise ValueError('Data receipt config/preparation binding differs')
++    if (rec.get('config_sha256') != artifact.get('config_sha256')
++            or artifact.get('base_identity') != cfg.get('base_identity')
++            or rec.get('frame_layout') != cfg.get('frame_layout')
++            or artifact.get('frame_layout') != cfg.get('frame_layout')
++            or cfg.get('frame_layout') != 'duplicate' or artifact.get('geometry_online')):
++        raise ValueError('Export architecture or identity differs')
++    sources = dict(config=data['config']['path'],receipt=cfg['preparation']['path'],
++                   data_receipt=str(PurePosixPath(data['config']['path']).parent.parent/'data_receipt.json'))
++    pins = {k:dict(path='p0/'+k+'.json',source_path=sources[k],**pin(v)) for k,v in raw.items()}
++    return pins, raw
++
++
++
++def reviewed_binding():
++    package = Path(__file__).resolve().parent.parent
++    if not (package/'0.tgz').is_file():package = Path(__file__).resolve().parent/'package'
++    public = json.loads((package/'0.json').read_text())
++    raw = (package/'0.tgz').read_bytes()
++    if pin(raw)['sha256'] != public['payload_sha256']:raise ValueError('Reviewed payload differs')
++    with tarfile.open(fileobj=io.BytesIO(raw)) as archive:
++        cfg = json.load(archive.extractfile('9.json'))
++    digest = hashlib.sha256(json.dumps(cfg,sort_keys=True,separators=(',',':')).encode()).hexdigest()
++    if digest != public['plan_sha256']:raise ValueError('Reviewed plan differs')
++    return cfg['export_binding']
++
++def bind_review(a, export, artifact, archive, prep, binding):
++    for key, actual in [('object',a.object),('step',a.step),('lineage',a.lineage),
++                        ('member_directory',export['member_directory'])]:
++        if actual != binding[key]:raise ValueError('Reviewed export binding differs: '+key)
++    if artifact.get('step') != binding['step']:raise ValueError('Artifact step differs')
++    for key in ('config_sha256','base_identity','frame_layout'):
++        if artifact.get(key) != binding[key]:raise ValueError('Artifact identity differs: '+key)
++    for name in ('heads','full_weights'):
++        path = PurePosixPath(artifact[name]['path'])
++        tail = PurePosixPath(binding['run'])/binding['member_directory']/MEMBERS[name]
++        if path.parts[-len(tail.parts):] != tail.parts:raise ValueError('Artifact run/member path differs')
++    for name, digest in binding['preparation_sha256'].items():
++        if prep[name]['sha256'] != digest:raise ValueError('Reviewed preparation differs: '+name)
++    export.update(run=binding['run'],object=binding['object'],config_sha256=binding['config_sha256'],
++                  archive_sha256=archive['sha256'])
++
++
++def main():
++    p = argparse.ArgumentParser(description=__doc__)
++    p.add_argument('--parts',nargs='+',required=True); p.add_argument('--done',required=True)
++    p.add_argument('--object',required=True); p.add_argument('--config',required=True)
++    p.add_argument('--receipt',required=True); p.add_argument('--data-receipt',required=True)
++    p.add_argument('--lineage',choices=('SFT','RL'),required=True);p.add_argument('--step',type=int,required=True)
++    p.add_argument('--out',required=True);p.add_argument('--prep-tar',required=True)
++    p.add_argument('--base-inputs',required=True);p.add_argument('--inputs-out',required=True)
++    a = p.parse_args()
++    binding=reviewed_binding()
++    if (a.object != binding['object'] or a.step != binding['step'] or a.lineage != binding['lineage']):
++        raise ValueError('Reviewed run/step/object differs')
++    if len(a.parts) != 4:raise ValueError('Require four ordered parts')
++    if a.step < 0:raise ValueError('Step must be nonnegative')
++    # Refuse missing preparation files before scanning a multi-GB archive.
++    for path in (a.config,a.receipt,a.data_receipt):
++        if not Path(path).is_file():raise ValueError('Missing preparation file: '+path)
++    export, artifact, archive = scan(a.parts,a.done,a.object)
++    label = re.fullmatch(r'm(\d+)', PurePosixPath(export['member_directory']).name)
++    if label and int(label.group(1)) != a.step:raise ValueError('Step label differs from export member directory')
++    prep, raw = preparation(a.config,a.receipt,a.data_receipt,artifact)
++    bind_review(a,export,artifact,archive,prep,binding)
++    export.update(schema='h1-export-pins-v1',lineage=a.lineage,step=a.step,preparation=prep)
++    with tarfile.open(a.prep_tar,'w') as tar:
++        for name, data in raw.items():
++            entry=tarfile.TarInfo(prep[name]['path']);entry.size=len(data);entry.mode=0o600
++            tar.addfile(entry,io.BytesIO(data))
++    write(a.out,export)
++    inputs=json.loads(Path(a.base_inputs).read_text())
++    inputs['archives'][0]=archive
++    prep_archive=dict(path=str(Path(a.prep_tar).resolve()),**pin(Path(a.prep_tar).read_bytes()))
++    inputs['archives'][4]=dict(destination=archive['destination'],parts=[prep_archive],
++                                   sha256=prep_archive['sha256'],expanded_bytes=sum(map(len,raw.values())))
++    for name, member in MEMBERS.items():
++        inputs['files'][name]=dict(path=LOGICAL+'/d/'+export['member_directory']+'/'+member,**export[name])
++    inputs['export_pin']=dict(path='a/export.json',**pin(Path(a.out).read_bytes()))
++    # Preserve the reviewed item selection from the base input plan.
++    inputs['resume']=None
++    write(a.inputs_out,inputs)
++
++
++if __name__ == '__main__':main()
+--- base-delivery/a/5.py
++++ delivery/a/5.py
+@@ -20,7 +20,7 @@
+     if len(lines) != 1:
+         raise ValueError('Bundle encoding differs')
+     expression = ast.parse(lines[0]).body[0].value
+-    if (not isinstance(expression, ast.Call) or ast.unparse(expression.func) != 'bytes.fromhex'
++    if (not isinstance(expression, ast.Call) or not (isinstance(expression.func,ast.Attribute) and isinstance(expression.func.value,ast.Name) and expression.func.value.id=='bytes' and expression.func.attr=='fromhex')
+             or len(expression.args) != 1 or expression.keywords):
+         raise ValueError('Bundle encoding differs')
+     raw = bytes.fromhex(ast.literal_eval(expression.args[0]))
+@@ -142,7 +142,7 @@
+                     env=env,stdout=log,stderr=subprocess.STDOUT,check=True)
+     ready=json.loads(J.physical(root,cfg['logical']+'/d/READY.json').read_text())
+     settings=json.loads(J.physical(root,cfg['logical']+'/d/settings.json').read_text())
+-    if (settings['stage1_select_rule']!='null_argmax' or settings['perception_memo']!='off'
++    if (settings['stage1_select_rule']!='candidates_argmax' or settings['perception_memo']!='on'
+         or settings['perception_memo_modules']!=['g3t'] or settings['perception_memo_verify_ids']!=[]):
+         raise ValueError('Prepared default settings differ')
+     run_cfg=dict(package=cfg['logical']+'/p',output=cfg['logical']+'/r',python=inputs['python'],
+--- base-delivery/a/6.py
++++ delivery/a/6.py
+@@ -2,19 +2,14 @@
+ import json,sys,time,hashlib
+ from pathlib import Path
+ 
+-RULES=('null_argmax','candidates_argmax')
++RULES=('candidates_argmax',)
+ COUNTS=(150,150,150,150,36)
+-# Each read owns one worker; read 0 retains its memo across all five types.
+-SCHEDULE=((1,3),(0,3),(0,0),(0,1),(0,2),(0,4))
++SCHEDULE=((0,3),(0,0),(0,1),(0,2),(0,4))
+ 
+ def descriptors(package):
+- items=json.loads((Path(package)/'items/devs1_routed.json').read_text())['items']
+- verify_ids=[r['id'] for r in items if r['question_type']=='object_abs_distance'][:30]
+- return [dict(arm='tower',modes=['none'],stage1_select_rule=r,save_own_depth=False,
+-              perception_memo='verify' if i==1 else 'on',perception_memo_modules=['g3t'],
+-              perception_memo_verify_ids=verify_ids if i==1 else [],
+-              types=[3,0,1,2,4] if i==0 else [3],expected=636 if i==0 else 150)
+-         for i,r in enumerate(RULES)]
++ return [dict(arm='tower',modes=['none'],stage1_select_rule='candidates_argmax',save_own_depth=False,
++              perception_memo='on',perception_memo_modules=['g3t'],perception_memo_verify_ids=[],
++              types=[3,0,1,2,4],expected=636)]
+ 
+ def sealed_write(path,value):
+  from orchard_h10.common import write
+@@ -61,9 +56,9 @@
+   assert args[args.index('--stop-file')+1]==str(Path(config['output'])/'metadata/STOP')
+   assert json.loads(Path(args[args.index('--settings')+1]).read_text())['stage1_select_rule']==RULES[i]
+   chosen=json.loads(Path(args[args.index('--settings')+1]).read_text())
+-  assert chosen['perception_memo']==('verify' if i==1 else 'on')
++  assert chosen['perception_memo']=='on'
+   assert chosen['perception_memo_verify_ids']==descriptors(config['package'])[i]['perception_memo_verify_ids']
+-  result.append(dict(read=i,types=cfg['types'],args=args,settings=chosen,expected=636 if i==0 else 150))
++  result.append(dict(read=i,types=cfg['types'],args=args,settings=chosen,expected=636))
+  # Exercise each selected rule through the real tower socket with stub weights.
+  from unittest.mock import patch
+  from types import SimpleNamespace
+@@ -78,7 +73,7 @@
+    value=real.real_perception(None,device='cpu',perception_memo_modules=['g3t'],sam3_tower=object(),selector_head=head,stage1_select_rule=rule)
+    value.socket(None,None)
+   assert made[0].rule==rule
+-  assert made[0].select(dict(x=torch.zeros(2,58),name='x'))==(-1 if rule==RULES[0] else 1)
++  assert made[0].select(dict(x=torch.zeros(2,58),name='x'))==1
+  return result
+ 
+ def run(config,end,cards,runner=None,clock=time.time):
+@@ -86,7 +81,7 @@
+  from orchard_h10.common import write
+  if len(cards)!=1 or not cards[0]:raise ValueError('Require exactly one assigned card')
+  configs=prepare(config);results=[];failure=None
+- for i in (1,0):
++ for i in (0,):
+   if clock()>=end-1800 or (Path(config['output'])/'metadata/STOP').exists():break
+   cfg=configs[i]
+   result=(runner or execute)(cfg,cards,end,prefix=cfg['prefix'])
+@@ -94,16 +89,16 @@
+   if result['failure'] or not result['complete']:
+    failure=result['failure'];break
+  reads=[]
+- for i,n in ((0,636),(1,150)):
++ for i,n in ((0,636),):
+   rows=[r for r in results if r['read']==i]
+   completed=sum(r['completed'] for r in rows)
+   reads.append(dict(read=i,completed=completed,expected=n,complete=completed==n))
+- summary=dict(completed=sum(r['completed'] for r in reads),expected=786,
++ summary=dict(completed=sum(r['completed'] for r in reads),expected=636,
+               complete=all(r['complete'] for r in reads),failure=failure,reads=reads,segments=results)
+  write(Path(config['output'])/'SUMMARY.json',summary)
+  return summary
+ 
+-def memory_bound(*, captures=(84,60), allocation_bytes=200*1024**3):
++def memory_bound(*, captures=(84,), allocation_bytes=200*1024**3):
+  # Fixed G3T contract: at most 64 pose rows and 32 anchor grids. Eight bytes
+  # per scalar covers both float64 poses and the fresh float32 grid outputs.
+  g3t=(64*9+64+32+32*51*51*5+51+2)*8
+--- base-delivery/a/export.json
++++ delivery/a/export.json
+@@ -1,38 +1,3 @@
+ {
+-  "artifact": {
+-    "bytes": 11474,
+-    "sha256": "1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef"
+-  },
+-  "full_weights": {
+-    "bytes": 1794,
+-    "sha256": "211ae87b0bb03bb0c3d43c1c1412e0f346591ab4ddc75b4d754de2740da0a302"
+-  },
+-  "heads": {
+-    "bytes": 2763214343,
+-    "sha256": "8bb5e1510ee3a5a3959e82f2149c69903e98f46880b8a038bf4b951b8c21de91"
+-  },
+-  "lineage": "SFT",
+-  "member_directory": "m544",
+-  "preparation": {
+-    "config": {
+-      "bytes": 17691,
+-      "path": "p0/config.json",
+-      "sha256": "78341acb36ffd03b9cec6de65effc9fafcbe8bccdc1dfb43e9da7bd88af47560",
+-      "source_path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/469ddece/inputs/prepare_dd26bb95f37a43789206c6e4d4cd94bd/config.json"
+-    },
+-    "data_receipt": {
+-      "bytes": 80338,
+-      "path": "p0/data_receipt.json",
+-      "sha256": "ebc2983ef7ba33e2e77f4435fff7a031b633a449ef9311622ecab653ea759f40",
+-      "source_path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/469ddece/inputs/data_receipt.json"
+-    },
+-    "receipt": {
+-      "bytes": 83542,
+-      "path": "p0/receipt.json",
+-      "sha256": "34cf26a691728802db8d47766c42bd4045c5481fe1f27c09a486abafaec1a3d6",
+-      "source_path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/469ddece/inputs/prepare_dd26bb95f37a43789206c6e4d4cd94bd/prepared/s1_receipt.json"
+-    }
+-  },
+-  "schema": "h1-export-pins-v1",
+-  "step": 544
++  "pending": true
+ }

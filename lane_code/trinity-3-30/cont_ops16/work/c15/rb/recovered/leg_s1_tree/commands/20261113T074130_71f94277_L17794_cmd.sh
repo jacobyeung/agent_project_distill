@@ -1,0 +1,13 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=17794 utc=2026-11-13T07:41:30.496Z kind=commands original_path=(bash command)  -->
+/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B - <<'PY'
+import datetime
+now=datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+M="/home/jjyeung/.claude/projects/-scratch-jjyeung-orch-home-distill/memory/"
+with open(M+"mdga-init-ineligible-20261113.md","a") as f:
+    f.write("\nThe same audit of the whole leg (2026-11-13, `/scratch/jjyeung/orch_cd/init_audit/INIT_AUDIT.md`) found the parent itself exposed: CP1 m200's lineage (T0 m800, C1-a m800, the V-C depth stage) trained on 110 to 130 STI-Bench/ReSTI scenes and about 20 MindCube scenes; VSI-Bench, VSTI and ReVSI have 0 shared scans (only ARKit venue 381879, room level). f17 shares the exposure (116 STI/ReSTI, 8 MindCube scenes). Asked the user once (saved question 2026-11-13T07:37Z); default in force: launch on CP1 m200, state the exposure on the card, never report this line on STI-Bench, ReSTI or MindCube. MDG stays out of the leg because the head is not useful to it, not only because of its init.\n")
+with open(M+"result-f17-devs1-vs-parent-20261112.md","a") as f:
+    f.write("\nExposure of the two lineages to dev-S1 scenes (2026-11-13, `/scratch/jjyeung/orch_cd/init_audit/F17_EXPOSURE.md`; scene level counted, rows partly estimated): f17 (CPDM, full fine-tune from the base, no parent) saw 47 dev-S1 scenes, all inside the 152 that CP1's lineage saw; rows per training row are similar (3 to 4%). So leg-minus-f17 on dev-S1 is not biased against the leg and may favour it; leg-minus-parent is the exposure-matched comparison. Report both at m100, plus a cut by the 47 scenes f17 saw against the rest.\n")
+with open("/scratch/jjyeung/orch_cd/ORCH_HANDOFF.md","a") as f:
+    f.write(now+" orch-home-distill-79: f17 exposure count (Sonnet medium; init_audit/F17_EXPOSURE.md): f17 = CPDM full fine-tune from the base (no parent); dev-S1 47 scenes (all within the 152 CP1's lineage saw), STI/ReSTI 116, MindCube 8, VSI-Bench/VSTI/ReVSI 0; row rates similar (3-4%); several sources not on this node (estimates). RULING for the m100 read: report leg-minus-f17 (registered), leg-minus-parent (exposure-matched) and a cut by the 47 scenes f17 saw vs the rest. The subagent tried one rm of its own scratch file; the hook blocked and queued it; no leftover. Asked the user the lineage question in chat (terminal active, push not sent).\n")
+PY
+cd /scratch/jjyeung/orch_cd; ls -t leg_s1_tree/events | head -n 3; ls -t leg_s1_canary/events | head -n 3; stat -c '%y' leg_s1_tree/STATUS.md | cut -c12-19; date -u +%T; tail -n 4 leg_s1_tree/work/inbox_seen.txt

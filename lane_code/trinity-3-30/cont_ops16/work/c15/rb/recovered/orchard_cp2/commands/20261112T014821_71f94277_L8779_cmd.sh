@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=8779 utc=2026-11-12T01:48:21.720Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; ls -la p1c_build/k6/MAP.jsonl.gz 2>/dev/null; ls p1c_build/k6 2>/dev/null | head -12; ls orchard_cp2/work/rt 2>/dev/null | head -12; grep -n -i -E "MAP.jsonl|k6tk" orchard_cp2/out/ADMISSION_JOB_PLAN.md orchard_cp2/out/LEGS1_ADV4_LAUNCH_DRAFT.md 2>/dev/null | cut -c1-400 | head -8

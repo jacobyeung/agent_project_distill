@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=16618 utc=2026-11-13T03:56:59.467Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; ls mdg_build/work/data/r7 2>/dev/null | head; for f in mdg_build/work/data/r7/*/clips_c.jsonl mdg_build/work/data/r7/clips_c*.jsonl; do [ -f "$f" ] && { echo "== $f $(stat -c %s $f) B"; head -c 1500 "$f" | cut -c1-1500; echo; }; done 2>/dev/null | head -30; grep -n "clips_c\|a.jsonl" mdg_assets_inv/MDG_ASSET_SOURCES.md | head -5 | cut -c1-300

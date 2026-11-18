@@ -1,0 +1,40 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=889 utc=2026-11-15T05:20:25.107Z kind=commands original_path=(bash command)  -->
+R=/scratch/jjyeung/orch_cd; S=/tmp/claude-25409/-scratch-jjyeung-orch-home-distill/a97ad692-7041-4f72-8b75-8f8e29df8950/scratchpad; mkdir -p $R/rc_review/{events,inbox,out}; cat > $R/rc_review/BRIEF.md <<EOF
+NOTE ON YOUR WORKING DIRECTORY: you were started in /home/jjyeung/agent_project_distill only because Devin requires a trusted workspace. That folder is on overloaded network storage. Do not search, index, list or read it, never use a built-in search or grep tool on /home or /data*, and never run git there. Do all work in the lane folder $R/rc_review, using absolute paths.
+
+# Lane rc_review: independent review of the geometry, candidate and box contract patches (read-only; try to break them)
+
+## What is being reviewed
+A GPT-family lane delivered three patches for the next training epoch of a 9B spatial vision-language model whose routed question types call its own heads and perception tools: \`$R/rs_contracts/out/PATCH_geometry.diff\`, \`PATCH_candidates.diff\`, \`PATCH_box.diff\`, with \`CONTRACTS_REPORT.md\`, \`DESIGN_RECORD_rs_contracts_20261115.md\`, \`PATCH_MANIFEST.json\`, \`CHANGED_LINE_COVERAGE.md\`, \`DEV_REPLAY.json\`, \`CPU_PROOF.json\`, tests under \`$R/rs_contracts/work\`. Its brief is \`$R/rs_contracts/BRIEF.md\`; the patches apply to files of \`$R/leg_s1_tree/work/tree_s1\`. You are a different model family.
+
+Background on the geometry guard: the sealed code refuses a capture as \`reference_camera_up_opposes_gravity\` when the first frame looks almost straight down (in-plane up component about 0.03, pitch about -88 degrees). On the development set that refuses 12 captures (21 distance items); on official VSI-Bench a proxy predicts 23 captures (54 distance and 23 room items, up to 1.81 points of the primary score). Records: \`$R/leg_s1_review/DEBUG_GEOMETRY_UP_GRAVITY_169670.md\`, \`/data2/jjyeung/agent_project_data/distill_design/ROUTED_READ_GEOMETRY_GUARD_169670_20261115.md\`, \`$R/official544/events/20261115T0509Z_RESULT_native_inputs.md\`.
+
+## Questions, in order of value
+1. **Is the new guard right?** Derive the convention yourself from the code and the debug record. For which camera poses does the patched guard pass, refuse, or choose a heading by fallback, and is each outcome correct? Construct poses that should be refused (a truly inverted convention) and poses that should pass (upright landscape and portrait, near-nadir, near-zenith, rolled) and check them against the patched functions with a short script. Does any answer that depends on heading (a direction, a left/right, a yaw) become silently wrong for a near-nadir reference frame instead of refused?
+2. **Invariance claim.** The lane says distances and areas are unchanged for captures that passed before. Verify on the replay data it used, and say whether its replay exercises real step-544 geometry or a proxy.
+3. **Candidate universe.** Do admission and runtime now derive candidate phrases from one function and one normalization, with no second list anywhere in the tree? Are the failure statuses in training rows exactly the set the runtime can emit?
+4. **Box contract.** Is the \`points_cut\` fix correct and confined to the new epoch?
+5. **Port to the evaluation reader.** The same guard logic lives in a separate, sealed reader (\`$R/evalx/work/milestone/orchard_native/\` and the package sources under \`$R/evalx/work/milestone/native_package_s24_05/sources\`; read-only, do not touch). Say exactly which lines there would have to change for the reader to serve the refused captures on absolute distance and room size, whether that is safe for those two types alone, and what a CPU test of the port must execute. I will hand your answer to that reader's owner.
+6. The five unexecuted changed lines: could any hide a fault that integration would hit?
+
+## Rules
+- Read-only everywhere except your lane folder. No GPU, no launch, no ssh, no agents, no Git commands. Python: \`/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B\`, at most 4 threads; put scripts under \`work/\` in your lane folder (create it).
+- Never list or search \`/home\` or \`/data*\`; read only the single file named above there. No recursive search outside \`$R/rs_contracts\`, \`$R/leg_s1_tree/work/tree_s1\`, \`$R/leg_s1_review\` and the two evalx folders named.
+- No deletion commands, and no names of deletion operations in shell command text. Never read a file over 20 MB whole.
+- Time box: about 40 minutes.
+
+## Deliver
+\`out/REVIEW_VERDICT_RS_CONTRACTS.md\`: verdict on the first line (\`INTEGRATE\`, \`INTEGRATE AFTER FIXES\` or \`DO NOT INTEGRATE\`), findings ranked by consequence with file:line and evidence, the pose table from question 1, the port instructions from question 5, and what you did not check. One event \`events/<stamp>_RESULT_review.md\` (stamp from \`date -u +%Y%m%dT%H%MZ\` in the writing command), at most 30 lines. Then stay alive 20 minutes checking \`inbox/\` once a minute, and end.
+EOF
+bash $R/orch_tools/devin_bg_acp.sh /home/jjyeung/agent_project_distill $R/rc_review/BRIEF.md claude-opus-5-5-high 4500 $R/rc_review/out/devin_stdout_01.log
+grep -v '^dx_census|\|^rs_contracts|' "$S/LANES" > "$S/LANES.new"; echo 'rc_review|rc_review/BRIEF.md||' >> "$S/LANES.new"; cp "$S/LANES.new" "$S/LANES"
+/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B - "$S" <<'PY'
+import sys,re
+S=sys.argv[1]; p=S+'/lanewatch.sh'; s=open(p).read()
+s=re.sub(r'\n  \[rs_contracts\]="[^"]*"','',s); s=re.sub(r'\n  \[dx_census\]="[^"]*"','',s)
+old='  [trace_ruling]="trace_ruling/BRIEF.md"'; assert old in s
+s=s.replace(old,old+'\n  [rc_review]="rc_review/BRIEF.md"')
+open(p,'w').write(s)
+PY
+cp "$S/LANES" "$S/lanewatch.sh" $R/orch_tools/session_scripts_20261115/; cat "$S/LANES" | tr '\n' ' '
+echo; echo "- $(date -u +%Y-%m-%dT%H:%MZ) rs_contracts COMPLETE 0519Z (three patches, 186/191 changed lines covered, 12/12 refused captures and 21/21 items pass the new guard on the raw-G3T proxy, 300/300 operands agree). LAUNCHED rc_review (Devin claude-opus-5-5-high, 4500 s): refute review incl. port instructions for the evalx reader. dx_census FINAL 0519Z: 243,784 real-scan candidates need trace + exclusion repair (170,437 in the barred prose export); POOL_S1 93,018 rows = 83,595 programs + 9,423 answer-restating direct rows; ProcTHOR 1,091,176 mapped candidates unresolved; 10x direct target = 1,217,030 rows at ~878 CPU-h, 112-559 GPU-h, 6.44M label calls (all GUESS). Direct-data decision waits for trace_ruling. Both Codex lanes ended; removed from LANES and lanewatch." >> $R/ORCH_HANDOFF.md

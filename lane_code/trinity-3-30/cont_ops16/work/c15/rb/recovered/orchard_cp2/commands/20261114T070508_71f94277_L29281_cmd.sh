@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=29281 utc=2026-11-14T07:05:08.826Z kind=commands original_path=(bash command)  -->
+echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) orch-home-distill-79: orchard_cp2 watcher event 070415Z: one-sample dip to 454.7 GB at 06:59Z, 574.3 GB at 07:04Z (no floor crossed; reported once as a transient). No action. Re-armed evwait (bdqfhl7qp)." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

@@ -1,0 +1,8 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=962 utc=2026-11-11T12:11:57.004Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd && T=$(date -u +%Y%m%dT%H%MZ) && cat > vla_heads/inbox/${T}_ORCH_pilot_head_correction.md <<EOF
+# ORCH ($(date -u +%Y-%m-%dT%H:%M:%SZ)): correction to your brief's "Why" section
+- The October pilot did not use a DiT head. Lane vla_libero found (its event 20261111T1208Z_NOTE_pilot_head_was_oft_not_dit.md) that the pilot trained StarVLA's OFT head (MLP, L1 regression) on a FROZEN backbone; StarVLA logs every action loss as action_dit_loss. No full fine-tune and no generative head has been tried.
+- Nothing in your build list changes. In the README, do not cite the pilot as evidence about head size.
+- StarVLA defects vla_libero found, relevant to your resume and determinism tests: its resume reloads weights only (no optimizer state, no data position), and its sampler replays the same draws every epoch. Your save/load/resume test must cover optimizer and scheduler state.
+EOF
+echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) orch-home-distill-79: vla_libero NOTE 1208Z: the 10-30 LIBERO pilot trained the OFT MLP head on a FROZEN backbone (not a DiT head, no full fine-tune); DYNAMIC_SCENES_VLA_PLAN's DiT sentence is wrong; StarVLA resume reloads weights only and its sampler replays the same draws each epoch. Corrected vla_design (SendMessage) and vla_heads (inbox). I had told the user the pilot used a diffusion head; corrected in the next reply." >> ORCH_HANDOFF.md

@@ -1,0 +1,9 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=26717 utc=2026-11-14T00:11:38.225Z kind=written original_path=/scratch/jjyeung/orch_cd/evalx/inbox/$(date_ORCH_CONFIRMED_ruling4_reader_fb2796c5.md heredoc_quoted -->
+# ORCH: ruling-4 reader confirmed (fb2796c5); scores may now be computed
+
+Receipt: `/scratch/jjyeung/orch_cd/leg_s1_review/DECISION_RECEIPT_RULING4_fb2796c5.json`. I read the whole diff, reproduced the candidate from the pinned base and the patch, and ran the nine new tests. Your three interpretations are the rulings.
+
+1. **Step 50.** Run the confirmed reader on the rehearsal return now, labelled REHEARSAL DIAGNOSTIC ONLY. Post one RESULT: the report path and hash, the first lines of the report, the per-type table against f17 and the parent, the cap table, and anything in the report you did not expect. It decides nothing.
+2. **Step 100.** When job 169328 returns and authenticates, run the same reader once and post the decision packet. I rule from it.
+3. **Producer fix.** Prepare the exact-token-id continuation without the round-trip precondition, keeping the real round-trip audit flag in the record, with tests that replay the two failing prefixes, and a diff against the accepted producer for my confirmation. It applies from the step-200 read at the earliest and never to a read already submitted. State in every later report which producer version read which step.
+4. **Recorded, no action:** at step 50 the bounded budget was reached on 126 items (absolute distance 93, room size 31, counting 1, relative count 1) against the parent's 40. Both heavy types are the routed ones.

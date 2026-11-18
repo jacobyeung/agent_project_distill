@@ -1,0 +1,69 @@
+{
+  "schema": "orchard-cpu-baseline-integration-review-v1",
+  "checked_at": "2026-11-14T16:01:49.594053+00:00",
+  "status": "PASS_LOCAL_INTEGRATION_REVIEW_ONLY",
+  "reviewer": "orchard_cp2",
+  "author": "leg_s1_canary",
+  "source_pins": {
+    "OPERATOR.json": {
+      "source": "/scratch/jjyeung/orch_cd/leg_s1_canary/out/CPU_BASELINE_OPERATOR_20261114T154709Z_c3c26283.json",
+      "bytes": 9839,
+      "sha256": "2c63118c52024a95a6ee527b41f71a3719fe650e8d071f602df035b96e819ca1"
+    },
+    "RELEASE.json": {
+      "source": "/scratch/jjyeung/orch_cd/leg_s1_canary/out/CPU_BASELINE_RELEASE_20261114T154709Z_c3c26283.json",
+      "bytes": 1862,
+      "sha256": "d2a5ee3c4db073ade693027544c7ccf448f0c96839ab6d0c6455ed697832693a"
+    },
+    "RESOURCE_ESTIMATE.json": {
+      "source": "/scratch/jjyeung/orch_cd/leg_s1_canary/out/CPU_PACKET_RESOURCE_ESTIMATE_20261114T154709Z_c3c26283.json",
+      "bytes": 3362,
+      "sha256": "134c5a583ed2b67c5b109e48610a2338b34dbfe1c4f36d745d28f612735eb41b"
+    },
+    "CPU_PACKET.tgz": {
+      "source": "/scratch/jjyeung/orch_cd/leg_s1_canary/out/real_slot_cpu_544_20261114T154709Z_c3c26283.tgz",
+      "bytes": 7524,
+      "sha256": "156d2e7acaf81805b49eed9b380d0326a0472c2fdf61af37866bc6b3c787db4d"
+    },
+    "BASELINE_PACKET.tgz": {
+      "source": "/scratch/jjyeung/orch_cd/leg_s1_canary/out/baseline_capture_544_20261114T154709Z_c3c26283.tgz",
+      "bytes": 6364,
+      "sha256": "d2e083f89f01f7bde4660d0636e3a64b62050bdd1135f99b92002f91077c8aa1"
+    }
+  },
+  "verified_member_pins": 7,
+  "verified_binding_pins": 2,
+  "archive_member_total": 9,
+  "source_review": [
+    "Unchanged confirmed entry receives canonical checker/kit/slot/results roots and binding; the checker module is not substituted for entry execution.",
+    "The current CPU job and all four real native rank results must match original slot A and the native complete marker. Fixture, partial, foreign-job and failed results cannot qualify.",
+    "The baseline retains 20 normalized rows only after one stable-descriptor read authenticates every original row and the whole 86552359-byte prefix. The original attempt and saved binding must match.",
+    "The confirmed make_baseline API consumes these normalized rows; the loss policy is unchanged.",
+    "The baseline child has 512-MiB and 60-second limits. The parent reserves publication time and allows a 90-second child timeout. A failed or partial capture preserves CPU PASS but leaves baseline readiness false.",
+    "CPU-only exit 0 is not baseline readiness. Combined readiness requires CPU_PASS_BASELINE_READY, complete capture receipt, the pinned BASELINE.json and successful process exit.",
+    "Outputs are fresh and non-overwriting. The proposed destinations still need installation, permissions, canonical-path and placement preflight.",
+    "No wrapper path in either packet submits a GPU job or grants continuation authority."
+  ],
+  "author_reported_local_tests": 40,
+  "author_tests_rerun_by_cp2": false,
+  "cp2_checks": [
+    "All seven member byte/hash pins and both binding hashes",
+    "Exact cross-packet and held-source identity assertions",
+    "Python source parsing and shell syntax",
+    "Manual entry, gate, capture, timeout and publication review"
+  ],
+  "actual_cpu_result_available": false,
+  "actual_numeric_baseline_available": false,
+  "native_calls": 0,
+  "jobs_submitted": 0,
+  "reservations": 0,
+  "signals_to_training": 0,
+  "installed_files_modified": false,
+  "remaining_gates": [
+    "Written installation/preflight and real CPU execution authority",
+    "Fresh resource and shared-I/O clearance",
+    "Actual real-slot CPU PASS and numerical baseline",
+    "Reviewed future-job early observer and verified optimization-stop procedure",
+    "Separate user approval and ORCH GPU continuation order"
+  ]
+}

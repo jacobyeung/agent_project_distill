@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=32408 utc=2026-11-14T16:11:20.093Z kind=commands original_path=(bash command)  -->
+L=/scratch/jjyeung/orch_cd/orchard_cp2; tail -c 600 $L/stdout_s13.out 2>/dev/null | tr '\n' ' ' | cut -c1-600; echo; ps -p 2968485,2968484 -o pid,stat,etimes,args 2>/dev/null | cut -c1-150; sed -n 1,12p $L/STATUS.md | cut -c1-420; echo ---; cut -c1-1500 /scratch/jjyeung/orch_cd/evalx/events/20261114T1610Z_QUESTION_exact_bootstrap_CPU_runtime_location.md

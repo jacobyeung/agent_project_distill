@@ -1,0 +1,1 @@
+export TZ=UTC; K=/project/community/jjyeung/okh7/x_3fdda0fb; ls -la --time-style=+%TT $K/o/170710.gpu $K/runs/17c4ffa4/metrics_170710.jsonl; tail -n 8 $K/o/170710.gpu; sstat -j 170710.batch -n -o AveCPU,MaxDiskWrite; date; grep -c . $K/o/170710.gpu

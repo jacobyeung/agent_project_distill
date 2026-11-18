@@ -1,0 +1,1228 @@
+--- base/8.py
++++ payload/8.py
+@@ -12,7 +12,10 @@
+ 
+ 
+ def digest(path):
+-    with Path(path).open('rb') as stream:return hashlib.file_digest(stream,'sha256').hexdigest()
++    h=hashlib.sha256()
++    with Path(path).open('rb') as stream:
++        for chunk in iter(lambda:stream.read(1024**2),b''):h.update(chunk)
++    return h.hexdigest()
+ 
+ 
+ def load_helpers(package):
+@@ -39,7 +42,7 @@
+     receipt=json.loads((package/'PACKAGE.json').read_text())
+     for name,h in receipt['files'].items():
+         if digest(package/name)!=h:raise ValueError('Package changed: '+name)
+-    if package!=Path('/project/community/jjyeung')/cfg['token']:
++    if package!=Path('/project/community/jjyeung/okh7')/('a15_cot_ap'+cfg['token']):
+         raise ValueError('Stage the package under /project/community/jjyeung/'+cfg['token'])
+     private=package/'a';private.mkdir(mode=0o700,exist_ok=True)
+     if private.stat().st_mode & 0o077:raise ValueError('Private input directory must be 0700')
+@@ -78,7 +81,7 @@
+     # Check retained package pins again; no implicit check+submit retry chain.
+     pins=json.loads((package/'PACKAGE.json').read_text())['files']
+     if any(digest(package/n)!=h for n,h in pins.items()):raise ValueError('Package changed after check')
+-    result=subprocess.run(argv+(['--test-only'] if test_only else []),input=body,env=env,cwd='/tmp',capture_output=True)
++    result=subprocess.run(argv+(['--test-only'] if test_only else []),input=body,env=env,cwd='/tmp',stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+     sys.stdout.buffer.write(result.stdout);sys.stderr.buffer.write(result.stderr)
+     with (package/'LEDGER.jsonl').open('a') as f:
+         f.write(json.dumps(dict(action='test-only' if test_only else 'submit',returncode=result.returncode,
+--- base/9.json
++++ payload/9.json
+@@ -1,6 +1,21 @@
+ {
+   "budget_gpu_seconds": 9000,
+   "cpu_check_name": "2.json",
++  "export_binding": {
++    "base_identity": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
++    "config_sha256": "620d5cf8c573afd72e9dcbcf822fb8c8cbae27dd6c2ca803ec156d7cda41e51a",
++    "frame_layout": "duplicate",
++    "lineage": "SFT",
++    "member_directory": "m200",
++    "object": "q8/8865619b/673bc60f_m200.tar",
++    "preparation_sha256": {
++      "config": "3b0051c4a9cc661d02019a645165fc3e23d658d2f24a6fd6fd86ec7877ba4fc1",
++      "data_receipt": "7f654d2f0ae9f06083f2fc8fd793512c154b4d01ce8632fb733d4191205af770",
++      "receipt": "4c0dd9d6e4535a2945ed58754c1cdd5e9a316067be35f2e8440caa9a80e1c915"
++    },
++    "run": "673bc60f",
++    "step": 200
++  },
+   "inputs_name": "1.json",
+   "logical": "/scratch/jjyeung/b01ec87a6f29b",
+   "order": [
+@@ -12,8 +27,8 @@
+   ],
+   "payload_pins": {
+     "8.py": {
+-      "bytes": 6934,
+-      "sha256": "a65c37736e37ed294404e23ec40e41956651a8d45516560b9053f2efd0fff498"
++      "bytes": 7048,
++      "sha256": "4ec88e36998b9f96ebbc01a5fb7bffa32fa1e5cd15f09825bcf81a5fd5f8777c"
+     },
+     "auth/R0_DEV_ROOMS.txt": {
+       "bytes": 2101,
+@@ -420,24 +435,24 @@
+       "sha256": "085f031637df8de7f611c357329c2bbaa5d1f7331e8d67d373eb7c05c88cde7c"
+     },
+     "orchard_h10/common.py": {
+-      "bytes": 4387,
+-      "sha256": "df48d528456ec54137b2bcb05d4ddf4ca68cc65260a651dc7de2c94442be0982"
++      "bytes": 4724,
++      "sha256": "2a55934bea281249e965661641cd294ec0c3c6d7d8a55097dbdd995ca69871b3"
+     },
+     "orchard_h10/entry.py": {
+       "bytes": 899,
+       "sha256": "d772a9dbc1d2564bf70ad72d11283ae01ec3ade37b23e60fddbd4401feee3b17"
+     },
+     "orchard_h10/export_pins.py": {
+-      "bytes": 2719,
+-      "sha256": "e9aaa9d4b97a92423aa836e6f95e10e2adc9bc1a0cf49ff8439e833b86d3ab35"
++      "bytes": 3439,
++      "sha256": "4e52ce6aab3c97bbf82bf8eaff6be3db6b71351e1f3ac0241b28bfd5563d4fc9"
+     },
+     "orchard_h10/inventory.py": {
+       "bytes": 10650,
+       "sha256": "147b1633a52252fd6eadef84b0b539e1478f584915f5254e06cf3653b3b2d869"
+     },
+     "orchard_h10/job.py": {
+-      "bytes": 14198,
+-      "sha256": "dec64e8c2a0f684fc5cbf65ae5e5abf43a49e015e2a3e3ffd4ee455b4a4d9fcc"
++      "bytes": 14425,
++      "sha256": "18cc0ea38316cb1966bf800911855f75ad8ffe25c0371f183b4229e93574c62e"
+     },
+     "orchard_h10/operator.py": {
+       "bytes": 6934,
+@@ -468,20 +483,20 @@
+       "sha256": "3c6bd4cb82b39a6853c671e8c460c472df12b78ae3780890f61bd81008297b9c"
+     },
+     "orchard_h10/vendor/export_stage.py": {
+-      "bytes": 11909,
+-      "sha256": "8c926e7c21663e7d707c7bc4adf1a2a9d73202e397e1531ef08ec3cadee859ed"
++      "bytes": 11935,
++      "sha256": "ecb27d13947ebb7c415e6fc6f0f986b46cdf0a85ddfe3c50004044bba08432d8"
+     },
+     "orchard_h10/vendor/orchard_job.py": {
+-      "bytes": 13840,
+-      "sha256": "d912e1f596fc21621bcb13c4670a1af313ab54a65ef1bda846b2c3b68cc3bd6b"
++      "bytes": 13960,
++      "sha256": "0cb59d313de126d14ef6154a18c23f2d19f866f814bc24e3a92764b90b895bde"
+     },
+     "orchard_h10/vendor/orchard_launcher.py": {
+-      "bytes": 22568,
+-      "sha256": "9068f83eb75168b7de8e4409bba01d8a12b8776d3bb5da08556827a955b745d3"
++      "bytes": 22660,
++      "sha256": "f7151c1dbfe297fd055e54bd84adc97737809ab2b03ca56a719dc807039b0354"
+     },
+     "orchard_h10/vendor/orchard_results.py": {
+-      "bytes": 10607,
+-      "sha256": "959af042a98ecf985e7ead3e89ec3100f3434637ddecb02576c1b9a13f6a3810"
++      "bytes": 10687,
++      "sha256": "d739b38a5c00854068f9d76ec49d679100cf59a693fafd8c8446eb1d0807fce5"
+     },
+     "orchard_h10/vendor/orchard_stage.py": {
+       "bytes": 13095,
+@@ -3729,21 +3744,21 @@
+   "return_margin": 1200,
+   "save_own_depth": false,
+   "schema": "h10-orchard-v1",
+-  "stage1_select_rule": "null_argmax",
++  "stage1_select_rule": "candidates_argmax",
+   "stop_margin": 1800,
+   "template_pins": {
+     "MODELS.json": "72cdfbff0e93a881099096f06e22b5c7e98046d443ae3430d498d06b49cfb37a",
+     "ORCHARD_ASSETS.json": "a62285317a774cee040ceb5817e7ad7a7e08e12ea412b8f416cfb97b5a1c12ee",
+     "TRANSPORT.json": "23339074f3eb41507c3e3c657159415582573cd8332c3b4777b4ac577a7b3b50",
+     "chain_save.py": "3c6bd4cb82b39a6853c671e8c460c472df12b78ae3780890f61bd81008297b9c",
+-    "export_stage.py": "8c926e7c21663e7d707c7bc4adf1a2a9d73202e397e1531ef08ec3cadee859ed",
+-    "orchard_job.py": "d912e1f596fc21621bcb13c4670a1af313ab54a65ef1bda846b2c3b68cc3bd6b",
+-    "orchard_launcher.py": "9068f83eb75168b7de8e4409bba01d8a12b8776d3bb5da08556827a955b745d3",
+-    "orchard_results.py": "959af042a98ecf985e7ead3e89ec3100f3434637ddecb02576c1b9a13f6a3810",
++    "export_stage.py": "ecb27d13947ebb7c415e6fc6f0f986b46cdf0a85ddfe3c50004044bba08432d8",
++    "orchard_job.py": "0cb59d313de126d14ef6154a18c23f2d19f866f814bc24e3a92764b90b895bde",
++    "orchard_launcher.py": "f7151c1dbfe297fd055e54bd84adc97737809ab2b03ca56a719dc807039b0354",
++    "orchard_results.py": "d739b38a5c00854068f9d76ec49d679100cf59a693fafd8c8446eb1d0807fce5",
+     "orchard_stage.py": "00b113eec03c205d872bfc7ce8bddb4c7bd4086f44e8878d712c001db86f17d2",
+     "return_io.py": "ad24ee4c4ffb0592011efce63d741b3f449daddf4da7c377d9623a5db2dad8b3",
+     "stdout_transfer.py": "85ad256cfa7836948ddba934ca82537486fc3c42cab06fa5442de86caef2e0f6",
+     "trace_runtime.py": "faec481ff5b445fdeb885a0ee70e1f83beaff05afb115dd3073fa6ce1934237d"
+   },
+-  "token": "f40065df28aa3"
++  "token": "b9188e9225a85"
+ }--- base/orchard_h10/common.py
++++ payload/orchard_h10/common.py
+@@ -5,6 +5,13 @@
+ from pathlib import Path
+ import re
+ import sys
++
++# Python 3.6 login/node helpers retain the same containment semantics.
++if not hasattr(Path, 'is_relative_to'):
++    def _is_relative_to(self, other):
++        try:self.relative_to(other);return True
++        except ValueError:return False
++    Path.is_relative_to = _is_relative_to
+ 
+ ORDER = ('camera_displacement', 'camera_rotation', 'camera_movement_direction',
+          'object_abs_distance', 'room_size_estimation')
+@@ -16,8 +23,10 @@
+ 
+ 
+ def sha(path):
++    h=hashlib.sha256()
+     with Path(path).open('rb') as stream:
+-        return hashlib.file_digest(stream, 'sha256').hexdigest()
++        for chunk in iter(lambda:stream.read(1024**2),b''):h.update(chunk)
++    return h.hexdigest()
+ 
+ 
+ def canonical(value):
+--- base/orchard_h10/export_pins.py
++++ payload/orchard_h10/export_pins.py
+@@ -60,6 +60,18 @@
+ 
+ 
+ def admit(inputs, cfg, export):
++
++    binding = cfg.get('export_binding')
++    if binding is not None:
++        for key in ('run', 'step', 'member_directory', 'lineage', 'object'):
++            if export.get(key) != binding[key]:raise ValueError('Reviewed export binding differs: '+key)
++        for name, digest in binding['preparation_sha256'].items():
++            if export['preparation'][name]['sha256'] != digest:
++                raise ValueError('Reviewed preparation differs: '+name)
++        if export.get('config_sha256') != binding['config_sha256']:
++            raise ValueError('Reviewed config identity differs')
++        if export.get('archive_sha256') != inputs['archives'][0]['sha256']:
++            raise ValueError('Reviewed archive differs')
+     root = Path(cfg['logical'])/'d'/export['member_directory']
+     for name, member in MEMBERS.items():
+         declared = inputs['files'][name]
+--- base/orchard_h10/job.py
++++ payload/orchard_h10/job.py
+@@ -21,7 +21,7 @@
+ def check_inputs(inputs, cfg, *, package=None):
+     """Fail closed until every unresolved archive and dependency has a full pin."""
+     from orchard_h10.export_pins import load, admit
+-    export = load(inputs, package or Path('/project/community/jjyeung')/cfg['token'])
++    export = load(inputs, package or Path('/project/community/jjyeung/okh7')/('a15_cot_ap'+cfg['token']))
+     import re
+     valid=lambda value:isinstance(value,str) and re.fullmatch('[0-9a-f]{64}',value)
+     if 'types' in inputs:
+@@ -99,7 +99,7 @@
+ def stage(root, cfg, inputs, S, J):
+     root=Path(root); receipts={}; archives=root/'a';archives.mkdir()
+     assets=json.loads((Path(__file__).parent/'vendor/ORCHARD_ASSETS.json').read_text())
+-    payload=dict(path=str(Path('/project/community/jjyeung')/cfg['token']/'0.tgz'),
++    payload=dict(path=str(Path('/project/community/jjyeung/okh7')/('a15_cot_ap'+cfg['token'])/'0.tgz'),
+                  bytes=cfg['payload_bytes'],sha256=cfg['payload_sha256'])
+     receipts['code']=S.copy_parts([payload],archives/'c',lambda p:Path(p['path']).open('rb'))
+     with (archives/'c').open('rb') as stream:
+@@ -137,7 +137,7 @@
+ 
+ def main(root):
+     root=Path(root);public=json.loads((root/'0.json').read_text())
+-    cfg=read_config(Path('/project/community/jjyeung')/public['token']);verify_config(cfg)
++    cfg=read_config(Path('/project/community/jjyeung/okh7')/('a15_cot_ap'+public['token']));verify_config(cfg)
+     os.umask(0o077)
+     from orchard_h10.common import install_process_guard
+     install_process_guard(root)
+@@ -157,7 +157,7 @@
+     try:
+         write(out/'metadata/STORAGE.json',J.storage_proof(root,job=job))
+         R.write_test(cfg['pool'],return_token);pool_ready=True
+-        shared=Path('/project/community/jjyeung')/cfg['token']
++        shared=Path('/project/community/jjyeung/okh7')/('a15_cot_ap'+cfg['token'])
+         if sha(shared/'a/1.json')!=os.environ['A_I'] or sha(shared/'2.json')!=os.environ['A_C']:
+             raise ValueError('Submitted input or CPU receipt changed')
+         inputs=check_inputs(json.loads((shared/'a/1.json').read_text()),cfg)
+@@ -166,6 +166,8 @@
+             raise ValueError('CPU receipt does not bind this submission')
+         from orchard_h10.export_pins import load
+         export_pins=load(inputs,shared)
++        write(out/'metadata/EXPORT_PIN.json',export_pins)
++        write(out/'metadata/INPUTS.json',inputs)
+         stage(root,cfg,inputs,S,J)
+         write(root/'1.json',inputs)
+         if time.time()>=end-cfg['stop_margin'] or (out/'metadata/STOP').exists():raise ValueError('No read budget after staging')
+@@ -198,7 +200,7 @@
+         if len(cards)!=n or not all(cards) or not 1<=n<=4 or n*seconds>18000:
+             raise ValueError('Allocation differs from GPU/hour contract')
+         # Retain assigned GPU evidence once; no occupancy polling or scheduler operations.
+-        evidence=checked_run(['nvidia-smi','--query-gpu=uuid,name,memory.used','--format=csv'],capture_output=True,text=True,check=True)
++        evidence=checked_run(['nvidia-smi','--query-gpu=uuid,name,memory.used','--format=csv'],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True,check=True)
+         write(out/'metadata/CARDS.json',dict(visible=cards,query=evidence.stdout))
+         env['CUDA_VISIBLE_DEVICES']=','.join(cards)
+         with (out/'logs/1.log').open('wb') as log:
+--- base/orchard_h10/vendor/export_stage.py
++++ payload/orchard_h10/vendor/export_stage.py
+@@ -69,7 +69,7 @@
+         '--step', str(step), '--output', str(output)]
+     A.atomic_json(receipt_dir/'COMMAND.json', dict(argv=command, full=True, pins=CHECKER_PINS))
+     # The checker prints model metadata; retain it as encoded evidence.
+-    result = subprocess.run(command, env=J.environment(root), cwd=root, capture_output=True)
++    result = subprocess.run(command, env=J.environment(root), cwd=root, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+     (receipt_dir/'check.hex').write_text(result.stdout.hex()+'\n'+result.stderr.hex()+'\n')
+     if result.returncode:
+         raise RuntimeError('Full export check failed')
+--- base/orchard_h10/vendor/orchard_job.py
++++ payload/orchard_h10/vendor/orchard_job.py
+@@ -90,13 +90,13 @@
+ def card(require_empty=False):
+     query = subprocess.run(['nvidia-smi', '--query-gpu=index,uuid,name,memory.used,utilization.gpu',
+                             '--format=csv,noheader,nounits'],
+-                           check=True, capture_output=True, text=True, timeout=30)
++                           check=True, stdout=subprocess.PIPE,stderr=subprocess.PIPE, universal_newlines=True, timeout=30)
+     processes = subprocess.run(['nvidia-smi', '--query-compute-apps=gpu_uuid,pid,used_memory',
+                                 '--format=csv,noheader,nounits'],
+-                               check=True, capture_output=True, text=True, timeout=30)
++                               check=True, stdout=subprocess.PIPE,stderr=subprocess.PIPE, universal_newlines=True, timeout=30)
+     own = subprocess.run(['pgrep', '-fu', os.environ['USER'],
+                           '[/]a[a-z][0-9a-f]+/p/reader/chain.py'],
+-                         capture_output=True, text=True, timeout=30)
++                         stdout=subprocess.PIPE,stderr=subprocess.PIPE, universal_newlines=True, timeout=30)
+     visible = os.environ.get('CUDA_VISIBLE_DEVICES', '')
+     rows = [[item.strip() for item in row] for row in csv.reader(query.stdout.splitlines()) if row]
+     assigned = rows if len(rows) == 1 else [row for row in rows if visible in row[:2]]
+--- base/orchard_h10/vendor/orchard_launcher.py
++++ payload/orchard_h10/vendor/orchard_launcher.py
+@@ -101,10 +101,10 @@
+         "body=sys.stdin.buffer.read(4*1024**2+1)\n"
+         "if not body or len(body)>4*1024**2: raise ValueError('Invalid batch size')\n"
+         "argv="+repr(submit_argv(None, token, proof=proof))+"\n"
+-        "test=subprocess.run(argv+['--test-only'],input=body,capture_output=True,timeout=50)\n"
++        "test=subprocess.run(argv+['--test-only'],input=body,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=50)\n"
+         "sys.stderr.buffer.write(b'A_TEST_ONLY_RC='+str(test.returncode).encode()+b'\\n'+test.stdout+test.stderr)\n"
+         "if test.returncode: sys.exit(test.returncode)\n"
+-        "result=subprocess.run(argv,input=body,capture_output=True,timeout=50)\n"
++        "result=subprocess.run(argv,input=body,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=50)\n"
+         "sys.stdout.buffer.write(result.stdout)\n"
+         "sys.stderr.buffer.write(result.stderr)\n"
+         "sys.exit(result.returncode)\n")
+@@ -237,7 +237,7 @@
+ 
+ 
+ def remote(argv, **kwargs):
+-    return subprocess.run(SSH+[shlex.join(argv)], capture_output=True, timeout=135, **kwargs)
++    return subprocess.run(SSH+[shlex.join(argv)], stdout=subprocess.PIPE,stderr=subprocess.PIPE, timeout=135, **kwargs)
+ 
+ 
+ def submit(destination):
+@@ -253,7 +253,7 @@
+     validate_request(config)
+     if (destination/'SUBMIT_INTENT.json').exists():
+         raise ValueError('Submission was already attempted; never repeat an uncertain submit')
+-    queue = remote(['squeue', '-p', 'general', '-h', '-o', '%i|%j|%u|%T|%b'], text=True)
++    queue = remote(['squeue', '-p', 'general', '-h', '-o', '%i|%j|%u|%T|%b'], universal_newlines=True)
+     if queue.returncode:
+         raise RuntimeError('Queue check failed; no submission: '+queue.stderr[-2000:])
+     queue_admission(queue.stdout, 'jjyeung')
+--- base/orchard_h10/vendor/orchard_results.py
++++ payload/orchard_h10/vendor/orchard_results.py
+@@ -38,7 +38,7 @@
+                  '--config',os.environ['A_JOB_CONFIG'],'--script']
+     argv += [str(Path(__file__).with_name('return_io.py')),action,str(pool),token]
+     if local is not None:argv+=['--local',str(local)]
+-    process=subprocess.Popen(argv,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
++    process=subprocess.Popen(argv,stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
+     try:
+         stdout,stderr=process.communicate(timeout=timeout)
+     except subprocess.TimeoutExpired:
+@@ -70,9 +70,9 @@
+             path=Path(local)/name;uri=GCS_ROOT+'/'+token+'/'+name
+             objects[name]=dict(uri=uri,generation=None,sha256=sha(path),bytes=path.stat().st_size,verified=False)
+             subprocess.run(['gcloud','storage','cp',str(path),uri],env=env,check=True,
+-                           capture_output=True,timeout=180)
++                           stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=180)
+             described=subprocess.run(['gcloud','storage','objects','describe',uri,'--format=json'],
+-                           env=env,check=True,capture_output=True,text=True,timeout=60)
++                           env=env,check=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True,timeout=60)
+             meta=json.loads(described.stdout);generation=str(meta.get('generation',''))
+             if not generation.isdigit() or int(meta.get('size',-1))!=path.stat().st_size:
+                 raise ValueError('GCS object metadata differs')
+--- base/tower_sequence.py
++++ operator/tower_sequence.py
+@@ -2,12 +2,12 @@
+ import json,sys,time,hashlib
+ from pathlib import Path
+ 
+-RULES=('null_argmax',)
++RULES=('candidates_argmax',)
+ COUNTS=(0,0,0,0,134)
+ SCHEDULE=((0,4),)
+ 
+ def descriptors(package):
+- return [dict(arm='tower',modes=['none'],stage1_select_rule='null_argmax',save_own_depth=False,
++ return [dict(arm='tower',modes=['none'],stage1_select_rule='candidates_argmax',save_own_depth=False,
+               perception_memo='on',perception_memo_modules=['g3t'],perception_memo_verify_ids=[],
+               types=[4],expected=134)]
+ 
+@@ -66,14 +66,14 @@
+  from e2e_reader import stage1,real
+  for rule in RULES:
+   made=[]
+-  def init(obj,detect,head,geometry,rule='null_argmax'):
++  def init(obj,detect,head,geometry,rule='candidates_argmax'):
+    obj.rule=rule;obj.head=head;obj.diagnostics={};made.append(obj)
+   head=SimpleNamespace(with_null=lambda *a:torch.tensor([1.,2.,100.]))
+   with patch.object(stage1.StageOne,'__init__',init),patch.object(real,'TowerG3T',return_value=None),patch('e2e_reader.geometry.frame_count',return_value=32):
+    value=real.real_perception(None,device='cpu',perception_memo_modules=['g3t'],sam3_tower=object(),selector_head=head,stage1_select_rule=rule)
+    value.socket(None,None)
+   assert made[0].rule==rule
+-  assert made[0].select(dict(x=torch.zeros(2,58),name='x'))==(-1 if rule==RULES[0] else 1)
++  assert made[0].select(dict(x=torch.zeros(2,58),name='x'))==1
+  if config.get('measure_memory'):
+   result[0]['full_reader']=full_reader_rehearsal(configs[0])
+  return result
+@@ -97,7 +97,7 @@
+  package=Path(config['package'])
+  manifest=load_manifest(package/'items/room134.json')
+  settings=json.loads(Path(config['settings']).read_text())
+- expected=dict(stage1_select_rule='null_argmax',perception_memo='on',
++ expected=dict(stage1_select_rule='candidates_argmax',perception_memo='on',
+    perception_memo_modules=['g3t'],perception_memo_verify_ids=[],save_own_depth=False,
+    types=['room_size_estimation'])
+  if any(settings.get(k)!=v for k,v in expected.items()):raise ValueError('Rehearsal settings differ')
+--- base/tower_bootstrap.py
++++ operator/tower_bootstrap.py
+@@ -21,7 +21,7 @@
+ 
+ def main():
+  root=Path(sys.argv[1]);public=json.loads((root/'0.json').read_text())
+- shared=Path('/project/community/jjyeung')/public['token']
++ shared=Path('/project/community/jjyeung/okh7')/('a15_cot_ap'+public['token'])
+  assert hashlib.sha256((shared/'0.tgz').read_bytes()).hexdigest()==public['payload_sha256']
+  with tarfile.open(shared/'0.tgz') as tar:
+   for m in tar:
+--- base/node_check.py
++++ operator/node_check.py
+@@ -36,7 +36,7 @@
+     if len(lines) != 1:
+         raise ValueError('Bundle encoding differs')
+     expression = ast.parse(lines[0]).body[0].value
+-    if (not isinstance(expression, ast.Call) or ast.unparse(expression.func) != 'bytes.fromhex'
++    if (not isinstance(expression, ast.Call) or not (isinstance(expression.func,ast.Attribute) and isinstance(expression.func.value,ast.Name) and expression.func.value.id=='bytes' and expression.func.attr=='fromhex')
+             or len(expression.args) != 1 or expression.keywords):
+         raise ValueError('Bundle encoding differs')
+     raw = bytes.fromhex(ast.literal_eval(expression.args[0]))
+@@ -158,7 +158,7 @@
+                     env=env,stdout=log,stderr=subprocess.STDOUT,check=True)
+     ready=json.loads(J.physical(root,cfg['logical']+'/d/READY.json').read_text())
+     settings=json.loads(J.physical(root,cfg['logical']+'/d/settings.json').read_text())
+-    if (settings['stage1_select_rule']!='null_argmax' or settings['perception_memo']!='on'
++    if (settings['stage1_select_rule']!='candidates_argmax' or settings['perception_memo']!='on'
+         or settings.get('types')!=['room_size_estimation'] or settings['perception_memo_modules']!=['g3t'] or settings['perception_memo_verify_ids']!=[]):
+         raise ValueError('Prepared default settings differ')
+     run_cfg=dict(package=cfg['logical']+'/p',output=cfg['logical']+'/r',python=inputs['python'],
+--- base/fill_export.py
++++ operator/fill_export.py
+@@ -124,6 +124,36 @@
+     return pins, raw
+ 
+ 
++
++def reviewed_binding():
++    package = Path(__file__).resolve().parent.parent
++    if not (package/'0.tgz').is_file():package = Path(__file__).resolve().parent/'package'
++    public = json.loads((package/'0.json').read_text())
++    raw = (package/'0.tgz').read_bytes()
++    if pin(raw)['sha256'] != public['payload_sha256']:raise ValueError('Reviewed payload differs')
++    with tarfile.open(fileobj=io.BytesIO(raw)) as archive:
++        cfg = json.load(archive.extractfile('9.json'))
++    digest = hashlib.sha256(json.dumps(cfg,sort_keys=True,separators=(',',':')).encode()).hexdigest()
++    if digest != public['plan_sha256']:raise ValueError('Reviewed plan differs')
++    return cfg['export_binding']
++
++def bind_review(a, export, artifact, archive, prep, binding):
++    for key, actual in [('object',a.object),('step',a.step),('lineage',a.lineage),
++                        ('member_directory',export['member_directory'])]:
++        if actual != binding[key]:raise ValueError('Reviewed export binding differs: '+key)
++    if artifact.get('step') != binding['step']:raise ValueError('Artifact step differs')
++    for key in ('config_sha256','base_identity','frame_layout'):
++        if artifact.get(key) != binding[key]:raise ValueError('Artifact identity differs: '+key)
++    for name in ('heads','full_weights'):
++        path = PurePosixPath(artifact[name]['path'])
++        tail = PurePosixPath(binding['run'])/binding['member_directory']/MEMBERS[name]
++        if path.parts[-len(tail.parts):] != tail.parts:raise ValueError('Artifact run/member path differs')
++    for name, digest in binding['preparation_sha256'].items():
++        if prep[name]['sha256'] != digest:raise ValueError('Reviewed preparation differs: '+name)
++    export.update(run=binding['run'],object=binding['object'],config_sha256=binding['config_sha256'],
++                  archive_sha256=archive['sha256'])
++
++
+ def main():
+     p = argparse.ArgumentParser(description=__doc__)
+     p.add_argument('--parts',nargs='+',required=True); p.add_argument('--done',required=True)
+@@ -133,6 +163,10 @@
+     p.add_argument('--out',required=True);p.add_argument('--prep-tar',required=True)
+     p.add_argument('--base-inputs',required=True);p.add_argument('--inputs-out',required=True)
+     a = p.parse_args()
++    binding=reviewed_binding()
++    if (a.object != binding['object'] or a.step != binding['step'] or a.lineage != binding['lineage']):
++        raise ValueError('Reviewed run/step/object differs')
++    if len(a.parts) != 4:raise ValueError('Require four ordered parts')
+     if a.step < 0:raise ValueError('Step must be nonnegative')
+     # Refuse missing preparation files before scanning a multi-GB archive.
+     for path in (a.config,a.receipt,a.data_receipt):
+@@ -141,6 +175,7 @@
+     label = re.fullmatch(r'm(\d+)', PurePosixPath(export['member_directory']).name)
+     if label and int(label.group(1)) != a.step:raise ValueError('Step label differs from export member directory')
+     prep, raw = preparation(a.config,a.receipt,a.data_receipt,artifact)
++    bind_review(a,export,artifact,archive,prep,binding)
+     export.update(schema='h1-export-pins-v1',lineage=a.lineage,step=a.step,preparation=prep)
+     with tarfile.open(a.prep_tar,'w') as tar:
+         for name, data in raw.items():
+@@ -150,12 +185,12 @@
+     inputs=json.loads(Path(a.base_inputs).read_text())
+     inputs['archives'][0]=archive
+     prep_archive=dict(path=str(Path(a.prep_tar).resolve()),**pin(Path(a.prep_tar).read_bytes()))
+-    inputs['archives'].append(dict(destination=archive['destination'],parts=[prep_archive],
+-                                   sha256=prep_archive['sha256'],expanded_bytes=sum(map(len,raw.values()))))
++    inputs['archives'][4]=dict(destination=archive['destination'],parts=[prep_archive],
++                                   sha256=prep_archive['sha256'],expanded_bytes=sum(map(len,raw.values())))
+     for name, member in MEMBERS.items():
+         inputs['files'][name]=dict(path=LOGICAL+'/d/'+export['member_directory']+'/'+member,**export[name])
+     inputs['export_pin']=dict(path='a/export.json',**pin(Path(a.out).read_bytes()))
+-    inputs['types']=['camera_displacement','camera_rotation','camera_movement_direction']
++    # Preserve the reviewed item selection from the base input plan.
+     inputs['resume']=None
+     write(a.inputs_out,inputs)
+ 
+
+# Delivery text differences
+--- base-delivery/0.json
++++ delivery/0.json
+@@ -1 +1,6 @@
+-{"payload_bytes": 5036922, "payload_sha256": "bb7a4faa6558f24d58d164bd7522eb536badfb3dfdd05aad0a3fe78140f0c663", "plan_sha256": "4821199176b2e1e4830211a6d378d6d15806c53d7564baf210217845d86d63ce", "token": "f40065df28aa3"}
++{
++  "payload_bytes": 4989278,
++  "payload_sha256": "ab26b592277b4c44843b0ce30862d2ab9b8a00d76d7b06027b0414e588cdc05f",
++  "plan_sha256": "94e78407a675aec4ee2a1e56ff79607a04eba6b476db441e65232006508aaa5c",
++  "token": "b9188e9225a85"
++}
+--- base-delivery/BATCH.sh
++++ delivery/BATCH.sh
+@@ -5,8 +5,8 @@
+ from pathlib import Path,PurePosixPath
+ j=os.environ.get('SLURM_JOB_ID','')
+ if not j.isdigit():raise ValueError('Allocation required')
+-b=bytes.fromhex('1f8b0800000000000003ed5ceb6fdbc6b23f9ff557b0ee0792f29ad6c3afca61803cdc341779c1760a5c080241912b891145b224655b31f2bfdf79ec52a4243b2e8af6f40251732c711fb3b3b3b333bf995d9e8ef3a54893fffcad9f0e7c4e3a1dfaee6c7f77fafd93ea37979f9c9e76ff6374fe5eb6f8b32c4a3f8721ff89b1fe859ffbbdcc5fc5a91f7ae355298bbd8171dce99ffcd2eb09a3aa29667eeff804aaf6c6e353ff68e2fb27c7c76793de51787c16764f8ec6e1e971af27c7c7fd93b11f4ec6fd7012869d63df0f3b7e7f224fcfba479d49273839e9ef21d5d84f6a248fce7addee2fbf744f4fc63dd9954767fd0e14f82761fff42c3c09bbc7679d93e0b80f43c040fea4d785ead3b3a3e3f0ec243ce907124996e95c26486c7204ba731c4e7a67bedfdffbd6fa6f4bf7dfffe938d9ea6f1fe3f1fd7f747c74bcb9ff8f8e4f7eecff7fe2b3b7b7f7299785cc6fa491e569b80cca284d0c3f5c444501bf8401f29946c954187e1ca7814fd5e3749984051425a101bd9771095fe5324f1ca0d78a16599a97c6cc2f66713416e86004087912c55214aba235c9d38591f925d61aaaf127786cb55aa19c180b7f2ebd302aa04530b3f2342d8591e61130e1c7f02b93b95fa6b93221f6a06510bd340f667e1e7ab36ec709d2c502b854a4a161cb40c2154d3f9fde8836fc2d44bb3dbfc51f48c7f8d9f898c42b980ad8a8401ae50cfe976607b1bc91717dfa9a90cccf416832f3732e4771dca6f95ce6058a6d65645192c8d001d2d1c488654223dbcfdd1e35c587e1416f3072dd6151e634d543d33f3c863d69daa25ed425376dda2364d3082653179f1d34cf85b5d5cac92598ed52de95966d6307bf80152eb1dfd0f469854d18b4ab680dcd204d26d1d41c0dcd0df142b38d12ecb33de06d1e95924724c6c2e5222b2ca0cde3c3eca1b7ea764ad3fb699330cdccc8fda890c6ef7ebc9417799ee696f912542d9661b5f006ac733285027f52ca1ce59c97cbcce4798244dd619b043b38e88d6a323c7d44a8d095d5b7d2b39d2ad2d2adf4fa570a1b25162a10127651932d507387b8e88eecf36c398ea360c78a7576af17c823972113320f61577e914179884abd4ca27275f8e5cb4a2e93a9691f32e5a1490ed08479a885565bcf61c95a1653c401cbe9573d1e397c18d099c9bb309aca0246775d4db2e9fc91f66d54ce0cb58f1d588d64932c8c8ef5b8901358a7851125fa193520494b63e124fe423ab4680512b4ccdac63d34ed01a86219254bd9e8141538a865c3fa18a6e3984899c4c3f46c27437a836de5f99c14fe441a411a4ad690cc65d167e621f73dcfb0b34c4a67310fa3dce287c2bdce9752c8bba828bd744e4fb0904acf5972300707962c870d45dc2d58aebc84b0fe68e19c28c105b13a35c5035db5b78d96b6565fd2f1d32cdac6f6713737580bed793a69a89d5e30ff30387cf5e9f36ef55352b7a83b2a02e854688e8ca830500c64baa8ce99cad232c7b43fbde91279558ded871a8368f39557c83f963209e4779b4f9671ec217732df6a4be6823e0f7732c5fd379b4b1f1eaad275b4890fabffd668d008a06ca3d31ada82bc6a0da3245b960536c5555aaf82b6403ba96f9be25db678a708167291e6abdaecc77e11153079d735cc497427436fda2f914a260b73e7e88ac448494fe681ccd0717858e12d0029c452511c9a40ec011135c914fe02fafbc532970b500558a53f9651ae97e5573f2e762deb2695495416eb85b4776cfb5f41050c5070f015329883bd9e4cc027a39c617b39540822c89789bb036c6c34119b88838990d1c7f6367801d8329e87d6c4f35cd7f43cacf43c73c09ee1df1c869cfed7f17fbf7fda3ddac2ff27c73ff0ff3ff101bcfe51032bbd0dc87ba789443cb330d09292ef079f8b856b1c5c07fb04f2c1eb89325a48a1f0c72348fff2f3bb8b2bd7321334d6809416fe9d29ecd6ab8f9f3f5c437947f07fddfe91ddba7af5dbc56b68ef5a507e644333825da12c823cca80f302bc7630f7a792401863b461180525c0b8850be8e8165d01d82c59b84333815998080da143177c510ce80a367a2cdd2637857f23bdf436f142b07c3397ac93589b27fa6cd845d7046b2e1e3096aeb2935bf537328f262b2f0aa1c9687384729561d7a31180910c380560884219b10c0ae90336f60896582868718366f00951117521674f3885900ea041b2ba35c84095757cf0934b23ec30ba97a8285108761d406adde66e71c7bc73e4242d0e3e9ec0f2c7cbd7179722f06101a3c08f5b067835c930996980cf5c96e0694d00dd852c01474e8b3afe6934d50da0f13600e246ec6e525a2a3f3677799acf895e1643b733c8db9b1ae3c99e5468c4d958f80ace294e103f9342e88256f3d1d23f84f69b8c4b89635d0713db526c002388e86003d3b6db318d65324f50d577f445340b332cdcfa7ed34254fb0e05ae57dea58d8750c8ad5ad5719160305455f2e3ba1af57f13db56cbbb0989401b72d8365d81122e5c625414e0bd71c7b9da70c0147e36fee7eae307b06880564b9885318d6e24481ce3c7712c8d18d41f037fcc85242587f3680631bbb1908c230a08e4ab59d6d4aa16f1ea6a1b15b0b63551530f01c6947ee897fee1dbd7171faedf5eff2fc33f51f56a29c52bdcfb6f2d1a3f1238275c3a990023307b69d12c29614101e7066d92847988f14684c03298a53025f7beddaed467978a0c90ea6ee581f60d53680eb66ca14966ca1c0c698f0ecb11314f2ac774b97e348268fa7ece63cdb9d11c1b6d214c536c61ceb599dc515901d26f203832692ad0abe4a282edf36d93c912425935ea36fa5f5ebc78ed6d2c1ca97abbadd78fb4d085255382aed4579b2c4b0d455911b5d4c368848bc34fc284911720485cbe86b95aefb4436e7388de195c810a2184b67d031d69425165e3a810276beb5533031f94dac3865ccb6a44a55a7b6c618042a49987f16dbd552594abeb8f9fcc35cd02068358907360e6806268137c306a8672c3a04de488b14479e2a72b4f35ce9fd3df753798cb02fc7b949883ee59a7234c460bebc21e14b6db4db3ab16ed5bab02176ae9d88fe57226fdbcc0d57dd893412091c85c5b7c4c72e4692c585088388aa779bfb581d8f09ee79c860500a1ed463099a204557b877486b25446e9122d274a4279675102504978d81929cd44f6287fd7a2ac5ae1d658b548ed99b00b6d04f6764b41f4dc4e659349dc7e09bf26511215336fbc727ba4fa2a4d85c486f847b1621e1c90b2d8fb5d087695c23cda9c5549b527757ab4394f533517a6f32585f8ac2e80c799c3091dd05e60125b9bb4821f5b5b644d77138fec1a476f5b1ca6894e766bb8eb92630753b236f87f6d9c35bf4c6eb865a051846078bedbb06eb7a1cfe3280266f038014ad5a2a63b7e96c924645d547697b1727d3d05e92ea5712b40c87c36e13421848b3b18189191042368b08001d7a1888d7206d0613aa33301182d3648398d220de6b2e4d468512ec7c6ad8ca6b31291026d674cd896b2289d0534d43b9973c7dc80f8d41557f01dcb0ffe42422016203ae7f212adc2169cace0232904fa9e98f73e315c813d90d8029a9365a06310d88ba5958ebf885096304301d62b14539982c6e6e0c2b60221b219067470a80eff9ce313f673f10f3d85913f4dd2a28c02042fe738a45e22a8467da2f61b53b450721e8ee6c6fe621cfa46db1fd0749d52260540d361d7113d47743b1d67446a49b226113a40182660b1009c2bfcfa9880c7f13c9ca3e701b2826f5b345aa39c84798dcbf7a67f6d0ae5012832713f800951ed2db386dcb5789c498e599e006064b9d1b5df6341f1138e821b2af6d6da6c217590fa4d148088836cf9fd50b1f0177d8f54cd55ecdb8215134070b500bb6259fc6357fc38aca8cc014d72bd6f71a9c0f0f3ea52bfed3aa6cc9bedcee505fa2af3b4b07ae2f8cc1698fb724dd015db75ad832e06244c8eed52676448408c46773bba52e9404fa5f818d6d20e875ec3463277e4d6f3c19b6eb760e7a53c34936007fd582f1c6f6f6fafdafa24c9d0b87cf3b2a050b8daef6acf91f6e1c6c917e8d340dd29cf887e28260b50505684f72afa5130a7b5e4c7c55d54829e06f3276c7f0c073f5c3dc190a827880fb215764ab29d96e3d3db77baf8ed0266f9a041015ca1c06cacdac0c410e27a5914631ca9ec4ea59be8f1f308a41b742142c0c31664837f096a41232862b3ae049d746a671eb1bf4c8299e0713d709b19c8b7d99ae04bd51e33f30b3f892620113d0d68850057b701c085a9a88d5ac46115ff410a7a87849f962c1174ecb2a1bebc9bf1389336f48ed01ad5a3d23a4345ee056a0d9dd1b0eb731fc0fa2d434fd36d4c5a27bc76c7022de32f643f2abf489bfdbb59b29d19b0d6766aec4f66c11e4cbea97c988933f68ae8abf4401cd1c2e7436db62f7eb2aa7225b44c734c5b71b4296e28985693d4b078576ae7b25ab42a41c3492d93d0c207091c1b137f9c43645782c6a3cd81fd26f190d28ff16c1a8d87322815093c139d555954a8a1d482b33e766b2c13f009fa4780f2f20290e4e5853eb38b0a8fcf447772ce8c4460c3c698cf408ed787d38fa1d5babde53e8f9e8bd2ba60da22068761bc5c8620ed81c219da0bc352c413d1f6f120dd1ee0395cd50042e278dd80ae6128fb4d68f5a0ab314b2e0309a051b7ac9adde3aef3d0ee72b4f94db3728d27e2a01d74fa1ccc96c91c95e61966b1e7cf01fa3f3be49fcffca400fbf4bcd7758e7bcf0ed513e14c99161e1dac834eba3dc508c80e96bde40aac478565b6ca8aab3e2e6609f8f85999a628ce224b93423e37d90b1e295a324103c99df99a4145610878a7b37f472a7b4781b0a35adb5a246c5eb937f0d0ec6faad8066b1d9efe303ae8821f06ceba9d676ef4acdb636e821984fa07389e8d95d173177f739d697230891cc01836dfa389d36954165644befaab4203a83896d515f05f1f4809a4e8d8e75f8794c6efec4744fc991ab437c2519cf5c58b0f57169375bf821f00e59acb1503abc2557805025ed80b4515e2a679485782107b34136464960faebab0ce979d03f80db80479c5cdee2668e87206cad84d9bd4a14abd90887278a233ef7a3dec618c91713c0a1439deddeaafe22b7cb2cfbfa4303b3fe66414c68b8aeb2aae66df87771000705936ffe0307b08211ad3149cbe79c4e4738e033a288b21362d88a0e0ba8c267e501e689ed7cdc6c034d8279d2c81c66c040e2841d41c7f8cd9a68303301f5ca1e648853cdc4116259b2c7858b6265f3920b1ed924415aa8bdd765ee84c81d0873b9a2c270404e702b09972d082f1360e8c3ede1413f39ed6e9dbe13d5eccaa56718fa4bb37b2bf999a8d0335419d1fc84b17d4b572cc2a1b024821210b793f1f50119a67d05615a0c6ee7cdf3c54e1a1e257a507376eebccabaddeb89a23e8d689dbb547763d6f8ace1413b48bbe697f536a80cee5163c384814fac9e486d27c850b0f7c81a57ac471b8999a99c36e584563032851e53c1b15a455b31d0cf9bad3faf00119190de7042b8a34bec15b3b3576c9db65609a401fa0272e309b767eb447fb4c919284b183b77738102c40e9b846c1aff5ddad2c4f035c9152db7cb7b2fe304598ec12995326dbbd37319130b8fff6cd3ea741b0ab7d4e18096ccb7921ff702194806f99ac8366acb6b40f537793e64f8580efabe8600bff1944b9d0a17217137964108935815313f7fa7e1e302df4861edc9b1c8bc6fe0a77e2c00c97594c50c4a41cb83a6283758b1b8cc3fc607a6e077fcfe8d404e69fa585fcc54d32a7444c31ec3862e35f57fd1b09abdf135ddb16d3dcbfc18310e804e8df5f51af832eb61ee98c30813700ad997212a03305f5c7ff6cc1d514c6020f7f2c65ae15cf08c5f26650f32ccb1b876eab0c07bd91e83b9c41af390f9e09fd058750463712494e6522f96ea6a7d29550d8f4eb309300f8439f4797b4a4bf208723181db9cad97568408500f048a89229cb73dfedea95533db8dca668bb5a0ed837255eac0a64013a2df2f496d00cad4b044ee216f37b1c6bf129e2485f9f8c862608a86098fb938b56aa5e82a013dbb04ea0310f30ffa51b1660c102e96dd43e74e5f213f149eed2508ea17e9ecbd7fb26044bf4901535365774cf896e56c1a61ef1fda668a22a7f72a1469fe0edd82e6a78a26b5cfdf602da3587e7289c8258be88b81e0903cf68c1acc00f0a7d2c9b367323634827445537a12c31f327d0ddb878226801057c68aa1b11a0e5a168a5a6daa8d72167c3a9304e93a92d7c88dc130e74fc62feddf63894be87eaf9cb302a399bf4027fea04589548b068ca05fe6435c21c843b6ca4bc54406f4609b48b6353ac736db584d766eb170a2dd49aa3c6a34f50fb7b67378a53790b424f787880bc62c69ba5e9bc1a62216683d963d4c95a342600c6fb8111b214ece14a37c696d788f9419b395071f94bbcbe78f5f1f585f7f2f3eb3717d72edab6edf16bc90ef30a7e5f33ec78940f9582004648a1bd31569a829f760db24e9508f3d73cfd2a9337fd6b355211850081601304a5fb829273a0506ac3bc068f12947c5d87bccc625994eac8ff062c9d8189ce9dd352391ad353c7492a7d834c92e7d898916eae6ca0c76788ec5809c861e9ae7138e94a1a5c098db5a9a9e9960f7005ac4b205568490e9eec0d4d0c4d0e2af880141e80528959274eb35958a3f6299d8529680dcbe0119aa423104137fe901fb7996f72a82240231152bd4d07ecb71544a73409081a107ca131efa179a40e4b114beaa359c22631d92a8c25389b6922688a01cd846896bb68b01178e20876ed99e040bd004d173cf77bb4bd1fb8eba812786114d2b2eba10c79071b385ed1c52d64cd549342578309d373e5e5c8f3e87c00b36d515914ae9d084544183661851e822f06e3a074ab5657a3c0b1e76efcae0e64756380f2d496b17c558c1088ca09cc633173082e87ce13a90ebc798d9c6e8089058cd54cb55ed87438aab7504a8be55d0850bba237b29f20611e194f858870c32f5142d15da715adfb761bbf8539a57b275e992ff1f604963174e474832958be8d561080a884a8c3bb2eb49875f20ff5a6ded6b834e8c39d114e6063f47e186c4e7c007d6a6db578a8014950f10882529de84bb9fb6d617d9c4ca220c2a419366bc8070291284f13bcf9dbb895fed05eaab57fe0c51695ebab35ac45b24fcdfc7d7fd151990960e924de2e50a4d2131b28032f9d73ce0c3abb983aa0c5aeed28c1f8c9c57d2e58ab703bb2114d9534eb6b2c762cfe7691a809c553fcbabb056557ef0a6c31dd38ac527bc95533151a6e8ca1356e62860b0619724399711c0a823c15f7d2910a9f9540ed2d05e26615b699da531a1cf211d48629052ae657470b63f2da86f2ee9c51207b3e34d95243d305de7137188518107f64385161362025f2f2e9c31b43bb3cf313ed98371c33a4c88e8a1fd85fc0f32b302bbf115ed1ccc4699ac1535ad77a16aabef7c8d7887efdfcee9d8757882e2ed5dd2192f8fac08a1ed50b45e0b15492165631e4fb14826f90706c12c469004012c085837f9e70e304cf3d0027ca3b192c4bf9276e87a20b2206b44f22ff8205e03e76e69e29c06d781e50a8689a60ae1b57dcfede25160ac3d1282d733e916dadb3905647702a0f02311482653f07ad0e0ff0360f72f7d4fb18d585d7c118d676dee297ead657b2aa5348d7528204e24a7a365e1951ab82eb4358e98eef1df06f0e79d46c9e7853a1dde6f6f6066c508260f38cc2dfc413ca146b816df53b5733e42b92eb0b4209c9d3e24bd642dd2704b833ac2547d514544a1429e01d0ebe66a2e18c0ba0cfca1bf8a64600e10dc9a296e5a84b624da6fab5be9a9154d5eb5ad74de80dabe562e1e7ab75f6ed09bc200f76e3e2c7e66deb6a38d8e8753a3bc86879ab6f750395fe82ad9f2e2817a8e457198387b4f3eaf3fbf72f2ef5b54235b7b5715005ea75433a29f7e81d5cab2d605365d008d4c9c209d9f51775f94d35b7d7e9b4bb9dde51bbddc765fed9f895cc2344057cd50b76eac0f04bb0cc10369c1c19980da295231bd9c7b75583194c7f9a43bceb181768cb0d228dc432bc070380cb47837d83efbe8e53885027e0dd4b456c7d963e0146551dd045820a72e09599691fb6dbc951fb97fd93a3fd7e0ffeb58fbbf46fffb8bbdfb3db672d1ccd533376a1fd3ecfabd7d207be1e253f8161e9022535eb4af91b9aa7e596083a80645925edda081bea41cdb2785980a3055814916ba55e56b2dfb71fe93903c97aecb81eeab1bf3501bbbe51d7a71b9a6f0c8dea19097ac7cbdd7ebdebbb974c9aacf23b5a953c3ae2a197b6d4a12c8ea458e22ede1276798e8bb341395b9533e001756456bd80ead517542da6588b57530ed22c026efa1b24b764a6b8de2ac7b7ba3c5e056ab0b9471adbb73906be6ea6edc1d63a9aa3675bb4364d85dd6a6c5cf0f463d9bc7ef28a5e53e3bb26a51f256a73d216a77c0fec114a1423e8c4576b6939f0e1eac5fbda8593ef3af4bff656c43acdffd0f56b0ca758ab76bf8c0baa01dcd4dfe6a61721aadbdb2ded751b46eebbe6b372eeef2fde7faccca8f2a7d5d17ae519f1fdc19d89c76a56cc96bc0ba40c0bdabd6af50c7ae773fb9e51f345f08d17f4b75e096f88f63c53c7f2938dab1ffa25e2e1a033e2ff87808c0fdfd4cf3297523fa131f88e0ae8849b4a3ff31bbbadddc53b5956c739ea7d6975956ba22ec254575cf80ad7d3d4b1b1ac1bff4704ebd5bdbcf8ede2c5e5d58b77d5ba5677b8ea7d34706a143e70c9acb9151b54aa33e9ea12555a546a49c8bcde5cd013801af899e2213d055843f3d5e7d72fbcdfdf5ebd7df9eec27b7df1fbdb571757c04d91c511f023e8157056c0ab5501b120e673adee6edc4727e61dfbfff36ba63f3e3f3e3f3e3f3e3f3effb2cfff013dc1bc5500500000')
+-r=Path('/tmp')/('a'+j+'f40065df28aa3')
++b=bytes.fromhex('1f8b08000000000002ffed5ce96fdbc8929fcffa2b387e1f48ca6d5a978fc8e10099c493c92217ec648085201014d99218512487a47cc4c8ffbe757453a40ec783c19bdd878d26cf12fba8aeaeaeaefa5575f3759c2f459afcf46ffd74e073dae9d07767fbbbd33f59ffe6f2d3b3d3939f8cce4fffc06755947e0e43fef4fff3f3d0328c83ccbf8f533ff426f7a52c0e86c6e0d9f9b3ded9b9a8d71573bf77720a9507fea4773a3979d6eb9d9d4d06c160703ee84f3a81ec77ce4f7b61cf9f3c9b9cfb9d4e78761a9e4d60dd7bf077d01dc893f3f3200c3a27d303a61bfb498de8b3813c3b1f74cefcd3b3135f0603297b7e579e9c4ea767cf4ea1b8339013ff743200aa93c1a02b4f4f7afd1e28ca49e7dcf7fd93808996e94226486ef2ac7b7e2e81c713fffce4a0f5adf5d38fcfeebde964f7fff6311edfff8393b3eee6fe1f9cfcd8ffffc8e7e0e0e0632e0b99df4823cbd3701594519a187eb88c8a027e0903e4338b929930fc384e039faa27e92a090b284a42037aafe212beca559e3840af152db3342f8db95fcce36822d0c10810f2348aa528ee8bd6344f9746e697586ba8c61fe1b1d56a85726a2cfd85f4c2a88016c1dccad3b414469a47c0841fc3af4ce67e99e6ca76d8c39641f4d23c98fb79e8cdbb1d2748974be0529186862d03095734fd7c7623daf0b710edf6e2167f201de35fc68724be87a980710aa451cee17f697614cb1b19d7a7af09c9fc028426333fe77214c76d9a2f645ea0d8ee8d2c4a12193a403a9a1ab14c6864fb17b7474df16174d41b8e5d775494394df5d8f48f4f604f9ab6a81775c94d9bf618d93482e9ccc567072d73616db572720916bb9477a565dbd8c12f60854bec37327d5a611306ed2a5a23334893693433c7237343bcd06ca304fb6c0f789b47a5e41189b170b5cc0a0b68f3f8307be8adba9dd1f47ede244c3333723f2aa4f1871fafe4659ea7b965fe0aaa16cbb05a7803d6399941813f2d658e72cecb5566f23c41a2eea84d821d1ef5c635199e3d2254e8caea5be9d94e1569e9567afd2b858d120b150809bba8c916a8b9435c74c7f645b69ac451b063c53abbd70be491cb900999c7b02bbfc8a03c46a55e2551797ffce5cbbd5c25b3e374313f33ed63cbf4bb275e90969e9f99873cd8c82457688e819c5a7cb51d1d96b665f128c84439fbaa792004004c387379174633590047aeab6936b1800972bb8dcab9a1f6b6032b946c9285d1b11e17770a6bb734a2443fa3562469692c9dc45f4a8716b240829659dbccc7a63d04f52ca364251b9da20207b56c5833c3741c132993c8989eed64486fb8ad509f93c29f4a234843c95a93b9bc1c9979cc7d2f32ec2c93d2592ec228b7f8a1703fe52b29e45d54945ebaa027585ca5fb2c39988303cb98c32623ee962c575e56d009b47a4e94e082589d9a3282fedadb864c5bb02fe9e469566e634bb99b9bae85363e9d3654512f987f1c1cbffcf879b74a2aa95bd41d1501742a34c74654182806326754e7cc64699913dab3de6c85bcaac6f6bec620dafcde2be49f2b9904f2bbcda7ab38f6903b996fb52513429ffd9d4cf1f0cde6d2fd4355ba8e7672bffa6f8d068d00d7363aad712ec8abd6304ab2555960535ca5f52a68abb493fab679de659f778a602997697e5f9bfdc42fa20226efba86398dee64e8cdfa2552c96461ee1c5d91182be9c93c90193a130f2bbc25a087582a8a231388ed1151934ce12fa1bf5fac72b904558055fa7315e57a597ef3e3423e81ca342a8bf542da3bb6fd6fa002062838f80f192cc0864fa7e0a751ceb0bd1c2a0411e4abc4dd0140369a884d14c244c811607b1b3c036c19cf436be279ae6b7a1e567a9e39646ff17f252039fb5fc7fffdfe59772bfe1f9c767fe0ff7f08ff7fd0c04aab3c79ea3491886796065a4df2f3e05fb1708d83eb609f403e783851464b2914d67804e95f7d7e7b79ed5a66003b3a0a7df09d1ee0a5a57f670abbf5f2c3e7f79fa0b623f8bf6e7f60b7ae5ffe7ef90a7ab916940f6c6846e02b9445904719f05f809f0e16fe4c121463a4360aa3a00430b7740110dda2f1072b250b776426301713012274e882f7890163c1d68ea5bb8ba7c2bf915e7a9b782158bcb94b5649accd127d36eca16b8215177b8ca4abece356fd8dcca3e9bd1785d064bc3942799f61d7c118404806fc024844d18c591285f401277b04472c14bab841f3f7840889ba9093277c420807502059db1a54a0ca3a2ef8d9a5117618db2b549a28047b0e80b56e6bb7b863de398a921607224f60f9c3d5abcb2b012b952651e0c72d03bc9964c8cc34c057ae4af0b000812f0a59027e9c1575dcd368aa1b40e36de0c38dd8cda4b4547e6cda3b81a55e1643b733c8cb9b1adbc99e5428c4d958f80ac6294e10379342e88256f3d1d23f84f6978c4789635d0713db526f002188e46033d316dc318d55b24850d577f445140b332cdcfaaed34254bb0f05ae57dea5ed8710c8ad5ad5f19060105455f2e3ba1af57f13d356cbbb0985401b72d8365d81122e5c625414e0b571c7b9da7cc014fe65fcd7f587f760dd00a596300b6316dd489038c69293581a31a83f2601302f92941cdaa349c44cc752327e2820a8af665953ab5af4abab6d54c0dad6444d3d06f852fa6063fce337af2edf7f7af3e9bf19f689aa574b295ee13e7c6bd1f891c039e1d2c9041881d94b8b6649c90b0a3e37689324cc638c33220494c13c8529b90fed76a53ebb54648854772b0fb46f984273b8650b4d3253e670447b74548e89795239a6cbf5e33144d60f0b1e6bc18d16d8680b599ac2dc6f2677545640f41b088e4c9a0af02ab9a8c0fb62db64b28450568dba8dfe57972f5e791b0b47aade6eebf5232d7461c994a02bf5d526cb52435186442df5281ae3e2f0933061e425081297af61aed63bed98db1ca3a70657a04207a16ddf5047985054d9382ac4c9da7ad5c0e381527bd8906b598da8546b8f2d0c508834f330aeadb7aa8472fde9c347734db380c12006e47c9839a4d8d9044f8c9aa19c316813b9632c51fef8e9ca538df3d7f477dd0de6b204ff1e25e6b07bdee9089331c3bab00785ed76d3ecaa45fbd6aa20865a3af663b99c4b3f2f7075f77b32082012996b8b8fc98d3c8d050b0a1147f134efb736101bdef38253b20020b4dd08a63394a06aef90ce50c6ca285da2e5444928ef2c4a062a098f3a63a599c81ee5f25a94612bdc1aab16a93d1376a18dc0de6e29889edba96c3289db2fe1d7344aa262ee4deedd1ea9be4a4f21b111fe51ac984747a42cf66117825ca5308f36675552ed499d1e6dced354cd85e97c49212eab0be071e6704247b41798c4d626ade0c7d61659d3ddc423bbc6d1db168769a293dd1aeebae4d8c194ac0dfedf1b67cd2f931b6d19681421189eef36acdb6de8f3388a80193c4e80d2b6a8e98e9f653209591795dd65ac5c5f4f41ba4b29dd0a10329f4d384d08e1f20e06466424c1081a2c60c0752862a39c037498cde97c00468b0d524ea34883852c39255a94ab89712ba3d9bc44a440db1993b7105394ce121aea9dcc79646e407cea8a6bf88ee57b7f2921280b109d73798956610b4e56f09114027d4fcc7b9f18aec01e486c09cdc932d09108ecc5d24a275f44284b98a100eb158a994c41637370617bc221b21c067473a805feb9c027ecede21f7a0a237f96a445190508612e7060bd50508d5a45ed37266aa1fcbc6415c76eec2f27a16fb4fd214dda29655200401d751dd17344b7d371c6a49c247112a40384611a168bc1b9c6af0f09f81dcfc3997a1ee02bf8b645a3354a4b989f70115ff73f9942f9018a4fdcf76048547bcbace1772d24679a638e270030596e74edf75850fc84a3e0b68abdb54e5b481d647f130528e86cf5fd80b1f0977d8f14ce55ecdb82d513a070b500bbe25afc6357fc38acaecc014d72bd7b71a9c0fcf3ea52bfed3aa6cc5beecee505fa2af3b4b07ae2e4dc1698f9724dd0159b0e9a36e22895f0f354128f012ced65a03d6aa46bc76e3de3bbe9600b7653ca17330976c58ff5c2f10e0e0eaa4d4ed20a8dabd7bf1614f4563b5bed2ed230dc22f912bd17a8346512d1e3c4b4d70bca85f0ae448f0986b396f2b8bc8b4ad0c560f1848d8e81dffbeb27980cf5049140768f9d926ca78df8f8e6ad2e7eb38459ee351d8020146c8d551b981882592f8b628c189585a9f40f7d7b1e8174832ec402789c826cf02f412d6804456cde95a0774eed5423f6574930173cae070e3203f9365b1350a9da63ee7de927d11424a2a701ad10caea3600ad3001b5518b88abe23f4841ef90f0d3d222820e5636d497772c1e62d2a6dd1144a37a545a67a818bd40ada153187672ee1e540fb1be9aa6db98b44e70ed46fd2de36fe4392a0f481bfa8959b19d19afd6762aec2f66bdf626db54fecbc4797b45f4557a209468e9f38136e73efce4beca8dd0622d304dc5d1a5b8a1e0594d55c3607b67fe4a2f5d9590e1249649e8e0bd048e8da93fc921922b41efd1f2c0ae937818e9c7782e8d264499958a049e7dceab0c2ad4502ac1591faf35160bf8042d2400797509c8f1ea529fcd4585c7679f3b39674622b06413cc5f20c7eb83e9c7d069ddea729f47cf3f695d304d11836b307e5d8520eda1c215dadfc252c453d1f6f110dd1ee2795bd50042e078dd80ae60282b4ee8f4a8ab314a2e03092051b7ac9a3de0def3d0fa7274f94db3f2098fbe413be8943998af92052acd73cc602f7e01a8fffc987f3ef79302acd42fbdae73d27b7eac9e0857cab4f0e8041d74d2ed29464076b0ec2557603d2a2cb355565cf571314bc0c3cfcb34457116599a14f217d390202e63a068c904cd2477e62b06158511209bcee11da9ec1d05be8e6a6d6b91b091e5dec043b3bfa96219ac7578faa3e8a8db192367ddce73377adeed3137c11c42fb231ccfc6cae817177f739d6972f0881cc01836dfa189d359541656441efbabf2fba83896d515f05f1f4809a4e8d8175f4794bcef1c4644fcb91ab437c6519cf5a58bf7d7169375bf823700e55ac87b865085ab900904b8b0178a2aa44df390ae0321ca6826c4c8381f5d77619daf3a47f01b1008f28a9bdd4dd0dce50c8cb19b36ac23956a2111e5f04467dbf57ad8c31813e3781418727cbbd55fc553f8645f7c4961767eccc9278c0f15d7551ccd1e10ef1a00b4b26cfec161f5084232a629385df388e1e79c06745016436c5a1041c174194dfda03cd23caf9b4d8069b04f3a39028dd9081c5142a839fe04b34b4747603eb842cd910a79b8a32c4a3659f0b06c4dbe724362db31892a3417bbedbcd09901a18f7434594e00088efdb19972d38291350e8c9ede1453f381d6e9dbf1035ecaaa56f180a47b30b6bf999a8d2335419d0fc84b17d4b572cf2afb017821210bf9b01852119a67d0561590c6eee2d03c56e1a0e257a503376ee52caaaddeb88223e87689dbb5c7763d4f8ace1413b2cbbe697f536a80cee516fc384814fac9e486d27a850b0f7c51a57ac471b8999a99c36e58c55d432851e53c1b158e55b31d8ef8aad3fab00119198f16042e8a34bec1db393576c9db65609a401fa0272e309b767eb4c7874c919282b183b77438e42b40e9b84681b0f5bdad2c4f035c9152db7cb7b2fe304598ec0a995326db7d303171307cf8f6cdbea041b0ab7d4148096ccb4521ff7421a0806f99ac8364acb6b40f537790164f0582efaa18610b051a44b9d04171171377641089358153130ffa6e1e302df4861e3e981c75c6fe3deec4a119aeb298a08849396f75a406eb16371887f9c1f4dc0efe9ed32909cc3f4b0bf9cc4d32a7444c31ea3862e35f57fd1b0babdf135ddb16b3dcbfc1830fe80431807f4fbd8ebad87aac33c004de00ba66ca4980ce14d41fffb3055753c00a3cfcb992b9563c2314ab9b61cdb3ac6e1cba95321af6c6a2ef70c6bce63c7826f4171c4219dd4824399389e47b999e4a4f4261d3afc34c02e00f7d1e5dc692fe921c8e6074e42a67d7a1011502c023a04aa62ccf43b7ab574ef5e0729be2ea6a3960df9478812a9005e8b4c8d35b4233b42e1138895bcce771c4c5a786637d75321a9920a08261eecf2e5aa97a09824e6cc33a81c63cc07c976e5880050ba4b751bbefbae547e293dca5a11c43fdfc96aff14d0996e8212b6a6caee83e13dda0824d3de67b4cd15455feec428d3eb11bee1d9ee81ad7bfbf8076cde13916a750962f1cae47c2f0335a322bf0830220cba6cddcc810d28950d54d284bccfc0974372e9e005a40011f9aea46046879285aa9a936ea75c8d96f2a8cd364660b1fe2f784031dbf587cb73d0ea5efa07afe2a8c4ace1bbdc09f3ad555a5132c9a72813f598d3013e18e1ac92d15d69b5102ede2d814ebac5a2db5b5d9fa85420bb5e6a8f1e813d4feded98da255de82d0131ef69057cc78f3345d54432cc57c387f8c3a598bc604c078ef19214bc11edeebc6d8f213627ed0660e545cfe12af2e5f7e7875e9fdfaf9d5ebcb4f2edab6edf16b290ff31a7e7f62d8f1281f2a11018c90427b13ac34053fed1a649d3011e66f79fa5526affb9fd44845140204824d1094ee0b4ac38142a90df30a3c4a50f2551df232cb5551aa23fe1bb07406a634774e4b656a4c4f1d1fa9240e32499e636346bab9b2811e9f19b263252087a5bbc6e1f42a69702534d6a6a6a65b3ec015b02e8154a1253978b23734313439a8e0435278004a25e69e38d966618ddaa774f6a5a0352c834768928e3c04ddec437edc66d6c9a18a008d4448f5361da8df56109d9225206840f085c6bcc7e6401d8e2296d447b1844d62b255184b704ed344d014039a09d12c77d16023f0c411ecda33c1817a019a2e78eef7687befb9d3a8d2786114d2b2eba10c79071b38bea74b5bc89aa92685ae06d3a617cacb91e7d1f90066dba2b2285c3b118a88306cc20a3d045f00c641e9f6acae468163cfddf85d1dc0eac600e5a92d63f9aa182110951398c762e6105c0e9d1f521d78f31a39dd00130b18ab996abdb0e9685c6fa19416cbbb10a076456f6c3f41c23c329e0211e1865fa2b4a2bb4e2e5a0fed367e0b7346f74cbc325fe16d092c63e8c8e90653b07c1bad200051695187775d6831ebe41fea4dbdad7169d0fd9d114e6063f47e186c4e7d007d6a6db578a8014950f10882529de84bb9fb6d617d984ea320c2a419366bc8070291284f13bce1dbb87dbe6f2fd5daef79a945e5fa6a0d6b91ec53337fdf5f74546602583a89b70b14a9f4c406cac0cbe59c3383ce2ea60e68b16b3b4a307e72719f0bd62adc8e6c445325cdfa1a8b1d8bbf5d246a42f114bfee6e41d9d53b015b4c378ea5d45e72d54c85861b13688d9b98e1824186dc50661c8782204fc5bd74b0c22726507b4b81b859856da6f69406877c04b5614a818af9d501c384bcb6a1bc3b6714c89e8f4cb6d4d0748977d90d462106c41f194e54980d4889bc7c7cffdad02ecffc483be635c70c29b2a3e207f617f0fc12cccaef84573433719a66f094d6b59e85aaef39f2b5a1df3ebf7debe195a1cb2b75578824be3eb6a247f53211782c95a485550cf9fe84e01b231c9b04711a00900470e1e09f27dc30c1d30fc089f24e06ab52fe85dba0e8828801ed93c8bf6001b88f9db9670a701b9e07142a9a2598ebc615b7bf776985c270344aab9ccf5e5beb2ca4d5119cca83400c8560d9bf80568747787b07b97beafd8bea82eb70026bbb68f10b75eb2b58d559a46b29410271253d1baf88a855c1f521ac74c7f70cf837873c6a364fbc99d06e737b7b03362841b07946e16fe209658ab5c0b6fa5da819f295c8f585a084e469f1d56aa1ee0f02dc19d592a36a0a2a258a14f0ce065f2bd170c605d067e50d7c532380f0866451cb72d425b12653fd5a5fc548aaea75adeb26f426d56ab9f4f3fb75f6ed09bc200f76e3a2c7e6edea6a38d8e8753a3bc86879ab6f75e394fe82ad9f2d2917a8e45719837dda79fdf9ddbb1757fa1aa19adbda38a802f5aa219d977bf4feadd516b0a9326804ea64e184ecfa4bbafc469adbeb74dadd4e6fd06ef77199ff65fc46e611a202beda053b7568f8255866081b4e0706668368e5c846f6f14dd5600ed39fe510ef3ac625da72834823b10cefbd00e0f2d160dfe07baf931422d42978f752115b9fa84f815155077491a0821c784566d687ed763a683f3b3c1d1cf67bf0af7dd2a57f8727ddc39edd3e6fe1689e9ab10bed0f795ebd963ef6f528f9090c4b1728a95957cadfd03c2db744d00124cb2a69d746d8500f6a96c5ab021c2dc0a2885c2bf5b292c3befd48cf3948d663c7b5afc7e1d604ecfa465d9f6e68be3134aa6724e85d2e77fb35aeef5e2769b2caef6255f2e8887d2f67a943591c49b1c45dbc15ecf21c17678372765fce8107d49179f5a2a9575f50b598622d5e4d3948b308b8e96f90dc9299e27aab1cdfdef27815a8c1e61e696cdfe618f85a99b6075beb688e9f6fd1da341576abb171c1d34f64f312ca4b7a1d8d6f9c947e94a8cd495b9cf23db04728518ca0135fa1a5e5c087eb17ef6ad74ebeebd0ffde5b10eb34ffbeebd6184eb156ed7ee9165403b8a9bfc94d2f3e54b7b55bdaeb368cdc77cd67e5dcdf5dbefb509951e54faba3f5ca33e27b823b138fd5ac982d7917481916b47bd5ea19f46ee7f66da3e64be01b2fe76fbd0ede10ed45a68ee5a71b1740f4cbc2a36167ccffef00191fbea99f652ea57e4263f01d15d00937957ee637735bbb8b77b2ac8e73d47bd1eac598a9ba0e535d74e18b5c4f53c7c6b26efc9f10ac57f7eaf2f7cb1757d72fde56eb5adde4aaf7d1c0a951b8e7aa59732b36a85467d2d555aab4a8d4929079bdb9a0270035f033c5437a0ab046e6cbcfaf5e787fbcb97ef3ebdb4befd5e51f6f5e5e5e0337451647c08fa057bd5901afef0b8805319f6b7577e33e3a31efd8ff29af93fef8fcf8fcf8fcf8fcf8fc877cfe07c4369fca00500000')
++r=Path('/tmp')/('a'+j+'b9188e9225a85')
+ r.mkdir(mode=0o700)
+ with tarfile.open(fileobj=io.BytesIO(b)) as a:
+     for e in a:
+--- base-delivery/CONFIG.json
++++ delivery/CONFIG.json
+@@ -1,6 +1,6 @@
+ {
+-  "payload_bytes": 5036922,
+-  "payload_sha256": "bb7a4faa6558f24d58d164bd7522eb536badfb3dfdd05aad0a3fe78140f0c663",
+-  "plan_sha256": "4821199176b2e1e4830211a6d378d6d15806c53d7564baf210217845d86d63ce",
+-  "token": "f40065df28aa3"
++  "payload_bytes": 4989278,
++  "payload_sha256": "ab26b592277b4c44843b0ce30862d2ab9b8a00d76d7b06027b0414e588cdc05f",
++  "plan_sha256": "94e78407a675aec4ee2a1e56ff79607a04eba6b476db441e65232006508aaa5c",
++  "token": "b9188e9225a85"
+ }
+--- base-delivery/PACKAGE.json
++++ delivery/PACKAGE.json
+@@ -1,12 +1,14 @@
+ {
+   "files": {
+-    "0.json": "1191580becff40a820d44c4d7d8269072c44a59617af767725ffffe2e46d52df",
+-    "0.tgz": "bb7a4faa6558f24d58d164bd7522eb536badfb3dfdd05aad0a3fe78140f0c663",
++    "0.json": "ad17ba82dbe16b1fa9bbdb0fd00a09c8a2dc3f75bb696da897ff2bec0d15c2d0",
++    "0.tgz": "ab26b592277b4c44843b0ce30862d2ab9b8a00d76d7b06027b0414e588cdc05f",
+     "3.py": "a5c94551f263e30bc05579a40e84f1f146e9a67dc2e21c8834ed62bd680b73e0",
+-    "BATCH.sh": "5c40fbf5a2ed9e8aaf453f2c43adc123950a72d5168d3c8ad91ab0f3e4bce25a",
+-    "CONFIG.json": "75069014e37e4e5668919c633109292d697c5210460a506007cce62b926957be",
+-    "a/5.py": "85ad29f101f53dbc4810b924fa15e5b465bc1d9d665a6b3ddba28f74f89e3a82",
+-    "a/6.py": "f8e2b7661e2114f366be731bd06278865d23747aa80632b409330252abda6856"
++    "BATCH.sh": "9332fcc87533cbbf9598b5b8d1830b622fe022d94cf5e76af1fe3c6ec227bfbe",
++    "CONFIG.json": "ad17ba82dbe16b1fa9bbdb0fd00a09c8a2dc3f75bb696da897ff2bec0d15c2d0",
++    "a/0.json": "206f81ec51f0ce38113b14289f9cf9896baded0e8a950e88ac6653764b24ac04",
++    "a/4.py": "6947730c6521ac852a4c261f51a637ff5bb36b06bd2559098fa263bbb4a423dd",
++    "a/5.py": "05392debfae602123a1d8b59d583992e90c8c919000e2338142d6a60af4f4147",
++    "a/6.py": "247f8cdfd507c2655adb5e68169c1cb198800c7bb24ef3ac4f9d7352404b34af"
+   },
+-  "token": "f40065df28aa3"
++  "token": "b9188e9225a85"
+ }
+--- base-delivery/a/0.json
++++ delivery/a/0.json
+@@ -0,0 +1,180 @@
++{
++  "archives": [
++    {
++      "destination": "sj/b01ec87a6f29b/d",
++      "expanded_bytes": 21583016318,
++      "parts": [
++        {
++          "bytes": 5395758080,
++          "path": "/project/community/jjyeung/okh7/e6fc152498/e/0",
++          "sha256": "5cd24e72f5b8a4f7ad6cb73d27dd426042be25e7600dcf00e4038de4c129f31a"
++        },
++        {
++          "bytes": 5395758080,
++          "path": "/project/community/jjyeung/okh7/e6fc152498/e/1",
++          "sha256": "6ed00d4724b1cfc57d0af6a017639d88284a139479ebf8b9943f280dc6c5df9f"
++        },
++        {
++          "bytes": 5395758080,
++          "path": "/project/community/jjyeung/okh7/e6fc152498/e/2",
++          "sha256": "557d8f649b964bd81a1c022dd87db18bdca0c2b61e420c2eccb1fc446a58f7bf"
++        },
++        {
++          "bytes": 5395758080,
++          "path": "/project/community/jjyeung/okh7/e6fc152498/e/3",
++          "sha256": "37e64c63c294a3eda298c61f637087c84851afa17f42ad18a4d24c8823c7f686"
++        }
++      ],
++      "sha256": "3ed73aead82cb0bb6468321256ea25e8fdaa5a2963da31062fdf8874bda2d4c7"
++    },
++    {
++      "destination": "sj/b01ec87a6f29b/d",
++      "expanded_bytes": 5627166349,
++      "parts": [
++        {
++          "bytes": 5627176960,
++          "path": "/project/community/jjyeung/okh7/e6fc152498/g/0",
++          "sha256": "6a53059fc74f76a928e83da46e3b07301ff7176f69800e4ae3842599b9b57dbf"
++        }
++      ],
++      "sha256": "6a53059fc74f76a928e83da46e3b07301ff7176f69800e4ae3842599b9b57dbf"
++    },
++    {
++      "destination": "sj/b01ec87a6f29b/d",
++      "expanded_bytes": 5251971237,
++      "parts": [
++        {
++          "bytes": 5257369600,
++          "path": "/project/community/jjyeung/okh7/e6fc152498/a2.tar",
++          "sha256": "1de93f61bde6cf5a0a4bf7a249b13218f8b20acf4fe626c5d8ec7570ef7915e9"
++        }
++      ],
++      "sha256": "1de93f61bde6cf5a0a4bf7a249b13218f8b20acf4fe626c5d8ec7570ef7915e9"
++    },
++    {
++      "destination": "sj/b01ec87a6f29b/d",
++      "expanded_bytes": 143782645,
++      "parts": [
++        {
++          "bytes": 145274880,
++          "path": "/project/community/jjyeung/okh7/e6fc152498/a4.tar",
++          "sha256": "c867d40addcf35c55db1ec511c4dc2b8a4cec80cef9003be93179ef82c30b0ea"
++        }
++      ],
++      "sha256": "c867d40addcf35c55db1ec511c4dc2b8a4cec80cef9003be93179ef82c30b0ea"
++    },
++    {
++      "destination": "sj/b01ec87a6f29b/d",
++      "expanded_bytes": 3131,
++      "parts": [
++        {
++          "bytes": 10240,
++          "path": "/project/community/jjyeung/okh7/e6fc152498/a3.tar",
++          "sha256": "05dc8f79707a51ec227f4bb875670a5d3b7cfa27271447783bf2f79b7474f5ae"
++        }
++      ],
++      "sha256": "05dc8f79707a51ec227f4bb875670a5d3b7cfa27271447783bf2f79b7474f5ae"
++    },
++    {
++      "destination": "sj/b01ec87a6f29b/d/f",
++      "expanded_bytes": 795282085,
++      "parts": [
++        {
++          "bytes": 797685760,
++          "path": "/project/community/jjyeung/okh7/af83c921/d81f4a26.tar",
++          "sha256": "2ad8c67c111d5f286aa96ea688efd5c88218e116a8c09ae1a9b4bc71be893a21"
++        }
++      ],
++      "sha256": "2ad8c67c111d5f286aa96ea688efd5c88218e116a8c09ae1a9b4bc71be893a21"
++    }
++  ],
++  "env_roots": [
++    "/scratch/jjyeung/b01ec87a6f29b/d/v/site"
++  ],
++  "environment_receipt": "env",
++  "export_pin": {
++    "bytes": 1498,
++    "path": "a/export.json",
++    "sha256": "798111bc92c146f64a1c031827a38381be022ae44304f864cc51f880d2fc754b"
++  },
++  "files": {
++    "artifact": {
++      "bytes": 11474,
++      "path": "/scratch/jjyeung/b01ec87a6f29b/d/m544/artifact.json",
++      "sha256": "1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef"
++    },
++    "base_config": {
++      "bytes": 3126,
++      "path": "/scratch/jjyeung/b01ec87a6f29b/d/b/config.json",
++      "sha256": "d0883072e01861ed0b2d47be3c16c36a8e81c224c7ffaa310c6558fb3f932b05"
++    },
++    "env": {
++      "bytes": 359,
++      "path": "/scratch/jjyeung/b01ec87a6f29b/d/q/env.json",
++      "sha256": "e46a9a59e1de189ae736a5d4e94c7827eabfcfa695057fda9640e8120a54a81a"
++    },
++    "full_weights": {
++      "bytes": 1794,
++      "path": "/scratch/jjyeung/b01ec87a6f29b/d/m544/full_weights/full_weights.json",
++      "sha256": "211ae87b0bb03bb0c3d43c1c1412e0f346591ab4ddc75b4d754de2740da0a302"
++    },
++    "g3t_config": {
++      "bytes": 149,
++      "path": "/scratch/jjyeung/b01ec87a6f29b/d/g/config.json",
++      "sha256": "5aeb2acd008d41a1cac52e10216fbf35e8dfeb2ce26b89bb24e7ccc4ee0817d7"
++    },
++    "g3t_weights": {
++      "bytes": 5627166200,
++      "path": "/scratch/jjyeung/b01ec87a6f29b/d/g/model.safetensors",
++      "sha256": "d460957bb1c8a8c228d83ab10bad8a6dbcf80b03f29d7fbebf9c0f2c1c25f702"
++    },
++    "heads": {
++      "bytes": 2763214343,
++      "path": "/scratch/jjyeung/b01ec87a6f29b/d/m544/heads.pt",
++      "sha256": "8bb5e1510ee3a5a3959e82f2149c69903e98f46880b8a038bf4b951b8c21de91"
++    },
++    "original_model": {
++      "bytes": 10240,
++      "path": "/scratch/jjyeung/b01ec87a6f29b/d/o/model_8005668fc14ce5ee.tar",
++      "sha256": "8005668fc14ce5ee088d0d631d581f62ca73e6cb8130fde4a2deb73de74f635b"
++    },
++    "policy": {
++      "bytes": 321,
++      "path": "/scratch/jjyeung/b01ec87a6f29b/d/q/policy.json",
++      "sha256": "a95a881cdfdeb86ae15a2ec3b3b484416f296f4bcd0d19c6a28667ea21835e2e"
++    },
++    "sam_checkpoint": {
++      "bytes": 3450062241,
++      "path": "/scratch/jjyeung/b01ec87a6f29b/d/k/sam3.pt",
++      "sha256": "9999e2341ceef5e136daa386eecb55cb414446a00ac2b55eb2dfd2f7c3cf8c9e"
++    },
++    "sam_receipt": {
++      "bytes": 1123,
++      "path": "/scratch/jjyeung/b01ec87a6f29b/d/k/SAM3_RECEIPT.json",
++      "sha256": "979e2f7776b2a44e8b84cdaf4c9c588120ae56b61cdef1b40147f419e4a05a75"
++    },
++    "selector_config": {
++      "bytes": 6541,
++      "path": "/scratch/jjyeung/b01ec87a6f29b/d/h/selector_head.json",
++      "sha256": "63aa0a6995890c1d555062f1187a900809e998b8da021bbe2b6a3777b41fea5e"
++    },
++    "selector_weights": {
++      "bytes": 207328,
++      "path": "/scratch/jjyeung/b01ec87a6f29b/d/h/selector_head.safetensors",
++      "sha256": "6d97c52407b7e106a7b475040558ba313589514c23c33b6994f4e7a0bb1df6c1"
++    }
++  },
++  "frames_root": "/scratch/jjyeung/b01ec87a6f29b/d/f",
++  "policy": {
++    "terminator": "/scratch/jjyeung/b01ec87a6f29b/d/q/terminator.sh",
++    "vnice": "/scratch/jjyeung/b01ec87a6f29b/d/q/vnice.sh"
++  },
++  "policy_receipt": "policy",
++  "python": "/scratch/jjyeung/b01ec87a6f29b/d/v/py",
++  "resume": null,
++  "sam_source": "/scratch/jjyeung/b01ec87a6f29b/d/s",
++  "schema": 1,
++  "types": [
++    "room_size_estimation"
++  ]
++}
+--- base-delivery/a/1.json
++++ delivery/a/1.json
+@@ -1,180 +1,3 @@
+ {
+-  "archives": [
+-    {
+-      "destination": "sj/b01ec87a6f29b/d",
+-      "expanded_bytes": 21583016318,
+-      "parts": [
+-        {
+-          "bytes": 5395758080,
+-          "path": "/project/community/jjyeung/okh7/e6fc152498/e/0",
+-          "sha256": "5cd24e72f5b8a4f7ad6cb73d27dd426042be25e7600dcf00e4038de4c129f31a"
+-        },
+-        {
+-          "bytes": 5395758080,
+-          "path": "/project/community/jjyeung/okh7/e6fc152498/e/1",
+-          "sha256": "6ed00d4724b1cfc57d0af6a017639d88284a139479ebf8b9943f280dc6c5df9f"
+-        },
+-        {
+-          "bytes": 5395758080,
+-          "path": "/project/community/jjyeung/okh7/e6fc152498/e/2",
+-          "sha256": "557d8f649b964bd81a1c022dd87db18bdca0c2b61e420c2eccb1fc446a58f7bf"
+-        },
+-        {
+-          "bytes": 5395758080,
+-          "path": "/project/community/jjyeung/okh7/e6fc152498/e/3",
+-          "sha256": "37e64c63c294a3eda298c61f637087c84851afa17f42ad18a4d24c8823c7f686"
+-        }
+-      ],
+-      "sha256": "3ed73aead82cb0bb6468321256ea25e8fdaa5a2963da31062fdf8874bda2d4c7"
+-    },
+-    {
+-      "destination": "sj/b01ec87a6f29b/d",
+-      "expanded_bytes": 5627166349,
+-      "parts": [
+-        {
+-          "bytes": 5627176960,
+-          "path": "/project/community/jjyeung/okh7/e6fc152498/g/0",
+-          "sha256": "6a53059fc74f76a928e83da46e3b07301ff7176f69800e4ae3842599b9b57dbf"
+-        }
+-      ],
+-      "sha256": "6a53059fc74f76a928e83da46e3b07301ff7176f69800e4ae3842599b9b57dbf"
+-    },
+-    {
+-      "destination": "sj/b01ec87a6f29b/d",
+-      "expanded_bytes": 5251971237,
+-      "parts": [
+-        {
+-          "bytes": 5257369600,
+-          "path": "/project/community/jjyeung/okh7/e6fc152498/a2.tar",
+-          "sha256": "1de93f61bde6cf5a0a4bf7a249b13218f8b20acf4fe626c5d8ec7570ef7915e9"
+-        }
+-      ],
+-      "sha256": "1de93f61bde6cf5a0a4bf7a249b13218f8b20acf4fe626c5d8ec7570ef7915e9"
+-    },
+-    {
+-      "destination": "sj/b01ec87a6f29b/d",
+-      "expanded_bytes": 143782645,
+-      "parts": [
+-        {
+-          "bytes": 145274880,
+-          "path": "/project/community/jjyeung/okh7/e6fc152498/a4.tar",
+-          "sha256": "c867d40addcf35c55db1ec511c4dc2b8a4cec80cef9003be93179ef82c30b0ea"
+-        }
+-      ],
+-      "sha256": "c867d40addcf35c55db1ec511c4dc2b8a4cec80cef9003be93179ef82c30b0ea"
+-    },
+-    {
+-      "destination": "sj/b01ec87a6f29b/d",
+-      "expanded_bytes": 3131,
+-      "parts": [
+-        {
+-          "bytes": 10240,
+-          "path": "/project/community/jjyeung/okh7/e6fc152498/a3.tar",
+-          "sha256": "05dc8f79707a51ec227f4bb875670a5d3b7cfa27271447783bf2f79b7474f5ae"
+-        }
+-      ],
+-      "sha256": "05dc8f79707a51ec227f4bb875670a5d3b7cfa27271447783bf2f79b7474f5ae"
+-    },
+-    {
+-      "destination": "sj/b01ec87a6f29b/d/f",
+-      "expanded_bytes": 795282085,
+-      "parts": [
+-        {
+-          "bytes": 797685760,
+-          "path": "/project/community/jjyeung/okh7/af83c921/d81f4a26.tar",
+-          "sha256": "2ad8c67c111d5f286aa96ea688efd5c88218e116a8c09ae1a9b4bc71be893a21"
+-        }
+-      ],
+-      "sha256": "2ad8c67c111d5f286aa96ea688efd5c88218e116a8c09ae1a9b4bc71be893a21"
+-    }
+-  ],
+-  "env_roots": [
+-    "/scratch/jjyeung/b01ec87a6f29b/d/v/site"
+-  ],
+-  "environment_receipt": "env",
+-  "export_pin": {
+-    "bytes": 1498,
+-    "path": "a/export.json",
+-    "sha256": "798111bc92c146f64a1c031827a38381be022ae44304f864cc51f880d2fc754b"
+-  },
+-  "files": {
+-    "artifact": {
+-      "bytes": 11474,
+-      "path": "/scratch/jjyeung/b01ec87a6f29b/d/m544/artifact.json",
+-      "sha256": "1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef"
+-    },
+-    "base_config": {
+-      "bytes": 3126,
+-      "path": "/scratch/jjyeung/b01ec87a6f29b/d/b/config.json",
+-      "sha256": "d0883072e01861ed0b2d47be3c16c36a8e81c224c7ffaa310c6558fb3f932b05"
+-    },
+-    "env": {
+-      "bytes": 359,
+-      "path": "/scratch/jjyeung/b01ec87a6f29b/d/q/env.json",
+-      "sha256": "e46a9a59e1de189ae736a5d4e94c7827eabfcfa695057fda9640e8120a54a81a"
+-    },
+-    "full_weights": {
+-      "bytes": 1794,
+-      "path": "/scratch/jjyeung/b01ec87a6f29b/d/m544/full_weights/full_weights.json",
+-      "sha256": "211ae87b0bb03bb0c3d43c1c1412e0f346591ab4ddc75b4d754de2740da0a302"
+-    },
+-    "g3t_config": {
+-      "bytes": 149,
+-      "path": "/scratch/jjyeung/b01ec87a6f29b/d/g/config.json",
+-      "sha256": "5aeb2acd008d41a1cac52e10216fbf35e8dfeb2ce26b89bb24e7ccc4ee0817d7"
+-    },
+-    "g3t_weights": {
+-      "bytes": 5627166200,
+-      "path": "/scratch/jjyeung/b01ec87a6f29b/d/g/model.safetensors",
+-      "sha256": "d460957bb1c8a8c228d83ab10bad8a6dbcf80b03f29d7fbebf9c0f2c1c25f702"
+-    },
+-    "heads": {
+-      "bytes": 2763214343,
+-      "path": "/scratch/jjyeung/b01ec87a6f29b/d/m544/heads.pt",
+-      "sha256": "8bb5e1510ee3a5a3959e82f2149c69903e98f46880b8a038bf4b951b8c21de91"
+-    },
+-    "original_model": {
+-      "bytes": 10240,
+-      "path": "/scratch/jjyeung/b01ec87a6f29b/d/o/model_8005668fc14ce5ee.tar",
+-      "sha256": "8005668fc14ce5ee088d0d631d581f62ca73e6cb8130fde4a2deb73de74f635b"
+-    },
+-    "policy": {
+-      "bytes": 321,
+-      "path": "/scratch/jjyeung/b01ec87a6f29b/d/q/policy.json",
+-      "sha256": "a95a881cdfdeb86ae15a2ec3b3b484416f296f4bcd0d19c6a28667ea21835e2e"
+-    },
+-    "sam_checkpoint": {
+-      "bytes": 3450062241,
+-      "path": "/scratch/jjyeung/b01ec87a6f29b/d/k/sam3.pt",
+-      "sha256": "9999e2341ceef5e136daa386eecb55cb414446a00ac2b55eb2dfd2f7c3cf8c9e"
+-    },
+-    "sam_receipt": {
+-      "bytes": 1123,
+-      "path": "/scratch/jjyeung/b01ec87a6f29b/d/k/SAM3_RECEIPT.json",
+-      "sha256": "979e2f7776b2a44e8b84cdaf4c9c588120ae56b61cdef1b40147f419e4a05a75"
+-    },
+-    "selector_config": {
+-      "bytes": 6541,
+-      "path": "/scratch/jjyeung/b01ec87a6f29b/d/h/selector_head.json",
+-      "sha256": "63aa0a6995890c1d555062f1187a900809e998b8da021bbe2b6a3777b41fea5e"
+-    },
+-    "selector_weights": {
+-      "bytes": 207328,
+-      "path": "/scratch/jjyeung/b01ec87a6f29b/d/h/selector_head.safetensors",
+-      "sha256": "6d97c52407b7e106a7b475040558ba313589514c23c33b6994f4e7a0bb1df6c1"
+-    }
+-  },
+-  "frames_root": "/scratch/jjyeung/b01ec87a6f29b/d/f",
+-  "policy": {
+-    "terminator": "/scratch/jjyeung/b01ec87a6f29b/d/q/terminator.sh",
+-    "vnice": "/scratch/jjyeung/b01ec87a6f29b/d/q/vnice.sh"
+-  },
+-  "policy_receipt": "policy",
+-  "python": "/scratch/jjyeung/b01ec87a6f29b/d/v/py",
+-  "resume": null,
+-  "sam_source": "/scratch/jjyeung/b01ec87a6f29b/d/s",
+-  "schema": 1,
+-  "types": [
+-    "room_size_estimation"
+-  ]
++  "pending": true
+ }
+--- base-delivery/a/4.py
++++ delivery/a/4.py
+@@ -0,0 +1,198 @@
++"""Pin an ordered project-disk export and run preparation using Python 3 stdlib."""
++import argparse
++import hashlib
++import io
++import json
++from pathlib import Path, PurePosixPath
++import re
++import tarfile
++
++LOGICAL = '/scratch/jjyeung/b01ec87a6f29b'
++MEMBERS = dict(artifact='artifact.json', heads='heads.pt',
++               full_weights='full_weights/full_weights.json')
++
++
++def write(path, value):
++    Path(path).write_text(json.dumps(value, sort_keys=True, indent=2)+'\n')
++
++
++def pin(raw):
++    return dict(bytes=len(raw), sha256=hashlib.sha256(raw).hexdigest())
++
++
++class Parts:
++    """Hash each part and the entire stream without a joined archive on disk."""
++    def __init__(self, paths):
++        self.paths = iter(paths); self.stream = None; self.parts = []
++        self.digest = hashlib.sha256(); self.size = 0
++
++    def read(self, size):
++        if size < 0:raise ValueError('Bounded reads required')
++        chunks = []; remaining = size
++        while remaining:
++            if self.stream is None:
++                path = next(self.paths, None)
++                if path is None:break
++                self.path = Path(path).resolve(); self.stream = self.path.open('rb')
++                self.part_hash = hashlib.sha256(); self.part_size = 0
++            chunk = self.stream.read(remaining)
++            if not chunk:
++                self.parts.append(dict(path=str(self.path), bytes=self.part_size,
++                                       sha256=self.part_hash.hexdigest()))
++                self.stream.close(); self.stream = None
++                continue
++            self.digest.update(chunk); self.part_hash.update(chunk)
++            self.size += len(chunk); self.part_size += len(chunk)
++            chunks.append(chunk); remaining -= len(chunk)
++        return b''.join(chunks)
++
++
++def scan(paths, done, object_name):
++    fields = Path(done).read_text().split()
++    if (len(fields) != 3 or fields[0] != object_name or not fields[1].isdigit()
++            or int(fields[1]) <= 0 or not re.fullmatch('[0-9a-f]{64}', fields[2])):
++        raise ValueError('Invalid whole-tar .done receipt')
++    stream = Parts(paths); files = {}; metadata = {}; seen = set(); total = 0
++    try:
++        with tarfile.open(fileobj=stream, mode='r|*') as archive:
++            for entry in archive:
++                path = PurePosixPath(entry.name); name = str(path)
++                if path.is_absolute() or '..' in path.parts or name in seen:
++                    raise ValueError('Unsafe or duplicate export member')
++                seen.add(name)
++                if entry.isdir():continue
++                if not entry.isfile():raise ValueError('Export must contain regular files')
++                total += entry.size
++                wanted = path.name in ('artifact.json', 'full_weights.json')
++                if wanted and entry.size > 4*1024**2:raise ValueError('Oversized metadata')
++                digest = hashlib.sha256(); pieces = []; size = 0
++                with archive.extractfile(entry) as source:
++                    for chunk in iter(lambda: source.read(1024**2), b''):
++                        digest.update(chunk); size += len(chunk)
++                        if wanted:pieces.append(chunk)
++                if size != entry.size:raise ValueError('Truncated member')
++                files[name] = dict(bytes=size, sha256=digest.hexdigest())
++                if wanted:metadata[name] = json.loads(b''.join(pieces))
++        while stream.read(1024**2):pass
++    finally:
++        if stream.stream is not None:stream.stream.close()
++    if stream.size != int(fields[1]) or stream.digest.hexdigest() != fields[2]:
++        raise ValueError('Parts differ from whole-tar .done bytes or sha256')
++    artifacts = [n for n in metadata if PurePosixPath(n).name == 'artifact.json']
++    if len(artifacts) != 1:raise ValueError('Require exactly one export artifact')
++    member = str(PurePosixPath(artifacts[0]).parent)
++    if member == '.':raise ValueError('Export needs a member directory')
++    result = {k:files[member+'/'+v] for k,v in MEMBERS.items()}
++    artifact = metadata[artifacts[0]]
++    for name in ('heads', 'full_weights'):
++        if artifact[name]['sha256'] != result[name]['sha256']:
++            raise ValueError('Artifact member hash differs: '+name)
++    full = metadata[member+'/'+MEMBERS['full_weights']]
++    if full.get('schema') != 'full-ft-export-v1' or full.get('dtype') != 'bfloat16':
++        raise ValueError('Unsupported full-weights export')
++    for item in full['files']+[full['index']]:
++        if PurePosixPath(item['name']).name != item['name']:raise ValueError('Invalid weight name')
++        actual = files[member+'/full_weights/'+item['name']]
++        if actual['sha256'] != item['sha256'] or item.get('bytes',actual['bytes']) != actual['bytes']:
++            raise ValueError('Weight pin differs: '+item['name'])
++    archive = dict(destination='sj/b01ec87a6f29b/d', expanded_bytes=total,
++                   parts=stream.parts, sha256=fields[2])
++    return dict(member_directory=member, **result), artifact, archive
++
++
++def preparation(config, receipt, data_receipt, artifact):
++    raw = {k:Path(p).read_bytes() for k,p in
++           dict(config=config,receipt=receipt,data_receipt=data_receipt).items()}
++    cfg, rec, data = [json.loads(raw[k]) for k in ('config','receipt','data_receipt')]
++    if (data.get('status') != 'PREPARED' or data.get('schema') != 's1-in-job-data-v1'
++            or data.get('real_frames_verified') is not True or data.get('rehearsal') is not False
++            or data.get('synthetic',False) is not False):
++        raise ValueError('Data receipt status/schema/flags differ')
++    if (data['config']['sha256'] != pin(raw['config'])['sha256']
++            or data.get('preparation') != cfg.get('preparation')
++            or cfg['preparation']['sha256'] != pin(raw['receipt'])['sha256']):
++        raise ValueError('Data receipt config/preparation binding differs')
++    if (rec.get('config_sha256') != artifact.get('config_sha256')
++            or artifact.get('base_identity') != cfg.get('base_identity')
++            or rec.get('frame_layout') != cfg.get('frame_layout')
++            or artifact.get('frame_layout') != cfg.get('frame_layout')
++            or cfg.get('frame_layout') != 'duplicate' or artifact.get('geometry_online')):
++        raise ValueError('Export architecture or identity differs')
++    sources = dict(config=data['config']['path'],receipt=cfg['preparation']['path'],
++                   data_receipt=str(PurePosixPath(data['config']['path']).parent.parent/'data_receipt.json'))
++    pins = {k:dict(path='p0/'+k+'.json',source_path=sources[k],**pin(v)) for k,v in raw.items()}
++    return pins, raw
++
++
++
++def reviewed_binding():
++    package = Path(__file__).resolve().parent.parent
++    if not (package/'0.tgz').is_file():package = Path(__file__).resolve().parent/'package'
++    public = json.loads((package/'0.json').read_text())
++    raw = (package/'0.tgz').read_bytes()
++    if pin(raw)['sha256'] != public['payload_sha256']:raise ValueError('Reviewed payload differs')
++    with tarfile.open(fileobj=io.BytesIO(raw)) as archive:
++        cfg = json.load(archive.extractfile('9.json'))
++    digest = hashlib.sha256(json.dumps(cfg,sort_keys=True,separators=(',',':')).encode()).hexdigest()
++    if digest != public['plan_sha256']:raise ValueError('Reviewed plan differs')
++    return cfg['export_binding']
++
++def bind_review(a, export, artifact, archive, prep, binding):
++    for key, actual in [('object',a.object),('step',a.step),('lineage',a.lineage),
++                        ('member_directory',export['member_directory'])]:
++        if actual != binding[key]:raise ValueError('Reviewed export binding differs: '+key)
++    if artifact.get('step') != binding['step']:raise ValueError('Artifact step differs')
++    for key in ('config_sha256','base_identity','frame_layout'):
++        if artifact.get(key) != binding[key]:raise ValueError('Artifact identity differs: '+key)
++    for name in ('heads','full_weights'):
++        path = PurePosixPath(artifact[name]['path'])
++        tail = PurePosixPath(binding['run'])/binding['member_directory']/MEMBERS[name]
++        if path.parts[-len(tail.parts):] != tail.parts:raise ValueError('Artifact run/member path differs')
++    for name, digest in binding['preparation_sha256'].items():
++        if prep[name]['sha256'] != digest:raise ValueError('Reviewed preparation differs: '+name)
++    export.update(run=binding['run'],object=binding['object'],config_sha256=binding['config_sha256'],
++                  archive_sha256=archive['sha256'])
++
++
++def main():
++    p = argparse.ArgumentParser(description=__doc__)
++    p.add_argument('--parts',nargs='+',required=True); p.add_argument('--done',required=True)
++    p.add_argument('--object',required=True); p.add_argument('--config',required=True)
++    p.add_argument('--receipt',required=True); p.add_argument('--data-receipt',required=True)
++    p.add_argument('--lineage',choices=('SFT','RL'),required=True);p.add_argument('--step',type=int,required=True)
++    p.add_argument('--out',required=True);p.add_argument('--prep-tar',required=True)
++    p.add_argument('--base-inputs',required=True);p.add_argument('--inputs-out',required=True)
++    a = p.parse_args()
++    binding=reviewed_binding()
++    if (a.object != binding['object'] or a.step != binding['step'] or a.lineage != binding['lineage']):
++        raise ValueError('Reviewed run/step/object differs')
++    if len(a.parts) != 4:raise ValueError('Require four ordered parts')
++    if a.step < 0:raise ValueError('Step must be nonnegative')
++    # Refuse missing preparation files before scanning a multi-GB archive.
++    for path in (a.config,a.receipt,a.data_receipt):
++        if not Path(path).is_file():raise ValueError('Missing preparation file: '+path)
++    export, artifact, archive = scan(a.parts,a.done,a.object)
++    label = re.fullmatch(r'm(\d+)', PurePosixPath(export['member_directory']).name)
++    if label and int(label.group(1)) != a.step:raise ValueError('Step label differs from export member directory')
++    prep, raw = preparation(a.config,a.receipt,a.data_receipt,artifact)
++    bind_review(a,export,artifact,archive,prep,binding)
++    export.update(schema='h1-export-pins-v1',lineage=a.lineage,step=a.step,preparation=prep)
++    with tarfile.open(a.prep_tar,'w') as tar:
++        for name, data in raw.items():
++            entry=tarfile.TarInfo(prep[name]['path']);entry.size=len(data);entry.mode=0o600
++            tar.addfile(entry,io.BytesIO(data))
++    write(a.out,export)
++    inputs=json.loads(Path(a.base_inputs).read_text())
++    inputs['archives'][0]=archive
++    prep_archive=dict(path=str(Path(a.prep_tar).resolve()),**pin(Path(a.prep_tar).read_bytes()))
++    inputs['archives'][4]=dict(destination=archive['destination'],parts=[prep_archive],
++                                   sha256=prep_archive['sha256'],expanded_bytes=sum(map(len,raw.values())))
++    for name, member in MEMBERS.items():
++        inputs['files'][name]=dict(path=LOGICAL+'/d/'+export['member_directory']+'/'+member,**export[name])
++    inputs['export_pin']=dict(path='a/export.json',**pin(Path(a.out).read_bytes()))
++    # Preserve the reviewed item selection from the base input plan.
++    inputs['resume']=None
++    write(a.inputs_out,inputs)
++
++
++if __name__ == '__main__':main()
+--- base-delivery/a/5.py
++++ delivery/a/5.py
+@@ -36,7 +36,7 @@
+     if len(lines) != 1:
+         raise ValueError('Bundle encoding differs')
+     expression = ast.parse(lines[0]).body[0].value
+-    if (not isinstance(expression, ast.Call) or ast.unparse(expression.func) != 'bytes.fromhex'
++    if (not isinstance(expression, ast.Call) or not (isinstance(expression.func,ast.Attribute) and isinstance(expression.func.value,ast.Name) and expression.func.value.id=='bytes' and expression.func.attr=='fromhex')
+             or len(expression.args) != 1 or expression.keywords):
+         raise ValueError('Bundle encoding differs')
+     raw = bytes.fromhex(ast.literal_eval(expression.args[0]))
+@@ -158,7 +158,7 @@
+                     env=env,stdout=log,stderr=subprocess.STDOUT,check=True)
+     ready=json.loads(J.physical(root,cfg['logical']+'/d/READY.json').read_text())
+     settings=json.loads(J.physical(root,cfg['logical']+'/d/settings.json').read_text())
+-    if (settings['stage1_select_rule']!='null_argmax' or settings['perception_memo']!='on'
++    if (settings['stage1_select_rule']!='candidates_argmax' or settings['perception_memo']!='on'
+         or settings.get('types')!=['room_size_estimation'] or settings['perception_memo_modules']!=['g3t'] or settings['perception_memo_verify_ids']!=[]):
+         raise ValueError('Prepared default settings differ')
+     run_cfg=dict(package=cfg['logical']+'/p',output=cfg['logical']+'/r',python=inputs['python'],
+--- base-delivery/a/6.py
++++ delivery/a/6.py
+@@ -2,12 +2,12 @@
+ import json,sys,time,hashlib
+ from pathlib import Path
+ 
+-RULES=('null_argmax',)
++RULES=('candidates_argmax',)
+ COUNTS=(0,0,0,0,134)
+ SCHEDULE=((0,4),)
+ 
+ def descriptors(package):
+- return [dict(arm='tower',modes=['none'],stage1_select_rule='null_argmax',save_own_depth=False,
++ return [dict(arm='tower',modes=['none'],stage1_select_rule='candidates_argmax',save_own_depth=False,
+               perception_memo='on',perception_memo_modules=['g3t'],perception_memo_verify_ids=[],
+               types=[4],expected=134)]
+ 
+@@ -66,14 +66,14 @@
+  from e2e_reader import stage1,real
+  for rule in RULES:
+   made=[]
+-  def init(obj,detect,head,geometry,rule='null_argmax'):
++  def init(obj,detect,head,geometry,rule='candidates_argmax'):
+    obj.rule=rule;obj.head=head;obj.diagnostics={};made.append(obj)
+   head=SimpleNamespace(with_null=lambda *a:torch.tensor([1.,2.,100.]))
+   with patch.object(stage1.StageOne,'__init__',init),patch.object(real,'TowerG3T',return_value=None),patch('e2e_reader.geometry.frame_count',return_value=32):
+    value=real.real_perception(None,device='cpu',perception_memo_modules=['g3t'],sam3_tower=object(),selector_head=head,stage1_select_rule=rule)
+    value.socket(None,None)
+   assert made[0].rule==rule
+-  assert made[0].select(dict(x=torch.zeros(2,58),name='x'))==(-1 if rule==RULES[0] else 1)
++  assert made[0].select(dict(x=torch.zeros(2,58),name='x'))==1
+  if config.get('measure_memory'):
+   result[0]['full_reader']=full_reader_rehearsal(configs[0])
+  return result
+@@ -97,7 +97,7 @@
+  package=Path(config['package'])
+  manifest=load_manifest(package/'items/room134.json')
+  settings=json.loads(Path(config['settings']).read_text())
+- expected=dict(stage1_select_rule='null_argmax',perception_memo='on',
++ expected=dict(stage1_select_rule='candidates_argmax',perception_memo='on',
+    perception_memo_modules=['g3t'],perception_memo_verify_ids=[],save_own_depth=False,
+    types=['room_size_estimation'])
+  if any(settings.get(k)!=v for k,v in expected.items()):raise ValueError('Rehearsal settings differ')
+--- base-delivery/a/export.json
++++ delivery/a/export.json
+@@ -1,38 +1,3 @@
+ {
+-  "artifact": {
+-    "bytes": 11474,
+-    "sha256": "1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef"
+-  },
+-  "full_weights": {
+-    "bytes": 1794,
+-    "sha256": "211ae87b0bb03bb0c3d43c1c1412e0f346591ab4ddc75b4d754de2740da0a302"
+-  },
+-  "heads": {
+-    "bytes": 2763214343,
+-    "sha256": "8bb5e1510ee3a5a3959e82f2149c69903e98f46880b8a038bf4b951b8c21de91"
+-  },
+-  "lineage": "SFT",
+-  "member_directory": "m544",
+-  "preparation": {
+-    "config": {
+-      "bytes": 17691,
+-      "path": "p0/config.json",
+-      "sha256": "78341acb36ffd03b9cec6de65effc9fafcbe8bccdc1dfb43e9da7bd88af47560",
+-      "source_path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/469ddece/inputs/prepare_dd26bb95f37a43789206c6e4d4cd94bd/config.json"
+-    },
+-    "data_receipt": {
+-      "bytes": 80338,
+-      "path": "p0/data_receipt.json",
+-      "sha256": "ebc2983ef7ba33e2e77f4435fff7a031b633a449ef9311622ecab653ea759f40",
+-      "source_path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/469ddece/inputs/data_receipt.json"
+-    },
+-    "receipt": {
+-      "bytes": 83542,
+-      "path": "p0/receipt.json",
+-      "sha256": "34cf26a691728802db8d47766c42bd4045c5481fe1f27c09a486abafaec1a3d6",
+-      "source_path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/469ddece/inputs/prepare_dd26bb95f37a43789206c6e4d4cd94bd/prepared/s1_receipt.json"
+-    }
+-  },
+-  "schema": "h1-export-pins-v1",
+-  "step": 544
++  "pending": true
+ }

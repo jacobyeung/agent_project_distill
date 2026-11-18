@@ -16,7 +16,7 @@ EV=${LCS_EV:-$B/events/code_sync}
 FILTER=$B/tools/lane_code_filter.py
 SCAN=${LCS_SCAN:-$B/tools/lane_code_scan.py}
 LANES_ROOT=${LCS_LANES_ROOT:-/scratch/jjyeung/orch_n30}
-REMOTE_NODES="trinity-1-3 trinity-1-18"
+REMOTE_NODES="trinity-1-18"  # trinity-1-3 fenced 2026-11-18 (unreachable since 11:29Z); add it back when it answers
 DRY=0; [ "${1:-}" = "--dry" ] && DRY=1
 STAGE_ONLY=0; [ "${1:-}" = "--stage-only" ] && STAGE_ONLY=1
 QUEUE_ONLY=0; [ "${1:-}" = "--queue-only" ] && QUEUE_ONLY=1

@@ -1,0 +1,2 @@
+export TZ=UTC
+timeout 90 srun --overlap --jobid 171377 -n1 bash -c 'f=$(ls -d /tmp/jjyeung/*/runs/673bc60f/inputs/prepare_9b0c4b09*/prepared/s1_receipt.json 2>/dev/null | head -1); [ -z "$f" ] && f=$(find /tmp/jjyeung -maxdepth 9 -path "*673bc60f*" -name s1_receipt.json 2>/dev/null | head -1); echo "PATH $f"; [ -n "$f" ] && { sha256sum "$f"; echo B64; base64 -w0 "$f"; echo; }' 2>&1; echo "srun_rc=$?"

@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=9544 utc=2026-11-12T03:43:19.643Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; S=/tmp/claude-25409/-scratch-jjyeung-orch-home-distill/71f94277-362e-467c-a4bc-ccc9ae6b87c8/scratchpad; D=$(ls -d codex_local/agent/scratch/codex_runs/*_rv_fork_review 2>/dev/null | tail -1); cp "$D/final_message.md" rv_review/REVIEW_VERDICT_FORK.md; sed -i '/^rv_fork_review|/d' $S/LANES; cut -c1-1400 rv_review/REVIEW_VERDICT_FORK.md | head -50

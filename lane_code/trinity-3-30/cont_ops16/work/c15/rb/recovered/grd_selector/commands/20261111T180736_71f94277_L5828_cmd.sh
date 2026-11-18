@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=5828 utc=2026-11-11T18:07:36.110Z kind=commands original_path=(bash command)  -->
+echo "$(date -u +%Y-%m-%dT%H:%MZ) grd_selector RESULT 1806Z accept v2 item 3: proposal sensitivity under the new geometry: about 0.24 / 0.16 / 0.23 points per recall point on abs / size / rel; counting ~0; directions noise; the dense re-cache has a small expected gain (a 10-point recall rise ~ +2 on abs and rel) and changes no routing decision." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

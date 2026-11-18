@@ -1,0 +1,8 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=14258 utc=2026-11-12T17:29:04.461Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd/arch_jobs && SRC=/scratch/jjyeung/orch_cd/leg_s1_tree/work/kit_s1_importfix_template/k/t_37845077e30ea5a2.tar && SHA=$(sha256sum $SRC | cut -d' ' -f1) && SZ=$(stat -c %s $SRC) && echo "$SHA $SZ" && JOB=$(/scratch/jjyeung/envs/p1cpu/bin/python -I -s -c "
+import json,base64,sys
+j=dict(id='distill_legs1_src_37845077', transport='archive', expected_bytes=int(sys.argv[2]), tier=2, priority=60,
+       source=dict(host='trinity-2-18', archive=sys.argv[1], sha256=sys.argv[3]),
+       destination=dict(host='trinity-2-18', path='/data3/jjyeung/distill_src_archive/t_37845077e30ea5a2.tar'))
+print(base64.b64encode(json.dumps(j).encode()).decode())" $SRC $SZ $SHA) && setsid /scratch/jjyeung/envs/p1cpu/bin/python -s /scratch/jjyeung/io_governor/copy_archive.py --job "$JOB" --receipt /scratch/jjyeung/orch_cd/arch_jobs/distill_legs1_src_37845077.receipt.json > /scratch/jjyeung/orch_cd/arch_jobs/distill_legs1_src_37845077.log 2>&1 &
+sleep 3; cat /scratch/jjyeung/orch_cd/arch_jobs/distill_legs1_src_37845077.receipt.json 2>/dev/null | tr -d '\n' | cut -c1-200; echo; sha256sum /scratch/jjyeung/orch_cd/leg_s1_tree/work/kit_s1_importfix_template/k/t_37845077e30ea5a2.tar | cut -c1-64; wc -l /scratch/jjyeung/orch_cd/leg_s1_tree/out/IMPORTFIX_SOURCE.patch; grep -c "^diff " /scratch/jjyeung/orch_cd/leg_s1_tree/out/IMPORTFIX_SOURCE.patch; grep "^diff \|^+++ " /scratch/jjyeung/orch_cd/leg_s1_tree/out/IMPORTFIX_SOURCE.patch | grep "^+++" | cut -c1-120

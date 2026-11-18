@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=34656 utc=2026-11-15T01:58:25.134Z kind=commands original_path=(bash command)  -->
+echo "- $(date -u +%Y-%m-%dT%H:%MZ) Main's note 0150Z: twelve no-tool base runs on the Gemini key (3.1 Pro preview and 3.8 Flash) 01:55-03:30Z from trinity-2-23, up to 6M input tokens/min. Distillation uses no Gemini model now; no action, no reply needed." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

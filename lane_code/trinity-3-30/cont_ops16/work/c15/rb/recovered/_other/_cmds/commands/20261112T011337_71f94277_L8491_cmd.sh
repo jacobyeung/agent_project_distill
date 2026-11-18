@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=8491 utc=2026-11-12T01:13:37.904Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd/miss_vis_run; tail -n 2 work/pilot/sink.log | cut -c1-200; ls sensor/spp | wc -l; sed -n 1,8p STATUS.md | cut -c1-500; tail -n 3 work/pilot/launch.log 2>/dev/null | cut -c1-300

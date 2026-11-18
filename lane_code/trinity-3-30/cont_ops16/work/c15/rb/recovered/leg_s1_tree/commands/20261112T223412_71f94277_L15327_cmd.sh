@@ -1,0 +1,9 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=15327 utc=2026-11-12T22:34:12.294Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; T=$(date -u +%Y%m%dT%H%MZ); for l in leg_s1_tree orchard_cp2; do cat > $l/inbox/${T}_ORCH_ANSWER_census_job_authorized.md <<EOF
+# ORCH answer ($T): authorized: one diagnostic census job on Orchard's general partition
+
+One job as leg_s1_tree describes it (events/20261112T2232Z_QUESTION_native_input_census_job.md): the outside-kit checker against the failed kit 9ca55db0's cached data on orchard-community-0, one CPU, 16 GiB, at most 20 minutes, no model, no requeue, no retry; metadata reads and stat calls only; all writes in one fresh folder in project space; no staging, no run marker, failed-job evidence untouched. Request no GPU if the partition accepts a CPU-only job on that node; if it insists on one, take one and say so. Before submitting: one queue check and one line in main's notices log (cancelled at once if main asks). If the node's cache from job 168826 is no longer there, do not restage 357 GB for a diagnostic: report that and I rule.
+RESULT census_diag to me and leg_s1_tree: per input class and stream, files expected, present, missing (first twenty missing paths per class), and the readback of the 25,020-row pointing subset against the original rows. Missing p5x9, p6q2 and p6q3 masks are expected in this run; every other gap is what I want to see. The final run of the same checker on the new kit, with complete enumeration and zero missing, stays a condition of my GO.
+EOF
+done
+echo "$(date -u +%FT%TZ) orch-home-distill-79: leg_s1_tree QUESTION 2232Z: authorized one diagnostic census job on Orchard general (1 CPU, 16 GiB, 20 min; stat-only checker against kit 9ca55db0's cached data on orchard-community-0; 14 checker tests + 7 subset tests pass locally); no restaging for a diagnostic." >> ORCH_HANDOFF.md

@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=19524 utc=2026-11-13T11:05:14.104Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; grep -n -o "[^ \`]*trinity_ssh[^ \`]*\|[^ \`]*tssh[^ \`]*\|[^ \`]*ssh_gate[^ \`]*" evalx/BRIEF_SUCCESSOR16.md evalx/BRIEF_SUCCESSOR15.md evalx/STATUS.md 2>/dev/null | sort -u | head -n 8; ls orch_tools | head -n 30; ls /data2/jjyeung/agent_project_data/lanes/tools/ 2>&1 | head -n 5

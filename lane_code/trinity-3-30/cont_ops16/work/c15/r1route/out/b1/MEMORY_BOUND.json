@@ -1,0 +1,99 @@
+{
+  "basis": "fixed_g3t_shapes",
+  "perception_memo_modules": [
+    "g3t"
+  ],
+  "sam_memo_bytes": 0,
+  "sam_measurement_required": false,
+  "g3t_capture_bytes_upper": 3335080,
+  "python_overhead_bytes_per_capture": 1048576,
+  "transient_capture_copies": 3,
+  "runtime_allowance_bytes": 68719476736,
+  "job_host_bytes": 214748364800,
+  "reads": [
+    {
+      "read": 0,
+      "captures": 84,
+      "memo_bytes": 368227104,
+      "memo_plus_transient_bytes": 381378072,
+      "host_budget_bytes": 69100854808
+    },
+    {
+      "read": 1,
+      "captures": 60,
+      "memo_bytes": 263019360,
+      "memo_plus_transient_bytes": 276170328,
+      "host_budget_bytes": 68995647064
+    }
+  ],
+  "fits": true,
+  "device_tests": [
+    {
+      "device": "cpu",
+      "dtype": "torch.float16",
+      "shape": [
+        4,
+        3
+      ],
+      "bit_identical": true
+    },
+    {
+      "device": "cpu",
+      "dtype": "torch.bfloat16",
+      "shape": [
+        4,
+        3
+      ],
+      "bit_identical": true
+    },
+    {
+      "device": "cpu",
+      "dtype": "torch.float32",
+      "shape": [
+        4,
+        3
+      ],
+      "bit_identical": true
+    },
+    {
+      "device": "cpu",
+      "dtype": "torch.float64",
+      "shape": [
+        4,
+        3
+      ],
+      "bit_identical": true
+    },
+    {
+      "device": "cpu",
+      "dtype": "torch.int32",
+      "shape": [
+        4,
+        3
+      ],
+      "bit_identical": true
+    },
+    {
+      "device": "cpu",
+      "dtype": "torch.int64",
+      "shape": [
+        4,
+        3
+      ],
+      "bit_identical": true
+    },
+    {
+      "device": "cpu",
+      "dtype": "torch.bool",
+      "shape": [
+        4,
+        3
+      ],
+      "bit_identical": true
+    }
+  ],
+  "cuda_tested": false,
+  "production_measurement_available": false,
+  "bound_scope": "G3T retained payload plus three transient capture copies, 1 MiB per capture for Python/allocator overhead, and a 64 GiB runtime allowance. This bounds memo retention; the runtime allowance is not a measured full-model peak RSS bound. SAM is fresh and retains no cross-read encoding.",
+  "production_gate": "CPU helper checks the fixed G3T shapes against the allocation; neither it nor bootstrap requires a measured SAM encoding receipt."
+}

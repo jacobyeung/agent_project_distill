@@ -1,0 +1,33 @@
+PASS upload outer SHA, 31 members, inner sums
+PASS q.py raw native receipt projection; final selection 78d01f893720baf0e31b3ce06bc4a157a99510d42f5bcfeccb0000ad84705c70
+PASS negative projection: EQUAL report rejected; altered index rejected
+PASS inherited staging checker: changed bytes verified and corruption rejected
+PASS d.py incomplete fixture derivation
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/r1_ops/work/drv/test_local.py", line 67, in <module>
+    run(args+['--out',str(T/'derived_schema')]);result=load(T/'derived_schema.json');assert result['status']=='READY'
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/r1_ops/work/drv/test_local.py", line 11, in run
+    if okay and r.returncode:raise RuntimeError(r.stdout+r.stderr)
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/r1_ops/work/drv/fixture_b/d.py", line 139, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "/scratch/jjyeung/orch_n30/r1_ops/work/drv/fixture_b/d.py", line 137, in main
+    result=derive(a.source,a.out,a.packet,a.source_manifest_sha256,fixture=a.fixture,evidence=a.evidence,bundle=a.bundle,selection_evidence=a.selection_evidence)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/r1_ops/work/drv/fixture_b/d.py", line 125, in derive
+    g.check(out,{},'p')
+  File "/scratch/jjyeung/orch_n30/r1_ops/work/drv/tests_local_5/derived_schema/b/g.py", line 117, in check
+    return persistent_launch(launch, cfg, environment, mode)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/r1_ops/work/drv/tests_local_5/derived_schema/b/g.py", line 37, in persistent_launch
+    selected = choose(launch["run_directory"], persistent, environment.get("SLURM_JOB_ID"))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/r1_ops/work/drv/tests_local_5/derived_schema/b/r8.py", line 147, in main
+    persistent_check(root, persistent, job, mode, binding, step)
+  File "/scratch/jjyeung/orch_n30/r1_ops/work/drv/tests_local_5/derived_schema/b/r8.py", line 70, in persistent_check
+    raise ValueError("Persistent location or Slurm job identity is invalid")
+ValueError: Persistent location or Slurm job identity is invalid
+

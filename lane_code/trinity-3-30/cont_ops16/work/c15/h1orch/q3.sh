@@ -1,0 +1,1 @@
+D=/project/community/jjyeung/okh7/x_f5c353f7/o; grep -c "fast path is not available" $D/170111.err; grep -c "fast path is not available" /project/community/jjyeung/okh7/x_3fdda0fb/o/170710.err; grep -i fla $D/170111.steps | head -3

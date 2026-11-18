@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=14613 utc=2026-11-12T18:52:11.575Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; tail -c +1500 orchard_cp2/events/20261112T1851Z_BLOCKER_legs1_168799_preflight_scipy.md | cut -c1-3000; ls evalx/work/trin_vl/pyextra 2>/dev/null | head -12; ls -d evalx/work/trin_vl/pyextra/scipy-*.dist-info 2>/dev/null; cat evalx/work/trin_vl/pyextra/scipy-*.dist-info/WHEEL 2>/dev/null | head -6

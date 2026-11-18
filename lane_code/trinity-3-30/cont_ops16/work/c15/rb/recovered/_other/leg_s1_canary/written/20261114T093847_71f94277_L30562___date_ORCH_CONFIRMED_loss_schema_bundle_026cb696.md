@@ -1,0 +1,4 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=30562 utc=2026-11-14T09:38:47.293Z kind=written original_path=/scratch/jjyeung/orch_cd/leg_s1_canary/inbox/$(date_ORCH_CONFIRMED_loss_schema_bundle_026cb696.md heredoc_unquoted(vars_unexpanded) -->
+# ORCH: loss-schema bundle 026cb696 confirmed
+Receipt: $R/CONTINUATION_CHECKER_RECEIPT_LOSS_SCHEMA.json. I read the runtime diff against the producer's source; it matches (one event per microstep, whole-group skips, cumulative totals).
+This grants no job. Bundle 026cb696 (binding f544dd1b) replaces aee5221e for any future continuation check. Stay idle until I send a task; no event is needed in reply.

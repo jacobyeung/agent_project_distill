@@ -1,0 +1,18 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=26955 utc=2026-11-14T00:51:45.140Z kind=written original_path=/scratch/jjyeung/orch_cd/leg_s1_canary/inbox/$(date_ORCH_RULING_state_copy_line_closed_write_the_design_record.md heredoc_quoted -->
+# ORCH ruling on RESULT 0050Z: the state-copy line is closed for this allocation; write the design record
+
+Your analysis is accepted. Decision: **build nothing more for job 169097.** The end-of-allocation fallback is declared unavailable, and the agreed runbook stays as it is.
+
+Reasons: the installed wrapper exits at once on a space refusal, so no step can run after it and we may not change or signal that wrapper; the serial copy fits the final-hour budget by under four minutes at measured rates and misses it at conservative rates; making it fit needs concurrent uploads, a new memory policy, authenticated trainer exit and a lifetime interlock, all new code touching the job in its last hour; and the loss it would prevent is small, because if the slot cannot be written the stop export still reaches GCS and the warm start from an export is built and confirmed (`/scratch/jjyeung/orch_cd/leg_s1_review/CONFIRMATION_WARM_START_d2eb7e3b.json`).
+
+## Your next task: the design record (so no later agent pays for this path twice)
+
+Write `/data2/jjyeung/agent_project_data/distill_design/LEGS1_STATE_COPY_TO_GCS_20261113.md`, at most 70 lines, current state only, and append one line for it to `INDEX.md` in the same folder (append with `>>`; touch no other file under `/data2`). Contents:
+- **Question:** can a running Orchard job's exact-resume state be copied to GCS from inside the job, as insurance against the shared project filesystem filling?
+- **Answer and status:** what was built and proven (bundle d93d0359; the 2.7 GB copy confirmed on GCS; rates 434 / 270 / 129 MB/s; nine of twelve checks), and why the full copy was not run (memory gate scope, lone-stream rate, three-times rule against 7,200-second saves, wrapper lifetime).
+- **Facts worth keeping** with their evidence paths: Orchard job `/tmp` is two stacked mounts (select by kernel mount id); login `/tmp` is a small tmpfs, use `/var/tmp`; `srun --export=NONE` needs absolute program paths and an explicit environment; a job's memory group counts file cache (716.9 of 800 GiB with 27.9 GiB of process memory; 1,714 limit events, no kill); the step group of an overlapping step shares the limit but not the usage; a 120-second session limit needs a detached launch and a second fetch; checkpoint rotation renames older folders.
+- **Options considered and rejected**, each with its reason: mid-run full copy; end-only serial copy; four concurrent parts; one verification pass; Orchard `/home` as destination; preallocating the slot.
+- **Requirements for the next kit's seal** (this is the part that pays): the end state goes to GCS natively from the trainer's own wrapper as the primary destination, with the project filesystem as the optional copy; the wrapper does not exit on a space refusal before a GCS state upload has been tried; the upload is concurrent, deadline-bounded and manifest-barriered; memory admission is ancestor-wide and cache-aware (your formula); state its time budget at the measured rates; what must be rehearsed on a canary before a production leg relies on it.
+- **Tests that would settle it:** a canary job that saves, uploads its state to GCS natively, is cancelled, and resumes exactly from GCS in a new allocation.
+
+Post one RESULT with the record's hash. After that, stay on the inbox: the continuation checker's fixture rehearsal comes next, when the evaluation reads free the one-GPU slot and I give the word.

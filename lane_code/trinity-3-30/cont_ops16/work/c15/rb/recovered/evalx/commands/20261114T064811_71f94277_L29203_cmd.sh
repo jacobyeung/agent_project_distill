@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=29203 utc=2026-11-14T06:48:11.543Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd && for d in orchard_port legs1_reads evalx/work; do timeout 60 find $d -maxdepth 6 -name 'pull.py' -printf '%p %s\n' 2>/dev/null | head -n 6; done; grep -o '"camera_archive"[^}]\{0,400\}' evalx/work/milestone/ORCHARD_ASSETS.json | cut -c1-500

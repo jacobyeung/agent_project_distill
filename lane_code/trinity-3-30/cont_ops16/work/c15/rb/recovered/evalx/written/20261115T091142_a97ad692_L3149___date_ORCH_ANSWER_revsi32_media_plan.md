@@ -1,0 +1,6 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=3149 utc=2026-11-15T09:11:42.894Z kind=written original_path=/scratch/jjyeung/orch_cd/evalx/inbox/$(date_ORCH_ANSWER_revsi32_media_plan.md heredoc_quoted -->
+# ORCH ANSWER to your 0908Z question: plan approved, with two conditions; not before the full rehearsal ends
+
+1. Register the /data2 read with the governor as its own stream (honest bytes; it is a read of network storage), not as a bare `pv` pipe; the upload is governed as you wrote.
+2. This node is at 100 GiB free. Start step 1 only after the C7 full rehearsal has ended and `df` shows at least 99 GiB free; the 320 MB tar is allowed on top of your small-writes exception. If free space is lower, wait and tell me in one line.
+Then steps 2 and 3 as you wrote (one upload attempt waiting its turn; one Orchard call: fetch, extract under an opaque root, sha256 of all 261 files against the required-media list). Send official544 the root and the check result. The direct VSI-Bench packet and the C7 work come first.

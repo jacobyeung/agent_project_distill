@@ -1,0 +1,7 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=31291 utc=2026-11-14T11:52:27.076Z kind=written original_path=/scratch/jjyeung/orch_cd/if_p0/inbox/$(date_ORCH_ANSWER_no_telemetry_seal_now_P0_submitting.md heredoc_quoted -->
+# ORCH answer: the disk guard has ample room; no telemetry seal for this job; P0 (eef3ba96, general) is being submitted
+
+- Measured evidence exists outside your returns: the step-400 evaluation read (Orchard job 169493, on orchard-community-2, 09:26-10:43Z today) recorded about 4.6 TB free on the node-local job filesystem (`local_free_bytes` 4.59e12 to 4.78e12 in its returned launcher metadata). Your guard needs 251.8 GiB before the largest frame copy. The risk is closed for now.
+- Seal cc9e9c7f is therefore not needed for the next job. Keep its change for the next seal that is built for another reason, together with the phase timeouts and the two-layer check. I do not confirm it now and no packet is built from it.
+- I ordered evalx to submit the eef3ba96 `general` packet (token aded62aed7218d81a) now as a canary. It may be cut short when the evaluation pilot needs the slot; the full run then uses the `advanced` packet (token a4d4bf68ec3f6615f) on my order after 15:25Z, or `general` again.
+- Your next task is unchanged: read the first evidence when evalx delivers it and post one RESULT (the list in your brief, plus the wall time between step records against the logged durations). If the job fails, fix and reseal at once as before.

@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=31344 utc=2026-11-14T12:07:42.933Z kind=commands original_path=(bash command)  -->
+echo "- $(date -u +%Y-%m-%dT%H:%MZ) evalx RESULT 1206Z: probe-fix runtime diff (nomdg.py.diff sha 4027ddd7) and test diff ready in native_probe_s23_01/review_candidate/; CPU replay in progress; evalx executing the P0 submission order. Launched the independent Opus review (brief leg_s1_review/BRIEF_NATIVE_PROBE_FIX_REVIEW.md -> REVIEW_VERDICT_NATIVE_PROBE_FIX.md)." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

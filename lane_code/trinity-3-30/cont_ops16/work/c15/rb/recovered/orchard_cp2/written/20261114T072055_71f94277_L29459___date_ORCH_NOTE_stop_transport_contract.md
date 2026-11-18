@@ -1,0 +1,4 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=29459 utc=2026-11-14T07:20:55.864Z kind=written original_path=/scratch/jjyeung/orch_cd/orchard_cp2/inbox/$(date_ORCH_NOTE_stop_transport_contract.md heredoc_quoted -->
+# ORCH note: the stop export's transport contract
+
+evalx's admitted check requires a numbered archive name today; I have authorized it to admit the producer's three stop-object names (`469ddece_mstop.tar`, `mstopB.tar`, `mstopC.tar`) in the stop route, bound to: the object name the producer selected, the step from the producer's claim file (your bounded read), the artifact's own step, and the transport pin, with `stop_export: true`. Agree the attestation's exact field names with evalx through its inbox; your stop attestor should emit exactly what its check reads. Tell me only if the two of you disagree on a field.

@@ -1,0 +1,12 @@
+# Build (r1_drv2): re-pin the Orchard operator drivers to the final R1-P packet
+
+Work dir `/scratch/jjyeung/orch_n30/r1_ops/work/drv` (yours from the previous round r1_drv: read README.md, BLOCKER.md, STATUS.md, build_drivers.py first). Same constraints: CPU only; no ssh, no Orchard call, no Git, no deletion, no edit outside the work dir; read `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/tools/LANE_RULES.md`. Box: 35 minutes.
+
+The packet was fixed and resealed. BLOCKER.md is resolved by fix 6: the deriver no longer calls g.check at derivation (`/scratch/jjyeung/orch_n30/r1_pkt/out/FIX6.md`). Fix 7 then changed loader_audit.py, so the identity changed. Final packet, frozen copy `/scratch/jjyeung/orch_n30/r1_ops/work/snap_d8b03fd1/out/` (R1P_PACKET.md, SHA256SUMS, BINDING.json, OPERATOR.json):
+- archive `p_c5f3847d.tar`, sha256 888027436a99cfec360959c46f4271222e4c029f5d36eb9870fea4f669231029
+- config identity d8b03fd14db01af4def4a0cfd9a49d16ec492d9a3c6b0c56977f7f22b79f705a, run key 26cc98b7, job name a15_cot_ap26cc98b7
+- bundle `okh7/i_c5f3847d`, kit `okh7/x_c5f3847d`; source H = `okh7/x_3fdda0fb` (SHA256SUMS.txt 661ccd85...)
+Do:
+1. Re-pin every driver (u1, q1, ev1/evp1, dv1/dvp1, scan1, L1_mint, session_build, pr1, pm1, review_build, cert_build) to these values, from the frozen packet files rather than by hand where possible. Remove the BLOCKED_PACKET guard in dv1 only because FIX6 fixed it: dv1 must still refuse if the packet's d.py sha differs from the final archive's.
+2. review_build.py: the independent verdicts are REVIEW_VERDICT_R1P.md, REVIEW_VERDICT_R1P2.md and REVIEW_VERDICT_R1P3.md under `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/review_r1p*/`. The first two say GO AFTER FIXES. Their fixes are fix rounds 4-7, and review_r1p3 (due about 17:55Z) reviews fix 6 and fix 7 on the final archive. Make review_build accept this chain: the final verdict is review_r1p3's, which must be GO (or GO AFTER FIXES whose listed fixes are only LOW and non-blocking; then print them for the operator), and it must name the final archive sha or config identity. Name all three reviewers in review.json.
+3. Rerun your local tests against the final packet (fixture derivation with production-form evidence must now reach READY). Update README.md's table and DRIVER_SHA256SUMS.txt. Final message: the ordered list of commands and the expected output of each.

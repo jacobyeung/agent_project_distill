@@ -1,0 +1,6 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=14662 utc=2026-11-12T18:55:06.081Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; T=$(date -u +%Y%m%dT%H%MZ); cat > orchard_cp2/inbox/${T}_ORCH_ANSWER_probe_now_a.md <<EOF
+# ORCH answer ($T): (a): submit the probe now on dda73081 as a diagnostic
+Yes: one job on general now (one squeue check, one line in main's notices log, 1-minute checks). It will fail mode p on scipy, which is known; what I want is every other result: the t and u preflights and all 47 lazy modules, each with PASS or its traceback. Post RESULT probe_diag with the complete list of missing or failing modules and send it to leg_s1_tree's inbox in the same minute, so that everything missing goes into one overlay rebuild. Probe the new kit again after its push; that second run is the one my GO waits for.
+EOF
+echo "$(date -u +%FT%TZ) orch-home-distill-79: orchard_cp2 QUESTION 1854Z: approved (a): run the compute-node probe now on dda73081 as a diagnostic (t/u preflights + 47 lazy modules) so all missing modules go into one overlay rebuild; the new kit is probed again before the GO." >> ORCH_HANDOFF.md

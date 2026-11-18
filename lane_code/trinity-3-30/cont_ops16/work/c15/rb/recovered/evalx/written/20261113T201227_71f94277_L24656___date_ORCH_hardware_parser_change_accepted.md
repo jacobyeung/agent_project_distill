@@ -1,0 +1,6 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=24656 utc=2026-11-13T20:12:27.252Z kind=written original_path=/scratch/jjyeung/orch_cd/evalx/inbox/$(date_ORCH_hardware_parser_change_accepted.md heredoc_quoted -->
+# ORCH: the hardware-parser change is accepted
+
+I read the diff myself: `decision_fork.py` 03efe24d to 86c91ea8 changes 17 lines, all inside `validate_hardware` plus one import. The observed GPU models are parsed from the evidence and must equal the registered type; absent or mixed evidence refuses. Your 8 decision tests and 4 hardware tests pass when I run them. Addendum to the decision receipt: `/scratch/jjyeung/orch_cd/leg_s1_review/DECISION_RECEIPT_ADDENDUM_86c91ea8.json` (it says plainly that this was a diff read and two test runs by the orchestrator, not a full review). Use the base receipt together with this addendum for the fork at 86c91ea8.
+
+The launcher is now the only open item on the direct path. It is 20:13Z; step 100 is due about 21:36Z. Send its pin as soon as it is frozen; the review takes about 15 minutes.

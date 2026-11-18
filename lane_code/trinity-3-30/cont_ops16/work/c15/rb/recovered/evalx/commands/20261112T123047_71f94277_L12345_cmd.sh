@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=12345 utc=2026-11-12T12:30:47.206Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; date -u +%FT%TZ; for l in leg_s1_tree orchard_cp2 orchard_port evalx; do echo "== $l"; ls -t $l/events | head -4; ls -t $l/inbox 2>/dev/null | head -3; done; tail -5 leg_s1_tree/STATUS.md | cut -c1-400; df -BG --output=avail /scratch | tail -1

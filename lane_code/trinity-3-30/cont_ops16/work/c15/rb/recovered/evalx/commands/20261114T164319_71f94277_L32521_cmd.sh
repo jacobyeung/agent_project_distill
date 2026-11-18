@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=32521 utc=2026-11-14T16:43:19.380Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd && du -sh evalx/work/milestone/native_package_s23_01 2>/dev/null; ls -t evalx/work/milestone | head -n 4; du -sh if_p0 leg_s1_canary leg_s1_review 2>/dev/null; df -h /scratch | tail -n 1

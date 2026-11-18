@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=3652 utc=2026-11-11T15:11:47.907Z kind=commands original_path=(bash command)  -->
+sed -i '/^gf1_fusion|/d' /tmp/claude-25409/-scratch-jjyeung-orch-home-distill/71f94277-362e-467c-a4bc-ccc9ae6b87c8/scratchpad/LANES; echo "$(date -u +%Y-%m-%dT%H:%MZ) tick 15:11Z: all lanes alive; gf1_fusion Codex run ended after its 1507Z RESULT (row dropped from LANES); /scratch 174 GB free." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

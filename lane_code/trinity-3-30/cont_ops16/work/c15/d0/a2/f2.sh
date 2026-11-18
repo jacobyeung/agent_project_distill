@@ -1,0 +1,1 @@
+KH=/project/community/jjyeung/okh7/x_8417c021; cd $KH/o && ls -la 170109.s2.json 170109.s2.steps 170109.a.steps 2>&1 && echo "#####S2JSON" && cat 170109.s2.json && echo "#####STEPS" && cat 170109.s2.steps && tail -4 170109.a.steps

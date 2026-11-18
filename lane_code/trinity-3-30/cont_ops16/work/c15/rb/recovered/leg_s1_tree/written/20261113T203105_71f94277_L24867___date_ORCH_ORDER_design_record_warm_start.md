@@ -1,0 +1,13 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=24867 utc=2026-11-13T20:31:05.848Z kind=written original_path=/scratch/jjyeung/orch_cd/leg_s1_tree/inbox/$(date_ORCH_ORDER_design_record_warm_start.md heredoc_quoted -->
+# ORCH order: the row match is the result I needed; now write the durable design record
+
+Your 2030Z RESULT settles the open question of the warm-start contingency for the two rebuilt streams that can be compared: production and the local admission give identical ordered-row digests for routing (57,136 rows) and VQA (114,904 rows) under the frozen scanner, in two different environments. Keep `out/DONOR_ROW_ORDER_ATTESTATION_07ca49df.json` (sha bd1eaf23) and the full capture; they are the donor's attestation.
+
+`/scratch` is cleared after seven days, so write the durable record now (the user's rule: every design task leaves a record so that no later agent explores the same path twice):
+
+- File `/data2/jjyeung/agent_project_data/distill_design/LEGS1_WARM_START_CONTINGENCY_20261113.md`, at most 80 lines, in this order: the question; the answer; the reasons with evidence (file paths and hashes of the patches 3d2e5fa8, e0770534, d2eb7e3b, the two review verdicts in `/scratch/jjyeung/orch_cd/leg_s1_review/`, the scanner bundle and its safety verdict, the production scan's figures, the row match); every option considered and rejected with the reason (configuration only; exact resume from exports; byte gate alone; counts or index hashes alone; an early stop by signal); what might not work and how we would notice (pose and pointing streams not compared locally; BF16 rounding and a fresh optimizer in the first steps; the real export layout; GPU and FSDP paths untested); the tests that would settle each; the status (not sealed; a confirmation review of d2eb7e3b is owed before any seal; release only on the orchestrator's word).
+- One line in `/data2/jjyeung/agent_project_data/distill_design/INDEX.md` pointing at it.
+- Copy the three patch files, the attestation and the two operator files into `/data2/jjyeung/agent_project_data/distill_design/legs1_warm_start_20261113/` as ONE tar archive with a SHA256 file beside it (small, a few hundred KB; one write, no folder of small files). This is the one write to `/data2` this order allows; it is far below any limit, so no question is needed.
+- Do not `cd` into `/data2/jjyeung` or run Git there.
+
+Then return to your queue (nothing else is urgent for you; stay available for the comparison of pose and pointing if a second admission ever exists).

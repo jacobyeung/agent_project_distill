@@ -1,0 +1,17 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=35025 utc=2026-11-15T04:00:13.348Z kind=commands original_path=(bash command)  -->
+S=/tmp/claude-25409/-scratch-jjyeung-orch-home-distill/71f94277-362e-467c-a4bc-ccc9ae6b87c8/scratchpad; F=/scratch/jjyeung/orch_cd/ORCH_STATE_20261111T0935Z.md; /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B - "$F" "$S/state_block.md" "$S/state_tail.md" <<'EOF'
+import sys
+f,b,t=sys.argv[1:]
+L=open(f).read().split('\n')
+a=[i for i,l in enumerate(L) if l.startswith('## Active lanes at ')]
+e=[i for i,l in enumerate(L) if l.startswith('Review briefs and verdicts of today')]
+d=[i for i,l in enumerate(L) if l.startswith('## Do not redo')]
+assert len(a)==1 and len(e)==1 and len(d)==1 and a[0]<e[0]<d[0], (a,e,d)
+new=open(b).read().rstrip('\n').split('\n'); tail=open(t).read().rstrip('\n').split('\n')
+out=L[:a[0]]+new+L[e[0]:d[0]]+tail
+open(f,'w').write('\n'.join(out)+'\n'); print(len(L),len(out))
+EOF
+T=/scratch/jjyeung/orch_cd/orch_tools/session_scripts_20261115; mkdir -p $T; for x in tick.sh evwait.sh lanewatch.sh queue_watcher.sh pausewatch.sh LANES inbox_seen.txt ev_seen.txt; do test -f $S/$x && cat $S/$x > $T/$x; done; ls $T | tr '\n' ' '; echo
+D=/data2/jjyeung/agent_project_data/distill_design; test -e $D/ROUTED_READ_PIN_GRAPH_AUDIT_20261114.md || { cat /scratch/jjyeung/orch_cd/leg_s1_review/NATIVE_PIN_GRAPH_AUDIT.md > $D/ROUTED_READ_PIN_GRAPH_AUDIT_20261114.md; printf '%s\n' "- [ROUTED_READ_PIN_GRAPH_AUDIT_20261114.md](ROUTED_READ_PIN_GRAPH_AUDIT_20261114.md): Independent audit of every hash, size and identity check the routed-read job performs before its GPU work (46 checks in execution order, 21 duplicate-pin groups), evaluated against the exact uploaded objects for family 62a94599. Found two stale pins (the worker entrypoint in the runtime-spec asset; the mask cache's producer hash) and which build step regenerates each copy of a pin. Use it as the checklist when a native family is resealed. Status: findings fixed in later seals." >> $D/INDEX.md; echo "audit recorded"; }
+test -e $D/IF_P0_FINAL_20261115.md || { cat /scratch/jjyeung/orch_cd/if_p0/out/IF_P0_FINAL_20261115.md > $D/IF_P0_FINAL_20261115.md; printf '%s\n' "- [IF_P0_FINAL_20261115.md](IF_P0_FINAL_20261115.md): Close-out of experiment IF-P0 (vision-only branches in language-model layers 1 to 8 of a frozen student, read by a pose probe): arms, jobs, both results with intervals (P0 18.107, IF8 15.501 degrees; +2.61 [1.66, 3.80]; no pass against a 5-degree mark), timing and memory, what it rules out and what it does not, the kit seal and the next-seal list. Companion to INFUSION_VISION_CAPACITY_20261113.md. Status: closed." >> $D/INDEX.md; echo "if_p0 final recorded"; }
+N=$(date -u +%Y%m%dT%H%MZ); cat $F > /data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/ORCH_STATE_SNAPSHOT_${N}.md; echo "snapshot ${N}"; echo "- $(date -u +%Y-%m-%dT%H:%MZ) HANDOFF (/handoff by the user): ORCH_STATE rewritten (Active-lanes block at 04:00Z; Do not redo; Survives vs dies; Footguns) and copied to /data2/.../ORCH_STATE_SNAPSHOT_${N}.md; session scripts copied to orch_tools/session_scripts_20261115/; design records added: ROUTED_READ_PIN_GRAPH_AUDIT_20261114.md, IF_P0_FINAL_20261115.md (+ INDEX)." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

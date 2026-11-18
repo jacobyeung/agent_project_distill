@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=15143 utc=2026-11-12T21:27:28.184Z kind=commands original_path=(bash command)  -->
+echo "$(date -u +%FT%TZ) orch-home-distill-79: orchard_port RESULT 2127Z: all 12,544 p5x9 pins (used by 25,020 rows) match a local file by sha256 (0 missing, 0 mismatched, no unused file); archive c6f147a2.tar (36,239,360 B, sha 271324e8) pushed to Orchard (ARRIVAL_SHA_OK) at /home/jjyeung/okit/i/c6f147a2 -> okh7/i_c6f147a2. Waiting: leg_s1_tree's census, exclusion change and reseal." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

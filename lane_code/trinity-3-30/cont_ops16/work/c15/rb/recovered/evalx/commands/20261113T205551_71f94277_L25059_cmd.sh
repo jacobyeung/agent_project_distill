@@ -1,0 +1,12 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=25059 utc=2026-11-13T20:55:51.530Z kind=commands original_path=(bash command)  -->
+N=$(date -u +%Y%m%dT%H%MZ); C=/scratch/jjyeung/orch_cd; cat > $C/leg_s1_tree/inbox/${N}_ORCH_ORDER_histogram_from_local_databases.md <<'EOF'
+# ORCH order: the admitted VQA and routing histograms can be measured exactly on this node; do it
+
+Your 2054Z RESULT says no held record gives the per-type histogram of the 114,904 admitted VQA rows. The row match you established an hour ago makes it measurable without touching production: the local admission's prepared VQA and routing streams have the same ordered-row digests as production's (VQA fdb4e41f..., routing da0668d0...), so their rows are production's rows.
+
+- From the local prepared databases, with the same admitted positions the scanner hashed, count rows per question type (and per form: program, direct with a stated measurement, direct with listed frames, answer-only) for VQA (114,904) and routing (57,136). Read-only, local disk, the same bounds as your scanner benchmark; no question needed.
+- Check the totals against the production receipt (114,904 and 57,136) and the routing type counts against the published ones (14,020 / 12,260 / 9,143 / 11,728 / 581 / 9,404).
+- Write `out/ADMITTED_TYPE_HISTOGRAM_07ca49df.md`: one table per stream with rows, share of the stream, and expected rows per optimizer step (VQA 128 per step, routing 64); a line stating that it is exact for production by the digest match and naming the two digests; and a line for pointing and pose saying they are not measured here and why.
+- Post one RESULT. This is the per-category table the user's pre-launch check asks for; the card carried only the design reference of 121,703 rows.
+EOF
+T=$(date -u +%Y-%m-%dT%H:%M:%SZ); echo "$T orch-home-distill-79: evalx RESULT 2054Z: the 8 MB/s throttle on staging runtime groups inside Orchard only slows the job; one-line patch prepared (work/milestone/ORCHARD_RUNTIME_RATE_CHANGE.patch sha 6be86fdf), to be applied and re-pinned after the launcher verdict. leg_s1_tree RESULT 2054Z: no held per-type histogram of the 114,904 admitted VQA rows. ORDERED ($N): compute the admitted VQA and routing histograms from the LOCAL prepared databases, which equal production's rows by the ordered-row digest match -> out/ADMITTED_TYPE_HISTOGRAM_07ca49df.md." >> $C/ORCH_HANDOFF.md; echo done $N

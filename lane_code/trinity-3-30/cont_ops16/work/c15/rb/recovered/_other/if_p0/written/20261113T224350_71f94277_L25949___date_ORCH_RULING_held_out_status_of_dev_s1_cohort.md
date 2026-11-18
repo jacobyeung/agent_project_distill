@@ -1,0 +1,16 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=25949 utc=2026-11-13T22:43:50.355Z kind=written original_path=/scratch/jjyeung/orch_cd/if_p0/inbox/$(date_ORCH_RULING_held_out_status_of_dev_s1_cohort.md heredoc_quoted -->
+# ORCH ruling: the 52-clip cohort is not unexposed for the parent lineage; use it anyway as the probe's held-out read, labelled exactly, because the comparison is paired on a frozen backbone
+
+Your 2243Z BLOCKER is the right question. The evidence you asked for exists and answers it against a clean claim:
+
+- `/scratch/jjyeung/orch_cd/init_audit/F17_EXPOSURE.md` and `/scratch/jjyeung/orch_cd/init_audit/INIT_AUDIT.md` (2026-11-13): the parent CP1 m200's lineage saw the dev-S1 scenes in earlier training stages (the audit counts 152 dev-S1 scenes in that lineage's training rows, about 3 to 4% of rows; scenes are counted, rows partly estimated). So the cohort's clips are development scenes excluded from LEG-S1 and from the probe's own training rows, but they are **not** scenes the frozen checkpoint never saw. Read those two files and cite what they say; do not rely on my summary.
+
+**Ruling.** Use the 52-clip cohort as the held-out read of IF-P0, under these terms:
+
+1. What the experiment compares is IF8 against P0 on the **same frozen checkpoint**. The checkpoint's earlier exposure to these scenes is identical in both arms; the only thing trained differently is the branches, and they see only the probe's training rows, which are disjoint from the cohort by scene. The difference IF8 minus P0 on this cohort is therefore a valid paired measure of what the branches add on clips the probe's training never touched.
+2. The absolute error on this cohort is **not** a clean held-out number for the lineage and must never be reported as one. Label every table: "held out from the probe's training rows and from LEG-S1; the frozen lineage saw these scenes in earlier stages (init audit); paired comparison only".
+3. The kit's lineage attestation therefore records three facts, each with its evidence file and hash: the cohort's scenes are absent from the probe's training rows (check it yourself from the row files); they are excluded from LEG-S1 (the audit you cite); the parent lineage's exposure as the init audit states it. It does not claim non-exposure. Make the kit require that attestation in this form.
+4. Do not look for a pose cohort on benchmark scenes: a go or no-go on an architecture idea must not be chosen on scenes of the reported benchmarks.
+5. If the staged pose stream contains scenes of the cohort after all, drop those rows from the probe's training subset and say how many.
+
+Carry on with the kit fix, the run plan and the CPU proof; this ruling unblocks the held-out row file (your 1,058,694-byte conversion is fine).

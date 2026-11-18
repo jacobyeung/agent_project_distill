@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=7186 utc=2026-11-11T21:39:56.503Z kind=commands original_path=(bash command)  -->
+echo "$(date -u +%Y-%m-%dT%H:%MZ) orchard_cp2 RESULT 2138Z: the devs1 r2 frame list (6,624 frames, 1.77 GB) needed no transfer: all already in /dev/shm/jjyeung_devs1_frames; manifest covers r2; /dev/shm 13 GiB free. devs1_tower pass 2 RESULT still pending (its frame list exists)." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

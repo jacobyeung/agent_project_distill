@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=30377 utc=2026-11-14T09:27:14.259Z kind=commands original_path=(bash command)  -->
+M=/scratch/jjyeung/orch_cd/evalx/work/milestone; grep -n "gcloud" $M/orchard_stage.py | cut -c1-200 | head -n 12; D=$M/native_fix_s23_01/orchard_native; grep -n "gcloud" $D/native_stage.py | cut -c1-200 | head -n 8; sha256sum $D/native_stage.py | cut -c1-16; grep -o '"tests_passed": *[0-9]*\|"passed": *[0-9]*' $D/CPU_TESTS_S23_04.json 2>/dev/null | head -n 3

@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=32817 utc=2026-11-14T17:58:20.351Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd && for d in evalx if_p0 leg_s1_canary leg_s1_review orchard_cp2 leg_s1_tree; do timeout 30 du -s --block-size=1G $d 2>/dev/null | cut -c1-60; done; df --output=avail -BG /scratch | tail -n 1; ls -lt --time-style=+%H:%M /scratch | head -n 8 | cut -c1-110; ls -lt --time-style=+%H:%M /scratch/jjyeung | head -n 6 | cut -c1-110

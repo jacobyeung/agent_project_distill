@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=13196 utc=2026-11-12T13:59:44.836Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; ls orchard_cp2/work | head -40; for f in orchard_cp2/work/*/ANON_OK.json orchard_cp2/work/*/*/ANON_OK.json; do [ -f "$f" ] && { echo "== $f"; cut -c1-500 "$f"; echo; }; done 2>/dev/null | head -40

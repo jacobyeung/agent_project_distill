@@ -1,0 +1,34 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=29084 utc=2026-11-14T06:35:48.361Z kind=commands original_path=(bash command)  -->
+C=/scratch/jjyeung/orch_cd; S=/tmp/claude-25409/-scratch-jjyeung-orch-home-distill/71f94277-362e-467c-a4bc-ccc9ae6b87c8/scratchpad; cat > $C/evalx/BRIEF_SUCCESSOR20.md <<'EOF'
+NOTE ON YOUR WORKING DIRECTORY: you were started in /home/jjyeung/agent_project_distill only because Devin requires a trusted workspace. That folder is on overloaded network storage. Do not search, index, list or read it, never use a built-in search or grep tool on /home or /data*, and never run git there. Do all work in the lane folder named below, using absolute paths.
+
+# Evalx successor 20 (lane `/scratch/jjyeung/orch_cd/evalx` on trinity-2-18). ORCH (orchestrator orch-home-distill-79) remains the launch authority.
+
+Your predecessor (successor 19) ended at 06:34Z on a tool failure (its session database became unreadable), in the middle of the native-family build. Nothing of its work is lost: every file is on disk. You are the only evalx lane.
+
+## Read, in this order
+1. `/scratch/jjyeung/orch_cd/evalx/STATUS.md` (ten lines, current at 06:08Z).
+2. `/scratch/jjyeung/orch_cd/evalx/BRIEF_SUCCESSOR19.md` in full: the accepted contracts, the queue and return procedure, the loader and parity notes, and the **binding rules** section. Those rules bind you unchanged (vnice, the rate-limited ssh wrapper, no deletion commands or deletion words in shell text, events only for RESULT, QUESTION or BLOCKER, never end your turn, rotate before 250K tokens).
+3. The inbox notes from `20261114T0406Z` on, oldest first.
+4. This addendum, which wins wherever it differs from the older brief.
+
+## ORCH addendum (2026-11-14T06:37Z): the state now
+
+**Done since successor 19's brief (do not redo):**
+- Step-200 direct read: packet `work/milestone/reports/step200_bffa0d6ef/PACKET.json` (cf0e02b4), ruled by me (`inbox/20261114T0515Z_ORCH_RULING_step200_direct_read.md`): nothing stops; its items 4 and 5 are requirements for the step-400 packet.
+- Milestone step set: confirmed. Reader **b8ebab38**, launcher seven-file digest **555eb739**, receipt `/scratch/jjyeung/orch_cd/leg_s1_review/MILESTONE_STEP_SET_RECEIPT_b8ebab38.json`; your predecessor bound the scoped request and admission receipts to it and all 126 CPU tests passed. Use these pins for every new package. Submitted reads keep fb2796c5 and b13c6dcc.
+- Stage 1 of the Orchard routed read: all 152 raw geometry caches admitted (`work/milestone/raw_g3t_20261114/admission/`).
+- The Trinity path is closed: no reads of or writes to trinity-0-28, no node scans, no retry of trinity-0-3.
+- The local allowance for your milestone tree is 5,000,000,000 bytes.
+
+**IF-P0's baseline arm:** job 169413 FAILED after 64 seconds on a member-name mismatch in a staged archive; you authenticated the return into `/scratch/jjyeung/orch_cd/if_p0/inbox_results/a35f2d78fe7c5ee8d/`. Lane if_p0 owns the fix. The held `advanced` packet for the old seal is never submitted. A repaired P0 is submitted only on my new written word, with a new packet that lane if_p0 hands you.
+
+**Your work, in order:**
+1. **Step-400 direct read.** The export is due about 08:50Z; the operator delivers the artifact and attestation to your inbox. One submission on `general` under the standing pre-authorization, after your queue and main-notice check, with reader b8ebab38, launcher 555eb739 and producer 8365bd3b. The packet leads with the watch list and carries items 4 and 5 of my 0515Z ruling (ten random facing-away examples, seed 17, at least five rooms, all three levels; over all 150 away items the frequencies of unchanged, opposite and neither against the forward twin; three unparsed camera outputs, first 200 characters each).
+2. **The final stop export** (about 14:30Z): same, through the stop-export route with the step the operator attests with `stop_export: true`. No further admission from me is needed.
+3. **The Orchard native routed-read family** (my authorization: `inbox/20261114T0414Z_ORCH_AUTHORIZED_orchard_native_routed_family.md`; read it in full). Stage 1 is done. Stage 2 is in progress in `work/milestone/orchard_native/` (eight pilot-kernel tests pass; the whole-job rehearsal, the scoped admission and the upload list are open): first inventory what exists there and what its tests cover, then continue. Stage 3 needs my approval of the exact object list before the first upload. Target was a pilot packet by about 10:00Z; give me a realistic time in your first RESULT.
+4. Camera comparisons keep the label "baseline hardware evidence incomplete"; no sessions for it.
+
+**First RESULT (within about 20 minutes):** that you are up; the state of `work/milestone/orchard_native/` (files, tests passing, what is missing for the pilot); the queue state of our jobs from one routine Orchard session with `TZ=UTC`; your estimate for the pilot packet.
+EOF
+(cd /home/jjyeung/agent_project_distill && bash $C/orch_tools/devin_bg_acp.sh /home/jjyeung/agent_project_distill $C/evalx/BRIEF_SUCCESSOR20.md gpt-6-astra-max 43200 $C/evalx/out/devin_stdout_20.log) 2>&1 | tail -n 2; sed -i 's#evalx|evalx/BRIEF_SUCCESSOR19.md||#evalx|evalx/BRIEF_SUCCESSOR20.md||#' $S/LANES; sed -i 's#\[evalx\]="evalx/BRIEF_SUCCESSOR19.md"#[evalx]="evalx/BRIEF_SUCCESSOR20.md"#' $S/lanewatch.sh; grep evalx $S/LANES; T=$(date -u +%Y-%m-%dT%H:%M:%SZ); echo "$T orch-home-distill-79: evalx successor 19 DIED at 06:34Z (ACP request failed; Devin session journal 'database disk image is malformed'); nothing in flight on GPUs. RELAUNCHED as successor 20 (brief evalx/BRIEF_SUCCESSOR20.md: read STATUS + BRIEF_SUCCESSOR19 + inbox from 0406Z + addendum; work order: step-400 read, final stop export, Orchard native family stage 2-3); LANES and lanewatch.sh updated." >> $C/ORCH_HANDOFF.md

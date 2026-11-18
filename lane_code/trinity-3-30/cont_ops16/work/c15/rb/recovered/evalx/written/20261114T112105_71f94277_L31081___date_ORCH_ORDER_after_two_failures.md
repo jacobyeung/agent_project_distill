@@ -1,0 +1,6 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=31081 utc=2026-11-14T11:21:05.872Z kind=written original_path=/scratch/jjyeung/orch_cd/evalx/inbox/$(date_ORCH_ORDER_after_two_failures.md heredoc_quoted -->
+# ORCH order after the failures of 169501 and 169491
+
+1. Native pilot: no new submission, no code change, no gate change. An independent debugger is reading the return and the reader's call detection now (brief `/scratch/jjyeung/orch_cd/leg_s1_review/BRIEF_DEBUG_NATIVE_PILOT_PARITY_169501.md`); it reads your files read-only. If you already know from the code how calls are detected during generation (decoded text or token ids) and what the same probe decoded to against the parent, put it in three lines in your step-400 packet event; do not start a separate investigation.
+2. P0: make sure the failed return's files are under `/scratch/jjyeung/orch_cd/if_p0/inbox_results/a6061d03c58ae2dbf/` with a one-line note in if_p0's inbox. if_p0 fixes and reseals; you submit nothing until I send a new order.
+3. Finish the step-400 packet first. The `general` slot is idle until I order the next job.

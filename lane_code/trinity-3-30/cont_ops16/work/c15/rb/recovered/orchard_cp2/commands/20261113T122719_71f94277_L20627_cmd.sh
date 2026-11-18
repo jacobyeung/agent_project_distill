@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=20627 utc=2026-11-13T12:27:19.171Z kind=commands original_path=(bash command)  -->
+echo "$(date -u +%FT%TZ) orch-home-distill-79: leg_s1_canary BLOCKER 1225Z (true save timing not yet available in its lane; refuses to replace the 65-69 s measurements with an estimate from a timestamp gap) crossed with orchard_cp2's 1227Z RESULT, which supplies the save records (68.14 s per rank); no action needed; the lane's single timing RESULT follows from those records." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

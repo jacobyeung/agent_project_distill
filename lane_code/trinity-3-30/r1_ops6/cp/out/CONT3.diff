@@ -1,0 +1,2686 @@
+--- C2/STATUS.md
++++ C3/STATUS.md
+@@ -1 +1 @@
+-LOCAL_CHECKS_PENDING_HEAVY_TEST. C 6594f46cdc16168514aca26a6ce38285907adfc6ece0b75d8e10428ea0b2fe74, run 05b8ac69, p_c60b9015.tar SHA256 c60b901594843989b909cb785a5fdc9ad544ea0fdec8d78c63bf173e4f6e136c. 82 tests pass. Read out/CONT2.md and out/CONT2.diff. Independent review, production proof and written GO remain required.
++BUILT_FOR_INDEPENDENT_REVIEW. C 6594f46cdc16168514aca26a6ce38285907adfc6ece0b75d8e10428ea0b2fe74, run 05b8ac69, p_6a5c7d00.tar SHA256 6a5c7d009a19cb5bac690b864f2be68bb5cebc29649923c93da36328d0f96888. All 88 tests pass. Read out/CONT3.md and out/CONT3.diff. Independent review, production proof and written GO remain required.
+--- C2/out/CONT3.md
++++ C3/out/CONT3.md
+@@ -0,0 +1,56 @@
++BUILT_FOR_INDEPENDENT_REVIEW. C resumes A at absolute step 200 and stops at 600. The launch gate accepts only a completed PASS CPU proof and separate written GO. No canary is needed.
++
++| Identity | Value |
++|---|---|
++| Config identity | `6594f46cdc16168514aca26a6ce38285907adfc6ece0b75d8e10428ea0b2fe74` |
++| Config file SHA256 | `2152828974490944a1713f5a539e87211f80179f0b5f9254ea9966fc65788733` |
++| Run key | `05b8ac69` |
++| Job name | `a15_cot_ap05b8ac69` |
++| Bundle | `/project/community/jjyeung/okh7/i_7f1589c1` |
++| Kit | `/project/community/jjyeung/okh7/x_7f1589c1` |
++| Persistent slots | `/project/community/jjyeung/okh7/r/05b8ac69` |
++| Archive | `p_6a5c7d00.tar` |
++| Archive SHA256 | `6a5c7d009a19cb5bac690b864f2be68bb5cebc29649923c93da36328d0f96888` |
++| Proof script | `p_05b8ac69.sh` (general or bootstrap, CPU only; 48 CPUs, 800 GB, four hours) |
++| Training time limit | `24:00:00` (advanced, four GPUs) |
++
++The estimate is `(400 × 0.153 + 11) / 4 = 18.05` wall hours. The 24-hour allocation leaves 5.95 hours for restore, exports and variation. The existing trainer budget remains 86,400 seconds with a 3,600-second stop reserve. The wrapper's GCS fallback deadline also uses 86,400 seconds.
++
++The complete config delta from frozen A is below. Tree, code archive, stores, REMOVE lists, selection, units, reader pins, S2=true, S1=false, both max_own probabilities, 1,000-step LR horizon, seed, row offset and default cells are equal to A.
++
++| Field | A | C |
++|---|---|---|
++| continuation | `null` | `{"config": "fac0705214fdecb53561c633d7d94642cd469b50b662c5de81f09d11891d115f", "root": "/project/community/jjyeung/okh7/r/673bc60f", "rows": "exact", "run": "673bc60f", "schema": "c0-v1", "step": 200}` |
++| h1.stop_after_step | `200` | `600` |
++| milestones | `[100, 200]` | `[400, 600]` |
++| output | `"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/673bc60f"` | `"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/05b8ac69"` |
++| preparation_output | `"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/f/673bc60f"` | `"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/f/05b8ac69"` |
++| recipe.milestones | `[100, 200]` | `[400, 600]` |
++
++`configs/cont1_cells.json` exposes every family's requested cents. `tools/build_cont1.py --cells FILE` puts those values directly into `type_mix.streams.<stream>.cells`, which the unchanged sampler consumes. A changed parameter set produces a distinct identity; it needs new admission, proof and GO. Unit allowlists and row/store pins remain explicit existing config parameters. This sealed C enforces identical admitted populations at its default boundary. The explicit `continuation.rows=rebind` config mode permits an intentional change to newly admitted cells and input pins. `--mix FILE` also accepts the existing unit allowlist and mix policy. The builder selects rebind mode when the requested mix changes; a source-pin rebind still needs matching store, selection and packaging records. Rebind mode preserves optimizer and absolute step, while rebuilding the requested sampler at that step; it does not claim equality with A's draws.
++
++The bundle and kit tokens differ from A; `record_key=69d2930d` retains A's immutable data-record paths. All new writable run, slot, log, export-session and bundle/kit paths use C's opaque token. A's `r/673bc60f` is read only. Existing packet archives are checksum-verified and retained.
++
++`b/c0.py` is the sealed runtime bridge. The wrapper first restores any C slot through its inherited A/B restore path. For the first C leg, `job.sh` verifies A's run marker, binding mirror and digest, selects only a verified step-200 A/B record, checks its archive size and SHA256, safely streams its regular members into C's private `d/`, and verifies the pinned `complete.json` plus every shard, replicated payload and rank RNG file. It retains A's checkpoint and binding bytes unchanged. The donor pointer records A's run, launch identity, exact step, archive digest and manifest digest.
++
++A's checkpoint binds its admitted effective configuration. The bridge reconstructs that configuration from the frozen A template and authenticated admission/preparation pins, requires its identity to equal the checkpoint binding, and checks the sealed trainer revision. In C's default exact mode, it compares C's regenerated stream counts, database/indices hashes, mix populations, effective quotas and policy before restoring. A mismatched population or source refuses.
++
++`b/r8.py` returns mode `u` for the verified donor and initializes only C's persistent marker. `b/w.py` installs the bridge only for a continuation config in mode `u`. The first native restore receives A's original binding and restores parameters, Adam state, buffers, trained-group state and RNG. The native loop receives start_step=200; it computes LR and row plans from absolute step 201. The first new output binding belongs to C. Later C checkpoints use the inherited native resume path. Empty or malformed optimizer state refuses before an update. The sealed trainer tree is byte-identical to A.
++
++H1's `C1_INIT_LOCAL` path loads the pinned m544 full-weight/head export before optimizer construction. That warm start alone cannot preserve Adam or absolute step. C retains that initialization for compatibility, then restores A's full checkpoint. A's GCS `m200` and `mstop*` objects are weight exports, not substitutes for the verified slot. If A uses its separate GCS slot fallback, an operator must restore and verify a normal A/B slot before C can start; C does not fetch network objects.
++
++The deriver seals `b/` and every code subdirectory at `0500` after inventory generation and evidence validation. Isolated job-prefix imports cannot create bytecode in the kit. The resume chooser explicitly includes its sealed code directory so `python -I` can import the donor verifier. `tk_nx` uses `rsync --chmod=D700` to create private node-local directories at `0700`. `b/z.py` refuses in-place redeployment of a sealed kit. Operators must derive a fresh kit; changing permissions to redeploy is unsupported.
++
++The derived `k/4.json` seals modes `["p","t","u"]`, `new_gpus={"p":0,"t":4,"u":4}`, top-level partition `advanced`, wall limit `86400`, one node, arm `0`, GPU cap `4`, one parallel job and `resume="latest"`. Its per-mode resources authorize `p` on `general` or `bootstrap` with zero GPUs and 14,400 seconds; `t` and `u` require `advanced`, four GPUs and 86,400 seconds. Proof and training request 48 CPUs and 800 GB. C's verified donor and later checkpoint restores enter `u`; the inherited cold-entry resource envelope also carries `t`, while C's restore bridge still refuses training without a continuation checkpoint.
++
++The deriver binds these resource fields before generating `SHA256SUMS.txt`. It preserves the supplied evidence identity, revision, admission contract and expiry. Both `b/g.py` and `b/i.py` validate the exact authority and allocation. The sealed entry sets `TK_ALLOCATION_MODE` before preflight and recursive admission: CPU preparation inside a training job uses that training allocation's limits. A standalone proof uses the zero-GPU proof limits. The runtime checks a supplied `SLURM_TIMELIMIT`; the sealed launch slot, job and wrapper pin the training wall limit even where Slurm omits that variable.
++
++`production_go_granted` is false and `production_go_required_separately` is true. The resource authority grants no launch GO. The submitter still requires a completed PASS CPU proof and separate identity-bound `go.json`. The proof sealer validates the complete authority, permits general/bootstrap, and pins `k/4.json` alongside the runtime. Certification and proof sealing do not modify any file in `k/`.
++
++The CPU proof retains A's admission, namespace, loader-audit and fix-11 environment setup. It additionally exercises the actual slot extraction and pointer verifier against a four-rank fixture. PASS requires `checks.resume_pointer.status=PASS`; the launch gate refuses CANARY. The proof fixture does not attest a future real A slot, which is verified at runtime.
++
++Validation: all 88 packet tests pass, including all three tests from `tests/test_fix10.py` and its full-store division regression. `tools/run_local_checks.py` passes deterministic packaging, two equal kit derivations, production-form evidence, four-rank D0 optimizer identity, native unit regeneration, CPU first batch and fix-11 shell replay. Five C3 tests exercise the real `g.check`, `i.authorize` and `x.ready` on fixture records: proof on both CPU partitions, both training modes, nested admission, sealed fields, and refusal of wrong modes, GPU counts, partitions, nodes and wall limits. Only native data admission and persistent slot selection are mocked in that resource matrix. Existing prefix tests execute the real metadata preflight, isolated gate and resume imports, then verify `a.py`, unchanged inventory, no bytecode and `0500` code directories. The native continuation test checks exact parameters, Adam state, RNG, LR and rows for 206 uninterrupted updates versus 200 plus six resumed updates, with single-rank collectives mocked.
++
++Reviewer checks: verify the archive SHA256 and `CONT3.diff` against `snap_c60b9015`; inspect `d.py`, `r4.py`, the derived `k/4.json`, `b/g.py`, `b/i.py`, the job prefix and recursive admission path. Check all per-mode limits, `resume="latest"`, the 24-hour launch slot and wrapper, separate written GO, and the proof seal's authority hash. Derive and certify a fresh final kit with real evidence; never patch a certified `k/4.json`. Confirm the real step-200 A slot contains the full optimizer state, the continuation authentication chain and row populations match, and the deployed manifest survives prefix execution without bytecode. Run the production CPU proof on the selected CPU partition and obtain the operator's written boundary GO before submission.
++
++Local tests do not prove Orchard namespaces, filesystem capacity, real A checkpoint availability, GPU/FSDP bit-exactness, production RGB admission, full routing regeneration or throughput. Regenerated database or population hashes may differ in production; C then refuses and needs investigation. No Orchard access, SSH, Git, GPU launch, external write, mirror or independent review occurred. The brief confines this task to local CPU work; `out/REVIEW_REQUEST.json` is the local handoff. `out/proof/CONT3_RESEAL.json` records fixture seals, not production approval. `out/CONT3.diff` compares the frozen `snap_c60b9015` packet with this packet, including derived kit bytes and directory modes. All existing packet archives remain checksum-identical. No cleanup was attempted.
+--- C2/out/CONT3_BASELINE.json
++++ C3/out/CONT3_BASELINE.json
+@@ -0,0 +1 @@
++{"archives":{"p_082d2d90.tar":"3401c318e552cf0ba23f691d197b8f022550639693632abeeaa3bf3b08658384","p_084ba70f.tar":"88a55761b7acb59c6213b846681c6dceee0e69332d7c4b913bf3084ec45bfa91","p_0a4d6fc3.tar":"db2a80b7832647aef89276a794fa585c9733c6180027eaa63e128938abe942c0","p_1130b378.tar":"f719b05fcbe934654499d786d1a56d413c0db71f6a1fd9a60b5097e788ebfad9","p_13d5fd61.tar":"13d5fd612a6d8860aa21fb059e4c747550c4ba686b46c853562a023d621f14aa","p_17eb48c6.tar":"d6e18979907f5a25c6eb3e6a9dca47cc277705bbb3bfb65d24d691c33fb879e1","p_214cbeb1.tar":"8f6a96e21f209a49352fbe794a890b0e7508d66ab8432b2f7cd1effe8f520bce","p_27bfcd1d.tar":"4343e9a08c7b54c745cd5c20b0393d5d222fb5f929b182fe1a3228ae066b5a1a","p_69d2930d.tar":"a99ab475f602c63332d4faaa4bf20f9d75e604cb973a80a041338b03a7d5f589","p_6f8ed106.tar":"def1e1f2b1153328b024209e69fcbb71f2dd556b7376eacb836d40bb66d9845f","p_6fb2eba4.tar":"252c65ce37f3a6da41adb1bfcd70a143d55209d7792bc810b05e1ea4c350bcb9","p_875fe807.tar":"81f3cd7acc045f21d2a3e90bf18fe27812383738e05b96a4fcfd1bb389531326","p_8ea59b48.tar":"8ea59b486cee16be485da86a44479931f1745abc084f58897f354713dd708fe2","p_957de3d4.tar":"957de3d47cba5f1713c9c32f4740bd9e6e51f5890c1fb7afb45c301f83beac66","p_9dd2fbb7.tar":"9dd2fbb77503ecee875d538ebaed933cc95ff286f76e5955fc2591f63e3f0192","p_a5dc8f30.tar":"a5dc8f306b6867c24fc80aa1215697cb178337252ec912f61ff575b8ec1e9169","p_c3d1a1fb.tar":"77599a948e4814776d96b8b93aba56543a40d34a36f86d26ce56415ef31fb526","p_c5f3847d.tar":"888027436a99cfec360959c46f4271222e4c029f5d36eb9870fea4f669231029","p_c60b9015.tar":"c60b901594843989b909cb785a5fdc9ad544ea0fdec8d78c63bf173e4f6e136c","p_fcc9a6f3.tar":"fcc9a6f333735d5b9b73ed6c56d21e41d00a683b10f46b00a2efff744d34f329"},"snapshot":"/scratch/jjyeung/orch_n30/r1_ops/work/snap_c60b9015"}
+--- C2/out/CONT3_RESULT.json
++++ C3/out/CONT3_RESULT.json
+@@ -0,0 +1 @@
++{"archive":"p_6a5c7d00.tar","authority":{"account":"mt01","admission_contract_sha256":"26059aff098020a08adcef7ad6ced09ab2aedb2edd4f3c6607028e496ebb8970","allocation_memory_gib":800,"allow_until_utc":"2026-11-26T00:00:00Z","allowed_partitions":["advanced","general","bootstrap"],"arm":"0","conditions":["Mode p: general/bootstrap, one node, zero GPUs, four hours.","Modes t/u: advanced, one node, four GPUs, 24 hours; resume latest.","Certify the final manifest before proof; never mutate the certified kit.","Training submission requires a separate identity-bound go.json."],"config_sha256":"6594f46cdc16168514aca26a6ce38285907adfc6ece0b75d8e10428ea0b2fe74","full_population_admission":false,"gpu_cap":4,"guard":null,"kernel":null,"max_parallel_jobs":1,"milestone_gate":null,"mode_resources":{"p":{"gpus":0,"nodes":1,"partitions":["general","bootstrap"],"wall_seconds":14400},"t":{"gpus":4,"nodes":1,"partitions":["advanced"],"wall_seconds":86400},"u":{"gpus":4,"nodes":1,"partitions":["advanced"],"wall_seconds":86400}},"modes":["p","t","u"],"native_admission_memory_gib":256,"native_memory_sufficiency_proven":false,"new_gpus":{"p":0,"t":4,"u":4},"nodes":1,"other_running_and_pending_gpus":0,"partition":"advanced","production_full_mode_p_required":true,"production_go_granted":false,"production_go_required_separately":true,"resource_counts_are_submission_conditions":true,"resume":"latest","review":null,"scope":"Sealed CPU proof and continuation resources; separate identity-bound GO required for training.","source_revision":"sha256:b83a8a35d420815b9d6396e1fc1178e94c20d47ad459aa6da964e85bdec0f87b","wall_seconds":86400,"world_size":4},"bundle":"/project/community/jjyeung/okh7/i_7f1589c1","fixture":"/scratch/jjyeung/orch_n30/r1_pkt/work/pre_submit_oy69cn82/ready","full_suite":true,"identity":"6594f46cdc16168514aca26a6ce38285907adfc6ece0b75d8e10428ea0b2fe74","kit":"/project/community/jjyeung/okh7/x_7f1589c1","manifest_sha256":"fbe67275015226e2ae6b69cb113a32b8afa35db16548b5c896f27fb02a9eff4e","production_authorized":false,"review":"REQUIRED","run":"05b8ac69","sha256":"6a5c7d009a19cb5bac690b864f2be68bb5cebc29649923c93da36328d0f96888","status":"BUILT_FOR_INDEPENDENT_REVIEW","tests":88}
+--- C2/out/DEPLOYMENT_REVIEW.patch
++++ C3/out/DEPLOYMENT_REVIEW.patch
+@@ -75,7 +75,15 @@
+  /usr/bin/python3 -I - "$CUR" "$HX" "$NX" "$IN" "$SLURM_JOB_ID" <<'PYINPUTS'
+ --- a/b/r.sh
+ +++ b/b/r.sh
+-@@ -39,7 +39,7 @@
++@@ -8,6 +8,7 @@
++ done
++ HX="$(dirname "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")")"
++ export TK_KIT_HOME="$HX"
+++if [[ "${1:-}" == t || "${1:-}" == u ]]; then export TK_ALLOCATION_MODE="$1"; fi
++ child="" admission_child="" X=""
++ stop_file="$HX/o/${SLURM_JOB_ID:-local}.stop"
++ on_stop() {
++@@ -39,7 +40,7 @@
+  /usr/bin/python3 -I "$HX/b/g.py" "$HX" "${1:?}"
+  export TK_RUNS_DIR="$(/usr/bin/python3 -I -c 'import json,pathlib,sys; print(pathlib.Path(json.load(open(sys.argv[1]))["run_directory"]).parent)' "$HX/k/launch.json")"
+  source "$HX/b/c.sh"
+@@ -84,6 +92,17 @@
+  mkdir -p "$TK_JOBDIR" "$HM/o"
+  if [[ "${1:-}" == p ]] && ! /usr/bin/python3 -I -c 'import json,sys; sys.exit(0 if json.load(open(sys.argv[1])).get("in_job_admission") else 1)' "$HX/k/launch.json"; then
+      export TK_LIGHT=1
++--- a/b/i.py
+++++ b/b/i.py
++@@ -46,6 +46,8 @@
++         from student_pilot import rehearsal
++         return rehearsal.authorize(root,mode,arm)
++     auth=load(root/'k/4.json');cur=load(root/'k/0.json')
+++    from r4 import allocation
+++    allocation(auth, mode, os.environ)
++     arms=auth['arm'] if isinstance(auth['arm'],list) else [auth['arm']]
++     if (mode not in GPU or arm not in arms or len(set(arms))!=len(arms)
++             or not set(arms)<=set(ARMS.values()) or mode not in auth['modes']):
+ --- a/job.sh
+ +++ b/job.sh
+ @@ -4,7 +4,7 @@
+@@ -95,7 +114,11 @@
+  #SBATCH --no-requeue
+  #SBATCH --signal=B:USR1@3600
+  set -euo pipefail
+-@@ -15,5 +15,7 @@
++@@ -12,8 +12,11 @@
++ export TK_JOB_START="${TK_JOB_START:-$(date +%s)}"
++ ROOT="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
++ /usr/bin/python3 -B "$ROOT/b/a.py" "$ROOT"
+++if [[ "${SLURM_JOB_PARTITION:-}" == advanced ]]; then export TK_ALLOCATION_MODE=u; else export TK_ALLOCATION_MODE=p; fi
+  /bin/bash "$ROOT/b/p0.sh" "$ROOT"
+  /usr/bin/python3 -I "$ROOT/b/g.py" "$ROOT" p
+  RUN="$(/usr/bin/python3 -I -c 'import json,sys; print(json.load(open(sys.argv[1]))["run_directory"])' "$ROOT/k/launch.json")"
+--- C2/out/OPERATOR.json
++++ C3/out/OPERATOR.json
+@@ -1 +1 @@
+-{"archive":"p_c60b9015.tar","bundle":"/project/community/jjyeung/okh7/i_7f1589c1","contract":"26059aff098020a08adcef7ad6ced09ab2aedb2edd4f3c6607028e496ebb8970","job_name":"a15_cot_ap05b8ac69","kit":"/project/community/jjyeung/okh7/x_7f1589c1","private_content_scan":"REQUIRES_INDEPENDENT_REVIEW","production_authorized":false,"proof_script":"p_05b8ac69.sh","public_filename_scan":"PASS","sha256":"c60b901594843989b909cb785a5fdc9ad544ea0fdec8d78c63bf173e4f6e136c","wrapper_sha256":"5e03795db020451f3705d322505273a38f10130c6a007f0c86752de17e6e1605"}
++{"archive":"p_6a5c7d00.tar","bundle":"/project/community/jjyeung/okh7/i_7f1589c1","contract":"26059aff098020a08adcef7ad6ced09ab2aedb2edd4f3c6607028e496ebb8970","job_name":"a15_cot_ap05b8ac69","kit":"/project/community/jjyeung/okh7/x_7f1589c1","private_content_scan":"REQUIRES_INDEPENDENT_REVIEW","production_authorized":false,"proof_script":"p_05b8ac69.sh","public_filename_scan":"PASS","sha256":"6a5c7d009a19cb5bac690b864f2be68bb5cebc29649923c93da36328d0f96888","wrapper_sha256":"5e03795db020451f3705d322505273a38f10130c6a007f0c86752de17e6e1605"}
+--- C2/out/R1P_PACKET.md
++++ C3/out/R1P_PACKET.md
+@@ -1,4 +1,4 @@
+-LOCAL_CHECKS_PENDING_HEAVY_TEST. C resumes A at absolute step 200 and stops at 600. The launch gate accepts only a completed PASS CPU proof and separate written GO. No canary is needed.
++BUILT_FOR_INDEPENDENT_REVIEW. C resumes A at absolute step 200 and stops at 600. The launch gate accepts only a completed PASS CPU proof and separate written GO. No canary is needed.
+ 
+ | Identity | Value |
+ |---|---|
+@@ -9,8 +9,8 @@
+ | Bundle | `/project/community/jjyeung/okh7/i_7f1589c1` |
+ | Kit | `/project/community/jjyeung/okh7/x_7f1589c1` |
+ | Persistent slots | `/project/community/jjyeung/okh7/r/05b8ac69` |
+-| Archive | `p_c60b9015.tar` |
+-| Archive SHA256 | `c60b901594843989b909cb785a5fdc9ad544ea0fdec8d78c63bf173e4f6e136c` |
++| Archive | `p_6a5c7d00.tar` |
++| Archive SHA256 | `6a5c7d009a19cb5bac690b864f2be68bb5cebc29649923c93da36328d0f96888` |
+ | Proof script | `p_05b8ac69.sh` (general or bootstrap, CPU only; 48 CPUs, 800 GB, four hours) |
+ | Training time limit | `24:00:00` (advanced, four GPUs) |
+ 
+@@ -41,12 +41,16 @@
+ 
+ The deriver seals `b/` and every code subdirectory at `0500` after inventory generation and evidence validation. Isolated job-prefix imports cannot create bytecode in the kit. The resume chooser explicitly includes its sealed code directory so `python -I` can import the donor verifier. `tk_nx` uses `rsync --chmod=D700` to create private node-local directories at `0700`. `b/z.py` refuses in-place redeployment of a sealed kit. Operators must derive a fresh kit; changing permissions to redeploy is unsupported.
+ 
+-The CPU proof accepts `general` and `bootstrap`. Seal with `p.py --partition bootstrap` and submit the packaged proof script with `sbatch -p bootstrap`; the selected partition must match the authority. The default script selects `general`. Both use 48 CPUs, 800 GB, no GPUs and `04:00:00`. The kit authorization lists the two proof partitions and `advanced`; training stays on `advanced` with four GPUs and `24:00:00`. These partition fields do not grant submission GO.
++The derived `k/4.json` seals modes `["p","t","u"]`, `new_gpus={"p":0,"t":4,"u":4}`, top-level partition `advanced`, wall limit `86400`, one node, arm `0`, GPU cap `4`, one parallel job and `resume="latest"`. Its per-mode resources authorize `p` on `general` or `bootstrap` with zero GPUs and 14,400 seconds; `t` and `u` require `advanced`, four GPUs and 86,400 seconds. Proof and training request 48 CPUs and 800 GB. C's verified donor and later checkpoint restores enter `u`; the inherited cold-entry resource envelope also carries `t`, while C's restore bridge still refuses training without a continuation checkpoint.
++
++The deriver binds these resource fields before generating `SHA256SUMS.txt`. It preserves the supplied evidence identity, revision, admission contract and expiry. Both `b/g.py` and `b/i.py` validate the exact authority and allocation. The sealed entry sets `TK_ALLOCATION_MODE` before preflight and recursive admission: CPU preparation inside a training job uses that training allocation's limits. A standalone proof uses the zero-GPU proof limits. The runtime checks a supplied `SLURM_TIMELIMIT`; the sealed launch slot, job and wrapper pin the training wall limit even where Slurm omits that variable.
++
++`production_go_granted` is false and `production_go_required_separately` is true. The resource authority grants no launch GO. The submitter still requires a completed PASS CPU proof and separate identity-bound `go.json`. The proof sealer validates the complete authority, permits general/bootstrap, and pins `k/4.json` alongside the runtime. Certification and proof sealing do not modify any file in `k/`.
+ 
+ The CPU proof retains A's admission, namespace, loader-audit and fix-11 environment setup. It additionally exercises the actual slot extraction and pointer verifier against a four-rank fixture. PASS requires `checks.resume_pointer.status=PASS`; the launch gate refuses CANARY. The proof fixture does not attest a future real A slot, which is verified at runtime.
+ 
+-Validation: 82 packet tests pass on this build. The 1.79 GB full-store regression awaits the required heavy-I/O authorization; all other tests ran. `tools/run_local_checks.py` checks deterministic packaging, two equal kit derivations, production-form evidence, four-rank D0 optimizer identity, native unit regeneration, CPU first batch and fix-11 shell replay. Five mode/partition regressions verify `0500` code directories, isolated cold and donor prefix execution without bytecode, inventory preservation, real `tk_nx` copies with the proof directory-mode checker, sealed-kit redeploy refusal, and both partition authorities. The native continuation test checks bit-exact parameters, Adam state, RNG, LR and rows for 206 uninterrupted updates versus 200 plus six resumed updates, with single-rank collectives mocked. Production RGB and other absent populations remain fixture boundaries.
++Validation: all 88 packet tests pass, including all three tests from `tests/test_fix10.py` and its full-store division regression. `tools/run_local_checks.py` passes deterministic packaging, two equal kit derivations, production-form evidence, four-rank D0 optimizer identity, native unit regeneration, CPU first batch and fix-11 shell replay. Five C3 tests exercise the real `g.check`, `i.authorize` and `x.ready` on fixture records: proof on both CPU partitions, both training modes, nested admission, sealed fields, and refusal of wrong modes, GPU counts, partitions, nodes and wall limits. Only native data admission and persistent slot selection are mocked in that resource matrix. Existing prefix tests execute the real metadata preflight, isolated gate and resume imports, then verify `a.py`, unchanged inventory, no bytecode and `0500` code directories. The native continuation test checks exact parameters, Adam state, RNG, LR and rows for 206 uninterrupted updates versus 200 plus six resumed updates, with single-rank collectives mocked.
+ 
+-Reviewer checks: verify the archived deriver seals all code directories, `tk_nx` copies them at `0700`, the isolated prefix preserves inventory, and the selected proof partition matches both authority and submission. Verify training still selects advanced and inspect the A launch-to-effective-config authentication chain, slot extraction and checksum checks, native restore adapter, new-output binding, row-population equality, independent writable namespaces, PASS-only gate, fix-11 replay, 24-hour limits and exact archive/derived-kit inventory. Confirm the real step-200 slot exists with full optimizer state. Independently scan the new runtime/proof text and seal the final deployed kit. Confirm the operator's written boundary GO and normal monitoring rules before submission.
++Reviewer checks: verify the archive SHA256 and `CONT3.diff` against `snap_c60b9015`; inspect `d.py`, `r4.py`, the derived `k/4.json`, `b/g.py`, `b/i.py`, the job prefix and recursive admission path. Check all per-mode limits, `resume="latest"`, the 24-hour launch slot and wrapper, separate written GO, and the proof seal's authority hash. Derive and certify a fresh final kit with real evidence; never patch a certified `k/4.json`. Confirm the real step-200 A slot contains the full optimizer state, the continuation authentication chain and row populations match, and the deployed manifest survives prefix execution without bytecode. Run the production CPU proof on the selected CPU partition and obtain the operator's written boundary GO before submission.
+ 
+-Local tests do not prove Orchard namespaces, filesystem capacity, real A checkpoint availability, GPU/FSDP bit-exactness, production RGB admission, full routing regeneration or throughput. Regenerated database or population hashes may differ in production; C then refuses and needs investigation. No Orchard access, SSH, Git, GPU launch, external write, mirror or independent review occurred. The brief confines this task to local CPU work; `out/REVIEW_REQUEST.json` is the local handoff. `out/proof/CONT2_RESEAL.json` is a fixture seal, not production approval. `out/CONT2.diff` compares the C1 baseline with this packet, including derived kit bytes and directory modes. `out/CONT2_STORAGE.json` records new local storage. No cleanup was attempted.
++Local tests do not prove Orchard namespaces, filesystem capacity, real A checkpoint availability, GPU/FSDP bit-exactness, production RGB admission, full routing regeneration or throughput. Regenerated database or population hashes may differ in production; C then refuses and needs investigation. No Orchard access, SSH, Git, GPU launch, external write, mirror or independent review occurred. The brief confines this task to local CPU work; `out/REVIEW_REQUEST.json` is the local handoff. `out/proof/CONT3_RESEAL.json` records fixture seals, not production approval. `out/CONT3.diff` compares the frozen `snap_c60b9015` packet with this packet, including derived kit bytes and directory modes. All existing packet archives remain checksum-identical. No cleanup was attempted.
+--- C2/out/REPORT.md
++++ C3/out/REPORT.md
+@@ -1,4 +1,4 @@
+-LOCAL_CHECKS_PENDING_HEAVY_TEST. C resumes A at absolute step 200 and stops at 600. The launch gate accepts only a completed PASS CPU proof and separate written GO. No canary is needed.
++BUILT_FOR_INDEPENDENT_REVIEW. C resumes A at absolute step 200 and stops at 600. The launch gate accepts only a completed PASS CPU proof and separate written GO. No canary is needed.
+ 
+ | Identity | Value |
+ |---|---|
+@@ -9,8 +9,8 @@
+ | Bundle | `/project/community/jjyeung/okh7/i_7f1589c1` |
+ | Kit | `/project/community/jjyeung/okh7/x_7f1589c1` |
+ | Persistent slots | `/project/community/jjyeung/okh7/r/05b8ac69` |
+-| Archive | `p_c60b9015.tar` |
+-| Archive SHA256 | `c60b901594843989b909cb785a5fdc9ad544ea0fdec8d78c63bf173e4f6e136c` |
++| Archive | `p_6a5c7d00.tar` |
++| Archive SHA256 | `6a5c7d009a19cb5bac690b864f2be68bb5cebc29649923c93da36328d0f96888` |
+ | Proof script | `p_05b8ac69.sh` (general or bootstrap, CPU only; 48 CPUs, 800 GB, four hours) |
+ | Training time limit | `24:00:00` (advanced, four GPUs) |
+ 
+@@ -41,12 +41,16 @@
+ 
+ The deriver seals `b/` and every code subdirectory at `0500` after inventory generation and evidence validation. Isolated job-prefix imports cannot create bytecode in the kit. The resume chooser explicitly includes its sealed code directory so `python -I` can import the donor verifier. `tk_nx` uses `rsync --chmod=D700` to create private node-local directories at `0700`. `b/z.py` refuses in-place redeployment of a sealed kit. Operators must derive a fresh kit; changing permissions to redeploy is unsupported.
+ 
+-The CPU proof accepts `general` and `bootstrap`. Seal with `p.py --partition bootstrap` and submit the packaged proof script with `sbatch -p bootstrap`; the selected partition must match the authority. The default script selects `general`. Both use 48 CPUs, 800 GB, no GPUs and `04:00:00`. The kit authorization lists the two proof partitions and `advanced`; training stays on `advanced` with four GPUs and `24:00:00`. These partition fields do not grant submission GO.
++The derived `k/4.json` seals modes `["p","t","u"]`, `new_gpus={"p":0,"t":4,"u":4}`, top-level partition `advanced`, wall limit `86400`, one node, arm `0`, GPU cap `4`, one parallel job and `resume="latest"`. Its per-mode resources authorize `p` on `general` or `bootstrap` with zero GPUs and 14,400 seconds; `t` and `u` require `advanced`, four GPUs and 86,400 seconds. Proof and training request 48 CPUs and 800 GB. C's verified donor and later checkpoint restores enter `u`; the inherited cold-entry resource envelope also carries `t`, while C's restore bridge still refuses training without a continuation checkpoint.
++
++The deriver binds these resource fields before generating `SHA256SUMS.txt`. It preserves the supplied evidence identity, revision, admission contract and expiry. Both `b/g.py` and `b/i.py` validate the exact authority and allocation. The sealed entry sets `TK_ALLOCATION_MODE` before preflight and recursive admission: CPU preparation inside a training job uses that training allocation's limits. A standalone proof uses the zero-GPU proof limits. The runtime checks a supplied `SLURM_TIMELIMIT`; the sealed launch slot, job and wrapper pin the training wall limit even where Slurm omits that variable.
++
++`production_go_granted` is false and `production_go_required_separately` is true. The resource authority grants no launch GO. The submitter still requires a completed PASS CPU proof and separate identity-bound `go.json`. The proof sealer validates the complete authority, permits general/bootstrap, and pins `k/4.json` alongside the runtime. Certification and proof sealing do not modify any file in `k/`.
+ 
+ The CPU proof retains A's admission, namespace, loader-audit and fix-11 environment setup. It additionally exercises the actual slot extraction and pointer verifier against a four-rank fixture. PASS requires `checks.resume_pointer.status=PASS`; the launch gate refuses CANARY. The proof fixture does not attest a future real A slot, which is verified at runtime.
+ 
+-Validation: 82 packet tests pass on this build. The 1.79 GB full-store regression awaits the required heavy-I/O authorization; all other tests ran. `tools/run_local_checks.py` checks deterministic packaging, two equal kit derivations, production-form evidence, four-rank D0 optimizer identity, native unit regeneration, CPU first batch and fix-11 shell replay. Five mode/partition regressions verify `0500` code directories, isolated cold and donor prefix execution without bytecode, inventory preservation, real `tk_nx` copies with the proof directory-mode checker, sealed-kit redeploy refusal, and both partition authorities. The native continuation test checks bit-exact parameters, Adam state, RNG, LR and rows for 206 uninterrupted updates versus 200 plus six resumed updates, with single-rank collectives mocked. Production RGB and other absent populations remain fixture boundaries.
++Validation: all 88 packet tests pass, including all three tests from `tests/test_fix10.py` and its full-store division regression. `tools/run_local_checks.py` passes deterministic packaging, two equal kit derivations, production-form evidence, four-rank D0 optimizer identity, native unit regeneration, CPU first batch and fix-11 shell replay. Five C3 tests exercise the real `g.check`, `i.authorize` and `x.ready` on fixture records: proof on both CPU partitions, both training modes, nested admission, sealed fields, and refusal of wrong modes, GPU counts, partitions, nodes and wall limits. Only native data admission and persistent slot selection are mocked in that resource matrix. Existing prefix tests execute the real metadata preflight, isolated gate and resume imports, then verify `a.py`, unchanged inventory, no bytecode and `0500` code directories. The native continuation test checks exact parameters, Adam state, RNG, LR and rows for 206 uninterrupted updates versus 200 plus six resumed updates, with single-rank collectives mocked.
+ 
+-Reviewer checks: verify the archived deriver seals all code directories, `tk_nx` copies them at `0700`, the isolated prefix preserves inventory, and the selected proof partition matches both authority and submission. Verify training still selects advanced and inspect the A launch-to-effective-config authentication chain, slot extraction and checksum checks, native restore adapter, new-output binding, row-population equality, independent writable namespaces, PASS-only gate, fix-11 replay, 24-hour limits and exact archive/derived-kit inventory. Confirm the real step-200 slot exists with full optimizer state. Independently scan the new runtime/proof text and seal the final deployed kit. Confirm the operator's written boundary GO and normal monitoring rules before submission.
++Reviewer checks: verify the archive SHA256 and `CONT3.diff` against `snap_c60b9015`; inspect `d.py`, `r4.py`, the derived `k/4.json`, `b/g.py`, `b/i.py`, the job prefix and recursive admission path. Check all per-mode limits, `resume="latest"`, the 24-hour launch slot and wrapper, separate written GO, and the proof seal's authority hash. Derive and certify a fresh final kit with real evidence; never patch a certified `k/4.json`. Confirm the real step-200 A slot contains the full optimizer state, the continuation authentication chain and row populations match, and the deployed manifest survives prefix execution without bytecode. Run the production CPU proof on the selected CPU partition and obtain the operator's written boundary GO before submission.
+ 
+-Local tests do not prove Orchard namespaces, filesystem capacity, real A checkpoint availability, GPU/FSDP bit-exactness, production RGB admission, full routing regeneration or throughput. Regenerated database or population hashes may differ in production; C then refuses and needs investigation. No Orchard access, SSH, Git, GPU launch, external write, mirror or independent review occurred. The brief confines this task to local CPU work; `out/REVIEW_REQUEST.json` is the local handoff. `out/proof/CONT2_RESEAL.json` is a fixture seal, not production approval. `out/CONT2.diff` compares the C1 baseline with this packet, including derived kit bytes and directory modes. `out/CONT2_STORAGE.json` records new local storage. No cleanup was attempted.
++Local tests do not prove Orchard namespaces, filesystem capacity, real A checkpoint availability, GPU/FSDP bit-exactness, production RGB admission, full routing regeneration or throughput. Regenerated database or population hashes may differ in production; C then refuses and needs investigation. No Orchard access, SSH, Git, GPU launch, external write, mirror or independent review occurred. The brief confines this task to local CPU work; `out/REVIEW_REQUEST.json` is the local handoff. `out/proof/CONT3_RESEAL.json` records fixture seals, not production approval. `out/CONT3.diff` compares the frozen `snap_c60b9015` packet with this packet, including derived kit bytes and directory modes. All existing packet archives remain checksum-identical. No cleanup was attempted.
+--- C2/out/REVIEW_REQUEST.json
++++ C3/out/REVIEW_REQUEST.json
+@@ -1 +1 @@
+-{"archive":"p_c60b9015.tar","bundle":"/project/community/jjyeung/okh7/i_7f1589c1","full_suite":false,"identity":"6594f46cdc16168514aca26a6ce38285907adfc6ece0b75d8e10428ea0b2fe74","kit":"/project/community/jjyeung/okh7/x_7f1589c1","production_authorized":false,"proof_partitions":["general","bootstrap"],"review":"REQUIRED","run":"05b8ac69","sha256":"c60b901594843989b909cb785a5fdc9ad544ea0fdec8d78c63bf173e4f6e136c","status":"LOCAL_CHECKS_PENDING_HEAVY_TEST","tests":82}
++{"archive":"p_6a5c7d00.tar","authority":{"account":"mt01","admission_contract_sha256":"26059aff098020a08adcef7ad6ced09ab2aedb2edd4f3c6607028e496ebb8970","allocation_memory_gib":800,"allow_until_utc":"2026-11-26T00:00:00Z","allowed_partitions":["advanced","general","bootstrap"],"arm":"0","conditions":["Mode p: general/bootstrap, one node, zero GPUs, four hours.","Modes t/u: advanced, one node, four GPUs, 24 hours; resume latest.","Certify the final manifest before proof; never mutate the certified kit.","Training submission requires a separate identity-bound go.json."],"config_sha256":"6594f46cdc16168514aca26a6ce38285907adfc6ece0b75d8e10428ea0b2fe74","full_population_admission":false,"gpu_cap":4,"guard":null,"kernel":null,"max_parallel_jobs":1,"milestone_gate":null,"mode_resources":{"p":{"gpus":0,"nodes":1,"partitions":["general","bootstrap"],"wall_seconds":14400},"t":{"gpus":4,"nodes":1,"partitions":["advanced"],"wall_seconds":86400},"u":{"gpus":4,"nodes":1,"partitions":["advanced"],"wall_seconds":86400}},"modes":["p","t","u"],"native_admission_memory_gib":256,"native_memory_sufficiency_proven":false,"new_gpus":{"p":0,"t":4,"u":4},"nodes":1,"other_running_and_pending_gpus":0,"partition":"advanced","production_full_mode_p_required":true,"production_go_granted":false,"production_go_required_separately":true,"resource_counts_are_submission_conditions":true,"resume":"latest","review":null,"scope":"Sealed CPU proof and continuation resources; separate identity-bound GO required for training.","source_revision":"sha256:b83a8a35d420815b9d6396e1fc1178e94c20d47ad459aa6da964e85bdec0f87b","wall_seconds":86400,"world_size":4},"bundle":"/project/community/jjyeung/okh7/i_7f1589c1","fixture":"/scratch/jjyeung/orch_n30/r1_pkt/work/pre_submit_oy69cn82/ready","full_suite":true,"identity":"6594f46cdc16168514aca26a6ce38285907adfc6ece0b75d8e10428ea0b2fe74","kit":"/project/community/jjyeung/okh7/x_7f1589c1","manifest_sha256":"fbe67275015226e2ae6b69cb113a32b8afa35db16548b5c896f27fb02a9eff4e","production_authorized":false,"review":"REQUIRED","run":"05b8ac69","sha256":"6a5c7d009a19cb5bac690b864f2be68bb5cebc29649923c93da36328d0f96888","status":"BUILT_FOR_INDEPENDENT_REVIEW","tests":88}
+--- C2/out/logs/package.log
++++ C3/out/logs/package.log
+@@ -1 +1 @@
+-{"archive":"/scratch/jjyeung/orch_n30/r1_pkt/out/p_c60b9015.tar","bundle":"/project/community/jjyeung/okh7/i_7f1589c1","kit":"/project/community/jjyeung/okh7/x_7f1589c1","sha256":"c60b901594843989b909cb785a5fdc9ad544ea0fdec8d78c63bf173e4f6e136c"}
++{"archive":"/scratch/jjyeung/orch_n30/r1_pkt/out/p_6a5c7d00.tar","bundle":"/project/community/jjyeung/okh7/i_7f1589c1","kit":"/project/community/jjyeung/okh7/x_7f1589c1","sha256":"6a5c7d009a19cb5bac690b864f2be68bb5cebc29649923c93da36328d0f96888"}
+--- C2/out/logs/package_repeat.log
++++ C3/out/logs/package_repeat.log
+@@ -1 +1 @@
+-{"archive":"/scratch/jjyeung/orch_n30/r1_pkt/out/p_c60b9015.tar","bundle":"/project/community/jjyeung/okh7/i_7f1589c1","kit":"/project/community/jjyeung/okh7/x_7f1589c1","sha256":"c60b901594843989b909cb785a5fdc9ad544ea0fdec8d78c63bf173e4f6e136c"}
++{"archive":"/scratch/jjyeung/orch_n30/r1_pkt/out/p_6a5c7d00.tar","bundle":"/project/community/jjyeung/okh7/i_7f1589c1","kit":"/project/community/jjyeung/okh7/x_7f1589c1","sha256":"6a5c7d009a19cb5bac690b864f2be68bb5cebc29649923c93da36328d0f96888"}
+--- C2/out/logs/tests.log
++++ C3/out/logs/tests.log
+@@ -19,6 +19,14 @@
+ test_selection_and_room_source_exclusion (__main__.Evidence.test_selection_and_room_source_exclusion) ... ok
+ test_submitter_retains_separate_authorization_and_named_gates (__main__.Evidence.test_submitter_retains_separate_authorization_and_named_gates) ... ok
+ test_all_capped_cells_and_refill (test_fix10.Fix10.test_all_capped_cells_and_refill) ... ok
++test_full_store_build_stream_division_with_and_without_remove (test_fix10.Fix10.test_full_store_build_stream_division_with_and_without_remove) ... {"remove_list": {"file": {"path": "/scratch/jjyeung/orch_n30/cont_ops/work/h1/build/fx/k/remove_0.jsonl", "sha256": "62113ff38f918528341d3c38c6cce372736f2b44ca932c3b706be29397798dc3"}, "source_listed": 513, "listed": 513, "removed": 0, "matched": 0, "matched_unique_keys": 0, "unmatched_listed_keys": 513, "retained_by_filter": 0}}
++{"remove_list": {"file": {"path": "/scratch/jjyeung/orch_n30/cont_ops/work/h1/build/fx/k/remove_1.jsonl", "sha256": "4701e195ffc04fe256b916a05eb0a669df6cf3f97d73c9986bfe5de3170b089c"}, "source_listed": 525, "listed": 525, "removed": 0, "matched": 0, "matched_unique_keys": 0, "unmatched_listed_keys": 525, "retained_by_filter": 0}}
++{"remove_list": {"file": {"path": "/scratch/jjyeung/orch_n30/cont_ops/work/h1/build/fx/k/remove_2.jsonl", "sha256": "6eb00a2de04c84d6dd9a0aa5d67d822bf2af6c9d408b1815b25ec6248bef27cc"}, "source_listed": 8563, "listed": 8563, "removed": 0, "matched": 0, "matched_unique_keys": 0, "unmatched_listed_keys": 8563, "retained_by_filter": 0}}
++{"remove_list": {"file": {"defects": ["identity", "absent", "merged"], "path": "/scratch/jjyeung/orch_n30/cont_ops/work/h1/build/fx/k/remove_3.jsonl", "sha256": "8a97fcc4f1f4fd7a302a8b16c461d3095fbcf9ece3a39cce7db24d5a363dd1b2"}, "source_listed": 14952, "listed": 7012, "removed": 0, "matched": 0, "matched_unique_keys": 0, "unmatched_listed_keys": 7012, "retained_by_filter": 7940}}
++{"remove_list": {"file": {"path": "/scratch/jjyeung/orch_n30/cont_ops/work/h1/build/fx/k/remove_4.jsonl", "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}, "source_listed": 0, "listed": 0, "removed": 0, "matched": 0, "matched_unique_keys": 0, "unmatched_listed_keys": 0, "retained_by_filter": 0}}
++{"remove_list": {"file": {"path": "/scratch/jjyeung/orch_n30/cont_ops/work/h1/build/fx/k/remove_5.jsonl", "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}, "source_listed": 0, "listed": 0, "removed": 0, "matched": 0, "matched_unique_keys": 0, "unmatched_listed_keys": 0, "retained_by_filter": 0}}
++{"remove_list": {"file": {"path": "/scratch/jjyeung/orch_n30/r1_pkt/out/records/n.json", "sha256": "02315a74ed9020a9b7aa2f1a70ac765701bf17c71d4027d4424b9fdf0678a411"}, "source_listed": 601, "listed": 601, "removed": 601, "matched": 601, "matched_unique_keys": 601, "unmatched_listed_keys": 0, "retained_by_filter": 0}}
++ok
+ test_remove_list_exact_and_staged (test_fix10.Fix10.test_remove_list_exact_and_staged) ... ok
+ test_all_kit_environment_reads_have_an_audited_owner (test_fix11.Fix11.test_all_kit_environment_reads_have_an_audited_owner) ... ok
+ test_archive_embeds_fixed_proof_and_reseals (test_fix11.Fix11.test_archive_embeds_fixed_proof_and_reseals) ... ok
+@@ -80,8 +88,13 @@
+ test_proof_authority_partitions_and_training_resources (test_cont2.ZContinuationModes.test_proof_authority_partitions_and_training_resources) ... ok
+ test_redeploy_refuses_sealed_kit_before_reading_archive (test_cont2.ZContinuationModes.test_redeploy_refuses_sealed_kit_before_reading_archive) ... ok
+ test_tk_nx_and_proof_directory_modes (test_cont2.ZContinuationModes.test_tk_nx_and_proof_directory_modes) ... ok
++test_in_job_cpu_admission_uses_training_allocation (test_cont3.ZTrainingAuthority.test_in_job_cpu_admission_uses_training_allocation) ... ok
++test_proof_modes (test_cont3.ZTrainingAuthority.test_proof_modes) ... ok
++test_sealed_fields_and_manifest (test_cont3.ZTrainingAuthority.test_sealed_fields_and_manifest) ... ok
++test_training_modes (test_cont3.ZTrainingAuthority.test_training_modes) ... ok
++test_wrong_modes_gpus_partitions_nodes_and_wall_refuse (test_cont3.ZTrainingAuthority.test_wrong_modes_gpus_partitions_nodes_and_wall_refuse) ... ok
+ 
+ ----------------------------------------------------------------------
+-Ran 82 tests in 142.650s
++Ran 88 tests in 288.546s
+ 
+ OK
+--- C2/out/operator/d.py
++++ C3/out/operator/d.py
+@@ -48,6 +48,9 @@
+         staged=gate.read_pin(root,launch['staging'])
+         archived=gate.read_pin(root,launch['archive'])
+         auth=load(root/'k/4.json')
++        if cfg.get('continuation'):
++            from r4 import validate
++            validate(auth)
+         for name,record in (('review.json',review),('staging.json',staged),('4.json',auth)):
+             if record.get('config_sha256')!=config_sha or record.get('source_revision')!=commit:
+                 raise ValueError('Evidence identity or source differs: '+name)
+@@ -150,6 +153,9 @@
+     pending=dict(status='PENDING',config_sha256=identity(cfg),source_revision=code['commit'],production_authorized=False)
+     for n in ('review.json','staging.json','4.json'):
+         value={**pending,'allowed_partitions':['advanced','general','bootstrap']} if n=='4.json' else pending
++        if n=='4.json' and cfg.get('continuation'):
++            from r4 import bind
++            value=bind(value)
+         write(out/'k'/n,value)
+     arc=dict(schema='s1-source-archive-v1',status='PENDING',durable=False,tree_sha256=code['tree_sha256'],
+              sha256=sha(archive),bytes=(archive).stat().st_size)
+@@ -165,6 +171,9 @@
+             if n!='archive.json' and value.get('config_sha256')!=identity(cfg):raise ValueError('Evidence identity differs: '+n)
+             if n=='4.json':
+                 value['allowed_partitions']=['advanced','general','bootstrap']
++                if cfg.get('continuation'):
++                    from r4 import bind
++                    value=bind(value)
+             write(out/'k'/n,value)
+         cfg['admission']=dict(path=AS+'8865619b/k/review.json',sha256=sha(out/'k/review.json'))
+         launch.update(status='READY',production_authorized=True)
+@@ -183,7 +192,21 @@
+         c0.policy(cfg,load(packet/'a0.json'))
+         for src,dest in (('c0.py','b/c0.py'),('a0.json','k/a0.json')):
+             (out/dest).write_bytes((packet/src).read_bytes());added.add(dest)
++        (out/'b/r4.py').write_bytes((packet/'r4.py').read_bytes());added.add('b/r4.py')
++        launch['slot']['wall_seconds']=86400
++        write(out/'k/launch.json',launch)
++        for name,anchor,replacement in (
++            ('g', '    expiry = datetime.datetime.fromisoformat(auth["allow_until_utc"]',
++             '    from r4 import allocation\n    allocation(auth, mode, environment)\n    expiry = datetime.datetime.fromisoformat(auth["allow_until_utc"]'),
++            ('i', "    arms=auth['arm'] if isinstance(auth['arm'],list) else [auth['arm']]",
++             "    from r4 import allocation\n    allocation(auth, mode, os.environ)\n    arms=auth['arm'] if isinstance(auth['arm'],list) else [auth['arm']]")):
++            path=out/'b'/(name+'.py');text=path.read_text()
++            if text.count(anchor)!=1:raise ValueError('Authority boundary differs: '+name)
++            path.write_text(text.replace(anchor,replacement))
+         p=out/'job.sh';s=p.read_text().replace('13:00:00','24:00:00')
++        anchor='/bin/bash "$ROOT/b/p0.sh" "$ROOT"'
++        if s.count(anchor)!=1:raise ValueError('Preflight boundary differs')
++        s=s.replace(anchor,'if [[ "${SLURM_JOB_PARTITION:-}" == advanced ]]; then export TK_ALLOCATION_MODE=u; else export TK_ALLOCATION_MODE=p; fi\n'+anchor)
+         anchor='MODE="$(/usr/bin/python3 -I "$ROOT/b/r8.py"'
+         if s.count(anchor)!=1:raise ValueError('Mode boundary differs')
+         s=s.replace(anchor,'/usr/bin/python3 -I "$ROOT/b/c0.py" "$ROOT" "$RUN"\n'+anchor);p.write_text(s)
+@@ -198,6 +221,10 @@
+         p=out/'b/w.py';s=p.read_text();anchor="        cfg['milestone_gate']=pick(auth,'milestone_gate',arm)"
+         if s.count(anchor)!=1:raise ValueError('Training boundary differs')
+         s=s.replace(anchor,"        if cfg.get('continuation'):\n            if mode!='u':raise ValueError('c0:38')\n            from c0 import install\n            install(run,cfg,json.loads((root/'k/a0.json').read_text()))\n"+anchor);p.write_text(s)
++        p=out/'b/r.sh';s=p.read_text();anchor='export TK_KIT_HOME="$HX"'
++        if s.count(anchor)!=1:raise ValueError('Admission allocation boundary differs')
++        s=s.replace(anchor,anchor+'\nif [[ "${1:-}" == t || "${1:-}" == u ]]; then export TK_ALLOCATION_MODE="$1"; fi')
++        p.write_text(s)
+     p=out/'b/z.py';s=p.read_text();anchor="    with archive.open('rb') as stream:"
+     if s.count(anchor)!=1:raise ValueError('Redeploy boundary differs')
+     s=s.replace(anchor,"    if (root/'b').exists() and not (root/'b').stat().st_mode & 0o200:\n        raise ValueError('Sealed kit refuses in-place redeployment; derive a fresh kit')\n"+anchor);p.write_text(s)
+--- C2/out/operator/p.py
++++ C3/out/operator/p.py
+@@ -29,6 +29,9 @@
+     if binding.get('unit_binding') and not equality.get('native_unit_regeneration_executed'):raise ValueError('Native unit selection regeneration required')
+     allowed=['general','bootstrap'] if binding.get('continuation') else ['advanced','general','bootstrap']
+     auth=load(a.kit/'k/4.json')
++    if binding.get('continuation'):
++        from r4 import validate
++        validate(auth)
+     if a.partition not in allowed or a.partition not in auth.get('allowed_partitions',[auth.get('partition')]):
+         raise ValueError('Proof partition is not authorized')
+     for directory in [a.kit/'b',*(p for p in (a.kit/'b').rglob('*') if p.is_dir())]:
+@@ -36,7 +39,7 @@
+     runtime={}
+     for line in (a.kit/'SHA256SUMS.txt').read_text().splitlines():
+         expected,name=line.split('  ',1)
+-        if name.startswith('b/') or name=='job.sh':
++        if name.startswith('b/') or name in ('job.sh','k/4.json'):
+             if sha(a.kit/name)!=expected:raise ValueError('Runtime manifest differs')
+             runtime[name]=expected
+     bundle_files={}
+--- C2/out/operator/r4.py
++++ C3/out/operator/r4.py
+@@ -0,0 +1,69 @@
++"""Sealed resource authority for one continuation kit; GO is separate."""
++import copy
++
++
++def fields():
++    return dict(
++        modes=['p', 't', 'u'], new_gpus={'p': 0, 't': 4, 'u': 4},
++        partition='advanced', allowed_partitions=['advanced', 'general', 'bootstrap'],
++        wall_seconds=86400, nodes=1, resume='latest', arm='0', gpu_cap=4,
++        other_running_and_pending_gpus=0, max_parallel_jobs=1,
++        production_go_granted=False, production_go_required_separately=True,
++        mode_resources={
++            'p': dict(partitions=['general', 'bootstrap'], nodes=1, gpus=0, wall_seconds=14400),
++            't': dict(partitions=['advanced'], nodes=1, gpus=4, wall_seconds=86400),
++            'u': dict(partitions=['advanced'], nodes=1, gpus=4, wall_seconds=86400)},
++    )
++
++
++def bind(auth):
++    value=copy.deepcopy(auth)
++    value.update(fields())
++    value.update(scope='Sealed CPU proof and continuation resources; separate identity-bound GO required for training.',
++                 conditions=['Mode p: general/bootstrap, one node, zero GPUs, four hours.',
++                             'Modes t/u: advanced, one node, four GPUs, 24 hours; resume latest.',
++                             'Certify the final manifest before proof; never mutate the certified kit.',
++                             'Training submission requires a separate identity-bound go.json.'])
++    return value
++
++
++def validate(auth):
++    for key, value in fields().items():
++        # JSON equality alone would admit booleans in place of integer counts.
++        import json
++        if json.dumps(auth.get(key),sort_keys=True)!=json.dumps(value,sort_keys=True):
++            raise ValueError('Continuation authority differs: '+key)
++
++
++def allocation(auth, mode, environment):
++    validate(auth)
++    if mode not in auth['modes']:
++        raise ValueError('Operation not authorized')
++    # Native admission runs mode p inside the already allocated training job.
++    # The sealed entry sets its allocation mode before p0 and recursive r.sh p.
++    allocation_mode=environment.get('TK_ALLOCATION_MODE',mode)
++    if allocation_mode not in auth['modes'] or (mode!='p' and allocation_mode!=mode):
++        raise ValueError('Allocation mode differs')
++    limits=auth['mode_resources'][allocation_mode]
++    if environment.get('SLURM_JOB_PARTITION') not in limits['partitions']:
++        raise ValueError('Partition not authorized for mode '+mode)
++    if (environment.get('SLURM_JOB_NUM_NODES')!='1'
++            or environment.get('SLURM_GPUS_ON_NODE','0')!=str(limits['gpus'])):
++        raise ValueError('Resources differ')
++    if allocation_mode=='p' and environment.get('CUDA_VISIBLE_DEVICES','') not in ('','-1','NoDevFiles'):
++        raise ValueError('Proof must be CPU-only')
++    # Slurm does not export this variable on every site. The sealed job script
++    # and launch slot also pin the wall limit; check the allocation when supplied.
++    wall=environment.get('SLURM_TIMELIMIT')
++    if wall is not None:
++        if wall.isdigit():
++            seconds=int(wall)*60
++        else:
++            days, clock=wall.split('-',1) if '-' in wall else ('0',wall)
++            parts=[int(v) for v in clock.split(':')]
++            if len(parts)==2:parts=[0,*parts]
++            if len(parts)!=3:raise ValueError('Invalid allocation wall limit')
++            seconds=int(days)*86400+parts[0]*3600+parts[1]*60+parts[2]
++        if seconds!=limits['wall_seconds']:
++            raise ValueError('Allocation wall limit differs')
++    return limits
+--- C2/out/operator/sums.txt
++++ C3/out/operator/sums.txt
+@@ -5,7 +5,7 @@
+ e0ef07f2df7a01d35657b9854647cb7f32d5774b9aa42f285fe0cdbd6e09fefa  c0.py
+ 2152828974490944a1713f5a539e87211f80179f0b5f9254ea9966fc65788733  config.json
+ aaecc9c42cd549ebdf4da6483ffa6de6f580dc1039a2b53457e975cfe5082ebb  d.json
+-f6faacbfb7703c1054cf51454dda4a9a1cbdc81c0d6ccf842d8c486d2d1d18a5  d.py
++83e185a45f02a814ae19d76333666aa2707da229421566dadba0a2e9656b818c  d.py
+ 8091154cd499c47404c2f3a6d288bff3b061fa71a1d22af5de68337fbbde56cd  d_8091154cd499c474.json
+ 817461a219aa3c0674e22b9a87e98fcf768dc20696a29e23b43eb6999db72288  e.txt
+ 5e4ae8a89de8efcad68346e09ae1a42d4828163dc7e498e113df78bebdd4b6be  i.json
+@@ -14,13 +14,14 @@
+ 5e03795db020451f3705d322505273a38f10130c6a007f0c86752de17e6e1605  jb.sh
+ 0d83e1372e7f4e7b499c424e868248990faf1b6ea8cccb6b7207f560554856dc  m.json
+ 02315a74ed9020a9b7aa2f1a70ac765701bf17c71d4027d4424b9fdf0678a411  n.json
+-3cc8d60b5140d7fc5fe74d59dbd639cb3709bc04fac4071eb7e75dbe682a2947  p.py
++b7c43dd8c01d322192001e8a0c2bbb6b2cc990724f0cf78cb900d4ef88627228  p.py
+ 4a304bfd2042c618ddb2bad4e33faaf429ba290480c2bde282149c10af9042db  p_05b8ac69.sh
+ 0e59331b3746695f0444ce7f6c29f13902497a76ceecf6ed64c5da8feec11224  proof/selection/q.json
+ 5db993b148c7aa1ace685f7c29b0e20daa6ac4e3e5b3613e4c3fc2b24bdde2af  proof/selection/r.json
+ 060dbf93da990a4a6803419176f82365a00e020f30475b34c7f373e151d195e0  q.py
+ 2d5397aaf186a6be1637f2c68b53d5b45dae620a4a85dfd99d8468c2ad2d3b38  qp.py
+ 35f4a364304f24ed3683413952b3591d7427e787ad5cba056e4acc62d513263b  r.json
++aed11f5a03dde546acf31e08fba4e3937370a6121632eb473bba4db60c723266  r4.py
+ 0bc9414250b2ce082a5a1a74fb9421da991f0b794b6ed6c362ab96e92c11dea6  records/c.json
+ aaecc9c42cd549ebdf4da6483ffa6de6f580dc1039a2b53457e975cfe5082ebb  records/d.json
+ 8091154cd499c47404c2f3a6d288bff3b061fa71a1d22af5de68337fbbde56cd  records/d_8091154cd499c474.json
+--- C2/out/proof/CONT3_AUTHORITY.json
++++ C3/out/proof/CONT3_AUTHORITY.json
+@@ -0,0 +1 @@
++{"authority":{"account":"mt01","admission_contract_sha256":"26059aff098020a08adcef7ad6ced09ab2aedb2edd4f3c6607028e496ebb8970","allocation_memory_gib":800,"allow_until_utc":"2026-11-26T00:00:00Z","allowed_partitions":["advanced","general","bootstrap"],"arm":"0","conditions":["Mode p: general/bootstrap, one node, zero GPUs, four hours.","Modes t/u: advanced, one node, four GPUs, 24 hours; resume latest.","Certify the final manifest before proof; never mutate the certified kit.","Training submission requires a separate identity-bound go.json."],"config_sha256":"6594f46cdc16168514aca26a6ce38285907adfc6ece0b75d8e10428ea0b2fe74","full_population_admission":false,"gpu_cap":4,"guard":null,"kernel":null,"max_parallel_jobs":1,"milestone_gate":null,"mode_resources":{"p":{"gpus":0,"nodes":1,"partitions":["general","bootstrap"],"wall_seconds":14400},"t":{"gpus":4,"nodes":1,"partitions":["advanced"],"wall_seconds":86400},"u":{"gpus":4,"nodes":1,"partitions":["advanced"],"wall_seconds":86400}},"modes":["p","t","u"],"native_admission_memory_gib":256,"native_memory_sufficiency_proven":false,"new_gpus":{"p":0,"t":4,"u":4},"nodes":1,"other_running_and_pending_gpus":0,"partition":"advanced","production_full_mode_p_required":true,"production_go_granted":false,"production_go_required_separately":true,"resource_counts_are_submission_conditions":true,"resume":"latest","review":null,"scope":"Sealed CPU proof and continuation resources; separate identity-bound GO required for training.","source_revision":"sha256:b83a8a35d420815b9d6396e1fc1178e94c20d47ad459aa6da964e85bdec0f87b","wall_seconds":86400,"world_size":4},"authority_sha256":"4eb95dd929f49b1268a49fd6db9de2eb4d8c55273119b16593fbf47eff72d8b7","manifest_sha256":"fbe67275015226e2ae6b69cb113a32b8afa35db16548b5c896f27fb02a9eff4e","scope":"Local fixture; no production admission or GO","status":"PASS"}
+--- C2/out/proof/CONT3_RESEAL.json
++++ C3/out/proof/CONT3_RESEAL.json
+@@ -0,0 +1 @@
++{"authorities":{"bootstrap":{"path":"/scratch/jjyeung/orch_n30/r1_pkt/work/cont3_seal_w9cqfyf5/bootstrap.json","sha256":"af1a499b9a1bc30175c625fc825158131fc34aeb8460e8a6c47ef9d97f8870f6"},"general":{"path":"/scratch/jjyeung/orch_n30/r1_pkt/work/cont3_seal_w9cqfyf5/general.json","sha256":"336c3d83ab8929ee09319a0e4f4a98e5e1d898948a10f3d98e58fa39bec4be7b"}},"authority_sha256":"4eb95dd929f49b1268a49fd6db9de2eb4d8c55273119b16593fbf47eff72d8b7","inventory_before_and_after":"PASS","kit_files_unchanged":true,"scope":"Local fixture only; no independent content scan","status":"PASS"}
+--- C2/out/proof/CONT3_TEST_LEDGER.json
++++ C3/out/proof/CONT3_TEST_LEDGER.json
+@@ -0,0 +1 @@
++{"cont3_tests":5,"deferred":[],"fix10_tests":3,"full_suite":true,"status":"PASS","suite_log":"out/logs/tests.log","tests":88}
+--- C2/out/proof/DERIVATION.json
++++ C3/out/proof/DERIVATION.json
+@@ -1 +1 @@
+-{"config_identity":"6594f46cdc16168514aca26a6ce38285907adfc6ece0b75d8e10428ea0b2fe74","fixture_paths":["/scratch/jjyeung/orch_n30/r1_pkt/work/derive_sd014gpo/a","/scratch/jjyeung/orch_n30/r1_pkt/work/derive_sd014gpo/b"],"manifest_sha256":"b23b622e31c9b7a9bd961ea89c458cfbfabd9b447c0ca4aa6aec92e19e2bfdc3","missing_source_members":["k/np226_5204b3a0.tar","k/t_e6456bcecb8d4a8f4f68158eb68275f8befff128.tar"],"operator_archive_sha256":"c60b901594843989b909cb785a5fdc9ad544ea0fdec8d78c63bf173e4f6e136c","operator_archive_twice_exact":true,"scope":"FIXTURE; two inherited source members absent locally","source_manifest_sha256":"f13eccc20b7d2ee8b9622ce66db36e3cf561d0d41e69a367e9c435d5bf4261d6","status":"PASS","two_derivations_exact":true}
++{"config_identity":"6594f46cdc16168514aca26a6ce38285907adfc6ece0b75d8e10428ea0b2fe74","fixture_paths":["/scratch/jjyeung/orch_n30/r1_pkt/work/derive__emjkq3y/a","/scratch/jjyeung/orch_n30/r1_pkt/work/derive__emjkq3y/b"],"manifest_sha256":"c2965113450d7777011ca2bef501ff4b3db66b1af13d855e7fe54464420c542a","missing_source_members":["k/np226_5204b3a0.tar","k/t_e6456bcecb8d4a8f4f68158eb68275f8befff128.tar"],"operator_archive_sha256":"6a5c7d009a19cb5bac690b864f2be68bb5cebc29649923c93da36328d0f96888","operator_archive_twice_exact":true,"scope":"FIXTURE; two inherited source members absent locally","source_manifest_sha256":"f13eccc20b7d2ee8b9622ce66db36e3cf561d0d41e69a367e9c435d5bf4261d6","status":"PASS","two_derivations_exact":true}
+--- C2/out/proof/FIRST_BATCH.json
++++ C3/out/proof/FIRST_BATCH.json
+@@ -27,7 +27,7 @@
+             "s2_supervised": false,
+             "stream": "pose"
+           },
+-          "seconds": 0.07,
++          "seconds": 0.09,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -54,7 +54,7 @@
+             "s2_supervised": false,
+             "stream": "pose"
+           },
+-          "seconds": 0.07,
++          "seconds": 0.08,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -108,7 +108,7 @@
+             "s2_supervised": false,
+             "stream": "pose"
+           },
+-          "seconds": 0.06,
++          "seconds": 0.07,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -135,7 +135,7 @@
+             "s2_supervised": false,
+             "stream": "pose"
+           },
+-          "seconds": 0.06,
++          "seconds": 0.07,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -162,7 +162,7 @@
+             "s2_supervised": false,
+             "stream": "pose"
+           },
+-          "seconds": 0.06,
++          "seconds": 0.08,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -297,7 +297,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -324,7 +324,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -486,7 +486,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -513,7 +513,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.05,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -540,7 +540,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.05,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -567,7 +567,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -621,7 +621,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -648,7 +648,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -718,7 +718,7 @@
+             "supervised_frames": 32,
+             "target_matches_own_frames": true
+           },
+-          "seconds": 0.06,
++          "seconds": 0.07,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -788,7 +788,7 @@
+             "supervised_frames": 32,
+             "target_matches_own_frames": true
+           },
+-          "seconds": 0.05,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -928,7 +928,7 @@
+             "supervised_frames": 0,
+             "target_matches_own_frames": false
+           },
+-          "seconds": 0.04,
++          "seconds": 0.05,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -998,7 +998,7 @@
+             "supervised_frames": 0,
+             "target_matches_own_frames": false
+           },
+-          "seconds": 0.1,
++          "seconds": 0.14,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -1068,7 +1068,7 @@
+             "supervised_frames": 32,
+             "target_matches_own_frames": true
+           },
+-          "seconds": 0.05,
++          "seconds": 0.06,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -1138,7 +1138,7 @@
+             "supervised_frames": 32,
+             "target_matches_own_frames": true
+           },
+-          "seconds": 0.04,
++          "seconds": 0.06,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -1208,7 +1208,7 @@
+             "supervised_frames": 32,
+             "target_matches_own_frames": true
+           },
+-          "seconds": 0.04,
++          "seconds": 0.07,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -1235,7 +1235,7 @@
+             "s2_supervised": false,
+             "stream": "pose"
+           },
+-          "seconds": 0.06,
++          "seconds": 0.1,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -1262,7 +1262,7 @@
+             "s2_supervised": false,
+             "stream": "pose"
+           },
+-          "seconds": 0.08,
++          "seconds": 0.1,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -1289,7 +1289,7 @@
+             "s2_supervised": false,
+             "stream": "pose"
+           },
+-          "seconds": 0.07,
++          "seconds": 0.1,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -1316,7 +1316,7 @@
+             "s2_supervised": false,
+             "stream": "pose"
+           },
+-          "seconds": 0.07,
++          "seconds": 0.09,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -1343,7 +1343,7 @@
+             "s2_supervised": false,
+             "stream": "pose"
+           },
+-          "seconds": 0.08,
++          "seconds": 0.09,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -1397,7 +1397,7 @@
+             "s2_supervised": false,
+             "stream": "pose"
+           },
+-          "seconds": 0.09,
++          "seconds": 0.07,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -1424,7 +1424,7 @@
+             "s2_supervised": false,
+             "stream": "pose"
+           },
+-          "seconds": 0.09,
++          "seconds": 0.06,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -1478,7 +1478,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -1505,7 +1505,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -1694,7 +1694,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -1748,7 +1748,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.05,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -1829,7 +1829,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -1910,7 +1910,7 @@
+             "s2_supervised": false,
+             "stream": "pointing"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "pointing",
+           "substituted_from": null,
+@@ -1991,7 +1991,7 @@
+             "s2_supervised": false,
+             "stream": "pointing"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.05,
+           "step": 1,
+           "stream": "pointing",
+           "substituted_from": null,
+@@ -2018,7 +2018,7 @@
+             "s2_supervised": false,
+             "stream": "pointing"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.05,
+           "step": 1,
+           "stream": "pointing",
+           "substituted_from": null,
+@@ -2072,7 +2072,7 @@
+             "s2_supervised": false,
+             "stream": "pointing"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "pointing",
+           "substituted_from": null,
+@@ -2142,7 +2142,7 @@
+             "supervised_frames": 0,
+             "target_matches_own_frames": false
+           },
+-          "seconds": 0.04,
++          "seconds": 0.05,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -2212,7 +2212,7 @@
+             "supervised_frames": 0,
+             "target_matches_own_frames": false
+           },
+-          "seconds": 0.05,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -2282,7 +2282,7 @@
+             "supervised_frames": 32,
+             "target_matches_own_frames": true
+           },
+-          "seconds": 0.05,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -2422,7 +2422,7 @@
+             "supervised_frames": 32,
+             "target_matches_own_frames": true
+           },
+-          "seconds": 0.06,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -2492,7 +2492,7 @@
+             "supervised_frames": 0,
+             "target_matches_own_frames": false
+           },
+-          "seconds": 0.05,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -2666,7 +2666,7 @@
+             "s2_supervised": false,
+             "stream": "pose"
+           },
+-          "seconds": 0.08,
++          "seconds": 0.1,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -2693,7 +2693,7 @@
+             "s2_supervised": false,
+             "stream": "pose"
+           },
+-          "seconds": 0.08,
++          "seconds": 0.09,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -2747,7 +2747,7 @@
+             "s2_supervised": false,
+             "stream": "pose"
+           },
+-          "seconds": 0.08,
++          "seconds": 0.07,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -2801,7 +2801,7 @@
+             "s2_supervised": false,
+             "stream": "pose"
+           },
+-          "seconds": 0.07,
++          "seconds": 0.08,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -2828,7 +2828,7 @@
+             "s2_supervised": false,
+             "stream": "pose"
+           },
+-          "seconds": 0.08,
++          "seconds": 0.09,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -2882,7 +2882,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -2963,7 +2963,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -2990,7 +2990,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -3017,7 +3017,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -3044,7 +3044,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.05,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -3071,7 +3071,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -3125,7 +3125,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -3179,7 +3179,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -3206,7 +3206,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -3233,7 +3233,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.04,
++          "seconds": 0.05,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -3287,7 +3287,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -3707,7 +3707,7 @@
+             "supervised_frames": 32,
+             "target_matches_own_frames": true
+           },
+-          "seconds": 0.04,
++          "seconds": 0.05,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -3847,7 +3847,7 @@
+             "supervised_frames": 32,
+             "target_matches_own_frames": true
+           },
+-          "seconds": 0.04,
++          "seconds": 0.05,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -3874,7 +3874,7 @@
+             "s2_supervised": false,
+             "stream": "pose"
+           },
+-          "seconds": 0.06,
++          "seconds": 0.07,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -3928,7 +3928,7 @@
+             "s2_supervised": false,
+             "stream": "pose"
+           },
+-          "seconds": 0.07,
++          "seconds": 0.08,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -4036,7 +4036,7 @@
+             "s2_supervised": false,
+             "stream": "pose"
+           },
+-          "seconds": 0.12,
++          "seconds": 0.08,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -4198,7 +4198,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.05,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -4225,7 +4225,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.04,
++          "seconds": 0.05,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -4252,7 +4252,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -4279,7 +4279,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -4333,7 +4333,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -4360,7 +4360,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -4387,7 +4387,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -4414,7 +4414,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -4468,7 +4468,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -4522,7 +4522,7 @@
+             "s2_supervised": false,
+             "stream": "pointing"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "pointing",
+           "substituted_from": null,
+@@ -4549,7 +4549,7 @@
+             "s2_supervised": false,
+             "stream": "pointing"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "pointing",
+           "substituted_from": null,
+@@ -4603,7 +4603,7 @@
+             "s2_supervised": false,
+             "stream": "pointing"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "pointing",
+           "substituted_from": null,
+@@ -4657,7 +4657,7 @@
+             "s2_supervised": false,
+             "stream": "pointing"
+           },
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "pointing",
+           "substituted_from": null,
+@@ -4781,7 +4781,7 @@
+             "supervised_frames": 0,
+             "target_matches_own_frames": false
+           },
+-          "seconds": 0.04,
++          "seconds": 0.05,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -4851,7 +4851,7 @@
+             "supervised_frames": 0,
+             "target_matches_own_frames": false
+           },
+-          "seconds": 0.04,
++          "seconds": 0.05,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -5061,7 +5061,7 @@
+             "supervised_frames": 32,
+             "target_matches_own_frames": true
+           },
+-          "seconds": 0.04,
++          "seconds": 0.05,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -5305,7 +5305,7 @@
+             "s2_supervised": false,
+             "stream": "pose"
+           },
+-          "seconds": 0.06,
++          "seconds": 0.08,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -5332,7 +5332,7 @@
+             "s2_supervised": false,
+             "stream": "pose"
+           },
+-          "seconds": 0.06,
++          "seconds": 0.08,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -5359,7 +5359,7 @@
+             "s2_supervised": false,
+             "stream": "pose"
+           },
+-          "seconds": 0.06,
++          "seconds": 0.08,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -5386,7 +5386,7 @@
+             "s2_supervised": false,
+             "stream": "pose"
+           },
+-          "seconds": 0.06,
++          "seconds": 0.07,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -5413,7 +5413,7 @@
+             "s2_supervised": false,
+             "stream": "pose"
+           },
+-          "seconds": 0.06,
++          "seconds": 0.07,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -5440,7 +5440,7 @@
+             "s2_supervised": false,
+             "stream": "pose"
+           },
+-          "seconds": 0.07,
++          "seconds": 0.06,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -5467,7 +5467,7 @@
+             "s2_supervised": false,
+             "stream": "pose"
+           },
+-          "seconds": 0.07,
++          "seconds": 0.06,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -5575,7 +5575,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -5683,7 +5683,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -5710,7 +5710,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -5764,7 +5764,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -5791,7 +5791,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -5818,7 +5818,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -5845,7 +5845,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -5872,7 +5872,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -5899,7 +5899,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -5926,7 +5926,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -6136,7 +6136,7 @@
+             "supervised_frames": 32,
+             "target_matches_own_frames": true
+           },
+-          "seconds": 0.05,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -6206,7 +6206,7 @@
+             "supervised_frames": 0,
+             "target_matches_own_frames": false
+           },
+-          "seconds": 0.05,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -6276,7 +6276,7 @@
+             "supervised_frames": 0,
+             "target_matches_own_frames": false
+           },
+-          "seconds": 0.05,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -6486,7 +6486,7 @@
+             "supervised_frames": 32,
+             "target_matches_own_frames": true
+           },
+-          "seconds": 0.05,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -6513,7 +6513,7 @@
+             "s2_supervised": false,
+             "stream": "pose"
+           },
+-          "seconds": 0.07,
++          "seconds": 0.06,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -6594,7 +6594,7 @@
+             "s2_supervised": false,
+             "stream": "pose"
+           },
+-          "seconds": 0.07,
++          "seconds": 0.06,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -6675,7 +6675,7 @@
+             "s2_supervised": false,
+             "stream": "pose"
+           },
+-          "seconds": 0.06,
++          "seconds": 0.09,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -6702,7 +6702,7 @@
+             "s2_supervised": false,
+             "stream": "pose"
+           },
+-          "seconds": 0.1,
++          "seconds": 0.07,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -6729,7 +6729,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.05,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -6756,7 +6756,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.05,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -6783,7 +6783,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.04,
++          "seconds": 0.05,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -6972,7 +6972,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -7053,7 +7053,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -7080,7 +7080,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -7134,7 +7134,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.05,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -7188,7 +7188,7 @@
+             "s2_supervised": false,
+             "stream": "pointing"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "pointing",
+           "substituted_from": null,
+@@ -7215,7 +7215,7 @@
+             "s2_supervised": false,
+             "stream": "pointing"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "pointing",
+           "substituted_from": null,
+@@ -7323,7 +7323,7 @@
+             "s2_supervised": false,
+             "stream": "pointing"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "pointing",
+           "substituted_from": null,
+@@ -7420,7 +7420,7 @@
+             "supervised_frames": 0,
+             "target_matches_own_frames": false
+           },
+-          "seconds": 0.04,
++          "seconds": 0.05,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -7490,7 +7490,7 @@
+             "supervised_frames": 0,
+             "target_matches_own_frames": false
+           },
+-          "seconds": 0.04,
++          "seconds": 0.05,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -7560,7 +7560,7 @@
+             "supervised_frames": 32,
+             "target_matches_own_frames": true
+           },
+-          "seconds": 0.04,
++          "seconds": 0.06,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -7630,7 +7630,7 @@
+             "supervised_frames": 32,
+             "target_matches_own_frames": true
+           },
+-          "seconds": 0.05,
++          "seconds": 0.07,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -7700,7 +7700,7 @@
+             "supervised_frames": 32,
+             "target_matches_own_frames": true
+           },
+-          "seconds": 0.05,
++          "seconds": 0.07,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -7944,7 +7944,7 @@
+             "s2_supervised": false,
+             "stream": "pose"
+           },
+-          "seconds": 0.07,
++          "seconds": 0.1,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -7998,7 +7998,7 @@
+             "s2_supervised": false,
+             "stream": "pose"
+           },
+-          "seconds": 0.08,
++          "seconds": 0.07,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -8052,7 +8052,7 @@
+             "s2_supervised": false,
+             "stream": "pose"
+           },
+-          "seconds": 0.06,
++          "seconds": 0.08,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -8106,7 +8106,7 @@
+             "s2_supervised": false,
+             "stream": "pose"
+           },
+-          "seconds": 0.08,
++          "seconds": 0.07,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -8322,7 +8322,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -8376,7 +8376,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.05,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -8457,7 +8457,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -8484,7 +8484,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.05,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -8511,7 +8511,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.06,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -8538,7 +8538,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.05,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -8565,7 +8565,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -8635,7 +8635,7 @@
+             "supervised_frames": 32,
+             "target_matches_own_frames": true
+           },
+-          "seconds": 0.05,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -8705,7 +8705,7 @@
+             "supervised_frames": 32,
+             "target_matches_own_frames": true
+           },
+-          "seconds": 0.05,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -8775,7 +8775,7 @@
+             "supervised_frames": 32,
+             "target_matches_own_frames": true
+           },
+-          "seconds": 0.06,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -8845,7 +8845,7 @@
+             "supervised_frames": 0,
+             "target_matches_own_frames": false
+           },
+-          "seconds": 0.06,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -8915,7 +8915,7 @@
+             "supervised_frames": 0,
+             "target_matches_own_frames": false
+           },
+-          "seconds": 0.05,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -8985,7 +8985,7 @@
+             "supervised_frames": 32,
+             "target_matches_own_frames": true
+           },
+-          "seconds": 0.05,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -9179,7 +9179,7 @@
+             "s2_supervised": false,
+             "stream": "pose"
+           },
+-          "seconds": 0.09,
++          "seconds": 0.07,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -9233,7 +9233,7 @@
+             "s2_supervised": false,
+             "stream": "pose"
+           },
+-          "seconds": 0.08,
++          "seconds": 0.07,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -9260,7 +9260,7 @@
+             "s2_supervised": false,
+             "stream": "pose"
+           },
+-          "seconds": 0.07,
++          "seconds": 0.1,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -9287,7 +9287,7 @@
+             "s2_supervised": false,
+             "stream": "pose"
+           },
+-          "seconds": 0.08,
++          "seconds": 0.1,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -9314,7 +9314,7 @@
+             "s2_supervised": false,
+             "stream": "pose"
+           },
+-          "seconds": 0.07,
++          "seconds": 0.09,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -9341,7 +9341,7 @@
+             "s2_supervised": false,
+             "stream": "pose"
+           },
+-          "seconds": 0.07,
++          "seconds": 0.09,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -9395,7 +9395,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -9422,7 +9422,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -9449,7 +9449,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -9476,7 +9476,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -9503,7 +9503,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.05,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -9530,7 +9530,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.05,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -9557,7 +9557,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -9584,7 +9584,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -9611,7 +9611,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -9638,7 +9638,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -9692,7 +9692,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -9719,7 +9719,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -9746,7 +9746,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -9773,7 +9773,7 @@
+             "s2_supervised": false,
+             "stream": "vqa"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -9800,7 +9800,7 @@
+             "s2_supervised": false,
+             "stream": "pointing"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.05,
+           "step": 1,
+           "stream": "pointing",
+           "substituted_from": null,
+@@ -9827,7 +9827,7 @@
+             "s2_supervised": false,
+             "stream": "pointing"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.05,
+           "step": 1,
+           "stream": "pointing",
+           "substituted_from": null,
+@@ -9854,7 +9854,7 @@
+             "s2_supervised": false,
+             "stream": "pointing"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.05,
+           "step": 1,
+           "stream": "pointing",
+           "substituted_from": null,
+@@ -9881,7 +9881,7 @@
+             "s2_supervised": false,
+             "stream": "pointing"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "pointing",
+           "substituted_from": null,
+@@ -9908,7 +9908,7 @@
+             "s2_supervised": false,
+             "stream": "pointing"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "pointing",
+           "substituted_from": null,
+@@ -9935,7 +9935,7 @@
+             "s2_supervised": false,
+             "stream": "pointing"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "pointing",
+           "substituted_from": null,
+@@ -9962,7 +9962,7 @@
+             "s2_supervised": false,
+             "stream": "pointing"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.05,
+           "step": 1,
+           "stream": "pointing",
+           "substituted_from": null,
+@@ -9989,7 +9989,7 @@
+             "s2_supervised": false,
+             "stream": "pointing"
+           },
+-          "seconds": 0.03,
++          "seconds": 0.06,
+           "step": 1,
+           "stream": "pointing",
+           "substituted_from": null,
+@@ -10059,7 +10059,7 @@
+             "supervised_frames": 0,
+             "target_matches_own_frames": false
+           },
+-          "seconds": 0.05,
++          "seconds": 0.06,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -10129,7 +10129,7 @@
+             "supervised_frames": 0,
+             "target_matches_own_frames": false
+           },
+-          "seconds": 0.05,
++          "seconds": 0.06,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -10199,7 +10199,7 @@
+             "supervised_frames": 32,
+             "target_matches_own_frames": true
+           },
+-          "seconds": 0.04,
++          "seconds": 0.05,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -10269,7 +10269,7 @@
+             "supervised_frames": 32,
+             "target_matches_own_frames": true
+           },
+-          "seconds": 0.05,
++          "seconds": 0.06,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -10339,7 +10339,7 @@
+             "supervised_frames": 32,
+             "target_matches_own_frames": true
+           },
+-          "seconds": 0.05,
++          "seconds": 0.06,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -10409,7 +10409,7 @@
+             "supervised_frames": 0,
+             "target_matches_own_frames": false
+           },
+-          "seconds": 0.05,
++          "seconds": 0.06,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -10479,7 +10479,7 @@
+             "supervised_frames": 0,
+             "target_matches_own_frames": false
+           },
+-          "seconds": 0.05,
++          "seconds": 0.07,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -10549,7 +10549,7 @@
+             "supervised_frames": 32,
+             "target_matches_own_frames": true
+           },
+-          "seconds": 0.05,
++          "seconds": 0.07,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+--- C2/out/proof/GATES.json
++++ C3/out/proof/GATES.json
+@@ -1 +1 @@
+-{"archive":"p_c60b9015.tar","bundle":"/project/community/jjyeung/okh7/i_7f1589c1","full_suite":false,"identity":"6594f46cdc16168514aca26a6ce38285907adfc6ece0b75d8e10428ea0b2fe74","kit":"/project/community/jjyeung/okh7/x_7f1589c1","production_authorized":false,"proof_partitions":["general","bootstrap"],"review":"REQUIRED","run":"05b8ac69","sha256":"c60b901594843989b909cb785a5fdc9ad544ea0fdec8d78c63bf173e4f6e136c","status":"LOCAL_CHECKS_PENDING_HEAVY_TEST","tests":82}
++{"archive":"p_6a5c7d00.tar","authority":{"account":"mt01","admission_contract_sha256":"26059aff098020a08adcef7ad6ced09ab2aedb2edd4f3c6607028e496ebb8970","allocation_memory_gib":800,"allow_until_utc":"2026-11-26T00:00:00Z","allowed_partitions":["advanced","general","bootstrap"],"arm":"0","conditions":["Mode p: general/bootstrap, one node, zero GPUs, four hours.","Modes t/u: advanced, one node, four GPUs, 24 hours; resume latest.","Certify the final manifest before proof; never mutate the certified kit.","Training submission requires a separate identity-bound go.json."],"config_sha256":"6594f46cdc16168514aca26a6ce38285907adfc6ece0b75d8e10428ea0b2fe74","full_population_admission":false,"gpu_cap":4,"guard":null,"kernel":null,"max_parallel_jobs":1,"milestone_gate":null,"mode_resources":{"p":{"gpus":0,"nodes":1,"partitions":["general","bootstrap"],"wall_seconds":14400},"t":{"gpus":4,"nodes":1,"partitions":["advanced"],"wall_seconds":86400},"u":{"gpus":4,"nodes":1,"partitions":["advanced"],"wall_seconds":86400}},"modes":["p","t","u"],"native_admission_memory_gib":256,"native_memory_sufficiency_proven":false,"new_gpus":{"p":0,"t":4,"u":4},"nodes":1,"other_running_and_pending_gpus":0,"partition":"advanced","production_full_mode_p_required":true,"production_go_granted":false,"production_go_required_separately":true,"resource_counts_are_submission_conditions":true,"resume":"latest","review":null,"scope":"Sealed CPU proof and continuation resources; separate identity-bound GO required for training.","source_revision":"sha256:b83a8a35d420815b9d6396e1fc1178e94c20d47ad459aa6da964e85bdec0f87b","wall_seconds":86400,"world_size":4},"bundle":"/project/community/jjyeung/okh7/i_7f1589c1","fixture":"/scratch/jjyeung/orch_n30/r1_pkt/work/pre_submit_oy69cn82/ready","full_suite":true,"identity":"6594f46cdc16168514aca26a6ce38285907adfc6ece0b75d8e10428ea0b2fe74","kit":"/project/community/jjyeung/okh7/x_7f1589c1","manifest_sha256":"fbe67275015226e2ae6b69cb113a32b8afa35db16548b5c896f27fb02a9eff4e","production_authorized":false,"review":"REQUIRED","run":"05b8ac69","sha256":"6a5c7d009a19cb5bac690b864f2be68bb5cebc29649923c93da36328d0f96888","status":"BUILT_FOR_INDEPENDENT_REVIEW","tests":88}
+--- C2/out/proof/POST_ADMISSION_SHELL.json
++++ C3/out/proof/POST_ADMISSION_SHELL.json
+@@ -1 +1 @@
+-{"cases":[{"fixture":"/scratch/jjyeung/orch_n30/r1_pkt/work/proof11_qigdsqic","numpy":false,"rc":0,"shell_sha256":"d46db02b72b7a14468c0dca6aba3b82ae1eb310786a0934cfa5d79b9293dc5f3"},{"fixture":"/scratch/jjyeung/orch_n30/r1_pkt/work/proof11_ue1z7ftd","numpy":true,"rc":0,"shell_sha256":"a1a1cfd73c12dc4ede5efdaaa372959de07a693d3e266322a2c24a5f611c97c3"}],"config_identity":"6594f46cdc16168514aca26a6ce38285907adfc6ece0b75d8e10428ea0b2fe74","kit_c_sha256":"f99e3b6fcc1bac6866f796a97eed642b44dd16ae5df8d80ae8a5f05c361176f3","proof_sha256":"861b540bef15666fd8dc97fb6999e495743613b1c5e0573117681aec45e064b9","scope":"Real sealed c.sh functions; stub admission, bwrap and loader body; no production execution","status":"PASS"}
++{"cases":[{"fixture":"/scratch/jjyeung/orch_n30/r1_pkt/work/proof11_9qqtwrdi","numpy":false,"rc":0,"shell_sha256":"84a4b9cb3f9c764cfbfad37ba046623331afc5a9961d50a1bb451d67e1d91893"},{"fixture":"/scratch/jjyeung/orch_n30/r1_pkt/work/proof11__y99i98x","numpy":true,"rc":0,"shell_sha256":"c3d1ca5ca1840f4e392ca4edb71aa1389e161e3af57c02741d685395aa85bcc6"}],"config_identity":"6594f46cdc16168514aca26a6ce38285907adfc6ece0b75d8e10428ea0b2fe74","kit_c_sha256":"f99e3b6fcc1bac6866f796a97eed642b44dd16ae5df8d80ae8a5f05c361176f3","proof_sha256":"861b540bef15666fd8dc97fb6999e495743613b1c5e0573117681aec45e064b9","scope":"Real sealed c.sh functions; stub admission, bwrap and loader body; no production execution","status":"PASS"}
+--- C2/out/proof/PRE_SUBMISSION.json
++++ C3/out/proof/PRE_SUBMISSION.json
+@@ -1 +1 @@
+-{"config_identity":"6594f46cdc16168514aca26a6ce38285907adfc6ece0b75d8e10428ea0b2fe74","fixture":"/scratch/jjyeung/orch_n30/r1_pkt/work/pre_submit_wt55atj7","inherited_runtime_unchanged":true,"operator_archive_sha256":"c60b901594843989b909cb785a5fdc9ad544ea0fdec8d78c63bf173e4f6e136c","persistent_entry_called":false,"scope":"Production-form records from driver builder; two missing data archives replaced only in local fixture; no production authorization or native data proof.","slurm_identity_present":false,"source_sentinels":["k/np226_5204b3a0.tar","k/t_e6456bcecb8d4a8f4f68158eb68275f8befff128.tar"],"status":"PASS","writes_confined_to_fixture":true}
++{"config_identity":"6594f46cdc16168514aca26a6ce38285907adfc6ece0b75d8e10428ea0b2fe74","fixture":"/scratch/jjyeung/orch_n30/r1_pkt/work/pre_submit_oy69cn82","inherited_runtime_unchanged":true,"operator_archive_sha256":"6a5c7d009a19cb5bac690b864f2be68bb5cebc29649923c93da36328d0f96888","persistent_entry_called":false,"scope":"Production-form records from driver builder; two missing data archives replaced only in local fixture; no production authorization or native data proof.","slurm_identity_present":false,"source_sentinels":["k/np226_5204b3a0.tar","k/t_e6456bcecb8d4a8f4f68158eb68275f8befff128.tar"],"status":"PASS","writes_confined_to_fixture":true}
+--- C2/out/proof/RESEAL11.json
++++ C3/out/proof/RESEAL11.json
+@@ -1 +1 @@
+-{"archive":"p_c60b9015.tar","archive_sha256":"c60b901594843989b909cb785a5fdc9ad544ea0fdec8d78c63bf173e4f6e136c","authority_sha256":"26536653b9ecb7497caf44766ee775d54c47d0c7646583a226fd824a6609d6c6","config_identity":"6594f46cdc16168514aca26a6ce38285907adfc6ece0b75d8e10428ea0b2fe74","fixture_authority":"/scratch/jjyeung/orch_n30/r1_pkt/work/seal11_q2xlp6y_/authority.json","scope":"Local production-form deployment fixture; production authority must be resealed on the deployed kit","status":"PASS"}
++{"archive":"p_6a5c7d00.tar","archive_sha256":"6a5c7d009a19cb5bac690b864f2be68bb5cebc29649923c93da36328d0f96888","authority_sha256":"336c3d83ab8929ee09319a0e4f4a98e5e1d898948a10f3d98e58fa39bec4be7b","config_identity":"6594f46cdc16168514aca26a6ce38285907adfc6ece0b75d8e10428ea0b2fe74","fixture_authority":"/scratch/jjyeung/orch_n30/r1_pkt/work/seal11_p8995vtg/authority.json","scope":"Local production-form deployment fixture; production authority must be resealed on the deployed kit","status":"PASS"}
+--- C2/out/proof/UNIT_CANDIDATE.json
++++ C3/out/proof/UNIT_CANDIDATE.json
+@@ -1 +1 @@
+-{"command":["/scratch/jjyeung/envs/p1cpu/bin/python","-B","/scratch/jjyeung/orch_n30/r1_pkt/tools/rebind.py","--receipt","/scratch/jjyeung/orch_n30/rows_r1/out/a2_vqa_v7/vqa/receipt.json","--receipt-sha256","8091154cd499c47404c2f3a6d288bff3b061fa71a1d22af5de68337fbbde56cd","--database","/scratch/jjyeung/orch_n30/rows_r1/out/a2_vqa_v7/vqa/rows.sqlite","--orchard-store","/project/community/jjyeung/okh7/s_22b44165/d.db","--unit-rows","/scratch/jjyeung/orch_n30/r1_pkt/work/test_vln64909/rows.jsonl","--unit-rows-sha256","5f9383fa3dabcc813676564c8533e0c7b110a7f1d0e9aff4c9ebde444355a0b3","--units-allowlist","ft","--unit-cents","100","--reuse-census","--skip-audit","--out","/scratch/jjyeung/orch_n30/r1_pkt/work/test_vln64909/packet"],"counts":{"cm":0,"ft":683,"in":64},"fixture":{"path":"/scratch/jjyeung/orch_n30/r1_pkt/work/test_vln64909/rows.jsonl","sha256":"5f9383fa3dabcc813676564c8533e0c7b110a7f1d0e9aff4c9ebde444355a0b3"},"log":{"path":"/scratch/jjyeung/orch_n30/r1_pkt/work/test_vln64909/rebind.log","sha256":"12dba32abf304b33c888dd86d0d9ebb6dfe0c27205b6e3e27479974b372eb43d"},"production_bound":false,"reason":"Missing top-level events and all 32 frame pins","returncode":1,"source":{"path":"/scratch/jjyeung/orch_n30/rows_r1/out/units_p_slice_v3/rows.jsonl","sha256":"5f9383fa3dabcc813676564c8533e0c7b110a7f1d0e9aff4c9ebde444355a0b3"},"status":"DIRECT_UNPACKED_INPUT_REFUSED"}
++{"command":["/scratch/jjyeung/envs/p1cpu/bin/python","-B","/scratch/jjyeung/orch_n30/r1_pkt/tools/rebind.py","--receipt","/scratch/jjyeung/orch_n30/rows_r1/out/a2_vqa_v7/vqa/receipt.json","--receipt-sha256","8091154cd499c47404c2f3a6d288bff3b061fa71a1d22af5de68337fbbde56cd","--database","/scratch/jjyeung/orch_n30/rows_r1/out/a2_vqa_v7/vqa/rows.sqlite","--orchard-store","/project/community/jjyeung/okh7/s_22b44165/d.db","--unit-rows","/scratch/jjyeung/orch_n30/r1_pkt/work/test_cdxlxku_/rows.jsonl","--unit-rows-sha256","5f9383fa3dabcc813676564c8533e0c7b110a7f1d0e9aff4c9ebde444355a0b3","--units-allowlist","ft","--unit-cents","100","--reuse-census","--skip-audit","--out","/scratch/jjyeung/orch_n30/r1_pkt/work/test_cdxlxku_/packet"],"counts":{"cm":0,"ft":683,"in":64},"fixture":{"path":"/scratch/jjyeung/orch_n30/r1_pkt/work/test_cdxlxku_/rows.jsonl","sha256":"5f9383fa3dabcc813676564c8533e0c7b110a7f1d0e9aff4c9ebde444355a0b3"},"log":{"path":"/scratch/jjyeung/orch_n30/r1_pkt/work/test_cdxlxku_/rebind.log","sha256":"12dba32abf304b33c888dd86d0d9ebb6dfe0c27205b6e3e27479974b372eb43d"},"production_bound":false,"reason":"Missing top-level events and all 32 frame pins","returncode":1,"source":{"path":"/scratch/jjyeung/orch_n30/rows_r1/out/units_p_slice_v3/rows.jsonl","sha256":"5f9383fa3dabcc813676564c8533e0c7b110a7f1d0e9aff4c9ebde444355a0b3"},"status":"DIRECT_UNPACKED_INPUT_REFUSED"}
+--- C2/out/proof/UNIT_PACKING_CHECK.json
++++ C3/out/proof/UNIT_PACKING_CHECK.json
+@@ -1 +1 @@
+-{"counts":{"ft":683,"in":64},"existing_payload_unchanged":true,"fixture_native_binding_and_regeneration":true,"fixture_packing":{"additions":["events","student_input frame pins and native timing fields"],"counts":{"by_dataset":{"d1":1},"by_unit":{"cm":0,"ft":1,"in":0},"by_unit_dataset":{"ft/d1":1},"eligible":1,"missing_units":["cm","ft","in"]},"frame_authority":{"fps_authority":{"path":"/scratch/jjyeung/orch_n30/r1_pkt/work/test_0g58_kah/fps.json","sha256":"810e907dde5e6bd064c21c40d2cbe339519fb6f8c32b535ef4c627672e9e60b9"},"frame_map":{"path":"/scratch/jjyeung/orch_n30/r1_pkt/work/test_0g58_kah/map.gz","sha256":"2d3621e7ed4eb8666468ac159e3ca1318bc145a8ab5631c96a7ce841ae394888"},"frame_plan":{"path":"/scratch/jjyeung/orch_n30/r1_pkt/work/test_0g58_kah/plan.gz","sha256":"17091f471d9dcbe0c6831f1c6d642893e19aa64bb99ca9a48aa8073a975fbe6a"}},"implementation":{"student_pilot/ground_rows.py":"d9361d1fd2e0c3fda2143acdd12e97359562f851bbd522dc92f1c87346e4a583","student_pilot/s1_pool.py":"7b8859d629dc30be0b3b6749e7539d324cd2d0595cba4de67a16454ef0660ee7","student_pilot/s1_routing.py":"5c8cd97392ba66a525f831047cfbe7d7e0ae028fcf6711e2427596fc98a126bc"},"input_rows":1,"packed":{"path":"/scratch/jjyeung/orch_n30/r1_pkt/work/test_0g58_kah/packed.jsonl","sha256":"bf92b67105474e555f4516cc82ff8b95180b60d2c3fe76af92723b5c0929721d"},"payload_changed":false,"refusals":[],"refused_rows":0,"rgb_bytes_verified":false,"rows":1,"schema":"unit-slice-packing-v1","sealed_validation_pass":1,"slice":{"path":"/scratch/jjyeung/orch_n30/r1_pkt/work/test_0g58_kah/slice.jsonl","sha256":"bc6a85ea31b4fc0f95dde3d1632dbb5f175d1cbc845f893340817fb92614c2a4"},"source_qid_preserved":true},"limitation":"Synthetic frame pins test the native resolver and binding path; Orchard must supply real RGB authorities and bytes.","production_bound":false,"sealed_event_reconstruction_rows":747,"source":{"path":"/scratch/jjyeung/orch_n30/rows_r1/out/units_p_slice_v3/rows.jsonl","sha256":"5f9383fa3dabcc813676564c8533e0c7b110a7f1d0e9aff4c9ebde444355a0b3"},"status":"PASS"}
++{"counts":{"ft":683,"in":64},"existing_payload_unchanged":true,"fixture_native_binding_and_regeneration":true,"fixture_packing":{"additions":["events","student_input frame pins and native timing fields"],"counts":{"by_dataset":{"d1":1},"by_unit":{"cm":0,"ft":1,"in":0},"by_unit_dataset":{"ft/d1":1},"eligible":1,"missing_units":["cm","ft","in"]},"frame_authority":{"fps_authority":{"path":"/scratch/jjyeung/orch_n30/r1_pkt/work/test_vpqevy3t/fps.json","sha256":"810e907dde5e6bd064c21c40d2cbe339519fb6f8c32b535ef4c627672e9e60b9"},"frame_map":{"path":"/scratch/jjyeung/orch_n30/r1_pkt/work/test_vpqevy3t/map.gz","sha256":"2d3621e7ed4eb8666468ac159e3ca1318bc145a8ab5631c96a7ce841ae394888"},"frame_plan":{"path":"/scratch/jjyeung/orch_n30/r1_pkt/work/test_vpqevy3t/plan.gz","sha256":"17091f471d9dcbe0c6831f1c6d642893e19aa64bb99ca9a48aa8073a975fbe6a"}},"implementation":{"student_pilot/ground_rows.py":"d9361d1fd2e0c3fda2143acdd12e97359562f851bbd522dc92f1c87346e4a583","student_pilot/s1_pool.py":"7b8859d629dc30be0b3b6749e7539d324cd2d0595cba4de67a16454ef0660ee7","student_pilot/s1_routing.py":"5c8cd97392ba66a525f831047cfbe7d7e0ae028fcf6711e2427596fc98a126bc"},"input_rows":1,"packed":{"path":"/scratch/jjyeung/orch_n30/r1_pkt/work/test_vpqevy3t/packed.jsonl","sha256":"bf92b67105474e555f4516cc82ff8b95180b60d2c3fe76af92723b5c0929721d"},"payload_changed":false,"refusals":[],"refused_rows":0,"rgb_bytes_verified":false,"rows":1,"schema":"unit-slice-packing-v1","sealed_validation_pass":1,"slice":{"path":"/scratch/jjyeung/orch_n30/r1_pkt/work/test_vpqevy3t/slice.jsonl","sha256":"bc6a85ea31b4fc0f95dde3d1632dbb5f175d1cbc845f893340817fb92614c2a4"},"source_qid_preserved":true},"limitation":"Synthetic frame pins test the native resolver and binding path; Orchard must supply real RGB authorities and bytes.","production_bound":false,"sealed_event_reconstruction_rows":747,"source":{"path":"/scratch/jjyeung/orch_n30/rows_r1/out/units_p_slice_v3/rows.jsonl","sha256":"5f9383fa3dabcc813676564c8533e0c7b110a7f1d0e9aff4c9ebde444355a0b3"},"status":"PASS"}
+--- C2/tests/test_cont2.py
++++ C3/tests/test_cont2.py
+@@ -47,11 +47,13 @@
+         sums.write_text(''.join(sha(kit/n)+'  '+n+'\n' for n in names))
+         write(kit/'ANON_OK.json', dict(status='CLEAN', hits=0, manifest_sha256=sha(sums), fixture=True))
+         env = {**os.environ, 'SLURM_JOB_ID':'191201', 'TK_KIT_HOME':str(kit),
++               'SLURM_JOB_PARTITION':'general','SLURM_JOB_NUM_NODES':'1','SLURM_GPUS_ON_NODE':'0',
+                'PYTHONDONTWRITEBYTECODE':'1', 'CUDA_VISIBLE_DEVICES':''}
+         isolated=subprocess.run([sys.executable,'-I','-c',
+             'import sys; assert sys.flags.isolated and not sys.dont_write_bytecode'],env=env,capture_output=True)
+         self.assertEqual(isolated.returncode,0,isolated.stderr)
+-        for command in ([str(kit/'b/g.py'),str(kit),'p'],
++        for command in ([str(kit/'b/p0.py'),str(kit),'p','--metadata-only'],
++                        [str(kit/'b/g.py'),str(kit),'p'],
+                         [str(kit/'b/r8.py'),launch['run_directory'],'--kit',str(kit)]):
+             result = subprocess.run([sys.executable,'-I',*command], env=env, text=True, capture_output=True)
+             self.assertEqual(result.returncode, 0, result.stderr)
+--- C2/tests/test_cont3.py
++++ C3/tests/test_cont3.py
+@@ -0,0 +1,91 @@
++"""Exercise the sealed authority with the real gate and authorizer on CPU."""
++import copy
++import os
++from pathlib import Path
++import subprocess
++import sys
++import unittest
++from rebind import ROOT, load, sha, write
++from r4 import fields, validate
++
++
++class ZTrainingAuthority(unittest.TestCase):
++    @classmethod
++    def setUpClass(cls):
++        cls.kit=Path(load(ROOT/'out/proof/PRE_SUBMISSION.json')['fixture'])/'ready'
++
++    def check(self, mode, partition, gpus, *, nodes='1', wall=None, allocation_mode=None, passes=True):
++        # Only absent native data and persistent slots are fixtures. g.check,
++        # i.authorize, x.ready and every resource/identity check execute normally.
++        runner='''import copy,sys
++from pathlib import Path
++from unittest.mock import patch
++root=Path(sys.argv[1]);mode=sys.argv[2];sys.path.insert(0,str(root/'b'))
++import g,i,d,r8
++def prepared(root,cfg,*args):
++    cfg=copy.deepcopy(cfg)
++    cfg['preparation']={'path':'/fixture/prepared.json','sha256':'0'*64}
++    return cfg
++with patch.object(d,'effective',side_effect=prepared),patch.object(r8,'main',return_value=mode):
++    results=[]
++    for check in (lambda:g.check(root,mode=mode),lambda:i.authorize(root,mode,'0')):
++        try:check();results.append('PASS')
++        except (ValueError,KeyError) as e:results.append(type(e).__name__+': '+str(e))
++    print(__import__('json').dumps(results))
++'''
++        env={k:v for k,v in os.environ.items() if not k.startswith(('SLURM','TK_ALLOCATION_MODE'))}
++        env.update(SLURM_JOB_PARTITION=partition,SLURM_GPUS_ON_NODE=str(gpus),SLURM_JOB_NUM_NODES=nodes,
++                   SLURM_JOB_ID='191303',CUDA_VISIBLE_DEVICES='',PYTHONDONTWRITEBYTECODE='1')
++        if wall is not None:env['SLURM_TIMELIMIT']=wall
++        if allocation_mode is not None:env['TK_ALLOCATION_MODE']=allocation_mode
++        result=subprocess.run([sys.executable,'-I','-B','-c',runner,str(self.kit),mode],
++                              env=env,text=True,capture_output=True)
++        self.assertEqual(result.returncode,0,result.stderr)
++        import json
++        outcomes=json.loads(result.stdout)
++        self.assertEqual([x=='PASS' for x in outcomes],[passes,passes],outcomes)
++
++    def test_sealed_fields_and_manifest(self):
++        auth=load(self.kit/'k/4.json');validate(auth)
++        inventory={n:h for h,n in (row.split('  ',1) for row in (self.kit/'SHA256SUMS.txt').read_text().splitlines())}
++        for name in ('k/4.json','b/r4.py','b/g.py','b/i.py','job.sh'):
++            self.assertEqual(sha(self.kit/name),inventory[name])
++        self.assertEqual(load(self.kit/'k/launch.json')['slot']['wall_seconds'],86400)
++        self.assertFalse(auth['production_go_granted'])
++        self.assertEqual(auth['resume'],'latest')
++        for key in fields():
++            mutant=copy.deepcopy(auth);mutant.pop(key)
++            with self.assertRaises(ValueError):validate(mutant)
++        write(ROOT/'out/proof/CONT3_AUTHORITY.json',dict(status='PASS',authority=auth,
++            authority_sha256=sha(self.kit/'k/4.json'),manifest_sha256=sha(self.kit/'SHA256SUMS.txt'),
++            scope='Local fixture; no production admission or GO'))
++
++    def test_proof_modes(self):
++        for partition in ('general','bootstrap'):
++            self.check('p',partition,0,wall='240')
++
++    def test_training_modes(self):
++        for mode in ('t','u'):
++            self.check(mode,'advanced',4,wall='1-00:00:00')
++
++    def test_in_job_cpu_admission_uses_training_allocation(self):
++        job=(self.kit/'job.sh').read_text();shell=(self.kit/'b/r.sh').read_text()
++        self.assertLess(job.index('export TK_ALLOCATION_MODE=u'),job.index('"$ROOT/b/p0.sh"'))
++        self.assertLess(shell.index('export TK_ALLOCATION_MODE="$1"'),shell.index('"$HX/b/r.sh" p'))
++        for mode in ('t','u'):
++            self.check('p','advanced',4,wall='1440',allocation_mode=mode)
++
++    def test_wrong_modes_gpus_partitions_nodes_and_wall_refuse(self):
++        for mode,partition,gpus in [('x','advanced',4),('invalid','general',0),
++                ('p','general',4),('p','advanced',0),('p','advanced',4),
++                ('u','advanced',0),('t','advanced',8),('u','general',4),('t','bootstrap',4)]:
++            with self.subTest(mode=mode,partition=partition,gpus=gpus):
++                self.check(mode,partition,gpus,passes=False)
++        self.check('u','advanced',4,nodes='2',passes=False)
++        self.check('u','advanced',4,wall='780',passes=False)
++        self.check('p','general',0,wall='1440',passes=False)
++        self.check('p','general',0,allocation_mode='u',passes=False)
++        self.check('u','advanced',4,allocation_mode='p',passes=False)
++
++
++if __name__=='__main__':unittest.main(verbosity=2)
+--- C2/tests/test_fix11.py
++++ C3/tests/test_fix11.py
+@@ -189,6 +189,9 @@
+         for name in ('b/c.sh', 'b/r.sh', 'b/p0.sh'):
+             expected=(old_kit/name).read_text()
+             if name=='b/c.sh':expected=expected.replace('rsync -rt "$HX/b"','rsync -rt --chmod=D700 "$HX/b"')
++            if name=='b/r.sh':
++                expected=expected.replace('export TK_KIT_HOME="$HX"',
++                    'export TK_KIT_HOME="$HX"\nif [[ "${1:-}" == t || "${1:-}" == u ]]; then export TK_ALLOCATION_MODE="$1"; fi')
+             self.assertEqual((self.kit/name).read_text().replace(self.key,'673bc60f'),expected)
+         self.assertEqual(load(ROOT/'out/config.json')['continuation']['run'],'673bc60f')
+ 
+--- C2/tests/test_packet.py
++++ C3/tests/test_packet.py
+@@ -706,5 +706,6 @@
+ from test_fix12 import Fix12
+ from test_cont1 import Continuation
+ from test_cont2 import ZContinuationModes
++from test_cont3 import ZTrainingAuthority
+ 
+ if __name__=='__main__':unittest.main(verbosity=2)
+--- C2/tools/derive_deployment.py
++++ C3/tools/derive_deployment.py
+@@ -48,6 +48,9 @@
+         staged=gate.read_pin(root,launch['staging'])
+         archived=gate.read_pin(root,launch['archive'])
+         auth=load(root/'k/4.json')
++        if cfg.get('continuation'):
++            from r4 import validate
++            validate(auth)
+         for name,record in (('review.json',review),('staging.json',staged),('4.json',auth)):
+             if record.get('config_sha256')!=config_sha or record.get('source_revision')!=commit:
+                 raise ValueError('Evidence identity or source differs: '+name)
+@@ -150,6 +153,9 @@
+     pending=dict(status='PENDING',config_sha256=identity(cfg),source_revision=code['commit'],production_authorized=False)
+     for n in ('review.json','staging.json','4.json'):
+         value={**pending,'allowed_partitions':['advanced','general','bootstrap']} if n=='4.json' else pending
++        if n=='4.json' and cfg.get('continuation'):
++            from r4 import bind
++            value=bind(value)
+         write(out/'k'/n,value)
+     arc=dict(schema='s1-source-archive-v1',status='PENDING',durable=False,tree_sha256=code['tree_sha256'],
+              sha256=sha(archive),bytes=(archive).stat().st_size)
+@@ -165,6 +171,9 @@
+             if n!='archive.json' and value.get('config_sha256')!=identity(cfg):raise ValueError('Evidence identity differs: '+n)
+             if n=='4.json':
+                 value['allowed_partitions']=['advanced','general','bootstrap']
++                if cfg.get('continuation'):
++                    from r4 import bind
++                    value=bind(value)
+             write(out/'k'/n,value)
+         cfg['admission']=dict(path=AS+'8865619b/k/review.json',sha256=sha(out/'k/review.json'))
+         launch.update(status='READY',production_authorized=True)
+@@ -183,7 +192,21 @@
+         c0.policy(cfg,load(packet/'a0.json'))
+         for src,dest in (('c0.py','b/c0.py'),('a0.json','k/a0.json')):
+             (out/dest).write_bytes((packet/src).read_bytes());added.add(dest)
++        (out/'b/r4.py').write_bytes((packet/'r4.py').read_bytes());added.add('b/r4.py')
++        launch['slot']['wall_seconds']=86400
++        write(out/'k/launch.json',launch)
++        for name,anchor,replacement in (
++            ('g', '    expiry = datetime.datetime.fromisoformat(auth["allow_until_utc"]',
++             '    from r4 import allocation\n    allocation(auth, mode, environment)\n    expiry = datetime.datetime.fromisoformat(auth["allow_until_utc"]'),
++            ('i', "    arms=auth['arm'] if isinstance(auth['arm'],list) else [auth['arm']]",
++             "    from r4 import allocation\n    allocation(auth, mode, os.environ)\n    arms=auth['arm'] if isinstance(auth['arm'],list) else [auth['arm']]")):
++            path=out/'b'/(name+'.py');text=path.read_text()
++            if text.count(anchor)!=1:raise ValueError('Authority boundary differs: '+name)
++            path.write_text(text.replace(anchor,replacement))
+         p=out/'job.sh';s=p.read_text().replace('13:00:00','24:00:00')
++        anchor='/bin/bash "$ROOT/b/p0.sh" "$ROOT"'
++        if s.count(anchor)!=1:raise ValueError('Preflight boundary differs')
++        s=s.replace(anchor,'if [[ "${SLURM_JOB_PARTITION:-}" == advanced ]]; then export TK_ALLOCATION_MODE=u; else export TK_ALLOCATION_MODE=p; fi\n'+anchor)
+         anchor='MODE="$(/usr/bin/python3 -I "$ROOT/b/r8.py"'
+         if s.count(anchor)!=1:raise ValueError('Mode boundary differs')
+         s=s.replace(anchor,'/usr/bin/python3 -I "$ROOT/b/c0.py" "$ROOT" "$RUN"\n'+anchor);p.write_text(s)
+@@ -198,6 +221,10 @@
+         p=out/'b/w.py';s=p.read_text();anchor="        cfg['milestone_gate']=pick(auth,'milestone_gate',arm)"
+         if s.count(anchor)!=1:raise ValueError('Training boundary differs')
+         s=s.replace(anchor,"        if cfg.get('continuation'):\n            if mode!='u':raise ValueError('c0:38')\n            from c0 import install\n            install(run,cfg,json.loads((root/'k/a0.json').read_text()))\n"+anchor);p.write_text(s)
++        p=out/'b/r.sh';s=p.read_text();anchor='export TK_KIT_HOME="$HX"'
++        if s.count(anchor)!=1:raise ValueError('Admission allocation boundary differs')
++        s=s.replace(anchor,anchor+'\nif [[ "${1:-}" == t || "${1:-}" == u ]]; then export TK_ALLOCATION_MODE="$1"; fi')
++        p.write_text(s)
+     p=out/'b/z.py';s=p.read_text();anchor="    with archive.open('rb') as stream:"
+     if s.count(anchor)!=1:raise ValueError('Redeploy boundary differs')
+     s=s.replace(anchor,"    if (root/'b').exists() and not (root/'b').stat().st_mode & 0o200:\n        raise ValueError('Sealed kit refuses in-place redeployment; derive a fresh kit')\n"+anchor);p.write_text(s)
+--- C2/tools/finalize.py
++++ C3/tools/finalize.py
+@@ -5,7 +5,7 @@
+ def main():
+     out=ROOT/'out';b=load(out/'BINDING.json');op=load(out/'OPERATOR.json');cfg=load(out/'config.json')
+     if cfg.get('continuation'):
+-        from report_cont2 import main as report
++        from report_cont3 import main as report
+         return report()
+     log=(out/'logs/tests.log').read_text();assert log.rstrip().endswith('OK')
+     count=int(re.search(r'Ran (\d+) tests',log).group(1))
+--- C2/tools/package_operator.py
++++ C3/tools/package_operator.py
+@@ -16,7 +16,7 @@
+         out/'proof/selection/r.json':'proof/selection/r.json',out/'proof/selection/q.json':'proof/selection/q.json',
+         out/'proof'/('p_'+run+'.sh'):'p_'+run+'.sh'}
+     if binding.get('continuation'):
+-        mapping.update({ROOT/'tools/continuation.py':'c0.py',out/'a0.json':'a0.json'})
++        mapping.update({ROOT/'tools/continuation.py':'c0.py',out/'a0.json':'a0.json',ROOT/'tools/r4.py':'r4.py'})
+     if binding.get('unit_binding'):
+         mapping.update({out/'units'/n:n for n in ('u.gz','i.json','m.json','u.json')})
+     record_paths=[out/'records'/n for n in binding['record_files']]
+--- C2/tools/r4.py
++++ C3/tools/r4.py
+@@ -0,0 +1,69 @@
++"""Sealed resource authority for one continuation kit; GO is separate."""
++import copy
++
++
++def fields():
++    return dict(
++        modes=['p', 't', 'u'], new_gpus={'p': 0, 't': 4, 'u': 4},
++        partition='advanced', allowed_partitions=['advanced', 'general', 'bootstrap'],
++        wall_seconds=86400, nodes=1, resume='latest', arm='0', gpu_cap=4,
++        other_running_and_pending_gpus=0, max_parallel_jobs=1,
++        production_go_granted=False, production_go_required_separately=True,
++        mode_resources={
++            'p': dict(partitions=['general', 'bootstrap'], nodes=1, gpus=0, wall_seconds=14400),
++            't': dict(partitions=['advanced'], nodes=1, gpus=4, wall_seconds=86400),
++            'u': dict(partitions=['advanced'], nodes=1, gpus=4, wall_seconds=86400)},
++    )
++
++
++def bind(auth):
++    value=copy.deepcopy(auth)
++    value.update(fields())
++    value.update(scope='Sealed CPU proof and continuation resources; separate identity-bound GO required for training.',
++                 conditions=['Mode p: general/bootstrap, one node, zero GPUs, four hours.',
++                             'Modes t/u: advanced, one node, four GPUs, 24 hours; resume latest.',
++                             'Certify the final manifest before proof; never mutate the certified kit.',
++                             'Training submission requires a separate identity-bound go.json.'])
++    return value
++
++
++def validate(auth):
++    for key, value in fields().items():
++        # JSON equality alone would admit booleans in place of integer counts.
++        import json
++        if json.dumps(auth.get(key),sort_keys=True)!=json.dumps(value,sort_keys=True):
++            raise ValueError('Continuation authority differs: '+key)
++
++
++def allocation(auth, mode, environment):
++    validate(auth)
++    if mode not in auth['modes']:
++        raise ValueError('Operation not authorized')
++    # Native admission runs mode p inside the already allocated training job.
++    # The sealed entry sets its allocation mode before p0 and recursive r.sh p.
++    allocation_mode=environment.get('TK_ALLOCATION_MODE',mode)
++    if allocation_mode not in auth['modes'] or (mode!='p' and allocation_mode!=mode):
++        raise ValueError('Allocation mode differs')
++    limits=auth['mode_resources'][allocation_mode]
++    if environment.get('SLURM_JOB_PARTITION') not in limits['partitions']:
++        raise ValueError('Partition not authorized for mode '+mode)
++    if (environment.get('SLURM_JOB_NUM_NODES')!='1'
++            or environment.get('SLURM_GPUS_ON_NODE','0')!=str(limits['gpus'])):
++        raise ValueError('Resources differ')
++    if allocation_mode=='p' and environment.get('CUDA_VISIBLE_DEVICES','') not in ('','-1','NoDevFiles'):
++        raise ValueError('Proof must be CPU-only')
++    # Slurm does not export this variable on every site. The sealed job script
++    # and launch slot also pin the wall limit; check the allocation when supplied.
++    wall=environment.get('SLURM_TIMELIMIT')
++    if wall is not None:
++        if wall.isdigit():
++            seconds=int(wall)*60
++        else:
++            days, clock=wall.split('-',1) if '-' in wall else ('0',wall)
++            parts=[int(v) for v in clock.split(':')]
++            if len(parts)==2:parts=[0,*parts]
++            if len(parts)!=3:raise ValueError('Invalid allocation wall limit')
++            seconds=int(days)*86400+parts[0]*3600+parts[1]*60+parts[2]
++        if seconds!=limits['wall_seconds']:
++            raise ValueError('Allocation wall limit differs')
++    return limits
+--- C2/tools/report_cont3.py
++++ C3/tools/report_cont3.py
+@@ -0,0 +1,108 @@
++"""Report the complete continuation packet and its sealed resource authority."""
++import difflib
++import json
++import re
++import subprocess
++import sys
++import tempfile
++from pathlib import Path
++from rebind import ROOT,load,sha,write
++
++
++def main():
++    out=ROOT/'out';baseline=load(out/'CONT3_BASELINE.json');base=Path(baseline['snapshot'])
++    b=load(out/'BINDING.json');op=load(out/'OPERATOR.json')
++    log=(out/'logs/tests.log').read_text()
++    assert log.rstrip().endswith('OK')
++    count=int(re.search(r'Ran (\d+) tests',log).group(1))
++    assert 'test_full_store_build_stream_division_with_and_without_remove' in log
++    for name in ('FIRST_BATCH','DERIVATION','PRE_SUBMISSION','SWITCH_GUARDS','UNIT_REAL'):
++        record=load(out/'proof'/(name+'.json'))
++        assert record['status']=='PASS' and record['config_identity']==b['config_identity'],name
++    for name,digest in baseline['archives'].items():assert sha(out/name)==digest,name
++    assert op['archive'] not in baseline['archives'] and sha(out/op['archive'])==op['sha256']
++    ready=Path(load(out/'proof/PRE_SUBMISSION.json')['fixture'])/'ready'
++    from r4 import validate
++    auth=load(ready/'k/4.json');validate(auth)
++    before={str(p.relative_to(ready)):sha(p) for p in (ready/'k').rglob('*') if p.is_file()}
++    # This local certificate exercises inventory verification only. It is not
++    # an independent content scan and cannot serve as production evidence.
++    write(ready/'ANON_OK.json',dict(status='CLEAN',hits=0,fixture=True,
++        manifest_sha256=sha(ready/'SHA256SUMS.txt'),scope='Local inventory fixture only'))
++    subprocess.run([sys.executable,'-B',str(ready/'b/a.py'),str(ready)],check=True)
++    seals={};sealroot=Path(tempfile.mkdtemp(prefix='cont3_seal_',dir=ROOT/'work'))
++    for partition in ('general','bootstrap'):
++        dest=sealroot/(partition+'.json')
++        subprocess.run([sys.executable,'-B',str(ROOT/'tools/seal_proof.py'),'--kit',str(ready),
++            '--bundle',str(out/'operator'),'--binding',str(out/'BINDING.json'),
++            '--partition',partition,'--out',str(dest)],check=True)
++        authority=load(dest)
++        assert authority['runtime']['k/4.json']==sha(ready/'k/4.json')
++        seals[partition]=dict(path=str(dest),sha256=sha(dest))
++    assert before=={str(p.relative_to(ready)):sha(p) for p in (ready/'k').rglob('*') if p.is_file()}
++    subprocess.run([sys.executable,'-B',str(ready/'b/a.py'),str(ready)],check=True)
++    write(out/'proof/CONT3_RESEAL.json',dict(status='PASS',authorities=seals,
++        kit_files_unchanged=True,inventory_before_and_after='PASS',
++        authority_sha256=sha(ready/'k/4.json'),scope='Local fixture only; no independent content scan'))
++    text=(base/'out/CONT2.md').read_text()
++    text=text.replace(text.split('. ',1)[0]+'. ','BUILT_FOR_INDEPENDENT_REVIEW. ',1)
++    old=load(base/'out/OPERATOR.json')
++    text=text.replace(old['archive'],op['archive']).replace(old['sha256'],op['sha256'])
++    start=text.index('The CPU proof accepts');end=text.index('The CPU proof retains',start)
++    text=text[:start]+'''The derived `k/4.json` seals modes `["p","t","u"]`, `new_gpus={"p":0,"t":4,"u":4}`, top-level partition `advanced`, wall limit `86400`, one node, arm `0`, GPU cap `4`, one parallel job and `resume="latest"`. Its per-mode resources authorize `p` on `general` or `bootstrap` with zero GPUs and 14,400 seconds; `t` and `u` require `advanced`, four GPUs and 86,400 seconds. Proof and training request 48 CPUs and 800 GB. C's verified donor and later checkpoint restores enter `u`; the inherited cold-entry resource envelope also carries `t`, while C's restore bridge still refuses training without a continuation checkpoint.
++
++The deriver binds these resource fields before generating `SHA256SUMS.txt`. It preserves the supplied evidence identity, revision, admission contract and expiry. Both `b/g.py` and `b/i.py` validate the exact authority and allocation. The sealed entry sets `TK_ALLOCATION_MODE` before preflight and recursive admission: CPU preparation inside a training job uses that training allocation's limits. A standalone proof uses the zero-GPU proof limits. The runtime checks a supplied `SLURM_TIMELIMIT`; the sealed launch slot, job and wrapper pin the training wall limit even where Slurm omits that variable.
++
++`production_go_granted` is false and `production_go_required_separately` is true. The resource authority grants no launch GO. The submitter still requires a completed PASS CPU proof and separate identity-bound `go.json`. The proof sealer validates the complete authority, permits general/bootstrap, and pins `k/4.json` alongside the runtime. Certification and proof sealing do not modify any file in `k/`.
++
++'''+text[end:]
++    start=text.index('Validation:');end=text.index('Reviewer checks:',start)
++    text=text[:start]+f'''Validation: all {count} packet tests pass, including all three tests from `tests/test_fix10.py` and its full-store division regression. `tools/run_local_checks.py` passes deterministic packaging, two equal kit derivations, production-form evidence, four-rank D0 optimizer identity, native unit regeneration, CPU first batch and fix-11 shell replay. Five C3 tests exercise the real `g.check`, `i.authorize` and `x.ready` on fixture records: proof on both CPU partitions, both training modes, nested admission, sealed fields, and refusal of wrong modes, GPU counts, partitions, nodes and wall limits. Only native data admission and persistent slot selection are mocked in that resource matrix. Existing prefix tests execute the real metadata preflight, isolated gate and resume imports, then verify `a.py`, unchanged inventory, no bytecode and `0500` code directories. The native continuation test checks exact parameters, Adam state, RNG, LR and rows for 206 uninterrupted updates versus 200 plus six resumed updates, with single-rank collectives mocked.
++
++'''+text[end:]
++    start=text.index('Reviewer checks:');end=text.index('Local tests do not prove',start)
++    text=text[:start]+'''Reviewer checks: verify the archive SHA256 and `CONT3.diff` against `snap_c60b9015`; inspect `d.py`, `r4.py`, the derived `k/4.json`, `b/g.py`, `b/i.py`, the job prefix and recursive admission path. Check all per-mode limits, `resume="latest"`, the 24-hour launch slot and wrapper, separate written GO, and the proof seal's authority hash. Derive and certify a fresh final kit with real evidence; never patch a certified `k/4.json`. Confirm the real step-200 A slot contains the full optimizer state, the continuation authentication chain and row populations match, and the deployed manifest survives prefix execution without bytecode. Run the production CPU proof on the selected CPU partition and obtain the operator's written boundary GO before submission.
++
++'''+text[end:]
++    start=text.index('`out/proof/CONT2_RESEAL.json`')
++    text=text[:start]+'''`out/proof/CONT3_RESEAL.json` records fixture seals, not production approval. `out/CONT3.diff` compares the frozen `snap_c60b9015` packet with this packet, including derived kit bytes and directory modes. All existing packet archives remain checksum-identical. No cleanup was attempted.
++'''
++    (out/'CONT3.md').write_text(text)
++    for name in ('REPORT.md','R1P_PACKET.md'):(out/name).write_text(text)
++    result=dict(status='BUILT_FOR_INDEPENDENT_REVIEW',identity=b['config_identity'],run=b['run_key'],
++        bundle=op['bundle'],kit=op['kit'],archive=op['archive'],sha256=op['sha256'],tests=count,
++        full_suite=True,production_authorized=False,review='REQUIRED',authority=auth,
++        fixture=str(ready),manifest_sha256=sha(ready/'SHA256SUMS.txt'))
++    for name in ('CONT3_RESULT.json','REVIEW_REQUEST.json','proof/GATES.json'):write(out/name,result)
++    write(out/'proof/CONT3_TEST_LEDGER.json',dict(status='PASS',tests=count,full_suite=True,
++        suite_log='out/logs/tests.log',deferred=[],fix10_tests=3,cont3_tests=5))
++    (ROOT/'STATUS.md').write_text(f"{result['status']}. C {b['config_identity']}, run {b['run_key']}, {op['archive']} SHA256 {op['sha256']}. All {count} tests pass. Read out/CONT3.md and out/CONT3.diff. Independent review, production proof and written GO remain required.\n")
++    patches=[];changes={}
++    def compare(left,right,name):
++        a=left.read_bytes() if left.is_file() else b'';z=right.read_bytes() if right.is_file() else b''
++        if a==z:return
++        changes[name]=dict(before=sha(left) if left.is_file() else None,after=sha(right) if right.is_file() else None)
++        try:patches.extend(difflib.unified_diff(a.decode().splitlines(True),z.decode().splitlines(True),fromfile='C2/'+name,tofile='C3/'+name))
++        except UnicodeDecodeError:patches.append('Binary content differs: '+name+'\n')
++    paths={'STATUS.md'}
++    for folder in ('tools','tests','configs','out'):
++        for root in (base,ROOT):
++            paths.update(str(p.relative_to(root)) for p in (root/folder).rglob('*') if p.is_file()
++                         and p.stat().st_size<1_000_000 and p.suffix not in ('.diff','.tar','.pyc')
++                         and p.name not in ('CONT3_INVENTORY.json','finalize.log','cont3_local_checks.log'))
++    for name in sorted(paths):compare(base/name,ROOT/name,name)
++    # The frozen packet records its production-form kit by an immutable fixture
++    # path; work/kit in that snapshot is an unrelated inherited source packet.
++    oldkit=Path(load(base/'out/proof/PRE_SUBMISSION.json')['fixture'])/'ready'
++    assert (oldkit/'SHA256SUMS.txt').is_file()
++    for path in sorted(ready.rglob('*')):
++        rel=path.relative_to(ready);oldpath=oldkit/rel
++        if path.is_dir():
++            if oldpath.exists() and oldpath.stat().st_mode&0o777!=path.stat().st_mode&0o777:
++                patches.append(f'Mode kit/{rel}: {oldpath.stat().st_mode&0o777:04o} -> {path.stat().st_mode&0o777:04o}\n')
++        elif path.is_file() and path.stat().st_size<1_000_000:compare(oldpath,path,'kit/'+str(rel))
++    (out/'CONT3.diff').write_text(''.join(patches));write(out/'CONT3_INVENTORY.json',changes)
++    print(json.dumps({k:result[k] for k in ('status','identity','run','archive','sha256','tests')}))
++
++
++if __name__=='__main__':main()
+--- C2/tools/run_local_checks.py
++++ C3/tools/run_local_checks.py
+@@ -9,8 +9,32 @@
+         subprocess.run([sys.executable,'-B',*map(str,args)],cwd=ROOT,stdout=f,stderr=subprocess.STDOUT,check=True)
+ 
+ def main():
+-    parser=argparse.ArgumentParser();parser.add_argument('--continuation-recheck',action='store_true');parser.add_argument('--defer-heavy-test',action='store_true');parser.add_argument('--share-fixture-bytes',action='store_true');args=parser.parse_args()
++    parser=argparse.ArgumentParser();parser.add_argument('--continuation-recheck',action='store_true');parser.add_argument('--defer-heavy-test',action='store_true');parser.add_argument('--share-fixture-bytes',action='store_true')
++    parser.add_argument('--finalize-only',action='store_true',help='Resume reporting from a complete passing suite and matching archive evidence')
++    args=parser.parse_args()
+     out=ROOT/'out';binding=load(out/'BINDING.json')
++    if args.finalize_only:
++        if args.continuation_recheck or args.defer_heavy_test or args.share_fixture_bytes:
++            raise ValueError('Finalization cannot combine with suite selection')
++        op=load(out/'OPERATOR.json');expected=sha(out/op['archive'])
++        if expected!=op['sha256']:raise ValueError('Archive differs from completed checks')
++        for name in ('DERIVATION','PRE_SUBMISSION'):
++            record=load(out/'proof'/(name+'.json'))
++            if (record['status']!='PASS' or record['config_identity']!=binding['config_identity']
++                    or record['operator_archive_sha256']!=expected):
++                raise ValueError('Completed checks do not cover this archive: '+name)
++        log=(out/'logs/tests.log').read_text()
++        if not re.search(r'Ran \d+ tests in .*\n\nOK\s*\Z',log):raise ValueError('Full passing test log required')
++        if 'test_full_store_build_stream_division_with_and_without_remove' not in log:
++            raise ValueError('Full-store test required')
++        for source,packed in (('derive_deployment.py','d.py'),('seal_proof.py','p.py'),('r4.py','r4.py'),('continuation.py','c0.py')):
++            if sha(ROOT/'tools'/source)!=sha(out/'operator'/packed):raise ValueError('Tested runtime source differs: '+source)
++        run([ROOT/'tools/finalize.py'],'finalize.log')
++        result=load(out/'CONT3_RESULT.json')
++        print(json.dumps(dict(status=result['status'],config_identity=binding['config_identity'],
++            operator_archive_sha256=expected,tests=result['tests'],finalization='PASS',
++            completed_suite='out/logs/tests.log',completed_derivation='out/proof/DERIVATION.json')))
++        return
+     # The caller must finish rebind before running this command.
+     run([ROOT/'tools/make_proof.py'],'make_proof.log')
+     run([ROOT/'tools/package_operator.py'],'package.log')
+@@ -93,7 +117,7 @@
+             initial_full_suite='out/logs/cont1_full_tests.log',final_rechecks='out/logs/tests.log',
+             reason='Retain unchanged passing tests to respect the 3 GB scratch cap; rerun changed runtime, proof, namespace, identity and failed config-diff checks.'))
+     run([ROOT/'tools/finalize.py'],'finalize.log')
+-    status=load(out/'CONT2_RESULT.json')['status'] if binding.get('continuation') else 'BUILT_BLOCKED'
++    status=load(out/'CONT3_RESULT.json')['status'] if binding.get('continuation') else 'BUILT_BLOCKED'
+     print(json.dumps(dict(status=status,config_identity=binding['config_identity'],operator_archive_sha256=expected)))
+ 
+ if __name__=='__main__':main()
+--- C2/tools/seal_proof.py
++++ C3/tools/seal_proof.py
+@@ -29,6 +29,9 @@
+     if binding.get('unit_binding') and not equality.get('native_unit_regeneration_executed'):raise ValueError('Native unit selection regeneration required')
+     allowed=['general','bootstrap'] if binding.get('continuation') else ['advanced','general','bootstrap']
+     auth=load(a.kit/'k/4.json')
++    if binding.get('continuation'):
++        from r4 import validate
++        validate(auth)
+     if a.partition not in allowed or a.partition not in auth.get('allowed_partitions',[auth.get('partition')]):
+         raise ValueError('Proof partition is not authorized')
+     for directory in [a.kit/'b',*(p for p in (a.kit/'b').rglob('*') if p.is_dir())]:
+@@ -36,7 +39,7 @@
+     runtime={}
+     for line in (a.kit/'SHA256SUMS.txt').read_text().splitlines():
+         expected,name=line.split('  ',1)
+-        if name.startswith('b/') or name=='job.sh':
++        if name.startswith('b/') or name in ('job.sh','k/4.json'):
+             if sha(a.kit/name)!=expected:raise ValueError('Runtime manifest differs')
+             runtime[name]=expected
+     bundle_files={}
+--- C2/kit/ANON_OK.json
++++ C3/kit/ANON_OK.json
+@@ -0,0 +1 @@
++{"fixture":true,"hits":0,"manifest_sha256":"fbe67275015226e2ae6b69cb113a32b8afa35db16548b5c896f27fb02a9eff4e","scope":"Local inventory fixture only","status":"CLEAN"}
+--- C2/kit/SHA256SUMS.txt
++++ C3/kit/SHA256SUMS.txt
+@@ -5,10 +5,10 @@
+ e0ef07f2df7a01d35657b9854647cb7f32d5774b9aa42f285fe0cdbd6e09fefa  b/c0.py
+ fc4e4c380daf678576b1f48cd4e6794baf45dc4342590300a4d4eddce176eea5  b/d.py
+ 515c61e19baf0b189866a5145c19bfc96a671af0b24be49398034d40aaca7b67  b/f2.py
+-f82ad268da216380c979d257b3e35dc75906577291c266a996c669369074276a  b/g.py
++ad3aeb8d0aeda28d4c32b553b4bbda965d85289fb22a3cd82bfc5c70bd0cddae  b/g.py
+ 739319091d5e833003db28b7b33d9f81c3711f1357fbbf14c08e4d04654509d6  b/gcsput.py
+ d4a64b0afa2581092e2a954df0353c5cabf255c63cfda4161c6ccfab97577302  b/h.py
+-9aae09bdee66e80632c682d5a2b2236c09b18563ff86264f7d1f25102f501a0c  b/i.py
++094e8b6317431c7543e08dd9ea697835713fb12f3e3f3e54dd03c3635572da93  b/i.py
+ 89cd9703edd0c80630250e64ae66c8676a3757d2ecef5a8504da10516640599a  b/jc1.sh
+ cd3473dcd6d28ae71d1d6cfc25cb1b6d03c04f73db7389ea8d8d7749e9c530cb  b/jp0.sh
+ 76b7a543bf9dc31ecdf56191d324f69e9783d6b5a4462c82ea83aad615427a58  b/jt8c.sh
+@@ -18,7 +18,8 @@
+ 4294c4dbfeaf257721d4e17c5e2e34adf1b6023dcb4477360d60e1ad32ad2c80  b/p0.sh
+ 51190cc4ef08e4419f50cfa9090a73e990cddee1219c4d75bad6e5ba5144d23a  b/profile.json
+ ae087f2b8b0540e0b913fb810388fc882ade79bb0b5440f834eb4231f2c67c62  b/q0.py
+-9a2261b07ed208ed6989f7eddbf4c3080741d0082259db3415caaeb15b11eca0  b/r.sh
++075293b00e1d0ac927a39fc330bb7ae7edf868e8a559d64450d469bf435959c6  b/r.sh
++aed11f5a03dde546acf31e08fba4e3937370a6121632eb473bba4db60c723266  b/r4.py
+ e4d48215ccfb29aad7e68b7f8e245fd7e6a10875c9dcf791612ea9eb26a9abf0  b/r8.py
+ 59d6c043db853b16492257eaf67676e2cfc705adb5d9c0a2d74321f81a20e800  b/rd.py
+ db7a1149abf4e582160f8e1e692bed842db5d99961682d90e05412e089a44873  b/s.py
+@@ -30,12 +31,12 @@
+ 1f58a1f2e03f39ffd4c74b079766ee93ee7633ef73ec4fb4c344655964ef1d35  b/wh.json
+ fadf985cf2a0d7e3f8f909b2ffe43151213b7812904b428e49ba5ef807ce6d07  b/x.py
+ 56c146d61a2d52b6dc7af78d292b717e06015815670a00313de65c326063981b  b/z.py
+-93d8d4e3961d929d5509c58a2282d8e989a8077176a38192130738a3269120c1  job.sh
++19ed4b6bd7f0aa049816a544101dea5ec5e705bbd0012547bc5fcc0fba11715b  job.sh
+ 86b5b6a30c5ccae3dd03c1f01d6f8b218945f435ddcd7f8367166fd72914a87c  job8.sh
+ ddf74f09d32aa6805dacd80f3eb02ecbcb9a3a2e63625b4d40a285b41d217a35  k/0.json
+ 8fbbc05b5a2abc0bce4b5b0a3e158716b7e5ed1eb1d7d6e7681ee7264a48aa68  k/1.json
+ 8b7558ad9d4e08d32e8d58550aecdd26f943989fa77529816373e96e1698a518  k/28429cf9.json
+-355c50bf74bf4ac315493cbf05f63730e0ce58ef3f3ec21bc157ab07a0478a42  k/4.json
++4eb95dd929f49b1268a49fd6db9de2eb4d8c55273119b16593fbf47eff72d8b7  k/4.json
+ 7b41529a6221879007928a93ff5d254a73983283d32ed0744a4841333d8c12be  k/6.json
+ 600ef69de0674fb15c8972f3b64f0bd19e682a5a1ca19ab01e8d41279d064295  k/600ef69d.json
+ 66c427e2262331be2e0c598f2ecc39087f3a722a5155caaf1ab84a89c8cd0f6f  k/66c427e2.json
+@@ -62,7 +63,7 @@
+ 82e09014a28723189f02af9ed41e2d05b5994173c00f7dcac01bc6eb92186778  k/input_mdg_clips.json
+ f17866dce4a8a567f618ef65023558bf4a60bb52dc446f7bc508e02435fb707f  k/input_mdg_rasters.json
+ 5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42  k/input_source_tokenizer.json
+-48c23fd24026cdc751d8eab278f18eccfbfe4ea8768458bcdf2d2e264b4292d6  k/launch.json
++4cfb5dc25661c7cacac259e0d612aad2b3deb7903a53aac56bb8785d9e8f11ee  k/launch.json
+ 1fb9d9ca9a88891b43a16a116e836f52a32f66f63e06d0efc3d8e889c9cebcac  k/np226_5204b3a0.tar
+ 951902eea28b6a56e49f1e44761802e05fc4ff25e7ebcb84dfa4bc77fea0a824  k/pool_exclusion_0.tsv
+ a5d707acfafeed88a9009cd2fb89f3bfdf53d43fea67b183c589765299e27255  k/pool_exclusion_1.tsv
+@@ -94,7 +95,7 @@
+ 62c54ed48c7e5782aed296549f9a750d5d76fd6589cbdeba2ed92acdf5282a35  k/routes.json
+ 1e0245bbaa5e8e20fe50293db225ff34e9f4a42a04d8dd1525106b65cd67c3ed  k/s1_record.json
+ 06cdfa5e8b217246b72805d982247ad986c6d986a5a2846b3024969a0777723f  k/scene_reference.json
+-062f9253b239188d500b4ebfcd5620f20ead982ac6e87800002ba59bf877a21d  k/selection_equality.json
++54d77f55a3ff5914073226abed0c3c910548630eb5228c344c4d3e972313b8ac  k/selection_equality.json
+ 7e0faa5cf024b74f80f05ad31f5bc81451f8bd78ccd704baea6b933ec11ce6f8  k/staging.json
+ 25f1c3a7394564d9287ba382fa58c476c4fb17d20063f5b643937d388339a4ec  k/t_9588661986650d29.tar
+ 845b17895e466671bc5c5ecdb6a5a5d697a43a5e02d07d1555b11be74f8fd415  k/t_b01ce449beffe35b.tar
+--- C2/kit/b/g.py
++++ C3/kit/b/g.py
+@@ -80,6 +80,8 @@
+                 or launch.get("source_seal") != {**value, "sha256": digest(value)}):
+             raise ValueError("Tree/configuration/archive binding differs")
+     auth = json.loads((root / "k/4.json").read_text())
++    from r4 import allocation
++    allocation(auth, mode, environment)
+     expiry = datetime.datetime.fromisoformat(auth["allow_until_utc"].replace("Z", "+00:00"))
+     if (expiry.tzinfo is None or expiry < datetime.datetime(2026, 11, 22, tzinfo=datetime.timezone.utc)
+             or expiry <= datetime.datetime.now(datetime.timezone.utc) or auth.get("source_revision") != commit
+--- C2/kit/b/i.py
++++ C3/kit/b/i.py
+@@ -46,6 +46,8 @@
+         from student_pilot import rehearsal
+         return rehearsal.authorize(root,mode,arm)
+     auth=load(root/'k/4.json');cur=load(root/'k/0.json')
++    from r4 import allocation
++    allocation(auth, mode, os.environ)
+     arms=auth['arm'] if isinstance(auth['arm'],list) else [auth['arm']]
+     if (mode not in GPU or arm not in arms or len(set(arms))!=len(arms)
+             or not set(arms)<=set(ARMS.values()) or mode not in auth['modes']):
+--- C2/kit/b/r.sh
++++ C3/kit/b/r.sh
+@@ -8,6 +8,7 @@
+ done
+ HX="$(dirname "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")")"
+ export TK_KIT_HOME="$HX"
++if [[ "${1:-}" == t || "${1:-}" == u ]]; then export TK_ALLOCATION_MODE="$1"; fi
+ child="" admission_child="" X=""
+ stop_file="$HX/o/${SLURM_JOB_ID:-local}.stop"
+ on_stop() {
+--- C2/kit/b/r4.py
++++ C3/kit/b/r4.py
+@@ -0,0 +1,69 @@
++"""Sealed resource authority for one continuation kit; GO is separate."""
++import copy
++
++
++def fields():
++    return dict(
++        modes=['p', 't', 'u'], new_gpus={'p': 0, 't': 4, 'u': 4},
++        partition='advanced', allowed_partitions=['advanced', 'general', 'bootstrap'],
++        wall_seconds=86400, nodes=1, resume='latest', arm='0', gpu_cap=4,
++        other_running_and_pending_gpus=0, max_parallel_jobs=1,
++        production_go_granted=False, production_go_required_separately=True,
++        mode_resources={
++            'p': dict(partitions=['general', 'bootstrap'], nodes=1, gpus=0, wall_seconds=14400),
++            't': dict(partitions=['advanced'], nodes=1, gpus=4, wall_seconds=86400),
++            'u': dict(partitions=['advanced'], nodes=1, gpus=4, wall_seconds=86400)},
++    )
++
++
++def bind(auth):
++    value=copy.deepcopy(auth)
++    value.update(fields())
++    value.update(scope='Sealed CPU proof and continuation resources; separate identity-bound GO required for training.',
++                 conditions=['Mode p: general/bootstrap, one node, zero GPUs, four hours.',
++                             'Modes t/u: advanced, one node, four GPUs, 24 hours; resume latest.',
++                             'Certify the final manifest before proof; never mutate the certified kit.',
++                             'Training submission requires a separate identity-bound go.json.'])
++    return value
++
++
++def validate(auth):
++    for key, value in fields().items():
++        # JSON equality alone would admit booleans in place of integer counts.
++        import json
++        if json.dumps(auth.get(key),sort_keys=True)!=json.dumps(value,sort_keys=True):
++            raise ValueError('Continuation authority differs: '+key)
++
++
++def allocation(auth, mode, environment):
++    validate(auth)
++    if mode not in auth['modes']:
++        raise ValueError('Operation not authorized')
++    # Native admission runs mode p inside the already allocated training job.
++    # The sealed entry sets its allocation mode before p0 and recursive r.sh p.
++    allocation_mode=environment.get('TK_ALLOCATION_MODE',mode)
++    if allocation_mode not in auth['modes'] or (mode!='p' and allocation_mode!=mode):
++        raise ValueError('Allocation mode differs')
++    limits=auth['mode_resources'][allocation_mode]
++    if environment.get('SLURM_JOB_PARTITION') not in limits['partitions']:
++        raise ValueError('Partition not authorized for mode '+mode)
++    if (environment.get('SLURM_JOB_NUM_NODES')!='1'
++            or environment.get('SLURM_GPUS_ON_NODE','0')!=str(limits['gpus'])):
++        raise ValueError('Resources differ')
++    if allocation_mode=='p' and environment.get('CUDA_VISIBLE_DEVICES','') not in ('','-1','NoDevFiles'):
++        raise ValueError('Proof must be CPU-only')
++    # Slurm does not export this variable on every site. The sealed job script
++    # and launch slot also pin the wall limit; check the allocation when supplied.
++    wall=environment.get('SLURM_TIMELIMIT')
++    if wall is not None:
++        if wall.isdigit():
++            seconds=int(wall)*60
++        else:
++            days, clock=wall.split('-',1) if '-' in wall else ('0',wall)
++            parts=[int(v) for v in clock.split(':')]
++            if len(parts)==2:parts=[0,*parts]
++            if len(parts)!=3:raise ValueError('Invalid allocation wall limit')
++            seconds=int(days)*86400+parts[0]*3600+parts[1]*60+parts[2]
++        if seconds!=limits['wall_seconds']:
++            raise ValueError('Allocation wall limit differs')
++    return limits
+--- C2/kit/job.sh
++++ C3/kit/job.sh
+@@ -12,6 +12,7 @@
+ export TK_JOB_START="${TK_JOB_START:-$(date +%s)}"
+ ROOT="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+ /usr/bin/python3 -B "$ROOT/b/a.py" "$ROOT"
++if [[ "${SLURM_JOB_PARTITION:-}" == advanced ]]; then export TK_ALLOCATION_MODE=u; else export TK_ALLOCATION_MODE=p; fi
+ /bin/bash "$ROOT/b/p0.sh" "$ROOT"
+ /usr/bin/python3 -I "$ROOT/b/g.py" "$ROOT" p
+ RUN="$(/usr/bin/python3 -I -c 'import json,sys; print(json.load(open(sys.argv[1]))["run_directory"])' "$ROOT/k/launch.json")"
+--- C2/kit/k/4.json
++++ C3/kit/k/4.json
+@@ -1 +1 @@
+-{"account":"mt01","admission_contract_sha256":"26059aff098020a08adcef7ad6ced09ab2aedb2edd4f3c6607028e496ebb8970","allocation_memory_gib":800,"allow_until_utc":"2026-11-26T00:00:00Z","allowed_partitions":["advanced","general","bootstrap"],"arm":["0"],"conditions":["One CPU proof job on advanced; refuse a pending a15_cot_ap job on advanced.","The final manifest requires independent content certification.","Production submission requires a separate identity-bound GO."],"config_sha256":"6594f46cdc16168514aca26a6ce38285907adfc6ece0b75d8e10428ea0b2fe74","full_population_admission":false,"gpu_cap":4,"guard":null,"kernel":null,"max_parallel_jobs":1,"milestone_gate":null,"modes":["p"],"native_admission_memory_gib":256,"native_memory_sufficiency_proven":false,"new_gpus":{"p":0},"other_running_and_pending_gpus":0,"partition":"advanced","production_full_mode_p_required":true,"production_go_granted":false,"production_go_required_separately":true,"resource_counts_are_submission_conditions":true,"resume":"latest","review":null,"scope":"One mode-p CPU proof; production GO remains pending.","source_revision":"sha256:b83a8a35d420815b9d6396e1fc1178e94c20d47ad459aa6da964e85bdec0f87b","wall_seconds":14400,"world_size":4}
++{"account":"mt01","admission_contract_sha256":"26059aff098020a08adcef7ad6ced09ab2aedb2edd4f3c6607028e496ebb8970","allocation_memory_gib":800,"allow_until_utc":"2026-11-26T00:00:00Z","allowed_partitions":["advanced","general","bootstrap"],"arm":"0","conditions":["Mode p: general/bootstrap, one node, zero GPUs, four hours.","Modes t/u: advanced, one node, four GPUs, 24 hours; resume latest.","Certify the final manifest before proof; never mutate the certified kit.","Training submission requires a separate identity-bound go.json."],"config_sha256":"6594f46cdc16168514aca26a6ce38285907adfc6ece0b75d8e10428ea0b2fe74","full_population_admission":false,"gpu_cap":4,"guard":null,"kernel":null,"max_parallel_jobs":1,"milestone_gate":null,"mode_resources":{"p":{"gpus":0,"nodes":1,"partitions":["general","bootstrap"],"wall_seconds":14400},"t":{"gpus":4,"nodes":1,"partitions":["advanced"],"wall_seconds":86400},"u":{"gpus":4,"nodes":1,"partitions":["advanced"],"wall_seconds":86400}},"modes":["p","t","u"],"native_admission_memory_gib":256,"native_memory_sufficiency_proven":false,"new_gpus":{"p":0,"t":4,"u":4},"nodes":1,"other_running_and_pending_gpus":0,"partition":"advanced","production_full_mode_p_required":true,"production_go_granted":false,"production_go_required_separately":true,"resource_counts_are_submission_conditions":true,"resume":"latest","review":null,"scope":"Sealed CPU proof and continuation resources; separate identity-bound GO required for training.","source_revision":"sha256:b83a8a35d420815b9d6396e1fc1178e94c20d47ad459aa6da964e85bdec0f87b","wall_seconds":86400,"world_size":4}
+--- C2/kit/k/launch.json
++++ C3/kit/k/launch.json
+@@ -1 +1 @@
+-{"archive":{"file":"k/archive.json","sha256":"265e11b5724254b9805b061bb5265564eedeebafe326c9e20fd41cbbf0a4b3e5"},"config":{"file":"k/b9d5f993.json","sha256":"b9d5f9933f6643ed97f61ab3d73e2d33ea22c5389ba327af06cd0e479d92e0ee"},"in_job_admission":{"directory":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/05b8ac69/inputs","frame_roots":["/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/data2root","/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u/4d66fc2a/f"],"gpu_first_step_required":true,"parent_grounding_required":true,"schema":"s1-in-job-admission-v1"},"inherited_streams":{"pointing":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u/7c9f2d84/receipt.json","sha256":"93b21a3aeeda01efab90d9f818eff78a6ca182c18c964534279008e4af91733a"},"pose":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/8957d119.json","sha256":"8957d119bfa6776efe776816675da6d0f610a6e8c336acd66c297f29cf4e7e0f"},"routing":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/5e1d07a4/f/h/r16/receipt.json","sha256":"9a7f33103ee6faa9d44bfb7f02b6166ef6fc9f8e1bc5bac8681c697dce8a8851"},"vqa":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/bb09a77d/v/receipt.json","sha256":"c95023e46d9171071c7cb738367dae115bebaf4a6519931ec514d20e68ffa5d8"}},"kit_key":"7f1589c1","persistent_run_root":"/project/community/jjyeung/okh7/r/05b8ac69","production_authorized":true,"rehearsal_environment":"S1_CPU_REHEARSAL","review":{"file":"k/review.json","sha256":"cb1d37b290fd7faf1e53f0e9d040de02f1eaeec32d91b626eb26db3ce7ff2536"},"route_table":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/69d2930d/r.json","sha256":"35f4a364304f24ed3683413952b3591d7427e787ad5cba056e4acc62d513263b"},"run_directory":"/tmp/jjyeung/a_05b8ac69/runs/05b8ac69","run_key":"05b8ac69","schema":"s1-orchard-launch-v1","slot":{"cpus":48,"gpus":4,"memory_gb":800,"nodes":1,"partition":"advanced","wall_seconds":46800},"source_revision":"sha256:b83a8a35d420815b9d6396e1fc1178e94c20d47ad459aa6da964e85bdec0f87b","source_seal":{"archive":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/t_b83a8a35d420815b.tar","sha256":"e5be8157d855b4c9f611876b7fde5d0c7d8bd11def319e15c00e37daef2c3536"},"config_sha256":"6594f46cdc16168514aca26a6ce38285907adfc6ece0b75d8e10428ea0b2fe74","schema":"s1-run-seal-v1","sha256":"9cf6756263652fb150f675f63e26bcdbf06656e37da303345956c5a4e384795e","tree_sha256":"b83a8a35d420815b9d6396e1fc1178e94c20d47ad459aa6da964e85bdec0f87b"},"source_selection":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/69d2930d/s.json","sha256":"5db993b148c7aa1ace685f7c29b0e20daa6ac4e3e5b3613e4c3fc2b24bdde2af"},"staging":{"file":"k/staging.json","sha256":"7e0faa5cf024b74f80f05ad31f5bc81451f8bd78ccd704baea6b933ec11ce6f8"},"status":"READY"}
++{"archive":{"file":"k/archive.json","sha256":"265e11b5724254b9805b061bb5265564eedeebafe326c9e20fd41cbbf0a4b3e5"},"config":{"file":"k/b9d5f993.json","sha256":"b9d5f9933f6643ed97f61ab3d73e2d33ea22c5389ba327af06cd0e479d92e0ee"},"in_job_admission":{"directory":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/05b8ac69/inputs","frame_roots":["/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/data2root","/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u/4d66fc2a/f"],"gpu_first_step_required":true,"parent_grounding_required":true,"schema":"s1-in-job-admission-v1"},"inherited_streams":{"pointing":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/u/7c9f2d84/receipt.json","sha256":"93b21a3aeeda01efab90d9f818eff78a6ca182c18c964534279008e4af91733a"},"pose":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/8957d119.json","sha256":"8957d119bfa6776efe776816675da6d0f610a6e8c336acd66c297f29cf4e7e0f"},"routing":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/5e1d07a4/f/h/r16/receipt.json","sha256":"9a7f33103ee6faa9d44bfb7f02b6166ef6fc9f8e1bc5bac8681c697dce8a8851"},"vqa":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/bb09a77d/v/receipt.json","sha256":"c95023e46d9171071c7cb738367dae115bebaf4a6519931ec514d20e68ffa5d8"}},"kit_key":"7f1589c1","persistent_run_root":"/project/community/jjyeung/okh7/r/05b8ac69","production_authorized":true,"rehearsal_environment":"S1_CPU_REHEARSAL","review":{"file":"k/review.json","sha256":"cb1d37b290fd7faf1e53f0e9d040de02f1eaeec32d91b626eb26db3ce7ff2536"},"route_table":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/69d2930d/r.json","sha256":"35f4a364304f24ed3683413952b3591d7427e787ad5cba056e4acc62d513263b"},"run_directory":"/tmp/jjyeung/a_05b8ac69/runs/05b8ac69","run_key":"05b8ac69","schema":"s1-orchard-launch-v1","slot":{"cpus":48,"gpus":4,"memory_gb":800,"nodes":1,"partition":"advanced","wall_seconds":86400},"source_revision":"sha256:b83a8a35d420815b9d6396e1fc1178e94c20d47ad459aa6da964e85bdec0f87b","source_seal":{"archive":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/t_b83a8a35d420815b.tar","sha256":"e5be8157d855b4c9f611876b7fde5d0c7d8bd11def319e15c00e37daef2c3536"},"config_sha256":"6594f46cdc16168514aca26a6ce38285907adfc6ece0b75d8e10428ea0b2fe74","schema":"s1-run-seal-v1","sha256":"9cf6756263652fb150f675f63e26bcdbf06656e37da303345956c5a4e384795e","tree_sha256":"b83a8a35d420815b9d6396e1fc1178e94c20d47ad459aa6da964e85bdec0f87b"},"source_selection":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/69d2930d/s.json","sha256":"5db993b148c7aa1ace685f7c29b0e20daa6ac4e3e5b3613e4c3fc2b24bdde2af"},"staging":{"file":"k/staging.json","sha256":"7e0faa5cf024b74f80f05ad31f5bc81451f8bd78ccd704baea6b933ec11ce6f8"},"status":"READY"}
+--- C2/kit/k/selection_equality.json
++++ C3/kit/k/selection_equality.json
+@@ -1 +1 @@
+-{"final_materialized_room_rows_expected":581,"final_materialized_room_rows_verified":false,"indices":{"ARKIT_gaps":{"count":6560,"sha256":"61dbe64275d654b880d58f3a34df4d5cb3e3dfe49bde82d7a0995dfac69716de","unchanged":true},"ARKIT_gen_r2":{"count":11321,"sha256":"a30e6f15ad3fc449bf618f89a204a293a08af70e4bf9622b268ae3c29c072cbd","unchanged":true},"SCENE_room":{"count":384,"sha256":"846987fbc9a43c097693a80ef9ada8875ff79c27537556be06dc81b47af042a4","unchanged":false},"T0_gaps":{"count":11052,"sha256":"8607dfa3522db91885b1382f3cb1ae8447e3542db0e103d8b442ca3406550de2","unchanged":true},"T0_gen_r2":{"count":22290,"sha256":"14fdfe17bfae194af4d5e46cff6b4fe708678681f1d2faac25b38455869270f2","unchanged":true},"T0_room":{"count":76,"sha256":"cbef7600f0a248792556669f5b03937de41e8da683b0d602a1ce0eca74799f94","unchanged":false},"T1H1_gaps":{"count":5919,"sha256":"ebcca9404f88634c71af0c612ff81e412eed8f26d5160e0c819da7d2c07cfce5","unchanged":true},"T1H1_gen_r2":{"count":11012,"sha256":"db0952e1fb49e4125753a756132514fd0714a49417abf60f8172bfeab9d5dc2c","unchanged":true},"T1H1_room":{"count":126,"sha256":"5db7885d00058c8342024b88bb9151d76ff373c98dbf2391fb1b8bf666447af2","unchanged":false},"T1H2_gaps":{"count":5130,"sha256":"bffdff4d022af167d035be0bc421217194356df65f8b55b2136ab423e2295fa2","unchanged":true},"T1H2_gen_r2":{"count":9314,"sha256":"efb18189cd4b6a017b701fa7af1dc3b3a827f3f79338b18c355646d9f9bf3ce5","unchanged":true}},"native_receipt":{"path":"/scratch/jjyeung/orch_n30/r1_pkt/work/pre_submit_wt55atj7/native/receipt.json","sha256":"51d21e62ce53fbeb1504896dbd5de21a0908a7b1bb6deb61e311504d87b3629c"},"native_regeneration_executed":true,"native_unit_regeneration_executed":true,"non_room_entry_bytes_equal":{"ARKIT_gaps":true,"ARKIT_gen_r2":true,"ROUTE_direct":true,"SCENE_room_sppK":true,"T0_gaps":true,"T0_gen_r2":true,"T1H1_gaps":true,"T1H1_gen_r2":true,"T1H2_gaps":true,"T1H2_gen_r2":true},"note":"586 selected source rows precede final admission; 581 is the brief's materialized count. Full native regeneration needs the source archives absent locally.","parent_sha256":"eac5f9f01587803b2402f80cc310b75ec1f960270a6bc059416b1e1407b1e7c9","production_authorized":false,"removed_selection_rows":586,"removed_source_rows":{"SCENE_room":384,"T0_room":76,"T1H1_room":126},"schema":"r1-selection-projection-v1","selected_rows":83345,"selection_sha256":"5db993b148c7aa1ace685f7c29b0e20daa6ac4e3e5b3613e4c3fc2b24bdde2af","status":"PASS","tool_sha256":"060dbf93da990a4a6803419176f82365a00e020f30475b34c7f373e151d195e0"}
++{"final_materialized_room_rows_expected":581,"final_materialized_room_rows_verified":false,"indices":{"ARKIT_gaps":{"count":6560,"sha256":"61dbe64275d654b880d58f3a34df4d5cb3e3dfe49bde82d7a0995dfac69716de","unchanged":true},"ARKIT_gen_r2":{"count":11321,"sha256":"a30e6f15ad3fc449bf618f89a204a293a08af70e4bf9622b268ae3c29c072cbd","unchanged":true},"SCENE_room":{"count":384,"sha256":"846987fbc9a43c097693a80ef9ada8875ff79c27537556be06dc81b47af042a4","unchanged":false},"T0_gaps":{"count":11052,"sha256":"8607dfa3522db91885b1382f3cb1ae8447e3542db0e103d8b442ca3406550de2","unchanged":true},"T0_gen_r2":{"count":22290,"sha256":"14fdfe17bfae194af4d5e46cff6b4fe708678681f1d2faac25b38455869270f2","unchanged":true},"T0_room":{"count":76,"sha256":"cbef7600f0a248792556669f5b03937de41e8da683b0d602a1ce0eca74799f94","unchanged":false},"T1H1_gaps":{"count":5919,"sha256":"ebcca9404f88634c71af0c612ff81e412eed8f26d5160e0c819da7d2c07cfce5","unchanged":true},"T1H1_gen_r2":{"count":11012,"sha256":"db0952e1fb49e4125753a756132514fd0714a49417abf60f8172bfeab9d5dc2c","unchanged":true},"T1H1_room":{"count":126,"sha256":"5db7885d00058c8342024b88bb9151d76ff373c98dbf2391fb1b8bf666447af2","unchanged":false},"T1H2_gaps":{"count":5130,"sha256":"bffdff4d022af167d035be0bc421217194356df65f8b55b2136ab423e2295fa2","unchanged":true},"T1H2_gen_r2":{"count":9314,"sha256":"efb18189cd4b6a017b701fa7af1dc3b3a827f3f79338b18c355646d9f9bf3ce5","unchanged":true}},"native_receipt":{"path":"/scratch/jjyeung/orch_n30/r1_pkt/work/pre_submit_oy69cn82/native/receipt.json","sha256":"0100e9f858ff0756fb72823fff4fb713aeb3d377fc838461c93552a56dab7e68"},"native_regeneration_executed":true,"native_unit_regeneration_executed":true,"non_room_entry_bytes_equal":{"ARKIT_gaps":true,"ARKIT_gen_r2":true,"ROUTE_direct":true,"SCENE_room_sppK":true,"T0_gaps":true,"T0_gen_r2":true,"T1H1_gaps":true,"T1H1_gen_r2":true,"T1H2_gaps":true,"T1H2_gen_r2":true},"note":"586 selected source rows precede final admission; 581 is the brief's materialized count. Full native regeneration needs the source archives absent locally.","parent_sha256":"eac5f9f01587803b2402f80cc310b75ec1f960270a6bc059416b1e1407b1e7c9","production_authorized":false,"removed_selection_rows":586,"removed_source_rows":{"SCENE_room":384,"T0_room":76,"T1H1_room":126},"schema":"r1-selection-projection-v1","selected_rows":83345,"selection_sha256":"5db993b148c7aa1ace685f7c29b0e20daa6ac4e3e5b3613e4c3fc2b24bdde2af","status":"PASS","tool_sha256":"060dbf93da990a4a6803419176f82365a00e020f30475b34c7f373e151d195e0"}

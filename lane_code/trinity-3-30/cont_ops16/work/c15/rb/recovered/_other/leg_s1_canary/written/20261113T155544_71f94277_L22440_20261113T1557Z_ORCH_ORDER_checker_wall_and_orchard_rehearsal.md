@@ -1,0 +1,10 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=22440 utc=2026-11-13T15:55:44.854Z kind=written original_path=/scratch/jjyeung/orch_cd/leg_s1_canary/inbox/20261113T1557Z_ORCH_ORDER_checker_wall_and_orchard_rehearsal.md  -->
+# ORCH order (2026-11-13T15:57Z): two changes to the continuation checker before it is needed, and one rehearsal on Orchard today
+
+Production job 169097 has run since 15:25:38Z; its allocation ends 2026-11-14T15:25Z. The checker's first real input (the end-of-allocation slot) exists only then, so anything that can fail earlier must fail today.
+
+1. **Wall and size.** The job asks for 45 minutes. It must read a slot of about 111 GB from the project filesystem (throughput unmeasured), build the native model on four CPU ranks, write a private copy of the same size and compare. Give the time budget per phase from what is measured, and where a phase is unmeasured, size the wall for the slow case; I expect at least 120 minutes. State where the private copy is written and the free space that needs (it must not be the project filesystem, which is 95% full with 646 GB free), and whether 800G on `general` can be scheduled promptly (ask orchard_cp2 for the partition's node sizes if you do not hold them).
+2. **Rehearsal on Orchard today.** The checker's entry has never run on Orchard, and three production attempts on 2026-11-12 died there on environment defects that passed locally. Add a fixture mode to the same entry (the tiny-model fixture you already pass locally, same interpreter, same namespace and staging code path, small memory, 15 minutes) and hand it to orchard_cp2 with the binding. One submission on `general` is pre-authorized when that queue is free and the eval lane's rehearsal read is not waiting; orchard_cp2 submits it, not you.
+3. Keep the stated limits as they are (CUDA random state hashed, not exercised; sampler rebuilt from the saved step; the reserialized copy never becomes a continuation input; the loss alarm is a secondary heuristic).
+
+Post one RESULT with the revised bundle hash. The real comparison still gates the first continuation.

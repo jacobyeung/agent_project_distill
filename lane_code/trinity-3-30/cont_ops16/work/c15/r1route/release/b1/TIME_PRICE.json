@@ -1,0 +1,115 @@
+{
+  "g3t_fresh_seconds": 19.8,
+  "sam_encode_seconds": null,
+  "sam_encode_time_status": "unmeasured; fresh on every read that requests SAM, with no memo savings credited",
+  "perception_memo_modules": [
+    "g3t"
+  ],
+  "segments": [
+    {
+      "read": 1,
+      "type": "object_abs_distance",
+      "items": 150,
+      "new_captures": 60,
+      "verified_hits": 19,
+      "own_mean_seconds": 25.509192684507,
+      "own_seconds": 3826.37890267605,
+      "g3t_calls": 79,
+      "seconds": 5390.578902676057,
+      "end_seconds": 5390.578902676057
+    },
+    {
+      "read": 0,
+      "type": "object_abs_distance",
+      "items": 150,
+      "new_captures": 60,
+      "verified_hits": 0,
+      "own_mean_seconds": 25.509192684507,
+      "own_seconds": 3826.37890267605,
+      "g3t_calls": 60,
+      "seconds": 5014.37890267604,
+      "end_seconds": 10404.957805352096
+    },
+    {
+      "read": 0,
+      "type": "camera_displacement",
+      "items": 150,
+      "new_captures": 23,
+      "verified_hits": 0,
+      "own_mean_seconds": 7.252215738461818,
+      "own_seconds": 1087.8323607692728,
+      "g3t_calls": 23,
+      "seconds": 1543.2323607691778,
+      "end_seconds": 11948.190166121274
+    },
+    {
+      "read": 0,
+      "type": "camera_rotation",
+      "items": 150,
+      "new_captures": 1,
+      "verified_hits": 0,
+      "own_mean_seconds": 4.748747007385828,
+      "own_seconds": 712.3120511078741,
+      "g3t_calls": 1,
+      "seconds": 732.1120511079826,
+      "end_seconds": 12680.302217229257
+    },
+    {
+      "read": 0,
+      "type": "camera_movement_direction",
+      "items": 150,
+      "new_captures": 0,
+      "verified_hits": 0,
+      "own_mean_seconds": 8.92279336116005,
+      "own_seconds": 1338.4190041740076,
+      "g3t_calls": 0,
+      "seconds": 1338.4190041740112,
+      "end_seconds": 14018.721221403268
+    },
+    {
+      "read": 0,
+      "type": "room_size_estimation",
+      "items": 36,
+      "new_captures": 0,
+      "verified_hits": 0,
+      "own_mean_seconds": 27.332811857887364,
+      "own_seconds": 983.981226883945,
+      "g3t_calls": 0,
+      "seconds": 983.981226883916,
+      "end_seconds": 15002.702448287184
+    }
+  ],
+  "case": {
+    "one_worker_per_read": {
+      "g3t_calls": 163,
+      "g3t_seconds": 3227.4,
+      "own_seconds": 11775.302448287199,
+      "read_seconds": 15002.702448287184,
+      "read_hours": 4.16741734674644,
+      "total_hours_with_staging_stop_margin": 5.167417346746441,
+      "total_hours_with_staging_return_margin": 5.000750680079774,
+      "seconds_before_stop_deadline": -602.7024482871839,
+      "fits_with_stop_and_return_margin": false
+    }
+  },
+  "staging_and_two_loads_assumed_seconds": 1800,
+  "stop_margin_seconds": 1800,
+  "return_margin_seconds": 1200,
+  "margins_overlap": true,
+  "allocated_hours": 5,
+  "read_budget_seconds": 14400,
+  "expected_cut": {
+    "read": 0,
+    "type": "room_size_estimation",
+    "id": "room_scene0515_01",
+    "completed_by_stop": 763,
+    "started_before_stop": 764,
+    "room_completed_by_stop": 13,
+    "room_started_before_stop": 14,
+    "drain": "The last started item may finish within the separate return margin.",
+    "slack_before_room_seconds": 381.2787785967321
+  },
+  "assumptions": "Own-read means include their fresh SAM work but do not separate encode time. They are proxies for tower decode time; do not add a second SAM cost to these means. G3T assumes an access on each distance/camera item. Room has no served call in leg R1 and adds no G3T encoding cost. No SAM saving is credited. Staging/loading, hashing, copying and rule-dependent decode differences remain unmeasured.",
+  "cut_uncertainty": "Room is the expected cut under the proxy estimate, not a guaranteed cut with unmeasured runtime. Additional pre-room overhead above the reported slack could move the cut earlier. The selector comparison runs first.",
+  "price": "5 times the approved H100 hourly rate, plus the separate CPU check; rate not supplied"
+}

@@ -1,0 +1,9 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=28650 utc=2026-11-14T04:31:36.850Z kind=commands original_path=(bash command)  -->
+N=$(date -u +%Y%m%dT%H%MZ); C=/scratch/jjyeung/orch_cd; cat > $C/evalx/inbox/${N}_ORCH_NOTE_step_set_patch_in_independent_review.md <<'EOF'
+# ORCH note: the milestone step-set patch is in independent review
+
+The patch is 570 lines across the reader, the chain, the launcher and two report modules, so it gets an independent confirmation by another model family, not only my reading (brief `/scratch/jjyeung/orch_cd/leg_s1_review/BRIEF_MILESTONE_STEP_SET_CONFIRMATION.md`; verdict will be `leg_s1_review/REVIEW_VERDICT_MILESTONE_STEP_SET.md`). Do not edit the candidate files while it runs; if you must change one, tell me first.
+
+Until I send the confirmation: the step-200 packet is produced with the confirmed reader fb2796c5 (the retained base file), exactly as you planned. Proceed with the raw-cache admission and the native family meanwhile.
+EOF
+T=$(date -u +%Y-%m-%dT%H:%M:%SZ); echo "$T orch-home-distill-79: evalx(19) RESULT 0429Z: milestone step-set candidate (patch work/milestone/MILESTONE_STEP_SET_20261114T0428Z.patch, 570 lines, ten files; set 1,50,100,200,400,600,800,1000 defined once in release_check.py; stop-export argument bound to artifact step + attested stop_export true; labels; new launcher digest 555eb739, chain.py cbc4a891, decision_fork.py ed6a5054; 88 main + 34 native CPU tests). Because it touches the decision reader, SPAWNED an independent confirmation review (Agent, opus, high; brief leg_s1_review/BRIEF_MILESTONE_STEP_SET_CONFIRMATION.md; verdict REVIEW_VERDICT_MILESTONE_STEP_SET.md). Step-200 packet stays on reader fb2796c5. Told evalx ($N). Re-armed evwait (bwv6p9lbe)." >> $C/ORCH_HANDOFF.md; echo $N

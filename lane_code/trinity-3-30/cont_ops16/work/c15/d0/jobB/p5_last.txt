@@ -1,0 +1,74 @@
+2026-11-16T10:30:18Z
+170111 RUNNING 3:05:24 orchard-community-3
+== A2
+2026-11-16T06:43:06Z | rank 1 rc=0
+2026-11-16T07:52:42Z | rank 2 rc=0
+2026-11-16T07:52:42Z | rank 3 rc=0
+2026-11-16T08:00:09Z | admission receipt call rc=0
+2026-11-16T08:00:09Z | stage 2 records copied to project (failures 0); stage 2 end
+-rw-r--r-- 1 jjyeung users  2254 Nov 16 08:00 170109.s2.final.log
+-rw-r--r-- 1 jjyeung users  4472 Nov 16 08:00 170109.s2.json
+== B w.steps
+2026-11-16T07:24:55Z | wrapper start on orchard-community-3; /tmp free 5949 GiB; TK_JOB_START=1794813895 (2026-11-16T07:24:55Z)
+2026-11-16T07:24:55Z | export sessions present for run 359fcc3c
+2026-11-16T07:26:41Z | staging entries verified
+2026-11-16T09:45:12Z | binding mirror written: f07fc00637d0
+== B steps
+2026-11-16T09:40:47Z | frames f5 verified: 6780c14fd165
+2026-11-16T09:40:48Z | frames f6 verified through pinned shards
+2026-11-16T09:40:50Z | frames f7 verified through pinned shards
+2026-11-16T09:40:51Z | frames f8 verified: 14eae0b7d2fd
+2026-11-16T09:40:51Z | frames f9 verified through pinned shards
+2026-11-16T09:40:51Z | frames f14 verified: 47c9206e3ece
+2026-11-16T09:40:51Z | init mirror present: 1d6eeb28f51688c4
+2026-11-16T09:40:51Z | stage prep done
+2026-11-16T09:40:51Z | numpy 2.2.6 overlay on
+2026-11-16T09:40:51Z | fla overlay on: 4e4a6ac51788
+2026-11-16T09:40:51Z | launch t 0 on orchard-community-3 gpus=4
+2026-11-16T10:02:26Z | export uploaded: q8/8865619b/359fcc3c_m1.tar
+== B err
+jjyeung/c7d31ddd/venvs/rwtrain_torch211_cu129/lib/python3.12/site-packages/torch/distributed/fsdp/fully_sharded_data_parallel.py:828: FutureWarning: FSDP.state_dict_type() and FSDP.set_state_dict_type() are being deprecated. Please use APIs, get_state_dict() and set_state_dict(), which can support different parallelisms, FSDP1, FSDP2, DDP. API doc: https://pytorch.org/docs/stable/distributed.checkpoint.html#torch.distributed.checkpoint.state_dict.get_state_dict .Tutorial: https://pytorch.org/tutorials/recipes/distributed_checkpoint_recipe.html .
+  FullyShardedDataParallel.set_state_dict_type(
+== B o
+-rw-r--r-- 1 jjyeung users    144 Nov 16 09:40 170111.3.json
+-rw-r--r-- 1 jjyeung users   7740 Nov 16 09:53 170111.err
+-rw-r--r-- 1 jjyeung users    920 Nov 16 10:22 170111.gpu
+-rw-r--r-- 1 jjyeung users   1366 Nov 16 07:27 170111.preflight.inputs.json
+-rw-r--r-- 1 jjyeung users   7404 Nov 16 07:26 170111.preflight.metadata.p.json
+-rw-r--r-- 1 jjyeung users 464555 Nov 16 07:27 170111.preflight.runtime.p.json
+-rw-r--r-- 1 jjyeung users 612160 Nov 16 07:27 170111.preflight.runtime.t.json
+-rw-r--r-- 1 jjyeung users 612160 Nov 16 07:27 170111.preflight.runtime.u.json
+-rw-r--r-- 1 jjyeung users   4358 Nov 16 10:02 170111.steps
+-rw-r--r-- 1 jjyeung users    245 Nov 16 07:26 170111.vt.json
+-rw-r--r-- 1 jjyeung users    300 Nov 16 09:45 170111.w.steps
+== B runs
+/project/community/jjyeung/okh7/x_f5c353f7/runs/:
+total 0
+drwxr-xr-x 3 jjyeung users 0 Nov 16 07:24 .
+drwx------ 7 jjyeung users 0 Nov 16 10:02 ..
+drwxr-xr-x 4 jjyeung users 0 Nov 16 09:54 359fcc3c
+
+/project/community/jjyeung/okh7/x_f5c353f7/runs/359fcc3c:
+total 1576
+drwxr-xr-x 4 jjyeung users       0 Nov 16 09:54 .
+drwxr-xr-x 3 jjyeung users       0 Nov 16 07:24 ..
+-rw-r--r-- 1 jjyeung users     869 Nov 16 09:44 attempt_170111.json
+-rw-r--r-- 1 jjyeung users     458 Nov 16 09:44 binding.json
+drwxr-xr-x 4 jjyeung users       0 Nov 16 09:51 inputs
+drwxr-xr-x 2 jjyeung users       0 Nov 16 09:54 m1
+-rw-r--r-- 1 jjyeung users 1603873 Nov 16 10:20 metrics_170111.jsonl
+== B sstat
+  07:38:08 720688320K 
+== B inputs
+-rw-r--r-- 1 jjyeung users  1008 Nov 16 09:38 phase_frames.complete.json
+-rw-r--r-- 1 jjyeung users  1009 Nov 16 08:40 phase_prepare.complete.0246d3c4d8314e3780e1652f789ea538.json
+-rw-r--r-- 1 jjyeung users  1009 Nov 16 08:40 phase_prepare.complete.json
+drwxr-xr-x 6 jjyeung users     0 Nov 16 08:40 prepare_35e47f02fbf74107ae910d52e99157e8
+-rw-r--r-- 1 jjyeung users   714 Nov 16 07:47 request.75e1d6ddeb934ad2942155b75ad8f3c6.json
+-rw-r--r-- 1 jjyeung users   714 Nov 16 07:47 request.json
+parent_grounding.json
+pointing
+prepared
+result.json
+routing
+vqa

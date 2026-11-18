@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=18219 utc=2026-11-13T08:35:39.157Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung; timeout 60 find /scratch/jjyeung -maxdepth 2 -mmin -40 -type d 2>/dev/null | head -n 30; echo ----; ls -lt --time-style=+%H:%M /scratch 2>/dev/null | head -n 8 | cut -c1-120; echo ----; ls -t /scratch/jjyeung/orch_cd/orchard_cp2/events | head -n 2; tail -n 6 /scratch/jjyeung/orch_cd/orchard_cp2/STATUS.md | cut -c1-500

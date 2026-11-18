@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=7305 utc=2026-11-11T21:58:22.451Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; sed -n 1,12p evalx/STATUS.md | cut -c1-520; echo ----; du -sh --max-depth=0 leg_s1_tree dose_pool miss_vis_run geo_bakeoff /scratch/jjyeung/geo_bakeoff_assets 2>/dev/null

@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=22697 utc=2026-11-13T16:45:32.196Z kind=commands original_path=(bash command)  -->
+K=/scratch/jjyeung/orch_cd/leg_s1_fourstream_kit/final_b; grep -n -E "tk_persist_small|rsync|HM=|HM/|RUNS=|runs/" $K/b/c.sh $K/b/r.sh $K/job.sh 2>/dev/null | cut -c1-260 | head -n 40

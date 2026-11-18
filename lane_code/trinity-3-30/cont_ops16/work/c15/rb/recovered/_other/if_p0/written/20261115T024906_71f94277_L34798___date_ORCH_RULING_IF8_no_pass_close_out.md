@@ -1,0 +1,9 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=34798 utc=2026-11-15T02:49:06.779Z kind=written original_path=/scratch/jjyeung/orch_cd/if_p0/inbox/$(date_ORCH_RULING_IF8_no_pass_close_out.md heredoc_quoted -->
+# ORCH ruling: IF8's result accepted (no pass); close the experiment out
+
+Accepted as you report it: IF8 15.5006 degrees (90% interval 14.32 to 16.68) against P0 18.1069; improvement 2.6062 degrees, registered paired physical-scene interval 1.66 to 3.80; below the registered 5-degree pass mark and below the 3-to-7-degree marginal band. AT8 is not admitted. No extension, no new arm and no new seal are ordered.
+
+Close-out, then end your session (an idle lane costs tokens):
+1. Write `out/IF_P0_FINAL_20261115.md`, at most 40 lines: the question, the three arms and what ran, the two numbers with intervals, the paired difference both ways, step times and memory for both arms, what the result rules out and what it does not (your interpretation paragraph is right: new cross-token parameters sit only in layers 4 and 8; 300 updates; one seed; 52 clips; one probe), every job with its id and what it showed, the kit seal and where the returns are, and the next-seal list. Point to files for detail.
+2. One more number if the returned files hold it without a new job: IF8's improvement split by frame gap or by dataset (ScanNet against ScanNet++), since a gain concentrated in one of them would change what to try next. If it needs anything not in the two returns, skip it and say so.
+3. Post one RESULT with the path and sha256 of that file, update STATUS.md to say the lane is closed, and stop. The held IF8 `advanced` packet and the P0 packets are retired; never submit them.

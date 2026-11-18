@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=8591 utc=2026-11-12T01:18:25.899Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd/evalx; for i in $(seq 1 24); do f=$(ls events 2>/dev/null | grep -i -E "freed_again|still_empty" | tail -1); if [ -n "$f" ]; then echo "FOUND $f"; cat "events/$f" | cut -c1-1500; exit 0; fi; sleep 10; done; echo "NO freed_again event after 4 min"; date -u +%H:%M:%SZ; ls -t events | head -3; tail -n 3 work/inbox_seen.txt; sed -n 3,3p STATUS.md | cut -c1-500

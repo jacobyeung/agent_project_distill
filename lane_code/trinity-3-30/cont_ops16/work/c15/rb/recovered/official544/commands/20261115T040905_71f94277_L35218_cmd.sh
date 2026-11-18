@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=35218 utc=2026-11-15T04:09:05.255Z kind=commands original_path=(bash command)  -->
+L=/scratch/jjyeung/orch_cd/official544; mkdir -p $L/inbox $L/events $L/work $L/out; test -f $L/STATUS.md || printf '%s\n' "# official544 STATUS" "- launched; no work yet" > $L/STATUS.md; head -25 /scratch/jjyeung/orch_cd/orch_tools/devin_bg_acp.sh | cut -c1-200; ls /data2/jjyeung/agent_project_data/lanes/tools/trinity_ssh.sh; df -BG --output=avail /scratch | tail -1

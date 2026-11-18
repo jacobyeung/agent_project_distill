@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=16578 utc=2026-11-13T03:43:32.911Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd/orchard_cp2; ls -la --time-style=+%H:%M:%S logs/wb_last.txt 2>/dev/null | cut -c20-; tail -c 1500 logs/wb_last.txt 2>/dev/null

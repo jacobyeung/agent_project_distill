@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=5329 utc=2026-11-11T17:13:50.750Z kind=commands original_path=(bash command)  -->
+echo "$(date -u +%Y-%m-%dT%H:%MZ) evalx RESULT 1713Z: the 312 VSTI release encodes (5.55 GB) are on 1-18 at .../ap/vstirel/scannet, sha256 312/312 on both nodes; bind with --vsti-video-root. Removable by the user on 2-18: /dev/shm/jjyeung_vstirel (5.55 GB), /dev/shm/jjyeung_vsti140 (1.45 GB), plus jjyeung_revsi64, jjyeung_revsi999, jjyeung_evalx_revsi64." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md; df -BG --output=avail /dev/shm | tail -1

@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=14189 utc=2026-11-12T16:58:22.824Z kind=commands original_path=(bash command)  -->
+ls -d /scratch/jjyeung/envs/*/lib/python3*/site-packages/triton-*.dist-info /scratch/jjyeung/envs/*/lib/python3*/site-packages/fla*-*.dist-info /scratch/jjyeung/envs/*/lib/python3*/site-packages/flash_linear_attention-*.dist-info 2>/dev/null | head -12; cut -c1-1500 /scratch/jjyeung/orch_cd/leg_s1_tree/inbox/20261112T1649Z_orchard_cp2_d00_metadata.md

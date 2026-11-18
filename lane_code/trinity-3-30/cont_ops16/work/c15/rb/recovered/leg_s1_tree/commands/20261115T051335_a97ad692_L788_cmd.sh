@@ -1,0 +1,8 @@
+<!-- recovered by seal_plan: transcript=a97ad692 line=788 utc=2026-11-15T05:13:35.596Z kind=commands original_path=(bash command)  -->
+S=/tmp/claude-25409/-scratch-jjyeung-orch-home-distill/a97ad692-7041-4f72-8b75-8f8e29df8950/scratchpad; sed -i 's#^  \[nq_review\]="nq_review/BRIEF.md"#  [nq_review]="nq_review/BRIEF.md"\n  [trace_ruling]="trace_ruling/BRIEF.md"#' "$S/lanewatch.sh"; grep -c 'trace_ruling' "$S/lanewatch.sh"; cp "$S/lanewatch.sh" /scratch/jjyeung/orch_cd/orch_tools/session_scripts_20261115/; /scratch/jjyeung/envs/p1cpu/bin/python -I -s -B - <<'PY'
+p='/scratch/jjyeung/orch_cd/ORCH_STATE_20261111T0935Z.md'; s=open(p).read()
+anchor='| if_p0, leg_s1_canary, orchard_cp2, leg_s1_tree | ended |'
+row='| trace_ruling (pid 682017, launched 2026-11-15T05:12Z, limit 2 h; brief trace_ruling/BRIEF.md) | Devin claude-fable-5-2-xhigh | design ruling: the trace each training row carries in the repair seal. Trigger: rs_rows rendered facing and counting rows as tool-calling programs, against the frozen route table; the sealed leg has direct rows with empty think blocks; program responses at training come from GT instances. Options: allowlist + qualitative direct traces, more program types, training on deployed responses, a flag | `pgrep -f trace_ruling/BRIEF.md; ls -t /scratch/jjyeung/orch_cd/trace_ruling/events \\| head -1` | on its RESULT: read out/TRACE_RULING_20261115.md; decide; relaunch rs_rows with a follow-up brief and give rs_tree its second pass; copy the record to distill_design/. NO rs_rows row is admitted before this ruling |\n'
+assert anchor in s and 'trace_ruling (pid' not in s
+open(p,'w').write(s.replace(anchor,row+anchor))
+PY

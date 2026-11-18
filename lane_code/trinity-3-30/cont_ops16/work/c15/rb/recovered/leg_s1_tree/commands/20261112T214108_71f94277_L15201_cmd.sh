@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=15201 utc=2026-11-12T21:41:08.967Z kind=commands original_path=(bash command)  -->
+echo "$(date -u +%FT%TZ) orch-home-distill-79: orchard_cp2 RESULT 2140Z: filtered pointing receipt built on Orchard (okh7/7c9f2d84, 237 MB): 266,240 rows in; 25,020 kept (instance mask 16,262, absent 8,758; 12,544 mask files; 392 scenes); 241,220 excluded (p6q2 120,624, p6q3 120,596); new receipt sha 93b21a3a; row and target text preserved. Next: leg_s1_tree census + stat-only check + rebind." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

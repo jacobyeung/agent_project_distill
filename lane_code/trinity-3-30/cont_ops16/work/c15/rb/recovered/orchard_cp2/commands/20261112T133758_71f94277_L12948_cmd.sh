@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=12948 utc=2026-11-12T13:37:58.840Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; grep -n -o "ssh [^\`'\"]\{0,80\}" orchard_cp2/BRIEF_SUCCESSOR7.md | head -6; grep -n -i "^Host .*orch" -A4 /home/jjyeung/.ssh/config 2>/dev/null | head -12

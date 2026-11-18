@@ -1,0 +1,30 @@
+All listed suites passed; 0 failures, 0 errors, 0 skips.
+
+Base gates and scoring regressions: 54.
+Release package, admission, sequence, guard, memory, return/stop and applicable room/CPU gates: 49.
+Return CLI: 2 positive/negative cases per package.
+Fill: 6 cases per package; real preparation files; Python 3.6.8.
+Integrated fill + 3.py metadata check: 1 per package; dependency sizes/placement are explicit filesystem fixtures.
+Shared scoring tests: 7. Baseline self-pairing: all five types and both room sets have zero differences and zero 95%/99.29% intervals.
+
+Suite counts:
+base_constraints_result: 9
+base_cpu_helper_result: 3
+base_guard_result: 19
+base_memory_result: 2
+base_package_result: 13
+base_room_labels_result: 1
+base_room_pair_result: 2
+base_sequence_result: 5
+release_cpu_helper_result: 3
+release_guard_result: 19
+release_memory_result: 2
+release_package_result: 12
+release_return_stop_result: 5
+release_room_labels_result: 1
+release_room_pair_result: 2
+release_sequence_result: 5
+
+CPU tests use /scratch/jjyeung/envs/p1cpu/bin/python with OMP/MKL/OPENBLAS_NUM_THREADS=8. Orchard helper tests use /usr/bin/python3 -I -s -B (3.6.8).
+Local weights/model forwards, namespace, allocation, and staging are fixtures; an allocated Orchard CPU receipt remains mandatory.
+Reproduce: bash /scratch/jjyeung/orch_n30/cont_ops/work/r1route/run_local_tests.sh

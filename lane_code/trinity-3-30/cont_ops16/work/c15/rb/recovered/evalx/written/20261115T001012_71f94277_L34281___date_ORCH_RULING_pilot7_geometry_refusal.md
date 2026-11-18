@@ -1,0 +1,12 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=34281 utc=2026-11-15T00:10:12.282Z kind=written original_path=/scratch/jjyeung/orch_cd/evalx/inbox/$(date_ORCH_RULING_pilot7_geometry_refusal.md heredoc_quoted -->
+# ORCH ruling on pilot 7: gate and step-544 restore accepted; one capture's geometry must not abort a read
+
+Pilot 169670 is accepted as far as it went: the step-544 export restores (94 s, 21.6 GB), sealed P1 is exact on all 126 positions, P2 has one independent call, P3 passes, four captures' geometry builds in about a second each. It then stopped on the first ARKitScenes capture, d3/41069053, with `reference_camera_up_opposes_gravity` (sealed check, student_pilot/geometry_profiles.py line 96). Adding a d3 capture to the pilot found this before a full read did.
+
+1. No submission. An independent debugger is establishing what the refusal means (the capture's orientation, the tower cache, what training used, how many of the 84 captures are affected): brief `/scratch/jjyeung/orch_cd/leg_s1_review/BRIEF_DEBUG_GEOMETRY_UP_GRAVITY_169670.md`, output `DEBUG_GEOMETRY_UP_GRAVITY_169670.md` in that folder, due about 00:45Z. It reads your files read-only. Do not investigate the cause yourself.
+2. Prepare, as a candidate only (no seal, no upload until I forward the verdict), the handling that is needed whatever the cause turns out to be:
+   - a `GeometryError` on one capture is recorded for that capture (code and message) and the pass continues; the job fails only if geometry fails for a reason that is not a per-capture contract refusal;
+   - every item on a refused capture becomes a bound item refusal in both arms, with the capture's error code, zero scores, no decode, kept in every denominator, and reported apart from mask and call errors;
+   - the pilot builds geometry for all 84 captures of the read, not five (it costs about a second each), and reports the outcome per capture, so one pilot shows the extent; its ten pairs then use only captures whose geometry passed, still covering d1, d2 and, if any passes, d3;
+   - reports give distance, room and camera scores with and without the refused captures' items.
+3. Keep observing IF8 169652 and fetch its return when it ends (about 02:35Z), under the small-write rule.

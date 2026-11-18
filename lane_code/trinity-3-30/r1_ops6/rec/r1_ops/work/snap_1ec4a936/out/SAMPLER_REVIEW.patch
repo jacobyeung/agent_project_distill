@@ -1,0 +1,455 @@
+--- a/student_pilot/carrier_c1_data.py
++++ b/student_pilot/carrier_c1_data.py
+@@ -446,7 +446,7 @@
+     return batch, targets, audit
+ 
+ 
+-def mixed_indices(counts, steps, seed=17, start_step=0, training_mode='mixed', mix=None, world=8):
++def mixed_indices(counts, steps, seed=17, start_step=0, training_mode='mixed', mix=None, world=8, type_mix=None):
+     """All ranks use the same stream per microstep (FSDP collective order).
+ 
+     Mixed: four microsteps per optimizer update across eight ranks: 16 pose, 8 VQA,
+@@ -454,6 +454,11 @@
+     Each stream has independent deterministic shuffled epochs.
+     Replaying integer indices on resume does not decode skipped rows.
+     """
++    if type_mix is not None:
++        from .type_mix import plans
++        base = mixed_indices(counts, steps, seed, 0, training_mode, mix, world)
++        yield from plans(base, type_mix, seed, start_step)
++        return
+     if training_mode not in ('mixed', 'pose_only', 'final'):
+         raise ValueError('Unknown training_mode')
+     if training_mode == 'final':
+--- a/student_pilot/carrier_c1_run.py
++++ b/student_pilot/carrier_c1_run.py
+@@ -60,6 +60,9 @@
+ 
+ 
+ def validate(cfg):
++    if 'type_mix' in cfg:
++        from .type_mix import validate as validate_type_mix
++        validate_type_mix(cfg['type_mix'], cfg['recipe'])
+     if 'h1' in cfg:
+         from .h1 import validate as validate_h1
+         validate_h1(cfg)
+@@ -652,6 +655,9 @@
+     if cfg.get('h1', {}).get('r0_rooms') is not None:
+         from .h1_r0 import prepare as reserve_prepare
+         result = reserve_prepare(result, cfg)
++    if 'type_mix' in cfg:
++        from .type_mix import prepare as prepare_type_mix
++        result = prepare_type_mix(result, cfg)
+     write(Path(cfg['preparation_output'])/'receipt.json', result)
+     return result
+ 
+@@ -779,6 +785,9 @@
+     if cfg.get('h1', {}).get('r0_rooms') is not None:
+         from .h1_r0 import prepare as reserve_prepare
+         receipt = reserve_prepare(receipt, cfg, phase='admission')
++    if 'type_mix' in cfg or 'type_mix' in receipt:
++        from .type_mix import bound as bound_type_mix
++        bound_type_mix(receipt, cfg)
+     return receipt, model
+ 
+ 
+@@ -1020,6 +1029,8 @@
+     def __init__(self, receipt, processor):
+         self.connections = {k: connect(v['database']) for k, v in receipt['streams'].items() if v.get('kind') not in ('mix', 'mdg')}
+         self.processor = processor
++        from .type_mix import bound as bound_type_mix
++        self.type_mix = bound_type_mix(receipt, receipt)
+         self.h1 = receipt.get('h1', {})
+         self.placement = receipt.get('carrier_placement', data.C1_A)
+         self.receipt_pointing_weights = receipt.get('pointing_weights')
+@@ -1660,7 +1671,7 @@
+     recipe = recipe_for(cfg)
+     offset = cfg.get('row_start_step', 0)
+     plan = next(data.mixed_indices(counts,offset+1,start_step=offset,training_mode=cfg.get('training_mode', 'mixed'),
+-                                   mix=recipe['mix'],world=recipe['world_size']))
++                                   mix=recipe['mix'],world=recipe['world_size'],type_mix=getattr(rows, 'type_mix', None)))
+     rank_shapes = []
+     try:
+         # Encode each rank's actual first row in every stream; no synthetic admission.
+@@ -2335,7 +2346,7 @@
+                                 optimizer=optimizer, disk_guard=disk_budget)
+     for step,plan in enumerate(data.mixed_indices(counts,offset+steps,start_step=offset+start_step,
+                               training_mode=cfg.get('training_mode', 'mixed'),
+-                              mix=recipe['mix'],world=recipe['world_size']),start_step+1):
++                              mix=recipe['mix'],world=recipe['world_size'],type_mix=getattr(rows, 'type_mix', None)),start_step+1):
+         info,_=optimize_step(wrapped,optimizer,rows,plan,rank,device,step,distributed,gates)
+         if answer_stop is not None:
+             h1_state=answer_stop.update(step,info['h1_answer_counts'])
+@@ -3026,7 +3037,7 @@
+         raise ValueError('A rank limit requires a checkpointed first-batch check')
+     counts = {k: v['count'] for k, v in receipt['streams'].items()}
+     plans = list(data.mixed_indices(counts, steps, training_mode=cfg.get('training_mode', 'mixed'),
+-                                    mix=recipe['mix'], world=recipe['world_size']))
++                                    mix=recipe['mix'], world=recipe['world_size'],type_mix=getattr(rows, 'type_mix', None)))
+     device = torch.device(device)
+     out = Path(out_path)
+     journal, completed, records = None, {}, []
+--- a/student_pilot/type_mix.py
++++ b/student_pilot/type_mix.py
+@@ -0,0 +1,205 @@
++"""Opt-in quotas over admitted rows; absent policy preserves the sealed sampler."""
++from collections import Counter
++import hashlib
++from pathlib import Path
++import random
++import re
++import sqlite3
++import json
++from .p3_provenance import file_pin, load, pinned, write
++
++RELATIVE = ('camera_obj_rel_dist_v1','camera_obj_rel_dist_v2','camera_obj_rel_dist_v3',
++            'obj_obj_relative_pos_lr','obj_obj_relative_pos_nf','obj_obj_relative_pos_ud')
++
++
++def room_trace(row):
++    text=row.get('target','');lines=text.splitlines()
++    locate=[i for i,s in enumerate(lines) if re.match(r'^Locate\b',s)]
++    relate=[i for i,s in enumerate(lines) if re.match(r'^Relate\b',s)]
++    estimate=[i for i,s in enumerate(lines) if re.match(r'^(?:Estimate\b|I estimate\b)',s)]
++    frames=row.get('student_input',{}).get('frames',[])
++    if not locate or len(relate)!=1 or not estimate or not max(locate)<relate[0]<min(estimate):return False
++    for i in locate:
++        cites=re.findall(r'\bframe\s+(\d+)\b',lines[i],re.I)
++        if not cites or any(not 1<=int(n)<=len(frames) for n in cites):return False
++        if any(not isinstance(frames[int(n)-1],dict) or not frames[int(n)-1].get('path') or
++               not re.fullmatch('[0-9a-f]{64}',frames[int(n)-1].get('sha256','')) for n in cites):return False
++    return True
++
++
++def family(row,stream,size_selector=None):
++    raw=row.get('routing',row);typ=raw.get('question_type',row.get('question_type'))
++    if stream=='routing':
++        record=raw.get('ground_record',{})
++        qid=str(row.get('qid',raw.get('qid','')))
++        if record.get('not_seen') or qid.startswith('a0_recovery_'):return 'recovery'
++        if record.get('unit') or qid.startswith('a0_units_'):return 'units'
++        return {'camera_displacement':'camera_displacement','camera_movement_direction':'camera_movement_direction',
++                'camera_rotation':'camera_rotation','object_abs_distance':'absolute_distance',
++                'absolute_distance_object':'absolute_distance'}.get(typ,'excluded_routing_type')
++    if stream!='vqa':return stream
++    if typ in RELATIVE:return typ
++    if typ in ('room_size_estimation','absolute_size_room'):return 'room' if room_trace(row) else 'excluded_room_trace'
++    if typ in ('object_size_estimation','absolute_size_object','relative_size_object'):
++        if size_selector:
++            value=row
++            for key in size_selector['field'].split('.'):
++                value=value.get(key) if isinstance(value,dict) else None
++            if value!=size_selector['equals']:return 'excluded_size_selector'
++        return 'size'
++    if typ in ('object_rel_direction_easy','object_rel_direction_medium','object_rel_direction_hard',
++               'relative_direction_object','absolute_direction_object'):
++        return 'facing' if row.get('facing') in ('toward','away') else 'direction'
++    if typ in ('object_counting','absolute_count','relative_count'):
++        return 'totals' if row.get('count_kind')=='total' else 'counting'
++    return {'object_rel_distance':'relative_distance','relative_distance_object':'relative_distance',
++            'obj_appearance_order':'appearance','appearance_order':'appearance','first_seen_frame':'first_seen',
++            'box_3d':'box','route_planning':'route','camera_obj_abs_dist':'camera_absolute_distance',
++            'camera_obj_rel_dist':'relative_distance'}.get(typ,'unassigned:'+str(typ))
++
++
++def validate(spec,recipe):
++    if not isinstance(spec,dict) or set(spec)!={'schema','streams','max_repeats','size_selector'} or spec['schema']!='type-mix-v2':
++        raise ValueError('Invalid type mix')
++    if spec['max_repeats']!=4 or type(spec['max_repeats']) is not int:raise ValueError('Repeat cap must be four')
++    selector=spec['size_selector']
++    if selector is not None and (not isinstance(selector,dict) or set(selector)!={'field','equals'} or
++            not isinstance(selector['field'],str) or not selector['field']):raise ValueError('Invalid size selector')
++    if set(spec['streams'])-{'vqa','routing'}:raise ValueError('Unsupported quota stream')
++    slots=Counter(recipe['mix'])
++    for stream,policy in spec['streams'].items():
++        if set(policy)-{'cells','refill','refill_mode'} or not {'cells','refill'}<=set(policy) or not isinstance(policy['refill'],list):raise ValueError('Invalid refill policy')
++        if policy.get('refill_mode','ordered') not in ('ordered','proportional'):raise ValueError('Invalid refill mode')
++        cells=policy['cells']
++        if set(policy['refill'])-set(cells) or len(policy['refill'])!=len(set(policy['refill'])):raise ValueError('Unknown refill family')
++        if not cells:raise ValueError('Empty quota stream')
++        for name,c in cells.items():
++            if not re.fullmatch('[a-z0-9_]+',name) or set(c)!={'cents'} or type(c['cents']) is not int or c['cents']<0:
++                raise ValueError('Invalid family quota')
++        if sum(c['cents'] for c in cells.values())!=slots[stream]*recipe['world_size']*100:
++            raise ValueError('Family quotas must fill the unchanged stream batch')
++    return spec
++
++
++def allocate(policy,counts,steps,max_repeats=4):
++    cells=policy['cells'];total=sum(c['cents'] for c in cells.values());table={}
++    for name,cell in cells.items():
++        eligible=counts.get(name,0);cap=eligible*max_repeats*100//steps
++        capped=min(cell['cents'],cap)
++        table[name]=dict(eligible=eligible,proposed_cents=cell['cents'],cap_cents=cap,
++                         capped_cents=capped,cut_cents=cell['cents']-capped,refill_cents=0,final_cents=capped)
++    deficit=total-sum(v['final_cents'] for v in table.values())
++    if policy.get('refill_mode','ordered')=='proportional':
++        while deficit:
++            active=[n for n in policy['refill'] if cells[n]['cents']>0 and table[n]['final_cents']<table[n]['cap_cents']]
++            if not active:break
++            total_weight=sum(cells[n]['cents'] for n in active);amount=deficit
++            for name in active:
++                item=table[name];extra=min(item['cap_cents']-item['final_cents'],amount*cells[name]['cents']//total_weight)
++                item['refill_cents']+=extra;item['final_cents']+=extra;deficit-=extra
++            # Largest remainders resolve fractional cents deterministically.
++            for name in sorted(active,key=lambda n:(-(amount*cells[n]['cents']%total_weight),n)):
++                item=table[name]
++                if deficit and item['final_cents']<item['cap_cents']:
++                    item['refill_cents']+=1;item['final_cents']+=1;deficit-=1
++    else:
++        for name in policy['refill']:
++            item=table[name];extra=min(deficit,item['cap_cents']-item['final_cents'])
++            item['refill_cents']=extra;item['final_cents']+=extra;deficit-=extra
++    if deficit:raise ValueError('Insufficient eligible rows to fill capped stream: '+str(deficit))
++    effective={n:dict(cents=v['final_cents']) for n,v in table.items() if v['final_cents']}
++    return effective,table
++
++
++def populations(stream,source,cells,size_selector=None):
++    indices=load(pinned(source['indices'])) if 'indices' in source else list(range(source['count']))
++    positions={i:j for j,i in enumerate(indices)}
++    if len(positions)!=len(indices):raise ValueError('Duplicate admitted indices')
++    buckets={name:[] for name in cells};types={};samples={};excluded=Counter();seen=set()
++    db=Path(pinned(source['database']))
++    conn=sqlite3.connect(db.as_uri()+'?mode=ro&immutable=1',uri=True)
++    try:
++        for i,encoded in conn.execute('SELECT i,row FROM rows ORDER BY i'):
++            if i not in positions:continue
++            seen.add(i);row=json.loads(encoded);name=family(row,stream,size_selector)
++            if name.startswith('excluded_'):excluded[name+':'+str(row.get('routing',row).get('question_type'))]+=1;continue
++            if name not in cells:raise ValueError('Eligible family lacks a quota: '+stream+'/'+name)
++            pos=positions[i];buckets[name].append(pos)
++            types[pos]=row.get('routing',row).get('question_type')
++            if len(samples.setdefault(name,[]))<5:
++                samples[name].append(dict(index=i,position=pos,qid=row['qid'],question_type=types[pos],
++                    target=row['target'],target_sha256=hashlib.sha256(row['target'].encode()).hexdigest(),
++                    frames=row.get('student_input',{}).get('frames',[])))
++    finally:conn.close()
++    if seen!=set(indices):raise ValueError('Admitted indices missing from database')
++    return buckets,types,samples,dict(excluded)
++
++
++def prepare(receipt,cfg):
++    spec=cfg.get('type_mix')
++    if spec is None:return receipt
++    validate(spec,cfg['recipe']);groups={};effective={};tables={}
++    for stream,policy in spec['streams'].items():
++        cells=policy['cells']
++        src=receipt['streams'][stream]
++        if src.get('kind') in ('mix','mdg'):raise ValueError('Quotas require a flat admitted stream')
++        buckets,_,_,_=populations(stream,src,cells,spec['size_selector'])
++        chosen,table=allocate(policy,{n:len(ids) for n,ids in buckets.items()},cfg['recipe']['steps'],spec['max_repeats'])
++        effective[stream]=chosen;tables[stream]=table
++        buckets={n:buckets[n] for n in chosen}
++        for name,ids in buckets.items():
++            if not ids:raise ValueError('Required quota family is empty: '+stream+'/'+name)
++            draws=(cfg['recipe']['steps']*chosen[name]['cents']+99)//100
++            if draws>len(ids)*spec['max_repeats']:raise ValueError('Quota exceeds repeat cap: '+stream+'/'+name)
++        groups[stream]=buckets
++    value=dict(schema='type-mix-populations-v2',spec=spec,recipe=cfg['recipe'],
++        streams={s:receipt['streams'][s] for s in groups},populations=groups,effective=effective,tables=tables)
++    path=Path(cfg['preparation_output'])/'type_mix.json';write(path,value)
++    return {**receipt,'type_mix':spec,'type_mix_population':file_pin(path)}
++
++
++def bound(receipt,cfg):
++    spec=cfg.get('type_mix')
++    if receipt.get('type_mix')!=spec:raise ValueError('Prepared mix differs')
++    if spec is None:return None
++    value=load(pinned(receipt['type_mix_population']))
++    validate(spec,cfg.get('recipe',value['recipe']))
++    if 'recipe' in cfg and value['recipe']!=cfg['recipe']:raise ValueError('Prepared schedule differs')
++    if value['spec']!=spec:raise ValueError('Population policy differs')
++    if value['streams']!={s:receipt['streams'][s] for s in spec['streams']}:raise ValueError('Population admission differs')
++    for stream,policy in spec['streams'].items():
++        counts={n:v['eligible'] for n,v in value['tables'][stream].items()}
++        actual,table=allocate(policy,counts,value['recipe']['steps'],spec['max_repeats'])
++        if actual!=value['effective'][stream] or table!=value['tables'][stream]:raise ValueError('Capped quota differs')
++        if {n:len(ids) for n,ids in value['populations'][stream].items()}!={n:counts[n] for n in actual}:raise ValueError('Capped population count differs')
++    return value
++
++
++def plans(base,value,seed,start_step=0):
++    """Deterministic weighted round robin; resume replays the same shuffled epochs."""
++    spec=value['spec'];cells=value['effective'];groups=value['populations']
++    rngs={};orders={};cursors={};credits={};draws=Counter()
++    for stream in cells:
++        if set(cells[stream])!=set(groups[stream]):raise ValueError('Quota population families differ')
++        flat=[i for ids in groups[stream].values() for i in ids]
++        if len(flat)!=len(set(flat)):raise ValueError('Quota populations overlap')
++        credits[stream]=dict.fromkeys(cells[stream],0)
++        for name in cells[stream]:
++            key=(stream,name);orders[key]=list(groups[stream][name])
++            if not orders[key]:raise ValueError('Empty quota population')
++            salt=int.from_bytes(hashlib.sha256((stream+'/'+name).encode()).digest()[:8],'big')
++            rngs[key]=random.Random(seed+salt);rngs[key].shuffle(orders[key]);cursors[key]=0
++    for step,plan in enumerate(base):
++        result=[]
++        for stream,indices in plan:
++            if stream not in cells:result.append((stream,indices));continue
++            chosen=[];total=sum(v['cents'] for v in cells[stream].values())
++            for _ in indices:
++                for name,v in cells[stream].items():credits[stream][name]+=v['cents']
++                name=max(sorted(cells[stream]),key=lambda n:credits[stream][n]);credits[stream][name]-=total;key=(stream,name)
++                if cursors[key]==len(orders[key]):rngs[key].shuffle(orders[key]);cursors[key]=0
++                index=orders[key][cursors[key]];cursors[key]+=1;draws[stream,index]+=1
++                if draws[stream,index]>spec['max_repeats']:raise ValueError('Repeat cap exceeded')
++                chosen.append(index)
++            result.append((stream,chosen))
++        if step>=start_step:yield result
+--- a/student_pilot/loader_audit.py
++++ b/student_pilot/loader_audit.py
+@@ -0,0 +1,153 @@
++"""Audit the native 1000-step sampler against pinned prepared streams."""
++from collections import Counter
++import hashlib
++import json
++from pathlib import Path
++import sqlite3
++from . import carrier_c1_data as data, type_mix
++from .p3_provenance import load, pinned, file_pin, write
++
++
++def examples(stream,source,limit=5,selected=None):
++    if source.get('kind')=='mix':
++        order=load(pinned(source['order']))[:limit];rows=[]
++        for child_index,i in order:
++            rows.extend(examples(stream,source['sources'][child_index],1,[i]))
++        return rows
++    ids=selected if selected is not None else (load(pinned(source['indices']))[:limit] if 'indices' in source else list(range(min(limit,source['count']))))
++    if source.get('kind')=='c1r_clips':
++        result=[];wanted=set(ids)
++        with pinned(source['clips_plan']).open() as f:
++            for line in f:
++                row=json.loads(line)
++                if row['i'] in wanted:
++                    encoded=json.dumps(row,sort_keys=True,separators=(',',':'))
++                    result.append(dict(source=source['clips_plan'],index=row['i'],question_type=stream,target=row,
++                        target_sha256=hashlib.sha256(encoded.encode()).hexdigest()))
++                    if len(result)==len(wanted):break
++        if len(result)!=len(wanted):raise ValueError('Clip example absent from bound plan')
++        return result
++    db=Path(pinned(source['database']));conn=sqlite3.connect(db.as_uri()+'?mode=ro&immutable=1',uri=True)
++    out=[]
++    try:
++        for i in ids:
++            raw=conn.execute('SELECT row,target FROM rows WHERE i=?',(i,)).fetchone()
++            if raw is None:raise ValueError('Audit row absent')
++            r=json.loads(raw[0]);target=r.get('target',json.loads(raw[1]))
++            encoded=target if isinstance(target,str) else json.dumps(target,sort_keys=True,separators=(',',':'))
++            out.append(dict(database=source['database'],index=i,qid=r.get('qid'),question_type=r.get('question_type',stream),
++                target=target,target_sha256=hashlib.sha256(encoded.encode()).hexdigest(),frames=r.get('student_input',{}).get('frames',[])))
++    finally:conn.close()
++    return out
++
++
++
++def question_types(stream,source):
++    """Map sampler positions to the actual stored types, including pose-mix order."""
++    def read(part,wanted):
++        result={}
++        if part.get('kind')=='c1r_clips':
++            with pinned(part['clips_plan']).open() as f:
++                for line in f:
++                    row=json.loads(line)
++                    if row['i'] in wanted:result[row['i']]=row.get('question_type',stream)
++        else:
++            db=Path(pinned(part['database']));conn=sqlite3.connect(db.as_uri()+'?mode=ro&immutable=1',uri=True)
++            try:
++                for i,encoded in conn.execute('SELECT i,row FROM rows ORDER BY i'):
++                    if i in wanted:
++                        row=json.loads(encoded);result[i]=row.get('routing',row).get('question_type',stream)
++            finally:conn.close()
++        if set(result)!=wanted:raise ValueError('Type audit lacks admitted positions')
++        return result
++    if source.get('kind')=='mix':
++        order=load(pinned(source['order']));wanted={}
++        for child,i in order:wanted.setdefault(child,set()).add(i)
++        parts={child:read(source['sources'][child],ids) for child,ids in wanted.items()}
++        if len(order)!=source['count']:raise ValueError('Mix audit count differs')
++        return {pos:parts[child][i] for pos,(child,i) in enumerate(order)}
++    ids=load(pinned(source['indices'])) if 'indices' in source else list(range(source['count']))
++    actual=read(source,set(ids))
++    return {pos:actual[i] for pos,i in enumerate(ids)}
++
++def audit(cfg,receipt,*,local_vqa_only=False):
++    value=type_mix.bound(receipt,cfg)
++    if value is None:raise ValueError('Loader audit requires bound family quotas')
++    populations={};types={};traces={};exclusions={}
++    for stream,policy in cfg['type_mix']['streams'].items():
++        if local_vqa_only and stream!='vqa':continue
++        groups,t,samples,excluded=type_mix.populations(stream,receipt['streams'][stream],policy['cells'],cfg['type_mix']['size_selector'])
++        expected={n:groups[n] for n in value['effective'][stream]}
++        if expected!=value['populations'][stream]:raise ValueError('Staged population differs from preparation')
++        populations[stream]={n:len(v) for n,v in groups.items()};types[stream]=t;traces[stream]=samples;exclusions[stream]=excluded
++        for name,rows in samples.items():
++            for row in rows:row['database']=receipt['streams'][stream]['database']
++    if not local_vqa_only:
++        for stream,source in receipt['streams'].items():
++            if stream not in types:types[stream]=question_types(stream,source)
++    counts={s:v['count'] for s,v in receipt['streams'].items()}
++    by_family=Counter();by_type=Counter();by_stream=Counter();repeats=Counter();first=None
++    reverse={s:{i:n for n,ids in groups.items() for i in ids} for s,groups in value['populations'].items()}
++    for step,plan in enumerate(data.mixed_indices(counts,cfg['recipe']['steps'],seed=cfg['recipe']['seed'],training_mode=cfg['training_mode'],
++                    mix=cfg['recipe']['mix'],world=cfg['recipe']['world_size'],type_mix=value),1):
++        if first is None:first=plan
++        for stream,ids in plan:
++            if local_vqa_only and stream!='vqa':continue
++            for i in ids:
++                name=reverse.get(stream,{}).get(i,stream);typ=types.get(stream,{}).get(i,stream)
++                by_family[stream+'/'+name]+=1;by_type[stream+'/'+typ]+=1;by_stream[stream]+=1
++                if stream in reverse:repeats[stream,i]+=1
++    if max(repeats.values(),default=0)>4:raise ValueError('Sampler exceeded four repeats')
++    if not local_vqa_only:
++        for stream,source in receipt['streams'].items():
++            if stream not in populations:
++                populations[stream]={stream:source['count']};traces[stream]={stream:examples(stream,source)}
++    for stream,groups in populations.items():
++        for name,count in groups.items():
++            if count and len(traces[stream].get(name,[]))<min(5,count):raise ValueError('Missing bound traces')
++            if by_family[stream+'/'+name]>4*count:raise ValueError('Family draws exceed four times eligible rows: '+stream+'/'+name)
++    shares=lambda counts_: {k:dict(draws=v,rows_per_step=v/cfg['recipe']['steps'],share_of_stream=v/by_stream[k.split('/')[0]]) for k,v in sorted(counts_.items())}
++    return dict(schema='loader-audit-v1',status='LOCAL_VQA_ONLY' if local_vqa_only else 'PASS',
++        config_identity=receipt['config_sha256'],planned_steps=cfg['recipe']['steps'],eligible_by_family=populations,
++        eligible_by_question_type={s:dict(Counter(t.values())) for s,t in types.items()},
++        by_family=shares(by_family),by_question_type=shares(by_type),stream_draws=dict(by_stream),
++        maximum_observed_repeats=max(repeats.values(),default=0),tables=value['tables'],excluded=exclusions,
++        traces=traces,first_step=first,source_streams=receipt['streams'],full_production_admission=not local_vqa_only)
++
++
++def main(root):
++    import os,sys
++    from .checkpoint_space import plan
++    from .carrier_c1_run import identity
++    root=Path(root);sys.path.insert(0,str(root/'b'))
++    from d import effective
++    launch=load(root/'k/launch.json');original=load(root/launch['config']['file'])
++    cfg=effective(root,original);receipt=load(pinned(cfg['preparation']))
++    result=audit(cfg,receipt)
++    directory=Path(launch['in_job_admission']['directory'])
++    write(directory/'l.json',result)
++    for stream,groups in result['traces'].items():
++        for name,rows in groups.items():
++            for row in rows:print(json.dumps(dict(loader_trace=True,stream=stream,family=name,**row),sort_keys=True),flush=True)
++    disk=plan(original['recipe'],original['checkpoint_disk_guard']['reserve_bytes'])
++    selection=load(pinned(original['s1_routing']['selection']))
++    no_rooms=not any(set(v.get('per_type',{}))&{'room_size_estimation','absolute_size_room'} for v in selection['sources'].values() if v['status']=='ELIGIBLE')
++    no_rooms=no_rooms and not any(k.endswith((':room_size_estimation',':absolute_size_room')) and v for k,v in result['excluded'].get('routing',{}).items())
++    checks=dict(disk_plan=dict(status='PASS' if disk==original['checkpoint_disk_guard'] else 'FAIL',plan=disk),
++        routing_selection=dict(status='PASS' if no_rooms else 'FAIL',materialized_room_rows_zero=no_rooms,pin=file_pin(pinned(original['s1_routing']['selection']))),
++        loader_audit=dict(status=result['status'],pin=file_pin(directory/'l.json')),
++        required_families=dict(status='PASS' if all(result['eligible_by_family']['routing'].get(k,0)>0 for k in ('recovery','units')) else 'FAIL'))
++    import shutil
++    executables={}
++    for name in ('python', 'bash', 'bwrap', 'tar', 'rsync', 'sha256sum'):
++        path=sys.executable if name=='python' else shutil.which(name)
++        if path is not None:executables[name]=file_pin(Path(path).resolve())
++    checks['staged_binaries']=dict(status='PASS',executables=executables)
++    report=dict(status='PASS' if all(v['status']=='PASS' for v in checks.values()) else 'FAIL',checks=checks,
++        original_config_identity=identity(original),effective_config_identity=identity(cfg),production_authorized=False)
++    write(directory/'a.json',report)
++    if report['status']!='PASS':raise ValueError('Required packet proof checks failed')
++
++if __name__=='__main__':
++    import sys
++    main(sys.argv[1])

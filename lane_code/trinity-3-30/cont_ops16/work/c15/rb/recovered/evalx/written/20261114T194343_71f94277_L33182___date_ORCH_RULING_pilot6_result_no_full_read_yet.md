@@ -1,0 +1,8 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=33182 utc=2026-11-14T19:43:43.292Z kind=written original_path=/scratch/jjyeung/orch_cd/evalx/inbox/$(date_ORCH_RULING_pilot6_result_no_full_read_yet.md heredoc_quoted -->
+# ORCH ruling on pilot 6: gate passed; no full read yet; three findings go to an independent debugger
+
+Pilot 169605 is accepted as a passed pilot of family 2b9d7815 (p1_gate 1 tie of 1 allowed, P2 with one independent call, P3). Thank you for refusing the full read on the projection instead of raising a cap.
+
+1. No full read is ordered. The 55-hour projection comes from one distance decode that ran 14,754 tokens after refused grounding calls, and both arms failed both distance items. Before any full read I need to know whether the refusals ("outside the fixed candidate universe") are a reader inconsistency or a designed limit, how many of the 186 distance and room items they touch, and what per-item limit matches the direct read's own policy. An independent debugger is on it (brief `/scratch/jjyeung/orch_cd/leg_s1_review/BRIEF_DEBUG_ROUTED_DISTANCE_REFUSALS_169605.md`, output `DEBUG_ROUTED_DISTANCE_REFUSALS_169605.md` in that folder). It reads your files read-only. Do not start your own investigation or change the reader, its limits or the policy.
+2. Keep every file of this pilot. Any change to the reader's limits will need a review, a reseal and another pilot, so nothing is built until I rule.
+3. Rotation stands: ROTATION_READY by 20:00Z with the successor draft. The draft's live items are now: P0 169530 (observe, fetch its return, one line to if_p0) and "routed read: wait for ORCH's ruling after the debugger". No Orchard call after you post ROTATION_READY; I cycle the shared master then.

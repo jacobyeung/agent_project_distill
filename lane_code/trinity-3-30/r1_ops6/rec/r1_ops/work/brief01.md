@@ -1,0 +1,29 @@
+# Brief 01 (build): R1 on the deployment that ran H1-1: packet, admission table, proof script
+
+Carrier: Codex gpt-6-astra, effort high, one `implement` dispatch on trinity-1-3 in `/scratch/jjyeung/orch_n30/r1_pkt` (create it; cap 4 GB). Box: 3 hours; write `out/ADMISSION_BY_TYPE.json` within the first 2. CPU only. No ssh, no Orchard call, no Git, no deletion, no edit outside the lane folder. First read `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/tools/LANE_RULES.md`. Search only inside the directories named here.
+
+## Why
+Leg R1 (design record `/data2/jjyeung/agent_project_data/distill_design/NEXT_LEG_DECISION_20261117.md`, sections 2 and 3) must submit when Orchard's four H100 return, as early as 02:15Z on 2026-11-18. The only deployment of this recipe proven on Orchard is H1-1's (job 170710: staging, admission and training since 11:13Z on 2026-11-17; its in-process stop and export at step 100 are due about 15:35Z). This build turns it into R1's first allocation and finds out, on CPU with real rows, which of R1's row families the sealed tree admits.
+
+## Inputs (read-only; copy what you need into the lane folder)
+- H1-1 packet: `/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/cont_ops/h1_1_kit/` (`H1_1_PACKET.md`, `h1_1_kit_ready.tar`, `SHA256SUMS_inner`).
+- The packaging kit that derived H1-1's deployment: `/scratch/jjyeung/orch_n30/cont_ops/work/h1/` (`REPORT.md`, `build/`, `payload/`, `tests/`, `FIX6.md` to `FIX8.md`, `tools/selection_check.py`, proof `build/a_8c74b291.sh`).
+- Sealed tree b01ce449: `/scratch/jjyeung/orch_n30/tree_rebuild_w/work/base/tree_b01ce449`.
+- VQA store v6: `/scratch/jjyeung/orch_n30/rows_a2/out/a2_vqa_v6/vqa/` (`rows.sqlite` sha256 0608dd98..., `receipt.json`, `MANIFEST.json`, `JOB_PATHS.json`). Table `rows(i, row, target)`; the trace is `row.target`, the type `row.question_type`. Open it read-only (`?immutable=1`). Store v7 (brief 03) replaces it by receipt sha, so the store is a parameter.
+- Routing families: `/scratch/jjyeung/orch_n30/tree_rebuild_w/work/rows_slices/slices_final/` (`a0_recovery.jsonl` 1,532 rows, `a0_units.jsonl`, `a0_room.jsonl` 476 rows, `a0_pool_abs_distance_reworded.jsonl`, `COUNTS_A0_v4.json`); square-feet room rows `/scratch/jjyeung/orch_n30/rows_a2/out/a2_room_ft2_v1/`.
+- Python: `/scratch/jjyeung/envs/p1cpu/bin/python`.
+
+## Work
+1. **Config.** R1-P = H1-1's `configs/h1_1.json` with: `scheduled_sampling` back to D0's values (`max_own_probability 0`, no forced step); S1 off; S2 (`pose targets on camera routing rows`) as one switch whose two values both pass every gate below; `milestones [100, 200]`, `stop_after_step 200`, D0's 1,000-step schedule; its own run key, output and preparation directories. Write `configs/diff_against_h1_1.json` field by field.
+2. **VQA admission by type.** Bind the VQA stream to the store by receipt. With the sealed tree's own admission code and real rows, count admitted and eligible rows and the refusal reasons for every `question_type` in the store, and for the direct room rows merged as VQA rows. New against D0: `camera_obj_rel_dist_v1/v2/v3`, `obj_obj_relative_pos_lr/nf/ud`, `first_seen_frame`, the b12 pools, `room_size_estimation`.
+3. **Mix.** Apply the per-step table of the design record, section 5 item 2. Say whether the sealed sampler takes it as configuration. If it needs code, write the smallest patch on the H1 tree with tests, and flag it for review.
+4. **Routing.** (a) Remove the 581 room programs from the routing selection; regenerate the selection as `tools/selection_check.py` and `build/q.sh` do, and show that every non-room entry is byte-equal to H1-1's. (b) Test whether the sealed routing admission admits real `a0_units` and `a0_recovery` rows; report counts and reasons. If it refuses them, change nothing in admission: those families wait for the new tree, and the report says so in its first line, because the orchestrator's ruling in force makes recovery and unit rows hard requirements of the next leg.
+5. **Identity.** With every switch and store equal to D0's, the first step of all four ranks is bit-equal to the sealed tree (the H1 kit's OFF identity test).
+6. **First batch.** Every rank's first batch through the full forward on the tiny model with R1-P's final config, for both S2 values.
+7. **Proof script.** Derive the production CPU proof from `build/a_8c74b291.sh` for the new config identity. Its receipt asserts, each as a named check: the disk plan equals `checkpoint_space.plan` for the milestones and export count; the routing selection equals its pin; no path outside the job's own `/tmp` is assumed to exist; every binary is resolved and hashed at run time (no fixed `/usr/bin/bwrap`); every created directory has mode 0700. It starts from an empty root.
+
+## Gates
+All tests exit 0; OFF identity exact; two derivations give identical hashes; the admission table covers every type; no file, path or argument visible on Orchard carries a project, benchmark, dataset, model or method word (job names are `a15_cot_ap` plus hex).
+
+## Outputs (`/scratch/jjyeung/orch_n30/r1_pkt/out/`)
+`R1P_PACKET.md` (what differs from H1-1, how to package, the gates run), `ADMISSION_BY_TYPE.json`, `r1p_code.tar` with `SHA256SUMS`, `proof/`, `REPORT.md` (what R1-P carries and what it cannot). The dispatching lane writes one RESULT event that asks for one independent review, because admission inputs change.

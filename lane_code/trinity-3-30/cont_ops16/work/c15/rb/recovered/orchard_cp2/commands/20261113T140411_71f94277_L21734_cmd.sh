@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=21734 utc=2026-11-13T14:04:11.854Z kind=commands original_path=(bash command)  -->
+cut -c1-1800 /scratch/jjyeung/orch_cd/orchard_cp2/events/20261113T1403Z_RESULT_canary3_patch_accepted_resume_running.md; date -u +%T; echo "$(date -u +%FT%TZ) orch-home-distill-79: canary lane BLOCKER 1403Z (no application receipt for its patch) crossed with orchard_cp2's RESULT 1403Z: patch accepted, resume running." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

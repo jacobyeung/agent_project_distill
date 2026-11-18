@@ -1,0 +1,3 @@
+# Continue fix round 1 (read FIX_BRIEF_R1.md and your FIX1.md first)
+Approved: the asset rebuild and IO tests read the local reserve archive /scratch/jjyeung/n30_mirror/b10_reserve/R0_RESERVE_20261116.tar and write inside this folder on node-local /scratch (735 GB free). That is node-local disk, not /home or /data*, so it is not the heavy IO the Trinity rule restricts. Do not read or write /home or /data* beyond named small files.
+Finish items 4-7 of FIX_BRIEF_R1.md: salted rebuild of the assets, UPLOAD_PLAN.md with modes, runtime_fixture, ported readk suite on the candidate, all tests (incl. tests/test_refute.py), deterministic rebuild, SHA256SUMS.txt, evidence/FINAL_PINS.json, DIFF.md, REPORT.md, FIX1.md with the new hashes. Ask nothing; record choices in REPORT.md.

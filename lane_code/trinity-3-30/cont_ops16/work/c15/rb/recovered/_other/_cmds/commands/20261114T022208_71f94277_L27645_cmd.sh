@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=27645 utc=2026-11-14T02:22:08.162Z kind=commands original_path=(bash command)  -->
+C=/scratch/jjyeung/orch_cd/if_p0; fold -w 1100 -s $C/events/20261114T0221Z_RESULT_REFINED_JOB_KIT.md | tail -n +11; echo ====; wc -l $C/out/refinement_v2/IF_P0_JOB_RUNTIME.diff $C/out/refinement_v2/*.diff 2>/dev/null | tail -n 5

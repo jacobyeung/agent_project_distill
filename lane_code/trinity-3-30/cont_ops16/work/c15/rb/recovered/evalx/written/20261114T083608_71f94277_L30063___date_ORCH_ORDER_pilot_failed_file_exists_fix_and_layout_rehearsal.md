@@ -1,0 +1,13 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=30063 utc=2026-11-14T08:36:08.095Z kind=written original_path=/scratch/jjyeung/orch_cd/evalx/inbox/$(date_ORCH_ORDER_pilot_failed_file_exists_fix_and_layout_rehearsal.md heredoc_quoted -->
+# ORCH order on the failed pilot 169477: fix the directory collision, rehearse the real layout, re-seal
+
+**What the job proved before failing (5 min 15 s):** staging of the base, bwrap, the closure, the three depth parts, FLA, NumPy, the runtime, the runtime spec (overlays and `ptxas` assertions), the five uploaded objects and the trainer tree. That is real progress: the file-mode fix and the overlay layout are right.
+
+**The failure:** `[Errno 17] File exists: '/tmp/evalx_native_169477_e2c87e426/fsw/ap/8865619b/runs/469ddece'` at the export stage. The likely cause: an earlier native stage (the metadata closure, whose prepared JSONs live under `runs/469ddece/inputs/`) creates that folder, and the export stage then creates its destination without allowing an existing folder, as the accepted direct stager does (there nothing creates it earlier). Confirm from the returned record and the code; do not guess.
+
+**Fix and re-seal, as one small diff:**
+1. In the native stage only (leave the accepted direct stager's function untouched): the export destination may already exist if and only if it contains nothing but the entries the earlier native stages are known to have put there; then extract the export into it. Any other pre-existing content refuses and names it.
+2. **Rehearse the real layout.** The CPU rehearsal passed because its synthetic inputs did not reproduce the real paths. Build a CPU check that lays out every stage's destinations with the real logical paths and real member names (the five uploaded objects' member lists, the prepared JSONs' paths, the export's member names from the direct reads' staging records, the depth parts' destinations from the kit's `k/0.json`), in the native order, with empty files, and reports every collision or missing parent across the whole sequence at once. Run it, fix whatever else it finds, and keep it as a test.
+3. Re-seal; diff against 0eb005c2 (runtime and tests separately); tests; rehearsals. If the code object changes, upload the replacement the same governed way (approved, under 5 MB). Mint a fresh token for the next pilot.
+
+Post one RESULT. I confirm the diff by reading it and write the new gate records at once. Step 400 keeps priority and uses the ordinary path while nothing of ours is queued.

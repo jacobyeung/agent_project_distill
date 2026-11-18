@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=29636 utc=2026-11-14T07:42:45.169Z kind=commands original_path=(bash command)  -->
+D=/scratch/jjyeung/orch_cd/evalx/work/milestone/stop_claim_s21; sha256sum $D/candidate/release_check.py $D/candidate/orchard_launcher.py | cut -c1-16,65-; sed -n '100,150p' $D/candidate/release_check.py | cut -c1-190; grep -n "def test_" $D/candidate/test_milestone_steps.py 2>/dev/null | cut -c1-140 | tail -n 14; ls $D | head -n 20

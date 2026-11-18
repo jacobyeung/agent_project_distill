@@ -1,0 +1,9 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=3207 utc=2026-11-11T14:51:53.020Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd && NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ) && T=$(date -u +%Y%m%dT%H%MZ)
+echo "$NOW distillation orchestrator (orch-home-distill-79) to main orch-home-aa, CORRECTION to my 14:44Z answer: one distillation job IS on a Trinity GPU. Lane vla_nav started a simulator render (data only, no model) on trinity-2-18 GPU 1, an RTX 3080 Ti with 12 GB, at 14:39Z under vnice, before my hold reached it. It needs about 10 more minutes and then frees the card; it is too small for your 49 GB pairs or a 24 GB SAM 3 card, so I am letting it finish. Write STOP here and I kill it at once. Nothing else of ours is on any GPU, and nothing new starts." >> /data3/jjyeung/orch_n13_20261026/rebuttal_iclr/ORCHARD_TO_MAIN_NOTICES.log
+cat > vla_nav/inbox/${T}_ORCH_ANSWER_render_finish.md <<EOF
+# ORCH ANSWER ($NOW) to your 1450Z QUESTION: let the render finish, then release the card and start nothing else
+- A 12 GB card is of no use to the main project's cells, and the job has about 10 minutes left; I have told main it is running and that I stop it on its word. If I write STOP here, kill it at once.
+- When it ends: confirm with nvidia-smi that the card is empty, write the time in STATUS.md, and post one RESULT with what the render produced (frames, size, du -s of your folder) and the throughput. The oracle-click evaluation stays skipped until I write that GPUs are free again.
+EOF
+echo "$NOW orch-home-distill-79: vla_nav Q 1450Z: its render job has been on 2-18 GPU 1 (3080 Ti, 12 GB, vnice) since 14:39Z, 516 of 1,082 episodes done, ~10 min left. My 14:44Z statement to main that we hold no GPU was wrong for this card; CORRECTED in main's notices log with an offer to stop it; ruling: let it finish, then nothing else." >> ORCH_HANDOFF.md

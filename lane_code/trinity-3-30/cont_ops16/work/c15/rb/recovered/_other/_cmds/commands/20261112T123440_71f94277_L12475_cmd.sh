@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=12475 utc=2026-11-12T12:34:40.261Z kind=commands original_path=(bash command)  -->
+grep -n "implement\|review\|mech\|--model\|usage" /scratch/jjyeung/orch_cd/orch_tools/codex_local.sh | head -20; tmux ls 2>/dev/null | cut -c1-80

@@ -1,0 +1,322 @@
+total 156
+drwxrwxr-x  3 jjyeung jjyeung  4096 Nov 16 16:19 .
+drwxrwxr-x 16 jjyeung jjyeung  4096 Nov 16 15:53 ..
+-rw-rw-r--  1 jjyeung jjyeung  1410 Nov 16 16:19 F4_REPIN_SPEC.json
+-rw-rw-r--  1 jjyeung jjyeung 17279 Nov 16 16:20 INPUT_CATALOG.json
+-rw-rw-r--  1 jjyeung jjyeung  9806 Nov 16 16:20 OPEN_INPUTS.md
+-rw-rw-r--  1 jjyeung jjyeung 16280 Nov 16 16:20 OPERATIONS.md
+-rw-rw-r--  1 jjyeung jjyeung  5883 Nov 16 16:20 STAGING.md
+-rw-rw-r--  1 jjyeung jjyeung   142 Nov 16 16:19 TOKENS.json
+-rw-rw-r--  1 jjyeung jjyeung    53 Nov 16 13:58 __init__.py
+-rw-rw-r--  1 jjyeung jjyeung 10166 Nov 16 15:34 build.py
+-rw-rw-r--  1 jjyeung jjyeung  4387 Nov 16 15:35 common.py
+-rw-rw-r--  1 jjyeung jjyeung   899 Nov 16 15:36 entry.py
+-rw-rw-r--  1 jjyeung jjyeung 10650 Nov 16 15:34 inventory.py
+-rw-rw-r--  1 jjyeung jjyeung 13577 Nov 16 15:36 job.py
+-rw-rw-r--  1 jjyeung jjyeung  6761 Nov 16 15:34 operator.py
+drwxrwxr-x  2 jjyeung jjyeung  4096 Nov 16 14:09 package
+-rw-rw-r--  1 jjyeung jjyeung  3565 Nov 16 15:36 prepare.py
+-rw-rw-r--  1 jjyeung jjyeung  9344 Nov 16 15:44 runner.py
+16280 OPERATIONS.md
+ 9806 OPEN_INPUTS.md
+ 5883 STAGING.md
+31969 total
+# Operator instructions
+
+This package performs one own-arm read of 636 dev-S1 items: 636 baselines and 900 registered perturbations. It uses one general allocation, one process per GPU, and a barrier between displacement, rotation, movement direction, absolute distance, and room. An optional last phase reads all 2,169 R0-dev f32 items on the own arm, baseline only, after its frames archive is verified and while the time guard permits admission. The model writes every answer and numeric conversion. Room receives baseline only.
+
+Nothing has been submitted, uploaded, or accessed on Orchard. Do not submit until ORCH releases GPUs and every OPEN input is resolved. A killed allocation requires the user's answer before any resubmission. No automatic retry, requeue, terminator restart, or GPU keeper exists.
+
+## Stage
+
+The package token is `b01ec87a6f29b`. Its Orchard directory must be `/project/community/jjyeung/b01ec87a6f29b`. Its stable in-job root is `/scratch/jjyeung/b01ec87a6f29b`. Slurm receives the batch on stdin, with `/tmp` as workdir and `/dev/null` for logs. The submission helper explicitly exports only `A_N`, `A_T`, `A_I`, and `A_C`; it does not export the operator's environment. Source, item data and descriptive pins live inside `0.tgz`. Public `CONFIG.json` and `0.json` contain only the token, archive size and hashes. Numeric entry scripts read descriptive dispatch files from a private 0700 directory; process arguments carry no type or item names.
+
+1. Give `STAGING.md`, `OPEN_INPUTS.md`, `INPUT_CATALOG.json`, and `package/PACKAGE.json` to the operator. Keep `TOKENS.json` on Trinity. Resolve existing Orchard archives by their full hashes before transferring anything. The template's generic runtime archives do not prove that H1-0's frames, environment versions, SAM files, G3T, or export are present.
+2. Package the six small operator files and the code tar as one archive on a host with approved space. Do not copy a tree or folder through Trinity. After storage approval, the local packaging command is:
+
+   ```bash
+   K=/scratch/jjyeung/orch_n30/h1_headsft/kit
+   tar -cf "$K/tmp/b9/b01ec87a6f29b.tar" -C "$K/orchard_h10/package" \
+     0.tgz 0.json 3.py BATCH.sh CONFIG.json SUBMIT.cmd PACKAGE.json INPUTS.example.json
+   ```
+
+   This optional transport archive was not created by the builder because the node is below its disk floor. Transfer it once through the operator's existing governed Orchard bridge, at no more than 8 MB/s through Trinity. The bridge and its staging authority are not available in this builder session; no direct SSH command is prescribed as a substitute.
+3. On Orchard, after the governed bridge deposits `/tmp/b01ec87a6f29b.tar`, run:
+
+   ```bash
+   mkdir -p /project/community/jjyeung/b01ec87a6f29b
+   tar -xf /tmp/b01ec87a6f29b.tar -C /project/community/jjyeung/b01ec87a6f29b
+   cd /project/community/jjyeung/b01ec87a6f29b
+   ```
+
+4. Create `a/` with mode 0700 and fill `a/1.json` using the schema below. Keep every descriptive input receipt in that private directory. All added archives live at opaque paths under `/project/community/jjyeung/`. Use the template's governed transport, not independent downloads. Never extract a tree into Trinity `/home` or `/data*`. Archive bytes, expanded sizes, full SHA256s and provenance must be known before admission. For more than about 30 GB through Trinity, arrange the transfer with an admin. The 21,583,032,320-byte export already has generation-pinned GCS objects in `TRANSPORT.json`; use that cloud source if authorized, rather than sending weights through Trinity.
+
+The job always stages the three pinned template runtime groups and bwrap. Added archives extract into `sj/b01ec87a6f29b/d` on the job-private disk, which bwrap exposes at `/scratch/jjyeung/b01ec87a6f29b/d`. Archives must use relative members, with no `d/` outer directory. Multiple archives must have disjoint members. Relative internal links are allowed by the template; arbitrary absolute links are refused.
+
+The required input layout under that data root is:
+
+- An export directory containing `artifact.json`, `heads.pt` and `full_weights/` with all five tensors, the index, and `full_weights.json`. The original artifact, head and weight-manifest pins are fixed. `stage_restore` verifies every weight against the manifest and restores via local links, without a second weight copy.
+- A G3T directory containing `model.safetensors` and `config.json`.
+- A selector directory containing `selector_head.json` and `selector_head.safetensors` from run_iso.
+- SAM source, checkpoint and receipt, preserving the source tree's vocabulary assets and file pins.
+- A frame directory with the exact relative paths in the pinned FRAMES/DENSE manifests: 32 anchors and the registered 32/64 dense frames. Each generation checks RGB hashes. Do not replace dense frames with repeated anchors.
+- Original processor assets and `model_8005668fc14ce5ee.tar`. The restored base must use the original tokenizer/config/processor bytes; the template's unrelated base manifest is insufficient evidence.
+- A compatible environment or overlay, an exact imported-versions receipt, and the authorized vnice/terminator scripts or their staged runtime locations. The environment needs torch, torchvision, transformers >=5.12, scipy, and SAM dependencies. No installation or download runs in the job. The template's UV interpreter paths must remain valid inside its namespace.
+
+`a/1.json` has this structure; replace every placeholder before checking:
+
+```json
+{
+  "schema": 1,
+  "archives": [{
+    "parts": [{"path": "/project/community/jjyeung/<opaque>/0.tar", "bytes": 1, "sha256": "<64 hex>"}],
+    "sha256": "<whole archive 64 hex>",
+    "expanded_bytes": 1,
+    "destination": "sj/b01ec87a6f29b/d"
+  }],
+  "files": {
+    "artifact": {"path": "/scratch/jjyeung/b01ec87a6f29b/d/x/artifact.json", "bytes": 11474, "sha256": "<registered full pin>"},
+    "heads": {"path": "/scratch/jjyeung/b01ec87a6f29b/d/x/heads.pt", "bytes": 2763214343, "sha256": "<registered full pin>"},
+    "full_weights": {"path": "/scratch/jjyeung/b01ec87a6f29b/d/x/full_weights/full_weights.json", "bytes": 1794, "sha256": "<registered full pin>"},
+    "g3t_weights": {"path": "<logical path>", "bytes": 1, "sha256": "<64 hex>"},
+    "g3t_config": {"path": "<logical path>", "bytes": 1, "sha256": "<64 hex>"},
+    "sam_checkpoint": {"path": "<logical path>", "bytes": 1, "sha256": "<registered full pin>"},
+    "sam_receipt": {"path": "<logical path>", "bytes": 1, "sha256": "<64 hex>"},
+    "selector_weights": {"path": "<logical path>", "bytes": 207328, "sha256": "<registered full pin>"},
+    "selector_config": {"path": "<logical path>", "bytes": 6541, "sha256": "<registered full pin>"},
+    "base_config": {"path": "<logical processor directory>/config.json", "bytes": 3126, "sha256": "<64 hex>"},
+    "original_model": {"path": "<logical path to original manifest tar>", "bytes": 10240, "sha256": "<64 hex>"},
+    "env": {"path": "<logical versions receipt>", "bytes": 1, "sha256": "<64 hex>"},
+    "policy": {"path": "<logical policy receipt>", "bytes": 1, "sha256": "<64 hex>"}
+  },
+  "frames_root": "/scratch/jjyeung/b01ec87a6f29b/d/f",
+  "sam_source": "/scratch/jjyeung/b01ec87a6f29b/d/s",
+  "python": "/lustre/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/19252904/e/bin/python",
+  "env_roots": [],
+  "environment_receipt": "env",
+  "policy_receipt": "policy",
+  "policy": {"vnice": "<staged logical path>", "terminator": "<staged logical path>"},
+  "resume": null
+}
+```
+
+The environment receipt contains `{"versions":{"torch":"...","torchvision":"...","transformers":"...","scipy":"..."}}` with the actual imported versions. The policy receipt contains the exact `vnice` and `terminator` paths and `"authorized": true`; it attests that `bash <vnice> <command...>` is the approved invocation. The job checks both script hashes against the template registry. It never launches a terminator or disables one. Runtime groups are reused by pinned copy; `orchard_stage.copy_parts`, `extract_stream`, `orchard_job.namespace`, `orchard_results.publish` and `return_io` retain their template code.
+
+## CPU check on the Orchard login node
+
+After staging, run only the metadata check on login. It hashes the small code package, checks the complete input contract and staged archive sizes, and validates every Slurm submission string. It does not open model tensors, run nvidia-smi, or decode on login.
+
+```bash
+cd /project/community/jjyeung/b01ec87a6f29b
+CUDA_VISIBLE_DEVICES= /usr/bin/python3 -I -s -B 3.py check --gpus 4 --time 01:15:00
+```
+
+`2.json` must report `passed: true`. On the allocated node, the job rechecks all archive/file hashes, imports the required libraries, checks their versions, and calls b04's reviewed CPU restore before any GPU decode. A real step-544 decode has not been rehearsed here.
+
+## Submit after ORCH releases GPUs
+
+The operator chooses `A_T`; 01:15:00 is an example for four GPUs. The helper refuses more than four GPUs, less than 40 minutes, or more than five allocated GPU-hours. Staging and return consume part of that allocation. Run the Slurm test and actual submission as separate, explicit commands:
+
+```bash
+cd /project/community/jjyeung/b01ec87a6f29b
+A_N=4 A_T=01:15:00 bash SUBMIT.cmd --test-only
+A_N=4 A_T=01:15:00 bash SUBMIT.cmd
+```
+
+The job name is `a15_cot_apb01ec87a6f29b`. `LEDGER.jsonl` retains the exact argv and Slurm response. A nonzero return is a stop, never a relaunch trigger. Change the time/card count only after rerunning the CPU check. Keep the same GPU count on resume because shard identity is immutable.
+
+The runner admits no new records during the last 1,800 seconds. Each worker has a Python timer for 1,200 seconds before allocation end; it abandons an unfinished read and exits 75. This conservative return reserve covers the template's pool/GCS timeout chain (up to about 1,020 seconds plus archive work). The commit section defers that timer until a full JSONL line is fsynced. A Slurm warning creates a shared stop marker. Python timers cannot interrupt an indefinitely blocked kernel or filesystem call; no successful wall-time guarantee is claimed for that failure mode.
+
+## Fetch and resume
+
+The template returns `result.tar.gz`, `EXIT.json`, `JOB.log`, and `RETURN_RECEIPT.json` to `/project/community/jjyeung/okh7/ae71c903/<return-token>` and attempts its independent GCS return. The return token is the package token followed by the Slurm job ID encoded as eight hex digits. The template enforces its 100 MB shared pool and 90 MB result cap; a full pool blocks the job before staging.
+
+For example, after setting the actual numeric Slurm ID:
+
+```bash
+cd /project/community/jjyeung/b01ec87a6f29b
+J=170999
+R=$(/usr/bin/python3 -I -s -B -c 'import sys; print("b01ec87a6f29b"+format(int(sys.argv[1]),"08x"))' "$J")
+/usr/bin/python3 -I -s -B 3.py fetch --return-token "$R" --out "/tmp/$R"
+```
+
+This fetch runs locally on Orchard and reuses the template's framed `stdout_transfer.emit/receive`. Return `/tmp/$R/0.tgz` and receipts through the operator's existing governed bridge at <=8 MB/s. The exact bridge connection is OPEN; this builder has no Orchard connection authority. Never send result folders or relay node data through a laptop.
+
+The result tar contains `metadata/journals/<type-index>/<gpu-index>/{items.jsonl,environment.json,item_mapping.json,projection.json,...}`, aggregate `metadata/projection.json`, `SUMMARY.json`, `STEPS.jsonl`, and logs. A shard gets its projection after ten reads; the aggregate projection exists even for a shorter stop. Caches, weights and RGB are excluded. A clean partial return is incomplete under the template's `EXIT.json` contract; `SUMMARY.json` distinguishes a deadline stop from a worker failure. Do not treat a partial return as a completed read.
+
+To resume a clean stop, pin its returned archive path, bytes and SHA256 in `a/1.json` under `resume`. Leave the package, input bytes, logical paths, and GPU count unchanged. Rerun the CPU check and explicitly submit again. The job imports only the journal subtree and stable identity, omitting allocation stop/terminal markers. It refuses changed bindings, duplicate records, and torn tails. A killed or failed allocation requires the user's answer first; this package never retries it automatically.
+
+
+## Optional development frames
+
+R0-dev is optional. Its absence does not block the five dev-S1 phases or mark a
+completed dev-S1 read incomplete. Its admitted reads use a separate item set,
+all nine types, the own arm and no perturbations. No development item enters an
+official set or a training stream.
+
+Add the frames archive to `archives` in private `a/1.json`, then add:
+
+```json
+"optional": {
+  "archive": 1,
+  "sha256": "<the full SHA256 of archives[1]>",
+  "root": "/scratch/jjyeung/b01ec87a6f29b/d/8"
+}
+```
+
+The archive SHA256 and exact bytes remain OPEN. The source is trinity-1-18,
+`/scratch/jjyeung/orch_n30/b10_reserve`, for the 98 development rooms and their
+32-frame layout. `archive` is the index of that archive in `archives`; do not
+reuse the example index without checking the list. The job verifies the whole
+archive during staging, then verifies per-scene manifests against the supplied
+FRAMES_MANIFEST pin and every selected RGB before writing a private admission
+receipt. Missing receipts skip the phase; changed receipts refuse. The phase
+starts last and obeys the same stop and completion deadlines.
+
+The adapter requires `<root>/<dataset>/<scene>/manifest.json`, preserving the
+producer's pinned bytes. Each manifest must expose a `frames` list with `index`,
+relative `path`, and full `sha256`; paths resolve under `root`. The producer's
+per-scene files were not supplied here. Their schema and archive layout must be
+confirmed before staging; an incompatible schema refuses admission. No RGB or
+per-frame hashes were fabricated. The canonical item IDs retain the original
+`qid` and add a digest of each source row because two source qids occur twice.
+
+## Merge and score
+
+Use the kit's `h1eval.h10.merge --type-layout` entry for the complete
+`metadata/journals/0..4/<gpu>` return. Pass all five type directories' GPU
+subdirectories; an incomplete phase, missing shard, duplicate or foreign tuple,
+or changed binding refuses. A complete optional phase merges separately with
+the existing single-set entry, its `metadata/journals/5/<gpu>` directories and
+`--items items/r0dev.json`. Never combine the two item sets.
+
+M2 uses the journaled b04 `output.scores.answer` when present and the unchanged
+benchmark answer scorer otherwise. Accuracy is independent of call service.
+Reports and curves show per-type unserved/error counts divided by total calls;
+a type with no calls has an undefined call rate. The R0 report puts each type's
+accuracy/MRA next to the pinned b10 f32 no-information constant, both on a 0–1
+scale. Raw model answers are never converted or reformatted.
+
+## Reader repin after review
+
+The package pins b04's reviewed bestspread grounding (`e2e_reader/grounding.py`
+SHA prefix `d9b7e6f3`, provider `e2e_minarea_bestspread_v1`) through
+`orchard_h10/F4_REPIN_SPEC.json`. To repin again, create a JSON
+file inside K with `source` naming a directory whose only files are the full
+`e2e_reader/*.py` inventory, and `sha256` mapping each relative path to its full
+expected hash. Run through `cpu.sh`:
+
+```bash
+LANE_TEST_OUTPUT="$PWD/tmp/b9" bash cpu.sh -m orchard_h10.build \
+  --out "$PWD/orchard_h10/package" --refresh --reader-repin "$PWD/<spec>.json"
+```
+
+The option refuses missing, extra, symlinked or changed files. It requires the
+complete existing reader inventory and appends old/new per-file hashes to
+BUILD_REPORT. Refresh without this option retains the reader bytes already in
+the code tar. A repin changes the package plan; rerun the full CPU suite,
+inventory and operator admission before any explicitly authorized submission.
+
+The export hash cache is private to one allocation. Its locked receipt binds the
+full hash to the export path, resolved file paths, device/inode, size, mtime,
+ctime and allocation ID. Any changed identity forces a full rehash. The export
+is read-only during decoding; this cache does not bypass staged archive or
+artifact validation. No receipt is reused across allocations.
+===OPEN
+# Open Orchard inputs
+
+Production submission is blocked until the operator resolves these rows. This build submitted and uploaded nothing.
+Confirm exact existing Orchard archives before transferring. Use one governed archive transfer at a time, at <=8 MB/s through Trinity; no folder or per-file transfers.
+Plan more than ~30 GB through the head node with an admin. Prefer the generation-pinned cloud export to bringing the 21.6 GB export through Trinity.
+
+- **code archive**: 5292625 bytes; SHA256 `4847ad12194edae7f3d573baef4bff8120db89b4495e7e54bcf474d5caf90676`. Registry: new local package. Governed archive upload after ORCH releases GPUs/staging. In-tar 9.json payload_pins binds every source member. Source: `/scratch/jjyeung/orch_n30/h1_headsft/kit/orchard_h10/package/0.tgz`.
+- **step-544 archive**: 21583032320 bytes; SHA256 `3ed73aead82cb0bb6468321256ea25e8fdaa5a2963da31062fdf8874bda2d4c7`. Registry: not listed. Operator uses the governed Orchard transport to materialize the four pinned objects once; verify whole SHA256. Do not substitute the template D0 fetch_and_stage(), which targets run 359fcc3c. Source: `TRANSPORT.json: four generation-pinned GCS objects; this is cloud availability evidence, not proof of Orchard disk residency`.
+- **artifact**: 11474 bytes; SHA256 `1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef`. Registry: not listed. Contained in the step-544 archive; no separate copy. Source: `step-544 m544/artifact.json`.
+- **heads**: 2763214343 bytes; SHA256 `8bb5e1510ee3a5a3959e82f2149c69903e98f46880b8a038bf4b951b8c21de91`. Registry: not listed. Contained in the step-544 archive; no separate copy. Source: `step-544 m544/heads.pt`.
+- **full_weights**: 1794 bytes; SHA256 `211ae87b0bb03bb0c3d43c1c1412e0f346591ab4ddc75b4d754de2740da0a302`. Registry: not listed. Contained in the step-544 archive; no separate copy. Source: `step-544 m544/full_weights/full_weights.json`.
+- **native FRAMES.json**: 1311843 bytes; SHA256 `c5e0dad804a59bb6f4932137d129e3a7dc1cf675e6342ff94e36979b7ca29439`. Registry: not listed. Included in the code archive; no separate staging. Source: `/scratch/jjyeung/orch_n30/b04_e2ehook/work/meta/x/sj/orch_cd/legs1_reads/work/vendor/r3/FRAMES.json`.
+- **native DENSE_MANIFEST.json**: 1761872 bytes; SHA256 `4fef3415587c918f422515c0cf74565b77a1f90f4ef63d77c73718364e7fbc10`. Registry: not listed. Included in the code archive; no separate staging. Source: `/scratch/jjyeung/orch_n30/b04_e2ehook/work/meta/x/sj/orch_cd/evalx/work/milestone/raw_g3t_20261114/admission/DENSE_MANIFEST.json`.
+- **native TASKS.jsonl**: 1992844 bytes; SHA256 `a2f3fdbdab06ab81942d44044d85090df8ec5b86908cf010cdbcb17e35637f5e`. Registry: not listed. Included in the code archive; no separate staging. Source: `/scratch/jjyeung/orch_n30/b04_e2ehook/work/meta/x/sj/orch_cd/legs1_reads/work/vendor/r3/TASKS.jsonl`.
+- **native CAMERA_TASKS.jsonl**: 801941 bytes; SHA256 `f59090ffc8fd0f4d80a2b049e2624660c0f46dbc1d26016145f4747850a432ac`. Registry: not listed. Included in the code archive; no separate staging. Source: `/scratch/jjyeung/orch_n30/b04_e2ehook/work/meta/x/sj/orch_cd/legs1_routed/out2/CAMERA_TASKS.jsonl`.
+- **native config.json**: 17691 bytes; SHA256 `78341acb36ffd03b9cec6de65effc9fafcbe8bccdc1dfb43e9da7bd88af47560`. Registry: not listed. Included in the code archive; no separate staging. Source: `/scratch/jjyeung/orch_n30/b04_e2ehook/work/meta/x/fsw/ap/8865619b/runs/469ddece/inputs/prepare_dd26bb95f37a43789206c6e4d4cd94bd/config.json`.
+- **native s1_receipt.json**: 83542 bytes; SHA256 `34cf26a691728802db8d47766c42bd4045c5481fe1f27c09a486abafaec1a3d6`. Registry: not listed. Included in the code archive; no separate staging. Source: `/scratch/jjyeung/orch_n30/b04_e2ehook/work/meta/x/fsw/ap/8865619b/runs/469ddece/inputs/prepare_dd26bb95f37a43789206c6e4d4cd94bd/prepared/s1_receipt.json`.
+- **native data_receipt.json**: 80338 bytes; SHA256 `ebc2983ef7ba33e2e77f4435fff7a031b633a449ef9311622ecab653ea759f40`. Registry: not listed. Included in the code archive; no separate staging. Source: `/scratch/jjyeung/orch_n30/b04_e2ehook/work/meta/x/fsw/ap/8865619b/runs/469ddece/inputs/data_receipt.json`.
+- **native request.json**: 3137884 bytes; SHA256 `a0addacd055b1062a900e1bc71fb386f110ea00aafbf53023bd454dde69ee058`. Registry: not listed. Included in the code archive; no separate staging. Source: `/scratch/jjyeung/orch_n30/b04_e2ehook/work/n13/ret/native/paired/request.json`.
+- **native reader_policy.py**: 14313 bytes; SHA256 `ab5080c1c9c840a71b1b9b6333ffc9e9b84d5bab50367cb8e53f8dff618c316f`. Registry: not listed. Included in the code archive; no separate staging. Source: `/scratch/jjyeung/orch_n30/b04_e2ehook/work/c8r/sj/orch_cd/evalx/work/milestone/native/out2/reader_policy.py`.
+- **dev-S1 RGB**: 1773951824 bytes; SHA256 `OPEN`. Registry: not listed. Operator checks Orchard for an exact archive by manifest first. Otherwise archive once on the owning compute node and transfer at <=8 MB/s, never file-by-file. Archive SHA256 is OPEN; preserve all 32/64 dense frames. Source: `job 170056; /scratch/jjyeung/devs1_frames on trinity-1-18; every RGB digest is in the pinned FRAMES/DENSE metadata`.
+- **G3T weights**: 5300000000 bytes; SHA256 `prefix:d460957b`. Registry: not listed. Obtain the full hash and exact size; governed archive at <=8 MB/s if not already authenticated on Orchard. Source: `trinity-1-18 /scratch/jjyeung/k1/g3t/model.safetensors; b04 STATUS estimate`.
+- **G3T config**: OPEN bytes; SHA256 `prefix:5aeb2acd`. Registry: not listed. Obtain full hash and size with the G3T archive. Source: `trinity-1-18 /scratch/jjyeung/k1/g3t/config.json`.
+- **SAM 3 checkpoint**: OPEN bytes; SHA256 `9999e2341ceef5e136daa386eecb55cb414446a00ac2b55eb2dfd2f7c3cf8c9e`. Registry: not listed. Obtain exact size and an authorized accessible source; governed archive at <=8 MB/s. Do not access the stopped 1-13 lane. Source: `b05 stage/sam3.pt; tree/student_pilot/sam3_tower.py CHECKPOINT_SHA256`.
+- **SAM 3 source**: OPEN bytes; SHA256 `OPEN`. Registry: not listed. Archive the exact reviewed source with vocabulary assets; pin archive size/SHA and every source file through the SAM receipt. Source: `upstream revision 5dd401d1c5c1d5c3eedff06d41b77af824517619`.
+- **SAM 3 receipt**: OPEN bytes; SHA256 `OPEN`. Registry: not listed. Obtain the actual receipt, full hash and size; it must bind the checkpoint, upstream revision and source_files. Source: `b05 lane/code/owngrd/vendor/SAM3_RECEIPT.json; host binding not available here`.
+- **run_iso selector_head.json**: 6541 bytes; SHA256 `63aa0a6995890c1d555062f1187a900809e998b8da021bbe2b6a3777b41fea5e`. Registry: not listed. Operator archives both files once, verifies the weight digest, and transfers at <=8 MB/s. No tensor file is copied by this build. Source: `/scratch/jjyeung/orch_n30/b04_e2ehook/heads/selector/work/run_iso/selector_head.json`.
+- **run_iso selector_head.safetensors**: 207328 bytes; SHA256 `6d97c52407b7e106a7b475040558ba313589514c23c33b6994f4e7a0bb1df6c1`. Registry: not listed. Operator archives both files once, verifies the weight digest, and transfers at <=8 MB/s. No tensor file is copied by this build. Source: `/scratch/jjyeung/orch_n30/b04_e2ehook/heads/selector/work/run_iso/selector_head.safetensors`.
+- **original model manifest archive**: 10240 bytes; SHA256 `8005668fc14ce5ee088d0d631d581f62ca73e6cb8130fde4a2deb73de74f635b`. Registry: not listed. Include this metadata archive in the governed input archive; stage_restore authenticates the member against the original receipt. Source: `/scratch/jjyeung/orch_n30/b04_e2ehook/work/n13/obj/model_8005668fc14ce5ee.tar`.
+- **original processor assets**: 7037953 bytes; SHA256 `OPEN`. Registry: not listed. Obtain the archive SHA256; its ~7 MB size is local stat evidence. Unpack config/tokenizer/processor assets, then stage_restore verifies each against the original model manifest. The registry base archive has a different manifest and does not prove these bytes. Source: `/scratch/jjyeung/orch_n30/b04_e2ehook/work/n13/obj/base_small.tgz`.
+- **Python environment with torch, torchvision, transformers >=5.12, scipy**: OPEN bytes; SHA256 `OPEN`. Registry: version set not proven. Reuse the template runtime archives, then supply any missing packages in one authenticated archive and an exact versions receipt. Include SAM dependencies (iopath, portalocker, ftfy, timm, pycocotools, wcwidth) and Python runtime closure. No install or download in the job. Source: `Template runtime groups below; optional compatible overlay under the stable data root`.
+- **vnice**: OPEN bytes; SHA256 `3ab2b542726f32dbecdbe30104f903aa2bef3526a9257013fd5f8bcc99461c6b`. Registry: hash only; path not recorded. Operator supplies the exact logical script path and an authorized policy receipt. Authenticate scripts after runtime staging; workers run under vnice. Never start, stop, or bypass a terminator. Source: `ORCHARD_ASSETS.json`.
+- **terminator**: OPEN bytes; SHA256 `cbb91ba7455d15007bd3affeb358dc5693f3845949ee0abacf892a4402748b94`. Registry: hash only; path not recorded. Operator supplies the exact logical script path and an authorized policy receipt. Authenticate scripts after runtime staging; workers run under vnice. Never start, stop, or bypass a terminator. Source: `ORCHARD_ASSETS.json`.
+- **R0-dev f32 RGB (optional)**: OPEN bytes; SHA256 `OPEN`. Registry: not listed. Archive SHA256 OPEN. Preserve f32 layout and per-scene manifests pinned by FRAMES_MANIFEST.json; stage only after archive verification. Missing input skips the last phase. Source: `trinity-1-18 /scratch/jjyeung/orch_n30/b10_reserve frames for 98 development rooms`.
+
+The real-JSON regression fixture is also unavailable at /dev/shm/jjyeung/h1tmp/from118. It is a local validation input, not an Orchard runtime dependency.
+===STAGING
+# Orchard staging contract
+
+No remote presence was checked. “Yes” below means the template registry recorded the exact asset on 2026-11-13; the job reauthenticates its bytes.
+The registry does not prove that job 170056’s frames, G3T, SAM 3, selector, or the step-544 export remain staged.
+
+Package: `orchard_h10/package`. Plan SHA256: `b6440cf4665a4a7c6f70cbb11b769149df32da9257696966a2e4457152e920a0`.
+The code archive contains tree/, h1eval/, auth/, rows/, the dev-S1 item file, reviewed b04 code, parity_kit dependencies and pinned native metadata. It contains no weights or RGB.
+In-tar 9.json lists every member with size and SHA256; template_pins records the unmodified transport source. TOKENS.json stays on Trinity.
+
+| Input | Expected SHA256 | Bytes | Template registry |
+|---|---|---:|---|
+| code archive | `4847ad12194edae7f3d573baef4bff8120db89b4495e7e54bcf474d5caf90676` | 5292625 | new local package |
+| step-544 archive | `3ed73aead82cb0bb6468321256ea25e8fdaa5a2963da31062fdf8874bda2d4c7` | 21583032320 | not listed |
+| artifact | `1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef` | 11474 | not listed |
+| heads | `8bb5e1510ee3a5a3959e82f2149c69903e98f46880b8a038bf4b951b8c21de91` | 2763214343 | not listed |
+| full_weights | `211ae87b0bb03bb0c3d43c1c1412e0f346591ab4ddc75b4d754de2740da0a302` | 1794 | not listed |
+| native FRAMES.json | `c5e0dad804a59bb6f4932137d129e3a7dc1cf675e6342ff94e36979b7ca29439` | 1311843 | not listed |
+| native DENSE_MANIFEST.json | `4fef3415587c918f422515c0cf74565b77a1f90f4ef63d77c73718364e7fbc10` | 1761872 | not listed |
+| native TASKS.jsonl | `a2f3fdbdab06ab81942d44044d85090df8ec5b86908cf010cdbcb17e35637f5e` | 1992844 | not listed |
+| native CAMERA_TASKS.jsonl | `f59090ffc8fd0f4d80a2b049e2624660c0f46dbc1d26016145f4747850a432ac` | 801941 | not listed |
+| native config.json | `78341acb36ffd03b9cec6de65effc9fafcbe8bccdc1dfb43e9da7bd88af47560` | 17691 | not listed |
+| native s1_receipt.json | `34cf26a691728802db8d47766c42bd4045c5481fe1f27c09a486abafaec1a3d6` | 83542 | not listed |
+| native data_receipt.json | `ebc2983ef7ba33e2e77f4435fff7a031b633a449ef9311622ecab653ea759f40` | 80338 | not listed |
+| native request.json | `a0addacd055b1062a900e1bc71fb386f110ea00aafbf53023bd454dde69ee058` | 3137884 | not listed |
+| native reader_policy.py | `ab5080c1c9c840a71b1b9b6333ffc9e9b84d5bab50367cb8e53f8dff618c316f` | 14313 | not listed |
+| dev-S1 RGB | `OPEN` | 1773951824 | not listed |
+| G3T weights | `prefix:d460957b` | 5300000000 | not listed |
+| G3T config | `prefix:5aeb2acd` | OPEN | not listed |
+| SAM 3 checkpoint | `9999e2341ceef5e136daa386eecb55cb414446a00ac2b55eb2dfd2f7c3cf8c9e` | OPEN | not listed |
+| SAM 3 source | `OPEN` | OPEN | not listed |
+| SAM 3 receipt | `OPEN` | OPEN | not listed |
+| run_iso selector_head.json | `63aa0a6995890c1d555062f1187a900809e998b8da021bbe2b6a3777b41fea5e` | 6541 | not listed |
+| run_iso selector_head.safetensors | `6d97c52407b7e106a7b475040558ba313589514c23c33b6994f4e7a0bb1df6c1` | 207328 | not listed |
+| original model manifest archive | `8005668fc14ce5ee088d0d631d581f62ca73e6cb8130fde4a2deb73de74f635b` | 10240 | not listed |
+| original processor assets | `OPEN` | 7037953 | not listed |
+| Python environment with torch, torchvision, transformers >=5.12, scipy | `OPEN` | OPEN | version set not proven |
+| template runtime 0/0 | `273174ae1d1bc812a8843b3e2eec77e77b66b4a10d60c8871ea47529c395e2d7` | 900000000 | yes |
+| template runtime 0/1 | `c733222251bfa18ca823a719e025e3924fda21cffffc6f50cd19bb8ece4860a3` | 721422080 | yes |
+| template runtime 1/0 | `a4ca7e645d1c4384bdb9506ef3e823e3964e18948f48cc627709f843744ea976` | 900000000 | yes |
+| template runtime 1/1 | `beca0e524255eb310d978ec092bfab080f45e36e05ae99bfc2c3e6aeb0882e9a` | 900000000 | yes |
+| template runtime 1/2 | `508e09bcce4652471a5f3115344c2ab2e2fde61cc3db17d872d45c37861087c1` | 900000000 | yes |
+| template runtime 1/3 | `6f25823a68896cbf0dc87ae26a9e4d2fa25d57b1d52739c22ccad5c5d49214ef` | 900000000 | yes |
+| template runtime 1/4 | `139fcc93fb1b36552564fceacf201127586c237d03f43b8e3c8e45d116f1be97` | 900000000 | yes |
+| template runtime 1/5 | `1cd72e6e222dbe15efab47d01adeca45aaecf3f62fcd52a6e72dd7786b307489` | 900000000 | yes |
+| template runtime 1/6 | `010b1302ce0ec32d1db758a4bf503e9cca4583e898ec868be4dc613694f50ed6` | 900000000 | yes |
+| template runtime 1/7 | `32687478f272e14632411099b316fdbb6b2d1587708ccd1893c4819a2511ba19` | 900000000 | yes |
+| template runtime 1/8 | `d571f17a5ed9e03514ec4553919cdebacb33fe037cad39d8f0aadb1cfafcb4fc` | 900000000 | yes |
+| template runtime 1/9 | `128dfaca7b744e0cf884b7caf1bc15080fab549b8e26107adb5a9b8d2b5a51a5` | 366728960 | yes |
+| template runtime 2/0 | `4b11b4df5ebf8a20e5c73e5ae09f4f4695f79b44e0223254a8bbaad84127b6b3` | 409282560 | yes |
+| template base_manifest | `ae9247f7c316e7661bfbe4301c28d75b6871db7427d675b8e1cc4c0c41b4b252` | OPEN | yes |
+| template bwrap_pin | `e318903862396f96de3df57264e0158682b952fd3fb53ac23d876413e7b30f71` | 72160 | yes |
+| template camera_archive | `9eb53a96642d8bc0c731bd49861a6ce1935c9013e9eb9147da4d94df6f760ff5` | 3686400 | yes |
+| template base archive | `OPEN` | 19329320960 | yes |
+| vnice | `3ab2b542726f32dbecdbe30104f903aa2bef3526a9257013fd5f8bcc99461c6b` | OPEN | hash only; path not recorded |
+| terminator | `cbb91ba7455d15007bd3affeb358dc5693f3845949ee0abacf892a4402748b94` | OPEN | hash only; path not recorded |
+| R0-dev f32 RGB (optional) | `OPEN` | OPEN | not listed |
+
+INPUT_CATALOG.json records the source and transfer requirement for every row. OPEN_INPUTS.md lists all inputs without proof of Orchard residency.
+Unknown sizes and hashes are explicitly OPEN. Estimates are not authenticated sizes. Production admission requires full hashes and exact byte counts in 1.json.
+See OPERATIONS.md for the stable archive layout, login CPU check, submission, return, and resume commands.

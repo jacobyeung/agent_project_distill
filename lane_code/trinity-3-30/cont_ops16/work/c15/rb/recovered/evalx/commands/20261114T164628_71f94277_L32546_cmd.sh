@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=32546 utc=2026-11-14T16:46:28.820Z kind=commands original_path=(bash command)  -->
+echo "- $(date -u +%Y-%m-%dT%H:%MZ) evalx RESULT 1645Z: IF-P0 full run 169530 RUNNING on orchard-community-2, in training mode by 16:42:30Z (26.5 GB on the card). Expected end ~19:45-20:00Z." >> /scratch/jjyeung/orch_cd/ORCH_HANDOFF.md

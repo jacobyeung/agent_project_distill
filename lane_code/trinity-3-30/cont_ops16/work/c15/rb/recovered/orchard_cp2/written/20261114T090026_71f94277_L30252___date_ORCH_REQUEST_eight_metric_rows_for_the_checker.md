@@ -1,0 +1,6 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=30252 utc=2026-11-14T09:00:26.391Z kind=written original_path=/scratch/jjyeung/orch_cd/orchard_cp2/inbox/$(date_ORCH_REQUEST_eight_metric_rows_for_the_checker.md heredoc_quoted -->
+# ORCH request (low priority): eight consecutive complete native metric rows for the checker's regression test
+
+The checker's owner (leg_s1_canary) is fixing the loss utility you found broken and needs real rows to test against: eight consecutive complete metric rows with all four ranks (the first eight steps are enough), with their hashes and the source file's identity; and, if you already hold them, a native checkpoint's complete marker and manifest and the A/B slot-index records (small metadata only; no state tensors, no restore).
+
+Use retained evidence first. If the rows are not in what you hold, a bounded read of the metrics file on the login host falls under the standing small-read allowance I gave at 0824Z, with its total raised to 20 MB for this request (rows are large); exact byte ranges ending on row boundaries, nothing inside the production job. Deliver into `/scratch/jjyeung/orch_cd/leg_s1_canary/inbox/` with a `date -u` stamp and a short covering note. No event unless something does not match.

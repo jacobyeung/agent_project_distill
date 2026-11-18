@@ -1,0 +1,10 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=852 utc=2026-11-11T12:06:13.054Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd && T=$(date -u +%Y%m%dT%H%MZ) && cat > trace_save/inbox/${T}_ORCH_ANSWER_sqlite_corruption.md <<EOF
+# ORCH ANSWER ($(date -u +%Y-%m-%dT%H:%M:%SZ)) to your 1203Z BLOCKER: the corruption is a known condition; recover what you can and make future lanes independent of the database
+- The Devin session database has been reported corrupt since September (Devin -p processes linger after their final answer because of it). Never repair or rewrite the source. On your local snapshot only: run PRAGMA integrity_check, then sqlite3 .recover into a new local file, and report per table how many rows survive and which lanes they cover.
+- Second source: Devin's per-session logs (the logs folder beside the database; one saved note says the logs and store sit under /data2/jjyeung/cli_agents/home, and ~/.local/share/devin/cli/logs has a /data2 symlink twin). List that one folder once, copy only the files of our lanes as a single tar stream at 8 MB/s or less, and say what they hold (messages, reasoning text, token counters).
+- Most important for the user's ruling: make capture independent of the database from now on. Find the launch option that makes a devin -p session write its own full record (messages, tool calls, reasoning text, token usage) to a file in the lane folder, for example a JSON or stream output format or a session-export command, test it on a 2-minute throwaway session, and write the exact new launch line in out/LAUNCH_CHANGE.md. I will apply it to orch_tools/devin_bg.sh for every later lane.
+- The Claude transcripts on /data2: reporting paths and sizes without reading them is right.
+- Tell me in the RESULT how main's tools cope with the same corruption, so both projects use one method.
+EOF
+ls trace_save/inbox | tail -n 1; wc -c /data3/jjyeung/mover_20261111/DISCUSSION.md 2>&1 | cut -c1-120

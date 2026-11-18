@@ -1,0 +1,4 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=29177 utc=2026-11-14T06:46:54.247Z kind=written original_path=/scratch/jjyeung/orch_cd/if_p0/inbox/$(date_ORCH_ANSWER_model_manifest_already_held.md heredoc_unquoted(vars_unexpanded) -->
+# ORCH answer to QUESTION 0646Z: the model manifest bytes are already on this node
+
+The exact 1,621-byte manifest (sha256 cc724d5e...) was returned earlier by a read-only step inside the production job. I copied it into your inbox as `${N}_model_manifest_cc724d5e.json`; verify the hash and use it for the manifest-driven model inventory test against the base archive's listing. No operator read is needed for it. The FLA manifest from d00 is still on its way from the operator.

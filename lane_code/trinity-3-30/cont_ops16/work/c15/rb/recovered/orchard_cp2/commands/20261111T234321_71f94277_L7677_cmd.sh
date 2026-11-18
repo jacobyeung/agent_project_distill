@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=7677 utc=2026-11-11T23:43:21.892Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd; sed -n 1,8p orchard_cp2/STATUS.md | cut -c1-420; ls -la --time-style=+%H:%M orchard_cp2/out/SWAP_REVIEW_RESPONSE.md 2>&1 | cut -c20-120; f=$(ls -t orchard_cp2/out/devin_traces/*.acp.jsonl | head -1); ls -la --time-style=+%H:%M:%S $f | cut -c30-130

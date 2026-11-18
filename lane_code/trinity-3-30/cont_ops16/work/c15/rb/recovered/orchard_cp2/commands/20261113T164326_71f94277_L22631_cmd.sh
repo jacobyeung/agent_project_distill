@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=22631 utc=2026-11-13T16:43:26.964Z kind=commands original_path=(bash command)  -->
+C=/scratch/jjyeung/orch_cd/orchard_cp2; date -u +%H:%M:%SZ; sed -n '3,6p' $C/STATUS.md | cut -c1-600; echo ==; ls -lt --time-style=+%H:%M $C/out | head -n 6; ls -lt --time-style=+%H:%M $C/events | head -n 3; ls -lt --time-style=+%H:%M $C/logs 2>/dev/null | head -n 5; tail -n 2 $C/out/production_169097/project_free.jsonl | cut -c1-110

@@ -1,0 +1,2 @@
+<!-- recovered by seal_plan: transcript=71f94277 line=9174 utc=2026-11-12T03:16:22.375Z kind=commands original_path=(bash command)  -->
+cd /scratch/jjyeung/orch_cd/dose_pool; sed -n 636,642p out/T1_REMOVABLE.md | cut -c1-600; d=$(sed -n 5p out/T1_REMOVABLE.md | cut -f1 | xargs dirname); echo "dir: $d"; ls -la "$d" | cut -c1-200 | head -8; d2=$(sed -n 645p out/T1_REMOVABLE.md | cut -f1 | xargs dirname); echo "dir2: $d2"; ls -la "$d2" 2>/dev/null | cut -c1-200 | head -8; grep -n -i -E "GT\.npz" STATUS.md | cut -c1-400 | tail -6
