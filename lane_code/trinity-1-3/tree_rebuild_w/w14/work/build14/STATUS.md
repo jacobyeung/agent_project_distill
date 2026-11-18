@@ -1,3 +1,3 @@
 # Build 14 status
 
-Host verified as trinity-1-3. Build rules and inherited reports read. Config and initializer audit is in progress. No source edits or qualification claims yet. GO=false.
+GO=false. A/C admission remains blocked by the compared routing opener policy. Last final check: storage, exit 0. See FINAL_RUNS.json.

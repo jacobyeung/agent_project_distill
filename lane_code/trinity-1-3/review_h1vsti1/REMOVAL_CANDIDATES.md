@@ -1,0 +1,1 @@
+- /scratch/jjyeung/orch_n30/review_h1vsti1/work/{fork,h1read,h1read_link,synth}: reviewer test copies, removable after h1vsti reads land

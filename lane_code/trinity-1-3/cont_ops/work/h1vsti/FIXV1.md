@@ -46,17 +46,17 @@ The source schema has `dataset` and `scene`, without a `room` key. The uploaded 
 
 R6 reuses a7's `d81f4a26.tar` at its existing staged destination. All 2,176 required frame members match by SHA256, covering 564,411,344 bytes. Missing frames and additional frame bytes are both **zero**. The source item, reader-layout and capture pins appear in the upload plan and `evidence/FIXV1_ASSETS.json`. The local ID map and summary tool never enter the Orchard package.
 
-Validation currently passes the eight small r6 tests and seven step-544 tests. Full suites, real-RGB runtime fixtures, legacy matrix and resealing await the requested heavy-I/O authorization. The pending request follows the supplied Trinity rule, “Ask before any heavy IO command”; the full gate repeatedly reads the 798 MB local archive. No test failure or cluster kill caused this pause. The inherited FINAL_PINS/SHA256SUMS do not authenticate the edited fork; resealing remains required before submission.
+All suites, real-RGB runtime fixtures and 106 legacy plan comparisons pass. The Validation section below records counts, log paths and this fork's final seal. Validation required no code changes.
 
-The operator commands below were not executed. All working paths point into h1vsti. `tools/operator_transport.sh` is a local entry point for the existing approved site transport; it is not packaged for Orchard. Use the uploaded question file, the pinned existing frame archive, completed export receipts and an authorized allocation.
+The operator commands below were not executed. All working paths point into h1vsti. The commands use FIX6's approved `ossh.sh` transport directly; `tools/operator_transport.sh` only forwards to that same script and is not required. Use the uploaded question file, the pinned existing frame archive, completed export receipts and an authorized allocation.
 
 ```bash
 set -euo pipefail
 cd /scratch/jjyeung/orch_n30/cont_ops/work/h1vsti
 export PYTHONDONTWRITEBYTECODE=1
-PY=python3
+PY=/scratch/jjyeung/envs/p1cpu/bin/python
 L=$PWD/kit/launcher/orchard_launcher.py
-export A_TRANSPORT=$PWD/tools/operator_transport.sh
+export A_TRANSPORT=/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/tools/ossh.sh
 
 TOKEN_544=a$("$PY" -B -c 'import secrets; print(secrets.token_hex(5))')
 STEP544=$PWD/kit/build/$TOKEN_544
@@ -103,3 +103,41 @@ After each job ends, retain its original destination and token. Restore those va
 Orchard job 171197 recorded **768.974 seconds** for **1,781 a7 items**, with about **17 minutes total wall time** (`../h1read/kit/build/adff67f7ae9/fetched/x/SUMMARY.json:104`). Scaling its chain time gives `769 × 900 / 1781 ≈ 389 seconds`. Adding the observed approximately 251 seconds of overhead gives **about 640 seconds, or 11 minutes per read**. Allow **15–20 minutes per read** for prompt-length and continuation differences; this is an extrapolation. The six-hour allocation remains unchanged.
 
 No network, SSH, Slurm, GPU, Git, deletion, production preparation or submission was performed. All writes and test fixtures stay within h1vsti. h1read and the two source packets remain read-only.
+
+## Validation
+
+Completed 2026-11-18 10:17:38Z, before the 11:05Z deadline. Every suite listed in REPORT.md passes under `/scratch/jjyeung/envs/p1cpu/bin/python`. Fixture writes remain under `evidence/test_*`; h1read and the packets remain read-only.
+
+| Suite or check | Passed | Failed | Log under evidence/ |
+|---|---:|---:|---|
+| R6 admission, population, capture, summary and legacy matrix | 9 | 0 | `evidence/FIXV1_NEW_TESTS.log` |
+| FIX6 regressions | 7 | 0 | `evidence/FIXV1_FIX6_TESTS.log` |
+| FIX5 regressions | 6 | 0 | `evidence/FIXV1_FIX5_TESTS.log` |
+| FIX4 regressions | 10 | 0 | `evidence/FIXV1_FIX4_TESTS.log` |
+| Step-544 admission | 7 | 0 | `evidence/FIXV1_TARGETED.log` |
+| Real-RGB unfiltered a7 runtime | 4 items | 0 | `evidence/FIXV1_RUNTIME.log` |
+| Real-RGB direct-filter a7 runtime | 3 items | 0 | `evidence/FIXV1_RUNTIME_DIRECT.log` |
+| Real-RGB r6 runtime | 6 items | 0 | `evidence/FIXV1_RUNTIME_R6.log` |
+| Full candidate | 133 | 0 | `evidence/FIXV1_TESTS.log` |
+| Ported readk | 53 | 0 | `evidence/FIXV1_READK_PORTED.log` |
+| Original readk reference | 53 | 0 | `evidence/FIXV1_READK_REFERENCE.log` |
+| Reviewer refute | 4 | 0 | `evidence/FIXV1_REFUTE.log` |
+| Legacy plan comparisons (included in r6 suite) | 106 plans | 0 | `evidence/FIXV1_NEW_TESTS.log` (`R6_LEGACY_PLANS`) |
+| Final pin test | 1 | 0 | `evidence/FIXV1_FINAL_PIN_TEST.log` |
+| SHA256 manifest | 250 files | 0 | `evidence/FIXV1_SHA256_CHECK.log` |
+| Operator shell syntax (`bash -n`) | 1 | 0 | `evidence/FIXV2_OPERATOR_CHECK.log` (empty on success) |
+
+The legacy matrix compares serialized plan bytes and `plan_sha256` against authenticated h1read fix 6: 8 cases for `359fcc3c`, 32 for `17c4ffa4`, 2 for `469ddece`, 32 for `673bc60f`, and 32 for `05b8ac69`. It covers main and a7 separately wherever admitted, both filters, every registered milestone, and both endpoints of each admitted stop-generation range. Step 544 admits a7 only among the legacy families. The reference FINAL_PINS SHA256 is `7891b795c3d0600ac2e45689c13ccf200756cfc450581ca485fff2105abb488b`. `evidence/FIXV1_AUDIT.json` retains every case, suite count, log digest and fixture path. CONFIG integrity pins authenticate the fork and are not claimed byte-identical.
+
+Both r6 identities prepare successfully with and without the direct filter, retaining 900 items and 150 per type. Unregistered combinations refuse. The source-preservation and synthetic-summary tests pass, including the byte-identical capture pin. The six-item r6 runtime covers every type with real RGB frames and the actual worker, evaluator, budget derivation and mergers. Engine, model staging and parity probes are mocked; these results establish offline execution, not live GPU parity or production accuracy.
+
+No suite failed, and no code fix was necessary. All 122 files in the recorded kit/tools/tests inventory retain their V2 entry hashes. The requested command corrections are at `FIXV1.md:57` (Python), `FIXV1.md:59` (transport), `REPORT.md:23` (validation Python), and `evidence/FIXV1_OPERATOR_COMMANDS.sh:4,6`. The transport uses FIX6's `ossh.sh` directly; the local forwarding wrapper is not required. Operator commands were syntax-checked but not executed.
+
+Two execution-helper errors and their causes are recorded in `evidence/FIXV2_EXECUTION_NOTES.log`: the sandbox refused tmux's socket, and system Python lacked `str.removeprefix` in a report helper. The attached session and the required Python interpreter completed the work. No cluster-killed job was retried.
+
+This fork's final seal is:
+
+- `evidence/FINAL_PINS.json` SHA256: `272da0e4c86528fd07db88a8da90c59009b2d494fa5f29e2eed8ec93598e28a1`.
+- `SHA256SUMS.txt` SHA256: `dff33822d81da6f0882516229e733df69fd43d0b139365b59c965bf53d545284`.
+
+`evidence/FIXV1_PRESEAL.log` and `evidence/FIXV1_SEAL.log` record sealing; `evidence/FIXV2_RUN.log` records suite execution times. The final pin test and all 250 checksum entries pass. FIXV1.md and post-seal verification logs stay outside the manifest to avoid circular hashes.

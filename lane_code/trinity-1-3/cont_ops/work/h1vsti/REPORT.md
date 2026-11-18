@@ -1,6 +1,6 @@
 # Separate r6 read kit
 
-**Validation status:** eight r6 tests and seven step-544 tests pass. Full suites and resealing await the pending heavy-I/O approval; the inherited seal is not valid for the edited fork.
+**Validation status:** all suites pass: candidate 133/133, ported and reference 53/53 each, refute 4/4, r6 9/9, FIX6 7/7, FIX5 6/6, FIX4 10/10, and step-544 7/7. Real-RGB runtime fixtures pass 4 unfiltered a7, 3 direct-filter a7 and 6 r6 items. All 106 legacy main/a7 plans match h1read fix 6 byte-for-byte and by hash. `FIXV1.md` records the final seal and verification results.
 
 This fork prepares the 900-item VSTI relative dev read as opaque family `r6`. It admits only run `469ddece`, generation `mstop`, step 544, or run `673bc60f`, milestone 200, with `r6` alone. Decision reads using main and a7 remain on the untouched sibling h1read kit.
 
@@ -20,7 +20,7 @@ The following commands run the complete validation gate. They write only inside 
 set -euo pipefail
 cd /scratch/jjyeung/orch_n30/cont_ops/work/h1vsti
 export PYTHONDONTWRITEBYTECODE=1 OPENBLAS_NUM_THREADS=1
-PY=python3
+PY=/scratch/jjyeung/envs/p1cpu/bin/python
 "$PY" -B tools/test_fix3.py fixv1 > evidence/FIXV1_NEW_TESTS.log 2>&1
 "$PY" -B tools/test_fix3.py fix6 > evidence/FIXV1_FIX6_TESTS.log 2>&1
 "$PY" -B tools/test_fix3.py fix5 > evidence/FIXV1_FIX5_TESTS.log 2>&1

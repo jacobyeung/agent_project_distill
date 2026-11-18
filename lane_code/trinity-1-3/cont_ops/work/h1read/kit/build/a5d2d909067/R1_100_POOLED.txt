@@ -1,0 +1,18 @@
+/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events/pooled_rule/pooled_harm_rule_v3.py:466: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  f.write(json.dumps(dict(e, utc=datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'), output=os.path.abspath(a.output)), sort_keys=True) + '\n')
+type                         dev-S1 delta [95%]         R0-dev delta [95%]           pooled  interval, H1 level   fires
+object_counting               -8.27 [ -14.94,   -2.13]   -4.10 [  -8.55,   +0.39]     -5.27  [ -10.45,   -0.09]   FIRES
+object_rel_direction_easy     +0.67 [  -3.03,   +4.86]   +9.38 [  +1.53,  +17.20]     +5.56  [  -1.14,  +12.17]   
+object_rel_direction_medium   -1.33 [  -7.05,   +3.36]  +20.10 [ +12.37,  +27.84]    +10.76  [  +4.05,  +17.37]   
+object_rel_direction_hard     -6.00 [ -10.62,   -0.84]  +19.79 [ +12.11,  +27.32]     +8.48  [  +1.79,  +15.12]   
+object_rel_distance           -4.00 [  -9.91,   +1.98]   -1.08 [  -5.90,   +3.86]     -2.10  [  -7.45,   +3.17]   
+object_size_estimation        +0.27 [  -3.64,   +4.25]   +1.81 [  -0.51,   +4.27]     +1.29  [  -1.65,   +4.28]   
+route_planning                +2.00 [  -5.38,   +9.66]  -                             +2.00  [  -8.18,  +12.93]   
+obj_appearance_order         -                           +2.85 [  -3.17,   +8.94]     +2.85  [  -5.64,  +10.92]   
+mean of eight (H2 level)                                                              +2.94  [  +1.23,   +4.67]   
+object size split (printed, stops nothing):
+  dev-S1 metric        72 items   -1.25 [  -6.09,   +3.66]
+  dev-S1 imperial      78 items   +1.67 [  -4.23,   +7.58]
+  R0-dev (cm)         293 items   +1.81 [  -0.51,   +4.27]
+mark (printed, stops nothing): loss on one set only, object_rel_direction_hard on dev-S1: -6.00 [-10.62, -0.84]
+verdict: would STOP (calibration read, decides nothing)

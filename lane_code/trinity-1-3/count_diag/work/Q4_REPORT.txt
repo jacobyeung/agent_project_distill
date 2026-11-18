@@ -1,0 +1,40 @@
+
+== dev-S1 direction hard: n=150, rooms=38; GT is a back option on 40
+  question forms: 2x From the X, is the sofa found front-left, front-right, back-left, or back-right? || 2x If I'm at the X, oriented toward the X, which quadrant is the table in: front-left, front- || 2x If I'm at the X, oriented toward the X, which quadrant is the keyboard in: front-left, fro
+  items worded as facing away / opposite direction: 0
+  S544    acc  84.0; answers a back option 29/150; acc on GT-back  62.5 (n=40), on GT-front  91.8 (n=110); answers {'front-left': 67, 'front-right': 54, 'back-left': 16, 'back-right': 13}
+  D0m100  acc  81.3; answers a back option 32/150; acc on GT-back  65.0 (n=40), on GT-front  87.3 (n=110); answers {'front-right': 62, 'front-left': 56, 'back-right': 17, 'back-left': 15}
+      D0m100-S544 all      n=150  -2.67 [ -6.71, +1.43]
+      D0m100-S544 GT back  n= 40  +2.50 [ -8.11,+13.89]
+      D0m100-S544 GT front n=110  -4.55 [ -8.65, +0.00]
+  H1m100  acc  84.7; answers a back option 32/150; acc on GT-back  67.5 (n=40), on GT-front  90.9 (n=110); answers {'front-left': 60, 'front-right': 58, 'back-left': 16, 'back-right': 16}
+      H1m100-S544 all      n=150  +0.67 [ -3.36, +4.65]
+      H1m100-S544 GT back  n= 40  +5.00 [ -7.69,+19.05]
+      H1m100-S544 GT front n=110  -0.91 [ -4.85, +3.16]
+  R1m100  acc  78.0; answers a back option 23/150; acc on GT-back  45.0 (n=40), on GT-front  90.0 (n=110); answers {'front-left': 64, 'front-right': 63, 'back-right': 14, 'back-left': 9}
+      R1m100-S544 all      n=150  -6.00 [-10.49, -0.81]
+      R1m100-S544 GT back  n= 40 -17.50 [-28.21, -7.69]
+      R1m100-S544 GT front n=110  -1.82 [ -5.56, +2.80]
+  R1 vs 544 flips: lost: GT front-left -> R1 front-right x4; lost: GT back-left -> R1 front-left x4; won: GT front-right (544 said front-left) x2; lost: GT back-left -> R1 back-right x2; lost: GT back-right -> R1 front-right x1
+
+== R0-dev direction hard: n=192, rooms=96; GT is a back option on 84
+  question forms: 6x If I am standing by the X, is the blanket to my front-left, front-right, back-left, or bac || 5x If I am standing by the X, is the heater to my front-left, front-right, back-left, or back || 5x If I am standing by the X, is the door to my front-left, front-right, back-left, or back-r
+  items worded as facing away / opposite direction: 71
+  S544    acc  45.8; answers a back option 39/192; acc on GT-back  19.0 (n=84), on GT-front  66.7 (n=108); answers {'front-left': 82, 'front-right': 71, 'back-left': 23, 'back-right': 16}
+  D0m100  acc  58.9; answers a back option 84/192; acc on GT-back  52.4 (n=84), on GT-front  63.9 (n=108); answers {'front-right': 72, 'back-left': 47, 'back-right': 37, 'front-left': 36}
+      D0m100-S544 all      n=192 +13.02 [ +4.69,+21.35]
+      D0m100-S544 GT back  n= 84 +33.33 [+20.00,+46.51]
+      D0m100-S544 GT front n=108  -2.78 [-13.08, +7.14]
+  H1m100  acc  63.0; answers a back option 78/192; acc on GT-back  56.0 (n=84), on GT-front  68.5 (n=108); answers {'front-right': 67, 'front-left': 47, 'back-left': 43, 'back-right': 35}
+      H1m100-S544 all      n=192 +17.19 [ +8.85,+25.52]
+      H1m100-S544 GT back  n= 84 +36.90 [+23.53,+50.00]
+      H1m100-S544 GT front n=108  +1.85 [ -7.14,+10.81]
+  R1m100  acc  65.6; answers a back option 65/192; acc on GT-back  53.6 (n=84), on GT-front  75.0 (n=108); answers {'front-right': 74, 'front-left': 53, 'back-left': 34, 'back-right': 31}
+      R1m100-S544 all      n=192 +19.79 [+12.50,+27.08]
+      R1m100-S544 GT back  n= 84 +34.52 [+20.00,+47.73]
+      R1m100-S544 GT front n=108  +8.33 [ +0.00,+16.36]
+  R1 vs 544 flips: won: GT back-right (544 said front-left) x12; won: GT back-left (544 said front-right) x8; won: GT back-left (544 said front-left) x8; won: GT front-right (544 said front-left) x6; won: GT back-right (544 said front-right) x5; won: GT front-left (544 said back-left) x5; lost: GT front-left -> R1 front-right x4; won: GT front-right (544 said back-right) x3; lost: GT front-right -> R1 back-right x2; won: GT back-left (544 said back-right) x2; won: GT front-right (544 said back-left) x2; lost: GT back-left -> R1 front-left x2
+  R0-dev hard away-worded: n=71, GT back 61; S544 acc 14.1 back answers 14; D0m100 acc 56.3 back answers 54; H1m100 acc 60.6 back answers 53; R1m100 acc 64.8 back answers 53
+    R1m100-S544 +50.70 [+36.23,+64.18]
+  R0-dev hard plain-worded: n=121, GT back 23; S544 acc 64.5 back answers 25; D0m100 acc 60.3 back answers 30; H1m100 acc 64.5 back answers 25; R1m100 acc 66.1 back answers 12
+    R1m100-S544 +1.65 [-5.88,+9.24]
