@@ -52,7 +52,7 @@ findings=[
 ('N1a-3 default deny','Closed','Every config difference outside the documented exact allow-list refuses, including an added null-valued key. P depth_enabled, align and camera changes refuse by name. P topology is constructed from pinned P metadata on meta; the native base group builder compares it with N.','proofs/null_key/results.json; proofs/n1/suite_tree/results.json; NATIVE_FUNCTION_EQUALITY.json'),
 ('Y5 trainer hook','Closed','The native trainer calls the verifier; replacing the call with None fails the clean regression.','proofs/mutations/RESULT.json'),
 ('P handover receipt tool and reader','Closed in CPU proof; production publication blocked','The wrapper tool pins export, full-weights manifest and shards, heads, checkpoint completion and all shard/RNG entries, config, binding, preparation, stream receipts and indices. N requires the receipt pin and matching closure. Forged preparation plus forged completion refuses.','proofs/review_final/results.json; proofs/loader_edges/results.json'),
-('Unicode class','Closed for authored think text','ASCII-only authored think text refuses the reviewed homoglyphs and unknown non-ASCII characters independently in gate and reader; authenticated printed responses keep their provenance checks. Original-slice verdicts are unchanged.','proofs/text_policy/ASCII_CANDIDATE.json; proofs/n1/row_delta/RESULT.json'),
+('Unicode class','Closed for authored think text','ASCII-only authored think text refuses the reviewed homoglyphs and unknown non-ASCII characters independently in gate and reader; authenticated printed responses keep their provenance checks. Original-slice verdicts are unchanged.','proofs/confusables/RESULT.json; proofs/text_policy/ASCII_CANDIDATE.json; proofs/n1/row_delta/RESULT.json'),
 ('Depth initializer paths','Closed as requested','Exact path and hash equality remains. Relocated identical bytes still refuse.','proofs/handover_final/results.json'),
 ('M1 legacy fixed-buffer binding','Closed at artifact loader','The untouched 9fix producer export loads after config-identity/threshold binding. Missing threshold-bearing identity, mismatched threshold, modern missing buffers and tampered heads refuse. Existing legacy entrypoint admission gates remain in force.','proofs/legacy_export/RESULT.json; proofs/depth_sweep/RESULT.json; proofs/review_final/results.json; proofs/loader_edges/results.json'),
 ('Re-pinned fixed buffer','Closed','Every fixed-readout buffer is compared with code constants at load; threshold_ratio uses the evaluator config. A re-pinned doubled stencil refuses.','proofs/review_final/results.json'),
@@ -79,11 +79,15 @@ The genuine 9fix producer emits 192 head tensors without readout_config. Its bou
 
 The modern export/load proof executes an export writer byte-identical to build 11's writer. The load accepts its original buffers and refuses both an independently re-pinned doubled stencil and an old-pin heads-file tamper (`work/build12/NATIVE_FUNCTION_EQUALITY.json`; `work/build12/proofs/review_final/results.json`).
 
+The grounding loader also verifies a real source seal and preparation, reads a native export, forwards the evaluation config and freezes the loaded parameters. Only pretrained model/processor loading and distributed collectives use stand-ins; the local store is empty and admission labels are synthetic (`work/build12/proofs/ground_runtime/RESULT.json`).
+
 '''
 report+=table(['Mutant','Clean','Mutated','Evidence'],[[r['mutant'],'PASS' if r['clean_pass'] else 'FAIL','CAUGHT' if r['caught'] else 'Equivalent; survives','work/build12/proofs/mutations/RESULT.json'] for r in mutants])
 report+='\n'+table(['Family','Text','Reader','Intake','Evidence'],[[name,*counts,'work/build12/proofs/n1/text/RESULT.json'] for name,counts in equality['families'].items()])
 report+='''
 Repaired-family intake counts remain inherited evidence: 777 / 1,476 / 8,067 (`work/n1fix2/inherited/proofs/extent_admission/RESULT.json`). The 601-key exclusion list and division gate are checked locally (`work/build12/proofs/preservation/RESULT.json`). Full repaired-family and production VQA censuses were not rerun. Every original slice is bounded; proofs retain counts/hashes and bounded examples. Text-only normalization retains the disclosed GUESS of 24 FPS where metadata is absent; it does not claim RGB execution (`work/n1fix2/proof_text.py`).
+
+The distance-cell ruling and handover semantics beyond the requested fixes remain with the orchestrator. The R1 mix keeps its supplied pin (`out/MIX_R1.json`; `work/n1fix2/inputs/config.json`; `work/build12/proofs/n1/kits/RESULT.json`).
 
 '''
 report+=table(['C8r clause','Verdict','Evidence'],[[k,v,'work/build12/proofs/eat1/c8r/run/EAT1_REPORT.json'] for k,v in equality['c8r'].items()])

@@ -28,14 +28,16 @@ members.append(L/'work/build12/legacy9fix_source.py')
 members.append(L/'work/merge11/legacy9fix_source.py')
 members.extend(p for p in (L/'work/build12').iterdir() if p.is_file() and p.suffix in ('.py','.sh'))
 for name in ('MERGE12.json','DECISIONS.md','CHANGED_COVERAGE.json','GAPS.json',
-             'NATIVE_FUNCTION_EQUALITY.json','PROOF_EQUALITY.json','RUNNER_EQUIVALENCE.json','HARNESS_BASE.json'):
+             'NATIVE_FUNCTION_EQUALITY.json','PROOF_EQUALITY.json','RUNNER_EQUIVALENCE.json','HARNESS_BASE.json',
+             'STORAGE.json','EXECUTABLE_PATH_SEARCH.json','SELECTED_PATH_AUDIT.json'):
     p=L/'work/build12'/name
     if p.exists():members.append(p)
 proof_root=L/'work/build12/proofs'
 for p in proof_root.rglob('*.json'):
-    if 'frozen' in p.relative_to(proof_root).parts:continue
+    if set(p.relative_to(proof_root).parts)&{'frozen','prior_frozen','prior_kits'}:continue
     if p.name in ('RESULT.json','EAT1_REPORT.json','ASCII_CANDIDATE.json',
-                  'INFERENCE_COMPONENTS.json','GROUP_RECEIPT.json','RESUME_RECEIPT.json'):
+                  'INFERENCE_COMPONENTS.json','GROUP_RECEIPT.json','RESUME_RECEIPT.json',
+                  'results.json','hits.json','source_hashes.json','MONITOR_STORAGE.json'):
         members.append(p)
 for folder in ('n1/packet','n1/suite_tree','n1/suite_base'):
     for name in ('results.json','hits.json','source_hashes.json'):
@@ -46,8 +48,10 @@ for folder in ('work/build10/eat1','work/build10/eat1_clean'):
                    and p.suffix in ('.py','.md','.json','.toml','.txt'))
 members.append(L/'out/EAT1_FIXED_MATH.patch')
 members.extend((L/'work/build12/harness_base').rglob('*.py'))
+for name in ('SUITE_COMPARISON.json','KIT_RESULT.json'):
+    if (B/name).exists():members.append(B/name)
 members=list(dict.fromkeys(members))
-size=sum(p.stat().st_size for p in members)+sum(row['bytes'] for row in packet_inputs);assert size<200_000_000
+size=sum(p.stat().st_size for p in members)+sum(row['bytes'] for row in packet_inputs);assert size<240_000_000
 subprocess.run(['df','-BG','--output=avail','/scratch'],check=True)
 assert shutil.disk_usage('/scratch').free>=85*1024**3
 with tarfile.open(target,'w:gz') as tar:

@@ -73,6 +73,10 @@ for directory,dirs,names in os.walk(L,followlinks=False):
         amount=p.stat().st_size;storage+=amount;file_count+=1
         if p.is_relative_to(L/'work/tmp'):tmp+=amount
 assert storage<8_000_000_000 and tmp<=200_000_000
+lane_snapshot=read('work/build12/STORAGE.json')
+assert lane_snapshot['bytes']<14_000_000_000
+lane_accounted=lane_snapshot['bytes']-lane_snapshot['by_top_level'][L.name]+storage
+assert lane_accounted<14_000_000_000
 result=dict(status='verified',source_seal=seal['tree_sha256'],source_files=len(files),
     source_inventory_sha256=seal['inventory_sha256'],base_diff_sha256=seal['diff_sha256'],
     archive=delivery,package_source_matches=True,frozen_archive_matches=True,kits=verified,
@@ -81,7 +85,9 @@ result=dict(status='verified',source_seal=seal['tree_sha256'],source_files=len(f
     allowed_BF16_regressions=len(regressions),other_regressions=0,
     local_storage_bytes=storage,local_file_count=file_count,tmp_bytes=tmp,
     scratch_free_bytes=shutil.disk_usage('/scratch').free,
-    storage_scope='L only; read-only sibling workspace occupancy was not surveyed',
+    lane_storage_snapshot='work/build12/STORAGE.json',lane_bytes_at_snapshot=lane_snapshot['bytes'],
+    lane_bytes_accounted=lane_accounted,
+    storage_scope='Current L measured directly. GUESS: read-only sibling sizes remain as measured in STORAGE.json; lane_bytes_accounted replaces the snapshot L size with its current size.',
     production_authorized=False)
 (B/'FINAL_INTEGRITY.json').write_text(json.dumps(result,indent=2)+'\n')
 print(json.dumps(result))

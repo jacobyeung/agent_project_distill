@@ -3,8 +3,20 @@ from pathlib import Path
 from collections import Counter
 import ast,difflib,hashlib,json,subprocess,sys
 L=Path(__file__).resolve().parents[2];B=L/'work/build12';T=L/'work/tree_r1'
+# The native adapter proof depends on both source and its standalone driver.
+# Run it serially before collecting evidence if either input pin changed.
+driver=B/'proof_ground_runtime.py';result=B/'proofs/ground_runtime/RESULT.json'
+record=json.loads(result.read_text()) if result.exists() else {}
+if (record.get('script_sha256')!=hashlib.sha256(driver.read_bytes()).hexdigest() or
+        record.get('source_seal')!=json.loads((L/'out/TREE_SEAL.json').read_text())['tree_sha256']):
+    subprocess.run([sys.executable,'-I','-s','-B',str(driver)],cwd=L,check=True)
+glyph_driver=B/'confusables12.py';glyph_result=B/'proofs/confusables/RESULT.json'
+glyphs=json.loads(glyph_result.read_text()) if glyph_result.exists() else {}
+if (glyphs.get('driver_sha256')!=hashlib.sha256(glyph_driver.read_bytes()).hexdigest() or
+        glyphs.get('source_sha256')!=hashlib.sha256((T/'student_pilot/row_text_audit.py').read_bytes()).hexdigest()):
+    subprocess.run([sys.executable,'-I','-s','-B',str(glyph_driver)],cwd=L,check=True)
 sources=[p.parent for p in (B/'proofs').rglob('source_hashes.json')
-    if 'frozen' not in p.parts and (p.parent/'hits.json').exists() and (p.parent/'results.json').exists()]
+    if not set(p.parts)&{'frozen','prior_frozen','prior_kits'} and (p.parent/'hits.json').exists() and (p.parent/'results.json').exists()]
 subprocess.run([sys.executable,'-I','-s','-B',str(L/'work/n1fix2/coverage.py'),*map(str,sources)],check=True)
 value=json.loads((L/'work/n1fix2/CHANGED_COVERAGE.json').read_text())
 priors=[(B/'inherited11/CHANGED_COVERAGE.json',L.parent/'wm/work/tree_r1'),

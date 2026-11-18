@@ -1,7 +1,8 @@
 """Serialize the final qualification and retain all input-bound group receipts."""
 from pathlib import Path
 import hashlib,json,subprocess,sys,time
-L=Path(__file__).resolve().parents[2];B=L/'work/build12';runs=[]
+L=Path(__file__).resolve().parents[2];B=L/'work/build12'
+runs=json.loads((B/'FINAL_RUNS.json').read_text()) if len(sys.argv)>1 else []
 def run(name,script,*args):
     out=B/'proofs'/name;out.mkdir(parents=True,exist_ok=True)
     before=sum(p.stat().st_size for p in (L/'work/tmp').rglob('*') if p.is_file())
@@ -33,6 +34,18 @@ if len(sys.argv)==1:
     run('package','work/n1fix2/package.py',str(L/delivery['path']))
     run('legacy_guards','work/n1fix2/legacy_guard_proof.py')
     run('comparison','work/n1fix2/compare.py')
+elif sys.argv[1]=='refreeze':
+    run('empty_frozen','work/build12/refresh_frozen.py')
+    run('delivery','work/n1fix2/make_delivery.py')
+    delivery=json.loads((L/'work/n1fix2/DELIVERY.json').read_text())
+    run('package','work/n1fix2/package.py',str(L/delivery['path']))
+    run('legacy_guards','work/n1fix2/legacy_guard_proof.py')
+    run('comparison','work/n1fix2/compare.py')
+ground_result=B/'proofs/ground_runtime/RESULT.json'
+ground_receipt=json.loads(ground_result.read_text()) if ground_result.exists() else {}
+if (ground_receipt.get('source_seal')!=json.loads((L/'out/TREE_SEAL.json').read_text())['tree_sha256'] or
+        ground_receipt.get('script_sha256')!=hashlib.sha256((B/'proof_ground_runtime.py').read_bytes()).hexdigest()):
+    run('ground_runtime','work/build12/proof_ground_runtime.py')
 run('coverage','work/build12/coverage12.py')
 assert not json.loads((B/'GAPS.json').read_text()),'CPU gaps need a real proof before final delivery'
 run('inference','work/build12/inference.py')

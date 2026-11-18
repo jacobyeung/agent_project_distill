@@ -607,12 +607,62 @@
       "raise ValueError('Preparation R1 sampler differs')"
     ],
     [
+      2122,
+      "from .b7_inputs import module_trainability"
+    ],
+    [
+      2123,
+      "metadata = load(directory/'artifact.json')"
+    ],
+    [
+      2124,
+      "metadata['trainable_modules'] = module_trainability(model,cfg)"
+    ],
+    [
+      2125,
+      "(directory/'artifact.json').write_text(json.dumps(metadata,sort_keys=True,indent=2)+'\\n')"
+    ],
+    [
+      2126,
+      "from .eat1_export import write_manifest"
+    ],
+    [
+      2127,
+      "write_manifest(directory,model,cfg)"
+    ],
+    [
       2310,
       "steps = min(steps, cfg['r1_training']['stop_after_step'])"
     ],
     [
       3287,
       "model.readout_evaluation_config = native_cfg"
+    ]
+  ],
+  "student_pilot/eat1_export.py": [
+    [
+      21,
+      "for role in ('weights','config'):"
+    ],
+    [
+      22,
+      "entry=geometry['encoder'][role]"
+    ],
+    [
+      23,
+      "p=Path(entry['path']).resolve()"
+    ],
+    [
+      24,
+      "with p.open('rb') as f:h=hashlib.file_digest(f,'sha256').hexdigest()"
+    ],
+    [
+      25,
+      "if h!=entry['sha256']: raise ValueError('tower_export_pin_mismatch')"
+    ],
+    [
+      26,
+      "files[os.path.relpath(p,directory)]=dict(sha256=h,role='tower' if role=='weights' else 'config')"
     ]
   ],
   "student_pilot/ground_lifting.py": [
@@ -623,12 +673,6 @@
     [
       85,
       "return camera, (centre - t1)[[0, 2, 1]]"
-    ]
-  ],
-  "student_pilot/grounding_train.py": [
-    [
-      52,
-      "model.readout_evaluation_config = native"
     ]
   ],
   "student_pilot/h1_faithful.py": [
@@ -761,104 +805,6 @@
     [
       23,
       "names.update(prefix+'/'+token for prefix in (d,ds))"
-    ]
-  ],
-  "student_pilot/r1_handover.py": [
-    [
-      16,
-      "raise ValueError('P_EXPORT_LR_SCHEDULE_MISMATCH:'+key)"
-    ],
-    [
-      46,
-      "raise ValueError('P_EXPORT_TOPOLOGY_METADATA_UNVERIFIED') from error"
-    ],
-    [
-      48,
-      "raise ValueError('P_EXPORT_TOPOLOGY_UNSUPPORTED')"
-    ],
-    [
-      59,
-      "from .c1r_align import attach"
-    ],
-    [
-      60,
-      "attach(model, cfg['align'], training=True)"
-    ],
-    [
-      63,
-      "pinned(cfg['depth_init'])"
-    ],
-    [
-      64,
-      "model.auxiliary_heads.depth.model.visual.requires_grad_(False)"
-    ],
-    [
-      112,
-      "raise ValueError('P_EXPORT_HEAD_INIT_UNVERIFIED') from error"
-    ],
-    [
-      146,
-      "raise ValueError('P_EXPORT_TRAINABLE_GROUP_MISMATCH')"
-    ],
-    [
-      157,
-      "raise ValueError('P_EXPORT_RUN_FILE_REQUIRED:'+filename)"
-    ],
-    [
-      161,
-      "raise ValueError('P_EXPORT_CONFIG_MISMATCH')"
-    ],
-    [
-      167,
-      "raise ValueError('P_EXPORT_CHECKPOINT_BINDING_MISMATCH')"
-    ],
-    [
-      171,
-      "raise ValueError('P_EXPORT_RUN_BINDING_MISMATCH')"
-    ],
-    [
-      177,
-      "raise ValueError('P_EXPORT_RECIPE_MISMATCH')"
-    ],
-    [
-      183,
-      "raise ValueError('P_EXPORT_STORE_RECEIPT_MISMATCH:'+name)"
-    ],
-    [
-      188,
-      "rows = load(pinned(stream['indices']))"
-    ],
-    [
-      189,
-      "if (len(rows) != counts[name] or len(set(rows)) != len(rows)"
-    ],
-    [
-      191,
-      "raise ValueError('P_EXPORT_INDEX_COUNT_MISMATCH:'+name)"
-    ],
-    [
-      192,
-      "indices[name] = stream['indices']['sha256']"
-    ],
-    [
-      194,
-      "raise ValueError('P_EXPORT_RUN_FILE_REQUIRED:'+name+'_indices.json')"
-    ],
-    [
-      213,
-      "raise ValueError('P_EXPORT_SAMPLER_UNSUPPORTED:run must write an authenticated sampler implementation')"
-    ],
-    [
-      224,
-      "raise ValueError('P_EXPORT_SAMPLER_POSITION_MISMATCH')"
-    ],
-    [
-      229,
-      "raise ValueError('P_EXPORT_PROGRESS_MISMATCH:explicit sha-bound handover_mapping required')"
-    ],
-    [
-      233,
-      "raise ValueError('P_EXPORT_MAPPING_MISMATCH')"
     ]
   ],
   "student_pilot/r1_loader.py": [

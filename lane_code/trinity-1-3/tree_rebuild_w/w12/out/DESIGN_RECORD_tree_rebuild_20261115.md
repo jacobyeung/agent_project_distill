@@ -133,3 +133,7 @@ The build closes optimizer-scale, target-identity, preparation-authentication, U
 ## Build 11 (merge)
 
 Vehicle N uses the merged source sealed as `55360c76f296c448a4297f826775d044c19ef8a639d1bc5707fa60e5a02a277c`. Kits remain GO=false. The review fixes restore invalid-depth text, make legacy export incompatibility explicit, isolate batch-row refusals and recheck harness buffers after generation. Evidence and remaining acceptance blockers: `out/BUILD11_REPORT.md`, `work/merge11/PROOF_EQUALITY.json`, `work/merge11/CHANGED_COVERAGE.json`, and `work/n1fix2/SUITE_COMPARISON.json`.
+
+## Build 12
+
+The source uses default-deny P/N config comparison, P-derived meta topology, a wrapper-written trusted handover receipt, ASCII-only authored think text, config-bound legacy readout constants and typed batch refusals. The native initializer and base group builder retain their bytes. GO=false; all acceptance blockers remain. Full evidence and delivery hashes: `BUILD12_REPORT.md`, `TREE_SEAL.json`, and `../work/build12/FINAL_INTEGRITY.json`.
