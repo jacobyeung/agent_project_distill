@@ -1,0 +1,251 @@
+--- out/b1/tests/test_constraints.py
++++ out2/gates/base/b1/tests/test_constraints.py
+@@ -8,8 +8,8 @@
+ import tarfile
+ import unittest
+ 
+-ROOT = Path('/scratch/jjyeung/orch_n30/reader_r1/work/b1p/in/repin')
+-P = ROOT/'out/production'
++ROOT = Path('/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out2/gates/lost/repin')
++P = Path('/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out2/bases/b1/src')
+ sys.path.insert(0, str(P))
+ from orchard_h10.common import canonical, sha
+ from orchard_h10.job import check_inputs, verify_config
+@@ -95,7 +95,7 @@
+         code = guard('orchard_h10/job.py', 'Policy receipt does not authorize these scripts')
+         policy = dict(self.inputs['policy'], authorized=True)
+         exec(code, dict(policy=policy, inputs=self.inputs))
+-        token = (Path('/scratch/jjyeung/orch_n30/reader_r1/work/b1g/out/TOKEN')).read_text().strip()
++        token = (Path('/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out2/gates/lost/reader/b1g/out/TOKEN')).read_text().strip()
+         changed = json.loads(json.dumps(self.inputs).replace(self.cfg['token'], token))
+         cfg = {**self.cfg, 'token': token, 'logical': '/scratch/jjyeung/'+token}
+         check_inputs(changed, cfg)
+--- out/b1/tests/test_package.py
++++ out2/gates/base/b1/tests/test_package.py
+@@ -13,7 +13,7 @@
+ import unittest
+ from unittest.mock import patch
+ 
+-OUT=Path(__file__).resolve().parents[1]; ROOT=OUT.parent; SRC=OUT/'src'; PROD=Path('/scratch/jjyeung/orch_n30/reader_r1/work/b1p/in/repin/out/production')
++OUT=Path(__file__).resolve().parents[1]; ROOT=OUT.parent; SRC=OUT/'src'; PROD=SRC
+ sys.path[:0]=[str(SRC),str(SRC/'b'),str(OUT)]
+ from orchard_h10.common import canonical, sha, read_config, template
+ from orchard_h10.job import check_inputs, verify_config
+@@ -35,7 +35,7 @@
+     @classmethod
+     def setUpClass(cls):
+         cls.cfg=read_config(OUT/'package')
+-        cls.old=read(Path('/scratch/jjyeung/orch_n30/reader_r1/work/b1p/in/repin')/'in/prod_pkg/a/1.json')
++        cls.old=read(OUT/'inputs_tower.json');cls.old.pop('export_pin',None)
+         cls.pins=read(OUT/'export_544.json')
+ 
+     def admitted(self,pins=None,inputs=None):
+@@ -108,7 +108,7 @@
+         artifact=dict(config_sha256=receipt['config_sha256'],base_identity=cfg['base_identity'],
+                       frame_layout='duplicate',geometry_online=False)
+         if h11:
+-            folder=Path('/scratch/jjyeung/orch_n30/reader_r1/work/b1p/in/repin')/'in/h1_1_run_inputs'
++            folder=Path('/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out2/gates/lost/repin')/'in/h1_1_run_inputs'
+             cfg=read(folder/'inputs/prepare_b000cf6bbd2346a59dc1d213e84ad066/config.json')
+             data=read(folder/'inputs/data_receipt.json')
+             # The real H1-1 receipt is absent. This explicit synthetic receipt tests
+@@ -149,7 +149,7 @@
+             self.call_restore(root,pins,req)
+ 
+     def test_h11_supplied_data_config_checks(self):
+-        root=Path('/scratch/jjyeung/orch_n30/reader_r1/work/b1p/in/repin')/'in/h1_1_run_inputs';data=read(root/'inputs/data_receipt.json')
++        root=Path('/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out2/gates/lost/repin')/'in/h1_1_run_inputs';data=read(root/'inputs/data_receipt.json')
+         cfg_path=root/'inputs/prepare_b000cf6bbd2346a59dc1d213e84ad066/config.json';cfg=read(cfg_path)
+         self.assertEqual(data['config']['sha256'],sha(cfg_path))
+         self.assertEqual(data['preparation'],cfg['preparation'])
+@@ -228,9 +228,9 @@
+         from h1eval.cli import code_hash
+         from h1eval.h10.parity_adapter import reader_code_hash
+         old=read(OUT/'AUDIT_R1.json')
+-        self.assertEqual(sha(Path('/scratch/jjyeung/orch_n30/reader_r1/work/b1p/in/repin')/'in/prod_pkg/0.tgz'),old['archive'])
++        self.assertEqual(sha(Path('/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out2/gates/lost/repin')/'in/prod_pkg/0.tgz'),old['archive'])
+         self.assertEqual(canonical(read(PROD/'9.json')),old['plan'])
+-        self.assertEqual(sha(Path('/scratch/jjyeung/orch_n30/reader_r1/work/b1p/in/repin')/'in/prod_pkg/a/1.json'),old['raw_inputs'])
++        self.assertEqual(sha(Path('/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out2/gates/lost/repin')/'in/prod_pkg/a/1.json'),old['raw_inputs'])
+         self.assertNotEqual(code_hash(SRC/'b/e2e_reader'),old['reader'])
+         self.assertEqual(read(SRC/'items/devs1_routed.json')['item_set_sha256'],old['item_set'])
+         self.assertEqual(reader_code_hash(PROD/'b'),old['parity'])
+@@ -241,7 +241,7 @@
+                  'orchard_h10/export_pins.py','h1eval/h10/launch.py','h1eval/h10/parity_adapter.py','b/parity_kit/stage_restore.py','b/e2e_reader/servers.py', 'h1eval/perception.py', 'h1eval/h10/perception_own.py', 'b/e2e_reader/stage1.py', 'h1eval/h10/depth_snapshot.py', 'b/e2e_reader/grounding.py','b/e2e_reader/real.py','b/e2e_reader/parity.py'}
+         def inventory(path):
+             with tarfile.open(path) as tar:return {m.name:tar.extractfile(m).read() for m in tar if m.isfile()}
+-        a=inventory(Path('/scratch/jjyeung/orch_n30/reader_r1/work/b1p/in/repin')/'in/prod_pkg/0.tgz');b=inventory(OUT/'package/0.tgz')
++        a=inventory(Path('/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out2/gates/lost/repin')/'in/prod_pkg/0.tgz');b=inventory(OUT/'package/0.tgz')
+         changed={n for n in a.keys()|b.keys() if a.get(n)!=b.get(n)}
+         self.assertEqual(changed,allowed)
+         for name,pin in self.cfg['payload_pins'].items():
+@@ -289,7 +289,7 @@
+               '--config',str(prep/'config.json'),'--receipt',str(prep/'prepared/s1_receipt.json'),
+               '--data-receipt',str(base/'data_receipt.json'),'--lineage','SFT','--step','100',
+               '--out',str(root/'export.json'),'--prep-tar',str(root/'prep.tar'),
+-              '--base-inputs',str(Path('/scratch/jjyeung/orch_n30/reader_r1/work/b1p/in/repin')/'in/prod_pkg/a/1.json'),'--inputs-out',str(root/'inputs.json')]
++              '--base-inputs',str(OUT/'inputs_tower.json'),'--inputs-out',str(root/'inputs.json')]
+         with patch.object(sys,'argv',argv):fill_export.main()
+         pins=validate(read(root/'export.json'));inputs=read(root/'inputs.json')
+         self.assertEqual(pins['step'],100);self.assertEqual(pins['member_directory'],'m-any')
+--- out/b2/work/test_cpu_helper.py
++++ out2/gates/base/b2/work/test_cpu_helper.py
+@@ -5,7 +5,7 @@
+ from pathlib import Path
+ from types import SimpleNamespace as NS
+ from unittest.mock import patch
+-W=Path(__file__).resolve().parents[1];O=W;P=O/'src'
++W=Path(__file__).resolve().parents[1];O=W;P=O/'fixture_src'
+ sys.path[:0]=[str(O),str(P/'b'),str(P/'tree'),str(P)]
+ from e2e_reader import parity
+ from orchard_h10 import common,job
+--- out/b2/tests/test_constraints.py
++++ out2/gates/base/b2/tests/test_constraints.py
+@@ -1,7 +1,7 @@
+ """W5 constraints adapted to the sealed room-only package."""
+ import ast,copy,hashlib,json,sys,tarfile,unittest
+ from pathlib import Path
+-O=Path(__file__).resolve().parents[1];P=O/'src';B=O.parent.parent/'b1g/out'
++O=Path(__file__).resolve().parents[1];P=O/'src';B=Path('/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out2/bases/b1')
+ sys.path[:0]=[str(P/'b'),str(P/'tree'),str(P),str(O)]
+ import e2e_reader
+ from orchard_h10.common import canonical,sha,read_config,opaque,submit_argv
+--- out/b2/tests/test_package.py
++++ out2/gates/base/b2/tests/test_package.py
+@@ -13,7 +13,7 @@
+ import unittest
+ from unittest.mock import patch
+ 
+-OUT=Path(__file__).resolve().parents[1]; ROOT=OUT.parent; SRC=OUT/'src'; PROD=ROOT.parent/'b1g/out/src'
++OUT=Path(__file__).resolve().parents[1]; ROOT=OUT.parent; SRC=OUT/'src'; PROD=SRC
+ sys.path[:0]=[str(SRC),str(SRC/'b'),str(OUT)]
+ from orchard_h10.common import canonical, sha, read_config, template
+ from orchard_h10.job import check_inputs, verify_config
+@@ -109,7 +109,7 @@
+         artifact=dict(config_sha256=receipt['config_sha256'],base_identity=cfg['base_identity'],
+                       frame_layout='duplicate',geometry_online=False)
+         if h11:
+-            folder=Path('/scratch/jjyeung/orch_n30/reader_r1/work/b1p/in/repin')/'in/h1_1_run_inputs'
++            folder=Path('/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out2/gates/lost/repin')/'in/h1_1_run_inputs'
+             cfg=read(folder/'inputs/prepare_b000cf6bbd2346a59dc1d213e84ad066/config.json')
+             data=read(folder/'inputs/data_receipt.json')
+             # The real H1-1 receipt is absent. This explicit synthetic receipt tests
+--- out/b1/tests/test_constraints.py
++++ out2/gates/release/b1/tests/test_constraints.py
+@@ -8,7 +8,7 @@
+ import tarfile
+ import unittest
+ 
+-ROOT = Path('/scratch/jjyeung/orch_n30/reader_r1/work/b1p/in/repin')
++ROOT = Path('/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out2/gates/lost/repin')
+ P = ROOT/'out/production'
+ sys.path.insert(0, str(P))
+ from orchard_h10.common import canonical, sha
+@@ -95,7 +95,7 @@
+         code = guard('orchard_h10/job.py', 'Policy receipt does not authorize these scripts')
+         policy = dict(self.inputs['policy'], authorized=True)
+         exec(code, dict(policy=policy, inputs=self.inputs))
+-        token = (Path('/scratch/jjyeung/orch_n30/reader_r1/work/b1g/out/TOKEN')).read_text().strip()
++        token = (Path('/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out2/gates/lost/reader/b1g/out/TOKEN')).read_text().strip()
+         changed = json.loads(json.dumps(self.inputs).replace(self.cfg['token'], token))
+         cfg = {**self.cfg, 'token': token, 'logical': '/scratch/jjyeung/'+token}
+         check_inputs(changed, cfg)
+--- out/b1/tests/test_package.py
++++ out2/gates/release/b1/tests/test_package.py
+@@ -13,7 +13,7 @@
+ import unittest
+ from unittest.mock import patch
+ 
+-OUT=Path(__file__).resolve().parents[1]; ROOT=OUT.parent; SRC=OUT/'src'; PROD=Path('/scratch/jjyeung/orch_n30/reader_r1/work/b1p/in/repin/out/production')
++OUT=Path(__file__).resolve().parents[1]; ROOT=OUT.parent; SRC=OUT/'src'; PROD=SRC
+ sys.path[:0]=[str(SRC),str(SRC/'b'),str(OUT)]
+ from orchard_h10.common import canonical, sha, read_config, template
+ from orchard_h10.job import check_inputs, verify_config
+@@ -35,7 +35,7 @@
+     @classmethod
+     def setUpClass(cls):
+         cls.cfg=read_config(OUT/'package')
+-        cls.old=read(Path('/scratch/jjyeung/orch_n30/reader_r1/work/b1p/in/repin')/'in/prod_pkg/a/1.json')
++        cls.old=read(OUT/'inputs_tower.json');cls.old.pop('export_pin',None)
+         cls.pins=read(OUT/'export_544.json')
+ 
+     def admitted(self,pins=None,inputs=None):
+@@ -108,7 +108,7 @@
+         artifact=dict(config_sha256=receipt['config_sha256'],base_identity=cfg['base_identity'],
+                       frame_layout='duplicate',geometry_online=False)
+         if h11:
+-            folder=Path('/scratch/jjyeung/orch_n30/reader_r1/work/b1p/in/repin')/'in/h1_1_run_inputs'
++            folder=Path('/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out2/gates/lost/repin')/'in/h1_1_run_inputs'
+             cfg=read(folder/'inputs/prepare_b000cf6bbd2346a59dc1d213e84ad066/config.json')
+             data=read(folder/'inputs/data_receipt.json')
+             # The real H1-1 receipt is absent. This explicit synthetic receipt tests
+@@ -149,7 +149,7 @@
+             self.call_restore(root,pins,req)
+ 
+     def test_h11_supplied_data_config_checks(self):
+-        root=Path('/scratch/jjyeung/orch_n30/reader_r1/work/b1p/in/repin')/'in/h1_1_run_inputs';data=read(root/'inputs/data_receipt.json')
++        root=Path('/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out2/gates/lost/repin')/'in/h1_1_run_inputs';data=read(root/'inputs/data_receipt.json')
+         cfg_path=root/'inputs/prepare_b000cf6bbd2346a59dc1d213e84ad066/config.json';cfg=read(cfg_path)
+         self.assertEqual(data['config']['sha256'],sha(cfg_path))
+         self.assertEqual(data['preparation'],cfg['preparation'])
+@@ -228,9 +228,9 @@
+         from h1eval.cli import code_hash
+         from h1eval.h10.parity_adapter import reader_code_hash
+         old=read(OUT/'AUDIT_R1.json')
+-        self.assertEqual(sha(Path('/scratch/jjyeung/orch_n30/reader_r1/work/b1p/in/repin')/'in/prod_pkg/0.tgz'),old['archive'])
++        self.assertEqual(sha(Path('/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out2/gates/lost/repin')/'in/prod_pkg/0.tgz'),old['archive'])
+         self.assertEqual(canonical(read(PROD/'9.json')),old['plan'])
+-        self.assertEqual(sha(Path('/scratch/jjyeung/orch_n30/reader_r1/work/b1p/in/repin')/'in/prod_pkg/a/1.json'),old['raw_inputs'])
++        self.assertEqual(sha(Path('/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out2/gates/lost/repin')/'in/prod_pkg/a/1.json'),old['raw_inputs'])
+         self.assertNotEqual(code_hash(SRC/'b/e2e_reader'),old['reader'])
+         self.assertEqual(read(SRC/'items/devs1_routed.json')['item_set_sha256'],old['item_set'])
+         self.assertEqual(reader_code_hash(PROD/'b'),old['parity'])
+@@ -241,7 +241,7 @@
+                  'orchard_h10/export_pins.py','h1eval/h10/launch.py','h1eval/h10/parity_adapter.py','b/parity_kit/stage_restore.py','b/e2e_reader/servers.py', 'h1eval/perception.py', 'h1eval/h10/perception_own.py', 'b/e2e_reader/stage1.py', 'h1eval/h10/depth_snapshot.py', 'b/e2e_reader/grounding.py','b/e2e_reader/real.py','b/e2e_reader/parity.py'}
+         def inventory(path):
+             with tarfile.open(path) as tar:return {m.name:tar.extractfile(m).read() for m in tar if m.isfile()}
+-        a=inventory(Path('/scratch/jjyeung/orch_n30/reader_r1/work/b1p/in/repin')/'in/prod_pkg/0.tgz');b=inventory(OUT/'package/0.tgz')
++        a=inventory(Path('/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out2/gates/lost/repin')/'in/prod_pkg/0.tgz');b=inventory(OUT/'package/0.tgz')
+         changed={n for n in a.keys()|b.keys() if a.get(n)!=b.get(n)}
+         self.assertEqual(changed,allowed)
+         for name,pin in self.cfg['payload_pins'].items():
+@@ -289,7 +289,7 @@
+               '--config',str(prep/'config.json'),'--receipt',str(prep/'prepared/s1_receipt.json'),
+               '--data-receipt',str(base/'data_receipt.json'),'--lineage','SFT','--step','100',
+               '--out',str(root/'export.json'),'--prep-tar',str(root/'prep.tar'),
+-              '--base-inputs',str(Path('/scratch/jjyeung/orch_n30/reader_r1/work/b1p/in/repin')/'in/prod_pkg/a/1.json'),'--inputs-out',str(root/'inputs.json')]
++              '--base-inputs',str(Path('/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out2/gates/lost/repin')/'in/prod_pkg/a/1.json'),'--inputs-out',str(root/'inputs.json')]
+         with patch.object(sys,'argv',argv):fill_export.main()
+         pins=validate(read(root/'export.json'));inputs=read(root/'inputs.json')
+         self.assertEqual(pins['step'],100);self.assertEqual(pins['member_directory'],'m-any')
+--- release/b2/work/test_cpu_helper.py
++++ out2/gates/release/b2/work/test_cpu_helper.py
+@@ -5,7 +5,7 @@
+ from pathlib import Path
+ from types import SimpleNamespace as NS
+ from unittest.mock import patch
+-W=Path(__file__).resolve().parents[1];O=W;P=O/'src'
++W=Path(__file__).resolve().parents[1];O=W;P=O/'fixture_src'
+ sys.path[:0]=[str(O),str(P/'b'),str(P/'tree'),str(P)]
+ from e2e_reader import parity
+ from orchard_h10 import common,job
+--- out/b2/tests/test_package.py
++++ out2/gates/release/b2/tests/test_package.py
+@@ -13,7 +13,7 @@
+ import unittest
+ from unittest.mock import patch
+ 
+-OUT=Path(__file__).resolve().parents[1]; ROOT=OUT.parent; SRC=OUT/'src'; PROD=ROOT.parent/'b1g/out/src'
++OUT=Path(__file__).resolve().parents[1]; ROOT=OUT.parent; SRC=OUT/'src'; PROD=SRC
+ sys.path[:0]=[str(SRC),str(SRC/'b'),str(OUT)]
+ from orchard_h10.common import canonical, sha, read_config, template
+ from orchard_h10.job import check_inputs, verify_config
+@@ -109,7 +109,7 @@
+         artifact=dict(config_sha256=receipt['config_sha256'],base_identity=cfg['base_identity'],
+                       frame_layout='duplicate',geometry_online=False)
+         if h11:
+-            folder=Path('/scratch/jjyeung/orch_n30/reader_r1/work/b1p/in/repin')/'in/h1_1_run_inputs'
++            folder=Path('/scratch/jjyeung/orch_n30/cont_ops16/work/c15/r1route/out2/gates/lost/repin')/'in/h1_1_run_inputs'
+             cfg=read(folder/'inputs/prepare_b000cf6bbd2346a59dc1d213e84ad066/config.json')
+             data=read(folder/'inputs/data_receipt.json')
+             # The real H1-1 receipt is absent. This explicit synthetic receipt tests

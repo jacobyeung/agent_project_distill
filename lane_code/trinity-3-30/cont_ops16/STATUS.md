@@ -5,11 +5,16 @@ Workspace: /scratch/jjyeung/orch_n30/cont_ops16/work/c15 = /scratch/jjyeung/orch
 - Baselines restored and sha-verified: d0/readk/evidence/A544.jsonl+ACCEPTED.json (from fork readk), adff67f7ae9 result.tar.gz (334e1368) + x/ITEMS.jsonl (a05c2318) + full x, a5d2d909067 (m100) result + x (old partial x -> x_partial), VSTI 544 acb2faedd41 fetched/x (b13ec8f1; summary pooled 46.11).
 - Rebuilt tools (tested on m100, equal to cont_ops15/count_diag): cfix/derived_v3.py, split/relsize.py, h1read/post200.sh (TOK=<tok> STEP=200), h1read/mon16.sh (1-min liveness/output/yield).
 - Lost: s1_receipt of 673bc60f (4c0dd9d6); routed packages' 0.tgz payloads + reader_r1 T1/T2 inputs (r1route/out/b1,b2 hold only small files).
-## Now
-1. m200 DECISION read: token a8102c3207b (rebuilt bit-identical: BATCH cb40b5c7, CONFIG ed30d4f4, plan 9fc9d1f6) = Orchard 172646 on general, RUNNING since 21:00:33Z; tmux c16_mon200 (log h1read/mon16_a8102c3207b.log). On LEFT_QUEUE: `TOK=a8102c3207b STEP=200 bash h1read/post200.sh` then ONE verdict RESULT (+copy to events/r1_ops).
-2. Then VSTI r6 m200: `TOK=a35f73e87f0 bash h1vsti/subv.sh` (refuses if any general job of ours), monitor, fetch+unpack per FIXV1.md, `vsti_summary.py --read <200 x> --base kit/build/acb2faedd41/fetched/x`; gate vs 46.11.
-3. Facing families: fix-6 refuses away/forward for R1. Fork h1face (hardlinked assets/readk/evidence dirs, made read-only in h1read) under Codex Astra build F1 (tmux c16_codex_f1, brief h1face/FIX_BRIEF_F1.md, log codex_f1b.log, deliverable FIXF1.md); then ask ORCH for review in a RESULT; baseline = e193 (job 169526) merged/away+forward B2048 (Orchard okit/evalx_results/e193c2a3c).
-4. Routed read: needs s1_receipt regenerated (CPU preparation of config fac07052; s1_admission.py checks cross-attempt determinism) and packages d72cdcff1e22a/b9188e9225a85 payloads rebuilt. Not urgent (ORCH 2105Z).
+## Now (22:50Z)
+DONE step-200 reads (events/cont_ops/files_m200/):
+- Direct decision read 172646 (a8102c3207b): registered rule SILENT (counting pooled +0.32 [-4.76,+5.34]; mean +4.13 [+2.27,+5.98]); runaways single 28/150, 62/287; derived counting pooled +4.17; rel size -1.33 [H1 -8.22,+4.92]. ORCH CONFIRM 2208Z: C' continues (r1_ops6; 172660 RUNNING on advanced 22:41Z).
+- VSTI r6 172654 (a35f73e87f0): pooled 46.11 -> 58.33, +12.22 [+7.90,+16.45]; gate PASS.
+- Facing 172658 (h1face F1, a2e46c0504e): away 21.33 -> 88.67 (+67.33 [+56.96,+76.51]) gate PASS; toward 94.67 -> 93.33 (-1.33 [H1 -7.75,+3.39]) not holding; toward hard -6.0 [95% -13,0].
+NEXT routed read (H3, capped count, room): packages A d72cdcff1e22a / B b9188e9225a85 rebuilt byte-identical (r1route/out2, REPORT.md); s1 receipt recovered (r1route/in/s1, = KH prepared/s1_receipt.json 4c0dd9d6); data receipt r1route/in/data_receipt.json 7f654d2f; .done 795ef9ef. Codex review running (tmux c16_rev_r2, prompt r1route/REVIEW_PROMPT_R2.md; final message in agent/scratch/codex_runs/*c16_review_r2/final_message.md). On GO: follow out2/A/OPERATIONS_R1ROUTE.md (place A+B, A pull/fill, CPU check, GPU A ~2.5 h on general, then B ~1.1 h), one job on general at a time, main first; score with score_r1route.py.
+Mirror: trinity-1-18:/scratch/jjyeung/n30_mirror/cont_ops/c16_mirror_2245Z.tar (90996b26, equal): h1face (minus hardlinked base dirs), r1route, my read builds + returns, cfix, split, d0/readk/evidence. Base kit = h1vsti_v1_1045Z.tar there. Small ops files in events/cont_ops/ops_mirror/c16/.
 ## Notes
+- I overwrote events/cont_ops/STATUS.md (cont_ops15 11:27Z version) with mine at 21:14Z; its NOW section is quoted in my first RESULT context; older sections = work/STATUS_c15_copy.md.
+- h1read assets/readk/old evidence dirs made read-only (a-w) because h1face hardlinks them.
+- work/c16_mirror_2245Z.tar (2 GB, mirrored) is a removal candidate.
 - Lane folder 4.8 GB (cap 4): two kit copies (h1read 2.4G, h1vsti 2.2G, assets duplicated). Removal candidates in REMOVAL_CANDIDATES.md.
 - Ledger: work/ORCHARD_LEDGER.jsonl (c15 copy + my lines).

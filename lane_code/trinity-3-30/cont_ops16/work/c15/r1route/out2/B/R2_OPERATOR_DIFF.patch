@@ -1,0 +1,70 @@
+--- surviving/o_place.sh
++++ out2/B/o_place.sh
+@@ -4,7 +4,7 @@
+ P=/project/community/jjyeung/okh7/a15_cot_apb9188e9225a85
+ # D must identify the existing delivery directory, whose basename is opaque.
+ : "${D:?Set D to the existing opaque delivery directory}"
+-case "$D" in /project/community/jjyeung/okh7/a15_cot_ap*) ;; *) exit 1;; esac
++[[ "$D" =~ ^/project/community/jjyeung/okh7/a15_cot_ap[0-9a-f]+$ ]]
+ printf '%s  %s\n' 76cb123cb7126ef1224214c3cffff628166b18ead30a5751e03ba832d57f4010 "$D/1.tgz" | sha256sum -c -
+ test ! -e "$P"
+ mkdir -m 700 "$P"
+--- surviving/score_r1route.py
++++ out2/B/score_r1route.py
+@@ -3,11 +3,12 @@
+ from pathlib import Path
+ from collections import Counter,defaultdict
+ import numpy as np
+-O=Path(__file__).resolve().parent
+-BASE=Path('/scratch/jjyeung/orch_n30/reader_r1/work/fix7')
++HERE=Path(__file__).resolve().parent
++O=HERE.parent if HERE.name in ('A','B') else HERE
++BASE=O/'bases'
+ CAMERA=('camera_displacement','camera_rotation','camera_movement_direction')
+ DISTANCE='object_abs_distance';ROOM='room_size_estimation'
+-sys.path[:0]=[str(O/'b1'),str(O/'b1/src/b'),str(O/'b1/src/tree'),str(O/'b1/src')]
++sys.path[:0]=[str(O/'A'),str(O/'A/src/b'),str(O/'A/src/tree'),str(O/'A/src')]
+ from h1eval import scorers
+ from tower_pair import status
+ 
+@@ -31,7 +32,7 @@
+ 
+ def load(root,package,read_no,step,rule):
+     root=Path(root);package=Path(package);src=package/'src'
+-    name='room134.json' if package.name=='b2' else 'devs1_routed.json'
++    name='room134.json' if package.name in ('b2','B') else 'devs1_routed.json'
+     manifest=read(src/'items'/name);items={i['id']:i for i in manifest['items']}
+     expected=copy.deepcopy(read(package/'READ_PLAN.json')['read_settings'][read_no])
+     identity=read(root/'metadata/IDENTITY.json');public=read(package/'package/0.json')
+@@ -53,7 +54,7 @@
+     paths=sorted(journal_root.glob('*/*/items.jsonl'))
+     if not paths:raise ValueError('No journals')
+     # The reader and evaluator hashes are unchanged and are authenticated by the baseline.
+-    base_env=next((BASE/package.name/'work/ret/metadata/reads'/str(read_no if step==544 else 0)/'metadata/journals').glob('*/*/environment.json'))
++    base_env=next((BASE/('b2' if package.name in ('b2','B') else 'b1')/'work/ret/metadata/reads'/str(read_no if step==544 else 0)/'metadata/journals').glob('*/*/environment.json'))
+     reference=read(base_env)['binding']
+     for p in paths:
+         env=read(p.parent/'environment.json');b=env['binding']
+@@ -128,7 +129,7 @@
+     if self_test:
+         a={**ba,**bd};b=br;s3=s4=[]
+     else:
+-        a,_,_,s3=load(a_root,O/'b1',0,200,'candidates_argmax');b,_,_,s4=load(b_root,O/'b2',0,200,'candidates_argmax')
++        a,_,_,s3=load(a_root,O/'A',0,200,'candidates_argmax');b,_,_,s4=load(b_root,O/'B',0,200,'candidates_argmax')
+     result=dict(self_test=self_test,bootstrap=dict(draws=10000,seed=17,unit='physical room',intervals=[.95,.9929]),difference_units='percentage points',types={},sources=s0+s1+s2+s3+s4)
+     for kind in (*CAMERA,DISTANCE,ROOM):
+         keys=[k for k,i in items.items() if i['question_type']==kind]
+@@ -159,7 +160,12 @@
+     return result
+ 
+ def main():
+-    p=argparse.ArgumentParser();p.add_argument('--a');p.add_argument('--b');p.add_argument('--self-test',action='store_true');p.add_argument('--out',required=True);args=p.parse_args()
++    global BASE
++    p=argparse.ArgumentParser();p.add_argument('--baseline-root',type=Path,default=BASE,help='Directory containing b1 and b2 metadata, authenticated work/ret returns, and b2/work/scores/scores.json');p.add_argument('--a');p.add_argument('--b');p.add_argument('--self-test',action='store_true');p.add_argument('--out',required=True);args=p.parse_args()
++    BASE=args.baseline_root.resolve()
++    required=[BASE/'b1/work/ret/metadata/IDENTITY.json',BASE/'b2/work/ret/metadata/IDENTITY.json',BASE/'b2/work/scores/scores.json']
++    missing=[str(p) for p in required if not p.is_file()]
++    if missing:p.error('Authentic step-544 baseline files are required: '+', '.join(missing))
+     if not args.self_test and (not args.a or not args.b):p.error('--a and --b are required')
+     result=score(args.a,args.b,args.self_test);target=Path(args.out);target.mkdir(parents=True,exist_ok=True)
+     (target/'scores.json').write_text(json.dumps(result,indent=2,allow_nan=False)+'\n')
