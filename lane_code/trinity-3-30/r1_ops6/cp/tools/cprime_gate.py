@@ -7,8 +7,9 @@ from pathlib import Path
 import re
 
 BASE = '6594f46cdc16168514aca26a6ce38285907adfc6ece0b75d8e10428ea0b2fe74'
+BASE_CONFIG_SHA = '2152828974490944a1713f5a539e87211f80179f0b5f9254ea9966fc65788733'
 GO = '1f3dff81041a58c45966e83535ec50182a616de94d036fcfcfa5142141862b7e'
-B1 = '25c3db82b4c590a39924b6b9636b7b4372cf91134a6242fe9895daaca179ceba'
+B1 = 'caba6a5695781491036de5b3acdb20db2d42ab581e5775fec3fe07fbd2114aad'
 REMOVE_PATH = '/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/69d2930d/z.json'
 RECEIPT = 'ed9aad679a1d9dd6302970dcb82d02d5b92fd6f3a53aede6bf219fca405f8d21'
 LOG = '0658f1614ad94ff6141b66ba1523b37d2ea60d28c074929ac6e6f2307b1d58a3'
@@ -72,10 +73,22 @@ def admission(k,b,go,ids):
         sums[name]=sha
     def old_json(name):return json.loads(pinned(old/name,sums[name]))
     pin=receipt['config'];require(sums[pin['file']]==pin['sha256'],'base config pin')
-    base=old_json(pin['file'])
+    old_deployed=old_json(pin['file'])
+    base=json.loads(pinned(b/'c4.json',BASE_CONFIG_SHA))
+    old_expected=copy.deepcopy(base)
+    if old_deployed.get('admission')!=base.get('admission'):
+        old_json('k/review.json')
+        old_expected['admission']=dict(path='/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/review.json',sha256=sums['k/review.json'])
+    require(old_deployed==old_expected,'base deployed config')
     launch=json.loads((k/'k/launch.json').read_text())
-    cfg=json.loads(pinned(k/launch['config']['file'],launch['config']['sha256']))
-    require(json.loads((b/'config.json').read_text())==cfg,'bundle config')
+    deployed=json.loads(pinned(k/launch['config']['file'],launch['config']['sha256']))
+    cfg=json.loads((b/'config.json').read_text())
+    expected_deployed=copy.deepcopy(cfg)
+    if deployed.get('admission')!=cfg.get('admission'):
+        review=launch['review'];require(review['file']=='k/review.json','review path')
+        pinned(k/review['file'],review['sha256'])
+        expected_deployed['admission']=dict(path='/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/k/review.json',sha256=review['sha256'])
+    require(deployed==expected_deployed,'deployed config differs from sealed bundle')
     run,token=validate_delta(base,cfg,ids)
     old_launch=old_json('k/launch.json')
     require(digest(old_launch['in_job_admission'])==receipt['contract_sha256'],'base contract')

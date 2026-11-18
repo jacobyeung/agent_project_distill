@@ -1,0 +1,1 @@
+BUILT FOR REVIEW. Config `0647a0df37862199ea4a766875969d28e7fbfc66821ea5f5a0d00f0607452f92`, run `13daf33c`, S2=False, S1=false, both own-sampling probabilities zero. All 46 packet tests pass. Full native admission remains blocked by missing local production inputs; read out/FIX10.md and out/FIX10_PHASES.json.

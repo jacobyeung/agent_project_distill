@@ -7,6 +7,7 @@ from prepare_fix10 import DB,DIV,SOURCE,build,inputs
 
 class Fix10(unittest.TestCase):
     def test_full_store_build_stream_division_with_and_without_remove(self):
+        if not DIV.is_file():self.skipTest('NOT RUN: missing recovered native division input '+str(DIV))
         root=Path(tempfile.mkdtemp(prefix='division_test10_',dir=ROOT/'work'))
         extra=ROOT/'out/records/n.json'
         def pin_only(path,expected=None,**kwargs):
@@ -36,7 +37,7 @@ class Fix10(unittest.TestCase):
         rows=[json.loads(line) for line in (out/'records/n.json').read_text().splitlines()]
         evidence=load(out/'FIX10_OFFENDERS.json')
         self.assertEqual({r['row_key'] for r in rows},{r['qid'] for r in evidence['rows']})
-        self.assertEqual(len(rows),601);self.assertEqual(sha(out/'records/n.json'),cfg['remove_files'][-1]['sha256'])
+        self.assertEqual(len(rows),601);self.assertEqual(sha(out/'records/n.json'),cfg['remove_files'][-2]['sha256'])
         self.assertIn('n.json',binding['record_files'])
         import tarfile
         op=load(out/'OPERATOR.json')
@@ -46,7 +47,7 @@ class Fix10(unittest.TestCase):
         deriv=load(out/'proof/DERIVATION.json')
         for path in deriv['fixture_paths']:
             staged=load(Path(path)/'k/0.json')['extra']
-            matches=[v for v in staged if v.get('dest')==cfg['remove_files'][-1]['path']]
+            matches=[v for v in staged if v.get('dest')==cfg['remove_files'][-2]['path']]
             self.assertEqual(len(matches),1);self.assertEqual(matches[0]['sha256'],sha(out/'records/n.json'))
 
     def test_all_capped_cells_and_refill(self):

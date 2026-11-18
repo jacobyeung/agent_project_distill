@@ -3,9 +3,9 @@
 # later identical copies are listed in <manifest_dir>/DEDUP_<label>.tsv.gz ("dup_path<TAB>kept_path") and
 # that manifest path is printed last. Stats go to stderr.
 import gzip, hashlib, os, re, sys
-EXT = ('.py', '.sh', '.md', '.json', '.jsonl', '.yaml', '.yml', '.toml', '.cfg', '.txt', '.patch', '.diff')
+EXT = ('.py', '.sh', '.md', '.json', '.jsonl', '.yaml', '.yml', '.toml', '.cfg', '.txt', '.patch', '.diff', '.tpl', '.ini', '.tsv')
 MAXB = 512 * 1024
-DATA_MAXB = 64 * 1024  # .json/.jsonl above this are data rows or result dumps
+DATA_MAXB = 256 * 1024  # .json/.jsonl above this are data rows or result dumps
 MAXDIR = 2000
 SUBSTR = ('out/devin_traces', '/dl/', '/root/', '/envs/', 'site-packages', '__pycache__', '.cache', 'node_modules')
 # Scratch copies, test/mutation outputs, caches, vendored libraries, data rows and result dumps.

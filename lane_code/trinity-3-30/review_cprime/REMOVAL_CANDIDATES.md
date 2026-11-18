@@ -1,0 +1,1 @@
+- /scratch/jjyeung/orch_n30/review_cprime/work/all_rows_compact.jsonl (218 MB store extract), /scratch/jjyeung/orch_n30/review_cprime/cpcopy (copy of cp tools/tests/configs/out), /scratch/jjyeung/orch_n30/review_cprime/arc_cp and /scratch/jjyeung/orch_n30/review_cprime/arc_c4 (extracted archives); review-only scratch, safe to remove once the verdict is accepted.

@@ -1,0 +1,2856 @@
+{
+ "schema": "dose-pool-s1-manifest-v2",
+ "sets": [
+  {
+   "name": "T0_gen_r2",
+   "run": "/scratch/jjyeung/orch_cd/dose_pool/out/t0_r2",
+   "files": {
+    "admitted": {
+     "path": "/scratch/jjyeung/orch_cd/dose_pool/out/POOL_S1/T0_gen_r2_admitted.jsonl.gz",
+     "sha256": "7e4e92918e312afd3e235cda75c7ccaf42eb5ed572a71b8d2821b89d82e89258",
+     "rows": 23465,
+     "bytes": 20292647
+    },
+    "packed": {
+     "path": "/scratch/jjyeung/orch_cd/dose_pool/out/POOL_S1/T0_gen_r2_packed.jsonl.gz",
+     "sha256": "a67a3f6f489031d4163b75dbae45d665a05fecf4dcbe6f2f33b0dee6567de7b5",
+     "rows": 23465,
+     "bytes": 29681863
+    }
+   },
+   "scenes": 340,
+   "scan_dirs": 343,
+   "generator_state": {
+    "dose_t0.py": "58d03b0488bfad58e270ded1f0e594d9bca70de9ca87d3a912c34c58cb69fce8",
+    "derivgen_v7/derivgen/box_v313.py": "84ea03aecd2d6a915b3a51950a39831b913acfea16ee253b5187a0fe46a4cdba",
+    "ground_rows_out/render_full.py": "584d6e031f1970a522a8f9c476c07ed3cd2d1c1107fe10cf10cac6b5e39d102d",
+    "V314_MANIFEST.json": "9f29b1fb57840076c97b72f107ba9dce9ebbbbcd4589e56217c5ebf90301a9dc"
+   },
+   "generator_root": "/scratch/jjyeung/orch_cd/dose_pool/work/v314r2",
+   "rows_per_type": {
+    "object_abs_distance": 4955,
+    "object_rel_distance": 8516,
+    "object_rel_direction_medium": 6462,
+    "object_rel_direction_hard": 3532
+   },
+   "rows_per_type_dataset": {
+    "object_abs_distance|scannet": 1521,
+    "object_rel_distance|scannet": 3623,
+    "object_rel_direction_medium|scannet": 2235,
+    "object_rel_direction_hard|scannet": 1452,
+    "object_rel_direction_hard|scannetppv2": 2080,
+    "object_abs_distance|scannetppv2": 3434,
+    "object_rel_distance|scannetppv2": 4893,
+    "object_rel_direction_medium|scannetppv2": 4227
+   },
+   "validator_receipt": {
+    "audit_pairs": 39019,
+    "reversed_draws_detected": 0,
+    "exact_replay": 23465,
+    "templates": 23465,
+    "shuffles": 23465,
+    "label_equality": 23465,
+    "flags_and_dev_exclusion": 23465,
+    "tokens_and_gate_positions": 23465,
+    "pack_roundtrip": 23465
+   },
+   "content_check": {
+    "path": "/scratch/jjyeung/orch_cd/dose_pool/out/t0_r2/CONTENT_CHECK.json",
+    "sha256": "9d0638f201148083aba4131ce7290cd167e4fcf09bb508991647b20dd095e20f"
+   },
+   "histograms": {
+    "object_abs_distance": {
+     "pool": {
+      "m1": 1718,
+      "m2": 1229,
+      "m3": 682,
+      "m0": 918,
+      "m4": 277,
+      "m5": 83,
+      "m6": 48
+     },
+     "bench": {
+      "m0": 152,
+      "m4": 55,
+      "m3": 104,
+      "m1": 295,
+      "m2": 185,
+      "m5": 17,
+      "m6": 26
+     },
+     "match": {
+      "weight": {
+       "m1": 0.317,
+       "m2": 0.2779,
+       "m3": 0.2815,
+       "m0": 0.3057,
+       "m4": 0.3666,
+       "m5": 0.3781,
+       "m6": 1.0
+      },
+      "rows_after": 1539,
+      "missing_in_pool": []
+     }
+    },
+    "object_rel_distance": {
+     "pool": {
+      "letter_B": 2211,
+      "letter_A": 2072,
+      "letter_C": 2145,
+      "letter_D": 2088
+     },
+     "bench": {
+      "letter_A": 177,
+      "letter_B": 178,
+      "letter_D": 178,
+      "letter_C": 177
+     },
+     "match": {
+      "weight": {
+       "letter_B": 0.9424,
+       "letter_A": 1.0,
+       "letter_C": 0.966,
+       "letter_D": 0.9979
+      },
+      "rows_after": 8311,
+      "missing_in_pool": []
+     }
+    },
+    "object_rel_direction_medium": {
+     "pool": {
+      "right": 2900,
+      "left": 3305,
+      "back": 257
+     },
+     "bench": {
+      "right": 172,
+      "back": 18,
+      "left": 188
+     },
+     "match": {
+      "weight": {
+       "right": 0.8468,
+       "left": 0.8122,
+       "back": 1.0
+      },
+      "rows_after": 5397,
+      "missing_in_pool": []
+     }
+    },
+    "object_rel_direction_hard": {
+     "pool": {
+      "front-right": 1471,
+      "front-left": 1570,
+      "back-left": 232,
+      "back-right": 259
+     },
+     "bench": {
+      "back-left": 29,
+      "front-right": 152,
+      "front-left": 160,
+      "back-right": 32
+     },
+     "match": {
+      "weight": {
+       "front-right": 0.8266,
+       "front-left": 0.8153,
+       "back-left": 1.0,
+       "back-right": 0.9884
+      },
+      "rows_after": 2983,
+      "missing_in_pool": []
+     }
+    }
+   },
+   "status": "final",
+   "exclusions": {
+    "dev_s1_rows": 888,
+    "eval_room_rows": 287,
+    "room_release_gate_rows": 0
+   },
+   "after_exclusions": {
+    "rows": 22290,
+    "per_type": {
+     "object_abs_distance": 4653,
+     "object_rel_distance": 8156,
+     "object_rel_direction_medium": 6128,
+     "object_rel_direction_hard": 3353
+    },
+    "per_type_dataset": {
+     "object_abs_distance|d1": 1364,
+     "object_rel_distance|d1": 3389,
+     "object_rel_direction_medium|d1": 2074,
+     "object_rel_direction_hard|d1": 1349,
+     "object_rel_direction_hard|d2": 2004,
+     "object_abs_distance|d2": 3289,
+     "object_rel_distance|d2": 4767,
+     "object_rel_direction_medium|d2": 4054
+    },
+    "scenes": 321,
+    "histograms": {
+     "object_abs_distance": {
+      "pool": {
+       "m1": 1632,
+       "m2": 1129,
+       "m3": 639,
+       "m0": 878,
+       "m4": 258,
+       "m5": 74,
+       "m6": 43
+      },
+      "bench": {
+       "m0": 152,
+       "m4": 55,
+       "m3": 104,
+       "m1": 295,
+       "m2": 185,
+       "m5": 17,
+       "m6": 26
+      },
+      "match": {
+       "weight": {
+        "m1": 0.2989,
+        "m2": 0.271,
+        "m3": 0.2692,
+        "m0": 0.2863,
+        "m4": 0.3526,
+        "m5": 0.3799,
+        "m6": 1.0
+       },
+       "rows_after": 1379,
+       "missing_in_pool": []
+      }
+     },
+     "object_rel_distance": {
+      "pool": {
+       "letter_B": 2122,
+       "letter_A": 1978,
+       "letter_C": 2067,
+       "letter_D": 1989
+      },
+      "bench": {
+       "letter_A": 177,
+       "letter_B": 178,
+       "letter_D": 178,
+       "letter_C": 177
+      },
+      "match": {
+       "weight": {
+        "letter_B": 0.9373,
+        "letter_A": 0.9999,
+        "letter_C": 0.9569,
+        "letter_D": 1.0
+       },
+       "rows_after": 7933,
+       "missing_in_pool": []
+      }
+     },
+     "object_rel_direction_medium": {
+      "pool": {
+       "right": 2755,
+       "left": 3129,
+       "back": 244
+      },
+      "bench": {
+       "right": 172,
+       "back": 18,
+       "left": 188
+      },
+      "match": {
+       "weight": {
+        "right": 0.8463,
+        "left": 0.8145,
+        "back": 1.0
+       },
+       "rows_after": 5124,
+       "missing_in_pool": []
+      }
+     },
+     "object_rel_direction_hard": {
+      "pool": {
+       "front-right": 1399,
+       "front-left": 1490,
+       "back-left": 217,
+       "back-right": 247
+      },
+      "bench": {
+       "back-left": 29,
+       "front-right": 152,
+       "front-left": 160,
+       "back-right": 32
+      },
+      "match": {
+       "weight": {
+        "front-right": 0.813,
+        "front-left": 0.8035,
+        "back-left": 1.0,
+        "back-right": 0.9694
+       },
+       "rows_after": 2791,
+       "missing_in_pool": []
+      }
+     }
+    }
+   }
+  },
+  {
+   "name": "T0_gaps",
+   "run": "/scratch/jjyeung/orch_cd/dose_pool/out/t0_gaps",
+   "files": {
+    "admitted": {
+     "path": "/scratch/jjyeung/orch_cd/dose_pool/out/POOL_S1/T0_gaps_admitted.jsonl.gz",
+     "sha256": "7a1c59097139f59d7dbccf103ec2b34bf43ae75c35c27aa43be3e2582d8cf056",
+     "rows": 11661,
+     "bytes": 3390548
+    },
+    "packed": {
+     "path": "/scratch/jjyeung/orch_cd/dose_pool/out/POOL_S1/T0_gaps_packed.jsonl.gz",
+     "sha256": "1169024c0739e6c4d05e7de6dc095e64300feab577695d7aa3058791760a0d06",
+     "rows": 11661,
+     "bytes": 5629179
+    }
+   },
+   "scenes": 343,
+   "scan_dirs": 345,
+   "generator_state": {
+    "dose_t0.py": "dd73f017703417e11b022e5b2def31c3c0c41d73bd477c0bf961f4387edca1d0",
+    "derivgen_v7/derivgen/box_v313.py": "84ea03aecd2d6a915b3a51950a39831b913acfea16ee253b5187a0fe46a4cdba",
+    "ground_rows_out/render_full.py": "63a7cbc068de174730b9e0030082ed5107e22a17ee19a39a34b4800f5a315344",
+    "V314_MANIFEST.json": "e3997295bc5ebd697760d42e47a294c069639448f6312c6227bb039ec7709868"
+   },
+   "generator_root": "/scratch/jjyeung/orch_cd/dose_pool/work/v314r3",
+   "rows_per_type": {
+    "object_rel_direction_easy": 6822,
+    "absolute_direction_object": 3859,
+    "object_counting": 695,
+    "relative_count": 285
+   },
+   "rows_per_type_dataset": {
+    "object_rel_direction_easy|scannet": 2395,
+    "absolute_direction_object|scannet": 1553,
+    "object_counting|scannet": 310,
+    "relative_count|scannet": 132,
+    "object_rel_direction_easy|scannetppv2": 4427,
+    "absolute_direction_object|scannetppv2": 2306,
+    "object_counting|scannetppv2": 385,
+    "relative_count|scannetppv2": 153
+   },
+   "validator_receipt": {
+    "exact_replay": 11661,
+    "printed_computation": 11661,
+    "templates": 11661,
+    "shuffles": 11661,
+    "label_equality": 11661,
+    "flags_and_dev_exclusion": 11661,
+    "tokens_and_gate_positions": 11661,
+    "pack_roundtrip": 11661
+   },
+   "content_check": {
+    "path": "/scratch/jjyeung/orch_cd/dose_pool/out/t0_gaps/CONTENT_CHECK.json",
+    "sha256": "a0022760efb8800256862b344a2f6aea859e5303c70581e92cd65d0aa06d9279"
+   },
+   "histograms": {
+    "object_rel_direction_easy": {
+     "pool": {
+      "right": 3270,
+      "left": 3552
+     },
+     "bench": {
+      "right": 106,
+      "left": 111
+     },
+     "match": {
+      "weight": {
+       "right": 1.0,
+       "left": 0.964
+      },
+      "rows_after": 6694,
+      "missing_in_pool": []
+     }
+    },
+    "absolute_direction_object": {
+     "pool": {
+      "deg300": 649,
+      "deg330": 667,
+      "deg030": 670,
+      "deg270": 319,
+      "deg000": 587,
+      "deg120": 123,
+      "deg060": 341,
+      "deg210": 97,
+      "deg150": 61,
+      "deg240": 145,
+      "deg090": 137,
+      "deg180": 63
+     },
+     "bench": {},
+     "match": null
+    },
+    "object_counting": {
+     "pool": {
+      "2": 459,
+      "3": 121,
+      "5": 22,
+      "4": 52,
+      "8": 7,
+      "6": 14,
+      "10": 15,
+      "9": 2,
+      "7": 3
+     },
+     "bench": {
+      "4": 58,
+      "9": 5,
+      "5": 30,
+      "10": 33,
+      "7": 9,
+      "2": 302,
+      "8": 8,
+      "6": 15,
+      "3": 104,
+      "1": 1
+     },
+     "match": {
+      "weight": {
+       "2": 0.2193,
+       "3": 0.2865,
+       "5": 0.4545,
+       "4": 0.3718,
+       "8": 0.381,
+       "6": 0.3571,
+       "10": 0.7333,
+       "9": 0.8333,
+       "7": 1.0
+      },
+      "rows_after": 187,
+      "missing_in_pool": [
+       "1"
+      ]
+     }
+    },
+    "relative_count": {
+     "pool": {
+      "letter_C": 87,
+      "letter_B": 105,
+      "letter_A": 93
+     },
+     "bench": {},
+     "match": null
+    }
+   },
+   "status": "final",
+   "exclusions": {
+    "dev_s1_rows": 468,
+    "eval_room_rows": 141,
+    "room_release_gate_rows": 0
+   },
+   "after_exclusions": {
+    "rows": 11052,
+    "per_type": {
+     "object_rel_direction_easy": 6468,
+     "absolute_direction_object": 3668,
+     "object_counting": 646,
+     "relative_count": 270
+    },
+    "per_type_dataset": {
+     "object_rel_direction_easy|d1": 2216,
+     "absolute_direction_object|d1": 1438,
+     "object_counting|d1": 278,
+     "relative_count|d1": 121,
+     "object_rel_direction_easy|d2": 4252,
+     "absolute_direction_object|d2": 2230,
+     "object_counting|d2": 368,
+     "relative_count|d2": 149
+    },
+    "scenes": 322,
+    "histograms": {
+     "object_rel_direction_easy": {
+      "pool": {
+       "right": 3104,
+       "left": 3364
+      },
+      "bench": {
+       "right": 106,
+       "left": 111
+      },
+      "match": {
+       "weight": {
+        "right": 1.0,
+        "left": 0.9662
+       },
+       "rows_after": 6354,
+       "missing_in_pool": []
+      }
+     },
+     "absolute_direction_object": {
+      "pool": {
+       "deg300": 616,
+       "deg330": 641,
+       "deg030": 634,
+       "deg270": 299,
+       "deg000": 554,
+       "deg120": 118,
+       "deg060": 320,
+       "deg210": 96,
+       "deg150": 58,
+       "deg240": 140,
+       "deg090": 132,
+       "deg180": 60
+      },
+      "bench": {},
+      "match": null
+     },
+     "object_counting": {
+      "pool": {
+       "2": 422,
+       "3": 114,
+       "5": 22,
+       "4": 48,
+       "8": 7,
+       "6": 14,
+       "10": 14,
+       "9": 2,
+       "7": 3
+      },
+      "bench": {
+       "4": 58,
+       "9": 5,
+       "5": 30,
+       "10": 33,
+       "7": 9,
+       "2": 302,
+       "8": 8,
+       "6": 15,
+       "3": 104,
+       "1": 1
+      },
+      "match": {
+       "weight": {
+        "2": 0.2385,
+        "3": 0.3041,
+        "5": 0.4545,
+        "4": 0.4028,
+        "8": 0.381,
+        "6": 0.3571,
+        "10": 0.7857,
+        "9": 0.8333,
+        "7": 1.0
+       },
+       "rows_after": 187,
+       "missing_in_pool": [
+        "1"
+       ]
+      }
+     },
+     "relative_count": {
+      "pool": {
+       "letter_C": 82,
+       "letter_B": 98,
+       "letter_A": 90
+      },
+      "bench": {},
+      "match": null
+     }
+    }
+   }
+  },
+  {
+   "name": "ARKIT_gen_r2",
+   "run": "/scratch/jjyeung/orch_cd/dose_pool/out/arkit_r2",
+   "files": {
+    "admitted": {
+     "path": "/scratch/jjyeung/orch_cd/dose_pool/out/POOL_S1/ARKIT_gen_r2_admitted.jsonl.gz",
+     "sha256": "9eecedf23da3bd9106ad58f020573ba95e1a2a85e04423eebc75d4feef2cc85f",
+     "rows": 11819,
+     "bytes": 8846956
+    },
+    "packed": {
+     "path": "/scratch/jjyeung/orch_cd/dose_pool/out/POOL_S1/ARKIT_gen_r2_packed.jsonl.gz",
+     "sha256": "75c8f3436382132208efcd0e94cfe2e297b5079ccd52e39b4714b84fd8b1bd39",
+     "rows": 11819,
+     "bytes": 13184331
+    }
+   },
+   "scenes": 1217,
+   "scan_dirs": 1238,
+   "generator_state": {
+    "dose_t0.py": "58d03b0488bfad58e270ded1f0e594d9bca70de9ca87d3a912c34c58cb69fce8",
+    "derivgen_v7/derivgen/box_v313.py": "84ea03aecd2d6a915b3a51950a39831b913acfea16ee253b5187a0fe46a4cdba",
+    "ground_rows_out/render_full.py": "584d6e031f1970a522a8f9c476c07ed3cd2d1c1107fe10cf10cac6b5e39d102d",
+    "V314_MANIFEST.json": "9f29b1fb57840076c97b72f107ba9dce9ebbbbcd4589e56217c5ebf90301a9dc"
+   },
+   "generator_root": "/scratch/jjyeung/orch_cd/dose_pool/work/v314r2",
+   "rows_per_type": {
+    "object_rel_direction_medium": 2675,
+    "object_abs_distance": 3232,
+    "object_rel_direction_hard": 2270,
+    "object_rel_distance": 3642
+   },
+   "rows_per_type_dataset": {
+    "object_rel_direction_medium|arkitscenes": 2675,
+    "object_abs_distance|arkitscenes": 3232,
+    "object_rel_direction_hard|arkitscenes": 2270,
+    "object_rel_distance|arkitscenes": 3642
+   },
+   "validator_receipt": {
+    "exact_replay": 11819,
+    "templates": 11819,
+    "shuffles": 11819,
+    "label_equality": 11819,
+    "flags_and_dev_exclusion": 11819,
+    "tokens_and_gate_positions": 11819,
+    "pack_roundtrip": 11819,
+    "audit_pairs": 17800,
+    "reversed_draws_detected": 0
+   },
+   "content_check": {
+    "path": "/scratch/jjyeung/orch_cd/dose_pool/out/arkit_r2/CONTENT_CHECK.json",
+    "sha256": "c7acb2da94db547f268407d30b70186aa0e42567e99cec326357eccbacc907cf"
+   },
+   "histograms": {
+    "object_rel_direction_medium": {
+     "pool": {
+      "left": 1324,
+      "right": 1282,
+      "back": 69
+     },
+     "bench": {
+      "right": 172,
+      "back": 18,
+      "left": 188
+     },
+     "match": {
+      "weight": {
+       "left": 0.5443,
+       "right": 0.5143,
+       "back": 1.0
+      },
+      "rows_after": 1448,
+      "missing_in_pool": []
+     }
+    },
+    "object_abs_distance": {
+     "pool": {
+      "m1": 1110,
+      "m0": 783,
+      "m3": 329,
+      "m2": 542,
+      "m6": 95,
+      "m5": 126,
+      "m4": 247
+     },
+     "bench": {
+      "m0": 152,
+      "m4": 55,
+      "m3": 104,
+      "m1": 295,
+      "m2": 185,
+      "m5": 17,
+      "m6": 26
+     },
+     "match": {
+      "weight": {
+       "m1": 0.7786,
+       "m0": 0.5687,
+       "m3": 0.9261,
+       "m2": 1.0,
+       "m6": 0.8018,
+       "m5": 0.3953,
+       "m4": 0.6524
+      },
+      "rows_after": 2443,
+      "missing_in_pool": []
+     }
+    },
+    "object_rel_direction_hard": {
+     "pool": {
+      "back-right": 189,
+      "front-left": 926,
+      "front-right": 988,
+      "back-left": 167
+     },
+     "bench": {
+      "back-left": 29,
+      "front-right": 152,
+      "front-left": 160,
+      "back-right": 32
+     },
+     "match": {
+      "weight": {
+       "back-right": 0.975,
+       "front-left": 0.995,
+       "front-right": 0.8859,
+       "back-left": 1.0
+      },
+      "rows_after": 2147,
+      "missing_in_pool": []
+     }
+    },
+    "object_rel_distance": {
+     "pool": {
+      "letter_B": 914,
+      "letter_A": 871,
+      "letter_C": 921,
+      "letter_D": 936
+     },
+     "bench": {
+      "letter_A": 177,
+      "letter_B": 178,
+      "letter_D": 178,
+      "letter_C": 177
+     },
+     "match": {
+      "weight": {
+       "letter_B": 0.9583,
+       "letter_A": 1.0,
+       "letter_C": 0.9457,
+       "letter_D": 0.9358
+      },
+      "rows_after": 3493,
+      "missing_in_pool": []
+     }
+    }
+   },
+   "status": "final",
+   "exclusions": {
+    "dev_s1_rows": 469,
+    "eval_room_rows": 29,
+    "room_release_gate_rows": 0
+   },
+   "after_exclusions": {
+    "rows": 11321,
+    "per_type": {
+     "object_rel_direction_medium": 2549,
+     "object_abs_distance": 3063,
+     "object_rel_direction_hard": 2169,
+     "object_rel_distance": 3540
+    },
+    "per_type_dataset": {
+     "object_rel_direction_medium|d3": 2549,
+     "object_abs_distance|d3": 3063,
+     "object_rel_direction_hard|d3": 2169,
+     "object_rel_distance|d3": 3540
+    },
+    "scenes": 1158,
+    "histograms": {
+     "object_rel_direction_medium": {
+      "pool": {
+       "left": 1259,
+       "right": 1226,
+       "back": 64
+      },
+      "bench": {
+       "right": 172,
+       "back": 18,
+       "left": 188
+      },
+      "match": {
+       "weight": {
+        "left": 0.5309,
+        "right": 0.4988,
+        "back": 1.0
+       },
+       "rows_after": 1343,
+       "missing_in_pool": []
+      }
+     },
+     "object_abs_distance": {
+      "pool": {
+       "m1": 1052,
+       "m0": 744,
+       "m3": 311,
+       "m2": 508,
+       "m6": 92,
+       "m5": 126,
+       "m4": 230
+      },
+      "bench": {
+       "m0": 152,
+       "m4": 55,
+       "m3": 104,
+       "m1": 295,
+       "m2": 185,
+       "m5": 17,
+       "m6": 26
+      },
+      "match": {
+       "weight": {
+        "m1": 0.77,
+        "m0": 0.561,
+        "m3": 0.9183,
+        "m2": 1.0,
+        "m6": 0.776,
+        "m5": 0.3705,
+        "m4": 0.6566
+       },
+       "rows_after": 2290,
+       "missing_in_pool": []
+      }
+     },
+     "object_rel_direction_hard": {
+      "pool": {
+       "back-right": 180,
+       "front-left": 884,
+       "front-right": 949,
+       "back-left": 156
+      },
+      "bench": {
+       "back-left": 29,
+       "front-right": 152,
+       "front-left": 160,
+       "back-right": 32
+      },
+      "match": {
+       "weight": {
+        "back-right": 0.9563,
+        "front-left": 0.9736,
+        "front-right": 0.8616,
+        "back-left": 1.0
+       },
+       "rows_after": 2006,
+       "missing_in_pool": []
+      }
+     },
+     "object_rel_distance": {
+      "pool": {
+       "letter_B": 887,
+       "letter_A": 843,
+       "letter_C": 899,
+       "letter_D": 911
+      },
+      "bench": {
+       "letter_A": 177,
+       "letter_B": 178,
+       "letter_D": 178,
+       "letter_C": 177
+      },
+      "match": {
+       "weight": {
+        "letter_B": 0.9558,
+        "letter_A": 1.0,
+        "letter_C": 0.9377,
+        "letter_D": 0.9306
+       },
+       "rows_after": 3381,
+       "missing_in_pool": []
+      }
+     }
+    }
+   }
+  },
+  {
+   "name": "ARKIT_gaps",
+   "run": "/scratch/jjyeung/orch_cd/dose_pool/out/arkit_gaps",
+   "files": {
+    "admitted": {
+     "path": "/scratch/jjyeung/orch_cd/dose_pool/out/POOL_S1/ARKIT_gaps_admitted.jsonl.gz",
+     "sha256": "6053fd47c70c0b25f6d1c47e232dc40d7157e908d5153d90fd6a8fe2db5322e3",
+     "rows": 6859,
+     "bytes": 2006255
+    },
+    "packed": {
+     "path": "/scratch/jjyeung/orch_cd/dose_pool/out/POOL_S1/ARKIT_gaps_packed.jsonl.gz",
+     "sha256": "8807075c04730c0e3e08e0efa5b65737772522d5430a5eae6905ab47234ebe33",
+     "rows": 6859,
+     "bytes": 3192491
+    }
+   },
+   "scenes": 1045,
+   "scan_dirs": 1102,
+   "generator_state": {
+    "dose_t0.py": "dd73f017703417e11b022e5b2def31c3c0c41d73bd477c0bf961f4387edca1d0",
+    "derivgen_v7/derivgen/box_v313.py": "84ea03aecd2d6a915b3a51950a39831b913acfea16ee253b5187a0fe46a4cdba",
+    "ground_rows_out/render_full.py": "63a7cbc068de174730b9e0030082ed5107e22a17ee19a39a34b4800f5a315344",
+    "V314_MANIFEST.json": "e3997295bc5ebd697760d42e47a294c069639448f6312c6227bb039ec7709868"
+   },
+   "generator_root": "/scratch/jjyeung/orch_cd/dose_pool/work/v314r3",
+   "rows_per_type": {
+    "object_counting": 1281,
+    "object_rel_direction_easy": 2771,
+    "absolute_direction_object": 2402,
+    "relative_count": 405
+   },
+   "rows_per_type_dataset": {
+    "object_counting|arkitscenes": 1281,
+    "object_rel_direction_easy|arkitscenes": 2771,
+    "absolute_direction_object|arkitscenes": 2402,
+    "relative_count|arkitscenes": 405
+   },
+   "validator_receipt": {
+    "exact_replay": 6859,
+    "printed_computation": 6859,
+    "templates": 6859,
+    "shuffles": 6859,
+    "label_equality": 6859,
+    "flags_and_dev_exclusion": 6859,
+    "tokens_and_gate_positions": 6859,
+    "pack_roundtrip": 6859
+   },
+   "content_check": {
+    "path": "/scratch/jjyeung/orch_cd/dose_pool/out/arkit_gaps/CONTENT_CHECK.json",
+    "sha256": "24fe050176b7393cb7f3a3706dc51636341ae873b5f5f2388d86c6be7b5f324b"
+   },
+   "histograms": {
+    "object_counting": {
+     "pool": {
+      "2": 636,
+      "4": 147,
+      "5": 81,
+      "3": 315,
+      "6": 36,
+      "8": 17,
+      "10": 20,
+      "7": 21,
+      "9": 8
+     },
+     "bench": {
+      "4": 58,
+      "9": 5,
+      "5": 30,
+      "10": 33,
+      "7": 9,
+      "2": 302,
+      "8": 8,
+      "6": 15,
+      "3": 104,
+      "1": 1
+     },
+     "match": {
+      "weight": {
+       "2": 0.2878,
+       "4": 0.2391,
+       "5": 0.2245,
+       "3": 0.2001,
+       "6": 0.2525,
+       "8": 0.2852,
+       "10": 1.0,
+       "7": 0.2597,
+       "9": 0.3788
+      },
+      "rows_after": 341,
+      "missing_in_pool": [
+       "1"
+      ]
+     }
+    },
+    "object_rel_direction_easy": {
+     "pool": {
+      "left": 1364,
+      "right": 1407
+     },
+     "bench": {
+      "right": 106,
+      "left": 111
+     },
+     "match": {
+      "weight": {
+       "left": 1.0,
+       "right": 0.9258
+      },
+      "rows_after": 2666,
+      "missing_in_pool": []
+     }
+    },
+    "absolute_direction_object": {
+     "pool": {
+      "deg330": 349,
+      "deg300": 462,
+      "deg030": 484,
+      "deg000": 277,
+      "deg240": 117,
+      "deg060": 228,
+      "deg270": 183,
+      "deg120": 72,
+      "deg090": 102,
+      "deg150": 31,
+      "deg210": 75,
+      "deg180": 22
+     },
+     "bench": {},
+     "match": null
+    },
+    "relative_count": {
+     "pool": {
+      "letter_C": 143,
+      "letter_B": 135,
+      "letter_A": 127
+     },
+     "bench": {},
+     "match": null
+    }
+   },
+   "status": "final",
+   "exclusions": {
+    "dev_s1_rows": 279,
+    "eval_room_rows": 20,
+    "room_release_gate_rows": 0
+   },
+   "after_exclusions": {
+    "rows": 6560,
+    "per_type": {
+     "object_counting": 1237,
+     "object_rel_direction_easy": 2644,
+     "absolute_direction_object": 2293,
+     "relative_count": 386
+    },
+    "per_type_dataset": {
+     "object_counting|d3": 1237,
+     "object_rel_direction_easy|d3": 2644,
+     "absolute_direction_object|d3": 2293,
+     "relative_count|d3": 386
+    },
+    "scenes": 1002,
+    "histograms": {
+     "object_counting": {
+      "pool": {
+       "2": 612,
+       "4": 145,
+       "3": 308,
+       "5": 76,
+       "6": 34,
+       "8": 17,
+       "10": 20,
+       "7": 18,
+       "9": 7
+      },
+      "bench": {
+       "4": 58,
+       "9": 5,
+       "5": 30,
+       "10": 33,
+       "7": 9,
+       "2": 302,
+       "8": 8,
+       "6": 15,
+       "3": 104,
+       "1": 1
+      },
+      "match": {
+       "weight": {
+        "2": 0.2991,
+        "4": 0.2424,
+        "3": 0.2046,
+        "5": 0.2392,
+        "6": 0.2674,
+        "8": 0.2852,
+        "10": 1.0,
+        "7": 0.303,
+        "9": 0.4329
+       },
+       "rows_after": 341,
+       "missing_in_pool": [
+        "1"
+       ]
+      }
+     },
+     "object_rel_direction_easy": {
+      "pool": {
+       "left": 1298,
+       "right": 1346
+      },
+      "bench": {
+       "right": 106,
+       "left": 111
+      },
+      "match": {
+       "weight": {
+        "left": 1.0,
+        "right": 0.9209
+       },
+       "rows_after": 2537,
+       "missing_in_pool": []
+      }
+     },
+     "absolute_direction_object": {
+      "pool": {
+       "deg330": 338,
+       "deg300": 439,
+       "deg030": 462,
+       "deg000": 269,
+       "deg240": 106,
+       "deg060": 219,
+       "deg270": 175,
+       "deg120": 70,
+       "deg090": 96,
+       "deg150": 27,
+       "deg210": 72,
+       "deg180": 20
+      },
+      "bench": {},
+      "match": null
+     },
+     "relative_count": {
+      "pool": {
+       "letter_C": 137,
+       "letter_B": 130,
+       "letter_A": 119
+      },
+      "bench": {},
+      "match": null
+     }
+    }
+   }
+  },
+  {
+   "name": "T0_room",
+   "run": "/scratch/jjyeung/orch_cd/dose_pool/out/room_t0d",
+   "files": {
+    "admitted": {
+     "path": "/scratch/jjyeung/orch_cd/dose_pool/out/POOL_S1/T0_room_admitted.jsonl.gz",
+     "sha256": "947c8d100170a34885a36de95ff00d77e3bfbc54cee2ba2b859dcedd8ea6fb92",
+     "rows": 85,
+     "bytes": 30268
+    },
+    "packed": {
+     "path": "/scratch/jjyeung/orch_cd/dose_pool/out/POOL_S1/T0_room_packed.jsonl.gz",
+     "sha256": "2331a5bbb181ebb64b7519b306a5c729909f7316fa59ab51490caa1aaa9b52b5",
+     "rows": 85,
+     "bytes": 32267
+    }
+   },
+   "scenes": 85,
+   "scan_dirs": 0,
+   "generator_state": {
+    "room_t0.py": "634d257b6c9c35bfbaa4c6d628302d45484e880a9f4d1ebf5542aaafebf36076",
+    "gen_r2/derivgen_v7/derivgen/box_v313.py": "84ea03aecd2d6a915b3a51950a39831b913acfea16ee253b5187a0fe46a4cdba",
+    "gen_r2/ground_rows_out/render_room_v314.py": "79a480a4cb843bf64f2813c988b1a18376cfba308c906b792c050dfffc95c985"
+   },
+   "generator_root": "/scratch/jjyeung/orch_cd/dose_pool/work/room",
+   "rows_per_type": {
+    "room_size_estimation": 85
+   },
+   "rows_per_type_dataset": {
+    "room_size_estimation|scannet": 85
+   },
+   "validator_receipt": {
+    "dev_exclusion": 85,
+    "template": 85,
+    "label_equality": 85,
+    "exact_replay": 85,
+    "decoder_bytes": 85,
+    "printed_computation": 85,
+    "tokens_and_gate_positions": 85,
+    "pack_roundtrip": 85
+   },
+   "content_check": null,
+   "histograms": {
+    "room_size_estimation": {
+     "pool": {
+      "m2_10": 44,
+      "m2_40": 2,
+      "m2_20": 16,
+      "m2_00": 10,
+      "m2_30": 10,
+      "m2_50": 2,
+      "m2_60": 1
+     },
+     "bench": {
+      "m2_20": 68,
+      "m2_00": 53,
+      "m2_30": 34,
+      "m2_40": 12,
+      "m2_10": 108,
+      "m2_50": 9,
+      "m2_70": 1,
+      "m2_60": 1,
+      "m2_80": 2
+     },
+     "match": {
+      "weight": {
+       "m2_10": 0.4091,
+       "m2_40": 1.0,
+       "m2_20": 0.7083,
+       "m2_00": 0.8833,
+       "m2_30": 0.5667,
+       "m2_50": 0.75,
+       "m2_60": 0.1667
+      },
+      "rows_after": 47,
+      "missing_in_pool": [
+       "m2_70",
+       "m2_80"
+      ]
+     }
+    }
+   },
+   "status": "final",
+   "exclusions": {
+    "dev_s1_rows": 6,
+    "eval_room_rows": 2,
+    "room_release_gate_rows": 1
+   },
+   "after_exclusions": {
+    "rows": 76,
+    "per_type": {
+     "room_size_estimation": 76
+    },
+    "per_type_dataset": {
+     "room_size_estimation|d1": 76
+    },
+    "scenes": 76,
+    "histograms": {
+     "room_size_estimation": {
+      "pool": {
+       "m2_10": 42,
+       "m2_40": 2,
+       "m2_20": 15,
+       "m2_00": 9,
+       "m2_30": 6,
+       "m2_60": 1,
+       "m2_50": 1
+      },
+      "bench": {
+       "m2_20": 68,
+       "m2_00": 53,
+       "m2_30": 34,
+       "m2_40": 12,
+       "m2_10": 108,
+       "m2_50": 9,
+       "m2_70": 1,
+       "m2_60": 1,
+       "m2_80": 2
+      },
+      "match": {
+       "weight": {
+        "m2_10": 0.2857,
+        "m2_40": 0.6667,
+        "m2_20": 0.5037,
+        "m2_00": 0.6543,
+        "m2_30": 0.6296,
+        "m2_60": 0.1111,
+        "m2_50": 1.0
+       },
+       "rows_after": 31,
+       "missing_in_pool": [
+        "m2_70",
+        "m2_80"
+       ]
+      }
+     }
+    }
+   }
+  },
+  {
+   "name": "T1H1_gen_r2",
+   "run": "/scratch/jjyeung/orch_cd/dose_pool/out/t1_r2",
+   "files": {
+    "admitted": {
+     "path": "/scratch/jjyeung/orch_cd/dose_pool/out/POOL_S1/T1H1_gen_r2_admitted.jsonl.gz",
+     "sha256": "ba96a4182147a3840dc137d139795d45ed401540bbe634a8bd2bdd7c1fb2e845",
+     "rows": 14777,
+     "bytes": 13808269
+    },
+    "packed": {
+     "path": "/scratch/jjyeung/orch_cd/dose_pool/out/POOL_S1/T1H1_gen_r2_packed.jsonl.gz",
+     "sha256": "b37de067725dde5bed0d1583f3288bad09d9a4e23aaa5f45de16f9ebf31fcac0",
+     "rows": 14777,
+     "bytes": 19695196
+    }
+   },
+   "scenes": 414,
+   "scan_dirs": 429,
+   "generator_state": {
+    "dose_t0.py": "58d03b0488bfad58e270ded1f0e594d9bca70de9ca87d3a912c34c58cb69fce8",
+    "derivgen_v7/derivgen/box_v313.py": "84ea03aecd2d6a915b3a51950a39831b913acfea16ee253b5187a0fe46a4cdba",
+    "ground_rows_out/render_full.py": "584d6e031f1970a522a8f9c476c07ed3cd2d1c1107fe10cf10cac6b5e39d102d",
+    "V314_MANIFEST.json": "9f29b1fb57840076c97b72f107ba9dce9ebbbbcd4589e56217c5ebf90301a9dc"
+   },
+   "generator_root": "/scratch/jjyeung/orch_cd/dose_pool/work/v314r2",
+   "rows_per_type": {
+    "object_abs_distance": 2986,
+    "object_rel_direction_medium": 3878,
+    "object_rel_direction_hard": 2339,
+    "object_rel_distance": 5574
+   },
+   "rows_per_type_dataset": {
+    "object_abs_distance|scannet": 1092,
+    "object_rel_direction_medium|scannet": 1376,
+    "object_rel_direction_hard|scannet": 883,
+    "object_rel_distance|scannet": 2123,
+    "object_rel_direction_medium|scannetpp": 2502,
+    "object_abs_distance|scannetpp": 1894,
+    "object_rel_distance|scannetpp": 3451,
+    "object_rel_direction_hard|scannetpp": 1456
+   },
+   "validator_receipt": {
+    "audit_pairs": 25282,
+    "reversed_draws_detected": 0,
+    "exact_replay": 14777,
+    "templates": 14777,
+    "shuffles": 14777,
+    "label_equality": 14777,
+    "flags_and_dev_exclusion": 14777,
+    "tokens_and_gate_positions": 14777,
+    "pack_roundtrip": 14777
+   },
+   "content_check": {
+    "path": "/scratch/jjyeung/orch_cd/dose_pool/out/t1_r2/CONTENT_CHECK.json",
+    "sha256": "a08fc6636a1555cfb6c54dca71ef074f123a9b26dce2f3d119c857f23404b239"
+   },
+   "histograms": {
+    "object_abs_distance": {
+     "pool": {
+      "m2": 797,
+      "m1": 956,
+      "m0": 373,
+      "m3": 456,
+      "m6": 113,
+      "m5": 78,
+      "m4": 213
+     },
+     "bench": {
+      "m0": 152,
+      "m4": 55,
+      "m3": 104,
+      "m1": 295,
+      "m2": 185,
+      "m5": 17,
+      "m6": 26
+     },
+     "match": {
+      "weight": {
+       "m2": 0.5696,
+       "m1": 0.7572,
+       "m0": 1.0,
+       "m3": 0.5597,
+       "m6": 0.5646,
+       "m5": 0.5348,
+       "m4": 0.6336
+      },
+      "rows_after": 2046,
+      "missing_in_pool": []
+     }
+    },
+    "object_rel_direction_medium": {
+     "pool": {
+      "left": 1941,
+      "right": 1784,
+      "back": 153
+     },
+     "bench": {
+      "right": 172,
+      "back": 18,
+      "left": 188
+     },
+     "match": {
+      "weight": {
+       "left": 0.8233,
+       "right": 0.8195,
+       "back": 1.0
+      },
+      "rows_after": 3213,
+      "missing_in_pool": []
+     }
+    },
+    "object_rel_direction_hard": {
+     "pool": {
+      "front-right": 998,
+      "front-left": 1035,
+      "back-right": 171,
+      "back-left": 135
+     },
+     "bench": {
+      "back-left": 29,
+      "front-right": 152,
+      "front-left": 160,
+      "back-right": 32
+     },
+     "match": {
+      "weight": {
+       "front-right": 0.709,
+       "front-left": 0.7196,
+       "back-right": 0.8711,
+       "back-left": 1.0
+      },
+      "rows_after": 1736,
+      "missing_in_pool": []
+     }
+    },
+    "object_rel_distance": {
+     "pool": {
+      "letter_D": 1376,
+      "letter_A": 1317,
+      "letter_B": 1425,
+      "letter_C": 1456
+     },
+     "bench": {
+      "letter_A": 177,
+      "letter_B": 178,
+      "letter_D": 178,
+      "letter_C": 177
+     },
+     "match": {
+      "weight": {
+       "letter_D": 0.9625,
+       "letter_A": 1.0,
+       "letter_B": 0.9294,
+       "letter_C": 0.9045
+      },
+      "rows_after": 5282,
+      "missing_in_pool": []
+     }
+    }
+   },
+   "status": "final",
+   "exclusions": {
+    "dev_s1_rows": 385,
+    "eval_room_rows": 3380,
+    "room_release_gate_rows": 0
+   },
+   "after_exclusions": {
+    "rows": 11012,
+    "per_type": {
+     "object_rel_distance": 4106,
+     "object_abs_distance": 2265,
+     "object_rel_direction_medium": 2897,
+     "object_rel_direction_hard": 1744
+    },
+    "per_type_dataset": {
+     "object_rel_distance|d1": 758,
+     "object_abs_distance|d1": 441,
+     "object_rel_distance|d2": 3348,
+     "object_abs_distance|d2": 1824,
+     "object_rel_direction_medium|d2": 2397,
+     "object_rel_direction_hard|d2": 1394,
+     "object_rel_direction_medium|d1": 500,
+     "object_rel_direction_hard|d1": 350
+    },
+    "scenes": 318,
+    "histograms": {
+     "object_rel_distance": {
+      "pool": {
+       "letter_A": 980,
+       "letter_D": 988,
+       "letter_B": 1091,
+       "letter_C": 1047
+      },
+      "bench": {
+       "letter_A": 177,
+       "letter_B": 178,
+       "letter_D": 178,
+       "letter_C": 177
+      },
+      "match": {
+       "weight": {
+        "letter_A": 1.0,
+        "letter_D": 0.9975,
+        "letter_B": 0.9033,
+        "letter_C": 0.936
+       },
+       "rows_after": 3931,
+       "missing_in_pool": []
+      }
+     },
+     "object_abs_distance": {
+      "pool": {
+       "m1": 710,
+       "m3": 333,
+       "m0": 291,
+       "m2": 613,
+       "m5": 59,
+       "m6": 101,
+       "m4": 158
+      },
+      "bench": {
+       "m0": 152,
+       "m4": 55,
+       "m3": 104,
+       "m1": 295,
+       "m2": 185,
+       "m5": 17,
+       "m6": 26
+      },
+      "match": {
+       "weight": {
+        "m1": 0.7955,
+        "m3": 0.5979,
+        "m0": 1.0,
+        "m2": 0.5778,
+        "m5": 0.5516,
+        "m6": 0.4928,
+        "m4": 0.6664
+       },
+       "rows_after": 1596,
+       "missing_in_pool": []
+      }
+     },
+     "object_rel_direction_medium": {
+      "pool": {
+       "right": 1357,
+       "left": 1402,
+       "back": 138
+      },
+      "bench": {
+       "right": 172,
+       "back": 18,
+       "left": 188
+      },
+      "match": {
+       "weight": {
+        "right": 0.9452,
+        "left": 1.0,
+        "back": 0.9727
+       },
+       "rows_after": 2818,
+       "missing_in_pool": []
+      }
+     },
+     "object_rel_direction_hard": {
+      "pool": {
+       "front-left": 743,
+       "front-right": 758,
+       "back-right": 139,
+       "back-left": 104
+      },
+      "bench": {
+       "back-left": 29,
+       "front-right": 152,
+       "front-left": 160,
+       "back-right": 32
+      },
+      "match": {
+       "weight": {
+        "front-left": 0.7723,
+        "front-right": 0.7191,
+        "back-right": 0.8256,
+        "back-left": 1.0
+       },
+       "rows_after": 1337,
+       "missing_in_pool": []
+      }
+     }
+    }
+   }
+  },
+  {
+   "name": "T1H1_gaps",
+   "run": "/scratch/jjyeung/orch_cd/dose_pool/out/t1_gaps",
+   "files": {
+    "admitted": {
+     "path": "/scratch/jjyeung/orch_cd/dose_pool/out/POOL_S1/T1H1_gaps_admitted.jsonl.gz",
+     "sha256": "b6ac18d55d697a230bf4e1aae4a9dddbcda06978c355b4ec3091d17871f8a71b",
+     "rows": 7862,
+     "bytes": 2302711
+    },
+    "packed": {
+     "path": "/scratch/jjyeung/orch_cd/dose_pool/out/POOL_S1/T1H1_gaps_packed.jsonl.gz",
+     "sha256": "cbff008bb2aba2ad99d6ce99d0b1c23826f1c29e346e90e6e1ca909cc77f31b8",
+     "rows": 7862,
+     "bytes": 3772175
+    }
+   },
+   "scenes": 492,
+   "scan_dirs": 502,
+   "generator_state": {
+    "dose_t0.py": "dd73f017703417e11b022e5b2def31c3c0c41d73bd477c0bf961f4387edca1d0",
+    "derivgen_v7/derivgen/box_v313.py": "84ea03aecd2d6a915b3a51950a39831b913acfea16ee253b5187a0fe46a4cdba",
+    "ground_rows_out/render_full.py": "63a7cbc068de174730b9e0030082ed5107e22a17ee19a39a34b4800f5a315344",
+    "V314_MANIFEST.json": "e3997295bc5ebd697760d42e47a294c069639448f6312c6227bb039ec7709868"
+   },
+   "generator_root": "/scratch/jjyeung/orch_cd/dose_pool/work/v314r3",
+   "rows_per_type": {
+    "object_counting": 946,
+    "absolute_direction_object": 2526,
+    "object_rel_direction_easy": 3892,
+    "relative_count": 498
+   },
+   "rows_per_type_dataset": {
+    "object_counting|scannet": 509,
+    "absolute_direction_object|scannet": 963,
+    "object_rel_direction_easy|scannet": 1430,
+    "relative_count|scannet": 216,
+    "object_rel_direction_easy|scannetpp": 2462,
+    "absolute_direction_object|scannetpp": 1563,
+    "object_counting|scannetpp": 437,
+    "relative_count|scannetpp": 282
+   },
+   "validator_receipt": {
+    "exact_replay": 7862,
+    "printed_computation": 7862,
+    "templates": 7862,
+    "shuffles": 7862,
+    "label_equality": 7862,
+    "flags_and_dev_exclusion": 7862,
+    "tokens_and_gate_positions": 7862,
+    "pack_roundtrip": 7862
+   },
+   "content_check": {
+    "path": "/scratch/jjyeung/orch_cd/dose_pool/out/t1_gaps/CONTENT_CHECK.json",
+    "sha256": "4e0710b67d324c3e604d1796daf51a1e92f90c616b1c7116a0fc474af6fc7288"
+   },
+   "histograms": {
+    "object_counting": {
+     "pool": {
+      "2": 524,
+      "3": 155,
+      "5": 56,
+      "4": 110,
+      "10": 50,
+      "9": 7,
+      "7": 15,
+      "6": 16,
+      "8": 13
+     },
+     "bench": {
+      "4": 58,
+      "9": 5,
+      "5": 30,
+      "10": 33,
+      "7": 9,
+      "2": 302,
+      "8": 8,
+      "6": 15,
+      "3": 104,
+      "1": 1
+     },
+     "match": {
+      "weight": {
+       "2": 0.6148,
+       "3": 0.7157,
+       "5": 0.5714,
+       "4": 0.5624,
+       "10": 0.704,
+       "9": 0.7619,
+       "7": 0.64,
+       "6": 1.0,
+       "8": 0.6564
+      },
+      "rows_after": 601,
+      "missing_in_pool": [
+       "1"
+      ]
+     }
+    },
+    "absolute_direction_object": {
+     "pool": {
+      "deg030": 462,
+      "deg300": 463,
+      "deg000": 388,
+      "deg240": 100,
+      "deg330": 420,
+      "deg180": 44,
+      "deg150": 38,
+      "deg210": 60,
+      "deg060": 210,
+      "deg270": 185,
+      "deg120": 61,
+      "deg090": 95
+     },
+     "bench": {},
+     "match": null
+    },
+    "object_rel_direction_easy": {
+     "pool": {
+      "left": 1976,
+      "right": 1916
+     },
+     "bench": {
+      "right": 106,
+      "left": 111
+     },
+     "match": {
+      "weight": {
+       "left": 1.0,
+       "right": 0.9849
+      },
+      "rows_after": 3863,
+      "missing_in_pool": []
+     }
+    },
+    "relative_count": {
+     "pool": {
+      "letter_B": 170,
+      "letter_A": 161,
+      "letter_C": 167
+     },
+     "bench": {},
+     "match": null
+    }
+   },
+   "status": "final",
+   "exclusions": {
+    "dev_s1_rows": 183,
+    "eval_room_rows": 1760,
+    "room_release_gate_rows": 0
+   },
+   "after_exclusions": {
+    "rows": 5919,
+    "per_type": {
+     "relative_count": 394,
+     "object_counting": 715,
+     "object_rel_direction_easy": 2923,
+     "absolute_direction_object": 1887
+    },
+    "per_type_dataset": {
+     "relative_count|d1": 117,
+     "object_counting|d1": 285,
+     "object_rel_direction_easy|d2": 2395,
+     "absolute_direction_object|d2": 1505,
+     "object_counting|d2": 430,
+     "relative_count|d2": 277,
+     "object_rel_direction_easy|d1": 528,
+     "absolute_direction_object|d1": 382
+    },
+    "scenes": 373,
+    "histograms": {
+     "relative_count": {
+      "pool": {
+       "letter_B": 138,
+       "letter_A": 128,
+       "letter_C": 128
+      },
+      "bench": {},
+      "match": null
+     },
+     "object_counting": {
+      "pool": {
+       "3": 120,
+       "5": 43,
+       "2": 393,
+       "10": 39,
+       "9": 6,
+       "7": 13,
+       "6": 15,
+       "8": 11,
+       "4": 75
+      },
+      "bench": {
+       "4": 58,
+       "9": 5,
+       "5": 30,
+       "10": 33,
+       "7": 9,
+       "2": 302,
+       "8": 8,
+       "6": 15,
+       "3": 104,
+       "1": 1
+      },
+      "match": {
+       "weight": {
+        "3": 0.8667,
+        "5": 0.6977,
+        "2": 0.7684,
+        "10": 0.8462,
+        "9": 0.8333,
+        "7": 0.6923,
+        "6": 1.0,
+        "8": 0.7273,
+        "4": 0.7733
+       },
+       "rows_after": 563,
+       "missing_in_pool": [
+        "1"
+       ]
+      }
+     },
+     "object_rel_direction_easy": {
+      "pool": {
+       "right": 1475,
+       "left": 1448
+      },
+      "bench": {
+       "right": 106,
+       "left": 111
+      },
+      "match": {
+       "weight": {
+        "right": 0.9375,
+        "left": 1.0
+       },
+       "rows_after": 2830,
+       "missing_in_pool": []
+      }
+     },
+     "absolute_direction_object": {
+      "pool": {
+       "deg000": 280,
+       "deg300": 340,
+       "deg030": 345,
+       "deg240": 72,
+       "deg330": 309,
+       "deg180": 41,
+       "deg150": 36,
+       "deg210": 51,
+       "deg270": 132,
+       "deg060": 159,
+       "deg120": 48,
+       "deg090": 74
+      },
+      "bench": {},
+      "match": null
+     }
+    }
+   }
+  },
+  {
+   "name": "T1H1_room",
+   "run": "/scratch/jjyeung/orch_cd/dose_pool/out/room_t1",
+   "files": {
+    "admitted": {
+     "path": "/scratch/jjyeung/orch_cd/dose_pool/out/POOL_S1/T1H1_room_admitted.jsonl.gz",
+     "sha256": "137de4ba701eff93900877e59af0f46d523b74fcff558f99a5be612f4e0924b1",
+     "rows": 203,
+     "bytes": 67503
+    },
+    "packed": {
+     "path": "/scratch/jjyeung/orch_cd/dose_pool/out/POOL_S1/T1H1_room_packed.jsonl.gz",
+     "sha256": "0298d22ae6a8e2b6081dbecded86a8412a72a1cc48399d21fc1f3e24e138423b",
+     "rows": 203,
+     "bytes": 71875
+    }
+   },
+   "scenes": 211,
+   "scan_dirs": 0,
+   "generator_state": {
+    "room_t0.py": "634d257b6c9c35bfbaa4c6d628302d45484e880a9f4d1ebf5542aaafebf36076",
+    "gen_r2/derivgen_v7/derivgen/box_v313.py": "84ea03aecd2d6a915b3a51950a39831b913acfea16ee253b5187a0fe46a4cdba",
+    "gen_r2/ground_rows_out/render_room_v314.py": "79a480a4cb843bf64f2813c988b1a18376cfba308c906b792c050dfffc95c985"
+   },
+   "generator_root": "/scratch/jjyeung/orch_cd/dose_pool/work/room",
+   "rows_per_type": {
+    "room_size_estimation": 203
+   },
+   "rows_per_type_dataset": {
+    "room_size_estimation|scannet": 211
+   },
+   "validator_receipt": {
+    "dev_exclusion": 211,
+    "template": 211,
+    "label_equality": 211,
+    "exact_replay": 211,
+    "decoder_bytes": 211,
+    "printed_computation": 211,
+    "tokens_and_gate_positions": 211,
+    "pack_roundtrip": 211
+   },
+   "content_check": null,
+   "histograms": {
+    "room_size_estimation": {
+     "pool": {
+      "m2_00": 35,
+      "m2_10": 94,
+      "m2_30": 26,
+      "m2_20": 41,
+      "m2_40": 11,
+      "m2_60": 1,
+      "m2_50": 2,
+      "m2_80": 1
+     },
+     "bench": {
+      "m2_20": 68,
+      "m2_00": 53,
+      "m2_30": 34,
+      "m2_40": 12,
+      "m2_10": 108,
+      "m2_50": 9,
+      "m2_70": 1,
+      "m2_60": 1,
+      "m2_80": 2
+     },
+     "match": {
+      "weight": {
+       "m2_00": 0.3365,
+       "m2_10": 0.2553,
+       "m2_30": 0.2906,
+       "m2_20": 0.3686,
+       "m2_40": 0.2424,
+       "m2_60": 0.2222,
+       "m2_50": 1.0,
+       "m2_80": 0.4444
+      },
+      "rows_after": 63,
+      "missing_in_pool": [
+       "m2_70"
+      ]
+     }
+    }
+   },
+   "dropped": {
+    "reason": "no_frames (scene has no k6tk frames)",
+    "qids": [
+     "vsi590k_058637",
+     "vsi590k_058569",
+     "vsi590k_058686",
+     "vsi590k_059194",
+     "vsi590k_059519",
+     "vsi590k_059032",
+     "vsi590k_058926",
+     "vsi590k_058818"
+    ]
+   },
+   "status": "final",
+   "exclusions": {
+    "dev_s1_rows": 12,
+    "eval_room_rows": 65,
+    "room_release_gate_rows": 0
+   },
+   "after_exclusions": {
+    "rows": 126,
+    "per_type": {
+     "room_size_estimation": 126
+    },
+    "per_type_dataset": {
+     "room_size_estimation|d1": 126
+    },
+    "scenes": 126,
+    "histograms": {
+     "room_size_estimation": {
+      "pool": {
+       "m2_20": 23,
+       "m2_10": 61,
+       "m2_00": 24,
+       "m2_60": 1,
+       "m2_30": 9,
+       "m2_40": 5,
+       "m2_50": 2,
+       "m2_80": 1
+      },
+      "bench": {
+       "m2_20": 68,
+       "m2_00": 53,
+       "m2_30": 34,
+       "m2_40": 12,
+       "m2_10": 108,
+       "m2_50": 9,
+       "m2_70": 1,
+       "m2_60": 1,
+       "m2_80": 2
+      },
+      "match": {
+       "weight": {
+        "m2_20": 0.657,
+        "m2_10": 0.3934,
+        "m2_00": 0.4907,
+        "m2_60": 0.2222,
+        "m2_30": 0.8395,
+        "m2_40": 0.5333,
+        "m2_50": 1.0,
+        "m2_80": 0.4444
+       },
+       "rows_after": 63,
+       "missing_in_pool": [
+        "m2_70"
+       ]
+      }
+     }
+    }
+   }
+  },
+  {
+   "name": "T1H2_gen_r2",
+   "run": "/scratch/jjyeung/orch_cd/dose_pool/out/t1h2_r2",
+   "files": {
+    "admitted": {
+     "path": "/scratch/jjyeung/orch_cd/dose_pool/out/POOL_S1/T1H2_gen_r2_admitted.jsonl.gz",
+     "sha256": "c16c5db36e04c1ef3dd6729f1eba73d9057e415b1bfac05d4cb13f775a14dea4",
+     "rows": 9708,
+     "bytes": 10089823
+    },
+    "packed": {
+     "path": "/scratch/jjyeung/orch_cd/dose_pool/out/POOL_S1/T1H2_gen_r2_packed.jsonl.gz",
+     "sha256": "42c520ec4f5bee344f487a880fe8fa5cefffb15a1d9af19dfaa44c0afdacfca5",
+     "rows": 9708,
+     "bytes": 14213700
+    }
+   },
+   "scenes": 212,
+   "scan_dirs": 218,
+   "generator_state": {
+    "dose_t0.py": "58d03b0488bfad58e270ded1f0e594d9bca70de9ca87d3a912c34c58cb69fce8",
+    "derivgen_v7/derivgen/box_v313.py": "84ea03aecd2d6a915b3a51950a39831b913acfea16ee253b5187a0fe46a4cdba",
+    "ground_rows_out/render_full.py": "584d6e031f1970a522a8f9c476c07ed3cd2d1c1107fe10cf10cac6b5e39d102d",
+    "V314_MANIFEST.json": "9f29b1fb57840076c97b72f107ba9dce9ebbbbcd4589e56217c5ebf90301a9dc"
+   },
+   "generator_root": "/scratch/jjyeung/orch_cd/dose_pool/work/v314r2",
+   "rows_per_type": {
+    "object_rel_distance": 3701,
+    "object_rel_direction_medium": 2605,
+    "object_abs_distance": 1828,
+    "object_rel_direction_hard": 1574
+   },
+   "rows_per_type_dataset": {
+    "object_rel_distance|scannetpp": 3701,
+    "object_rel_direction_medium|scannetpp": 2605,
+    "object_abs_distance|scannetpp": 1828,
+    "object_rel_direction_hard|scannetpp": 1574
+   },
+   "validator_receipt": {
+    "audit_pairs": 16632,
+    "reversed_draws_detected": 0,
+    "exact_replay": 9708,
+    "templates": 9708,
+    "shuffles": 9708,
+    "label_equality": 9708,
+    "flags_and_dev_exclusion": 9708,
+    "tokens_and_gate_positions": 9708,
+    "pack_roundtrip": 9708
+   },
+   "content_check": {
+    "path": "/scratch/jjyeung/orch_cd/dose_pool/out/t1h2_r2/CONTENT_CHECK.json",
+    "sha256": "87fd7c9cecc24e2f9f83583477a268e2dc9cacd37b0d7d3bcef667bf7a3e206e"
+   },
+   "histograms": {
+    "object_rel_distance": {
+     "pool": {
+      "letter_A": 940,
+      "letter_B": 930,
+      "letter_C": 898,
+      "letter_D": 933
+     },
+     "bench": {
+      "letter_A": 177,
+      "letter_B": 178,
+      "letter_D": 178,
+      "letter_C": 177
+     },
+     "match": {
+      "weight": {
+       "letter_A": 0.9553,
+       "letter_B": 0.971,
+       "letter_C": 1.0,
+       "letter_D": 0.9679
+      },
+      "rows_after": 3602,
+      "missing_in_pool": []
+     }
+    },
+    "object_rel_direction_medium": {
+     "pool": {
+      "left": 1310,
+      "right": 1198,
+      "back": 97
+     },
+     "bench": {
+      "right": 172,
+      "back": 18,
+      "left": 188
+     },
+     "match": {
+      "weight": {
+       "left": 0.7734,
+       "right": 0.7737,
+       "back": 1.0
+      },
+      "rows_after": 2037,
+      "missing_in_pool": []
+     }
+    },
+    "object_abs_distance": {
+     "pool": {
+      "m1": 557,
+      "m3": 271,
+      "m4": 143,
+      "m2": 570,
+      "m6": 66,
+      "m0": 149,
+      "m5": 72
+     },
+     "bench": {
+      "m0": 152,
+      "m4": 55,
+      "m3": 104,
+      "m1": 295,
+      "m2": 185,
+      "m5": 17,
+      "m6": 26
+     },
+     "match": {
+      "weight": {
+       "m1": 0.5192,
+       "m3": 0.3762,
+       "m4": 0.377,
+       "m2": 0.3182,
+       "m6": 0.3862,
+       "m0": 1.0,
+       "m5": 0.2315
+      },
+      "rows_after": 817,
+      "missing_in_pool": []
+     }
+    },
+    "object_rel_direction_hard": {
+     "pool": {
+      "back-right": 130,
+      "back-left": 118,
+      "front-left": 682,
+      "front-right": 644
+     },
+     "bench": {
+      "back-left": 29,
+      "front-right": 152,
+      "front-left": 160,
+      "back-right": 32
+     },
+     "match": {
+      "weight": {
+       "back-right": 1.0,
+       "back-left": 0.9984,
+       "front-left": 0.9531,
+       "front-right": 0.9589
+      },
+      "rows_after": 1515,
+      "missing_in_pool": []
+     }
+    }
+   },
+   "status": "final",
+   "exclusions": {
+    "dev_s1_rows": 394,
+    "eval_room_rows": 0,
+    "room_release_gate_rows": 0
+   },
+   "after_exclusions": {
+    "rows": 9314,
+    "per_type": {
+     "object_rel_distance": 3537,
+     "object_rel_direction_medium": 2508,
+     "object_abs_distance": 1747,
+     "object_rel_direction_hard": 1522
+    },
+    "per_type_dataset": {
+     "object_rel_distance|d2": 3537,
+     "object_rel_direction_medium|d2": 2508,
+     "object_abs_distance|d2": 1747,
+     "object_rel_direction_hard|d2": 1522
+    },
+    "scenes": 204,
+    "histograms": {
+     "object_rel_distance": {
+      "pool": {
+       "letter_A": 900,
+       "letter_B": 886,
+       "letter_C": 860,
+       "letter_D": 891
+      },
+      "bench": {
+       "letter_A": 177,
+       "letter_B": 178,
+       "letter_D": 178,
+       "letter_C": 177
+      },
+      "match": {
+       "weight": {
+        "letter_A": 0.9556,
+        "letter_B": 0.9761,
+        "letter_C": 1.0,
+        "letter_D": 0.9707
+       },
+       "rows_after": 3449,
+       "missing_in_pool": []
+      }
+     },
+     "object_rel_direction_medium": {
+      "pool": {
+       "left": 1259,
+       "right": 1156,
+       "back": 93
+      },
+      "bench": {
+       "right": 172,
+       "back": 18,
+       "left": 188
+      },
+      "match": {
+       "weight": {
+        "left": 0.7715,
+        "right": 0.7687,
+        "back": 1.0
+       },
+       "rows_after": 1952,
+       "missing_in_pool": []
+      }
+     },
+     "object_abs_distance": {
+      "pool": {
+       "m1": 532,
+       "m3": 260,
+       "m4": 136,
+       "m2": 545,
+       "m6": 64,
+       "m0": 141,
+       "m5": 69
+      },
+      "bench": {
+       "m0": 152,
+       "m4": 55,
+       "m3": 104,
+       "m1": 295,
+       "m2": 185,
+       "m5": 17,
+       "m6": 26
+      },
+      "match": {
+       "weight": {
+        "m1": 0.5144,
+        "m3": 0.3711,
+        "m4": 0.3751,
+        "m2": 0.3149,
+        "m6": 0.3769,
+        "m0": 1.0,
+        "m5": 0.2285
+       },
+       "rows_after": 773,
+       "missing_in_pool": []
+      }
+     },
+     "object_rel_direction_hard": {
+      "pool": {
+       "back-right": 121,
+       "back-left": 113,
+       "front-left": 662,
+       "front-right": 626
+      },
+      "bench": {
+       "back-left": 29,
+       "front-right": 152,
+       "front-left": 160,
+       "back-right": 32
+      },
+      "match": {
+       "weight": {
+        "back-right": 1.0,
+        "back-left": 0.9704,
+        "front-left": 0.9139,
+        "front-right": 0.9181
+       },
+       "rows_after": 1410,
+       "missing_in_pool": []
+      }
+     }
+    }
+   }
+  },
+  {
+   "name": "T1H2_gaps",
+   "run": "/scratch/jjyeung/orch_cd/dose_pool/out/t1h2_gaps",
+   "files": {
+    "admitted": {
+     "path": "/scratch/jjyeung/orch_cd/dose_pool/out/POOL_S1/T1H2_gaps_admitted.jsonl.gz",
+     "sha256": "9bf0518db09a07d8b614bbddb8f5c9d010a4ba5c861ac2c78a6b0bca6fdc0820",
+     "rows": 5319,
+     "bytes": 1538989
+    },
+    "packed": {
+     "path": "/scratch/jjyeung/orch_cd/dose_pool/out/POOL_S1/T1H2_gaps_packed.jsonl.gz",
+     "sha256": "2f2fd779179a5ca19e36034eb00c74839d48b6f88c5127e38e1e90864d6cf647",
+     "rows": 5319,
+     "bytes": 2557490
+    }
+   },
+   "scenes": 222,
+   "scan_dirs": 230,
+   "generator_state": {
+    "dose_t0.py": "dd73f017703417e11b022e5b2def31c3c0c41d73bd477c0bf961f4387edca1d0",
+    "derivgen_v7/derivgen/box_v313.py": "84ea03aecd2d6a915b3a51950a39831b913acfea16ee253b5187a0fe46a4cdba",
+    "ground_rows_out/render_full.py": "63a7cbc068de174730b9e0030082ed5107e22a17ee19a39a34b4800f5a315344",
+    "V314_MANIFEST.json": "e3997295bc5ebd697760d42e47a294c069639448f6312c6227bb039ec7709868"
+   },
+   "generator_root": "/scratch/jjyeung/orch_cd/dose_pool/work/v314r3",
+   "rows_per_type": {
+    "object_rel_direction_easy": 2707,
+    "object_counting": 514,
+    "absolute_direction_object": 1731,
+    "relative_count": 367
+   },
+   "rows_per_type_dataset": {
+    "object_rel_direction_easy|scannetpp": 2707,
+    "object_counting|scannetpp": 514,
+    "absolute_direction_object|scannetpp": 1731,
+    "relative_count|scannetpp": 367
+   },
+   "validator_receipt": {
+    "exact_replay": 5319,
+    "printed_computation": 5319,
+    "templates": 5319,
+    "shuffles": 5319,
+    "label_equality": 5319,
+    "flags_and_dev_exclusion": 5319,
+    "tokens_and_gate_positions": 5319,
+    "pack_roundtrip": 5319
+   },
+   "content_check": {
+    "path": "/scratch/jjyeung/orch_cd/dose_pool/out/t1h2_gaps/CONTENT_CHECK.json",
+    "sha256": "25a48061675875c723c74ab26cc56234f4af1362d46fd3b5683e226e331bf662"
+   },
+   "histograms": {
+    "object_rel_direction_easy": {
+     "pool": {
+      "left": 1414,
+      "right": 1293
+     },
+     "bench": {
+      "right": 106,
+      "left": 111
+     },
+     "match": {
+      "weight": {
+       "left": 0.9576,
+       "right": 1.0
+      },
+      "rows_after": 2647,
+      "missing_in_pool": []
+     }
+    },
+    "object_counting": {
+     "pool": {
+      "2": 282,
+      "6": 16,
+      "3": 97,
+      "10": 33,
+      "5": 15,
+      "8": 7,
+      "4": 54,
+      "9": 4,
+      "7": 6
+     },
+     "bench": {
+      "4": 58,
+      "9": 5,
+      "5": 30,
+      "10": 33,
+      "7": 9,
+      "2": 302,
+      "8": 8,
+      "6": 15,
+      "3": 104,
+      "1": 1
+     },
+     "match": {
+      "weight": {
+       "2": 0.5355,
+       "6": 0.4688,
+       "3": 0.5361,
+       "10": 0.5,
+       "5": 1.0,
+       "8": 0.5714,
+       "4": 0.537,
+       "9": 0.625,
+       "7": 0.75
+      },
+      "rows_after": 282,
+      "missing_in_pool": [
+       "1"
+      ]
+     }
+    },
+    "absolute_direction_object": {
+     "pool": {
+      "deg240": 74,
+      "deg300": 293,
+      "deg000": 274,
+      "deg030": 315,
+      "deg120": 65,
+      "deg090": 69,
+      "deg330": 281,
+      "deg270": 132,
+      "deg060": 123,
+      "deg150": 29,
+      "deg180": 26,
+      "deg210": 50
+     },
+     "bench": {},
+     "match": null
+    },
+    "relative_count": {
+     "pool": {
+      "letter_C": 126,
+      "letter_B": 107,
+      "letter_A": 134
+     },
+     "bench": {},
+     "match": null
+    }
+   },
+   "status": "final",
+   "exclusions": {
+    "dev_s1_rows": 189,
+    "eval_room_rows": 0,
+    "room_release_gate_rows": 0
+   },
+   "after_exclusions": {
+    "rows": 5130,
+    "per_type": {
+     "object_rel_direction_easy": 2595,
+     "object_counting": 501,
+     "absolute_direction_object": 1671,
+     "relative_count": 363
+    },
+    "per_type_dataset": {
+     "object_rel_direction_easy|d2": 2595,
+     "object_counting|d2": 501,
+     "absolute_direction_object|d2": 1671,
+     "relative_count|d2": 363
+    },
+    "scenes": 214,
+    "histograms": {
+     "object_rel_direction_easy": {
+      "pool": {
+       "left": 1350,
+       "right": 1245
+      },
+      "bench": {
+       "right": 106,
+       "left": 111
+      },
+      "match": {
+       "weight": {
+        "left": 0.9657,
+        "right": 1.0
+       },
+       "rows_after": 2548,
+       "missing_in_pool": []
+      }
+     },
+     "object_counting": {
+      "pool": {
+       "2": 275,
+       "6": 16,
+       "3": 94,
+       "10": 31,
+       "5": 15,
+       "8": 7,
+       "4": 53,
+       "9": 4,
+       "7": 6
+      },
+      "bench": {
+       "4": 58,
+       "9": 5,
+       "5": 30,
+       "10": 33,
+       "7": 9,
+       "2": 302,
+       "8": 8,
+       "6": 15,
+       "3": 104,
+       "1": 1
+      },
+      "match": {
+       "weight": {
+        "2": 0.5491,
+        "6": 0.4688,
+        "3": 0.5532,
+        "10": 0.5323,
+        "5": 1.0,
+        "8": 0.5714,
+        "4": 0.5472,
+        "9": 0.625,
+        "7": 0.75
+       },
+       "rows_after": 282,
+       "missing_in_pool": [
+        "1"
+       ]
+      }
+     },
+     "absolute_direction_object": {
+      "pool": {
+       "deg240": 72,
+       "deg300": 290,
+       "deg000": 261,
+       "deg030": 310,
+       "deg120": 60,
+       "deg090": 66,
+       "deg330": 264,
+       "deg270": 129,
+       "deg060": 120,
+       "deg150": 27,
+       "deg180": 25,
+       "deg210": 47
+      },
+      "bench": {},
+      "match": null
+     },
+     "relative_count": {
+      "pool": {
+       "letter_C": 124,
+       "letter_B": 106,
+       "letter_A": 133
+      },
+      "bench": {},
+      "match": null
+     }
+    }
+   }
+  },
+  {
+   "name": "ROUTE_direct",
+   "run": "out/route_direct2",
+   "form": "direct (one sentence stating the turns, then the answer)",
+   "files": {
+    "rows": {
+     "path": "/scratch/jjyeung/orch_cd/dose_pool/out/route_direct2/ROUTE_DIRECT.jsonl.gz",
+     "sha256": "947cbb9fa7d6bde05b034a0b78bfa8ead473e545ab02ac3bd698486fd30425ab",
+     "rows": 10458,
+     "bytes": 3028169
+    }
+   },
+   "generator_state": {
+    "script": "work/v314r3/route_rows.py",
+    "source": "weak_data out/b2 PACK_route_planning + PLANS (GT routes, commit 6bed8665)"
+   },
+   "rows_per_type": {
+    "route_planning": 10458
+   },
+   "rows_per_dataset": {
+    "admitted|d2": 5519,
+    "admitted|d3": 2932,
+    "admitted|d1": 2007
+   },
+   "turns_per_route": {
+    "admitted_turns|1": 5351,
+    "admitted_turns|2": 2279,
+    "admitted_turns|3": 2828
+   },
+   "validator_receipt": {
+    "turns_recomputed_from_gt": 10458,
+    "option_content_equals_turns": 10458,
+    "word_scan_clean": 10458,
+    "eval_scene_exclusion": 10458,
+    "in_A4_train": 10415
+   },
+   "histograms": {
+    "route_planning": {
+     "pool": {
+      "first_turn": {
+       "Turn Back": 3449,
+       "Turn Right": 3503,
+       "Turn Left": 3506
+      },
+      "letters": {
+       "C": 3060,
+       "A": 3061,
+       "B": 3061,
+       "D": 1276
+      }
+     },
+     "bench": null,
+     "match": null
+    }
+   },
+   "status": "final",
+   "exclusions": {
+    "dev_s1_rows": 536,
+    "eval_room_rows": 499,
+    "room_release_gate_rows": 0
+   },
+   "after_exclusions": {
+    "rows": 9423,
+    "per_type": {
+     "route_planning": 9423
+    },
+    "per_type_dataset": {
+     "route_planning|d2": 5231,
+     "route_planning|d3": 2741,
+     "route_planning|d1": 1451
+    },
+    "scenes": 1297,
+    "histograms": {
+     "route_planning": {
+      "pool": {
+       "letter_C": 2766,
+       "letter_A": 2771,
+       "letter_B": 2760,
+       "letter_D": 1126
+      },
+      "bench": {
+       "letter_B": 56,
+       "letter_A": 57,
+       "letter_D": 28,
+       "letter_C": 53
+      },
+      "match": {
+       "weight": {
+        "letter_C": 0.7706,
+        "letter_A": 0.8272,
+        "letter_B": 0.8159,
+        "letter_D": 1.0
+       },
+       "rows_after": 7801,
+       "missing_in_pool": []
+      }
+     }
+    }
+   }
+  },
+  {
+   "name": "SCENE_room",
+   "status": "final",
+   "run": "/scratch/jjyeung/orch_cd/dose_pool/out/room_scenes_v2",
+   "form": "scene renders; the single-K independent label and the per-frame-K label both agree with the row",
+   "files": {
+    "admitted": {
+     "path": "/scratch/jjyeung/orch_cd/dose_pool/out/POOL_S1/SCENE_room_admitted.jsonl.gz",
+     "sha256": "43f9b9afc69c7dffd040af9498343aa914528f698c6dc7beb93c5d50c7c2cfe8",
+     "bytes": 129409,
+     "rows": 384
+    },
+    "packed": {
+     "path": "/scratch/jjyeung/orch_cd/dose_pool/out/POOL_S1/SCENE_room_packed.jsonl.gz",
+     "sha256": "086c857c721c6074bf2e903d8b31125e79a6347e8a13508ffc30d6b132be9ae5",
+     "bytes": 140102,
+     "rows": 384
+    }
+   },
+   "generator_state": {
+    "room_scenes.py": "9168c78bfb322b2da9beb5216978300dee2ee2b4eff23bee0e4fcbfd6ea51884",
+    "gen_r2/derivgen_v7/derivgen/box_v313.py": "84ea03aecd2d6a915b3a51950a39831b913acfea16ee253b5187a0fe46a4cdba",
+    "gen_r2/ground_rows_out/render_room_v314.py": "79a480a4cb843bf64f2813c988b1a18376cfba308c906b792c050dfffc95c985"
+   },
+   "summary": {
+    "admitted|scannet": 197,
+    "admitted|scannetppv2": 598,
+    "captures|scannet": 576,
+    "captures|scannetppv2": 656,
+    "label_equal_0.005m2": 795,
+    "refused|release_gate_10pct": 12,
+    "skip|covered_by_pool_room_row": 203,
+    "skip|dev_s1_room": 54,
+    "skip|eval_room": 134,
+    "skip|frames_not_in_k6tk": 34,
+    "tried": 807,
+    "with_released": 795,
+    "within10_released": 795,
+    "released_relerr_median": 0.02087905084265787,
+    "dev_s1_withhold_sha256": "969cdb56ce508eff79390d67099c889b92bd360e93dc42ba07f3683ec216a986"
+   },
+   "sampling": "one per capture: sampling id 0 = the registry 32 frames (k6 grid[::4], offset 0)",
+   "rows_per_type": {
+    "room_size_estimation": 384
+   },
+   "scenes": 384,
+   "validator_receipt": {
+    "dev_exclusion": 384,
+    "template": 384,
+    "label_equality": 384,
+    "exact_replay": 384,
+    "decoder_bytes": 384,
+    "printed_computation": 384,
+    "tokens_and_gate_positions": 384,
+    "pack_roundtrip": 384
+   },
+   "exclusions": {
+    "dev_s1_rows": 0,
+    "eval_room_rows": 0,
+    "room_release_gate_rows": 0
+   },
+   "after_exclusions": {
+    "rows": 384,
+    "per_type": {
+     "room_size_estimation": 384
+    },
+    "per_type_dataset": {
+     "room_size_estimation|d2": 187,
+     "room_size_estimation|d1": 197
+    },
+    "scenes": 384,
+    "histograms": {
+     "room_size_estimation": {
+      "pool": {
+       "m2_20": 66,
+       "m2_00": 81,
+       "m2_10": 214,
+       "m2_30": 12,
+       "m2_50": 5,
+       "m2_40": 2,
+       "m2_80": 3,
+       "m2_70": 1
+      },
+      "bench": {
+       "m2_20": 68,
+       "m2_00": 53,
+       "m2_30": 34,
+       "m2_40": 12,
+       "m2_10": 108,
+       "m2_50": 9,
+       "m2_70": 1,
+       "m2_60": 1,
+       "m2_80": 2
+      },
+      "match": {
+       "weight": {
+        "m2_20": 0.1717,
+        "m2_00": 0.1091,
+        "m2_10": 0.0841,
+        "m2_30": 0.4722,
+        "m2_50": 0.3,
+        "m2_40": 1.0,
+        "m2_80": 0.1111,
+        "m2_70": 0.1667
+       },
+       "rows_after": 47,
+       "missing_in_pool": [
+        "m2_60"
+       ]
+      }
+     }
+    }
+   }
+  },
+  {
+   "name": "SCENE_room_sppK",
+   "status": "final",
+   "run": "/scratch/jjyeung/orch_cd/dose_pool/out/room_scenes_v2",
+   "form": "ScanNet++ scene renders that agree only with the per-frame-K independent label (scoped to ScanNet++ captures with valid per-frame intrinsics; review room_k_review ADMIT AFTER FIXES)",
+   "files": {
+    "admitted": {
+     "path": "/scratch/jjyeung/orch_cd/dose_pool/out/POOL_S1/SCENE_room_sppK_admitted.jsonl.gz",
+     "sha256": "06edf42322b8233b2deccf615a0e3b4735d92be56adaa746640d124c0ca398f9",
+     "bytes": 146017,
+     "rows": 411
+    },
+    "packed": {
+     "path": "/scratch/jjyeung/orch_cd/dose_pool/out/POOL_S1/SCENE_room_sppK_packed.jsonl.gz",
+     "sha256": "92927870a7b4535c12db25a74f48faaf0102cc5316adf6eebcefb5686a32163d",
+     "bytes": 155568,
+     "rows": 411
+    }
+   },
+   "generator_state": {
+    "room_scenes.py": "9168c78bfb322b2da9beb5216978300dee2ee2b4eff23bee0e4fcbfd6ea51884",
+    "gen_r2/derivgen_v7/derivgen/box_v313.py": "84ea03aecd2d6a915b3a51950a39831b913acfea16ee253b5187a0fe46a4cdba",
+    "gen_r2/ground_rows_out/render_room_v314.py": "79a480a4cb843bf64f2813c988b1a18376cfba308c906b792c050dfffc95c985"
+   },
+   "summary": {
+    "admitted|scannet": 197,
+    "admitted|scannetppv2": 598,
+    "captures|scannet": 576,
+    "captures|scannetppv2": 656,
+    "label_equal_0.005m2": 795,
+    "refused|release_gate_10pct": 12,
+    "skip|covered_by_pool_room_row": 203,
+    "skip|dev_s1_room": 54,
+    "skip|eval_room": 134,
+    "skip|frames_not_in_k6tk": 34,
+    "tried": 807,
+    "with_released": 795,
+    "within10_released": 795,
+    "released_relerr_median": 0.02087905084265787,
+    "dev_s1_withhold_sha256": "969cdb56ce508eff79390d67099c889b92bd360e93dc42ba07f3683ec216a986"
+   },
+   "sampling": "one per capture: sampling id 0 = the registry 32 frames (k6 grid[::4], offset 0)",
+   "rows_per_type": {
+    "room_size_estimation": 411
+   },
+   "scenes": 411,
+   "validator_receipt": {
+    "dev_exclusion": 411,
+    "template": 411,
+    "label_equality": 411,
+    "exact_replay": 411,
+    "decoder_bytes": 411,
+    "printed_computation": 411,
+    "tokens_and_gate_positions": 411,
+    "pack_roundtrip": 411
+   },
+   "exclusions": {
+    "dev_s1_rows": 0,
+    "eval_room_rows": 0,
+    "room_release_gate_rows": 0
+   },
+   "after_exclusions": {
+    "rows": 411,
+    "per_type": {
+     "room_size_estimation": 411
+    },
+    "per_type_dataset": {
+     "room_size_estimation|d2": 411
+    },
+    "scenes": 411,
+    "histograms": {
+     "room_size_estimation": {
+      "pool": {
+       "m2_10": 184,
+       "m2_30": 42,
+       "m2_00": 43,
+       "m2_50": 22,
+       "m2_20": 66,
+       "m2_40": 22,
+       "m2_80": 16,
+       "m2_60": 12,
+       "m2_70": 4
+      },
+      "bench": {
+       "m2_20": 68,
+       "m2_00": 53,
+       "m2_30": 34,
+       "m2_40": 12,
+       "m2_10": 108,
+       "m2_50": 9,
+       "m2_70": 1,
+       "m2_60": 1,
+       "m2_80": 2
+      },
+      "match": {
+       "weight": {
+        "m2_10": 0.4762,
+        "m2_30": 0.6568,
+        "m2_00": 1.0,
+        "m2_50": 0.3319,
+        "m2_20": 0.8359,
+        "m2_40": 0.4425,
+        "m2_80": 0.1014,
+        "m2_60": 0.0676,
+        "m2_70": 0.2028
+       },
+       "rows_after": 233,
+       "missing_in_pool": []
+      }
+     }
+    }
+   }
+  }
+ ],
+ "totals": {
+  "rows_in_files": 103011,
+  "final_after_exclusions": {
+   "rows": 93018,
+   "per_type": {
+    "object_abs_distance": 11728,
+    "object_rel_distance": 19339,
+    "object_rel_direction_medium": 14082,
+    "object_rel_direction_hard": 8788,
+    "object_rel_direction_easy": 14630,
+    "absolute_direction_object": 9519,
+    "object_counting": 3099,
+    "relative_count": 1413,
+    "room_size_estimation": 997,
+    "route_planning": 9423
+   }
+  },
+  "pending_review_after_exclusions": {
+   "rows": 0,
+   "per_type": {}
+  }
+ },
+ "exclusions": {
+  "rule": "a row leaves the training set if its scene resolves to a dev-S1 room or to an evaluation room (resolver sets + BENCH_SCENE_EXCLUSIONS_v2: VSI-Bench, VSI-500, dev 858, VSTI, ReVSI, STI-Bench/ReSTI, MindCube, venue siblings); the set files keep every row, the lists below name the rows to drop",
+  "dev_s1": {
+   "withhold": "/scratch/jjyeung/orch_cd/dose_pool/out/DEV_S1/WITHHOLD_SCENES.json",
+   "withhold_sha256": "969cdb56ce508eff79390d67099c889b92bd360e93dc42ba07f3683ec216a986",
+   "list": "/scratch/jjyeung/orch_cd/dose_pool/out/POOL_S1/EXCLUDE_DEV_S1.tsv",
+   "list_sha256": "951902eea28b6a56e49f1e44761802e05fc4ff25e7ebcb84dfa4bc77fea0a824",
+   "rows": 3809
+  },
+  "eval_rooms": {
+   "v2": "/scratch/jjyeung/orch_cd/revsi_dev/BENCH_SCENE_EXCLUSIONS_v2.json",
+   "v2_sha256": "3119aa4a9594e4507372b99243afc8210fe217393466ac4e5ae78485e7c83970",
+   "list": "/scratch/jjyeung/orch_cd/dose_pool/out/POOL_S1/EXCLUDE_EVAL_ROOMS.tsv",
+   "list_sha256": "a5d707acfafeed88a9009cd2fb89f3bfdf53d43fea67b183c589765299e27255",
+   "rows": 6183,
+   "overlap_by_benchmark": "/scratch/jjyeung/orch_cd/dose_pool/out/POOL_S1/EVAL_ROOM_OVERLAP.json"
+  },
+  "room_release_gate": {
+   "rule": "room rows whose answer differs from the released VSI-590K value by more than 10% (where one exists); scene sets apply it at render time (out/room_scenes_v2/dispositions.jsonl, release_gate_10pct)",
+   "list": "/scratch/jjyeung/orch_cd/dose_pool/out/POOL_S1/EXCLUDE_ROOM_RELEASE.tsv",
+   "list_sha256": "7a9105653e2d87d92b67a2e26217f2cc96c0d47c6346a4ae56cfd2e82a61c3a1",
+   "rows": 1,
+   "dropped_at_render": 12
+  }
+ },
+ "frames_gate": {
+  "path": "/scratch/jjyeung/orch_cd/dose_pool/out/POOL_S1/FRAMES_GATE.json",
+  "sha256": "eb2957fcaecaf1380aa9b56208902479a21eafcbe1696cc7cd8a41d95a29e352"
+ }
+}

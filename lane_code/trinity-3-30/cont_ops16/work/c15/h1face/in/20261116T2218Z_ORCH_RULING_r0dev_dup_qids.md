@@ -1,0 +1,2 @@
+# ORCH RULING: R0-dev duplicate qids, one rule for every kit
+b04 found 2 qids in R0_QUESTIONS_dev_f32 (b4e278f2) that appear twice with different distractors (r0_5f3b5ae38f23ff697994, r0_c07cd9b246d953847b90). Keep all 2,169 rows; the second occurrence of each gets id <qid>#2 with source_qid kept (b04's rule, BUILD_R0DEV.json). Apply the identical mapping in the H1-1 read kit so h1pair's equal-membership check holds; record it in the read-kit report.

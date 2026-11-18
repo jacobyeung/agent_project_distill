@@ -1,0 +1,6 @@
+Verification of the count_diag fix files against store v7 210b2534 (lane count_diag, 2026-11-18)
+Production cell populations of 171377 (r1_ops/work/adm171377/type_mix.json), mapped from prepared to v7 indices through the 601 n.json removals: counting 11,295 = my single-category rows (equal sets); totals 9,201 = my count_kind rows (equal); first_seen 6,985 (equal).
+COUNT_FIX_REMOVE_B1.jsonl: 17879 rows; unique True; all in v7 True; none in n.json True; all object_counting True; procedure-only rows removed 0; counting cell left 2617; totals cell left 0
+COUNT_FIX_REMOVE_B1_keepD0totals.jsonl: 16640 rows; unique True; all in v7 True; none in n.json True; all object_counting True; procedure-only rows removed 0; counting cell left 2617; totals cell left 1239
+COUNT_FIX_REMOVE_A.jsonl: 11327 rows; unique True; all in v7 True; none in n.json True; all object_counting True; procedure-only rows removed 0; counting cell left 9169; totals cell left 0
+COUNT_FIX_RESTORE_V5_TARGETS.jsonl: 6552 rows; overlap with REMOVE A 0; with A applied the counting cell holds 2,617 + 6,552 = 9,169 procedure-only rows.

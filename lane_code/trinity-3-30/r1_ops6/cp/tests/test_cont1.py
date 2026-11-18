@@ -23,8 +23,9 @@ class Continuation(unittest.TestCase):
         a=load(SNAP/'out/config.json');b=load(ROOT/'out/config.json');c.policy(b,a)
         from rebind import diff
         self.assertEqual({d['field'] for d in diff(a,b)},
-            {'continuation','h1.stop_after_step','recipe.milestones','milestones','output','preparation_output'})
-        for k in ('streams','remove_files','s1_routing','readout','type_mix','scheduled_sampling','code','checkpoint_disk_guard'):
+            {'continuation','h1.stop_after_step','recipe.milestones','milestones','output','preparation_output','remove_files',
+             'type_mix.streams.vqa.cells.counting.cents','type_mix.streams.vqa.cells.totals.cents','type_mix.streams.vqa.cells.direction.cents'})
+        for k in ('streams','s1_routing','readout','scheduled_sampling','code','checkpoint_disk_guard'):
             self.assertEqual(a[k],b[k],k)
         self.assertEqual(sha(ROOT/'out/r1p_code.tar'),sha(SNAP/'out/r1p_code.tar'))
         self.assertEqual(load(ROOT/'out/BINDING.json')['record_key'],'69d2930d')
@@ -61,13 +62,14 @@ class Continuation(unittest.TestCase):
     def test_cells_rebind_requires_explicit_config_mode(self):
         parent=load(SNAP/'out/config.json');cfg=load(ROOT/'out/config.json');changed=copy.deepcopy(cfg)
         cells=changed['type_mix']['streams']['vqa']['cells'];cells['room']['cents']+=1;cells['direction']['cents']-=1
+        changed['continuation']['rows']='exact'
         with self.assertRaises(ValueError):c.policy(changed,parent)
         changed['continuation']['rows']='rebind';c.policy(changed,parent)
         run.validate(changed);self.assertNotEqual(c.identity(cfg),c.identity(changed))
 
     def test_default_cells_draws_201_600(self):
         a=load(SNAP/'out/config.json');b=load(ROOT/'out/config.json')
-        self.assertEqual(load(ROOT/'configs/cont1_cells.json'),{s:v['cells'] for s,v in a['type_mix']['streams'].items()})
+        self.assertEqual(load(ROOT/'configs/cont1_cells.json'),{s:v['cells'] for s,v in b['type_mix']['streams'].items()})
         # Production-equal quotas with synthetic admitted populations for every
         # family, plus the real local VQA population below.
         populations={};effective={};counts={s:50000 for s in ('pose','vqa','pointing','routing')}
@@ -78,6 +80,7 @@ class Continuation(unittest.TestCase):
                 size=max(100,(v['cents']*10+3)//4);populations[s][n]=list(range(offset,offset+size));offset+=size;effective[s][n]=v
             counts[s]=offset
         value=dict(spec=a['type_mix'],effective=effective,populations=populations)
+        # This equality exercises offset/resume mechanics under one fixed mix; Cprime's changed mix is audited separately.
         def plans(cfg,start):return list(data.mixed_indices(counts,600,start_step=start,seed=cfg['recipe']['seed'],
                 training_mode=cfg['training_mode'],mix=cfg['recipe']['mix'],world=4,type_mix=value))
         full=plans(a,0);tail=plans(b,200);self.assertEqual(full[200:],tail)
@@ -140,7 +143,7 @@ class Continuation(unittest.TestCase):
 
     def test_pass_only_gate_and_time(self):
         script=(ROOT/'out/operator/s.sh').read_text();wrapper=(ROOT/'out/operator/jb.sh').read_text()
-        self.assertNotIn('170956',script);self.assertIn("if go.get('canary') is True:",script)
+        self.assertNotIn('170956',script);self.assertIn("elif go.get('canary') is True:",script)
         self.assertIn("get('resume_pointer',{}).get('status')=='PASS'",script)
         for value in (script,wrapper):self.assertIn('24:00:00',value);self.assertNotIn('13:00:00',value)
         b=load(ROOT/'out/BINDING.json');self.assertEqual(b['proof_partition'],'general')
@@ -165,6 +168,7 @@ class Continuation(unittest.TestCase):
         with self.assertRaises(ValueError):fake.restore(dict(path='foreign'),None,None,{})
         changed=copy.deepcopy(prep);changed['streams']['vqa']={'count':1};write(base/'p.json',changed)
         cfg['preparation']['sha256']=sha(base/'p.json')
+        cfg['continuation']['rows']='exact'
         with self.assertRaises(ValueError):c.install(fake,cfg,parent)
 
     def test_derived_resume_chooser(self):

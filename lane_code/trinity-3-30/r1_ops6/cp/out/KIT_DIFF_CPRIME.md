@@ -1,0 +1,20 @@
+The table compares every member of the authenticated C4 and Cprime archives. The deployed-kit manifest comparison is NOT RUN because recovered H1 lacks pinned `k/s1_record.json`; `dv1.sh` performs the production derivation.
+
+| Archive member | C4 SHA256 | Cprime SHA256 |
+|---|---|---|
+| BINDING.json | 370d30471ac1553d1545487147755eda3a236057cd1075e818a98249e9e7d74b | 8f845b60e91cb19e46906a230fbb55a105eb1e1894c8db479dbeff2726961d9f |
+| c4.json | absent | 2152828974490944a1713f5a539e87211f80179f0b5f9254ea9966fc65788733 |
+| config.json | 2152828974490944a1713f5a539e87211f80179f0b5f9254ea9966fc65788733 | 31abe0871f35f9ca8d4a6445c5ee95ac03ec2324d37273e6b1f508acdbf246a1 |
+| e.txt | 817461a219aa3c0674e22b9a87e98fcf768dc20696a29e23b43eb6999db72288 | 339ce5df7ce2c95b630db6bb6625a554d54e6e132e7ab33c1dea9e537ebdc995 |
+| ids.json | d5d71c3632b99bb89d5df7114ab54df9e2c82ed452afc8ce305f4d8ea7ef94ae | a6077f3e3bf4f0ab0544f76ffcf2174e4b00fc4b5d2061897f0540ee075eca23 |
+| jb.sh | 5e03795db020451f3705d322505273a38f10130c6a007f0c86752de17e6e1605 | 24f7b8b187ffa92de386846f7d31798a1c15284127a3a37bb1be7f5b8938b23d |
+| p_05b8ac69.sh | 0c065ddefb77dcfe864a3bb3d1f343d3b421d601ba34a0a71abfca43e88c31a5 | absent |
+| p_6ed2c7aa.sh | absent | bd29e5d46bd26bda6abe6968abc3141d4733bb4d4a74d5443444f74e7ffb83d2 |
+| records/z.json | absent | caba6a5695781491036de5b3acdb20db2d42ab581e5775fec3fe07fbd2114aad |
+| s.sh | 83d209076ba2d7502e4dc0dad0770e7509b46e48af8b72da0c71f061050c23dc | 203fc15d232a9de9e5ffef186c8a35f8e72e38cedd6e38363fe7d0c2ab54bc09 |
+| sums.txt | 1d2270924ef7a7397d8fcf9ecd61811b8bfce954929acb5288d4119a4f5e97ae | 03f1c2178f9a2c5748081eedbcedb9d06e1d339acb9e3bcead74f48cdcd3be3b |
+| z.json | absent | caba6a5695781491036de5b3acdb20db2d42ab581e5775fec3fe07fbd2114aad |
+
+32 members remain byte-identical. Trainer t.tar, deployment deriver d.py, authority r4.py, continuation c0.py, proof validator p.py, stores, selection and unit payloads retain their C4 bytes. B1R_MAPPING.json is absent from both the new archive and operator directory.
+
+Expected derived changes: config, run/output paths, launch identity and contract directory, current staging inventory with z.json, manifest and packet-specific pending evidence. This expected list does not substitute for a derived-manifest comparison.

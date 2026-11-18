@@ -13,3 +13,9 @@ Lane folder /scratch/jjyeung/orch_n30/r1_ops6. Events .../orch_n30/events/r1_ops
 - squeue empty after cancel; advanced free.
 ## Next
 - Codex Astra high C' build (brief work/brief_cprime.md), then review (devin_bg), chain, launch on ORDER 1108Z (sha 1f3dff81).
+## Build (21:00Z-)
+- 21:00-21:16Z Codex r1_cprime2 (receipts agent/scratch/codex_runs/20261118T210014Z_r1_cprime2): config dca7900d2df818dc11f9a69db78f5ed5ac18f008f618131b831e84df7287de04, run 9e82221a, job a15_cot_ap9e82221a, bundle okh7/i_3574151e, kit okh7/x_3574151e; delta gate 16 tests; stopped INCOMPLETE asking heavy-I/O approval (local /scratch reads), missing inputs. B1 has 363 pool values rows_rebuild_d0_ARKIT_gaps (dataset word) -> B1r with opaque pools ordered.
+- 21:25Z recovered more inputs: rec/cont_ops/work/{h1,d0/jobB/mint.py b7388f55} from lane_code (+6,564 dups); rec/tree_rebuild_w/work/base/tree_b01ce449 from trinity-1-18 n30_mirror/tree_rebuild/tree_rebuild_b14_094933b3.tar (IB). view.sh binds both. Division 4c230a7e.json not available.
+- 21:27Z Codex r1_cprime3 (brief work/brief_cprime_r2.md, tmux r1cp3, log work/cprime3_dispatch.log) running.
+- 21:27Z reviewer review_cprime launched (devin_bg, pid 2844204, 5400 s; brief orch_n30/briefs/review_cprime.md; verdict events/review_cprime/REVIEW_VERDICT_CPRIME.md); does store checks (a)-(e) first, then (f)-(j) when CPRIME.md says BUILT. LANES.txt appended.
+- step-200 direct read 172646 (cont_ops16) RUNNING on general since 21:00:33Z, return ~22:05Z.

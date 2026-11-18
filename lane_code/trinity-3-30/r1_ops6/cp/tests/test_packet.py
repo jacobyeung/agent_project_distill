@@ -47,7 +47,7 @@ class Mix(unittest.TestCase):
         self.assertEqual(table['room']['cut_cents'],table['room']['proposed_cents']-table['room']['final_cents'])
         self.assertEqual(table['size']['final_cents'],0)
         self.assertEqual(table['size']['eligible'],9778)
-        self.assertEqual(table['direction']['final_cents'],3289-table['room']['final_cents'])
+        self.assertEqual(table['direction']['final_cents'],3669-table['room']['final_cents'])
         self.assertNotIn('vqa/size',report['by_family'])
         self.assertEqual(table['direction']['refill_cents'],table['room']['cut_cents'])
         self.assertEqual(table['camera_absolute_distance']['eligible'],0)

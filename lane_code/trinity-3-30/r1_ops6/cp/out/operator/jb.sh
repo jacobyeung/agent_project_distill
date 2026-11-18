@@ -15,21 +15,21 @@ private_dir "$O"
 
 export PATH=/usr/local/bin:/usr/bin:/bin
 export TK_JOB_START="$(date +%s)"   # one wall clock for restore, staging, admission and training (job.sh must keep it)
-KH=/project/community/jjyeung/okh7/x_7f1589c1 RUN=/tmp/jjyeung/a_05b8ac69/runs/05b8ac69
-RS=/project/community/jjyeung/okh7/r/05b8ac69 LOG=$KH/o/${SLURM_JOB_ID}.w.steps
+KH=/project/community/jjyeung/okh7/x_ee227714 RUN=/tmp/jjyeung/a_6ed2c7aa/runs/6ed2c7aa
+RS=/project/community/jjyeung/okh7/r/6ed2c7aa LOG=$KH/o/${SLURM_JOB_ID}.w.steps
 step() { printf '%s | %s\n' "$(date -u +%FT%TZ)" "$*" >> "$LOG"; }
 newest() {  # newest verified slot: prints "slot step" (empty if none)
     for s in A B; do [[ -f $RS/$s.json ]] && /usr/bin/python3 -I -c 'import json,sys; d=json.load(open(sys.argv[1])); print(d["slot"], d["step"]) if d.get("verified") is True else None' "$RS/$s.json"; done | sort -k2,2n | tail -1
 }
 # BEGIN directory preflight
-NL=/tmp/jjyeung/a_05b8ac69
+NL=/tmp/jjyeung/a_6ed2c7aa
 private_dir "$KH"
 for p in /tmp/jjyeung "$NL" "$NL/runs" "$RUN" "$O/r" "$RS"; do
     [[ ! -e "$p" && ! -L "$p" ]] || private_dir "$p"
 done
 for p in "$NL/runs"/* "$NL/runs"/.[!.]* "$NL/runs"/..?*; do
     [[ ! -e "$p" && ! -L "$p" ]] && continue
-    [[ "${p##*/}" == 05b8ac69 && -d "$p" && ! -L "$p" ]] || { echo 'foreign run directory; refusing' >&2; exit 3; }
+    [[ "${p##*/}" == 6ed2c7aa && -d "$p" && ! -L "$p" ]] || { echo 'foreign run directory; refusing' >&2; exit 3; }
 done
 mkdir -p -m 700 /tmp/jjyeung "$NL" "$NL/runs" "$RUN" "$O/r" "$RS" "$KH/o" || exit 3
 for p in "$NL" "$NL/runs" "$RUN" "$RS"; do private_dir "$p"; done
@@ -50,7 +50,7 @@ sys.exit("sess.json lacks %d sessions, first %s" % (len(miss), miss[:1]) if miss
     || { step "refused: export sessions incomplete for run ${RUN##*/}"; exit 5; }
 step "export sessions present for run ${RUN##*/}"
 # Actual archive contents of every new staging entry, before c.sh extracts them (vt.py; sealed k/0.json pinned inside).
-/usr/bin/python3 -I /project/community/jjyeung/okh7/i_7f1589c1/v.py "$KH" /project/community/jjyeung/okh7/i_7f1589c1/b0.json > "$KH/o/${SLURM_JOB_ID}.vt.json" 2>&1 \
+/usr/bin/python3 -I /project/community/jjyeung/okh7/i_ee227714/v.py "$KH" /project/community/jjyeung/okh7/i_ee227714/b0.json > "$KH/o/${SLURM_JOB_ID}.vt.json" 2>&1 \
     || { step "refused: staging entry check: $(tail -c 300 "$KH/o/${SLURM_JOB_ID}.vt.json")"; exit 5; }
 step "staging entries verified"
 read -r slot sstep < <(newest || true)

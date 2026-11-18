@@ -8,5 +8,7 @@ exec bwrap --dev-bind / / --tmpfs $O --bind $L $L \
   --bind $L/rec/r1_ops $O/r1_ops \
   --bind $L/snapm/snap_9dd2fbb7 $O/r1_ops/work/snap_9dd2fbb7 \
   --bind $L/snapm/snap_08f3a7b2 $O/r1_ops/work/snap_08f3a7b2 \
+  --bind $L/rec/cont_ops $O/cont_ops \
+  --bind $L/rec/tree_rebuild_w $O/tree_rebuild_w \
   --ro-bind $L/store/a2_vqa_v7 $O/rows_r1/out/a2_vqa_v7 \
   --chdir "${VIEW_CWD:-$O/r1_pkt}" "$@"

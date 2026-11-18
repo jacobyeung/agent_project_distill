@@ -81,15 +81,13 @@ class ZCanaryC(unittest.TestCase):
             self.assertFalse((f['k']/'o/171200.canary.json').exists())
 
     def test_pass_branch_and_submit_line_byte_equal(self):
-        before=(SNAP/'out/operator/s.sh').read_text();after=(ACTIVE_A/'out/operator/s.sh').read_text()
+        from build_cprime import SNAP as C4
+        before=(C4/'out/operator/s.sh').read_text();after=(ACTIVE_A/'out/operator/s.sh').read_text()
         old=body(before);new=body(after)
-        old=old.replace("assert go.get('canary') is not True\n",'')
-        start=old.index("assert re.fullmatch('[1-9][0-9]*',job)")
-        end=old.index("\nsys.path.insert",start)
-        branch=new.split('\nelse:\n',1)[1].split('\nsys.path.insert',1)[0]
-        self.assertEqual('\n'.join(x[1:] for x in branch.splitlines()).rstrip(),old[start:end].rstrip())
-        self.assertEqual(before.split('\nP\n',1)[1],after.split('\nP\n',1)[1])
-        self.assertEqual(old[:start],new[:new.index("if go.get('canary') is True:")])
+        self.assertEqual(old.split("if go.get('canary') is True:\n",1)[1].split('\nsys.path.insert',1)[0],
+                         new.split("elif go.get('canary') is True:\n",1)[1].split('\nsys.path.insert',1)[0])
+        run=load(ACTIVE_A/'out/BINDING.json')['run_key']
+        self.assertEqual(before.split('\nP\n',1)[1].replace('05b8ac69',run),after.split('\nP\n',1)[1])
 
     def test_real_evidence_pins(self):
         self.assertEqual(sha(EVIDENCE/'f172180.proof.json'),RECEIPT_SHA)

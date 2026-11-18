@@ -1,0 +1,80 @@
+Trace forms at ON16k (full generation) for counting items; outcome columns use the scored B2048 read.
+
+== S544 dev-S1: n=150
+  S544_DETECT_MATCH  n=150  MRA  62.8  exact  78  meanErr   +1.14  over  40 under  32  B2048forced   2  cap16k   2  multi 0
+  tags: S544_DETECT_MATCH 150, SECONDS 8
+  lists parsed 150: with a repeated entry 99; runaway (same entry >=10 in a row) 17; list length == answer 146
+    no dup  n= 51 MRA  79.2 meanErr   -0.39 over 2 under 14
+    dup     n= 99 MRA  54.3 meanErr   +1.93 over 38 under 18
+
+== D0m100 dev-S1: n=150
+  V5_PROC            n=149  MRA  68.3  exact  79  meanErr   -0.23  over  16 under  54  B2048forced   0  cap16k   0  multi 0
+  OTHER              n=  1  MRA 100.0  exact   1  meanErr   +0.00  over   0 under   0  B2048forced   0  cap16k   0  multi 0
+  tags: V5_PROC 149, OTHER 1
+
+== H1m100 dev-S1: n=150
+  V5_PROC            n=145  MRA  66.5  exact  76  meanErr   -0.17  over  19 under  50  B2048forced   0  cap16k   0  multi 0
+  OTHER              n=  5  MRA  68.0  exact   3  meanErr   +0.20  over   1 under   1  B2048forced   0  cap16k   0  multi 0
+  tags: V5_PROC 145, OTHER 5
+
+== R1m100 dev-S1: n=150
+  FS_LIST            n=137  MRA  54.2  exact  63  meanErr   +9.98  over  51 under  23  B2048forced  28  cap16k  28  multi 0
+  V5_PROC            n= 11  MRA  60.9  exact   3  meanErr   -0.36  over   3 under   5  B2048forced   0  cap16k   0  multi 0
+  OTHER              n=  2  MRA  40.0  exact   0  meanErr   +2.50  over   2 under   0  B2048forced   0  cap16k   0  multi 0
+  tags: FS_LIST 137, REGION 56, V5_PROC 11, SECONDS 10, OTHER 2
+  lists parsed 137: with a repeated entry 109; runaway (same entry >=10 in a row) 28; list length == answer 109
+    no dup  n= 28 MRA  65.0 meanErr   -0.29 over 4 under 10
+    dup     n=109 MRA  51.5 meanErr  +12.61 over 47 under 13
+
+== S544 R0-dev: n=385
+  S544_DETECT_MATCH  n=364  MRA  52.6  exact 153  meanErr   +4.58  over 134 under  77  B2048forced   9  cap16k   7  multi 77
+  TOTALS             n= 16  MRA  20.0  exact   2  meanErr   +1.53  over  12 under   1  B2048forced   1  cap16k   0  multi 16
+  OTHER              n=  5  MRA  20.0  exact   1  meanErr   -2.40  over   1 under   3  B2048forced   0  cap16k   0  multi 5
+  tags: S544_DETECT_MATCH 379, SECONDS 17, TOTALS 16, OTHER 5
+  lists parsed 363: with a repeated entry 220; runaway (same entry >=10 in a row) 29; list length == answer 296
+    no dup  n=143 MRA  67.2 meanErr   -0.02 over 25 under 34
+    dup     n=220 MRA  43.4 meanErr   +7.40 over 103 under 46
+
+== D0m100 R0-dev: n=385
+  V5_PROC            n=289  MRA  66.5  exact 159  meanErr   -0.68  over  21 under 109  B2048forced   0  cap16k   0  multi 2
+  TOTALS             n= 62  MRA  20.8  exact   6  meanErr   +1.92  over  54 under   2  B2048forced   0  cap16k   0  multi 62
+  OTHER              n= 23  MRA  23.5  exact   5  meanErr  +13.52  over  13 under   5  B2048forced  23  cap16k  23  multi 23
+  FS_LIST            n= 10  MRA  54.0  exact   5  meanErr  +15.80  over   4 under   1  B2048forced  10  cap16k  10  multi 10
+  SECONDS            n=  1  MRA 100.0  exact   1  meanErr   +0.00  over   0 under   0  B2048forced   1  cap16k   1  multi 1
+  tags: V5_PROC 289, TOTALS 62, FS_LIST 50, OTHER 23, SECONDS 4
+  lists parsed 75: with a repeated entry 43; runaway (same entry >=10 in a row) 14; list length == answer 0
+    no dup  n= 32 MRA  38.4 meanErr   +1.66 over 21 under 3
+    dup     n= 43 MRA  22.6 meanErr   +5.88 over 34 under 2
+
+== H1m100 R0-dev: n=385
+  V5_PROC            n=289  MRA  66.5  exact 160  meanErr   -0.67  over  21 under 108  B2048forced   0  cap16k   0  multi 2
+  TOTALS             n= 57  MRA  12.3  exact   3  meanErr   +1.89  over  52 under   2  B2048forced   0  cap16k   0  multi 57
+  OTHER              n= 25  MRA  22.0  exact   5  meanErr  +15.52  over  15 under   5  B2048forced  25  cap16k  25  multi 25
+  FS_LIST            n= 11  MRA  54.5  exact   3  meanErr   +5.55  over   4 under   4  B2048forced  11  cap16k  11  multi 11
+  SECONDS            n=  3  MRA  70.0  exact   2  meanErr   -0.67  over   0 under   1  B2048forced   3  cap16k   3  multi 3
+  tags: V5_PROC 289, TOTALS 57, FS_LIST 34, OTHER 25, SECONDS 4
+  lists parsed 79: with a repeated entry 56; runaway (same entry >=10 in a row) 16; list length == answer 6
+    no dup  n= 23 MRA  33.5 meanErr   +0.70 over 15 under 3
+    dup     n= 56 MRA  18.8 meanErr   +5.18 over 43 under 7
+
+== R1m100 R0-dev: n=385
+  FS_LIST            n=247  MRA  55.5  exact 122  meanErr  +15.61  over  89 under  36  B2048forced  69  cap16k  68  multi 1
+  TOTALS             n= 61  MRA  33.9  exact  14  meanErr   +1.03  over  43 under   4  B2048forced   0  cap16k   0  multi 61
+  V5_PROC            n= 41  MRA  41.0  exact  12  meanErr   +0.34  over  16 under  13  B2048forced   0  cap16k   0  multi 0
+  OTHER              n= 30  MRA  13.7  exact   3  meanErr  +29.77  over  24 under   3  B2048forced  30  cap16k  30  multi 30
+  SECONDS            n=  3  MRA   0.0  exact   0  meanErr  +24.33  over   3 under   0  B2048forced   3  cap16k   3  multi 3
+  REGION             n=  3  MRA  33.3  exact   1  meanErr   +9.00  over   2 under   0  B2048forced   3  cap16k   3  multi 3
+  tags: FS_LIST 249, TOTALS 61, V5_PROC 41, REGION 30, OTHER 30, SECONDS 11
+  lists parsed 344: with a repeated entry 295; runaway (same entry >=10 in a row) 91; list length == answer 185
+    no dup  n= 49 MRA  65.1 meanErr   +8.35 over 13 under 8
+    dup     n=295 MRA  44.4 meanErr  +15.27 over 148 under 35
+
+== D0m200 R0-dev: n=385
+  V5_PROC            n=288  MRA  66.6  exact 161  meanErr   -0.78  over  16 under 111  B2048forced   0  cap16k   0  multi 1
+  TOTALS             n= 69  MRA   9.9  exact   1  meanErr   +1.99  over  64 under   4  B2048forced   0  cap16k   0  multi 69
+  OTHER              n= 17  MRA  39.4  exact   4  meanErr   -0.71  over   4 under   9  B2048forced  17  cap16k  17  multi 17
+  FS_LIST            n= 11  MRA  31.8  exact   1  meanErr   -0.55  over   3 under   7  B2048forced  11  cap16k  11  multi 11
+  tags: V5_PROC 288, TOTALS 69, FS_LIST 44, OTHER 17
+  lists parsed 86: with a repeated entry 78; runaway (same entry >=10 in a row) 18; list length == answer 0
+    no dup  n=  8 MRA  10.0 meanErr   -0.38 over 6 under 2
+    dup     n= 78 MRA  15.9 meanErr   +1.65 over 61 under 13

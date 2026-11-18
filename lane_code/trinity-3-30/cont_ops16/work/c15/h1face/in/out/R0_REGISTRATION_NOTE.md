@@ -1,0 +1,6 @@
+# R0 reserve scenes: registration note for ORCH (b10_reserve, 2026-11-16T13:05Z)
+1. R0 = 374 captures in 372 rooms (out/R0_SCENES.json sha256 f7c458176426e22a13e47908b03abd2c6f5939d3e48eb7c24e7eba45b75ad479); room list out/R0_ROOMS.txt (bdb5d40244cdaf50...). Room keys: ScanNet sceneNNNN (all rescans), ScanNet++ scene id.
+2. R0-dev = 100 ScanNet++ rooms with full GT (out/R0_DEV_ROOMS.txt). From now on R0-dev decides route against direct per type; it is used for development reads only, never for RL, never for training, never for prompt or threshold fitting.
+3. R0-rl = the other 274 captures in 272 rooms (62 ScanNet++ full GT, 12 ScanNet full GT, 50 ScanNet++ mesh+pose, 50 ScanNet++ pose-only, 100 ScanNet scans_test). RL prompts only.
+4. The next leg and every later leg exclude every room in R0_ROOMS.txt from every stream (pose, VQA, routing, pointing, rasters, depth, RL rollouts other than R0-rl prompts). Builders add R0_SCENES.json as a pinned exclusion authority; aliases: native id, rung1/rung2/v590kgt token families (code/census.py build_universe_aliases).
+5. Checked today: no overlap with rows_a2's 686 A2 scenes, D0 v5 VQA scenes, kit07 frame map, division A3, BENCH v2 (VSI-Bench, ReVSI v1, VSTI, ...), dev-S1, WITHHELD_80 (code/test_exclusion.py, 3 tests OK).

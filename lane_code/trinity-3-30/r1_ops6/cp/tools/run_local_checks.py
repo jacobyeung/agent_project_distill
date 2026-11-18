@@ -9,6 +9,10 @@ def run(args,log):
         subprocess.run([sys.executable,'-B',*map(str,args)],cwd=ROOT,stdout=f,stderr=subprocess.STDOUT,check=True)
 
 def main():
+    if '--cprime' in sys.argv:
+        if sys.argv[1:] not in (['--cprime'],['--cprime','--derivation-only']):raise ValueError('--cprime requires no legacy packaging flags')
+        from check_cprime_local import main as check_cprime
+        return check_cprime(only_derivation='--derivation-only' in sys.argv)
     parser=argparse.ArgumentParser();parser.add_argument('--continuation-recheck',action='store_true');parser.add_argument('--defer-heavy-test',action='store_true');parser.add_argument('--share-fixture-bytes',action='store_true')
     parser.add_argument('--finalize-only',action='store_true',help='Resume reporting from a complete passing suite and matching archive evidence')
     args=parser.parse_args()
