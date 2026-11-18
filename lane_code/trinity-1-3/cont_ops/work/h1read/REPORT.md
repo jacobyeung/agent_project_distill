@@ -1,8 +1,8 @@
 # H1-1 read kit
 
-The kit supports `--types direct`, isolated production workers and bounded partial journal and diagnostic returns. The FIX5 gate passes 117 candidate tests, the separate 53-test ported suite, the 53-test original-reference suite, four refute tests, and both unfiltered and filtered runtime fixtures. `FIX5.md` records the import audit, plan identity proof, validation and operator commands. `SHA256SUMS.txt` authenticates the deliverables.
+The kit supports `--types direct`, isolated production workers and bounded partial journal and diagnostic returns. The FIX6 gate passes 124 candidate tests, the separate 53-test ported suite, the 53-test original-reference suite, four refute tests, and both unfiltered and filtered runtime fixtures. `FIX6.md` records R1 admission, packet evidence, reader/plan identity proofs, manifest compatibility, validation and operator commands. `SHA256SUMS.txt` authenticates the deliverables.
 
-The local kit supports H1-1 run `17c4ffa4` and D0 run `359fcc3c` at m100/m200, plus H1-1's three claimed stop generations. Run `469ddece` additionally permits only generation `mstop`, step 544, family `a7`, at deployment `x_07ca49df`. It adds all 2,169 R0-dev items as Orchard family `a7`. Without a filter, all four families total 3,994 items. `readk/` supplies the unchanged D0 reference; the candidate lives in `kit/`.
+The local kit supports H1-1 run `17c4ffa4` and D0 run `359fcc3c` at m100/m200, plus H1-1's three claimed stop generations. Run `469ddece` additionally permits only generation `mstop`, step 544, family `a7`, at deployment `x_07ca49df`. R1 run `673bc60f` permits m100/m200 and claimed stop generations at steps 1–200 from deployment `x_69d2930d`; continuation `05b8ac69` permits m400/m600 and claimed stop generations at steps 201–600 from `x_7f1589c1`. Both admit only `main` and/or `a7`, filtered or unfiltered. The kit adds all 2,169 R0-dev items as Orchard family `a7`. Without a filter, all four families total 3,994 items. `readk/` supplies the unchanged D0 reference; the candidate lives in `kit/`.
 
 The new family uses `a7` throughout the bootstrap launcher, batches, configurations and returns. `evidence/FAMILY_ALIASES.json` holds the local `r0dev` alias. Inherited virtual `video_path` values retain dataset names as recorded in the review; those accepted binding bytes remain unchanged. `evidence/NAME_AUDIT.json` separates that inherited boundary from the new asset names.
 
@@ -10,7 +10,7 @@ No network, SSH, Orchard/GCS operation, GPU, Git or deletion was used. No produc
 
 ## Export binding
 
-The public prepare interface and the embedded bootstrap validate the exact namespace `8865619b`. Normal reads allow only m100 and m200 for the two registered runs. Run `469ddece` permits only the claimed mstop/544 identity for `a7`; its receipt is `x_07ca49df/o/gcs_469ddece_m544.done`, its claim is `x_07ca49df/o/gcs_469ddece_mstop.claim` with exact bytes `m544\n`, and its object is `q8/8865619b/469ddece_mstop.tar`. All other runs, normal steps, namespaces and unregistered stop generations are refused before cloud staging. The base model and the selected artifact retain the accepted native export checker. Four ordered parts must match the whole-tar byte count and SHA256 before extraction. The unchanged archive validation and full export checker then verify the archive and tensor inventory.
+The public prepare interface and the embedded bootstrap validate the exact namespace `8865619b`. D0 and H1-1 normal reads allow m100/m200. R1 and its continuation use the closed milestones and stop ranges above. Run `469ddece` permits only the claimed mstop/544 identity for `a7`; its receipt is `x_07ca49df/o/gcs_469ddece_m544.done`, its claim is `x_07ca49df/o/gcs_469ddece_mstop.claim` with exact bytes `m544\n`, and its object is `q8/8865619b/469ddece_mstop.tar`. All other runs, normal steps, namespaces and unregistered stop generations are refused before cloud staging. The base model and the selected artifact retain the accepted native export checker. Four ordered parts must match the whole-tar byte count and SHA256 before extraction. The unchanged archive validation and full export checker then verify the archive and tensor inventory.
 
 | Rule | Audit | Current source file:line |
 |---|---|---|
@@ -33,7 +33,7 @@ The supplied production config is `k/1dd078da.json`, SHA256 `9385cc71bad6424f04f
 
 H1 receipts are `/project/community/jjyeung/okh7/x_3fdda0fb/o/gcs_17c4ffa4_m100.done` and `..._m200.done`. A stop at optimizer step 137 still writes `..._m137.done`; its object can be `17c4ffa4_mstop.tar`. The kit requires `gcs_17c4ffa4_mstop.claim` to contain exactly `m137\n`, then checks the archive's m137 directory and artifact step 137. H1-1 stop generations allow actual steps 1–200 only; the separately registered init read allows only mstop/544. A registered generation is not evidence that its upload exists. D0 retains `/project/community/jjyeung/okh7/x_f5c353f7/o/gcs_359fcc3c_m<s>.done`.
 
-D0's `worker.bind`, `worker.validate` and `export_stage.parse_done` function source is byte-identical to the reference. `stage_export` differs only in its entry gate, which admits run `469ddece` at step 544; its archive and checker logic remains byte-identical. The pinned direct wrapper, adapters, evaluator source and export checker files are byte-identical. The outer reader selects kept tasks only after full source validation when `--types direct` is present. The reference's wider legacy helper API remains in `readk/`; the candidate's public request validator restricts reads to this task's scope.
+D0's `worker.bind`, `worker.validate` and `export_stage.parse_done` function source is byte-identical to the reference. `stage_export` differs only in its entry gate, which admits run `469ddece` at step 544 and the two closed R1 step ranges; its archive and checker logic remains byte-identical. The pinned direct wrapper, adapters, evaluator source and export checker files are byte-identical. The outer reader selects kept tasks only after full source validation when `--types direct` is present. The reference's wider legacy helper API remains in `readk/`; the candidate's public request validator restricts reads to this task's scope.
 
 ## R0-dev protocol and assets
 
@@ -145,31 +145,32 @@ For an unscheduled H1 stop, prepare with `--run 17c4ffa4 --step <actual optimize
 
 ## Validation
 
-The offline gate passes 117 candidate tests, 53 ported readk tests, 53 original-reference tests and four reviewer refute tests. The ten FIX4 tests and seven step-544 admission tests also pass separately. Six FIX5 tests cover cold imports of all 20 packaged Python modules under `-I`, a negative control with the broken import order, identical filtered and unfiltered FIX4 plans, diagnostic tail contents, journal priority under a small cap, oversized lines and symlinks.
+The offline gate passes 124 candidate tests, 53 ported readk tests, 53 original-reference tests and four reviewer refute tests. The seven FIX6 tests, six FIX5 tests, ten FIX4 tests and seven step-544 admission tests also pass separately. FIX6 proves all 74 reader files match FIX5, 37 legacy plans retain identical bytes and hashes, and eight synthetic manifest fixtures match the registered config blocks. Six FIX5 tests cover cold imports of all 20 packaged Python modules under `-I`, a negative control with the broken import order, identical filtered and unfiltered FIX4 plans, diagnostic tail contents, journal priority under a small cap, oversized lines and symlinks.
 
 Both runtime fixtures execute the packaged outer worker and accepted evaluator, B2048/B4096 derivation, token audit and mergers with actual RGB frames. They use the generated `exec <python> -I "$@"` wrapper form with the local CPU interpreter. The unfiltered fixture completes four items; the direct-filter fixture completes three. The chain tests use real isolated children with synthetic family computation. Engine, model staging and GPU parity probes remain mocks; these tests do not establish live GPU parity or cancellation delivery.
 
 Partial returns retain at most 256 KiB from the end of each `launcher_chain.log`, `launcher_staging.log` and selected family `.hex` file. Identity, journals and metadata take priority. Cut first lines and unfinished last lines are omitted; `PARTIAL.json` records original and retained bytes, offsets, retained lines, truncation and omissions. The existing production and proof archive caps remain enforced.
 
-`tools/test_fix3.py` confines fixtures and ledgers to `evidence/test_*`. Its process guard admits only exact validated local isolation commands; each child installs network, process and write guards before loading the tested entry point. The reference source and production preparations stay unchanged. The FIX2 provenance audit is not rerun because it reads outside this kit. The pinned direct wrapper, evaluator, adapters and export checker remain unchanged; `evidence/FIX5_AUDIT.json` records the source audit and changed outer files.
+`tools/test_fix3.py` confines fixtures and ledgers to `evidence/test_*`. Its process guard admits only exact validated local isolation commands; each child installs network, process and write guards before loading the tested entry point. The reference source and production preparations stay unchanged. The FIX2 provenance audit is not rerun because it reads outside this kit. The pinned direct wrapper, evaluator, adapters and export checker remain unchanged; `evidence/FIX6_AUDIT.json` records the unchanged reader and the three changed launcher files.
 
-The existing salted asset rebuild and identifier evidence remains in FIX1c_DETERMINISM.json. The frame tar, item file, registry and key were not changed. The sealer regenerates DIFF.md, DIFF.patch, SHA256SUMS.txt and FINAL_PINS.json. FIX1.md through FIX5.md and post-seal verification logs remain outside the manifest to avoid circular hashes.
+The existing salted asset rebuild and identifier evidence remains in FIX1c_DETERMINISM.json. The frame tar, item file, registry and key were not changed. The sealer regenerates DIFF.md, DIFF.patch, SHA256SUMS.txt and FINAL_PINS.json. FIX1.md through FIX6.md and post-seal verification logs remain outside the manifest to avoid circular hashes.
 
 ```bash
 set -e
 export PYTHONDONTWRITEBYTECODE=1 OPENBLAS_NUM_THREADS=1
 PY=/scratch/jjyeung/envs/p1cpu/bin/python
-"$PY" -B tools/test_fix3.py fix5 > evidence/FIX5_NEW_TESTS.log 2>&1
-"$PY" -B tools/test_fix3.py fix4 > evidence/FIX5_FIX4_TESTS.log 2>&1
-"$PY" -B tools/test_fix3.py targeted > evidence/FIX5_TARGETED.log 2>&1
-"$PY" -B tools/test_fix3.py runtime > evidence/FIX5_RUNTIME.log 2>&1
-"$PY" -B tools/test_fix3.py runtime_direct > evidence/FIX5_RUNTIME_DIRECT.log 2>&1
-"$PY" -B tools/seal.py --pre-test > evidence/FIX5_PRESEAL.log
-"$PY" -B tools/test_fix3.py candidate > evidence/FIX5_TESTS.log 2>&1
-"$PY" -B tools/test_fix3.py ported > evidence/FIX5_READK_PORTED.log 2>&1
-"$PY" -B tools/test_fix3.py reference > evidence/FIX5_READK_REFERENCE.log 2>&1
-"$PY" -B tools/test_fix3.py refute > evidence/FIX5_REFUTE.log 2>&1
-"$PY" -B tools/seal.py > evidence/FIX5_SEAL.log
-"$PY" -B tools/test_fix3.py pins > evidence/FIX5_FINAL_PIN_TEST.log 2>&1
-sha256sum -c SHA256SUMS.txt > evidence/FIX5_SHA256_CHECK.log
+"$PY" -B tools/test_fix3.py fix6 > evidence/FIX6_NEW_TESTS.log 2>&1
+"$PY" -B tools/test_fix3.py fix5 > evidence/FIX6_FIX5_TESTS.log 2>&1
+"$PY" -B tools/test_fix3.py fix4 > evidence/FIX6_FIX4_TESTS.log 2>&1
+"$PY" -B tools/test_fix3.py targeted > evidence/FIX6_TARGETED.log 2>&1
+"$PY" -B tools/test_fix3.py runtime > evidence/FIX6_RUNTIME.log 2>&1
+"$PY" -B tools/test_fix3.py runtime_direct > evidence/FIX6_RUNTIME_DIRECT.log 2>&1
+"$PY" -B tools/seal.py --pre-test > evidence/FIX6_PRESEAL.log
+"$PY" -B tools/test_fix3.py candidate > evidence/FIX6_TESTS.log 2>&1
+"$PY" -B tools/test_fix3.py ported > evidence/FIX6_READK_PORTED.log 2>&1
+"$PY" -B tools/test_fix3.py reference > evidence/FIX6_READK_REFERENCE.log 2>&1
+"$PY" -B tools/test_fix3.py refute > evidence/FIX6_REFUTE.log 2>&1
+"$PY" -B tools/seal.py > evidence/FIX6_SEAL.log
+"$PY" -B tools/test_fix3.py pins > evidence/FIX6_FINAL_PIN_TEST.log 2>&1
+sha256sum -c SHA256SUMS.txt > evidence/FIX6_SHA256_CHECK.log
 ```

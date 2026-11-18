@@ -2,16 +2,17 @@
 from packet_config import PINS
 from review_policy import build_chain, REVIEW_FILES
 base={name:'# GO — LOCAL ANTECEDENT' for name in REVIEW_FILES[:-1]}
+base['rc1.txt']='# Packet C: GO — LOCAL ANTECEDENT'
 a=PINS['identity'];b='0647a0df37862199ea4a766875969d28e7fbfc66821ea5f5a0d00f0607452f92'
 def check(text, okay):
     try:
-        result=build_chain(dict(base,**{'rc1.txt':text}),a,PINS['tree'],PINS['outer'])
+        result=build_chain(dict(base,**{'rc2.txt':text}),a,PINS['tree'],PINS['outer'])
     except ValueError:
         assert not okay,text
     else:
         assert okay,text
-        assert result['packet']=='C' and result['final_reviewer']=='review_r1c1'
-        assert len(result['reviews'])==9 and not result['production_go_granted']
+        assert result['packet']=='C' and result['final_reviewer']=='review_r1c2'
+        assert len(result['reviews'])==10 and not result['production_go_granted']
 positive=[
  '## Packet C: GO\n'+a+'\n## Packet B: NO-GO\n'+b,
  '# Dual review\n## Packet B\nVerdict: NO-GO\n'+b+'\n## Packet C\nVerdict: GO\n'+a,
@@ -42,7 +43,7 @@ negative=[
  '| C | NO-GO | '+a+' |\n| B | GO | '+b+' |',
  '| C | GO | '+b+' |\n| B | GO | '+a+' |',
 ]
-positive += ['Packet C: p_c60b9015.tar '+PINS['outer']+' config '+a+': GO.', 'Packet C: GO AFTER FIXES\n'+a+'\n- LOW: Optional note.']
+positive += ['Packet C: p_6a5c7d00.tar '+PINS['outer']+' config '+a+': GO.', 'Packet C: GO AFTER FIXES\n'+a+'\n- LOW: Optional note.']
 negative += positive[1:4]
 positive = [positive[0], positive[4], positive[5], positive[6]]
 for text in positive:check(text,True)

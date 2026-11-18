@@ -1,5 +1,5 @@
 """Run the sealed CPU-proof binder against the local unit-bound READY fixture."""
-import json,subprocess,sys,tempfile
+import hashlib,json,subprocess,sys,tempfile
 from pathlib import Path
 from packet_config import PINS,fixture
 W=Path(__file__).resolve().parent;K=Path(sys.argv[1]).resolve();B=fixture();T=Path(tempfile.mkdtemp(prefix='contract_p5_',dir=W))
@@ -10,6 +10,7 @@ for part in ('general','bootstrap'):
  r=subprocess.run(args+['--partition',part,'--out',str(out)],capture_output=True,text=True)
  assert r.returncode==0,r.stderr
  record=json.loads(out.read_text())
+ assert record['runtime']['k/4.json']==hashlib.sha256((K/'k/4.json').read_bytes()).hexdigest()
  assert record['partition']==part and record['identity']==PINS['identity'] and record['run_key']==PINS['run']
 r=subprocess.run(args+['--partition','advanced','--out',str(T/'advanced_refused.json')],capture_output=True,text=True)
 assert r.returncode and 'Proof partition is not authorized' in r.stderr

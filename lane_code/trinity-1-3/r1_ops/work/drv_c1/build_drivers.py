@@ -1,6 +1,6 @@
 from pathlib import Path
 import hashlib,shutil,json,tarfile,re,zlib
-from packet_config import PINS, ARCHIVE, MEMBERS, BINDING, fixture, render, pending_script
+from packet_config import PINS, ARCHIVE, MEMBERS, BINDING, SNAP, fixture, render, pending_script
 W=Path(__file__).resolve().parent
 EX=fixture()
 H1=Path('/scratch/jjyeung/orch_n30/cont_ops/work/h1')
@@ -97,6 +97,18 @@ PYCODE
 # Keep local fixture copies inside the work directory.
 # Local fixtures are read from H1 only by the bounded CPU tests.
 (W/'PACKET_PINS.json').write_text(json.dumps(PINS,sort_keys=True,indent=2)+'\n')
+(W/'PACKET_PIN_SOURCES.json').write_text(json.dumps(dict(
+ archive_sha256=PINS['outer'],config_identity=PINS['identity'],
+ operator_sha256=hashlib.sha256((SNAP/'OPERATOR.json').read_bytes()).hexdigest(),
+ pins_source='Supplied archive SHA256 + CONT3_INVENTORY after pins + OPERATOR.json + authenticated archive sums.txt; outer SHA256SUMS is not used',
+ sums_sha256=hashlib.sha256(MEMBERS['sums.txt']).hexdigest(),
+ gate_sha256=hashlib.sha256(MEMBERS['s.sh']).hexdigest(),
+ wrapper_sha256=hashlib.sha256(MEMBERS['jb.sh']).hexdigest(),
+ config_file_sha256=hashlib.sha256(MEMBERS['config.json']).hexdigest(),
+ authority_validator_sha256=hashlib.sha256(MEMBERS['r4.py']).hexdigest(),
+ authority_sha_source='Deployed kit SHA256SUMS.txt entry k/4.json; exact fields checked by the archive-pinned r4.py validator',
+ members=len(MEMBERS)),sort_keys=True,indent=2)+'\n')
+
 (W/'CERTIFICATE_REQUIREMENTS.json').write_text(json.dumps(dict(
  status='REVIEW_REQUIRED',config_identity=PINS['identity'],operator_archive_sha256=PINS['outer'],
  bundle=PINS['bundle'],kit=PINS['kit'],run_key=PINS['run'],
@@ -126,14 +138,18 @@ export HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 TOKENIZERS_PARALLELISM=false
 '''+(W/'selection_runtime.py').read_text()+'\n'+(W/'q_check.py').read_text()+'\nPYCODE\n')
 body=(W/'review_policy.py').read_text()+'\n'+(W/'evidence_body.py').read_text().replace("if __name__=='__main__':",'STAGING_VERIFY='+repr((W/'staging_check.py').read_text())+"\nif __name__=='__main__':")
 (W/'evidence_embedded.py').write_text(render(body))
-background('ev1.sh','evidence_embedded.py','e0','test -f "$BUN/r1.json" || { echo "PENDING: run rv1.sh after the nine-review final-packet chain"; exit 4; }\nfresh "$BUN/e"\n')
+background('ev1.sh','evidence_embedded.py','e0','test -f "$BUN/r1.json" || { echo "PENDING: run rv1.sh after the ten-review final-packet chain"; exit 4; }\nfresh "$BUN/e"\n')
 poll('evp1.sh','e0')
 background('dv1.sh','derive_body.py','d0','fresh "$KH"\ntest "$(cat "$BUN/e0/rc")" = 0\n')
+authority=MEMBERS['r4.py'].decode()+'\n'+(W/'authority_body.py').read_text()
+(W/'authority_check.py').write_text(render(authority))
 poll('dvp1.sh','d0', '''cat "$BUN/compare.json"
 python3 -B - <<'PYCODE'
+'''+authority+'''
 import stat
 from pathlib import Path
 k=Path('@KIT@')
+check_authority(k)
 assert (k/'b').is_dir() and not (k/'b').is_symlink(), 'sealed code directory missing'
 for p in [k/'b', *(k/'b').rglob('*')]:
  assert not p.is_symlink() and p.name!='__pycache__', 'linked code or bytecode'
@@ -191,12 +207,13 @@ while IFS='|' read -r jid name part state; do
  if [[ "$name" == a15_cot_ap@RUN@ ]]; then echo 'REFUSED: job name already queued'; exit 4; fi
 done <<< "$Q"
 python3 -B - "$KH" "$BUN" "$PARTITION" <<'PYCODE'
+'''+authority+'''
 import hashlib,json,stat,sys
 from pathlib import Path
 k,b=map(Path,sys.argv[1:3]);partition=sys.argv[3];load=lambda p:json.loads(p.read_text())
 assert (b/'d0/rc').read_text().strip()=='0' and load(b/'compare.json')['status']=='READY'
-auth=load(k/'k/4.json');assert partition in auth['allowed_partitions'] and auth['modes']==['p'] and auth['production_go_granted'] is False
-assert auth['gpu_cap']==4 and auth['max_parallel_jobs']==1 and auth['new_gpus']['p']==0
+auth=check_authority(k)
+assert partition in auth['mode_resources']['p']['partitions']
 cert=load(k/'ANON_OK.json');assert cert['status']=='CLEAN' and cert['hits']==0 and cert.get('reviewer')
 assert cert.get('config_identity')=='@IDENTITY@' and cert.get('operator_archive_sha256')=='@OUTER@'
 assert cert.get('scan_record_sha256') and cert.get('exemption_sha256')=='22a371b35e86ff8a48ed0b03c718d15fb656d1d342dd3c441d9986ac70ea0720'
@@ -292,5 +309,5 @@ print('PASS drivers built from frozen packet; '+PINS['archive']+'; '+PINS['outer
 submit=(W/'pass_submit.tpl').read_text()
 for token,member in (('GATE_SHA','s.sh'),('SUMS_SHA','sums.txt'),('WRAPPER_SHA','jb.sh')):
  submit=submit.replace('@'+token+'@',hashlib.sha256(MEMBERS[member]).hexdigest())
-p=W/'go_submit_c60b9015.sh';p.write_text(render(submit));p.chmod(0o700)
+p=W/'go_submit_6a5c7d00.sh';p.write_text(render(submit));p.chmod(0o700)
 (W/'mon.sh').write_text((W/'pm1.sh').read_text());(W/'mon.sh').chmod(0o700)

@@ -7,8 +7,8 @@ import tarfile
 from pathlib import Path
 
 W = Path(__file__).resolve().parent
-SNAP = Path('/scratch/jjyeung/orch_n30/r1_ops/work/snap_c60b9015/out')
-FINAL_ARCHIVE_SHA = 'c60b901594843989b909cb785a5fdc9ad544ea0fdec8d78c63bf173e4f6e136c'
+SNAP = Path('/scratch/jjyeung/orch_n30/r1_ops/work/snap_6a5c7d00/out')
+FINAL_ARCHIVE_SHA = '6a5c7d009a19cb5bac690b864f2be68bb5cebc29649923c93da36328d0f96888'
 FINAL_IDENTITY = '6594f46cdc16168514aca26a6ce38285907adfc6ece0b75d8e10428ea0b2fe74'
 
 def sha(raw):
@@ -25,10 +25,10 @@ def inventory(raw):
     return result
 
 # The outer SHA256SUMS belongs to A. Authenticate C with the supplied archive
-# digest, CONT2_INVENTORY's after pins, OPERATOR, and the archive's sums.txt.
-CONT2_INVENTORY = json.loads((SNAP/'CONT2_INVENTORY.json').read_bytes())
+# digest, CONT3_INVENTORY's after pins, OPERATOR, and the archive's sums.txt.
+CONT3_INVENTORY = json.loads((SNAP/'CONT3_INVENTORY.json').read_bytes())
 op_raw = (SNAP/'OPERATOR.json').read_bytes()
-assert sha(op_raw) == CONT2_INVENTORY['out/OPERATOR.json']['after']
+assert sha(op_raw) == CONT3_INVENTORY['out/OPERATOR.json']['after']
 OPERATOR = json.loads(op_raw)
 assert OPERATOR['sha256'] == FINAL_ARCHIVE_SHA
 ARCHIVE = (SNAP/OPERATOR['archive']).read_bytes()
@@ -59,11 +59,11 @@ assert IDS['identity']==FINAL_IDENTITY
 assert OPERATOR['bundle']==IDS['bun'] and OPERATOR['kit']==IDS['kh']
 assert OPERATOR['contract']==IDS['contract'] and OPERATOR['wrapper_sha256']==sha(MEMBERS['jb.sh'])
 assert MEMBERS['config.json'] == sealed('config.json')
-for name in ('d.py','p.py','p_05b8ac69.sh','sums.txt'):
-    assert sha(MEMBERS[name]) == CONT2_INVENTORY['out/operator/'+name]['after']
-result=json.loads((SNAP/'CONT2_RESULT.json').read_bytes())
+for name in ('d.py','p.py','r4.py','sums.txt'):
+    assert sha(MEMBERS[name]) == CONT3_INVENTORY['out/operator/'+name]['after']
+result=json.loads((SNAP/'CONT3_RESULT.json').read_bytes())
 assert result['sha256']==FINAL_ARCHIVE_SHA and result['identity']==FINAL_IDENTITY
-PACKET = (SNAP/'CONT2.md').read_text()
+PACKET = (SNAP/'CONT3.md').read_text()
 CONFIG = json.loads(MEMBERS['config.json'])
 assert CONFIG['h1']['routing_pose_targets'] is True
 assert CONFIG['h1']['faithful_own_camera_rows'] is False
@@ -99,7 +99,7 @@ PINS = dict(bundle=OPERATOR['bundle'], kit=OPERATOR['kit'],
             deriver=INNER['d.py'], selection=BINDING['selection_sha256'],
             source='/project/community/jjyeung/okh7/x_3fdda0fb',
             source_manifest='661ccd85b7a8f1afd25297869dc3a28539e64a3a0ab9a74ee928c0c5ab8a66c3',
-            remove_sha256=REMOVE_SHA, remove_path=REMOVE_PATH,
+            contract=IDS['contract'], remove_sha256=REMOVE_SHA, remove_path=REMOVE_PATH,
             unit_rows=UNIT['counts']['eligible'], unit_ft_eligible=BINDING['unit_binding']['sampling_eligible'],
             unit_source_sha256=UNIT['source']['sha256'], unit_manifest_sha256=UNIT['manifest']['sha256'],
             unit_indices_sha256=UNIT['index']['sha256'],
@@ -123,7 +123,7 @@ def render(text):
     return text
 
 def fixture():
-    dest = W/'fixture_c1'
+    dest = W/'fixture_c2'
     dest.mkdir(mode=0o700, exist_ok=True)
     for name, raw in MEMBERS.items():
         path = dest/name

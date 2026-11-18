@@ -9,3 +9,4 @@
 - 2026-11-18 tree_rebuild6: W/out/tree_rebuild_bn1_{e80b65d5,740695e5,f61e4d73}.tar (intermediate n1 packages, ~66 MB each; final is e558d4a1); W/w9f/out/tree_rebuild_b9f_7ce2975c.tar (intermediate 9fix package, 39 MB; final is 64a2ea92); W/w9f/work/tmp and W/w10/work/tmp after build 10 ends; W/work/rec_before_6.md, W/work/STATUS.pre6.md (backups).
 - W/w9g/out/tree_rebuild_bn1f_dad0dcc9.tar (39 MB): intermediate package of build n1fix, superseded by bn1f_0b391217.tar.
 - W/w10/out/tree_rebuild_b10_60f4bb35.tar (39 MB): intermediate package of build 10, superseded by b10_b092aa5e.tar.
+- W/wn2/out/tree_rebuild_bn1f2_bd334316.tar (41 MB): intermediate package of n1fix2, superseded by bn1f2_f1ec0cd9.tar.

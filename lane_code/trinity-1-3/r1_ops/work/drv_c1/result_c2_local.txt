@@ -1,0 +1,27 @@
+PASS upload outer SHA, 40 members, inner sums
+PASS 747 unit rows regenerated through sealed s1_pool.prepare; native_unit_regeneration_executed=true
+PASS q.py raw native receipt projection; final selection 5db993b148c7aa1ace685f7c29b0e20daa6ac4e3e5b3613e4c3fc2b24bdde2af
+PASS negative projection: EQUAL report rejected; altered index rejected
+PASS inherited staging checker: changed bytes verified and corruption rejected
+Traceback (most recent call last):
+  File "/scratch/jjyeung/orch_n30/r1_ops/work/drv_c1/test_local.py", line 113, in <module>
+    r=run(production+['--out',str(T/'derived_ready')]);(T/'production_derivation_ready.txt').write_text(r.stdout)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/r1_ops/work/drv_c1/test_local.py", line 19, in run
+    if okay and r.returncode:raise RuntimeError(r.stdout+r.stderr)
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: Traceback (most recent call last):
+  File "<string>", line 22, in <module>
+  File "<frozen runpy>", line 287, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "/scratch/jjyeung/orch_n30/r1_ops/work/drv_c1/fixture_c2/d.py", line 253, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "/scratch/jjyeung/orch_n30/r1_ops/work/drv_c1/fixture_c2/d.py", line 251, in main
+    result=derive(a.source,a.out,a.packet,a.source_manifest_sha256,fixture=a.fixture,evidence=a.evidence,bundle=a.bundle,selection_evidence=a.selection_evidence)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/scratch/jjyeung/orch_n30/r1_ops/work/drv_c1/fixture_c2/d.py", line 157, in derive
+    from r4 import bind
+ModuleNotFoundError: No module named 'r4'
+

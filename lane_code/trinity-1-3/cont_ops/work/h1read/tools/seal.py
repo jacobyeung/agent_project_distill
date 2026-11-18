@@ -27,7 +27,7 @@ def main(diff_only=False, pre_test=False):
     header=['# Exact candidate diff','','The baseline is `readk/`, whose FINAL_PINS.json SHA256 is `07582397649cdcb30e9bca8cd27396bf4a5797ce776f79132f992f9364121a0a`. The candidate preserves all reference kit files; no source file was removed. Reference tests remain in `readk/tests/`. The hunks below cover every changed line of candidate code, new tools/tests, documents, the asset registry and the rewritten item file. All paths are local.','','Generated evidence is pinned separately in `evidence/FINAL_PINS.json`. Test-fixture directories and ledgers are excluded from this source diff. The new binary tar is described by its exact byte count and SHA256 in UPLOAD_PLAN.md and SHA256SUMS.txt. DIFF.md, DIFF.patch, SHA256SUMS.txt and FINAL_PINS.json exclude their own recursive differences.','','| File | Baseline lines | Candidate lines |','|---|---:|---:|']
     intended=(ROOT/'evidence/INTENDED_PORTS.md').read_text()
     header[2] += ' The candidate runs its ported suite from tests/, against kit/.'
-    header[4] += ' FIX1.md through FIX5.md are post-seal receipts containing FINAL_PINS hashes and are excluded from that manifest to avoid a hash cycle.'
+    header[4] += ' FIX1.md through FIX6.md are post-seal receipts containing FINAL_PINS hashes and are excluded from that manifest to avoid a hash cycle.'
     header[6:6]=[intended,'']
     header += [f'| `{n}` | {a} | {b} |' for n,a,b in rows]
     patch=''.join(patches)
@@ -52,12 +52,18 @@ def main(diff_only=False, pre_test=False):
         'FIX4_TESTS.log','FIX4_READK_PORTED.log','FIX4_READK_REFERENCE.log','FIX4_REFUTE.log',
         'FIX5_BEFORE_PINS.json','FIX5_AUDIT.json','FIX5_NEW_TESTS.log','FIX5_FIX4_TESTS.log',
         'FIX5_TARGETED.log','FIX5_RUNTIME.log','FIX5_RUNTIME_DIRECT.log',
-        'FIX5_TESTS.log','FIX5_READK_PORTED.log','FIX5_READK_REFERENCE.log','FIX5_REFUTE.log']
+        'FIX5_TESTS.log','FIX5_READK_PORTED.log','FIX5_READK_REFERENCE.log','FIX5_REFUTE.log',
+        'FIX6_BEFORE_PINS.json','FIX6_BEFORE_binding.py.txt','FIX6_BEFORE_orchard_launcher.py.txt',
+        'FIX6_BEFORE_export_stage.py.txt','FIX6_build_manifest.py','FIX6_BASE_MANIFEST_dev-S1_544.json',
+        'FIX6_BASE_MANIFEST_R0-dev_544.json','FIX6_PACKET_EVIDENCE.json','FIX6_AUDIT.json',
+        'FIX6_NEW_TESTS.log','FIX6_FIX5_TESTS.log','FIX6_FIX4_TESTS.log','FIX6_TARGETED.log',
+        'FIX6_RUNTIME.log','FIX6_RUNTIME_DIRECT.log','FIX6_TESTS.log','FIX6_READK_PORTED.log',
+        'FIX6_READK_REFERENCE.log','FIX6_REFUTE.log']
     if pre_test:
         # Test logs must remain writable until their run finishes.
         pending = {'FIX2_TESTS.log','FIX2_READK_PORTED.log','FIX2_READK_REFERENCE.log','FIX2_REFUTE.log',
                    'FIX3_TESTS.log','FIX3_READK_PORTED.log','FIX3_READK_REFERENCE.log','FIX3_REFUTE.log'}
-        evidence_names = [name for name in evidence_names if name not in pending and not name.startswith(('FIX4_', 'FIX5_'))]
+        evidence_names = [name for name in evidence_names if name not in pending and not name.startswith(('FIX4_', 'FIX5_', 'FIX6_'))]
     primary=code+[ROOT/n for n in documents+['DIFF.md','DIFF.patch']]
     primary += [ROOT/'assets/d81f4a26.tar',ROOT/'assets/e52a690b.jsonl']
     primary += [ROOT/'evidence'/n for n in evidence_names]

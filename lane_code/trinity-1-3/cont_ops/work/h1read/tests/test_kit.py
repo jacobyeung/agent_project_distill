@@ -223,7 +223,7 @@ class KitTests(unittest.TestCase):
         original=(ROOT/'readk/kit/launcher/export_stage.py').read_text()
         candidate=(ROOT/'kit/launcher/export_stage.py').read_text()
         def body(s):return ast.dump(next(n for n in ast.parse(s).body if isinstance(n,ast.FunctionDef) and n.name=='stage_export'),include_attributes=False)
-        candidate=candidate.replace("(args.run not in T.EXPORT_RUNS and (args.run, args.step) != ('469ddece', 544))",
+        candidate=candidate.replace("(args.run not in T.EXPORT_RUNS and (args.run, args.step) != ('469ddece', 544) and not B.r1_step(args.run, args.step))",
                                     'args.run not in T.EXPORT_RUNS')
         self.assertEqual(body(original),body(candidate))
 

@@ -11,7 +11,7 @@ OLD=$O/i_1be16f28
 KH=$O/x_7f1589c1
 private() { [[ -d "$1" && ! -L "$1" && $(stat -c %a "$1") == 700 ]] || { echo "REFUSED: private directory required: $1" >&2; exit 3; }; }
 fresh() { [[ ! -e "$1" && ! -L "$1" ]] || { echo "REFUSED: already exists: $1" >&2; exit 3; }; }
-packet() { printf '%s  %s\n' 'c60b901594843989b909cb785a5fdc9ad544ea0fdec8d78c63bf173e4f6e136c' "$BUN/p.tar" | sha256sum -c --quiet; }
+packet() { printf '%s  %s\n' '6a5c7d009a19cb5bac690b864f2be68bb5cebc29649923c93da36328d0f96888' "$BUN/p.tar" | sha256sum -c --quiet; }
 private "$O"
 private "$BUN"
 packet

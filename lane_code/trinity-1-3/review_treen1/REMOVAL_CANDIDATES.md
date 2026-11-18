@@ -3,3 +3,9 @@
 - /tmp/jjyeung_rvn1c_1794968024 /tmp/jjyeung_rvn1c_1794968037b /tmp/jjyeung_rvn5_1794968062  (confirmation review scratch, 20261118)
 - /scratch/jjyeung/orch_n30/review_treen1/work/n1c/tmp/pybin (symlink wrapper, unused), work/tmp/suite_* (stale suite proofs from the first review)
 - Lane folder is 4.1 GB, over the 4 GB cap: work/tmp (2.0 GB, first review's suite proofs) and work/n1c/pkg/work/tmp are the largest removal candidates.
+- work/n1c2/tmp/n1 (first n1fix2 run fixtures; superseded by tmp/n1r2)
+- work/n1c2/tmp/n1r2 (superseded run)
+- work/n1c2/tmp/n1r3 (superseded run)
+- work/n1c2/restage/r1, work/n1c2/restage_r1b (failed r1 restage attempts with package-path inputs)
+- /tmp/jjyeung_rvn5b_*, /tmp/jjyeung_rvn5c_*, /tmp/jjyeung_rvn5d_*, /tmp/jjyeung_rvn5e_1794977139 (n1fix2 confirmation N5 scratch)
+- /tmp/jjyeung_rvn5f_1794977150

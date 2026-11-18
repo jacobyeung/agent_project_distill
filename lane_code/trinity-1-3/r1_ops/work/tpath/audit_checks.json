@@ -1,0 +1,40 @@
+{
+  "authority_matches_installed_file": true,
+  "admission_contract_sha_matches": true,
+  "config_identity_matches": true,
+  "g_static_checks_with_runtime_receipts_and_slot_stubbed": "PASS",
+  "i_authorize_p_t_u_with_admission_stubbed": "PASS",
+  "four_rank_launcher_command": [
+    "/scratch/jjyeung/envs/p1cpu/bin/python",
+    "-B",
+    "-m",
+    "torch.distributed.run",
+    "--nproc-per-node=4",
+    "--standalone",
+    "--nnodes=1",
+    "/scratch/jjyeung/orch_n30/r1_ops/work/tpath/x/x_69d2930d/b/w.py",
+    "/scratch/jjyeung/orch_n30/r1_ops/work/tpath/x/x_69d2930d",
+    "t",
+    "0"
+  ],
+  "training_dispatch_without_execution": "PASS",
+  "foreign_marker_refuses_cold_restart": "An earlier run leg or state slot exists; refusing a cold restart",
+  "same_job_repeated_marker_check": "PASS",
+  "missing_export_receipts_are_optional": "PASS",
+  "all_20_export_names_match": "PASS",
+  "real_wrapper_session_check_accepts_invalid_shapes": {
+    "mapping_of_uris": 0,
+    "invalid_array_of_names": 0,
+    "invalid_null_values": 0
+  },
+  "type_mix_config_validation": "PASS",
+  "per_rank_microsteps": {
+    "pose": 16,
+    "vqa": 32,
+    "routing": 16,
+    "pointing": 8
+  },
+  "global_batch": 288,
+  "milestone_and_stop_contract": "PASS",
+  "limits": "No real admission receipt, GPU execution, network/session request, or live slot was tested."
+}

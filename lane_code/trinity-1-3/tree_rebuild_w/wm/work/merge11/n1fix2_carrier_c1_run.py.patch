@@ -1,0 +1,11 @@
+--- base/student_pilot/carrier_c1_run.py
++++ n1fix2/student_pilot/carrier_c1_run.py
+@@ -1102,7 +1102,7 @@
+         if getattr(self, 'r1_training', False):
+             from .r1_training import row_check
+             row_check(value, stream)
+-        if self.b7_inputs:
++        if self.b7_inputs or getattr(self, 'r1_training', False):
+             from .r0_exclusion import reserve
+             reserve().check(value, stream)
+         if self.r2_admission is not None:

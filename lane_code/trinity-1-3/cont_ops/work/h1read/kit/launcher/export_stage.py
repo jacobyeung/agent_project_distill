@@ -44,6 +44,8 @@ def logical_artifact(root, path, step):
     allowed = {str(J.FSW/'ap/8865619b/runs'/run/('m'+str(step))/'artifact.json') for run in ('359fcc3c', '17c4ffa4')}
     if type(step) is int and step == 544:
         allowed.add(str(J.FSW/'ap/8865619b/runs/469ddece/m544/artifact.json'))
+    allowed.update(str(J.FSW/'ap/8865619b/runs'/run/('m'+str(step))/'artifact.json')
+                   for run in B.R1_RANGES if B.r1_step(run, step))
     if path not in allowed or type(step) is not int or step <= 0:
         raise ValueError('Export lineage differs')
     return path
@@ -87,7 +89,7 @@ def run_export_checker(root, artifact, digest, step, full, receipt_dir, bwrap):
 
 def stage_export(args):
     root = T.writable(args.root)
-    if (args.run not in T.EXPORT_RUNS and (args.run, args.step) != ('469ddece', 544)) or type(args.step) is not int or args.step <= 0:
+    if (args.run not in T.EXPORT_RUNS and (args.run, args.step) != ('469ddece', 544) and not B.r1_step(args.run, args.step)) or type(args.step) is not int or args.step <= 0:
         raise ValueError('Require an allowed run and positive step')
     source = completed_local(args.tar, tar=True); done_path = completed_local(args.done)
     done = T.load(done_path)

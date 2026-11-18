@@ -1,0 +1,77 @@
+--- H1/b/c.sh
++++ A/b/c.sh
+@@ -15,11 +15,11 @@
+ P=/project/community/jjyeung/c7d31ddd
+ RR=runs/aws128p_20261025
+ EPOCHS=/home/jjyeung/6d00e578
+-S=/tmp/jjyeung/a_17c4ffa4/root
++S=/tmp/jjyeung/a_673bc60f/root
+ U=$S/aws/u
+ HM=$HX
+-NX=/tmp/jjyeung/a_17c4ffa4/x_${SLURM_JOB_ID:-local}
+-NR=/tmp/jjyeung/a_17c4ffa4/runs
++NX=/tmp/jjyeung/a_673bc60f/x_${SLURM_JOB_ID:-local}
++NR=/tmp/jjyeung/a_673bc60f/runs
+ CUR=$HX/k/0.json
+ COMMIT=$(/usr/bin/python3 -I -c 'import json, sys; print(json.load(open(sys.argv[1]))["commit"])' "$CUR")
+ tk_step() {
+@@ -91,6 +91,11 @@
+     tk_step "joined $(basename "$dest") $(stat -c %s "$dest") B"
+ }
+ 
++tk_readonly_files() {
++    find "$1" -type f -exec chmod a-w {} +
++    find "$1" -type d -exec chmod 700 {} +
++}
++
+ tk_stage_model() {
+     local snap="$S/c7d31ddd/$RR/models/a32330d0/snapshots/$REV" file sha
+     read -r file sha < <(tk_current model)
+@@ -100,7 +105,7 @@
+     /usr/bin/python3 -I "$HX/b/kitx.py" "$file" "$sha" "$tmp/x"
+     [[ ! -e "$snap" ]] || mv "$snap" "$snap.old.$(date +%s)"
+     mv "$tmp/x/models--Qwen--Qwen3.5-9B/snapshots/$REV" "$snap"
+-    chmod -R a-w "$snap"
++    tk_readonly_files "$snap"
+     touch "$S/.stamp/model.$sha"
+     tk_step "model staged: $(du -sk "$snap" | cut -f1) KiB"
+ }
+@@ -284,14 +289,14 @@
+     fi
+     if [[ ! -d "$S/epochs/$COMMIT" ]]; then
+         tk_kitx trainer "$S/epochs/$COMMIT"
+-        chmod -R a-w "$S/epochs/$COMMIT"
++        tk_readonly_files "$S/epochs/$COMMIT"
+     fi
+     if [[ "$mode" != preflight ]] && tk_has trainer_old; then
+         local old_commit
+         old_commit=$(/usr/bin/python3 -I -c 'import json, sys; print(json.load(open(sys.argv[1]))["trainer_old_commit"])' "$CUR")
+         if [[ ! -d "$S/epochs/$old_commit" ]]; then
+             tk_kitx trainer_old "$S/epochs/$old_commit"
+-            chmod -R a-w "$S/epochs/$old_commit"
++            tk_readonly_files "$S/epochs/$old_commit"
+         fi
+     fi
+     local rfile rsha
+--- H1/b/p0.sh
++++ A/b/p0.sh
+@@ -6,7 +6,7 @@
+ PYTHONPATH="$HX/b" PYTHONNOUSERSITE=1 PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES="" \
+     /usr/bin/python3 -B "$HX/b/p0.py" "$HX" p --metadata-only
+ source "$HX/b/c.sh"
+-export TK_JOBDIR=/tmp/jjyeung/a_17c4ffa4/jobs/${SLURM_JOB_ID:?}.preflight
++export TK_JOBDIR=/tmp/jjyeung/a_673bc60f/jobs/${SLURM_JOB_ID:?}.preflight
+ trap 'for report in "$NX/o/${SLURM_JOB_ID}".preflight.*.json; do [[ ! -f "$report" ]] || cp "$report" "$HX/o/"; done' EXIT
+ tk_stage preflight
+ /usr/bin/python3 -I - "$CUR" "$HX" "$NX" "$IN" "$SLURM_JOB_ID" <<'PYINPUTS'
+--- H1/b/r.sh
++++ A/b/r.sh
+@@ -39,7 +39,7 @@
+ /usr/bin/python3 -I "$HX/b/g.py" "$HX" "${1:?}"
+ export TK_RUNS_DIR="$(/usr/bin/python3 -I -c 'import json,pathlib,sys; print(pathlib.Path(json.load(open(sys.argv[1]))["run_directory"]).parent)' "$HX/k/launch.json")"
+ source "$HX/b/c.sh"
+-export TK_JOBDIR=/tmp/jjyeung/a_17c4ffa4/jobs/${SLURM_JOB_ID:?}.${1:-x}
++export TK_JOBDIR=/tmp/jjyeung/a_673bc60f/jobs/${SLURM_JOB_ID:?}.${1:-x}
+ mkdir -p "$TK_JOBDIR" "$HM/o"
+ if [[ "${1:-}" == p ]] && ! /usr/bin/python3 -I -c 'import json,sys; sys.exit(0 if json.load(open(sys.argv[1])).get("in_job_admission") else 1)' "$HX/k/launch.json"; then
+     export TK_LIGHT=1

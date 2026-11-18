@@ -1,0 +1,91 @@
+--- H1/carrier_c1_run.py
++++ A/carrier_c1_run.py
+@@ -60,6 +60,9 @@
+ 
+ 
+ def validate(cfg):
++    if 'type_mix' in cfg:
++        from .type_mix import validate as validate_type_mix
++        validate_type_mix(cfg['type_mix'], cfg['recipe'])
+     if 'h1' in cfg:
+         from .h1 import validate as validate_h1
+         validate_h1(cfg)
+@@ -652,6 +655,9 @@
+     if cfg.get('h1', {}).get('r0_rooms') is not None:
+         from .h1_r0 import prepare as reserve_prepare
+         result = reserve_prepare(result, cfg)
++    if 'type_mix' in cfg:
++        from .type_mix import prepare as prepare_type_mix
++        result = prepare_type_mix(result, cfg)
+     write(Path(cfg['preparation_output'])/'receipt.json', result)
+     return result
+ 
+@@ -779,6 +785,9 @@
+     if cfg.get('h1', {}).get('r0_rooms') is not None:
+         from .h1_r0 import prepare as reserve_prepare
+         receipt = reserve_prepare(receipt, cfg, phase='admission')
++    if 'type_mix' in cfg or 'type_mix' in receipt:
++        from .type_mix import bound as bound_type_mix
++        bound_type_mix(receipt, cfg)
+     return receipt, model
+ 
+ 
+@@ -1020,6 +1029,8 @@
+     def __init__(self, receipt, processor):
+         self.connections = {k: connect(v['database']) for k, v in receipt['streams'].items() if v.get('kind') not in ('mix', 'mdg')}
+         self.processor = processor
++        from .type_mix import bound as bound_type_mix
++        self.type_mix = bound_type_mix(receipt, receipt)
+         self.h1 = receipt.get('h1', {})
+         self.placement = receipt.get('carrier_placement', data.C1_A)
+         self.receipt_pointing_weights = receipt.get('pointing_weights')
+@@ -1660,7 +1671,7 @@
+     recipe = recipe_for(cfg)
+     offset = cfg.get('row_start_step', 0)
+     plan = next(data.mixed_indices(counts,offset+1,start_step=offset,training_mode=cfg.get('training_mode', 'mixed'),
+-                                   mix=recipe['mix'],world=recipe['world_size']))
++                                   mix=recipe['mix'],world=recipe['world_size'],type_mix=getattr(rows, 'type_mix', None)))
+     rank_shapes = []
+     try:
+         # Encode each rank's actual first row in every stream; no synthetic admission.
+@@ -2335,7 +2346,7 @@
+                                 optimizer=optimizer, disk_guard=disk_budget)
+     for step,plan in enumerate(data.mixed_indices(counts,offset+steps,start_step=offset+start_step,
+                               training_mode=cfg.get('training_mode', 'mixed'),
+-                              mix=recipe['mix'],world=recipe['world_size']),start_step+1):
++                              mix=recipe['mix'],world=recipe['world_size'],type_mix=getattr(rows, 'type_mix', None)),start_step+1):
+         info,_=optimize_step(wrapped,optimizer,rows,plan,rank,device,step,distributed,gates)
+         if answer_stop is not None:
+             h1_state=answer_stop.update(step,info['h1_answer_counts'])
+@@ -3026,7 +3037,7 @@
+         raise ValueError('A rank limit requires a checkpointed first-batch check')
+     counts = {k: v['count'] for k, v in receipt['streams'].items()}
+     plans = list(data.mixed_indices(counts, steps, training_mode=cfg.get('training_mode', 'mixed'),
+-                                    mix=recipe['mix'], world=recipe['world_size']))
++                                    mix=recipe['mix'], world=recipe['world_size'],type_mix=getattr(rows, 'type_mix', None)))
+     device = torch.device(device)
+     out = Path(out_path)
+     journal, completed, records = None, {}, []
+--- H1/carrier_c1_data.py
++++ A/carrier_c1_data.py
+@@ -446,7 +446,7 @@
+     return batch, targets, audit
+ 
+ 
+-def mixed_indices(counts, steps, seed=17, start_step=0, training_mode='mixed', mix=None, world=8):
++def mixed_indices(counts, steps, seed=17, start_step=0, training_mode='mixed', mix=None, world=8, type_mix=None):
+     """All ranks use the same stream per microstep (FSDP collective order).
+ 
+     Mixed: four microsteps per optimizer update across eight ranks: 16 pose, 8 VQA,
+@@ -454,6 +454,11 @@
+     Each stream has independent deterministic shuffled epochs.
+     Replaying integer indices on resume does not decode skipped rows.
+     """
++    if type_mix is not None:
++        from .type_mix import plans
++        base = mixed_indices(counts, steps, seed, 0, training_mode, mix, world)
++        yield from plans(base, type_mix, seed, start_step)
++        return
+     if training_mode not in ('mixed', 'pose_only', 'final'):
+         raise ValueError('Unknown training_mode')
+     if training_mode == 'final':

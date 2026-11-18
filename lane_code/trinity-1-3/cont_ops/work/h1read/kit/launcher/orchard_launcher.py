@@ -163,6 +163,8 @@ def validate_request(config):
         raise ValueError('Invalid family selection')
     if bound['run'] == '469ddece' and config['families'] != ['a7']:
         raise ValueError('Step-544 read requires a7 only')
+    if bound['run'] in B.R1_RANGES and any(f not in ('main','a7') for f in config['families']):
+        raise ValueError('R1 read requires main and/or a7 only')
     expected = str(J.FSW/('ap/8865619b/runs/'+bound['run'])/('m'+str(config['spec']['step']))/'artifact.json')
     if config['spec']['artifact'] != dict(kind='c1_export', path=expected, sha256=None):
         raise ValueError('Unexpected input identity')
@@ -199,6 +201,8 @@ def prepare(token, destination, step, camera=False, pool='/project/community/jjy
         raise ValueError('Invalid family selection')
     if run == '469ddece' and families != ['a7']:
         raise ValueError('Step-544 read requires a7 only')
+    if run in B.R1_RANGES and any(f not in ('main','a7') for f in families):
+        raise ValueError('R1 read requires main and/or a7 only')
     selected = families
     destination = Path(destination)
     if destination.exists():

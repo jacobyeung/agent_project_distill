@@ -1,0 +1,28 @@
+--- base/student_pilot/carrier_c1_run.py
++++ build10/student_pilot/carrier_c1_run.py
+@@ -809,6 +809,7 @@
+                       receipt['carrier_placement'], receipt['training_mode'], receipt['depth_enabled'], receipt['recipe'],
+                       receipt.get('skip_unsupervised_lm'), receipt.get('frame_layout', 'spread'),
+                       receipt.get('depth_fov_source', 'private'), frame_count=receipt.get('frame_count',32),
++                      heading_plane_min=receipt.get('heading_plane_min',0.3),
+                       **(dict(geometry_online=receipt['geometry_online'], geometry_runtime=dict(
+                           image_mean=processor.video_processor.image_mean, image_std=processor.video_processor.image_std))
+                          if receipt.get('geometry_online') else {}))
+@@ -2095,6 +2096,7 @@
+             **(dict(trained_groups=contract) if contract is not None else {}),
+             **(dict(source_seal=sealed, training_source_seal=training_seal) if sealed is not None else {}),
+             config_sha256=identity(cfg),base_identity=cfg['base_identity'],
++            readout_config=model.readout_config,
+             anchors=list(range(1,cfg.get('frame_count',32)+1)),
+             **({'b7_inputs':cfg['b7_inputs'], 'max_pixels':cfg['max_pixels'],
+                 'min_pixels':cfg['min_pixels'], 'frame_count':cfg['frame_count'],
+@@ -3185,6 +3187,9 @@
+ 
+ def load_artifact(model, artifact_pin):
+     artifact=load(pinned(artifact_pin))
++    if 'readout_config' in artifact:
++        if artifact['readout_config']!=model.readout_config:
++            raise ValueError('Artifact readout configuration differs from model')
+     from .trace_version import bind
+     if artifact.get('trace_program_version') is not None or artifact.get('trace_version_binding'):
+         bind(model,artifact,{'trace_program_version':getattr(model,'trace_program_version',None)})

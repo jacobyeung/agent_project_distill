@@ -33,8 +33,8 @@ for name in ('sc1.sh','si1.sh'):
  r=subprocess.run(['bash',str(W/name)],capture_output=True,text=True)
  assert r.returncode==4 and 'PENDING' in r.stderr
 review=(W/'rv1.sh').read_text()
-assert review==pending_script('rv1.sh') or ('final review_r1c1 accepted' in review and PINS['outer'] in review and "'review_r1p8'" in review)
+assert review==pending_script('rv1.sh') or ('final review_r1c2 accepted' in review and PINS['outer'] in review and "'review_r1p8'" in review)
 assert not (W/'ANON_OK.json').exists()
 print('PASS '+str(len(scripts))+' shell scripts; '+str(count)+' embedded Python bodies; nested workers; all builder Python syntax')
 print('PASS packet-C names and export destinations; native unit flags and H1 CPU environment; fresh mint markers')
-print('PASS nine-review evidence validator and deriver SHA; review installer pins; inert certificate/session installers; matching submission entry points')
+print('PASS ten-review evidence validator and deriver SHA; review installer pins; inert certificate/session installers; matching submission entry points')

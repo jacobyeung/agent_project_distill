@@ -1,13 +1,13 @@
 """Read-only monitor and proof-fetch checks against local synthetic records."""
 import hashlib,json,os,subprocess,sys,tempfile
 from pathlib import Path
-from packet_config import PINS
+from packet_config import PINS, SNAP
 W=Path(__file__).resolve().parent;T=Path(tempfile.mkdtemp(prefix='monitor_c1_',dir=W))
 root=T/'remote';root.mkdir(mode=0o700);b=root/Path(PINS['bundle']).name;b.mkdir(mode=0o700);k=root/Path(PINS['kit']).name;k.mkdir(mode=0o700);(k/'o').mkdir()
 mock=T/'bin';mock.mkdir();(mock/'python3').symlink_to(sys.executable)
 for name,text in [('squeue','printf "171600 a15_cot_ap05b8ac69 advanced RUNNING\\n"'),('sacct','printf "%s\\n" "$*"')]:
  p=mock/name;p.write_text('#!/bin/bash\n'+text+'\n');p.chmod(0o700)
-os.link(next(W.glob('training_c1_*/p.tar')),b/'p.tar')
+(b/'p.tar').symlink_to(SNAP/PINS['archive'])
 (b/'job.id').write_text('171500\n');(b/'training.job.id').write_text('171600\n')
 (b/'training.json').write_text('{"mode":"PASS"}')
 (k/'o/171500.proof.json').write_text('{"status":"PASS","job":"171500"}')

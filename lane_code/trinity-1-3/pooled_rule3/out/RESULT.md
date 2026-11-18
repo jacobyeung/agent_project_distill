@@ -1,0 +1,7 @@
+# RESULT pooled_rule3: fix 2 closed; v3 ready to register (rule text and statistics unchanged)
+1. pooled_harm_rule_v3.py (3c7661fe28589f8ef12003d4c0ade78f9ae12fbc0fe0514cfa2a508ecb84d880) refuses: an omitted or mismatched fetched archive; empty receipt bindings, or receipts that leave unbound the artifact sha256 or path (which names the run), step, arm, reader package, read token, plan hash or archive sha256; an export other than the run's own runs/<run>/m<step>/artifact.json (--export-receipt, required for decisions); a read or export already recorded under another run or step (pinned prior reads and the ledger).
+2. Tests 36/36 OK (TEST_OUTPUT_v3.txt): the reviewer's relabelled D0 case is refused at each of the four points separately; both baseline manifests pass; the three real reads give the registered size intervals to 3 decimals.
+3. Registration POOLED_RULE_REGISTRATION_v3.md c4c66d7bbc7d465006ed42c1a2c6e9c2320012e63b072b17e1153c76539a29bf.
+4. Crosswalk 994902af7647a52f7c288c975226305d91ea4875fdcc312456e8db79c4140c3b; baselines dev-S1 e08a1d3427cf2adc31c96544d08913ed5ca173f7a08129a57f2d8759592a584b, R0-dev 86c8f993b5b799fc29f183bb295db136f2a4cac43c4ce8dbe10deb6656f530a1 (unchanged).
+5. Details: pooled_rule3_COMPLIANCE.md (cases with file:line); evidence pooled_rule3_evidence.tgz 28ec0f6273e9acdc63987a2cc1a7b4dc6b044a2544938c1e55430925ee59d586; record Status and INDEX line 233 updated.
+6. v3 has had no independent review; please order one before the 08:30Z registration. At each boundary the operator fetches R1's artifact.json (<20 MB).

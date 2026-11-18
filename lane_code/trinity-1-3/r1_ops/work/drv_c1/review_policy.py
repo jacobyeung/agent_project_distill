@@ -2,8 +2,8 @@
 import hashlib
 import re
 
-REVIEWERS = ('review_r1p', 'review_r1p2', 'review_r1p3', 'review_r1p4', 'review_r1p5', 'review_r1p6', 'review_r1p7', 'review_r1p8', 'review_r1c1')
-REVIEW_FILES = ('r1.txt', 'r2.txt', 'r3.txt', 'r4.txt', 'r5.txt', 'r6.txt', 'r7.txt', 'r8.txt', 'rc1.txt')
+REVIEWERS = ('review_r1p', 'review_r1p2', 'review_r1p3', 'review_r1p4', 'review_r1p5', 'review_r1p6', 'review_r1p7', 'review_r1p8', 'review_r1c1', 'review_r1c2')
+REVIEW_FILES = ('r1.txt', 'r2.txt', 'r3.txt', 'r4.txt', 'r5.txt', 'r6.txt', 'r7.txt', 'r8.txt', 'rc1.txt', 'rc2.txt')
 
 def verdict(text, reviewer):
     header = next((line.strip() for line in text.splitlines() if line.strip()), '')
@@ -119,14 +119,14 @@ def packet_a_section(text):
 
 def build_chain(texts, identity, tree, outer):
     if set(texts) != set(REVIEW_FILES):
-        raise ValueError(f'all nine independent verdicts are required')
+        raise ValueError(f'all ten independent verdicts are required')
     reviews = {}
     for name, short in zip(REVIEWERS, REVIEW_FILES):
         text = texts[short]
-        value = packet_section(text, 'C')[0] if name == 'review_r1c1' else (packet_a_section(text)[0] if name in ('review_r1p6','review_r1p7','review_r1p8') and re.search(r'Packet\s+A\b', text, re.I) else verdict(text, name))
+        value = packet_section(text, 'C')[0] if name in ('review_r1c1','review_r1c2') else (packet_a_section(text)[0] if name in ('review_r1p6','review_r1p7','review_r1p8') and re.search(r'Packet\s+A\b', text, re.I) else verdict(text, name))
         reviews[name] = dict(verdict=value, sha256=hashlib.sha256(text.encode()).hexdigest(),
                              file=short, role='final' if name == REVIEWERS[-1] else 'antecedent')
-    value, final = packet_section(texts['rc1.txt'], 'C')
+    value, final = packet_section(texts['rc2.txt'], 'C')
     declaration = re.sub(r'^\s*(?:#{1,6}\s*|[-*]\s*)', '', final.splitlines()[0].replace('**', '').replace('`', '')).strip()
     if not re.match(r'Packet\s+C\s*:', declaration, re.I) or not re.search(r'\b(GO AFTER FIXES|GO)\b', declaration, re.I):
         raise ValueError(f'final review requires an explicit Packet C: GO or GO AFTER FIXES line')
@@ -136,6 +136,6 @@ def build_chain(texts, identity, tree, outer):
     notes = low_fixes('# '+value+'\n'+fix_body) if value == 'GO AFTER FIXES' else []
     return dict(config_sha256=identity, source_revision='sha256:'+tree,
                 operator_archive_sha256=outer, packet='C', reviews=reviews,
-                reviewers=list(REVIEWERS), final_reviewer='review_r1c1',
+                reviewers=list(REVIEWERS), final_reviewer='review_r1c2',
                 final_verdict=value, fix_rounds=[4, 5, 6, 7, 8, 9, 10, 11, 12], nonblocking_fixes=notes,
                 accepted_for_cpu_proof=True, production_go_granted=False)

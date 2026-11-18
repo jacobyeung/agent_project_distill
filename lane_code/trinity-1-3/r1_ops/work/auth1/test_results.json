@@ -1,0 +1,33 @@
+{
+  "results": [
+    "PASS 4.p.json g.check(t): REFUSED: Written slot authorization is absent or expires too early",
+    "PASS 4.p.json i.authorize(t,0): REFUSED: Operation not authorized",
+    "PASS 4.p.json g.check(p)",
+    "PASS 4.p.json i.authorize(p,0)",
+    "PASS 4.train.json g.check(t)",
+    "PASS 4.train.json i.authorize(t,0)",
+    "PASS 4.train.json g.check(p)",
+    "PASS 4.train.json i.authorize(p,0)",
+    "PASS 4.train.json i.authorize(u,0)",
+    "PASS worker 0 authorize(t,0)",
+    "PASS worker 1 authorize(t,0)",
+    "PASS worker 2 authorize(t,0)",
+    "PASS worker 3 authorize(t,0)",
+    "PASS w.dispatch t",
+    "PASS w.dispatch u",
+    "PASS wrong GPU count: REFUSED: Resources differ"
+  ],
+  "fixture": "/scratch/jjyeung/orch_n30/r1_ops/work/auth1/check_t8nvo0u1/kit",
+  "source_revision": "sha256:b83a8a35d420815b9d6396e1fc1178e94c20d47ad459aa6da964e85bdec0f87b",
+  "environment": {
+    "SLURM_JOB_ID": "171377",
+    "SLURM_JOB_PARTITION": "advanced",
+    "SLURM_JOB_NUM_NODES": "1",
+    "SLURM_GPUS_ON_NODE": "4",
+    "SLURM_TIMELIMIT": "780",
+    "SLURM_JOB_TIME_LIMIT": "13:00:00",
+    "S1_CPU_REHEARSAL": "0",
+    "CUDA_VISIBLE_DEVICES": ""
+  },
+  "limitations": "Synthetic admission receipts; filesystem paths redirected into lane; no training run."
+}

@@ -16,7 +16,7 @@ import uuid
 
 ROOT = Path(__file__).resolve().parents[1]
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument('suite', choices=('candidate', 'ported', 'reference', 'refute', 'runtime', 'targeted', 'fix4', 'fix5', 'runtime_direct', 'pins'))
+parser.add_argument('suite', choices=('candidate', 'ported', 'reference', 'refute', 'runtime', 'targeted', 'fix4', 'fix5', 'fix6', 'runtime_direct', 'pins'))
 args = parser.parse_args()
 work = ROOT/'evidence'/('test_fix3_'+args.suite+'_'+uuid.uuid4().hex)
 work.mkdir()
@@ -80,7 +80,7 @@ with patch.object(Path, '__truediv__', joined), patch.object(Path, 'open', opene
             suite = loader.discover(str(test_root/'tests'), pattern='test_refute.py' if args.suite == 'refute' else 'test_*.py')
         else:
             names = {'ported': ['test_kit', 'test_chain', 'test_verdict'],
-                     'targeted': ['test_fix3'], 'fix4': ['test_fix4'], 'fix5': ['test_fix5'], 'pins': ['test_kit.KitTests.test_final_pins_match']}[args.suite]
+                     'targeted': ['test_fix3'], 'fix4': ['test_fix4'], 'fix5': ['test_fix5'], 'fix6': ['test_fix6'], 'pins': ['test_kit.KitTests.test_final_pins_match']}[args.suite]
             suite = loader.loadTestsFromNames(names)
         result = unittest.TextTestRunner(verbosity=2).run(suite)
         sys.exit(not result.wasSuccessful())

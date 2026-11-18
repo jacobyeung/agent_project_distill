@@ -20,7 +20,7 @@ def make_records(b,h,old,ev,checks,review_input):
  ar=copy.deepcopy(load(old/'archive.json'))
  ar.update(schema='s1-source-archive-v1',status='ARCHIVED',durable=True,location=str(arc),sha256=sha(arc),tree_sha256=binding['tree_sha256'],bytes=arc.stat().st_size,verification_scope='read-back SHA256 on login-node project storage')
  rv=copy.deepcopy(load(old/'review.json'))
- rv.update(verdict='PASS',reviewer=', '.join(review_input['reviewers']),reviewers=review_input['reviewers'],config_sha256=ident,source_revision=revision,admission_contract_sha256=ids['contract'],admission_scope='pinned-template-and-native-data-derivation',attestation='The nine-review chain ends with review_r1c1 accepting packet C; production CPU preparation proof remains required.',evidence=review_input)
+ rv.update(verdict='PASS',reviewer=', '.join(review_input['reviewers']),reviewers=review_input['reviewers'],config_sha256=ident,source_revision=revision,admission_contract_sha256=ids['contract'],admission_scope='pinned-template-and-native-data-derivation',attestation='The ten-review chain ends with review_r1c2 accepting packet C; production CPU preparation proof remains required.',evidence=review_input)
  au=copy.deepcopy(load(old/'4.json'))
  # Inherit the envelope, never the H1 production permissions or source-specific attestations.
  for k in ('written_authorization','written_authorizations','admission_evidence','omission_authority'):au.pop(k,None)

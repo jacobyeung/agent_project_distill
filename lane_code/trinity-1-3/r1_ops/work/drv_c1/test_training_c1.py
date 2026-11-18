@@ -14,7 +14,7 @@ exe('bash','[[ "$1" == s.sh ]] || exit 9\nprintf "%s\\n" "$PROOF_JOB" >> "$CALLE
 archive=T/'p.tar';archive.write_bytes(ARCHIVE);source=fixture();proof_job='171500'
 sha=lambda raw:hashlib.sha256(raw).hexdigest()
 base_env=dict(os.environ,PATH=str(mock)+':/usr/bin:/bin',USER='localtest',QUEUE='',HISTORY='171500|a15_cot_ap05b8ac69|COMPLETED|0:0\n',DONOR='171377|a15_cot_ap673bc60f|COMPLETED|0:0\n',GATE_OUTPUT='Submitted batch job 171600')
-cases=['proof_queue_row','queued_proof_not_complete','success','equal_go','different_go','same_name_running','same_name_held','other_held','donor_held_proof','donor_running','donor_completing','donor_account_running','donor_account_pending','missing_donor_account','missing_slot','wrong_step','unverified_slot','bool_step','linked_slot','bad_proof','wrong_proof_job','old_proof_identity','missing_resume_check','history_training','history_empty','history_failed_proof','history_error','queue_error','malformed_queue','existing_marker','existing_job','existing_transcript','canary_marker','failed_gate','uncertain_gate','altered_gate','altered_sums','altered_wrapper']
+cases=['history_donor_proof','history_other_c_proof','history_duplicate_proof','proof_queue_row','queued_proof_not_complete','success','equal_go','different_go','same_name_running','same_name_held','other_held','donor_held_proof','donor_running','donor_completing','donor_account_running','donor_account_pending','missing_donor_account','missing_slot','wrong_step','unverified_slot','bool_step','linked_slot','bad_proof','wrong_proof_job','old_proof_identity','missing_resume_check','history_training','history_empty','history_failed_proof','history_error','queue_error','malformed_queue','existing_marker','existing_job','existing_transcript','canary_marker','failed_gate','uncertain_gate','altered_gate','altered_sums','altered_wrapper']
 if len(sys.argv)>1:cases=[x for x in cases if x in sys.argv[1:]]
 for label in cases:
  root=T/label;root.mkdir(mode=0o700);b=root/Path(PINS['bundle']).name;b.mkdir(mode=0o700);k=root/Path(PINS['kit']).name;k.mkdir(mode=0o700);(k/'o').mkdir()
@@ -48,6 +48,9 @@ for label in cases:
  if label=='missing_resume_check':proof['checks']={}
  (k/'o'/(proof_job+'.proof.json')).write_text(json.dumps(proof))
  if label=='history_training':env['HISTORY']+='171499|a15_cot_ap05b8ac69|FAILED|1:0\n'
+ if label=='history_donor_proof':env['HISTORY']+='171356|a15_cot_ap05b8ac69|COMPLETED|0:0\n'
+ if label=='history_other_c_proof':env['HISTORY']+='171501|a15_cot_ap05b8ac69|COMPLETED|0:0\n'
+ if label=='history_duplicate_proof':env['HISTORY']+=env['HISTORY']
  if label=='history_empty':env['HISTORY']=''
  if label=='history_failed_proof':env['HISTORY']=env['HISTORY'].replace('COMPLETED','FAILED')
  if label=='history_error':env['HISTORY_FAIL']='1'
@@ -61,7 +64,7 @@ for label in cases:
  if label in ('equal_go','different_go'):
   if label=='different_go':go['authority']='sha256:'+'b'*64
   (b/'go.json').write_text(json.dumps(go,sort_keys=True))
- body=(W/'go_submit_c60b9015.sh').read_text().replace('/project/community/jjyeung/okh7',str(root))
+ body=(W/'go_submit_6a5c7d00.sh').read_text().replace('/project/community/jjyeung/okh7',str(root))
  # Alter the expected pin only, without modifying shared hardlinked packet bytes.
  for item,member in [('altered_gate','s.sh'),('altered_sums','sums.txt'),('altered_wrapper','jb.sh')]:
   if label==item:body=body.replace(sha(MEMBERS[member]),'0'*64)

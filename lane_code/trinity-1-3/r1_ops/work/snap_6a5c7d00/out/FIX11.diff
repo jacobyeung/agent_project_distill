@@ -1,0 +1,555 @@
+--- a/STATUS.md
++++ b/STATUS.md
+@@ -1 +1 @@
+-Both packets are built and locally validated. A fac0705214fdecb53561c633d7d94642cd469b50b662c5de81f09d11891d115f; B 0647a0df37862199ea4a766875969d28e7fbfc66821ea5f5a0d00f0607452f92. Each removes 601 out-of-division rows; room=1.70 and direction=31.19. Full production admission remains unverified because RGB, pointing, pose/model metadata and complete routing inputs are absent locally. Read out/FIX10.md, FIX10A.diff and FIX10B.diff.
++BUILT_PENDING_FULL_LOCAL_CHECKS. Packet A config fac0705214fdecb53561c633d7d94642cd469b50b662c5de81f09d11891d115f, run 673bc60f, archive p_a5dc8f30.tar, SHA256 a5dc8f306b6867c24fc80aa1215697cb178337252ec912f61ff575b8ec1e9169. The proof exports TK_JOBDIR, R1_RUNTIME_RECORD and TK_RUNS_DIR. All 7 focused regressions pass. The full suite and `tools/run_local_checks.py` await explicit heavy-I/O approval under the supplied Trinity rule; they have not been run for this fix. Read out/FIX11.md and out/FIX11.diff. Production proof remains pending.
+--- a/out/FIX11.md
++++ b/out/FIX11.md
+@@ -0,0 +1,42 @@
++BUILT_PENDING_FULL_LOCAL_CHECKS. Packet A has S2 on. The proof initializes its own shell environment before the loader audit.
++
++Config identity: `fac0705214fdecb53561c633d7d94642cd469b50b662c5de81f09d11891d115f` (unchanged; zero config-field changes).
++Run key: `673bc60f`. Archive: `p_a5dc8f30.tar`.
++Archive SHA256: `a5dc8f306b6867c24fc80aa1215697cb178337252ec912f61ff575b8ec1e9169`.
++
++The generated `out/proof/p.py` embeds the post-admission shell in `program()`. `tools/make_proof.py` compresses this program into `p_673bc60f.sh`; `tools/package_operator.py` includes that script in the archive. The bundle's `p.py` is the unchanged `tools/seal_proof.py`, which binds the script bytes in the authority's `bundle_files`.
++
++The proof runs `r.sh p 0` in a child shell, then sources `c.sh` in its caller. Child exports cannot initialize the caller. The caller explicitly exports `TK_JOBDIR` and reconstructs `R1_RUNTIME_RECORD` from the pinned staged record. It also exports `TK_RUNS_DIR=$NR` for consistency with the training entry.
++
++`TK_JOBDIR` is `/tmp/jjyeung/a_673bc60f/jobs/${SLURM_JOB_ID}.proof` inside the proof namespace. The existing `/tmp` bind maps it to `/tmp/jjyeung/p_673bc60f_${SLURM_JOB_ID}/tmp/jjyeung/a_673bc60f/jobs/${SLURM_JOB_ID}.proof` on the host. The proof sets umask 077 and creates the leaf with `mkdir -m 700` before `tk_bwrap`. A pre-existing directory or symlink fails. No writable mount is added.
++
++`tk_current record` supplies the runtime-record SHA. The caller verifies `$S/c7d31ddd/anyhost/<sha>.json` with `sha_is` and exports its namespace path `$P/anyhost/<sha>.json`. `tk_env` then exports the same path as `ANYHOST_NEUTRAL_RUNTIME`. The staged bytes remain read-only; caches and temporary files use the private proof job directory.
++
++| Shell dependency | Source and use |
++|---|---|
++| `TK_KIT_HOME`, `ROOT` | The proof sets `TK_KIT_HOME=$ROOT` before sourcing; `ROOT` is the validated kit path from the generated job prefix. |
++| `SLURM_JOB_ID` | Proof `main()` requires a positive numeric allocation ID; shell expansion uses `${SLURM_JOB_ID:?}`. |
++| `TK_JOBDIR` | The proof creates a fresh 0700 `.proof` directory before `tk_bwrap` or `tk_env`. |
++| `R1_RUNTIME_RECORD` | The proof resolves and verifies the record already staged by admission. It does not depend on a child export. |
++| `TK_RUNS_DIR` | The proof exports `$NR`; `r.sh` obtains the same run parent from the pinned launch record. No current `c.sh` expansion requires this variable. |
++| `AS AL K X R HX IN REV P RR EPOCHS S U HM NX NR CUR COMMIT CLOSURE_DIR` | Sourcing the sealed `c.sh` initializes all of them before functions run. `COMMIT` and `CLOSURE_DIR` come from pinned `k/0.json`. |
++| `BW` | `tk_bwrap` initializes the array before the loader command expands it. Its `bw`, `sha` and `entry` locals are assigned by `read` and iteration. |
++| `ANYHOST_JOBS PILOT_VENV PYTHONPATH TMPDIR` | `tk_env` initializes these before `tk_pythonpath p` and the loader call. All other runtime exports are constants or derived from the initialized paths. |
++| `TK_LIGHT` | Staging reads it only through `${TK_LIGHT:-}`; `r.sh` explicitly sets or unsets it for its own stage. |
++| `TK_JOB_START`, `TK_STAGE_ROOT` | The wrapper/job prefix sets `TK_JOB_START`; preflight exports `TK_STAGE_ROOT=$S` in its child. Neither is read by the post-admission `c.sh` functions or the loader-audit entry. |
++
++The audit covers all 28 uppercase shell-variable reads in the entire staged `c.sh`, including staging and persistence. `ENVIRONMENT_AUDIT11.json` assigns each read an owner. Function parameters use guarded arguments or are supplied by their caller; staging locals receive their values before use from assignments, `read`, or loop bindings. `r.sh` and `p0.sh` already initialize `TK_JOBDIR` before their staging calls. `tk_stage` initializes `R1_RUNTIME_RECORD` before their `tk_env` calls. The proof does not repeat staging after admission.
++
++The mount/path audit covers `$U` at both AWS prefixes, `$NX` at `$X`, `$NR` at `$X/runs`, units, frame roots, models, the closure, epochs and the new job-directory bind. The admission child stages all existing sources before the post-admission block. The runtime-record read uses the staged physical path; the loader receives the namespace path. `tk_pythonpath p` uses `$X/b`, the closure, its site alias and the optional NumPy overlay. The `c`, `t` and `u`-only FLA branch is outside this CPU proof. Both NumPy branches pass the fixture.
++
++The loader command receives `$PILOT_VENV/bin/python` and `$X`. Its Python entry reads the pinned launch/config and admission outputs, then writes `inputs/l.json` and `inputs/a.json` through the existing run mount. After shell success, `verify_prepared` validates `data_receipt.json` through the physical run path. Proof `main()` checks the loader receipt's identity, hash and required predicates, then writes the already reserved job receipt under `kh/o`. No later shell expansion depends on a child export. These predicates and trainer bytes retain their existing definitions.
++
++All 7 focused regressions pass. The full suite and `tools/run_local_checks.py` await explicit heavy-I/O approval under the supplied Trinity rule; they have not been run for this fix.
++
++`proof/POST_ADMISSION_SHELL.json` records two successful nounset executions. Each runs the generated suffix, sources the exact production `c.sh` (SHA256 `900d05353901d661474ffa12562d17bebafc4af1f95e03743e348d5ebefb9598`), executes its real helpers, reaches a stub loader import/call and writes a fixture receipt through the proof's real `execute()` function. The fixture supplies a fake allocation, stub admission, stub bwrap and stub loader body. It remaps path constants after sourcing instead of creating a real namespace. Mutation cases remove each required export, precreate or symlink the job directory, and alter runtime bytes; every case refuses before the loader.
++
++`proof/RESEAL11.json` records a successful seal against a local production-form deployment fixture. The archive test checks every member hash and decodes the embedded script to verify exact equality with the generated proof program. It does not issue production authority. The archive name derives from its payload SHA256 so a proof-only change retains config and deployment paths while producing a distinct archive.
++
++Reviewer checks: inspect the environment initialization and namespace mapping; verify the unchanged config, trainer, `c.sh`, `r.sh`, `p0.sh`, job entry and `jb.sh`; verify the new archive SHA and embedded proof; deploy the corrected script and reseal the authority against its new `bundle_files` hash before any approved CPU proof. Bundle and kit names remain `i_69d2930d` and `x_69d2930d`; the archive filename is independent of those names. The failed job receipt remains failed. A complete production loader audit and proof receipt remain unverified locally. No Orchard, SSH, Git or GPU action was performed.
++
++`FIX11.diff` compares packet tools, tests, configs, current bundle, proof evidence and reports with `snap_fac07052`. It omits unchanged archives and transient work fixtures; binary additions carry hashes. Existing `out/p_*.tar` hashes are checked against `FIX11_PROTECTED_ARCHIVES.json`. Snapshot and packet B bytes were not edited. The snapshot comparison is retained because the brief explicitly requires it.
+--- a/out/FIX11_PROTECTED_ARCHIVES.json
++++ b/out/FIX11_PROTECTED_ARCHIVES.json
+@@ -0,0 +1,15 @@
++{
++  "out/p_082d2d90.tar": "3401c318e552cf0ba23f691d197b8f022550639693632abeeaa3bf3b08658384",
++  "out/p_084ba70f.tar": "88a55761b7acb59c6213b846681c6dceee0e69332d7c4b913bf3084ec45bfa91",
++  "out/p_0a4d6fc3.tar": "db2a80b7832647aef89276a794fa585c9733c6180027eaa63e128938abe942c0",
++  "out/p_1130b378.tar": "f719b05fcbe934654499d786d1a56d413c0db71f6a1fd9a60b5097e788ebfad9",
++  "out/p_17eb48c6.tar": "d6e18979907f5a25c6eb3e6a9dca47cc277705bbb3bfb65d24d691c33fb879e1",
++  "out/p_214cbeb1.tar": "8f6a96e21f209a49352fbe794a890b0e7508d66ab8432b2f7cd1effe8f520bce",
++  "out/p_27bfcd1d.tar": "4343e9a08c7b54c745cd5c20b0393d5d222fb5f929b182fe1a3228ae066b5a1a",
++  "out/p_69d2930d.tar": "a99ab475f602c63332d4faaa4bf20f9d75e604cb973a80a041338b03a7d5f589",
++  "out/p_6f8ed106.tar": "def1e1f2b1153328b024209e69fcbb71f2dd556b7376eacb836d40bb66d9845f",
++  "out/p_6fb2eba4.tar": "252c65ce37f3a6da41adb1bfcd70a143d55209d7792bc810b05e1ea4c350bcb9",
++  "out/p_875fe807.tar": "81f3cd7acc045f21d2a3e90bf18fe27812383738e05b96a4fcfd1bb389531326",
++  "out/p_c3d1a1fb.tar": "77599a948e4814776d96b8b93aba56543a40d34a36f86d26ce56415ef31fb526",
++  "out/p_c5f3847d.tar": "888027436a99cfec360959c46f4271222e4c029f5d36eb9870fea4f669231029"
++}
+--- a/out/FIX11_RESULT.json
++++ b/out/FIX11_RESULT.json
+@@ -0,0 +1 @@
++{"all_tests":null,"archive":"p_a5dc8f30.tar","caller_parity":["TK_RUNS_DIR"],"config_fields_changed":[],"config_identity":"fac0705214fdecb53561c633d7d94642cd469b50b662c5de81f09d11891d115f","fixed":["TK_JOBDIR","R1_RUNTIME_RECORD"],"focused_tests":7,"production_authorized":false,"run_key":"673bc60f","run_local_checks":"NOT_RUN_PENDING_HEAVY_IO_APPROVAL","sha256":"a5dc8f306b6867c24fc80aa1215697cb178337252ec912f61ff575b8ec1e9169","snapshot":"/scratch/jjyeung/orch_n30/r1_ops/work/snap_fac07052","status":"BUILT_PENDING_FULL_LOCAL_CHECKS"}
+--- a/out/OPERATOR.json
++++ b/out/OPERATOR.json
+@@ -1 +1 @@
+-{"archive":"p_69d2930d.tar","bundle":"/project/community/jjyeung/okh7/i_69d2930d","contract":"6511a32944748c23835eb2601f18ea0667c2dfeee8e1601fad5378d3e09447f9","job_name":"a15_cot_ap673bc60f","kit":"/project/community/jjyeung/okh7/x_69d2930d","private_content_scan":"REQUIRES_INDEPENDENT_REVIEW","production_authorized":false,"proof_script":"p_673bc60f.sh","public_filename_scan":"PASS","sha256":"a99ab475f602c63332d4faaa4bf20f9d75e604cb973a80a041338b03a7d5f589","wrapper_sha256":"b6a1e4c8f4c0a8fce029233575d082fae69ba018a311288dc8391493efa4648f"}
++{"archive":"p_a5dc8f30.tar","bundle":"/project/community/jjyeung/okh7/i_69d2930d","contract":"6511a32944748c23835eb2601f18ea0667c2dfeee8e1601fad5378d3e09447f9","job_name":"a15_cot_ap673bc60f","kit":"/project/community/jjyeung/okh7/x_69d2930d","private_content_scan":"REQUIRES_INDEPENDENT_REVIEW","production_authorized":false,"proof_script":"p_673bc60f.sh","public_filename_scan":"PASS","sha256":"a5dc8f306b6867c24fc80aa1215697cb178337252ec912f61ff575b8ec1e9169","wrapper_sha256":"b6a1e4c8f4c0a8fce029233575d082fae69ba018a311288dc8391493efa4648f"}
+--- a/out/operator/p_673bc60f.sh
++++ b/out/operator/p_673bc60f.sh
+@@ -7,8 +7,8 @@
+ PY=$(command -v python3)
+ exec "$PY" -I -B - "$1" <<'P'
+ import base64,hashlib,json,sys,zlib
+-raw=zlib.decompress(base64.b64decode('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'))
+-if hashlib.sha256(raw).hexdigest()!='7883e3fe80d934785de06805828222fc2e867e03fba1c19dd2660c756294e0b8':raise ValueError('Embedded source differs')
++raw=zlib.decompress(base64.b64decode('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'))
++if hashlib.sha256(raw).hexdigest()!='b7ce4ec9ba56eceac21d5b246914e78aeac2d3a37901f07610a620f64d2140ff':raise ValueError('Embedded source differs')
+ authority=json.load(open(sys.argv[1]))
+ if authority['identity']!='fac0705214fdecb53561c633d7d94642cd469b50b662c5de81f09d11891d115f':raise ValueError('Configuration differs')
+ namespace={};exec(compile(raw,'p.py','exec'),namespace)
+--- a/out/operator/sums.txt
++++ b/out/operator/sums.txt
+@@ -13,7 +13,7 @@
+ 0d83e1372e7f4e7b499c424e868248990faf1b6ea8cccb6b7207f560554856dc  m.json
+ 02315a74ed9020a9b7aa2f1a70ac765701bf17c71d4027d4424b9fdf0678a411  n.json
+ b697bb75a19589a9ed4795b60fd2af0eb0d0cd0ac7dbd2c32c9747f9da0a4f28  p.py
+-fbff32efdc981a46290590fdbc51cc19ba75ec550025864111b40186487bce26  p_673bc60f.sh
++b3c6c2317fb98132f6b0ed2d8419d0f3fb51fa94802ea868f1ddfcb633843a6d  p_673bc60f.sh
+ 0e59331b3746695f0444ce7f6c29f13902497a76ceecf6ed64c5da8feec11224  proof/selection/q.json
+ 5db993b148c7aa1ace685f7c29b0e20daa6ac4e3e5b3613e4c3fc2b24bdde2af  proof/selection/r.json
+ 060dbf93da990a4a6803419176f82365a00e020f30475b34c7f373e151d195e0  q.py
+--- a/out/proof/ENVIRONMENT_AUDIT11.json
++++ b/out/proof/ENVIRONMENT_AUDIT11.json
+@@ -0,0 +1 @@
++{"caller_parity":["TK_RUNS_DIR"],"kit_c_sha256":"900d05353901d661474ffa12562d17bebafc4af1f95e03743e348d5ebefb9598","owners":{"allocation validated by proof main":["SLURM_JOB_ID"],"c.sh source assignments":["AS","AL","K","X","R","HX","IN","REV","P","RR","EPOCHS","S","U","HM","NX","NR","CUR","COMMIT","CLOSURE_DIR"],"optional guarded staging flag":["TK_LIGHT"],"proof caller":["TK_KIT_HOME","TK_JOBDIR","R1_RUNTIME_RECORD"],"tk_env before use":["ANYHOST_JOBS","PILOT_VENV","PYTHONPATH","TMPDIR"]},"scope":"All uppercase shell variable reads in c.sh, including staging and persistence; locals and positional arguments audited by their defining functions","status":"PASS"}
+--- a/out/proof/POST_ADMISSION_SHELL.json
++++ b/out/proof/POST_ADMISSION_SHELL.json
+@@ -0,0 +1 @@
++{"cases":[{"fixture":"/scratch/jjyeung/orch_n30/r1_pkt/work/proof11_p5tvoz_0","numpy":false,"rc":0,"shell_sha256":"ffd3d53d47556e8b34219d17d1f296e320efa8a44bfc3e60479472099f122bbd"},{"fixture":"/scratch/jjyeung/orch_n30/r1_pkt/work/proof11_9uqpof9f","numpy":true,"rc":0,"shell_sha256":"0b2fcb881c2ae51876868bc45a85d3550716c8df68431638eaaf06e429127e08"}],"config_identity":"fac0705214fdecb53561c633d7d94642cd469b50b662c5de81f09d11891d115f","kit_c_sha256":"900d05353901d661474ffa12562d17bebafc4af1f95e03743e348d5ebefb9598","proof_sha256":"b7ce4ec9ba56eceac21d5b246914e78aeac2d3a37901f07610a620f64d2140ff","scope":"Real sealed c.sh functions; stub admission, bwrap and loader body; no production execution","status":"PASS"}
+--- a/out/proof/RESEAL11.json
++++ b/out/proof/RESEAL11.json
+@@ -0,0 +1 @@
++{"archive":"p_a5dc8f30.tar","archive_sha256":"a5dc8f306b6867c24fc80aa1215697cb178337252ec912f61ff575b8ec1e9169","authority_sha256":"7cc00713223cc7be662ef9fbcc56e0ba06ffefaea18f21aa8ee0c8a8f6579895","config_identity":"fac0705214fdecb53561c633d7d94642cd469b50b662c5de81f09d11891d115f","fixture_authority":"/scratch/jjyeung/orch_n30/r1_pkt/work/seal11_44xh2ori/authority.json","scope":"Local production-form deployment fixture; production authority must be resealed on the deployed kit","status":"PASS"}
+--- a/out/proof/p.py
++++ b/out/proof/p.py
+@@ -119,7 +119,14 @@
+     jobprefix = jobprefix.replace(root, 'ROOT="$KH"')
+     return ('set -e\nexport CUDA_VISIBLE_DEVICES=""\n' + prefix + '\nset -e\n' + jobprefix
+             + '\n/bin/bash "$ROOT/b/r.sh" p 0\n'
+-            + 'export TK_KIT_HOME="$ROOT"\nsource "$ROOT/b/c.sh"\ntk_bwrap\ntk_env\ntk_pythonpath p\n'
++            + 'export TK_KIT_HOME="$ROOT"\nsource "$ROOT/b/c.sh"\n'
++            + 'export TK_RUNS_DIR="$NR"\n'
++            + 'export TK_JOBDIR="${S%/root}/jobs/${SLURM_JOB_ID:?}.proof"\n'
++            + 'umask 077\nmkdir -p -m 700 "${TK_JOBDIR%/*}"\nmkdir -m 700 "$TK_JOBDIR"\n'
++            + 'read -r proof_record proof_record_sha < <(tk_current record)\n'
++            + 'sha_is "$S/c7d31ddd/anyhost/$proof_record_sha.json" "$proof_record_sha"\n'
++            + 'export R1_RUNTIME_RECORD="$P/anyhost/$proof_record_sha.json"\n'
++            + 'tk_bwrap\ntk_env\ntk_pythonpath p\n'
+             + '"${BW[@]}" "$PILOT_VENV/bin/python" -B - "$X" <<P\nfrom student_pilot.loader_audit import main\nimport sys\nmain(sys.argv[1])\nP\n')
+ 
+ def command(bw, kh, work, rs):
+--- a/out/proof/p_673bc60f.sh
++++ b/out/proof/p_673bc60f.sh
+@@ -7,8 +7,8 @@
+ PY=$(command -v python3)
+ exec "$PY" -I -B - "$1" <<'P'
+ import base64,hashlib,json,sys,zlib
+-raw=zlib.decompress(base64.b64decode('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'))
+-if hashlib.sha256(raw).hexdigest()!='7883e3fe80d934785de06805828222fc2e867e03fba1c19dd2660c756294e0b8':raise ValueError('Embedded source differs')
++raw=zlib.decompress(base64.b64decode('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'))
++if hashlib.sha256(raw).hexdigest()!='b7ce4ec9ba56eceac21d5b246914e78aeac2d3a37901f07610a620f64d2140ff':raise ValueError('Embedded source differs')
+ authority=json.load(open(sys.argv[1]))
+ if authority['identity']!='fac0705214fdecb53561c633d7d94642cd469b50b662c5de81f09d11891d115f':raise ValueError('Configuration differs')
+ namespace={};exec(compile(raw,'p.py','exec'),namespace)
+--- a/tests/test_fix11.py
++++ b/tests/test_fix11.py
+@@ -0,0 +1,229 @@
++"""Exercise the generated proof shell against the sealed kit functions."""
++import importlib.util
++import json
++import os
++import re
++from pathlib import Path
++import shlex
++import stat
++import subprocess
++import sys
++import tarfile
++import tempfile
++import unittest
++
++from rebind import ROOT, load, sha, write
++
++SNAP = Path('/scratch/jjyeung/orch_n30/r1_ops/work/snap_fac07052')
++
++
++class Fix11(unittest.TestCase):
++    @classmethod
++    def setUpClass(cls):
++        spec = importlib.util.spec_from_file_location('proof11', ROOT/'out/proof/p.py')
++        cls.proof = importlib.util.module_from_spec(spec)
++        spec.loader.exec_module(cls.proof)
++        cls.kit = Path(load(ROOT/'out/proof/DERIVATION.json')['fixture_paths'][0])
++        cls.key = load(ROOT/'out/BINDING.json')['run_key']
++
++    def fixture(self, *, numpy=True, mutation=None, record_bad=False):
++        root = Path(tempfile.mkdtemp(prefix='proof11_', dir=ROOT/'work'))
++        kh = root/'kit'
++        stage = root/('tmp/jjyeung/a_'+self.key)
++        s = stage/'root'
++        x = root/'mount'
++        p = s/'c7d31ddd'
++        record = b'{"fixture":true}\n'
++        import hashlib
++        record_sha = hashlib.sha256(record).hexdigest()
++        closure = '_jobs/cp4tk_'+'c'*12
++        for path in (kh/'b', kh/'k', kh/'o', s/'aws/u/ap/8865619b/u',
++                     p/'data2root', p/'runs/aws128p_20261025/models', s/'epochs',
++                     stage/'runs', stage/'x_170956', p/'anyhost',
++                     p/closure/'site_alias', p/'venvs/rwtrain_torch211_cu129/bin',
++                     x/'b/student_pilot', s/'np226'):
++            path.mkdir(parents=True, exist_ok=True, mode=0o700)
++        # The real c.sh is sourced unchanged; only fixture paths are remapped
++        # after sourcing, in place of the outer namespace's bind mounts.
++        (kh/'b/c.sh').symlink_to(self.kit/'b/c.sh')
++        (kh/'b/r.sh').write_text('set -euo pipefail\n'
++            'export TK_JOBDIR=child_only R1_RUNTIME_RECORD=child_only TK_RUNS_DIR=child_only\n'
++            'printf "stub admission rc=0\\n"\n')
++        (p/'anyhost'/(record_sha+'.json')).write_bytes(b'changed' if record_bad else record)
++        bw = root/'bwrap_stub'
++        bw.write_text('''#!/usr/bin/python3
++import json, os, pathlib, sys
++args = sys.argv[1:]; i = 0; mounts = []
++two = {'--ro-bind', '--bind', '--dev-bind', '--symlink'}
++one = {'--proc', '--tmpfs', '--dir', '--remount-ro', '--uid', '--gid'}
++while i < len(args) and args[i].startswith('--'):
++    option = args[i]
++    if option in two:
++        source, target = args[i+1:i+3]
++        if option != '--symlink': assert pathlib.Path(source).exists(), source
++        mounts.append([option, source, target]); i += 3
++    elif option in one: i += 2
++    elif option == '--unshare-user': i += 1
++    else: raise AssertionError(option)
++root = pathlib.Path(os.environ['FIXTURE_ROOT'])
++(root/'environment.json').write_text(json.dumps(dict(os.environ), sort_keys=True))
++(root/'mounts.json').write_text(json.dumps(mounts))
++os.execv(args[i], args[i:])
++''')
++        bw.chmod(0o700)
++        py = p/'venvs/rwtrain_torch211_cu129/bin/python'
++        py.symlink_to('/usr/bin/python3')
++        (x/'b/student_pilot/__init__.py').write_text('')
++        (x/'b/student_pilot/loader_audit.py').write_text('''import json, os
++from pathlib import Path
++def main(x):
++    assert x == str(Path(os.environ['FIXTURE_ROOT'])/'mount')
++    assert os.environ['CUDA_VISIBLE_DEVICES'] == ''
++    Path(os.environ['FIXTURE_ROOT'], 'loader_called.json').write_text(json.dumps({'status':'PASS','fixture':True}))
++    print('loader-audit call reached under set -u', flush=True)
++''')
++        current = dict(commit='fixture', closure=dict(file='unused', sha256='c'*64),
++                       bwrap=dict(file=str(bw), sha256=sha(bw)),
++                       record=dict(file='unused', sha256=record_sha))
++        if numpy: current['np'] = dict(file='unused', sha256='d'*64)
++        write(kh/'k/0.json', current)
++        full = self.proof.program((ROOT/'out/operator/jb.sh').read_text(),
++                                  (self.kit/'job.sh').read_text())
++        boundary = '\n/bin/bash "$ROOT/b/r.sh" p 0\n'
++        self.assertEqual(full.count(boundary), 1)
++        shell = full[full.index(boundary):]
++        remap = '\n'.join(name+'='+shlex.quote(str(value)) for name, value in dict(
++            S=s, U=s/'aws/u', NX=stage/'x_170956', NR=stage/'runs', X=x,
++            AS=root/'as', AL=root/'al', P=p, EPOCHS=s/'epochs').items())+'\n'
++        shell = shell.replace('source "$ROOT/b/c.sh"\n', 'source "$ROOT/b/c.sh"\n'+remap)
++        if mutation: shell = mutation(shell)
++        shell = 'set -euo pipefail\numask 077\nROOT='+shlex.quote(str(kh))+'\n'+shell
++        (root/'entry.sh').write_text(shell)
++        env = dict(PATH='/usr/bin:/bin', HOME=str(root), SLURM_JOB_ID='170956',
++                   CUDA_VISIBLE_DEVICES='', FIXTURE_ROOT=str(root))
++        def runner(args, **kwargs):
++            return subprocess.run(args, env=env, **kwargs)
++        outcome = self.proof.execute(['/bin/bash', '-s'], shell, root/'shell.log',
++            lambda: dict(loader_fixture=load(root/'loader_called.json')), runner=runner)
++        write(root/'receipt.json', outcome)
++        return root, outcome
++
++    def test_post_admission_nounset_through_loader_and_receipt(self):
++        cases = []
++        for numpy in (False, True):
++            root, outcome = self.fixture(numpy=numpy)
++            self.assertEqual(outcome['rc'], 0, (root/'shell.log').read_text())
++            self.assertEqual(outcome['status'], 'PASS')
++            self.assertEqual(outcome['loader_fixture']['status'], 'PASS')
++            env = load(root/'environment.json')
++            stage = root/('tmp/jjyeung/a_'+self.key)
++            jobdir = stage/'jobs/170956.proof'
++            self.assertEqual(env['TK_JOBDIR'], str(jobdir))
++            self.assertEqual(env['TK_RUNS_DIR'], str(stage/'runs'))
++            self.assertEqual(stat.S_IMODE(jobdir.stat().st_mode), 0o700)
++            self.assertEqual(stat.S_IMODE((jobdir/'tmp').stat().st_mode), 0o700)
++            self.assertTrue(Path(env['R1_RUNTIME_RECORD']).is_file())
++            self.assertEqual(env['ANYHOST_NEUTRAL_RUNTIME'], env['R1_RUNTIME_RECORD'])
++            for name, suffix in dict(TMPDIR='tmp', HF_HOME='cache/hf',
++                    XDG_CACHE_HOME='cache', TORCH_HOME='cache/torch',
++                    TRITON_CACHE_DIR='cache/triton').items():
++                self.assertEqual(env[name], str(jobdir/suffix))
++            self.assertIn(['--bind', str(jobdir), str(jobdir)], load(root/'mounts.json'))
++            for name in ('TK_KIT_HOME', 'R1_MOUNT', 'R1_TRAINER', 'TRAINER',
++                         'ANYHOST_JOBS', 'PILOT_VENV', 'PYTHONPATH', 'A_SITE_PROFILE',
++                         'STUDENT_MODEL_ROOT', 'STUDENT_FRAME_ROOT_MAP', 'C1_INIT_LOCAL'):
++                self.assertTrue(env[name], name)
++            self.assertEqual(env['PYTHONPATH'].startswith(str(stage/'root/np226')+':'), numpy)
++            cases.append(dict(numpy=numpy, fixture=str(root), rc=outcome['rc'],
++                              shell_sha256=sha(root/'entry.sh')))
++        write(ROOT/'out/proof/POST_ADMISSION_SHELL.json', dict(status='PASS',
++            config_identity=load(ROOT/'out/BINDING.json')['config_identity'],
++            kit_c_sha256=sha(self.kit/'b/c.sh'), proof_sha256=sha(ROOT/'out/proof/p.py'),
++            cases=cases, scope='Real sealed c.sh functions; stub admission, bwrap and loader body; no production execution'))
++
++    def test_missing_environment_mutants_fail_under_nounset(self):
++        for line, error in (
++            ('export TK_JOBDIR="${S%/root}/jobs/${SLURM_JOB_ID:?}.proof"\n', 'TK_JOBDIR'),
++            ('export R1_RUNTIME_RECORD="$P/anyhost/$proof_record_sha.json"\n', 'R1_RUNTIME_RECORD')):
++            root, outcome = self.fixture(mutation=lambda s: s.replace(line, ''))
++            self.assertNotEqual(outcome['rc'], 0)
++            self.assertIn(error+': unbound variable', (root/'shell.log').read_text())
++            self.assertFalse((root/'loader_called.json').exists())
++
++    def test_private_jobdir_refuses_reuse_and_symlink(self):
++        for setup in ('mkdir -m 700 "$TK_JOBDIR"\n', 'ln -s "$S" "$TK_JOBDIR"\n'):
++            root, outcome = self.fixture(mutation=lambda s: s.replace(
++                'mkdir -m 700 "$TK_JOBDIR"\n', setup+'mkdir -m 700 "$TK_JOBDIR"\n'))
++            self.assertNotEqual(outcome['rc'], 0)
++            self.assertFalse((root/'loader_called.json').exists())
++
++    def test_staged_runtime_record_is_verified(self):
++        root, outcome = self.fixture(record_bad=True)
++        self.assertNotEqual(outcome['rc'], 0)
++        self.assertIn('sha differs:', (root/'shell.log').read_text())
++        self.assertFalse((root/'loader_called.json').exists())
++
++    def test_all_kit_environment_reads_have_an_audited_owner(self):
++        owners = {
++            'c.sh source assignments': 'AS AL K X R HX IN REV P RR EPOCHS S U HM NX NR CUR COMMIT CLOSURE_DIR',
++            'proof caller': 'TK_KIT_HOME TK_JOBDIR R1_RUNTIME_RECORD',
++            'allocation validated by proof main': 'SLURM_JOB_ID',
++            'tk_env before use': 'ANYHOST_JOBS PILOT_VENV PYTHONPATH TMPDIR',
++            'optional guarded staging flag': 'TK_LIGHT',
++        }
++        reads = set(re.findall(r'\$\{?([A-Z_][A-Z_0-9]*)', (self.kit/'b/c.sh').read_text()))
++        self.assertEqual(reads, {name for names in owners.values() for name in names.split()})
++        write(ROOT/'out/proof/ENVIRONMENT_AUDIT11.json', dict(status='PASS',
++            kit_c_sha256=sha(self.kit/'b/c.sh'),
++            owners={owner: names.split() for owner, names in owners.items()},
++            caller_parity=['TK_RUNS_DIR'],
++            scope='All uppercase shell variable reads in c.sh, including staging and persistence; locals and positional arguments audited by their defining functions'))
++
++    def test_identity_and_protected_bytes_unchanged(self):
++        for name in ('config.json', 'r1p_code.tar'):
++            self.assertEqual(sha(ROOT/'out'/name), sha(SNAP/'out'/name))
++        self.assertEqual(load(ROOT/'out/config.json')['h1']['routing_pose_targets'], True)
++        for path, expected in load(ROOT/'out/FIX11_PROTECTED_ARCHIVES.json').items():
++            self.assertEqual(sha(ROOT/path), expected)
++        old_kit = Path(load(SNAP/'out/proof/DERIVATION.json')['fixture_paths'][0])
++        for name in ('b/c.sh', 'b/r.sh', 'b/p0.sh', 'job.sh'):
++            self.assertEqual(sha(self.kit/name), sha(old_kit/name))
++        self.assertEqual(sha(ROOT/'out/operator/jb.sh'), sha(SNAP/'out/operator/jb.sh'))
++
++    def test_archive_embeds_fixed_proof_and_reseals(self):
++        import ast
++        import base64
++        import hashlib
++        import zlib
++        op = load(ROOT/'out/OPERATOR.json')
++        archive = ROOT/'out'/op['archive']
++        self.assertEqual(sha(archive), op['sha256'])
++        self.assertNotIn(str(archive.relative_to(ROOT)), load(ROOT/'out/FIX11_PROTECTED_ARCHIVES.json'))
++        with tarfile.open(archive) as tf:
++            script = tf.extractfile(op['proof_script']).read().decode()
++            for row in tf.extractfile('sums.txt').read().decode().splitlines():
++                expected, name = row.split('  ', 1)
++                self.assertEqual(hashlib.sha256(tf.extractfile(name).read()).hexdigest(), expected)
++        blobline = next(line for line in script.splitlines() if line.startswith('raw=zlib.'))
++        call = ast.parse(blobline).body[0].value.args[0]
++        raw = zlib.decompress(base64.b64decode(ast.literal_eval(call.args[0])))
++        self.assertEqual(raw, (ROOT/'out/proof/p.py').read_bytes())
++        fixture = Path(load(ROOT/'out/proof/PRE_SUBMISSION.json')['fixture'])/'ready'
++        output = Path(tempfile.mkdtemp(prefix='seal11_', dir=ROOT/'work'))/'authority.json'
++        result = subprocess.run([sys.executable, '-B', str(ROOT/'tools/seal_proof.py'),
++            '--kit', str(fixture), '--bundle', str(ROOT/'out/operator'),
++            '--partition', load(ROOT/'out/BINDING.json')['proof_partition'],
++            '--binding', str(ROOT/'out/BINDING.json'), '--out', str(output)],
++            text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
++        self.assertEqual(result.returncode, 0, result.stderr)
++        authority = load(output)
++        self.assertEqual(authority['bundle_files'][op['proof_script']], sha(ROOT/'out/operator'/op['proof_script']))
++        self.assertEqual(authority['identity'], load(ROOT/'out/BINDING.json')['config_identity'])
++        write(ROOT/'out/proof/RESEAL11.json', dict(status='PASS', fixture_authority=str(output),
++            authority_sha256=sha(output), config_identity=authority['identity'],
++            archive=op['archive'], archive_sha256=op['sha256'],
++            scope='Local production-form deployment fixture; production authority must be resealed on the deployed kit'))
++
++
++if __name__ == '__main__':
++    unittest.main(verbosity=2)
+--- a/tests/test_packet.py
++++ b/tests/test_packet.py
+@@ -700,5 +700,6 @@
+ from test_fix8 import Fix8
+ from test_fix9 import Fix9
+ from test_fix10 import Fix10
++from test_fix11 import Fix11
+ 
+ if __name__=='__main__':unittest.main(verbosity=2)
+--- a/tools/make_proof.py
++++ b/tools/make_proof.py
+@@ -88,7 +88,14 @@
+ """)
+     before="            + '\\n/bin/bash \"$ROOT/b/r.sh\" p 0\\n')"
+     after="""            + '\\n/bin/bash "$ROOT/b/r.sh" p 0\\n'
+-            + 'export TK_KIT_HOME="$ROOT"\\nsource "$ROOT/b/c.sh"\\ntk_bwrap\\ntk_env\\ntk_pythonpath p\\n'
++            + 'export TK_KIT_HOME="$ROOT"\\nsource "$ROOT/b/c.sh"\\n'
++            + 'export TK_RUNS_DIR="$NR"\\n'
++            + 'export TK_JOBDIR="${S%/root}/jobs/${SLURM_JOB_ID:?}.proof"\\n'
++            + 'umask 077\\nmkdir -p -m 700 "${TK_JOBDIR%/*}"\\nmkdir -m 700 "$TK_JOBDIR"\\n'
++            + 'read -r proof_record proof_record_sha < <(tk_current record)\\n'
++            + 'sha_is "$S/c7d31ddd/anyhost/$proof_record_sha.json" "$proof_record_sha"\\n'
++            + 'export R1_RUNTIME_RECORD="$P/anyhost/$proof_record_sha.json"\\n'
++            + 'tk_bwrap\\ntk_env\\ntk_pythonpath p\\n'
+             + '"${BW[@]}" "$PILOT_VENV/bin/python" -B - "$X" <<P\\nfrom student_pilot.loader_audit import main\\nimport sys\\nmain(sys.argv[1])\\nP\\n')"""
+     if text.count(before)!=1:raise ValueError('Parent mode-p boundary differs')
+     text=text.replace(before,after)
+--- a/tools/package_operator.py
++++ b/tools/package_operator.py
+@@ -52,13 +52,14 @@
+     for n in ('jb.sh','s.sh','p_'+run+'.sh'):
+         import subprocess
+         subprocess.run(['bash','-n',str(package/n)],check=True)
+-    archive=out/('p_'+token+'.tar')
+     archive_bytes=io.BytesIO()
+     with tarfile.open(fileobj=archive_bytes,mode='w') as tf:
+         for n in sorted(names+['sums.txt']):
+             raw=(package/n).read_bytes();info=tarfile.TarInfo(n);info.size=len(raw);info.mode=0o700 if n.endswith('.sh') else 0o600
+             tf.addfile(info,io.BytesIO(raw))
+     payload=archive_bytes.getvalue()
++    # Proof-only changes preserve config paths and use a distinct content name.
++    archive=out/('p_'+hashlib.sha256(payload).hexdigest()[:8]+'.tar')
+     if archive.exists():
+         if archive.read_bytes()!=payload:raise ValueError('Refusing to overwrite an existing packet archive')
+     else:
+--- a/tools/report_fix11.py
++++ b/tools/report_fix11.py
+@@ -0,0 +1,116 @@
++"""Record packet A's proof environment, validation and snapshot diff."""
++import difflib
++import json
++import re
++from pathlib import Path
++from rebind import ROOT, load, sha, write
++
++SNAP = Path('/scratch/jjyeung/orch_n30/r1_ops/work/snap_fac07052')
++
++
++def main():
++    out = ROOT/'out'
++    binding = load(out/'BINDING.json')
++    op = load(out/'OPERATOR.json')
++    assert (out/'config.json').read_bytes() == (SNAP/'out/config.json').read_bytes()
++    assert (ROOT/'configs/r1p.json').read_bytes() == (SNAP/'configs/r1p.json').read_bytes()
++    assert (out/'BINDING.json').read_bytes() == (SNAP/'out/BINDING.json').read_bytes()
++    assert sha(out/op['archive']) == op['sha256']
++    for name, expected in load(out/'FIX11_PROTECTED_ARCHIVES.json').items():
++        assert sha(ROOT/name) == expected, name
++    shell = (out/'logs/fix11_shell_tests.log').read_text()
++    assert shell.rstrip().endswith('OK')
++    focused_count = int(re.search(r'Ran (\d+) tests', shell).group(1))
++    tests = (out/'logs/tests.log').read_text()
++    checks = out/'logs/fix11_local_checks.log'
++    passed = (checks.exists() and '"status": "BUILT_BLOCKED"' in checks.read_text()
++              and 'Fix11.' in tests and tests.rstrip().endswith('OK'))
++    count = int(re.search(r'Ran (\d+) tests', tests).group(1)) if passed else None
++    status = 'BUILT_FOR_REVIEW' if passed else 'BUILT_PENDING_FULL_LOCAL_CHECKS'
++    write(out/'FIX11_RESULT.json', dict(status=status, config_identity=binding['config_identity'],
++        config_fields_changed=[], run_key=binding['run_key'], archive=op['archive'], sha256=op['sha256'],
++        focused_tests=focused_count, all_tests=count, run_local_checks='PASS' if passed else 'NOT_RUN_PENDING_HEAVY_IO_APPROVAL',
++        fixed=['TK_JOBDIR', 'R1_RUNTIME_RECORD'], caller_parity=['TK_RUNS_DIR'],
++        snapshot=str(SNAP), production_authorized=False))
++    validation = (f'All {count} tests pass through `tools/run_local_checks.py`; the seven focused regressions also pass separately. '
++        'The check runner verifies two identical archives, two equal kit derivations, four-rank D0 optimizer identity, '
++        'the CPU first-batch fixture, native selection regeneration, deployment evidence guards and every packet test.'
++        if passed else f'All {focused_count} focused regressions pass. The full suite and `tools/run_local_checks.py` '
++        'await explicit heavy-I/O approval under the supplied Trinity rule; they have not been run for this fix.')
++    text = f'''{status}. Packet A has S2 on. The proof initializes its own shell environment before the loader audit.
++
++Config identity: `{binding['config_identity']}` (unchanged; zero config-field changes).
++Run key: `{binding['run_key']}`. Archive: `{op['archive']}`.
++Archive SHA256: `{op['sha256']}`.
++
++The generated `out/proof/p.py` embeds the post-admission shell in `program()`. `tools/make_proof.py` compresses this program into `p_{binding['run_key']}.sh`; `tools/package_operator.py` includes that script in the archive. The bundle's `p.py` is the unchanged `tools/seal_proof.py`, which binds the script bytes in the authority's `bundle_files`.
++
++The proof runs `r.sh p 0` in a child shell, then sources `c.sh` in its caller. Child exports cannot initialize the caller. The caller explicitly exports `TK_JOBDIR` and reconstructs `R1_RUNTIME_RECORD` from the pinned staged record. It also exports `TK_RUNS_DIR=$NR` for consistency with the training entry.
++
++`TK_JOBDIR` is `/tmp/jjyeung/a_{binding['run_key']}/jobs/${{SLURM_JOB_ID}}.proof` inside the proof namespace. The existing `/tmp` bind maps it to `/tmp/jjyeung/p_{binding['run_key']}_${{SLURM_JOB_ID}}/tmp/jjyeung/a_{binding['run_key']}/jobs/${{SLURM_JOB_ID}}.proof` on the host. The proof sets umask 077 and creates the leaf with `mkdir -m 700` before `tk_bwrap`. A pre-existing directory or symlink fails. No writable mount is added.
++
++`tk_current record` supplies the runtime-record SHA. The caller verifies `$S/c7d31ddd/anyhost/<sha>.json` with `sha_is` and exports its namespace path `$P/anyhost/<sha>.json`. `tk_env` then exports the same path as `ANYHOST_NEUTRAL_RUNTIME`. The staged bytes remain read-only; caches and temporary files use the private proof job directory.
++
++| Shell dependency | Source and use |
++|---|---|
++| `TK_KIT_HOME`, `ROOT` | The proof sets `TK_KIT_HOME=$ROOT` before sourcing; `ROOT` is the validated kit path from the generated job prefix. |
++| `SLURM_JOB_ID` | Proof `main()` requires a positive numeric allocation ID; shell expansion uses `${{SLURM_JOB_ID:?}}`. |
++| `TK_JOBDIR` | The proof creates a fresh 0700 `.proof` directory before `tk_bwrap` or `tk_env`. |
++| `R1_RUNTIME_RECORD` | The proof resolves and verifies the record already staged by admission. It does not depend on a child export. |
++| `TK_RUNS_DIR` | The proof exports `$NR`; `r.sh` obtains the same run parent from the pinned launch record. No current `c.sh` expansion requires this variable. |
++| `AS AL K X R HX IN REV P RR EPOCHS S U HM NX NR CUR COMMIT CLOSURE_DIR` | Sourcing the sealed `c.sh` initializes all of them before functions run. `COMMIT` and `CLOSURE_DIR` come from pinned `k/0.json`. |
++| `BW` | `tk_bwrap` initializes the array before the loader command expands it. Its `bw`, `sha` and `entry` locals are assigned by `read` and iteration. |
++| `ANYHOST_JOBS PILOT_VENV PYTHONPATH TMPDIR` | `tk_env` initializes these before `tk_pythonpath p` and the loader call. All other runtime exports are constants or derived from the initialized paths. |
++| `TK_LIGHT` | Staging reads it only through `${{TK_LIGHT:-}}`; `r.sh` explicitly sets or unsets it for its own stage. |
++| `TK_JOB_START`, `TK_STAGE_ROOT` | The wrapper/job prefix sets `TK_JOB_START`; preflight exports `TK_STAGE_ROOT=$S` in its child. Neither is read by the post-admission `c.sh` functions or the loader-audit entry. |
++
++The audit covers all 28 uppercase shell-variable reads in the entire staged `c.sh`, including staging and persistence. `ENVIRONMENT_AUDIT11.json` assigns each read an owner. Function parameters use guarded arguments or are supplied by their caller; staging locals receive their values before use from assignments, `read`, or loop bindings. `r.sh` and `p0.sh` already initialize `TK_JOBDIR` before their staging calls. `tk_stage` initializes `R1_RUNTIME_RECORD` before their `tk_env` calls. The proof does not repeat staging after admission.
++
++The mount/path audit covers `$U` at both AWS prefixes, `$NX` at `$X`, `$NR` at `$X/runs`, units, frame roots, models, the closure, epochs and the new job-directory bind. The admission child stages all existing sources before the post-admission block. The runtime-record read uses the staged physical path; the loader receives the namespace path. `tk_pythonpath p` uses `$X/b`, the closure, its site alias and the optional NumPy overlay. The `c`, `t` and `u`-only FLA branch is outside this CPU proof. Both NumPy branches pass the fixture.
++
++The loader command receives `$PILOT_VENV/bin/python` and `$X`. Its Python entry reads the pinned launch/config and admission outputs, then writes `inputs/l.json` and `inputs/a.json` through the existing run mount. After shell success, `verify_prepared` validates `data_receipt.json` through the physical run path. Proof `main()` checks the loader receipt's identity, hash and required predicates, then writes the already reserved job receipt under `kh/o`. No later shell expansion depends on a child export. These predicates and trainer bytes retain their existing definitions.
++
++{validation}
++
++`proof/POST_ADMISSION_SHELL.json` records two successful nounset executions. Each runs the generated suffix, sources the exact production `c.sh` (SHA256 `900d05353901d661474ffa12562d17bebafc4af1f95e03743e348d5ebefb9598`), executes its real helpers, reaches a stub loader import/call and writes a fixture receipt through the proof's real `execute()` function. The fixture supplies a fake allocation, stub admission, stub bwrap and stub loader body. It remaps path constants after sourcing instead of creating a real namespace. Mutation cases remove each required export, precreate or symlink the job directory, and alter runtime bytes; every case refuses before the loader.
++
++`proof/RESEAL11.json` records a successful seal against a local production-form deployment fixture. The archive test checks every member hash and decodes the embedded script to verify exact equality with the generated proof program. It does not issue production authority. The archive name derives from its payload SHA256 so a proof-only change retains config and deployment paths while producing a distinct archive.
++
++Reviewer checks: inspect the environment initialization and namespace mapping; verify the unchanged config, trainer, `c.sh`, `r.sh`, `p0.sh`, job entry and `jb.sh`; verify the new archive SHA and embedded proof; deploy the corrected script and reseal the authority against its new `bundle_files` hash before any approved CPU proof. Bundle and kit names remain `i_69d2930d` and `x_69d2930d`; the archive filename is independent of those names. The failed job receipt remains failed. A complete production loader audit and proof receipt remain unverified locally. No Orchard, SSH, Git or GPU action was performed.
++
++`FIX11.diff` compares packet tools, tests, configs, current bundle, proof evidence and reports with `snap_fac07052`. It omits unchanged archives and transient work fixtures; binary additions carry hashes. Existing `out/p_*.tar` hashes are checked against `FIX11_PROTECTED_ARCHIVES.json`. Snapshot and packet B bytes were not edited. The snapshot comparison is retained because the brief explicitly requires it.
++'''
++    (out/'FIX11.md').write_text(text)
++    (ROOT/'STATUS.md').write_text(f'{status}. Packet A config {binding["config_identity"]}, run {binding["run_key"]}, archive {op["archive"]}, SHA256 {op["sha256"]}. '
++        f'The proof exports TK_JOBDIR, R1_RUNTIME_RECORD and TK_RUNS_DIR. {validation} Read out/FIX11.md and out/FIX11.diff. Production proof remains pending.\n')
++    names = set()
++    for folder in ('tools', 'tests', 'configs', 'out/operator', 'out/proof', 'out/records', 'out/units'):
++        for base in (ROOT, SNAP):
++            names.update(str(p.relative_to(base)) for p in (base/folder).rglob('*')
++                         if p.is_file() and '__pycache__' not in p.parts)
++    names.update(str(p.relative_to(ROOT)) for p in out.iterdir()
++                 if p.is_file() and p.suffix != '.tar' and p.name not in ('FIX11.diff', 'SHA256SUMS'))
++    names.add('STATUS.md')
++    patches = []
++    for name in sorted(names):
++        before, after = SNAP/name, ROOT/name
++        a = before.read_bytes() if before.is_file() else b''
++        b = after.read_bytes() if after.is_file() else b''
++        if a == b: continue
++        try:
++            if b'\0' in a+b: raise UnicodeError()
++            patches.extend(difflib.unified_diff(a.decode().splitlines(keepends=True),
++                b.decode().splitlines(keepends=True), fromfile='a/'+name, tofile='b/'+name))
++        except UnicodeError:
++            patches.append(f'Binary {name}: before={sha(before) if before.is_file() else "absent"} after={sha(after) if after.is_file() else "absent"}\n')
++    patches.append(f'Added archive out/{op["archive"]}: SHA256 {op["sha256"]}\n')
++    (out/'FIX11.diff').write_text(''.join(patches))
++    files = [p for folder in ('proof', 'records', 'units', 'logs') for p in (out/folder).rglob('*') if p.is_file()]
++    files += [p for p in out.iterdir() if p.is_file() and p.name != 'SHA256SUMS'
++              and (p.suffix != '.tar' or p.name in (op['archive'], 'r1p_code.tar'))]
++    (out/'SHA256SUMS').write_text(''.join(sha(p)+'  '+str(p.relative_to(out))+'\n' for p in sorted(set(files))))
++    print(json.dumps(load(out/'FIX11_RESULT.json'), sort_keys=True))
++
++
++if __name__ == '__main__':
++    main()
+--- a/tools/run_fix11_checks.sh
++++ b/tools/run_fix11_checks.sh
+@@ -0,0 +1,11 @@
++#!/bin/bash
++# Run once after the user approves the full local suite's heavy I/O.
++set -euo pipefail
++cd /scratch/jjyeung/orch_n30/r1_pkt
++export CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1
++export OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1
++export XDG_CACHE_HOME="$PWD/work/fix11_cache" HF_HOME="$PWD/work/fix11_cache/hf"
++export TRITON_CACHE_DIR="$PWD/work/fix11_cache/triton" CONDA_PKGS_DIRS="$PWD/work/fix11_cache/conda"
++PY=/scratch/jjyeung/envs/p1cpu/bin/python
++"$PY" -B tools/run_local_checks.py > out/logs/fix11_local_checks.log 2>&1
++"$PY" -B tools/report_fix11.py
+Added archive out/p_a5dc8f30.tar: SHA256 a5dc8f306b6867c24fc80aa1215697cb178337252ec912f61ff575b8ec1e9169

@@ -4,12 +4,12 @@ from pathlib import Path
 from packet_config import PINS, fixture, render
 from review_policy import build_chain
 W=Path(__file__).resolve().parent
-if len(sys.argv)==1 and any(W.glob('tests_c1_*')):raise SystemExit('REFUSED: existing fixture outputs; inspect them and use the user cleanup queue before another bulk test')
+if len(sys.argv)==1 and any(W.glob('tests_c2_*')):raise SystemExit('REFUSED: existing fixture outputs; inspect them and use the user cleanup queue before another bulk test')
 # One synthetic input view and one READY kit plus trainer trees fit the 300 MB limit.
 source_bytes=sum(p.stat().st_size for p in Path('/scratch/jjyeung/orch_n30/cont_ops/work/h1/build/fx').rglob('*') if p.is_file())
 if 2*source_bytes+70_000_000>=280_000_000:raise SystemExit('REFUSED: fixture size exceeds the local test budget')
-T=Path(sys.argv[1]).resolve() if len(sys.argv)==2 else Path(tempfile.mkdtemp(prefix='tests_c1_',dir=W))
-assert T.is_relative_to(W) and T.name.startswith('tests_c1_')
+T=Path(sys.argv[1]).resolve() if len(sys.argv)==2 else Path(tempfile.mkdtemp(prefix='tests_c2_',dir=W))
+assert T.is_relative_to(W) and T.name.startswith('tests_c2_')
 B=fixture();H=Path('/scratch/jjyeung/orch_n30/cont_ops/work/h1/build/fx')
 def load(p):return json.loads(p.read_text())
 def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
@@ -26,7 +26,7 @@ with tarfile.open(fileobj=BytesIO(data)) as tf:
  assert len(tf.getmembers())==PINS['members']
  pins=dict(reversed(x.split('  ',1)) for x in tf.extractfile('sums.txt').read().decode().splitlines())
  for n,h in pins.items():assert hashlib.sha256(tf.extractfile(n).read()).hexdigest()==h
-print('PASS upload outer SHA, 39 members, inner sums')
+print('PASS upload outer SHA, 40 members, inner sums')
 if len(sys.argv)==1:
  # Raw receipt and index bytes are real H1 evidence; relocate paths only for local validation.
  N=Path('/scratch/jjyeung/orch_n30/cont_ops/work/h1/evidence/fix7_selection/orchard_equal_6c18a2bf/o/native')
@@ -64,7 +64,7 @@ if len(sys.argv)==1:
   shutil.copyfile(H/'k'/name,old/name)
  ev=T/'e';ev.mkdir();write(ev/'c.json',{'missing':[],'fixture':True})
  spec=importlib.util.spec_from_file_location('evidence',W/'evidence_body.py');e=importlib.util.module_from_spec(spec);spec.loader.exec_module(e)
- e.make_records(B,H,old,ev,{'missing':[]},build_chain({'r1.txt':'# GO AFTER FIXES — LOCAL FIXTURE','r2.txt':'# GO AFTER FIXES — LOCAL FIXTURE','r3.txt':'# GO — LOCAL FIXTURE','r4.txt':'# GO — LOCAL ANTECEDENT','r5.txt':'# GO — LOCAL ANTECEDENT','r6.txt':'# Packet A: GO — LOCAL ANTECEDENT','r7.txt':'# Packet A: GO — LOCAL ANTECEDENT','r8.txt':'## Packet A: GO — LOCAL ANTECEDENT','rc1.txt':'## Packet C: GO\n'+PINS['identity']+'\n## Packet A: NO-GO\n'},PINS['identity'],PINS['tree'],PINS['outer']))
+ e.make_records(B,H,old,ev,{'missing':[]},build_chain({'r1.txt':'# GO AFTER FIXES — LOCAL FIXTURE','r2.txt':'# GO AFTER FIXES — LOCAL FIXTURE','r3.txt':'# GO — LOCAL FIXTURE','r4.txt':'# GO — LOCAL ANTECEDENT','r5.txt':'# GO — LOCAL ANTECEDENT','r6.txt':'# Packet A: GO — LOCAL ANTECEDENT','r7.txt':'# Packet A: GO — LOCAL ANTECEDENT','r8.txt':'## Packet A: GO — LOCAL ANTECEDENT','rc1.txt':'# Packet C: GO — LOCAL ANTECEDENT', 'rc2.txt':'## Packet C: GO\n'+PINS['identity']+'\n## Packet A: NO-GO\n'},PINS['identity'],PINS['tree'],PINS['outer']))
  arc=load(ev/'archive.json');arc['location']=PINS['bundle']+'/t.tar';arc['fixture']=True;write(ev/'archive.json',arc)
  # Complete only the two missing fixture members with sentinels. This tests control flow,
  # never native data or archive authenticity. Runtime pins remain byte-for-byte original.
@@ -80,7 +80,7 @@ for item in H.rglob('*'):
  else:shutil.copyfile(item,target)
 manifest=dict(reversed(x.split('  ',1)) for x in (source/'SHA256SUMS.txt').read_text().splitlines())
 for name in manifest:
- if not(source/name).exists():
+ if not(H/name).exists():
   (source/name).write_bytes(b'LOCAL TEST SENTINEL; NOT PRODUCTION\n');manifest[name]=sha(source/name)
 (source/'SHA256SUMS.txt').write_text(''.join(h+'  '+n+'\n' for n,h in manifest.items()))
 args=[sys.executable,'-B',str(B/'d.py'),'--source',str(source),'--source-manifest-sha256',sha(source/'SHA256SUMS.txt'),'--packet',str(B),'--bundle',str(B),'--selection-evidence',str(T/'q/q.json'),'--evidence',str(ev)]
@@ -90,6 +90,7 @@ wrapper="""import os,runpy,sys
 from pathlib import Path
 root=Path(sys.argv[1]).resolve()
 script=sys.argv[2]
+sys.path.insert(0,str(Path(script).resolve().parent))
 sys.argv=sys.argv[2:]
 for key in list(os.environ):
  if key.startswith('SLURM_'):os.environ.pop(key)
@@ -121,7 +122,7 @@ print('PASS READY kit has S2=true, S1=false, and both max_own_probability=0')
 assert result['production_authorized'] is False
 assert load(k/'k/4.json')['production_go_granted'] is False
 assert not (k/'runs').exists() and not (k/'arm').exists()
-review=load(k/'k/review.json');assert review['reviewers']==['review_r1p','review_r1p2','review_r1p3','review_r1p4','review_r1p5','review_r1p6','review_r1p7','review_r1p8','review_r1c1']
+review=load(k/'k/review.json');assert review['reviewers']==['review_r1p','review_r1p2','review_r1p3','review_r1p4','review_r1p5','review_r1p6','review_r1p7','review_r1p8','review_r1c1','review_r1c2']
 equality=load(k/'k/selection_equality.json');assert equality['native_unit_regeneration_executed'] is True
 staged={item['dest']:item for item in load(k/'k/0.json')['extra']}
 for name,pin in load(B/'u.json')['artifacts'].items():

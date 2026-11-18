@@ -61,7 +61,7 @@ class Binding(unittest.TestCase):
             for name in names:
                 candidate=function(ROOT/'kit'/path,name)
                 if name=='stage_export':
-                    candidate=candidate.replace("(args.run not in T.EXPORT_RUNS and (args.run, args.step) != ('469ddece', 544))",
+                    candidate=candidate.replace("(args.run not in T.EXPORT_RUNS and (args.run, args.step) != ('469ddece', 544) and not B.r1_step(args.run, args.step))",
                                                 'args.run not in T.EXPORT_RUNS')
                 self.assertEqual(candidate,function(ROOT/'readk/kit'/path,name))
         for path in ['reader/out/direct.py','reader/out/common.py','reader/out/export_check.py',

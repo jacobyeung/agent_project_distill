@@ -6,11 +6,11 @@ from review_policy import REVIEWERS, REVIEW_FILES, build_chain
 W=Path(__file__).resolve().parent
 EVENTS=Path('/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events')
 p=argparse.ArgumentParser()
-for option,name,filename in zip(('r1p','r1p2','r1p3','r1p4','r1p5','r1p6','r1p7','r1p8','r1c1'),REVIEWERS,('REVIEW_VERDICT_R1P.md','REVIEW_VERDICT_R1P2.md','REVIEW_VERDICT_R1P3.md','REVIEW_VERDICT_R1P4.md','REVIEW_VERDICT_R1P5.md','REVIEW_VERDICT_R1P6.md','REVIEW_VERDICT_R1P7.md','REVIEW_VERDICT_R1P8.md','REVIEW_VERDICT_R1C1.md')):
+for option,name,filename in zip(('r1p','r1p2','r1p3','r1p4','r1p5','r1p6','r1p7','r1p8','r1c1','r1c2'),REVIEWERS,('REVIEW_VERDICT_R1P.md','REVIEW_VERDICT_R1P2.md','REVIEW_VERDICT_R1P3.md','REVIEW_VERDICT_R1P4.md','REVIEW_VERDICT_R1P5.md','REVIEW_VERDICT_R1P6.md','REVIEW_VERDICT_R1P7.md','REVIEW_VERDICT_R1P8.md','REVIEW_VERDICT_R1C1.md','REVIEW_VERDICT_R1C2.md')):
  p.add_argument('--'+option,type=Path,default=EVENTS/name/filename)
 a=p.parse_args()
 texts={}
-for option,name,short in zip(('r1p','r1p2','r1p3','r1p4','r1p5','r1p6','r1p7','r1p8','r1c1'),REVIEWERS,REVIEW_FILES):
+for option,name,short in zip(('r1p','r1p2','r1p3','r1p4','r1p5','r1p6','r1p7','r1p8','r1c1','r1c2'),REVIEWERS,REVIEW_FILES):
  path=getattr(a,option)
  if not path.is_file():raise SystemExit('PENDING: missing '+name)
  texts[short]=path.read_bytes().decode()
@@ -39,9 +39,9 @@ for n,t in texts.items():
 with (b/'r1.json').open('x') as f:json.dump(record,f,sort_keys=True);f.write('\\n')
 (b/'r1.json').chmod(0o600)
 for note in record['nonblocking_fixes']:print('OPERATOR LOW FIX: '+note)
-print('PASS installed nine-review chain; final review_r1c1 accepted for packet C; no production GO granted')
+print('PASS installed ten-review chain; final review_r1c2 accepted for packet C; no production GO granted')
 PYCODE
 """
 target=W/'rv1.sh';expected=render(body)
 install_script(target,expected)
-print('READY rv1.sh; nine-review chain pinned; final verdict '+record['final_verdict'])
+print('READY rv1.sh; ten-review chain pinned; final verdict '+record['final_verdict'])

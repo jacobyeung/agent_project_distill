@@ -1,0 +1,1 @@
+- work/__pycache__, work/test_tmp, work/clitest: test byproducts
