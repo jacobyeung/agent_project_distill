@@ -6,3 +6,4 @@
 - /scratch/jjyeung/orch_n30/tree_rebuild_w/work/contracts_r6/tree_copy (13 MB): operator copy of the build-5 tree for the r6 dry run (2026-11-16, tree_rebuild3); no longer needed.
 - out/tree_rebuild_b6_0deb34eb.tar, out/tree_rebuild_b6_7c08ec5b.tar, out/tree_rebuild_b7_8cbaff33.tar, out/tree_rebuild_b8_3b5eac73.tar (~105 MB each): intermediate packages superseded within their builds; the final packages (b6 427fb3cb, b7 26a635fc, b8 bdec5e50) stay (2026-11-17, session 5).
 - work/lane_stop (small): first lane stop-proof attempt, superseded by work/lane_stop2 (PASS).
+- 2026-11-18 tree_rebuild6: W/out/tree_rebuild_bn1_{e80b65d5,740695e5,f61e4d73}.tar (intermediate n1 packages, ~66 MB each; final is e558d4a1); W/w9f/out/tree_rebuild_b9f_7ce2975c.tar (intermediate 9fix package, 39 MB; final is 64a2ea92); W/w9f/work/tmp and W/w10/work/tmp after build 10 ends; W/work/rec_before_6.md, W/work/STATUS.pre6.md (backups).

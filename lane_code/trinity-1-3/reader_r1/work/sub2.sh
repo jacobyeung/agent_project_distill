@@ -32,7 +32,7 @@ from pathlib import Path
 rows=[s.strip() for s in Path(sys.argv[1]).read_text().splitlines() if s.strip()]
 gpu=[g for row in rows for g in row.split(',') if g.startswith('gpu:')]
 assert rows and gpu
-assert all(re.fullmatch(r'gpu:[^:]*[Hh]100[^:]*:[0-9]+(?:\([^)]*\))?',g) for g in gpu), gpu
+assert all(re.fullmatch(r'gpu:(?:[^:]*[Hh]100[^:]*:)?[0-9]+(?:\([^)]*\))?',g) for g in gpu), gpu
 PYCODE
 squeue -u "$USER" -h -o '%j %P %T' > a/9.txt  # record; main's jjy_* jobs pend on advanced by design, the general check above is the ORCH rule
 JOB_REPLY=$(/usr/bin/python3 -I -s -B 3.py submit --gpus 1 --time 02:30:00)

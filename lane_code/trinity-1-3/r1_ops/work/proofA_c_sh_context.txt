@@ -1,0 +1,57 @@
+900d05353901d661474ffa12562d17bebafc4af1f95e03743e348d5ebefb9598  /project/community/jjyeung/okh7/x_69d2930d/b/c.sh
+88ad86e54bee11aaca839110ccf6ffcfecd927530d50c93cd98bdf9cd21797d4  /project/community/jjyeung/okh7/x_69d2930d/job.sh
+    flock -u 8
+    tk_step "stage $mode done"
+}
+
+tk_bwrap() {
+    local bw sha
+    read -r bw sha < <(tk_current bwrap)
+    [[ -x "$bw" ]] && sha_is "$bw" "$sha"
+    BW=("$bw")
+    local entry
+    for entry in /* /.[!.]* /..?*; do
+        case "$entry" in /home|/dev|/proc) continue ;; esac
+        [[ -e "$entry" || -L "$entry" ]] || continue
+        if [[ -L "$entry" ]]; then BW+=(--symlink "$(readlink "$entry")" "$entry"); else BW+=(--ro-bind "$entry" "$entry"); fi
+    done
+    BW+=(--dev-bind /dev /dev --proc /proc
+        --tmpfs /home --dir /home/jjyeung
+        --ro-bind "$U" "$AS"
+        --ro-bind "$U" "$AL"
+        --bind "$NX" "$X"
+        --bind "$NR" "$X/runs"
+        --ro-bind "$U/ap/$K/u" "$X/u"
+        --ro-bind "$S/c7d31ddd/data2root" "$X/data2root"
+        --ro-bind "$S/c7d31ddd/$RR/models" "$X/models"
+        --ro-bind "$S/c7d31ddd" "$P"
+        --ro-bind "$S/epochs" "$EPOCHS"
+        --bind "$TK_JOBDIR" "$TK_JOBDIR"
+        --remount-ro /home
+        --unshare-user --uid "$(id -u)" --gid "$(id -g)")
+}
+
+tk_env() {
+    export R1_OPAQUE_LOGS=1
+    export R1_STUDENT_HEX=6d38613965 R1_MODEL_DIR=a32330d0
+    export R1_MOUNT="$X" R1_TRAINER="$EPOCHS/$COMMIT" TRAINER="$EPOCHS/$COMMIT" ANYHOST_JOBS="$P/$CLOSURE_DIR"
+    export R1_RUNTIME_RECORD ANYHOST_NEUTRAL_RUNTIME="$R1_RUNTIME_RECORD"
+    export PILOT_VENV="$P/venvs/rwtrain_torch211_cu129"
+    export PATH="$ANYHOST_JOBS/provenance_bin:$PILOT_VENV/bin:/usr/local/bin:/usr/bin:/bin"
+    export PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1 PYTHONPATH="$ANYHOST_JOBS/site_alias"
+    export STUDENT_ORCHARD=1 STUDENT_SLURM_SITE=orchard A_SITE_PROFILE="$X/b/profile.json"
+    export STUDENT_MODEL_ROOT="$X/models"
+====
+/project/community/jjyeung/okh7/x_69d2930d/b/c.sh:273:    mkdir -p "$S" "$TK_JOBDIR"
+/project/community/jjyeung/okh7/x_69d2930d/b/c.sh:361:        --bind "$TK_JOBDIR" "$TK_JOBDIR"
+/project/community/jjyeung/okh7/x_69d2930d/b/c.sh:378:    export HF_HOME="$TK_JOBDIR/cache/hf" HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 HF_HUB_DISABLE_TELEMETRY=1
+/project/community/jjyeung/okh7/x_69d2930d/b/c.sh:381:    export TMPDIR="$TK_JOBDIR/tmp"
+/project/community/jjyeung/okh7/x_69d2930d/b/c.sh:382:    export XDG_CACHE_HOME="$TK_JOBDIR/cache" TORCH_HOME="$TK_JOBDIR/cache/torch" TRITON_CACHE_DIR="$TK_JOBDIR/cache/triton"
+/project/community/jjyeung/okh7/x_69d2930d/b/c.sh:273:    mkdir -p "$S" "$TK_JOBDIR"
+/project/community/jjyeung/okh7/x_69d2930d/b/c.sh:361:        --bind "$TK_JOBDIR" "$TK_JOBDIR"
+/project/community/jjyeung/okh7/x_69d2930d/b/c.sh:378:    export HF_HOME="$TK_JOBDIR/cache/hf" HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 HF_HUB_DISABLE_TELEMETRY=1
+/project/community/jjyeung/okh7/x_69d2930d/b/c.sh:381:    export TMPDIR="$TK_JOBDIR/tmp"
+/project/community/jjyeung/okh7/x_69d2930d/b/c.sh:382:    export XDG_CACHE_HOME="$TK_JOBDIR/cache" TORCH_HOME="$TK_JOBDIR/cache/torch" TRITON_CACHE_DIR="$TK_JOBDIR/cache/triton"
+/project/community/jjyeung/okh7/x_69d2930d/b/p0.sh:9:export TK_JOBDIR=/tmp/jjyeung/a_673bc60f/jobs/${SLURM_JOB_ID:?}.preflight
+/project/community/jjyeung/okh7/x_69d2930d/b/r.sh:42:export TK_JOBDIR=/tmp/jjyeung/a_673bc60f/jobs/${SLURM_JOB_ID:?}.${1:-x}
+/project/community/jjyeung/okh7/x_69d2930d/b/r.sh:43:mkdir -p "$TK_JOBDIR" "$HM/o"

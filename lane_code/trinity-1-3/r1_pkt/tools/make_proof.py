@@ -1,5 +1,6 @@
 """Derive the isolated production proof from the H1 driver."""
-import argparse,base64,hashlib,json,zlib
+import argparse,base64,hashlib,inspect,json,zlib
+from derive_deployment import validate_switches
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 
@@ -8,6 +9,10 @@ def main():
     partition=args.partition or json.loads((out/'BINDING.json').read_text())['proof_partition']
     if partition not in ('advanced','general'):raise ValueError('Invalid proof partition')
     text=(ROOT/'work/proof_parent.py').read_text()
+    text=inspect.getsource(validate_switches)+'\n'+text
+    needle="        cfg = load(kh/launch['config']['file'])"
+    if text.count(needle)!=1:raise ValueError('Parent config boundary differs')
+    text=text.replace(needle,needle+'\n        validate_switches(cfg)')
     text=text.replace("    result = dict(status='FAIL', rc=1, job=job, production_authorized=False,", "    result = dict(partition=os.environ.get('SLURM_JOB_PARTITION'),node=os.environ.get('SLURMD_NODENAME') or os.uname().nodename,status='FAIL', rc=1, job=job, production_authorized=False,")
     text=text.replace('        host_preflight()', "        allocation=proof_allocation(authority)\n        result.update(allocation)\n        host_preflight()")
     helper='''def proof_allocation(authority):
@@ -83,7 +88,14 @@ def main():
 """)
     before="            + '\\n/bin/bash \"$ROOT/b/r.sh\" p 0\\n')"
     after="""            + '\\n/bin/bash "$ROOT/b/r.sh" p 0\\n'
-            + 'export TK_KIT_HOME="$ROOT"\\nsource "$ROOT/b/c.sh"\\ntk_bwrap\\ntk_env\\ntk_pythonpath p\\n'
+            + 'export TK_KIT_HOME="$ROOT"\\nsource "$ROOT/b/c.sh"\\n'
+            + 'export TK_RUNS_DIR="$NR"\\n'
+            + 'export TK_JOBDIR="${S%/root}/jobs/${SLURM_JOB_ID:?}.proof"\\n'
+            + 'umask 077\\nmkdir -p -m 700 "${TK_JOBDIR%/*}"\\nmkdir -m 700 "$TK_JOBDIR"\\n'
+            + 'read -r proof_record proof_record_sha < <(tk_current record)\\n'
+            + 'sha_is "$S/c7d31ddd/anyhost/$proof_record_sha.json" "$proof_record_sha"\\n'
+            + 'export R1_RUNTIME_RECORD="$P/anyhost/$proof_record_sha.json"\\n'
+            + 'tk_bwrap\\ntk_env\\ntk_pythonpath p\\n'
             + '"${BW[@]}" "$PILOT_VENV/bin/python" -B - "$X" <<P\\nfrom student_pilot.loader_audit import main\\nimport sys\\nmain(sys.argv[1])\\nP\\n')"""
     if text.count(before)!=1:raise ValueError('Parent mode-p boundary differs')
     text=text.replace(before,after)

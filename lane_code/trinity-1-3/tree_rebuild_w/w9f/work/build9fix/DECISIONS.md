@@ -14,3 +14,5 @@
 - Archive size: options are to omit repeated input fixtures or compress the complete tar. Default: retain every member and use gzip compression with the requested `.tar` filename; DELIVERY.json states the format and both stored and member byte counts.
 
 - Frozen package location: retain the unpacked qualification input at `proofs/package/frozen`, a fixed proof folder. Test scratch still uses `work/tmp` and the bounded test harness. This avoids treating the complete deliverable as temporary test data.
+
+- Fixture qualification: the tool-mode reader fixture must supply the synthetic extent certificate now required by admission. Options are to repeat every unaffected model test or reuse authenticated unchanged module results. Default: prove that only this test method changed, rerun its entire module from the new frozen package, and retain results only where production source, tests, fixtures and runner bytes match. Reseal and restage all kits; rerun the packet suite.

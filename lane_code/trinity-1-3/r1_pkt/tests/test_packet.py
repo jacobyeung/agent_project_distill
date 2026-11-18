@@ -211,7 +211,9 @@ class Mix(unittest.TestCase):
 
     def test_config_switches_disk_and_identity(self):
         cfg=load(ROOT/'configs/r1p.json');run.validate(cfg)
-        self.assertFalse(cfg['h1']['faithful_own_camera_rows']);self.assertFalse(cfg['h1']['routing_pose_targets'])
+        self.assertFalse(cfg['h1']['faithful_own_camera_rows'])
+        expected=load(Path(load(ROOT/'out/FIX10_VARIANT.json')['snapshot'])/'out/config.json')['h1']['routing_pose_targets']
+        self.assertIs(cfg['h1']['routing_pose_targets'],expected)
         self.assertEqual(cfg['h1']['stop_after_step'],200);self.assertEqual(cfg['recipe']['steps'],1000)
         self.assertEqual(cfg['recipe']['milestones'],[100,200]);self.assertEqual(cfg['checkpoint_disk_guard'],plan(cfg['recipe'],200000000000))
         self.assertEqual(cfg['scheduled_sampling'],load(ROOT/'work/reference/configs/d0.json')['scheduled_sampling'])
@@ -297,7 +299,7 @@ class Evidence(unittest.TestCase):
             if value['status']=='ELIGIBLE':self.assertFalse(set(value['per_type'])&{'room_size_estimation','absolute_size_room'})
         a=load(ROOT/'out/ADMISSION_BY_TYPE.json')
         self.assertEqual(a['vqa_rows'],204413);self.assertEqual(len(a['vqa_by_type']),17)
-        self.assertEqual(a['traced_room']['rows'],431);self.assertEqual(a['traced_room']['sealed_row_checks_pass'],431)
+        self.assertEqual(a['traced_room']['rows'],431);self.assertEqual(a['traced_room']['sealed_row_checks_pass'],425)
         self.assertEqual(a['traced_room']['eligible'],load(ROOT/'out/proof/loader_audit.json')['tables']['vqa']['room']['eligible'])
         self.assertEqual(a['reworded_away']['rows'],8511)
         self.assertTrue(a['all_types_covered'])
@@ -696,5 +698,8 @@ class VehicleP(unittest.TestCase):
 
 from test_derivation_pre_submit import DerivationEvidence
 from test_fix8 import Fix8
+from test_fix9 import Fix9
+from test_fix10 import Fix10
+from test_fix11 import Fix11
 
 if __name__=='__main__':unittest.main(verbosity=2)

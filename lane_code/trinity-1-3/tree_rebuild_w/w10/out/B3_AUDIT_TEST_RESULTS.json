@@ -1,0 +1,479 @@
+{
+  "tests": 76,
+  "failures": [],
+  "errors": [
+    [
+      "test_native_loader_opener_policy (build3_loader.Loader.test_native_loader_opener_policy)",
+      "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/w9f/work/build3/test_loader.py\", line 47, in test_native_loader_opener_policy\n    model=R.load_model(dict(root=str(root),files={}),{**receipt,'routing_opener_init':policy},processor)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/w9f/work/tree_r1/student_pilot/carrier_c1_run.py\", line 768, in load_model\n    model = CarrierC1(base, receipt['camera'], receipt['depth'], carrier_id(processor.tokenizer),\n                                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/w9f/work/tree_r1/student_pilot/camera_targets.py\", line 296, in carrier_id\n    if type(single) is not int or tokenizer.encode(CARRIER_TOKEN, add_special_tokens=False) != [single]:\n                                  ^^^^^^^^^^^^^^^^\nAttributeError: 'types.SimpleNamespace' object has no attribute 'encode'\n"
+    ],
+    [
+      "test_refusal_31 (tests.test_r2_build3.EvaluationEntrypoints.test_refusal_31)",
+      "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/w9f/work/tree_r1/tests/test_r2_build3.py\", line 218, in test\n    def refusal(entry):\n                ^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/w9f/work/tree_r1/tests/test_r2_build3.py\", line 223, in invoke\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/importlib/__init__.py\", line 90, in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen importlib._bootstrap>\", line 1387, in _gcd_import\n  File \"<frozen importlib._bootstrap>\", line 1360, in _find_and_load\n  File \"<frozen importlib._bootstrap>\", line 1331, in _find_and_load_unlocked\n  File \"<frozen importlib._bootstrap>\", line 935, in _load_unlocked\n  File \"<frozen importlib._bootstrap_external>\", line 999, in exec_module\n  File \"<frozen importlib._bootstrap>\", line 488, in _call_with_frames_removed\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/w9f/work/tree_r1/step0_runtime_v1/run_cell.py\", line 10, in <module>\n    from diag_common import ARMS, BULK, CELL, COUNT, LANE, NATIVE, OUT, ROUTE_ROOT, WORK, contract, emit, load_rows, now, object_digest, pin, read_json, verify, write_new\nModuleNotFoundError: No module named 'diag_common'\n"
+    ],
+    [
+      "test_refusal_32 (tests.test_r2_build3.EvaluationEntrypoints.test_refusal_32)",
+      "Traceback (most recent call last):\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/w9f/work/tree_r1/tests/test_r2_build3.py\", line 218, in test\n    def refusal(entry):\n                ^^^^^^^^\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/w9f/work/tree_r1/tests/test_r2_build3.py\", line 223, in invoke\n  File \"/scratch/jjyeung/uv-python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/importlib/__init__.py\", line 90, in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<frozen importlib._bootstrap>\", line 1387, in _gcd_import\n  File \"<frozen importlib._bootstrap>\", line 1360, in _find_and_load\n  File \"<frozen importlib._bootstrap>\", line 1331, in _find_and_load_unlocked\n  File \"<frozen importlib._bootstrap>\", line 935, in _load_unlocked\n  File \"<frozen importlib._bootstrap_external>\", line 999, in exec_module\n  File \"<frozen importlib._bootstrap>\", line 488, in _call_with_frames_removed\n  File \"/scratch/jjyeung/orch_n30/tree_rebuild_w/w9f/work/tree_r1/step0_runtime_v1/diag_worker.py\", line 9, in <module>\n    from eval_common import ARMS, ASSIGNMENTS, COUNT, NATIVE, NATIVE_COMMIT, OUT, ROUTE_ROOT, emit, load_rows, now, object_digest, pin, read_json, tensor_digest, verify, write_new\nModuleNotFoundError: No module named 'eval_common'\n"
+    ]
+  ],
+  "skipped": [],
+  "records": [
+    {
+      "test": "build3_loader.Loader.test_native_loader_opener_policy",
+      "tmp_before": 153919104,
+      "tmp_after": 154078508,
+      "seconds": 8.61871109297499
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_0",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.845870838034898
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_1",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8117332449182868
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_10",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8345881858840585
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_11",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8297350939828902
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_12",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8491798569448292
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_13",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8048933430109173
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_14",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.818932443857193
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_15",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8576272991485894
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_16",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8307586219161749
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_17",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.7994485578965396
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_18",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8105884990654886
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_19",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8260924441274256
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_2",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8208145699463785
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_20",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8092469919938594
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_21",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.80891769612208
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_22",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8163361749611795
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_23",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8038717531599104
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_24",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8129383639898151
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_25",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8360260489862412
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_26",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.817349131917581
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_27",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.7966886130161583
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_28",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.807542891940102
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_29",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.803097042022273
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_3",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.846020053140819
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_30",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.805643660016358
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_31",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.7940264788921922
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_32",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8272519898600876
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_33",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8232060910668224
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_34",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.854866601061076
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_35",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8719290390145034
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_36",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8064966830424964
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_37",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.841269965050742
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_38",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8228371650911868
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_39",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8506181021220982
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_4",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.792675203178078
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_40",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.817442714003846
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_41",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8086947510018945
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_42",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.9525670199654996
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_43",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8039495251141489
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_44",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8174939709715545
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_45",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8222942140419036
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_46",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8294034111313522
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_47",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.789322037016973
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_48",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8508791239000857
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_49",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8102897759526968
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_5",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8892483599483967
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_50",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.801341634010896
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_51",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8003171160817146
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_52",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8126471990253776
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_53",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.798732710070908
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_54",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8190430190879852
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_55",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8308146398048848
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_56",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8182818670757115
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_57",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.800032370025292
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_58",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.7999289000872523
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_59",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8189430378843099
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_6",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8240574188530445
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_60",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8231567919719964
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_61",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.7981392508372664
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_62",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8116911558900028
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_63",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8559419610537589
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_64",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8195381541736424
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_65",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8253652350977063
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_66",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8072000201791525
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_67",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8164671848062426
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_68",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.7926552360877395
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_69",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.9134509931318462
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_7",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8096367600373924
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_70",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8935043560341
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_71",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.821128155104816
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_72",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.9526819800958037
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_73",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8096244770567864
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_74",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8951533529907465
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_8",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.7923233681358397
+    },
+    {
+      "test": "tests.test_r2_build3.EvaluationEntrypoints.test_refusal_9",
+      "tmp_before": 154078508,
+      "tmp_after": 154078508,
+      "seconds": 1.8804269060492516
+    }
+  ],
+  "tmp_bytes": 154078508,
+  "lane_bytes": 568356346
+}
