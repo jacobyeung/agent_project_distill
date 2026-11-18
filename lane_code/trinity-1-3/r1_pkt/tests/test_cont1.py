@@ -140,7 +140,7 @@ class Continuation(unittest.TestCase):
 
     def test_pass_only_gate_and_time(self):
         script=(ROOT/'out/operator/s.sh').read_text();wrapper=(ROOT/'out/operator/jb.sh').read_text()
-        self.assertNotIn('170956',script);self.assertIn("assert go.get('canary') is not True",script)
+        self.assertNotIn('170956',script);self.assertIn("if go.get('canary') is True:",script)
         self.assertIn("get('resume_pointer',{}).get('status')=='PASS'",script)
         for value in (script,wrapper):self.assertIn('24:00:00',value);self.assertNotIn('13:00:00',value)
         b=load(ROOT/'out/BINDING.json');self.assertEqual(b['proof_partition'],'general')

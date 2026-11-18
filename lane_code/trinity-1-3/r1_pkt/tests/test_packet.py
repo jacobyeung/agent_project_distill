@@ -345,6 +345,15 @@ class Proof(unittest.TestCase):
         self.assertNotIn('/usr/bin/bwrap',text)
 
     def test_main_builds_receipt_with_all_evaluated_checks(self):
+        self.proof_receipt()
+
+    def test_post_admission_receipt_failures_refuse(self):
+        for failure in ('missing_audit','pin','identity','failed_check','missing_required',
+                        'execution','verification','resume','directory'):
+            with self.subTest(failure=failure):
+                self.proof_receipt(failure)
+
+    def proof_receipt(self, failure=None):
         from unittest.mock import patch
         import types,contextlib,signal,io
         p=self.p;root=temp();kh=root/'k0';bun=root/'b0';scratch=root/'tmp'
@@ -373,8 +382,16 @@ class Proof(unittest.TestCase):
                 routing_selection=dict(status='PASS' if cfg['s1_routing']['selection']['sha256']==authority['selection_sha256'] else 'FAIL'),
                 loader_audit=dict(status='PASS',pin={'sha256':sha(inputs/'l.json')}),
                 required_families=dict(status='PASS',absent_on_P=[]))
-            write(inputs/'a.json',dict(original_config_identity='identity',checks=checks))
-            return original_execute([sys.executable,'-c','pass'],script,log,lambda:{'prepared_seals':{'fixture':True}})
+            if failure=='failed_check':checks['routing_selection']['status']='FAIL'
+            if failure=='missing_required':checks.pop('required_families')
+            if failure!='missing_audit':
+                write(inputs/'a.json',dict(original_config_identity='wrong' if failure=='identity' else 'identity',checks=checks))
+            if failure=='pin':write(inputs/'l.json',dict(tampered=True))
+            if failure=='directory':inputs.chmod(0o755)
+            def verified():
+                if failure=='verification':raise ValueError('Prepared data differ')
+                return {'prepared_seals':{'fixture':True}}
+            return original_execute([sys.executable,'-c','raise SystemExit(9)' if failure=='execution' else 'pass'],script,log,verified)
         cwd=Path.cwd();path=list(sys.path);handlers={sig:signal.getsignal(sig) for sig in (signal.SIGTERM,signal.SIGINT,signal.SIGUSR1)}
         try:
             with contextlib.ExitStack() as stack:
@@ -387,11 +404,17 @@ class Proof(unittest.TestCase):
                 stack.enter_context(patch.object(p,'program',return_value='fixture'))
                 stack.enter_context(patch.object(p,'command',side_effect=lambda bw,kh,w,rs:['--bind',str(w/'tmp'),'/tmp','--bind',str(kh/'o'),str(kh/'o')]))
                 stack.enter_context(patch.object(p,'execute',side_effect=execute))
-                stack.enter_context(patch.object(p,'resume_fixture',return_value={'status':'PASS','fixture':True}))
+                stack.enter_context(patch.object(p,'resume_fixture',return_value={'status':'FAIL' if failure=='resume' else 'PASS','fixture':True}))
                 paths=stack.enter_context(patch.object(p,'temporary_paths',wraps=p.temporary_paths))
-                self.assertEqual(p.main(authority),0)
+                rc=p.main(authority)
+                if failure:self.assertNotEqual(rc,0)
+                else:self.assertEqual(rc,0)
                 paths.assert_called_once()
             receipt=load(kh/'o/12345.proof.json')
+            if failure:
+                self.assertEqual(receipt['status'],'FAIL')
+                self.assertNotEqual(receipt['rc'],0)
+                return
             required={'resume_pointer','disk_plan','routing_selection','empty_root','temporary_paths','runtime_binaries','directory_modes','loader_audit','required_families'}
             self.assertEqual(set(receipt['checks']),required)
             self.assertEqual({v['status'] for v in receipt['checks'].values()},{'PASS'})
@@ -686,7 +709,7 @@ class VehicleP(unittest.TestCase):
         from unittest.mock import patch
         spec=importlib.util.spec_from_file_location('partition_proof',ROOT/'out/proof/p.py')
         proof=importlib.util.module_from_spec(spec);spec.loader.exec_module(proof)
-        for partition in ('advanced','general'):
+        for partition in ('advanced','general','bootstrap'):
             with patch.dict(os.environ,dict(SLURM_JOB_PARTITION=partition,SLURMD_NODENAME='fixture-node',CUDA_VISIBLE_DEVICES='',SLURM_GPUS_ON_NODE='0')):
                 self.assertEqual(proof.proof_allocation({'partition':partition}),dict(partition=partition,node='fixture-node'))
                 with self.assertRaisesRegex(ValueError,'partition differs'):proof.proof_allocation({'partition':'other'})
@@ -705,5 +728,9 @@ from test_fix10 import Fix10
 from test_fix11 import Fix11
 from test_fix12 import Fix12
 from test_cont1 import Continuation
+from test_cont2 import ZContinuationModes
+from test_cont3 import ZTrainingAuthority
+from test_cont4 import ZPostAdmission
+from test_canary_c import ZCanaryC
 
 if __name__=='__main__':unittest.main(verbosity=2)

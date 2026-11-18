@@ -26,30 +26,29 @@ class Fix11(unittest.TestCase):
         cls.kit = Path(load(ROOT/'out/proof/DERIVATION.json')['fixture_paths'][0])
         cls.key = load(ROOT/'out/BINDING.json')['run_key']
 
-    def fixture(self, *, numpy=True, mutation=None, record_bad=False):
+    def fixture(self, *, numpy=True, mutation=None, record_bad=False, prepare=None, tree_bad=False, namespace=False, rehearsal=False):
         root = Path(tempfile.mkdtemp(prefix='proof11_', dir=ROOT/'work'))
         kh = root/'kit'
         stage = root/('tmp/jjyeung/a_'+self.key)
         s = stage/'root'
         x = root/'mount'
         p = s/'c7d31ddd'
-        record = b'{"fixture":true}\n'
         import hashlib
-        record_sha = hashlib.sha256(record).hexdigest()
         closure = '_jobs/cp4tk_'+'c'*12
         for path in (kh/'b', kh/'k', kh/'o', s/'aws/u/ap/8865619b/u',
                      p/'data2root', p/'runs/aws128p_20261025/models', s/'epochs',
                      stage/'runs', stage/'x_170956', p/'anyhost',
                      p/closure/'site_alias', p/'venvs/rwtrain_torch211_cu129/bin',
-                     x/'b/student_pilot', s/'np226'):
+                     x/'b', x/'k', s/'epochs/fixture/student_pilot', s/'np226'):
             path.mkdir(parents=True, exist_ok=True, mode=0o700)
+        for path in (root/'as', root/'al', x/'runs'):
+            path.mkdir(mode=0o700)
         # The real c.sh is sourced unchanged; only fixture paths are remapped
         # after sourcing, in place of the outer namespace's bind mounts.
         (kh/'b/c.sh').symlink_to(self.kit/'b/c.sh')
         (kh/'b/r.sh').write_text('set -euo pipefail\n'
             'export TK_JOBDIR=child_only R1_RUNTIME_RECORD=child_only TK_RUNS_DIR=child_only\n'
             'printf "stub admission rc=0\\n"\n')
-        (p/'anyhost'/(record_sha+'.json')).write_bytes(b'changed' if record_bad else record)
         bw = root/'bwrap_stub'
         bw.write_text('#!'+sys.executable+'''\n
 import json, os, pathlib, sys
@@ -68,13 +67,18 @@ while i < len(args) and args[i].startswith('--'):
 root = pathlib.Path(os.environ['FIXTURE_ROOT'])
 (root/'environment.json').write_text(json.dumps(dict(os.environ), sort_keys=True))
 (root/'mounts.json').write_text(json.dumps(mounts))
+if os.environ.get('FIXTURE_NAMESPACE') == '1':
+    os.execv('/usr/bin/bwrap', ['/usr/bin/bwrap', *args])
 os.execv(args[i], args[i:])
 ''')
         bw.chmod(0o700)
         py = p/'venvs/rwtrain_torch211_cu129/bin/python'
-        py.symlink_to(sys.executable)
-        (x/'b/student_pilot/__init__.py').write_text('')
-        (x/'b/student_pilot/loader_audit.py').write_text('''import json, os
+        # Keep the permitted CPU venv's prefix; a relocated executable symlink
+        # alone loses its site-packages and cannot run the native audit.
+        py.write_text('#!/bin/bash\nexec '+shlex.quote(sys.executable)+' "$@"\n')
+        py.chmod(0o700)
+        (s/'epochs/fixture/student_pilot/__init__.py').write_text('')
+        (s/'epochs/fixture/student_pilot/loader_audit.py').write_text('''import json, os
 from pathlib import Path
 def main(x):
     assert x == str(Path(os.environ['FIXTURE_ROOT'])/'mount')
@@ -82,29 +86,56 @@ def main(x):
     Path(os.environ['FIXTURE_ROOT'], 'loader_called.json').write_text(json.dumps({'status':'PASS','fixture':True}))
     print('loader-audit call reached under set -u', flush=True)
 ''')
-        current = dict(commit='fixture', closure=dict(file='unused', sha256='c'*64),
+        trainer = s/'epochs/fixture'
+        (x/'b/v.py').write_bytes((self.kit/'b/v.py').read_bytes())
+        if prepare: prepare(root, x, trainer)
+        files = {str(f.relative_to(trainer)): sha(f) for f in trainer.rglob('*') if f.is_file()}
+        commit = 'sha256:'+hashlib.sha256(json.dumps(files,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+        epoch = trainer.with_name(commit); trainer.rename(epoch)
+        record = (json.dumps(dict(schema='rung1-neutral-runtime-v1', trees=dict(trainer=dict(
+            commit=commit, files=files, file_count=len(files)))), sort_keys=True)+'\n').encode()
+        record_sha = hashlib.sha256(record).hexdigest()
+        record_path = p/'anyhost'/(record_sha+'.json')
+        record_path.write_bytes(b'changed' if record_bad else record)
+        if tree_bad: (epoch/'student_pilot/loader_audit.py').write_text('raise RuntimeError("unverified import")\n')
+        current = dict(commit=commit, closure=dict(file='unused', sha256='c'*64),
                        bwrap=dict(file=str(bw), sha256=sha(bw)),
-                       record=dict(file='unused', sha256=record_sha))
+                       record=dict(file=str(record_path), sha256=record_sha))
         if numpy: current['np'] = dict(file='unused', sha256='d'*64)
         write(kh/'k/0.json', current)
+        write(x/'k/0.json', current)
         full = self.proof.program((ROOT/'out/operator/jb.sh').read_text(),
                                   (self.kit/'job.sh').read_text())
         boundary = '\n/bin/bash "$ROOT/b/r.sh" p 0\n'
         self.assertEqual(full.count(boundary), 1)
         shell = full[full.index(boundary):]
+        if rehearsal:
+            shell = self.proof.rehearsal_program((ROOT/'out/operator/jb.sh').read_text(),
+                (self.kit/'job.sh').read_text(), kh, str(bw))
+            shell = shell[shell.index('export TK_KIT_HOME='):]
+            # Provision the same minimal sealed kit inputs that tk_nx copies.
+            for folder in ('b','k'):
+                for source in (x/folder).iterdir():
+                    if source.is_file():
+                        target=kh/folder/source.name
+                        if not target.exists():target.write_bytes(source.read_bytes())
+            (kh/'ANON_OK.json').write_text('{}')
+            (kh/'SHA256SUMS.txt').write_text('')
+            for folder in ('arm','runs'):(kh/folder).mkdir(mode=0o700)
+
         remap = '\n'.join(name+'='+shlex.quote(str(value)) for name, value in dict(
-            S=s, U=s/'aws/u', NX=stage/'x_170956', NR=stage/'runs', X=x,
+            S=s, U=s/'aws/u', NX=x if namespace else stage/'x_170956', NR=x/'runs' if namespace else stage/'runs', X=x,
             AS=root/'as', AL=root/'al', P=p, EPOCHS=s/'epochs').items())+'\n'
         shell = shell.replace('source "$ROOT/b/c.sh"\n', 'source "$ROOT/b/c.sh"\n'+remap)
         if mutation: shell = mutation(shell)
         shell = 'set -euo pipefail\numask 077\n/usr/bin/python3() { '+shlex.quote(sys.executable)+' "$@"; }\nROOT='+shlex.quote(str(kh))+'\n'+shell
         (root/'entry.sh').write_text(shell)
         env = dict(PATH='/usr/bin:/bin', HOME=str(root), SLURM_JOB_ID='170956',
-                   CUDA_VISIBLE_DEVICES='', FIXTURE_ROOT=str(root))
+                   CUDA_VISIBLE_DEVICES='', FIXTURE_ROOT=str(root), FIXTURE_NAMESPACE='1' if namespace else '0')
         def runner(args, **kwargs):
             return subprocess.run(args, env=env, **kwargs)
         outcome = self.proof.execute(['/bin/bash', '-s'], shell, root/'shell.log',
-            lambda: dict(loader_fixture=load(root/'loader_called.json')), runner=runner)
+            lambda: dict(loader_fixture=load(stage/'jobs/170956.proof/tail.json' if rehearsal else x/'runs'/self.key/'inputs/a.json' if prepare else root/'loader_called.json')), runner=runner)
         write(root/'receipt.json', outcome)
         return root, outcome
 
@@ -140,6 +171,14 @@ def main(x):
             config_identity=load(ROOT/'out/BINDING.json')['config_identity'],
             kit_c_sha256=sha(self.kit/'b/c.sh'), proof_sha256=sha(ROOT/'out/proof/p.py'),
             cases=cases, scope='Real sealed c.sh functions; stub admission, bwrap and loader body; no production execution'))
+
+    def test_trainer_is_verified_before_import(self):
+        root, outcome = self.fixture(tree_bad=True)
+        self.assertNotEqual(outcome['rc'], 0)
+        log = (root/'shell.log').read_text()
+        self.assertIn('Source differs from sealed tree', log)
+        self.assertNotIn('unverified import', log)
+        self.assertFalse((root/'loader_called.json').exists())
 
     def test_missing_environment_mutants_fail_under_nounset(self):
         for line, error in (
@@ -187,7 +226,12 @@ def main(x):
             self.assertEqual(sha(ROOT/path), expected)
         old_kit = Path(load(SNAP/'out/proof/DERIVATION.json')['fixture_paths'][0])
         for name in ('b/c.sh', 'b/r.sh', 'b/p0.sh'):
-            self.assertEqual((self.kit/name).read_text().replace(self.key,'673bc60f'), (old_kit/name).read_text())
+            expected=(old_kit/name).read_text()
+            if name=='b/c.sh':expected=expected.replace('rsync -rt "$HX/b"','rsync -rt --chmod=D700 "$HX/b"')
+            if name=='b/r.sh':
+                expected=expected.replace('export TK_KIT_HOME="$HX"',
+                    'export TK_KIT_HOME="$HX"\nif [[ "${1:-}" == t || "${1:-}" == u ]]; then export TK_ALLOCATION_MODE="$1"; fi')
+            self.assertEqual((self.kit/name).read_text().replace(self.key,'673bc60f'),expected)
         self.assertEqual(load(ROOT/'out/config.json')['continuation']['run'],'673bc60f')
 
     def test_archive_embeds_fixed_proof_and_reseals(self):

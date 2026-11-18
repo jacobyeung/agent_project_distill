@@ -2,7 +2,7 @@
 import argparse,hashlib,io,json,os,tarfile
 from pathlib import Path
 from rebind import ROOT,H,AS,enc,sha,load,write
-from canary_gate import add_canary
+from canary_gate import add_canary, add_c_canary
 
 def main():
     p=argparse.ArgumentParser();p.add_argument('--out',type=Path,default=ROOT/'out');a=p.parse_args()
@@ -16,7 +16,7 @@ def main():
         out/'proof/selection/r.json':'proof/selection/r.json',out/'proof/selection/q.json':'proof/selection/q.json',
         out/'proof'/('p_'+run+'.sh'):'p_'+run+'.sh'}
     if binding.get('continuation'):
-        mapping.update({ROOT/'tools/continuation.py':'c0.py',out/'a0.json':'a0.json'})
+        mapping.update({ROOT/'tools/continuation.py':'c0.py',out/'a0.json':'a0.json',ROOT/'tools/r4.py':'r4.py'})
     if binding.get('unit_binding'):
         mapping.update({out/'units'/n:n for n in ('u.gz','i.json','m.json','u.json')})
     record_paths=[out/'records'/n for n in binding['record_files']]
@@ -49,9 +49,8 @@ def main():
     submit=submit.replace('python3 -B - ', 'env -u PYTHONOPTIMIZE python3 -I -B - ')
     if binding.get('continuation'):
         submit=submit.replace('13:00:00','24:00:00')
-        submit=submit.replace("job=os.environ.get('PROOF_JOB','')", "assert go.get('canary') is not True\njob=os.environ.get('PROOF_JOB','')")
         submit=submit.replace("sys.path.insert(0,str(k/'b'));import a;a.main(k)","assert proof.get('checks',{}).get('resume_pointer',{}).get('status')=='PASS'\nsys.path.insert(0,str(k/'b'));import a;a.main(k)")
-        (package/'s.sh').write_text(submit)
+        (package/'s.sh').write_text(add_c_canary(submit))
     else:(package/'s.sh').write_text(add_canary(submit))
     # No GO, review, staging, archive attestation or content certificate is manufactured.
     names=sorted(set(mapping.values())|{p.name for p in record_paths}|{'s.json','jb.sh','e.txt','ids.json','s.sh'})

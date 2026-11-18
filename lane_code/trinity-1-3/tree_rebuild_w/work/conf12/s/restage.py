@@ -8,8 +8,8 @@ from student_pilot.p3_provenance import load
 from launch_r1.build import build as r1_build,verify as r1_verify
 from launch_r2.build import build,verify
 from tests.test_r2_build import inputs
-root=W/'restage2';root.mkdir(exist_ok=True);out={}
-inh=json.loads((B/'inherited/KIT_RESULT.json').read_text())
+root=W/'restage4';root.mkdir(exist_ok=True);out={}
+inh=json.loads((K/'work/n1fix2/KIT_RESULT.json').read_text())
 for name,conn in [('a2','gf1'),('a0','none')]:
     kit=root/name;assert not kit.exists()
     r=build(K/'fixtures/work/kit07ca49df_meta/m',kit,connector=conn,records=inputs(),launch_inputs=inh[name]['launch_inputs'])

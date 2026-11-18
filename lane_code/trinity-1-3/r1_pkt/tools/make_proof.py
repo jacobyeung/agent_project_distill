@@ -5,9 +5,9 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--out',type=Path,default=ROOT/'out');parser.add_argument('--partition',choices=('advanced','general'));args=parser.parse_args();out=args.out
+    parser=argparse.ArgumentParser();parser.add_argument('--out',type=Path,default=ROOT/'out');parser.add_argument('--partition',choices=('advanced','general','bootstrap'));args=parser.parse_args();out=args.out
     partition=args.partition or json.loads((out/'BINDING.json').read_text())['proof_partition']
-    if partition not in ('advanced','general'):raise ValueError('Invalid proof partition')
+    if partition not in ('advanced','general','bootstrap'):raise ValueError('Invalid proof partition')
     text=(ROOT/'work/proof_parent.py').read_text()
     text=inspect.getsource(validate_switches)+'\n'+text
     needle="        cfg = load(kh/launch['config']['file'])"
@@ -17,13 +17,24 @@ def main():
     text=text.replace('        host_preflight()', "        allocation=proof_allocation(authority)\n        result.update(allocation)\n        host_preflight()")
     helper='''def proof_allocation(authority):
     partition=os.environ.get('SLURM_JOB_PARTITION')
-    if partition not in ('advanced','general') or partition!=authority['partition']:raise ValueError('Proof partition differs')
+    if partition not in ('advanced','general','bootstrap') or partition!=authority['partition']:raise ValueError('Proof partition differs')
+    if partition not in authority.get('allowed_partitions',('advanced','general','bootstrap')):raise ValueError('Proof partition is not authorized')
     if os.environ.get('CUDA_VISIBLE_DEVICES')!='':raise ValueError('Proof must run CPU-only')
     if os.environ.get('SLURM_GPUS_ON_NODE','0') not in ('','0'):raise ValueError('CPU proof allocated GPUs')
     return dict(partition=partition,node=os.environ.get('SLURMD_NODENAME') or os.uname().nodename)
 
 '''
     text=text.replace('def main(authority):',helper+'def main(authority):')
+    helper='''def directory_modes(work):
+    bad=[]
+    for directory,children,files in os.walk(work):
+        path=Path(directory)
+        if path.is_symlink() or stat.S_IMODE(path.stat().st_mode)!=0o700:bad.append(str(path))
+    return dict(status='FAIL' if bad else 'PASS',bad=bad)
+
+'''
+    text=text.replace('def main(authority):',helper+'def main(authority):')
+
     text=text.replace("def host_preflight():", "def host_preflight():\n    inventory = {}")
     text=text.replace("    for name in ('/bin/bash', '/usr/bin/python3') + HOST_TOOLS:", "    for name in ('bash', 'python3', 'sed', 'head', 'gzip', 'nice', 'ionice', 'which', 'env') + HOST_TOOLS:")
     text=text.replace("            raise ValueError('Production host program unavailable: '+name)", "            raise ValueError('Production host program unavailable: '+name)\n        path = Path(shutil.which(name, path=HOST_PATH)).resolve()\n        inventory[name] = dict(path=str(path), sha256=sha(path))\n    inventory['driver'] = dict(path=str(Path(sys.executable).resolve()), sha256=sha(Path(sys.executable).resolve()))\n    return inventory")
@@ -77,11 +88,7 @@ def main():
             result['absent_on_P']=audit['checks']['required_families']['absent_on_P']
         else:
             result['checks']['loader_audit']=dict(status='NOT_RUN')
-        bad=[]
-        for directory,children,files in os.walk(work):
-            path=Path(directory)
-            if path.is_symlink() or stat.S_IMODE(path.stat().st_mode)!=0o700:bad.append(str(path))
-        result['checks']['directory_modes']=dict(status='FAIL' if bad else 'PASS',bad=bad)
+        result['checks']['directory_modes']=directory_modes(work)
         required={'disk_plan','routing_selection','empty_root','temporary_paths','runtime_binaries','directory_modes','loader_audit','required_families'}
         if not required<=set(result['checks']) or any(result['checks'][k]['status']!='PASS' for k in required if k in result['checks']):
             result.update(status='FAIL',rc=result['rc'] or 1)
@@ -96,7 +103,7 @@ def main():
             + 'sha_is "$S/c7d31ddd/anyhost/$proof_record_sha.json" "$proof_record_sha"\\n'
             + 'export R1_RUNTIME_RECORD="$P/anyhost/$proof_record_sha.json"\\n'
             + 'tk_bwrap\\ntk_env\\ntk_pythonpath p\\n'
-            + '"${BW[@]}" "$PILOT_VENV/bin/python" -B - "$X" <<P\\nfrom student_pilot.loader_audit import main\\nimport sys\\nmain(sys.argv[1])\\nP\\n')"""
+            + '"${BW[@]}" "$PILOT_VENV/bin/python" -B - "$X" <<P\\nimport json, os, sys\\nfrom pathlib import Path\\nfrom v import tree\\ncur = json.loads((Path(sys.argv[1])/"k/0.json").read_text())\\ntree({"path": cur["record"]["file"], "sha256": cur["record"]["sha256"]}, os.environ["TRAINER"], cur["commit"])\\nsys.path.insert(0, os.environ["TRAINER"])\\nfrom student_pilot.loader_audit import main\\nmain(sys.argv[1])\\nP\\n')"""
     if text.count(before)!=1:raise ValueError('Parent mode-p boundary differs')
     text=text.replace(before,after)
     if json.loads((out/'BINDING.json').read_text()).get('continuation'):
@@ -111,6 +118,19 @@ def main():
         text=text.replace('def main(authority):',helper+'def main(authority):')
         text=text.replace('        result.update(outcome)',"        result.update(outcome)\n        result['checks']['resume_pointer']=resume_fixture(kh,work)")
         text=text.replace("required={'disk_plan'","required={'resume_pointer','disk_plan'")
+    text=text.replace('def main(authority):', (ROOT/'tools/proof_tail.py').read_text()+'\n\ndef main(authority, rehearsal_root=None):')
+    text=text.replace("os.environ.get('SLURM_JOB_NAME') != authority['job_name']", "os.environ.get('SLURM_JOB_NAME') != ('a15_cot_ap05b8ac6a' if rehearsal_root else authority['job_name'])")
+    text=text.replace("destination = kh/'o'/(job+'.proof.json')", "destination = kh/'o'/(job+('.rehearsal.json' if rehearsal_root else '.proof.json'))")
+    text=text.replace("status='RUNNING', job=job", "status='REHEARSAL_RUNNING' if rehearsal_root else 'RUNNING', job=job")
+    anchor="        script = namespace_probe(bw) + program((bun/'jb.sh').read_text(), (kh/'job.sh').read_text())"
+    text=text.replace(anchor, anchor+"\n        if rehearsal_root:\n            if authority['partition']!='general':raise ValueError('Rehearsal requires general')\n            stage=Path(rehearsal_root)\n            if not stage.is_absolute() or stage.is_symlink() or not stage.is_dir():raise ValueError('Staged root unavailable')\n            stage=stage.resolve()\n            if not str(stage).startswith('/tmp/jjyeung/'):raise ValueError('Rehearsal requires node-local staged root')\n            script=rehearsal_program((bun/'jb.sh').read_text(), (kh/'job.sh').read_text(),kh,bw)")
+    text=text.replace('        paths=temporary_paths(args,kh,work)', "        if rehearsal_root:\n            index=args.index('/bin/bash')\n            args[index:index]=['--ro-bind',str(stage),'/tmp/jjyeung/a_'+authority['run_key']+'/root']\n        paths=temporary_paths(args,kh,work)")
+    start=text.index('        outcome=execute(args, script,')
+    end=text.index('    except BaseException as exc:',start)
+    original=text[start:end]
+    text=text[:start]+"        if rehearsal_root:\n            result.update(rehearsal_execute(args,script,kh,work,job,authority['run_key']))\n        else:\n"+''.join('    '+line+'\n' for line in original.splitlines())+text[end:]
+    anchor="    result.setdefault('finished_epoch', time.time())"
+    text=text.replace(anchor,"    if rehearsal_root:\n        result.update(rehearsal=True,admission_executed=False,staged_source=str(rehearsal_root))\n        result.setdefault('steps',dict(preflight='FAIL'))\n        if result['status']!='REHEARSAL_OK':result.update(status='REHEARSAL_FAIL',rc=result['rc'] or 1)\n"+anchor)
     source=out/'proof/p.py';source.write_text(text)
     binding=json.loads((out/'BINDING.json').read_text());identity=binding['config_identity']
     blob=base64.b64encode(zlib.compress(text.encode(),9)).decode();digest=hashlib.sha256(text.encode()).hexdigest()
@@ -121,14 +141,21 @@ set -euo pipefail
 umask 077
 export PATH=/usr/local/bin:/usr/bin:/bin CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1
 PY=$(command -v python3)
-exec "$PY" -I -B - "$1" <<'P'
+exec "$PY" -I -B - "$@" <<'P'
 import base64,hashlib,json,sys,zlib
 raw=zlib.decompress(base64.b64decode(BLOB))
 if hashlib.sha256(raw).hexdigest()!=DIGEST:raise ValueError('Embedded source differs')
 authority=json.load(open(sys.argv[1]))
 if authority['identity']!=IDENTITY:raise ValueError('Configuration differs')
 namespace={};exec(compile(raw,'p.py','exec'),namespace)
-raise SystemExit(namespace['main'](authority))
+if len(sys.argv)==2:
+    stage=None
+elif len(sys.argv)==4 and sys.argv[2]=='--rehearsal':
+    stage=sys.argv[3]
+    if not stage:raise ValueError('Rehearsal staged root must be nonempty')
+else:
+    raise ValueError('Expected AUTHORITY [--rehearsal STAGED_ROOT]')
+raise SystemExit(namespace['main'](authority, stage))
 P
 '''.replace('PARTITION',partition).replace('BLOB',repr(blob)).replace('DIGEST',repr(digest)).replace('IDENTITY',repr(identity))
     target=out/'proof'/('p_'+binding['run_key']+'.sh');target.write_text(script);target.chmod(0o700)

@@ -1,0 +1,111 @@
+{
+ "schema": "tree-rebuild-self-confirm-v1",
+ "by": "tree_rebuild8",
+ "package": {
+  "path": "/scratch/jjyeung/orch_n30/tree_rebuild_w/w12/out/tree_rebuild_b12_de231562.tar",
+  "sha256": "8f9cca3dc755b1139752c0c7f3113394c06cb57c6e999ada74567501c6503349",
+  "seal": "de231562f857f95b26b33d03fe0d21f5958632b0b9e6f95831884cc1783a36ef",
+  "files": 916,
+  "untarred": "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/conf12/pkg"
+ },
+ "scripts": "/scratch/jjyeung/orch_n30/tree_rebuild_w/work/conf12/s (copies of review_treen1/work/s4, paths repointed) and /scratch/jjyeung/orch_n30/tree_rebuild_w/work/conf12/t11 (copies of review_tree11/work/{parity,m1,l2}); env: /scratch/jjyeung/envs/p1cpu python -I -s -B, CUDA hidden",
+ "tests": {
+  "N1a-3 P depth_enabled=False": "REFUSED ValueError: P_EXPORT_CONFIG_DIFFERENCE:depth_enabled",
+  "N1a-3 P align": "REFUSED ValueError: P_EXPORT_CONFIG_DIFFERENCE:align",
+  "N1a-3 P camera.trunk_depth+2": "REFUSED ValueError: P_EXPORT_CONFIG_DIFFERENCE:camera",
+  "honest handover": [
+   200,
+   200
+  ],
+  "P from 1d6eeb28 readable": [
+   200,
+   200
+  ],
+  "parent 544 start": 0,
+  "N1X N depth_init P none": "REFUSED ValueError: P_EXPORT_LR_SCHEDULE_MISMATCH:depth_init",
+  "P depth_init N none": "REFUSED ValueError: P_EXPORT_LR_SCHEDULE_MISMATCH:depth_init",
+  "same sha other path": "REFUSED ValueError: P_EXPORT_LR_SCHEDULE_MISMATCH:depth_init",
+  "N1X P c1r head_init": "REFUSED ValueError: P_EXPORT_LR_SCHEDULE_MISMATCH:head_init",
+  "N1C forged prep+cfg+binding, honest complete": "REFUSED ValueError: P_EXPORT_CHECKPOINT_BINDING_MISMATCH",
+  "N1C forged prep+cfg+binding AND complete": "REFUSED ValueError: P_EXPORT_HANDOVER_PIN_MISMATCH:config",
+  "N1R2 equal depth pins": [
+   200,
+   200
+  ],
+  "N1R2 remapped N depth_init (fixture now gives P the same pin; equal pins admit)": [
+   200,
+   200
+  ],
+  "unicode variants (t4)": {
+   "variants": 111,
+   "refused": 111,
+   "leaks": 0,
+   "extra": 24,
+   "extra_leaks": []
+  },
+  "mutants": {
+   "Y2": "CAUGHT",
+   "X7": "CAUGHT",
+   "M01": "PASS",
+   "X13": "PASS",
+   "Y10": "CAUGHT",
+   "Y4": "CAUGHT",
+   "X10": "CAUGHT",
+   "X11": "CAUGHT",
+   "X3": "CAUGHT",
+   "X1": "CAUGHT",
+   "M07": "CAUGHT",
+   "Y1": "CAUGHT",
+   "X4": "CAUGHT",
+   "Y6": "CAUGHT",
+   "X8": "CAUGHT",
+   "X6": "CAUGHT",
+   "Y8": "CAUGHT",
+   "Y9": "CAUGHT",
+   "CLEAN": "PASS",
+   "H6": "CAUGHT",
+   "X5": "CAUGHT",
+   "X9": "CAUGHT",
+   "H2": "CAUGHT",
+   "X2": "CAUGHT",
+   "X12": "CAUGHT",
+   "Y3": "CAUGHT",
+   "Y5": "CAUGHT",
+   "M09": "CAUGHT",
+   "M12": "CAUGHT",
+   "Y7": "CAUGHT"
+  },
+  "M1 9fix export": {
+   "legacy_config_sha256": "2277c13e0a9130691b0d2de81a78650e0014a455988ada982cf4cc629e57614e",
+   "legacy_has_readout_config": false,
+   "legacy_with_export_config": "LOADED",
+   "loaded_threshold": [
+    5404319552844595,
+    18014398509481984
+   ],
+   "loaded_stencil_row0": [
+    -10,
+    -10
+   ],
+   "legacy_threshold_mismatch": "ValueError: LEGACY_READOUT_HEADING_PLANE_MIN_MISMATCH",
+   "legacy_no_threshold_identity": "ValueError: LEGACY_READOUT_CONFIG_IDENTITY_MISMATCH",
+   "legacy_other_identity": "ValueError: LEGACY_READOUT_CONFIG_IDENTITY_MISMATCH"
+  },
+  "M1 modern + tamper (load_b11.py)": "b11/b12 export LOADED; tampered old sha refuses; repinned doubled stencil REFUSED ARTIFACT_FIXED_READOUT_CONSTANT_MISMATCH (see t11/m1 run output)",
+  "parity sweep": "{'pose': 36000, 'turn': 36000, 'move': 36000, 'depth_at': 36000} 144000 diff 0 {'b9f_invalid_depth': 76} []",
+  "L1 typed refusals": "integrity ValueError RAISES in batch; CallError and RowRefusal become refused rows (t11/l2/L2_int.out)",
+  "F1 prod": "recovery 994/994/777, absolute_distance 1579/1579/1476, units 8577/8577/8067; a0 slices unchanged; leaks 0 (f1prod.log)",
+  "F6/F6r": "recovery 994 in_train, units 8577 in_train, heldout 0 (f6.log, f6r.log)",
+  "restage a2/a0/r1": {
+   "a2": "b208f782 identical",
+   "a0": "56bfefb4 identical",
+   "r1": "48673778 identical (inputs W/w12/work/n1fix2/inputs, equal to pkg copy)"
+  }
+ },
+ "not_rerun": [
+  "L2 transient restored buffer: disclosed observer limit (proofs/observer_limit), not rerun",
+  "changed-statement coverage: read GAPS.json/CHANGED_COVERAGE.json only",
+  "n1x.py: superseded by N1R N1X cases"
+ ],
+ "verdict": "CONFIRMED: every rerun refute test behaves as the fixes claim; no new defect found"
+}

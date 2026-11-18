@@ -9,8 +9,32 @@ def run(args,log):
         subprocess.run([sys.executable,'-B',*map(str,args)],cwd=ROOT,stdout=f,stderr=subprocess.STDOUT,check=True)
 
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--continuation-recheck',action='store_true');args=parser.parse_args()
+    parser=argparse.ArgumentParser();parser.add_argument('--continuation-recheck',action='store_true');parser.add_argument('--defer-heavy-test',action='store_true');parser.add_argument('--share-fixture-bytes',action='store_true')
+    parser.add_argument('--finalize-only',action='store_true',help='Resume reporting from a complete passing suite and matching archive evidence')
+    args=parser.parse_args()
     out=ROOT/'out';binding=load(out/'BINDING.json')
+    if args.finalize_only:
+        if args.continuation_recheck or args.defer_heavy_test or args.share_fixture_bytes:
+            raise ValueError('Finalization cannot combine with suite selection')
+        op=load(out/'OPERATOR.json');expected=sha(out/op['archive'])
+        if expected!=op['sha256']:raise ValueError('Archive differs from completed checks')
+        for name in ('DERIVATION','PRE_SUBMISSION'):
+            record=load(out/'proof'/(name+'.json'))
+            if (record['status']!='PASS' or record['config_identity']!=binding['config_identity']
+                    or record['operator_archive_sha256']!=expected):
+                raise ValueError('Completed checks do not cover this archive: '+name)
+        log=(out/'logs/tests.log').read_text()
+        if not re.search(r'Ran \d+ tests in .*\n\nOK\s*\Z',log):raise ValueError('Full passing test log required')
+        if 'test_full_store_build_stream_division_with_and_without_remove' not in log:
+            raise ValueError('Full-store test required')
+        for source,packed in (('derive_deployment.py','d.py'),('seal_proof.py','p.py'),('r4.py','r4.py'),('continuation.py','c0.py')):
+            if sha(ROOT/'tools'/source)!=sha(out/'operator'/packed):raise ValueError('Tested runtime source differs: '+source)
+        run([ROOT/'tools/finalize.py'],'finalize.log')
+        result=load(out/'CONT4_RESULT.json')
+        print(json.dumps(dict(status=result['status'],config_identity=binding['config_identity'],
+            operator_archive_sha256=expected,tests=result['tests'],finalization='PASS',
+            completed_suite='out/logs/tests.log',completed_derivation='out/proof/DERIVATION.json')))
+        return
     # The caller must finish rebind before running this command.
     run([ROOT/'tools/make_proof.py'],'make_proof.log')
     run([ROOT/'tools/package_operator.py'],'package.log')
@@ -22,10 +46,10 @@ def main():
     # Every destination retains the normal SHA checks; no source kit is linked.
     from unittest.mock import patch
     cached={}
-    if args.continuation_recheck:
+    if args.continuation_recheck or args.share_fixture_bytes:
         previous=Path(load(out/'proof/DERIVATION.json')['fixture_paths'][0])
         for f in previous.rglob('*'):
-            if f.is_file() and not f.is_symlink() and f.stat().st_size>1_000_000:cached[sha(f)]=f
+            if f.is_file() and not f.is_symlink() and f.stat().st_size>1_000_000 and f.suffix in ('.tar','.gz'):cached[sha(f)]=f
     native=Path.write_bytes
     def fixture_write(path,raw):
         donor=cached.get(hashlib.sha256(raw).hexdigest()) if len(raw)>1_000_000 else None
@@ -69,6 +93,15 @@ def main():
         'Fix8.test_real_packing_payload_pins_and_native_selection',
         'Mix.test_config_switches_disk_and_identity',
         'VehicleP.test_fallback_filter_and_deployed_diff_baseline'] if args.continuation_recheck else []
+    if args.defer_heavy_test:
+        sys.path.insert(0,str(ROOT/'tests'))
+        import unittest,test_packet
+        def cases(suite):
+            for case in suite:
+                if isinstance(case,unittest.TestSuite):yield from cases(case)
+                else:yield case
+        selected=['.'.join(t.id().split('.')[-2:]) for t in cases(unittest.defaultTestLoader.loadTestsFromModule(test_packet))
+                  if not t.id().endswith('Fix10.test_full_store_build_stream_division_with_and_without_remove')]
     run([ROOT/'tests/test_packet.py',*selected],'tests.log')
     if args.continuation_recheck:
         statuses={}
@@ -84,6 +117,7 @@ def main():
             initial_full_suite='out/logs/cont1_full_tests.log',final_rechecks='out/logs/tests.log',
             reason='Retain unchanged passing tests to respect the 3 GB scratch cap; rerun changed runtime, proof, namespace, identity and failed config-diff checks.'))
     run([ROOT/'tools/finalize.py'],'finalize.log')
-    print(json.dumps(dict(status='BUILT_BLOCKED',config_identity=binding['config_identity'],operator_archive_sha256=expected)))
+    status=load(out/'CONT4_RESULT.json')['status'] if binding.get('continuation') else 'BUILT_BLOCKED'
+    print(json.dumps(dict(status=status,config_identity=binding['config_identity'],operator_archive_sha256=expected)))
 
 if __name__=='__main__':main()

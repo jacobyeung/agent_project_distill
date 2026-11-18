@@ -5,7 +5,7 @@ from rebind import ROOT,load,sha,write
 def main():
     out=ROOT/'out';b=load(out/'BINDING.json');op=load(out/'OPERATOR.json');cfg=load(out/'config.json')
     if cfg.get('continuation'):
-        from report_cont1 import main as report
+        from report_cont4 import main as report
         return report()
     log=(out/'logs/tests.log').read_text();assert log.rstrip().endswith('OK')
     count=int(re.search(r'Ran (\d+) tests',log).group(1))
