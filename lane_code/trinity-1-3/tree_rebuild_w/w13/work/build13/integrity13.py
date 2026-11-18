@@ -18,4 +18,5 @@ assert all(v.get('source_sha256',v.get('source_seal'))==seal['tree_sha256'] and 
 record=dict(status='PASS',seal=seal['tree_sha256'],archive=d,archive_verified=a,
     report_bytes_equal=True,kit_sources_equal=True,GO=False)
 o=B/'proofs/integrity';o.mkdir(parents=True,exist_ok=True);(o/'RESULT.json').write_text(json.dumps(record,indent=2))
+(B/'STATUS.md').write_text('# Build 13 status\n\nBuild complete; GO=false. The final sealed source, fresh kits, census, plan, packet suite, frozen suite comparison, coverage and report-bearing archive passed their required checks. The known BF16 parity failure and real host qualification remain blocked. See `out/BUILD13_REPORT.md` and `work/build13/proofs/integrity/RESULT.json`.\n')
 print(json.dumps(record))

@@ -11,10 +11,14 @@ OLD=$O/i_1be16f28
 KH=$O/x_7f1589c1
 private() { [[ -d "$1" && ! -L "$1" && $(stat -c %a "$1") == 700 ]] || { echo "REFUSED: private directory required: $1" >&2; exit 3; }; }
 fresh() { [[ ! -e "$1" && ! -L "$1" ]] || { echo "REFUSED: already exists: $1" >&2; exit 3; }; }
-packet() { printf '%s  %s\n' '6a5c7d009a19cb5bac690b864f2be68bb5cebc29649923c93da36328d0f96888' "$BUN/p.tar" | sha256sum -c --quiet; }
+packet() { printf '%s  %s\n' '08f3a7b2ef2e1923ba77b464afcedbbe668a77a1915b4c32c0a815044ff7d9fd' "$BUN/p.tar" | sha256sum -c --quiet; }
 private "$O"
-PARTITION=${1:-bootstrap}
-[[ $# -le 1 && ( "$PARTITION" == general || "$PARTITION" == bootstrap ) ]] || { echo 'REFUSED: partition must be bootstrap or general'; exit 4; }
+PARTITION=general
+HOLD=()
+for arg in "$@"; do
+ case "$arg" in general) ;; --hold) [[ ${#HOLD[@]} == 0 ]] || exit 4; HOLD=(--hold);; *) echo 'REFUSED: use pr1.sh [general] [--hold]; bootstrap refused for mt01'; exit 4;; esac
+done
+[[ $# -le 2 ]] || exit 4
 private "$BUN"
 packet
 private "$KH"
@@ -30,6 +34,27 @@ while IFS='|' read -r jid name part state; do
  [[ -n "$jid" ]] || continue
  if [[ "$name" == a15_cot_ap05b8ac69 ]]; then echo 'REFUSED: job name already queued'; exit 4; fi
 done <<< "$Q"
+python3 -I -B - <<'HISTORY'
+"""Only the failed C proof is an allocated predecessor; bootstrap had no ID."""
+import os, subprocess
+from pathlib import Path
+b=Path('/project/community/jjyeung/okh7/i_7f1589c1.f172180')
+rows=subprocess.run(['sacct','-X','-n','-P','-S','2026-11-17','--name','a15_cot_ap05b8ac69','-o','JobIDRaw,JobName%64,State,ExitCode'],check=True,capture_output=True,text=True,timeout=60).stdout
+seen=[]
+for line in rows.splitlines():
+ if not line.strip():continue
+ r=line.strip().rstrip('|').split('|')
+ if r!=['172180','a15_cot_ap05b8ac69','FAILED','1:0']:raise SystemExit('REFUSED: unexpected C accounting history: '+line)
+ seen.append(r)
+if len(seen)!=1:raise SystemExit('REFUSED: FAILED 172180 accounting missing or ambiguous')
+if (b/'job.id').read_text().strip()!='172180':raise SystemExit('REFUSED: moved proof ID differs')
+for name in ('sbatch.out.a1_bootstrap','submission.started.a1_bootstrap','a.json.a1_bootstrap'):
+ p=b/name
+ if p.is_symlink() or not p.is_file():raise SystemExit('REFUSED: rejected bootstrap provenance missing')
+if (b/'sbatch.out.a1_bootstrap').stat().st_size:raise SystemExit('REFUSED: bootstrap attempt has a submission receipt')
+print('PASS history: FAILED 172180 and rejected bootstrap only')
+
+HISTORY
 python3 -B - "$KH" "$BUN" "$PARTITION" <<'PYCODE'
 """Sealed resource authority for one continuation kit; GO is separate."""
 import copy
@@ -107,6 +132,9 @@ def check_authority(kit):
     import json
     import re
     from pathlib import Path
+    for entry in kit.iterdir():
+        if entry.is_symlink() or entry.name not in {'SHA256SUMS.txt','ANON_OK.json','b','k','job.sh','job8.sh','o','arm','runs','sess.json'}:
+            raise ValueError('Unexpected kit top-level entry: '+entry.name)
     manifest = kit/'SHA256SUMS.txt'
     if manifest.is_symlink() or not manifest.is_file():
         raise ValueError('Missing or linked derived manifest')
@@ -134,11 +162,15 @@ def check_authority(kit):
 import hashlib,json,stat,sys
 from pathlib import Path
 k,b=map(Path,sys.argv[1:3]);partition=sys.argv[3];load=lambda p:json.loads(p.read_text())
+rjid=b/'rehearsal.job.id';assert rjid.is_file() and not rjid.is_symlink(), 'successful rehearsal required before proof'
+rjob=rjid.read_text().strip();assert rjob.isdigit() and rjob!='172180'
+rpath=k/'o'/(rjob+'.rehearsal.json');assert not rpath.is_symlink()
+r=load(rpath);assert r.get('status')=='REHEARSAL_OK' and r.get('rc')==0 and r.get('job')==rjob and r.get('rehearsal') is True, 'REHEARSAL_OK required before proof'
 assert (b/'d0/rc').read_text().strip()=='0' and load(b/'compare.json')['status']=='READY'
 auth=check_authority(k)
 assert partition in auth['mode_resources']['p']['partitions']
 cert=load(k/'ANON_OK.json');assert cert['status']=='CLEAN' and cert['hits']==0 and cert.get('reviewer')
-assert cert.get('config_identity')=='6594f46cdc16168514aca26a6ce38285907adfc6ece0b75d8e10428ea0b2fe74' and cert.get('operator_archive_sha256')=='6a5c7d009a19cb5bac690b864f2be68bb5cebc29649923c93da36328d0f96888'
+assert cert.get('config_identity')=='6594f46cdc16168514aca26a6ce38285907adfc6ece0b75d8e10428ea0b2fe74' and cert.get('operator_archive_sha256')=='08f3a7b2ef2e1923ba77b464afcedbbe668a77a1915b4c32c0a815044ff7d9fd'
 assert cert.get('scan_record_sha256') and cert.get('exemption_sha256')=='22a371b35e86ff8a48ed0b03c718d15fb656d1d342dd3c441d9986ac70ea0720'
 assert cert['manifest_sha256']==hashlib.sha256((k/'SHA256SUMS.txt').read_bytes()).hexdigest()
 for entry in cert.get('external',[]):assert hashlib.sha256(Path(entry['path']).read_bytes()).hexdigest()==entry['sha256']
@@ -153,8 +185,8 @@ python3 -B "$BUN/p.py" --kit "$KH" --bundle "$BUN" --binding "$BUN/BINDING.json"
 mkdir -p -m 700 "$KH/o"
 # A timeout or uncertain sbatch result must be reconciled manually; never resubmit.
 (set -o noclobber; date -u +%FT%TZ > "$BUN/submission.started")
-printf '%s\n' "TZ=UTC env -u TK_JOB_START CUDA_VISIBLE_DEVICES= sbatch --parsable -J a15_cot_ap05b8ac69 -A mt01 -p $PARTITION -N1 --ntasks=1 -c 48 --mem=800G -t 04:00:00 --no-requeue -o $KH/o/%j.out -e $KH/o/%j.err $BUN/p_05b8ac69.sh $BUN/a.json"
-TZ=UTC env -u TK_JOB_START CUDA_VISIBLE_DEVICES= sbatch --parsable -J a15_cot_ap05b8ac69 -A mt01 -p "$PARTITION" -N1 --ntasks=1 -c 48 --mem=800G -t 04:00:00 --no-requeue -o "$KH/o/%j.out" -e "$KH/o/%j.err" "$BUN/p_05b8ac69.sh" "$BUN/a.json" > "$BUN/sbatch.out"
+printf '%s\n' "TZ=UTC env -u TK_JOB_START CUDA_VISIBLE_DEVICES= sbatch --parsable ${HOLD[*]} -J a15_cot_ap05b8ac69 -A mt01 -p $PARTITION -N1 --ntasks=1 -c 48 --mem=800G -t 04:00:00 --no-requeue -o $KH/o/%j.out -e $KH/o/%j.err $BUN/p_05b8ac69.sh $BUN/a.json"
+TZ=UTC env -u TK_JOB_START CUDA_VISIBLE_DEVICES= sbatch --parsable "${HOLD[@]}" -J a15_cot_ap05b8ac69 -A mt01 -p "$PARTITION" -N1 --ntasks=1 -c 48 --mem=800G -t 04:00:00 --no-requeue -o "$KH/o/%j.out" -e "$KH/o/%j.err" "$BUN/p_05b8ac69.sh" "$BUN/a.json" > "$BUN/sbatch.out"
 answer=$(cat "$BUN/sbatch.out")
 [[ "$answer" =~ ^[1-9][0-9]*(\;[A-Za-z0-9_-]+)?$ ]] || { echo 'UNCERTAIN: inspect queue; do not resubmit'; exit 4; }
 job=${answer%%;*}

@@ -127,7 +127,7 @@ def program(wrapper, jobscript):
             + 'sha_is "$S/c7d31ddd/anyhost/$proof_record_sha.json" "$proof_record_sha"\n'
             + 'export R1_RUNTIME_RECORD="$P/anyhost/$proof_record_sha.json"\n'
             + 'tk_bwrap\ntk_env\ntk_pythonpath p\n'
-            + '"${BW[@]}" "$PILOT_VENV/bin/python" -B - "$X" <<P\nfrom student_pilot.loader_audit import main\nimport sys\nmain(sys.argv[1])\nP\n')
+            + '"${BW[@]}" "$PILOT_VENV/bin/python" -B - "$X" <<P\nimport json, os, sys\nfrom pathlib import Path\nfrom v import tree\ncur = json.loads((Path(sys.argv[1])/"k/0.json").read_text())\ntree({"path": cur["record"]["file"], "sha256": cur["record"]["sha256"]}, os.environ["TRAINER"], cur["commit"])\nsys.path.insert(0, os.environ["TRAINER"])\nfrom student_pilot.loader_audit import main\nmain(sys.argv[1])\nP\n')
 
 def command(bw, kh, work, rs):
     # The whole filesystem is read-only except proof storage and job receipts.
@@ -234,20 +234,102 @@ def resume_fixture(kh,work):
     result,_,_=module.fixture(work/'c0',load(kh/'k/a0.json'),load(kh/'k/7.json'))
     return result
 
-def main(authority):
+"""Source embedded in the sealed proof; no admission or staging in rehearsal."""
+
+def rehearsal_program(wrapper, jobscript, kh, bw):
+    boundary = '\n/bin/bash "$ROOT/b/r.sh" p 0\n'
+    complete = program(wrapper, jobscript)
+    if complete.count(boundary) != 1:
+        raise ValueError('Proof admission boundary differs')
+    tail = complete.split(boundary, 1)[1]
+    # Use the exact production tail. Only provision its per-job kit and stop at
+    # the first absent admission output, in a fresh empty run namespace.
+    tail = tail.replace('tk_bwrap\n', 'tk_nx\ntk_bwrap\n', 1)
+    for command, step in (('tk_bwrap', 'bwrap_setup'), ('tk_env', 'environment'),
+                          ('tk_pythonpath p', 'pythonpath')):
+        tail = tail.replace(command+'\n', command+"\nprintf 'REHEARSAL_STEP "+step+" PASS\\n'\n", 1)
+    tail = tail.replace('import json, os, sys\n',
+        'import json, os, sys\nprint("REHEARSAL_STEP namespace PASS", flush=True)\n', 1)
+    tail = tail.replace('sys.path.insert(0, os.environ["TRAINER"])',
+        'print("REHEARSAL_STEP trainer_tree PASS", flush=True)\nsys.path.insert(0, os.environ["TRAINER"])')
+    tail = tail.replace('from student_pilot.loader_audit import main\n',
+        'from student_pilot.loader_audit import main\nprint("REHEARSAL_STEP loader_import PASS", flush=True)\n')
+    startup = '''
+steps = dict(bwrap_setup='PASS', environment='PASS', pythonpath='PASS', namespace='PASS', trainer_tree='PASS', loader_import='PASS')
+root = Path(sys.argv[1])
+launch = json.loads((root/'k/launch.json').read_text())
+cfg = json.loads((root/launch['config']['file']).read_text())
+from student_pilot.p3_provenance import pinned, load
+store = load(pinned(cfg['streams']['vqa']))
+import sqlite3
+database = Path(store['database']['path'])
+with sqlite3.connect(database.as_uri()+'?mode=ro&immutable=1', uri=True) as connection:
+    if not connection.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='rows'").fetchone():
+        raise ValueError('Staged store lacks rows')
+steps['staged_store_startup'] = 'PASS'
+print('REHEARSAL_STEP staged_store_startup PASS', flush=True)
+expected = Path(launch['in_job_admission']['directory'])/'data_receipt.json'
+if expected.exists():
+    raise ValueError('Rehearsal must have no admission outputs')
+try:
+    main(sys.argv[1])
+except FileNotFoundError as exc:
+    if Path(exc.filename) != expected:
+        raise
+    steps['loader_main_startup'] = 'PASS'
+    steps['admission_output_boundary'] = 'EXPECTED_MISSING'
+else:
+    raise ValueError('Loader did not stop at the admission output boundary')
+receipt = dict(status='REHEARSAL_OK', steps=steps, production_authorized=False, admission_executed=False)
+Path(os.environ['TK_JOBDIR'], 'tail.json').write_text(json.dumps(receipt, sort_keys=True)+'\\n')
+print(json.dumps(receipt, sort_keys=True), flush=True)
+'''
+    if tail.count('main(sys.argv[1])\n') != 1:
+        raise ValueError('Loader call boundary differs')
+    tail = tail.replace('main(sys.argv[1])\n', startup)
+    return namespace_probe(bw) + 'set -euo pipefail\numask 077\nROOT='+shlex.quote(str(kh))+'\n'+tail
+
+
+def rehearsal_execute(args, script, kh, work, job, run_key):
+    steps = {name: 'NOT_RUN' for name in ('bwrap_setup','environment','pythonpath','namespace',
+        'trainer_tree','loader_import','staged_store_startup','loader_main_startup','admission_output_boundary')}
+    receipt = work/('tmp/jjyeung/a_'+run_key+'/jobs/'+job+'.proof/tail.json')
+    outcome = execute(args, script, kh/'o'/(job+'.rehearsal.log'), lambda: {})
+    status = 'REHEARSAL_FAIL'
+    log = kh/'o'/(job+'.rehearsal.log')
+    if log.is_file():
+        for name in re.findall(r'^REHEARSAL_STEP (\w+) PASS$', log.read_text(), re.M):
+            if name in steps:
+                steps[name] = 'PASS'
+    if outcome['rc'] == 0 and receipt.is_file():
+        inner = load(receipt)
+        if inner.get('status') == 'REHEARSAL_OK':
+            steps.update(inner['steps'])
+            status = 'REHEARSAL_OK'
+    if status != 'REHEARSAL_OK':
+        for name in steps:
+            if steps[name] == 'NOT_RUN':
+                steps[name] = 'FAIL'
+                break
+    return dict(status=status, rc=0 if status=='REHEARSAL_OK' else outcome['rc'] or 1,
+        steps=steps, admission_executed=False, training_executed=False,
+        production_authorized=False, log=str(kh/'o'/(job+'.rehearsal.log')))
+
+
+def main(authority, rehearsal_root=None):
     os.umask(0o077)
     environment()
     def stopped(signum, frame): raise SystemExit(128+signum)
     for sig in (signal.SIGTERM, signal.SIGINT, signal.SIGUSR1): signal.signal(sig, stopped)
     job = os.environ.get('SLURM_JOB_ID', '')
     if not re.fullmatch('[1-9][0-9]*', job): raise ValueError('Numeric allocation required')
-    if os.environ.get('SLURM_JOB_NAME') != authority['job_name']: raise ValueError('Job name differs')
+    if os.environ.get('SLURM_JOB_NAME') != ('a15_cot_ap05b8ac6a' if rehearsal_root else authority['job_name']): raise ValueError('Job name differs')
     kh, bun = Path(authority['kh']), Path(authority['bun'])
     for p in (kh.parent, kh, bun, kh/'o'): private(p)
-    destination = kh/'o'/(job+'.proof.json')
+    destination = kh/'o'/(job+('.rehearsal.json' if rehearsal_root else '.proof.json'))
     # Reserve the receipt name before expensive work. A failure is never PASS.
     with destination.open('x') as f:
-        json.dump(dict(status='RUNNING', job=job, rc=None, production_authorized=False), f)
+        json.dump(dict(status='REHEARSAL_RUNNING' if rehearsal_root else 'RUNNING', job=job, rc=None, production_authorized=False), f)
         f.write('\n')
     result = dict(partition=os.environ.get('SLURM_JOB_PARTITION'),node=os.environ.get('SLURMD_NODENAME') or os.uname().nodename,status='FAIL', rc=1, job=job, production_authorized=False,
                   started_epoch=time.time(), admission_result=None, prepared_seals=None)
@@ -290,8 +372,18 @@ def main(authority):
         assert str(rs) == authority['persistent_root']
         physical = work/('tmp/jjyeung/a_'+authority['run_key']+'/runs/'+authority['run_key'])
         script = namespace_probe(bw) + program((bun/'jb.sh').read_text(), (kh/'job.sh').read_text())
+        if rehearsal_root:
+            if authority['partition']!='general':raise ValueError('Rehearsal requires general')
+            stage=Path(rehearsal_root)
+            if not stage.is_absolute() or stage.is_symlink() or not stage.is_dir():raise ValueError('Staged root unavailable')
+            stage=stage.resolve()
+            if not str(stage).startswith('/tmp/jjyeung/'):raise ValueError('Rehearsal requires node-local staged root')
+            script=rehearsal_program((bun/'jb.sh').read_text(), (kh/'job.sh').read_text(),kh,bw)
         (work/'entry.sh').write_text(script)
         args = command(bw, kh, work, rs)
+        if rehearsal_root:
+            index=args.index('/bin/bash')
+            args[index:index]=['--ro-bind',str(stage),'/tmp/jjyeung/a_'+authority['run_key']+'/root']
         paths=temporary_paths(args,kh,work)
         result.update(checks=dict(temporary_paths=paths,empty_root=dict(status='PASS',path=str(work)),runtime_binaries=dict(status='PASS',binaries=binaries)),config_identity=identity(cfg), config=launch['config'],
                       manifest_sha256=sha(kh/'SHA256SUMS.txt'), contract_sha256=digest(contract(launch,cfg)),
@@ -301,26 +393,33 @@ def main(authority):
                       physical_slots=str(work/'slots'), staging_root=str(work/('tmp/jjyeung/a_'+authority['run_key']+'/root')),
                       real_job_reuse=False, cuda_visible_devices='',
                       allocation_gpus=os.environ.get('SLURM_GPUS_ON_NODE', '0'))
-        outcome=execute(args, script, kh/'o'/(job+'.proof.log'), lambda: verify_prepared(kh, physical))
-        result.update(outcome)
-        result['checks']['resume_pointer']=resume_fixture(kh,work)
-        audit_path=physical/'inputs/a.json'
-        if audit_path.exists():
-            audit=load(audit_path)
-            if audit['original_config_identity']!=authority['identity']:raise ValueError('Loader proof identity differs')
-            if sha(physical/'inputs/l.json')!=audit['checks']['loader_audit']['pin']['sha256']:raise ValueError('Loader audit bytes differ')
-            result['checks'].update(audit['checks'])
-            result['absent_on_P']=audit['checks']['required_families']['absent_on_P']
+        if rehearsal_root:
+            result.update(rehearsal_execute(args,script,kh,work,job,authority['run_key']))
         else:
-            result['checks']['loader_audit']=dict(status='NOT_RUN')
-        result['checks']['directory_modes']=directory_modes(work)
-        required={'resume_pointer','disk_plan','routing_selection','empty_root','temporary_paths','runtime_binaries','directory_modes','loader_audit','required_families'}
-        if not required<=set(result['checks']) or any(result['checks'][k]['status']!='PASS' for k in required if k in result['checks']):
-            result.update(status='FAIL',rc=result['rc'] or 1)
-
+            outcome=execute(args, script, kh/'o'/(job+'.proof.log'), lambda: verify_prepared(kh, physical))
+            result.update(outcome)
+            result['checks']['resume_pointer']=resume_fixture(kh,work)
+            audit_path=physical/'inputs/a.json'
+            if audit_path.exists():
+                audit=load(audit_path)
+                if audit['original_config_identity']!=authority['identity']:raise ValueError('Loader proof identity differs')
+                if sha(physical/'inputs/l.json')!=audit['checks']['loader_audit']['pin']['sha256']:raise ValueError('Loader audit bytes differ')
+                result['checks'].update(audit['checks'])
+                result['absent_on_P']=audit['checks']['required_families']['absent_on_P']
+            else:
+                result['checks']['loader_audit']=dict(status='NOT_RUN')
+            result['checks']['directory_modes']=directory_modes(work)
+            required={'resume_pointer','disk_plan','routing_selection','empty_root','temporary_paths','runtime_binaries','directory_modes','loader_audit','required_families'}
+            if not required<=set(result['checks']) or any(result['checks'][k]['status']!='PASS' for k in required if k in result['checks']):
+                result.update(status='FAIL',rc=result['rc'] or 1)
+    
     except BaseException as exc:
         rc = exc.code if isinstance(exc, SystemExit) and isinstance(exc.code, int) else 1
         result.update(status='FAIL', rc=rc or 1, error=type(exc).__name__+': '+str(exc))
+    if rehearsal_root:
+        result.update(rehearsal=True,admission_executed=False,staged_source=str(rehearsal_root))
+        result.setdefault('steps',dict(preflight='FAIL'))
+        if result['status']!='REHEARSAL_OK':result.update(status='REHEARSAL_FAIL',rc=result['rc'] or 1)
     result.setdefault('finished_epoch', time.time())
     result.setdefault('elapsed_seconds', result['finished_epoch']-result['started_epoch'])
     with destination.open('w') as f:

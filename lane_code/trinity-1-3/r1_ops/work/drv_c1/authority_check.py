@@ -74,6 +74,9 @@ def check_authority(kit):
     import json
     import re
     from pathlib import Path
+    for entry in kit.iterdir():
+        if entry.is_symlink() or entry.name not in {'SHA256SUMS.txt','ANON_OK.json','b','k','job.sh','job8.sh','o','arm','runs','sess.json'}:
+            raise ValueError('Unexpected kit top-level entry: '+entry.name)
     manifest = kit/'SHA256SUMS.txt'
     if manifest.is_symlink() or not manifest.is_file():
         raise ValueError('Missing or linked derived manifest')

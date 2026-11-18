@@ -12,6 +12,12 @@ def run(name,script,*args):
     runs.append(dict(name=name,returncode=r.returncode,seconds=time.time()-start,tmp_before=before,tmp_after=after))
     (B/'FINAL_RUNS.json').write_text(json.dumps(runs,indent=2));print(name,r.returncode,flush=True)
     if r.returncode:raise SystemExit('Stopped after failed check; no automatic retry: '+name)
+if '--resume' not in sys.argv:
+    prior=B/'retained_kits13d';assert not prior.exists();(B/'kits').rename(prior)
+    run('seal',L/'work/n1fix2/seal.py')
+    run('kits',B/'kits13.py')
+    run('final/packet',B/'packet13.py','integrated','packet','contract')
+    run('preservation',B/'preserve13.py')
 run('report',B/'report13.py')
 run('delivery',B/'delivery13.py')
 delivery=json.loads((B/'DELIVERY.json').read_text())

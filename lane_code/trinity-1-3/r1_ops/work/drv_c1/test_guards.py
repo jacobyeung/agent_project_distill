@@ -17,8 +17,8 @@ cases=[
  ('same_name_running','13|a15_cot_ap'+PINS['run']+'|advanced|RUNNING',[],False),
  ('same_name_held','14|a15_cot_ap'+PINS['run']+'|bootstrap|PENDING',[],False),
  ('unrelated_held','15|unrelated|bootstrap|PENDING',[],True),
- ('empty','',[],True),('explicit_general','',['general'],True),
- ('explicit_bootstrap','',['bootstrap'],True),('invalid_advanced','',['advanced'],False),
+ ('held','',['general','--hold'],True),('empty','',[],True),('explicit_general','',['general'],True),
+ ('explicit_bootstrap','',['bootstrap'],False),('invalid_advanced','',['advanced'],False),
  ('extra_argument','',['general','extra'],False),('queue_failure','',[],False)]
 for name,queue,args,allowed in cases:
  root=T/name;root.mkdir(mode=0o700)
@@ -30,11 +30,12 @@ for name,queue,args,allowed in cases:
  assert (r.returncode==0)==allowed,(name,r.stdout,r.stderr)
  assert marker.exists()==allowed
  if allowed:
-  partition=args[0] if args else 'bootstrap'
+  partition=args[0] if args else 'general'
   assert (bun/'job.id').read_text().strip()=='123456'
   assert ' -p '+partition+' ' in ' '+marker.read_text()+' '
   assert '--partition '+partition in pylog.read_text()
   assert '-t 04:00:00' in marker.read_text() and '-c 48 --mem=800G' in marker.read_text()
+  assert ('--hold' in marker.read_text())==('--hold' in args)
   assert '--gres' not in marker.read_text()
   again=subprocess.run(['bash',str(script)]+args,env=env,capture_output=True,text=True)
   assert again.returncode!=0 and len(marker.read_text().splitlines())==1

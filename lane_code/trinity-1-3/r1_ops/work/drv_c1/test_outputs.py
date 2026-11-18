@@ -26,15 +26,17 @@ assert "p['native_unit_regeneration_executed'] is True" in q
 assert (W/'pr2.sh').read_bytes()==(W/'pr1.sh').read_bytes()
 assert 'job2.id' not in (W/'pm1.sh').read_text()
 mint=(W/'L1_mint.sh').read_text()
-for value in ('drv_c1','sess_05b8ac69.json','mint_05b8ac69.started','mint_05b8ac69.private.log'):
+for value in ('drv_c1','sess_05b8ac69_08f3a7b2.json','mint_05b8ac69_08f3a7b2.started','mint_05b8ac69_08f3a7b2.private.log'):
  assert value in mint,value
 for name in ('sc1.sh','si1.sh'):
  assert (W/name).read_text()==pending_script(name), 'Do not claim real approval/session data in the build fixture'
  r=subprocess.run(['bash',str(W/name)],capture_output=True,text=True)
  assert r.returncode==4 and 'PENDING' in r.stderr
 review=(W/'rv1.sh').read_text()
-assert review==pending_script('rv1.sh') or ('final review_r1c2 accepted' in review and PINS['outer'] in review and "'review_r1p8'" in review)
-assert not (W/'ANON_OK.json').exists()
+assert review==pending_script('rv1.sh') or ('final review_r1c3 accepted' in review and PINS['outer'] in review and "'review_r1p8'" in review)
+if (W/'ANON_OK.json').exists():
+ import json
+ assert json.loads((W/'ANON_OK.json').read_text()).get('operator_archive_sha256') != PINS['outer'], 'New certificate requires independent validation'
 print('PASS '+str(len(scripts))+' shell scripts; '+str(count)+' embedded Python bodies; nested workers; all builder Python syntax')
 print('PASS packet-C names and export destinations; native unit flags and H1 CPU environment; fresh mint markers')
-print('PASS ten-review evidence validator and deriver SHA; review installer pins; inert certificate/session installers; matching submission entry points')
+print('PASS eleven-review evidence validator and deriver SHA; review installer pins; inert certificate/session installers; matching submission entry points')

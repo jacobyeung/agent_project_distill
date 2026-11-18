@@ -7,6 +7,13 @@ from .p3_provenance import digest, file_pin, load, pinned, write
 from .r1_population import family, SLICE_CELLS, Membership
 
 
+def check_local_size(size):
+    """Check the local proof's storage ceiling before publishing database bytes."""
+    import os
+    if size > 200_000_000 and os.uname().nodename.startswith('trinity'):
+        raise ValueError('R1_LOCAL_COMPOSITION_STORAGE_LIMIT')
+
+
 class Filters:
     """The native preparation predicates, also used by the local census entry."""
     def __init__(self, cfg, division_pin):
@@ -107,21 +114,33 @@ def compose(base_pin, sources, batches, cfg, output):
         evidence.append(intake_pin)
         for item in items:
             row = dict(item['row'])
+            if row.get('events') and not row.get('routing'):
+                from .carrier_c1_routing import c1_row
+                inputs = row['student_input']
+                rgb = dict(inputs, frames=[dict(pin, source_index=i) for i,pin in
+                    zip(inputs['frame_indices'], inputs['frames'], strict=True)])
+                row = c1_row(row, rgb)
             row['r1_source'] = dict(family=kind, sha256=source_pin['sha256'])
             add(row, item.get('target', {}), kind)
     # A trailing refused candidate must not become a stored row. Build the final
     # database from admitted offsets only, without modifying any source database.
     final = sqlite3.connect(':memory:')
-    final.execute('CREATE TABLE rows(i INTEGER PRIMARY KEY,row TEXT,target TEXT)')
-    final.executemany('INSERT INTO rows VALUES(?,?,?)', db.execute('SELECT i,row,target FROM rows WHERE i<? ORDER BY i',(n,)))
+    # The native layout repeats the ground record at top level and in routing.
+    # Store it once and expose the exact native JSON through a SQLite view.
+    final.execute('CREATE TABLE payloads(i INTEGER PRIMARY KEY,row TEXT,target TEXT)')
+    final.execute("CREATE VIEW rows AS SELECT i, CASE WHEN json_type(row,'$.ground_record')='object' AND json_type(row,'$.routing')='object' THEN json_set(row,'$.routing.ground_record',json_extract(row,'$.ground_record')) ELSE row END AS row,target FROM payloads")
+    for i,raw,target in db.execute('SELECT i,row,target FROM rows WHERE i<? ORDER BY i',(n,)):
+        row = json.loads(raw)
+        if row.get('ground_record') and row.get('routing'):
+            row = dict(row, routing={k:v for k,v in row['routing'].items() if k != 'ground_record'})
+        final.execute('INSERT INTO payloads VALUES(?,?,?)',(i,json.dumps(row),target))
     write(output/'membership.json', members)
     membership = Membership(file_pin(output/'membership.json'))
     for (raw,) in final.execute('SELECT row FROM rows ORDER BY i'):
         membership.cell(json.loads(raw), 'routing')
     final.commit()
     payload = final.serialize()
-    if len(payload) > 200_000_000 and __import__('os').uname().nodename.startswith('trinity'):
-        raise ValueError('R1_LOCAL_COMPOSITION_STORAGE_LIMIT')
+    check_local_size(len(payload))
     (output/'rows.sqlite').write_bytes(payload)
     final.close()
     reader.close()

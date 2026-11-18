@@ -15,10 +15,22 @@ except ValueError as e:assert str(e)=='R1_LOCAL_COMPOSITION_STORAGE_LIMIT'
 else:raise AssertionError('Storage limit missing')
 prepared=load(B/'proofs/tests/population13/test_native_mixture_and_bound_producer/produced/receipt.json')
 verify(prepared,{})
+from student_pilot.r2_contract import CONTRACT
+from student_pilot.carrier_c1_run import Rows
+membership=O/'empty_membership.json'
+membership.write_text(json.dumps(dict(contract=CONTRACT,rows={})))
+guarded=dict(prepared,r2_membership=file_pin(membership))
+reader=Rows(guarded,None)
+try:
+    try:reader.row('vqa',0)
+    except ValueError as e:assert str(e)=='Row missing or changed in sealed membership'
+    else:raise AssertionError('Native membership admission was bypassed')
+finally:reader.close()
 cfg=load(B/'inputs/config.json');f=Filters(cfg,cfg['scene_division'])
 p=O/'removed.jsonl';p.write_text(json.dumps(dict(row_key='fixture_removed'))+'\n')
 f.removals=Removals([file_pin(p)])
 assert f.reason(dict(qid='fixture_removed'),'vqa')=='remove_files'
 (O/'RESULT.json').write_text(json.dumps(dict(status='PASS',storage_boundary=200_000_000,
-    source='User build rules; pure size predicate only, no oversized allocation or write',scene_selection='native verify consumes the reader subset and original scene receipt')))
+    source='User build rules; pure size predicate only, no oversized allocation or write',scene_selection='native verify consumes the reader subset and original scene receipt',
+    native_r2_membership='Real Rows and Admission reject a row absent from the authenticated membership; no admission stand-in')))
 m.save(O)

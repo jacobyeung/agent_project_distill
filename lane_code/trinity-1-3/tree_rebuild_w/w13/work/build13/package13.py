@@ -44,9 +44,28 @@ if any(root.iterdir()) and not prior_members:
     raise ValueError('Existing frozen directory lacks its authenticated member inventory')
 with tarfile.open(archive) as handle:
     archive_members=handle.getmembers()
+    missing=prior_members-{m.name for m in archive_members if m.isfile()}
+    if missing and all(name.startswith('work/build13/kits/') for name in missing):
+        # A freshly staged kit changes content-addressed member names. Retain
+        # the old extraction outside the active kit path before refreshing it.
+        oldkits=root/'work/build13/kits'
+        tag=hashlib.sha256(json.dumps(sorted(prior_members)).encode()).hexdigest()[:12]
+        retained=root/'work/build13'/('retained_kits_'+tag)
+        assert not retained.exists()
+        oldkits.rename(retained)
+        (out/'KIT_REFRESH.json').write_text(json.dumps(dict(retained=str(retained),
+            previous_members=sorted(n for n in prior_members if n.startswith('work/build13/kits/')),
+            missing=sorted(missing)),indent=2))
+        prior_members={n for n in prior_members if not n.startswith('work/build13/kits/')}
     if not prior_members <= {m.name for m in archive_members if m.isfile()}:
         raise ValueError('Refuse a package refresh that would leave stale members')
     unpacked_bytes=sum(member.size for member in archive_members if member.isfile())
+    workspace_bytes=sum(p.stat().st_size for p in L.rglob('*') if p.is_file() and not p.is_symlink())
+    growth=sum(max(0,m.size-((root/m.name).stat().st_size if (root/m.name).exists() else 0))
+               for m in archive_members if m.isfile())
+    (out/'STORAGE_PREFLIGHT.json').write_text(json.dumps(dict(workspace_bytes=workspace_bytes,
+        positive_growth_bytes=growth,limit_bytes=1_500_000_000)))
+    assert workspace_bytes+growth<=1_500_000_000,'Package refresh exceeds workspace budget'
     for member in archive_members:
         if member.issym() or member.islnk() or member.name.startswith('/') or '..' in Path(member.name).parts:
             raise ValueError('Unsafe package member')

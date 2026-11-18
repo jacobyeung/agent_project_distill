@@ -1,0 +1,1 @@
+Frozen by r1_ops4 at ~09:03Z 2026-11-18 from /scratch/jjyeung/orch_n30/r1_pkt after Codex r1_cont4b (receipt agent/scratch/codex_runs/20261118T084352Z_r1_cont4b). out/ without older p_*.tar; work/ not copied. Archive p_08f3a7b2.tar 08f3a7b2ef2e1923ba77b464afcedbbe668a77a1915b4c32c0a815044ff7d9fd.

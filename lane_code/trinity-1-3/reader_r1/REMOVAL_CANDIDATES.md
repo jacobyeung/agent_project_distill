@@ -1,2 +1,3 @@
 - 2026-11-18 reader_r1_3: lane at 6.3 GB (cap 6 GB). Candidates: work/b1/work (1.8 GB, superseded first build), work/b1/in (664 MB), work/b2r/work (old build scratch), work/fix7/b*/checks (duplicated test fixtures; HARDLINK_PLAN.json would save 431 MB, not applied).
 - work/tmp_cmp (52 MB, 05:35Z): two unpacked payload copies used to compare 9f891bc1 vs 8be887e3; safe to remove.
+- 09:30Z lane closed: work/smoke2, work/dbg*.sh, work/gen.sh and work/fetch2.sh are monitor scratch for job 172456 and can go. Keep work/fix7/b1/work/{f,scores} and work/fix7/b2/work/{f,scores}, the scored returns.

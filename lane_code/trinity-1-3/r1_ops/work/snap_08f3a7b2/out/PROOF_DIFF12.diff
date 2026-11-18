@@ -1,0 +1,18 @@
+--- scanned/proof
++++ new/proof
+@@ -119,7 +119,14 @@
+     jobprefix = jobprefix.replace(root, 'ROOT="$KH"')
+     return ('set -e\nexport CUDA_VISIBLE_DEVICES=""\n' + prefix + '\nset -e\n' + jobprefix
+             + '\n/bin/bash "$ROOT/b/r.sh" p 0\n'
+-            + 'export TK_KIT_HOME="$ROOT"\nsource "$ROOT/b/c.sh"\ntk_bwrap\ntk_env\ntk_pythonpath p\n'
++            + 'export TK_KIT_HOME="$ROOT"\nsource "$ROOT/b/c.sh"\n'
++            + 'export TK_RUNS_DIR="$NR"\n'
++            + 'export TK_JOBDIR="${S%/root}/jobs/${SLURM_JOB_ID:?}.proof"\n'
++            + 'umask 077\nmkdir -p -m 700 "${TK_JOBDIR%/*}"\nmkdir -m 700 "$TK_JOBDIR"\n'
++            + 'read -r proof_record proof_record_sha < <(tk_current record)\n'
++            + 'sha_is "$S/c7d31ddd/anyhost/$proof_record_sha.json" "$proof_record_sha"\n'
++            + 'export R1_RUNTIME_RECORD="$P/anyhost/$proof_record_sha.json"\n'
++            + 'tk_bwrap\ntk_env\ntk_pythonpath p\n'
+             + '"${BW[@]}" "$PILOT_VENV/bin/python" -B - "$X" <<P\nfrom student_pilot.loader_audit import main\nimport sys\nmain(sys.argv[1])\nP\n')
+ 
+ def command(bw, kh, work, rs):

@@ -1098,7 +1098,7 @@ class Rows:
     def row(self, stream, index):
         if stream in self.indices:
             index = self.indices[stream][index]
-        if stream in self.mixes:
+        if stream in getattr(self, 'mixes', {}):
             part, index = self.mixes[stream].order[index]
             source = self.mixes[stream].sources[part]
             if not hasattr(source, 'conn'):

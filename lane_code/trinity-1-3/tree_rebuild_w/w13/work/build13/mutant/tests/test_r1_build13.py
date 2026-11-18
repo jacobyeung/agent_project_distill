@@ -99,6 +99,7 @@ class PopulationTests(unittest.TestCase):
     def test_scene_subset(self):
         p=self.write('original.json',[2,4,7]);q=self.write('subset.json',[2,7])
         original=dict(indices=p,count=3,receipt=self.source)
+        self.assertEqual(scene_receipt(dict(streams=dict(vqa=original)))['streams']['vqa'],original)
         value=dict(original,reader_source=deepcopy(original),indices=q,count=2)
         self.assertEqual(scene_receipt(dict(streams=dict(vqa=value)))['streams']['vqa'],original)
         value['indices']=self.write('subset.json',[2,9])
@@ -171,6 +172,11 @@ class PopulationTests(unittest.TestCase):
         f=Filters(cfg,value['division'])
         self.assertEqual(f.reason({**row,'scene':'held'},'routing'),'division_heldout')
         self.assertEqual(f.reason({**row,'scene':'outside'},'routing'),'division_outside')
+        f.train.add('d1/dev');self.assertEqual(f.reason({**row,'scene':'dev'},'routing'),'scene_exclusion')
+        f.qids={'routing':{'camera'}};self.assertEqual(f.reason(row,'routing'),'exclude_qids')
+        f.qids={};f.cfg['route_table']={'camera_displacement':'route'}
+        self.assertEqual(f.reason(row,'vqa'),'routed_type')
+        f.benchmark={'d1/fixture_clean'};self.assertEqual(f.reason(row,'routing'),'benchmark_exclusion')
         base,cfg,sources=self.composition([dict(row,target='answer only'),dict(row,qid='outside',scene='outside')])
         result=compose(base,sources,[],cfg,self.root/'empty')
         self.assertEqual(result['count'],0)
@@ -199,8 +205,10 @@ class PopulationTests(unittest.TestCase):
                 streams[stream]=dict(receipt=pin,kind='mix',count=n,order=order,
                     sources=[dict(kind='rows',database=file_pin(p))])
         receipt=dict(streams=streams,r1_training=dict(schema='r1-training-v1'),depth=dict(num_points_per_frame=1))
+        from student_pilot.source_seal import SCHEMA
         cfg=dict(r1_training=dict(schema='r1-training-v1',mix=self.cardpin),streams=pins,
-                 preparation=self.write('preparation.json',receipt),code=self.source)
+                 preparation=self.write('preparation.json',receipt),code=self.write('code.json',
+                    dict(schema=SCHEMA,tree_sha256='0'*64,archive=self.source)))
         reader=Rows(receipt,None)
         self.assertEqual(reader.row('pose',3)[0]['qid'],'pose_3')
         real=reader.mixes['pose'].sources[0]
@@ -221,6 +229,44 @@ class PopulationTests(unittest.TestCase):
         self.assertEqual(proof['draws'],{c['type']:STREAMS[c['stream']]*1000 for c in self.card['cells']})
         self.assertEqual(len(indices['cells']['direction']),32000)
         reader.close()
+
+    def test_native_composition_envelopes(self):
+        from student_pilot.r1_routing import compose_native
+        from tests.test_r2_data_path import manifest
+        row=dict(qid='camera',dataset='d1',scene='fixture_clean',question_type='camera_displacement',target='<think>visible</think>A')
+        base,cfg,_=self.composition([row])
+        manifests={};sources={}
+        for k in ('recovery','absolute_distance','units'):
+            path=manifest(self.root/k,[],stream='routing',family=k)
+            manifests[k]=file_pin(path);sources[k]=dict(source=load(path)['rows'])
+        cfg['r1_training'].update(row_sources=self.write('sources.json',sources),routing_inputs=manifests,
+            source_membership=self.write('catalog.json',dict(schema='r1-source-catalog-v1',sources={
+                k:dict(source=v['source'],qids=[]) for k,v in sources.items()})))
+        with patch('os.uname',return_value=type('Host',(),dict(nodename='fixture-host'))()),\
+             patch.dict(os.environ,STUDENT_R2_FRAME_HOST='1',STUDENT_R2_LOCAL_NODE='0'):
+            result=compose_native(cfg,base,self.root/'native')
+        self.assertEqual(result['count'],1)
+        bad=deepcopy(cfg);bad['r1_training']['row_slice_inputs']={}
+        with self.assertRaisesRegex(ValueError,'R1_SLICE_SOURCE_DIFFERS'):compose_native(bad,base,self.root/'badstaged')
+        bad=deepcopy(cfg);bad['r1_training']['source_membership']=self.source
+        with self.assertRaisesRegex(ValueError,'R1_SOURCE_CATALOG_INVALID'):compose_native(bad,base,self.root/'badcatalog')
+        catalog=load(cfg['r1_training']['source_membership']['path']);catalog['sources']['units']['source']['sha256']='0'*64
+        bad=deepcopy(cfg);bad['r1_training']['source_membership']=self.write('badcatalog.json',catalog)
+        with self.assertRaisesRegex(ValueError,'R1_SOURCE_CATALOG_DIFFERS'):compose_native(bad,base,self.root/'badpin')
+        bad=deepcopy(cfg);mp=load(manifests['units']['path']);mp['family']='recovery'
+        bad['r1_training']['routing_inputs']['units']=self.write('badmanifest.json',mp)
+        with patch('os.uname',return_value=type('Host',(),dict(nodename='fixture-host'))()),\
+             patch.dict(os.environ,STUDENT_R2_FRAME_HOST='1',STUDENT_R2_LOCAL_NODE='0'):
+            with self.assertRaisesRegex(ValueError,'R1_SLICE_MANIFEST_DIFFERS'):compose_native(bad,base,self.root/'badmanifest')
+        from tests.test_r2_data_path import fixture
+        extra=manifest(self.root/'extra',[fixture(self.root,qid='extra',stream='routing')],stream='routing',family='units')
+        bad=deepcopy(cfg);bad['r1_training']['routing_inputs']['units']=file_pin(extra)
+        sources['units']['source']=load(extra)['rows'];bad['r1_training']['row_sources']=self.write('extra_sources.json',sources)
+        catalog=load(cfg['r1_training']['source_membership']['path']);catalog['sources']['units']['source']=sources['units']['source']
+        bad['r1_training']['source_membership']=self.write('extra_catalog.json',catalog)
+        with patch('os.uname',return_value=type('Host',(),dict(nodename='fixture-host'))()),\
+             patch.dict(os.environ,STUDENT_R2_FRAME_HOST='1',STUDENT_R2_LOCAL_NODE='0'):
+            with self.assertRaisesRegex(ValueError,'R1_SLICE_ROW_MISFILED'):compose_native(bad,base,self.root/'extra_out')
 
 
 if __name__=='__main__':unittest.main()

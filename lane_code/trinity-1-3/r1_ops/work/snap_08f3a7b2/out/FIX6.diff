@@ -1,0 +1,2649 @@
+--- a/tools/derive_deployment.py
++++ b/tools/derive_deployment.py
+@@ -1,5 +1,5 @@
+ """Derive R1 from the authenticated H1 deployment; never edit the source kit."""
+-import argparse,copy,hashlib,json,os,re,shutil,sys
++import argparse,copy,datetime,hashlib,importlib.util,json,os,re,shutil,sys
+ from pathlib import Path
+ AS='/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/'
+ def enc(v):return json.dumps(v,sort_keys=True,separators=(',',':'),allow_nan=False)
+@@ -18,6 +18,51 @@
+     return hashlib.sha256(enc(v).encode()).hexdigest()
+ def digest(v):return hashlib.sha256(enc(v).encode()).hexdigest()
+ def safe(n):return not Path(n).is_absolute() and all(x not in ('','.','..') for x in n.split('/'))
++
++def validate_evidence(root):
++    """Check pre-submission records without initializing allocation state."""
++    # g.check always reaches persistent_launch for this kit. Reuse only its
++    # read-only helpers and d.contract; job.sh retains the full runtime check.
++    old_path=sys.path[:];old_bytecode=sys.dont_write_bytecode
++    try:
++        sys.dont_write_bytecode=True
++        sys.path.insert(0,str(root/'b'))
++        def inherited(name):
++            spec=importlib.util.spec_from_file_location('_r1_inherited_'+name,root/'b'/(name+'.py'))
++            module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
++            return module
++        gate=inherited('g');admission=inherited('d')
++        launch=load(root/'k/launch.json');cfg=gate.read_pin(root,launch['config'])
++        code=load(root/'k/7.json');config_sha=gate.identity(cfg);commit=code['commit']
++        contract_sha=gate.digest(admission.contract(launch,cfg))
++        review=gate.read_pin(root,launch['review'])
++        staged=gate.read_pin(root,launch['staging'])
++        archived=gate.read_pin(root,launch['archive'])
++        auth=load(root/'k/4.json')
++        for name,record in (('review.json',review),('staging.json',staged),('4.json',auth)):
++            if record.get('config_sha256')!=config_sha or record.get('source_revision')!=commit:
++                raise ValueError('Evidence identity or source differs: '+name)
++        if (review.get('verdict')!='PASS' or not review.get('reviewer')
++                or cfg.get('admission',{}).get('sha256')!=launch['review']['sha256']
++                or review.get('admission_contract_sha256')!=contract_sha
++                or review.get('admission_scope')!='pinned-template-and-native-data-derivation'):
++            raise ValueError('Independent review does not cover the in-job derivation')
++        if (staged.get('status')!='PASS' or staged.get('missing')!=[]
++                or staged.get('project_community_write_bytes')!=0):
++            raise ValueError('Read-only cache staging is not verified')
++        if (archived.get('status')!='ARCHIVED' or archived.get('durable') is not True
++                or archived.get('sha256')!=code['archive']['sha256']
++                or archived.get('tree_sha256')!=code['tree_sha256']
++                or not isinstance(archived.get('location'),str) or not archived['location']
++                or archived['location'].startswith(('/scratch/','/tmp/'))):
++            raise ValueError('Off-scratch source archive is not attested')
++        expiry=datetime.datetime.fromisoformat(auth['allow_until_utc'].replace('Z','+00:00'))
++        if (expiry.tzinfo is None or expiry<datetime.datetime(2026,11,22,tzinfo=datetime.timezone.utc)
++                or expiry<=datetime.datetime.now(datetime.timezone.utc) or 'p' not in auth.get('modes',[])
++                or auth.get('admission_contract_sha256')!=contract_sha):
++            raise ValueError('Written slot authorization is absent, foreign or expires too early')
++    finally:
++        sys.path[:]=old_path;sys.dont_write_bytecode=old_bytecode
+ 
+ def derive(source,out,packet,source_manifest_sha,*,fixture=False,evidence=None,bundle=None,selection_evidence=None):
+     os.umask(0o077);source=Path(source);out=Path(out);packet=Path(packet)
+@@ -119,10 +164,7 @@
+     actual={n:manifest[n] if n in missing else sha(out/n) for n in sorted(names)}
+     (out/'SHA256SUMS.txt').write_text(''.join(h+'  '+n+'\n' for n,h in actual.items()))
+     if evidence:
+-        # Execute the inherited production verifier. It authenticates review,
+-        # staging, archive and authorization schemas and their full bindings.
+-        sys.path.insert(0,str(out/'b'));import g
+-        g.check(out,{},'p')
++        validate_evidence(out)
+     result=dict(status=launch['status'],config_identity=identity(cfg),config_key=key,manifest_sha256=sha(out/'SHA256SUMS.txt'),
+         source_manifest_sha256=source_manifest_sha,missing_source_members=missing,source_identity=H1_ID,
+         run_key=run,staged_additions=staged,production_authorized=False,
+--- a/tools/finalize.py
++++ b/tools/finalize.py
+@@ -2,6 +2,8 @@
+ import hashlib,json,os,re,sys
+ from pathlib import Path
+ from rebind import ROOT,load,sha,write
++ORCHARD_SOURCE='/project/community/jjyeung/okh7/x_3fdda0fb'
++ORCHARD_SOURCE_MANIFEST='661ccd85b7a8f1afd25297869dc3a28539e64a3a0ab9a74ee928c0c5ab8a66c3'
+ 
+ def main():
+     out=ROOT/'out';b=load(out/'BINDING.json');op=load(out/'OPERATOR.json')
+@@ -14,10 +16,14 @@
+     log=(out/'logs/tests.log').read_text()
+     if not log.rstrip().endswith('OK'):raise ValueError('Tests did not pass')
+     n=int(re.search(r'Ran (\d+) tests',log).group(1))
++    pre=load(out/'proof/PRE_SUBMISSION.json')
++    if (pre['status']!='PASS' or pre['config_identity']!=b['config_identity']
++            or pre['operator_archive_sha256']!=op['sha256']):raise ValueError('Pre-submission proof is stale')
+     gate=lambda status,scope:dict(status=status,scope=scope)
+     gates=dict(schema='r1-local-gates-v1',status='BUILT_BLOCKED',config_identity=b['config_identity'],production_authorized=False,
+         checks=dict(tests=gate('PASS',str(n)+' tests'),off_identity=gate('PASS',off['scope']),
+             first_batch=gate('PASS',first['scope']),deterministic_derivation=gate('PASS',derivation['scope']),
++            pre_submission_evidence=gate('PASS',pre['scope']+' READY without Slurm identity; allocation entry forbidden; wrong identities and record bindings refused.'),
+             admission_coverage=gate('PASS',str(census['vqa_rows'])+' VQA rows; every stored question type checked; '+str(census['vqa_admitted'])+' admitted; row predicates only'),
+             loader_audit=gate('LOCAL_VQA_ONLY','1000 steps, 128000 real-store VQA draws; other streams unavailable'),
+             room_selection_projection=gate('PASS','586 selected source rows removed; all non-room entries and ordered indices unchanged'),
+@@ -29,7 +35,7 @@
+             independent_review=gate('PENDING','Admission inputs and sampler code changed')))
+     gates['absent_on_P']=b['absent_on_P']
+     gates['checks']['traced_room']=dict(status='PASS' if room['eligible']==room['rows'] else 'FAIL',**room)
+-    gates['checks']['unit_candidate']=gate('REFUSED_UNBOUND','The read-only units_p_slice_v2 fixture lacks top-level events and 32 frame pins; a packed successor is required.')
++    gates['checks']['unit_candidate']=gate('UNBOUND_PACKING_OPTION_TESTED','V3 has 747 rows (683 ft, 64 in, 0 cm). Native event reconstruction preserves payload; fixture frame resolution, binding and regeneration pass. Real Orchard frame authority and RGB verification remain required.')
+     write(out/'proof/GATES.json',gates)
+     write(out/'REVIEW_REQUEST.json',dict(status='REVIEW_REQUIRED',config_identity=b['config_identity'],tree_sha256=b['tree_sha256'],
+         operator_archive=op['archive'],operator_archive_sha256=op['sha256'],reviews_requested=1,
+@@ -45,7 +51,7 @@
+ 
+ Recovery fails at sealed `student_pilot/ground_rows.py:82`: `ground_record.not_seen` is true, while line 81 requires it to be false. The failure persists through the native packer. Production validates these rows before adding frames and never clears the flag.
+ 
+-{unit_status} `--unit-rows FILE --unit-rows-sha256 SHA` accepts packed JSONL with full events and 32 explicit frame pins. It preserves all input bytes, validates each row through sealed admission, binds a new pool source, and caps its dose at four times eligible rows over 1,000 steps. Each unit below 100 post-filter rows is named as missing. The specified 1,224-row units_p_slice_v2 candidate has ft=1,130, in=94 and cm=0. Its read-only fixture fails binding because it lacks top-level events and frame pins. A packed successor is required; no production unit source is bound. `ROUTING_DIAGNOSIS.json` retains the separate sealed-refusal diagnosis.
++{unit_status} `--unit-rows FILE --unit-rows-sha256 SHA` accepts packed JSONL with full events and 32 explicit frame pins. It preserves all input bytes, validates each row through sealed admission, binds a new pool source, and caps its dose at four times eligible rows over 1,000 steps. Each unit below 100 post-filter rows is named as missing. The specified 747-row units_p_slice_v3 candidate has ft=683, in=64 and cm=0. Direct binding refuses its missing events and frame pins. The optional `--pack-unit-slice` path reconstructs only the omitted event envelope through sealed `ground_rows.pack`, preserves all supplied payload fields, resolves frames through sealed `s1_routing.Frames`, then applies sealed validation and native source selection. It requires a pinned `--unit-frame-authority` manifest matching the config map, plan and FPS hashes. The option is off; no production unit source is bound. `ROUTING_DIAGNOSIS.json` retains the separate sealed-refusal diagnosis.
+ 
+ V7 contains {room['rows']} traced room rows: {room['sealed_row_checks_pass']} pass the sealed row checks, {room['qualitative_trace_pass']} pass the qualitative-trace predicate, and {room['eligible']} are eligible. The 476 square-metre and 95 square-foot one-line diagnostic room rows have zero eligible rows. A room row needs the r1_room_traced pool, pinned Seen citations, exactly one qualitative relation line and a numeric answer after </think>, with no other printed numbers in the think block; production must also verify its frames. The selection removes all room sources: 586 source-selection rows, corresponding to the brief's expected 581 materialized programs. Every non-room entry is canonically byte-equal and every ordered index retains its hash. The 581 materialized count still needs native regeneration.
+ 
+@@ -57,7 +63,9 @@
+ 
+ The production CPU proof is derived and tested locally at its boundaries, but has not run on Orchard. Its partition parameter accepts `advanced` or `general`; its receipt records the partition and node. It requests 48 CPUs, 800G and four hours with no GPU GRES. It requires named checks for disk plan, routing selection, empty root, temporary paths, runtime binary hashes, private directory modes, loader audit and required families. It authenticates bundle helpers, counts export destinations, starts with empty work and slot directories, and runs the inherited mode-p entry before auditing its prepared streams. Staging keeps files read-only and directories at 0700. The only external writable mount is the declared proof-receipt directory; work and preparation state remain under the job's private temporary root.
+ 
+-The operator archive is `{op['archive']}`. Its outer filenames pass the local scan. The complete deployment's privacy scan, independent admission review, native regeneration and production CPU proof remain required. No GO, content certificate or production PASS is manufactured. `R1P_PACKET.md` gives the binding and operator steps; `REVIEW_REQUEST.json` asks the dispatching lane for one independent review.
++Derivation validates the four evidence records through the inherited read-only pin, identity, digest and admission-contract helpers. It checks review, staging, durable archive and mode-p authorization bindings without a Slurm identity or persistent write. The packaged deriver reaches READY with production-form fixture evidence; wrong identities and malformed bindings fail. The inherited `b/` bytes and allocation-time check in the job path remain unchanged. `proof/PRE_SUBMISSION.json` records the fixture scope. Production source `H` is `{ORCHARD_SOURCE}`, with manifest SHA256 `{ORCHARD_SOURCE_MANIFEST}`; the local fixture manifest applies only to local tests.
++
++The operator archive is `{op['archive']}`, SHA256 `{op['sha256']}`. Its outer filenames pass the local scan. The complete deployment's privacy scan, independent admission review, native regeneration and production CPU proof remain required. No GO, content certificate or production PASS is manufactured. `R1P_PACKET.md` gives the binding and operator steps; `REVIEW_REQUEST.json` asks the dispatching lane for one independent review.
+ '''
+     (out/'REPORT.md').write_text(report)
+     physical=f"/tmp/jjyeung/a_{b['run_key']}/root/aws/u/ap/{b['store_key']}"
+@@ -88,7 +96,7 @@
+ 
+ The bound store is v7; its producer receipt and database SHA are fixed above. `--size-selector FILE` accepts `{{"field":"metadata.path","equals":"value"}}`; omission keeps all admitted size rows eligible, while the mix controls whether any are drawn. The mix file controls requested doses and refill rules. Traced rooms enter through the bound VQA store and remain subject to the qualitative-trace predicate and cap. `--room-receipt FILE` binds optional provenance for traced rows already integrated into that store; it does not merge a second database. A separate room store must be integrated by its producer. Rebinding invalidates earlier first-batch and deployment proof results; rerun them against the new identity. Use `--reuse-census` only for unchanged store bytes, receipt and sampler-predicate hash. After rebinding, run `/scratch/jjyeung/envs/p1cpu/bin/python -B tools/run_local_checks.py` to refresh the local evidence and this packet.
+ 
+-The default `--units-allowlist ft` samples feet only; freed routing slots go pro rata to camera displacement, movement direction, rotation and absolute distance. To bind units, add `--unit-rows FILE --unit-rows-sha256 SHA` and optionally `--unit-cents N` (default 100 hundredths of a row per step, capped at 4 × allowlisted eligible / 1,000). The file must contain faithful, already packed JSONL rows with full events and all 32 frame pins. No answer, event, or row payload is regenerated. A mismatched SHA, incomplete frame pins, sealed semantic refusal, or row removed by native source selection rejects the binding. The source must already be a clean slice; this command does not repair it.
++The default `--units-allowlist ft` samples feet only; freed routing slots go pro rata to camera displacement, movement direction, rotation and absolute distance. To bind units, add `--unit-rows FILE --unit-rows-sha256 SHA` and optionally `--unit-cents N` (default 100 hundredths of a row per step, capped at 4 × allowlisted eligible / 1,000). The file must contain faithful, already packed JSONL rows with full events and all 32 frame pins. Direct packed-file binding preserves every JSONL byte. The optional slice path described in `UNIT_PACKING.md` adds only missing events and resolved frame inputs; it refuses changes to the supplied target, answer, responses or spans. A mismatched SHA, incomplete frame pins, sealed semantic refusal, or row removed by native source selection rejects the binding. The source must already be a clean slice; this command does not repair it.
+ 
+ Each fallback is one rebind command and retains v7 as the sole store:
+ 
+@@ -97,11 +105,11 @@
+ /scratch/jjyeung/envs/p1cpu/bin/python -B tools/rebind.py --receipt {b['source_receipt']['path']} --receipt-sha256 {b['receipt_sha256']} --orchard-store {b['orchard_store']} --room-cents 0 --proof-partition {b['proof_partition']}
+ # Refused reworded away rows: exclude the exact QID suffix.
+ /scratch/jjyeung/envs/p1cpu/bin/python -B tools/rebind.py --receipt {b['source_receipt']['path']} --receipt-sha256 {b['receipt_sha256']} --orchard-store {b['orchard_store']} --exclude-qid-suffix _away_opp --proof-partition {b['proof_partition']}
+-# Bind a packed, audited successor. The current v2 candidate is refused unchanged.
++# Bind audited, fully packed rows; slice input requires the explicit option below.
+ /scratch/jjyeung/envs/p1cpu/bin/python -B tools/rebind.py --receipt {b['source_receipt']['path']} --receipt-sha256 {b['receipt_sha256']} --orchard-store {b['orchard_store']} --unit-rows "$UNIT_FILE" --unit-rows-sha256 "$UNIT_SHA256" --units-allowlist ft --unit-cents 100 --proof-partition {b['proof_partition']}
+ ```
+ 
+-Set `UNIT_FILE` and `UNIT_SHA256` to the audited packed file and its SHA. The named candidate is `/scratch/jjyeung/orch_n30/rows_r1/out/units_p_slice_v2/rows.jsonl`; its unchanged read-only fixture is refused for missing events and frame pins. After any rebind, run `tools/run_local_checks.py` with the CPU Python above. Neither fallback merges loose files into v6.
++Set `UNIT_FILE` and `UNIT_SHA256` to the audited packed file and its SHA. The named candidate is `/scratch/jjyeung/orch_n30/rows_r1/out/units_p_slice_v3/rows.jsonl`; its unchanged read-only fixture is refused by direct binding. `UNIT_PACKING.md` gives the optional packing command and required Orchard frame authorities. After any rebind, run `tools/run_local_checks.py` with the CPU Python above. Neither fallback merges loose files into v6.
+ 
+ Unit binding is an **admission-input change**: `u.gz` transports the exact JSONL bytes; `m.json` adds `U_Faithful` to the pool manifest; `i.json` binds its native ordered indices; `u.json` records hashes and per-unit/per-dataset counts. These artifacts enter the operator bundle. Derivation stages `u.gz`, `m.json` and `i.json` into private, read-only namespace paths and adds their pins to the routing catalog. RGB bytes are not bundled: the complete staged RGB map/plan and frame store must resolve every supplied frame pin unchanged. Missing or conflicting RGB fails production admission. Full native materialization calls the sealed `selected_rows`, frame resolution, division/scene/QID filters and RGB audit before the sampler or proof counts units.
+ 
+@@ -109,7 +117,7 @@
+ 
+ Operator steps below describe the future Orchard execution; this lane made no Orchard call. Keep all destinations private (directories 0700, files 0600 unless the sealed input requires 0400). Do not copy the descriptive reports to the public job surface.
+ 
+-1. Verify `SHA256SUMS` locally and transfer only `{op['archive']}` through the operator's approved route. Extract it into fresh bundle `{op['bundle']}`. Verify its `sums.txt`. Resolve the complete H1-1 deployment as `H`, whose source manifest must hash to `{derivation['source_manifest_sha256']}`. The local incomplete fixture cannot be used for production.
++1. Verify `SHA256SUMS` locally and transfer only `{op['archive']}` through the operator's approved route. Extract it into fresh bundle `{op['bundle']}`. Verify its `sums.txt`. Set `H={ORCHARD_SOURCE}`; its `SHA256SUMS.txt` must hash to `{ORCHARD_SOURCE_MANIFEST}`. The local incomplete fixture cannot be used for production.
+ 2. Run H1's authenticated native selection regeneration on its complete staged inputs, as in its `build/q.sh`. Retain the fresh raw `s1_pool.prepare` receipt as `NATIVE_RECEIPT`. Project it with the supplied helper; it verifies all regenerated ordered-index hashes and all non-room entries. It also binds the selector import-closure fingerprint to the archived trainer code; admission predicates must retain their parent hashes:
+ 
+ ```bash
+@@ -122,12 +130,13 @@
+ 
+ For a unit-bound packet, run the projection command with `--unit-binding "$BUN/u.json" --config "$BUN/config.json"` as well, using the authenticated CPU environment for the bound code tree. It executes sealed `s1_pool.prepare` on the unit source again, compares every ordered index, combines that source with the freshly checked parent selection, and refuses any final selection hash mismatch. The complete H1 inputs remain necessary. The source-selection counts are preliminary; the production proof reports post-filter counts, 1,000-step shares by family and question type, five bound traces per populated family, and missing units below 100 rows.
+ 
+-3. Obtain one independent review of the changed admission inputs and sampler. Supply identity-bound `review.json`, `staging.json`, `archive.json` and `4.json` in `EVIDENCE`, using the inherited production schemas. The durable source-archive attestation must cover the new tree. These are required inputs, not output claims of this build. Derive a fresh kit; the command invokes the inherited verifier and refuses incompatible evidence:
++3. Obtain one independent review of the changed admission inputs and sampler. Supply identity-bound `review.json`, `staging.json`, `archive.json` and `4.json` in `EVIDENCE`, using the inherited production schemas. The durable source-archive attestation must cover the new tree. These are required inputs, not output claims of this build. Derive a fresh kit; the command validates the four records and their bindings with inherited read-only helpers. It needs no Slurm identity and writes no persistent run state. The full inherited `g.check` remains in the allocation-time job path:
+ 
+ ```bash
+ KH={op['kit']}
++H={ORCHARD_SOURCE}
+ python3 -B "$BUN/d.py" --source "$H" \\
+-  --source-manifest-sha256 {derivation['source_manifest_sha256']} \\
++  --source-manifest-sha256 {ORCHARD_SOURCE_MANIFEST} \\
+   --packet "$BUN" --bundle "$BUN" --out "$KH" \\
+   --selection-evidence "$BUN/q/q.json" --evidence "$EVIDENCE" > "$BUN/compare.json"
+ ```
+@@ -145,14 +154,14 @@
+ 
+ 6. Inspect the named checks in `KH/o/JOB.proof.json`, its bound loader audit and the five printed traces per family. The required-family check permits recovery, size, unbound units, any zero-dose room cell, and bound units below 100 eligible rows; it must pass for every nonzero VQA cell and the four native routing cells. For a bound source, each unit below 100 is listed under absent_on_P with its count. Only allowlisted units with at least 100 rows enter the capped sampler. Confirm the proof receipt records the requested partition and actual node. The separate `go.json` must bind the final config, contract, wrapper and manifest; only then may the operator set `PROOF_JOB` and run `BUN/s.sh`. The submitter refuses any missing proof check or missing GO.
+ 
+-Local validation: {n} tests passed; OFF identity is exact on four tiny-model ranks; 288 final-config microsteps pass finite full-forward checks; two fixture derivations are byte-identical; the real-v7 loader audit covers 1,000 steps. These are bounded local results. Full native selection regeneration, production RGB/admission, complete routing counts, complete privacy scan and production CPU proof are NOT_RUN. `proof/GATES.json` is the authoritative gate list.
++Local validation: {n} tests passed; production-form fixture records reach READY without Slurm identity or persistent initialization, and wrong evidence fails; OFF identity is exact on four tiny-model ranks; 288 final-config microsteps pass finite full-forward checks; two fixture derivations are byte-identical; the real-v7 loader audit covers 1,000 steps. These are bounded local results. Full native selection regeneration, production RGB/admission, complete routing counts, complete privacy scan and production CPU proof are NOT_RUN. `proof/GATES.json` is the authoritative gate list.
+ '''
+     (out/'R1P_PACKET.md').write_text(packet)
+-    (ROOT/'STATUS.md').write_text(f'BUILT_BLOCKED: config {b["config_identity"]}. Full v7 census and local loader audit complete; {n} tests, four-rank OFF identity, tiny-model first batch and deterministic fixture derivation pass. Vehicle-P required families follow the ruled set; recovery, size and unbound units are absent; low-count bound units are named absent. Required-family status is {audit["required_families"]["status"]}; missing families: {audit["required_families"]["missing"]}. Traced room eligibility is {room["eligible"]}/{room["rows"]}; the Seen/relation/answer grammar is enforced. The current unit candidate lacks events and frame pins and is refused unchanged. Production evidence and independent review remain required. Read out/REPORT.md and out/R1P_PACKET.md.\n')
++    (ROOT/'STATUS.md').write_text(f'BUILT_BLOCKED: config {b["config_identity"]}. The deriver validates production-form evidence without Slurm identity or persistent writes; inherited job-time checks remain unchanged. Full v7 census and local loader audit complete; {n} tests, four-rank OFF identity, tiny-model first batch and deterministic fixture derivation pass. Vehicle-P required families follow the ruled set; recovery, size and unbound units are absent; low-count bound units are named absent. Required-family status is {audit["required_families"]["status"]}; missing families: {audit["required_families"]["missing"]}. Traced room eligibility is {room["eligible"]}/{room["rows"]}; the Seen/relation/answer grammar is enforced. The v3 unit packing path passes fixtures and remains off; Orchard frame resolution and RGB validation are pending. Production evidence and independent review remain required. Read out/REPORT.md and out/R1P_PACKET.md.\n')
+     names=['REPORT.md','R1P_PACKET.md','ADMISSION_BY_TYPE.json','ROUTING_DIAGNOSIS.json','MIX.md','config.json','BINDING.json',
+-           'FIX5.md','FIX5.diff','OPERATOR.json','REVIEW_REQUEST.json','SAMPLER_REVIEW.patch','DEPLOYMENT_REVIEW.patch','r1p_code.tar',op['archive']]
++           'FIX6.md','FIX6.diff','UNIT_PACKING.md','OPERATOR.json','REVIEW_REQUEST.json','SAMPLER_REVIEW.patch','DEPLOYMENT_REVIEW.patch','r1p_code.tar',op['archive']]
+     names += ['proof/'+n for n in ('GATES.json','inputs.json','OFF_IDENTITY.json','FIRST_BATCH.json','DERIVATION.json',
+-                                 'loader_audit.json','ROOM_GRAMMAR.json','traces.jsonl','LOCAL_NAMESPACE.json','p.py',op['proof_script'])]
++                                 'PRE_SUBMISSION.json','loader_audit.json','ROOM_GRAMMAR.json','UNIT_PACKING_CHECK.json','traces.jsonl','LOCAL_NAMESPACE.json','p.py',op['proof_script'])]
+     names += ['proof/selection/r.json','proof/selection/q.json']
+     if (out/'proof/UNIT_CANDIDATE.json').exists():names.append('proof/UNIT_CANDIDATE.json')
+     (out/'SHA256SUMS').write_text(''.join(sha(out/n)+'  '+n+'\n' for n in sorted(names)))
+--- a/tools/run_local_checks.py
++++ b/tools/run_local_checks.py
+@@ -50,7 +50,9 @@
+             (out/'operator'/name).read_text().splitlines(keepends=True),fromfile='a/'+name,tofile='b/'+name))
+     (out/'DEPLOYMENT_REVIEW.patch').write_text(''.join(patch))
+     run([ROOT/'tests/test_packet.py'],'tests.log')
+-    run([ROOT/'tools/write_fix5.py'],'fix5.log')
++    subprocess.run([sys.executable,'-B',str(ROOT/'tools/write_fix6.py')],check=True)
++    run([ROOT/'tools/finalize.py'],'finalize.log')
++    subprocess.run([sys.executable,'-B',str(ROOT/'tools/write_fix6.py')],check=True)
+     run([ROOT/'tools/finalize.py'],'finalize.log')
+     print(json.dumps(dict(status='BUILT_BLOCKED',config_identity=binding['config_identity'],operator_archive_sha256=expected)))
+ 
+--- a/tools/unit_binding.py
++++ b/tools/unit_binding.py
+@@ -18,8 +18,10 @@
+     if sha(rows)!=expected:raise ValueError('Unit slice SHA differs')
+     if set(authority)!={'frame_map','frame_plan','fps_authority'}:raise ValueError('Unit packing requires map, plan and FPS authority')
+     actual=s1_pool.implementation()
++    actual['student_pilot/s1_routing.py']=sha(s1_routing.__file__)
++    expected_implementation={**parent['implementation'],'student_pilot/s1_routing.py':'5c8cd97392ba66a525f831047cfbe7d7e0ae028fcf6711e2427596fc98a126bc'}
+     for name in ('student_pilot/ground_rows.py','student_pilot/s1_pool.py','student_pilot/s1_routing.py'):
+-        if actual.get(name)!=parent['implementation'].get(name):raise ValueError('Unit packing predicate differs: '+name)
++        if actual[name]!=expected_implementation[name]:raise ValueError('Unit packing predicate differs: '+name)
+     for key,value in authority.items():
+         if set(value)!={'path','sha256'} or value['sha256']!=expected_authority[key]['sha256'] or sha(value['path'])!=value['sha256']:
+             raise ValueError('Unit frame authority differs: '+key)
+--- a/tools/write_fix6.py
++++ b/tools/write_fix6.py
+@@ -0,0 +1,67 @@
++"""Write the bounded frozen-snapshot delta without Git or deletion."""
++import difflib,hashlib,json,re
++from pathlib import Path
++
++ROOT=Path(__file__).resolve().parents[1]
++SNAPSHOT=Path('/scratch/jjyeung/orch_n30/r1_ops/work/snap_782f303d')
++EXCLUDED={'out/FIX6.md','out/FIX6.diff','out/SHA256SUMS'}
++def sha(path):
++    h=hashlib.sha256()
++    with path.open('rb') as stream:
++        for block in iter(lambda:stream.read(1<<20),b''):h.update(block)
++    return h.hexdigest()
++def load(path):return json.loads(path.read_text())
++
++def main():
++    patches=[];changed=[];binary=[]
++    for folder in ('tools','tests','configs','out','work/tree'):
++        left=SNAPSHOT/folder;right=ROOT/folder
++        paths={p.relative_to(left) for p in left.rglob('*') if p.is_file() and '__pycache__' not in p.parts}
++        paths|={p.relative_to(right) for p in right.rglob('*') if p.is_file() and '__pycache__' not in p.parts}
++        for rel in sorted(paths):
++            name=folder+'/'+str(rel)
++            if name in EXCLUDED:continue
++            a=left/rel;b=right/rel
++            before_sha=sha(a) if a.is_file() else None;after_sha=sha(b) if b.is_file() else None
++            if before_sha==after_sha:continue
++            changed.append(name)
++            if folder in ('configs','work/tree'):
++                raise ValueError('Fix 6 must preserve config and trainer bytes: '+name)
++            before=a.read_bytes() if a.is_file() else b'';after=b.read_bytes() if b.is_file() else b''
++            try:
++                if b'\0' in before or b'\0' in after:raise UnicodeError()
++                old=before.decode();new=after.decode()
++            except UnicodeError:
++                patches.append('Binary files a/'+name+' and b/'+name+' differ\n')
++                patches.append('# SHA256 before='+str(before_sha)+' after='+str(after_sha)+'\n')
++                binary.append(name);continue
++            patches.extend(difflib.unified_diff(old.splitlines(keepends=True),new.splitlines(keepends=True),
++                                               fromfile='a/'+name,tofile='b/'+name))
++    out=ROOT/'out';binding=load(out/'BINDING.json');op=load(out/'OPERATOR.json')
++    count=int(re.search(r'Ran (\d+) tests',(out/'logs/tests.log').read_text()).group(1))
++    if not (out/'logs/tests.log').read_text().rstrip().endswith('OK'):raise ValueError('Tests failed')
++    note=f'''The packaged deriver validates production-form evidence and reaches READY without a Slurm identity or persistent-run initialization. Config identity remains `{binding['config_identity']}`. All {count} packet tests pass.
++
++Archive: `{op['archive']}`. SHA256: `{op['sha256']}`.
++
++`tools/derive_deployment.py` uses inherited `g.read_pin`, `g.identity`, `g.digest` and `d.contract`. It checks the review verdict, reviewer, config/source identity, admission hash, contract and scope; staging status, config/source identity, missing inputs and write count; durable archive status, location, tree and archive hash; and mode-p authorization identity, source, contract and expiry. It does not call `g.check`, `persistent_launch` or `r8.main`. The inherited verifier has no complete evidence-only entry point, so the deriver composes its read-only helpers with these record predicates. The unchanged job path runs the full allocation-time verifier.
++
++`tests/test_derivation_pre_submit.py` uses the read-only driver `evidence_body.py`, `fixture_h`, `fixture_b` and the construction in `test_local.py`. It exercises the packaged `d.py` with every Slurm environment variable removed. A call guard refuses allocation-time persistence, and an audit guard refuses writes outside the lane's test directory. The READY result retains `production_authorized=false` in the derivation receipt. Four wrong-identity records and fourteen malformed record/binding variants fail. Runtime files under `b/` and `job.sh` match the existing fixture derivation byte for byte.
++
++The tests use observed H1 record schemas and raw native selection receipt/index bytes. Two absent data archives contain explicit local sentinels; review attestations are simulated. These fixtures prove control flow and evidence validation, not production data authenticity, independent approval or native preparation. `proof/PRE_SUBMISSION.json` and `logs/tests.log` record the scope and results. The operator archive rebuild is byte-deterministic, and two fixture derivations have identical manifest hashes. Existing four-rank OFF and first-batch results remain bound to the unchanged config and trainer tree.
++
++`R1P_PACKET.md` sets `H=/project/community/jjyeung/okh7/x_3fdda0fb` and prints source manifest SHA256 `661ccd85b7a8f1afd25297869dc3a28539e64a3a0ab9a74ee928c0c5ab8a66c3`. The fixture manifest value remains confined to local evidence. The archive, `OPERATOR.json`, `REPORT.md`, `R1P_PACKET.md`, `proof/GATES.json`, review request and checksums are resealed together. Independent final-packet review, content certification and the production CPU proof remain pending; no Orchard, Slurm, SSH, GPU or Git command ran.
++
++`FIX6.diff` compares `tools`, `tests`, `configs`, `out` and `work/tree` against `{SNAPSHOT}`. Config and trainer files are byte-identical. The diff excludes itself, this note and `SHA256SUMS` to avoid recursive checksum dependencies; the final checksum manifest authenticates both FIX6 files. Binary changes carry before/after SHA256 values. No inherited `b/` file was edited. No files were deleted or edited outside this lane.
++
++The report and packet instructions apply the no-archaeology writing rule. The snapshot comparison is retained because the brief explicitly requests a reviewable delta.
++
++Changed files covered by the diff:
++
++'''
++    note+=''.join('- `'+name+'`\n' for name in changed)
++    (out/'FIX6.md').write_text(note)
++    (out/'FIX6.diff').write_text(''.join(patches))
++    print(json.dumps(dict(changed_files=changed,binary_files=binary,diff='out/FIX6.diff')))
++
++if __name__=='__main__':main()
+--- a/tests/test_derivation_pre_submit.py
++++ b/tests/test_derivation_pre_submit.py
+@@ -0,0 +1,137 @@
++"""Production-form record tests; all writes stay in this lane's local fixtures."""
++import copy,hashlib,importlib.util,json,os,shutil,subprocess,sys,tempfile,unittest
++from pathlib import Path
++
++ROOT=Path(__file__).resolve().parents[1]
++DRIVER=Path('/scratch/jjyeung/orch_n30/r1_ops/work/drv')
++def load(p):return json.loads(p.read_text())
++def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
++def write(p,v):p.write_text(json.dumps(v,sort_keys=True,separators=(',',':'))+'\n')
++
++class DerivationEvidence(unittest.TestCase):
++    @classmethod
++    def setUpClass(cls):
++        cls.root=Path(tempfile.mkdtemp(prefix='pre_submit_',dir=ROOT/'work'))
++        cls.bundle=ROOT/'out/operator';cls.source=cls.root/'source'
++        shutil.copytree(DRIVER/'fixture_h',cls.source)
++        # Only the absent data archives become sentinels; runtime bytes retain
++        # their production pins. This fixture cannot attest native data.
++        manifest=dict(reversed(line.split('  ',1)) for line in (cls.source/'SHA256SUMS.txt').read_text().splitlines())
++        cls.sentinels=[]
++        for name in manifest:
++            path=cls.source/name
++            if not path.exists():
++                path.write_bytes(b'LOCAL TEST SENTINEL; NOT PRODUCTION\n')
++                manifest[name]=sha(path);cls.sentinels.append(name)
++        (cls.source/'SHA256SUMS.txt').write_text(''.join(h+'  '+n+'\n' for n,h in manifest.items()))
++        if len(cls.sentinels)!=2:raise AssertionError('Fixture archive membership changed')
++        if load(DRIVER/'fixture_b/BINDING.json')['config_identity']!=load(cls.bundle/'BINDING.json')['config_identity']:
++            raise AssertionError('Driver fixture identity differs')
++        # Use the same observed H1 records and builder as drv/test_local.py.
++        old=cls.root/'old';old.mkdir();observed=(DRIVER/'o3.out').read_text()
++        for name in ('review.json','staging.json','archive.json'):
++            write(old/name,json.JSONDecoder().raw_decode(observed.split('== '+name+'\n',1)[1])[0])
++        shutil.copyfile(cls.source/'k/4.json',old/'4.json')
++        cls.evidence=cls.root/'e';cls.evidence.mkdir();write(cls.evidence/'c.json',{'missing':[],'fixture':True})
++        spec=importlib.util.spec_from_file_location('driver_evidence',DRIVER/'evidence_body.py')
++        builder=importlib.util.module_from_spec(spec);spec.loader.exec_module(builder)
++        builder.make_records(cls.bundle,cls.source,old,cls.evidence,{'missing':[]},
++                             {'fixture':True,'reviews':{'review_r1p':'SIMULATED','review_r1p2':'SIMULATED'}})
++        archived=load(cls.evidence/'archive.json')
++        archived.update(location=load(ROOT/'out/OPERATOR.json')['bundle']+'/t.tar',fixture=True)
++        write(cls.evidence/'archive.json',archived)
++        native=Path('/scratch/jjyeung/orch_n30/cont_ops/work/h1/evidence/fix7_selection/orchard_equal_6c18a2bf/o/native')
++        receipt=load(native/'receipt.json');local=cls.root/'native';local.mkdir()
++        for entry in receipt['sources'].values():
++            if 'selection' in entry:
++                name=Path(entry['selection']['path']).name
++                shutil.copyfile(native/name,local/name);entry['selection']['path']=str(local/name)
++        write(local/'receipt.json',receipt)
++        subprocess.run([sys.executable,'-B',str(cls.bundle/'q.py'),'--parent',str(cls.source/'k/pool_selection_eac5f9f0.json'),
++            '--indices',str(cls.source/'k'),'--native-receipt',str(local/'receipt.json'),
++            '--implementation',str(cls.bundle/'j.json'),'--code-record',str(cls.bundle/'c.json'),
++            '--out',str(cls.root/'q')],check=True,stdout=subprocess.DEVNULL)
++
++    def derive(self,name,evidence=None):
++        # A profile guard fails on entry to allocation-only code, without
++        # replacing any verifier or persistent-writer function.
++        runner="""import os,runpy,sys
++from pathlib import Path
++assert 'SLURM_JOB_ID' not in os.environ
++allowed=Path(sys.argv[1]).resolve()
++def audit(event,args):
++    if event=='open':
++        path,mode,flags=args
++        writing=flags & (os.O_WRONLY|os.O_RDWR|os.O_CREAT|os.O_TRUNC|os.O_APPEND)
++    elif event in ('os.mkdir','os.chmod'):
++        path=args[0];writing=True
++    else:return
++    if writing and isinstance(path,(str,bytes)) and not Path(os.fsdecode(path)).resolve().is_relative_to(allowed):
++        raise AssertionError('Derivation wrote outside fixture: '+str(path))
++def profile(frame,event,arg):
++    if event=='call' and (frame.f_code.co_name=='persistent_launch' or Path(frame.f_code.co_filename).name=='r8.py'):
++        raise AssertionError('Derivation entered allocation-time persistence')
++sys.addaudithook(audit);sys.setprofile(profile)
++sys.argv=sys.argv[2:]
++runpy.run_path(sys.argv[0],run_name='__main__')
++"""
++        env={k:v for k,v in os.environ.items() if not k.startswith('SLURM')}
++        args=[sys.executable,'-B','-c',runner,str(self.root),str(self.bundle/'d.py'),
++              '--source',str(self.source),'--source-manifest-sha256',sha(self.source/'SHA256SUMS.txt'),
++              '--packet',str(self.bundle),'--bundle',str(self.bundle),'--selection-evidence',str(self.root/'q/q.json'),
++              '--evidence',str(evidence or self.evidence),'--out',str(self.root/name)]
++        result=subprocess.run(args,env=env,text=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
++        (self.root/(name+'.log')).write_text(result.stdout+result.stderr)
++        return result
++
++    def test_production_records_ready_without_slurm_or_persistent_writes(self):
++        result=self.derive('ready');self.assertEqual(result.returncode,0,result.stderr)
++        receipt=load(self.root/'ready.json');launch=load(self.root/'ready/k/launch.json')
++        self.assertEqual(receipt['status'],'READY');self.assertEqual(launch['status'],'READY')
++        self.assertFalse(receipt['production_authorized'])
++        baseline=Path(load(ROOT/'out/proof/DERIVATION.json')['fixture_paths'][0])
++        for path in (baseline/'b').rglob('*'):
++            if path.is_file() and '__pycache__' not in path.parts:
++                self.assertEqual(sha(path),sha(self.root/'ready/b'/path.relative_to(baseline/'b')))
++        self.assertEqual(sha(baseline/'job.sh'),sha(self.root/'ready/job.sh'))
++        write(ROOT/'out/proof/PRE_SUBMISSION.json',dict(status='PASS',config_identity=receipt['config_identity'],
++            operator_archive_sha256=sha(ROOT/'out'/load(ROOT/'out/OPERATOR.json')['archive']),
++            slurm_identity_present=False,persistent_entry_called=False,writes_confined_to_fixture=True,
++            inherited_runtime_unchanged=True,source_sentinels=self.sentinels,fixture=str(self.root),
++            scope='Production-form records from driver builder; two missing data archives replaced only in local fixture; no production authorization or native data proof.'))
++
++    def test_wrong_evidence_identity_refused_during_derivation(self):
++        for filename in ('review.json','staging.json','4.json','archive.json'):
++            with self.subTest(record=filename):
++                evidence=self.root/('bad_'+filename);shutil.copytree(self.evidence,evidence)
++                value=load(evidence/filename)
++                value['tree_sha256' if filename=='archive.json' else 'config_sha256']='0'*64
++                write(evidence/filename,value)
++                result=self.derive('rejected_'+filename,evidence)
++                self.assertNotEqual(result.returncode,0)
++                self.assertIn('Off-scratch source archive' if filename=='archive.json' else 'Evidence identity',result.stderr)
++                self.assertFalse((self.root/('rejected_'+filename+'.json')).exists())
++
++    def test_record_schema_and_bindings_refused(self):
++        sys.path.insert(0,str(ROOT/'tools'))
++        from derive_deployment import validate_evidence
++        # Reuse a derived kit to keep negative record tests bounded.
++        result=self.derive('mutants');self.assertEqual(result.returncode,0,result.stderr)
++        kit=self.root/'mutants';launch=load(kit/'k/launch.json')
++        mutations=[('review.json','verdict','PENDING'),('review.json','reviewer',''),
++            ('review.json','source_revision','sha256:'+'0'*64),('review.json','admission_contract_sha256','0'*64),
++            ('staging.json','missing',['missing']),('staging.json','project_community_write_bytes',1),
++            ('staging.json','source_revision','sha256:'+'0'*64),('archive.json','durable',False),
++            ('archive.json','sha256','0'*64),('archive.json','location','/tmp/fixture'),
++            ('4.json','modes',['t']),('4.json','source_revision','sha256:'+'0'*64),
++            ('4.json','admission_contract_sha256','0'*64),('4.json','allow_until_utc','2026-11-21T00:00:00Z')]
++        for filename,key,value in mutations:
++            with self.subTest(record=filename,field=key):
++                path=kit/'k'/filename;raw=path.read_bytes();record=load(path);record[key]=value;write(path,record)
++                altered=copy.deepcopy(launch)
++                if filename!='4.json':altered[filename[:-5]]['sha256']=sha(path)
++                write(kit/'k/launch.json',altered)
++                with self.assertRaises(ValueError):validate_evidence(kit)
++                path.write_bytes(raw);write(kit/'k/launch.json',launch)
++
++if __name__=='__main__':unittest.main(verbosity=2)
+--- a/tests/test_packet.py
++++ b/tests/test_packet.py
+@@ -521,11 +521,11 @@
+             limitation='Synthetic frame pins test the native resolver and binding path; Orchard must supply real RGB authorities and bytes.'))
+ 
+     def test_real_unit_slice_rebind_refuses_unpacked_input_without_mutation(self):
+-        source=Path('/scratch/jjyeung/orch_n30/rows_r1/out/units_p_slice_v2/rows.jsonl')
++        source=Path('/scratch/jjyeung/orch_n30/rows_r1/out/units_p_slice_v3/rows.jsonl')
+         root=temp();fixture=root/'rows.jsonl';fixture.write_bytes(source.read_bytes());before=sha(source)
+         from student_pilot.vehicle_p import unit_name
+         rows=[json.loads(line) for line in fixture.read_text().splitlines()]
+-        self.assertEqual(Counter(unit_name(row) for row in rows),{'ft':1130,'in':94})
++        self.assertEqual(Counter(unit_name(row) for row in rows),{'ft':683,'in':64})
+         binding=load(ROOT/'out/BINDING.json');dest=root/'packet';dest.mkdir(mode=0o700)
+         (dest/'ADMISSION_BY_TYPE.json').write_bytes((ROOT/'out/ADMISSION_BY_TYPE.json').read_bytes())
+         command=[sys.executable,'-B',str(ROOT/'tools/rebind.py'),'--receipt',binding['source_receipt']['path'],
+@@ -538,7 +538,7 @@
+         self.assertFalse((dest/'BINDING.json').exists())
+         self.assertEqual(sha(source),before);self.assertEqual(sha(fixture),before)
+         self.assertIsNone(load(ROOT/'out/BINDING.json')['unit_binding'])
+-        write(ROOT/'out/proof/UNIT_CANDIDATE.json',dict(status='REFUSED_UNBOUND',source={'path':str(source),'sha256':before},fixture={'path':str(fixture),'sha256':sha(fixture)},counts={'ft':1130,'in':94,'cm':0},command=command,returncode=result.returncode,reason='Missing top-level events and all 32 frame pins',log={'path':str(root/'rebind.log'),'sha256':sha(root/'rebind.log')},production_bound=False))
++        write(ROOT/'out/proof/UNIT_CANDIDATE.json',dict(status='REFUSED_UNBOUND',source={'path':str(source),'sha256':before},fixture={'path':str(fixture),'sha256':sha(fixture)},counts={'ft':683,'in':64,'cm':0},command=command,returncode=result.returncode,reason='Missing top-level events and all 32 frame pins',log={'path':str(root/'rebind.log'),'sha256':sha(root/'rebind.log')},production_bound=False))
+ 
+     def test_unit_allowlist_populations_cap_and_named_absences(self):
+         import sqlite3
+@@ -586,4 +586,6 @@
+         with patch.dict(os.environ,dict(SLURM_JOB_PARTITION='advanced',CUDA_VISIBLE_DEVICES='0')):
+             with self.assertRaisesRegex(ValueError,'CPU-only'):proof.proof_allocation({'partition':'advanced'})
+ 
++from test_derivation_pre_submit import DerivationEvidence
++
+ if __name__=='__main__':unittest.main(verbosity=2)
+--- a/out/FIX5.diff
++++ b/out/FIX5.diff
+@@ -11,9 +11,21 @@
+          reasons=[]
+ --- a/tools/finalize.py
+ +++ b/tools/finalize.py
+-@@ -47,11 +47,11 @@
+- 
+- {unit_status} `--unit-rows FILE --unit-rows-sha256 SHA` accepts packed JSONL with full events and 32 explicit frame pins. It preserves all input bytes, validates each row through sealed admission, binds a new pool source, and caps its dose at four times eligible rows over 1,000 steps. Each unit below 100 post-filter rows is named as missing. The specified 1,224-row units_p_slice_v2 candidate has ft=1,130, in=94 and cm=0. Its read-only fixture fails binding because it lacks top-level events and frame pins. A packed successor is required; no production unit source is bound. `ROUTING_DIAGNOSIS.json` retains the separate sealed-refusal diagnosis.
++@@ -29,7 +29,7 @@
++             independent_review=gate('PENDING','Admission inputs and sampler code changed')))
++     gates['absent_on_P']=b['absent_on_P']
++     gates['checks']['traced_room']=dict(status='PASS' if room['eligible']==room['rows'] else 'FAIL',**room)
++-    gates['checks']['unit_candidate']=gate('REFUSED_UNBOUND','The read-only units_p_slice_v2 fixture lacks top-level events and 32 frame pins; a packed successor is required.')
+++    gates['checks']['unit_candidate']=gate('UNBOUND_PACKING_OPTION_TESTED','V3 has 747 rows (683 ft, 64 in, 0 cm). Native event reconstruction preserves payload; fixture frame resolution, binding and regeneration pass. Real Orchard frame authority and RGB verification remain required.')
++     write(out/'proof/GATES.json',gates)
++     write(out/'REVIEW_REQUEST.json',dict(status='REVIEW_REQUIRED',config_identity=b['config_identity'],tree_sha256=b['tree_sha256'],
++         operator_archive=op['archive'],operator_archive_sha256=op['sha256'],reviews_requested=1,
++@@ -45,13 +45,13 @@
++ 
++ Recovery fails at sealed `student_pilot/ground_rows.py:82`: `ground_record.not_seen` is true, while line 81 requires it to be false. The failure persists through the native packer. Production validates these rows before adding frames and never clears the flag.
++ 
++-{unit_status} `--unit-rows FILE --unit-rows-sha256 SHA` accepts packed JSONL with full events and 32 explicit frame pins. It preserves all input bytes, validates each row through sealed admission, binds a new pool source, and caps its dose at four times eligible rows over 1,000 steps. Each unit below 100 post-filter rows is named as missing. The specified 1,224-row units_p_slice_v2 candidate has ft=1,130, in=94 and cm=0. Its read-only fixture fails binding because it lacks top-level events and frame pins. A packed successor is required; no production unit source is bound. `ROUTING_DIAGNOSIS.json` retains the separate sealed-refusal diagnosis.
+++{unit_status} `--unit-rows FILE --unit-rows-sha256 SHA` accepts packed JSONL with full events and 32 explicit frame pins. It preserves all input bytes, validates each row through sealed admission, binds a new pool source, and caps its dose at four times eligible rows over 1,000 steps. Each unit below 100 post-filter rows is named as missing. The specified 747-row units_p_slice_v3 candidate has ft=683, in=64 and cm=0. Direct binding refuses its missing events and frame pins. The optional `--pack-unit-slice` path reconstructs only the omitted event envelope through sealed `ground_rows.pack`, preserves all supplied payload fields, resolves frames through sealed `s1_routing.Frames`, then applies sealed validation and native source selection. It requires a pinned `--unit-frame-authority` manifest matching the config map, plan and FPS hashes. The option is off; no production unit source is bound. `ROUTING_DIAGNOSIS.json` retains the separate sealed-refusal diagnosis.
+  
+ -V7 contains {room['rows']} traced room rows: {room['sealed_row_checks_pass']} pass the sealed row checks, {room['qualitative_trace_pass']} pass the qualitative-trace predicate, and {room['eligible']} are eligible. The 476 square-metre and 95 square-foot one-line diagnostic room rows have zero eligible rows. A room row needs ordered Locate lines with frame pins, one Relate line and an estimate; production must also verify its frames. The selection removes all room sources: 586 source-selection rows, corresponding to the brief's expected 581 materialized programs. Every non-room entry is canonically byte-equal and every ordered index retains its hash. The 581 materialized count still needs native regeneration.
+ +V7 contains {room['rows']} traced room rows: {room['sealed_row_checks_pass']} pass the sealed row checks, {room['qualitative_trace_pass']} pass the qualitative-trace predicate, and {room['eligible']} are eligible. The 476 square-metre and 95 square-foot one-line diagnostic room rows have zero eligible rows. A room row needs the r1_room_traced pool, pinned Seen citations, exactly one qualitative relation line and a numeric answer after </think>, with no other printed numbers in the think block; production must also verify its frames. The selection removes all room sources: 586 source-selection rows, corresponding to the brief's expected 581 materialized programs. Every non-room entry is canonically byte-equal and every ordered index retains its hash. The 581 materialized count still needs native regeneration.
+@@ -25,33 +37,70 @@
+  
+  All {n} local tests pass. The tiny-model OFF optimizer state is bit-equal on all four ranks against b01ce449. The final S2-off first batch passes 72 full-forward microsteps per rank, including 128 real VQA targets in total. Pixels and auxiliary streams are fixtures; these checks do not certify production RGB or the actual routing batch. Two fixture deployment derivations have identical manifest hashes. The fixture lacks `{derivation['missing_source_members'][0]}` and `{derivation['missing_source_members'][1]}`.
+  
+-@@ -86,7 +86,7 @@
++@@ -86,9 +86,9 @@
+    --mix configs/mix.json --proof-partition {b['proof_partition']}
+  ```
+  
+ -The bound store is v7; its producer receipt and database SHA are fixed above. `--size-selector FILE` accepts `{{"field":"metadata.path","equals":"value"}}`; omission keeps all admitted size rows eligible, while the mix controls whether any are drawn. The mix file controls requested doses and refill rules. Traced rooms enter through the bound VQA store and remain subject to the qualitative-trace predicate and cap. `--room-receipt FILE` binds optional provenance for traced rows already integrated into that store; it does not merge a second database. A separate room store must be integrated by its producer. Rebinding invalidates earlier first-batch and deployment proof results; rerun them against the new identity. Use `--reuse-census` only for unchanged store bytes and receipt. After rebinding, run `/scratch/jjyeung/envs/p1cpu/bin/python -B tools/run_local_checks.py` to refresh the local evidence and this packet.
+ +The bound store is v7; its producer receipt and database SHA are fixed above. `--size-selector FILE` accepts `{{"field":"metadata.path","equals":"value"}}`; omission keeps all admitted size rows eligible, while the mix controls whether any are drawn. The mix file controls requested doses and refill rules. Traced rooms enter through the bound VQA store and remain subject to the qualitative-trace predicate and cap. `--room-receipt FILE` binds optional provenance for traced rows already integrated into that store; it does not merge a second database. A separate room store must be integrated by its producer. Rebinding invalidates earlier first-batch and deployment proof results; rerun them against the new identity. Use `--reuse-census` only for unchanged store bytes, receipt and sampler-predicate hash. After rebinding, run `/scratch/jjyeung/envs/p1cpu/bin/python -B tools/run_local_checks.py` to refresh the local evidence and this packet.
+  
+- The default `--units-allowlist ft` samples feet only; freed routing slots go pro rata to camera displacement, movement direction, rotation and absolute distance. To bind units, add `--unit-rows FILE --unit-rows-sha256 SHA` and optionally `--unit-cents N` (default 100 hundredths of a row per step, capped at 4 × allowlisted eligible / 1,000). The file must contain faithful, already packed JSONL rows with full events and all 32 frame pins. No answer, event, or row payload is regenerated. A mismatched SHA, incomplete frame pins, sealed semantic refusal, or row removed by native source selection rejects the binding. The source must already be a clean slice; this command does not repair it.
++-The default `--units-allowlist ft` samples feet only; freed routing slots go pro rata to camera displacement, movement direction, rotation and absolute distance. To bind units, add `--unit-rows FILE --unit-rows-sha256 SHA` and optionally `--unit-cents N` (default 100 hundredths of a row per step, capped at 4 × allowlisted eligible / 1,000). The file must contain faithful, already packed JSONL rows with full events and all 32 frame pins. No answer, event, or row payload is regenerated. A mismatched SHA, incomplete frame pins, sealed semantic refusal, or row removed by native source selection rejects the binding. The source must already be a clean slice; this command does not repair it.
+++The default `--units-allowlist ft` samples feet only; freed routing slots go pro rata to camera displacement, movement direction, rotation and absolute distance. To bind units, add `--unit-rows FILE --unit-rows-sha256 SHA` and optionally `--unit-cents N` (default 100 hundredths of a row per step, capped at 4 × allowlisted eligible / 1,000). The file must contain faithful, already packed JSONL rows with full events and all 32 frame pins. Direct packed-file binding preserves every JSONL byte. The optional slice path described in `UNIT_PACKING.md` adds only missing events and resolved frame inputs; it refuses changes to the supplied target, answer, responses or spans. A mismatched SHA, incomplete frame pins, sealed semantic refusal, or row removed by native source selection rejects the binding. The source must already be a clean slice; this command does not repair it.
++ 
++ Each fallback is one rebind command and retains v7 as the sole store:
++ 
++@@ -97,11 +97,11 @@
++ /scratch/jjyeung/envs/p1cpu/bin/python -B tools/rebind.py --receipt {b['source_receipt']['path']} --receipt-sha256 {b['receipt_sha256']} --orchard-store {b['orchard_store']} --room-cents 0 --proof-partition {b['proof_partition']}
++ # Refused reworded away rows: exclude the exact QID suffix.
++ /scratch/jjyeung/envs/p1cpu/bin/python -B tools/rebind.py --receipt {b['source_receipt']['path']} --receipt-sha256 {b['receipt_sha256']} --orchard-store {b['orchard_store']} --exclude-qid-suffix _away_opp --proof-partition {b['proof_partition']}
++-# Bind a packed, audited successor. The current v2 candidate is refused unchanged.
+++# Bind audited, fully packed rows; slice input requires the explicit option below.
++ /scratch/jjyeung/envs/p1cpu/bin/python -B tools/rebind.py --receipt {b['source_receipt']['path']} --receipt-sha256 {b['receipt_sha256']} --orchard-store {b['orchard_store']} --unit-rows "$UNIT_FILE" --unit-rows-sha256 "$UNIT_SHA256" --units-allowlist ft --unit-cents 100 --proof-partition {b['proof_partition']}
++ ```
++ 
++-Set `UNIT_FILE` and `UNIT_SHA256` to the audited packed file and its SHA. The named candidate is `/scratch/jjyeung/orch_n30/rows_r1/out/units_p_slice_v2/rows.jsonl`; its unchanged read-only fixture is refused for missing events and frame pins. After any rebind, run `tools/run_local_checks.py` with the CPU Python above. Neither fallback merges loose files into v6.
+++Set `UNIT_FILE` and `UNIT_SHA256` to the audited packed file and its SHA. The named candidate is `/scratch/jjyeung/orch_n30/rows_r1/out/units_p_slice_v3/rows.jsonl`; its unchanged read-only fixture is refused by direct binding. `UNIT_PACKING.md` gives the optional packing command and required Orchard frame authorities. After any rebind, run `tools/run_local_checks.py` with the CPU Python above. Neither fallback merges loose files into v6.
++ 
++ Unit binding is an **admission-input change**: `u.gz` transports the exact JSONL bytes; `m.json` adds `U_Faithful` to the pool manifest; `i.json` binds its native ordered indices; `u.json` records hashes and per-unit/per-dataset counts. These artifacts enter the operator bundle. Derivation stages `u.gz`, `m.json` and `i.json` into private, read-only namespace paths and adds their pins to the routing catalog. RGB bytes are not bundled: the complete staged RGB map/plan and frame store must resolve every supplied frame pin unchanged. Missing or conflicting RGB fails production admission. Full native materialization calls the sealed `selected_rows`, frame resolution, division/scene/QID filters and RGB audit before the sampler or proof counts units.
+  
+ @@ -148,11 +148,11 @@
+  Local validation: {n} tests passed; OFF identity is exact on four tiny-model ranks; 288 final-config microsteps pass finite full-forward checks; two fixture derivations are byte-identical; the real-v7 loader audit covers 1,000 steps. These are bounded local results. Full native selection regeneration, production RGB/admission, complete routing counts, complete privacy scan and production CPU proof are NOT_RUN. `proof/GATES.json` is the authoritative gate list.
+  '''
+      (out/'R1P_PACKET.md').write_text(packet)
+ -    (ROOT/'STATUS.md').write_text(f'BUILT_BLOCKED: config {b["config_identity"]}. Full v7 census and local loader audit complete; {n} tests, four-rank OFF identity, tiny-model first batch and deterministic fixture derivation pass. Vehicle-P required families follow the ruled set; recovery, size and unbound units are absent; low-count bound units are named absent. Required-family status is {audit["required_families"]["status"]}; missing families: {audit["required_families"]["missing"]}. Traced room eligibility is {room["eligible"]}/{room["rows"]}; the alternate trace-format ruling is pending. The current unit candidate lacks events and frame pins and is refused unchanged. Production evidence and independent review remain required. Read out/REPORT.md and out/R1P_PACKET.md.\n')
+-+    (ROOT/'STATUS.md').write_text(f'BUILT_BLOCKED: config {b["config_identity"]}. Full v7 census and local loader audit complete; {n} tests, four-rank OFF identity, tiny-model first batch and deterministic fixture derivation pass. Vehicle-P required families follow the ruled set; recovery, size and unbound units are absent; low-count bound units are named absent. Required-family status is {audit["required_families"]["status"]}; missing families: {audit["required_families"]["missing"]}. Traced room eligibility is {room["eligible"]}/{room["rows"]}; the Seen/relation/answer grammar is enforced. The current unit candidate lacks events and frame pins and is refused unchanged. Production evidence and independent review remain required. Read out/REPORT.md and out/R1P_PACKET.md.\n')
+++    (ROOT/'STATUS.md').write_text(f'BUILT_BLOCKED: config {b["config_identity"]}. Full v7 census and local loader audit complete; {n} tests, four-rank OFF identity, tiny-model first batch and deterministic fixture derivation pass. Vehicle-P required families follow the ruled set; recovery, size and unbound units are absent; low-count bound units are named absent. Required-family status is {audit["required_families"]["status"]}; missing families: {audit["required_families"]["missing"]}. Traced room eligibility is {room["eligible"]}/{room["rows"]}; the Seen/relation/answer grammar is enforced. The v3 unit packing path passes fixtures and remains off; Orchard frame resolution and RGB validation are pending. Production evidence and independent review remain required. Read out/REPORT.md and out/R1P_PACKET.md.\n')
+      names=['REPORT.md','R1P_PACKET.md','ADMISSION_BY_TYPE.json','ROUTING_DIAGNOSIS.json','MIX.md','config.json','BINDING.json',
+ -           'FIX4.md','FIX4.diff','OPERATOR.json','REVIEW_REQUEST.json','SAMPLER_REVIEW.patch','DEPLOYMENT_REVIEW.patch','r1p_code.tar',op['archive']]
+-+           'FIX5.md','FIX5.diff','OPERATOR.json','REVIEW_REQUEST.json','SAMPLER_REVIEW.patch','DEPLOYMENT_REVIEW.patch','r1p_code.tar',op['archive']]
+++           'FIX5.md','FIX5.diff','UNIT_PACKING.md','OPERATOR.json','REVIEW_REQUEST.json','SAMPLER_REVIEW.patch','DEPLOYMENT_REVIEW.patch','r1p_code.tar',op['archive']]
+      names += ['proof/'+n for n in ('GATES.json','inputs.json','OFF_IDENTITY.json','FIRST_BATCH.json','DERIVATION.json',
+ -                                 'loader_audit.json','traces.jsonl','LOCAL_NAMESPACE.json','p.py',op['proof_script'])]
+-+                                 'loader_audit.json','ROOM_GRAMMAR.json','traces.jsonl','LOCAL_NAMESPACE.json','p.py',op['proof_script'])]
+++                                 'loader_audit.json','ROOM_GRAMMAR.json','UNIT_PACKING_CHECK.json','traces.jsonl','LOCAL_NAMESPACE.json','p.py',op['proof_script'])]
+      names += ['proof/selection/r.json','proof/selection/q.json']
+      if (out/'proof/UNIT_CANDIDATE.json').exists():names.append('proof/UNIT_CANDIDATE.json')
+      (out/'SHA256SUMS').write_text(''.join(sha(out/n)+'  '+n+'\n' for n in sorted(names)))
+ --- a/tools/rebind.py
+ +++ b/tools/rebind.py
+-@@ -41,7 +41,7 @@
++@@ -28,20 +28,26 @@
++     p=argparse.ArgumentParser();p.add_argument('--receipt',type=Path,required=True);p.add_argument('--receipt-sha256',required=True)
++     p.add_argument('--database',type=Path);p.add_argument('--mix',type=Path,default=ROOT/'configs/mix.json')
++     p.add_argument('--unit-rows',type=Path);p.add_argument('--unit-rows-sha256');p.add_argument('--unit-cents',type=int,default=100)
+++    p.add_argument('--pack-unit-slice',action='store_true');p.add_argument('--unit-frame-authority',type=Path);p.add_argument('--unit-frame-authority-sha256')
++     p.add_argument('--units-allowlist',nargs='+',choices=('cm','ft','in'),default=['ft'])
++     p.add_argument('--room-cents',type=int);p.add_argument('--exclude-qid-suffix')
++     p.add_argument('--proof-partition',choices=('advanced','general'),default='advanced')
++     p.add_argument('--size-selector',type=Path);p.add_argument('--room-receipt',type=Path)
++     p.add_argument('--orchard-store',default='/project/community/jjyeung/okh7/s_8805de22/d.db')
++     p.add_argument('--out',type=Path,default=ROOT/'out');p.add_argument('--reuse-census',action='store_true');p.add_argument('--skip-audit',action='store_true')
++-    a=p.parse_args();out=a.out.resolve();out.mkdir(parents=True,exist_ok=True,mode=0o700)
+++    a=p.parse_args()
+++    if a.pack_unit_slice and not (a.unit_rows and a.unit_rows_sha256 and a.unit_frame_authority and a.unit_frame_authority_sha256):
+++        p.error('--pack-unit-slice requires pinned unit rows and --unit-frame-authority with its SHA256')
+++    if not a.pack_unit_slice and (a.unit_frame_authority or a.unit_frame_authority_sha256):
+++        p.error('Frame authority is only valid with --pack-unit-slice')
+++    out=a.out.resolve();out.mkdir(parents=True,exist_ok=True,mode=0o700)
++     if sha(a.receipt)!=a.receipt_sha256:raise ValueError('Source receipt SHA differs')
++     receipt=load(a.receipt);db=a.database or Path(receipt['database']['path'])
++     if sha(db)!=receipt['database']['sha256']:raise ValueError('Store SHA differs')
+      census=out/'ADMISSION_BY_TYPE.json'
+      if a.reuse_census:
+          old=load(census)
+@@ -60,7 +109,27 @@
+      else:
+          subprocess.run([sys.executable,'-B',str(ROOT/'tools/admission_census.py'),'--receipt',str(a.receipt),'--receipt-sha256',a.receipt_sha256,'--database',str(db),'--out',str(census)],check=True)
+      subprocess.run([sys.executable,'-B',str(ROOT/'tools/routing_diagnosis.py'),'--out',str(out)],check=True)
+-@@ -163,6 +163,7 @@
++@@ -72,8 +78,18 @@
++         from unit_binding import build
++         basecfg=load(H/'build/fx/k/d12ae795.json')
++         selection_path=out/'proof/selection/r.json'
++-        selected,unit_binding=build(a.unit_rows,a.unit_rows_sha256,load(selection_path),load(ROOT/'work/records/pool_manifest.json'),
+++        unit_rows=a.unit_rows;unit_sha=a.unit_rows_sha256;packing=None
+++        if a.pack_unit_slice:
+++            from unit_binding import pack_slice
+++            if sha(a.unit_frame_authority)!=a.unit_frame_authority_sha256:raise ValueError('Unit frame-authority manifest SHA differs')
+++            packing=pack_slice(unit_rows,unit_sha,load(a.unit_frame_authority),basecfg['s1_routing'],load(selection_path),out/'units/packed.jsonl')
+++            packing['authority_manifest']=pin(a.unit_frame_authority)
+++            unit_rows=Path(packing['packed']['path']);unit_sha=packing['packed']['sha256']
+++        selected,unit_binding=build(unit_rows,unit_sha,load(selection_path),load(ROOT/'work/records/pool_manifest.json'),
++                                   basecfg['s1_routing']['catalog'],H/'build/fx/k',out/'units')
+++        if packing:
+++            unit_binding['packing']=packing
+++            write(out/'units/u.json',unit_binding)
++         write(selection_path,selected)
++         evidence=load(out/'proof/selection/q.json');evidence.update(selection_sha256=sha(selection_path),unit_binding=unit_binding,
++             selected_rows=selected['selected_rows'],native_unit_regeneration_executed=True)
++@@ -163,6 +179,7 @@
+              **{s:dict(count=1,local_placeholder=True) for s in ('pose','routing','pointing')}})
+          prepared=type_mix.prepare(prepared,local)
+          report=loader_audit.audit(local,prepared,local_vqa_only=True)
+@@ -90,6 +159,56 @@
+          if any(implementation.get(n)!=parent['implementation'].get(n) for n in set(implementation)|set(parent['implementation']) if n not in allowed):
+              raise ValueError('Selection admission predicate changed')
+          candidate['implementation']=implementation
++--- a/tools/unit_binding.py
+++++ b/tools/unit_binding.py
++@@ -10,6 +10,47 @@
++ def load(p):return json.loads(Path(p).read_text())
++ def write(p,v):Path(p).write_text(enc(v)+'\n')
++ def pin(p):return dict(path=str(p),sha256=sha(p))
+++
+++def pack_slice(rows, expected, authority, expected_authority, parent, out):
+++    """Reconstruct only omitted events and frame inputs; preserve the supplied payload."""
+++    from student_pilot import ground_rows,s1_pool,s1_routing
+++    rows=Path(rows);out=Path(out)
+++    if sha(rows)!=expected:raise ValueError('Unit slice SHA differs')
+++    if set(authority)!={'frame_map','frame_plan','fps_authority'}:raise ValueError('Unit packing requires map, plan and FPS authority')
+++    actual=s1_pool.implementation()
+++    actual['student_pilot/s1_routing.py']=sha(s1_routing.__file__)
+++    expected_implementation={**parent['implementation'],'student_pilot/s1_routing.py':'5c8cd97392ba66a525f831047cfbe7d7e0ae028fcf6711e2427596fc98a126bc'}
+++    for name in ('student_pilot/ground_rows.py','student_pilot/s1_pool.py','student_pilot/s1_routing.py'):
+++        if actual[name]!=expected_implementation[name]:raise ValueError('Unit packing predicate differs: '+name)
+++    for key,value in authority.items():
+++        if set(value)!={'path','sha256'} or value['sha256']!=expected_authority[key]['sha256'] or sha(value['path'])!=value['sha256']:
+++            raise ValueError('Unit frame authority differs: '+key)
+++    frames=s1_routing.Frames(authority['frame_map'],authority['frame_plan'],fps_authority=authority['fps_authority'])
+++    output=[];qids=set()
+++    for line in rows.read_bytes().splitlines():
+++        row=json.loads(line)
+++        if 'events' in row:raise ValueError('Slice packing requires omitted top-level events')
+++        envelope=ground_rows.pack(dict(row['ground_record'],suffix=row['target']),row['provenance'])
+++        # source_qid remains the original source join, not pack()'s duplicate of qid.
+++        for key,value in envelope.items():
+++            if key in row and key!='source_qid' and row[key]!=value:
+++                raise ValueError('Native unit packing would change supplied payload: '+key)
+++        packed=copy.deepcopy(row);packed['events']=envelope['events']
+++        request=s1_routing.frame_request(packed)
+++        for value in (row.get('frame_indices'),row['ground_record'].get('frame_indices')):
+++            if value is not None and value!=request['i']:raise ValueError('Unit slice frame indices differ')
+++        inputs,_=frames.resolve(packed)
+++        packed['student_input']=inputs
+++        s1_pool.validate_source_row(packed,'packed')
+++        if packed['qid'] in qids:raise ValueError('Duplicate unit QID')
+++        qids.add(packed['qid']);output.append(enc(packed)+'\n')
+++    raw=''.join(output).encode();counts=inspect_rows(raw)
+++    out.parent.mkdir(parents=True,exist_ok=True,mode=0o700);out.write_bytes(raw)
+++    return dict(schema='unit-slice-packing-v1',slice=pin(rows),packed=pin(out),frame_authority=authority,
+++        implementation={n:actual[n] for n in ('student_pilot/ground_rows.py','student_pilot/s1_pool.py','student_pilot/s1_routing.py')},
+++        rows=counts['eligible'],payload_changed=False,source_qid_preserved=True,
+++        additions=['events','student_input frame pins and native timing fields'],rgb_bytes_verified=False)
+++
++ 
++ def inspect_rows(raw):
++     from student_pilot import s1_pool,s1_routing
+ --- a/tools/write_fix5.py
+ +++ b/tools/write_fix5.py
+ @@ -0,0 +1,40 @@
+@@ -195,6 +314,92 @@
+  
+      def test_config_switches_disk_and_identity(self):
+          cfg=load(ROOT/'configs/r1p.json');run.validate(cfg)
++@@ -345,7 +393,7 @@
++         from student_pilot.vehicle_p import unit_name,required_families,ROUTING
++         import gzip,contextlib,io
++         root=temp();templates={}
++-        # Test-only packing restores omitted fields in the diagnostic slice. Production binding never packs.
+++        # This fixture supplies packed rows directly; slice packing has a separate opt-in test.
++         slices=Path('/scratch/jjyeung/orch_n30/tree_rebuild_w/work/rows_slices/slices_final/a0_units.jsonl')
++         with slices.open() as f:
++             for line in f:
++@@ -419,12 +467,65 @@
++         bad=copy.deepcopy(rows[0]);bad['student_input']['frames']=[]
++         with self.assertRaisesRegex(ValueError,'frame pins'):inspect_rows(json.dumps(bad).encode())
++ 
+++    def test_optional_unit_slice_packing_and_native_binding(self):
+++        import gzip,contextlib,io
+++        from unit_binding import pack_slice,build,regenerate,pin
+++        from student_pilot import ground_rows,s1_pool
+++        from student_pilot.vehicle_p import unit_name
+++        source=Path('/scratch/jjyeung/orch_n30/rows_r1/out/units_p_slice_v3/rows.jsonl')
+++        before=sha(source);metadata=load(source.parent/'COUNTS.json');self.assertEqual(before,metadata['rows_sha256'])
+++        counts=Counter();first=None
+++        with source.open() as stream:
+++            for line in stream:
+++                row=json.loads(line);first=first or row
+++                envelope=ground_rows.pack(dict(row['ground_record'],suffix=row['target']),row['provenance'])
+++                packed={**row,'events':envelope['events']}
+++                for key,value in envelope.items():
+++                    if key in row and key!='source_qid':self.assertEqual(row[key],value)
+++                s1_pool.validate_source_row(packed,'packed');counts[unit_name(row)]+=1
+++        self.assertEqual(sum(counts.values()),metadata['kept']);self.assertEqual(dict(counts),{'ft':683,'in':64})
+++        root=temp();fixture=root/'slice.jsonl';fixture.write_text(json.dumps(first)+'\n')
+++        d,scene=first['provenance']['alias'].split('/');ids=first['frame_indices']
+++        frames=[dict(d=d,s=scene,i=i,path='/data2/k6tk/aa/'+('a'*64)+'.png',sha256='a'*64) for i in ids]
+++        (root/'map.gz').write_bytes(gzip.compress(''.join(json.dumps(r)+'\n' for r in frames).encode(),mtime=0))
+++        (root/'plan.gz').write_bytes(gzip.compress(json.dumps({'v':{scene:{'g':d,'raw_n':max(ids)+1}}}).encode(),mtime=0))
+++        write(root/'fps.json',{'schema':'s1-fps-authority-v1','by_scene':{d+'/'+scene:24.0}})
+++        authority={k:pin(root/n) for k,n in [('frame_map','map.gz'),('frame_plan','plan.gz'),('fps_authority','fps.json')]}
+++        parent=load(ROOT/'out/proof/selection/r.json');dest=root/'packed.jsonl'
+++        receipt=pack_slice(fixture,sha(fixture),authority,authority,parent,dest)
+++        packed=json.loads(dest.read_text());self.assertEqual(len(packed['student_input']['frames']),32)
+++        for k,v in first.items():self.assertEqual(packed[k],v)
+++        self.assertEqual(packed['source_qid'],first['source_qid']);self.assertFalse(receipt['payload_changed'])
+++        cfg=load(ROOT/'configs/r1p.json');manifest=load(ROOT/'work/records/pool_manifest.json')
+++        indices=Path('/scratch/jjyeung/orch_n30/cont_ops/work/h1/build/fx/k')
+++        with contextlib.redirect_stdout(io.StringIO()):
+++            selected,bound=build(dest,sha(dest),parent,manifest,cfg['s1_routing']['catalog'],indices,root/'bound')
+++            self.assertEqual(selected,regenerate(parent,bound,root/'bound',indices,cfg['s1_routing']['catalog'],root/'regenerated'))
+++        bad=copy.deepcopy(authority);bad['frame_map']['sha256']='0'*64
+++        with self.assertRaisesRegex(ValueError,'authority differs'):pack_slice(fixture,sha(fixture),bad,authority,parent,root/'bad.jsonl')
+++        with self.assertRaisesRegex(ValueError,'slice SHA differs'):pack_slice(fixture,'0'*64,authority,authority,parent,root/'bad.jsonl')
+++        altered=copy.deepcopy(first);altered['answer']='999'
+++        fixture.write_text(json.dumps(altered)+'\n')
+++        with self.assertRaisesRegex(ValueError,'payload'):pack_slice(fixture,sha(fixture),authority,authority,parent,root/'bad.jsonl')
+++        fixture.write_text(json.dumps(first)+'\n')
+++        # The real CLI refuses packing unless all explicit pins are supplied.
+++        current=load(ROOT/'out/BINDING.json')
+++        command=[sys.executable,'-B',str(ROOT/'tools/rebind.py'),'--receipt',current['source_receipt']['path'],
+++                 '--receipt-sha256',current['receipt_sha256'],'--pack-unit-slice']
+++        result=subprocess.run(command,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+++        self.assertNotEqual(result.returncode,0);self.assertIn('requires pinned unit rows',result.stdout)
+++        self.assertIsNone(current['unit_binding']);self.assertEqual(before,sha(source))
+++        write(ROOT/'out/proof/UNIT_PACKING_CHECK.json',dict(status='PASS',source=pin(source),counts=dict(counts),
+++            sealed_event_reconstruction_rows=sum(counts.values()),existing_payload_unchanged=True,
+++            fixture_packing=receipt,fixture_native_binding_and_regeneration=True,production_bound=False,
+++            limitation='Synthetic frame pins test the native resolver and binding path; Orchard must supply real RGB authorities and bytes.'))
+++
++     def test_real_unit_slice_rebind_refuses_unpacked_input_without_mutation(self):
++-        source=Path('/scratch/jjyeung/orch_n30/rows_r1/out/units_p_slice_v2/rows.jsonl')
+++        source=Path('/scratch/jjyeung/orch_n30/rows_r1/out/units_p_slice_v3/rows.jsonl')
++         root=temp();fixture=root/'rows.jsonl';fixture.write_bytes(source.read_bytes());before=sha(source)
++         from student_pilot.vehicle_p import unit_name
++         rows=[json.loads(line) for line in fixture.read_text().splitlines()]
++-        self.assertEqual(Counter(unit_name(row) for row in rows),{'ft':1130,'in':94})
+++        self.assertEqual(Counter(unit_name(row) for row in rows),{'ft':683,'in':64})
++         binding=load(ROOT/'out/BINDING.json');dest=root/'packet';dest.mkdir(mode=0o700)
++         (dest/'ADMISSION_BY_TYPE.json').write_bytes((ROOT/'out/ADMISSION_BY_TYPE.json').read_bytes())
++         command=[sys.executable,'-B',str(ROOT/'tools/rebind.py'),'--receipt',binding['source_receipt']['path'],
++@@ -437,7 +538,7 @@
++         self.assertFalse((dest/'BINDING.json').exists())
++         self.assertEqual(sha(source),before);self.assertEqual(sha(fixture),before)
++         self.assertIsNone(load(ROOT/'out/BINDING.json')['unit_binding'])
++-        write(ROOT/'out/proof/UNIT_CANDIDATE.json',dict(status='REFUSED_UNBOUND',source={'path':str(source),'sha256':before},fixture={'path':str(fixture),'sha256':sha(fixture)},counts={'ft':1130,'in':94,'cm':0},command=command,returncode=result.returncode,reason='Missing top-level events and all 32 frame pins',log={'path':str(root/'rebind.log'),'sha256':sha(root/'rebind.log')},production_bound=False))
+++        write(ROOT/'out/proof/UNIT_CANDIDATE.json',dict(status='REFUSED_UNBOUND',source={'path':str(source),'sha256':before},fixture={'path':str(fixture),'sha256':sha(fixture)},counts={'ft':683,'in':64,'cm':0},command=command,returncode=result.returncode,reason='Missing top-level events and all 32 frame pins',log={'path':str(root/'rebind.log'),'sha256':sha(root/'rebind.log')},production_bound=False))
++ 
++     def test_unit_allowlist_populations_cap_and_named_absences(self):
++         import sqlite3
+ --- a/configs/diff_against_deployed.json
+ +++ b/configs/diff_against_deployed.json
+ @@ -1 +1 @@
+--- a/out/FIX5.md
++++ b/out/FIX5.md
+@@ -1,6 +1,6 @@
+ Fix 5 delta against `/scratch/jjyeung/orch_n30/r1_ops/work/snap_a6b70ef2` (frozen config a6b70ef2).
+ 
+-Config identity: `782f303d81e300b1b24094863d6ce7d984690529f0e414474c3e693df87e19da`. Archive: `p_1130b378.tar`. SHA256: `42bbcbb218c982b4e33cc92c7be97f01359ae2e47cd20e387c0008edefc6b1cb`.
++Config identity: `782f303d81e300b1b24094863d6ce7d984690529f0e414474c3e693df87e19da`. Archive: `p_1130b378.tar`. SHA256: `21e1ec609e9b965c10db21cb7309f0623095b7d87f67ac40cebccaf6b44e7401`.
+ 
+ The full census checks 204,413 unchanged v7 rows. All 431 traced room rows are eligible. The room cell draws 1,720 rows over 1,000 steps (1.72/step), below the four-repeat cap of 1,724 draws. All one-line room rows and out-of-range-frame, missing-relation and numeric-think mutants are refused. See proof/ROOM_GRAMMAR.json and logs/tests.log.
+ 
+@@ -17,6 +17,7 @@
+ - `tools/rebind.py`
+ - `tools/run_local_checks.py`
+ - `tools/selection_check.py`
++- `tools/unit_binding.py`
+ - `tools/write_fix5.py`
+ - `tests/test_packet.py`
+ - `configs/diff_against_deployed.json`
+@@ -27,6 +28,33 @@
+ - `out/SAMPLER_REVIEW.patch`
+ - `out/DEPLOYMENT_REVIEW.patch`
+ 
+-Item 4 has not started; items 1–3 are delivered first.
++The optional unit packing path is built and remains off. No unit source is bound; Proof 1 keeps units at zero and lists them under absent_on_P.
++
++The read-only candidate is `/scratch/jjyeung/orch_n30/rows_r1/out/units_p_slice_v3/rows.jsonl`, SHA256 `5f9383fa3dabcc813676564c8533e0c7b110a7f1d0e9aff4c9ebde444355a0b3`. COUNTS.json declares 747 rows: 683 ft, 64 in, and 0 cm. All 747 pass sealed semantic validation when the native packer reconstructs the omitted event envelope; every supplied field stays unchanged. The packed source preserves the original source_qid. Inches remain below the 100-row sampling threshold.
++
++`tools/rebind.py --pack-unit-slice` calls `tools/unit_binding.py:pack_slice`. The helper checks the slice SHA, reconstructs events with sealed `ground_rows.pack`, compares every overlapping payload field (the packer's duplicate source_qid is ignored and the supplied source_qid is retained), resolves the exact 32 frame indices with sealed `s1_routing.Frames`, then runs sealed `s1_pool.validate_source_row`. It rejects any changed target, answer, ground record, response or span. It never invokes generation or repairs a failed row. The source is added through the existing native selection/binding path, compressed into u.gz, catalogued as U_Faithful and staged in the private routing namespace. Native regeneration, routing materialization and production RGB admission still run before the loader samples it.
++
++Orchard must provide the complete staged frame map, frame plan and FPS authority whose SHA256 values match `config.s1_routing.frame_map`, `frame_plan` and `fps_authority`, plus every mapped RGB file. The map must contain all requested (dataset, scene, frame index) entries; the plan must supply required full frame counts, and the FPS authority must resolve each scene without conflict. No frame hash or path may be invented. The manifest is JSON with exactly those three keys, each containing a path and sha256 pin. Resolving the pins alone does not verify RGB bytes; the sealed production preparation must hash and admit the actual staged images.
++
++Run the following only in a complete rebind workspace where those Orchard-resolved authorities are available under the manifest's paths. This lane did not contact Orchard or stage real unit frames:
++
++```bash
++/scratch/jjyeung/envs/p1cpu/bin/python -B tools/rebind.py \
++  --receipt /scratch/jjyeung/orch_n30/rows_r1/out/a2_vqa_v7/vqa/receipt.json \
++  --receipt-sha256 8091154cd499c47404c2f3a6d288bff3b061fa71a1d22af5de68337fbbde56cd \
++  --orchard-store /project/community/jjyeung/okh7/s_22b44165/d.db --reuse-census \
++  --unit-rows /scratch/jjyeung/orch_n30/rows_r1/out/units_p_slice_v3/rows.jsonl \
++  --unit-rows-sha256 5f9383fa3dabcc813676564c8533e0c7b110a7f1d0e9aff4c9ebde444355a0b3 \
++  --pack-unit-slice --unit-frame-authority "$FRAME_AUTHORITY" \
++  --unit-frame-authority-sha256 "$FRAME_AUTHORITY_SHA256" \
++  --units-allowlist ft --unit-cents 100
++```
++
++The same pack_slice helper ships as u.py in the operator archive. An Orchard operator can use that helper with the authenticated trainer tree and staged authorities to produce the packed file there; the ordinary pinned `--unit-rows` path can then consume that file in the complete rebind workspace. Any transfer or execution requires the operator's own authorized workflow. The option does not fetch missing frames or redirect a local path to Orchard.
++
++The reviewer must check the candidate and authority hashes, preserved payload and source joins, unchanged sealed module hashes, exact frame-index agreement, every frame pin against real RGB bytes, the native retained indices and scene/QID/label exclusions, and the final routing/source-selection hashes. The production audit must report post-filter ft/cm/in counts, the configured allowlist and cap, and no missing required family. The reviewer must also check the extent-audit evidence named by COUNTS.json; native admission alone does not establish that semantic review.
++
++`proof/UNIT_PACKING_CHECK.json` records the all-row event reconstruction and a fixture that exercises native frame resolution, packed-source binding and regeneration. Its synthetic RGB pins certify only the code path. No admission predicate or supplied training payload changed. Real Orchard frame resolution and RGB admission remain NOT_RUN.
++
+ 
+ Generated outputs bind the current identity: R1P_PACKET.md, REPORT.md, GATES.json, BINDING.json, MIX.md, SHA256SUMS and the operator archive. No Git, SSH, Orchard, GPU, deletion, full lane copy or write outside this lane was used. The requested snapshot delta is retained for review; packet prose describes current state.
+--- a/out/OPERATOR.json
++++ b/out/OPERATOR.json
+@@ -1 +1 @@
+-{"archive":"p_1130b378.tar","bundle":"/project/community/jjyeung/okh7/i_1130b378","contract":"f37ca47651d16f21b6e054729b1e4f5c5f487cf68d3a66c0d4b5af1a4590290b","job_name":"a15_cot_ap125c4c87","kit":"/project/community/jjyeung/okh7/x_1130b378","private_content_scan":"REQUIRES_INDEPENDENT_REVIEW","production_authorized":false,"proof_script":"p_125c4c87.sh","public_filename_scan":"PASS","sha256":"42bbcbb218c982b4e33cc92c7be97f01359ae2e47cd20e387c0008edefc6b1cb","wrapper_sha256":"d626d721af04f0551d78c247195aa348a592fb39609454076cfc16420f6e9035"}
++{"archive":"p_1130b378.tar","bundle":"/project/community/jjyeung/okh7/i_1130b378","contract":"f37ca47651d16f21b6e054729b1e4f5c5f487cf68d3a66c0d4b5af1a4590290b","job_name":"a15_cot_ap125c4c87","kit":"/project/community/jjyeung/okh7/x_1130b378","private_content_scan":"REQUIRES_INDEPENDENT_REVIEW","production_authorized":false,"proof_script":"p_125c4c87.sh","public_filename_scan":"PASS","sha256":"f719b05fcbe934654499d786d1a56d413c0db71f6a1fd9a60b5097e788ebfad9","wrapper_sha256":"d626d721af04f0551d78c247195aa348a592fb39609454076cfc16420f6e9035"}
+--- a/out/R1P_PACKET.md
++++ b/out/R1P_PACKET.md
+@@ -9,7 +9,7 @@
+ | Database SHA | `210b25349b23af5b38a5b5d90caa97be2bb296dbabd8773d54e658e0aad22443` |
+ | Selection SHA | `78d01f893720baf0e31b3ce06bc4a157a99510d42f5bcfeccb0000ad84705c70` |
+ | Operator archive | `p_1130b378.tar` |
+-| Archive SHA | `42bbcbb218c982b4e33cc92c7be97f01359ae2e47cd20e387c0008edefc6b1cb` |
++| Archive SHA | `f719b05fcbe934654499d786d1a56d413c0db71f6a1fd9a60b5097e788ebfad9` |
+ 
+ Relative to H1-1, this config disables S1 and S2, restores D0 scheduled sampling, uses milestones [100, 200] and stop 200, binds v7, removes room programs and adds capped family quotas. The 1,000-step schedule, stream totals (pose 64, VQA 128, routing 64, pointing 32), optimizer and initial weights stay in the inherited recipe. Field-level changes are in `../configs/diff_against_h1_1.json` and `../configs/diff_against_deployed.json`. `SAMPLER_REVIEW.patch` contains the trainer changes; no admission predicate changes. `DEPLOYMENT_REVIEW.patch` covers the staging, wrapper and submitter changes.
+ 
+@@ -25,7 +25,7 @@
+ 
+ The bound store is v7; its producer receipt and database SHA are fixed above. `--size-selector FILE` accepts `{"field":"metadata.path","equals":"value"}`; omission keeps all admitted size rows eligible, while the mix controls whether any are drawn. The mix file controls requested doses and refill rules. Traced rooms enter through the bound VQA store and remain subject to the qualitative-trace predicate and cap. `--room-receipt FILE` binds optional provenance for traced rows already integrated into that store; it does not merge a second database. A separate room store must be integrated by its producer. Rebinding invalidates earlier first-batch and deployment proof results; rerun them against the new identity. Use `--reuse-census` only for unchanged store bytes, receipt and sampler-predicate hash. After rebinding, run `/scratch/jjyeung/envs/p1cpu/bin/python -B tools/run_local_checks.py` to refresh the local evidence and this packet.
+ 
+-The default `--units-allowlist ft` samples feet only; freed routing slots go pro rata to camera displacement, movement direction, rotation and absolute distance. To bind units, add `--unit-rows FILE --unit-rows-sha256 SHA` and optionally `--unit-cents N` (default 100 hundredths of a row per step, capped at 4 × allowlisted eligible / 1,000). The file must contain faithful, already packed JSONL rows with full events and all 32 frame pins. No answer, event, or row payload is regenerated. A mismatched SHA, incomplete frame pins, sealed semantic refusal, or row removed by native source selection rejects the binding. The source must already be a clean slice; this command does not repair it.
++The default `--units-allowlist ft` samples feet only; freed routing slots go pro rata to camera displacement, movement direction, rotation and absolute distance. To bind units, add `--unit-rows FILE --unit-rows-sha256 SHA` and optionally `--unit-cents N` (default 100 hundredths of a row per step, capped at 4 × allowlisted eligible / 1,000). The file must contain faithful, already packed JSONL rows with full events and all 32 frame pins. Direct packed-file binding preserves every JSONL byte. The optional slice path described in `UNIT_PACKING.md` adds only missing events and resolved frame inputs; it refuses changes to the supplied target, answer, responses or spans. A mismatched SHA, incomplete frame pins, sealed semantic refusal, or row removed by native source selection rejects the binding. The source must already be a clean slice; this command does not repair it.
+ 
+ Each fallback is one rebind command and retains v7 as the sole store:
+ 
+@@ -34,11 +34,11 @@
+ /scratch/jjyeung/envs/p1cpu/bin/python -B tools/rebind.py --receipt /scratch/jjyeung/orch_n30/rows_r1/out/a2_vqa_v7/vqa/receipt.json --receipt-sha256 8091154cd499c47404c2f3a6d288bff3b061fa71a1d22af5de68337fbbde56cd --orchard-store /project/community/jjyeung/okh7/s_22b44165/d.db --room-cents 0 --proof-partition advanced
+ # Refused reworded away rows: exclude the exact QID suffix.
+ /scratch/jjyeung/envs/p1cpu/bin/python -B tools/rebind.py --receipt /scratch/jjyeung/orch_n30/rows_r1/out/a2_vqa_v7/vqa/receipt.json --receipt-sha256 8091154cd499c47404c2f3a6d288bff3b061fa71a1d22af5de68337fbbde56cd --orchard-store /project/community/jjyeung/okh7/s_22b44165/d.db --exclude-qid-suffix _away_opp --proof-partition advanced
+-# Bind a packed, audited successor. The current v2 candidate is refused unchanged.
++# Bind audited, fully packed rows; slice input requires the explicit option below.
+ /scratch/jjyeung/envs/p1cpu/bin/python -B tools/rebind.py --receipt /scratch/jjyeung/orch_n30/rows_r1/out/a2_vqa_v7/vqa/receipt.json --receipt-sha256 8091154cd499c47404c2f3a6d288bff3b061fa71a1d22af5de68337fbbde56cd --orchard-store /project/community/jjyeung/okh7/s_22b44165/d.db --unit-rows "$UNIT_FILE" --unit-rows-sha256 "$UNIT_SHA256" --units-allowlist ft --unit-cents 100 --proof-partition advanced
+ ```
+ 
+-Set `UNIT_FILE` and `UNIT_SHA256` to the audited packed file and its SHA. The named candidate is `/scratch/jjyeung/orch_n30/rows_r1/out/units_p_slice_v2/rows.jsonl`; its unchanged read-only fixture is refused for missing events and frame pins. After any rebind, run `tools/run_local_checks.py` with the CPU Python above. Neither fallback merges loose files into v6.
++Set `UNIT_FILE` and `UNIT_SHA256` to the audited packed file and its SHA. The named candidate is `/scratch/jjyeung/orch_n30/rows_r1/out/units_p_slice_v3/rows.jsonl`; its unchanged read-only fixture is refused by direct binding. `UNIT_PACKING.md` gives the optional packing command and required Orchard frame authorities. After any rebind, run `tools/run_local_checks.py` with the CPU Python above. Neither fallback merges loose files into v6.
+ 
+ Unit binding is an **admission-input change**: `u.gz` transports the exact JSONL bytes; `m.json` adds `U_Faithful` to the pool manifest; `i.json` binds its native ordered indices; `u.json` records hashes and per-unit/per-dataset counts. These artifacts enter the operator bundle. Derivation stages `u.gz`, `m.json` and `i.json` into private, read-only namespace paths and adds their pins to the routing catalog. RGB bytes are not bundled: the complete staged RGB map/plan and frame store must resolve every supplied frame pin unchanged. Missing or conflicting RGB fails production admission. Full native materialization calls the sealed `selected_rows`, frame resolution, division/scene/QID filters and RGB audit before the sampler or proof counts units.
+ 
+@@ -46,7 +46,7 @@
+ 
+ Operator steps below describe the future Orchard execution; this lane made no Orchard call. Keep all destinations private (directories 0700, files 0600 unless the sealed input requires 0400). Do not copy the descriptive reports to the public job surface.
+ 
+-1. Verify `SHA256SUMS` locally and transfer only `p_1130b378.tar` through the operator's approved route. Extract it into fresh bundle `/project/community/jjyeung/okh7/i_1130b378`. Verify its `sums.txt`. Resolve the complete H1-1 deployment as `H`, whose source manifest must hash to `f13eccc20b7d2ee8b9622ce66db36e3cf561d0d41e69a367e9c435d5bf4261d6`. The local incomplete fixture cannot be used for production.
++1. Verify `SHA256SUMS` locally and transfer only `p_1130b378.tar` through the operator's approved route. Extract it into fresh bundle `/project/community/jjyeung/okh7/i_1130b378`. Verify its `sums.txt`. Set `H=/project/community/jjyeung/okh7/x_3fdda0fb`; its `SHA256SUMS.txt` must hash to `661ccd85b7a8f1afd25297869dc3a28539e64a3a0ab9a74ee928c0c5ab8a66c3`. The local incomplete fixture cannot be used for production.
+ 2. Run H1's authenticated native selection regeneration on its complete staged inputs, as in its `build/q.sh`. Retain the fresh raw `s1_pool.prepare` receipt as `NATIVE_RECEIPT`. Project it with the supplied helper; it verifies all regenerated ordered-index hashes and all non-room entries. It also binds the selector import-closure fingerprint to the archived trainer code; admission predicates must retain their parent hashes:
+ 
+ ```bash
+@@ -59,12 +59,13 @@
+ 
+ For a unit-bound packet, run the projection command with `--unit-binding "$BUN/u.json" --config "$BUN/config.json"` as well, using the authenticated CPU environment for the bound code tree. It executes sealed `s1_pool.prepare` on the unit source again, compares every ordered index, combines that source with the freshly checked parent selection, and refuses any final selection hash mismatch. The complete H1 inputs remain necessary. The source-selection counts are preliminary; the production proof reports post-filter counts, 1,000-step shares by family and question type, five bound traces per populated family, and missing units below 100 rows.
+ 
+-3. Obtain one independent review of the changed admission inputs and sampler. Supply identity-bound `review.json`, `staging.json`, `archive.json` and `4.json` in `EVIDENCE`, using the inherited production schemas. The durable source-archive attestation must cover the new tree. These are required inputs, not output claims of this build. Derive a fresh kit; the command invokes the inherited verifier and refuses incompatible evidence:
++3. Obtain one independent review of the changed admission inputs and sampler. Supply identity-bound `review.json`, `staging.json`, `archive.json` and `4.json` in `EVIDENCE`, using the inherited production schemas. The durable source-archive attestation must cover the new tree. These are required inputs, not output claims of this build. Derive a fresh kit; the command validates the four records and their bindings with inherited read-only helpers. It needs no Slurm identity and writes no persistent run state. The full inherited `g.check` remains in the allocation-time job path:
+ 
+ ```bash
+ KH=/project/community/jjyeung/okh7/x_1130b378
++H=/project/community/jjyeung/okh7/x_3fdda0fb
+ python3 -B "$BUN/d.py" --source "$H" \
+-  --source-manifest-sha256 f13eccc20b7d2ee8b9622ce66db36e3cf561d0d41e69a367e9c435d5bf4261d6 \
++  --source-manifest-sha256 661ccd85b7a8f1afd25297869dc3a28539e64a3a0ab9a74ee928c0c5ab8a66c3 \
+   --packet "$BUN" --bundle "$BUN" --out "$KH" \
+   --selection-evidence "$BUN/q/q.json" --evidence "$EVIDENCE" > "$BUN/compare.json"
+ ```
+@@ -82,4 +83,4 @@
+ 
+ 6. Inspect the named checks in `KH/o/JOB.proof.json`, its bound loader audit and the five printed traces per family. The required-family check permits recovery, size, unbound units, any zero-dose room cell, and bound units below 100 eligible rows; it must pass for every nonzero VQA cell and the four native routing cells. For a bound source, each unit below 100 is listed under absent_on_P with its count. Only allowlisted units with at least 100 rows enter the capped sampler. Confirm the proof receipt records the requested partition and actual node. The separate `go.json` must bind the final config, contract, wrapper and manifest; only then may the operator set `PROOF_JOB` and run `BUN/s.sh`. The submitter refuses any missing proof check or missing GO.
+ 
+-Local validation: 27 tests passed; OFF identity is exact on four tiny-model ranks; 288 final-config microsteps pass finite full-forward checks; two fixture derivations are byte-identical; the real-v7 loader audit covers 1,000 steps. These are bounded local results. Full native selection regeneration, production RGB/admission, complete routing counts, complete privacy scan and production CPU proof are NOT_RUN. `proof/GATES.json` is the authoritative gate list.
++Local validation: 31 tests passed; production-form fixture records reach READY without Slurm identity or persistent initialization, and wrong evidence fails; OFF identity is exact on four tiny-model ranks; 288 final-config microsteps pass finite full-forward checks; two fixture derivations are byte-identical; the real-v7 loader audit covers 1,000 steps. These are bounded local results. Full native selection regeneration, production RGB/admission, complete routing counts, complete privacy scan and production CPU proof are NOT_RUN. `proof/GATES.json` is the authoritative gate list.
+--- a/out/REPORT.md
++++ b/out/REPORT.md
+@@ -6,7 +6,7 @@
+ 
+ Recovery fails at sealed `student_pilot/ground_rows.py:82`: `ground_record.not_seen` is true, while line 81 requires it to be false. The failure persists through the native packer. Production validates these rows before adding frames and never clears the flag.
+ 
+-Units are unbound and have zero dose. A bound source trains feet by default; units below 100 eligible rows are named absent with their counts and do not fail the family gate. `--unit-rows FILE --unit-rows-sha256 SHA` accepts packed JSONL with full events and 32 explicit frame pins. It preserves all input bytes, validates each row through sealed admission, binds a new pool source, and caps its dose at four times eligible rows over 1,000 steps. Each unit below 100 post-filter rows is named as missing. The specified 1,224-row units_p_slice_v2 candidate has ft=1,130, in=94 and cm=0. Its read-only fixture fails binding because it lacks top-level events and frame pins. A packed successor is required; no production unit source is bound. `ROUTING_DIAGNOSIS.json` retains the separate sealed-refusal diagnosis.
++Units are unbound and have zero dose. A bound source trains feet by default; units below 100 eligible rows are named absent with their counts and do not fail the family gate. `--unit-rows FILE --unit-rows-sha256 SHA` accepts packed JSONL with full events and 32 explicit frame pins. It preserves all input bytes, validates each row through sealed admission, binds a new pool source, and caps its dose at four times eligible rows over 1,000 steps. Each unit below 100 post-filter rows is named as missing. The specified 747-row units_p_slice_v3 candidate has ft=683, in=64 and cm=0. Direct binding refuses its missing events and frame pins. The optional `--pack-unit-slice` path reconstructs only the omitted event envelope through sealed `ground_rows.pack`, preserves all supplied payload fields, resolves frames through sealed `s1_routing.Frames`, then applies sealed validation and native source selection. It requires a pinned `--unit-frame-authority` manifest matching the config map, plan and FPS hashes. The option is off; no production unit source is bound. `ROUTING_DIAGNOSIS.json` retains the separate sealed-refusal diagnosis.
+ 
+ V7 contains 431 traced room rows: 431 pass the sealed row checks, 431 pass the qualitative-trace predicate, and 431 are eligible. The 476 square-metre and 95 square-foot one-line diagnostic room rows have zero eligible rows. A room row needs the r1_room_traced pool, pinned Seen citations, exactly one qualitative relation line and a numeric answer after </think>, with no other printed numbers in the think block; production must also verify its frames. The selection removes all room sources: 586 source-selection rows, corresponding to the brief's expected 581 materialized programs. Every non-room entry is canonically byte-equal and every ordered index retains its hash. The 581 materialized count still needs native regeneration.
+ 
+@@ -14,8 +14,10 @@
+ 
+ The local loader audit draws 128,000 real-store VQA rows over 1,000 steps, reports family and question-type shares, toward/away shares within facing and decoded back-answer shares among away-hard draws, and records five bound traces for each populated family, including stored families with zero draw. No VQA row repeats more than 4 times. Production routing, pose and pointing stores are absent locally, so their final eligible counts and capped routing table remain unmeasured. The local required-family gate checks post-filter VQA counts and native routing source-selection presence. The audit prints cm/ft/in draw counts and absolute-distance eligible/drawn counts by exact scannetpp/, scannetppv2/, scannet and arkit prefixes. Local routing entries are NOT_RUN, with null counts. The production proof recomputes final routing counts from staged files and refuses a missing required family; it prints the named `absent_on_P` list with reasons. Units below 100 eligible rows are named absent rather than failing the gate; sampling applies the configured allowlist and the four-repeat cap.
+ 
+-All 27 local tests pass. The tiny-model OFF optimizer state is bit-equal on all four ranks against b01ce449. The final S2-off first batch passes 72 full-forward microsteps per rank, including 128 real VQA targets in total. Pixels and auxiliary streams are fixtures; these checks do not certify production RGB or the actual routing batch. Two fixture deployment derivations have identical manifest hashes. The fixture lacks `k/np226_5204b3a0.tar` and `k/t_e6456bcecb8d4a8f4f68158eb68275f8befff128.tar`.
++All 31 local tests pass. The tiny-model OFF optimizer state is bit-equal on all four ranks against b01ce449. The final S2-off first batch passes 72 full-forward microsteps per rank, including 128 real VQA targets in total. Pixels and auxiliary streams are fixtures; these checks do not certify production RGB or the actual routing batch. Two fixture deployment derivations have identical manifest hashes. The fixture lacks `k/np226_5204b3a0.tar` and `k/t_e6456bcecb8d4a8f4f68158eb68275f8befff128.tar`.
+ 
+ The production CPU proof is derived and tested locally at its boundaries, but has not run on Orchard. Its partition parameter accepts `advanced` or `general`; its receipt records the partition and node. It requests 48 CPUs, 800G and four hours with no GPU GRES. It requires named checks for disk plan, routing selection, empty root, temporary paths, runtime binary hashes, private directory modes, loader audit and required families. It authenticates bundle helpers, counts export destinations, starts with empty work and slot directories, and runs the inherited mode-p entry before auditing its prepared streams. Staging keeps files read-only and directories at 0700. The only external writable mount is the declared proof-receipt directory; work and preparation state remain under the job's private temporary root.
+ 
+-The operator archive is `p_1130b378.tar`. Its outer filenames pass the local scan. The complete deployment's privacy scan, independent admission review, native regeneration and production CPU proof remain required. No GO, content certificate or production PASS is manufactured. `R1P_PACKET.md` gives the binding and operator steps; `REVIEW_REQUEST.json` asks the dispatching lane for one independent review.
++Derivation validates the four evidence records through the inherited read-only pin, identity, digest and admission-contract helpers. It checks review, staging, durable archive and mode-p authorization bindings without a Slurm identity or persistent write. The packaged deriver reaches READY with production-form fixture evidence; wrong identities and malformed bindings fail. The inherited `b/` bytes and allocation-time check in the job path remain unchanged. `proof/PRE_SUBMISSION.json` records the fixture scope. Production source `H` is `/project/community/jjyeung/okh7/x_3fdda0fb`, with manifest SHA256 `661ccd85b7a8f1afd25297869dc3a28539e64a3a0ab9a74ee928c0c5ab8a66c3`; the local fixture manifest applies only to local tests.
++
++The operator archive is `p_1130b378.tar`, SHA256 `f719b05fcbe934654499d786d1a56d413c0db71f6a1fd9a60b5097e788ebfad9`. Its outer filenames pass the local scan. The complete deployment's privacy scan, independent admission review, native regeneration and production CPU proof remain required. No GO, content certificate or production PASS is manufactured. `R1P_PACKET.md` gives the binding and operator steps; `REVIEW_REQUEST.json` asks the dispatching lane for one independent review.
+--- a/out/REVIEW_REQUEST.json
++++ b/out/REVIEW_REQUEST.json
+@@ -1 +1 @@
+-{"config_identity":"782f303d81e300b1b24094863d6ce7d984690529f0e414474c3e693df87e19da","dispatch_result_event":"Dispatching lane writes the RESULT event; this packet sends no external message.","operator_archive":"p_1130b378.tar","operator_archive_sha256":"42bbcbb218c982b4e33cc92c7be97f01359ae2e47cd20e387c0008edefc6b1cb","reason":"Admission inputs change. Review family quotas, receipt binding, routing refusals, staging changes and CPU proof before any deployment approval.","reviews_requested":1,"status":"REVIEW_REQUIRED","tree_sha256":"b7d19ec090bcab112ed0ce72758e4491e02aff14d4645ac3945bb56ebd7d379e"}
++{"config_identity":"782f303d81e300b1b24094863d6ce7d984690529f0e414474c3e693df87e19da","dispatch_result_event":"Dispatching lane writes the RESULT event; this packet sends no external message.","operator_archive":"p_1130b378.tar","operator_archive_sha256":"f719b05fcbe934654499d786d1a56d413c0db71f6a1fd9a60b5097e788ebfad9","reason":"Admission inputs change. Review family quotas, receipt binding, routing refusals, staging changes and CPU proof before any deployment approval.","reviews_requested":1,"status":"REVIEW_REQUIRED","tree_sha256":"b7d19ec090bcab112ed0ce72758e4491e02aff14d4645ac3945bb56ebd7d379e"}
+--- a/out/UNIT_PACKING.md
++++ b/out/UNIT_PACKING.md
+@@ -0,0 +1,27 @@
++The optional unit packing path is built and remains off. No unit source is bound; Proof 1 keeps units at zero and lists them under absent_on_P.
++
++The read-only candidate is `/scratch/jjyeung/orch_n30/rows_r1/out/units_p_slice_v3/rows.jsonl`, SHA256 `5f9383fa3dabcc813676564c8533e0c7b110a7f1d0e9aff4c9ebde444355a0b3`. COUNTS.json declares 747 rows: 683 ft, 64 in, and 0 cm. All 747 pass sealed semantic validation when the native packer reconstructs the omitted event envelope; every supplied field stays unchanged. The packed source preserves the original source_qid. Inches remain below the 100-row sampling threshold.
++
++`tools/rebind.py --pack-unit-slice` calls `tools/unit_binding.py:pack_slice`. The helper checks the slice SHA, reconstructs events with sealed `ground_rows.pack`, compares every overlapping payload field (the packer's duplicate source_qid is ignored and the supplied source_qid is retained), resolves the exact 32 frame indices with sealed `s1_routing.Frames`, then runs sealed `s1_pool.validate_source_row`. It rejects any changed target, answer, ground record, response or span. It never invokes generation or repairs a failed row. The source is added through the existing native selection/binding path, compressed into u.gz, catalogued as U_Faithful and staged in the private routing namespace. Native regeneration, routing materialization and production RGB admission still run before the loader samples it.
++
++Orchard must provide the complete staged frame map, frame plan and FPS authority whose SHA256 values match `config.s1_routing.frame_map`, `frame_plan` and `fps_authority`, plus every mapped RGB file. The map must contain all requested (dataset, scene, frame index) entries; the plan must supply required full frame counts, and the FPS authority must resolve each scene without conflict. No frame hash or path may be invented. The manifest is JSON with exactly those three keys, each containing a path and sha256 pin. Resolving the pins alone does not verify RGB bytes; the sealed production preparation must hash and admit the actual staged images.
++
++Run the following only in a complete rebind workspace where those Orchard-resolved authorities are available under the manifest's paths. This lane did not contact Orchard or stage real unit frames:
++
++```bash
++/scratch/jjyeung/envs/p1cpu/bin/python -B tools/rebind.py \
++  --receipt /scratch/jjyeung/orch_n30/rows_r1/out/a2_vqa_v7/vqa/receipt.json \
++  --receipt-sha256 8091154cd499c47404c2f3a6d288bff3b061fa71a1d22af5de68337fbbde56cd \
++  --orchard-store /project/community/jjyeung/okh7/s_22b44165/d.db --reuse-census \
++  --unit-rows /scratch/jjyeung/orch_n30/rows_r1/out/units_p_slice_v3/rows.jsonl \
++  --unit-rows-sha256 5f9383fa3dabcc813676564c8533e0c7b110a7f1d0e9aff4c9ebde444355a0b3 \
++  --pack-unit-slice --unit-frame-authority "$FRAME_AUTHORITY" \
++  --unit-frame-authority-sha256 "$FRAME_AUTHORITY_SHA256" \
++  --units-allowlist ft --unit-cents 100
++```
++
++The same pack_slice helper ships as u.py in the operator archive. An Orchard operator can use that helper with the authenticated trainer tree and staged authorities to produce the packed file there; the ordinary pinned `--unit-rows` path can then consume that file in the complete rebind workspace. Any transfer or execution requires the operator's own authorized workflow. The option does not fetch missing frames or redirect a local path to Orchard.
++
++The reviewer must check the candidate and authority hashes, preserved payload and source joins, unchanged sealed module hashes, exact frame-index agreement, every frame pin against real RGB bytes, the native retained indices and scene/QID/label exclusions, and the final routing/source-selection hashes. The production audit must report post-filter ft/cm/in counts, the configured allowlist and cap, and no missing required family. The reviewer must also check the extent-audit evidence named by COUNTS.json; native admission alone does not establish that semantic review.
++
++`proof/UNIT_PACKING_CHECK.json` records the all-row event reconstruction and a fixture that exercises native frame resolution, packed-source binding and regeneration. Its synthetic RGB pins certify only the code path. No admission predicate or supplied training payload changed. Real Orchard frame resolution and RGB admission remain NOT_RUN.
+--- a/out/logs/finalize.log
++++ b/out/logs/finalize.log
+@@ -1 +1 @@
+-{"status": "BUILT_BLOCKED", "identity": "782f303d81e300b1b24094863d6ce7d984690529f0e414474c3e693df87e19da", "local_tests": 27, "archive": "p_1130b378.tar"}
++{"status": "BUILT_BLOCKED", "identity": "782f303d81e300b1b24094863d6ce7d984690529f0e414474c3e693df87e19da", "local_tests": 31, "archive": "p_1130b378.tar"}
+--- a/out/logs/fix5.log
++++ b/out/logs/fix5.log
+@@ -1 +1 @@
+-{"changed_files": ["tools/admission_census.py", "tools/finalize.py", "tools/rebind.py", "tools/run_local_checks.py", "tools/selection_check.py", "tools/write_fix5.py", "tests/test_packet.py", "configs/diff_against_deployed.json", "configs/diff_against_h1_1.json", "configs/r1p.json", "work/tree/student_pilot/loader_audit.py", "work/tree/student_pilot/type_mix.py", "out/SAMPLER_REVIEW.patch", "out/DEPLOYMENT_REVIEW.patch"], "diff": "out/FIX5.diff"}
++{"changed_files": ["tools/admission_census.py", "tools/finalize.py", "tools/rebind.py", "tools/run_local_checks.py", "tools/selection_check.py", "tools/unit_binding.py", "tools/write_fix5.py", "tests/test_packet.py", "configs/diff_against_deployed.json", "configs/diff_against_h1_1.json", "configs/r1p.json", "work/tree/student_pilot/loader_audit.py", "work/tree/student_pilot/type_mix.py", "out/SAMPLER_REVIEW.patch", "out/DEPLOYMENT_REVIEW.patch"], "diff": "out/FIX5.diff"}
+--- a/out/logs/local_checks5_final.log
++++ b/out/logs/local_checks5_final.log
+@@ -0,0 +1 @@
++{"status": "BUILT_BLOCKED", "config_identity": "782f303d81e300b1b24094863d6ce7d984690529f0e414474c3e693df87e19da", "operator_archive_sha256": "21e1ec609e9b965c10db21cb7309f0623095b7d87f67ac40cebccaf6b44e7401"}
+--- a/out/logs/package.log
++++ b/out/logs/package.log
+@@ -1 +1 @@
+-{"archive":"/scratch/jjyeung/orch_n30/r1_pkt/out/p_1130b378.tar","bundle":"/project/community/jjyeung/okh7/i_1130b378","kit":"/project/community/jjyeung/okh7/x_1130b378","sha256":"42bbcbb218c982b4e33cc92c7be97f01359ae2e47cd20e387c0008edefc6b1cb"}
++{"archive":"/scratch/jjyeung/orch_n30/r1_pkt/out/p_1130b378.tar","bundle":"/project/community/jjyeung/okh7/i_1130b378","kit":"/project/community/jjyeung/okh7/x_1130b378","sha256":"21e1ec609e9b965c10db21cb7309f0623095b7d87f67ac40cebccaf6b44e7401"}
+--- a/out/logs/package_repeat.log
++++ b/out/logs/package_repeat.log
+@@ -1 +1 @@
+-{"archive":"/scratch/jjyeung/orch_n30/r1_pkt/out/p_1130b378.tar","bundle":"/project/community/jjyeung/okh7/i_1130b378","kit":"/project/community/jjyeung/okh7/x_1130b378","sha256":"42bbcbb218c982b4e33cc92c7be97f01359ae2e47cd20e387c0008edefc6b1cb"}
++{"archive":"/scratch/jjyeung/orch_n30/r1_pkt/out/p_1130b378.tar","bundle":"/project/community/jjyeung/okh7/i_1130b378","kit":"/project/community/jjyeung/okh7/x_1130b378","sha256":"21e1ec609e9b965c10db21cb7309f0623095b7d87f67ac40cebccaf6b44e7401"}
+--- a/out/logs/pre_submission.log
++++ b/out/logs/pre_submission.log
+@@ -0,0 +1,8 @@
++test_production_records_ready_without_slurm_or_persistent_writes (__main__.DerivationEvidence.test_production_records_ready_without_slurm_or_persistent_writes) ... ok
++test_record_schema_and_bindings_refused (__main__.DerivationEvidence.test_record_schema_and_bindings_refused) ... ok
++test_wrong_evidence_identity_refused_during_derivation (__main__.DerivationEvidence.test_wrong_evidence_identity_refused_during_derivation) ... ok
++
++----------------------------------------------------------------------
++Ran 3 tests in 4.169s
++
++OK
+--- a/out/logs/tests.log
++++ b/out/logs/tests.log
+@@ -1,3 +1,6 @@
++test_production_records_ready_without_slurm_or_persistent_writes (test_derivation_pre_submit.DerivationEvidence.test_production_records_ready_without_slurm_or_persistent_writes) ... ok
++test_record_schema_and_bindings_refused (test_derivation_pre_submit.DerivationEvidence.test_record_schema_and_bindings_refused) ... ok
++test_wrong_evidence_identity_refused_during_derivation (test_derivation_pre_submit.DerivationEvidence.test_wrong_evidence_identity_refused_during_derivation) ... ok
+ test_actual_question_types_follow_pose_mix_order (__main__.Evidence.test_actual_question_types_follow_pose_mix_order) ... ok
+ test_admission_implementation_unchanged (__main__.Evidence.test_admission_implementation_unchanged) ... ok
+ test_deployment_refuses_unbound_source_and_forged_packet (__main__.Evidence.test_deployment_refuses_unbound_source_and_forged_packet) ... ok
+@@ -20,6 +23,7 @@
+ test_staging_preserves_private_directory_modes (__main__.Proof.test_staging_preserves_private_directory_modes) ... ok
+ test_absences_and_missing_required_family (__main__.VehicleP.test_absences_and_missing_required_family) ... ok
+ test_fallback_filter_and_deployed_diff_baseline (__main__.VehicleP.test_fallback_filter_and_deployed_diff_baseline) ... ok
++test_optional_unit_slice_packing_and_native_binding (__main__.VehicleP.test_optional_unit_slice_packing_and_native_binding) ... ok
+ test_partition_parameter_and_cpu_resources (__main__.VehicleP.test_partition_parameter_and_cpu_resources) ... ok
+ test_real_unit_slice_rebind_refuses_unpacked_input_without_mutation (__main__.VehicleP.test_real_unit_slice_rebind_refuses_unpacked_input_without_mutation) ... ok
+ test_unit_allowlist_populations_cap_and_named_absences (__main__.VehicleP.test_unit_allowlist_populations_cap_and_named_absences) ... ok
+@@ -27,6 +31,6 @@
+ test_units_refused_when_unbound (__main__.VehicleP.test_units_refused_when_unbound) ... ok
+ 
+ ----------------------------------------------------------------------
+-Ran 27 tests in 79.618s
++Ran 31 tests in 102.531s
+ 
+ OK
+--- a/out/logs/unit_packing5.log
++++ b/out/logs/unit_packing5.log
+@@ -1,18 +1,6 @@
+-test_optional_unit_slice_packing_and_native_binding (__main__.VehicleP.test_optional_unit_slice_packing_and_native_binding) ... ERROR
+-
+-======================================================================
+-ERROR: test_optional_unit_slice_packing_and_native_binding (__main__.VehicleP.test_optional_unit_slice_packing_and_native_binding)
+-----------------------------------------------------------------------
+-Traceback (most recent call last):
+-  File "/scratch/jjyeung/orch_n30/r1_pkt/tests/test_packet.py", line 495, in test_optional_unit_slice_packing_and_native_binding
+-    receipt=pack_slice(fixture,sha(fixture),authority,authority,parent,dest)
+-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-  File "/scratch/jjyeung/orch_n30/r1_pkt/tools/unit_binding.py", line 48, in pack_slice
+-    implementation={n:actual[n] for n in ('student_pilot/ground_rows.py','student_pilot/s1_pool.py','student_pilot/s1_routing.py')},
+-                      ~~~~~~^^^
+-KeyError: 'student_pilot/s1_routing.py'
++test_optional_unit_slice_packing_and_native_binding (__main__.VehicleP.test_optional_unit_slice_packing_and_native_binding) ... ok
+ 
+ ----------------------------------------------------------------------
+-Ran 1 test in 3.238s
++Ran 1 test in 18.929s
+ 
+-FAILED (errors=1)
++OK
+--- a/out/operator/d.py
++++ b/out/operator/d.py
+@@ -1,5 +1,5 @@
+ """Derive R1 from the authenticated H1 deployment; never edit the source kit."""
+-import argparse,copy,hashlib,json,os,re,shutil,sys
++import argparse,copy,datetime,hashlib,importlib.util,json,os,re,shutil,sys
+ from pathlib import Path
+ AS='/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/'
+ def enc(v):return json.dumps(v,sort_keys=True,separators=(',',':'),allow_nan=False)
+@@ -18,6 +18,51 @@
+     return hashlib.sha256(enc(v).encode()).hexdigest()
+ def digest(v):return hashlib.sha256(enc(v).encode()).hexdigest()
+ def safe(n):return not Path(n).is_absolute() and all(x not in ('','.','..') for x in n.split('/'))
++
++def validate_evidence(root):
++    """Check pre-submission records without initializing allocation state."""
++    # g.check always reaches persistent_launch for this kit. Reuse only its
++    # read-only helpers and d.contract; job.sh retains the full runtime check.
++    old_path=sys.path[:];old_bytecode=sys.dont_write_bytecode
++    try:
++        sys.dont_write_bytecode=True
++        sys.path.insert(0,str(root/'b'))
++        def inherited(name):
++            spec=importlib.util.spec_from_file_location('_r1_inherited_'+name,root/'b'/(name+'.py'))
++            module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
++            return module
++        gate=inherited('g');admission=inherited('d')
++        launch=load(root/'k/launch.json');cfg=gate.read_pin(root,launch['config'])
++        code=load(root/'k/7.json');config_sha=gate.identity(cfg);commit=code['commit']
++        contract_sha=gate.digest(admission.contract(launch,cfg))
++        review=gate.read_pin(root,launch['review'])
++        staged=gate.read_pin(root,launch['staging'])
++        archived=gate.read_pin(root,launch['archive'])
++        auth=load(root/'k/4.json')
++        for name,record in (('review.json',review),('staging.json',staged),('4.json',auth)):
++            if record.get('config_sha256')!=config_sha or record.get('source_revision')!=commit:
++                raise ValueError('Evidence identity or source differs: '+name)
++        if (review.get('verdict')!='PASS' or not review.get('reviewer')
++                or cfg.get('admission',{}).get('sha256')!=launch['review']['sha256']
++                or review.get('admission_contract_sha256')!=contract_sha
++                or review.get('admission_scope')!='pinned-template-and-native-data-derivation'):
++            raise ValueError('Independent review does not cover the in-job derivation')
++        if (staged.get('status')!='PASS' or staged.get('missing')!=[]
++                or staged.get('project_community_write_bytes')!=0):
++            raise ValueError('Read-only cache staging is not verified')
++        if (archived.get('status')!='ARCHIVED' or archived.get('durable') is not True
++                or archived.get('sha256')!=code['archive']['sha256']
++                or archived.get('tree_sha256')!=code['tree_sha256']
++                or not isinstance(archived.get('location'),str) or not archived['location']
++                or archived['location'].startswith(('/scratch/','/tmp/'))):
++            raise ValueError('Off-scratch source archive is not attested')
++        expiry=datetime.datetime.fromisoformat(auth['allow_until_utc'].replace('Z','+00:00'))
++        if (expiry.tzinfo is None or expiry<datetime.datetime(2026,11,22,tzinfo=datetime.timezone.utc)
++                or expiry<=datetime.datetime.now(datetime.timezone.utc) or 'p' not in auth.get('modes',[])
++                or auth.get('admission_contract_sha256')!=contract_sha):
++            raise ValueError('Written slot authorization is absent, foreign or expires too early')
++    finally:
++        sys.path[:]=old_path;sys.dont_write_bytecode=old_bytecode
+ 
+ def derive(source,out,packet,source_manifest_sha,*,fixture=False,evidence=None,bundle=None,selection_evidence=None):
+     os.umask(0o077);source=Path(source);out=Path(out);packet=Path(packet)
+@@ -119,10 +164,7 @@
+     actual={n:manifest[n] if n in missing else sha(out/n) for n in sorted(names)}
+     (out/'SHA256SUMS.txt').write_text(''.join(h+'  '+n+'\n' for n,h in actual.items()))
+     if evidence:
+-        # Execute the inherited production verifier. It authenticates review,
+-        # staging, archive and authorization schemas and their full bindings.
+-        sys.path.insert(0,str(out/'b'));import g
+-        g.check(out,{},'p')
++        validate_evidence(out)
+     result=dict(status=launch['status'],config_identity=identity(cfg),config_key=key,manifest_sha256=sha(out/'SHA256SUMS.txt'),
+         source_manifest_sha256=source_manifest_sha,missing_source_members=missing,source_identity=H1_ID,
+         run_key=run,staged_additions=staged,production_authorized=False,
+--- a/out/operator/sums.txt
++++ b/out/operator/sums.txt
+@@ -3,7 +3,7 @@
+ 5b90d3a3bfbd26ee2cd19f0d51562ec04ca33da2dd32bb3184f86cc774932aae  c.json
+ d9af2c8c9229af4b4dba2961ed4bca1294e3dec51c3d47d5fd39285d20aa9e7d  config.json
+ 4e53936594280c3434ddd9ad07b6e068d1f2758d670008e8c89b5bfa1bedd8b1  d.json
+-d26e02f4af7a279992ed51ccd2284a8dd2a798b3374a737065c13c08a484935e  d.py
++40c7908b891246e09bdd1878b1a54f039a00dfaa340362849a722ce5a8269f06  d.py
+ 8091154cd499c47404c2f3a6d288bff3b061fa71a1d22af5de68337fbbde56cd  d_8091154cd499c474.json
+ 3f4773b614221b36c108680b72f88cb488cc78f3f3b79832b58f4022c93dfdb0  e.txt
+ ad568028ccd852746e34a4c68c2c20c28cc649ffd29c2c8d08dd73af29ace84f  ids.json
+@@ -25,6 +25,6 @@
+ 78d01f893720baf0e31b3ce06bc4a157a99510d42f5bcfeccb0000ad84705c70  s.json
+ be902a4a344d6b53efc0eef0e04eff5849a979789f1ec44415ef7e13e0d431ea  s.sh
+ e4e207906e186cf0748672fb38d6c290704881e1c33aeb82b520ae3ca1cedcb8  t.tar
+-99e746fa8df837d30542b6a3b2faaa600d398cb37de9b144e28bfbd122a255b7  u.py
++c376dc318677aa3bbb5dd177563158bf61b2a6ede8ab7df446505f988c201388  u.py
+ 5e21b6c79b3ed1ac10efc15e8061e705af060370add7c20db119d92ad8b6748f  v.json
+ d55f8ec55edff2327b1623377187cf4b00b5f2d7ad07e9c586b72b015da9c659  v.py
+--- a/out/operator/u.py
++++ b/out/operator/u.py
+@@ -10,6 +10,47 @@
+ def load(p):return json.loads(Path(p).read_text())
+ def write(p,v):Path(p).write_text(enc(v)+'\n')
+ def pin(p):return dict(path=str(p),sha256=sha(p))
++
++def pack_slice(rows, expected, authority, expected_authority, parent, out):
++    """Reconstruct only omitted events and frame inputs; preserve the supplied payload."""
++    from student_pilot import ground_rows,s1_pool,s1_routing
++    rows=Path(rows);out=Path(out)
++    if sha(rows)!=expected:raise ValueError('Unit slice SHA differs')
++    if set(authority)!={'frame_map','frame_plan','fps_authority'}:raise ValueError('Unit packing requires map, plan and FPS authority')
++    actual=s1_pool.implementation()
++    actual['student_pilot/s1_routing.py']=sha(s1_routing.__file__)
++    expected_implementation={**parent['implementation'],'student_pilot/s1_routing.py':'5c8cd97392ba66a525f831047cfbe7d7e0ae028fcf6711e2427596fc98a126bc'}
++    for name in ('student_pilot/ground_rows.py','student_pilot/s1_pool.py','student_pilot/s1_routing.py'):
++        if actual[name]!=expected_implementation[name]:raise ValueError('Unit packing predicate differs: '+name)
++    for key,value in authority.items():
++        if set(value)!={'path','sha256'} or value['sha256']!=expected_authority[key]['sha256'] or sha(value['path'])!=value['sha256']:
++            raise ValueError('Unit frame authority differs: '+key)
++    frames=s1_routing.Frames(authority['frame_map'],authority['frame_plan'],fps_authority=authority['fps_authority'])
++    output=[];qids=set()
++    for line in rows.read_bytes().splitlines():
++        row=json.loads(line)
++        if 'events' in row:raise ValueError('Slice packing requires omitted top-level events')
++        envelope=ground_rows.pack(dict(row['ground_record'],suffix=row['target']),row['provenance'])
++        # source_qid remains the original source join, not pack()'s duplicate of qid.
++        for key,value in envelope.items():
++            if key in row and key!='source_qid' and row[key]!=value:
++                raise ValueError('Native unit packing would change supplied payload: '+key)
++        packed=copy.deepcopy(row);packed['events']=envelope['events']
++        request=s1_routing.frame_request(packed)
++        for value in (row.get('frame_indices'),row['ground_record'].get('frame_indices')):
++            if value is not None and value!=request['i']:raise ValueError('Unit slice frame indices differ')
++        inputs,_=frames.resolve(packed)
++        packed['student_input']=inputs
++        s1_pool.validate_source_row(packed,'packed')
++        if packed['qid'] in qids:raise ValueError('Duplicate unit QID')
++        qids.add(packed['qid']);output.append(enc(packed)+'\n')
++    raw=''.join(output).encode();counts=inspect_rows(raw)
++    out.parent.mkdir(parents=True,exist_ok=True,mode=0o700);out.write_bytes(raw)
++    return dict(schema='unit-slice-packing-v1',slice=pin(rows),packed=pin(out),frame_authority=authority,
++        implementation={n:actual[n] for n in ('student_pilot/ground_rows.py','student_pilot/s1_pool.py','student_pilot/s1_routing.py')},
++        rows=counts['eligible'],payload_changed=False,source_qid_preserved=True,
++        additions=['events','student_input frame pins and native timing fields'],rgb_bytes_verified=False)
++
+ 
+ def inspect_rows(raw):
+     from student_pilot import s1_pool,s1_routing
+Binary files a/out/p_1130b378.tar and b/out/p_1130b378.tar differ
+# SHA256 before=42bbcbb218c982b4e33cc92c7be97f01359ae2e47cd20e387c0008edefc6b1cb after=f719b05fcbe934654499d786d1a56d413c0db71f6a1fd9a60b5097e788ebfad9
+--- a/out/proof/DERIVATION.json
++++ b/out/proof/DERIVATION.json
+@@ -1 +1 @@
+-{"config_identity":"782f303d81e300b1b24094863d6ce7d984690529f0e414474c3e693df87e19da","fixture_paths":["/scratch/jjyeung/orch_n30/r1_pkt/work/derive_7x61b4ug/a","/scratch/jjyeung/orch_n30/r1_pkt/work/derive_7x61b4ug/b"],"manifest_sha256":"d3304f2265adc587ba6835dc9eb8dc7449b294c382cb869bf540e73cf79d3a89","missing_source_members":["k/np226_5204b3a0.tar","k/t_e6456bcecb8d4a8f4f68158eb68275f8befff128.tar"],"operator_archive_sha256":"42bbcbb218c982b4e33cc92c7be97f01359ae2e47cd20e387c0008edefc6b1cb","operator_archive_twice_exact":true,"scope":"FIXTURE; two inherited source members absent locally","source_manifest_sha256":"f13eccc20b7d2ee8b9622ce66db36e3cf561d0d41e69a367e9c435d5bf4261d6","status":"PASS","two_derivations_exact":true}
++{"config_identity":"782f303d81e300b1b24094863d6ce7d984690529f0e414474c3e693df87e19da","fixture_paths":["/scratch/jjyeung/orch_n30/r1_pkt/work/derive_fix6_mhx_chg4/a","/scratch/jjyeung/orch_n30/r1_pkt/work/derive_fix6_mhx_chg4/b"],"manifest_sha256":"d3304f2265adc587ba6835dc9eb8dc7449b294c382cb869bf540e73cf79d3a89","missing_source_members":["k/np226_5204b3a0.tar","k/t_e6456bcecb8d4a8f4f68158eb68275f8befff128.tar"],"operator_archive_sha256":"f719b05fcbe934654499d786d1a56d413c0db71f6a1fd9a60b5097e788ebfad9","operator_archive_twice_exact":true,"scope":"FIXTURE; two inherited source members absent locally","source_manifest_sha256":"f13eccc20b7d2ee8b9622ce66db36e3cf561d0d41e69a367e9c435d5bf4261d6","status":"PASS","two_derivations_exact":true}
+--- a/out/proof/FIRST_BATCH.json
++++ b/out/proof/FIRST_BATCH.json
+@@ -23,7 +23,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 0,
+-          "seconds": 0.1,
++          "seconds": 0.07,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -46,7 +46,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 0,
+-          "seconds": 0.09,
++          "seconds": 0.07,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -69,7 +69,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 0,
+-          "seconds": 0.09,
++          "seconds": 0.06,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -92,7 +92,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 0,
+-          "seconds": 0.09,
++          "seconds": 0.06,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -115,7 +115,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 0,
+-          "seconds": 0.07,
++          "seconds": 0.06,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -138,7 +138,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 0,
+-          "seconds": 0.07,
++          "seconds": 0.06,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -207,7 +207,7 @@
+           "over_10k_tokens": false,
+           "qid": "qa3f392e53254de4721485744-p1",
+           "rank": 0,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -230,7 +230,7 @@
+           "over_10k_tokens": false,
+           "qid": "qb0eb9d02da9f7bb4ab016283",
+           "rank": 0,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -253,7 +253,7 @@
+           "over_10k_tokens": false,
+           "qid": "vsi590k_144836_away_opp",
+           "rank": 0,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -299,7 +299,7 @@
+           "over_10k_tokens": false,
+           "qid": "q1a9ed434e268c94d92e7b7e6",
+           "rank": 0,
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -437,7 +437,7 @@
+           "over_10k_tokens": false,
+           "qid": "vsi590k_106146",
+           "rank": 0,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -460,7 +460,7 @@
+           "over_10k_tokens": false,
+           "qid": "qd7700e1db1f73150e83dd7a2",
+           "rank": 0,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -483,7 +483,7 @@
+           "over_10k_tokens": false,
+           "qid": "q7dbbaf212bf40be4b135c2ef",
+           "rank": 0,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -552,7 +552,7 @@
+           "over_10k_tokens": false,
+           "qid": "q938c5455d5c75916cb5568d5-p1",
+           "rank": 0,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -598,7 +598,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 0,
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -621,7 +621,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 0,
+-          "seconds": 0.03,
++          "seconds": 0.05,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -667,7 +667,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 0,
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -759,7 +759,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 0,
+-          "seconds": 0.06,
++          "seconds": 0.07,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -782,7 +782,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 0,
+-          "seconds": 0.07,
++          "seconds": 0.06,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -805,7 +805,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 0,
+-          "seconds": 0.07,
++          "seconds": 0.06,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -828,7 +828,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 0,
+-          "seconds": 0.07,
++          "seconds": 0.06,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -874,7 +874,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 0,
+-          "seconds": 0.07,
++          "seconds": 0.06,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -1012,7 +1012,7 @@
+           "over_10k_tokens": false,
+           "qid": "q9195a0377071420e963fd37f",
+           "rank": 0,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -1196,7 +1196,7 @@
+           "over_10k_tokens": false,
+           "qid": "b214806f63c78dcdd2db1f132",
+           "rank": 0,
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -1219,7 +1219,7 @@
+           "over_10k_tokens": false,
+           "qid": "b12ao_e18f5a46e1d2e127d10433d7",
+           "rank": 0,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -1242,7 +1242,7 @@
+           "over_10k_tokens": false,
+           "qid": "q7d7a497d7b4b0db7f02b7747",
+           "rank": 0,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -1288,7 +1288,7 @@
+           "over_10k_tokens": false,
+           "qid": "qc96bf80b9a6bfbabd910eeae",
+           "rank": 0,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -1311,7 +1311,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 0,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "pointing",
+           "substituted_from": null,
+@@ -1334,7 +1334,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 0,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "pointing",
+           "substituted_from": null,
+@@ -1380,7 +1380,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 0,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "pointing",
+           "substituted_from": null,
+@@ -1449,7 +1449,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 0,
+-          "seconds": 0.05,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "pointing",
+           "substituted_from": null,
+@@ -1495,7 +1495,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 0,
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -1518,7 +1518,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 0,
+-          "seconds": 0.04,
++          "seconds": 0.06,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -1541,7 +1541,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 0,
+-          "seconds": 0.03,
++          "seconds": 0.05,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -1564,7 +1564,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 0,
+-          "seconds": 0.03,
++          "seconds": 0.05,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -1587,7 +1587,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 0,
+-          "seconds": 0.04,
++          "seconds": 0.05,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -1610,7 +1610,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 0,
+-          "seconds": 0.03,
++          "seconds": 0.05,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -1633,7 +1633,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 0,
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -1656,7 +1656,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 0,
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -1686,7 +1686,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 1,
+-          "seconds": 0.07,
++          "seconds": 0.09,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -1709,7 +1709,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 1,
+-          "seconds": 0.06,
++          "seconds": 0.09,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -1732,7 +1732,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 1,
+-          "seconds": 0.06,
++          "seconds": 0.07,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -1755,7 +1755,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 1,
+-          "seconds": 0.06,
++          "seconds": 0.08,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -1778,7 +1778,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 1,
+-          "seconds": 0.06,
++          "seconds": 0.07,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -1801,7 +1801,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 1,
+-          "seconds": 0.07,
++          "seconds": 0.06,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -1824,7 +1824,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 1,
+-          "seconds": 0.06,
++          "seconds": 0.07,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -1847,7 +1847,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 1,
+-          "seconds": 0.06,
++          "seconds": 0.08,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -1870,7 +1870,7 @@
+           "over_10k_tokens": false,
+           "qid": "qf4b6c8e78385374dea31bcab-p1",
+           "rank": 1,
+-          "seconds": 0.03,
++          "seconds": 0.05,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -1893,7 +1893,7 @@
+           "over_10k_tokens": false,
+           "qid": "qc522228098178c4450de76af-p1",
+           "rank": 1,
+-          "seconds": 0.04,
++          "seconds": 0.05,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -1962,7 +1962,7 @@
+           "over_10k_tokens": false,
+           "qid": "q50722ef33cdd1fbd64160796-p1",
+           "rank": 1,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -2100,7 +2100,7 @@
+           "over_10k_tokens": false,
+           "qid": "q727e61467b5f5ff4d51cc340-p1",
+           "rank": 1,
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -2123,7 +2123,7 @@
+           "over_10k_tokens": false,
+           "qid": "bfc1947460964ea1973e26e85",
+           "rank": 1,
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -2146,7 +2146,7 @@
+           "over_10k_tokens": false,
+           "qid": "q8fb1dc6b6f3949d0ffd68c45-p1",
+           "rank": 1,
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -2192,7 +2192,7 @@
+           "over_10k_tokens": false,
+           "qid": "b12ct_a0e0a67fb27048adc741c955",
+           "rank": 1,
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -2215,7 +2215,7 @@
+           "over_10k_tokens": false,
+           "qid": "vsi590k_114268",
+           "rank": 1,
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -2399,7 +2399,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 1,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -2422,7 +2422,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 1,
+-          "seconds": 0.07,
++          "seconds": 0.06,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -2468,7 +2468,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 1,
+-          "seconds": 0.07,
++          "seconds": 0.06,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -2491,7 +2491,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 1,
+-          "seconds": 0.07,
++          "seconds": 0.08,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -2560,7 +2560,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 1,
+-          "seconds": 0.08,
++          "seconds": 0.07,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -2652,7 +2652,7 @@
+           "over_10k_tokens": false,
+           "qid": "qa4cc0e07900f1bebfb7abc9f-p1",
+           "rank": 1,
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -2675,7 +2675,7 @@
+           "over_10k_tokens": false,
+           "qid": "vstirel_4bd324de30ef80a52bc5d0bf",
+           "rank": 1,
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -2698,7 +2698,7 @@
+           "over_10k_tokens": false,
+           "qid": "vstirel_aff90139c97f0b1d5763d3a5",
+           "rank": 1,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -2721,7 +2721,7 @@
+           "over_10k_tokens": false,
+           "qid": "vstirel_0afb71580a0edec18d44d3ec",
+           "rank": 1,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -2744,7 +2744,7 @@
+           "over_10k_tokens": false,
+           "qid": "qf318252c5f68bea1fe9f5c45",
+           "rank": 1,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -2767,7 +2767,7 @@
+           "over_10k_tokens": false,
+           "qid": "qe971f1008ffe470c39ad2a1b-p1",
+           "rank": 1,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -2790,7 +2790,7 @@
+           "over_10k_tokens": false,
+           "qid": "d0total_0e01db237c60dec5a38f31d1",
+           "rank": 1,
+-          "seconds": 0.05,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -2813,7 +2813,7 @@
+           "over_10k_tokens": false,
+           "qid": "qcdd5f2baf8e3e686fb453806",
+           "rank": 1,
+-          "seconds": 0.06,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -2882,7 +2882,7 @@
+           "over_10k_tokens": false,
+           "qid": "q1b64e50c088567f4f916fd64",
+           "rank": 1,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -2905,7 +2905,7 @@
+           "over_10k_tokens": false,
+           "qid": "vsi590k_103810",
+           "rank": 1,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -2928,7 +2928,7 @@
+           "over_10k_tokens": false,
+           "qid": "q8cdf04118e6abfc7535791f0-p1",
+           "rank": 1,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -2951,7 +2951,7 @@
+           "over_10k_tokens": false,
+           "qid": "qfa451d4a4426b9acbf9e6f1d",
+           "rank": 1,
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -2974,7 +2974,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 1,
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "pointing",
+           "substituted_from": null,
+@@ -2997,7 +2997,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 1,
+-          "seconds": 0.05,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "pointing",
+           "substituted_from": null,
+@@ -3020,7 +3020,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 1,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "pointing",
+           "substituted_from": null,
+@@ -3043,7 +3043,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 1,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "pointing",
+           "substituted_from": null,
+@@ -3066,7 +3066,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 1,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "pointing",
+           "substituted_from": null,
+@@ -3089,7 +3089,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 1,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "pointing",
+           "substituted_from": null,
+@@ -3112,7 +3112,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 1,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "pointing",
+           "substituted_from": null,
+@@ -3135,7 +3135,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 1,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "pointing",
+           "substituted_from": null,
+@@ -3158,7 +3158,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 1,
+-          "seconds": 0.05,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -3181,7 +3181,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 1,
+-          "seconds": 0.05,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -3204,7 +3204,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 1,
+-          "seconds": 0.04,
++          "seconds": 0.05,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -3227,7 +3227,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 1,
+-          "seconds": 0.05,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -3250,7 +3250,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 1,
+-          "seconds": 0.05,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -3319,7 +3319,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 1,
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -3395,7 +3395,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 2,
+-          "seconds": 0.06,
++          "seconds": 0.08,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -3418,7 +3418,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 2,
+-          "seconds": 0.06,
++          "seconds": 0.07,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -3441,7 +3441,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 2,
+-          "seconds": 0.06,
++          "seconds": 0.08,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -3464,7 +3464,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 2,
+-          "seconds": 0.06,
++          "seconds": 0.07,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -3487,7 +3487,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 2,
+-          "seconds": 0.06,
++          "seconds": 0.07,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -3510,7 +3510,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 2,
+-          "seconds": 0.06,
++          "seconds": 0.07,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -3533,7 +3533,7 @@
+           "over_10k_tokens": false,
+           "qid": "vsi590k_147485",
+           "rank": 2,
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -3556,7 +3556,7 @@
+           "over_10k_tokens": false,
+           "qid": "qdb3588db57155af933cb7fdc",
+           "rank": 2,
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -3579,7 +3579,7 @@
+           "over_10k_tokens": false,
+           "qid": "b12ct_f03a7af56211ccf50c43de75",
+           "rank": 2,
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -3625,7 +3625,7 @@
+           "over_10k_tokens": false,
+           "qid": "q292f8b5032372a906ce7e253",
+           "rank": 2,
+-          "seconds": 0.03,
++          "seconds": 0.05,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -3694,7 +3694,7 @@
+           "over_10k_tokens": false,
+           "qid": "q434825efd93c476ef4c7d100-p1",
+           "rank": 2,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -3717,7 +3717,7 @@
+           "over_10k_tokens": false,
+           "qid": "qbadc5a1d6e881f67a68c16e4",
+           "rank": 2,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -3786,7 +3786,7 @@
+           "over_10k_tokens": false,
+           "qid": "vsi590k_155039_away",
+           "rank": 2,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -3878,7 +3878,7 @@
+           "over_10k_tokens": false,
+           "qid": "q80fd3fe5f186b49a01278802",
+           "rank": 2,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -4062,7 +4062,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 2,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -4131,7 +4131,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 2,
+-          "seconds": 0.07,
++          "seconds": 0.06,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -4154,7 +4154,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 2,
+-          "seconds": 0.08,
++          "seconds": 0.06,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -4200,7 +4200,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 2,
+-          "seconds": 0.08,
++          "seconds": 0.07,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -4292,7 +4292,7 @@
+           "over_10k_tokens": false,
+           "qid": "q259cc9810b5c612bd7fa033e",
+           "rank": 2,
+-          "seconds": 0.04,
++          "seconds": 0.05,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -4407,7 +4407,7 @@
+           "over_10k_tokens": false,
+           "qid": "b12fs_983cd38a9aa14e1b968a657a",
+           "rank": 2,
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -4453,7 +4453,7 @@
+           "over_10k_tokens": false,
+           "qid": "q4314aae2a2af2924df8359e8-p1",
+           "rank": 2,
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -4476,7 +4476,7 @@
+           "over_10k_tokens": false,
+           "qid": "vsi590k_243159_away",
+           "rank": 2,
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -4545,7 +4545,7 @@
+           "over_10k_tokens": false,
+           "qid": "q1ec8bc8a8933a677806561b6",
+           "rank": 2,
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -4568,7 +4568,7 @@
+           "over_10k_tokens": false,
+           "qid": "q482d53022d483e0cb07f5ed4",
+           "rank": 2,
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -4591,7 +4591,7 @@
+           "over_10k_tokens": false,
+           "qid": "q592e1a5bf86a37a54357b839-p1",
+           "rank": 2,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -4637,7 +4637,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 2,
+-          "seconds": 0.05,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "pointing",
+           "substituted_from": null,
+@@ -4660,7 +4660,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 2,
+-          "seconds": 0.05,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "pointing",
+           "substituted_from": null,
+@@ -4683,7 +4683,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 2,
+-          "seconds": 0.05,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "pointing",
+           "substituted_from": null,
+@@ -4775,7 +4775,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 2,
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "pointing",
+           "substituted_from": null,
+@@ -4798,7 +4798,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 2,
+-          "seconds": 0.03,
++          "seconds": 0.05,
+           "step": 1,
+           "stream": "pointing",
+           "substituted_from": null,
+@@ -4844,7 +4844,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 2,
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -4913,7 +4913,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 2,
+-          "seconds": 0.03,
++          "seconds": 0.05,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -4936,7 +4936,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 2,
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -5058,7 +5058,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 3,
+-          "seconds": 0.07,
++          "seconds": 0.06,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -5127,7 +5127,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 3,
+-          "seconds": 0.06,
++          "seconds": 0.07,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -5173,7 +5173,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 3,
+-          "seconds": 0.06,
++          "seconds": 0.08,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -5196,7 +5196,7 @@
+           "over_10k_tokens": false,
+           "qid": "q7816d99def3e296d273fc322-p1",
+           "rank": 3,
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -5219,7 +5219,7 @@
+           "over_10k_tokens": false,
+           "qid": "q398669188c9992688922a105",
+           "rank": 3,
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -5242,7 +5242,7 @@
+           "over_10k_tokens": false,
+           "qid": "qf8ad3f15e3eaa7f86edc5f19-p1",
+           "rank": 3,
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -5288,7 +5288,7 @@
+           "over_10k_tokens": false,
+           "qid": "vstirel_0ea1ac22c6ad574131c08fd0",
+           "rank": 3,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -5311,7 +5311,7 @@
+           "over_10k_tokens": false,
+           "qid": "vsi590k_037321_away",
+           "rank": 3,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -5334,7 +5334,7 @@
+           "over_10k_tokens": false,
+           "qid": "b12fs_41d8aea3393b573d694376e2",
+           "rank": 3,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -5357,7 +5357,7 @@
+           "over_10k_tokens": false,
+           "qid": "q6a48a07ff48e7213b4b17cc5-p1",
+           "rank": 3,
+-          "seconds": 0.03,
++          "seconds": 0.05,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -5380,7 +5380,7 @@
+           "over_10k_tokens": false,
+           "qid": "q5bb34751c703a998a34e4080-p1",
+           "rank": 3,
+-          "seconds": 0.04,
++          "seconds": 0.05,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -5449,7 +5449,7 @@
+           "over_10k_tokens": false,
+           "qid": "q2e00a20f0275b7bde213a40b-p1",
+           "rank": 3,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -5472,7 +5472,7 @@
+           "over_10k_tokens": false,
+           "qid": "a0_room_room_scannetppv2_7eac902fd5_s0",
+           "rank": 3,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -5518,7 +5518,7 @@
+           "over_10k_tokens": false,
+           "qid": "q367d5966b605068bd0b13b6c",
+           "rank": 3,
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -5564,7 +5564,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 3,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -5610,7 +5610,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 3,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -5633,7 +5633,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 3,
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -5725,7 +5725,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 3,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -5748,7 +5748,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 3,
+-          "seconds": 0.07,
++          "seconds": 0.06,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -5771,7 +5771,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 3,
+-          "seconds": 0.07,
++          "seconds": 0.06,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -5794,7 +5794,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 3,
+-          "seconds": 0.06,
++          "seconds": 0.07,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -5817,7 +5817,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 3,
+-          "seconds": 0.07,
++          "seconds": 0.06,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -5840,7 +5840,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 3,
+-          "seconds": 0.08,
++          "seconds": 0.07,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -5909,7 +5909,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 3,
+-          "seconds": 0.06,
++          "seconds": 0.07,
+           "step": 1,
+           "stream": "pose",
+           "substituted_from": null,
+@@ -5955,7 +5955,7 @@
+           "over_10k_tokens": false,
+           "qid": "q51a0302b4ec7d801e5655036-p1",
+           "rank": 3,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -6024,7 +6024,7 @@
+           "over_10k_tokens": false,
+           "qid": "qe90919ef9bc3dacdbd1ee38d-p1",
+           "rank": 3,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -6047,7 +6047,7 @@
+           "over_10k_tokens": false,
+           "qid": "vsi590k_016423_away",
+           "rank": 3,
+-          "seconds": 0.05,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -6070,7 +6070,7 @@
+           "over_10k_tokens": false,
+           "qid": "vstirel_b1e1f7e5fd7bfe958cebcbc0",
+           "rank": 3,
+-          "seconds": 0.05,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -6093,7 +6093,7 @@
+           "over_10k_tokens": false,
+           "qid": "vsi590k_133254_away",
+           "rank": 3,
+-          "seconds": 0.05,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -6208,7 +6208,7 @@
+           "over_10k_tokens": false,
+           "qid": "q31bd34a4337136c81c1bf45f",
+           "rank": 3,
+-          "seconds": 0.05,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -6231,7 +6231,7 @@
+           "over_10k_tokens": false,
+           "qid": "a0_room_room_scannetppv2_394a542a19_s0",
+           "rank": 3,
+-          "seconds": 0.05,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -6254,7 +6254,7 @@
+           "over_10k_tokens": false,
+           "qid": "vsi590k_040085_away_opp",
+           "rank": 3,
+-          "seconds": 0.05,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -6277,7 +6277,7 @@
+           "over_10k_tokens": false,
+           "qid": "q3bec04f999cbd4fe65186eda-p1",
+           "rank": 3,
+-          "seconds": 0.05,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "vqa",
+           "substituted_from": null,
+@@ -6300,7 +6300,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 3,
+-          "seconds": 0.05,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "pointing",
+           "substituted_from": null,
+@@ -6346,7 +6346,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 3,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "pointing",
+           "substituted_from": null,
+@@ -6369,7 +6369,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 3,
+-          "seconds": 0.06,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "pointing",
+           "substituted_from": null,
+@@ -6392,7 +6392,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 3,
+-          "seconds": 0.05,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "pointing",
+           "substituted_from": null,
+@@ -6415,7 +6415,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 3,
+-          "seconds": 0.05,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "pointing",
+           "substituted_from": null,
+@@ -6438,7 +6438,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 3,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "pointing",
+           "substituted_from": null,
+@@ -6461,7 +6461,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 3,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "pointing",
+           "substituted_from": null,
+@@ -6507,7 +6507,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 3,
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -6530,7 +6530,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 3,
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -6622,7 +6622,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 3,
+-          "seconds": 0.04,
++          "seconds": 0.03,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+@@ -6645,7 +6645,7 @@
+           "over_10k_tokens": false,
+           "qid": "fixture",
+           "rank": 3,
+-          "seconds": 0.03,
++          "seconds": 0.04,
+           "step": 1,
+           "stream": "routing",
+           "substituted_from": null,
+--- a/out/proof/GATES.json
++++ b/out/proof/GATES.json
+@@ -1 +1 @@
+-{"absent_on_P":[{"family":"recovery","reason":"Sealed ground_rows.py refuses not_seen; recovery joins vehicle N."},{"family":"size","reason":"Size launch dose is zero; stored size rows are not drawn."},{"family":"units","reason":"No faithful unit file is bound; launch dose is zero."}],"checks":{"admission_coverage":{"scope":"204413 VQA rows; every stored question type checked; 204413 admitted; row predicates only","status":"PASS"},"complete_privacy_scan":{"scope":"Independent final deployment content scan and ANON_OK.json required","status":"NOT_RUN"},"deterministic_derivation":{"scope":"FIXTURE; two inherited source members absent locally","status":"PASS"},"first_batch":{"scope":"Native tiny model; all 72 microsteps per rank; synthetic pixels and auxiliary streams; real VQA targets where audit supplied.","status":"PASS"},"independent_review":{"scope":"Admission inputs and sampler code changed","status":"PENDING"},"loader_audit":{"scope":"1000 steps, 128000 real-store VQA draws; other streams unavailable","status":"LOCAL_VQA_ONLY"},"native_selection_regeneration":{"scope":"Complete source archives absent locally; 581 materialized rows remain unverified","status":"NOT_RUN"},"off_identity":{"scope":"Native tiny-model optimizer step, identical D0 config and fixture inputs; no production RGB or D0 databases locally.","status":"PASS"},"outer_filename_scan":{"scope":"Opaque operator archive member names","status":"PASS"},"production_preparation":{"scope":"No Orchard call; local source kit lacks two inherited members","status":"NOT_RUN"},"required_families":{"absent_on_P":[{"family":"recovery","reason":"Sealed ground_rows.py refuses not_seen; recovery joins vehicle N."},{"family":"size","reason":"Size launch dose is zero; stored size rows are not drawn."},{"family":"units","reason":"No faithful unit file is bound; launch dose is zero."}],"checked":{"routing/absolute_distance":{"capped_draw":16600,"eligible":11728,"repeat_cap":4,"status":"PASS"},"routing/camera_displacement":{"eligible":null,"reason":"Legacy routing population is unavailable locally.","source":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/5e1d07a4/f/h/r16/receipt.json","sha256":"9a7f33103ee6faa9d44bfb7f02b6166ef6fc9f8e1bc5bac8681c697dce8a8851"},"status":"NOT_RUN"},"routing/camera_movement_direction":{"eligible":null,"reason":"Legacy routing population is unavailable locally.","source":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/5e1d07a4/f/h/r16/receipt.json","sha256":"9a7f33103ee6faa9d44bfb7f02b6166ef6fc9f8e1bc5bac8681c697dce8a8851"},"status":"NOT_RUN"},"routing/camera_rotation":{"eligible":null,"reason":"Legacy routing population is unavailable locally.","source":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/5e1d07a4/f/h/r16/receipt.json","sha256":"9a7f33103ee6faa9d44bfb7f02b6166ef6fc9f8e1bc5bac8681c697dce8a8851"},"status":"NOT_RUN"},"vqa/appearance":{"capped_draw":14420,"eligible":27791,"repeat_cap":4,"status":"PASS"},"vqa/box":{"capped_draw":1820,"eligible":3813,"repeat_cap":4,"status":"PASS"},"vqa/camera_obj_rel_dist_v1":{"capped_draw":2000,"eligible":1951,"repeat_cap":4,"status":"PASS"},"vqa/camera_obj_rel_dist_v2":{"capped_draw":2000,"eligible":1983,"repeat_cap":4,"status":"PASS"},"vqa/camera_obj_rel_dist_v3":{"capped_draw":2000,"eligible":1998,"repeat_cap":4,"status":"PASS"},"vqa/counting":{"capped_draw":10870,"eligible":11366,"repeat_cap":4,"status":"PASS"},"vqa/direction":{"capped_draw":31170,"eligible":49901,"repeat_cap":4,"status":"PASS"},"vqa/facing":{"capped_draw":18170,"eligible":43469,"repeat_cap":4,"status":"PASS"},"vqa/first_seen":{"capped_draw":2000,"eligible":7076,"repeat_cap":4,"status":"PASS"},"vqa/obj_obj_relative_pos_lr":{"capped_draw":2000,"eligible":1998,"repeat_cap":4,"status":"PASS"},"vqa/obj_obj_relative_pos_nf":{"capped_draw":2000,"eligible":2000,"repeat_cap":4,"status":"PASS"},"vqa/obj_obj_relative_pos_ud":{"capped_draw":2000,"eligible":1996,"repeat_cap":4,"status":"PASS"},"vqa/relative_distance":{"capped_draw":22740,"eligible":20665,"repeat_cap":4,"status":"PASS"},"vqa/room":{"capped_draw":1720,"eligible":431,"repeat_cap":4,"status":"PASS"},"vqa/route":{"capped_draw":9700,"eligible":8894,"repeat_cap":4,"status":"PASS"},"vqa/totals":{"capped_draw":3390,"eligible":9303,"repeat_cap":4,"status":"PASS"}},"missing":[],"missing_units":[],"required":{"routing":["camera_displacement","camera_movement_direction","camera_rotation","absolute_distance"],"vqa":["direction","facing","relative_distance","counting","totals","appearance","first_seen","box","room","route","camera_obj_rel_dist_v1","camera_obj_rel_dist_v2","camera_obj_rel_dist_v3","obj_obj_relative_pos_lr","obj_obj_relative_pos_nf","obj_obj_relative_pos_ud"]},"scope":"Post-filter VQA and native source-selection routing presence; final routing counts require production proof.","status":"NOT_RUN","units_bound":false,"unmeasured":["routing/camera_displacement","routing/camera_movement_direction","routing/camera_rotation"],"vehicle":"P"},"room_selection_projection":{"scope":"586 selected source rows removed; all non-room entries and ordered indices unchanged","status":"PASS"},"tests":{"scope":"27 tests","status":"PASS"},"traced_room":{"eligible":431,"qualitative_trace_pass":431,"rows":431,"sealed_row_checks_pass":431,"status":"PASS"},"unit_candidate":{"scope":"The read-only units_p_slice_v2 fixture lacks top-level events and 32 frame pins; a packed successor is required.","status":"REFUSED_UNBOUND"}},"config_identity":"782f303d81e300b1b24094863d6ce7d984690529f0e414474c3e693df87e19da","production_authorized":false,"schema":"r1-local-gates-v1","status":"BUILT_BLOCKED"}
++{"absent_on_P":[{"family":"recovery","reason":"Sealed ground_rows.py refuses not_seen; recovery joins vehicle N."},{"family":"size","reason":"Size launch dose is zero; stored size rows are not drawn."},{"family":"units","reason":"No faithful unit file is bound; launch dose is zero."}],"checks":{"admission_coverage":{"scope":"204413 VQA rows; every stored question type checked; 204413 admitted; row predicates only","status":"PASS"},"complete_privacy_scan":{"scope":"Independent final deployment content scan and ANON_OK.json required","status":"NOT_RUN"},"deterministic_derivation":{"scope":"FIXTURE; two inherited source members absent locally","status":"PASS"},"first_batch":{"scope":"Native tiny model; all 72 microsteps per rank; synthetic pixels and auxiliary streams; real VQA targets where audit supplied.","status":"PASS"},"independent_review":{"scope":"Admission inputs and sampler code changed","status":"PENDING"},"loader_audit":{"scope":"1000 steps, 128000 real-store VQA draws; other streams unavailable","status":"LOCAL_VQA_ONLY"},"native_selection_regeneration":{"scope":"Complete source archives absent locally; 581 materialized rows remain unverified","status":"NOT_RUN"},"off_identity":{"scope":"Native tiny-model optimizer step, identical D0 config and fixture inputs; no production RGB or D0 databases locally.","status":"PASS"},"outer_filename_scan":{"scope":"Opaque operator archive member names","status":"PASS"},"pre_submission_evidence":{"scope":"Production-form records from driver builder; two missing data archives replaced only in local fixture; no production authorization or native data proof. READY without Slurm identity; allocation entry forbidden; wrong identities and record bindings refused.","status":"PASS"},"production_preparation":{"scope":"No Orchard call; local source kit lacks two inherited members","status":"NOT_RUN"},"required_families":{"absent_on_P":[{"family":"recovery","reason":"Sealed ground_rows.py refuses not_seen; recovery joins vehicle N."},{"family":"size","reason":"Size launch dose is zero; stored size rows are not drawn."},{"family":"units","reason":"No faithful unit file is bound; launch dose is zero."}],"checked":{"routing/absolute_distance":{"capped_draw":16600,"eligible":11728,"repeat_cap":4,"status":"PASS"},"routing/camera_displacement":{"eligible":null,"reason":"Legacy routing population is unavailable locally.","source":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/5e1d07a4/f/h/r16/receipt.json","sha256":"9a7f33103ee6faa9d44bfb7f02b6166ef6fc9f8e1bc5bac8681c697dce8a8851"},"status":"NOT_RUN"},"routing/camera_movement_direction":{"eligible":null,"reason":"Legacy routing population is unavailable locally.","source":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/5e1d07a4/f/h/r16/receipt.json","sha256":"9a7f33103ee6faa9d44bfb7f02b6166ef6fc9f8e1bc5bac8681c697dce8a8851"},"status":"NOT_RUN"},"routing/camera_rotation":{"eligible":null,"reason":"Legacy routing population is unavailable locally.","source":{"path":"/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/5e1d07a4/f/h/r16/receipt.json","sha256":"9a7f33103ee6faa9d44bfb7f02b6166ef6fc9f8e1bc5bac8681c697dce8a8851"},"status":"NOT_RUN"},"vqa/appearance":{"capped_draw":14420,"eligible":27791,"repeat_cap":4,"status":"PASS"},"vqa/box":{"capped_draw":1820,"eligible":3813,"repeat_cap":4,"status":"PASS"},"vqa/camera_obj_rel_dist_v1":{"capped_draw":2000,"eligible":1951,"repeat_cap":4,"status":"PASS"},"vqa/camera_obj_rel_dist_v2":{"capped_draw":2000,"eligible":1983,"repeat_cap":4,"status":"PASS"},"vqa/camera_obj_rel_dist_v3":{"capped_draw":2000,"eligible":1998,"repeat_cap":4,"status":"PASS"},"vqa/counting":{"capped_draw":10870,"eligible":11366,"repeat_cap":4,"status":"PASS"},"vqa/direction":{"capped_draw":31170,"eligible":49901,"repeat_cap":4,"status":"PASS"},"vqa/facing":{"capped_draw":18170,"eligible":43469,"repeat_cap":4,"status":"PASS"},"vqa/first_seen":{"capped_draw":2000,"eligible":7076,"repeat_cap":4,"status":"PASS"},"vqa/obj_obj_relative_pos_lr":{"capped_draw":2000,"eligible":1998,"repeat_cap":4,"status":"PASS"},"vqa/obj_obj_relative_pos_nf":{"capped_draw":2000,"eligible":2000,"repeat_cap":4,"status":"PASS"},"vqa/obj_obj_relative_pos_ud":{"capped_draw":2000,"eligible":1996,"repeat_cap":4,"status":"PASS"},"vqa/relative_distance":{"capped_draw":22740,"eligible":20665,"repeat_cap":4,"status":"PASS"},"vqa/room":{"capped_draw":1720,"eligible":431,"repeat_cap":4,"status":"PASS"},"vqa/route":{"capped_draw":9700,"eligible":8894,"repeat_cap":4,"status":"PASS"},"vqa/totals":{"capped_draw":3390,"eligible":9303,"repeat_cap":4,"status":"PASS"}},"missing":[],"missing_units":[],"required":{"routing":["camera_displacement","camera_movement_direction","camera_rotation","absolute_distance"],"vqa":["direction","facing","relative_distance","counting","totals","appearance","first_seen","box","room","route","camera_obj_rel_dist_v1","camera_obj_rel_dist_v2","camera_obj_rel_dist_v3","obj_obj_relative_pos_lr","obj_obj_relative_pos_nf","obj_obj_relative_pos_ud"]},"scope":"Post-filter VQA and native source-selection routing presence; final routing counts require production proof.","status":"NOT_RUN","units_bound":false,"unmeasured":["routing/camera_displacement","routing/camera_movement_direction","routing/camera_rotation"],"vehicle":"P"},"room_selection_projection":{"scope":"586 selected source rows removed; all non-room entries and ordered indices unchanged","status":"PASS"},"tests":{"scope":"31 tests","status":"PASS"},"traced_room":{"eligible":431,"qualitative_trace_pass":431,"rows":431,"sealed_row_checks_pass":431,"status":"PASS"},"unit_candidate":{"scope":"V3 has 747 rows (683 ft, 64 in, 0 cm). Native event reconstruction preserves payload; fixture frame resolution, binding and regeneration pass. Real Orchard frame authority and RGB verification remain required.","status":"UNBOUND_PACKING_OPTION_TESTED"}},"config_identity":"782f303d81e300b1b24094863d6ce7d984690529f0e414474c3e693df87e19da","production_authorized":false,"schema":"r1-local-gates-v1","status":"BUILT_BLOCKED"}
+--- a/out/proof/PRE_SUBMISSION.json
++++ b/out/proof/PRE_SUBMISSION.json
+@@ -0,0 +1 @@
++{"config_identity":"782f303d81e300b1b24094863d6ce7d984690529f0e414474c3e693df87e19da","fixture":"/scratch/jjyeung/orch_n30/r1_pkt/work/pre_submit_ep8xldqk","inherited_runtime_unchanged":true,"operator_archive_sha256":"f719b05fcbe934654499d786d1a56d413c0db71f6a1fd9a60b5097e788ebfad9","persistent_entry_called":false,"scope":"Production-form records from driver builder; two missing data archives replaced only in local fixture; no production authorization or native data proof.","slurm_identity_present":false,"source_sentinels":["k/np226_5204b3a0.tar","k/t_e6456bcecb8d4a8f4f68158eb68275f8befff128.tar"],"status":"PASS","writes_confined_to_fixture":true}
+--- a/out/proof/UNIT_CANDIDATE.json
++++ b/out/proof/UNIT_CANDIDATE.json
+@@ -1 +1 @@
+-{"command":["/scratch/jjyeung/envs/p1cpu/bin/python","-B","/scratch/jjyeung/orch_n30/r1_ops/work/snap_782f303d/tools/rebind.py","--receipt","/scratch/jjyeung/orch_n30/rows_r1/out/a2_vqa_v7/vqa/receipt.json","--receipt-sha256","8091154cd499c47404c2f3a6d288bff3b061fa71a1d22af5de68337fbbde56cd","--database","/scratch/jjyeung/orch_n30/rows_r1/out/a2_vqa_v7/vqa/rows.sqlite","--orchard-store","/project/community/jjyeung/okh7/s_22b44165/d.db","--unit-rows","/scratch/jjyeung/orch_n30/r1_ops/work/snap_782f303d/work/test_w3m045kt/rows.jsonl","--unit-rows-sha256","40437c8a626a794c4098fa08c102098a0fc666a33d4da650f9894ab2874b89fe","--units-allowlist","ft","--unit-cents","100","--reuse-census","--skip-audit","--out","/scratch/jjyeung/orch_n30/r1_ops/work/snap_782f303d/work/test_w3m045kt/packet"],"counts":{"cm":0,"ft":1130,"in":94},"fixture":{"path":"/scratch/jjyeung/orch_n30/r1_ops/work/snap_782f303d/work/test_w3m045kt/rows.jsonl","sha256":"40437c8a626a794c4098fa08c102098a0fc666a33d4da650f9894ab2874b89fe"},"log":{"path":"/scratch/jjyeung/orch_n30/r1_ops/work/snap_782f303d/work/test_w3m045kt/rebind.log","sha256":"3ee2b57c8595707651e93ea2a110450a0dffd8e76a08e1dd8ee9b24f4a765fd4"},"production_bound":false,"reason":"Missing top-level events and all 32 frame pins","returncode":1,"source":{"path":"/scratch/jjyeung/orch_n30/rows_r1/out/units_p_slice_v2/rows.jsonl","sha256":"40437c8a626a794c4098fa08c102098a0fc666a33d4da650f9894ab2874b89fe"},"status":"REFUSED_UNBOUND"}
++{"command":["/scratch/jjyeung/envs/p1cpu/bin/python","-B","/scratch/jjyeung/orch_n30/r1_pkt/tools/rebind.py","--receipt","/scratch/jjyeung/orch_n30/rows_r1/out/a2_vqa_v7/vqa/receipt.json","--receipt-sha256","8091154cd499c47404c2f3a6d288bff3b061fa71a1d22af5de68337fbbde56cd","--database","/scratch/jjyeung/orch_n30/rows_r1/out/a2_vqa_v7/vqa/rows.sqlite","--orchard-store","/project/community/jjyeung/okh7/s_22b44165/d.db","--unit-rows","/scratch/jjyeung/orch_n30/r1_pkt/work/test_7hy57cfr/rows.jsonl","--unit-rows-sha256","5f9383fa3dabcc813676564c8533e0c7b110a7f1d0e9aff4c9ebde444355a0b3","--units-allowlist","ft","--unit-cents","100","--reuse-census","--skip-audit","--out","/scratch/jjyeung/orch_n30/r1_pkt/work/test_7hy57cfr/packet"],"counts":{"cm":0,"ft":683,"in":64},"fixture":{"path":"/scratch/jjyeung/orch_n30/r1_pkt/work/test_7hy57cfr/rows.jsonl","sha256":"5f9383fa3dabcc813676564c8533e0c7b110a7f1d0e9aff4c9ebde444355a0b3"},"log":{"path":"/scratch/jjyeung/orch_n30/r1_pkt/work/test_7hy57cfr/rebind.log","sha256":"7c99531461ab23a3cdba4132f04ae60f71c96d21d55d1a1e51c784a760f1d587"},"production_bound":false,"reason":"Missing top-level events and all 32 frame pins","returncode":1,"source":{"path":"/scratch/jjyeung/orch_n30/rows_r1/out/units_p_slice_v3/rows.jsonl","sha256":"5f9383fa3dabcc813676564c8533e0c7b110a7f1d0e9aff4c9ebde444355a0b3"},"status":"REFUSED_UNBOUND"}
+--- a/out/proof/UNIT_PACKING_CHECK.json
++++ b/out/proof/UNIT_PACKING_CHECK.json
+@@ -0,0 +1 @@
++{"counts":{"ft":683,"in":64},"existing_payload_unchanged":true,"fixture_native_binding_and_regeneration":true,"fixture_packing":{"additions":["events","student_input frame pins and native timing fields"],"frame_authority":{"fps_authority":{"path":"/scratch/jjyeung/orch_n30/r1_pkt/work/test_cqhuh3ea/fps.json","sha256":"810e907dde5e6bd064c21c40d2cbe339519fb6f8c32b535ef4c627672e9e60b9"},"frame_map":{"path":"/scratch/jjyeung/orch_n30/r1_pkt/work/test_cqhuh3ea/map.gz","sha256":"2d3621e7ed4eb8666468ac159e3ca1318bc145a8ab5631c96a7ce841ae394888"},"frame_plan":{"path":"/scratch/jjyeung/orch_n30/r1_pkt/work/test_cqhuh3ea/plan.gz","sha256":"17091f471d9dcbe0c6831f1c6d642893e19aa64bb99ca9a48aa8073a975fbe6a"}},"implementation":{"student_pilot/ground_rows.py":"d9361d1fd2e0c3fda2143acdd12e97359562f851bbd522dc92f1c87346e4a583","student_pilot/s1_pool.py":"7b8859d629dc30be0b3b6749e7539d324cd2d0595cba4de67a16454ef0660ee7","student_pilot/s1_routing.py":"5c8cd97392ba66a525f831047cfbe7d7e0ae028fcf6711e2427596fc98a126bc"},"packed":{"path":"/scratch/jjyeung/orch_n30/r1_pkt/work/test_cqhuh3ea/packed.jsonl","sha256":"bf92b67105474e555f4516cc82ff8b95180b60d2c3fe76af92723b5c0929721d"},"payload_changed":false,"rgb_bytes_verified":false,"rows":1,"schema":"unit-slice-packing-v1","slice":{"path":"/scratch/jjyeung/orch_n30/r1_pkt/work/test_cqhuh3ea/slice.jsonl","sha256":"bc6a85ea31b4fc0f95dde3d1632dbb5f175d1cbc845f893340817fb92614c2a4"},"source_qid_preserved":true},"limitation":"Synthetic frame pins test the native resolver and binding path; Orchard must supply real RGB authorities and bytes.","production_bound":false,"sealed_event_reconstruction_rows":747,"source":{"path":"/scratch/jjyeung/orch_n30/rows_r1/out/units_p_slice_v3/rows.jsonl","sha256":"5f9383fa3dabcc813676564c8533e0c7b110a7f1d0e9aff4c9ebde444355a0b3"},"status":"PASS"}

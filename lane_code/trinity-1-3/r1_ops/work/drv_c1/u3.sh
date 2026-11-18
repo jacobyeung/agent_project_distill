@@ -11,7 +11,7 @@ OLD=$O/i_1be16f28
 KH=$O/x_7f1589c1
 private() { [[ -d "$1" && ! -L "$1" && $(stat -c %a "$1") == 700 ]] || { echo "REFUSED: private directory required: $1" >&2; exit 3; }; }
 fresh() { [[ ! -e "$1" && ! -L "$1" ]] || { echo "REFUSED: already exists: $1" >&2; exit 3; }; }
-packet() { printf '%s  %s\n' '6a5c7d009a19cb5bac690b864f2be68bb5cebc29649923c93da36328d0f96888' "$BUN/p.tar" | sha256sum -c --quiet; }
+packet() { printf '%s  %s\n' '08f3a7b2ef2e1923ba77b464afcedbbe668a77a1915b4c32c0a815044ff7d9fd' "$BUN/p.tar" | sha256sum -c --quiet; }
 private "$O"
 private "$BUN"
 packet
@@ -19,7 +19,7 @@ python3 -B - <<'PYCODE'
 import hashlib,tarfile,re,os
 from pathlib import Path
 b=Path('/project/community/jjyeung/okh7/i_7f1589c1');archive=b/'p.tar'
-assert hashlib.sha256(archive.read_bytes()).hexdigest()=='6a5c7d009a19cb5bac690b864f2be68bb5cebc29649923c93da36328d0f96888','outer SHA differs'
+assert hashlib.sha256(archive.read_bytes()).hexdigest()=='08f3a7b2ef2e1923ba77b464afcedbbe668a77a1915b4c32c0a815044ff7d9fd','outer SHA differs'
 with tarfile.open(archive) as tf:
  members=tf.getmembers();assert len(members)==40,'member count differs'
  names=set()

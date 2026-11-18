@@ -2,7 +2,7 @@
 import hashlib,json,stat
 from pathlib import Path
 from packet_config import PINS, MEMBERS, render, install_script
-W=Path(__file__).resolve().parent;p=W/('sess_'+PINS['run']+'.json')
+W=Path(__file__).resolve().parent;p=W/('sess_'+PINS['run']+'_08f3a7b2.json')
 assert not p.is_symlink() and stat.S_IMODE(p.stat().st_mode)==0o600
 raw=p.read_bytes();d=json.loads(raw)
 assert (W/'e.txt').read_bytes()==MEMBERS['e.txt'], 'C export plan differs'

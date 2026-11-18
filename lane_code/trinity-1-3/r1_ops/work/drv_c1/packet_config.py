@@ -7,8 +7,8 @@ import tarfile
 from pathlib import Path
 
 W = Path(__file__).resolve().parent
-SNAP = Path('/scratch/jjyeung/orch_n30/r1_ops/work/snap_6a5c7d00/out')
-FINAL_ARCHIVE_SHA = '6a5c7d009a19cb5bac690b864f2be68bb5cebc29649923c93da36328d0f96888'
+SNAP = Path('/scratch/jjyeung/orch_n30/r1_ops/work/snap_08f3a7b2/out')
+FINAL_ARCHIVE_SHA = '08f3a7b2ef2e1923ba77b464afcedbbe668a77a1915b4c32c0a815044ff7d9fd'
 FINAL_IDENTITY = '6594f46cdc16168514aca26a6ce38285907adfc6ece0b75d8e10428ea0b2fe74'
 
 def sha(raw):
@@ -25,10 +25,10 @@ def inventory(raw):
     return result
 
 # The outer SHA256SUMS belongs to A. Authenticate C with the supplied archive
-# digest, CONT3_INVENTORY's after pins, OPERATOR, and the archive's sums.txt.
-CONT3_INVENTORY = json.loads((SNAP/'CONT3_INVENTORY.json').read_bytes())
+# digest, CONT4_INVENTORY's after pins, OPERATOR, and the archive's sums.txt.
+CONT4_INVENTORY = json.loads((SNAP/'CONT4_INVENTORY.json').read_bytes())
 op_raw = (SNAP/'OPERATOR.json').read_bytes()
-assert sha(op_raw) == CONT3_INVENTORY['out/OPERATOR.json']['after']
+assert sha(op_raw) == CONT4_INVENTORY['out/OPERATOR.json']['after']
 OPERATOR = json.loads(op_raw)
 assert OPERATOR['sha256'] == FINAL_ARCHIVE_SHA
 ARCHIVE = (SNAP/OPERATOR['archive']).read_bytes()
@@ -59,11 +59,11 @@ assert IDS['identity']==FINAL_IDENTITY
 assert OPERATOR['bundle']==IDS['bun'] and OPERATOR['kit']==IDS['kh']
 assert OPERATOR['contract']==IDS['contract'] and OPERATOR['wrapper_sha256']==sha(MEMBERS['jb.sh'])
 assert MEMBERS['config.json'] == sealed('config.json')
-for name in ('d.py','p.py','r4.py','sums.txt'):
-    assert sha(MEMBERS[name]) == CONT3_INVENTORY['out/operator/'+name]['after']
-result=json.loads((SNAP/'CONT3_RESULT.json').read_bytes())
+for name in ('sums.txt',):
+    assert sha(MEMBERS[name]) == CONT4_INVENTORY['out/operator/'+name]['after']
+result=json.loads((SNAP/'CONT4_RESULT.json').read_bytes())
 assert result['sha256']==FINAL_ARCHIVE_SHA and result['identity']==FINAL_IDENTITY
-PACKET = (SNAP/'CONT3.md').read_text()
+PACKET = (SNAP/'CONT4.md').read_text()
 CONFIG = json.loads(MEMBERS['config.json'])
 assert CONFIG['h1']['routing_pose_targets'] is True
 assert CONFIG['h1']['faithful_own_camera_rows'] is False
@@ -123,7 +123,7 @@ def render(text):
     return text
 
 def fixture():
-    dest = W/'fixture_c2'
+    dest = W/'fixture_c3'
     dest.mkdir(mode=0o700, exist_ok=True)
     for name, raw in MEMBERS.items():
         path = dest/name

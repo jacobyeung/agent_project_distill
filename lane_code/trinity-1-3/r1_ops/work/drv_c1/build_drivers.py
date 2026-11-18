@@ -100,7 +100,7 @@ PYCODE
 (W/'PACKET_PIN_SOURCES.json').write_text(json.dumps(dict(
  archive_sha256=PINS['outer'],config_identity=PINS['identity'],
  operator_sha256=hashlib.sha256((SNAP/'OPERATOR.json').read_bytes()).hexdigest(),
- pins_source='Supplied archive SHA256 + CONT3_INVENTORY after pins + OPERATOR.json + authenticated archive sums.txt; outer SHA256SUMS is not used',
+ pins_source='Supplied archive SHA256 + CONT4_INVENTORY after pins + OPERATOR.json + authenticated archive sums.txt; outer SHA256SUMS is not used',
  sums_sha256=hashlib.sha256(MEMBERS['sums.txt']).hexdigest(),
  gate_sha256=hashlib.sha256(MEMBERS['s.sh']).hexdigest(),
  wrapper_sha256=hashlib.sha256(MEMBERS['jb.sh']).hexdigest(),
@@ -138,7 +138,7 @@ export HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 TOKENIZERS_PARALLELISM=false
 '''+(W/'selection_runtime.py').read_text()+'\n'+(W/'q_check.py').read_text()+'\nPYCODE\n')
 body=(W/'review_policy.py').read_text()+'\n'+(W/'evidence_body.py').read_text().replace("if __name__=='__main__':",'STAGING_VERIFY='+repr((W/'staging_check.py').read_text())+"\nif __name__=='__main__':")
 (W/'evidence_embedded.py').write_text(render(body))
-background('ev1.sh','evidence_embedded.py','e0','test -f "$BUN/r1.json" || { echo "PENDING: run rv1.sh after the ten-review final-packet chain"; exit 4; }\nfresh "$BUN/e"\n')
+background('ev1.sh','evidence_embedded.py','e0','test -f "$BUN/r1.json" || { echo "PENDING: run rv1.sh after the eleven-review final-packet chain"; exit 4; }\nfresh "$BUN/e"\n')
 poll('evp1.sh','e0')
 background('dv1.sh','derive_body.py','d0','fresh "$KH"\ntest "$(cat "$BUN/e0/rc")" = 0\n')
 authority=MEMBERS['r4.py'].decode()+'\n'+(W/'authority_body.py').read_text()
@@ -171,11 +171,11 @@ umask 077
 W=/scratch/jjyeung/orch_n30/r1_ops/work/drv_c1
 cd "$W"
 /scratch/jjyeung/envs/p1cpu/bin/python -B -c 'import packet_config; print("PASS frozen packet "+packet_config.PINS["archive"])'
-OUT=$W/sess_@RUN@.json
-[[ ! -e "$W/mint_@RUN@.private.log" && ! -L "$W/mint_@RUN@.private.log" && ! -e "$OUT" && ! -L "$OUT" && ! -e "$W/mint_@RUN@.started" && ! -L "$W/mint_@RUN@.started" ]] || { echo 'REFUSED: existing mint attempt; no retry'; exit 3; }
-(set -o noclobber; : > "$W/mint_@RUN@.started")
+OUT=$W/sess_@RUN@_08f3a7b2.json
+[[ ! -e "$W/mint_@RUN@_08f3a7b2.private.log" && ! -L "$W/mint_@RUN@_08f3a7b2.private.log" && ! -e "$OUT" && ! -L "$OUT" && ! -e "$W/mint_@RUN@_08f3a7b2.started" && ! -L "$W/mint_@RUN@_08f3a7b2.started" ]] || { echo 'REFUSED: existing mint attempt; no retry'; exit 3; }
+(set -o noclobber; : > "$W/mint_@RUN@_08f3a7b2.started")
 # The H1 helper uses authenticated GCS create-only resumable sessions.
-if ! /scratch/jjyeung/envs/p1cpu/bin/python -I "$W/mint_fresh.py" "$OUT" 8865619b @RUN@ m400 m600 mstop mstopB mstopC > "$W/mint_@RUN@.private.log" 2>&1; then
+if ! /scratch/jjyeung/envs/p1cpu/bin/python -I "$W/mint_fresh.py" "$OUT" 8865619b @RUN@ m400 m600 mstop mstopB mstopC > "$W/mint_@RUN@_08f3a7b2.private.log" 2>&1; then
  echo 'FAILED mint; inspect locally without exposing capabilities; no automatic retry' >&2; exit 4
 fi
 chmod 600 "$OUT"
@@ -189,8 +189,12 @@ print('PASS 20 fresh create-only sessions; mode 0600; URI contents withheld')
 PYCODE
 '''));p.chmod(0o700)
 inline('scan1.sh',(W/'scan_body.py').read_text())
-script('pr1.sh','''PARTITION=${1:-bootstrap}
-[[ $# -le 1 && ( "$PARTITION" == general || "$PARTITION" == bootstrap ) ]] || { echo 'REFUSED: partition must be bootstrap or general'; exit 4; }
+script('pr1.sh','''PARTITION=general
+HOLD=()
+for arg in "$@"; do
+ case "$arg" in general) ;; --hold) [[ ${#HOLD[@]} == 0 ]] || exit 4; HOLD=(--hold);; *) echo 'REFUSED: use pr1.sh [general] [--hold]; bootstrap refused for mt01'; exit 4;; esac
+done
+[[ $# -le 2 ]] || exit 4
 private "$BUN"
 packet
 private "$KH"
@@ -206,11 +210,18 @@ while IFS='|' read -r jid name part state; do
  [[ -n "$jid" ]] || continue
  if [[ "$name" == a15_cot_ap@RUN@ ]]; then echo 'REFUSED: job name already queued'; exit 4; fi
 done <<< "$Q"
+python3 -I -B - <<'HISTORY'
+'''+(W/'proof_history.py').read_text()+'''
+HISTORY
 python3 -B - "$KH" "$BUN" "$PARTITION" <<'PYCODE'
 '''+authority+'''
 import hashlib,json,stat,sys
 from pathlib import Path
 k,b=map(Path,sys.argv[1:3]);partition=sys.argv[3];load=lambda p:json.loads(p.read_text())
+rjid=b/'rehearsal.job.id';assert rjid.is_file() and not rjid.is_symlink(), 'successful rehearsal required before proof'
+rjob=rjid.read_text().strip();assert rjob.isdigit() and rjob!='172180'
+rpath=k/'o'/(rjob+'.rehearsal.json');assert not rpath.is_symlink()
+r=load(rpath);assert r.get('status')=='REHEARSAL_OK' and r.get('rc')==0 and r.get('job')==rjob and r.get('rehearsal') is True, 'REHEARSAL_OK required before proof'
 assert (b/'d0/rc').read_text().strip()=='0' and load(b/'compare.json')['status']=='READY'
 auth=check_authority(k)
 assert partition in auth['mode_resources']['p']['partitions']
@@ -230,8 +241,8 @@ python3 -B "$BUN/p.py" --kit "$KH" --bundle "$BUN" --binding "$BUN/BINDING.json"
 mkdir -p -m 700 "$KH/o"
 # A timeout or uncertain sbatch result must be reconciled manually; never resubmit.
 (set -o noclobber; date -u +%FT%TZ > "$BUN/submission.started")
-printf '%s\\n' "TZ=UTC env -u TK_JOB_START CUDA_VISIBLE_DEVICES= sbatch --parsable -J a15_cot_ap@RUN@ -A mt01 -p $PARTITION -N1 --ntasks=1 -c 48 --mem=800G -t 04:00:00 --no-requeue -o $KH/o/%j.out -e $KH/o/%j.err $BUN/p_@RUN@.sh $BUN/a.json"
-TZ=UTC env -u TK_JOB_START CUDA_VISIBLE_DEVICES= sbatch --parsable -J a15_cot_ap@RUN@ -A mt01 -p "$PARTITION" -N1 --ntasks=1 -c 48 --mem=800G -t 04:00:00 --no-requeue -o "$KH/o/%j.out" -e "$KH/o/%j.err" "$BUN/p_@RUN@.sh" "$BUN/a.json" > "$BUN/sbatch.out"
+printf '%s\\n' "TZ=UTC env -u TK_JOB_START CUDA_VISIBLE_DEVICES= sbatch --parsable ${HOLD[*]} -J a15_cot_ap@RUN@ -A mt01 -p $PARTITION -N1 --ntasks=1 -c 48 --mem=800G -t 04:00:00 --no-requeue -o $KH/o/%j.out -e $KH/o/%j.err $BUN/p_@RUN@.sh $BUN/a.json"
+TZ=UTC env -u TK_JOB_START CUDA_VISIBLE_DEVICES= sbatch --parsable "${HOLD[@]}" -J a15_cot_ap@RUN@ -A mt01 -p "$PARTITION" -N1 --ntasks=1 -c 48 --mem=800G -t 04:00:00 --no-requeue -o "$KH/o/%j.out" -e "$KH/o/%j.err" "$BUN/p_@RUN@.sh" "$BUN/a.json" > "$BUN/sbatch.out"
 answer=$(cat "$BUN/sbatch.out")
 [[ "$answer" =~ ^[1-9][0-9]*(\\;[A-Za-z0-9_-]+)?$ ]] || { echo 'UNCERTAIN: inspect queue; do not resubmit'; exit 4; }
 job=${answer%%;*}
@@ -309,5 +320,5 @@ print('PASS drivers built from frozen packet; '+PINS['archive']+'; '+PINS['outer
 submit=(W/'pass_submit.tpl').read_text()
 for token,member in (('GATE_SHA','s.sh'),('SUMS_SHA','sums.txt'),('WRAPPER_SHA','jb.sh')):
  submit=submit.replace('@'+token+'@',hashlib.sha256(MEMBERS[member]).hexdigest())
-p=W/'go_submit_6a5c7d00.sh';p.write_text(render(submit));p.chmod(0o700)
+p=W/'go_submit_08f3a7b2.sh';p.write_text(render(submit));p.chmod(0o700)
 (W/'mon.sh').write_text((W/'pm1.sh').read_text());(W/'mon.sh').chmod(0o700)

@@ -6,9 +6,9 @@ export TZ=UTC
 KH=/project/community/jjyeung/okh7/x_69d2930d
 date -u +%FT%TZ
 squeue -u "$USER" -h -o '%i|%j|%P|%T|%M|%l|%b|%R' | grep -v '|jjy_' 
-sacct -X -n -P -j 171356,171377,172180 -o JobIDRaw,State,ExitCode,Elapsed,NodeList 2>/dev/null
+sacct -X -n -P -j 171377,172180,172467 -o JobIDRaw,State,ExitCode,Elapsed,NodeList 2>/dev/null
 ls -la --time-style=+%H:%M:%S "$KH/o/" | grep -E '171356|171377' | awk '{print $5, $6, $7}'
-ls -la --time-style=+%H:%M:%S /project/community/jjyeung/okh7/x_7f1589c1/o/ 2>/dev/null | grep -E '172180' | awk '{print "C", $5, $6, $7}'
+ls -la --time-style=+%H:%M:%S /project/community/jjyeung/okh7/x_7f1589c1/o/ 2>/dev/null | grep -E '172180|172467' | awk '{print "C", $5, $6, $7}'
 echo "== runs listing"
 find $KH/runs -type f -newermt '2026-11-18 05:00' -printf '%TT %s %P\n' 2>/dev/null | sort | tail -25
 python3 -B - "$KH" <<'PYCODE'

@@ -95,6 +95,7 @@ def produce(reader, card_pin, membership_pin, evidence, output):
     groups = {c['type']:[] for c in card['cells']}
     streams = {c['type']:c['stream'] for c in card['cells']}
     unknown, pairs = Counter(), defaultdict(Counter)
+    units, overrides = Counter(), Counter()
     examples = defaultdict(list)
     for stream in STREAMS:
         for offset in range(reader.count(stream)):
@@ -104,6 +105,11 @@ def produce(reader, card_pin, membership_pin, evidence, output):
                 unknown[kind] += 1
                 continue
             groups[kind].append(offset)
+            if stream == 'routing' and row.get('r1_source') and family(row, stream) != kind:
+                overrides[kind] += 1
+            if kind == 'units':
+                from .r2_units import asked_unit
+                units[asked_unit(row)] += 1
             if kind == 'facing_pairs':
                 pairs[row.get('pair_id')][row.get('facing')] += 1
             if len(examples[kind]) < 5:
@@ -114,6 +120,7 @@ def produce(reader, card_pin, membership_pin, evidence, output):
     population = dict(schema='r1-population-v1', complete=True, after_all_filters=True,
         card_sha256=card_pin['sha256'], counts=counts, evidence=[*evidence, membership_pin],
         source_membership=membership_pin, examples=dict(examples),
+        asked_units=dict(units), source_identity_overrides=dict(overrides),
         facing=dict(draw_unit='single row', pair_ids=len(pairs),
             complete_pair_ids=sum(set(v)=={'toward','away'} for v in pairs.values()),
             incomplete_pair_ids=sum(set(v)!={'toward','away'} for v in pairs.values()),

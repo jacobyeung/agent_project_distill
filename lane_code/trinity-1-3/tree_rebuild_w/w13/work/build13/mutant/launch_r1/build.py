@@ -45,7 +45,7 @@ def build(cfg, inputs, output):
         pinned(cfg['r1_training']['source_membership'])
     # External exclusion records enter only through normal pinned-input staging.
     from student_pilot.p3_provenance import pinned
-    staged_records={pin['path']:pinned(pin) for pin in cfg.get('remove_files', [])
+    staged_records={pin['path']:pinned({k:pin[k] for k in ('path','sha256')}) for pin in cfg.get('remove_files', [])
                     if Path(pin['path']).is_file()}
     if cfg['r1_training'].get('source_membership'):
         pin=cfg['r1_training']['source_membership']

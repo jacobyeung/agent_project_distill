@@ -1,10 +1,10 @@
-Packet C drivers (`r1_drvc2`) are built for run `05b8ac69`, job `a15_cot_ap05b8ac69`, bundle `/project/community/jjyeung/okh7/i_7f1589c1`, and kit `/project/community/jjyeung/okh7/x_7f1589c1`. Training resumes A at step 200 and stops at step 600 on **advanced, four GPUs, 24 hours**. The CPU proof uses **bootstrap** by default, or **general**, with 48 CPUs, 800G RAM, no GPUs, and four hours.
+Packet C drivers (`r1_drvc3`) pin `p_08f3a7b2.tar`, SHA256 `08f3a7b2ef2e1923ba77b464afcedbbe668a77a1915b4c32c0a815044ff7d9fd`. C uses run `05b8ac69`, job `a15_cot_ap05b8ac69`, bundle `okh7/i_7f1589c1`, kit `okh7/x_7f1589c1`, and config identity `6594f46cdc16168514aca26a6ce38285907adfc6ece0b75d8e10428ea0b2fe74`.
 
-The archive is `p_6a5c7d00.tar`, SHA256 `6a5c7d009a19cb5bac690b864f2be68bb5cebc29649923c93da36328d0f96888`. The config identity is `6594f46cdc16168514aca26a6ce38285907adfc6ece0b75d8e10428ea0b2fe74`. `packet_config.py` verifies the supplied archive digest, `CONT3_INVENTORY.json` after pins, `OPERATOR.json`, and the archive's exact `sums.txt` inventory. The frozen outer `out/SHA256SUMS` belongs to A and is not an authority for C. `PACKET_PIN_SOURCES.json` records the gate, wrapper, sums, and config-file digests.
+Training resumes A at step 200 and stops at 600: advanced, four GPUs, 24 hours. The proof uses general, zero GPUs, 48 CPUs, 800G, four hours. `pr1.sh` refuses bootstrap for account mt01 and accepts `--hold`. The rehearsal uses the exact CONT4 command: general, orchard-community-0, zero GPUs, four CPUs, 32G, 30 minutes.
 
-The local fixture reached READY. The actual `review_r1c2` verdict is GO and the ten-review installer `rv1.sh` is ready. The deployed-kit certificate, fresh sessions, real CPU proof, donor slot, and written C launch GO remain operator gates. `sc1.sh` and `si1.sh` are inert until their builders receive the required inputs. No move-aside command is needed: C's bundle and kit must start absent.
+The build passes local fixtures. The independent final review `events/review_r1c3/REVIEW_VERDICT_R1C3.md` grants GO for this exact archive. `rv1.sh` is ready; `sc1.sh` and `si1.sh` remain inert until their builders receive valid inputs. Proof, rehearsal, and training guards reject unexpected top-level kit entries that could shadow Python imports. The allowed inventory includes the private `sess.json` installed by this sequence. The eleven-review chain includes r1p–r1p8, r1c1, and r1c2 as antecedents. The final review must explicitly approve Packet C and bind its archive digest or config identity. Conditional approval accepts only explicit LOW fixes.
 
-Run these commands from `drv_c1`. The `orch` helper below is for the operator; this build made no remote connection or submission. Check `DRIVER_SHA256SUMS.txt` before running installer builders, which generate the certificate and session installers. Stop after an unsuccessful or uncertain operation; preserve its records and do not resubmit automatically.
+These commands are for the operator. The build made no SSH connection, Orchard call, live mint, or submission. Keep session files and installers private. Stop on failed or uncertain operations; retain all markers and never resubmit automatically.
 
 ```bash
 cd /scratch/jjyeung/orch_n30/r1_ops/work/drv_c1
@@ -12,44 +12,56 @@ umask 077
 unset PYTHONOPTIMIZE PYTHONPATH PYTHONHOME
 export PYTHONDONTWRITEBYTECODE=1 CUDA_VISIBLE_DEVICES=''
 PY=/scratch/jjyeung/envs/p1cpu/bin/python
-EVENTS=/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/events
-OSSH=/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30/tools/ossh.sh
+ROOT=/data2/jjyeung/agent_project_data/distillation_orchestrator_20260918/orch_n30
+OSSH=$ROOT/tools/ossh.sh
 orch() { local file=$1; shift; timeout 300 bash "$OSSH" "bash -s -- $*" < "$file"; }
 sha256sum -c DRIVER_SHA256SUMS.txt
 ```
 
-Every checksum must report `OK`. Use the commands in this order:
+Run the following sequence. Poll workers and jobs no more than once per minute. The checksum list covers the shipped state; installer builders intentionally replace their pending scripts.
 
-| Order | Command | Expected result |
+| Order | Command | Expected output or condition |
 |---|---|---|
-| 1 | `orch u1.sh` | `PASS outer SHA; 40 members; sums.txt exact inventory; files 0600`. |
-| 2 | `orch q1.sh` | `PASS native receipt reused; native_unit_regeneration_executed=true`; selection `5db993b148c7aa1ace685f7c29b0e20daa6ac4e3e5b3613e4c3fc2b24bdde2af`. |
-| 3 | `"$PY" -B review_build.py` | `READY rv1.sh; ten-review chain pinned; final verdict GO`, or GO AFTER FIXES with explicit LOW fixes. `PENDING` means stop here. |
-| 4 | `orch rv1.sh` | `PASS installed ten-review chain; final review_r1c2 accepted for packet C; no production GO granted`. |
-| 5 | `orch ev1.sh`, then `orch evp1.sh` | `STARTED e0`; wait for `e0 rc=0` and four verified evidence records. Poll at most once per minute. |
-| 6 | `orch dv1.sh`, then `orch dvp1.sh` | `STARTED d0`; wait for `d0 rc=0`, `status=READY`, C's identity, `missing_source_members=[]`, `PASS sealed p/t/u authority; k/4.json SHA matches derived manifest`, and `PASS b/ and code subdirectories 0500; no __pycache__`. |
-| 7 | `orch scan1.sh > scan1.out` | The output binds C's archive, identity, run, and manifest. Obtain an independent complete content scan and `ANON_OK.json`. |
-| 8 | `"$PY" -B cert_build.py ANON_OK.json --scan-record CLASSIFIED.json`, then `orch sc1.sh` | `READY sc1.sh`, then an independent CLEAN certificate installed with the exact manifest, scan, exemption, and all 40 external member pins. |
+| 1 | `orch m1.sh` | `PASS moved aside /project/community/jjyeung/okh7/i_7f1589c1.f172180 /project/community/jjyeung/okh7/x_7f1589c1.f172180`. |
+| 2 | `orch u1.sh` | `PASS outer SHA; 40 members; sums.txt exact inventory; files 0600`. |
+| 3 | `orch q1.sh` | Authenticated native receipt and `native_unit_regeneration_executed=true`. |
+| 4 | `"$PY" -B review_build.py`, then `orch rv1.sh` | `READY rv1.sh`, then `PASS installed eleven-review chain`. Stop at PENDING. |
+| 5 | `orch ev1.sh`, then `orch evp1.sh` | `STARTED e0`; wait for `e0 rc=0`. |
+| 6 | `orch dv1.sh`, then `orch dvp1.sh` | `STARTED d0`; wait for `d0 rc=0`, READY, sealed p/t/u authority, and b/ directories at 0500 without bytecode. |
+| 7 | `orch scan1.sh > scan1_c3.out` | Current archive, config, manifest, and external-member inventory. Obtain an independent complete scan and certificate. |
+| 8 | `"$PY" -B cert_build.py ANON_OK_C3.json --scan-record /absolute/path/CLASSIFIED_C3.json --scan-output scan1_c3.out`, then `orch sc1.sh` | `READY sc1.sh`, then independent CLEAN certificate installed. |
 | 9 | `bash L1_mint.sh` | `PASS 20 fresh create-only sessions; mode 0600; URI contents withheld`. |
-| 10 | `"$PY" -B session_build.py`, then `orch si1.sh` | Private installer READY, then `PASS installed sess.json mode 0600; 20 fresh destinations; contents withheld`. |
-| 11 | `orch pq.sh`, then `orch pr1.sh bootstrap` | Queue snapshot; manifest-bound p/t/u authority and sealed-kit checks; CPU sbatch argv with `--parsable -p bootstrap -t 04:00:00`; `SUBMITTED job_id=…`. Use `general` instead only if selected by the operator. |
-| 12 | `orch pm1.sh`, then `orch f2.sh > proof_fetch.out` | C proof accounting and bounded proof JSON/log. Require completed PASS proof, `rc=0`, and `checks.resume_pointer.status=PASS`. `NOT_YET` means wait. |
-| 13 | `orch go_submit_6a5c7d00.sh "$PROOF_JOB" "$GO_SHA"` | A's scheduler state; verified step-200 slot-record preflight; GO written or byte-equal reuse; `SUBMITTED training_job=… proof_job=… advanced gpu=4 time=24:00:00`. |
-| 14 | `orch mon.sh` | Read-only C proof/training queue and accounting, redacted bounded logs, and retained training record. Poll at most once per minute. |
+| 10 | `"$PY" -B session_build.py`, then `orch si1.sh` | Private installer READY; `PASS installed sess.json mode 0600; 20 fresh destinations`. |
+| 11 | `orch pq.sh`, then `orch rh1.sh` when the ruling permits the general slot | `SUBMITTED rehearsal_job=…; never a PASS proof`. This seals general authority into fresh `a4.json`. |
+| 12 | `orch rhf.sh > rehearsal_c3.out` | Inspect `REHEARSAL_OK`, rc 0 and step results. NOT_YET means wait; REHEARSAL_FAIL means stop. |
+| 13 | `orch pr1.sh general --hold` | `PASS history: FAILED 172180 and rejected bootstrap only`; successful rehearsal required; `SUBMITTED job_id=…`. Set PROOF_JOB to this exact ID. |
+| 14 | At A's end, `orch pre1.sh "$C_INPUTS" > pre1_c3.out` | Real step-200 slot/archive/manifest/shard verification; equal/different for each stream and family. Require final `PASS REAL A resume pointer and C/A preparation populations equal`. |
+| 15 | Compute the ruling SHA as below; `orch go_submit_canary_08f3a7b2.sh "$PROOF_JOB" "$GO_SHA"` | A has released advanced; new proof is PENDING/RUNNING on general; canary gate accepts admission 172180; `SUBMITTED training_job=… proof_job=… advanced gpu=4 time=24:00:00`. |
+| 16 | `orch mon.sh` | Read-only C proof/training queue, accounting, bounded redacted logs and retained training record. |
+| 17 | Release the held proof only after the step-200 direct read finishes; then `orch pm1.sh` and `orch f2.sh > proof_c3.out` | Proof remains separate from training. Require completed PASS, rc 0 and resume_pointer PASS for proof completion. |
 
-Before step 13, set `PROOF_JOB` to the exact ID from step 11. Set `GO_FILE` to the written, identity-bound **C** ORCH GO file, then compute `GO_SHA=$(sha256sum "$GO_FILE" | cut -d' ' -f1)`. The wrapper's stdin usage is `bash -s -- <PASSING_PROOF_JOB> <sha256 of ORCH GO file>`. Keep `proof_fetch.out`, session JSON, mint logs, and `si1.sh` private; the session installer contains capabilities.
+```bash
+GO_FILE=$ROOT/events/r1_ops/20261118T0842Z_ORCH_RULING_C_canary_and_general_order.md
+GO_SHA=$(sha256sum "$GO_FILE" | cut -d' ' -f1)
+test "$GO_SHA" = 31f5e70ca014a370913115e124290805744e5947790e8d2463e5b0225130aa89
+# After the step-200 direct read ends, release only the recorded held proof:
+printf 'TZ=UTC scontrol release %s\n' "$PROOF_JOB" | timeout 300 bash "$OSSH" 'bash -s'
+```
 
-The final review must be `events/review_r1c2/REVIEW_VERDICT_R1C2.md`. Its `Packet C:` line must declare GO, or GO AFTER FIXES with only explicit LOW, nonblocking fixes. C's section must name the full archive digest or config identity. Missing, stale, negative, ambiguous, or above-LOW final reviews refuse. Reviews `review_r1p` through `review_r1p8` and `review_r1c1` are the nine antecedents; only `review_r1c2` supplies the final verdict. The builder prints remaining LOW fixes. The evidence worker independently checks all ten review texts and hashes.
+General-slot order is binding: reader 172456; step-100 direct read only if it leaves by 12:45Z; step-200 direct read first; C proof; routed reads. A pending/held proof satisfies the canary gate. The proof must not occupy general from 12:45Z until the step-200 direct read finishes. Schedule the short rehearsal within that same ordering. The wrapper does not infer that another lane's direct read has finished.
 
+`pre1.sh` runs read-only on the Orchard login CPU. It streams the selected verified A slot once, hashes every checkpoint payload, and checks its binding and manifest against C's sealed continuation policy. It compares A's archived `inputs/data_receipt.json` and pinned `prepared/type_mix.json` with C's retained preparation. It does not deserialize model tensors or extract an archive.
 
-`pr1.sh`, `pr2.sh`, and `dvp1.sh` verify `k/4.json` against the deployed kit's `SHA256SUMS.txt` and apply the archive-pinned `r4.py` validator. The authority must contain exactly the sealed resource fields: modes `p/t/u`, GPU counts `0/4/4`, proof on general/bootstrap for 14,400 seconds, and training on advanced for 86,400 seconds. It also requires one node, arm `0`, GPU cap four, one parallel job, `resume="latest"`, no production GO, and separate written GO. The authority's config, revision, and admission contract must match C. The drivers do not edit the sealed authority. `dvp1.sh` checks `b/` and every code subdirectory at `0500` and rejects symlinks and `__pycache__`.
+Set `C_INPUTS` to a login-visible preserved inputs directory from proof 172180. Its original node-local location is `/tmp/jjyeung/p_05b8ac69_172180/tmp/jjyeung/a_05b8ac69/runs/05b8ac69/inputs` on orchard-community-0. That is the default argument, but login access may require the operator to preserve those small receipt files, including their relative prepared paths, on shared storage. The pinned proof log establishes stream counts; it has no family census. Missing C receipts cause a refusal, never an inferred family equality. Preserve the staged root for the rehearsal as CONT4 requires.
 
-C's native selection equals A's. `q1.sh` reuses the authenticated native receipt and regenerates the unit projection with the sealed selector. Data records keep `record_key=69d2930d`; C's bundle, kit, run, proof, logs, slots, and export destinations use C's fresh identity. Sessions cover `05b8ac69_{m400,m600,mstop,mstopB,mstopC}`, four parts each. Minting refuses existing objects, fallback exports, sessions, or an uncertain mint attempt. A's sessions are never reused.
+`m1.sh` accepts only FAILED 172180, checks the old archive/member inventory and failed receipt, and refuses any queued 172180 or same-name job. It preflights both destinations and retains inodes during same-filesystem moves. It uses RENAME_NOREPLACE, with the requested EINVAL fallback to `os.rename` after a fresh absence check under the held proof lock. Inspect partial state manually after any error. It moves only the bundle and kit; node-local staging remains available.
 
-`pr1.sh` rejects every queued job with C's name, including held duplicates, and every previous local submission attempt. A's training `171377`, A's proof `171356`, and the eight held `jjy_*` jobs do not block C's CPU proof. It writes `job.id` only after parsing `sbatch --parsable`. `pr2.sh` shares the same guard and markers; it is not a second submission route.
+The moved kit retains its 20 old sessions. `L1_mint.sh` uses packet-specific local files `sess_05b8ac69_08f3a7b2.json`, `mint_05b8ac69_08f3a7b2.started`, and `mint_05b8ac69_08f3a7b2.private.log`. It checks destination objects and fallback exports, then mints 20 new capabilities. It never reads the moved kit's sessions. `si1.sh` creates only the new kit's sess.json.
 
-`go_submit_6a5c7d00.sh` pins C's archive, `s.sh`, `sums.txt`, and `jb.sh`; it calls the unchanged sealed PASS-proof gate. The wrapper binds the proof to C's `job.id`, original parsable sbatch receipt, PASS JSON, and completed accounting. Its queue guard rejects any other C job. Its accounting guard permits only that proof ID under C's name. Training locks and create-only markers reject repeated or uncertain attempts. The GO fields match C's sealed gate, omit canary authorization, and permit only byte-equal reuse. The training ID comes from the sealed gate's sbatch output.
+The canary wrapper fixes ADMISSION_JOB=172180 and ADMISSION_KIT=`/project/community/jjyeung/okh7/x_7f1589c1.f172180`. It pins the ruling SHA and calls the sealed gate with its authenticated old admission evidence. Same-name accounting permits only FAILED 172180 and the new proof ID. Rehearsal IDs cannot serve as proofs. Training locks and create-only markers preserve failed/uncertain attempts. The gate's canary receipt records gate acceptance, not successful allocation.
 
-The wrapper prints A's queue/accounting state and refuses while A's training may still hold the advanced allocation. Pending or held unrelated jobs do not hold that allocation. It reads only `A.json` and `B.json` under `okh7/r/673bc60f` and requires a record with boolean `verified=true` and integer `step=200`. This preflight does not read the large donor archive. C's sealed `b/c0.py` verifies the full donor binding, archive, checkpoint, optimizer state, and shards in the training allocation. A's donor kit and slots remain read-only.
+For completed-PASS mode, use `orch go_submit_08f3a7b2.sh "$PROOF_JOB" "$GO_SHA"` instead of the canary submission, after a completed PASS proof and applicable separate written GO. Both wrappers share training markers; never invoke both for the same deployment.
 
-Local evidence is in `result_c2_*.txt`, `VALIDATION_C2.json`, `antecedents_c2.json`, and `TEST_STORAGE_C2.json`. The READY fixture is `tests_c2_cszuhpu9/derived_ready`. Tests cover exact authority fields and types, manifest hashes, directory modes, bytecode refusal, both proof partitions, ten-review validation, installers, selection/unit regeneration, REMOVE integrity, mint checks, queue guards, training refusals, GO reuse, and read-only monitoring. The fixture uses synthetic approvals and two H1 source sentinels. It does not attest live data, donor availability, scheduler capacity, or production admission. New test scratch occupies 281.56 MB with shared hardlinks counted once; the limit is 300 MB. Existing artifacts remain untouched.
+Follow the ruling's kill conditions: pooled harm STOP, a protected outcome's second failure, admission differing from 172180, or failed early-loss checks. These drivers report state; they do not decide those outcomes or cancel A's job 171377.
+
+`result_c3_*.txt` and `VALIDATION_C3.json` record local validation. Tests use scheduler/gate stubs and synthetic checkpoint/preparation data. Authority, proof sealing, and scan tests reuse the existing local READY fixture because the sealed derivation/config bytes are unchanged. They do not certify Orchard state, real populations, donor availability, or production approval. Exact-byte evidence includes `f172180.proof.json` and `f172180.proof.log`; the separately formatted `p172180.proof.json` has a different digest and is not the gate's receipt pin.

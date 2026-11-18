@@ -1,0 +1,1 @@
+review_r1c3 DONE 20261118T0909Z: verdict GO written to events/review_r1c3/REVIEW_VERDICT_R1C3.md plus a RESULT event. Copies: /scratch/jjyeung/orch_n30/review_r1c3/{copy,new,old,tt} (local review scratch only).

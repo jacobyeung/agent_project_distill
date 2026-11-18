@@ -24,6 +24,7 @@ parts=['# Build 13\n',
 '| Reader subset preserves original scene evidence | Closed in CPU proof | `student_pilot/s1_exclusions.py`; `work/build13/proofs/edges/RESULT.json` |',
 '| Fresh kits, pinned slice requirements and membership, ordered host request | Closed; remote source resolution blocked | `launch_r1/build.py`; `work/build13/KIT_RESULT.json` |',
 '| Refusal tests and mutations | Closed | `tests/test_r1_build13.py`; `work/build13/proofs/mutations/RESULT.json` |',
+'| Portable confirmation fixture resolves the parent artifact inside the package and verifies its unchanged hash | Closed | `tests/test_r2_build12.py`; `work/build13/proofs/fixture_path/TESTS.json` |',
 '| Full RGB/GPU production acceptance, BF16 parity and existing qualification blockers | Blocked; unchanged | `work/build13/SUITE_COMPARISON.json`; `work/build13/KIT_RESULT.json` |\n',
 'The host composes at native admission, immediately after `s1_routing.build` and before `prepare`. This preserves the native catalogs and selection while giving preparation one routing receipt. The SQLite `rows` view reconstructs the native routing JSON from a payload that stores the repeated ground record once; membership authenticates that reconstructed row. Source: `student_pilot/r1_routing.py`.\n',
 '## Census reproduction\n',
@@ -47,6 +48,7 @@ f"The untouched base ran {base['tests']} tests: {len(base['passed'])} passed, {l
 for v in mut:parts.append(f"| {v['name']} | {v['status']} |")
 parts += ['\nSource for every mutation result: `work/build13/proofs/mutations/RESULT.json`. Each clean targeted test passed before its mutant ran; all mutants reuse one tree directory.\n',
 f"Coverage spans {cov['changed_statements']} changed statement heads since the untouched base. Source: `work/build13/CHANGED_COVERAGE.json`.\n",
+f"CPU-reachable unresolved statements: {cov['classes'].get('CPU-reachable unresolved',0)}. Source: `work/build13/GAPS.json`.\n",
 '| Coverage class | Statements |\n|---|---:|']
 for name,n in cov['classes'].items():parts.append(f'| {name} | {n} |')
 parts += ['\nCoverage uses standard-library compiled-source tracing and excludes top-level test files, as in build 12. Prior observations transfer only with exact file bytes or an identical complete function, and each transfer records hashes. Frame-host, GPU and model-loader gaps remain explicit. Scope declarations have no runtime instruction. Source: `work/build13/coverage13.py`; `work/build13/CHANGED_COVERAGE.json`.\n',
@@ -57,8 +59,8 @@ parts += ['\nCoverage uses standard-library compiled-source tracing and excludes
 'All kits were staged from empty and remain GO=false. Their hashes come from `work/build13/KIT_RESULT.json`.\n',
 '| Kit | Kit SHA-256 | Source SHA-256 |\n|---|---|---|']
 for name,v in k.items():parts.append(f"| {name} | `{v['kit_sha256']}` | `{v.get('source_sha256',v.get('source_seal'))}` |")
-parts += ['\nThe operator must verify the remote sources against the staged pins and resolve the native base, source manifests, frame maps and independent scene coverage. Then run these host steps in order through `launch_r1.entry.frame_host`:',
-'1. Run native `s1_routing.build`, then `r1_routing.compose_native` with the verified source manifests.',
+parts += ['\nThe operator must verify the remote sources against the staged pins and resolve the native base, source manifests, frame maps and independent scene coverage. On the real frame host, set `STUDENT_R2_FRAME_HOST=1`, `STUDENT_R2_LOCAL_NODE=0` and `CUDA_VISIBLE_DEVICES=""`; the native intake guard requires this host declaration and still refuses full intake on Trinity. Source: `student_pilot/r2_intake.py`. Then run these host steps in order through `launch_r1.entry.frame_host`:',
+'\n1. Run native `s1_routing.build`, then `r1_routing.compose_native` with the verified source manifests.',
 '2. Run native `carrier_c1_run.prepare` through `s1_admission` on the composed routing receipt.',
 '3. Run `r1_population.bind_prepared` on the prepared configuration; use its returned configuration and preparation receipt.',
 '4. Run `r1_loader.production_audit` on that returned configuration. Missing or changed bindings refuse. Trinity remains prohibited for this full audit.\n',
@@ -66,6 +68,7 @@ parts += ['\nThe operator must verify the remote sources against the staged pins
 '## Limits and stand-ins\n',
 'The native builder proof uses a bounded source fixture and synthetic host frame metadata; the encoding proof substitutes RGB frame loading and the pretrained processor only. The census uses published scene coverage as the lane did, placeholder frame pins, and GUESS 24 FPS where source metadata is absent. It does not establish independent frame-host coverage or real-scene numeric parity. Sources: `work/build13/proofs/builder/RESULT.json`; `work/build13/proofs/encode/RESULT.json`; `work/build13/proofs/census/CENSUS.json`.\n',
 'No full host admission, production P weights, GPU/pretrained tower execution, independent full-store scene audit, remote upload, submission, Orchard call or GCS call was performed. Existing product-inference and FRAME64 blockers remain. Sources: `work/build13/KIT_RESULT.json`; `work/build13/CHANGED_COVERAGE.json`.\n',
+'Superseded owned kit copies were overwritten with digest receipts; active kits retain their verified bytes. Final workspace usage and projected archive-extraction growth are checked explicitly. Peak workspace usage during the earlier extraction was not measured. Sources: `work/build13/RETAINED_KIT_RECEIPTS.json`; `work/build13/STORAGE.json`; `work/build13/package13.py`.\n',
 '## For the confirmation\n',
 'Run from the package root on the permitted compute node. Each command uses the bounded runner and fixed proof folders. The full census needs the named read-only external inputs; the archive does not carry their databases or raw slices.\n',
 '```bash\nbash work/build13/run.sh work/build13/test13.py\nbash work/build13/run.sh work/build13/census13.py\nbash work/build13/run.sh work/build13/native_builder13.py\nbash work/build13/run.sh work/build13/recompose13.py\nbash work/build13/run.sh work/build13/census13.py --resume\nbash work/build13/run.sh work/build13/encode13.py\nbash work/build13/run.sh work/build13/mapping13.py\nbash work/build13/run.sh work/build13/mutations13.py\nbash work/build13/run.sh work/build13/preserve13.py\nbash work/build13/run.sh work/build13/edges13.py\nbash work/build13/run.sh work/build13/packet_inputs13.py\nbash work/build13/run.sh work/build13/packet13.py integrated packet contract\nbash work/build13/run.sh work/build13/package13.py out/tree_rebuild_b13_'+seal['tree_sha256'][:8]+'.tar\nbash work/build13/run.sh work/build13/compare13.py\nbash work/build13/run.sh work/build13/coverage13.py\nbash work/build13/run.sh work/build13/storage13.py\n```\n',
@@ -76,5 +79,5 @@ report='\n'.join(parts)
 d=L/'out/DESIGN_RECORD_tree_rebuild_20261115.md';text=d.read_text();head='\n## Build 13\n'
 if head in text:text=text.split(head)[0]
 d.write_text(text+head+'\nR1 composition authenticates N slice identity before native preparation. The population producer then uses final native-reader offsets, publishes a bound complete population and validates the sampling plan. Source identity takes precedence over the sealed question-type table. Host audit consumes the produced configuration. All kits remain GO=false pending real host inputs and production qualification. See `BUILD13_REPORT.md` and `work/build13/CHANGED_COVERAGE.json`.\n')
-(B/'STATUS.md').write_text('# Build 13 status\n\nImplementation and CPU proofs complete; GO=false. Census and plan match the lane. Final report: `out/BUILD13_REPORT.md`. Final source, kit, suite and coverage receipts are under `work/build13/`; archive qualification is recorded in `proofs/final/package/ARCHIVE.json`.\n')
+(B/'STATUS.md').write_text('# Build 13 status\n\nImplementation and CPU proofs complete; GO=false. Census and plan match the lane. Final report: `out/BUILD13_REPORT.md`. Final delivery qualification is running; see `FINAL_RUNS.json`. Archive qualification remains pending until `proofs/integrity/RESULT.json` passes.\n')
 print('Report and design record written')

@@ -11,11 +11,11 @@ OLD=$O/i_1be16f28
 KH=$O/x_7f1589c1
 private() { [[ -d "$1" && ! -L "$1" && $(stat -c %a "$1") == 700 ]] || { echo "REFUSED: private directory required: $1" >&2; exit 3; }; }
 fresh() { [[ ! -e "$1" && ! -L "$1" ]] || { echo "REFUSED: already exists: $1" >&2; exit 3; }; }
-packet() { printf '%s  %s\n' '6a5c7d009a19cb5bac690b864f2be68bb5cebc29649923c93da36328d0f96888' "$BUN/p.tar" | sha256sum -c --quiet; }
+packet() { printf '%s  %s\n' '08f3a7b2ef2e1923ba77b464afcedbbe668a77a1915b4c32c0a815044ff7d9fd' "$BUN/p.tar" | sha256sum -c --quiet; }
 private "$O"
 private "$BUN"
 packet
-test -f "$BUN/r1.json" || { echo "PENDING: run rv1.sh after the ten-review final-packet chain"; exit 4; }
+test -f "$BUN/r1.json" || { echo "PENDING: run rv1.sh after the eleven-review final-packet chain"; exit 4; }
 fresh "$BUN/e"
 fresh "$BUN/e0"
 mkdir -m 700 "$BUN/e0"
@@ -24,8 +24,8 @@ cat > "$BUN/e0/r.py" <<'PYCODE'
 import hashlib
 import re
 
-REVIEWERS = ('review_r1p', 'review_r1p2', 'review_r1p3', 'review_r1p4', 'review_r1p5', 'review_r1p6', 'review_r1p7', 'review_r1p8', 'review_r1c1', 'review_r1c2')
-REVIEW_FILES = ('r1.txt', 'r2.txt', 'r3.txt', 'r4.txt', 'r5.txt', 'r6.txt', 'r7.txt', 'r8.txt', 'rc1.txt', 'rc2.txt')
+REVIEWERS = ('review_r1p', 'review_r1p2', 'review_r1p3', 'review_r1p4', 'review_r1p5', 'review_r1p6', 'review_r1p7', 'review_r1p8', 'review_r1c1', 'review_r1c2', 'review_r1c3')
+REVIEW_FILES = ('r1.txt', 'r2.txt', 'r3.txt', 'r4.txt', 'r5.txt', 'r6.txt', 'r7.txt', 'r8.txt', 'rc1.txt', 'rc2.txt', 'rc3.txt')
 
 def verdict(text, reviewer):
     header = next((line.strip() for line in text.splitlines() if line.strip()), '')
@@ -141,14 +141,14 @@ def packet_a_section(text):
 
 def build_chain(texts, identity, tree, outer):
     if set(texts) != set(REVIEW_FILES):
-        raise ValueError(f'all ten independent verdicts are required')
+        raise ValueError(f'all eleven independent verdicts are required')
     reviews = {}
     for name, short in zip(REVIEWERS, REVIEW_FILES):
         text = texts[short]
-        value = packet_section(text, 'C')[0] if name in ('review_r1c1','review_r1c2') else (packet_a_section(text)[0] if name in ('review_r1p6','review_r1p7','review_r1p8') and re.search(r'Packet\s+A\b', text, re.I) else verdict(text, name))
+        value = packet_section(text, 'C')[0] if name in ('review_r1c1','review_r1c2','review_r1c3') else (packet_a_section(text)[0] if name in ('review_r1p6','review_r1p7','review_r1p8') and re.search(r'Packet\s+A\b', text, re.I) else verdict(text, name))
         reviews[name] = dict(verdict=value, sha256=hashlib.sha256(text.encode()).hexdigest(),
                              file=short, role='final' if name == REVIEWERS[-1] else 'antecedent')
-    value, final = packet_section(texts['rc2.txt'], 'C')
+    value, final = packet_section(texts['rc3.txt'], 'C')
     declaration = re.sub(r'^\s*(?:#{1,6}\s*|[-*]\s*)', '', final.splitlines()[0].replace('**', '').replace('`', '')).strip()
     if not re.match(r'Packet\s+C\s*:', declaration, re.I) or not re.search(r'\b(GO AFTER FIXES|GO)\b', declaration, re.I):
         raise ValueError(f'final review requires an explicit Packet C: GO or GO AFTER FIXES line')
@@ -158,7 +158,7 @@ def build_chain(texts, identity, tree, outer):
     notes = low_fixes('# '+value+'\n'+fix_body) if value == 'GO AFTER FIXES' else []
     return dict(config_sha256=identity, source_revision='sha256:'+tree,
                 operator_archive_sha256=outer, packet='C', reviews=reviews,
-                reviewers=list(REVIEWERS), final_reviewer='review_r1c2',
+                reviewers=list(REVIEWERS), final_reviewer='review_r1c3',
                 final_verdict=value, fix_rounds=[4, 5, 6, 7, 8, 9, 10, 11, 12], nonblocking_fixes=notes,
                 accepted_for_cpu_proof=True, production_go_granted=False)
 
@@ -184,11 +184,11 @@ def make_records(b,h,old,ev,checks,review_input):
  ar=copy.deepcopy(load(old/'archive.json'))
  ar.update(schema='s1-source-archive-v1',status='ARCHIVED',durable=True,location=str(arc),sha256=sha(arc),tree_sha256=binding['tree_sha256'],bytes=arc.stat().st_size,verification_scope='read-back SHA256 on login-node project storage')
  rv=copy.deepcopy(load(old/'review.json'))
- rv.update(verdict='PASS',reviewer=', '.join(review_input['reviewers']),reviewers=review_input['reviewers'],config_sha256=ident,source_revision=revision,admission_contract_sha256=ids['contract'],admission_scope='pinned-template-and-native-data-derivation',attestation='The ten-review chain ends with review_r1c2 accepting packet C; production CPU preparation proof remains required.',evidence=review_input)
+ rv.update(verdict='PASS',reviewer=', '.join(review_input['reviewers']),reviewers=review_input['reviewers'],config_sha256=ident,source_revision=revision,admission_contract_sha256=ids['contract'],admission_scope='pinned-template-and-native-data-derivation',attestation='The eleven-review chain ends with review_r1c3 accepting packet C; production CPU preparation proof remains required.',evidence=review_input)
  au=copy.deepcopy(load(old/'4.json'))
  # Inherit the envelope, never the H1 production permissions or source-specific attestations.
  for k in ('written_authorization','written_authorizations','admission_evidence','omission_authority'):au.pop(k,None)
- au.update(config_sha256=ident,source_revision=revision,admission_contract_sha256=ids['contract'],partition='bootstrap',allowed_partitions=['bootstrap','general'],account='mt01',modes=['p'],new_gpus={'p':0},gpu_cap=4,max_parallel_jobs=1,production_go_granted=False,production_go_required_separately=True,full_population_admission=False,native_memory_sufficiency_proven=False,review=None,scope='One mode-p CPU proof; production GO remains pending.',wall_seconds=14400,allocation_memory_gib=800,conditions=['One CPU proof; refuse any other same-name C job; unrelated held jobs do not block.','The final manifest requires independent content certification.','Production submission requires a separate identity-bound GO.'])
+ au.update(config_sha256=ident,source_revision=revision,admission_contract_sha256=ids['contract'],partition='general',allowed_partitions=['bootstrap','general'],account='mt01',modes=['p'],new_gpus={'p':0},gpu_cap=4,max_parallel_jobs=1,production_go_granted=False,production_go_required_separately=True,full_population_admission=False,native_memory_sufficiency_proven=False,review=None,scope='One mode-p CPU proof; production GO remains pending.',wall_seconds=14400,allocation_memory_gib=800,conditions=['One CPU proof; refuse any other same-name C job; unrelated held jobs do not block.','The final manifest requires independent content certification.','Production submission requires a separate identity-bound GO.'])
  for n,d in [('review.json',rv),('staging.json',st),('archive.json',ar),('4.json',au)]:write(ev/n,d)
 
 def evidence(b,h,old,ev,verify):
@@ -198,9 +198,9 @@ def evidence(b,h,old,ev,verify):
  # Require the operator's uploaded exact-packet independent verdict record.
  review_input=load(b/'r1.json')
  assert review_input['config_sha256']==ident and review_input['source_revision']==revision
- assert review_input['operator_archive_sha256']=='6a5c7d009a19cb5bac690b864f2be68bb5cebc29649923c93da36328d0f96888'
+ assert review_input['operator_archive_sha256']=='08f3a7b2ef2e1923ba77b464afcedbbe668a77a1915b4c32c0a815044ff7d9fd'
  texts={short:(b/short).read_bytes().decode() for short in REVIEW_FILES}
- assert review_input==build_chain(texts,ident,binding['tree_sha256'],'6a5c7d009a19cb5bac690b864f2be68bb5cebc29649923c93da36328d0f96888'), 'Review chain differs'
+ assert review_input==build_chain(texts,ident,binding['tree_sha256'],'08f3a7b2ef2e1923ba77b464afcedbbe668a77a1915b4c32c0a815044ff7d9fd'), 'Review chain differs'
  assert sha(h/'SHA256SUMS.txt')==MAN
  manifest=dict(reversed(x.split('  ',1)) for x in (h/'SHA256SUMS.txt').read_text().splitlines())
  for n in ('k/0.json','k/staging.json','k/review.json','k/archive.json','k/4.json'):

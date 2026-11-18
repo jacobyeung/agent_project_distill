@@ -62,12 +62,13 @@ for name, auth, reseal in cases:
 print('PASS both embedded drivers: exact authority accepted; '+str(len(mutations))+' authority/hash mutations refused each')
 
 # Run the entire dvp1 Python body, including directory inspection.
-for label, allowed in (('valid', True), ('root_writable', False),
+for label, allowed in (('valid', True), ('top_shadow', False), ('root_writable', False),
                        ('subdir_writable', False), ('bytecode', False), ('linked_code', False)):
     root = T/('permissions_'+label)
     (root/'k').mkdir(parents=True)
     for name in ('k/4.json', 'SHA256SUMS.txt'):
         (root/name).write_bytes((T/'valid'/name).read_bytes())
+    if label=='top_shadow':(root/'json.py').write_text('untrusted')
     code = root/'b'
     code.mkdir()
     (code/'sa').mkdir()
