@@ -1,40 +1,80 @@
 {
   "status": "BLOCKED",
   "GO": false,
-  "source_seal": "64a2ea92cc8eae041d2c763c3868f77b3ebbb26f42c258d5019b67a894b1e68a",
+  "source_seal": "b092aa5ed62d14441d21378d25fe25a2289f2345d9b29f11933b8ffcc1f5b068",
+  "archive_sha256": "24aa082166f0e1e2b71a38a39a590f6666a806706f970c7b0f5e250b7fb9510f",
   "packet": {
-    "tests": 202,
+    "run": 202,
     "passed": 202
   },
-  "frozen_suite_complete": true,
-  "regressions_beyond_BF16": 0,
-  "r2_failures": 0,
-  "cpu_gaps": 0,
+  "frozen_suite": {
+    "run": 2278,
+    "passed": 1710,
+    "preexisting": 501,
+    "regressions": 1,
+    "r2_failures": 0,
+    "skipped": 145
+  },
   "coverage_classes": {
-    "observed": 6434,
+    "observed": 6578,
     "frame-host": 188,
     "GPU": 7,
+    "CPU-reachable unresolved": 15,
     "model-loader": 2
   },
+  "eat1": {
+    "gf1": {
+      "overall": "FAIL",
+      "claim_grade": false
+    },
+    "c8r": {
+      "overall": "FAIL",
+      "claim_grade": false
+    },
+    "b04": {
+      "overall": "FAIL",
+      "claim_grade": false
+    }
+  },
   "blockers": [
-    "Full bound VQA census and production build_stream proof were not run; heavy-IO approval is unavailable.",
-    "Requested original acceptance counts are not established; the units baseline differs and final admission includes the extent gate.",
-    "Full R1 allocation lacks other post-filter populations and native sampler indices.",
-    "Production model/frame-host and independent inference acceptance remain unqualified; carried launch blockers remain."
+    "BOUND_NUMERIC_INPUTS_MISSING",
+    "READOUT_MIGRATION_INCOMPLETE",
+    "B04_SEALED_VALIDATE_MISMATCH",
+    "STATUS_OWNER_MISSING",
+    "STRACE_WITNESS_UNAVAILABLE",
+    "NATIVE_READER_EAT1_FAILURES",
+    "CARRIED_LAUNCH_AND_FULL_STORE_BLOCKERS",
+    "CPU_COVERAGE_GAPS",
+    "FROZEN_SUITE_REGRESSIONS"
   ],
   "evidence": {
-    "DELIVERY.json": "1fd118e37ffeb94d36054b6ab4a26040594b937dac4001b1a215a624a7d0d851",
-    "FINAL_BINDING_AUDIT.json": "a5a05c917ef5dc410cf1aff273f2ad1156fcd7a2dc74bd72f08737b7ebdd0724",
-    "KIT_RESULT.json": "365cb520fa70f4fb2ac3132a73ae21ea9dc181b1b80fdfe9472c60349844b17e",
-    "MIX_BINDINGS.json": "f86c13e4119bb1da813f10c623822f6452f36ec322cb631b29a64ca4cdb63db5",
-    "SUITE_COMPARISON.json": "d0c6e2ae10f669c951766bcf23fe372ab962fe535eadeb6fa979741c4093ac7c",
-    "CHANGED_COVERAGE.json": "402283db569270d5116e357048940883c43aaa7475c47220e14d6fd8527d767a",
-    "proofs/package/ARCHIVE.json": "e98993423c4495f68c5ebf690e8a6ab765d386f1bf292a5323eb36c8819bf630",
+    "DELIVERY.json": "dfe79c47a99b720c4f5edc19a1bc25e42ceedce668c3e3e20273b568d2e546a5",
+    "KIT_RESULT.json": "0da653cd3c3d3c8c68b35c35b3bc5482edc67897e8956f09efa74f06771c0291",
+    "PATCH.json": "89767506a61d96ffd0fbc5100776f21e54f43148eb528c47327759699c92877c",
+    "FINAL_BINDING_AUDIT.json": "4ad3be770383da388fc108f1177648e30c91c6434b29cda1fe9dd16e766038b4",
+    "PIN_AUDIT.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "SUITE_COMPARISON.json": "4551a9cb86c3425cab60d99f62d9e583821fe72de2aa6ec2dd96d493b77c244e",
+    "CHANGED_COVERAGE.json": "d042b9ede17ddd14ac892349ad848e14513646f052910ce9358c85c62be7873f",
+    "HARNESS_COVERAGE.json": "99d1975c82aac4663b1bb1dd09583828e91b844d44f2a5eb33a60d4649fc200d",
+    "INCREMENTAL_COVERAGE.json": "57458915a47ccf0740c7da7fb033b935e1173a3dbb589b0b8df5a9747878a5b3",
+    "EAT1_SUMMARY.json": "1f68ba1a05ff63214539c333e080b0835205dfc7aba389fc04804f4d8f8bc992",
+    "EAT1_GROUP_EVIDENCE.json": "05a869255fb26f548f7fc8630ae6a53fe80203aa971b4aca85ee387c618a66cd",
+    "proofs/package/ARCHIVE.json": "ba11c6ff60eec7c7441671e52485d5c31ab4fb89dc3d570cb593371b703adea7",
     "proofs/packet/results.json": "a97e3607e73fc6b12b3e9397823a927d257d9aaecd247287fc485a87df232687",
-    "proofs/forward/RESULT.json": "dd11a7fa66d7f0562cf0a1ccca8018178366782e6825a53e197d2dc1b1e9dbf6",
-    "proofs/mutation_M02/RESULT.json": "8020c84fd3b0c00f2e22aaca8a9b6239c4768ff5d0b25b3a72b3e565b773b32b",
-    "proofs/mix_accounting/RESULT.json": "f2359216fdf23a35fbd5a20b9341e6c659c9613f98d6134d5269849ea4578519",
-    "proofs/fixture_requalification/RESUME_RECEIPT.json": "42ef37fc65056b0ae0b0414c71e49296a639a6f476e8fa112438fa1567ba3fa6",
-    "proofs/suite_tree/legacy_changed/results.json": "9e2bdc7074ae0a6e8f8c4583ab16d2556c0d68ecadc7d8dc606356f8455f6101"
+    "proofs/fixture_requalification/RESUME_RECEIPT.json": "288bcb8d1c4b397bce7be1856412d6c744fc270b16dac8ddc841f5b8eb3bdb75",
+    "proofs/parity/BYTE_PARITY.json": "92a2d3938b6c026b961b6e586d68c84e0365aca636e559785a15e53608e289e0",
+    "proofs/parity/NESTED_OPERANDS.json": "a1baf24315ffd4f683aaa14d44081fc9423eb1e5b521941ffc322a542da10f92",
+    "proofs/parity_build7/RESULT.json": "6e6e860b387d0cffec21bad72060bdaee30b1d4505e865ee8e9d92ffeb6f81f6",
+    "proofs/parity_tree/RESULT.json": "e62c47d8005eecd601229c597f6bdedb49228920bb8c745cecd8fc8f55e59656",
+    "proofs/forward/RESULT.json": "24d06923e095294f3317298e29582a2e4092167a05ceb2df3add00450be23d46",
+    "B04_SOURCE_AUDIT.json": "bf338fbf04b25075dd6cfc7e080148614ea75abcea00dadac731bce89091b1bd",
+    "B04_VALIDATOR_PIN.json": "8e2a5fd2c53dbed0497ba2c7065c9aa49df2dd38c665f7c7165535eb0a787697",
+    "SOURCE_PRESERVATION.json": "f51e428a1e296f91bd4dfde6027b7a04d7dc985563d5b306e15d17e52ca53c0c",
+    "SUPPLIED_HASHES.json": "1d11d59f8edeff14f4ed640ef1da2db13184cfb985dd7265137b06b7582a816e",
+    "HARNESS_BASELINE.json": "23a6fa5f33d115c00bc111d5f0f8f10c6d8f8a5380606280a3f4b9ed42b5acc5",
+    "FINAL_PROOFS.json": "358f8f40488a29ce6ee6495501aa6712e121aec71c5fc9648aaa948bad75c745",
+    "STORAGE.json": "8ed5f8260b03bb7aa1b676105bc24d51c7deccc5601dae3334a3ad5bec026eb1",
+    "proofs/audit/INFERENCE_COMPONENTS.json": "5ea5c38a1a01acdb54c6c8c128d4a4a466b1fafc2f6e7f3ebc46581e867c13a1",
+    "proofs/audit/B04_COMPONENTS.json": "f967992db826faede0fb87e9f30c7ab5b04939202bd3d3e1ec440a8297692674"
   }
 }

@@ -214,8 +214,8 @@ class Mix(unittest.TestCase):
         self.assertFalse(cfg['h1']['faithful_own_camera_rows'])
         expected=load(Path(load(ROOT/'out/FIX10_VARIANT.json')['snapshot'])/'out/config.json')['h1']['routing_pose_targets']
         self.assertIs(cfg['h1']['routing_pose_targets'],expected)
-        self.assertEqual(cfg['h1']['stop_after_step'],200);self.assertEqual(cfg['recipe']['steps'],1000)
-        self.assertEqual(cfg['recipe']['milestones'],[100,200]);self.assertEqual(cfg['checkpoint_disk_guard'],plan(cfg['recipe'],200000000000))
+        self.assertEqual(cfg['h1']['stop_after_step'],600);self.assertEqual(cfg['recipe']['steps'],1000)
+        self.assertEqual(cfg['recipe']['milestones'],[400,600]);self.assertEqual(cfg['checkpoint_disk_guard'],plan(cfg['recipe'],200000000000))
         self.assertEqual(cfg['scheduled_sampling'],load(ROOT/'work/reference/configs/d0.json')['scheduled_sampling'])
         self.assertEqual(run.identity(cfg),load(ROOT/'out/BINDING.json')['config_identity'])
         c=copy.deepcopy(cfg);c['type_mix']['size_selector']={'field':'pool','equals':'different'}
@@ -387,11 +387,12 @@ class Proof(unittest.TestCase):
                 stack.enter_context(patch.object(p,'program',return_value='fixture'))
                 stack.enter_context(patch.object(p,'command',side_effect=lambda bw,kh,w,rs:['--bind',str(w/'tmp'),'/tmp','--bind',str(kh/'o'),str(kh/'o')]))
                 stack.enter_context(patch.object(p,'execute',side_effect=execute))
+                stack.enter_context(patch.object(p,'resume_fixture',return_value={'status':'PASS','fixture':True}))
                 paths=stack.enter_context(patch.object(p,'temporary_paths',wraps=p.temporary_paths))
                 self.assertEqual(p.main(authority),0)
                 paths.assert_called_once()
             receipt=load(kh/'o/12345.proof.json')
-            required={'disk_plan','routing_selection','empty_root','temporary_paths','runtime_binaries','directory_modes','loader_audit','required_families'}
+            required={'resume_pointer','disk_plan','routing_selection','empty_root','temporary_paths','runtime_binaries','directory_modes','loader_audit','required_families'}
             self.assertEqual(set(receipt['checks']),required)
             self.assertEqual({v['status'] for v in receipt['checks'].values()},{'PASS'})
             self.assertEqual(receipt['status'],'PASS');self.assertFalse(receipt['production_authorized'])
@@ -410,6 +411,7 @@ class Proof(unittest.TestCase):
         code=script.split("<<'P'\n",1)[1].split('\nP\n',1)[0]
         root=temp();write(root/'go.json',{'production_go_granted':False});write(root/'ids.json',{'identity':'fixture'})
         argv=shlex.split(line.split(' "$KH"',1)[0])+[str(root),str(root)]
+        argv[argv.index('python3')]=sys.executable
         for optimize in ('1','2'):
             env=dict(os.environ,PYTHONOPTIMIZE=optimize)
             result=subprocess.run(argv,input=code,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,env=env)
@@ -701,5 +703,7 @@ from test_fix8 import Fix8
 from test_fix9 import Fix9
 from test_fix10 import Fix10
 from test_fix11 import Fix11
+from test_fix12 import Fix12
+from test_cont1 import Continuation
 
 if __name__=='__main__':unittest.main(verbosity=2)

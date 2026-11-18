@@ -2,6 +2,7 @@
 import argparse,hashlib,io,json,os,tarfile
 from pathlib import Path
 from rebind import ROOT,H,AS,enc,sha,load,write
+from canary_gate import add_canary
 
 def main():
     p=argparse.ArgumentParser();p.add_argument('--out',type=Path,default=ROOT/'out');a=p.parse_args()
@@ -14,6 +15,8 @@ def main():
         H/'payload/v.py':'v.py',H/'build/fx/k/0.json':'b0.json',
         out/'proof/selection/r.json':'proof/selection/r.json',out/'proof/selection/q.json':'proof/selection/q.json',
         out/'proof'/('p_'+run+'.sh'):'p_'+run+'.sh'}
+    if binding.get('continuation'):
+        mapping.update({ROOT/'tools/continuation.py':'c0.py',out/'a0.json':'a0.json'})
     if binding.get('unit_binding'):
         mapping.update({out/'units'/n:n for n in ('u.gz','i.json','m.json','u.json')})
     record_paths=[out/'records'/n for n in binding['record_files']]
@@ -26,7 +29,8 @@ def main():
     (package/'s.json').write_bytes((out/'proof/selection/r.json').read_bytes())
     wrapper=(H/'payload/jb.sh').read_text().replace('17c4ffa4',run).replace('x_3fdda0fb','x_'+token).replace('/r/39504485','/r/'+run)
     wrapper=wrapper.replace('i_1be16f28','i_'+token).replace('x_07ca49df/k/0.json','i_'+token+'/b0.json')
-    milestones=['m100','m200','mstop','mstopB','mstopC']
+    milestones=['m'+str(n) for n in load(out/'config.json')['recipe']['milestones']]+['mstop','mstopB','mstopC']
+    if binding.get('continuation'):wrapper=wrapper.replace('13:00:00','24:00:00').replace('46800','86400')
     previous='["m1", "m50", "m100", "m200", "m400", "m600", "m800", "m1000", "mstop", "mstopB", "mstopC"]'
     if wrapper.count(previous)!=1:raise ValueError('Inherited export preflight differs')
     wrapper=wrapper.replace(previous,json.dumps(milestones))
@@ -43,7 +47,12 @@ def main():
     submit=submit.replace(needle,needle+"\nfor name in ('disk_plan','routing_selection','empty_root','temporary_paths','runtime_binaries','directory_modes','loader_audit','required_families'):\n assert proof.get('checks',{}).get(name,{}).get('status')=='PASS', name")
     if submit.count('python3 -B - ')!=1:raise ValueError('Inherited submit gate invocation differs')
     submit=submit.replace('python3 -B - ', 'env -u PYTHONOPTIMIZE python3 -I -B - ')
-    (package/'s.sh').write_text(submit)
+    if binding.get('continuation'):
+        submit=submit.replace('13:00:00','24:00:00')
+        submit=submit.replace("job=os.environ.get('PROOF_JOB','')", "assert go.get('canary') is not True\njob=os.environ.get('PROOF_JOB','')")
+        submit=submit.replace("sys.path.insert(0,str(k/'b'));import a;a.main(k)","assert proof.get('checks',{}).get('resume_pointer',{}).get('status')=='PASS'\nsys.path.insert(0,str(k/'b'));import a;a.main(k)")
+        (package/'s.sh').write_text(submit)
+    else:(package/'s.sh').write_text(add_canary(submit))
     # No GO, review, staging, archive attestation or content certificate is manufactured.
     names=sorted(set(mapping.values())|{p.name for p in record_paths}|{'s.json','jb.sh','e.txt','ids.json','s.sh'})
     (package/'sums.txt').write_text(''.join(sha(package/n)+'  '+n+'\n' for n in names))

@@ -14,7 +14,15 @@ class DerivationEvidence(unittest.TestCase):
     def setUpClass(cls):
         cls.root=Path(tempfile.mkdtemp(prefix='pre_submit_',dir=ROOT/'work'))
         cls.bundle=ROOT/'out/operator';cls.source=cls.root/'source'
-        shutil.copytree(DRIVER/'fixture_h',cls.source)
+        previous=load(ROOT/'out/proof/PRE_SUBMISSION.json') if (ROOT/'out/proof/PRE_SUBMISSION.json').exists() else {}
+        prior=Path(previous.get('fixture','/nonexistent'))/'source'
+        def clone(src,dst):
+            donor=prior/Path(src).relative_to(DRIVER/'fixture_h')
+            if (Path(src).stat().st_size>1_000_000 and donor.is_file()
+                    and donor.resolve().is_relative_to(ROOT/'work') and sha(Path(src))==sha(donor)):
+                os.link(donor,dst);return dst
+            return shutil.copy2(src,dst)
+        shutil.copytree(DRIVER/'fixture_h',cls.source,copy_function=clone)
         # Only the absent data archives become sentinels; runtime bytes retain
         # their production pins. This fixture cannot attest native data.
         manifest=dict(reversed(line.split('  ',1)) for line in (cls.source/'SHA256SUMS.txt').read_text().splitlines())
@@ -61,10 +69,20 @@ class DerivationEvidence(unittest.TestCase):
     def derive(self,name,evidence=None):
         # A profile guard fails on entry to allocation-only code, without
         # replacing any verifier or persistent-writer function.
-        runner="""import os,runpy,sys
+        runner="""import hashlib,os,runpy,sys
 from pathlib import Path
 assert 'SLURM_JOB_ID' not in os.environ
 allowed=Path(sys.argv[1]).resolve()
+# Large, immutable source bytes share storage within this test fixture only.
+# The production derive code still authenticates and emits their exact bytes.
+cache={hashlib.sha256(p.read_bytes()).hexdigest():p for p in (allowed/'source').rglob('*')
+       if p.is_file() and not p.is_symlink() and p.stat().st_size>1_000_000}
+native_write=Path.write_bytes
+def fixture_write(path,raw):
+    donor=cache.get(hashlib.sha256(raw).hexdigest()) if len(raw)>1_000_000 else None
+    if donor and not path.exists():os.link(donor,path);return len(raw)
+    return native_write(path,raw)
+Path.write_bytes=fixture_write
 def audit(event,args):
     if event=='open':
         path,mode,flags=args

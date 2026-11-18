@@ -1,0 +1,5 @@
+# STATUS lane pooled_rule (Devin Fable xhigh, trinity-1-3) — started 2026-11-18T02:19Z, limit 04:19Z
+- Step 1 DONE 02:50Z: read rules, card section 4, decision 2.2, rulings, card_fix a3 method; located all eight reads; `work/pr_data.py` built `work/PAIRS.npz` + `PAIRS_META.json` (dev-S1 1,050 items / 72 rooms, R0-dev 1,781 / 98 rooms, keys and metadata equal across the four arms, same prediction gives same score on 2,341 + 3,084 pairs).
+- Step 2 RUNNING: double bootstrap `work/pr_sim.py` (pooled rule variants + dev-S1 rule on the same pseudo-reads).
+- Owed: observed reads under the rule, validity checks, registration text, design record + INDEX line, evidence tgz, mirror, RESULT event.
+- Note: the rm_guard hook queued one of my commands in /home/jjyeung/agent_project/agent/PENDING_USER_COMMANDS.md as "unparsable" (two heredocs writing STATUS.md and work/pr_sim.py, then a 6-draw timing run; it deletes nothing). Do NOT run it: it would overwrite STATUS.md with an old version. The files were written with the file tool instead.

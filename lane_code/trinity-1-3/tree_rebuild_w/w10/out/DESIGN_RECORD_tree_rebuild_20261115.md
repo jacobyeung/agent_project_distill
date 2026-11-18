@@ -120,3 +120,9 @@ The supplied lane stop proof is authenticated against unchanged exercised source
 ## Build 9fix
 
 The review artifact binds semantic response authentication, Unicode status matching, exact per-kit mix bytes, repaired-row extent receipts and the production division removal list. GO remains false. The full-store division proof and the exact original acceptance-count criteria remain unresolved. Source seal: `64a2ea92cc8eae041d2c763c3868f77b3ebbb26f42c258d5019b67a894b1e68a` (`out/TREE_SEAL.json`). See `out/BUILD9FIX_REPORT.md` for final suites, coverage, kit hashes, limitations and confirmation-review checks.
+
+## Build 10
+
+The candidate registers depth and heading readouts, binds their buffers and source manifests, and refuses incomplete calls without truncation. It remains GO=false: bound-row raw inputs are missing, the migration is partial, and b04 refuses its sealed validator. The observed A2 pass is not acceptance.
+
+Tree seal: `b092aa5ed62d14441d21378d25fe25a2289f2345d9b29f11933b8ffcc1f5b068` (`out/TREE_SEAL.json`). Archive SHA256: `24aa082166f0e1e2b71a38a39a590f6666a806706f970c7b0f5e250b7fb9510f` (`work/build10/DELIVERY.json`). Full results, limitations, parity counts, clause tables and review changes: `out/BUILD10_REPORT.md`.

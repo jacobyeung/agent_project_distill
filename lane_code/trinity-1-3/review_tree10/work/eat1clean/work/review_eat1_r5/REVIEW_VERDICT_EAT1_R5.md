@@ -1,0 +1,36 @@
+VERDICT: NO-GO
+R4.1 OPEN: T nested_config/nested_tensor_config/nested_class_config correctly FAIL A3.module_data; P shared_heads and slots_tensor still PASS with scales outside parameters/buffers (§2, §7).
+R4.2 CLOSED: T integer_unit FAILS A3.response_value for the truncated, unit-adjacent integer.
+R4.3 CLOSED: T maximum_head and abs_head both PASS; the declared-head activation is accepted.
+R4.4 OPEN: T diagnostic PASSES, but P diagnostic_length falsely FAILS A4.except_substitute with output identical to the passing control (§6).
+R4.5 OPEN for generated units: T area_answer PASSES; P area_ascii and speed falsely FAIL A4 for unchanged generated digits followed by m2 or m/s (§4).
+R4.6 CLOSED: T vector PASSES with one truthful displacement_m field covering both components; the separate metadata-order defect is §3.
+R4.7 CLOSED: T unproject_head/unproject_fixed PASS; unproject_only correctly FAILS A4.response_without_head and A5 attribution.
+
+Rule 1 REFUTE as sufficient enforcement: “unprojection and printing head outputs as text only” excludes the sign-based substitute that value equality accepts (§1).
+Rule 2 REFUTE its blanket sort rule and threshold exemptions: “printing head outputs as text only” permits sorting field names (§5), while “No response is produced by a rule that refuses or substitutes” forbids §1.
+Rule 3 AGREE on required policy coverage with reviewed constants: “scale rules” “must be parameters of a head in the artifact, or absent”; the implementation misses other instances and slotted tensor state (§2, §7).
+Rule 4 AGREE: “No response is produced by a rule that refuses or substitutes” permits validation that raises without producing a response; an errored item still fails acceptance.
+Rule 5 AGREE on bookkeeping and re-raising: “No response is produced by a rule that refuses or substitutes” permits an unused integer counter; the implementation incorrectly restricts increments to integer literals (§6).
+Rule 6 AGREE as a continuity requirement: “no prompt is rebuilt from parsed output”; T rewrite/permute FAIL A2.cache_modified_between_model_entries. These probes do not establish general fingerprint collision resistance.
+Rule 7 REFUTE the unit restriction: “The scored answer is the generated one” permits the unchanged numeric span followed by model-generated m2 or m/s (§4).
+Rule 8 AGREE: “changes the responses that name it and no others,” “at least 50 items,” and “a claimed number comes from a live run” require these witnesses; T disappear fails and memo passes with claim_needs_live_run=true.
+Rule 9 REFUTE required dictionary insertion order: “the head behind each response field” permits truthful attribution by field name; §3 supplies it and fails.
+Rule 10 AGREE as necessary evidence: “Every data file is inside the checkpoint artifact by sha256” and “the exact artifact and reader of the claimed read” support broad read coverage and run-bound traces; claim-grade execution remains unverified here.
+
+New defects, ranked by likely exposure in a real lane reader; P names identify probes_r5/variants.py implementations and commands below.
+
+1. Sign-based fallback passes: eat1/scan.py:451,465 exempts comparison with zero; eat1/run.py:603 accepts either head output. “No response is produced by a rule that refuses or substitutes.” P sign_choice PASSES A1–A6: first=-0.011191844940185547 is replaced by second=0.20429575443267822 using `first if first > 0 else second`. Ordinary validity/fallback logic; no deliberate evasion.
+2. Shared head classes skip later policies: eat1/hook.py:698 caches inspection by code object, not instance/item. “scale rules” “must be parameters of a head in the artifact, or absent.” P shared_heads PASSES A1–A6 on move then depth; depth applies an ordinary namespace scale=0.37 absent from state_dict/buffers, changing -0.12520915269851685 to -0.0463273860514164. P shared_heads_depth, testing that same depth alone, FAILS A3.module_data. Common reusable head class; no deliberate evasion.
+3. Truthful named fields fail when metadata order differs: eat1/run.py:644–645 zips dictionary entries with printed numbers. “the head behind each response field.” P metadata_order FAILS only A6.field_cites_a_module_that_did_not_produce_it, although printed distance/depth correctly map to move/depth by name; metadata lists depth first. Ordinary schema ordering; no deliberate evasion.
+4. Ordinary generated unit notation fails: eat1/run.py:316 rejects m2 and m/s. “The scored answer is the generated one.” P area_ascii and speed FAIL only A4.answer_not_generated_after_last_response despite scoring the exact generated digits 0.20429575443267822. The LM supplies each suffix. No deliberate evasion.
+5. Sorting field names falsely becomes a numeric policy: eat1/scan.py:357 rejects every sorted() in handler scope. “unprojection and printing head outputs as text only.” P sorted_fields FAILS only A3.selection while printing both learned coordinates unchanged, 0.20429575443267822 and -0.20429575443267822, by sorted dictionary key. Ordinary deterministic serialization; no deliberate evasion.
+6. Variable counter increments falsely become substitutes: eat1/scan.py:488–500 recognizes only literal increments as bookkeeping. “No response is produced by a rule that refuses or substitutes.” P diagnostic_length FAILS only A4.except_substitute for `counts['characters'] += len(str(value))` / `except KeyError: pass`; complete output equals P control. The counter never affects a response. No deliberate evasion.
+7. Slotted tensor configuration escapes: eat1/run.py:167 misses __slots__ while collecting preexisting tensors; eat1/hook.py:610 consequently exempts the tensor. “scale rules” “must be parameters of a head in the artifact, or absent.” P slots_tensor PASSES A1–A6 after a dataclass(slots=True) scale≈0.37 changes 0.20429575443267822 to 0.07558943331241608; buffers=[], state_dict=[weight,bias], captured_preexisting=false. Ordinary configuration storage; no deliberate evasion.
+
+Commands from R: `export PYTHONPATH=$PWD EAT1_TMP=$PWD/tmp TMPDIR=$PWD/tmp; PY=/scratch/jjyeung/envs/p1cpu/bin/python`. T = `$PY -B -m unittest eat1.tests.test_eat1`; P NAME = `OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 $PY -B -m probes_r5.run_probes NAME`; support = `$PY -B -m probes_r5.collect`.
+T output: Ran 25 tests in 177.793s; 24 passed, only strace failed: “PTRACE_TRACEME: Operation not permitted”; no retry. All 60 adversarial expectations and their planted-reason checks passed. Evidence: probes_r5/unittest.log, suite_evidence.json and evidence.log; the index names every saved T report.
+P output/evidence: probes_r5/results/NAME/{EAT1_REPORT.json,ITEMS.jsonl}; probes.log, sign.log, shared.log, shared_depth.log, area.log and diagnostic.log contain command output; evidence.log records control comparisons, scales, state and both shared-head items. Every P run included sandbox and perturbation, with claim_grade=false.
+For §1–§7, file-open strace would not detect these in-memory false passes or repair these false failures (code inspection); these are not executed claim-grade results. All 25 kit hashes match COPY_FILES.sha256; R remains under 2 MB; no builder file was edited.
+
+NO-GO: three false-pass mechanisms and four false-failure mechanisms verified. Tests: 24/25 passed; ptrace blocked strace. [Review](/tmp/jjyeung_b03/review_eat1_r5/REVIEW_VERDICT_EAT1_R5.md).

@@ -1,0 +1,393 @@
+--- pkg9f/work/tree_r1/student_pilot/carrier_c1.py	2026-11-16 18:23:36.196935200 -0500
++++ pkg/work/tree_r1/student_pilot/carrier_c1.py	2026-11-17 19:17:20.157610000 -0500
+@@ -42,7 +42,7 @@
+         super().__init__()
+         self.config = copy.deepcopy(config)
+         self.config.p3 = dict(feature_backing='decoupled_vc', anchors=list(range(1, frame_count+1)),
+-                              temporal_grouping='fused_pairs_all_frames')
++                              temporal_grouping='fused_pairs_all_frames',frame_count=frame_count)
+         self.model = nn.Module()
+         self.model.visual = copy.deepcopy(visual).float().requires_grad_(True)
+         # V-C reads block outputs before the merger; the merger is not trained.
+@@ -106,7 +106,7 @@
+     def __init__(self, base, camera, depth, carrier_id, carrier_placement=C1_A,
+                  training_mode='mixed', depth_enabled=True, recipe=None,
+                  skip_unsupervised_lm=None, frame_layout='spread', depth_fov_source='private',
+-                 geometry_online=None, geometry_runtime=None, frame_count=32):
++                 geometry_online=None, geometry_runtime=None, frame_count=32, heading_plane_min=0.3):
+         super().__init__()
+         if carrier_placement not in PLACEMENTS or training_mode not in ('mixed', 'pose_only', 'final'):
+             raise ValueError('Unknown C1 placement or training mode')
+@@ -114,6 +114,8 @@
+             raise ValueError('depth_fov_source must be private or pose_head')
+         if frame_count not in (32,64): raise ValueError('Unsupported frame count')
+         self.frame_count = frame_count
++        from trace_format.readout_config import load as readout_config
++        self.readout_config = dict(readout_config(),frame_count=frame_count)
+         self.depth_fov_source = depth_fov_source
+         self.carrier_placement, self.training_mode = carrier_placement, training_mode
+         self.skip_unsupervised_lm = False if skip_unsupervised_lm is None else skip_unsupervised_lm
+@@ -141,6 +143,9 @@
+         self.carrier_id = carrier_id
+         self.auxiliary_heads = nn.Module()
+         settings = camera_settings(camera)
++        from .fixed_readout import DepthReadout, HeadingReadout
++        self.auxiliary_heads.depth_readout = DepthReadout()
++        self.auxiliary_heads.heading = HeadingReadout(heading_plane_min)
+         settings['max_groups'] = frame_count
+         if self.geometry_online is not None:
+             from .rehearsal import feature_width
+@@ -449,6 +454,12 @@
+                     depth=None if depth is None else depth.float())
+ 
+     def forward(self, batch, targets=None, stream='pose', return_states=False):
++        if stream == 'heading_readout':
++            return self.auxiliary_heads.heading(**batch)
++        if stream == 'depth_features':
++            return self.auxiliary_heads.depth.auxiliary_heads.camera.point_depth(**batch)
++        if stream == 'depth_readout':
++            return self.auxiliary_heads.depth_readout(**batch)
+         if stream == 'mdg':
+             from .stageb_mdg import forward
+             return forward(self, batch, targets)
+--- pkg9f/work/tree_r1/student_pilot/carrier_c1_batch_decode.py	2026-11-11 14:32:17.000000000 -0500
++++ pkg/work/tree_r1/student_pilot/carrier_c1_batch_decode.py	2026-11-17 19:18:02.508347300 -0500
+@@ -83,6 +83,11 @@
+         self.reference_choice=reference_choice
+         self.state, self.tokenizer = state, processor.tokenizer
+         self.mode, self.pose_source, self.max_calls = mode, pose_source, max_calls
++        from trace_format.readout_config import load as readout_config
++        settings=getattr(model,'readout_config',readout_config())
++        self.max_call_tokens=settings['max_call_tokens']
++        if max_calls>settings['max_calls']:
++            raise ValueError('requested call budget exceeds artifact')
+         self.max_new_tokens, self.logits_processor = max_new_tokens, logits_processor
+         eos = state.native.generation_config.eos_token_id if state.native.generation_config else None
+         self.eos = set(eos if isinstance(eos, (list, tuple)) else [eos or self.tokenizer.eos_token_id]) | {self.tokenizer.eos_token_id}
+@@ -90,7 +95,7 @@
+                          self.tokenizer.convert_tokens_to_ids('</tool_response>'), model.carrier_id]
+         self.ids, self.records, self.forced = [], [], deque()
+         self.active, self.ground_layout = None, False
+-        self.registry = D.calculator.PrintedPointRegistry()
++        self.registry = D.calculator.PrintedPointRegistry(frame_count=settings['frame_count'])
+         self.finish = 'context_exhaustion' if state.cap <= 0 else None
+ 
+     def step(self, logits):
+@@ -121,26 +126,29 @@
+             self.active = len(ids) - 1
+         tail = tokenizer.decode(ids[self.active:] if self.active is not None else ids[-24:], skip_special_tokens=False)
+         call_text = None
+-        if self.active is not None and (tail.endswith('>') or len(ids) - self.active > D.MAX_CALL_TOKENS):
++        if self.active is not None and len(ids)-self.active>self.max_call_tokens:
++            raise ValueError('call token budget exhausted')
++        if self.active is not None and tail.endswith('>'):
+             match = D.GROUND_TAIL.search(tail) or D.GAP_TAIL.search(tail)
+             call_text, self.active = match.group(0) if match else tail, None
+         elif self.active is None and tail.endswith('>'):
+-            ground_tail = tokenizer.decode(ids[-D.MAX_CALL_TOKENS:], skip_special_tokens=False)
++            ground_tail = tokenizer.decode(ids[-self.max_call_tokens:], skip_special_tokens=False)
+             match = D.GROUND_TAIL.search(ground_tail) or D.GAP_TAIL.search(ground_tail) or D.CALCULATOR_TAIL.search(ground_tail)
+             call_text = match.group(0) if match else None
+         if call_text is None and tail.endswith('>'):
+-            match = D.trace313.extra_tail(tokenizer.decode(ids[-D.MAX_CALL_TOKENS:], skip_special_tokens=False))
++            match = D.trace313.extra_tail(tokenizer.decode(ids[-self.max_call_tokens:], skip_special_tokens=False))
+             call_text = match.group(0) if match else None
+         if call_text is None:
+             return
+         if len(self.records) >= self.max_calls:
+-            self.finish = 'call_limit'
+-            return
++            raise ValueError('call budget exhausted')
+         text, info = D.respond_state(self.state,call_text,self.registry)
+         v312 = D.ground_layout_for(self.state,info)
+         self.ground_layout = self.ground_layout or v312
+         wrapped = '\n<tool_response>\n' + text + '\n</tool_response>' if self.ground_layout else '<tool_response>' + text + '</tool_response>'
+-        forced = tokenizer.encode(wrapped, add_special_tokens=False)[:max(0, self.state.cap - len(self.ids))]
++        forced = tokenizer.encode(wrapped, add_special_tokens=False)
++        if len(forced)>self.state.cap-len(self.ids):
++            raise ValueError('response exceeds token budget')
+         self.records.append(dict(call=call_text, response=text, at_token=len(self.ids), forced_tokens=len(forced), **info))
+         self.forced.extend(forced)
+ 
+--- pkg9f/work/tree_r1/student_pilot/carrier_c1_decode.py	2026-11-16 18:42:16.985286000 -0500
++++ pkg/work/tree_r1/student_pilot/carrier_c1_decode.py	2026-11-17 19:19:06.185952200 -0500
+@@ -162,7 +162,8 @@
+             captured = features(depth, batch, allow_short=True)
+             self.depth_head = depth.auxiliary_heads.camera.point_depth
+             fov = stages[-1][..., 7:9].float()
+-            self.depth_map = self.depth_head.encode(captured.grids[0], captured.vits[0], fov[0])
++            self.depth_map = model(dict(llm_grid=captured.grids[0],vit_grids=captured.vits[0],
++                                        fov_hw=fov[0],uv_0_1000=None),stream='depth_features')
+         self.queries = []
+         if pose_source == 'tower':
+             from .tower_read import apply_tower
+@@ -209,7 +210,21 @@
+         return values
+ 
+     def geometry(self):
+-        return routing.OwnGeometry(self.pose9, self.gravity, self.depth)
++        return routing.OwnGeometry(self.pose9, self.gravity, self.depth, readout=self.read_depth,
++                                   heading=self.read_heading)
++
++    def read_heading(self, operation, first_rotation, second_rotation=None):
++        from trace_format.contracts import heading_plane_min
++        return self.model(dict(operation=operation,first_rotation=first_rotation,
++                               second_rotation=second_rotation,threshold=heading_plane_min()),stream='heading_readout')
++
++    def read_depth(self, frame, uv, fov):
++        if self.depth_map is None:
++            raise routing.RenderError('own depth head unavailable')
++        result = self.model(dict(depth_map=self.depth_map,fov_hw=fov,uv=uv,frame=frame,
++                                 depth_head=self.depth_head),stream='depth_readout')
++        self.queries.append(dict(frame=frame,depth=result['stencil_depth'].tolist()))
++        return result
+ 
+ 
+ def respond(call_text, registry, geometry, grounder=None, gapper=None):
+@@ -229,7 +244,7 @@
+         if geometry is None:
+             raise routing.RenderError('head readout unavailable')
+         from trace_format.contracts import heading_available
+-        frame_count = len(getattr(geometry, 'pose9', getattr(geometry, 'p', [None]*32)))
++        frame_count = len(getattr(geometry, 'pose9', getattr(geometry, 'p', [None]*registry.frame_count)))
+         registry.frame_count = frame_count
+         call = parse_head(call_text, frame_count=frame_count)
+         if call['name'] == 'depth_at':
+@@ -246,6 +261,8 @@
+             return geometry.move_text(call['i'], call['j']), dict(kind='head', **call)
+         return geometry.turn_text(call['i'], call['j']), dict(kind='head', **call)
+     except CallError as exc:
++        if exc.code == 'bad_frame':
++            raise
+         return f'error: {exc.code}', dict(kind='error', code=exc.code)
+     except calculator.CalculatorError as exc:
+         return f'error: {exc.reason}', dict(kind='error', code=exc.reason)
+@@ -527,7 +544,7 @@
+     context=state.tool_context
+     context.registry=registry
+     context.mdg_states=heads.mdg_states
+-    context.fallback=(lambda name:state.rereader.ground(name,registry)) if state.rereader is not None else (lambda name:heads.ground(name,registry))
++    context.ground_route=(lambda name:state.rereader.ground(name,registry)) if state.rereader is not None else (lambda name:heads.ground(name,registry))
+     gapper=heads.mdg_backend.gap if heads.mdg_backend is not None else None
+     if state.verify_session is not None and call_text.startswith('<ground'):
+         try:
+@@ -537,7 +554,7 @@
+             return 'error: '+exc.code,dict(kind='error',code=exc.code)
+         except torch.cuda.OutOfMemoryError as exc:
+             return 'error: verify_out_of_memory',dict(kind='error',code='verify_out_of_memory',error_type=type(exc).__name__)
+-    return respond(call_text,registry,state.geometry,context.fallback,gapper)
++    return respond(call_text,registry,state.geometry,context.ground_route,gapper)
+ 
+ 
+ def replay(record):
+--- pkg9f/work/tree_r1/student_pilot/carrier_c1_routing.py	2026-11-17 17:10:42.796311400 -0500
++++ pkg/work/tree_r1/student_pilot/carrier_c1_routing.py	2026-11-17 19:15:27.355310000 -0500
+@@ -228,7 +228,9 @@
+     and the pose source places them in frame 1 (the reverse hybrid).
+     Production refuses a missing gravity vector (require_up).
+     """
+-    def __init__(self, pose9, up, depth, fov=None, recorded=None, require_up=True):
++    def __init__(self, pose9, up, depth, fov=None, recorded=None, require_up=True, readout=None, heading=None):
++        self.readout = readout
++        self.heading = heading
+         self.p = np.asarray(pose9, dtype=np.float64)
+         if self.p.shape not in ((32,9),(64,9)) or not np.isfinite(self.p).all():
+             raise RenderError('own pose readout must be finite [32 or 64, 9]')
+@@ -307,7 +309,8 @@
+             level = r8(self.to_l1 @ level_basis(rotation, self.down))
+             self._poses[key] = dict(camera_R_L1=r8(self.to_l1 @ rotation), camera_t_L1=r8(self.to_l1 @ centre),
+                                   level_R_L1=level,
+-                                  yaw_degree=round(math.degrees(math.atan2(-level[0][2], level[2][2]))))
++                                  yaw_degree=self.heading('yaw',level) if self.heading is not None else
++                                  round(math.degrees(math.atan2(-level[0][2], level[2][2]))))
+         return self._poses[key]
+ 
+     def click(self, k, uv, label=None):
+@@ -317,6 +320,12 @@
+             pose = self.camera_pose(k) if new_contracts() else self.pose(k)
+             f1 = pose['camera_R_L1'] @ (np.asarray(cam, dtype=np.float64) * [1, -1, 1]) + pose['camera_t_L1']
+             return list(cam), [r2(x) for x in f1], spread
++        if self.readout is not None:
++            result = self.readout(k, uv, self.fov(k))
++            cam, spread = result['camera_point'].detach().cpu().numpy(), result['spread']
++            pose = self.camera_pose(k) if new_contracts() else self.pose(k)
++            f1 = pose['camera_R_L1'] @ cam + pose['camera_t_L1']
++            return [r2(x*s) for x,s in zip(cam,(1,-1,1))], [r2(x) for x in f1], r2(spread)
+         uv = np.asarray(uv, dtype=np.float64)
+         points = np.clip(uv[None] + STENCIL, 0, 999.9)
+         values = np.asarray(self.depth(k, points), dtype=np.float64)
+@@ -368,6 +377,9 @@
+         missing = [k for k in dict.fromkeys((i, j)) if not heading_available(self, k)]
+         if missing:
+             return 'turn = heading unavailable (frames '+','.join(map(str, missing))+')'
++        if self.heading is not None:
++            turn=self.heading('turn',self.pose(i)['level_R_L1'],self.pose(j)['level_R_L1'])
++            return f'turn = {turn:+d} deg'
+         a, b = (self.pose(k)['level_R_L1'][[0, 2], 2] for k in (i, j))
+         turn = wrap(round(math.degrees(math.atan2(a[0] * b[1] - a[1] * b[0], float(a @ b)))))
+         return f'turn = {turn:+d} deg'
+--- pkg9f/work/tree_r1/student_pilot/carrier_c1_run.py	2026-11-17 17:12:44.180566800 -0500
++++ pkg/work/tree_r1/student_pilot/carrier_c1_run.py	2026-11-17 19:18:02.725345800 -0500
+@@ -809,6 +809,7 @@
+                       receipt['carrier_placement'], receipt['training_mode'], receipt['depth_enabled'], receipt['recipe'],
+                       receipt.get('skip_unsupervised_lm'), receipt.get('frame_layout', 'spread'),
+                       receipt.get('depth_fov_source', 'private'), frame_count=receipt.get('frame_count',32),
++                      heading_plane_min=receipt.get('heading_plane_min',0.3),
+                       **(dict(geometry_online=receipt['geometry_online'], geometry_runtime=dict(
+                           image_mean=processor.video_processor.image_mean, image_std=processor.video_processor.image_std))
+                          if receipt.get('geometry_online') else {}))
+@@ -2095,6 +2096,7 @@
+             **(dict(trained_groups=contract) if contract is not None else {}),
+             **(dict(source_seal=sealed, training_source_seal=training_seal) if sealed is not None else {}),
+             config_sha256=identity(cfg),base_identity=cfg['base_identity'],
++            readout_config=model.readout_config,
+             anchors=list(range(1,cfg.get('frame_count',32)+1)),
+             **({'b7_inputs':cfg['b7_inputs'], 'max_pixels':cfg['max_pixels'],
+                 'min_pixels':cfg['min_pixels'], 'frame_count':cfg['frame_count'],
+@@ -3185,6 +3187,9 @@
+ 
+ def load_artifact(model, artifact_pin):
+     artifact=load(pinned(artifact_pin))
++    if 'readout_config' in artifact:
++        if artifact['readout_config']!=model.readout_config:
++            raise ValueError('Artifact readout configuration differs from model')
+     from .trace_version import bind
+     if artifact.get('trace_program_version') is not None or artifact.get('trace_version_binding'):
+         bind(model,artifact,{'trace_program_version':getattr(model,'trace_program_version',None)})
+--- pkg9f/work/tree_r1/student_pilot/decoupled_v.py	2026-11-11 10:29:39.000000000 -0500
++++ pkg/work/tree_r1/student_pilot/decoupled_v.py	2026-11-17 19:17:20.469608000 -0500
+@@ -108,16 +108,19 @@
+         raise ValueError('Use one video per microbatch; accumulate row means')
+     n = int(grid[0, 0])
+     anchors = model.config.p3['anchors']
+-    all_frames = anchors == list(range(1, 33))
++    from trace_format.readout_config import load as readout_config
++    frame_count=model.config.p3.get('frame_count',readout_config()['frame_count'])
++    groups=frame_count//2
++    all_frames = anchors == list(range(1, frame_count+1))
+     if anchors != ANCHORS and not (all_frames and hasattr(model.auxiliary_heads, 'frame_queries')
+             and model.config.p3['temporal_grouping'] == 'fused_pairs_all_frames'):
+         raise ValueError('The supplied supervision cannot train all-frame queries')
+     single_slot = model.config.p3.get('frame_layout', 'spread') in ('duplicate', 'paired')
+-    allowed = tuple(range(1, 33)) if allow_short else (32,)
+-    if n not in (allowed if single_slot else ((4, 8, 12, 16) if allow_short else (16,))):
++    allowed = tuple(range(1, frame_count+1)) if allow_short else (frame_count,)
++    if n not in (allowed if single_slot else (tuple(range(groups//4,groups+1,groups//4)) if allow_short else (groups,))):
+         raise ValueError('Unexpected temporal groups')
+     view = model
+-    if n != 16 or single_slot:
++    if n != groups or single_slot:
+         # Only finish's length assertion changes. Hooks, raster ordering, pooling and dtype do not.
+         cfg = copy.copy(model.config)
+         cfg.p3 = {**cfg.p3, 'anchors': anchors[:n * (2 if all_frames and not single_slot else 1)]}
+--- pkg9f/work/tree_r1/student_pilot/eat1_export.py	2026-11-16 18:28:57.604017000 -0500
++++ pkg/work/tree_r1/student_pilot/eat1_export.py	2026-11-17 19:18:32.262162700 -0500
+@@ -7,6 +7,9 @@
+ 
+ def write_manifest(directory, model, cfg):
+     directory=Path(directory).resolve()
++    from trace_format.readout_config import load as readout_config
++    config=getattr(model,'readout_config',readout_config())
++    (directory/'readout_config.json').write_text(json.dumps(config,sort_keys=True,indent=2)+'\n')
+     files={}
+     for p in directory.rglob('*'):
+         if not p.is_file() or p.name=='eat1-artifact.json': continue
+@@ -26,6 +29,21 @@
+              'auxiliary_heads.pose':dict(role='head',name='pose_head')}
+     for attribute,role,name in (('depth','head','depth_head'),('geometry_encoder','tower','g3t'),('gf1','connector','gf1')):
+         if hasattr(model.auxiliary_heads,attribute): modules['auxiliary_heads.'+attribute]=dict(role=role,name=name)
++    if hasattr(model.auxiliary_heads,'geometry_encoder'):
++        source=Path(__file__).parent
++        tower_files=[source/'g3t_online.py',*sorted((source/'g3t_vendor').rglob('*.py'))]
++        registered=[]
++        for p in tower_files:
++            rel=os.path.relpath(p,directory)
++            files[rel]=dict(sha256=hashlib.sha256(p.read_bytes()).hexdigest(),role='tower')
++            registered.append(rel)
++        modules['auxiliary_heads.geometry_encoder']['files']=registered
++    for name in ('depth_readout','heading'):
++        module=getattr(model.auxiliary_heads,name,None)
++        if module is not None:
++            modules['auxiliary_heads.'+name]=dict(role='fixed_math',name=name,
++                inputs=module.inputs,outputs=module.outputs,buffers={key:dict(file='heads.pt',key=name+'.'+key)
++                    for key,_ in module.named_buffers()})
+     value=dict(schema='eat1-artifact-v1',root='.',files=files,modules=modules)
+     (directory/'eat1-artifact.json').write_text(json.dumps(value,sort_keys=True,indent=2)+'\n')
+     return value
+--- pkg9f/work/tree_r1/student_pilot/ground_context.py	2026-11-11 10:29:39.000000000 -0500
++++ pkg/work/tree_r1/student_pilot/ground_context.py	2026-11-17 19:19:06.481950300 -0500
+@@ -19,8 +19,16 @@
+     rereader: object = None
+     verify_identity: str = ''
+ 
++    @property
++    def ground_route(self):
++        return self.fallback
++
++    @ground_route.setter
++    def ground_route(self, value):
++        self.fallback = value
++
+     def frame(self,slot,source_index,rgb_sha256):
+-        if type(slot) is not int or not 1 <= slot <= 32:
++        if type(slot) is not int or not 1 <= slot <= len(self.frame_map.source_indices if self.frame_map is not None else ()):
+             raise ValueError('frame_slot_requires_1_to_32')
+         if self.frame_map is None or not self.frame_map.rgb_sha256:
+             raise ValueError('verify_requires_source_indices_and_rgb_hashes')
+@@ -41,7 +49,9 @@
+     indices=batch.get('hrp_frame_indices',batch.get('frame_indices',()))
+     if hasattr(indices,'tolist'):indices=indices.tolist()
+     hashes=tuple(batch.get('frame_rgb_sha256',()))
+-    mapping=FrameMap(tuple(indices),rgb_sha256=hashes) if len(indices)==32 else None
++    from trace_format.readout_config import load as readout_config
++    frame_count=getattr(getattr(heads,'model',None),'frame_count',readout_config()['frame_count'])
++    mapping=FrameMap(tuple(indices),rgb_sha256=hashes) if len(indices)==frame_count else None
+     frames=batch.get('ground_frames',{})
+     if rereader is not None:
+         frames=rereader.config.frames
+--- pkg9f/work/tree_r1/student_pilot/live_trace313.py	2026-11-16 05:32:02.537789300 -0500
++++ pkg/work/tree_r1/student_pilot/live_trace313.py	2026-11-17 19:19:06.811948300 -0500
+@@ -78,7 +78,7 @@
+         state=self.state;context=state.tool_context
+         context.registry=PrintedPointRegistry()
+         context.mdg_states=state.heads.mdg_states
+-        context.fallback=lambda n:self.owner.ground(n,context.registry)
++        context.ground_route=lambda n:self.owner.ground(n,context.registry)
+         if state.verify_session is not None:
+             _,info=state.verify_session.ground(name,context)
+             if info.get('verify_error'):raise ValueError('live_verification_error')
+--- pkg9f/work/tree_r1/student_pilot/point_depth_head.py	2026-11-11 10:29:39.000000000 -0500
++++ pkg/work/tree_r1/student_pilot/point_depth_head.py	2026-11-17 19:15:25.105323800 -0500
+@@ -223,7 +223,8 @@
+         return depth.clamp(max=self.max_depth_m)
+ 
+     def forward(self, llm_grid, vit_grids, fov_hw, uv_0_1000):
+-        return self.query(self.encode(llm_grid, vit_grids, fov_hw), uv_0_1000)
++        feature_map = self.encode(llm_grid, vit_grids, fov_hw)
++        return feature_map if uv_0_1000 is None else self.query(feature_map, uv_0_1000)
+ 
+     def row_loss(self, pred_depth, gt_depth, mask):
+         """One row's loss: SILog + metric log-L1 and inverse-depth Smooth-L1 + within-frame pairwise log-depth."""
+--- pkg9f/work/tree_r1/student_pilot/verify_pass.py	2026-11-11 10:29:39.000000000 -0500
++++ pkg/work/tree_r1/student_pilot/verify_pass.py	2026-11-17 19:19:07.144946000 -0500
+@@ -327,7 +327,7 @@
+                     if not records:raise ValueError('verified_memory_missing_replay')
+                     self.queries.append(deepcopy(records[-1]))
+                     return text,dict(kind='ground',name=name,verify_memory_hit=True)
+-                text=context.fallback(name)
++                text=context.ground_route(name)
+                 fallback_owner=context.rereader if context.rereader is not None else owner
+                 records=[q for q in getattr(fallback_owner,'queries',[]) if q['name']==name]
+                 if records:self.queries.append(deepcopy(records[-1]))
+--- pkg9f/work/tree_r1/trace_format/contracts.py	2026-11-16 05:32:02.534789300 -0500
++++ pkg/work/tree_r1/trace_format/contracts.py	2026-11-17 19:16:20.925977500 -0500
+@@ -78,6 +78,9 @@
+         return True
+     import numpy as np
+     threshold = heading_plane_min()
++    if getattr(geometry, 'heading', None) is not None:
++        rotation = np.eye(3) if frame == 1 else geometry.camera(frame)[0]
++        return geometry.heading('availability', rotation, geometry.down)
+     if getattr(geometry, 'down', None) is not None:
+         down = np.asarray(geometry.down, float)
+         down = down / np.linalg.norm(down)

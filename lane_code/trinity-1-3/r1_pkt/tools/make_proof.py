@@ -99,6 +99,18 @@ def main():
             + '"${BW[@]}" "$PILOT_VENV/bin/python" -B - "$X" <<P\\nfrom student_pilot.loader_audit import main\\nimport sys\\nmain(sys.argv[1])\\nP\\n')"""
     if text.count(before)!=1:raise ValueError('Parent mode-p boundary differs')
     text=text.replace(before,after)
+    if json.loads((out/'BINDING.json').read_text()).get('continuation'):
+        helper='''def resume_fixture(kh,work):
+    import importlib.util
+    spec=importlib.util.spec_from_file_location('c0',kh/'b/c0.py')
+    module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+    result,_,_=module.fixture(work/'c0',load(kh/'k/a0.json'),load(kh/'k/7.json'))
+    return result
+
+'''
+        text=text.replace('def main(authority):',helper+'def main(authority):')
+        text=text.replace('        result.update(outcome)',"        result.update(outcome)\n        result['checks']['resume_pointer']=resume_fixture(kh,work)")
+        text=text.replace("required={'disk_plan'","required={'resume_pointer','disk_plan'")
     source=out/'proof/p.py';source.write_text(text)
     binding=json.loads((out/'BINDING.json').read_text());identity=binding['config_identity']
     blob=base64.b64encode(zlib.compress(text.encode(),9)).decode();digest=hashlib.sha256(text.encode()).hexdigest()

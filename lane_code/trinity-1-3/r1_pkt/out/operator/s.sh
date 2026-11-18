@@ -10,8 +10,8 @@ private_dir() {
     }
 }
 private_dir "$O"
-BUN=/project/community/jjyeung/okh7/i_6f8ed106
-KH=/project/community/jjyeung/okh7/x_6f8ed106
+BUN=/project/community/jjyeung/okh7/i_7f1589c1
+KH=/project/community/jjyeung/okh7/x_7f1589c1
 private_dir "$BUN"
 private_dir "$KH"
 cd "$BUN"
@@ -23,6 +23,7 @@ from pathlib import Path
 k,b=map(Path,sys.argv[1:]);go=json.loads((b/'go.json').read_text());ids=json.loads((b/'ids.json').read_text())
 assert go.get('production_go_granted') is True and go.get('config_sha256')==ids['identity'] and go.get('admission_contract_sha256')==ids['contract'] and go.get('wrapper_sha256')==hashlib.sha256((b/'jb.sh').read_bytes()).hexdigest()
 assert go.get('manifest_sha256')==hashlib.sha256((k/'SHA256SUMS.txt').read_bytes()).hexdigest()
+assert go.get('canary') is not True
 job=os.environ.get('PROOF_JOB','')
 assert re.fullmatch('[1-9][0-9]*',job), 'PROOF_JOB must identify the completed CPU proof'
 proof=json.loads((k/'o'/(job+'.proof.json')).read_text())
@@ -37,6 +38,7 @@ assert proof.get('prepared_seals') and proof.get('real_job_reuse') is False
 for name in ('disk_plan','routing_selection','empty_root','temporary_paths','runtime_binaries','directory_modes','loader_audit','required_families'):
  assert proof.get('checks',{}).get(name,{}).get('status')=='PASS', name
 
+assert proof.get('checks',{}).get('resume_pointer',{}).get('status')=='PASS'
 sys.path.insert(0,str(k/'b'));import a;a.main(k)
 P
-TZ=UTC env -u TK_JOB_START sbatch -J a15_cot_ap78d0a06c -o /dev/null -e "$KH/o/%j.err"   -A mt01 -p advanced -N1 --ntasks=1 --gres=gpu:4 -c 48 --mem=800G -t 13:00:00 --signal=B:USR1@3600 --no-requeue "$BUN/jb.sh"
+TZ=UTC env -u TK_JOB_START sbatch -J a15_cot_ap05b8ac69 -o /dev/null -e "$KH/o/%j.err"   -A mt01 -p advanced -N1 --ntasks=1 --gres=gpu:4 -c 48 --mem=800G -t 24:00:00 --signal=B:USR1@3600 --no-requeue "$BUN/jb.sh"

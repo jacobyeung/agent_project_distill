@@ -1,183 +1,39 @@
-"""Write the review packet from current, identity-bound local evidence."""
-import hashlib,json,os,re,sys
-from pathlib import Path
+"""Write current evidence and its limits for the exact packet identity."""
+import json,re
 from rebind import ROOT,load,sha,write
-ORCHARD_SOURCE='/project/community/jjyeung/okh7/x_3fdda0fb'
-ORCHARD_SOURCE_MANIFEST='661ccd85b7a8f1afd25297869dc3a28539e64a3a0ab9a74ee928c0c5ab8a66c3'
 
 def main():
-    out=ROOT/'out';b=load(out/'BINDING.json');op=load(out/'OPERATOR.json')
-    cfg=load(out/'config.json');audit=load(out/'proof/loader_audit.json');census=load(out/'ADMISSION_BY_TYPE.json')
-    room=census['traced_room'];away=census['reworded_away'];table=audit['tables']['vqa']
-    first=load(out/'proof/FIRST_BATCH.json');off=load(out/'proof/OFF_IDENTITY.json');derivation=load(out/'proof/DERIVATION.json')
-    for v in (first,derivation):
-        if v['status']!='PASS' or v['config_identity']!=b['config_identity']:raise ValueError('Local proof is stale')
-    if audit['requested_config_identity']!=b['config_identity'] or off['candidate_tree_sha256']!=b['tree_sha256']:raise ValueError('Local evidence binding differs')
-    log=(out/'logs/tests.log').read_text()
-    if not log.rstrip().endswith('OK'):raise ValueError('Tests did not pass')
-    n=int(re.search(r'Ran (\d+) tests',log).group(1))
-    pre=load(out/'proof/PRE_SUBMISSION.json')
-    if (pre['status']!='PASS' or pre['config_identity']!=b['config_identity']
-            or pre['operator_archive_sha256']!=op['sha256']):raise ValueError('Pre-submission proof is stale')
-    gate=lambda status,scope:dict(status=status,scope=scope)
-    gates=dict(schema='r1-local-gates-v1',status='BUILT_BLOCKED',config_identity=b['config_identity'],production_authorized=False,
-        checks=dict(tests=gate('PASS',str(n)+' tests'),off_identity=gate('PASS',off['scope']),
-            first_batch=gate('PASS',first['scope']),deterministic_derivation=gate('PASS',derivation['scope']),
-            pre_submission_evidence=gate('PASS',pre['scope']+' READY without Slurm identity; allocation entry forbidden; wrong identities and record bindings refused.'),
-            admission_coverage=gate('PASS',str(census['vqa_rows'])+' VQA rows; every stored question type checked; '+str(census['vqa_admitted'])+' admitted; row predicates only'),
-            loader_audit=gate('LOCAL_VQA_ONLY','1000 steps, 128000 real-store VQA draws; other streams unavailable'),
-            room_selection_projection=gate('PASS','586 selected source rows removed; all non-room entries and ordered indices unchanged'),
-            native_selection_regeneration=gate('NOT_RUN','Complete source archives absent locally; 581 materialized rows remain unverified'),
-            production_preparation=gate('NOT_RUN','No Orchard call; local source kit lacks two inherited members'),
-            required_families=audit['required_families'],
-            outer_filename_scan=gate('PASS','Opaque operator archive member names'),
-            complete_privacy_scan=gate('NOT_RUN','Independent final deployment content scan and ANON_OK.json required'),
-            independent_review=gate('PENDING','Admission inputs and sampler code changed')))
-    prefix=load(out/'proof/ROUTING_PREFIX.json')
-    if prefix['status']!='PASS' or prefix['config_identity']!=b['config_identity'] or prefix['loader_sha256']!=sha(ROOT/'work/tree/student_pilot/loader_audit.py'):
-        raise ValueError('Routing prefix fixture evidence is stale')
-    gates['checks']['routing_prefix_fixtures']=prefix
-    gates['absent_on_P']=b['absent_on_P']
-    gates['checks']['traced_room']=dict(status='PASS' if room['eligible']==room['rows'] else 'FAIL',**room)
-    for key,name in [('unit_candidate','UNIT_REAL.json'),('opaque_printed_keys','OPAQUE_KEYS.json'),('namespace_probe_argv','NAMESPACE_ARGV.json')]:
-        evidence=load(out/'proof'/name)
-        if evidence['status']!='PASS' or evidence['config_identity']!=b['config_identity']:raise ValueError('Fix-8 evidence is stale: '+name)
-        gates['checks'][key]=evidence
-    write(out/'proof/GATES.json',gates)
-    write(out/'REVIEW_REQUEST.json',dict(status='REVIEW_REQUIRED',config_identity=b['config_identity'],tree_sha256=b['tree_sha256'],
-        operator_archive=op['archive'],operator_archive_sha256=op['sha256'],reviews_requested=1,
-        reason='Admission inputs change. Review family quotas, receipt binding, routing refusals, staging changes and CPU proof before any deployment approval.',
-        dispatch_result_event='Dispatching lane writes the RESULT event; this packet sends no external message.'))
-    unit_status=('Units are bound to a faithful file; eligible counts are '+json.dumps(b['unit_binding']['counts'],sort_keys=True)+'.' if b.get('unit_binding') else 'Units are unbound and have zero dose. A bound source trains feet by default; units below 100 eligible rows are named absent with their counts and do not fail the family gate.')
-    family_set='Vehicle P requires every nonzero VQA cell, routing camera displacement, camera movement direction, camera rotation and absolute distance; recovery, size and unbound units are absent at launch. '+unit_status
-    report=f'''{family_set}
+    out=ROOT/'out';b=load(out/'BINDING.json');op=load(out/'OPERATOR.json');cfg=load(out/'config.json')
+    if cfg.get('continuation'):
+        from report_cont1 import main as report
+        return report()
+    log=(out/'logs/tests.log').read_text();assert log.rstrip().endswith('OK')
+    count=int(re.search(r'Ran (\d+) tests',log).group(1))
+    names=['FIRST_BATCH.json','DERIVATION.json','PRE_SUBMISSION.json','SWITCH_GUARDS.json','UNIT_REAL.json']
+    for n in names:
+        value=load(out/'proof'/n);assert value['status']=='PASS' and value['config_identity']==b['config_identity'],n
+    assert load(out/'proof/PRE_SUBMISSION.json')['operator_archive_sha256']==op['sha256']
+    assert sha(out/op['archive'])==op['sha256']
+    audit=load(out/'proof/loader_audit.json');assert audit['requested_config_identity']==b['config_identity']
+    note=f'''BUILT FOR REVIEW. Config `{b['config_identity']}`, run `{b['run_key']}`, S2={cfg['h1']['routing_pose_targets']}, S1=false, both own-sampling probabilities zero.
 
-The packet is built for review and remains blocked for production. Config identity is `{b['config_identity']}`. S1 and S2 are off; S2 remains a switch. Scheduled sampling matches D0, the schedule remains 1,000 steps, milestones are 100 and 200, and the run stops at 200. Its disk plan reserves three weight exports.
+Archive `{op['archive']}`, SHA256 `{op['sha256']}`. The config appends one pinned 601-row REMOVE list. The sealed trainer, v7 store, division, routing selection and units remain unchanged. Room eligibility is 425 and its cell is 1.70; direction receives the two-cent refill at 31.19. `MIX.md` gives all populations and caps; `CONFIG_DIFF10.json` gives the exact config delta.
 
-The full v7 census covers {census['vqa_rows']:,} rows and all {len(census['types_covered'])} question types; {census['vqa_admitted']:,} pass the checked predicates. This does not certify RGB bytes, division ancestry, complete source closure or production preparation. `ADMISSION_BY_TYPE.json` records that scope and the receipt and database hashes.
+All {count} packet tests pass. `tools/run_local_checks.py` verifies deterministic packaging, two equal fixture deployment derivations, production-form evidence validation, four-rank D0 optimizer identity, the final-config CPU first batch, and all packet tests. Native unit regeneration retains 747 rows, including 683 feet. The native VQA sampler audits 1,000 steps and 128,000 draws with at most four repeats.
 
-Recovery fails at sealed `student_pilot/ground_rows.py:82`: `ground_record.not_seen` is true, while line 81 requires it to be false. The failure persists through the native packer. Production validates these rows before adding frames and never clears the flag.
+Full production admission is NOT certified. The unmodified VQA build cannot read a missing pinned RGB file locally. The full-store structural regression mocks only RGB-byte binding and executes the sealed scene, REMOVE, division, uniqueness and row predicates; it fails without the new list and passes with it. Pointing, pose/model metadata and complete routing sources are absent locally. `FIX10_BUILD.json` and `FIX10_PHASES.json` record the exact boundaries. First-batch pixels and auxiliary streams are fixtures. Production CPU proof, complete RGB verification, full routing regeneration and independent review remain required.
 
-{unit_status} `--unit-rows FILE --unit-rows-sha256 SHA` accepts packed JSONL with full events and 32 explicit frame pins. It preserves all input bytes, validates each row through sealed admission, binds a new pool source, and caps its dose at four times eligible rows over 1,000 steps. Each unit below 100 post-filter rows is named as missing. The specified 747-row units_p_slice_v3 candidate has ft=683, in=64 and cm=0. Direct binding refuses its missing events and frame pins. The optional `--pack-unit-slice` path reconstructs only the omitted event envelope through sealed `ground_rows.pack`, preserves all supplied payload fields, resolves frames through sealed `s1_routing.Frames`, then applies sealed validation and native source selection. It requires a pinned `--unit-frame-authority` manifest matching the config map, plan and FPS hashes. The option binds all 747 rows with zero refusals using the locally available production-equal authorities. Feet have 683 eligible rows, a 1.00 cell and a 2.73 ceiling. Inches are named missing at 64 rows; cm is named missing at zero. The four program cells are camera displacement 18.25, movement direction 15.88, rotation 12.53 and absolute distance 16.34. Actual RGB-byte admission remains pending. `ROUTING_DIAGNOSIS.json` retains the separate sealed-refusal diagnosis.
-
-V7 contains {room['rows']} traced room rows: {room['sealed_row_checks_pass']} pass the sealed row checks, {room['qualitative_trace_pass']} pass the qualitative-trace predicate, and {room['eligible']} are eligible. The 476 square-metre and 95 square-foot one-line diagnostic room rows have zero eligible rows. A room row needs the r1_room_traced pool, pinned Seen citations, exactly one qualitative relation line and a numeric answer after </think>, with no other printed numbers in the think block; production must also verify its frames. The selection removes all room sources: 586 source-selection rows, corresponding to the brief's expected 581 materialized programs. Every non-room entry is canonically byte-equal and every ordered index retains its hash. The 581 materialized count still needs native regeneration.
-
-`MIX.md` gives each cell's eligible count, cap, cut and final dose. The room request is {table['room']['proposed_cents']/100:.2f} rows per step and its effective dose is {table['room']['final_cents']/100:.2f}; direction receives its unused slots and draws {table['direction']['final_cents']/100:.2f}. Size has zero dose. V7's {away['rows']:,} reworded away rows use QID suffix `{away['qid_suffix']}` and pool `{away['pool']}`; {away['eligible']:,} pass the checked predicates. The suffix fallback filters those rows from the sampler while keeping the single v7 store. The sealed admission predicates remain unchanged.
-
-The local loader audit draws 128,000 real-store VQA rows over 1,000 steps, reports family and question-type shares, toward/away shares within facing and decoded back-answer shares among away-hard draws, and records five bound traces for each populated family, including stored families with zero draw. No VQA row repeats more than {audit['maximum_observed_repeats']} times. Production routing, pose and pointing stores are absent locally, so their final eligible counts and capped routing table remain unmeasured. The local required-family gate checks post-filter VQA counts and native routing source-selection presence. The audit prints cm/ft/in draw counts and absolute-distance eligible/drawn counts with opaque g0–g3 keys. The local-only CENSUS_CODES.local.json maps codes to prefixes; the audit prints its SHA256. The operator archive excludes that mapping file. It reads the staged routing.canonical field first. The loader_audit check fails with the unknown and total counts when more than 1% of eligible routing distance rows have unknown prefixes. Local routing entries are NOT_RUN, with null counts. The production proof recomputes final routing counts from staged files and refuses a missing required family; it prints the named `absent_on_P` list with reasons. Units below 100 eligible rows are named absent rather than failing the gate; sampling applies the configured allowlist and the four-repeat cap.
-
-All {n} local tests pass. The tiny-model OFF optimizer state is bit-equal on all four ranks against b01ce449. The final S2-off first batch passes 72 full-forward microsteps per rank, including 128 real VQA targets in total. Pixels and auxiliary streams are fixtures; these checks do not certify production RGB or the actual routing batch. Two fixture deployment derivations have identical manifest hashes. The fixture lacks `{derivation['missing_source_members'][0]}` and `{derivation['missing_source_members'][1]}`.
-
-The production CPU proof is derived and tested locally at its boundaries, but has not run on Orchard. Its partition parameter accepts `advanced` or `general`; its receipt records the partition and node. It requests 48 CPUs, 800G and four hours with no GPU GRES. It requires named checks for disk plan, routing selection, empty root, temporary paths, runtime binary hashes, private directory modes, loader audit and required families. It authenticates bundle helpers, counts export destinations, starts with empty work and slot directories, and runs the inherited mode-p entry before auditing its prepared streams. Staging keeps files read-only and directories at 0700. The only external writable mount is the declared proof-receipt directory; work and preparation state remain under the job's private temporary root.
-
-Derivation validates the four evidence records through the inherited read-only pin, identity, digest and admission-contract helpers. It checks review, staging, durable archive and mode-p authorization bindings without a Slurm identity or persistent write. The packaged deriver reaches READY with production-form fixture evidence; wrong identities and malformed bindings fail. The inherited `b/` bytes and allocation-time check in the job path remain unchanged. `proof/PRE_SUBMISSION.json` records the fixture scope. Production source `H` is `{ORCHARD_SOURCE}`, with manifest SHA256 `{ORCHARD_SOURCE_MANIFEST}`; the local fixture manifest applies only to local tests.
-
-The operator archive is `{op['archive']}`, SHA256 `{op['sha256']}`. Its outer filenames pass the local scan. The complete deployment's privacy scan, independent admission review, native regeneration and production CPU proof remain required. No GO, content certificate or production PASS is manufactured. `R1P_PACKET.md` gives the binding and operator steps; `REVIEW_REQUEST.json` asks the dispatching lane for one independent review.
+The operator must verify the archive and bundle sums, derive a fresh private kit using `d.py`, regenerate routing selection using `q.py`, provide independent review/staging/archive evidence, seal the CPU proof using `p.py`, and run the named proof script. Existing deployment checks remain in force. No production authorization or GO is supplied.
 '''
-    (out/'REPORT.md').write_text(report)
-    physical=f"/tmp/jjyeung/a_{b['run_key']}/root/aws/u/ap/{b['store_key']}"
-    packet=f'''R1-P uses the ruled vehicle-P family set. Room requests {table['room']['proposed_cents']/100:.2f} rows per step and receives {table['room']['final_cents']/100:.2f} after filtering. Size and recovery have zero dose. Feet have a bound 1.00 dose; inches and cm remain below the 100-row threshold. Full production evidence remains pending. Read `REPORT.md` and `proof/GATES.json` before deployment.
-
-| Binding | Value |
-|---|---|
-| Config identity | `{b['config_identity']}` |
-| Tree | `{b['tree_sha256']}` |
-| Run / job name | `{b['run_key']}` / `{b['job_name']}` |
-| Producer receipt SHA | `{b['receipt_sha256']}` |
-| Database SHA | `{b['database_sha256']}` |
-| Selection SHA | `{b['selection_sha256']}` |
-| Operator archive | `{op['archive']}` |
-| Archive SHA | `{op['sha256']}` |
-
-Relative to H1-1, this config disables S1 and S2, restores D0 scheduled sampling, uses milestones [100, 200] and stop 200, binds v7, removes room programs and adds capped family quotas. The 1,000-step schedule, stream totals (pose 64, VQA 128, routing 64, pointing 32), optimizer and initial weights stay in the inherited recipe. Field-level changes are in `../configs/diff_against_h1_1.json` and `../configs/diff_against_deployed.json`. `SAMPLER_REVIEW.patch` contains the trainer changes; no admission predicate changes. `DEPLOYMENT_REVIEW.patch` covers the staging, wrapper and submitter changes.
-
-Rebind a store, size selector and mix with one command from the lane. This regenerates the admission table, config identity, code archive, loader audit, proof inputs and operator archive:
-
-```bash
-/scratch/jjyeung/envs/p1cpu/bin/python -B tools/rebind.py \\
-  --receipt {b['source_receipt']['path']} \\
-  --receipt-sha256 {b['receipt_sha256']} \\
-  --orchard-store {b['orchard_store']} \\
-  --mix configs/mix.json --proof-partition {b['proof_partition']} \\
-  --pack-unit-slice --unit-rows {b['unit_binding']['packing']['slice']['path']} \\
-  --unit-rows-sha256 {b['unit_binding']['packing']['slice']['sha256']} \\
-  --unit-frame-authority {b['unit_binding']['packing']['authority_manifest']['path']} \\
-  --unit-frame-authority-sha256 {b['unit_binding']['packing']['authority_manifest']['sha256']} \\
-  --units-allowlist ft --unit-cents 100
-```
-
-The bound store is v7; its producer receipt and database SHA are fixed above. `--size-selector FILE` accepts `{{"field":"metadata.path","equals":"value"}}`; omission keeps all admitted size rows eligible, while the mix controls whether any are drawn. The mix file controls requested doses and refill rules. Traced rooms enter through the bound VQA store and remain subject to the qualitative-trace predicate and cap. `--room-receipt FILE` binds optional provenance for traced rows already integrated into that store; it does not merge a second database. A separate room store must be integrated by its producer. Rebinding invalidates earlier first-batch and deployment proof results; rerun them against the new identity. Use `--reuse-census` only for unchanged store bytes, receipt and sampler-predicate hash. After rebinding, run `/scratch/jjyeung/envs/p1cpu/bin/python -B tools/run_local_checks.py` to refresh the local evidence and this packet.
-
-The default `--units-allowlist ft` samples feet only; freed routing slots go pro rata to camera displacement, movement direction, rotation and absolute distance. To bind units, add `--unit-rows FILE --unit-rows-sha256 SHA` and optionally `--unit-cents N` (default 100 hundredths of a row per step, capped at 4 × allowlisted eligible / 1,000). The file must contain faithful, already packed JSONL rows with full events and all 32 frame pins. Direct packed-file binding preserves every JSONL byte. The optional slice path described in `UNIT_PACKING.md` adds only missing events and resolved frame inputs; it refuses changes to the supplied target, answer, responses or spans. A mismatched SHA, incomplete frame pins, sealed semantic refusal, or row removed by native source selection rejects the binding. The source must already be a clean slice; this command does not repair it.
-
-Each fallback is one rebind command and retains v7 as the sole store:
-
-```bash
-# Refused room traces: zero the room cell and send its slots to direction.
-/scratch/jjyeung/envs/p1cpu/bin/python -B tools/rebind.py --receipt {b['source_receipt']['path']} --receipt-sha256 {b['receipt_sha256']} --orchard-store {b['orchard_store']} --room-cents 0 --proof-partition {b['proof_partition']}
-# Refused reworded away rows: exclude the exact QID suffix.
-/scratch/jjyeung/envs/p1cpu/bin/python -B tools/rebind.py --receipt {b['source_receipt']['path']} --receipt-sha256 {b['receipt_sha256']} --orchard-store {b['orchard_store']} --exclude-qid-suffix _away_opp --proof-partition {b['proof_partition']}
-# Bind audited, fully packed rows; slice input requires the explicit option below.
-/scratch/jjyeung/envs/p1cpu/bin/python -B tools/rebind.py --receipt {b['source_receipt']['path']} --receipt-sha256 {b['receipt_sha256']} --orchard-store {b['orchard_store']} --unit-rows "$UNIT_FILE" --unit-rows-sha256 "$UNIT_SHA256" --units-allowlist ft --unit-cents 100 --proof-partition {b['proof_partition']}
-```
-
-Set `UNIT_FILE` and `UNIT_SHA256` to the audited packed file and its SHA. The named candidate is `/scratch/jjyeung/orch_n30/rows_r1/out/units_p_slice_v3/rows.jsonl`; its unchanged read-only fixture is refused by direct binding. `UNIT_PACKING.md` gives the optional packing command and required Orchard frame authorities. After any rebind, run `tools/run_local_checks.py` with the CPU Python above. Neither fallback merges loose files into v6.
-
-Unit binding is an **admission-input change**: `u.gz` transports the exact JSONL bytes; `m.json` adds `U_Faithful` to the pool manifest; `i.json` binds its native ordered indices; `u.json` records hashes and per-unit/per-dataset counts. These artifacts enter the operator bundle. Derivation stages `u.gz`, `m.json` and `i.json` into private, read-only namespace paths and adds their pins to the routing catalog. RGB bytes are not bundled: the complete staged RGB map/plan and frame store must resolve every supplied frame pin unchanged. Missing or conflicting RGB fails production admission. Full native materialization calls the sealed `selected_rows`, frame resolution, division/scene/QID filters and RGB audit before the sampler or proof counts units.
-
-The prepared operator archive contains no database bytes. Its sole v7 input is the existing mode-0400 Orchard file `{b['orchard_store']}`. The inherited staging code copies it into `{physical}/d.db`, verifies the database SHA and removes file write bits. Inside the namespace, both `/scratch/fsw` and `/lustre/fsw` aliases resolve to that private union. The deployment receipt is `{b['deployment_receipt']['path']}` with SHA `{b['deployment_receipt']['sha256']}`; its database path is `{b['deployed_database']['path']}`. The original producer receipt remains a separately pinned provenance record. No Trinity database path is a runtime input.
-
-Operator steps below describe the future Orchard execution; this lane made no Orchard call. Keep all destinations private (directories 0700, files 0600 unless the sealed input requires 0400). Do not copy the descriptive reports to the public job surface.
-
-1. Verify `SHA256SUMS` locally and transfer only `{op['archive']}` through the operator's approved route. Extract it into fresh bundle `{op['bundle']}`. Verify its `sums.txt`. Set `H={ORCHARD_SOURCE}`; its `SHA256SUMS.txt` must hash to `{ORCHARD_SOURCE_MANIFEST}`. The local incomplete fixture cannot be used for production.
-2. Run H1's authenticated native selection regeneration on its complete staged inputs, as in its `build/q.sh`. Retain the fresh raw `s1_pool.prepare` receipt as `NATIVE_RECEIPT`. Project it with the supplied helper; it verifies all regenerated ordered-index hashes and all non-room entries. It also binds the selector import-closure fingerprint to the archived trainer code; admission predicates must retain their parent hashes:
-
-```bash
-BUN={op['bundle']}
-python3 -B "$BUN/q.py" \\
-  --parent "$H/k/pool_selection_eac5f9f0.json" --indices "$H/k" \\
-  --native-receipt "$NATIVE_RECEIPT" --implementation "$BUN/j.json" \\
-  --code-record "$BUN/c.json" --out "$BUN/q"
-```
-
-For a unit-bound packet, run the projection command with `--unit-binding "$BUN/u.json" --config "$BUN/config.json"` as well, using the authenticated CPU environment for the bound code tree. It executes sealed `s1_pool.prepare` on the unit source again, compares every ordered index, combines that source with the freshly checked parent selection, and refuses any final selection hash mismatch. The complete H1 inputs remain necessary. The source-selection counts are preliminary; the production proof reports post-filter counts, 1,000-step shares by family and question type, five bound traces per populated family, and missing units below 100 rows.
-
-3. Obtain one independent review of the changed admission inputs and sampler. Supply identity-bound `review.json`, `staging.json`, `archive.json` and `4.json` in `EVIDENCE`, using the inherited production schemas. The durable source-archive attestation must cover the new tree. These are required inputs, not output claims of this build. Derive a fresh kit; the command validates the four records and their bindings with inherited read-only helpers. It needs no Slurm identity and writes no persistent run state. The full inherited `g.check` remains in the allocation-time job path:
-
-```bash
-KH={op['kit']}
-H={ORCHARD_SOURCE}
-python3 -B "$BUN/d.py" --source "$H" \\
-  --source-manifest-sha256 {ORCHARD_SOURCE_MANIFEST} \\
-  --packet "$BUN" --bundle "$BUN" --out "$KH" \\
-  --selection-evidence "$BUN/q/q.json" --evidence "$EVIDENCE" > "$BUN/compare.json"
-```
-
-4. Run the independent complete content scan on the final kit and supply its `ANON_OK.json`, bound to the final manifest. Create new export sessions for the 20 part destinations in `e.txt` and install the private `sess.json` in the kit. The plan has three exports (100, 200, stop); stopB and stopC are alternate stop-slot names. Never reuse H1 sessions or approval evidence.
-5. Bind and submit the production CPU proof, starting from an empty root. `p.py` requires a READY kit and native selection evidence. The proof resolves and hashes binaries at run time; it obtains bwrap from the kit's verified executable pin.
-
-```bash
-PARTITION={b['proof_partition']}  # advanced (one approved CPU job) or general
-python3 -B "$BUN/p.py" --kit "$KH" --bundle "$BUN" \\
-  --binding "$BUN/BINDING.json" --partition "$PARTITION" --out "$BUN/a.json"
-TZ=UTC env -u TK_JOB_START CUDA_VISIBLE_DEVICES= sbatch --parsable -J {b['job_name']} -A mt01 -p "$PARTITION" -N1 --ntasks=1 -c 48 --mem=800G -t 04:00:00 --no-requeue -o "$KH/o/%j.out" -e "$KH/o/%j.err" \\
-  "$BUN/{op['proof_script']}" "$BUN/a.json"
-```
-
-6. Inspect the named checks in `KH/o/JOB.proof.json`, its bound loader audit and the five printed traces per family. The required-family check permits recovery, size, unbound units, any zero-dose room cell, and bound units below 100 eligible rows; it must pass for every nonzero VQA cell and the four native routing cells. For a bound source, each unit below 100 is listed under absent_on_P with its count. Only allowlisted units with at least 100 rows enter the capped sampler. Confirm the proof receipt records the requested partition and actual node. The separate `go.json` must bind the final config, contract, wrapper and manifest; only then may the operator set `PROOF_JOB` and run `BUN/s.sh`. The submitter refuses any missing proof check or missing GO. Its Python gate runs in isolated mode with PYTHONOPTIMIZE unset, so caller optimization settings cannot disable assertions.
-
-Local validation: {n} tests passed; production-form fixture records reach READY without Slurm identity or persistent initialization, and wrong evidence fails; OFF identity is exact on four tiny-model ranks; 288 final-config microsteps pass finite full-forward checks; two fixture derivations are byte-identical; the real-v7 loader audit covers 1,000 steps. These are bounded local results. Full native selection regeneration, production RGB/admission, complete routing counts, complete privacy scan and production CPU proof are NOT_RUN. `proof/GATES.json` is the authoritative gate list.
-'''
-    (out/'R1P_PACKET.md').write_text(packet)
-    (ROOT/'STATUS.md').write_text(f'BUILT_BLOCKED: config {b["config_identity"]}. The deriver validates production-form evidence without Slurm identity or persistent writes; inherited job-time checks remain unchanged. Full v7 census and local loader audit complete; {n} tests, four-rank OFF identity, tiny-model first batch and deterministic fixture derivation pass. Vehicle-P required families follow the ruled set; recovery, size and unbound units are absent; low-count bound units are named absent. Required-family status is {audit["required_families"]["status"]}; missing families: {audit["required_families"]["missing"]}. Traced room eligibility is {room["eligible"]}/{room["rows"]}; the Seen/relation/answer grammar is enforced. The v3 unit packing path binds 747 rows with production-equal frame pins, including 683 eligible feet at 1.00; actual RGB-byte admission remains pending. Production evidence and independent review remain required. Read out/REPORT.md and out/R1P_PACKET.md.\n')
-    names=['REPORT.md','R1P_PACKET.md','ADMISSION_BY_TYPE.json','ROUTING_DIAGNOSIS.json','MIX.md','config.json','BINDING.json',
-           'FIX8.md','FIX8.diff','UNIT_PACKING.md','OPERATOR.json','REVIEW_REQUEST.json','SAMPLER_REVIEW.patch','DEPLOYMENT_REVIEW.patch','r1p_code.tar',op['archive']]
-    names += ['proof/'+n for n in ('GATES.json','inputs.json','OFF_IDENTITY.json','FIRST_BATCH.json','DERIVATION.json',
-                                 'PRE_SUBMISSION.json','ROUTING_PREFIX.json','UNIT_REAL.json','OPAQUE_KEYS.json','NAMESPACE_ARGV.json','loader_audit.json','ROOM_GRAMMAR.json','UNIT_PACKING_CHECK.json','traces.jsonl','LOCAL_NAMESPACE.json','p.py',op['proof_script'])]
-    names += ['proof/selection/r.json','proof/selection/q.json','CENSUS_CODES.local.json','FRAME_AUTHORITY.local.json','REBIND8.local.json']
-    names += ['units/'+n for n in ('packed.jsonl','u.gz','i.json','m.json','u.json')]
-    if (out/'proof/UNIT_CANDIDATE.json').exists():names.append('proof/UNIT_CANDIDATE.json')
-    (out/'SHA256SUMS').write_text(''.join(sha(out/n)+'  '+n+'\n' for n in sorted(names)))
-    print(json.dumps(dict(status='BUILT_BLOCKED',identity=b['config_identity'],local_tests=n,archive=op['archive'])))
-
+    for n in ('REPORT.md','R1P_PACKET.md'):(out/n).write_text(note)
+    write(out/'proof/GATES.json',dict(status='BUILT_BLOCKED',config_identity=b['config_identity'],tests=count,
+        production_authorized=False,full_store_structural=load(out/'FIX10_BUILD.json'),phases=load(out/'FIX10_PHASES.json'),
+        loader_audit='PASS_LOCAL_VQA_ONLY',required_families=audit['required_families'],independent_review='PENDING'))
+    write(out/'REVIEW_REQUEST.json',dict(status='REVIEW_REQUIRED',config_identity=b['config_identity'],tree_sha256=b['tree_sha256'],operator_archive=op['archive'],operator_archive_sha256=op['sha256'],reviews_requested=1,
+        reason='Verify the 601 exact out-of-division REMOVE keys, staging pin, 425-row room cap, exact packet switch and local RGB/stream limits.'))
+    (ROOT/'STATUS.md').write_text(note.split('\n\n')[0]+' All '+str(count)+' packet tests pass. Full native admission remains blocked by missing local production inputs; read out/FIX10.md and out/FIX10_PHASES.json.\n')
+    files=[p for folder in ('proof','records','units','logs') for p in (out/folder).rglob('*') if p.is_file()]
+    files += [p for p in out.iterdir() if p.is_file() and p.name!='SHA256SUMS' and (p.suffix not in ('.tar',) or p.name in (op['archive'],'r1p_code.tar'))]
+    (out/'SHA256SUMS').write_text(''.join(sha(p)+'  '+str(p.relative_to(out))+'\n' for p in sorted(set(files))))
+    print(json.dumps(dict(status='BUILT_BLOCKED',identity=b['config_identity'],local_tests=count,archive=op['archive'])))
 if __name__=='__main__':main()

@@ -30,6 +30,8 @@ while IFS='|' read -r jid name part state; do
  [[ -n "$jid" ]] || continue
  if [[ "$name" == a15_cot_ap673bc60f ]]; then echo 'REFUSED: job name already queued'; exit 4; fi
  part=${part//\*/}
+ # Main's eight held jobs stay queued by the user's ruling (INBOX 20261118T002059Z); they never run, so they do not block.
+ if [[ "$state" == PENDING && ",167739,167857,167858,167859,167860,167861,167894,168278," == *",$jid,"* && "$name" == jjy_* ]]; then continue; fi
  if [[ ( "$name" == a15_cot_ap* || "$name" == jjy_* ) && ",$part," == *,"$PARTITION",* ]]; then echo "REFUSED: matching job on $PARTITION: $jid $state"; exit 4; fi
 done <<< "$Q"
 python3 -B - "$KH" "$BUN" "$PARTITION" <<'PYCODE'

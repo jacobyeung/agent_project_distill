@@ -1,0 +1,1239 @@
+{
+  "method": "Incremental build-10 statement heads versus the authenticated build-9fix source; same exact-file and compiled-code observation receipts as the base comparison.",
+  "classes": {
+    "observed": 165,
+    "CPU-reachable unresolved": 4
+  },
+  "by_file": {
+    "student_pilot/carrier_c1.py": {
+      "observed": 13
+    },
+    "student_pilot/carrier_c1_batch_decode.py": {
+      "observed": 15
+    },
+    "student_pilot/carrier_c1_decode.py": {
+      "observed": 15,
+      "CPU-reachable unresolved": 1
+    },
+    "student_pilot/carrier_c1_routing.py": {
+      "observed": 13
+    },
+    "student_pilot/carrier_c1_run.py": {
+      "observed": 4,
+      "CPU-reachable unresolved": 1
+    },
+    "student_pilot/decoupled_v.py": {
+      "observed": 7
+    },
+    "student_pilot/eat1_export.py": {
+      "observed": 16
+    },
+    "student_pilot/fixed_readout.py": {
+      "observed": 65
+    },
+    "student_pilot/ground_context.py": {
+      "observed": 7,
+      "CPU-reachable unresolved": 1
+    },
+    "student_pilot/live_trace313.py": {
+      "observed": 1
+    },
+    "student_pilot/point_depth_head.py": {
+      "observed": 2
+    },
+    "student_pilot/verify_pass.py": {
+      "CPU-reachable unresolved": 1
+    },
+    "trace_format/contracts.py": {
+      "observed": 3
+    },
+    "trace_format/readout_config.py": {
+      "observed": 4
+    }
+  },
+  "statements": [
+    {
+      "file": "student_pilot/carrier_c1.py",
+      "line": 106,
+      "executed": true,
+      "classification": "observed",
+      "text": "    def __init__(self, base, camera, depth, carrier_id, carrier_placement=C1_A,"
+    },
+    {
+      "file": "student_pilot/carrier_c1.py",
+      "line": 44,
+      "executed": true,
+      "classification": "observed",
+      "text": "        self.config.p3 = dict(feature_backing='decoupled_vc', anchors=list(range(1, frame_count+1)),"
+    },
+    {
+      "file": "student_pilot/carrier_c1.py",
+      "line": 117,
+      "executed": true,
+      "classification": "observed",
+      "text": "        from trace_format.readout_config import load as readout_config"
+    },
+    {
+      "file": "student_pilot/carrier_c1.py",
+      "line": 118,
+      "executed": true,
+      "classification": "observed",
+      "text": "        self.readout_config = dict(readout_config(),frame_count=frame_count)"
+    },
+    {
+      "file": "student_pilot/carrier_c1.py",
+      "line": 146,
+      "executed": true,
+      "classification": "observed",
+      "text": "        from .fixed_readout import DepthReadout, HeadingReadout"
+    },
+    {
+      "file": "student_pilot/carrier_c1.py",
+      "line": 147,
+      "executed": true,
+      "classification": "observed",
+      "text": "        self.auxiliary_heads.depth_readout = DepthReadout()"
+    },
+    {
+      "file": "student_pilot/carrier_c1.py",
+      "line": 148,
+      "executed": true,
+      "classification": "observed",
+      "text": "        self.auxiliary_heads.heading = HeadingReadout(heading_plane_min)"
+    },
+    {
+      "file": "student_pilot/carrier_c1.py",
+      "line": 457,
+      "executed": true,
+      "classification": "observed",
+      "text": "        if stream == 'heading_readout':"
+    },
+    {
+      "file": "student_pilot/carrier_c1.py",
+      "line": 459,
+      "executed": true,
+      "classification": "observed",
+      "text": "        if stream == 'depth_features':"
+    },
+    {
+      "file": "student_pilot/carrier_c1.py",
+      "line": 461,
+      "executed": true,
+      "classification": "observed",
+      "text": "        if stream == 'depth_readout':"
+    },
+    {
+      "file": "student_pilot/carrier_c1.py",
+      "line": 458,
+      "executed": true,
+      "classification": "observed",
+      "text": "            return self.auxiliary_heads.heading(**batch)"
+    },
+    {
+      "file": "student_pilot/carrier_c1.py",
+      "line": 460,
+      "executed": true,
+      "classification": "observed",
+      "text": "            return self.auxiliary_heads.depth.auxiliary_heads.camera.point_depth(**batch)"
+    },
+    {
+      "file": "student_pilot/carrier_c1.py",
+      "line": 462,
+      "executed": true,
+      "classification": "observed",
+      "text": "            return self.auxiliary_heads.depth_readout(**batch)"
+    },
+    {
+      "file": "student_pilot/carrier_c1_batch_decode.py",
+      "line": 86,
+      "executed": true,
+      "classification": "observed",
+      "text": "        from trace_format.readout_config import load as readout_config"
+    },
+    {
+      "file": "student_pilot/carrier_c1_batch_decode.py",
+      "line": 87,
+      "executed": true,
+      "classification": "observed",
+      "text": "        settings=getattr(model,'readout_config',readout_config())"
+    },
+    {
+      "file": "student_pilot/carrier_c1_batch_decode.py",
+      "line": 88,
+      "executed": true,
+      "classification": "observed",
+      "text": "        self.max_call_tokens=settings['max_call_tokens']"
+    },
+    {
+      "file": "student_pilot/carrier_c1_batch_decode.py",
+      "line": 89,
+      "executed": true,
+      "classification": "observed",
+      "text": "        if max_calls>settings['max_calls']:"
+    },
+    {
+      "file": "student_pilot/carrier_c1_batch_decode.py",
+      "line": 98,
+      "executed": true,
+      "classification": "observed",
+      "text": "        self.registry = D.calculator.PrintedPointRegistry(frame_count=settings['frame_count'])"
+    },
+    {
+      "file": "student_pilot/carrier_c1_batch_decode.py",
+      "line": 129,
+      "executed": true,
+      "classification": "observed",
+      "text": "        if self.active is not None and len(ids)-self.active>self.max_call_tokens:"
+    },
+    {
+      "file": "student_pilot/carrier_c1_batch_decode.py",
+      "line": 131,
+      "executed": true,
+      "classification": "observed",
+      "text": "        if self.active is not None and tail.endswith('>'):"
+    },
+    {
+      "file": "student_pilot/carrier_c1_batch_decode.py",
+      "line": 149,
+      "executed": true,
+      "classification": "observed",
+      "text": "        forced = tokenizer.encode(wrapped, add_special_tokens=False)"
+    },
+    {
+      "file": "student_pilot/carrier_c1_batch_decode.py",
+      "line": 150,
+      "executed": true,
+      "classification": "observed",
+      "text": "        if len(forced)>self.state.cap-len(self.ids):"
+    },
+    {
+      "file": "student_pilot/carrier_c1_batch_decode.py",
+      "line": 90,
+      "executed": true,
+      "classification": "observed",
+      "text": "            raise ValueError('requested call budget exceeds artifact')"
+    },
+    {
+      "file": "student_pilot/carrier_c1_batch_decode.py",
+      "line": 130,
+      "executed": true,
+      "classification": "observed",
+      "text": "            raise ValueError('call token budget exhausted')"
+    },
+    {
+      "file": "student_pilot/carrier_c1_batch_decode.py",
+      "line": 139,
+      "executed": true,
+      "classification": "observed",
+      "text": "            match = D.trace313.extra_tail(tokenizer.decode(ids[-self.max_call_tokens:], skip_special_tokens=False))"
+    },
+    {
+      "file": "student_pilot/carrier_c1_batch_decode.py",
+      "line": 144,
+      "executed": true,
+      "classification": "observed",
+      "text": "            raise ValueError('call budget exhausted')"
+    },
+    {
+      "file": "student_pilot/carrier_c1_batch_decode.py",
+      "line": 151,
+      "executed": true,
+      "classification": "observed",
+      "text": "            raise ValueError('response exceeds token budget')"
+    },
+    {
+      "file": "student_pilot/carrier_c1_batch_decode.py",
+      "line": 135,
+      "executed": true,
+      "classification": "observed",
+      "text": "            ground_tail = tokenizer.decode(ids[-self.max_call_tokens:], skip_special_tokens=False)"
+    },
+    {
+      "file": "student_pilot/carrier_c1_decode.py",
+      "line": 216,
+      "executed": true,
+      "classification": "observed",
+      "text": "    def read_heading(self, operation, first_rotation, second_rotation=None):"
+    },
+    {
+      "file": "student_pilot/carrier_c1_decode.py",
+      "line": 221,
+      "executed": true,
+      "classification": "observed",
+      "text": "    def read_depth(self, frame, uv, fov):"
+    },
+    {
+      "file": "student_pilot/carrier_c1_decode.py",
+      "line": 547,
+      "executed": true,
+      "classification": "observed",
+      "text": "    context.ground_route=(lambda name:state.rereader.ground(name,registry)) if state.rereader is not None else (lambda name:heads.ground(name,registry))"
+    },
+    {
+      "file": "student_pilot/carrier_c1_decode.py",
+      "line": 557,
+      "executed": true,
+      "classification": "observed",
+      "text": "    return respond(call_text,registry,state.geometry,context.ground_route,gapper)"
+    },
+    {
+      "file": "student_pilot/carrier_c1_decode.py",
+      "line": 213,
+      "executed": true,
+      "classification": "observed",
+      "text": "        return routing.OwnGeometry(self.pose9, self.gravity, self.depth, readout=self.read_depth,"
+    },
+    {
+      "file": "student_pilot/carrier_c1_decode.py",
+      "line": 217,
+      "executed": true,
+      "classification": "observed",
+      "text": "        from trace_format.contracts import heading_plane_min"
+    },
+    {
+      "file": "student_pilot/carrier_c1_decode.py",
+      "line": 218,
+      "executed": true,
+      "classification": "observed",
+      "text": "        return self.model(dict(operation=operation,first_rotation=first_rotation,"
+    },
+    {
+      "file": "student_pilot/carrier_c1_decode.py",
+      "line": 222,
+      "executed": true,
+      "classification": "observed",
+      "text": "        if self.depth_map is None:"
+    },
+    {
+      "file": "student_pilot/carrier_c1_decode.py",
+      "line": 224,
+      "executed": true,
+      "classification": "observed",
+      "text": "        result = self.model(dict(depth_map=self.depth_map,fov_hw=fov,uv=uv,frame=frame,"
+    },
+    {
+      "file": "student_pilot/carrier_c1_decode.py",
+      "line": 226,
+      "executed": true,
+      "classification": "observed",
+      "text": "        self.queries.append(dict(frame=frame,depth=result['stencil_depth'].tolist()))"
+    },
+    {
+      "file": "student_pilot/carrier_c1_decode.py",
+      "line": 227,
+      "executed": true,
+      "classification": "observed",
+      "text": "        return result"
+    },
+    {
+      "file": "student_pilot/carrier_c1_decode.py",
+      "line": 247,
+      "executed": true,
+      "classification": "observed",
+      "text": "        frame_count = len(getattr(geometry, 'pose9', getattr(geometry, 'p', [None]*registry.frame_count)))"
+    },
+    {
+      "file": "student_pilot/carrier_c1_decode.py",
+      "line": 165,
+      "executed": true,
+      "classification": "observed",
+      "text": "            self.depth_map = model(dict(llm_grid=captured.grids[0],vit_grids=captured.vits[0],"
+    },
+    {
+      "file": "student_pilot/carrier_c1_decode.py",
+      "line": 223,
+      "executed": false,
+      "classification": "CPU-reachable unresolved",
+      "text": "            raise routing.RenderError('own depth head unavailable')"
+    },
+    {
+      "file": "student_pilot/carrier_c1_decode.py",
+      "line": 264,
+      "executed": true,
+      "classification": "observed",
+      "text": "        if exc.code == 'bad_frame':"
+    },
+    {
+      "file": "student_pilot/carrier_c1_decode.py",
+      "line": 265,
+      "executed": true,
+      "classification": "observed",
+      "text": "            raise"
+    },
+    {
+      "file": "student_pilot/carrier_c1_routing.py",
+      "line": 231,
+      "executed": true,
+      "classification": "observed",
+      "text": "    def __init__(self, pose9, up, depth, fov=None, recorded=None, require_up=True, readout=None, heading=None):"
+    },
+    {
+      "file": "student_pilot/carrier_c1_routing.py",
+      "line": 232,
+      "executed": true,
+      "classification": "observed",
+      "text": "        self.readout = readout"
+    },
+    {
+      "file": "student_pilot/carrier_c1_routing.py",
+      "line": 233,
+      "executed": true,
+      "classification": "observed",
+      "text": "        self.heading = heading"
+    },
+    {
+      "file": "student_pilot/carrier_c1_routing.py",
+      "line": 323,
+      "executed": true,
+      "classification": "observed",
+      "text": "        if self.readout is not None:"
+    },
+    {
+      "file": "student_pilot/carrier_c1_routing.py",
+      "line": 380,
+      "executed": true,
+      "classification": "observed",
+      "text": "        if self.heading is not None:"
+    },
+    {
+      "file": "student_pilot/carrier_c1_routing.py",
+      "line": 310,
+      "executed": true,
+      "classification": "observed",
+      "text": "            self._poses[key] = dict(camera_R_L1=r8(self.to_l1 @ rotation), camera_t_L1=r8(self.to_l1 @ centre),"
+    },
+    {
+      "file": "student_pilot/carrier_c1_routing.py",
+      "line": 324,
+      "executed": true,
+      "classification": "observed",
+      "text": "            result = self.readout(k, uv, self.fov(k))"
+    },
+    {
+      "file": "student_pilot/carrier_c1_routing.py",
+      "line": 325,
+      "executed": true,
+      "classification": "observed",
+      "text": "            cam, spread = result['camera_point'].detach().cpu().numpy(), result['spread']"
+    },
+    {
+      "file": "student_pilot/carrier_c1_routing.py",
+      "line": 326,
+      "executed": true,
+      "classification": "observed",
+      "text": "            pose = self.camera_pose(k) if new_contracts() else self.pose(k)"
+    },
+    {
+      "file": "student_pilot/carrier_c1_routing.py",
+      "line": 327,
+      "executed": true,
+      "classification": "observed",
+      "text": "            f1 = pose['camera_R_L1'] @ cam + pose['camera_t_L1']"
+    },
+    {
+      "file": "student_pilot/carrier_c1_routing.py",
+      "line": 328,
+      "executed": true,
+      "classification": "observed",
+      "text": "            return [r2(x*s) for x,s in zip(cam,(1,-1,1))], [r2(x) for x in f1], r2(spread)"
+    },
+    {
+      "file": "student_pilot/carrier_c1_routing.py",
+      "line": 381,
+      "executed": true,
+      "classification": "observed",
+      "text": "            turn=self.heading('turn',self.pose(i)['level_R_L1'],self.pose(j)['level_R_L1'])"
+    },
+    {
+      "file": "student_pilot/carrier_c1_routing.py",
+      "line": 382,
+      "executed": true,
+      "classification": "observed",
+      "text": "            return f'turn = {turn:+d} deg'"
+    },
+    {
+      "file": "student_pilot/carrier_c1_run.py",
+      "line": 808,
+      "executed": true,
+      "classification": "observed",
+      "text": "    model = CarrierC1(base, receipt['camera'], receipt['depth'], carrier_id(processor.tokenizer),"
+    },
+    {
+      "file": "student_pilot/carrier_c1_run.py",
+      "line": 3190,
+      "executed": true,
+      "classification": "observed",
+      "text": "    if 'readout_config' in artifact:"
+    },
+    {
+      "file": "student_pilot/carrier_c1_run.py",
+      "line": 2092,
+      "executed": true,
+      "classification": "observed",
+      "text": "        write(directory/'artifact.json',dict(**version_metadata,schema='carrier-c1-artifact-v1',step=step,"
+    },
+    {
+      "file": "student_pilot/carrier_c1_run.py",
+      "line": 3191,
+      "executed": true,
+      "classification": "observed",
+      "text": "        if artifact['readout_config']!=model.readout_config:"
+    },
+    {
+      "file": "student_pilot/carrier_c1_run.py",
+      "line": 3192,
+      "executed": false,
+      "classification": "CPU-reachable unresolved",
+      "text": "            raise ValueError('Artifact readout configuration differs from model')"
+    },
+    {
+      "file": "student_pilot/decoupled_v.py",
+      "line": 111,
+      "executed": true,
+      "classification": "observed",
+      "text": "    from trace_format.readout_config import load as readout_config"
+    },
+    {
+      "file": "student_pilot/decoupled_v.py",
+      "line": 112,
+      "executed": true,
+      "classification": "observed",
+      "text": "    frame_count=model.config.p3.get('frame_count',readout_config()['frame_count'])"
+    },
+    {
+      "file": "student_pilot/decoupled_v.py",
+      "line": 113,
+      "executed": true,
+      "classification": "observed",
+      "text": "    groups=frame_count//2"
+    },
+    {
+      "file": "student_pilot/decoupled_v.py",
+      "line": 114,
+      "executed": true,
+      "classification": "observed",
+      "text": "    all_frames = anchors == list(range(1, frame_count+1))"
+    },
+    {
+      "file": "student_pilot/decoupled_v.py",
+      "line": 119,
+      "executed": true,
+      "classification": "observed",
+      "text": "    allowed = tuple(range(1, frame_count+1)) if allow_short else (frame_count,)"
+    },
+    {
+      "file": "student_pilot/decoupled_v.py",
+      "line": 120,
+      "executed": true,
+      "classification": "observed",
+      "text": "    if n not in (allowed if single_slot else (tuple(range(groups//4,groups+1,groups//4)) if allow_short else (groups,))):"
+    },
+    {
+      "file": "student_pilot/decoupled_v.py",
+      "line": 123,
+      "executed": true,
+      "classification": "observed",
+      "text": "    if n != groups or single_slot:"
+    },
+    {
+      "file": "student_pilot/eat1_export.py",
+      "line": 10,
+      "executed": true,
+      "classification": "observed",
+      "text": "    from trace_format.readout_config import load as readout_config"
+    },
+    {
+      "file": "student_pilot/eat1_export.py",
+      "line": 11,
+      "executed": true,
+      "classification": "observed",
+      "text": "    config=getattr(model,'readout_config',readout_config())"
+    },
+    {
+      "file": "student_pilot/eat1_export.py",
+      "line": 12,
+      "executed": true,
+      "classification": "observed",
+      "text": "    (directory/'readout_config.json').write_text(json.dumps(config,sort_keys=True,indent=2)+'\\n')"
+    },
+    {
+      "file": "student_pilot/eat1_export.py",
+      "line": 32,
+      "executed": true,
+      "classification": "observed",
+      "text": "    if hasattr(model.auxiliary_heads,'geometry_encoder'):"
+    },
+    {
+      "file": "student_pilot/eat1_export.py",
+      "line": 41,
+      "executed": true,
+      "classification": "observed",
+      "text": "    for name in ('depth_readout','heading'):"
+    },
+    {
+      "file": "student_pilot/eat1_export.py",
+      "line": 33,
+      "executed": true,
+      "classification": "observed",
+      "text": "        source=Path(__file__).parent"
+    },
+    {
+      "file": "student_pilot/eat1_export.py",
+      "line": 34,
+      "executed": true,
+      "classification": "observed",
+      "text": "        tower_files=[source/'g3t_online.py',*sorted((source/'g3t_vendor').rglob('*.py'))]"
+    },
+    {
+      "file": "student_pilot/eat1_export.py",
+      "line": 35,
+      "executed": true,
+      "classification": "observed",
+      "text": "        registered=[]"
+    },
+    {
+      "file": "student_pilot/eat1_export.py",
+      "line": 36,
+      "executed": true,
+      "classification": "observed",
+      "text": "        for p in tower_files:"
+    },
+    {
+      "file": "student_pilot/eat1_export.py",
+      "line": 40,
+      "executed": true,
+      "classification": "observed",
+      "text": "        modules['auxiliary_heads.geometry_encoder']['files']=registered"
+    },
+    {
+      "file": "student_pilot/eat1_export.py",
+      "line": 42,
+      "executed": true,
+      "classification": "observed",
+      "text": "        module=getattr(model.auxiliary_heads,name,None)"
+    },
+    {
+      "file": "student_pilot/eat1_export.py",
+      "line": 43,
+      "executed": true,
+      "classification": "observed",
+      "text": "        if module is not None:"
+    },
+    {
+      "file": "student_pilot/eat1_export.py",
+      "line": 37,
+      "executed": true,
+      "classification": "observed",
+      "text": "            rel=os.path.relpath(p,directory)"
+    },
+    {
+      "file": "student_pilot/eat1_export.py",
+      "line": 38,
+      "executed": true,
+      "classification": "observed",
+      "text": "            files[rel]=dict(sha256=hashlib.sha256(p.read_bytes()).hexdigest(),role='tower')"
+    },
+    {
+      "file": "student_pilot/eat1_export.py",
+      "line": 39,
+      "executed": true,
+      "classification": "observed",
+      "text": "            registered.append(rel)"
+    },
+    {
+      "file": "student_pilot/eat1_export.py",
+      "line": 44,
+      "executed": true,
+      "classification": "observed",
+      "text": "            modules['auxiliary_heads.'+name]=dict(role='fixed_math',name=name,"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 2,
+      "executed": true,
+      "classification": "observed",
+      "text": "import math"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 3,
+      "executed": true,
+      "classification": "observed",
+      "text": "import numpy as np"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 4,
+      "executed": true,
+      "classification": "observed",
+      "text": "import torch"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 5,
+      "executed": true,
+      "classification": "observed",
+      "text": "from torch import nn"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 8,
+      "executed": true,
+      "classification": "observed",
+      "text": "class DepthReadout(nn.Module):"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 45,
+      "executed": true,
+      "classification": "observed",
+      "text": "class HeadingReadout(nn.Module):"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 9,
+      "executed": true,
+      "classification": "observed",
+      "text": "    inputs = ['depth_map', 'fov_hw', 'uv', 'frame', 'depth_head']"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 10,
+      "executed": true,
+      "classification": "observed",
+      "text": "    outputs = ['depth_p30', 'spread', 'camera_point', 'stencil_depth']"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 12,
+      "executed": true,
+      "classification": "observed",
+      "text": "    def __init__(self):"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 22,
+      "executed": true,
+      "classification": "observed",
+      "text": "    def forward(self, depth_map, fov_hw, uv, frame, depth_head, *, sampled=None):"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 46,
+      "executed": true,
+      "classification": "observed",
+      "text": "    inputs = ['operation', 'first_rotation', 'second_rotation', 'threshold']"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 47,
+      "executed": true,
+      "classification": "observed",
+      "text": "    outputs = ['degrees', 'heading_available']"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 49,
+      "executed": true,
+      "classification": "observed",
+      "text": "    def __init__(self, heading_plane_min=0.3):"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 57,
+      "executed": true,
+      "classification": "observed",
+      "text": "    def forward(self, operation, first_rotation, second_rotation=None, threshold=None):"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 13,
+      "executed": true,
+      "classification": "observed",
+      "text": "        super().__init__()"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 15,
+      "executed": true,
+      "classification": "observed",
+      "text": "        self.register_buffer('stencil', torch.tensor([(x,y) for x in (-10,-5,0,5,10) for y in (-10,-5,0,5,10)]))"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 16,
+      "executed": true,
+      "classification": "observed",
+      "text": "        self.register_buffer('clip_ratio', torch.tensor([9999,10]))"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 17,
+      "executed": true,
+      "classification": "observed",
+      "text": "        self.register_buffer('percentiles', torch.tensor([20,30,50,80]))"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 18,
+      "executed": true,
+      "classification": "observed",
+      "text": "        self.register_buffer('spread_floor_ratio', torch.tensor([1,1000]))"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 19,
+      "executed": true,
+      "classification": "observed",
+      "text": "        self.register_buffer('half_grid', torch.tensor(500))"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 20,
+      "executed": true,
+      "classification": "observed",
+      "text": "        self.register_buffer('camera_precision', torch.tensor(8))"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 23,
+      "executed": true,
+      "classification": "observed",
+      "text": "        uv = np.asarray(uv, dtype=np.float64)"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 24,
+      "executed": true,
+      "classification": "observed",
+      "text": "        clip = self.clip_ratio.tolist()"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 25,
+      "executed": true,
+      "classification": "observed",
+      "text": "        points = np.clip(uv[None] + self.stencil.cpu().numpy(), 0, clip[0]/clip[1])"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 26,
+      "executed": true,
+      "classification": "observed",
+      "text": "        if sampled is None:"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 30,
+      "executed": true,
+      "classification": "observed",
+      "text": "        values = sampled.detach().double().cpu().numpy() if isinstance(sampled,torch.Tensor) else np.asarray(sampled,dtype=np.float64)"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 31,
+      "executed": true,
+      "classification": "observed",
+      "text": "        if values.shape != (len(points),) or not np.isfinite(values).all() or (values<=0).any():"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 33,
+      "executed": true,
+      "classification": "observed",
+      "text": "        p20,p30,p50,p80 = (np.percentile(values,q) for q in self.percentiles.tolist())"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 34,
+      "executed": true,
+      "classification": "observed",
+      "text": "        floor = self.spread_floor_ratio.tolist()"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 35,
+      "executed": true,
+      "classification": "observed",
+      "text": "        spread = (p80-p20)/max(p50,floor[0]/floor[1])"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 36,
+      "executed": true,
+      "classification": "observed",
+      "text": "        vertical,horizontal = map(float,fov_hw)"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 37,
+      "executed": true,
+      "classification": "observed",
+      "text": "        ray = np.array([(uv[0]/int(self.half_grid)-1)*math.tan(horizontal/2),"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 40,
+      "executed": true,
+      "classification": "observed",
+      "text": "        camera = np.round(ray*p30,int(self.camera_precision)) + 0.0"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 41,
+      "executed": true,
+      "classification": "observed",
+      "text": "        return dict(depth_p30=float(p30),spread=float(spread),camera_point=torch.from_numpy(camera),"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 50,
+      "executed": true,
+      "classification": "observed",
+      "text": "        super().__init__()"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 51,
+      "executed": true,
+      "classification": "observed",
+      "text": "        self.register_buffer('half_circle',torch.tensor(180))"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 52,
+      "executed": true,
+      "classification": "observed",
+      "text": "        self.register_buffer('full_circle',torch.tensor(360))"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 53,
+      "executed": true,
+      "classification": "observed",
+      "text": "        self.register_buffer('pi_ratio',torch.tensor(math.pi.as_integer_ratio()))"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 54,
+      "executed": true,
+      "classification": "observed",
+      "text": "        if not 0<float(heading_plane_min)<1:raise ValueError('invalid heading threshold')"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 55,
+      "executed": true,
+      "classification": "observed",
+      "text": "        self.register_buffer('threshold_ratio',torch.tensor(float(heading_plane_min).as_integer_ratio()))"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 58,
+      "executed": true,
+      "classification": "observed",
+      "text": "        first=np.asarray(first_rotation,dtype=np.float64)"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 59,
+      "executed": true,
+      "classification": "observed",
+      "text": "        pi_num,pi_den=self.pi_ratio.tolist()"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 60,
+      "executed": true,
+      "classification": "observed",
+      "text": "        pi=pi_num/pi_den"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 61,
+      "executed": true,
+      "classification": "observed",
+      "text": "        if operation=='availability':"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 68,
+      "executed": true,
+      "classification": "observed",
+      "text": "        if operation=='yaw':"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 70,
+      "executed": true,
+      "classification": "observed",
+      "text": "        if operation!='turn':raise ValueError('unknown heading operation')"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 71,
+      "executed": true,
+      "classification": "observed",
+      "text": "        a=first[[0,2],2];b=np.asarray(second_rotation,dtype=np.float64)[[0,2],2]"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 71,
+      "executed": true,
+      "classification": "observed",
+      "text": "        a=first[[0,2],2];b=np.asarray(second_rotation,dtype=np.float64)[[0,2],2]"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 72,
+      "executed": true,
+      "classification": "observed",
+      "text": "        angle=round(math.atan2(a[0]*b[1]-a[1]*b[0],float(a@b))*(int(self.half_circle)/pi))"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 73,
+      "executed": true,
+      "classification": "observed",
+      "text": "        half,full=int(self.half_circle),int(self.full_circle)"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 74,
+      "executed": true,
+      "classification": "observed",
+      "text": "        return (angle+half)%full-half if (angle+half)%full else half"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 27,
+      "executed": true,
+      "classification": "observed",
+      "text": "            query = torch.full((depth_map.shape[0],len(points),2),float(self.half_grid),device=depth_map.device)"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 28,
+      "executed": true,
+      "classification": "observed",
+      "text": "            query[frame-1] = torch.as_tensor(points,dtype=torch.float32,device=query.device)"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 29,
+      "executed": true,
+      "classification": "observed",
+      "text": "            sampled = depth_head.query(depth_map,query)[frame-1]"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 32,
+      "executed": true,
+      "classification": "observed",
+      "text": "            raise ValueError('invalid own depth')"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 54,
+      "executed": true,
+      "classification": "observed",
+      "text": "        if not 0<float(heading_plane_min)<1:raise ValueError('invalid heading threshold')"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 62,
+      "executed": true,
+      "classification": "observed",
+      "text": "            num,den=self.threshold_ratio.tolist()"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 63,
+      "executed": true,
+      "classification": "observed",
+      "text": "            saved=num/den"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 64,
+      "executed": true,
+      "classification": "observed",
+      "text": "            if threshold is not None and threshold!=saved:raise ValueError('heading threshold differs from artifact')"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 65,
+      "executed": true,
+      "classification": "observed",
+      "text": "            down=np.asarray(second_rotation,dtype=np.float64)"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 66,
+      "executed": true,
+      "classification": "observed",
+      "text": "            down=down/np.linalg.norm(down)"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 67,
+      "executed": true,
+      "classification": "observed",
+      "text": "            return bool(np.linalg.norm((first.T@down)[:2])>=saved)"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 69,
+      "executed": true,
+      "classification": "observed",
+      "text": "            return round(math.atan2(-first[0][2],first[2][2])*(int(self.half_circle)/pi))"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 70,
+      "executed": true,
+      "classification": "observed",
+      "text": "        if operation!='turn':raise ValueError('unknown heading operation')"
+    },
+    {
+      "file": "student_pilot/fixed_readout.py",
+      "line": 64,
+      "executed": true,
+      "classification": "observed",
+      "text": "            if threshold is not None and threshold!=saved:raise ValueError('heading threshold differs from artifact')"
+    },
+    {
+      "file": "student_pilot/ground_context.py",
+      "line": 23,
+      "executed": true,
+      "classification": "observed",
+      "text": "    def ground_route(self):"
+    },
+    {
+      "file": "student_pilot/ground_context.py",
+      "line": 27,
+      "executed": true,
+      "classification": "observed",
+      "text": "    def ground_route(self, value):"
+    },
+    {
+      "file": "student_pilot/ground_context.py",
+      "line": 52,
+      "executed": true,
+      "classification": "observed",
+      "text": "    from trace_format.readout_config import load as readout_config"
+    },
+    {
+      "file": "student_pilot/ground_context.py",
+      "line": 53,
+      "executed": true,
+      "classification": "observed",
+      "text": "    frame_count=getattr(getattr(heads,'model',None),'frame_count',readout_config()['frame_count'])"
+    },
+    {
+      "file": "student_pilot/ground_context.py",
+      "line": 54,
+      "executed": true,
+      "classification": "observed",
+      "text": "    mapping=FrameMap(tuple(indices),rgb_sha256=hashes) if len(indices)==frame_count else None"
+    },
+    {
+      "file": "student_pilot/ground_context.py",
+      "line": 24,
+      "executed": true,
+      "classification": "observed",
+      "text": "        return self.fallback"
+    },
+    {
+      "file": "student_pilot/ground_context.py",
+      "line": 28,
+      "executed": true,
+      "classification": "observed",
+      "text": "        self.fallback = value"
+    },
+    {
+      "file": "student_pilot/ground_context.py",
+      "line": 31,
+      "executed": false,
+      "classification": "CPU-reachable unresolved",
+      "text": "        if type(slot) is not int or not 1 <= slot <= len(self.frame_map.source_indices if self.frame_map is not None else ()):"
+    },
+    {
+      "file": "student_pilot/live_trace313.py",
+      "line": 81,
+      "executed": true,
+      "classification": "observed",
+      "text": "        context.ground_route=lambda n:self.owner.ground(n,context.registry)"
+    },
+    {
+      "file": "student_pilot/point_depth_head.py",
+      "line": 226,
+      "executed": true,
+      "classification": "observed",
+      "text": "        feature_map = self.encode(llm_grid, vit_grids, fov_hw)"
+    },
+    {
+      "file": "student_pilot/point_depth_head.py",
+      "line": 227,
+      "executed": true,
+      "classification": "observed",
+      "text": "        return feature_map if uv_0_1000 is None else self.query(feature_map, uv_0_1000)"
+    },
+    {
+      "file": "student_pilot/verify_pass.py",
+      "line": 330,
+      "executed": false,
+      "classification": "CPU-reachable unresolved",
+      "text": "                text=context.ground_route(name)"
+    },
+    {
+      "file": "trace_format/contracts.py",
+      "line": 81,
+      "executed": true,
+      "classification": "observed",
+      "text": "    if getattr(geometry, 'heading', None) is not None:"
+    },
+    {
+      "file": "trace_format/contracts.py",
+      "line": 82,
+      "executed": true,
+      "classification": "observed",
+      "text": "        rotation = np.eye(3) if frame == 1 else geometry.camera(frame)[0]"
+    },
+    {
+      "file": "trace_format/contracts.py",
+      "line": 83,
+      "executed": true,
+      "classification": "observed",
+      "text": "        return geometry.heading('availability', rotation, geometry.down)"
+    },
+    {
+      "file": "trace_format/readout_config.py",
+      "line": 2,
+      "executed": true,
+      "classification": "observed",
+      "text": "import json"
+    },
+    {
+      "file": "trace_format/readout_config.py",
+      "line": 3,
+      "executed": true,
+      "classification": "observed",
+      "text": "from pathlib import Path"
+    },
+    {
+      "file": "trace_format/readout_config.py",
+      "line": 5,
+      "executed": true,
+      "classification": "observed",
+      "text": "def load():"
+    },
+    {
+      "file": "trace_format/readout_config.py",
+      "line": 6,
+      "executed": true,
+      "classification": "observed",
+      "text": "    return json.loads(Path(__file__).with_suffix('.json').read_text())"
+    }
+  ]
+}

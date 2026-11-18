@@ -65,12 +65,16 @@ p('Bound-slice counts include every occurrence of the named tool-response kinds.
 p('Some rows contain independent world-box audit operands. They do not supply the original producer camera/reference transform, depth or provider-selection inputs needed to replay the serving response through the new modules. Those operands were not inferred from the printed response. Source: '+evidence('proofs/parity/BOX_OPERAND_EXAMPLES.json')+'.')
 p('The build 7 response inventory also stores printed bodies and counts, without the missing producer inputs. The separate tiny-reader inputs were replayed in place. Source: '+evidence('proofs/parity/BUILD7_INPUT_AUDIT.json')+'.')
 p()
-p('| Bound slice | Kind | Bound | Checked | Identical | Different | Blocked | Evidence |')
-p('|---|---|---:|---:|---:|---:|---:|---|')
+p(f'The inventory covers {len(parity["families"])} slice files and {sum(r["rows"] for r in parity["families"])} rows. Files without matching tool responses remain visible below; their zero counts do not establish numeric replay. Source: '+evidence('proofs/parity/BYTE_PARITY.json')+'.')
+p()
+p('| Bound slice | Rows read | Kind | Bound responses | Checked | Identical | Different | Blocked | Evidence |')
+p('|---|---:|---|---:|---:|---:|---:|---:|---|')
 for family in parity['families']:
     name=str(Path(family['source']).relative_to(L.parent/'work/rows_slices'))
+    if not family['response_kinds']:
+        p(f'| {name} | {family["rows"]} | No matching tool response | 0 | 0 | 0 | 0 | 0 | {evidence("proofs/parity/BYTE_PARITY.json")} |')
     for kind,c in family['response_kinds'].items():
-        p(f'| {name} | {kind} | {c["bound"]} | {c["checked"]} | {c["identical"]} | {c["different"]} | {c["blocked"]} | {evidence("proofs/parity/BYTE_PARITY.json")} |')
+        p(f'| {name} | {family["rows"]} | {kind} | {c["bound"]} | {c["checked"]} | {c["identical"]} | {c["different"]} | {c["blocked"]} | {evidence("proofs/parity/BYTE_PARITY.json")} |')
 p()
 p('## EAT-1 clauses')
 p()
@@ -131,6 +135,7 @@ base_result=read('proofs/suite_base/results.json')
 p(f'| Untouched base | {base_result["tests"]} | {len(base_result["passed"])} | See paired classification | Not applicable | Not applicable | '+evidence('proofs/suite_base/results.json')+' |')
 p()
 p('Run/pass counts retain scheduled executions. Failure counts include subtests and import/setup errors and need not sum to the execution count. A failure is pre-existing only when the paired base cause matches or the unchanged unsupported-reader guard is authenticated. Sources: '+evidence('SUITE_COMPARISON.json')+', '+evidence('LEGACY_GUARDS.json')+'.')
+p('The comparison matches normalized cause categories for each test; its receipt retains both raw traces so the reviewer can inspect that classification. Source: '+evidence('compare.py')+'.')
 for r in comparison['failures']:
     if not r['preexisting']:p('- Regression event: `'+r['test']+'`: '+r['cause']+'. Source: '+evidence('SUITE_COMPARISON.json')+'.')
 p()

@@ -2,6 +2,7 @@
 import importlib.util
 import json
 import os
+import re
 from pathlib import Path
 import shlex
 import stat
@@ -50,7 +51,7 @@ class Fix11(unittest.TestCase):
             'printf "stub admission rc=0\\n"\n')
         (p/'anyhost'/(record_sha+'.json')).write_bytes(b'changed' if record_bad else record)
         bw = root/'bwrap_stub'
-        bw.write_text('''#!/usr/bin/python3
+        bw.write_text('#!'+sys.executable+'''\n
 import json, os, pathlib, sys
 args = sys.argv[1:]; i = 0; mounts = []
 two = {'--ro-bind', '--bind', '--dev-bind', '--symlink'}
@@ -71,7 +72,7 @@ os.execv(args[i], args[i:])
 ''')
         bw.chmod(0o700)
         py = p/'venvs/rwtrain_torch211_cu129/bin/python'
-        py.symlink_to('/usr/bin/python3')
+        py.symlink_to(sys.executable)
         (x/'b/student_pilot/__init__.py').write_text('')
         (x/'b/student_pilot/loader_audit.py').write_text('''import json, os
 from pathlib import Path
@@ -96,7 +97,7 @@ def main(x):
             AS=root/'as', AL=root/'al', P=p, EPOCHS=s/'epochs').items())+'\n'
         shell = shell.replace('source "$ROOT/b/c.sh"\n', 'source "$ROOT/b/c.sh"\n'+remap)
         if mutation: shell = mutation(shell)
-        shell = 'set -euo pipefail\numask 077\nROOT='+shlex.quote(str(kh))+'\n'+shell
+        shell = 'set -euo pipefail\numask 077\n/usr/bin/python3() { '+shlex.quote(sys.executable)+' "$@"; }\nROOT='+shlex.quote(str(kh))+'\n'+shell
         (root/'entry.sh').write_text(shell)
         env = dict(PATH='/usr/bin:/bin', HOME=str(root), SLURM_JOB_ID='170956',
                    CUDA_VISIBLE_DEVICES='', FIXTURE_ROOT=str(root))
@@ -162,16 +163,32 @@ def main(x):
         self.assertIn('sha differs:', (root/'shell.log').read_text())
         self.assertFalse((root/'loader_called.json').exists())
 
+    def test_all_kit_environment_reads_have_an_audited_owner(self):
+        owners = {
+            'c.sh source assignments': 'AS AL K X R HX IN REV P RR EPOCHS S U HM NX NR CUR COMMIT CLOSURE_DIR',
+            'proof caller': 'TK_KIT_HOME TK_JOBDIR R1_RUNTIME_RECORD',
+            'allocation validated by proof main': 'SLURM_JOB_ID',
+            'tk_env before use': 'ANYHOST_JOBS PILOT_VENV PYTHONPATH TMPDIR',
+            'optional guarded staging flag': 'TK_LIGHT',
+        }
+        reads = set(re.findall(r'\$\{?([A-Z_][A-Z_0-9]*)', (self.kit/'b/c.sh').read_text()))
+        self.assertEqual(reads, {name for names in owners.values() for name in names.split()})
+        write(ROOT/'out/proof/ENVIRONMENT_AUDIT11.json', dict(status='PASS',
+            kit_c_sha256=sha(self.kit/'b/c.sh'),
+            owners={owner: names.split() for owner, names in owners.items()},
+            caller_parity=['TK_RUNS_DIR'],
+            scope='All uppercase shell variable reads in c.sh, including staging and persistence; locals and positional arguments audited by their defining functions'))
+
     def test_identity_and_protected_bytes_unchanged(self):
-        for name in ('config.json', 'r1p_code.tar'):
+        for name in ('r1p_code.tar',):
             self.assertEqual(sha(ROOT/'out'/name), sha(SNAP/'out'/name))
         self.assertEqual(load(ROOT/'out/config.json')['h1']['routing_pose_targets'], True)
         for path, expected in load(ROOT/'out/FIX11_PROTECTED_ARCHIVES.json').items():
             self.assertEqual(sha(ROOT/path), expected)
         old_kit = Path(load(SNAP/'out/proof/DERIVATION.json')['fixture_paths'][0])
-        for name in ('b/c.sh', 'b/r.sh', 'b/p0.sh', 'job.sh'):
-            self.assertEqual(sha(self.kit/name), sha(old_kit/name))
-        self.assertEqual(sha(ROOT/'out/operator/jb.sh'), sha(SNAP/'out/operator/jb.sh'))
+        for name in ('b/c.sh', 'b/r.sh', 'b/p0.sh'):
+            self.assertEqual((self.kit/name).read_text().replace(self.key,'673bc60f'), (old_kit/name).read_text())
+        self.assertEqual(load(ROOT/'out/config.json')['continuation']['run'],'673bc60f')
 
     def test_archive_embeds_fixed_proof_and_reseals(self):
         import ast

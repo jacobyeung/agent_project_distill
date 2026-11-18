@@ -1,0 +1,737 @@
+{
+  "method": "Standard-library sys.monitoring line observations, exact source-file SHA matched; no inferred execution. Harness observations do not use the production compiled-code fingerprint filter.",
+  "sources": [
+    "work/build10/proofs/g8_contract/COVERAGE.json",
+    "work/build10/proofs/g8_available/COVERAGE.json",
+    "work/build10/proofs/adapter_manifest/COVERAGE.json"
+  ],
+  "classes": {
+    "observed harness": 47,
+    "unobserved harness": 12,
+    "observed test": 44
+  },
+  "statements": [
+    {
+      "file": "adapters/build10_manifest.py",
+      "line": 2,
+      "executed": true,
+      "kind": "harness",
+      "text": "import os"
+    },
+    {
+      "file": "adapters/build10_manifest.py",
+      "line": 3,
+      "executed": true,
+      "kind": "harness",
+      "text": "from pathlib import Path"
+    },
+    {
+      "file": "adapters/build10_manifest.py",
+      "line": 5,
+      "executed": true,
+      "kind": "harness",
+      "text": "def entries(model,tree,artifact,modules):"
+    },
+    {
+      "file": "adapters/build10_manifest.py",
+      "line": 6,
+      "executed": true,
+      "kind": "harness",
+      "text": "    result=dict(modules)"
+    },
+    {
+      "file": "adapters/build10_manifest.py",
+      "line": 7,
+      "executed": true,
+      "kind": "harness",
+      "text": "    for name in ('depth_readout','heading'):"
+    },
+    {
+      "file": "adapters/build10_manifest.py",
+      "line": 11,
+      "executed": true,
+      "kind": "harness",
+      "text": "    config=Path(tree)/'trace_format/readout_config.json'"
+    },
+    {
+      "file": "adapters/build10_manifest.py",
+      "line": 12,
+      "executed": true,
+      "kind": "harness",
+      "text": "    files={'weights.pt':'lm',os.path.relpath(config,artifact):'config'}"
+    },
+    {
+      "file": "adapters/build10_manifest.py",
+      "line": 13,
+      "executed": true,
+      "kind": "harness",
+      "text": "    if hasattr(model.auxiliary_heads,'geometry_encoder'):"
+    },
+    {
+      "file": "adapters/build10_manifest.py",
+      "line": 20,
+      "executed": true,
+      "kind": "harness",
+      "text": "    return files,result"
+    },
+    {
+      "file": "adapters/build10_manifest.py",
+      "line": 8,
+      "executed": true,
+      "kind": "harness",
+      "text": "        module=getattr(model.auxiliary_heads,name)"
+    },
+    {
+      "file": "adapters/build10_manifest.py",
+      "line": 9,
+      "executed": true,
+      "kind": "harness",
+      "text": "        result['auxiliary_heads.'+name]=dict(role='fixed_math',name=name,inputs=module.inputs,outputs=module.outputs,"
+    },
+    {
+      "file": "adapters/build10_manifest.py",
+      "line": 14,
+      "executed": true,
+      "kind": "harness",
+      "text": "        files[os.path.relpath(Path(tree)/'configs/gf1_stage1.json',artifact)]='config'"
+    },
+    {
+      "file": "adapters/build10_manifest.py",
+      "line": 15,
+      "executed": true,
+      "kind": "harness",
+      "text": "        source=Path(tree)/'student_pilot'"
+    },
+    {
+      "file": "adapters/build10_manifest.py",
+      "line": 16,
+      "executed": true,
+      "kind": "harness",
+      "text": "        paths=[source/'g3t_online.py',*sorted((source/'g3t_vendor').rglob('*.py'))]"
+    },
+    {
+      "file": "adapters/build10_manifest.py",
+      "line": 17,
+      "executed": true,
+      "kind": "harness",
+      "text": "        names=[os.path.relpath(p,artifact) for p in paths]"
+    },
+    {
+      "file": "adapters/build10_manifest.py",
+      "line": 18,
+      "executed": true,
+      "kind": "harness",
+      "text": "        files.update({p:'tower' for p in names})"
+    },
+    {
+      "file": "adapters/build10_manifest.py",
+      "line": 19,
+      "executed": true,
+      "kind": "harness",
+      "text": "        result['auxiliary_heads.geometry_encoder']=dict(result['auxiliary_heads.geometry_encoder'],files=names)"
+    },
+    {
+      "file": "adapters/c8r_tiny.py",
+      "line": 81,
+      "executed": false,
+      "kind": "harness",
+      "text": "            from .build10_manifest import entries"
+    },
+    {
+      "file": "adapters/c8r_tiny.py",
+      "line": 82,
+      "executed": false,
+      "kind": "harness",
+      "text": "            files,modules=entries(model,tree,art,MODULES)"
+    },
+    {
+      "file": "adapters/c8r_tiny.py",
+      "line": 83,
+      "executed": false,
+      "kind": "harness",
+      "text": "            write_manifest(art/'ARTIFACT.json', art, files, modules)"
+    },
+    {
+      "file": "adapters/gf1_tiny.py",
+      "line": 50,
+      "executed": false,
+      "kind": "harness",
+      "text": "            from .build10_manifest import entries"
+    },
+    {
+      "file": "adapters/gf1_tiny.py",
+      "line": 51,
+      "executed": false,
+      "kind": "harness",
+      "text": "            files,modules=entries(model,tree,art,MODULES)"
+    },
+    {
+      "file": "adapters/gf1_tiny.py",
+      "line": 52,
+      "executed": false,
+      "kind": "harness",
+      "text": "            write_manifest(art/'ARTIFACT.json', art, files, modules)"
+    },
+    {
+      "file": "artifact.py",
+      "line": 80,
+      "executed": true,
+      "kind": "harness",
+      "text": "    def _check_buffers(self, path, mod):"
+    },
+    {
+      "file": "artifact.py",
+      "line": 38,
+      "executed": true,
+      "kind": "harness",
+      "text": "        self.buffer_offenders = []"
+    },
+    {
+      "file": "artifact.py",
+      "line": 70,
+      "executed": true,
+      "kind": "harness",
+      "text": "        self.buffer_offenders = []"
+    },
+    {
+      "file": "artifact.py",
+      "line": 81,
+      "executed": true,
+      "kind": "harness",
+      "text": "        import torch"
+    },
+    {
+      "file": "artifact.py",
+      "line": 82,
+      "executed": true,
+      "kind": "harness",
+      "text": "        declared = self.modules[path]['buffers']"
+    },
+    {
+      "file": "artifact.py",
+      "line": 83,
+      "executed": true,
+      "kind": "harness",
+      "text": "        live = dict(mod.named_buffers())"
+    },
+    {
+      "file": "artifact.py",
+      "line": 84,
+      "executed": true,
+      "kind": "harness",
+      "text": "        if set(declared) != set(live) or not set(live) <= set(mod.state_dict()):"
+    },
+    {
+      "file": "artifact.py",
+      "line": 86,
+      "executed": true,
+      "kind": "harness",
+      "text": "        for name, binding in declared.items():"
+    },
+    {
+      "file": "artifact.py",
+      "line": 45,
+      "executed": true,
+      "kind": "harness",
+      "text": "            if entry.get('role') == 'fixed_math':"
+    },
+    {
+      "file": "artifact.py",
+      "line": 74,
+      "executed": true,
+      "kind": "harness",
+      "text": "            if role == 'fixed_math':"
+    },
+    {
+      "file": "artifact.py",
+      "line": 85,
+      "executed": false,
+      "kind": "harness",
+      "text": "            raise ValueError(f'fixed_math {path!r} must declare every persistent buffer')"
+    },
+    {
+      "file": "artifact.py",
+      "line": 87,
+      "executed": true,
+      "kind": "harness",
+      "text": "            rel, key = binding['file'], binding['key']"
+    },
+    {
+      "file": "artifact.py",
+      "line": 88,
+      "executed": true,
+      "kind": "harness",
+      "text": "            if rel not in self.files or sha256(self.root/rel) != self.files[rel]['sha256']:"
+    },
+    {
+      "file": "artifact.py",
+      "line": 90,
+      "executed": true,
+      "kind": "harness",
+      "text": "            if rel.endswith('.safetensors'):"
+    },
+    {
+      "file": "artifact.py",
+      "line": 95,
+      "executed": true,
+      "kind": "harness",
+      "text": "            saved = tensors[key]"
+    },
+    {
+      "file": "artifact.py",
+      "line": 96,
+      "executed": true,
+      "kind": "harness",
+      "text": "            value = live[name].detach().cpu().contiguous()"
+    },
+    {
+      "file": "artifact.py",
+      "line": 97,
+      "executed": true,
+      "kind": "harness",
+      "text": "            saved = saved.detach().cpu().contiguous()"
+    },
+    {
+      "file": "artifact.py",
+      "line": 98,
+      "executed": true,
+      "kind": "harness",
+      "text": "            def digest(t):"
+    },
+    {
+      "file": "artifact.py",
+      "line": 100,
+      "executed": true,
+      "kind": "harness",
+      "text": "            expected, actual = digest(saved), digest(value)"
+    },
+    {
+      "file": "artifact.py",
+      "line": 101,
+      "executed": true,
+      "kind": "harness",
+      "text": "            if actual != expected:"
+    },
+    {
+      "file": "artifact.py",
+      "line": 46,
+      "executed": true,
+      "kind": "harness",
+      "text": "                if not all(isinstance(entry.get(k), list) and entry[k] for k in ('inputs', 'outputs')):"
+    },
+    {
+      "file": "artifact.py",
+      "line": 48,
+      "executed": true,
+      "kind": "harness",
+      "text": "                if not isinstance(entry.get('buffers'), dict):"
+    },
+    {
+      "file": "artifact.py",
+      "line": 75,
+      "executed": true,
+      "kind": "harness",
+      "text": "                if any(True for _ in mod.parameters()):"
+    },
+    {
+      "file": "artifact.py",
+      "line": 77,
+      "executed": true,
+      "kind": "harness",
+      "text": "                self._check_buffers(path, mod)"
+    },
+    {
+      "file": "artifact.py",
+      "line": 89,
+      "executed": false,
+      "kind": "harness",
+      "text": "                raise ValueError(f'fixed_math {path!r} buffer file is not authenticated')"
+    },
+    {
+      "file": "artifact.py",
+      "line": 91,
+      "executed": false,
+      "kind": "harness",
+      "text": "                from safetensors.torch import load_file"
+    },
+    {
+      "file": "artifact.py",
+      "line": 92,
+      "executed": false,
+      "kind": "harness",
+      "text": "                tensors = load_file(str(self.root/rel))"
+    },
+    {
+      "file": "artifact.py",
+      "line": 94,
+      "executed": true,
+      "kind": "harness",
+      "text": "                tensors = torch.load(self.root/rel, map_location='cpu', weights_only=True)"
+    },
+    {
+      "file": "artifact.py",
+      "line": 99,
+      "executed": true,
+      "kind": "harness",
+      "text": "                return hashlib.sha256(str((t.dtype, tuple(t.shape))).encode()+t.reshape(-1).view(torch.uint8).numpy().tobytes()).hexdigest()"
+    },
+    {
+      "file": "artifact.py",
+      "line": 102,
+      "executed": true,
+      "kind": "harness",
+      "text": "                self.buffer_offenders.append(dict(kind='fixed_math_buffer_mismatch', module=path,"
+    },
+    {
+      "file": "artifact.py",
+      "line": 47,
+      "executed": false,
+      "kind": "harness",
+      "text": "                    raise ValueError(f'fixed_math {name!r} requires declared inputs and outputs')"
+    },
+    {
+      "file": "artifact.py",
+      "line": 49,
+      "executed": false,
+      "kind": "harness",
+      "text": "                    raise ValueError(f'fixed_math {name!r} requires declared buffers')"
+    },
+    {
+      "file": "artifact.py",
+      "line": 76,
+      "executed": true,
+      "kind": "harness",
+      "text": "                    raise ValueError(f'fixed_math {path!r} must have zero parameters')"
+    },
+    {
+      "file": "run.py",
+      "line": 238,
+      "executed": true,
+      "kind": "harness",
+      "text": "    offenders += artifact.buffer_offenders"
+    },
+    {
+      "file": "run.py",
+      "line": 529,
+      "executed": true,
+      "kind": "harness",
+      "text": "    binds |= {str((artifact.root / rel).resolve()) for rel in artifact.files}"
+    },
+    {
+      "file": "tests/test_eat1.py",
+      "line": 42,
+      "executed": true,
+      "kind": "test",
+      "text": "class FixedMathContract(unittest.TestCase):"
+    },
+    {
+      "file": "tests/test_eat1.py",
+      "line": 43,
+      "executed": true,
+      "kind": "test",
+      "text": "    def make(self):"
+    },
+    {
+      "file": "tests/test_eat1.py",
+      "line": 62,
+      "executed": true,
+      "kind": "test",
+      "text": "    def test_valid_fixed_math(self):"
+    },
+    {
+      "file": "tests/test_eat1.py",
+      "line": 69,
+      "executed": true,
+      "kind": "test",
+      "text": "    def test_parameter_refuses(self):"
+    },
+    {
+      "file": "tests/test_eat1.py",
+      "line": 76,
+      "executed": true,
+      "kind": "test",
+      "text": "    def test_changed_buffer_fails_a1(self):"
+    },
+    {
+      "file": "tests/test_eat1.py",
+      "line": 84,
+      "executed": true,
+      "kind": "test",
+      "text": "    def test_outside_constant_still_fails_a3(self):"
+    },
+    {
+      "file": "tests/test_eat1.py",
+      "line": 89,
+      "executed": true,
+      "kind": "test",
+      "text": "    def test_outside_status_still_fails_a4(self):"
+    },
+    {
+      "file": "tests/test_eat1.py",
+      "line": 44,
+      "executed": true,
+      "kind": "test",
+      "text": "        import torch"
+    },
+    {
+      "file": "tests/test_eat1.py",
+      "line": 45,
+      "executed": true,
+      "kind": "test",
+      "text": "        from torch import nn"
+    },
+    {
+      "file": "tests/test_eat1.py",
+      "line": 46,
+      "executed": true,
+      "kind": "test",
+      "text": "        from eat1.artifact import Artifact, write_manifest"
+    },
+    {
+      "file": "tests/test_eat1.py",
+      "line": 47,
+      "executed": true,
+      "kind": "test",
+      "text": "        class Math(nn.Module):"
+    },
+    {
+      "file": "tests/test_eat1.py",
+      "line": 53,
+      "executed": true,
+      "kind": "test",
+      "text": "        model = nn.Module()"
+    },
+    {
+      "file": "tests/test_eat1.py",
+      "line": 54,
+      "executed": true,
+      "kind": "test",
+      "text": "        model.math = Math()"
+    },
+    {
+      "file": "tests/test_eat1.py",
+      "line": 55,
+      "executed": true,
+      "kind": "test",
+      "text": "        root = Path(tempfile.mkdtemp())"
+    },
+    {
+      "file": "tests/test_eat1.py",
+      "line": 56,
+      "executed": true,
+      "kind": "test",
+      "text": "        torch.save(model.state_dict(), root/'buffers.pt')"
+    },
+    {
+      "file": "tests/test_eat1.py",
+      "line": 57,
+      "executed": true,
+      "kind": "test",
+      "text": "        write_manifest(root/'ARTIFACT.json', root, {'buffers.pt': 'head'}, {"
+    },
+    {
+      "file": "tests/test_eat1.py",
+      "line": 60,
+      "executed": true,
+      "kind": "test",
+      "text": "        return model, Artifact(root/'ARTIFACT.json')"
+    },
+    {
+      "file": "tests/test_eat1.py",
+      "line": 63,
+      "executed": true,
+      "kind": "test",
+      "text": "        import torch"
+    },
+    {
+      "file": "tests/test_eat1.py",
+      "line": 64,
+      "executed": true,
+      "kind": "test",
+      "text": "        model, art = self.make()"
+    },
+    {
+      "file": "tests/test_eat1.py",
+      "line": 65,
+      "executed": true,
+      "kind": "test",
+      "text": "        self.assertEqual(art.module_roles(model)[0][2], 'fixed_math')"
+    },
+    {
+      "file": "tests/test_eat1.py",
+      "line": 66,
+      "executed": true,
+      "kind": "test",
+      "text": "        self.assertEqual(float(model.math(torch.tensor(3.))), 6.)"
+    },
+    {
+      "file": "tests/test_eat1.py",
+      "line": 67,
+      "executed": true,
+      "kind": "test",
+      "text": "        self.assertEqual(R.judge_a1([], art, [])['status'], 'PASS')"
+    },
+    {
+      "file": "tests/test_eat1.py",
+      "line": 70,
+      "executed": true,
+      "kind": "test",
+      "text": "        import torch"
+    },
+    {
+      "file": "tests/test_eat1.py",
+      "line": 71,
+      "executed": true,
+      "kind": "test",
+      "text": "        model, art = self.make()"
+    },
+    {
+      "file": "tests/test_eat1.py",
+      "line": 72,
+      "executed": true,
+      "kind": "test",
+      "text": "        model.math.extra = torch.nn.Parameter(torch.ones(1), requires_grad=False)"
+    },
+    {
+      "file": "tests/test_eat1.py",
+      "line": 73,
+      "executed": true,
+      "kind": "test",
+      "text": "        with self.assertRaisesRegex(ValueError, 'zero parameters'):"
+    },
+    {
+      "file": "tests/test_eat1.py",
+      "line": 77,
+      "executed": true,
+      "kind": "test",
+      "text": "        model, art = self.make()"
+    },
+    {
+      "file": "tests/test_eat1.py",
+      "line": 78,
+      "executed": true,
+      "kind": "test",
+      "text": "        model.math.scale.fill_(3.)"
+    },
+    {
+      "file": "tests/test_eat1.py",
+      "line": 79,
+      "executed": true,
+      "kind": "test",
+      "text": "        art.module_roles(model)"
+    },
+    {
+      "file": "tests/test_eat1.py",
+      "line": 80,
+      "executed": true,
+      "kind": "test",
+      "text": "        result = R.judge_a1([], art, [])"
+    },
+    {
+      "file": "tests/test_eat1.py",
+      "line": 81,
+      "executed": true,
+      "kind": "test",
+      "text": "        self.assertEqual(result['status'], 'FAIL')"
+    },
+    {
+      "file": "tests/test_eat1.py",
+      "line": 82,
+      "executed": true,
+      "kind": "test",
+      "text": "        self.assertEqual(result['offenders'][0]['kind'], 'fixed_math_buffer_mismatch')"
+    },
+    {
+      "file": "tests/test_eat1.py",
+      "line": 85,
+      "executed": true,
+      "kind": "test",
+      "text": "        path = Path(tempfile.mkdtemp())/'handler.py'"
+    },
+    {
+      "file": "tests/test_eat1.py",
+      "line": 86,
+      "executed": true,
+      "kind": "test",
+      "text": "        path.write_text('def handler(x):\\n    return x * 500.0\\n')"
+    },
+    {
+      "file": "tests/test_eat1.py",
+      "line": 87,
+      "executed": true,
+      "kind": "test",
+      "text": "        self.assertIn('A3.constant', {f['rule'] for f in S.scan([path])[0]})"
+    },
+    {
+      "file": "tests/test_eat1.py",
+      "line": 90,
+      "executed": true,
+      "kind": "test",
+      "text": "        path = Path(tempfile.mkdtemp())/'handler.py'"
+    },
+    {
+      "file": "tests/test_eat1.py",
+      "line": 91,
+      "executed": true,
+      "kind": "test",
+      "text": "        path.write_text(\"def handler(x):\\n    return 'not seen'\\n\")"
+    },
+    {
+      "file": "tests/test_eat1.py",
+      "line": 92,
+      "executed": true,
+      "kind": "test",
+      "text": "        self.assertTrue(any(f['clause']=='A4' for f in S.scan([path])[0]))"
+    },
+    {
+      "file": "tests/test_eat1.py",
+      "line": 48,
+      "executed": true,
+      "kind": "test",
+      "text": "            def __init__(self):"
+    },
+    {
+      "file": "tests/test_eat1.py",
+      "line": 51,
+      "executed": true,
+      "kind": "test",
+      "text": "            def forward(self, value):"
+    },
+    {
+      "file": "tests/test_eat1.py",
+      "line": 74,
+      "executed": true,
+      "kind": "test",
+      "text": "            art.module_roles(model)"
+    },
+    {
+      "file": "tests/test_eat1.py",
+      "line": 49,
+      "executed": true,
+      "kind": "test",
+      "text": "                super().__init__()"
+    },
+    {
+      "file": "tests/test_eat1.py",
+      "line": 50,
+      "executed": true,
+      "kind": "test",
+      "text": "                self.register_buffer('scale', torch.tensor(2., dtype=torch.float64))"
+    },
+    {
+      "file": "tests/test_eat1.py",
+      "line": 52,
+      "executed": true,
+      "kind": "test",
+      "text": "                return value * self.scale"
+    },
+    {
+      "file": "toy/adversarial.py",
+      "line": 693,
+      "executed": true,
+      "kind": "harness",
+      "text": "        write_manifest(Path(u['move']).parent/'artifact'/'ARTIFACT.json', Path(u['move']).parent/'artifact',"
+    }
+  ],
+  "blocked_test": "eat1.tests.test_eat1.StraceSource.test_strace_sees_the_planted_table: PTRACE_TRACEME denied; original failure retained at proofs/g8/test.log"
+}

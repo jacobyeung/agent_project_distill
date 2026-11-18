@@ -1,5 +1,5 @@
 """Derive R1 from the authenticated H1 deployment; never edit the source kit."""
-import argparse,copy,hashlib,json,os,re,shutil,sys
+import argparse,copy,datetime,hashlib,importlib.util,json,os,re,shutil,sys
 from pathlib import Path
 AS='/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/'
 def enc(v):return json.dumps(v,sort_keys=True,separators=(',',':'),allow_nan=False)
@@ -18,6 +18,60 @@ def identity(cfg):
     return hashlib.sha256(enc(v).encode()).hexdigest()
 def digest(v):return hashlib.sha256(enc(v).encode()).hexdigest()
 def safe(n):return not Path(n).is_absolute() and all(x not in ('','.','..') for x in n.split('/'))
+
+def validate_switches(cfg):
+    """Admit only S2 with S1 off and both own-sampling probabilities zero."""
+    h=cfg.get('h1',{})
+    schedules=(cfg.get('scheduled_sampling',{}),cfg.get('recipe',{}).get('scheduled_sampling',{}))
+    if (h.get('routing_pose_targets') is not True or h.get('faithful_own_camera_rows') is not False
+            or any(type(s.get('max_own_probability')) not in (int,float)
+                   or s['max_own_probability']!=0 for s in schedules)):
+        raise ValueError('Launch requires S2=true, S1=false, and both max_own_probability=0')
+
+def validate_evidence(root):
+    """Check pre-submission records without initializing allocation state."""
+    # g.check always reaches persistent_launch for this kit. Reuse only its
+    # read-only helpers and d.contract; job.sh retains the full runtime check.
+    old_path=sys.path[:];old_bytecode=sys.dont_write_bytecode
+    try:
+        sys.dont_write_bytecode=True
+        sys.path.insert(0,str(root/'b'))
+        def inherited(name):
+            spec=importlib.util.spec_from_file_location('_r1_inherited_'+name,root/'b'/(name+'.py'))
+            module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+            return module
+        gate=inherited('g');admission=inherited('d')
+        launch=load(root/'k/launch.json');cfg=gate.read_pin(root,launch['config'])
+        code=load(root/'k/7.json');config_sha=gate.identity(cfg);commit=code['commit']
+        contract_sha=gate.digest(admission.contract(launch,cfg))
+        review=gate.read_pin(root,launch['review'])
+        staged=gate.read_pin(root,launch['staging'])
+        archived=gate.read_pin(root,launch['archive'])
+        auth=load(root/'k/4.json')
+        for name,record in (('review.json',review),('staging.json',staged),('4.json',auth)):
+            if record.get('config_sha256')!=config_sha or record.get('source_revision')!=commit:
+                raise ValueError('Evidence identity or source differs: '+name)
+        if (review.get('verdict')!='PASS' or not review.get('reviewer')
+                or cfg.get('admission',{}).get('sha256')!=launch['review']['sha256']
+                or review.get('admission_contract_sha256')!=contract_sha
+                or review.get('admission_scope')!='pinned-template-and-native-data-derivation'):
+            raise ValueError('Independent review does not cover the in-job derivation')
+        if (staged.get('status')!='PASS' or staged.get('missing')!=[]
+                or staged.get('project_community_write_bytes')!=0):
+            raise ValueError('Read-only cache staging is not verified')
+        if (archived.get('status')!='ARCHIVED' or archived.get('durable') is not True
+                or archived.get('sha256')!=code['archive']['sha256']
+                or archived.get('tree_sha256')!=code['tree_sha256']
+                or not isinstance(archived.get('location'),str) or not archived['location']
+                or archived['location'].startswith(('/scratch/','/tmp/'))):
+            raise ValueError('Off-scratch source archive is not attested')
+        expiry=datetime.datetime.fromisoformat(auth['allow_until_utc'].replace('Z','+00:00'))
+        if (expiry.tzinfo is None or expiry<datetime.datetime(2026,11,22,tzinfo=datetime.timezone.utc)
+                or expiry<=datetime.datetime.now(datetime.timezone.utc) or 'p' not in auth.get('modes',[])
+                or auth.get('admission_contract_sha256')!=contract_sha):
+            raise ValueError('Written slot authorization is absent, foreign or expires too early')
+    finally:
+        sys.path[:]=old_path;sys.dont_write_bytecode=old_bytecode
 
 def derive(source,out,packet,source_manifest_sha,*,fixture=False,evidence=None,bundle=None,selection_evidence=None):
     os.umask(0o077);source=Path(source);out=Path(out);packet=Path(packet)
@@ -43,7 +97,7 @@ def derive(source,out,packet,source_manifest_sha,*,fixture=False,evidence=None,b
     cfg=load(packet/'config.json');binding=load(packet/'BINDING.json');code=load(packet/'records/c.json')
     if identity(cfg)!=binding['config_identity'] or sha(archive)!=code['archive']['sha256']:raise ValueError('Packet binding differs')
     if code['tree_sha256']!=binding['tree_sha256'] or cfg['type_mix']!=binding['mix']:raise ValueError('Packet tree or mix differs')
-    if cfg['h1']['faithful_own_camera_rows'] or cfg['h1']['routing_pose_targets']:raise ValueError('Switches must be off')
+    validate_switches(cfg)
     if out.absolute()!=out.resolve():raise ValueError('Linked output parent')
     if out.exists():raise ValueError('Output must start absent')
     out.mkdir(mode=0o700,parents=True)
@@ -71,12 +125,16 @@ def derive(source,out,packet,source_manifest_sha,*,fixture=False,evidence=None,b
     cur['record']=dict(file=AS+'8865619b/k/s1_record.json',sha256=sha(out/'k/s1_record.json'))
     location=bundle or '/project/community/jjyeung/okh7/i_'+token
     staged={str(Path(cfg['streams']['vqa']['path']).parent/'d.db'):dict(parts=[binding['orchard_store']],sha256=binding['database_sha256'])}
+    if binding.get('unit_binding'):
+        for name,value in binding['unit_binding']['artifacts'].items():
+            if sha(packet/name)!=value['sha256']:raise ValueError('Unit artifact differs')
+            staged[value['path']]=dict(parts=[location+'/'+name],sha256=value['sha256'])
     for name in binding['record_files']:
         if not re.fullmatch('[a-z0-9_]+[.]json',name):raise ValueError('Unsafe record filename')
         path=packet/'records'/name
-        dest=AS+token+'/'+path.name
+        dest=AS+binding.get('record_key',token)+'/'+path.name
         staged[dest]=dict(parts=[location+'/'+path.name],sha256=sha(path))
-    staged[AS+token+'/s.json']=dict(parts=[location+'/s.json'],sha256=sha(packet/'proof/selection/r.json'))
+    staged[AS+binding.get('record_key',token)+'/s.json']=dict(parts=[location+'/s.json'],sha256=sha(packet/'proof/selection/r.json'))
     for dest,item in staged.items():
         if any(e.get('dest')==dest for e in cur.get('extra',[])):raise ValueError('Fresh staging destination is occupied')
         cur.setdefault('extra',[]).append(dict(dest=dest,**item))
@@ -95,6 +153,7 @@ def derive(source,out,packet,source_manifest_sha,*,fixture=False,evidence=None,b
     if selected.get('selection_sha256')!=binding['selection_sha256'] or selected.get('status')!='PASS':raise ValueError('Selection evidence differs')
     if evidence:
         if not selected.get('native_regeneration_executed'):raise ValueError('Native selection regeneration required')
+        if binding.get('unit_binding') and not selected.get('native_unit_regeneration_executed'):raise ValueError('Native unit selection regeneration required')
         if fixture:raise ValueError('Fixture cannot take production evidence')
         for n in ('review.json','staging.json','4.json','archive.json'):
             value=load(Path(evidence)/n)
@@ -110,14 +169,30 @@ def derive(source,out,packet,source_manifest_sha,*,fixture=False,evidence=None,b
         launch[k]=dict(file='k/'+n,sha256=sha(out/'k'/n))
     write(out/'k/selection_equality.json',selected)
     write(out/'k/launch.json',launch)
-    names=set(manifest)|{'k/'+key+'.json','k/'+archive_name}
+    added=set()
+    if cfg.get('continuation'):
+        from importlib.util import spec_from_file_location,module_from_spec
+        spec=spec_from_file_location('_c0',packet/'c0.py');c0=module_from_spec(spec);spec.loader.exec_module(c0)
+        c0.policy(cfg,load(packet/'a0.json'))
+        for src,dest in (('c0.py','b/c0.py'),('a0.json','k/a0.json')):
+            (out/dest).write_bytes((packet/src).read_bytes());added.add(dest)
+        p=out/'job.sh';s=p.read_text().replace('13:00:00','24:00:00')
+        anchor='MODE="$(/usr/bin/python3 -I "$ROOT/b/r8.py"'
+        if s.count(anchor)!=1:raise ValueError('Mode boundary differs')
+        s=s.replace(anchor,'/usr/bin/python3 -I "$ROOT/b/c0.py" "$ROOT" "$RUN"\n'+anchor);p.write_text(s)
+        p=out/'b/r8.py';s=p.read_text();anchor='    if persistent is not None:\n'
+        if s.count(anchor)!=1:raise ValueError('Resume boundary differs')
+        s=s.replace(anchor,"    if not checkpoints and (root/'d/0.json').exists():\n        from c0 import verify, load as c_load\n        kit=Path(os.environ['TK_KIT_HOME'])\n        verify(root/'d',c_load(kit/'k/a0.json'))\n        if persistent is not None:persistent_check(root,persistent,job,'t',None,0)\n        return 'u'\n"+anchor);p.write_text(s)
+        # r8 executes before r.sh exports the kit location.
+        p=out/'job.sh';s=p.read_text().replace('/usr/bin/python3 -I "$ROOT/b/c0.py"','export TK_KIT_HOME="$ROOT"\n/usr/bin/python3 -I "$ROOT/b/c0.py"');p.write_text(s)
+        p=out/'b/w.py';s=p.read_text();anchor="        cfg['milestone_gate']=pick(auth,'milestone_gate',arm)"
+        if s.count(anchor)!=1:raise ValueError('Training boundary differs')
+        s=s.replace(anchor,"        if cfg.get('continuation'):\n            if mode!='u':raise ValueError('c0:38')\n            from c0 import install\n            install(run,cfg,json.loads((root/'k/a0.json').read_text()))\n"+anchor);p.write_text(s)
+    names=set(manifest)|{'k/'+key+'.json','k/'+archive_name}|added
     actual={n:manifest[n] if n in missing else sha(out/n) for n in sorted(names)}
     (out/'SHA256SUMS.txt').write_text(''.join(h+'  '+n+'\n' for n,h in actual.items()))
     if evidence:
-        # Execute the inherited production verifier. It authenticates review,
-        # staging, archive and authorization schemas and their full bindings.
-        sys.path.insert(0,str(out/'b'));import g
-        g.check(out,{},'p')
+        validate_evidence(out)
     result=dict(status=launch['status'],config_identity=identity(cfg),config_key=key,manifest_sha256=sha(out/'SHA256SUMS.txt'),
         source_manifest_sha256=source_manifest_sha,missing_source_members=missing,source_identity=H1_ID,
         run_key=run,staged_additions=staged,production_authorized=False,

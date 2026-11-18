@@ -1,0 +1,16 @@
+import json, sys
+from pathlib import Path
+from eat1 import run as R
+from eat1.toy.adversarial import build_adversarial, EXPECT, ITEMS, UNPROJECT
+W = Path(sys.argv[1]).resolve(); info = build_adversarial(W/'fx')
+names = sys.argv[2:] or list(EXPECT)
+for v in names:
+    out = W/'runs'/v
+    fx, items = (info['unproject_workdir'], info['unproject_move']) if v in UNPROJECT else (str(W/'fx'), info[ITEMS.get(v, 'move')])
+    R.main(['--reader', 'eat1.toy.adversarial:make_reader', '--reader-kwargs', json.dumps(dict(workdir=fx, variant=v)),
+            '--items', items, '--out', str(out), '--allowlist-extra', 'eat1/toy/allowlist_toy.json',
+            '--sandbox', '--perturb']+(['--allowlist-extra', 'eat1/toy/allowlist_native_cm.json'] if v == 'native_units' else [])+(['--allowlist-extra', 'eat1/toy/allowlist_relu6.json'] if v == 'relu6' else []))
+    rep = json.loads((out/'EAT1_REPORT.json').read_text())
+    st = {k: c['status'] for k, c in rep['clauses'].items()}
+    ok = (rep['overall'] == 'PASS') if EXPECT[v] is None else st[EXPECT[v]] == 'FAIL'
+    print('RESULT', v, 'OK' if ok else 'WRONG', rep['overall'], st, flush=True)

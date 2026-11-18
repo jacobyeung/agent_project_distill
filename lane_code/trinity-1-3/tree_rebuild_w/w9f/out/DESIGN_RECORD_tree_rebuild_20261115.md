@@ -116,3 +116,7 @@ The local fixtures, visible-frame dimensions and legacy direct-source admission 
 The status audit admits printed head failures while refusing model-authored status assertions. The faithful materializer preserves admitted answer envelopes, and genuine decision mismatches still refuse. Kit input checks require recovery rows and every requested conversion unit. The bounded census finds only simulated failure statuses; unit traces preserve printed-metre arithmetic. Full intake retains sealed eval-room refusals, so all-row full admission remains blocked. Production store, head and full-population unit bindings remain missing.
 
 The supplied lane stop proof is authenticated against unchanged exercised sources. Both kits remain GO=false. The complete outcomes, counts, source/package/kit hashes, coverage classes, EAT clauses, retained blockers and required independent admission review appear in `out/BUILD9_REPORT.md`. The local repair gate is `PASS` (`work/build9/LOCAL_REPAIR_GATE.json`).
+
+## Build 9fix
+
+The review artifact binds semantic response authentication, Unicode status matching, exact per-kit mix bytes, repaired-row extent receipts and the production division removal list. GO remains false. The full-store division proof and the exact original acceptance-count criteria remain unresolved. Source seal: `64a2ea92cc8eae041d2c763c3868f77b3ebbb26f42c258d5019b67a894b1e68a` (`out/TREE_SEAL.json`). See `out/BUILD9FIX_REPORT.md` for final suites, coverage, kit hashes, limitations and confirmation-review checks.

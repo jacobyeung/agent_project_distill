@@ -1,0 +1,111 @@
+{
+ "files": {
+  "../../../../pkg/work/tree_r1/trace_format/readout_config.json": {
+   "role": "config",
+   "sha256": "4932ab5b4c6f0a70e224a69b0ecaa79cbd0b61d6fdceb817f3afe6c6a3ad6c49"
+  },
+  "weights.pt": {
+   "role": "lm",
+   "sha256": "7f6a3f4b5a3f120196a25ddf9eb368395561d6d4c06c10e5e41ac6cd81e74937"
+  }
+ },
+ "modules": {
+  "": {
+   "name": "lm",
+   "role": "lm"
+  },
+  "auxiliary_heads.depth": {
+   "name": "depth_head",
+   "role": "head"
+  },
+  "auxiliary_heads.depth_readout": {
+   "buffers": {
+    "camera_precision": {
+     "file": "weights.pt",
+     "key": "auxiliary_heads.depth_readout.camera_precision"
+    },
+    "clip_ratio": {
+     "file": "weights.pt",
+     "key": "auxiliary_heads.depth_readout.clip_ratio"
+    },
+    "half_grid": {
+     "file": "weights.pt",
+     "key": "auxiliary_heads.depth_readout.half_grid"
+    },
+    "percentiles": {
+     "file": "weights.pt",
+     "key": "auxiliary_heads.depth_readout.percentiles"
+    },
+    "spread_floor_ratio": {
+     "file": "weights.pt",
+     "key": "auxiliary_heads.depth_readout.spread_floor_ratio"
+    },
+    "stencil": {
+     "file": "weights.pt",
+     "key": "auxiliary_heads.depth_readout.stencil"
+    }
+   },
+   "inputs": [
+    "depth_map",
+    "fov_hw",
+    "uv",
+    "frame",
+    "depth_head"
+   ],
+   "name": "depth_readout",
+   "outputs": [
+    "depth_p30",
+    "spread",
+    "camera_point",
+    "stencil_depth"
+   ],
+   "role": "fixed_math"
+  },
+  "auxiliary_heads.heading": {
+   "buffers": {
+    "full_circle": {
+     "file": "weights.pt",
+     "key": "auxiliary_heads.heading.full_circle"
+    },
+    "half_circle": {
+     "file": "weights.pt",
+     "key": "auxiliary_heads.heading.half_circle"
+    },
+    "pi_ratio": {
+     "file": "weights.pt",
+     "key": "auxiliary_heads.heading.pi_ratio"
+    },
+    "threshold_ratio": {
+     "file": "weights.pt",
+     "key": "auxiliary_heads.heading.threshold_ratio"
+    }
+   },
+   "inputs": [
+    "operation",
+    "first_rotation",
+    "second_rotation",
+    "threshold"
+   ],
+   "name": "heading",
+   "outputs": [
+    "degrees",
+    "heading_available"
+   ],
+   "role": "fixed_math"
+  },
+  "auxiliary_heads.pose": {
+   "name": "pose_head",
+   "role": "head"
+  },
+  "eat1_program_policy": {
+   "name": "program_policy",
+   "role": "lm"
+  },
+  "model.visual": {
+   "name": "vit",
+   "role": "vit"
+  }
+ },
+ "root": "/scratch/jjyeung/orch_n30/review_tree10/work/eatrun/c8r/reader/artifact",
+ "schema": "eat1-artifact-v1"
+}
