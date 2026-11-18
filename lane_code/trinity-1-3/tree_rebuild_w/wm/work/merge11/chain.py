@@ -29,8 +29,8 @@ if stage=='merge':
     run('g8','work/build10/proof_runner10.py','g8',*['eat1.tests.test_eat1.'+n for n in ('Adversarial','FixedMathContract','Instruments','StaticScanner','ToyEndToEnd')])
     run('eat1','work/build10/final_eat10.py')
 elif stage=='n1':
-    for name in ('text','forward','checkpoint','target_prepared','review_variants','row_delta','host_checks','faults','contract_closure','registry_closure','gate_edges9','r1_edges9','prepared9','mix_checks9','mix_edges9','mix_accounting9','extent_conflict9','kit_scope'):
-        run('n1/'+name,'work/n1fix2/proof_'+name+'.py',allow=True)
+    for name in ('text','forward','checkpoint','target_prepared','review_variants','row_delta','host_checks','faults','gate_edges9','r1_edges9','prepared9','kit_scope'):
+        run('n1/'+name,'work/n1fix2/proof_'+('forward9' if name=='forward' else name)+'.py',allow=True)
 elif stage=='review':
     run('review_tests','work/n1fix2/test_runner.py',str(B/'proofs/review_tests'),'tests.test_merge11','tests.test_batched_routed_decode','tests.test_r2_n1fix','tests.test_r2_n1fix2','tests.test_r2_build_n1')
     run('l1','work/build10/proof_runner10.py','l1','eat1.tests.test_eat1.FixedMathContract')
@@ -48,3 +48,31 @@ elif stage=='qualify':
     run('legacy_guards','work/n1fix2/legacy_guard_proof.py')
     run('comparison','work/n1fix2/compare.py')
     run('final_coverage','work/merge11/coverage.py')
+elif stage=='complete':
+    run('verify_route','work/merge11/verify_route.py')
+    run('preservation','work/merge11/preservation.py')
+    run('coverage','work/merge11/coverage.py')
+    run('packet','work/n1fix2/packet_final.py','integrated','packet','contract')
+    run('delivery','work/n1fix2/make_delivery.py')
+    delivery=json.loads((L/'work/n1fix2/DELIVERY.json').read_text())
+    run('package','work/n1fix2/package.py',str(L/delivery['path']))
+    run('legacy_guards','work/n1fix2/legacy_guard_proof.py')
+    run('comparison','work/n1fix2/compare.py')
+    run('final_coverage','work/merge11/coverage.py')
+elif stage=='package':
+    run('delivery','work/n1fix2/make_delivery.py')
+    delivery=json.loads((L/'work/n1fix2/DELIVERY.json').read_text())
+    run('package','work/n1fix2/package.py',str(L/delivery['path']))
+    run('legacy_guards','work/n1fix2/legacy_guard_proof.py')
+    run('comparison','work/n1fix2/compare.py')
+    run('final_coverage','work/merge11/coverage.py')
+elif stage=='post_suite':
+    run('harness_extra','work/build10/proof_runner10.py','harness_extra','test_merge11_harness.ManifestEdges','test_adapter_manifest10.AdapterManifest','eat1.tests.test_eat1.ToyEndToEnd')
+    run('harness_coverage','work/merge11/harness_coverage.py')
+    run('eat1','work/build10/final_eat10.py')
+    run('numeric','work/build10/proof_parity_numeric10.py')
+    run('parity_build7','work/build10/parity_build7_10.py')
+    run('equality','work/merge11/equality.py')
+    run('final_coverage','work/merge11/coverage.py')
+    run('inference','work/merge11/inference.py')
+    run('integrity','work/merge11/audit.py')

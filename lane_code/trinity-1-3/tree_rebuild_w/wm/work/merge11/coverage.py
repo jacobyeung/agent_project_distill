@@ -31,7 +31,9 @@ subprocess.run([sys.executable,'-I','-s','-B',str(L/'work/n1fix2/coverage.py'),*
 value=json.loads((L/'work/n1fix2/CHANGED_COVERAGE.json').read_text())
 for row in value['statements']:
     prior=mapped.get((row['file'],row['line']))
-    if not row['executed'] and prior:row.update(classification=prior['classification'],reason=prior.get('reason'),classification_source=prior['classification_source'])
+    if not row['executed']:
+        row['classification']='CPU-reachable unresolved'
+        if prior:row.update(classification=prior['classification'],reason=prior.get('reason'),classification_source=prior['classification_source'])
 value['classes']=dict(Counter(r['classification'] for r in value['statements']))
 (B/'CHANGED_COVERAGE.json').write_text(json.dumps(value,indent=2)+'\n')
 gaps=[r for r in value['statements'] if r['classification']=='CPU-reachable unresolved']

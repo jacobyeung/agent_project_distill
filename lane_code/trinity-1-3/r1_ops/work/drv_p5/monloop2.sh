@@ -6,7 +6,7 @@ cd "$D"
 while [[ ! -e "$D/monloop.stop3" ]]; do
   timeout 300 bash "$OSSH" 'bash -s' < mon2.sh > mon2_tmp.txt 2>&1
   mv -f mon2_tmp.txt mon2_last.txt
-  t=$(head -1 mon2_last.txt); s=$(grep -E "^1713(77|56)\|" mon2_last.txt | cut -d"|" -f1-5 | tr '\n' ' ')
+  t=$(head -1 mon2_last.txt); s=$(grep -E "^17(1377|1356|2180)\|" mon2_last.txt | cut -d"|" -f1-5 | tr '\n' ' ')
   sz=$(grep -E '^== ' mon2_last.txt | awk '{print $2"="$3}' | tr '\n' ' ')
   echo "$t $s $sz" >> mon2_hist.txt
   sleep $(cat "$D/monloop.sleep" 2>/dev/null || echo 70)

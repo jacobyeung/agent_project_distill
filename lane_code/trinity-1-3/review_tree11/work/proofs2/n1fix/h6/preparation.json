@@ -1,0 +1,174 @@
+{
+  "config_sha256": "ce69379be1481dd026ae4e938c541319c521256ff383c183e67449e18155b0a2",
+  "recipe": {
+    "clip_norm": 1.0,
+    "encoder_learning_rate": 1e-05,
+    "export_at_stop": true,
+    "global_batch": 288,
+    "learning_rate": 0.0001,
+    "lm_learning_rate": 1e-05,
+    "milestones": [
+      100,
+      200,
+      400,
+      600,
+      800,
+      1000
+    ],
+    "mix": [
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "pose",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "vqa",
+      "pointing",
+      "pointing",
+      "pointing",
+      "pointing",
+      "pointing",
+      "pointing",
+      "pointing",
+      "pointing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing",
+      "routing"
+    ],
+    "reference_world_size": 32,
+    "resume_every_seconds": 7200,
+    "scheduled_sampling": {
+      "depth_open_absrel": 0.25,
+      "ema_steps": 100,
+      "exposure_from_step": null,
+      "exposure_probability": 0.0,
+      "force_from_step": null,
+      "fov_open_deg": 2.0,
+      "max_own_probability": 0.0,
+      "pose_full_deg": 10.0,
+      "pose_open_deg": 20.0,
+      "seed": 17
+    },
+    "seed": 17,
+    "steps": 1000,
+    "stop_before_seconds": 3600,
+    "wall_seconds": 86400,
+    "warmup_ratio": 0.05,
+    "weight_decay": 0.01,
+    "weights": {
+      "depth": 0.05,
+      "depth_fov": 0.05,
+      "pointing": 1.0,
+      "pose": 1.0,
+      "routing": 1.0,
+      "vqa": 1.0
+    },
+    "world_size": 4
+  },
+  "schema": "c1-preparation-v1",
+  "streams": {
+    "pointing": {
+      "count": 32,
+      "database": {
+        "path": "/scratch/jjyeung/orch_n30/review_tree11/work/proofs2/n1fix/h6/pointing.db",
+        "sha256": "8c3b5cdff0d760cb11e12ae85517624d6a51b9bf580f34034371c3e9d01cdb81"
+      },
+      "receipt": {
+        "path": "/scratch/jjyeung/orch_n30/review_tree11/work/proofs2/n1fix/h6/pointing.json",
+        "sha256": "ca8e1d2e07ee5ba2d3903bdb9ab57760566dd627b7433e0c80185d77df349e04"
+      },
+      "source_count": 32
+    },
+    "pose": {
+      "count": 64,
+      "database": {
+        "path": "/scratch/jjyeung/orch_n30/review_tree11/work/proofs2/n1fix/h6/pose.db",
+        "sha256": "a6193406f4a80496aa1500ba83e40ab54b3b2af17abb45418cdc238353907440"
+      },
+      "receipt": {
+        "path": "/scratch/jjyeung/orch_n30/review_tree11/work/proofs2/n1fix/h6/pose.json",
+        "sha256": "8a89580dfc854575021ff539d40a236569c0cf07954c91a3cdc87bfa62c83467"
+      },
+      "source_count": 64
+    },
+    "routing": {
+      "count": 64,
+      "database": {
+        "path": "/scratch/jjyeung/orch_n30/review_tree11/work/proofs2/n1fix/h6/routing.db",
+        "sha256": "03be40e9ee0f61af536771520187496555e205856ac022ab80d7a11dea79f4f9"
+      },
+      "receipt": {
+        "path": "/scratch/jjyeung/orch_n30/review_tree11/work/proofs2/n1fix/h6/routing.json",
+        "sha256": "5b0f4fc407d5c96263755ad9a46d9aaf799a8777eedae8cdf4e49b9c0bdad62c"
+      },
+      "source_count": 64
+    },
+    "vqa": {
+      "count": 128,
+      "database": {
+        "path": "/scratch/jjyeung/orch_n30/review_tree11/work/proofs2/n1fix/h6/vqa.db",
+        "sha256": "6b7c7218a97f69459cfc899fcf8dc136b0e25f166456007a8079a54e07cee0ad"
+      },
+      "receipt": {
+        "path": "/scratch/jjyeung/orch_n30/review_tree11/work/proofs2/n1fix/h6/vqa.json",
+        "sha256": "f31e9c6cd5a406cdb9aa6d9491f3f5e187b763a7c64578db8ad764677c05ae6b"
+      },
+      "source_count": 128
+    }
+  },
+  "training_mode": "final"
+}

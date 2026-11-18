@@ -1,0 +1,9 @@
+#!/bin/bash
+cd /scratch/jjyeung/orch_n30/review_treen1/work/n1c3
+export CUDA_VISIBLE_DEVICES="" OMP_NUM_THREADS=2 MKL_NUM_THREADS=2 PYTHONDONTWRITEBYTECODE=1 TMPDIR=$PWD/tmp
+ulimit -f 204800
+P="/scratch/jjyeung/envs/p1cpu/bin/python -I -s -B"
+for s in "f1.py prod" seal.py f6.py f6r.py restage.py restage_r1.py; do
+  set -- $s; echo "== $s $(date -u +%T)"; timeout 1500 $P ../s4/$1 $2 > $(basename $1 .py)$2.log 2>&1; echo "rc=$?"
+done
+echo DONE

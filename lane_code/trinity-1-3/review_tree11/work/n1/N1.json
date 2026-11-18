@@ -1,0 +1,85 @@
+{
+ "clean_no_mapping": "REFUSED ValueError: P_EXPORT_PROGRESS_MISMATCH:explicit sha-bound handover_mapping required",
+ "clean_with_mapping": 200,
+ "clean_same_streams_with_mapping": 200,
+ "N_kit_like_scales": [
+  0.6,
+  0.6
+ ],
+ "N1a_P_absent_vs_N_0.6": "REFUSED ValueError: P_EXPORT_LR_SCHEDULE_MISMATCH:lm_lr_scale",
+ "N1a_P_one_vs_N_0.6": "REFUSED ValueError: P_EXPORT_LR_SCHEDULE_MISMATCH:lm_lr_scale",
+ "N1a_P_lm_only_1_vs_N_0.6": "REFUSED ValueError: P_EXPORT_LR_SCHEDULE_MISMATCH:lm_lr_scale",
+ "N1a_P_pose_only_1_vs_N_0.6": "REFUSED ValueError: P_EXPORT_LR_SCHEDULE_MISMATCH:pose_lr_scale",
+ "N1a_P_match_vs_N_0.6": 200,
+ "N1a_contract_keys": [
+  "betas",
+  "encoder_learning_rate",
+  "geometry_learning_rate",
+  "geometry_online",
+  "learning_rate",
+  "lm_learning_rate",
+  "lm_lr_scale",
+  "mdg",
+  "mdg_lora_weight_decay",
+  "pose_lr_scale",
+  "steps",
+  "warmup_ratio",
+  "weight_decay"
+ ],
+ "N1a_contract_detects_mdg": true,
+ "N1a_contract_detects_geometry_online": true,
+ "N1a_P_warmup_differs": "REFUSED ValueError: P_EXPORT_LR_SCHEDULE_MISMATCH:warmup_ratio",
+ "N1a_P_steps_differs": "REFUSED ValueError: P_EXPORT_LR_SCHEDULE_MISMATCH:steps",
+ "N1a_mapping_written_before_check": "REFUSED ValueError: P_EXPORT_LR_SCHEDULE_MISMATCH:lm_lr_scale",
+ "N1a_contract_ignores_init_artifact": true,
+ "N1a_inherited_groups": {
+  "names": [
+   "empty_pose_tokens",
+   "scale_token",
+   "token_norm.weight"
+  ],
+  "without": {
+   "llm": 6e-06,
+   "heads": 0.0001,
+   "pose": 6e-05,
+   "encoder_copy": 1e-05
+  },
+  "with_inherited": {
+   "llm": 6e-06,
+   "heads_pretrained": 1e-05,
+   "heads": 0.0001,
+   "pose": 6e-05,
+   "encoder_copy": 1e-05
+  }
+ },
+ "N1b_forged_789_with_copying_mapping": "REFUSED ValueError: P_EXPORT_TARGET_CONFIG_MISMATCH",
+ "N1b_forged_identity_only": "REFUSED ValueError: P_EXPORT_TARGET_CONFIG_MISMATCH",
+ "N1b_forged_vqa_store_only": "REFUSED ValueError: P_EXPORT_TARGET_STORES_MISMATCH",
+ "N1b_N_config_edit_after_mapping": "REFUSED ValueError: P_EXPORT_MAPPING_MISMATCH",
+ "N1b_N_stream_swap_after_mapping": "REFUSED ValueError: P_EXPORT_MAPPING_MISMATCH",
+ "N1b_excluded_fields_leave_target_unchanged": {
+  "preparation": true,
+  "admission": true,
+  "milestone_gate": true,
+  "authorization": true,
+  "r1_training.host_receipt": true,
+  "r1_training.review": true
+ },
+ "N1b_trainer_identity_excludes_preparation": true,
+ "step137_with_mapping": 137,
+ "N1c_export_identity_unchanged": true,
+ "N1c_forged_prep_cfg_binding_honest_ckpt": "REFUSED ValueError: P_EXPORT_CHECKPOINT_BINDING_MISMATCH",
+ "N1c_forged_prep_cfg_binding_AND_forged_ckpt": 200,
+ "N1c_forged_donor_plan_counts": {
+  "pointing": 32,
+  "pose": 64,
+  "routing": 64,
+  "vqa": 127
+ },
+ "N1c_artifact_training_source_seal": "ABSENT",
+ "N1c_no_checkpoint": "REFUSED ValueError: P_EXPORT_RUN_FILE_REQUIRED:complete.json",
+ "N1c_ckpt_step_199": "REFUSED ValueError: P_EXPORT_CHECKPOINT_BINDING_MISMATCH",
+ "kit_init_sha": "1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef",
+ "PARENT": "1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef",
+ "parent_544_start": 0
+}

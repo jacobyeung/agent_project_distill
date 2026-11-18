@@ -1,0 +1,1 @@
+Build n1fix2 is complete for the requested CPU/source scope. All confirmation findings are closed, CPU coverage gaps are zero, R2 failures are zero, and the only regression is BF16 parity. GO=false. Sources: out/BUILD_N1FIX2_REPORT.md, work/n1fix2/SUITE_COMPARISON.json, work/n1fix2/GAPS.json. Production P bytes, frame-host staging, GPU and inference acceptance remain unchecked.

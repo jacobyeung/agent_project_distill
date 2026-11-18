@@ -1,0 +1,540 @@
+{
+  "generator/derivgen_v7/derivgen/camera_rows.py": [
+    [
+      177,
+      "count = len(rgb['frames'])"
+    ],
+    [
+      178,
+      "_require(count in (32, 64), 'requires_32_or_64_frames')"
+    ],
+    [
+      179,
+      "_require(all(scene.gt.has(k) for k in range(1,count+1)), 'requires_exact_per_frame_poses')"
+    ],
+    [
+      180,
+      "c = np.broadcast_to(np.eye(4), (count,4,4)).copy()"
+    ],
+    [
+      181,
+      "for k in range(1,count+1):"
+    ],
+    [
+      527,
+      "_require(M == len(clip[\"frames\"]) and 1 <= i <= M and 1 <= j <= M and i != j,'invalid_camera_frame_pair')"
+    ],
+    [
+      539,
+      "pairs = list(itertools.combinations(range(1,len(clip[\"frames\"])+1),2))"
+    ]
+  ],
+  "launch_r1/entry.py": [
+    [
+      67,
+      "value = cfg['r1_training']"
+    ],
+    [
+      68,
+      "if set(value.get('store_hashes', {})) != {'pose','vqa','routing','pointing'}:"
+    ],
+    [
+      69,
+      "raise ValueError('R1_ALL_STREAM_IDENTITIES_REQUIRED')"
+    ],
+    [
+      70,
+      "from student_pilot.r1_training import boundary"
+    ],
+    [
+      71,
+      "boundary(cfg,0)"
+    ],
+    [
+      72,
+      "training_components(value['registry'], cfg)"
+    ],
+    [
+      73,
+      "if not cfg.get('r2_sampling'):"
+    ],
+    [
+      74,
+      "raise ValueError('R1_PRODUCTION_ROW_PLAN_MISSING')"
+    ],
+    [
+      75,
+      "validate_binding(cfg['r2_sampling'])"
+    ],
+    [
+      76,
+      "if value['row_plan_sha256'] != digest(cfg['r2_sampling']):"
+    ],
+    [
+      77,
+      "raise ValueError('R1_ROW_PLAN_BINDING_DIFFERS')"
+    ],
+    [
+      78,
+      "host = load(pinned(value['host_receipt'])) if value.get('host_receipt') else {}"
+    ],
+    [
+      79,
+      "review = load(pinned(value['review'])) if value.get('review') else {}"
+    ],
+    [
+      80,
+      "if (host.get('status') != 'PASS' or host.get('config_identity') != identity(cfg)"
+    ],
+    [
+      83,
+      "raise ValueError('R1_HOST_ADMISSION_MISSING')"
+    ],
+    [
+      84,
+      "from student_pilot.routing_requirements import require"
+    ],
+    [
+      85,
+      "from fractions import Fraction"
+    ],
+    [
+      86,
+      "card=load(pinned(cfg['r2_sampling']['card']))"
+    ],
+    [
+      87,
+      "mix={'cells':[dict(c,numerator=Fraction(str(c['rows_per_step'])).numerator,"
+    ],
+    [
+      89,
+      "require(mix,host['loader_audit'].get('routing_training_counts'))"
+    ],
+    [
+      90,
+      "if review.get('verdict') != 'PASS' or review.get('config_identity') != identity(cfg):"
+    ],
+    [
+      91,
+      "raise ValueError('INDEPENDENT_REVIEW_PENDING')"
+    ],
+    [
+      92,
+      "return start(cfg)"
+    ],
+    [
+      141,
+      "from launch_r2.staging import stage_inputs, validate_plan"
+    ],
+    [
+      142,
+      "staging = load(pinned(request['staging']))"
+    ],
+    [
+      143,
+      "temporary_paths(staging, job_tmp)"
+    ],
+    [
+      144,
+      "validate_plan(cfg, staging['entries'])"
+    ],
+    [
+      145,
+      "stage_inputs(staging['entries'], root)"
+    ],
+    [
+      146,
+      "def localize(value):"
+    ],
+    [
+      147,
+      "if isinstance(value, dict):"
+    ],
+    [
+      148,
+      "return {k:localize(v) for k,v in value.items()}"
+    ],
+    [
+      149,
+      "if isinstance(value, list):"
+    ],
+    [
+      150,
+      "return [localize(v) for v in value]"
+    ],
+    [
+      151,
+      "if isinstance(value, str) and value.startswith('u/'):"
+    ],
+    [
+      152,
+      "return str(root/value)"
+    ],
+    [
+      153,
+      "return value"
+    ],
+    [
+      154,
+      "staged_cfg = localize(cfg)"
+    ],
+    [
+      155,
+      "temporary_paths(staged_cfg, job_tmp)"
+    ],
+    [
+      156,
+      "from student_pilot.scene_division_gate import check_bound"
+    ],
+    [
+      157,
+      "result['scene_division'] = check_bound(staged_cfg)"
+    ],
+    [
+      158,
+      "result['assertions']['scene_division'] = True"
+    ],
+    [
+      159,
+      "from student_pilot.s1_routing import build"
+    ],
+    [
+      160,
+      "from student_pilot.mdg_parent import model_pin"
+    ],
+    [
+      161,
+      "point = load(pinned(staged_cfg['streams']['pointing']))"
+    ],
+    [
+      162,
+      "regenerated = build(staged_cfg, root/'selection', point['division'], model_pin(staged_cfg))"
+    ],
+    [
+      163,
+      "selection = load(pinned(request['routing_selection']))"
+    ],
+    [
+      164,
+      "result['assertions']['routing_selection'] = digest(regenerated) == selection['regenerated_sha256']"
+    ],
+    [
+      165,
+      "if not result['assertions']['routing_selection']:"
+    ],
+    [
+      166,
+      "raise ValueError('R1_ROUTING_SELECTION_DIFFERS')"
+    ],
+    [
+      167,
+      "from student_pilot.s1_admission import admit as native_admit"
+    ],
+    [
+      168,
+      "write(root/'c.json', staged_cfg)"
+    ],
+    [
+      169,
+      "prepared = native_admit(file_pin(root/'c.json'), root/'p', [root], threads=8, prepare_only=True)"
+    ],
+    [
+      170,
+      "result['preparation'] = prepared"
+    ],
+    [
+      172,
+      "from student_pilot.r1_loader import production_audit"
+    ],
+    [
+      173,
+      "result['loader_audit'] = production_audit(load(pinned(prepared['config'])), root/'audit')"
+    ],
+    [
+      174,
+      "result['assertions']['directory_modes'] = all(p.stat().st_mode & 0o777 == 0o700"
+    ],
+    [
+      176,
+      "if not all(result['assertions'].values()) or not result['loader_audit']['complete']:"
+    ],
+    [
+      177,
+      "raise ValueError('R1_HOST_ASSERTIONS_INCOMPLETE')"
+    ],
+    [
+      178,
+      "result['status'] = 'PASS'"
+    ]
+  ],
+  "launch_r2/host.py": [
+    [
+      257,
+      "raise ValueError('Synthetic inputs cannot admit the full host job')"
+    ],
+    [
+      275,
+      "checklist.step(4, checklist.roundtrip)"
+    ],
+    [
+      321,
+      "os.environ['STUDENT_R2_FRAME_HOST'] = '0'"
+    ],
+    [
+      322,
+      "try:"
+    ],
+    [
+      323,
+      "materialize(paths['manifests'], output/'e', full=True)"
+    ],
+    [
+      325,
+      "if str(error) != 'Full materialization requires an explicit frame-host admission':"
+    ],
+    [
+      326,
+      "raise"
+    ],
+    [
+      328,
+      "raise ValueError('Full-store admission mutation unexpectedly passed')"
+    ],
+    [
+      338,
+      "from student_pilot.r2_admission import family_admission"
+    ],
+    [
+      339,
+      "family_admission(report['intake'])"
+    ],
+    [
+      340,
+      "cfg['r2_family_admission'] = file_pin(output/'a/materialization.json')"
+    ],
+    [
+      344,
+      "from student_pilot.r2_mix import preflight"
+    ],
+    [
+      345,
+      "final = native['r2_sampling']"
+    ],
+    [
+      346,
+      "repeats = preflight(final['mix'], final['counts'], source_presence=final.get('source_presence'))"
+    ],
+    [
+      348,
+      "checklist.cfg = cfg"
+    ],
+    [
+      349,
+      "checklist.step(5, checklist.banks)"
+    ],
+    [
+      350,
+      "checklist.step(9, checklist.vocabulary)"
+    ],
+    [
+      367,
+      "checklist.step(11, checklist.outputs)"
+    ],
+    [
+      368,
+      "result['checks'] = checklist.finish()"
+    ],
+    [
+      369,
+      "(output/'0.json').write_bytes(capsule_json(result))"
+    ]
+  ],
+  "student_pilot/r1_loader.py": [
+    [
+      41,
+      "from .carrier_c1_run import Rows, prepared"
+    ],
+    [
+      42,
+      "from .r1_mix import validate_binding, plans"
+    ],
+    [
+      43,
+      "output = Path(output); output.mkdir(parents=True, exist_ok=True)"
+    ],
+    [
+      44,
+      "receipt, _ = prepared(cfg)"
+    ],
+    [
+      45,
+      "reader = Rows(receipt, None)"
+    ],
+    [
+      46,
+      "binding = cfg.get('r2_sampling')"
+    ],
+    [
+      47,
+      "if not binding:"
+    ],
+    [
+      48,
+      "raise ValueError('R1_PRODUCTION_ROW_PLAN_MISSING')"
+    ],
+    [
+      49,
+      "card, indices, allocation = validate_binding(binding)"
+    ],
+    [
+      50,
+      "counts = {s:reader.count(s) for s in STREAMS}"
+    ],
+    [
+      51,
+      "ownership = {(c['stream'], i):c['type'] for c in card['cells'] for i in indices['cells'][c['type']]}"
+    ],
+    [
+      52,
+      "repeats = Counter(); draws = Counter(); examples = {}"
+    ],
+    [
+      53,
+      "unique = set(); training_counts = {'recovery':0, 'units':{u:0 for u in ('cm','ft','in')}}"
+    ],
+    [
+      54,
+      "unit_draws = Counter(); status_draws = Counter()"
+    ],
+    [
+      55,
+      "try:"
+    ],
+    [
+      56,
+      "for plan in plans(binding, counts, 1000):"
+    ],
+    [
+      57,
+      "for stream, offsets in plan:"
+    ],
+    [
+      58,
+      "for index in offsets:"
+    ],
+    [
+      59,
+      "row, _ = reader.row(stream, index)"
+    ],
+    [
+      60,
+      "row_check(row, stream)"
+    ],
+    [
+      61,
+      "kind = ownership[(stream, index)]"
+    ],
+    [
+      62,
+      "key = (stream, row['qid'])"
+    ],
+    [
+      63,
+      "unit, statuses = row_dimensions(row)"
+    ],
+    [
+      64,
+      "if unit:"
+    ],
+    [
+      65,
+      "unit_draws[unit] += 1"
+    ],
+    [
+      66,
+      "status_draws.update(statuses)"
+    ],
+    [
+      67,
+      "if key not in unique and stream == 'routing':"
+    ],
+    [
+      68,
+      "if kind == 'recovery':"
+    ],
+    [
+      69,
+      "training_counts['recovery'] += 1"
+    ],
+    [
+      70,
+      "if kind == 'units' and unit in training_counts['units']:"
+    ],
+    [
+      71,
+      "training_counts['units'][unit] += 1"
+    ],
+    [
+      72,
+      "unique.add(key)"
+    ],
+    [
+      73,
+      "repeats[(stream, row['qid'])] += 1"
+    ],
+    [
+      74,
+      "draws[kind] += 1"
+    ],
+    [
+      75,
+      "kept = examples.setdefault(kind, {})"
+    ],
+    [
+      76,
+      "if len(kept) < 5:"
+    ],
+    [
+      77,
+      "kept[row['qid']] = dict(qid=row['qid'], row_sha256=digest(row), target=row.get('target', row.get('suffix')))"
+    ],
+    [
+      78,
+      "if max(repeats.values(), default=0) > 4:"
+    ],
+    [
+      79,
+      "raise ValueError('R1_REPEAT_LIMIT_EXCEEDED')"
+    ],
+    [
+      80,
+      "result = dict(complete=True, eligible=allocation['eligible'], draws=dict(draws),"
+    ],
+    [
+      87,
+      "write(output/'RESULT.json', result)"
+    ],
+    [
+      88,
+      "return result"
+    ],
+    [
+      90,
+      "reader.close()"
+    ]
+  ],
+  "student_pilot/r2_materialize.py": [
+    [
+      127,
+      "write(output/'materialization.json', report)"
+    ],
+    [
+      128,
+      "raise ValueError('Full materialization requires the bound sampling table')"
+    ],
+    [
+      164,
+      "receipt['r2_sampling'] = sampling"
+    ]
+  ]
+}

@@ -129,3 +129,7 @@ The sealed source implements donor-byte continuation checks, the reviewed refusa
 ## Build n1fix2
 
 The build closes optimizer-scale, target-identity, preparation-authentication, Unicode and temporary-namespace findings. It preserves the mix and exclusions. The source seal is `f1ec0cd9fdb9c791e7a78246b50c0b501f3d8edbdbad3dfcd2d6c6e6db3ea35e` (`out/TREE_SEAL.json`). Kits remain GO=false. Qualification, mutations, coverage, artifacts and unverified production requirements are recorded in `out/BUILD_N1FIX2_REPORT.md`.
+
+## Build 11 (merge)
+
+Vehicle N uses the merged source sealed as `55360c76f296c448a4297f826775d044c19ef8a639d1bc5707fa60e5a02a277c`. Kits remain GO=false. The review fixes restore invalid-depth text, make legacy export incompatibility explicit, isolate batch-row refusals and recheck harness buffers after generation. Evidence and remaining acceptance blockers: `out/BUILD11_REPORT.md`, `work/merge11/PROOF_EQUALITY.json`, `work/merge11/CHANGED_COVERAGE.json`, and `work/n1fix2/SUITE_COMPARISON.json`.

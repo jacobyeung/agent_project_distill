@@ -1,0 +1,33 @@
+197c197,198
+<     if partition not in ('advanced','general') or partition!=authority['partition']:raise ValueError('Proof partition differs')
+---
+>     if partition not in ('advanced','general','bootstrap') or partition!=authority['partition']:raise ValueError('Proof partition differs')
+>     if partition not in authority.get('allowed_partitions',('advanced','general','bootstrap')):raise ValueError('Proof partition is not authorized')
+201a203,209
+> def directory_modes(work):
+>     bad=[]
+>     for directory,children,files in os.walk(work):
+>         path=Path(directory)
+>         if path.is_symlink() or stat.S_IMODE(path.stat().st_mode)!=0o700:bad.append(str(path))
+>     return dict(status='FAIL' if bad else 'PASS',bad=bad)
+> 
+221a230,236
+> def resume_fixture(kh,work):
+>     import importlib.util
+>     spec=importlib.util.spec_from_file_location('c0',kh/'b/c0.py')
+>     module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+>     result,_,_=module.fixture(work/'c0',load(kh/'k/a0.json'),load(kh/'k/7.json'))
+>     return result
+> 
+290a306
+>         result['checks']['resume_pointer']=resume_fixture(kh,work)
+300,305c316,317
+<         bad=[]
+<         for directory,children,files in os.walk(work):
+<             path=Path(directory)
+<             if path.is_symlink() or stat.S_IMODE(path.stat().st_mode)!=0o700:bad.append(str(path))
+<         result['checks']['directory_modes']=dict(status='FAIL' if bad else 'PASS',bad=bad)
+<         required={'disk_plan','routing_selection','empty_root','temporary_paths','runtime_binaries','directory_modes','loader_audit','required_families'}
+---
+>         result['checks']['directory_modes']=directory_modes(work)
+>         required={'resume_pointer','disk_plan','routing_selection','empty_root','temporary_paths','runtime_binaries','directory_modes','loader_audit','required_families'}

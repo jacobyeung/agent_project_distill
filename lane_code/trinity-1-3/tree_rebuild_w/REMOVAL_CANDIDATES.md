@@ -10,3 +10,4 @@
 - W/w9g/out/tree_rebuild_bn1f_dad0dcc9.tar (39 MB): intermediate package of build n1fix, superseded by bn1f_0b391217.tar.
 - W/w10/out/tree_rebuild_b10_60f4bb35.tar (39 MB): intermediate package of build 10, superseded by b10_b092aa5e.tar.
 - W/wn2/out/tree_rebuild_bn1f2_bd334316.tar (41 MB): intermediate package of n1fix2, superseded by bn1f2_f1ec0cd9.tar.
+- W/wn2/work/n1fix2 and W/wn3 build outputs after their RESULTs: keep packages; proofs folders are removal candidates once build 12 is reviewed.

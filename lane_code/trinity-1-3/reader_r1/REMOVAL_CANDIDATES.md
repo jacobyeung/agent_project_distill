@@ -1,1 +1,2 @@
 - 2026-11-18 reader_r1_3: lane at 6.3 GB (cap 6 GB). Candidates: work/b1/work (1.8 GB, superseded first build), work/b1/in (664 MB), work/b2r/work (old build scratch), work/fix7/b*/checks (duplicated test fixtures; HARDLINK_PLAN.json would save 431 MB, not applied).
+- work/tmp_cmp (52 MB, 05:35Z): two unpacked payload copies used to compare 9f891bc1 vs 8be887e3; safe to remove.

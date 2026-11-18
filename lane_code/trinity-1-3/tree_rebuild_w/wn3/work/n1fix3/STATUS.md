@@ -1,0 +1,1 @@
+Build n1fix3 is complete for the requested CPU/source scope. Initialization mismatches refuse; required non-equivalent mutants are caught; CPU coverage gaps and non-BF16 regressions are zero. The sealed completion-authentication limit is documented. GO=false. Evidence: out/BUILD_N1FIX3_REPORT.md and work/n1fix3/SUITE_COMPARISON.json.

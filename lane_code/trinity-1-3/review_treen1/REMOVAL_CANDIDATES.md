@@ -9,3 +9,4 @@
 - work/n1c2/restage/r1, work/n1c2/restage_r1b (failed r1 restage attempts with package-path inputs)
 - /tmp/jjyeung_rvn5b_*, /tmp/jjyeung_rvn5c_*, /tmp/jjyeung_rvn5d_*, /tmp/jjyeung_rvn5e_1794977139 (n1fix2 confirmation N5 scratch)
 - /tmp/jjyeung_rvn5f_1794977150
+- work/n1c2/pkg/work/tmp, work/n1c2/tmp, work/n1c2/mut, work/tmp/suite_n2* (n1fix2 confirmation scratch; keep work/n1c2/*.json and work/s3/)
