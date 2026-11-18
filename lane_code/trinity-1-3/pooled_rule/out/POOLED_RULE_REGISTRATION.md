@@ -48,8 +48,8 @@ Method of lane card_fix: double bootstrap on the paired D0 m200 reads of both se
 | (b) direction easy, medium, hard | 0.84, 0.73, 0.75 | 0.65, 0.61, 0.65 | 0.71, 0.57, 0.60 | 0.48, 0.43, 0.49 |
 | (b) route planning (dev-S1 only) / appearance order (R0-dev only) | 0.42 / 0.54 | 0.42 / 0.06 (not tested) | 0.25 / 0.35 | 0.26 / 0.02 |
 | (c) Uniform -2 on every type: flips / shifted | 0.59 / 0.61 | 0.42 / 0.49 | 0.37 / 0.39 | 0.24 / 0.29 |
-| Uniform -3 and -4, H2 alone | 0.87 and 0.99 | 0.70 and 0.91 | 0.73 and 0.95 | 0.50 and 0.79 |
-| Size drift of -3 / -6 on both sets, size test alone | 0.18 / 0.78 | 0.05 / 0.22 | 0.10 / 0.64 | 0.02 / 0.12 |
+| Uniform -3 and -4, H2 alone | 0.87 and 0.99 | 0.70 and 0.90 | 0.73 and 0.95 | 0.50 and 0.79 |
+| Size drift of -3 / -6 on both sets, size test alone | 0.18 / 0.78 | 0.05 / 0.22 | 0.09 / 0.64 | 0.02 / 0.12 |
 | -9.5 on size on dev-S1 only (flips) | 0.24 | 0.51 | 0.12 | 0.34 |
 | -9.5 on size on R0-dev only (flips) | 0.74 | 0.06 (not tested) | 0.58 | 0.02 |
 

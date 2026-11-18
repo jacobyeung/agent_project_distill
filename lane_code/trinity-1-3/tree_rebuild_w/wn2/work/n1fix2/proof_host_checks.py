@@ -18,7 +18,7 @@ cfg={k:cfg[k] for k in ('training_mode','mix','world_size','reference_world_size
 cfg['checkpoint_disk_guard']=plan(recipe_for(cfg),retained_archive_copies=1)
 records=[]
 for name,expected in [('cpu','CPU_ONLY_REQUIRED'),('disk','R1_DISK_PLAN_DIFFERS'),
-                      ('binary','R1_BINARY_MISSING:'),('nonempty','R1_HOST_ROOT_NOT_EMPTY'),
+                      ('binary','R1_BINARY_MISSING:'),('nonempty','R1_HOST_JOB_TMP_NOT_EMPTY'),
                       ('environment','R1_HOST_STAGING_AND_SELECTION_INPUTS_MISSING')]:
     before=sum(inventory(L/'work/tmp').values());assert before<=200_000_000
     job=O/name;value=deepcopy(cfg)

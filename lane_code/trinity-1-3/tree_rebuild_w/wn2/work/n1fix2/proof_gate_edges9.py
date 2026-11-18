@@ -14,7 +14,7 @@ for text in ('prefix<tool_response>not seen', '<tool_response><tool_response>not
 text='<tool_response>not seen</tool_response>'
 assert not recorded_responses(dict(tool_output_spans=[dict(start=0,end=len(text))]),text)
 assert 'tower_scale_provenance_not_from_head' in reasons(dict(ground_record=dict(geometry_mode='tower')))
-assert reasons(dict(target='heading\u00a0unavailable'))==[], 'Unrelated heading pattern broadened'
+assert 'heading_threshold_status' in reasons(dict(target='heading\u00a0unavailable'))
 dev=file_pin(T/'student_pilot/r2_dev_merged.json')
 benchmark=file_pin(L/'fixtures/work/records/revsi_dev/BENCH_SCENE_EXCLUSIONS_v2.json')
 rule=Exclusions(dev,benchmark)

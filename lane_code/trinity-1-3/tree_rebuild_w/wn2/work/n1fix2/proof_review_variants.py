@@ -12,7 +12,10 @@ conn=sqlite3.connect(':memory:');reader.connections['vqa']=conn
 conn.execute('CREATE TABLE rows(i INTEGER PRIMARY KEY,row TEXT,target TEXT)')
 results={}
 for name in review['all']:
-    if name.startswith('heading_'):
+    special={'NOT_SEEN_upper':'NOT SEEN','Box_Unavailable':'Box unavailable','Unresolved':'Unresolved',
+             'fullwidth_seen':'not ｓｅｅｎ','cyrillic_e':'not s\u0435\u0435n','combining':'not se\u0301en'}
+    if name in special:text=special[name]
+    elif name.startswith('heading_'):
         text='heading'+{'heading_nbsp':'\u00a0','heading_tab':'\t','heading_2sp':'  '}[name]+'unavailable'
     else:
         code=re.search('[0-9A-F]{4}',name).group();c=chr(int(code,16))

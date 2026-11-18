@@ -86,7 +86,7 @@ def validate(cfg):
 
 def target_identity(cfg):
     """Derive the target from config contents and SHA-verified stream receipts."""
-    canonical = deepcopy(cfg)
+    canonical = deepcopy({k:v for k,v in cfg.items() if k not in ('preparation','admission','authorization','milestone_gate')})
     canonical['r1_training'] = {k: v for k, v in canonical['r1_training'].items()
         if k not in ('continuation_identity', 'store_hashes', 'handover_mapping', 'host_receipt', 'review')}
     stores = {}

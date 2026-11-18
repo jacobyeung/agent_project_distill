@@ -9,6 +9,9 @@ import sys
 import tarfile
 import tempfile
 L=Path(__file__).resolve().parents[2]
+pending=L/'work/n1fix2/REQUALIFICATION.json'
+if pending.exists() and json.loads(pending.read_text()).get('pending'):
+    raise SystemExit('Final source qualification is pending; no frozen suite started')
 packet_result=L/'work/n1fix2/proofs/packet/results.json'
 if packet_result.exists() and any(v.get('outcome')!='passed' for v in json.loads(packet_result.read_text()).values()):
     raise SystemExit('Packet qualification failed; no package suite group was started. Resolve packet failures before the single final package run.')
@@ -36,9 +39,13 @@ prior_receipts=compact(L/'work/tmp',package_files=set())
 (out/'PRIOR_TMP_RECEIPTS.json').write_text(json.dumps(prior_receipts,indent=2)+'\n')
 root=out/'frozen'
 root.mkdir(parents=True,exist_ok=True)
-assert not any(root.iterdir())
+prior_members = set(json.loads((root/'package_members.json').read_text())) if (root/'package_members.json').exists() else set()
+if any(root.iterdir()) and not prior_members:
+    raise ValueError('Existing frozen directory lacks its authenticated member inventory')
 with tarfile.open(archive) as handle:
     archive_members=handle.getmembers()
+    if not prior_members <= {m.name for m in archive_members if m.isfile()}:
+        raise ValueError('Refuse a package refresh that would leave stale members')
     unpacked_bytes=sum(member.size for member in archive_members if member.isfile())
     for member in archive_members:
         if member.issym() or member.islnk() or member.name.startswith('/') or '..' in Path(member.name).parts:

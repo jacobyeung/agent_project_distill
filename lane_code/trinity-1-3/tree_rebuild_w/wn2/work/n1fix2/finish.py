@@ -1,24 +1,23 @@
+"""Complete qualification and bind final harness bytes without rerunning unchanged groups."""
 from pathlib import Path
 import json,subprocess,sys
 L=Path(__file__).resolve().parents[2];B=L/'work/n1fix2'
-steps=[]
-for name in ('pre_freeze_tests','requalify_final','proof_kit_scope','proof_contract_closure','proof_registry_closure','proof_gate_edges9',
-             'proof_mix_checks9','proof_host_checks','mutations','inference_inventory','review_evidence',
-             'legacy_guard_proof','compare','coverage_current','storage'):
-    steps.append(dict(step=name,status='running'))
-    (B/'FINAL_STEPS.json').write_text(json.dumps(steps,indent=2)+'\n')
-    (B/'STATUS.md').write_text('# Build n1fix status\n\nFinal qualification is running '+name+'. GO=false. Evidence: FINAL_STEPS.json.\n')
-    with (B/('finish_'+name+'.log')).open('w') as log:
-        code=subprocess.run([sys.executable,'-I','-s','-B',str(B/(name+'.py'))],cwd=L,
-                            stdout=log,stderr=subprocess.STDOUT).returncode
-    steps[-1].update(returncode=code,status='complete' if code==0 else 'failed')
-    (B/'FINAL_STEPS.json').write_text(json.dumps(steps,indent=2)+'\n')
-    print(name,code,flush=True)
-    if code<0:raise SystemExit('A process was killed; stop without retry.')
-    if code:raise SystemExit(code)
+py=[sys.executable,'-I','-s','-B']
+def run(name,args):
+    (B/'STATUS.md').write_text('Build n1fix2: '+name+' is running. Source and CPU finding proofs are complete; final delivery checks are pending. GO=false.\n')
+    with (B/(name+'.log')).open('w') as log:code=subprocess.run(args,cwd=L,stdout=log,stderr=subprocess.STDOUT).returncode
+    if code<0:raise SystemExit('A process was killed; stop without retry: '+name)
+    if code:raise SystemExit(name+' failed: '+str(code))
+    print(name+': complete',flush=True)
+assert (B/'proofs/package/ARCHIVE.json').is_file(),'The initial frozen suite must finish first'
+run('comparison',py+[str(B/'compare.py')])
+run('coverage',py+[str(B/'coverage_current.py')])
+assert not json.loads((B/'GAPS.json').read_text())
 comparison=json.loads((B/'SUITE_COMPARISON.json').read_text())
-gaps=json.loads((B/'GAPS.json').read_text())
-unexpected=[r for r in comparison['failures'] if not r['preexisting'] and 'BF16' not in r['cause']]
-(B/'FINAL_CHECK.json').write_text(json.dumps(dict(cpu_gaps=len(gaps),unexpected_regressions=len(unexpected),
-    r2_failures=comparison['r2_failures'],complete=not gaps and not unexpected and not comparison['r2_failures']),indent=2)+'\n')
-print(json.dumps(dict(cpu_gaps=len(gaps),unexpected_regressions=len(unexpected),r2_failures=comparison['r2_failures'])))
+assert comparison['r2_failures']==0
+assert all(r['preexisting'] or 'BF16' in r['cause'] for r in comparison['failures'])
+run('delivery_final',py+[str(B/'make_delivery.py')])
+delivery=json.loads((B/'DELIVERY.json').read_text())
+run('package_final',['bash',str(B/'PACKAGE_TEST.sh'),str(L/delivery['path'])])
+run('integrity_final',py+[str(B/'final_checks.py')])
+run('report',py+[str(B/'write_report_final.py')])

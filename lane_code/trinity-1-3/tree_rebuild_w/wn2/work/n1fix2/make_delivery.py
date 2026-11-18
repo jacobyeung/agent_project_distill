@@ -2,6 +2,8 @@
 import hashlib,json,shutil,subprocess,tarfile
 from pathlib import Path
 L=Path(__file__).resolve().parents[2];B=L/'work/n1fix2'
+if json.loads((B/'REQUALIFICATION.json').read_text()).get('pending'):
+    raise SystemExit('Final source qualification is pending; no package written')
 seal=json.loads((L/'out/TREE_SEAL.json').read_text())['tree_sha256'];target=L/'out'/f'tree_rebuild_bn1f2_{seal[:8]}.tar'
 members=[]
 for folder in ('work/tree_r1','work/base/tree_b01ce449','fixtures','work/n1fix2/kits','work/n1fix2/inputs','work/n1fix2/inherited','work/build_n1/inputs','work/rows_slices/slices_final','work/contracts_r6/tests_r6','work/contracts_r6/packet_root/work/tests_r6'):
@@ -18,6 +20,8 @@ for name in ('work/build5/proofs/suite_tree/results.json','work/build5/proofs/su
              'work/contracts_r6/tree_copy/student_pilot/r2_policy.py'):
     members.append(L/name)
 members.extend(p for p in B.iterdir() if p.is_file() and p.suffix in ('.py','.sh'))
+for folder in ('original','proofs/review_inputs'):
+    members.extend(p for p in (B/folder).rglob('*') if p.is_file() and not p.is_symlink())
 members.extend(L/'work/build9fix'/name for name in ('test_runner.py','compact_tmp.py'))
 members.extend(L/'out'/name for name in ('MIX_A0.json','MIX_A2.json','MIX_R1.json'))
 members=list(dict.fromkeys(members))

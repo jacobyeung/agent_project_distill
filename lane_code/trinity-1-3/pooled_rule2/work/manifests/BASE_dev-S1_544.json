@@ -1,0 +1,145 @@
+{
+ "config": {
+  "arm": "direct",
+  "decoding": {
+   "budget": 2048,
+   "decoding": "greedy",
+   "engine_version": "0.32.0",
+   "frames": 32,
+   "layout": "duplicate",
+   "max_model_len": 49152,
+   "max_tokens": 16384,
+   "temperature": 0,
+   "thinking": true
+  },
+  "item_file_sha256": "a2f3fdbdab06ab81942d44044d85090df8ec5b86908cf010cdbcb17e35637f5e",
+  "reader_package": "d27804f736545f7ebed6b55124b4bd215991695d96ed9106d82a142e91302aaa",
+  "rule_population": {
+   "object_counting": 150,
+   "object_rel_direction_easy": 150,
+   "object_rel_direction_hard": 150,
+   "object_rel_direction_medium": 150,
+   "object_rel_distance": 150,
+   "object_size_estimation": 150,
+   "route_planning": 150
+  },
+  "scale_rule": "none (direct arm)",
+  "selector_rule": "none (direct arm: no call is served)",
+  "tower_weights": "none (direct arm)"
+ },
+ "family": "main",
+ "read_file": {
+  "path": "/scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/evidence/A544.jsonl",
+  "sha256": "8347cd843f47fe637e770e47544ad49b03e60909e5312260a305319150edb8be"
+ },
+ "receipts": [
+  {
+   "binds": [
+    [
+     "job",
+     "run.orchard_job"
+    ],
+    [
+     "packet",
+     "run.read_token"
+    ]
+   ],
+   "path": "/scratch/jjyeung/orch_n30/cont_ops/work/d0/readk/evidence/ACCEPTED.json",
+   "sha256": "dc5f510b8d1ec5a44fa55077ed5f3cfb3a48820aa77dd6bf28ccc0b46ed302b5"
+  },
+  {
+   "binds": [
+    [
+     "artifact.sha256",
+     "run.artifact_sha256"
+    ],
+    [
+     "artifact.path",
+     "run.artifact_path"
+    ],
+    [
+     "step",
+     "run.step"
+    ],
+    [
+     "scope",
+     "config.arm"
+    ]
+   ],
+   "path": "/scratch/jjyeung/orch_n30/evalx27/work/pull/x27/res/e193/SPEC.json",
+   "sha256": "cb82e5177f1d03591695dc7b3849256a46c536e375a4c14eaabd599cdbab6760"
+  },
+  {
+   "binds": [
+    [
+     "plan_sha256",
+     "run.plan_sha256"
+    ],
+    [
+     "step",
+     "run.step"
+    ],
+    [
+     "scope",
+     "config.arm"
+    ]
+   ],
+   "path": "/scratch/jjyeung/orch_n30/evalx27/work/pull/x27/res/e193/PLAN.json",
+   "sha256": "ddcdcde02bf19f2d19d0840dd1aa5a5747b1cb23684ede1ac6679d58e5482a69"
+  },
+  {
+   "binds": [
+    [
+     "source_sha256",
+     "config.reader_package"
+    ],
+    [
+     "datasets.0.rows.sha256",
+     "config.item_file_sha256"
+    ],
+    [
+     "max_tokens",
+     "config.decoding.max_tokens"
+    ],
+    [
+     "thinking",
+     "config.decoding.thinking"
+    ],
+    [
+     "temperature",
+     "config.decoding.temperature"
+    ],
+    [
+     "engine_version",
+     "config.decoding.engine_version"
+    ],
+    [
+     "cells.0.layout",
+     "config.decoding.layout"
+    ],
+    [
+     "cells.0.frames",
+     "config.decoding.frames"
+    ],
+    [
+     "legs1.artifact.sha256",
+     "run.artifact_sha256"
+    ]
+   ],
+   "path": "/scratch/jjyeung/orch_n30/evalx27/work/pull/x27/res/e193/merged/main/results/budget_2048/request.json",
+   "sha256": "ffb8f1fdb3ccd07b7f416401aab65c1bffa566628f42495a27e0a2470ddefaaf"
+  }
+ ],
+ "run": {
+  "artifact_path": "/scratch/fsw/portfolios/av/projects/av_dataengine_cot/users/jyeung/ap/8865619b/runs/469ddece/m544/artifact.json",
+  "artifact_sha256": "1d6eeb28f51688c414cfe069d3d9da2f9308a4d8cc7b80261b14a5973c5f15ef",
+  "orchard_job": 169526,
+  "plan_sha256": "95779a355321c458712b55f5fe729ee90f8c2bde15b901df28ce8f74b6f9e793",
+  "read_token": "e193c2a3c",
+  "run_id": "469ddece",
+  "step": 544
+ },
+ "schema": "pooled-rule-read-manifest-v1",
+ "set": "dev-S1",
+ "type_filter": "none"
+}

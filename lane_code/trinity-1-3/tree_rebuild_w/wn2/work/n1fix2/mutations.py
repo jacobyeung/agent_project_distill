@@ -25,7 +25,9 @@ for name,module,old,new,test in cases:
     exec(compile(source,str(path),'exec'),vars(module))
     after=sum(inventory(L/'work/tmp').values());assert after<=200_000_000
     row=dict(mutant=name,test=test,source_sha256=hashlib.sha256(source.encode()).hexdigest(),
-             test_source_sha256=hashlib.sha256((T/'tests/test_r2_n1fix.py').read_bytes()).hexdigest(),
+             test_source='tests/test_r2_n1fix2.py' if name.startswith('H') else 'tests/test_r2_n1fix.py',
+             test_source_sha256=hashlib.sha256((T/('tests/test_r2_n1fix2.py' if name.startswith('H') else 'tests/test_r2_n1fix.py')).read_bytes()).hexdigest(),
+             fixture_source_sha256=hashlib.sha256((T/'tests/test_r2_n1fix.py').read_bytes()).hexdigest(),
              mutation_sha256=hashlib.sha256(mutated.encode()).hexdigest(),clean_pass=clean.wasSuccessful(),
              caught=not result.wasSuccessful(),failures=result.failures,errors=result.errors,before_bytes=before,after_bytes=after)
     row['failures']=[(str(t),s) for t,s in row['failures']];row['errors']=[(str(t),s) for t,s in row['errors']]

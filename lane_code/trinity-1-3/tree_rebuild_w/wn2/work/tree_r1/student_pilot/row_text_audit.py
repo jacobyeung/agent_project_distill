@@ -15,7 +15,8 @@ def normalized_text(text):
     ranges = ((0x115F,0x1160),(0x17B4,0x17B5),(0x180B,0x180F),(0x200B,0x200F),
               (0x202A,0x202E),(0x2060,0x206F),(0xFE00,0xFE0F),(0xFFF0,0xFFF8),
               (0x1BCA0,0x1BCA3),(0x1D173,0x1D17A),(0xE0000,0xE0FFF))
-    stripped = ''.join(c for c in text if unicodedata.category(c) != 'Cf'
+    text = unicodedata.normalize('NFKD', text).translate({0x435:'e',0x415:'E'})
+    stripped = ''.join(c for c in text if unicodedata.category(c) not in ('Cf','Mn','Me')
         and ord(c) not in (0xAD,0x34F,0x61C,0x3164,0xFEFF,0xFFA0)
         and not any(lo <= ord(c) <= hi for lo,hi in ranges))
     return ' '.join(stripped.split())
@@ -87,6 +88,8 @@ def reasons(row):
 def check(row, family):
     # The reader owns its normalization and patterns; it never calls the gate oracle.
     def normalize(value):
+        value = unicodedata.normalize('NFKD',value).replace('е','e').replace('Е','E')
+        value = ''.join(c for c in value if not unicodedata.combining(c))
         value = re.sub('[\u00ad\u034f\u061c\u115f-\u1160\u17b4-\u17b5\u180b-\u180f'
                        '\u200b-\u200f\u202a-\u202e\u2060-\u206f\u3164\ufe00-\ufe0f'
                        '\ufeff\uffa0\ufff0-\ufff8\U0001bca0-\U0001bca3'

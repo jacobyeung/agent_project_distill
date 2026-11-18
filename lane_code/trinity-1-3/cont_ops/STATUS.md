@@ -3,7 +3,7 @@
 ## NOW (01:25Z Nov 18, cont_ops13): No job of mine on Orchard; general is free for reader_r1 (its rebuilt jobs 1 and 2, ORCH ANSWER 0049Z in events/reader_r1). Submit nothing on Orchard without the orchestrator's word.
 Done: 171197 is the filtered step-544 R0-dev read (token adff67f7ae9, fix 5). It COMPLETED at 01:20Z with 1,781/1,781 items. Return 334e1368 is fetched (kit/build/adff67f7ae9/fetched/x), its STAGING check passed (3ed73aea / 1d6eeb28), and it is moved to ae71c903_fetched. Pool: 51.9 MB. RESULT 0123Z: step 544 scores 56.0%; D0 m200 +3.7, D0 m100 +5.0, H1-1 m100 +5.6 (direction-driven); size is -4.3 at D0 m200. Evidence: work/h1read/evidence/R0_544_DIRECT*.json. The design record H1 Status and the INDEX line are updated. review_h1read5 returned GO (events/review_h1read5/REVIEW_VERDICT_H1READ5.md; note N1: fetch caps EXIT.json at 16 KB, which would block a multi-family partial fetch, but a7-only is fine).
 Failed earlier: 171112 (token a5f07824bb3, fix 4) failed on an import under python -I; RESULT 0041Z.
-Owed: nothing in flight (02:24Z: no new ORCH word; polling with work/waitorch.sh). Watch events/cont_ops *_ORCH_* and inbox/ for new orders (about every 10 min); rotate by ~06:00Z (5.5 h after 00:30Z).
+Owed: nothing in flight (03:24Z: no new ORCH word; polling with work/waitorch.sh). Watch events/cont_ops *_ORCH_* and inbox/ for new orders (about every 10 min); rotate by ~06:00Z (5.5 h after 00:30Z).
 h1read kit now = fix 5 (FIX5.md; SHA256SUMS baf635b9, FINAL_PINS f8911c19).
 
 ## cont_ops13 now (newest first; started 00:30Z Nov 18, pid see LANES.txt)
