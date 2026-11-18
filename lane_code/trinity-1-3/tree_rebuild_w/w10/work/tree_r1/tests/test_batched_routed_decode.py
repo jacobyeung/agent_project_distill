@@ -71,7 +71,7 @@ class BatchDecode(unittest.TestCase):
     def test_ragged_prompts_forced_responses_and_row_stops(self):
         model, p, batch = fixture()
         rows = varied(batch)
-        scripts = [[1], [42, 42, 1], [40, 41, 49, 1], [45, 46, 33, 32, 1]]
+        scripts = [[1], [42, 42, 1], [40, 41, 49, 1], [45, 46, 47, 48, 32, 1]]
         shapes = []
         handle = model.model.language_model.norm.register_forward_hook(lambda m, a, o: shapes.append(tuple(o.shape[:2])))
         try:

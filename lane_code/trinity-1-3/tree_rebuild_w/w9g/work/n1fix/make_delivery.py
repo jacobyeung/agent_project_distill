@@ -2,9 +2,9 @@
 import hashlib,json,shutil,subprocess,tarfile
 from pathlib import Path
 L=Path(__file__).resolve().parents[2];B=L/'work/n1fix'
-seal=json.loads((L/'out/TREE_SEAL.json').read_text())['tree_sha256'];target=L/'out'/f'tree_rebuild_b9f_{seal[:8]}.tar'
+seal=json.loads((L/'out/TREE_SEAL.json').read_text())['tree_sha256'];target=L/'out'/f'tree_rebuild_bn1f_{seal[:8]}.tar'
 members=[]
-for folder in ('work/tree_r1','work/base/tree_b01ce449','fixtures','work/n1fix/kits','work/n1fix/inputs','work/build_n1/inputs','work/rows_slices/slices_final','work/contracts_r6/tests_r6','work/contracts_r6/packet_root/work/tests_r6'):
+for folder in ('work/tree_r1','work/base/tree_b01ce449','fixtures','work/n1fix/kits','work/n1fix/inputs','work/n1fix/inherited','work/build_n1/inputs','work/rows_slices/slices_final','work/contracts_r6/tests_r6','work/contracts_r6/packet_root/work/tests_r6'):
     source=folder.startswith(('work/tree_r1','work/base'))
     for p in (L/folder).rglob('*'):
         if p.is_file() and not p.is_symlink() and not (source and set(p.relative_to(L/folder).parts)&{'.git','__pycache__','artifacts'}):members.append(p)
@@ -18,6 +18,7 @@ for name in ('work/build5/proofs/suite_tree/results.json','work/build5/proofs/su
              'work/contracts_r6/tree_copy/student_pilot/r2_policy.py'):
     members.append(L/name)
 members.extend(p for p in B.iterdir() if p.is_file() and p.suffix in ('.py','.sh'))
+members.extend(L/'work/build9fix'/name for name in ('test_runner.py','compact_tmp.py'))
 members.extend(L/'out'/name for name in ('MIX_A0.json','MIX_A2.json','MIX_R1.json'))
 members=list(dict.fromkeys(members))
 size=sum(p.stat().st_size for p in members)+sum(row['bytes'] for row in packet_inputs);assert size<200_000_000

@@ -4,6 +4,7 @@ import asyncio
 import importlib
 import json
 import os
+import runpy
 from pathlib import Path
 import sys
 import tarfile
@@ -12,9 +13,11 @@ import uuid
 from unittest.mock import patch
 from types import SimpleNamespace as NS
 ROOT=Path(__file__).resolve().parents[1]
-sys.path.insert(0,str(ROOT/'kit/reader'))
+outer_worker = Path(os.environ['A_FIXTURE_WORKER'])
+assert sys.flags.isolated
+sys.path.insert(0,str(outer_worker.parent))
 import x7 as X
-work=ROOT/'evidence'/('runtime_'+uuid.uuid4().hex)
+work=Path(os.environ['A_FIXTURE_ROOT'])/'runtime'
 work.mkdir()
 all_rows=[json.loads(l) for l in (ROOT/'assets/e52a690b.jsonl').read_text().splitlines()]
 rows=[next(r for r in all_rows if r['question_type']==t) for t in ('object_counting','object_abs_distance','object_rel_direction_easy','obj_appearance_order')]
@@ -100,7 +103,11 @@ with patch('asyncio.events.new_event_loop',LocalLoop),patch('asyncio.to_thread',
      patch.object(X,'stage_assets',assets),patch.object(direct,'check_export',return_value=dict(status='VERIFIED')),\
      patch.object(stage,'prepare',return_value=work/'model'),patch.object(token_audit,'load_tokenizer',return_value=Processor.tokenizer),\
      patch.object(parity,'compare',compare):
-    X.run(cfg,reader=ROOT/'kit/reader',runtime=runtime)
+    real_run = X.run
+    config_path = work/'CONFIG.json'; config_path.write_text(json.dumps(cfg))
+    with patch.object(X, 'run', side_effect=lambda config: real_run(config, reader=ROOT/'kit/reader', runtime=runtime)), \
+         patch.object(sys, 'argv', [str(outer_worker), '--config', str(config_path), '--family', 'a7']):
+        runpy.run_path(str(outer_worker), run_name='__main__')
 for name in ('think_settings','budget','budget_merge'):
     module=sys.modules[name]
     assert Path(module.__file__).read_bytes()==(ROOT/'kit/reader/evaluator'/(name+'.py')).read_bytes()
@@ -125,7 +132,7 @@ for arm in ('0','budget_2048/0','budget_4096/0'):
         assert record['layout']=='duplicate' and record['frames']==32
     assert summary['parity_pass']
     assert summary['benchmarks']['devrows']['missing']==0
-value=dict(status='PASS',items=len(kept),direct_filter=filtered,work=str(work),candidate_reader=True,accepted_pinned_runtime=True,actual_worker=True,actual_budget_derivation=True,
+value=dict(isolated=bool(sys.flags.isolated),outer_worker=str(outer_worker),status='PASS',items=len(kept),direct_filter=filtered,work=str(work),candidate_reader=True,accepted_pinned_runtime=True,actual_worker=True,actual_budget_derivation=True,
  actual_mergers=True,actual_rgb=True,trained_duplicate_64_frames=True,unpatched_layout_modules=True,logical_ids_on_trinity=True,fake_engine=True,fake_model=True,fake_parity_probe=True)
-(ROOT/'evidence/RUNTIME_FIXTURE.json').write_text(json.dumps(value,indent=2)+'\n')
+(work/'RUNTIME_FIXTURE.json').write_text(json.dumps(value,indent=2)+'\n')
 print(json.dumps(value))

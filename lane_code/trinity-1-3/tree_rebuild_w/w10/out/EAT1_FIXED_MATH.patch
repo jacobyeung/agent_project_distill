@@ -1,6 +1,6 @@
 --- a/eat1/adapters/build10_manifest.py
 +++ b/eat1/adapters/build10_manifest.py
-@@ -0,0 +1,12 @@
+@@ -0,0 +1,20 @@
 +"""Declare build 10's registered modules in the two native tiny-reader artifacts."""
 +import os
 +from pathlib import Path
@@ -12,7 +12,15 @@
 +        result['auxiliary_heads.'+name]=dict(role='fixed_math',name=name,inputs=module.inputs,outputs=module.outputs,
 +            buffers={k:dict(file='weights.pt',key='auxiliary_heads.'+name+'.'+k) for k,_ in module.named_buffers()})
 +    config=Path(tree)/'trace_format/readout_config.json'
-+    return {'weights.pt':'lm',os.path.relpath(config,artifact):'config'},result
++    files={'weights.pt':'lm',os.path.relpath(config,artifact):'config'}
++    if hasattr(model.auxiliary_heads,'geometry_encoder'):
++        files[os.path.relpath(Path(tree)/'configs/gf1_stage1.json',artifact)]='config'
++        source=Path(tree)/'student_pilot'
++        paths=[source/'g3t_online.py',*sorted((source/'g3t_vendor').rglob('*.py'))]
++        names=[os.path.relpath(p,artifact) for p in paths]
++        files.update({p:'tower' for p in names})
++        result['auxiliary_heads.geometry_encoder']=dict(result['auxiliary_heads.geometry_encoder'],files=names)
++    return files,result
 --- a/eat1/adapters/c8r_tiny.py
 +++ b/eat1/adapters/c8r_tiny.py
 @@ -78,7 +78,9 @@
@@ -122,6 +130,16 @@
      status = 'FAIL' if offenders else 'PASS'
      return clause(status, f'{len(cats["artifact"])} artifact, {len(cats["code"])} code, '
                            f'{len(cats["input"])} input, {len(cats["outside_data"])} outside-artifact data files opened '
+@@ -523,6 +524,9 @@
+     code_roots = sorted({str(EAT1_DIR)} | set(args.code_root or []))
+     binds = {str(artifact.root), str(artifact.path), str(Path(args.items).resolve())} | {
+         str(Path(p).resolve()) for p in input_roots}
++    # A1 authenticates these exact files, including files outside artifact.root.
++    # Mount no parent directories for external manifest entries.
++    binds |= {str((artifact.root / rel).resolve()) for rel in artifact.files}
+     cmd = sandbox_command(args, code_roots, binds, out_dir)
+     (out_dir/'COMMAND.json').write_text(json.dumps(cmd, indent=1)+'\n')
+     proc = subprocess.run(cmd, capture_output=True, text=True, timeout=args.sandbox_timeout)
 --- a/eat1/tests/test_eat1.py
 +++ b/eat1/tests/test_eat1.py
 @@ -37,6 +37,59 @@

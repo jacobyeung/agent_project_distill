@@ -1,0 +1,12 @@
+b1 token=b9ef552934627 unchanged; operator_sha256=0cec6e0e91b8c7dab6d74e68bbca8e6a596e5df76e7f0e9166aec2231ecb3f38 unchanged.
+b1/0.tgz sha256=8be887e33af2b39b30e8304c5131ec576d434b22575c9837649605569bbf9cbd
+b1/1.tgz sha256=57d2a513b6770447680fc088a39fd02c00945491bdde46309e9ade0c84540f3e
+b1/PACKAGE.json sha256=18e81733a93dd41f750eca3cd2eb042806c970252a900a9a5b1ec0f616fef211
+b1/READ_PLAN.json sha256=83e335fb1d6c3b124537bde345f91575810738d066f2fe1a74abadf7a80338e8
+b2 token=f40065df28aa3 unchanged; operator_sha256=f8e2b7661e2114f366be731bd06278865d23747aa80632b409330252abda6856 unchanged.
+b2/0.tgz sha256=bb7a4faa6558f24d58d164bd7522eb536badfb3dfdd05aad0a3fe78140f0c663
+b2/1.tgz sha256=89cb14a499609741233996e4023e235901849232a3aa92a7637d252108878990
+b2/PACKAGE.json sha256=8aeafe31fbe8eb4f585e02754828a21c041132ef51caaa9ab622bb02dc219dac
+b2/READ_PLAN.json sha256=d05467b3263c5c08925c7db4cc7ba6e0ae4f79a21e073476b42dc9b937f9f49e
+Tests: b1 49 passed/0 failed; b2 51 passed/0 failed; real guarded write test, bootstrap dispatch, bound CPU receipt; payloads unchanged.
+Risks: Orchard CPU/GPU, staging/pool capacity and b1 partial-run estimate pending; W7 703 MB > 450 MB cap; fixture hard-link approval pending.

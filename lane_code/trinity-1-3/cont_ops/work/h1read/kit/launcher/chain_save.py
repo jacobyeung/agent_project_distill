@@ -13,6 +13,7 @@ import time
 MIN_FREE = 200*1024**3
 ARCHIVE_LIMIT = 89999999
 PROJECT_LIMIT = 20000000000
+LOG_TAIL_LIMIT = 256*1024
 DIRECT_FILES = ('request.json', 'BIND_STATUS.json', 'PROMPT_PINS.json', 'LAYOUT_ADMISSION.json', 'kit/CODE_PINS.json',
                 'frames/0.json', 'results')
 TOP_FILES = ('PLAN.json', 'SPEC.json', 'AUTHORIZATION.json', 'RELEASE.json', 'HARDWARE.json',
@@ -97,7 +98,7 @@ def members(source):
 
 
 def pack_partial(source, target, config, limit):
-    """Pack bounded prefixes once; count all finished records, never infer scores.
+    """Pack journal prefixes and diagnostic tails; never infer scores.
 
     The raw tar budget conservatively bounds even incompressible gzip output.
     Each journal retains a valid JSONL prefix, never a torn or malformed line.
@@ -106,7 +107,7 @@ def pack_partial(source, target, config, limit):
     started = time.monotonic()
     source, target = Path(source), Path(target)
     report = dict(complete=False, status='PARTIAL', plan_sha256=config['plan_sha256'],
-                  step=config['spec']['step'], families={}, journals={}, omitted={}, malformed_summaries={}, truncated=False)
+                  step=config['spec']['step'], families={}, journals={}, logs={}, omitted={}, malformed_summaries={}, truncated=False)
     if 'types' in config['spec']:
         report['types'] = config['spec']['types']
         report['excluded'] = {f:p['excluded'] for f,p in config['spec'].get('population', {}).items()}
@@ -121,7 +122,7 @@ def pack_partial(source, target, config, limit):
             report['omitted'][name] = dict(bytes=size, reason='archive cap')
             report['truncated'] = True
             return False
-        entries[name] = (path, size)
+        entries[name] = (path, size, 0)
         budget -= cost
         return True
 
@@ -219,6 +220,42 @@ def pack_partial(source, target, config, limit):
                 retain(str(path.relative_to(source)), path, path.stat().st_size)
     for path in regular_files(source/'metadata'):
         retain(str(path.relative_to(source)), path, path.stat().st_size)
+    # Logs come after identity, journals and metadata. Read only a bounded suffix;
+    # discard a cut first line and any unfinished last line (including hex chunks).
+    for filename in ('launcher_chain.log', 'launcher_staging.log',
+                     *(family+'.hex' for family in config['families'])):
+        path = source/'logs'/filename
+        if (source/'logs').is_symlink() or path.is_symlink():
+            raise ValueError('Symlink in partial logs')
+        if not path.is_file():
+            continue
+        name = str(path.relative_to(source))
+        total = path.stat().st_size
+        allowance = min(LOG_TAIL_LIMIT, max(0, budget-2048))
+        start = max(0, total-allowance)
+        with path.open('rb') as stream:
+            stream.seek(max(0, start-1))
+            data = stream.read(allowance+1 if start else allowance)
+        if start:
+            previous, data = data[:1], data[1:]
+            if previous != b'\n':
+                cut = data.find(b'\n')+1
+                cut = cut or len(data)
+                start += cut
+                data = data[cut:]
+        data = data[:data.rfind(b'\n')+1]
+        size = len(data)
+        truncated = size != total
+        report['truncated'] |= truncated
+        retained = bool(size or not total) and retain(name, path, size)
+        if retained:
+            entries[name] = (path, size, start)
+        else:
+            report['omitted'][name] = dict(bytes=total,
+                reason='archive cap' if allowance < LOG_TAIL_LIMIT else 'no whole line in tail')
+        report['logs'][name] = dict(bytes=total, retained_bytes=size if retained else 0,
+            retained_lines=data.count(b'\n') if retained else 0, offset=start,
+            tail_limit_bytes=LOG_TAIL_LIMIT, truncated=truncated, retained=retained)
     report['packing_seconds_before_compression'] = time.monotonic()-started
     spec = dict(config['spec'])
     # Raw journal scores are provisional; only this top-level summary is a read report.
@@ -226,9 +263,10 @@ def pack_partial(source, target, config, limit):
     with Path(target).open('xb') as raw:
         with tarfile.open(fileobj=LimitedWriter(raw, limit), mode='w:gz', compresslevel=1,
                           format=tarfile.USTAR_FORMAT) as archive:
-            for name, (path, size) in sorted(entries.items()):
+            for name, (path, size, offset) in sorted(entries.items()):
                 info = tarfile.TarInfo(name); info.size = size; info.mode = 0o600
                 with path.open('rb') as stream:
+                    stream.seek(offset)
                     archive.addfile(info, stream)
             for name, value in generated.items():
                 data = (json.dumps(value, sort_keys=True)+'\n').encode()

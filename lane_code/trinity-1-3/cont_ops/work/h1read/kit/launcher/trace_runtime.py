@@ -9,6 +9,8 @@ import runpy
 import sys
 import threading
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
 _STATE=None
 
 

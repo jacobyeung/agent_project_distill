@@ -15,6 +15,7 @@ import time
 from types import SimpleNamespace as NS
 
 HERE=Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
 CONSTANTS={'object_counting':62.2,'object_abs_distance':29.5,'object_size_estimation':18.3,
  'room_size_estimation':33.1,'object_rel_direction_easy':51.6,'object_rel_direction_medium':35.6,
  'object_rel_direction_hard':30.7,'obj_appearance_order':25.0,'object_rel_distance':25.0}

@@ -1,6 +1,6 @@
-# usage: sed "s/171143/<jobid>/" mon_tpl.sh > mon.sh; timeout 150 bash ossh.sh 'bash -s' < mon.sh
+# usage: sed "s/171253/<jobid>/" mon_tpl.sh > mon.sh; timeout 150 bash ossh.sh 'bash -s' < mon.sh
 export TZ=UTC; date -u +%FT%TZ
-J=171143
+J=171253
 squeue -j $J -h -o '%i %j %P %T %M %l %R'; sacct -j $J -n -X -o state,elapsed,exitcode | head -1
 timeout 90 srun --jobid=$J --overlap -n1 -c1 --mem=1G bash -c '
 for f in $(find /tmp/a'$J'* -name items.jsonl -path "*journals*" 2>/dev/null); do echo "$(wc -l < $f) $f"; done

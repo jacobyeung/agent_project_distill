@@ -12,11 +12,11 @@ from launch_r2.build import build,verify,capsule_json
 from tests.test_r2_build import inputs
 root=B/'kits';root.mkdir(exist_ok=True)
 results={}
-inherited=json.loads((L.parent/'work/build9/kits/RESULTS.json').read_text())
+inherited=json.loads((B/'inherited/KIT_RESULT.json').read_text())
 for name,connector in [('a2','gf1'),('a0','none')]:
     kit=root/name
     assert not kit.exists() or not any(kit.iterdir())
-    old=next(v for v in inherited if v['kit_path'].endswith('/'+name))
+    old=inherited[name]
     value=old['launch_inputs']
     result=build(L/'fixtures/work/kit07ca49df_meta/m',kit,connector=connector,records=inputs(),launch_inputs=value)
     assert verify(kit)==result['kit_sha256']

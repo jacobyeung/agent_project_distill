@@ -524,6 +524,9 @@ def run_sandbox(args, records, artifact, input_roots, out_dir):
     code_roots = sorted({str(EAT1_DIR)} | set(args.code_root or []))
     binds = {str(artifact.root), str(artifact.path), str(Path(args.items).resolve())} | {
         str(Path(p).resolve()) for p in input_roots}
+    # A1 authenticates these exact files, including files outside artifact.root.
+    # Mount no parent directories for external manifest entries.
+    binds |= {str((artifact.root / rel).resolve()) for rel in artifact.files}
     cmd = sandbox_command(args, code_roots, binds, out_dir)
     (out_dir/'COMMAND.json').write_text(json.dumps(cmd, indent=1)+'\n')
     proc = subprocess.run(cmd, capture_output=True, text=True, timeout=args.sandbox_timeout)

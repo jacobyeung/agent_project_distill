@@ -8,11 +8,11 @@ import sys
 import shutil
 import time
 from contextlib import nullcontext
-import read_filter as F
 from types import SimpleNamespace as NS
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
+import read_filter as F
 import trinity_read as T
 from records import records, write
 

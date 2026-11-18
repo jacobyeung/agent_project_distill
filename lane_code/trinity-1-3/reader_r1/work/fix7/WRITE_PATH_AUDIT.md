@@ -1,0 +1,18 @@
+The selected launch path is `root/7.py`. No inspected runtime writer targets it. `a/6.py` remains the delivered CPU sequence input. Both packages share this allocation layout.
+
+| Writer | Files and directories beneath the allocation root |
+|---|---|
+| BATCH.sh | Initially extracts `0.py`, `0.json`, and the bundled operator; creates the root and parents with exclusive file creation. |
+| common.install_process_guard(root) | Overwrites `6.py` when a subprocess argument ends in `/orchard_h10/vendor/return_io.py`. |
+| entry.py guard | Overwrites `a/6.py` for the preparation dispatcher; worker entry guards write `6.py` inside their own `metadata/a` directory. |
+| bootstrap | Extracts `p/orchard_h10/**`; updates `a/1.json` with the startup operator digest. |
+| job.stage | Creates `a/`; writes `a/c`, `a/<asset-group-index>`, `a/a<input-archive-index>`, `bwrap`, and `STAGING.json`. Extracts code to `sj/b01ec87a6f29b/p/**`, pinned template archives at root, and input archives beneath `sj/b01ec87a6f29b/d/**`. |
+| job.main | Writes `1.json`, `a/5.py`, `a/0.json`, `a/1.json`, and `RETURN.json`; creates `sj/`, `fsw/`, `m/ap/`. At the output root it writes `metadata/RETURN_ID.json`, `metadata/STORAGE.json`, `metadata/STOP`, `metadata/CARDS.json`, `metadata/ALLOCATION.json`, `metadata/IDENTITY.json` and resumed `metadata/journals/**`, `logs/0.log`, `logs/1.log`, `FAILED.json`, and `COMPLETE.json`. |
+| entry.py | Apart from its guard, delegates preparation and runner writes below. |
+| prepare.run | Under `sj/b01ec87a6f29b/d/`: `ENVIRONMENT.json`, pinned preparation paths, `6.json`, restored `e/**`, `manifest.json`, `binding.json`, optional `8.json`, `settings.json`, and `READY.json`. Room preparation also writes the effective type list in settings. |
+| runner | At each read output: `metadata/a/5.py`, `metadata/a/<type><worker>.json`, `metadata/a/<type>.json`, `metadata/a/<type>.lock`, `metadata/IDENTITY.json`, `metadata/STOP`, `metadata/projection.json`, `logs/<type><worker>.log`, `SUMMARY.json`, and journals through launch. Cache directories are under the configured cache root, with per-worker numbered cache directories. |
+| tower_sequence (both) | At output: `metadata/IDENTITY.json`; per read `metadata/reads/<read>/metadata/0.json` and `READ_IDENTITY.json`; `SUMMARY.json`, `REHEARSAL.json`, `metadata/MEMORY.json`; delegates the runner paths above. |
+| node_check | Extracts `bootstrap/orchard_h10/**`, `0.py`, `0.json`, `7.py`; the guarded write test creates `wpool/POOL.lock` and `wpool/<token>/.wtest` and writes `6.py`. Preparation uses `a/5.py` and `a/0.json`; the bootstrap updates `a/1.json` before dispatching `7.py`. Results contain CPU.json, MEMORY.json and, for b2, FULL_READER.json. |
+| room CPU sequence | Adds per-read `metadata/full_reader/<ordinal>/**` journals and `metadata/full_reader/FULL_READER.json`. These writes are below the read output, not the allocation root. |
+
+Here the allocation output is `root/sj/b01ec87a6f29b/r`; nested read outputs are below its `metadata/reads/`. Template archive members are not locally available for enumeration. Their authenticated extraction uses exclusive creation (`overlay=False`, `open('xb')`), so a collision with the existing `7.py` fails staging instead of overwriting it. The dispatch re-hash also refuses unexpected changes before launch. The CPU check exercises the real return-pool write test under `root/wpool`, then dispatches the operator through the extracted bootstrap wrapper. It verifies the guard target and operator hashes and retains the write-test receipt. The shared return pool is outside the local rehearsal scope.

@@ -43,7 +43,7 @@ def size():return sum(p.stat().st_size for p in (L/'work/tmp').rglob('*') if p.i
 results={};sizes=[]
 for family,total,wanted in [('a0_recovery',1532,1458),('a0_units',2000,1895),('a0_pool_abs_distance_reworded',2000,1915),('a0_room',476,431)]:
     before=size();assert before<=200_000_000
-    source=L.parent/'work/rows_slices/slices_final'/(family+'.jsonl')
+    source=L/'work/rows_slices/slices_final'/(family+'.jsonl')
     folder=P/family;folder.mkdir(exist_ok=True)
     stream='vqa' if family=='a0_room' else 'routing';counts=Counter();refusals=Counter();examples=[];h=hashlib.sha256()
     with source.open('rb') as f:

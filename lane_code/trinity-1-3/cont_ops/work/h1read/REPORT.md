@@ -1,6 +1,6 @@
 # H1-1 read kit
 
-The kit supports `--types direct` and bounded partial journal returns. The FIX4 gate passes 111 candidate tests, the separate 53-test ported suite, the 53-test original-reference suite, four refute tests, and both unfiltered and filtered runtime fixtures. `FIX4.md` records the packing benchmark, the CONFIG integrity-pin exception, validation limits and operator commands. `SHA256SUMS.txt` authenticates the deliverables.
+The kit supports `--types direct`, isolated production workers and bounded partial journal and diagnostic returns. The FIX5 gate passes 117 candidate tests, the separate 53-test ported suite, the 53-test original-reference suite, four refute tests, and both unfiltered and filtered runtime fixtures. `FIX5.md` records the import audit, plan identity proof, validation and operator commands. `SHA256SUMS.txt` authenticates the deliverables.
 
 The local kit supports H1-1 run `17c4ffa4` and D0 run `359fcc3c` at m100/m200, plus H1-1's three claimed stop generations. Run `469ddece` additionally permits only generation `mstop`, step 544, family `a7`, at deployment `x_07ca49df`. It adds all 2,169 R0-dev items as Orchard family `a7`. Without a filter, all four families total 3,994 items. `readk/` supplies the unchanged D0 reference; the candidate lives in `kit/`.
 
@@ -145,28 +145,31 @@ For an unscheduled H1 stop, prepare with `--run 17c4ffa4 --step <actual optimize
 
 ## Validation
 
-The FIX4 offline gate passes 111 candidate tests, 53 ported readk tests, 53 original-reference tests and four reviewer refute tests. Ten FIX4 tests cover filter identities, unchanged unfiltered plan/behavioral CONFIG fields, exact kept denominators, full frame admission, empty-family refusal, completion, signal/failure recovery, whole-line truncation, torn summaries, fetch and unpack. The seven step-544 admission tests also pass separately.
+The offline gate passes 117 candidate tests, 53 ported readk tests, 53 original-reference tests and four reviewer refute tests. The ten FIX4 tests and seven step-544 admission tests also pass separately. Six FIX5 tests cover cold imports of all 20 packaged Python modules under `-I`, a negative control with the broken import order, identical filtered and unfiltered FIX4 plans, diagnostic tail contents, journal priority under a small cap, oversized lines and symlinks.
 
-The runtime fixtures execute the accepted evaluator worker, B2048/B4096 derivation, token audit and mergers with actual RGB frames. The unfiltered fixture completes four items; the direct-filter fixture completes three and excludes its absolute-distance item. Engine, model staging and GPU parity probes are mocks. These fixtures verify interfaces, selection and completeness; they do not establish live GPU parity or Slurm cancellation delivery. FIX4.md gives the journal-packing benchmark and the exact operator commands.
+Both runtime fixtures execute the packaged outer worker and accepted evaluator, B2048/B4096 derivation, token audit and mergers with actual RGB frames. They use the generated `exec <python> -I "$@"` wrapper form with the local CPU interpreter. The unfiltered fixture completes four items; the direct-filter fixture completes three. The chain tests use real isolated children with synthetic family computation. Engine, model staging and GPU parity probes remain mocks; these tests do not establish live GPU parity or cancellation delivery.
 
-`tools/test_fix3.py` confines generated fixtures and ledgers to `evidence/test_*` and blocks external process/network operations inside the tests. The reference source and production preparations stay unchanged. The FIX2 provenance audit is not rerun because it reads outside this kit. The pinned direct wrapper, evaluator, adapters and export-checker source remain unchanged; `evidence/FIX4_AUDIT.json` lists the changed outer launcher/reader files.
+Partial returns retain at most 256 KiB from the end of each `launcher_chain.log`, `launcher_staging.log` and selected family `.hex` file. Identity, journals and metadata take priority. Cut first lines and unfinished last lines are omitted; `PARTIAL.json` records original and retained bytes, offsets, retained lines, truncation and omissions. The existing production and proof archive caps remain enforced.
 
-The existing salted asset rebuild and identifier evidence remains in FIX1c_DETERMINISM.json. The frame tar, item file, registry and key were not changed. The sealer regenerates DIFF.md, DIFF.patch, SHA256SUMS.txt and FINAL_PINS.json. FIX1.md through FIX4.md and post-seal verification logs remain outside the manifest to avoid circular hashes.
+`tools/test_fix3.py` confines fixtures and ledgers to `evidence/test_*`. Its process guard admits only exact validated local isolation commands; each child installs network, process and write guards before loading the tested entry point. The reference source and production preparations stay unchanged. The FIX2 provenance audit is not rerun because it reads outside this kit. The pinned direct wrapper, evaluator, adapters and export checker remain unchanged; `evidence/FIX5_AUDIT.json` records the source audit and changed outer files.
+
+The existing salted asset rebuild and identifier evidence remains in FIX1c_DETERMINISM.json. The frame tar, item file, registry and key were not changed. The sealer regenerates DIFF.md, DIFF.patch, SHA256SUMS.txt and FINAL_PINS.json. FIX1.md through FIX5.md and post-seal verification logs remain outside the manifest to avoid circular hashes.
 
 ```bash
 set -e
 export PYTHONDONTWRITEBYTECODE=1 OPENBLAS_NUM_THREADS=1
 PY=/scratch/jjyeung/envs/p1cpu/bin/python
-"$PY" -B tools/test_fix3.py fix4 > evidence/FIX4_NEW_TESTS.log 2>&1
-"$PY" -B tools/test_fix3.py targeted > evidence/FIX4_TARGETED.log 2>&1
-"$PY" -B tools/test_fix3.py runtime > evidence/FIX4_RUNTIME.log 2>&1
-"$PY" -B tools/test_fix3.py runtime_direct > evidence/FIX4_RUNTIME_DIRECT.log 2>&1
-"$PY" -B tools/seal.py --pre-test > evidence/FIX4_PRESEAL.log
-"$PY" -B tools/test_fix3.py candidate > evidence/FIX4_TESTS.log 2>&1
-"$PY" -B tools/test_fix3.py ported > evidence/FIX4_READK_PORTED.log 2>&1
-"$PY" -B tools/test_fix3.py reference > evidence/FIX4_READK_REFERENCE.log 2>&1
-"$PY" -B tools/test_fix3.py refute > evidence/FIX4_REFUTE.log 2>&1
-"$PY" -B tools/seal.py > evidence/FIX4_SEAL.log
-"$PY" -B tools/test_fix3.py pins > evidence/FIX4_FINAL_PIN_TEST.log 2>&1
-sha256sum -c SHA256SUMS.txt > evidence/FIX4_SHA256_CHECK.log
+"$PY" -B tools/test_fix3.py fix5 > evidence/FIX5_NEW_TESTS.log 2>&1
+"$PY" -B tools/test_fix3.py fix4 > evidence/FIX5_FIX4_TESTS.log 2>&1
+"$PY" -B tools/test_fix3.py targeted > evidence/FIX5_TARGETED.log 2>&1
+"$PY" -B tools/test_fix3.py runtime > evidence/FIX5_RUNTIME.log 2>&1
+"$PY" -B tools/test_fix3.py runtime_direct > evidence/FIX5_RUNTIME_DIRECT.log 2>&1
+"$PY" -B tools/seal.py --pre-test > evidence/FIX5_PRESEAL.log
+"$PY" -B tools/test_fix3.py candidate > evidence/FIX5_TESTS.log 2>&1
+"$PY" -B tools/test_fix3.py ported > evidence/FIX5_READK_PORTED.log 2>&1
+"$PY" -B tools/test_fix3.py reference > evidence/FIX5_READK_REFERENCE.log 2>&1
+"$PY" -B tools/test_fix3.py refute > evidence/FIX5_REFUTE.log 2>&1
+"$PY" -B tools/seal.py > evidence/FIX5_SEAL.log
+"$PY" -B tools/test_fix3.py pins > evidence/FIX5_FINAL_PIN_TEST.log 2>&1
+sha256sum -c SHA256SUMS.txt > evidence/FIX5_SHA256_CHECK.log
 ```

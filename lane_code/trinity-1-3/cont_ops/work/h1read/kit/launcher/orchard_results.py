@@ -9,6 +9,8 @@ import sys
 import tarfile
 import time
 import uuid
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import chain_save as S
 
 AUTHORIZED_POOL = Path('/project/community/jjyeung/okh7/ae71c903')

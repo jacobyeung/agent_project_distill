@@ -2,7 +2,8 @@
 
 The original reference source and pins stay intact. Path construction redirects
 only fixture names, generated test reports and preparation ledgers. An audit hook
-rejects all other writes, deletions, process launches and network operations.
+rejects all other writes and deletions. Only exact, guarded local isolation
+children may launch; all network operations remain forbidden.
 """
 import argparse
 import os
@@ -15,7 +16,7 @@ import uuid
 
 ROOT = Path(__file__).resolve().parents[1]
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument('suite', choices=('candidate', 'ported', 'reference', 'refute', 'runtime', 'targeted', 'fix4', 'runtime_direct', 'pins'))
+parser.add_argument('suite', choices=('candidate', 'ported', 'reference', 'refute', 'runtime', 'targeted', 'fix4', 'fix5', 'runtime_direct', 'pins'))
 args = parser.parse_args()
 work = ROOT/'evidence'/('test_fix3_'+args.suite+'_'+uuid.uuid4().hex)
 work.mkdir()
@@ -66,15 +67,20 @@ sys.path[:0] = [str(test_root/'tests'), str(test_root)]
 import offline_guard
 with patch.object(Path, '__truediv__', joined), patch.object(Path, 'open', opened):
     if args.suite in ('runtime', 'runtime_direct'):
-        if args.suite == 'runtime_direct': os.environ['FIX4_DIRECT'] = '1'
-        runpy.run_path(str(ROOT/'tests/runtime_fixture.py'), run_name='__main__')
+        sys.path.insert(0, str(ROOT/'kit/launcher'))
+        import isolated_fixture as isolated
+        payload = isolated.package(work)
+        result = isolated.launch(work, payload/'vllm_isolated.sh', 'runtime',
+                                 payload/'reader/worker.py', '1' if args.suite == 'runtime_direct' else '0')
+        print(result.stdout, end=''); print(result.stderr, end='', file=sys.stderr)
+        sys.exit(result.returncode)
     else:
         loader = unittest.defaultTestLoader
         if args.suite in ('candidate', 'reference', 'refute'):
             suite = loader.discover(str(test_root/'tests'), pattern='test_refute.py' if args.suite == 'refute' else 'test_*.py')
         else:
             names = {'ported': ['test_kit', 'test_chain', 'test_verdict'],
-                     'targeted': ['test_fix3'], 'fix4': ['test_fix4'], 'pins': ['test_kit.KitTests.test_final_pins_match']}[args.suite]
+                     'targeted': ['test_fix3'], 'fix4': ['test_fix4'], 'fix5': ['test_fix5'], 'pins': ['test_kit.KitTests.test_final_pins_match']}[args.suite]
             suite = loader.loadTestsFromNames(names)
         result = unittest.TextTestRunner(verbosity=2).run(suite)
         sys.exit(not result.wasSuccessful())

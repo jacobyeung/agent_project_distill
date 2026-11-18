@@ -12,6 +12,9 @@ import subprocess
 import tarfile
 import time
 from types import SimpleNamespace as NS
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import orchard_stage as S
 import orchard_job as J
 import chain_save as A

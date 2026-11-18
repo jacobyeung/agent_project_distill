@@ -1,6 +1,6 @@
 """Build only synthetic fixture weights; trained head tensors are read-only mounts."""
 from pathlib import Path
-import hashlib,json,sys
+import hashlib,json,sys,shutil,subprocess
 L=Path(__file__).resolve().parents[2];B=L/'work/build10'
 sys.path[:0]=[str(B/'b04_stage'),str(B),str(L/'work/tree_r1')]
 from eat1_adapter import b04_tiny as F
@@ -16,6 +16,8 @@ tok=AutoTokenizer.from_pretrained(F.TOK);add_routing_tokens(NS(tokenizer=tok));t
 torch.manual_seed(0)
 cfg=Qwen3Config(vocab_size=len(tok),hidden_size=32,intermediate_size=64,num_hidden_layers=2,
     num_attention_heads=2,num_key_value_heads=1,head_dim=16,max_position_embeddings=4096)
+subprocess.run(['df','-BG','--output=avail','/scratch'],check=True)
+assert shutil.disk_usage('/scratch').free>=85*1024**3
 Qwen3ForCausalLM(cfg).eval().save_pretrained(art/'checkpoint',safe_serialization=True)
 z=np.load(F.K1/'tower.npz');receipt=json.loads((F.K1/'PHASE_COMPLETE.json').read_text())
 g3t=F.FixtureG3T({k:z[k] for k in F.TOWER_KEYS},receipt['source_hw'])

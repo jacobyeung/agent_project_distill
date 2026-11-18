@@ -1,0 +1,26 @@
+Token: b9ef552934627
+Final results: 49 passed, 0 failed, 0 errors, 0 skipped.
+CPU Python: /scratch/jjyeung/envs/p1cpu/bin/python. All runs use at most eight CPU threads.
+Package, constraints, sequence, memory and guard suites passed; b2 also passed the CPU-helper suite.
+Both local entry proofs run the actual bundled bootstrap wrapper and operator subprocess.
+Allocation, namespace, storage proof, stage, restore, local paths and Python are explicit fixtures.
+The write test is real: 4 MiB under the fixture root/wpool, through the installed Popen guard.
+The operator subprocess creates MEMORY.json; b2 also creates both full-reader CPU records.
+Order, guard-target collision, operator mutation and missing/false/nonboolean entry flags fail closed.
+Seven command scripts parse; the documented pass check accepts each local receipt and rejects nine corruptions.
+Local receipts do not replace the required allocated Orchard CPU check.
+
+tests_constraints_result.json: 9 passed, 0 failed, 0 errors, 0 skipped.
+tests_guard_result.json: 19 passed, 0 failed, 0 errors, 0 skipped.
+tests_memory_result.json: 2 passed, 0 failed, 0 errors, 0 skipped.
+tests_package_result.json: 14 passed, 0 failed, 0 errors, 0 skipped.
+tests_sequence_result.json: 5 passed, 0 failed, 0 errors, 0 skipped.
+
+Commands from W7:
+PATH=/usr/bin:/bin OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 /scratch/jjyeung/envs/p1cpu/bin/python -B run_suite.py b1/tests/test_package.py b1/tests_package_result.json
+PATH=/usr/bin:/bin OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 /scratch/jjyeung/envs/p1cpu/bin/python -B run_suite.py b1/tests/test_constraints.py b1/tests_constraints_result.json
+PATH=/usr/bin:/bin OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 /scratch/jjyeung/envs/p1cpu/bin/python -B run_suite.py b1/work/test_sequence.py b1/tests_sequence_result.json
+PATH=/usr/bin:/bin OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 /scratch/jjyeung/envs/p1cpu/bin/python -B run_suite.py b1/work/test_operator_memory.py b1/tests_memory_result.json
+PATH=/usr/bin:/bin OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8 /scratch/jjyeung/envs/p1cpu/bin/python -B bundle_regression.py b1
+
+Tests retain their fixtures. Budget disk space before rerunning them.

@@ -70,6 +70,24 @@ if kit_results:
 env={**os.environ,'R2_LANE_ROOT':str(L),'R2_ALL_TESTS':'1','R2_PACKAGE_MEMBERS':str(root/'package_members.json')}
 results={}
 for variant,path in [('tree',root/'work/tree_r1'),('base',root/'work/base/tree_b01ce449')]:
+    if variant=='base':
+        prior=L/'work/n1fix/inherited'
+        original_runner=L/'work/build9fix/test_runner.py'
+        current_runner=L/'work/n1fix/test_runner.py'
+        assert original_runner.read_text().replace('work/build9fix','work/n1fix')==current_runner.read_text()
+        receipts=[]
+        for group in ('generator','legacy','r2'):
+            old=json.loads((prior/'suite_base'/group/'GROUP_RECEIPT.json').read_text())
+            assert old['inputs']['source']==base_before
+            assert old['inputs']['fixtures']==fixtures_before
+            assert old['inputs']['runner_sha256']==hashlib.sha256(original_runner.read_bytes()).hexdigest()
+            receipts.append(dict(group=group,receipt_sha256=hashlib.sha256((prior/'suite_base'/group/'GROUP_RECEIPT.json').read_bytes()).hexdigest(),inputs=old['inputs']))
+        output=L/'work/n1fix/proofs/suite_base';output.mkdir(exist_ok=True)
+        for name in ('results.json','source_hashes.json'):
+            (output/name).write_bytes((prior/'proofs/suite_base'/name).read_bytes())
+        (output/'RESUME_RECEIPT.json').write_text(json.dumps(dict(complete=True,groups=receipts,runner_equivalence='Only local harness path relocated; all source and fixture bytes match.'),indent=2))
+        results[variant]=dict(resumed=True,result=str(output/'results.json'))
+        continue
     env['R2_TREE']=str(path)
     output=L/'work/n1fix/proofs'/('suite_'+variant)
     output.mkdir(exist_ok=True)
